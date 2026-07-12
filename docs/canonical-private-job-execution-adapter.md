@@ -48,9 +48,9 @@ Executable adapter evidence currently proves:
 
 ## Boundaries
 
-This adapter is not a whole-work-graph scheduler. It does not select the next dependency-ready job, assemble terminal private review, recover a complete journey, execute providers, write Supabase, deploy workers, publish artifacts, settle customer credits, charge a wallet, bill a customer, or authorize production rendering. The private final MP4 is a QA-passed single-host test artifact, not a public export.
+This adapter is not itself a whole-work-graph scheduler or terminal review assembler. It does not select the next dependency-ready job, recover a complete journey, execute providers, write Supabase, deploy workers, publish artifacts, settle customer credits, charge a wallet, bill a customer, or authorize production rendering. The private final MP4 is a QA-passed single-host test artifact, not a public export.
 
-All responses keep product, external-beta, and production readiness false. A canonical work-graph orchestrator now consumes this adapter; the next gate is completing every required job capability and terminal private-review handoff.
+All responses keep product, external-beta, and production readiness false. A canonical work-graph orchestrator consumes this adapter, and a separate terminal assembly service proves the bounded five-job graph is ready only for private internal review.
 
 ## Verification
 

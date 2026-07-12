@@ -34,6 +34,8 @@ import { createCanonicalPrivateAudioFluxAnalysisExecutionService } from '../serv
 import { createCanonicalPrivateRembgBackgroundRemovalExecutionService } from '../services/canonical-private-rembg-background-removal-execution-service'
 import { createCanonicalPrivateDeepFilterNetVoiceCleanupExecutionService } from '../services/canonical-private-deepfilternet-voice-cleanup-execution-service'
 import { createCanonicalPrivateJobExecutionAdapterService } from '../services/canonical-private-job-execution-adapter-service'
+import { createCanonicalPrivateReviewAssemblyService } from '../services/canonical-private-review-assembly-service'
+import { createCanonicalPrivateWorkGraphOrchestratorService } from '../services/canonical-private-work-graph-orchestrator-service'
 import { createCanonicalWorkerLeaseAuthorityService } from '../services/canonical-worker-lease-authority-service'
 import { createEditPlanningAuthorityService } from '../services/edit-planning-authority-service'
 import { createExactEditPreferenceService } from '../services/exact-edit-preference-service'
@@ -263,7 +265,7 @@ const sourceMediaAuthority = {
   candidateHash: sourceCandidate.candidateHash,
 }
 
-const planBody = createDispatchPlanBody({
+const dispatchPlanInput = {
   seedAuthority,
   planningInputAuthority,
   sourceMediaAuthority,
@@ -286,7 +288,8 @@ const planBody = createDispatchPlanBody({
   libassOperationId,
   mediaSourceItem,
   matrixOperationIds,
-})
+}
+const planBody = createDispatchPlanBody(dispatchPlanInput)
 const planningService = createEditPlanningAuthorityService(context)
 const published = await planningService.publishCanonicalPlan({
   ...planBody,
@@ -2503,6 +2506,129 @@ await leaseService.release({
   idempotencyKey: 'release-libass-caption-overlay-root',
 })
 
+const terminalReviewEditSessionId = `${editSessionId}-terminal-review`
+const terminalReviewPlanningInput = await prepareExactPlanningAuthority(
+  seedSnapshot.projectId,
+  terminalReviewEditSessionId,
+)
+const terminalReviewPlanBody = createDispatchPlanBody({
+  ...dispatchPlanInput,
+  planningInputAuthority: terminalReviewPlanningInput,
+})
+terminalReviewPlanBody.planningRequestId = 'planning-terminal-private-review'
+const terminalReviewWorkItemKeys = new Set([
+  'snapshot-validation-root',
+  'source-trim-validation',
+  'libass-caption-overlay-root',
+  'remotion-source-caption-final',
+  'final-qa',
+])
+terminalReviewPlanBody.canonicalPlan.workItems = terminalReviewPlanBody.canonicalPlan.workItems.filter((workItem) =>
+  terminalReviewWorkItemKeys.has(workItem.workItemKey))
+const terminalReviewPublished = await planningService.publishCanonicalPlan({
+  ...terminalReviewPlanBody,
+  projectId: seedSnapshot.projectId,
+  editSessionId: terminalReviewEditSessionId,
+  idempotencyKey: 'publish-terminal-private-review-canonical-plan',
+})
+const terminalReviewPublishedAuthority = asRecord(terminalReviewPublished.authority)
+const terminalReviewPublishedPlan = asRecord(terminalReviewPublishedAuthority.plan)
+const terminalReviewPublishedEstimate = asRecord(terminalReviewPublishedAuthority.estimate)
+const terminalReviewApproved = await planningService.approveAndFundCanonicalPlan({
+  workspaceId,
+  editPlanId: String(terminalReviewPublishedPlan.id),
+  expectedAuthorityRevision: Number(terminalReviewPublishedAuthority.authorityRevision),
+  expectedPlanHash: String(terminalReviewPublishedPlan.planHash),
+  expectedEstimateHash: String(terminalReviewPublishedEstimate.estimateHash),
+  idempotencyKey: 'approve-terminal-private-review-canonical-plan',
+})
+const terminalReviewApprovedSnapshot = asRecord(asRecord(terminalReviewApproved.authority).snapshot)
+const terminalReviewPackage = await createCanonicalEditExecutionPackageService(context).createPackage({
+  workspaceId,
+  approvedPlanSnapshotId: String(terminalReviewApprovedSnapshot.snapshotId),
+  expectedSnapshotHash: String(terminalReviewApprovedSnapshot.snapshotHash),
+  purpose: 'private_internal_execution_handoff',
+  idempotencyKey: 'package-terminal-private-review-canonical-plan',
+})
+const terminalReviewPackageRecordId = terminalReviewPackage.approvedEditExecutionPackage.packageRecordId
+const terminalWorkGraph = await createCanonicalPrivateWorkGraphOrchestratorService(context).run({
+  workspaceId,
+  packageRecordId: terminalReviewPackageRecordId,
+  purpose: 'run_canonical_private_work_graph',
+  idempotencyKey: 'run-terminal-private-review-canonical-graph',
+})
+assert.equal(terminalWorkGraph.status, 'completed_private_test_work_graph')
+assert.equal(terminalWorkGraph.summary.totalJobCount, 5)
+assert.equal(terminalWorkGraph.summary.completedJobCount, 5)
+assert.equal(terminalWorkGraph.summary.requiredBlockedJobCount, 0)
+assert.equal(terminalWorkGraph.summary.allRequiredJobsCompleted, true)
+assert.equal(terminalWorkGraph.readiness.privateInternalWorkGraphCompleted, true)
+assert.equal(terminalWorkGraph.readiness.privateReviewReady, false)
+assert.equal(terminalWorkGraph.readiness.nextRequiredGate, 'canonical_terminal_private_review_assembly')
+const terminalWorkGraphReplay = await createCanonicalPrivateWorkGraphOrchestratorService(context).run({
+  workspaceId,
+  packageRecordId: terminalReviewPackageRecordId,
+  purpose: 'run_canonical_private_work_graph',
+  idempotencyKey: 'run-terminal-private-review-canonical-graph',
+})
+assert.equal(terminalWorkGraphReplay.evidence.idempotentRunReplay, true)
+assert.equal(terminalWorkGraphReplay.summary.completedJobCount, 5)
+
+const privateReviewService = createCanonicalPrivateReviewAssemblyService(context)
+await expectApiError(
+  () => privateReviewService.assemble({
+    workspaceId,
+    packageRecordId: terminalReviewPackageRecordId,
+    purpose: 'assemble_canonical_private_review',
+    idempotencyKey: 'terminal-private-review-reject-caller-artifact',
+    artifactId: coordinatedFinalComposition.result.artifactId,
+  } as never),
+  'VALIDATION_FAILED',
+)
+const terminalPrivateReviewInput = {
+  workspaceId,
+  packageRecordId: terminalReviewPackageRecordId,
+  purpose: 'assemble_canonical_private_review' as const,
+  idempotencyKey: 'assemble-terminal-private-review',
+}
+const terminalPrivateReview = await privateReviewService.assemble(terminalPrivateReviewInput)
+assert.equal(terminalPrivateReview.status, 'ready_for_private_internal_review')
+assert.equal(terminalPrivateReview.requiredExecution.requiredJobCount, 5)
+assert.equal(terminalPrivateReview.requiredExecution.requiredExpectedAssetCount, 5)
+assert.equal(terminalPrivateReview.requiredExecution.allRequiredJobsCompleted, true)
+assert.equal(terminalPrivateReview.requiredExecution.allRequiredAssetsQaPassed, true)
+assert.equal(terminalPrivateReview.requiredExecution.allRequiredAssetsReconciled, true)
+assert.equal(terminalPrivateReview.finalArtifact.contentType, 'video/mp4')
+assert.equal(terminalPrivateReview.finalArtifact.privateDownloadAvailable, true)
+assert.equal(terminalPrivateReview.finalArtifact.publicUrlCreated, false)
+assert.equal(terminalPrivateReview.finalQaArtifact.canonicalToolId, 'ffprobe')
+assert.equal(terminalPrivateReview.finalQaArtifact.finalQaGatesPassed, true)
+assert.equal(terminalPrivateReview.chain.finalQaInputBoundToFinalArtifact, true)
+assert.equal(terminalPrivateReview.manifest.privateCreateOnlyPersistence, true)
+assert.equal(terminalPrivateReview.manifest.credentialFree, true)
+assert.equal(terminalPrivateReview.readiness.privateReviewReady, true)
+assert.equal(terminalPrivateReview.readiness.publicExportReady, false)
+assert.equal(terminalPrivateReview.readiness.productReady, false)
+assert.equal(terminalPrivateReview.permissions.publicDelivery, false)
+assert.equal(terminalPrivateReview.permissions.billing, false)
+const terminalPrivateReviewReplay = await privateReviewService.assemble(terminalPrivateReviewInput)
+assert.equal(terminalPrivateReviewReplay.identity.reviewAssemblyId, terminalPrivateReview.identity.reviewAssemblyId)
+assert.equal(terminalPrivateReviewReplay.manifest.manifestSha256, terminalPrivateReview.manifest.manifestSha256)
+assert.equal(terminalPrivateReviewReplay.replay.idempotentReplay, true)
+const terminalPrivateReviewDownload = await createCanonicalPrivateFinalArtifactDownloadService(context).read({
+  workspaceId,
+  projectId: terminalPrivateReview.identity.projectId,
+  editSessionId: terminalPrivateReview.identity.editSessionId,
+  snapshotId: terminalPrivateReview.identity.approvedPlanSnapshotId,
+  jobId: terminalPrivateReview.finalArtifact.jobId,
+  expectedAssetId: terminalPrivateReview.finalArtifact.expectedAssetId,
+  artifactId: terminalPrivateReview.finalArtifact.artifactId,
+  purpose: 'download_canonical_private_final_artifact',
+})
+assert.equal(terminalPrivateReviewDownload.sha256, terminalPrivateReview.finalArtifact.sha256)
+assert.equal(terminalPrivateReviewDownload.publicUrlCreated, false)
+assert.equal(terminalPrivateReviewDownload.signedUrlCreated, false)
+
 const binaryRuntime = await activatePrivateOfflineMediaBinaryRuntime()
 const probeClaim = (await leaseService.claim({
   workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
@@ -2653,7 +2779,10 @@ await leaseService.release({
 })
 
 const authorityAfterDispatch = await requireEditAuthority(workspaceId)
-assert.equal(sha256AuthorityValue(authorityAfterDispatch), sha256AuthorityValue(aggregateBeforeDispatch))
+assert.equal(
+  sha256AuthorityValue(snapshotAuthoritySlice(authorityAfterDispatch, snapshot.snapshotId)),
+  sha256AuthorityValue(snapshotAuthoritySlice(aggregateBeforeDispatch, snapshot.snapshotId)),
+)
 
 const originalDispatchStoreText = await readFile(persistedPath, 'utf8')
 const dependencyTamperedStore = JSON.parse(originalDispatchStoreText) as {
@@ -2679,7 +2808,7 @@ clearPrivateCanonicalToolDispatchProcessStateForSmoke()
 await expectApiError(() => requireDispatchAggregate(), 'VALIDATION_FAILED')
 await writeFile(persistedPath, originalDispatchStoreText)
 clearPrivateCanonicalToolDispatchProcessStateForSmoke()
-assert.equal((await requireDispatchAggregate()).grants.length, 55)
+assert.equal((await requireDispatchAggregate()).grants.length, 58)
 
 await expectApiError(
   () => createCanonicalPrivateToolDispatchAuthorityService({
@@ -2799,6 +2928,9 @@ console.log(JSON.stringify({
     'private_final_composition_consumes_exact_source_trim_authority_and_caption_with_h264_aac_final_qa_while_public_delivery_and_settlement_remain_false',
     'dependency_bound_final_ffprobe_reads_the_private_final_mp4_and_passes_exact_h264_aac_frame_duration_qa',
     'canonical_job_adapter_replays_final_artifact_qa_without_a_second_ffprobe_execution',
+    'five_job_canonical_work_graph_completes_snapshot_trim_caption_final_composition_and_final_qa',
+    'terminal_private_review_assembly_requires_every_required_artifact_qa_reconciliation_and_exact_final_qa_lease_binding',
+    'credential_free_private_review_manifest_is_create_only_replay_safe_and_privately_downloadable',
     'authenticated_private_final_mp4_download_reopens_exact_qa_passed_bytes_without_public_or_signed_url',
     'checksum_protected_restart_safe_private_store',
     'dependency_authority_binding_tamper_rejected_by_immutable_record_validation',
@@ -2852,37 +2984,37 @@ async function uploadCanonicalMediaFixture(projectId: string) {
   return { ...finalized, checksumSha256 }
 }
 
-async function prepareExactPlanningAuthority(projectId: string) {
+async function prepareExactPlanningAuthority(projectId: string, targetEditSessionId = editSessionId) {
   const exactService = createExactEditPreferenceService(context)
   const initialized = await exactService.initialize({
     workspaceId,
     projectId,
-    editSessionId,
-    idempotencyKey: 'initialize-tool-dispatch-exact-preferences',
+    editSessionId: targetEditSessionId,
+    idempotencyKey: `initialize-tool-dispatch-exact-preferences:${targetEditSessionId}`,
   })
   const updated = await exactService.updateCurrent({
     workspaceId,
     projectId,
-    editSessionId,
+    editSessionId: targetEditSessionId,
     expectedRevision: initialized.preferenceRecord.recordRevision,
     patch: { editLevel: 'basic', targetPlatform: 'tiktok_reels_shorts' },
-    idempotencyKey: 'update-tool-dispatch-exact-preferences',
+    idempotencyKey: `update-tool-dispatch-exact-preferences:${targetEditSessionId}`,
   })
   const evidence = await exactService.recordPlanningEvidence({
     workspaceId,
     projectId,
-    editSessionId,
+    editSessionId: targetEditSessionId,
     expectedRevision: updated.preferenceRecord.recordRevision,
     sourcePreparation: {
       status: 'ready',
-      evidenceHash: sha256Text(`dispatch-source-preparation:${workspaceId}:${projectId}:${editSessionId}`),
+      evidenceHash: sha256Text(`dispatch-source-preparation:${workspaceId}:${projectId}:${targetEditSessionId}`),
     },
     frameConfirmation: {
       status: 'confirmed',
       aspectRatio: '9:16',
-      confirmationId: 'dispatch-frame-confirmation',
+      confirmationId: `dispatch-frame-confirmation:${targetEditSessionId}`,
     },
-    idempotencyKey: 'tool-dispatch-planning-evidence',
+    idempotencyKey: `tool-dispatch-planning-evidence:${targetEditSessionId}`,
   })
   return {
     exactEditPreference: {
@@ -4509,6 +4641,24 @@ async function requireEditAuthority(targetWorkspaceId: string) {
   })
   assert.ok(aggregate)
   return aggregate
+}
+
+function snapshotAuthoritySlice(
+  aggregate: Awaited<ReturnType<typeof requireEditAuthority>>,
+  snapshotId: string,
+) {
+  const snapshot = aggregate.snapshots.find((candidate) => candidate.snapshotId === snapshotId)
+  assert.ok(snapshot)
+  return {
+    snapshot,
+    plan: aggregate.plans.find((candidate) => candidate.id === snapshot.planId),
+    estimate: aggregate.estimates.find((candidate) => candidate.id === snapshot.estimateId),
+    reservation: aggregate.reservations.find((candidate) => candidate.id === snapshot.reservationId),
+    approval: aggregate.approvals.find((candidate) => candidate.id === snapshot.approvalId),
+    approvedWorkItems: aggregate.approvedWorkItems.filter((candidate) => candidate.snapshotId === snapshotId),
+    jobs: aggregate.jobs.filter((candidate) => candidate.snapshotId === snapshotId),
+    executionPackages: aggregate.executionPackages.filter((candidate) => candidate.snapshotId === snapshotId),
+  }
 }
 
 async function requireDispatchAggregate() {

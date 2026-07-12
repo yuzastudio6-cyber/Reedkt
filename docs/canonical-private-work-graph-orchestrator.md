@@ -1,6 +1,6 @@
 # Canonical Private Work-Graph Orchestrator
 
-Status: private single-host run-to-blocked execution evidence
+Status: private single-host run-to-blocked and bounded complete-graph evidence
 
 The canonical private work-graph orchestrator advances an approved execution package in immutable dependency order. It uses the canonical single-job adapter and never revives the caller-authored legacy pipeline.
 
@@ -40,13 +40,14 @@ The authenticated smoke publishes and approves a fresh four-job canonical plan, 
 - a continuation run reuses the completed root job without duplicate execution;
 - provider, public artifact, delivery, customer price/credit, wallet, billing, settlement, deployment, and production permissions remain false.
 
+The same smoke also publishes and approves a separate dependency-complete five-job plan and proves the orchestrator executes approved-snapshot validation, source-trim validation, libass caption generation, trim-authoritative Remotion final composition, and independent dependency-bound FFprobe final QA in exact topological order. A replay reuses all five completed jobs without a second tool execution. The resulting package is eligible for the separate canonical private-review assembly service.
+
 ## Boundaries
 
-This is honest run-to-blocked orchestration, not a completed upload-to-review journey. The single-job adapter now proves an exact source-trim-authority + caption-overlay + Remotion final-composition lifecycle and a downstream dependency-bound final-artifact ffprobe QA job. This orchestrator fixture does not yet build and schedule that complete caption/render/final-QA graph. Terminal private-review assembly, revision/recovery, browser approval handoff, distributed worker transactions, providers, Supabase, billing, public delivery, and production promotion remain gated.
+This proves both honest run-to-blocked behavior and one bounded, dependency-complete private graph against generated fixture media. It is not a general real-user upload-to-review claim. The separate terminal service assembles that bounded graph for private internal review only. Revision/recovery, browser approval handoff, arbitrary capability-plan compilation, deployed storage and workers, providers, Supabase, billing, public delivery, and production promotion remain gated.
 
 ## Verification
 
 - `npm run typecheck:server`
-- `npm run smoke:edit-planning-authority`
-- `npm run smoke:private-internal-edit-upload-e2e`
+- `npm run smoke:canonical-private-tool-dispatch`
 - `npm run qa:internal-pipeline`

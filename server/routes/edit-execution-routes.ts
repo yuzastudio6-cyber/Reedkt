@@ -8,6 +8,7 @@ import { createCanonicalEditExecutionPackageService } from '../services/canonica
 import { createCanonicalExecutionReadinessService } from '../services/canonical-execution-readiness-service'
 import { createCanonicalPrivateFinalArtifactDownloadService } from '../services/canonical-private-final-artifact-download-service'
 import { createCanonicalPrivateJobExecutionAdapterService } from '../services/canonical-private-job-execution-adapter-service'
+import { createCanonicalPrivateReviewAssemblyService } from '../services/canonical-private-review-assembly-service'
 import { createCanonicalPrivateWorkGraphOrchestratorService } from '../services/canonical-private-work-graph-orchestrator-service'
 import { createCanonicalWorkerLeaseAuthorityService } from '../services/canonical-worker-lease-authority-service'
 import {
@@ -50,6 +51,7 @@ import { inspectToolRuntimeEvidenceSchema } from '../validation/tool-runtime-evi
 import { canonicalPrivateFinalArtifactDownloadQuerySchema } from '../validation/canonical-private-final-artifact-download-schemas'
 import { executeCanonicalPrivateJobAdapterSchema } from '../validation/canonical-private-job-execution-adapter-schemas'
 import { runCanonicalPrivateWorkGraphSchema } from '../validation/canonical-private-work-graph-run-schemas'
+import { assembleCanonicalPrivateReviewSchema } from '../validation/canonical-private-review-assembly-schemas'
 import {
   claimCanonicalWorkerLeaseRouteBodySchema,
   heartbeatCanonicalWorkerLeaseRouteBodySchema,
@@ -308,12 +310,25 @@ export function createEditExecutionRoutes(options: EditExecutionRouteOptions = {
     ], 201)
   }))
 
+  router.post('/v1/edit-executions/packages/:packageRecordId/private-review-assemblies', requireAuth, requireIdempotency, asyncRoute(async (request, response) => {
+    const body = validateBody(assembleCanonicalPrivateReviewSchema, request.body)
+    const result = await createCanonicalPrivateReviewAssemblyService(getServiceContext(request)).assemble({
+      ...body,
+      packageRecordId: getRouteParam(request, 'packageRecordId'),
+      idempotencyKey: getIdempotencyKey(request),
+    })
+    sendOk(response, { canonicalPrivateReviewAssembly: result }, [
+      'This route assembles a credential-free private/internal review manifest from fully completed canonical required jobs.',
+      'Public export, providers, customer pricing/credits, wallet, billing, settlement, deployment, and production authority remain disabled.',
+    ], 201)
+  }))
+
   router.use('/v1/edit-executions', asyncRoute(async () => {
     throw new ApiError(
       'TOOL_NOT_READY',
-      'Legacy execution stages remain disabled. Canonical dependency scheduling is available, but required job capabilities and terminal private-review assembly are not yet complete.',
+      'Legacy execution stages remain disabled. The bounded canonical fixture can reach private review; real-user upload binding, review decisions, and revision/recovery must use future canonical authority instead of this legacy route.',
       503,
-      { requiredGate: 'canonical_required_job_capabilities_and_terminal_private_review' },
+      { requiredGate: 'canonical_real_user_upload_binding_review_decision_and_revision_recovery' },
     )
   }))
 

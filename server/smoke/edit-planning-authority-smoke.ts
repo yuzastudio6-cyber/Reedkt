@@ -9,6 +9,7 @@ import { createReeditProApiApp } from '../app'
 import { ApiError } from '../errors/api-error'
 import { loadRuntimeEnv } from '../config/env'
 import { createEditPlanningAuthorityService } from '../services/edit-planning-authority-service'
+import { createCanonicalPlanningHandoffService } from '../services/canonical-planning-handoff-service'
 import { createExactEditPreferenceService } from '../services/exact-edit-preference-service'
 import {
   buildEditBriefAuthorityPublicationBinding,
@@ -711,6 +712,30 @@ try {
     routePlanningHandoff,
     'Exact planning handoff replay must return the same content-addressed private authority.',
   )
+  const planningHandoffInspectionUrl =
+    `${routeBaseUrl}/v1/projects/${routeProjectId}/edit-sessions/route-edit-session/` +
+    `canonical-planning-handoffs/${String(routePlanningHandoff.handoffId)}?workspaceId=${routeWorkspaceId}`
+  const unauthenticatedHandoffInspection = await fetch(planningHandoffInspectionUrl)
+  assert.equal(unauthenticatedHandoffInspection.status, 401)
+  const crossUserHandoffInspection = await fetch(planningHandoffInspectionUrl, {
+    headers: { authorization: 'Bearer verified-other-authority-token' },
+  })
+  assert.equal(crossUserHandoffInspection.status, 404)
+  const unpublishedHandoffInspectionResponse = await fetch(planningHandoffInspectionUrl, {
+    headers: routeAuthHeaders,
+  })
+  assert.equal(unpublishedHandoffInspectionResponse.status, 200)
+  const unpublishedHandoffInspectionEnvelope = await unpublishedHandoffInspectionResponse.json() as {
+    data?: { canonicalPlanningHandoffInspection?: Record<string, unknown> }
+  }
+  const unpublishedHandoffInspection = asRecord(
+    unpublishedHandoffInspectionEnvelope.data?.canonicalPlanningHandoffInspection,
+  )
+  assert.equal(unpublishedHandoffInspection.publicationStatus, 'unpublished')
+  assert.equal(asRecord(unpublishedHandoffInspection.publication).fullRevalidationRequired, true)
+  assert.equal(asRecord(unpublishedHandoffInspection.publication).exactReplayOnly, false)
+  assert.equal(asRecord(unpublishedHandoffInspection.permissions).inspectionOnly, true)
+  assert.equal(unpublishedHandoffInspection.pathOrCredentialReturned, false)
 
   const {
     planningInputAuthority: _callerPlanningInputAuthority,
@@ -787,6 +812,33 @@ try {
     String(asRecord(routePlanComponentRefs.planningHandoffAuthority).sha256),
     /^[a-f0-9]{64}$/,
   )
+  const publishedHandoffInspectionResponse = await fetch(planningHandoffInspectionUrl, {
+    headers: routeAuthHeaders,
+  })
+  assert.equal(publishedHandoffInspectionResponse.status, 200)
+  const publishedHandoffInspectionEnvelope = await publishedHandoffInspectionResponse.json() as {
+    data?: { canonicalPlanningHandoffInspection?: Record<string, unknown> }
+  }
+  const publishedHandoffInspection = asRecord(
+    publishedHandoffInspectionEnvelope.data?.canonicalPlanningHandoffInspection,
+  )
+  assert.equal(publishedHandoffInspection.publicationStatus, 'published')
+  const publishedHandoffInspectionPublication = asRecord(publishedHandoffInspection.publication)
+  assert.equal(publishedHandoffInspectionPublication.planId, routePlan.id)
+  assert.equal(publishedHandoffInspectionPublication.planHash, routePlan.planHash)
+  assert.equal(publishedHandoffInspectionPublication.planStatus, 'presented')
+  assert.equal(publishedHandoffInspectionPublication.exactReplayOnly, true)
+  assert.equal(publishedHandoffInspectionPublication.newPublicationMayBeAttempted, false)
+  const freshServiceHandoffInspection = await createCanonicalPlanningHandoffService({
+    ...context,
+    requestId: 'planning-handoff-fresh-service-recovery',
+  }).inspect({
+    workspaceId: routeWorkspaceId,
+    projectId: routeProjectId,
+    editSessionId: 'route-edit-session',
+    handoffId: String(routePlanningHandoff.handoffId),
+  })
+  assert.deepEqual(freshServiceHandoffInspection, publishedHandoffInspection)
   const persistedHandoffPublishReplay = await fetch(persistedHandoffPublishUrl, {
     method: 'POST',
     headers: {
@@ -2172,6 +2224,8 @@ console.log(JSON.stringify({
     'persisted_planning_handoff_binding_frozen_into_canonical_plan_authority',
     'persisted_planning_handoff_exact_publication_replay_recovers_from_canonical_plan_binding',
     'persisted_planning_handoff_second_key_and_work_graph_substitution_rejected',
+    'authenticated_handoff_inspection_reports_unpublished_and_published_state_without_authority',
+    'handoff_inspection_is_cross_user_hidden_checksum_fail_closed_and_fresh_service_recoverable',
     'legacy_direct_canonical_publication_http_route_fails_closed',
     'all_authenticated_canonical_route_fixtures_publish_through_persisted_handoffs',
     'authenticated_canonical_execution_readiness_http_route',
@@ -2673,6 +2727,13 @@ async function provePersistedHandoffStaleAuthorityRejection(input: {
   tamperedRecord.checksumSha256 = 'f'.repeat(64)
   try {
     await writeFile(handoffRecordPath, `${JSON.stringify(tamperedRecord)}\n`, 'utf8')
+    const tamperedHandoffInspectionResponse = await fetch(
+      `${input.routeBaseUrl}/v1/projects/${tamperedHandoff.project.id}/` +
+      `edit-sessions/${tamperedHandoff.editSessionId}/canonical-planning-handoffs/` +
+      `${tamperedHandoff.handoffId}?workspaceId=${input.routeWorkspaceId}`,
+      { headers: input.routeAuthHeaders },
+    )
+    assert.equal(tamperedHandoffInspectionResponse.status, 409)
     const tamperedHandoffResponse = await fetch(tamperedHandoff.publishUrl, {
       method: 'POST',
       headers: {

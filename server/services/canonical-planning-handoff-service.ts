@@ -2,8 +2,10 @@ import { ApiError } from '../errors/api-error'
 import type { ServiceContext } from '../types'
 import {
   canonicalPlanningHandoffResponseSchema,
+  canonicalPlanningHandoffInspectionResponseSchema,
   createCanonicalPlanningHandoffSchema,
   publishCanonicalEditPlanFromHandoffSchema,
+  type CanonicalPlanningHandoffInspectionQuery,
   type CreateCanonicalPlanningHandoffBody,
   type PublishCanonicalEditPlanFromHandoffBody,
 } from '../validation/canonical-planning-handoff-schemas'
@@ -146,6 +148,108 @@ export function createCanonicalPlanningHandoffService(context: ServiceContext) {
         },
       })
       return (await persistPrivateCanonicalPlanningHandoff({ scope, handoff })).handoff
+    },
+
+    async inspect(input: CanonicalPlanningHandoffInspectionQuery & {
+      projectId: string
+      editSessionId: string
+      handoffId: string
+    }) {
+      if (
+        !safeIdentity(input.workspaceId) ||
+        !safeIdentity(input.projectId) ||
+        !safeIdentity(input.editSessionId) ||
+        !safeIdentity(input.handoffId)
+      ) {
+        throw new ApiError(
+          'VALIDATION_FAILED',
+          'Canonical planning handoff inspection identity is invalid.',
+          400,
+        )
+      }
+      assertPrivatePlanningHandoffRuntime(context)
+      const actorUserId = getRequiredAuthUserId(context)
+      const access = await authorizeWorkspaceAccess(context, input.workspaceId, 'read')
+      if (access.userId !== actorUserId) {
+        throw new ApiError('AUTH_REQUIRED', 'Canonical planning handoff is outside this workspace.', 403)
+      }
+      await createProjectService(context).getProject(input.projectId, access.workspaceId)
+      const scope = {
+        localStorageRoot: context.env.localStorageRoot,
+        ownerUserId: actorUserId,
+        workspaceId: access.workspaceId,
+        projectId: input.projectId,
+        editSessionId: input.editSessionId,
+      }
+      const handoff = await readPrivateCanonicalPlanningHandoff({
+        scope,
+        handoffId: input.handoffId,
+      })
+      const existingPublication = await createEditPlanningAuthorityService(context)
+        .findCanonicalPlanPublicationByPlanningHandoff(handoff.handoffId, access.workspaceId)
+      const responseBase = {
+        schemaVersion: 'canonical-planning-handoff-inspection-v1' as const,
+        source: 'canonical_planning_handoff_service' as const,
+        identity: {
+          workspaceId: access.workspaceId,
+          projectId: input.projectId,
+          editSessionId: input.editSessionId,
+          handoffId: handoff.handoffId,
+        },
+        handoffHash: handoff.handoffHash,
+        canonicalPlanComponentsHash: handoff.canonicalPlanComponentsHash,
+        persistence: handoff.persistence,
+        permissions: {
+          inspectionOnly: true as const,
+          planMutation: false as const,
+          snapshotCreation: false as const,
+          creditReservation: false as const,
+          toolExecution: false as const,
+          providerCall: false as const,
+          render: false as const,
+        },
+        pathOrCredentialReturned: false as const,
+        testOnly: true as const,
+      }
+      if (!existingPublication) {
+        return canonicalPlanningHandoffInspectionResponseSchema.parse({
+          ...responseBase,
+          publicationStatus: 'unpublished',
+          publication: {
+            newPublicationMayBeAttempted: true,
+            fullRevalidationRequired: true,
+            exactReplayOnly: false,
+          },
+        })
+      }
+      if (
+        existingPublication.projectId !== input.projectId ||
+        existingPublication.editSessionId !== input.editSessionId ||
+        existingPublication.binding.handoffHash !== handoff.handoffHash ||
+        existingPublication.binding.canonicalPlanComponentsHash !==
+          handoff.canonicalPlanComponentsHash
+      ) {
+        throw new ApiError(
+          'IDEMPOTENCY_CONFLICT',
+          'Canonical planning handoff publication recovery lineage is inconsistent.',
+          409,
+        )
+      }
+      return canonicalPlanningHandoffInspectionResponseSchema.parse({
+        ...responseBase,
+        publicationStatus: 'published',
+        publication: {
+          planId: existingPublication.planId,
+          planningRequestId: existingPublication.planningRequestId,
+          planVersion: existingPublication.planVersion,
+          planStatus: existingPublication.planStatus,
+          planHash: existingPublication.planHash,
+          publicationRequestHash: existingPublication.binding.publicationRequestHash,
+          newPublicationMayBeAttempted: false,
+          fullRevalidationRequired: true,
+          exactReplayOnly: true,
+        },
+      })
     },
 
     async publishFromPersistedHandoff(input: PublishCanonicalEditPlanFromHandoffBody & {

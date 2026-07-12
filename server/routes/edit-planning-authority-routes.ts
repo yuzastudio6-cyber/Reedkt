@@ -7,6 +7,7 @@ import { createCanonicalPlanningHandoffService } from '../services/canonical-pla
 import { createCanonicalPreExecutionCancellationService } from '../services/canonical-pre-execution-cancellation-service'
 import {
   createCanonicalPlanningHandoffSchema,
+  canonicalPlanningHandoffInspectionQuerySchema,
   publishCanonicalEditPlanFromHandoffSchema,
 } from '../validation/canonical-planning-handoff-schemas'
 import { cancelCanonicalApprovedSnapshotSchema } from '../validation/canonical-pre-execution-cancellation-schemas'
@@ -39,6 +40,25 @@ export function createEditPlanningAuthorityRoutes(): Router {
       sendOk(response, { canonicalPlanningHandoff: handoff }, [
         'This authenticated handoff verified finalized source media plus the current Exact Edit Preferences, Preference DNA application, Edit Brief, frame, and cleanup state without publishing a plan.',
         'Plan publication, approval, credit reservation, tools, providers, rendering, and production remain separate gates.',
+      ])
+    }),
+  )
+
+  router.get(
+    '/v1/projects/:projectId/edit-sessions/:editSessionId/canonical-planning-handoffs/:handoffId',
+    requireAuth,
+    asyncRoute(async (request, response) => {
+      const query = validateBody(canonicalPlanningHandoffInspectionQuerySchema, request.query)
+      const inspection = await createCanonicalPlanningHandoffService(
+        getServiceContext(request),
+      ).inspect({
+        ...query,
+        projectId: getRouteParam(request, 'projectId'),
+        editSessionId: getRouteParam(request, 'editSessionId'),
+        handoffId: getRouteParam(request, 'handoffId'),
+      })
+      sendOk(response, { canonicalPlanningHandoffInspection: inspection }, [
+        'Inspection verifies persisted single-host handoff integrity and publication lineage only; publication still performs full current-state revalidation.',
       ])
     }),
   )

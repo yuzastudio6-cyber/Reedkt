@@ -29,6 +29,12 @@ One persisted handoff can publish exactly one full canonical publication request
 
 The former direct HTTP route, `POST /v1/projects/:projectId/edit-sessions/:editSessionId/canonical-plans`, now fails closed with `TOOL_NOT_READY` and identifies the persisted-handoff publication route as its replacement. Service-level construction remains available to bounded backend fixtures, but authenticated HTTP callers cannot bypass persisted server-loaded planning/source authority.
 
+Authenticated restart/recovery inspection is available at:
+
+`GET /v1/projects/:projectId/edit-sessions/:editSessionId/canonical-planning-handoffs/:handoffId?workspaceId=:workspaceId`
+
+The tenant-scoped response reports checksum-verified handoff identity and either `unpublished` with full publication revalidation required, or `published` with immutable plan identity and exact-replay-only status. It is inspection-only: it returns no filesystem path, credential, raw media, execution input, provider authority, credit authority, or mutation permission. Same-workspace users cannot inspect another owner's handoff, checksum tampering fails closed, and a fresh service instance recovers published state from the canonical plan binding.
+
 ## Verified authority
 
 The service fails closed unless all of the following agree:

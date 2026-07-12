@@ -920,6 +920,9 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
       projectId: string
       editSessionId: string
       planningRequestId: string
+      planVersion: number
+      planStatus: AuthorityPlanRecord['status']
+      planHash: string
       binding: CanonicalPlanningHandoffPublicationBinding
     } | undefined> {
       requirePrivateAuthorityRuntime(context)
@@ -970,6 +973,9 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         projectId: match.plan.projectId,
         editSessionId: match.plan.editSessionId,
         planningRequestId: match.plan.planningRequestId,
+        planVersion: match.plan.planVersion,
+        planStatus: match.plan.status,
+        planHash: match.plan.planHash,
         binding: match.binding,
       }
     },

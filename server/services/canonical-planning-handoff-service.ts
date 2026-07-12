@@ -24,6 +24,8 @@ import { sha256AuthorityValue, stableAuthorityStringify } from './private-edit-a
 import {
   canonicalPlanningHandoffId,
   persistPrivateCanonicalPlanningHandoff,
+  persistLatestPrivateCanonicalPlanningHandoff,
+  readLatestPrivateCanonicalPlanningHandoff,
   readPrivateCanonicalPlanningHandoff,
   type CanonicalPlanningHandoffStoreScope,
 } from './private-canonical-planning-handoff-store'
@@ -32,6 +34,7 @@ import { getRequiredAuthUserId } from './service-helpers'
 import { authorizeWorkspaceAccess } from './workspace-access-service'
 
 const publicationLocks = new Map<string, Promise<void>>()
+const preparationLocks = new Map<string, Promise<void>>()
 
 export function createCanonicalPlanningHandoffService(context: ServiceContext) {
   return {
@@ -75,19 +78,6 @@ export function createCanonicalPlanningHandoffService(context: ServiceContext) {
         )
       }
 
-      const sourceResult = await createSourceMediaAuthorityService(context).buildManifestCandidate({
-        workspaceId: access.workspaceId,
-        projectId,
-        uploadPurpose: 'source_media',
-        orderedItems: body.orderedSourceItems,
-      })
-      const sourceCandidate = sourceResult.sourceBindingManifestCandidate
-      const sourceMediaAuthority = {
-        authorityRevision: sourceCandidate.authorityRevision,
-        authorityChecksumSha256: sourceCandidate.authorityChecksumSha256,
-        sourceSequenceHash: sourceCandidate.sourceSequenceHash,
-        candidateHash: sourceCandidate.candidateHash,
-      }
       const scope = {
         localStorageRoot: context.env.localStorageRoot,
         ownerUserId: actorUserId,
@@ -95,59 +85,120 @@ export function createCanonicalPlanningHandoffService(context: ServiceContext) {
         projectId,
         editSessionId,
       }
-      const planningInputAuthority = await buildCurrentPlanningInputAuthorityExpectation(scope)
-      const resolvedPlanningInputAuthority = await resolvePlanningInputAuthorityBinding({
-        context,
-        scope,
-        expectation: planningInputAuthority,
-        components: body.canonicalPlanComponents,
-      })
-      const canonicalPlanComponentsHash = sha256AuthorityValue(body.canonicalPlanComponents)
-      const responseWithoutHash = {
-        schemaVersion: 'canonical-planning-handoff-response-v1' as const,
-        source: 'canonical_planning_handoff_service' as const,
-        identity: {
+      return withPreparationLock(scope, async () => {
+        const sourceResult = await createSourceMediaAuthorityService(context).buildManifestCandidate({
           workspaceId: access.workspaceId,
           projectId,
-          editSessionId,
-        },
-        canonicalPlanComponentsHash,
-        sourceBindingManifestCandidate: sourceCandidate,
-        sourceMediaAuthority,
-        planningInputAuthority,
-        resolvedPlanningInputAuthority,
-        readiness: {
-          finalizedSourceMediaVerified: true as const,
-          exactEditPreferencesVerified: true as const,
-          preferenceApplicationVerified: true as const,
-          editBriefVerified: true as const,
-          outputFrameAndCleanupVerified: true as const,
-          readyForCanonicalPlanPublication: true as const,
-        },
-        noPlanPublished: true as const,
-        noSnapshotCreated: true as const,
-        noCreditReservation: true as const,
-        noToolExecution: true as const,
-        noProviderCall: true as const,
-        noRender: true as const,
-        testOnly: true as const,
-      }
-      const handoffHash = sha256AuthorityValue(responseWithoutHash)
-      const handoff = canonicalPlanningHandoffResponseSchema.parse({
-        ...responseWithoutHash,
-        handoffHash,
-        handoffId: canonicalPlanningHandoffId(handoffHash),
-        persistence: {
-          privateLocal: true,
-          tenantScoped: true,
-          createOnly: true,
-          checksumProtected: true,
-          contentAddressed: true,
-          distributed: false,
-          productionAuthority: false,
-        },
+          uploadPurpose: 'source_media',
+          orderedItems: body.orderedSourceItems,
+        })
+        const sourceCandidate = sourceResult.sourceBindingManifestCandidate
+        const sourceMediaAuthority = {
+          authorityRevision: sourceCandidate.authorityRevision,
+          authorityChecksumSha256: sourceCandidate.authorityChecksumSha256,
+          sourceSequenceHash: sourceCandidate.sourceSequenceHash,
+          candidateHash: sourceCandidate.candidateHash,
+        }
+        const planningInputAuthority = await buildCurrentPlanningInputAuthorityExpectation(scope)
+        const resolvedPlanningInputAuthority = await resolvePlanningInputAuthorityBinding({
+          context,
+          scope,
+          expectation: planningInputAuthority,
+          components: body.canonicalPlanComponents,
+        })
+        const canonicalPlanComponentsHash = sha256AuthorityValue(body.canonicalPlanComponents)
+        const responseWithoutHash = {
+          schemaVersion: 'canonical-planning-handoff-response-v1' as const,
+          source: 'canonical_planning_handoff_service' as const,
+          identity: {
+            workspaceId: access.workspaceId,
+            projectId,
+            editSessionId,
+          },
+          canonicalPlanComponentsHash,
+          sourceBindingManifestCandidate: sourceCandidate,
+          sourceMediaAuthority,
+          planningInputAuthority,
+          resolvedPlanningInputAuthority,
+          readiness: {
+            finalizedSourceMediaVerified: true as const,
+            exactEditPreferencesVerified: true as const,
+            preferenceApplicationVerified: true as const,
+            editBriefVerified: true as const,
+            outputFrameAndCleanupVerified: true as const,
+            readyForCanonicalPlanPublication: true as const,
+          },
+          noPlanPublished: true as const,
+          noSnapshotCreated: true as const,
+          noCreditReservation: true as const,
+          noToolExecution: true as const,
+          noProviderCall: true as const,
+          noRender: true as const,
+          testOnly: true as const,
+        }
+        const handoffHash = sha256AuthorityValue(responseWithoutHash)
+        const handoff = canonicalPlanningHandoffResponseSchema.parse({
+          ...responseWithoutHash,
+          handoffHash,
+          handoffId: canonicalPlanningHandoffId(handoffHash),
+          persistence: {
+            privateLocal: true,
+            tenantScoped: true,
+            createOnly: true,
+            checksumProtected: true,
+            contentAddressed: true,
+            distributed: false,
+            productionAuthority: false,
+          },
+        })
+        const persisted = await persistPrivateCanonicalPlanningHandoff({ scope, handoff })
+        await persistLatestPrivateCanonicalPlanningHandoff({ scope, handoff: persisted.handoff })
+        return persisted.handoff
       })
-      return (await persistPrivateCanonicalPlanningHandoff({ scope, handoff })).handoff
+    },
+
+    async inspectLatest(input: CanonicalPlanningHandoffInspectionQuery & {
+      projectId: string
+      editSessionId: string
+    }) {
+      if (
+        !safeIdentity(input.workspaceId) ||
+        !safeIdentity(input.projectId) ||
+        !safeIdentity(input.editSessionId)
+      ) {
+        throw new ApiError(
+          'VALIDATION_FAILED',
+          'Latest canonical planning handoff inspection identity is invalid.',
+          400,
+        )
+      }
+      assertPrivatePlanningHandoffRuntime(context)
+      const actorUserId = getRequiredAuthUserId(context)
+      const access = await authorizeWorkspaceAccess(context, input.workspaceId, 'read')
+      if (access.userId !== actorUserId) {
+        throw new ApiError('AUTH_REQUIRED', 'Canonical planning handoff is outside this workspace.', 403)
+      }
+      await createProjectService(context).getProject(input.projectId, access.workspaceId)
+      const handoff = await readLatestPrivateCanonicalPlanningHandoff({
+        localStorageRoot: context.env.localStorageRoot,
+        ownerUserId: actorUserId,
+        workspaceId: access.workspaceId,
+        projectId: input.projectId,
+        editSessionId: input.editSessionId,
+      })
+      if (!handoff) {
+        throw new ApiError(
+          'PLAN_NOT_APPROVED',
+          'No persisted canonical planning handoff was found for this edit session.',
+          404,
+        )
+      }
+      return createCanonicalPlanningHandoffService(context).inspect({
+        workspaceId: access.workspaceId,
+        projectId: input.projectId,
+        editSessionId: input.editSessionId,
+        handoffId: handoff.handoffId,
+      })
     },
 
     async inspect(input: CanonicalPlanningHandoffInspectionQuery & {
@@ -453,5 +504,28 @@ async function withPublicationLock<T>(
   } finally {
     release()
     if (publicationLocks.get(key) === current) publicationLocks.delete(key)
+  }
+}
+
+async function withPreparationLock<T>(
+  scope: CanonicalPlanningHandoffStoreScope,
+  action: () => Promise<T>,
+): Promise<T> {
+  const key = sha256AuthorityValue({
+    ownerUserId: scope.ownerUserId,
+    workspaceId: scope.workspaceId,
+    projectId: scope.projectId,
+    editSessionId: scope.editSessionId,
+  })
+  const previous = preparationLocks.get(key) ?? Promise.resolve()
+  let release!: () => void
+  const current = new Promise<void>((resolve) => { release = resolve })
+  preparationLocks.set(key, current)
+  await previous
+  try {
+    return await action()
+  } finally {
+    release()
+    if (preparationLocks.get(key) === current) preparationLocks.delete(key)
   }
 }

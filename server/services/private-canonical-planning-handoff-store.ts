@@ -2,6 +2,7 @@ import { ApiError } from '../errors/api-error'
 import {
   readPrivateTextFileIfExistsWithinRoot,
   writePrivateFileCreateOnlyWithinRoot,
+  writePrivateTextFileAtomicWithinRoot,
 } from '../security/private-local-persistence'
 import {
   canonicalPlanningHandoffResponseSchema,
@@ -13,6 +14,9 @@ import { sha256AuthorityValue, stableAuthorityStringify } from './private-edit-a
 const RECORD_VERSION = 'private-canonical-planning-handoff-record-v1' as const
 const RECORD_SOURCE = 'private_canonical_planning_handoff_store' as const
 const MAX_RECORD_BYTES = 4 * 1024 * 1024
+const LATEST_RECORD_VERSION = 'private-canonical-planning-handoff-latest-v1' as const
+const LATEST_RECORD_SOURCE = 'private_canonical_planning_handoff_latest_pointer' as const
+const MAX_LATEST_RECORD_BYTES = 16 * 1024
 
 export interface CanonicalPlanningHandoffStoreScope {
   localStorageRoot: string
@@ -26,6 +30,21 @@ interface PersistedCanonicalPlanningHandoffRecord {
   recordVersion: typeof RECORD_VERSION
   source: typeof RECORD_SOURCE
   handoff: CanonicalPlanningHandoffResponse
+  checksumSha256: string
+}
+
+interface PersistedLatestCanonicalPlanningHandoffRecord {
+  recordVersion: typeof LATEST_RECORD_VERSION
+  source: typeof LATEST_RECORD_SOURCE
+  identity: {
+    ownerUserId: string
+    workspaceId: string
+    projectId: string
+    editSessionId: string
+  }
+  handoffId: string
+  handoffHash: string
+  canonicalPlanComponentsHash: string
   checksumSha256: string
 }
 
@@ -119,6 +138,101 @@ export async function readPrivateCanonicalPlanningHandoff(input: {
   return parsed.data
 }
 
+export async function persistLatestPrivateCanonicalPlanningHandoff(input: {
+  scope: CanonicalPlanningHandoffStoreScope
+  handoff: CanonicalPlanningHandoffResponse
+}): Promise<void> {
+  assertCanonicalPlanningHandoff(input.scope, input.handoff)
+  const withoutChecksum = {
+    recordVersion: LATEST_RECORD_VERSION,
+    source: LATEST_RECORD_SOURCE,
+    identity: {
+      ownerUserId: input.scope.ownerUserId,
+      workspaceId: input.scope.workspaceId,
+      projectId: input.scope.projectId,
+      editSessionId: input.scope.editSessionId,
+    },
+    handoffId: input.handoff.handoffId,
+    handoffHash: input.handoff.handoffHash,
+    canonicalPlanComponentsHash: input.handoff.canonicalPlanComponentsHash,
+  }
+  const record: PersistedLatestCanonicalPlanningHandoffRecord = {
+    ...withoutChecksum,
+    checksumSha256: sha256AuthorityValue(withoutChecksum),
+  }
+  const content = `${stableAuthorityStringify(record)}\n`
+  if (Buffer.byteLength(content, 'utf8') > MAX_LATEST_RECORD_BYTES) {
+    throw new ApiError(
+      'IDEMPOTENCY_CAPACITY_EXCEEDED',
+      'Latest canonical planning handoff pointer exceeded its private persistence ceiling.',
+      503,
+    )
+  }
+  await writePrivateTextFileAtomicWithinRoot({
+    rootPath: input.scope.localStorageRoot,
+    relativePath: latestHandoffRecordPath(input.scope),
+    content,
+  })
+}
+
+export async function readLatestPrivateCanonicalPlanningHandoff(
+  scope: CanonicalPlanningHandoffStoreScope,
+): Promise<CanonicalPlanningHandoffResponse | undefined> {
+  const content = await readPrivateTextFileIfExistsWithinRoot({
+    rootPath: scope.localStorageRoot,
+    relativePath: latestHandoffRecordPath(scope),
+  })
+  if (!content) return undefined
+  if (Buffer.byteLength(content, 'utf8') > MAX_LATEST_RECORD_BYTES) {
+    throw invalidStoredHandoff('Latest canonical planning handoff pointer exceeded its private persistence ceiling.')
+  }
+  let value: unknown
+  try {
+    value = JSON.parse(content)
+  } catch {
+    throw invalidStoredHandoff('Latest canonical planning handoff pointer is not valid JSON.')
+  }
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw invalidStoredHandoff('Latest canonical planning handoff pointer envelope is invalid.')
+  }
+  const record = value as Partial<PersistedLatestCanonicalPlanningHandoffRecord>
+  const withoutChecksum = {
+    recordVersion: record.recordVersion,
+    source: record.source,
+    identity: record.identity,
+    handoffId: record.handoffId,
+    handoffHash: record.handoffHash,
+    canonicalPlanComponentsHash: record.canonicalPlanComponentsHash,
+  }
+  if (
+    record.recordVersion !== LATEST_RECORD_VERSION ||
+    record.source !== LATEST_RECORD_SOURCE ||
+    !record.identity ||
+    record.identity.ownerUserId !== scope.ownerUserId ||
+    record.identity.workspaceId !== scope.workspaceId ||
+    record.identity.projectId !== scope.projectId ||
+    record.identity.editSessionId !== scope.editSessionId ||
+    typeof record.handoffId !== 'string' ||
+    typeof record.handoffHash !== 'string' ||
+    typeof record.canonicalPlanComponentsHash !== 'string' ||
+    typeof record.checksumSha256 !== 'string' ||
+    record.checksumSha256 !== sha256AuthorityValue(withoutChecksum)
+  ) {
+    throw invalidStoredHandoff('Latest canonical planning handoff pointer integrity is invalid.')
+  }
+  const handoff = await readPrivateCanonicalPlanningHandoff({
+    scope,
+    handoffId: record.handoffId,
+  })
+  if (
+    handoff.handoffHash !== record.handoffHash ||
+    handoff.canonicalPlanComponentsHash !== record.canonicalPlanComponentsHash
+  ) {
+    throw invalidStoredHandoff('Latest canonical planning handoff pointer target is inconsistent.')
+  }
+  return handoff
+}
+
 function assertCanonicalPlanningHandoff(
   scope: CanonicalPlanningHandoffStoreScope,
   handoff: CanonicalPlanningHandoffResponse,
@@ -175,14 +289,27 @@ function handoffRecordPath(scope: CanonicalPlanningHandoffStoreScope, handoffId:
   return [
     'canonical-planning-handoffs',
     'private-internal-v1',
-    `scope-${sha256AuthorityValue({
-      ownerUserId: scope.ownerUserId,
-      workspaceId: scope.workspaceId,
-      projectId: scope.projectId,
-      editSessionId: scope.editSessionId,
-    })}`,
+    `scope-${handoffScopeHash(scope)}`,
     `${handoffId}.json`,
   ].join('/')
+}
+
+function latestHandoffRecordPath(scope: CanonicalPlanningHandoffStoreScope): string {
+  return [
+    'canonical-planning-handoffs',
+    'private-internal-v1',
+    `scope-${handoffScopeHash(scope)}`,
+    'latest.json',
+  ].join('/')
+}
+
+function handoffScopeHash(scope: CanonicalPlanningHandoffStoreScope): string {
+  return sha256AuthorityValue({
+    ownerUserId: scope.ownerUserId,
+    workspaceId: scope.workspaceId,
+    projectId: scope.projectId,
+    editSessionId: scope.editSessionId,
+  })
 }
 
 function safeIdentity(value: string): boolean {

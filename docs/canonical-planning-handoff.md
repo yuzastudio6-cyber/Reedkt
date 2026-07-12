@@ -33,7 +33,11 @@ Authenticated restart/recovery inspection is available at:
 
 `GET /v1/projects/:projectId/edit-sessions/:editSessionId/canonical-planning-handoffs/:handoffId?workspaceId=:workspaceId`
 
-The tenant-scoped response reports checksum-verified handoff identity and either `unpublished` with full publication revalidation required, or `published` with immutable plan identity and exact-replay-only status. It is inspection-only: it returns no filesystem path, credential, raw media, execution input, provider authority, credit authority, or mutation permission. Same-workspace users cannot inspect another owner's handoff, checksum tampering fails closed, and a fresh service instance recovers published state from the canonical plan binding.
+When the caller no longer has the handoff ID, the latest serialized preparation for that exact edit session is discoverable at:
+
+`GET /v1/projects/:projectId/edit-sessions/:editSessionId/canonical-planning-handoffs/latest?workspaceId=:workspaceId`
+
+The latest pointer is a small checksum-protected, tenant-scoped private record updated only after an immutable handoff write succeeds. Preparation is serialized per owner/workspace/project/edit session, so two different accepted preparations have a deterministic latest winner while both immutable handoffs remain addressable by ID. The tenant-scoped inspection response reports checksum-verified handoff identity and either `unpublished` with full publication revalidation required, or `published` with immutable plan identity and exact-replay-only status. It is inspection-only: it returns no filesystem path, credential, raw media, execution input, provider authority, credit authority, or mutation permission. Same-workspace users cannot inspect another owner's handoff, handoff or pointer checksum tampering fails closed, and a fresh service instance recovers state from private persistence and canonical plan binding.
 
 ## Verified authority
 

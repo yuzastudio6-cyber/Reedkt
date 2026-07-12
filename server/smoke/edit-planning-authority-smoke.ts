@@ -650,6 +650,13 @@ try {
   routePlanBody.workspaceId = routeWorkspaceId
   const planningHandoffUrl =
     `${routeBaseUrl}/v1/projects/${routeProjectId}/edit-sessions/route-edit-session/canonical-planning-handoff`
+  const latestPlanningHandoffInspectionUrl =
+    `${routeBaseUrl}/v1/projects/${routeProjectId}/edit-sessions/route-edit-session/` +
+    `canonical-planning-handoffs/latest?workspaceId=${routeWorkspaceId}`
+  const missingLatestPlanningHandoff = await fetch(latestPlanningHandoffInspectionUrl, {
+    headers: routeAuthHeaders,
+  })
+  assert.equal(missingLatestPlanningHandoff.status, 404)
   const planningHandoffBody = {
     workspaceId: routeWorkspaceId,
     purpose: 'prepare_canonical_planning_handoff',
@@ -736,6 +743,19 @@ try {
   assert.equal(asRecord(unpublishedHandoffInspection.publication).exactReplayOnly, false)
   assert.equal(asRecord(unpublishedHandoffInspection.permissions).inspectionOnly, true)
   assert.equal(unpublishedHandoffInspection.pathOrCredentialReturned, false)
+  const latestUnpublishedHandoffInspectionResponse = await fetch(
+    latestPlanningHandoffInspectionUrl,
+    { headers: routeAuthHeaders },
+  )
+  assert.equal(latestUnpublishedHandoffInspectionResponse.status, 200)
+  const latestUnpublishedHandoffInspectionEnvelope =
+    await latestUnpublishedHandoffInspectionResponse.json() as {
+      data?: { canonicalPlanningHandoffInspection?: Record<string, unknown> }
+    }
+  assert.deepEqual(
+    latestUnpublishedHandoffInspectionEnvelope.data?.canonicalPlanningHandoffInspection,
+    unpublishedHandoffInspection,
+  )
 
   const {
     planningInputAuthority: _callerPlanningInputAuthority,
@@ -829,6 +849,19 @@ try {
   assert.equal(publishedHandoffInspectionPublication.planStatus, 'presented')
   assert.equal(publishedHandoffInspectionPublication.exactReplayOnly, true)
   assert.equal(publishedHandoffInspectionPublication.newPublicationMayBeAttempted, false)
+  const latestPublishedHandoffInspectionResponse = await fetch(
+    latestPlanningHandoffInspectionUrl,
+    { headers: routeAuthHeaders },
+  )
+  assert.equal(latestPublishedHandoffInspectionResponse.status, 200)
+  const latestPublishedHandoffInspectionEnvelope =
+    await latestPublishedHandoffInspectionResponse.json() as {
+      data?: { canonicalPlanningHandoffInspection?: Record<string, unknown> }
+    }
+  assert.deepEqual(
+    latestPublishedHandoffInspectionEnvelope.data?.canonicalPlanningHandoffInspection,
+    publishedHandoffInspection,
+  )
   const freshServiceHandoffInspection = await createCanonicalPlanningHandoffService({
     ...context,
     requestId: 'planning-handoff-fresh-service-recovery',
@@ -973,6 +1006,13 @@ try {
     { headers: routeAuthHeaders },
   )
   assert.equal(packageRead.status, 200)
+
+  await proveLatestHandoffDiscovery({
+    serviceContext: context,
+    routeBaseUrl,
+    routeAuthHeaders,
+    routeWorkspaceId,
+  })
 
   await provePersistedHandoffStaleAuthorityRejection({
     serviceContext: context,
@@ -2226,6 +2266,8 @@ console.log(JSON.stringify({
     'persisted_planning_handoff_second_key_and_work_graph_substitution_rejected',
     'authenticated_handoff_inspection_reports_unpublished_and_published_state_without_authority',
     'handoff_inspection_is_cross_user_hidden_checksum_fail_closed_and_fresh_service_recoverable',
+    'latest_handoff_discovery_recovers_newest_serialized_preparation_without_hiding_prior_authority',
+    'latest_handoff_pointer_is_cross_user_hidden_checksum_fail_closed_and_fresh_service_recoverable',
     'concurrent_same_key_handoff_publications_converge_on_one_plan',
     'concurrent_competing_key_handoff_publications_have_one_winner',
     'legacy_direct_canonical_publication_http_route_fails_closed',
@@ -2600,6 +2642,125 @@ async function prepareSourceMediaAuthority(
       candidateHash: candidate.candidateHash,
     },
     sourceSequence,
+  }
+}
+
+async function proveLatestHandoffDiscovery(input: {
+  serviceContext: ServiceContext
+  routeBaseUrl: string
+  routeAuthHeaders: Record<string, string>
+  routeWorkspaceId: string
+}): Promise<void> {
+  const editSessionId = 'latest-handoff-discovery-session'
+  const project = (await createProjectService(input.serviceContext).createProject({
+    workspaceId: input.routeWorkspaceId,
+    name: 'Latest handoff discovery project',
+  })).project
+  const planningInputAuthority = await prepareExactPlanningAuthority(
+    input.serviceContext,
+    project.id,
+    editSessionId,
+    input.routeWorkspaceId,
+  )
+  const sourceFixture = await prepareSourceMediaAuthority(
+    input.serviceContext,
+    input.routeWorkspaceId,
+    project.id,
+    'latest-handoff-discovery',
+  )
+  const planBody = createCanonicalPlanBody(
+    'latest-handoff-discovery-planning-request',
+    planningInputAuthority,
+    sourceFixture,
+  )
+  planBody.workspaceId = input.routeWorkspaceId
+  const handoffService = createCanonicalPlanningHandoffService(input.serviceContext)
+  const orderedSourceItems = sourceFixture.sourceSequence.map((item) => ({
+    ...item,
+    checksumSha256: String(item.checksumSha256),
+  }))
+  const first = await handoffService.prepare({
+    workspaceId: input.routeWorkspaceId,
+    projectId: project.id,
+    editSessionId,
+    purpose: 'prepare_canonical_planning_handoff',
+    orderedSourceItems,
+    canonicalPlanComponents: planBody.canonicalPlan.components,
+  })
+  const secondComponents = structuredClone(planBody.canonicalPlan.components)
+  secondComponents.compiledIntent = {
+    ...secondComponents.compiledIntent,
+    latestHandoffDiscoveryRevision: 2,
+  }
+  const second = await handoffService.prepare({
+    workspaceId: input.routeWorkspaceId,
+    projectId: project.id,
+    editSessionId,
+    purpose: 'prepare_canonical_planning_handoff',
+    orderedSourceItems,
+    canonicalPlanComponents: secondComponents,
+  })
+  assert.notEqual(first.handoffId, second.handoffId)
+  const latest = await handoffService.inspectLatest({
+    workspaceId: input.routeWorkspaceId,
+    projectId: project.id,
+    editSessionId,
+  })
+  assert.equal(latest.identity.handoffId, second.handoffId)
+  assert.equal(latest.publicationStatus, 'unpublished')
+  const firstInspection = await handoffService.inspect({
+    workspaceId: input.routeWorkspaceId,
+    projectId: project.id,
+    editSessionId,
+    handoffId: first.handoffId,
+  })
+  assert.equal(firstInspection.identity.handoffId, first.handoffId)
+
+  const latestUrl =
+    `${input.routeBaseUrl}/v1/projects/${project.id}/edit-sessions/${editSessionId}/` +
+    `canonical-planning-handoffs/latest?workspaceId=${input.routeWorkspaceId}`
+  const latestResponse = await fetch(latestUrl, { headers: input.routeAuthHeaders })
+  assert.equal(latestResponse.status, 200)
+  const latestEnvelope = await latestResponse.json() as {
+    data?: { canonicalPlanningHandoffInspection?: Record<string, unknown> }
+  }
+  assert.deepEqual(latestEnvelope.data?.canonicalPlanningHandoffInspection, latest)
+  const crossUserLatestResponse = await fetch(latestUrl, {
+    headers: { authorization: 'Bearer verified-other-authority-token' },
+  })
+  assert.equal(crossUserLatestResponse.status, 404)
+  const freshServiceLatest = await createCanonicalPlanningHandoffService({
+    ...input.serviceContext,
+    requestId: 'latest-handoff-fresh-service-recovery',
+  }).inspectLatest({
+    workspaceId: input.routeWorkspaceId,
+    projectId: project.id,
+    editSessionId,
+  })
+  assert.deepEqual(freshServiceLatest, latest)
+
+  const scopeHash = sha256AuthorityValue({
+    ownerUserId: userId,
+    workspaceId: input.routeWorkspaceId,
+    projectId: project.id,
+    editSessionId,
+  })
+  const latestPointerPath = join(
+    input.serviceContext.env.localStorageRoot,
+    'canonical-planning-handoffs',
+    'private-internal-v1',
+    `scope-${scopeHash}`,
+    'latest.json',
+  )
+  const originalLatestPointer = await readFile(latestPointerPath, 'utf8')
+  const tamperedLatestPointer = JSON.parse(originalLatestPointer) as { checksumSha256: string }
+  tamperedLatestPointer.checksumSha256 = 'f'.repeat(64)
+  try {
+    await writeFile(latestPointerPath, `${JSON.stringify(tamperedLatestPointer)}\n`, 'utf8')
+    const tamperedLatestResponse = await fetch(latestUrl, { headers: input.routeAuthHeaders })
+    assert.equal(tamperedLatestResponse.status, 409)
+  } finally {
+    await writeFile(latestPointerPath, originalLatestPointer, 'utf8')
   }
 }
 

@@ -45,6 +45,24 @@ export function createEditPlanningAuthorityRoutes(): Router {
   )
 
   router.get(
+    '/v1/projects/:projectId/edit-sessions/:editSessionId/canonical-planning-handoffs/latest',
+    requireAuth,
+    asyncRoute(async (request, response) => {
+      const query = validateBody(canonicalPlanningHandoffInspectionQuerySchema, request.query)
+      const inspection = await createCanonicalPlanningHandoffService(
+        getServiceContext(request),
+      ).inspectLatest({
+        ...query,
+        projectId: getRouteParam(request, 'projectId'),
+        editSessionId: getRouteParam(request, 'editSessionId'),
+      })
+      sendOk(response, { canonicalPlanningHandoffInspection: inspection }, [
+        'Latest handoff discovery is tenant-scoped and inspection-only; publication still requires the exact handoff ID/hash and full current-state revalidation.',
+      ])
+    }),
+  )
+
+  router.get(
     '/v1/projects/:projectId/edit-sessions/:editSessionId/canonical-planning-handoffs/:handoffId',
     requireAuth,
     asyncRoute(async (request, response) => {

@@ -779,10 +779,64 @@ try {
   assert.equal(routePublishedHandoff.handoffHash, routePlanningHandoff.handoffHash)
   assert.equal(routePublishedHandoff.boundToPublishedPlan, true)
   assert.equal(routePublishedHandoff.revalidatedBeforePublication, true)
+  assert.equal(routePublishedHandoff.singlePublication, true)
+  assert.equal(routePublishedHandoff.publicationReplayed, false)
+  assert.match(String(routePublishedHandoff.publicationRequestHash), /^[a-f0-9]{64}$/)
   const routePlanComponentRefs = asRecord(routePlan.componentRefs)
   assert.match(
     String(asRecord(routePlanComponentRefs.planningHandoffAuthority).sha256),
     /^[a-f0-9]{64}$/,
+  )
+  const persistedHandoffPublishReplay = await fetch(persistedHandoffPublishUrl, {
+    method: 'POST',
+    headers: {
+      ...routeAuthHeaders,
+      'content-type': 'application/json',
+      'idempotency-key': 'route-publish-plan',
+    },
+    body: JSON.stringify(persistedHandoffPublishBody),
+  })
+  assert.equal(persistedHandoffPublishReplay.status, 201)
+  const persistedHandoffPublishReplayEnvelope = await persistedHandoffPublishReplay.json() as {
+    data?: {
+      authority?: Record<string, unknown>
+      canonicalPlanningHandoff?: Record<string, unknown>
+    }
+  }
+  assert.deepEqual(persistedHandoffPublishReplayEnvelope.data?.authority, routePublishedAuthority)
+  assert.equal(
+    asRecord(persistedHandoffPublishReplayEnvelope.data?.canonicalPlanningHandoff)
+      .publicationReplayed,
+    true,
+  )
+  const secondKeySameHandoffPublication = await fetch(persistedHandoffPublishUrl, {
+    method: 'POST',
+    headers: {
+      ...routeAuthHeaders,
+      'content-type': 'application/json',
+      'idempotency-key': 'route-publish-plan-second-key',
+    },
+    body: JSON.stringify(persistedHandoffPublishBody),
+  })
+  assert.equal(secondKeySameHandoffPublication.status, 409)
+  const changedWorkGraphPublicationBody = structuredClone(persistedHandoffPublishBody)
+  changedWorkGraphPublicationBody.canonicalPlan.workItems[0]!.maximumCreditBudget += 1
+  const changedWorkGraphSameHandoffPublication = await fetch(persistedHandoffPublishUrl, {
+    method: 'POST',
+    headers: {
+      ...routeAuthHeaders,
+      'content-type': 'application/json',
+      'idempotency-key': 'route-publish-plan-changed-work-graph',
+    },
+    body: JSON.stringify(changedWorkGraphPublicationBody),
+  })
+  assert.equal(changedWorkGraphSameHandoffPublication.status, 409)
+  const changedWorkGraphConflictEnvelope = await changedWorkGraphSameHandoffPublication.json() as {
+    error?: { details?: { requiredGate?: string } }
+  }
+  assert.equal(
+    changedWorkGraphConflictEnvelope.error?.details?.requiredGate,
+    'one_handoff_one_canonical_plan_publication',
   )
   const legacyDirectCanonicalPublish = await fetch(
     `${routeBaseUrl}/v1/projects/${routeProjectId}/edit-sessions/route-edit-session/canonical-plans`,
@@ -2116,6 +2170,8 @@ console.log(JSON.stringify({
     'persisted_planning_handoff_checksum_tamper_rejected',
     'persisted_planning_handoff_stale_preference_and_source_authority_rejected',
     'persisted_planning_handoff_binding_frozen_into_canonical_plan_authority',
+    'persisted_planning_handoff_exact_publication_replay_recovers_from_canonical_plan_binding',
+    'persisted_planning_handoff_second_key_and_work_graph_substitution_rejected',
     'legacy_direct_canonical_publication_http_route_fails_closed',
     'all_authenticated_canonical_route_fixtures_publish_through_persisted_handoffs',
     'authenticated_canonical_execution_readiness_http_route',

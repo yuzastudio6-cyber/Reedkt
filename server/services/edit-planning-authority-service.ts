@@ -121,6 +121,31 @@ export interface ApproveCanonicalEditPlanInput extends ApproveCanonicalEditPlanB
   requestPath?: string
 }
 
+export function canonicalPlanningHandoffPublicationRequestHash(input: {
+  workspaceId: string
+  projectId: string
+  editSessionId: string
+  handoffId: string
+  handoffHash: string
+  body: PublishCanonicalEditPlanBody
+}): string {
+  return sha256AuthorityValue({
+    operation: 'publish_canonical_plan_from_persisted_handoff',
+    workspaceId: input.workspaceId,
+    projectId: input.projectId,
+    editSessionId: input.editSessionId,
+    handoffId: input.handoffId,
+    handoffHash: input.handoffHash,
+    planningRequestId: input.body.planningRequestId,
+    revisionAuthority: input.body.revisionAuthority,
+    canonicalPlan: input.body.canonicalPlan,
+  })
+}
+
+export function canonicalPlanningHandoffIdempotencyKeyHash(idempotencyKey: string): string {
+  return sha256AuthorityValue({ idempotencyKey })
+}
+
 export function createEditPlanningAuthorityService(context: ServiceContext) {
   return {
     async publishCanonicalPlan(input: PublishCanonicalEditPlanInput) {
@@ -186,7 +211,17 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
       if (planningHandoffBinding && (
         planningHandoffBinding.canonicalPlanComponentsHash !== sha256AuthorityValue(body.canonicalPlan.components) ||
         planningHandoffBinding.sourceCandidateHash !== sourceMediaAuthority.candidateHash ||
-        planningHandoffBinding.planningInputBindingHash !== planningInputAuthority.bindingHash
+        planningHandoffBinding.planningInputBindingHash !== planningInputAuthority.bindingHash ||
+        planningHandoffBinding.publicationRequestHash !== canonicalPlanningHandoffPublicationRequestHash({
+          workspaceId: access.workspaceId,
+          projectId: input.projectId,
+          editSessionId: input.editSessionId,
+          handoffId: planningHandoffBinding.handoffId,
+          handoffHash: planningHandoffBinding.handoffHash,
+          body,
+        }) ||
+        planningHandoffBinding.idempotencyKeyHash !==
+          canonicalPlanningHandoffIdempotencyKeyHash(idempotencyKey)
       )) {
         throw new ApiError(
           'IDEMPOTENCY_CONFLICT',
@@ -874,6 +909,68 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
           'Approval reserved synthetic private-internal test credits only; no paid billing, customer wallet, or external credit mutation occurred.',
           'Jobs were derived from immutable approved work items but were not claimed or executed.',
         ],
+      }
+    },
+
+    async findCanonicalPlanPublicationByPlanningHandoff(
+      handoffId: string,
+      workspaceId: string,
+    ): Promise<{
+      planId: string
+      projectId: string
+      editSessionId: string
+      planningRequestId: string
+      binding: CanonicalPlanningHandoffPublicationBinding
+    } | undefined> {
+      requirePrivateAuthorityRuntime(context)
+      const access = await authorizeWorkspaceAccess(context, workspaceId, 'read')
+      const aggregate = await readPrivateEditAuthorityAggregate(
+        authorityScope(context, access.userId, access.workspaceId),
+      )
+      if (!aggregate) return undefined
+      const matches: Array<{
+        plan: AuthorityPlanRecord
+        binding: CanonicalPlanningHandoffPublicationBinding
+      }> = []
+      for (const plan of aggregate.plans) {
+        const ref = plan.componentRefs.planningHandoffAuthority
+        if (!ref) continue
+        const value = await readPrivateAuthorityJsonBlob({
+          localStorageRoot: context.env.localStorageRoot,
+          ref,
+        })
+        if (
+          !value ||
+          Array.isArray(value) ||
+          (value as Record<string, unknown>).handoffId !== handoffId
+        ) continue
+        const parsed = canonicalPlanningHandoffPublicationBindingSchema.safeParse(value)
+        if (!parsed.success || ref.sha256 !== sha256AuthorityValue(parsed.data)) {
+          throw new ApiError(
+            'VALIDATION_FAILED',
+            'Canonical planning-handoff publication binding is invalid during recovery.',
+            409,
+            parsed.success ? undefined : parsed.error.flatten(),
+          )
+        }
+        matches.push({ plan, binding: parsed.data })
+      }
+      if (matches.length > 1) {
+        throw new ApiError(
+          'IDEMPOTENCY_CONFLICT',
+          'Canonical planning handoff is bound to more than one plan publication.',
+          409,
+        )
+      }
+      const match = matches[0]
+      if (!match) return undefined
+      await createProjectService(context).getProject(match.plan.projectId, access.workspaceId)
+      return {
+        planId: match.plan.id,
+        projectId: match.plan.projectId,
+        editSessionId: match.plan.editSessionId,
+        planningRequestId: match.plan.planningRequestId,
+        binding: match.binding,
       }
     },
 

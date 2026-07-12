@@ -7,7 +7,11 @@ import {
   type CreateCanonicalPlanningHandoffBody,
   type PublishCanonicalEditPlanFromHandoffBody,
 } from '../validation/canonical-planning-handoff-schemas'
-import { createEditPlanningAuthorityService } from './edit-planning-authority-service'
+import {
+  canonicalPlanningHandoffIdempotencyKeyHash,
+  canonicalPlanningHandoffPublicationRequestHash,
+  createEditPlanningAuthorityService,
+} from './edit-planning-authority-service'
 import { createProjectService } from './project-service'
 import {
   buildCurrentPlanningInputAuthorityExpectation,
@@ -19,10 +23,13 @@ import {
   canonicalPlanningHandoffId,
   persistPrivateCanonicalPlanningHandoff,
   readPrivateCanonicalPlanningHandoff,
+  type CanonicalPlanningHandoffStoreScope,
 } from './private-canonical-planning-handoff-store'
 import { createSourceMediaAuthorityService } from './source-media-authority-service'
 import { getRequiredAuthUserId } from './service-helpers'
 import { authorizeWorkspaceAccess } from './workspace-access-service'
+
+const publicationLocks = new Map<string, Promise<void>>()
 
 export function createCanonicalPlanningHandoffService(context: ServiceContext) {
   return {
@@ -187,67 +194,108 @@ export function createCanonicalPlanningHandoffService(context: ServiceContext) {
         projectId,
         editSessionId,
       }
-      const handoff = await readPrivateCanonicalPlanningHandoff({ scope, handoffId })
-      if (handoff.handoffHash !== body.expectedHandoffHash) {
-        throw new ApiError(
-          'IDEMPOTENCY_CONFLICT',
-          'Canonical planning handoff hash does not match the persisted authority.',
-          409,
+      const normalizedIdempotencyKey = requirePublicationIdempotencyKey(idempotencyKey)
+      return withPublicationLock(scope, handoffId, async () => {
+        const handoff = await readPrivateCanonicalPlanningHandoff({ scope, handoffId })
+        if (handoff.handoffHash !== body.expectedHandoffHash) {
+          throw new ApiError(
+            'IDEMPOTENCY_CONFLICT',
+            'Canonical planning handoff hash does not match the persisted authority.',
+            409,
+          )
+        }
+        const canonicalPlanComponentsHash = sha256AuthorityValue(body.canonicalPlan.components)
+        if (handoff.canonicalPlanComponentsHash !== canonicalPlanComponentsHash) {
+          throw new ApiError(
+            'IDEMPOTENCY_CONFLICT',
+            'Canonical plan components changed after the authenticated planning handoff.',
+            409,
+          )
+        }
+        const canonicalPublishBody = {
+          workspaceId: access.workspaceId,
+          planningRequestId: body.planningRequestId,
+          planningInputAuthority: handoff.planningInputAuthority,
+          sourceMediaAuthority: handoff.sourceMediaAuthority,
+          revisionAuthority: body.revisionAuthority,
+          canonicalPlan: body.canonicalPlan,
+        }
+        const publicationRequestHash = canonicalPlanningHandoffPublicationRequestHash({
+          workspaceId: access.workspaceId,
+          projectId,
+          editSessionId,
+          handoffId: handoff.handoffId,
+          handoffHash: handoff.handoffHash,
+          body: canonicalPublishBody,
+        })
+        const idempotencyKeyHash = canonicalPlanningHandoffIdempotencyKeyHash(
+          normalizedIdempotencyKey,
         )
-      }
-      const canonicalPlanComponentsHash = sha256AuthorityValue(body.canonicalPlan.components)
-      if (handoff.canonicalPlanComponentsHash !== canonicalPlanComponentsHash) {
-        throw new ApiError(
-          'IDEMPOTENCY_CONFLICT',
-          'Canonical plan components changed after the authenticated planning handoff.',
-          409,
-        )
-      }
-      await revalidatePlanningInputAuthorityBinding({
-        context,
-        scope,
-        persistedBinding: handoff.resolvedPlanningInputAuthority,
-        components: body.canonicalPlan.components,
-      })
+        const planningService = createEditPlanningAuthorityService(context)
+        const existingPublication = await planningService
+          .findCanonicalPlanPublicationByPlanningHandoff(handoff.handoffId, access.workspaceId)
+        if (existingPublication && (
+          existingPublication.projectId !== projectId ||
+          existingPublication.editSessionId !== editSessionId ||
+          existingPublication.planningRequestId !== body.planningRequestId ||
+          existingPublication.binding.publicationRequestHash !== publicationRequestHash ||
+          existingPublication.binding.idempotencyKeyHash !== idempotencyKeyHash
+        )) {
+          throw new ApiError(
+            'IDEMPOTENCY_CONFLICT',
+            'Canonical planning handoff is already bound to a different plan publication.',
+            409,
+            { requiredGate: 'one_handoff_one_canonical_plan_publication' },
+          )
+        }
+        await revalidatePlanningInputAuthorityBinding({
+          context,
+          scope,
+          persistedBinding: handoff.resolvedPlanningInputAuthority,
+          components: body.canonicalPlan.components,
+        })
 
-      const result = await createEditPlanningAuthorityService(context).publishCanonicalPlan({
-        workspaceId: access.workspaceId,
-        planningRequestId: body.planningRequestId,
-        planningInputAuthority: handoff.planningInputAuthority,
-        sourceMediaAuthority: handoff.sourceMediaAuthority,
-        revisionAuthority: body.revisionAuthority,
-        canonicalPlan: body.canonicalPlan,
-        projectId,
-        editSessionId,
-        idempotencyKey,
-        requestPath,
-        planningHandoffBinding: {
-          schemaVersion: 'canonical-planning-handoff-publication-binding-v1',
-          handoffId: handoff.handoffId,
-          handoffHash: handoff.handoffHash,
-          canonicalPlanComponentsHash: handoff.canonicalPlanComponentsHash,
-          sourceCandidateHash: handoff.sourceBindingManifestCandidate.candidateHash,
-          planningInputBindingHash: handoff.resolvedPlanningInputAuthority.bindingHash,
-          privateLocalCreateOnlyAuthority: true,
-          revalidatedBeforePublication: true,
-          distributedAuthority: false,
-          productionAuthority: false,
-        },
+        const result = await planningService.publishCanonicalPlan({
+          ...canonicalPublishBody,
+          projectId,
+          editSessionId,
+          idempotencyKey: normalizedIdempotencyKey,
+          requestPath,
+          planningHandoffBinding: {
+            schemaVersion: 'canonical-planning-handoff-publication-binding-v1',
+            handoffId: handoff.handoffId,
+            handoffHash: handoff.handoffHash,
+            canonicalPlanComponentsHash: handoff.canonicalPlanComponentsHash,
+            sourceCandidateHash: handoff.sourceBindingManifestCandidate.candidateHash,
+            planningInputBindingHash: handoff.resolvedPlanningInputAuthority.bindingHash,
+            publicationRequestHash,
+            idempotencyKeyHash,
+            singlePublication: true,
+            privateLocalCreateOnlyAuthority: true,
+            revalidatedBeforePublication: true,
+            distributedAuthority: false,
+            productionAuthority: false,
+          },
+        })
+        return {
+          ...result,
+          canonicalPlanningHandoff: {
+            handoffId: handoff.handoffId,
+            handoffHash: handoff.handoffHash,
+            canonicalPlanComponentsHash: handoff.canonicalPlanComponentsHash,
+            publicationRequestHash,
+            boundToPublishedPlan: true as const,
+            revalidatedBeforePublication: true as const,
+            singlePublication: true as const,
+            publicationReplayed: Boolean(existingPublication),
+          },
+          warnings: [
+            ...result.warnings,
+            'Publication loaded the tenant-scoped persisted handoff server-side and revalidated its exact planning inputs before freezing the binding into canonical authority.',
+            'The persisted handoff is bound to one full canonical publication request and one idempotency key; exact replay is allowed but substitution is rejected.',
+          ],
+        }
       })
-      return {
-        ...result,
-        canonicalPlanningHandoff: {
-          handoffId: handoff.handoffId,
-          handoffHash: handoff.handoffHash,
-          canonicalPlanComponentsHash: handoff.canonicalPlanComponentsHash,
-          boundToPublishedPlan: true as const,
-          revalidatedBeforePublication: true as const,
-        },
-        warnings: [
-          ...result.warnings,
-          'Publication loaded the tenant-scoped persisted handoff server-side and revalidated its exact planning inputs before freezing the binding into canonical authority.',
-        ],
-      }
     },
   }
 }
@@ -262,4 +310,44 @@ function assertPrivatePlanningHandoffRuntime(context: ServiceContext): void {
     (context.env.mode !== 'local' && context.env.mode !== 'mock') ||
     (!context.env.mockOnly && !context.env.allowInternalTestExecutionWithSupabase)
   ) throw new ApiError('TOOL_NOT_READY', 'Canonical planning handoff is private-internal testing only.', 503)
+}
+
+function requirePublicationIdempotencyKey(value: string): string {
+  const normalized = value.trim()
+  if (
+    normalized.length === 0 ||
+    normalized.length > 200 ||
+    [...normalized].some((character) => {
+      const code = character.charCodeAt(0)
+      return code <= 31 || code === 127
+    })
+  ) {
+    throw new ApiError('VALIDATION_FAILED', 'Canonical publication Idempotency-Key is invalid.', 400)
+  }
+  return normalized
+}
+
+async function withPublicationLock<T>(
+  scope: CanonicalPlanningHandoffStoreScope,
+  handoffId: string,
+  action: () => Promise<T>,
+): Promise<T> {
+  const key = sha256AuthorityValue({
+    ownerUserId: scope.ownerUserId,
+    workspaceId: scope.workspaceId,
+    projectId: scope.projectId,
+    editSessionId: scope.editSessionId,
+    handoffId,
+  })
+  const previous = publicationLocks.get(key) ?? Promise.resolve()
+  let release!: () => void
+  const current = new Promise<void>((resolve) => { release = resolve })
+  publicationLocks.set(key, current)
+  await previous
+  try {
+    return await action()
+  } finally {
+    release()
+    if (publicationLocks.get(key) === current) publicationLocks.delete(key)
+  }
 }

@@ -58,6 +58,13 @@ reloads it again, verifies its own hash, reconstructs the work-graph mapping,
 checks current stable identities, and confirms required private readiness has
 not regressed.
 
+The sibling `canonical-tool-payload-authority-v1` closes the next authority
+boundary. It runs every exact runner protocol against the compiled structured
+payload, source/cleanup/dependency binding, and proven output content type before
+approval. It is independently content-addressed, revalidated from approved work
+items during packaging, and reused by dispatch so plan-time and dispatch-time
+payload rules cannot drift. See `docs/canonical-tool-payload-authority.md`.
+
 Evidence/proof revisions may improve without silently changing an approved
 snapshot. Stable tool identity, operation specification, runtime, work-item,
 and output lineage must still agree.
@@ -67,7 +74,8 @@ and output lineage must still agree.
 The canonical private lifecycle fixture declares all 50 exact E2E-verified
 tool identities. Before approval it proves all 50 are represented by
 server-authored stable identities, operation IDs, identity hashes, proof hashes,
-and private lifecycle/job-adapter readiness. The fixture then executes its
+private lifecycle/job-adapter readiness, and runner-valid payload authority
+across all 19 validator families. The fixture then executes its
 existing confined tool cases through snapshot, reservation, lease, one-use
 dispatch, private persistence, QA, reconciliation, replay, and downstream
 verification.

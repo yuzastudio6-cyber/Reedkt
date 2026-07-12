@@ -5,6 +5,12 @@ import {
   type CanonicalToolAuthorityWorkItem,
   type CanonicalToolExecutionAuthority,
 } from '../edit-architecture/canonical-tool-execution-authority'
+import {
+  assertCanonicalToolPayloadAuthority,
+  createCanonicalToolPayloadAuthority,
+  type CanonicalToolPayloadAuthority,
+  type CanonicalToolPayloadWorkItem,
+} from '../edit-architecture/canonical-tool-payload-authority'
 import { compileCanonicalWorkItems } from '../edit-architecture/canonical-work-item-compiler'
 import { ApiError } from '../errors/api-error'
 import { isExplicitLocalInternalTestRuntime } from '../middleware/canonical-worker-runtime'
@@ -85,6 +91,7 @@ export interface CanonicalApprovedExecutionAuthority {
   planningInputAuthority: ResolvedPlanningInputAuthorityBinding
   planningHandoffAuthority?: CanonicalPlanningHandoffPublicationBinding
   toolExecutionAuthority: CanonicalToolExecutionAuthority
+  toolPayloadAuthority: CanonicalToolPayloadAuthority
   sourceAssetManifest: ApprovedSourceBindingManifest
   workItems: CanonicalApprovedExecutionWorkItem[]
   jobs: AuthorityDerivedJobRecord[]
@@ -195,6 +202,9 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         toolStrategyPlan: canonicalPlan.components.toolStrategyPlan,
         workItems: canonicalPlan.workItems,
       })
+      const toolPayloadAuthority = createCanonicalToolPayloadAuthority({
+        workItems: canonicalPlan.workItems,
+      })
       const revisionDecision = body.revisionAuthority
         ? await validateRevisionPublicationAuthority({
             context,
@@ -262,6 +272,11 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         canonicalToolExecutionAuthority: await putPrivateAuthorityJsonBlob({
           localStorageRoot: context.env.localStorageRoot,
           value: toolExecutionAuthority as unknown as Record<string, unknown>,
+          maxBytes: 2 * 1024 * 1024,
+        }),
+        canonicalToolPayloadAuthority: await putPrivateAuthorityJsonBlob({
+          localStorageRoot: context.env.localStorageRoot,
+          value: toolPayloadAuthority as unknown as Record<string, unknown>,
           maxBytes: 2 * 1024 * 1024,
         }),
       }
@@ -536,6 +551,7 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
               ]
             : []),
           `Canonical tool authority froze ${toolExecutionAuthority.summary.workGraphToolCount} work-graph tool identity record(s) from evidence revision ${toolExecutionAuthority.evidenceRevision}.`,
+          `Canonical payload authority validated ${toolPayloadAuthority.summary.validatedWorkItemCount} exact runner payload(s) before approval.`,
           'No provider, worker, render, media, external billing, or production credit side effect was started.',
         ],
       }
@@ -570,6 +586,11 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         context,
         componentRefs: targetPlan.componentRefs,
         toolStrategyPlan: approvalComponents.toolStrategyPlan,
+        workItems: approvalToolWorkItems,
+      })
+      await loadCanonicalToolPayloadAuthority({
+        context,
+        componentRefs: targetPlan.componentRefs,
         workItems: approvalToolWorkItems,
       })
       if (targetPlan.revisionAuthority) {
@@ -1235,6 +1256,11 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         toolStrategyPlan: parsedComponents.data.toolStrategyPlan,
         workItems,
       })
+      const toolPayloadAuthority = await loadCanonicalToolPayloadAuthority({
+        context,
+        componentRefs: snapshot.componentRefs,
+        workItems,
+      })
       const validForSeconds = Math.round(
         (Date.parse(lineage.estimate.validUntil) - Date.parse(lineage.estimate.createdAt)) / 1_000,
       )
@@ -1321,6 +1347,7 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         planningInputAuthority,
         planningHandoffAuthority,
         toolExecutionAuthority,
+        toolPayloadAuthority,
         sourceAssetManifest,
         workItems,
         jobs,
@@ -1685,7 +1712,7 @@ async function loadPlanToolAuthorityWorkItems(
   context: ServiceContext,
   aggregate: PrivateEditAuthorityAggregate,
   plan: AuthorityPlanRecord,
-): Promise<CanonicalToolAuthorityWorkItem[]> {
+): Promise<Array<CanonicalToolAuthorityWorkItem & CanonicalToolPayloadWorkItem>> {
   return Promise.all(plan.workItemIds.map(async (workItemId) => {
     const workItem = aggregate.planWorkItems.find((candidate) =>
       candidate.id === workItemId && candidate.planId === plan.id)
@@ -1711,10 +1738,16 @@ async function loadPlanToolAuthorityWorkItems(
     }
     return {
       workItemKey: workItem.workItemKey,
+      workItemType: workItem.workItemType,
+      workerClass: workItem.workerClass,
+      sourceSequenceItemIds: [...workItem.sourceSequenceItemIds],
+      sourceCleanupDecisionIds: [...workItem.sourceCleanupDecisionIds],
+      dependencyKeys: [...workItem.dependencyKeys],
       approvedToolIds: [...workItem.approvedToolIds],
       required: workItem.required,
       expectedOutputs: workItem.expectedOutputs.map((output) => ({
         outputKey: output.outputKey,
+        assetRole: output.assetRole,
         ...(output.contentType ? { contentType: output.contentType } : {}),
         required: output.required,
       })),
@@ -1745,6 +1778,30 @@ async function loadCanonicalToolExecutionAuthority(input: {
   return assertCanonicalToolExecutionAuthority({
     value,
     toolStrategyPlan: input.toolStrategyPlan,
+    workItems: input.workItems,
+  })
+}
+
+async function loadCanonicalToolPayloadAuthority(input: {
+  context: ServiceContext
+  componentRefs: Record<string, AuthorityJsonBlobRef>
+  workItems: CanonicalToolPayloadWorkItem[]
+}): Promise<CanonicalToolPayloadAuthority> {
+  const ref = input.componentRefs.canonicalToolPayloadAuthority
+  if (!ref) {
+    throw new ApiError(
+      'TOOL_NOT_READY',
+      'Canonical tool payload authority is missing from immutable plan lineage.',
+      409,
+      { requiredGate: 'canonical_tool_payload_authority_manifest' },
+    )
+  }
+  const value = await readPrivateAuthorityJsonBlob({
+    localStorageRoot: input.context.env.localStorageRoot,
+    ref,
+  })
+  return assertCanonicalToolPayloadAuthority({
+    value,
     workItems: input.workItems,
   })
 }

@@ -646,6 +646,27 @@ assert.ok(authority.toolExecutionAuthority.tools.every((tool) =>
   tool.stableToolIdentity === `reeditpro.tool.${tool.canonicalToolId}.v1` &&
   /^[a-f0-9]{64}$/.test(tool.identityHash) &&
   /^[a-f0-9]{64}$/.test(tool.proofHash)))
+const toolBackedAuthorityWorkItems = authority.workItems.filter((workItem) =>
+  workItem.approvedToolIds.length > 0)
+assert.equal(
+  authority.toolPayloadAuthority.summary.toolBackedWorkItemCount,
+  toolBackedAuthorityWorkItems.length,
+)
+assert.equal(
+  authority.toolPayloadAuthority.summary.validatedWorkItemCount,
+  toolBackedAuthorityWorkItems.length,
+)
+assert.equal(authority.toolPayloadAuthority.summary.optionalUnprovenWorkItemCount, 0)
+assert.equal(authority.toolPayloadAuthority.summary.allRequiredToolPayloadsValidated, true)
+assert.equal(authority.toolPayloadAuthority.summary.validationRunsBeforeApproval, true)
+assert.equal(new Set(authority.toolPayloadAuthority.validatedWorkItems.map((entry) =>
+  entry.canonicalToolId)).size, 50)
+assert.equal(new Set(authority.toolPayloadAuthority.validatedWorkItems.map((entry) =>
+  entry.validatorFamily)).size, 19)
+assert.ok(authority.toolPayloadAuthority.validatedWorkItems.every((entry) =>
+  /^[a-f0-9]{64}$/.test(entry.structuredPayloadHash) &&
+  /^[a-f0-9]{64}$/.test(entry.bindingHash) &&
+  /^[a-f0-9]{64}$/.test(entry.validationHash)))
 const primaryAsset = authority.assetManifest.entries.find((candidate) =>
   candidate.approvedWorkItemId === chartWorkItem.id && candidate.outputKey === 'chart-primary')
 const aliasAsset = authority.assetManifest.entries.find((candidate) =>
@@ -1285,8 +1306,8 @@ const atomicCompilationRun = await createCanonicalPrivateWorkGraphOrchestratorSe
   idempotencyKey: 'run-atomic-work-item-compilation-graph',
 })
 assert.equal(atomicCompilationRun.status, 'blocked_required_jobs')
-assert.equal(atomicCompilationRun.summary.totalJobCount, 6)
-assert.equal(atomicCompilationRun.summary.completedJobCount, 4)
+assert.equal(atomicCompilationRun.summary.totalJobCount, 7)
+assert.equal(atomicCompilationRun.summary.completedJobCount, 5)
 assert.equal(atomicCompilationRun.summary.capabilityBlockedJobCount, 1)
 assert.equal(atomicCompilationRun.summary.dependencyBlockedJobCount, 1)
 assert.equal(atomicCompilationRun.summary.requiredBlockedJobCount, 2)
@@ -1310,7 +1331,7 @@ const atomicCompilationProgress = await createCanonicalPrivateWorkGraphOrchestra
   packageRecordId: atomicCompilationPackage.id,
 })
 assert.ok(atomicCompilationProgress)
-assert.equal(atomicCompilationProgress.completedJobCount, 4)
+assert.equal(atomicCompilationProgress.completedJobCount, 5)
 assert.equal(atomicCompilationProgress.requiredIncompleteJobCount, 2)
 const chartAdapterInput = {
   workspaceId,
@@ -3158,6 +3179,8 @@ console.log(JSON.stringify({
     'canonical_job_only_adapter_derives_tool_operation_output_lease_dispatch_qa_and_replay_server_side',
     'all_50_required_tool_identities_frozen_from_server_proof_catalog_before_approval',
     'all_50_tool_identity_operation_and_proof_hashes_revalidated_before_execution_packaging',
+    'all_50_tool_payloads_validated_by_19_exact_runner_families_before_approval',
+    'all_50_tool_payload_bindings_and_artifact_contracts_revalidated_before_execution_packaging',
     'grouped_planner_tool_node_compiles_and_executes_as_two_atomic_canonical_jobs',
     'atomic_compiled_jobs_preserve_dependency_progress_artifact_qa_and_reconciliation_lifecycle',
     'atomic_compiled_jobs_never_reach_the_legacy_multi_tool_runtime_blocker',

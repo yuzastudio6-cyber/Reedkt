@@ -116,6 +116,9 @@ for (const editSession of [
   'edit-session-undeclared-tool-authority',
   'edit-session-missing-exact-operation-authority',
   'edit-session-unproven-required-tool',
+  'edit-session-invalid-tool-payload',
+  'edit-session-invalid-tool-binding',
+  'edit-session-invalid-tool-output-content-type',
   'edit-session-tool-free-final-export',
   'edit-session-veo-basic',
   'edit-session-default-trim-blocked',
@@ -162,7 +165,7 @@ assert.equal(
   'server_proven_tool_identity_catalog_reconciliation',
 )
 assert.match(String(persistedToolExecutionAuthority.authorityHash), /^[a-f0-9]{64}$/)
-assert.equal(asRecord(persistedToolExecutionAuthority.summary).workGraphToolCount, 2)
+assert.equal(asRecord(persistedToolExecutionAuthority.summary).workGraphToolCount, 4)
 assert.equal(
   asRecord(persistedToolExecutionAuthority.summary).allRequiredToolsPrivateEndToEndReady,
   true,
@@ -174,7 +177,7 @@ assert.equal(
 const persistedToolEntries = persistedToolExecutionAuthority.tools as Record<string, unknown>[]
 assert.deepEqual(
   persistedToolEntries.map((entry) => entry.canonicalToolId),
-  ['ffmpeg', 'ffprobe'],
+  ['ffmpeg', 'ffprobe', 'libass', 'remotion'],
 )
 assert.ok(persistedToolEntries.every((entry) =>
   String(entry.stableToolIdentity).startsWith('reeditpro.tool.') &&
@@ -182,6 +185,28 @@ assert.ok(persistedToolEntries.every((entry) =>
   /^[a-f0-9]{64}$/.test(String(entry.proofHash)) &&
   asRecord(entry.readiness).privateInternalEndToEndReady === true &&
   asRecord(entry.readiness).privateInternalJobAdapterReady === true))
+const toolPayloadAuthorityRef = asRecord(
+  publishedComponentRefs.canonicalToolPayloadAuthority,
+)
+const persistedToolPayloadAuthority = asRecord(await readPrivateAuthorityJsonBlob({
+  localStorageRoot,
+  ref: {
+    sha256: String(toolPayloadAuthorityRef.sha256),
+    byteLength: Number(toolPayloadAuthorityRef.byteLength),
+  },
+}))
+assert.equal(
+  persistedToolPayloadAuthority.source,
+  'server_exact_runner_payload_reconciliation',
+)
+assert.match(String(persistedToolPayloadAuthority.authorityHash), /^[a-f0-9]{64}$/)
+assert.deepEqual(
+  (persistedToolPayloadAuthority.validatedWorkItems as Record<string, unknown>[])
+    .map((entry) => entry.validatorFamily),
+  ['libass_caption', 'remotion_final_composition', 'media_ffprobe', 'media_ffmpeg'],
+)
+assert.equal(asRecord(persistedToolPayloadAuthority.summary).validatedWorkItemCount, 4)
+assert.equal(asRecord(persistedToolPayloadAuthority.summary).validationRunsBeforeApproval, true)
 
 const replayedPublish = await service.publishCanonicalPlan(createPublishInput(project.id, 'edit-session-authority-1'))
 assert.deepEqual(replayedPublish.authority, published.authority, 'Exact plan publish replay must return the exact persisted response.')
@@ -211,7 +236,7 @@ await expectApiError(
     planningRequestId: 'planning-cycle',
     idempotencyKey: 'publish-cycle',
     mutateBody(body) {
-      body.canonicalPlan.workItems[0]!.dependencyKeys = ['final-export']
+      body.canonicalPlan.workItems[1]!.dependencyKeys = ['final-export']
     },
   })),
   'VALIDATION_FAILED',
@@ -357,8 +382,12 @@ await expectApiError(
     idempotencyKey: 'publish-missing-exact-operation-authority',
     mutateBody(body) {
       body.canonicalPlan.components.toolStrategyPlan = {
-        toolIds: ['ffmpeg', 'ffprobe'],
-        exactOperationIds: ['tool.ffprobe.inspect_approved_media.v1'],
+        toolIds: ['ffmpeg', 'ffprobe', 'libass', 'remotion'],
+        exactOperationIds: [
+          'tool.ffprobe.inspect_approved_media.v1',
+          'tool.libass.render_approved_caption_track.v1',
+          'tool.remotion.render_approved_composition.v1',
+        ],
       }
     },
   })),
@@ -379,17 +408,67 @@ await expectApiError(
         'tool.sam2.segment_and_track_subject.v1',
       ]
       body.canonicalPlan.components.toolStrategyPlan = {
-        toolIds: ['sam2', 'ffmpeg', 'ffprobe'],
+        toolIds: ['sam2', 'ffprobe', 'libass', 'remotion'],
         exactOperationIds: [
           'tool.sam2.segment_and_track_subject.v1',
-          'tool.ffmpeg.execute_approved_media_recipe.v1',
           'tool.ffprobe.inspect_approved_media.v1',
+          'tool.libass.render_approved_caption_track.v1',
+          'tool.remotion.render_approved_composition.v1',
         ],
       }
     },
   })),
   'TOOL_NOT_READY',
   'A required tool without canonical lifecycle and job-adapter evidence must not enter an approvable plan.',
+)
+
+await expectApiError(
+  () => service.publishCanonicalPlan(createPublishInput(project.id, 'edit-session-invalid-tool-payload', {
+    planningRequestId: 'planning-invalid-tool-payload',
+    idempotencyKey: 'publish-invalid-tool-payload',
+    mutateBody(body) {
+      const sourceTrim = body.canonicalPlan.workItems.find((workItem) =>
+        workItem.workItemKey === 'source-trim')
+      assert.ok(sourceTrim)
+      ;(sourceTrim.executionInput.structuredPayload as Record<string, unknown>).allowUnreviewedCodec = true
+    },
+  })),
+  'TOOL_NOT_READY',
+  'A schema-valid plan must fail before persistence when its exact runner payload is invalid.',
+)
+
+await expectApiError(
+  () => service.publishCanonicalPlan(createPublishInput(project.id, 'edit-session-invalid-tool-binding', {
+    planningRequestId: 'planning-invalid-tool-binding',
+    idempotencyKey: 'publish-invalid-tool-binding',
+    mutateBody(body) {
+      const sourceTrim = body.canonicalPlan.workItems.find((workItem) =>
+        workItem.workItemKey === 'source-trim')
+      assert.ok(sourceTrim)
+      sourceTrim.dependencyKeys = ['snapshot-validation']
+    },
+  })),
+  'TOOL_NOT_READY',
+  'A runner payload with unsupported source, cleanup, or dependency binding must fail before approval.',
+)
+
+await expectApiError(
+  () => service.publishCanonicalPlan(createPublishInput(
+    project.id,
+    'edit-session-invalid-tool-output-content-type',
+    {
+      planningRequestId: 'planning-invalid-tool-output-content-type',
+      idempotencyKey: 'publish-invalid-tool-output-content-type',
+      mutateBody(body) {
+        const sourceTrim = body.canonicalPlan.workItems.find((workItem) =>
+          workItem.workItemKey === 'source-trim')
+        assert.ok(sourceTrim)
+        sourceTrim.expectedOutputs[0]!.contentType = 'video/mp4'
+      },
+    },
+  )),
+  'TOOL_NOT_READY',
+  'A tool output content type without exact private artifact evidence must fail before approval.',
 )
 
 await expectApiError(
@@ -473,21 +552,22 @@ assert.match(String(snapshot.approvedSourceAssetManifestHash), /^[a-f0-9]{64}$/)
 assert.match(String(asRecord(snapshot.approvedSourceAssetManifestRef).sha256), /^[a-f0-9]{64}$/)
 assert.equal('sourcePlan' in snapshot, false, 'Snapshot must remain a compact manifest, not a duplicated multi-megabyte source plan.')
 assert.ok(Buffer.byteLength(stableAuthorityStringify(snapshot), 'utf8') < 64 * 1024)
-assert.equal(jobs.length, 4)
-assert.equal(jobs.filter((job) => job.status === 'ready').length, 1)
-assert.equal(jobs.filter((job) => job.status === 'blocked').length, 3)
+assert.equal(jobs.length, 5)
+assert.equal(jobs.filter((job) => job.status === 'ready').length, 3)
+assert.equal(jobs.filter((job) => job.status === 'blocked').length, 2)
 assert.ok(jobs.every((job) => Array.isArray(job.expectedAssetIds) && job.expectedAssetIds.length === 1))
 const loadedExecutionAuthority = await service.loadApprovedExecutionAuthority(String(snapshot.snapshotId), workspaceId)
-assert.equal(loadedExecutionAuthority.assetManifest.entries.length, 4)
-assert.equal(loadedExecutionAuthority.assetManifest.requiredAssetCount, 4)
+assert.equal(loadedExecutionAuthority.assetManifest.entries.length, 5)
+assert.equal(loadedExecutionAuthority.assetManifest.requiredAssetCount, 5)
 assert.equal(loadedExecutionAuthority.assetManifest.manifestHash, snapshot.approvedAssetManifestHash)
 assert.equal(loadedExecutionAuthority.sourceAssetManifest.bindings.length, 2)
 assert.equal(loadedExecutionAuthority.sourceAssetManifest.requiredBindingCount, 2)
 assert.equal(loadedExecutionAuthority.sourceAssetManifest.manifestHash, snapshot.approvedSourceAssetManifestHash)
 assert.equal(loadedExecutionAuthority.toolExecutionAuthority.authorityHash, persistedToolExecutionAuthority.authorityHash)
+assert.equal(loadedExecutionAuthority.toolPayloadAuthority.authorityHash, persistedToolPayloadAuthority.authorityHash)
 assert.deepEqual(
   loadedExecutionAuthority.toolExecutionAuthority.tools.map((tool) => tool.canonicalToolId),
-  ['ffmpeg', 'ffprobe'],
+  ['ffmpeg', 'ffprobe', 'libass', 'remotion'],
 )
 
 const executionPackageInput = {
@@ -511,20 +591,22 @@ assert.equal(executionPackage.reservationId, reservation.id)
 assert.equal(executionPackage.workerDispatchReady, false)
 assert.equal(executionPackage.liveExecutionReady, false)
 assert.equal(executionPackage.approvedAssetManifestHash, snapshot.approvedAssetManifestHash)
-assert.equal(executionPackage.plannedAssetCount, 4)
-assert.equal(executionPackage.requiredPlannedAssetCount, 4)
+assert.equal(executionPackage.plannedAssetCount, 5)
+assert.equal(executionPackage.requiredPlannedAssetCount, 5)
 assert.equal(executionPackage.approvedSourceAssetManifestHash, snapshot.approvedSourceAssetManifestHash)
 assert.equal(executionPackage.sourceBindingCount, 2)
 assert.equal(executionPackage.requiredSourceBindingCount, 2)
 assert.equal(JSON.stringify(executionPackage).includes('bucketName'), false)
 assert.equal(JSON.stringify(executionPackage).includes('objectPath'), false)
 assert.deepEqual(executionPackage.jobs.map((job) => job.id).sort(), jobs.map((job) => String(job.id)).sort())
-assert.deepEqual(executionPackage.approvedToolIds.sort(), ['ffmpeg', 'ffprobe'])
+assert.deepEqual(executionPackage.approvedToolIds.sort(), ['ffmpeg', 'ffprobe', 'libass', 'remotion'])
 assert.deepEqual(executionPackage.approvedToolOperationIds, [
   'tool.ffmpeg.execute_approved_media_recipe.v1',
   'tool.ffprobe.inspect_approved_media.v1',
+  'tool.libass.render_approved_caption_track.v1',
+  'tool.remotion.render_approved_composition.v1',
 ])
-assert.equal(executionPackage.toolOperationBindingCount, 3)
+assert.equal(executionPackage.toolOperationBindingCount, 4)
 assert.match(executionPackage.toolOperationBindingsHash, /^[a-f0-9]{64}$/)
 assert.match(executionPackage.toolCapabilityManifestHash, /^[a-f0-9]{64}$/)
 assert.ok(executionPackage.approvedWorkItems.every((workItem) =>
@@ -538,7 +620,7 @@ assert.ok(executionPackage.jobs.every((job) => {
 }))
 assert.equal(packagedLeft.toolCapabilityManifest.schemaVersion, 'canonical-tool-authorization-manifest-v2')
 assert.deepEqual(packagedLeft.toolCapabilityManifest.operationIds, executionPackage.approvedToolOperationIds)
-assert.equal(packagedLeft.toolCapabilityManifest.operationBindingCount, 3)
+assert.equal(packagedLeft.toolCapabilityManifest.operationBindingCount, 4)
 assert.equal(
   packagedLeft.toolCapabilityManifest.operationBindingsHash,
   sha256ForSmoke(stableAuthorityStringify(packagedLeft.toolCapabilityManifest.operationBindings)),
@@ -554,7 +636,7 @@ assert.ok(packagedLeft.toolCapabilityManifest.operationBindings.every((binding) 
   /^[a-f0-9]{64}$/.test(binding.bindingHash)))
 assert.equal(packagedLeft.toolCapabilityManifest.workerDispatchAuthorized, false)
 assert.equal(packagedLeft.toolCapabilityManifest.runtimeEvidenceReadyCount, 0)
-assert.equal(packagedLeft.toolCapabilityManifest.tools.length, 2)
+assert.equal(packagedLeft.toolCapabilityManifest.tools.length, 4)
 
 await expectApiError(
   () => packageService.createPackage({
@@ -609,7 +691,7 @@ assert.ok(aggregate)
 assert.equal(aggregate.approvals.length, 1)
 assert.equal(aggregate.snapshots.length, 1)
 assert.equal(aggregate.reservations.length, 1)
-assert.equal(aggregate.jobs.length, 4)
+assert.equal(aggregate.jobs.length, 5)
 assert.equal(aggregate.executionPackages.length, 1)
 assert.equal(aggregate.wallet.availableCredits, 9_985)
 assert.equal(aggregate.wallet.reservedCredits, 15)
@@ -694,6 +776,31 @@ try {
   )
 } finally {
   await writeFile(toolAuthorityPath, originalToolAuthorityEnvelope, 'utf8')
+}
+
+const toolPayloadAuthoritySha = String(toolPayloadAuthorityRef.sha256)
+const toolPayloadAuthorityPath = join(
+  localStorageRoot,
+  'edit-authority',
+  'blobs',
+  'sha256',
+  toolPayloadAuthoritySha.slice(0, 2),
+  `${toolPayloadAuthoritySha}.json`,
+)
+const originalToolPayloadAuthorityEnvelope = await readFile(toolPayloadAuthorityPath, 'utf8')
+try {
+  const tamperedEnvelope = JSON.parse(originalToolPayloadAuthorityEnvelope) as {
+    value: { validatedWorkItems: Array<{ structuredPayloadHash: string }> }
+  }
+  tamperedEnvelope.value.validatedWorkItems[0]!.structuredPayloadHash = '0'.repeat(64)
+  await writeFile(toolPayloadAuthorityPath, `${JSON.stringify(tamperedEnvelope)}\n`, 'utf8')
+  await expectApiError(
+    () => service.loadApprovedExecutionAuthority(String(snapshot.snapshotId), workspaceId),
+    'VALIDATION_FAILED',
+    'Tampered exact runner payload authority must fail before execution packaging.',
+  )
+} finally {
+  await writeFile(toolPayloadAuthorityPath, originalToolPayloadAuthorityEnvelope, 'utf8')
 }
 
 await provePreferenceAndBriefCanonicalBinding(context)
@@ -1740,6 +1847,7 @@ try {
   const sourceTrimValidationItem = workGraphPlanBody.canonicalPlan.workItems.find((workItem) =>
     workItem.workItemKey === 'source-trim')
   assert.ok(sourceTrimValidationItem)
+  sourceTrimValidationItem.workItemType = 'prepare_source_trim'
   sourceTrimValidationItem.workerClass = 'authority_worker'
   sourceTrimValidationItem.executionInput = { operation: 'validate_approved_source_trim_plan' }
   sourceTrimValidationItem.expectedOutputs = [{
@@ -1749,12 +1857,19 @@ try {
     required: true,
     previewPlaceholderAllowed: false,
     contentType: 'application/json',
-    segmentIds: ['segment-1', 'segment-2'],
+    segmentIds: ['segment-1'],
     timingIds: ['master-timing-plan'],
     rendererLayerIds: [],
   }]
   sourceTrimValidationItem.approvedToolIds = []
+  sourceTrimValidationItem.dependencyKeys = ['snapshot-validation']
   sourceTrimValidationItem.maximumCreditBudget = 0
+  const captionCapabilityItem = workGraphPlanBody.canonicalPlan.workItems.find((workItem) =>
+    workItem.workItemKey === 'caption-overlay')
+  assert.ok(captionCapabilityItem)
+  captionCapabilityItem.executionInput = { operation: 'future_caption_overlay_capability' }
+  captionCapabilityItem.approvedToolIds = []
+  captionCapabilityItem.maximumCreditBudget = 0
   workGraphPlanBody.workspaceId = routeWorkspaceId
   const workGraphPublishResponse = await publishCanonicalPlanThroughPersistedHandoffRoute({
     routeBaseUrl,
@@ -1842,12 +1957,12 @@ try {
   assert.equal(typeof sourceTrimValidationOutcome.artifactId, 'string')
   assert.equal(typeof sourceTrimValidationOutcome.sha256, 'string')
   assert.equal(workGraphRun.status, 'blocked_required_jobs')
-  assert.equal(workGraphRunSummary.totalJobCount, 4)
+  assert.equal(workGraphRunSummary.totalJobCount, 5)
   assert.equal(workGraphRunSummary.completedJobCount, 2)
   assert.equal(workGraphRunSummary.replayedJobCount, 0)
   assert.equal(workGraphRunSummary.capabilityBlockedJobCount, 1)
-  assert.equal(workGraphRunSummary.dependencyBlockedJobCount, 1)
-  assert.equal(workGraphRunSummary.requiredBlockedJobCount, 2)
+  assert.equal(workGraphRunSummary.dependencyBlockedJobCount, 2)
+  assert.equal(workGraphRunSummary.requiredBlockedJobCount, 3)
   assert.equal(workGraphRunReadiness.privateInternalWorkGraphCompleted, false)
   assert.equal(workGraphRunReadiness.privateReviewReady, false)
   assert.equal(workGraphRunReadiness.nextRequiredGate, 'canonical_job_capability_blockers')
@@ -1870,12 +1985,12 @@ try {
   assert.equal(workGraphProgress.approvedPlanSnapshotId, workGraphSnapshot.snapshotId)
   assert.equal(workGraphProgress.status, 'blocked_required_jobs')
   assert.equal(workGraphProgress.runFinished, true)
-  assert.equal(workGraphProgress.totalJobCount, 4)
+  assert.equal(workGraphProgress.totalJobCount, 5)
   assert.equal(workGraphProgress.completedJobCount, 2)
   assert.equal(workGraphProgress.capabilityBlockedJobCount, 1)
-  assert.equal(workGraphProgress.dependencyBlockedJobCount, 1)
+  assert.equal(workGraphProgress.dependencyBlockedJobCount, 2)
   assert.equal(workGraphProgress.pendingJobCount, 0)
-  assert.equal(workGraphProgress.requiredIncompleteJobCount, 2)
+  assert.equal(workGraphProgress.requiredIncompleteJobCount, 3)
   assert.equal(workGraphProgress.allRequiredJobsCompleted, false)
   assert.equal(workGraphProgress.nextRequiredGate, 'canonical_job_capability_blockers')
   assert.equal(typeof workGraphProgress.checkpointHash, 'string')
@@ -2933,6 +3048,9 @@ console.log(JSON.stringify({
     'tool_strategy_work_graph_and_exact_operation_reconciliation_gate',
     'required_tool_canonical_lifecycle_and_job_adapter_readiness_gate',
     'tool_identity_authority_tamper_rejected_before_execution_packaging',
+    'exact_runner_payload_binding_and_output_content_type_validated_before_approval',
+    'tool_payload_authority_frozen_into_plan_snapshot_and_execution_lineage',
+    'tool_payload_authority_tamper_rejected_before_execution_packaging',
     'basic_pro_normal_no_veo_gate',
     'no_default_or_full_file_trim_without_approved_decisions',
     'expected_output_uniqueness_gate',
@@ -3055,7 +3173,7 @@ function createCanonicalPlanBody(
         professionalEditingDirective: { pacing: 'clean', mustFollowRules: ['Preserve meaning.'] },
         confirmedSettings: {
           aspectRatio: '9:16',
-          outputFrame: { width: 1080, height: 1920, fps: 30 },
+          outputFrame: { width: 405, height: 720, fps: 30 },
           outputFrameConfirmed: true,
           sourceOrderConfirmed: true,
           sourceCleanupConfirmed: true,
@@ -3089,32 +3207,33 @@ function createCanonicalPlanBody(
             {
               decisionId: 'cleanup-decision-source-2',
               sourceSequenceItemId: 'source-2',
-              action: 'keep',
+              action: 'use_as_alt_take',
               startFrame: 0,
               endFrameExclusive: 150,
-              reason: 'Preserve the complete second source because it carries the approved ending context.',
+              reason: 'Preserve the complete second source as an approved alternate take outside the primary final composition.',
               confidence: 0.98,
               meaningPreservationStatus: 'passed',
               userReviewStatus: 'not_required',
             },
           ],
         },
-        masterTimingPlan: { status: 'ready', timingBase: { fps: 30 }, totalFrames: 300 },
+        masterTimingPlan: { status: 'ready', timingBase: { fps: 30 }, totalFrames: 150 },
         captionVisualCueTimingPlan: { status: 'synced', collisionCount: 0 },
         soundSyncTransitionTimingPlan: { status: 'not_needed', speechPriority: true },
         timingValidationPlan: { overallStatus: 'passed', approvalBlocked: false },
-        timingSummary: { validationStatus: 'passed', approvalBlocked: false, fps: 30, totalFrames: 300 },
+        timingSummary: { validationStatus: 'passed', approvalBlocked: false, fps: 30, totalFrames: 150 },
         segments: [
-          { segmentId: 'segment-1', startFrame: 0, endFrameExclusive: 150, operationIds: ['operation-trim-1'] },
-          { segmentId: 'segment-2', startFrame: 150, endFrameExclusive: 300, operationIds: ['operation-export-1'] },
+          { segmentId: 'segment-1', startFrame: 0, endFrameExclusive: 150, operationIds: ['operation-trim-1', 'operation-caption-1', 'operation-export-1'] },
         ],
         visualAssetPlan: { assets: [], randomBrollAllowed: false },
         rendererPlan: { renderer: 'remotion', frameOwnedByRenderer: true },
         toolStrategyPlan: {
-          toolIds: ['ffmpeg', 'ffprobe'],
+          toolIds: ['ffmpeg', 'ffprobe', 'libass', 'remotion'],
           exactOperationIds: [
             'tool.ffmpeg.execute_approved_media_recipe.v1',
             'tool.ffprobe.inspect_approved_media.v1',
+            'tool.libass.render_approved_caption_track.v1',
+            'tool.remotion.render_approved_composition.v1',
           ],
         },
         qaPlan: { status: 'passed', checks: ['intent', 'timing', 'source_order', 'frame'] },
@@ -3161,27 +3280,36 @@ function createCanonicalPlanBody(
         },
         {
           workItemKey: 'source-trim',
-          workItemType: 'prepare_source_trim',
-          workerClass: 'cpu_media_worker',
+          workItemType: 'process_video_asset',
+          workerClass: 'media_processing_worker',
           executionInput: {
-            operation: 'approved_trim',
+            operation: 'execute_approved_media_recipe',
             approvedToolOperationIds: ['tool.ffmpeg.execute_approved_media_recipe.v1'],
-            sourceSequenceItemIds: ['source-1', 'source-2'],
+            expectedOutputKeys: ['approved-trimmed-source'],
+            structuredPayload: {
+              recipeProfileId: 'approved_trim_transcode_v1',
+              timestampPolicy: 'normalize_from_zero',
+              overwriteExistingArtifact: false,
+              allowUnreviewedCodec: false,
+              trimStartFrame: 0,
+              trimEndFrameExclusive: 150,
+              frameRate: 30,
+            },
           },
-          sourceSequenceItemIds: ['source-1', 'source-2'],
-          sourceCleanupDecisionIds: ['cleanup-decision-source-1', 'cleanup-decision-source-2'],
+          sourceSequenceItemIds: ['source-1'],
+          sourceCleanupDecisionIds: ['cleanup-decision-source-1'],
           expectedOutputs: [{
             outputKey: 'approved-trimmed-source',
-            artifactType: 'trimmed_source_media',
+            artifactType: 'approved_ffv1_nut_intermediate',
             assetRole: 'processed',
             required: true,
             previewPlaceholderAllowed: false,
-            contentType: 'video/mp4',
-            segmentIds: ['segment-1', 'segment-2'],
+            contentType: 'video/x-nut',
+            segmentIds: ['segment-1'],
             timingIds: ['master-timing-plan'],
             rendererLayerIds: ['source-video-layer'],
           }],
-          dependencyKeys: ['snapshot-validation'],
+          dependencyKeys: [],
           approvedToolIds: ['ffmpeg'],
           providerExecutionMode: 'none',
           fallbackPolicy: {},
@@ -3192,12 +3320,109 @@ function createCanonicalPlanBody(
           required: true,
         },
         {
+          workItemKey: 'caption-overlay',
+          workItemType: 'custom',
+          workerClass: 'render_worker',
+          executionInput: {
+            operation: 'render_approved_caption_overlay',
+            approvedToolOperationIds: ['tool.libass.render_approved_caption_track.v1'],
+            expectedOutputKeys: ['caption-overlay-png'],
+            structuredPayload: {
+              captionProfileId: 'approved_ass_track_render_v1',
+              fontPackProfileId: 'reeditpro_reviewed_fonts_v1',
+              collisionPolicy: 'fail_on_reserved_zone_collision',
+              preserveSpeechTiming: true,
+              width: 405,
+              height: 720,
+              timestampMs: 1000,
+              fontSize: 42,
+              marginV: 48,
+              alignment: 2,
+              caption: 'Approved frame accurate caption',
+            },
+          },
+          sourceSequenceItemIds: [],
+          sourceCleanupDecisionIds: [],
+          expectedOutputs: [{
+            outputKey: 'caption-overlay-png',
+            artifactType: 'controlled_libass_caption_overlay_png',
+            assetRole: 'processed',
+            required: true,
+            previewPlaceholderAllowed: false,
+            contentType: 'image/png',
+            segmentIds: ['segment-1'],
+            timingIds: ['master-timing-plan'],
+            rendererLayerIds: ['caption-overlay-layer'],
+          }],
+          dependencyKeys: [],
+          approvedToolIds: ['libass'],
+          providerExecutionMode: 'none',
+          fallbackPolicy: {},
+          maxAttempts: 2,
+          attemptTimeoutSeconds: 300,
+          scheduledDelaySeconds: 0,
+          maximumCreditBudget: 1,
+          required: true,
+        },
+        {
+          workItemKey: 'final-export',
+          workItemType: 'render_final_export',
+          workerClass: 'render_worker',
+          executionInput: {
+            operation: 'render_approved_source_caption_final',
+            approvedToolOperationIds: ['tool.remotion.render_approved_composition.v1'],
+            expectedOutputKeys: ['final-export'],
+            structuredPayload: {
+              compositionProfileId: 'approved_source_caption_final_v1',
+              width: 405,
+              height: 720,
+              fps: 30,
+              durationFrames: 150,
+              sourceStartFrame: 0,
+              sourceEndFrameExclusive: 150,
+              sourceFit: 'contain',
+              panelBackground: '#000000',
+              audioPolicy: 'preserve_source',
+              captionOverlayPolicy: 'approved_full_frame_rgba',
+            },
+          },
+          sourceSequenceItemIds: ['source-1'],
+          sourceCleanupDecisionIds: ['cleanup-decision-source-1'],
+          expectedOutputs: [{
+            outputKey: 'final-export',
+            artifactType: 'private_source_caption_final_video_export',
+            assetRole: 'final',
+            required: true,
+            previewPlaceholderAllowed: false,
+            contentType: 'video/mp4',
+            segmentIds: ['segment-1'],
+            timingIds: ['master-timing-plan'],
+            rendererLayerIds: ['source-video-layer', 'caption-overlay-layer'],
+          }],
+          dependencyKeys: ['source-trim', 'caption-overlay'],
+          approvedToolIds: ['remotion'],
+          providerExecutionMode: 'none',
+          fallbackPolicy: {},
+          maxAttempts: 2,
+          attemptTimeoutSeconds: 1_800,
+          scheduledDelaySeconds: 0,
+          maximumCreditBudget: 4,
+          required: true,
+        },
+        {
           workItemKey: 'final-qa',
           workItemType: 'run_final_qa',
           workerClass: 'qa_worker',
           executionInput: {
-            operation: 'final_qa',
+            operation: 'inspect_final_artifact',
             approvedToolOperationIds: ['tool.ffprobe.inspect_approved_media.v1'],
+            expectedOutputKeys: ['final-qa-report'],
+            structuredPayload: {
+              inspectionProfileId: 'final_export_v1',
+              countFrames: true,
+              verifyDurationAndSync: true,
+              emitMachineJsonOnly: true,
+            },
           },
           sourceSequenceItemIds: [],
           sourceCleanupDecisionIds: [],
@@ -3208,11 +3433,11 @@ function createCanonicalPlanBody(
             required: true,
             previewPlaceholderAllowed: false,
             contentType: 'application/json',
-            segmentIds: [],
+            segmentIds: ['segment-1'],
             timingIds: ['master-timing-plan'],
-            rendererLayerIds: [],
+            rendererLayerIds: ['source-video-layer', 'caption-overlay-layer'],
           }],
-          dependencyKeys: ['source-trim'],
+          dependencyKeys: ['final-export'],
           approvedToolIds: ['ffprobe'],
           providerExecutionMode: 'none',
           fallbackPolicy: {},
@@ -3220,37 +3445,6 @@ function createCanonicalPlanBody(
           attemptTimeoutSeconds: 300,
           scheduledDelaySeconds: 0,
           maximumCreditBudget: 2,
-          required: true,
-        },
-        {
-          workItemKey: 'final-export',
-          workItemType: 'render_final_export',
-          workerClass: 'render_worker',
-          executionInput: {
-            operation: 'render_approved_export',
-            approvedToolOperationIds: ['tool.ffmpeg.execute_approved_media_recipe.v1'],
-          },
-          sourceSequenceItemIds: ['source-1', 'source-2'],
-          sourceCleanupDecisionIds: ['cleanup-decision-source-1', 'cleanup-decision-source-2'],
-          expectedOutputs: [{
-            outputKey: 'final-export',
-            artifactType: 'final_video_export',
-            assetRole: 'final',
-            required: true,
-            previewPlaceholderAllowed: false,
-            contentType: 'video/mp4',
-            segmentIds: ['segment-1', 'segment-2'],
-            timingIds: ['master-timing-plan'],
-            rendererLayerIds: ['source-video-layer'],
-          }],
-          dependencyKeys: ['final-qa'],
-          approvedToolIds: ['ffmpeg'],
-          providerExecutionMode: 'none',
-          fallbackPolicy: {},
-          maxAttempts: 2,
-          attemptTimeoutSeconds: 1_800,
-          scheduledDelaySeconds: 0,
-          maximumCreditBudget: 4,
           required: true,
         },
       ],
@@ -3870,6 +4064,7 @@ async function proveAtomicWorkItemCompilation(serviceContext: ServiceContext): P
   const sourceTrim = body.canonicalPlan.workItems.find((workItem) =>
     workItem.workItemKey === 'source-trim')
   assert.ok(sourceTrim)
+  sourceTrim.workItemType = 'prepare_source_trim'
   sourceTrim.workerClass = 'authority_worker'
   sourceTrim.executionInput = { operation: 'validate_approved_source_trim_plan' }
   sourceTrim.expectedOutputs = [{
@@ -3879,11 +4074,12 @@ async function proveAtomicWorkItemCompilation(serviceContext: ServiceContext): P
     required: true,
     previewPlaceholderAllowed: false,
     contentType: 'application/json',
-    segmentIds: ['segment-1', 'segment-2'],
+    segmentIds: ['segment-1'],
     timingIds: ['master-timing-plan'],
     rendererLayerIds: [],
   }]
   sourceTrim.approvedToolIds = []
+  sourceTrim.dependencyKeys = ['snapshot-validation']
   sourceTrim.maximumCreditBudget = 0
   const d3OperationId = 'tool.d3.render_chart_or_diagram.v1'
   const echartsOperationId = 'tool.echarts.render_standard_chart.v1'
@@ -3984,12 +4180,12 @@ async function proveAtomicWorkItemCompilation(serviceContext: ServiceContext): P
   finalQa.maximumCreditBudget = 0
   finalQa.dependencyKeys.push('grouped-chart-tools')
   body.canonicalPlan.components.toolStrategyPlan = {
-    toolIds: ['ffmpeg', 'ffprobe', 'd3', 'echarts'],
+    toolIds: ['libass', 'remotion', 'd3', 'echarts'],
   }
 
   const preview = compileCanonicalWorkItems(body.canonicalPlan.workItems)
-  assert.equal(preview.evidence.sourceWorkItemCount, 5)
-  assert.equal(preview.evidence.compiledWorkItemCount, 6)
+  assert.equal(preview.evidence.sourceWorkItemCount, 6)
+  assert.equal(preview.evidence.compiledWorkItemCount, 7)
   assert.equal(preview.evidence.decomposedSourceWorkItemCount, 1)
   assert.equal(preview.evidence.mappings[0]?.steps.length, 2)
   const previewD3 = preview.workItems.find((workItem) =>
@@ -4007,7 +4203,7 @@ async function proveAtomicWorkItemCompilation(serviceContext: ServiceContext): P
   const previewFinalQa = preview.workItems.find((workItem) => workItem.workItemKey === 'final-qa')
   assert.ok(previewFinalQa)
   assert.deepEqual(previewFinalQa.dependencyKeys.sort(), [
-    'source-trim',
+    'final-export',
     previewEcharts.workItemKey,
   ].sort())
 
@@ -4077,7 +4273,7 @@ async function proveAtomicWorkItemCompilation(serviceContext: ServiceContext): P
   const plan = asRecord(authority.plan)
   const estimate = asRecord(authority.estimate)
   const publishedWorkItems = authority.workItems as Record<string, unknown>[]
-  assert.equal(publishedWorkItems.length, 6)
+  assert.equal(publishedWorkItems.length, 7)
   assert.equal(publishedWorkItems.some((workItem) =>
     workItem.workItemKey === 'grouped-chart-tools'), false)
   const publishedD3 = publishedWorkItems.find((workItem) =>
@@ -4098,7 +4294,7 @@ async function proveAtomicWorkItemCompilation(serviceContext: ServiceContext): P
     },
   }))
   assert.equal(persistedCompilation.decomposedSourceWorkItemCount, 1)
-  assert.equal(persistedCompilation.compiledWorkItemCount, 6)
+  assert.equal(persistedCompilation.compiledWorkItemCount, 7)
   assert.equal(typeof persistedCompilation.compilationHash, 'string')
 
   const approved = await service.approveAndFundCanonicalPlan({
@@ -4112,7 +4308,7 @@ async function proveAtomicWorkItemCompilation(serviceContext: ServiceContext): P
   const approvedAuthority = asRecord(approved.authority)
   const snapshot = asRecord(approvedAuthority.snapshot)
   const approvedJobs = approvedAuthority.jobs as Record<string, unknown>[]
-  assert.equal(approvedJobs.length, 6)
+  assert.equal(approvedJobs.length, 7)
   const d3Job = approvedJobs.find((job) => job.workItemKey === publishedD3.workItemKey)
   const echartsJob = approvedJobs.find((job) => job.workItemKey === publishedEcharts.workItemKey)
   assert.ok(d3Job)
@@ -4131,7 +4327,7 @@ async function proveAtomicWorkItemCompilation(serviceContext: ServiceContext): P
     purpose: 'private_internal_execution_handoff',
     idempotencyKey: 'package-atomic-work-item-compilation',
   })).approvedEditExecutionPackage
-  assert.equal(executionPackage.jobs.length, 6)
+  assert.equal(executionPackage.jobs.length, 7)
   assert.equal(executionPackage.approvedToolIds.includes('d3'), true)
   assert.equal(executionPackage.approvedToolIds.includes('echarts'), true)
   assert.equal(executionPackage.jobs.every((job) =>

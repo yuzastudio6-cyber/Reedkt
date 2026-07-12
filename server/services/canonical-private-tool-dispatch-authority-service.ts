@@ -1,5 +1,6 @@
 import { createHash, createHmac, randomUUID, timingSafeEqual } from 'node:crypto'
 
+import { validateCanonicalToolWorkItemPayload } from '../edit-architecture/canonical-tool-payload-authority'
 import { ApiError } from '../errors/api-error'
 import { isExplicitLocalInternalTestRuntime } from '../middleware/canonical-worker-runtime'
 import {
@@ -11,73 +12,18 @@ import {
 } from '../tool-execution/core-registry-operations/core-registry-operation-specs'
 import type { ProfessionalToolOperationSpec } from '../tool-execution/professional-tool-operation-spec-types'
 import { readPersistedOfflineNodeStructuredRuntimeAuthority } from '../tool-execution/node-runner-execution/offline-node-structured-execution-service'
-import { validateOfflineNodeStructuredExecutionRequest } from '../tool-execution/node-runner-execution/offline-node-structured-execution-protocol'
-import { validateOfflineSharpPlanningPayload } from '../tool-execution/node-runner-execution'
-import {
-  readPersistedOfflineMediaBinaryRuntimeAuthority,
-  validateOfflineFfmpegPlanningPayload,
-  validateOfflineFfprobePlanningPayload,
-} from '../tool-execution/media-binary-execution'
-import {
-  OFFLINE_PYTHON_STRUCTURED_EXECUTION_PROTOCOL,
-  isOfflinePythonAudioToolId,
-  isOfflinePythonMediaToolId,
-  validateOfflinePythonAudioPlanningPayload,
-  validateOfflinePythonMediaPlanningPayload,
-  validateOfflinePythonStructuredExecutionRequest,
-} from '../tool-execution/python-runner-execution/offline-python-structured-execution-protocol'
+import { readPersistedOfflineMediaBinaryRuntimeAuthority } from '../tool-execution/media-binary-execution'
 import { readPersistedOfflinePythonStructuredRuntimeAuthority } from '../tool-execution/python-runner-execution/offline-python-structured-execution-service'
-import {
-  validateOfflineRemotionFinalCompositionPlanningPayload,
-  validateOfflineRemotionRenderPlanningPayload,
-} from '../tool-execution/remotion-render-execution/offline-remotion-render-execution-protocol'
 import { readPersistedOfflineRemotionRenderRuntimeAuthority } from '../tool-execution/remotion-render-execution/offline-remotion-render-execution-service'
-import { OFFLINE_LIBASS_CAPTION_OPERATION, OFFLINE_LIBASS_CAPTION_PROTOCOL, validateOfflineLibassCaptionRequest } from '../tool-execution/libass-caption-execution/offline-libass-caption-protocol'
 import { readPersistedOfflineLibassRuntimeAuthority } from '../tool-execution/libass-caption-execution/offline-libass-caption-service'
-import {
-  OFFLINE_BROWSER_GRAPHICS_TOOL_IDS,
-  buildOfflineBrowserGraphicsApprovedRequest,
-} from '../tool-execution/browser-graphics-execution/offline-browser-graphics-protocol'
 import { readPersistedOfflineBrowserGraphicsRuntimeAuthority } from '../tool-execution/browser-graphics-execution/offline-browser-graphics-service'
-import {
-  OFFLINE_AI_CAPABILITY_TOOL_IDS,
-  buildOfflineAiCapabilityApprovedRequest,
-} from '../tool-execution/ai-capability-execution/offline-ai-capability-protocol'
 import { readPersistedOfflineAiCapabilityRuntimeAuthority } from '../tool-execution/ai-capability-execution/offline-ai-capability-service'
-import {
-  OFFLINE_NATIVE_IMAGE_PIPELINE_TOOL_IDS,
-  buildOfflineNativeImagePipelineApprovedRequest,
-} from '../tool-execution/native-image-pipeline-execution/offline-native-image-pipeline-protocol'
 import { readPersistedOfflineNativeImagePipelineRuntimeAuthority } from '../tool-execution/native-image-pipeline-execution/offline-native-image-pipeline-service'
-import {
-  OFFLINE_NATIVE_AUDIO_PROCESSING_TOOL_IDS,
-  buildOfflineNativeAudioProcessingApprovedRequest,
-} from '../tool-execution/native-audio-processing-execution/offline-native-audio-processing-protocol'
 import { readPersistedOfflineNativeAudioProcessingRuntimeAuthority } from '../tool-execution/native-audio-processing-execution/offline-native-audio-processing-service'
-import {
-  OFFLINE_CONTAINER_PACKAGING_VALIDATION_TOOL_IDS,
-  buildOfflineContainerPackagingValidationApprovedRequest,
-} from '../tool-execution/container-packaging-validation-execution/offline-container-packaging-validation-protocol'
 import { readPersistedOfflineContainerPackagingValidationRuntimeAuthority } from '../tool-execution/container-packaging-validation-execution/offline-container-packaging-validation-service'
-import {
-  OFFLINE_VAPOURSYNTH_FRAME_PIPELINE_TOOL_IDS,
-  buildOfflineVapourSynthFramePipelineApprovedRequest,
-} from '../tool-execution/vapoursynth-frame-pipeline-execution/offline-vapoursynth-frame-pipeline-protocol'
 import { readPersistedOfflineVapourSynthFramePipelineRuntimeAuthority } from '../tool-execution/vapoursynth-frame-pipeline-execution/offline-vapoursynth-frame-pipeline-service'
-import {
-  OFFLINE_AUDIOFLUX_ANALYSIS_TOOL_IDS,
-  buildOfflineAudioFluxAnalysisApprovedRequest,
-} from '../tool-execution/audioflux-analysis-execution/offline-audioflux-analysis-protocol'
 import { readPersistedOfflineAudioFluxAnalysisRuntimeAuthority } from '../tool-execution/audioflux-analysis-execution/offline-audioflux-analysis-service'
-import {
-  OFFLINE_REMBG_BACKGROUND_REMOVAL_TOOL_IDS,
-  buildOfflineRembgBackgroundRemovalApprovedRequest,
-} from '../tool-execution/rembg-background-removal-execution/offline-rembg-background-removal-protocol'
 import { readPersistedOfflineRembgBackgroundRemovalRuntimeAuthority } from '../tool-execution/rembg-background-removal-execution/offline-rembg-background-removal-service'
-import {
-  OFFLINE_DEEPFILTERNET_VOICE_CLEANUP_TOOL_IDS,
-  buildOfflineDeepFilterNetVoiceCleanupApprovedRequest,
-} from '../tool-execution/deepfilternet-voice-cleanup-execution/offline-deepfilternet-voice-cleanup-protocol'
 import { readPersistedOfflineDeepFilterNetVoiceCleanupRuntimeAuthority } from '../tool-execution/deepfilternet-voice-cleanup-execution/offline-deepfilternet-voice-cleanup-service'
 import {
   createToolRuntimeEvidenceAuthority,
@@ -203,7 +149,7 @@ export function createCanonicalPrivateToolDispatchAuthorityService(context: Serv
           access.workspaceId,
         )
         const canonical = resolveAndVerifyCanonicalDispatchBinding({ body, lease, readiness, authority })
-        const tool = resolveAndVerifyToolContract(body, canonical.workItem, canonical.expectedAsset)
+        const tool = resolveAndVerifyToolContract(body, canonical.workItem)
         const runtimeEvidence = resolveRuntimeEvidence(tool.spec)
         const privateRuntimeEvidence = await resolvePrivateInternalRuntimeEvidence(tool.spec)
         const timestamp = new Date().toISOString()
@@ -469,7 +415,6 @@ export function createCanonicalPrivateToolDispatchAuthorityService(context: Serv
         const tool = resolveAndVerifyToolContract(
           authorizationIdentity,
           canonical.workItem,
-          canonical.expectedAsset,
         )
         const runtimeEvidence = resolveRuntimeEvidence(tool.spec)
         const privateRuntimeEvidence = await resolvePrivateInternalRuntimeEvidence(tool.spec)
@@ -810,7 +755,6 @@ function resolveAndVerifyCanonicalDispatchBinding(input: {
 function resolveAndVerifyToolContract(
   body: AuthorizeCanonicalPrivateToolDispatchInput,
   workItem: CanonicalApprovedExecutionWorkItem,
-  expectedAsset: AuthorityPlannedAssetManifestEntry,
 ): { spec: ProfessionalToolOperationSpec; specHash: string } {
   const normalizedRequestedName = normalizeProfessionalToolOperationAlias(body.requestedToolName)
   const matchingCanonicalIds = new Set(listCompleteProfessionalToolOperationSpecs()
@@ -851,199 +795,10 @@ function resolveAndVerifyToolContract(
       { requiredGate: 'approved_work_item_exact_tool_operation_id' },
     )
   }
-  if (specClaimsPrivateInternalReady(spec)) {
-    try {
-      if (spec.canonicalToolId === 'sharp') {
-        validateOfflineSharpPlanningPayload(workItem.executionInput.structuredPayload)
-        if (workItem.dependencyKeys.length !== 1) {
-          throw new Error('Sharp operations require one approved dependency artifact.')
-        }
-      } else if (spec.canonicalToolId === 'ffmpeg') {
-        validateOfflineFfmpegPlanningPayload(workItem.executionInput.structuredPayload)
-        if (workItem.sourceSequenceItemIds.length !== 1) {
-          throw new Error('FFmpeg operations require one approved source binding.')
-        }
-      } else if (spec.canonicalToolId === 'ffprobe') {
-        const ffprobePayload = validateOfflineFfprobePlanningPayload(workItem.executionInput.structuredPayload)
-        const dependencyFinalQa =
-          workItem.workItemType === 'run_final_qa' && workItem.workerClass === 'qa_worker' &&
-          workItem.sourceSequenceItemIds.length === 0 && workItem.sourceCleanupDecisionIds.length === 0 &&
-          workItem.dependencyKeys.length === 1 && expectedAsset.assetRole === 'qa' &&
-          expectedAsset.contentType === 'application/json' &&
-          ffprobePayload.inspectionProfileId === 'final_export_v1' && ffprobePayload.countFrames === true
-        const approvedSourceInspection =
-          workItem.sourceSequenceItemIds.length === 1 && workItem.dependencyKeys.length === 0
-        if (!approvedSourceInspection && !dependencyFinalQa) {
-          throw new Error('FFprobe operations require one approved source or one final-artifact dependency.')
-        }
-      } else if (spec.canonicalToolId === 'remotion') {
-        if (workItem.workItemType === 'render_final_export') {
-          validateOfflineRemotionFinalCompositionPlanningPayload(workItem.executionInput.structuredPayload)
-          if (
-            workItem.sourceSequenceItemIds.length !== 1 ||
-            workItem.sourceCleanupDecisionIds.length !== 1 ||
-            workItem.dependencyKeys.length !== 2
-          ) {
-            throw new Error('Bounded final Remotion composition requires one source, one trim decision, and two approved dependencies.')
-          }
-        } else {
-          validateOfflineRemotionRenderPlanningPayload(workItem.executionInput.structuredPayload)
-          if (workItem.sourceSequenceItemIds.length !== 0 || workItem.dependencyKeys.length !== 0) {
-            throw new Error('Bounded Remotion proof compositions accept no caller source or dependency bytes.')
-          }
-        }
-      } else if (spec.canonicalToolId === 'libass') {
-        validateOfflineLibassCaptionRequest({
-          schemaVersion: OFFLINE_LIBASS_CAPTION_PROTOCOL,
-          toolId: 'libass', operationId: OFFLINE_LIBASS_CAPTION_OPERATION,
-          payload: workItem.executionInput.structuredPayload,
-        })
-      } else if ((OFFLINE_BROWSER_GRAPHICS_TOOL_IDS as readonly string[]).includes(spec.canonicalToolId)) {
-        buildOfflineBrowserGraphicsApprovedRequest({
-          toolId: spec.canonicalToolId,
-          operationId: body.operationId,
-          planningPayload: workItem.executionInput.structuredPayload,
-        })
-        if (workItem.sourceSequenceItemIds.length !== 0 || workItem.dependencyKeys.length !== 0) {
-          throw new Error('Bounded browser graphics operations accept no source or dependency bytes.')
-        }
-      } else if ((OFFLINE_AI_CAPABILITY_TOOL_IDS as readonly string[]).includes(spec.canonicalToolId)) {
-        buildOfflineAiCapabilityApprovedRequest({
-          toolId: spec.canonicalToolId as (typeof OFFLINE_AI_CAPABILITY_TOOL_IDS)[number],
-          operationId: body.operationId,
-          planningPayload: workItem.executionInput.structuredPayload,
-        })
-        if (workItem.sourceSequenceItemIds.length !== 0 || workItem.dependencyKeys.length !== 0) {
-          throw new Error('Bounded AI capability proof operations accept no caller source or dependency bytes.')
-        }
-      } else if ((OFFLINE_NATIVE_IMAGE_PIPELINE_TOOL_IDS as readonly string[]).includes(spec.canonicalToolId)) {
-        buildOfflineNativeImagePipelineApprovedRequest({
-          toolId: spec.canonicalToolId as (typeof OFFLINE_NATIVE_IMAGE_PIPELINE_TOOL_IDS)[number],
-          operationId: body.operationId,
-          planningPayload: workItem.executionInput.structuredPayload,
-        })
-        if (workItem.sourceSequenceItemIds.length !== 0 || workItem.dependencyKeys.length !== 0) {
-          throw new Error('Bounded native image pipeline proof operations accept no caller source or dependency bytes.')
-        }
-      } else if ((OFFLINE_NATIVE_AUDIO_PROCESSING_TOOL_IDS as readonly string[]).includes(spec.canonicalToolId)) {
-        buildOfflineNativeAudioProcessingApprovedRequest({
-          toolId: spec.canonicalToolId as (typeof OFFLINE_NATIVE_AUDIO_PROCESSING_TOOL_IDS)[number],
-          operationId: body.operationId,
-          planningPayload: workItem.executionInput.structuredPayload,
-        })
-        if (workItem.sourceSequenceItemIds.length !== 0 || workItem.dependencyKeys.length !== 0) {
-          throw new Error('Bounded native audio processing proof operations accept no caller source or dependency bytes.')
-        }
-      } else if ((OFFLINE_CONTAINER_PACKAGING_VALIDATION_TOOL_IDS as readonly string[]).includes(spec.canonicalToolId)) {
-        buildOfflineContainerPackagingValidationApprovedRequest({
-          toolId: spec.canonicalToolId as (typeof OFFLINE_CONTAINER_PACKAGING_VALIDATION_TOOL_IDS)[number],
-          operationId: body.operationId,
-          planningPayload: workItem.executionInput.structuredPayload,
-        })
-        if (workItem.sourceSequenceItemIds.length !== 0 || workItem.dependencyKeys.length !== 0) {
-          throw new Error('Bounded container packaging validation proof operations accept no caller source or dependency bytes.')
-        }
-      } else if ((OFFLINE_VAPOURSYNTH_FRAME_PIPELINE_TOOL_IDS as readonly string[]).includes(spec.canonicalToolId)) {
-        buildOfflineVapourSynthFramePipelineApprovedRequest({
-          toolId: spec.canonicalToolId as (typeof OFFLINE_VAPOURSYNTH_FRAME_PIPELINE_TOOL_IDS)[number],
-          operationId: body.operationId,
-          planningPayload: workItem.executionInput.structuredPayload,
-        })
-        if (workItem.sourceSequenceItemIds.length !== 0 || workItem.dependencyKeys.length !== 0) {
-          throw new Error('Bounded VapourSynth proof operations accept no caller source, script, plugin, or dependency bytes.')
-        }
-      } else if ((OFFLINE_AUDIOFLUX_ANALYSIS_TOOL_IDS as readonly string[]).includes(spec.canonicalToolId)) {
-        buildOfflineAudioFluxAnalysisApprovedRequest({
-          toolId: spec.canonicalToolId as (typeof OFFLINE_AUDIOFLUX_ANALYSIS_TOOL_IDS)[number],
-          operationId: body.operationId,
-          planningPayload: workItem.executionInput.structuredPayload,
-        })
-        if (workItem.sourceSequenceItemIds.length !== 0 || workItem.dependencyKeys.length !== 0) {
-          throw new Error('Bounded AudioFlux proof operations accept no caller source or dependency bytes.')
-        }
-      } else if ((OFFLINE_REMBG_BACKGROUND_REMOVAL_TOOL_IDS as readonly string[]).includes(spec.canonicalToolId)) {
-        buildOfflineRembgBackgroundRemovalApprovedRequest({
-          toolId: spec.canonicalToolId as (typeof OFFLINE_REMBG_BACKGROUND_REMOVAL_TOOL_IDS)[number],
-          operationId: body.operationId,
-          planningPayload: workItem.executionInput.structuredPayload,
-        })
-        if (workItem.sourceSequenceItemIds.length !== 0 || workItem.dependencyKeys.length !== 0) {
-          throw new Error('Bounded rembg proof operations accept no caller source, model, or dependency bytes.')
-        }
-      } else if ((OFFLINE_DEEPFILTERNET_VOICE_CLEANUP_TOOL_IDS as readonly string[]).includes(spec.canonicalToolId)) {
-        buildOfflineDeepFilterNetVoiceCleanupApprovedRequest({
-          toolId: spec.canonicalToolId as (typeof OFFLINE_DEEPFILTERNET_VOICE_CLEANUP_TOOL_IDS)[number],
-          operationId: body.operationId,
-          planningPayload: workItem.executionInput.structuredPayload,
-        })
-        if (workItem.sourceSequenceItemIds.length !== 0 || workItem.dependencyKeys.length !== 0) {
-          throw new Error('Bounded DeepFilterNet proof operations accept no caller audio, model, or dependency bytes.')
-        }
-      } else if (isOfflinePythonMediaToolId(spec.canonicalToolId)) {
-        validateOfflinePythonMediaPlanningPayload(
-          spec.canonicalToolId,
-          workItem.executionInput.structuredPayload,
-        )
-        if (workItem.sourceSequenceItemIds.length !== 1) {
-          throw new Error('Media operations require one approved source binding.')
-        }
-      } else if (isOfflinePythonAudioToolId(spec.canonicalToolId)) {
-        validateOfflinePythonAudioPlanningPayload(
-          spec.canonicalToolId,
-          workItem.executionInput.structuredPayload,
-        )
-        if (workItem.sourceSequenceItemIds.length !== 1) {
-          throw new Error('Audio operations require one approved source binding.')
-        }
-      } else if (['duckdb', 'polars', 'opentimelineio'].includes(spec.canonicalToolId)) {
-        validateOfflinePythonStructuredExecutionRequest({
-          schemaVersion: OFFLINE_PYTHON_STRUCTURED_EXECUTION_PROTOCOL,
-          toolId: spec.canonicalToolId,
-          operationId: body.operationId,
-          payload: workItem.executionInput.structuredPayload,
-        })
-      } else {
-        validateOfflineNodeStructuredExecutionRequest({
-          toolId: spec.canonicalToolId,
-          operationId: body.operationId,
-          payload: workItem.executionInput.structuredPayload,
-        })
-      }
-    } catch {
-      throw new ApiError(
-        'TOOL_NOT_READY',
-        'The approved work item does not contain a valid bounded structured payload for this private tool operation.',
-        409,
-        { requiredGate: 'approved_structured_tool_payload' },
-      )
-    }
-  }
-  const exactPrivateRemotionFinalComposition =
-    spec.canonicalToolId === 'remotion' &&
-    body.operationId === 'tool.remotion.render_approved_composition.v1' &&
-    workItem.workItemType === 'render_final_export' && workItem.workerClass === 'render_worker' &&
-    workItem.sourceSequenceItemIds.length === 1 && workItem.sourceCleanupDecisionIds.length === 1 &&
-    workItem.dependencyKeys.length === 2 &&
-    expectedAsset.assetRole === 'final' && expectedAsset.contentType === 'video/mp4'
-  const exactPrivatePlaywrightCapture =
-    spec.canonicalToolId === 'playwright' &&
-    body.operationId === 'tool.playwright.capture_authorized_internal_page.v1' &&
-    (workItem.executionInput.structuredPayload as Record<string, unknown>).capturePolicyConfirmed === true &&
-    expectedAsset.assetRole !== 'final' && expectedAsset.contentType === 'image/png'
-  if (
-    spec.networkPolicy.mode !== 'offline_required' ||
-    spec.networkPolicy.networkGrantRequired ||
-    spec.credentialGate.providerCredentialsAllowed ||
-    (spec.credentialGate.captureAuthorizationRequired && !exactPrivatePlaywrightCapture) ||
-    spec.declaredPrivateOutputArtifactKinds.length === 0 ||
-    (expectedAsset.assetRole === 'final' && !exactPrivateRemotionFinalComposition)
-  ) {
-    throw new ApiError(
-      'TOOL_NOT_READY',
-      'This isolated dispatch boundary supports offline non-provider operations plus the exact private Remotion final-composition profile.',
-      409,
-    )
-  }
+  validateCanonicalToolWorkItemPayload({
+    spec,
+    workItem,
+  })
   return { spec, specHash: sha256AuthorityValue(spec) }
 }
 

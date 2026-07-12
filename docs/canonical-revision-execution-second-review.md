@@ -37,7 +37,7 @@ The canonical lifecycle smoke proves:
 
 ## Boundaries
 
-Private-internal acceptance does not authorize public export or product delivery. Superseded plan-v1 artifacts are no longer readable through the active-execution download path after plan-v2 approval; a dedicated authenticated history/recovery reader remains the next gate.
+Private-internal acceptance does not authorize public export or product delivery. Superseded plan-v1 artifacts are no longer readable through the active-execution download path after plan-v2 approval; the dedicated authenticated history/recovery reader now reopens them without restoring execution authority.
 
 Real-user upload binding, browser handoff, deployed storage/workers, Supabase/RLS, providers, billing, public delivery, external beta, and production remain gated.
 

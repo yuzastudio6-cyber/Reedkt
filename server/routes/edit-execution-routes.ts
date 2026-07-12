@@ -10,6 +10,7 @@ import { createCanonicalPrivateFinalArtifactDownloadService } from '../services/
 import { createCanonicalPrivateJobExecutionAdapterService } from '../services/canonical-private-job-execution-adapter-service'
 import { createCanonicalPrivateReviewAssemblyService } from '../services/canonical-private-review-assembly-service'
 import { createCanonicalPrivateReviewDecisionService } from '../services/canonical-private-review-decision-service'
+import { createCanonicalPrivateReviewHistoryService } from '../services/canonical-private-review-history-service'
 import { createCanonicalPrivateWorkGraphOrchestratorService } from '../services/canonical-private-work-graph-orchestrator-service'
 import { createCanonicalWorkerLeaseAuthorityService } from '../services/canonical-worker-lease-authority-service'
 import {
@@ -54,6 +55,7 @@ import { executeCanonicalPrivateJobAdapterSchema } from '../validation/canonical
 import { runCanonicalPrivateWorkGraphSchema } from '../validation/canonical-private-work-graph-run-schemas'
 import { assembleCanonicalPrivateReviewSchema } from '../validation/canonical-private-review-assembly-schemas'
 import { recordCanonicalPrivateReviewDecisionSchema } from '../validation/canonical-private-review-decision-schemas'
+import { canonicalPrivateReviewHistoryDownloadQuerySchema } from '../validation/canonical-private-review-history-schemas'
 import {
   claimCanonicalWorkerLeaseRouteBodySchema,
   heartbeatCanonicalWorkerLeaseRouteBodySchema,
@@ -341,9 +343,9 @@ export function createEditExecutionRoutes(options: EditExecutionRouteOptions = {
   router.use('/v1/edit-executions', asyncRoute(async () => {
     throw new ApiError(
       'TOOL_NOT_READY',
-      'Legacy execution stages remain disabled. The bounded canonical fixture completes original and revised private reviews; real-user upload binding, superseded-review history/recovery, and browser handoff must use future canonical authority instead of this legacy route.',
+      'Legacy execution stages remain disabled. The bounded canonical fixture completes both private reviews and history recovery; real-user upload and browser handoff must bind to canonical authority instead of this legacy route.',
       503,
-      { requiredGate: 'canonical_real_user_upload_binding_review_history_and_recovery' },
+      { requiredGate: 'canonical_real_user_upload_and_browser_handoff' },
     )
   }))
 
@@ -1145,6 +1147,24 @@ export function createEditExecutionRoutes(options: EditExecutionRouteOptions = {
 }
 
 function registerEditExecutionUserRoutes(router: Router): void {
+  router.get('/v1/edit-executions/private-review-history/:reviewAssemblyId/file', requireAuth, asyncRoute(async (request, response) => {
+    const query = validateBody(canonicalPrivateReviewHistoryDownloadQuerySchema, request.query)
+    const file = await createCanonicalPrivateReviewHistoryService(getServiceContext(request)).read({
+      ...query,
+      reviewAssemblyId: getRouteParam(request, 'reviewAssemblyId'),
+    })
+    response.status(200)
+    response.setHeader('content-type', file.mimeType)
+    response.setHeader('content-length', String(file.byteSize))
+    response.setHeader('content-disposition', `attachment; filename="${file.fileName}"`)
+    response.setHeader('cache-control', 'private, no-store, max-age=0')
+    response.setHeader('x-content-type-options', 'nosniff')
+    response.setHeader('content-security-policy', "default-src 'none'; sandbox")
+    response.setHeader('x-reeditpro-artifact-sha256', file.sha256)
+    response.setHeader('x-reeditpro-review-history-state', file.reviewState)
+    response.end(file.bytes)
+  }))
+
   router.get('/v1/edit-executions/canonical-private-final-artifacts/:artifactId/file', requireAuth, asyncRoute(async (request, response) => {
     const query = validateBody(canonicalPrivateFinalArtifactDownloadQuerySchema, request.query)
     const file = await createCanonicalPrivateFinalArtifactDownloadService(getServiceContext(request)).read({

@@ -36,6 +36,7 @@ import { createCanonicalPrivateDeepFilterNetVoiceCleanupExecutionService } from 
 import { createCanonicalPrivateJobExecutionAdapterService } from '../services/canonical-private-job-execution-adapter-service'
 import { createCanonicalPrivateReviewAssemblyService } from '../services/canonical-private-review-assembly-service'
 import { createCanonicalPrivateReviewDecisionService } from '../services/canonical-private-review-decision-service'
+import { createCanonicalPrivateReviewHistoryService } from '../services/canonical-private-review-history-service'
 import { createCanonicalPrivateWorkGraphOrchestratorService } from '../services/canonical-private-work-graph-orchestrator-service'
 import { createCanonicalWorkerLeaseAuthorityService } from '../services/canonical-worker-lease-authority-service'
 import { createEditPlanningAuthorityService } from '../services/edit-planning-authority-service'
@@ -2959,6 +2960,74 @@ assert.equal(
   secondPrivateReviewAcceptanceReplay.identity.reviewDecisionId,
   secondPrivateReviewAcceptance.identity.reviewDecisionId,
 )
+await expectApiError(
+  () => createCanonicalPrivateFinalArtifactDownloadService(context).read({
+    workspaceId,
+    projectId: terminalPrivateReview.identity.projectId,
+    editSessionId: terminalPrivateReview.identity.editSessionId,
+    snapshotId: terminalPrivateReview.identity.approvedPlanSnapshotId,
+    jobId: terminalPrivateReview.finalArtifact.jobId,
+    expectedAssetId: terminalPrivateReview.finalArtifact.expectedAssetId,
+    artifactId: terminalPrivateReview.finalArtifact.artifactId,
+    purpose: 'download_canonical_private_final_artifact',
+  }),
+  'APPROVED_SNAPSHOT_REQUIRED',
+)
+const freshHistoryContext: ServiceContext = {
+  ...context,
+  requestId: 'canonical-private-review-history-fresh-service-instance',
+  auth: context.auth ? { ...context.auth } : undefined,
+}
+const historyService = createCanonicalPrivateReviewHistoryService(freshHistoryContext)
+const supersededReviewHistoryInput = {
+  workspaceId,
+  packageRecordId: terminalReviewPackageRecordId,
+  reviewAssemblyId: terminalPrivateReview.identity.reviewAssemblyId,
+  expectedDecisionManifestSha256: terminalPrivateRevisionDecision.manifest.manifestSha256,
+  expectedFinalArtifactSha256: terminalPrivateReview.finalArtifact.sha256,
+  purpose: 'download_canonical_private_review_history_artifact' as const,
+}
+await expectApiError(
+  () => historyService.read({
+    ...supersededReviewHistoryInput,
+    expectedDecisionManifestSha256: '0'.repeat(64),
+  }),
+  'IDEMPOTENCY_CONFLICT',
+)
+const supersededReviewHistory = await historyService.read(supersededReviewHistoryInput)
+assert.equal(supersededReviewHistory.reviewState, 'superseded')
+assert.equal(supersededReviewHistory.planStatus, 'superseded')
+assert.equal(supersededReviewHistory.reservationStatus, 'released')
+assert.equal(supersededReviewHistory.decision, 'request_revision')
+assert.equal(supersededReviewHistory.sha256, terminalPrivateReview.finalArtifact.sha256)
+assert.equal(supersededReviewHistory.archivedExecutionAuthorityRestored, false)
+assert.equal(supersededReviewHistory.customerCreditMutationPerformed, false)
+assert.equal(supersededReviewHistory.billingMutationPerformed, false)
+assert.equal(
+  createHash('sha256').update(supersededReviewHistory.bytes).digest('hex'),
+  terminalPrivateReview.finalArtifact.sha256,
+)
+const currentReviewHistory = await historyService.read({
+  workspaceId,
+  packageRecordId: revisionExecutionPackageId,
+  reviewAssemblyId: secondPrivateReview.identity.reviewAssemblyId,
+  expectedDecisionManifestSha256: secondPrivateReviewAcceptance.manifest.manifestSha256,
+  expectedFinalArtifactSha256: secondPrivateReview.finalArtifact.sha256,
+  purpose: 'download_canonical_private_review_history_artifact',
+})
+assert.equal(currentReviewHistory.reviewState, 'current')
+assert.equal(currentReviewHistory.planStatus, 'approved')
+assert.equal(currentReviewHistory.reservationStatus, 'reserved')
+assert.equal(currentReviewHistory.decision, 'accept_private_internal_review')
+assert.equal(currentReviewHistory.sha256, secondPrivateReview.finalArtifact.sha256)
+assert.notEqual(currentReviewHistory.identity.artifactId, supersededReviewHistory.identity.artifactId)
+assert.notEqual(currentReviewHistory.historyEvidenceHash, supersededReviewHistory.historyEvidenceHash)
+const supersededHistoryReopen = await createCanonicalPrivateReviewHistoryService({
+  ...freshHistoryContext,
+  requestId: 'canonical-private-review-history-second-fresh-service-instance',
+}).read(supersededReviewHistoryInput)
+assert.equal(supersededHistoryReopen.historyEvidenceHash, supersededReviewHistory.historyEvidenceHash)
+assert.equal(supersededHistoryReopen.sha256, supersededReviewHistory.sha256)
 
 const binaryRuntime = await activatePrivateOfflineMediaBinaryRuntime()
 const probeClaim = (await leaseService.claim({
@@ -3273,6 +3342,9 @@ console.log(JSON.stringify({
     'snapshot_v2_executes_the_bounded_five_job_revision_graph_through_independent_final_qa',
     'revision_execution_assembles_new_private_artifacts_and_a_second_review_manifest',
     'second_private_review_acceptance_is_create_only_replay_safe_and_public_delivery_blocked',
+    'active_execution_download_fails_closed_after_snapshot_is_superseded_and_reservation_released',
+    'authenticated_history_reopens_superseded_review_without_restoring_execution_or_credit_authority',
+    'fresh_service_instances_reopen_current_and_superseded_review_bytes_with_stable_evidence',
     'authenticated_private_final_mp4_download_reopens_exact_qa_passed_bytes_without_public_or_signed_url',
     'checksum_protected_restart_safe_private_store',
     'dependency_authority_binding_tamper_rejected_by_immutable_record_validation',

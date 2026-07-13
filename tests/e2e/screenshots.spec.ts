@@ -168,6 +168,19 @@ test.describe('Active product redesign screenshot QA artifacts', () => {
     await expect(page.getByTestId('plan-review-card')).toBeInViewport()
     await captureDocScreenshot(page, `${screenshotDir}/named-edit-plan-review-1280.png`)
 
+    await clickWhenReady(page.getByTestId('plan-review-approve'))
+    const privateReview = page.getByTestId('private-review')
+    await expect(privateReview).toBeVisible({ timeout: 8_000 })
+    await page.getByTestId('chat-thread').evaluate((thread) => {
+      const review = thread.querySelector<HTMLElement>('[data-testid="private-review"]')
+      if (!review) return
+      const threadBox = thread.getBoundingClientRect()
+      const reviewBox = review.getBoundingClientRect()
+      thread.scrollTop += reviewBox.top - threadBox.top - 16
+    })
+    await page.evaluate(() => window.scrollTo(0, 0))
+    await captureDocScreenshot(page, `${screenshotDir}/named-edit-private-review-1280.png`)
+
     await gotoRoute(page, missingNamedEditPath('screenshots'))
     await expect(page.getByTestId('named-edit-route-not-found')).toBeVisible()
     await captureDocScreenshot(page, `${screenshotDir}/named-edit-recovery-error-1280.png`)

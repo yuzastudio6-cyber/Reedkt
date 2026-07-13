@@ -336,7 +336,7 @@ New values belong in tokens before route CSS. Avoid one-off glow, radius, shadow
 ### 5. Whole-Product Visual Consistency — In Progress
 
 - Home, Projects, and Project Home now use the shared bounded hierarchy, surface levels, and semantic status treatment.
-- Saved and Current Edit Preferences now use the canonical seven-field system with explicit persistence/recovery truth, inherited/overridden state, responsive hierarchy, guarded drafts, and visually reviewed action states. The active named-edit upload gate, responsive conversation/preview composition, planning-input status, and Edit Brief presentation now follow the same system. Create Project, the remaining Named Edit execution/review states, and Sign In still require their route-specific visual passes.
+- Saved and Current Edit Preferences now use the canonical seven-field system with explicit persistence/recovery truth, inherited/overridden state, responsive hierarchy, guarded drafts, and visually reviewed action states. The active named-edit upload gate, responsive conversation/preview composition, planning-input status, Edit Brief, Plan Review, progress framing, and Private Review now follow the same system. Create Project, Sign In, and any remaining named-edit revision/recovery states still require their route-specific visual passes.
 - Preserve route-specific identity as work continues: marketing is expressive, app routes operational, editor open and conversational.
 
 ### 6. Final Active-Route Signoff — Pending Whole-Product Completion
@@ -381,7 +381,14 @@ Focused Edit Brief and named-edit foundation evidence on 2026-07-13:
 - The focused editor suite passes 20/20 checks, including the optional Brief lifecycle, exact-edit recovery, planning transfer, approval lock, computed field hierarchy, responsive preview rail, and bounded upload gate.
 - `tests/e2e/viewport.spec.ts` passes 59/59 checks; the clean-shell, keyboard, and zoom group passes 9/9.
 - Guarded local browser review passed at 1024px and 1280px without horizontal overflow or console errors. The preview rail is secondary on supported wide screens and collapses before constraining the main planning workspace.
-- This closes the active Edit Brief presentation and named-edit layout-foundation pass only. Execution, progress, private-review, Create Project, Sign In, full-suite, and founder-level visual signoff remain pending.
+- This closes the active Edit Brief presentation and named-edit layout-foundation pass only. Plan/review presentation is evidenced separately below; Create Project, Sign In, remaining revision/recovery states, full-suite, and founder-level visual signoff remain pending.
+
+Focused Plan Review and Private Review presentation evidence on 2026-07-13:
+
+- Regression-first coverage reproduced missing Plan Review and Private Review styles as `display: block`, then proved the restored checkpoint, intent accent, four/two/one-column approval facts, estimate alignment, bounded playback placeholder, compact header stack, approved-direction trace, and preparation activity grid.
+- The approval path still requires the exact plan and estimate before progress appears. The review path keeps sharing, billing, public release, and unapproved revisions gated.
+- The named-edit screenshot flow now captures both the existing Plan Review state and a dedicated Private Review state at 1280px, with the quiet preview/status rail remaining secondary.
+- This closes the active Plan Review and Private Review presentation pass only. No provider, billing, Supabase, production render, public delivery, or deployment boundary changed.
 
 ## Definition Of Done
 

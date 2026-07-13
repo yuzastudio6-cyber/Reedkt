@@ -2698,3 +2698,55 @@
   border-color: var(--rp-brand-violet);
   color: var(--rp-brand-violet);
 }
+
+.private-review-preparation-card {
+  border-top: 1px solid var(--rp-border-subtle);
+  display: grid;
+  gap: var(--rp-space-3);
+  padding-top: var(--rp-space-3);
+}
+
+.private-review-activity-grid {
+  display: grid;
+  gap: var(--rp-space-3);
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+
+.private-review-activity-card {
+  border-top: 1px solid rgba(148, 163, 184, 0.18);
+  display: grid;
+  gap: var(--rp-space-2);
+  min-width: 0;
+  padding-top: var(--rp-space-3);
+}
+
+.private-review-activity-card-heading {
+  align-items: flex-start;
+  display: flex;
+  gap: var(--rp-space-2);
+  justify-content: space-between;
+}
+
+.private-review-activity-card strong {
+  color: var(--rp-text-primary);
+  font-size: 0.84rem;
+  line-height: 1.35;
+}
+
+.private-review-activity-card p,
+.private-review-next-action {
+  color: var(--rp-text-secondary);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.private-review-next-action {
+  background: rgba(255, 255, 255, 0.035);
+  border-radius: var(--rp-radius-sm);
+  padding: var(--rp-space-3);
+}
+
+.private-review-next-action strong {
+  color: var(--rp-text-primary);
+}

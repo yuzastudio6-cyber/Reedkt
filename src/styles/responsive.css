@@ -123,6 +123,18 @@
 }
 
 @media (max-width: 940px) {
+  .clean-plan-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .clean-plan-facts > div + div {
+    border-left: 0;
+  }
+
+  .clean-plan-facts > div:nth-child(even) {
+    border-left: 1px solid var(--rp-border-subtle);
+  }
+
   .app-shell {
     grid-template-columns: 1fr;
   }
@@ -431,8 +443,18 @@
     flex-direction: column;
   }
 
-  .clean-prep-summary {
+  .clean-prep-summary,
+  .clean-plan-estimate {
     justify-items: start;
+  }
+
+  .clean-plan-facts,
+  .clean-plan-credit-note {
+    grid-template-columns: 1fr;
+  }
+
+  .clean-plan-facts > div:nth-child(even) {
+    border-left: 0;
   }
 
   .edit-workspace-planning-inputs {

@@ -239,12 +239,26 @@ const matrixOperationIds = Object.fromEntries(matrixToolIds.map((toolId) => {
   return [toolId, spec.allowedOperationIds[0]]
 })) as Record<MatrixToolId, string>
 
-const mediaFixture = await uploadCanonicalMediaFixture(seedSnapshot.projectId)
+const mediaFixture = await uploadCanonicalMediaFixture(seedSnapshot.projectId, 'primary', 'red', 'blue', 440)
 const mediaSourceItem = {
   sourceSequenceItemId: 'source-sequence-python-media',
   mediaAssetId: mediaFixture.mediaAsset.id,
   uploadedOrder: seedAuthority.components.sourceSequence.length + 1,
   checksumSha256: mediaFixture.checksumSha256,
+  required: true as const,
+}
+const secondaryMediaFixture = await uploadCanonicalMediaFixture(
+  seedSnapshot.projectId,
+  'secondary',
+  'green',
+  'yellow',
+  660,
+)
+const secondaryMediaSourceItem = {
+  sourceSequenceItemId: 'source-sequence-secondary-media',
+  mediaAssetId: secondaryMediaFixture.mediaAsset.id,
+  uploadedOrder: seedAuthority.components.sourceSequence.length + 2,
+  checksumSha256: secondaryMediaFixture.checksumSha256,
   required: true as const,
 }
 
@@ -259,7 +273,7 @@ const sourceCandidate = (await createSourceMediaAuthorityService(context).buildM
     uploadedOrder: item.uploadedOrder,
     checksumSha256: requireSha256(item.checksumSha256),
     required: item.required,
-  })), mediaSourceItem],
+  })), mediaSourceItem, secondaryMediaSourceItem],
 })).sourceBindingManifestCandidate
 const sourceMediaAuthority = {
   authorityRevision: sourceCandidate.authorityRevision,
@@ -290,6 +304,7 @@ const dispatchPlanInput = {
   remotionOperationId,
   libassOperationId,
   mediaSourceItem,
+  secondaryMediaSourceItem,
   matrixOperationIds,
 }
 const planBody = createDispatchPlanBody(dispatchPlanInput)
@@ -300,7 +315,7 @@ const orderedPlanningHandoffSources = [...seedAuthority.components.sourceSequenc
   uploadedOrder: item.uploadedOrder,
   checksumSha256: requireSha256(item.checksumSha256),
   required: item.required,
-})), mediaSourceItem]
+})), mediaSourceItem, secondaryMediaSourceItem]
 const planningHandoffService = createCanonicalPlanningHandoffService(context)
 await expectApiError(
   () => planningHandoffService.prepare({
@@ -336,7 +351,13 @@ assert.equal(planningHandoff.noCreditReservation, true)
 assert.equal(planningHandoff.noToolExecution, true)
 assert.equal(planningHandoff.noProviderCall, true)
 assert.equal(planningHandoff.noRender, true)
-assert.deepEqual(planningHandoff.planningInputAuthority, planningInputAuthority)
+assert.deepEqual(planningHandoff.planningInputAuthority, {
+  ...planningInputAuthority,
+  exactEditPreference: {
+    ...planningInputAuthority.exactEditPreference,
+    recordRevision: planningInputAuthority.exactEditPreference.recordRevision + 1,
+  },
+})
 assert.deepEqual(planningHandoff.sourceMediaAuthority, sourceMediaAuthority)
 assert.equal(
   sha256AuthorityValue(await requireEditAuthority(workspaceId)),
@@ -835,6 +856,9 @@ assert.deepEqual(libassProofJob.dependencyJobIds, [libassJob.id])
 const finalCompositionWorkItem = aggregateBeforeDispatch.approvedWorkItems.find((candidate) =>
   candidate.snapshotId === snapshot.snapshotId && candidate.workItemKey === 'remotion-source-caption-final')
 assert.ok(finalCompositionWorkItem)
+const finalCompositionExecutionWorkItem = authority.workItems.find((candidate) =>
+  candidate.id === finalCompositionWorkItem.id)
+assert.ok(finalCompositionExecutionWorkItem)
 const finalCompositionJob = aggregateBeforeDispatch.jobs.find((candidate) =>
   candidate.snapshotId === snapshot.snapshotId && candidate.approvedWorkItemId === finalCompositionWorkItem.id)
 const finalCompositionAsset = authority.assetManifest.entries.find((candidate) =>
@@ -2422,6 +2446,21 @@ const finalCompositionAdapterInput = {
   purpose: 'execute_canonical_private_job' as const,
   idempotencyKey: 'adapter-remotion-source-trim-caption-final',
 }
+const approvedFinalCompositionPayload = asRecord(
+  finalCompositionExecutionWorkItem.executionInput.structuredPayload,
+)
+assert.equal(
+  approvedFinalCompositionPayload.compositionProfileId,
+  'approved_source_sequence_caption_final_v1',
+)
+assert.deepEqual(finalCompositionExecutionWorkItem.sourceSequenceItemIds, [
+  mediaSourceItem.sourceSequenceItemId,
+  secondaryMediaSourceItem.sourceSequenceItemId,
+])
+assert.deepEqual(finalCompositionExecutionWorkItem.sourceCleanupDecisionIds, [
+  'cleanup-python-media-source',
+  'cleanup-secondary-media-source',
+])
 const coordinatedFinalComposition = await jobExecutionAdapter.execute(finalCompositionAdapterInput)
 assert.equal(coordinatedFinalComposition.identity.canonicalToolId, 'remotion')
 assert.equal(coordinatedFinalComposition.identity.runnerClass, 'offline_remotion_render_execution_v1')
@@ -2491,6 +2530,25 @@ await leaseService.release({
   purpose: 'private_internal_canonical_lease_release',
   idempotencyKey: 'release-source-trim-validation-for-final-composition',
 })
+if (process.env.REEDITPRO_CANONICAL_MULTI_SOURCE_SLICE_ONLY === 'true') {
+  console.log(JSON.stringify({
+    smoke: 'canonical_multi_source_final_composition',
+    status: 'passed',
+    sourceSequenceItemIds: finalCompositionExecutionWorkItem.sourceSequenceItemIds,
+    compositionProfileId: approvedFinalCompositionPayload.compositionProfileId,
+    proofs: [
+      'persisted_planning_handoff_and_immutable_approved_snapshot_verified',
+      'synthetic_private_test_credit_reservation_verified_without_customer_charge',
+      'two_source_trim_authority_and_dependency_readiness_verified',
+      'lease_and_single_use_dispatch_verified',
+      'exact_ordered_source_sequence_rendered_with_preserved_audio',
+      'private_artifact_persistence_and_independent_final_ffprobe_qa_verified',
+      'artifact_reconciliation_idempotent_replay_and_private_download_verified',
+      'provider_billing_public_delivery_and_production_readiness_remain_false',
+    ],
+  }))
+  process.exit(0)
+}
 const terminalReviewEditSessionId = `${editSessionId}-terminal-review`
 const terminalReviewPlanningInput = await prepareExactPlanningAuthority(
   seedSnapshot.projectId,
@@ -3681,13 +3739,19 @@ function workGraphPackageCompletionPath(
   )
 }
 
-async function uploadCanonicalMediaFixture(projectId: string) {
-  const fixturePath = join('/tmp', `reeditpro-canonical-media-${process.pid}.mp4`)
+async function uploadCanonicalMediaFixture(
+  projectId: string,
+  fixtureId: 'primary' | 'secondary',
+  firstColor: string,
+  secondColor: string,
+  frequency: number,
+) {
+  const fixturePath = join('/tmp', `reeditpro-canonical-media-${fixtureId}-${process.pid}.mp4`)
   const generated = spawnSync('ffmpeg', [
     '-hide_banner', '-loglevel', 'error',
-    '-f', 'lavfi', '-i', 'color=c=red:s=320x180:r=24:d=1',
-    '-f', 'lavfi', '-i', 'color=c=blue:s=320x180:r=24:d=1',
-    '-f', 'lavfi', '-i', 'sine=frequency=440:sample_rate=48000:duration=2',
+    '-f', 'lavfi', '-i', `color=c=${firstColor}:s=320x180:r=24:d=1`,
+    '-f', 'lavfi', '-i', `color=c=${secondColor}:s=320x180:r=24:d=1`,
+    '-f', 'lavfi', '-i', `sine=frequency=${frequency}:sample_rate=48000:duration=2`,
     '-filter_complex', '[0:v][1:v]concat=n=2:v=1:a=0[v];[2:a]asetpts=PTS-STARTPTS[a]',
     '-map', '[v]', '-map', '[a]',
     '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-movflags', '+faststart',
@@ -3705,11 +3769,11 @@ async function uploadCanonicalMediaFixture(projectId: string) {
     workspaceId,
     projectId,
     uploadPurpose: 'source_media',
-    originalFileName: 'canonical-media-source.mp4',
+    originalFileName: `canonical-media-source-${fixtureId}.mp4`,
     mimeType: 'video/mp4',
     expectedSizeBytes: bytes.byteLength,
     checksumSha256,
-    idempotencyKey: 'canonical-media-source-upload-intent',
+    idempotencyKey: `canonical-media-source-${fixtureId}-upload-intent`,
   })
   await uploadService.uploadLocalObject(
     created.uploadIntent.id,
@@ -3836,21 +3900,51 @@ function createDispatchPlanBody(input: {
     checksumSha256: string
     required: true
   }
+  secondaryMediaSourceItem: {
+    sourceSequenceItemId: string
+    mediaAssetId: string
+    uploadedOrder: number
+    checksumSha256: string
+    required: true
+  }
   matrixOperationIds: Record<MatrixToolId, string>
 }): PublishCanonicalEditPlanBody {
   const components = structuredClone(input.seedAuthority.components)
-  components.sourceSequence.push(input.mediaSourceItem)
+  components.sourceSequence.push(input.mediaSourceItem, input.secondaryMediaSourceItem)
   components.sourceCleanupPlan.decisions.push({
     decisionId: 'cleanup-python-media-source',
     sourceSequenceItemId: input.mediaSourceItem.sourceSequenceItemId,
     action: 'preserve',
     startFrame: 0,
-    endFrameExclusive: 48,
-    reason: 'Preserve the approved synthetic media fixture for bounded decode verification.',
+    endFrameExclusive: 24,
+    reason: 'Preserve the first approved synthetic media range in confirmed source order.',
+    confidence: 1,
+    meaningPreservationStatus: 'passed',
+    userReviewStatus: 'not_required',
+  }, {
+    decisionId: 'cleanup-secondary-media-source',
+    sourceSequenceItemId: input.secondaryMediaSourceItem.sourceSequenceItemId,
+    action: 'preserve',
+    startFrame: 0,
+    endFrameExclusive: 24,
+    reason: 'Preserve the second approved synthetic media range in confirmed source order.',
     confidence: 1,
     meaningPreservationStatus: 'passed',
     userReviewStatus: 'not_required',
   })
+  const firstSegment = components.segments[0]
+  if (!firstSegment) throw new Error('Canonical dispatch smoke requires one seed timeline segment.')
+  components.segments = [{
+    ...firstSegment,
+    segmentId: 'segment-1',
+    startFrame: 0,
+    endFrameExclusive: 24,
+  }, {
+    ...firstSegment,
+    segmentId: 'segment-2',
+    startFrame: 24,
+    endFrameExclusive: 48,
+  }]
   components.toolStrategyPlan = {
     toolIds: [
       'd3', 'duckdb', 'pyav', 'scipy', 'pyloudnorm', 'pydub', 'pydub_effects',
@@ -4041,8 +4135,14 @@ function createDispatchPlanBody(input: {
           workItemType: 'prepare_source_trim',
           workerClass: 'authority_worker',
           executionInput: { operation: 'validate_approved_source_trim_plan' },
-          sourceSequenceItemIds: [input.mediaSourceItem.sourceSequenceItemId],
-          sourceCleanupDecisionIds: ['cleanup-python-media-source'],
+          sourceSequenceItemIds: [
+            input.mediaSourceItem.sourceSequenceItemId,
+            input.secondaryMediaSourceItem.sourceSequenceItemId,
+          ],
+          sourceCleanupDecisionIds: [
+            'cleanup-python-media-source',
+            'cleanup-secondary-media-source',
+          ],
           expectedOutputs: [{
             outputKey: 'source-trim-validation-evidence',
             artifactType: 'source_trim_validation_evidence',
@@ -4050,7 +4150,7 @@ function createDispatchPlanBody(input: {
             required: true,
             previewPlaceholderAllowed: false,
             contentType: 'application/json',
-            segmentIds: ['segment-1'],
+            segmentIds: ['segment-1', 'segment-2'],
             timingIds: ['master-timing-plan'],
             rendererLayerIds: ['source-video-layer'],
           }],
@@ -4889,23 +4989,41 @@ function createDispatchPlanBody(input: {
           workItemType: 'render_final_export',
           workerClass: 'render_worker',
           executionInput: {
-            operation: 'render_approved_source_caption_final',
+            operation: 'render_approved_source_sequence_caption_final',
             approvedToolOperationIds: [input.remotionOperationId],
             expectedOutputKeys: ['private-final-composition-mp4'],
             structuredPayload: {
-              compositionProfileId: 'approved_source_caption_final_v1',
+              compositionProfileId: 'approved_source_sequence_caption_final_v1',
               width: 640, height: 360, fps: 24, durationFrames: 48,
-              sourceStartFrame: 0, sourceEndFrameExclusive: 48,
+              sourceSegments: [{
+                sourceSequenceItemId: input.mediaSourceItem.sourceSequenceItemId,
+                sourceStartFrame: 0,
+                sourceEndFrameExclusive: 24,
+                timelineStartFrame: 0,
+                timelineEndFrameExclusive: 24,
+              }, {
+                sourceSequenceItemId: input.secondaryMediaSourceItem.sourceSequenceItemId,
+                sourceStartFrame: 0,
+                sourceEndFrameExclusive: 24,
+                timelineStartFrame: 24,
+                timelineEndFrameExclusive: 48,
+              }],
               sourceFit: 'contain', panelBackground: '#000000',
-              audioPolicy: 'preserve_source',
+              audioPolicy: 'preserve_source_sequence',
               captionOverlayPolicy: 'approved_full_frame_rgba',
             },
           },
-          sourceSequenceItemIds: [input.mediaSourceItem.sourceSequenceItemId],
-          sourceCleanupDecisionIds: ['cleanup-python-media-source'],
+          sourceSequenceItemIds: [
+            input.mediaSourceItem.sourceSequenceItemId,
+            input.secondaryMediaSourceItem.sourceSequenceItemId,
+          ],
+          sourceCleanupDecisionIds: [
+            'cleanup-python-media-source',
+            'cleanup-secondary-media-source',
+          ],
           expectedOutputs: [{
             outputKey: 'private-final-composition-mp4',
-            artifactType: 'private_source_caption_final_video_export',
+            artifactType: 'private_source_sequence_caption_final_video_export',
             assetRole: 'final',
             required: true,
             previewPlaceholderAllowed: false,

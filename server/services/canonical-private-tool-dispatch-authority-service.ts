@@ -713,8 +713,9 @@ function resolveAndVerifyCanonicalDispatchBinding(input: {
     expectedAsset.assetRole === 'final' && expectedAsset.contentType === 'video/mp4' &&
     workItem.approvedToolIds.length === 1 && workItem.approvedToolIds[0] === 'remotion' &&
     body.operationId === 'tool.remotion.render_approved_composition.v1' &&
-    workItem.dependencyKeys.length === 2 && workItem.sourceSequenceItemIds.length === 1 &&
-    workItem.sourceCleanupDecisionIds.length === 1
+    workItem.dependencyKeys.length === 2 && workItem.sourceSequenceItemIds.length >= 1 &&
+    workItem.sourceSequenceItemIds.length <= 8 &&
+    workItem.sourceCleanupDecisionIds.length === workItem.sourceSequenceItemIds.length
   if (
     !exactPrivateRemotionPreview && !exactPrivateLibassCaptionOverlay &&
     !exactPrivateRemotionFinalComposition && (

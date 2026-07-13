@@ -20,9 +20,12 @@ RUN node /app/build-bundle.mjs \
   && node -e "const r=require('remotion/package.json'); const rr=require('@remotion/renderer/package.json'); if(r.version!=='4.0.487'||rr.version!=='4.0.487') process.exit(1)"
 
 FROM node:22-bookworm-slim@sha256:53ada149d435c38b14476cb57e4a7da73c15595aba79bd6971b547ceb6d018bf AS runtime
+ARG REEDITPRO_SOURCE_TREE_SHA256
+RUN test "$(printf '%s' "${REEDITPRO_SOURCE_TREE_SHA256}" | wc -c)" -eq 64
 LABEL org.opencontainers.image.title="ReEditPro private offline Remotion render execution" \
   org.opencontainers.image.base.digest="sha256:53ada149d435c38b14476cb57e4a7da73c15595aba79bd6971b547ceb6d018bf" \
   com.reeditpro.runner.protocol="offline-remotion-render-execution-container-v1" \
+  com.reeditpro.runner.source-tree.sha256="${REEDITPRO_SOURCE_TREE_SHA256}" \
   com.reeditpro.runner.private-internal-only="true" \
   com.reeditpro.runner.product-ready="false" \
   com.reeditpro.runner.external-beta-ready="false" \

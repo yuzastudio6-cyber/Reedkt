@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url'
 
 import { ApiError } from '../../errors/api-error'
 import { sha256AuthorityValue, stableAuthorityStringify } from '../../services/private-edit-authority-store'
+import { OFFLINE_REMOTION_RENDER_MAXIMUM_REQUEST_BYTES } from './offline-remotion-render-execution-protocol'
 import type { OfflineRemotionConfinementEvidence, OfflineRemotionImageEvidence } from './offline-remotion-render-execution-types'
 
 export const OFFLINE_REMOTION_IMAGE_TAG = 'reeditpro-offline-remotion-render-execution:private-local-v1' as const
@@ -23,10 +24,16 @@ interface Inspect { Image?: unknown; State?: unknown; HostConfig?: unknown; Moun
 export async function prepareOfflineRemotionDockerRuntime(): Promise<OfflineRemotionImageEvidence> {
   const source = sourceDirectory()
   await assertPinnedDockerfile(join(source, 'Dockerfile'))
+  const sourceTreeSha256 = sha256AuthorityValue(await sourceHashes())
   await rm(BUILD_CONTEXT, { recursive: true, force: true })
   try {
     await copyCleanTree(source, join(BUILD_CONTEXT, 'docker/prod/offline-remotion-render-execution'))
-    const built = await runDocker(['build', '--pull=false', '--progress=plain', '--tag', OFFLINE_REMOTION_IMAGE_TAG, '--file', 'docker/prod/offline-remotion-render-execution/Dockerfile', '.'], { cwd: BUILD_CONTEXT, timeoutMs: 20 * 60_000, maxBytes: 32 * 1024 * 1024 })
+    const built = await runDocker([
+      'build', '--pull=false', '--progress=plain',
+      '--build-arg', `REEDITPRO_SOURCE_TREE_SHA256=${sourceTreeSha256}`,
+      '--tag', OFFLINE_REMOTION_IMAGE_TAG,
+      '--file', 'docker/prod/offline-remotion-render-execution/Dockerfile', '.',
+    ], { cwd: BUILD_CONTEXT, timeoutMs: 20 * 60_000, maxBytes: 32 * 1024 * 1024 })
     if (built.exitCode !== 0) throw runtimeFailure('Private Remotion image build failed.', new Error(bounded(built)))
     return inspectExistingOfflineRemotionDockerRuntime()
   } finally {
@@ -36,6 +43,7 @@ export async function prepareOfflineRemotionDockerRuntime(): Promise<OfflineRemo
 
 export async function inspectExistingOfflineRemotionDockerRuntime(): Promise<OfflineRemotionImageEvidence> {
   const hashes = await sourceHashes()
+  const sourceTreeSha256 = sha256AuthorityValue(hashes)
   const result = await runDocker(['image', 'inspect', OFFLINE_REMOTION_IMAGE_TAG], { timeoutMs: TIMEOUT_MS, maxBytes: 8 * 1024 * 1024 })
   if (result.exitCode !== 0 || result.stderr.trim()) throw runtimeFailure('Private Remotion image is unavailable.')
   const parsed = JSON.parse(result.stdout) as unknown
@@ -49,6 +57,7 @@ export async function inspectExistingOfflineRemotionDockerRuntime(): Promise<Off
     stableAuthorityStringify(entrypoint) !== stableAuthorityStringify(ENTRYPOINT) ||
     labels['org.opencontainers.image.base.digest'] !== BASE_DIGEST ||
     labels['com.reeditpro.runner.protocol'] !== 'offline-remotion-render-execution-container-v1' ||
+    labels['com.reeditpro.runner.source-tree.sha256'] !== sourceTreeSha256 ||
     labels['com.reeditpro.runner.private-internal-only'] !== 'true' ||
     labels['com.reeditpro.runner.product-ready'] !== 'false' ||
     secretLikeEnvironmentNames(envNames).length > 0 || layers.length < 2
@@ -56,13 +65,15 @@ export async function inspectExistingOfflineRemotionDockerRuntime(): Promise<Off
   return {
     imageTag: OFFLINE_REMOTION_IMAGE_TAG, imageId: inspect.Id,
     imageIdentityHash: sha256AuthorityValue({ imageId: inspect.Id, architecture: inspect.Architecture, entrypoint, envNames, layers, labels, hashes }),
-    pinnedBaseImage: PINNED_BASE, sourceHashes: hashes, imageUser: '10001:10001',
+    pinnedBaseImage: PINNED_BASE, sourceHashes: hashes, sourceTreeSha256, imageUser: '10001:10001',
     imageEntrypoint: ENTRYPOINT, imageEnvironmentNames: envNames, rootFilesystemLayerDigests: layers, labels,
   }
 }
 
 export async function runOfflineRemotionContainer(input: { image: OfflineRemotionImageEvidence; serializedRequest: string }) {
-  if (Buffer.byteLength(input.serializedRequest) > 32 * 1024 * 1024) throw validationFailure('Remotion request exceeds stdin ceiling.')
+  if (Buffer.byteLength(input.serializedRequest) > OFFLINE_REMOTION_RENDER_MAXIMUM_REQUEST_BYTES) {
+    throw validationFailure('Remotion request exceeds stdin ceiling.')
+  }
   const created = await runDocker([
     'create', '--interactive', '--network', 'none', '--read-only', '--cap-drop', 'ALL',
     '--security-opt', 'no-new-privileges:true', '--pids-limit', '256', '--memory', '2g', '--memory-swap', '2g', '--cpus', '2',
@@ -114,7 +125,15 @@ async function sourceHashes(): Promise<Record<string, string>> {
 }
 async function assertPinnedDockerfile(path: string) {
   const text = await readBoundedFile(path, 64 * 1024)
-  if (!text.includes(`FROM ${PINNED_BASE} AS build`) || !text.includes(`FROM ${PINNED_BASE} AS runtime`) || !text.includes('npm ci --no-audit --no-fund') || !text.includes('USER 10001:10001') || !text.includes('ENTRYPOINT ["node", "/app/runner.mjs"]')) throw runtimeFailure('Remotion Dockerfile pinning policy failed.')
+  if (
+    !text.includes(`FROM ${PINNED_BASE} AS build`) ||
+    !text.includes(`FROM ${PINNED_BASE} AS runtime`) ||
+    !text.includes('ARG REEDITPRO_SOURCE_TREE_SHA256') ||
+    !text.includes('com.reeditpro.runner.source-tree.sha256="${REEDITPRO_SOURCE_TREE_SHA256}"') ||
+    !text.includes('npm ci --no-audit --no-fund') ||
+    !text.includes('USER 10001:10001') ||
+    !text.includes('ENTRYPOINT ["node", "/app/runner.mjs"]')
+  ) throw runtimeFailure('Remotion Dockerfile pinning policy failed.')
 }
 async function copyCleanTree(source: string, target: string): Promise<void> {
   const stat = await lstat(source)

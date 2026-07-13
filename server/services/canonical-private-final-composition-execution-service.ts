@@ -119,29 +119,44 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
       const expectedAsset = authority.assetManifest.entries.find((candidate) =>
         candidate.id === binding.expectedAssetId && candidate.approvedWorkItemId === workItem?.id)
       if (!workItem || !expectedAsset) throw denied('Final composition work item or output lineage is missing.')
+      const planningPayload = validateOfflineRemotionFinalCompositionPlanningPayload(
+        workItem.executionInput.structuredPayload,
+      )
+      const sourceCount = planningPayload.compositionProfileId === 'approved_source_sequence_caption_final_v1'
+        ? planningPayload.sourceSegments.length
+        : 1
       if (
         workItem.workItemType !== 'render_final_export' || workItem.workerClass !== 'render_worker' ||
         workItem.approvedToolIds.length !== 1 || workItem.approvedToolIds[0] !== 'remotion' ||
-        workItem.sourceSequenceItemIds.length !== 1 || workItem.sourceCleanupDecisionIds.length !== 1 ||
+        workItem.sourceSequenceItemIds.length !== sourceCount ||
+        workItem.sourceCleanupDecisionIds.length !== sourceCount ||
         workItem.dependencyKeys.length !== 2 ||
         expectedAsset.contentType !== CONTENT_TYPE || binding.expectedOutput.contentType !== CONTENT_TYPE ||
         expectedAsset.assetRole !== 'final' || !expectedAsset.required || expectedAsset.previewPlaceholderAllowed ||
         binding.expectedOutput.outputKey !== expectedAsset.outputKey ||
         readiness.job.approvedWorkItemId !== workItem.id ||
         binding.approvedPlanSnapshotId !== authority.snapshot.snapshotId
-      ) throw denied('Final composition requires one source, one approved trim decision, and two exact dependencies.')
-      const approvedCleanupDecision = authority.components.sourceCleanupPlan.decisions.find((decision) =>
-        decision.decisionId === workItem.sourceCleanupDecisionIds[0] &&
-        decision.sourceSequenceItemId === workItem.sourceSequenceItemIds[0])
-      if (!approvedCleanupDecision || approvedCleanupDecision.action === 'cut') {
-        throw denied('Final composition source trim decision is missing or excludes the approved source range.')
-      }
-      const planningPayload = validateOfflineRemotionFinalCompositionPlanningPayload(
-        workItem.executionInput.structuredPayload,
-      )
+      ) throw denied('Final composition requires exact ordered sources, trim decisions, and two dependencies.')
+      const approvedCleanupDecisions = workItem.sourceCleanupDecisionIds.map((decisionId, index) =>
+        authority.components.sourceCleanupPlan.decisions.find((decision) =>
+          decision.decisionId === decisionId &&
+          decision.sourceSequenceItemId === workItem.sourceSequenceItemIds[index]))
       if (
-        planningPayload.sourceStartFrame !== approvedCleanupDecision.startFrame ||
-        planningPayload.sourceEndFrameExclusive !== approvedCleanupDecision.endFrameExclusive
+        approvedCleanupDecisions.some((decision) => !decision || decision.action === 'cut')
+      ) throw denied('Final composition source trim authority is missing or excludes an approved source range.')
+      const exactCleanupDecisions = approvedCleanupDecisions as Array<NonNullable<(typeof approvedCleanupDecisions)[number]>>
+      if (planningPayload.compositionProfileId === 'approved_source_sequence_caption_final_v1') {
+        planningPayload.sourceSegments.forEach((segment, index) => {
+          const decision = exactCleanupDecisions[index]!
+          if (
+            segment.sourceSequenceItemId !== workItem.sourceSequenceItemIds[index] ||
+            segment.sourceStartFrame !== decision.startFrame ||
+            segment.sourceEndFrameExclusive !== decision.endFrameExclusive
+          ) throw denied('Source-sequence composition timing diverges from approved source cleanup authority.')
+        })
+      } else if (
+        planningPayload.sourceStartFrame !== exactCleanupDecisions[0]!.startFrame ||
+        planningPayload.sourceEndFrameExclusive !== exactCleanupDecisions[0]!.endFrameExclusive
       ) throw denied('Final composition timing does not match the approved source cleanup decision.')
 
       const runtimeAuthority = await readPersistedOfflineRemotionRenderRuntimeAuthority()
@@ -171,12 +186,16 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
         runnerClass: RUNNER_CLASS,
       })
       const executionAttemptId = begun.executionFence.executionAttemptId
-      const source = await createCanonicalPrivateSourceObjectReadService(context).readExactApprovedSource({
+      const sourceReadInput = {
         workspaceId: body.workspaceId, projectId: body.projectId,
         snapshotId: authority.snapshot.snapshotId, jobId: body.jobId,
         approvedWorkItem: workItem, approvedSourceManifest: authority.sourceAssetManifest,
         leaseId: injected.leaseId, executionAttemptId, dispatchGrantId: body.grantId,
-      })
+      }
+      const sourceReader = createCanonicalPrivateSourceObjectReadService(context)
+      const sources = planningPayload.compositionProfileId === 'approved_source_sequence_caption_final_v1'
+        ? await sourceReader.readExactApprovedSources(sourceReadInput)
+        : [await sourceReader.readExactApprovedSource(sourceReadInput)]
       const dependencyReader = createCanonicalPrivateDependencyArtifactReadService(context)
       const dependencies: CanonicalPrivateDependencyArtifactReadResult[] = []
       for (let selectedArtifactIndex = 0; selectedArtifactIndex < 2; selectedArtifactIndex += 1) {
@@ -210,14 +229,29 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
         workItemId: trimReadiness.job.approvedWorkItemId,
         sourceSequenceItemIds: workItem.sourceSequenceItemIds,
         sourceCleanupDecisionIds: workItem.sourceCleanupDecisionIds,
-        approvedCleanupDecision,
+        approvedCleanupDecisions: exactCleanupDecisions,
         authorityHashes: readiness.authorityHashes,
         dependencyJobId: trimArtifact.dependencyJobId,
         expectedAssetId: trimArtifact.expectedAssetId,
       })
       const request = buildOfflineRemotionFinalCompositionRequest({
         planningPayload,
-        source: { mimeType: CONTENT_TYPE, bytes: source.bytes, sha256: source.sha256 },
+        ...(planningPayload.compositionProfileId === 'approved_source_sequence_caption_final_v1'
+          ? {
+              sources: sources.map((source) => ({
+                sourceSequenceItemId: source.sourceSequenceItemId,
+                mimeType: CONTENT_TYPE,
+                bytes: source.bytes,
+                sha256: source.sha256,
+              })),
+            }
+          : {
+              source: {
+                mimeType: CONTENT_TYPE,
+                bytes: sources[0]!.bytes,
+                sha256: sources[0]!.sha256,
+              },
+            }),
         captionOverlay: { mimeType: 'image/png', bytes: caption.bytes, sha256: caption.sha256 },
       })
       if (!isFinalCompositionPayload(request.payload)) {
@@ -244,7 +278,15 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
         workspaceId: body.workspaceId, snapshotId: authority.snapshot.snapshotId,
         jobId: body.jobId, expectedAssetId: expectedAsset.id,
         dispatchGrantId: body.grantId, executionAttemptId,
-        sourceSha256: source.sha256, sourceTrimSha256: trimArtifact.sha256,
+        ...(planningPayload.compositionProfileId === 'approved_source_sequence_caption_final_v1'
+          ? {
+              sourceSequence: sources.map((source) => ({
+                sourceSequenceItemId: source.sourceSequenceItemId,
+                sha256: source.sha256,
+              })),
+            }
+          : { sourceSha256: sources[0]!.sha256 }),
+        sourceTrimSha256: trimArtifact.sha256,
         captionSha256: caption.sha256,
         contentSha256: result.artifact.sha256,
       })
@@ -274,7 +316,8 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
         privateObjectIdentityHash, executionAttemptId, dispatchGrantId: body.grantId,
         runtimeAuthorityHash: runtimeAuthority.authorityHash,
         executionStartedAt: begun.executionFence.startedAt,
-        result, qa, sourceReadEvidenceHash: source.sourceReadEvidenceHash,
+        result, qa,
+        sourceReadEvidenceHashes: sources.map((source) => source.sourceReadEvidenceHash),
         sourceTrimDependencyReadEvidenceHash: trimArtifact.dependencyReadEvidenceHash,
         captionDependencyReadEvidenceHash: caption.dependencyReadEvidenceHash,
       }
@@ -320,7 +363,7 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
         identity: { ...identity, approvedWorkItemId: workItem.id, dispatchGrantId: body.grantId },
         tool: {
           canonicalToolId: 'remotion' as const, operationId: OFFLINE_REMOTION_RENDER_OPERATION,
-          compositionProfileId: 'approved_source_caption_final_v1' as const,
+          compositionProfileId: planningPayload.compositionProfileId,
           actualRemotionOperationCompleted: true as const, approvedSourceObjectRead: true as const,
           approvedSourceTrimDependencyRead: true as const,
           approvedSourceTrimFramesApplied: true as const,
@@ -328,21 +371,48 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
           privateFinalCompositionExecuted: true as const, providerCallMade: false as const,
           publicDeliveryExecuted: false as const,
         },
-        inputs: {
-          sourceSequenceItemId: source.sourceSequenceItemId, sourceMediaAssetId: source.mediaAssetId,
-          sourceSha256: source.sha256, sourceByteLength: source.byteLength,
-          sourceReadEvidenceHash: source.sourceReadEvidenceHash,
-          sourceTrimArtifactId: trimArtifact.artifactId,
-          sourceTrimSha256: trimArtifact.sha256,
-          sourceTrimByteLength: trimArtifact.byteLength,
-          sourceTrimDependencyReadEvidenceHash: trimArtifact.dependencyReadEvidenceHash,
-          sourceCleanupDecisionId: sourceTrim.decisionId,
-          sourceStartFrame: sourceTrim.startFrame,
-          sourceEndFrameExclusive: sourceTrim.endFrameExclusive,
-          captionArtifactId: caption.artifactId, captionSha256: caption.sha256,
-          captionByteLength: caption.byteLength,
-          captionDependencyReadEvidenceHash: caption.dependencyReadEvidenceHash,
-        },
+        inputs: planningPayload.compositionProfileId === 'approved_source_sequence_caption_final_v1'
+          ? {
+              sources: sources.map((source, index) => ({
+                sourceSequenceItemId: source.sourceSequenceItemId,
+                sourceMediaAssetId: source.mediaAssetId,
+                sourceSha256: source.sha256,
+                sourceByteLength: source.byteLength,
+                sourceReadEvidenceHash: source.sourceReadEvidenceHash,
+                sourceCleanupDecisionId: sourceTrim[index]!.decisionId,
+                sourceStartFrame: sourceTrim[index]!.startFrame,
+                sourceEndFrameExclusive: sourceTrim[index]!.endFrameExclusive,
+                timelineStartFrame: planningPayload.sourceSegments[index]!.timelineStartFrame,
+                timelineEndFrameExclusive: planningPayload.sourceSegments[index]!.timelineEndFrameExclusive,
+              })),
+              combinedSourceByteLength: sources.reduce((total, source) => total + source.byteLength, 0),
+              sourceSequenceReadEvidenceHash: sha256ArtifactQaValue(
+                sources.map((source) => source.sourceReadEvidenceHash),
+              ),
+              sourceTrimArtifactId: trimArtifact.artifactId,
+              sourceTrimSha256: trimArtifact.sha256,
+              sourceTrimByteLength: trimArtifact.byteLength,
+              sourceTrimDependencyReadEvidenceHash: trimArtifact.dependencyReadEvidenceHash,
+              captionArtifactId: caption.artifactId, captionSha256: caption.sha256,
+              captionByteLength: caption.byteLength,
+              captionDependencyReadEvidenceHash: caption.dependencyReadEvidenceHash,
+            }
+          : {
+              sourceSequenceItemId: sources[0]!.sourceSequenceItemId,
+              sourceMediaAssetId: sources[0]!.mediaAssetId,
+              sourceSha256: sources[0]!.sha256, sourceByteLength: sources[0]!.byteLength,
+              sourceReadEvidenceHash: sources[0]!.sourceReadEvidenceHash,
+              sourceTrimArtifactId: trimArtifact.artifactId,
+              sourceTrimSha256: trimArtifact.sha256,
+              sourceTrimByteLength: trimArtifact.byteLength,
+              sourceTrimDependencyReadEvidenceHash: trimArtifact.dependencyReadEvidenceHash,
+              sourceCleanupDecisionId: sourceTrim[0]!.decisionId,
+              sourceStartFrame: sourceTrim[0]!.startFrame,
+              sourceEndFrameExclusive: sourceTrim[0]!.endFrameExclusive,
+              captionArtifactId: caption.artifactId, captionSha256: caption.sha256,
+              captionByteLength: caption.byteLength,
+              captionDependencyReadEvidenceHash: caption.dependencyReadEvidenceHash,
+            },
         lease: {
           leaseId: begun.lease.id, attemptNumber: begun.lease.attemptNumber,
           immutableLeaseHash: begun.lease.immutableLeaseHash, executionAttemptId,
@@ -424,7 +494,7 @@ function parseApprovedSourceTrimEvidence(input: {
   workItemId: string
   sourceSequenceItemIds: string[]
   sourceCleanupDecisionIds: string[]
-  approvedCleanupDecision: {
+  approvedCleanupDecisions: Array<{
     decisionId: string
     sourceSequenceItemId: string
     action: string
@@ -434,7 +504,7 @@ function parseApprovedSourceTrimEvidence(input: {
     confidence: number
     meaningPreservationStatus: 'passed' | 'warning'
     userReviewStatus: 'not_required' | 'resolved'
-  }
+  }>
   authorityHashes: {
     snapshotHash: string
     sourceSequenceHash: string
@@ -442,7 +512,7 @@ function parseApprovedSourceTrimEvidence(input: {
   }
   dependencyJobId: string
   expectedAssetId: string
-}): ApprovedSourceTrimEvidence {
+}): ApprovedSourceTrimEvidence[] {
   let parsed: unknown
   try {
     parsed = JSON.parse(input.bytes.toString('utf8'))
@@ -452,23 +522,23 @@ function parseApprovedSourceTrimEvidence(input: {
   const report = objectRecord(parsed, 'source trim report')
   const identity = objectRecord(report.identity, 'source trim identity')
   const authorityHashes = objectRecord(report.authorityHashes, 'source trim authority hashes')
-  const expectedDecision = {
-    decisionId: input.approvedCleanupDecision.decisionId,
-    sourceSequenceItemId: input.approvedCleanupDecision.sourceSequenceItemId,
-    action: input.approvedCleanupDecision.action,
-    startFrame: input.approvedCleanupDecision.startFrame,
-    endFrameExclusive: input.approvedCleanupDecision.endFrameExclusive,
-    reasonHash: createHash('sha256').update(input.approvedCleanupDecision.reason).digest('hex'),
-    confidence: input.approvedCleanupDecision.confidence,
-    meaningPreservationStatus: input.approvedCleanupDecision.meaningPreservationStatus,
-    userReviewStatus: input.approvedCleanupDecision.userReviewStatus,
-  }
+  const expectedDecisions = input.approvedCleanupDecisions.map((decision) => ({
+    decisionId: decision.decisionId,
+    sourceSequenceItemId: decision.sourceSequenceItemId,
+    action: decision.action,
+    startFrame: decision.startFrame,
+    endFrameExclusive: decision.endFrameExclusive,
+    reasonHash: createHash('sha256').update(decision.reason).digest('hex'),
+    confidence: decision.confidence,
+    meaningPreservationStatus: decision.meaningPreservationStatus,
+    userReviewStatus: decision.userReviewStatus,
+  }))
   const expectedSourceTrim = {
     status: 'confirmed',
     sourceSequenceItemIds: input.sourceSequenceItemIds,
     sourceCleanupDecisionIds: input.sourceCleanupDecisionIds,
-    decisionCount: 1,
-    decisions: [expectedDecision],
+    decisionCount: expectedDecisions.length,
+    decisions: expectedDecisions,
     meaningPreservationValidated: true,
     unresolvedUserReview: false,
   }
@@ -485,7 +555,7 @@ function parseApprovedSourceTrimEvidence(input: {
     authorityHashes.approvedAssetManifestHash !== input.authorityHashes.approvedAssetManifestHash ||
     stableArtifactQaStringify(report.sourceTrim) !== stableArtifactQaStringify(expectedSourceTrim)
   ) throw denied('Approved source trim dependency diverged from current immutable plan authority.')
-  return expectedDecision
+  return expectedDecisions
 }
 
 function objectRecord(value: unknown, label: string): Record<string, unknown> {
@@ -513,7 +583,7 @@ interface FinalCompositionAdapterInput {
   executionStartedAt: string
   result: OfflineRemotionRenderResult
   qa: CanonicalPrivateFinalMediaQa
-  sourceReadEvidenceHash: string
+  sourceReadEvidenceHashes: string[]
   sourceTrimDependencyReadEvidenceHash: string
   captionDependencyReadEvidenceHash: string
 }
@@ -550,7 +620,7 @@ function adapters(input: FinalCompositionAdapterInput): {
             runnerClass: RUNNER_CLASS,
             runnerEvidenceHash: sha256ArtifactQaValue({
               runtime: input.result.evidence,
-              sourceReadEvidenceHash: input.sourceReadEvidenceHash,
+              sourceReadEvidenceHashes: input.sourceReadEvidenceHashes,
               sourceTrimDependencyReadEvidenceHash: input.sourceTrimDependencyReadEvidenceHash,
               captionDependencyReadEvidenceHash: input.captionDependencyReadEvidenceHash,
             }),
@@ -598,7 +668,7 @@ function adapters(input: FinalCompositionAdapterInput): {
             status: 'passed' as const,
             failureScope: 'none' as const,
             evidenceHash: sha256ArtifactQaValue({
-              sourceReadEvidenceHash: input.sourceReadEvidenceHash,
+              sourceReadEvidenceHashes: input.sourceReadEvidenceHashes,
               sourceTrimDependencyReadEvidenceHash: input.sourceTrimDependencyReadEvidenceHash,
               captionDependencyReadEvidenceHash: input.captionDependencyReadEvidenceHash,
             }),
@@ -632,6 +702,8 @@ function assertFinalResult(
   result: OfflineRemotionRenderResult,
   request: ReturnType<typeof buildOfflineRemotionFinalCompositionRequest>,
 ): void {
+  const sequenceProfile = isFinalCompositionPayload(request.payload) &&
+    request.payload.compositionProfileId === 'approved_source_sequence_caption_final_v1'
   if (
     !isFinalCompositionPayload(request.payload) || !isFinalCompositionPayload(result.request.payload) ||
     result.request.operationId !== request.operationId || result.artifact.mimeType !== CONTENT_TYPE ||
@@ -644,6 +716,10 @@ function assertFinalResult(
     result.evidence.semanticEvidence.approvedCaptionOverlayBytesVerified !== true ||
     result.evidence.semanticEvidence.sourceAudioPreservationRequested !== true ||
     result.evidence.semanticEvidence.finalCompositionProfileExecuted !== true ||
+    (sequenceProfile && (
+      result.evidence.semanticEvidence.approvedSourceSequenceBytesVerified !== true ||
+      result.evidence.semanticEvidence.approvedSourceSequenceTimelineApplied !== true
+    )) ||
     result.readiness.productReady || !result.readiness.privateInternalFinalCompositionReady
   ) throw denied('Remotion final composition result failed exact operation and dependency verification.')
 }

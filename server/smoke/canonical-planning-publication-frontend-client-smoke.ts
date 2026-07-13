@@ -83,6 +83,44 @@ const sourceMediaAssets = [{
   publicUrl: null,
   signedUrl: null,
 }]
+const multiSourceInput: PlannerInput = {
+  ...baseInput,
+  clips: [{
+    ...baseInput.clips[0]!,
+    id: 'canonical-save-clip-1',
+    fileName: 'canonical-source-1.mp4',
+    duration: '00:01',
+    uploadedOrder: 1,
+  }, {
+    ...baseInput.clips[0]!,
+    id: 'canonical-save-clip-2',
+    fileName: 'canonical-source-2.mp4',
+    duration: '00:01',
+    uploadedOrder: 2,
+    sourceRole: 'context',
+  }],
+  sourceSequenceMode: 'multi_clip_story_order',
+}
+const multiSourceMediaAssets = [{
+  ...sourceMediaAssets[0]!,
+  mediaAssetId: 'canonical-save-media-1',
+  sourceSequenceItemId: 'canonical-save-source-1',
+  uploadedClipId: 'canonical-save-clip-1',
+  uploadedOrder: 1,
+  fileName: 'canonical-source-1.mp4',
+  checksumSha256: sha('1'),
+  sourceMetadata: { ...sourceMediaAssets[0]!.sourceMetadata, durationSeconds: 1 },
+}, {
+  ...sourceMediaAssets[0]!,
+  mediaAssetId: 'canonical-save-media-2',
+  sourceSequenceItemId: 'canonical-save-source-2',
+  uploadedClipId: 'canonical-save-clip-2',
+  uploadedOrder: 2,
+  fileName: 'canonical-source-2.mp4',
+  storagePath: 'private/second/source/path-must-never-cross-browser-request.mp4',
+  checksumSha256: sha('2'),
+  sourceMetadata: { ...sourceMediaAssets[0]!.sourceMetadata, durationSeconds: 1 },
+}]
 
 const sourceOnlyFullPlan = createMockEditPlan(baseInput)
 assert.equal(sourceOnlyFullPlan.visualAssetPlan?.length, 0, 'Source-only preference must create no visual assets.')
@@ -107,6 +145,26 @@ assert.equal(createCanonicalPlanningHandoffSchema.safeParse({
   orderedSourceItems: richDraft.draft.orderedSourceItems,
   canonicalPlanComponents: richDraft.draft.components,
 }).success, true, 'Rich handoff components must match the backend schema.')
+
+const realisticRichMultiSourcePlan = createMockEditPlan(multiSourceInput)
+const realisticRichMultiSourceDraft = buildCanonicalPlanningDraft({
+  plan: realisticRichMultiSourcePlan,
+  plannerInput: multiSourceInput,
+  sourceMediaAssets: multiSourceMediaAssets,
+})
+assert.equal(realisticRichMultiSourceDraft.ok, true, 'A normal rich multi-source plan should preserve its handoff context.')
+assert.equal(
+  realisticRichMultiSourceDraft.ok && realisticRichMultiSourceDraft.draft.publication,
+  undefined,
+  'A rich multi-source editor plan must not be silently flattened into the bounded sequence composition.',
+)
+assert.match(
+  realisticRichMultiSourceDraft.ok
+    ? realisticRichMultiSourceDraft.draft.publicationBlockers.join(' ')
+    : '',
+  /contiguous|one-to-one|caption|transition|audio|operation/i,
+  'Rich timing and edit work must remain visible as an explicit publication blocker.',
+)
 
 const exactPlan = createExactPrivateReviewPlan()
 const exactDraft = buildCanonicalPlanningDraft({
@@ -167,6 +225,51 @@ const finalItem = exactDraft.draft.publication.canonicalPlan.workItems.find((ite
 validateOfflineRemotionFinalCompositionPlanningPayload(asRecord(finalItem.executionInput.structuredPayload))
 const qaItem = exactDraft.draft.publication.canonicalPlan.workItems.find((item) => item.workItemKey === 'final-qa')!
 validateOfflineFfprobePlanningPayload(asRecord(qaItem.executionInput.structuredPayload))
+
+const multiSourcePlan = createExactMultiSourcePrivateReviewPlan()
+const multiSourceDraft = buildCanonicalPlanningDraft({
+  plan: multiSourcePlan,
+  plannerInput: multiSourceInput,
+  sourceMediaAssets: multiSourceMediaAssets,
+})
+assert.equal(multiSourceDraft.ok, true, 'Exact ordered multi-source plan should compile.')
+if (!multiSourceDraft.ok || !multiSourceDraft.draft.publication) {
+  throw new Error('Exact ordered multi-source publication candidate was not produced.')
+}
+const multiSourceTrimItem = multiSourceDraft.draft.publication.canonicalPlan.workItems.find((item) =>
+  item.workItemKey === 'source-trim-validation')!
+assert.deepEqual(
+  multiSourceTrimItem.sourceSequenceItemIds,
+  ['canonical-save-source-1', 'canonical-save-source-2'],
+  'Trim validation must preserve the exact approved source order.',
+)
+assert.equal(multiSourceTrimItem.sourceCleanupDecisionIds.length, 2)
+const multiSourceFinalItem = multiSourceDraft.draft.publication.canonicalPlan.workItems.find((item) =>
+  item.workItemKey === 'final-export')!
+const multiSourceFinalPayload = validateOfflineRemotionFinalCompositionPlanningPayload(
+  asRecord(multiSourceFinalItem.executionInput.structuredPayload),
+)
+assert.equal(multiSourceFinalPayload.compositionProfileId, 'approved_source_sequence_caption_final_v1')
+if (multiSourceFinalPayload.compositionProfileId !== 'approved_source_sequence_caption_final_v1') {
+  throw new Error('Exact ordered multi-source plan compiled to the wrong Remotion profile.')
+}
+assert.deepEqual(multiSourceFinalPayload.sourceSegments, [{
+  sourceSequenceItemId: 'canonical-save-source-1',
+  sourceStartFrame: 0,
+  sourceEndFrameExclusive: 24,
+  timelineStartFrame: 0,
+  timelineEndFrameExclusive: 24,
+}, {
+  sourceSequenceItemId: 'canonical-save-source-2',
+  sourceStartFrame: 0,
+  sourceEndFrameExclusive: 24,
+  timelineStartFrame: 24,
+  timelineEndFrameExclusive: 48,
+}])
+assert.equal(
+  multiSourceFinalItem.expectedOutputs[0]?.artifactType,
+  'private_source_sequence_caption_final_video_export',
+)
 
 const badSourceDraft = buildCanonicalPlanningDraft({
   plan: exactPlan,
@@ -532,6 +635,70 @@ function createExactPrivateReviewPlan(): EditPlan {
   }
   decision.decision = 'preserve'
   decision.riskLevel = 'low'
+  plan.visualAssetPlan = []
+  plan.providerPromptPlans = []
+  plan.segmentEditPlans = []
+  plan.colorPipelinePlan = undefined
+  plan.audioPipelinePlan = undefined
+  return plan
+}
+
+function createExactMultiSourcePrivateReviewPlan(): EditPlan {
+  const plan = createGuidedMockEditPlan(multiSourceInput)
+  const timing = plan.masterTimingPlan!
+  timing.timingBase = {
+    ...timing.timingBase,
+    fps: 24,
+    totalDurationSeconds: 2,
+    totalFrames: 48,
+    sourceDurationSeconds: 2,
+    finalDurationSeconds: 2,
+  }
+  const segmentTemplate = timing.finalTimelineSegments[0]!
+  timing.finalTimelineSegments = [{
+    ...segmentTemplate,
+    id: 'timeline-segment-1',
+    segmentId: 'segment-1',
+    label: 'First approved source',
+    finalRange: frameRange(0, 1, 0, 24),
+  }, {
+    ...segmentTemplate,
+    id: 'timeline-segment-2',
+    segmentId: 'segment-2',
+    label: 'Second approved source',
+    finalRange: frameRange(1, 2, 24, 48),
+  }]
+  timing.captionTimingItems = [{
+    ...timing.captionTimingItems[0]!,
+    captionText: 'Approved ordered source sequence',
+    timeRange: frameRange(0, 2, 0, 48),
+  }]
+  timing.visualTimingItems = []
+  timing.transitionTimingItems = []
+  timing.sfxTimingItems = []
+  timing.musicDuckingTimingItems = []
+  timing.providerClipTimingItems = []
+  const cleanup = plan.sourceCleanupPlan!
+  const decisionTemplate = cleanup.decisions[0]!
+  cleanup.decisions = multiSourceInput.clips.map((clip, index) => ({
+    ...decisionTemplate,
+    id: `multi-source-cleanup-${index + 1}`,
+    clipId: clip.id,
+    decision: 'preserve',
+    reason: `Preserve approved source ${index + 1} in confirmed upload order.`,
+    sourceRange: {
+      ...frameRange(0, 1, 0, 24),
+      clipId: clip.id,
+      notes: [],
+    },
+    selectedRange: frameRange(0, 1, 0, 24),
+    riskLevel: 'low',
+    userReviewRequired: false,
+  }))
+  cleanup.preservedRanges = [...cleanup.decisions]
+  cleanup.cutRanges = []
+  cleanup.userReviewItems = []
+  cleanup.finalDurationImpactSeconds = 0
   plan.visualAssetPlan = []
   plan.providerPromptPlans = []
   plan.segmentEditPlans = []

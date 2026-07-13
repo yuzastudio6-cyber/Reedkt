@@ -45,6 +45,47 @@ function integer(value, minimum, maximum, label) {
   return value
 }
 
+function safeIdentity(value, label) {
+  if (
+    typeof value !== 'string' || value.length < 1 || value.length > 160 ||
+    value !== value.trim() || value.includes('..') ||
+    !/^[A-Za-z0-9][A-Za-z0-9._:-]*$/.test(value)
+  ) throw new Error(`${label} is invalid`)
+  return value
+}
+
+function validateSourceSegments(value, durationFrames) {
+  if (!Array.isArray(value) || value.length < 2 || value.length > 8) {
+    throw new Error('source sequence requires two to eight segments')
+  }
+  const seen = new Set()
+  let expectedTimelineStart = 0
+  const segments = value.map((candidate, index) => {
+    const segment = exactObject(candidate, [
+      'sourceSequenceItemId', 'sourceStartFrame', 'sourceEndFrameExclusive',
+      'timelineStartFrame', 'timelineEndFrameExclusive',
+    ], `source segment ${index + 1}`)
+    const sourceSequenceItemId = safeIdentity(segment.sourceSequenceItemId, 'sourceSequenceItemId')
+    const sourceStartFrame = integer(segment.sourceStartFrame, 0, 100_000_000, 'sourceStartFrame')
+    const sourceEndFrameExclusive = integer(segment.sourceEndFrameExclusive, 1, 100_000_001, 'sourceEndFrameExclusive')
+    const timelineStartFrame = integer(segment.timelineStartFrame, 0, 240, 'timelineStartFrame')
+    const timelineEndFrameExclusive = integer(segment.timelineEndFrameExclusive, 1, 240, 'timelineEndFrameExclusive')
+    if (
+      seen.has(sourceSequenceItemId) || timelineStartFrame !== expectedTimelineStart ||
+      sourceEndFrameExclusive <= sourceStartFrame || timelineEndFrameExclusive <= timelineStartFrame ||
+      sourceEndFrameExclusive - sourceStartFrame !== timelineEndFrameExclusive - timelineStartFrame
+    ) throw new Error('source segments must be unique, contiguous, and duration preserving')
+    seen.add(sourceSequenceItemId)
+    expectedTimelineStart = timelineEndFrameExclusive
+    return {
+      sourceSequenceItemId, sourceStartFrame, sourceEndFrameExclusive,
+      timelineStartFrame, timelineEndFrameExclusive,
+    }
+  })
+  if (expectedTimelineStart !== durationFrames) throw new Error('source sequence does not cover approved duration')
+  return segments
+}
+
 function committedBase64(payload, prefix, mimeType, minimumBytes, maximumBytes) {
   const mimeKey = `${prefix}MimeType`
   const lengthKey = `${prefix}ByteLength`
@@ -69,6 +110,58 @@ function validateRequest(value) {
     throw new Error('request identity is unsupported')
   }
   const rawPayload = request.payload
+  if (rawPayload && typeof rawPayload === 'object' && rawPayload.compositionProfileId === 'approved_source_sequence_caption_final_v1') {
+    const payload = exactObject(rawPayload, [
+      'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
+      'sourceSegments', 'sourceFit', 'panelBackground', 'audioPolicy',
+      'captionOverlayPolicy', 'sources', 'captionOverlayMimeType',
+      'captionOverlayByteLength', 'captionOverlaySha256', 'captionOverlayBytesBase64',
+    ], 'source-sequence final composition payload')
+    const dimensions = `${payload.width}x${payload.height}`
+    oneOf(dimensions, ['360x640', '640x360', '480x480', '480x600', '720x405', '405x720'], 'approved frame')
+    const durationFrames = integer(payload.durationFrames, 24, 240, 'durationFrames')
+    const sourceSegments = validateSourceSegments(payload.sourceSegments, durationFrames)
+    if (!Array.isArray(payload.sources) || payload.sources.length !== sourceSegments.length) {
+      throw new Error('source-sequence commitments are incomplete')
+    }
+    let totalSourceBytes = 0
+    const sources = payload.sources.map((candidate, index) => {
+      const source = exactObject(candidate, [
+        'sourceSequenceItemId', 'sourceMimeType', 'sourceByteLength',
+        'sourceSha256', 'sourceBytesBase64',
+      ], `source commitment ${index + 1}`)
+      if (source.sourceSequenceItemId !== sourceSegments[index].sourceSequenceItemId) {
+        throw new Error('source commitment order diverges from approved source segments')
+      }
+      const bytes = committedBase64(source, 'source', 'video/mp4', 64, 16 * 1024 * 1024)
+      if (bytes.subarray(4, 8).toString('ascii') !== 'ftyp') throw new Error('source MP4 signature is invalid')
+      totalSourceBytes += bytes.byteLength
+      return { ...source, sourceBytesBase64: bytes.toString('base64') }
+    })
+    if (totalSourceBytes > 20 * 1024 * 1024) throw new Error('source sequence exceeds combined byte ceiling')
+    const overlay = committedBase64(payload, 'captionOverlay', 'image/png', 1024, 8 * 1024 * 1024)
+    if (overlay.subarray(0, 8).toString('hex') !== '89504e470d0a1a0a') {
+      throw new Error('source-sequence caption overlay signature is invalid')
+    }
+    if (
+      payload.sourceFit !== 'contain' || payload.audioPolicy !== 'preserve_source_sequence' ||
+      payload.captionOverlayPolicy !== 'approved_full_frame_rgba'
+    ) throw new Error('source-sequence composition policy is unsupported')
+    const color = (value, label) => {
+      if (typeof value !== 'string' || !/^#[A-Fa-f0-9]{6}$/.test(value)) throw new Error(`${label} is invalid`)
+      return value.toUpperCase()
+    }
+    return {
+      schemaVersion: PROTOCOL, toolId: 'remotion', operationId: OPERATION,
+      payload: {
+        ...payload,
+        width: integer(payload.width, 360, 720, 'width'), height: integer(payload.height, 360, 720, 'height'),
+        fps: oneOf(payload.fps, [24, 30], 'fps'), durationFrames, sourceSegments, sources,
+        panelBackground: color(payload.panelBackground, 'panelBackground'),
+        captionOverlayBytesBase64: overlay.toString('base64'),
+      },
+    }
+  }
   if (rawPayload && typeof rawPayload === 'object' && rawPayload.compositionProfileId === 'approved_source_caption_final_v1') {
     const payload = exactObject(rawPayload, [
       'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
@@ -153,14 +246,36 @@ async function execute(request) {
   if (!browserExecutable.startsWith('/app/node_modules/.remotion/chrome-headless-shell/')) {
     throw new Error('Prepared Remotion browser identity is invalid')
   }
-  const finalComposition = request.payload.compositionProfileId === 'approved_source_caption_final_v1'
+  const finalComposition = [
+    'approved_source_caption_final_v1',
+    'approved_source_sequence_caption_final_v1',
+  ].includes(request.payload.compositionProfileId)
   const mediaServer = finalComposition
     ? await openPrivateLoopbackMediaServer(
-        Buffer.from(request.payload.sourceBytesBase64, 'base64'),
+        request.payload.compositionProfileId === 'approved_source_sequence_caption_final_v1'
+          ? request.payload.sources.map((source) => ({
+              sourceSequenceItemId: source.sourceSequenceItemId,
+              bytes: Buffer.from(source.sourceBytesBase64, 'base64'),
+            }))
+          : [{ sourceSequenceItemId: 'single-approved-source', bytes: Buffer.from(request.payload.sourceBytesBase64, 'base64') }],
         Buffer.from(request.payload.captionOverlayBytesBase64, 'base64'),
       )
     : null
-  const renderPayload = finalComposition
+  const renderPayload = request.payload.compositionProfileId === 'approved_source_sequence_caption_final_v1'
+    ? {
+        compositionProfileId: request.payload.compositionProfileId,
+        width: request.payload.width, height: request.payload.height,
+        fps: request.payload.fps, durationFrames: request.payload.durationFrames,
+        sourceSegments: request.payload.sourceSegments,
+        sourceFit: request.payload.sourceFit, panelBackground: request.payload.panelBackground,
+        audioPolicy: request.payload.audioPolicy, captionOverlayPolicy: request.payload.captionOverlayPolicy,
+        sourceInternalUrls: request.payload.sources.map((source, index) => ({
+          sourceSequenceItemId: source.sourceSequenceItemId,
+          sourceInternalUrl: `${mediaServer.origin}/source/${index}.mp4`,
+        })),
+        captionOverlayInternalUrl: `${mediaServer.origin}/caption.png`,
+      }
+    : finalComposition
     ? {
         compositionProfileId: request.payload.compositionProfileId,
         width: request.payload.width, height: request.payload.height,
@@ -169,7 +284,7 @@ async function execute(request) {
         sourceEndFrameExclusive: request.payload.sourceEndFrameExclusive,
         sourceFit: request.payload.sourceFit, panelBackground: request.payload.panelBackground,
         audioPolicy: request.payload.audioPolicy, captionOverlayPolicy: request.payload.captionOverlayPolicy,
-        sourceInternalUrl: `${mediaServer.origin}/source.mp4`,
+        sourceInternalUrl: `${mediaServer.origin}/source/0.mp4`,
         captionOverlayInternalUrl: `${mediaServer.origin}/caption.png`,
       }
     : request.payload
@@ -236,14 +351,20 @@ async function execute(request) {
   }
 }
 
-async function openPrivateLoopbackMediaServer(sourceBytes, overlayBytes) {
+async function openPrivateLoopbackMediaServer(sources, overlayBytes) {
   const server = createServer((request, response) => {
     if (!request.url || !['GET', 'HEAD'].includes(request.method ?? '')) {
       response.writeHead(405).end()
       return
     }
-    if (request.url === '/source.mp4') {
-      serveCommittedBytes(request, response, sourceBytes, 'video/mp4')
+    const sourceMatch = /^\/source\/(\d+)\.mp4$/.exec(request.url)
+    if (sourceMatch) {
+      const source = sources[Number(sourceMatch[1])]
+      if (!source) {
+        response.writeHead(404).end()
+        return
+      }
+      serveCommittedBytes(request, response, source.bytes, 'video/mp4')
       return
     }
     if (request.url === '/caption.png') {
@@ -331,6 +452,16 @@ try {
             sourceAudioPreservationRequested: true,
             finalCompositionProfileExecuted: true,
           }
+        : request.payload.compositionProfileId === 'approved_source_sequence_caption_final_v1'
+          ? {
+              approvedSourceBytesVerified: true,
+              approvedSourceSequenceBytesVerified: true,
+              approvedCaptionOverlayBytesVerified: true,
+              approvedSourceTrimFramesApplied: true,
+              approvedSourceSequenceTimelineApplied: true,
+              sourceAudioPreservationRequested: true,
+              finalCompositionProfileExecuted: true,
+            }
         : { boundedPreviewCompositionProfileExecuted: true }),
     },
     readiness: { privateInternalOnly: true, productReady: false, externalBetaReady: false, productionReady: false, privateInternalFinalCompositionReady: true },

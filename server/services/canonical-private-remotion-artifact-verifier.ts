@@ -11,7 +11,10 @@ export async function verifyCanonicalPrivateRemotionArtifact(input: {
   const exactPrivatePreview = input.artifact.lineage.assetRole !== 'final'
   const exactPrivateFinalComposition =
     input.artifact.lineage.assetRole === 'final' &&
-    input.artifact.lineage.artifactType === 'private_source_caption_final_video_export' &&
+    [
+      'private_source_caption_final_video_export',
+      'private_source_sequence_caption_final_video_export',
+    ].includes(input.artifact.lineage.artifactType) &&
     input.artifact.lineage.required === true &&
     input.artifact.lineage.previewPlaceholderAllowed === false
   if (

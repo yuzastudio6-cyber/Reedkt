@@ -297,7 +297,7 @@ export function buildCanonicalPlanningDraft(input: {
     frame,
     fps,
     totalFrames,
-    cleanupDecision: cleanup.decisions[0],
+    cleanupDecisions: cleanup.decisions,
     segments: segments.segments,
   })
   const canonicalEstimate = buildEstimate(plan)
@@ -308,8 +308,8 @@ export function buildCanonicalPlanningDraft(input: {
           plan,
           components,
           estimate: canonicalEstimate.estimate,
-          sourceItem: orderedSourceItems[0]!,
-          cleanupDecision: cleanup.decisions[0]!,
+          sourceItems: orderedSourceItems,
+          cleanupDecisions: cleanup.decisions,
           frame,
           fps: fps as 24 | 30,
           totalFrames,
@@ -458,39 +458,54 @@ function privateReviewPublicationBlockers(input: {
   frame: { width: number; height: number }
   fps: number
   totalFrames: number
-  cleanupDecision?: CanonicalSourceCleanupDecisionDraft
+  cleanupDecisions: CanonicalSourceCleanupDecisionDraft[]
   segments: CanonicalPlanComponentsDraft['segments']
 }): string[] {
   const blockers: string[] = []
-  const asset = input.sourceMediaAssets[0]
   const captionTiming = input.plan.masterTimingPlan?.captionTimingItems[0]
-  const cleanupDecision = input.cleanupDecision
-  if (input.orderedSourceItems.length !== 1) blockers.push('Private canonical review currently requires one finalized source video.')
-  if (asset?.mimeType.toLowerCase() !== 'video/mp4') blockers.push('Private canonical review currently requires an MP4 source.')
-  if (!asset || asset.byteSize < 64 || asset.byteSize > 16 * 1024 * 1024) blockers.push('Private canonical review currently supports source files up to 16 MB.')
-  if (asset?.sourceMetadata?.probeStatus !== 'probed' || asset.sourceMetadata.hasVideo !== true) {
-    blockers.push('Private canonical review requires verified video metadata before an execution candidate can be saved.')
+  if (input.orderedSourceItems.length > 8) blockers.push('Private canonical review currently supports at most eight ordered source videos per composition.')
+  if (input.sourceMediaAssets.some((asset) => asset.mimeType.toLowerCase() !== 'video/mp4')) {
+    blockers.push('Every source in the private canonical review sequence must be an MP4.')
+  }
+  if (input.sourceMediaAssets.some((asset) => asset.byteSize < 64 || asset.byteSize > 16 * 1024 * 1024)) {
+    blockers.push('Each private canonical review source must be between 64 bytes and 16 MB.')
+  }
+  if (input.sourceMediaAssets.reduce((total, asset) => total + asset.byteSize, 0) > 20 * 1024 * 1024) {
+    blockers.push('The ordered private canonical review source sequence must not exceed 20 MB combined.')
+  }
+  if (input.sourceMediaAssets.some((asset) =>
+    asset.sourceMetadata?.probeStatus !== 'probed' || asset.sourceMetadata.hasVideo !== true)) {
+    blockers.push('Every private canonical review source requires verified video metadata before an execution candidate can be saved.')
   }
   if (!SUPPORTED_PRIVATE_REVIEW_FRAMES.has(`${input.frame.width}x${input.frame.height}`)) blockers.push('Private canonical review currently supports confirmed 9:16 or 16:9 frames.')
   if (![24, 30].includes(input.fps)) blockers.push('Private canonical review currently supports a 24fps or 30fps timing base.')
   if (input.totalFrames < 24 || input.totalFrames > 240) blockers.push('Private canonical review currently supports a frame-accurate review range between 1 and 8 seconds.')
-  if (
-    !cleanupDecision ||
-    !['keep', 'preserve', 'tighten'].includes(cleanupDecision.action) ||
-    cleanupDecision.endFrameExclusive - cleanupDecision.startFrame !== input.totalFrames
-  ) {
-    blockers.push('Private canonical review currently requires one continuous approved source range that exactly matches the final timing base.')
+  const sourceTimeline = buildOrderedSourceTimeline(input.orderedSourceItems, input.cleanupDecisions)
+  if (!sourceTimeline || sourceTimeline.at(-1)?.timelineEndFrameExclusive !== input.totalFrames) {
+    blockers.push('Approved source ranges must form one contiguous, duration-preserving final timeline in confirmed source order.')
   }
-  const sourceDurationFrames = durationFrames(asset?.sourceMetadata?.durationSeconds, input.fps)
-  if (!cleanupDecision || sourceDurationFrames === undefined || cleanupDecision.endFrameExclusive > sourceDurationFrames) {
-    blockers.push('The approved source range must fit inside the verified source duration.')
-  }
+  input.cleanupDecisions.forEach((cleanupDecision, index) => {
+    const sourceItem = input.orderedSourceItems[index]
+    const sourceAsset = input.sourceMediaAssets.find((asset) =>
+      asset.uploadedOrder === sourceItem?.uploadedOrder)
+    if (!['keep', 'preserve', 'tighten'].includes(cleanupDecision.action)) {
+      blockers.push(`Source ${index + 1} requires an unsupported cleanup action for this bounded composition.`)
+    }
+    const sourceDurationFrames = durationFrames(
+      sourceAsset?.sourceMetadata?.durationSeconds,
+      input.fps,
+    )
+    if (sourceDurationFrames === undefined || cleanupDecision.endFrameExclusive > sourceDurationFrames) {
+      blockers.push(`The approved range for source ${index + 1} must fit inside its verified source duration.`)
+    }
+  })
   if (
-    input.segments.length !== 1 ||
-    input.segments[0]?.startFrame !== 0 ||
-    input.segments[0]?.endFrameExclusive !== input.totalFrames
+    !sourceTimeline || input.segments.length !== sourceTimeline.length ||
+    input.segments.some((segment, index) =>
+      segment.startFrame !== sourceTimeline[index]?.timelineStartFrame ||
+      segment.endFrameExclusive !== sourceTimeline[index]?.timelineEndFrameExclusive)
   ) {
-    blockers.push('The current private review runner cannot yet execute a multi-segment or partial final timeline.')
+    blockers.push('Final timeline segments must map one-to-one to the ordered approved source ranges for this bounded composition.')
   }
   if ((input.plan.visualAssetPlan?.length ?? 0) > 0) blockers.push('The planned visual assets need their exact canonical tool or provider work items before publication.')
   if ((input.plan.providerPromptPlans?.length ?? 0) > 0) blockers.push('Provider-backed plan items remain gated until their canonical work items are compiled.')
@@ -518,8 +533,8 @@ function buildPrivateReviewCanonicalPlan(input: {
   plan: EditPlan
   components: CanonicalPlanComponentsDraft
   estimate: CanonicalPlanDraft['estimate']
-  sourceItem: CanonicalSourceAuthorityItem
-  cleanupDecision: CanonicalSourceCleanupDecisionDraft
+  sourceItems: CanonicalSourceAuthorityItem[]
+  cleanupDecisions: CanonicalSourceCleanupDecisionDraft[]
   frame: { width: number; height: number }
   fps: 24 | 30
   totalFrames: number
@@ -530,8 +545,13 @@ function buildPrivateReviewCanonicalPlan(input: {
   const panelBackground = safeColor(input.plan.aspectRatioFramePlan?.panelBackgroundColor)
   const estimate = input.estimate
   const budgets = fitBudgets(estimate.lineItems.reduce((sum, item) => sum + item.estimatedCredits, 0) + estimate.fallbackAllowanceCredits)
-  const sourceId = input.sourceItem.sourceSequenceItemId
-  const cleanupId = input.cleanupDecision.decisionId
+  const sourceIds = input.sourceItems.map((source) => source.sourceSequenceItemId)
+  const cleanupIds = input.cleanupDecisions.map((decision) => decision.decisionId)
+  const sourceTimeline = buildOrderedSourceTimeline(input.sourceItems, input.cleanupDecisions)
+  if (!sourceTimeline || sourceTimeline.at(-1)?.timelineEndFrameExclusive !== input.totalFrames) {
+    throw new Error('Canonical source sequence lost its exact approved timeline during compilation.')
+  }
+  const sourceSequenceComposition = sourceTimeline.length > 1
 
   const output = (
     outputKey: string,
@@ -570,7 +590,7 @@ function buildPrivateReviewCanonicalPlan(input: {
       {
         workItemKey: 'source-trim-validation', workItemType: 'prepare_source_trim', workerClass: 'authority_worker',
         executionInput: { operation: 'validate_approved_source_trim_plan' },
-        sourceSequenceItemIds: [sourceId], sourceCleanupDecisionIds: [cleanupId],
+        sourceSequenceItemIds: sourceIds, sourceCleanupDecisionIds: cleanupIds,
         expectedOutputs: [output(
           'source-trim-validation-evidence',
           'source_trim_validation_evidence',
@@ -606,18 +626,34 @@ function buildPrivateReviewCanonicalPlan(input: {
       {
         workItemKey: 'final-export', workItemType: 'render_final_export', workerClass: 'render_worker',
         executionInput: {
-          operation: 'render_approved_source_caption_final', approvedToolOperationIds: [REMOTION_OPERATION],
+          operation: sourceSequenceComposition
+            ? 'render_approved_source_sequence_caption_final'
+            : 'render_approved_source_caption_final',
+          approvedToolOperationIds: [REMOTION_OPERATION],
           expectedOutputKeys: ['final-export'], structuredPayload: {
-            compositionProfileId: 'approved_source_caption_final_v1', width: input.frame.width, height: input.frame.height,
-            fps: input.fps, durationFrames: input.totalFrames, sourceStartFrame: input.cleanupDecision.startFrame,
-            sourceEndFrameExclusive: input.cleanupDecision.endFrameExclusive, sourceFit: 'contain',
-            panelBackground, audioPolicy: 'preserve_source', captionOverlayPolicy: 'approved_full_frame_rgba',
+            ...(sourceSequenceComposition
+              ? {
+                  compositionProfileId: 'approved_source_sequence_caption_final_v1',
+                  sourceSegments: sourceTimeline,
+                  audioPolicy: 'preserve_source_sequence',
+                }
+              : {
+                  compositionProfileId: 'approved_source_caption_final_v1',
+                  sourceStartFrame: input.cleanupDecisions[0]!.startFrame,
+                  sourceEndFrameExclusive: input.cleanupDecisions[0]!.endFrameExclusive,
+                  audioPolicy: 'preserve_source',
+                }),
+            width: input.frame.width, height: input.frame.height,
+            fps: input.fps, durationFrames: input.totalFrames, sourceFit: 'contain',
+            panelBackground, captionOverlayPolicy: 'approved_full_frame_rgba',
           },
         },
-        sourceSequenceItemIds: [sourceId], sourceCleanupDecisionIds: [cleanupId],
+        sourceSequenceItemIds: sourceIds, sourceCleanupDecisionIds: cleanupIds,
         expectedOutputs: [output(
           'final-export',
-          'private_source_caption_final_video_export',
+          sourceSequenceComposition
+            ? 'private_source_sequence_caption_final_video_export'
+            : 'private_source_caption_final_video_export',
           'final',
           'video/mp4',
           { segmentIds, timingIds: [timingId], rendererLayerIds: ['source-video-layer', 'caption-overlay-layer'] },
@@ -726,6 +762,41 @@ function fitBudgets(maximumCredits: number): [number, number, number, number, nu
   const budgets: [number, number, number, number, number] = [0, 0, 0, 0, 0]
   for (let index = 0; index < Math.max(0, maximumCredits); index += 1) budgets[index % budgets.length] += 1
   return budgets
+}
+
+function buildOrderedSourceTimeline(
+  sourceItems: CanonicalSourceAuthorityItem[],
+  cleanupDecisions: CanonicalSourceCleanupDecisionDraft[],
+): Array<{
+  sourceSequenceItemId: string
+  sourceStartFrame: number
+  sourceEndFrameExclusive: number
+  timelineStartFrame: number
+  timelineEndFrameExclusive: number
+}> | null {
+  if (
+    sourceItems.length < 1 || sourceItems.length > 8 ||
+    cleanupDecisions.length !== sourceItems.length
+  ) return null
+  let timelineStartFrame = 0
+  const segments = sourceItems.flatMap((sourceItem, index) => {
+    const decision = cleanupDecisions[index]
+    if (
+      !decision || decision.sourceSequenceItemId !== sourceItem.sourceSequenceItemId ||
+      decision.endFrameExclusive <= decision.startFrame
+    ) return []
+    const duration = decision.endFrameExclusive - decision.startFrame
+    const segment = {
+      sourceSequenceItemId: sourceItem.sourceSequenceItemId,
+      sourceStartFrame: decision.startFrame,
+      sourceEndFrameExclusive: decision.endFrameExclusive,
+      timelineStartFrame,
+      timelineEndFrameExclusive: timelineStartFrame + duration,
+    }
+    timelineStartFrame += duration
+    return [segment]
+  })
+  return segments.length === sourceItems.length ? segments : null
 }
 
 function cleanupRange(

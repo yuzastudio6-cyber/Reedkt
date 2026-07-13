@@ -4,6 +4,7 @@ import {
   Img,
   interpolate,
   OffthreadVideo,
+  Sequence,
   spring,
   useCurrentFrame,
   useVideoConfig,
@@ -20,11 +21,13 @@ export interface ApprovedCompositionProps {
   title: string
   subtitle: string
   caption: string
-  compositionProfileId?: 'approved_source_caption_final_v1'
+  compositionProfileId?:
+    | 'approved_source_caption_final_v1'
+    | 'approved_source_sequence_caption_final_v1'
   sourceStartFrame?: number
   sourceEndFrameExclusive?: number
   sourceFit?: 'contain'
-  audioPolicy?: 'preserve_source'
+  audioPolicy?: 'preserve_source' | 'preserve_source_sequence'
   captionOverlayPolicy?: 'approved_full_frame_rgba'
   sourceMimeType?: 'video/mp4'
   sourceByteLength?: number
@@ -36,6 +39,17 @@ export interface ApprovedCompositionProps {
   captionOverlayBytesBase64?: string
   sourceInternalUrl?: string
   captionOverlayInternalUrl?: string
+  sourceSegments?: Array<{
+    sourceSequenceItemId: string
+    sourceStartFrame: number
+    sourceEndFrameExclusive: number
+    timelineStartFrame: number
+    timelineEndFrameExclusive: number
+  }>
+  sourceInternalUrls?: Array<{
+    sourceSequenceItemId: string
+    sourceInternalUrl: string
+  }>
 }
 
 export const defaultApprovedCompositionProps: ApprovedCompositionProps = {
@@ -59,6 +73,12 @@ export const ApprovedComposition: React.FC<ApprovedCompositionProps> = (props) =
     props.sourceInternalUrl && props.captionOverlayInternalUrl
   ) {
     return <ApprovedSourceCaptionComposition {...props} />
+  }
+  if (
+    props.compositionProfileId === 'approved_source_sequence_caption_final_v1' &&
+    props.sourceSegments && props.sourceInternalUrls && props.captionOverlayInternalUrl
+  ) {
+    return <ApprovedSourceSequenceCaptionComposition {...props} />
   }
   const entrance = spring({ frame, fps, config: { damping: 18, stiffness: 140, mass: 0.8 } })
   const exit = interpolate(
@@ -146,3 +166,33 @@ const ApprovedSourceCaptionComposition: React.FC<ApprovedCompositionProps> = (pr
     />
   </AbsoluteFill>
 )
+
+const ApprovedSourceSequenceCaptionComposition: React.FC<ApprovedCompositionProps> = (props) => {
+  const sourceUrlById = new Map(
+    props.sourceInternalUrls!.map((source) => [source.sourceSequenceItemId, source.sourceInternalUrl]),
+  )
+  return (
+    <AbsoluteFill style={{ backgroundColor: props.panelBackground, overflow: 'hidden' }}>
+      {props.sourceSegments!.map((segment) => (
+        <Sequence
+          key={segment.sourceSequenceItemId}
+          from={segment.timelineStartFrame}
+          durationInFrames={segment.timelineEndFrameExclusive - segment.timelineStartFrame}
+          name={`Approved source ${segment.sourceSequenceItemId}`}
+        >
+          <OffthreadVideo
+            src={sourceUrlById.get(segment.sourceSequenceItemId)!}
+            startFrom={segment.sourceStartFrame}
+            endAt={segment.sourceEndFrameExclusive}
+            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+            volume={1}
+          />
+        </Sequence>
+      ))}
+      <Img
+        src={props.captionOverlayInternalUrl!}
+        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'fill' }}
+      />
+    </AbsoluteFill>
+  )
+}

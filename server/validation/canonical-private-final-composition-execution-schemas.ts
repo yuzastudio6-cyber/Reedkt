@@ -24,6 +24,41 @@ export const canonicalPrivateFinalCompositionAuthoritySchema = z.object({
   dispatchCredential: canonicalPrivateToolDispatchCredentialSchema,
 }).strict()
 
+const finalCompositionDependencyInputsSchema = z.object({
+  sourceTrimArtifactId: identity, sourceTrimSha256: sha,
+  sourceTrimByteLength: z.number().int().positive().max(1024 * 1024),
+  sourceTrimDependencyReadEvidenceHash: sha,
+  captionArtifactId: identity, captionSha256: sha,
+  captionByteLength: z.number().int().positive().max(8 * 1024 * 1024),
+  captionDependencyReadEvidenceHash: sha,
+}).strict()
+
+const singleSourceFinalCompositionInputsSchema = finalCompositionDependencyInputsSchema.extend({
+  sourceSequenceItemId: identity, sourceMediaAssetId: identity,
+  sourceSha256: sha, sourceByteLength: z.number().int().positive().max(16 * 1024 * 1024),
+  sourceReadEvidenceHash: sha,
+  sourceCleanupDecisionId: identity,
+  sourceStartFrame: z.number().int().nonnegative(),
+  sourceEndFrameExclusive: z.number().int().positive(),
+}).strict()
+
+const sourceSequenceFinalCompositionInputsSchema = finalCompositionDependencyInputsSchema.extend({
+  sources: z.array(z.object({
+    sourceSequenceItemId: identity,
+    sourceMediaAssetId: identity,
+    sourceSha256: sha,
+    sourceByteLength: z.number().int().positive().max(16 * 1024 * 1024),
+    sourceReadEvidenceHash: sha,
+    sourceCleanupDecisionId: identity,
+    sourceStartFrame: z.number().int().nonnegative(),
+    sourceEndFrameExclusive: z.number().int().positive(),
+    timelineStartFrame: z.number().int().nonnegative(),
+    timelineEndFrameExclusive: z.number().int().positive(),
+  }).strict()).min(2).max(8),
+  combinedSourceByteLength: z.number().int().positive().max(20 * 1024 * 1024),
+  sourceSequenceReadEvidenceHash: sha,
+}).strict()
+
 export const canonicalPrivateFinalCompositionResponseSchema = z.object({
   schemaVersion: z.literal('canonical-private-final-composition-execution-response-v2'),
   source: z.literal('canonical_private_final_composition_execution_coordinator'),
@@ -35,7 +70,10 @@ export const canonicalPrivateFinalCompositionResponseSchema = z.object({
   tool: z.object({
     canonicalToolId: z.literal('remotion'),
     operationId: z.literal('tool.remotion.render_approved_composition.v1'),
-    compositionProfileId: z.literal('approved_source_caption_final_v1'),
+    compositionProfileId: z.enum([
+      'approved_source_caption_final_v1',
+      'approved_source_sequence_caption_final_v1',
+    ]),
     actualRemotionOperationCompleted: z.literal(true),
     approvedSourceObjectRead: z.literal(true),
     approvedSourceTrimDependencyRead: z.literal(true),
@@ -46,20 +84,10 @@ export const canonicalPrivateFinalCompositionResponseSchema = z.object({
     providerCallMade: z.literal(false),
     publicDeliveryExecuted: z.literal(false),
   }).strict(),
-  inputs: z.object({
-    sourceSequenceItemId: identity, sourceMediaAssetId: identity,
-    sourceSha256: sha, sourceByteLength: z.number().int().positive().max(16 * 1024 * 1024),
-    sourceReadEvidenceHash: sha,
-    sourceTrimArtifactId: identity, sourceTrimSha256: sha,
-    sourceTrimByteLength: z.number().int().positive().max(1024 * 1024),
-    sourceTrimDependencyReadEvidenceHash: sha,
-    sourceCleanupDecisionId: identity,
-    sourceStartFrame: z.number().int().nonnegative(),
-    sourceEndFrameExclusive: z.number().int().positive(),
-    captionArtifactId: identity, captionSha256: sha,
-    captionByteLength: z.number().int().positive().max(8 * 1024 * 1024),
-    captionDependencyReadEvidenceHash: sha,
-  }).strict(),
+  inputs: z.union([
+    singleSourceFinalCompositionInputsSchema,
+    sourceSequenceFinalCompositionInputsSchema,
+  ]),
   lease: z.object({
     leaseId: identity, attemptNumber: z.number().int().positive().max(10), immutableLeaseHash: sha,
     executionAttemptId: identity, runnerClass: z.literal('offline_remotion_render_execution_v1'),

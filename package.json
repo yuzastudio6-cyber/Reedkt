@@ -53,6 +53,7 @@
     "smoke:canonical-worker-lease-verification": "tsx server/smoke/canonical-worker-lease-verification-smoke.ts",
     "smoke:canonical-internal-authority-runner": "tsx server/smoke/canonical-internal-authority-runner-smoke.ts",
     "smoke:canonical-private-tool-dispatch": "tsx server/smoke/canonical-private-tool-dispatch-authority-smoke.ts",
+    "smoke:canonical-multi-source-final-composition": "tsx server/smoke/canonical-multi-source-final-composition-smoke.ts",
     "smoke:canonical-structured-svg-safety": "tsx server/smoke/canonical-structured-svg-safety-policy-smoke.ts",
     "smoke:private-artifact-qa-authority": "tsx server/smoke/private-artifact-qa-authority-smoke.ts",
     "smoke:actual-run-evidence-bridge": "tsx server/smoke/actual-run-evidence-bridge-smoke.ts",

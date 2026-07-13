@@ -192,6 +192,17 @@ test.describe('Active product redesign screenshot QA artifacts', () => {
     await page.evaluate(() => window.scrollTo(0, 0))
     await captureDocScreenshot(page, `${screenshotDir}/named-edit-private-review-1280.png`)
 
+    const revisionText = 'Make the opening calmer and create a fresh plan before continuing.'
+    await page.getByTestId('chat-composer-textarea').fill(revisionText)
+    await page.getByTestId('chat-composer-send').click()
+    const revisionResponse = page.locator('article[data-message-type="assistant_revision_response"]')
+    await expect(revisionResponse).toContainText(/fresh plan before any credits are approved/i)
+    await expect(page.getByTestId('private-review')).toHaveCount(0)
+    await expect(page.getByTestId('plan-review-card')).toHaveCount(0)
+    await expect(page.getByTestId('planning-preparation')).toBeVisible()
+    await revisionResponse.scrollIntoViewIfNeeded()
+    await captureDocScreenshot(page, `${screenshotDir}/named-edit-revision-requested-1280.png`)
+
     await gotoRoute(page, missingNamedEditPath('screenshots'))
     await expect(page.getByTestId('named-edit-route-not-found')).toBeVisible()
     await captureDocScreenshot(page, `${screenshotDir}/named-edit-recovery-error-1280.png`)

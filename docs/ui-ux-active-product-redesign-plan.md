@@ -336,7 +336,7 @@ New values belong in tokens before route CSS. Avoid one-off glow, radius, shadow
 ### 5. Whole-Product Visual Consistency — In Progress
 
 - Home, Projects, and Project Home now use the shared bounded hierarchy, surface levels, and semantic status treatment.
-- Saved and Current Edit Preferences now use the canonical seven-field system with explicit persistence/recovery truth, inherited/overridden state, responsive hierarchy, guarded drafts, and visually reviewed action states. Landing, Sign In, Create Project, shared project/edit recovery, the active named-edit upload gate, responsive conversation/preview composition, planning-input status, Edit Brief, Plan Review, progress framing, and Private Review now follow the same system. Any remaining named-edit revision states still require their route-specific visual pass.
+- Saved and Current Edit Preferences now use the canonical seven-field system with explicit persistence/recovery truth, inherited/overridden state, responsive hierarchy, guarded drafts, and visually reviewed action states. Landing, Sign In, Create Project, shared project/edit recovery, the active named-edit upload gate, responsive conversation/preview composition, planning-input status, Edit Brief, Plan Review, progress framing, Private Review, and normal revision replanning now follow the same system. Gated revised-review continuation and founder-level whole-product signoff remain separate evidence steps.
 - Preserve route-specific identity as work continues: marketing is expressive, app routes operational, editor open and conversational.
 
 ### 6. Final Active-Route Signoff — Pending Whole-Product Completion
@@ -420,7 +420,15 @@ Focused shared project/edit recovery evidence on 2026-07-13:
 - The restored state system keeps loading, local-only, not-found, unavailable, invalid-response, and access-denied semantics visible through copy, icon, border treatment, and ARIA role rather than color alone. No recovery result is reclassified and no retry or navigation contract changes.
 - Sixty-six project tenancy, Home recovery, responsive route, exact-project return, legacy redirect, and named-edit recovery checks pass together. A separate 22-check editor/clean-chat run passes the unknown-route fail-closed path, normal revision replanning, approval, and private-review flow. Computed styles prove compact three-column recovery, its single-column 700px collapse, the bounded 560px named-edit failure surface, and horizontal-overflow safety from 1024 through 1920px.
 - The active project/named-edit screenshot flow passes. `project-detail-1280.png` and `named-edit-recovery-error-1280.png` passed visual review; the editor still does not mount behind a failed recovery state.
-- This closes the shared recovery presentation pass only. It does not activate a backend, Supabase, uploads, planning, approvals, credits, providers, workers, rendering, billing, deployment, or public delivery. Remaining revision states, the complete E2E rerun, and founder-level whole-product signoff remain pending.
+- This closes the shared recovery presentation pass only. It does not activate a backend, Supabase, uploads, planning, approvals, credits, providers, workers, rendering, billing, deployment, or public delivery. Normal revision replanning is evidenced separately below; gated revised-review continuation, the complete E2E rerun, and founder-level whole-product signoff remain pending.
+
+Focused normal revision-replanning evidence on 2026-07-13:
+
+- A change sent after private review becomes a typed, context-only revision request tied to the exact source set and previous approval/review references. The previous approved snapshot remains historical context; it is not mutated or reused as the next executable plan.
+- The user request remains a compact right-aligned Chat turn. The assistant response explicitly requires a fresh plan before credits, keeps the previous private review as context only, and returns the workspace to the source-prepared planning decision with `Estimate pending`.
+- Focused editor and screenshot checks prove the `assistant_revision_response` semantics, cleared stale Plan Review and Private Review, planning-stage return, preserved project/edit identity, no horizontal overflow, and no provider/tool/internal implementation names in user-facing copy.
+- `named-edit-revision-requested-1280.png` passed visual review. The contextual Edit Brief remains optional and available; the quiet preview rail continues to show that the plan is still before approval.
+- This closes the normal user revision-replanning presentation pass only. It does not execute a revised review, mutate credits, call providers, run workers, render, export, publish, or replace the immutable approved snapshot. Those stages remain gated by their own backend/runtime evidence.
 
 ## Definition Of Done
 

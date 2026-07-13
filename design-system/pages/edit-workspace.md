@@ -23,6 +23,7 @@ Complete one edit through the smallest current decision, one plan/credit approva
 - Plan Review is one calm checkpoint: understood intent, four approval facts, story structure, treatment chips, exact estimated credits, and one primary approval action. Advanced planner internals stay out of the default hierarchy.
 - Processing communicates that the approved plan is being prepared for private review; it must not imply public rendering, release, billing, or an editable approved snapshot.
 - Private Review uses a bounded playback surface, explicit estimate context, disabled actions until their evidence exists, and direct approve/request-changes choices while sharing and release remain gated.
+- A post-approval change request returns to Chat as a context-only revision. The stale Plan Review and Private Review disappear, the previous review remains context only, and the next plan, estimate, approval, and private review must be created fresh.
 - Edit Brief is a single inline workspace; focused fields must remain fully visible above the floating composer.
 - The source-upload gate stays bounded inside the conversation canvas instead of stretching across the application shell.
 - On supported wide screens, the conversation canvas and quiet preview/status rail form a deliberate two-column workspace. The rail never competes with the current decision.
@@ -50,9 +51,11 @@ Complete one edit through the smallest current decision, one plan/credit approva
 - `docs/ui-ux-screenshots/active-product-redesign-2026-07-10/named-edit-brief-1280.png`
 - `docs/ui-ux-screenshots/active-product-redesign-2026-07-10/named-edit-plan-review-1280.png`
 - `docs/ui-ux-screenshots/active-product-redesign-2026-07-10/named-edit-private-review-1280.png`
+- `docs/ui-ux-screenshots/active-product-redesign-2026-07-10/named-edit-revision-requested-1280.png`
 - `docs/ui-ux-screenshots/active-product-redesign-2026-07-10/named-edit-recovery-error-1280.png`
 - Exact project Back navigation, workspace active state, retained project/edit identity, and non-overflowing layout pass at 1024px, 1280px, 1440px, 1728px, and 1920px.
-- The focused editor suite passes 20/20 checks, the viewport suite passes 59/59, and the clean-shell/keyboard/zoom group passes 9/9 after the named-edit and Edit Brief presentation restoration.
+- The focused editor and clean-chat suite passes 22/22 checks, the current viewport/recovery/tenancy group passes 66/66, and the clean-shell/keyboard/zoom group passes 9/9 after the named-edit, Edit Brief, and recovery presentation restoration.
 - Guarded local browser review confirms the upload gate and wide preview rail at 1280px, the single-column workspace at 1024px, and no horizontal overflow or console errors in either state.
 - Computed-style regressions prove the Plan Review checkpoint, intent accent, four/two/one-column fact hierarchy, estimate alignment, private-review playback surface, review metadata, skill trace, and preparation activity grid.
 - Named-edit loading and failure resolve before editor mount. Blocking recovery uses one bounded 560px state surface with truthful guidance, a safe retry/back action when applicable, and no exposed empty editor.
+- Normal revision evidence proves an assistant revision response, context-only previous review, cleared stale approval/review surfaces, planning-stage return, untouched credits, and the preserved exact project/edit identity.

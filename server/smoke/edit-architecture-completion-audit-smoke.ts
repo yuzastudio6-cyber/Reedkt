@@ -38,7 +38,7 @@ const requiredEvidence: RequiredEvidence[] = [
       'atomic_dispatch_consumption_authorizes_one_execution_start_only',
       'same_idempotent_coordinator_attempt_resumes_after_completed_execution_fence',
       'remotion_source_caption_private_final_mp4_canonical_lifecycle_verified',
-      'private_final_composition_consumes_exact_source_and_caption_with_h264_aac_final_qa_while_public_delivery_and_settlement_remain_false',
+      'private_final_composition_consumes_exact_source_trim_authority_and_caption_with_h264_aac_final_qa_while_public_delivery_and_settlement_remain_false',
     ],
   },
   {

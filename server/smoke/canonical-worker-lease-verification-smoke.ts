@@ -12,6 +12,7 @@ import {
 import {
   readPrivateEditAuthorityAggregate,
   sha256AuthorityValue,
+  type PrivateEditAuthorityAggregate,
 } from '../services/private-edit-authority-store'
 import type { ServiceContext } from '../types'
 import { canonicalAuthoritySmokeRoot } from './canonical-authority-smoke-root'
@@ -41,25 +42,27 @@ const context: ServiceContext = {
 clearPrivateCanonicalWorkerLeaseProcessStateForSmoke()
 
 const mainAuthority = await requireEditAuthority(workspaceId)
-const mainSnapshot = mainAuthority.snapshots.find((snapshot) =>
-  mainAuthority.executionPackages.some((executionPackage) =>
-    executionPackage.snapshotId === snapshot.snapshotId))
-assert.ok(mainSnapshot)
-const rootJob = mainAuthority.jobs.find((job) =>
-  job.snapshotId === mainSnapshot.snapshotId && job.dependencyJobIds.length === 0)
+const mainLeaseAuthorityBeforeClaim = await readPrivateCanonicalWorkerLeaseAggregate({
+  localStorageRoot,
+  ownerUserId: userId,
+  workspaceId,
+})
+const mainSelection = findClaimablePackagedRoot(mainAuthority, mainLeaseAuthorityBeforeClaim)
+assert.ok(mainSelection)
+const { snapshot: mainSnapshot, rootJob } = mainSelection
 const dependentJob = mainAuthority.jobs.find((job) =>
   job.snapshotId === mainSnapshot.snapshotId && job.dependencyJobIds.length > 0)
-assert.ok(rootJob)
 assert.ok(dependentJob)
 
 const routeAuthority = await requireEditAuthority(routeWorkspaceId)
-const routeSnapshot = routeAuthority.snapshots.find((snapshot) =>
-  routeAuthority.executionPackages.some((executionPackage) =>
-    executionPackage.snapshotId === snapshot.snapshotId))
-assert.ok(routeSnapshot)
-const routeRootJob = routeAuthority.jobs.find((job) =>
-  job.snapshotId === routeSnapshot.snapshotId && job.dependencyJobIds.length === 0)
-assert.ok(routeRootJob)
+const routeLeaseAuthorityBeforeClaim = await readPrivateCanonicalWorkerLeaseAggregate({
+  localStorageRoot,
+  ownerUserId: userId,
+  workspaceId: routeWorkspaceId,
+})
+const routeSelection = findClaimablePackagedRoot(routeAuthority, routeLeaseAuthorityBeforeClaim)
+assert.ok(routeSelection)
+const { snapshot: routeSnapshot, rootJob: routeRootJob } = routeSelection
 
 const service = createCanonicalWorkerLeaseAuthorityService(context)
 const claimInput = {
@@ -81,6 +84,9 @@ const verificationInput = {
   purpose: 'private_internal_canonical_lease_verification' as const,
 }
 const storeBeforeVerification = await requireLeaseAuthority(workspaceId)
+const storedClaimBeforeVerification = storeBeforeVerification.leases.find((lease) =>
+  lease.id === claim.lease.leaseId)
+assert.ok(storedClaimBeforeVerification)
 const verification = (await service.verifyActive(verificationInput)).workerLeaseVerification
 assert.equal(verification.verified, true)
 assert.equal(verification.lease.status, 'active')
@@ -114,10 +120,13 @@ assert.equal('leaseCredential' in verification, false)
 const { verificationHash, ...verificationWithoutHash } = verification
 assert.equal(verificationHash, sha256AuthorityValue(verificationWithoutHash))
 const storeAfterVerification = await requireLeaseAuthority(workspaceId)
+const storedClaimAfterVerification = storeAfterVerification.leases.find((lease) =>
+  lease.id === claim.lease.leaseId)
+assert.ok(storedClaimAfterVerification)
 assert.equal(storeAfterVerification.revision, storeBeforeVerification.revision)
 assert.equal(storeAfterVerification.auditEvents.length, storeBeforeVerification.auditEvents.length)
-assert.equal(storeAfterVerification.leases[0]!.heartbeatAt, storeBeforeVerification.leases[0]!.heartbeatAt)
-assert.equal(storeAfterVerification.leases[0]!.expiresAt, storeBeforeVerification.leases[0]!.expiresAt)
+assert.equal(storedClaimAfterVerification.heartbeatAt, storedClaimBeforeVerification.heartbeatAt)
+assert.equal(storedClaimAfterVerification.expiresAt, storedClaimBeforeVerification.expiresAt)
 
 await expectApiError(
   () => service.verifyActive({
@@ -225,8 +234,12 @@ try {
   await expectApiError(() => service.verifyActive(routeVerificationInput), 'WORKER_LEASE_EXPIRED')
   clearPrivateCanonicalWorkerLeaseProcessStateForSmoke()
   const expiredRouteAuthority = await requireLeaseAuthority(routeWorkspaceId)
-  assert.equal(expiredRouteAuthority.leases[0]!.status, 'expired')
-  assert.equal(expiredRouteAuthority.auditEvents.some((event) => event.eventType === 'expired'), true)
+  const expiredRouteLease = expiredRouteAuthority.leases.find((lease) =>
+    lease.id === routeClaim.lease.leaseId)
+  assert.ok(expiredRouteLease)
+  assert.equal(expiredRouteLease.status, 'expired')
+  assert.equal(expiredRouteAuthority.auditEvents.some((event) =>
+    event.leaseId === routeClaim.lease.leaseId && event.eventType === 'expired'), true)
 } finally {
   mock.timers.reset()
 }
@@ -276,6 +289,59 @@ async function requireEditAuthority(targetWorkspaceId: string) {
   })
   assert.ok(aggregate)
   return aggregate
+}
+
+function findClaimablePackagedRoot(
+  aggregate: PrivateEditAuthorityAggregate,
+  leaseAuthority: Awaited<ReturnType<typeof readPrivateCanonicalWorkerLeaseAggregate>>,
+) {
+  for (const snapshot of aggregate.snapshots) {
+    const plan = aggregate.plans.find((candidate) => candidate.id === snapshot.planId)
+    const estimate = aggregate.estimates.find((candidate) => candidate.id === snapshot.estimateId)
+    const reservation = aggregate.reservations.find((candidate) => candidate.id === snapshot.reservationId)
+    const approval = aggregate.approvals.find((candidate) => candidate.id === snapshot.approvalId)
+    const executionPackage = aggregate.executionPackages.find((candidate) =>
+      candidate.snapshotId === snapshot.snapshotId)
+    const remainingReservedCredits = reservation
+      ? reservation.reservedCredits - reservation.spentCredits - reservation.releasedCredits - reservation.refundedCredits
+      : 0
+
+    if (
+      !executionPackage ||
+      plan?.status !== 'approved' ||
+      estimate?.status !== 'approved' ||
+      !reservation ||
+      !['reserved', 'partially_spent'].includes(reservation.status) ||
+      remainingReservedCredits <= 0 ||
+      Date.parse(reservation.expiresAt) <= Date.now() ||
+      !approval ||
+      approval.snapshotId !== snapshot.snapshotId ||
+      approval.planId !== plan.id ||
+      approval.estimateId !== estimate.id ||
+      approval.reservationId !== reservation.id ||
+      reservation.snapshotId !== snapshot.snapshotId ||
+      reservation.planId !== plan.id ||
+      reservation.estimateId !== estimate.id
+    ) {
+      continue
+    }
+
+    const rootJob = aggregate.jobs.find((job) => {
+      if (
+        job.snapshotId !== snapshot.snapshotId ||
+        job.dependencyJobIds.length > 0 ||
+        job.status !== 'ready'
+      ) {
+        return false
+      }
+      const priorLeases = leaseAuthority?.leases.filter((lease) => lease.jobId === job.id) ?? []
+      return !priorLeases.some((lease) => lease.status === 'active') &&
+        priorLeases.length < job.maxAttempts
+    })
+    if (rootJob) return { snapshot, rootJob }
+  }
+
+  return undefined
 }
 
 async function requireLeaseAuthority(targetWorkspaceId: string) {

@@ -5,6 +5,7 @@ import { join } from 'node:path'
 
 import { createApprovedEditExecutionPackage } from '../edit-architecture/approved-edit-execution-package'
 import { loadRuntimeEnv } from '../config/env'
+import { ApiError } from '../errors/api-error'
 import { createSyntheticMp4Fixture } from '../media/test-media-fixture'
 import { createApprovedEditExecutionPackageService } from '../services/approved-edit-execution-package-service'
 import { listProfessionalToolAdapterNames } from '../tool-registry'
@@ -155,7 +156,18 @@ assert.ok(
 )
 assert.ok(!JSON.stringify(executionPackage).toLowerCase().includes('signed url'), 'Execution package must not use signed URLs as source truth.')
 
-const privateReviewProof = await createPrivateInternalReviewArchitectureProof(executableSnapshot)
+let legacyRuntimeBoundary: ApiError | undefined
+try {
+  await createPrivateInternalReviewArchitectureProof(executableSnapshot)
+} catch (error) {
+  if (error instanceof ApiError) legacyRuntimeBoundary = error
+}
+assert.equal(legacyRuntimeBoundary?.code, 'TOOL_NOT_READY', 'Legacy caller-authored execution packaging must fail closed.')
+assert.equal(
+  (legacyRuntimeBoundary?.details as Record<string, unknown> | undefined)?.requiredGate,
+  'canonical_edit_authority_execution_package',
+  'The fail-closed boundary must identify the canonical server-owned execution package gate.',
+)
 
 console.log(JSON.stringify({
   ok: true,
@@ -166,15 +178,12 @@ console.log(JSON.stringify({
     'approved_snapshot_created',
     'execution_graph_bound_to_snapshot',
     'asset_manifest_bound_to_snapshot',
-    'backend_execution_package_created',
+    'mock_execution_package_compiled',
     'professional_skill_trace_bound_to_execution_package',
     'professional_adapter_orchestration_ready',
     'mock_preview_handoff_ready',
-    'private_uploaded_media_processing_completed',
-    'private_final_render_completed',
-    'private_delivery_qa_passed',
-    'private_internal_download_ready',
-    'private_manifest_stream_ready',
+    'legacy_caller_authored_runtime_chain_fails_closed',
+    'canonical_execution_package_authority_required',
     'no_runtime_media_provider_or_secret_side_effects',
   ],
   sourceClipCount: rehearsal.sourceClipCount,
@@ -184,11 +193,9 @@ console.log(JSON.stringify({
   assetManifestCount: rehearsal.assetManifestCount,
   qaGateCount: rehearsal.qaGateCount,
   adapterToolCount: executionPackage.resolvedAdapterToolCount,
-  privateArtifactRefCount: executionPackage.privateArtifactRefCount,
-  privateProcessedArtifactCount: privateReviewProof.privateProcessedArtifactCount,
-  privateFinalRenderByteCount: privateReviewProof.privateFinalRenderByteCount,
-  privateManifestByteCount: privateReviewProof.privateManifestByteCount,
-  privateDownloadPath: privateReviewProof.privateDownloadPath,
+  plannedPrivateArtifactRefCount: executionPackage.privateArtifactRefCount,
+  runtimeProofScope: 'mock_plan_rehearsal_and_fail_closed_legacy_boundary',
+  requiredCanonicalGate: 'canonical_edit_authority_execution_package',
 }, null, 2))
 
 async function createPrivateInternalReviewArchitectureProof(
@@ -224,6 +231,22 @@ async function createPrivateInternalReviewArchitectureProof(
   const creditReservationId = 'mock-credit-reservation'
 
   try {
+    // The legacy service is retained only as a regression boundary. It must reject
+    // this caller-authored snapshot before fixture bytes, workers, or renders run.
+    await service.createPackage({
+      workspaceId,
+      projectId,
+      approvedPlanSnapshotId: approvedSnapshot.id,
+      approvedSnapshot: approvedSnapshot as unknown as Record<string, unknown>,
+      creditReservationId,
+      requestedAdapterToolNames: [...professionalAdapterToolNames],
+      packageReadyToolIds: [...professionalAdapterToolNames],
+      modelWeightApprovedToolIds: ['sam2', 'birefnet', 'rembg', 'transparent_background', 'real_esrgan'],
+      idempotencyKey: 'architecture-canonical-boundary',
+      requestPath: '/smoke/edit-architecture/canonical-boundary',
+    })
+    failUnexpectedLegacyRuntimeAcceptance()
+
     const sourceMediaAssets = []
     for (const [index, item] of approvedSnapshot.sourceSequence.entries()) {
       const storagePath = join(
@@ -515,4 +538,8 @@ function createCompactSnapshot(snapshotRecord: ReturnType<typeof createApprovedP
     qaPlan: snapshotRecord.qaPlan,
     toolStrategyPlan: snapshotRecord.toolStrategyPlan,
   }
+}
+
+function failUnexpectedLegacyRuntimeAcceptance(): void {
+  throw new Error('Legacy caller-authored execution packaging unexpectedly crossed the canonical authority boundary.')
 }

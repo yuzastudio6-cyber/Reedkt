@@ -167,6 +167,8 @@ Once the edit has an approved snapshot, credit reservation, active/private execu
 
 This prevents a form edit from mutating approved work in place. A meaningful post-approval change must enter the existing Chat-led revision/replanning flow and produce the appropriate new plan/version rather than rewriting the approved snapshot.
 
+The backend may prepare that Chat-led replacement plan against a locked Exact Edit Preference record only when the canonical baseline, preference revision, effective values, and already verified source/frame evidence are identical. This is read-only authority reuse: the preference record revision does not advance. Any attempt to change locked source/frame evidence or preference values fails closed; the later replacement-plan publication still requires the exact unconsumed revision-decision authority and the next immutable plan version.
+
 ## Field Ownership
 
 ### Edit Brief owns factual and deliverable context
@@ -205,7 +207,7 @@ Safety, platform, tier, frame, provider, credit, and approved-snapshot rules rem
 - Saved Edit Preferences use the existing saved-default repository/API boundary.
 - Current Edit Preferences continue to ride the exact-edit local/private UI handoff record for visible editing and reload behavior.
 - Creating or saving an internal named-edit state idempotently initializes a separate server-owned Exact Edit Preference authority for that owner/workspace/project/edit. Its immutable baseline is copied from the saved workspace defaults when present, or from the reviewed server defaults otherwise.
-- Before a canonical handoff is prepared, the browser reads that exact authority through the authenticated frontend-safe route, applies only explicit current-edit differences with optimistic revision matching and a deterministic idempotency key, and rebuilds the canonical plan components with the returned baseline snapshot ID and preference revision. Foreign identity, malformed authority, unknown fields, a locked record, or an unresolved write fails closed.
+- Before a canonical handoff is prepared, the browser reads that exact authority through the authenticated frontend-safe route, applies only explicit current-edit differences with optimistic revision matching and a deterministic idempotency key, and rebuilds the canonical plan components with the returned baseline snapshot ID and preference revision. Foreign identity, malformed authority, unknown fields, a locked-record write, or an unresolved write fails closed. A Chat-led replacement handoff may reuse a locked record only through the exact read-only evidence rule above.
 - After finalized source authority has been verified, the backend derives source-preparation and output-frame confirmation evidence from the exact canonical components and promotes that evidence into the same Exact Edit Preference authority. The browser cannot author those evidence hashes or confirmation IDs.
 - The creation baseline, effective values, override keys, preference revision, authority record revision, and planning evidence remain tenant/project/edit scoped.
 - These are local/private authenticated routes and files, not a new production database table or public production API.
@@ -236,7 +238,7 @@ Focused Playwright coverage verifies:
 
 Existing saved-preference coverage continues to verify workspace-scoped default load/save behavior and the new-edit snapshot bridge.
 
-Focused backend smokes additionally verify server-side initialization, exact frontend read/update synchronization, optimistic revision and idempotency behavior, canonical baseline/revision binding, derived source/frame evidence promotion, replay, malformed-response rejection, and tenant isolation. None of this evidence approves a plan or starts credit, tool, provider, worker, render, or delivery activity.
+Focused backend smokes additionally verify server-side initialization, exact frontend read/update synchronization, optimistic revision and idempotency behavior, canonical baseline/revision binding, derived source/frame evidence promotion, read-only locked-evidence reuse for an authorized revision flow, rejection of locked-evidence replacement, replay, malformed-response rejection, and tenant isolation. None of this evidence approves a plan or starts credit, tool, provider, worker, render, or delivery activity.
 
 ## Remaining Production And Product Work
 

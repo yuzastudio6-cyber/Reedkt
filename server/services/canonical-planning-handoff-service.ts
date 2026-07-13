@@ -485,7 +485,6 @@ async function recordVerifiedPlanningEvidence(input: {
   }
 
   if (
-    record.lifecycle.locked ||
     input.components.confirmedSettings.editLevel !== record.values.editLevel ||
     input.components.confirmedSettings.targetPlatform !== record.values.targetPlatform ||
     input.components.sourceCleanupSummary.cleanupPreference !== record.values.cleanupPreference ||
@@ -519,6 +518,18 @@ async function recordVerifiedPlanningEvidence(input: {
     && record.planning.frameConfirmation.aspectRatio === input.components.confirmedSettings.aspectRatio
     && record.planning.frameConfirmation.confirmationId === frameConfirmationId
   if (sourceEvidenceMatches && frameEvidenceMatches) return
+  if (record.lifecycle.locked) {
+    throw new ApiError(
+      'PLAN_NOT_APPROVED',
+      'Approved or active planning evidence is immutable. A Chat-led revision may reuse only the exact verified source and frame evidence.',
+      409,
+      {
+        lifecyclePhase: record.lifecycle.phase,
+        requiredFlow: 'chat_led_revision_replanning_and_new_approval',
+        requiredGate: 'locked_exact_planning_evidence_reuse_only',
+      },
+    )
+  }
 
   await exactService.recordPlanningEvidence({
     workspaceId: input.scope.workspaceId,

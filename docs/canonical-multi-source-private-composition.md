@@ -56,7 +56,7 @@ The container remains network-none, read-only, non-root, capability-dropped, mou
 
 `npm run smoke:canonical-planning-publication-client` proves the named-edit compiler produces the ordered two-source payload only when the plan is exactly representable and preserves the source order/ranges in the canonical work graph.
 
-The broader `npm run smoke:canonical-private-tool-dispatch` command is not a green completion signal in this checkout. It passes this exact sequence lifecycle, then currently fails later in the separate terminal-review replacement fixture at its exact-preference revision/lock comparison. That later fixture is outside this bounded composition milestone, and its failure is not hidden or counted as passing evidence here.
+The broader `npm run smoke:canonical-private-tool-dispatch` command is also green in this checkout. It passes this exact sequence lifecycle and continues through a Chat-led replacement plan, second approved snapshot, second five-job execution/review, and all 50 canonical private tool lifecycles. That broader result remains private/internal evidence; it does not promote product, external-beta, public-delivery, or production readiness.
 
 ## No-silent-drop boundary
 

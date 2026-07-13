@@ -3006,6 +3006,28 @@ replacementPlanBody.revisionAuthority = {
   priorApprovedPlanVersion: terminalPrivateRevisionDecision.authority.approvedPlanVersion,
   revisionIntentHash: revisionHandoff.revisionIntentHash,
 }
+const lockedPreferenceBeforeReplacementHandoff = await createExactEditPreferenceService(context)
+  .getCurrent(workspaceId, seedSnapshot.projectId, terminalReviewEditSessionId)
+assert.ok(lockedPreferenceBeforeReplacementHandoff.preferenceRecord)
+assert.equal(lockedPreferenceBeforeReplacementHandoff.preferenceRecord.lifecycle.locked, true)
+const changedLockedEvidencePlanBody = structuredClone(replacementPlanBody)
+changedLockedEvidencePlanBody.canonicalPlan.components.sourceCleanupPlan.decisions[0]!.reason =
+  'Attempt to replace already verified source evidence while the approved lifecycle is locked.'
+await expectApiError(
+  () => preparePersistedPlanningHandoff(
+    planningHandoffService,
+    changedLockedEvidencePlanBody,
+    seedSnapshot.projectId,
+    terminalReviewEditSessionId,
+  ),
+  'PLAN_NOT_APPROVED',
+)
+const lockedPreferenceAfterRejectedEvidence = await createExactEditPreferenceService(context)
+  .getCurrent(workspaceId, seedSnapshot.projectId, terminalReviewEditSessionId)
+assert.equal(
+  lockedPreferenceAfterRejectedEvidence.preferenceRecord?.recordRevision,
+  lockedPreferenceBeforeReplacementHandoff.preferenceRecord.recordRevision,
+)
 const replacementPlanningHandoff = await preparePersistedPlanningHandoff(
   planningHandoffService,
   replacementPlanBody,
@@ -3013,6 +3035,14 @@ const replacementPlanningHandoff = await preparePersistedPlanningHandoff(
   terminalReviewEditSessionId,
 )
 assert.notEqual(replacementPlanningHandoff.handoffId, terminalReviewPlanningHandoff.handoffId)
+const lockedPreferenceAfterReplacementHandoff = await createExactEditPreferenceService(context)
+  .getCurrent(workspaceId, seedSnapshot.projectId, terminalReviewEditSessionId)
+assert.equal(lockedPreferenceAfterReplacementHandoff.preferenceRecord?.lifecycle.locked, true)
+assert.equal(
+  lockedPreferenceAfterReplacementHandoff.preferenceRecord?.recordRevision,
+  lockedPreferenceBeforeReplacementHandoff.preferenceRecord.recordRevision,
+  'An exact Chat-led revision handoff must reuse locked preference evidence without mutating it.',
+)
 await expectApiError(
   () => planningHandoffService.publishFromPersistedHandoff({
     ...planningHandoffPublicationBody(
@@ -3692,6 +3722,8 @@ console.log(JSON.stringify({
     'canonical_journey_recovery_reports_revision_request_without_mutating_snapshot_or_credit_authority',
     'revision_journey_exposes_hash_bound_credential_free_private_history_descriptor',
     'revision_decision_replays_without_authority_wallet_reservation_or_execution_mutation',
+    'locked_exact_preference_evidence_change_rejected_without_mutation',
+    'locked_exact_preference_evidence_reused_read_only_for_chat_led_revision',
     'replacement_plan_publication_requires_exact_unconsumed_revision_handoff_and_compiled_intent_hash',
     'replacement_plan_uses_fresh_persisted_component_bound_handoff_authority',
     'replacement_plan_creates_version_two_and_fresh_estimate_without_mutating_prior_snapshot',

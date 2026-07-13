@@ -73,10 +73,24 @@ export const canonicalWorkerLeaseDependencyAuthoritySchema = z.object({
 })
 
 export const canonicalWorkerLeaseExecutionFenceSchema = z.object({
-  state: z.enum(['not_started', 'started', 'completed']),
+  state: z.enum(['not_started', 'started', 'failed', 'completed']),
   executionAttemptId: safeIdentitySchema.optional(),
   runnerClass: safeIdentitySchema.optional(),
   startedAt: timestampSchema.optional(),
+  failureCategory: z.enum([
+    'runtime_unavailable',
+    'execution_timeout',
+    'output_validation_failed',
+    'authority_changed',
+    'unknown_internal',
+  ]).optional(),
+  failureCode: safeIdentitySchema.optional(),
+  recoveryPolicy: z.enum([
+    'same_operation_retry_within_approved_max_attempts',
+    'fallback_or_user_review_required',
+  ]).optional(),
+  failedAt: timestampSchema.optional(),
+  failureEvidenceHash: sha256Schema.optional(),
   commitAuthorizedAt: timestampSchema.optional(),
   completedAt: timestampSchema.optional(),
 }).strict().superRefine((fence, context) => {
@@ -84,6 +98,11 @@ export const canonicalWorkerLeaseExecutionFenceSchema = z.object({
     fence.executionAttemptId === undefined &&
     fence.runnerClass === undefined &&
     fence.startedAt === undefined &&
+    fence.failureCategory === undefined &&
+    fence.failureCode === undefined &&
+    fence.recoveryPolicy === undefined &&
+    fence.failedAt === undefined &&
+    fence.failureEvidenceHash === undefined &&
     fence.commitAuthorizedAt === undefined &&
     fence.completedAt === undefined
   if (fence.state === 'not_started' && !noExecutionFields) {
@@ -91,13 +110,26 @@ export const canonicalWorkerLeaseExecutionFenceSchema = z.object({
   }
   if (fence.state === 'started' && (
     !fence.executionAttemptId || !fence.runnerClass || !fence.startedAt ||
-    fence.commitAuthorizedAt !== undefined || fence.completedAt !== undefined
+    fence.failureCategory !== undefined || fence.failureCode !== undefined ||
+    fence.recoveryPolicy !== undefined || fence.failedAt !== undefined ||
+    fence.failureEvidenceHash !== undefined || fence.commitAuthorizedAt !== undefined ||
+    fence.completedAt !== undefined
   )) {
     context.addIssue({ code: 'custom', message: 'A started lease execution fence is incomplete.' })
   }
+  if (fence.state === 'failed' && (
+    !fence.executionAttemptId || !fence.runnerClass || !fence.startedAt ||
+    !fence.failureCategory || !fence.failureCode || !fence.recoveryPolicy ||
+    !fence.failedAt || !fence.failureEvidenceHash ||
+    fence.commitAuthorizedAt !== undefined || fence.completedAt !== undefined
+  )) {
+    context.addIssue({ code: 'custom', message: 'A failed lease execution fence is incomplete.' })
+  }
   if (fence.state === 'completed' && (
     !fence.executionAttemptId || !fence.runnerClass || !fence.startedAt ||
-    !fence.commitAuthorizedAt || !fence.completedAt
+    fence.failureCategory !== undefined || fence.failureCode !== undefined ||
+    fence.recoveryPolicy !== undefined || fence.failedAt !== undefined ||
+    fence.failureEvidenceHash !== undefined || !fence.commitAuthorizedAt || !fence.completedAt
   )) {
     context.addIssue({ code: 'custom', message: 'A completed lease execution fence is incomplete.' })
   }
@@ -226,6 +258,13 @@ export const canonicalWorkerLeaseRecordSchema = z.object({
   ) {
     context.addIssue({ code: 'custom', message: 'Worker execution-fence commit exceeded the approved attempt deadline.' })
   }
+  if (
+    lease.executionFence.failedAt !== undefined &&
+    lease.executionFence.startedAt !== undefined &&
+    Date.parse(lease.executionFence.failedAt) < Date.parse(lease.executionFence.startedAt)
+  ) {
+    context.addIssue({ code: 'custom', message: 'Worker execution-fence failure predates its start.' })
+  }
 })
 
 export const canonicalWorkerLeaseIdempotencyRecordSchema = z.object({
@@ -241,7 +280,15 @@ export const canonicalWorkerLeaseIdempotencyRecordSchema = z.object({
 
 export const canonicalWorkerLeaseAuditEventSchema = z.object({
   id: safeIdentitySchema,
-  eventType: z.enum(['claimed', 'heartbeat', 'released', 'expired', 'execution_started', 'execution_completed']),
+  eventType: z.enum([
+    'claimed',
+    'heartbeat',
+    'released',
+    'expired',
+    'execution_started',
+    'execution_failed',
+    'execution_completed',
+  ]),
   leaseId: safeIdentitySchema,
   workspaceId: safeIdentitySchema,
   projectId: safeIdentitySchema,

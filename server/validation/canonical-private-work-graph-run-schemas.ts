@@ -1,4 +1,8 @@
 import { z } from 'zod'
+import {
+  canonicalPrivateJobExecutionFailureCategorySchema,
+  canonicalPrivateJobExecutionRetryDispositionSchema,
+} from './canonical-private-job-execution-adapter-schemas'
 
 const identity = z.string().trim().min(1).max(200)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/)
@@ -20,6 +24,9 @@ const jobOutcome = z.object({
     'completed_private_test',
     'blocked_by_job_capability',
     'blocked_by_dependency',
+    'failed_retry_available',
+    'failed_user_review_required',
+    'completed_recovery_required',
   ]),
   artifactId: identity.optional(),
   contentType: z.string().trim().min(1).max(160).optional(),
@@ -27,8 +34,63 @@ const jobOutcome = z.object({
   adapterReplayed: z.boolean(),
   blockerCode: identity.optional(),
   requiredGate: identity.optional(),
+  failureCategory: canonicalPrivateJobExecutionFailureCategorySchema.optional(),
+  retryDisposition: canonicalPrivateJobExecutionRetryDispositionSchema.optional(),
+  attemptNumber: z.number().int().positive().max(10).optional(),
+  approvedMaxAttempts: z.number().int().positive().max(10).optional(),
+  remainingAttempts: z.number().int().nonnegative().max(10).optional(),
+  failureRecordHash: sha256.optional(),
+  fenceFailureEvidenceHash: sha256.optional(),
   blockedDependencyJobIds: z.array(identity).max(128).default([]),
-}).strict()
+}).strict().superRefine((outcome, context) => {
+  const failureStatus = [
+    'failed_retry_available',
+    'failed_user_review_required',
+    'completed_recovery_required',
+  ].includes(outcome.status)
+  const failureFieldsPresent =
+    outcome.failureCategory !== undefined &&
+    outcome.retryDisposition !== undefined &&
+    outcome.attemptNumber !== undefined &&
+    outcome.approvedMaxAttempts !== undefined &&
+    outcome.remainingAttempts !== undefined &&
+    outcome.failureRecordHash !== undefined
+  if (failureStatus !== failureFieldsPresent) {
+    context.addIssue({ code: 'custom', message: 'Work-graph failure outcome evidence is inconsistent.' })
+  }
+  if (
+    outcome.status === 'failed_retry_available' &&
+    (outcome.retryDisposition !== 'retry_same_approved_operation' ||
+      outcome.remainingAttempts === 0)
+  ) {
+    context.addIssue({ code: 'custom', message: 'Retry-available work requires remaining approved attempts.' })
+  }
+  if (
+    outcome.status === 'completed_recovery_required' &&
+    outcome.retryDisposition !== 'manual_reconciliation_required'
+  ) {
+    context.addIssue({ code: 'custom', message: 'Committed work must require reconciliation recovery.' })
+  }
+  if (
+    outcome.status === 'failed_user_review_required' &&
+    outcome.retryDisposition !== 'fallback_or_user_review_required'
+  ) {
+    context.addIssue({ code: 'custom', message: 'User-review work must require fallback or review.' })
+  }
+  if (
+    failureStatus &&
+    outcome.remainingAttempts !==
+      Math.max(0, outcome.approvedMaxAttempts! - outcome.attemptNumber!)
+  ) {
+    context.addIssue({ code: 'custom', message: 'Work-graph failure attempt allowance is inconsistent.' })
+  }
+  if (
+    (outcome.status === 'completed_recovery_required') !==
+      (outcome.failureCategory === 'post_commit_reconciliation')
+  ) {
+    context.addIssue({ code: 'custom', message: 'Work-graph post-commit recovery evidence is inconsistent.' })
+  }
+})
 
 export const canonicalPrivateWorkGraphRunResponseSchema = z.object({
   schemaVersion: z.literal('canonical-private-work-graph-run-response-v1'),

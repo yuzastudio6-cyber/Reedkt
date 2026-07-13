@@ -177,6 +177,7 @@ export async function reconcileSnapshotLeasesForCompensation(input: {
   releasedLeaseCount: number
   expiredLeaseCount: number
   notStartedFenceCount: number
+  failedFenceCount: number
   completedFenceCount: number
   inFlightStartedFenceCount: 0
 }> {
@@ -247,6 +248,8 @@ export async function reconcileSnapshotLeasesForCompensation(input: {
           expiredLeaseCount: leases.filter((lease) => lease.status === 'expired').length,
           notStartedFenceCount: leases.filter((lease) =>
             lease.executionFence.state === 'not_started').length,
+          failedFenceCount: leases.filter((lease) =>
+            lease.executionFence.state === 'failed').length,
           completedFenceCount: leases.filter((lease) =>
             lease.executionFence.state === 'completed').length,
           inFlightStartedFenceCount: 0 as const,
@@ -317,7 +320,7 @@ function assertLeaseStateTransition(
   }
   if (current.status === 'released') {
     if (
-      previous.executionFence.state === 'started' ||
+      (previous.executionFence.state === 'started' && current.executionFence.state !== 'failed') ||
       current.releasedAt === undefined ||
       current.expiredAt !== undefined ||
       current.heartbeatAt !== previous.heartbeatAt ||
@@ -388,15 +391,61 @@ export function canonicalWorkerLeaseImmutableHash(
   })
 }
 
+export function canonicalWorkerLeaseFailureEvidenceHash(input: {
+  lease: Pick<
+    CanonicalWorkerLeaseRecord,
+    | 'id'
+    | 'workspaceId'
+    | 'projectId'
+    | 'editSessionId'
+    | 'jobId'
+    | 'approvedPlanSnapshotId'
+    | 'attemptNumber'
+    | 'immutableLeaseHash'
+  >
+  fence: {
+    executionAttemptId: string
+    runnerClass: string
+    startedAt: string
+    failureCategory: string
+    failureCode: string
+    recoveryPolicy: string
+    failedAt: string
+  }
+}): string {
+  return sha256AuthorityValue({
+    domain: 'canonical_worker_execution_failure_evidence_v1',
+    lease: {
+      id: input.lease.id,
+      workspaceId: input.lease.workspaceId,
+      projectId: input.lease.projectId,
+      editSessionId: input.lease.editSessionId,
+      jobId: input.lease.jobId,
+      approvedPlanSnapshotId: input.lease.approvedPlanSnapshotId,
+      attemptNumber: input.lease.attemptNumber,
+      immutableLeaseHash: input.lease.immutableLeaseHash,
+    },
+    fence: {
+      executionAttemptId: input.fence.executionAttemptId,
+      runnerClass: input.fence.runnerClass,
+      startedAt: input.fence.startedAt,
+      failureCategory: input.fence.failureCategory,
+      failureCode: input.fence.failureCode,
+      recoveryPolicy: input.fence.recoveryPolicy,
+      failedAt: input.fence.failedAt,
+    },
+  })
+}
+
 function assertExecutionFenceTransition(
   previous: CanonicalWorkerLeaseRecord,
   current: CanonicalWorkerLeaseRecord,
 ): void {
   const before = previous.executionFence
   const after = current.executionFence
-  if (before.state === 'completed') {
+  if (before.state === 'completed' || before.state === 'failed') {
     if (stableAuthorityStringify(before) !== stableAuthorityStringify(after)) {
-      throw invalidLeaseStore('A completed worker execution fence is immutable.')
+      throw invalidLeaseStore('A terminal worker execution fence is immutable.')
     }
     return
   }
@@ -404,6 +453,27 @@ function assertExecutionFenceTransition(
     if (after.state === 'started') {
       if (stableAuthorityStringify(before) !== stableAuthorityStringify(after)) {
         throw invalidLeaseStore('A started worker execution fence cannot change before completion.')
+      }
+      return
+    }
+    if (after.state === 'failed') {
+      const failureEvidenceHash = after.failureEvidenceHash
+      if (
+        after.executionAttemptId !== before.executionAttemptId ||
+        after.runnerClass !== before.runnerClass ||
+        after.startedAt !== before.startedAt ||
+        !after.failureCategory ||
+        !after.failureCode ||
+        !after.recoveryPolicy ||
+        !after.failedAt ||
+        !failureEvidenceHash ||
+        Date.parse(after.failedAt) < Date.parse(before.startedAt!) ||
+        failureEvidenceHash !== canonicalWorkerLeaseFailureEvidenceHash({
+          lease: current,
+          fence: failureHashFence(after),
+        })
+      ) {
+        throw invalidLeaseStore('Worker execution-fence failure transition is invalid.')
       }
       return
     }
@@ -504,6 +574,16 @@ function assertCanonicalWorkerLeaseAggregateValid(
     if (immutableLeaseHash !== canonicalWorkerLeaseImmutableHash(leaseWithoutHash)) {
       throw invalidLeaseStore('Canonical worker lease immutable hash is invalid.')
     }
+    if (lease.executionFence.state === 'failed') {
+      if (
+        lease.executionFence.failureEvidenceHash !== canonicalWorkerLeaseFailureEvidenceHash({
+          lease,
+          fence: failureHashFence(lease.executionFence),
+        })
+      ) {
+        throw invalidLeaseStore('Canonical worker lease failure-evidence hash is invalid.')
+      }
+    }
     const { authorityHash, ...dependencyAuthorityWithoutHash } = lease.dependencyAuthority
     if (authorityHash !== sha256AuthorityValue(dependencyAuthorityWithoutHash)) {
       throw invalidLeaseStore('Canonical worker lease dependency-authority hash is invalid.')
@@ -543,6 +623,40 @@ function assertCanonicalWorkerLeaseAggregateValid(
     ) {
       throw invalidLeaseStore('Canonical worker lease audit lineage is invalid.')
     }
+  }
+  for (const lease of aggregate.leases.filter((candidate) =>
+    candidate.executionFence.state === 'failed')) {
+    const failureEvents = aggregate.auditEvents.filter((event) =>
+      event.leaseId === lease.id && event.eventType === 'execution_failed')
+    if (failureEvents.length !== 1) {
+      throw invalidLeaseStore('A failed canonical worker execution requires one immutable failure audit event.')
+    }
+  }
+}
+
+function failureHashFence(
+  fence: CanonicalWorkerLeaseRecord['executionFence'],
+) {
+  if (
+    fence.state !== 'failed' ||
+    !fence.executionAttemptId ||
+    !fence.runnerClass ||
+    !fence.startedAt ||
+    !fence.failureCategory ||
+    !fence.failureCode ||
+    !fence.recoveryPolicy ||
+    !fence.failedAt
+  ) {
+    throw invalidLeaseStore('Canonical worker lease failure-evidence fields are incomplete.')
+  }
+  return {
+    executionAttemptId: fence.executionAttemptId,
+    runnerClass: fence.runnerClass,
+    startedAt: fence.startedAt,
+    failureCategory: fence.failureCategory,
+    failureCode: fence.failureCode,
+    recoveryPolicy: fence.recoveryPolicy,
+    failedAt: fence.failedAt,
   }
 }
 

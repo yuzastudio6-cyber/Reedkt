@@ -29,6 +29,8 @@ The service reloads canonical readiness and immutable approved authority, requir
 6. requires a private create-only artifact, passed QA, reconciliation, and downstream dependency eligibility;
 7. stores a credential-free, checksum-protected idempotent adapter response.
 
+Failure is also terminal and idempotent. A pre-execution block releases the lease; a runner exception after execution starts creates an immutable failed fence without commit/completion authority; and a post-commit exception requires reconciliation recovery instead of rerunning. The adapter persists one create-only failure outcome for the exact request key. A new key may claim another lease only when the same immutable work item still has an approved `maxAttempts` allowance. See `docs/canonical-failed-execution-recovery.md`.
+
 The tool-free `validate_approved_snapshot` job and dependency-bound `prepare_source_trim` plan-validation job use canonical internal runners. Source-trim validation requires exact approved source IDs, explicit cleanup decisions, meaning-preservation status, resolved user review, a passed upstream dependency, and a private JSON QA/reconciliation artifact. Tool jobs must name exactly one approved identity that is `canonical_e2e_verified` in the proven tool catalog. Multi-tool jobs fail closed. A job with one required output plus optional sibling outputs deterministically executes the sole required server-owned output; zero or multiple required outputs fail closed until a true multi-output adapter exists.
 
 ## Runner coverage
@@ -56,6 +58,8 @@ Executable adapter evidence currently proves:
 - the independent canonical coordinator lifecycle for all 50 tool identities through `npm run smoke:canonical-private-tool-dispatch`.
 
 The machine-readable proven-tool catalog records job-adapter proof separately from coordinator-only canonical E2E proof. At evidence revision `2026-07-12.28`, all 50 canonical private E2E tool identities have exact server-derived job-adapter proof. This closes the adapter-evidence gap for the currently proven canonical set; it does not promote the remaining callable candidates or establish distributed-worker, external-beta, or production readiness.
+
+Failure/retry evidence now additionally proves that a consumed DuckDB attempt can terminate as failed without `commitAuthorizedAt` or `completedAt`, exact adapter replay cannot execute the failed key again, and a fresh key executes the same approved operation as attempt two. This recovery proof does not change the 50 success identities or promote their readiness level.
 
 ## Boundaries
 

@@ -216,16 +216,24 @@ export function createCanonicalPrivateWorkGraphOrchestratorService(context: Serv
               completedJobIds.add(job.id)
             } catch (error) {
               if (!isScopedCapabilityBlocker(error)) throw error
+              const executionFailure = executionFailureMetadata(error)
               outcomes.set(job.id, {
                 jobId: job.id,
                 approvedWorkItemId: job.approvedWorkItemId,
                 workItemKey: job.workItemKey,
                 required: workItem.required,
                 dependencyJobIds: [...job.dependencyJobIds],
-                status: 'blocked_by_job_capability',
+                status: executionFailure?.retryDisposition === 'retry_same_approved_operation'
+                  ? 'failed_retry_available'
+                  : executionFailure?.retryDisposition === 'manual_reconciliation_required'
+                    ? 'completed_recovery_required'
+                    : executionFailure
+                      ? 'failed_user_review_required'
+                      : 'blocked_by_job_capability',
                 adapterReplayed: false,
                 blockerCode: error.code,
                 requiredGate: requiredGate(error),
+                ...(executionFailure ? executionFailure : {}),
                 blockedDependencyJobIds: [],
               })
             }
@@ -272,7 +280,7 @@ export function createCanonicalPrivateWorkGraphOrchestratorService(context: Serv
         const completedJobCount = orderedOutcomes.filter((job) => job.status === 'completed_private_test').length
         const replayedJobCount = orderedOutcomes.filter((job) => job.adapterReplayed).length
         const capabilityBlockedJobCount = orderedOutcomes.filter((job) =>
-          job.status === 'blocked_by_job_capability').length
+          isCapabilityOrFailureOutcome(job.status)).length
         const dependencyBlockedJobCount = orderedOutcomes.filter((job) =>
           job.status === 'blocked_by_dependency').length
         const requiredBlockedJobCount = orderedOutcomes.filter((job) =>
@@ -386,6 +394,72 @@ function isScopedCapabilityBlocker(error: unknown): error is ApiError {
     'WORKER_CLAIM_CONFLICT',
     'WORKER_LEASE_EXPIRED',
   ].includes(error.code)
+}
+
+function isCapabilityOrFailureOutcome(
+  status: CanonicalPrivateWorkGraphJobOutcome['status'],
+): boolean {
+  return [
+    'blocked_by_job_capability',
+    'failed_retry_available',
+    'failed_user_review_required',
+    'completed_recovery_required',
+  ].includes(status)
+}
+
+function executionFailureMetadata(error: ApiError): {
+  failureCategory: NonNullable<CanonicalPrivateWorkGraphJobOutcome['failureCategory']>
+  retryDisposition: NonNullable<CanonicalPrivateWorkGraphJobOutcome['retryDisposition']>
+  attemptNumber: number
+  approvedMaxAttempts: number
+  remainingAttempts: number
+  failureRecordHash: string
+  fenceFailureEvidenceHash?: string
+} | undefined {
+  if (!error.details || typeof error.details !== 'object' || Array.isArray(error.details)) return undefined
+  const raw = (error.details as Record<string, unknown>).executionFailure
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return undefined
+  const record = raw as Record<string, unknown>
+  const failureCategories = [
+    'runtime_unavailable',
+    'execution_timeout',
+    'output_validation_failed',
+    'authority_changed',
+    'unknown_internal',
+    'post_commit_reconciliation',
+  ] as const
+  const retryDispositions = [
+    'retry_same_approved_operation',
+    'fallback_or_user_review_required',
+    'manual_reconciliation_required',
+  ] as const
+  if (
+    typeof record.failureRecordHash !== 'string' || !/^[a-f0-9]{64}$/.test(record.failureRecordHash) ||
+    typeof record.category !== 'string' ||
+    !failureCategories.includes(record.category as (typeof failureCategories)[number]) ||
+    typeof record.retryDisposition !== 'string' ||
+    !retryDispositions.includes(record.retryDisposition as (typeof retryDispositions)[number]) ||
+    !Number.isInteger(record.attemptNumber) || Number(record.attemptNumber) < 1 ||
+    !Number.isInteger(record.approvedMaxAttempts) || Number(record.approvedMaxAttempts) < 1 ||
+    !Number.isInteger(record.remainingAttempts) || Number(record.remainingAttempts) < 0 ||
+    Number(record.remainingAttempts) !==
+      Math.max(0, Number(record.approvedMaxAttempts) - Number(record.attemptNumber)) ||
+    (record.fenceFailureEvidenceHash !== undefined && (
+      typeof record.fenceFailureEvidenceHash !== 'string' ||
+      !/^[a-f0-9]{64}$/.test(record.fenceFailureEvidenceHash)
+    ))
+  ) return undefined
+  return {
+    failureCategory: record.category as (typeof failureCategories)[number],
+    retryDisposition: record.retryDisposition as (typeof retryDispositions)[number],
+    attemptNumber: Number(record.attemptNumber),
+    approvedMaxAttempts: Number(record.approvedMaxAttempts),
+    remainingAttempts: Number(record.remainingAttempts),
+    failureRecordHash: record.failureRecordHash,
+    ...(record.fenceFailureEvidenceHash
+      ? { fenceFailureEvidenceHash: record.fenceFailureEvidenceHash as string }
+      : {}),
+  }
 }
 
 function requiredGate(error: ApiError): string {
@@ -531,7 +605,7 @@ function assertRequiredCompletion(
     job.status === 'completed_private_test').length
   const replayedJobCount = response.jobs.filter((job) => job.adapterReplayed).length
   const capabilityBlockedJobCount = response.jobs.filter((job) =>
-    job.status === 'blocked_by_job_capability').length
+    isCapabilityOrFailureOutcome(job.status)).length
   const dependencyBlockedJobCount = response.jobs.filter((job) =>
     job.status === 'blocked_by_dependency').length
   const requiredBlockedJobCount = response.jobs.filter((job) =>
@@ -585,7 +659,7 @@ function progressCheckpointDraft(input: {
   const completedJobCount = [...input.outcomes.values()].filter((outcome) =>
     outcome.status === 'completed_private_test').length
   const capabilityBlockedJobCount = [...input.outcomes.values()].filter((outcome) =>
-    outcome.status === 'blocked_by_job_capability').length
+    isCapabilityOrFailureOutcome(outcome.status)).length
   const dependencyBlockedJobCount = [...input.outcomes.values()].filter((outcome) =>
     outcome.status === 'blocked_by_dependency').length
   const requiredIncompleteJobCount = input.jobs.filter((job) =>

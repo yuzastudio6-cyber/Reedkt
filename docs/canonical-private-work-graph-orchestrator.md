@@ -27,6 +27,8 @@ The orchestrator reloads and revalidates the canonical execution package, derive
 
 Completed job identity is stored independently of a request key by the job adapter. A later work-graph run therefore reuses the completed artifact instead of claiming another lease or executing the tool again. A denied pre-execution dispatch releases its lease so a later run can retry with newly available runtime evidence.
 
+Canonical failure outcomes are explicit: `failed_retry_available`, `failed_user_review_required`, or `completed_recovery_required`. The current run never loops blindly. It continues unrelated dependency-ready branches, blocks only descendants of the failed job, and exposes a same-operation retry only when the immutable work item has remaining `maxAttempts`. A new authenticated run uses a new per-job key, while completed siblings replay their final adapter completion.
+
 ## Current evidence
 
 The authenticated smoke publishes and approves a fresh four-job canonical plan, creates its execution package, and proves:
@@ -41,6 +43,8 @@ The authenticated smoke publishes and approves a fresh four-job canonical plan, 
 - provider, public artifact, delivery, customer price/credit, wallet, billing, settlement, deployment, and production permissions remain false.
 
 The same smoke also publishes and approves a separate dependency-complete five-job plan and proves the orchestrator executes approved-snapshot validation, source-trim validation, libass caption generation, trim-authoritative Remotion final composition, and independent dependency-bound FFprobe final QA in exact topological order. A replay reuses all five completed jobs without a second tool execution. The resulting package is eligible for the separate canonical private-review assembly service.
+
+The grouped D3-to-ECharts fixture also proves failure isolation and bounded recovery: D3 first records an idempotent pre-execution runtime failure while unrelated work continues and ECharts remains dependency-blocked; after the runtime becomes available, a new work-graph run consumes only attempt two for D3, reuses already completed work, and then completes ECharts.
 
 ## Boundaries
 

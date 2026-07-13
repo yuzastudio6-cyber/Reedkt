@@ -27,6 +27,7 @@ export const canonicalPostDispatchCompensationResponseSchema = z.object({
   reason: z.literal('user_cancelled_after_dispatch'),
   compensationMode: z.enum([
     'consumed_before_start',
+    'failed_execution',
     'completed_execution',
     'mixed_quiescent',
   ]),
@@ -71,6 +72,7 @@ export const canonicalPostDispatchCompensationResponseSchema = z.object({
     releasedCount: z.number().int().nonnegative().max(2_000),
     expiredCount: z.number().int().nonnegative().max(2_000),
     notStartedFenceCount: z.number().int().nonnegative().max(2_000),
+    failedFenceCount: z.number().int().nonnegative().max(2_000).default(0),
     completedFenceCount: z.number().int().nonnegative().max(2_000),
     inFlightStartedFenceCount: z.literal(0),
     allLeasesTerminal: z.literal(true),
@@ -98,7 +100,8 @@ export const canonicalPostDispatchCompensationResponseSchema = z.object({
   const leaseCount = response.leases.releasedCount + response.leases.expiredCount
   if (
     leaseCount !== response.leases.recordCount ||
-    response.leases.notStartedFenceCount + response.leases.completedFenceCount !==
+    response.leases.notStartedFenceCount + response.leases.failedFenceCount +
+      response.leases.completedFenceCount !==
       response.leases.recordCount
   ) {
     context.addIssue({ code: 'custom', message: 'Compensation lease counts are inconsistent.' })
@@ -106,7 +109,10 @@ export const canonicalPostDispatchCompensationResponseSchema = z.object({
   if (response.evidence.adapterCompletionRecordCount !== response.leases.completedFenceCount) {
     context.addIssue({ code: 'custom', message: 'Compensation adapter-completion counts are inconsistent.' })
   }
-  if (response.evidence.attemptCostEvidenceRecordCount > response.evidence.adapterCompletionRecordCount) {
+  if (
+    response.evidence.attemptCostEvidenceRecordCount >
+      response.evidence.adapterCompletionRecordCount + response.leases.failedFenceCount
+  ) {
     context.addIssue({ code: 'custom', message: 'Compensation attempt-cost counts are inconsistent.' })
   }
   const dispatchCount = response.dispatches.revokedCount + response.dispatches.expiredCount +
@@ -114,7 +120,10 @@ export const canonicalPostDispatchCompensationResponseSchema = z.object({
   if (dispatchCount !== response.dispatches.recordCount) {
     context.addIssue({ code: 'custom', message: 'Compensation dispatch counts are inconsistent.' })
   }
-  if (response.toolExecutionPreviouslyStarted !== (response.leases.completedFenceCount > 0)) {
+  if (
+    response.toolExecutionPreviouslyStarted !==
+      (response.leases.completedFenceCount + response.leases.failedFenceCount > 0)
+  ) {
     context.addIssue({ code: 'custom', message: 'Compensation execution-start evidence is inconsistent.' })
   }
   if (response.toolExecutionPreviouslyCompleted !== (response.leases.completedFenceCount > 0)) {
@@ -122,19 +131,28 @@ export const canonicalPostDispatchCompensationResponseSchema = z.object({
   }
   if (
     response.compensationMode === 'consumed_before_start' &&
-    (response.dispatches.consumedCount === 0 || response.leases.completedFenceCount !== 0)
+    (response.dispatches.consumedCount === 0 || response.leases.completedFenceCount !== 0 ||
+      response.leases.failedFenceCount !== 0)
   ) {
     context.addIssue({ code: 'custom', message: 'Consumed-before-start compensation evidence is inconsistent.' })
   }
   if (
+    response.compensationMode === 'failed_execution' &&
+    (response.leases.failedFenceCount === 0 || response.leases.completedFenceCount !== 0)
+  ) {
+    context.addIssue({ code: 'custom', message: 'Failed-execution compensation evidence is inconsistent.' })
+  }
+  if (
     response.compensationMode === 'completed_execution' &&
-    (response.leases.completedFenceCount === 0 || response.dispatches.consumedCount !== 0)
+    (response.leases.completedFenceCount === 0 || response.dispatches.consumedCount !== 0 ||
+      response.leases.failedFenceCount !== 0)
   ) {
     context.addIssue({ code: 'custom', message: 'Completed-execution compensation evidence is inconsistent.' })
   }
   if (
     response.compensationMode === 'mixed_quiescent' &&
-    (response.leases.completedFenceCount === 0 || response.dispatches.consumedCount === 0)
+    (response.leases.completedFenceCount === 0 ||
+      (response.dispatches.consumedCount === 0 && response.leases.failedFenceCount === 0))
   ) {
     context.addIssue({ code: 'custom', message: 'Mixed compensation evidence is inconsistent.' })
   }

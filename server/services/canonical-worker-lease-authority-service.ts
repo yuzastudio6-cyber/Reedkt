@@ -1,5 +1,6 @@
 import { createHash, createHmac, randomUUID, timingSafeEqual } from 'node:crypto'
 import { ApiError } from '../errors/api-error'
+import type { ApiErrorCode } from '../errors/error-codes'
 import { isExplicitLocalInternalTestRuntime } from '../middleware/canonical-worker-runtime'
 import type { ServiceContext } from '../types'
 import {
@@ -47,6 +48,7 @@ import {
   MAX_CANONICAL_WORKER_LEASE_AUDIT_EVENTS,
   MAX_CANONICAL_WORKER_LEASE_IDEMPOTENCY_RECORDS,
   MAX_CANONICAL_WORKER_LEASE_RECORDS,
+  canonicalWorkerLeaseFailureEvidenceHash,
   canonicalWorkerLeaseImmutableHash,
   mutatePrivateCanonicalWorkerLeaseAggregate,
   readPrivateCanonicalWorkerLeaseAggregate,
@@ -104,6 +106,34 @@ export interface CanonicalWorkerLeaseInternalExecutionFenceResult {
     runnerClass: string
     startedAt: string
   }
+  replayed: boolean
+  testOnly: true
+}
+
+export type CanonicalWorkerLeaseInternalFailureCategory =
+  | 'runtime_unavailable'
+  | 'execution_timeout'
+  | 'output_validation_failed'
+  | 'authority_changed'
+  | 'unknown_internal'
+
+export type CanonicalWorkerLeaseInternalFailureRecoveryPolicy =
+  | 'same_operation_retry_within_approved_max_attempts'
+  | 'fallback_or_user_review_required'
+
+export interface CanonicalWorkerLeaseInternalExecutionFailureInput
+  extends CanonicalWorkerLeaseInternalExecutionInput {
+  failureCategory: CanonicalWorkerLeaseInternalFailureCategory
+  failureCode: ApiErrorCode
+  recoveryPolicy: CanonicalWorkerLeaseInternalFailureRecoveryPolicy
+}
+
+export interface CanonicalWorkerLeaseInternalExecutionFailureResult {
+  lease: CanonicalWorkerLeaseRecord
+  resolution:
+    | 'released_before_execution'
+    | 'failed_before_commit'
+    | 'completed_requires_reconciliation'
   replayed: boolean
   testOnly: true
 }
@@ -428,6 +458,12 @@ export function createCanonicalWorkerLeaseAuthorityService(context: ServiceConte
     ): Promise<CanonicalWorkerLeaseInternalExecutionFenceResult> {
       return mutateInternalExecutionFence(context, input, 'complete')
     },
+
+    async failInternalExecution(
+      input: CanonicalWorkerLeaseInternalExecutionFailureInput,
+    ): Promise<CanonicalWorkerLeaseInternalExecutionFailureResult> {
+      return mutateInternalExecutionFailure(context, input)
+    },
   }
 }
 
@@ -495,6 +531,21 @@ async function mutateInternalExecutionFence(
       const fence = lease.executionFence
 
       if (operation === 'begin') {
+        if (fence.state === 'failed') {
+          return mutationError(new ApiError(
+            'JOB_DEPENDENCY_NOT_READY',
+            'Canonical worker execution attempt is terminally failed.',
+            409,
+            {
+              requiredGate: fence.recoveryPolicy ===
+                'same_operation_retry_within_approved_max_attempts'
+                ? 'canonical_retry_same_approved_operation'
+                : 'canonical_failure_fallback_user_review_or_new_approval',
+              failureCategory: fence.failureCategory,
+              failureEvidenceHash: fence.failureEvidenceHash,
+            },
+          ), expirationChanged)
+        }
         if (fence.state !== 'not_started') {
           if (
             fence.executionAttemptId !== deterministicAttemptId ||
@@ -561,6 +612,176 @@ async function mutateInternalExecutionFence(
       testOnly: true,
     }
   })
+}
+
+async function mutateInternalExecutionFailure(
+  context: ServiceContext,
+  input: CanonicalWorkerLeaseInternalExecutionFailureInput,
+): Promise<CanonicalWorkerLeaseInternalExecutionFailureResult> {
+  assertExactInternalExecutionFailureInput(input)
+  assertSafeInternalExecutionIdentity(input.runnerClass, 'runner class')
+  assertFailureRecoveryPolicy(input.failureCategory, input.recoveryPolicy)
+  const body = parseVerification({
+    workspaceId: input.workspaceId,
+    projectId: input.projectId,
+    editSessionId: input.editSessionId,
+    jobId: input.jobId,
+    leaseId: input.leaseId,
+    leaseCredential: input.leaseCredential,
+    purpose: 'private_internal_canonical_lease_verification',
+  })
+  const secret = authorizeLeaseMutationRuntime(context)
+  const ownerUserId = getRequiredAuthUserId(context)
+  const scope = leaseStoreScope(context, ownerUserId, body.workspaceId)
+
+  return withCanonicalExecutionDomainLock({
+    ...scope,
+    projectId: body.projectId,
+    editSessionId: body.editSessionId,
+  }, async () => {
+    const timestamp = new Date().toISOString()
+    const outcome = await mutatePrivateCanonicalWorkerLeaseAggregate<LeaseMutationOutcome<{
+      lease: CanonicalWorkerLeaseRecord
+      resolution: CanonicalWorkerLeaseInternalExecutionFailureResult['resolution']
+      replayed: boolean
+    }>>({
+      scope,
+      now: timestamp,
+      mutation: (aggregate) => {
+        const expirationChanged = expireActiveLeases(aggregate, timestamp)
+        const lease = findScopedLease(aggregate, body)
+        if (!lease) return mutationError(workerLeaseUnavailable(), expirationChanged)
+        verifyLeaseCredential(secret, lease, body.leaseCredential)
+        const deterministicAttemptId = internalExecutionAttemptId(lease, input.runnerClass)
+        const fence = lease.executionFence
+
+        if (fence.state === 'failed') {
+          if (
+            fence.executionAttemptId !== deterministicAttemptId ||
+            fence.runnerClass !== input.runnerClass
+          ) {
+            return mutationError(
+              invalidLeaseAuthority('Failed worker execution belongs to another attempt.'),
+              expirationChanged,
+            )
+          }
+          return mutationSuccess({
+            lease: structuredClone(lease),
+            resolution: 'failed_before_commit',
+            replayed: true,
+          }, expirationChanged)
+        }
+
+        if (fence.state === 'completed') {
+          if (
+            fence.executionAttemptId !== deterministicAttemptId ||
+            fence.runnerClass !== input.runnerClass
+          ) {
+            return mutationError(
+              invalidLeaseAuthority('Completed worker execution belongs to another attempt.'),
+              expirationChanged,
+            )
+          }
+          return mutationSuccess({
+            lease: structuredClone(lease),
+            resolution: 'completed_requires_reconciliation',
+            replayed: true,
+          }, expirationChanged)
+        }
+
+        if (fence.state === 'not_started') {
+          if (lease.status === 'active') {
+            ensureLeaseCapacity(aggregate, { leases: 0, idempotency: 0, audit: 1 })
+            lease.status = 'released'
+            lease.releasedAt = timestamp
+            aggregate.auditEvents.push(auditEvent('released', lease, timestamp))
+            return mutationSuccess({
+              lease: structuredClone(lease),
+              resolution: 'released_before_execution',
+              replayed: false,
+            }, true)
+          }
+          return mutationSuccess({
+            lease: structuredClone(lease),
+            resolution: 'released_before_execution',
+            replayed: true,
+          }, expirationChanged)
+        }
+
+        if (
+          lease.status !== 'active' ||
+          fence.executionAttemptId !== deterministicAttemptId ||
+          fence.runnerClass !== input.runnerClass
+        ) {
+          return mutationError(workerLeaseUnavailable(), expirationChanged)
+        }
+
+        ensureLeaseCapacity(aggregate, { leases: 0, idempotency: 0, audit: 2 })
+        const failedFenceWithoutHash = {
+          state: 'failed' as const,
+          executionAttemptId: fence.executionAttemptId!,
+          runnerClass: fence.runnerClass!,
+          startedAt: fence.startedAt!,
+          failureCategory: input.failureCategory,
+          failureCode: input.failureCode,
+          recoveryPolicy: input.recoveryPolicy,
+          failedAt: timestamp,
+        }
+        lease.executionFence = {
+          ...failedFenceWithoutHash,
+          failureEvidenceHash: canonicalWorkerLeaseFailureEvidenceHash({
+            lease,
+            fence: failedFenceWithoutHash,
+          }),
+        }
+        lease.status = 'released'
+        lease.releasedAt = timestamp
+        aggregate.auditEvents.push(auditEvent('execution_failed', lease, timestamp))
+        aggregate.auditEvents.push(auditEvent('released', lease, timestamp))
+        return mutationSuccess({
+          lease: structuredClone(lease),
+          resolution: 'failed_before_commit',
+          replayed: false,
+        }, true)
+      },
+    })
+    const resolved = unwrapMutation(outcome)
+    return { ...resolved, testOnly: true }
+  })
+}
+
+function assertExactInternalExecutionFailureInput(
+  input: CanonicalWorkerLeaseInternalExecutionFailureInput,
+): void {
+  const expectedKeys = [
+    'editSessionId',
+    'failureCategory',
+    'failureCode',
+    'jobId',
+    'leaseCredential',
+    'leaseId',
+    'projectId',
+    'recoveryPolicy',
+    'runnerClass',
+    'workspaceId',
+  ].sort()
+  if (stableAuthorityStringify(Object.keys(input).sort()) !== stableAuthorityStringify(expectedKeys)) {
+    throw validationError({ internalExecutionFailure: ['Internal failure input contains unsupported fields.'] })
+  }
+}
+
+function assertFailureRecoveryPolicy(
+  category: CanonicalWorkerLeaseInternalFailureCategory,
+  policy: CanonicalWorkerLeaseInternalFailureRecoveryPolicy,
+): void {
+  if (
+    ['authority_changed', 'unknown_internal'].includes(category) &&
+    policy !== 'fallback_or_user_review_required'
+  ) {
+    throw validationError({
+      recoveryPolicy: ['Authority and unknown failures cannot authorize automatic same-operation retry.'],
+    })
+  }
 }
 
 function assertExactInternalExecutionInput(
@@ -1040,7 +1261,12 @@ function expireTargetLeaseIfNeeded(
   now: string,
 ): boolean {
   if (lease.status !== 'active' || Date.parse(lease.expiresAt) > Date.parse(now)) return false
-  ensureLeaseCapacity(aggregate, { leases: 0, idempotency: 0, audit: 1 })
+  const executionWasStarted = lease.executionFence.state === 'started'
+  ensureLeaseCapacity(aggregate, { leases: 0, idempotency: 0, audit: executionWasStarted ? 2 : 1 })
+  if (executionWasStarted) {
+    terminalizeExpiredStartedExecution(lease, now)
+    aggregate.auditEvents.push(auditEvent('execution_failed', lease, now))
+  }
   lease.status = 'expired'
   lease.expiredAt = now
   aggregate.auditEvents.push(auditEvent('expired', lease, now))
@@ -1052,13 +1278,47 @@ function expireActiveLeases(aggregate: CanonicalWorkerLeaseAggregate, now: strin
   const expired = aggregate.leases.filter((lease) =>
     lease.status === 'active' && Date.parse(lease.expiresAt) <= nowMs)
   if (expired.length === 0) return false
-  ensureLeaseCapacity(aggregate, { leases: 0, idempotency: 0, audit: expired.length })
+  const startedCount = expired.filter((lease) => lease.executionFence.state === 'started').length
+  ensureLeaseCapacity(aggregate, {
+    leases: 0,
+    idempotency: 0,
+    audit: expired.length + startedCount,
+  })
   for (const lease of expired) {
+    if (lease.executionFence.state === 'started') {
+      terminalizeExpiredStartedExecution(lease, now)
+      aggregate.auditEvents.push(auditEvent('execution_failed', lease, now))
+    }
     lease.status = 'expired'
     lease.expiredAt = now
     aggregate.auditEvents.push(auditEvent('expired', lease, now))
   }
   return true
+}
+
+function terminalizeExpiredStartedExecution(
+  lease: CanonicalWorkerLeaseRecord,
+  failedAt: string,
+): void {
+  const fence = lease.executionFence
+  if (fence.state !== 'started') return
+  const failedFenceWithoutHash = {
+    state: 'failed' as const,
+    executionAttemptId: fence.executionAttemptId!,
+    runnerClass: fence.runnerClass!,
+    startedAt: fence.startedAt!,
+    failureCategory: 'execution_timeout' as const,
+    failureCode: 'WORKER_LEASE_EXPIRED' as const,
+    recoveryPolicy: 'same_operation_retry_within_approved_max_attempts' as const,
+    failedAt,
+  }
+  lease.executionFence = {
+    ...failedFenceWithoutHash,
+    failureEvidenceHash: canonicalWorkerLeaseFailureEvidenceHash({
+      lease,
+      fence: failedFenceWithoutHash,
+    }),
+  }
 }
 
 function ensureLeaseCapacity(
@@ -1079,7 +1339,14 @@ function ensureLeaseCapacity(
 }
 
 function auditEvent(
-  eventType: 'claimed' | 'heartbeat' | 'released' | 'expired' | 'execution_started' | 'execution_completed',
+  eventType:
+    | 'claimed'
+    | 'heartbeat'
+    | 'released'
+    | 'expired'
+    | 'execution_started'
+    | 'execution_failed'
+    | 'execution_completed',
   lease: CanonicalWorkerLeaseRecord,
   createdAt: string,
 ) {

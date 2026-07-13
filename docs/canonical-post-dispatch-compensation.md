@@ -18,9 +18,12 @@ The service accepts only quiescent post-dispatch states:
 
 1. at least one immutable consumed dispatch exists while every lease fence is `not_started`;
 2. at least one lease execution fence is immutable `completed` and every such lease has its create-only canonical job-adapter completion record; or
-3. both conditions exist.
+3. both conditions exist; or
+4. one or more leases have an immutable `failed` fence, with no active `started` fence.
 
-These map to `consumed_before_start`, `completed_execution`, and `mixed_quiescent` response modes. A request with no consumed dispatch and no completed fence must use the pre-execution cancellation route.
+These map to `consumed_before_start`, `failed_execution`, `completed_execution`, and `mixed_quiescent` response modes. A request with no consumed dispatch and no failed or completed fence must use the pre-execution cancellation route.
+
+An immutable `failed` execution fence is also quiescent and maps to `failed_execution` when no completed fence exists, or `mixed_quiescent` when combined with completed evidence. It is counted separately from never-started and completed fences. Failed-fence evidence, partial artifact/QA records, and any failed attempt-level internal production-cost evidence remain preserved; no failed attempt is rewritten as completed.
 
 Any `started` execution fence fails closed with `canonical_inflight_execution_quiescence_and_compensation` before edit authority, wallet, dispatch, lease, artifact, or QA state changes. A `completed` fence without its final adapter-completion record fails behind `canonical_adapter_completion_quiescence_evidence`; this prevents compensation during the reconciliation or attempt-cost commit window. This single-host boundary does not claim distributed worker quiescence.
 

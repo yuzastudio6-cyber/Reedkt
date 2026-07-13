@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto'
 import { ApiError } from '../errors/api-error'
 import { isExplicitLocalInternalTestRuntime } from '../middleware/canonical-worker-runtime'
 import type { ServiceContext } from '../types'
+import { readPrivateInternalAttemptCostEvidence } from '../tool-cost-metering/private-internal-attempt-cost-evidence'
 import {
   compensateCanonicalApprovedSnapshotSchema,
   canonicalPostDispatchCompensationResponseSchema,
@@ -207,7 +208,10 @@ export function createCanonicalPostDispatchCompensationService(context: ServiceC
           grant.status === 'consumed').length
         const completedFenceCount = snapshotLeases.filter((lease) =>
           lease.executionFence.state === 'completed').length
-        if (consumedDispatchCount === 0 && completedFenceCount === 0) {
+        const failedLeases = snapshotLeases.filter((lease) =>
+          lease.executionFence.state === 'failed')
+        const failedFenceCount = failedLeases.length
+        if (consumedDispatchCount === 0 && completedFenceCount === 0 && failedFenceCount === 0) {
           throw new ApiError(
             'TOOL_NOT_READY',
             'Post-dispatch compensation requires consumed dispatch or completed execution evidence.',
@@ -227,6 +231,13 @@ export function createCanonicalPostDispatchCompensationService(context: ServiceC
           completedLeases: snapshotLeases.filter((lease) =>
             lease.executionFence.state === 'completed'),
         })
+        const failedAttemptCostEvidence = await readFailedAttemptCostEvidence({
+          scope,
+          snapshotId: snapshot.snapshotId,
+          projectId: snapshot.projectId,
+          editSessionId: snapshot.editSessionId,
+          failedLeases,
+        })
 
         const evidence = await readScopedArtifactQaEvidence({
           scope,
@@ -234,6 +245,7 @@ export function createCanonicalPostDispatchCompensationService(context: ServiceC
           projectId: snapshot.projectId,
           editSessionId: snapshot.editSessionId,
           adapterCompletions,
+          failedAttemptCostEvidence,
         })
 
         if (!resumingPendingCompensation) {
@@ -417,6 +429,7 @@ export function createCanonicalPostDispatchCompensationService(context: ServiceC
             const compensationMode = resolveCompensationMode({
               consumedDispatchCount: dispatchReconciliation.consumedDispatchCount,
               completedFenceCount: leaseReconciliation.completedFenceCount,
+              failedFenceCount: leaseReconciliation.failedFenceCount,
             })
             const response = canonicalPostDispatchCompensationResponseSchema.parse({
               schemaVersion: 'canonical-post-dispatch-compensation-v1',
@@ -458,6 +471,7 @@ export function createCanonicalPostDispatchCompensationService(context: ServiceC
                 releasedCount: leaseReconciliation.releasedLeaseCount,
                 expiredCount: leaseReconciliation.expiredLeaseCount,
                 notStartedFenceCount: leaseReconciliation.notStartedFenceCount,
+                failedFenceCount: leaseReconciliation.failedFenceCount,
                 completedFenceCount: leaseReconciliation.completedFenceCount,
                 inFlightStartedFenceCount: leaseReconciliation.inFlightStartedFenceCount,
                 allLeasesTerminal: true,
@@ -471,7 +485,8 @@ export function createCanonicalPostDispatchCompensationService(context: ServiceC
                 consumedRecordsPreserved: true,
                 allDispatchesTerminal: true,
               },
-              toolExecutionPreviouslyStarted: leaseReconciliation.completedFenceCount > 0,
+              toolExecutionPreviouslyStarted:
+                leaseReconciliation.completedFenceCount + leaseReconciliation.failedFenceCount > 0,
               toolExecutionPreviouslyCompleted: leaseReconciliation.completedFenceCount > 0,
               internalTestWalletMutated: true,
               customerWalletMutation: false,
@@ -499,7 +514,7 @@ export function createCanonicalPostDispatchCompensationService(context: ServiceC
       return {
         compensation: result,
         warnings: [
-          'Post-dispatch compensation finalized only after all execution fences were quiescent; consumed dispatch, completed execution, immutable snapshot/job/package, artifact/QA/reconciliation, and internal-cost evidence were preserved.',
+          'Post-dispatch compensation finalized only after all execution fences were quiescent; consumed dispatch, failed/completed execution evidence, immutable snapshot/job/package, artifact/QA/reconciliation, and internal-cost evidence were preserved.',
           'Only the fully unused synthetic private-internal reservation was released. No customer wallet, customer credits, billing, provider, render, public delivery, Supabase, or production action occurred.',
         ],
       }
@@ -569,6 +584,10 @@ async function readScopedArtifactQaEvidence(input: {
     result: { artifactId: string; qaOutcome: 'passed'; reconciliationDecision: 'test_merged_not_live_authorized' }
     evidence: { attemptCostEvidenceRecorded: boolean }
   }>
+  failedAttemptCostEvidence: Array<{
+    evidenceHash: string
+    outcome: { status: 'completed' | 'failed' }
+  }>
 }) {
   const aggregate = await readPrivateArtifactQaAggregate(input.scope)
   const artifacts = aggregate?.artifacts.filter((record) =>
@@ -621,12 +640,62 @@ async function readScopedArtifactQaEvidence(input: {
     evidenceSetHash: sha256AuthorityValue({ artifacts, qaEvaluations, reconciliations }),
     adapterCompletionRecordCount: input.adapterCompletions.length,
     adapterCompletionSetHash: sha256AuthorityValue(input.adapterCompletions),
-    attemptCostEvidenceRecordCount: input.adapterCompletions.filter((completion) =>
-      completion.evidence.attemptCostEvidenceRecorded).length,
+    attemptCostEvidenceRecordCount:
+      input.adapterCompletions.filter((completion) =>
+        completion.evidence.attemptCostEvidenceRecorded).length +
+      input.failedAttemptCostEvidence.length,
     committedArtifactQaEvidencePreserved: true as const,
     adapterCompletionEvidencePreserved: true as const,
     internalAttemptCostEvidencePreserved: true as const,
   }
+}
+
+async function readFailedAttemptCostEvidence(input: {
+  scope: { localStorageRoot: string; ownerUserId: string; workspaceId: string }
+  snapshotId: string
+  projectId: string
+  editSessionId: string
+  failedLeases: Array<{
+    jobId: string
+    executionFence: {
+      state: 'not_started' | 'started' | 'failed' | 'completed'
+      executionAttemptId?: string
+    }
+  }>
+}) {
+  const evidence = await Promise.all(input.failedLeases.map(async (lease) => {
+    const executionAttemptId = lease.executionFence.executionAttemptId
+    if (!executionAttemptId) {
+      throw new ApiError(
+        'VALIDATION_FAILED',
+        'Failed worker execution is missing its immutable attempt identity.',
+        409,
+      )
+    }
+    return readPrivateInternalAttemptCostEvidence({
+      localStorageRoot: input.scope.localStorageRoot,
+      workspaceId: input.scope.workspaceId,
+      projectId: input.projectId,
+      executionAttemptId,
+    })
+  }))
+  const present = evidence.filter((record): record is NonNullable<typeof record> => record !== undefined)
+  if (present.some((record) =>
+    record.identity.workspaceId !== input.scope.workspaceId ||
+    record.identity.projectId !== input.projectId ||
+    record.identity.editSessionId !== input.editSessionId ||
+    record.identity.approvedPlanSnapshotId !== input.snapshotId ||
+    record.outcome.status !== 'failed' ||
+    !input.failedLeases.some((lease) =>
+      lease.jobId === record.identity.jobId &&
+      lease.executionFence.executionAttemptId === record.identity.executionAttemptId))) {
+    throw new ApiError(
+      'IDEMPOTENCY_CONFLICT',
+      'Failed-attempt internal cost evidence changed scope before compensation.',
+      409,
+    )
+  }
+  return present
 }
 
 async function readCompletedAdapterEvidence(input: {
@@ -669,8 +738,13 @@ async function readCompletedAdapterEvidence(input: {
 function resolveCompensationMode(input: {
   consumedDispatchCount: number
   completedFenceCount: number
-}): 'consumed_before_start' | 'completed_execution' | 'mixed_quiescent' {
-  if (input.consumedDispatchCount > 0 && input.completedFenceCount > 0) return 'mixed_quiescent'
+  failedFenceCount: number
+}): 'consumed_before_start' | 'failed_execution' | 'completed_execution' | 'mixed_quiescent' {
+  if (
+    input.completedFenceCount > 0 &&
+    (input.consumedDispatchCount > 0 || input.failedFenceCount > 0)
+  ) return 'mixed_quiescent'
+  if (input.failedFenceCount > 0) return 'failed_execution'
   if (input.consumedDispatchCount > 0) return 'consumed_before_start'
   return 'completed_execution'
 }

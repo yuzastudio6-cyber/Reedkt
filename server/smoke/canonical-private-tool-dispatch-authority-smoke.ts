@@ -1265,7 +1265,6 @@ await leaseService.release({
   purpose: 'private_internal_canonical_lease_release',
   idempotencyKey: 'release-completed-chart-attempt-one',
 })
-await createPrivateOfflineNodeStructuredExecutionRuntime()
 const atomicCompilationAggregate = await requireEditAuthority(atomicCompilationWorkspaceId)
 const atomicCompilationPlan = atomicCompilationAggregate.plans.find((candidate) =>
   candidate.editSessionId === 'edit-session-atomic-work-item-compilation' &&
@@ -1297,13 +1296,53 @@ const atomicEchartsJob = atomicCompilationAuthority.jobs.find((job) =>
 assert.ok(atomicD3Job)
 assert.ok(atomicEchartsJob)
 assert.equal(atomicEchartsJob.dependencyJobIds.includes(atomicD3Job.id), true)
+const atomicWorkGraphService = createCanonicalPrivateWorkGraphOrchestratorService(
+  context,
+)
+const initialAtomicCompilationRun = await atomicWorkGraphService.run({
+  workspaceId: atomicCompilationWorkspaceId,
+  packageRecordId: atomicCompilationPackage.id,
+  purpose: 'run_canonical_private_work_graph',
+  idempotencyKey: 'run-atomic-work-item-compilation-graph-runtime-blocked',
+})
+assert.equal(initialAtomicCompilationRun.status, 'blocked_required_jobs')
+const initiallyFailedAtomicD3 = initialAtomicCompilationRun.jobs.find((job) =>
+  job.jobId === atomicD3Job.id)
+const initiallyBlockedAtomicEcharts = initialAtomicCompilationRun.jobs.find((job) =>
+  job.jobId === atomicEchartsJob.id)
+assert.equal(initiallyFailedAtomicD3?.status, 'failed_retry_available')
+assert.equal(initiallyFailedAtomicD3?.failureCategory, 'runtime_unavailable')
+assert.equal(initiallyFailedAtomicD3?.retryDisposition, 'retry_same_approved_operation')
+assert.equal(initiallyFailedAtomicD3?.attemptNumber, 1)
+assert.equal(initiallyFailedAtomicD3?.approvedMaxAttempts, 2)
+assert.equal(initiallyFailedAtomicD3?.remainingAttempts, 1)
+assert.match(initiallyFailedAtomicD3?.failureRecordHash ?? '', /^[a-f0-9]{64}$/)
+assert.equal(initiallyBlockedAtomicEcharts?.status, 'blocked_by_dependency')
+assert.equal(
+  initiallyBlockedAtomicEcharts?.blockedDependencyJobIds.includes(atomicD3Job.id),
+  true,
+)
+assert.ok(initialAtomicCompilationRun.summary.completedJobCount > 0)
+const initialAtomicReplay = await atomicWorkGraphService.run({
+  workspaceId: atomicCompilationWorkspaceId,
+  packageRecordId: atomicCompilationPackage.id,
+  purpose: 'run_canonical_private_work_graph',
+  idempotencyKey: 'run-atomic-work-item-compilation-graph-runtime-blocked',
+})
+assert.equal(initialAtomicReplay.evidence.idempotentRunReplay, true)
+assert.deepEqual(
+  initialAtomicReplay.jobs.find((job) => job.jobId === atomicD3Job.id),
+  initiallyFailedAtomicD3,
+)
+
+await createPrivateOfflineNodeStructuredExecutionRuntime()
 const atomicCompilationRun = await createCanonicalPrivateWorkGraphOrchestratorService(
   context,
 ).run({
   workspaceId: atomicCompilationWorkspaceId,
   packageRecordId: atomicCompilationPackage.id,
   purpose: 'run_canonical_private_work_graph',
-  idempotencyKey: 'run-atomic-work-item-compilation-graph',
+  idempotencyKey: 'run-atomic-work-item-compilation-graph-retry-two',
 })
 assert.equal(atomicCompilationRun.status, 'blocked_required_jobs')
 assert.equal(atomicCompilationRun.summary.totalJobCount, 7)
@@ -1466,13 +1505,115 @@ await leaseService.release({
   idempotencyKey: 'release-chart-proof-verification-lease',
 })
 await createPrivateOfflinePythonStructuredExecutionRuntime()
+const failedDataAdapterInput = {
+  workspaceId,
+  projectId: snapshot.projectId,
+  editSessionId: snapshot.editSessionId,
+  jobId: dataJob.id,
+  purpose: 'execute_canonical_private_job' as const,
+  idempotencyKey: 'canonical-job-adapter-duckdb-failed-attempt-one',
+}
+const failedDataStageKey = (stage: string) =>
+  `job-adapter:${stage}:${sha256Text(
+    `${failedDataAdapterInput.idempotencyKey}\u0000${dataJob.id}`,
+  ).slice(0, 48)}`
+const failedDataClaim = (await leaseService.claim({
+  workspaceId,
+  projectId: snapshot.projectId,
+  editSessionId: snapshot.editSessionId,
+  jobId: dataJob.id,
+  purpose: 'private_internal_canonical_lease_claim',
+  idempotencyKey: failedDataStageKey('claim'),
+})).workerLeaseClaim
+const failedDataLeaseAuthority = {
+  leaseId: failedDataClaim.lease.leaseId,
+  leaseCredential: failedDataClaim.leaseCredential,
+}
+const failedDataGrant = (await dispatchService.authorize({
+  workspaceId,
+  projectId: snapshot.projectId,
+  editSessionId: snapshot.editSessionId,
+  jobId: dataJob.id,
+  approvedWorkItemId: dataWorkItem.id,
+  expectedAssetId: dataAsset.id,
+  requestedToolName: 'duckdb',
+  operationId: duckdbOperationId,
+  purpose: 'private_internal_canonical_tool_dispatch_authorization',
+  idempotencyKey: failedDataStageKey('authorize'),
+}, failedDataLeaseAuthority)).toolDispatchGrant
+assert.equal(failedDataGrant.grant.status, 'authorized')
+assert.ok(failedDataGrant.dispatchCredential)
+await dispatchService.consume({
+  workspaceId,
+  projectId: snapshot.projectId,
+  editSessionId: snapshot.editSessionId,
+  jobId: dataJob.id,
+  grantId: failedDataGrant.grant.grantId,
+  purpose: 'private_internal_canonical_tool_dispatch_consume',
+  idempotencyKey: failedDataStageKey('consume'),
+}, {
+  ...failedDataLeaseAuthority,
+  dispatchCredential: failedDataGrant.dispatchCredential,
+})
+const begunFailedDataExecution = await leaseService.beginInternalExecution({
+  workspaceId,
+  projectId: snapshot.projectId,
+  editSessionId: snapshot.editSessionId,
+  jobId: dataJob.id,
+  leaseId: failedDataClaim.lease.leaseId,
+  leaseCredential: failedDataClaim.leaseCredential,
+  runnerClass: 'offline_python_structured_execution_v1',
+})
+const failedDataExecution = await leaseService.failInternalExecution({
+  workspaceId,
+  projectId: snapshot.projectId,
+  editSessionId: snapshot.editSessionId,
+  jobId: dataJob.id,
+  leaseId: failedDataClaim.lease.leaseId,
+  leaseCredential: failedDataClaim.leaseCredential,
+  runnerClass: 'offline_python_structured_execution_v1',
+  failureCategory: 'runtime_unavailable',
+  failureCode: 'TOOL_NOT_READY',
+  recoveryPolicy: 'same_operation_retry_within_approved_max_attempts',
+})
+assert.equal(failedDataExecution.resolution, 'failed_before_commit')
+assert.equal(failedDataExecution.replayed, false)
+assert.equal(failedDataExecution.lease.status, 'released')
+assert.equal(failedDataExecution.lease.executionFence.state, 'failed')
+assert.equal(
+  failedDataExecution.lease.executionFence.executionAttemptId,
+  begunFailedDataExecution.executionFence.executionAttemptId,
+)
+assert.equal(failedDataExecution.lease.executionFence.commitAuthorizedAt, undefined)
+assert.equal(failedDataExecution.lease.executionFence.completedAt, undefined)
+assert.match(
+  failedDataExecution.lease.executionFence.failureEvidenceHash ?? '',
+  /^[a-f0-9]{64}$/,
+)
+const failedDataReplay = await expectApiErrorResult(
+  () => jobExecutionAdapter.execute(failedDataAdapterInput),
+  'JOB_DEPENDENCY_NOT_READY',
+)
+const failedDataReplayDetails = asRecord(failedDataReplay.details)
+const failedDataReplayEvidence = asRecord(failedDataReplayDetails.executionFailure)
+assert.equal(failedDataReplayDetails.requiredGate, 'canonical_retry_same_approved_operation')
+assert.equal(failedDataReplayEvidence.executionState, 'failed_before_commit')
+assert.equal(failedDataReplayEvidence.retryDisposition, 'retry_same_approved_operation')
+assert.equal(failedDataReplayEvidence.attemptNumber, 1)
+assert.equal(failedDataReplayEvidence.approvedMaxAttempts, 2)
+assert.equal(failedDataReplayEvidence.remainingAttempts, 1)
+const exactFailedDataReplay = await expectApiErrorResult(
+  () => jobExecutionAdapter.execute(failedDataAdapterInput),
+  'JOB_DEPENDENCY_NOT_READY',
+)
+assert.deepEqual(exactFailedDataReplay.details, failedDataReplay.details)
 const dataAdapterInput = {
   workspaceId,
   projectId: snapshot.projectId,
   editSessionId: snapshot.editSessionId,
   jobId: dataJob.id,
   purpose: 'execute_canonical_private_job' as const,
-  idempotencyKey: 'canonical-job-adapter-duckdb-root',
+  idempotencyKey: 'canonical-job-adapter-duckdb-retry-two',
 }
 const coordinatedData = await jobExecutionAdapter.execute(dataAdapterInput)
 assert.equal(coordinatedData.identity.canonicalToolId, 'duckdb')
@@ -3107,7 +3248,7 @@ clearPrivateCanonicalToolDispatchProcessStateForSmoke()
 await expectApiError(() => requireDispatchAggregate(), 'VALIDATION_FAILED')
 await writeFile(persistedPath, originalDispatchStoreText)
 clearPrivateCanonicalToolDispatchProcessStateForSmoke()
-assert.equal((await requireDispatchAggregate()).grants.length, 61)
+assert.equal((await requireDispatchAggregate()).grants.length, 62)
 
 await expectApiError(
   () => createCanonicalPrivateToolDispatchAuthorityService({
@@ -3150,6 +3291,12 @@ console.log(JSON.stringify({
     'server_injected_consume_boundary_denies_non_product_ready_grants_without_transition',
     'verified_private_runtime_authorizes_one_use_dispatch_without_product_promotion',
     'atomic_dispatch_consumption_authorizes_one_execution_start_only',
+    'pre_execution_runtime_failure_is_idempotent_and_retry_bounded_in_work_graph',
+    'failed_job_isolated_while_independent_graph_branches_continue',
+    'new_work_graph_run_retries_only_within_approved_max_attempts',
+    'started_runner_failure_terminalizes_without_completion_or_commit_authority',
+    'failed_attempt_exact_adapter_replay_prevents_same_key_reexecution',
+    'new_adapter_key_executes_same_approved_operation_as_attempt_two',
     'coordinator_consumes_dispatch_and_runs_actual_confined_d3_operation_under_lease_fence',
     'actual_svg_artifact_qa_and_reconciliation_authority_committed',
     'same_idempotent_coordinator_attempt_resumes_after_completed_execution_fence',
@@ -5149,6 +5296,21 @@ async function expectApiError(action: () => Promise<unknown>, code: string): Pro
     assert.ok(error instanceof ApiError)
     assert.equal(error.code, code)
   }
+}
+
+async function expectApiErrorResult(
+  action: () => Promise<unknown>,
+  code: string,
+): Promise<ApiError> {
+  try {
+    await action()
+    assert.fail(`Expected ${code}.`)
+  } catch (error) {
+    assert.ok(error instanceof ApiError)
+    assert.equal(error.code, code)
+    return error
+  }
+  throw new Error(`Expected ${code}.`)
 }
 
 function sha256Text(value: string): string {

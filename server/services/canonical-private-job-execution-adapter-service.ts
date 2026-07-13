@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto'
 
-import { ApiError } from '../errors/api-error'
+import { ApiError, normalizeUnknownError } from '../errors/api-error'
+import { API_ERROR_CODES, type ApiErrorCode } from '../errors/error-codes'
 import {
   readPrivateFileIfExistsWithinRoot,
   writePrivateFileCreateOnlyWithinRoot,
@@ -13,10 +14,15 @@ import {
 import type { ServiceContext } from '../types'
 import {
   canonicalPrivateJobExecutionAdapterResponseSchema,
+  canonicalPrivateJobExecutionAdapterFailureSchema,
   executeCanonicalPrivateJobAdapterSchema,
+  type CanonicalPrivateJobExecutionAdapterFailure,
   type CanonicalPrivateJobExecutionAdapterResponse,
+  type CanonicalPrivateJobExecutionFailureCategory,
+  type CanonicalPrivateJobExecutionRetryDisposition,
   type ExecuteCanonicalPrivateJobAdapterBody,
 } from '../validation/canonical-private-job-execution-adapter-schemas'
+import type { CanonicalExecutionReadinessEnvelope } from '../validation/canonical-execution-readiness-schemas'
 import { createCanonicalInternalAuthorityRunnerService } from './canonical-internal-authority-runner-service'
 import { createCanonicalPrivateAiCapabilityExecutionService } from './canonical-private-ai-capability-execution-service'
 import { createCanonicalPrivateAudioFluxAnalysisExecutionService } from './canonical-private-audioflux-analysis-execution-service'
@@ -36,7 +42,12 @@ import { createCanonicalPrivateStructuredToolExecutionService } from './canonica
 import { createCanonicalPrivateToolDispatchAuthorityService } from './canonical-private-tool-dispatch-authority-service'
 import { createCanonicalPrivateVapourSynthFramePipelineExecutionService } from './canonical-private-vapoursynth-frame-pipeline-execution-service'
 import { createCanonicalExecutionReadinessService } from './canonical-execution-readiness-service'
-import { createCanonicalWorkerLeaseAuthorityService } from './canonical-worker-lease-authority-service'
+import {
+  createCanonicalWorkerLeaseAuthorityService,
+  type CanonicalWorkerLeaseInternalExecutionFailureResult,
+  type CanonicalWorkerLeaseInternalFailureCategory,
+  type CanonicalWorkerLeaseInternalFailureRecoveryPolicy,
+} from './canonical-worker-lease-authority-service'
 import { createEditPlanningAuthorityService } from './edit-planning-authority-service'
 import { getRequiredAuthUserId } from './service-helpers'
 import { sha256AuthorityValue, stableAuthorityStringify } from './private-edit-authority-store'
@@ -59,6 +70,12 @@ interface PersistedAdapterCompletion {
   schemaVersion: 'canonical-private-job-execution-adapter-completion-v1'
   requestHash: string
   response: CanonicalPrivateJobExecutionAdapterResponse
+}
+
+interface PersistedAdapterFailure {
+  schemaVersion: 'canonical-private-job-execution-adapter-failure-idempotency-v1'
+  requestHash: string
+  failure: CanonicalPrivateJobExecutionAdapterFailure
 }
 
 export async function readCanonicalPrivateJobAdapterCompletion(input: {
@@ -97,6 +114,27 @@ type CoordinatorResponse = Record<string, unknown> & {
   attemptCost?: Record<string, unknown>
 }
 
+interface AdapterExecutionFailureResolution {
+  lease: {
+    attemptNumber: number
+    executionFence: {
+      state: 'not_started' | 'started' | 'failed' | 'completed'
+      executionAttemptId?: string
+      failureCategory?: string
+      failureCode?: string
+      recoveryPolicy?: string
+      failedAt?: string
+      failureEvidenceHash?: string
+      completedAt?: string
+    }
+  }
+  resolution:
+    | 'released_before_execution'
+    | 'failed_before_commit'
+    | 'completed_requires_reconciliation'
+  replayed: boolean
+}
+
 /**
  * Bridges one immutable canonical job to its exact private/internal runner.
  *
@@ -131,10 +169,22 @@ export function createCanonicalPrivateJobExecutionAdapterService(context: Servic
         purpose: body.purpose,
       })
       const responseRelativePath = adapterResponseRelativePath(actorUserId, body.workspaceId, idempotencyKey)
+      const failureRelativePath = adapterFailureRelativePath(responseRelativePath)
       const completionRelativePath = adapterCompletionRelativePath(actorUserId, body, jobId)
       return withAdapterExecutionLock(responseRelativePath, async () => {
-        const replay = await readPersistedResponse(context, responseRelativePath, requestHash)
+        const [replay, failureReplay] = await Promise.all([
+          readPersistedResponse(context, responseRelativePath, requestHash),
+          readPersistedFailure(context, failureRelativePath, requestHash),
+        ])
+        if (replay && failureReplay) {
+          throw new ApiError(
+            'VALIDATION_FAILED',
+            'Canonical job adapter has conflicting terminal idempotency outcomes.',
+            409,
+          )
+        }
         if (replay) return markReplay(replay)
+        if (failureReplay) throw adapterFailureError(failureReplay)
         return withAdapterExecutionLock(completionRelativePath, async () => {
           const completion = await readPersistedCompletion(context, completionRelativePath, requestHash)
           if (completion) {
@@ -194,6 +244,21 @@ export function createCanonicalPrivateJobExecutionAdapterService(context: Servic
           )
         }
       }
+      const canonicalToolId = internalServerJob ? null : resolvedProvenTool!.canonicalToolId
+      const operationId = internalServerJob
+        ? internalSourceTrimJob
+          ? 'internal.validate_approved_source_trim_plan.v1'
+          : 'internal.validate_snapshot_manifest.v1'
+        : resolvedProvenTool!.operationId
+      const runnerClass = internalServerJob
+        ? internalSourceTrimJob
+          ? 'canonical_source_trim_validation_runner_v1'
+          : 'canonical_authority_validation_runner_v1'
+        : resolvedProvenTool!.runtime.runnerClass!
+      const finalCompositionExecution = !internalServerJob &&
+        resolvedProvenTool!.canonicalToolId === 'remotion' &&
+        workItem.workItemType === 'render_final_export' &&
+        expectedAsset.assetRole === 'final'
       const stageKey = (stage: string) => `job-adapter:${stage}:${sha256(`${idempotencyKey}\u0000${jobId}`).slice(0, 48)}`
       const leaseService = createCanonicalWorkerLeaseAuthorityService(context)
       const claim = (await leaseService.claim({
@@ -209,20 +274,65 @@ export function createCanonicalPrivateJobExecutionAdapterService(context: Servic
         leaseCredential: claim.leaseCredential,
       }
 
+      if (claim.lease.executionFence.state === 'failed') {
+        const failure = buildAdapterFailure({
+          body,
+          readiness,
+          workItemId: workItem.id,
+          expectedAssetId: expectedAsset.id,
+          canonicalToolId,
+          operationId,
+          runnerClass,
+          originalError: new ApiError(
+            apiErrorCode(claim.lease.executionFence.failureCode),
+            'Canonical worker execution attempt previously failed.',
+            409,
+          ),
+          resolution: {
+            lease: {
+              attemptNumber: claim.lease.attemptNumber,
+              executionFence: claim.lease.executionFence,
+            },
+            resolution: 'failed_before_commit',
+            replayed: true,
+          },
+        })
+        await persistAdapterFailure(context, failureRelativePath, requestHash, failure)
+        throw adapterFailureError(failure)
+      }
+
+      if (claim.lease.executionFence.state === 'completed') {
+        const failure = buildAdapterFailure({
+          body,
+          readiness,
+          workItemId: workItem.id,
+          expectedAssetId: expectedAsset.id,
+          canonicalToolId,
+          operationId,
+          runnerClass,
+          originalError: new ApiError(
+            'JOB_DEPENDENCY_NOT_READY',
+            'Canonical execution completed without final adapter reconciliation.',
+            409,
+          ),
+          resolution: {
+            lease: {
+              attemptNumber: claim.lease.attemptNumber,
+              executionFence: claim.lease.executionFence,
+            },
+            resolution: 'completed_requires_reconciliation',
+            replayed: true,
+          },
+        })
+        await persistAdapterFailure(context, failureRelativePath, requestHash, failure)
+        throw adapterFailureError(failure)
+      }
+
+      try {
       let rawResponse: CoordinatorResponse
-      let canonicalToolId: string | null = null
-      let operationId: string
-      let runnerClass: string
       let singleUseDispatchConsumed = false
-      let finalCompositionExecution = false
 
       if (internalServerJob) {
-        operationId = internalSourceTrimJob
-          ? 'internal.validate_approved_source_trim_plan.v1'
-          : 'internal.validate_snapshot_manifest.v1'
-        runnerClass = internalSourceTrimJob
-          ? 'canonical_source_trim_validation_runner_v1'
-          : 'canonical_authority_validation_runner_v1'
         rawResponse = asCoordinatorResponse(await createCanonicalInternalAuthorityRunnerService(context).execute({
           workspaceId: body.workspaceId,
           projectId: body.projectId,
@@ -239,13 +349,6 @@ export function createCanonicalPrivateJobExecutionAdapterService(context: Servic
         if (!provenRunnerClass) {
           throw new ApiError('TOOL_NOT_READY', 'Approved canonical tool runner identity is unavailable.', 409)
         }
-        canonicalToolId = provenTool.canonicalToolId
-        operationId = provenTool.operationId
-        runnerClass = provenRunnerClass
-        finalCompositionExecution =
-          provenTool.canonicalToolId === 'remotion' &&
-          workItem.workItemType === 'render_final_export' &&
-          expectedAsset.assetRole === 'final'
         const grant = (await createCanonicalPrivateToolDispatchAuthorityService(context).authorize({
           workspaceId: body.workspaceId,
           projectId: body.projectId,
@@ -328,7 +431,50 @@ export function createCanonicalPrivateJobExecutionAdapterService(context: Servic
         relativePath: responseRelativePath,
         content: Buffer.from(`${stableAuthorityStringify(persisted)}\n`, 'utf8'),
       })
-        return normalized
+      return normalized
+      } catch (error) {
+        const originalError = normalizeUnknownError(error)
+        const failurePolicy = classifyAdapterExecutionFailure(originalError)
+        let resolution: CanonicalWorkerLeaseInternalExecutionFailureResult
+        try {
+          resolution = await leaseService.failInternalExecution({
+            workspaceId: body.workspaceId,
+            projectId: body.projectId,
+            editSessionId: body.editSessionId,
+            jobId,
+            leaseId: claim.lease.leaseId,
+            leaseCredential: claim.leaseCredential,
+            runnerClass,
+            failureCategory: failurePolicy.category,
+            failureCode: originalError.code,
+            recoveryPolicy: failurePolicy.recoveryPolicy,
+          })
+        } catch (terminalizationError) {
+          throw new ApiError(
+            'INTERNAL_ERROR',
+            'Canonical job failure could not be terminalized safely.',
+            500,
+            {
+              requiredGate: 'canonical_failed_execution_terminalization_recovery',
+              originalCode: originalError.code,
+            },
+            { cause: terminalizationError, internal: true },
+          )
+        }
+        const failure = buildAdapterFailure({
+          body,
+          readiness,
+          workItemId: workItem.id,
+          expectedAssetId: expectedAsset.id,
+          canonicalToolId,
+          operationId,
+          runnerClass,
+          originalError,
+          resolution,
+        })
+        await persistAdapterFailure(context, failureRelativePath, requestHash, failure)
+        throw adapterFailureError(failure, originalError)
+      }
         })
       })
     },
@@ -546,6 +692,217 @@ function normalizeResponse(input: {
   })
 }
 
+function buildAdapterFailure(input: {
+  body: ExecuteCanonicalPrivateJobAdapterBody
+  readiness: CanonicalExecutionReadinessEnvelope
+  workItemId: string
+  expectedAssetId: string
+  canonicalToolId: string | null
+  operationId: string
+  runnerClass: string
+  originalError: ApiError
+  resolution: AdapterExecutionFailureResolution
+}): CanonicalPrivateJobExecutionAdapterFailure {
+  const fence = input.resolution.lease.executionFence
+  const remainingAttempts = Math.max(
+    0,
+    input.readiness.job.maxAttempts - input.resolution.lease.attemptNumber,
+  )
+  const completedRequiresReconciliation =
+    input.resolution.resolution === 'completed_requires_reconciliation'
+  const category = completedRequiresReconciliation
+    ? 'post_commit_reconciliation' as const
+    : failureCategoryFromFence(fence.failureCategory) ??
+      classifyAdapterExecutionFailure(input.originalError).category
+  const recoveryPolicy = fence.recoveryPolicy ??
+    classifyAdapterExecutionFailure(input.originalError).recoveryPolicy
+  const retryDisposition: CanonicalPrivateJobExecutionRetryDisposition =
+    completedRequiresReconciliation
+      ? 'manual_reconciliation_required'
+      : remainingAttempts > 0 &&
+          recoveryPolicy === 'same_operation_retry_within_approved_max_attempts'
+        ? 'retry_same_approved_operation'
+        : 'fallback_or_user_review_required'
+  const requiredGate = retryDisposition === 'retry_same_approved_operation'
+    ? 'canonical_retry_same_approved_operation'
+    : retryDisposition === 'manual_reconciliation_required'
+      ? 'canonical_completed_execution_reconciliation_recovery'
+      : 'canonical_failure_fallback_user_review_or_new_approval'
+  const originalCode = fence.state === 'failed'
+    ? apiErrorCode(fence.failureCode)
+    : input.originalError.code
+  const failedAt = fence.state === 'failed' && fence.failedAt
+    ? fence.failedAt
+    : fence.state === 'completed' && fence.completedAt
+      ? fence.completedAt
+      : new Date().toISOString()
+  const recordWithoutHash = {
+    schemaVersion: 'canonical-private-job-execution-adapter-failure-v1' as const,
+    source: 'canonical_private_job_execution_adapter' as const,
+    purpose: input.body.purpose,
+    identity: {
+      workspaceId: input.body.workspaceId,
+      projectId: input.body.projectId,
+      editSessionId: input.body.editSessionId,
+      approvedPlanSnapshotId: input.readiness.job.approvedPlanSnapshotId,
+      jobId: input.readiness.identity.jobId,
+      approvedWorkItemId: input.workItemId,
+      expectedAssetId: input.expectedAssetId,
+      canonicalToolId: input.canonicalToolId,
+      operationId: input.operationId,
+      runnerClass: input.runnerClass,
+    },
+    failure: {
+      category,
+      originalCode,
+      executionState: input.resolution.resolution,
+      retryDisposition,
+      attemptNumber: input.resolution.lease.attemptNumber,
+      approvedMaxAttempts: input.readiness.job.maxAttempts,
+      remainingAttempts,
+      ...(fence.executionAttemptId ? { executionAttemptId: fence.executionAttemptId } : {}),
+      ...(fence.state === 'failed' && fence.failureEvidenceHash
+        ? { fenceFailureEvidenceHash: fence.failureEvidenceHash }
+        : {}),
+      requiredGate,
+    },
+    permissions: deniedPermissions(),
+    failedAt,
+    testOnly: true as const,
+  }
+  return canonicalPrivateJobExecutionAdapterFailureSchema.parse({
+    ...recordWithoutHash,
+    failureRecordHash: sha256AuthorityValue(recordWithoutHash),
+  })
+}
+
+function classifyAdapterExecutionFailure(error: ApiError): {
+  category: CanonicalWorkerLeaseInternalFailureCategory
+  recoveryPolicy: CanonicalWorkerLeaseInternalFailureRecoveryPolicy
+} {
+  if (error.code === 'WORKER_LEASE_EXPIRED' || error.status === 408) {
+    return {
+      category: 'execution_timeout',
+      recoveryPolicy: 'same_operation_retry_within_approved_max_attempts',
+    }
+  }
+  if ([
+    'JOB_DEPENDENCY_NOT_READY',
+    'FFMPEG_RENDER_FAILED',
+    'FFPROBE_FAILED',
+    'PREVIEW_QA_FAILED',
+    'FINAL_EXPORT_QA_FAILED',
+    'QA_BLOCKED_PREVIEW',
+  ].includes(error.code)) {
+    return {
+      category: 'output_validation_failed',
+      recoveryPolicy: 'same_operation_retry_within_approved_max_attempts',
+    }
+  }
+  if ([
+    'TOOL_NOT_READY',
+    'RENDER_TOOL_UNAVAILABLE',
+    'WORKER_CLAIM_CONFLICT',
+    'LOCAL_STORAGE_REQUIRED',
+  ].includes(error.code)) {
+    return {
+      category: 'runtime_unavailable',
+      recoveryPolicy: 'same_operation_retry_within_approved_max_attempts',
+    }
+  }
+  if ([
+    'VALIDATION_FAILED',
+    'IDEMPOTENCY_CONFLICT',
+    'UPLOAD_NOT_FINALIZED',
+    'UPLOAD_SOURCE_MISMATCH',
+    'SOURCE_MEDIA_NOT_READY',
+    'APPROVED_SNAPSHOT_REQUIRED',
+    'PLAN_NOT_APPROVED',
+    'CREDIT_ESTIMATE_NOT_APPROVED',
+    'CREDITS_NOT_RESERVED',
+    'WORKSPACE_ACCESS_DENIED',
+  ].includes(error.code)) {
+    return {
+      category: 'authority_changed',
+      recoveryPolicy: 'fallback_or_user_review_required',
+    }
+  }
+  return {
+    category: 'unknown_internal',
+    recoveryPolicy: 'fallback_or_user_review_required',
+  }
+}
+
+function failureCategoryFromFence(
+  value: string | undefined,
+): CanonicalPrivateJobExecutionFailureCategory | undefined {
+  if (!value) return undefined
+  const values: CanonicalPrivateJobExecutionFailureCategory[] = [
+    'runtime_unavailable',
+    'execution_timeout',
+    'output_validation_failed',
+    'authority_changed',
+    'unknown_internal',
+    'post_commit_reconciliation',
+  ]
+  return values.includes(value as CanonicalPrivateJobExecutionFailureCategory)
+    ? value as CanonicalPrivateJobExecutionFailureCategory
+    : undefined
+}
+
+function adapterFailureError(
+  failure: CanonicalPrivateJobExecutionAdapterFailure,
+  cause?: ApiError,
+): ApiError {
+  return new ApiError(
+    'JOB_DEPENDENCY_NOT_READY',
+    failure.failure.retryDisposition === 'retry_same_approved_operation'
+      ? 'Canonical job attempt failed safely; the same approved operation may be retried within its attempt limit.'
+      : failure.failure.retryDisposition === 'manual_reconciliation_required'
+        ? 'Canonical execution committed but final adapter reconciliation requires recovery.'
+        : 'Canonical job failure requires an approved fallback, user review, or new approval.',
+    409,
+    {
+      requiredGate: failure.failure.requiredGate,
+      executionFailure: {
+        failureRecordHash: failure.failureRecordHash,
+        category: failure.failure.category,
+        originalCode: failure.failure.originalCode,
+        executionState: failure.failure.executionState,
+        retryDisposition: failure.failure.retryDisposition,
+        attemptNumber: failure.failure.attemptNumber,
+        approvedMaxAttempts: failure.failure.approvedMaxAttempts,
+        remainingAttempts: failure.failure.remainingAttempts,
+        ...(failure.failure.fenceFailureEvidenceHash
+          ? { fenceFailureEvidenceHash: failure.failure.fenceFailureEvidenceHash }
+          : {}),
+      },
+    },
+    cause ? { cause } : {},
+  )
+}
+
+function deniedPermissions() {
+  return {
+    providerCall: false as const,
+    publicArtifact: false as const,
+    publicDelivery: false as const,
+    productionRender: false as const,
+    customerPriceMutation: false as const,
+    customerCreditMutation: false as const,
+    walletMutation: false as const,
+    settlement: false as const,
+    billing: false as const,
+    deployment: false as const,
+  }
+}
+
+function apiErrorCode(value: string | undefined): ApiErrorCode {
+  return value && API_ERROR_CODES.includes(value as ApiErrorCode)
+    ? value as ApiErrorCode
+    : 'INTERNAL_ERROR'
+}
+
 function selectServerOwnedExpectedAsset<T extends { id: string; required: boolean }>(
   expectedAssets: readonly T[],
   expectedAssetIdCount: number,
@@ -666,6 +1023,43 @@ async function readPersistedResponse(
   return response.data
 }
 
+async function readPersistedFailure(
+  context: ServiceContext,
+  relativePath: string,
+  requestHash: string,
+): Promise<CanonicalPrivateJobExecutionAdapterFailure | undefined> {
+  const bytes = await readPrivateFileIfExistsWithinRoot({
+    rootPath: context.env.localStorageRoot,
+    relativePath,
+  })
+  if (!bytes) return undefined
+  let value: unknown
+  try {
+    value = JSON.parse(bytes.toString('utf8'))
+  } catch {
+    throw new ApiError('VALIDATION_FAILED', 'Persisted canonical job adapter failure is invalid JSON.', 409)
+  }
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new ApiError('VALIDATION_FAILED', 'Persisted canonical job adapter failure is invalid.', 409)
+  }
+  const record = value as Partial<PersistedAdapterFailure>
+  if (record.schemaVersion !== 'canonical-private-job-execution-adapter-failure-idempotency-v1') {
+    throw new ApiError('VALIDATION_FAILED', 'Persisted canonical job adapter failure version is invalid.', 409)
+  }
+  if (record.requestHash !== requestHash) {
+    throw new ApiError('IDEMPOTENCY_CONFLICT', 'Idempotency-Key was reused for another canonical job.', 409)
+  }
+  const failure = canonicalPrivateJobExecutionAdapterFailureSchema.safeParse(record.failure)
+  if (!failure.success) {
+    throw new ApiError('VALIDATION_FAILED', 'Persisted canonical job adapter failure failed validation.', 409)
+  }
+  const { failureRecordHash, ...withoutHash } = failure.data
+  if (failureRecordHash !== sha256AuthorityValue(withoutHash)) {
+    throw new ApiError('VALIDATION_FAILED', 'Persisted canonical job adapter failure hash is invalid.', 409)
+  }
+  return failure.data
+}
+
 async function readPersistedCompletion(
   context: ServiceContext,
   relativePath: string,
@@ -729,10 +1123,32 @@ async function persistIdempotencyResponse(
   })
 }
 
+async function persistAdapterFailure(
+  context: ServiceContext,
+  relativePath: string,
+  requestHash: string,
+  failure: CanonicalPrivateJobExecutionAdapterFailure,
+): Promise<void> {
+  const persisted: PersistedAdapterFailure = {
+    schemaVersion: 'canonical-private-job-execution-adapter-failure-idempotency-v1',
+    requestHash,
+    failure,
+  }
+  await writePrivateFileCreateOnlyWithinRoot({
+    rootPath: context.env.localStorageRoot,
+    relativePath,
+    content: Buffer.from(`${stableAuthorityStringify(persisted)}\n`, 'utf8'),
+  })
+}
+
 function adapterResponseRelativePath(ownerUserId: string, workspaceId: string, idempotencyKey: string): string {
   const scopeHash = sha256(`${ownerUserId}\u0000${workspaceId}`)
   const keyHash = sha256(`${scopeHash}\u0000${idempotencyKey}`)
   return `${RESPONSE_PATH_PREFIX}/${scopeHash.slice(0, 32)}/${keyHash}.json`
+}
+
+function adapterFailureRelativePath(responseRelativePath: string): string {
+  return responseRelativePath.replace(/\.json$/, '.failure.json')
 }
 
 function adapterCompletionRelativePath(

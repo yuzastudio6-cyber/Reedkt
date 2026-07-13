@@ -13,6 +13,7 @@ import {
   MAX_CANONICAL_WORKER_LEASE_IDEMPOTENCY_RECORDS,
   clearPrivateCanonicalWorkerLeaseProcessStateForSmoke,
   readPrivateCanonicalWorkerLeaseAggregate,
+  reconcileSnapshotLeasesForCompensation,
 } from '../services/private-canonical-worker-lease-store'
 import {
   readPrivateEditAuthorityAggregate,
@@ -223,13 +224,33 @@ assert.deepEqual(heartbeatLeft.workerLeaseHeartbeat, heartbeatRight.workerLeaseH
 assert.equal(heartbeatLeft.workerLeaseHeartbeat.executionAuthority.dispatchAuthorized, false)
 
 const routeEditAuthority = await requireEditAuthority(routeWorkspaceId)
-const newestRouteExecutionPackage = routeEditAuthority.executionPackages.at(-1)
+const routeLeasesAtSelection = await readPrivateCanonicalWorkerLeaseAggregate({
+  localStorageRoot,
+  ownerUserId: userId,
+  workspaceId: routeWorkspaceId,
+})
+const routeLeaseJobIds = new Set(routeLeasesAtSelection?.leases.map((lease) => lease.jobId) ?? [])
+const newestRouteExecutionPackage = [...routeEditAuthority.executionPackages].reverse().find((executionPackage) => {
+  const candidateSnapshot = routeEditAuthority.snapshots.find((candidate) =>
+    candidate.snapshotId === executionPackage.snapshotId)
+  const candidatePlan = candidateSnapshot
+    ? routeEditAuthority.plans.find((plan) => plan.id === candidateSnapshot.planId)
+    : undefined
+  return candidatePlan?.status === 'approved' && routeEditAuthority.jobs.some((job) =>
+    job.snapshotId === executionPackage.snapshotId &&
+    job.dependencyJobIds.length === 0 &&
+    job.maxAttempts >= 2 &&
+    !routeLeaseJobIds.has(job.id))
+})
 assert.ok(newestRouteExecutionPackage)
 const routeSnapshot = routeEditAuthority.snapshots.find((candidate) =>
   candidate.snapshotId === newestRouteExecutionPackage.snapshotId)
 assert.ok(routeSnapshot)
 const routeRootJob = routeEditAuthority.jobs.find((candidate) =>
-  candidate.snapshotId === routeSnapshot.snapshotId && candidate.dependencyJobIds.length === 0)
+  candidate.snapshotId === routeSnapshot.snapshotId &&
+  candidate.dependencyJobIds.length === 0 &&
+  candidate.maxAttempts >= 2 &&
+  !routeLeaseJobIds.has(candidate.id))
 assert.ok(routeRootJob)
 
 await expectApiError(
@@ -351,6 +372,16 @@ try {
   }
   const liveRevalidatedHeartbeat = await service.heartbeat(routeHeartbeatInput)
   assert.equal(liveRevalidatedHeartbeat.workerLeaseHeartbeat.lease.leaseId, routeClaim.lease.leaseId)
+  const expiringStartedExecution = await service.beginInternalExecution({
+    workspaceId: routeWorkspaceId,
+    projectId: routeSnapshot.projectId,
+    editSessionId: routeSnapshot.editSessionId,
+    jobId: routeRootJob.id,
+    leaseId: routeClaim.lease.leaseId,
+    leaseCredential: routeClaim.leaseCredential,
+    runnerClass: 'canonical_timeout_recovery_smoke_runner_v1',
+  })
+  assert.equal(expiringStartedExecution.executionFence.state, 'started')
 
   mock.timers.setTime(controlledNow + (routeRootJob.attemptTimeoutSeconds + 1) * 1_000)
   await expectApiError(
@@ -366,19 +397,69 @@ try {
     expiredAggregate.leases.find((lease) => lease.id === routeClaim.lease.leaseId)?.status,
     'expired',
   )
+  const expiredStartedLease = expiredAggregate.leases.find((lease) =>
+    lease.id === routeClaim.lease.leaseId)
+  assert.equal(expiredStartedLease?.executionFence.state, 'failed')
+  assert.equal(expiredStartedLease?.executionFence.failureCategory, 'execution_timeout')
+  assert.equal(expiredStartedLease?.executionFence.failureCode, 'WORKER_LEASE_EXPIRED')
+  assert.equal(
+    expiredStartedLease?.executionFence.recoveryPolicy,
+    'same_operation_retry_within_approved_max_attempts',
+  )
+  assert.match(expiredStartedLease?.executionFence.failureEvidenceHash ?? '', /^[a-f0-9]{64}$/)
   assert.equal(expiredAggregate.auditEvents.some((event) => event.eventType === 'expired'), true)
+  assert.equal(expiredAggregate.auditEvents.filter((event) =>
+    event.leaseId === routeClaim.lease.leaseId && event.eventType === 'execution_failed').length, 1)
+  const failedLeaseCompensationReadiness = await reconcileSnapshotLeasesForCompensation({
+    scope: {
+      localStorageRoot,
+      ownerUserId: userId,
+      workspaceId: routeWorkspaceId,
+    },
+    snapshotId: routeSnapshot.snapshotId,
+    projectId: routeSnapshot.projectId,
+    editSessionId: routeSnapshot.editSessionId,
+    now: new Date().toISOString(),
+  })
+  assert.ok(failedLeaseCompensationReadiness.failedFenceCount >= 1)
+  assert.equal(failedLeaseCompensationReadiness.inFlightStartedFenceCount, 0)
 
   const expiredExactReplay = await service.claim(successfulRouteInput)
-  assert.deepEqual(expiredExactReplay.workerLeaseClaim, routeClaim)
+  assert.equal(
+    expiredExactReplay.workerLeaseClaim.lease.leaseId,
+    routeClaim.lease.leaseId,
+  )
+  assert.equal(expiredExactReplay.workerLeaseClaim.leaseCredential, routeClaim.leaseCredential)
+  assert.equal(expiredExactReplay.workerLeaseClaim.lease.executionFence.state, 'failed')
+  assert.equal(
+    expiredExactReplay.workerLeaseClaim.lease.executionFence.failureEvidenceHash,
+    expiredStartedLease?.executionFence.failureEvidenceHash,
+  )
   assert.equal(
     (await requireLeaseAggregate(routeWorkspaceId)).leases.find((lease) =>
       lease.id === routeClaim.lease.leaseId)?.status,
     'expired',
   )
+  const retryClaim = (await service.claim({
+    ...successfulRouteInput,
+    idempotencyKey: 'route-attempt-two-after-terminal-timeout',
+  })).workerLeaseClaim
+  assert.equal(retryClaim.lease.attemptNumber, 2)
+  assert.equal(retryClaim.lease.executionFence.state, 'not_started')
+  await service.release({
+    workspaceId: routeWorkspaceId,
+    projectId: routeSnapshot.projectId,
+    editSessionId: routeSnapshot.editSessionId,
+    jobId: routeRootJob.id,
+    leaseId: retryClaim.lease.leaseId,
+    leaseCredential: retryClaim.leaseCredential,
+    purpose: 'private_internal_canonical_lease_release',
+    idempotencyKey: 'release-route-attempt-two-after-timeout',
+  })
   await expectApiError(
     () => service.claim({
       ...successfulRouteInput,
-      idempotencyKey: 'route-attempt-two-over-approved-limit',
+      idempotencyKey: 'route-attempt-three-over-approved-limit',
     }),
     'JOB_DEPENDENCY_NOT_READY',
   )
@@ -444,6 +525,8 @@ console.log(JSON.stringify({
     'heartbeat_and_release_exact_replay',
     'live_canonical_source_and_hash_revalidation',
     'release_and_expiry_do_not_reactivate',
+    'expired_started_execution_terminalizes_as_retry_bounded_failure',
+    'failed_execution_fence_is_quiescent_for_post_dispatch_compensation',
     'restart_safe_deterministic_claim_replay',
     'bounded_checksum_protected_private_store',
     'private_modes_and_symlink_refusal',
@@ -502,7 +585,7 @@ async function expectApiError(action: () => Promise<unknown>, code: string): Pro
     assert.fail(`Expected ${code}.`)
   } catch (error) {
     assert.ok(error instanceof ApiError)
-    assert.equal(error.code, code)
+    assert.equal(error.code, code, error.message)
   }
 }
 

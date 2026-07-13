@@ -2,6 +2,25 @@ import type { ApiRouteDefinition } from '../api-runtime-contracts'
 
 export const EDIT_PLANNING_API_ROUTES: ApiRouteDefinition[] = [
   {
+    id: 'planning.canonicalJourney.get',
+    domain: 'planning',
+    method: 'GET',
+    path: '/v1/projects/:projectId/edit-sessions/:editSessionId/canonical-journey',
+    description: 'Recover the authenticated canonical edit journey for one named edit.',
+    securityLevel: 'workspace_member',
+    runtimeMode: 'frontend_safe',
+    status: 'frontend_safe_ready',
+    requiresSupabase: true,
+    requiresServiceRole: false,
+    requiresProviderSecret: false,
+    requiresStripeSecret: false,
+    futureHandlerName: 'getCanonicalEditJourney',
+    notes: [
+      'Reviewed /v1 backend route is inspection-only and returns bounded workflow summaries plus one exact next safe action.',
+      'The browser must translate the response into user-facing workflow state and must not execute the returned route as authority.',
+    ],
+  },
+  {
     id: 'planning.intent.analyze',
     domain: 'planning',
     method: 'POST',

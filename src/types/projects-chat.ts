@@ -111,6 +111,7 @@ export type ReeditProChatMessageCardType =
   | 'preference_save_learning'
   | 'visual_preference'
   | 'planning_context'
+  | 'journey_recovery'
   | 'reference_dna'
   | 'video_understanding'
   | 'adaptive_strategy'

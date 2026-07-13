@@ -93,6 +93,7 @@ import { useEditMap } from '../../hooks/useEditMap'
 import { useExportWorkflow } from '../../hooks/useExportWorkflow'
 import { useMockFootagePrep } from '../../hooks/useMockFootagePrep'
 import { useRevisionWorkflow } from '../../hooks/useRevisionWorkflow'
+import { useCanonicalEditJourney } from '../../hooks/useCanonicalEditJourney'
 import type { ContextAwareMockEditPlanResult, EditBriefState, EditBriefStatus, MediaKind, ReeditProChatMessage } from '../../types'
 import type { ApprovedPlanSnapshot } from '../../types/edit-planning-db'
 import type {
@@ -116,6 +117,7 @@ import { AIEditingProgressStage } from './AIEditingProgressStage'
 import { ChatComposer } from './ChatComposer'
 import { ChatMessageList } from './ChatMessageList'
 import { ChatThread } from './ChatThread'
+import { CanonicalJourneyStatusCard } from './CanonicalJourneyStatusCard'
 import {
   CleanupSetup,
   EditLevelSetup,
@@ -826,6 +828,12 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     : 'mock-user'
   const editorProjectId = normalizeEditorQueryId(routeParams.projectId ?? searchParams.get('projectId'), 'mock-project')
   const editorEditSessionId = normalizeEditorQueryId(routeParams.editSessionId ?? searchParams.get('editSessionId'), 'mock-edit-session')
+  const canonicalJourney = useCanonicalEditJourney({
+    editSessionId: editorEditSessionId,
+    enabled: hasProjectEditRoute,
+    projectId: editorProjectId,
+    scope: projectPersistenceScope,
+  })
   const subscribeToEditPersistence = useCallback(
     (listener: (status: InternalEditPersistenceStatus | null) => void) => {
       if (!hasProjectEditRoute) return () => undefined
@@ -3739,6 +3747,31 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
         id: 'clean-message-editor-greeting',
       }),
     ]
+    const canonicalJourneyVisible = canonicalJourney.loading || (
+      canonicalJourney.result !== null && canonicalJourney.result.status !== 'not_configured'
+    )
+    if (canonicalJourneyVisible) {
+      const canonicalStatus = canonicalJourney.loading
+        ? 'loading'
+        : canonicalJourney.result?.status === 'ready'
+          ? canonicalJourney.result.journey.stage === 'private_review_accepted'
+            ? 'success'
+            : canonicalJourney.result.journey.stage === 'execution_in_progress' ||
+                canonicalJourney.result.journey.stage === 'private_review_assembly_required'
+              ? 'generating'
+              : canonicalJourney.result.journey.stage === 'revision_requested' ||
+                  canonicalJourney.result.journey.stage === 'replanning_required' ||
+                  canonicalJourney.result.journey.stage === 'cancellation_pending'
+                ? 'warning'
+                : 'pending'
+          : 'warning'
+      messages.push(createAssistantSystemStatusMessage('', {
+        id: 'clean-message-canonical-journey',
+        status: canonicalStatus,
+        ariaLive: canonicalJourney.loading ? 'off' : 'polite',
+        cards: [{ id: 'card-canonical-journey', type: 'journey_recovery', priority: 'summary' }],
+      }))
+    }
     const restoredReviewMessage = restoredInternalReviewStateMessage(localProjectHandoff)
     if (restoredReviewMessage) {
       messages.push(createAssistantSystemStatusMessage(restoredReviewMessage, {
@@ -3798,12 +3831,19 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     return messages
   }, [
     categoryLabel,
+    canonicalJourney.loading,
+    canonicalJourney.result,
     cleanEditorStage,
     clips.length,
     clipsAttached,
     localProjectHandoff,
     runtimeMessages,
   ])
+
+  function renderCleanCardsForMessage(message: ReeditProChatMessage) {
+    if (message.id !== 'clean-message-canonical-journey') return null
+    return <CanonicalJourneyStatusCard {...canonicalJourney} />
+  }
 
   function renderCleanEditorStage() {
     switch (cleanEditorStage) {
@@ -4975,7 +5015,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
         ) : (
           isProjectWorkspace ? (
             <ChatThread>
-              <ChatMessageList messages={cleanChatMessages} />
+              <ChatMessageList messages={cleanChatMessages} renderCards={renderCleanCardsForMessage} />
               <div className="clean-editor-stage" data-editor-stage={cleanEditorStage} data-testid="editor-stage">
                 {setupReady ? (
                   <CleanPlanningPrepSurface

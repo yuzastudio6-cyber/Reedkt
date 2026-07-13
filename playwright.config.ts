@@ -8,7 +8,9 @@ const reuseExistingServer = process.env.PLAYWRIGHT_REUSE_SERVER === undefined
 
 export default defineConfig({
   testDir: './tests/e2e',
-  testIgnore: ['**/._*'],
+  // Canonical journey UI coverage uses a dedicated frontend-safe HTTP runtime
+  // and must not be collected by the standard mock-only browser suite.
+  testIgnore: ['**/._*', '**/canonical-journey-ui.spec.ts'],
   outputDir: 'test-results/e2e',
   fullyParallel: false,
   retries: process.env.CI ? 1 : 0,

@@ -1,6 +1,20 @@
 /* Responsive web behavior. Desktop/web remains the primary target. */
 
 @media (max-width: 860px) {
+  .canonical-journey-status {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .canonical-journey-status > .icon-button {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .canonical-journey-status-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
   .sfx-plan-entry-card,
   .music-plan-entry-card {
     align-items: stretch;

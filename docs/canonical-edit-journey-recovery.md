@@ -41,10 +41,26 @@ Plan-to-snapshot recovery verifies there is at most one immutable snapshot per c
 
 The endpoint requires authenticated workspace/project ownership and is private local/internal evidence. Cross-user reads are hidden. Production, Supabase, providers, customer billing, deployment, public delivery, and production rendering remain unchanged and gated.
 
+## Browser consumption
+
+The named-edit chat route now consumes this endpoint through a frontend-safe, read-only recovery bridge. The bridge is enabled only for `/projects/:projectId/edits/:editSessionId`; the compatibility `/editor` surface does not issue canonical recovery reads.
+
+Before anything reaches the UI, the browser parser requires the exact workspace, project, and edit identity; the stage-specific action code, actor, method, and route; required and forbidden authority fields; plan/estimate state; snapshot/package lineage; progress-count partitions; completion lineage; review-decision pairs; history-descriptor lineage; and inspection-only permission set. Unknown fields, route substitution, foreign identity, cross-stage decision data, inconsistent progress, authority escalation, or malformed history lineage fail closed.
+
+The presentation adapter projects only user-facing status, bounded preparation counts, plan/estimate summaries when applicable, the persisted review decision when applicable, and the next safe explanation. It never renders backend routes, hashes, record identifiers, filesystem/storage details, provider/tool names, credentials, signed URLs, or execution authority. Returned `nextAction` metadata is validated but never executed by this bridge.
+
+The status appears as one compact assistant-system surface inside the existing chat flow. It includes explicit copy that refreshing is read-only and cannot start editing, spend credits, or publish a video. Loading, unavailable, access-denied, not-found, and invalid-response states remain distinct. Identical in-flight reads are coalesced by authenticated scope/project/edit identity, manual refresh is accessible, and automatic refresh runs only for bounded in-flight stages while the page is visible.
+
+This closes frontend inspection/recovery only. Canonical planning-handoff submission, publication-candidate submission, internal publication, plan/estimate approval, approved-snapshot package request, work-graph advancement, private-review assembly, review decision, revision submission, and authenticated history opening still require separate frontend mutation slices and their own evidence. The browser must not infer or invoke any of those actions from the recovery response.
+
 ## Verification
 
 - `npm run smoke:edit-planning-authority`
 - `npm run smoke:canonical-private-tool-dispatch`
+- `npm run smoke:canonical-edit-journey-client`
+- `npm run qa:canonical-journey-ui`
+- `npm run qa:editor`
+- `npm run qa:viewport`
 - `npm run typecheck:server`
 - `npm run lint`
 - `npm run check:frontend-boundary`

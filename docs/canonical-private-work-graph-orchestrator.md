@@ -27,7 +27,7 @@ The orchestrator reloads and revalidates the canonical execution package, derive
 
 Completed job identity is stored independently of a request key by the job adapter. A later work-graph run therefore reuses the completed artifact instead of claiming another lease or executing the tool again. A denied pre-execution dispatch releases its lease so a later run can retry with newly available runtime evidence.
 
-Canonical failure outcomes are explicit: `failed_retry_available`, `failed_user_review_required`, or `completed_recovery_required`. The current run never loops blindly. It continues unrelated dependency-ready branches, blocks only descendants of the failed job, and exposes a same-operation retry only when the immutable work item has remaining `maxAttempts`. A new authenticated run uses a new per-job key, while completed siblings replay their final adapter completion.
+Canonical failure outcomes are explicit: `failed_retry_available`, `failed_user_review_required`, or `completed_recovery_required`. The current run never loops blindly. It continues unrelated dependency-ready branches, blocks only descendants of the failed job, and exposes a same-operation retry only when the immutable work item has remaining `maxAttempts`. A new authenticated run uses a new per-job key, while completed siblings replay their final adapter completion. When the prior execution fence is completed but the adapter record is missing, the new run invokes server-owned evidence recovery before any claim; it never retries the completed operation.
 
 ## Current evidence
 

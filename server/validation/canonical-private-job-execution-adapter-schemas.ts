@@ -24,6 +24,7 @@ export const canonicalPrivateJobExecutionRetryDispositionSchema = z.enum([
   'retry_same_approved_operation',
   'fallback_or_user_review_required',
   'manual_reconciliation_required',
+  'server_reconciliation_required',
 ])
 
 export const executeCanonicalPrivateJobAdapterSchema = z.object({
@@ -174,7 +175,10 @@ export const canonicalPrivateJobExecutionAdapterFailureSchema = z.object({
   }
   if (
     completedRequiresReconciliation !==
-      (record.failure.retryDisposition === 'manual_reconciliation_required') ||
+      [
+        'manual_reconciliation_required',
+        'server_reconciliation_required',
+      ].includes(record.failure.retryDisposition) ||
     completedRequiresReconciliation !==
       (record.failure.category === 'post_commit_reconciliation')
   ) {
@@ -182,7 +186,10 @@ export const canonicalPrivateJobExecutionAdapterFailureSchema = z.object({
   }
   const expectedGate = record.failure.retryDisposition === 'retry_same_approved_operation'
     ? 'canonical_retry_same_approved_operation'
-    : record.failure.retryDisposition === 'manual_reconciliation_required'
+    : [
+        'manual_reconciliation_required',
+        'server_reconciliation_required',
+      ].includes(record.failure.retryDisposition)
       ? 'canonical_completed_execution_reconciliation_recovery'
       : 'canonical_failure_fallback_user_review_or_new_approval'
   if (record.failure.requiredGate !== expectedGate) {

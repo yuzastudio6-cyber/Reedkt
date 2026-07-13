@@ -29,7 +29,7 @@ The adapter exposes three safe execution outcomes:
 - `failed_before_commit`: the fence is immutable `failed`; and
 - `completed_requires_reconciliation`: the fence is already `completed`, so rerunning would be unsafe.
 
-Post-commit failures never become failed fences and never authorize a retry. They require `canonical_completed_execution_reconciliation_recovery` so existing artifact, QA, reconciliation, and cost evidence can be recovered without duplicating work.
+Post-commit failures never become failed fences and never authorize a retry. They require `canonical_completed_execution_reconciliation_recovery`. A fresh authenticated adapter key now reconstructs the missing completion from exact existing artifact, QA, reconciliation, dispatch, and cost evidence before any lease claim; incomplete evidence stays blocked. See `docs/canonical-post-commit-adapter-recovery.md`.
 
 ## Bounded retry and work-graph isolation
 

@@ -225,7 +225,10 @@ export function createCanonicalPrivateWorkGraphOrchestratorService(context: Serv
                 dependencyJobIds: [...job.dependencyJobIds],
                 status: executionFailure?.retryDisposition === 'retry_same_approved_operation'
                   ? 'failed_retry_available'
-                  : executionFailure?.retryDisposition === 'manual_reconciliation_required'
+                  : [
+                      'manual_reconciliation_required',
+                      'server_reconciliation_required',
+                    ].includes(executionFailure?.retryDisposition ?? '')
                     ? 'completed_recovery_required'
                     : executionFailure
                       ? 'failed_user_review_required'
@@ -432,6 +435,7 @@ function executionFailureMetadata(error: ApiError): {
     'retry_same_approved_operation',
     'fallback_or_user_review_required',
     'manual_reconciliation_required',
+    'server_reconciliation_required',
   ] as const
   if (
     typeof record.failureRecordHash !== 'string' || !/^[a-f0-9]{64}$/.test(record.failureRecordHash) ||

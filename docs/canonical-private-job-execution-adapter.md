@@ -31,6 +31,8 @@ The service reloads canonical readiness and immutable approved authority, requir
 
 Failure is also terminal and idempotent. A pre-execution block releases the lease; a runner exception after execution starts creates an immutable failed fence without commit/completion authority; and a post-commit exception requires reconciliation recovery instead of rerunning. The adapter persists one create-only failure outcome for the exact request key. A new key may claim another lease only when the same immutable work item still has an approved `maxAttempts` allowance. See `docs/canonical-failed-execution-recovery.md`.
 
+Before any new claim, the adapter now checks for an existing completed execution fence. When exact private artifact, QA, reconciliation, consumed-dispatch, and required internal-cost evidence already exist, it reconstructs a create-only adapter completion and response without another lease, dispatch, or runner execution. Missing evidence remains `completed_recovery_required` and cannot become a retry. See `docs/canonical-post-commit-adapter-recovery.md`.
+
 The tool-free `validate_approved_snapshot` job and dependency-bound `prepare_source_trim` plan-validation job use canonical internal runners. Source-trim validation requires exact approved source IDs, explicit cleanup decisions, meaning-preservation status, resolved user review, a passed upstream dependency, and a private JSON QA/reconciliation artifact. Tool jobs must name exactly one approved identity that is `canonical_e2e_verified` in the proven tool catalog. Multi-tool jobs fail closed. A job with one required output plus optional sibling outputs deterministically executes the sole required server-owned output; zero or multiple required outputs fail closed until a true multi-output adapter exists.
 
 ## Runner coverage
@@ -60,6 +62,8 @@ Executable adapter evidence currently proves:
 The machine-readable proven-tool catalog records job-adapter proof separately from coordinator-only canonical E2E proof. At evidence revision `2026-07-12.28`, all 50 canonical private E2E tool identities have exact server-derived job-adapter proof. This closes the adapter-evidence gap for the currently proven canonical set; it does not promote the remaining callable candidates or establish distributed-worker, external-beta, or production readiness.
 
 Failure/retry evidence now additionally proves that a consumed DuckDB attempt can terminate as failed without `commitAuthorizedAt` or `completedAt`, exact adapter replay cannot execute the failed key again, and a fresh key executes the same approved operation as attempt two. This recovery proof does not change the 50 success identities or promote their readiness level.
+
+Post-commit evidence additionally proves that completed D3 and DeepFilterNet executions can recover missing adapter completion records from exact immutable private evidence. The recovered records preserve the original artifact and DeepFilterNet cost hashes and issue no new claim, dispatch, execution, artifact, QA, reconciliation, or cost write.
 
 ## Boundaries
 

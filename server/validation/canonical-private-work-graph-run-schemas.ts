@@ -67,7 +67,10 @@ const jobOutcome = z.object({
   }
   if (
     outcome.status === 'completed_recovery_required' &&
-    outcome.retryDisposition !== 'manual_reconciliation_required'
+    ![
+      'manual_reconciliation_required',
+      'server_reconciliation_required',
+    ].includes(outcome.retryDisposition ?? '')
   ) {
     context.addIssue({ code: 'custom', message: 'Committed work must require reconciliation recovery.' })
   }

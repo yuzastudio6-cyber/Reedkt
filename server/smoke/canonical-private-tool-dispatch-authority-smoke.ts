@@ -19,12 +19,18 @@ import {
 } from '../services/canonical-private-tool-dispatch-authority-service'
 import { createCanonicalPrivateMediaBinaryExecutionService } from '../services/canonical-private-media-binary-execution-service'
 import { createCanonicalPrivateDependencyArtifactReadService } from '../services/canonical-private-dependency-artifact-read-service'
+import { createCanonicalPrivateDeepFilterNetVoiceCleanupExecutionService } from '../services/canonical-private-deepfilternet-voice-cleanup-execution-service'
 import { createCanonicalPrivateRemotionExecutionService } from '../services/canonical-private-remotion-execution-service'
 import { createCanonicalPrivateFinalArtifactDownloadService } from '../services/canonical-private-final-artifact-download-service'
+import {
+  canonicalPrivateJobCompletionRecoveryRelativePath,
+  readCanonicalPrivateJobCompletionRecovery,
+} from '../services/canonical-private-job-completion-recovery-service'
 import { createCanonicalPrivateJobExecutionAdapterService } from '../services/canonical-private-job-execution-adapter-service'
 import { createCanonicalPrivateReviewAssemblyService } from '../services/canonical-private-review-assembly-service'
 import { createCanonicalPrivateReviewDecisionService } from '../services/canonical-private-review-decision-service'
 import { createCanonicalPrivateReviewHistoryService } from '../services/canonical-private-review-history-service'
+import { createCanonicalPrivateStructuredToolExecutionService } from '../services/canonical-private-structured-tool-execution-service'
 import { createCanonicalPlanningHandoffService } from '../services/canonical-planning-handoff-service'
 import { createCanonicalPrivateWorkGraphOrchestratorService } from '../services/canonical-private-work-graph-orchestrator-service'
 import { createCanonicalWorkerLeaseAuthorityService } from '../services/canonical-worker-lease-authority-service'
@@ -1219,42 +1225,52 @@ assert.equal(dispatchAggregate.grants.length, 3)
 const restartReplay = await dispatchService.authorize(baseInput, chartLeaseAuthority)
 assert.deepEqual(restartReplay.toolDispatchGrant, primaryGrant)
 
-const startedChartExecution = await leaseService.beginInternalExecution({
+const startedIncompleteRecoveryExecution = await leaseService.beginInternalExecution({
   workspaceId,
   projectId: snapshot.projectId,
   editSessionId: snapshot.editSessionId,
-  jobId: chartJob.id,
-  leaseId: chartClaim.lease.leaseId,
-  leaseCredential: chartClaim.leaseCredential,
-  runnerClass: 'dispatch_fence_smoke_runner_v1',
+  jobId: dependentChartJob.id,
+  leaseId: dependentChartClaim.lease.leaseId,
+  leaseCredential: dependentChartClaim.leaseCredential,
+  runnerClass: 'offline_node_structured_execution_v1',
 })
-assert.equal(startedChartExecution.executionFence.state, 'started')
+assert.equal(startedIncompleteRecoveryExecution.executionFence.state, 'started')
 await expectApiError(
   () => dispatchService.authorize({
-    ...baseInput,
+    ...dependentDispatchInput,
     idempotencyKey: 'started-lease-cannot-get-fresh-dispatch-decision',
-  }, chartLeaseAuthority),
+  }, dependentLeaseAuthority),
   'WORKER_LEASE_EXPIRED',
 )
-const completedChartExecution = await leaseService.completeInternalExecution({
+const completedIncompleteRecoveryExecution = await leaseService.completeInternalExecution({
   workspaceId,
   projectId: snapshot.projectId,
   editSessionId: snapshot.editSessionId,
-  jobId: chartJob.id,
-  leaseId: chartClaim.lease.leaseId,
-  leaseCredential: chartClaim.leaseCredential,
-  runnerClass: 'dispatch_fence_smoke_runner_v1',
-  executionAttemptId: startedChartExecution.executionFence.executionAttemptId,
+  jobId: dependentChartJob.id,
+  leaseId: dependentChartClaim.lease.leaseId,
+  leaseCredential: dependentChartClaim.leaseCredential,
+  runnerClass: 'offline_node_structured_execution_v1',
+  executionAttemptId: startedIncompleteRecoveryExecution.executionFence.executionAttemptId,
 })
-assert.equal(completedChartExecution.executionFence.state, 'completed')
+assert.equal(completedIncompleteRecoveryExecution.executionFence.state, 'completed')
 await expectApiError(
   () => dispatchService.authorize({
-    ...baseInput,
+    ...dependentDispatchInput,
     idempotencyKey: 'completed-lease-cannot-get-fresh-dispatch-decision',
-  }, chartLeaseAuthority),
+  }, dependentLeaseAuthority),
   'WORKER_LEASE_EXPIRED',
 )
 
+await leaseService.release({
+  workspaceId,
+  projectId: snapshot.projectId,
+  editSessionId: snapshot.editSessionId,
+  jobId: dependentChartJob.id,
+  leaseId: dependentChartClaim.lease.leaseId,
+  leaseCredential: dependentChartClaim.leaseCredential,
+  purpose: 'private_internal_canonical_lease_release',
+  idempotencyKey: 'release-completed-incomplete-recovery-attempt',
+})
 await leaseService.release({
   workspaceId,
   projectId: snapshot.projectId,
@@ -1263,7 +1279,7 @@ await leaseService.release({
   leaseId: chartClaim.lease.leaseId,
   leaseCredential: chartClaim.leaseCredential,
   purpose: 'private_internal_canonical_lease_release',
-  idempotencyKey: 'release-completed-chart-attempt-one',
+  idempotencyKey: 'release-denied-chart-attempt-before-runtime',
 })
 const atomicCompilationAggregate = await requireEditAuthority(atomicCompilationWorkspaceId)
 const atomicCompilationPlan = atomicCompilationAggregate.plans.find((candidate) =>
@@ -1336,6 +1352,36 @@ assert.deepEqual(
 )
 
 await createPrivateOfflineNodeStructuredExecutionRuntime()
+const incompleteRecoveryDispatchCount = (await requireDispatchAggregate()).grants.length
+const incompleteRecoveryAdapterInput = {
+  workspaceId,
+  projectId: snapshot.projectId,
+  editSessionId: snapshot.editSessionId,
+  jobId: dependentChartJob.id,
+  purpose: 'execute_canonical_private_job' as const,
+  idempotencyKey: 'canonical-job-adapter-incomplete-postcommit-recovery',
+}
+const incompleteRecoveryError = await expectApiErrorResult(
+  () => jobExecutionAdapter.execute(incompleteRecoveryAdapterInput),
+  'JOB_DEPENDENCY_NOT_READY',
+)
+const incompleteRecoveryDetails = asRecord(incompleteRecoveryError.details)
+const incompleteRecoveryEvidence = asRecord(incompleteRecoveryDetails.executionFailure)
+assert.equal(
+  incompleteRecoveryDetails.requiredGate,
+  'canonical_completed_execution_reconciliation_recovery',
+)
+assert.equal(incompleteRecoveryEvidence.executionState, 'completed_requires_reconciliation')
+assert.equal(incompleteRecoveryEvidence.retryDisposition, 'server_reconciliation_required')
+assert.equal(
+  (await requireDispatchAggregate()).grants.length,
+  incompleteRecoveryDispatchCount,
+)
+const incompleteRecoveryReplay = await expectApiErrorResult(
+  () => jobExecutionAdapter.execute(incompleteRecoveryAdapterInput),
+  'JOB_DEPENDENCY_NOT_READY',
+)
+assert.deepEqual(incompleteRecoveryReplay.details, incompleteRecoveryError.details)
 const atomicCompilationRun = await createCanonicalPrivateWorkGraphOrchestratorService(
   context,
 ).run({
@@ -1372,13 +1418,52 @@ const atomicCompilationProgress = await createCanonicalPrivateWorkGraphOrchestra
 assert.ok(atomicCompilationProgress)
 assert.equal(atomicCompilationProgress.completedJobCount, 5)
 assert.equal(atomicCompilationProgress.requiredIncompleteJobCount, 2)
+
+const postCommitChartClaim = (await leaseService.claim({
+  workspaceId,
+  projectId: snapshot.projectId,
+  editSessionId: snapshot.editSessionId,
+  jobId: chartJob.id,
+  purpose: 'private_internal_canonical_lease_claim',
+  idempotencyKey: 'claim-chart-postcommit-recovery-attempt',
+})).workerLeaseClaim
+const postCommitChartLeaseAuthority = {
+  leaseId: postCommitChartClaim.lease.leaseId,
+  leaseCredential: postCommitChartClaim.leaseCredential,
+}
+const postCommitChartGrant = (await dispatchService.authorize({
+  ...baseInput,
+  idempotencyKey: 'authorize-chart-postcommit-recovery-attempt',
+}, postCommitChartLeaseAuthority)).toolDispatchGrant
+assert.equal(postCommitChartGrant.grant.status, 'authorized')
+assert.ok(postCommitChartGrant.dispatchCredential)
+const directPostCommitChartExecution = await createCanonicalPrivateStructuredToolExecutionService(
+  context,
+).execute({
+  workspaceId,
+  projectId: snapshot.projectId,
+  editSessionId: snapshot.editSessionId,
+  jobId: chartJob.id,
+  grantId: postCommitChartGrant.grant.grantId,
+  purpose: 'execute_canonical_private_structured_tool',
+  idempotencyKey: 'consume-chart-before-adapter-completion-recovery',
+}, {
+  ...postCommitChartLeaseAuthority,
+  dispatchCredential: postCommitChartGrant.dispatchCredential,
+})
+assert.equal(directPostCommitChartExecution.result.qaOutcome, 'passed')
+assert.equal(
+  directPostCommitChartExecution.result.reconciliationDecision,
+  'test_merged_not_live_authorized',
+)
+const postCommitDispatchCount = (await requireDispatchAggregate()).grants.length
 const chartAdapterInput = {
   workspaceId,
   projectId: snapshot.projectId,
   editSessionId: snapshot.editSessionId,
   jobId: chartJob.id,
   purpose: 'execute_canonical_private_job' as const,
-  idempotencyKey: 'canonical-job-adapter-d3-root-attempt-two',
+  idempotencyKey: 'canonical-job-adapter-d3-postcommit-recovery',
 }
 const coordinatedExecution = await jobExecutionAdapter.execute(chartAdapterInput)
 assert.equal(coordinatedExecution.identity.canonicalToolId, 'd3')
@@ -1394,6 +1479,66 @@ assert.equal(coordinatedExecution.evidence.serverDerivedToolAndOperation, true)
 assert.equal(coordinatedExecution.evidence.singleUseDispatchConsumed, true)
 assert.equal(coordinatedExecution.evidence.idempotentAdapterReplay, false)
 assert.equal(coordinatedExecution.readiness.productReady, false)
+assert.equal((await requireDispatchAggregate()).grants.length, postCommitDispatchCount)
+const postCommitRecoveryRecord = await readCanonicalPrivateJobCompletionRecovery({
+  localStorageRoot,
+  ownerUserId: userId,
+  workspaceId,
+  projectId: snapshot.projectId,
+  editSessionId: snapshot.editSessionId,
+  jobId: chartJob.id,
+})
+assert.ok(postCommitRecoveryRecord)
+assert.equal(postCommitRecoveryRecord.identity.leaseId, postCommitChartClaim.lease.leaseId)
+assert.equal(
+  postCommitRecoveryRecord.identity.executionAttemptId,
+  directPostCommitChartExecution.lease.executionAttemptId,
+)
+assert.equal(postCommitRecoveryRecord.response.responseHash, coordinatedExecution.responseHash)
+assert.equal(postCommitRecoveryRecord.recovery.runnerReexecuted, false)
+assert.equal(postCommitRecoveryRecord.recovery.newLeaseClaimed, false)
+assert.equal(postCommitRecoveryRecord.recovery.newDispatchConsumed, false)
+assert.equal(postCommitRecoveryRecord.recovery.reconciliationWritten, false)
+const postCommitRecoveryRelativePath = canonicalPrivateJobCompletionRecoveryRelativePath({
+  ownerUserId: userId,
+  workspaceId,
+  projectId: snapshot.projectId,
+  editSessionId: snapshot.editSessionId,
+  jobId: chartJob.id,
+})
+const postCommitRecoveryPath = join(localStorageRoot, postCommitRecoveryRelativePath)
+const postCommitRecoveryBytes = await readFile(postCommitRecoveryPath)
+const serializedPostCommitRecovery = postCommitRecoveryBytes.toString('utf8')
+assert.equal(serializedPostCommitRecovery.includes(strongInternalSecret), false)
+assert.equal(serializedPostCommitRecovery.includes(postCommitChartClaim.leaseCredential), false)
+assert.equal(serializedPostCommitRecovery.includes(localStorageRoot), false)
+try {
+  await writeFile(
+    postCommitRecoveryPath,
+    Buffer.concat([postCommitRecoveryBytes, Buffer.from('tampered-postcommit-recovery')]),
+  )
+  await expectApiError(
+    () => readCanonicalPrivateJobCompletionRecovery({
+      localStorageRoot,
+      ownerUserId: userId,
+      workspaceId,
+      projectId: snapshot.projectId,
+      editSessionId: snapshot.editSessionId,
+      jobId: chartJob.id,
+    }),
+    'VALIDATION_FAILED',
+  )
+} finally {
+  await writeFile(postCommitRecoveryPath, postCommitRecoveryBytes)
+}
+assert.equal(await readCanonicalPrivateJobCompletionRecovery({
+  localStorageRoot,
+  ownerUserId: 'other-user-postcommit-recovery',
+  workspaceId,
+  projectId: snapshot.projectId,
+  editSessionId: snapshot.editSessionId,
+  jobId: chartJob.id,
+}), undefined)
 const coordinatedReplay = await jobExecutionAdapter.execute(chartAdapterInput)
 assert.equal(coordinatedReplay.result.artifactId, coordinatedExecution.result.artifactId)
 assert.equal(coordinatedReplay.result.sha256, coordinatedExecution.result.sha256)
@@ -1923,6 +2068,53 @@ for (const matrixRun of matrixRuns.slice(1)) {
       purpose: 'execute_canonical_private_job' as const,
       idempotencyKey: `canonical-job-adapter-${matrixRun.toolId}-root`,
     }
+    let postCommitRecoveryDispatchCountBeforeAdapter: number | undefined
+    if (matrixRun.runnerKind === 'deepfilternet') {
+      const claim = (await leaseService.claim({
+        workspaceId,
+        projectId: snapshot.projectId,
+        editSessionId: snapshot.editSessionId,
+        jobId: matrixRun.job.id,
+        purpose: 'private_internal_canonical_lease_claim',
+        idempotencyKey: 'claim-deepfilternet-postcommit-recovery-attempt',
+      })).workerLeaseClaim
+      const leaseAuthority = {
+        leaseId: claim.lease.leaseId,
+        leaseCredential: claim.leaseCredential,
+      }
+      const grant: Awaited<ReturnType<typeof dispatchService.authorize>>['toolDispatchGrant'] =
+        (await dispatchService.authorize({
+        workspaceId,
+        projectId: snapshot.projectId,
+        editSessionId: snapshot.editSessionId,
+        jobId: matrixRun.job.id,
+        approvedWorkItemId: matrixRun.workItem.id,
+        expectedAssetId: matrixRun.asset.id,
+        requestedToolName: matrixRun.toolId,
+        operationId: matrixRun.operationId,
+        purpose: 'private_internal_canonical_tool_dispatch_authorization',
+        idempotencyKey: 'authorize-deepfilternet-postcommit-recovery-attempt',
+        }, leaseAuthority)).toolDispatchGrant
+      assert.equal(grant.grant.status, 'authorized')
+      assert.ok(grant.dispatchCredential)
+      const directExecution = await createCanonicalPrivateDeepFilterNetVoiceCleanupExecutionService(
+        context,
+      ).execute({
+        workspaceId,
+        projectId: snapshot.projectId,
+        editSessionId: snapshot.editSessionId,
+        jobId: matrixRun.job.id,
+        grantId: grant.grant.grantId,
+        purpose: 'execute_canonical_private_deepfilternet_voice_cleanup',
+        idempotencyKey: 'consume-deepfilternet-before-adapter-completion-recovery',
+      }, {
+        ...leaseAuthority,
+        dispatchCredential: grant.dispatchCredential,
+      })
+      assert.equal(directExecution.result.qaOutcome, 'passed')
+      assert.equal(directExecution.attemptCost.evidence.outcome.status, 'completed')
+      postCommitRecoveryDispatchCountBeforeAdapter = (await requireDispatchAggregate()).grants.length
+    }
     const coordinated = await jobExecutionAdapter.execute(adapterInput)
     assert.equal(coordinated.identity.canonicalToolId, matrixRun.toolId)
     assert.equal(coordinated.identity.operationId, matrixRun.operationId)
@@ -1960,6 +2152,12 @@ for (const matrixRun of matrixRuns.slice(1)) {
     assert.equal(coordinated.evidence.idempotentAdapterReplay, false)
     assert.equal(coordinated.readiness.privateInternalJobExecutionReady, true)
     assert.equal(coordinated.readiness.productReady, false)
+    if (postCommitRecoveryDispatchCountBeforeAdapter !== undefined) {
+      assert.equal(
+        (await requireDispatchAggregate()).grants.length,
+        postCommitRecoveryDispatchCountBeforeAdapter,
+      )
+    }
     const replay = await jobExecutionAdapter.execute(adapterInput)
     assert.equal(replay.result.artifactId, coordinated.result.artifactId)
     assert.equal(replay.result.sha256, coordinated.result.sha256)
@@ -2010,6 +2208,21 @@ for (const matrixRun of matrixRuns.slice(1)) {
       assert.equal(attemptCostEvidence.persistence.productionDurability, false)
       assert.equal(attemptCostEvidence.persistence.invoiceReconciled, false)
       assertNoCommercialCostKeys(attemptCostEvidence)
+      const recoveryRecord = await readCanonicalPrivateJobCompletionRecovery({
+        localStorageRoot,
+        ownerUserId: userId,
+        workspaceId,
+        projectId: snapshot.projectId,
+        editSessionId: snapshot.editSessionId,
+        jobId: matrixRun.job.id,
+      })
+      assert.ok(recoveryRecord)
+      assert.equal(
+        recoveryRecord.evidence.internalAttemptCostEvidenceHash,
+        attemptCostEvidence.evidenceHash,
+      )
+      assert.equal(recoveryRecord.recovery.runnerReexecuted, false)
+      assert.equal(recoveryRecord.recovery.costEvidenceWritten, false)
     }
     const proofClaim: Awaited<ReturnType<typeof leaseService.claim>>['workerLeaseClaim'] =
       (await leaseService.claim({
@@ -3297,6 +3510,11 @@ console.log(JSON.stringify({
     'started_runner_failure_terminalizes_without_completion_or_commit_authority',
     'failed_attempt_exact_adapter_replay_prevents_same_key_reexecution',
     'new_adapter_key_executes_same_approved_operation_as_attempt_two',
+    'completed_execution_missing_evidence_blocks_without_new_claim_or_dispatch',
+    'completed_execution_recovers_adapter_completion_from_exact_private_evidence_without_rerun',
+    'completed_execution_recovery_is_create_only_and_adapter_replay_safe',
+    'completed_execution_recovery_is_checksum_protected_credential_free_and_tenant_scoped',
+    'completed_deepfilternet_recovery_preserves_exact_attempt_cost_without_reexecution',
     'coordinator_consumes_dispatch_and_runs_actual_confined_d3_operation_under_lease_fence',
     'actual_svg_artifact_qa_and_reconciliation_authority_committed',
     'same_idempotent_coordinator_attempt_resumes_after_completed_execution_fence',

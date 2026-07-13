@@ -30,6 +30,7 @@ import { createCanonicalPrivateBrowserGraphicsExecutionService } from './canonic
 import { createCanonicalPrivateContainerPackagingValidationExecutionService } from './canonical-private-container-packaging-validation-execution-service'
 import { createCanonicalPrivateDeepFilterNetVoiceCleanupExecutionService } from './canonical-private-deepfilternet-voice-cleanup-execution-service'
 import { createCanonicalPrivateFinalCompositionExecutionService } from './canonical-private-final-composition-execution-service'
+import { createCanonicalPrivateJobCompletionRecoveryService } from './canonical-private-job-completion-recovery-service'
 import { createCanonicalPrivateLibassExecutionService } from './canonical-private-libass-execution-service'
 import { createCanonicalPrivateMediaBinaryExecutionService } from './canonical-private-media-binary-execution-service'
 import { createCanonicalPrivateNativeAudioProcessingExecutionService } from './canonical-private-native-audio-processing-execution-service'
@@ -259,6 +260,84 @@ export function createCanonicalPrivateJobExecutionAdapterService(context: Servic
         resolvedProvenTool!.canonicalToolId === 'remotion' &&
         workItem.workItemType === 'render_final_export' &&
         expectedAsset.assetRole === 'final'
+      const completionRecovery = await createCanonicalPrivateJobCompletionRecoveryService(
+        context,
+      ).recoverIfCompleted({
+        workspaceId: body.workspaceId,
+        projectId: body.projectId,
+        editSessionId: body.editSessionId,
+        jobId,
+        approvedWorkItemId: workItem.id,
+        expectedAssetId: expectedAsset.id,
+        ...(expectedAsset.contentType ? { expectedContentType: expectedAsset.contentType } : {}),
+        canonicalToolId,
+        operationId,
+        runnerClass,
+        internalServerJob,
+        finalCompositionExecution,
+        readiness,
+      })
+      if (completionRecovery.status === 'blocked') {
+        const originalError = new ApiError(
+          'JOB_DEPENDENCY_NOT_READY',
+          'Completed canonical execution is waiting for exact recovery evidence.',
+          409,
+          { requiredGate: completionRecovery.requiredGate },
+        )
+        const failure = buildAdapterFailure({
+          body,
+          readiness,
+          workItemId: workItem.id,
+          expectedAssetId: expectedAsset.id,
+          canonicalToolId,
+          operationId,
+          runnerClass,
+          originalError,
+          resolution: {
+            lease: completionRecovery.lease,
+            resolution: 'completed_requires_reconciliation',
+            replayed: true,
+          },
+        })
+        await persistAdapterFailure(context, failureRelativePath, requestHash, failure)
+        throw adapterFailureError(failure, originalError)
+      }
+      if (completionRecovery.status === 'recovered') {
+        try {
+          await persistAdapterCompletion(
+            context,
+            completionRelativePath,
+            requestHash,
+            completionRecovery.response,
+          )
+          await persistIdempotencyResponse(
+            context,
+            responseRelativePath,
+            requestHash,
+            completionRecovery.response,
+          )
+          return completionRecovery.response
+        } catch (error) {
+          const originalError = normalizeUnknownError(error)
+          const failure = buildAdapterFailure({
+            body,
+            readiness,
+            workItemId: workItem.id,
+            expectedAssetId: expectedAsset.id,
+            canonicalToolId,
+            operationId,
+            runnerClass,
+            originalError,
+            resolution: {
+              lease: completionRecovery.lease,
+              resolution: 'completed_requires_reconciliation',
+              replayed: completionRecovery.replayed,
+            },
+          })
+          await persistAdapterFailure(context, failureRelativePath, requestHash, failure)
+          throw adapterFailureError(failure, originalError)
+        }
+      }
       const stageKey = (stage: string) => `job-adapter:${stage}:${sha256(`${idempotencyKey}\u0000${jobId}`).slice(0, 48)}`
       const leaseService = createCanonicalWorkerLeaseAuthorityService(context)
       const claim = (await leaseService.claim({
@@ -416,16 +495,7 @@ export function createCanonicalPrivateJobExecutionAdapterService(context: Servic
         requestHash,
         response: normalized,
       }
-      const persistedCompletion: PersistedAdapterCompletion = {
-        schemaVersion: 'canonical-private-job-execution-adapter-completion-v1',
-        requestHash,
-        response: normalized,
-      }
-      await writePrivateFileCreateOnlyWithinRoot({
-        rootPath: context.env.localStorageRoot,
-        relativePath: completionRelativePath,
-        content: Buffer.from(`${stableAuthorityStringify(persistedCompletion)}\n`, 'utf8'),
-      })
+      await persistAdapterCompletion(context, completionRelativePath, requestHash, normalized)
       await writePrivateFileCreateOnlyWithinRoot({
         rootPath: context.env.localStorageRoot,
         relativePath: responseRelativePath,
@@ -718,14 +788,14 @@ function buildAdapterFailure(input: {
     classifyAdapterExecutionFailure(input.originalError).recoveryPolicy
   const retryDisposition: CanonicalPrivateJobExecutionRetryDisposition =
     completedRequiresReconciliation
-      ? 'manual_reconciliation_required'
+      ? 'server_reconciliation_required'
       : remainingAttempts > 0 &&
           recoveryPolicy === 'same_operation_retry_within_approved_max_attempts'
         ? 'retry_same_approved_operation'
         : 'fallback_or_user_review_required'
   const requiredGate = retryDisposition === 'retry_same_approved_operation'
     ? 'canonical_retry_same_approved_operation'
-    : retryDisposition === 'manual_reconciliation_required'
+    : retryDisposition === 'server_reconciliation_required'
       ? 'canonical_completed_execution_reconciliation_recovery'
       : 'canonical_failure_fallback_user_review_or_new_approval'
   const originalCode = fence.state === 'failed'
@@ -858,7 +928,10 @@ function adapterFailureError(
     'JOB_DEPENDENCY_NOT_READY',
     failure.failure.retryDisposition === 'retry_same_approved_operation'
       ? 'Canonical job attempt failed safely; the same approved operation may be retried within its attempt limit.'
-      : failure.failure.retryDisposition === 'manual_reconciliation_required'
+      : [
+          'manual_reconciliation_required',
+          'server_reconciliation_required',
+        ].includes(failure.failure.retryDisposition)
         ? 'Canonical execution committed but final adapter reconciliation requires recovery.'
         : 'Canonical job failure requires an approved fallback, user review, or new approval.',
     409,
@@ -1121,6 +1194,32 @@ async function persistIdempotencyResponse(
     relativePath,
     content: Buffer.from(`${stableAuthorityStringify(persisted)}\n`, 'utf8'),
   })
+}
+
+async function persistAdapterCompletion(
+  context: ServiceContext,
+  relativePath: string,
+  requestHash: string,
+  response: CanonicalPrivateJobExecutionAdapterResponse,
+): Promise<void> {
+  const persisted: PersistedAdapterCompletion = {
+    schemaVersion: 'canonical-private-job-execution-adapter-completion-v1',
+    requestHash,
+    response,
+  }
+  try {
+    await writePrivateFileCreateOnlyWithinRoot({
+      rootPath: context.env.localStorageRoot,
+      relativePath,
+      content: Buffer.from(`${stableAuthorityStringify(persisted)}\n`, 'utf8'),
+    })
+  } catch (error) {
+    if (!(error instanceof ApiError) || error.code !== 'IDEMPOTENCY_CONFLICT') throw error
+    const existing = await readPersistedCompletion(context, relativePath, requestHash)
+    if (!existing || existing.responseHash !== response.responseHash) {
+      throw new ApiError('IDEMPOTENCY_CONFLICT', 'Canonical job completion changed during persistence.', 409)
+    }
+  }
 }
 
 async function persistAdapterFailure(

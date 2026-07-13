@@ -4,14 +4,20 @@ import type { Readable } from 'node:stream'
 
 import { ApiError } from '../errors/api-error'
 import {
+  createPrivateDirectoryCreateOnlyWithinRoot,
   removePrivateDirectoryTreeWithinRoot,
   writePrivateStreamCreateOnlyWithinRoot,
+  type PrivateDirectoryIdentity,
 } from '../security/private-local-persistence'
 import { sanitizeFileName } from '../storage/storage-paths'
+import {
+  PRIVATE_SOURCE_PROBE_ATTEMPT_ID_PATTERN,
+  PRIVATE_SOURCE_PROBE_STAGE_VERSION,
+  privateSourceProbeAttemptRelativeDirectory,
+} from './private-source-probe-paths'
 
-const SOURCE_PROBE_STAGE_VERSION = 'private-source-probe-v1'
-const SOURCE_PROBE_STAGE_ROOT = 'upload-probes'
 const SHA256_HEX_PATTERN = /^[a-f0-9]{64}$/
+const MAX_ATTEMPT_DIRECTORY_COLLISIONS = 8
 const TERMINAL_INTEGRITY_REASONS = new Set([
   'source_probe_stage_size_invalid',
   'source_probe_stage_checksum_invalid',
@@ -40,25 +46,57 @@ export async function stagePrivateSourceForProbe(input: {
   expectedSizeBytes: number
   expectedChecksumSha256: string
   openStream: () => Promise<Readable>
+  attemptIdFactory?: () => string
 }): Promise<PrivateSourceProbeStage> {
   assertStageInput(input)
 
   const localStorageRoot = input.localStorageRoot.trim()
-  const relativeDirectory = privateSourceProbeAttemptRelativeDirectory(input.scope)
+  const scopeHash = privateSourceProbeScopeHash(input.scope)
+  const ownedAttempt = await createOwnedPrivateSourceProbeAttempt({
+    localStorageRoot,
+    scopeHash,
+    attemptIdFactory: input.attemptIdFactory ?? randomUUID,
+  })
+  const relativeDirectory = ownedAttempt.relativeDirectory
   const relativePath = `${relativeDirectory}/${sanitizeFileName(input.originalFileName)}`
   const cleanupRoot = resolve(localStorageRoot, relativeDirectory)
   let cleanupComplete = false
-  const cleanup = async (): Promise<void> => {
-    if (cleanupComplete) return
+  let cleanupInFlight: Promise<void> | undefined
+  try {
+    registerActivePrivateSourceProbeAttempt(localStorageRoot, relativeDirectory, ownedAttempt.identity)
+  } catch (error) {
+    const normalizedError = normalizeStagingError(error, input.expectedSizeBytes)
     try {
       await removePrivateDirectoryTreeWithinRoot({
         rootPath: localStorageRoot,
         relativePath: relativeDirectory,
+        expectedIdentity: ownedAttempt.identity,
       })
-    } catch (error) {
-      throw stagingError('source_probe_stage_cleanup_failed', undefined, error)
+    } catch (cleanupError) {
+      throw privateSourceProbeStageErrorWithCleanupFailure(normalizedError, cleanupError)
     }
-    cleanupComplete = true
+    throw normalizedError
+  }
+  const cleanup = (): Promise<void> => {
+    if (cleanupComplete) return Promise.resolve()
+    if (cleanupInFlight) return cleanupInFlight
+    const action = (async (): Promise<void> => {
+      try {
+        await removePrivateDirectoryTreeWithinRoot({
+          rootPath: localStorageRoot,
+          relativePath: relativeDirectory,
+          expectedIdentity: ownedAttempt.identity,
+        })
+        cleanupComplete = true
+      } catch (error) {
+        throw stagingError('source_probe_stage_cleanup_failed', undefined, error)
+      } finally {
+        unregisterActivePrivateSourceProbeAttempt(localStorageRoot, relativeDirectory, ownedAttempt.identity)
+        if (!cleanupComplete) cleanupInFlight = undefined
+      }
+    })()
+    cleanupInFlight = action
+    return action
   }
 
   try {
@@ -132,7 +170,7 @@ export function privateSourceProbeStageErrorWithCleanupFailure(
 
 export function privateSourceProbeScopeHash(scope: PrivateSourceProbeStageScope): string {
   const values = [
-    SOURCE_PROBE_STAGE_VERSION,
+    PRIVATE_SOURCE_PROBE_STAGE_VERSION,
     requireScopeValue(scope.ownerUserId, 'ownerUserId'),
     requireScopeValue(scope.workspaceId, 'workspaceId'),
     requireScopeValue(scope.projectId, 'projectId'),
@@ -141,8 +179,20 @@ export function privateSourceProbeScopeHash(scope: PrivateSourceProbeStageScope)
   return createHash('sha256').update(values.join('\u0000')).digest('hex')
 }
 
-function privateSourceProbeAttemptRelativeDirectory(scope: PrivateSourceProbeStageScope): string {
-  return `${SOURCE_PROBE_STAGE_ROOT}/${SOURCE_PROBE_STAGE_VERSION}/${privateSourceProbeScopeHash(scope)}/${randomUUID()}`
+export function isPrivateSourceProbeAttemptActive(input: {
+  localStorageRoot: string
+  relativeDirectory: string
+  identity: PrivateDirectoryIdentity
+}): boolean {
+  const active = activePrivateSourceProbeAttempts.get(privateSourceProbeAttemptKey(
+    input.localStorageRoot,
+    input.relativeDirectory,
+  ))
+  return Boolean(
+    active
+    && active.device === input.identity.device
+    && active.inode === input.identity.inode,
+  )
 }
 
 function assertStageInput(input: {
@@ -201,4 +251,73 @@ function normalizeStagingError(error: unknown, expectedSizeBytes: number): ApiEr
 function stagingReason(error: unknown): string {
   if (!isPrivateSourceProbeStagingError(error)) return 'source_probe_stage_cleanup_failed'
   return (error.details as { reason: string }).reason
+}
+
+const activePrivateSourceProbeAttempts = new Map<string, PrivateDirectoryIdentity>()
+
+async function createOwnedPrivateSourceProbeAttempt(input: {
+  localStorageRoot: string
+  scopeHash: string
+  attemptIdFactory: () => string
+}): Promise<{ relativeDirectory: string; identity: PrivateDirectoryIdentity }> {
+  for (let attempt = 0; attempt < MAX_ATTEMPT_DIRECTORY_COLLISIONS; attempt += 1) {
+    const attemptId = input.attemptIdFactory()
+    if (!PRIVATE_SOURCE_PROBE_ATTEMPT_ID_PATTERN.test(attemptId)) {
+      throw stagingError('source_probe_stage_attempt_id_invalid')
+    }
+    const relativeDirectory = privateSourceProbeAttemptRelativeDirectory(input.scopeHash, attemptId)
+    try {
+      const created = await createPrivateDirectoryCreateOnlyWithinRoot({
+        rootPath: input.localStorageRoot,
+        relativePath: relativeDirectory,
+      })
+      return { relativeDirectory, identity: created.identity }
+    } catch (error) {
+      if (isPrivateDirectoryCreateCollision(error)) continue
+      throw stagingError('source_probe_stage_failed', undefined, error)
+    }
+  }
+  throw stagingError('source_probe_stage_attempt_collision_limit')
+}
+
+function registerActivePrivateSourceProbeAttempt(
+  localStorageRoot: string,
+  relativeDirectory: string,
+  identity: PrivateDirectoryIdentity,
+): void {
+  const key = privateSourceProbeAttemptKey(localStorageRoot, relativeDirectory)
+  if (activePrivateSourceProbeAttempts.has(key)) {
+    throw stagingError('source_probe_stage_active_attempt_collision')
+  }
+  activePrivateSourceProbeAttempts.set(key, identity)
+}
+
+function unregisterActivePrivateSourceProbeAttempt(
+  localStorageRoot: string,
+  relativeDirectory: string,
+  identity: PrivateDirectoryIdentity,
+): void {
+  const key = privateSourceProbeAttemptKey(localStorageRoot, relativeDirectory)
+  const active = activePrivateSourceProbeAttempts.get(key)
+  if (active?.device === identity.device && active.inode === identity.inode) {
+    activePrivateSourceProbeAttempts.delete(key)
+  }
+}
+
+function privateSourceProbeAttemptKey(localStorageRoot: string, relativeDirectory: string): string {
+  return createHash('sha256').update([
+    resolve(localStorageRoot),
+    relativeDirectory,
+  ].join('\u0000')).digest('hex')
+}
+
+function isPrivateDirectoryCreateCollision(error: unknown): boolean {
+  if (!(error instanceof ApiError) || error.code !== 'IDEMPOTENCY_CONFLICT') return false
+  const details = error.details
+  return Boolean(
+    details
+    && typeof details === 'object'
+    && 'reason' in details
+    && details.reason === 'private_directory_create_only_collision',
+  )
 }

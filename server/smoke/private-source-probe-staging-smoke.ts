@@ -13,6 +13,8 @@ import {
   stagePrivateSourceForProbe,
   type PrivateSourceProbeStageScope,
 } from '../media/private-source-probe-staging'
+import { privateSourceProbeAttemptRelativeDirectory } from '../media/private-source-probe-paths'
+import { createPrivateDirectoryCreateOnlyWithinRoot } from '../security/private-local-persistence'
 
 const root = await mkdtemp(path.join(os.tmpdir(), 'reeditpro-source-probe-stage-'))
 const outsideRoot = await mkdtemp(path.join(os.tmpdir(), 'reeditpro-source-probe-outside-'))
@@ -64,7 +66,10 @@ try {
   assert.notEqual(retry.inputPath, first.inputPath, 'A retry must use a distinct create-only attempt path.')
   assert.deepEqual(await readFile(first.inputPath), bytes, 'A retry must not replace an earlier staged attempt.')
   assert.deepEqual(await readFile(retry.inputPath), bytes)
-  await retry.cleanup()
+  const retryCleanupFirst = retry.cleanup()
+  const retryCleanupSecond = retry.cleanup()
+  assert.strictEqual(retryCleanupFirst, retryCleanupSecond, 'Concurrent cleanup callers must share one removal promise.')
+  await Promise.all([retryCleanupFirst, retryCleanupSecond])
   await retry.cleanup()
   assert.equal(await pathExists(retry.inputPath), false, 'Probe cleanup must be idempotent and remove retry bytes.')
   assert.equal(await pathExists(first.inputPath), true, 'Cleaning a retry must not remove an independent active attempt.')
@@ -72,6 +77,101 @@ try {
   await first.cleanup()
   assert.equal(await pathExists(first.inputPath), false, 'Probe cleanup must remove staged source bytes.')
   assert.deepEqual(await readdir(scopeDirectory), [], 'Successful probe cleanup must leave no attempt directories.')
+
+  const collidingAttemptId = '00000000-0000-4000-8000-000000000001'
+  const replacementAttemptId = '00000000-0000-4000-8000-000000000002'
+  const collidingRelativeDirectory = privateSourceProbeAttemptRelativeDirectory(
+    privateSourceProbeScopeHash(scope),
+    collidingAttemptId,
+  )
+  const collidingAttempt = await createPrivateDirectoryCreateOnlyWithinRoot({
+    rootPath: root,
+    relativePath: collidingRelativeDirectory,
+  })
+  const collidingSentinel = path.join(collidingAttempt.absolutePath, 'preexisting-sentinel.txt')
+  await writeFile(collidingSentinel, 'preexisting-attempt-must-not-be-adopted')
+  const attemptIds = [collidingAttemptId, replacementAttemptId]
+  const collisionSafeStage = await stagePrivateSourceForProbe({
+    localStorageRoot: root,
+    scope,
+    originalFileName: 'collision-safe.mp4',
+    expectedSizeBytes: bytes.byteLength,
+    expectedChecksumSha256: checksumSha256,
+    openStream: async () => Readable.from([bytes]),
+    attemptIdFactory: () => attemptIds.shift() ?? replacementAttemptId,
+  })
+  assert.equal(path.basename(path.dirname(collisionSafeStage.inputPath)), replacementAttemptId)
+  assert.equal(await readFile(collidingSentinel, 'utf8'), 'preexisting-attempt-must-not-be-adopted')
+  let collisionLimitStreamOpened = false
+  await assertStageRejects(
+    () => stagePrivateSourceForProbe({
+      localStorageRoot: root,
+      scope,
+      originalFileName: 'collision-limit.mp4',
+      expectedSizeBytes: bytes.byteLength,
+      expectedChecksumSha256: checksumSha256,
+      openStream: async () => {
+        collisionLimitStreamOpened = true
+        return Readable.from([bytes])
+      },
+      attemptIdFactory: () => collidingAttemptId,
+    }),
+    'source_probe_stage_attempt_collision_limit',
+  )
+  assert.equal(collisionLimitStreamOpened, false, 'Collision exhaustion must not open source media.')
+  await assertStageRejects(
+    () => stagePrivateSourceForProbe({
+      localStorageRoot: root,
+      scope,
+      originalFileName: 'invalid-attempt-id.mp4',
+      expectedSizeBytes: bytes.byteLength,
+      expectedChecksumSha256: checksumSha256,
+      openStream: async () => Readable.from([bytes]),
+      attemptIdFactory: () => 'not-a-canonical-v4-uuid',
+    }),
+    'source_probe_stage_attempt_id_invalid',
+  )
+  await collisionSafeStage.cleanup()
+  assert.equal(await readFile(collidingSentinel, 'utf8'), 'preexisting-attempt-must-not-be-adopted')
+  await rm(collidingAttempt.absolutePath, { recursive: true })
+
+  const activeCollisionAttemptId = '00000000-0000-4000-8000-000000000003'
+  const activeCollisionStage = await stagePrivateSourceForProbe({
+    localStorageRoot: root,
+    scope,
+    originalFileName: 'active-path-collision.mp4',
+    expectedSizeBytes: bytes.byteLength,
+    expectedChecksumSha256: checksumSha256,
+    openStream: async () => Readable.from([bytes]),
+    attemptIdFactory: () => activeCollisionAttemptId,
+  })
+  const activeCollisionDirectory = path.dirname(activeCollisionStage.inputPath)
+  const displacedActiveCollisionDirectory = `${activeCollisionDirectory}.owned`
+  await rename(activeCollisionDirectory, displacedActiveCollisionDirectory)
+  let activeCollisionStreamOpened = false
+  await assertStageRejects(
+    () => stagePrivateSourceForProbe({
+      localStorageRoot: root,
+      scope,
+      originalFileName: 'active-path-recreated.mp4',
+      expectedSizeBytes: bytes.byteLength,
+      expectedChecksumSha256: checksumSha256,
+      openStream: async () => {
+        activeCollisionStreamOpened = true
+        return Readable.from([bytes])
+      },
+      attemptIdFactory: () => activeCollisionAttemptId,
+    }),
+    'source_probe_stage_active_attempt_collision',
+  )
+  assert.equal(activeCollisionStreamOpened, false)
+  assert.equal(
+    await pathExists(activeCollisionDirectory),
+    false,
+    'A recreated path refused by the active registry must clean only its newly acquired identity.',
+  )
+  await rename(displacedActiveCollisionDirectory, activeCollisionDirectory)
+  await activeCollisionStage.cleanup()
 
   await assertStageRejects(
     () => stagePrivateSourceForProbe({
@@ -157,6 +257,29 @@ try {
   await rename(substitutedOriginalScopeDirectory, substitutedScopeDirectory)
   await substitutedStage.cleanup()
 
+  const identityBoundStage = await stagePrivateSourceForProbe({
+    localStorageRoot: root,
+    scope,
+    originalFileName: 'attempt-identity.mp4',
+    expectedSizeBytes: bytes.byteLength,
+    expectedChecksumSha256: checksumSha256,
+    openStream: async () => Readable.from([bytes]),
+  })
+  const identityBoundAttemptDirectory = path.dirname(identityBoundStage.inputPath)
+  const originalIdentityBoundDirectory = `${identityBoundAttemptDirectory}.owned`
+  await rename(identityBoundAttemptDirectory, originalIdentityBoundDirectory)
+  await mkdir(identityBoundAttemptDirectory, { mode: 0o700 })
+  const replacementIdentitySentinel = path.join(identityBoundAttemptDirectory, 'replacement-sentinel.txt')
+  await writeFile(replacementIdentitySentinel, 'replacement-attempt-must-not-be-removed')
+  await assertStageRejects(
+    () => identityBoundStage.cleanup(),
+    'source_probe_stage_cleanup_failed',
+  )
+  assert.equal(await readFile(replacementIdentitySentinel, 'utf8'), 'replacement-attempt-must-not-be-removed')
+  await rm(identityBoundAttemptDirectory, { recursive: true })
+  await rename(originalIdentityBoundDirectory, identityBoundAttemptDirectory)
+  await identityBoundStage.cleanup()
+
   const terminalIntegrityError = await captureStageError(() => stagePrivateSourceForProbe({
     localStorageRoot: root,
     scope,
@@ -201,7 +324,7 @@ try {
       expectedChecksumSha256: checksumSha256,
       openStream: async () => Readable.from([bytes]),
     }),
-    'source_probe_stage_cleanup_failed',
+    'source_probe_stage_failed',
   )
   assert.equal(await readFile(outsideSentinel, 'utf8'), 'outside-must-remain-unchanged')
   assert.deepEqual(
@@ -219,12 +342,17 @@ try {
       'source_filename_sanitized',
       'private_0700_directory_and_0600_file_modes',
       'create_only_retry_uses_independent_attempt',
+      'exclusive_attempt_collision_is_never_adopted_or_cleaned',
+      'collision_limit_and_invalid_attempt_id_fail_before_stream_open',
+      'active_registry_collision_cleans_only_the_newly_acquired_identity',
+      'concurrent_cleanup_callers_share_one_promise',
       'idempotent_cleanup_removes_only_owned_attempt',
       'size_mismatch_fails_closed_and_cleans_up',
       'checksum_mismatch_fails_closed_and_cleans_up',
       'byte_ceiling_fails_closed_and_cleans_up',
       'stream_open_failure_leaves_no_attempt',
       'post_stage_ancestor_symlink_substitution_refused_without_external_deletion',
+      'attempt_identity_substitution_refused_without_replacement_deletion',
       'terminal_integrity_reason_survives_cleanup_failure',
       'symlinked_parent_refused_without_external_mutation',
     ],

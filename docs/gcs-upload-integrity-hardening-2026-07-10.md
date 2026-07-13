@@ -38,7 +38,7 @@ Before a source or reference upload can become `ready`, the backend:
 7. re-reads the exact generation and requires the same ETag;
 8. records checksum provenance as `server_computed_bytes`.
 
-For upload-time FFprobe metadata, the service then reopens that exact generation/ETag through the adapter and materializes it through the shared private create-only staging boundary. The staging writer enforces the finalized size as its byte ceiling, recomputes SHA-256, uses `0700` directories plus a `0600` file, and requires root-confined attempt removal before finalization returns. A short, oversized, or same-length wrong-hash stream cannot be downgraded to `probeStatus: unavailable`; it prevents finalization, fails the intent, creates no ready authority, and attempts exact-generation cleanup. A transient stream-open or local-disk failure prevents the current finalization without deleting the verified object, so a clean retry can reopen the same exact identity. Cleanup failure remains blocking, retains the original terminal classification, records cleanup evidence, and may require private orphan-attempt reconciliation.
+For upload-time FFprobe metadata, the service then reopens that exact generation/ETag through the adapter and materializes it through the shared private create-only staging boundary. The staging writer enforces the finalized size as its byte ceiling, recomputes SHA-256, uses `0700` directories plus a `0600` file, owns a newly created directory identity, and requires identity-bound root-confined attempt removal before finalization returns. A short, oversized, or same-length wrong-hash stream cannot be downgraded to `probeStatus: unavailable`; it prevents finalization, fails the intent, creates no ready authority, and attempts exact-generation cleanup. A transient stream-open or local-disk failure prevents the current finalization without deleting the verified object, so a clean retry can reopen the same exact identity. Cleanup failure remains blocking, retains the original terminal classification, records cleanup evidence, and may require the bounded local/private orphan reconciler. That reconciler applies only to stopped-request exclusive local storage; it does not clean GCS objects.
 
 `upload-service.ts` refuses to finalize source/reference media unless `integrityVerified` is true and `checksumSource` is `server_computed_bytes`. A syntactically valid client checksum string is therefore insufficient.
 
@@ -72,6 +72,7 @@ Run:
 ```bash
 npm run smoke:gcs-upload-integrity-security
 npm run smoke:private-source-probe-staging
+npm run smoke:private-source-probe-orphan-reconciliation
 npm run smoke:upload
 npm run smoke:upload-boundary-security
 npm run smoke:gcs-upload-to-private-internal-edit-route
@@ -94,7 +95,7 @@ The focused GCS integrity smoke proves with a deterministic provider double:
 
 The upload service smoke separately proves a forged checksum metadata value cannot finalize without trusted byte-evidence provenance and triggers cleanup.
 
-The private staging and upload service smokes additionally prove exact size/hash verification after reopening, terminal-versus-retryable failure classification, exact-generation cleanup for contradictions, no deletion for operational failure, independent retry attempts, restrictive modes, normal cleanup, pre/post-stage ancestor-symlink refusal without external mutation, and terminal-reason preservation when cleanup fails. The GCS upload route smoke proves upload-time FFprobe reads receive the finalized generation plus ETag and leave no staged source files on the successful probe path.
+The private staging, orphan-reconciliation, and upload service smokes additionally prove exact size/hash verification after reopening, terminal-versus-retryable failure classification, exact-generation cleanup for contradictions, no deletion for operational failure, independent create-only attempt ownership, restrictive modes, identity-bound normal cleanup, ancestor/attempt substitution refusal without external mutation, terminal-reason preservation when cleanup fails, and bounded stale local-attempt recovery. The GCS upload route smoke proves upload-time FFprobe reads receive the finalized generation plus ETag and leave no staged source files on the successful probe path.
 
 ## Deployment constraints still open
 

@@ -25,6 +25,12 @@ Upload finalization no longer hands FFprobe the original local object path and n
 
 Directories use `0700`, staged files use `0600`, raw tenant/upload identifiers do not appear in the staging path, retries use independent create-only attempts, and pre-stage or post-stage ancestor symlink substitution fails without mutating its external destination. Size/checksum contradictions are terminal integrity failures: no media/storage authority is created, the upload intent is failed, and GCS exact-generation cleanup is attempted. Operational stream/disk failures also create no ready authority but leave the upload intent retryable and do not delete valid provider media. An FFprobe-only timeout, missing binary, or unsupported-media parse remains an honest nonblocking `probeStatus: unavailable` after byte integrity has already passed. Cleanup failure blocks finalization and preserves the original terminal classification plus cleanup evidence; it may leave a private orphan attempt requiring reconciliation.
 
+### Private probe attempts have exclusive ownership and bounded local recovery
+
+Every staging attempt now acquires a new canonical UUID directory with create-only semantics and records its filesystem device/inode identity. A pre-existing directory is never adopted, collision retries are bounded, concurrent cleanup callers share one promise, and cleanup removes only the exact directory identity originally created by that attempt. An ancestor or attempt-path substitution therefore fails closed without deleting the replacement.
+
+The local/private maintenance reconciler defaults to inspection only. It scans only the versioned source-probe namespace, enforces a minimum 24-hour orphan age plus hard scope/attempt/file/delete limits, retains process-local active attempts and recent/future-dated content, reports aggregate counts only, and refuses malformed names, symlinks, special entries, nested directories, or identity changes. Deletion requires the explicit single-process maintenance authority asserting both stopped request serving and exclusive ownership of the local storage root. It is serialized only inside one process and is intentionally marked unsafe for shared/distributed storage and not production-ready. See `docs/private-source-probe-orphan-reconciliation-2026-07-13.md`.
+
 ### Production uploads do not traverse an Express raw-body path
 
 The compatibility endpoint `PUT /v1/upload-intents/:uploadIntentId/local-object` is now restricted to non-production `local`/`mock` runtimes using local storage. Production and non-local runtimes fail closed before the raw-body parser and direct the client to the temporary signed/direct object-storage target returned by the upload-intent endpoint.
@@ -92,6 +98,7 @@ Run it with:
 ```sh
 npx tsx server/smoke/upload-boundary-security-smoke.ts
 npm run smoke:private-source-probe-staging
+npm run smoke:private-source-probe-orphan-reconciliation
 npm run smoke:upload
 npm run smoke:gcs-upload-to-private-internal-edit-route
 npm run smoke:private-internal-edit-upload-e2e
@@ -107,6 +114,6 @@ npm run smoke:private-internal-edit-upload-e2e
 - The source contract now rejects signed-PUT replay with `ifGenerationMatch=0`, but a real deployed GCS replay/overwrite integration test is still required.
 - Orphaned uploads that reach GCS but never finalize still require a reviewed lifecycle/reconciliation job.
 - FFprobe still consumes a private filesystem path. Malware/content scanning, codec/parser isolation, subprocess sandboxing, resource controls for adversarial media, and deployed representative-media evidence remain required before real-user promotion.
-- Abnormal process death or a cleanup refusal can leave a private probe attempt. A bounded age-based orphan reconciler remains required; the no-follow source boundary narrows but does not eliminate hostile same-UID pathname races without a future dirfd/unlinkat worker sandbox.
+- Abnormal process death or cleanup refusal can still leave a private probe attempt. The bounded local reconciler covers stopped-request, exclusive-root, single-process internal maintenance only; deployed retention scheduling, cross-process/distributed locking, shared-storage semantics, observability, and a dirfd/unlinkat sandbox against hostile same-UID pathname races remain required.
 
 No SQL, Supabase command, remote object operation, provider call, deployment, or credential change was performed in this hardening pass.

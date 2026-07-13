@@ -14,6 +14,22 @@ type PrivateWriteInput = {
   relativePath: string
 }
 
+export interface PrivateDirectoryIdentity {
+  device: number
+  inode: number
+}
+
+export interface PrivateRegularDirectoryEntry {
+  name: string
+  identity: PrivateDirectoryIdentity
+}
+
+export interface PrivateFlatDirectoryInspection {
+  identity: PrivateDirectoryIdentity
+  entryCount: number
+  newestActivityAtMs: number
+}
+
 export async function writePrivateTextFileAtomicWithinRoot(
   input: PrivateWriteInput & { content: string },
 ): Promise<string> {
@@ -265,6 +281,61 @@ export async function ensurePrivateDirectoryWithinRoot(input: {
 }
 
 /**
+ * Creates one owned private directory exactly once and returns the directory
+ * identity that every later cleanup must present. Existing paths are never
+ * adopted. A future dirfd-based worker sandbox is still required to close the
+ * hostile same-UID pathname race that Node's path APIs cannot eliminate.
+ */
+export async function createPrivateDirectoryCreateOnlyWithinRoot(input: {
+  rootPath: string
+  relativePath: string
+}): Promise<{ absolutePath: string; identity: PrivateDirectoryIdentity }> {
+  const directoryPath = resolvePrivateDirectoryPath(input.rootPath, input.relativePath)
+  const parentPath = dirname(directoryPath)
+  await ensurePrivateParentDirectory(input.rootPath, parentPath)
+
+  try {
+    await mkdir(directoryPath, { mode: PRIVATE_DIRECTORY_MODE })
+  } catch (error) {
+    if (isNodeErrorWithCode(error, 'EEXIST')) {
+      throw new ApiError(
+        'IDEMPOTENCY_CONFLICT',
+        'Private directory create-only target already exists.',
+        409,
+        { reason: 'private_directory_create_only_collision' },
+      )
+    }
+    throw error
+  }
+
+  const createdStat = await lstat(directoryPath)
+  if (createdStat.isSymbolicLink() || !createdStat.isDirectory()) {
+    throw unsafePrivatePersistencePath('private_created_directory_not_regular')
+  }
+  const createdIdentity = privateDirectoryIdentity(createdStat)
+  const directoryHandle = await open(directoryPath, constants.O_RDONLY | constants.O_NOFOLLOW)
+  try {
+    const openedStat = await directoryHandle.stat()
+    if (!openedStat.isDirectory() || !samePrivateDirectoryIdentity(createdIdentity, openedStat)) {
+      throw unsafePrivatePersistencePath('private_created_directory_identity_changed')
+    }
+    await directoryHandle.chmod(PRIVATE_DIRECTORY_MODE)
+    await assertPrivateDirectoryChain(input.rootPath, parentPath)
+    const latestStat = await lstat(directoryPath)
+    if (
+      latestStat.isSymbolicLink()
+      || !latestStat.isDirectory()
+      || !samePrivateDirectoryIdentity(createdIdentity, latestStat)
+    ) {
+      throw unsafePrivatePersistencePath('private_created_directory_identity_changed')
+    }
+    return { absolutePath: directoryPath, identity: createdIdentity }
+  } finally {
+    await directoryHandle.close().catch(() => undefined)
+  }
+}
+
+/**
  * Removes one owned private directory tree after validating every ancestor and
  * the opened target inode without following symbolic links. Keeping the target
  * directory handle open and rechecking its inode immediately before removal
@@ -275,6 +346,7 @@ export async function ensurePrivateDirectoryWithinRoot(input: {
 export async function removePrivateDirectoryTreeWithinRoot(input: {
   rootPath: string
   relativePath: string
+  expectedIdentity?: PrivateDirectoryIdentity
 }): Promise<{ removed: boolean }> {
   const directoryPath = resolvePrivateDirectoryPath(input.rootPath, input.relativePath)
   const parentPath = dirname(directoryPath)
@@ -291,12 +363,18 @@ export async function removePrivateDirectoryTreeWithinRoot(input: {
   if (directoryStat.isSymbolicLink() || !directoryStat.isDirectory()) {
     throw unsafePrivatePersistencePath('private_cleanup_directory_not_regular')
   }
+  if (input.expectedIdentity && !samePrivateDirectoryIdentity(input.expectedIdentity, directoryStat)) {
+    throw unsafePrivatePersistencePath('private_cleanup_directory_identity_mismatch')
+  }
 
   const directoryHandle = await open(directoryPath, constants.O_RDONLY | constants.O_NOFOLLOW)
   try {
     const openedStat = await directoryHandle.stat()
     if (!openedStat.isDirectory()) {
       throw unsafePrivatePersistencePath('private_cleanup_directory_not_regular')
+    }
+    if (input.expectedIdentity && !samePrivateDirectoryIdentity(input.expectedIdentity, openedStat)) {
+      throw unsafePrivatePersistencePath('private_cleanup_directory_identity_mismatch')
     }
     await directoryHandle.chmod(PRIVATE_DIRECTORY_MODE)
     await assertPrivateDirectoryChain(input.rootPath, parentPath, false, true)
@@ -306,11 +384,181 @@ export async function removePrivateDirectoryTreeWithinRoot(input: {
       || !latestStat.isDirectory()
       || latestStat.dev !== openedStat.dev
       || latestStat.ino !== openedStat.ino
+      || (input.expectedIdentity && !samePrivateDirectoryIdentity(input.expectedIdentity, latestStat))
     ) {
       throw unsafePrivatePersistencePath('private_cleanup_directory_identity_changed')
     }
     await rm(directoryPath, { force: false, recursive: true })
     return { removed: true }
+  } finally {
+    await directoryHandle.close().catch(() => undefined)
+  }
+}
+
+/**
+ * Lists only regular child directories from one private directory without
+ * creating or hardening the inspected tree. Files, symlinks, special entries,
+ * over-limit directories, or a directory changed during inspection fail
+ * closed. Returned identities can be used for later exact cleanup checks.
+ */
+export async function listPrivateRegularDirectoriesWithinRoot(input: {
+  rootPath: string
+  relativeDirectoryPath: string
+  maximumEntries: number
+  expectedIdentity?: PrivateDirectoryIdentity
+}): Promise<PrivateRegularDirectoryEntry[]> {
+  validatePrivateInspectionLimit(input.maximumEntries)
+  const directoryPath = resolvePrivateDirectoryPath(input.rootPath, input.relativeDirectoryPath)
+  const directoryExists = await assertPrivateDirectoryChain(input.rootPath, directoryPath, true)
+  if (!directoryExists) return []
+
+  const directoryHandle = await open(directoryPath, constants.O_RDONLY | constants.O_NOFOLLOW)
+  try {
+    const openedStat = await directoryHandle.stat()
+    if (!openedStat.isDirectory()) throw unsafePrivatePersistencePath('private_inspection_directory_not_regular')
+    if (input.expectedIdentity && !samePrivateDirectoryIdentity(input.expectedIdentity, openedStat)) {
+      throw unsafePrivatePersistencePath('private_inspection_directory_identity_changed')
+    }
+    const entries = await readdir(directoryPath, { withFileTypes: true })
+    if (entries.length > input.maximumEntries) {
+      throw unsafePrivatePersistencePath('private_inspection_entry_limit_exceeded')
+    }
+    const results: PrivateRegularDirectoryEntry[] = []
+    for (const entry of entries) {
+      if (basename(entry.name) !== entry.name || entry.name === '.' || entry.name === '..') {
+        throw unsafePrivatePersistencePath('private_inspection_entry_name_invalid')
+      }
+      const entryPath = resolve(directoryPath, entry.name)
+      const entryStat = await lstat(entryPath)
+      if (entryStat.isSymbolicLink() || !entryStat.isDirectory()) {
+        throw unsafePrivatePersistencePath('private_inspection_entry_not_regular_directory')
+      }
+      const entryHandle = await open(entryPath, constants.O_RDONLY | constants.O_NOFOLLOW)
+      try {
+        const openedEntryStat = await entryHandle.stat()
+        if (!openedEntryStat.isDirectory() || openedEntryStat.dev !== entryStat.dev || openedEntryStat.ino !== entryStat.ino) {
+          throw unsafePrivatePersistencePath('private_inspection_entry_identity_changed')
+        }
+        results.push({ name: entry.name, identity: privateDirectoryIdentity(openedEntryStat) })
+      } finally {
+        await entryHandle.close().catch(() => undefined)
+      }
+    }
+    await assertPrivateDirectoryChain(input.rootPath, directoryPath)
+    const latestStat = await lstat(directoryPath)
+    if (
+      latestStat.isSymbolicLink()
+      || !latestStat.isDirectory()
+      || latestStat.dev !== openedStat.dev
+      || latestStat.ino !== openedStat.ino
+      || (input.expectedIdentity && !samePrivateDirectoryIdentity(input.expectedIdentity, latestStat))
+      || latestStat.mtimeMs !== openedStat.mtimeMs
+      || latestStat.ctimeMs !== openedStat.ctimeMs
+    ) {
+      throw unsafePrivatePersistencePath('private_inspection_directory_changed')
+    }
+    return results.sort((left, right) => left.name.localeCompare(right.name))
+  } finally {
+    await directoryHandle.close().catch(() => undefined)
+  }
+}
+
+/**
+ * Inspects one flat private attempt directory. Only regular files are allowed;
+ * nested directories, symlinks, and special entries fail closed. The newest
+ * mtime/ctime/birthtime across the directory and every file is returned for a
+ * conservative age decision.
+ */
+export async function inspectPrivateFlatDirectoryWithinRoot(input: {
+  rootPath: string
+  relativePath: string
+  maximumEntries: number
+  expectedIdentity?: PrivateDirectoryIdentity
+}): Promise<PrivateFlatDirectoryInspection | undefined> {
+  validatePrivateInspectionLimit(input.maximumEntries)
+  const directoryPath = resolvePrivateDirectoryPath(input.rootPath, input.relativePath)
+  const parentPath = dirname(directoryPath)
+  const parentExists = await assertPrivateDirectoryChain(input.rootPath, parentPath, true)
+  if (!parentExists) return undefined
+
+  let directoryStat: Awaited<ReturnType<typeof lstat>>
+  try {
+    directoryStat = await lstat(directoryPath)
+  } catch (error) {
+    if (isNodeErrorWithCode(error, 'ENOENT')) return undefined
+    throw error
+  }
+  if (directoryStat.isSymbolicLink() || !directoryStat.isDirectory()) {
+    throw unsafePrivatePersistencePath('private_inspection_directory_not_regular')
+  }
+  if (input.expectedIdentity && !samePrivateDirectoryIdentity(input.expectedIdentity, directoryStat)) {
+    throw unsafePrivatePersistencePath('private_inspection_directory_identity_changed')
+  }
+
+  const directoryHandle = await open(directoryPath, constants.O_RDONLY | constants.O_NOFOLLOW)
+  try {
+    const openedStat = await directoryHandle.stat()
+    if (
+      !openedStat.isDirectory()
+      || openedStat.dev !== directoryStat.dev
+      || openedStat.ino !== directoryStat.ino
+      || (input.expectedIdentity && !samePrivateDirectoryIdentity(input.expectedIdentity, openedStat))
+    ) {
+      throw unsafePrivatePersistencePath('private_inspection_directory_identity_changed')
+    }
+    const entries = await readdir(directoryPath, { withFileTypes: true })
+    if (entries.length > input.maximumEntries) {
+      throw unsafePrivatePersistencePath('private_inspection_entry_limit_exceeded')
+    }
+    let newestActivityAtMs = newestPrivateFilesystemActivityAtMs(openedStat)
+    for (const entry of entries) {
+      if (basename(entry.name) !== entry.name || entry.name === '.' || entry.name === '..') {
+        throw unsafePrivatePersistencePath('private_inspection_entry_name_invalid')
+      }
+      const entryPath = resolve(directoryPath, entry.name)
+      const entryStat = await lstat(entryPath)
+      if (entryStat.isSymbolicLink() || !entryStat.isFile()) {
+        throw unsafePrivatePersistencePath('private_inspection_entry_not_regular_file')
+      }
+      const entryHandle = await open(entryPath, constants.O_RDONLY | constants.O_NOFOLLOW)
+      try {
+        const openedEntryStat = await entryHandle.stat()
+        if (!openedEntryStat.isFile() || openedEntryStat.dev !== entryStat.dev || openedEntryStat.ino !== entryStat.ino) {
+          throw unsafePrivatePersistencePath('private_inspection_entry_identity_changed')
+        }
+        const latestEntryStat = await entryHandle.stat()
+        if (
+          latestEntryStat.dev !== openedEntryStat.dev
+          || latestEntryStat.ino !== openedEntryStat.ino
+          || latestEntryStat.size !== openedEntryStat.size
+          || latestEntryStat.mtimeMs !== openedEntryStat.mtimeMs
+          || latestEntryStat.ctimeMs !== openedEntryStat.ctimeMs
+        ) {
+          throw unsafePrivatePersistencePath('private_inspection_entry_changed')
+        }
+        newestActivityAtMs = Math.max(newestActivityAtMs, newestPrivateFilesystemActivityAtMs(latestEntryStat))
+      } finally {
+        await entryHandle.close().catch(() => undefined)
+      }
+    }
+    await assertPrivateDirectoryChain(input.rootPath, parentPath)
+    const latestStat = await lstat(directoryPath)
+    if (
+      latestStat.isSymbolicLink()
+      || !latestStat.isDirectory()
+      || latestStat.dev !== openedStat.dev
+      || latestStat.ino !== openedStat.ino
+      || (input.expectedIdentity && !samePrivateDirectoryIdentity(input.expectedIdentity, latestStat))
+      || latestStat.mtimeMs !== openedStat.mtimeMs
+      || latestStat.ctimeMs !== openedStat.ctimeMs
+    ) {
+      throw unsafePrivatePersistencePath('private_inspection_directory_changed')
+    }
+    return {
+      identity: privateDirectoryIdentity(openedStat),
+      entryCount: entries.length,
+      newestActivityAtMs,
+    }
   } finally {
     await directoryHandle.close().catch(() => undefined)
   }
@@ -571,6 +819,31 @@ function privateTemporaryPath(targetPath: string): string {
 
 function privateCreateLockPath(targetPath: string): string {
   return resolve(dirname(targetPath), `.${basename(targetPath)}.create.lock`)
+}
+
+function privateDirectoryIdentity(stat: { dev: number; ino: number }): PrivateDirectoryIdentity {
+  return { device: stat.dev, inode: stat.ino }
+}
+
+function samePrivateDirectoryIdentity(
+  identity: PrivateDirectoryIdentity,
+  stat: { dev: number; ino: number },
+): boolean {
+  return identity.device === stat.dev && identity.inode === stat.ino
+}
+
+function newestPrivateFilesystemActivityAtMs(stat: {
+  mtimeMs: number
+  ctimeMs: number
+  birthtimeMs: number
+}): number {
+  return Math.max(stat.mtimeMs, stat.ctimeMs, stat.birthtimeMs)
+}
+
+function validatePrivateInspectionLimit(value: number): void {
+  if (!Number.isSafeInteger(value) || value <= 0 || value > 10_000) {
+    throw unsafePrivatePersistencePath('private_inspection_limit_invalid')
+  }
 }
 
 function unsafePrivatePersistencePath(reason: string): ApiError {

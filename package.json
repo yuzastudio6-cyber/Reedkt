@@ -29,6 +29,7 @@
     "smoke:approved-snapshot": "tsx server/smoke/approved-snapshot-smoke.ts",
     "smoke:edit-planning-authority": "tsx server/smoke/edit-planning-authority-smoke.ts",
     "smoke:canonical-edit-journey-client": "tsx server/smoke/canonical-edit-journey-frontend-client-smoke.ts",
+    "smoke:canonical-planning-publication-client": "tsx server/smoke/canonical-planning-publication-frontend-client-smoke.ts",
     "smoke:backend-local-journey-authority": "tsx server/smoke/backend-local-journey-authority-smoke.ts",
     "smoke:canonical-tool-operation-package": "tsx server/smoke/canonical-tool-operation-package-contract-smoke.ts",
     "smoke:planning-input-safety": "tsx server/smoke/planning-input-safety-smoke.ts",

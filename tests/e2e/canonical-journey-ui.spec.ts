@@ -9,7 +9,13 @@ import {
 } from '../../src/lib/local-projects'
 import { createProjectPersistenceScopeFingerprint } from '../../src/lib/project-persistence-scope'
 import { expectFloatingComposerAligned, expectNoHorizontalOverflow } from './helpers/layout'
-import { expectNoGenerationBeforeApproval, expectNoInternalToolNamesInEditor, gotoRoute } from './helpers/routes'
+import {
+  clickWhenReady,
+  completeRequiredEditorSetupBeforeFootagePrep,
+  expectNoGenerationBeforeApproval,
+  expectNoInternalToolNamesInEditor,
+  gotoRoute,
+} from './helpers/routes'
 
 const scope = {
   authMode: 'local_test' as const,
@@ -18,6 +24,141 @@ const scope = {
 }
 
 test.describe('canonical journey named-edit UI bridge', () => {
+  test('saves exact planning inputs and keeps approval locked when richer work has no exact graph', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 })
+    const fixture = await installSourceReadyNamedEdit(page, 'canonical-plan-save')
+    const handoffRequests: Array<Record<string, unknown>> = []
+    let candidateRequestCount = 0
+
+    await page.route('**/v1/projects/*/edit-sessions/*/canonical-journey?*', async (route) => {
+      await route.fulfill({
+        contentType: 'application/json',
+        status: 404,
+        body: JSON.stringify({
+          ok: false,
+          error: { code: 'PLAN_NOT_APPROVED', message: 'No workflow yet.' },
+          warnings: [],
+        }),
+      })
+    })
+    await page.route('**/v1/projects/*/edit-sessions/*/canonical-planning-handoff', async (route) => {
+      const body = route.request().postDataJSON() as Record<string, unknown>
+      handoffRequests.push(body)
+      await route.fulfill({
+        contentType: 'application/json',
+        status: 200,
+        body: JSON.stringify({
+          ok: true,
+          data: {
+            canonicalPlanningHandoff: canonicalPlanningHandoffFixture(
+              fixture.project.id,
+              fixture.edit.editSessionId,
+            ),
+          },
+          warnings: [],
+        }),
+      })
+    })
+    await page.route('**/v1/projects/*/edit-sessions/*/canonical-planning-handoffs/*/publication-requests', async (route) => {
+      candidateRequestCount += 1
+      await route.abort()
+    })
+
+    await gotoRoute(page, fixture.editPath)
+    await page.getByTestId('chat-composer-textarea').fill(
+      'Create a polished founder update with clean captions, restrained color, and clear audio.',
+    )
+    await clickWhenReady(page.getByTestId('chat-composer-send'))
+    await completeRequiredEditorSetupBeforeFootagePrep(page)
+    await clickWhenReady(page.getByRole('button', { name: /^Prepare source$/i }))
+    await clickWhenReady(page.getByRole('button', { name: /^Create edit plan$/i }))
+
+    const planReview = page.getByTestId('plan-review-card')
+    await expect(planReview).toBeVisible()
+    await expect.poll(() => handoffRequests.length).toBe(1)
+    const saveStatus = page.getByTestId('canonical-planning-save-handoff-saved-waiting-for-compiler')
+    await expect(saveStatus).toBeVisible()
+    await expect(saveStatus).toContainText('Planning inputs saved')
+    await expect(saveStatus).toContainText('Saving never approves credits or starts editing')
+    await expect(saveStatus).not.toContainText(/\/v1\/|[a-f0-9]{64}|handoff|candidate|ffmpeg|ffprobe|libass|remotion|provider|filesystem|credential/i)
+
+    const requestBody = JSON.stringify(handoffRequests[0])
+    expect(requestBody).not.toMatch(/storagePath|private\/source|signedUrl|publicUrl|sourceBytes|bytesBase64/)
+    expect(requestBody).toContain(fixture.edit.sourceMediaAssets![0]!.sourceSequenceItemId!)
+    expect(requestBody).toContain(fixture.edit.sourceMediaAssets![0]!.mediaAssetId)
+    expect(requestBody).toContain(fixture.edit.sourceMediaAssets![0]!.checksumSha256!)
+    expect(candidateRequestCount).toBe(0)
+
+    const approve = page.getByTestId('plan-review-approve')
+    await expect(approve).toBeDisabled()
+    await expect(approve).toHaveText('Waiting for saved plan')
+    await expectNoGenerationBeforeApproval(page)
+    await expectNoInternalToolNamesInEditor(page)
+    await expectNoHorizontalOverflow(page)
+    await expectFloatingComposerAligned(page)
+  })
+
+  test('discards a late plan-save result after the named-edit identity changes', async ({ page }) => {
+    const firstFixture = createSourceReadyNamedEdit('late-save-route-a')
+    const secondFixture = createSourceReadyNamedEdit('late-save-route-b')
+    await installSourceReadyNamedEditFixtures(page, [firstFixture, secondFixture])
+    let handoffRequestCount = 0
+    let releaseHandoff!: () => void
+    const handoffGate = new Promise<void>((resolve) => {
+      releaseHandoff = resolve
+    })
+
+    await page.route('**/v1/projects/*/edit-sessions/*/canonical-journey?*', async (route) => {
+      await route.fulfill({
+        contentType: 'application/json',
+        status: 404,
+        body: JSON.stringify({
+          ok: false,
+          error: { code: 'PLAN_NOT_APPROVED', message: 'No workflow yet.' },
+          warnings: [],
+        }),
+      })
+    })
+    await page.route('**/v1/projects/*/edit-sessions/*/canonical-planning-handoff', async (route) => {
+      handoffRequestCount += 1
+      await handoffGate
+      await route.fulfill({
+        contentType: 'application/json',
+        status: 200,
+        body: JSON.stringify({
+          ok: true,
+          data: {
+            canonicalPlanningHandoff: canonicalPlanningHandoffFixture(
+              firstFixture.project.id,
+              firstFixture.edit.editSessionId,
+            ),
+          },
+          warnings: [],
+        }),
+      })
+    })
+
+    await gotoRoute(page, firstFixture.editPath)
+    await completeRequiredEditorSetupBeforeFootagePrep(page)
+    await clickWhenReady(page.getByRole('button', { name: /^Prepare source$/i }))
+    await clickWhenReady(page.getByRole('button', { name: /^Create edit plan$/i }))
+    await expect.poll(() => handoffRequestCount).toBe(1)
+    await expect(page.getByTestId('canonical-planning-save-saving')).toBeVisible()
+
+    await page.evaluate((path) => {
+      window.history.pushState({}, '', path)
+      window.dispatchEvent(new PopStateEvent('popstate'))
+    }, secondFixture.editPath)
+    await expect(page).toHaveURL(new RegExp(secondFixture.edit.editSessionId))
+    await expect(page.getByRole('heading', { level: 1, name: secondFixture.edit.editName })).toBeVisible()
+    await expect(page.locator('[data-testid^="canonical-planning-save-"]')).toHaveCount(0)
+
+    releaseHandoff()
+    await page.waitForTimeout(100)
+    await expect(page.locator('[data-testid^="canonical-planning-save-"]')).toHaveCount(0)
+    await expectNoGenerationBeforeApproval(page)
+  })
+
   test('shows loading, bounded execution progress, and an accessible manual refresh', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 })
     const fixture = await installSourceReadyNamedEdit(page, 'execution-progress')
@@ -198,6 +339,19 @@ function createSourceReadyNamedEdit(label: string) {
       mimeType: 'video/mp4',
       byteSize: 4096,
       checksumSha256: 'a'.repeat(64),
+      sourceMetadata: {
+        probeStatus: 'probed',
+        source: 'local_ffprobe',
+        durationSeconds: 2,
+        width: 720,
+        height: 1280,
+        videoCodec: 'h264',
+        audioCodec: 'aac',
+        formatName: 'mov,mp4,m4a,3gp,3g2,mj2',
+        streamCount: 2,
+        hasVideo: true,
+        hasAudio: true,
+      },
       privateArtifact: true,
       publicUrl: null,
       signedUrl: null,
@@ -326,6 +480,49 @@ function executionJourney(projectId: string, editSessionId: string) {
       providerCall: false,
       render: false,
     },
+    testOnly: true,
+  }
+}
+
+function canonicalPlanningHandoffFixture(projectId: string, editSessionId: string) {
+  return {
+    schemaVersion: 'canonical-planning-handoff-response-v1',
+    source: 'canonical_planning_handoff_service',
+    identity: {
+      workspaceId: scope.workspaceId,
+      projectId,
+      editSessionId,
+    },
+    canonicalPlanComponentsHash: 'c'.repeat(64),
+    sourceBindingManifestCandidate: {},
+    sourceMediaAuthority: {},
+    planningInputAuthority: {},
+    resolvedPlanningInputAuthority: {},
+    readiness: {
+      finalizedSourceMediaVerified: true,
+      exactEditPreferencesVerified: true,
+      preferenceApplicationVerified: true,
+      editBriefVerified: true,
+      outputFrameAndCleanupVerified: true,
+      readyForCanonicalPlanPublication: true,
+    },
+    handoffHash: 'b'.repeat(64),
+    handoffId: 'canonical-ui-plan-handoff',
+    persistence: {
+      privateLocal: true,
+      tenantScoped: true,
+      createOnly: true,
+      checksumProtected: true,
+      contentAddressed: true,
+      distributed: false,
+      productionAuthority: false,
+    },
+    noPlanPublished: true,
+    noSnapshotCreated: true,
+    noCreditReservation: true,
+    noToolExecution: true,
+    noProviderCall: true,
+    noRender: true,
     testOnly: true,
   }
 }

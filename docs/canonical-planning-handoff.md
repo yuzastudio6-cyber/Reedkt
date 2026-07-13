@@ -1,6 +1,6 @@
 # Canonical Planning Handoff
 
-Status: authenticated local/private persisted handoff and publication-binding evidence
+Status: authenticated local/private persisted handoff, frontend-safe submission, and publication-binding evidence
 
 The canonical planning handoff binds finalized source uploads and the current planning-input state to the exact authority objects required for server-owned canonical plan publication. It replaces caller reconstruction of source, Exact Edit Preference, Preference DNA selection, Edit Brief, output-frame, and source-cleanup authority.
 
@@ -75,13 +75,23 @@ The response contains:
 - non-production private persistence evidence;
 - explicit readiness and no-side-effect evidence.
 
+## Frontend-safe named-edit bridge
+
+The signed-in named-edit planner now compiles the current plan into the strict handoff request after source order, Exact Edit Preferences, optional Preference DNA, optional Edit Brief, output frame, cleanup, timing, and meaning-preservation gates are ready. It sends only finalized source identities, upload order, checksums, and canonical plan components. Browser-held storage paths, signed/public URLs, source bytes, credentials, and provider inputs are excluded.
+
+The browser strictly verifies the returned workspace/project/edit identity, readiness, private create-only persistence, content hashes, and all no-side-effect flags. Foreign identity, extra fields, path/credential material, malformed hashes, or permission escalation fail closed. The outbound compiler also rejects private path, credential, URL-token, or source-byte fields instead of serializing them into canonical components. Identical concurrent saves coalesce only when the full exact request identity matches, and a late response cannot update a different named edit after navigation.
+
+Every valid rich plan may persist its exact handoff components. The browser submits a publication candidate only when the plan is exactly representable by the current proven private source-and-caption review graph. It never drops a requested visual, provider asset, color operation, audio operation, transition, SFX cue, or multi-segment decision to fit that runner. When any planned operation lacks exact execution authority, the UI reports that the planning inputs are saved and leaves approval locked.
+
+The current exact candidate graph is limited to immutable snapshot validation, approved source-range validation, one dependency-free libass caption overlay, one Remotion source-and-caption private composition, and dependency-bound FFprobe final QA. Candidate compilation additionally requires verified video metadata and a source range that fits the probed source duration. This is private/internal evidence, not public delivery or production rendering.
+
 The HTTP smoke publishes through the persisted-handoff route rather than echoing authority fields back from the caller. It proves exact replay, rejects handoff-hash and canonical-component substitution, rejects preferences or same-project source authority changed after handoff, and verifies the accepted binding is present in canonical plan authority before approval. The broader 50-tool canonical lifecycle also publishes its initial plan, focused five-job review plan, and revision plan v2 through persisted handoffs. It proves source-order drift is rejected, each changed revision receives a fresh component-bound handoff, both snapshot generations preserve the exact binding, and approved execution reload validates that binding before work proceeds.
 
 ## Side-effect boundary
 
 Preparing a handoff performs only the private create-only authority persistence described above. It does not publish a plan, create a snapshot, reserve credits, execute tools, call providers, or render media. Handoff-bound plan publication still does not approve the plan, create a snapshot, reserve credits, derive jobs, execute tools, call providers, or render media. Approval remains a separate server-owned gate.
 
-This slice does not add frontend consumption, Supabase, RLS, cloud storage, provider activation, customer pricing or credits, wallet mutation, billing, public delivery, deployment, or production readiness. The backend now exposes the safe publication-request bridge; the next integration gate is frontend consumption of the authenticated handoff and candidate routes without reviving the disabled legacy caller-authored execution route.
+This slice adds the bounded frontend consumption described above. It does not add Supabase, RLS, cloud storage, provider activation, customer pricing or credits, wallet mutation, billing, public delivery, deployment, Motion Studio, or production readiness. Signed-in named edits do not fall back to the older local approval/snapshot path while this canonical save path is active. Canonical user approval remains the next separate frontend mutation gate.
 
 ## Verification
 
@@ -89,7 +99,9 @@ This slice does not add frontend consumption, Supabase, RLS, cloud storage, prov
 - `npm run lint`
 - `npm run smoke:edit-planning-authority`
 - `npm run smoke:backend-local-journey-authority`
+- `npm run smoke:canonical-planning-publication-client`
 - `npm run smoke:canonical-private-tool-dispatch`
 - `npm run smoke:proven-tool-identities`
 - `npm run qa:internal-pipeline`
+- `npm run qa:canonical-journey-ui`
 - `npm run check:frontend-boundary`

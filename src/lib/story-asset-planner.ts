@@ -70,6 +70,10 @@ function wantsMinimal(input: PlannerInput) {
 }
 
 function applyPreferenceAndLevel(input: PlannerInput, beats: BeatSeed[]): BeatSeed[] {
+  if (input.visualPreference === 'no_extra_visuals') {
+    return []
+  }
+
   let plannedBeats = [...beats]
 
   if (input.visualPreference === 'more_graphic_design') {
@@ -516,20 +520,7 @@ function documentaryBeats(): BeatSeed[] {
 
 function categoryBeats(input: PlannerInput): BeatSeed[] {
   if (input.visualPreference === 'no_extra_visuals') {
-    return [
-      {
-        beatLabel: 'Essential context card',
-        storyPurpose: 'Use only one essential card if the edit needs clarity.',
-        narrativePhase: 'context',
-        emotion: 'minimal',
-        actionIntensity: 'low',
-        assetType: 'fact_card',
-        signatureSystem: 'graphic_design',
-        recommendedDurationSeconds: 0,
-        reason: 'No-extra-visual preference keeps the plan mostly captions and cleanup.',
-        creditImpact: 'low',
-      },
-    ]
+    return []
   }
 
   if (input.editingCategory === 'lifestyle') {

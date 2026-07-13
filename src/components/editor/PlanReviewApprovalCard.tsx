@@ -1,8 +1,12 @@
+import type { ReactNode } from 'react'
 import { Button } from '../Button'
 import type { EditPlan, SignatureSystem } from '../../types/reeditpro'
 
 type PlanReviewApprovalCardProps = {
   approved: boolean
+  approvalAuthorityBlockedLabel?: string
+  approvalAuthorityReady?: boolean
+  approvalAuthorityStatus?: ReactNode
   approvalPending?: boolean
   planningContextBlockedReason?: string
   planningContextReady?: boolean
@@ -40,6 +44,9 @@ function uniqueSystems(plan: EditPlan): SignatureSystem[] {
 
 export function PlanReviewApprovalCard({
   approved,
+  approvalAuthorityBlockedLabel = 'Waiting for saved plan',
+  approvalAuthorityReady = true,
+  approvalAuthorityStatus,
   approvalPending = false,
   planningContextBlockedReason,
   planningContextReady = true,
@@ -52,7 +59,7 @@ export function PlanReviewApprovalCard({
 }: PlanReviewApprovalCardProps) {
   const estimate = plan.creditEstimate
   const frameConfirmed = plan.aspectRatioFramePlan?.status === 'confirmed'
-  const approvalDisabled = approved || approvalPending || !frameConfirmed || !planningContextReady || estimate.approvalBlocked
+  const approvalDisabled = approved || approvalPending || !approvalAuthorityReady || !frameConfirmed || !planningContextReady || estimate.approvalBlocked
   const systems = uniqueSystems(plan)
   const timingBlocked = Boolean(plan.timingValidationPlan?.approvalBlocked)
 
@@ -128,9 +135,19 @@ export function PlanReviewApprovalCard({
         <p className="clean-edit-inline-warning">{plan.timingValidationPlan?.approvalBlockReasons[0] ?? 'Timing must be resolved before approval.'}</p>
       ) : null}
 
+      {approvalAuthorityStatus}
+
       <div className="clean-edit-step-actions clean-plan-actions">
         <Button data-testid="plan-review-approve" disabled={approvalDisabled} onClick={onApprove} variant="primary">
-          {approved ? 'Plan approved' : approvalPending ? 'Checking approval…' : approvalDisabled ? 'Resolve setup first' : 'Approve plan'}
+          {approved
+            ? 'Plan approved'
+            : approvalPending
+              ? 'Checking approval…'
+              : !approvalAuthorityReady
+                ? approvalAuthorityBlockedLabel
+                : approvalDisabled
+                  ? 'Resolve setup first'
+                  : 'Approve plan'}
         </Button>
         {onReviseSetup ? <Button disabled={approved} onClick={onReviseSetup} variant="secondary">Revise setup</Button> : null}
         <Button disabled={approved} onClick={onLowerCost} variant="secondary">Lower cost</Button>

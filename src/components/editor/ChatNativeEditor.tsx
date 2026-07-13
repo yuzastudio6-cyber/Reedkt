@@ -1,6 +1,7 @@
 import { lazy, Suspense, type ChangeEvent, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { Button } from '../Button'
+import { getFrontendApiClientStatus } from '../../backend/api/frontend-api-client'
 import { createApprovedPlanSnapshot } from '../../lib/approved-plan-snapshot'
 import {
   createApprovedEditExecutionPrivateInternalTestRunClient,
@@ -94,6 +95,7 @@ import { useExportWorkflow } from '../../hooks/useExportWorkflow'
 import { useMockFootagePrep } from '../../hooks/useMockFootagePrep'
 import { useRevisionWorkflow } from '../../hooks/useRevisionWorkflow'
 import { useCanonicalEditJourney } from '../../hooks/useCanonicalEditJourney'
+import { useCanonicalPlanningPublication } from '../../hooks/useCanonicalPlanningPublication'
 import type { ContextAwareMockEditPlanResult, EditBriefState, EditBriefStatus, MediaKind, ReeditProChatMessage } from '../../types'
 import type { ApprovedPlanSnapshot } from '../../types/edit-planning-db'
 import type {
@@ -118,6 +120,7 @@ import { ChatComposer } from './ChatComposer'
 import { ChatMessageList } from './ChatMessageList'
 import { ChatThread } from './ChatThread'
 import { CanonicalJourneyStatusCard } from './CanonicalJourneyStatusCard'
+import { CanonicalPlanningSaveStatus } from './CanonicalPlanningSaveStatus'
 import {
   CleanupSetup,
   EditLevelSetup,
@@ -823,6 +826,10 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
   const [searchParams, setSearchParams] = useSearchParams()
   const routeParams = useParams()
   const hasProjectEditRoute = Boolean(routeParams.projectId && routeParams.editSessionId)
+  const frontendApiStatus = getFrontendApiClientStatus()
+  const canonicalPlanningBackendConnected = hasProjectEditRoute &&
+    !frontendApiStatus.mockOnly &&
+    Boolean(frontendApiStatus.apiBaseUrl)
   const editorOperationUserId = hasProjectEditRoute
     ? projectPersistenceScope.backendUserId ?? projectPersistenceScope.userId
     : 'mock-user'
@@ -834,6 +841,14 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     projectId: editorProjectId,
     scope: projectPersistenceScope,
   })
+  const canonicalPlanningPublication = useCanonicalPlanningPublication({
+    editSessionId: editorEditSessionId,
+    enabled: canonicalPlanningBackendConnected,
+    onSaved: canonicalJourney.refresh,
+    projectId: editorProjectId,
+    scope: projectPersistenceScope,
+  })
+  const resetCanonicalPlanningPublication = canonicalPlanningPublication.reset
   const subscribeToEditPersistence = useCallback(
     (listener: (status: InternalEditPersistenceStatus | null) => void) => {
       if (!hasProjectEditRoute) return () => undefined
@@ -1613,6 +1628,10 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     ? 'Resolve blocking Planning Context issues before approving credits or starting the review edit.'
     : ''
   const planningContextReadyForApproval = Boolean(contextAwarePlanResult) && !planningContextApprovalBlockedReason
+  const canonicalApprovalAuthorityReady = !canonicalPlanningBackendConnected
+  const canonicalApprovalBlockedLabel = canonicalPlanningPublication.result?.status === 'plan_published_waiting_for_approval'
+    ? 'Approval connection pending'
+    : 'Waiting for saved plan'
   const editBriefReadyForPlanning = editBriefGate.status === 'ready' && editBriefGate.ready
   const approvalErrorMessage = runtimeMessages.find((message) => message.type === 'assistant_error')?.content ?? ''
   const editWorkspaceBlockedReason = privateInternalTestRunError || privateInternalDownloadError || planningContextApprovalBlockedReason || approvalErrorMessage
@@ -1740,6 +1759,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
   }
 
   const resetPlanProgress = useCallback(() => {
+    resetCanonicalPlanningPublication()
     setIntentApproved(false)
     setApproved(false)
     setApprovedSnapshot(null)
@@ -1768,7 +1788,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     setProgressIndex(0)
     setShowMusicPlan(false)
     setShowSFXPlan(false)
-  }, [setApprovalChecking])
+  }, [resetCanonicalPlanningPublication, setApprovalChecking])
 
   const applyScenarioState = useCallback((scenario: typeof defaultDemoScenario) => {
     if (isProjectWorkspace) return
@@ -2114,6 +2134,15 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
         ? 'Draft plan is ready. Resolve the blocking planning item before approval.'
         : 'Plan updated from your source assembly, library notes, brief, and cues.',
     )
+
+    if (canonicalPlanningBackendConnected && !preservesRecoveredApprovedSnapshot) {
+      const exactPlannerInput = createContextAwarePlannerInput(result.planningContext, plannerInput)
+      void canonicalPlanningPublication.submit({
+        plan: result.editPlan,
+        plannerInput: exactPlannerInput,
+        sourceMediaAssets: durableUploadedPrivateSourceAssets(sourceMediaAssets),
+      })
+    }
   }
 
   useEffect(() => {
@@ -2143,6 +2172,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
       return
     }
 
+    canonicalPlanningPublication.reset()
     persistCurrentEditSetupAfterPlanInvalidation()
     showRevisionMessage('Planning inputs changed. Create a new edit plan from the updated context before approval.')
   }
@@ -2739,6 +2769,16 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     }
 
     setApprovalChecking(true)
+
+    if (canonicalPlanningBackendConnected) {
+      blockApproval(
+        canonicalPlanningPublication.result?.status === 'plan_published_waiting_for_approval'
+          ? 'Approval is locked until this signed-in edit uses the saved plan approval path. The older local approval path cannot bypass it.'
+          : 'Wait for this exact plan to finish saving and pass its workflow checks before approval.',
+      )
+      setApprovalChecking(false)
+      return
+    }
 
     if (qaApprovalFailureEnabled) {
       blockApproval('Approval is blocked until one setup item is resolved.')
@@ -3931,6 +3971,11 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
         return (
           <PlanReviewApprovalCard
             approved={approved}
+            approvalAuthorityBlockedLabel={canonicalApprovalBlockedLabel}
+            approvalAuthorityReady={canonicalApprovalAuthorityReady}
+            approvalAuthorityStatus={canonicalPlanningBackendConnected ? (
+              <CanonicalPlanningSaveStatus {...canonicalPlanningPublication} />
+            ) : undefined}
             approvalPending={approvalChecking}
             onApprove={handleApprove}
             onAskQuestion={handleAskPlanQuestion}
@@ -4493,6 +4538,11 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
           <>
             <PlanReviewApprovalCard
               approved={approved}
+              approvalAuthorityBlockedLabel={canonicalApprovalBlockedLabel}
+              approvalAuthorityReady={canonicalApprovalAuthorityReady}
+              approvalAuthorityStatus={canonicalPlanningBackendConnected ? (
+                <CanonicalPlanningSaveStatus {...canonicalPlanningPublication} />
+              ) : undefined}
               approvalPending={approvalChecking}
               onApprove={handleApprove}
               onAskQuestion={handleAskPlanQuestion}

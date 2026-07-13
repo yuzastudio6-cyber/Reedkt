@@ -1507,6 +1507,10 @@
   width: 100%;
 }
 
+.editor-workspace-layout[hidden] {
+  display: none;
+}
+
 .chat-native-shell {
   display: grid;
   gap: 0;

@@ -10,7 +10,15 @@ export default defineConfig({
   testDir: './tests/e2e',
   // Canonical journey UI coverage uses a dedicated frontend-safe HTTP runtime
   // and must not be collected by the standard mock-only browser suite.
-  testIgnore: ['**/._*', '**/canonical-journey-ui.spec.ts'],
+  // Historical standalone Edit Brief specs target the retired ProjectHomePage
+  // and /brief route. The active product keeps one inline Brief inside the named
+  // edit and covers that lifecycle through editor.spec.ts.
+  testIgnore: [
+    '**/._*',
+    '**/canonical-journey-ui.spec.ts',
+    '**/project-edit-brief-*.spec.ts',
+    '**/project-source-video-brief-playback.spec.ts',
+  ],
   outputDir: 'test-results/e2e',
   fullyParallel: false,
   retries: process.env.CI ? 1 : 0,

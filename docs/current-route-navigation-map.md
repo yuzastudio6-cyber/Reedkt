@@ -85,6 +85,14 @@ Current runtime boundaries do not add navigation:
 - Conditionally executable fixed-template Playwright capture remains an approved internal tool operation with server-owned snapshot attestation, zero network/JavaScript, deterministic PNG verification, FFmpeg composition, no billing, and no private-path exposure. It is not a browser-capture page or sidebar item.
 - The guarded `npm run dev:private-workspace` launcher adds a local manual-testing runtime, not a route or navigation item. It keeps API, browser app, uploads, and artifacts on loopback with external services disabled.
 
+## Browser Suite Collection Truth
+
+The standard mock-only Playwright suite covers the active router above. It intentionally excludes the historical `project-edit-brief-*.spec.ts` files and `project-source-video-brief-playback.spec.ts`, because those specs target the retired `ProjectHomePage` and standalone `/brief` route. Keeping those routes mounted only for old browser tests would create a second product path and contradict the active inline Brief architecture.
+
+The active Edit Brief lifecycle remains covered through `editor.spec.ts`: prompt-first planning without a Brief, optional Brief entry after Footage Prep, exact-edit persistence, planning transfer, approval locking, revision behavior, and private-review handoff. Backend Edit Brief authority, marker, attachment-metadata, QA, and plan-hint contracts continue through their server smoke suites without remounting retired UI.
+
+On 2026-07-13 the full active-product suite completed with 143 passed, 7 explicitly gated/skipped, and 0 failed. This is local/mock browser evidence only; it does not activate providers, Supabase, billing, public rendering, deployment, or production readiness.
+
 ## Immediate Navigation Recommendation
 
 Retain the active route/navigation set exactly as implemented. Do not restore historical routes because files or old docs mention them.

@@ -339,7 +339,7 @@ New values belong in tokens before route CSS. Avoid one-off glow, radius, shadow
 - Saved and Current Edit Preferences now use the canonical seven-field system with explicit persistence/recovery truth, inherited/overridden state, responsive hierarchy, guarded drafts, and visually reviewed action states. Landing, Sign In, Create Project, shared project/edit recovery, the active named-edit upload gate, responsive conversation/preview composition, planning-input status, Edit Brief, Plan Review, progress framing, Private Review, and normal revision replanning now follow the same system. Gated revised-review continuation and founder-level whole-product signoff remain separate evidence steps.
 - Preserve route-specific identity as work continues: marketing is expressive, app routes operational, editor open and conversational.
 
-### 6. Final Active-Route Signoff — Pending Whole-Product Completion
+### 6. Final Active-Route Signoff — Automated Suite Complete; Founder Review Pending
 
 - Capture all active routes and critical states.
 - Run viewport, keyboard, zoom, overflow, approval, upload-failure, recovery, and preference-failure coverage.
@@ -348,7 +348,7 @@ New values belong in tokens before route CSS. Avoid one-off glow, radius, shadow
 
 Interim evidence on 2026-07-10:
 
-- Full Playwright suite: 122 passed after the Resume-First Home implementation; it must be rerun after all remaining route work.
+- Previous full Playwright baseline: 122 passed after the Resume-First Home implementation.
 - Projects/Project Home focused UI, tenancy, screenshot, and viewport checks pass after their redesign.
 - Final full active-route screenshot and founder-level signoff remain pending.
 - Zoom suite: 3 passed.
@@ -357,6 +357,13 @@ Interim evidence on 2026-07-10:
 - Full lint is currently blocked only by five unused imports in the unrelated untracked `server/smoke/edit-planning-authority-smoke.ts` parallel backend file; the Home/UI files pass lint and do not hide that blocker.
 - The current whole-worktree server typecheck remains blocked by the unrelated untracked `server/services/private-edit-authority-store.ts` union access at line 514; this UI slice does not broaden or mask that backend blocker.
 - The authenticated private smoke verified upload, approval, review, revision, reload, exact-edit recovery, tenant isolation, and revoked-membership blocking while keeping public beta, production delivery, and billing blocked.
+
+Full active-product rerun on 2026-07-13:
+
+- The standard mock-only Playwright suite passes 143 checks with 7 explicitly gated/skipped and 0 failures across active public, auth, project, named-edit, Saved/Current Edit Preferences, inline Edit Brief, approval, private-review, recovery, revision, viewport, keyboard, zoom, and screenshot flows.
+- Historical standalone Edit Brief browser specs are excluded because they target the retired `ProjectHomePage` and `/brief` route. Active inline Brief behavior remains covered in `editor.spec.ts`, while server authority smokes retain the backend marker, attachment-metadata, QA, and plan-hint evidence.
+- Current Edit Preferences now hides the chat/preview workspace while `?view=preferences` is active; the complete four-test exact-edit preference lifecycle passes after the repair.
+- This closes the full automated active-route rerun. Founder-level whole-product visual signoff, explicitly gated revised-review continuation, and all production/external-service gates remain separate.
 
 Focused named-edit context evidence on 2026-07-13:
 

@@ -286,6 +286,33 @@ try {
     },
     'gcs-route-private-internal-test-run',
   )
+  assert.equal(
+    response.status,
+    503,
+    `Legacy caller-authored GCS execution must stay disabled: ${JSON.stringify(response.json)}`,
+  )
+  if (response.status === 503) {
+    assert.equal(response.json.error?.code, 'TOOL_NOT_READY')
+    const details = response.json.error?.details
+    assert.ok(details && typeof details === 'object')
+    assert.equal(
+      (details as Record<string, unknown>).requiredGate,
+      'canonical_browser_consumption_of_planning_handoff',
+    )
+    assert.equal(fakeGcsStorageAdapter.metadataReadCount, 0, 'Disabled legacy route must reject before GCS metadata access.')
+    assert.equal(fakeGcsStorageAdapter.readStreamCount, 0, 'Disabled legacy route must reject before GCS byte access.')
+    assert.equal(fakeGcsStorageAdapter.writeAttemptCount, 0, 'Disabled legacy route must not write GCS artifacts.')
+    assert.equal(fakeGcsStorageAdapter.signedUrlAttemptCount, 0, 'Disabled legacy route must not create signed URLs.')
+    console.log(JSON.stringify({
+      ok: true,
+      status: 'blocked_by_canonical_browser_consumption_of_planning_handoff',
+      checks: [
+        'legacy_private_internal_execution_route_fails_closed_before_gcs_access',
+        'no_gcs_metadata_stream_write_or_signed_url_side_effect',
+      ],
+      nextRequiredGate: 'canonical_browser_consumption_of_planning_handoff',
+    }))
+  } else {
   assert.equal(response.status, 201, `GCS route private internal test run should succeed: ${JSON.stringify(response.json)}`)
 
   const internalTestRun = response.json.data?.internalTestRun
@@ -383,6 +410,7 @@ try {
     privateManifestByteCount: privateManifest.bytes.byteLength,
     nextRequiredGate: internalTestRun.nextRequiredGate,
   }))
+  }
 } finally {
   await new Promise<void>((resolve, reject) => {
     server.close((error) => (error ? reject(error) : resolve()))

@@ -240,6 +240,7 @@ try {
     'server/services/private-preference-intelligence-store.ts',
     'server/services/project-service.ts',
     'server/services/private-canonical-work-graph-progress-store.ts',
+    'server/media/private-source-probe-staging.ts',
     'server/workers/audio/audio-execution-artifact-writer.ts',
     'server/workers/captions/caption-file-builder.ts',
     'server/workers/color/color-artifact-writer.ts',
@@ -255,6 +256,11 @@ try {
     assert.doesNotMatch(source, /\bcreateWriteStream\s*\(/)
     assert.match(source, /private-local-persistence/)
   }
+
+  const uploadServiceSource = await readFile(join(process.cwd(), 'server/services/upload-service.ts'), 'utf8')
+  assert.match(uploadServiceSource, /stagePrivateSourceForProbe/)
+  assert.doesNotMatch(uploadServiceSource, /\bcreateWriteStream\s*\(/)
+  assert.doesNotMatch(uploadServiceSource, /\blocalStorageObjectPath\s*\(/)
 
   console.log(JSON.stringify({
     status: 'passed',
@@ -274,6 +280,7 @@ try {
       'private_registry_reads_refuse_symlinks',
       'private_registry_listing_is_sorted_and_refuses_symlink_entries',
       'named_private_persistence_services_use_shared_hardened_boundary',
+      'upload_probe_service_uses_shared_private_staging_boundary',
     ],
   }, null, 2))
 } finally {

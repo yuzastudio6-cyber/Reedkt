@@ -48,7 +48,8 @@ promotion designs:
 - `server/workers/media/ffmpeg-media-adapter.ts`
 - `server/workers/smart-cut/smart-cut-preview-runner.ts`
 - `server/workers/speech/faster-whisper-command-runner.ts`
-- upload/local-storage object writers
+
+The upload object writer and upload-time probe staging boundary are complete for the current private backend scope. Local object writes are create-only and byte-identical on retry; local and GCS probe reads now flow through their storage adapters into a random, scope-hashed create-only private attempt with exact byte-ceiling and SHA-256 verification before FFprobe. Focused evidence proves `0700`/`0600` modes, independent retry attempts, no residual staged files on normal success/failure, size/hash/overrun rejection, retryable operational failure, and pre/post-stage ancestor-symlink refusal without external mutation. Cleanup refusal blocks finalization and preserves terminal-integrity evidence but can require private orphan reconciliation. FFprobe parser isolation, malware scanning, external-process sandboxing, deployed storage, and real-user media promotion remain separate gates.
 
 The preference compatibility pass is now complete for the current private
 backend boundary. Saved Edit Preferences, Exact Edit Preferences, Preference

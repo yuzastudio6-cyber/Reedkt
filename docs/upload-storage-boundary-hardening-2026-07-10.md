@@ -12,6 +12,19 @@ Before source/reference media becomes ready, the backend streams the exact GCS g
 
 Failed size/checksum/MIME/integrity verification never creates ready metadata and attempts exact-generation deletion. See `docs/gcs-upload-integrity-hardening-2026-07-10.md` and run `npm run smoke:gcs-upload-integrity-security`.
 
+### Local and GCS media probing use one private staging boundary
+
+Upload finalization no longer hands FFprobe the original local object path and no longer copies GCS bytes with an ordinary `createWriteStream`. For source/reference video or audio, the backend now:
+
+1. reopens the object through its `StorageAdapter`, binding GCS reads to the verified generation and ETag;
+2. streams bytes into a random, scope-hashed, create-only private attempt path;
+3. enforces the finalized byte count as an exact stream ceiling;
+4. recomputes SHA-256 while writing and requires an exact match;
+5. gives only the verified private attempt path to FFprobe; and
+6. requires root-confined removal of the owned attempt before finalization returns.
+
+Directories use `0700`, staged files use `0600`, raw tenant/upload identifiers do not appear in the staging path, retries use independent create-only attempts, and pre-stage or post-stage ancestor symlink substitution fails without mutating its external destination. Size/checksum contradictions are terminal integrity failures: no media/storage authority is created, the upload intent is failed, and GCS exact-generation cleanup is attempted. Operational stream/disk failures also create no ready authority but leave the upload intent retryable and do not delete valid provider media. An FFprobe-only timeout, missing binary, or unsupported-media parse remains an honest nonblocking `probeStatus: unavailable` after byte integrity has already passed. Cleanup failure blocks finalization and preserves the original terminal classification plus cleanup evidence; it may leave a private orphan attempt requiring reconciliation.
+
 ### Production uploads do not traverse an Express raw-body path
 
 The compatibility endpoint `PUT /v1/upload-intents/:uploadIntentId/local-object` is now restricted to non-production `local`/`mock` runtimes using local storage. Production and non-local runtimes fail closed before the raw-body parser and direct the client to the temporary signed/direct object-storage target returned by the upload-intent endpoint.
@@ -78,6 +91,10 @@ Run it with:
 
 ```sh
 npx tsx server/smoke/upload-boundary-security-smoke.ts
+npm run smoke:private-source-probe-staging
+npm run smoke:upload
+npm run smoke:gcs-upload-to-private-internal-edit-route
+npm run smoke:private-internal-edit-upload-e2e
 ```
 
 ## Residual production blockers
@@ -89,5 +106,7 @@ npx tsx server/smoke/upload-boundary-security-smoke.ts
 - Production malware/content scanning and decompression-bomb/media-parser isolation remain required.
 - The source contract now rejects signed-PUT replay with `ifGenerationMatch=0`, but a real deployed GCS replay/overwrite integration test is still required.
 - Orphaned uploads that reach GCS but never finalize still require a reviewed lifecycle/reconciliation job.
+- FFprobe still consumes a private filesystem path. Malware/content scanning, codec/parser isolation, subprocess sandboxing, resource controls for adversarial media, and deployed representative-media evidence remain required before real-user promotion.
+- Abnormal process death or a cleanup refusal can leave a private probe attempt. A bounded age-based orphan reconciler remains required; the no-follow source boundary narrows but does not eliminate hostile same-UID pathname races without a future dirfd/unlinkat worker sandbox.
 
 No SQL, Supabase command, remote object operation, provider call, deployment, or credential change was performed in this hardening pass.

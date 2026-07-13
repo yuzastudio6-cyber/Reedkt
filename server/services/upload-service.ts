@@ -1,13 +1,13 @@
-import { createHash, randomUUID } from 'node:crypto'
-import { createReadStream, createWriteStream } from 'node:fs'
-import { mkdir, rm, stat } from 'node:fs/promises'
-import path from 'node:path'
+import { randomUUID } from 'node:crypto'
 import type { Readable } from 'node:stream'
-import { pipeline } from 'node:stream/promises'
 import { ApiError } from '../errors/api-error'
 import { probeMediaFile } from '../media/ffprobe'
+import {
+  isPrivateSourceProbeTerminalIntegrityError,
+  stagePrivateSourceForProbe,
+} from '../media/private-source-probe-staging'
 import { createStorageAdapter, resolveBucketName } from '../storage/storage-adapter'
-import { buildCanonicalObjectPath, normalizeStoragePath } from '../storage/storage-paths'
+import { buildCanonicalObjectPath } from '../storage/storage-paths'
 import { assertAllowedUpload, assertLocalRawUploadByteLength } from '../storage/storage-validation'
 import type { ObjectMetadata, StorageAdapter, UploadPurpose, UploadTarget } from '../storage/storage-types'
 import type { ServiceContext } from '../types'
@@ -522,7 +522,39 @@ export function createUploadService(context: ServiceContext) {
         })
       }
 
-      const mediaAsset = await createMediaAsset(context, uploadIntent, metadata, storage)
+      let mediaAsset: MediaAssetView
+      try {
+        mediaAsset = await createMediaAsset(context, uploadIntent, metadata, storage)
+      } catch (error) {
+        if (isPrivateSourceProbeTerminalIntegrityError(error)) {
+          const [failedStatus, cleanupStatus] = await Promise.allSettled([
+            markUploadIntentFailed(context, uploadIntent.id, uploadIntent.workspaceId),
+            cleanupRejectedUploadedObject(storage, metadata),
+          ])
+          if (failedStatus.status === 'rejected') {
+            throw new ApiError(
+              'INTERNAL_ERROR',
+              'Terminal upload integrity failure could not be persisted safely.',
+              500,
+              { reason: 'source_probe_terminal_status_persistence_failed' },
+              { cause: failedStatus.reason, internal: true },
+            )
+          }
+          if (cleanupStatus.status === 'rejected') {
+            throw sourceProbeIntegrityErrorWithCleanupEvidence(error, {
+              objectCleanupStatus: 'failed',
+            }, cleanupStatus.reason)
+          }
+          const cleanupWarnings = cleanupStatus.value?.warnings.slice(0, 8) ?? []
+          if (cleanupWarnings.length > 0) {
+            throw sourceProbeIntegrityErrorWithCleanupEvidence(error, {
+              objectCleanupStatus: 'warning',
+              objectCleanupWarnings: cleanupWarnings,
+            })
+          }
+        }
+        throw error
+      }
       const storageObjectRecord = await createStorageObjectRecord(context, uploadIntent, metadata, mediaAsset.id, storage)
       if (usesLocalUploadPersistence(context)) {
         const finalizedAt = nowIso()
@@ -1158,12 +1190,34 @@ async function markUploadIntentFailed(
   }
 }
 
-async function cleanupRejectedUploadedObject(storage: StorageAdapter, metadata: ObjectMetadata): Promise<void> {
-  if (!metadata.generation || !metadata.etag) return
-  await storage.deleteObject(
+async function cleanupRejectedUploadedObject(
+  storage: StorageAdapter,
+  metadata: ObjectMetadata,
+): Promise<{ deleted: boolean; warnings: string[] } | undefined> {
+  if (!metadata.generation || !metadata.etag) return undefined
+  return storage.deleteObject(
     metadata.bucketName,
     metadata.objectPath,
     { generation: metadata.generation, etag: metadata.etag },
+  )
+}
+
+function sourceProbeIntegrityErrorWithCleanupEvidence(
+  error: ApiError,
+  evidence: Record<string, unknown>,
+  cleanupCause?: unknown,
+): ApiError {
+  const details = error.details && typeof error.details === 'object' && !Array.isArray(error.details)
+    ? error.details as Record<string, unknown>
+    : {}
+  return new ApiError(
+    error.code,
+    error.message,
+    error.status,
+    { ...details, ...evidence },
+    cleanupCause === undefined
+      ? { internal: error.internal }
+      : { cause: cleanupCause, internal: error.internal },
   )
 }
 
@@ -1454,22 +1508,41 @@ async function probeSourceMediaMetadata(
   if (uploadIntent.uploadPurpose !== 'source_media' && uploadIntent.uploadPurpose !== 'reference_media') return undefined
   if (!uploadIntent.mimeType.startsWith('video/') && !uploadIntent.mimeType.startsWith('audio/')) return undefined
 
-  let inputPath: string | undefined
-  let cleanupRoot: string | undefined
+  if (storage.mode !== 'local' && storage.mode !== 'gcs') return undefined
+
   const source: SourceMediaMetadataView['source'] = storage.mode === 'gcs' ? 'gcs_ffprobe' : 'local_ffprobe'
+  const expectedChecksumSha256 = normalizeChecksumSha256(metadata.checksumSha256)
+  if (!expectedChecksumSha256) {
+    throw new ApiError(
+      'UPLOAD_NOT_FINALIZED',
+      'Source media requires a canonical checksum before metadata probing.',
+      409,
+      { reason: 'source_probe_stage_checksum_invalid' },
+    )
+  }
+  const staged = await stagePrivateSourceForProbe({
+    localStorageRoot: context.env.localStorageRoot,
+    scope: {
+      ownerUserId: getRequiredAuthUserId(context),
+      workspaceId: uploadIntent.workspaceId,
+      projectId: uploadIntent.projectId,
+      uploadIntentId: uploadIntent.id,
+    },
+    originalFileName: uploadIntent.originalFileName,
+    expectedSizeBytes: metadata.sizeBytes,
+    expectedChecksumSha256,
+    openStream: () => storage.createReadStream(
+      metadata.bucketName,
+      metadata.objectPath,
+      { generation: metadata.generation, etag: metadata.etag },
+    ),
+  })
 
   try {
-    if (storage.mode === 'local') {
-      inputPath = localStorageObjectPath(context.env.localStorageRoot, metadata.bucketName, metadata.objectPath)
-    } else if (storage.mode === 'gcs') {
-      const staged = await stageGcsSourceForProbe(context, uploadIntent, metadata, storage)
-      inputPath = staged.inputPath
-      cleanupRoot = staged.cleanupRoot
-    } else {
-      return undefined
-    }
-
-    const probe = await probeMediaFile(inputPath, { timeoutMs: 10000 })
+    const probe = await probeMediaFile(staged.inputPath, {
+      ffprobeBin: context.env.ffprobeBin,
+      timeoutMs: 10000,
+    })
     const streamTypes = probe.rawSummary.streamTypes
     return {
       probeStatus: 'probed',
@@ -1493,89 +1566,8 @@ async function probeSourceMediaMetadata(
       unavailableReason: error instanceof Error ? error.message.slice(0, 240) : 'Backend FFprobe media metadata was unavailable.',
     }
   } finally {
-    if (cleanupRoot) {
-      await rm(cleanupRoot, { force: true, recursive: true }).catch(() => undefined)
-    }
+    await staged.cleanup()
   }
-}
-
-async function stageGcsSourceForProbe(
-  context: ServiceContext,
-  uploadIntent: UploadIntentView,
-  metadata: ObjectMetadata,
-  storage: StorageAdapter,
-): Promise<{ inputPath: string; cleanupRoot: string }> {
-  const cleanupRoot = localStorageObjectPath(
-    context.env.localStorageRoot,
-    'upload-probes',
-    path.join(
-      normalizeStoragePath(uploadIntent.workspaceId),
-      normalizeStoragePath(uploadIntent.projectId),
-      normalizeStoragePath(uploadIntent.id),
-    ),
-  )
-  const inputPath = localStorageObjectPath(
-    context.env.localStorageRoot,
-    'upload-probes',
-    path.join(
-      normalizeStoragePath(uploadIntent.workspaceId),
-      normalizeStoragePath(uploadIntent.projectId),
-      normalizeStoragePath(uploadIntent.id),
-      normalizeStoragePath(uploadIntent.originalFileName),
-    ),
-  )
-
-  await mkdir(path.dirname(inputPath), { recursive: true })
-  const readStream = await storage.createReadStream(
-    metadata.bucketName,
-    metadata.objectPath,
-    { generation: metadata.generation, etag: metadata.etag },
-  )
-  await pipeline(readStream, createWriteStream(inputPath))
-
-  const stagedStat = await stat(inputPath)
-  if (stagedStat.size !== metadata.sizeBytes) {
-    throw new ApiError('UPLOAD_NOT_FINALIZED', 'Staged GCS source media size does not match finalized object metadata.', 409, {
-      uploadIntentId: uploadIntent.id,
-      expectedSizeBytes: metadata.sizeBytes,
-      actualSizeBytes: stagedStat.size,
-    })
-  }
-
-  const expectedChecksumSha256 = normalizeChecksumSha256(metadata.checksumSha256)
-  if (expectedChecksumSha256) {
-    const stagedChecksumSha256 = await hashFileSha256(inputPath)
-    if (stagedChecksumSha256 !== expectedChecksumSha256) {
-      throw new ApiError('UPLOAD_NOT_FINALIZED', 'Staged GCS source media checksum does not match finalized object metadata.', 409, {
-        uploadIntentId: uploadIntent.id,
-        expectedChecksumSha256,
-        actualChecksumSha256: stagedChecksumSha256,
-      })
-    }
-  }
-
-  return { inputPath, cleanupRoot }
-}
-
-async function hashFileSha256(filePath: string): Promise<string> {
-  const hash = createHash('sha256')
-  for await (const chunk of createReadStream(filePath)) {
-    hash.update(chunk)
-  }
-  return hash.digest('hex')
-}
-
-function localStorageObjectPath(localStorageRoot: string, bucketName: string, objectPath: string): string {
-  const absoluteRoot = path.resolve(localStorageRoot)
-  const absolutePath = path.resolve(
-    absoluteRoot,
-    normalizeStoragePath(bucketName),
-    normalizeStoragePath(objectPath),
-  )
-  if (!absolutePath.startsWith(absoluteRoot + path.sep)) {
-    throw new ApiError('VALIDATION_FAILED', 'Storage path escapes local storage root.', 400)
-  }
-  return absolutePath
 }
 
 function sourceMediaMetadataFromUnknown(value: unknown): SourceMediaMetadataView | undefined {

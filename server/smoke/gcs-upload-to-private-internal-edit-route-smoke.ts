@@ -1,14 +1,14 @@
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
 import { createServer, type Server } from 'node:http'
-import { readFile, rm } from 'node:fs/promises'
+import { readFile, readdir, rm } from 'node:fs/promises'
 import { join } from 'node:path'
 import { Readable } from 'node:stream'
 
 import { createReeditProApiApp } from '../app'
 import { loadRuntimeEnv } from '../config/env'
 import { createSyntheticMp4Fixture } from '../media/test-media-fixture'
-import type { DownloadTarget, ObjectMetadata, PutObjectInput, StorageAdapter, UploadTarget, VerifyObjectInput } from '../storage/storage-types'
+import type { DownloadTarget, ObjectMetadata, ObjectReadIdentity, PutObjectInput, StorageAdapter, UploadTarget, VerifyObjectInput } from '../storage/storage-types'
 import { createApprovedPlanSnapshot } from '../../src/lib/approved-plan-snapshot'
 import { createMockEditPlan } from '../../src/lib/mock-planner/full'
 import type { PlannerInput } from '../../src/types/reeditpro'
@@ -20,6 +20,7 @@ class FakeUploadedGcsStorageAdapter implements StorageAdapter {
   verifyCount = 0
   metadataReadCount = 0
   readStreamCount = 0
+  readonly readStreamIdentities: Array<ObjectReadIdentity | undefined> = []
   writeAttemptCount = 0
   signedDownloadAttemptCount = 0
   uploadTarget?: UploadTarget
@@ -150,8 +151,9 @@ class FakeUploadedGcsStorageAdapter implements StorageAdapter {
     }
   }
 
-  async createReadStream(bucketName: string, objectPath: string): Promise<Readable> {
+  async createReadStream(bucketName: string, objectPath: string, identity?: ObjectReadIdentity): Promise<Readable> {
     this.readStreamCount += 1
+    this.readStreamIdentities.push(identity)
     const metadata = await this.getObjectMetadata(bucketName, objectPath)
     if (!metadata.exists || !this.object) throw new Error('Fake uploaded GCS object not found.')
     return Readable.from([this.object.body])
@@ -299,6 +301,17 @@ try {
   assert.equal(mediaAsset?.sourceMetadata?.width, 160)
   assert.equal(mediaAsset?.sourceMetadata?.height, 90)
   assert.ok((mediaAsset?.sourceMetadata?.durationSeconds ?? 0) > 0, 'Finalized GCS media asset should include duration metadata.')
+  assert.ok(
+    fakeGcsStorageAdapter.readStreamIdentities.some((identity) =>
+      identity?.generation === '1001' && identity.etag === 'etag-1001'
+    ),
+    'Upload-time source probing must reopen the exact verified GCS generation and ETag.',
+  )
+  assert.equal(
+    await countRegularFiles(join(localStorageRoot, 'upload-probes')),
+    0,
+    'Upload-time GCS probe staging must remove every staged source byte after FFprobe.',
+  )
   assert.equal(storageObjectRecord?.bucketName, uploadTarget.bucketName)
   assert.equal(storageObjectRecord?.objectPath, uploadTarget.objectPath)
   assert.equal(storageObjectRecord?.checksumSha256, sourceChecksumSha256)
@@ -343,46 +356,82 @@ try {
     },
     'gcs-upload-route-private-internal-test-run',
   )
-  assert.equal(privateRunResponse.status, 201, `Private internal edit run should consume finalized GCS media asset: ${JSON.stringify(privateRunResponse.json)}`)
-  const internalTestRun = privateRunResponse.json.data?.internalTestRun
-  assert.ok(internalTestRun, 'Private GCS upload run should return an internal test run.')
-  assert.equal(internalTestRun?.status, 'private_internal_test_run_completed_ready_for_download')
-  assert.equal(internalTestRun?.sourceMediaAssetCount, 1)
-  assert.equal(internalTestRun?.privateInternalDownloadDelivery?.privateInternalDownloadReady, true)
-  assert.equal(internalTestRun?.publicDeliveryReady, false)
-  assert.equal(internalTestRun?.externalBetaReady, false)
-  assert.equal(internalTestRun?.productionReady, false)
-  assert.ok(fakeGcsStorageAdapter.createUploadTargetCount === 1, 'GCS upload target should be created once.')
-  assert.ok(fakeGcsStorageAdapter.verifyCount >= 1, 'GCS finalized upload should be verified.')
-  assert.ok(fakeGcsStorageAdapter.readStreamCount > 0, 'Finalization/procesing should stream the private GCS object.')
-  assert.equal(fakeGcsStorageAdapter.writeAttemptCount, 3, 'Backend should mirror the final MP4, manifest, and private delivery registry to GCS storage in this flow.')
-  assert.equal(fakeGcsStorageAdapter.signedDownloadAttemptCount, 0, 'Backend must not create GCS download signed URLs in this flow.')
-  assert.equal(internalTestRun?.finalRenderArtifact?.privateStorageMirror?.storageProvider, 'google_cloud_storage')
-  assert.equal(internalTestRun?.finalRenderArtifact?.privateStorageMirror?.publicArtifact, false)
-  assert.equal(internalTestRun?.finalRenderArtifact?.privateStorageMirror?.signedUrl, null)
-  assert.equal(internalTestRun?.finalRenderArtifact?.editDecisionManifestArtifact?.privateStorageMirror?.storageProvider, 'google_cloud_storage')
+  assert.equal(
+    privateRunResponse.status,
+    503,
+    `Legacy caller-authored execution must stay disabled after GCS upload finalization: ${JSON.stringify(privateRunResponse.json)}`,
+  )
+  if (privateRunResponse.status === 503) {
+    assert.equal(privateRunResponse.json.error?.code, 'TOOL_NOT_READY')
+    const details = privateRunResponse.json.error?.details
+    assert.ok(details && typeof details === 'object')
+    assert.equal(
+      (details as Record<string, unknown>).requiredGate,
+      'canonical_browser_consumption_of_planning_handoff',
+    )
+    assert.equal(fakeGcsStorageAdapter.writeAttemptCount, 0, 'The disabled legacy route must not write render artifacts to GCS.')
+    assert.equal(fakeGcsStorageAdapter.signedDownloadAttemptCount, 0, 'The disabled legacy route must not create GCS download targets.')
+    console.log(JSON.stringify({
+      ok: true,
+      status: 'blocked_by_canonical_browser_consumption_of_planning_handoff',
+      checks: [
+        'backend_project_created_before_gcs_upload_intent',
+        'gcs_upload_intent_created_without_signed_url_source_truth',
+        'gcs_finalize_preserved_generation_and_etag_identity',
+        'gcs_upload_probe_reopened_exact_generation_and_etag',
+        'gcs_upload_probe_staging_removed_all_source_bytes',
+        'gcs_upload_finalize_promoted_probed_private_media_asset',
+        'legacy_private_internal_execution_route_fails_closed',
+        'no_provider_render_delivery_billing_or_wallet_side_effect',
+      ],
+      uploadedByteCount: sourceBytes.byteLength,
+      gcsReadStreamCount: fakeGcsStorageAdapter.readStreamCount,
+      nextRequiredGate: 'canonical_browser_consumption_of_planning_handoff',
+    }))
+  } else {
+    assert.equal(privateRunResponse.status, 201, `Private internal edit run should consume finalized GCS media asset: ${JSON.stringify(privateRunResponse.json)}`)
+    const internalTestRun = privateRunResponse.json.data?.internalTestRun
+    assert.ok(internalTestRun, 'Private GCS upload run should return an internal test run.')
+    assert.equal(internalTestRun?.status, 'private_internal_test_run_completed_ready_for_download')
+    assert.equal(internalTestRun?.sourceMediaAssetCount, 1)
+    assert.equal(internalTestRun?.privateInternalDownloadDelivery?.privateInternalDownloadReady, true)
+    assert.equal(internalTestRun?.publicDeliveryReady, false)
+    assert.equal(internalTestRun?.externalBetaReady, false)
+    assert.equal(internalTestRun?.productionReady, false)
+    assert.ok(fakeGcsStorageAdapter.createUploadTargetCount === 1, 'GCS upload target should be created once.')
+    assert.ok(fakeGcsStorageAdapter.verifyCount >= 1, 'GCS finalized upload should be verified.')
+    assert.ok(fakeGcsStorageAdapter.readStreamCount > 0, 'Finalization/processing should stream the private GCS object.')
+    assert.equal(fakeGcsStorageAdapter.writeAttemptCount, 3, 'Backend should mirror the final MP4, manifest, and private delivery registry to GCS storage in this flow.')
+    assert.equal(fakeGcsStorageAdapter.signedDownloadAttemptCount, 0, 'Backend must not create GCS download signed URLs in this flow.')
+    assert.equal(internalTestRun?.finalRenderArtifact?.privateStorageMirror?.storageProvider, 'google_cloud_storage')
+    assert.equal(internalTestRun?.finalRenderArtifact?.privateStorageMirror?.publicArtifact, false)
+    assert.equal(internalTestRun?.finalRenderArtifact?.privateStorageMirror?.signedUrl, null)
+    assert.equal(internalTestRun?.finalRenderArtifact?.editDecisionManifestArtifact?.privateStorageMirror?.storageProvider, 'google_cloud_storage')
 
-  const privateDownload = await fetchBinary(`${baseUrl}${internalTestRun.privateInternalDownloadPath}`)
-  assert.equal(privateDownload.status, 200, 'Private internal download should stream after GCS upload-route edit run.')
-  assert.match(privateDownload.headers.get('content-type') ?? '', /^video\/mp4\b/i)
-  assert.equal(privateDownload.bytes.byteLength, internalTestRun.finalRenderArtifact.byteSize)
+    const privateDownload = await fetchBinary(`${baseUrl}${internalTestRun.privateInternalDownloadPath}`)
+    assert.equal(privateDownload.status, 200, 'Private internal download should stream after GCS upload-route edit run.')
+    assert.match(privateDownload.headers.get('content-type') ?? '', /^video\/mp4\b/i)
+    assert.equal(privateDownload.bytes.byteLength, internalTestRun.finalRenderArtifact.byteSize)
 
-  console.log(JSON.stringify({
-    ok: true,
-    checks: [
-      'backend_project_created_before_gcs_upload_intent',
-      'gcs_upload_intent_created_without_signed_url_source_truth',
-      'gcs_finalize_preserved_generation_and_etag_identity',
-      'gcs_upload_finalize_promoted_probed_private_media_asset',
-      'gcs_finalized_media_asset_consumed_by_private_internal_test_run_route',
-      'private_final_render_download_streamed_after_gcs_upload_finalize',
-      'private_final_render_and_manifest_mirrored_without_signed_download_public_artifact_external_beta_or_production_scope',
-    ],
-    uploadedByteCount: sourceBytes.byteLength,
-    gcsReadStreamCount: fakeGcsStorageAdapter.readStreamCount,
-    privateDownloadByteCount: privateDownload.bytes.byteLength,
-    nextRequiredGate: internalTestRun.nextRequiredGate,
-  }))
+    console.log(JSON.stringify({
+      ok: true,
+      checks: [
+        'backend_project_created_before_gcs_upload_intent',
+        'gcs_upload_intent_created_without_signed_url_source_truth',
+        'gcs_finalize_preserved_generation_and_etag_identity',
+        'gcs_upload_probe_reopened_exact_generation_and_etag',
+        'gcs_upload_probe_staging_removed_all_source_bytes',
+        'gcs_upload_finalize_promoted_probed_private_media_asset',
+        'gcs_finalized_media_asset_consumed_by_private_internal_test_run_route',
+        'private_final_render_download_streamed_after_gcs_upload_finalize',
+        'private_final_render_and_manifest_mirrored_without_signed_download_public_artifact_external_beta_or_production_scope',
+      ],
+      uploadedByteCount: sourceBytes.byteLength,
+      gcsReadStreamCount: fakeGcsStorageAdapter.readStreamCount,
+      privateDownloadByteCount: privateDownload.bytes.byteLength,
+      nextRequiredGate: internalTestRun.nextRequiredGate,
+    }))
+  }
 } finally {
   await new Promise<void>((resolve, reject) => {
     server.close((error) => (error ? reject(error) : resolve()))
@@ -401,6 +450,14 @@ function addressPort(server: Server): number {
   const address = server.address()
   if (!address || typeof address === 'string') throw new Error('Expected server to listen on a TCP port.')
   return address.port
+}
+
+async function countRegularFiles(rootPath: string): Promise<number> {
+  const entries = await readdir(rootPath, { recursive: true, withFileTypes: true }).catch((error) => {
+    if (typeof error === 'object' && error !== null && 'code' in error && error.code === 'ENOENT') return []
+    throw error
+  })
+  return entries.filter((entry) => entry.isFile()).length
 }
 
 async function postJson(

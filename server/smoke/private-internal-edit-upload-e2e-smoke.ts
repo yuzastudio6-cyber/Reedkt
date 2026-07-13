@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { execFile } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { createServer, type Server } from 'node:http'
-import { chmod, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { chmod, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { promisify } from 'node:util'
@@ -268,6 +268,11 @@ try {
   assert.equal(mediaAsset.sourceMetadata?.height, 90, 'Finalized source metadata should include video height.')
   assert.ok((mediaAsset.sourceMetadata?.durationSeconds ?? 0) > 0, 'Finalized source metadata should include positive duration.')
   assert.match(mediaAsset.checksumSha256 ?? '', /^[a-f0-9]{64}$/i, 'Finalized upload should include checksum evidence.')
+  assert.equal(
+    await countRegularFiles(join(localStorageRoot, 'upload-probes')),
+    0,
+    'Upload-time local probe staging must remove every staged source byte after FFprobe.',
+  )
 
   const compactSnapshot = {
     id: snapshot.id,
@@ -335,6 +340,11 @@ try {
     },
     'private-upload-e2e-private-internal-test-run',
   )
+  assert.equal(
+    privateInternalTestRunResponse.status,
+    503,
+    `Legacy caller-authored local execution must stay disabled after upload finalization: ${JSON.stringify(privateInternalTestRunResponse.json)}`,
+  )
   if (privateInternalTestRunResponse.status === 503) {
     assert.equal(privateInternalTestRunResponse.json.error?.code, 'TOOL_NOT_READY')
     const details = privateInternalTestRunResponse.json.error?.details
@@ -351,6 +361,7 @@ try {
         'source_video_uploaded_through_backend_local_upload_intent',
         'finalized_upload_preserves_local_private_storage_provider',
         'finalized_upload_includes_local_ffprobe_source_metadata',
+        'local_upload_probe_staging_removed_all_source_bytes',
         'legacy_private_internal_execution_route_fails_closed',
         'no_provider_render_delivery_billing_or_wallet_side_effect',
       ],
@@ -1338,6 +1349,14 @@ function assertApprovedPrivateToolOperationEvidence(
 function resolveBackendUrl(apiBaseUrl: string, routeOrUrl: string): string {
   if (/^https?:\/\//i.test(routeOrUrl)) return routeOrUrl
   return new URL(routeOrUrl, apiBaseUrl.endsWith('/') ? apiBaseUrl : `${apiBaseUrl}/`).toString()
+}
+
+async function countRegularFiles(rootPath: string): Promise<number> {
+  const entries = await readdir(rootPath, { recursive: true, withFileTypes: true }).catch((error) => {
+    if (typeof error === 'object' && error !== null && 'code' in error && error.code === 'ENOENT') return []
+    throw error
+  })
+  return entries.filter((entry) => entry.isFile()).length
 }
 
 async function createStubHydratedPythonRuntime(packageNames: string[]) {

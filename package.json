@@ -37,6 +37,7 @@
     "smoke:preference-intelligence-authority": "tsx server/smoke/preference-intelligence-authority-smoke.ts",
     "smoke:edit-brief-authority": "tsx server/smoke/edit-brief-authority-smoke.ts",
     "smoke:private-source-media-authority": "tsx server/smoke/private-source-media-authority-smoke.ts",
+    "smoke:private-source-probe-staging": "tsx server/smoke/private-source-probe-staging-smoke.ts",
     "smoke:source-media-authority-route": "tsx server/smoke/source-media-authority-route-smoke.ts",
     "smoke:planning-domain-mutation-lock": "tsx server/smoke/planning-domain-mutation-lock-smoke.ts",
     "smoke:canonical-execution-readiness": "tsx server/smoke/canonical-execution-readiness-smoke.ts",

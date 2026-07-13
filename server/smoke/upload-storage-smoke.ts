@@ -3,7 +3,9 @@ import { mkdir, rm, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { Readable } from 'node:stream'
 import { loadRuntimeEnv } from '../config/env'
+import { ApiError } from '../errors/api-error'
 import { createProjectService } from '../services/project-service'
+import { readPrivateUploadMediaAuthorityAggregate } from '../services/private-upload-media-authority-store'
 import { createUploadService } from '../services/upload-service'
 import { LocalStorageAdapter } from '../storage/local-storage-adapter'
 import { buildCanonicalObjectPath, sanitizeFileName } from '../storage/storage-paths'
@@ -91,6 +93,109 @@ class ClientMetadataOnlyGcsAdapter implements StorageAdapter {
   }
 }
 
+class ProbeStagingGcsAdapter implements StorageAdapter {
+  readonly mode = 'gcs' as const
+  streamMode: 'exact' | 'short' | 'wrong_hash' | 'open_error'
+  readonly deleteMode: 'success' | 'warning' | 'error'
+  readonly readIdentities: Array<ObjectReadIdentity | undefined> = []
+  readonly deleteIdentities: Array<ObjectReadIdentity | undefined> = []
+  private readonly body: Buffer
+  private readonly checksumSha256: string
+
+  constructor(
+    body: Buffer,
+    streamMode: ProbeStagingGcsAdapter['streamMode'],
+    deleteMode: ProbeStagingGcsAdapter['deleteMode'] = 'success',
+  ) {
+    this.body = body
+    this.checksumSha256 = createHash('sha256').update(body).digest('hex')
+    this.streamMode = streamMode
+    this.deleteMode = deleteMode
+  }
+
+  async createUploadTarget(input: {
+    uploadIntentId: string
+    bucketName: string
+    objectPath: string
+    mimeType: string
+    expiresAt: string
+  }): Promise<UploadTarget> {
+    return {
+      uploadMethod: 'PUT',
+      uploadUrl: `https://probe-staging.invalid/${input.uploadIntentId}`,
+      uploadHeaders: {
+        'content-type': input.mimeType,
+        'x-goog-if-generation-match': '0',
+      },
+      expiresAt: input.expiresAt,
+      bucketName: input.bucketName,
+      objectPath: input.objectPath,
+      temporary: true,
+      createOnly: true,
+    }
+  }
+
+  async putObject(): Promise<ObjectMetadata> {
+    throw new Error('Probe staging smoke does not perform backend object writes.')
+  }
+
+  async verifyUploadedObject(input: VerifyObjectInput): Promise<ObjectMetadata> {
+    return this.metadata(input.bucketName, input.objectPath)
+  }
+
+  async createDownloadTarget(): Promise<DownloadTarget> {
+    throw new Error('Probe staging smoke does not create download targets.')
+  }
+
+  async getObjectMetadata(bucketName: string, objectPath: string): Promise<ObjectMetadata> {
+    return this.metadata(bucketName, objectPath)
+  }
+
+  async createReadStream(
+    _bucketName: string,
+    _objectPath: string,
+    identity?: ObjectReadIdentity,
+  ): Promise<Readable> {
+    this.readIdentities.push(identity)
+    if (this.streamMode === 'open_error') throw new Error('Transient provider stream failure.')
+    if (this.streamMode === 'short') return Readable.from([this.body.subarray(0, this.body.byteLength - 1)])
+    if (this.streamMode === 'wrong_hash') {
+      const wrongBytes = Buffer.from(this.body)
+      wrongBytes[0] = wrongBytes[0] === 0 ? 1 : wrongBytes[0] - 1
+      return Readable.from([wrongBytes])
+    }
+    return Readable.from([this.body])
+  }
+
+  async deleteObject(
+    _bucketName: string,
+    _objectPath: string,
+    identity?: ObjectReadIdentity,
+  ): Promise<{ deleted: boolean; warnings: string[] }> {
+    this.deleteIdentities.push(identity)
+    if (this.deleteMode === 'error') throw new Error('Exact-generation cleanup transport failure.')
+    if (this.deleteMode === 'warning') {
+      return { deleted: false, warnings: ['Exact-generation cleanup requires reconciliation.'] }
+    }
+    return { deleted: true, warnings: [] }
+  }
+
+  private metadata(bucketName: string, objectPath: string): ObjectMetadata {
+    return {
+      bucketName,
+      objectPath,
+      sizeBytes: this.body.byteLength,
+      checksumSha256: this.checksumSha256,
+      mimeType: 'video/mp4',
+      exists: true,
+      generation: 'probe-generation-1',
+      etag: 'probe-etag-1',
+      integrityVerified: true,
+      checksumSource: 'server_computed_bytes',
+    }
+  }
+}
+
 function assert(condition: boolean, message: string): void {
   if (!condition) throw new Error(message)
 }
@@ -102,6 +207,7 @@ const env = loadRuntimeEnv({
   API_PORT: '8787',
   STORAGE_MODE: 'local',
   LOCAL_STORAGE_ROOT: '.reeditpro-local-storage-smoke',
+  FFPROBE_BIN: 'reeditpro-missing-ffprobe-upload-smoke',
   SIGNED_URL_TTL_SECONDS: '900',
   SUPABASE_URL: '',
   SUPABASE_SERVICE_ROLE_KEY: '',
@@ -242,6 +348,116 @@ await assertRejects(
 )
 assert(clientMetadataOnlyAdapter.deleteAttempted, 'Rejected GCS integrity evidence should trigger exact-generation cleanup.')
 
+for (const streamMode of ['short', 'wrong_hash'] as const) {
+  const probeAdapter = new ProbeStagingGcsAdapter(
+    body,
+    streamMode,
+    streamMode === 'short' ? 'warning' : 'error',
+  )
+  const probeService = createUploadService({
+    ...serviceContext,
+    requestId: `upload-smoke-probe-${streamMode}`,
+    storageAdapter: probeAdapter,
+  })
+  const probeIntent = await probeService.createUploadIntent({
+    workspaceId: 'workspace-smoke',
+    projectId,
+    uploadPurpose: 'source_media',
+    originalFileName: `probe-${streamMode}.mp4`,
+    mimeType: 'video/mp4',
+    expectedSizeBytes: body.byteLength,
+    checksumSha256,
+  })
+  const probeError = await captureApiError(() => probeService.finalizeUploadIntent({
+    workspaceId: 'workspace-smoke',
+    uploadIntentId: probeIntent.uploadIntent.id,
+  }))
+  assert(
+    (probeError.details as { reason?: string } | undefined)?.reason === (
+      streamMode === 'short'
+        ? 'source_probe_stage_size_mismatch'
+        : 'source_probe_stage_checksum_mismatch'
+    ),
+    `Probe ${streamMode} must fail with the exact terminal integrity reason.`,
+  )
+  const cleanupDetails = probeError.details as {
+    objectCleanupStatus?: string
+    objectCleanupWarnings?: string[]
+  }
+  if (streamMode === 'short') {
+    assert(cleanupDetails.objectCleanupStatus === 'warning', 'Provider cleanup warnings must remain attached to terminal evidence.')
+    assert(
+      cleanupDetails.objectCleanupWarnings?.includes('Exact-generation cleanup requires reconciliation.') === true,
+      'Provider cleanup warning text must remain available to internal evidence.',
+    )
+  } else {
+    assert(cleanupDetails.objectCleanupStatus === 'failed', 'Provider cleanup failure must remain attached to terminal evidence.')
+  }
+  const aggregate = await readPrivateUploadMediaAuthorityAggregate({
+    localStorageRoot: env.localStorageRoot,
+    ownerUserId: 'user-smoke',
+    workspaceId: 'workspace-smoke',
+  })
+  const storedIntent = aggregate?.uploadIntents.find((record) => record.id === probeIntent.uploadIntent.id)
+  assert(storedIntent?.status === 'failed', `Probe ${streamMode} integrity drift must mark the upload intent failed.`)
+  assert(
+    !aggregate?.mediaAssets.some((record) => record.uploadIntentId === probeIntent.uploadIntent.id),
+    `Probe ${streamMode} integrity drift must not create ready media authority.`,
+  )
+  assert(
+    probeAdapter.deleteIdentities.some((identity) =>
+      identity?.generation === 'probe-generation-1' && identity.etag === 'probe-etag-1'
+    ),
+    `Probe ${streamMode} integrity drift must attempt exact-generation cleanup.`,
+  )
+}
+
+const retryableProbeAdapter = new ProbeStagingGcsAdapter(body, 'open_error')
+const retryableProbeService = createUploadService({
+  ...serviceContext,
+  requestId: 'upload-smoke-probe-retryable',
+  storageAdapter: retryableProbeAdapter,
+})
+const retryableProbeIntent = await retryableProbeService.createUploadIntent({
+  workspaceId: 'workspace-smoke',
+  projectId,
+  uploadPurpose: 'source_media',
+  originalFileName: 'probe-retryable.mp4',
+  mimeType: 'video/mp4',
+  expectedSizeBytes: body.byteLength,
+  checksumSha256,
+})
+const retryableProbeError = await captureApiError(() => retryableProbeService.finalizeUploadIntent({
+  workspaceId: 'workspace-smoke',
+  uploadIntentId: retryableProbeIntent.uploadIntent.id,
+}))
+assert(
+  (retryableProbeError.details as { reason?: string } | undefined)?.reason === 'source_probe_stage_failed',
+  'Operational source stream failure must be classified separately from integrity contradiction.',
+)
+const aggregateAfterRetryableFailure = await readPrivateUploadMediaAuthorityAggregate({
+  localStorageRoot: env.localStorageRoot,
+  ownerUserId: 'user-smoke',
+  workspaceId: 'workspace-smoke',
+})
+assert(
+  aggregateAfterRetryableFailure?.uploadIntents.find((record) => record.id === retryableProbeIntent.uploadIntent.id)?.status === 'signed',
+  'Operational source stream failure must leave the upload intent retryable.',
+)
+assert(retryableProbeAdapter.deleteIdentities.length === 0, 'Operational source stream failure must not delete valid GCS media.')
+retryableProbeAdapter.streamMode = 'exact'
+const retryableProbeFinalized = await retryableProbeService.finalizeUploadIntent({
+  workspaceId: 'workspace-smoke',
+  uploadIntentId: retryableProbeIntent.uploadIntent.id,
+})
+assert(retryableProbeFinalized.uploadIntent.status === 'finalized', 'A retry after an operational stream failure must finalize safely.')
+assert(
+  retryableProbeAdapter.readIdentities.some((identity) =>
+    identity?.generation === 'probe-generation-1' && identity.etag === 'probe-etag-1'
+  ),
+  'Retryable probe staging must reopen the exact verified object identity.',
+)
+
 await assertRejects(
   () => otherUserUploadService.uploadLocalObject(created.uploadIntent.id, 'workspace-smoke', body, 'video/mp4'),
   'Cross-user local object upload should be rejected.',
@@ -278,6 +494,11 @@ const finalized = await uploadService.finalizeUploadIntent({
 assert(finalized.storageObjectRecord.bucketName === created.uploadIntent.targetBucket, 'Finalized storage bucket should match intent.')
 assert(finalized.storageObjectRecord.objectPath === created.uploadIntent.targetPath, 'Finalized object path should match intent.')
 assert(!JSON.stringify(finalized.storageObjectRecord).toLowerCase().includes('signedurl'), 'Canonical storage metadata should not store signed URL fields.')
+assert(finalized.mediaAsset.sourceMetadata?.probeStatus === 'unavailable', 'FFprobe-only failure must remain nonblocking after exact staging integrity passes.')
+assert(
+  finalized.mediaAsset.sourceMetadata?.unavailableReason?.includes('reeditpro-missing-ffprobe-upload-smoke') === true,
+  'Upload probing must honor the configured FFPROBE_BIN value.',
+)
 
 await assertRejects(
   () => otherUserUploadService.getStorageObjectRecord(finalized.storageObjectRecord.id, 'workspace-smoke'),
@@ -336,7 +557,13 @@ console.log(JSON.stringify({
     'local_adapter_checksum_verification',
     'client_checksum_metadata_cannot_finalize',
     'rejected_generation_cleanup_attempted',
+    'probe_short_stream_marks_intent_failed_and_deletes_exact_generation',
+    'probe_wrong_hash_marks_intent_failed_and_deletes_exact_generation',
+    'probe_operational_failure_remains_retryable_without_object_deletion',
+    'probe_retry_reopens_exact_generation_and_finalizes',
     'canonical_metadata_excludes_signed_url',
+    'ffprobe_only_failure_finalizes_as_unavailable_after_verified_staging',
+    'configured_ffprobe_binary_is_honored',
     'unsafe_mime_rejected',
     'upload_intent_requires_owned_backend_project_record',
     'project_list_recovers_owned_internal_testing_project',
@@ -349,6 +576,7 @@ console.log(JSON.stringify({
     'local_download_target_backend_route',
   ],
 }))
+await rm(env.localStorageRoot, { force: true, recursive: true })
 
 async function assertRejects(action: () => Promise<unknown>, message: string): Promise<void> {
   let rejected = false
@@ -358,6 +586,19 @@ async function assertRejects(action: () => Promise<unknown>, message: string): P
     rejected = true
   }
   assert(rejected, message)
+}
+
+async function captureApiError(action: () => Promise<unknown>): Promise<ApiError> {
+  try {
+    await action()
+  } catch (error) {
+    if (!(error instanceof ApiError)) {
+      throw new Error('Expected source probe finalization to reject with ApiError.', { cause: error })
+    }
+    assert(error.code === 'UPLOAD_NOT_FINALIZED', 'Source probe finalization must fail with UPLOAD_NOT_FINALIZED.')
+    return error
+  }
+  throw new Error('Expected source probe finalization to reject.')
 }
 
 async function readStreamToBuffer(stream: NodeJS.ReadableStream): Promise<Buffer> {

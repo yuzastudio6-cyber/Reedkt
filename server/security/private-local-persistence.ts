@@ -265,6 +265,58 @@ export async function ensurePrivateDirectoryWithinRoot(input: {
 }
 
 /**
+ * Removes one owned private directory tree after validating every ancestor and
+ * the opened target inode without following symbolic links. Keeping the target
+ * directory handle open and rechecking its inode immediately before removal
+ * narrows pathname substitution races available to cooperating local writers.
+ * A future dirfd/unlinkat worker boundary is still required for a hostile
+ * same-UID filesystem actor.
+ */
+export async function removePrivateDirectoryTreeWithinRoot(input: {
+  rootPath: string
+  relativePath: string
+}): Promise<{ removed: boolean }> {
+  const directoryPath = resolvePrivateDirectoryPath(input.rootPath, input.relativePath)
+  const parentPath = dirname(directoryPath)
+  const parentExists = await assertPrivateDirectoryChain(input.rootPath, parentPath, true, true)
+  if (!parentExists) return { removed: false }
+
+  let directoryStat: Awaited<ReturnType<typeof lstat>>
+  try {
+    directoryStat = await lstat(directoryPath)
+  } catch (error) {
+    if (isNodeErrorWithCode(error, 'ENOENT')) return { removed: false }
+    throw error
+  }
+  if (directoryStat.isSymbolicLink() || !directoryStat.isDirectory()) {
+    throw unsafePrivatePersistencePath('private_cleanup_directory_not_regular')
+  }
+
+  const directoryHandle = await open(directoryPath, constants.O_RDONLY | constants.O_NOFOLLOW)
+  try {
+    const openedStat = await directoryHandle.stat()
+    if (!openedStat.isDirectory()) {
+      throw unsafePrivatePersistencePath('private_cleanup_directory_not_regular')
+    }
+    await directoryHandle.chmod(PRIVATE_DIRECTORY_MODE)
+    await assertPrivateDirectoryChain(input.rootPath, parentPath, false, true)
+    const latestStat = await lstat(directoryPath)
+    if (
+      latestStat.isSymbolicLink()
+      || !latestStat.isDirectory()
+      || latestStat.dev !== openedStat.dev
+      || latestStat.ino !== openedStat.ino
+    ) {
+      throw unsafePrivatePersistencePath('private_cleanup_directory_identity_changed')
+    }
+    await rm(directoryPath, { force: false, recursive: true })
+    return { removed: true }
+  } finally {
+    await directoryHandle.close().catch(() => undefined)
+  }
+}
+
+/**
  * Lists regular file names from one private registry directory. Directory
  * names are never returned, symbolic-link or special-file entries fail
  * closed, and callers must still open every returned file through the private

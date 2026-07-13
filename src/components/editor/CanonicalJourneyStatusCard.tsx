@@ -2,6 +2,7 @@ import {
   AlertTriangle,
   CheckCircle2,
   CircleDot,
+  Film,
   Loader2,
   PackageCheck,
   RefreshCw,
@@ -15,6 +16,7 @@ import {
 } from '../../lib/canonical-edit-journey'
 import type { CanonicalEditJourneyHookResult } from '../../hooks/useCanonicalEditJourney'
 import type { CanonicalExecutionPackageRequestHookResult } from '../../hooks/useCanonicalExecutionPackageRequest'
+import type { CanonicalPrivateEditPreparationHookResult } from '../../hooks/useCanonicalPrivateEditPreparation'
 
 const toneIcon = {
   neutral: CircleDot,
@@ -25,13 +27,17 @@ const toneIcon = {
 
 type CanonicalJourneyStatusCardProps = CanonicalEditJourneyHookResult & {
   executionPackageRequest?: CanonicalExecutionPackageRequestHookResult
+  privateEditPreparation?: CanonicalPrivateEditPreparationHookResult
   onRequestExecutionPackage?: () => void
+  onPreparePrivateEdit?: () => void
 }
 
 export function CanonicalJourneyStatusCard({
   executionPackageRequest,
   loading,
+  onPreparePrivateEdit,
   onRequestExecutionPackage,
+  privateEditPreparation,
   refresh,
   refreshing,
   result,
@@ -108,6 +114,29 @@ export function CanonicalJourneyStatusCard({
     executionPackageRequest &&
     onRequestExecutionPackage,
   )
+  const preparationAuthority = result.journey.privateEditPreparationAuthority
+  const preparationIsCurrent = Boolean(
+    preparationAuthority &&
+    privateEditPreparation?.requestedPackageRecordId === preparationAuthority.packageRecordId,
+  )
+  const preparationResult = preparationIsCurrent
+    ? privateEditPreparation?.result ?? null
+    : null
+  const preparing = preparationIsCurrent && Boolean(privateEditPreparation?.preparing)
+  const canPreparePrivateEdit = Boolean(
+    (
+      result.journey.stage === 'execution_in_progress' ||
+      result.journey.stage === 'private_review_assembly_required'
+    ) &&
+    preparationAuthority &&
+    privateEditPreparation &&
+    onPreparePrivateEdit,
+  )
+  const refreshSavedWorkflow = () => {
+    executionPackageRequest?.reset()
+    privateEditPreparation?.reset()
+    refresh()
+  }
 
   return (
     <section
@@ -189,16 +218,96 @@ export function CanonicalJourneyStatusCard({
             </Button>
           </div>
         )}
+
+        {canPreparePrivateEdit && (
+          <div
+            aria-live="polite"
+            className="canonical-journey-package-action"
+            data-status={preparing ? 'preparing' : preparationResult?.status ?? 'ready'}
+            data-testid={`canonical-private-edit-preparation-${
+              preparing ? 'preparing' : preparationResult?.status ?? 'ready'
+            }`}
+            role={preparationResult && preparationResult.status !== 'ready' ? 'alert' : 'status'}
+          >
+            <div className="canonical-journey-package-action-copy">
+              <Film aria-hidden="true" size={16} />
+              <div>
+                <strong>{preparationActionTitle(preparing, preparationResult)}</strong>
+                <p>{preparationActionMessage(
+                  preparing,
+                  preparationResult,
+                  result.journey.stage === 'private_review_assembly_required',
+                )}</p>
+              </div>
+            </div>
+            <Button
+              aria-busy={preparing}
+              data-testid="canonical-private-edit-preparation-submit"
+              disabled={
+                preparing ||
+                preparationResult?.status === 'ready' ||
+                Boolean(preparationResult && !preparationResult.retryable)
+              }
+              onClick={onPreparePrivateEdit}
+              size="sm"
+              variant="primary"
+            >
+              {preparationActionButtonLabel(
+                preparing,
+                preparationResult,
+                result.journey.stage === 'private_review_assembly_required',
+              )}
+            </Button>
+          </div>
+        )}
       </div>
 
       <IconButton
         disabled={refreshing}
         icon={RefreshCw}
         label="Refresh saved workflow status"
-        onClick={refresh}
+        onClick={refreshSavedWorkflow}
       />
     </section>
   )
+}
+
+function preparationActionTitle(
+  preparing: boolean,
+  result: CanonicalPrivateEditPreparationHookResult['result'],
+): string {
+  if (preparing) return 'Preparing the private review'
+  if (result?.status === 'ready') return 'Private review ready'
+  if (result?.status === 'blocked') return 'Private preparation is paused'
+  if (result) return 'Private preparation needs attention'
+  return 'Approved edit ready to prepare'
+}
+
+function preparationActionMessage(
+  preparing: boolean,
+  result: CanonicalPrivateEditPreparationHookResult['result'],
+  assembling: boolean,
+): string {
+  if (preparing) {
+    return 'Running only the approved private steps from the exact approved plan. Saved progress can be recovered if you leave and return.'
+  }
+  if (result) return result.message
+  if (assembling) {
+    return 'Required private steps passed. Finish assembling the exact review version while publishing and billing stay off.'
+  }
+  return 'Start the approved private edit process. External generation, public delivery, production rendering, and customer charges stay off.'
+}
+
+function preparationActionButtonLabel(
+  preparing: boolean,
+  result: CanonicalPrivateEditPreparationHookResult['result'],
+  assembling: boolean,
+): string {
+  if (preparing) return 'Preparing review…'
+  if (result?.status === 'ready') return 'Review ready'
+  if (result?.retryable) return 'Try again'
+  if (result) return 'Refresh required'
+  return assembling ? 'Assemble private review' : 'Start private edit'
 }
 
 function packageActionTitle(

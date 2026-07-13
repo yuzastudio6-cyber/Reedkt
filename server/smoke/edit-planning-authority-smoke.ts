@@ -63,6 +63,7 @@ import {
 import { canonicalEditJourneyResponseSchema } from '../validation/canonical-edit-journey-schemas'
 import { canonicalPlanApprovalReceiptSchema } from '../validation/canonical-plan-approval-schemas'
 import { canonicalExecutionPackageRequestReceiptSchema } from '../validation/canonical-execution-package-request-schemas'
+import { canonicalPrivateEditPreparationReceiptSchema } from '../validation/canonical-private-edit-preparation-schemas'
 import { canonicalAuthoritySmokeRoot } from './canonical-authority-smoke-root'
 
 const localStorageRoot = canonicalAuthoritySmokeRoot
@@ -1839,7 +1840,7 @@ try {
   assert.equal(executionJourney.journey.stage, 'execution_in_progress')
   assert.equal(
     asRecord(executionJourney.journey.nextAction).code,
-    'run_private_work_graph',
+    'prepare_private_edit_review',
   )
   assert.equal(
     asRecord(executionJourney.journey.execution).packageRecordId,
@@ -1866,7 +1867,7 @@ try {
     ...parsedExecutionJourney,
     nextAction: {
       ...parsedExecutionJourney.nextAction,
-      routeTemplate: '/v1/edit-executions/packages/foreign-package/private-internal-work-graph-runs',
+      routeTemplate: '/v1/edit-executions/packages/foreign-package/canonical-private-edit-preparation',
     },
   }).success, false)
   assert.equal(canonicalEditJourneyResponseSchema.safeParse({
@@ -1891,11 +1892,11 @@ try {
     ...parsedExecutionJourney,
     stage: 'private_review_assembly_required',
     nextAction: {
-      code: 'assemble_private_review',
-      actor: 'internal_service',
+      code: 'prepare_private_edit_review',
+      actor: 'authenticated_user',
       method: 'POST',
       routeTemplate:
-        `/v1/edit-executions/packages/${String(routeExecutionPackage.packageRecordId)}/private-review-assemblies`,
+        `/v1/edit-executions/packages/${String(routeExecutionPackage.packageRecordId)}/canonical-private-edit-preparation`,
     },
   }).success, false)
 
@@ -2172,7 +2173,7 @@ try {
   }
   const workGraphJourney = asRecord(workGraphJourneyEnvelope.data?.canonicalEditJourney)
   assert.equal(workGraphJourney.stage, 'execution_in_progress')
-  assert.equal(asRecord(workGraphJourney.nextAction).code, 'run_private_work_graph')
+  assert.equal(asRecord(workGraphJourney.nextAction).code, 'prepare_private_edit_review')
   const workGraphProgress = asRecord(workGraphJourney.workGraphProgress)
   assert.equal(workGraphProgress.packageRecordId, workGraphPackage.packageRecordId)
   assert.equal(workGraphProgress.approvedPlanSnapshotId, workGraphSnapshot.snapshotId)
@@ -2188,6 +2189,64 @@ try {
   assert.equal(workGraphProgress.nextRequiredGate, 'canonical_job_capability_blockers')
   assert.equal(typeof workGraphProgress.checkpointHash, 'string')
   assert.equal(Number(workGraphProgress.checkpointSequence) > 0, true)
+
+  const privatePreparationUrl =
+    `${routeBaseUrl}/v1/edit-executions/packages/${String(workGraphPackage.packageRecordId)}/` +
+    'canonical-private-edit-preparation'
+  const privatePreparationBody = {
+    workspaceId: routeWorkspaceId,
+    expectedProjectId: routeProjectId,
+    expectedEditSessionId: workGraphEditSessionId,
+    expectedSnapshotId: String(workGraphSnapshot.snapshotId),
+    expectedSnapshotHash: String(workGraphSnapshot.snapshotHash),
+    expectedPackageHash: String(workGraphPackage.packageHash),
+    purpose: 'prepare_canonical_private_edit_review',
+  }
+  const callerSuppliedPreparationJobs = await fetch(privatePreparationUrl, {
+    method: 'POST',
+    headers: {
+      ...routeAuthHeaders,
+      'content-type': 'application/json',
+      'idempotency-key': 'route-private-preparation-reject-jobs',
+    },
+    body: JSON.stringify({ ...privatePreparationBody, jobs: [] }),
+  })
+  assert.equal(callerSuppliedPreparationJobs.status, 400)
+
+  const privatePreparationResponse = await fetch(privatePreparationUrl, {
+    method: 'POST',
+    headers: {
+      ...routeAuthHeaders,
+      'content-type': 'application/json',
+      'idempotency-key': 'route-private-preparation-blocked',
+    },
+    body: JSON.stringify(privatePreparationBody),
+  })
+  assert.equal(privatePreparationResponse.status, 201)
+  const privatePreparationEnvelope = await privatePreparationResponse.json() as {
+    data?: { canonicalPrivateEditPreparation?: Record<string, unknown> }
+  }
+  const privatePreparationReceipt = canonicalPrivateEditPreparationReceiptSchema.parse(
+    privatePreparationEnvelope.data?.canonicalPrivateEditPreparation,
+  )
+  assert.equal(privatePreparationReceipt.disposition, 'blocked')
+  assert.equal(privatePreparationReceipt.identity.packageRecordId, workGraphPackage.packageRecordId)
+  assert.equal(privatePreparationReceipt.authority.packageHash, workGraphPackage.packageHash)
+  assert.equal(privatePreparationReceipt.progress.totalJobCount, 5)
+  assert.equal(privatePreparationReceipt.progress.allRequiredJobsCompleted, false)
+  assert.equal(privatePreparationReceipt.review, null)
+  assert.equal(privatePreparationReceipt.boundaries.browserSuppliedJobsAccepted, false)
+  assert.equal(privatePreparationReceipt.boundaries.browserSuppliedToolsAccepted, false)
+  assert.equal(privatePreparationReceipt.boundaries.jobOrToolDetailsReturned, false)
+  assert.equal(privatePreparationReceipt.boundaries.filesystemPathReturned, false)
+  assert.equal(privatePreparationReceipt.boundaries.credentialReturned, false)
+  assert.equal(privatePreparationReceipt.boundaries.providerCallStarted, false)
+  assert.equal(privatePreparationReceipt.boundaries.productionRenderStarted, false)
+  assert.equal(privatePreparationReceipt.boundaries.customerCreditMutation, false)
+  assert.equal(privatePreparationReceipt.boundaries.billingStarted, false)
+  assert.equal('jobs' in privatePreparationReceipt, false)
+  assert.equal('tools' in privatePreparationReceipt, false)
+  assert.equal('path' in privatePreparationReceipt, false)
   for (const forbiddenKey of [
     'jobs', 'artifacts', 'filesystemPath', 'localFilePath', 'credential', 'lease', 'dispatch', 'signedUrl',
   ]) assert.equal(forbiddenKey in workGraphProgress, false)
@@ -3819,6 +3878,7 @@ console.log(JSON.stringify({
     'authenticated_canonical_execution_readiness_http_route',
     'authenticated_canonical_single_job_execution_http_route_with_replay_and_conflict',
     'authenticated_canonical_work_graph_advances_ready_job_and_persists_exact_blockers',
+    'authenticated_browser_safe_private_preparation_returns_bounded_blockers_without_jobs_tools_paths_or_credentials',
     'canonical_work_graph_persists_content_addressed_monotonic_package_progress',
     'canonical_journey_recovers_bounded_blocked_work_graph_progress_without_job_or_artifact_details',
     'work_graph_progress_schema_rejects_package_and_count_substitution',

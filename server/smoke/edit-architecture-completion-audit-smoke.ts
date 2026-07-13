@@ -172,6 +172,19 @@ const requiredEvidence: RequiredEvidence[] = [
     ],
   },
   {
+    file: 'tests/e2e/canonical-journey-ui.spec.ts',
+    requirement: 'The named-edit browser must start backend-owned private preparation from exact approved package authority without supplying or receiving jobs, tools, commands, paths, credentials, providers, or prices.',
+    evidence: [
+      'starts exact private edit preparation without exposing browser-owned jobs or tools',
+      'canonical-private-edit-preparation-submit',
+      'expectedPackageHash',
+      'prepare_canonical_private_edit_review',
+      'rawInternalRequestCount',
+      'Start private edit',
+      'Private review ready',
+    ],
+  },
+  {
     file: 'src/components/editor/PreviewReadyCard.tsx',
     requirement: 'The preview card must switch into a truthful private-review state once the private artifact exists.',
     evidence: [
@@ -200,6 +213,7 @@ const requiredEvidence: RequiredEvidence[] = [
       'playwright_editor_keyboard_flow',
       'playwright_route_viewport_flow',
       'canonical_execution_package_request_client',
+      'canonical_private_edit_preparation_client',
       'playwright_canonical_journey_flow',
       'legacy_execution_routes_fail_closed',
     ],
@@ -242,6 +256,7 @@ console.log(JSON.stringify({
     'expanded_and_keyboard_editor_qa_coverage_present',
     'clean_route_shell_and_legacy_redirect_qa_coverage_present',
     'canonical_named_edit_private_handoff_coverage_present',
+    'canonical_named_edit_private_preparation_coverage_present',
     'visible_private_review_card_coverage_present',
     'aggregate_internal_review_coverage_present',
   ],

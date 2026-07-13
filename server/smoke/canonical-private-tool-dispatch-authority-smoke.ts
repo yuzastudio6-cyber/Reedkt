@@ -22,6 +22,7 @@ import { createCanonicalPrivateDependencyArtifactReadService } from '../services
 import { createCanonicalPrivateDeepFilterNetVoiceCleanupExecutionService } from '../services/canonical-private-deepfilternet-voice-cleanup-execution-service'
 import { createCanonicalPrivateRemotionExecutionService } from '../services/canonical-private-remotion-execution-service'
 import { createCanonicalPrivateFinalArtifactDownloadService } from '../services/canonical-private-final-artifact-download-service'
+import { createCanonicalPrivateEditPreparationCoordinatorService } from '../services/canonical-private-edit-preparation-coordinator-service'
 import {
   canonicalPrivateJobCompletionRecoveryRelativePath,
   readCanonicalPrivateJobCompletionRecovery,
@@ -2730,10 +2731,10 @@ const terminalAssemblyRequiredJourney = await createCanonicalEditJourneyService(
   editSessionId: terminalReviewEditSessionId,
 })
 assert.equal(terminalAssemblyRequiredJourney.stage, 'private_review_assembly_required')
-assert.equal(terminalAssemblyRequiredJourney.nextAction.code, 'assemble_private_review')
+assert.equal(terminalAssemblyRequiredJourney.nextAction.code, 'prepare_private_edit_review')
 assert.equal(
   terminalAssemblyRequiredJourney.nextAction.routeTemplate,
-  `/v1/edit-executions/packages/${terminalReviewPackageRecordId}/private-review-assemblies`,
+  `/v1/edit-executions/packages/${terminalReviewPackageRecordId}/canonical-private-edit-preparation`,
 )
 assert.equal(
   terminalAssemblyRequiredJourney.workGraph?.responseHash,
@@ -2762,6 +2763,54 @@ await expectApiError(
     artifactId: coordinatedFinalComposition.result.artifactId,
   } as never),
   'VALIDATION_FAILED',
+)
+const terminalPreparation = await createCanonicalPrivateEditPreparationCoordinatorService(
+  context,
+).prepare({
+  workspaceId,
+  expectedProjectId: String(seedSnapshot.projectId),
+  expectedEditSessionId: terminalReviewEditSessionId,
+  expectedSnapshotId: String(terminalReviewApprovedSnapshot.snapshotId),
+  expectedSnapshotHash: String(terminalReviewApprovedSnapshot.snapshotHash),
+  expectedPackageHash:
+    terminalReviewPackage.approvedEditExecutionPackage.packageHash,
+  purpose: 'prepare_canonical_private_edit_review',
+  packageRecordId: terminalReviewPackageRecordId,
+  idempotencyKey: 'coordinate-terminal-private-review',
+})
+assert.equal(terminalPreparation.receipt.disposition, 'private_review_ready')
+assert.equal(terminalPreparation.receipt.identity.packageRecordId, terminalReviewPackageRecordId)
+assert.equal(
+  terminalPreparation.receipt.authority.packageHash,
+  terminalReviewPackage.approvedEditExecutionPackage.packageHash,
+)
+assert.equal(terminalPreparation.receipt.progress.totalJobCount, 5)
+assert.equal(terminalPreparation.receipt.progress.completedJobCount, 5)
+assert.equal(terminalPreparation.receipt.progress.allRequiredJobsCompleted, true)
+assert.ok(terminalPreparation.receipt.review)
+assert.equal(terminalPreparation.receipt.review.readyForPrivateReview, true)
+assert.equal(terminalPreparation.receipt.boundaries.browserSuppliedJobsAccepted, false)
+assert.equal(terminalPreparation.receipt.boundaries.browserSuppliedToolsAccepted, false)
+assert.equal(terminalPreparation.receipt.boundaries.jobOrToolDetailsReturned, false)
+assert.equal(terminalPreparation.receipt.boundaries.filesystemPathReturned, false)
+assert.equal(terminalPreparation.receipt.boundaries.credentialReturned, false)
+assert.equal(terminalPreparation.receipt.boundaries.providerCallStarted, false)
+assert.equal(terminalPreparation.receipt.boundaries.productionRenderStarted, false)
+assert.equal(terminalPreparation.receipt.boundaries.customerCreditMutation, false)
+assert.equal(terminalPreparation.receipt.boundaries.billingStarted, false)
+await expectApiError(
+  () => createCanonicalPrivateEditPreparationCoordinatorService(context).prepare({
+    workspaceId,
+    expectedProjectId: String(seedSnapshot.projectId),
+    expectedEditSessionId: terminalReviewEditSessionId,
+    expectedSnapshotId: String(terminalReviewApprovedSnapshot.snapshotId),
+    expectedSnapshotHash: String(terminalReviewApprovedSnapshot.snapshotHash),
+    expectedPackageHash: '0'.repeat(64),
+    purpose: 'prepare_canonical_private_edit_review',
+    packageRecordId: terminalReviewPackageRecordId,
+    idempotencyKey: 'coordinate-terminal-private-review-wrong-package-hash',
+  }),
+  'IDEMPOTENCY_CONFLICT',
 )
 const terminalPrivateReviewInput = {
   workspaceId,
@@ -3710,6 +3759,7 @@ console.log(JSON.stringify({
     'work_graph_completion_checksum_tamper_fails_closed_and_restores_cleanly',
     'canonical_journey_recovery_advances_from_work_graph_completion_to_exact_review_assembly_action',
     'canonical_journey_work_graph_summary_exposes_no_jobs_artifacts_paths_or_execution_authority',
+    'browser_safe_private_preparation_coordinator_revalidates_exact_package_and_assembles_review_without_raw_authority',
     'terminal_private_review_assembly_requires_every_required_artifact_qa_reconciliation_and_exact_final_qa_lease_binding',
     'credential_free_private_review_manifest_is_create_only_replay_safe_and_privately_downloadable',
     'canonical_journey_recovery_reports_exact_private_review_ready_authority_without_execution_grant',

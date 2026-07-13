@@ -90,9 +90,11 @@ Use this runtime to exercise the current active product only:
 7. Review the edit plan and credit estimate.
 8. Approve before any gated private execution begins.
 9. Select **Prepare private handoff** and verify the saved workflow reports that the exact approved handoff is ready.
-10. Confirm the browser reports no editing-tool, rendering, billing, or publishing action from that handoff request.
-11. Stop both processes with `Ctrl+C`.
+10. Select **Start private edit** and verify the browser shows a visible in-progress state while the backend advances only the exact approved private work graph.
+11. Verify the saved workflow either reports bounded blocker counts or advances to **Private review ready** after required private QA and review assembly pass.
+12. Confirm that external generation, public delivery, production rendering, customer charging, and publishing remain off.
+13. Stop both processes with `Ctrl+C`.
 
-The current browser milestone stops at the immutable private handoff. Work-graph advancement and private-review assembly remain internal-service stages and are not started by the browser action. The canonical backend smoke suites prove those later private stages separately; this manual browser path does not yet claim one-click upload-to-review completion.
+The current browser milestone can request backend-owned work-graph advancement and private-review assembly from an immutable approved handoff. The browser supplies only exact package/snapshot identity and hashes; it never supplies or receives jobs, tools, commands, paths, credentials, providers, or prices. Playback, review decisions, revision submission, public delivery, deployed real-user infrastructure, and broad rich-plan execution remain later gates, so this does not yet claim production or external-beta completion.
 
 This manual path supplements, but does not replace, `npm run qa:internal-pipeline` and the headless full-stack browser smoke.

@@ -53,10 +53,10 @@ const actionByStage = {
     code: 'request_execution_package', actor: 'authenticated_user', method: 'POST',
   },
   execution_in_progress: {
-    code: 'run_private_work_graph', actor: 'internal_service', method: 'POST',
+    code: 'prepare_private_edit_review', actor: 'authenticated_user', method: 'POST',
   },
   private_review_assembly_required: {
-    code: 'assemble_private_review', actor: 'internal_service', method: 'POST',
+    code: 'prepare_private_edit_review', actor: 'authenticated_user', method: 'POST',
   },
   private_review_ready: {
     code: 'record_private_review_decision', actor: 'authenticated_user', method: 'POST',
@@ -149,8 +149,7 @@ const canonicalEditJourneyResponseBaseSchema = z.object({
       'await_internal_publication',
       'approve_canonical_plan',
       'request_execution_package',
-      'run_private_work_graph',
-      'assemble_private_review',
+      'prepare_private_edit_review',
       'record_private_review_decision',
       'await_public_delivery_authorization',
       'await_cancellation_reconciliation',
@@ -463,12 +462,9 @@ function expectedRouteFor(value: CanonicalEditJourneyResponseValue): string | un
         ? `/v1/approved-snapshots/${value.approval.snapshotId}/canonical-execution-package`
         : undefined
     case 'execution_in_progress':
-      return value.execution
-        ? `/v1/edit-executions/packages/${value.execution.packageRecordId}/private-internal-work-graph-runs`
-        : undefined
     case 'private_review_assembly_required':
       return value.execution
-        ? `/v1/edit-executions/packages/${value.execution.packageRecordId}/private-review-assemblies`
+        ? `/v1/edit-executions/packages/${value.execution.packageRecordId}/canonical-private-edit-preparation`
         : undefined
     case 'private_review_ready':
       return value.review

@@ -117,6 +117,20 @@ try {
     'Production must not mount the local/private browser package-request route.',
   )
 
+  const hiddenBrowserPrivatePreparation = await fetch(
+    `${productionBaseUrl}/v1/edit-executions/packages/hidden-package/canonical-private-edit-preparation`,
+    {
+      method: 'POST',
+      headers: dualAuthHeaders,
+      body: '{}',
+    },
+  )
+  assert.equal(
+    hiddenBrowserPrivatePreparation.status,
+    404,
+    'Production must not mount the local/private browser edit-preparation route.',
+  )
+
   const hiddenInternalRunRoute = await fetch(`${productionBaseUrl}/v1/edit-executions/private-internal-test-runs`, {
     method: 'POST',
     headers: dualAuthHeaders,
@@ -186,6 +200,24 @@ try {
     hiddenCloudBrowserPackageRequest.status,
     404,
     'A non-production cloud runtime must not mount the browser package-request route.',
+  )
+  const hiddenCloudBrowserPrivatePreparation = await fetch(
+    `${internalTestBaseUrl}/v1/edit-executions/packages/hidden-package/canonical-private-edit-preparation`,
+    {
+      method: 'POST',
+      headers: {
+        authorization: 'Bearer verified-user-token',
+        [INTERNAL_SERVICE_TOKEN_HEADER]: internalToken,
+        'content-type': 'application/json',
+        'idempotency-key': 'cloud-test-hidden-browser-private-preparation',
+      },
+      body: '{}',
+    },
+  )
+  assert.equal(
+    hiddenCloudBrowserPrivatePreparation.status,
+    404,
+    'A non-production cloud runtime must not mount the browser edit-preparation route.',
   )
 } finally {
   await close(internalTestServer)
@@ -266,6 +298,29 @@ try {
   }
   assert.equal(browserPackageRequestError.error?.code, 'VALIDATION_FAILED')
 
+  const browserPrivatePreparation = await fetch(
+    `${internalTestBaseUrl}/v1/edit-executions/packages/strict-package/canonical-private-edit-preparation`,
+    {
+      method: 'POST',
+      headers: {
+        authorization: 'Bearer verified-user-token',
+        origin: 'https://app.reeditpro.test',
+        'content-type': 'application/json',
+        'idempotency-key': 'strict-browser-private-preparation',
+      },
+      body: '{}',
+    },
+  )
+  assert.equal(
+    browserPrivatePreparation.status,
+    400,
+    'The local/private browser edit-preparation route should require user auth and strict identity without an internal credential.',
+  )
+  const browserPrivatePreparationError = await browserPrivatePreparation.json() as {
+    error?: { code?: string }
+  }
+  assert.equal(browserPrivatePreparationError.error?.code, 'VALIDATION_FAILED')
+
   for (const [path, body] of [
     ['/v1/jobs/caller-job/claim', {
       workspaceId: 'caller-workspace',
@@ -326,10 +381,11 @@ console.log(JSON.stringify({
     'production_local_and_mock_worker_rejected',
     'production_local_storage_rejected',
     'production_internal_execution_routes_unmounted',
-    'production_and_cloud_browser_package_request_route_unmounted',
+    'production_and_cloud_browser_package_and_private_preparation_routes_unmounted',
     'production_user_review_and_download_routes_preserved',
     'private_execution_routes_require_dual_auth',
     'local_private_browser_package_request_requires_user_auth_and_strict_identity_body',
+    'local_private_browser_edit_preparation_requires_user_auth_and_strict_identity_body',
     'canonical_identity_only_execution_package_schema',
     'caller_authored_worker_claim_and_run_routes_disabled',
     'caller_authored_tool_runtime_evidence_write_disabled',

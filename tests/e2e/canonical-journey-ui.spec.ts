@@ -402,6 +402,125 @@ test.describe('canonical journey named-edit UI bridge', () => {
     await expectNoHorizontalOverflow(page)
   })
 
+  test('starts exact private edit preparation without exposing browser-owned jobs or tools', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 })
+    const fixture = await installSourceReadyNamedEdit(page, 'canonical-private-preparation')
+    const identity = {
+      projectId: fixture.project.id,
+      editSessionId: fixture.edit.editSessionId,
+    }
+    const preparationRequests: Array<{
+      authorization: string | null
+      internalToken: string | null
+      idempotencyKey: string | null
+      body: Record<string, unknown>
+      url: string
+    }> = []
+    let prepared = false
+    let rawInternalRequestCount = 0
+    let releasePreparation!: () => void
+    const preparationGate = new Promise<void>((resolve) => {
+      releasePreparation = resolve
+    })
+
+    await page.route('**/v1/projects/*/edit-sessions/*/canonical-journey?*', async (route) => {
+      await route.fulfill({
+        contentType: 'application/json',
+        status: 200,
+        body: JSON.stringify({
+          ok: true,
+          data: {
+            canonicalEditJourney: prepared
+              ? canonicalPrivateReviewReadyJourneyFixture(identity.projectId, identity.editSessionId)
+              : canonicalPackagedJourneyFixture(identity.projectId, identity.editSessionId),
+          },
+          warnings: [],
+        }),
+      })
+    })
+    await page.route(
+      '**/v1/edit-executions/packages/package-canonical-approval-browser/canonical-private-edit-preparation',
+      async (route) => {
+        preparationRequests.push({
+          authorization: await route.request().headerValue('authorization'),
+          internalToken: await route.request().headerValue('x-reeditpro-internal-token'),
+          idempotencyKey: await route.request().headerValue('idempotency-key'),
+          body: route.request().postDataJSON() as Record<string, unknown>,
+          url: route.request().url(),
+        })
+        await preparationGate
+        prepared = true
+        await route.fulfill({
+          contentType: 'application/json',
+          status: 201,
+          body: JSON.stringify({
+            ok: true,
+            data: {
+              canonicalPrivateEditPreparation: canonicalPrivateEditPreparationReceiptFixture(
+                identity.projectId,
+                identity.editSessionId,
+              ),
+            },
+            warnings: [],
+          }),
+        })
+      },
+    )
+    await page.route('**/v1/edit-executions/packages/*/private-internal-work-graph-runs', async (route) => {
+      rawInternalRequestCount += 1
+      await route.abort()
+    })
+    await page.route('**/v1/edit-executions/packages/*/private-review-assemblies', async (route) => {
+      rawInternalRequestCount += 1
+      await route.abort()
+    })
+
+    await gotoRoute(page, fixture.editPath)
+
+    const status = page.getByTestId('canonical-journey-status')
+    await expect(status).toHaveAttribute('data-journey-stage', 'execution_in_progress')
+    const prepareButton = page.getByTestId('canonical-private-edit-preparation-submit')
+    await expect(prepareButton).toBeEnabled()
+    await expect(prepareButton).toHaveText('Start private edit')
+
+    await prepareButton.click()
+    await expect(prepareButton).toBeDisabled()
+    await expect(prepareButton).toHaveAttribute('aria-busy', 'true')
+    await expect(prepareButton).toHaveText('Preparing review…')
+    await expect(page.getByTestId('canonical-private-edit-preparation-preparing')).toContainText(
+      'exact approved plan',
+    )
+    await expect.poll(() => preparationRequests.length).toBe(1)
+    expect(rawInternalRequestCount).toBe(0)
+
+    const request = preparationRequests[0]!
+    expect(request.authorization).toBe('Bearer canonical-journey-playwright-token')
+    expect(request.internalToken).toBeNull()
+    expect(request.idempotencyKey).toMatch(/^canonical-private-edit:[a-f0-9]{8}$/)
+    expect(request.url).toContain(
+      '/v1/edit-executions/packages/package-canonical-approval-browser/canonical-private-edit-preparation',
+    )
+    expect(request.body).toEqual({
+      workspaceId: scope.workspaceId,
+      expectedProjectId: identity.projectId,
+      expectedEditSessionId: identity.editSessionId,
+      expectedSnapshotId: 'snapshot-canonical-approval-browser',
+      expectedSnapshotHash: '3'.repeat(64),
+      expectedPackageHash: '6'.repeat(64),
+      purpose: 'prepare_canonical_private_edit_review',
+    })
+    expect(JSON.stringify(request.body)).not.toMatch(
+      /internalToken|credential|storagePath|signedUrl|publicUrl|componentRefs|jobs|tools|command|provider|price|sourceBytes|bytesBase64/i,
+    )
+
+    releasePreparation()
+    await expect(status).toHaveAttribute('data-journey-stage', 'private_review_ready')
+    await expect(status).toContainText('Private review ready')
+    await expect(page.getByTestId('canonical-private-edit-preparation-submit')).toHaveCount(0)
+    expect(rawInternalRequestCount).toBe(0)
+    await expectNoHorizontalOverflow(page)
+  })
+
   test('keeps Current Edit Preferences locked after the approved handoff is recovered', async ({ page }) => {
     const fixture = await installSourceReadyNamedEdit(page, 'canonical-preferences-lock')
     await page.route('**/v1/projects/*/edit-sessions/*/canonical-journey?*', async (route) => {
@@ -830,10 +949,10 @@ function executionJourney(projectId: string, editSessionId: string) {
     },
     stage: 'execution_in_progress',
     nextAction: {
-      code: 'run_private_work_graph',
-      actor: 'internal_service',
+      code: 'prepare_private_edit_review',
+      actor: 'authenticated_user',
       method: 'POST',
-      routeTemplate: '/v1/edit-executions/packages/package-canonical-ui/private-internal-work-graph-runs',
+      routeTemplate: '/v1/edit-executions/packages/package-canonical-ui/canonical-private-edit-preparation',
     },
     planningHandoff: {
       handoffId: 'handoff-canonical-ui',
@@ -1078,11 +1197,11 @@ function canonicalPackagedJourneyFixture(projectId: string, editSessionId: strin
     ...canonicalApprovalJourneyFixture(projectId, editSessionId, true),
     stage: 'execution_in_progress',
     nextAction: {
-      code: 'run_private_work_graph',
-      actor: 'internal_service',
+      code: 'prepare_private_edit_review',
+      actor: 'authenticated_user',
       method: 'POST',
       routeTemplate:
-        '/v1/edit-executions/packages/package-canonical-approval-browser/private-internal-work-graph-runs',
+        '/v1/edit-executions/packages/package-canonical-approval-browser/canonical-private-edit-preparation',
     },
     execution: {
       packageRecordId: 'package-canonical-approval-browser',
@@ -1090,6 +1209,99 @@ function canonicalPackagedJourneyFixture(projectId: string, editSessionId: strin
       snapshotId: 'snapshot-canonical-approval-browser',
       purpose: 'private_internal_execution_handoff',
     },
+  }
+}
+
+function canonicalPrivateReviewReadyJourneyFixture(projectId: string, editSessionId: string) {
+  return {
+    ...canonicalPackagedJourneyFixture(projectId, editSessionId),
+    stage: 'private_review_ready',
+    nextAction: {
+      code: 'record_private_review_decision',
+      actor: 'authenticated_user',
+      method: 'POST',
+      routeTemplate:
+        '/v1/edit-executions/private-review-assemblies/review-canonical-approval-browser/decisions',
+    },
+    review: {
+      reviewAssemblyId: 'review-canonical-approval-browser',
+      manifestSha256: '7'.repeat(64),
+      finalArtifactSha256: '8'.repeat(64),
+    },
+  }
+}
+
+function canonicalPrivateEditPreparationReceiptFixture(
+  projectId: string,
+  editSessionId: string,
+) {
+  return {
+    schemaVersion: 'canonical-private-edit-preparation-receipt-v1',
+    source: 'canonical_private_edit_preparation_coordinator_service',
+    purpose: 'prepare_canonical_private_edit_review',
+    disposition: 'private_review_ready',
+    identity: {
+      workspaceId: scope.workspaceId,
+      projectId,
+      editSessionId,
+      packageRecordId: 'package-canonical-approval-browser',
+      approvedPlanSnapshotId: 'snapshot-canonical-approval-browser',
+    },
+    authority: {
+      packageHash: '6'.repeat(64),
+      snapshotHash: '3'.repeat(64),
+      exactApprovedAuthorityRevalidated: true,
+      serverDerivedWorkGraphOnly: true,
+    },
+    progress: {
+      totalJobCount: 5,
+      completedJobCount: 5,
+      blockedJobCount: 0,
+      allRequiredJobsCompleted: true,
+      retryAvailable: false,
+      userReviewRequired: false,
+    },
+    review: {
+      reviewAssemblyId: 'review-canonical-approval-browser',
+      manifestSha256: '7'.repeat(64),
+      finalArtifactSha256: '8'.repeat(64),
+      finalArtifactByteLength: 4096,
+      readyForPrivateReview: true,
+    },
+    readiness: {
+      privateReviewReady: true,
+      nextRequiredGate: 'canonical_private_review_user_decision_or_revision',
+      productReady: false,
+      externalBetaReady: false,
+      productionReady: false,
+    },
+    boundaries: {
+      approvedPrivateExecutionRequested: true,
+      browserSuppliedJobsAccepted: false,
+      browserSuppliedToolsAccepted: false,
+      rawExecutionAuthorityReturned: false,
+      jobOrToolDetailsReturned: false,
+      filesystemPathReturned: false,
+      credentialReturned: false,
+      providerCallStarted: false,
+      publicArtifactCreated: false,
+      publicDeliveryStarted: false,
+      productionRenderStarted: false,
+      customerPriceMutation: false,
+      customerCreditMutation: false,
+      walletMutation: false,
+      settlementStarted: false,
+      billingStarted: false,
+      deploymentStarted: false,
+    },
+    persistence: {
+      privateLocal: true,
+      tenantScoped: true,
+      distributed: false,
+      productionAuthority: false,
+    },
+    completedAt: '2026-07-13T16:00:00.000Z',
+    testOnly: true,
   }
 }
 

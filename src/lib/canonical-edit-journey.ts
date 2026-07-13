@@ -45,6 +45,12 @@ export type CanonicalEditJourney = {
     snapshotId: string
     expectedSnapshotHash: string
   }
+  privateEditPreparationAuthority?: {
+    packageRecordId: string
+    expectedPackageHash: string
+    snapshotId: string
+    expectedSnapshotHash: string
+  }
   plan?: {
     version: number
     status: 'presented' | 'approved' | 'superseded' | 'rejected' | 'cancellation_pending' | 'cancelled'
@@ -231,8 +237,8 @@ const actionByStage: Record<CanonicalEditJourneyStage, {
   internal_publication_pending: { code: 'await_internal_publication', actor: 'internal_service', method: 'POST' },
   plan_approval_required: { code: 'approve_canonical_plan', actor: 'authenticated_user', method: 'POST' },
   approved_snapshot_available: { code: 'request_execution_package', actor: 'authenticated_user', method: 'POST' },
-  execution_in_progress: { code: 'run_private_work_graph', actor: 'internal_service', method: 'POST' },
-  private_review_assembly_required: { code: 'assemble_private_review', actor: 'internal_service', method: 'POST' },
+  execution_in_progress: { code: 'prepare_private_edit_review', actor: 'authenticated_user', method: 'POST' },
+  private_review_assembly_required: { code: 'prepare_private_edit_review', actor: 'authenticated_user', method: 'POST' },
   private_review_ready: { code: 'record_private_review_decision', actor: 'authenticated_user', method: 'POST' },
   private_review_accepted: { code: 'await_public_delivery_authorization', actor: 'internal_service', method: 'GET' },
   revision_requested: { code: 'prepare_replacement_plan', actor: 'planning_client', method: 'POST' },
@@ -362,6 +368,17 @@ export function parseCanonicalEditJourney(
           : undefined,
         executionPackageAuthority: stage === 'approved_snapshot_available' && approval
           ? {
+              snapshotId: approval.snapshotId,
+              expectedSnapshotHash: approval.snapshotHash,
+            }
+          : undefined,
+        privateEditPreparationAuthority: (
+          stage === 'execution_in_progress' ||
+          stage === 'private_review_assembly_required'
+        ) && approval && execution
+          ? {
+              packageRecordId: execution.packageRecordId,
+              expectedPackageHash: execution.packageHash,
               snapshotId: approval.snapshotId,
               expectedSnapshotHash: approval.snapshotHash,
             }
@@ -1048,12 +1065,9 @@ function expectedRouteFor(journey: WireJourney): string | undefined {
         ? `/v1/approved-snapshots/${journey.approval.snapshotId}/canonical-execution-package`
         : undefined
     case 'execution_in_progress':
-      return journey.execution
-        ? `/v1/edit-executions/packages/${journey.execution.packageRecordId}/private-internal-work-graph-runs`
-        : undefined
     case 'private_review_assembly_required':
       return journey.execution
-        ? `/v1/edit-executions/packages/${journey.execution.packageRecordId}/private-review-assemblies`
+        ? `/v1/edit-executions/packages/${journey.execution.packageRecordId}/canonical-private-edit-preparation`
         : undefined
     case 'private_review_ready':
       return journey.review

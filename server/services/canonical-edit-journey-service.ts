@@ -219,12 +219,12 @@ export function createCanonicalEditJourneyService(context: ServiceContext) {
               workGraph,
               stage: 'private_review_assembly_required',
               nextAction: {
-                code: 'assemble_private_review',
-                actor: 'internal_service',
+                code: 'prepare_private_edit_review',
+                actor: 'authenticated_user',
                 method: 'POST',
                 routeTemplate:
                   `/v1/edit-executions/packages/${execution.packageRecordId}/` +
-                  'private-review-assemblies',
+                  'canonical-private-edit-preparation',
               },
             })
           }
@@ -238,12 +238,12 @@ export function createCanonicalEditJourneyService(context: ServiceContext) {
             ...(workGraphProgress ? { workGraphProgress } : {}),
             stage: 'execution_in_progress',
             nextAction: {
-              code: 'run_private_work_graph',
-              actor: 'internal_service',
+              code: 'prepare_private_edit_review',
+              actor: 'authenticated_user',
               method: 'POST',
               routeTemplate:
                 `/v1/edit-executions/packages/${execution.packageRecordId}/` +
-                'private-internal-work-graph-runs',
+                'canonical-private-edit-preparation',
             },
           })
         }

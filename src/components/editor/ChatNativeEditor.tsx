@@ -98,6 +98,7 @@ import { useCanonicalEditJourney } from '../../hooks/useCanonicalEditJourney'
 import { useCanonicalExecutionPackageRequest } from '../../hooks/useCanonicalExecutionPackageRequest'
 import { useCanonicalPlanApproval } from '../../hooks/useCanonicalPlanApproval'
 import { useCanonicalPlanningPublication } from '../../hooks/useCanonicalPlanningPublication'
+import { useCanonicalPrivateEditPreparation } from '../../hooks/useCanonicalPrivateEditPreparation'
 import type { ContextAwareMockEditPlanResult, EditBriefState, EditBriefStatus, MediaKind, ReeditProChatMessage } from '../../types'
 import type { ApprovedPlanSnapshot } from '../../types/edit-planning-db'
 import type {
@@ -859,6 +860,12 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     scope: projectPersistenceScope,
   })
   const canonicalExecutionPackageRequest = useCanonicalExecutionPackageRequest({
+    editSessionId: editorEditSessionId,
+    enabled: canonicalPlanningBackendConnected,
+    projectId: editorProjectId,
+    scope: projectPersistenceScope,
+  })
+  const canonicalPrivateEditPreparation = useCanonicalPrivateEditPreparation({
     editSessionId: editorEditSessionId,
     enabled: canonicalPlanningBackendConnected,
     projectId: editorProjectId,
@@ -3034,6 +3041,16 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     if (result.status === 'ready') canonicalJourney.refresh()
   }
 
+  async function handlePrepareCanonicalPrivateEdit() {
+    if (!canonicalJourneyValue) return
+    const result = await canonicalPrivateEditPreparation.prepareEdit(
+      canonicalJourneyValue,
+    )
+    if (result.status === 'ready' || result.status === 'blocked') {
+      canonicalJourney.refresh()
+    }
+  }
+
   async function handleRunRevisionPrivateReview() {
     if (approvalChecking || privateInternalTestRunRunning) return
 
@@ -3958,6 +3975,8 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
       <CanonicalJourneyStatusCard
         {...canonicalJourney}
         executionPackageRequest={canonicalExecutionPackageRequest}
+        privateEditPreparation={canonicalPrivateEditPreparation}
+        onPreparePrivateEdit={() => void handlePrepareCanonicalPrivateEdit()}
         onRequestExecutionPackage={() => void handleRequestCanonicalExecutionPackage()}
       />
     )

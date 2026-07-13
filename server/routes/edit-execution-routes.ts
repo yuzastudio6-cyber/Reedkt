@@ -7,6 +7,7 @@ import { createApprovedEditExecutionPackageService } from '../services/approved-
 import { createCanonicalEditExecutionPackageService } from '../services/canonical-edit-execution-package-service'
 import { createCanonicalExecutionPackageRequestCoordinatorService } from '../services/canonical-execution-package-request-coordinator-service'
 import { createCanonicalExecutionReadinessService } from '../services/canonical-execution-readiness-service'
+import { createCanonicalPrivateEditPreparationCoordinatorService } from '../services/canonical-private-edit-preparation-coordinator-service'
 import { createCanonicalPrivateFinalArtifactDownloadService } from '../services/canonical-private-final-artifact-download-service'
 import { createCanonicalPrivateJobExecutionAdapterService } from '../services/canonical-private-job-execution-adapter-service'
 import { createCanonicalPrivateReviewAssemblyService } from '../services/canonical-private-review-assembly-service'
@@ -52,6 +53,7 @@ import { authorityWorkspaceQuerySchema } from '../validation/edit-planning-autho
 import { canonicalExecutionReadinessRouteBodySchema } from '../validation/canonical-execution-readiness-schemas'
 import { requestCanonicalExecutionPackageSchema } from '../validation/canonical-execution-package-request-schemas'
 import { inspectToolRuntimeEvidenceSchema } from '../validation/tool-runtime-evidence-schemas'
+import { prepareCanonicalPrivateEditSchema } from '../validation/canonical-private-edit-preparation-schemas'
 import { canonicalPrivateFinalArtifactDownloadQuerySchema } from '../validation/canonical-private-final-artifact-download-schemas'
 import { executeCanonicalPrivateJobAdapterSchema } from '../validation/canonical-private-job-execution-adapter-schemas'
 import { runCanonicalPrivateWorkGraphSchema } from '../validation/canonical-private-work-graph-run-schemas'
@@ -221,6 +223,32 @@ export function createEditExecutionRoutes(options: EditExecutionRouteOptions = {
       sendOk(
         response,
         { canonicalExecutionPackageRequest: result.receipt },
+        result.warnings,
+        201,
+      )
+    }),
+  )
+
+  // This is the only browser-facing private edit preparation mutation. The
+  // browser submits exact package/snapshot identity only; the backend reloads
+  // the immutable package, derives the work graph, and returns bounded
+  // progress or review readiness without exposing job/tool authority.
+  router.post(
+    '/v1/edit-executions/packages/:packageRecordId/canonical-private-edit-preparation',
+    requireAuth,
+    requireIdempotency,
+    asyncRoute(async (request, response) => {
+      const body = validateBody(prepareCanonicalPrivateEditSchema, request.body)
+      const result = await createCanonicalPrivateEditPreparationCoordinatorService(
+        getServiceContext(request),
+      ).prepare({
+        ...body,
+        packageRecordId: getRouteParam(request, 'packageRecordId'),
+        idempotencyKey: getIdempotencyKey(request),
+      })
+      sendOk(
+        response,
+        { canonicalPrivateEditPreparation: result.receipt },
         result.warnings,
         201,
       )

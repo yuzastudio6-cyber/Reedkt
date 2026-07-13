@@ -226,6 +226,8 @@ If a real connection problem blocks user work, normal product UI may show one co
 
 Focused Playwright coverage verifies:
 
+- The canonical `/preferences` route renders the seven-field Saved Edit Preferences form, while `/edit-preferences` redirects to the same destination.
+- Saved-default drafts survive failed writes, refresh, retry, sidebar navigation, sign-out guards, and signed-in reload recovery without crossing identity/workspace scope.
 - A new edit receives its saved creation baseline.
 - The exact-edit preference destination is query-addressable.
 - A current-edit field can be overridden and recovered after reload.
@@ -237,6 +239,8 @@ Focused Playwright coverage verifies:
 - Returning to Chat preserves the approved snapshot and reservation trace.
 
 Existing saved-preference coverage continues to verify workspace-scoped default load/save behavior and the new-edit snapshot bridge.
+
+The focused Saved/Current preference matrix currently passes 12 route, persistence, inheritance, override, invalidation, and approval-lock browser tests. Guarded local visual review also passes at 1024px and 1440px with no console errors. This is bounded private/internal evidence, not whole-product or production-durability signoff.
 
 Focused backend smokes additionally verify server-side initialization, exact frontend read/update synchronization, optimistic revision and idempotency behavior, canonical baseline/revision binding, derived source/frame evidence promotion, read-only locked-evidence reuse for an authorized revision flow, rejection of locked-evidence replacement, replay, malformed-response rejection, and tenant isolation. None of this evidence approves a plan or starts credit, tool, provider, worker, render, or delivery activity.
 

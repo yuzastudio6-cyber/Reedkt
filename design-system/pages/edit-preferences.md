@@ -25,5 +25,8 @@ Manage one Edit Preferences system across saved defaults and exact-edit override
 
 - `tests/e2e/edit-preferences-current-edit.spec.ts`
 - `tests/e2e/preferences-persistence.spec.ts`
+- `tests/e2e/edit-preferences-route-entrypoint.spec.ts`
 - `docs/ui-ux-screenshots/active-product-redesign-2026-07-10/preferences-1280.png`
 - `docs/ui-ux-screenshots/active-product-redesign-2026-07-10/named-edit-preferences-1280.png`
+- The canonical `/preferences` route exposes all seven saved-default fields, explicit save/retry/refresh/discard states, workspace persistence truth, and the immutable new-edit baseline boundary.
+- Guarded local browser review passes at 1024px and 1440px without horizontal overflow or console errors.

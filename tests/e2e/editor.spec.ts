@@ -97,13 +97,14 @@ test.describe('editor mocked browser flow', () => {
     await expect(page.getByRole('heading', { level: 1, name: /Projects/i })).toBeVisible()
   })
 
-  test('shows the clean saved-direction preferences surface for the local session', async ({ page }) => {
+  test('shows the seven-field Saved Edit Preferences surface for the local session', async ({ page }) => {
     await gotoRoute(page, '/preferences')
 
-    const preferences = page.getByTestId('preferences-clean-shell')
+    const preferences = page.getByTestId('edit-preferences-form')
     await expect(preferences).toBeVisible()
-    await expect(preferences).toContainText(/Keep preferences simple and reusable/i)
-    await expect(page.getByTestId('preferences-default-edit-direction')).toBeVisible()
+    await expect(preferences).toContainText(/Defaults for new edits/i)
+    await expect(preferences.locator('.preference-select-field')).toHaveCount(7)
+    await expect(page.getByRole('checkbox', { name: /Pre-confirm reusable editing choices/i })).toBeChecked()
     await expect(preferences).not.toContainText(/service[-_ ]?role|signed URL|production ready|VITE_|SUPABASE_/i)
     await expectNoHorizontalOverflow(page)
   })
@@ -210,19 +211,21 @@ test.describe('editor mocked browser flow', () => {
     await expectNoHorizontalOverflow(page)
   })
 
-  test('saves and reloads the default edit direction', async ({ page }) => {
+  test('saves and reloads workspace-scoped edit defaults', async ({ page }) => {
     await gotoRoute(page, '/preferences')
-    const note = `Natural pacing and restrained motion ${Date.now()}`
-    await page.getByTestId('preferences-default-choice-lifestyle_travel_vlog').click()
-    await page.getByTestId('preferences-default-note').fill(note)
-    await clickWhenReady(page.getByRole('button', { name: /^Save preference$/i }))
-    await expect(page.getByTestId('preferences-save-status')).toContainText(/Default preference saved/i)
-    await expect(page.getByTestId('preferences-new-edit-default-preview')).toContainText('@lifestyle-travel-vlog')
+    await page.getByTestId('preference-workflow').selectOption('vlog_lifestyle')
+    await page.getByTestId('preference-visual-direction').selectOption('keep_visuals_minimal')
+    await page.getByTestId('preference-preferred-destination').selectOption('youtube')
+    await clickWhenReady(page.getByRole('button', { name: /^Save defaults$/i }))
+    await expect(page.getByTestId('preference-persistence-status')).toContainText(
+      /Edit Preferences saved for this signed-in test workspace/i,
+    )
 
     await gotoRoute(page, '/projects')
     await gotoRoute(page, '/preferences')
-    await expect(page.getByTestId('preferences-default-choice-lifestyle_travel_vlog')).toHaveAttribute('aria-pressed', 'true')
-    await expect(page.getByTestId('preferences-default-note')).toHaveValue(note)
+    await expect(page.getByTestId('preference-workflow')).toHaveValue('vlog_lifestyle')
+    await expect(page.getByTestId('preference-visual-direction')).toHaveValue('keep_visuals_minimal')
+    await expect(page.getByTestId('preference-preferred-destination')).toHaveValue('youtube')
     await expectNoHorizontalOverflow(page)
   })
 

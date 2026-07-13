@@ -1,25 +1,36 @@
 {
   "id": "edit-preferences-route-entrypoint",
-  "decision": "edit_preferences_route_entrypoint_passed_mock_local_ready_for_internal_testing",
+  "decision": "saved_edit_preferences_route_ready_for_private_internal_testing",
   "route": "/preferences",
   "legacyRedirect": "/edit-preferences",
   "source": {
     "page": "src/pages/PreferencesPage.tsx",
-    "defaultProjectId": null,
-    "defaultEditSessionId": null
+    "repository": "src/lib/edit-preference-repository.ts",
+    "defaults": "src/lib/edit-preferences.ts"
   },
+  "fields": [
+    "edit_level",
+    "workflow_type",
+    "cleanup_preference",
+    "visual_preference",
+    "mood_style",
+    "credit_preference",
+    "target_platform"
+  ],
   "features": [
-    "clean_preference_groups",
-    "preference_note_field",
-    "mock_local_boundary_summary",
-    "sidebar_navigation",
-    "minimal_sidebar_home_project_preferences_only"
+    "workspace_scoped_saved_defaults",
+    "explicit_save_defaults",
+    "preserved_failed_save_draft",
+    "retry_refresh_discard",
+    "unsaved_navigation_guard",
+    "immutable_new_edit_creation_baseline",
+    "query_gated_internal_testing_details"
   ],
   "sidebarNavigation": {
     "allowed": [
       "Home",
-      "Project",
-      "Preferences"
+      "Projects",
+      "Edit Preferences"
     ],
     "removedFromPrimarySidebar": [
       "AI Editor",
@@ -34,11 +45,11 @@
       "Upload"
     ],
     "retiredStandaloneRoutes": {
-      "/wallet": "/dashboard",
+      "/wallet": "/preferences",
       "/brand-kit": "/preferences",
       "/exports": "/projects"
     },
-    "context": "Contextual project and edit actions can open scoped workflows, but the persistent app sidebar remains Home, Project, and Preferences only."
+    "context": "Project and named-edit actions remain contextual; the persistent app sidebar stays Home, Projects, and Edit Preferences."
   },
   "blockedScope": {
     "upload": false,
@@ -62,12 +73,15 @@
   "validation": {
     "required": [
       "smoke:edit-preferences-route-entrypoint",
+      "smoke:edit-preference-persistence",
+      "smoke:edit-preference-backend-route",
+      "smoke:planning-input-safety",
       "edit-preferences-route-entrypoint.spec.ts",
-      "smoke:project-edit-brief-internal-testing-entrypoint",
-      "smoke:project-edit-brief-e2e",
-      "smoke:beta-readiness",
-      "typecheck:server",
+      "preferences-persistence.spec.ts",
+      "edit-preferences-current-edit.spec.ts",
+      "frontend-typecheck",
       "build",
+      "check:frontend-boundary",
       "git diff --check",
       "git diff --cached --check"
     ]

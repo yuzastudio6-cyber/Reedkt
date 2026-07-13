@@ -352,6 +352,25 @@
     white-space: normal;
   }
 
+  .clean-setting-row,
+  .testing-connection-probe-row,
+  .preference-grid,
+  .clean-toggle-row {
+    grid-template-columns: 1fr;
+  }
+
+  .preference-page-actions,
+  .preference-recovery-actions {
+    align-items: stretch;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .preference-page-actions .rp-button,
+  .preference-recovery-actions .rp-button {
+    width: 100%;
+  }
+
   .pricing-preview,
   .security-strip {
     align-items: flex-start;

@@ -3,22 +3,33 @@ import { expectNoHorizontalOverflow, setViewport } from './helpers/layout'
 import { gotoRoute } from './helpers/routes'
 
 test.describe('Edit Preferences route entrypoint', () => {
-  test('opens the clean Preferences page safely', async ({ page }) => {
+  test('opens the workspace-scoped Saved Edit Preferences page safely', async ({ page }) => {
     await setViewport(page, 1440)
     await gotoRoute(page, '/preferences')
 
     const sidebarNav = page.getByRole('navigation', { name: /desktop app navigation/i })
     await expect(sidebarNav.getByRole('link')).toHaveCount(3)
     await expect(sidebarNav.getByRole('link', { name: /^Home$/ })).toBeVisible()
-    await expect(sidebarNav.getByRole('link', { name: /^Project$/ })).toBeVisible()
-    await expect(sidebarNav.getByRole('link', { name: /^Preferences$/ })).toBeVisible()
-    await expect(sidebarNav).not.toContainText(/Projects|AI Editor|Media Library|Templates|Team|Analytics|Exports|Brand Kit|Settings/i)
+    await expect(sidebarNav.getByRole('link', { name: /^Projects$/ })).toBeVisible()
+    await expect(sidebarNav.getByRole('link', { name: /^Edit Preferences$/ })).toBeVisible()
+    await expect(sidebarNav).not.toContainText(/AI Editor|Media Library|Templates|Team|Analytics|Exports|Brand Kit|Settings/i)
     await expect(page.locator('.sidebar')).not.toContainText(/credits available|storage used|Creator workspace|Tommy/i)
     await expect(page.getByRole('button', { name: /open wallet/i })).toHaveCount(0)
-    await expect(page.getByTestId('preferences-clean-shell')).toBeVisible()
-    await expect(page.getByTestId('preferences-clean-shell')).toContainText('Edit defaults')
-    await expect(page.getByTestId('preferences-clean-shell')).toContainText('Privacy')
-    await expect(page.getByTestId('preferences-clean-shell')).toContainText('Save preference')
+    const preferences = page.getByTestId('edit-preferences-form')
+    await expect(preferences).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: 'Edit Preferences' })).toBeVisible()
+    await expect(preferences).toContainText('Defaults for new edits')
+    await expect(preferences.getByRole('group')).toHaveCount(3)
+    await expect(page.getByTestId('preference-edit-level')).toBeVisible()
+    await expect(page.getByTestId('preference-workflow')).toBeVisible()
+    await expect(page.getByTestId('preference-cleanup')).toBeVisible()
+    await expect(page.getByTestId('preference-visual-direction')).toBeVisible()
+    await expect(page.getByTestId('preference-mood')).toBeVisible()
+    await expect(page.getByTestId('preference-credit-posture')).toBeVisible()
+    await expect(page.getByTestId('preference-preferred-destination')).toBeVisible()
+    await expect(page.getByRole('checkbox', { name: /Pre-confirm reusable editing choices/i })).toBeChecked()
+    await expect(page.getByTestId('preference-persistence-status')).toContainText(/signed-in test workspace/i)
+    await expect(page.getByTestId('internal-testing-details')).toHaveCount(0)
     await expect(page.getByText(/provider call made|worker created|render started|credit reserved|upload started/i)).toHaveCount(0)
     await expectNoHorizontalOverflow(page)
   })
@@ -27,7 +38,8 @@ test.describe('Edit Preferences route entrypoint', () => {
     await setViewport(page, 1440)
 
     await gotoRoute(page, '/wallet')
-    await expect(page).toHaveURL(/\/dashboard$/)
+    await expect(page).toHaveURL(/\/preferences$/)
+    await expect(page.getByTestId('edit-preferences-form')).toBeVisible()
     await expect(page.getByRole('navigation', { name: /desktop app navigation/i }).getByRole('link')).toHaveCount(3)
 
     await gotoRoute(page, '/brand-kit')
@@ -44,7 +56,7 @@ test.describe('Edit Preferences route entrypoint', () => {
     await gotoRoute(page, '/edit-preferences')
 
     await expect(page).toHaveURL(/\/preferences$/)
-    await expect(page.getByTestId('preferences-clean-shell')).toBeVisible()
+    await expect(page.getByTestId('edit-preferences-form')).toBeVisible()
     await expectNoHorizontalOverflow(page)
   })
 })

@@ -336,7 +336,7 @@ New values belong in tokens before route CSS. Avoid one-off glow, radius, shadow
 ### 5. Whole-Product Visual Consistency — In Progress
 
 - Home, Projects, and Project Home now use the shared bounded hierarchy, surface levels, and semantic status treatment.
-- Create Project, Named Edit workspace, Edit Brief, Edit Preferences, and Sign In still require route-specific visual review and any necessary implementation pass under the same master system.
+- Saved Edit Preferences now uses the canonical seven-field, workspace-scoped form with explicit persistence/recovery truth and a visually reviewed responsive hierarchy. Create Project, Named Edit workspace, Edit Brief, Current Edit Preferences, and Sign In still require any remaining route-specific visual pass under the same master system.
 - Preserve route-specific identity as work continues: marketing is expressive, app routes operational, editor open and conversational.
 
 ### 6. Final Active-Route Signoff — Pending Whole-Product Completion
@@ -363,6 +363,12 @@ Focused named-edit context evidence on 2026-07-13:
 - `tests/e2e/viewport.spec.ts`: 59 passed, including exact parent-project return, active Chat/Edit Preferences state, retained project/edit identity, and horizontal-overflow checks at 1024px, 1280px, 1440px, 1728px, and 1920px.
 - Guarded local browser review passed at 1024px, 1280px, and 1440px with no console errors; browser/API mode remained mock/local and provider execution remained disabled.
 - This bounded evidence does not replace the pending whole-product rerun or final active-route visual signoff.
+
+Focused Saved Edit Preferences evidence on 2026-07-13:
+
+- Twelve focused route, persistence, inheritance, override, invalidation, and approval-lock browser tests pass across the Saved and Current scopes.
+- The guarded local `/preferences` review passed at 1024px and 1440px with seven visible controls, explicit dirty/save feedback, no horizontal overflow, and no console errors.
+- The route remains local/private and workspace-scoped; production Supabase durability, providers, billing, rendering, deployment, and whole-product signoff remain blocked.
 
 ## Definition Of Done
 

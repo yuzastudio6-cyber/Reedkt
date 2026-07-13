@@ -2,7 +2,7 @@
 
 Status: `implemented_exact_edit_private_scope`
 
-Status date: 2026-07-10
+Status date: 2026-07-13
 
 This document is the UX, state-ownership, persistence, planning-transfer, and approval-boundary source of truth for the current Edit Brief. It describes the reviewed local/private product boundary. It does not claim production Supabase durability, shared multi-device synchronization, provider execution, rendering, public delivery, or live credit settlement.
 
@@ -78,16 +78,21 @@ Workers must eventually execute the approved snapshot, not reread mutable Brief 
 
 - Keep the Brief inside one focused inline workspace rather than a card wall.
 - Preserve the compact Optional/Draft/Ready status in the editor header.
+- Use a flat, sectioned field hierarchy so the brief reads as one professional planning surface rather than a stack of competing cards.
+- Keep planning-impact and approval-lock notices visually distinct without using oversized warning containers.
 - Labels and helper copy must distinguish factual Brief direction from editing-behavior preferences.
 - All editable controls live inside a semantic fieldset so the approved state can be locked consistently.
 - The lock notice remains readable outside the disabled fieldset.
 - Keyboard focus, readable labels, restrained status color, and composer clearance remain part of route-level QA.
+- The summary grid may use two columns when space allows, but it must collapse to one column at compact width and remain free of horizontal overflow.
 
 ## Current Evidence
 
-- Focused Edit Brief E2E covers upload, setup, open/focus, edit, ready status, exact-edit persistence, reload recovery, plan creation, approval, lock notice, disabled fields, no internal provider names, composer alignment, and horizontal overflow.
+- The focused editor suite passes 20/20 checks. Edit Brief coverage includes upload, setup, open/focus, edit, ready status, exact-edit persistence, reload recovery, plan creation, approval, lock notice, disabled fields, computed layout hierarchy, no internal provider names, composer alignment, and horizontal overflow.
+- `tests/e2e/viewport.spec.ts` passes 59/59 checks, and the clean-shell/keyboard/zoom group passes 9/9.
 - `smoke:planning-input-safety` covers full handoff round trip, full Planning Context transfer, and immutable approved-snapshot capture.
-- Frontend TypeScript, ESLint, frontend/server boundary, and production build pass for this slice.
+- Guarded local browser review passed at 1024px and 1280px with the responsive conversation/preview composition, bounded upload gate, no horizontal overflow, and no console errors.
+- Frontend TypeScript, targeted ESLint, frontend/server boundary, and production build pass for this slice.
 
 ## Remaining Production Boundaries
 

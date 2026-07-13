@@ -55,6 +55,11 @@
 }
 
 @media (max-width: 1180px) {
+  .editor-workspace-layout {
+    grid-template-columns: minmax(0, 1fr);
+    max-width: var(--rp-chat-thread-max);
+  }
+
   .edit-preview-rail {
     display: none;
   }
@@ -260,6 +265,14 @@
     justify-items: start;
   }
 
+  .edit-brief-summary .edit-brief-summary-grid span:nth-child(even) {
+    border-left: 0;
+  }
+
+  .edit-brief-summary .edit-brief-summary-grid span + span {
+    border-top: 1px solid rgba(148, 163, 184, 0.1);
+  }
+
   .chat-composer-actions {
     align-items: center;
     flex-direction: row;
@@ -401,6 +414,29 @@
   .current-edit-preferences-actions .rp-button,
   .current-edit-preferences-leave-guard .rp-button {
     justify-content: center;
+  }
+
+  .clean-editor-stage {
+    max-width: calc(100% - var(--rp-space-3));
+  }
+
+  .clean-edit-step {
+    padding-inline: 0;
+  }
+
+  .clean-edit-step-header,
+  .clean-edit-step-actions-split,
+  .clean-prep-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .clean-prep-summary {
+    justify-items: start;
+  }
+
+  .edit-workspace-planning-inputs {
+    grid-template-columns: 1fr;
   }
 
   .pricing-preview,

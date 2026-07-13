@@ -336,7 +336,7 @@ New values belong in tokens before route CSS. Avoid one-off glow, radius, shadow
 ### 5. Whole-Product Visual Consistency — In Progress
 
 - Home, Projects, and Project Home now use the shared bounded hierarchy, surface levels, and semantic status treatment.
-- Saved and Current Edit Preferences now use the canonical seven-field system with explicit persistence/recovery truth, inherited/overridden state, responsive hierarchy, guarded drafts, and visually reviewed action states. Create Project, the remaining Named Edit and Edit Brief states, and Sign In still require any remaining route-specific visual pass under the same master system.
+- Saved and Current Edit Preferences now use the canonical seven-field system with explicit persistence/recovery truth, inherited/overridden state, responsive hierarchy, guarded drafts, and visually reviewed action states. The active named-edit upload gate, responsive conversation/preview composition, planning-input status, and Edit Brief presentation now follow the same system. Create Project, the remaining Named Edit execution/review states, and Sign In still require their route-specific visual passes.
 - Preserve route-specific identity as work continues: marketing is expressive, app routes operational, editor open and conversational.
 
 ### 6. Final Active-Route Signoff — Pending Whole-Product Completion
@@ -375,6 +375,13 @@ Focused Current Edit Preferences presentation evidence on 2026-07-13:
 - Focused browser coverage proves the three-group/seven-field hierarchy, bounded grid, inherited and overridden treatment, sticky action rail, dirty-leave guard, apply state, reload persistence, planning invalidation, and approval lock.
 - Guarded local review passed for clean, overridden, leave-guard, and applied states at 700px, 1024px, and 1280px without horizontal overflow or console errors.
 - This closes the Current Edit Preferences route-specific presentation pass only; the full active-route suite and whole-product visual signoff remain pending.
+
+Focused Edit Brief and named-edit foundation evidence on 2026-07-13:
+
+- The focused editor suite passes 20/20 checks, including the optional Brief lifecycle, exact-edit recovery, planning transfer, approval lock, computed field hierarchy, responsive preview rail, and bounded upload gate.
+- `tests/e2e/viewport.spec.ts` passes 59/59 checks; the clean-shell, keyboard, and zoom group passes 9/9.
+- Guarded local browser review passed at 1024px and 1280px without horizontal overflow or console errors. The preview rail is secondary on supported wide screens and collapses before constraining the main planning workspace.
+- This closes the active Edit Brief presentation and named-edit layout-foundation pass only. Execution, progress, private-review, Create Project, Sign In, full-suite, and founder-level visual signoff remain pending.
 
 ## Definition Of Done
 

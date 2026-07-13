@@ -118,6 +118,10 @@ test.describe('editor mocked browser flow', () => {
     await expect(editorHeader).not.toContainText(/\b100 credits\b/i)
     await expect(page.getByTestId('edit-workspace-progress-card')).toBeVisible()
     await expect(page.getByTestId('edit-workspace-progress-card')).toContainText(/Prepare the edit plan/i)
+    const planningInputs = page.getByTestId('edit-workspace-planning-inputs')
+    await expect(planningInputs).toHaveCSS('display', 'grid')
+    await expect(planningInputs.locator(':scope > div')).toHaveCount(4)
+    expect((await planningInputs.evaluate((element) => getComputedStyle(element).gridTemplateColumns)).split(' ')).toHaveLength(4)
     await expect(page.getByTestId('source-sequence-card')).toBeVisible()
     await expect(page.getByTestId('chat-composer-textarea')).toBeVisible()
     await expect(page.getByRole('heading', { name: 'Chat-native editor' })).toHaveCount(0)
@@ -426,11 +430,46 @@ test.describe('editor mocked browser flow', () => {
     await expect(headerEditBrief).toBeVisible()
     await expect(page.getByTestId('editor-header-edit-brief-status')).toHaveCount(0)
     await clickWhenReady(headerEditBrief)
-    await expect(page.getByTestId('edit-brief-panel')).toBeVisible()
-    await expect(page.getByTestId('edit-brief-panel')).toContainText(/Skip this if the prompt already says enough/i)
+    const editBriefPanel = page.getByTestId('edit-brief-panel')
+    await expect(editBriefPanel).toBeVisible()
+    await expect(editBriefPanel).toContainText(/Skip this if the prompt already says enough/i)
+    const workspaceLayout = page.locator('.editor-workspace-layout')
+    const previewRail = page.getByTestId('edit-preview-rail')
+    await expect(previewRail).toBeVisible()
+    expect(await workspaceLayout.evaluate((element) => getComputedStyle(element).display)).toBe('grid')
+    const [chatCanvasBox, previewRailBox] = await Promise.all([
+      page.getByTestId('editor-chat-canvas').boundingBox(),
+      previewRail.boundingBox(),
+    ])
+    expect(Boolean(
+      chatCanvasBox &&
+      previewRailBox &&
+      previewRailBox.x >= chatCanvasBox.x + chatCanvasBox.width,
+    )).toBe(true)
+    const editBriefFields = editBriefPanel.locator('.edit-brief-editable-fields')
+    await expect(editBriefFields).toBeVisible()
+    expect(await editBriefFields.evaluate((element) => getComputedStyle(element).display)).toBe('grid')
+    expect(['flex', 'inline-flex']).toContain(
+      await editBriefPanel.locator('.edit-brief-status').first().evaluate((element) => getComputedStyle(element).display),
+    )
+    const firstBriefSection = editBriefPanel.locator('.edit-brief-section').first()
+    expect(await firstBriefSection.evaluate((element) => getComputedStyle(element).backgroundImage)).toBe('none')
+    expect(await firstBriefSection.evaluate((element) => getComputedStyle(element).borderBottomStyle)).toBe('solid')
     const briefGoalInput = page.getByTestId('edit-brief-goal-input')
     await expect(briefGoalInput).toBeFocused()
     await expect(page.getByTestId('editor-header-edit-brief-status')).toHaveCount(0)
+
+    await setViewport(page, 700)
+    const editBriefSummaryGrid = editBriefPanel.locator('.edit-brief-summary-grid')
+    expect(
+      await editBriefSummaryGrid.evaluate((element) => (
+        getComputedStyle(element).gridTemplateColumns.trim().split(/\s+/).length
+      )),
+    ).toBe(1)
+    await expect(previewRail).toBeHidden()
+    await expectNoHorizontalOverflow(page)
+    await setViewport(page, 1440)
+
     await briefGoalInput.fill(briefGoal)
     await page.getByTestId('edit-brief-reference-urls').fill('https://example.com/approved-launch-reference')
     await expect(page.getByTestId('editor-header-edit-brief-status')).toHaveText('Draft')
@@ -461,6 +500,10 @@ test.describe('editor mocked browser flow', () => {
     await clickWhenReady(page.getByTestId('editor-header-edit-brief'))
     await expect(page.getByTestId('edit-brief-locked')).toBeVisible()
     await expect(page.getByTestId('edit-brief-goal-input')).toBeDisabled()
+    expect(Number(await editBriefFields.evaluate((element) => getComputedStyle(element).opacity))).toBeLessThan(1)
+    expect(
+      await page.getByTestId('edit-brief-locked').evaluate((element) => getComputedStyle(element).borderLeftWidth),
+    ).toBe('2px')
     await expectNoInternalToolNamesInEditor(page)
     await expectNoHorizontalOverflow(page)
     await expectFloatingComposerAligned(page)

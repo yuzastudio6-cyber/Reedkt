@@ -15,6 +15,8 @@ The shared boundary provides:
 - exclusive temporary creation and cleanup;
 - target and parent symlink refusal;
 - `O_NOFOLLOW` private reads;
+- sorted private-registry listing that rejects symlink and special-file entries,
+  followed by no-follow reads for every returned file;
 - stream and text/buffer writers; and
 - durability sync before replacement.
 
@@ -58,9 +60,17 @@ and no mutation of the external symlink destination. The shared persistence
 smoke also statically prevents these named services from returning to direct
 `mkdir`, `writeFile`, or `createWriteStream` persistence.
 
-Other project, internal edit-state, and browser-capture stores that are not
-listed in the focused evidence above still require compatibility review before
-their storage boundary can be promoted.
+The authenticated local/private project registry and exact internal edit-state
+registry now use the same boundary without changing their hashed object paths
+or checksummed JSON envelopes. `smoke:project-state-tenancy` proves restart
+readback, user/workspace isolation, stale-write protection, revocation,
+`0700`/`0600` modes, exact target-symlink refusal for read and list operations,
+and parent-symlink refusal for writes without external mutation. The shared
+persistence smoke statically prevents both services from returning to direct
+filesystem writers.
+
+Browser-capture stores and other project-adjacent stores not named above still
+require compatibility review before their storage boundary can be promoted.
 
 This hardening is for single-host internal testing. It is not a replacement
 for private GCS generation-bound objects, canonical Supabase records, malware

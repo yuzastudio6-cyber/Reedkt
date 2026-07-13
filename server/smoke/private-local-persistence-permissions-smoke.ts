@@ -17,6 +17,7 @@ import { dirname, join } from 'node:path'
 import { Readable } from 'node:stream'
 import {
   ensurePrivateDirectoryWithinRoot,
+  listPrivateRegularFileNamesWithinRoot,
   readPrivateTextFileIfExistsWithinRoot,
   writePrivateFileAtomicWithinRoot,
   writePrivateStreamAtomicWithinRoot,
@@ -147,6 +148,32 @@ try {
   assert.equal(modeBits((await stat(privateDirectory)).mode), 0o700)
   assert.equal(modeBits((await stat(dirname(privateDirectory))).mode), 0o700)
 
+  const registryListRelativePath = join('private-list-registry', 'records')
+  await writePrivateTextFileAtomicWithinRoot({
+    rootPath,
+    relativePath: join(registryListRelativePath, 'record-b.json'),
+    content: 'record-b\n',
+  })
+  await writePrivateTextFileAtomicWithinRoot({
+    rootPath,
+    relativePath: join(registryListRelativePath, 'record-a.json'),
+    content: 'record-a\n',
+  })
+  assert.deepEqual(
+    await listPrivateRegularFileNamesWithinRoot({ rootPath, relativeDirectoryPath: registryListRelativePath }),
+    ['record-a.json', 'record-b.json'],
+  )
+  const registryListOutside = join(rootPath, 'private-list-registry-outside.json')
+  await writeFile(registryListOutside, 'outside-list-record\n', { mode: 0o600 })
+  const registryListSymlink = join(rootPath, registryListRelativePath, 'linked.json')
+  await symlink(registryListOutside, registryListSymlink)
+  await assert.rejects(
+    () => listPrivateRegularFileNamesWithinRoot({ rootPath, relativeDirectoryPath: registryListRelativePath }),
+    /unsafe filesystem path/,
+  )
+  assert.equal(await readFile(registryListOutside, 'utf8'), 'outside-list-record\n')
+  await rm(registryListSymlink, { force: true })
+
   const outsideFile = join(rootPath, 'outside-do-not-touch.json')
   await writeFile(outsideFile, 'outside\n', { mode: 0o600 })
   const linkedFile = join(rootPath, 'private-registry', 'records', 'linked.json')
@@ -207,9 +234,11 @@ try {
     'server/services/approved-snapshot-service.ts',
     'server/services/approved-edit-execution-package-service.ts',
     'server/services/edit-preference-service.ts',
+    'server/services/internal-edit-state-service.ts',
     'server/services/private-edit-brief-authority-store.ts',
     'server/services/private-exact-edit-preference-store.ts',
     'server/services/private-preference-intelligence-store.ts',
+    'server/services/project-service.ts',
     'server/services/private-canonical-work-graph-progress-store.ts',
     'server/workers/audio/audio-execution-artifact-writer.ts',
     'server/workers/captions/caption-file-builder.ts',
@@ -243,6 +272,7 @@ try {
       'target_symlink_rejected_without_external_mutation',
       'parent_symlink_rejected_without_external_mutation',
       'private_registry_reads_refuse_symlinks',
+      'private_registry_listing_is_sorted_and_refuses_symlink_entries',
       'named_private_persistence_services_use_shared_hardened_boundary',
     ],
   }, null, 2))

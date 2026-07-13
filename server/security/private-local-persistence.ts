@@ -1,6 +1,6 @@
 import { createHash, randomUUID } from 'node:crypto'
 import { constants, createWriteStream } from 'node:fs'
-import { lstat, mkdir, open, rename, rm } from 'node:fs/promises'
+import { lstat, mkdir, open, readdir, rename, rm } from 'node:fs/promises'
 import { basename, dirname, isAbsolute, relative, resolve, sep } from 'node:path'
 import { Transform, type Readable } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
@@ -262,6 +262,40 @@ export async function ensurePrivateDirectoryWithinRoot(input: {
   const directoryPath = resolvePrivateDirectoryPath(input.rootPath, input.relativePath)
   await ensurePrivateParentDirectory(input.rootPath, directoryPath)
   return directoryPath
+}
+
+/**
+ * Lists regular file names from one private registry directory. Directory
+ * names are never returned, symbolic-link or special-file entries fail
+ * closed, and callers must still open every returned file through the private
+ * no-follow reader before trusting its bytes.
+ */
+export async function listPrivateRegularFileNamesWithinRoot(input: {
+  rootPath: string
+  relativeDirectoryPath: string
+}): Promise<string[]> {
+  const directoryPath = resolvePrivateDirectoryPath(input.rootPath, input.relativeDirectoryPath)
+  const directoryExists = await assertPrivateDirectoryChain(input.rootPath, directoryPath, true, true)
+  if (!directoryExists) return []
+
+  const directoryHandle = await open(directoryPath, constants.O_RDONLY | constants.O_NOFOLLOW)
+  try {
+    const openedStat = await directoryHandle.stat()
+    if (!openedStat.isDirectory()) throw unsafePrivatePersistencePath('private_registry_not_regular_directory')
+    await directoryHandle.chmod(PRIVATE_DIRECTORY_MODE)
+    const entries = await readdir(directoryPath, { withFileTypes: true })
+    await assertPrivateDirectoryChain(input.rootPath, directoryPath, false, true)
+    const fileNames: string[] = []
+    for (const entry of entries) {
+      if (entry.isSymbolicLink() || (!entry.isFile() && !entry.isDirectory())) {
+        throw unsafePrivatePersistencePath('private_registry_entry_not_regular')
+      }
+      if (entry.isFile()) fileNames.push(entry.name)
+    }
+    return fileNames.sort((left, right) => left.localeCompare(right))
+  } finally {
+    await directoryHandle.close()
+  }
 }
 
 export async function readPrivateFileIfExistsWithinRoot(input: PrivateWriteInput): Promise<Buffer | undefined> {

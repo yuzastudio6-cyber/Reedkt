@@ -101,6 +101,21 @@ This milestone does not grant anything, enable RLS, run SQL, add migrations, cre
 - `git diff --check`
 - `git diff --cached --check`
 
+## Current Local/Private Follow-up
+
+The mock-safe backend skeleton described by this historical plan now has a
+production-shaped single-host persistence implementation for the explicit
+local/internal runtime. `project-service.ts` and
+`internal-edit-state-service.ts` authorize workspace/project scope before
+loading their existing user/workspace-hashed V2 records. Both stores preserve
+their checksummed JSON envelopes while using the shared private persistence
+boundary for atomic writes, no-follow reads, restrictive modes, and safe
+registry listing. Direct target and parent symlink attacks are covered by
+`npm run smoke:project-state-tenancy`.
+
+This does not satisfy the plan's Supabase, RLS, explicit grant, distributed
+transaction, audit-retention, backup, or deployed revocation gates.
+
 ## Next
 
 The next safe milestone is a mock-safe durable project/session backend skeleton. It should add server route/repository boundaries that can evaluate mock access decisions, fail closed when live Supabase persistence is requested without migration/RLS/grant evidence, and preserve the browser/service-role boundary.

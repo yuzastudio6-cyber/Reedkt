@@ -1,9 +1,11 @@
-import { createHash, randomUUID } from 'node:crypto'
-import { mkdir, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
-import { dirname, join } from 'node:path'
+import { createHash } from 'node:crypto'
 import { ApiError } from '../errors/api-error'
+import {
+  listPrivateRegularFileNamesWithinRoot,
+  readPrivateTextFileIfExistsWithinRoot,
+  writePrivateTextFileAtomicWithinRoot,
+} from '../security/private-local-persistence'
 import type { ServiceContext } from '../types'
-import { resolvePathInsideRoot } from '../workers/media/media-path-safety'
 import { createProjectService } from './project-service'
 import { mockWarning, nowIso } from './service-helpers'
 import { authorizeWorkspaceAccess } from './workspace-access-service'
@@ -189,7 +191,7 @@ async function persistInternalEditStateRecord(input: {
   localStorageRoot: string
 }): Promise<void> {
   assertInternalEditStateRecordSafe(input.internalEditState)
-  const objectPath = internalEditStateObjectPath(
+  const objectPath = internalEditStateObjectRelativePath(
     input.internalEditState.userId,
     input.internalEditState.workspaceId,
     input.internalEditState.projectId,
@@ -206,8 +208,11 @@ async function persistInternalEditStateRecord(input: {
     recordChecksumSha256: checksumInternalEditStateRecord(recordWithoutChecksum),
   }
   const content = `${JSON.stringify(persistedRecord, null, 2)}\n`
-  const localFilePath = resolvePathInsideRoot(input.localStorageRoot, objectPath)
-  await writePrivateTextAtomically(localFilePath, content)
+  await writePrivateTextFileAtomicWithinRoot({
+    rootPath: input.localStorageRoot,
+    relativePath: objectPath,
+    content,
+  })
 }
 
 async function loadInternalEditStateRecord(input: {
@@ -228,14 +233,16 @@ async function loadInternalEditStateRecord(input: {
       .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))[0]
   }
 
-  const objectPath = internalEditStateObjectPath(
+  const objectPath = internalEditStateObjectRelativePath(
     input.userId,
     input.workspaceId,
     input.projectId,
     input.editSessionId,
   )
-  const localFilePath = resolvePathInsideRoot(input.localStorageRoot, objectPath)
-  const localContent = await readOptionalText(localFilePath)
+  const localContent = await readPrivateTextFileIfExistsWithinRoot({
+    rootPath: input.localStorageRoot,
+    relativePath: objectPath,
+  })
   if (localContent) return parseInternalEditStateRecord(
     localContent,
     input.userId,
@@ -252,35 +259,23 @@ async function listInternalEditStateRecords(input: {
   userId: string
   workspaceId: string
 }): Promise<InternalEditStateRecord[]> {
-  const registryDir = resolvePathInsideRoot(
-    input.localStorageRoot,
-    internalEditStateRegistryDirectory(input.userId, input.workspaceId),
-  )
-  let fileNames: string[]
-  try {
-    fileNames = await readdir(registryDir)
-  } catch (error) {
-    if (typeof error === 'object' && error && 'code' in error && error.code === 'ENOENT') return []
-    throw error
-  }
+  const registryDirectory = internalEditStateRegistryDirectoryRelativePath(input.userId, input.workspaceId)
+  const fileNames = await listPrivateRegularFileNamesWithinRoot({
+    rootPath: input.localStorageRoot,
+    relativeDirectoryPath: registryDirectory,
+  })
 
   const records: InternalEditStateRecord[] = []
   for (const fileName of fileNames) {
     if (!fileName.endsWith('.json')) continue
-    const content = await readOptionalText(join(registryDir, fileName))
+    const content = await readPrivateTextFileIfExistsWithinRoot({
+      rootPath: input.localStorageRoot,
+      relativePath: `${registryDirectory}/${fileName}`,
+    })
     if (!content) continue
     records.push(parseInternalEditStateRecord(content, input.userId, input.workspaceId))
   }
   return records
-}
-
-async function readOptionalText(filePath: string): Promise<string | undefined> {
-  try {
-    return await readFile(filePath, 'utf8')
-  } catch (error) {
-    if (typeof error === 'object' && error && 'code' in error && error.code === 'ENOENT') return undefined
-    throw error
-  }
 }
 
 function parseInternalEditStateRecord(
@@ -480,13 +475,13 @@ function isUnsafeInternalEditStateString(value: string): boolean {
   return /x-goog-signature=|x-amz-signature=|supabase_service_role|service_role|sk-[a-z0-9]|eyJ[a-zA-Z0-9_-]{20,}|^blob:|^data:/i.test(value)
 }
 
-function internalEditStateRegistryDirectory(userId: string, workspaceId: string): string {
-  return join(
+export function internalEditStateRegistryDirectoryRelativePath(userId: string, workspaceId: string): string {
+  return [
     'projects',
     'private-internal-edit-state-registry-v2',
     `user-${sha256(userId)}`,
     `workspace-${sha256(workspaceId)}`,
-  ).split('/').join('/')
+  ].join('/')
 }
 
 function getCachedInternalEditState(
@@ -505,16 +500,13 @@ function getCachedInternalEditState(
     .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))[0]
 }
 
-function internalEditStateObjectPath(
+export function internalEditStateObjectRelativePath(
   userId: string,
   workspaceId: string,
   projectId: string,
   editSessionId: string,
 ): string {
-  return join(
-    internalEditStateRegistryDirectory(userId, workspaceId),
-    `project-${sha256(projectId)}--edit-${sha256(editSessionId)}.json`,
-  ).split('/').join('/')
+  return `${internalEditStateRegistryDirectoryRelativePath(userId, workspaceId)}/project-${sha256(projectId)}--edit-${sha256(editSessionId)}.json`
 }
 
 function internalEditStateMemoryKey(
@@ -524,21 +516,6 @@ function internalEditStateMemoryKey(
   editSessionId: string,
 ): string {
   return `${userId}\u0000${workspaceId}\u0000${projectId}\u0000${editSessionId}`
-}
-
-async function writePrivateTextAtomically(filePath: string, content: string): Promise<void> {
-  const temporaryPath = `${filePath}.${randomUUID()}.tmp`
-  await mkdir(dirname(filePath), { recursive: true, mode: 0o700 })
-  try {
-    await writeFile(temporaryPath, content, {
-      encoding: 'utf8',
-      flag: 'wx',
-      mode: 0o600,
-    })
-    await rename(temporaryPath, filePath)
-  } finally {
-    await rm(temporaryPath, { force: true }).catch(() => undefined)
-  }
 }
 
 async function withInternalEditStateWriteLock<T>(

@@ -1,11 +1,18 @@
 import assert from 'node:assert/strict'
 import { createServer, type Server } from 'node:http'
-import { readdir, rm } from 'node:fs/promises'
+import { mkdir, readFile, readdir, rename, rm, stat, symlink } from 'node:fs/promises'
+import { dirname, join } from 'node:path'
 import type { SupabaseClient, User } from '@supabase/supabase-js'
 import { createReeditProApiApp } from '../app'
 import { loadRuntimeEnv } from '../config/env'
-import { clearInternalEditStateMemoryForSmoke } from '../services/internal-edit-state-service'
-import { clearLocalProjectMemoryForSmoke } from '../services/project-service'
+import {
+  clearInternalEditStateMemoryForSmoke,
+  internalEditStateObjectRelativePath,
+} from '../services/internal-edit-state-service'
+import {
+  clearLocalProjectMemoryForSmoke,
+  localProjectRegistryObjectRelativePath,
+} from '../services/project-service'
 import type { RuntimeClients } from '../types'
 
 type Membership = { workspaceId: string; userId: string; role: string }
@@ -223,6 +230,145 @@ try {
     'Internal-state authorization must run before durable idempotency mutation; the denied body must not reserve the key.',
   )
 
+  const projectRecordPath = join(
+    localStorageRoot,
+    localProjectRegistryObjectRelativePath('user-a', 'workspace-alpha', projectAId),
+  )
+  const internalStateRecordPath = join(
+    localStorageRoot,
+    internalEditStateObjectRelativePath('user-a', 'workspace-alpha', projectAId, editSessionId),
+  )
+  assert.equal((await stat(projectRecordPath)).mode & 0o777, 0o600)
+  assert.equal((await stat(internalStateRecordPath)).mode & 0o777, 0o600)
+  assert.equal((await stat(dirname(projectRecordPath))).mode & 0o777, 0o700)
+  assert.equal((await stat(dirname(internalStateRecordPath))).mode & 0o777, 0o700)
+
+  const projectOutsideRecord = `/tmp/reeditpro-project-state-target-symlink-outside-${process.pid}.json`
+  await rm(projectOutsideRecord, { force: true })
+  const projectRecordBytes = await readFile(projectRecordPath)
+  await rename(projectRecordPath, projectOutsideRecord)
+  await symlink(projectOutsideRecord, projectRecordPath)
+  try {
+    clearLocalProjectMemoryForSmoke()
+    const projectTargetSymlinkRead = await requestJson(
+      `${baseUrl}/v1/projects/${encodeURIComponent(projectAId)}?workspaceId=workspace-alpha`,
+      { token: 'token-user-a' },
+    )
+    assert.equal(projectTargetSymlinkRead.status, 400)
+    assert.equal(projectTargetSymlinkRead.json.error?.code, 'VALIDATION_FAILED')
+    const projectTargetSymlinkList = await requestJson(
+      `${baseUrl}/v1/projects?workspaceId=workspace-alpha`,
+      { token: 'token-user-a' },
+    )
+    assert.equal(projectTargetSymlinkList.status, 400)
+    assert.equal(projectTargetSymlinkList.json.error?.code, 'VALIDATION_FAILED')
+    assert.deepEqual(await readFile(projectOutsideRecord), projectRecordBytes)
+  } finally {
+    await rm(projectRecordPath, { force: true })
+    await rename(projectOutsideRecord, projectRecordPath)
+    clearLocalProjectMemoryForSmoke()
+  }
+
+  const internalStateOutsideRecord = `/tmp/reeditpro-internal-state-target-symlink-outside-${process.pid}.json`
+  await rm(internalStateOutsideRecord, { force: true })
+  const internalStateRecordBytes = await readFile(internalStateRecordPath)
+  await rename(internalStateRecordPath, internalStateOutsideRecord)
+  await symlink(internalStateOutsideRecord, internalStateRecordPath)
+  try {
+    clearInternalEditStateMemoryForSmoke()
+    const internalStateTargetSymlinkRead = await requestJson(
+      `${baseUrl}/v1/projects/${encodeURIComponent(projectAId)}/internal-edit-state?workspaceId=workspace-alpha&editSessionId=${encodeURIComponent(editSessionId)}`,
+      { token: 'token-user-a' },
+    )
+    assert.equal(internalStateTargetSymlinkRead.status, 400)
+    assert.equal(internalStateTargetSymlinkRead.json.error?.code, 'VALIDATION_FAILED')
+    const internalStateTargetSymlinkList = await requestJson(
+      `${baseUrl}/v1/internal-edit-states?workspaceId=workspace-alpha`,
+      { token: 'token-user-a' },
+    )
+    assert.equal(internalStateTargetSymlinkList.status, 400)
+    assert.equal(internalStateTargetSymlinkList.json.error?.code, 'VALIDATION_FAILED')
+    assert.deepEqual(await readFile(internalStateOutsideRecord), internalStateRecordBytes)
+  } finally {
+    await rm(internalStateRecordPath, { force: true })
+    await rename(internalStateOutsideRecord, internalStateRecordPath)
+    clearInternalEditStateMemoryForSmoke()
+  }
+
+  const projectParentSymlinkRoot = `/tmp/reeditpro-project-parent-symlink-smoke-${process.pid}`
+  const projectParentSymlinkOutside = `/tmp/reeditpro-project-parent-symlink-outside-${process.pid}`
+  await rm(projectParentSymlinkRoot, { recursive: true, force: true })
+  await rm(projectParentSymlinkOutside, { recursive: true, force: true })
+  await mkdir(projectParentSymlinkRoot, { recursive: true })
+  await mkdir(projectParentSymlinkOutside, { recursive: true })
+  await symlink(projectParentSymlinkOutside, join(projectParentSymlinkRoot, 'projects'))
+  const projectParentSymlinkServer = await listen(createServer(createReeditProApiApp({
+    ...env,
+    localStorageRoot: projectParentSymlinkRoot,
+  }, { clients })))
+  try {
+    const projectParentSymlinkWrite = await requestJson(`${serverBaseUrl(projectParentSymlinkServer)}/v1/projects`, {
+      method: 'POST',
+      token: 'token-user-a',
+      idempotencyKey: 'project-parent-symlink-refusal',
+      body: { workspaceId: 'workspace-alpha', name: 'Must not escape the project registry' },
+    })
+    assert.equal(projectParentSymlinkWrite.status, 400)
+    assert.equal(projectParentSymlinkWrite.json.error?.code, 'VALIDATION_FAILED')
+    assert.deepEqual(await listFiles(projectParentSymlinkOutside), [])
+  } finally {
+    await close(projectParentSymlinkServer)
+    await rm(projectParentSymlinkRoot, { recursive: true, force: true })
+    await rm(projectParentSymlinkOutside, { recursive: true, force: true })
+  }
+
+  const internalParentSymlinkRoot = `/tmp/reeditpro-internal-state-parent-symlink-smoke-${process.pid}`
+  const internalParentSymlinkOutside = `/tmp/reeditpro-internal-state-parent-symlink-outside-${process.pid}`
+  await rm(internalParentSymlinkRoot, { recursive: true, force: true })
+  await rm(internalParentSymlinkOutside, { recursive: true, force: true })
+  await mkdir(internalParentSymlinkRoot, { recursive: true })
+  await mkdir(internalParentSymlinkOutside, { recursive: true })
+  const internalParentSymlinkServer = await listen(createServer(createReeditProApiApp({
+    ...env,
+    localStorageRoot: internalParentSymlinkRoot,
+  }, { clients })))
+  const internalParentBaseUrl = serverBaseUrl(internalParentSymlinkServer)
+  try {
+    const parentProject = await requestJson(`${internalParentBaseUrl}/v1/projects`, {
+      method: 'POST',
+      token: 'token-user-a',
+      idempotencyKey: 'internal-state-parent-symlink-project',
+      body: { workspaceId: 'workspace-alpha', name: 'Internal state parent symlink project' },
+    })
+    assert.equal(parentProject.status, 201)
+    const parentProjectId = requiredString(parentProject.json.data?.project?.id, 'Parent-symlink project should exist.')
+    const parentEditSessionId = `${parentProjectId}-edit-parent-symlink`
+    await symlink(
+      internalParentSymlinkOutside,
+      join(internalParentSymlinkRoot, 'projects', 'private-internal-edit-state-registry-v2'),
+    )
+    const internalParentSymlinkWrite = await requestJson(
+      `${internalParentBaseUrl}/v1/projects/${encodeURIComponent(parentProjectId)}/internal-edit-state`,
+      {
+        method: 'PUT',
+        token: 'token-user-a',
+        idempotencyKey: 'internal-state-parent-symlink-refusal',
+        body: {
+          workspaceId: 'workspace-alpha',
+          editSessionId: parentEditSessionId,
+          handoff: createHandoff('workspace-alpha', parentProjectId, parentEditSessionId, 'Must not escape internal state'),
+        },
+      },
+    )
+    assert.equal(internalParentSymlinkWrite.status, 400)
+    assert.equal(internalParentSymlinkWrite.json.error?.code, 'VALIDATION_FAILED')
+    assert.deepEqual(await listFiles(internalParentSymlinkOutside), [])
+  } finally {
+    await close(internalParentSymlinkServer)
+    await rm(internalParentSymlinkRoot, { recursive: true, force: true })
+    await rm(internalParentSymlinkOutside, { recursive: true, force: true })
+  }
+
   removeMembership(memberships, 'workspace-alpha', 'user-a')
   for (const url of [
     `${baseUrl}/v1/projects?workspaceId=workspace-alpha`,
@@ -252,6 +398,9 @@ console.log(JSON.stringify({
     'local_internal_state_user_workspace_isolation',
     'memory_clear_recovery_is_tenant_scoped',
     'concurrent_and_stale_internal_state_writes_preserve_latest_source_revision',
+    'project_and_internal_state_private_modes_verified',
+    'project_and_internal_state_target_symlink_read_and_list_refused',
+    'project_and_internal_state_parent_symlink_write_refused_without_external_mutation',
     'revoked_membership_blocks_get_and_list',
     'atomic_tenant_persistence_leaves_no_temp_files',
   ],

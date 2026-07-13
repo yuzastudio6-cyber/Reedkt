@@ -1,10 +1,12 @@
-import { createHash, randomUUID } from 'node:crypto'
-import { mkdir, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
-import { dirname, join } from 'node:path'
+import { createHash } from 'node:crypto'
 import { ApiError } from '../errors/api-error'
+import {
+  listPrivateRegularFileNamesWithinRoot,
+  readPrivateTextFileIfExistsWithinRoot,
+  writePrivateTextFileAtomicWithinRoot,
+} from '../security/private-local-persistence'
 import type { ServiceContext } from '../types'
 import { createMockId, mockWarning, nowIso, throwOnSupabaseError } from './service-helpers'
-import { resolvePathInsideRoot } from '../workers/media/media-path-safety'
 import { authorizeWorkspaceAccess } from './workspace-access-service'
 
 interface CreateProjectInput {
@@ -179,11 +181,6 @@ export function createProjectService(context: ServiceContext) {
 
 async function persistLocalProject(project: ProjectView, localStorageRoot: string): Promise<void> {
   assertLocalProjectSafe(project, project.createdByUserId, project.workspaceId)
-  const filePath = resolvePathInsideRoot(localStorageRoot, localProjectRegistryObjectPath(
-    project.createdByUserId,
-    project.workspaceId,
-    project.id,
-  ))
   const recordWithoutChecksum = {
     recordVersion: 'private-internal-project-v2' as const,
     source: 'project_service_scoped_internal_test_persistence' as const,
@@ -194,7 +191,15 @@ async function persistLocalProject(project: ProjectView, localStorageRoot: strin
     ...recordWithoutChecksum,
     recordChecksumSha256: checksumProjectRecord(recordWithoutChecksum),
   }
-  await writePrivateJsonAtomically(filePath, record)
+  await writePrivateTextFileAtomicWithinRoot({
+    rootPath: localStorageRoot,
+    relativePath: localProjectRegistryObjectRelativePath(
+      project.createdByUserId,
+      project.workspaceId,
+      project.id,
+    ),
+    content: `${JSON.stringify(record, null, 2)}\n`,
+  })
 }
 
 async function loadLocalProject(input: {
@@ -203,19 +208,15 @@ async function loadLocalProject(input: {
   workspaceId: string
   localStorageRoot: string
 }): Promise<ProjectView | undefined> {
-  const filePath = resolvePathInsideRoot(input.localStorageRoot, localProjectRegistryObjectPath(
-    input.userId,
-    input.workspaceId,
-    input.projectId,
-  ))
-  let content: string
-  try {
-    content = await readFile(filePath, 'utf8')
-  } catch (error) {
-    if (isNodeErrorWithCode(error, 'ENOENT')) return undefined
-    throw error
-  }
-
+  const content = await readPrivateTextFileIfExistsWithinRoot({
+    rootPath: input.localStorageRoot,
+    relativePath: localProjectRegistryObjectRelativePath(
+      input.userId,
+      input.workspaceId,
+      input.projectId,
+    ),
+  })
+  if (!content) return undefined
   return parseLocalProjectRecord(content, input.userId, input.workspaceId, input.projectId)
 }
 
@@ -224,23 +225,21 @@ async function listLocalProjects(input: {
   workspaceId: string
   localStorageRoot: string
 }): Promise<ProjectView[]> {
-  const registryDir = resolvePathInsideRoot(input.localStorageRoot, localProjectRegistryDirectory(
-    input.userId,
-    input.workspaceId,
-  ))
-  let fileNames: string[]
-  try {
-    fileNames = await readdir(registryDir)
-  } catch (error) {
-    if (isNodeErrorWithCode(error, 'ENOENT')) return []
-    throw error
-  }
+  const registryDirectory = localProjectRegistryDirectoryRelativePath(input.userId, input.workspaceId)
+  const fileNames = await listPrivateRegularFileNamesWithinRoot({
+    rootPath: input.localStorageRoot,
+    relativeDirectoryPath: registryDirectory,
+  })
 
   const projects: ProjectView[] = []
   for (const fileName of fileNames) {
     if (!fileName.endsWith('.json') || fileName.startsWith('._')) continue
+    const content = await readPrivateTextFileIfExistsWithinRoot({
+      rootPath: input.localStorageRoot,
+      relativePath: `${registryDirectory}/${fileName}`,
+    })
+    if (!content) continue
     try {
-      const content = await readFile(join(registryDir, fileName), 'utf8')
       projects.push(parseLocalProjectRecord(content, input.userId, input.workspaceId))
     } catch (error) {
       if (error instanceof ApiError) continue
@@ -336,36 +335,25 @@ function projectViewFromDatabaseRow(
   }
 }
 
-async function writePrivateJsonAtomically(filePath: string, value: unknown): Promise<void> {
-  const temporaryPath = `${filePath}.${randomUUID()}.tmp`
-  await mkdir(dirname(filePath), { recursive: true, mode: 0o700 })
-  try {
-    await writeFile(temporaryPath, `${JSON.stringify(value, null, 2)}\n`, {
-      encoding: 'utf8',
-      flag: 'wx',
-      mode: 0o600,
-    })
-    await rename(temporaryPath, filePath)
-  } finally {
-    await rm(temporaryPath, { force: true }).catch(() => undefined)
-  }
-}
-
 function checksumProjectRecord(value: Omit<PersistedProjectRecord, 'recordChecksumSha256'>): string {
   return createHash('sha256').update(JSON.stringify(value)).digest('hex')
 }
 
-function localProjectRegistryObjectPath(userId: string, workspaceId: string, projectId: string): string {
-  return join(localProjectRegistryDirectory(userId, workspaceId), `project-${sha256(projectId)}.json`).split('/').join('/')
+export function localProjectRegistryObjectRelativePath(
+  userId: string,
+  workspaceId: string,
+  projectId: string,
+): string {
+  return `${localProjectRegistryDirectoryRelativePath(userId, workspaceId)}/project-${sha256(projectId)}.json`
 }
 
-function localProjectRegistryDirectory(userId: string, workspaceId: string): string {
-  return join(
+export function localProjectRegistryDirectoryRelativePath(userId: string, workspaceId: string): string {
+  return [
     'projects',
     'private-internal-project-registry-v2',
     `user-${sha256(userId)}`,
     `workspace-${sha256(workspaceId)}`,
-  ).split('/').join('/')
+  ].join('/')
 }
 
 function projectMemoryScopePrefix(userId: string, workspaceId: string): string {
@@ -391,10 +379,6 @@ function normalizeProjectName(value: string): string {
 function normalizeOptionalDescription(value: string | undefined): string | undefined {
   const normalized = value?.trim().replace(/\s+/g, ' ').slice(0, 500)
   return normalized || undefined
-}
-
-function isNodeErrorWithCode(error: unknown, code: string): boolean {
-  return typeof error === 'object' && error !== null && 'code' in error && error.code === code
 }
 
 function usesLocalProjectPersistence(context: ServiceContext): boolean {

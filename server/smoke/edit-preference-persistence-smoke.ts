@@ -54,10 +54,11 @@ assert.equal(repositoryA.getInitialResult().preferences.editLevel, 'pro')
 assert.equal(repositoryB.getInitialResult().preferences.editLevel, 'pro')
 assert.equal(repositoryAOtherWorkspace.getInitialResult().preferences.editLevel, 'pro')
 assert.equal(
-  repositoryA.getInitialResult().message.includes('deterministic defaults'),
-  true,
+  repositoryA.getInitialResult().status,
+  'default',
   'Unscoped v1 preferences must never migrate implicitly into a signed-in identity.',
 )
+assert.equal(storage.values.has(buildLocalEditPreferenceStorageKey(scopeA)), false)
 
 const savedA = await repositoryA.save({
   cleanupPreference: 'light_cleanup',

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
-import { rm } from 'node:fs/promises'
+import { mkdir, readFile, readdir, rm, stat, symlink, writeFile } from 'node:fs/promises'
+import { dirname, join } from 'node:path'
 import { loadRuntimeEnv } from '../config/env'
 import { ApiError } from '../errors/api-error'
 import {
@@ -9,6 +10,7 @@ import {
 import {
   clearPrivatePreferenceIntelligenceProcessStateForSmoke,
   PREFERENCE_INSTRUCTION_PRIORITY,
+  preferenceIntelligenceRecordRelativePath,
   readPrivatePreferenceIntelligenceAggregate,
   type PreferenceDnaQaResultRecord,
   type PreferenceDnaVersionRecord,
@@ -297,6 +299,57 @@ assert.equal(aggregate.evidence.every((evidence) => !evidence.rawFramesPersisted
 assert.equal(aggregate.evidence.every((evidence) => !evidence.fullVideoSentToReasoningModel), true)
 assert.equal(aggregate.evidence.every((evidence) => !evidence.privateAssetId), true)
 
+const intelligenceRelativePath = preferenceIntelligenceRecordRelativePath(userId, workspaceId)
+const intelligencePath = join(localStorageRoot, intelligenceRelativePath)
+assert.equal((await stat(intelligencePath)).mode & 0o777, 0o600)
+assert.equal((await stat(dirname(intelligencePath))).mode & 0o777, 0o700)
+
+const targetSymlinkRoot = '/tmp/reeditpro-preference-intelligence-target-symlink-smoke'
+const targetSymlinkOutsideFile = '/tmp/reeditpro-preference-intelligence-target-symlink-outside.json'
+await rm(targetSymlinkRoot, { recursive: true, force: true })
+await rm(targetSymlinkOutsideFile, { force: true })
+const targetSymlinkPath = join(targetSymlinkRoot, intelligenceRelativePath)
+await mkdir(dirname(targetSymlinkPath), { recursive: true })
+await writeFile(targetSymlinkOutsideFile, 'outside preference intelligence record must remain unchanged\n')
+await symlink(targetSymlinkOutsideFile, targetSymlinkPath)
+await expectApiError(
+  () => createPreferenceIntelligenceService({
+    ...context,
+    env: { ...env, localStorageRoot: targetSymlinkRoot },
+  }).listPreferences(workspaceId),
+  'VALIDATION_FAILED',
+  'Preference Intelligence persistence must reject a symbolic-link record target.',
+)
+assert.equal(
+  await readFile(targetSymlinkOutsideFile, 'utf8'),
+  'outside preference intelligence record must remain unchanged\n',
+)
+await rm(targetSymlinkRoot, { recursive: true, force: true })
+await rm(targetSymlinkOutsideFile, { force: true })
+
+const parentSymlinkRoot = '/tmp/reeditpro-preference-intelligence-parent-symlink-smoke'
+const parentSymlinkOutsideRoot = '/tmp/reeditpro-preference-intelligence-parent-symlink-outside'
+await rm(parentSymlinkRoot, { recursive: true, force: true })
+await rm(parentSymlinkOutsideRoot, { recursive: true, force: true })
+await mkdir(parentSymlinkRoot, { recursive: true })
+await mkdir(parentSymlinkOutsideRoot, { recursive: true })
+await symlink(parentSymlinkOutsideRoot, join(parentSymlinkRoot, 'preference-intelligence'))
+await expectApiError(
+  () => createPreferenceIntelligenceService({
+    ...context,
+    env: { ...env, localStorageRoot: parentSymlinkRoot },
+  }).createPreference({
+    workspaceId,
+    name: 'Parent symlink must not receive Preference Intelligence',
+    idempotencyKey: 'preference-intelligence-parent-symlink-refusal',
+  }),
+  'VALIDATION_FAILED',
+  'Preference Intelligence persistence must reject a symbolic-link parent directory.',
+)
+assert.deepEqual(await readdir(parentSymlinkOutsideRoot), [])
+await rm(parentSymlinkRoot, { recursive: true, force: true })
+await rm(parentSymlinkOutsideRoot, { recursive: true, force: true })
+
 const otherUserContext: ServiceContext = {
   ...context,
   requestId: 'preference-intelligence-other-user',
@@ -345,6 +398,7 @@ console.log(JSON.stringify({
   exactCriticalMutationReplay: true,
   usageAndAuditLogs: true,
   restartRecovery: true,
+  privateModesAndSymlinkAttackRefusal: true,
   tenantIsolation: true,
   productionFailClosed: true,
   productionClaims: false,

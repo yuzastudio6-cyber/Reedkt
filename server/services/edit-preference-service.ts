@@ -1,6 +1,4 @@
 import { createHash, randomUUID } from 'node:crypto'
-import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
-import { dirname, join } from 'node:path'
 import {
   AUTHENTICATED_PRIVATE_INTERNAL_EDIT_PREFERENCE_CAPABILITY,
   createEditPreferenceScopeFingerprint,
@@ -9,8 +7,11 @@ import {
 } from '../../src/lib/edit-preference-repository'
 import type { LocalEditPreferenceDefaults } from '../../src/lib/edit-preferences'
 import { ApiError } from '../errors/api-error'
+import {
+  readPrivateTextFileIfExistsWithinRoot,
+  writePrivateTextFileAtomicWithinRoot,
+} from '../security/private-local-persistence'
 import type { ServiceContext } from '../types'
-import { resolvePathInsideRoot } from '../workers/media/media-path-safety'
 import { getRequiredAuthUserId, nowIso } from './service-helpers'
 import { editableEditPreferenceValuesSchema } from '../validation/edit-preference-schemas'
 
@@ -289,15 +290,11 @@ async function readStoredPreference(
   userId: string,
   workspaceId: string,
 ): Promise<StoredPrivateInternalEditPreferenceRecord | undefined> {
-  const filePath = preferenceFilePath(localStorageRoot, userId, workspaceId)
-  let content: string
-  try {
-    content = await readFile(filePath, 'utf8')
-  } catch (error) {
-    if (isNodeErrorWithCode(error, 'ENOENT')) return undefined
-    throw error
-  }
-
+  const content = await readPrivateTextFileIfExistsWithinRoot({
+    rootPath: localStorageRoot,
+    relativePath: editPreferenceRecordRelativePath(userId, workspaceId),
+  })
+  if (!content) return undefined
   return parseStoredPreference(content, userId, workspaceId)
 }
 
@@ -305,19 +302,11 @@ async function writeStoredPreferenceAtomically(
   localStorageRoot: string,
   record: StoredPrivateInternalEditPreferenceRecord,
 ): Promise<void> {
-  const filePath = preferenceFilePath(localStorageRoot, record.userId, record.workspaceId)
-  const temporaryPath = `${filePath}.${randomUUID()}.tmp`
-  await mkdir(dirname(filePath), { recursive: true, mode: 0o700 })
-  try {
-    await writeFile(temporaryPath, `${JSON.stringify(record, null, 2)}\n`, {
-      encoding: 'utf8',
-      flag: 'wx',
-      mode: 0o600,
-    })
-    await rename(temporaryPath, filePath)
-  } finally {
-    await rm(temporaryPath, { force: true }).catch(() => undefined)
-  }
+  await writePrivateTextFileAtomicWithinRoot({
+    rootPath: localStorageRoot,
+    relativePath: editPreferenceRecordRelativePath(record.userId, record.workspaceId),
+    content: `${JSON.stringify(record, null, 2)}\n`,
+  })
 }
 
 function parseStoredPreference(
@@ -461,14 +450,13 @@ function parsePrivateStoredPreferences(value: LocalEditPreferenceDefaults): Loca
   )
 }
 
-function preferenceFilePath(localStorageRoot: string, userId: string, workspaceId: string): string {
-  const scopePath = join(
+export function editPreferenceRecordRelativePath(userId: string, workspaceId: string): string {
+  return [
     'preferences',
     'private-internal-authenticated',
     `workspace-${sha256(workspaceId)}`,
     `user-${sha256(userId)}.json`,
-  ).split('/').join('/')
-  return resolvePathInsideRoot(localStorageRoot, scopePath)
+  ].join('/')
 }
 
 function createServerSnapshotId(
@@ -519,8 +507,4 @@ function toApiRecord(record: StoredPrivateInternalEditPreferenceRecord): EditPre
     createdAt: record.createdAt,
     updatedAt: record.updatedAt,
   }
-}
-
-function isNodeErrorWithCode(error: unknown, code: string): boolean {
-  return Boolean(error && typeof error === 'object' && 'code' in error && error.code === code)
 }

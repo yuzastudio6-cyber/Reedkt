@@ -113,7 +113,7 @@ The private-internal service writes under:
   workspace-<sha256>/user-<sha256>.json
 ```
 
-Raw user/workspace ids never become path segments. The path is resolved inside the configured storage root, traversal-shaped identifiers are rejected, parent directories are created only inside that root, and writes use an exclusive temporary file followed by atomic rename. Temporary files are cleaned up after failure.
+Raw user/workspace ids never become path segments. The path is resolved inside the configured storage root through `server/security/private-local-persistence.ts`; traversal-shaped identifiers are rejected; pre-existing and new directories are hardened to `0700`; records are `0600`; reads use `O_NOFOLLOW`; target and parent symbolic links are rejected; and writes use an exclusive same-directory temporary file, durability sync, and atomic rename. Temporary files are cleaned up after failure. The on-disk path and JSON envelope remain compatible with records written before this hardening pass.
 
 Each record includes:
 
@@ -159,11 +159,18 @@ Writes require an `Idempotency-Key`. Replaying the last persisted key and reques
   - server-generated snapshots, same-scope write serialization, and optimistic concurrency conflict handling;
   - persisted idempotent replay and conflicting replay rejection;
   - contained atomic writes with no temporary-file residue;
+  - restrictive directory/file modes and direct target/parent symlink refusal without external mutation;
   - frontend repository HTTP load/save round trip with the test bearer token;
   - explicit production-runtime rejection;
   - restart recovery from the same private storage root;
   - tampered owner-scope record rejection;
   - exact `mockOnly` private-internal capability response.
+- `npm run smoke:exact-edit-preference-authority`
+  - immutable creation baseline plus exact-edit CAS, invalidation, audit, lifecycle lock, and restart recovery;
+  - shared `0700`/`0600` persistence with direct target/parent symlink attack refusal.
+- `npm run smoke:preference-intelligence-authority`
+  - reusable Preference, study, DNA, QA, approval, apply/replace/clear, context-package, lock, replay, and restart evidence;
+  - shared `0700`/`0600` persistence with direct target-read and parent-write symlink attack refusal.
 - `tests/e2e/preferences-persistence.spec.ts`
   - another identity's stored values are not shown;
   - the current identity saves to its own scoped key;

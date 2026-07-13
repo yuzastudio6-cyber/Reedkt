@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
-import { readdir, rm, stat } from 'node:fs/promises'
-import { join } from 'node:path'
+import { mkdir, readFile, readdir, rm, stat, symlink, writeFile } from 'node:fs/promises'
+import { dirname, join } from 'node:path'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { loadRuntimeEnv } from '../config/env'
 import { ApiError } from '../errors/api-error'
@@ -8,6 +8,7 @@ import { createEditPreferenceService } from '../services/edit-preference-service
 import { createExactEditPreferenceService } from '../services/exact-edit-preference-service'
 import {
   clearPrivateExactEditPreferenceProcessStateForSmoke,
+  exactEditPreferenceRecordRelativePath,
   readPrivateExactEditPreferenceRecord,
 } from '../services/private-exact-edit-preference-store'
 import { clearLocalProjectMemoryForSmoke, createProjectService } from '../services/project-service'
@@ -365,6 +366,59 @@ const recordFiles = (await readdir(exactEditDirectory)).filter((file) => file.en
 assert.equal(recordFiles.length, 1)
 assert.equal((await stat(join(exactEditDirectory, recordFiles[0]!))).mode & 0o777, 0o600)
 
+const targetSymlinkSessionId = 'edit-session-exact-edit-preference-target-symlink'
+const targetSymlinkPath = join(localStorageRoot, exactEditPreferenceRecordRelativePath({
+  ownerUserId: userId,
+  workspaceId,
+  projectId: project.id,
+  editSessionId: targetSymlinkSessionId,
+}))
+const targetSymlinkOutsideFile = '/tmp/reeditpro-exact-edit-preference-target-symlink-outside.json'
+await rm(targetSymlinkOutsideFile, { force: true })
+await mkdir(dirname(targetSymlinkPath), { recursive: true })
+await writeFile(targetSymlinkOutsideFile, 'outside exact-edit preference record must remain unchanged\n')
+await symlink(targetSymlinkOutsideFile, targetSymlinkPath)
+await expectApiError(
+  () => service.initialize({
+    workspaceId,
+    projectId: project.id,
+    editSessionId: targetSymlinkSessionId,
+    idempotencyKey: 'exact-edit-preference-target-symlink-refusal',
+  }),
+  'VALIDATION_FAILED',
+  'Exact Edit Preference persistence must reject a symbolic-link record target.',
+)
+assert.equal(
+  await readFile(targetSymlinkOutsideFile, 'utf8'),
+  'outside exact-edit preference record must remain unchanged\n',
+)
+await rm(targetSymlinkPath, { force: true })
+await rm(targetSymlinkOutsideFile, { force: true })
+
+const parentSymlinkRoot = '/tmp/reeditpro-exact-edit-preference-parent-symlink-smoke'
+const parentSymlinkOutsideRoot = '/tmp/reeditpro-exact-edit-preference-parent-symlink-outside'
+await rm(parentSymlinkRoot, { recursive: true, force: true })
+await rm(parentSymlinkOutsideRoot, { recursive: true, force: true })
+await mkdir(parentSymlinkRoot, { recursive: true })
+await mkdir(parentSymlinkOutsideRoot, { recursive: true })
+await symlink(parentSymlinkOutsideRoot, join(parentSymlinkRoot, 'exact-edit-preferences'))
+await expectApiError(
+  () => createExactEditPreferenceService({
+    ...context,
+    env: { ...env, localStorageRoot: parentSymlinkRoot },
+  }).initialize({
+    workspaceId,
+    projectId: project.id,
+    editSessionId: 'edit-session-exact-edit-preference-parent-symlink',
+    idempotencyKey: 'exact-edit-preference-parent-symlink-refusal',
+  }),
+  'VALIDATION_FAILED',
+  'Exact Edit Preference persistence must reject a symbolic-link parent directory.',
+)
+assert.deepEqual(await readdir(parentSymlinkOutsideRoot), [])
+await rm(parentSymlinkRoot, { recursive: true, force: true })
+await rm(parentSymlinkOutsideRoot, { recursive: true, force: true })
+
 const otherUserContext: ServiceContext = {
   ...context,
   requestId: 'exact-edit-preference-other-user',
@@ -414,6 +468,7 @@ console.log(JSON.stringify({
   approvalLifecycleLock: true,
   serverAuditEvidence: true,
   sharedSymlinkSafePrivatePersistence: true,
+  targetAndParentSymlinkAttacksRejected: true,
   restartRecovery: true,
   productionFailClosed: true,
   productionClaims: false,

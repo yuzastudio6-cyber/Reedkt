@@ -307,7 +307,7 @@ export async function readPrivateExactEditPreferenceRecord(
 ): Promise<PrivateExactEditPreferenceRecord | undefined> {
   const content = await readPrivateTextFileIfExistsWithinRoot({
     rootPath: scope.localStorageRoot,
-    relativePath: exactEditPreferenceRecordPath(scope),
+    relativePath: exactEditPreferenceRecordRelativePath(scope),
   })
   if (!content) return undefined
 
@@ -377,7 +377,7 @@ export async function mutatePrivateExactEditPreferenceRecord<T>(input: {
       }
       await writePrivateTextFileAtomicWithinRoot({
         rootPath: input.scope.localStorageRoot,
-        relativePath: exactEditPreferenceRecordPath(input.scope),
+        relativePath: exactEditPreferenceRecordRelativePath(input.scope),
         content,
       })
       return mutation.result
@@ -454,7 +454,9 @@ function assertPrivateExactEditPreferenceRecord(
   }
 }
 
-function exactEditPreferenceRecordPath(scope: ExactEditPreferenceStoreScope): string {
+export function exactEditPreferenceRecordRelativePath(
+  scope: Omit<ExactEditPreferenceStoreScope, 'localStorageRoot'>,
+): string {
   return [
     'exact-edit-preferences',
     'private-internal-v1',

@@ -48,9 +48,19 @@ promotion designs:
 - `server/workers/speech/faster-whisper-command-runner.ts`
 - upload/local-storage object writers
 
-Project, Edit Preferences, internal edit-state, and browser-capture stores
-already use private modes and atomic patterns but should be migrated to the
-shared symlink-safe boundary in a dedicated compatibility pass.
+The preference compatibility pass is now complete for the current private
+backend boundary. Saved Edit Preferences, Exact Edit Preferences, Preference
+Intelligence / Preference DNA, and Edit Brief authority all use the shared
+symlink-safe reader/writer while preserving their existing paths and persisted
+JSON envelopes. Their focused authority smokes prove restrictive modes,
+restart-compatible readback, target-symlink refusal, parent-symlink refusal,
+and no mutation of the external symlink destination. The shared persistence
+smoke also statically prevents these named services from returning to direct
+`mkdir`, `writeFile`, or `createWriteStream` persistence.
+
+Other project, internal edit-state, and browser-capture stores that are not
+listed in the focused evidence above still require compatibility review before
+their storage boundary can be promoted.
 
 This hardening is for single-host internal testing. It is not a replacement
 for private GCS generation-bound objects, canonical Supabase records, malware

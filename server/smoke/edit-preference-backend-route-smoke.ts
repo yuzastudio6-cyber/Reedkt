@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict'
 import { createServer, type Server } from 'node:http'
-import { readdir, readFile, rm, writeFile } from 'node:fs/promises'
+import { mkdir, readdir, readFile, rm, stat, symlink, writeFile } from 'node:fs/promises'
+import { dirname, join } from 'node:path'
 import type { SupabaseClient, User } from '@supabase/supabase-js'
 import { createReeditProApiApp } from '../app'
 import { loadRuntimeEnv } from '../config/env'
+import { editPreferenceRecordRelativePath } from '../services/edit-preference-service'
 import type { RuntimeClients } from '../types'
 import {
   AUTHENTICATED_PRIVATE_INTERNAL_EDIT_PREFERENCE_CAPABILITY,
@@ -345,8 +347,75 @@ try {
 
   const temporaryFiles = (await listFilesRecursively(localStorageRoot)).filter((file) => file.endsWith('.tmp'))
   assert.deepEqual(temporaryFiles, [], 'Atomic preference writes must not leave temporary files behind.')
+  const savedPreferenceFiles = (await listFilesRecursively(localStorageRoot)).filter((file) => file.endsWith('.json'))
+  assert.equal(savedPreferenceFiles.length, 2)
+  for (const file of savedPreferenceFiles) assert.equal((await stat(file)).mode & 0o777, 0o600)
+  for (const directory of [
+    localStorageRoot,
+    join(localStorageRoot, 'preferences'),
+    join(localStorageRoot, 'preferences', 'private-internal-authenticated'),
+  ]) assert.equal((await stat(directory)).mode & 0o777, 0o700)
 } finally {
   await close(initialServer)
+}
+
+const targetSymlinkRoot = '/tmp/reeditpro-edit-preference-target-symlink-smoke'
+const targetSymlinkOutsideFile = '/tmp/reeditpro-edit-preference-target-symlink-outside.json'
+await rm(targetSymlinkRoot, { recursive: true, force: true })
+await rm(targetSymlinkOutsideFile, { force: true })
+const targetSymlinkPath = join(
+  targetSymlinkRoot,
+  editPreferenceRecordRelativePath('user-a', 'workspace-alpha'),
+)
+await mkdir(dirname(targetSymlinkPath), { recursive: true })
+await writeFile(targetSymlinkOutsideFile, 'outside preference record must remain unchanged\n')
+await symlink(targetSymlinkOutsideFile, targetSymlinkPath)
+const targetSymlinkServer = await listen(createServer(createReeditProApiApp({
+  ...env,
+  localStorageRoot: targetSymlinkRoot,
+}, { clients })))
+try {
+  const targetSymlinkRead = await requestJson(
+    `${baseUrl(targetSymlinkServer)}/v1/workspaces/workspace-alpha/edit-preferences/current`,
+    { token: 'token-user-a' },
+  )
+  assert.equal(targetSymlinkRead.status, 400)
+  assert.equal(targetSymlinkRead.json.error?.code, 'VALIDATION_FAILED')
+  assert.equal(await readFile(targetSymlinkOutsideFile, 'utf8'), 'outside preference record must remain unchanged\n')
+} finally {
+  await close(targetSymlinkServer)
+  await rm(targetSymlinkRoot, { recursive: true, force: true })
+  await rm(targetSymlinkOutsideFile, { force: true })
+}
+
+const parentSymlinkRoot = '/tmp/reeditpro-edit-preference-parent-symlink-smoke'
+const parentSymlinkOutsideRoot = '/tmp/reeditpro-edit-preference-parent-symlink-outside'
+await rm(parentSymlinkRoot, { recursive: true, force: true })
+await rm(parentSymlinkOutsideRoot, { recursive: true, force: true })
+await mkdir(parentSymlinkRoot, { recursive: true })
+await mkdir(parentSymlinkOutsideRoot, { recursive: true })
+await symlink(parentSymlinkOutsideRoot, join(parentSymlinkRoot, 'preferences'))
+const parentSymlinkServer = await listen(createServer(createReeditProApiApp({
+  ...env,
+  localStorageRoot: parentSymlinkRoot,
+}, { clients })))
+try {
+  const parentSymlinkWrite = await requestJson(
+    `${baseUrl(parentSymlinkServer)}/v1/workspaces/workspace-alpha/edit-preferences/current`,
+    {
+      method: 'PUT',
+      token: 'token-user-a',
+      idempotencyKey: 'preference-parent-symlink-refusal',
+      body: { workspaceId: 'workspace-alpha', preferences: preferenceValues('basic') },
+    },
+  )
+  assert.equal(parentSymlinkWrite.status, 400)
+  assert.equal(parentSymlinkWrite.json.error?.code, 'VALIDATION_FAILED')
+  assert.deepEqual(await listFilesRecursivelyIfPresent(parentSymlinkOutsideRoot), [])
+} finally {
+  await close(parentSymlinkServer)
+  await rm(parentSymlinkRoot, { recursive: true, force: true })
+  await rm(parentSymlinkOutsideRoot, { recursive: true, force: true })
 }
 
 const filesBeforeProductionDenial = await snapshotFileContents(localStorageRoot)
@@ -424,7 +493,9 @@ console.log(JSON.stringify({
     'server_generated_snapshot_and_optimistic_concurrency',
     'same_scope_concurrent_writes_serialized',
     'idempotent_replay_and_conflict_detection',
-    'contained_atomic_file_write_without_temp_residue',
+    'shared_hardened_atomic_file_write_without_temp_residue',
+    'private_directory_and_file_modes',
+    'target_and_parent_symlinks_rejected_without_external_mutation',
     'frontend_repository_http_contract_round_trip',
     'production_runtime_rejected',
     'restart_recovery',

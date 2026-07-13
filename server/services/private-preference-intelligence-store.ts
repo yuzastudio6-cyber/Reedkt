@@ -312,7 +312,7 @@ export async function readPrivatePreferenceIntelligenceAggregate(
 ): Promise<PrivatePreferenceIntelligenceAggregate | undefined> {
   const content = await readPrivateTextFileIfExistsWithinRoot({
     rootPath: scope.localStorageRoot,
-    relativePath: preferenceIntelligencePath(scope.ownerUserId, scope.workspaceId),
+    relativePath: preferenceIntelligenceRecordRelativePath(scope.ownerUserId, scope.workspaceId),
   })
   if (!content) return undefined
   let parsed: unknown
@@ -383,7 +383,7 @@ export async function mutatePrivatePreferenceIntelligenceAggregate<T>(input: {
     }
     await writePrivateTextFileAtomicWithinRoot({
       rootPath: input.scope.localStorageRoot,
-      relativePath: preferenceIntelligencePath(input.scope.ownerUserId, input.scope.workspaceId),
+      relativePath: preferenceIntelligenceRecordRelativePath(input.scope.ownerUserId, input.scope.workspaceId),
       content,
     })
     return mutation.result
@@ -631,7 +631,7 @@ function assertUniqueIds(collection: Array<{ id: string }>): void {
   }
 }
 
-function preferenceIntelligencePath(ownerUserId: string, workspaceId: string): string {
+export function preferenceIntelligenceRecordRelativePath(ownerUserId: string, workspaceId: string): string {
   return [
     'preference-intelligence',
     'private-internal-v1',

@@ -78,7 +78,16 @@ test.describe('route viewport QA', () => {
         await gotoRoute(page, fixture.editPath)
 
         await expect(page.getByTestId('editor-page')).toBeVisible()
-        await expect(page.getByTestId('editor-header')).toContainText(fixture.edit.editName ?? '')
+        const editorHeader = page.getByTestId('editor-header')
+        const projectBackLink = page.getByTestId('editor-project-back')
+        await expect(editorHeader).toContainText(fixture.edit.editName ?? '')
+        await expect(projectBackLink).toBeVisible()
+        await expect(projectBackLink).toContainText(fixture.project.name)
+        await expect(projectBackLink).toHaveAttribute('href', fixture.projectPath)
+        await expect(page.getByTestId('edit-workspace-view-chat')).toHaveAttribute('aria-current', 'page')
+        const headerCopyWidth = await editorHeader.locator('.chat-native-header-copy').evaluate((element) =>
+          Math.round(element.getBoundingClientRect().width))
+        expect(headerCopyWidth, 'project and edit identity must retain usable header width').toBeGreaterThanOrEqual(180)
         await expect(page.getByTestId('edit-upload-gate')).toBeVisible()
         await expect(page.getByRole('button', { name: /Choose source video/i })).toBeVisible()
         await expect(page.getByTestId('chat-composer-textarea')).toBeDisabled()
@@ -102,6 +111,26 @@ test.describe('route viewport QA', () => {
         await expectNoHorizontalOverflow(page)
       })
     }
+
+    test('named edit returns to the exact parent project', async ({ page }) => {
+      const fixture = await installActiveProductRouteFixture(page, 'named-edit-back-navigation')
+      await setViewport(page, 1280)
+      await gotoRoute(page, fixture.editPath)
+
+      await expect(page.getByTestId('editor-project-back')).toHaveAccessibleName(
+        `Back to project: ${fixture.project.name}`,
+      )
+      await page.getByTestId('current-edit-preferences-trigger').click()
+      await expect(page).toHaveURL(/\?view=preferences$/)
+      await expect(page.getByTestId('current-edit-preferences-trigger')).toHaveAttribute('aria-current', 'page')
+      await expect(page.getByTestId('edit-workspace-view-chat')).not.toHaveAttribute('aria-current', 'page')
+      await expect(page.getByTestId('editor-project-back')).toContainText(fixture.project.name)
+      await page.getByTestId('editor-project-back').click()
+
+      await expect(page).toHaveURL(new RegExp(`${fixture.projectPath}$`))
+      await expect(page.getByRole('heading', { level: 1, name: fixture.project.name })).toBeVisible()
+      await expect(page.getByTestId('project-edit-list')).toContainText(fixture.edit.editName ?? '')
+    })
   })
 
   test.describe('legacy app route redirects', () => {

@@ -42,6 +42,18 @@
   }
 }
 
+@media (max-width: 1320px) {
+  .chat-native-header {
+    align-items: stretch;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .chat-native-header-actions {
+    justify-content: flex-start;
+    width: 100%;
+  }
+}
+
 @media (max-width: 1180px) {
   .edit-preview-rail {
     display: none;
@@ -233,9 +245,7 @@
   }
 
   .chat-native-header {
-    align-items: center;
-    flex-direction: row;
-    flex-wrap: wrap;
+    align-items: stretch;
     gap: var(--rp-space-2);
   }
 
@@ -314,6 +324,32 @@
   .chat-native-message-ai {
     justify-self: stretch;
     max-width: 100%;
+  }
+
+  .chat-native-header-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .editor-workspace-switcher {
+    align-items: stretch;
+    border-radius: var(--rp-radius-md);
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .editor-workspace-switcher .editor-header-edit-brief-control {
+    min-width: 0;
+  }
+
+  .editor-workspace-switcher .rp-button {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .editor-header-state {
+    white-space: normal;
   }
 
   .pricing-preview,

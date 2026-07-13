@@ -54,7 +54,13 @@ export function MinimalProjectHeader({
     <header aria-label="Editor project status" className="chat-native-header" data-testid="editor-header">
       <div className="chat-native-header-copy">
         {projectPath && parentProjectName ? (
-          <Link aria-label={`Back to ${parentProjectName}`} className="editor-project-back" to={projectPath}>
+          <Link
+            aria-label={`Back to project: ${parentProjectName}`}
+            className="editor-project-back"
+            data-testid="editor-project-back"
+            title={`Back to ${parentProjectName}`}
+            to={projectPath}
+          >
             <ArrowLeft aria-hidden="true" size={13} />
             <span>{parentProjectName}</span>
           </Link>

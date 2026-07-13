@@ -29,6 +29,8 @@ Complete one edit through the smallest current decision, one plan/credit approva
 - The preview rail appears only when the available desktop width supports it.
 - The conversation remains the primary surface at narrower desktop widths.
 - Composer position must not depend on a hardcoded sidebar width.
+- The exact parent project and edit name remain visible in the workspace header. Controls move to a second row below 1320px and stack at compact widths instead of truncating the editing context.
+- Chat and Current Edit Preferences expose one explicit `aria-current="page"` destination while retaining the same exact-project Back target.
 
 ## Evidence
 
@@ -39,3 +41,4 @@ Complete one edit through the smallest current decision, one plan/credit approva
 - `docs/ui-ux-screenshots/active-product-redesign-2026-07-10/named-edit-chat-ready-1280.png`
 - `docs/ui-ux-screenshots/active-product-redesign-2026-07-10/named-edit-brief-1280.png`
 - `docs/ui-ux-screenshots/active-product-redesign-2026-07-10/named-edit-plan-review-1280.png`
+- Exact project Back navigation, workspace active state, retained project/edit identity, and non-overflowing layout pass at 1024px, 1280px, 1440px, 1728px, and 1920px.

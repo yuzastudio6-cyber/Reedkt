@@ -322,7 +322,7 @@ New values belong in tokens before route CSS. Avoid one-off glow, radius, shadow
 - `design-system/pages/projects.md` and `design-system/pages/project-home.md` define the page-specific rules and required states.
 - Duplicate-safe project creation and project resource-state UI remain implemented.
 - New Edit dialog keyboard containment, Escape, initial focus, and focus return are implemented.
-- Direct project context/back navigation in the named edit remains a later focused enhancement.
+- Direct named-edit project context/back navigation is implemented. The header preserves the exact project and edit identity across Chat and Current Edit Preferences, exposes the active workspace destination, and reflows without horizontal overflow across the 1024px through 1920px test matrix.
 
 ### 4. Workspace Truth And Persistence Feedback — Complete For Current Private Scope
 
@@ -357,6 +357,12 @@ Interim evidence on 2026-07-10:
 - Full lint is currently blocked only by five unused imports in the unrelated untracked `server/smoke/edit-planning-authority-smoke.ts` parallel backend file; the Home/UI files pass lint and do not hide that blocker.
 - The current whole-worktree server typecheck remains blocked by the unrelated untracked `server/services/private-edit-authority-store.ts` union access at line 514; this UI slice does not broaden or mask that backend blocker.
 - The authenticated private smoke verified upload, approval, review, revision, reload, exact-edit recovery, tenant isolation, and revoked-membership blocking while keeping public beta, production delivery, and billing blocked.
+
+Focused named-edit context evidence on 2026-07-13:
+
+- `tests/e2e/viewport.spec.ts`: 59 passed, including exact parent-project return, active Chat/Edit Preferences state, retained project/edit identity, and horizontal-overflow checks at 1024px, 1280px, 1440px, 1728px, and 1920px.
+- Guarded local browser review passed at 1024px, 1280px, and 1440px with no console errors; browser/API mode remained mock/local and provider execution remained disabled.
+- This bounded evidence does not replace the pending whole-product rerun or final active-route visual signoff.
 
 ## Definition Of Done
 

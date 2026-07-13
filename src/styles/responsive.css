@@ -249,6 +249,17 @@
     gap: var(--rp-space-2);
   }
 
+  .current-edit-preferences-heading,
+  .current-edit-preferences-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .current-edit-preferences-summary {
+    align-items: start;
+    justify-items: start;
+  }
+
   .chat-composer-actions {
     align-items: center;
     flex-direction: row;
@@ -369,6 +380,27 @@
   .preference-page-actions .rp-button,
   .preference-recovery-actions .rp-button {
     width: 100%;
+  }
+
+  .current-edit-preferences-workspace {
+    padding-inline: var(--rp-space-3);
+  }
+
+  .current-edit-preference-grid,
+  .current-edit-preferences-lock,
+  .current-edit-preferences-leave-guard {
+    grid-template-columns: 1fr;
+  }
+
+  .current-edit-preferences-actions > div:last-child,
+  .current-edit-preferences-actions .rp-button,
+  .current-edit-preferences-leave-guard > div:last-child {
+    width: 100%;
+  }
+
+  .current-edit-preferences-actions .rp-button,
+  .current-edit-preferences-leave-guard .rp-button {
+    justify-content: center;
   }
 
   .pricing-preview,

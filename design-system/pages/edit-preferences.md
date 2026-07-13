@@ -10,6 +10,7 @@ Manage one Edit Preferences system across saved defaults and exact-edit override
 
 - Saved defaults use a concise intro and grouped flat fields.
 - Current-edit preferences show inherited versus overridden values without a field-card wall.
+- Current-edit fields use three bounded groups, a responsive two-to-one-column grid, semantic override treatment, and a sticky action rail that remains inside the workspace.
 - Save/apply actions appear only when action is possible; reset remains available when overrides exist.
 
 ## Page Rules
@@ -29,4 +30,5 @@ Manage one Edit Preferences system across saved defaults and exact-edit override
 - `docs/ui-ux-screenshots/active-product-redesign-2026-07-10/preferences-1280.png`
 - `docs/ui-ux-screenshots/active-product-redesign-2026-07-10/named-edit-preferences-1280.png`
 - The canonical `/preferences` route exposes all seven saved-default fields, explicit save/retry/refresh/discard states, workspace persistence truth, and the immutable new-edit baseline boundary.
-- Guarded local browser review passes at 1024px and 1440px without horizontal overflow or console errors.
+- Focused browser coverage proves the Current Edit Preferences group/field hierarchy, bounded grid, sticky apply rail, dirty-leave guard, apply state, and approval lock behavior.
+- Guarded local browser review passes for the saved scope at 1024px and 1440px and for the exact-edit scope at 700px, 1024px, and 1280px without horizontal overflow or console errors.

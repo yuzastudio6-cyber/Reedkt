@@ -230,6 +230,7 @@ Focused Playwright coverage verifies:
 - Saved-default drafts survive failed writes, refresh, retry, sidebar navigation, sign-out guards, and signed-in reload recovery without crossing identity/workspace scope.
 - A new edit receives its saved creation baseline.
 - The exact-edit preference destination is query-addressable.
+- The exact-edit workspace renders three flat semantic groups and seven fields in a bounded responsive grid, with inherited/overridden treatment and a sticky action rail instead of a field-card wall.
 - A current-edit field can be overridden and recovered after reload.
 - Dirty navigation is guarded.
 - One field can be reset to the immutable creation baseline.
@@ -240,7 +241,7 @@ Focused Playwright coverage verifies:
 
 Existing saved-preference coverage continues to verify workspace-scoped default load/save behavior and the new-edit snapshot bridge.
 
-The focused Saved/Current preference matrix currently passes 12 route, persistence, inheritance, override, invalidation, and approval-lock browser tests. Guarded local visual review also passes at 1024px and 1440px with no console errors. This is bounded private/internal evidence, not whole-product or production-durability signoff.
+The focused Saved/Current preference matrix currently passes 12 route, persistence, inheritance, override, invalidation, visual-state, and approval-lock browser tests. Guarded local visual review passes for the saved scope at 1024px and 1440px and for the exact-edit clean, overridden, dirty-guard, and applied states at 700px, 1024px, and 1280px with no horizontal overflow or console errors. This is bounded private/internal evidence, not whole-product or production-durability signoff.
 
 Focused backend smokes additionally verify server-side initialization, exact frontend read/update synchronization, optimistic revision and idempotency behavior, canonical baseline/revision binding, derived source/frame evidence promotion, read-only locked-evidence reuse for an authorized revision flow, rejection of locked-evidence replacement, replay, malformed-response rejection, and tenant isolation. None of this evidence approves a plan or starts credit, tool, provider, worker, render, or delivery activity.
 

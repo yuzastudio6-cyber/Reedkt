@@ -67,7 +67,14 @@ test.describe('saved and current Edit Preferences', () => {
     await clickWhenReady(page.getByTestId('current-edit-preferences-trigger'))
     await expect(page).toHaveURL(/view=preferences/)
     await expect(page.getByTestId('editor-chat-canvas')).toBeHidden()
-    await expect(page.getByTestId('current-edit-preferences-form')).toBeVisible()
+    const preferencesForm = page.getByTestId('current-edit-preferences-form')
+    await expect(preferencesForm).toBeVisible()
+    await expect(preferencesForm.locator('.current-edit-preference-group')).toHaveCount(3)
+    await expect(preferencesForm.locator('.current-edit-preference-field')).toHaveCount(7)
+    expect(await preferencesForm.evaluate((element) => getComputedStyle(element).display)).toBe('grid')
+    expect(Math.round((await preferencesForm.boundingBox())?.width ?? 0)).toBeLessThanOrEqual(1080)
+    const firstPreferenceGrid = preferencesForm.locator('.current-edit-preference-grid').first()
+    expect(await firstPreferenceGrid.evaluate((element) => getComputedStyle(element).display)).toBe('grid')
     await expect(page.getByTestId('current-edit-preference-edit-level')).toHaveValue('basic')
     await expect(page.getByTestId('preference-source-editLevel')).toContainText(/Inherited/i)
 
@@ -81,6 +88,9 @@ test.describe('saved and current Edit Preferences', () => {
     await page.getByTestId('current-edit-preference-mood').selectOption('premium')
     await page.getByTestId('current-edit-preference-cleanup').selectOption('light_cleanup')
     await expect(page.getByTestId('preference-material-change-warning')).toContainText(/shape the next plan/i)
+    const preferenceActions = preferencesForm.locator('.current-edit-preferences-actions')
+    await expect(preferenceActions).toBeVisible()
+    expect(await preferenceActions.evaluate((element) => getComputedStyle(element).position)).toBe('sticky')
 
     await page.evaluate(() => window.history.back())
     const historyGuard = page.getByRole('alertdialog', { name: /Discard unapplied changes/i })
@@ -127,6 +137,18 @@ test.describe('saved and current Edit Preferences', () => {
       preferenceRevision: 2,
     })
     await expect(page.getByText(/Using saved defaults/i)).toBeVisible()
+
+    await setViewport(page, 700)
+    expect(
+      await firstPreferenceGrid.evaluate((element) => (
+        getComputedStyle(element).gridTemplateColumns.trim().split(/\s+/).length
+      )),
+    ).toBe(1)
+    expect(
+      await preferencesForm.locator('.current-edit-preferences-heading').evaluate((element) => (
+        getComputedStyle(element).flexDirection
+      )),
+    ).toBe('column')
     await expectNoHorizontalOverflow(page)
   })
 

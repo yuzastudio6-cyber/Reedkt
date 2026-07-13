@@ -336,7 +336,7 @@ New values belong in tokens before route CSS. Avoid one-off glow, radius, shadow
 ### 5. Whole-Product Visual Consistency — In Progress
 
 - Home, Projects, and Project Home now use the shared bounded hierarchy, surface levels, and semantic status treatment.
-- Saved Edit Preferences now uses the canonical seven-field, workspace-scoped form with explicit persistence/recovery truth and a visually reviewed responsive hierarchy. Create Project, Named Edit workspace, Edit Brief, Current Edit Preferences, and Sign In still require any remaining route-specific visual pass under the same master system.
+- Saved and Current Edit Preferences now use the canonical seven-field system with explicit persistence/recovery truth, inherited/overridden state, responsive hierarchy, guarded drafts, and visually reviewed action states. Create Project, the remaining Named Edit and Edit Brief states, and Sign In still require any remaining route-specific visual pass under the same master system.
 - Preserve route-specific identity as work continues: marketing is expressive, app routes operational, editor open and conversational.
 
 ### 6. Final Active-Route Signoff — Pending Whole-Product Completion
@@ -369,6 +369,12 @@ Focused Saved Edit Preferences evidence on 2026-07-13:
 - Twelve focused route, persistence, inheritance, override, invalidation, and approval-lock browser tests pass across the Saved and Current scopes.
 - The guarded local `/preferences` review passed at 1024px and 1440px with seven visible controls, explicit dirty/save feedback, no horizontal overflow, and no console errors.
 - The route remains local/private and workspace-scoped; production Supabase durability, providers, billing, rendering, deployment, and whole-product signoff remain blocked.
+
+Focused Current Edit Preferences presentation evidence on 2026-07-13:
+
+- Focused browser coverage proves the three-group/seven-field hierarchy, bounded grid, inherited and overridden treatment, sticky action rail, dirty-leave guard, apply state, reload persistence, planning invalidation, and approval lock.
+- Guarded local review passed for clean, overridden, leave-guard, and applied states at 700px, 1024px, and 1280px without horizontal overflow or console errors.
+- This closes the Current Edit Preferences route-specific presentation pass only; the full active-route suite and whole-product visual signoff remain pending.
 
 ## Definition Of Done
 

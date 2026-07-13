@@ -336,7 +336,7 @@ New values belong in tokens before route CSS. Avoid one-off glow, radius, shadow
 ### 5. Whole-Product Visual Consistency — In Progress
 
 - Home, Projects, and Project Home now use the shared bounded hierarchy, surface levels, and semantic status treatment.
-- Saved and Current Edit Preferences now use the canonical seven-field system with explicit persistence/recovery truth, inherited/overridden state, responsive hierarchy, guarded drafts, and visually reviewed action states. Landing, Sign In, Create Project, the active named-edit upload gate, responsive conversation/preview composition, planning-input status, Edit Brief, Plan Review, progress framing, and Private Review now follow the same system. Any remaining named-edit revision/recovery states still require their route-specific visual passes.
+- Saved and Current Edit Preferences now use the canonical seven-field system with explicit persistence/recovery truth, inherited/overridden state, responsive hierarchy, guarded drafts, and visually reviewed action states. Landing, Sign In, Create Project, shared project/edit recovery, the active named-edit upload gate, responsive conversation/preview composition, planning-input status, Edit Brief, Plan Review, progress framing, and Private Review now follow the same system. Any remaining named-edit revision states still require their route-specific visual pass.
 - Preserve route-specific identity as work continues: marketing is expressive, app routes operational, editor open and conversational.
 
 ### 6. Final Active-Route Signoff — Pending Whole-Product Completion
@@ -412,7 +412,15 @@ Focused Landing and public-entry evidence on 2026-07-13:
 - The public entry now presents one chat-first promise, one primary action, a truthful named-edit planning/approval preview, transparent pre-approval credits, and bounded workflow/signature/use-case/private-workspace sections instead of a generic feature-card wall.
 - Seven focused public-route checks pass across 375, 720, 1024, and 1280 widths plus compact landscape and reduced-motion mode. They prove the responsive hero/editor/trust hierarchy, compact second-row navigation, native workflow anchor, hidden-until-focused skip route, and no horizontal overflow.
 - The focused non-editor screenshot flow passes, and `landing-1280.png`, `landing-1024.png`, and `landing-720.png` passed visual review against the active route design rules.
-- This closes the active Landing presentation pass only. It does not activate uploads, planning, credits, providers, workers, rendering, billing, deployment, or public delivery. Remaining revision/recovery states, the complete E2E rerun, and founder-level whole-product signoff remain pending.
+- This closes the active Landing presentation pass only. It does not activate uploads, planning, credits, providers, workers, rendering, billing, deployment, or public delivery. Shared recovery is evidenced separately below; remaining revision states, the complete E2E rerun, and founder-level whole-product signoff remain pending.
+
+Focused shared project/edit recovery evidence on 2026-07-13:
+
+- Regression-first coverage reproduced the missing shared state layer: compact Project/Project Detail recovery rendered as unbounded document flow, while named-edit failure rendered as a raw block with no focal boundary.
+- The restored state system keeps loading, local-only, not-found, unavailable, invalid-response, and access-denied semantics visible through copy, icon, border treatment, and ARIA role rather than color alone. No recovery result is reclassified and no retry or navigation contract changes.
+- Sixty-six project tenancy, Home recovery, responsive route, exact-project return, legacy redirect, and named-edit recovery checks pass together. A separate 22-check editor/clean-chat run passes the unknown-route fail-closed path, normal revision replanning, approval, and private-review flow. Computed styles prove compact three-column recovery, its single-column 700px collapse, the bounded 560px named-edit failure surface, and horizontal-overflow safety from 1024 through 1920px.
+- The active project/named-edit screenshot flow passes. `project-detail-1280.png` and `named-edit-recovery-error-1280.png` passed visual review; the editor still does not mount behind a failed recovery state.
+- This closes the shared recovery presentation pass only. It does not activate a backend, Supabase, uploads, planning, approvals, credits, providers, workers, rendering, billing, deployment, or public delivery. Remaining revision states, the complete E2E rerun, and founder-level whole-product signoff remain pending.
 
 ## Definition Of Done
 

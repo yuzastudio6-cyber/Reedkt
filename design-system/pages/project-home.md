@@ -55,4 +55,5 @@ State-aware actions include Upload Source, Continue Setup, View Progress, Open R
 - Same-name project identity and New Edit dialog E2E.
 - 1024, 1280, 1440, 1728, and 1920 overflow checks.
 - Populated Project Home screenshot review.
+- Compact local-recovery truth retains icon, copy, and actions as one bounded row and becomes a readable single-column surface below 720px.
 - No decorative status badges or duplicate H1.

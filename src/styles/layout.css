@@ -96,6 +96,101 @@
   width: 14px;
 }
 
+.clean-empty-state {
+  background: rgba(11, 18, 32, 0.66);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-lg);
+  display: grid;
+  gap: var(--rp-space-3);
+  margin-top: var(--rp-space-5);
+  max-width: 560px;
+  min-width: 0;
+  padding: var(--rp-space-6);
+}
+
+.clean-empty-state p {
+  color: var(--rp-text-secondary);
+  line-height: 1.6;
+}
+
+.clean-hero-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rp-space-3);
+}
+
+.project-resource-state {
+  align-items: start;
+  background: var(--rp-surface-panel);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-lg);
+  display: grid;
+  gap: var(--rp-space-3);
+  margin-top: var(--rp-space-5);
+  max-width: 640px;
+  min-width: 0;
+  padding: var(--rp-space-6);
+}
+
+.project-resource-state.is-compact {
+  align-items: center;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  max-width: none;
+  padding: var(--rp-space-3) var(--rp-space-4);
+}
+
+.project-resource-state-copy {
+  display: grid;
+  gap: var(--rp-space-1);
+  min-width: 0;
+}
+
+.project-resource-state-copy h2 {
+  font-size: 1rem;
+  line-height: 1.3;
+}
+
+.project-resource-state:not(.is-compact) .project-resource-state-copy h2 {
+  font-size: 1.3rem;
+}
+
+.project-resource-state-copy p {
+  color: var(--rp-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.project-resource-state-icon {
+  color: var(--rp-info);
+}
+
+.project-resource-state-not_found,
+.project-resource-state-invalid_response,
+.project-resource-state-local_only {
+  border-color: var(--rp-border-warning);
+}
+
+.project-resource-state-not_found .project-resource-state-icon,
+.project-resource-state-invalid_response .project-resource-state-icon,
+.project-resource-state-local_only .project-resource-state-icon {
+  color: var(--rp-warning);
+}
+
+.project-resource-state-access_denied {
+  border-color: var(--rp-border-danger);
+}
+
+.project-resource-state-access_denied .project-resource-state-icon {
+  color: var(--rp-danger);
+}
+
+.project-resource-state-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rp-space-2);
+}
+
 .app-shell {
   display: grid;
   grid-template-columns: var(--rp-sidebar-width) minmax(0, 1fr);

@@ -54,4 +54,5 @@ The pressed state is programmatic through `aria-pressed`. Search and filters pre
 - 1024, 1280, 1440, 1728, and 1920 overflow checks.
 - Empty and populated screenshot review.
 - Status readable without color.
+- Shared recovery surfaces use a bounded semantic card at blocking scope and a compact three-column row when trusted local work remains; the compact row stacks cleanly below 720px.
 - No retired product areas or internal diagnostics.

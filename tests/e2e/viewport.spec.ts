@@ -108,6 +108,18 @@ test.describe('route viewport QA', () => {
         await expect(recoveryError).toContainText(/Edit not found/i)
         await expect(recoveryError.getByRole('link', { name: /Back to project/i })).toBeVisible()
         await expect(page.getByTestId('editor-page')).toHaveCount(0)
+        const recoveryStyle = await recoveryError.evaluate((element) => {
+          const style = getComputedStyle(element)
+          return {
+            borderTopWidth: style.borderTopWidth,
+            display: style.display,
+            maxWidth: style.maxWidth,
+          }
+        })
+        expect(recoveryStyle).toEqual({ borderTopWidth: '1px', display: 'grid', maxWidth: '560px' })
+        expect(
+          await recoveryError.locator('.clean-hero-actions').evaluate((element) => getComputedStyle(element).display),
+        ).toBe('flex')
         await expectNoHorizontalOverflow(page)
       })
     }

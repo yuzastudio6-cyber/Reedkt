@@ -50,7 +50,9 @@ Complete one edit through the smallest current decision, one plan/credit approva
 - `docs/ui-ux-screenshots/active-product-redesign-2026-07-10/named-edit-brief-1280.png`
 - `docs/ui-ux-screenshots/active-product-redesign-2026-07-10/named-edit-plan-review-1280.png`
 - `docs/ui-ux-screenshots/active-product-redesign-2026-07-10/named-edit-private-review-1280.png`
+- `docs/ui-ux-screenshots/active-product-redesign-2026-07-10/named-edit-recovery-error-1280.png`
 - Exact project Back navigation, workspace active state, retained project/edit identity, and non-overflowing layout pass at 1024px, 1280px, 1440px, 1728px, and 1920px.
 - The focused editor suite passes 20/20 checks, the viewport suite passes 59/59, and the clean-shell/keyboard/zoom group passes 9/9 after the named-edit and Edit Brief presentation restoration.
 - Guarded local browser review confirms the upload gate and wide preview rail at 1280px, the single-column workspace at 1024px, and no horizontal overflow or console errors in either state.
 - Computed-style regressions prove the Plan Review checkpoint, intent accent, four/two/one-column fact hierarchy, estimate alignment, private-review playback surface, review metadata, skill trace, and preparation activity grid.
+- Named-edit loading and failure resolve before editor mount. Blocking recovery uses one bounded 560px state surface with truthful guidance, a safe retry/back action when applicable, and no exposed empty editor.

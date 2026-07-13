@@ -8,7 +8,7 @@ import {
   LEGACY_UNSCOPED_LOCAL_PROJECT_STORAGE_KEY,
 } from '../../src/lib/local-projects'
 import { createProjectPersistenceScopeFingerprint } from '../../src/lib/project-persistence-scope'
-import { setViewport } from './helpers/layout'
+import { expectNoHorizontalOverflow, setViewport } from './helpers/layout'
 import { gotoRoute } from './helpers/routes'
 
 const currentScope = {
@@ -69,8 +69,14 @@ test.describe('project persistence tenancy', () => {
 
     await gotoRoute(page, '/projects')
     await expect(page.getByText('Current scoped project')).toBeVisible()
-    await expect(page.getByTestId('projects-recovery-local-only')).toBeVisible()
-    await expect(page.getByTestId('projects-recovery-local-only')).toContainText(/browser is the recovery source/i)
+    const projectsRecovery = page.getByTestId('projects-recovery-local-only')
+    await expect(projectsRecovery).toBeVisible()
+    await expect(projectsRecovery).toContainText(/browser is the recovery source/i)
+    expect(await projectsRecovery.evaluate((element) => getComputedStyle(element).display)).toBe('grid')
+    expect(
+      await projectsRecovery.evaluate((element) => getComputedStyle(element).gridTemplateColumns.trim().split(/\s+/).length),
+    ).toBe(3)
+    expect(await projectsRecovery.evaluate((element) => getComputedStyle(element).borderTopWidth)).toBe('1px')
     await expect(page.getByText('Foreign user private project')).toHaveCount(0)
     await expect(page.getByText('Foreign workspace private project')).toHaveCount(0)
     await expect(page.getByText('Legacy unscoped private project')).toHaveCount(0)
@@ -78,7 +84,19 @@ test.describe('project persistence tenancy', () => {
 
     await page.getByRole('link', { name: /Open project/i }).click()
     await expect(page.getByRole('heading', { level: 1, name: 'Current scoped project' })).toBeVisible()
-    await expect(page.getByTestId('project-recovery-local-only')).toContainText(/browser is the recovery source/i)
+    const projectRecovery = page.getByTestId('project-recovery-local-only')
+    await expect(projectRecovery).toContainText(/browser is the recovery source/i)
+    expect(await projectRecovery.evaluate((element) => getComputedStyle(element).display)).toBe('grid')
+    expect(
+      await projectRecovery.evaluate((element) => getComputedStyle(element).gridTemplateColumns.trim().split(/\s+/).length),
+    ).toBe(3)
+
+    await setViewport(page, 700)
+    expect(
+      await projectRecovery.evaluate((element) => getComputedStyle(element).gridTemplateColumns.trim().split(/\s+/).length),
+    ).toBe(1)
+    await expectNoHorizontalOverflow(page)
+    await setViewport(page, 1280)
     await gotoRoute(page, '/projects')
 
     await page.getByTestId('app-session-identity').getByRole('button', { name: /^Sign out$/i }).click()

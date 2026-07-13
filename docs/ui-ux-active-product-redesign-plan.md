@@ -336,7 +336,7 @@ New values belong in tokens before route CSS. Avoid one-off glow, radius, shadow
 ### 5. Whole-Product Visual Consistency — In Progress
 
 - Home, Projects, and Project Home now use the shared bounded hierarchy, surface levels, and semantic status treatment.
-- Saved and Current Edit Preferences now use the canonical seven-field system with explicit persistence/recovery truth, inherited/overridden state, responsive hierarchy, guarded drafts, and visually reviewed action states. Sign In, Create Project, the active named-edit upload gate, responsive conversation/preview composition, planning-input status, Edit Brief, Plan Review, progress framing, and Private Review now follow the same system. Landing requires continuation-branch style reconciliation, while any remaining named-edit revision/recovery states still require their route-specific visual passes.
+- Saved and Current Edit Preferences now use the canonical seven-field system with explicit persistence/recovery truth, inherited/overridden state, responsive hierarchy, guarded drafts, and visually reviewed action states. Landing, Sign In, Create Project, the active named-edit upload gate, responsive conversation/preview composition, planning-input status, Edit Brief, Plan Review, progress framing, and Private Review now follow the same system. Any remaining named-edit revision/recovery states still require their route-specific visual passes.
 - Preserve route-specific identity as work continues: marketing is expressive, app routes operational, editor open and conversational.
 
 ### 6. Final Active-Route Signoff — Pending Whole-Product Completion
@@ -404,7 +404,15 @@ Focused Sign In and session-entry evidence on 2026-07-13:
 - Canonical `returnTo` and the legacy internal `redirect` alias preserve safe app destinations; external targets fall back to Home. The local preview identity remains tab-scoped with no bearer token and clears on sign-out.
 - Eleven auth, public-route, responsive, keyboard, guarded-local-session, and sign-out checks pass when the explicitly gated local testing spec is enabled. The non-editor screenshot flow passes and `sign-in-1280.png` matches the reviewed route.
 - Restored shared auth styling also returns the compact signed-in identity card to app sidebars without changing session, provider, database, billing, rendering, or deployment behavior.
-- This closes the active Sign In presentation and local-session entry pass only. Landing, remaining revision/recovery states, the complete E2E rerun, and founder-level whole-product signoff remain pending.
+- This closes the active Sign In presentation and local-session entry pass only. Landing is evidenced separately below; remaining revision/recovery states, the complete E2E rerun, and founder-level whole-product signoff remain pending.
+
+Focused Landing and public-entry evidence on 2026-07-13:
+
+- Regression-first coverage reproduced the continuation-branch gap as an unstyled `display: block` hero with no focal product-demo surface and no keyboard skip route. The repair restores the reviewed route layer without changing its product copy, workflow contract, or protected project destination.
+- The public entry now presents one chat-first promise, one primary action, a truthful named-edit planning/approval preview, transparent pre-approval credits, and bounded workflow/signature/use-case/private-workspace sections instead of a generic feature-card wall.
+- Seven focused public-route checks pass across 375, 720, 1024, and 1280 widths plus compact landscape and reduced-motion mode. They prove the responsive hero/editor/trust hierarchy, compact second-row navigation, native workflow anchor, hidden-until-focused skip route, and no horizontal overflow.
+- The focused non-editor screenshot flow passes, and `landing-1280.png`, `landing-1024.png`, and `landing-720.png` passed visual review against the active route design rules.
+- This closes the active Landing presentation pass only. It does not activate uploads, planning, credits, providers, workers, rendering, billing, deployment, or public delivery. Remaining revision/recovery states, the complete E2E rerun, and founder-level whole-product signoff remain pending.
 
 ## Definition Of Done
 

@@ -31,9 +31,10 @@ const useCases = [
 export function LandingPage() {
   return (
     <div className="marketing-page">
+      <a className="skip-link" href="#main-content">Skip to main content</a>
       <MarketingNav />
 
-      <main>
+      <main id="main-content">
         <section className="marketing-hero" id="product">
           <div aria-hidden="true" className="marketing-hero-topology" />
           <div className="marketing-hero-copy">

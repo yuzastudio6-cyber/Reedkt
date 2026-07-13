@@ -303,6 +303,36 @@
   .activity-card {
     grid-column: auto;
   }
+
+  .marketing-nav {
+    align-items: center;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .marketing-nav > a:first-child {
+    flex: 1 1 auto;
+  }
+
+  .marketing-actions {
+    flex: 0 0 auto;
+    justify-content: flex-end;
+    width: auto;
+  }
+
+  .marketing-nav nav {
+    border-top: 1px solid rgba(148, 163, 184, 0.1);
+    flex-wrap: nowrap;
+    order: 3;
+    overflow-x: auto;
+    padding-top: var(--rp-space-3);
+    scrollbar-width: none;
+    width: 100%;
+  }
+
+  .marketing-nav nav::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 @media (max-width: 720px) {
@@ -310,6 +340,18 @@
     --rp-composer-bottom-offset: var(--rp-composer-bottom-offset-compact);
     --rp-composer-fade-height: 80px;
     --rp-chat-scroll-bottom-safe-space-expanded: 260px;
+  }
+
+  .marketing-nav {
+    padding-inline: var(--rp-space-5);
+  }
+
+  .marketing-nav .brand-logo-mark {
+    width: 52px;
+  }
+
+  .marketing-nav .brand-wordmark-tail {
+    font-size: 1.72rem;
   }
 
   .hero-section,

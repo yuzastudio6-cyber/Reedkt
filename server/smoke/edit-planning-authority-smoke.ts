@@ -61,6 +61,7 @@ import {
   type CanonicalPrivateToolDispatchRecord,
 } from '../validation/canonical-private-tool-dispatch-schemas'
 import { canonicalEditJourneyResponseSchema } from '../validation/canonical-edit-journey-schemas'
+import { canonicalPlanApprovalReceiptSchema } from '../validation/canonical-plan-approval-schemas'
 import { canonicalAuthoritySmokeRoot } from './canonical-authority-smoke-root'
 
 const localStorageRoot = canonicalAuthoritySmokeRoot
@@ -945,6 +946,37 @@ try {
     orderedSourceItems: routeSourceFixture.sourceSequence,
     canonicalPlanComponents: routePlanBody.canonicalPlan.components,
   }
+  const exactPreferenceBeforeRejectedHandoff = await createExactEditPreferenceService(context).getCurrent(
+    routeWorkspaceId,
+    routeProjectId,
+    'route-edit-session',
+  )
+  assert.ok(exactPreferenceBeforeRejectedHandoff.preferenceRecord)
+  const mismatchedPreferenceHandoffResponse = await fetch(planningHandoffUrl, {
+    method: 'POST',
+    headers: { ...routeAuthHeaders, 'content-type': 'application/json' },
+    body: JSON.stringify({
+      ...planningHandoffBody,
+      canonicalPlanComponents: {
+        ...planningHandoffBody.canonicalPlanComponents,
+        confirmedSettings: {
+          ...planningHandoffBody.canonicalPlanComponents.confirmedSettings,
+          targetPlatform: 'youtube',
+        },
+      },
+    }),
+  })
+  assert.equal(mismatchedPreferenceHandoffResponse.status, 409)
+  const exactPreferenceAfterRejectedHandoff = await createExactEditPreferenceService(context).getCurrent(
+    routeWorkspaceId,
+    routeProjectId,
+    'route-edit-session',
+  )
+  assert.equal(
+    exactPreferenceAfterRejectedHandoff.preferenceRecord?.recordRevision,
+    exactPreferenceBeforeRejectedHandoff.preferenceRecord.recordRevision,
+    'A rejected preference-mismatched handoff must not promote source or frame evidence.',
+  )
   const unauthenticatedPlanningHandoff = await fetch(planningHandoffUrl, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
@@ -964,10 +996,24 @@ try {
     planningHandoffEnvelope.data?.canonicalPlanningHandoff,
   )
   assert.deepEqual(routePlanningHandoff.sourceMediaAuthority, routeSourceFixture.expectation)
-  assert.deepEqual(
-    routePlanningHandoff.planningInputAuthority,
-    requirePlanningInputExpectation('route-edit-session'),
+  const preHandoffPlanningExpectation = requirePlanningInputExpectation('route-edit-session')
+  const handoffPlanningExpectation = routePlanningHandoff.planningInputAuthority as PlanningInputAuthorityExpectation
+  assert.equal(
+    handoffPlanningExpectation.exactEditPreference.recordRevision,
+    preHandoffPlanningExpectation.exactEditPreference.recordRevision + 1,
+    'Handoff preparation must promote verified source/frame evidence into exact preference authority before binding it.',
   )
+  assert.equal(
+    handoffPlanningExpectation.exactEditPreference.preferenceRevision,
+    preHandoffPlanningExpectation.exactEditPreference.preferenceRevision,
+  )
+  assert.equal(
+    handoffPlanningExpectation.exactEditPreference.preferenceFingerprintSha256,
+    preHandoffPlanningExpectation.exactEditPreference.preferenceFingerprintSha256,
+  )
+  assert.deepEqual(handoffPlanningExpectation.preferenceApplication, preHandoffPlanningExpectation.preferenceApplication)
+  assert.deepEqual(handoffPlanningExpectation.editBrief, preHandoffPlanningExpectation.editBrief)
+  planningInputExpectations.set('route-edit-session', handoffPlanningExpectation)
   assert.equal(asRecord(routePlanningHandoff.readiness).readyForCanonicalPlanPublication, true)
   assert.equal(routePlanningHandoff.noPlanPublished, true)
   assert.equal(routePlanningHandoff.noSnapshotCreated, true)
@@ -1382,6 +1428,10 @@ try {
     asRecord(planApprovalJourney.journey.nextAction).code,
     'approve_canonical_plan',
   )
+  assert.equal(
+    asRecord(planApprovalJourney.journey.nextAction).routeTemplate,
+    `/v1/edit-plans/${String(routePlan.id)}/canonical-approval`,
+  )
   assert.equal(asRecord(planApprovalJourney.journey.plan).planId, routePlan.id)
   assert.equal(
     asRecord(planApprovalJourney.journey.plan).estimateId,
@@ -1586,21 +1636,76 @@ try {
     '/v1/projects/:projectId/edit-sessions/:editSessionId/canonical-planning-handoffs/:handoffId/publish',
   )
 
-  const approveResponse = await fetch(`${routeBaseUrl}/v1/edit-plans/${String(routePlan.id)}/approve`, {
-    method: 'POST',
-    headers: { ...routeAuthHeaders, 'content-type': 'application/json', 'idempotency-key': 'route-approve-plan' },
-    body: JSON.stringify({
-      workspaceId: routeWorkspaceId,
-      expectedAuthorityRevision: routePublishedAuthority.authorityRevision,
-      expectedPlanHash: routePlan.planHash,
-      expectedEstimateHash: routeEstimate.estimateHash,
-    }),
-  })
-  assert.equal(approveResponse.status, 201)
-  const approveEnvelope = await approveResponse.json() as {
-    data?: { authority?: Record<string, unknown> }
+  const canonicalApprovalUrl =
+    `${routeBaseUrl}/v1/edit-plans/${String(routePlan.id)}/canonical-approval`
+  const canonicalApprovalBody = {
+    workspaceId: routeWorkspaceId,
+    expectedProjectId: routeProjectId,
+    expectedEditSessionId: 'route-edit-session',
+    expectedPlanVersion: routePlan.planVersion,
+    expectedPlanHash: routePlan.planHash,
+    expectedEstimateId: routeEstimate.id,
+    expectedEstimateHash: routeEstimate.estimateHash,
+    expectedMaximumCredits: routeEstimate.approvedMaximumCredits,
   }
-  const routeApprovedAuthority = asRecord(approveEnvelope.data?.authority)
+  const unauthenticatedCanonicalApproval = await fetch(canonicalApprovalUrl, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(canonicalApprovalBody),
+  })
+  assert.equal(unauthenticatedCanonicalApproval.status, 401)
+  const substitutedCanonicalApproval = await fetch(canonicalApprovalUrl, {
+    method: 'POST',
+    headers: { ...routeAuthHeaders, 'content-type': 'application/json' },
+    body: JSON.stringify({ ...canonicalApprovalBody, expectedEstimateHash: 'f'.repeat(64) }),
+  })
+  assert.equal(substitutedCanonicalApproval.status, 409)
+  const [approveResponse, concurrentApproveResponse] = await Promise.all([
+    fetch(canonicalApprovalUrl, {
+      method: 'POST',
+      headers: { ...routeAuthHeaders, 'content-type': 'application/json' },
+      body: JSON.stringify(canonicalApprovalBody),
+    }),
+    fetch(canonicalApprovalUrl, {
+      method: 'POST',
+      headers: { ...routeAuthHeaders, 'content-type': 'application/json' },
+      body: JSON.stringify(canonicalApprovalBody),
+    }),
+  ])
+  assert.equal(approveResponse.status, 201)
+  assert.equal(concurrentApproveResponse.status, 201)
+  const approveEnvelope = await approveResponse.json() as {
+    data?: { canonicalPlanApproval?: Record<string, unknown> }
+  }
+  const concurrentApproveEnvelope = await concurrentApproveResponse.json() as {
+    data?: { canonicalPlanApproval?: Record<string, unknown> }
+  }
+  const routeApprovalReceipt = canonicalPlanApprovalReceiptSchema.parse(
+    approveEnvelope.data?.canonicalPlanApproval,
+  )
+  const concurrentApprovalReceipt = canonicalPlanApprovalReceiptSchema.parse(
+    concurrentApproveEnvelope.data?.canonicalPlanApproval,
+  )
+  assert.deepEqual(concurrentApprovalReceipt.plan, routeApprovalReceipt.plan)
+  assert.deepEqual(concurrentApprovalReceipt.approval, routeApprovalReceipt.approval)
+  assert.deepEqual(
+    [routeApprovalReceipt.disposition, concurrentApprovalReceipt.disposition].sort(),
+    ['approved_now', 'exact_replay'],
+  )
+  assert.equal(routeApprovalReceipt.rawAuthorityReturned, false)
+  assert.equal(routeApprovalReceipt.pathOrCredentialReturned, false)
+  assert.equal(routeApprovalReceipt.boundaries.jobExecutionStarted, false)
+  assert.equal(routeApprovalReceipt.boundaries.toolExecutionStarted, false)
+  assert.equal(routeApprovalReceipt.boundaries.providerCallStarted, false)
+  assert.equal(routeApprovalReceipt.boundaries.renderStarted, false)
+  assert.equal(routeApprovalReceipt.boundaries.paidBillingExecuted, false)
+  assert.equal('jobs' in routeApprovalReceipt, false)
+  assert.equal('wallet' in routeApprovalReceipt, false)
+  assert.equal('componentRefs' in routeApprovalReceipt, false)
+  const routeApprovedAuthorityRead = await createEditPlanningAuthorityService(
+    context,
+  ).getApprovedSnapshot(routeApprovalReceipt.approval.snapshotId, routeWorkspaceId)
+  const routeApprovedAuthority = asRecord(routeApprovedAuthorityRead.authority)
   const routeSnapshot = asRecord(routeApprovedAuthority.snapshot)
   const routeSnapshotComponentRefs = asRecord(routeSnapshot.componentRefs)
   assert.deepEqual(
@@ -3610,6 +3715,7 @@ console.log(JSON.stringify({
     'production_authority_fail_closed',
     'authenticated_canonical_authority_http_routes',
     'content_addressed_private_planning_handoff_replay',
+    'preference_mismatched_handoff_does_not_promote_planning_evidence',
     'persisted_planning_handoff_cross_user_scope_hidden',
     'persisted_planning_handoff_hash_and_component_substitution_rejected',
     'persisted_planning_handoff_checksum_tamper_rejected',
@@ -4284,7 +4390,7 @@ async function provePersistedHandoffStaleAuthorityRejection(input: {
     return {
       project,
       editSessionId,
-      expectation,
+      expectation: handoff.planningInputAuthority as PlanningInputAuthorityExpectation,
       handoffId: String(handoff.handoffId),
       publishUrl:
         `${input.routeBaseUrl}/v1/projects/${project.id}/edit-sessions/${editSessionId}/` +

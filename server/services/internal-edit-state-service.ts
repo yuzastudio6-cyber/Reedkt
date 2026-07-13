@@ -6,6 +6,7 @@ import {
   writePrivateTextFileAtomicWithinRoot,
 } from '../security/private-local-persistence'
 import type { ServiceContext } from '../types'
+import { createExactEditPreferenceService } from './exact-edit-preference-service'
 import { createProjectService } from './project-service'
 import { mockWarning, nowIso } from './service-helpers'
 import { authorizeWorkspaceAccess } from './workspace-access-service'
@@ -58,6 +59,17 @@ export function createInternalEditStateService(context: ServiceContext) {
 
       assertInternalEditStateHandoffSafe(input)
       await assertInternalEditStateProjectOwnedByCurrentUser(context, input.projectId, access.workspaceId)
+      const exactEditPreferenceInitialization = await createExactEditPreferenceService(context).initialize({
+        workspaceId: access.workspaceId,
+        projectId: input.projectId,
+        editSessionId: input.editSessionId,
+        idempotencyKey: exactEditPreferenceInitializationKey({
+          ownerUserId: userId,
+          workspaceId: access.workspaceId,
+          projectId: input.projectId,
+          editSessionId: input.editSessionId,
+        }),
+      })
       const stateKey = internalEditStateMemoryKey(userId, access.workspaceId, input.projectId, input.editSessionId)
       return withInternalEditStateWriteLock(stateKey, async () => {
         const existing = internalEditStateRecordsByKey.get(stateKey) ??
@@ -108,6 +120,9 @@ export function createInternalEditStateService(context: ServiceContext) {
           internalEditState,
           warnings: [
             mockWarning('Internal edit state save'),
+            ...(exactEditPreferenceInitialization.created
+              ? ['Exact Edit Preferences were initialized server-side from saved workspace defaults for this edit.']
+              : []),
             'Internal edit state was persisted for signed-in internal testing only. Public delivery, external beta, production, and billing require approved release evidence gates.',
           ],
         }
@@ -184,6 +199,18 @@ export function createInternalEditStateService(context: ServiceContext) {
       }
     },
   }
+}
+
+function exactEditPreferenceInitializationKey(input: {
+  ownerUserId: string
+  workspaceId: string
+  projectId: string
+  editSessionId: string
+}): string {
+  const digest = createHash('sha256')
+    .update(JSON.stringify(input))
+    .digest('hex')
+  return `internal-edit-create-exact-preferences:${digest}`
 }
 
 async function persistInternalEditStateRecord(input: {

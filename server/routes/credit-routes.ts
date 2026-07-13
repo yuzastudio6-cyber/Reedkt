@@ -29,7 +29,7 @@ function throwLegacyStandaloneCreditGate(): never {
     'Standalone credit approval and reservation are disabled. Canonical plan approval performs both in one authority transaction.',
     503,
     {
-      replacementRoute: '/v1/edit-plans/:editPlanId/approve',
+      replacementRoute: '/v1/edit-plans/:editPlanId/canonical-approval',
       requiredGate: 'atomic_plan_approval_and_funded_credit_reservation',
     },
   )

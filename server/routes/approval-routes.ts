@@ -13,7 +13,7 @@ export function createApprovalRoutes(): Router {
       'Caller-authored approved snapshots are disabled. Approve the server-owned canonical plan instead.',
       503,
       {
-        replacementRoute: '/v1/edit-plans/:editPlanId/approve',
+        replacementRoute: '/v1/edit-plans/:editPlanId/canonical-approval',
         requiredGate: 'server_owned_canonical_plan_authority',
       },
     )

@@ -35,6 +35,12 @@ export type CanonicalEditJourneyProgress = {
 export type CanonicalEditJourney = {
   identity: CanonicalEditJourneyIdentity
   stage: CanonicalEditJourneyStage
+  approvalAuthority?: {
+    planId: string
+    estimateId: string
+    expectedPlanHash: string
+    expectedEstimateHash: string
+  }
   plan?: {
     version: number
     status: 'presented' | 'approved' | 'superseded' | 'rejected' | 'cancellation_pending' | 'cancelled'
@@ -342,6 +348,14 @@ export function parseCanonicalEditJourney(
       value: {
         identity,
         stage,
+        approvalAuthority: stage === 'plan_approval_required' && plan
+          ? {
+              planId: plan.planId,
+              estimateId: plan.estimateId,
+              expectedPlanHash: plan.planHash,
+              expectedEstimateHash: plan.estimateHash,
+            }
+          : undefined,
         plan: plan && {
           version: plan.planVersion,
           status: plan.status,
@@ -1009,7 +1023,7 @@ function expectedRouteFor(journey: WireJourney): string | undefined {
           )
         : undefined
     case 'plan_approval_required':
-      return journey.plan ? `/v1/edit-plans/${journey.plan.planId}/approve` : undefined
+      return journey.plan ? `/v1/edit-plans/${journey.plan.planId}/canonical-approval` : undefined
     case 'approved_snapshot_available':
       return '/v1/edit-executions/packages'
     case 'execution_in_progress':

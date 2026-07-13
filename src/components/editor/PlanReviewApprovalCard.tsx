@@ -138,11 +138,17 @@ export function PlanReviewApprovalCard({
       {approvalAuthorityStatus}
 
       <div className="clean-edit-step-actions clean-plan-actions">
-        <Button data-testid="plan-review-approve" disabled={approvalDisabled} onClick={onApprove} variant="primary">
+        <Button
+          aria-busy={approvalPending}
+          data-testid="plan-review-approve"
+          disabled={approvalDisabled}
+          onClick={onApprove}
+          variant="primary"
+        >
           {approved
             ? 'Plan approved'
             : approvalPending
-              ? 'Checking approval…'
+              ? 'Approving plan…'
               : !approvalAuthorityReady
                 ? approvalAuthorityBlockedLabel
                 : approvalDisabled

@@ -183,6 +183,7 @@ try {
     planSourceUploadsForEditor,
   } = await import('../../src/lib/source-upload-planning')
   const { getApiRouteById } = await import('../../src/backend/api/api-route-registry')
+  const { createSourceUploadFlow } = await import('../../src/backend/storage/source-upload-flow-service')
 
   for (const routeId of [
     'projects.list',
@@ -217,6 +218,7 @@ try {
   assert.equal(result.ok, true, `Backend source upload planning should pass: ${JSON.stringify(result.warnings)}`)
   assert.equal(result.plannedUploads.length, 1)
   assert.equal(result.plannedUploads[0]?.uploadPlan.id, 'media-asset-upload-smoke')
+  assert.equal(result.plannedUploads[0]?.uploadPlan.finalizedMediaAssetId, 'media-asset-upload-smoke')
   assert.equal(result.plannedUploads[0]?.uploadPlan.bucketName, 'source-media')
   assert.equal(result.plannedUploads[0]?.uploadPlan.storageProvider, 'local_private')
   assert.equal(result.plannedUploads[0]?.uploadPlan.checksumSha256, sourceChecksumSha256)
@@ -230,6 +232,7 @@ try {
   assert.match(result.clips[0]?.thumbnailHint ?? '', /video\+audio/)
   assert.match(result.clips[0]?.notes ?? '', /uploaded to private source storage/i)
   assert.equal(result.sourceSequence?.sourceSequenceItems.length, 1)
+  assert.equal(result.sourceSequence?.mediaAssetRecords[0]?.id, 'media-asset-upload-smoke')
   assert.equal(result.sourceSequence?.mediaAssetRecords[0]?.storageProvider, 'local_private')
   assert.equal(result.sourceSequence?.mediaAssetRecords[0]?.checksum, sourceChecksumSha256)
   const executionSourceAssets = createExecutionSourceMediaAssetsFromPlannedUploads(result.plannedUploads, result)
@@ -246,6 +249,41 @@ try {
   assert.equal(executionSourceAssets[0]?.privateArtifact, true)
   assert.equal(executionSourceAssets[0]?.publicUrl, null)
   assert.equal(executionSourceAssets[0]?.signedUrl, null)
+  const firstIncrementalSequence = createSourceUploadFlow({
+    workspaceId: 'workspace-upload-smoke',
+    projectId: 'project-upload-smoke',
+    uploads: [{
+      uploadPlan: {
+        ...result.plannedUploads[0]!.uploadPlan,
+        id: 'incremental-media-asset-a',
+        uploadedOrder: 1,
+      },
+      uploadedOrder: 1,
+    }],
+  })
+  const secondIncrementalSequence = createSourceUploadFlow({
+    workspaceId: 'workspace-upload-smoke',
+    projectId: 'project-upload-smoke',
+    uploads: [{
+      uploadPlan: {
+        ...result.plannedUploads[0]!.uploadPlan,
+        id: 'incremental-media-asset-b',
+        uploadedOrder: 2,
+      },
+      uploadedOrder: 2,
+    }],
+  })
+  const incrementalSequenceItemIds = [
+    firstIncrementalSequence.sourceSequenceItems[0]?.id,
+    secondIncrementalSequence.sourceSequenceItems[0]?.id,
+  ]
+  assert.equal(
+    new Set(incrementalSequenceItemIds).size,
+    2,
+    'Separate incremental upload batches must derive stable, distinct source-sequence item identities.',
+  )
+  assert.match(incrementalSequenceItemIds[0] ?? '', /incremental-media-asset-a/)
+  assert.match(incrementalSequenceItemIds[1] ?? '', /incremental-media-asset-b/)
   const mockOnlyExecutionSourceAssets = createExecutionSourceMediaAssetsFromPlannedUploads([
     {
       file: {
@@ -461,7 +499,9 @@ try {
       'local_probe_metadata_promoted_to_source_clip',
       'local_private_storage_provider_preserved',
       'backend_upload_checksum_promoted_to_execution_source_asset',
+      'finalized_backend_media_asset_identity_preserved_without_mock_record_substitution',
       'source_sequence_created_from_backend_media_asset',
+      'incremental_upload_batches_keep_unique_source_sequence_item_identities',
       'execution_source_asset_mapping_preserves_local_private_storage',
       'mock_only_upload_plan_does_not_create_execution_source_asset',
       'mock_safe_local_private_upload_unblocks_internal_testing_source_asset',

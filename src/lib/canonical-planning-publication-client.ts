@@ -25,6 +25,30 @@ type CanonicalPublicationRequestApiResponse = {
   canonicalPlanPublicationRequest?: unknown
 }
 
+type ExactEditPreferenceApiResponse = {
+  preferenceRecord?: unknown
+  changedFields?: unknown
+  invalidation?: unknown
+  replayed?: unknown
+}
+
+type ExactEditPreferenceValues = {
+  editLevel: PlannerInput['editLevel']
+  workflowType: PlannerInput['workflowType']
+  cleanupPreference: NonNullable<PlannerInput['cleanupPreference']>
+  visualPreference: PlannerInput['visualPreference']
+  moodStyle: PlannerInput['moodStyle']
+  creditPreference: PlannerInput['creditPreference']
+  targetPlatform: PlannerInput['targetPlatform']
+}
+
+type ExactEditPreferenceAuthority = {
+  recordRevision: number
+  preferenceRevision: number
+  preferenceSnapshotId: string
+  values: ExactEditPreferenceValues
+}
+
 type HandoffReceipt = {
   handoffId: string
   handoffHash: string
@@ -33,6 +57,11 @@ type HandoffReceipt = {
 
 type PublicationReceipt = {
   publicationStatus: 'pending_internal_publication' | 'published' | 'superseded_by_competing_candidate'
+  presentedPlan?: {
+    planId: string
+    planVersion: number
+    planHash: string
+  }
 }
 
 export type CanonicalPlanningPublicationResult = {
@@ -49,6 +78,11 @@ export type CanonicalPlanningPublicationResult = {
   retryable: boolean
   handoffSaved: boolean
   candidateSaved: boolean
+  presentedPlan?: {
+    planId: string
+    planVersion: number
+    planHash: string
+  }
   publicationBlockers: string[]
   warnings: string[]
 }
@@ -64,6 +98,30 @@ export type SaveCanonicalPlanningInput = {
 
 const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]*$/
 const SHA256 = /^[a-f0-9]{64}$/
+const EXACT_EDIT_PREFERENCE_KEYS = [
+  'editLevel', 'workflowType', 'cleanupPreference', 'visualPreference',
+  'moodStyle', 'creditPreference', 'targetPlatform',
+] as const satisfies readonly (keyof ExactEditPreferenceValues)[]
+const EDIT_LEVELS = ['basic', 'pro', 'premium'] as const
+const WORKFLOW_TYPES = [
+  'simple_clean_edit', 'social_short_viral_clip', 'talking_head_personal_brand',
+  'podcast_clip', 'vlog_lifestyle', 'product_demo', 'real_estate_property_tour',
+  'education_explainer', 'marketing_ad', 'testimonial_case_study', 'custom_let_ai_decide',
+] as const
+const CLEANUP_PREFERENCES = [
+  'preserve_natural', 'light_cleanup', 'balanced_cleanup', 'tight_retention_cleanup',
+  'aggressive_cleanup', 'documentary_faithful', 'tutorial_complete', 'custom',
+] as const
+const VISUAL_PREFERENCES = [
+  'let_ai_decide', 'keep_visuals_minimal', 'balanced_visual_mix', 'more_stroke_motion',
+  'more_graphic_design', 'real_motion_if_useful', 'no_extra_visuals',
+] as const
+const MOOD_STYLES = [
+  'clean', 'premium', 'cinematic', 'energetic', 'emotional', 'educational', 'luxury',
+  'funny_playful', 'corporate', 'viral_fast_paced', 'let_ai_decide',
+] as const
+const CREDIT_PREFERENCES = ['low_credit_cost', 'balanced', 'premium_best_result', 'let_ai_estimate'] as const
+const TARGET_PLATFORMS = ['tiktok_reels_shorts', 'youtube', 'website', 'course_training', 'client_review', 'custom'] as const
 const inFlightCanonicalPlanningSaves = new Map<string, Promise<CanonicalPlanningPublicationResult>>()
 
 export function saveCanonicalPlanningForNamedEdit(
@@ -91,7 +149,6 @@ export function saveCanonicalPlanningForNamedEdit(
     components: compiled.draft.components,
     publication: compiled.draft.publication?.planningRequestIdSeed ?? null,
   })
-  const requestDigest = stableClientDigest(exactRequestIdentity)
   const requestKey = [
     input.scope.authMode,
     input.scope.userId,
@@ -104,7 +161,7 @@ export function saveCanonicalPlanningForNamedEdit(
   const existing = inFlightCanonicalPlanningSaves.get(requestKey)
   if (existing) return existing
 
-  const request = performCanonicalPlanningSave(input, compiled.draft, requestDigest)
+  const request = performCanonicalPlanningSave(input, compiled.draft)
   inFlightCanonicalPlanningSaves.set(requestKey, request)
   void request.then(
     () => clearInFlightSave(requestKey, request),
@@ -115,8 +172,7 @@ export function saveCanonicalPlanningForNamedEdit(
 
 async function performCanonicalPlanningSave(
   input: SaveCanonicalPlanningInput,
-  draft: CanonicalPlanningDraft,
-  requestDigest: string,
+  initialDraft: CanonicalPlanningDraft,
 ): Promise<CanonicalPlanningPublicationResult> {
   const runtime = getFrontendApiClientStatus()
   if (runtime.mockOnly || !runtime.apiBaseUrl) {
@@ -126,10 +182,42 @@ async function performCanonicalPlanningSave(
       retryable: false,
       handoffSaved: false,
       candidateSaved: false,
-      publicationBlockers: draft.publicationBlockers,
+      publicationBlockers: initialDraft.publicationBlockers,
       warnings: runtime.warnings,
     }
   }
+
+  const preferenceAuthority = await synchronizeExactEditPreferenceAuthority(input)
+  if (!preferenceAuthority.ok) {
+    return withDraftBlockers(preferenceAuthority.failure, initialDraft)
+  }
+  const authorityCompiled = buildCanonicalPlanningDraft({
+    plan: input.plan,
+    plannerInput: {
+      ...input.plannerInput,
+      preferenceSnapshotId: preferenceAuthority.authority.preferenceSnapshotId,
+      currentEditPreferenceRevision: preferenceAuthority.authority.preferenceRevision,
+    },
+    sourceMediaAssets: input.sourceMediaAssets,
+  })
+  if (!authorityCompiled.ok) {
+    return {
+      status: 'blocked',
+      message: authorityCompiled.errors[0] ?? 'The exact saved preferences no longer match this plan.',
+      retryable: false,
+      handoffSaved: false,
+      candidateSaved: false,
+      publicationBlockers: authorityCompiled.errors,
+      warnings: [],
+    }
+  }
+  const draft = authorityCompiled.draft
+  const exactAuthorityIdentity = JSON.stringify({
+    source: draft.orderedSourceItems,
+    components: draft.components,
+    publication: draft.publication?.planningRequestIdSeed ?? null,
+  })
+  const requestDigest = stableClientDigest(exactAuthorityIdentity)
 
   const handoffResponse = await callReeditProApi<
     {
@@ -253,6 +341,7 @@ async function performCanonicalPlanningSave(
       true,
       draft,
       [...handoffResponse.warnings, ...publicationResponse.warnings],
+      publication.presentedPlan,
     )
   }
   return result(
@@ -264,6 +353,230 @@ async function performCanonicalPlanningSave(
     draft,
     [...handoffResponse.warnings, ...publicationResponse.warnings],
   )
+}
+
+async function synchronizeExactEditPreferenceAuthority(
+  input: SaveCanonicalPlanningInput,
+): Promise<
+  | { ok: true; authority: ExactEditPreferenceAuthority }
+  | { ok: false; failure: CanonicalPlanningPublicationResult }
+> {
+  const desiredValues = desiredExactEditPreferenceValues(input.plannerInput)
+  if (!desiredValues) {
+    return {
+      ok: false,
+      failure: preferenceSynchronizationFailure(
+        'blocked',
+        'Confirm the current cleanup preference before saving this plan.',
+        false,
+      ),
+    }
+  }
+
+  const readResponse = await callReeditProApi<undefined, ExactEditPreferenceApiResponse>(
+    'planning.exactEditPreferences.get',
+    undefined,
+    {
+      params: { projectId: input.projectId, editSessionId: input.editSessionId },
+      query: { workspaceId: input.scope.workspaceId },
+    },
+  )
+  if (apiResponseInvalidatesProjectPersistenceScope(readResponse)) {
+    invalidateProjectPersistenceScope(input.scope)
+  }
+  const readFailure = classifyApiFailure(readResponse, false)
+  if (readFailure) return { ok: false, failure: readFailure }
+  const readData = exactRecord(readResponse.data, ['preferenceRecord'])
+  const current = parseExactEditPreferenceAuthority(
+    readData?.preferenceRecord,
+    input.scope.workspaceId,
+    input.projectId,
+    input.editSessionId,
+  )
+  if (!current) {
+    return {
+      ok: false,
+      failure: preferenceSynchronizationFailure(
+        'invalid_response',
+        'The exact saved preferences could not be safely matched to this edit.',
+        false,
+        readResponse.warnings,
+      ),
+    }
+  }
+  if (current.locked) {
+    return {
+      ok: false,
+      failure: preferenceSynchronizationFailure(
+        'blocked',
+        'This edit already has locked approved preference authority. Request a revision before changing it.',
+        false,
+        readResponse.warnings,
+      ),
+    }
+  }
+
+  const patch = exactEditPreferencePatch(current.values, desiredValues)
+  if (Object.keys(patch).length === 0) {
+    return { ok: true, authority: current }
+  }
+
+  const patchIdentity = JSON.stringify({
+    workspaceId: input.scope.workspaceId,
+    projectId: input.projectId,
+    editSessionId: input.editSessionId,
+    expectedRevision: current.recordRevision,
+    patch,
+  })
+  const updateResponse = await callReeditProApi<
+    { workspaceId: string; expectedRevision: number; patch: Partial<ExactEditPreferenceValues> },
+    ExactEditPreferenceApiResponse
+  >(
+    'planning.exactEditPreferences.update',
+    {
+      workspaceId: input.scope.workspaceId,
+      expectedRevision: current.recordRevision,
+      patch,
+    },
+    {
+      params: { projectId: input.projectId, editSessionId: input.editSessionId },
+      context: {
+        workspaceId: input.scope.workspaceId,
+        projectId: input.projectId,
+        userId: input.scope.backendUserId ?? input.scope.userId,
+      },
+      idempotencyKey: `exact-edit-preferences:${stableClientDigest(patchIdentity)}`,
+    },
+  )
+  if (apiResponseInvalidatesProjectPersistenceScope(updateResponse)) {
+    invalidateProjectPersistenceScope(input.scope)
+  }
+  const updateFailure = classifyApiFailure(updateResponse, false)
+  if (updateFailure) return { ok: false, failure: updateFailure }
+  const updateData = recordWithAllowedKeys(
+    updateResponse.data,
+    ['preferenceRecord', 'changedFields', 'replayed'],
+    ['invalidation'],
+  )
+  const changedFields = updateData?.changedFields
+  const updated = parseExactEditPreferenceAuthority(
+    updateData?.preferenceRecord,
+    input.scope.workspaceId,
+    input.projectId,
+    input.editSessionId,
+  )
+  if (!updated || updateData?.replayed !== false && updateData?.replayed !== true ||
+      !Array.isArray(changedFields) || changedFields.some((field) => !EXACT_EDIT_PREFERENCE_KEYS.includes(String(field) as keyof ExactEditPreferenceValues)) ||
+      !exactPreferenceValuesEqual(updated.values, desiredValues)) {
+    return {
+      ok: false,
+      failure: preferenceSynchronizationFailure(
+        'invalid_response',
+        'The updated exact preferences could not be safely verified.',
+        false,
+        updateResponse.warnings,
+      ),
+    }
+  }
+  return { ok: true, authority: updated }
+}
+
+function desiredExactEditPreferenceValues(plannerInput: PlannerInput): ExactEditPreferenceValues | null {
+  if (!plannerInput.cleanupPreference) return null
+  return {
+    editLevel: plannerInput.editLevel,
+    workflowType: plannerInput.workflowType,
+    cleanupPreference: plannerInput.cleanupPreference,
+    visualPreference: plannerInput.visualPreference,
+    moodStyle: plannerInput.moodStyle,
+    creditPreference: plannerInput.creditPreference,
+    targetPlatform: plannerInput.targetPlatform,
+  }
+}
+
+function exactEditPreferencePatch(
+  current: ExactEditPreferenceValues,
+  desired: ExactEditPreferenceValues,
+): Partial<ExactEditPreferenceValues> {
+  const patch: Partial<ExactEditPreferenceValues> = {}
+  for (const key of EXACT_EDIT_PREFERENCE_KEYS) {
+    if (current[key] !== desired[key]) {
+      Object.assign(patch, { [key]: desired[key] })
+    }
+  }
+  return patch
+}
+
+function parseExactEditPreferenceAuthority(
+  value: unknown,
+  workspaceId: string,
+  projectId: string,
+  editSessionId: string,
+): (ExactEditPreferenceAuthority & { locked: boolean }) | null {
+  const record = exactRecord(value, [
+    'schemaVersion', 'workspaceId', 'projectId', 'editSessionId', 'baseline', 'values',
+    'overrideKeys', 'recordRevision', 'preferenceRevision', 'preferenceUpdatedAt', 'planning',
+    'lifecycle', 'auditSummary', 'createdAt', 'updatedAt', 'privateInternalOnly',
+  ])
+  if (!record || record.schemaVersion !== 'private-exact-edit-preferences-v1' ||
+      record.workspaceId !== workspaceId || record.projectId !== projectId || record.editSessionId !== editSessionId ||
+      record.privateInternalOnly !== true || containsForbiddenPrivateMaterial(record)) return null
+  const baseline = exactRecord(record.baseline, [
+    'values', 'preferenceSnapshotId', 'capturedAt', 'persistenceSource', 'provenance',
+  ])
+  const values = parseExactEditPreferenceValues(record.values)
+  const lifecycle = recordWithAllowedKeys(record.lifecycle, ['phase', 'locked'], ['authorityReferenceId', 'lockedAt'])
+  const planning = recordWithAllowedKeys(
+    record.planning,
+    ['planningInputRevision', 'preferenceFingerprintSha256', 'replanRequired', 'reestimateRequired', 'sourcePreparation', 'frameConfirmation'],
+    ['draftPlan', 'draftEstimate', 'lastInvalidation'],
+  )
+  const auditSummary = exactRecord(record.auditSummary, ['eventCount', 'latestEventAt'])
+  if (!baseline || !parseExactEditPreferenceValues(baseline.values) || !isSafeId(baseline.preferenceSnapshotId) ||
+      !values || !lifecycle || typeof lifecycle.locked !== 'boolean' || !isSafeId(lifecycle.phase) || !planning || !auditSummary ||
+      !Number.isInteger(record.recordRevision) || Number(record.recordRevision) < 0 ||
+      !Number.isInteger(record.preferenceRevision) || Number(record.preferenceRevision) < 0 ||
+      !Array.isArray(record.overrideKeys) || record.overrideKeys.some((key) => !EXACT_EDIT_PREFERENCE_KEYS.includes(String(key) as keyof ExactEditPreferenceValues))) return null
+  return {
+    recordRevision: Number(record.recordRevision),
+    preferenceRevision: Number(record.preferenceRevision),
+    preferenceSnapshotId: baseline.preferenceSnapshotId,
+    values,
+    locked: lifecycle.locked,
+  }
+}
+
+function parseExactEditPreferenceValues(value: unknown): ExactEditPreferenceValues | null {
+  const record = exactRecord(value, [...EXACT_EDIT_PREFERENCE_KEYS])
+  if (!record || !EDIT_LEVELS.includes(record.editLevel as ExactEditPreferenceValues['editLevel']) ||
+      !WORKFLOW_TYPES.includes(record.workflowType as ExactEditPreferenceValues['workflowType']) ||
+      !CLEANUP_PREFERENCES.includes(record.cleanupPreference as ExactEditPreferenceValues['cleanupPreference']) ||
+      !VISUAL_PREFERENCES.includes(record.visualPreference as ExactEditPreferenceValues['visualPreference']) ||
+      !MOOD_STYLES.includes(record.moodStyle as ExactEditPreferenceValues['moodStyle']) ||
+      !CREDIT_PREFERENCES.includes(record.creditPreference as ExactEditPreferenceValues['creditPreference']) ||
+      !TARGET_PLATFORMS.includes(record.targetPlatform as ExactEditPreferenceValues['targetPlatform'])) return null
+  return record as ExactEditPreferenceValues
+}
+
+function exactPreferenceValuesEqual(left: ExactEditPreferenceValues, right: ExactEditPreferenceValues): boolean {
+  return EXACT_EDIT_PREFERENCE_KEYS.every((key) => left[key] === right[key])
+}
+
+function preferenceSynchronizationFailure(
+  status: CanonicalPlanningPublicationResult['status'],
+  message: string,
+  retryable: boolean,
+  warnings: string[] = [],
+): CanonicalPlanningPublicationResult {
+  return {
+    status,
+    message,
+    retryable,
+    handoffSaved: false,
+    candidateSaved: false,
+    publicationBlockers: [],
+    warnings,
+  }
 }
 
 function parseHandoffReceipt(
@@ -344,6 +657,20 @@ function parsePublicationReceipt(
       record.pathOrCredentialReturned !== false || record.testOnly !== true ||
       !['pending_internal_publication', 'published', 'superseded_by_competing_candidate'].includes(String(status)) ||
       !validPublicationProjection(status, record.publication)) return null
+  if (status === 'published') {
+    const published = exactRecord(record.publication, [
+      'planId', 'planningRequestId', 'planVersion', 'planStatus', 'planHash',
+      'internalPublicationMayBeAttempted', 'fullRevalidationRequired', 'exactReplayOnlyAfterPublication',
+    ])!
+    return {
+      publicationStatus: 'published',
+      presentedPlan: {
+        planId: published.planId as string,
+        planVersion: Number(published.planVersion),
+        planHash: published.planHash as string,
+      },
+    }
+  }
   return { publicationStatus: status as PublicationReceipt['publicationStatus'] }
 }
 
@@ -389,7 +716,10 @@ function classifyApiFailure(
       warnings: response.warnings,
     }
   }
-  if (['VALIDATION_FAILED', 'IDEMPOTENCY_CONFLICT', 'INVALID_STORED_STATE', 'INTEGRITY_CHECK_FAILED', 'PLAN_NOT_APPROVED'].includes(code ?? '')) {
+  if ([
+    'VALIDATION_FAILED', 'IDEMPOTENCY_CONFLICT', 'INVALID_STORED_STATE', 'INTEGRITY_CHECK_FAILED',
+    'PLAN_NOT_APPROVED', 'JOB_DEPENDENCY_NOT_READY', 'UPLOAD_NOT_FINALIZED', 'TOOL_NOT_READY',
+  ].includes(code ?? '')) {
     return {
       status: 'blocked',
       message: 'The saved edit state changed or no longer matches this plan. Refresh the edit and create a new plan.',
@@ -437,6 +767,7 @@ function result(
   candidateSaved: boolean,
   draft: CanonicalPlanningDraft,
   warnings: string[],
+  presentedPlan?: CanonicalPlanningPublicationResult['presentedPlan'],
 ): CanonicalPlanningPublicationResult {
   return {
     status,
@@ -444,6 +775,7 @@ function result(
     retryable,
     handoffSaved,
     candidateSaved,
+    presentedPlan,
     publicationBlockers: draft.publicationBlockers,
     warnings,
   }
@@ -454,6 +786,19 @@ function exactRecord(value: unknown, keys: string[]): Record<string, unknown> | 
   const actual = Object.keys(value).sort()
   const expected = [...keys].sort()
   return actual.length === expected.length && actual.every((key, index) => key === expected[index]) ? value : null
+}
+
+function recordWithAllowedKeys(
+  value: unknown,
+  requiredKeys: string[],
+  optionalKeys: string[],
+): Record<string, unknown> | null {
+  if (!isRecord(value)) return null
+  const actual = Object.keys(value)
+  const allowed = new Set([...requiredKeys, ...optionalKeys])
+  return requiredKeys.every((key) => actual.includes(key)) && actual.every((key) => allowed.has(key))
+    ? value
+    : null
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

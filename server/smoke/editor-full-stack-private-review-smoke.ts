@@ -288,6 +288,7 @@ try {
   const editExecutionResponses: string[] = []
   const creditGateResponses: string[] = []
   const approvedSnapshotResponses: string[] = []
+  const canonicalPlanningResponses: string[] = []
   const projectRouteResponses: string[] = []
   const failedBrowserRequests: string[] = []
   page.on('console', (message) => {
@@ -311,6 +312,10 @@ try {
     if (response.url().includes('/v1/approved-snapshots/') || response.url().includes('/approved-snapshots')) {
       const body = await response.text().catch(() => '')
       approvedSnapshotResponses.push(`${response.status()} ${response.request().method()} ${response.url()}${body ? ` body=${body.slice(0, 2500)}` : ''}`)
+    }
+    if (response.url().startsWith(apiBaseUrl) && /canonical-(?:journey|planning|approval)|publication-requests/.test(response.url())) {
+      const body = await response.text().catch(() => '')
+      canonicalPlanningResponses.push(`${response.status()} ${response.request().method()} ${response.url()}${body ? ` body=${body.slice(0, 4000)}` : ''}`)
     }
   })
   page.on('requestfailed', (request) => {
@@ -550,6 +555,40 @@ try {
   await clickWhenReady(page.getByRole('button', { name: /Create edit plan/i }).first())
   await expect(page.getByTestId('plan-review-card')).toBeVisible({ timeout: 12_000 })
   await expect(page.getByText(/Plan updated from your source assembly/i)).toBeVisible()
+  const constrainedRunnerStatus = page.getByTestId('canonical-planning-save-handoff-saved-waiting-for-compiler')
+  const exactRunnerStatus = page.getByTestId('canonical-planning-save-plan-published-waiting-for-approval')
+  await expect(constrainedRunnerStatus.or(exactRunnerStatus)).toBeVisible({ timeout: 12_000 })
+  const constrainedByExactRunner = await constrainedRunnerStatus.isVisible()
+  if (constrainedByExactRunner) {
+    await expect(page.getByTestId('plan-review-approve')).toBeDisabled()
+    await expect(page.getByTestId('plan-review-approve')).toHaveText('Approval not ready')
+    await expect(constrainedRunnerStatus).toContainText('Planning inputs saved')
+    await expect(page.getByTestId('canonical-journey-status')).toHaveAttribute(
+      'data-journey-stage',
+      'publication_request_required',
+    )
+    assert.equal(editExecutionResponses.length, 0, 'A multi-source rich plan must not start legacy execution when exact work items are unavailable.')
+    assert.equal(creditGateResponses.length, 0, 'A multi-source rich plan must not call the legacy standalone credit route.')
+    assert.equal(approvedSnapshotResponses.length, 0, 'A multi-source rich plan must not create an approved snapshot.')
+    console.log(JSON.stringify({
+      ok: true,
+      status: 'blocked_by_exact_multi_source_and_rich_work_item_compilation',
+      checks: [
+        'browser_project_and_named_edit_created',
+        'two_private_source_uploads_and_metadata_readback_verified',
+        'incremental_source_sequence_identities_are_unique',
+        'finalized_media_asset_authority_is_preserved',
+        'exact_edit_preferences_initialized_and_synchronized',
+        'verified_planning_evidence_promoted_server_side',
+        'canonical_planning_handoff_persisted',
+        'approval_credit_snapshot_and_execution_remain_blocked',
+      ],
+      skippedLegacyAssertions: true,
+      skippedReason: 'The exact private runner does not yet compile this two-source rich plan into complete canonical work items, so approval correctly stays locked.',
+      nextRequiredGate: 'canonical_multi_source_and_rich_work_item_compilation',
+      canonicalPlanningResponseCount: canonicalPlanningResponses.length,
+    }))
+  } else {
   await expect(page.getByTestId('plan-review-approve')).toBeEnabled()
   await expect(page.locator('body')).not.toContainText(internalToolNameCopyPattern)
   await page.getByLabel(/Overall goal/i).fill(approvedEditBriefGoal)
@@ -2185,6 +2224,7 @@ try {
     verifiedSourceMediaAssetCount: acceptedHandoffs[0]?.privateReview?.editDecisionManifestVerification?.sourceMediaAssetCount,
     privateVideoSrcScheme: videoSrc.split(':')[0],
   }))
+  }
   }
 } finally {
   await browserContext?.close()

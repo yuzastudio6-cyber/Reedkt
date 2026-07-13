@@ -116,6 +116,17 @@ const exactDraft = buildCanonicalPlanningDraft({
 })
 assert.equal(exactDraft.ok, true, 'Exact source-and-caption plan should compile.')
 if (!exactDraft.ok || !exactDraft.draft.publication) throw new Error('Exact publication candidate was not produced.')
+const canonicalEstimate = exactDraft.draft.publication.canonicalPlan.estimate
+assert.equal(
+  canonicalEstimate.lineItems.reduce((sum, item) => sum + item.estimatedCredits, 0) + canonicalEstimate.fallbackAllowanceCredits,
+  Math.round(exactPlan.creditEstimate.total),
+  'The canonical approved maximum must equal the exact total shown to the user.',
+)
+assert.equal(
+  canonicalEstimate.lineItems.some((item) => /fallback allowance$/i.test(item.label)),
+  false,
+  'Fallback allowance must be represented once in its dedicated authority field, not counted again as a line item.',
+)
 assert.deepEqual(
   exactDraft.draft.publication.canonicalPlan.workItems.map((item) => ({
     key: item.workItemKey,
@@ -199,6 +210,28 @@ const contaminatedDraft = buildCanonicalPlanningDraft({
   sourceMediaAssets,
 })
 assert.equal(contaminatedDraft.ok, false, 'Private path material in canonical components must fail before any browser request.')
+const mismatchedCreditPlan = {
+  ...exactPlan,
+  creditEstimate: {
+    ...exactPlan.creditEstimate,
+    fallbackAllowanceCredits: (exactPlan.creditEstimate.fallbackAllowanceCredits ?? 0) + 1,
+  },
+}
+const mismatchedCreditDraft = buildCanonicalPlanningDraft({
+  plan: mismatchedCreditPlan,
+  plannerInput: baseInput,
+  sourceMediaAssets,
+})
+assert.equal(mismatchedCreditDraft.ok, true, 'A stale estimate remains preservable as planning context.')
+assert.equal(
+  mismatchedCreditDraft.ok && mismatchedCreditDraft.draft.publication,
+  undefined,
+  'A mismatched visible total and fallback allowance must fail closed before canonical publication.',
+)
+assert.match(
+  mismatchedCreditDraft.ok ? mismatchedCreditDraft.draft.publicationBlockers.join(' ') : '',
+  /credit total and fallback allowance do not reconcile/i,
+)
 
 const originalMode = process.env.VITE_REEDITPRO_API_MODE
 const originalBaseUrl = process.env.VITE_REEDITPRO_API_BASE_URL
@@ -212,12 +245,18 @@ const requests: Array<{
   url?: string
 }> = []
 let responseIdentity = { ...identity }
+let exactPreferenceAuthority = exactPreferenceFixture({
+  ...exactPreferenceValues(baseInput),
+  workflowType: 'custom_let_ai_decide',
+  targetPlatform: 'custom',
+}, 4, 2)
 
 const server = createServer((request, response) => {
   const chunks: Buffer[] = []
   request.on('data', (chunk) => chunks.push(Buffer.from(chunk)))
   request.on('end', () => {
-    const body = JSON.parse(Buffer.concat(chunks).toString('utf8')) as Record<string, unknown>
+    const bodyText = Buffer.concat(chunks).toString('utf8')
+    const body = bodyText ? JSON.parse(bodyText) as Record<string, unknown> : {}
     requests.push({
       authorization: request.headers.authorization,
       internalToken: request.headers['x-reeditpro-internal-token'] as string | undefined,
@@ -228,6 +267,48 @@ const server = createServer((request, response) => {
     const serialized = JSON.stringify(body)
     assert.doesNotMatch(serialized, /storagePath|path-must-never-cross|signedUrl|publicUrl|sourceBytes|bytesBase64/)
     response.setHeader('content-type', 'application/json')
+    if (request.url?.includes('/edit-preferences')) {
+      if (request.method === 'GET') {
+        response.end(JSON.stringify({
+          ok: true,
+          data: { preferenceRecord: exactPreferenceAuthority },
+          warnings: [],
+        }))
+        return
+      }
+      assert.equal(request.method, 'PATCH')
+      assert.equal(body.workspaceId, identity.workspaceId)
+      assert.equal(body.expectedRevision, exactPreferenceAuthority.recordRevision)
+      const patch = body.patch as Record<string, unknown>
+      assert.deepEqual(patch, {
+        workflowType: baseInput.workflowType,
+        targetPlatform: baseInput.targetPlatform,
+      })
+      exactPreferenceAuthority = exactPreferenceFixture(
+        { ...exactPreferenceAuthority.values, ...patch } as ReturnType<typeof exactPreferenceValues>,
+        exactPreferenceAuthority.recordRevision + 1,
+        exactPreferenceAuthority.preferenceRevision + 1,
+      )
+      response.end(JSON.stringify({
+        ok: true,
+        data: {
+          preferenceRecord: exactPreferenceAuthority,
+          changedFields: Object.keys(patch),
+          invalidation: {
+            cause: 'preference_change',
+            changedInputs: Object.keys(patch),
+            draftPlanCleared: true,
+            draftEstimateCleared: true,
+            sourcePreparationReset: false,
+            frameConfirmationReset: true,
+            invalidatedAt: '2026-07-13T12:00:00.000Z',
+          },
+          replayed: false,
+        },
+        warnings: [],
+      }))
+      return
+    }
     if (request.url?.endsWith('/plan-presentations')) {
       response.statusCode = 201
       response.end(JSON.stringify({
@@ -263,6 +344,8 @@ try {
   const { getApiRouteById } = await import('../../src/backend/api/api-route-registry')
   const { saveCanonicalPlanningForNamedEdit } = await import('../../src/lib/canonical-planning-publication-client')
   for (const routeId of [
+    'planning.exactEditPreferences.get',
+    'planning.exactEditPreferences.update',
     'planning.canonicalHandoff.create',
     'planning.canonicalPublicationRequest.create',
     'planning.canonicalPlanPresentation.create',
@@ -286,7 +369,8 @@ try {
   assert.equal(richResult.status, 'handoff_saved_waiting_for_compiler')
   assert.equal(richResult.handoffSaved, true)
   assert.equal(richResult.candidateSaved, false)
-  assert.equal(requests.length, 1, 'Unrepresentable rich plan must stop after its exact handoff.')
+  assert.equal(requests.length, 3, 'The first save must synchronize exact preferences, then stop after the rich-plan handoff.')
+  assert.deepEqual(requests.slice(0, 3).map((request) => request.method), ['GET', 'PATCH', 'POST'])
 
   const firstExactSave = saveCanonicalPlanningForNamedEdit({
     scope,
@@ -309,10 +393,28 @@ try {
   assert.equal(exactResult.status, 'plan_published_waiting_for_approval')
   assert.equal(exactResult.handoffSaved, true)
   assert.equal(exactResult.candidateSaved, true)
-  assert.equal(requests.length, 3, 'Exact save should issue one handoff plus one candidate request.')
-  assert.equal(requests.every((request) => request.method === 'POST'), true)
+  assert.deepEqual(exactResult.presentedPlan, {
+    planId: 'canonical-save-plan',
+    planVersion: 1,
+    planHash: sha('9'),
+  })
+  assert.equal(requests.length, 6, 'Exact save should read exact preferences, then issue one handoff and one presentation request.')
   assert.equal(requests.every((request) => request.authorization === 'Bearer canonical-save-smoke-token'), true)
-  assert.match(requests[2]?.url ?? '', /canonical-planning-handoffs\/canonical-save-handoff\/plan-presentations$/)
+  assert.match(requests[5]?.url ?? '', /canonical-planning-handoffs\/canonical-save-handoff\/plan-presentations$/)
+  const exactHandoffBody = requests[4]?.body as {
+    canonicalPlanComponents?: { confirmedSettings?: { preferenceSnapshotId?: string; preferenceRevision?: number } }
+  }
+  assert.deepEqual(exactHandoffBody.canonicalPlanComponents?.confirmedSettings, {
+    aspectRatio: '16:9',
+    outputFrame: { width: 720, height: 405, fps: 24 },
+    outputFrameConfirmed: true,
+    sourceOrderConfirmed: true,
+    sourceCleanupConfirmed: true,
+    editLevel: 'pro',
+    targetPlatform: 'youtube',
+    preferenceSnapshotId: 'server-authority-preference-snapshot',
+    preferenceRevision: 3,
+  }, 'Canonical components must use the exact server-owned baseline and preference revision.')
   assert.equal(requests.some((request) => request.url?.endsWith('/publish')), false, 'The browser must never call the internal publication route.')
   assert.equal(requests.some((request) => Boolean(request.internalToken)), false)
 
@@ -336,6 +438,59 @@ try {
 }
 
 console.log('Canonical planning publication frontend client smoke passed.')
+
+function exactPreferenceValues(input: PlannerInput) {
+  assert.ok(input.cleanupPreference)
+  return {
+    editLevel: input.editLevel,
+    workflowType: input.workflowType,
+    cleanupPreference: input.cleanupPreference,
+    visualPreference: input.visualPreference,
+    moodStyle: input.moodStyle,
+    creditPreference: input.creditPreference,
+    targetPlatform: input.targetPlatform,
+  }
+}
+
+function exactPreferenceFixture(
+  values: ReturnType<typeof exactPreferenceValues>,
+  recordRevision: number,
+  preferenceRevision: number,
+) {
+  const baselineValues = exactPreferenceValues(baseInput)
+  return {
+    schemaVersion: 'private-exact-edit-preferences-v1',
+    workspaceId: identity.workspaceId,
+    projectId: identity.projectId,
+    editSessionId: identity.editSessionId,
+    baseline: {
+      values: baselineValues,
+      preferenceSnapshotId: 'server-authority-preference-snapshot',
+      capturedAt: '2026-07-13T12:00:00.000Z',
+      persistenceSource: 'authenticated_private_internal_backend',
+      provenance: 'saved_edit_preferences',
+    },
+    values,
+    overrideKeys: Object.keys(values).filter((key) =>
+      values[key as keyof typeof values] !== baselineValues[key as keyof typeof baselineValues]),
+    recordRevision,
+    preferenceRevision,
+    preferenceUpdatedAt: '2026-07-13T12:00:00.000Z',
+    planning: {
+      planningInputRevision: preferenceRevision,
+      preferenceFingerprintSha256: sha('7'),
+      replanRequired: true,
+      reestimateRequired: true,
+      sourcePreparation: { status: 'not_started', updatedAt: '2026-07-13T12:00:00.000Z' },
+      frameConfirmation: { status: 'unconfirmed', updatedAt: '2026-07-13T12:00:00.000Z' },
+    },
+    lifecycle: { phase: 'planning', locked: false },
+    auditSummary: { eventCount: recordRevision + 1, latestEventAt: '2026-07-13T12:00:00.000Z' },
+    createdAt: '2026-07-13T12:00:00.000Z',
+    updatedAt: '2026-07-13T12:00:00.000Z',
+    privateInternalOnly: true,
+  }
+}
 
 function createExactPrivateReviewPlan(): EditPlan {
   const plan = createGuidedMockEditPlan(baseInput)

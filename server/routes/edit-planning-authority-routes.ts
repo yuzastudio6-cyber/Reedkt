@@ -4,6 +4,7 @@ import { requireAuth } from '../middleware/auth'
 import { requireInternalServiceAuth } from '../middleware/internal-service-auth'
 import { createCanonicalEditJourneyService } from '../services/canonical-edit-journey-service'
 import { createCanonicalPlanPresentationCoordinatorService } from '../services/canonical-plan-presentation-coordinator-service'
+import { createCanonicalPlanApprovalCoordinatorService } from '../services/canonical-plan-approval-coordinator-service'
 import { createCanonicalPlanPublicationRequestService } from '../services/canonical-plan-publication-request-service'
 import { createEditPlanningAuthorityService } from '../services/edit-planning-authority-service'
 import { createCanonicalPlanningHandoffService } from '../services/canonical-planning-handoff-service'
@@ -18,6 +19,7 @@ import {
 import { cancelCanonicalApprovedSnapshotSchema } from '../validation/canonical-pre-execution-cancellation-schemas'
 import { compensateCanonicalApprovedSnapshotSchema } from '../validation/canonical-post-dispatch-compensation-schemas'
 import { canonicalEditJourneyQuerySchema } from '../validation/canonical-edit-journey-schemas'
+import { approvePresentedCanonicalPlanSchema } from '../validation/canonical-plan-approval-schemas'
 import {
   approveCanonicalEditPlanSchema,
   authorityWorkspaceQuerySchema,
@@ -252,6 +254,21 @@ export function createEditPlanningAuthorityRoutes(): Router {
         authority: result.authority,
         canonicalPlanningHandoff: result.canonicalPlanningHandoff,
       }, result.warnings, 201)
+    }),
+  )
+
+  router.post(
+    '/v1/edit-plans/:editPlanId/canonical-approval',
+    requireAuth,
+    asyncRoute(async (request, response) => {
+      const body = validateBody(approvePresentedCanonicalPlanSchema, request.body)
+      const result = await createCanonicalPlanApprovalCoordinatorService(
+        getServiceContext(request),
+      ).approve({
+        ...body,
+        editPlanId: getRouteParam(request, 'editPlanId'),
+      })
+      sendOk(response, { canonicalPlanApproval: result.approval }, result.warnings, 201)
     }),
   )
 

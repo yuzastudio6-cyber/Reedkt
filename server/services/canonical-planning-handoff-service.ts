@@ -9,11 +9,13 @@ import {
   type CreateCanonicalPlanningHandoffBody,
   type PublishCanonicalEditPlanFromHandoffBody,
 } from '../validation/canonical-planning-handoff-schemas'
+import { confirmedOutputAspectRatioSchema } from '../validation/exact-edit-preference-schemas'
 import {
   canonicalPlanningHandoffIdempotencyKeyHash,
   canonicalPlanningHandoffPublicationRequestHash,
   createEditPlanningAuthorityService,
 } from './edit-planning-authority-service'
+import { createExactEditPreferenceService } from './exact-edit-preference-service'
 import { createProjectService } from './project-service'
 import {
   buildCurrentPlanningInputAuthorityExpectation,
@@ -99,6 +101,12 @@ export function createCanonicalPlanningHandoffService(context: ServiceContext) {
           sourceSequenceHash: sourceCandidate.sourceSequenceHash,
           candidateHash: sourceCandidate.candidateHash,
         }
+        await recordVerifiedPlanningEvidence({
+          context,
+          scope,
+          sourceCandidateHash: sourceCandidate.candidateHash,
+          components: body.canonicalPlanComponents,
+        })
         const planningInputAuthority = await buildCurrentPlanningInputAuthorityExpectation(scope)
         const resolvedPlanningInputAuthority = await resolvePlanningInputAuthorityBinding({
           context,
@@ -453,6 +461,85 @@ export function createCanonicalPlanningHandoffService(context: ServiceContext) {
       })
     },
   }
+}
+
+async function recordVerifiedPlanningEvidence(input: {
+  context: ServiceContext
+  scope: CanonicalPlanningHandoffStoreScope
+  sourceCandidateHash: string
+  components: CreateCanonicalPlanningHandoffBody['canonicalPlanComponents']
+}): Promise<void> {
+  const exactService = createExactEditPreferenceService(input.context)
+  const current = await exactService.getCurrent(
+    input.scope.workspaceId,
+    input.scope.projectId,
+    input.scope.editSessionId,
+  )
+  const record = current.preferenceRecord
+  if (!record) {
+    throw new ApiError(
+      'JOB_DEPENDENCY_NOT_READY',
+      'Exact-edit preferences must be initialized before canonical planning.',
+      409,
+    )
+  }
+
+  if (
+    record.lifecycle.locked ||
+    input.components.confirmedSettings.editLevel !== record.values.editLevel ||
+    input.components.confirmedSettings.targetPlatform !== record.values.targetPlatform ||
+    input.components.sourceCleanupSummary.cleanupPreference !== record.values.cleanupPreference ||
+    input.components.confirmedSettings.preferenceSnapshotId !== record.baseline.preferenceSnapshotId ||
+    input.components.confirmedSettings.preferenceRevision !== record.preferenceRevision
+  ) {
+    throw new ApiError(
+      'IDEMPOTENCY_CONFLICT',
+      'Canonical confirmed settings do not match the mutable server-owned edit preference authority.',
+      409,
+    )
+  }
+
+  const sourcePreparationEvidenceHash = sha256AuthorityValue({
+    sourceCandidateHash: input.sourceCandidateHash,
+    sourceCleanupSummary: input.components.sourceCleanupSummary,
+    sourceCleanupPlan: input.components.sourceCleanupPlan,
+  })
+  const frameConfirmationHash = sha256AuthorityValue({
+    aspectRatio: input.components.confirmedSettings.aspectRatio,
+    outputFrame: input.components.confirmedSettings.outputFrame,
+    outputFrameConfirmed: input.components.confirmedSettings.outputFrameConfirmed,
+  })
+  const frameConfirmationId = `canonical-frame-${frameConfirmationHash}`
+  const confirmedAspectRatio = confirmedOutputAspectRatioSchema.parse(
+    input.components.confirmedSettings.aspectRatio,
+  )
+  const sourceEvidenceMatches = record.planning.sourcePreparation.status === 'ready'
+    && record.planning.sourcePreparation.evidenceHash === sourcePreparationEvidenceHash
+  const frameEvidenceMatches = record.planning.frameConfirmation.status === 'confirmed'
+    && record.planning.frameConfirmation.aspectRatio === input.components.confirmedSettings.aspectRatio
+    && record.planning.frameConfirmation.confirmationId === frameConfirmationId
+  if (sourceEvidenceMatches && frameEvidenceMatches) return
+
+  await exactService.recordPlanningEvidence({
+    workspaceId: input.scope.workspaceId,
+    projectId: input.scope.projectId,
+    editSessionId: input.scope.editSessionId,
+    expectedRevision: record.recordRevision,
+    sourcePreparation: {
+      status: 'ready',
+      evidenceHash: sourcePreparationEvidenceHash,
+    },
+    frameConfirmation: {
+      status: 'confirmed',
+      aspectRatio: confirmedAspectRatio,
+      confirmationId: frameConfirmationId,
+    },
+    idempotencyKey: `canonical-planning-evidence:${sha256AuthorityValue({
+      recordRevision: record.recordRevision,
+      sourcePreparationEvidenceHash,
+      frameConfirmationId,
+    })}`,
+  })
 }
 
 function safeIdentity(value: string): boolean {

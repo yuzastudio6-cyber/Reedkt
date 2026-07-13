@@ -28,6 +28,16 @@ for (const stage of CANONICAL_EDIT_JOURNEY_STAGES) {
   assert.equal(parsed.value.stage, stage, `${stage} should preserve its exact stage.`)
   assert.equal(parsed.value.inspectionOnly, true, `${stage} should remain inspection-only.`)
   assert.equal(parsed.value.testOnly, true, `${stage} should remain private-test-only.`)
+  if (stage === 'plan_approval_required') {
+    assert.deepEqual(parsed.value.approvalAuthority, {
+      planId: 'plan-ui-smoke',
+      estimateId: 'estimate-ui-smoke',
+      expectedPlanHash: hash('1'),
+      expectedEstimateHash: hash('2'),
+    })
+  } else {
+    assert.equal(parsed.value.approvalAuthority, undefined)
+  }
 
   const presentation = createCanonicalEditJourneyPresentation(parsed.value)
   assert.ok(presentation.title.length > 0, `${stage} should have a user-facing title.`)
@@ -44,7 +54,7 @@ assertRejected('foreign workspace identity', mutateJourney('plan_approval_requir
   asRecord(fixture.identity).workspaceId = 'workspace-foreign'
 }))
 assertRejected('substituted next-action route', mutateJourney('plan_approval_required', (fixture) => {
-  asRecord(fixture.nextAction).routeTemplate = '/v1/edit-plans/foreign-plan/approve'
+  asRecord(fixture.nextAction).routeTemplate = '/v1/edit-plans/foreign-plan/canonical-approval'
 }))
 assertRejected('unexpected raw planning input', mutateJourney('planning_handoff_required', (fixture) => {
   fixture.rawPlanInputs = { prompt: 'must-not-cross-boundary' }
@@ -242,7 +252,7 @@ function actionFor(stage: CanonicalEditJourneyStage): Record<string, unknown> {
     case 'internal_publication_pending':
       return { code: 'await_internal_publication', actor: 'internal_service', method: 'POST', routeTemplate: projectRoute('canonical-planning-handoffs/handoff-ui-smoke/publication-requests/candidate-ui-smoke/publish') }
     case 'plan_approval_required':
-      return { code: 'approve_canonical_plan', actor: 'authenticated_user', method: 'POST', routeTemplate: '/v1/edit-plans/plan-ui-smoke/approve' }
+      return { code: 'approve_canonical_plan', actor: 'authenticated_user', method: 'POST', routeTemplate: '/v1/edit-plans/plan-ui-smoke/canonical-approval' }
     case 'approved_snapshot_available':
       return { code: 'request_execution_package', actor: 'authenticated_user', method: 'POST', routeTemplate: '/v1/edit-executions/packages' }
     case 'execution_in_progress':

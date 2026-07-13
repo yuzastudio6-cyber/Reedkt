@@ -27,6 +27,7 @@ test.describe('canonical journey named-edit UI bridge', () => {
   test('saves exact planning inputs and keeps approval locked when richer work has no exact graph', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 })
     const fixture = await installSourceReadyNamedEdit(page, 'canonical-plan-save')
+    const preferenceRequests = await installExactEditPreferenceAuthority(page, [fixture])
     const handoffRequests: Array<Record<string, unknown>> = []
     let candidateRequestCount = 0
 
@@ -83,7 +84,10 @@ test.describe('canonical journey named-edit UI bridge', () => {
     await expect(saveStatus).not.toContainText(/\/v1\/|[a-f0-9]{64}|handoff|candidate|ffmpeg|ffprobe|libass|remotion|provider|filesystem|credential/i)
 
     const requestBody = JSON.stringify(handoffRequests[0])
+    expect(preferenceRequests.readCount).toBe(1)
+    expect(preferenceRequests.updateCount).toBe(1)
     expect(requestBody).not.toMatch(/storagePath|private\/source|signedUrl|publicUrl|sourceBytes|bytesBase64/)
+    expect(requestBody).toContain(`server-preference-${fixture.edit.editSessionId}`)
     expect(requestBody).toContain(fixture.edit.sourceMediaAssets![0]!.sourceSequenceItemId!)
     expect(requestBody).toContain(fixture.edit.sourceMediaAssets![0]!.mediaAssetId)
     expect(requestBody).toContain(fixture.edit.sourceMediaAssets![0]!.checksumSha256!)
@@ -91,7 +95,7 @@ test.describe('canonical journey named-edit UI bridge', () => {
 
     const approve = page.getByTestId('plan-review-approve')
     await expect(approve).toBeDisabled()
-    await expect(approve).toHaveText('Waiting for saved plan')
+    await expect(approve).toHaveText('Approval not ready')
     await expectNoGenerationBeforeApproval(page)
     await expectNoInternalToolNamesInEditor(page)
     await expectNoHorizontalOverflow(page)
@@ -102,6 +106,7 @@ test.describe('canonical journey named-edit UI bridge', () => {
     const firstFixture = createSourceReadyNamedEdit('late-save-route-a')
     const secondFixture = createSourceReadyNamedEdit('late-save-route-b')
     await installSourceReadyNamedEditFixtures(page, [firstFixture, secondFixture])
+    const preferenceRequests = await installExactEditPreferenceAuthority(page, [firstFixture, secondFixture])
     let handoffRequestCount = 0
     let releaseHandoff!: () => void
     const handoffGate = new Promise<void>((resolve) => {
@@ -143,6 +148,7 @@ test.describe('canonical journey named-edit UI bridge', () => {
     await clickWhenReady(page.getByRole('button', { name: /^Prepare source$/i }))
     await clickWhenReady(page.getByRole('button', { name: /^Create edit plan$/i }))
     await expect.poll(() => handoffRequestCount).toBe(1)
+    expect(preferenceRequests.readCount).toBe(1)
     await expect(page.getByTestId('canonical-planning-save-saving')).toBeVisible()
 
     await page.evaluate((path) => {
@@ -157,6 +163,164 @@ test.describe('canonical journey named-edit UI bridge', () => {
     await page.waitForTimeout(100)
     await expect(page.locator('[data-testid^="canonical-planning-save-"]')).toHaveCount(0)
     await expectNoGenerationBeforeApproval(page)
+  })
+
+  test('records one exact approval, recovers the immutable snapshot, and starts no edit work', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 })
+    const identity = {
+      projectId: 'canonical-project-approval-browser',
+      editSessionId: 'canonical-edit-approval-browser',
+    }
+    const approvalRequests: Array<{
+      authorization: string | null
+      idempotencyKey: string | null
+      body: Record<string, unknown>
+    }> = []
+    let approved = false
+    let executionRequestCount = 0
+    let releaseApproval!: () => void
+    const approvalGate = new Promise<void>((resolve) => {
+      releaseApproval = resolve
+    })
+
+    await page.route('**/v1/projects/*/edit-sessions/*/canonical-journey?*', async (route) => {
+      await route.fulfill({
+        contentType: 'application/json',
+        status: 200,
+        body: JSON.stringify({
+          ok: true,
+          data: {
+            canonicalEditJourney: canonicalApprovalJourneyFixture(
+              identity.projectId,
+              identity.editSessionId,
+              approved,
+            ),
+          },
+          warnings: [],
+        }),
+      })
+    })
+    await page.route('**/v1/edit-plans/plan-canonical-approval-browser/canonical-approval', async (route) => {
+      approvalRequests.push({
+        authorization: await route.request().headerValue('authorization'),
+        idempotencyKey: await route.request().headerValue('idempotency-key'),
+        body: route.request().postDataJSON() as Record<string, unknown>,
+      })
+      await approvalGate
+      approved = true
+      await route.fulfill({
+        contentType: 'application/json',
+        status: 200,
+        body: JSON.stringify({
+          ok: true,
+          data: { canonicalPlanApproval: canonicalApprovalReceiptFixture(identity.projectId, identity.editSessionId) },
+          warnings: [],
+        }),
+      })
+    })
+    await page.route('**/v1/edit-executions/**', async (route) => {
+      executionRequestCount += 1
+      await route.abort()
+    })
+
+    await gotoRoute(page, '/sign-in')
+    await page.evaluate(async () => {
+      const harness = await import('/tests/e2e/fixtures/mount-canonical-plan-approval-browser-harness.ts')
+      harness.mountCanonicalPlanApprovalBrowserHarness()
+    })
+
+    const harness = page.getByTestId('canonical-approval-browser-harness')
+    await expect(harness).toBeVisible()
+    await expect(harness.getByTestId('canonical-journey-status')).toHaveAttribute('data-journey-stage', 'plan_approval_required')
+    const approve = harness.getByTestId('plan-review-approve')
+    await expect(approve).toBeEnabled()
+    await expect(approve).toHaveText('Approve plan')
+
+    await approve.click()
+    await expect(approve).toBeDisabled()
+    await expect(approve).toHaveAttribute('aria-busy', 'true')
+    await expect(approve).toHaveText('Approving plan…')
+    const approvingStatus = harness.getByTestId('canonical-plan-approval-approving')
+    await expect(approvingStatus).toBeVisible()
+    await expect(approvingStatus).toHaveAttribute('aria-busy', 'true')
+    await expect(approvingStatus).toContainText('Editing will remain stopped')
+    await expect.poll(() => approvalRequests.length).toBe(1)
+    expect(executionRequestCount).toBe(0)
+    await expectNoGenerationBeforeApproval(page)
+
+    const approvalRequest = approvalRequests[0]!
+    expect(approvalRequest.authorization).toBe('Bearer canonical-journey-playwright-token')
+    expect(approvalRequest.idempotencyKey).toMatch(/^canonical-plan-approval:/)
+    expect(Object.keys(approvalRequest.body).sort()).toEqual([
+      'expectedEditSessionId',
+      'expectedEstimateHash',
+      'expectedEstimateId',
+      'expectedMaximumCredits',
+      'expectedPlanHash',
+      'expectedPlanVersion',
+      'expectedProjectId',
+      'workspaceId',
+    ])
+    expect(approvalRequest.body).toEqual({
+      workspaceId: scope.workspaceId,
+      expectedProjectId: identity.projectId,
+      expectedEditSessionId: identity.editSessionId,
+      expectedPlanVersion: 1,
+      expectedPlanHash: '1'.repeat(64),
+      expectedEstimateId: 'estimate-canonical-approval-browser',
+      expectedEstimateHash: '2'.repeat(64),
+      expectedMaximumCredits: 38,
+    })
+    expect(JSON.stringify(approvalRequest.body)).not.toMatch(
+      /authorityRevision|internalToken|storagePath|signedUrl|publicUrl|componentRefs|jobIds|sourceBytes|bytesBase64/i,
+    )
+
+    releaseApproval()
+    const approvalStatus = harness.getByTestId('canonical-plan-approval-approved')
+    await expect(approvalStatus).toBeVisible()
+    await expect(approvalStatus).toContainText('Plan and credits approved')
+    await expect(approvalStatus).toContainText('Editing, rendering, and delivery have not started')
+    await expect(approve).toHaveText('Plan approved')
+    await expect(harness.getByTestId('canonical-journey-status')).toHaveAttribute('data-journey-stage', 'approved_snapshot_available')
+    await expect(harness.getByTestId('canonical-journey-status')).toContainText('Approval is safely recorded')
+    await expect.poll(() => executionRequestCount).toBe(0)
+    await expectNoGenerationBeforeApproval(page)
+    await expect(harness).not.toContainText(/\b(ffmpeg|ffprobe|libass|remotion|provider secret|service role|filesystem path)\b/i)
+    await expectNoHorizontalOverflow(page)
+  })
+
+  test('locks Current Edit Preferences when canonical approval is recovered', async ({ page }) => {
+    const fixture = await installSourceReadyNamedEdit(page, 'canonical-preferences-lock')
+    await page.route('**/v1/projects/*/edit-sessions/*/canonical-journey?*', async (route) => {
+      await route.fulfill({
+        contentType: 'application/json',
+        status: 200,
+        body: JSON.stringify({
+          ok: true,
+          data: {
+            canonicalEditJourney: canonicalApprovalJourneyFixture(
+              fixture.project.id,
+              fixture.edit.editSessionId,
+              true,
+            ),
+          },
+          warnings: [],
+        }),
+      })
+    })
+
+    await gotoRoute(page, fixture.editPath)
+    await expect(page.getByTestId('canonical-journey-status')).toHaveAttribute(
+      'data-journey-stage',
+      'approved_snapshot_available',
+    )
+    await clickWhenReady(page.getByTestId('current-edit-preferences-trigger'))
+    await expect(page).toHaveURL(/\?view=preferences$/)
+    await expect(page.getByTestId('current-edit-preferences-locked')).toBeVisible()
+    await expect(page.getByTestId('current-edit-preferences-form')).toContainText(
+      'Request a revision in Chat',
+    )
+    await expect(page.getByRole('button', { name: 'Apply to this edit' })).toBeDisabled()
   })
 
   test('shows loading, bounded execution progress, and an accessible manual refresh', async ({ page }) => {
@@ -396,6 +560,153 @@ async function installSourceReadyNamedEditFixtures(
   })
 }
 
+async function installExactEditPreferenceAuthority(
+  page: Page,
+  fixtures: ReturnType<typeof createSourceReadyNamedEdit>[],
+) {
+  const authorities = new Map(fixtures.map((fixture) => [
+    fixture.edit.editSessionId,
+    exactEditPreferenceAuthorityFixture(fixture.project.id, fixture.edit.editSessionId),
+  ]))
+  const requestCounts = { readCount: 0, updateCount: 0 }
+
+  await page.route('**/v1/projects/*/edit-sessions/*/edit-preferences*', async (route) => {
+    const url = new URL(route.request().url())
+    const match = url.pathname.match(/^\/v1\/projects\/([^/]+)\/edit-sessions\/([^/]+)\/edit-preferences$/)
+    const projectId = match?.[1] ? decodeURIComponent(match[1]) : ''
+    const editSessionId = match?.[2] ? decodeURIComponent(match[2]) : ''
+    const authority = authorities.get(editSessionId)
+    if (!authority || authority.projectId !== projectId) {
+      await route.fulfill({
+        contentType: 'application/json',
+        status: 404,
+        body: JSON.stringify({
+          ok: false,
+          error: { code: 'PROJECT_NOT_FOUND', message: 'Exact preference authority was not found.' },
+          warnings: [],
+        }),
+      })
+      return
+    }
+
+    if (route.request().method() === 'GET') {
+      requestCounts.readCount += 1
+      await route.fulfill({
+        contentType: 'application/json',
+        status: 200,
+        body: JSON.stringify({ ok: true, data: { preferenceRecord: authority }, warnings: [] }),
+      })
+      return
+    }
+
+    const body = route.request().postDataJSON() as {
+      expectedRevision?: number
+      patch?: Partial<typeof authority.values>
+      workspaceId?: string
+    }
+    if (route.request().method() !== 'PATCH' ||
+        body.workspaceId !== scope.workspaceId ||
+        body.expectedRevision !== authority.recordRevision ||
+        !body.patch) {
+      await route.fulfill({
+        contentType: 'application/json',
+        status: 409,
+        body: JSON.stringify({
+          ok: false,
+          error: { code: 'IDEMPOTENCY_CONFLICT', message: 'Exact preference authority changed.' },
+          warnings: [],
+        }),
+      })
+      return
+    }
+
+    requestCounts.updateCount += 1
+    const values = { ...authority.values, ...body.patch }
+    const changedFields = Object.keys(body.patch)
+    const updated = {
+      ...authority,
+      values,
+      overrideKeys: Object.keys(values).filter((key) => {
+        const valueKey = key as keyof typeof values
+        return values[valueKey] !== authority.baseline.values[valueKey]
+      }),
+      recordRevision: authority.recordRevision + 1,
+      preferenceRevision: authority.preferenceRevision + 1,
+      planning: {
+        ...authority.planning,
+        planningInputRevision: authority.preferenceRevision + 1,
+      },
+    }
+    authorities.set(editSessionId, updated)
+    await route.fulfill({
+      contentType: 'application/json',
+      status: 200,
+      body: JSON.stringify({
+        ok: true,
+        data: {
+          preferenceRecord: updated,
+          changedFields,
+          replayed: false,
+        },
+        warnings: [],
+      }),
+    })
+  })
+
+  return {
+    get readCount() {
+      return requestCounts.readCount
+    },
+    get updateCount() {
+      return requestCounts.updateCount
+    },
+  }
+}
+
+function exactEditPreferenceAuthorityFixture(projectId: string, editSessionId: string) {
+  const values = {
+    editLevel: 'pro' as const,
+    workflowType: 'social_short_viral_clip' as const,
+    cleanupPreference: 'balanced_cleanup' as const,
+    visualPreference: 'more_stroke_motion' as const,
+    moodStyle: 'emotional' as const,
+    creditPreference: 'balanced' as const,
+    targetPlatform: 'custom' as const,
+  }
+  const now = '2026-07-13T12:00:00.000Z'
+  return {
+    schemaVersion: 'private-exact-edit-preferences-v1',
+    workspaceId: scope.workspaceId,
+    projectId,
+    editSessionId,
+    baseline: {
+      values,
+      preferenceSnapshotId: `server-preference-${editSessionId}`,
+      capturedAt: now,
+      persistenceSource: 'authenticated_private_internal_backend',
+      provenance: 'saved_edit_preferences',
+    },
+    values,
+    overrideKeys: [] as string[],
+    recordRevision: 1,
+    preferenceRevision: 0,
+    preferenceUpdatedAt: now,
+    planning: {
+      planningInputRevision: 0,
+      preferenceFingerprintSha256: '7'.repeat(64),
+      replanRequired: false,
+      reestimateRequired: false,
+      sourcePreparation: { status: 'not_started', updatedAt: now },
+      frameConfirmation: { status: 'unconfirmed', updatedAt: now },
+    },
+    lifecycle: { phase: 'planning', locked: false },
+    auditSummary: { eventCount: 1, latestEventAt: now },
+    createdAt: now,
+    updatedAt: now,
+    privateInternalOnly: true,
+  }
+}
+
 function executionJourney(projectId: string, editSessionId: string) {
   return {
     schemaVersion: 'canonical-edit-journey-recovery-v1',
@@ -523,6 +834,129 @@ function canonicalPlanningHandoffFixture(projectId: string, editSessionId: strin
     noToolExecution: true,
     noProviderCall: true,
     noRender: true,
+    testOnly: true,
+  }
+}
+
+function canonicalApprovalJourneyFixture(projectId: string, editSessionId: string, approved: boolean) {
+  const plan = {
+    planId: 'plan-canonical-approval-browser',
+    planVersion: 1,
+    status: approved ? 'approved' : 'presented',
+    planHash: '1'.repeat(64),
+    estimateId: 'estimate-canonical-approval-browser',
+    estimateStatus: approved ? 'approved' : 'presented',
+    estimateHash: '2'.repeat(64),
+    approvedMaximumCredits: 38,
+    workItemCount: 5,
+  }
+  const approval = {
+    approvalId: 'approval-canonical-approval-browser',
+    snapshotId: 'snapshot-canonical-approval-browser',
+    snapshotHash: '3'.repeat(64),
+    reservationId: 'reservation-canonical-approval-browser',
+    reservationStatus: 'reserved',
+    reservedCredits: 38,
+    jobCount: 5,
+    readyJobCount: 1,
+    blockedJobCount: 4,
+  }
+  return {
+    schemaVersion: 'canonical-edit-journey-recovery-v1',
+    source: 'canonical_edit_journey_service',
+    identity: {
+      workspaceId: scope.workspaceId,
+      projectId,
+      editSessionId,
+    },
+    stage: approved ? 'approved_snapshot_available' : 'plan_approval_required',
+    nextAction: approved
+      ? {
+          code: 'request_execution_package',
+          actor: 'authenticated_user',
+          method: 'POST',
+          routeTemplate: '/v1/edit-executions/packages',
+        }
+      : {
+          code: 'approve_canonical_plan',
+          actor: 'authenticated_user',
+          method: 'POST',
+          routeTemplate: '/v1/edit-plans/plan-canonical-approval-browser/canonical-approval',
+        },
+    planningHandoff: {
+      handoffId: 'handoff-canonical-approval-browser',
+      handoffHash: '4'.repeat(64),
+      canonicalPlanComponentsHash: '5'.repeat(64),
+      publicationStatus: 'published',
+    },
+    plan,
+    ...(approved ? { approval } : {}),
+    permissions: {
+      inspectionOnly: true,
+      rawPlanInputsReturned: false,
+      filesystemPathReturned: false,
+      credentialReturned: false,
+      snapshotMutation: false,
+      creditMutation: false,
+      toolExecution: false,
+      providerCall: false,
+      render: false,
+    },
+    testOnly: true,
+  }
+}
+
+function canonicalApprovalReceiptFixture(projectId: string, editSessionId: string) {
+  return {
+    schemaVersion: 'canonical-plan-approval-receipt-v1',
+    source: 'canonical_plan_approval_coordinator_service',
+    disposition: 'approved_now',
+    identity: {
+      workspaceId: scope.workspaceId,
+      projectId,
+      editSessionId,
+    },
+    plan: {
+      planId: 'plan-canonical-approval-browser',
+      planVersion: 1,
+      status: 'approved',
+      planHash: '1'.repeat(64),
+      estimateId: 'estimate-canonical-approval-browser',
+      estimateStatus: 'approved',
+      estimateHash: '2'.repeat(64),
+      approvedMaximumCredits: 38,
+    },
+    approval: {
+      approvalId: 'approval-canonical-approval-browser',
+      snapshotId: 'snapshot-canonical-approval-browser',
+      snapshotHash: '3'.repeat(64),
+      reservationId: 'reservation-canonical-approval-browser',
+      reservationStatus: 'reserved',
+      reservedCredits: 38,
+      jobCount: 5,
+      readyJobCount: 1,
+      blockedJobCount: 4,
+    },
+    boundaries: {
+      approvedSnapshotAvailable: true,
+      syntheticPrivateCreditReservation: true,
+      jobRecordsDerived: true,
+      paidBillingExecuted: false,
+      customerWalletMutation: false,
+      jobExecutionStarted: false,
+      toolExecutionStarted: false,
+      providerCallStarted: false,
+      renderStarted: false,
+      publicDeliveryStarted: false,
+    },
+    persistence: {
+      privateLocal: true,
+      tenantScoped: true,
+      distributed: false,
+      productionAuthority: false,
+    },
+    rawAuthorityReturned: false,
+    pathOrCredentialReturned: false,
     testOnly: true,
   }
 }

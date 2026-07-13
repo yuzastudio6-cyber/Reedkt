@@ -36,7 +36,7 @@ The higher-level `canonical-journey` recovery endpoint combines this safe candid
 
 ## Frontend candidate boundary
 
-The named-edit frontend now calls the authenticated handoff and plan-presentation routes through the reviewed browser-safe transport. It does not call the protected internal publication route, receive an internal-service token, or execute the `nextAction` returned by journey recovery.
+The named-edit frontend now calls the authenticated exact-preference, handoff, and plan-presentation routes through the reviewed browser-safe transport. Before it prepares the handoff, it reads the server-owned Exact Edit Preference authority, applies only explicit current-edit differences with optimistic revision matching and deterministic idempotency, and rebuilds the canonical components with the returned baseline snapshot ID and preference revision. It does not call the protected internal publication route, receive an internal-service token, author source/frame evidence, or execute the `nextAction` returned by journey recovery.
 
 Candidate submission is deliberately narrower than handoff submission. A complete, valid plan can save its exact planning handoff even when publication is blocked. The browser creates a candidate only for the currently proven private source-and-caption work graph, after confirming one finalized MP4 source, one continuous approved source range equal to the final frame count, one full-range safe caption, a supported frame/FPS/duration, no provider prompts, and no unrepresented visual, color, audio, transition, SFX, or multi-segment work. This preserves the difference between “planning inputs saved” and “exact execution candidate saved.”
 
@@ -58,7 +58,7 @@ The internal route is:
 
 `POST /v1/projects/:projectId/edit-sessions/:editSessionId/canonical-planning-handoffs/:handoffId/publication-requests/:candidateId/publish`
 
-It requires authenticated user context, the internal-service boundary, an idempotency key, the workspace, and the exact candidate hash. The route loads the private candidate server-side and then invokes the existing handoff publication service. Current Exact Edit Preferences, Preference DNA application, Edit Brief, source media, output frame, cleanup state, canonical components, estimate, and work graph are revalidated before plan publication.
+It requires authenticated user context, the internal-service boundary, an idempotency key, the workspace, and the exact candidate hash. The route loads the private candidate server-side and then invokes the existing handoff publication service. Current Exact Edit Preferences—including the server-derived source-preparation and frame-confirmation evidence—Preference DNA application, Edit Brief, source media, output frame, cleanup state, canonical components, estimate, and work graph are revalidated before plan publication.
 
 The published plan freezes the same publication-request hash carried by the candidate. A second candidate cannot replace a handoff that has already published, and exact internal replay returns the original canonical authority.
 
@@ -66,7 +66,7 @@ The published plan freezes the same publication-request hash carried by the cand
 
 Standalone candidate submission and inspection do not publish or approve a plan, create a snapshot, reserve or spend credits, create jobs, execute tools, call providers, render media, or deliver an artifact. The plan-presentation coordinator adds only presented canonical plan and estimate authority after the same internal revalidation. Approval, funding, snapshot creation, job derivation, execution, and delivery remain separate gates.
 
-The bridge is local/private evidence with bounded frontend submission. It adds no provider activation, Supabase action, customer billing, wallet mutation, deployment, public delivery, production rendering, Motion Studio, or production-readiness claim. The browser can request plan presentation but cannot invoke internal publication directly; the backend-owned coordinator and full current-state revalidation remain mandatory.
+The bridge is local/private evidence with bounded frontend submission. It adds no provider activation, Supabase action, customer billing, wallet mutation, deployment, public delivery, production rendering, Motion Studio, or production-readiness claim. The browser can request plan presentation but cannot invoke internal publication directly; the backend-owned coordinator and full current-state revalidation remain mandatory. Exact plan/estimate approval is now a separate frontend-safe mutation described in `docs/canonical-plan-approval-coordinator.md`; plan presentation itself still grants no approval, snapshot, reservation, job, execution, or delivery authority.
 
 ## Verification
 

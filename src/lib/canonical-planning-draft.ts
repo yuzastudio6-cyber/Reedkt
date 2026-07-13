@@ -300,11 +300,14 @@ export function buildCanonicalPlanningDraft(input: {
     cleanupDecision: cleanup.decisions[0],
     segments: segments.segments,
   })
-  const publication = publicationBlockers.length === 0
+  const canonicalEstimate = buildEstimate(plan)
+  if (!canonicalEstimate.ok) publicationBlockers.push(canonicalEstimate.blocker)
+  const publication = publicationBlockers.length === 0 && canonicalEstimate.ok
     ? {
         canonicalPlan: buildPrivateReviewCanonicalPlan({
           plan,
           components,
+          estimate: canonicalEstimate.estimate,
           sourceItem: orderedSourceItems[0]!,
           cleanupDecision: cleanup.decisions[0]!,
           frame,
@@ -514,6 +517,7 @@ function privateReviewPublicationBlockers(input: {
 function buildPrivateReviewCanonicalPlan(input: {
   plan: EditPlan
   components: CanonicalPlanComponentsDraft
+  estimate: CanonicalPlanDraft['estimate']
   sourceItem: CanonicalSourceAuthorityItem
   cleanupDecision: CanonicalSourceCleanupDecisionDraft
   frame: { width: number; height: number }
@@ -524,7 +528,7 @@ function buildPrivateReviewCanonicalPlan(input: {
   const timingId = safeKey(input.plan.masterTimingPlan?.id ?? 'master-timing-plan', 'master-timing-plan')
   const caption = validatedCaption(input.plan.masterTimingPlan?.captionTimingItems[0]?.captionText) ?? 'Private review'
   const panelBackground = safeColor(input.plan.aspectRatioFramePlan?.panelBackgroundColor)
-  const estimate = buildEstimate(input.plan)
+  const estimate = input.estimate
   const budgets = fitBudgets(estimate.lineItems.reduce((sum, item) => sum + item.estimatedCredits, 0) + estimate.fallbackAllowanceCredits)
   const sourceId = input.sourceItem.sourceSequenceItemId
   const cleanupId = input.cleanupDecision.decisionId
@@ -644,30 +648,75 @@ function buildPrivateReviewCanonicalPlan(input: {
   }
 }
 
-function buildEstimate(plan: EditPlan): CanonicalPlanDraft['estimate'] {
-  const lineItems = plan.creditEstimate.breakdown.map((item, index) => ({
-    lineKey: safeKey(`${index + 1}-${item.label}`, `estimate-${index + 1}`),
-    label: boundedText(item.label, `Estimate item ${index + 1}`, 160),
-    category: index === 0 ? 'planning' : 'editing',
-    estimatedCredits: Math.max(0, Math.round(item.credits)),
-    removable: false,
-    metadata: { reason: boundedText(item.reason, 'Included in the reviewed plan.', 1_000) },
-  }))
-  const itemTotal = lineItems.reduce((sum, item) => sum + item.estimatedCredits, 0)
+function buildEstimate(plan: EditPlan):
+  | { ok: true; estimate: CanonicalPlanDraft['estimate'] }
+  | { ok: false; blocker: string } {
   const expectedTotal = Math.max(1, Math.round(plan.creditEstimate.total))
-  if (itemTotal < expectedTotal) {
+  const fallbackAllowanceCredits = Math.max(0, Math.round(plan.creditEstimate.fallbackAllowanceCredits ?? 0))
+  const fallbackLineIndexes = plan.creditEstimate.breakdown
+    .map((item, index) => /fallback allowance$/i.test(item.label.trim()) ? index : -1)
+    .filter((index) => index >= 0)
+  const fallbackLine = fallbackLineIndexes.length === 1
+    ? plan.creditEstimate.breakdown[fallbackLineIndexes[0]!]
+    : undefined
+
+  if (
+    fallbackAllowanceCredits >= expectedTotal ||
+    (fallbackAllowanceCredits > 0 && (
+      !fallbackLine ||
+      Math.max(0, Math.round(fallbackLine.credits)) !== fallbackAllowanceCredits
+    )) ||
+    (fallbackAllowanceCredits === 0 && fallbackLineIndexes.length > 0)
+  ) {
+    return {
+      ok: false,
+      blocker: 'The shown credit total and fallback allowance do not reconcile. Refresh the plan before approval.',
+    }
+  }
+
+  const fallbackIndexSet = new Set(fallbackLineIndexes)
+  const lineItems = plan.creditEstimate.breakdown
+    .filter((_, index) => !fallbackIndexSet.has(index))
+    .map((item, index) => ({
+      lineKey: safeKey(`${index + 1}-${item.label}`, `estimate-${index + 1}`),
+      label: boundedText(item.label, `Estimate item ${index + 1}`, 160),
+      category: index === 0 ? 'planning' : 'editing',
+      estimatedCredits: Math.max(0, Math.round(item.credits)),
+      removable: false,
+      metadata: { reason: boundedText(item.reason, 'Included in the reviewed plan.', 1_000) },
+    }))
+  const itemTotal = lineItems.reduce((sum, item) => sum + item.estimatedCredits, 0)
+  const expectedItemTotal = expectedTotal - fallbackAllowanceCredits
+  if (itemTotal > expectedItemTotal) {
+    return {
+      ok: false,
+      blocker: 'The itemized credit estimate exceeds the total shown for approval. Refresh the plan before approval.',
+    }
+  }
+  if (itemTotal < expectedItemTotal) {
     lineItems.push({
       lineKey: 'estimate-remainder', label: 'Remaining approved edit work', category: 'editing',
-      estimatedCredits: expectedTotal - itemTotal, removable: false, metadata: { reason: 'Keeps the canonical estimate equal to the reviewed total.' },
+      estimatedCredits: expectedItemTotal - itemTotal, removable: false, metadata: { reason: 'Keeps the canonical estimate equal to the reviewed total.' },
     })
   }
+  const normalizedLineItems = lineItems.length > 0 ? lineItems : [{
+    lineKey: 'edit-work', label: 'Approved edit work', category: 'editing', estimatedCredits: expectedItemTotal,
+    removable: false, metadata: {},
+  }]
+  const approvedMaximumCredits = normalizedLineItems.reduce((sum, item) => sum + item.estimatedCredits, 0) + fallbackAllowanceCredits
+  if (approvedMaximumCredits !== expectedTotal) {
+    return {
+      ok: false,
+      blocker: 'The canonical credit maximum does not match the total shown for approval. Refresh the plan before approval.',
+    }
+  }
   return {
-    lineItems: lineItems.length > 0 ? lineItems : [{
-      lineKey: 'edit-work', label: 'Approved edit work', category: 'editing', estimatedCredits: expectedTotal,
-      removable: false, metadata: {},
-    }],
-    fallbackAllowanceCredits: Math.max(0, Math.round(plan.creditEstimate.fallbackAllowanceCredits ?? 0)),
-    validForSeconds: 3_600,
+    ok: true,
+    estimate: {
+      lineItems: normalizedLineItems,
+      fallbackAllowanceCredits,
+      validForSeconds: 3_600,
+    },
   }
 }
 

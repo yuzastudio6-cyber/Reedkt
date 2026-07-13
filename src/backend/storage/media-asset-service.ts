@@ -180,7 +180,7 @@ function createMediaRecord(uploadPlan: UploadPlan): MediaAssetRecord {
     : undefined
 
   return {
-    id: `${uploadPlan.id}-media-record`,
+    id: uploadPlan.finalizedMediaAssetId ?? `${uploadPlan.id}-media-record`,
     workspaceId: uploadPlan.workspaceId,
     projectId: uploadPlan.projectId,
     assetType: mapMediaAssetType(uploadPlan),

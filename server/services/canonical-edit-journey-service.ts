@@ -164,7 +164,7 @@ export function createCanonicalEditJourneyService(context: ServiceContext) {
             code: 'approve_canonical_plan',
             actor: 'authenticated_user',
             method: 'POST',
-            routeTemplate: `/v1/edit-plans/${plan.planId}/approve`,
+            routeTemplate: `/v1/edit-plans/${plan.planId}/canonical-approval`,
           },
         })
       }

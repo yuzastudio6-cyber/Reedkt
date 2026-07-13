@@ -2,7 +2,7 @@
 
 Status: `implemented_current_private_scope`
 
-Status date: 2026-07-10
+Status date: 2026-07-13
 
 This document is the terminology, UX, state-ownership, and planning-boundary source of truth for the implemented Edit Preferences experience. It describes the current private/local product boundary; it does not claim production Supabase durability, shared multi-device synchronization, live billing, provider execution, rendering, or credit mutation.
 
@@ -105,7 +105,7 @@ Implemented behavior:
 - Editing a control creates a draft only; opening the workspace is non-mutating.
 - **Apply to this edit** is explicit. There is no autosave of current-edit overrides.
 - A no-op apply does not create a revision or invalidate planning.
-- Applying changed values persists them to the exact user/workspace/project/edit handoff.
+- Applying changed values persists them to the exact user/workspace/project/edit UI handoff. Canonical plan save separately synchronizes those explicit values with the server-owned Exact Edit Preference authority described below.
 - Override keys are derived by comparing effective values with the immutable baseline.
 - The edit preference revision and update time advance after an applied change.
 - **Use original** resets one field to its creation baseline.
@@ -203,8 +203,12 @@ Safety, platform, tier, frame, provider, credit, and approved-snapshot rules rem
 ## Persistence Boundary
 
 - Saved Edit Preferences use the existing saved-default repository/API boundary.
-- Current Edit Preferences ride the existing exact-edit local/private handoff record; no separate current-preference route, database table, or public API was introduced.
-- The creation baseline, effective values, override keys, revision, and update time persist with that exact edit setup.
+- Current Edit Preferences continue to ride the exact-edit local/private UI handoff record for visible editing and reload behavior.
+- Creating or saving an internal named-edit state idempotently initializes a separate server-owned Exact Edit Preference authority for that owner/workspace/project/edit. Its immutable baseline is copied from the saved workspace defaults when present, or from the reviewed server defaults otherwise.
+- Before a canonical handoff is prepared, the browser reads that exact authority through the authenticated frontend-safe route, applies only explicit current-edit differences with optimistic revision matching and a deterministic idempotency key, and rebuilds the canonical plan components with the returned baseline snapshot ID and preference revision. Foreign identity, malformed authority, unknown fields, a locked record, or an unresolved write fails closed.
+- After finalized source authority has been verified, the backend derives source-preparation and output-frame confirmation evidence from the exact canonical components and promotes that evidence into the same Exact Edit Preference authority. The browser cannot author those evidence hashes or confirmation IDs.
+- The creation baseline, effective values, override keys, preference revision, authority record revision, and planning evidence remain tenant/project/edit scoped.
+- These are local/private authenticated routes and files, not a new production database table or public production API.
 - This is sufficient for the current local/private recovery and test boundary.
 - It is not proof of production multi-device durability, live Supabase migrations/RLS, conflict resolution, or shared collaborative editing.
 
@@ -227,10 +231,12 @@ Focused Playwright coverage verifies:
 - One field can be reset to the immutable creation baseline.
 - Override metadata and revision persist.
 - A cleanup change clears a draft plan/estimate and requires Footage Prep again.
-- Approved work makes Edit Preferences read-only.
+- Approved work—including a freshly recorded or recovered canonical snapshot—makes Edit Preferences read-only.
 - Returning to Chat preserves the approved snapshot and reservation trace.
 
 Existing saved-preference coverage continues to verify workspace-scoped default load/save behavior and the new-edit snapshot bridge.
+
+Focused backend smokes additionally verify server-side initialization, exact frontend read/update synchronization, optimistic revision and idempotency behavior, canonical baseline/revision binding, derived source/frame evidence promotion, replay, malformed-response rejection, and tenant isolation. None of this evidence approves a plan or starts credit, tool, provider, worker, render, or delivery activity.
 
 ## Remaining Production And Product Work
 

@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { installActiveProductRouteFixture } from './helpers/active-product'
-import { expectNoHorizontalOverflow } from './helpers/layout'
+import { expectNoHorizontalOverflow, setViewport } from './helpers/layout'
 import { clickWhenReady, gotoRoute } from './helpers/routes'
 
 test.describe('Projects and Project Home UI', () => {
@@ -59,19 +59,52 @@ test.describe('Projects and Project Home UI', () => {
     await expect(page.getByLabel('Project name')).toBeFocused()
     await expect(page.locator('.badge')).toHaveCount(0)
 
+    const createWorkspace = page.locator('.project-create-workspace')
+    const createForm = page.locator('.project-create-form')
+    const createContext = page.getByRole('complementary', { name: 'What happens next' })
+    const createActions = page.locator('.project-create-actions')
+    expect(await createWorkspace.evaluate((element) => getComputedStyle(element).display)).toBe('grid')
+    expect(
+      await createWorkspace.evaluate((element) => getComputedStyle(element).gridTemplateColumns.trim().split(/\s+/).length),
+    ).toBe(2)
+    expect(await createForm.evaluate((element) => getComputedStyle(element).display)).toBe('grid')
+    expect(await createContext.evaluate((element) => getComputedStyle(element).borderLeftWidth)).toBe('1px')
+    expect(await createActions.evaluate((element) => getComputedStyle(element).display)).toBe('flex')
+
+    await setViewport(page, 700)
+    expect(
+      await createWorkspace.evaluate((element) => getComputedStyle(element).gridTemplateColumns.trim().split(/\s+/).length),
+    ).toBe(1)
+    expect(await createContext.evaluate((element) => getComputedStyle(element).borderLeftWidth)).toBe('0px')
+    expect(await createContext.evaluate((element) => getComputedStyle(element).borderTopWidth)).toBe('1px')
+    expect(await createActions.evaluate((element) => getComputedStyle(element).flexDirection)).toBe('column')
+    await expectNoHorizontalOverflow(page)
+    await setViewport(page, 1440)
+
     await clickWhenReady(page.getByRole('button', { name: /^Create project$/i }))
     await expect(page.getByRole('alert')).toContainText('Name the project before creating it.')
     await expect(page).toHaveURL(/\/projects\/new$/)
 
     await page.getByLabel('Editing context').selectOption('business_brand')
     await expect(page.getByRole('complementary', { name: 'What happens next' })).toContainText('Business / Brand')
-    await expect(page.getByRole('complementary', { name: 'What happens next' })).toContainText('Product, offer, SaaS')
+    await expect(page.getByRole('complementary', { name: 'What happens next' })).toContainText('Product, service, offer')
 
     const projectName = `Focused project setup ${Date.now()}`
     await page.getByLabel('Project name').fill(projectName)
     await clickWhenReady(page.getByRole('button', { name: /^Create project$/i }))
     await expect(page).toHaveURL(/\/projects\/[^/]+$/)
     await expect(page.getByRole('heading', { level: 1, name: projectName })).toBeVisible()
+    await clickWhenReady(page.getByRole('button', { name: /^New edit$/i }).first())
+    const newEditDialog = page.getByRole('dialog', { name: 'Name this edit' })
+    await expect(newEditDialog).toBeVisible()
+    await expect(page.getByLabel('Edit name')).toBeFocused()
+    expect(await newEditDialog.evaluate((element) => getComputedStyle(element).position)).toBe('fixed')
+    expect(await newEditDialog.evaluate((element) => getComputedStyle(element).display)).toBe('flex')
+    expect(await newEditDialog.locator('.clean-modal-panel').evaluate((element) => getComputedStyle(element).display)).toBe('grid')
+    await setViewport(page, 480)
+    expect(
+      await newEditDialog.locator('.clean-create-actions').evaluate((element) => getComputedStyle(element).gridTemplateColumns.trim().split(/\s+/).length),
+    ).toBe(1)
     await expectNoHorizontalOverflow(page)
   })
 })

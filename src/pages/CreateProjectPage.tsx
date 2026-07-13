@@ -12,6 +12,14 @@ import {
 import { launchEditingCategories } from '../lib/product-taxonomy'
 import type { EditingCategory } from '../types/reeditpro'
 
+const categoryDescriptions: Partial<Record<EditingCategory, string>> = {
+  storytelling: 'Story, proof, personal, and case-based edits.',
+  lifestyle: 'Creator, travel, fitness, food, motivation, and everyday videos.',
+  business_brand: 'Product, service, offer, SaaS, ecommerce, agency, and brand videos.',
+  education_explainer: 'Lessons, frameworks, tutorials, and step-by-step explainers.',
+  documentary_case_study: 'Timelines, evidence, investigations, and case-study videos.',
+}
+
 export function CreateProjectPage() {
   const navigate = useNavigate()
   const projectPersistenceScope = useProjectPersistenceScope()
@@ -70,7 +78,7 @@ export function CreateProjectPage() {
       primaryAction={false}
       title="New project"
     >
-      <section className="project-create-workspace">
+      <section className="project-create-workspace" data-testid="project-create-flow">
         <form
           className="project-create-form"
           noValidate
@@ -92,6 +100,7 @@ export function CreateProjectPage() {
                 aria-describedby={nameError ? 'project-name-error' : 'project-name-help'}
                 aria-invalid={Boolean(nameError)}
                 autoFocus
+                data-testid="project-create-name-input"
                 disabled={starting}
                 onChange={(event) => {
                   setProjectName(event.currentTarget.value)
@@ -99,6 +108,7 @@ export function CreateProjectPage() {
                   createIntentIdRef.current = createProjectCreateIntentId()
                 }}
                 placeholder="Example: Summer launch campaign"
+                required
                 value={projectName}
               />
               {nameError ? (
@@ -145,7 +155,7 @@ export function CreateProjectPage() {
               <h3>{selectedCategory.label}</h3>
             </div>
           </div>
-          <p>{selectedCategory.description}</p>
+          <p>{categoryDescriptions[selectedCategory.value] ?? selectedCategory.description}</p>
 
           <ol className="project-create-next-steps">
             <li><Check aria-hidden="true" size={15} /><span><strong>Create a named edit</strong><small>Keep versions and revisions attached to one deliverable.</small></span></li>

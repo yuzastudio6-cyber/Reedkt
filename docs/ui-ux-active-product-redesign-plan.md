@@ -336,7 +336,7 @@ New values belong in tokens before route CSS. Avoid one-off glow, radius, shadow
 ### 5. Whole-Product Visual Consistency — In Progress
 
 - Home, Projects, and Project Home now use the shared bounded hierarchy, surface levels, and semantic status treatment.
-- Saved and Current Edit Preferences now use the canonical seven-field system with explicit persistence/recovery truth, inherited/overridden state, responsive hierarchy, guarded drafts, and visually reviewed action states. The active named-edit upload gate, responsive conversation/preview composition, planning-input status, Edit Brief, Plan Review, progress framing, and Private Review now follow the same system. Create Project, Sign In, and any remaining named-edit revision/recovery states still require their route-specific visual passes.
+- Saved and Current Edit Preferences now use the canonical seven-field system with explicit persistence/recovery truth, inherited/overridden state, responsive hierarchy, guarded drafts, and visually reviewed action states. Create Project, the active named-edit upload gate, responsive conversation/preview composition, planning-input status, Edit Brief, Plan Review, progress framing, and Private Review now follow the same system. Landing requires continuation-branch style reconciliation, while Sign In and any remaining named-edit revision/recovery states still require their route-specific visual passes.
 - Preserve route-specific identity as work continues: marketing is expressive, app routes operational, editor open and conversational.
 
 ### 6. Final Active-Route Signoff — Pending Whole-Product Completion
@@ -381,7 +381,7 @@ Focused Edit Brief and named-edit foundation evidence on 2026-07-13:
 - The focused editor suite passes 20/20 checks, including the optional Brief lifecycle, exact-edit recovery, planning transfer, approval lock, computed field hierarchy, responsive preview rail, and bounded upload gate.
 - `tests/e2e/viewport.spec.ts` passes 59/59 checks; the clean-shell, keyboard, and zoom group passes 9/9.
 - Guarded local browser review passed at 1024px and 1280px without horizontal overflow or console errors. The preview rail is secondary on supported wide screens and collapses before constraining the main planning workspace.
-- This closes the active Edit Brief presentation and named-edit layout-foundation pass only. Plan/review presentation is evidenced separately below; Create Project, Sign In, remaining revision/recovery states, full-suite, and founder-level visual signoff remain pending.
+- This closes the active Edit Brief presentation and named-edit layout-foundation pass only. Plan/review and Create Project presentation are evidenced separately below; Landing, Sign In, remaining revision/recovery states, full-suite, and founder-level visual signoff remain pending.
 
 Focused Plan Review and Private Review presentation evidence on 2026-07-13:
 
@@ -389,6 +389,14 @@ Focused Plan Review and Private Review presentation evidence on 2026-07-13:
 - The approval path still requires the exact plan and estimate before progress appears. The review path keeps sharing, billing, public release, and unapproved revisions gated.
 - The named-edit screenshot flow now captures both the existing Plan Review state and a dedicated Private Review state at 1280px, with the quiet preview/status rail remaining secondary.
 - This closes the active Plan Review and Private Review presentation pass only. No provider, billing, Supabase, production render, public delivery, or deployment boundary changed.
+
+Focused Create Project and named-edit handoff evidence on 2026-07-13:
+
+- Regression-first coverage reproduced the missing route layer as a plain `display: block` form and a static inline New Edit surface, then proved the restored two/one-column setup, responsive context rail, fixed contained dialog, compact action stack, and no horizontal overflow.
+- The active handoff remains `CreateProjectPage` -> exact `ProjectDetailPage` -> accessible New Edit modal -> exact named edit. Retired `ProjectHomePage` components and their older setup contract were not remounted.
+- Thirty-three focused project, tenancy, editor, and clean-chat checks pass together, covering duplicate-safe project identity, validation, exact-route recovery, modal focus containment/Escape/focus return, upload gating, plan approval, and private review. A separate 66-check viewport, keyboard, and zoom run passes, including Create Project at five desktop widths. The focused non-editor screenshot flow and the dedicated modal artifact test also pass.
+- `create-project-1280.png` and `project-new-edit-dialog-1280.png` passed visual review. Project creation and edit naming still do not upload, plan, approve, reserve/spend credits, call providers, render, release, or deploy.
+- This closes the active Create Project presentation and handoff pass only. Landing, Sign In, remaining revision/recovery states, the complete E2E rerun, and founder-level whole-product signoff remain pending.
 
 ## Definition Of Done
 

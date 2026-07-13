@@ -415,6 +415,7 @@ function ProjectDetailContent({ projectId }: ProjectDetailContentProps) {
           aria-labelledby="new-edit-dialog-title"
           aria-modal="true"
           className="clean-modal-backdrop"
+          data-testid="new-edit-dialog"
           role="dialog"
         >
           <form

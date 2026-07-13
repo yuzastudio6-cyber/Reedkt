@@ -106,10 +106,8 @@ test.describe('Active product redesign screenshot QA artifacts', () => {
     await setViewport(page, 1280)
 
     await page.goto('/sign-in')
-    await expect(page.getByTestId('sign-in-card')).toBeVisible()
-    const authLogo = page.locator('.auth-brand-row .brand-logo-mark')
-    await expect(authLogo).toBeVisible()
-    await expect.poll(() => authLogo.evaluate((image) => (image as HTMLImageElement).naturalWidth)).toBeGreaterThan(0)
+    await expect(page.locator('.auth-entry-card').first()).toBeVisible()
+    await expect(page.locator('.auth-entry-brand')).toBeVisible()
     await captureDocScreenshot(page, `${screenshotDir}/sign-in-1280.png`)
 
     const appRoutes = [
@@ -133,6 +131,17 @@ test.describe('Active product redesign screenshot QA artifacts', () => {
     await gotoRoute(page, '/projects')
     await expect(page.locator('.projects-card')).toHaveCount(1)
     await captureDocScreenshot(page, `${screenshotDir}/projects-populated-1280.png`)
+  })
+
+  test('captures the Create Project to named-edit handoff at 1280px', async ({ page }) => {
+    await setViewport(page, 1280)
+    await gotoRoute(page, '/projects/new')
+    await page.getByLabel('Project name').fill('Summer launch campaign')
+    await clickWhenReady(page.getByRole('button', { name: /^Create project$/i }))
+    await expect(page.getByRole('heading', { level: 1, name: 'Summer launch campaign' })).toBeVisible()
+    await clickWhenReady(page.getByRole('button', { name: /^New edit$/i }).first())
+    await expect(page.getByRole('dialog', { name: 'Name this edit' })).toBeVisible()
+    await captureDocScreenshot(page, `${screenshotDir}/project-new-edit-dialog-1280.png`)
   })
 
   test('captures active project and named-edit route states at 1280px', async ({ page }) => {

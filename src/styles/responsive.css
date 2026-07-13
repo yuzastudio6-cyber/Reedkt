@@ -176,6 +176,7 @@
   }
 
   .metric-grid,
+  .project-create-workspace,
   .folder-grid,
   .project-grid,
   .clean-edit-brief__flow-steps,
@@ -396,6 +397,7 @@
   }
 
   .preference-page-actions,
+  .project-create-actions,
   .preference-recovery-actions {
     align-items: stretch;
     flex-direction: column;
@@ -404,6 +406,18 @@
 
   .preference-page-actions .rp-button,
   .preference-recovery-actions .rp-button {
+    width: 100%;
+  }
+
+  .project-create-context {
+    border-left: 0;
+    border-top: 1px solid rgba(148, 163, 184, 0.13);
+    margin-top: 0;
+    padding: var(--rp-space-6) 0 0;
+  }
+
+  .project-create-actions > div,
+  .project-create-actions .rp-button {
     width: 100%;
   }
 

@@ -70,8 +70,16 @@ and parent-symlink refusal for writes without external mutation. The shared
 persistence smoke statically prevents both services from returning to direct
 filesystem writers.
 
-Browser-capture stores and other project-adjacent stores not named above still
-require compatibility review before their storage boundary can be promoted.
+The fixed-template private Playwright capture store now uses the shared
+create-only/no-follow boundary without changing its deterministic object path or
+artifact identity. Focused evidence proves exact-byte restart reuse, concurrent
+identical publication, different-byte collision refusal without overwrite,
+`0700`/`0600` modes, and target/ancestor-symlink refusal without external
+mutation. Arbitrary browser capture remains prohibited; this is only the
+existing server-owned zero-network template.
+
+Other project-adjacent stores not named above still require compatibility review
+before their storage boundary can be promoted.
 
 This hardening is for single-host internal testing. It is not a replacement
 for private GCS generation-bound objects, canonical Supabase records, malware

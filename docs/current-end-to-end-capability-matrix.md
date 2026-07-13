@@ -1,6 +1,6 @@
 # Current End-to-End Capability Matrix
 
-Status date: 2026-07-12
+Status date: 2026-07-13
 Authority: reviewed APFS continuation checkout at `/Users/macuser/Developer/REeditpro-backend-pipeline`
 
 This document is the current capability truth for ReeditPro. It distinguishes UI policy and deterministic planning from code that actually executes against private test media. It does not turn internal test evidence into a public-beta or production-readiness claim.
@@ -96,7 +96,7 @@ The authoritative identity source is `server/tool-execution/proven-tool-identity
 
 ### Actual execution coverage
 
-The 50 canonical identities span deterministic Node/Python operations, FFmpeg/ffprobe, Remotion, libass, fixed browser graphics, bounded AI-capability fixtures, native image/audio processing, container/package validation, VapourSynth, AudioFlux, rembg, and DeepFilterNet. Exact output content types include JSON, SVG, PNG, WAV, NUT, and private MP4 artifacts according to the approved operation contract.
+The 50 canonical identities span deterministic Node/Python operations, FFmpeg/ffprobe, Remotion, libass, fixed browser graphics, bounded AI-capability fixtures, native image/audio processing, container/package validation, VapourSynth, AudioFlux, rembg, and DeepFilterNet. Exact output content types include JSON, SVG, PNG, WAV, NUT, and private MP4 artifacts according to the approved operation contract. The conditionally authorized fixed-template Playwright capture now persists through the shared root-confined create-only/no-follow boundary: concurrent identical attempts reuse only exact bytes, different-byte collisions never overwrite, and target/ancestor symlinks fail without external mutation. This does not authorize URLs, navigation, arbitrary HTML, authenticated capture, or public browser execution.
 
 For every accepted private run, evidence is valid only when operation identity, snapshot, work item, reservation, lease attempt, expected output, private artifact identity, checksum, byte length, QA, reconciliation, replay, and downstream dependency readback agree. DeepFilterNet additionally has attempt-level internal production-cost evidence using integer micros and the versioned rate card. That evidence contains no customer price, customer credits, service fee, wallet, settlement, or charging authority.
 

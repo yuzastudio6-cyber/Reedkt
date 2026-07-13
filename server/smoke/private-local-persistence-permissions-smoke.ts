@@ -241,6 +241,7 @@ try {
     'server/services/project-service.ts',
     'server/services/private-canonical-work-graph-progress-store.ts',
     'server/media/private-source-probe-staging.ts',
+    'server/workers/browser-capture/private-playwright-capture-runner.ts',
     'server/workers/audio/audio-execution-artifact-writer.ts',
     'server/workers/captions/caption-file-builder.ts',
     'server/workers/color/color-artifact-writer.ts',
@@ -281,6 +282,7 @@ try {
       'private_registry_listing_is_sorted_and_refuses_symlink_entries',
       'named_private_persistence_services_use_shared_hardened_boundary',
       'upload_probe_service_uses_shared_private_staging_boundary',
+      'private_playwright_capture_uses_shared_create_only_no_follow_boundary',
     ],
   }, null, 2))
 } finally {

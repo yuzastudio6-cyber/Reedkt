@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
-import { readFile, mkdtemp, rm, stat, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, readdir, mkdtemp, rename, rm, stat, symlink, unlink, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { dirname, isAbsolute, relative } from 'node:path'
+import { dirname, isAbsolute, join, relative } from 'node:path'
 
 import {
   createApprovedPrivateArtifactToolOperationEvidence,
@@ -179,6 +179,8 @@ try {
   }
 
   const firstBytes = await readFile(first.localFilePath)
+  assert.equal(first.byteSize, firstBytes.byteLength)
+  assert.equal(first.toolOperationEvidence.outputByteSize, firstBytes.byteLength)
   const second = await runApprovedPrivatePlaywrightCapture({
     manifest,
     operationId: operation.operationId,
@@ -191,6 +193,39 @@ try {
   assert.equal(second.toolOperationEvidence.evidenceId, first.toolOperationEvidence.evidenceId)
   assert.equal(second.toolOperationEvidence.costEvidence.eventId, first.toolOperationEvidence.costEvidence.eventId)
   assert.equal(second.toolOperationEvidence.costEvidence.idempotencyKey, first.toolOperationEvidence.costEvidence.idempotencyKey)
+
+  const concurrentStorageRoot = await mkdtemp(`${tmpdir()}/reeditpro-private-playwright-concurrent-`)
+  try {
+    const concurrentResults = await Promise.all([
+      runApprovedPrivatePlaywrightCapture({
+        manifest,
+        operationId: operation.operationId,
+        localStorageRoot: concurrentStorageRoot,
+      }),
+      runApprovedPrivatePlaywrightCapture({
+        manifest,
+        operationId: operation.operationId,
+        localStorageRoot: concurrentStorageRoot,
+      }),
+    ])
+    assert.equal(concurrentResults[0]?.localFilePath, concurrentResults[1]?.localFilePath)
+    assert.equal(concurrentResults[0]?.sha256, concurrentResults[1]?.sha256)
+    assert.equal(concurrentResults[0]?.byteSize, concurrentResults[1]?.byteSize)
+    assert.deepEqual(
+      concurrentResults.map((result) => result.reusedExistingArtifact).sort(),
+      [false, true],
+      'Concurrent identical captures must publish once and verify/reuse the winning bytes.',
+    )
+    assert.deepEqual(await readFile(concurrentResults[0]!.localFilePath), firstBytes)
+    assert.deepEqual(
+      (await readdir(dirname(concurrentResults[0]!.localFilePath)))
+        .filter((name) => name.endsWith('.tmp') || name.endsWith('.create.lock')),
+      [],
+      'Concurrent capture publication must leave no temporary file or create lock.',
+    )
+  } finally {
+    await rm(concurrentStorageRoot, { recursive: true, force: true })
+  }
 
   const sourceFixture = await createSyntheticMp4Fixture({
     localStorageRoot,
@@ -238,6 +273,11 @@ try {
     /deterministic provenance validation/i,
     'A different valid same-dimension PNG at the deterministic path must fail closed.',
   )
+  assert.deepEqual(
+    await readFile(first.localFilePath),
+    tamperedBytes,
+    'Create-only collision handling must never overwrite different existing bytes.',
+  )
   await assert.rejects(
     createPrivateFinalRenderFromPreviewClips(
       [sourceFixture.outputPath],
@@ -262,6 +302,55 @@ try {
     'Final render must re-hash and reject a capture replaced after runner evidence was created.',
   )
   await writeFile(first.localFilePath, firstBytes)
+
+  const outsidePersistenceRoot = await mkdtemp(`${tmpdir()}/reeditpro-private-playwright-outside-`)
+  try {
+    const outsideTarget = join(outsidePersistenceRoot, 'target-sentinel.png')
+    const outsideTargetBytes = Buffer.from('outside-target-must-not-change')
+    await writeFile(outsideTarget, outsideTargetBytes)
+    await rm(first.localFilePath)
+    await symlink(outsideTarget, first.localFilePath)
+    await assert.rejects(
+      runApprovedPrivatePlaywrightCapture({ manifest, operationId: operation.operationId, localStorageRoot }),
+      /unsafe filesystem path/i,
+      'A symlink at the deterministic capture target must fail closed.',
+    )
+    assert.deepEqual(await readFile(outsideTarget), outsideTargetBytes)
+    await unlink(first.localFilePath)
+    await writeFile(first.localFilePath, firstBytes)
+
+    const captureDirectory = dirname(first.localFilePath)
+    const ownedCaptureDirectory = `${captureDirectory}.owned`
+    const outsideCaptureDirectory = join(outsidePersistenceRoot, 'ancestor-sentinel')
+    await mkdir(outsideCaptureDirectory, { mode: 0o700 })
+    const outsideAncestorSentinel = join(outsideCaptureDirectory, 'sentinel.txt')
+    await writeFile(outsideAncestorSentinel, 'outside-ancestor-must-not-change')
+    await rename(captureDirectory, ownedCaptureDirectory)
+    await symlink(outsideCaptureDirectory, captureDirectory, 'dir')
+    await assert.rejects(
+      runApprovedPrivatePlaywrightCapture({ manifest, operationId: operation.operationId, localStorageRoot }),
+      /unsafe filesystem path/i,
+      'A symlinked capture ancestor must fail closed before external mutation.',
+    )
+    assert.equal(await readFile(outsideAncestorSentinel, 'utf8'), 'outside-ancestor-must-not-change')
+    assert.deepEqual((await readdir(outsideCaptureDirectory)).sort(), ['sentinel.txt'])
+    await unlink(captureDirectory)
+    await rename(ownedCaptureDirectory, captureDirectory)
+  } finally {
+    await rm(outsidePersistenceRoot, { recursive: true, force: true })
+  }
+
+  const postSymlinkRecovery = await runApprovedPrivatePlaywrightCapture({
+    manifest,
+    operationId: operation.operationId,
+    localStorageRoot,
+  })
+  assert.equal(postSymlinkRecovery.reusedExistingArtifact, true)
+  assert.equal(postSymlinkRecovery.sha256, first.sha256)
+  if (process.platform !== 'win32') {
+    assert.equal((await stat(dirname(postSymlinkRecovery.localFilePath))).mode & 0o777, 0o700)
+    assert.equal((await stat(postSymlinkRecovery.localFilePath)).mode & 0o777, 0o600)
+  }
 
   const slashScopeManifest = createApprovedToolWorkManifest({
     workspaceId: 'private-capture-scope/a',
@@ -388,7 +477,13 @@ console.log(JSON.stringify({
   privateArtifactOnly: true,
   zeroNetwork: true,
   deterministicReuseValidated: true,
+  concurrentCreateOnlyReuseValidated: true,
+  concurrentTemporaryAndLockCleanupValidated: true,
   sameDimensionPngTamperRejected: true,
+  differentBytesNeverOverwritten: true,
+  targetSymlinkRejectedWithoutExternalMutation: true,
+  ancestorSymlinkRejectedWithoutExternalMutation: true,
+  restartReadbackAndModeHardeningValidated: true,
   preRenderCaptureTamperRejected: true,
   approvedFfmpegOverlayValidated: true,
   collisionResistantScopePathsValidated: true,

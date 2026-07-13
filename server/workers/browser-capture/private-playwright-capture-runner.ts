@@ -1,6 +1,6 @@
-import { createHash, randomUUID } from 'node:crypto'
-import { chmod, mkdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises'
-import { dirname, join, relative } from 'node:path'
+import { createHash } from 'node:crypto'
+import { join, relative } from 'node:path'
+import { setTimeout as delay } from 'node:timers/promises'
 
 import {
   approvedToolWorkManifestRef,
@@ -10,6 +10,10 @@ import {
 } from '../../edit-architecture/approved-tool-work-manifest'
 import { ApiError } from '../../errors/api-error'
 import { assertPathInsideRoot } from '../../media/local-media-paths'
+import {
+  readPrivateFileIfExistsWithinRoot,
+  writePrivateFileCreateOnlyWithinRoot,
+} from '../../security/private-local-persistence'
 import {
   PRIVATE_PLAYWRIGHT_CAPTURE_SOURCE_KIND,
   PRIVATE_PLAYWRIGHT_CAPTURE_TEMPLATE_ID,
@@ -50,27 +54,52 @@ export async function runApprovedPrivatePlaywrightCapture(input: {
   // same dimensions is not sufficient proof of provenance; byte equality binds
   // reuse to the current fixed template and approved structured source spec.
   const capture = await createCaptureBytes(spec)
-  const existing = await readExistingCapture(localFilePath, spec, sourceSpecSha256, capture.bytes)
+  const existing = await readExistingCapture(
+    input.localStorageRoot,
+    storageObjectPath,
+    spec,
+    sourceSpecSha256,
+    capture.bytes,
+  )
+  let reusedExistingArtifact = Boolean(existing)
 
   if (!existing) {
-    await mkdir(dirname(localFilePath), { recursive: true, mode: 0o700 })
-    if (process.platform !== 'win32') await chmod(dirname(localFilePath), 0o700)
-    const temporaryPath = `${localFilePath}.tmp-${process.pid}-${randomUUID()}`
     try {
-      await writeFile(temporaryPath, capture.bytes, { flag: 'wx', mode: 0o600 })
-      await rename(temporaryPath, localFilePath)
-      if (process.platform !== 'win32') await chmod(localFilePath, 0o600)
-    } finally {
-      await rm(temporaryPath, { force: true })
+      const writeResult = await writePrivateFileCreateOnlyWithinRoot({
+        rootPath: input.localStorageRoot,
+        relativePath: storageObjectPath,
+        content: capture.bytes,
+      })
+      reusedExistingArtifact = !writeResult.created
+    } catch (error) {
+      if (!isCreateOnlyCaptureRace(error)) throw error
+      const concurrentArtifact = await waitForConcurrentCapture({
+        rootPath: input.localStorageRoot,
+        relativePath: storageObjectPath,
+        spec,
+        sourceSpecSha256,
+        expectedBytes: capture.bytes,
+      })
+      if (!concurrentArtifact) throw error
+      reusedExistingArtifact = true
     }
-  } else if (process.platform !== 'win32') {
-    await chmod(localFilePath, 0o600)
   }
 
-  const persistedBytes = await readFile(localFilePath)
+  const persistedBytes = await readPrivateFileIfExistsWithinRoot({
+    rootPath: input.localStorageRoot,
+    relativePath: storageObjectPath,
+  })
+  if (!persistedBytes) {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      'Private Playwright capture disappeared before evidence could be created.',
+      409,
+      { reason: 'private_playwright_capture_missing_after_persistence' },
+    )
+  }
+  assertDeterministicCaptureBytes(persistedBytes, capture.bytes, sourceSpecSha256)
   const persistedProbe = validatePngBytes(persistedBytes, spec, sourceSpecSha256)
   const outputSha256 = sha256(persistedBytes)
-  const fileStat = await stat(localFilePath)
   const completedAt = input.completedAt ?? new Date().toISOString()
   const toolOperationEvidence = createApprovedPrivateArtifactToolOperationEvidence({
     manifest: input.manifest,
@@ -81,7 +110,7 @@ export async function runApprovedPrivatePlaywrightCapture(input: {
     creditReservationId: input.manifest.creditReservationId,
     outputArtifactId: artifactId,
     outputSha256,
-    outputByteSize: fileStat.size,
+    outputByteSize: persistedBytes.byteLength,
     sourceSpecSha256,
     elapsedMilliseconds: Math.max(1, Date.now() - startedAt),
     imageProbe: persistedProbe,
@@ -109,7 +138,7 @@ export async function runApprovedPrivatePlaywrightCapture(input: {
     sourceOfTruth: true,
     sourceOfTruthScope: 'approved_playwright_private_capture',
     sha256: outputSha256,
-    byteSize: fileStat.size,
+    byteSize: persistedBytes.byteLength,
     width: persistedProbe.width,
     height: persistedProbe.height,
     sourceSpecSha256,
@@ -118,7 +147,7 @@ export async function runApprovedPrivatePlaywrightCapture(input: {
     segmentIds: [...operation.segmentIds],
     assetPlanItemIds: [...operation.assetPlanItemIds],
     workItemIds: [...operation.sourceReferences.workItemIds],
-    reusedExistingArtifact: Boolean(existing),
+    reusedExistingArtifact,
     toolWorkManifestRef: approvedToolWorkManifestRef(input.manifest),
     toolOperationEvidence,
     createdAt: completedAt,
@@ -227,32 +256,69 @@ async function createCaptureBytes(spec: ApprovedPrivateBrowserCaptureSpec): Prom
 }
 
 async function readExistingCapture(
-  localFilePath: string,
+  rootPath: string,
+  relativePath: string,
   spec: ApprovedPrivateBrowserCaptureSpec,
   sourceSpecSha256: string,
   expectedBytes: Buffer,
 ): Promise<{ bytes: Buffer; probe: PrivatePlaywrightCaptureImageProbe } | undefined> {
-  try {
-    const bytes = await readFile(localFilePath)
-    const probe = validatePngBytes(bytes, spec, sourceSpecSha256)
-    if (bytes.length !== expectedBytes.length || !bytes.equals(expectedBytes)) {
-      throw new ApiError(
-        'VALIDATION_FAILED',
-        'Existing private Playwright capture failed deterministic provenance validation.',
-        409,
-        {
-          existingSha256: sha256(bytes),
-          expectedSha256: sha256(expectedBytes),
-          sourceSpecSha256,
-        },
-      )
-    }
-    return { bytes, probe }
-  } catch (error) {
-    const code = (error as NodeJS.ErrnoException).code
-    if (code === 'ENOENT') return undefined
-    throw error
+  const bytes = await readPrivateFileIfExistsWithinRoot({ rootPath, relativePath })
+  if (!bytes) return undefined
+  const probe = validatePngBytes(bytes, spec, sourceSpecSha256)
+  assertDeterministicCaptureBytes(bytes, expectedBytes, sourceSpecSha256)
+  return { bytes, probe }
+}
+
+function assertDeterministicCaptureBytes(
+  actualBytes: Buffer,
+  expectedBytes: Buffer,
+  sourceSpecSha256: string,
+): void {
+  if (actualBytes.length === expectedBytes.length && actualBytes.equals(expectedBytes)) return
+  throw new ApiError(
+    'VALIDATION_FAILED',
+    'Existing private Playwright capture failed deterministic provenance validation.',
+    409,
+    {
+      existingSha256: sha256(actualBytes),
+      expectedSha256: sha256(expectedBytes),
+      sourceSpecSha256,
+    },
+  )
+}
+
+async function waitForConcurrentCapture(input: {
+  rootPath: string
+  relativePath: string
+  spec: ApprovedPrivateBrowserCaptureSpec
+  sourceSpecSha256: string
+  expectedBytes: Buffer
+}): Promise<{ bytes: Buffer; probe: PrivatePlaywrightCaptureImageProbe } | undefined> {
+  for (let attempt = 0; attempt < 40; attempt += 1) {
+    const existing = await readExistingCapture(
+      input.rootPath,
+      input.relativePath,
+      input.spec,
+      input.sourceSpecSha256,
+      input.expectedBytes,
+    )
+    if (existing) return existing
+    await delay(25)
   }
+  return undefined
+}
+
+function isCreateOnlyCaptureRace(error: unknown): boolean {
+  if (!(error instanceof ApiError)) return false
+  if (error.code === 'IDEMPOTENCY_CONFLICT') return true
+  if (error.code !== 'UPLOAD_NOT_FINALIZED') return false
+  const details = error.details
+  return Boolean(
+    details
+    && typeof details === 'object'
+    && 'reason' in details
+    && details.reason === 'create_only_object_collision',
+  )
 }
 
 function validatePngBytes(

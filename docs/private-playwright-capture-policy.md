@@ -78,13 +78,25 @@ The runner produces:
 - `signedUrl = null`,
 - approved segment, asset, work-item, renderer-layer, and manifest lineage.
 
-Writes use a contained temporary file followed by rename. The deterministic output path includes the approved operation ID and source-spec hash.
+Writes use the shared root-confined private persistence boundary. Every ancestor
+is validated without following symbolic links, directories are hardened to
+`0700`, and the PNG is published create-only at `0600`; an existing target is
+never replaced. Readback opens the exact regular file with `O_NOFOLLOW`, and
+byte size for evidence is derived from those verified bytes rather than a
+follow-based pathname stat. The deterministic output path includes the approved
+operation ID and source-spec hash.
 
 New capture directories are created with mode `0700` and PNG files with mode `0600` on POSIX. Scope path components include SHA-256 entropy from the raw workspace, project, snapshot, and operation IDs, and artifact IDs include manifest fingerprint entropy, preventing lossy sanitized labels from colliding.
 
 ## Idempotency And Tamper Handling
 
 A valid same-size PNG at the deterministic path is not enough for reuse. Before accepting an existing artifact, the runner re-renders the current fixed template from the approved structured spec and requires exact byte equality. A different valid 640x360 PNG fails closed with deterministic provenance validation instead of being reused or silently overwritten.
+
+Concurrent identical attempts are serialized by the create-only persistence
+boundary. The losing attempt performs a bounded no-follow readback and accepts
+only the exact expected PNG bytes; a different-byte collision remains unchanged
+and fails closed. Target or ancestor symlinks are rejected without mutating the
+external destination.
 
 The artifact ID, operation-instance ID, evidence ID, cost-event ID, and cost-event idempotency key remain stable for an identical manifest/spec/output.
 
@@ -130,6 +142,10 @@ The smoke proves:
 - rejection of a client-injected executable-looking package without server-owned approval state,
 - rejection of planner-sourced authorization and blocked strategy/work-item statuses,
 - collision-resistant scope paths and private POSIX modes,
+- concurrent identical create-only publication and deterministic reuse,
+- different-byte collision refusal without overwrite,
+- target- and ancestor-symlink refusal without external mutation,
+- restart readback through the no-follow boundary,
 - visible FFmpeg overlay composition,
 - no user billing, service fee, wallet mutation, or settlement.
 

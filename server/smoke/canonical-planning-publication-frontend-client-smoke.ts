@@ -204,7 +204,13 @@ const originalMode = process.env.VITE_REEDITPRO_API_MODE
 const originalBaseUrl = process.env.VITE_REEDITPRO_API_BASE_URL
 const originalE2E = process.env.VITE_REEDITPRO_E2E
 const originalToken = process.env.VITE_REEDITPRO_E2E_AUTH_TOKEN
-const requests: Array<{ authorization?: string; body: Record<string, unknown>; method?: string; url?: string }> = []
+const requests: Array<{
+  authorization?: string
+  internalToken?: string
+  body: Record<string, unknown>
+  method?: string
+  url?: string
+}> = []
 let responseIdentity = { ...identity }
 
 const server = createServer((request, response) => {
@@ -212,11 +218,17 @@ const server = createServer((request, response) => {
   request.on('data', (chunk) => chunks.push(Buffer.from(chunk)))
   request.on('end', () => {
     const body = JSON.parse(Buffer.concat(chunks).toString('utf8')) as Record<string, unknown>
-    requests.push({ authorization: request.headers.authorization, body, method: request.method, url: request.url })
+    requests.push({
+      authorization: request.headers.authorization,
+      internalToken: request.headers['x-reeditpro-internal-token'] as string | undefined,
+      body,
+      method: request.method,
+      url: request.url,
+    })
     const serialized = JSON.stringify(body)
     assert.doesNotMatch(serialized, /storagePath|path-must-never-cross|signedUrl|publicUrl|sourceBytes|bytesBase64/)
     response.setHeader('content-type', 'application/json')
-    if (request.url?.endsWith('/publication-requests')) {
+    if (request.url?.endsWith('/plan-presentations')) {
       response.statusCode = 201
       response.end(JSON.stringify({
         ok: true,
@@ -250,7 +262,11 @@ const scope: ProjectPersistenceScope = {
 try {
   const { getApiRouteById } = await import('../../src/backend/api/api-route-registry')
   const { saveCanonicalPlanningForNamedEdit } = await import('../../src/lib/canonical-planning-publication-client')
-  for (const routeId of ['planning.canonicalHandoff.create', 'planning.canonicalPublicationRequest.create']) {
+  for (const routeId of [
+    'planning.canonicalHandoff.create',
+    'planning.canonicalPublicationRequest.create',
+    'planning.canonicalPlanPresentation.create',
+  ]) {
     const route = getApiRouteById(routeId)
     assert.equal(route?.runtimeMode, 'frontend_safe')
     assert.equal(route?.status, 'frontend_safe_ready')
@@ -290,13 +306,15 @@ try {
   })
   assert.equal(duplicateExactSave, firstExactSave, 'Identical in-flight saves must share one bounded request chain.')
   const exactResult = await firstExactSave
-  assert.equal(exactResult.status, 'candidate_saved_pending_internal_publication')
+  assert.equal(exactResult.status, 'plan_published_waiting_for_approval')
   assert.equal(exactResult.handoffSaved, true)
   assert.equal(exactResult.candidateSaved, true)
   assert.equal(requests.length, 3, 'Exact save should issue one handoff plus one candidate request.')
   assert.equal(requests.every((request) => request.method === 'POST'), true)
   assert.equal(requests.every((request) => request.authorization === 'Bearer canonical-save-smoke-token'), true)
-  assert.match(requests[2]?.url ?? '', /canonical-planning-handoffs\/canonical-save-handoff\/publication-requests$/)
+  assert.match(requests[2]?.url ?? '', /canonical-planning-handoffs\/canonical-save-handoff\/plan-presentations$/)
+  assert.equal(requests.some((request) => request.url?.endsWith('/publish')), false, 'The browser must never call the internal publication route.')
+  assert.equal(requests.some((request) => Boolean(request.internalToken)), false)
 
   responseIdentity = { ...identity, workspaceId: 'workspace-foreign' }
   const foreign = await saveCanonicalPlanningForNamedEdit({
@@ -454,9 +472,14 @@ function publicationFixture(foreignIdentity: typeof identity): Record<string, un
     requestBodyReturned: false,
     pathOrCredentialReturned: false,
     testOnly: true,
-    publicationStatus: 'pending_internal_publication',
+    publicationStatus: 'published',
     publication: {
-      internalPublicationMayBeAttempted: true,
+      planId: 'canonical-save-plan',
+      planningRequestId: 'canonical-save-planning-request',
+      planVersion: 1,
+      planStatus: 'presented',
+      planHash: sha('9'),
+      internalPublicationMayBeAttempted: false,
       fullRevalidationRequired: true,
       exactReplayOnlyAfterPublication: true,
     },

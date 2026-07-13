@@ -1067,6 +1067,9 @@ try {
   const publicationRequestSubmitUrl =
     `${routeBaseUrl}/v1/projects/${routeProjectId}/edit-sessions/route-edit-session/` +
     `canonical-planning-handoffs/${String(routePlanningHandoff.handoffId)}/publication-requests`
+  const planPresentationUrl =
+    `${routeBaseUrl}/v1/projects/${routeProjectId}/edit-sessions/route-edit-session/` +
+    `canonical-planning-handoffs/${String(routePlanningHandoff.handoffId)}/plan-presentations`
   const latestPublicationRequestInspectionUrl =
     `${publicationRequestSubmitUrl}/latest?workspaceId=${routeWorkspaceId}`
   const missingLatestPublicationRequest = await fetch(
@@ -1301,48 +1304,72 @@ try {
     }),
   })
   assert.equal(wrongCandidateHashPublish.status, 409)
-  const publishResponse = await fetch(
-    candidatePublishUrl,
-    {
-      method: 'POST',
-      headers: { ...routeAuthHeaders, 'content-type': 'application/json', 'idempotency-key': 'route-publish-plan' },
-      body: JSON.stringify({
-        workspaceId: routeWorkspaceId,
-        expectedCandidateHash: routePublicationRequest.candidateHash,
-      }),
+  const unauthenticatedPlanPresentation = await fetch(planPresentationUrl, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(persistedHandoffPublishBody),
+  })
+  assert.equal(unauthenticatedPlanPresentation.status, 401)
+  const crossUserPlanPresentation = await fetch(planPresentationUrl, {
+    method: 'POST',
+    headers: {
+      authorization: 'Bearer verified-other-authority-token',
+      'content-type': 'application/json',
     },
-  )
+    body: JSON.stringify(persistedHandoffPublishBody),
+  })
+  assert.equal(crossUserPlanPresentation.status, 404)
+  const [publishResponse, concurrentPublishResponse] = await Promise.all([
+    fetch(planPresentationUrl, {
+      method: 'POST',
+      headers: { ...routeAuthHeaders, 'content-type': 'application/json' },
+      body: JSON.stringify(persistedHandoffPublishBody),
+    }),
+    fetch(planPresentationUrl, {
+      method: 'POST',
+      headers: { ...routeAuthHeaders, 'content-type': 'application/json' },
+      body: JSON.stringify(persistedHandoffPublishBody),
+    }),
+  ])
   assert.equal(publishResponse.status, 201)
+  assert.equal(concurrentPublishResponse.status, 201)
   const publishEnvelope = await publishResponse.json() as {
-    data?: {
-      authority?: Record<string, unknown>
-      canonicalPlanningHandoff?: Record<string, unknown>
-      canonicalPlanPublicationRequest?: Record<string, unknown>
-    }
+    data?: { canonicalPlanPublicationRequest?: Record<string, unknown> }
   }
-  const routePublishedAuthority = asRecord(publishEnvelope.data?.authority)
-  const routePublishedHandoff = asRecord(publishEnvelope.data?.canonicalPlanningHandoff)
-  const routePlan = asRecord(routePublishedAuthority.plan)
-  const routeEstimate = asRecord(routePublishedAuthority.estimate)
-  assert.equal(routePlan.status, 'presented')
-  assert.equal('snapshot' in routePublishedAuthority, false)
-  assert.equal('jobs' in routePublishedAuthority, false)
-  assert.equal(routePublishedHandoff.handoffId, routePlanningHandoff.handoffId)
-  assert.equal(routePublishedHandoff.handoffHash, routePlanningHandoff.handoffHash)
-  assert.equal(routePublishedHandoff.boundToPublishedPlan, true)
-  assert.equal(routePublishedHandoff.revalidatedBeforePublication, true)
-  assert.equal(routePublishedHandoff.singlePublication, true)
-  assert.equal(routePublishedHandoff.publicationReplayed, false)
-  assert.match(String(routePublishedHandoff.publicationRequestHash), /^[a-f0-9]{64}$/)
   const publishedPublicationRequest = asRecord(
     publishEnvelope.data?.canonicalPlanPublicationRequest,
   )
+  const concurrentPublishEnvelope = await concurrentPublishResponse.json() as {
+    data?: { canonicalPlanPublicationRequest?: Record<string, unknown> }
+  }
+  assert.deepEqual(
+    concurrentPublishEnvelope.data?.canonicalPlanPublicationRequest,
+    publishedPublicationRequest,
+    'Concurrent plan-presentation requests must converge on one exact published candidate.',
+  )
   assert.equal(publishedPublicationRequest.publicationStatus, 'published')
+  const publishedPlanProjection = asRecord(publishedPublicationRequest.publication)
   assert.equal(
-    asRecord(publishedPublicationRequest.publication).planId,
-    routePlan.id,
+    publishedPlanProjection.planStatus,
+    'presented',
   )
   assert.equal(publishedPublicationRequest.requestBodyReturned, false)
+  const routePlanAuthorityResponse = await fetch(
+    `${routeBaseUrl}/v1/edit-plans/${String(publishedPlanProjection.planId)}/authority?workspaceId=${routeWorkspaceId}`,
+    { headers: routeAuthHeaders },
+  )
+  assert.equal(routePlanAuthorityResponse.status, 200)
+  const routePlanAuthorityEnvelope = await routePlanAuthorityResponse.json() as {
+    data?: { authority?: Record<string, unknown> }
+  }
+  const routePublishedAuthority = asRecord(routePlanAuthorityEnvelope.data?.authority)
+  const routePlan = asRecord(routePublishedAuthority.plan)
+  const routeEstimate = asRecord(routePublishedAuthority.estimate)
+  assert.equal(routePlan.status, 'presented')
+  assert.equal(routePlan.id, publishedPlanProjection.planId)
+  assert.equal(routePlan.planHash, publishedPlanProjection.planHash)
+  assert.equal('snapshot' in routePublishedAuthority, false)
+  assert.equal('jobs' in routePublishedAuthority, false)
   const routePlanComponentRefs = asRecord(routePlan.componentRefs)
   assert.match(
     String(asRecord(routePlanComponentRefs.planningHandoffAuthority).sha256),
@@ -1401,30 +1428,22 @@ try {
     handoffId: String(routePlanningHandoff.handoffId),
   })
   assert.deepEqual(freshServiceHandoffInspection, publishedHandoffInspection)
-  const persistedHandoffPublishReplay = await fetch(candidatePublishUrl, {
+  const persistedHandoffPublishReplay = await fetch(planPresentationUrl, {
     method: 'POST',
     headers: {
       ...routeAuthHeaders,
       'content-type': 'application/json',
-      'idempotency-key': 'route-publish-plan',
     },
-    body: JSON.stringify({
-      workspaceId: routeWorkspaceId,
-      expectedCandidateHash: routePublicationRequest.candidateHash,
-    }),
+    body: JSON.stringify(persistedHandoffPublishBody),
   })
   assert.equal(persistedHandoffPublishReplay.status, 201)
   const persistedHandoffPublishReplayEnvelope = await persistedHandoffPublishReplay.json() as {
-    data?: {
-      authority?: Record<string, unknown>
-      canonicalPlanningHandoff?: Record<string, unknown>
-    }
+    data?: { canonicalPlanPublicationRequest?: Record<string, unknown> }
   }
-  assert.deepEqual(persistedHandoffPublishReplayEnvelope.data?.authority, routePublishedAuthority)
-  assert.equal(
-    asRecord(persistedHandoffPublishReplayEnvelope.data?.canonicalPlanningHandoff)
-      .publicationReplayed,
-    true,
+  assert.deepEqual(
+    persistedHandoffPublishReplayEnvelope.data?.canonicalPlanPublicationRequest,
+    publishedPublicationRequest,
+    'Exact plan-presentation replay must return the existing published candidate inspection.',
   )
   const secondKeySameHandoffPublication = await fetch(candidatePublishUrl, {
     method: 'POST',
@@ -3603,6 +3622,8 @@ console.log(JSON.stringify({
     'latest_handoff_discovery_recovers_newest_serialized_preparation_without_hiding_prior_authority',
     'latest_handoff_pointer_is_cross_user_hidden_checksum_fail_closed_and_fresh_service_recoverable',
     'browser_safe_publication_request_candidate_is_content_addressed_and_exact_replay_safe',
+    'frontend_safe_plan_presentation_uses_server_owned_internal_publication_coordinator',
+    'concurrent_plan_presentations_converge_without_snapshot_credit_job_tool_provider_or_render_authority',
     'publication_request_candidate_is_cross_user_hidden_and_checksum_fail_closed',
     'publication_request_inspection_returns_no_request_body_path_credential_or_execution_authority',
     'latest_publication_request_discovery_recovers_the_newest_candidate_after_refresh',

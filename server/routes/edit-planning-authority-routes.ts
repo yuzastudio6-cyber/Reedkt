@@ -3,6 +3,7 @@ import { ApiError } from '../errors/api-error'
 import { requireAuth } from '../middleware/auth'
 import { requireInternalServiceAuth } from '../middleware/internal-service-auth'
 import { createCanonicalEditJourneyService } from '../services/canonical-edit-journey-service'
+import { createCanonicalPlanPresentationCoordinatorService } from '../services/canonical-plan-presentation-coordinator-service'
 import { createCanonicalPlanPublicationRequestService } from '../services/canonical-plan-publication-request-service'
 import { createEditPlanningAuthorityService } from '../services/edit-planning-authority-service'
 import { createCanonicalPlanningHandoffService } from '../services/canonical-planning-handoff-service'
@@ -101,6 +102,31 @@ export function createEditPlanningAuthorityRoutes(): Router {
       })
       sendOk(response, { canonicalPlanPublicationRequest: publicationRequest }, [
         'The authenticated request is persisted for internal canonical publication; it grants no plan, snapshot, credit, tool, provider, worker, or render authority.',
+      ], 201)
+    }),
+  )
+
+  router.post(
+    '/v1/projects/:projectId/edit-sessions/:editSessionId/canonical-planning-handoffs/:handoffId/plan-presentations',
+    requireAuth,
+    asyncRoute(async (request, response) => {
+      const body = validateBody(publishCanonicalEditPlanFromHandoffSchema, request.body)
+      const result = await createCanonicalPlanPresentationCoordinatorService(
+        getServiceContext(request),
+      ).present({
+        ...body,
+        projectId: getRouteParam(request, 'projectId'),
+        editSessionId: getRouteParam(request, 'editSessionId'),
+        handoffId: getRouteParam(request, 'handoffId'),
+      })
+      sendOk(response, {
+        canonicalPlanPublicationRequest: result.publicationRequest,
+      }, [
+        ...result.warnings,
+        result.newlyPresented
+          ? 'The backend presented the exact persisted plan and estimate after full current-state revalidation.'
+          : 'The backend reused or rejected competing persisted publication authority without creating another plan.',
+        'No approval, snapshot, credit reservation, job, tool, provider, render, or delivery authority was created.',
       ], 201)
     }),
   )

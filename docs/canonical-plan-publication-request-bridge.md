@@ -1,6 +1,6 @@
 # Canonical Plan Publication Request Bridge
 
-Status: authenticated local/private backend bridge with frontend-safe candidate submission and internal publication evidence
+Status: authenticated local/private backend bridge with frontend-safe plan presentation and protected internal publication evidence
 
 This bridge connects an authenticated planning client to the existing persisted canonical planning handoff without giving that client internal publication or execution authority.
 
@@ -36,11 +36,21 @@ The higher-level `canonical-journey` recovery endpoint combines this safe candid
 
 ## Frontend candidate boundary
 
-The named-edit frontend now calls the authenticated handoff and candidate routes through the reviewed browser-safe transport. It does not call the internal publication route or execute the `nextAction` returned by journey recovery.
+The named-edit frontend now calls the authenticated handoff and plan-presentation routes through the reviewed browser-safe transport. It does not call the protected internal publication route, receive an internal-service token, or execute the `nextAction` returned by journey recovery.
 
 Candidate submission is deliberately narrower than handoff submission. A complete, valid plan can save its exact planning handoff even when publication is blocked. The browser creates a candidate only for the currently proven private source-and-caption work graph, after confirming one finalized MP4 source, one continuous approved source range equal to the final frame count, one full-range safe caption, a supported frame/FPS/duration, no provider prompts, and no unrepresented visual, color, audio, transition, SFX, or multi-segment work. This preserves the difference between “planning inputs saved” and “exact execution candidate saved.”
 
 The response parser returns only a bounded user-facing status. Backend IDs, hashes, routes, tool names, filesystem details, and credentials are not rendered. Foreign tenant identity, changed handoff lineage, unexpected permissions, raw request-body exposure, or path/credential exposure is rejected.
+
+## Server-owned plan presentation
+
+When the browser has an exactly representable candidate, it calls:
+
+`POST /v1/projects/:projectId/edit-sessions/:editSessionId/canonical-planning-handoffs/:handoffId/plan-presentations`
+
+This authenticated route first persists the same content-addressed candidate described above. A server-owned coordinator then reloads that candidate from private persistence and invokes the existing internal publication service with an idempotency key derived from the immutable candidate hash. The browser neither supplies that publication idempotency authority nor calls the internal route.
+
+Presentation is serialized per workspace/project/edit/handoff. Concurrent exact requests converge on one published candidate and one presented plan. Exact replay returns the existing inspection; a competing candidate cannot replace the single published handoff. The response contains the bounded publication-request inspection only. It does not return the canonical request body, component blobs, internal token, filesystem path, credential, snapshot, reservation, job, lease, dispatch, artifact, tool input, provider input, or render authority.
 
 ## Internal publication
 
@@ -54,9 +64,9 @@ The published plan freezes the same publication-request hash carried by the cand
 
 ## Side-effect boundary
 
-Candidate submission and inspection do not publish or approve a plan, create a snapshot, reserve or spend credits, create jobs, execute tools, call providers, render media, or deliver an artifact. Internal publication creates only presented canonical plan and estimate authority; approval, funding, job derivation, execution, and delivery remain separate gates.
+Standalone candidate submission and inspection do not publish or approve a plan, create a snapshot, reserve or spend credits, create jobs, execute tools, call providers, render media, or deliver an artifact. The plan-presentation coordinator adds only presented canonical plan and estimate authority after the same internal revalidation. Approval, funding, snapshot creation, job derivation, execution, and delivery remain separate gates.
 
-The bridge is local/private evidence with bounded frontend submission. It adds no provider activation, Supabase action, customer billing, wallet mutation, deployment, public delivery, production rendering, Motion Studio, or production-readiness claim. Browser submission still cannot publish a plan; internal publication and full current-state revalidation remain mandatory.
+The bridge is local/private evidence with bounded frontend submission. It adds no provider activation, Supabase action, customer billing, wallet mutation, deployment, public delivery, production rendering, Motion Studio, or production-readiness claim. The browser can request plan presentation but cannot invoke internal publication directly; the backend-owned coordinator and full current-state revalidation remain mandatory.
 
 ## Verification
 

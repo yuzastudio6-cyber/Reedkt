@@ -51,7 +51,7 @@ The presentation adapter projects only user-facing status, bounded preparation c
 
 The status appears as one compact assistant-system surface inside the existing chat flow. It includes explicit copy that refreshing is read-only and cannot start editing, spend credits, or publish a video. Loading, unavailable, access-denied, not-found, and invalid-response states remain distinct. Identical in-flight reads are coalesced by authenticated scope/project/edit identity, manual refresh is accessible, and automatic refresh runs only for bounded in-flight stages while the page is visible.
 
-This closes frontend inspection/recovery only. Canonical planning-handoff submission, publication-candidate submission, internal publication, plan/estimate approval, approved-snapshot package request, work-graph advancement, private-review assembly, review decision, revision submission, and authenticated history opening still require separate frontend mutation slices and their own evidence. The browser must not infer or invoke any of those actions from the recovery response.
+This recovery bridge remains read-only and never executes its returned action. Separate reviewed mutations now cover canonical planning-handoff submission plus server-owned candidate persistence and plan presentation. Plan/estimate approval, approved-snapshot package request, work-graph advancement, private-review assembly, review decision, revision submission, and authenticated history opening still require their own frontend mutation slices and evidence. The browser must not infer or invoke any action from the recovery response.
 
 ## Verification
 

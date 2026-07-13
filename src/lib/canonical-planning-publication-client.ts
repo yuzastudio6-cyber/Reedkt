@@ -198,7 +198,7 @@ async function performCanonicalPlanningSave(
     },
     CanonicalPublicationRequestApiResponse
   >(
-    'planning.canonicalPublicationRequest.create',
+    'planning.canonicalPlanPresentation.create',
     {
       workspaceId: input.scope.workspaceId,
       planningRequestId,
@@ -216,7 +216,7 @@ async function performCanonicalPlanningSave(
         projectId: input.projectId,
         userId: input.scope.backendUserId ?? input.scope.userId,
       },
-      idempotencyKey: `canonical-publication-candidate:${requestDigest}`,
+      idempotencyKey: `canonical-plan-presentation:${requestDigest}`,
     },
   )
 

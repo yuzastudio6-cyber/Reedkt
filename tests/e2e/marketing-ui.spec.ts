@@ -28,6 +28,9 @@ test.describe('Public website UI', () => {
     await expect(page.getByRole('heading', { name: 'Continue to ReeditPro' })).toBeVisible()
     await expect(page.getByTestId('local-test-sign-in')).toBeVisible()
     await expect(page.locator('.auth-page .badge')).toHaveCount(0)
+    expect(
+      await page.locator('.auth-layout').evaluate((element) => getComputedStyle(element).gridTemplateColumns.trim().split(/\s+/).length),
+    ).toBe(1)
     await expectNoHorizontalOverflow(page)
   })
 })

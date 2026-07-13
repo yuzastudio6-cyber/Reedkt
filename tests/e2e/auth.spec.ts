@@ -14,18 +14,44 @@ test.describe('frontend authentication entry', () => {
     await expectNoHorizontalOverflow(page)
   })
 
+  test('keeps the skip link quiet until keyboard focus makes it available', async ({ page }) => {
+    await page.goto('/sign-in')
+    const skipLink = page.getByRole('link', { name: 'Skip to main content' })
+    const restingBox = await skipLink.boundingBox()
+    expect(restingBox?.y ?? 0).toBeLessThan(0)
+
+    await page.keyboard.press('Tab')
+    await expect(skipLink).toBeFocused()
+    await expect.poll(async () => (await skipLink.boundingBox())?.y ?? -1).toBeGreaterThanOrEqual(0)
+  })
+
   test('guards app routes and preserves a sanitized internal return path', async ({ page }) => {
     await page.goto('/projects/new?from=auth#project-details')
 
     await expect(page).toHaveURL(/\/sign-in\?returnTo=/)
-    await expect(page.getByTestId('sign-in-card')).toBeVisible()
+    const signInCard = page.getByTestId('sign-in-card')
+    await expect(signInCard).toBeVisible()
     await expect(page.getByTestId('local-test-sign-in')).toBeVisible()
+    expect(await page.locator('.auth-layout').evaluate((element) => getComputedStyle(element).display)).toBe('grid')
+    expect(
+      await page.locator('.auth-layout').evaluate((element) => getComputedStyle(element).gridTemplateColumns.trim().split(/\s+/).length),
+    ).toBe(2)
+    expect(await signInCard.evaluate((element) => getComputedStyle(element).display)).toBe('grid')
+    await expect(page.locator('.auth-page')).not.toContainText(/frontend anon|service-role|supabase env|backend readiness/i)
 
     const returnTo = await page.evaluate(() => new URLSearchParams(window.location.search).get('returnTo'))
     expect(returnTo).toBe('/projects/new?from=auth#project-details')
 
     await page.getByTestId('local-test-sign-in').click()
     await expect(page).toHaveURL(/\/projects\/new\?from=auth#project-details$/)
+    await expect(page.getByTestId('app-shell')).toBeVisible()
+  })
+
+  test('preserves the legacy internal redirect alias without accepting an external target', async ({ page }) => {
+    await page.goto('/sign-in?redirect=%2Fprojects%2Fnew%3Ffrom%3Dredirect-alias')
+    await page.getByTestId('local-test-sign-in').click()
+
+    await expect(page).toHaveURL(/\/projects\/new\?from=redirect-alias$/)
     await expect(page.getByTestId('app-shell')).toBeVisible()
   })
 

@@ -336,7 +336,7 @@ New values belong in tokens before route CSS. Avoid one-off glow, radius, shadow
 ### 5. Whole-Product Visual Consistency — In Progress
 
 - Home, Projects, and Project Home now use the shared bounded hierarchy, surface levels, and semantic status treatment.
-- Saved and Current Edit Preferences now use the canonical seven-field system with explicit persistence/recovery truth, inherited/overridden state, responsive hierarchy, guarded drafts, and visually reviewed action states. Create Project, the active named-edit upload gate, responsive conversation/preview composition, planning-input status, Edit Brief, Plan Review, progress framing, and Private Review now follow the same system. Landing requires continuation-branch style reconciliation, while Sign In and any remaining named-edit revision/recovery states still require their route-specific visual passes.
+- Saved and Current Edit Preferences now use the canonical seven-field system with explicit persistence/recovery truth, inherited/overridden state, responsive hierarchy, guarded drafts, and visually reviewed action states. Sign In, Create Project, the active named-edit upload gate, responsive conversation/preview composition, planning-input status, Edit Brief, Plan Review, progress framing, and Private Review now follow the same system. Landing requires continuation-branch style reconciliation, while any remaining named-edit revision/recovery states still require their route-specific visual passes.
 - Preserve route-specific identity as work continues: marketing is expressive, app routes operational, editor open and conversational.
 
 ### 6. Final Active-Route Signoff — Pending Whole-Product Completion
@@ -396,7 +396,15 @@ Focused Create Project and named-edit handoff evidence on 2026-07-13:
 - The active handoff remains `CreateProjectPage` -> exact `ProjectDetailPage` -> accessible New Edit modal -> exact named edit. Retired `ProjectHomePage` components and their older setup contract were not remounted.
 - Thirty-three focused project, tenancy, editor, and clean-chat checks pass together, covering duplicate-safe project identity, validation, exact-route recovery, modal focus containment/Escape/focus return, upload gating, plan approval, and private review. A separate 66-check viewport, keyboard, and zoom run passes, including Create Project at five desktop widths. The focused non-editor screenshot flow and the dedicated modal artifact test also pass.
 - `create-project-1280.png` and `project-new-edit-dialog-1280.png` passed visual review. Project creation and edit naming still do not upload, plan, approve, reserve/spend credits, call providers, render, release, or deploy.
-- This closes the active Create Project presentation and handoff pass only. Landing, Sign In, remaining revision/recovery states, the complete E2E rerun, and founder-level whole-product signoff remain pending.
+- This closes the active Create Project presentation and handoff pass only. Sign In is evidenced separately below; Landing, remaining revision/recovery states, the complete E2E rerun, and founder-level whole-product signoff remain pending.
+
+Focused Sign In and session-entry evidence on 2026-07-13:
+
+- Regression-first coverage reproduced the technical multi-card auth dashboard and missing reviewed `sign-in-card`, then proved the calm two/one-column route, one active-mode action, no marketing badges or backend-readiness copy, and the hidden-until-focused skip link.
+- Canonical `returnTo` and the legacy internal `redirect` alias preserve safe app destinations; external targets fall back to Home. The local preview identity remains tab-scoped with no bearer token and clears on sign-out.
+- Eleven auth, public-route, responsive, keyboard, guarded-local-session, and sign-out checks pass when the explicitly gated local testing spec is enabled. The non-editor screenshot flow passes and `sign-in-1280.png` matches the reviewed route.
+- Restored shared auth styling also returns the compact signed-in identity card to app sidebars without changing session, provider, database, billing, rendering, or deployment behavior.
+- This closes the active Sign In presentation and local-session entry pass only. Landing, remaining revision/recovery states, the complete E2E rerun, and founder-level whole-product signoff remain pending.
 
 ## Definition Of Done
 

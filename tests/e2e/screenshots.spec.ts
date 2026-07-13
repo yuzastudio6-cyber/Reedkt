@@ -106,8 +106,10 @@ test.describe('Active product redesign screenshot QA artifacts', () => {
     await setViewport(page, 1280)
 
     await page.goto('/sign-in')
-    await expect(page.locator('.auth-entry-card').first()).toBeVisible()
-    await expect(page.locator('.auth-entry-brand')).toBeVisible()
+    await expect(page.getByTestId('sign-in-card')).toBeVisible()
+    const authLogo = page.locator('.auth-brand-row .brand-logo-mark')
+    await expect(authLogo).toBeVisible()
+    await expect.poll(() => authLogo.evaluate((image) => (image as HTMLImageElement).naturalWidth)).toBeGreaterThan(0)
     await captureDocScreenshot(page, `${screenshotDir}/sign-in-1280.png`)
 
     const appRoutes = [

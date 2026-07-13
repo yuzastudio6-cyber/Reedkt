@@ -89,7 +89,10 @@ Use this runtime to exercise the current active product only:
 6. Complete source preparation and the optional inline Edit Brief.
 7. Review the edit plan and credit estimate.
 8. Approve before any gated private execution begins.
-9. Review the private result or request a revision.
-10. Stop both processes with `Ctrl+C`.
+9. Select **Prepare private handoff** and verify the saved workflow reports that the exact approved handoff is ready.
+10. Confirm the browser reports no editing-tool, rendering, billing, or publishing action from that handoff request.
+11. Stop both processes with `Ctrl+C`.
+
+The current browser milestone stops at the immutable private handoff. Work-graph advancement and private-review assembly remain internal-service stages and are not started by the browser action. The canonical backend smoke suites prove those later private stages separately; this manual browser path does not yet claim one-click upload-to-review completion.
 
 This manual path supplements, but does not replace, `npm run qa:internal-pipeline` and the headless full-stack browser smoke.

@@ -184,7 +184,8 @@ export function createCanonicalEditJourneyService(context: ServiceContext) {
               code: 'request_execution_package',
               actor: 'authenticated_user',
               method: 'POST',
-              routeTemplate: '/v1/edit-executions/packages',
+              routeTemplate:
+                `/v1/approved-snapshots/${approval.snapshotId}/canonical-execution-package`,
             },
           })
         }

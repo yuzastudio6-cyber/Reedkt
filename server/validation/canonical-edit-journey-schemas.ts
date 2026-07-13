@@ -459,7 +459,9 @@ function expectedRouteFor(value: CanonicalEditJourneyResponseValue): string | un
     case 'plan_approval_required':
       return value.plan ? `/v1/edit-plans/${value.plan.planId}/canonical-approval` : undefined
     case 'approved_snapshot_available':
-      return '/v1/edit-executions/packages'
+      return value.approval
+        ? `/v1/approved-snapshots/${value.approval.snapshotId}/canonical-execution-package`
+        : undefined
     case 'execution_in_progress':
       return value.execution
         ? `/v1/edit-executions/packages/${value.execution.packageRecordId}/private-internal-work-graph-runs`

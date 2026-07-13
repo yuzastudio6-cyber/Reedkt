@@ -103,6 +103,20 @@ try {
   })
   assert.equal(hiddenPackageRoute.status, 404, 'Production must not mount the internal execution package route.')
 
+  const hiddenBrowserPackageRequest = await fetch(
+    `${productionBaseUrl}/v1/approved-snapshots/hidden-snapshot/canonical-execution-package`,
+    {
+      method: 'POST',
+      headers: dualAuthHeaders,
+      body: '{}',
+    },
+  )
+  assert.equal(
+    hiddenBrowserPackageRequest.status,
+    404,
+    'Production must not mount the local/private browser package-request route.',
+  )
+
   const hiddenInternalRunRoute = await fetch(`${productionBaseUrl}/v1/edit-executions/private-internal-test-runs`, {
     method: 'POST',
     headers: dualAuthHeaders,
@@ -155,6 +169,24 @@ try {
     body: '{}',
   })
   assert.equal(hiddenCloudTestRoute.status, 404, 'A non-production cloud runtime must not mount legacy internal execution routes.')
+  const hiddenCloudBrowserPackageRequest = await fetch(
+    `${internalTestBaseUrl}/v1/approved-snapshots/hidden-snapshot/canonical-execution-package`,
+    {
+      method: 'POST',
+      headers: {
+        authorization: 'Bearer verified-user-token',
+        [INTERNAL_SERVICE_TOKEN_HEADER]: internalToken,
+        'content-type': 'application/json',
+        'idempotency-key': 'cloud-test-hidden-browser-package-request',
+      },
+      body: '{}',
+    },
+  )
+  assert.equal(
+    hiddenCloudBrowserPackageRequest.status,
+    404,
+    'A non-production cloud runtime must not mount the browser package-request route.',
+  )
 } finally {
   await close(internalTestServer)
 }
@@ -210,6 +242,29 @@ try {
   assert.equal(dualAuth.status, 400, 'Dual auth should reach the strict canonical identity-only package schema.')
   const dualAuthError = await dualAuth.json() as { error?: { code?: string } }
   assert.equal(dualAuthError.error?.code, 'VALIDATION_FAILED')
+
+  const browserPackageRequest = await fetch(
+    `${internalTestBaseUrl}/v1/approved-snapshots/strict-snapshot/canonical-execution-package`,
+    {
+      method: 'POST',
+      headers: {
+        authorization: 'Bearer verified-user-token',
+        origin: 'https://app.reeditpro.test',
+        'content-type': 'application/json',
+        'idempotency-key': 'strict-browser-package-request',
+      },
+      body: '{}',
+    },
+  )
+  assert.equal(
+    browserPackageRequest.status,
+    400,
+    'The local/private browser package-request route should require user auth and reach its strict body schema without internal credentials.',
+  )
+  const browserPackageRequestError = await browserPackageRequest.json() as {
+    error?: { code?: string }
+  }
+  assert.equal(browserPackageRequestError.error?.code, 'VALIDATION_FAILED')
 
   for (const [path, body] of [
     ['/v1/jobs/caller-job/claim', {
@@ -271,8 +326,10 @@ console.log(JSON.stringify({
     'production_local_and_mock_worker_rejected',
     'production_local_storage_rejected',
     'production_internal_execution_routes_unmounted',
+    'production_and_cloud_browser_package_request_route_unmounted',
     'production_user_review_and_download_routes_preserved',
     'private_execution_routes_require_dual_auth',
+    'local_private_browser_package_request_requires_user_auth_and_strict_identity_body',
     'canonical_identity_only_execution_package_schema',
     'caller_authored_worker_claim_and_run_routes_disabled',
     'caller_authored_tool_runtime_evidence_write_disabled',

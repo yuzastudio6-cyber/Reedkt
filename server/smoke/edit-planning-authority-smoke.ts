@@ -62,6 +62,7 @@ import {
 } from '../validation/canonical-private-tool-dispatch-schemas'
 import { canonicalEditJourneyResponseSchema } from '../validation/canonical-edit-journey-schemas'
 import { canonicalPlanApprovalReceiptSchema } from '../validation/canonical-plan-approval-schemas'
+import { canonicalExecutionPackageRequestReceiptSchema } from '../validation/canonical-execution-package-request-schemas'
 import { canonicalAuthoritySmokeRoot } from './canonical-authority-smoke-root'
 
 const localStorageRoot = canonicalAuthoritySmokeRoot
@@ -1743,30 +1744,96 @@ try {
     asRecord(approvedSnapshotJourney.journey.approval).jobCount,
     (routeApprovedAuthority.jobs as unknown[]).length,
   )
+  assert.equal(
+    asRecord(approvedSnapshotJourney.journey.nextAction).routeTemplate,
+    `/v1/approved-snapshots/${String(routeSnapshot.snapshotId)}/canonical-execution-package`,
+  )
 
-  const packageResponse = await fetch(`${routeBaseUrl}/v1/edit-executions/packages`, {
+  const packageRequestUrl =
+    `${routeBaseUrl}/v1/approved-snapshots/${String(routeSnapshot.snapshotId)}/` +
+    'canonical-execution-package'
+  const packageRequestBody = {
+    workspaceId: routeWorkspaceId,
+    expectedProjectId: routeProjectId,
+    expectedEditSessionId: 'route-edit-session',
+    expectedSnapshotHash: routeSnapshot.snapshotHash,
+    purpose: 'request_canonical_execution_package',
+  }
+  const unauthenticatedPackageRequest = await fetch(packageRequestUrl, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'idempotency-key': 'route-package-unauthenticated' },
+    body: JSON.stringify(packageRequestBody),
+  })
+  assert.equal(unauthenticatedPackageRequest.status, 401)
+  const substitutedPackageRequest = await fetch(packageRequestUrl, {
+    method: 'POST',
+    headers: { ...routeAuthHeaders, 'content-type': 'application/json', 'idempotency-key': 'route-package-substituted' },
+    body: JSON.stringify({ ...packageRequestBody, expectedEditSessionId: 'route-edit-session-foreign' }),
+  })
+  assert.equal(substitutedPackageRequest.status, 409)
+  const packageResponse = await fetch(packageRequestUrl, {
     method: 'POST',
     headers: { ...routeAuthHeaders, 'content-type': 'application/json', 'idempotency-key': 'route-canonical-package' },
-    body: JSON.stringify({
-      workspaceId: routeWorkspaceId,
-      approvedPlanSnapshotId: routeSnapshot.snapshotId,
-      expectedSnapshotHash: routeSnapshot.snapshotHash,
-      purpose: 'private_internal_execution_handoff',
-    }),
+    body: JSON.stringify(packageRequestBody),
   })
   assert.equal(packageResponse.status, 201)
   const packageEnvelope = await packageResponse.json() as {
-    data?: { approvedEditExecutionPackage?: Record<string, unknown> }
+    data?: { canonicalExecutionPackageRequest?: Record<string, unknown> }
   }
-  const routeExecutionPackage = asRecord(packageEnvelope.data?.approvedEditExecutionPackage)
-  assert.equal(routeExecutionPackage.source, 'canonical_edit_authority')
-  assert.equal(routeExecutionPackage.approvedPlanSnapshotId, routeSnapshot.snapshotId)
-
+  const packageReceipt = canonicalExecutionPackageRequestReceiptSchema.parse(
+    packageEnvelope.data?.canonicalExecutionPackageRequest,
+  )
+  assert.equal(packageReceipt.disposition, 'package_available')
+  assert.equal(packageReceipt.identity.workspaceId, routeWorkspaceId)
+  assert.equal(packageReceipt.identity.projectId, routeProjectId)
+  assert.equal(packageReceipt.identity.editSessionId, 'route-edit-session')
+  assert.equal(packageReceipt.executionPackage.approvedPlanSnapshotId, routeSnapshot.snapshotId)
+  assert.equal(packageReceipt.executionPackage.snapshotHash, routeSnapshot.snapshotHash)
+  assert.equal(packageReceipt.boundaries.executionPackageAvailable, true)
+  assert.equal(packageReceipt.boundaries.workGraphStarted, false)
+  assert.equal(packageReceipt.boundaries.workerDispatchStarted, false)
+  assert.equal(packageReceipt.boundaries.jobExecutionStarted, false)
+  assert.equal(packageReceipt.boundaries.toolExecutionStarted, false)
+  assert.equal(packageReceipt.boundaries.providerCallStarted, false)
+  assert.equal(packageReceipt.boundaries.renderStarted, false)
+  assert.equal(packageReceipt.boundaries.paidBillingExecuted, false)
+  assert.equal(packageReceipt.boundaries.customerWalletMutation, false)
+  assert.equal(packageReceipt.rawAuthorityReturned, false)
+  assert.equal(packageReceipt.jobOrToolDetailsReturned, false)
+  assert.equal(packageReceipt.pathOrCredentialReturned, false)
+  const serializedPackageReceipt = JSON.stringify(packageReceipt)
+  assert.doesNotMatch(
+    serializedPackageReceipt,
+    /componentRefs|approvedWorkItems|"jobs"|toolCapabilityManifest|toolIds|workerClass|localPath|signedUrl|secret|accessToken/i,
+  )
+  const packageReplayResponse = await fetch(packageRequestUrl, {
+    method: 'POST',
+    headers: { ...routeAuthHeaders, 'content-type': 'application/json', 'idempotency-key': 'route-canonical-package' },
+    body: JSON.stringify(packageRequestBody),
+  })
+  assert.equal(packageReplayResponse.status, 201)
+  const packageReplayEnvelope = await packageReplayResponse.json() as {
+    data?: { canonicalExecutionPackageRequest?: Record<string, unknown> }
+  }
+  const packageReplayReceipt = canonicalExecutionPackageRequestReceiptSchema.parse(
+    packageReplayEnvelope.data?.canonicalExecutionPackageRequest,
+  )
+  assert.deepEqual(
+    packageReplayReceipt,
+    packageReceipt,
+    'Exact browser handoff replay must return the same bounded receipt.',
+  )
   const packageRead = await fetch(
-    `${routeBaseUrl}/v1/edit-executions/packages/${String(routeExecutionPackage.packageRecordId)}?workspaceId=${routeWorkspaceId}`,
+    `${routeBaseUrl}/v1/edit-executions/packages/${packageReceipt.executionPackage.packageRecordId}?workspaceId=${routeWorkspaceId}`,
     { headers: routeAuthHeaders },
   )
   assert.equal(packageRead.status, 200)
+  const packageReadEnvelope = await packageRead.json() as {
+    data?: { approvedEditExecutionPackage?: Record<string, unknown> }
+  }
+  const routeExecutionPackage = asRecord(packageReadEnvelope.data?.approvedEditExecutionPackage)
+  assert.equal(routeExecutionPackage.source, 'canonical_edit_authority')
+  assert.equal(routeExecutionPackage.approvedPlanSnapshotId, routeSnapshot.snapshotId)
   const executionJourney = await readCanonicalJourney()
   assert.equal(executionJourney.response.status, 200)
   assert.equal(executionJourney.journey.stage, 'execution_in_progress')
@@ -3714,6 +3781,9 @@ console.log(JSON.stringify({
     'cross_user_snapshot_isolation',
     'production_authority_fail_closed',
     'authenticated_canonical_authority_http_routes',
+    'browser_safe_exact_execution_package_request_receipt',
+    'exact_execution_package_request_replay_is_stable',
+    'execution_package_request_returns_no_jobs_tools_paths_credentials_or_execution_authority',
     'content_addressed_private_planning_handoff_replay',
     'preference_mismatched_handoff_does_not_promote_planning_evidence',
     'persisted_planning_handoff_cross_user_scope_hidden',

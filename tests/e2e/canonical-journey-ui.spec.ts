@@ -289,7 +289,120 @@ test.describe('canonical journey named-edit UI bridge', () => {
     await expectNoHorizontalOverflow(page)
   })
 
-  test('locks Current Edit Preferences when canonical approval is recovered', async ({ page }) => {
+  test('requests one exact private handoff without starting browser-owned edit work', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 })
+    const fixture = await installSourceReadyNamedEdit(page, 'canonical-package-request')
+    const identity = {
+      projectId: fixture.project.id,
+      editSessionId: fixture.edit.editSessionId,
+    }
+    const packageRequests: Array<{
+      authorization: string | null
+      idempotencyKey: string | null
+      body: Record<string, unknown>
+      url: string
+    }> = []
+    let packageRequested = false
+    let internalExecutionRequestCount = 0
+    let releasePackageRequest!: () => void
+    const packageRequestGate = new Promise<void>((resolve) => {
+      releasePackageRequest = resolve
+    })
+
+    await page.route('**/v1/projects/*/edit-sessions/*/canonical-journey?*', async (route) => {
+      await route.fulfill({
+        contentType: 'application/json',
+        status: 200,
+        body: JSON.stringify({
+          ok: true,
+          data: {
+            canonicalEditJourney: packageRequested
+              ? canonicalPackagedJourneyFixture(identity.projectId, identity.editSessionId)
+              : canonicalApprovalJourneyFixture(identity.projectId, identity.editSessionId, true),
+          },
+          warnings: [],
+        }),
+      })
+    })
+    await page.route(
+      '**/v1/approved-snapshots/snapshot-canonical-approval-browser/canonical-execution-package',
+      async (route) => {
+        packageRequests.push({
+          authorization: await route.request().headerValue('authorization'),
+          idempotencyKey: await route.request().headerValue('idempotency-key'),
+          body: route.request().postDataJSON() as Record<string, unknown>,
+          url: route.request().url(),
+        })
+        await packageRequestGate
+        packageRequested = true
+        await route.fulfill({
+          contentType: 'application/json',
+          status: 201,
+          body: JSON.stringify({
+            ok: true,
+            data: {
+              canonicalExecutionPackageRequest: canonicalExecutionPackageRequestReceiptFixture(
+                identity.projectId,
+                identity.editSessionId,
+              ),
+            },
+            warnings: [],
+          }),
+        })
+      },
+    )
+    await page.route('**/v1/edit-executions/**', async (route) => {
+      internalExecutionRequestCount += 1
+      await route.abort()
+    })
+
+    await gotoRoute(page, fixture.editPath)
+
+    const status = page.getByTestId('canonical-journey-status')
+    await expect(status).toHaveAttribute('data-journey-stage', 'approved_snapshot_available')
+    const requestButton = page.getByTestId('canonical-execution-package-request-submit')
+    await expect(requestButton).toBeEnabled()
+    await expect(requestButton).toHaveText('Prepare private handoff')
+
+    await requestButton.click()
+    await expect(requestButton).toBeDisabled()
+    await expect(requestButton).toHaveAttribute('aria-busy', 'true')
+    await expect(requestButton).toHaveText('Preparing handoff…')
+    const requesting = page.getByTestId('canonical-execution-package-request-requesting')
+    await expect(requesting).toContainText('Editing tools and rendering remain stopped')
+    await expect.poll(() => packageRequests.length).toBe(1)
+    expect(internalExecutionRequestCount).toBe(0)
+
+    const request = packageRequests[0]!
+    expect(request.authorization).toBe('Bearer canonical-journey-playwright-token')
+    expect(request.idempotencyKey).toMatch(/^canonical-execution-package:/)
+    expect(request.url).toContain(
+      '/v1/approved-snapshots/snapshot-canonical-approval-browser/canonical-execution-package',
+    )
+    expect(request.body).toEqual({
+      workspaceId: scope.workspaceId,
+      expectedProjectId: identity.projectId,
+      expectedEditSessionId: identity.editSessionId,
+      expectedSnapshotHash: '3'.repeat(64),
+      purpose: 'request_canonical_execution_package',
+    })
+    expect(JSON.stringify(request.body)).not.toMatch(
+      /internalToken|storagePath|signedUrl|publicUrl|componentRefs|jobIds|toolManifest|sourceBytes|bytesBase64/i,
+    )
+
+    releasePackageRequest()
+    await expect(status).toHaveAttribute('data-journey-stage', 'execution_in_progress')
+    await expect(status).toContainText('Private preparation handoff is ready')
+    await expect(status).toContainText('Backend preparation has not reported progress yet')
+    await expect(page.getByTestId('canonical-execution-package-request-submit')).toHaveCount(0)
+    expect(internalExecutionRequestCount).toBe(0)
+    await expect(page.getByTestId('editor-page')).not.toContainText(
+      /\b(ffmpeg|ffprobe|libass|remotion|provider secret|service role|filesystem path|tool manifest)\b/i,
+    )
+    await expectNoHorizontalOverflow(page)
+  })
+
+  test('keeps Current Edit Preferences locked after the approved handoff is recovered', async ({ page }) => {
     const fixture = await installSourceReadyNamedEdit(page, 'canonical-preferences-lock')
     await page.route('**/v1/projects/*/edit-sessions/*/canonical-journey?*', async (route) => {
       await route.fulfill({
@@ -298,10 +411,9 @@ test.describe('canonical journey named-edit UI bridge', () => {
         body: JSON.stringify({
           ok: true,
           data: {
-            canonicalEditJourney: canonicalApprovalJourneyFixture(
+            canonicalEditJourney: canonicalPackagedJourneyFixture(
               fixture.project.id,
               fixture.edit.editSessionId,
-              true,
             ),
           },
           warnings: [],
@@ -312,7 +424,7 @@ test.describe('canonical journey named-edit UI bridge', () => {
     await gotoRoute(page, fixture.editPath)
     await expect(page.getByTestId('canonical-journey-status')).toHaveAttribute(
       'data-journey-stage',
-      'approved_snapshot_available',
+      'execution_in_progress',
     )
     await clickWhenReady(page.getByTestId('current-edit-preferences-trigger'))
     await expect(page).toHaveURL(/\?view=preferences$/)
@@ -875,7 +987,7 @@ function canonicalApprovalJourneyFixture(projectId: string, editSessionId: strin
           code: 'request_execution_package',
           actor: 'authenticated_user',
           method: 'POST',
-          routeTemplate: '/v1/edit-executions/packages',
+          routeTemplate: '/v1/approved-snapshots/snapshot-canonical-approval-browser/canonical-execution-package',
         }
       : {
           code: 'approve_canonical_plan',
@@ -956,6 +1068,75 @@ function canonicalApprovalReceiptFixture(projectId: string, editSessionId: strin
       productionAuthority: false,
     },
     rawAuthorityReturned: false,
+    pathOrCredentialReturned: false,
+    testOnly: true,
+  }
+}
+
+function canonicalPackagedJourneyFixture(projectId: string, editSessionId: string) {
+  return {
+    ...canonicalApprovalJourneyFixture(projectId, editSessionId, true),
+    stage: 'execution_in_progress',
+    nextAction: {
+      code: 'run_private_work_graph',
+      actor: 'internal_service',
+      method: 'POST',
+      routeTemplate:
+        '/v1/edit-executions/packages/package-canonical-approval-browser/private-internal-work-graph-runs',
+    },
+    execution: {
+      packageRecordId: 'package-canonical-approval-browser',
+      packageHash: '6'.repeat(64),
+      snapshotId: 'snapshot-canonical-approval-browser',
+      purpose: 'private_internal_execution_handoff',
+    },
+  }
+}
+
+function canonicalExecutionPackageRequestReceiptFixture(
+  projectId: string,
+  editSessionId: string,
+) {
+  return {
+    schemaVersion: 'canonical-execution-package-request-receipt-v1',
+    source: 'canonical_execution_package_request_coordinator_service',
+    purpose: 'request_canonical_execution_package',
+    disposition: 'package_available',
+    identity: {
+      workspaceId: scope.workspaceId,
+      projectId,
+      editSessionId,
+    },
+    executionPackage: {
+      packageRecordId: 'package-canonical-approval-browser',
+      packageHash: '6'.repeat(64),
+      approvedPlanSnapshotId: 'snapshot-canonical-approval-browser',
+      snapshotHash: '3'.repeat(64),
+      status: 'canonical_authority_packaged_runtime_blocked',
+      createdAt: '2026-07-13T15:00:00.000Z',
+    },
+    boundaries: {
+      executionPackageAvailable: true,
+      approvedSnapshotMutated: false,
+      creditReservationMutated: false,
+      workGraphStarted: false,
+      workerDispatchStarted: false,
+      jobExecutionStarted: false,
+      toolExecutionStarted: false,
+      providerCallStarted: false,
+      renderStarted: false,
+      paidBillingExecuted: false,
+      customerWalletMutation: false,
+      publicDeliveryStarted: false,
+    },
+    persistence: {
+      privateLocal: true,
+      tenantScoped: true,
+      distributed: false,
+      productionAuthority: false,
+    },
+    rawAuthorityReturned: false,
+    jobOrToolDetailsReturned: false,
     pathOrCredentialReturned: false,
     testOnly: true,
   }

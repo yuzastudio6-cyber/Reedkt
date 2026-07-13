@@ -95,6 +95,7 @@ import { useExportWorkflow } from '../../hooks/useExportWorkflow'
 import { useMockFootagePrep } from '../../hooks/useMockFootagePrep'
 import { useRevisionWorkflow } from '../../hooks/useRevisionWorkflow'
 import { useCanonicalEditJourney } from '../../hooks/useCanonicalEditJourney'
+import { useCanonicalExecutionPackageRequest } from '../../hooks/useCanonicalExecutionPackageRequest'
 import { useCanonicalPlanApproval } from '../../hooks/useCanonicalPlanApproval'
 import { useCanonicalPlanningPublication } from '../../hooks/useCanonicalPlanningPublication'
 import type { ContextAwareMockEditPlanResult, EditBriefState, EditBriefStatus, MediaKind, ReeditProChatMessage } from '../../types'
@@ -857,6 +858,12 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     projectId: editorProjectId,
     scope: projectPersistenceScope,
   })
+  const canonicalExecutionPackageRequest = useCanonicalExecutionPackageRequest({
+    editSessionId: editorEditSessionId,
+    enabled: canonicalPlanningBackendConnected,
+    projectId: editorProjectId,
+    scope: projectPersistenceScope,
+  })
   const canonicalJourneyValue = canonicalJourney.result?.status === 'ready'
     ? canonicalJourney.result.journey
     : undefined
@@ -865,9 +872,9 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     (
       canonicalPlanApproval.result?.status === 'approved' ||
       (
-        canonicalJourneyValue?.stage === 'approved_snapshot_available' &&
-        canonicalJourneyValue.plan?.status === 'approved' &&
-        canonicalJourneyValue.plan.estimateStatus === 'approved'
+        canonicalJourneyValue?.plan?.status === 'approved' &&
+        canonicalJourneyValue.plan.estimateStatus === 'approved' &&
+        Boolean(canonicalJourneyValue.approval)
       )
     ),
   )
@@ -3019,6 +3026,14 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     )
   }
 
+  async function handleRequestCanonicalExecutionPackage() {
+    if (!canonicalJourneyValue) return
+    const result = await canonicalExecutionPackageRequest.requestPackage(
+      canonicalJourneyValue,
+    )
+    if (result.status === 'ready') canonicalJourney.refresh()
+  }
+
   async function handleRunRevisionPrivateReview() {
     if (approvalChecking || privateInternalTestRunRunning) return
 
@@ -3939,7 +3954,13 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
 
   function renderCleanCardsForMessage(message: ReeditProChatMessage) {
     if (message.id !== 'clean-message-canonical-journey') return null
-    return <CanonicalJourneyStatusCard {...canonicalJourney} />
+    return (
+      <CanonicalJourneyStatusCard
+        {...canonicalJourney}
+        executionPackageRequest={canonicalExecutionPackageRequest}
+        onRequestExecutionPackage={() => void handleRequestCanonicalExecutionPackage()}
+      />
+    )
   }
 
   function renderCleanEditorStage() {

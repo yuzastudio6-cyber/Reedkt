@@ -1,4 +1,5 @@
 import { useCanonicalEditJourney } from '../../../src/hooks/useCanonicalEditJourney'
+import { useCanonicalExecutionPackageRequest } from '../../../src/hooks/useCanonicalExecutionPackageRequest'
 import { useCanonicalPlanApproval } from '../../../src/hooks/useCanonicalPlanApproval'
 import { canonicalPlanApprovalReadyForPresentedPlan } from '../../../src/lib/canonical-plan-approval-readiness'
 import { createGuidedMockEditPlan } from '../../../src/lib/mock-planner/guided'
@@ -69,6 +70,12 @@ export function CanonicalPlanApprovalBrowserHarness() {
     projectId,
     scope,
   })
+  const executionPackageRequest = useCanonicalExecutionPackageRequest({
+    editSessionId,
+    enabled: true,
+    projectId,
+    scope,
+  })
   const currentJourney = journey.result?.status === 'ready' ? journey.result.journey : undefined
   const authorityReady = canonicalPlanApprovalReadyForPresentedPlan({
     backendConnected: true,
@@ -89,9 +96,19 @@ export function CanonicalPlanApprovalBrowserHarness() {
     if (result.status === 'approved') journey.refresh()
   }
 
+  async function handleRequestExecutionPackage() {
+    if (!currentJourney) return
+    const result = await executionPackageRequest.requestPackage(currentJourney)
+    if (result.status === 'ready') journey.refresh()
+  }
+
   return (
     <main style={{ margin: '0 auto', maxWidth: 920, padding: '32px 20px 80px' }}>
-      <CanonicalJourneyStatusCard {...journey} />
+      <CanonicalJourneyStatusCard
+        {...journey}
+        executionPackageRequest={executionPackageRequest}
+        onRequestExecutionPackage={() => void handleRequestExecutionPackage()}
+      />
       <PlanReviewApprovalCard
         approved={approved}
         approvalAuthorityBlockedLabel="Waiting for exact saved plan"

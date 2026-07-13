@@ -38,6 +38,14 @@ for (const stage of CANONICAL_EDIT_JOURNEY_STAGES) {
   } else {
     assert.equal(parsed.value.approvalAuthority, undefined)
   }
+  if (stage === 'approved_snapshot_available') {
+    assert.deepEqual(parsed.value.executionPackageAuthority, {
+      snapshotId: 'snapshot-ui-smoke',
+      expectedSnapshotHash: hash('3'),
+    })
+  } else {
+    assert.equal(parsed.value.executionPackageAuthority, undefined)
+  }
 
   const presentation = createCanonicalEditJourneyPresentation(parsed.value)
   assert.ok(presentation.title.length > 0, `${stage} should have a user-facing title.`)
@@ -254,7 +262,7 @@ function actionFor(stage: CanonicalEditJourneyStage): Record<string, unknown> {
     case 'plan_approval_required':
       return { code: 'approve_canonical_plan', actor: 'authenticated_user', method: 'POST', routeTemplate: '/v1/edit-plans/plan-ui-smoke/canonical-approval' }
     case 'approved_snapshot_available':
-      return { code: 'request_execution_package', actor: 'authenticated_user', method: 'POST', routeTemplate: '/v1/edit-executions/packages' }
+      return { code: 'request_execution_package', actor: 'authenticated_user', method: 'POST', routeTemplate: '/v1/approved-snapshots/snapshot-ui-smoke/canonical-execution-package' }
     case 'execution_in_progress':
       return { code: 'run_private_work_graph', actor: 'internal_service', method: 'POST', routeTemplate: '/v1/edit-executions/packages/package-ui-smoke/private-internal-work-graph-runs' }
     case 'private_review_assembly_required':

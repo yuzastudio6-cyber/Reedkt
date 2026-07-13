@@ -3,16 +3,18 @@ import {
   CheckCircle2,
   CircleDot,
   Loader2,
+  PackageCheck,
   RefreshCw,
   ShieldCheck,
 } from 'lucide-react'
 import { Badge } from '../Badge'
-import { IconButton } from '../Button'
+import { Button, IconButton } from '../Button'
 import {
   createCanonicalEditJourneyPresentation,
   type CanonicalEditJourneyTone,
 } from '../../lib/canonical-edit-journey'
 import type { CanonicalEditJourneyHookResult } from '../../hooks/useCanonicalEditJourney'
+import type { CanonicalExecutionPackageRequestHookResult } from '../../hooks/useCanonicalExecutionPackageRequest'
 
 const toneIcon = {
   neutral: CircleDot,
@@ -21,13 +23,20 @@ const toneIcon = {
   success: CheckCircle2,
 } as const
 
+type CanonicalJourneyStatusCardProps = CanonicalEditJourneyHookResult & {
+  executionPackageRequest?: CanonicalExecutionPackageRequestHookResult
+  onRequestExecutionPackage?: () => void
+}
+
 export function CanonicalJourneyStatusCard({
+  executionPackageRequest,
   loading,
+  onRequestExecutionPackage,
   refresh,
   refreshing,
   result,
   updatedAt,
-}: CanonicalEditJourneyHookResult) {
+}: CanonicalJourneyStatusCardProps) {
   if (result?.status === 'not_configured') return null
 
   if (loading || (!result && refreshing)) {
@@ -82,6 +91,23 @@ export function CanonicalJourneyStatusCard({
   const Icon = toneIcon[presentation.tone]
   const progress = presentation.progress
   const accent = badgeAccent(presentation.tone)
+  const packageAuthority = result.journey.executionPackageAuthority
+  const packageRequestIsCurrent = Boolean(
+    packageAuthority &&
+    executionPackageRequest?.requestedSnapshotId === packageAuthority.snapshotId,
+  )
+  const packageRequestResult = packageRequestIsCurrent
+    ? executionPackageRequest?.result ?? null
+    : null
+  const packageRequesting = packageRequestIsCurrent && Boolean(
+    executionPackageRequest?.requesting,
+  )
+  const canRequestPackage = Boolean(
+    result.journey.stage === 'approved_snapshot_available' &&
+    packageAuthority &&
+    executionPackageRequest &&
+    onRequestExecutionPackage,
+  )
 
   return (
     <section
@@ -129,6 +155,40 @@ export function CanonicalJourneyStatusCard({
           <span>{presentation.boundary}</span>
           {updatedAt && <time dateTime={updatedAt}>{formatCheckedAt(updatedAt)}</time>}
         </div>
+
+        {canRequestPackage && (
+          <div
+            aria-live="polite"
+            className="canonical-journey-package-action"
+            data-status={packageRequesting ? 'requesting' : packageRequestResult?.status ?? 'ready'}
+            data-testid={`canonical-execution-package-request-${
+              packageRequesting ? 'requesting' : packageRequestResult?.status ?? 'ready'
+            }`}
+            role={packageRequestResult && packageRequestResult.status !== 'ready' ? 'alert' : 'status'}
+          >
+            <div className="canonical-journey-package-action-copy">
+              <PackageCheck aria-hidden="true" size={16} />
+              <div>
+                <strong>{packageActionTitle(packageRequesting, packageRequestResult)}</strong>
+                <p>{packageActionMessage(packageRequesting, packageRequestResult)}</p>
+              </div>
+            </div>
+            <Button
+              aria-busy={packageRequesting}
+              data-testid="canonical-execution-package-request-submit"
+              disabled={
+                packageRequesting ||
+                packageRequestResult?.status === 'ready' ||
+                Boolean(packageRequestResult && !packageRequestResult.retryable)
+              }
+              onClick={onRequestExecutionPackage}
+              size="sm"
+              variant="primary"
+            >
+              {packageActionButtonLabel(packageRequesting, packageRequestResult)}
+            </Button>
+          </div>
+        )}
       </div>
 
       <IconButton
@@ -139,6 +199,38 @@ export function CanonicalJourneyStatusCard({
       />
     </section>
   )
+}
+
+function packageActionTitle(
+  requesting: boolean,
+  result: CanonicalExecutionPackageRequestHookResult['result'],
+): string {
+  if (requesting) return 'Preparing the approved handoff'
+  if (result?.status === 'ready') return 'Private handoff ready'
+  if (result) return 'Private handoff needs attention'
+  return 'Ready for private preparation'
+}
+
+function packageActionMessage(
+  requesting: boolean,
+  result: CanonicalExecutionPackageRequestHookResult['result'],
+): string {
+  if (requesting) {
+    return 'Matching the exact approved version. Editing tools and rendering remain stopped.'
+  }
+  if (result) return result.message
+  return 'Create the immutable private handoff first. This does not run editing tools, render, bill, or publish.'
+}
+
+function packageActionButtonLabel(
+  requesting: boolean,
+  result: CanonicalExecutionPackageRequestHookResult['result'],
+): string {
+  if (requesting) return 'Preparing handoff…'
+  if (result?.status === 'ready') return 'Handoff ready'
+  if (result?.retryable) return 'Try again'
+  if (result) return 'Refresh required'
+  return 'Prepare private handoff'
 }
 
 function badgeAccent(tone: CanonicalEditJourneyTone): 'muted' | 'cyan' | 'warning' | 'success' {

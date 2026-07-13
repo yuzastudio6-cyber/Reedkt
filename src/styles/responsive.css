@@ -15,6 +15,16 @@
     flex-direction: column;
   }
 
+  .canonical-journey-package-action {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .canonical-journey-package-action .rp-button {
+    justify-content: center;
+    width: 100%;
+  }
+
   .sfx-plan-entry-card,
   .music-plan-entry-card {
     align-items: stretch;

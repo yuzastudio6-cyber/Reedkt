@@ -90,6 +90,11 @@ const steps: SmokeStep[] = [
     requiredFor: 'frontend-safe authenticated API transport and backend-only execution boundaries',
   },
   {
+    id: 'canonical_execution_package_request_client',
+    script: 'smoke:canonical-execution-package-request-client',
+    requiredFor: 'exact approved-snapshot browser handoff request, bounded receipt, replay-safe identity, and no browser-owned execution',
+  },
+  {
     id: 'private_download_client',
     script: 'smoke:edit-execution-private-download-client',
     requiredFor: 'private MP4 and manifest fetch client safety',
@@ -140,6 +145,11 @@ const steps: SmokeStep[] = [
     requiredFor: 'clean app shell routes, legacy redirects, sidebar scope, and viewport overflow',
   },
   {
+    id: 'playwright_canonical_journey_flow',
+    script: 'qa:canonical-journey-ui',
+    requiredFor: 'named-edit planning, exact approval, private handoff request, recovery, identity isolation, and preference locking',
+  },
+  {
     id: 'completion_audit',
     script: 'smoke:edit-architecture-completion-audit',
     requiredFor: 'requirement-level evidence coverage for upload, approval, private render, QA, browser review, revision, and recovery',
@@ -184,9 +194,11 @@ console.log(JSON.stringify({
     'Prompt-first professional skill planning works without requiring an Edit Brief while preserving model-role boundaries.',
     'User-facing planning copy hides adapter, provider, model-role, backend, and source-truth implementation names.',
     'Canonical private source and worker boundaries preserve tenant identity, immutable inputs, lease fencing, and fail-closed execution.',
+    'The named-edit browser can request one exact private execution handoff without receiving raw package, job, tool, path, or credential authority and without starting execution.',
     'The Playwright editor flow verifies the current UI upload, planning, approval, review, and blocked failure path.',
     'Expanded and keyboard Playwright flows verify advanced planning details, composer behavior, soundflow disclosures, and hidden internal implementation names.',
     'Route viewport QA verifies the clean app shell, legacy route redirects, and the Home/Projects/Preferences-only sidebar.',
+    'Canonical journey Playwright QA verifies exact approval-to-private-handoff behavior, recovery, and no browser-owned work-graph execution.',
     'The completion audit verifies the suite still covers every required internal edit architecture proof surface.',
     'Public delivery, signed URLs, billing mutation, external beta, and production remain blocked by separate gates.',
   ],

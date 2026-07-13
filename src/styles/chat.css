@@ -2116,6 +2116,59 @@
   background: transparent;
 }
 
+.canonical-journey-package-action {
+  align-items: center;
+  background: rgba(0, 229, 255, 0.045);
+  border: 1px solid rgba(0, 229, 255, 0.14);
+  border-radius: var(--rp-radius-sm);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rp-space-3);
+  justify-content: space-between;
+  margin-top: var(--rp-space-1);
+  padding: var(--rp-space-3);
+}
+
+.canonical-journey-package-action[data-status='blocked'],
+.canonical-journey-package-action[data-status='access_denied'],
+.canonical-journey-package-action[data-status='invalid_response'] {
+  background: rgba(245, 158, 11, 0.045);
+  border-color: var(--rp-border-warning);
+}
+
+.canonical-journey-package-action-copy {
+  align-items: flex-start;
+  display: flex;
+  flex: 1 1 320px;
+  gap: var(--rp-space-2);
+  min-width: 0;
+}
+
+.canonical-journey-package-action-copy > svg {
+  color: var(--rp-brand-cyan);
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
+.canonical-journey-package-action-copy strong {
+  color: var(--rp-text-primary);
+  display: block;
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.canonical-journey-package-action-copy p {
+  color: var(--rp-text-secondary);
+  font-size: 0.76rem;
+  line-height: 1.45;
+  margin: var(--rp-space-1) 0 0;
+}
+
+.canonical-journey-package-action .rp-button {
+  flex: 0 0 auto;
+  min-height: 44px;
+}
+
 .source-sequence-card,
 .plan-review-approval-card,
 .clean-plan-review {

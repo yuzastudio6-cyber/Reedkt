@@ -5,6 +5,7 @@ import { requireIdempotency, requireSensitiveIdempotencyKey } from '../middlewar
 import { requireInternalServiceAuth } from '../middleware/internal-service-auth'
 import { createApprovedEditExecutionPackageService } from '../services/approved-edit-execution-package-service'
 import { createCanonicalEditExecutionPackageService } from '../services/canonical-edit-execution-package-service'
+import { createCanonicalExecutionPackageRequestCoordinatorService } from '../services/canonical-execution-package-request-coordinator-service'
 import { createCanonicalExecutionReadinessService } from '../services/canonical-execution-readiness-service'
 import { createCanonicalPrivateFinalArtifactDownloadService } from '../services/canonical-private-final-artifact-download-service'
 import { createCanonicalPrivateJobExecutionAdapterService } from '../services/canonical-private-job-execution-adapter-service'
@@ -49,6 +50,7 @@ import {
 } from '../validation/edit-execution-schemas'
 import { authorityWorkspaceQuerySchema } from '../validation/edit-planning-authority-schemas'
 import { canonicalExecutionReadinessRouteBodySchema } from '../validation/canonical-execution-readiness-schemas'
+import { requestCanonicalExecutionPackageSchema } from '../validation/canonical-execution-package-request-schemas'
 import { inspectToolRuntimeEvidenceSchema } from '../validation/tool-runtime-evidence-schemas'
 import { canonicalPrivateFinalArtifactDownloadQuerySchema } from '../validation/canonical-private-final-artifact-download-schemas'
 import { executeCanonicalPrivateJobAdapterSchema } from '../validation/canonical-private-job-execution-adapter-schemas'
@@ -198,6 +200,32 @@ export function createEditExecutionRoutes(options: EditExecutionRouteOptions = {
   if (options.includeInternalTestRoutes === false) {
     return router
   }
+
+  // This is the only browser-facing package mutation. It returns a bounded
+  // receipt instead of the raw execution package, jobs, or tool manifest and
+  // is mounted only by the explicit local/private runtime.
+  router.post(
+    '/v1/approved-snapshots/:snapshotId/canonical-execution-package',
+    requireAuth,
+    requireSensitiveIdempotencyKey,
+    asyncRoute(async (request, response) => {
+      const body = validateBody(requestCanonicalExecutionPackageSchema, request.body)
+      const result = await createCanonicalExecutionPackageRequestCoordinatorService(
+        getServiceContext(request),
+      ).request({
+        ...body,
+        approvedPlanSnapshotId: getRouteParam(request, 'snapshotId'),
+        idempotencyKey: getIdempotencyKey(request),
+        requestPath: request.originalUrl,
+      })
+      sendOk(
+        response,
+        { canonicalExecutionPackageRequest: result.receipt },
+        result.warnings,
+        201,
+      )
+    }),
+  )
 
   // All remaining edit-execution endpoints are private/internal test or
   // control-plane surfaces. Route-level `requireAuth` below still verifies the

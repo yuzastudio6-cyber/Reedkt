@@ -41,6 +41,10 @@ export type CanonicalEditJourney = {
     expectedPlanHash: string
     expectedEstimateHash: string
   }
+  executionPackageAuthority?: {
+    snapshotId: string
+    expectedSnapshotHash: string
+  }
   plan?: {
     version: number
     status: 'presented' | 'approved' | 'superseded' | 'rejected' | 'cancellation_pending' | 'cancelled'
@@ -356,6 +360,12 @@ export function parseCanonicalEditJourney(
               expectedEstimateHash: plan.estimateHash,
             }
           : undefined,
+        executionPackageAuthority: stage === 'approved_snapshot_available' && approval
+          ? {
+              snapshotId: approval.snapshotId,
+              expectedSnapshotHash: approval.snapshotHash,
+            }
+          : undefined,
         plan: plan && {
           version: plan.planVersion,
           status: plan.status,
@@ -453,10 +463,19 @@ export function createCanonicalEditJourneyPresentation(
       })
     case 'execution_in_progress': {
       const progress = journey.progress
+      if (!progress) {
+        return presentation({
+          badge: 'Handoff ready',
+          title: 'Private preparation handoff is ready',
+          summary: 'The exact approved version is packaged for the private editing pipeline.',
+          nextStep: 'Backend preparation has not reported progress yet. Refresh later to recover the latest saved state.',
+          tone: 'neutral',
+          messageStatus: 'pending',
+          boundary,
+        })
+      }
       const isBlocked = progress?.state === 'blocked'
-      const summary = progress
-        ? `${progress.completedJobCount} of ${progress.totalJobCount} preparation steps are complete.`
-        : 'The approved edit is moving through its private preparation steps.'
+      const summary = `${progress.completedJobCount} of ${progress.totalJobCount} preparation steps are complete.`
       return presentation({
         badge: isBlocked ? 'Needs attention' : 'Preparing',
         title: isBlocked ? 'Private review preparation is paused' : 'Preparing private review',
@@ -1025,7 +1044,9 @@ function expectedRouteFor(journey: WireJourney): string | undefined {
     case 'plan_approval_required':
       return journey.plan ? `/v1/edit-plans/${journey.plan.planId}/canonical-approval` : undefined
     case 'approved_snapshot_available':
-      return '/v1/edit-executions/packages'
+      return journey.approval
+        ? `/v1/approved-snapshots/${journey.approval.snapshotId}/canonical-execution-package`
+        : undefined
     case 'execution_in_progress':
       return journey.execution
         ? `/v1/edit-executions/packages/${journey.execution.packageRecordId}/private-internal-work-graph-runs`

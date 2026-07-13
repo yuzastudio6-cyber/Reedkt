@@ -159,6 +159,19 @@ const requiredEvidence: RequiredEvidence[] = [
     ],
   },
   {
+    file: 'tests/e2e/canonical-journey-ui.spec.ts',
+    requirement: 'The named-edit browser must request one exact approved-snapshot private handoff without receiving raw execution authority or starting browser-owned editing work.',
+    evidence: [
+      'requests one exact private handoff without starting browser-owned edit work',
+      'canonical-execution-package-request-submit',
+      'expectedSnapshotHash',
+      'request_canonical_execution_package',
+      'internalExecutionRequestCount',
+      'Editing tools and rendering remain stopped',
+      'Backend preparation has not reported progress yet',
+    ],
+  },
+  {
     file: 'src/components/editor/PreviewReadyCard.tsx',
     requirement: 'The preview card must switch into a truthful private-review state once the private artifact exists.',
     evidence: [
@@ -186,6 +199,8 @@ const requiredEvidence: RequiredEvidence[] = [
       'playwright_expanded_editor_flow',
       'playwright_editor_keyboard_flow',
       'playwright_route_viewport_flow',
+      'canonical_execution_package_request_client',
+      'playwright_canonical_journey_flow',
       'legacy_execution_routes_fail_closed',
     ],
   },
@@ -226,6 +241,7 @@ console.log(JSON.stringify({
     'browser_project_upload_review_revision_recovery_coverage_present',
     'expanded_and_keyboard_editor_qa_coverage_present',
     'clean_route_shell_and_legacy_redirect_qa_coverage_present',
+    'canonical_named_edit_private_handoff_coverage_present',
     'visible_private_review_card_coverage_present',
     'aggregate_internal_review_coverage_present',
   ],

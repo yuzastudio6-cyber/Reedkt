@@ -67,6 +67,16 @@ The estimate should explain:
 - Estimated render/export cost.
 - Optional lower-cost alternatives when useful.
 
+## Interim 4K Export Estimate Ceiling
+
+Until a later product policy replaces it, every initial edit estimate must price one approved deliverable with a 4K UHD render/export ceiling. The covered delivery profiles are 1080p Full HD, 2K/1440p, and 4K UHD at the confirmed aspect ratio, FPS, and approved duration.
+
+Exporting that same approved deliverable must not show another credit estimate, ask the user to approve credits again, create a second reservation, or deduct credits a second time. The export runtime verifies the original approved estimate and reservation instead.
+
+An additional deliverable; a changed aspect ratio, FPS, or duration outside the approved tolerance; a custom frame outside the registered profiles; or output above the 4K ceiling is revised scope. ReeditPro must return to planning and approval before doing that extra work rather than adding an export-time surcharge.
+
+Selecting a 4K container for lower-resolution source media does not imply restored source detail. Any enhancement/upscaling operation is separately planned, traced, and QA-checked.
+
 ## Deduct Only After Approval
 
 Credits should be deducted only after the user approves the edit plan and credit estimate.
@@ -124,6 +134,6 @@ This remains a partial implementation. Real credit reservation, spend, refund, S
 
 If projected cost may exceed the approved maximum estimate, ReEditPro must pause before extra paid work continues and show: `Action required: revised credit estimate needed`.
 
-Export lock copy is only: `Action required: add credits to export`, and it is allowed only when the user approved the additional cost, the edit is ready, and the approved final charge is not fully funded.
+Export lock copy is only: `Action required: add credits to export`, and it is allowed only for separately approved revised scope when that approved final charge is not fully funded. It must not appear for the original single deliverable covered by the initial 4K estimate and reservation.
 
 If ReEditPro estimated incorrectly, provider variance occurred without user approval, or ReEditPro failed to pause in time, ReEditPro absorbs the unapproved overage. Do not silently take credits from the user's next edit and do not create hidden negative wallet behavior. This policy has no live billing, no Stripe, no Supabase migration, no wallet mutation, and no render/export charging in this milestone.

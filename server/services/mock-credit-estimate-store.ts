@@ -23,6 +23,8 @@ import {
   REEDITPRO_RESERVATION_POLICY_COPY,
   REEDITPRO_SERVICE_FEE_POLICY_VERSION,
 } from '../../src/types/credit-policy'
+import type { ProfessionalExportCreditCoverage } from '../../src/types/professional-export'
+import { buildProfessionalExportCreditCoverage } from '../../src/lib/professional-export-policy'
 import {
   estimateProductionToolCost,
   type CalculateToolActualCostMicrosInput,
@@ -65,6 +67,11 @@ export function buildEditCreditEstimatePreview(
 ): EditCreditEstimatePreview {
   const creditEstimateId = createMockId('credit_estimate_preview')
   const createdAt = nowIso()
+  const professionalExportCoverage = buildProfessionalExportCreditCoverage({
+    durationSeconds: input.finalVideoDurationSeconds,
+    outputFps: input.outputFps ?? 30,
+    approvedAspectRatio: input.confirmedAspectRatio,
+  })
   const toolEstimates = input.plannedToolIds.map((toolId) =>
     requireProductionToolEstimate(input, creditEstimateId, toolId as ProductionToolId),
   )
@@ -73,9 +80,12 @@ export function buildEditCreditEstimatePreview(
     buildToolEstimateLineItem(input, creditEstimateId, estimate, createdAt),
   )
 
-  const lowToolCostCredits = sum(toolSnapshots.map((estimate) => estimate.lowCredits))
-  const expectedToolCostCredits = sum(toolSnapshots.map((estimate) => estimate.expectedCredits))
-  const highToolCostCredits = sum(toolSnapshots.map((estimate) => estimate.highCredits))
+  const lowToolCostCredits = sum(toolSnapshots.map((estimate) => estimate.lowCredits)) +
+    professionalExportCoverage.lowInternalToolCostCredits
+  const expectedToolCostCredits = sum(toolSnapshots.map((estimate) => estimate.expectedCredits)) +
+    professionalExportCoverage.expectedInternalToolCostCredits
+  const highToolCostCredits = sum(toolSnapshots.map((estimate) => estimate.highCredits)) +
+    professionalExportCoverage.maximumInternalToolCostCredits
   const lowFee = calculateServiceFeeEstimate(input, lowToolCostCredits)
   const expectedFee = calculateServiceFeeEstimate(input, expectedToolCostCredits)
   const highFee = calculateServiceFeeEstimate(input, highToolCostCredits)
@@ -137,13 +147,20 @@ export function buildEditCreditEstimatePreview(
     serviceFeeEstimate,
     createdAt,
   })
-  const allLineItems = [...lineItems, serviceFeeLine]
+  const professionalExportLine = buildProfessionalExportEstimateLineItem({
+    input,
+    creditEstimateId,
+    coverage: professionalExportCoverage,
+    createdAt,
+  })
+  const allLineItems = [...lineItems, professionalExportLine, serviceFeeLine]
   const userFacingLines = buildUserFacingEstimateLines({
     expectedToolCostCredits,
     expectedServiceFeeCredits,
     totalEstimatedCredits,
     maximumEstimatedCredits,
     requiredTopUpCredits,
+    professionalExportCoverage,
   })
   const warnings = buildEstimateWarnings({
     toolSnapshots,
@@ -157,6 +174,7 @@ export function buildEditCreditEstimatePreview(
     editPlanId: input.editPlanId,
     productEditLevel: input.productEditLevel,
     finalVideoDurationSeconds: input.finalVideoDurationSeconds,
+    outputFps: input.outputFps ?? 30,
     plannedToolCount: input.plannedToolIds.length,
     lowToolCostCredits,
     expectedToolCostCredits,
@@ -186,6 +204,7 @@ export function buildEditCreditEstimatePreview(
     topUpSummary,
     lowerCostOptions,
     safetyFlags,
+    professionalExportCoverage,
     reservationPolicyCopy: REEDITPRO_RESERVATION_POLICY_COPY,
     userFacingCopy: {
       title: customEstimateRequired ? 'Custom credit estimate needed' : 'Credit estimate ready',
@@ -229,12 +248,58 @@ export function buildEditCreditEstimatePreview(
     estimate,
     summary,
     toolEstimates: toolSnapshots,
+    professionalExportCoverage,
     serviceFeeEstimate,
     topUpSummary,
     lowerCostOptions,
     safetyFlags,
     idempotencyStatus: 'created',
     warnings,
+  }
+}
+
+function buildProfessionalExportEstimateLineItem(input: {
+  input: PreviewEditCreditEstimateRequest
+  creditEstimateId: string
+  coverage: ProfessionalExportCreditCoverage
+  createdAt: string
+}): CreditEstimateLineItemRecord {
+  return {
+    id: createMockId('credit_estimate_line_item'),
+    creditEstimateId: input.creditEstimateId,
+    workspaceId: input.input.workspaceId,
+    projectId: input.input.projectId,
+    editPlanId: input.input.editPlanId,
+    lineItemType: 'final_export',
+    usageCategory: 'rendering',
+    label: '4K UHD render and export ceiling',
+    description: 'Required 4K delivery allowance included in the initial edit estimate; covered export resolutions do not create a second estimate or charge.',
+    estimatedCredits: input.coverage.maximumInternalToolCostCredits,
+    isOptional: false,
+    isPremium: false,
+    requiresUserApproval: true,
+    linePayload: asJsonObject({
+      milestone: 'RP-EXPORT-4K-CEILING-01',
+      lineItemRole: 'mandatory_4k_export_ceiling',
+      toolId: 'ffmpeg',
+      toolOwner: 'render_worker',
+      lowCredits: input.coverage.lowInternalToolCostCredits,
+      expectedCredits: input.coverage.expectedInternalToolCostCredits,
+      highCredits: input.coverage.maximumInternalToolCostCredits,
+      policyVersion: input.coverage.policyVersion,
+      costModelVersion: input.coverage.costModelVersion,
+      sourceRateCardVersion: input.coverage.sourceRateCardVersion,
+      costBasisProfileId: input.coverage.costBasisProfileId,
+      outputFps: input.coverage.outputFps,
+      durationSeconds: input.coverage.durationSeconds,
+      megapixelFrames: input.coverage.megapixelFrames,
+      includedInInitialEstimate: true,
+      requiresSeparateExportEstimate: false,
+      allowsAdditionalExportCharge: false,
+      usesApprovedEditReservation: true,
+      serviceFeeIncluded: false,
+    }),
+    createdAt: input.createdAt,
   }
 }
 
@@ -559,8 +624,8 @@ function buildLowerCostOptions(input: {
   if (renderTools.length > 0) {
     options.push({
       id: 'lower-render-quality',
-      label: 'Lower render quality',
-      description: 'Use a lower-cost render profile or preview-only render before final export approval.',
+      label: 'Simplify render complexity',
+      description: 'Keep the mandatory 4K delivery ceiling while simplifying optional composition passes or preview work.',
       action: 'lower_render_quality',
       affectedToolIds: renderTools.map((estimate) => estimate.toolId),
       estimatedSavingsCredits: Math.ceil(sum(renderTools.map((estimate) => estimate.expectedCredits)) * 0.25),
@@ -603,8 +668,14 @@ function buildUserFacingEstimateLines(input: {
   totalEstimatedCredits: number
   maximumEstimatedCredits: number
   requiredTopUpCredits: number
+  professionalExportCoverage: ProfessionalExportCreditCoverage
 }): EditCreditCostSummaryLine[] {
   return [
+    {
+      label: '4K UHD delivery included',
+      credits: input.professionalExportCoverage.maximumInternalToolCostCredits,
+      description: 'The approval ceiling reserves the high 4K allowance now; covered 1080p, 2K/1440p, or 4K export will not ask for credits again.',
+    },
     {
       label: 'Estimated tool cost',
       credits: input.expectedToolCostCredits,
@@ -642,6 +713,7 @@ function buildEstimateWarnings(input: {
   return Array.from(new Set([
     'RP-ESTIMATE-01 preview is mock-only; no wallet, reservation, ledger, provider, worker, render/export, Stripe, Supabase, or credit spend side effect occurred.',
     'Tool-cost estimates exclude ReEditPro service fee; service fee is calculated separately by RP-CREDITPOLICY-01.',
+    'Every edit estimate includes the required 4K UHD render/export ceiling; covered export resolution changes must not create another estimate or charge.',
     ...(input.customEstimateRequired
       ? ['Custom duration requires owner review before paid work or future credit reservation.']
       : []),

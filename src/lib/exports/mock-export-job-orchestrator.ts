@@ -63,9 +63,9 @@ const stepDefinitions: Array<{ key: MockExportJobStepKey; label: string; message
     message: 'Prepare enabled platform targets and settings.',
   },
   {
-    key: 'reserve_mock_export_credits',
-    label: 'Recording credit preview',
-    message: 'Record the internal credit acknowledgement without charging credits.',
+    key: 'verify_approved_edit_credit_coverage',
+    label: 'Verifying approved edit coverage',
+    message: 'Verify that this output is covered by the approved 4K edit estimate and existing reservation. No export-time credit action occurs.',
   },
   {
     key: 'apply_export_settings',

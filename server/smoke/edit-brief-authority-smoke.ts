@@ -119,6 +119,19 @@ await expectApiError(
   'Confirmed output dimensions must match the selected aspect ratio.',
 )
 
+await expectApiError(
+  () => service.setExportSettings({
+    workspaceId, projectId: project.id, editSessionId, expectedRevision: 2,
+    idempotencyKey: 'reject-mismatched-resolution-profile',
+    settings: {
+      platformTarget: 'YouTube', aspectRatio: '16:9', resolution: '1920x1080',
+      resolutionProfileId: 'uhd_2160', frameRate: 30, confirmationStatus: 'recommended',
+    },
+  }),
+  'VALIDATION_FAILED',
+  'A registered professional resolution profile must use its exact aspect-aware frame.',
+)
+
 const recommendedExport = await service.setExportSettings({
   workspaceId,
   projectId: project.id,
@@ -129,6 +142,7 @@ const recommendedExport = await service.setExportSettings({
     platformTarget: 'YouTube',
     aspectRatio: '16:9',
     resolution: '1920x1080',
+    resolutionProfileId: 'hd_1080',
     frameRate: 30,
     confirmationStatus: 'recommended',
   },
@@ -146,6 +160,7 @@ const confirmedExport = await service.setExportSettings({
     platformTarget: 'YouTube',
     aspectRatio: '16:9',
     resolution: '1920x1080',
+    resolutionProfileId: 'hd_1080',
     frameRate: 30,
     confirmationStatus: 'confirmed',
     confirmationId: 'user-frame-confirmation-v1',

@@ -447,6 +447,7 @@ function buildFinalRenderExecutionInput(
     projectId: payload.projectId,
     mediaAssetId: payload.mediaAssetId ?? 'media-asset-not-set',
     approvedSnapshotId: payload.approvedSnapshotId,
+    creditReservationId: payload.creditReservationId,
     toolExecutionPlanId: payload.toolExecutionPlanId,
     idempotencyKey: payload.idempotencyKey,
     workerPayload: payload,
@@ -475,6 +476,9 @@ function buildFinalRenderExecutionInput(
     fps: numberValue(request.fps) ?? 30,
     durationSeconds: numberValue(request.durationSeconds) ?? 8,
     exportSettings: parseRenderExportSettings(request.exportSettings),
+    professionalExportAuthority: typeof request.professionalExportAuthority === 'object' && request.professionalExportAuthority
+      ? request.professionalExportAuthority as never
+      : undefined,
     enableLocalDevRender: request.enableLocalDevRender === true,
     enableRemotionLocalRender: request.enableRemotionLocalRender === true,
     enableCaptionBurnIn: request.enableCaptionBurnIn === true,

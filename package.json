@@ -134,6 +134,8 @@
     "smoke:prod-real-mask-background": "tsx server/smoke/production-real-mask-background-execution-smoke.ts",
     "smoke:prod-real-enhancement-slowmotion": "tsx server/smoke/production-real-enhancement-slowmotion-execution-smoke.ts",
     "smoke:prod-final-render-export": "tsx server/smoke/production-final-render-export-execution-smoke.ts",
+    "smoke:professional-export": "tsx server/smoke/professional-export-policy-smoke.ts",
+    "smoke:project-edit-brief-export-settings": "tsx server/smoke/project-edit-brief-export-settings-smoke.ts",
     "smoke:prod-full-e2e-workflow": "tsx server/smoke/production-full-e2e-workflow-smoke.ts",
     "smoke:prod-full-e2e-blockers": "tsx server/smoke/production-full-e2e-blockers-smoke.ts",
     "smoke:prod-hardening": "tsx server/smoke/production-hardening-smoke.ts",

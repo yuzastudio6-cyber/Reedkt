@@ -5,6 +5,7 @@ import type {
   PlannerInput,
   TrimDecisionItem,
 } from '../types/reeditpro'
+import type { ProfessionalExportCreditCoverage } from '../types/professional-export'
 
 export const CANONICAL_PRIVATE_PLAN_SCHEMA_VERSION = 'private-edit-authority-plan-v1' as const
 
@@ -32,6 +33,8 @@ export type CanonicalPlanComponentsDraft = {
   confirmedSettings: {
     aspectRatio: string
     outputFrame: { width: number; height: number; fps: number }
+    outputFramePurpose: 'private_canonical_review'
+    professionalExportCoverage: ProfessionalExportCreditCoverage
     outputFrameConfirmed: true
     sourceOrderConfirmed: true
     sourceCleanupConfirmed: true
@@ -187,8 +190,19 @@ export function buildCanonicalPlanningDraft(input: {
   if (!plan.compiledIntent || !plan.professionalEditingDirective) {
     errors.push('The plan must include compiled intent and professional editing direction.')
   }
+  const professionalExportCoverage = plan.creditEstimate.professionalExportCoverage
+  if (
+    !professionalExportCoverage ||
+    professionalExportCoverage.approvedAspectRatio !== plannerInput.aspectRatio ||
+    professionalExportCoverage.costBasisProfileId !== 'uhd_2160' ||
+    professionalExportCoverage.includedInInitialEstimate !== true ||
+    professionalExportCoverage.requiresSeparateExportEstimate !== false ||
+    professionalExportCoverage.allowsAdditionalExportCharge !== false
+  ) {
+    errors.push('The canonical plan requires the confirmed aspect ratio and mandatory 4K UHD export ceiling in the initial edit estimate.')
+  }
 
-  if (errors.length > 0 || !plan.masterTimingPlan || !plannerInput.cleanupPreference) {
+  if (errors.length > 0 || !plan.masterTimingPlan || !plannerInput.cleanupPreference || !professionalExportCoverage) {
     return { ok: false, errors: unique(errors) }
   }
 
@@ -236,6 +250,8 @@ export function buildCanonicalPlanningDraft(input: {
     confirmedSettings: {
       aspectRatio: plannerInput.aspectRatio,
       outputFrame: { ...frame, fps },
+      outputFramePurpose: 'private_canonical_review',
+      professionalExportCoverage,
       outputFrameConfirmed: true,
       sourceOrderConfirmed: true,
       sourceCleanupConfirmed: true,

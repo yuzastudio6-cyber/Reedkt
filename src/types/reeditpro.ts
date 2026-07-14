@@ -4,6 +4,7 @@ import type { MigrationReviewPlan } from './supabase-rls-hardening'
 import type { SupabaseProductionReadinessPlan } from './supabase-production-readiness'
 import type { AgentQAFallbackPlan, AsyncAssetReconciliationPlan, EditingAgentExecutionPlan } from './editing-agent-runtime'
 import type { ProfessionalSkillPlan } from './professional-skills'
+import type { ProfessionalExportCreditCoverage } from './professional-export'
 
 export type SignatureSystem =
   | 'stroke_motion'
@@ -4248,6 +4249,7 @@ export interface CreditEstimate {
   approvalBlocked?: boolean
   draftReason?: string
   estimateVersion?: string
+  professionalExportCoverage?: ProfessionalExportCreditCoverage
 }
 
 export type CreditEstimateRiskLevel =

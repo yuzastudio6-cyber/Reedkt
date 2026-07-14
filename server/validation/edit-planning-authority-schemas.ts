@@ -2,6 +2,13 @@ import { z } from 'zod'
 import { idSchema } from './common-schemas'
 import { planningInputAuthorityExpectationSchema } from './planning-input-authority-binding-schemas'
 import { sourceMediaAuthorityExpectationSchema } from './source-media-authority-schemas'
+import {
+  PROFESSIONAL_EXPORT_ASPECT_RATIOS,
+  PROFESSIONAL_EXPORT_COST_MODEL_VERSION,
+  PROFESSIONAL_EXPORT_POLICY_VERSION,
+  PROFESSIONAL_EXPORT_PROFILE_IDS,
+  PROFESSIONAL_EXPORT_SOURCE_RATE_CARD_VERSION,
+} from '../../src/types/professional-export'
 
 export const PRIVATE_EDIT_AUTHORITY_SCHEMA_VERSION = 'private-edit-authority-plan-v1' as const
 
@@ -14,6 +21,40 @@ const safeKeySchema = z.string()
 
 const sha256Schema = z.string().regex(/^[a-f0-9]{64}$/)
 const jsonObjectSchema = z.record(z.string(), z.unknown())
+const professionalExportProfileIdSchema = z.enum(PROFESSIONAL_EXPORT_PROFILE_IDS)
+const professionalExportAspectRatioSchema = z.enum(PROFESSIONAL_EXPORT_ASPECT_RATIOS)
+const professionalExportFrameSchema = z.object({
+  profileId: professionalExportProfileIdSchema,
+  aspectRatio: professionalExportAspectRatioSchema,
+  width: z.number().int().positive().max(4_096),
+  height: z.number().int().positive().max(4_096),
+  pixelCount: z.number().int().positive().max(8_294_400),
+  label: z.string().trim().min(1).max(80),
+}).strict()
+const professionalExportCoverageSchema = z.object({
+  policyVersion: z.literal(PROFESSIONAL_EXPORT_POLICY_VERSION),
+  costModelVersion: z.literal(PROFESSIONAL_EXPORT_COST_MODEL_VERSION),
+  sourceRateCardVersion: z.literal(PROFESSIONAL_EXPORT_SOURCE_RATE_CARD_VERSION),
+  assumption: z.literal('always_estimate_4k_uhd'),
+  costBasisProfileId: z.literal('uhd_2160'),
+  defaultDeliveryProfileId: z.literal('uhd_2160'),
+  coveredProfileIds: z.array(professionalExportProfileIdSchema).length(3),
+  approvedAspectRatio: professionalExportAspectRatioSchema,
+  approvedFrames: z.array(professionalExportFrameSchema).length(3),
+  outputFps: z.number().positive().max(120),
+  durationSeconds: z.number().positive().finite(),
+  costBasisPixelCount: z.literal(8_294_400),
+  megapixelFrames: z.number().positive().finite(),
+  lowInternalToolCostCredits: z.number().int().nonnegative(),
+  expectedInternalToolCostCredits: z.number().int().nonnegative(),
+  maximumInternalToolCostCredits: z.number().int().positive(),
+  includedInInitialEstimate: z.literal(true),
+  requiresSeparateExportEstimate: z.literal(false),
+  allowsAdditionalExportCharge: z.literal(false),
+  usesApprovedEditReservation: z.literal(true),
+  serviceFeeIncludedInToolCost: z.literal(false),
+  sourceEnhancementIncluded: z.literal(false),
+}).strict()
 
 export const sourceSequenceItemSchema = z.object({
   sourceSequenceItemId: safeKeySchema,
@@ -30,6 +71,8 @@ const confirmedSettingsSchema = z.object({
     height: z.number().int().positive().max(16_384),
     fps: z.number().positive().max(240),
   }).strict(),
+  outputFramePurpose: z.literal('private_canonical_review'),
+  professionalExportCoverage: professionalExportCoverageSchema,
   outputFrameConfirmed: z.literal(true),
   sourceOrderConfirmed: z.literal(true),
   sourceCleanupConfirmed: z.literal(true),

@@ -14,6 +14,10 @@ import {
 import { compileCanonicalWorkItems } from '../edit-architecture/canonical-work-item-compiler'
 import { ApiError } from '../errors/api-error'
 import { isExplicitLocalInternalTestRuntime } from '../middleware/canonical-worker-runtime'
+import {
+  buildProfessionalExportCreditCoverage,
+  resolveProfessionalExportFrame,
+} from '../../src/lib/professional-export-policy'
 import { isProductionToolId } from '../tool-registry'
 import { resolveCompleteProfessionalToolOperationSpec } from '../tool-execution/core-registry-operations/core-registry-operation-specs'
 import type { ServiceContext } from '../types'
@@ -2073,6 +2077,51 @@ function validateCanonicalPlanDraft(
   }
   if (components.confirmedSettings.outputFrame.fps !== components.timingSummary.fps) {
     throw new ApiError('VALIDATION_FAILED', 'Confirmed output-frame FPS must match the canonical timing base.', 400)
+  }
+  const exportCoverage = components.confirmedSettings.professionalExportCoverage
+  const expectedExportCoverage = buildProfessionalExportCreditCoverage({
+    durationSeconds: components.timingSummary.totalFrames / components.timingSummary.fps,
+    outputFps: components.timingSummary.fps,
+    approvedAspectRatio: exportCoverage.approvedAspectRatio,
+  })
+  const exactExportFramesValid = exportCoverage.coveredProfileIds.every((profileId) => {
+    const expectedFrame = resolveProfessionalExportFrame(exportCoverage.approvedAspectRatio, profileId)
+    const matchingFrames = exportCoverage.approvedFrames.filter((frame) => frame.profileId === profileId)
+    const frame = matchingFrames[0]
+    return matchingFrames.length === 1 && Boolean(
+      frame &&
+      frame.aspectRatio === expectedFrame.aspectRatio &&
+      frame.width === expectedFrame.width &&
+      frame.height === expectedFrame.height &&
+      frame.pixelCount === expectedFrame.pixelCount,
+    )
+  })
+  if (
+    exportCoverage.approvedAspectRatio !== components.confirmedSettings.aspectRatio ||
+    exportCoverage.costBasisProfileId !== 'uhd_2160' ||
+    exportCoverage.includedInInitialEstimate !== true ||
+    exportCoverage.requiresSeparateExportEstimate !== false ||
+    exportCoverage.allowsAdditionalExportCharge !== false ||
+    exportCoverage.outputFps !== expectedExportCoverage.outputFps ||
+    exportCoverage.durationSeconds !== expectedExportCoverage.durationSeconds ||
+    exportCoverage.megapixelFrames !== expectedExportCoverage.megapixelFrames ||
+    exportCoverage.lowInternalToolCostCredits !== expectedExportCoverage.lowInternalToolCostCredits ||
+    exportCoverage.expectedInternalToolCostCredits !== expectedExportCoverage.expectedInternalToolCostCredits ||
+    exportCoverage.maximumInternalToolCostCredits !== expectedExportCoverage.maximumInternalToolCostCredits ||
+    new Set(exportCoverage.coveredProfileIds).size !== 3 ||
+    !exactExportFramesValid ||
+    exportCoverage.lowInternalToolCostCredits > exportCoverage.expectedInternalToolCostCredits ||
+    exportCoverage.expectedInternalToolCostCredits > exportCoverage.maximumInternalToolCostCredits
+  ) {
+    throw new ApiError('VALIDATION_FAILED', 'Canonical final export coverage must be bound to the confirmed aspect ratio and the initial 4K edit estimate.', 400)
+  }
+  const exportEstimateLine = estimate.lineItems.find((item) => item.label === '4K UHD render and export ceiling')
+  if (
+    !exportEstimateLine ||
+    exportEstimateLine.removable ||
+    exportEstimateLine.estimatedCredits !== exportCoverage.maximumInternalToolCostCredits
+  ) {
+    throw new ApiError('VALIDATION_FAILED', 'Canonical credit estimate must include the non-removable 4K UHD render/export ceiling before approval.', 400)
   }
   const segmentIds = new Set<string>()
   let previousEndFrame = 0

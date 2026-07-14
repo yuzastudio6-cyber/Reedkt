@@ -24,6 +24,7 @@ import type {
   AdaptiveEditStrategyPlan,
   VideoUnderstandingReport,
 } from '../../types/reeditpro'
+import { buildProfessionalExportCreditCoverage } from '../professional-export-policy'
 
 function parseDurationSeconds(duration: string) {
   const [minutes = '0', seconds = '0'] = duration.split(':')
@@ -831,12 +832,27 @@ function createGuidedVideoUnderstandingReport(input: PlannerInput, adaptiveStrat
   } as VideoUnderstandingReport
 }
 
-function createGuidedCreditEstimate(input: PlannerInput, routes: SignatureRoute[], timingValidationPlan: TimingValidationPlan): CreditEstimate {
+function createGuidedCreditEstimate(
+  input: PlannerInput,
+  routes: SignatureRoute[],
+  timingValidationPlan: TimingValidationPlan,
+  masterTimingPlan: MasterTimingPlan,
+): CreditEstimate {
   const baseCredits = input.editLevel === 'premium' ? 44 : input.editLevel === 'pro' ? 28 : 18
   const realMotionCredits = routes.some((route) => route.system === 'real_motion') ? 22 : 0
   const visualCredits = routes.filter((route) => route.system === 'stroke_motion' || route.system === 'graphic_design').length * 7
   const timingCredits = timingValidationPlan.totalEstimatedTimingCredits
-  const total = baseCredits + realMotionCredits + visualCredits + timingCredits
+  const fps = masterTimingPlan.timingBase.fps
+  const durationSeconds = masterTimingPlan.timingBase.totalFrames / fps
+  const professionalExportCoverage = buildProfessionalExportCreditCoverage({
+    durationSeconds,
+    outputFps: fps,
+    approvedAspectRatio: input.aspectRatioFramePlan?.status === 'confirmed' && input.aspectRatio !== 'let_ai_decide'
+      ? input.aspectRatio
+      : undefined,
+  })
+  const total = baseCredits + realMotionCredits + visualCredits + timingCredits +
+    professionalExportCoverage.maximumInternalToolCostCredits
 
   return {
     total,
@@ -844,6 +860,11 @@ function createGuidedCreditEstimate(input: PlannerInput, routes: SignatureRoute[
       { label: 'Edit planning', credits: baseCredits, reason: `${input.editLevel} planning, captions, cleanup, and professional edit structure.` },
       { label: 'Visual systems', credits: visualCredits + realMotionCredits, reason: 'Signature systems are planned before generation and can be revised before approval.' },
       { label: 'Timing validation', credits: timingCredits, reason: 'Frame-aware timing, captions, transitions, and SoundSync are checked before approval.' },
+      {
+        label: '4K UHD render and export ceiling',
+        credits: professionalExportCoverage.maximumInternalToolCostCredits,
+        reason: 'Required 4K UHD delivery allowance included before approval. Covered 1080p, 2K/1440p, or 4K output uses the same approved edit reservation without an export-time credit prompt or charge.',
+      },
     ],
     timingCredits,
     timingTradeoffs: [],
@@ -869,7 +890,8 @@ function createGuidedCreditEstimate(input: PlannerInput, routes: SignatureRoute[
     approvalCopy: 'Credits are estimated now and only used after you approve the plan.',
     approvalBlocked: timingValidationPlan.approvalBlocked,
     draftReason: timingValidationPlan.approvalBlocked ? timingValidationPlan.approvalBlockReasons.join(' ') : undefined,
-    estimateVersion: 'guided-v1',
+    estimateVersion: 'guided-v2-4k-export-ceiling',
+    professionalExportCoverage,
   }
 }
 
@@ -996,7 +1018,7 @@ export function createGuidedMockEditPlan(input: PlannerInput): EditPlan {
         ? 'Keep SoundSync subtle: light cleanup, soft bed if needed, and no distracting transitions.'
         : 'Use SoundSync for mood, beat timing, transition sounds, ducking, and emotional polish while speech stays clear.',
     captionDirection: 'Use readable captions that avoid faces, important objects, and visual-system placement zones.',
-    creditEstimate: createGuidedCreditEstimate(effectiveInput, routes, timingValidationPlan),
+    creditEstimate: createGuidedCreditEstimate(effectiveInput, routes, timingValidationPlan, masterTimingPlan),
     approvalRequired: true,
   }
 }

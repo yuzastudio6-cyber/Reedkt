@@ -16,6 +16,8 @@ Legacy `basic | pro | premium` and runtime `economy | standard | premium` are no
 
 The preview returns low, expected, and high tool-cost estimates, then adds a separate ReEditPro service/edit fee estimate. The high total is the future required hold. If an available credit snapshot is supplied, the preview reports informational top-up credits; it does not start checkout, mutate credits, or unlock export.
 
+Every preview also includes a required 4K UHD render/export ceiling derived from final duration and output FPS. The 4K line is part of the initial edit estimate, is not optional, keeps tool cost separate from service fee, and covers 1080p, 2K/1440p, or 4K delivery within the approved aspect ratio. Export must use the same approved estimate and reservation; it must not present a second credit estimate or charge.
+
 Line items use one production tool line per planned tool plus one separate service-fee line. Tool lines keep `serviceFeeIncluded = false`; the service-fee line is labeled with `linePayload.lineItemRole = reeditpro_service_fee`.
 
 ## Store And Routes
@@ -36,4 +38,4 @@ The preview deterministically suggests lower-cost options for product-level down
 
 RP-ESTIMATE-01 does not approve estimates, reserve credits, spend credits, settle final charges, call providers, execute workers, render/export, create migrations, run Supabase, or change frontend UI. Future approval, reservation, top-up, and visible estimate card wiring remain separate milestones.
 
-`smoke:credit-estimate` covers level validation, production tool estimate reuse, service-fee separation, line-item payloads, idempotency, latest lookup, top-up/custom behavior, lower-cost options, secret-like metadata rejection, settlement-preview separation, and no side effects.
+`smoke:credit-estimate` covers level validation, mandatory 4K coverage, production tool estimate reuse, service-fee separation, line-item payloads, idempotency, latest lookup, top-up/custom behavior, lower-cost options, secret-like metadata rejection, settlement-preview separation, and no side effects.

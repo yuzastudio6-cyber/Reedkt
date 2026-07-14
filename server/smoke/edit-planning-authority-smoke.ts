@@ -56,6 +56,7 @@ import {
 } from '../validation/edit-planning-authority-schemas'
 import type { PlanningInputAuthorityExpectation } from '../validation/planning-input-authority-binding-schemas'
 import type { SourceMediaAuthorityExpectation } from '../validation/source-media-authority-schemas'
+import { buildProfessionalExportCreditCoverage } from '../../src/lib/professional-export-policy'
 import {
   CANONICAL_PRIVATE_TOOL_DISPATCH_RECORD_VERSION,
   type CanonicalPrivateToolDispatchRecord,
@@ -113,6 +114,8 @@ const sourceMediaFixtures = new Map<string, SourceMediaFixture>()
 for (const editSession of [
   'edit-session-authority-1',
   'edit-session-invalid-frame',
+  'edit-session-stale-export-duration',
+  'edit-session-tampered-export-cost',
   'edit-session-cycle',
   'edit-session-unknown-tool',
   'edit-session-missing-tool-operation',
@@ -149,6 +152,7 @@ assert.equal(
 const publishedAuthority = asRecord(published.authority)
 const publishedPlan = asRecord(publishedAuthority.plan)
 const publishedEstimate = asRecord(publishedAuthority.estimate)
+const expectedApprovedMaximumCredits = Number(publishedEstimate.approvedMaximumCredits)
 assert.equal(publishedAuthority.authorityRevision, 1)
 assert.equal(publishedPlan.status, 'presented')
 assert.match(String(publishedPlan.planHash), /^[a-f0-9]{64}$/)
@@ -234,6 +238,37 @@ await expectApiError(
   })),
   'VALIDATION_FAILED',
   'Unconfirmed output frame must fail before canonical persistence.',
+)
+
+await expectApiError(
+  () => service.publishCanonicalPlan(createPublishInput(project.id, 'edit-session-stale-export-duration', {
+    planningRequestId: 'planning-stale-export-duration',
+    idempotencyKey: 'publish-stale-export-duration',
+    mutateBody(body) {
+      body.canonicalPlan.components.confirmedSettings.professionalExportCoverage.durationSeconds = 10
+    },
+  })),
+  'VALIDATION_FAILED',
+  'The 4K estimate duration must match the canonical frame timing.',
+)
+
+await expectApiError(
+  () => service.publishCanonicalPlan(createPublishInput(project.id, 'edit-session-tampered-export-cost', {
+    planningRequestId: 'planning-tampered-export-cost',
+    idempotencyKey: 'publish-tampered-export-cost',
+    mutateBody(body) {
+      const coverage = body.canonicalPlan.components.confirmedSettings.professionalExportCoverage
+      coverage.lowInternalToolCostCredits += 1
+      coverage.expectedInternalToolCostCredits += 1
+      coverage.maximumInternalToolCostCredits += 1
+      const exportLine = body.canonicalPlan.estimate.lineItems.find((line) =>
+        line.label === '4K UHD render and export ceiling')
+      assert.ok(exportLine)
+      exportLine.estimatedCredits = coverage.maximumInternalToolCostCredits
+    },
+  })),
+  'VALIDATION_FAILED',
+  'The 4K estimate cost must be derived from the versioned rate card and canonical timing.',
 )
 
 await expectApiError(
@@ -548,7 +583,7 @@ const reservation = asRecord(approvedAuthority.reservation)
 const jobs = approvedAuthority.jobs as Record<string, unknown>[]
 assert.equal(approvedAuthority.authorityRevision, 3)
 assert.equal(reservation.status, 'reserved')
-assert.equal(reservation.reservedCredits, 15)
+assert.equal(reservation.reservedCredits, expectedApprovedMaximumCredits)
 assert.match(String(snapshot.snapshotHash), /^[a-f0-9]{64}$/)
 assert.equal(snapshot.schemaVersion, 'private-edit-authority-approved-snapshot-v3')
 assert.match(String(snapshot.approvedAssetManifestHash), /^[a-f0-9]{64}$/)
@@ -698,8 +733,8 @@ assert.equal(aggregate.snapshots.length, 1)
 assert.equal(aggregate.reservations.length, 1)
 assert.equal(aggregate.jobs.length, 5)
 assert.equal(aggregate.executionPackages.length, 1)
-assert.equal(aggregate.wallet.availableCredits, 9_985)
-assert.equal(aggregate.wallet.reservedCredits, 15)
+assert.equal(aggregate.wallet.availableCredits, 10_000 - expectedApprovedMaximumCredits)
+assert.equal(aggregate.wallet.reservedCredits, expectedApprovedMaximumCredits)
 assert.equal(aggregate.wallet.fundedCredits, aggregate.wallet.availableCredits + aggregate.wallet.reservedCredits + aggregate.wallet.spentCredits)
 assert.equal(aggregate.ledgerEntries.length, 2)
 assert.equal(aggregate.reservationEvents.length, 1)
@@ -3825,6 +3860,8 @@ console.log(JSON.stringify({
     'preference_dna_and_edit_brief_frozen_into_plan',
     'edit_brief_post_approval_mutation_blocked',
     'frame_confirmation_gate',
+    '4k_estimate_exact_timing_gate',
+    '4k_estimate_versioned_cost_derivation_gate',
     'work_graph_cycle_gate',
     'production_tool_registry_gate',
     'server_proven_tool_identity_authority_frozen_into_plan_and_snapshot',
@@ -3962,6 +3999,11 @@ function createCanonicalPlanBody(
   planningInputAuthority: PlanningInputAuthorityExpectation,
   sourceMediaFixture: SourceMediaFixture,
 ): PublishCanonicalEditPlanBody {
+  const professionalExportCoverage = buildProfessionalExportCreditCoverage({
+    durationSeconds: 5,
+    outputFps: 30,
+    approvedAspectRatio: '9:16',
+  })
   return {
     workspaceId,
     planningRequestId,
@@ -3975,6 +4017,8 @@ function createCanonicalPlanBody(
         confirmedSettings: {
           aspectRatio: '9:16',
           outputFrame: { width: 405, height: 720, fps: 30 },
+          outputFramePurpose: 'private_canonical_review',
+          professionalExportCoverage,
           outputFrameConfirmed: true,
           sourceOrderConfirmed: true,
           sourceCleanupConfirmed: true,
@@ -4046,6 +4090,14 @@ function createCanonicalPlanBody(
         lineItems: [
           { lineKey: 'planning', label: 'Planning', category: 'planning', estimatedCredits: 5, removable: false, metadata: {} },
           { lineKey: 'assembly', label: 'Assembly', category: 'render', estimatedCredits: 7, removable: false, metadata: {} },
+          {
+            lineKey: '4k-export-ceiling',
+            label: '4K UHD render and export ceiling',
+            category: 'render',
+            estimatedCredits: professionalExportCoverage.maximumInternalToolCostCredits,
+            removable: false,
+            metadata: { requiresSeparateExportEstimate: false, allowsAdditionalExportCharge: false },
+          },
         ],
         fallbackAllowanceCredits: 3,
         validForSeconds: 3_600,

@@ -1,4 +1,5 @@
 import { CREDIT_RETAIL_VALUE_CENTS, REEDITPRO_EDIT_LEVELS } from '../../src/types/credit-policy'
+import { PROFESSIONAL_EXPORT_COST_RATES } from '../../src/types/professional-export'
 import type {
   CanonicalToolCostRateCard,
   ToolCostMeteringRateCardEntry,
@@ -7,7 +8,7 @@ import type {
 } from './types'
 
 export const TOOL_COST_RATE_CARD_VERSION = 'rp-ratecard-01-mock-safe' as const
-export const COST_MICROS_PER_CENT = 10_000 as const
+export const COST_MICROS_PER_CENT = PROFESSIONAL_EXPORT_COST_RATES.microsPerCent
 
 export const TOOL_RUNTIME_COMPUTE_LEVELS = [
   'economy',
@@ -61,9 +62,9 @@ export const TOOL_COST_RATE_CARD: CanonicalToolCostRateCard = {
     perNetworkEgressMibMicros: 45,
   },
   deterministicRenderer: {
-    flatRequestMicros: 4_000,
-    perOutputSecondMicros: 650,
-    perMegapixelFrameMicros: 120,
+    flatRequestMicros: PROFESSIONAL_EXPORT_COST_RATES.flatRequestMicros,
+    perOutputSecondMicros: PROFESSIONAL_EXPORT_COST_RATES.perOutputSecondMicros,
+    perMegapixelFrameMicros: PROFESSIONAL_EXPORT_COST_RATES.perMegapixelFrameMicros,
   },
   humanManual: {
     supported: false,

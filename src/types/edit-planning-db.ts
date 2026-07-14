@@ -61,6 +61,7 @@ import type {
 } from './reeditpro'
 import type { AgentQAFallbackPlan, AsyncAssetReconciliationPlan, EditingAgentExecutionPlan } from './editing-agent-runtime'
 import type { ProfessionalSkillPlan } from './professional-skills'
+import type { ProfessionalExportCreditCoverage } from './professional-export'
 import type { SupabaseSchemaPlan } from './supabase-schema-plan'
 import type { MigrationDraftPlan } from './supabase-migration-drafts'
 import type { MigrationReviewPlan } from './supabase-rls-hardening'
@@ -636,6 +637,7 @@ export interface ApprovedPlanSnapshot {
   documentaryFactSafetyPlan?: DocumentaryFactSafetyPlan
   creditEstimate: CreditEstimateRecord
   creditEstimateDomain: CreditEstimate
+  professionalExportCoverage: ProfessionalExportCreditCoverage
   qaPlan?: QAReportRecord
   qaPlanDomain?: EditPlan['editQAPlan']
   planningSystemAuditReport?: PlanningSystemAuditReport

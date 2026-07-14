@@ -6,6 +6,7 @@ import { promisify } from 'node:util'
 import { probeMediaFile } from '../media/ffprobe-media-adapter'
 import { buildRenderArtifactRecord } from './render-artifact-writer'
 import type { FinalRenderExecutionInput, RenderCommandPlan, RenderExecutionManifest, RenderToolExecutionResult } from './render-execution-types'
+import { selectFfmpegVideoInputPath } from './ffmpeg-export-command-builder'
 
 const execFileAsync = promisify(execFile)
 
@@ -20,9 +21,15 @@ export async function runFfmpegExport(input: {
   if (input.executionInput.mode !== 'local_dev' || input.executionInput.enableLocalDevRender !== true) {
     return skipped(input.commandPlan, 'ffmpeg_render_disabled_or_not_local_dev', 'FFmpeg preview/export runs only when explicitly enabled in local-dev.')
   }
-  const sourcePath = input.executionInput.proxyLocalPaths?.[0] ?? input.executionInput.sourceLocalPaths?.[0]
-  if (!sourcePath || !existsSync(sourcePath)) {
-    return skipped(input.commandPlan, 'ffmpeg_render_source_missing', 'Safe local source/proxy media is unavailable.')
+  const sourcePath = selectFfmpegVideoInputPath(input.executionInput)
+  if (sourcePath.startsWith('[') || !existsSync(sourcePath)) {
+    return skipped(
+      input.commandPlan,
+      input.executionInput.renderMode === 'final_export' ? 'ffmpeg_source_master_missing' : 'ffmpeg_render_source_missing',
+      input.executionInput.renderMode === 'final_export'
+        ? 'The immutable source master is unavailable; final export will not silently upscale the analysis proxy.'
+        : 'Safe local source/proxy media is unavailable.',
+    )
   }
   if (!input.executionInput.outputDirectory || !existsSync(input.executionInput.outputDirectory)) {
     return skipped(input.commandPlan, 'ffmpeg_render_output_root_missing', 'Safe local output directory is unavailable.')
@@ -30,17 +37,28 @@ export async function runFfmpegExport(input: {
   if (!input.commandPlan.expectedOutputPath) {
     return skipped(input.commandPlan, 'ffmpeg_render_output_path_missing', 'The allowlisted command plan has no output path.')
   }
+  const sourceProbe = await probeMediaFile({
+    localFilePath: sourcePath,
+    ffprobeBin: input.executionInput.ffprobeBin ?? 'ffprobe',
+    timeoutMs: Math.min(input.executionInput.timeoutMs ?? 600_000, 60_000),
+  })
   if (input.executionInput.sourceAudioRequired !== false) {
-    const audioSourcePath = input.executionInput.audioLocalPaths?.[0] ?? sourcePath
-    const sourceProbe = await probeMediaFile({
-      localFilePath: audioSourcePath,
-      ffprobeBin: input.executionInput.ffprobeBin ?? 'ffprobe',
-      timeoutMs: Math.min(input.executionInput.timeoutMs ?? 600_000, 60_000),
-    })
-    if (sourceProbe.audioStreams.length === 0) {
+    const audioSourcePath = input.executionInput.audioLocalPaths?.[0]
+    const audioProbe = audioSourcePath
+      ? await probeMediaFile({
+          localFilePath: audioSourcePath,
+          ffprobeBin: input.executionInput.ffprobeBin ?? 'ffprobe',
+          timeoutMs: Math.min(input.executionInput.timeoutMs ?? 600_000, 60_000),
+        })
+      : sourceProbe
+    if (audioProbe.audioStreams.length === 0) {
       return skipped(input.commandPlan, 'ffmpeg_render_source_audio_missing', 'The approved render profile requires source audio, but no audio stream was found.')
     }
   }
+  const sourceQualityWarnings = sourceProbe.width < input.executionManifest.canvas.width ||
+    sourceProbe.height < input.executionManifest.canvas.height
+    ? ['The approved export frame exceeds source dimensions. ReEditPro will create the requested output container, but it must not claim that upscaling restores source detail; this runner does not silently infer or execute enhancement.']
+    : []
 
   try {
     await execFileAsync(input.commandPlan.command, input.commandPlan.args, {
@@ -75,7 +93,10 @@ export async function runFfmpegExport(input: {
       artifact,
       outputLocalPath: outputPath,
       outputProbe,
-      warnings: ['Private local render completed; no public delivery, signed URL, provider call, or production deployment occurred.'],
+      warnings: [
+        ...sourceQualityWarnings,
+        'Private local render completed; no public delivery, signed URL, provider call, or production deployment occurred.',
+      ],
     }
   } catch (error) {
     return {

@@ -11,6 +11,7 @@ import type {
   ProjectSourceVideoLocalEditPreviewResult,
   ProjectSourceVideoPreviewReviewResult,
 } from '../../src/types/project-source-video'
+import { buildProfessionalExportExecutionAuthority } from '../../src/lib/professional-export-policy'
 
 const root = process.cwd()
 
@@ -42,6 +43,7 @@ const renderInput: FinalRenderExecutionInput = {
   projectId: 'project-project-edit-final-export-readiness',
   mediaAssetId: 'media-project-edit-final-export-readiness',
   approvedSnapshotId: 'approved-snapshot-project-edit-final-export-readiness',
+  creditReservationId: 'credit-reservation-project-edit-final-export-readiness',
   toolExecutionPlanId: 'tool-execution-project-edit-final-export-readiness',
   idempotencyKey: 'idempotency-project-edit-final-export-readiness',
   timelineManifestId: 'timeline-manifest-project-edit-final-export-readiness',
@@ -56,6 +58,15 @@ const renderInput: FinalRenderExecutionInput = {
   fps: 30,
   durationSeconds: 12,
   exportSettings: { container: 'mp4', videoCodec: 'h264', audioCodec: 'aac', pixelFormat: 'yuv420p' },
+  professionalExportAuthority: buildProfessionalExportExecutionAuthority({
+    approvedEstimateId: 'credit-estimate-project-edit-final-export-readiness',
+    approvedReservationId: 'credit-reservation-project-edit-final-export-readiness',
+    approvedDeliverableId: 'deliverable-project-edit-final-export-readiness',
+    approvedAspectRatio: '16:9',
+    approvedOutputFps: 30,
+    approvedDurationSeconds: 12,
+    selectedProfileId: 'hd_1080',
+  }),
 }
 
 const dryRun = await runFinalRenderExecutionPipeline(renderInput)

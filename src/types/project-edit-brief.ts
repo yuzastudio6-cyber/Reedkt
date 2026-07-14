@@ -166,6 +166,7 @@ export type ProjectEditSessionExportAspectRatio =
   | '16:9'
   | '1:1'
   | '4:5'
+  | '4:3'
   | 'custom'
 
 export type ProjectEditSessionExportFormat =
@@ -372,6 +373,12 @@ export interface ProjectEditSessionExportSettingsRecord {
     width: number
     height: number
   }
+  /**
+   * Separates professional output resolution from the legacy platform preset.
+   * Older mock fixtures may omit it; adapters infer the profile from the exact
+   * frame and use `custom` when it does not match a registered profile.
+   */
+  resolutionProfileId?: import('./professional-export').ProfessionalExportProfileId | 'custom'
   frameRate: 24 | 25 | 30 | 50 | 60
   format: ProjectEditSessionExportFormat
   codec: 'h264' | 'h265_future' | 'prores_future'

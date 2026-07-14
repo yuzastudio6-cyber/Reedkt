@@ -30,78 +30,40 @@ export function buildMockExportEstimate({
   workspaceId,
 }: BuildMockExportEstimateInput): MockExportEstimate {
   const enabledTargets = getEnabledExportTargets(exportSettings)
-  const lineItems: MockExportEstimateLineItem[] = []
-  let index = 1
-
-  if (enabledTargets.length > 0) {
-    lineItems.push(lineItem(projectId, index, 'Base export package', 1, 2, 'Internal packaging setup for the enabled export targets.'))
-    index += 1
-    lineItems.push(lineItem(projectId, index, 'Enabled export targets', enabledTargets.length, 1, 'One estimated credit per platform output record.'))
-    index += 1
-  }
-
-  const fourKTargets = enabledTargets.filter((target) => target.resolution === '4k').length
-  if (fourKTargets > 0) {
-    lineItems.push(lineItem(projectId, index, '4K output uplift', fourKTargets, 3, 'Higher-resolution export rehearsal complexity.'))
-    index += 1
-  }
-
-  const fourteenFortyTargets = enabledTargets.filter((target) => target.resolution === '1440p').length
-  if (fourteenFortyTargets > 0) {
-    lineItems.push(lineItem(projectId, index, '1440p output uplift', fourteenFortyTargets, 2, 'Higher-resolution export rehearsal complexity.'))
-    index += 1
-  }
-
-  const maximumQualityTargets = enabledTargets.filter((target) => target.quality === 'maximum').length
-  if (maximumQualityTargets > 0) {
-    lineItems.push(lineItem(projectId, index, 'Maximum quality outputs', maximumQualityTargets, 2, 'Maximum quality export rehearsal pass.'))
-    index += 1
-  }
-
-  const highQualityTargets = enabledTargets.filter((target) => target.quality === 'high').length
-  if (highQualityTargets > 0) {
-    lineItems.push(lineItem(projectId, index, 'High quality outputs', highQualityTargets, 1, 'High quality export rehearsal pass.'))
-    index += 1
-  }
-
-  const burnInTargets = enabledTargets.filter((target) => target.captionMode === 'burn_in').length
-  if (burnInTargets > 0) {
-    lineItems.push(lineItem(projectId, index, 'Caption burn-in', burnInTargets, 1, 'Caption burn-in packaging for platform output records.'))
-    index += 1
-  }
-
-  const safeZoneTargets = enabledTargets.some((target) => target.enforceSafeZones)
-  if (safeZoneTargets) {
-    lineItems.push(lineItem(projectId, index, 'Safe-zone enforcement', 1, 1, 'Platform safe-zone enforcement check.'))
-    index += 1
-  }
-
-  const customTargets = enabledTargets.filter((target) =>
-    target.platform === 'custom' || target.aspectRatio === 'custom' || target.resolution === 'custom',
-  ).length
-  if (customTargets > 0) {
-    lineItems.push(lineItem(projectId, index, 'Custom output handling', customTargets, 2, 'Estimate for custom platform, aspect, or resolution handling.'))
-  }
-
-  const totalCredits = lineItems.reduce((total, item) => total + item.credits, 0)
+  const lineItems: MockExportEstimateLineItem[] = enabledTargets.length > 0
+    ? [lineItem(
+        projectId,
+        1,
+        'Covered by approved 4K edit estimate',
+        enabledTargets.length,
+        0,
+        '1080p, 2K/1440p, and 4K outputs within the approved aspect ratio use the existing edit reservation. No export-time estimate or charge is allowed.',
+      )]
+    : []
+  const totalCredits = 0
 
   return {
     id: `${projectId}-mock-export-estimate`,
     projectId,
     workspaceId,
     userId,
-    status: 'ready',
+    status: 'approved',
     lineItems,
     totalCredits,
-    explanation: totalCredits > 0
-      ? 'This is an internal export credit preview, not billing. No credits are reserved, deducted, or refunded here.'
-      : 'No export targets are enabled, so the export credit preview is 0 credits. No billing occurs.',
+    coverageSource: 'approved_edit_4k_ceiling',
+    requiresCreditPrompt: false,
+    allowsAdditionalExportCharge: false,
+    explanation: enabledTargets.length > 0
+      ? 'Export cost was included when the edit estimate was approved at the 4K UHD ceiling. This export step must not ask for, reserve, or deduct credits again.'
+      : 'No export targets are enabled. The approved edit estimate still retains its 4K UHD delivery ceiling.',
     createdAt: MOCK_CREATED_AT,
     updatedAt: MOCK_CREATED_AT,
   }
 }
 
 export function summarizeMockExportEstimate(estimate: MockExportEstimate | null) {
-  if (!estimate) return 'No export credit preview yet.'
-  return `${estimate.totalCredits} estimated export credit${estimate.totalCredits === 1 ? '' : 's'}.`
+  if (!estimate) return 'Approved edit credit coverage has not been verified yet.'
+  return estimate.requiresCreditPrompt
+    ? `${estimate.totalCredits} estimated export credit${estimate.totalCredits === 1 ? '' : 's'}.`
+    : 'Export is covered by the approved 4K edit estimate; no additional credits are due.'
 }

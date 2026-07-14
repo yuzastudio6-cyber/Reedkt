@@ -27,6 +27,7 @@ import type {
   VisualAssetType,
 } from '../types/reeditpro'
 import type { AgentQAFallbackPlan, AsyncAssetReconciliationPlan, EditingAgentExecutionPlan } from '../types/editing-agent-runtime'
+import { buildProfessionalExportCreditCoverage } from './professional-export-policy'
 
 type CreateCreditEstimateParams = {
   visualAssetPlan: VisualAssetPlanItem[]
@@ -712,7 +713,12 @@ function getFallbackPolicyNotes(input: PlannerInput, visualAssetPlan: VisualAsse
   return notes
 }
 
-function creditBreakdown(input: PlannerInput, params: CreateCreditEstimateParams, fallbackCredits: number): CreditEstimate['breakdown'] {
+function creditBreakdown(
+  input: PlannerInput,
+  params: CreateCreditEstimateParams,
+  fallbackCredits: number,
+  professionalExportCredits: number,
+): CreditEstimate['breakdown'] {
   const base = tierBaseCredits[input.editLevel]
   const assetCounts = countAssets(params.visualAssetPlan)
   const stillCount = stillAssetTypes.reduce((sum, assetType) => sum + (assetCounts[assetType] ?? 0), 0)
@@ -792,13 +798,11 @@ function creditBreakdown(input: PlannerInput, params: CreateCreditEstimateParams
     reason: 'Timing support for music, SFX cues, ducking, and beat placement.',
   })
 
-  if (params.rendererCompositionPlan) {
-    breakdown.push({
-      label: 'Remotion composition plan placeholder',
-      credits: 0,
-      reason: 'Rendering is planned and remains backend-gated for this milestone.',
-    })
-  }
+  breakdown.push({
+    label: '4K UHD render and export ceiling',
+    credits: professionalExportCredits,
+    reason: 'Required, non-removable 4K UHD delivery allowance included before approval. Covered 1080p, 2K/1440p, or 4K export uses this same approved edit reservation and must not trigger a second export estimate or charge.',
+  })
 
   const renderStrategyCredits = renderStrategyPlanningCredits(input, params.renderStrategyPlan)
 
@@ -1107,6 +1111,19 @@ function lowerCostAlternatives(
 }
 
 export function createCreditEstimate(input: PlannerInput, params: CreateCreditEstimateParams): CreditEstimate {
+  const exportFps = params.masterTimingPlan?.timingBase.fps ?? params.rendererCompositionPlan?.fps ?? 30
+  const exportDurationSeconds = params.rendererCompositionPlan?.durationSeconds ??
+    (params.masterTimingPlan
+      ? params.masterTimingPlan.timingBase.totalFrames / params.masterTimingPlan.timingBase.fps
+      : 1)
+  const approvedAspectRatio = (input.aspectRatioConfirmed === true || input.aspectRatioFramePlan?.status === 'confirmed') && input.aspectRatio !== 'let_ai_decide'
+    ? input.aspectRatio
+    : undefined
+  const professionalExportCoverage = buildProfessionalExportCreditCoverage({
+    durationSeconds: Math.max(1 / exportFps, exportDurationSeconds),
+    outputFps: exportFps,
+    approvedAspectRatio,
+  })
   const fallbackCredits = fallbackAllowanceCredits(input, params.visualAssetPlan)
   const sourceCleanupPlan = params.sourceCleanupPlan ?? input.sourceCleanupPlan
   const trimReviewPlan = params.trimReviewPlan ?? input.trimReviewPlan
@@ -1132,7 +1149,12 @@ export function createCreditEstimate(input: PlannerInput, params: CreateCreditEs
       )
     : 0
   const breakdown = [
-    ...creditBreakdown(input, params, fallbackCredits),
+    ...creditBreakdown(
+      input,
+      params,
+      fallbackCredits,
+      professionalExportCoverage.maximumInternalToolCostCredits,
+    ),
     ...(sourceCleanupPlan
       ? [{
           label: 'Source cleanup planning',
@@ -1265,6 +1287,7 @@ export function createCreditEstimate(input: PlannerInput, params: CreateCreditEs
         : soundSyncTransitionBlocked
           ? 'SoundSync + Transition Timing is blocked. Credit approval remains draft until speech-safe transition timing can be reviewed.'
         : 'Output frame or timing base is recommended but not confirmed. Credit approval remains blocked until the user confirms the target aspect ratio and frame timing gate.',
-    estimateVersion: 'mock-vs-05',
+    estimateVersion: 'mock-vs-06-4k-export-ceiling',
+    professionalExportCoverage,
   }
 }

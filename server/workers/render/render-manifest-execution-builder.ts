@@ -46,6 +46,7 @@ export function buildRenderManifestExecution(input: FinalRenderExecutionInput): 
     renderEngine: input.renderEngine,
     renderMode: input.renderMode,
     exportSettings: input.exportSettings,
+    professionalExportAuthority: input.professionalExportAuthority,
     resolvedAssets,
     qaRequirements: buildQaRequirements(input),
     hyperframeBridgeOnly: true,

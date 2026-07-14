@@ -66,6 +66,8 @@ const baseRequest = {
   editPlanId,
   productEditLevel: 'premium',
   finalVideoDurationSeconds: 240,
+  outputFps: 30,
+  confirmedAspectRatio: '16:9',
   plannedToolIds: ['opentimelineio'],
   toolUsageInputs: {
     opentimelineio: {
@@ -101,6 +103,17 @@ assert.equal(preview.safetyFlags.workerRun, false)
 assert.equal(preview.safetyFlags.renderOrExportStarted, false)
 assert.equal(preview.safetyFlags.supabaseWritten, false)
 assert.equal(preview.safetyFlags.serviceFeeIncludedInToolCosts, false)
+assert.equal(preview.professionalExportCoverage.assumption, 'always_estimate_4k_uhd')
+assert.equal(preview.professionalExportCoverage.costBasisProfileId, 'uhd_2160')
+assert.equal(preview.professionalExportCoverage.approvedAspectRatio, '16:9')
+assert.equal(preview.professionalExportCoverage.approvedFrames.find((frame) => frame.profileId === 'uhd_2160')?.width, 3840)
+assert.deepEqual(preview.professionalExportCoverage.coveredProfileIds, ['hd_1080', 'qhd_1440', 'uhd_2160'])
+assert.equal(preview.professionalExportCoverage.includedInInitialEstimate, true)
+assert.equal(preview.professionalExportCoverage.requiresSeparateExportEstimate, false)
+assert.equal(preview.professionalExportCoverage.allowsAdditionalExportCharge, false)
+assert.equal(preview.professionalExportCoverage.usesApprovedEditReservation, true)
+assert.ok(preview.professionalExportCoverage.expectedInternalToolCostCredits > 0)
+assert.ok(preview.professionalExportCoverage.maximumInternalToolCostCredits >= preview.professionalExportCoverage.expectedInternalToolCostCredits)
 assert.equal(preview.toolEstimates.length, 1)
 assert.equal(preview.toolEstimates[0]?.toolId, 'opentimelineio')
 assert.equal(preview.toolEstimates[0]?.serviceFeeIncluded, false)
@@ -124,7 +137,7 @@ assert.ok(preview.summary.minimumEstimatedCredits <= preview.summary.totalEstima
 assert.ok(preview.summary.totalEstimatedCredits <= preview.summary.maximumEstimatedCredits)
 
 const lineItems = preview.estimate.lineItems ?? []
-assert.equal(lineItems.length, 2)
+assert.equal(lineItems.length, 3)
 const toolLine = lineItems.find((line) => line.linePayload?.lineItemRole === 'production_tool_estimate')
 assert.ok(toolLine, 'Tool line item must be present.')
 assert.equal(toolLine.linePayload?.serviceFeeIncluded, false)
@@ -137,6 +150,18 @@ assert.equal(serviceFeeLine.usageCategory, 'admin')
 assert.equal(serviceFeeLine.lineItemType, 'other')
 assert.equal(serviceFeeLine.linePayload?.serviceFeeIncluded, true)
 assert.equal(serviceFeeLine.linePayload?.toolCostsIncludeServiceFee, false)
+const exportCoverageLine = lineItems.find((line) => line.linePayload?.lineItemRole === 'mandatory_4k_export_ceiling')
+assert.ok(exportCoverageLine, 'The mandatory 4K export ceiling line item must be present in the initial edit estimate.')
+assert.equal(exportCoverageLine.lineItemType, 'final_export')
+assert.equal(exportCoverageLine.isOptional, false)
+assert.equal(
+  exportCoverageLine.estimatedCredits,
+  preview.professionalExportCoverage.maximumInternalToolCostCredits,
+  'The approval line must carry the high 4K hold ceiling used by canonical authority.',
+)
+assert.equal(exportCoverageLine.linePayload?.requiresSeparateExportEstimate, false)
+assert.equal(exportCoverageLine.linePayload?.allowsAdditionalExportCharge, false)
+assert.equal(exportCoverageLine.linePayload?.serviceFeeIncluded, false)
 assert.equal(preview.estimate.estimatePayload?.idempotencyKey, baseRequest.idempotencyKey)
 assert.equal(preview.estimate.estimatePayload?.estimateOnly, true)
 
@@ -258,6 +283,10 @@ assert.equal(previewEditCreditEstimateSchema.safeParse({
 assert.equal(previewEditCreditEstimateSchema.safeParse({
   ...baseRequest,
   finalVideoDurationSeconds: -1,
+}).success, false)
+assert.equal(previewEditCreditEstimateSchema.safeParse({
+  ...baseRequest,
+  outputFps: 0,
 }).success, false)
 assert.equal(previewEditCreditEstimateSchema.safeParse({
   ...baseRequest,

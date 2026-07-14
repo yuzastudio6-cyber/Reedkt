@@ -357,6 +357,26 @@ export function createApprovedPlanSnapshot(params: CreateApprovedPlanSnapshotPar
     throw new Error('Cannot create an approved plan snapshot until Timing Validation has passed or is reviewable without blocking/failing checks.')
   }
 
+  const professionalExportCoverage = plan.creditEstimate.professionalExportCoverage
+  const selectedAspectRatio = plan.aspectRatioFramePlan.selectedAspectRatio
+  const exportEstimateLine = plan.creditEstimate.breakdown.find((item) =>
+    item.label === '4K UHD render and export ceiling')
+  if (
+    !professionalExportCoverage ||
+    !selectedAspectRatio ||
+    selectedAspectRatio === 'let_ai_decide' ||
+    professionalExportCoverage.approvedAspectRatio !== selectedAspectRatio ||
+    professionalExportCoverage.costBasisProfileId !== 'uhd_2160' ||
+    professionalExportCoverage.includedInInitialEstimate !== true ||
+    professionalExportCoverage.requiresSeparateExportEstimate !== false ||
+    professionalExportCoverage.allowsAdditionalExportCharge !== false ||
+    professionalExportCoverage.usesApprovedEditReservation !== true ||
+    !exportEstimateLine ||
+    exportEstimateLine.credits !== professionalExportCoverage.maximumInternalToolCostCredits
+  ) {
+    throw new Error('Cannot approve this plan until the required 4K UHD render/export ceiling is included in the edit estimate and bound to the confirmed aspect ratio.')
+  }
+
   const approvedAt = nowIso()
   const editLevel = getEditLevel(plan)
   const sourceSequence = createSourceSequence(projectId, editSessionId, plan, approvedAt, sourceMediaAssets)
@@ -460,6 +480,7 @@ export function createApprovedPlanSnapshot(params: CreateApprovedPlanSnapshotPar
     documentaryFactSafetyPlan: plan.documentaryFactSafetyPlan,
     creditEstimate,
     creditEstimateDomain: plan.creditEstimate,
+    professionalExportCoverage,
     qaPlan,
     qaPlanDomain: plan.editQAPlan,
     planningSystemAuditReport: plan.planningSystemAuditReport,

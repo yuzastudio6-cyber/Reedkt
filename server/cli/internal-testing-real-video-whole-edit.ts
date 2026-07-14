@@ -33,6 +33,7 @@ import { runFinalRenderExecutionPipeline } from '../workers/final-render'
 import { runMediaAnalysisFoundation } from '../workers/media'
 import { buildWorkerIdempotencyKey, type ProductionWorkerJobPayload } from '../workers/production'
 import { runSpeechCaptionExecutionPipeline } from '../workers/speech-caption'
+import { buildProfessionalExportExecutionAuthority } from '../../src/lib/professional-export-policy'
 
 const sourcePath = resolve(
   process.env.REEDITPRO_INTERNAL_TESTING_REAL_VIDEO_PATH?.trim() ||
@@ -413,6 +414,15 @@ try {
     fps: renderManifest.fps,
     durationSeconds: renderManifest.durationSeconds,
     exportSettings: renderManifest.exportSettings,
+    professionalExportAuthority: buildProfessionalExportExecutionAuthority({
+      approvedEstimateId: planningState.creditEstimate.id,
+      approvedReservationId: creditReservation.id,
+      approvedDeliverableId: `deliverable-${planningState.project.id}-whole-edit`,
+      approvedAspectRatio: '9:16',
+      approvedOutputFps: renderManifest.fps,
+      approvedDurationSeconds: renderManifest.durationSeconds,
+      selectedProfileId: 'hd_1080',
+    }),
     enableLocalDevRender: true,
     enableRemotionLocalRender: false,
     enableCaptionBurnIn: true,

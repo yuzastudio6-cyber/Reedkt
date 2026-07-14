@@ -1,4 +1,9 @@
 import { z } from 'zod'
+import { resolveProfessionalExportFrame } from '../../src/lib/professional-export-policy'
+import {
+  PROFESSIONAL_EXPORT_PROFILE_IDS,
+  type ProfessionalExportAspectRatio,
+} from '../../src/types/professional-export'
 
 export const editBriefScopeIdSchema = z.string().trim().min(1).max(160)
   .refine(
@@ -80,6 +85,7 @@ export const editBriefExportSettingsSchema = z.object({
   customWidth: z.number().int().min(320).max(16_384).optional(),
   customHeight: z.number().int().min(320).max(16_384).optional(),
   resolution: z.string().trim().regex(/^\d{3,5}x\d{3,5}$/),
+  resolutionProfileId: z.enum(PROFESSIONAL_EXPORT_PROFILE_IDS).optional(),
   frameRate: editBriefFrameRateSchema,
   confirmationStatus: z.enum(['recommended', 'confirmed']),
   confirmationId: editBriefScopeIdSchema.optional(),
@@ -111,6 +117,23 @@ export const editBriefExportSettingsSchema = z.object({
     : ({ '9:16': 9 / 16, '16:9': 16 / 9, '1:1': 1, '4:5': 4 / 5, '4:3': 4 / 3 } as const)[value.aspectRatio]
   if (Math.abs((outputWidth / outputHeight) - expectedRatio) > 0.01) {
     context.addIssue({ code: z.ZodIssueCode.custom, message: 'Resolution dimensions must match the selected output aspect ratio.' })
+  }
+  if (value.resolutionProfileId && value.aspectRatio === 'custom') {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Registered professional resolution profiles require a registered output aspect ratio.',
+    })
+  } else if (value.resolutionProfileId) {
+    const expectedFrame = resolveProfessionalExportFrame(
+      value.aspectRatio as ProfessionalExportAspectRatio,
+      value.resolutionProfileId,
+    )
+    if (outputWidth !== expectedFrame.width || outputHeight !== expectedFrame.height) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `${expectedFrame.label} requires ${expectedFrame.width}x${expectedFrame.height} for ${value.aspectRatio}.`,
+      })
+    }
   }
 })
 

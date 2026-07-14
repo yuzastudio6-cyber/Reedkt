@@ -102,7 +102,7 @@ export type MockExportJobStepKey =
   | 'read_preview_version'
   | 'validate_export_readiness'
   | 'prepare_platform_versions'
-  | 'reserve_mock_export_credits'
+  | 'verify_approved_edit_credit_coverage'
   | 'apply_export_settings'
   | 'render_mock_outputs'
   | 'run_export_qa'
@@ -169,6 +169,9 @@ export interface MockExportEstimate {
   status: 'draft' | 'ready' | 'approved' | 'superseded'
   lineItems: MockExportEstimateLineItem[]
   totalCredits: number
+  coverageSource: 'approved_edit_4k_ceiling'
+  requiresCreditPrompt: false
+  allowsAdditionalExportCharge: false
   explanation: string
   createdAt: string
   updatedAt: string

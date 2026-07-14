@@ -7,6 +7,7 @@ import {
   REEDITPRO_EDIT_LEVELS,
 } from '../../src/types/credit-policy'
 import { PRODUCTION_TOOL_IDS } from '../tool-registry'
+import { PROFESSIONAL_EXPORT_ASPECT_RATIOS } from '../../src/types/professional-export'
 import { idSchema } from './common-schemas'
 import { secretSafeJsonObjectSchema } from './credit-data-schemas'
 
@@ -53,6 +54,8 @@ export const previewEditCreditEstimateSchema = z.object({
   editPlanId: idSchema,
   productEditLevel: editCreditEstimateProductEditLevelSchema,
   finalVideoDurationSeconds: positiveDurationSecondsSchema,
+  outputFps: z.number().positive().finite().max(120).default(30),
+  confirmedAspectRatio: z.enum(PROFESSIONAL_EXPORT_ASPECT_RATIOS).optional(),
   plannedToolIds: z.array(editCreditEstimateProductionToolIdSchema).min(1),
   toolUsageInputs: z.record(z.string(), editCreditEstimateToolUsageInputSchema).default({}),
   availableCreditsSnapshot: nonNegativeIntegerCreditSchema.optional(),

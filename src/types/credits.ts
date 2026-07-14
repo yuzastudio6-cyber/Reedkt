@@ -1,5 +1,6 @@
 import type { BaseRecord, CreditAmount, ID, ISODateString, JSONObject } from './shared'
 import type { ReEditProCanonicalEditLevel } from './edit-level'
+import type { ProfessionalExportAspectRatio, ProfessionalExportCreditCoverage } from './professional-export'
 
 export type CreditWalletType = 'personal' | 'workspace' | 'business' | 'enterprise'
 
@@ -345,6 +346,8 @@ export interface PreviewEditCreditEstimateRequest {
   editPlanId: ID
   productEditLevel: ReEditProCanonicalEditLevel
   finalVideoDurationSeconds: number
+  outputFps?: number
+  confirmedAspectRatio?: ProfessionalExportAspectRatio
   plannedToolIds: ID[]
   toolUsageInputs?: Record<string, EditCreditEstimateToolUsageInput>
   availableCreditsSnapshot?: CreditAmount
@@ -431,6 +434,7 @@ export interface EditCreditEstimatePreviewSummary {
   editPlanId: ID
   productEditLevel: ReEditProCanonicalEditLevel
   finalVideoDurationSeconds: number
+  outputFps: number
   plannedToolCount: number
   lowToolCostCredits: CreditAmount
   expectedToolCostCredits: CreditAmount
@@ -453,6 +457,7 @@ export interface EditCreditEstimatePreview {
   estimate: CreditEstimateRecord
   summary: EditCreditEstimatePreviewSummary
   toolEstimates: EditCreditEstimateToolEstimateSnapshot[]
+  professionalExportCoverage: ProfessionalExportCreditCoverage
   serviceFeeEstimate: EditCreditEstimateServiceFeeEstimate
   topUpSummary: EditCreditEstimateTopUpSummary
   lowerCostOptions: EditCreditEstimateLowerCostOption[]

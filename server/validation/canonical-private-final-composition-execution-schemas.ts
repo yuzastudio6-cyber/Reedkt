@@ -8,6 +8,16 @@ const identity = z.string().min(1).max(200).regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$
 const sha = z.string().regex(/^[a-f0-9]{64}$/)
 const timestamp = z.string().datetime({ offset: true })
 
+const approvedVoiceTracksSchema = z.array(z.object({
+  sourceSequenceItemId: identity,
+  outputKey: identity,
+  durationFrames: z.number().int().positive().max(240),
+  voiceArtifactId: identity,
+  voiceSha256: sha,
+  voiceByteLength: z.number().int().min(44).max(2 * 1024 * 1024),
+  voiceDependencyReadEvidenceHash: sha,
+}).strict()).min(1).max(8)
+
 export const runCanonicalPrivateFinalCompositionSchema = z.object({
   workspaceId: identity,
   projectId: identity,
@@ -31,6 +41,7 @@ const finalCompositionDependencyInputsSchema = z.object({
   captionArtifactId: identity, captionSha256: sha,
   captionByteLength: z.number().int().positive().max(8 * 1024 * 1024),
   captionDependencyReadEvidenceHash: sha,
+  voiceTracks: approvedVoiceTracksSchema.optional(),
 }).strict()
 
 const captionTrackDependencyInputsSchema = z.object({
@@ -46,6 +57,7 @@ const captionTrackDependencyInputsSchema = z.object({
     captionByteLength: z.number().int().positive().max(8 * 1024 * 1024),
     captionDependencyReadEvidenceHash: sha,
   }).strict()).min(2).max(7),
+  voiceTracks: approvedVoiceTracksSchema.optional(),
 }).strict()
 
 const singleSourceFinalCompositionInputsSchema = finalCompositionDependencyInputsSchema.extend({
@@ -123,7 +135,14 @@ export const canonicalPrivateFinalCompositionResponseSchema = z.object({
     approvedSourceTrimFramesApplied: z.literal(true),
     approvedCaptionDependencyRead: z.literal(true),
     approvedCaptionTrackTimingApplied: z.boolean(),
-    sourceAudioPreserved: z.literal(true),
+    audioPolicy: z.enum([
+      'preserve_source',
+      'preserve_source_sequence',
+      'replace_with_approved_voice_tracks',
+    ]),
+    sourceAudioPreserved: z.boolean(),
+    approvedVoiceTrackDependencyRead: z.boolean(),
+    approvedVoiceTrackReplacementApplied: z.boolean(),
     privateFinalCompositionExecuted: z.literal(true),
     providerCallMade: z.literal(false),
     publicDeliveryExecuted: z.literal(false),
@@ -186,7 +205,32 @@ export const canonicalPrivateFinalCompositionResponseSchema = z.object({
   completedAt: timestamp,
   responseHash: sha,
   testOnly: z.literal(true),
-}).strict()
+}).strict().superRefine((value, context) => {
+  const replacement = value.tool.audioPolicy === 'replace_with_approved_voice_tracks'
+  const voiceTracks = value.inputs.voiceTracks
+  const sequenceProfile = value.tool.compositionProfileId.includes('source_sequence')
+  const preservedPolicyMatchesProfile = sequenceProfile
+    ? value.tool.audioPolicy === 'preserve_source_sequence'
+    : value.tool.audioPolicy === 'preserve_source'
+  if (
+    replacement
+      ? (
+          value.tool.sourceAudioPreserved || !value.tool.approvedVoiceTrackDependencyRead ||
+          !value.tool.approvedVoiceTrackReplacementApplied || !voiceTracks?.length
+        )
+      : (
+          !preservedPolicyMatchesProfile || !value.tool.sourceAudioPreserved ||
+          value.tool.approvedVoiceTrackDependencyRead ||
+          value.tool.approvedVoiceTrackReplacementApplied || voiceTracks !== undefined
+        )
+  ) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['tool', 'audioPolicy'],
+      message: 'Final-composition audio policy and source-bound voice evidence diverged.',
+    })
+  }
+})
 
 export type RunCanonicalPrivateFinalCompositionInput = z.infer<typeof runCanonicalPrivateFinalCompositionSchema>
 export type CanonicalPrivateFinalCompositionAuthority = z.infer<typeof canonicalPrivateFinalCompositionAuthoritySchema>

@@ -10,6 +10,8 @@ import { verifyCanonicalStructuredSvgArtifact } from './canonical-structured-svg
 import { readCanonicalStructuredSvgArtifact } from './canonical-structured-svg-artifact-storage'
 import { verifyCanonicalPrivateImageArtifact } from './canonical-private-image-artifact-verifier'
 import { readCanonicalPrivateImageArtifact } from './canonical-private-image-artifact-storage'
+import { verifyCanonicalPrivateAudioArtifact } from './canonical-private-audio-artifact-verifier'
+import { readCanonicalPrivateAudioArtifact } from './canonical-private-audio-artifact-storage'
 import { verifyCanonicalPrivateRemotionArtifact } from './canonical-private-remotion-artifact-verifier'
 import { readCanonicalPrivateRemotionArtifact } from './canonical-private-remotion-artifact-storage'
 import { createCanonicalWorkerLeaseAuthorityService } from './canonical-worker-lease-authority-service'
@@ -25,7 +27,14 @@ import {
 
 export interface CanonicalPrivateDependencyArtifactReadResult {
   bytes: Buffer
-  contentType: 'image/svg+xml' | 'application/json' | 'image/png' | 'image/jpeg' | 'image/webp' | 'video/mp4'
+  contentType:
+    | 'image/svg+xml'
+    | 'application/json'
+    | 'image/png'
+    | 'image/jpeg'
+    | 'image/webp'
+    | 'video/mp4'
+    | 'audio/wav'
   sha256: string
   byteLength: number
   dependencyJobId: string
@@ -55,7 +64,15 @@ export function createCanonicalPrivateDependencyArtifactReadService(context: Ser
       executionAttemptId: string
       dispatchGrantId: string
       dependencyAuthority: CanonicalWorkerLeaseDependencyAuthority
-      allowedContentTypes: readonly ('image/svg+xml' | 'application/json' | 'image/png' | 'image/jpeg' | 'image/webp' | 'video/mp4')[]
+      allowedContentTypes: readonly (
+        | 'image/svg+xml'
+        | 'application/json'
+        | 'image/png'
+        | 'image/jpeg'
+        | 'image/webp'
+        | 'video/mp4'
+        | 'audio/wav'
+      )[]
       maximumBytes: number
       selectedArtifactIndex?: number
     }): Promise<CanonicalPrivateDependencyArtifactReadResult> {
@@ -68,7 +85,7 @@ export function createCanonicalPrivateDependencyArtifactReadService(context: Ser
         input.dependencyAuthority.state !== 'private_test_dependencies_verified' ||
         input.dependencyAuthority.liveRuntimeEligible !== false ||
         input.dependencyAuthority.selectedArtifacts.length < 1 ||
-        input.dependencyAuthority.selectedArtifacts.length > 8 ||
+        input.dependencyAuthority.selectedArtifacts.length > 24 ||
         (input.selectedArtifactIndex === undefined && input.dependencyAuthority.selectedArtifacts.length !== 1) ||
         !Number.isSafeInteger(selectedArtifactIndex) || selectedArtifactIndex < 0 ||
         selectedArtifactIndex >= input.dependencyAuthority.selectedArtifacts.length ||
@@ -143,6 +160,11 @@ export function createCanonicalPrivateDependencyArtifactReadService(context: Ser
               localStorageRoot: context.env.localStorageRoot,
               artifact: authority.artifact,
             })
+          : contentType === 'audio/wav'
+          ? await verifyCanonicalPrivateAudioArtifact({
+              localStorageRoot: context.env.localStorageRoot,
+              artifact: authority.artifact,
+            })
           : contentType === 'application/json' && internalAuthorityArtifact
           ? await verifyCanonicalInternalAuthorityArtifact({
               localStorageRoot: context.env.localStorageRoot,
@@ -169,6 +191,11 @@ export function createCanonicalPrivateDependencyArtifactReadService(context: Ser
           })
         : contentType === 'video/mp4'
           ? await readCanonicalPrivateRemotionArtifact({
+              localStorageRoot: context.env.localStorageRoot,
+              privateObjectIdentityHash: verified.privateObjectIdentityHash,
+            })
+          : contentType === 'audio/wav'
+          ? await readCanonicalPrivateAudioArtifact({
               localStorageRoot: context.env.localStorageRoot,
               privateObjectIdentityHash: verified.privateObjectIdentityHash,
             })

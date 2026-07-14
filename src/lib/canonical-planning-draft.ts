@@ -10,6 +10,7 @@ import type { ProfessionalExportCreditCoverage } from '../types/professional-exp
 export const CANONICAL_PRIVATE_PLAN_SCHEMA_VERSION = 'private-edit-authority-plan-v1' as const
 
 const FFPROBE_OPERATION = 'tool.ffprobe.inspect_approved_media.v1'
+const FFMPEG_OPERATION = 'tool.ffmpeg.execute_approved_media_recipe.v1'
 const LIBASS_OPERATION = 'tool.libass.render_approved_caption_track.v1'
 const REMOTION_OPERATION = 'tool.remotion.render_approved_composition.v1'
 const SAFE_KEY = /^[A-Za-z0-9][A-Za-z0-9._:-]*$/
@@ -18,6 +19,14 @@ const SUPPORTED_PRIVATE_REVIEW_FRAMES = new Set(['405x720', '720x405'])
 const FORBIDDEN_OUTBOUND_KEY = /^(?:secret|credential|accessToken|refreshToken|signedUrl|publicUrl|storagePath|localPath|absolutePath|relativePath|sourceBytes|bytesBase64|requestBody)$/i
 
 type JsonRecord = Record<string, unknown>
+
+type ApprovedVoiceDeliverySource = {
+  sourceSequenceItemId: string
+  cleanupDecisionId: string
+  trimStartFrame: number
+  trimEndFrameExclusive: number
+  durationFrames: number
+}
 
 export type CanonicalSourceAuthorityItem = {
   sourceSequenceItemId: string
@@ -223,6 +232,12 @@ export function buildCanonicalPlanningDraft(input: {
 
   const segments = buildSegments(plan, totalFrames)
   if (!segments.ok) return segments
+  const approvedVoiceDeliverySources = buildApprovedVoiceDeliverySources({
+    plan,
+    plannerInput,
+    sourceItems: orderedSourceItems,
+    cleanupDecisions: cleanup.decisions,
+  })
 
   const frame = privatePlanningFrame(plannerInput.aspectRatio)
   const timingValidationPlan = plan.timingValidationPlan
@@ -238,8 +253,18 @@ export function buildCanonicalPlanningDraft(input: {
     : undefined
   const toolStrategy = {
     schemaVersion: 'canonical-browser-tool-strategy-projection-v1',
-    toolIds: ['libass', 'remotion', 'ffprobe'],
-    exactOperationIds: [LIBASS_OPERATION, REMOTION_OPERATION, FFPROBE_OPERATION],
+    toolIds: [
+      'libass',
+      ...(approvedVoiceDeliverySources ? ['ffmpeg'] : []),
+      'remotion',
+      'ffprobe',
+    ],
+    exactOperationIds: [
+      LIBASS_OPERATION,
+      ...(approvedVoiceDeliverySources ? [FFMPEG_OPERATION] : []),
+      REMOTION_OPERATION,
+      FFPROBE_OPERATION,
+    ],
     plannedStrategy: toJsonRecord(plan.toolStrategyPlan, { status: 'not_provided' }),
     frontendExecutionAllowed: false,
   }
@@ -315,6 +340,7 @@ export function buildCanonicalPlanningDraft(input: {
     totalFrames,
     cleanupDecisions: cleanup.decisions,
     segments: segments.segments,
+    approvedVoiceDeliverySources,
   })
   const canonicalEstimate = buildEstimate(plan)
   if (!canonicalEstimate.ok) publicationBlockers.push(canonicalEstimate.blocker)
@@ -329,6 +355,7 @@ export function buildCanonicalPlanningDraft(input: {
           frame,
           fps: fps as 24 | 30,
           totalFrames,
+          approvedVoiceDeliverySources,
         }),
         planningRequestIdSeed: safeKey(plan.planningInputTrace?.fingerprint ?? plan.planningContextTrace?.planningContextId ?? 'named-edit-plan', 'named-edit-plan'),
       }
@@ -476,6 +503,7 @@ function privateReviewPublicationBlockers(input: {
   totalFrames: number
   cleanupDecisions: CanonicalSourceCleanupDecisionDraft[]
   segments: CanonicalPlanComponentsDraft['segments']
+  approvedVoiceDeliverySources: ApprovedVoiceDeliverySource[] | null
 }): string[] {
   const blockers: string[] = []
   const captionCues = approvedCaptionCues(input.plan, input.totalFrames)
@@ -535,7 +563,11 @@ function privateReviewPublicationBlockers(input: {
   if ((input.plan.masterTimingPlan?.providerClipTimingItems.length ?? 0) > 0) blockers.push('Provider clips need their own canonical execution work items.')
   if (hasUnrepresentedSegmentOperations(input.plan)) blockers.push('The planned edit includes operations outside the current source-and-caption private review runner.')
   if (hasUnrepresentedColorWork(input.plan)) blockers.push('The planned color work needs exact canonical processing work items.')
-  if (hasUnrepresentedAudioWork(input.plan)) blockers.push('The planned audio work needs exact canonical processing work items.')
+  if (hasPlannedAudioWork(input.plan) && !input.approvedVoiceDeliverySources) {
+    blockers.push(
+      'The planned audio work exceeds the exact source-bound voice delivery recipe and needs additional canonical work items.',
+    )
+  }
   return unique(blockers)
 }
 
@@ -548,6 +580,7 @@ function buildPrivateReviewCanonicalPlan(input: {
   frame: { width: number; height: number }
   fps: 24 | 30
   totalFrames: number
+  approvedVoiceDeliverySources: ApprovedVoiceDeliverySource[] | null
 }): CanonicalPlanDraft {
   const segmentIds = input.components.segments.map((segment) => segment.segmentId)
   const timingId = safeKey(input.plan.masterTimingPlan?.id ?? 'master-timing-plan', 'master-timing-plan')
@@ -559,6 +592,7 @@ function buildPrivateReviewCanonicalPlan(input: {
     estimate.lineItems.reduce((sum, item) => sum + item.estimatedCredits, 0) +
       estimate.fallbackAllowanceCredits,
     captionCues.length,
+    input.approvedVoiceDeliverySources?.length ?? 0,
   )
   const sourceIds = input.sourceItems.map((source) => source.sourceSequenceItemId)
   const cleanupIds = input.cleanupDecisions.map((decision) => decision.decisionId)
@@ -568,6 +602,11 @@ function buildPrivateReviewCanonicalPlan(input: {
   }
   const sourceSequenceComposition = sourceTimeline.length > 1
   const captionTrackComposition = captionCues.length > 1
+  const voiceDeliverySources = input.approvedVoiceDeliverySources ?? []
+  const replaceSourceAudio = voiceDeliverySources.length > 0
+  if (replaceSourceAudio && voiceDeliverySources.length !== sourceTimeline.length) {
+    throw new Error('Canonical voice delivery lost its one-to-one approved source binding.')
+  }
 
   const output = (
     outputKey: string,
@@ -652,7 +691,70 @@ function buildPrivateReviewCanonicalPlan(input: {
   const captionOutputKeys = captionWorkItems.map((item) => item.expectedOutputs[0]!.outputKey)
   const captionRendererLayerIds = captionWorkItems.flatMap((item) =>
     item.expectedOutputs[0]!.rendererLayerIds)
-  const finalBudgetIndex = 2 + captionCues.length
+  const voiceWorkItems = voiceDeliverySources.map((source, index): CanonicalWorkItemDraft => {
+    const ordinal = index + 1
+    const workItemKey = `voice-delivery-${ordinal}`
+    const outputKey = `voice-delivery-${ordinal}-wav`
+    const segmentId = input.components.segments[index]!.segmentId
+    const rendererLayerId = `voice-track-layer-${ordinal}`
+    return {
+      workItemKey,
+      workItemType: 'custom',
+      workerClass: 'audio_processing_worker',
+      executionInput: {
+        operation: 'process_approved_source_voice_delivery',
+        approvedToolOperationIds: [FFMPEG_OPERATION],
+        expectedOutputKeys: [outputKey],
+        structuredPayload: {
+          recipeProfileId: 'approved_voice_delivery_wav_v1',
+          timestampPolicy: 'normalize_from_zero',
+          overwriteExistingArtifact: false,
+          allowUnreviewedCodec: false,
+          trimStartFrame: source.trimStartFrame,
+          trimEndFrameExclusive: source.trimEndFrameExclusive,
+          frameRate: input.fps,
+          sampleRate: 48_000,
+          channelMode: 'stereo',
+          targetLufs: -14,
+          truePeakDbtp: -1,
+          loudnessRangeLufs: 7,
+          highpassHz: 70,
+          compressorPreset: 'gentle_voice_v1',
+        },
+      },
+      sourceSequenceItemIds: [source.sourceSequenceItemId],
+      sourceCleanupDecisionIds: [source.cleanupDecisionId],
+      expectedOutputs: [output(
+        outputKey,
+        'controlled_ffmpeg_professional_voice_delivery_wav',
+        'processed',
+        'audio/wav',
+        {
+          segmentIds: [segmentId],
+          timingIds: [timingId],
+          rendererLayerIds: [rendererLayerId],
+        },
+      )],
+      dependencyKeys: [],
+      approvedToolIds: ['ffmpeg'],
+      providerExecutionMode: 'none',
+      fallbackPolicy: {},
+      maxAttempts: 2,
+      attemptTimeoutSeconds: 600,
+      scheduledDelaySeconds: 0,
+      maximumCreditBudget: budgets[2 + captionCues.length + index]!,
+      required: true,
+    }
+  })
+  const voiceDependencyKeys = voiceWorkItems.map((item) => item.workItemKey)
+  const voiceRendererLayerIds = voiceWorkItems.flatMap((item) =>
+    item.expectedOutputs[0]!.rendererLayerIds)
+  const approvedVoiceTracks = voiceWorkItems.map((item, index) => ({
+    sourceSequenceItemId: voiceDeliverySources[index]!.sourceSequenceItemId,
+    outputKey: item.expectedOutputs[0]!.outputKey,
+    durationFrames: voiceDeliverySources[index]!.durationFrames,
+  }))
+  const finalBudgetIndex = 2 + captionCues.length + voiceWorkItems.length
   const finalArtifactType = sourceSequenceComposition
     ? captionTrackComposition
       ? 'private_source_sequence_caption_track_final_video_export'
@@ -688,6 +790,7 @@ function buildPrivateReviewCanonicalPlan(input: {
         attemptTimeoutSeconds: 120, scheduledDelaySeconds: 0, maximumCreditBudget: budgets[1], required: true,
       },
       ...captionWorkItems,
+      ...voiceWorkItems,
       {
         workItemKey: 'final-export', workItemType: 'render_final_export', workerClass: 'render_worker',
         executionInput: {
@@ -706,7 +809,9 @@ function buildPrivateReviewCanonicalPlan(input: {
                     ? 'approved_source_sequence_caption_track_final_v1'
                     : 'approved_source_sequence_caption_final_v1',
                   sourceSegments: sourceTimeline,
-                  audioPolicy: 'preserve_source_sequence',
+                  audioPolicy: replaceSourceAudio
+                    ? 'replace_with_approved_voice_tracks'
+                    : 'preserve_source_sequence',
                 }
               : {
                   compositionProfileId: captionTrackComposition
@@ -714,7 +819,9 @@ function buildPrivateReviewCanonicalPlan(input: {
                     : 'approved_source_caption_final_v1',
                   sourceStartFrame: input.cleanupDecisions[0]!.startFrame,
                   sourceEndFrameExclusive: input.cleanupDecisions[0]!.endFrameExclusive,
-                  audioPolicy: 'preserve_source',
+                  audioPolicy: replaceSourceAudio
+                    ? 'replace_with_approved_voice_tracks'
+                    : 'preserve_source',
                 }),
             width: input.frame.width, height: input.frame.height,
             fps: input.fps, durationFrames: input.totalFrames, sourceFit: 'contain',
@@ -731,6 +838,7 @@ function buildPrivateReviewCanonicalPlan(input: {
                   })),
                 }
               : {}),
+            ...(replaceSourceAudio ? { voiceTracks: approvedVoiceTracks } : {}),
           },
         },
         sourceSequenceItemIds: sourceIds, sourceCleanupDecisionIds: cleanupIds,
@@ -739,9 +847,21 @@ function buildPrivateReviewCanonicalPlan(input: {
           finalArtifactType,
           'final',
           'video/mp4',
-          { segmentIds, timingIds: [timingId], rendererLayerIds: ['source-video-layer', ...captionRendererLayerIds] },
+          {
+            segmentIds,
+            timingIds: [timingId],
+            rendererLayerIds: [
+              'source-video-layer',
+              ...voiceRendererLayerIds,
+              ...captionRendererLayerIds,
+            ],
+          },
         )],
-        dependencyKeys: ['source-trim-validation', ...captionDependencyKeys], approvedToolIds: ['remotion'], providerExecutionMode: 'none', fallbackPolicy: {}, maxAttempts: 2,
+        dependencyKeys: [
+          'source-trim-validation',
+          ...captionDependencyKeys,
+          ...voiceDependencyKeys,
+        ], approvedToolIds: ['remotion'], providerExecutionMode: 'none', fallbackPolicy: {}, maxAttempts: 2,
         attemptTimeoutSeconds: 1_800, scheduledDelaySeconds: 0, maximumCreditBudget: budgets[finalBudgetIndex]!, required: true,
       },
       {
@@ -758,7 +878,15 @@ function buildPrivateReviewCanonicalPlan(input: {
           'final_qa_report',
           'qa',
           'application/json',
-          { segmentIds, timingIds: [timingId], rendererLayerIds: ['source-video-layer', ...captionRendererLayerIds] },
+          {
+            segmentIds,
+            timingIds: [timingId],
+            rendererLayerIds: [
+              'source-video-layer',
+              ...voiceRendererLayerIds,
+              ...captionRendererLayerIds,
+            ],
+          },
         )],
         dependencyKeys: ['final-export'], approvedToolIds: ['ffprobe'], providerExecutionMode: 'none', fallbackPolicy: {}, maxAttempts: 2,
         attemptTimeoutSeconds: 300, scheduledDelaySeconds: 0, maximumCreditBudget: budgets[finalBudgetIndex + 1]!, required: true,
@@ -839,8 +967,19 @@ function buildEstimate(plan: EditPlan):
   }
 }
 
-function fitBudgets(maximumCredits: number, captionCueCount: number): number[] {
-  const defaults = [1, 3, ...Array.from({ length: captionCueCount }, () => 1), 4, 2]
+function fitBudgets(
+  maximumCredits: number,
+  captionCueCount: number,
+  voiceTrackCount: number,
+): number[] {
+  const defaults = [
+    1,
+    3,
+    ...Array.from({ length: captionCueCount }, () => 1),
+    ...Array.from({ length: voiceTrackCount }, () => 2),
+    4,
+    2,
+  ]
   if (maximumCredits >= defaults.reduce((sum, budget) => sum + budget, 0)) return defaults
   const budgets = Array.from({ length: defaults.length }, () => 0)
   for (let index = 0; index < Math.max(0, maximumCredits); index += 1) budgets[index % budgets.length] += 1
@@ -970,7 +1109,19 @@ function hasUnrepresentedColorWork(plan: EditPlan): boolean {
   ))
 }
 
-function hasUnrepresentedAudioWork(plan: EditPlan): boolean {
+const APPROVED_VOICE_DELIVERY_PROCESSING_OPERATIONS = new Set([
+  'voice_leveling',
+  'eq_cleanup',
+  'compression',
+  'loudness_normalization',
+  'true_peak_limit',
+])
+const APPROVED_VOICE_DELIVERY_QA_OPERATIONS = new Set([
+  'qa_loudness_check',
+  'qa_clipping_check',
+])
+
+function hasPlannedAudioWork(plan: EditPlan): boolean {
   const audio = plan.audioPipelinePlan
   return Boolean(audio && (
     audio.projectOperations.length > 0 ||
@@ -981,6 +1132,88 @@ function hasUnrepresentedAudioWork(plan: EditPlan): boolean {
     audio.beatSyncPlan.strategy !== 'none' ||
     audio.soundSyncCues.length > 0
   ))
+}
+
+function buildApprovedVoiceDeliverySources(input: {
+  plan: EditPlan
+  plannerInput: PlannerInput
+  sourceItems: CanonicalSourceAuthorityItem[]
+  cleanupDecisions: CanonicalSourceCleanupDecisionDraft[]
+}): ApprovedVoiceDeliverySource[] | null {
+  const audio = input.plan.audioPipelinePlan
+  if (!audio || !hasPlannedAudioWork(input.plan)) return null
+  if (
+    audio.musicBedPlan.policy !== 'none' || audio.musicBedPlan.duckingEnabled ||
+    audio.sfxPlan.policy !== 'none' || audio.sfxPlan.cues.length > 0 ||
+    audio.beatSyncPlan.strategy !== 'none' || audio.beatSyncPlan.bpmDetectionPlanned ||
+    audio.beatSyncPlan.onsetDetectionPlanned || audio.soundSyncCues.length > 0 ||
+    audio.clipPlans.length !== input.sourceItems.length ||
+    input.cleanupDecisions.length !== input.sourceItems.length ||
+    !audio.toolsPlanned.includes('ffmpeg')
+  ) return null
+  const operations = [
+    ...audio.projectOperations,
+    ...audio.clipPlans.flatMap((clip) => [
+      ...clip.cleanupOperations,
+      ...clip.loudnessOperations,
+    ]),
+  ]
+  const allowedOperations = new Set([
+    ...APPROVED_VOICE_DELIVERY_PROCESSING_OPERATIONS,
+    ...APPROVED_VOICE_DELIVERY_QA_OPERATIONS,
+  ])
+  if (
+    operations.length < 1 ||
+    operations.some((operation) =>
+      !allowedOperations.has(operation.operation) ||
+      operation.settings.planningOnly !== true ||
+      operation.settings.requiresApproval !== true ||
+      (APPROVED_VOICE_DELIVERY_PROCESSING_OPERATIONS.has(operation.operation) &&
+        operation.toolId !== 'ffmpeg') ||
+      (APPROVED_VOICE_DELIVERY_QA_OPERATIONS.has(operation.operation) &&
+        operation.toolId !== 'planning_only'))
+  ) return null
+  const projectOperationIds = new Set(audio.projectOperations.map((operation) => operation.operation))
+  if ([...APPROVED_VOICE_DELIVERY_PROCESSING_OPERATIONS].some((operation) =>
+    !projectOperationIds.has(operation as typeof audio.projectOperations[number]['operation']))) {
+    return null
+  }
+  const voiceLeveling = operations.find((operation) => operation.operation === 'voice_leveling')
+  const loudness = operations.find((operation) => operation.operation === 'loudness_normalization')
+  const compression = operations.find((operation) => operation.operation === 'compression')
+  const eqCleanup = operations.find((operation) => operation.operation === 'eq_cleanup')
+  if (
+    voiceLeveling?.settings.targetVoiceLoudness !== -14 ||
+    loudness?.settings.loudnessTarget !== -14 || loudness.settings.truePeakTarget !== -1 ||
+    compression?.settings.compression !== true || eqCleanup?.settings.eqCleanup !== true
+  ) return null
+  const exactSourceBindings = input.sourceItems.every((sourceItem, index) => {
+    const clip = input.plannerInput.clips[index]
+    const clipPlan = audio.clipPlans[index]
+    const cleanup = input.cleanupDecisions[index]
+    const clipOperations = new Set([
+      ...(clipPlan?.cleanupOperations ?? []),
+      ...(clipPlan?.loudnessOperations ?? []),
+    ].map((operation) => operation.operation))
+    return Boolean(
+      !clip || !clipPlan || clipPlan.clipId !== clip.id || !cleanup ||
+      cleanup.sourceSequenceItemId !== sourceItem.sourceSequenceItemId ||
+      !clipOperations.has('voice_leveling') ||
+      !clipOperations.has('loudness_normalization') ||
+      !clipOperations.has('true_peak_limit')
+    ) === false
+  })
+  if (!exactSourceBindings) return null
+  return input.sourceItems.map((sourceItem, index) => {
+    const cleanup = input.cleanupDecisions[index]!
+    return {
+      sourceSequenceItemId: sourceItem.sourceSequenceItemId,
+      cleanupDecisionId: cleanup.decisionId,
+      trimStartFrame: cleanup.startFrame,
+      trimEndFrameExclusive: cleanup.endFrameExclusive,
+      durationFrames: cleanup.endFrameExclusive - cleanup.startFrame,
+    }
+  })
 }
 
 function safeColor(value: string | undefined): string {

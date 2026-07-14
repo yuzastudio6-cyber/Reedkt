@@ -6,8 +6,7 @@ export const OFFLINE_MEDIA_BINARY_OPERATIONS = Object.freeze({
   ffprobe: 'tool.ffprobe.inspect_approved_media.v1',
 } as const)
 
-export interface OfflineFfmpegPlanningPayload {
-  recipeProfileId: 'approved_trim_transcode_v1'
+interface OfflineFfmpegCommonPlanningPayload {
   timestampPolicy: 'normalize_from_zero'
   overwriteExistingArtifact: false
   allowUnreviewedCodec: false
@@ -15,6 +14,25 @@ export interface OfflineFfmpegPlanningPayload {
   trimEndFrameExclusive: number
   frameRate: 24 | 25 | 30 | 50 | 60
 }
+
+export interface OfflineFfmpegTrimPlanningPayload extends OfflineFfmpegCommonPlanningPayload {
+  recipeProfileId: 'approved_trim_transcode_v1'
+}
+
+export interface OfflineFfmpegVoiceDeliveryPlanningPayload extends OfflineFfmpegCommonPlanningPayload {
+  recipeProfileId: 'approved_voice_delivery_wav_v1'
+  sampleRate: 48_000
+  channelMode: 'stereo'
+  targetLufs: -14
+  truePeakDbtp: -1
+  loudnessRangeLufs: 7
+  highpassHz: 70
+  compressorPreset: 'gentle_voice_v1'
+}
+
+export type OfflineFfmpegPlanningPayload =
+  | OfflineFfmpegTrimPlanningPayload
+  | OfflineFfmpegVoiceDeliveryPlanningPayload
 
 export interface OfflineFfprobePlanningPayload {
   inspectionProfileId: 'source_intake_v1' | 'pre_render_v1' | 'final_export_v1'
@@ -48,12 +66,24 @@ export interface OfflineFfmpegExecutionRequest {
 }
 
 export function validateOfflineFfmpegPlanningPayload(value: unknown): OfflineFfmpegPlanningPayload {
+  const candidate = value && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : undefined
+  const voiceDelivery = candidate?.recipeProfileId === 'approved_voice_delivery_wav_v1'
   const payload = exactObject(value, [
     'recipeProfileId', 'timestampPolicy', 'overwriteExistingArtifact', 'allowUnreviewedCodec',
     'trimStartFrame', 'trimEndFrameExclusive', 'frameRate',
+    ...(voiceDelivery
+      ? [
+          'sampleRate', 'channelMode', 'targetLufs', 'truePeakDbtp',
+          'loudnessRangeLufs', 'highpassHz', 'compressorPreset',
+        ]
+      : []),
   ])
   if (
-    payload.recipeProfileId !== 'approved_trim_transcode_v1' ||
+    !['approved_trim_transcode_v1', 'approved_voice_delivery_wav_v1'].includes(
+      String(payload.recipeProfileId),
+    ) ||
     payload.timestampPolicy !== 'normalize_from_zero' ||
     payload.overwriteExistingArtifact !== false || payload.allowUnreviewedCodec !== false ||
     !Number.isSafeInteger(payload.trimStartFrame) || Number(payload.trimStartFrame) < 0 ||
@@ -62,14 +92,33 @@ export function validateOfflineFfmpegPlanningPayload(value: unknown): OfflineFfm
     Number(payload.trimEndFrameExclusive) > 100_000_001 ||
     ![24, 25, 30, 50, 60].includes(Number(payload.frameRate))
   ) throw invalid()
-  return {
-    recipeProfileId: 'approved_trim_transcode_v1',
+  const common = {
     timestampPolicy: 'normalize_from_zero',
     overwriteExistingArtifact: false,
     allowUnreviewedCodec: false,
     trimStartFrame: Number(payload.trimStartFrame),
     trimEndFrameExclusive: Number(payload.trimEndFrameExclusive),
     frameRate: Number(payload.frameRate) as OfflineFfmpegPlanningPayload['frameRate'],
+  } as const
+  if (!voiceDelivery) {
+    return { recipeProfileId: 'approved_trim_transcode_v1', ...common }
+  }
+  if (
+    payload.sampleRate !== 48_000 || payload.channelMode !== 'stereo' ||
+    payload.targetLufs !== -14 || payload.truePeakDbtp !== -1 ||
+    payload.loudnessRangeLufs !== 7 || payload.highpassHz !== 70 ||
+    payload.compressorPreset !== 'gentle_voice_v1'
+  ) throw invalid()
+  return {
+    recipeProfileId: 'approved_voice_delivery_wav_v1',
+    ...common,
+    sampleRate: 48_000,
+    channelMode: 'stereo',
+    targetLufs: -14,
+    truePeakDbtp: -1,
+    loudnessRangeLufs: 7,
+    highpassHz: 70,
+    compressorPreset: 'gentle_voice_v1',
   }
 }
 
@@ -146,6 +195,16 @@ export function validateOfflineFfmpegExecutionRequest(value: unknown): OfflineFf
   const payload = exactObject(request.payload, [
     'recipeProfileId', 'timestampPolicy', 'overwriteExistingArtifact', 'allowUnreviewedCodec',
     'trimStartFrame', 'trimEndFrameExclusive', 'frameRate',
+    ...(
+      request.payload && typeof request.payload === 'object' &&
+      !Array.isArray(request.payload) &&
+      (request.payload as Record<string, unknown>).recipeProfileId === 'approved_voice_delivery_wav_v1'
+        ? [
+            'sampleRate', 'channelMode', 'targetLufs', 'truePeakDbtp',
+            'loudnessRangeLufs', 'highpassHz', 'compressorPreset',
+          ]
+        : []
+    ),
     'mimeType', 'sourceByteLength', 'sourceSha256', 'sourceBytesBase64',
   ])
   const planning = validateOfflineFfmpegPlanningPayload({
@@ -156,6 +215,17 @@ export function validateOfflineFfmpegExecutionRequest(value: unknown): OfflineFf
     trimStartFrame: payload.trimStartFrame,
     trimEndFrameExclusive: payload.trimEndFrameExclusive,
     frameRate: payload.frameRate,
+    ...(payload.recipeProfileId === 'approved_voice_delivery_wav_v1'
+      ? {
+          sampleRate: payload.sampleRate,
+          channelMode: payload.channelMode,
+          targetLufs: payload.targetLufs,
+          truePeakDbtp: payload.truePeakDbtp,
+          loudnessRangeLufs: payload.loudnessRangeLufs,
+          highpassHz: payload.highpassHz,
+          compressorPreset: payload.compressorPreset,
+        }
+      : {}),
   })
   const source = validateSource(payload)
   return {

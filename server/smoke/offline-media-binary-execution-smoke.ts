@@ -93,6 +93,44 @@ assert.equal(ffmpegResult.evidence.confinement.serverOwnedEntrypoint,
 const ffmpegReplay = await runtime.execute(ffmpegRequest)
 assert.equal(ffmpegReplay.resultArtifact.sha256, ffmpegResult.resultArtifact.sha256)
 
+const voiceDeliveryRequest = {
+  schemaVersion: OFFLINE_MEDIA_BINARY_PROTOCOL,
+  toolId: 'ffmpeg' as const,
+  operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
+  payload: {
+    recipeProfileId: 'approved_voice_delivery_wav_v1' as const,
+    timestampPolicy: 'normalize_from_zero' as const,
+    overwriteExistingArtifact: false as const,
+    allowUnreviewedCodec: false as const,
+    trimStartFrame: 12,
+    trimEndFrameExclusive: 36,
+    frameRate: 24 as const,
+    sampleRate: 48_000 as const,
+    channelMode: 'stereo' as const,
+    targetLufs: -14 as const,
+    truePeakDbtp: -1 as const,
+    loudnessRangeLufs: 7 as const,
+    highpassHz: 70 as const,
+    compressorPreset: 'gentle_voice_v1' as const,
+    ...sourceAuthority,
+  },
+}
+const voiceDeliveryResult = await runtime.execute(voiceDeliveryRequest)
+assert.equal(voiceDeliveryResult.resultArtifact.mimeType, 'audio/wav')
+assert.equal(voiceDeliveryResult.resultArtifact.bytes.subarray(0, 4).toString('ascii'), 'RIFF')
+assert.equal(voiceDeliveryResult.resultArtifact.bytes.subarray(8, 12).toString('ascii'), 'WAVE')
+assert.equal(voiceDeliveryResult.evidence.semanticEvidence.recipeProfileId, 'approved_voice_delivery_wav_v1')
+assert.equal(voiceDeliveryResult.evidence.semanticEvidence.outputAudioCodec, 'pcm_s16le')
+assert.equal(voiceDeliveryResult.evidence.semanticEvidence.outputSampleRate, 48_000)
+assert.equal(voiceDeliveryResult.evidence.semanticEvidence.outputChannels, 2)
+assert.equal(voiceDeliveryResult.evidence.semanticEvidence.highpassApplied, true)
+assert.equal(voiceDeliveryResult.evidence.semanticEvidence.gentleCompressionApplied, true)
+assert.equal(voiceDeliveryResult.evidence.semanticEvidence.loudnessNormalizationApplied, true)
+assert.equal(voiceDeliveryResult.evidence.semanticEvidence.truePeakLimiterApplied, true)
+assert.equal(voiceDeliveryResult.evidence.semanticEvidence.outputProbeVerified, true)
+const voiceDeliveryReplay = await runtime.execute(voiceDeliveryRequest)
+assert.equal(voiceDeliveryReplay.resultArtifact.sha256, voiceDeliveryResult.resultArtifact.sha256)
+
 const authority = await readPersistedOfflineMediaBinaryRuntimeAuthority()
 assert(authority)
 assert.equal(authority.readiness.privateInternalExecutionReady, true)
@@ -117,6 +155,10 @@ await assertRejects(() => runtime.execute({
   payload: { ...ffmpegRequest.payload, trimEndFrameExclusive: 12 },
 }))
 await assertRejects(() => runtime.execute({
+  ...voiceDeliveryRequest,
+  payload: { ...voiceDeliveryRequest.payload, targetLufs: -9 },
+}))
+await assertRejects(() => runtime.execute({
   ...request,
   payload: { ...request.payload, command: 'ffprobe -version' },
 }))
@@ -135,6 +177,9 @@ console.log(JSON.stringify({
     'pinned_ffmpeg_8_1_2_lgpl_image_identity',
     'actual_ffprobe_approved_source_inspection',
     'actual_ffmpeg_approved_frame_trim_to_ffv1_nut_intermediate',
+    'actual_ffmpeg_approved_voice_delivery_pcm_wav',
+    'voice_highpass_compression_loudness_and_true_peak_chain',
+    'voice_delivery_output_reprobed_for_pcm_rate_channels_and_duration',
     'ffmpeg_output_reprobed_for_codec_container_frame_count_and_rate',
     'ffmpeg_deterministic_reexecution_result',
     'server_injected_source_checksum_and_byte_length',

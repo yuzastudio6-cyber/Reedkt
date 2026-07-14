@@ -1040,7 +1040,7 @@ async function verifySelectedDependencyArtifacts(input: {
                   artifact: authority.artifact,
                 })
             : authority.artifact.actualRunEvidence.state === 'actual_run_evidence_verified_v2' &&
-                ['offline_python_structured_execution_v1', 'offline_native_audio_processing_execution_v1', 'offline_deepfilternet_voice_cleanup_execution_v1'].includes(authority.artifact.actualRunEvidence.runnerClass) &&
+                ['offline_python_structured_execution_v1', 'offline_native_audio_processing_execution_v1', 'offline_deepfilternet_voice_cleanup_execution_v1', 'offline_media_binary_execution_v1'].includes(authority.artifact.actualRunEvidence.runnerClass) &&
                 authority.artifact.content.contentType === 'audio/wav'
               ? await verifyCanonicalPrivateAudioArtifact({
                   localStorageRoot: input.context.env.localStorageRoot,

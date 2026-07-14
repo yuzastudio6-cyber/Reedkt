@@ -369,10 +369,13 @@ function validateByRunnerFamily(
       const captionCount = 'captionOverlayCues' in payload
         ? payload.captionOverlayCues.length
         : 1
+      const voiceTrackCount = payload.audioPolicy === 'replace_with_approved_voice_tracks'
+        ? (payload.voiceTracks?.length ?? 0)
+        : 0
       requireBinding(workItem, {
         source: sourceCount,
         cleanup: sourceCount,
-        dependencies: 1 + captionCount,
+        dependencies: 1 + captionCount + voiceTrackCount,
       })
       return 'remotion_final_composition'
     }

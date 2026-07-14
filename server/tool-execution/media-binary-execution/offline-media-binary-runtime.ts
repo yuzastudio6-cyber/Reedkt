@@ -213,12 +213,19 @@ async function executeFfmpeg(
     throw invalid('Structured FFmpeg execution request was rejected.')
   }
   const sourceBytes = Buffer.from(request.payload.sourceBytesBase64, 'base64')
-  const command = [
-    '-hide_banner', '-loglevel', 'error', '-nostdin',
-    '-i', 'pipe:0', '-map', '0:v:0',
-    '-vf', `trim=start_frame=${request.payload.trimStartFrame}:end_frame=${request.payload.trimEndFrameExclusive},setpts=PTS-STARTPTS`,
-    '-an', '-threads', '1', '-c:v', 'ffv1', '-level', '3', '-f', 'nut', 'pipe:1',
-  ]
+  const voiceDelivery = request.payload.recipeProfileId === 'approved_voice_delivery_wav_v1'
+  const voiceDeliveryPayload = request.payload.recipeProfileId === 'approved_voice_delivery_wav_v1'
+    ? request.payload
+    : undefined
+  const trimDurationFrames = request.payload.trimEndFrameExclusive - request.payload.trimStartFrame
+  const command = voiceDelivery
+    ? voiceDeliveryCommand(request)
+    : [
+        '-hide_banner', '-loglevel', 'error', '-nostdin',
+        '-i', 'pipe:0', '-map', '0:v:0',
+        '-vf', `trim=start_frame=${request.payload.trimStartFrame}:end_frame=${request.payload.trimEndFrameExclusive},setpts=PTS-STARTPTS`,
+        '-an', '-threads', '1', '-c:v', 'ffv1', '-level', '3', '-f', 'nut', 'pipe:1',
+      ]
   const container = await createContainer(image, FFMPEG_ENTRYPOINT, command)
   try {
     const before = await inspectContainer(container.id)
@@ -231,11 +238,24 @@ async function executeFfmpeg(
       state.Status !== 'exited' || state.Running !== false ||
       state.ExitCode !== started.exitCode || state.OOMKilled !== false
     ) throw unavailable('Confined FFmpeg operation failed closed.')
-    if (!started.stdout.subarray(0, 25).toString('ascii').includes('nut/multimedia')) {
-      throw unavailable('FFmpeg output is not the fixed NUT intermediate container.')
+    if (voiceDelivery ? !isPcmWave(started.stdout) :
+      !started.stdout.subarray(0, 25).toString('ascii').includes('nut/multimedia')) {
+      throw unavailable(voiceDelivery
+        ? 'FFmpeg voice-delivery output is not the fixed PCM WAV artifact.'
+        : 'FFmpeg output is not the fixed NUT intermediate container.')
     }
-    const expectedFrameCount = request.payload.trimEndFrameExclusive - request.payload.trimStartFrame
-    const outputProbe = await probeFfmpegOutput(image, started.stdout, expectedFrameCount, request.payload.frameRate)
+    const outputProbe = voiceDelivery
+      ? await probeFfmpegVoiceDeliveryOutput(
+          image,
+          started.stdout,
+          trimDurationFrames / request.payload.frameRate,
+        )
+      : await probeFfmpegOutput(
+          image,
+          started.stdout,
+          trimDurationFrames,
+          request.payload.frameRate,
+        )
     const resultSha256 = sha256(started.stdout)
     const completedAt = new Date().toISOString()
     const attestationWithoutHash = {
@@ -260,7 +280,7 @@ async function executeFfmpeg(
     })
     return {
       resultArtifact: {
-        mimeType: 'video/x-nut', bytes: started.stdout,
+        mimeType: voiceDelivery ? 'audio/wav' : 'video/x-nut', bytes: started.stdout,
         sha256: resultSha256, byteLength: started.stdout.byteLength,
       },
       evidence: {
@@ -278,8 +298,20 @@ async function executeFfmpeg(
           recipeProfileId: request.payload.recipeProfileId,
           trimStartFrame: request.payload.trimStartFrame,
           trimEndFrameExclusive: request.payload.trimEndFrameExclusive,
-          outputFrameCount: expectedFrameCount,
-          outputContainer: 'nut', outputVideoCodec: 'ffv1', audioRemoved: true,
+          ...(voiceDelivery
+            ? {
+                outputContainer: 'wav', outputAudioCodec: 'pcm_s16le',
+                outputSampleRate: 48_000, outputChannels: 2,
+                highpassApplied: true, gentleCompressionApplied: true,
+                loudnessNormalizationApplied: true, truePeakLimiterApplied: true,
+                targetLufs: voiceDeliveryPayload!.targetLufs,
+                truePeakDbtp: voiceDeliveryPayload!.truePeakDbtp,
+                sourceVideoRemoved: true,
+              }
+            : {
+                outputFrameCount: trimDurationFrames,
+                outputContainer: 'nut', outputVideoCodec: 'ffv1', audioRemoved: true,
+              }),
           outputProbeVerified: true,
         },
         confinement, containerExitCode: 0, oomKilled: false,
@@ -293,6 +325,67 @@ async function executeFfmpeg(
     }
   } finally {
     await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024).catch(() => undefined)
+  }
+}
+
+function voiceDeliveryCommand(request: OfflineFfmpegExecutionRequest): string[] {
+  if (request.payload.recipeProfileId !== 'approved_voice_delivery_wav_v1') {
+    throw invalid('Voice-delivery command requires its exact approved recipe.')
+  }
+  const startSeconds = (request.payload.trimStartFrame / request.payload.frameRate).toFixed(9)
+  const endSeconds = (request.payload.trimEndFrameExclusive / request.payload.frameRate).toFixed(9)
+  const filters = [
+    `atrim=start=${startSeconds}:end=${endSeconds}`,
+    'asetpts=PTS-STARTPTS',
+    `highpass=f=${request.payload.highpassHz}`,
+    'acompressor=threshold=0.125:ratio=2:attack=20:release=250:makeup=1.5',
+    `loudnorm=I=${request.payload.targetLufs}:LRA=${request.payload.loudnessRangeLufs}:TP=${request.payload.truePeakDbtp}:linear=true`,
+    'alimiter=limit=0.891251:attack=5:release=50',
+    'aformat=sample_fmts=s16:sample_rates=48000:channel_layouts=stereo',
+  ].join(',')
+  return [
+    '-hide_banner', '-loglevel', 'error', '-nostdin',
+    '-i', 'pipe:0', '-map', '0:a:0', '-vn', '-af', filters,
+    '-ar', '48000', '-ac', '2', '-threads', '1',
+    '-c:a', 'pcm_s16le', '-f', 'wav', 'pipe:1',
+  ]
+}
+
+function isPcmWave(bytes: Buffer): boolean {
+  return pcmWaveDetails(bytes) !== undefined
+}
+
+function pcmWaveDetails(bytes: Buffer): {
+  sampleRate: number
+  channels: number
+  bitsPerSample: number
+  sampleFrameCount: number
+  durationSeconds: number
+} | undefined {
+  if (
+    bytes.byteLength < 44 || bytes.subarray(0, 4).toString('ascii') !== 'RIFF' ||
+    bytes.subarray(8, 12).toString('ascii') !== 'WAVE'
+  ) return undefined
+  const formatOffset = bytes.indexOf(Buffer.from('fmt '))
+  const dataOffset = bytes.indexOf(Buffer.from('data'))
+  if (
+    formatOffset < 12 || dataOffset <= formatOffset || formatOffset + 24 > bytes.byteLength ||
+    dataOffset + 8 > bytes.byteLength || bytes.readUInt16LE(formatOffset + 8) !== 1
+  ) return undefined
+  const channels = bytes.readUInt16LE(formatOffset + 10)
+  const sampleRate = bytes.readUInt32LE(formatOffset + 12)
+  const blockAlign = bytes.readUInt16LE(formatOffset + 20)
+  const bitsPerSample = bytes.readUInt16LE(formatOffset + 22)
+  const dataByteLength = bytes.byteLength - (dataOffset + 8)
+  if (
+    ![1, 2].includes(channels) || sampleRate !== 48_000 || bitsPerSample !== 16 ||
+    blockAlign !== channels * (bitsPerSample / 8) || dataByteLength <= 0 ||
+    dataByteLength % blockAlign !== 0
+  ) return undefined
+  const sampleFrameCount = dataByteLength / blockAlign
+  return {
+    sampleRate, channels, bitsPerSample, sampleFrameCount,
+    durationSeconds: sampleFrameCount / sampleRate,
   }
 }
 
@@ -326,6 +419,49 @@ async function probeFfmpegOutput(
       frameRate: expectedFrameRate,
       width: optionalInteger(video.width), height: optionalInteger(video.height),
       durationSeconds: optionalNumber(format.duration), sizeBytes: optionalInteger(format.size),
+    }
+  } finally {
+    await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024).catch(() => undefined)
+  }
+}
+
+async function probeFfmpegVoiceDeliveryOutput(
+  image: OfflineMediaBinaryImageEvidence,
+  bytes: Buffer,
+  expectedDurationSeconds: number,
+): Promise<Record<string, unknown>> {
+  const command = [
+    '-v', 'error', '-show_entries',
+    'format=format_name,duration,size:stream=codec_name,codec_type,sample_rate,channels,channel_layout,duration',
+    '-print_format', 'json', '-i', 'pipe:0',
+  ]
+  const container = await createContainer(image, FFPROBE_ENTRYPOINT, command)
+  try {
+    validateConfinement(await inspectContainer(container.id), image, FFPROBE_ENTRYPOINT, command)
+    const result = await dockerBuffer(['start', '--attach', '--interactive', container.id], bytes, 2 * 1024 * 1024)
+    if (result.exitCode !== 0 || result.stderr.length > 0) {
+      throw unavailable('FFmpeg voice-delivery output verification failed closed.')
+    }
+    const parsed = record(JSON.parse(result.stdout.toString('utf8')))
+    const format = record(parsed.format)
+    const streams = Array.isArray(parsed.streams) ? parsed.streams.map(record) : []
+    const audio = streams.find((stream) => stream.codec_type === 'audio')
+    const wave = pcmWaveDetails(bytes)
+    if (!wave) throw unavailable('FFmpeg voice-delivery output failed its PCM WAV structure verification.')
+    const durationSeconds = wave.durationSeconds
+    const durationToleranceSeconds = 2 / 48_000
+    if (
+      streams.length !== 1 || !audio || audio.codec_name !== 'pcm_s16le' ||
+      !String(format.format_name ?? '').includes('wav') ||
+      optionalInteger(audio.sample_rate) !== 48_000 || optionalInteger(audio.channels) !== 2 ||
+      wave.sampleRate !== 48_000 || wave.channels !== 2 || wave.bitsPerSample !== 16 ||
+      Math.abs(durationSeconds - expectedDurationSeconds) > durationToleranceSeconds
+    ) throw unavailable('FFmpeg voice-delivery output failed WAV, PCM, channel, rate, or duration verification.')
+    return {
+      container: 'wav', audioCodec: 'pcm_s16le', sampleRate: 48_000,
+      channels: 2, channelLayout: String(audio.channel_layout ?? 'stereo'),
+      sampleFrameCount: wave.sampleFrameCount, durationSeconds, expectedDurationSeconds,
+      durationToleranceSeconds, sizeBytes: optionalInteger(format.size),
     }
   } finally {
     await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024).catch(() => undefined)

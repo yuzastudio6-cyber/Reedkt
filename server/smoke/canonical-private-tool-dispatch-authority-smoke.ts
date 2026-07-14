@@ -875,6 +875,27 @@ assert.deepEqual(libassProofJob.dependencyJobIds, [libassJob.id])
 assert.deepEqual(secondLibassJob.dependencyJobIds, [])
 assert.deepEqual(secondLibassProofJob.dependencyJobIds, [secondLibassJob.id])
 
+const primaryVoiceWorkItem = aggregateBeforeDispatch.approvedWorkItems.find((candidate) =>
+  candidate.snapshotId === snapshot.snapshotId && candidate.workItemKey === 'voice-delivery-primary')
+const secondaryVoiceWorkItem = aggregateBeforeDispatch.approvedWorkItems.find((candidate) =>
+  candidate.snapshotId === snapshot.snapshotId && candidate.workItemKey === 'voice-delivery-secondary')
+assert.ok(primaryVoiceWorkItem)
+assert.ok(secondaryVoiceWorkItem)
+const primaryVoiceJob = aggregateBeforeDispatch.jobs.find((candidate) =>
+  candidate.snapshotId === snapshot.snapshotId && candidate.approvedWorkItemId === primaryVoiceWorkItem.id)
+const secondaryVoiceJob = aggregateBeforeDispatch.jobs.find((candidate) =>
+  candidate.snapshotId === snapshot.snapshotId && candidate.approvedWorkItemId === secondaryVoiceWorkItem.id)
+const primaryVoiceAsset = authority.assetManifest.entries.find((candidate) =>
+  candidate.approvedWorkItemId === primaryVoiceWorkItem.id)
+const secondaryVoiceAsset = authority.assetManifest.entries.find((candidate) =>
+  candidate.approvedWorkItemId === secondaryVoiceWorkItem.id)
+assert.ok(primaryVoiceJob)
+assert.ok(secondaryVoiceJob)
+assert.ok(primaryVoiceAsset)
+assert.ok(secondaryVoiceAsset)
+assert.deepEqual(primaryVoiceJob.dependencyJobIds, [])
+assert.deepEqual(secondaryVoiceJob.dependencyJobIds, [])
+
 const finalCompositionWorkItem = aggregateBeforeDispatch.approvedWorkItems.find((candidate) =>
   candidate.snapshotId === snapshot.snapshotId && candidate.workItemKey === 'remotion-source-caption-final')
 assert.ok(finalCompositionWorkItem)
@@ -901,6 +922,8 @@ assert.deepEqual(finalCompositionJob.dependencyJobIds, [
   sourceTrimValidationJob.id,
   libassJob.id,
   secondLibassJob.id,
+  primaryVoiceJob.id,
+  secondaryVoiceJob.id,
 ])
 assert.deepEqual(finalArtifactQaJob.dependencyJobIds, [finalCompositionJob.id])
 
@@ -2463,6 +2486,46 @@ await leaseService.release({
   idempotencyKey: 'release-libass-caption-overlay-second-proof',
 })
 
+await activatePrivateOfflineMediaBinaryRuntime()
+const primaryVoiceAdapterInput = {
+  workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
+  jobId: primaryVoiceJob.id,
+  purpose: 'execute_canonical_private_job' as const,
+  idempotencyKey: 'canonical-job-adapter-voice-delivery-primary',
+}
+const coordinatedPrimaryVoice = await jobExecutionAdapter.execute(primaryVoiceAdapterInput)
+assert.equal(coordinatedPrimaryVoice.identity.canonicalToolId, 'ffmpeg')
+assert.equal(coordinatedPrimaryVoice.identity.runnerClass, 'offline_media_binary_execution_v1')
+assert.equal(coordinatedPrimaryVoice.identity.expectedAssetId, primaryVoiceAsset.id)
+assert.equal(coordinatedPrimaryVoice.result.contentType, 'audio/wav')
+assert.equal(coordinatedPrimaryVoice.result.qaOutcome, 'passed')
+assert.equal(coordinatedPrimaryVoice.result.privateTestDependencySatisfied, true)
+assert.equal(coordinatedPrimaryVoice.result.liveRuntimeDependencySatisfied, false)
+const primaryVoiceReplay = await jobExecutionAdapter.execute(primaryVoiceAdapterInput)
+assert.equal(primaryVoiceReplay.result.artifactId, coordinatedPrimaryVoice.result.artifactId)
+assert.equal(primaryVoiceReplay.result.sha256, coordinatedPrimaryVoice.result.sha256)
+assert.equal(primaryVoiceReplay.evidence.idempotentAdapterReplay, true)
+
+const secondaryVoiceAdapterInput = {
+  workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
+  jobId: secondaryVoiceJob.id,
+  purpose: 'execute_canonical_private_job' as const,
+  idempotencyKey: 'canonical-job-adapter-voice-delivery-secondary',
+}
+const coordinatedSecondaryVoice = await jobExecutionAdapter.execute(secondaryVoiceAdapterInput)
+assert.equal(coordinatedSecondaryVoice.identity.canonicalToolId, 'ffmpeg')
+assert.equal(coordinatedSecondaryVoice.identity.runnerClass, 'offline_media_binary_execution_v1')
+assert.equal(coordinatedSecondaryVoice.identity.expectedAssetId, secondaryVoiceAsset.id)
+assert.equal(coordinatedSecondaryVoice.result.contentType, 'audio/wav')
+assert.equal(coordinatedSecondaryVoice.result.qaOutcome, 'passed')
+assert.equal(coordinatedSecondaryVoice.result.privateTestDependencySatisfied, true)
+assert.equal(coordinatedSecondaryVoice.result.liveRuntimeDependencySatisfied, false)
+assert.notEqual(coordinatedSecondaryVoice.result.sha256, coordinatedPrimaryVoice.result.sha256)
+const secondaryVoiceReplay = await jobExecutionAdapter.execute(secondaryVoiceAdapterInput)
+assert.equal(secondaryVoiceReplay.result.artifactId, coordinatedSecondaryVoice.result.artifactId)
+assert.equal(secondaryVoiceReplay.result.sha256, coordinatedSecondaryVoice.result.sha256)
+assert.equal(secondaryVoiceReplay.evidence.idempotentAdapterReplay, true)
+
 const sourceTrimValidationClaim = (await leaseService.claim({
   workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
   jobId: sourceTrimValidationJob.id, purpose: 'private_internal_canonical_lease_claim',
@@ -2491,13 +2554,15 @@ const finalCompositionClaim = (await leaseService.claim({
   idempotencyKey: 'claim-remotion-source-caption-final',
 })).workerLeaseClaim
 assert.equal(finalCompositionClaim.lease.dependencyAuthority.state, 'private_test_dependencies_verified')
-assert.equal(finalCompositionClaim.lease.dependencyAuthority.selectedArtifacts.length, 3)
+assert.equal(finalCompositionClaim.lease.dependencyAuthority.selectedArtifacts.length, 5)
 assert.deepEqual(
   finalCompositionClaim.lease.dependencyAuthority.selectedArtifacts.map((artifact) => artifact.artifactId),
   [
     sourceTrimValidationRun.result.artifactId,
     coordinatedLibass.result.artifactId,
     coordinatedSecondLibass.result.artifactId,
+    coordinatedPrimaryVoice.result.artifactId,
+    coordinatedSecondaryVoice.result.artifactId,
   ],
 )
 await leaseService.release({
@@ -2528,6 +2593,16 @@ assert.deepEqual(approvedFinalCompositionPayload.captionOverlayCues, [{
   outputKey: 'libass-caption-overlay-second-png',
   startFrame: 24,
   endFrameExclusive: 48,
+}])
+assert.equal(approvedFinalCompositionPayload.audioPolicy, 'replace_with_approved_voice_tracks')
+assert.deepEqual(approvedFinalCompositionPayload.voiceTracks, [{
+  sourceSequenceItemId: mediaSourceItem.sourceSequenceItemId,
+  outputKey: 'voice-delivery-primary-wav',
+  durationFrames: 24,
+}, {
+  sourceSequenceItemId: secondaryMediaSourceItem.sourceSequenceItemId,
+  outputKey: 'voice-delivery-secondary-wav',
+  durationFrames: 24,
 }])
 assert.deepEqual(finalCompositionExecutionWorkItem.sourceSequenceItemIds, [
   mediaSourceItem.sourceSequenceItemId,
@@ -2617,8 +2692,9 @@ if (process.env.REEDITPRO_CANONICAL_MULTI_SOURCE_SLICE_ONLY === 'true') {
       'synthetic_private_test_credit_reservation_verified_without_customer_charge',
       'two_source_trim_authority_and_dependency_readiness_verified',
       'two_exact_caption_artifacts_and_frame_ranges_verified',
+      'two_source_bound_ffmpeg_voice_delivery_artifacts_qa_reconciliation_and_replay_verified',
       'lease_and_single_use_dispatch_verified',
-      'exact_ordered_source_sequence_and_timed_caption_track_rendered_with_preserved_audio',
+      'exact_ordered_source_sequence_and_timed_caption_track_rendered_with_approved_voice_replacement',
       'private_artifact_persistence_and_independent_final_ffprobe_qa_verified',
       'artifact_reconciliation_idempotent_replay_and_private_download_verified',
       'provider_billing_public_delivery_and_production_readiness_remain_false',
@@ -4648,7 +4724,7 @@ function createDispatchPlanBody(input: {
           dependencyKeys: ['chart-root'], approvedToolIds: ['sharp'],
           providerExecutionMode: 'none', fallbackPolicy: {},
           maxAttempts: 2, attemptTimeoutSeconds: 300, scheduledDelaySeconds: 0,
-          maximumCreditBudget: 2, required: true,
+          maximumCreditBudget: 1, required: true,
         },
         {
           workItemKey: 'sharp-proof-consumer',
@@ -5252,7 +5328,7 @@ function createDispatchPlanBody(input: {
           dependencyKeys: [], approvedToolIds: ['ffmpeg'],
           providerExecutionMode: 'none', fallbackPolicy: {},
           maxAttempts: 2, attemptTimeoutSeconds: 300, scheduledDelaySeconds: 0,
-          maximumCreditBudget: 2, required: true,
+          maximumCreditBudget: 1, required: true,
         },
         {
           workItemKey: 'trim-proof-consumer',
@@ -5301,6 +5377,84 @@ function createDispatchPlanBody(input: {
           required: true,
         },
         {
+          workItemKey: 'voice-delivery-primary',
+          workItemType: 'custom',
+          workerClass: 'audio_processing_worker',
+          executionInput: {
+            operation: 'process_approved_source_voice_delivery',
+            approvedToolOperationIds: [input.ffmpegOperationId],
+            expectedOutputKeys: ['voice-delivery-primary-wav'],
+            structuredPayload: {
+              recipeProfileId: 'approved_voice_delivery_wav_v1',
+              timestampPolicy: 'normalize_from_zero',
+              overwriteExistingArtifact: false,
+              allowUnreviewedCodec: false,
+              trimStartFrame: 0,
+              trimEndFrameExclusive: 24,
+              frameRate: 24,
+              sampleRate: 48_000,
+              channelMode: 'stereo',
+              targetLufs: -14,
+              truePeakDbtp: -1,
+              loudnessRangeLufs: 7,
+              highpassHz: 70,
+              compressorPreset: 'gentle_voice_v1',
+            },
+          },
+          sourceSequenceItemIds: [input.mediaSourceItem.sourceSequenceItemId],
+          sourceCleanupDecisionIds: ['cleanup-python-media-source'],
+          expectedOutputs: [{
+            outputKey: 'voice-delivery-primary-wav',
+            artifactType: 'controlled_ffmpeg_professional_voice_delivery_wav',
+            assetRole: 'processed', required: true, previewPlaceholderAllowed: false,
+            contentType: 'audio/wav', segmentIds: ['segment-1'],
+            timingIds: ['master-timing-plan'], rendererLayerIds: ['voice-track-layer-1'],
+          }],
+          dependencyKeys: [], approvedToolIds: ['ffmpeg'],
+          providerExecutionMode: 'none', fallbackPolicy: {},
+          maxAttempts: 2, attemptTimeoutSeconds: 600, scheduledDelaySeconds: 0,
+          maximumCreditBudget: 2, required: true,
+        },
+        {
+          workItemKey: 'voice-delivery-secondary',
+          workItemType: 'custom',
+          workerClass: 'audio_processing_worker',
+          executionInput: {
+            operation: 'process_approved_source_voice_delivery',
+            approvedToolOperationIds: [input.ffmpegOperationId],
+            expectedOutputKeys: ['voice-delivery-secondary-wav'],
+            structuredPayload: {
+              recipeProfileId: 'approved_voice_delivery_wav_v1',
+              timestampPolicy: 'normalize_from_zero',
+              overwriteExistingArtifact: false,
+              allowUnreviewedCodec: false,
+              trimStartFrame: 0,
+              trimEndFrameExclusive: 24,
+              frameRate: 24,
+              sampleRate: 48_000,
+              channelMode: 'stereo',
+              targetLufs: -14,
+              truePeakDbtp: -1,
+              loudnessRangeLufs: 7,
+              highpassHz: 70,
+              compressorPreset: 'gentle_voice_v1',
+            },
+          },
+          sourceSequenceItemIds: [input.secondaryMediaSourceItem.sourceSequenceItemId],
+          sourceCleanupDecisionIds: ['cleanup-secondary-media-source'],
+          expectedOutputs: [{
+            outputKey: 'voice-delivery-secondary-wav',
+            artifactType: 'controlled_ffmpeg_professional_voice_delivery_wav',
+            assetRole: 'processed', required: true, previewPlaceholderAllowed: false,
+            contentType: 'audio/wav', segmentIds: ['segment-2'],
+            timingIds: ['master-timing-plan'], rendererLayerIds: ['voice-track-layer-2'],
+          }],
+          dependencyKeys: [], approvedToolIds: ['ffmpeg'],
+          providerExecutionMode: 'none', fallbackPolicy: {},
+          maxAttempts: 2, attemptTimeoutSeconds: 600, scheduledDelaySeconds: 0,
+          maximumCreditBudget: 2, required: true,
+        },
+        {
           workItemKey: 'final-qa',
           workItemType: 'run_final_qa',
           workerClass: 'qa_worker',
@@ -5328,6 +5482,8 @@ function createDispatchPlanBody(input: {
             timingIds: ['master-timing-plan'],
             rendererLayerIds: [
               'source-video-layer',
+              'voice-track-layer-1',
+              'voice-track-layer-2',
               'libass-caption-overlay-layer-1',
               'libass-caption-overlay-layer-2',
             ],
@@ -5367,7 +5523,16 @@ function createDispatchPlanBody(input: {
                 timelineEndFrameExclusive: 48,
               }],
               sourceFit: 'contain', panelBackground: '#000000',
-              audioPolicy: 'preserve_source_sequence',
+              audioPolicy: 'replace_with_approved_voice_tracks',
+              voiceTracks: [{
+                sourceSequenceItemId: input.mediaSourceItem.sourceSequenceItemId,
+                outputKey: 'voice-delivery-primary-wav',
+                durationFrames: 24,
+              }, {
+                sourceSequenceItemId: input.secondaryMediaSourceItem.sourceSequenceItemId,
+                outputKey: 'voice-delivery-secondary-wav',
+                durationFrames: 24,
+              }],
               captionOverlayPolicy: 'approved_timed_full_frame_rgba_track',
               captionOverlayCues: [{
                 outputKey: 'libass-caption-overlay-png',
@@ -5399,6 +5564,8 @@ function createDispatchPlanBody(input: {
             timingIds: ['master-timing-plan'],
             rendererLayerIds: [
               'source-video-layer',
+              'voice-track-layer-1',
+              'voice-track-layer-2',
               'libass-caption-overlay-layer-1',
               'libass-caption-overlay-layer-2',
             ],
@@ -5407,6 +5574,8 @@ function createDispatchPlanBody(input: {
             'source-trim-validation',
             'libass-caption-overlay-root',
             'libass-caption-overlay-second',
+            'voice-delivery-primary',
+            'voice-delivery-secondary',
           ],
           approvedToolIds: ['remotion'],
           providerExecutionMode: 'none',

@@ -216,7 +216,7 @@ const OUTPUT_CONTENT_TYPES: Partial<Record<ProductionToolId, readonly string[]>>
   animejs: ['image/svg+xml'],
   three_js: ['image/svg+xml'],
   pydub: ['audio/wav'], pydub_effects: ['audio/wav'], resampy: ['audio/wav'],
-  pedalboard: ['audio/wav'], ffmpeg: ['video/x-nut'],
+  pedalboard: ['audio/wav'], ffmpeg: ['video/x-nut', 'audio/wav'],
   noisereduce: ['audio/wav'],
   remotion: ['video/mp4'],
   libass: ['image/png'],

@@ -8,6 +8,7 @@ import {
   OFFLINE_MEDIA_BINARY_PROTOCOL,
   openPrivateOfflineMediaBinaryRuntime,
   readPersistedOfflineMediaBinaryRuntimeAuthority,
+  validateOfflineFfmpegPlanningPayload,
   validateOfflineFfprobeExecutionRequest,
 } from '../tool-execution/media-binary-execution'
 import {
@@ -126,11 +127,13 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
       )
       const sequenceProfile = 'sourceSegments' in planningPayload
       const captionTrackProfile = 'captionOverlayCues' in planningPayload
+      const replaceVoice = planningPayload.audioPolicy === 'replace_with_approved_voice_tracks'
       const captionCueCount = captionTrackProfile ? planningPayload.captionOverlayCues.length : 1
       const sourceCount = sequenceProfile
         ? planningPayload.sourceSegments.length
         : 1
-      const expectedDependencyCount = 1 + captionCueCount
+      const voiceTrackCount = replaceVoice ? (planningPayload.voiceTracks?.length ?? 0) : 0
+      const expectedDependencyCount = 1 + captionCueCount + voiceTrackCount
       if (
         workItem.workItemType !== 'render_final_export' || workItem.workerClass !== 'render_worker' ||
         workItem.approvedToolIds.length !== 1 || workItem.approvedToolIds[0] !== 'remotion' ||
@@ -216,17 +219,22 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
           leaseId: injected.leaseId, leaseCredential: injected.leaseCredential,
           executionAttemptId, dispatchGrantId: body.grantId,
           dependencyAuthority: begun.lease.dependencyAuthority,
-          allowedContentTypes: ['application/json', 'image/png'], maximumBytes: 8 * 1024 * 1024,
+          allowedContentTypes: ['application/json', 'image/png', 'audio/wav'],
+          maximumBytes: 8 * 1024 * 1024,
           selectedArtifactIndex,
         }))
       }
       const trimArtifact = dependencies.find((dependency) => dependency.contentType === 'application/json')
       const captionDependencies = dependencies.filter((dependency) => dependency.contentType === 'image/png')
+      const voiceDependencies = dependencies.filter((dependency) => dependency.contentType === 'audio/wav')
       if (
         !trimArtifact || trimArtifact.byteLength > 1024 * 1024 ||
-        captionDependencies.length !== captionCueCount || dependencies.length !== expectedDependencyCount
+        captionDependencies.length !== captionCueCount || voiceDependencies.length !== voiceTrackCount ||
+        dependencies.length !== expectedDependencyCount
       ) {
-        throw denied('Final composition dependencies must be one approved trim JSON and the exact caption artifacts.')
+        throw denied(
+          'Final composition dependencies must be one approved trim JSON plus exact caption and voice artifacts.',
+        )
       }
       const captions = orderCaptionDependencies({
         captionDependencies,
@@ -235,6 +243,14 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
           : undefined,
         authority,
       })
+      const voiceTracks = replaceVoice
+        ? orderVoiceDependencies({
+            voiceDependencies,
+            approvedVoiceTracks: planningPayload.voiceTracks ?? [],
+            fps: planningPayload.fps,
+            authority,
+          })
+        : []
       const trimReadiness = (await createCanonicalExecutionReadinessService(context).inspectJob({
         workspaceId: body.workspaceId,
         projectId: body.projectId,
@@ -288,6 +304,18 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
                 sha256: captions[0]!.sha256,
               },
             }),
+        ...(replaceVoice
+          ? {
+              voiceTracks: voiceTracks.map((voiceTrack, index) => ({
+                sourceSequenceItemId:
+                  planningPayload.voiceTracks![index]!.sourceSequenceItemId,
+                outputKey: planningPayload.voiceTracks![index]!.outputKey,
+                mimeType: 'audio/wav' as const,
+                bytes: voiceTrack.bytes,
+                sha256: voiceTrack.sha256,
+              })),
+            }
+          : {}),
       })
       if (!isFinalCompositionPayload(request.payload)) {
         throw denied('Final composition request resolved to the wrong profile.')
@@ -323,6 +351,7 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
           : { sourceSha256: sources[0]!.sha256 }),
         sourceTrimSha256: trimArtifact.sha256,
         captionSha256s: captions.map((caption) => caption.sha256),
+        voiceTrackSha256s: voiceTracks.map((voiceTrack) => voiceTrack.sha256),
         contentSha256: result.artifact.sha256,
       })
       await persistCanonicalPrivateRemotionArtifact({
@@ -356,6 +385,9 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
         sourceTrimDependencyReadEvidenceHash: trimArtifact.dependencyReadEvidenceHash,
         captionDependencyReadEvidenceHashes: captions.map(
           (caption) => caption.dependencyReadEvidenceHash,
+        ),
+        voiceDependencyReadEvidenceHashes: voiceTracks.map(
+          (voiceTrack) => voiceTrack.dependencyReadEvidenceHash,
         ),
       }
       const artifactAuthority = createPrivateArtifactQaAuthorityService(context, adapters(adapterInput))
@@ -411,6 +443,19 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
             captionByteLength: captions[0]!.byteLength,
             captionDependencyReadEvidenceHash: captions[0]!.dependencyReadEvidenceHash,
           }
+      const voiceInputs = replaceVoice
+        ? {
+            voiceTracks: voiceTracks.map((voiceTrack, index) => ({
+              sourceSequenceItemId: planningPayload.voiceTracks![index]!.sourceSequenceItemId,
+              outputKey: planningPayload.voiceTracks![index]!.outputKey,
+              durationFrames: planningPayload.voiceTracks![index]!.durationFrames,
+              voiceArtifactId: voiceTrack.artifactId,
+              voiceSha256: voiceTrack.sha256,
+              voiceByteLength: voiceTrack.byteLength,
+              voiceDependencyReadEvidenceHash: voiceTrack.dependencyReadEvidenceHash,
+            })),
+          }
+        : {}
       const responseWithoutHash = {
         schemaVersion: 'canonical-private-final-composition-execution-response-v2' as const,
         source: 'canonical_private_final_composition_execution_coordinator' as const,
@@ -424,7 +469,10 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
           approvedSourceTrimFramesApplied: true as const,
           approvedCaptionDependencyRead: true as const,
           approvedCaptionTrackTimingApplied: captionTrackProfile,
-          sourceAudioPreserved: true as const,
+          audioPolicy: planningPayload.audioPolicy,
+          sourceAudioPreserved: !replaceVoice,
+          approvedVoiceTrackDependencyRead: replaceVoice,
+          approvedVoiceTrackReplacementApplied: replaceVoice,
           privateFinalCompositionExecuted: true as const, providerCallMade: false as const,
           publicDeliveryExecuted: false as const,
         },
@@ -451,6 +499,7 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
               sourceTrimByteLength: trimArtifact.byteLength,
               sourceTrimDependencyReadEvidenceHash: trimArtifact.dependencyReadEvidenceHash,
               ...captionInputs,
+              ...voiceInputs,
             }
           : {
               sourceSequenceItemId: sources[0]!.sourceSequenceItemId,
@@ -465,6 +514,7 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
               sourceStartFrame: sourceTrim[0]!.startFrame,
               sourceEndFrameExclusive: sourceTrim[0]!.endFrameExclusive,
               ...captionInputs,
+              ...voiceInputs,
             },
         lease: {
           leaseId: begun.lease.id, attemptNumber: begun.lease.attemptNumber,
@@ -569,6 +619,60 @@ function orderCaptionDependencies(input: {
   return ordered as CanonicalPrivateDependencyArtifactReadResult[]
 }
 
+function orderVoiceDependencies(input: {
+  voiceDependencies: CanonicalPrivateDependencyArtifactReadResult[]
+  approvedVoiceTracks: Array<{
+    sourceSequenceItemId: string
+    outputKey: string
+    durationFrames: number
+  }>
+  fps: number
+  authority: ApprovedExecutionAuthority
+}): CanonicalPrivateDependencyArtifactReadResult[] {
+  const byOutputKey = new Map<string, {
+    dependency: CanonicalPrivateDependencyArtifactReadResult
+    sourceSequenceItemId: string
+    durationFrames: number
+  }>()
+  for (const dependency of input.voiceDependencies) {
+    const asset = input.authority.assetManifest.entries.find((candidate) =>
+      candidate.id === dependency.expectedAssetId)
+    const workItem = input.authority.workItems.find((candidate) =>
+      candidate.id === asset?.approvedWorkItemId)
+    if (
+      !asset || !workItem || asset.contentType !== 'audio/wav' ||
+      asset.assetRole !== 'processed' || !asset.required || asset.previewPlaceholderAllowed ||
+      workItem.workerClass !== 'audio_processing_worker' || workItem.workItemType !== 'custom' ||
+      workItem.approvedToolIds.length !== 1 || workItem.approvedToolIds[0] !== 'ffmpeg' ||
+      workItem.sourceSequenceItemIds.length !== 1 ||
+      workItem.sourceCleanupDecisionIds.length !== 1 || workItem.dependencyKeys.length !== 0 ||
+      byOutputKey.has(asset.outputKey)
+    ) throw denied('Voice dependency lineage is not an exact source-bound FFmpeg audio artifact.')
+    const payload = validateOfflineFfmpegPlanningPayload(workItem.executionInput.structuredPayload)
+    if (
+      payload.recipeProfileId !== 'approved_voice_delivery_wav_v1' ||
+      payload.frameRate !== input.fps
+    ) {
+      throw denied('Voice dependency did not execute the approved professional delivery recipe.')
+    }
+    byOutputKey.set(asset.outputKey, {
+      dependency,
+      sourceSequenceItemId: workItem.sourceSequenceItemIds[0]!,
+      durationFrames: payload.trimEndFrameExclusive - payload.trimStartFrame,
+    })
+  }
+  const ordered = input.approvedVoiceTracks.map((track) => byOutputKey.get(track.outputKey))
+  if (
+    ordered.some((entry, index) =>
+      !entry || entry.sourceSequenceItemId !== input.approvedVoiceTracks[index]!.sourceSequenceItemId ||
+      entry.durationFrames !== input.approvedVoiceTracks[index]!.durationFrames) ||
+    ordered.length !== byOutputKey.size ||
+    new Set(input.approvedVoiceTracks.map((track) => track.outputKey)).size !==
+      input.approvedVoiceTracks.length
+  ) throw denied('Voice dependency artifacts do not match approved source, output-key, and duration order.')
+  return ordered.map((entry) => entry!.dependency)
+}
+
 function parseApprovedSourceTrimEvidence(input: {
   bytes: Buffer
   body: RunCanonicalPrivateFinalCompositionInput
@@ -668,6 +772,7 @@ interface FinalCompositionAdapterInput {
   sourceReadEvidenceHashes: string[]
   sourceTrimDependencyReadEvidenceHash: string
   captionDependencyReadEvidenceHashes: string[]
+  voiceDependencyReadEvidenceHashes: string[]
 }
 
 function adapters(input: FinalCompositionAdapterInput): {
@@ -705,6 +810,7 @@ function adapters(input: FinalCompositionAdapterInput): {
               sourceReadEvidenceHashes: input.sourceReadEvidenceHashes,
               sourceTrimDependencyReadEvidenceHash: input.sourceTrimDependencyReadEvidenceHash,
               captionDependencyReadEvidenceHashes: input.captionDependencyReadEvidenceHashes,
+              voiceDependencyReadEvidenceHashes: input.voiceDependencyReadEvidenceHashes,
             }),
             startedAt: input.executionStartedAt,
             finishedAt: input.result.attestation.completedAt,
@@ -753,8 +859,9 @@ function adapters(input: FinalCompositionAdapterInput): {
               sourceReadEvidenceHashes: input.sourceReadEvidenceHashes,
               sourceTrimDependencyReadEvidenceHash: input.sourceTrimDependencyReadEvidenceHash,
               captionDependencyReadEvidenceHashes: input.captionDependencyReadEvidenceHashes,
+              voiceDependencyReadEvidenceHashes: input.voiceDependencyReadEvidenceHashes,
             }),
-            notesCode: 'approved_source_trim_caption_dependency_and_frame_preflight_passed',
+            notesCode: 'approved_source_trim_caption_voice_dependency_and_frame_preflight_passed',
           }, {
             gateId: 'final_qa_gate' as const,
             category: 'asset_integrity' as const,
@@ -788,6 +895,8 @@ function assertFinalResult(
     'sourceSegments' in request.payload
   const captionTrackProfile = isFinalCompositionPayload(request.payload) &&
     'captionOverlayCues' in request.payload
+  const replaceVoice = isFinalCompositionPayload(request.payload) &&
+    request.payload.audioPolicy === 'replace_with_approved_voice_tracks'
   if (
     !isFinalCompositionPayload(request.payload) || !isFinalCompositionPayload(result.request.payload) ||
     result.request.operationId !== request.operationId || result.artifact.mimeType !== CONTENT_TYPE ||
@@ -798,7 +907,17 @@ function assertFinalResult(
     result.evidence.semanticEvidence.approvedSourceBytesVerified !== true ||
     result.evidence.semanticEvidence.approvedSourceTrimFramesApplied !== true ||
     result.evidence.semanticEvidence.approvedCaptionOverlayBytesVerified !== true ||
-    result.evidence.semanticEvidence.sourceAudioPreservationRequested !== true ||
+    (replaceVoice
+      ? (
+          result.evidence.semanticEvidence.approvedVoiceTrackBytesVerified !== true ||
+          result.evidence.semanticEvidence.approvedVoiceTrackReplacementRequested !== true ||
+          result.evidence.semanticEvidence.approvedVoiceTrackTimelineApplied !== true ||
+          result.evidence.semanticEvidence.sourceAudioPreservationRequested === true
+        )
+      : (
+          result.evidence.semanticEvidence.sourceAudioPreservationRequested !== true ||
+          result.evidence.semanticEvidence.approvedVoiceTrackReplacementRequested === true
+        )) ||
     result.evidence.semanticEvidence.finalCompositionProfileExecuted !== true ||
     (sequenceProfile && (
       result.evidence.semanticEvidence.approvedSourceSequenceBytesVerified !== true ||

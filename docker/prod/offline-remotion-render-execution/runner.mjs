@@ -10,8 +10,9 @@ const remotionVersion = require('remotion/package.json').version
 const rendererVersion = require('@remotion/renderer/package.json').version
 const PROTOCOL = 'offline-remotion-render-execution-v1'
 const OPERATION = 'tool.remotion.render_approved_composition.v1'
-const MAXIMUM_REQUEST_BYTES = 32 * 1024 * 1024
+const MAXIMUM_REQUEST_BYTES = 48 * 1024 * 1024
 const MAXIMUM_OUTPUT_BYTES = 16 * 1024 * 1024
+const MAXIMUM_COMBINED_VOICE_TRACK_BYTES = 2 * 1024 * 1024
 const FORBIDDEN_TEXT = /(?:https?:\/\/|ftp:\/\/|file:|data:|javascript:|\.\.\/|\.\.\\|[A-Za-z]:[\\/]|(?:^|\s)\/(?:Users|home|etc|tmp|var|opt|app|root|proc|sys|dev)(?:\/|\b)|\$\(|`|&&|\|\||#!)/i
 
 const canonical = (value) => JSON.stringify(value, Object.keys(value).sort())
@@ -162,6 +163,83 @@ function validateCaptionOverlayCommitments(value, cues) {
   return overlays
 }
 
+function validateVoiceTrackCommitments(value, expected, fps) {
+  if (!Array.isArray(value) || value.length !== expected.length || expected.length < 1) {
+    throw new Error('voice-track commitments do not match approved sources')
+  }
+  const sourceIds = new Set()
+  const outputKeys = new Set()
+  let totalBytes = 0
+  const tracks = value.map((candidate, index) => {
+    const track = exactObject(candidate, [
+      'sourceSequenceItemId', 'outputKey', 'durationFrames',
+      'mimeType', 'byteLength', 'sha256', 'bytesBase64',
+    ], `voice-track commitment ${index + 1}`)
+    const sourceSequenceItemId = safeIdentity(
+      track.sourceSequenceItemId,
+      'voice-track sourceSequenceItemId',
+    )
+    const outputKey = safeIdentity(track.outputKey, 'voice-track outputKey')
+    const durationFrames = integer(track.durationFrames, 1, 240, 'voice-track durationFrames')
+    if (
+      sourceIds.has(sourceSequenceItemId) || outputKeys.has(outputKey) ||
+      (expected[index].sourceSequenceItemId !== undefined &&
+        sourceSequenceItemId !== expected[index].sourceSequenceItemId) ||
+      durationFrames !== expected[index].durationFrames || track.mimeType !== 'audio/wav' ||
+      !Number.isSafeInteger(track.byteLength) || typeof track.sha256 !== 'string' ||
+      !/^[a-f0-9]{64}$/.test(track.sha256) || typeof track.bytesBase64 !== 'string'
+    ) throw new Error('voice-track identity, order, or content commitment is invalid')
+    const bytes = Buffer.from(track.bytesBase64, 'base64')
+    if (
+      bytes.byteLength !== track.byteLength || bytes.byteLength < 44 ||
+      bytes.byteLength > MAXIMUM_COMBINED_VOICE_TRACK_BYTES ||
+      bytes.toString('base64') !== track.bytesBase64 || sha256(bytes) !== track.sha256
+    ) throw new Error('voice-track bytes do not match commitment')
+    validatePcmVoiceTrack(bytes, durationFrames, fps)
+    sourceIds.add(sourceSequenceItemId)
+    outputKeys.add(outputKey)
+    totalBytes += bytes.byteLength
+    return {
+      sourceSequenceItemId,
+      outputKey,
+      durationFrames,
+      mimeType: 'audio/wav',
+      byteLength: bytes.byteLength,
+      sha256: track.sha256,
+      bytesBase64: bytes.toString('base64'),
+    }
+  })
+  if (totalBytes > MAXIMUM_COMBINED_VOICE_TRACK_BYTES) {
+    throw new Error('voice tracks exceed combined byte ceiling')
+  }
+  return tracks
+}
+
+function validatePcmVoiceTrack(bytes, durationFrames, fps) {
+  if (
+    bytes.byteLength < 44 || bytes.subarray(0, 4).toString('ascii') !== 'RIFF' ||
+    bytes.subarray(8, 12).toString('ascii') !== 'WAVE'
+  ) throw new Error('voice track is not RIFF/WAVE')
+  const formatOffset = bytes.indexOf(Buffer.from('fmt '))
+  const dataOffset = bytes.indexOf(Buffer.from('data'))
+  if (
+    formatOffset < 12 || dataOffset <= formatOffset || formatOffset + 24 > bytes.byteLength ||
+    dataOffset + 8 > bytes.byteLength || bytes.readUInt16LE(formatOffset + 8) !== 1
+  ) throw new Error('voice track is not linear PCM WAV')
+  const channels = bytes.readUInt16LE(formatOffset + 10)
+  const sampleRate = bytes.readUInt32LE(formatOffset + 12)
+  const blockAlign = bytes.readUInt16LE(formatOffset + 20)
+  const bitsPerSample = bytes.readUInt16LE(formatOffset + 22)
+  const dataByteLength = bytes.byteLength - (dataOffset + 8)
+  const expectedSampleFrames = durationFrames * (48_000 / fps)
+  const actualSampleFrames = dataByteLength / blockAlign
+  if (
+    channels !== 2 || sampleRate !== 48_000 || bitsPerSample !== 16 || blockAlign !== 4 ||
+    dataByteLength <= 0 || dataByteLength % blockAlign !== 0 ||
+    !Number.isInteger(expectedSampleFrames) || Math.abs(actualSampleFrames - expectedSampleFrames) > 2
+  ) throw new Error('voice track does not match fixed 48 kHz stereo frame duration')
+}
+
 function committedBase64(payload, prefix, mimeType, minimumBytes, maximumBytes) {
   const mimeKey = `${prefix}MimeType`
   const lengthKey = `${prefix}ByteLength`
@@ -188,6 +266,7 @@ function validateRequest(value) {
   const rawPayload = request.payload
   if (rawPayload && typeof rawPayload === 'object' && isSourceSequenceProfile(rawPayload.compositionProfileId)) {
     const captionTrack = rawPayload.compositionProfileId === 'approved_source_sequence_caption_track_final_v1'
+    const replaceVoice = rawPayload.audioPolicy === 'replace_with_approved_voice_tracks'
     const payload = exactObject(rawPayload, [
       'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
       'sourceSegments', 'sourceFit', 'panelBackground', 'audioPolicy',
@@ -195,10 +274,12 @@ function validateRequest(value) {
       ...(captionTrack
         ? ['captionOverlays']
         : ['captionOverlayMimeType', 'captionOverlayByteLength', 'captionOverlaySha256', 'captionOverlayBytesBase64']),
+      ...(replaceVoice ? ['voiceTracks'] : []),
     ], 'source-sequence final composition payload')
     const dimensions = `${payload.width}x${payload.height}`
     oneOf(dimensions, ['360x640', '640x360', '480x480', '480x600', '720x405', '405x720'], 'approved frame')
     const durationFrames = integer(payload.durationFrames, 24, 240, 'durationFrames')
+    const fps = oneOf(payload.fps, [24, 30], 'fps')
     const sourceSegments = validateSourceSegments(payload.sourceSegments, durationFrames)
     if (!Array.isArray(payload.sources) || payload.sources.length !== sourceSegments.length) {
       throw new Error('source-sequence commitments are incomplete')
@@ -230,8 +311,19 @@ function validateRequest(value) {
     if (overlay && overlay.subarray(0, 8).toString('hex') !== '89504e470d0a1a0a') {
       throw new Error('source-sequence caption overlay signature is invalid')
     }
+    const voiceTracks = replaceVoice
+      ? validateVoiceTrackCommitments(
+          payload.voiceTracks,
+          sourceSegments.map((segment) => ({
+            sourceSequenceItemId: segment.sourceSequenceItemId,
+            durationFrames: segment.timelineEndFrameExclusive - segment.timelineStartFrame,
+          })),
+          fps,
+        )
+      : undefined
     if (
-      payload.sourceFit !== 'contain' || payload.audioPolicy !== 'preserve_source_sequence' ||
+      payload.sourceFit !== 'contain' ||
+      !['preserve_source_sequence', 'replace_with_approved_voice_tracks'].includes(payload.audioPolicy) ||
       payload.captionOverlayPolicy !== (
         captionTrack ? 'approved_timed_full_frame_rgba_track' : 'approved_full_frame_rgba'
       )
@@ -245,11 +337,12 @@ function validateRequest(value) {
       payload: {
         ...payload,
         width: integer(payload.width, 360, 720, 'width'), height: integer(payload.height, 360, 720, 'height'),
-        fps: oneOf(payload.fps, [24, 30], 'fps'), durationFrames, sourceSegments, sources,
+        fps, durationFrames, sourceSegments, sources,
         panelBackground: color(payload.panelBackground, 'panelBackground'),
         ...(captionTrack
           ? { captionOverlayCues, captionOverlays }
           : { captionOverlayBytesBase64: overlay.toString('base64') }),
+        ...(voiceTracks ? { voiceTracks } : {}),
       },
     }
   }
@@ -259,6 +352,7 @@ function validateRequest(value) {
       .includes(rawPayload.compositionProfileId)
   ) {
     const captionTrack = rawPayload.compositionProfileId === 'approved_source_caption_track_final_v1'
+    const replaceVoice = rawPayload.audioPolicy === 'replace_with_approved_voice_tracks'
     const payload = exactObject(rawPayload, [
       'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
       'sourceStartFrame', 'sourceEndFrameExclusive', 'sourceFit',
@@ -267,11 +361,13 @@ function validateRequest(value) {
       ...(captionTrack
         ? ['captionOverlayCues', 'captionOverlays']
         : ['captionOverlayMimeType', 'captionOverlayByteLength', 'captionOverlaySha256', 'captionOverlayBytesBase64']),
+      ...(replaceVoice ? ['voiceTracks'] : []),
     ], 'final composition payload')
     const dimensions = `${payload.width}x${payload.height}`
     oneOf(dimensions, ['360x640', '640x360', '480x480', '480x600', '720x405', '405x720'], 'approved frame')
     const source = committedBase64(payload, 'source', 'video/mp4', 64, 16 * 1024 * 1024)
     const durationFrames = integer(payload.durationFrames, 24, 240, 'durationFrames')
+    const fps = oneOf(payload.fps, [24, 30], 'fps')
     const captionOverlayCues = captionTrack
       ? validateCaptionOverlayCues(payload.captionOverlayCues, durationFrames)
       : undefined
@@ -285,8 +381,15 @@ function validateRequest(value) {
       source.subarray(4, 8).toString('ascii') !== 'ftyp' ||
       (overlay && overlay.subarray(0, 8).toString('hex') !== '89504e470d0a1a0a')
     ) throw new Error('final composition dependency signature is invalid')
+    const voiceTracks = replaceVoice
+      ? validateVoiceTrackCommitments(payload.voiceTracks, [{
+          sourceSequenceItemId: undefined,
+          durationFrames,
+        }], fps)
+      : undefined
     if (
-      payload.sourceFit !== 'contain' || payload.audioPolicy !== 'preserve_source' ||
+      payload.sourceFit !== 'contain' ||
+      !['preserve_source', 'replace_with_approved_voice_tracks'].includes(payload.audioPolicy) ||
       payload.captionOverlayPolicy !== (
         captionTrack ? 'approved_timed_full_frame_rgba_track' : 'approved_full_frame_rgba'
       )
@@ -310,13 +413,14 @@ function validateRequest(value) {
       payload: {
         ...payload,
         width: integer(payload.width, 360, 720, 'width'), height: integer(payload.height, 360, 720, 'height'),
-        fps: oneOf(payload.fps, [24, 30], 'fps'), durationFrames,
+        fps, durationFrames,
         sourceStartFrame, sourceEndFrameExclusive,
         panelBackground: color(payload.panelBackground, 'panelBackground'),
         sourceBytesBase64: source.toString('base64'),
         ...(captionTrack
           ? { captionOverlayCues, captionOverlays }
           : { captionOverlayBytesBase64: overlay.toString('base64') }),
+        ...(voiceTracks ? { voiceTracks } : {}),
       },
     }
   }
@@ -364,6 +468,8 @@ async function execute(request) {
     'approved_source_sequence_caption_track_final_v1',
   ].includes(request.payload.compositionProfileId)
   const captionTrack = isCaptionTrackProfile(request.payload.compositionProfileId)
+  const replaceVoice = finalComposition &&
+    request.payload.audioPolicy === 'replace_with_approved_voice_tracks'
   const mediaServer = finalComposition
     ? await openPrivateLoopbackMediaServer(
         isSourceSequenceProfile(request.payload.compositionProfileId)
@@ -381,6 +487,13 @@ async function execute(request) {
               outputKey: 'legacy-caption-overlay',
               bytes: Buffer.from(request.payload.captionOverlayBytesBase64, 'base64'),
             }],
+        replaceVoice
+          ? request.payload.voiceTracks.map((track) => ({
+              sourceSequenceItemId: track.sourceSequenceItemId,
+              outputKey: track.outputKey,
+              bytes: Buffer.from(track.bytesBase64, 'base64'),
+            }))
+          : [],
       )
     : null
   const captionRenderPayload = captionTrack
@@ -394,6 +507,15 @@ async function execute(request) {
     : finalComposition
       ? { captionOverlayInternalUrl: `${mediaServer.origin}/caption/0.png` }
       : {}
+  const voiceRenderPayload = replaceVoice
+    ? {
+        voiceTrackInternalUrls: request.payload.voiceTracks.map((track, index) => ({
+          sourceSequenceItemId: track.sourceSequenceItemId,
+          outputKey: track.outputKey,
+          voiceTrackInternalUrl: `${mediaServer.origin}/voice/${index}.wav`,
+        })),
+      }
+    : {}
   const renderPayload = isSourceSequenceProfile(request.payload.compositionProfileId)
     ? {
         compositionProfileId: request.payload.compositionProfileId,
@@ -407,6 +529,7 @@ async function execute(request) {
           sourceInternalUrl: `${mediaServer.origin}/source/${index}.mp4`,
         })),
         ...captionRenderPayload,
+        ...voiceRenderPayload,
       }
     : finalComposition
     ? {
@@ -419,6 +542,7 @@ async function execute(request) {
         audioPolicy: request.payload.audioPolicy, captionOverlayPolicy: request.payload.captionOverlayPolicy,
         sourceInternalUrl: `${mediaServer.origin}/source/0.mp4`,
         ...captionRenderPayload,
+        ...voiceRenderPayload,
       }
     : request.payload
   try {
@@ -484,7 +608,7 @@ async function execute(request) {
   }
 }
 
-async function openPrivateLoopbackMediaServer(sources, overlays) {
+async function openPrivateLoopbackMediaServer(sources, overlays, voiceTracks) {
   const server = createServer((request, response) => {
     if (!request.url || !['GET', 'HEAD'].includes(request.method ?? '')) {
       response.writeHead(405).end()
@@ -508,6 +632,16 @@ async function openPrivateLoopbackMediaServer(sources, overlays) {
         return
       }
       serveCommittedBytes(request, response, overlay.bytes, 'image/png')
+      return
+    }
+    const voiceMatch = /^\/voice\/(\d+)\.wav$/.exec(request.url)
+    if (voiceMatch) {
+      const voiceTrack = voiceTracks[Number(voiceMatch[1])]
+      if (!voiceTrack) {
+        response.writeHead(404).end()
+        return
+      }
+      serveCommittedBytes(request, response, voiceTrack.bytes, 'audio/wav')
       return
     }
     response.writeHead(404).end()
@@ -589,8 +723,14 @@ try {
             approvedSourceBytesVerified: true,
             approvedCaptionOverlayBytesVerified: true,
             approvedSourceTrimFramesApplied: true,
-            sourceAudioPreservationRequested: true,
             finalCompositionProfileExecuted: true,
+            ...(request.payload.audioPolicy === 'replace_with_approved_voice_tracks'
+              ? {
+                  approvedVoiceTrackBytesVerified: true,
+                  approvedVoiceTrackReplacementRequested: true,
+                  approvedVoiceTrackTimelineApplied: true,
+                }
+              : { sourceAudioPreservationRequested: true }),
             ...(isCaptionTrackProfile(request.payload.compositionProfileId)
               ? { approvedCaptionTrackTimingApplied: true }
               : {}),
@@ -602,8 +742,14 @@ try {
               approvedCaptionOverlayBytesVerified: true,
               approvedSourceTrimFramesApplied: true,
               approvedSourceSequenceTimelineApplied: true,
-              sourceAudioPreservationRequested: true,
               finalCompositionProfileExecuted: true,
+              ...(request.payload.audioPolicy === 'replace_with_approved_voice_tracks'
+                ? {
+                    approvedVoiceTrackBytesVerified: true,
+                    approvedVoiceTrackReplacementRequested: true,
+                    approvedVoiceTrackTimelineApplied: true,
+                  }
+                : { sourceAudioPreservationRequested: true }),
               ...(isCaptionTrackProfile(request.payload.compositionProfileId)
                 ? { approvedCaptionTrackTimingApplied: true }
                 : {}),

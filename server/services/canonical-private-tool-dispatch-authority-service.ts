@@ -716,13 +716,21 @@ function resolveAndVerifyCanonicalDispatchBinding(input: {
   )
     ? finalCompositionStructuredPayload.captionOverlayCues.length
     : 1
+  const finalCompositionVoiceTrackCount =
+    finalCompositionStructuredPayload?.audioPolicy === 'replace_with_approved_voice_tracks' &&
+    Array.isArray(finalCompositionStructuredPayload.voiceTracks)
+      ? finalCompositionStructuredPayload.voiceTracks.length
+      : 0
   const exactPrivateRemotionFinalComposition =
     workItem.workerClass === 'render_worker' && workItem.workItemType === 'render_final_export' &&
     expectedAsset.assetRole === 'final' && expectedAsset.contentType === 'video/mp4' &&
     workItem.approvedToolIds.length === 1 && workItem.approvedToolIds[0] === 'remotion' &&
     body.operationId === 'tool.remotion.render_approved_composition.v1' &&
     finalCompositionCaptionCueCount >= 1 && finalCompositionCaptionCueCount <= 7 &&
-    workItem.dependencyKeys.length === 1 + finalCompositionCaptionCueCount &&
+    workItem.dependencyKeys.length ===
+      1 + finalCompositionCaptionCueCount + finalCompositionVoiceTrackCount &&
+    (finalCompositionVoiceTrackCount === 0 ||
+      finalCompositionVoiceTrackCount === workItem.sourceSequenceItemIds.length) &&
     workItem.sourceSequenceItemIds.length >= 1 &&
     workItem.sourceSequenceItemIds.length <= 8 &&
     workItem.sourceCleanupDecisionIds.length === workItem.sourceSequenceItemIds.length

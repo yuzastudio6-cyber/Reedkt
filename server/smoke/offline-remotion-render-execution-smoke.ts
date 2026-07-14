@@ -9,7 +9,7 @@ import { activatePrivateOfflineMediaBinaryRuntime } from '../tool-execution/medi
 import { activatePrivateOfflineLibassCaptionRuntime } from '../tool-execution/libass-caption-execution'
 import { prepareOfflineRemotionDockerRuntime } from '../tool-execution/remotion-render-execution/offline-remotion-render-docker-runtime'
 import { activatePrivateOfflineRemotionRenderRuntime, openPrivateOfflineRemotionRenderRuntime, readPersistedOfflineRemotionRenderRuntimeAuthority } from '../tool-execution/remotion-render-execution/offline-remotion-render-execution-service'
-import { buildOfflineRemotionFinalCompositionRequest, validateOfflineRemotionRenderRequest } from '../tool-execution/remotion-render-execution/offline-remotion-render-execution-protocol'
+import { buildOfflineRemotionFinalCompositionRequest, isFinalCompositionPayload, validateOfflineRemotionRenderRequest } from '../tool-execution/remotion-render-execution/offline-remotion-render-execution-protocol'
 
 const request = {
   schemaVersion: 'offline-remotion-render-execution-v1', toolId: 'remotion',
@@ -278,12 +278,151 @@ try {
   const sourceSequenceStreams = sourceSequenceProbe.resultJson.document.streams as Array<Record<string, unknown>>
   assert.equal(sourceSequenceStreams.find((stream) => stream.codecType === 'video')?.readFrameCount, 48)
   assert.equal(sourceSequenceStreams.find((stream) => stream.codecType === 'audio')?.codecName, 'aac')
+
+  const voiceDelivery = await mediaRuntime.execute({
+    schemaVersion: 'offline-media-binary-execution-v1', toolId: 'ffmpeg',
+    operationId: 'tool.ffmpeg.execute_approved_media_recipe.v1',
+    payload: {
+      recipeProfileId: 'approved_voice_delivery_wav_v1',
+      timestampPolicy: 'normalize_from_zero', overwriteExistingArtifact: false,
+      allowUnreviewedCodec: false, trimStartFrame: 0, trimEndFrameExclusive: 24,
+      frameRate: 24, sampleRate: 48_000, channelMode: 'stereo', targetLufs: -14,
+      truePeakDbtp: -1, loudnessRangeLufs: 7, highpassHz: 70,
+      compressorPreset: 'gentle_voice_v1', mimeType: 'video/mp4',
+      sourceByteLength: sourceBytes.byteLength,
+      sourceSha256: createHash('sha256').update(sourceBytes).digest('hex'),
+      sourceBytesBase64: sourceBytes.toString('base64'),
+    },
+  })
+  if (!('resultArtifact' in voiceDelivery) || voiceDelivery.resultArtifact.mimeType !== 'audio/wav') {
+    throw new Error('Approved voice delivery returned the wrong artifact class.')
+  }
+  assert.equal(voiceDelivery.evidence.semanticEvidence.loudnessNormalizationApplied, true)
+  assert.equal(voiceDelivery.evidence.semanticEvidence.truePeakLimiterApplied, true)
+  const replacementRequest = buildOfflineRemotionFinalCompositionRequest({
+    planningPayload: {
+      compositionProfileId: 'approved_source_sequence_caption_track_final_v1',
+      width: 640, height: 360, fps: 24, durationFrames: 48,
+      sourceSegments: [{
+        sourceSequenceItemId: 'approved-source-a',
+        sourceStartFrame: 0, sourceEndFrameExclusive: 24,
+        timelineStartFrame: 0, timelineEndFrameExclusive: 24,
+      }, {
+        sourceSequenceItemId: 'approved-source-b',
+        sourceStartFrame: 0, sourceEndFrameExclusive: 24,
+        timelineStartFrame: 24, timelineEndFrameExclusive: 48,
+      }],
+      sourceFit: 'contain', panelBackground: '#000000',
+      audioPolicy: 'replace_with_approved_voice_tracks',
+      voiceTracks: [{
+        sourceSequenceItemId: 'approved-source-a',
+        outputKey: 'voice-delivery-1-wav', durationFrames: 24,
+      }, {
+        sourceSequenceItemId: 'approved-source-b',
+        outputKey: 'voice-delivery-2-wav', durationFrames: 24,
+      }],
+      captionOverlayPolicy: 'approved_timed_full_frame_rgba_track',
+      captionOverlayCues: [{
+        outputKey: 'caption-overlay-1-png', startFrame: 0, endFrameExclusive: 24,
+      }, {
+        outputKey: 'caption-overlay-2-png', startFrame: 24, endFrameExclusive: 48,
+      }],
+    },
+    sources: [{
+      sourceSequenceItemId: 'approved-source-a', mimeType: 'video/mp4', bytes: sourceBytes,
+      sha256: createHash('sha256').update(sourceBytes).digest('hex'),
+    }, {
+      sourceSequenceItemId: 'approved-source-b', mimeType: 'video/mp4', bytes: sourceBytes,
+      sha256: createHash('sha256').update(sourceBytes).digest('hex'),
+    }],
+    captionOverlays: [{
+      outputKey: 'caption-overlay-1-png', mimeType: 'image/png',
+      bytes: overlay.imageArtifact.bytes, sha256: overlay.imageArtifact.sha256,
+    }, {
+      outputKey: 'caption-overlay-2-png', mimeType: 'image/png',
+      bytes: secondOverlay.imageArtifact.bytes, sha256: secondOverlay.imageArtifact.sha256,
+    }],
+    voiceTracks: [{
+      sourceSequenceItemId: 'approved-source-a', outputKey: 'voice-delivery-1-wav',
+      mimeType: 'audio/wav', bytes: voiceDelivery.resultArtifact.bytes,
+      sha256: voiceDelivery.resultArtifact.sha256,
+    }, {
+      sourceSequenceItemId: 'approved-source-b', outputKey: 'voice-delivery-2-wav',
+      mimeType: 'audio/wav', bytes: voiceDelivery.resultArtifact.bytes,
+      sha256: voiceDelivery.resultArtifact.sha256,
+    }],
+  })
+  const replacementPayload = replacementRequest.payload
+  if (
+    !isFinalCompositionPayload(replacementPayload) ||
+    replacementPayload.audioPolicy !== 'replace_with_approved_voice_tracks'
+  ) throw new Error('Voice replacement request compiled to the wrong profile.')
+  const committedVoiceTracks = replacementPayload.voiceTracks
+  if (!committedVoiceTracks) throw new Error('Voice replacement commitments are missing.')
+  assert.throws(() => validateOfflineRemotionRenderRequest({
+    ...replacementRequest,
+    payload: {
+      ...replacementPayload,
+      voiceTracks: [...committedVoiceTracks].reverse(),
+    },
+  }), /voice|order|identity/)
+  assert.throws(() => validateOfflineRemotionRenderRequest({
+    ...replacementRequest,
+    payload: {
+      ...replacementPayload,
+      voiceTracks: committedVoiceTracks.map((track, index) =>
+        index === 0 ? { ...track, sha256: 'f'.repeat(64) } : track),
+    },
+  }), /voice|bytes|commitment/)
+  const replacementResult = await reopened.execute(replacementRequest)
+  assert.equal(replacementResult.evidence.semanticEvidence.approvedVoiceTrackBytesVerified, true)
+  assert.equal(replacementResult.evidence.semanticEvidence.approvedVoiceTrackReplacementRequested, true)
+  assert.equal(replacementResult.evidence.semanticEvidence.approvedVoiceTrackTimelineApplied, true)
+  assert.equal(replacementResult.evidence.semanticEvidence.sourceAudioPreservationRequested, undefined)
+  const replacementReplay = await reopened.execute(replacementRequest)
+  assert.equal(replacementReplay.artifact.sha256, replacementResult.artifact.sha256)
+  assert.equal(
+    replacementReplay.evidence.requestEnvelopeSha256,
+    replacementResult.evidence.requestEnvelopeSha256,
+  )
+  const replacementArtifactPath = join(fixtureRoot, 'source-sequence-voice-replacement.mp4')
+  await writeFile(replacementArtifactPath, replacementResult.artifact.bytes)
+  const preservedPcm = spawnSync('ffmpeg', [
+    '-hide_banner', '-loglevel', 'error', '-i', sourceSequenceArtifactPath,
+    '-map', '0:a:0', '-f', 's16le', '-ac', '2', '-ar', '48000', 'pipe:1',
+  ], { maxBuffer: 4 * 1024 * 1024 })
+  const replacementPcm = spawnSync('ffmpeg', [
+    '-hide_banner', '-loglevel', 'error', '-i', replacementArtifactPath,
+    '-map', '0:a:0', '-f', 's16le', '-ac', '2', '-ar', '48000', 'pipe:1',
+  ], { maxBuffer: 4 * 1024 * 1024 })
+  assert.equal(preservedPcm.status, 0, preservedPcm.stderr.toString())
+  assert.equal(replacementPcm.status, 0, replacementPcm.stderr.toString())
+  assert.notEqual(
+    createHash('sha256').update(preservedPcm.stdout).digest('hex'),
+    createHash('sha256').update(replacementPcm.stdout).digest('hex'),
+    'Decoded final audio must prove that approved voice tracks replaced source audio.',
+  )
+  const replacementProbe = await mediaRuntime.execute({
+    schemaVersion: 'offline-media-binary-execution-v1', toolId: 'ffprobe',
+    operationId: 'tool.ffprobe.inspect_approved_media.v1',
+    payload: {
+      inspectionProfileId: 'final_export_v1', countFrames: true,
+      verifyDurationAndSync: true, emitMachineJsonOnly: true,
+      mimeType: 'video/mp4', sourceByteLength: replacementResult.artifact.byteLength,
+      sourceSha256: replacementResult.artifact.sha256,
+      sourceBytesBase64: replacementResult.artifact.bytes.toString('base64'),
+    },
+  })
+  assert.ok('resultJson' in replacementProbe)
+  const replacementStreams = replacementProbe.resultJson.document.streams as Array<Record<string, unknown>>
+  assert.equal(replacementStreams.find((stream) => stream.codecType === 'video')?.readFrameCount, 48)
+  assert.equal(replacementStreams.find((stream) => stream.codecType === 'audio')?.codecName, 'aac')
 } finally {
   await rm(fixtureRoot, { recursive: true, force: true })
 }
 
 console.log(JSON.stringify({
   smoke: 'offline_remotion_render_execution', status: 'passed',
-  proofs: ['exact_operation_payload_validated', 'caller_paths_urls_commands_and_extra_fields_rejected', 'checksum_protected_runtime_authority_persisted_and_reopened', 'pinned_image_identity_verified', 'network_none_read_only_non_root_cap_drop_confinement_verified', 'actual_remotion_select_and_render_media_executed', 'mp4_hash_frame_timing_and_header_verified', 'independent_pinned_ffprobe_h264_frame_count_pixel_format_color_space_and_duration_qa_passed', 'server_injected_source_mp4_and_libass_png_hash_commitments_verified', 'approved_nonzero_source_trim_frames_applied', 'actual_source_plus_caption_final_composition_rendered', 'ordered_two_source_sequence_and_timed_caption_track_final_composition_rendered', 'distinct_caption_track_frames_decoded_and_verified', 'source_sequence_frame_ranges_and_audio_preserved', 'source_audio_preserved_as_aac', 'final_composition_paths_urls_commands_and_tampered_bytes_rejected', 'product_beta_production_readiness_remains_false'],
+  proofs: ['exact_operation_payload_validated', 'caller_paths_urls_commands_and_extra_fields_rejected', 'checksum_protected_runtime_authority_persisted_and_reopened', 'pinned_image_identity_verified', 'network_none_read_only_non_root_cap_drop_confinement_verified', 'actual_remotion_select_and_render_media_executed', 'mp4_hash_frame_timing_and_header_verified', 'independent_pinned_ffprobe_h264_frame_count_pixel_format_color_space_and_duration_qa_passed', 'server_injected_source_mp4_libass_png_and_pcm_wav_hash_commitments_verified', 'approved_nonzero_source_trim_frames_applied', 'actual_source_plus_caption_final_composition_rendered', 'ordered_two_source_sequence_and_timed_caption_track_final_composition_rendered', 'distinct_caption_track_frames_decoded_and_verified', 'source_sequence_frame_ranges_and_audio_preserved', 'approved_source_bound_professional_voice_tracks_replaced_source_audio', 'voice_track_order_duration_hash_and_pcm_format_tampering_rejected', 'voice_replacement_replay_is_deterministic', 'final_aac_audio_decoded_and_independently_verified', 'final_composition_paths_urls_commands_and_tampered_bytes_rejected', 'product_beta_production_readiness_remains_false'],
   artifact: { sha256: result.artifact.sha256, byteLength: result.artifact.byteLength, width: result.artifact.width, height: result.artifact.height, fps: result.artifact.fps, durationFrames: result.artifact.durationFrames },
 }, null, 2))

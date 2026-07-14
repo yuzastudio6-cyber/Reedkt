@@ -88,7 +88,7 @@ export const canonicalPrivateMediaBinaryResponseSchema = z.object({
   }).strict(),
   result: z.object({
     artifactId: identity, qaEvaluationId: identity, reconciliationId: identity,
-    contentType: z.enum(['application/json', 'video/x-nut']), sha256: sha,
+    contentType: z.enum(['application/json', 'video/x-nut', 'audio/wav']), sha256: sha,
     byteLength: z.number().int().positive().max(32 * 1024 * 1024),
     privateObjectIdentityHash: sha,
     qaOutcome: z.literal('passed'),

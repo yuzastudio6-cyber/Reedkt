@@ -41,9 +41,12 @@ fail-closed regression.
    approval, synthetic reservation, snapshot, jobs, package, and readiness.
 5. Exercise the bounded ordered multi-source canonical lifecycle through lease,
    one-use dispatch, private artifacts, QA, reconciliation, replay, and private
-   download evidence. Its Remotion image tag, build context, and runtime
-   authority root are canonical-private resources so a separate Motion Studio
-   build cannot replace the image identity during this proof.
+   download evidence. The focused lifecycle includes exact source-bound FFmpeg
+   voice-delivery WAVs, downstream WAV verification, ordered Remotion voice
+   replacement, and independent final H.264/AAC QA. Its Remotion image tag,
+   build context, and runtime authority root are canonical-private resources so
+   a separate Motion Studio build cannot replace the image identity during this
+   proof.
 6. Verify active named-edit loading, failure, retry, approval, progress, review,
    and revision states in Chromium.
 7. Regenerate the proven-tool identity report so tool readiness claims stay
@@ -61,16 +64,19 @@ that discovery channel; it does not weaken image-identity validation.
 
 ## Current Evidence Record
 
-On 2026-07-14, the canonical command passed all 16 phases, including all 11
-Chromium named-edit scenarios. The full internal-regression command then passed
-all 22 phases in 719,518 ms. Its final signed-in regression uploaded two private
+On 2026-07-14, the canonical command passed all 16 phases in 578,148 ms,
+including all 11 Chromium named-edit scenarios, the 4K estimate ceiling, and
+the bounded professional voice-delivery lifecycle. The earlier full
+internal-regression baseline passed all 22 phases in 719,518 ms. Its final
+signed-in regression uploaded two private
 source videos, verified distinct source-sequence and finalized-media identities,
 synchronized exact Edit Preferences, persisted the canonical planning handoff,
 and correctly kept approval, reservation, snapshot, and execution locked when
 the richer plan was not exactly compilable. The separate canonical two-source
-fixture completed the approved bounded execution lifecycle; these are
-complementary evidence paths, not a claim that the legacy rich-plan scenario
-silently simplified or executed.
+fixture completed the approved bounded execution lifecycle, including two
+source-bound professional voice WAVs and exact ordered replacement in the final
+composition. These are complementary evidence paths, not a claim that the
+legacy rich-plan scenario silently simplified or executed.
 
 ## Readiness Boundary
 

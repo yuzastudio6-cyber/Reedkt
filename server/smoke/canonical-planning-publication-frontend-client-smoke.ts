@@ -5,8 +5,9 @@ import { buildCanonicalPlanningDraft } from '../../src/lib/canonical-planning-dr
 import { createGuidedMockEditPlan } from '../../src/lib/mock-planner/guided'
 import { createMockEditPlan } from '../../src/lib/mock-planner/full'
 import type { ProjectPersistenceScope } from '../../src/lib/project-persistence-scope'
-import type { EditPlan, PlannerInput } from '../../src/types/reeditpro'
+import type { AudioOperationPlan, EditPlan, PlannerInput } from '../../src/types/reeditpro'
 import {
+  validateOfflineFfmpegPlanningPayload,
   validateOfflineFfprobePlanningPayload,
 } from '../tool-execution/media-binary-execution/offline-media-binary-protocol'
 import {
@@ -205,7 +206,7 @@ for (const expectedBlocker of [
   'Music ducking needs its own canonical audio work items.',
   'The planned edit includes operations outside the current source-and-caption private review runner.',
   'The planned color work needs exact canonical processing work items.',
-  'The planned audio work needs exact canonical processing work items.',
+  'The planned audio work exceeds the exact source-bound voice delivery recipe and needs additional canonical work items.',
 ]) assert.ok(realisticRichBlockers.includes(expectedBlocker), `Missing rich-operation blocker: ${expectedBlocker}`)
 assert.match(
   realisticRichBlockers.join(' '),
@@ -368,6 +369,79 @@ assert.deepEqual(multiSourceFinalPayload.captionOverlayCues, [{
 assert.equal(
   multiSourceFinalItem.expectedOutputs[0]?.artifactType,
   'private_source_sequence_caption_track_final_video_export',
+)
+
+const voiceDeliveryPlan = createExactMultiSourceVoiceDeliveryPlan()
+const voiceDeliveryDraft = buildCanonicalPlanningDraft({
+  plan: voiceDeliveryPlan,
+  plannerInput: multiSourceInput,
+  sourceMediaAssets: multiSourceMediaAssets,
+})
+assert.equal(voiceDeliveryDraft.ok, true)
+if (!voiceDeliveryDraft.ok || !voiceDeliveryDraft.draft.publication) {
+  throw new Error('Exact source-bound voice delivery did not compile to a publication candidate.')
+}
+const voiceCanonicalPlan = voiceDeliveryDraft.draft.publication.canonicalPlan
+const voiceItems = voiceCanonicalPlan.workItems.filter((item) =>
+  item.approvedToolIds.length === 1 && item.approvedToolIds[0] === 'ffmpeg')
+assert.deepEqual(
+  voiceItems.map((item) => ({
+    key: item.workItemKey,
+    sourceIds: item.sourceSequenceItemIds,
+    cleanupIds: item.sourceCleanupDecisionIds,
+    outputKey: item.expectedOutputs[0]?.outputKey,
+    contentType: item.expectedOutputs[0]?.contentType,
+  })),
+  [{
+    key: 'voice-delivery-1',
+    sourceIds: ['canonical-save-source-1'],
+    cleanupIds: ['multi-source-cleanup-1'],
+    outputKey: 'voice-delivery-1-wav',
+    contentType: 'audio/wav',
+  }, {
+    key: 'voice-delivery-2',
+    sourceIds: ['canonical-save-source-2'],
+    cleanupIds: ['multi-source-cleanup-2'],
+    outputKey: 'voice-delivery-2-wav',
+    contentType: 'audio/wav',
+  }],
+  'Each approved source must compile to its own exact FFmpeg voice-delivery lineage.',
+)
+voiceItems.forEach((item, index) => {
+  const payload = validateOfflineFfmpegPlanningPayload(
+    asRecord(item.executionInput.structuredPayload),
+  )
+  assert.equal(payload.recipeProfileId, 'approved_voice_delivery_wav_v1')
+  assert.equal(payload.trimStartFrame, 0)
+  assert.equal(payload.trimEndFrameExclusive, 24)
+  assert.equal(payload.frameRate, 24)
+  assert.equal(item.maximumCreditBudget >= 0, true, `Voice item ${index + 1} has no bounded budget.`)
+})
+const voiceFinalItem = voiceCanonicalPlan.workItems.find((item) =>
+  item.workItemKey === 'final-export')!
+assert.deepEqual(voiceFinalItem.dependencyKeys, [
+  'source-trim-validation',
+  'caption-overlay-1',
+  'caption-overlay-2',
+  'voice-delivery-1',
+  'voice-delivery-2',
+])
+const voiceFinalPayload = validateOfflineRemotionFinalCompositionPlanningPayload(
+  asRecord(voiceFinalItem.executionInput.structuredPayload),
+)
+assert.equal(voiceFinalPayload.audioPolicy, 'replace_with_approved_voice_tracks')
+assert.deepEqual(voiceFinalPayload.voiceTracks, [{
+  sourceSequenceItemId: 'canonical-save-source-1',
+  outputKey: 'voice-delivery-1-wav',
+  durationFrames: 24,
+}, {
+  sourceSequenceItemId: 'canonical-save-source-2',
+  outputKey: 'voice-delivery-2-wav',
+  durationFrames: 24,
+}])
+assert.deepEqual(
+  asRecord(voiceCanonicalPlan.components.toolStrategyPlan).toolIds,
+  ['libass', 'ffmpeg', 'remotion', 'ffprobe'],
 )
 
 const badSourceDraft = buildCanonicalPlanningDraft({
@@ -939,6 +1013,91 @@ function createExactMultiSourcePrivateReviewPlan(): EditPlan {
   plan.colorPipelinePlan = undefined
   plan.audioPipelinePlan = undefined
   return plan
+}
+
+function createExactMultiSourceVoiceDeliveryPlan(): EditPlan {
+  const plan = createExactMultiSourcePrivateReviewPlan()
+  const template = createMockEditPlan(multiSourceInput).audioPipelinePlan!
+  const projectOperations = approvedVoiceOperations('voice-project')
+  plan.audioPipelinePlan = {
+    ...template,
+    toolsPlanned: ['ffmpeg'],
+    projectOperations,
+    clipPlans: multiSourceInput.clips.map((clip, index) => {
+      const operations = approvedVoiceOperations(`voice-clip-${index + 1}`)
+      const templateClip = template.clipPlans[index] ?? template.clipPlans[0]!
+      return {
+        ...templateClip,
+        id: `approved-voice-clip-${index + 1}`,
+        clipId: clip.id,
+        clipLabel: clip.fileName,
+        cleanupOperations: operations.filter((operation) =>
+          ['voice_leveling', 'eq_cleanup', 'compression'].includes(operation.operation)),
+        loudnessOperations: operations.filter((operation) =>
+          ['loudness_normalization', 'true_peak_limit'].includes(operation.operation)),
+      }
+    }),
+    musicBedPlan: {
+      ...template.musicBedPlan,
+      policy: 'none',
+      duckingEnabled: false,
+      duckingStrength: 'none',
+      introAllowed: false,
+      outroAllowed: false,
+    },
+    sfxPlan: {
+      ...template.sfxPlan,
+      policy: 'none',
+      intensity: 'none',
+      allowedSfxTypes: [],
+      maxSfxPerMinute: 0,
+      cues: [],
+    },
+    beatSyncPlan: {
+      ...template.beatSyncPlan,
+      strategy: 'none',
+      bpmDetectionPlanned: false,
+      onsetDetectionPlanned: false,
+      cutOnBeat: false,
+      visualRevealOnBeat: false,
+      captionEmphasisOnBeat: false,
+      cues: [],
+    },
+    soundSyncCues: [],
+  }
+  return plan
+}
+
+function approvedVoiceOperations(prefix: string): AudioOperationPlan[] {
+  const operation = (
+    operationId: AudioOperationPlan['operation'],
+    settings: Record<string, unknown>,
+  ): AudioOperationPlan => ({
+    id: `${prefix}-${operationId}`,
+    operation: operationId,
+    label: operationId.replaceAll('_', ' '),
+    toolId: 'ffmpeg',
+    settings: { planningOnly: true, requiresApproval: true, ...settings },
+    reason: `Approved fixed professional voice recipe requires ${operationId}.`,
+    status: 'future_worker',
+    qaChecks: ['Execute only from the approved source-bound snapshot.'],
+    workerNotes: ['Use the fixed confined FFmpeg voice-delivery recipe.'],
+  })
+  return [
+    operation('voice_leveling', {
+      voiceCleanupEnabled: true,
+      voiceLeveling: true,
+      targetVoiceLoudness: -14,
+    }),
+    operation('eq_cleanup', { eqCleanup: true, compression: true }),
+    operation('compression', { compression: true, speechPriority: true }),
+    operation('loudness_normalization', {
+      loudnessTarget: -14,
+      truePeakTarget: -1,
+      normalizationMode: 'voice_first',
+    }),
+    operation('true_peak_limit', { truePeakTarget: -1 }),
+  ]
 }
 
 function frameRange(startSeconds: number, endSeconds: number, startFrame: number, endFrame: number) {

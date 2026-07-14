@@ -44,6 +44,10 @@ import {
   readCanonicalPrivateMediaArtifact,
 } from './canonical-private-media-artifact-storage'
 import {
+  persistCanonicalPrivateAudioArtifact,
+  readCanonicalPrivateAudioArtifact,
+} from './canonical-private-audio-artifact-storage'
+import {
   persistCanonicalStructuredJsonArtifact,
   readCanonicalStructuredJsonArtifact,
 } from './canonical-structured-json-artifact-storage'
@@ -105,10 +109,20 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
       const workItem = authority.workItems.find((candidate) => candidate.id === binding.approvedWorkItemId)
       const expectedAsset = authority.assetManifest.entries.find((candidate) =>
         candidate.id === binding.expectedAssetId && candidate.approvedWorkItemId === workItem?.id)
-      const contentType = toolId === 'ffmpeg' ? 'video/x-nut' as const : 'application/json' as const
+      if (!workItem || !expectedAsset) {
+        throw denied('Media binary work-item or exact non-final output lineage is invalid.')
+      }
+      const ffmpegPlanningPayload = toolId === 'ffmpeg'
+        ? validateOfflineFfmpegPlanningPayload(workItem.executionInput.structuredPayload)
+        : undefined
+      const contentType = toolId === 'ffmpeg'
+        ? ffmpegPlanningPayload?.recipeProfileId === 'approved_voice_delivery_wav_v1'
+          ? 'audio/wav' as const
+          : 'video/x-nut' as const
+        : 'application/json' as const
       const dependencyFinalQa = toolId === 'ffprobe' && workItem?.workItemType === 'run_final_qa'
       if (
-        !workItem || !expectedAsset || expectedAsset.contentType !== contentType ||
+        expectedAsset.contentType !== contentType ||
         expectedAsset.assetRole === 'final' || expectedAsset.previewPlaceholderAllowed ||
         binding.expectedOutput.contentType !== contentType ||
         binding.expectedOutput.outputKey !== expectedAsset.outputKey ||
@@ -126,7 +140,7 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
         ? validateOfflineFfprobePlanningPayload(workItem.executionInput.structuredPayload)
         : undefined
       const planningPayload = toolId === 'ffmpeg'
-        ? validateOfflineFfmpegPlanningPayload(workItem.executionInput.structuredPayload)
+        ? ffmpegPlanningPayload!
         : ffprobePlanningPayload!
       if (
         dependencyFinalQa && (
@@ -236,6 +250,11 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
       })
       if (contentType === 'application/json') {
         await persistCanonicalStructuredJsonArtifact({
+          localStorageRoot: context.env.localStorageRoot, privateObjectIdentityHash,
+          bytes: normalized.bytes, expectedSha256: normalized.sha256,
+        })
+      } else if (contentType === 'audio/wav') {
+        await persistCanonicalPrivateAudioArtifact({
           localStorageRoot: context.env.localStorageRoot, privateObjectIdentityHash,
           bytes: normalized.bytes, expectedSha256: normalized.sha256,
         })
@@ -399,7 +418,7 @@ interface MediaAdapterInput {
 }
 
 interface NormalizedMediaBinaryResult {
-  contentType: 'application/json' | 'video/x-nut'
+  contentType: 'application/json' | 'video/x-nut' | 'audio/wav'
   bytes: Buffer
   sha256: string
   byteLength: number
@@ -516,7 +535,12 @@ async function assertStored(input: MediaAdapterInput) {
         localStorageRoot: input.localStorageRoot,
         privateObjectIdentityHash: input.privateObjectIdentityHash,
       })
-    : await readCanonicalPrivateMediaArtifact({
+    : input.normalized.contentType === 'audio/wav'
+      ? await readCanonicalPrivateAudioArtifact({
+          localStorageRoot: input.localStorageRoot,
+          privateObjectIdentityHash: input.privateObjectIdentityHash,
+        })
+      : await readCanonicalPrivateMediaArtifact({
         localStorageRoot: input.localStorageRoot,
         privateObjectIdentityHash: input.privateObjectIdentityHash,
       })

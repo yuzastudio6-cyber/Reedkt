@@ -83,7 +83,7 @@ const canonicalSteps: VerificationStep[] = [
   step(
     'canonical-multi-source-execution',
     'smoke:canonical-multi-source-final-composition',
-    'Bounded ordered multi-source execution reaches lease, one-use dispatch, private artifacts, QA, reconciliation, and download evidence.',
+    'Bounded ordered multi-source execution reaches exact source-bound voice delivery, lease, one-use dispatch, private artifacts, QA, reconciliation, ordered voice replacement, and download evidence.',
   ),
   step(
     'canonical-named-edit-ui',
@@ -228,6 +228,7 @@ function printReport(
           canonicalBrowserContracts: true,
           canonicalBackendAuthority: true,
           boundedPrivateMultiSourceExecution: true,
+          boundedProfessionalVoiceDelivery: true,
           activeNamedEditJourneyStates: true,
           versionedToolIdentityEvidence: true,
           ...(full ? { signedInTwoSourceUploadAndPersistence: true } : {}),

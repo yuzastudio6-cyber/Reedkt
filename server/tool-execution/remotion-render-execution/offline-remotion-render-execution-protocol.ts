@@ -8,7 +8,9 @@ export const OFFLINE_REMOTION_RENDER_CONTAINER_PROTOCOL =
   'offline-remotion-render-execution-container-v1' as const
 export const OFFLINE_REMOTION_RENDER_OPERATION =
   'tool.remotion.render_approved_composition.v1' as const
-export const OFFLINE_REMOTION_RENDER_MAXIMUM_REQUEST_BYTES = 32 * 1024 * 1024
+export const OFFLINE_REMOTION_RENDER_MAXIMUM_REQUEST_BYTES = 48 * 1024 * 1024
+
+const OFFLINE_REMOTION_MAXIMUM_COMBINED_VOICE_TRACK_BYTES = 2 * 1024 * 1024
 
 const SAFE_TEXT = /^(?!.*(?:https?:\/\/|ftp:\/\/|file:|data:|javascript:|\.\.\/|\.\.\\|(?:^|\s)\/(?:Users|home|etc|tmp|var|opt|app|root|proc|sys|dev)(?:\/|\b)|[A-Za-z]:[\\/]|\$\(|`|&&|\|\||#!))[\P{Cc}]+$/u
 const COLORS = /^#[A-F0-9]{6}$/
@@ -37,7 +39,8 @@ export interface OfflineRemotionSingleSourceFinalCompositionPlanningPayload exte
   sourceEndFrameExclusive: number
   sourceFit: 'contain'
   panelBackground: string
-  audioPolicy: 'preserve_source'
+  audioPolicy: 'preserve_source' | 'replace_with_approved_voice_tracks'
+  voiceTracks?: OfflineRemotionVoiceTrackPlanningPayload[]
   captionOverlayPolicy: 'approved_full_frame_rgba'
 }
 
@@ -47,13 +50,20 @@ export interface OfflineRemotionCaptionOverlayCuePlanningPayload {
   endFrameExclusive: number
 }
 
+export interface OfflineRemotionVoiceTrackPlanningPayload {
+  sourceSequenceItemId: string
+  outputKey: string
+  durationFrames: number
+}
+
 export interface OfflineRemotionSingleSourceCaptionTrackFinalCompositionPlanningPayload extends CommonCompositionPayload {
   compositionProfileId: 'approved_source_caption_track_final_v1'
   sourceStartFrame: number
   sourceEndFrameExclusive: number
   sourceFit: 'contain'
   panelBackground: string
-  audioPolicy: 'preserve_source'
+  audioPolicy: 'preserve_source' | 'replace_with_approved_voice_tracks'
+  voiceTracks?: OfflineRemotionVoiceTrackPlanningPayload[]
   captionOverlayPolicy: 'approved_timed_full_frame_rgba_track'
   captionOverlayCues: OfflineRemotionCaptionOverlayCuePlanningPayload[]
 }
@@ -71,7 +81,8 @@ export interface OfflineRemotionSourceSequenceFinalCompositionPlanningPayload ex
   sourceSegments: OfflineRemotionSourceSequenceSegmentPlanningPayload[]
   sourceFit: 'contain'
   panelBackground: string
-  audioPolicy: 'preserve_source_sequence'
+  audioPolicy: 'preserve_source_sequence' | 'replace_with_approved_voice_tracks'
+  voiceTracks?: OfflineRemotionVoiceTrackPlanningPayload[]
   captionOverlayPolicy: 'approved_full_frame_rgba'
 }
 
@@ -80,7 +91,8 @@ export interface OfflineRemotionSourceSequenceCaptionTrackFinalCompositionPlanni
   sourceSegments: OfflineRemotionSourceSequenceSegmentPlanningPayload[]
   sourceFit: 'contain'
   panelBackground: string
-  audioPolicy: 'preserve_source_sequence'
+  audioPolicy: 'preserve_source_sequence' | 'replace_with_approved_voice_tracks'
+  voiceTracks?: OfflineRemotionVoiceTrackPlanningPayload[]
   captionOverlayPolicy: 'approved_timed_full_frame_rgba_track'
   captionOverlayCues: OfflineRemotionCaptionOverlayCuePlanningPayload[]
 }
@@ -91,7 +103,10 @@ export type OfflineRemotionFinalCompositionPlanningPayload =
   | OfflineRemotionSourceSequenceFinalCompositionPlanningPayload
   | OfflineRemotionSourceSequenceCaptionTrackFinalCompositionPlanningPayload
 
-export interface OfflineRemotionSingleSourceFinalCompositionPayload extends OfflineRemotionSingleSourceFinalCompositionPlanningPayload {
+export interface OfflineRemotionSingleSourceFinalCompositionPayload extends Omit<
+  OfflineRemotionSingleSourceFinalCompositionPlanningPayload,
+  'voiceTracks'
+> {
   sourceMimeType: 'video/mp4'
   sourceByteLength: number
   sourceSha256: string
@@ -100,6 +115,7 @@ export interface OfflineRemotionSingleSourceFinalCompositionPayload extends Offl
   captionOverlayByteLength: number
   captionOverlaySha256: string
   captionOverlayBytesBase64: string
+  voiceTracks?: OfflineRemotionCommittedVoiceTrack[]
 }
 
 export interface OfflineRemotionSourceSequenceCommittedSource {
@@ -110,12 +126,16 @@ export interface OfflineRemotionSourceSequenceCommittedSource {
   sourceBytesBase64: string
 }
 
-export interface OfflineRemotionSourceSequenceFinalCompositionPayload extends OfflineRemotionSourceSequenceFinalCompositionPlanningPayload {
+export interface OfflineRemotionSourceSequenceFinalCompositionPayload extends Omit<
+  OfflineRemotionSourceSequenceFinalCompositionPlanningPayload,
+  'voiceTracks'
+> {
   sources: OfflineRemotionSourceSequenceCommittedSource[]
   captionOverlayMimeType: 'image/png'
   captionOverlayByteLength: number
   captionOverlaySha256: string
   captionOverlayBytesBase64: string
+  voiceTracks?: OfflineRemotionCommittedVoiceTrack[]
 }
 
 export interface OfflineRemotionCommittedCaptionOverlay {
@@ -126,17 +146,35 @@ export interface OfflineRemotionCommittedCaptionOverlay {
   bytesBase64: string
 }
 
-export interface OfflineRemotionSingleSourceCaptionTrackFinalCompositionPayload extends OfflineRemotionSingleSourceCaptionTrackFinalCompositionPlanningPayload {
+export interface OfflineRemotionCommittedVoiceTrack {
+  sourceSequenceItemId: string
+  outputKey: string
+  durationFrames: number
+  mimeType: 'audio/wav'
+  byteLength: number
+  sha256: string
+  bytesBase64: string
+}
+
+export interface OfflineRemotionSingleSourceCaptionTrackFinalCompositionPayload extends Omit<
+  OfflineRemotionSingleSourceCaptionTrackFinalCompositionPlanningPayload,
+  'voiceTracks'
+> {
   sourceMimeType: 'video/mp4'
   sourceByteLength: number
   sourceSha256: string
   sourceBytesBase64: string
   captionOverlays: OfflineRemotionCommittedCaptionOverlay[]
+  voiceTracks?: OfflineRemotionCommittedVoiceTrack[]
 }
 
-export interface OfflineRemotionSourceSequenceCaptionTrackFinalCompositionPayload extends OfflineRemotionSourceSequenceCaptionTrackFinalCompositionPlanningPayload {
+export interface OfflineRemotionSourceSequenceCaptionTrackFinalCompositionPayload extends Omit<
+  OfflineRemotionSourceSequenceCaptionTrackFinalCompositionPlanningPayload,
+  'voiceTracks'
+> {
   sources: OfflineRemotionSourceSequenceCommittedSource[]
   captionOverlays: OfflineRemotionCommittedCaptionOverlay[]
+  voiceTracks?: OfflineRemotionCommittedVoiceTrack[]
 }
 
 export type OfflineRemotionFinalCompositionPayload =
@@ -172,15 +210,21 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
   const profile = record(value, 'final composition planning payload').compositionProfileId
   if (isSourceSequenceCompositionProfile(profile)) {
     const captionTrack = profile === 'approved_source_sequence_caption_track_final_v1'
+    const raw = record(value, 'source-sequence final composition planning payload')
+    const replaceVoice = raw.audioPolicy === 'replace_with_approved_voice_tracks'
     const payload = exactRecord(value, [
       'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
       'sourceSegments', 'sourceFit', 'panelBackground', 'audioPolicy',
       'captionOverlayPolicy', ...(captionTrack ? ['captionOverlayCues'] : []),
+      ...(replaceVoice ? ['voiceTracks'] : []),
     ], 'source-sequence final composition planning payload')
     const common = commonPayload(payload, 24, 240)
     const sourceSegments = sourceSequenceSegments(payload.sourceSegments, common.durationFrames)
     if (
-      payload.sourceFit !== 'contain' || payload.audioPolicy !== 'preserve_source_sequence' ||
+      payload.sourceFit !== 'contain' ||
+      !['preserve_source_sequence', 'replace_with_approved_voice_tracks'].includes(
+        String(payload.audioPolicy),
+      ) ||
       payload.captionOverlayPolicy !== (
         captionTrack ? 'approved_timed_full_frame_rgba_track' : 'approved_full_frame_rgba'
       )
@@ -190,7 +234,18 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
       sourceSegments,
       sourceFit: 'contain',
       panelBackground: color(payload.panelBackground, 'panelBackground'),
-      audioPolicy: 'preserve_source_sequence',
+      audioPolicy: payload.audioPolicy as
+        | 'preserve_source_sequence'
+        | 'replace_with_approved_voice_tracks',
+      ...(replaceVoice ? {
+        voiceTracks: voiceTrackPlanningPayloads(
+          payload.voiceTracks,
+          sourceSegments.map((segment) => ({
+            sourceSequenceItemId: segment.sourceSequenceItemId,
+            durationFrames: segment.timelineEndFrameExclusive - segment.timelineStartFrame,
+          })),
+        ),
+      } : {}),
     } as const
     return captionTrack ? {
       ...commonResult,
@@ -204,11 +259,14 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
     }
   }
   const captionTrack = profile === 'approved_source_caption_track_final_v1'
+  const raw = record(value, 'final composition planning payload')
+  const replaceVoice = raw.audioPolicy === 'replace_with_approved_voice_tracks'
   const payload = exactRecord(value, [
     'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
     'sourceStartFrame', 'sourceEndFrameExclusive', 'sourceFit',
     'panelBackground', 'audioPolicy', 'captionOverlayPolicy',
     ...(captionTrack ? ['captionOverlayCues'] : []),
+    ...(replaceVoice ? ['voiceTracks'] : []),
   ], 'final composition planning payload')
   const common = commonPayload(payload, 24, 240)
   const sourceStartFrame = integer(payload.sourceStartFrame, 0, 100_000_000, 'sourceStartFrame')
@@ -222,7 +280,8 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
     !['approved_source_caption_final_v1', 'approved_source_caption_track_final_v1'].includes(
       String(payload.compositionProfileId),
     ) ||
-    payload.sourceFit !== 'contain' || payload.audioPolicy !== 'preserve_source' ||
+    payload.sourceFit !== 'contain' ||
+    !['preserve_source', 'replace_with_approved_voice_tracks'].includes(String(payload.audioPolicy)) ||
     payload.captionOverlayPolicy !== (
       captionTrack ? 'approved_timed_full_frame_rgba_track' : 'approved_full_frame_rgba'
     ) ||
@@ -234,7 +293,13 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
     sourceEndFrameExclusive,
     sourceFit: 'contain',
     panelBackground: color(payload.panelBackground, 'panelBackground'),
-    audioPolicy: 'preserve_source',
+    audioPolicy: payload.audioPolicy as 'preserve_source' | 'replace_with_approved_voice_tracks',
+    ...(replaceVoice ? {
+      voiceTracks: voiceTrackPlanningPayloads(payload.voiceTracks, [{
+        sourceSequenceItemId: undefined,
+        durationFrames: common.durationFrames,
+      }]),
+    } : {}),
   } as const
   return captionTrack ? {
     ...commonResult,
@@ -264,8 +329,22 @@ export function buildOfflineRemotionFinalCompositionRequest(input: {
     bytes: Buffer
     sha256: string
   }>
+  voiceTracks?: Array<{
+    sourceSequenceItemId: string
+    outputKey: string
+    mimeType: 'audio/wav'
+    bytes: Buffer
+    sha256: string
+  }>
 }): OfflineRemotionRenderRequest {
   const planning = validateOfflineRemotionFinalCompositionPlanningPayload(input.planningPayload)
+  const replaceVoice = planning.audioPolicy === 'replace_with_approved_voice_tracks'
+  const voiceTracks = replaceVoice
+    ? committedVoiceTracks(input.voiceTracks, planning.voiceTracks ?? [], planning.fps)
+    : undefined
+  if (!replaceVoice && input.voiceTracks !== undefined) {
+    throw validationFailure('Preserved-source audio cannot receive replacement voice tracks.')
+  }
   const captionTrack = isCaptionTrackPlanningPayload(planning)
   const overlays = captionTrack
     ? committedCaptionOverlays(input.captionOverlays, planning.captionOverlayCues)
@@ -302,7 +381,7 @@ export function buildOfflineRemotionFinalCompositionRequest(input: {
       return validateOfflineRemotionRenderRequest({
         schemaVersion: OFFLINE_REMOTION_RENDER_REQUEST_PROTOCOL,
         toolId: 'remotion', operationId: OFFLINE_REMOTION_RENDER_OPERATION,
-        payload: { ...planning, sources, captionOverlays: overlays },
+        payload: { ...planning, sources, captionOverlays: overlays, ...(voiceTracks ? { voiceTracks } : {}) },
       })
     }
     return validateOfflineRemotionRenderRequest({
@@ -311,6 +390,7 @@ export function buildOfflineRemotionFinalCompositionRequest(input: {
       payload: {
         ...planning,
         sources,
+        ...(voiceTracks ? { voiceTracks } : {}),
         captionOverlayMimeType: 'image/png',
         captionOverlayByteLength: overlays[0]!.byteLength,
         captionOverlaySha256: overlays[0]!.sha256,
@@ -334,6 +414,7 @@ export function buildOfflineRemotionFinalCompositionRequest(input: {
         sourceMimeType: 'video/mp4', sourceByteLength: source.bytes.byteLength,
         sourceSha256: source.sha256, sourceBytesBase64: source.bytes.toString('base64'),
         captionOverlays: overlays,
+        ...(voiceTracks ? { voiceTracks } : {}),
       },
     })
   }
@@ -348,6 +429,7 @@ export function buildOfflineRemotionFinalCompositionRequest(input: {
       captionOverlayByteLength: overlays[0]!.byteLength,
       captionOverlaySha256: overlays[0]!.sha256,
       captionOverlayBytesBase64: overlays[0]!.bytesBase64,
+      ...(voiceTracks ? { voiceTracks } : {}),
     },
   })
 }
@@ -363,6 +445,7 @@ export function validateOfflineRemotionRenderRequest(value: unknown): OfflineRem
     if (isSourceSequenceCompositionProfile(payloadRecord.compositionProfileId)) {
       const captionTrack = payloadRecord.compositionProfileId ===
         'approved_source_sequence_caption_track_final_v1'
+      const replaceVoice = payloadRecord.audioPolicy === 'replace_with_approved_voice_tracks'
       const payload = exactRecord(payloadRecord, [
         'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
         'sourceSegments', 'sourceFit', 'panelBackground', 'audioPolicy',
@@ -370,6 +453,7 @@ export function validateOfflineRemotionRenderRequest(value: unknown): OfflineRem
         ...(captionTrack
           ? ['captionOverlays']
           : ['captionOverlayMimeType', 'captionOverlayByteLength', 'captionOverlaySha256', 'captionOverlayBytesBase64']),
+        ...(replaceVoice ? ['voiceTracks'] : []),
       ], 'source-sequence final composition payload')
       const planning = validateOfflineRemotionFinalCompositionPlanningPayload({
         compositionProfileId: payload.compositionProfileId, width: payload.width,
@@ -378,6 +462,9 @@ export function validateOfflineRemotionRenderRequest(value: unknown): OfflineRem
         panelBackground: payload.panelBackground, audioPolicy: payload.audioPolicy,
         captionOverlayPolicy: payload.captionOverlayPolicy,
         ...(captionTrack ? { captionOverlayCues: payload.captionOverlayCues } : {}),
+        ...(replaceVoice
+          ? { voiceTracks: voiceTrackPlanningFromCommitments(payload.voiceTracks) }
+          : {}),
       })
       if (!isSourceSequencePlanningPayload(planning)) {
         throw validationFailure('Source-sequence final composition profile changed during validation.')
@@ -410,17 +497,21 @@ export function validateOfflineRemotionRenderRequest(value: unknown): OfflineRem
       if (totalSourceBytes > 20 * 1024 * 1024) {
         throw validationFailure('Source-sequence commitments exceed the combined byte ceiling.')
       }
+      const voiceTracks = replaceVoice
+        ? decodeVoiceTrackRecords(payload.voiceTracks, planning.voiceTracks ?? [], planning.fps)
+        : undefined
       if (isCaptionTrackPlanningPayload(planning)) {
         return boundedRequest({
           schemaVersion: OFFLINE_REMOTION_RENDER_REQUEST_PROTOCOL,
           toolId: 'remotion', operationId: OFFLINE_REMOTION_RENDER_OPERATION,
           payload: {
-            ...planning,
+            ...withoutVoiceTrackPlanning(planning),
             sources,
             captionOverlays: decodeCaptionOverlayRecords(
               payload.captionOverlays,
               planning.captionOverlayCues,
             ),
+            ...(voiceTracks ? { voiceTracks } : {}),
           },
         })
       }
@@ -428,13 +519,15 @@ export function validateOfflineRemotionRenderRequest(value: unknown): OfflineRem
         schemaVersion: OFFLINE_REMOTION_RENDER_REQUEST_PROTOCOL,
         toolId: 'remotion', operationId: OFFLINE_REMOTION_RENDER_OPERATION,
         payload: {
-          ...planning,
+          ...withoutVoiceTrackPlanning(planning),
           sources,
           ...legacyCaptionCommitment(payload, 'Source-sequence'),
+          ...(voiceTracks ? { voiceTracks } : {}),
         },
       })
     }
     const captionTrack = payloadRecord.compositionProfileId === 'approved_source_caption_track_final_v1'
+    const replaceVoice = payloadRecord.audioPolicy === 'replace_with_approved_voice_tracks'
     const payload = exactRecord(payloadRecord, [
       'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
       'sourceStartFrame', 'sourceEndFrameExclusive', 'sourceFit',
@@ -443,6 +536,7 @@ export function validateOfflineRemotionRenderRequest(value: unknown): OfflineRem
       ...(captionTrack
         ? ['captionOverlayCues', 'captionOverlays']
         : ['captionOverlayMimeType', 'captionOverlayByteLength', 'captionOverlaySha256', 'captionOverlayBytesBase64']),
+      ...(replaceVoice ? ['voiceTracks'] : []),
     ], 'final composition payload')
     const planning = validateOfflineRemotionFinalCompositionPlanningPayload({
       compositionProfileId: payload.compositionProfileId, width: payload.width, height: payload.height,
@@ -452,6 +546,9 @@ export function validateOfflineRemotionRenderRequest(value: unknown): OfflineRem
       panelBackground: payload.panelBackground, audioPolicy: payload.audioPolicy,
       captionOverlayPolicy: payload.captionOverlayPolicy,
       ...(captionTrack ? { captionOverlayCues: payload.captionOverlayCues } : {}),
+      ...(replaceVoice
+        ? { voiceTracks: voiceTrackPlanningFromCommitments(payload.voiceTracks) }
+        : {}),
     })
     if (isSourceSequencePlanningPayload(planning)) {
       throw validationFailure('Single-source final composition profile changed during validation.')
@@ -460,18 +557,22 @@ export function validateOfflineRemotionRenderRequest(value: unknown): OfflineRem
     if (source.subarray(4, 8).toString('ascii') !== 'ftyp') {
       throw validationFailure('Final composition source has an invalid signature.')
     }
+    const voiceTracks = replaceVoice
+      ? decodeVoiceTrackRecords(payload.voiceTracks, planning.voiceTracks ?? [], planning.fps)
+      : undefined
     if (isCaptionTrackPlanningPayload(planning)) {
       return boundedRequest({
         schemaVersion: OFFLINE_REMOTION_RENDER_REQUEST_PROTOCOL,
         toolId: 'remotion', operationId: OFFLINE_REMOTION_RENDER_OPERATION,
         payload: {
-          ...planning,
+          ...withoutVoiceTrackPlanning(planning),
           sourceMimeType: 'video/mp4', sourceByteLength: source.byteLength,
           sourceSha256: String(payload.sourceSha256), sourceBytesBase64: source.toString('base64'),
           captionOverlays: decodeCaptionOverlayRecords(
             payload.captionOverlays,
             planning.captionOverlayCues,
           ),
+          ...(voiceTracks ? { voiceTracks } : {}),
         },
       })
     }
@@ -479,10 +580,11 @@ export function validateOfflineRemotionRenderRequest(value: unknown): OfflineRem
       schemaVersion: OFFLINE_REMOTION_RENDER_REQUEST_PROTOCOL,
       toolId: 'remotion', operationId: OFFLINE_REMOTION_RENDER_OPERATION,
       payload: {
-        ...planning,
+        ...withoutVoiceTrackPlanning(planning),
         sourceMimeType: 'video/mp4', sourceByteLength: source.byteLength,
         sourceSha256: String(payload.sourceSha256), sourceBytesBase64: source.toString('base64'),
         ...legacyCaptionCommitment(payload, 'Final composition'),
+        ...(voiceTracks ? { voiceTracks } : {}),
       },
     })
   }
@@ -534,7 +636,7 @@ function commonPayload(value: Record<string, unknown>, minimumFrames: number, ma
   }
 }
 
-function committedBytes<T extends 'video/mp4' | 'image/png'>(
+function committedBytes<T extends 'video/mp4' | 'image/png' | 'audio/wav'>(
   input: { mimeType: T; bytes: Buffer; sha256: string },
   expectedMimeType: T,
   minimumBytes: number,
@@ -611,6 +713,14 @@ function isCaptionTrackPlanningPayload(
   | OfflineRemotionSingleSourceCaptionTrackFinalCompositionPlanningPayload
   | OfflineRemotionSourceSequenceCaptionTrackFinalCompositionPlanningPayload {
   return isCaptionTrackCompositionProfile(value.compositionProfileId)
+}
+
+function withoutVoiceTrackPlanning<T extends OfflineRemotionFinalCompositionPlanningPayload>(
+  value: T,
+): Omit<T, 'voiceTracks'> {
+  const { voiceTracks, ...withoutVoiceTracks } = value
+  void voiceTracks
+  return withoutVoiceTracks
 }
 
 function captionOverlayCues(
@@ -695,6 +805,146 @@ function committedCaptionOverlays(
   return overlays
 }
 
+function committedVoiceTracks(
+  input: Array<{
+    sourceSequenceItemId: string
+    outputKey: string
+    mimeType: 'audio/wav'
+    bytes: Buffer
+    sha256: string
+  }> | undefined,
+  approved: OfflineRemotionVoiceTrackPlanningPayload[],
+  fps: number,
+): OfflineRemotionCommittedVoiceTrack[] {
+  if (!input || input.length !== approved.length || approved.length < 1) {
+    throw validationFailure('Voice-track bytes do not match the approved source-bound track count.')
+  }
+  let totalBytes = 0
+  const tracks = input.map((candidate, index) => {
+    const authority = approved[index]!
+    if (
+      candidate.sourceSequenceItemId !== authority.sourceSequenceItemId ||
+      candidate.outputKey !== authority.outputKey
+    ) throw validationFailure('Voice-track bytes diverge from approved identity or order.')
+    const committed = committedBytes(
+      candidate,
+      'audio/wav',
+      44,
+      OFFLINE_REMOTION_MAXIMUM_COMBINED_VOICE_TRACK_BYTES,
+      `voice track ${index + 1}`,
+    )
+    validatePcmVoiceTrack(committed.bytes, authority.durationFrames, fps)
+    totalBytes += committed.bytes.byteLength
+    return {
+      sourceSequenceItemId: authority.sourceSequenceItemId,
+      outputKey: authority.outputKey,
+      durationFrames: authority.durationFrames,
+      mimeType: 'audio/wav' as const,
+      byteLength: committed.bytes.byteLength,
+      sha256: committed.sha256,
+      bytesBase64: committed.bytes.toString('base64'),
+    }
+  })
+  if (totalBytes > OFFLINE_REMOTION_MAXIMUM_COMBINED_VOICE_TRACK_BYTES) {
+    throw validationFailure('Voice tracks exceed the bounded combined byte ceiling.')
+  }
+  return tracks
+}
+
+function voiceTrackPlanningFromCommitments(
+  value: unknown,
+): OfflineRemotionVoiceTrackPlanningPayload[] {
+  if (!Array.isArray(value)) {
+    throw validationFailure('Voice-track commitments must be an ordered array.')
+  }
+  return value.map((candidate, index) => {
+    const track = record(candidate, `voice-track commitment ${index + 1}`)
+    return {
+      sourceSequenceItemId: String(track.sourceSequenceItemId ?? ''),
+      outputKey: String(track.outputKey ?? ''),
+      durationFrames: Number(track.durationFrames),
+    }
+  })
+}
+
+function decodeVoiceTrackRecords(
+  value: unknown,
+  approved: OfflineRemotionVoiceTrackPlanningPayload[],
+  fps: number,
+): OfflineRemotionCommittedVoiceTrack[] {
+  if (!Array.isArray(value) || value.length !== approved.length || approved.length < 1) {
+    throw validationFailure('Voice-track commitments do not match the approved track count.')
+  }
+  let totalBytes = 0
+  const tracks = value.map((candidate, index) => {
+    const track = exactRecord(
+      candidate,
+      [
+        'sourceSequenceItemId', 'outputKey', 'durationFrames',
+        'mimeType', 'byteLength', 'sha256', 'bytesBase64',
+      ],
+      `voice-track commitment ${index + 1}`,
+    )
+    const authority = approved[index]!
+    if (
+      track.sourceSequenceItemId !== authority.sourceSequenceItemId ||
+      track.outputKey !== authority.outputKey ||
+      track.durationFrames !== authority.durationFrames ||
+      track.mimeType !== 'audio/wav' ||
+      !Number.isSafeInteger(track.byteLength) ||
+      typeof track.sha256 !== 'string' || !SHA256.test(track.sha256) ||
+      typeof track.bytesBase64 !== 'string'
+    ) throw validationFailure('Voice-track commitment identity or content metadata is invalid.')
+    const bytes = Buffer.from(track.bytesBase64, 'base64')
+    if (
+      bytes.byteLength !== track.byteLength || bytes.byteLength < 44 ||
+      bytes.byteLength > OFFLINE_REMOTION_MAXIMUM_COMBINED_VOICE_TRACK_BYTES ||
+      bytes.toString('base64') !== track.bytesBase64 ||
+      createHash('sha256').update(bytes).digest('hex') !== track.sha256
+    ) throw validationFailure('Voice-track bytes do not match their approved content commitment.')
+    validatePcmVoiceTrack(bytes, authority.durationFrames, fps)
+    totalBytes += bytes.byteLength
+    return {
+      sourceSequenceItemId: authority.sourceSequenceItemId,
+      outputKey: authority.outputKey,
+      durationFrames: authority.durationFrames,
+      mimeType: 'audio/wav' as const,
+      byteLength: bytes.byteLength,
+      sha256: String(track.sha256),
+      bytesBase64: bytes.toString('base64'),
+    }
+  })
+  if (totalBytes > OFFLINE_REMOTION_MAXIMUM_COMBINED_VOICE_TRACK_BYTES) {
+    throw validationFailure('Voice-track commitments exceed the bounded combined byte ceiling.')
+  }
+  return tracks
+}
+
+function validatePcmVoiceTrack(bytes: Buffer, durationFrames: number, fps: number): void {
+  if (
+    bytes.byteLength < 44 || bytes.subarray(0, 4).toString('ascii') !== 'RIFF' ||
+    bytes.subarray(8, 12).toString('ascii') !== 'WAVE'
+  ) throw validationFailure('Approved voice track is not a RIFF/WAVE artifact.')
+  const formatOffset = bytes.indexOf(Buffer.from('fmt '))
+  const dataOffset = bytes.indexOf(Buffer.from('data'))
+  if (
+    formatOffset < 12 || dataOffset <= formatOffset || formatOffset + 24 > bytes.byteLength ||
+    dataOffset + 8 > bytes.byteLength || bytes.readUInt16LE(formatOffset + 8) !== 1
+  ) throw validationFailure('Approved voice track is not linear PCM WAV.')
+  const channels = bytes.readUInt16LE(formatOffset + 10)
+  const sampleRate = bytes.readUInt32LE(formatOffset + 12)
+  const blockAlign = bytes.readUInt16LE(formatOffset + 20)
+  const bitsPerSample = bytes.readUInt16LE(formatOffset + 22)
+  const dataByteLength = bytes.byteLength - (dataOffset + 8)
+  const expectedSampleFrames = durationFrames * (48_000 / fps)
+  const actualSampleFrames = dataByteLength / blockAlign
+  if (
+    channels !== 2 || sampleRate !== 48_000 || bitsPerSample !== 16 || blockAlign !== 4 ||
+    dataByteLength <= 0 || dataByteLength % blockAlign !== 0 ||
+    !Number.isInteger(expectedSampleFrames) || Math.abs(actualSampleFrames - expectedSampleFrames) > 2
+  ) throw validationFailure('Approved voice track does not match the fixed 48 kHz stereo frame duration.')
+}
+
 function decodeCaptionOverlayRecords(
   value: unknown,
   cues: OfflineRemotionCaptionOverlayCuePlanningPayload[],
@@ -769,6 +1019,40 @@ function legacyCaptionCommitment(
     captionOverlaySha256: String(payload.captionOverlaySha256),
     captionOverlayBytesBase64: overlay.toString('base64'),
   }
+}
+
+function voiceTrackPlanningPayloads(
+  value: unknown,
+  expected: Array<{ sourceSequenceItemId?: string; durationFrames: number }>,
+): OfflineRemotionVoiceTrackPlanningPayload[] {
+  if (!Array.isArray(value) || value.length !== expected.length || value.length < 1 || value.length > 8) {
+    throw validationFailure('Approved voice tracks must match the exact source count.')
+  }
+  const outputKeys = new Set<string>()
+  const sourceIds = new Set<string>()
+  return value.map((candidate, index) => {
+    const track = exactRecord(
+      candidate,
+      ['sourceSequenceItemId', 'outputKey', 'durationFrames'],
+      `approved voice track ${index + 1}`,
+    )
+    const sourceSequenceItemId = safeIdentity(
+      track.sourceSequenceItemId,
+      'voice track sourceSequenceItemId',
+    )
+    const outputKey = safeIdentity(track.outputKey, 'voice track outputKey')
+    const durationFrames = integer(track.durationFrames, 1, 240, 'voice track durationFrames')
+    const expectedTrack = expected[index]!
+    if (
+      outputKeys.has(outputKey) || sourceIds.has(sourceSequenceItemId) ||
+      (expectedTrack.sourceSequenceItemId !== undefined &&
+        sourceSequenceItemId !== expectedTrack.sourceSequenceItemId) ||
+      durationFrames !== expectedTrack.durationFrames
+    ) throw validationFailure('Approved voice-track identity, order, or duration is invalid.')
+    outputKeys.add(outputKey)
+    sourceIds.add(sourceSequenceItemId)
+    return { sourceSequenceItemId, outputKey, durationFrames }
+  })
 }
 
 function sourceSequenceSegments(value: unknown, durationFrames: number): OfflineRemotionSourceSequenceSegmentPlanningPayload[] {

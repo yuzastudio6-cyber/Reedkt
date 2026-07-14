@@ -1,6 +1,8 @@
 abuffer
 abuffersink
+acompressor
 aformat
+alimiter
 anull
 aresample
 asetpts
@@ -20,6 +22,7 @@ ebur128
 format
 fps
 freezedetect
+highpass
 hflip
 idet
 loudnorm

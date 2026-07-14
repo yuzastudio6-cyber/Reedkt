@@ -1,6 +1,7 @@
 import React from 'react'
 import {
   AbsoluteFill,
+  Audio,
   Img,
   interpolate,
   OffthreadVideo,
@@ -29,7 +30,10 @@ export interface ApprovedCompositionProps {
   sourceStartFrame?: number
   sourceEndFrameExclusive?: number
   sourceFit?: 'contain'
-  audioPolicy?: 'preserve_source' | 'preserve_source_sequence'
+  audioPolicy?:
+    | 'preserve_source'
+    | 'preserve_source_sequence'
+    | 'replace_with_approved_voice_tracks'
   captionOverlayPolicy?: 'approved_full_frame_rgba' | 'approved_timed_full_frame_rgba_track'
   sourceMimeType?: 'video/mp4'
   sourceByteLength?: number
@@ -61,6 +65,11 @@ export interface ApprovedCompositionProps {
     sourceSequenceItemId: string
     sourceInternalUrl: string
   }>
+  voiceTrackInternalUrls?: Array<{
+    sourceSequenceItemId: string
+    outputKey: string
+    voiceTrackInternalUrl: string
+  }>
 }
 
 export const defaultApprovedCompositionProps: ApprovedCompositionProps = {
@@ -82,14 +91,15 @@ export const ApprovedComposition: React.FC<ApprovedCompositionProps> = (props) =
   if (
     ['approved_source_caption_final_v1', 'approved_source_caption_track_final_v1']
       .includes(props.compositionProfileId ?? '') &&
-    props.sourceInternalUrl && hasApprovedCaptionInput(props)
+    props.sourceInternalUrl && hasApprovedCaptionInput(props) && hasApprovedAudioInput(props, 1)
   ) {
     return <ApprovedSourceCaptionComposition {...props} />
   }
   if (
     ['approved_source_sequence_caption_final_v1', 'approved_source_sequence_caption_track_final_v1']
       .includes(props.compositionProfileId ?? '') &&
-    props.sourceSegments && props.sourceInternalUrls && hasApprovedCaptionInput(props)
+    props.sourceSegments && props.sourceInternalUrls && hasApprovedCaptionInput(props) &&
+    hasApprovedAudioInput(props, props.sourceSegments.length)
   ) {
     return <ApprovedSourceSequenceCaptionComposition {...props} />
   }
@@ -164,23 +174,34 @@ export const ApprovedComposition: React.FC<ApprovedCompositionProps> = (props) =
   )
 }
 
-const ApprovedSourceCaptionComposition: React.FC<ApprovedCompositionProps> = (props) => (
-  <AbsoluteFill style={{ backgroundColor: props.panelBackground, overflow: 'hidden' }}>
-    <OffthreadVideo
-      src={props.sourceInternalUrl!}
-      startFrom={props.sourceStartFrame!}
-      endAt={props.sourceEndFrameExclusive!}
-      style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-      volume={1}
-    />
-    <ApprovedCaptionOverlays {...props} />
-  </AbsoluteFill>
-)
+const ApprovedSourceCaptionComposition: React.FC<ApprovedCompositionProps> = (props) => {
+  const replaceVoice = props.audioPolicy === 'replace_with_approved_voice_tracks'
+  return (
+    <AbsoluteFill style={{ backgroundColor: props.panelBackground, overflow: 'hidden' }}>
+      <OffthreadVideo
+        src={props.sourceInternalUrl!}
+        startFrom={props.sourceStartFrame!}
+        endAt={props.sourceEndFrameExclusive!}
+        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+        volume={replaceVoice ? 0 : 1}
+      />
+      {replaceVoice && <Audio src={props.voiceTrackInternalUrls![0]!.voiceTrackInternalUrl} />}
+      <ApprovedCaptionOverlays {...props} />
+    </AbsoluteFill>
+  )
+}
 
 const ApprovedSourceSequenceCaptionComposition: React.FC<ApprovedCompositionProps> = (props) => {
   const sourceUrlById = new Map(
     props.sourceInternalUrls!.map((source) => [source.sourceSequenceItemId, source.sourceInternalUrl]),
   )
+  const voiceUrlBySourceId = new Map(
+    (props.voiceTrackInternalUrls ?? []).map((track) => [
+      track.sourceSequenceItemId,
+      track.voiceTrackInternalUrl,
+    ]),
+  )
+  const replaceVoice = props.audioPolicy === 'replace_with_approved_voice_tracks'
   return (
     <AbsoluteFill style={{ backgroundColor: props.panelBackground, overflow: 'hidden' }}>
       {props.sourceSegments!.map((segment) => (
@@ -195,8 +216,9 @@ const ApprovedSourceSequenceCaptionComposition: React.FC<ApprovedCompositionProp
             startFrom={segment.sourceStartFrame}
             endAt={segment.sourceEndFrameExclusive}
             style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-            volume={1}
+            volume={replaceVoice ? 0 : 1}
           />
+          {replaceVoice && <Audio src={voiceUrlBySourceId.get(segment.sourceSequenceItemId)!} />}
         </Sequence>
       ))}
       <ApprovedCaptionOverlays {...props} />
@@ -244,4 +266,18 @@ function hasApprovedCaptionInput(props: ApprovedCompositionProps): boolean {
   ) return false
   const urls = new Set(props.captionOverlayInternalUrls.map((overlay) => overlay.outputKey))
   return props.captionOverlayCues.every((cue) => urls.has(cue.outputKey))
+}
+
+function hasApprovedAudioInput(props: ApprovedCompositionProps, sourceCount: number): boolean {
+  if (props.audioPolicy !== 'replace_with_approved_voice_tracks') {
+    return props.voiceTrackInternalUrls === undefined
+  }
+  if (!props.voiceTrackInternalUrls || props.voiceTrackInternalUrls.length !== sourceCount) {
+    return false
+  }
+  const sourceIds = new Set(props.voiceTrackInternalUrls.map((track) => track.sourceSequenceItemId))
+  const outputKeys = new Set(props.voiceTrackInternalUrls.map((track) => track.outputKey))
+  if (sourceIds.size !== sourceCount || outputKeys.size !== sourceCount) return false
+  if (!props.sourceSegments) return sourceCount === 1
+  return props.sourceSegments.every((segment) => sourceIds.has(segment.sourceSequenceItemId))
 }

@@ -67,7 +67,7 @@ export interface OfflineFfprobeExecutionResult {
 
 export interface OfflineFfmpegExecutionResult {
   resultArtifact: {
-    mimeType: 'video/x-nut'
+    mimeType: 'video/x-nut' | 'audio/wav'
     bytes: Buffer
     sha256: string
     byteLength: number

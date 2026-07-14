@@ -102,6 +102,8 @@
 --enable-bsf=h264_mp4toannexb
 --enable-bsf=hevc_mp4toannexb
 --enable-filter=aformat
+--enable-filter=acompressor
+--enable-filter=alimiter
 --enable-filter=aresample
 --enable-filter=asetpts
 --enable-filter=ashowinfo
@@ -118,6 +120,7 @@
 --enable-filter=format
 --enable-filter=fps
 --enable-filter=freezedetect
+--enable-filter=highpass
 --enable-filter=idet
 --enable-filter=loudnorm
 --enable-filter=lut3d

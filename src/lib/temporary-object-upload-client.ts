@@ -4,6 +4,7 @@ import {
   assertValidResumableChunkSize,
   type TemporaryUploadProtocol,
 } from '../types/large-media'
+import { resolveReceiverSafeFetch } from './receiver-safe-fetch'
 
 export interface TemporaryObjectUploadTarget {
   uploadMethod: 'PUT' | 'POST'
@@ -64,7 +65,7 @@ export async function uploadFileToTemporaryObjectTarget(
 async function uploadSingleRequest(
   input: UploadFileToTemporaryObjectTargetInput,
 ): Promise<TemporaryObjectUploadResult> {
-  const fetchImpl = input.fetchImpl ?? fetch
+  const fetchImpl = resolveReceiverSafeFetch(input.fetchImpl)
   emitProgress(input, 0, 'uploading')
   const response = await fetchImpl(resolveTargetUrl(input.apiBaseUrl, input.target.uploadUrl), {
     method: input.target.uploadMethod,
@@ -92,7 +93,7 @@ async function uploadResumable(
     throw new Error('The temporary upload target did not confirm resumable offset recovery.')
   }
 
-  const fetchImpl = input.fetchImpl ?? fetch
+  const fetchImpl = resolveReceiverSafeFetch(input.fetchImpl)
   const chunkSizeBytes = input.target.recommendedChunkSizeBytes ?? REEDITPRO_RESUMABLE_UPLOAD_CHUNK_BYTES
   assertValidResumableChunkSize(chunkSizeBytes)
   const maxRetries = input.maxRetries ?? REEDITPRO_RESUMABLE_UPLOAD_MAX_RETRIES

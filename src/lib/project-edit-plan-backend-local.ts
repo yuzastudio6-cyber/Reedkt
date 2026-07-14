@@ -7,6 +7,7 @@ import {
 } from './project-edit-plan-approval'
 import type { ProjectEditBriefBackendLocalRecord } from './project-edit-brief-backend-local'
 import type { ProjectSourceVideoBackendUploadResult } from '../types/project-source-video'
+import { resolveReceiverSafeFetch } from './receiver-safe-fetch'
 
 interface ApiEnvelope<TData> {
   ok?: boolean
@@ -102,7 +103,7 @@ export async function approveProjectEditPlanBackendLocal(
     }
   }
 
-  const fetchImpl = input.fetchImpl ?? fetch
+  const fetchImpl = resolveReceiverSafeFetch(input.fetchImpl)
   const accessToken = await (input.getAccessToken ?? getSupabaseAccessToken)()
   const commonHeaders = {
     'Content-Type': 'application/json',
@@ -195,7 +196,7 @@ export async function approveProjectEditPlanBackendLocal(
 export async function readProjectEditPlanBackendLocal(
   input: ReadProjectEditPlanBackendLocalInput,
 ): Promise<ProjectEditPlanBackendApprovalResult> {
-  const fetchImpl = input.fetchImpl ?? fetch
+  const fetchImpl = resolveReceiverSafeFetch(input.fetchImpl)
   const accessToken = await (input.getAccessToken ?? getSupabaseAccessToken)()
   const readbackEnvelope = await parseEnvelope<LocalEditPlanData>(await fetchImpl(joinUrl(
     input.apiBaseUrl,

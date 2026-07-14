@@ -10,12 +10,12 @@ import { sha256AuthorityValue, stableAuthorityStringify } from '../../services/p
 import { OFFLINE_REMOTION_RENDER_MAXIMUM_REQUEST_BYTES } from './offline-remotion-render-execution-protocol'
 import type { OfflineRemotionConfinementEvidence, OfflineRemotionImageEvidence } from './offline-remotion-render-execution-types'
 
-export const OFFLINE_REMOTION_IMAGE_TAG = 'reeditpro-offline-remotion-render-execution:private-local-v1' as const
+export const OFFLINE_REMOTION_IMAGE_TAG = 'reeditpro-offline-remotion-render-execution:canonical-private-local-v1' as const
 const BASE_DIGEST = 'sha256:53ada149d435c38b14476cb57e4a7da73c15595aba79bd6971b547ceb6d018bf' as const
 const PINNED_BASE = `node:22-bookworm-slim@${BASE_DIGEST}` as const
 const ENTRYPOINT = ['node', '/app/runner.mjs'] as const
 const SOURCE_FILES = ['Dockerfile', 'package.json', 'package-lock.json', 'entry.tsx', 'composition.tsx', 'build-bundle.mjs', 'ensure-browser.mjs', 'runner.mjs'] as const
-const BUILD_CONTEXT = '/tmp/reeditpro-offline-remotion-build-context-v1'
+const BUILD_CONTEXT = '/tmp/reeditpro-canonical-private-offline-remotion-build-context-v1'
 const TIMEOUT_MS = 120_000
 
 interface HostResult { exitCode: number; stdout: string; stderr: string }

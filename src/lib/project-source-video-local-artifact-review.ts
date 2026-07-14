@@ -1,4 +1,5 @@
 import { getSupabaseClient } from '../backend/supabase/supabase-client'
+import { resolveReceiverSafeFetch } from './receiver-safe-fetch'
 
 export interface ProjectSourceVideoLocalArtifactReviewInput {
   apiBaseUrl: string
@@ -47,7 +48,7 @@ function createHeaders(input: Record<string, string | undefined>): Headers {
 export async function loadProjectSourceVideoLocalArtifactForReview(
   input: ProjectSourceVideoLocalArtifactReviewInput,
 ): Promise<ProjectSourceVideoLocalArtifactReviewObject> {
-  const fetchImpl = input.fetchImpl ?? fetch
+  const fetchImpl = resolveReceiverSafeFetch(input.fetchImpl)
   const accessToken = await (input.getAccessToken ?? getSupabaseAccessToken)()
   const response = await fetchImpl(joinUrl(
     input.apiBaseUrl,

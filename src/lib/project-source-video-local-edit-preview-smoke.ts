@@ -10,6 +10,7 @@ import type {
   ProjectSourceVideoLocalEditPreviewConfig,
   ProjectSourceVideoLocalEditPreviewResult,
 } from '../types/project-source-video'
+import { resolveReceiverSafeFetch } from './receiver-safe-fetch'
 
 interface ApiEnvelope<TData> {
   ok?: boolean
@@ -252,7 +253,7 @@ async function clientHash(value: unknown): Promise<string> {
 export async function runProjectSourceVideoLocalEditPreviewSmoke(
   input: RunProjectSourceVideoLocalEditPreviewSmokeInput,
 ): Promise<ProjectSourceVideoLocalEditPreviewResult> {
-  const fetchImpl = input.fetchImpl ?? fetch
+  const fetchImpl = resolveReceiverSafeFetch(input.fetchImpl)
   const accessToken = await (input.getAccessToken ?? getSupabaseAccessToken)()
   if (!input.approvedLocalPlan.approved) {
     throw new Error('Local edit preview requires the visible local edit plan and credit estimate to be approved first.')

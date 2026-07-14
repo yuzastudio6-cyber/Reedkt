@@ -6,6 +6,7 @@ import type {
 import { uploadFileToTemporaryObjectTarget } from './temporary-object-upload-client'
 import { finalizeUploadedSource } from './large-media-finalization-client'
 import type { TemporaryUploadProtocol } from '../types/large-media'
+import { resolveReceiverSafeFetch } from './receiver-safe-fetch'
 
 interface UploadEnvelope<TData> {
   ok?: boolean
@@ -162,7 +163,7 @@ function assertOk<TData>(envelope: UploadEnvelope<TData>, fallback: string): TDa
 export async function uploadProjectSourceVideoToBackend(
   input: ProjectSourceVideoBackendUploadInput,
 ): Promise<ProjectSourceVideoBackendUploadResult> {
-  const fetchImpl = input.fetchImpl ?? fetch
+  const fetchImpl = resolveReceiverSafeFetch(input.fetchImpl)
   const accessToken = await (input.getAccessToken ?? getSupabaseAccessToken)()
   const createIdempotencyKeyValue = createIdempotencyKey('source-video-upload-intent')
   const finalizeIdempotencyKeyValue = createIdempotencyKey('source-video-upload-finalize')

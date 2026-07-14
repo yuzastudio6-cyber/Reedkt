@@ -8,7 +8,7 @@ import { OFFLINE_REMOTION_RENDER_CONTAINER_PROTOCOL, OFFLINE_REMOTION_RENDER_OPE
 import type { OfflineRemotionImageEvidence, OfflineRemotionRenderResult, OfflineRemotionRuntimeAuthority } from './offline-remotion-render-execution-types'
 
 export const OFFLINE_REMOTION_RENDER_EXECUTION_STORAGE_ROOT =
-  '/tmp/reeditpro-offline-remotion-render-execution' as const
+  '/tmp/reeditpro-canonical-private-offline-remotion-render-execution' as const
 export const OFFLINE_REMOTION_RENDER_RUNTIME_AUTHORITY_RELATIVE_PATH =
   'runtime-authority/offline-remotion-render-runtime-v1.json' as const
 const STORAGE_ROOT = OFFLINE_REMOTION_RENDER_EXECUTION_STORAGE_ROOT

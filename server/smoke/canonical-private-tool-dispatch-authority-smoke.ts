@@ -73,6 +73,7 @@ import {
   activatePrivateOfflineRemotionRenderRuntime,
   OFFLINE_REMOTION_RENDER_EXECUTION_STORAGE_ROOT,
   OFFLINE_REMOTION_RENDER_RUNTIME_AUTHORITY_RELATIVE_PATH,
+  prepareOfflineRemotionDockerRuntime,
 } from '../tool-execution/remotion-render-execution'
 import { activatePrivateOfflineLibassCaptionRuntime } from '../tool-execution/libass-caption-execution'
 import { activatePrivateOfflineBrowserGraphicsRuntime, prepareOfflineBrowserGraphicsDockerRuntime } from '../tool-execution/browser-graphics-execution'
@@ -2303,6 +2304,7 @@ for (const matrixRun of matrixRuns.slice(1)) {
 }
 
 await activatePrivateOfflineMediaBinaryRuntime()
+await prepareOfflineRemotionDockerRuntime()
 const remotionRuntime = await activatePrivateOfflineRemotionRenderRuntime()
 const remotionClaim = (await leaseService.claim({
   workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
@@ -4440,6 +4442,14 @@ function createDispatchPlanBody(input: {
             label: 'Controlled libass private timed caption track authorization',
             category: 'controlled_tool', estimatedCredits: 3, removable: false,
             metadata: { canonicalToolId: 'libass', operationId: input.libassOperationId },
+          },
+          {
+            lineKey: '4k-export-ceiling',
+            label: '4K UHD render and export ceiling',
+            category: 'render',
+            estimatedCredits: components.confirmedSettings.professionalExportCoverage.maximumInternalToolCostCredits,
+            removable: false,
+            metadata: { requiresSeparateExportEstimate: false, allowsAdditionalExportCharge: false },
           },
         ],
         fallbackAllowanceCredits: 5,

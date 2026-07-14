@@ -1,4 +1,5 @@
 import { getSupabaseClient } from '../backend/supabase/supabase-client'
+import { resolveReceiverSafeFetch } from './receiver-safe-fetch'
 
 interface ApiEnvelope<TData> {
   ok?: boolean
@@ -154,7 +155,7 @@ export async function saveProjectEditBriefBackendLocal(
   warnings: string[]
 }> {
   const briefText = assertSafeBriefText(input.briefText)
-  const fetchImpl = input.fetchImpl ?? fetch
+  const fetchImpl = resolveReceiverSafeFetch(input.fetchImpl)
   const accessToken = await (input.getAccessToken ?? getSupabaseAccessToken)()
   const commonHeaders = {
     'Content-Type': 'application/json',
@@ -221,7 +222,7 @@ export async function readProjectEditBriefBackendLocal(input: {
   fetchImpl?: typeof fetch
   getAccessToken?: () => Promise<string | undefined>
 }): Promise<{ editBrief: ProjectEditBriefBackendLocalRecord; warnings: string[] }> {
-  const fetchImpl = input.fetchImpl ?? fetch
+  const fetchImpl = resolveReceiverSafeFetch(input.fetchImpl)
   const accessToken = await (input.getAccessToken ?? getSupabaseAccessToken)()
   const envelope = await parseEnvelope<ProjectEditBriefBackendLocalData>(await fetchImpl(joinUrl(
     input.apiBaseUrl,

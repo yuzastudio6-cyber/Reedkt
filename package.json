@@ -216,9 +216,10 @@
     "qa:expanded": "PLAYWRIGHT_PORT=5195 PLAYWRIGHT_REUSE_SERVER=false playwright test tests/e2e/editor-expanded-flows.spec.ts",
     "qa:editor-keyboard": "PLAYWRIGHT_PORT=5196 PLAYWRIGHT_REUSE_SERVER=false playwright test tests/e2e/editor-keyboard.spec.ts",
     "qa:canonical-journey-ui": "playwright test --config=playwright.canonical-journey.config.ts",
+    "qa:canonical-private-pipeline": "tsx server/cli/canonical-private-pipeline-verification.ts",
     "qa:screenshots": "playwright test tests/e2e/screenshots.spec.ts",
     "qa:zoom": "playwright test tests/e2e/zoom.spec.ts",
-    "qa:internal-pipeline": "npm run smoke:auth-runtime-boundary && npm run smoke:project-persistence-tenancy && npm run smoke:project-state-tenancy && npm run smoke:approved-tool-work-manifest && npm run smoke:private-playwright-capture && npm run smoke:private-internal-edit-upload-e2e && npm run smoke:editor-full-stack-private-review"
+    "qa:internal-pipeline": "tsx server/cli/canonical-private-pipeline-verification.ts --full"
   },
   "dependencies": {
     "@babylonjs/core": "^9.15.0",

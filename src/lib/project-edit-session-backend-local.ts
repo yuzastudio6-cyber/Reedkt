@@ -13,6 +13,7 @@ import {
   type NewEditSessionFormState,
   type NewEditSessionSourceNote,
 } from './project-edit-session-create-flow-ui-adapter'
+import { resolveReceiverSafeFetch } from './receiver-safe-fetch'
 
 interface ApiEnvelope<TData> {
   ok?: boolean
@@ -182,7 +183,7 @@ export async function createProjectEditSessionBackendLocalFromNewEditForm(
     }
   }
 
-  const fetchImpl = input.fetchImpl ?? fetch
+  const fetchImpl = resolveReceiverSafeFetch(input.fetchImpl)
   const accessToken = await (input.getAccessToken ?? getSupabaseAccessToken)()
   const preferenceHandle = getNewEditSessionPreferenceHandle(input.form.preferenceChoiceId)
   const confirmedFrame = getConfirmedNewEditFrame(input.form)
@@ -274,7 +275,7 @@ export async function readProjectEditSessionBackendLocal(input: {
   fetchImpl?: typeof fetch
   getAccessToken?: () => Promise<string | undefined>
 }): Promise<{ editSession: ProjectEditSessionBackendLocalRecord; warnings: string[] }> {
-  const fetchImpl = input.fetchImpl ?? fetch
+  const fetchImpl = resolveReceiverSafeFetch(input.fetchImpl)
   const accessToken = await (input.getAccessToken ?? getSupabaseAccessToken)()
   const envelope = await parseEnvelope<ProjectEditSessionData>(await fetchImpl(joinUrl(
     input.apiBaseUrl,
@@ -299,7 +300,7 @@ export async function listProjectEditSessionsBackendLocal(input: {
   fetchImpl?: typeof fetch
   getAccessToken?: () => Promise<string | undefined>
 }): Promise<{ editSessions: ProjectEditSessionBackendLocalRecord[]; warnings: string[] }> {
-  const fetchImpl = input.fetchImpl ?? fetch
+  const fetchImpl = resolveReceiverSafeFetch(input.fetchImpl)
   const accessToken = await (input.getAccessToken ?? getSupabaseAccessToken)()
   const envelope = await parseEnvelope<ProjectEditSessionListData>(await fetchImpl(joinUrl(
     input.apiBaseUrl,
@@ -332,7 +333,7 @@ export async function recordProjectEditSessionLifecycleCheckpointBackendLocal(in
   fetchImpl?: typeof fetch
   getAccessToken?: () => Promise<string | undefined>
 }): Promise<{ editSession: ProjectEditSessionBackendLocalRecord; warnings: string[] }> {
-  const fetchImpl = input.fetchImpl ?? fetch
+  const fetchImpl = resolveReceiverSafeFetch(input.fetchImpl)
   const accessToken = await (input.getAccessToken ?? getSupabaseAccessToken)()
   const envelope = await parseEnvelope<ProjectEditSessionLifecycleCheckpointData>(await fetchImpl(joinUrl(
     input.apiBaseUrl,

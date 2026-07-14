@@ -1,4 +1,5 @@
 import type { TemporaryUploadProtocol } from '../types/large-media'
+import { resolveReceiverSafeFetch } from './receiver-safe-fetch'
 
 type FinalizationStatus = 'queued' | 'running' | 'completed' | 'failed_retryable' | 'failed_terminal'
 
@@ -70,7 +71,7 @@ export async function finalizeUploadedSource<TFinalizedData>(
   input: FinalizeUploadedSourceInput,
 ): Promise<FinalizeUploadedSourceResult<TFinalizedData>> {
   assertInput(input)
-  const fetchImpl = input.fetchImpl ?? fetch
+  const fetchImpl = resolveReceiverSafeFetch(input.fetchImpl)
   const warnings: string[] = []
   const usesBackgroundFinalization = input.uploadProtocol === 'gcs_resumable'
 

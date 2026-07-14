@@ -618,11 +618,19 @@ try {
   assert.equal(requests.every((request) => request.authorization === 'Bearer canonical-save-smoke-token'), true)
   assert.match(requests[5]?.url ?? '', /canonical-planning-handoffs\/canonical-save-handoff\/plan-presentations$/)
   const exactHandoffBody = requests[4]?.body as {
-    canonicalPlanComponents?: { confirmedSettings?: { preferenceSnapshotId?: string; preferenceRevision?: number } }
+    canonicalPlanComponents?: {
+      confirmedSettings?: {
+        preferenceSnapshotId?: string
+        preferenceRevision?: number
+        professionalExportCoverage?: unknown
+      }
+    }
   }
   assert.deepEqual(exactHandoffBody.canonicalPlanComponents?.confirmedSettings, {
     aspectRatio: '16:9',
     outputFrame: { width: 720, height: 405, fps: 24 },
+    outputFramePurpose: 'private_canonical_review',
+    professionalExportCoverage: exactPlan.creditEstimate.professionalExportCoverage,
     outputFrameConfirmed: true,
     sourceOrderConfirmed: true,
     sourceCleanupConfirmed: true,
@@ -630,7 +638,12 @@ try {
     targetPlatform: 'youtube',
     preferenceSnapshotId: 'server-authority-preference-snapshot',
     preferenceRevision: 3,
-  }, 'Canonical components must use the exact server-owned baseline and preference revision.')
+  }, 'Canonical components must use the exact server-owned baseline, preference revision, and approved 4K delivery ceiling.')
+  assert.deepEqual(
+    exactHandoffBody.canonicalPlanComponents?.confirmedSettings?.professionalExportCoverage,
+    exactPlan.creditEstimate.professionalExportCoverage,
+    'The frontend-safe handoff must forward the exact immutable 4K estimate coverage object without rewriting it.',
+  )
   assert.equal(requests.some((request) => request.url?.endsWith('/publish')), false, 'The browser must never call the internal publication route.')
   assert.equal(requests.some((request) => Boolean(request.internalToken)), false)
 

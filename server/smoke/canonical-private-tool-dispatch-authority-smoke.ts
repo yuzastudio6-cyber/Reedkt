@@ -29,8 +29,10 @@ import {
 } from '../services/canonical-private-job-completion-recovery-service'
 import { createCanonicalPrivateJobExecutionAdapterService } from '../services/canonical-private-job-execution-adapter-service'
 import { createCanonicalPrivateReviewAssemblyService } from '../services/canonical-private-review-assembly-service'
+import { createCanonicalPrivateReviewDecisionCoordinatorService } from '../services/canonical-private-review-decision-coordinator-service'
 import { createCanonicalPrivateReviewDecisionService } from '../services/canonical-private-review-decision-service'
 import { createCanonicalPrivateReviewHistoryService } from '../services/canonical-private-review-history-service'
+import { createCanonicalPrivateReviewMediaService } from '../services/canonical-private-review-media-service'
 import { createCanonicalPrivateStructuredToolExecutionService } from '../services/canonical-private-structured-tool-execution-service'
 import { createCanonicalPlanningHandoffService } from '../services/canonical-planning-handoff-service'
 import { createCanonicalPrivateWorkGraphOrchestratorService } from '../services/canonical-private-work-graph-orchestrator-service'
@@ -2865,6 +2867,46 @@ assert.equal(
   terminalPrivateReviewJourney.review?.finalArtifactSha256,
   terminalPrivateReview.finalArtifact.sha256,
 )
+const terminalPrivateReviewMedia = await createCanonicalPrivateReviewMediaService(
+  context,
+).read({
+  workspaceId,
+  expectedProjectId: String(seedSnapshot.projectId),
+  expectedEditSessionId: terminalReviewEditSessionId,
+  packageRecordId: terminalReviewPackageRecordId,
+  expectedManifestSha256: terminalPrivateReview.manifest.manifestSha256,
+  expectedFinalArtifactSha256: terminalPrivateReview.finalArtifact.sha256,
+  purpose: 'read_canonical_private_review_media',
+  reviewAssemblyId: terminalPrivateReview.identity.reviewAssemblyId,
+})
+assert.equal(
+  terminalPrivateReviewMedia.identity.reviewAssemblyId,
+  terminalPrivateReview.identity.reviewAssemblyId,
+)
+assert.equal(terminalPrivateReviewMedia.mimeType, 'video/mp4')
+assert.equal(
+  terminalPrivateReviewMedia.finalArtifactSha256,
+  terminalPrivateReview.finalArtifact.sha256,
+)
+assert.equal(
+  createHash('sha256').update(terminalPrivateReviewMedia.bytes).digest('hex'),
+  terminalPrivateReview.finalArtifact.sha256,
+)
+assert.equal(terminalPrivateReviewMedia.publicUrlCreated, false)
+assert.equal(terminalPrivateReviewMedia.signedUrlCreated, false)
+await expectApiError(
+  () => createCanonicalPrivateReviewMediaService(context).read({
+    workspaceId,
+    expectedProjectId: String(seedSnapshot.projectId),
+    expectedEditSessionId: terminalReviewEditSessionId,
+    packageRecordId: terminalReviewPackageRecordId,
+    expectedManifestSha256: '0'.repeat(64),
+    expectedFinalArtifactSha256: terminalPrivateReview.finalArtifact.sha256,
+    purpose: 'read_canonical_private_review_media',
+    reviewAssemblyId: terminalPrivateReview.identity.reviewAssemblyId,
+  }),
+  'IDEMPOTENCY_CONFLICT',
+)
 assert.equal(
   terminalPrivateReviewJourney.workGraph?.responseHash,
   terminalWorkGraph.responseHash,
@@ -2888,6 +2930,30 @@ const reviewDecisionAuthorityBefore = sha256AuthorityValue(
   ),
 )
 const privateReviewDecisionService = createCanonicalPrivateReviewDecisionService(context)
+const privateReviewDecisionCoordinatorService =
+  createCanonicalPrivateReviewDecisionCoordinatorService(context)
+await expectApiError(
+  () => privateReviewDecisionCoordinatorService.record({
+    workspaceId,
+    expectedProjectId: 'project-foreign-private-review-decision',
+    expectedEditSessionId: terminalReviewEditSessionId,
+    packageRecordId: terminalReviewPackageRecordId,
+    reviewAssemblyId: terminalPrivateReview.identity.reviewAssemblyId,
+    expectedManifestSha256: terminalPrivateReview.manifest.manifestSha256,
+    expectedFinalArtifactSha256: terminalPrivateReview.finalArtifact.sha256,
+    purpose: 'record_canonical_private_review_decision',
+    decision: 'accept_private_internal_review',
+    idempotencyKey: 'reject-foreign-project-before-private-review-decision',
+  }),
+  'IDEMPOTENCY_CONFLICT',
+)
+await expectApiError(
+  () => privateReviewDecisionService.getCompleted({
+    workspaceId,
+    reviewAssemblyId: terminalPrivateReview.identity.reviewAssemblyId,
+  }),
+  'JOB_DEPENDENCY_NOT_READY',
+)
 await expectApiError(
   () => privateReviewDecisionService.record({
     workspaceId,
@@ -2953,6 +3019,47 @@ assert.equal(terminalPrivateRevisionDecision.permissions.reservationMutation, fa
 assert.equal(
   terminalPrivateRevisionDecision.readiness.nextRequiredGate,
   'canonical_revision_plan_compilation_and_fresh_approval',
+)
+const terminalPrivateRevisionDecisionReceipt = await privateReviewDecisionCoordinatorService.record({
+  workspaceId,
+  expectedProjectId: String(seedSnapshot.projectId),
+  expectedEditSessionId: terminalReviewEditSessionId,
+  packageRecordId: terminalReviewPackageRecordId,
+  reviewAssemblyId: terminalPrivateReview.identity.reviewAssemblyId,
+  expectedManifestSha256: terminalPrivateReview.manifest.manifestSha256,
+  expectedFinalArtifactSha256: terminalPrivateReview.finalArtifact.sha256,
+  purpose: 'record_canonical_private_review_decision',
+  decision: 'request_revision',
+  revisionIntent: terminalPrivateRevisionDecisionInput.revisionIntent,
+  idempotencyKey: 'coordinate-terminal-private-review-revision-decision',
+})
+assert.equal(
+  terminalPrivateRevisionDecisionReceipt.receipt.decision.value,
+  'request_revision',
+)
+assert.equal(
+  terminalPrivateRevisionDecisionReceipt.receipt.decision.requiresReplanning,
+  true,
+)
+assert.equal(
+  terminalPrivateRevisionDecisionReceipt.receipt.decision.requiresFreshEstimateAndApproval,
+  true,
+)
+assert.equal(
+  terminalPrivateRevisionDecisionReceipt.receipt.boundaries.rawDecisionAuthorityReturned,
+  false,
+)
+assert.equal(
+  terminalPrivateRevisionDecisionReceipt.receipt.boundaries.artifactIdentityReturned,
+  false,
+)
+assert.equal(
+  terminalPrivateRevisionDecisionReceipt.receipt.boundaries.customerCreditMutation,
+  false,
+)
+assert.equal(
+  JSON.stringify(terminalPrivateRevisionDecisionReceipt.receipt).includes('"artifactId":'),
+  false,
 )
 const terminalRevisionJourney = await canonicalJourneyService.recover({
   workspaceId,
@@ -3330,6 +3437,35 @@ assert.equal(
 )
 assert.equal(secondPrivateReviewAcceptance.permissions.publicDelivery, false)
 assert.equal(secondPrivateReviewAcceptance.permissions.billing, false)
+const secondPrivateReviewAcceptanceReceipt = await
+createCanonicalPrivateReviewDecisionCoordinatorService(context).record({
+  workspaceId,
+  expectedProjectId: String(seedSnapshot.projectId),
+  expectedEditSessionId: terminalReviewEditSessionId,
+  packageRecordId: revisionExecutionPackageId,
+  reviewAssemblyId: secondPrivateReview.identity.reviewAssemblyId,
+  expectedManifestSha256: secondPrivateReview.manifest.manifestSha256,
+  expectedFinalArtifactSha256: secondPrivateReview.finalArtifact.sha256,
+  purpose: 'record_canonical_private_review_decision',
+  decision: 'accept_private_internal_review',
+  idempotencyKey: 'coordinate-terminal-private-review-acceptance-v2',
+})
+assert.equal(
+  secondPrivateReviewAcceptanceReceipt.receipt.decision.value,
+  'accept_private_internal_review',
+)
+assert.equal(
+  secondPrivateReviewAcceptanceReceipt.receipt.decision.revisionRequested,
+  false,
+)
+assert.equal(
+  secondPrivateReviewAcceptanceReceipt.receipt.readiness.nextRequiredGate,
+  'private_internal_acceptance_recorded_public_delivery_blocked',
+)
+assert.equal(
+  secondPrivateReviewAcceptanceReceipt.receipt.boundaries.publicDeliveryStarted,
+  false,
+)
 const acceptedPrivateReviewJourney = await canonicalJourneyService.recover({
   workspaceId,
   projectId: seedSnapshot.projectId,
@@ -3765,6 +3901,7 @@ console.log(JSON.stringify({
     'canonical_journey_recovery_reports_exact_private_review_ready_authority_without_execution_grant',
     'canonical_journey_schema_rejects_a_decision_inside_review_ready_state',
     'private_review_decision_rejects_caller_artifact_and_stale_manifest_authority',
+    'browser_decision_coordinator_rejects_foreign_project_before_persistence',
     'persisted_authenticated_upload_preference_edit_brief_handoff_publishes_exact_initial_plan_authority',
     'persisted_planning_handoff_rejects_source_order_drift_and_has_no_plan_credit_tool_or_render_side_effect',
     'persisted_planning_handoff_binding_survives_initial_and_terminal_review_snapshot_execution',

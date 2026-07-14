@@ -48,7 +48,7 @@ The canonical lifecycle smoke proves:
 
 ## Boundaries
 
-Replacement planning, synthetic fresh approval, revised work-graph execution, a second private review, superseded-review history access, fully unused pre-consumption cancellation, and quiescent post-dispatch compensation are now proven for local/private scope. The post-dispatch authority preserves consumed/completed execution evidence and releases only the unspent synthetic reservation. Active in-flight execution, spent-credit settlement/refunds, distributed quiescence, broader recovery, real-user browser handoff, providers, Supabase, billing, public delivery, and production remain gated.
+Replacement planning, synthetic fresh approval, revised work-graph execution, a second private review, superseded-review history access, fully unused pre-consumption cancellation, and quiescent post-dispatch compensation are now proven for local/private scope. The post-dispatch authority preserves consumed/completed execution evidence and releases only the unspent synthetic reservation. Active in-flight execution, spent-credit settlement/refunds, distributed quiescence, broader recovery, deployed real-user browser identity, providers, Supabase, billing, public delivery, and production remain gated.
 
 ## Verification
 

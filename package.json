@@ -32,6 +32,7 @@
     "smoke:canonical-plan-approval-client": "tsx server/smoke/canonical-plan-approval-frontend-client-smoke.ts",
     "smoke:canonical-execution-package-request-client": "tsx server/smoke/canonical-execution-package-request-frontend-client-smoke.ts",
     "smoke:canonical-private-edit-preparation-client": "tsx server/smoke/canonical-private-edit-preparation-frontend-client-smoke.ts",
+    "smoke:canonical-private-review-client": "tsx server/smoke/canonical-private-review-frontend-client-smoke.ts",
     "smoke:canonical-planning-publication-client": "tsx server/smoke/canonical-planning-publication-frontend-client-smoke.ts",
     "smoke:backend-local-journey-authority": "tsx server/smoke/backend-local-journey-authority-smoke.ts",
     "smoke:canonical-tool-operation-package": "tsx server/smoke/canonical-tool-operation-package-contract-smoke.ts",

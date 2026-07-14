@@ -99,6 +99,7 @@ import { useCanonicalExecutionPackageRequest } from '../../hooks/useCanonicalExe
 import { useCanonicalPlanApproval } from '../../hooks/useCanonicalPlanApproval'
 import { useCanonicalPlanningPublication } from '../../hooks/useCanonicalPlanningPublication'
 import { useCanonicalPrivateEditPreparation } from '../../hooks/useCanonicalPrivateEditPreparation'
+import { useCanonicalPrivateReview } from '../../hooks/useCanonicalPrivateReview'
 import type { ContextAwareMockEditPlanResult, EditBriefState, EditBriefStatus, MediaKind, ReeditProChatMessage } from '../../types'
 import type { ApprovedPlanSnapshot } from '../../types/edit-planning-db'
 import type {
@@ -866,6 +867,12 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     scope: projectPersistenceScope,
   })
   const canonicalPrivateEditPreparation = useCanonicalPrivateEditPreparation({
+    editSessionId: editorEditSessionId,
+    enabled: canonicalPlanningBackendConnected,
+    projectId: editorProjectId,
+    scope: projectPersistenceScope,
+  })
+  const canonicalPrivateReview = useCanonicalPrivateReview({
     editSessionId: editorEditSessionId,
     enabled: canonicalPlanningBackendConnected,
     projectId: editorProjectId,
@@ -3051,6 +3058,30 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     }
   }
 
+  async function handleLoadCanonicalPrivateReview() {
+    if (!canonicalJourneyValue) return
+    await canonicalPrivateReview.loadMedia(canonicalJourneyValue)
+  }
+
+  async function handleAcceptCanonicalPrivateReview() {
+    if (!canonicalJourneyValue || !canonicalPrivateReview.media) return
+    const result = await canonicalPrivateReview.recordDecision(
+      canonicalJourneyValue,
+      'accept_private_internal_review',
+    )
+    if (result.status === 'recorded') canonicalJourney.refresh()
+  }
+
+  async function handleRequestCanonicalPrivateReviewRevision(summary: string) {
+    if (!canonicalJourneyValue || !canonicalPrivateReview.media) return
+    const result = await canonicalPrivateReview.recordDecision(
+      canonicalJourneyValue,
+      'request_revision',
+      summary,
+    )
+    if (result.status === 'recorded') canonicalJourney.refresh()
+  }
+
   async function handleRunRevisionPrivateReview() {
     if (approvalChecking || privateInternalTestRunRunning) return
 
@@ -3976,8 +4007,13 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
         {...canonicalJourney}
         executionPackageRequest={canonicalExecutionPackageRequest}
         privateEditPreparation={canonicalPrivateEditPreparation}
+        privateReview={canonicalPrivateReview}
+        onAcceptPrivateReview={() => void handleAcceptCanonicalPrivateReview()}
+        onLoadPrivateReview={() => void handleLoadCanonicalPrivateReview()}
         onPreparePrivateEdit={() => void handlePrepareCanonicalPrivateEdit()}
         onRequestExecutionPackage={() => void handleRequestCanonicalExecutionPackage()}
+        onRequestPrivateReviewRevision={(summary) =>
+          void handleRequestCanonicalPrivateReviewRevision(summary)}
       />
     )
   }

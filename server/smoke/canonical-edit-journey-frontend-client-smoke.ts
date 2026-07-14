@@ -277,7 +277,7 @@ function actionFor(stage: CanonicalEditJourneyStage): Record<string, unknown> {
     case 'private_review_assembly_required':
       return { code: 'prepare_private_edit_review', actor: 'authenticated_user', method: 'POST', routeTemplate: '/v1/edit-executions/packages/package-ui-smoke/canonical-private-edit-preparation' }
     case 'private_review_ready':
-      return { code: 'record_private_review_decision', actor: 'authenticated_user', method: 'POST', routeTemplate: '/v1/edit-executions/private-review-assemblies/review-assembly-ui-smoke/decisions' }
+      return { code: 'record_private_review_decision', actor: 'authenticated_user', method: 'POST', routeTemplate: '/v1/edit-executions/private-review-assemblies/review-assembly-ui-smoke/canonical-decision' }
     case 'private_review_accepted':
       return { code: 'await_public_delivery_authorization', actor: 'internal_service', method: 'GET', routeTemplate: projectRoute('canonical-journey') }
     case 'cancellation_pending':

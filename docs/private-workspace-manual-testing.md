@@ -92,9 +92,13 @@ Use this runtime to exercise the current active product only:
 9. Select **Prepare private handoff** and verify the saved workflow reports that the exact approved handoff is ready.
 10. Select **Start private edit** and verify the browser shows a visible in-progress state while the backend advances only the exact approved private work graph.
 11. Verify the saved workflow either reports bounded blocker counts or advances to **Private review ready** after required private QA and review assembly pass.
-12. Confirm that external generation, public delivery, production rendering, customer charging, and publishing remain off.
-13. Stop both processes with `Ctrl+C`.
+12. Select **Load private review** and verify the exact no-store private video opens with **Download review** available.
+13. Either select **Approve private review**, or enter a specific revision direction and select **Request changes**.
+14. For a revision, verify the journey reports **Changes are saved** and explicitly requires a fresh plan, estimate, approval, and private review. Refresh the saved workflow, then load the immutable history copy to verify the previous review remains available as context without authorizing new work.
+15. For an acceptance, verify the journey reports **Private review approved** while public delivery remains a separate blocked step.
+16. Confirm that external generation, public delivery, production rendering, customer charging, and publishing remain off.
+17. Stop both processes with `Ctrl+C`.
 
-The current browser milestone can request backend-owned work-graph advancement and private-review assembly from an immutable approved handoff. The browser supplies only exact package/snapshot identity and hashes; it never supplies or receives jobs, tools, commands, paths, credentials, providers, or prices. Playback, review decisions, revision submission, public delivery, deployed real-user infrastructure, and broad rich-plan execution remain later gates, so this does not yet claim production or external-beta completion.
+The current browser milestone can request backend-owned work-graph advancement and private-review assembly from an immutable approved handoff, integrity-check the exact private MP4, record acceptance or a structured revision, and reopen review history. The browser supplies only exact canonical identities/hashes and the user's decision; it never supplies or receives jobs, tools, artifact IDs, commands, paths, credentials, providers, prices, wallet actions, or release authority. Browser consumption of a recorded revision into the fresh replacement-plan publication/approval cycle, public delivery, deployed real-user infrastructure, and broad rich-plan execution remain later gates, so this does not claim production or external-beta completion.
 
 This manual path supplements, but does not replace, `npm run qa:internal-pipeline` and the headless full-stack browser smoke.

@@ -276,7 +276,7 @@ export function createCanonicalEditJourneyService(context: ServiceContext) {
               method: 'POST',
               routeTemplate:
                 `/v1/edit-executions/private-review-assemblies/` +
-                `${assembly.identity.reviewAssemblyId}/decisions`,
+                `${assembly.identity.reviewAssemblyId}/canonical-decision`,
             },
           })
         }

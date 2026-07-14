@@ -100,6 +100,11 @@ const steps: SmokeStep[] = [
     requiredFor: 'exact approved-package private preparation request, bounded progress/review receipt, and no browser-supplied job or tool authority',
   },
   {
+    id: 'canonical_private_review_client',
+    script: 'smoke:canonical-private-review-client',
+    requiredFor: 'exact private review media integrity, bounded accept/revision decisions, and immutable history reopening without browser-owned artifact or job authority',
+  },
+  {
     id: 'private_download_client',
     script: 'smoke:edit-execution-private-download-client',
     requiredFor: 'private MP4 and manifest fetch client safety',
@@ -201,6 +206,7 @@ console.log(JSON.stringify({
     'Canonical private source and worker boundaries preserve tenant identity, immutable inputs, lease fencing, and fail-closed execution.',
     'The named-edit browser can request one exact private execution handoff without receiving raw package, job, tool, path, or credential authority and without starting execution.',
     'The named-edit browser can request backend-owned private preparation from that exact handoff without supplying or receiving jobs, tools, commands, paths, credentials, providers, or prices.',
+    'The named-edit browser can integrity-check private review media, record an exact acceptance or structured revision, and reopen immutable review history without receiving artifact, job, path, credential, provider, billing, or release authority.',
     'The Playwright editor flow verifies the current UI upload, planning, approval, review, and blocked failure path.',
     'Expanded and keyboard Playwright flows verify advanced planning details, composer behavior, soundflow disclosures, and hidden internal implementation names.',
     'Route viewport QA verifies the clean app shell, legacy route redirects, and the Home/Projects/Preferences-only sidebar.',

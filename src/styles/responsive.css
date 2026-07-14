@@ -25,6 +25,25 @@
     width: 100%;
   }
 
+  .canonical-private-review-heading,
+  .canonical-private-review-file-row,
+  .canonical-private-review-load {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .canonical-private-review-file-row .rp-button,
+  .canonical-private-review-load .rp-button,
+  .canonical-private-review-decision-actions .rp-button {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .canonical-private-review-decision-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
   .sfx-plan-entry-card,
   .music-plan-entry-card {
     align-items: stretch;

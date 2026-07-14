@@ -79,7 +79,7 @@ Insufficient credits, stale authority, access denial, invalid responses, and unk
 
 ## Scope boundary
 
-This slice adds no Supabase migration or remote Supabase action, provider activation, Google Cloud resource, customer billing, deployment, production render, public export, Motion Studio, or MS-001 behavior. Package request, work-graph advancement, review assembly, review decision, revision submission, and private-history opening remain separate browser mutation milestones.
+This slice adds no Supabase migration or remote Supabase action, provider activation, Google Cloud resource, customer billing, deployment, production render, public export, Motion Studio, or MS-001 behavior. Package request, work-graph advancement, review assembly, review decision, revision submission, and private-history opening were deliberately kept outside this approval slice; their current local/private browser status is tracked in `docs/current-end-to-end-capability-matrix.md`.
 
 ## Verification
 

@@ -51,6 +51,20 @@ export type CanonicalEditJourney = {
     snapshotId: string
     expectedSnapshotHash: string
   }
+  privateReviewMediaAuthority?: {
+    mode: 'current' | 'history'
+    reviewAssemblyId: string
+    packageRecordId: string
+    expectedFinalArtifactSha256: string
+    expectedManifestSha256?: string
+    expectedDecisionManifestSha256?: string
+  }
+  privateReviewDecisionAuthority?: {
+    reviewAssemblyId: string
+    packageRecordId: string
+    expectedManifestSha256: string
+    expectedFinalArtifactSha256: string
+  }
   plan?: {
     version: number
     status: 'presented' | 'approved' | 'superseded' | 'rejected' | 'cancellation_pending' | 'cancelled'
@@ -383,6 +397,38 @@ export function parseCanonicalEditJourney(
               expectedSnapshotHash: approval.snapshotHash,
             }
           : undefined,
+        privateReviewMediaAuthority: review && execution
+          ? stage === 'private_review_ready'
+            ? {
+                mode: 'current',
+                reviewAssemblyId: review.reviewAssemblyId,
+                packageRecordId: execution.packageRecordId,
+                expectedManifestSha256: review.manifestSha256,
+                expectedFinalArtifactSha256: review.finalArtifactSha256,
+              }
+            : (
+                stage === 'private_review_accepted' ||
+                stage === 'revision_requested'
+              ) && review.privateHistoryDownload
+              ? {
+                  mode: 'history',
+                  reviewAssemblyId: review.reviewAssemblyId,
+                  packageRecordId: execution.packageRecordId,
+                  expectedDecisionManifestSha256:
+                    review.privateHistoryDownload.query.expectedDecisionManifestSha256,
+                  expectedFinalArtifactSha256: review.finalArtifactSha256,
+                }
+              : undefined
+          : undefined,
+        privateReviewDecisionAuthority:
+          stage === 'private_review_ready' && review && execution
+            ? {
+                reviewAssemblyId: review.reviewAssemblyId,
+                packageRecordId: execution.packageRecordId,
+                expectedManifestSha256: review.manifestSha256,
+                expectedFinalArtifactSha256: review.finalArtifactSha256,
+              }
+            : undefined,
         plan: plan && {
           version: plan.planVersion,
           status: plan.status,
@@ -1071,7 +1117,7 @@ function expectedRouteFor(journey: WireJourney): string | undefined {
         : undefined
     case 'private_review_ready':
       return journey.review
-        ? `/v1/edit-executions/private-review-assemblies/${journey.review.reviewAssemblyId}/decisions`
+        ? `/v1/edit-executions/private-review-assemblies/${journey.review.reviewAssemblyId}/canonical-decision`
         : undefined
     case 'private_review_accepted':
       return projectRoute('canonical-journey')

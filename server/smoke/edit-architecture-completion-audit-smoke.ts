@@ -99,6 +99,9 @@ const requiredEvidence: RequiredEvidence[] = [
     requirement: 'Legacy caller-authored execution and worker mutation routes must remain fail closed after canonical authority cutover.',
     evidence: [
       'canonical_identity_only_execution_package_schema',
+      'production_and_cloud_browser_package_preparation_review_media_and_decision_routes_unmounted',
+      'local_private_browser_review_media_requires_user_auth_and_strict_exact_review_query',
+      'local_private_browser_review_decision_requires_user_auth_and_strict_exact_review_body',
       'caller_authored_worker_claim_and_run_routes_disabled',
       'caller_authored_tool_runtime_evidence_write_disabled',
       'caller_authored_render_job_creation_disabled',
@@ -185,6 +188,21 @@ const requiredEvidence: RequiredEvidence[] = [
     ],
   },
   {
+    file: 'tests/e2e/canonical-journey-ui.spec.ts',
+    requirement: 'The named-edit browser must integrity-check exact private review media, record a structured revision against that review, and reopen immutable review history without receiving internal execution authority.',
+    evidence: [
+      'plays the exact private review, records structured changes, and reopens immutable history',
+      'canonical-private-review-load',
+      'canonical-private-review-player',
+      'expectedFinalArtifactSha256',
+      'record_canonical_private_review_decision',
+      'revisionIntent',
+      'requiresFreshEstimateAndApproval',
+      'download_canonical_private_review_history_artifact',
+      'historyRequests',
+    ],
+  },
+  {
     file: 'src/components/editor/PreviewReadyCard.tsx',
     requirement: 'The preview card must switch into a truthful private-review state once the private artifact exists.',
     evidence: [
@@ -214,6 +232,7 @@ const requiredEvidence: RequiredEvidence[] = [
       'playwright_route_viewport_flow',
       'canonical_execution_package_request_client',
       'canonical_private_edit_preparation_client',
+      'canonical_private_review_client',
       'playwright_canonical_journey_flow',
       'legacy_execution_routes_fail_closed',
     ],
@@ -257,6 +276,7 @@ console.log(JSON.stringify({
     'clean_route_shell_and_legacy_redirect_qa_coverage_present',
     'canonical_named_edit_private_handoff_coverage_present',
     'canonical_named_edit_private_preparation_coverage_present',
+    'canonical_named_edit_private_review_decision_and_history_coverage_present',
     'visible_private_review_card_coverage_present',
     'aggregate_internal_review_coverage_present',
   ],

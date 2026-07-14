@@ -53,7 +53,73 @@ async function readBoundedFile(path: string, max: number) { return (await readBo
 async function readBoundedBuffer(path: string, max: number) { const handle = await open(path, constants.O_RDONLY | constants.O_NOFOLLOW); try { const stat = await handle.stat(); if (!stat.isFile() || stat.size < 1 || stat.size > max) throw failure('rembg source file is invalid.'); return await handle.readFile() } finally { await handle.close() } }
 function sourceDirectory() { return join(repositoryRoot(), 'docker/prod/offline-rembg-background-removal-execution') }
 function repositoryRoot() { return fileURLToPath(new URL('../../../', import.meta.url)).replace(/[\\/]$/, '') }
-function runDocker(args: string[], options: { cwd?: string; input?: string; timeoutMs: number; maxBytes: number }): Promise<HostResult> { return new Promise((resolvePromise, reject) => { const child = spawn('docker', args, { cwd: options.cwd, env: { PATH: process.env.PATH ?? '/usr/local/bin:/usr/bin:/bin' }, stdio: ['pipe', 'pipe', 'pipe'] }); const stdout: Buffer[] = []; const stderr: Buffer[] = []; let total = 0; let settled = false; const timer = setTimeout(() => { child.kill('SIGKILL'); if (!settled) { settled = true; reject(failure('Docker command exceeded timeout.')) } }, options.timeoutMs); const collect = (target: Buffer[]) => (chunk: Buffer) => { total += chunk.length; if (total > options.maxBytes) { child.kill('SIGKILL'); if (!settled) { settled = true; clearTimeout(timer); reject(failure('Docker output exceeded ceiling.')) } } else target.push(Buffer.from(chunk)) }; child.stdout.on('data', collect(stdout)); child.stderr.on('data', collect(stderr)); child.on('error', (cause) => { if (!settled) { settled = true; clearTimeout(timer); reject(failure('Docker runtime is unavailable.', cause)) } }); child.on('close', (code) => { if (!settled) { settled = true; clearTimeout(timer); resolvePromise({ exitCode: code ?? -1, stdout: Buffer.concat(stdout).toString(), stderr: Buffer.concat(stderr).toString() }) } }); child.stdin.end(options.input ?? '') }) }
+function runDocker(args: string[], options: { cwd?: string; input?: string; timeoutMs: number; maxBytes: number }): Promise<HostResult> {
+  return new Promise((resolvePromise, reject) => {
+    const child = spawn('docker', args, {
+      cwd: options.cwd,
+      env: { PATH: process.env.PATH ?? '/usr/local/bin:/usr/bin:/bin' },
+      stdio: ['pipe', 'pipe', 'pipe'],
+    })
+    const stdout: Buffer[] = []
+    const stderr: Buffer[] = []
+    let total = 0
+    let settled = false
+    let stdinCloseError: unknown
+    function rejectOnce(error: Error) {
+      if (settled) return
+      settled = true
+      clearTimeout(timer)
+      reject(error)
+    }
+    const timer = setTimeout(() => {
+      child.kill('SIGKILL')
+      rejectOnce(failure('Docker command exceeded timeout.'))
+    }, options.timeoutMs)
+    const collect = (target: Buffer[]) => (chunk: Buffer) => {
+      total += chunk.length
+      if (total > options.maxBytes) {
+        child.kill('SIGKILL')
+        rejectOnce(failure('Docker output exceeded ceiling.'))
+        return
+      }
+      target.push(Buffer.from(chunk))
+    }
+    child.stdout.on('data', collect(stdout))
+    child.stderr.on('data', collect(stderr))
+    child.stdin.on('error', (cause) => {
+      if (settled) return
+      if (isExpectedDockerStdinClose(cause)) {
+        stdinCloseError = cause
+        return
+      }
+      child.kill('SIGKILL')
+      rejectOnce(failure('Docker request input failed.', cause))
+    })
+    child.on('error', (cause) => {
+      rejectOnce(failure('Docker runtime is unavailable.', cause))
+    })
+    child.on('close', (code) => {
+      if (settled) return
+      if (stdinCloseError && code === 0) {
+        rejectOnce(failure('Docker stdin closed before the request completed.', stdinCloseError))
+        return
+      }
+      settled = true
+      clearTimeout(timer)
+      resolvePromise({
+        exitCode: code ?? -1,
+        stdout: Buffer.concat(stdout).toString(),
+        stderr: Buffer.concat(stderr).toString(),
+      })
+    })
+    child.stdin.end(options.input ?? '')
+  })
+}
+function isExpectedDockerStdinClose(cause: unknown): boolean {
+  if (!cause || typeof cause !== 'object' || !('code' in cause)) return false
+  const code = (cause as { code?: unknown }).code
+  return code === 'EPIPE' || code === 'ERR_STREAM_DESTROYED'
+}
 function record(value: unknown): Record<string, unknown> { if (!value || typeof value !== 'object' || Array.isArray(value)) throw failure('Docker evidence contains an invalid object.'); return value as Record<string, unknown> }
 function array(value: unknown): unknown[] { if (!Array.isArray(value)) throw failure('Docker evidence contains an invalid array.'); return value }
 function stringArray(value: unknown): string[] { const values = array(value); if (values.some((value) => typeof value !== 'string')) throw failure('Docker evidence contains a non-string array.'); return values as string[] }

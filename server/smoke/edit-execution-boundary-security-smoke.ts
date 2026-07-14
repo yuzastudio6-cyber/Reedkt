@@ -131,6 +131,30 @@ try {
     'Production must not mount the local/private browser edit-preparation route.',
   )
 
+  const hiddenBrowserPrivateReviewMedia = await fetch(
+    `${productionBaseUrl}/v1/edit-executions/private-review-assemblies/hidden-review/media`,
+    { headers: dualAuthHeaders },
+  )
+  assert.equal(
+    hiddenBrowserPrivateReviewMedia.status,
+    404,
+    'Production must not mount the local/private browser review-media route.',
+  )
+
+  const hiddenBrowserPrivateReviewDecision = await fetch(
+    `${productionBaseUrl}/v1/edit-executions/private-review-assemblies/hidden-review/canonical-decision`,
+    {
+      method: 'POST',
+      headers: dualAuthHeaders,
+      body: '{}',
+    },
+  )
+  assert.equal(
+    hiddenBrowserPrivateReviewDecision.status,
+    404,
+    'Production must not mount the local/private browser review-decision route.',
+  )
+
   const hiddenInternalRunRoute = await fetch(`${productionBaseUrl}/v1/edit-executions/private-internal-test-runs`, {
     method: 'POST',
     headers: dualAuthHeaders,
@@ -218,6 +242,38 @@ try {
     hiddenCloudBrowserPrivatePreparation.status,
     404,
     'A non-production cloud runtime must not mount the browser edit-preparation route.',
+  )
+  const hiddenCloudBrowserPrivateReviewMedia = await fetch(
+    `${internalTestBaseUrl}/v1/edit-executions/private-review-assemblies/hidden-review/media`,
+    {
+      headers: {
+        authorization: 'Bearer verified-user-token',
+        [INTERNAL_SERVICE_TOKEN_HEADER]: internalToken,
+      },
+    },
+  )
+  assert.equal(
+    hiddenCloudBrowserPrivateReviewMedia.status,
+    404,
+    'A non-production cloud runtime must not mount the browser review-media route.',
+  )
+  const hiddenCloudBrowserPrivateReviewDecision = await fetch(
+    `${internalTestBaseUrl}/v1/edit-executions/private-review-assemblies/hidden-review/canonical-decision`,
+    {
+      method: 'POST',
+      headers: {
+        authorization: 'Bearer verified-user-token',
+        [INTERNAL_SERVICE_TOKEN_HEADER]: internalToken,
+        'content-type': 'application/json',
+        'idempotency-key': 'cloud-test-hidden-browser-private-review-decision',
+      },
+      body: '{}',
+    },
+  )
+  assert.equal(
+    hiddenCloudBrowserPrivateReviewDecision.status,
+    404,
+    'A non-production cloud runtime must not mount the browser review-decision route.',
   )
 } finally {
   await close(internalTestServer)
@@ -321,6 +377,48 @@ try {
   }
   assert.equal(browserPrivatePreparationError.error?.code, 'VALIDATION_FAILED')
 
+  const browserPrivateReviewMedia = await fetch(
+    `${internalTestBaseUrl}/v1/edit-executions/private-review-assemblies/strict-review/media`,
+    {
+      headers: {
+        authorization: 'Bearer verified-user-token',
+        origin: 'https://app.reeditpro.test',
+      },
+    },
+  )
+  assert.equal(
+    browserPrivateReviewMedia.status,
+    400,
+    'The local/private review-media route should require user auth and strict exact-review query identity without an internal credential.',
+  )
+  const browserPrivateReviewMediaError = await browserPrivateReviewMedia.json() as {
+    error?: { code?: string }
+  }
+  assert.equal(browserPrivateReviewMediaError.error?.code, 'VALIDATION_FAILED')
+
+  const browserPrivateReviewDecision = await fetch(
+    `${internalTestBaseUrl}/v1/edit-executions/private-review-assemblies/strict-review/canonical-decision`,
+    {
+      method: 'POST',
+      headers: {
+        authorization: 'Bearer verified-user-token',
+        origin: 'https://app.reeditpro.test',
+        'content-type': 'application/json',
+        'idempotency-key': 'strict-browser-private-review-decision',
+      },
+      body: '{}',
+    },
+  )
+  assert.equal(
+    browserPrivateReviewDecision.status,
+    400,
+    'The local/private review-decision route should require user auth and strict exact-review authority without an internal credential.',
+  )
+  const browserPrivateReviewDecisionError = await browserPrivateReviewDecision.json() as {
+    error?: { code?: string }
+  }
+  assert.equal(browserPrivateReviewDecisionError.error?.code, 'VALIDATION_FAILED')
+
   for (const [path, body] of [
     ['/v1/jobs/caller-job/claim', {
       workspaceId: 'caller-workspace',
@@ -381,11 +479,13 @@ console.log(JSON.stringify({
     'production_local_and_mock_worker_rejected',
     'production_local_storage_rejected',
     'production_internal_execution_routes_unmounted',
-    'production_and_cloud_browser_package_and_private_preparation_routes_unmounted',
+    'production_and_cloud_browser_package_preparation_review_media_and_decision_routes_unmounted',
     'production_user_review_and_download_routes_preserved',
     'private_execution_routes_require_dual_auth',
     'local_private_browser_package_request_requires_user_auth_and_strict_identity_body',
     'local_private_browser_edit_preparation_requires_user_auth_and_strict_identity_body',
+    'local_private_browser_review_media_requires_user_auth_and_strict_exact_review_query',
+    'local_private_browser_review_decision_requires_user_auth_and_strict_exact_review_body',
     'canonical_identity_only_execution_package_schema',
     'caller_authored_worker_claim_and_run_routes_disabled',
     'caller_authored_tool_runtime_evidence_write_disabled',

@@ -10,9 +10,11 @@ import { createCanonicalExecutionReadinessService } from '../services/canonical-
 import { createCanonicalPrivateEditPreparationCoordinatorService } from '../services/canonical-private-edit-preparation-coordinator-service'
 import { createCanonicalPrivateFinalArtifactDownloadService } from '../services/canonical-private-final-artifact-download-service'
 import { createCanonicalPrivateJobExecutionAdapterService } from '../services/canonical-private-job-execution-adapter-service'
+import { createCanonicalPrivateReviewDecisionCoordinatorService } from '../services/canonical-private-review-decision-coordinator-service'
 import { createCanonicalPrivateReviewAssemblyService } from '../services/canonical-private-review-assembly-service'
 import { createCanonicalPrivateReviewDecisionService } from '../services/canonical-private-review-decision-service'
 import { createCanonicalPrivateReviewHistoryService } from '../services/canonical-private-review-history-service'
+import { createCanonicalPrivateReviewMediaService } from '../services/canonical-private-review-media-service'
 import { createCanonicalPrivateWorkGraphOrchestratorService } from '../services/canonical-private-work-graph-orchestrator-service'
 import { createCanonicalWorkerLeaseAuthorityService } from '../services/canonical-worker-lease-authority-service'
 import {
@@ -54,6 +56,10 @@ import { canonicalExecutionReadinessRouteBodySchema } from '../validation/canoni
 import { requestCanonicalExecutionPackageSchema } from '../validation/canonical-execution-package-request-schemas'
 import { inspectToolRuntimeEvidenceSchema } from '../validation/tool-runtime-evidence-schemas'
 import { prepareCanonicalPrivateEditSchema } from '../validation/canonical-private-edit-preparation-schemas'
+import {
+  canonicalPrivateReviewMediaQuerySchema,
+  recordCanonicalPrivateReviewDecisionCoordinatorSchema,
+} from '../validation/canonical-private-review-browser-schemas'
 import { canonicalPrivateFinalArtifactDownloadQuerySchema } from '../validation/canonical-private-final-artifact-download-schemas'
 import { executeCanonicalPrivateJobAdapterSchema } from '../validation/canonical-private-job-execution-adapter-schemas'
 import { runCanonicalPrivateWorkGraphSchema } from '../validation/canonical-private-work-graph-run-schemas'
@@ -249,6 +255,67 @@ export function createEditExecutionRoutes(options: EditExecutionRouteOptions = {
       sendOk(
         response,
         { canonicalPrivateEditPreparation: result.receipt },
+        result.warnings,
+        201,
+      )
+    }),
+  )
+
+  // Review playback is browser-authenticated but remains private/local. The
+  // browser binds the completed assembly and hashes; artifact/job identity is
+  // re-derived and re-verified by the backend before any bytes are returned.
+  router.get(
+    '/v1/edit-executions/private-review-assemblies/:reviewAssemblyId/media',
+    requireAuth,
+    asyncRoute(async (request, response) => {
+      const query = validateBody(canonicalPrivateReviewMediaQuerySchema, request.query)
+      const file = await createCanonicalPrivateReviewMediaService(
+        getServiceContext(request),
+      ).read({
+        ...query,
+        reviewAssemblyId: getRouteParam(request, 'reviewAssemblyId'),
+      })
+      response.status(200)
+      response.setHeader('content-type', file.mimeType)
+      response.setHeader('content-length', String(file.byteSize))
+      response.setHeader('content-disposition', `inline; filename="${file.fileName}"`)
+      response.setHeader('cache-control', 'private, no-store, max-age=0')
+      response.setHeader('x-content-type-options', 'nosniff')
+      response.setHeader('content-security-policy', "default-src 'none'; sandbox")
+      response.setHeader('x-reeditpro-artifact-sha256', file.finalArtifactSha256)
+      response.setHeader(
+        'x-reeditpro-review-manifest-sha256',
+        file.reviewManifestSha256,
+      )
+      response.setHeader(
+        'x-reeditpro-review-assembly-id',
+        file.identity.reviewAssemblyId,
+      )
+      response.end(file.bytes)
+    }),
+  )
+
+  // The browser receives only a bounded receipt. The durable decision service
+  // still reopens the exact immutable review and rejects conflicting decisions.
+  router.post(
+    '/v1/edit-executions/private-review-assemblies/:reviewAssemblyId/canonical-decision',
+    requireAuth,
+    requireIdempotency,
+    asyncRoute(async (request, response) => {
+      const body = validateBody(
+        recordCanonicalPrivateReviewDecisionCoordinatorSchema,
+        request.body,
+      )
+      const result = await createCanonicalPrivateReviewDecisionCoordinatorService(
+        getServiceContext(request),
+      ).record({
+        ...body,
+        reviewAssemblyId: getRouteParam(request, 'reviewAssemblyId'),
+        idempotencyKey: getIdempotencyKey(request),
+      })
+      sendOk(
+        response,
+        { canonicalPrivateReviewDecision: result.receipt },
         result.warnings,
         201,
       )
@@ -1218,6 +1285,8 @@ function registerEditExecutionUserRoutes(router: Router): void {
     response.setHeader('content-security-policy', "default-src 'none'; sandbox")
     response.setHeader('x-reeditpro-artifact-sha256', file.sha256)
     response.setHeader('x-reeditpro-review-history-state', file.reviewState)
+    response.setHeader('x-reeditpro-review-decision-manifest-sha256', file.decisionManifestSha256)
+    response.setHeader('x-reeditpro-review-assembly-id', file.identity.reviewAssemblyId)
     response.end(file.bytes)
   }))
 

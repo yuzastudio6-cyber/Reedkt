@@ -48,7 +48,7 @@ The grouped D3-to-ECharts fixture also proves failure isolation and bounded reco
 
 ## Boundaries
 
-This proves both honest run-to-blocked behavior and one bounded, dependency-complete private graph against generated fixture media. It is not a general real-user upload-to-review claim. The separate terminal service assembles that bounded graph for private internal review only. Revision/recovery, browser approval handoff, arbitrary capability-plan compilation, deployed storage and workers, providers, Supabase, billing, public delivery, and production promotion remain gated.
+This proves both honest run-to-blocked behavior and one bounded, dependency-complete private graph against generated fixture media. It is not a general real-user upload-to-review claim. The separate terminal service assembles that bounded graph for private internal review only. Arbitrary rich capability-plan compilation, browser continuation from a revision into replacement planning, deployed real-user storage and workers, providers, Supabase, billing, public delivery, and production promotion remain gated.
 
 ## Verification
 

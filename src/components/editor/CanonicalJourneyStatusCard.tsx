@@ -17,6 +17,8 @@ import {
 import type { CanonicalEditJourneyHookResult } from '../../hooks/useCanonicalEditJourney'
 import type { CanonicalExecutionPackageRequestHookResult } from '../../hooks/useCanonicalExecutionPackageRequest'
 import type { CanonicalPrivateEditPreparationHookResult } from '../../hooks/useCanonicalPrivateEditPreparation'
+import type { CanonicalPrivateReviewHookResult } from '../../hooks/useCanonicalPrivateReview'
+import { CanonicalPrivateReviewPanel } from './CanonicalPrivateReviewPanel'
 
 const toneIcon = {
   neutral: CircleDot,
@@ -28,16 +30,24 @@ const toneIcon = {
 type CanonicalJourneyStatusCardProps = CanonicalEditJourneyHookResult & {
   executionPackageRequest?: CanonicalExecutionPackageRequestHookResult
   privateEditPreparation?: CanonicalPrivateEditPreparationHookResult
+  privateReview?: CanonicalPrivateReviewHookResult
+  onAcceptPrivateReview?: () => void
+  onLoadPrivateReview?: () => void
   onRequestExecutionPackage?: () => void
   onPreparePrivateEdit?: () => void
+  onRequestPrivateReviewRevision?: (summary: string) => void
 }
 
 export function CanonicalJourneyStatusCard({
   executionPackageRequest,
   loading,
+  onAcceptPrivateReview,
+  onLoadPrivateReview,
   onPreparePrivateEdit,
   onRequestExecutionPackage,
+  onRequestPrivateReviewRevision,
   privateEditPreparation,
+  privateReview,
   refresh,
   refreshing,
   result,
@@ -132,9 +142,17 @@ export function CanonicalJourneyStatusCard({
     privateEditPreparation &&
     onPreparePrivateEdit,
   )
+  const canUsePrivateReview = Boolean(
+    result.journey.privateReviewMediaAuthority &&
+    privateReview &&
+    onLoadPrivateReview &&
+    onAcceptPrivateReview &&
+    onRequestPrivateReviewRevision,
+  )
   const refreshSavedWorkflow = () => {
     executionPackageRequest?.reset()
     privateEditPreparation?.reset()
+    privateReview?.reset()
     refresh()
   }
 
@@ -259,6 +277,17 @@ export function CanonicalJourneyStatusCard({
               )}
             </Button>
           </div>
+        )}
+
+        {canUsePrivateReview && privateReview && onLoadPrivateReview &&
+          onAcceptPrivateReview && onRequestPrivateReviewRevision && (
+          <CanonicalPrivateReviewPanel
+            journey={result.journey}
+            onAccept={onAcceptPrivateReview}
+            onLoad={onLoadPrivateReview}
+            onRequestRevision={onRequestPrivateReviewRevision}
+            review={privateReview}
+          />
         )}
       </div>
 

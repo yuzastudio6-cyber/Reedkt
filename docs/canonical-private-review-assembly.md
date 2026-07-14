@@ -47,7 +47,7 @@ It then proves caller-authored artifact injection is rejected, the terminal asse
 
 `privateReviewReady: true` means only that this bounded, single-host, generated-fixture journey is ready for private internal review. The response keeps public export, product, external-beta, production, provider, public artifact, public delivery, further render, customer price/credit mutation, wallet, settlement, billing, and deployment authority false.
 
-The next backend layer now records one immutable-manifest-bound private-review acceptance or structured revision request. A revision still requires canonical replacement-plan compilation, a fresh estimate, and new approval. Real-user uploads, browser handoff, deployed storage and workers, Supabase/RLS, providers, billing, public delivery, operational recovery, and production promotion remain unproven.
+The next backend layer now records one immutable-manifest-bound private-review acceptance or structured revision request, and the reviewed local/private named-edit browser can consume that boundary without receiving internal execution authority. A revision still requires canonical replacement-plan compilation, a fresh estimate, and new approval. Deployed real-user uploads/browser identity, deployed storage and workers, Supabase/RLS, providers, billing, public delivery, operational recovery, and production promotion remain unproven.
 
 ## Verification
 

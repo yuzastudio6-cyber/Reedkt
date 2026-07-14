@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import { expect, test, type Page } from '@playwright/test'
 import {
   buildLocalProjectHandoffStorageKey,
@@ -518,6 +519,242 @@ test.describe('canonical journey named-edit UI bridge', () => {
     await expect(status).toContainText('Private review ready')
     await expect(page.getByTestId('canonical-private-edit-preparation-submit')).toHaveCount(0)
     expect(rawInternalRequestCount).toBe(0)
+    await expectNoHorizontalOverflow(page)
+  })
+
+  test('plays the exact private review, records structured changes, and reopens immutable history', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 960 })
+    const fixture = await installSourceReadyNamedEdit(page, 'canonical-private-review-browser')
+    const identity = {
+      projectId: fixture.project.id,
+      editSessionId: fixture.edit.editSessionId,
+    }
+    const reviewMediaBytes = Buffer.from('canonical-private-review-browser-playwright-mp4')
+    const finalArtifactSha256 = createHash('sha256')
+      .update(reviewMediaBytes)
+      .digest('hex')
+    const decisionManifestSha256 = '9'.repeat(64)
+    const mediaRequests: Array<{
+      authorization: string | null
+      internalToken: string | null
+      url: string
+    }> = []
+    const historyRequests: Array<{
+      authorization: string | null
+      internalToken: string | null
+      url: string
+    }> = []
+    const decisionRequests: Array<{
+      authorization: string | null
+      internalToken: string | null
+      idempotencyKey: string | null
+      body: Record<string, unknown>
+      url: string
+    }> = []
+    let revisionRecorded = false
+
+    await page.route('**/v1/projects/*/edit-sessions/*/canonical-journey?*', async (route) => {
+      await route.fulfill({
+        contentType: 'application/json',
+        status: 200,
+        body: JSON.stringify({
+          ok: true,
+          data: {
+            canonicalEditJourney: revisionRecorded
+              ? canonicalRevisionRequestedJourneyFixture(
+                  identity.projectId,
+                  identity.editSessionId,
+                  finalArtifactSha256,
+                  decisionManifestSha256,
+                )
+              : canonicalPrivateReviewReadyJourneyFixture(
+                  identity.projectId,
+                  identity.editSessionId,
+                  finalArtifactSha256,
+                ),
+          },
+          warnings: [],
+        }),
+      })
+    })
+    await page.route(
+      '**/v1/edit-executions/private-review-assemblies/review-canonical-approval-browser/media?*',
+      async (route) => {
+        mediaRequests.push({
+          authorization: await route.request().headerValue('authorization'),
+          internalToken: await route.request().headerValue('x-reeditpro-internal-token'),
+          url: route.request().url(),
+        })
+        await route.fulfill({
+          body: reviewMediaBytes,
+          headers: {
+            'cache-control': 'private, no-store, max-age=0',
+            'content-disposition': 'inline; filename="reeditpro-private-review.mp4"',
+            'content-length': String(reviewMediaBytes.byteLength),
+            'content-type': 'video/mp4',
+            'x-reeditpro-artifact-sha256': finalArtifactSha256,
+            'x-reeditpro-review-assembly-id': 'review-canonical-approval-browser',
+            'x-reeditpro-review-manifest-sha256': '7'.repeat(64),
+          },
+          status: 200,
+        })
+      },
+    )
+    await page.route(
+      '**/v1/edit-executions/private-review-assemblies/review-canonical-approval-browser/canonical-decision',
+      async (route) => {
+        const body = route.request().postDataJSON() as Record<string, unknown>
+        decisionRequests.push({
+          authorization: await route.request().headerValue('authorization'),
+          internalToken: await route.request().headerValue('x-reeditpro-internal-token'),
+          idempotencyKey: await route.request().headerValue('idempotency-key'),
+          body,
+          url: route.request().url(),
+        })
+        revisionRecorded = true
+        await route.fulfill({
+          contentType: 'application/json',
+          status: 201,
+          body: JSON.stringify({
+            ok: true,
+            data: {
+              canonicalPrivateReviewDecision: canonicalPrivateReviewDecisionReceiptFixture(
+                identity.projectId,
+                identity.editSessionId,
+                finalArtifactSha256,
+                'request_revision',
+              ),
+            },
+            warnings: [],
+          }),
+        })
+      },
+    )
+    await page.route(
+      '**/v1/edit-executions/private-review-history/review-canonical-approval-browser/file?*',
+      async (route) => {
+        historyRequests.push({
+          authorization: await route.request().headerValue('authorization'),
+          internalToken: await route.request().headerValue('x-reeditpro-internal-token'),
+          url: route.request().url(),
+        })
+        await route.fulfill({
+          body: reviewMediaBytes,
+          headers: {
+            'cache-control': 'private, no-store, max-age=0',
+            'content-disposition': 'inline; filename="reeditpro-private-review.mp4"',
+            'content-length': String(reviewMediaBytes.byteLength),
+            'content-type': 'video/mp4',
+            'x-reeditpro-artifact-sha256': finalArtifactSha256,
+            'x-reeditpro-review-assembly-id': 'review-canonical-approval-browser',
+            'x-reeditpro-review-decision-manifest-sha256': decisionManifestSha256,
+          },
+          status: 200,
+        })
+      },
+    )
+
+    await gotoRoute(page, fixture.editPath)
+
+    const status = page.getByTestId('canonical-journey-status')
+    const reviewPanel = page.getByTestId('canonical-private-review')
+    await expect(status).toHaveAttribute('data-journey-stage', 'private_review_ready')
+    await expect(reviewPanel).toHaveAttribute('data-mode', 'current')
+    await expect(reviewPanel).toContainText('Watch before you decide')
+
+    await page.getByTestId('canonical-private-review-load').click()
+    await expect.poll(() => mediaRequests.length).toBe(1)
+    const mediaRequest = mediaRequests[0]!
+    expect(mediaRequest.authorization).toBe('Bearer canonical-journey-playwright-token')
+    expect(mediaRequest.internalToken).toBeNull()
+    const mediaUrl = new URL(mediaRequest.url)
+    expect(mediaUrl.pathname).toBe(
+      '/v1/edit-executions/private-review-assemblies/review-canonical-approval-browser/media',
+    )
+    expect(Object.fromEntries(mediaUrl.searchParams.entries())).toEqual({
+      workspaceId: scope.workspaceId,
+      packageRecordId: 'package-canonical-approval-browser',
+      expectedFinalArtifactSha256: finalArtifactSha256,
+      expectedProjectId: identity.projectId,
+      expectedEditSessionId: identity.editSessionId,
+      expectedManifestSha256: '7'.repeat(64),
+      purpose: 'read_canonical_private_review_media',
+    })
+    expect(mediaRequest.url).not.toMatch(
+      /artifactId|jobId|expectedAssetId|credential|signedUrl|publicUrl|storagePath/i,
+    )
+    await expect(page.getByTestId('canonical-private-review-player')).toBeVisible()
+    await expect(page.getByLabel('ReeditPro private review video')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Download review' })).toBeVisible()
+    await expect(page.getByTestId('canonical-private-review-accept')).toBeEnabled()
+
+    const revisionSummary =
+      'Tighten the opening pace, keep the source order, and make the captions smaller.'
+    await page.getByLabel(/Revision direction/i).fill(revisionSummary)
+    await page.getByTestId('canonical-private-review-request-revision').click()
+    await expect.poll(() => decisionRequests.length).toBe(1)
+
+    const decisionRequest = decisionRequests[0]!
+    expect(decisionRequest.authorization).toBe('Bearer canonical-journey-playwright-token')
+    expect(decisionRequest.internalToken).toBeNull()
+    expect(decisionRequest.idempotencyKey).toMatch(
+      /^canonical-private-review-decision:[a-f0-9]{64}$/,
+    )
+    expect(decisionRequest.url).toContain(
+      '/v1/edit-executions/private-review-assemblies/review-canonical-approval-browser/canonical-decision',
+    )
+    expect(decisionRequest.body).toEqual({
+      workspaceId: scope.workspaceId,
+      expectedProjectId: identity.projectId,
+      expectedEditSessionId: identity.editSessionId,
+      packageRecordId: 'package-canonical-approval-browser',
+      expectedManifestSha256: '7'.repeat(64),
+      expectedFinalArtifactSha256: finalArtifactSha256,
+      purpose: 'record_canonical_private_review_decision',
+      decision: 'request_revision',
+      revisionIntent: {
+        summary: revisionSummary,
+        changeCategories: ['pacing', 'caption', 'source_order'],
+        mustPreserve: [
+          'source_order',
+          'source_meaning',
+          'important_clips',
+          'approved_aspect_ratio',
+          'edit_preferences',
+          'edit_brief',
+        ],
+        requiresReplanning: true,
+        requiresFreshEstimateAndApproval: true,
+      },
+    })
+    expect(JSON.stringify(decisionRequest.body)).not.toMatch(
+      /artifactId|jobId|expectedAssetId|credential|token|signedUrl|publicUrl|storagePath|provider|price/i,
+    )
+
+    await expect(status).toHaveAttribute('data-journey-stage', 'revision_requested')
+    await expect(status).toContainText('Changes are saved')
+    await expect(status).toContainText('fresh plan, estimate, approval, and private review')
+    await expect(reviewPanel).toHaveAttribute('data-mode', 'history')
+    await expect(page.getByTestId('canonical-private-review-decision')).toHaveCount(0)
+
+    await status.getByRole('button', { name: 'Refresh saved workflow status' }).click()
+    await expect(page.getByTestId('canonical-private-review-load')).toBeVisible()
+    await page.getByTestId('canonical-private-review-load').click()
+    await expect.poll(() => historyRequests.length).toBe(1)
+    const historyRequest = historyRequests[0]!
+    expect(historyRequest.authorization).toBe('Bearer canonical-journey-playwright-token')
+    expect(historyRequest.internalToken).toBeNull()
+    const historyUrl = new URL(historyRequest.url)
+    expect(Object.fromEntries(historyUrl.searchParams.entries())).toEqual({
+      workspaceId: scope.workspaceId,
+      packageRecordId: 'package-canonical-approval-browser',
+      expectedFinalArtifactSha256: finalArtifactSha256,
+      expectedDecisionManifestSha256: decisionManifestSha256,
+      purpose: 'download_canonical_private_review_history_artifact',
+    })
+    await expect(page.getByTestId('canonical-private-review-player')).toBeVisible()
+    await expect(reviewPanel).toContainText('Reopen this review version')
+    await expectNoInternalToolNamesInEditor(page)
     await expectNoHorizontalOverflow(page)
   })
 
@@ -1212,7 +1449,11 @@ function canonicalPackagedJourneyFixture(projectId: string, editSessionId: strin
   }
 }
 
-function canonicalPrivateReviewReadyJourneyFixture(projectId: string, editSessionId: string) {
+function canonicalPrivateReviewReadyJourneyFixture(
+  projectId: string,
+  editSessionId: string,
+  finalArtifactSha256 = '8'.repeat(64),
+) {
   return {
     ...canonicalPackagedJourneyFixture(projectId, editSessionId),
     stage: 'private_review_ready',
@@ -1221,13 +1462,132 @@ function canonicalPrivateReviewReadyJourneyFixture(projectId: string, editSessio
       actor: 'authenticated_user',
       method: 'POST',
       routeTemplate:
-        '/v1/edit-executions/private-review-assemblies/review-canonical-approval-browser/decisions',
+        '/v1/edit-executions/private-review-assemblies/review-canonical-approval-browser/canonical-decision',
     },
     review: {
       reviewAssemblyId: 'review-canonical-approval-browser',
       manifestSha256: '7'.repeat(64),
-      finalArtifactSha256: '8'.repeat(64),
+      finalArtifactSha256,
     },
+  }
+}
+
+function canonicalRevisionRequestedJourneyFixture(
+  projectId: string,
+  editSessionId: string,
+  finalArtifactSha256: string,
+  decisionManifestSha256: string,
+) {
+  const reviewReady = canonicalPrivateReviewReadyJourneyFixture(
+    projectId,
+    editSessionId,
+    finalArtifactSha256,
+  )
+  return {
+    ...reviewReady,
+    stage: 'revision_requested',
+    nextAction: {
+      code: 'prepare_replacement_plan',
+      actor: 'planning_client',
+      method: 'POST',
+      routeTemplate:
+        `/v1/projects/${projectId}/edit-sessions/${editSessionId}/canonical-planning-handoff`,
+    },
+    review: {
+      ...reviewReady.review,
+      decision: 'request_revision',
+      decisionStatus: 'canonical_revision_requested',
+      decisionManifestSha256,
+      privateHistoryDownload: {
+        method: 'GET',
+        routeTemplate:
+          '/v1/edit-executions/private-review-history/' +
+          'review-canonical-approval-browser/file',
+        query: {
+          workspaceId: scope.workspaceId,
+          packageRecordId: 'package-canonical-approval-browser',
+          expectedDecisionManifestSha256: decisionManifestSha256,
+          expectedFinalArtifactSha256: finalArtifactSha256,
+          purpose: 'download_canonical_private_review_history_artifact',
+        },
+      },
+    },
+  }
+}
+
+function canonicalPrivateReviewDecisionReceiptFixture(
+  projectId: string,
+  editSessionId: string,
+  finalArtifactSha256: string,
+  decision: 'accept_private_internal_review' | 'request_revision',
+) {
+  const revisionRequested = decision === 'request_revision'
+  return {
+    schemaVersion: 'canonical-private-review-decision-coordinator-receipt-v1',
+    source: 'canonical_private_review_decision_coordinator_service',
+    purpose: 'record_canonical_private_review_decision',
+    disposition: 'decision_recorded',
+    identity: {
+      workspaceId: scope.workspaceId,
+      projectId,
+      editSessionId,
+      packageRecordId: 'package-canonical-approval-browser',
+      reviewAssemblyId: 'review-canonical-approval-browser',
+    },
+    authority: {
+      reviewManifestSha256: '7'.repeat(64),
+      finalArtifactSha256,
+      exactReviewAuthorityRevalidated: true,
+      immutableApprovedSnapshotPreserved: true,
+      immutableReviewManifestPreserved: true,
+    },
+    decision: {
+      value: decision,
+      status: revisionRequested
+        ? 'canonical_revision_requested'
+        : 'private_internal_review_accepted',
+      revisionRequested,
+      requiresReplanning: revisionRequested,
+      requiresFreshEstimateAndApproval: revisionRequested,
+    },
+    readiness: {
+      privateReviewDecisionRecorded: true,
+      publicExportReady: false,
+      productReady: false,
+      externalBetaReady: false,
+      productionReady: false,
+      nextRequiredGate: revisionRequested
+        ? 'canonical_revision_plan_compilation_and_fresh_approval'
+        : 'private_internal_acceptance_recorded_public_delivery_blocked',
+    },
+    boundaries: {
+      rawDecisionAuthorityReturned: false,
+      artifactIdentityReturned: false,
+      jobOrToolDetailsReturned: false,
+      filesystemPathReturned: false,
+      credentialReturned: false,
+      providerCallStarted: false,
+      publicArtifactCreated: false,
+      publicDeliveryStarted: false,
+      productionRenderStarted: false,
+      revisionExecutionStarted: false,
+      replacementPlanPublished: false,
+      customerPriceMutation: false,
+      customerCreditMutation: false,
+      walletMutation: false,
+      reservationMutation: false,
+      settlementStarted: false,
+      billingStarted: false,
+      deploymentStarted: false,
+    },
+    persistence: {
+      privateLocal: true,
+      tenantScoped: true,
+      distributed: false,
+      productionAuthority: false,
+    },
+    decidedAt: '2026-07-13T18:00:00.000Z',
+    testOnly: true,
   }
 }
 

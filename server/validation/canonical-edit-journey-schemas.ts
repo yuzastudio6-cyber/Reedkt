@@ -468,7 +468,7 @@ function expectedRouteFor(value: CanonicalEditJourneyResponseValue): string | un
         : undefined
     case 'private_review_ready':
       return value.review
-        ? `/v1/edit-executions/private-review-assemblies/${value.review.reviewAssemblyId}/decisions`
+        ? `/v1/edit-executions/private-review-assemblies/${value.review.reviewAssemblyId}/canonical-decision`
         : undefined
     case 'private_review_accepted':
       return projectRoute('canonical-journey')

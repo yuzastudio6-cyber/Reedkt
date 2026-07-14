@@ -257,7 +257,39 @@ function clipForSegment(clips: ClipSource[], index: number) {
 function segmentDuration(editLevel: EditLevel, index: number, clip: ClipSource | undefined) {
   const clipDuration = clipDurationSeconds(clip)
   const base = editLevel === 'premium' ? 6 : editLevel === 'pro' ? 5 : 4
-  return Math.max(3, Math.min(base + (index % 2), clipDuration))
+  return Math.min(base + (index % 2), clipDuration)
+}
+
+function confirmedSourceBoundSegments(input: PlannerInput): Array<{
+  clip: ClipSource
+  sourceStartSeconds: number
+  sourceEndSeconds: number
+}> | null {
+  if (
+    input.sourceOrderConfirmed !== true ||
+    input.structurePreference !== 'preserve_source_order' ||
+    input.sourceCleanupPlan?.status !== 'confirmed' ||
+    input.clips.length === 0
+  ) return null
+
+  const orderedClips = [...input.clips].sort((left, right) => left.uploadedOrder - right.uploadedOrder)
+  const segments = orderedClips.flatMap((clip) => {
+    const decision = input.sourceCleanupPlan?.decisions.find((candidate) => candidate.clipId === clip.id)
+    const clipDuration = clipDurationSeconds(clip)
+    const sourceStartSeconds = decision?.sourceRange.startSeconds
+    const sourceEndSeconds = decision?.sourceRange.endSeconds
+    if (
+      !decision || !['keep', 'preserve'].includes(decision.decision) ||
+      decision.userReviewRequired || ['high', 'blocking'].includes(decision.riskLevel) ||
+      typeof sourceStartSeconds !== 'number' || typeof sourceEndSeconds !== 'number' ||
+      !Number.isFinite(sourceStartSeconds) || !Number.isFinite(sourceEndSeconds) ||
+      sourceStartSeconds < 0 || sourceEndSeconds <= sourceStartSeconds ||
+      sourceEndSeconds > clipDuration
+    ) return []
+    return [{ clip, sourceStartSeconds, sourceEndSeconds }]
+  })
+
+  return segments.length === orderedClips.length ? segments : null
 }
 
 function mapVisualAssetsToSegments(visualAssetPlan: VisualAssetPlanItem[] | undefined, segmentCount: number) {
@@ -591,20 +623,41 @@ export function createSegmentEditPlans(params: {
 }): SegmentEditPlan[] {
   const { adaptiveEditStrategyPlan, audioPipelinePlan, colorPipelinePlan, compiledIntent, input, rendererCompositionPlan, visualAssetPlan } = params
   const directive = compiledIntent.professionalEditingDirective
-  const seeds = segmentSeedsForCategory(input.editingCategory)
+  const categorySeeds = segmentSeedsForCategory(input.editingCategory)
+  const sourceBoundSegments = confirmedSourceBoundSegments(input)
+  const seeds = sourceBoundSegments
+    ? sourceBoundSegments.map(({ clip }, index) => {
+        const template = categorySeeds[index % categorySeeds.length]!
+        return {
+          ...template,
+          label: clip.detectedType || template.label,
+          storyPurpose: `Preserve ${clip.fileName} in confirmed source order. ${template.storyPurpose}`,
+          spokenTextSummary: clip.notes?.trim() || clip.detectedType || template.spokenTextSummary,
+        }
+      })
+    : categorySeeds
   const visualAssetsBySegment = mapVisualAssetsToSegments(visualAssetPlan, seeds.length)
   const rendererLayersByAsset = mapRendererLayersToVisualAssets(rendererCompositionPlan)
   let currentStart = 0
 
   return seeds.map((seed, index) => {
-    const clip = clipForSegment(input.clips, index)
-    const duration = segmentDuration(input.editLevel, index, clip)
+    const sourceBoundSegment = sourceBoundSegments?.[index]
+    const clip = sourceBoundSegment?.clip ?? clipForSegment(input.clips, index)
+    const duration = sourceBoundSegment
+      ? sourceBoundSegment.sourceEndSeconds - sourceBoundSegment.sourceStartSeconds
+      : segmentDuration(input.editLevel, index, clip)
     const finalTimeRange = {
       startSeconds: currentStart,
       endSeconds: currentStart + duration,
       label: `${seed.label} final range`,
     }
-    const sourceTimeRange = clip
+    const sourceTimeRange = sourceBoundSegment
+      ? {
+          startSeconds: sourceBoundSegment.sourceStartSeconds,
+          endSeconds: sourceBoundSegment.sourceEndSeconds,
+          label: `${sourceBoundSegment.clip.fileName} approved source range`,
+        }
+      : clip
       ? {
           startSeconds: 0,
           endSeconds: Math.min(duration + 1, clipDurationSeconds(clip)),

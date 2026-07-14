@@ -167,15 +167,16 @@ function createGuidedSourceCleanupPlan(input: PlannerInput): SourceCleanupPlan {
   let cursor = 0
   const decisions = input.clips.map((clip) => {
     const duration = parseDurationSeconds(clip.duration)
+    const selectedDuration = clip.isOptional ? duration * 0.8 : duration
     const startSeconds = cursor
-    cursor += duration
+    cursor += selectedDuration
 
     return {
       id: `guided-trim-${clip.id}`,
       clipId: clip.id,
       sourceRange: { startSeconds: 0, endSeconds: duration, durationSeconds: duration },
-      selectedRange: { startSeconds: 0, endSeconds: Math.max(1, duration - 1), durationSeconds: Math.max(1, duration - 1) },
-      timelineRange: range(startSeconds, Math.max(1, Math.min(duration, 8))),
+      selectedRange: { startSeconds: 0, endSeconds: selectedDuration, durationSeconds: selectedDuration },
+      timelineRange: range(startSeconds, selectedDuration),
       decision: clip.isOptional ? 'tighten' : 'keep',
       finalUse: clip.sourceRole === 'b_roll' || clip.isOptional ? 'broll' : 'main_timeline',
       riskLevel: clip.isImportant ? 'low' : 'medium',
@@ -220,7 +221,10 @@ function createGuidedSourceCleanupPlan(input: PlannerInput): SourceCleanupPlan {
     preservedRanges: decisions.filter((decision) => decision.decision === 'keep'),
     cutRanges: decisions.filter((decision) => decision.decision === 'cut'),
     userReviewItems: [],
-    finalDurationImpactSeconds: -Math.min(6, input.clips.length),
+    finalDurationImpactSeconds: decisions.reduce(
+      (total, decision) => total + decision.selectedRange.durationSeconds - decision.sourceRange.durationSeconds,
+      0,
+    ),
     meaningPreservationRules: [
       'Preserve source meaning over pacing.',
       'Do not remove user-marked important clips without review.',
@@ -281,11 +285,15 @@ function createGuidedTrimReviewPlan(input: PlannerInput): TrimReviewPlan {
 function createGuidedMasterTimingPlan(input: PlannerInput): MasterTimingPlan {
   const fps = 30
   const sourceDurationSeconds = input.clips.reduce((total, clip) => total + parseDurationSeconds(clip.duration), 0)
-  const finalDurationSeconds = Math.max(12, Math.min(45, sourceDurationSeconds - (input.cleanupPreferenceConfirmed ? 4 : 0)))
   const status = input.aspectRatioConfirmed ? 'ready' : 'needs_frame_confirmation'
-  const segments = input.clips.slice(0, 4).map((clip, index) => {
-    const startSeconds = index * Math.max(3, finalDurationSeconds / Math.max(1, input.clips.length))
-    const duration = Math.max(3, Math.min(8, parseDurationSeconds(clip.duration)))
+  let timelineCursor = 0
+  const segments = input.clips.map((clip, index) => {
+    const cleanupDecision = input.sourceCleanupPlan?.decisions.find((decision) => decision.clipId === clip.id) as
+      | (SourceCleanupPlan['decisions'][number] & { selectedRange?: { durationSeconds?: number } })
+      | undefined
+    const duration = cleanupDecision?.selectedRange?.durationSeconds ?? parseDurationSeconds(clip.duration)
+    const startSeconds = timelineCursor
+    timelineCursor += duration
 
     return {
       id: `guided-segment-${clip.id}`,
@@ -298,6 +306,7 @@ function createGuidedMasterTimingPlan(input: PlannerInput): MasterTimingPlan {
       qaChecks: ['Review before approval.'],
     }
   })
+  const finalDurationSeconds = Math.max(1 / fps, timelineCursor)
 
   return {
     id: 'guided-master-timing-plan',
@@ -321,7 +330,13 @@ function createGuidedMasterTimingPlan(input: PlannerInput): MasterTimingPlan {
       clipId: clip.id,
       uploadedOrder: clip.uploadedOrder,
       sourceRange: range(0, parseDurationSeconds(clip.duration), fps),
-      selectedRange: range(0, Math.max(1, parseDurationSeconds(clip.duration) - 1), fps),
+      selectedRange: range(
+        0,
+        (input.sourceCleanupPlan?.decisions.find((decision) => decision.clipId === clip.id) as
+          | (SourceCleanupPlan['decisions'][number] & { selectedRange?: { durationSeconds?: number } })
+          | undefined)?.selectedRange?.durationSeconds ?? parseDurationSeconds(clip.duration),
+        fps,
+      ),
       role: clip.sourceRole ?? inferClipSourceRole(clip),
       reason: 'Preserve source order as planning context.',
       trimNotes: ['Final trim decisions remain reviewable before approval.'],
@@ -370,17 +385,20 @@ function createGuidedMasterTimingPlan(input: PlannerInput): MasterTimingPlan {
       reason: 'Visual appears only where it supports the viewer understanding.',
       qaChecks: ['Meaning-timed, not random.'],
     })),
-    transitionTimingItems: [
-      {
+    transitionTimingItems: segments.length > 1 ? (() => {
+      const boundarySeconds = segments[1]!.finalRange.startSeconds
+      const startSeconds = Math.max(0, boundarySeconds - 0.2)
+      const durationSeconds = Math.min(0.4, finalDurationSeconds - startSeconds)
+      return [{
         id: 'guided-transition-1',
         transitionType: 'clean_cut_transitions',
-        timeRange: range(4, 0.4, fps),
+        timeRange: range(startSeconds, durationSeconds, fps),
         beatAligned: false,
         phraseBoundaryAligned: true,
         reason: 'Use phrase-safe cuts before beat sync.',
         qaChecks: ['Do not cut important words.'],
-      },
-    ],
+      }]
+    })() : [],
     sfxTimingItems: [],
     musicDuckingTimingItems: [
       {
@@ -885,7 +903,8 @@ export function createGuidedMockEditPlan(input: PlannerInput): EditPlan {
   }
   const sourceCleanupPlan = input.sourceCleanupPlan ?? createGuidedSourceCleanupPlan(effectiveInput)
   const trimReviewPlan = input.trimReviewPlan ?? createGuidedTrimReviewPlan(effectiveInput)
-  const masterTimingPlan = input.masterTimingPlan ?? createGuidedMasterTimingPlan(effectiveInput)
+  const planningInput: PlannerInput = { ...effectiveInput, sourceCleanupPlan, trimReviewPlan }
+  const masterTimingPlan = input.masterTimingPlan ?? createGuidedMasterTimingPlan(planningInput)
   const captionVisualCueTimingPlan = input.captionVisualCueTimingPlan ?? createGuidedCaptionVisualCueTimingPlan(effectiveInput, masterTimingPlan)
   const soundSyncTransitionTimingPlan = input.soundSyncTransitionTimingPlan ?? createGuidedSoundSyncTransitionTimingPlan(effectiveInput, masterTimingPlan)
   const timingValidationPlan = input.timingValidationPlan ?? createGuidedTimingValidationPlan(effectiveInput)

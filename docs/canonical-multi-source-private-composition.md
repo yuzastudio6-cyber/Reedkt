@@ -62,7 +62,7 @@ The focused caption-track lifecycle is green through `npm run smoke:canonical-mu
 
 ## No-silent-drop boundary
 
-The normal rich two-source mock editor plan is intentionally not published into this bounded graph. Although multiple exact captions are now representable, the regression scenario still expands two one-second sources into a longer multi-segment plan with invalid duration expansion, transitions, SFX, ducking, color/audio work, and other segment operations. Those semantics are not equivalent to duration-preserving source ranges plus a caption track. The compiler returns explicit blockers and creates no publication candidate instead of dropping or compressing that work.
+The normal rich two-source mock editor plan is intentionally not published into this bounded graph. Confirmed preserve-source-order planning now maps its two one-second sources to two exact contiguous segments totaling two seconds/60 frames; it neither repeats nor stretches source footage. Its two caption ranges also remain inside those segments and expose short-readability risk without extending the timeline. The compiler consequently clears only the duration, one-to-one segment, and caption-range blockers. Transitions, SFX, ducking, color/audio work, and other segment operations remain explicit blockers and create no publication candidate instead of being dropped or compressed.
 
 The following remain separate future work-item/compiler milestones:
 

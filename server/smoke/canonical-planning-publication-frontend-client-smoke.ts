@@ -152,18 +152,84 @@ const realisticRichMultiSourceDraft = buildCanonicalPlanningDraft({
   plannerInput: multiSourceInput,
   sourceMediaAssets: multiSourceMediaAssets,
 })
+const realisticTiming = realisticRichMultiSourcePlan.masterTimingPlan!
+assert.equal(realisticTiming.timingBase.sourceDurationSeconds, 2)
+assert.equal(realisticTiming.timingBase.finalDurationSeconds, 2)
+assert.equal(realisticTiming.timingBase.totalFrames, 60)
+assert.deepEqual(
+  realisticTiming.finalTimelineSegments.map((segment) => [
+    segment.finalRange.startFrame,
+    segment.finalRange.endFrame,
+  ]),
+  [[0, 30], [30, 60]],
+  'Confirmed source-order planning must not repeat or stretch one-second sources.',
+)
+assert.deepEqual(
+  realisticTiming.sourceTimingItems.map((source) => [
+    source.selectedRange.startFrame,
+    source.selectedRange.endFrame,
+  ]),
+  [[0, 30], [0, 30]],
+  'Selected source timing must stay inside each verified one-second source.',
+)
+assert.deepEqual(
+  realisticTiming.captionTimingItems.map((caption) => [
+    caption.timeRange.startFrame,
+    caption.timeRange.endFrame,
+    caption.readabilityScore,
+  ]),
+  [[0, 30, 'medium'], [30, 60, 'medium']],
+  'Short captions must report readability risk without expanding beyond the final timeline.',
+)
+assert.equal(realisticRichMultiSourcePlan.timingValidationPlan?.approvalBlocked, false)
 assert.equal(realisticRichMultiSourceDraft.ok, true, 'A normal rich multi-source plan should preserve its handoff context.')
 assert.equal(
   realisticRichMultiSourceDraft.ok && realisticRichMultiSourceDraft.draft.publication,
   undefined,
   'A rich multi-source editor plan must not be silently flattened into the bounded sequence composition.',
 )
+const realisticRichBlockers = realisticRichMultiSourceDraft.ok
+  ? realisticRichMultiSourceDraft.draft.publicationBlockers
+  : []
+assert.equal(
+  realisticRichBlockers.some((blocker) =>
+    blocker.includes('contiguous, duration-preserving') ||
+    blocker.includes('one-to-one') ||
+    blocker.includes('requires one full-duration caption')),
+  false,
+  'Source-truth planning must remove only the duration, segment, and caption-range blockers it resolves.',
+)
+for (const expectedBlocker of [
+  'Timed transitions need their own canonical execution work items.',
+  'Sound-effect cues need their own canonical execution work items.',
+  'Music ducking needs its own canonical audio work items.',
+  'The planned edit includes operations outside the current source-and-caption private review runner.',
+  'The planned color work needs exact canonical processing work items.',
+  'The planned audio work needs exact canonical processing work items.',
+]) assert.ok(realisticRichBlockers.includes(expectedBlocker), `Missing rich-operation blocker: ${expectedBlocker}`)
 assert.match(
-  realisticRichMultiSourceDraft.ok
-    ? realisticRichMultiSourceDraft.draft.publicationBlockers.join(' ')
-    : '',
-  /contiguous|one-to-one|caption|transition|audio|operation/i,
+  realisticRichBlockers.join(' '),
+  /transition|audio|operation/i,
   'Rich timing and edit work must remain visible as an explicit publication blocker.',
+)
+
+const guidedSourceTruthPlan = createGuidedMockEditPlan(multiSourceInput)
+assert.equal(guidedSourceTruthPlan.masterTimingPlan?.timingBase.sourceDurationSeconds, 2)
+assert.equal(guidedSourceTruthPlan.masterTimingPlan?.timingBase.finalDurationSeconds, 2)
+assert.deepEqual(
+  guidedSourceTruthPlan.masterTimingPlan?.finalTimelineSegments.map((segment) => [
+    segment.finalRange.startFrame,
+    segment.finalRange.endFrame,
+  ]),
+  [[0, 30], [30, 60]],
+  'The signed-in guided planner path must preserve the same exact source duration.',
+)
+assert.deepEqual(
+  guidedSourceTruthPlan.masterTimingPlan?.sourceTimingItems.map((source) => [
+    source.selectedRange.startFrame,
+    source.selectedRange.endFrame,
+  ]),
+  [[0, 30], [0, 30]],
 )
 
 const exactPlan = createExactPrivateReviewPlan()

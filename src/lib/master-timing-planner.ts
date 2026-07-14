@@ -155,14 +155,14 @@ function createSourceTimingItems(input: PlannerInput, fps: number) {
       : trimDecision?.decision === 'cut'
       ? 0
       : trimDecision?.decision === 'tighten'
-        ? Math.max(2, Math.min(sourceDuration, sourceDuration * 0.75))
+        ? Math.min(sourceDuration, Math.max(Math.min(2, sourceDuration), sourceDuration * 0.75))
         : trimDecision?.decision === 'move_to_broll'
-          ? Math.max(2, Math.min(sourceDuration, 4))
+          ? Math.min(sourceDuration, 4)
           : clip.isOptional
-      ? Math.max(2, Math.min(sourceDuration, 4))
+      ? Math.min(sourceDuration, 4)
       : clip.isImportant
         ? sourceDuration
-        : Math.max(3, Math.min(sourceDuration, 8))
+        : Math.min(sourceDuration, 8)
 
     return {
       id: `source-timing-${clip.id}`,
@@ -338,9 +338,8 @@ function createCaptionTimingItems(params: {
 }): CaptionTimingItem[] {
   return params.transcriptTimingPlan.lines.map((line) => {
     const minimumReadFrames = getMinimumReadFrames(line.text, params.fps)
-    const range = line.timeRange.durationFrames >= minimumReadFrames
-      ? line.timeRange
-      : createFrameTimeRangeFromFrames(line.timeRange.startFrame, line.timeRange.startFrame + minimumReadFrames, params.fps)
+    const range = line.timeRange
+    const readableDuration = range.durationFrames >= minimumReadFrames
 
     return {
       id: `caption-timing-${line.id}`,
@@ -351,8 +350,13 @@ function createCaptionTimingItems(params: {
       holdFrames: Math.max(0, range.durationFrames - (params.input.editLevel === 'basic' ? 8 : 12)),
       animationOutFrames: params.input.editLevel === 'basic' ? 4 : 6,
       emphasisWord: params.input.editLevel === 'basic' ? undefined : line.emphasisWords[0],
-      readabilityScore: range.durationFrames >= minimumReadFrames ? 'high' : 'medium',
-      qaChecks: ['Caption has frame range.', 'Caption duration is checked for readable hold time.'],
+      readabilityScore: readableDuration ? 'high' : 'medium',
+      qaChecks: [
+        'Caption has a frame range inside its owning transcript/segment range.',
+        readableDuration
+          ? 'Caption duration meets the estimated readable hold time.'
+          : 'Caption duration is shorter than the readability target; simplify or merge text before approval.',
+      ],
     }
   })
 }
@@ -623,10 +627,9 @@ export function createMasterTimingPlan(params: CreateMasterTimingPlanParams): Ma
   const fps = getDefaultTimingFps({ aspectRatioFramePlan })
   const sourceTimingItems = createSourceTimingItems(params.input, fps)
   const segmentRanges = finalRangesFromSegments(params.input, params.segmentEditPlans, fps)
-  const finalDurationSeconds = Math.max(
-    3,
-    segmentRanges.length ? Math.max(...segmentRanges.map((segment) => segment.range.endSeconds)) : 18,
-  )
+  const finalDurationSeconds = segmentRanges.length
+    ? Math.max(1 / fps, Math.max(...segmentRanges.map((segment) => segment.range.endSeconds)))
+    : 18
   const finalFrames = secondsToFrames(finalDurationSeconds, fps)
   const sourceDurationSeconds = sourceTimingItems.reduce((sum, item) => sum + item.sourceRange.durationSeconds, 0)
   const transcriptTimingPlan = createTranscriptTimingPlan({ fps, segmentRanges })

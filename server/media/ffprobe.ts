@@ -12,6 +12,12 @@ export interface MediaProbeSummary {
   height?: number
   videoCodec?: string
   audioCodec?: string
+  pixelFormat?: string
+  colorSpace?: string
+  colorTransfer?: string
+  colorPrimaries?: string
+  colorRange?: string
+  bitsPerRawSample?: number
   formatName?: string
   sizeBytes?: number
   streamCount: number
@@ -71,6 +77,12 @@ async function parseFFprobeJson(stdout: string, inputPath: string): Promise<Medi
     height: typeof videoStream?.height === 'number' ? videoStream.height : undefined,
     videoCodec: typeof videoStream?.codec_name === 'string' ? videoStream.codec_name : undefined,
     audioCodec: typeof audioStream?.codec_name === 'string' ? audioStream.codec_name : undefined,
+    pixelFormat: typeof videoStream?.pix_fmt === 'string' ? videoStream.pix_fmt : undefined,
+    colorSpace: typeof videoStream?.color_space === 'string' ? videoStream.color_space : undefined,
+    colorTransfer: typeof videoStream?.color_transfer === 'string' ? videoStream.color_transfer : undefined,
+    colorPrimaries: typeof videoStream?.color_primaries === 'string' ? videoStream.color_primaries : undefined,
+    colorRange: typeof videoStream?.color_range === 'string' ? videoStream.color_range : undefined,
+    bitsPerRawSample: numericField(videoStream?.bits_per_raw_sample),
     formatName,
     sizeBytes: Number.isFinite(formatSize) ? formatSize : fallbackStat?.size,
     streamCount: streams.length,
@@ -83,4 +95,9 @@ async function parseFFprobeJson(stdout: string, inputPath: string): Promise<Medi
         .slice(0, 8),
     },
   }
+}
+
+function numericField(value: unknown): number | undefined {
+  const parsed = typeof value === 'number' ? value : typeof value === 'string' ? Number(value) : undefined
+  return typeof parsed === 'number' && Number.isFinite(parsed) && parsed >= 0 ? parsed : undefined
 }

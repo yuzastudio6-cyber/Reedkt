@@ -46,6 +46,10 @@ export interface MediaVideoStreamProbe {
   durationSeconds?: number
   pixelFormat?: string
   colorSpace?: string
+  colorTransfer?: string
+  colorPrimaries?: string
+  colorRange?: string
+  bitsPerRawSample?: number
   rotation?: number
 }
 
@@ -96,6 +100,11 @@ export interface MediaProxyResult {
   width?: number
   height?: number
   durationSeconds?: number
+  profileId?: string
+  sourceDynamicRange?: 'sdr' | 'hdr' | 'wide_gamut_or_unknown'
+  outputColorSpace?: 'bt709'
+  originalMasterPreserved?: true
+  colorAssumptionWarning?: string
   skipReason?: MediaFoundationSkipReason
 }
 
@@ -176,8 +185,11 @@ export interface CreateProxyVideoInput extends FFmpegMediaInputBase {
   targetMaxHeight?: number
   videoPreset?: 'veryfast' | 'faster' | 'fast' | 'medium'
   videoCrf?: number
+  videoMaxBitrate?: string
+  videoBufferSize?: string
   audioBitrate?: string
   keepAudio?: boolean
+  outputColorSpace?: 'bt709'
 }
 
 export interface ExtractAudioTrackInput extends FFmpegMediaInputBase {

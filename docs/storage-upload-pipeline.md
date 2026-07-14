@@ -47,6 +47,14 @@ lease, heartbeats, bounded retries, expired-lease reclamation, and safe status
 views. The browser never calls the internal worker-run route. Small uploads
 retain the inline finalization path.
 
+Before a background attempt claims its lease, the current full-stage worker
+must prove free filesystem capacity for one complete source copy plus the
+larger of 8 GiB or 10% safety headroom. Missing or insufficient capacity starts
+no byte traversal and consumes no retry. A process-local reservation prevents
+concurrent jobs from double-spending the same observed capacity on that worker.
+This is a fail-closed single-process guard, not distributed capacity or
+representative huge-object throughput evidence.
+
 ## Media Records
 
 `media-asset-service.ts` creates mock typed records from upload plans:
@@ -76,8 +84,9 @@ Generated assets, preview renders, final exports, QA artifacts, and worker temp 
 - Profile and brand upload paths are not production-ready until backend signed uploads or safe workspace-only policies exist.
 - Live GCS resumable CORS/IAM/session behavior and genuinely large object tests
   are not proven. The private restart-safe finalization control plane is
-  executable, but distributed dispatch, durable byte progress, representative
-  worker capacity, and deployed recovery are still required before production
+  executable and capacity-admitted, but distributed dispatch, durable byte
+  progress, representative worker I/O/throughput, an executed color-managed
+  HDR transform, and deployed recovery are still required before production
   large-video support can be claimed.
 
 See `docs/large-media-ingestion-and-proxy-readiness-2026-07-13.md`.

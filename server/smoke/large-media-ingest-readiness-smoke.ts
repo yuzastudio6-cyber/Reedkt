@@ -9,6 +9,13 @@ import { createProjectService } from '../services/project-service'
 import { createUploadService } from '../services/upload-service'
 import { buildProxyVideoArgs } from '../workers/media/ffmpeg-media-adapter'
 import { deriveMediaTaskTimeoutMs } from '../workers/media/media-task-policy'
+import { resolveAnalysisProxyColorDecision } from '../workers/media/media-proxy-policy'
+import {
+  assessLargeMediaFinalizationCapacity,
+  clearLargeMediaWorkerCapacityReservationsForSmoke,
+  REEDITPRO_LARGE_MEDIA_WORKER_CAPACITY_POLICY,
+  reserveLargeMediaWorkerCapacity,
+} from '../workers/media/media-worker-capacity-policy'
 import { GcsStorageAdapter } from '../storage/gcs-storage-adapter'
 import {
   LOCAL_RAW_UPLOAD_MAX_BYTES,
@@ -41,7 +48,10 @@ const evidence = {
   provider_session_uri_receives_no_backend_authorization: false,
   browser_upload_does_not_require_whole_file_checksum: false,
   professional_proxy_is_bounded_1080p_and_preserves_original_for_final: false,
+  hdr_and_wide_gamut_sources_cannot_silently_use_the_sdr_proxy_path: false,
   media_task_timeouts_scale_for_large_duration_and_size: false,
+  huge_source_requires_full_stage_plus_safety_headroom_before_byte_traversal: false,
+  concurrent_local_jobs_cannot_double_reserve_the_same_worker_capacity: false,
   local_raw_route_remains_small_and_non_production: false,
 }
 
@@ -363,18 +373,53 @@ const proxyArgs = buildProxyVideoArgs({
   targetMaxHeight: REEDITPRO_ANALYSIS_PROXY_POLICY.maxHeight,
   videoPreset: REEDITPRO_ANALYSIS_PROXY_POLICY.videoPreset,
   videoCrf: REEDITPRO_ANALYSIS_PROXY_POLICY.videoCrf,
+  videoMaxBitrate: REEDITPRO_ANALYSIS_PROXY_POLICY.videoMaxBitrate,
+  videoBufferSize: REEDITPRO_ANALYSIS_PROXY_POLICY.videoBufferSize,
   audioBitrate: REEDITPRO_ANALYSIS_PROXY_POLICY.audioBitrate,
   keepAudio: true,
+  outputColorSpace: REEDITPRO_ANALYSIS_PROXY_POLICY.outputColorSpace,
 }, '/private/proxy/proxy.mp4')
 assert.match(proxyArgs[proxyArgs.indexOf('-vf') + 1] ?? '', /1920.*1080/)
 assert.equal(proxyArgs[proxyArgs.indexOf('-preset') + 1], 'fast')
-assert.equal(proxyArgs[proxyArgs.indexOf('-crf') + 1], '20')
+assert.equal(proxyArgs[proxyArgs.indexOf('-crf') + 1], '18')
+assert.equal(proxyArgs[proxyArgs.indexOf('-maxrate:v') + 1], '20M')
+assert.equal(proxyArgs[proxyArgs.indexOf('-bufsize:v') + 1], '40M')
 assert.equal(proxyArgs[proxyArgs.indexOf('-b:a') + 1], '192k')
 assert.equal(proxyArgs[proxyArgs.indexOf('-loglevel') + 1], 'error')
 assert.equal(proxyArgs[proxyArgs.indexOf('-fps_mode:v') + 1], 'passthrough')
 assert.equal(proxyArgs[proxyArgs.indexOf('-map_metadata') + 1], '-1')
+assert.equal(proxyArgs[proxyArgs.indexOf('-colorspace:v') + 1], 'bt709')
+assert.equal(proxyArgs[proxyArgs.indexOf('-color_primaries:v') + 1], 'bt709')
+assert.equal(proxyArgs[proxyArgs.indexOf('-color_trc:v') + 1], 'bt709')
 assert.equal(REEDITPRO_ANALYSIS_PROXY_POLICY.finalRenderUsesOriginal, true)
 evidence.professional_proxy_is_bounded_1080p_and_preserves_original_for_final = true
+
+const rec709ProxyDecision = resolveAnalysisProxyColorDecision({
+  pixelFormat: 'yuv420p',
+  colorSpace: 'bt709',
+  colorTransfer: 'bt709',
+  colorPrimaries: 'bt709',
+})
+assert.equal(rec709ProxyDecision.status, 'ready')
+assert.equal(rec709ProxyDecision.sourceDynamicRange, 'sdr')
+assert.equal(rec709ProxyDecision.originalMasterPreserved, true)
+const pqProxyDecision = resolveAnalysisProxyColorDecision({
+  pixelFormat: 'yuv420p10le',
+  colorSpace: 'bt2020nc',
+  colorTransfer: 'smpte2084',
+  colorPrimaries: 'bt2020',
+  bitsPerRawSample: 10,
+})
+assert.equal(pqProxyDecision.status, 'requires_color_managed_runtime')
+assert.equal(pqProxyDecision.reasonCode, 'hdr_tonemap_required')
+assert.equal(pqProxyDecision.originalMasterPreserved, true)
+const p3ProxyDecision = resolveAnalysisProxyColorDecision({
+  colorTransfer: 'bt709',
+  colorPrimaries: 'smpte432',
+})
+assert.equal(p3ProxyDecision.status, 'requires_color_managed_runtime')
+assert.equal(p3ProxyDecision.reasonCode, 'wide_gamut_transform_required')
+evidence.hdr_and_wide_gamut_sources_cannot_silently_use_the_sdr_proxy_path = true
 
 const largeProxyTimeout = deriveMediaTaskTimeoutMs({
   task: 'create_proxy',
@@ -390,6 +435,50 @@ assert.equal(deriveMediaTaskTimeoutMs({
   sourceSizeBytes: REEDITPRO_SOURCE_MEDIA_MAX_BYTES,
 }), 30 * 60 * 1_000)
 evidence.media_task_timeouts_scale_for_large_duration_and_size = true
+
+const ceilingCapacityUnknown = assessLargeMediaFinalizationCapacity({
+  expectedSourceBytes: REEDITPRO_SOURCE_MEDIA_MAX_BYTES,
+})
+assert.equal(ceilingCapacityUnknown.status, 'unavailable')
+assert.equal(ceilingCapacityUnknown.byteTraversalAuthorized, false)
+assert.equal(ceilingCapacityUnknown.sourceStagingBytes, REEDITPRO_SOURCE_MEDIA_MAX_BYTES)
+assert.ok(ceilingCapacityUnknown.safetyReserveBytes >= 8 * 1024 ** 3)
+const ceilingCapacityInsufficient = assessLargeMediaFinalizationCapacity({
+  expectedSourceBytes: REEDITPRO_SOURCE_MEDIA_MAX_BYTES,
+  availableBytes: REEDITPRO_SOURCE_MEDIA_MAX_BYTES,
+})
+assert.equal(ceilingCapacityInsufficient.status, 'insufficient')
+assert.equal(ceilingCapacityInsufficient.byteTraversalAuthorized, false)
+assert.ok((ceilingCapacityInsufficient.shortfallBytes ?? 0) > 0)
+const ceilingCapacityAdmitted = assessLargeMediaFinalizationCapacity({
+  expectedSourceBytes: REEDITPRO_SOURCE_MEDIA_MAX_BYTES,
+  availableBytes: ceilingCapacityInsufficient.requiredAvailableBytes,
+})
+assert.equal(ceilingCapacityAdmitted.status, 'admitted')
+assert.equal(ceilingCapacityAdmitted.byteTraversalAuthorized, true)
+assert.equal(ceilingCapacityAdmitted.policyId, REEDITPRO_LARGE_MEDIA_WORKER_CAPACITY_POLICY.id)
+evidence.huge_source_requires_full_stage_plus_safety_headroom_before_byte_traversal = true
+
+clearLargeMediaWorkerCapacityReservationsForSmoke()
+const firstCapacityReservation = reserveLargeMediaWorkerCapacity({
+  filesystemPath: '/private/large-media-worker-root',
+  assessment: ceilingCapacityAdmitted,
+})
+const overlappingCapacityReservation = reserveLargeMediaWorkerCapacity({
+  filesystemPath: '/private/large-media-worker-root',
+  assessment: ceilingCapacityAdmitted,
+})
+assert.equal(firstCapacityReservation.acquired, true)
+assert.equal(overlappingCapacityReservation.acquired, false)
+firstCapacityReservation.release()
+const capacityReservationAfterRelease = reserveLargeMediaWorkerCapacity({
+  filesystemPath: '/private/large-media-worker-root',
+  assessment: ceilingCapacityAdmitted,
+})
+assert.equal(capacityReservationAfterRelease.acquired, true)
+capacityReservationAfterRelease.release()
+clearLargeMediaWorkerCapacityReservationsForSmoke()
+evidence.concurrent_local_jobs_cannot_double_reserve_the_same_worker_capacity = true
 
 assert.doesNotThrow(() => assertLocalRawUploadByteLength(LOCAL_RAW_UPLOAD_MAX_BYTES))
 assert.throws(() => assertLocalRawUploadByteLength(LOCAL_RAW_UPLOAD_MAX_BYTES + 1), /development-route limit/)

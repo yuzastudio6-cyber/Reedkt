@@ -68,8 +68,11 @@ export function buildProxyVideoArgs(input: CreateProxyVideoInput, outputPath: st
   const targetMaxWidth = input.targetMaxWidth ?? 1280
   const targetMaxHeight = input.targetMaxHeight ?? 720
   const videoPreset = input.videoPreset ?? 'fast'
-  const videoCrf = Math.max(0, Math.min(51, input.videoCrf ?? 20))
+  const videoCrf = Math.max(0, Math.min(51, input.videoCrf ?? 18))
+  const videoMaxBitrate = input.videoMaxBitrate ?? '20M'
+  const videoBufferSize = input.videoBufferSize ?? '40M'
   const audioBitrate = input.audioBitrate ?? '192k'
+  const outputColorSpace = input.outputColorSpace ?? 'bt709'
   return [
     '-hide_banner',
     '-loglevel',
@@ -96,10 +99,22 @@ export function buildProxyVideoArgs(input: CreateProxyVideoInput, outputPath: st
     videoPreset,
     '-crf',
     String(videoCrf),
+    '-maxrate:v',
+    videoMaxBitrate,
+    '-bufsize:v',
+    videoBufferSize,
     '-profile:v',
     'high',
     '-pix_fmt',
     'yuv420p',
+    '-colorspace:v',
+    outputColorSpace,
+    '-color_primaries:v',
+    outputColorSpace,
+    '-color_trc:v',
+    outputColorSpace,
+    '-color_range:v',
+    'tv',
     '-fps_mode:v',
     'passthrough',
     ...(keepAudio ? ['-c:a', 'aac', '-b:a', audioBitrate, '-ar', '48000'] : []),

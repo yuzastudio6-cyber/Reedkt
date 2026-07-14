@@ -7,6 +7,7 @@ import { runAudioExtractProductionWorker } from './audio-extract-production-work
 import { runKeyframeExtractProductionWorker } from './keyframe-extract-production-worker'
 import { runMediaProbeProductionWorker } from './media-probe-production-worker'
 import { runMediaProxyProductionWorker } from './media-proxy-production-worker'
+import { resolveAnalysisProxyColorDecision } from './media-proxy-policy'
 import { runRepresentativeFrameProductionWorker } from './representative-frame-production-worker'
 import type {
   ExtractedAudioResult,
@@ -156,11 +157,15 @@ export async function runMediaAnalysisFoundation(input: MediaFoundationRunnerInp
     artifactRecords,
     mediaAnalysisReport,
     skipReasons: [
+      ...(proxy?.skipReason ? [proxy.skipReason] : []),
       ...(audio?.skipReason ? [audio.skipReason] : []),
       ...(keyframes?.skipReason ? [keyframes.skipReason] : []),
       ...(representativeFrames?.skipReason ? [representativeFrames.skipReason] : []),
     ],
-    warnings: ['Milestone 6 did not run transcript, scene intelligence, OpenCV visual analysis, color grading, OCR, masks, enhancement, or final render.'],
+    warnings: [
+      ...(proxy?.colorAssumptionWarning ? [proxy.colorAssumptionWarning] : []),
+      'Milestone 6 did not run transcript, scene intelligence, OpenCV visual analysis, color grading, OCR, masks, enhancement, or final render.',
+    ],
   }
 }
 
@@ -185,8 +190,25 @@ async function runProxyTask(
   ffmpegBin: string,
   timeoutMs: number,
   summaries: MediaFoundationArtifactSummary[],
-  probe: Pick<NonNullable<MediaFoundationResult['probe']>, 'durationSeconds' | 'width' | 'height' | 'rotation'>,
+  probe: NonNullable<MediaFoundationResult['probe']>,
 ): Promise<MediaProxyResult> {
+  const colorDecision = resolveAnalysisProxyColorDecision(probe.videoStreams[0])
+  if (colorDecision.status !== 'ready') {
+    return {
+      status: 'skipped',
+      ...fitProxyDimensions(probe.width, probe.height, probe.rotation),
+      durationSeconds: probe.durationSeconds,
+      profileId: colorDecision.profileId,
+      sourceDynamicRange: colorDecision.sourceDynamicRange,
+      outputColorSpace: colorDecision.outputColorSpace,
+      originalMasterPreserved: true,
+      skipReason: {
+        code: colorDecision.reasonCode,
+        message: colorDecision.message,
+        tool: 'ffmpeg',
+      },
+    }
+  }
   const outputLocalPath = path.join(outputRoot, 'proxy', `${input.mediaAssetId}-proxy.mp4`)
   const artifact = await runMediaProxyProductionWorker({
     sourceLocalPath,
@@ -198,8 +220,11 @@ async function runProxyTask(
     targetMaxHeight: REEDITPRO_ANALYSIS_PROXY_POLICY.maxHeight,
     videoPreset: REEDITPRO_ANALYSIS_PROXY_POLICY.videoPreset,
     videoCrf: REEDITPRO_ANALYSIS_PROXY_POLICY.videoCrf,
+    videoMaxBitrate: REEDITPRO_ANALYSIS_PROXY_POLICY.videoMaxBitrate,
+    videoBufferSize: REEDITPRO_ANALYSIS_PROXY_POLICY.videoBufferSize,
     audioBitrate: REEDITPRO_ANALYSIS_PROXY_POLICY.audioBitrate,
     keepAudio: true,
+    outputColorSpace: REEDITPRO_ANALYSIS_PROXY_POLICY.outputColorSpace,
   })
   const canonical = withCanonicalStoragePath(input, artifact, 'proxy', `${input.mediaAssetId}-proxy.mp4`)
   summaries.push(canonical)
@@ -208,6 +233,11 @@ async function runProxyTask(
     artifact: canonical,
     ...fitProxyDimensions(probe.width, probe.height, probe.rotation),
     durationSeconds: probe.durationSeconds,
+    profileId: colorDecision.profileId,
+    sourceDynamicRange: colorDecision.sourceDynamicRange,
+    outputColorSpace: colorDecision.outputColorSpace,
+    originalMasterPreserved: true,
+    colorAssumptionWarning: colorDecision.warning,
   }
 }
 

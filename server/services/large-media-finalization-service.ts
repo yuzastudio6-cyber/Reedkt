@@ -14,6 +14,12 @@ import {
 } from './private-large-media-finalization-authority-store'
 import { privateUploadMediaAuthorityValueHash } from './private-upload-media-authority-store'
 import { createUploadService } from './upload-service'
+import {
+  inspectLargeMediaFinalizationCapacity,
+  reserveLargeMediaWorkerCapacity,
+  type LargeMediaWorkerCapacityAssessment,
+  type LargeMediaWorkerCapacityReservation,
+} from '../workers/media/media-worker-capacity-policy'
 
 const MINUTE = 60_000
 const HOUR = 60 * MINUTE
@@ -39,6 +45,10 @@ interface LargeMediaFinalizationServiceDependencies {
     context: ServiceContext,
     input: { workspaceId: string; uploadIntentId: string; expectedSizeBytes: number },
   ) => Promise<FinalizationExecutionResult>
+  inspectWorkerCapacity?: (input: {
+    filesystemPath: string
+    expectedSourceBytes: number
+  }) => Promise<LargeMediaWorkerCapacityAssessment>
   now?: () => Date
 }
 
@@ -78,6 +88,7 @@ export function createLargeMediaFinalizationService(
   const now = dependencies.now ?? (() => new Date())
   const uploadService = createUploadService(context)
   const executeFinalization = dependencies.executeFinalization ?? defaultFinalizationExecutor
+  const inspectWorkerCapacity = dependencies.inspectWorkerCapacity ?? inspectLargeMediaFinalizationCapacity
 
   return {
     async enqueue(input: {
@@ -175,6 +186,33 @@ export function createLargeMediaFinalizationService(
       const scope = scopeFor(context, input.workspaceId)
       const existing = await readRequiredJob(context, input.workspaceId, input.jobId)
       await uploadService.getUploadFinalizationCandidate(existing.uploadIntentId, input.workspaceId)
+      let capacityReservation: LargeMediaWorkerCapacityReservation | undefined
+      if (existing.status === 'queued' || existing.status === 'failed_retryable') {
+        const capacity = await inspectWorkerCapacity({
+          filesystemPath: context.env.localStorageRoot,
+          expectedSourceBytes: existing.expectedSizeBytes,
+        })
+        if (!capacity.byteTraversalAuthorized) {
+          return {
+            job: toJobView(existing),
+            executionStarted: false,
+            warnings: [capacity.status === 'insufficient'
+              ? 'This worker does not have enough verified private staging capacity for the source; no object bytes were read and another appropriately sized worker may retry.'
+              : 'Worker staging capacity could not be verified; no object bytes were read and the finalization job remains queued safely.'],
+          }
+        }
+        capacityReservation = reserveLargeMediaWorkerCapacity({
+          filesystemPath: context.env.localStorageRoot,
+          assessment: capacity,
+        })
+        if (!capacityReservation.acquired) {
+          return {
+            job: toJobView(existing),
+            executionStarted: false,
+            warnings: ['This worker already reserved its verified private staging capacity for another large source; no object bytes were read and no attempt was consumed.'],
+          }
+        }
+      }
       const claimTime = now().toISOString()
       const leaseDurationMs = boundedLeaseDurationMs(context.env.workerClaimLeaseSeconds * 1_000)
       const claim = await claimPrivateLargeMediaFinalizationJob({
@@ -184,8 +222,12 @@ export function createLargeMediaFinalizationService(
         now: claimTime,
         leaseDurationMs,
         attemptTimeoutMs: deriveFinalizationAttemptTimeoutMs(existing.expectedSizeBytes),
+      }).catch((error) => {
+        capacityReservation?.release()
+        throw error
       })
       if (claim.disposition !== 'claimed') {
+        capacityReservation?.release()
         return {
           job: toJobView(claim.job),
           executionStarted: false,
@@ -266,6 +308,8 @@ export function createLargeMediaFinalizationService(
             ? 'The private source remains queued for a bounded retry; no editing started.'
             : 'Finalization failed closed and requires review before the source can enter planning.'],
         }
+      } finally {
+        capacityReservation?.release()
       }
     },
   }

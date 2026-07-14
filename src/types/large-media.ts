@@ -28,16 +28,23 @@ export const REEDITPRO_RESUMABLE_UPLOAD_MAX_RETRIES = 5
 export const GCS_RESUMABLE_SESSION_TTL_SECONDS = 7 * 24 * 60 * 60
 
 export const REEDITPRO_ANALYSIS_PROXY_POLICY = {
-  id: 'professional_1080p_analysis_proxy_v1',
+  id: 'professional_1080p_analysis_proxy_v2',
   maxWidth: 1920,
   maxHeight: 1080,
   videoCodec: 'libx264',
   videoPreset: 'fast',
-  videoCrf: 20,
+  videoCrf: 18,
+  videoMaxBitrate: '20M',
+  videoBufferSize: '40M',
   pixelFormat: 'yuv420p',
+  outputColorSpace: 'bt709',
+  outputColorPrimaries: 'bt709',
+  outputColorTransfer: 'bt709',
+  outputColorRange: 'tv',
   audioCodec: 'aac',
   audioBitrate: '192k',
   finalRenderUsesOriginal: true,
+  hdrAndWideGamutRequireColorManagedTransform: true,
 } as const
 
 export type TemporaryUploadProtocol = 'single_put' | 'gcs_resumable'

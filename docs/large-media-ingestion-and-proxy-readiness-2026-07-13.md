@@ -1,6 +1,6 @@
 # Large Media Ingestion And Proxy Readiness — 2026-07-13
 
-Status: `source_hardened_private_background_finalization_verified_live_cloud_blocked`
+Status: `source_hardened_private_background_finalization_and_capacity_admission_verified_live_cloud_blocked`
 
 This slice makes ReEditPro's upload contract suitable for professional-size
 source footage without claiming that a deployed environment has processed a
@@ -82,6 +82,19 @@ restarts that bounded traversal. A distributed dispatcher, representative
 huge-object runs, single-pass/range-aware optimization, durable byte-level
 progress, and deployed worker capacity remain required.
 
+Before a queued or retryable job claims a lease, the worker now inspects the
+filesystem that owns the private staging root. The current
+`large_media_worker_capacity_v1` policy requires one complete source-sized
+staging copy plus the larger of 8 GiB or 10% source-size safety headroom. An
+unavailable or insufficient capacity reading leaves the job queued, reads zero
+object bytes, and consumes zero attempts. This prevents a 100 GiB, 1 TiB, or
+other huge source from entering the current full-stage implementation on an
+undersized worker. A process-local reservation also prevents concurrent jobs on
+that worker from each spending the same observed free bytes; it is released
+after the leased attempt ends. This is admission safety, not proof that a
+distributed deployment has shared capacity reservations, the advertised disk,
+I/O throughput, quota, or lifecycle behavior.
+
 Cloud Storage documents that resumable chunks must be multiples of 256 KiB,
 recommends at least 8 MiB, returns `308 Resume Incomplete` with a committed
 range, and limits a resumable session to seven days:
@@ -92,22 +105,30 @@ range, and limits a resumable session to seven days:
 
 ## Quality-preserving proxy policy
 
-`professional_1080p_analysis_proxy_v1` creates a private browser-compatible
+`professional_1080p_analysis_proxy_v2` creates a private browser-compatible
 working proxy with:
 
 - a 1920x1080 bounding box with no upscaling;
-- H.264 High Profile, CRF 20, `fast` preset, and `yuv420p`;
+- H.264 High Profile, CRF 18, `fast` preset, `yuv420p`, and bounded 20 Mbit/s
+  maximum rate with a 40 Mbit buffer;
 - AAC 48 kHz at 192 kbit/s when audio exists;
 - variable-frame-rate timestamps passed through instead of forcing a new FPS;
 - source aspect ratio preserved and dimensions kept even;
 - source metadata, chapters, subtitle streams, and data streams omitted from
   the proxy to reduce private-metadata leakage; and
+- explicit Rec.709 primaries, transfer, matrix, and limited-range output tags;
+  and
 - fast-start MP4 layout.
 
 The original object is immutable and remains the intended final-render source.
-Proxy creation never authorizes source deletion or replacement. HDR/wide-gamut
-sources require a later color-managed proxy transform before their proxy can be
-treated as color-accurate.
+Proxy creation never authorizes source deletion or replacement. FFprobe source
+metadata now preserves pixel format, matrix, transfer, primaries, range, and
+bit depth into private source authority and analysis reports. PQ/HLG HDR,
+BT.2020, and Display-P3/DCI-P3 declarations cannot silently enter the ordinary
+Rec.709 SDR proxy path: that path returns an explicit color-managed tone-map or
+wide-gamut-transform requirement while retaining the original. Untagged SDR
+may use a visible/reviewable Rec.709 working assumption; it is not rewritten as
+source color truth.
 
 Media command safety budgets now scale from source size and probed duration.
 Probe, proxy, audio, and frame extraction no longer inherit one fixed 30-second
@@ -133,8 +154,11 @@ npm run smoke:prod-media-foundation
 The focused large-media smoke proves high-ceiling validation, create-only
 resumable-session options, exact offset recovery after a simulated lost
 response, recovery when the offset query is itself interrupted, no
-cross-origin auth leakage, no browser whole-file hash, proxy settings,
-adaptive task budgets, and the unchanged 16 MiB local raw boundary.
+cross-origin auth leakage, no browser whole-file hash, v2 proxy settings,
+explicit HDR/wide-gamut refusal from the SDR path, full-stage-plus-headroom
+capacity math, adaptive task budgets, and the unchanged 16 MiB local raw
+boundary. The media-foundation smoke also executes a real local SDR fixture and
+independently probes the resulting bounded Rec.709 proxy.
 It allocates only a small synthetic file and does not contact GCS.
 
 The background-finalization smoke additionally proves authenticated enqueue and
@@ -170,11 +194,12 @@ ReEditPro must not claim production large-video support until all of these pass:
   traversal after every interrupted attempt;
 - malware/content scanning, parser isolation, hostile-media resource controls,
   and decompression-bomb defenses pass;
-- worker disk/stream capacity, heartbeats, cancellation, retry, orphan cleanup,
-  and observability pass with representative 4K/8K, ProRes, long-GOP, VFR,
+- worker disk/stream capacity, I/O throughput, heartbeats, cancellation, retry,
+  orphan cleanup, and observability pass with representative 4K/8K, ProRes, long-GOP, VFR,
   multi-channel audio, timecode, HDR, and damaged inputs;
-- a color-managed HDR/wide-gamut proxy policy and metadata/timecode sidecars are
-  verified;
+- a color-managed HDR/wide-gamut transform runtime, objective/visual QA, and
+  metadata/timecode sidecars are verified; current source detection blocks the
+  unsafe SDR proxy route but does not yet perform the transform;
 - real 50 GiB, 250 GiB, and ceiling-boundary uploads pass interrupted/resumed
   tests without API memory growth; and
 - workspace/project storage quotas, retention, privacy deletion, and cost

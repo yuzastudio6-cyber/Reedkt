@@ -24,6 +24,10 @@ import type {
   StorageAdapter,
   UploadTarget,
 } from '../storage/storage-types'
+import {
+  assessLargeMediaFinalizationCapacity,
+  clearLargeMediaWorkerCapacityReservationsForSmoke,
+} from '../workers/media/media-worker-capacity-policy'
 
 const GIB = 1024 ** 3
 
@@ -99,6 +103,7 @@ try {
   assert.equal(invalidInternalRun.json.error?.code, 'VALIDATION_FAILED')
 
   clearPrivateLargeMediaFinalizationProcessStateForSmoke()
+  clearLargeMediaWorkerCapacityReservationsForSmoke()
   clearPrivateUploadMediaAuthorityProcessStateForSmoke()
   clearLocalProjectMemoryForSmoke()
 
@@ -108,6 +113,7 @@ try {
   const executionStart = new Promise<void>((resolve) => { executionStarted = resolve })
   let executionCount = 0
   const concurrentService = createLargeMediaFinalizationService(context, {
+    inspectWorkerCapacity: admittedWorkerCapacity,
     executeFinalization: async (_context, input) => {
       executionCount += 1
       executionStarted()
@@ -161,6 +167,7 @@ try {
   const retryJobId = requiredString(retry.queued.json.data?.largeMediaFinalizationJob?.jobId)
   let retryAttemptCount = 0
   const retryService = createLargeMediaFinalizationService(context, {
+    inspectWorkerCapacity: admittedWorkerCapacity,
     executeFinalization: async (_context, input) => {
       retryAttemptCount += 1
       if (retryAttemptCount === 1) throw new Error('simulated restart-safe operational interruption')
@@ -174,6 +181,35 @@ try {
   assert.equal(retrySuccess.job.status, 'completed')
   assert.equal(retrySuccess.job.attemptCount, 2)
   assert.equal(retryAttemptCount, 2)
+
+  const capacityBlocked = await createLargeUploadAndJob({
+    baseUrl,
+    projectId,
+    workspaceId,
+    expectedSizeBytes: 300 * GIB,
+    suffix: 'capacity-blocked',
+  })
+  const capacityBlockedJobId = requiredString(capacityBlocked.queued.json.data?.largeMediaFinalizationJob?.jobId)
+  let capacityBlockedExecutionCount = 0
+  const capacityBlockedService = createLargeMediaFinalizationService(context, {
+    inspectWorkerCapacity: async ({ expectedSourceBytes }) => assessLargeMediaFinalizationCapacity({
+      expectedSourceBytes,
+      availableBytes: expectedSourceBytes,
+    }),
+    executeFinalization: async (_context, input) => {
+      capacityBlockedExecutionCount += 1
+      return syntheticFinalizationResult(input.uploadIntentId, input.expectedSizeBytes)
+    },
+  })
+  const capacityBlockedRun = await capacityBlockedService.run({
+    workspaceId,
+    jobId: capacityBlockedJobId,
+  })
+  assert.equal(capacityBlockedRun.executionStarted, false)
+  assert.equal(capacityBlockedRun.job.status, 'queued')
+  assert.equal(capacityBlockedRun.job.attemptCount, 0)
+  assert.equal(capacityBlockedExecutionCount, 0)
+  assert.match(capacityBlockedRun.warnings.join(' '), /enough verified private staging capacity/)
 
   const reclaim = await createLargeUploadAndJob({
     baseUrl,
@@ -259,6 +295,7 @@ try {
       'restart_read_from_checksum_protected_private_authority',
       'one_active_lease_prevents_duplicate_execution',
       'bounded_retry_can_complete_on_second_attempt',
+      'insufficient_worker_capacity_starts_no_byte_traversal_and_consumes_no_attempt',
       'operational_verification_failure_preserves_retry_eligible_upload_authority',
       'expired_lease_is_reclaimable_without_reusing_credential',
       'public_job_view_exposes_no_paths_urls_or_lease_credentials',
@@ -276,6 +313,7 @@ try {
 } finally {
   await close(server)
   clearPrivateLargeMediaFinalizationProcessStateForSmoke()
+  clearLargeMediaWorkerCapacityReservationsForSmoke()
   clearPrivateUploadMediaAuthorityProcessStateForSmoke()
   clearLocalProjectMemoryForSmoke()
   await rm(localStorageRoot, { recursive: true, force: true })
@@ -486,6 +524,18 @@ function syntheticFinalizationResult(uploadIntentId: string, sizeBytes: number) 
       checksumSha256,
     },
   }
+}
+
+async function admittedWorkerCapacity(input: {
+  expectedSourceBytes: number
+}) {
+  const requirement = assessLargeMediaFinalizationCapacity({
+    expectedSourceBytes: input.expectedSourceBytes,
+  }).requiredAvailableBytes
+  return assessLargeMediaFinalizationCapacity({
+    expectedSourceBytes: input.expectedSourceBytes,
+    availableBytes: requirement,
+  })
 }
 
 function assertSafePublicJobView(value: unknown): void {

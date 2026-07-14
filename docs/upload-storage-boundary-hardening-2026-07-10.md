@@ -12,9 +12,12 @@ ReEditPro auth token on the storage origin. Browser whole-file SHA-256 buffering
 was removed from the real backend upload path; backend stored-byte hashing
 remains canonical. The local raw route remains 16 MiB.
 
-The media foundation now uses a private 1080p CRF-20/AAC-192k analysis proxy
-while preserving the immutable original for final rendering, plus duration/size
-aware command ceilings instead of a fixed 30 seconds. See
+The media foundation now uses a private 1080p CRF-18/AAC-192k bounded Rec.709
+analysis proxy while preserving the immutable original for final rendering,
+records source color metadata, and refuses to misroute declared HDR/wide-gamut
+sources through the ordinary SDR proxy. Background finalization also admits a
+worker only after it proves capacity for one full staged source plus safety
+headroom. Duration/size-aware command ceilings replace a fixed 30 seconds. See
 `docs/large-media-ingestion-and-proxy-readiness-2026-07-13.md` and run
 `npm run smoke:large-media-ingest-readiness` plus
 `npm run smoke:large-media-background-finalization`.
@@ -138,9 +141,10 @@ npm run smoke:private-internal-edit-upload-e2e
 - Orphaned uploads that reach GCS but never finalize still require a reviewed lifecycle/reconciliation job.
 - FFprobe still consumes a private filesystem path. Malware/content scanning, codec/parser isolation, subprocess sandboxing, resource controls for adversarial media, and deployed representative-media evidence remain required before real-user promotion.
 - Abnormal process death or cleanup refusal can still leave a private probe attempt. The bounded local reconciler covers stopped-request, exclusive-root, single-process internal maintenance only; deployed retention scheduling, cross-process/distributed locking, shared-storage semantics, observability, and a dirfd/unlinkat sandbox against hostile same-UID pathname races remain required.
-- Huge-object finalization still hashes and stages bytes synchronously in the
-  request path. Restart-safe background verification/probing, deployed upload
-  progress, reload recovery, worker capacity, large representative fixtures,
-  and color-managed HDR proxy evidence remain required.
+- Huge-object finalization still hashes and stages the full object per attempt.
+  Capacity admission prevents traversal on an undersized worker, but durable
+  byte progress, single-pass/range-aware recovery, deployed dispatcher
+  capacity, large representative fixtures, and an executed color-managed HDR
+  transform with QA remain required.
 
 No SQL, Supabase command, remote object operation, provider call, deployment, or credential change was performed in this hardening pass.

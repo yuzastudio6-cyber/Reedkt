@@ -363,10 +363,17 @@ function validateByRunnerFamily(
   if (toolId === 'remotion') {
     if (workItem.workItemType === 'render_final_export') {
       const payload = validateOfflineRemotionFinalCompositionPlanningPayload(structuredPayload)
-      const sourceCount = payload.compositionProfileId === 'approved_source_sequence_caption_final_v1'
+      const sourceCount = 'sourceSegments' in payload
         ? payload.sourceSegments.length
         : 1
-      requireBinding(workItem, { source: sourceCount, cleanup: sourceCount, dependencies: 2 })
+      const captionCount = 'captionOverlayCues' in payload
+        ? payload.captionOverlayCues.length
+        : 1
+      requireBinding(workItem, {
+        source: sourceCount,
+        cleanup: sourceCount,
+        dependencies: 1 + captionCount,
+      })
       return 'remotion_final_composition'
     }
     validateOfflineRemotionRenderPlanningPayload(structuredPayload)

@@ -2,7 +2,7 @@
 
 Status date: 2026-07-13
 
-Status: exact ordered two-source composition is verified through the canonical private lifecycle; product, external-beta, public-delivery, and production readiness remain false.
+Status: exact ordered two-source, two-caption composition is verified through the canonical private lifecycle; product, external-beta, public-delivery, and production readiness remain false.
 
 ## What is implemented
 
@@ -10,11 +10,11 @@ The canonical planning compiler can publish a bounded source-and-caption graph f
 
 1. immutable approved-snapshot validation;
 2. exact source-range validation for every ordered source;
-3. one dependency-free libass caption overlay;
-4. one Remotion final composition using `approved_source_sequence_caption_final_v1`;
+3. one dependency-free libass artifact for each approved caption cue;
+4. one Remotion final composition using either the legacy full-duration caption profile or `approved_source_sequence_caption_track_final_v1`;
 5. dependency-bound FFprobe final-artifact QA.
 
-The Remotion composition places each source in an explicit timeline `Sequence`, applies its exact approved source range, preserves source audio, and overlays one approved full-frame RGBA caption artifact. Source bytes are reopened only by the backend from the approved private source manifest. Browser paths, URLs, bytes, commands, credentials, and caller-authored storage identity are rejected.
+The Remotion composition places each source in an explicit timeline `Sequence`, applies its exact approved source range, preserves source audio, and places every approved full-frame RGBA caption artifact in a second exact frame-bounded `Sequence`. Source bytes and caption artifacts are reopened only by the backend from their approved private manifests. Browser paths, URLs, bytes, commands, credentials, and caller-authored storage identity are rejected.
 
 ## Exact sequence contract
 
@@ -25,9 +25,10 @@ The sequence contract accepts two through eight unique MP4 sources and requires 
 - exact coverage of the approved 24–240-frame final duration;
 - 24fps or 30fps and an approved bounded output frame;
 - each source between 64 bytes and 16 MB and the combined sequence no larger than 20 MB;
-- a PNG caption overlay no larger than 8 MB;
+- either one full-duration caption or two through seven unique, ordered, non-overlapping caption cues inside the approved duration;
+- one checksum-bound PNG per caption cue, in exact output-key order, with no more than 8 MB across the combined caption track;
 - a complete serialized request no larger than the confined runtime's 32 MB stdin ceiling;
-- one safe caption spanning the complete final frame range;
+- safe caption text and exact cue-to-artifact lineage; a legacy single cue must span the complete final frame range;
 - no unsupported cleanup action, speed change, placeholder, provider route, or hidden fallback.
 
 The protocol and compiler cover two through eight sources. The executable evidence in this milestone uses two distinct approved source objects and must not be represented as eight-source runtime proof.
@@ -40,7 +41,7 @@ The container remains network-none, read-only, non-root, capability-dropped, mou
 
 ## Verified evidence
 
-`npm run smoke:offline-remotion-render-execution` proves the current source-bound image actually renders two ordered one-second MP4 sources into a 48-frame H.264 composition, preserves AAC audio, applies the approved caption overlay, and passes an independent pinned FFprobe frame/codec/duration check.
+`npm run smoke:offline-remotion-render-execution` proves the current source-bound image actually renders two ordered one-second MP4 sources into a 48-frame H.264 composition, preserves AAC audio, applies two distinct approved caption artifacts over frames 0–24 and 24–48, decodes distinct captioned frames, and passes an independent pinned FFprobe frame/codec/duration check.
 
 `npm run smoke:canonical-multi-source-final-composition` proves the same exact sequence profile through:
 
@@ -48,23 +49,24 @@ The container remains network-none, read-only, non-root, capability-dropped, mou
 - immutable approved snapshot;
 - synthetic private-test credit reservation without customer charging;
 - two-source trim authority and dependency readiness;
+- two exact caption artifacts and their approved frame ranges;
 - worker lease and one-use dispatch;
 - backend-only source reads and confined Remotion execution;
 - private artifact persistence;
 - independent final FFprobe QA;
 - reconciliation, idempotent adapter replay, downstream QA, and authenticated private download.
 
-`npm run smoke:canonical-planning-publication-client` proves the named-edit compiler produces the ordered two-source payload only when the plan is exactly representable and preserves the source order/ranges in the canonical work graph.
+`npm run smoke:canonical-planning-publication-client` proves the named-edit compiler produces one exact libass work item per cue, freezes the cue output-key/frame mapping into the Remotion payload, and preserves the ordered source ranges and all caption dependencies in the canonical work graph.
 
-The broader `npm run smoke:canonical-private-tool-dispatch` command is also green in this checkout. It passes this exact sequence lifecycle and continues through a Chat-led replacement plan, second approved snapshot, second five-job execution/review, and all 50 canonical private tool lifecycles. That broader result remains private/internal evidence; it does not promote product, external-beta, public-delivery, or production readiness.
+The focused caption-track lifecycle is green through `npm run smoke:canonical-multi-source-final-composition`. The broader `npm run smoke:canonical-private-tool-dispatch` result from the prior one-caption baseline is not claimed as a post-change aggregate rerun here. All 50 tool identities remain private/internal evidence; none are promoted to product, external-beta, public-delivery, or production readiness by this slice.
 
 ## No-silent-drop boundary
 
-The normal rich two-source mock editor plan is intentionally not published into this bounded graph. In the current regression scenario, two one-second sources expand into a longer multi-segment plan with multiple caption cues, transitions, SFX, ducking, color/audio work, and other segment operations. Those semantics are not equivalent to two contiguous source ranges plus one caption. The compiler returns explicit blockers and creates no publication candidate instead of dropping or compressing that work.
+The normal rich two-source mock editor plan is intentionally not published into this bounded graph. Although multiple exact captions are now representable, the regression scenario still expands two one-second sources into a longer multi-segment plan with invalid duration expansion, transitions, SFX, ducking, color/audio work, and other segment operations. Those semantics are not equivalent to duration-preserving source ranges plus a caption track. The compiler returns explicit blockers and creates no publication candidate instead of dropping or compressing that work.
 
 The following remain separate future work-item/compiler milestones:
 
-- multiple caption cues and caption animation;
+- caption animation, overlapping captions, more than seven cues, and transcript/word-level alignment workers;
 - transitions and visual timing cues;
 - SFX, music ducking, cleanup/mix, and other audio operations;
 - color correction, grading, and shot matching;

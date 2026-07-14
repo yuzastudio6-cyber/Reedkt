@@ -41,6 +41,23 @@ export interface OfflineRemotionSingleSourceFinalCompositionPlanningPayload exte
   captionOverlayPolicy: 'approved_full_frame_rgba'
 }
 
+export interface OfflineRemotionCaptionOverlayCuePlanningPayload {
+  outputKey: string
+  startFrame: number
+  endFrameExclusive: number
+}
+
+export interface OfflineRemotionSingleSourceCaptionTrackFinalCompositionPlanningPayload extends CommonCompositionPayload {
+  compositionProfileId: 'approved_source_caption_track_final_v1'
+  sourceStartFrame: number
+  sourceEndFrameExclusive: number
+  sourceFit: 'contain'
+  panelBackground: string
+  audioPolicy: 'preserve_source'
+  captionOverlayPolicy: 'approved_timed_full_frame_rgba_track'
+  captionOverlayCues: OfflineRemotionCaptionOverlayCuePlanningPayload[]
+}
+
 export interface OfflineRemotionSourceSequenceSegmentPlanningPayload {
   sourceSequenceItemId: string
   sourceStartFrame: number
@@ -58,9 +75,21 @@ export interface OfflineRemotionSourceSequenceFinalCompositionPlanningPayload ex
   captionOverlayPolicy: 'approved_full_frame_rgba'
 }
 
+export interface OfflineRemotionSourceSequenceCaptionTrackFinalCompositionPlanningPayload extends CommonCompositionPayload {
+  compositionProfileId: 'approved_source_sequence_caption_track_final_v1'
+  sourceSegments: OfflineRemotionSourceSequenceSegmentPlanningPayload[]
+  sourceFit: 'contain'
+  panelBackground: string
+  audioPolicy: 'preserve_source_sequence'
+  captionOverlayPolicy: 'approved_timed_full_frame_rgba_track'
+  captionOverlayCues: OfflineRemotionCaptionOverlayCuePlanningPayload[]
+}
+
 export type OfflineRemotionFinalCompositionPlanningPayload =
   | OfflineRemotionSingleSourceFinalCompositionPlanningPayload
+  | OfflineRemotionSingleSourceCaptionTrackFinalCompositionPlanningPayload
   | OfflineRemotionSourceSequenceFinalCompositionPlanningPayload
+  | OfflineRemotionSourceSequenceCaptionTrackFinalCompositionPlanningPayload
 
 export interface OfflineRemotionSingleSourceFinalCompositionPayload extends OfflineRemotionSingleSourceFinalCompositionPlanningPayload {
   sourceMimeType: 'video/mp4'
@@ -89,9 +118,32 @@ export interface OfflineRemotionSourceSequenceFinalCompositionPayload extends Of
   captionOverlayBytesBase64: string
 }
 
+export interface OfflineRemotionCommittedCaptionOverlay {
+  outputKey: string
+  mimeType: 'image/png'
+  byteLength: number
+  sha256: string
+  bytesBase64: string
+}
+
+export interface OfflineRemotionSingleSourceCaptionTrackFinalCompositionPayload extends OfflineRemotionSingleSourceCaptionTrackFinalCompositionPlanningPayload {
+  sourceMimeType: 'video/mp4'
+  sourceByteLength: number
+  sourceSha256: string
+  sourceBytesBase64: string
+  captionOverlays: OfflineRemotionCommittedCaptionOverlay[]
+}
+
+export interface OfflineRemotionSourceSequenceCaptionTrackFinalCompositionPayload extends OfflineRemotionSourceSequenceCaptionTrackFinalCompositionPlanningPayload {
+  sources: OfflineRemotionSourceSequenceCommittedSource[]
+  captionOverlays: OfflineRemotionCommittedCaptionOverlay[]
+}
+
 export type OfflineRemotionFinalCompositionPayload =
   | OfflineRemotionSingleSourceFinalCompositionPayload
+  | OfflineRemotionSingleSourceCaptionTrackFinalCompositionPayload
   | OfflineRemotionSourceSequenceFinalCompositionPayload
+  | OfflineRemotionSourceSequenceCaptionTrackFinalCompositionPayload
 
 export type OfflineRemotionRenderRequest = {
   schemaVersion: typeof OFFLINE_REMOTION_RENDER_REQUEST_PROTOCOL
@@ -118,32 +170,45 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
   value: unknown,
 ): OfflineRemotionFinalCompositionPlanningPayload {
   const profile = record(value, 'final composition planning payload').compositionProfileId
-  if (profile === 'approved_source_sequence_caption_final_v1') {
+  if (isSourceSequenceCompositionProfile(profile)) {
+    const captionTrack = profile === 'approved_source_sequence_caption_track_final_v1'
     const payload = exactRecord(value, [
       'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
       'sourceSegments', 'sourceFit', 'panelBackground', 'audioPolicy',
-      'captionOverlayPolicy',
+      'captionOverlayPolicy', ...(captionTrack ? ['captionOverlayCues'] : []),
     ], 'source-sequence final composition planning payload')
     const common = commonPayload(payload, 24, 240)
     const sourceSegments = sourceSequenceSegments(payload.sourceSegments, common.durationFrames)
     if (
       payload.sourceFit !== 'contain' || payload.audioPolicy !== 'preserve_source_sequence' ||
-      payload.captionOverlayPolicy !== 'approved_full_frame_rgba'
+      payload.captionOverlayPolicy !== (
+        captionTrack ? 'approved_timed_full_frame_rgba_track' : 'approved_full_frame_rgba'
+      )
     ) throw validationFailure('Source-sequence final composition policy is unsupported.')
-    return {
+    const commonResult = {
       ...common,
-      compositionProfileId: 'approved_source_sequence_caption_final_v1',
       sourceSegments,
       sourceFit: 'contain',
       panelBackground: color(payload.panelBackground, 'panelBackground'),
       audioPolicy: 'preserve_source_sequence',
+    } as const
+    return captionTrack ? {
+      ...commonResult,
+      compositionProfileId: 'approved_source_sequence_caption_track_final_v1',
+      captionOverlayPolicy: 'approved_timed_full_frame_rgba_track',
+      captionOverlayCues: captionOverlayCues(payload.captionOverlayCues, common.durationFrames),
+    } : {
+      ...commonResult,
+      compositionProfileId: 'approved_source_sequence_caption_final_v1',
       captionOverlayPolicy: 'approved_full_frame_rgba',
     }
   }
+  const captionTrack = profile === 'approved_source_caption_track_final_v1'
   const payload = exactRecord(value, [
     'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
     'sourceStartFrame', 'sourceEndFrameExclusive', 'sourceFit',
     'panelBackground', 'audioPolicy', 'captionOverlayPolicy',
+    ...(captionTrack ? ['captionOverlayCues'] : []),
   ], 'final composition planning payload')
   const common = commonPayload(payload, 24, 240)
   const sourceStartFrame = integer(payload.sourceStartFrame, 0, 100_000_000, 'sourceStartFrame')
@@ -154,19 +219,31 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
     'sourceEndFrameExclusive',
   )
   if (
-    payload.compositionProfileId !== 'approved_source_caption_final_v1' ||
+    !['approved_source_caption_final_v1', 'approved_source_caption_track_final_v1'].includes(
+      String(payload.compositionProfileId),
+    ) ||
     payload.sourceFit !== 'contain' || payload.audioPolicy !== 'preserve_source' ||
-    payload.captionOverlayPolicy !== 'approved_full_frame_rgba' ||
+    payload.captionOverlayPolicy !== (
+      captionTrack ? 'approved_timed_full_frame_rgba_track' : 'approved_full_frame_rgba'
+    ) ||
     sourceEndFrameExclusive - sourceStartFrame !== common.durationFrames
   ) throw validationFailure('Final composition policy is unsupported.')
-  return {
+  const commonResult = {
     ...common,
-    compositionProfileId: 'approved_source_caption_final_v1',
     sourceStartFrame,
     sourceEndFrameExclusive,
     sourceFit: 'contain',
     panelBackground: color(payload.panelBackground, 'panelBackground'),
     audioPolicy: 'preserve_source',
+  } as const
+  return captionTrack ? {
+    ...commonResult,
+    compositionProfileId: 'approved_source_caption_track_final_v1',
+    captionOverlayPolicy: 'approved_timed_full_frame_rgba_track',
+    captionOverlayCues: captionOverlayCues(payload.captionOverlayCues, common.durationFrames),
+  } : {
+    ...commonResult,
+    compositionProfileId: 'approved_source_caption_final_v1',
     captionOverlayPolicy: 'approved_full_frame_rgba',
   }
 }
@@ -180,14 +257,23 @@ export function buildOfflineRemotionFinalCompositionRequest(input: {
     bytes: Buffer
     sha256: string
   }>
-  captionOverlay: { mimeType: 'image/png'; bytes: Buffer; sha256: string }
+  captionOverlay?: { mimeType: 'image/png'; bytes: Buffer; sha256: string }
+  captionOverlays?: Array<{
+    outputKey: string
+    mimeType: 'image/png'
+    bytes: Buffer
+    sha256: string
+  }>
 }): OfflineRemotionRenderRequest {
   const planning = validateOfflineRemotionFinalCompositionPlanningPayload(input.planningPayload)
-  const overlay = committedBytes(input.captionOverlay, 'image/png', 1024, 8 * 1024 * 1024, 'caption overlay')
-  if (overlay.bytes.subarray(0, 8).toString('hex') !== '89504e470d0a1a0a') {
-    throw validationFailure('Final composition caption overlay is not an approved PNG.')
+  const captionTrack = isCaptionTrackPlanningPayload(planning)
+  const overlays = captionTrack
+    ? committedCaptionOverlays(input.captionOverlays, planning.captionOverlayCues)
+    : [committedCaptionOverlay(input.captionOverlay)]
+  if (captionTrack ? input.captionOverlay !== undefined : input.captionOverlays !== undefined) {
+    throw validationFailure('Final composition caption inputs do not match the approved profile.')
   }
-  if (planning.compositionProfileId === 'approved_source_sequence_caption_final_v1') {
+  if (isSourceSequencePlanningPayload(planning)) {
     if (input.source !== undefined || !input.sources) {
       throw validationFailure('Source-sequence composition requires only the exact approved source list.')
     }
@@ -212,14 +298,23 @@ export function buildOfflineRemotionFinalCompositionRequest(input: {
     if (sources.reduce((total, source) => total + source.sourceByteLength, 0) > 20 * 1024 * 1024) {
       throw validationFailure('Source-sequence composition exceeds the bounded combined source ceiling.')
     }
+    if (isCaptionTrackPlanningPayload(planning)) {
+      return validateOfflineRemotionRenderRequest({
+        schemaVersion: OFFLINE_REMOTION_RENDER_REQUEST_PROTOCOL,
+        toolId: 'remotion', operationId: OFFLINE_REMOTION_RENDER_OPERATION,
+        payload: { ...planning, sources, captionOverlays: overlays },
+      })
+    }
     return validateOfflineRemotionRenderRequest({
       schemaVersion: OFFLINE_REMOTION_RENDER_REQUEST_PROTOCOL,
       toolId: 'remotion', operationId: OFFLINE_REMOTION_RENDER_OPERATION,
       payload: {
         ...planning,
         sources,
-        captionOverlayMimeType: 'image/png', captionOverlayByteLength: overlay.bytes.byteLength,
-        captionOverlaySha256: overlay.sha256, captionOverlayBytesBase64: overlay.bytes.toString('base64'),
+        captionOverlayMimeType: 'image/png',
+        captionOverlayByteLength: overlays[0]!.byteLength,
+        captionOverlaySha256: overlays[0]!.sha256,
+        captionOverlayBytesBase64: overlays[0]!.bytesBase64,
       },
     })
   }
@@ -230,6 +325,18 @@ export function buildOfflineRemotionFinalCompositionRequest(input: {
   if (source.bytes.subarray(4, 8).toString('ascii') !== 'ftyp') {
     throw validationFailure('Final composition source is not an approved MP4.')
   }
+  if (isCaptionTrackPlanningPayload(planning)) {
+    return validateOfflineRemotionRenderRequest({
+      schemaVersion: OFFLINE_REMOTION_RENDER_REQUEST_PROTOCOL,
+      toolId: 'remotion', operationId: OFFLINE_REMOTION_RENDER_OPERATION,
+      payload: {
+        ...planning,
+        sourceMimeType: 'video/mp4', sourceByteLength: source.bytes.byteLength,
+        sourceSha256: source.sha256, sourceBytesBase64: source.bytes.toString('base64'),
+        captionOverlays: overlays,
+      },
+    })
+  }
   return validateOfflineRemotionRenderRequest({
     schemaVersion: OFFLINE_REMOTION_RENDER_REQUEST_PROTOCOL,
     toolId: 'remotion', operationId: OFFLINE_REMOTION_RENDER_OPERATION,
@@ -237,8 +344,10 @@ export function buildOfflineRemotionFinalCompositionRequest(input: {
       ...planning,
       sourceMimeType: 'video/mp4', sourceByteLength: source.bytes.byteLength,
       sourceSha256: source.sha256, sourceBytesBase64: source.bytes.toString('base64'),
-      captionOverlayMimeType: 'image/png', captionOverlayByteLength: overlay.bytes.byteLength,
-      captionOverlaySha256: overlay.sha256, captionOverlayBytesBase64: overlay.bytes.toString('base64'),
+      captionOverlayMimeType: 'image/png',
+      captionOverlayByteLength: overlays[0]!.byteLength,
+      captionOverlaySha256: overlays[0]!.sha256,
+      captionOverlayBytesBase64: overlays[0]!.bytesBase64,
     },
   })
 }
@@ -251,12 +360,16 @@ export function validateOfflineRemotionRenderRequest(value: unknown): OfflineRem
   ) throw validationFailure('Remotion request identity is unsupported.')
   const payloadRecord = record(request.payload, 'payload')
   if (Object.hasOwn(payloadRecord, 'compositionProfileId')) {
-    if (payloadRecord.compositionProfileId === 'approved_source_sequence_caption_final_v1') {
+    if (isSourceSequenceCompositionProfile(payloadRecord.compositionProfileId)) {
+      const captionTrack = payloadRecord.compositionProfileId ===
+        'approved_source_sequence_caption_track_final_v1'
       const payload = exactRecord(payloadRecord, [
         'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
         'sourceSegments', 'sourceFit', 'panelBackground', 'audioPolicy',
-        'captionOverlayPolicy', 'sources', 'captionOverlayMimeType',
-        'captionOverlayByteLength', 'captionOverlaySha256', 'captionOverlayBytesBase64',
+        'captionOverlayPolicy', ...(captionTrack ? ['captionOverlayCues'] : []), 'sources',
+        ...(captionTrack
+          ? ['captionOverlays']
+          : ['captionOverlayMimeType', 'captionOverlayByteLength', 'captionOverlaySha256', 'captionOverlayBytesBase64']),
       ], 'source-sequence final composition payload')
       const planning = validateOfflineRemotionFinalCompositionPlanningPayload({
         compositionProfileId: payload.compositionProfileId, width: payload.width,
@@ -264,8 +377,9 @@ export function validateOfflineRemotionRenderRequest(value: unknown): OfflineRem
         sourceSegments: payload.sourceSegments, sourceFit: payload.sourceFit,
         panelBackground: payload.panelBackground, audioPolicy: payload.audioPolicy,
         captionOverlayPolicy: payload.captionOverlayPolicy,
+        ...(captionTrack ? { captionOverlayCues: payload.captionOverlayCues } : {}),
       })
-      if (planning.compositionProfileId !== 'approved_source_sequence_caption_final_v1') {
+      if (!isSourceSequencePlanningPayload(planning)) {
         throw validationFailure('Source-sequence final composition profile changed during validation.')
       }
       if (!Array.isArray(payload.sources) || payload.sources.length !== planning.sourceSegments.length) {
@@ -296,9 +410,19 @@ export function validateOfflineRemotionRenderRequest(value: unknown): OfflineRem
       if (totalSourceBytes > 20 * 1024 * 1024) {
         throw validationFailure('Source-sequence commitments exceed the combined byte ceiling.')
       }
-      const overlay = decodeCommittedBase64(payload, 'captionOverlay', 'image/png', 1024, 8 * 1024 * 1024)
-      if (overlay.subarray(0, 8).toString('hex') !== '89504e470d0a1a0a') {
-        throw validationFailure('Source-sequence caption overlay has an invalid PNG signature.')
+      if (isCaptionTrackPlanningPayload(planning)) {
+        return boundedRequest({
+          schemaVersion: OFFLINE_REMOTION_RENDER_REQUEST_PROTOCOL,
+          toolId: 'remotion', operationId: OFFLINE_REMOTION_RENDER_OPERATION,
+          payload: {
+            ...planning,
+            sources,
+            captionOverlays: decodeCaptionOverlayRecords(
+              payload.captionOverlays,
+              planning.captionOverlayCues,
+            ),
+          },
+        })
       }
       return boundedRequest({
         schemaVersion: OFFLINE_REMOTION_RENDER_REQUEST_PROTOCOL,
@@ -306,19 +430,19 @@ export function validateOfflineRemotionRenderRequest(value: unknown): OfflineRem
         payload: {
           ...planning,
           sources,
-          captionOverlayMimeType: 'image/png', captionOverlayByteLength: overlay.byteLength,
-          captionOverlaySha256: String(payload.captionOverlaySha256),
-          captionOverlayBytesBase64: overlay.toString('base64'),
+          ...legacyCaptionCommitment(payload, 'Source-sequence'),
         },
       })
     }
+    const captionTrack = payloadRecord.compositionProfileId === 'approved_source_caption_track_final_v1'
     const payload = exactRecord(payloadRecord, [
       'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
       'sourceStartFrame', 'sourceEndFrameExclusive', 'sourceFit',
       'panelBackground', 'audioPolicy', 'captionOverlayPolicy',
       'sourceMimeType', 'sourceByteLength', 'sourceSha256', 'sourceBytesBase64',
-      'captionOverlayMimeType', 'captionOverlayByteLength', 'captionOverlaySha256',
-      'captionOverlayBytesBase64',
+      ...(captionTrack
+        ? ['captionOverlayCues', 'captionOverlays']
+        : ['captionOverlayMimeType', 'captionOverlayByteLength', 'captionOverlaySha256', 'captionOverlayBytesBase64']),
     ], 'final composition payload')
     const planning = validateOfflineRemotionFinalCompositionPlanningPayload({
       compositionProfileId: payload.compositionProfileId, width: payload.width, height: payload.height,
@@ -327,14 +451,29 @@ export function validateOfflineRemotionRenderRequest(value: unknown): OfflineRem
       sourceEndFrameExclusive: payload.sourceEndFrameExclusive,
       panelBackground: payload.panelBackground, audioPolicy: payload.audioPolicy,
       captionOverlayPolicy: payload.captionOverlayPolicy,
+      ...(captionTrack ? { captionOverlayCues: payload.captionOverlayCues } : {}),
     })
-    if (planning.compositionProfileId !== 'approved_source_caption_final_v1') {
+    if (isSourceSequencePlanningPayload(planning)) {
       throw validationFailure('Single-source final composition profile changed during validation.')
     }
     const source = decodeCommittedBase64(payload, 'source', 'video/mp4', 64, 16 * 1024 * 1024)
-    const overlay = decodeCommittedBase64(payload, 'captionOverlay', 'image/png', 1024, 8 * 1024 * 1024)
-    if (source.subarray(4, 8).toString('ascii') !== 'ftyp' || overlay.subarray(0, 8).toString('hex') !== '89504e470d0a1a0a') {
-      throw validationFailure('Final composition dependencies have invalid signatures.')
+    if (source.subarray(4, 8).toString('ascii') !== 'ftyp') {
+      throw validationFailure('Final composition source has an invalid signature.')
+    }
+    if (isCaptionTrackPlanningPayload(planning)) {
+      return boundedRequest({
+        schemaVersion: OFFLINE_REMOTION_RENDER_REQUEST_PROTOCOL,
+        toolId: 'remotion', operationId: OFFLINE_REMOTION_RENDER_OPERATION,
+        payload: {
+          ...planning,
+          sourceMimeType: 'video/mp4', sourceByteLength: source.byteLength,
+          sourceSha256: String(payload.sourceSha256), sourceBytesBase64: source.toString('base64'),
+          captionOverlays: decodeCaptionOverlayRecords(
+            payload.captionOverlays,
+            planning.captionOverlayCues,
+          ),
+        },
+      })
     }
     return boundedRequest({
       schemaVersion: OFFLINE_REMOTION_RENDER_REQUEST_PROTOCOL,
@@ -343,9 +482,7 @@ export function validateOfflineRemotionRenderRequest(value: unknown): OfflineRem
         ...planning,
         sourceMimeType: 'video/mp4', sourceByteLength: source.byteLength,
         sourceSha256: String(payload.sourceSha256), sourceBytesBase64: source.toString('base64'),
-        captionOverlayMimeType: 'image/png', captionOverlayByteLength: overlay.byteLength,
-        captionOverlaySha256: String(payload.captionOverlaySha256),
-        captionOverlayBytesBase64: overlay.toString('base64'),
+        ...legacyCaptionCommitment(payload, 'Final composition'),
       },
     })
   }
@@ -444,6 +581,194 @@ function decodeCommittedRecord(
   maximumBytes: number,
 ): Buffer {
   return decodeCommittedBase64(payload, prefix, mimeType, minimumBytes, maximumBytes)
+}
+
+function isSourceSequenceCompositionProfile(value: unknown): value is
+  | 'approved_source_sequence_caption_final_v1'
+  | 'approved_source_sequence_caption_track_final_v1' {
+  return value === 'approved_source_sequence_caption_final_v1' ||
+    value === 'approved_source_sequence_caption_track_final_v1'
+}
+
+export function isCaptionTrackCompositionProfile(value: unknown): value is
+  | 'approved_source_caption_track_final_v1'
+  | 'approved_source_sequence_caption_track_final_v1' {
+  return value === 'approved_source_caption_track_final_v1' ||
+    value === 'approved_source_sequence_caption_track_final_v1'
+}
+
+function isSourceSequencePlanningPayload(
+  value: OfflineRemotionFinalCompositionPlanningPayload,
+): value is
+  | OfflineRemotionSourceSequenceFinalCompositionPlanningPayload
+  | OfflineRemotionSourceSequenceCaptionTrackFinalCompositionPlanningPayload {
+  return isSourceSequenceCompositionProfile(value.compositionProfileId)
+}
+
+function isCaptionTrackPlanningPayload(
+  value: OfflineRemotionFinalCompositionPlanningPayload,
+): value is
+  | OfflineRemotionSingleSourceCaptionTrackFinalCompositionPlanningPayload
+  | OfflineRemotionSourceSequenceCaptionTrackFinalCompositionPlanningPayload {
+  return isCaptionTrackCompositionProfile(value.compositionProfileId)
+}
+
+function captionOverlayCues(
+  value: unknown,
+  durationFrames: number,
+): OfflineRemotionCaptionOverlayCuePlanningPayload[] {
+  if (!Array.isArray(value) || value.length < 2 || value.length > 7) {
+    throw validationFailure('Caption-track composition requires two to seven approved cues.')
+  }
+  const seen = new Set<string>()
+  let previousEndFrame = 0
+  return value.map((candidate, index) => {
+    const cue = exactRecord(
+      candidate,
+      ['outputKey', 'startFrame', 'endFrameExclusive'],
+      `caption overlay cue ${index + 1}`,
+    )
+    const outputKey = safeIdentity(cue.outputKey, 'caption overlay outputKey')
+    const startFrame = integer(cue.startFrame, 0, durationFrames - 1, 'caption overlay startFrame')
+    const endFrameExclusive = integer(
+      cue.endFrameExclusive,
+      1,
+      durationFrames,
+      'caption overlay endFrameExclusive',
+    )
+    if (
+      seen.has(outputKey) || startFrame < previousEndFrame ||
+      endFrameExclusive <= startFrame
+    ) throw validationFailure('Caption overlay cues must be unique, ordered, and non-overlapping.')
+    seen.add(outputKey)
+    previousEndFrame = endFrameExclusive
+    return { outputKey, startFrame, endFrameExclusive }
+  })
+}
+
+function committedCaptionOverlay(
+  input: { mimeType: 'image/png'; bytes: Buffer; sha256: string } | undefined,
+): OfflineRemotionCommittedCaptionOverlay {
+  if (!input) throw validationFailure('Final composition requires one approved caption overlay.')
+  const overlay = committedBytes(input, 'image/png', 1024, 8 * 1024 * 1024, 'caption overlay')
+  if (overlay.bytes.subarray(0, 8).toString('hex') !== '89504e470d0a1a0a') {
+    throw validationFailure('Final composition caption overlay is not an approved PNG.')
+  }
+  return {
+    outputKey: 'legacy-caption-overlay',
+    mimeType: 'image/png',
+    byteLength: overlay.bytes.byteLength,
+    sha256: overlay.sha256,
+    bytesBase64: overlay.bytes.toString('base64'),
+  }
+}
+
+function committedCaptionOverlays(
+  input: Array<{ outputKey: string; mimeType: 'image/png'; bytes: Buffer; sha256: string }> | undefined,
+  cues: OfflineRemotionCaptionOverlayCuePlanningPayload[],
+): OfflineRemotionCommittedCaptionOverlay[] {
+  if (!input || input.length !== cues.length) {
+    throw validationFailure('Caption-track bytes do not match the approved cue count.')
+  }
+  let totalBytes = 0
+  const overlays = input.map((candidate, index) => {
+    const cue = cues[index]!
+    if (candidate.outputKey !== cue.outputKey) {
+      throw validationFailure('Caption-track bytes diverge from the approved cue order.')
+    }
+    const overlay = committedBytes(candidate, 'image/png', 1024, 8 * 1024 * 1024, `caption overlay ${index + 1}`)
+    if (overlay.bytes.subarray(0, 8).toString('hex') !== '89504e470d0a1a0a') {
+      throw validationFailure('Caption-track overlay is not an approved PNG.')
+    }
+    totalBytes += overlay.bytes.byteLength
+    return {
+      outputKey: cue.outputKey,
+      mimeType: 'image/png' as const,
+      byteLength: overlay.bytes.byteLength,
+      sha256: overlay.sha256,
+      bytesBase64: overlay.bytes.toString('base64'),
+    }
+  })
+  if (totalBytes > 8 * 1024 * 1024) {
+    throw validationFailure('Caption-track overlays exceed the combined byte ceiling.')
+  }
+  return overlays
+}
+
+function decodeCaptionOverlayRecords(
+  value: unknown,
+  cues: OfflineRemotionCaptionOverlayCuePlanningPayload[],
+): OfflineRemotionCommittedCaptionOverlay[] {
+  if (!Array.isArray(value) || value.length !== cues.length) {
+    throw validationFailure('Caption-track commitments do not match the approved cue count.')
+  }
+  let totalBytes = 0
+  const overlays = value.map((candidate, index) => {
+    const recordValue = exactRecord(
+      candidate,
+      ['outputKey', 'mimeType', 'byteLength', 'sha256', 'bytesBase64'],
+      `caption overlay commitment ${index + 1}`,
+    )
+    const cue = cues[index]!
+    if (recordValue.outputKey !== cue.outputKey) {
+      throw validationFailure('Caption-track commitment order diverged from the approved cues.')
+    }
+    const normalized = {
+      captionOverlayMimeType: recordValue.mimeType,
+      captionOverlayByteLength: recordValue.byteLength,
+      captionOverlaySha256: recordValue.sha256,
+      captionOverlayBytesBase64: recordValue.bytesBase64,
+    }
+    const bytes = decodeCommittedBase64(
+      normalized,
+      'captionOverlay',
+      'image/png',
+      1024,
+      8 * 1024 * 1024,
+    )
+    if (bytes.subarray(0, 8).toString('hex') !== '89504e470d0a1a0a') {
+      throw validationFailure('Caption-track commitment has an invalid PNG signature.')
+    }
+    totalBytes += bytes.byteLength
+    return {
+      outputKey: cue.outputKey,
+      mimeType: 'image/png' as const,
+      byteLength: bytes.byteLength,
+      sha256: String(recordValue.sha256),
+      bytesBase64: bytes.toString('base64'),
+    }
+  })
+  if (totalBytes > 8 * 1024 * 1024) {
+    throw validationFailure('Caption-track commitments exceed the combined byte ceiling.')
+  }
+  return overlays
+}
+
+function legacyCaptionCommitment(
+  payload: Record<string, unknown>,
+  label: string,
+): {
+  captionOverlayMimeType: 'image/png'
+  captionOverlayByteLength: number
+  captionOverlaySha256: string
+  captionOverlayBytesBase64: string
+} {
+  const overlay = decodeCommittedBase64(
+    payload,
+    'captionOverlay',
+    'image/png',
+    1024,
+    8 * 1024 * 1024,
+  )
+  if (overlay.subarray(0, 8).toString('hex') !== '89504e470d0a1a0a') {
+    throw validationFailure(`${label} caption overlay has an invalid PNG signature.`)
+  }
+  return {
+    captionOverlayMimeType: 'image/png',
+    captionOverlayByteLength: overlay.byteLength,
+    captionOverlaySha256: String(payload.captionOverlaySha256),
+    captionOverlayBytesBase64: overlay.toString('base64'),
+  }
 }
 
 function sourceSequenceSegments(value: unknown, durationFrames: number): OfflineRemotionSourceSequenceSegmentPlanningPayload[] {

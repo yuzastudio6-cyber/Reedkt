@@ -86,6 +86,82 @@ function validateSourceSegments(value, durationFrames) {
   return segments
 }
 
+function isSourceSequenceProfile(value) {
+  return value === 'approved_source_sequence_caption_final_v1' ||
+    value === 'approved_source_sequence_caption_track_final_v1'
+}
+
+function isCaptionTrackProfile(value) {
+  return value === 'approved_source_caption_track_final_v1' ||
+    value === 'approved_source_sequence_caption_track_final_v1'
+}
+
+function validateCaptionOverlayCues(value, durationFrames) {
+  if (!Array.isArray(value) || value.length < 2 || value.length > 7) {
+    throw new Error('caption track requires two to seven cues')
+  }
+  const seen = new Set()
+  let previousEndFrame = 0
+  return value.map((candidate, index) => {
+    const cue = exactObject(
+      candidate,
+      ['outputKey', 'startFrame', 'endFrameExclusive'],
+      `caption overlay cue ${index + 1}`,
+    )
+    const outputKey = safeIdentity(cue.outputKey, 'caption overlay outputKey')
+    const startFrame = integer(cue.startFrame, 0, durationFrames - 1, 'caption overlay startFrame')
+    const endFrameExclusive = integer(
+      cue.endFrameExclusive,
+      1,
+      durationFrames,
+      'caption overlay endFrameExclusive',
+    )
+    if (seen.has(outputKey) || startFrame < previousEndFrame || endFrameExclusive <= startFrame) {
+      throw new Error('caption overlay cues must be unique, ordered, and non-overlapping')
+    }
+    seen.add(outputKey)
+    previousEndFrame = endFrameExclusive
+    return { outputKey, startFrame, endFrameExclusive }
+  })
+}
+
+function validateCaptionOverlayCommitments(value, cues) {
+  if (!Array.isArray(value) || value.length !== cues.length) {
+    throw new Error('caption overlay commitments do not match approved cues')
+  }
+  let totalBytes = 0
+  const overlays = value.map((candidate, index) => {
+    const overlay = exactObject(
+      candidate,
+      ['outputKey', 'mimeType', 'byteLength', 'sha256', 'bytesBase64'],
+      `caption overlay commitment ${index + 1}`,
+    )
+    if (overlay.outputKey !== cues[index].outputKey) {
+      throw new Error('caption overlay commitment order diverges from approved cues')
+    }
+    const normalized = {
+      captionOverlayMimeType: overlay.mimeType,
+      captionOverlayByteLength: overlay.byteLength,
+      captionOverlaySha256: overlay.sha256,
+      captionOverlayBytesBase64: overlay.bytesBase64,
+    }
+    const bytes = committedBase64(normalized, 'captionOverlay', 'image/png', 1024, 8 * 1024 * 1024)
+    if (bytes.subarray(0, 8).toString('hex') !== '89504e470d0a1a0a') {
+      throw new Error('caption overlay signature is invalid')
+    }
+    totalBytes += bytes.byteLength
+    return {
+      outputKey: cues[index].outputKey,
+      mimeType: 'image/png',
+      byteLength: bytes.byteLength,
+      sha256: overlay.sha256,
+      bytesBase64: bytes.toString('base64'),
+    }
+  })
+  if (totalBytes > 8 * 1024 * 1024) throw new Error('caption overlays exceed combined byte ceiling')
+  return overlays
+}
+
 function committedBase64(payload, prefix, mimeType, minimumBytes, maximumBytes) {
   const mimeKey = `${prefix}MimeType`
   const lengthKey = `${prefix}ByteLength`
@@ -110,12 +186,15 @@ function validateRequest(value) {
     throw new Error('request identity is unsupported')
   }
   const rawPayload = request.payload
-  if (rawPayload && typeof rawPayload === 'object' && rawPayload.compositionProfileId === 'approved_source_sequence_caption_final_v1') {
+  if (rawPayload && typeof rawPayload === 'object' && isSourceSequenceProfile(rawPayload.compositionProfileId)) {
+    const captionTrack = rawPayload.compositionProfileId === 'approved_source_sequence_caption_track_final_v1'
     const payload = exactObject(rawPayload, [
       'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
       'sourceSegments', 'sourceFit', 'panelBackground', 'audioPolicy',
-      'captionOverlayPolicy', 'sources', 'captionOverlayMimeType',
-      'captionOverlayByteLength', 'captionOverlaySha256', 'captionOverlayBytesBase64',
+      'captionOverlayPolicy', ...(captionTrack ? ['captionOverlayCues'] : []), 'sources',
+      ...(captionTrack
+        ? ['captionOverlays']
+        : ['captionOverlayMimeType', 'captionOverlayByteLength', 'captionOverlaySha256', 'captionOverlayBytesBase64']),
     ], 'source-sequence final composition payload')
     const dimensions = `${payload.width}x${payload.height}`
     oneOf(dimensions, ['360x640', '640x360', '480x480', '480x600', '720x405', '405x720'], 'approved frame')
@@ -139,13 +218,23 @@ function validateRequest(value) {
       return { ...source, sourceBytesBase64: bytes.toString('base64') }
     })
     if (totalSourceBytes > 20 * 1024 * 1024) throw new Error('source sequence exceeds combined byte ceiling')
-    const overlay = committedBase64(payload, 'captionOverlay', 'image/png', 1024, 8 * 1024 * 1024)
-    if (overlay.subarray(0, 8).toString('hex') !== '89504e470d0a1a0a') {
+    const captionOverlayCues = captionTrack
+      ? validateCaptionOverlayCues(payload.captionOverlayCues, durationFrames)
+      : undefined
+    const captionOverlays = captionTrack
+      ? validateCaptionOverlayCommitments(payload.captionOverlays, captionOverlayCues)
+      : undefined
+    const overlay = captionTrack
+      ? undefined
+      : committedBase64(payload, 'captionOverlay', 'image/png', 1024, 8 * 1024 * 1024)
+    if (overlay && overlay.subarray(0, 8).toString('hex') !== '89504e470d0a1a0a') {
       throw new Error('source-sequence caption overlay signature is invalid')
     }
     if (
       payload.sourceFit !== 'contain' || payload.audioPolicy !== 'preserve_source_sequence' ||
-      payload.captionOverlayPolicy !== 'approved_full_frame_rgba'
+      payload.captionOverlayPolicy !== (
+        captionTrack ? 'approved_timed_full_frame_rgba_track' : 'approved_full_frame_rgba'
+      )
     ) throw new Error('source-sequence composition policy is unsupported')
     const color = (value, label) => {
       if (typeof value !== 'string' || !/^#[A-Fa-f0-9]{6}$/.test(value)) throw new Error(`${label} is invalid`)
@@ -158,31 +247,50 @@ function validateRequest(value) {
         width: integer(payload.width, 360, 720, 'width'), height: integer(payload.height, 360, 720, 'height'),
         fps: oneOf(payload.fps, [24, 30], 'fps'), durationFrames, sourceSegments, sources,
         panelBackground: color(payload.panelBackground, 'panelBackground'),
-        captionOverlayBytesBase64: overlay.toString('base64'),
+        ...(captionTrack
+          ? { captionOverlayCues, captionOverlays }
+          : { captionOverlayBytesBase64: overlay.toString('base64') }),
       },
     }
   }
-  if (rawPayload && typeof rawPayload === 'object' && rawPayload.compositionProfileId === 'approved_source_caption_final_v1') {
+  if (
+    rawPayload && typeof rawPayload === 'object' &&
+    ['approved_source_caption_final_v1', 'approved_source_caption_track_final_v1']
+      .includes(rawPayload.compositionProfileId)
+  ) {
+    const captionTrack = rawPayload.compositionProfileId === 'approved_source_caption_track_final_v1'
     const payload = exactObject(rawPayload, [
       'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
       'sourceStartFrame', 'sourceEndFrameExclusive', 'sourceFit',
       'panelBackground', 'audioPolicy', 'captionOverlayPolicy',
       'sourceMimeType', 'sourceByteLength', 'sourceSha256', 'sourceBytesBase64',
-      'captionOverlayMimeType', 'captionOverlayByteLength', 'captionOverlaySha256',
-      'captionOverlayBytesBase64',
+      ...(captionTrack
+        ? ['captionOverlayCues', 'captionOverlays']
+        : ['captionOverlayMimeType', 'captionOverlayByteLength', 'captionOverlaySha256', 'captionOverlayBytesBase64']),
     ], 'final composition payload')
     const dimensions = `${payload.width}x${payload.height}`
     oneOf(dimensions, ['360x640', '640x360', '480x480', '480x600', '720x405', '405x720'], 'approved frame')
     const source = committedBase64(payload, 'source', 'video/mp4', 64, 16 * 1024 * 1024)
-    const overlay = committedBase64(payload, 'captionOverlay', 'image/png', 1024, 8 * 1024 * 1024)
-    if (source.subarray(4, 8).toString('ascii') !== 'ftyp' || overlay.subarray(0, 8).toString('hex') !== '89504e470d0a1a0a') {
-      throw new Error('final composition dependency signature is invalid')
-    }
+    const durationFrames = integer(payload.durationFrames, 24, 240, 'durationFrames')
+    const captionOverlayCues = captionTrack
+      ? validateCaptionOverlayCues(payload.captionOverlayCues, durationFrames)
+      : undefined
+    const captionOverlays = captionTrack
+      ? validateCaptionOverlayCommitments(payload.captionOverlays, captionOverlayCues)
+      : undefined
+    const overlay = captionTrack
+      ? undefined
+      : committedBase64(payload, 'captionOverlay', 'image/png', 1024, 8 * 1024 * 1024)
+    if (
+      source.subarray(4, 8).toString('ascii') !== 'ftyp' ||
+      (overlay && overlay.subarray(0, 8).toString('hex') !== '89504e470d0a1a0a')
+    ) throw new Error('final composition dependency signature is invalid')
     if (
       payload.sourceFit !== 'contain' || payload.audioPolicy !== 'preserve_source' ||
-      payload.captionOverlayPolicy !== 'approved_full_frame_rgba'
+      payload.captionOverlayPolicy !== (
+        captionTrack ? 'approved_timed_full_frame_rgba_track' : 'approved_full_frame_rgba'
+      )
     ) throw new Error('final composition policy is unsupported')
-    const durationFrames = integer(payload.durationFrames, 24, 240, 'durationFrames')
     const sourceStartFrame = integer(payload.sourceStartFrame, 0, 100_000_000, 'sourceStartFrame')
     const sourceEndFrameExclusive = integer(
       payload.sourceEndFrameExclusive,
@@ -205,7 +313,10 @@ function validateRequest(value) {
         fps: oneOf(payload.fps, [24, 30], 'fps'), durationFrames,
         sourceStartFrame, sourceEndFrameExclusive,
         panelBackground: color(payload.panelBackground, 'panelBackground'),
-        sourceBytesBase64: source.toString('base64'), captionOverlayBytesBase64: overlay.toString('base64'),
+        sourceBytesBase64: source.toString('base64'),
+        ...(captionTrack
+          ? { captionOverlayCues, captionOverlays }
+          : { captionOverlayBytesBase64: overlay.toString('base64') }),
       },
     }
   }
@@ -249,19 +360,41 @@ async function execute(request) {
   const finalComposition = [
     'approved_source_caption_final_v1',
     'approved_source_sequence_caption_final_v1',
+    'approved_source_caption_track_final_v1',
+    'approved_source_sequence_caption_track_final_v1',
   ].includes(request.payload.compositionProfileId)
+  const captionTrack = isCaptionTrackProfile(request.payload.compositionProfileId)
   const mediaServer = finalComposition
     ? await openPrivateLoopbackMediaServer(
-        request.payload.compositionProfileId === 'approved_source_sequence_caption_final_v1'
+        isSourceSequenceProfile(request.payload.compositionProfileId)
           ? request.payload.sources.map((source) => ({
               sourceSequenceItemId: source.sourceSequenceItemId,
               bytes: Buffer.from(source.sourceBytesBase64, 'base64'),
             }))
           : [{ sourceSequenceItemId: 'single-approved-source', bytes: Buffer.from(request.payload.sourceBytesBase64, 'base64') }],
-        Buffer.from(request.payload.captionOverlayBytesBase64, 'base64'),
+        captionTrack
+          ? request.payload.captionOverlays.map((overlay) => ({
+              outputKey: overlay.outputKey,
+              bytes: Buffer.from(overlay.bytesBase64, 'base64'),
+            }))
+          : [{
+              outputKey: 'legacy-caption-overlay',
+              bytes: Buffer.from(request.payload.captionOverlayBytesBase64, 'base64'),
+            }],
       )
     : null
-  const renderPayload = request.payload.compositionProfileId === 'approved_source_sequence_caption_final_v1'
+  const captionRenderPayload = captionTrack
+    ? {
+        captionOverlayCues: request.payload.captionOverlayCues,
+        captionOverlayInternalUrls: request.payload.captionOverlays.map((overlay, index) => ({
+          outputKey: overlay.outputKey,
+          captionOverlayInternalUrl: `${mediaServer.origin}/caption/${index}.png`,
+        })),
+      }
+    : finalComposition
+      ? { captionOverlayInternalUrl: `${mediaServer.origin}/caption/0.png` }
+      : {}
+  const renderPayload = isSourceSequenceProfile(request.payload.compositionProfileId)
     ? {
         compositionProfileId: request.payload.compositionProfileId,
         width: request.payload.width, height: request.payload.height,
@@ -273,7 +406,7 @@ async function execute(request) {
           sourceSequenceItemId: source.sourceSequenceItemId,
           sourceInternalUrl: `${mediaServer.origin}/source/${index}.mp4`,
         })),
-        captionOverlayInternalUrl: `${mediaServer.origin}/caption.png`,
+        ...captionRenderPayload,
       }
     : finalComposition
     ? {
@@ -285,7 +418,7 @@ async function execute(request) {
         sourceFit: request.payload.sourceFit, panelBackground: request.payload.panelBackground,
         audioPolicy: request.payload.audioPolicy, captionOverlayPolicy: request.payload.captionOverlayPolicy,
         sourceInternalUrl: `${mediaServer.origin}/source/0.mp4`,
-        captionOverlayInternalUrl: `${mediaServer.origin}/caption.png`,
+        ...captionRenderPayload,
       }
     : request.payload
   try {
@@ -351,7 +484,7 @@ async function execute(request) {
   }
 }
 
-async function openPrivateLoopbackMediaServer(sources, overlayBytes) {
+async function openPrivateLoopbackMediaServer(sources, overlays) {
   const server = createServer((request, response) => {
     if (!request.url || !['GET', 'HEAD'].includes(request.method ?? '')) {
       response.writeHead(405).end()
@@ -367,8 +500,14 @@ async function openPrivateLoopbackMediaServer(sources, overlayBytes) {
       serveCommittedBytes(request, response, source.bytes, 'video/mp4')
       return
     }
-    if (request.url === '/caption.png') {
-      serveCommittedBytes(request, response, overlayBytes, 'image/png')
+    const captionMatch = /^\/caption\/(\d+)\.png$/.exec(request.url)
+    if (captionMatch) {
+      const overlay = overlays[Number(captionMatch[1])]
+      if (!overlay) {
+        response.writeHead(404).end()
+        return
+      }
+      serveCommittedBytes(request, response, overlay.bytes, 'image/png')
       return
     }
     response.writeHead(404).end()
@@ -444,15 +583,19 @@ try {
       approvedFrameAndTimingPreserved: true,
       actualMp4ArtifactProduced: true,
       callerPathsUrlsCodeAndCommandsRejected: true,
-      ...(request.payload.compositionProfileId === 'approved_source_caption_final_v1'
+      ...(['approved_source_caption_final_v1', 'approved_source_caption_track_final_v1']
+        .includes(request.payload.compositionProfileId)
         ? {
             approvedSourceBytesVerified: true,
             approvedCaptionOverlayBytesVerified: true,
             approvedSourceTrimFramesApplied: true,
             sourceAudioPreservationRequested: true,
             finalCompositionProfileExecuted: true,
+            ...(isCaptionTrackProfile(request.payload.compositionProfileId)
+              ? { approvedCaptionTrackTimingApplied: true }
+              : {}),
           }
-        : request.payload.compositionProfileId === 'approved_source_sequence_caption_final_v1'
+        : isSourceSequenceProfile(request.payload.compositionProfileId)
           ? {
               approvedSourceBytesVerified: true,
               approvedSourceSequenceBytesVerified: true,
@@ -461,6 +604,9 @@ try {
               approvedSourceSequenceTimelineApplied: true,
               sourceAudioPreservationRequested: true,
               finalCompositionProfileExecuted: true,
+              ...(isCaptionTrackProfile(request.payload.compositionProfileId)
+                ? { approvedCaptionTrackTimingApplied: true }
+                : {}),
             }
         : { boundedPreviewCompositionProfileExecuted: true }),
     },

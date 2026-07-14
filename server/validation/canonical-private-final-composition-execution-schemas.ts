@@ -33,6 +33,21 @@ const finalCompositionDependencyInputsSchema = z.object({
   captionDependencyReadEvidenceHash: sha,
 }).strict()
 
+const captionTrackDependencyInputsSchema = z.object({
+  sourceTrimArtifactId: identity, sourceTrimSha256: sha,
+  sourceTrimByteLength: z.number().int().positive().max(1024 * 1024),
+  sourceTrimDependencyReadEvidenceHash: sha,
+  captionOverlays: z.array(z.object({
+    outputKey: identity,
+    startFrame: z.number().int().nonnegative(),
+    endFrameExclusive: z.number().int().positive(),
+    captionArtifactId: identity,
+    captionSha256: sha,
+    captionByteLength: z.number().int().positive().max(8 * 1024 * 1024),
+    captionDependencyReadEvidenceHash: sha,
+  }).strict()).min(2).max(7),
+}).strict()
+
 const singleSourceFinalCompositionInputsSchema = finalCompositionDependencyInputsSchema.extend({
   sourceSequenceItemId: identity, sourceMediaAssetId: identity,
   sourceSha256: sha, sourceByteLength: z.number().int().positive().max(16 * 1024 * 1024),
@@ -43,6 +58,32 @@ const singleSourceFinalCompositionInputsSchema = finalCompositionDependencyInput
 }).strict()
 
 const sourceSequenceFinalCompositionInputsSchema = finalCompositionDependencyInputsSchema.extend({
+  sources: z.array(z.object({
+    sourceSequenceItemId: identity,
+    sourceMediaAssetId: identity,
+    sourceSha256: sha,
+    sourceByteLength: z.number().int().positive().max(16 * 1024 * 1024),
+    sourceReadEvidenceHash: sha,
+    sourceCleanupDecisionId: identity,
+    sourceStartFrame: z.number().int().nonnegative(),
+    sourceEndFrameExclusive: z.number().int().positive(),
+    timelineStartFrame: z.number().int().nonnegative(),
+    timelineEndFrameExclusive: z.number().int().positive(),
+  }).strict()).min(2).max(8),
+  combinedSourceByteLength: z.number().int().positive().max(20 * 1024 * 1024),
+  sourceSequenceReadEvidenceHash: sha,
+}).strict()
+
+const singleSourceCaptionTrackFinalCompositionInputsSchema = captionTrackDependencyInputsSchema.extend({
+  sourceSequenceItemId: identity, sourceMediaAssetId: identity,
+  sourceSha256: sha, sourceByteLength: z.number().int().positive().max(16 * 1024 * 1024),
+  sourceReadEvidenceHash: sha,
+  sourceCleanupDecisionId: identity,
+  sourceStartFrame: z.number().int().nonnegative(),
+  sourceEndFrameExclusive: z.number().int().positive(),
+}).strict()
+
+const sourceSequenceCaptionTrackFinalCompositionInputsSchema = captionTrackDependencyInputsSchema.extend({
   sources: z.array(z.object({
     sourceSequenceItemId: identity,
     sourceMediaAssetId: identity,
@@ -73,12 +114,15 @@ export const canonicalPrivateFinalCompositionResponseSchema = z.object({
     compositionProfileId: z.enum([
       'approved_source_caption_final_v1',
       'approved_source_sequence_caption_final_v1',
+      'approved_source_caption_track_final_v1',
+      'approved_source_sequence_caption_track_final_v1',
     ]),
     actualRemotionOperationCompleted: z.literal(true),
     approvedSourceObjectRead: z.literal(true),
     approvedSourceTrimDependencyRead: z.literal(true),
     approvedSourceTrimFramesApplied: z.literal(true),
     approvedCaptionDependencyRead: z.literal(true),
+    approvedCaptionTrackTimingApplied: z.boolean(),
     sourceAudioPreserved: z.literal(true),
     privateFinalCompositionExecuted: z.literal(true),
     providerCallMade: z.literal(false),
@@ -87,6 +131,8 @@ export const canonicalPrivateFinalCompositionResponseSchema = z.object({
   inputs: z.union([
     singleSourceFinalCompositionInputsSchema,
     sourceSequenceFinalCompositionInputsSchema,
+    singleSourceCaptionTrackFinalCompositionInputsSchema,
+    sourceSequenceCaptionTrackFinalCompositionInputsSchema,
   ]),
   lease: z.object({
     leaseId: identity, attemptNumber: z.number().int().positive().max(10), immutableLeaseHash: sha,

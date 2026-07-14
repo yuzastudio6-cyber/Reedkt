@@ -462,7 +462,7 @@ function privateReviewPublicationBlockers(input: {
   segments: CanonicalPlanComponentsDraft['segments']
 }): string[] {
   const blockers: string[] = []
-  const captionTiming = input.plan.masterTimingPlan?.captionTimingItems[0]
+  const captionCues = approvedCaptionCues(input.plan, input.totalFrames)
   if (input.orderedSourceItems.length > 8) blockers.push('Private canonical review currently supports at most eight ordered source videos per composition.')
   if (input.sourceMediaAssets.some((asset) => asset.mimeType.toLowerCase() !== 'video/mp4')) {
     blockers.push('Every source in the private canonical review sequence must be an MP4.')
@@ -509,14 +509,8 @@ function privateReviewPublicationBlockers(input: {
   }
   if ((input.plan.visualAssetPlan?.length ?? 0) > 0) blockers.push('The planned visual assets need their exact canonical tool or provider work items before publication.')
   if ((input.plan.providerPromptPlans?.length ?? 0) > 0) blockers.push('Provider-backed plan items remain gated until their canonical work items are compiled.')
-  if ((input.plan.masterTimingPlan?.captionTimingItems.length ?? 0) !== 1) blockers.push('The current private review proof requires one exact approved caption cue.')
-  if (
-    !captionTiming ||
-    captionTiming.timeRange.startFrame !== 0 ||
-    captionTiming.timeRange.endFrame !== input.totalFrames ||
-    validatedCaption(captionTiming.captionText) === null
-  ) {
-    blockers.push('The current private review proof requires one safe caption that spans the exact final frame range.')
+  if (!captionCues) {
+    blockers.push('Private canonical review requires one full-duration caption or two to seven safe, ordered, non-overlapping caption cues.')
   }
   if ((input.plan.masterTimingPlan?.visualTimingItems.length ?? 0) > 0) blockers.push('Timed visual cues need their own canonical execution work items.')
   if ((input.plan.masterTimingPlan?.transitionTimingItems.length ?? 0) > 0) blockers.push('Timed transitions need their own canonical execution work items.')
@@ -541,10 +535,15 @@ function buildPrivateReviewCanonicalPlan(input: {
 }): CanonicalPlanDraft {
   const segmentIds = input.components.segments.map((segment) => segment.segmentId)
   const timingId = safeKey(input.plan.masterTimingPlan?.id ?? 'master-timing-plan', 'master-timing-plan')
-  const caption = validatedCaption(input.plan.masterTimingPlan?.captionTimingItems[0]?.captionText) ?? 'Private review'
+  const captionCues = approvedCaptionCues(input.plan, input.totalFrames)
+  if (!captionCues) throw new Error('Canonical caption cues changed after publication validation.')
   const panelBackground = safeColor(input.plan.aspectRatioFramePlan?.panelBackgroundColor)
   const estimate = input.estimate
-  const budgets = fitBudgets(estimate.lineItems.reduce((sum, item) => sum + item.estimatedCredits, 0) + estimate.fallbackAllowanceCredits)
+  const budgets = fitBudgets(
+    estimate.lineItems.reduce((sum, item) => sum + item.estimatedCredits, 0) +
+      estimate.fallbackAllowanceCredits,
+    captionCues.length,
+  )
   const sourceIds = input.sourceItems.map((source) => source.sourceSequenceItemId)
   const cleanupIds = input.cleanupDecisions.map((decision) => decision.decisionId)
   const sourceTimeline = buildOrderedSourceTimeline(input.sourceItems, input.cleanupDecisions)
@@ -552,6 +551,7 @@ function buildPrivateReviewCanonicalPlan(input: {
     throw new Error('Canonical source sequence lost its exact approved timeline during compilation.')
   }
   const sourceSequenceComposition = sourceTimeline.length > 1
+  const captionTrackComposition = captionCues.length > 1
 
   const output = (
     outputKey: string,
@@ -574,6 +574,76 @@ function buildPrivateReviewCanonicalPlan(input: {
     timingIds: lineage.timingIds ?? [],
     rendererLayerIds: lineage.rendererLayerIds ?? [],
   })
+
+  const captionWorkItems = captionCues.map((cue, index): CanonicalWorkItemDraft => {
+    const ordinal = index + 1
+    const workItemKey = captionTrackComposition ? `caption-overlay-${ordinal}` : 'caption-overlay'
+    const outputKey = captionTrackComposition ? `caption-overlay-${ordinal}-png` : 'caption-overlay-png'
+    const rendererLayerId = captionTrackComposition
+      ? `caption-overlay-layer-${ordinal}`
+      : 'caption-overlay-layer'
+    const cueSegmentIds = input.components.segments
+      .filter((segment) =>
+        segment.startFrame < cue.endFrameExclusive && segment.endFrameExclusive > cue.startFrame)
+      .map((segment) => segment.segmentId)
+    return {
+      workItemKey,
+      workItemType: 'custom',
+      workerClass: 'render_worker',
+      executionInput: {
+        operation: 'render_approved_caption_overlay',
+        approvedToolOperationIds: [LIBASS_OPERATION],
+        expectedOutputKeys: [outputKey],
+        structuredPayload: {
+          captionProfileId: 'approved_ass_track_render_v1',
+          fontPackProfileId: 'reeditpro_reviewed_fonts_v1',
+          collisionPolicy: 'fail_on_reserved_zone_collision',
+          preserveSpeechTiming: true,
+          width: input.frame.width,
+          height: input.frame.height,
+          timestampMs: 1_000,
+          fontSize: input.frame.height >= 700 ? 42 : 34,
+          marginV: 48,
+          alignment: 2,
+          caption: cue.caption,
+        },
+      },
+      sourceSequenceItemIds: [],
+      sourceCleanupDecisionIds: [],
+      expectedOutputs: [output(
+        outputKey,
+        'controlled_libass_caption_overlay_png',
+        'processed',
+        'image/png',
+        {
+          segmentIds: cueSegmentIds,
+          timingIds: [timingId, cue.timingId],
+          rendererLayerIds: [rendererLayerId],
+        },
+      )],
+      dependencyKeys: [],
+      approvedToolIds: ['libass'],
+      providerExecutionMode: 'none',
+      fallbackPolicy: {},
+      maxAttempts: 2,
+      attemptTimeoutSeconds: 300,
+      scheduledDelaySeconds: 0,
+      maximumCreditBudget: budgets[2 + index]!,
+      required: true,
+    }
+  })
+  const captionDependencyKeys = captionWorkItems.map((item) => item.workItemKey)
+  const captionOutputKeys = captionWorkItems.map((item) => item.expectedOutputs[0]!.outputKey)
+  const captionRendererLayerIds = captionWorkItems.flatMap((item) =>
+    item.expectedOutputs[0]!.rendererLayerIds)
+  const finalBudgetIndex = 2 + captionCues.length
+  const finalArtifactType = sourceSequenceComposition
+    ? captionTrackComposition
+      ? 'private_source_sequence_caption_track_final_video_export'
+      : 'private_source_sequence_caption_final_video_export'
+    : captionTrackComposition
+      ? 'private_source_caption_track_final_video_export'
+      : 'private_source_caption_final_video_export'
 
   return {
     schemaVersion: CANONICAL_PRIVATE_PLAN_SCHEMA_VERSION,
@@ -601,65 +671,62 @@ function buildPrivateReviewCanonicalPlan(input: {
         dependencyKeys: ['snapshot-validation'], approvedToolIds: [], providerExecutionMode: 'none', fallbackPolicy: {}, maxAttempts: 1,
         attemptTimeoutSeconds: 120, scheduledDelaySeconds: 0, maximumCreditBudget: budgets[1], required: true,
       },
-      {
-        workItemKey: 'caption-overlay', workItemType: 'custom', workerClass: 'render_worker',
-        executionInput: {
-          operation: 'render_approved_caption_overlay', approvedToolOperationIds: [LIBASS_OPERATION],
-          expectedOutputKeys: ['caption-overlay-png'], structuredPayload: {
-            captionProfileId: 'approved_ass_track_render_v1', fontPackProfileId: 'reeditpro_reviewed_fonts_v1',
-            collisionPolicy: 'fail_on_reserved_zone_collision', preserveSpeechTiming: true,
-            width: input.frame.width, height: input.frame.height, timestampMs: 1_000,
-            fontSize: input.frame.height >= 700 ? 42 : 34, marginV: 48, alignment: 2, caption,
-          },
-        },
-        sourceSequenceItemIds: [], sourceCleanupDecisionIds: [],
-        expectedOutputs: [output(
-          'caption-overlay-png',
-          'controlled_libass_caption_overlay_png',
-          'processed',
-          'image/png',
-          { segmentIds, timingIds: [timingId], rendererLayerIds: ['caption-overlay-layer'] },
-        )],
-        dependencyKeys: [], approvedToolIds: ['libass'], providerExecutionMode: 'none', fallbackPolicy: {}, maxAttempts: 2,
-        attemptTimeoutSeconds: 300, scheduledDelaySeconds: 0, maximumCreditBudget: budgets[2], required: true,
-      },
+      ...captionWorkItems,
       {
         workItemKey: 'final-export', workItemType: 'render_final_export', workerClass: 'render_worker',
         executionInput: {
           operation: sourceSequenceComposition
-            ? 'render_approved_source_sequence_caption_final'
-            : 'render_approved_source_caption_final',
+            ? captionTrackComposition
+              ? 'render_approved_source_sequence_caption_track_final'
+              : 'render_approved_source_sequence_caption_final'
+            : captionTrackComposition
+              ? 'render_approved_source_caption_track_final'
+              : 'render_approved_source_caption_final',
           approvedToolOperationIds: [REMOTION_OPERATION],
           expectedOutputKeys: ['final-export'], structuredPayload: {
             ...(sourceSequenceComposition
               ? {
-                  compositionProfileId: 'approved_source_sequence_caption_final_v1',
+                  compositionProfileId: captionTrackComposition
+                    ? 'approved_source_sequence_caption_track_final_v1'
+                    : 'approved_source_sequence_caption_final_v1',
                   sourceSegments: sourceTimeline,
                   audioPolicy: 'preserve_source_sequence',
                 }
               : {
-                  compositionProfileId: 'approved_source_caption_final_v1',
+                  compositionProfileId: captionTrackComposition
+                    ? 'approved_source_caption_track_final_v1'
+                    : 'approved_source_caption_final_v1',
                   sourceStartFrame: input.cleanupDecisions[0]!.startFrame,
                   sourceEndFrameExclusive: input.cleanupDecisions[0]!.endFrameExclusive,
                   audioPolicy: 'preserve_source',
                 }),
             width: input.frame.width, height: input.frame.height,
             fps: input.fps, durationFrames: input.totalFrames, sourceFit: 'contain',
-            panelBackground, captionOverlayPolicy: 'approved_full_frame_rgba',
+            panelBackground,
+            captionOverlayPolicy: captionTrackComposition
+              ? 'approved_timed_full_frame_rgba_track'
+              : 'approved_full_frame_rgba',
+            ...(captionTrackComposition
+              ? {
+                  captionOverlayCues: captionCues.map((cue, index) => ({
+                    outputKey: captionOutputKeys[index]!,
+                    startFrame: cue.startFrame,
+                    endFrameExclusive: cue.endFrameExclusive,
+                  })),
+                }
+              : {}),
           },
         },
         sourceSequenceItemIds: sourceIds, sourceCleanupDecisionIds: cleanupIds,
         expectedOutputs: [output(
           'final-export',
-          sourceSequenceComposition
-            ? 'private_source_sequence_caption_final_video_export'
-            : 'private_source_caption_final_video_export',
+          finalArtifactType,
           'final',
           'video/mp4',
-          { segmentIds, timingIds: [timingId], rendererLayerIds: ['source-video-layer', 'caption-overlay-layer'] },
+          { segmentIds, timingIds: [timingId], rendererLayerIds: ['source-video-layer', ...captionRendererLayerIds] },
         )],
-        dependencyKeys: ['source-trim-validation', 'caption-overlay'], approvedToolIds: ['remotion'], providerExecutionMode: 'none', fallbackPolicy: {}, maxAttempts: 2,
-        attemptTimeoutSeconds: 1_800, scheduledDelaySeconds: 0, maximumCreditBudget: budgets[3], required: true,
+        dependencyKeys: ['source-trim-validation', ...captionDependencyKeys], approvedToolIds: ['remotion'], providerExecutionMode: 'none', fallbackPolicy: {}, maxAttempts: 2,
+        attemptTimeoutSeconds: 1_800, scheduledDelaySeconds: 0, maximumCreditBudget: budgets[finalBudgetIndex]!, required: true,
       },
       {
         workItemKey: 'final-qa', workItemType: 'run_final_qa', workerClass: 'qa_worker',
@@ -675,10 +742,10 @@ function buildPrivateReviewCanonicalPlan(input: {
           'final_qa_report',
           'qa',
           'application/json',
-          { segmentIds, timingIds: [timingId], rendererLayerIds: ['source-video-layer', 'caption-overlay-layer'] },
+          { segmentIds, timingIds: [timingId], rendererLayerIds: ['source-video-layer', ...captionRendererLayerIds] },
         )],
         dependencyKeys: ['final-export'], approvedToolIds: ['ffprobe'], providerExecutionMode: 'none', fallbackPolicy: {}, maxAttempts: 2,
-        attemptTimeoutSeconds: 300, scheduledDelaySeconds: 0, maximumCreditBudget: budgets[4], required: true,
+        attemptTimeoutSeconds: 300, scheduledDelaySeconds: 0, maximumCreditBudget: budgets[finalBudgetIndex + 1]!, required: true,
       },
     ],
   }
@@ -756,10 +823,10 @@ function buildEstimate(plan: EditPlan):
   }
 }
 
-function fitBudgets(maximumCredits: number): [number, number, number, number, number] {
-  const defaults: [number, number, number, number, number] = [1, 3, 1, 4, 2]
-  if (maximumCredits >= 11) return defaults
-  const budgets: [number, number, number, number, number] = [0, 0, 0, 0, 0]
+function fitBudgets(maximumCredits: number, captionCueCount: number): number[] {
+  const defaults = [1, 3, ...Array.from({ length: captionCueCount }, () => 1), 4, 2]
+  if (maximumCredits >= defaults.reduce((sum, budget) => sum + budget, 0)) return defaults
+  const budgets = Array.from({ length: defaults.length }, () => 0)
   for (let index = 0; index < Math.max(0, maximumCredits); index += 1) budgets[index % budgets.length] += 1
   return budgets
 }
@@ -834,6 +901,42 @@ function validatedCaption(value: string | undefined): string | null {
   if (!value || value.length > 120 || value !== value.trim() || !/^[\x20-\x7E]+$/.test(value)) return null
   if (/[{}\\[\]]/.test(value) || /(?:https?:\/\/|file:|data:|javascript:|\.\.\/|\$\(|`|&&|\|\||#!)/i.test(value)) return null
   return value
+}
+
+function approvedCaptionCues(
+  plan: EditPlan,
+  totalFrames: number,
+): Array<{
+  timingId: string
+  caption: string
+  startFrame: number
+  endFrameExclusive: number
+}> | null {
+  const timingItems = plan.masterTimingPlan?.captionTimingItems ?? []
+  if (timingItems.length < 1 || timingItems.length > 7) return null
+  const seenTimingIds = new Set<string>()
+  let previousEndFrame = 0
+  const cues = timingItems.flatMap((item, index) => {
+    const caption = validatedCaption(item.captionText)
+    const startFrame = item.timeRange.startFrame
+    const endFrameExclusive = item.timeRange.endFrame
+    const timingId = safeKey(item.id, `caption-timing-${index + 1}`)
+    if (
+      !caption || !Number.isInteger(startFrame) || !Number.isInteger(endFrameExclusive) ||
+      startFrame < previousEndFrame || startFrame < 0 || endFrameExclusive <= startFrame ||
+      endFrameExclusive > totalFrames || item.timeRange.durationFrames !== endFrameExclusive - startFrame ||
+      seenTimingIds.has(timingId)
+    ) return []
+    previousEndFrame = endFrameExclusive
+    seenTimingIds.add(timingId)
+    return [{ timingId, caption, startFrame, endFrameExclusive }]
+  })
+  if (cues.length !== timingItems.length) return null
+  if (
+    cues.length === 1 &&
+    (cues[0]!.startFrame !== 0 || cues[0]!.endFrameExclusive !== totalFrames)
+  ) return null
+  return cues
 }
 
 function hasUnrepresentedSegmentOperations(plan: EditPlan): boolean {

@@ -14,6 +14,8 @@ export async function verifyCanonicalPrivateRemotionArtifact(input: {
     [
       'private_source_caption_final_video_export',
       'private_source_sequence_caption_final_video_export',
+      'private_source_caption_track_final_video_export',
+      'private_source_sequence_caption_track_final_video_export',
     ].includes(input.artifact.lineage.artifactType) &&
     input.artifact.lineage.required === true &&
     input.artifact.lineage.previewPlaceholderAllowed === false

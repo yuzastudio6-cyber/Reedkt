@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
 import { spawnSync } from 'node:child_process'
-import { mkdtemp, readFile, rm } from 'node:fs/promises'
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
@@ -98,6 +98,17 @@ try {
       alignment: 2, caption: 'Approved source caption final',
     },
   })
+  const secondOverlay = await libassRuntime.execute({
+    schemaVersion: 'offline-libass-caption-execution-v1', toolId: 'libass',
+    operationId: 'tool.libass.render_approved_caption_track.v1',
+    payload: {
+      captionProfileId: 'approved_ass_track_render_v1',
+      fontPackProfileId: 'reeditpro_reviewed_fonts_v1',
+      collisionPolicy: 'fail_on_reserved_zone_collision', preserveSpeechTiming: true,
+      width: 640, height: 360, timestampMs: 1000, fontSize: 42, marginV: 48,
+      alignment: 2, caption: 'Approved second timed caption',
+    },
+  })
   const finalRequest = buildOfflineRemotionFinalCompositionRequest({
     planningPayload: {
       compositionProfileId: 'approved_source_caption_final_v1', width: 640, height: 360,
@@ -156,7 +167,7 @@ try {
 
   const sourceSequenceRequest = buildOfflineRemotionFinalCompositionRequest({
     planningPayload: {
-      compositionProfileId: 'approved_source_sequence_caption_final_v1',
+      compositionProfileId: 'approved_source_sequence_caption_track_final_v1',
       width: 640, height: 360, fps: 24, durationFrames: 48,
       sourceSegments: [{
         sourceSequenceItemId: 'approved-source-a',
@@ -169,7 +180,12 @@ try {
       }],
       sourceFit: 'contain', panelBackground: '#000000',
       audioPolicy: 'preserve_source_sequence',
-      captionOverlayPolicy: 'approved_full_frame_rgba',
+      captionOverlayPolicy: 'approved_timed_full_frame_rgba_track',
+      captionOverlayCues: [{
+        outputKey: 'caption-overlay-1-png', startFrame: 0, endFrameExclusive: 24,
+      }, {
+        outputKey: 'caption-overlay-2-png', startFrame: 24, endFrameExclusive: 48,
+      }],
     },
     sources: [{
       sourceSequenceItemId: 'approved-source-a', mimeType: 'video/mp4', bytes: sourceBytes,
@@ -178,15 +194,18 @@ try {
       sourceSequenceItemId: 'approved-source-b', mimeType: 'video/mp4', bytes: sourceBytes,
       sha256: createHash('sha256').update(sourceBytes).digest('hex'),
     }],
-    captionOverlay: {
-      mimeType: 'image/png', bytes: overlay.imageArtifact.bytes,
-      sha256: overlay.imageArtifact.sha256,
-    },
+    captionOverlays: [{
+      outputKey: 'caption-overlay-1-png', mimeType: 'image/png',
+      bytes: overlay.imageArtifact.bytes, sha256: overlay.imageArtifact.sha256,
+    }, {
+      outputKey: 'caption-overlay-2-png', mimeType: 'image/png',
+      bytes: secondOverlay.imageArtifact.bytes, sha256: secondOverlay.imageArtifact.sha256,
+    }],
   })
   const sourceSequencePayload = sourceSequenceRequest.payload
   if (
     !('compositionProfileId' in sourceSequencePayload) ||
-    sourceSequencePayload.compositionProfileId !== 'approved_source_sequence_caption_final_v1'
+    sourceSequencePayload.compositionProfileId !== 'approved_source_sequence_caption_track_final_v1'
   ) throw new Error('Source-sequence smoke request compiled to the wrong profile.')
   assert.throws(() => validateOfflineRemotionRenderRequest({
     ...sourceSequenceRequest,
@@ -196,12 +215,54 @@ try {
         index === 1 ? { ...segment, timelineStartFrame: 23 } : segment),
     },
   }), /contiguous|duration|sequence/)
+  assert.throws(() => validateOfflineRemotionRenderRequest({
+    ...sourceSequenceRequest,
+    payload: {
+      ...sourceSequencePayload,
+      captionOverlayCues: sourceSequencePayload.captionOverlayCues.map((cue, index) =>
+        index === 1 ? { ...cue, startFrame: 23 } : cue),
+    },
+  }), /ordered|non-overlapping|caption/)
+  assert.throws(() => validateOfflineRemotionRenderRequest({
+    ...sourceSequenceRequest,
+    payload: {
+      ...sourceSequencePayload,
+      captionOverlays: [...sourceSequencePayload.captionOverlays].reverse(),
+    },
+  }), /order|caption/)
+  assert.throws(() => validateOfflineRemotionRenderRequest({
+    ...sourceSequenceRequest,
+    payload: {
+      ...sourceSequencePayload,
+      captionOverlays: sourceSequencePayload.captionOverlays.map((caption, index) =>
+        index === 0 ? { ...caption, sourceUrl: 'https://example.test/caption.png' } : caption),
+    },
+  }), /unsupported/)
   const sourceSequenceResult = await reopened.execute(sourceSequenceRequest)
   assert.equal(sourceSequenceResult.artifact.bytes.subarray(4, 8).toString('ascii'), 'ftyp')
   assert.equal(sourceSequenceResult.artifact.durationFrames, 48)
   assert.equal(sourceSequenceResult.evidence.semanticEvidence.approvedSourceSequenceBytesVerified, true)
   assert.equal(sourceSequenceResult.evidence.semanticEvidence.approvedSourceSequenceTimelineApplied, true)
+  assert.equal(sourceSequenceResult.evidence.semanticEvidence.approvedCaptionTrackTimingApplied, true)
   assert.equal(sourceSequenceResult.evidence.semanticEvidence.sourceAudioPreservationRequested, true)
+  const sourceSequenceArtifactPath = join(fixtureRoot, 'source-sequence-caption-track.mp4')
+  const firstCaptionFramePath = join(fixtureRoot, 'caption-track-frame-12.png')
+  const secondCaptionFramePath = join(fixtureRoot, 'caption-track-frame-36.png')
+  await writeFile(sourceSequenceArtifactPath, sourceSequenceResult.artifact.bytes)
+  for (const [frame, outputPath] of [[12, firstCaptionFramePath], [36, secondCaptionFramePath]] as const) {
+    const extracted = spawnSync('ffmpeg', [
+      '-hide_banner', '-loglevel', 'error', '-i', sourceSequenceArtifactPath,
+      '-vf', `select=eq(n\\,${frame})`, '-frames:v', '1', outputPath,
+    ], { encoding: 'utf8' })
+    assert.equal(extracted.status, 0, extracted.stderr)
+  }
+  const firstCaptionFrame = await readFile(firstCaptionFramePath)
+  const secondCaptionFrame = await readFile(secondCaptionFramePath)
+  assert.notEqual(
+    createHash('sha256').update(firstCaptionFrame).digest('hex'),
+    createHash('sha256').update(secondCaptionFrame).digest('hex'),
+    'Decoded frames from repeated source timing must reflect distinct approved caption artifacts.',
+  )
   const sourceSequenceProbe = await mediaRuntime.execute({
     schemaVersion: 'offline-media-binary-execution-v1', toolId: 'ffprobe',
     operationId: 'tool.ffprobe.inspect_approved_media.v1',
@@ -223,6 +284,6 @@ try {
 
 console.log(JSON.stringify({
   smoke: 'offline_remotion_render_execution', status: 'passed',
-  proofs: ['exact_operation_payload_validated', 'caller_paths_urls_commands_and_extra_fields_rejected', 'checksum_protected_runtime_authority_persisted_and_reopened', 'pinned_image_identity_verified', 'network_none_read_only_non_root_cap_drop_confinement_verified', 'actual_remotion_select_and_render_media_executed', 'mp4_hash_frame_timing_and_header_verified', 'independent_pinned_ffprobe_h264_frame_count_pixel_format_color_space_and_duration_qa_passed', 'server_injected_source_mp4_and_libass_png_hash_commitments_verified', 'approved_nonzero_source_trim_frames_applied', 'actual_source_plus_caption_final_composition_rendered', 'ordered_two_source_sequence_and_caption_final_composition_rendered', 'source_sequence_frame_ranges_and_audio_preserved', 'source_audio_preserved_as_aac', 'final_composition_paths_urls_commands_and_tampered_bytes_rejected', 'product_beta_production_readiness_remains_false'],
+  proofs: ['exact_operation_payload_validated', 'caller_paths_urls_commands_and_extra_fields_rejected', 'checksum_protected_runtime_authority_persisted_and_reopened', 'pinned_image_identity_verified', 'network_none_read_only_non_root_cap_drop_confinement_verified', 'actual_remotion_select_and_render_media_executed', 'mp4_hash_frame_timing_and_header_verified', 'independent_pinned_ffprobe_h264_frame_count_pixel_format_color_space_and_duration_qa_passed', 'server_injected_source_mp4_and_libass_png_hash_commitments_verified', 'approved_nonzero_source_trim_frames_applied', 'actual_source_plus_caption_final_composition_rendered', 'ordered_two_source_sequence_and_timed_caption_track_final_composition_rendered', 'distinct_caption_track_frames_decoded_and_verified', 'source_sequence_frame_ranges_and_audio_preserved', 'source_audio_preserved_as_aac', 'final_composition_paths_urls_commands_and_tampered_bytes_rejected', 'product_beta_production_readiness_remains_false'],
   artifact: { sha256: result.artifact.sha256, byteLength: result.artifact.byteLength, width: result.artifact.width, height: result.artifact.height, fps: result.artifact.fps, durationFrames: result.artifact.durationFrames },
 }, null, 2))

@@ -246,11 +246,35 @@ assert.deepEqual(
 assert.equal(multiSourceTrimItem.sourceCleanupDecisionIds.length, 2)
 const multiSourceFinalItem = multiSourceDraft.draft.publication.canonicalPlan.workItems.find((item) =>
   item.workItemKey === 'final-export')!
+const multiSourceCaptionItems = multiSourceDraft.draft.publication.canonicalPlan.workItems.filter((item) =>
+  item.approvedToolIds.includes('libass'))
+assert.deepEqual(
+  multiSourceCaptionItems.map((item) => ({
+    workItemKey: item.workItemKey,
+    outputKey: item.expectedOutputs[0]?.outputKey,
+    timingIds: item.expectedOutputs[0]?.timingIds,
+  })),
+  [{
+    workItemKey: 'caption-overlay-1',
+    outputKey: 'caption-overlay-1-png',
+    timingIds: [multiSourcePlan.masterTimingPlan!.id, 'multi-caption-1'],
+  }, {
+    workItemKey: 'caption-overlay-2',
+    outputKey: 'caption-overlay-2-png',
+    timingIds: [multiSourcePlan.masterTimingPlan!.id, 'multi-caption-2'],
+  }],
+  'Each approved cue must compile to its own exact libass artifact lineage.',
+)
+assert.deepEqual(
+  multiSourceFinalItem.dependencyKeys,
+  ['source-trim-validation', 'caption-overlay-1', 'caption-overlay-2'],
+  'Final composition must depend on the trim report and every approved caption artifact.',
+)
 const multiSourceFinalPayload = validateOfflineRemotionFinalCompositionPlanningPayload(
   asRecord(multiSourceFinalItem.executionInput.structuredPayload),
 )
-assert.equal(multiSourceFinalPayload.compositionProfileId, 'approved_source_sequence_caption_final_v1')
-if (multiSourceFinalPayload.compositionProfileId !== 'approved_source_sequence_caption_final_v1') {
+assert.equal(multiSourceFinalPayload.compositionProfileId, 'approved_source_sequence_caption_track_final_v1')
+if (multiSourceFinalPayload.compositionProfileId !== 'approved_source_sequence_caption_track_final_v1') {
   throw new Error('Exact ordered multi-source plan compiled to the wrong Remotion profile.')
 }
 assert.deepEqual(multiSourceFinalPayload.sourceSegments, [{
@@ -266,9 +290,18 @@ assert.deepEqual(multiSourceFinalPayload.sourceSegments, [{
   timelineStartFrame: 24,
   timelineEndFrameExclusive: 48,
 }])
+assert.deepEqual(multiSourceFinalPayload.captionOverlayCues, [{
+  outputKey: 'caption-overlay-1-png',
+  startFrame: 0,
+  endFrameExclusive: 24,
+}, {
+  outputKey: 'caption-overlay-2-png',
+  startFrame: 24,
+  endFrameExclusive: 48,
+}])
 assert.equal(
   multiSourceFinalItem.expectedOutputs[0]?.artifactType,
-  'private_source_sequence_caption_final_video_export',
+  'private_source_sequence_caption_track_final_video_export',
 )
 
 const badSourceDraft = buildCanonicalPlanningDraft({
@@ -783,10 +816,17 @@ function createExactMultiSourcePrivateReviewPlan(): EditPlan {
     label: 'Second approved source',
     finalRange: frameRange(1, 2, 24, 48),
   }]
+  const captionTemplate = timing.captionTimingItems[0]!
   timing.captionTimingItems = [{
-    ...timing.captionTimingItems[0]!,
-    captionText: 'Approved ordered source sequence',
-    timeRange: frameRange(0, 2, 0, 48),
+    ...captionTemplate,
+    id: 'multi-caption-1',
+    captionText: 'Approved first source caption',
+    timeRange: frameRange(0, 1, 0, 24),
+  }, {
+    ...captionTemplate,
+    id: 'multi-caption-2',
+    captionText: 'Approved second source caption',
+    timeRange: frameRange(1, 2, 24, 48),
   }]
   timing.visualTimingItems = []
   timing.transitionTimingItems = []

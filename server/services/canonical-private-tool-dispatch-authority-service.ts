@@ -708,12 +708,22 @@ function resolveAndVerifyCanonicalDispatchBinding(input: {
     workItem.approvedToolIds.length === 1 && workItem.approvedToolIds[0] === 'libass' &&
     body.operationId === 'tool.libass.render_approved_caption_track.v1' &&
     workItem.dependencyKeys.length === 0 && workItem.sourceSequenceItemIds.length === 0
+  const finalCompositionStructuredPayload = workItem.executionInput.structuredPayload as
+    | Record<string, unknown>
+    | undefined
+  const finalCompositionCaptionCueCount = Array.isArray(
+    finalCompositionStructuredPayload?.captionOverlayCues,
+  )
+    ? finalCompositionStructuredPayload.captionOverlayCues.length
+    : 1
   const exactPrivateRemotionFinalComposition =
     workItem.workerClass === 'render_worker' && workItem.workItemType === 'render_final_export' &&
     expectedAsset.assetRole === 'final' && expectedAsset.contentType === 'video/mp4' &&
     workItem.approvedToolIds.length === 1 && workItem.approvedToolIds[0] === 'remotion' &&
     body.operationId === 'tool.remotion.render_approved_composition.v1' &&
-    workItem.dependencyKeys.length === 2 && workItem.sourceSequenceItemIds.length >= 1 &&
+    finalCompositionCaptionCueCount >= 1 && finalCompositionCaptionCueCount <= 7 &&
+    workItem.dependencyKeys.length === 1 + finalCompositionCaptionCueCount &&
+    workItem.sourceSequenceItemIds.length >= 1 &&
     workItem.sourceSequenceItemIds.length <= 8 &&
     workItem.sourceCleanupDecisionIds.length === workItem.sourceSequenceItemIds.length
   if (

@@ -33,7 +33,7 @@ The final artifact remains available only through the existing authenticated pri
 
 ## Current executable evidence
 
-The canonical dispatch smoke publishes and funds a fresh five-job plan, derives its immutable execution package, and completes this exact graph:
+The prior aggregate baseline publishes and funds a five-job single-caption plan and completes this graph:
 
 1. approved-snapshot validation;
 2. dependency-bound source-trim validation;
@@ -42,6 +42,8 @@ The canonical dispatch smoke publishes and funds a fresh five-job plan, derives 
 5. dependency-bound independent FFprobe final-artifact QA.
 
 It then proves caller-authored artifact injection is rejected, the terminal assembly is create-only and replay-safe, the final-QA lease is bound to the exact final MP4, and authenticated private download returns the verified bytes.
+
+The caption-track continuation expands the executable composition graph to six jobs by adding a second independent libass caption artifact. Its focused canonical proof passes through final QA, reconciliation, replay, and authenticated private download. A new post-change aggregate terminal-assembly/revision run is not claimed by this slice.
 
 ## Boundaries
 

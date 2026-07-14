@@ -24,11 +24,13 @@ export interface ApprovedCompositionProps {
   compositionProfileId?:
     | 'approved_source_caption_final_v1'
     | 'approved_source_sequence_caption_final_v1'
+    | 'approved_source_caption_track_final_v1'
+    | 'approved_source_sequence_caption_track_final_v1'
   sourceStartFrame?: number
   sourceEndFrameExclusive?: number
   sourceFit?: 'contain'
   audioPolicy?: 'preserve_source' | 'preserve_source_sequence'
-  captionOverlayPolicy?: 'approved_full_frame_rgba'
+  captionOverlayPolicy?: 'approved_full_frame_rgba' | 'approved_timed_full_frame_rgba_track'
   sourceMimeType?: 'video/mp4'
   sourceByteLength?: number
   sourceSha256?: string
@@ -39,6 +41,15 @@ export interface ApprovedCompositionProps {
   captionOverlayBytesBase64?: string
   sourceInternalUrl?: string
   captionOverlayInternalUrl?: string
+  captionOverlayCues?: Array<{
+    outputKey: string
+    startFrame: number
+    endFrameExclusive: number
+  }>
+  captionOverlayInternalUrls?: Array<{
+    outputKey: string
+    captionOverlayInternalUrl: string
+  }>
   sourceSegments?: Array<{
     sourceSequenceItemId: string
     sourceStartFrame: number
@@ -69,14 +80,16 @@ export const ApprovedComposition: React.FC<ApprovedCompositionProps> = (props) =
   const frame = useCurrentFrame()
   const { fps, durationInFrames, width, height } = useVideoConfig()
   if (
-    props.compositionProfileId === 'approved_source_caption_final_v1' &&
-    props.sourceInternalUrl && props.captionOverlayInternalUrl
+    ['approved_source_caption_final_v1', 'approved_source_caption_track_final_v1']
+      .includes(props.compositionProfileId ?? '') &&
+    props.sourceInternalUrl && hasApprovedCaptionInput(props)
   ) {
     return <ApprovedSourceCaptionComposition {...props} />
   }
   if (
-    props.compositionProfileId === 'approved_source_sequence_caption_final_v1' &&
-    props.sourceSegments && props.sourceInternalUrls && props.captionOverlayInternalUrl
+    ['approved_source_sequence_caption_final_v1', 'approved_source_sequence_caption_track_final_v1']
+      .includes(props.compositionProfileId ?? '') &&
+    props.sourceSegments && props.sourceInternalUrls && hasApprovedCaptionInput(props)
   ) {
     return <ApprovedSourceSequenceCaptionComposition {...props} />
   }
@@ -160,10 +173,7 @@ const ApprovedSourceCaptionComposition: React.FC<ApprovedCompositionProps> = (pr
       style={{ width: '100%', height: '100%', objectFit: 'contain' }}
       volume={1}
     />
-    <Img
-      src={props.captionOverlayInternalUrl!}
-      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'fill' }}
-    />
+    <ApprovedCaptionOverlays {...props} />
   </AbsoluteFill>
 )
 
@@ -189,10 +199,49 @@ const ApprovedSourceSequenceCaptionComposition: React.FC<ApprovedCompositionProp
           />
         </Sequence>
       ))}
-      <Img
-        src={props.captionOverlayInternalUrl!}
-        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'fill' }}
-      />
+      <ApprovedCaptionOverlays {...props} />
     </AbsoluteFill>
   )
+}
+
+const captionOverlayStyle: React.CSSProperties = {
+  position: 'absolute',
+  inset: 0,
+  width: '100%',
+  height: '100%',
+  objectFit: 'fill',
+}
+
+const ApprovedCaptionOverlays: React.FC<ApprovedCompositionProps> = (props) => {
+  if (props.captionOverlayInternalUrl) {
+    return <Img src={props.captionOverlayInternalUrl} style={captionOverlayStyle} />
+  }
+  const urlByOutputKey = new Map(
+    props.captionOverlayInternalUrls!.map((overlay) => [
+      overlay.outputKey,
+      overlay.captionOverlayInternalUrl,
+    ]),
+  )
+  return <>
+    {props.captionOverlayCues!.map((cue) => (
+      <Sequence
+        key={cue.outputKey}
+        from={cue.startFrame}
+        durationInFrames={cue.endFrameExclusive - cue.startFrame}
+        name={`Approved caption ${cue.outputKey}`}
+      >
+        <Img src={urlByOutputKey.get(cue.outputKey)!} style={captionOverlayStyle} />
+      </Sequence>
+    ))}
+  </>
+}
+
+function hasApprovedCaptionInput(props: ApprovedCompositionProps): boolean {
+  if (props.captionOverlayInternalUrl) return true
+  if (
+    !props.captionOverlayCues || !props.captionOverlayInternalUrls ||
+    props.captionOverlayCues.length !== props.captionOverlayInternalUrls.length
+  ) return false
+  const urls = new Set(props.captionOverlayInternalUrls.map((overlay) => overlay.outputKey))
+  return props.captionOverlayCues.every((cue) => urls.has(cue.outputKey))
 }

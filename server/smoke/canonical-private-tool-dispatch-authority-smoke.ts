@@ -843,19 +843,36 @@ const libassWorkItem = aggregateBeforeDispatch.approvedWorkItems.find((candidate
   candidate.snapshotId === snapshot.snapshotId && candidate.workItemKey === 'libass-caption-overlay-root')
 const libassProofWorkItem = aggregateBeforeDispatch.approvedWorkItems.find((candidate) =>
   candidate.snapshotId === snapshot.snapshotId && candidate.workItemKey === 'libass-caption-overlay-proof')
+const secondLibassWorkItem = aggregateBeforeDispatch.approvedWorkItems.find((candidate) =>
+  candidate.snapshotId === snapshot.snapshotId && candidate.workItemKey === 'libass-caption-overlay-second')
+const secondLibassProofWorkItem = aggregateBeforeDispatch.approvedWorkItems.find((candidate) =>
+  candidate.snapshotId === snapshot.snapshotId && candidate.workItemKey === 'libass-caption-overlay-second-proof')
 assert.ok(libassWorkItem)
 assert.ok(libassProofWorkItem)
+assert.ok(secondLibassWorkItem)
+assert.ok(secondLibassProofWorkItem)
 const libassJob = aggregateBeforeDispatch.jobs.find((candidate) =>
   candidate.snapshotId === snapshot.snapshotId && candidate.approvedWorkItemId === libassWorkItem.id)
 const libassProofJob = aggregateBeforeDispatch.jobs.find((candidate) =>
   candidate.snapshotId === snapshot.snapshotId && candidate.approvedWorkItemId === libassProofWorkItem.id)
+const secondLibassJob = aggregateBeforeDispatch.jobs.find((candidate) =>
+  candidate.snapshotId === snapshot.snapshotId && candidate.approvedWorkItemId === secondLibassWorkItem.id)
+const secondLibassProofJob = aggregateBeforeDispatch.jobs.find((candidate) =>
+  candidate.snapshotId === snapshot.snapshotId && candidate.approvedWorkItemId === secondLibassProofWorkItem.id)
 const libassAsset = authority.assetManifest.entries.find((candidate) =>
   candidate.approvedWorkItemId === libassWorkItem.id)
+const secondLibassAsset = authority.assetManifest.entries.find((candidate) =>
+  candidate.approvedWorkItemId === secondLibassWorkItem.id)
 assert.ok(libassJob)
 assert.ok(libassProofJob)
 assert.ok(libassAsset)
+assert.ok(secondLibassJob)
+assert.ok(secondLibassProofJob)
+assert.ok(secondLibassAsset)
 assert.deepEqual(libassJob.dependencyJobIds, [])
 assert.deepEqual(libassProofJob.dependencyJobIds, [libassJob.id])
+assert.deepEqual(secondLibassJob.dependencyJobIds, [])
+assert.deepEqual(secondLibassProofJob.dependencyJobIds, [secondLibassJob.id])
 
 const finalCompositionWorkItem = aggregateBeforeDispatch.approvedWorkItems.find((candidate) =>
   candidate.snapshotId === snapshot.snapshotId && candidate.workItemKey === 'remotion-source-caption-final')
@@ -879,7 +896,11 @@ assert.ok(finalCompositionAsset)
 assert.ok(sourceTrimValidationAsset)
 assert.ok(finalArtifactQaJob)
 assert.ok(finalArtifactQaAsset)
-assert.deepEqual(finalCompositionJob.dependencyJobIds, [sourceTrimValidationJob.id, libassJob.id])
+assert.deepEqual(finalCompositionJob.dependencyJobIds, [
+  sourceTrimValidationJob.id,
+  libassJob.id,
+  secondLibassJob.id,
+])
 assert.deepEqual(finalArtifactQaJob.dependencyJobIds, [finalCompositionJob.id])
 
 const leaseService = createCanonicalWorkerLeaseAuthorityService(context)
@@ -2403,6 +2424,42 @@ await leaseService.release({
   leaseCredential: libassProofClaim.leaseCredential, purpose: 'private_internal_canonical_lease_release',
   idempotencyKey: 'release-libass-caption-overlay-proof',
 })
+const secondLibassAdapterInput = {
+  workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
+  jobId: secondLibassJob.id,
+  purpose: 'execute_canonical_private_job' as const,
+  idempotencyKey: 'canonical-job-adapter-libass-caption-overlay-second',
+}
+const coordinatedSecondLibass = await jobExecutionAdapter.execute(secondLibassAdapterInput)
+assert.equal(coordinatedSecondLibass.identity.canonicalToolId, 'libass')
+assert.equal(coordinatedSecondLibass.identity.operationId, libassOperationId)
+assert.equal(coordinatedSecondLibass.identity.expectedAssetId, secondLibassAsset.id)
+assert.equal(coordinatedSecondLibass.identity.runnerClass, 'offline_libass_caption_execution_v1')
+assert.equal(coordinatedSecondLibass.result.contentType, 'image/png')
+assert.equal(coordinatedSecondLibass.result.qaOutcome, 'passed')
+assert.notEqual(coordinatedSecondLibass.result.sha256, coordinatedLibass.result.sha256)
+const coordinatedSecondLibassReplay = await jobExecutionAdapter.execute(secondLibassAdapterInput)
+assert.equal(coordinatedSecondLibassReplay.result.artifactId, coordinatedSecondLibass.result.artifactId)
+assert.equal(coordinatedSecondLibassReplay.result.sha256, coordinatedSecondLibass.result.sha256)
+assert.equal(coordinatedSecondLibassReplay.evidence.idempotentAdapterReplay, true)
+const secondLibassProofClaim = (await leaseService.claim({
+  workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
+  jobId: secondLibassProofJob.id, purpose: 'private_internal_canonical_lease_claim',
+  idempotencyKey: 'claim-libass-caption-overlay-second-proof',
+})).workerLeaseClaim
+assert.equal(secondLibassProofClaim.lease.dependencyAuthority.state, 'private_test_dependencies_verified')
+assert.equal(secondLibassProofClaim.lease.dependencyAuthority.selectedArtifacts.length, 1)
+assert.equal(
+  secondLibassProofClaim.lease.dependencyAuthority.selectedArtifacts[0]?.artifactId,
+  coordinatedSecondLibass.result.artifactId,
+)
+await leaseService.release({
+  workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
+  jobId: secondLibassProofJob.id, leaseId: secondLibassProofClaim.lease.leaseId,
+  leaseCredential: secondLibassProofClaim.leaseCredential,
+  purpose: 'private_internal_canonical_lease_release',
+  idempotencyKey: 'release-libass-caption-overlay-second-proof',
+})
 
 const sourceTrimValidationClaim = (await leaseService.claim({
   workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
@@ -2432,10 +2489,14 @@ const finalCompositionClaim = (await leaseService.claim({
   idempotencyKey: 'claim-remotion-source-caption-final',
 })).workerLeaseClaim
 assert.equal(finalCompositionClaim.lease.dependencyAuthority.state, 'private_test_dependencies_verified')
-assert.equal(finalCompositionClaim.lease.dependencyAuthority.selectedArtifacts.length, 2)
+assert.equal(finalCompositionClaim.lease.dependencyAuthority.selectedArtifacts.length, 3)
 assert.deepEqual(
   finalCompositionClaim.lease.dependencyAuthority.selectedArtifacts.map((artifact) => artifact.artifactId),
-  [sourceTrimValidationRun.result.artifactId, coordinatedLibass.result.artifactId],
+  [
+    sourceTrimValidationRun.result.artifactId,
+    coordinatedLibass.result.artifactId,
+    coordinatedSecondLibass.result.artifactId,
+  ],
 )
 await leaseService.release({
   workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
@@ -2455,8 +2516,17 @@ const approvedFinalCompositionPayload = asRecord(
 )
 assert.equal(
   approvedFinalCompositionPayload.compositionProfileId,
-  'approved_source_sequence_caption_final_v1',
+  'approved_source_sequence_caption_track_final_v1',
 )
+assert.deepEqual(approvedFinalCompositionPayload.captionOverlayCues, [{
+  outputKey: 'libass-caption-overlay-png',
+  startFrame: 0,
+  endFrameExclusive: 24,
+}, {
+  outputKey: 'libass-caption-overlay-second-png',
+  startFrame: 24,
+  endFrameExclusive: 48,
+}])
 assert.deepEqual(finalCompositionExecutionWorkItem.sourceSequenceItemIds, [
   mediaSourceItem.sourceSequenceItemId,
   secondaryMediaSourceItem.sourceSequenceItemId,
@@ -2544,8 +2614,9 @@ if (process.env.REEDITPRO_CANONICAL_MULTI_SOURCE_SLICE_ONLY === 'true') {
       'persisted_planning_handoff_and_immutable_approved_snapshot_verified',
       'synthetic_private_test_credit_reservation_verified_without_customer_charge',
       'two_source_trim_authority_and_dependency_readiness_verified',
+      'two_exact_caption_artifacts_and_frame_ranges_verified',
       'lease_and_single_use_dispatch_verified',
-      'exact_ordered_source_sequence_rendered_with_preserved_audio',
+      'exact_ordered_source_sequence_and_timed_caption_track_rendered_with_preserved_audio',
       'private_artifact_persistence_and_independent_final_ffprobe_qa_verified',
       'artifact_reconciliation_idempotent_replay_and_private_download_verified',
       'provider_billing_public_delivery_and_production_readiness_remain_false',
@@ -2567,6 +2638,7 @@ const terminalReviewWorkItemKeys = new Set([
   'snapshot-validation-root',
   'source-trim-validation',
   'libass-caption-overlay-root',
+  'libass-caption-overlay-second',
   'remotion-source-caption-final',
   'final-qa',
 ])
@@ -2623,8 +2695,8 @@ const terminalWorkGraph = await createCanonicalPrivateWorkGraphOrchestratorServi
   idempotencyKey: 'run-terminal-private-review-canonical-graph',
 })
 assert.equal(terminalWorkGraph.status, 'completed_private_test_work_graph')
-assert.equal(terminalWorkGraph.summary.totalJobCount, 5)
-assert.equal(terminalWorkGraph.summary.completedJobCount, 5)
+assert.equal(terminalWorkGraph.summary.totalJobCount, 6)
+assert.equal(terminalWorkGraph.summary.completedJobCount, 6)
 assert.equal(terminalWorkGraph.summary.requiredBlockedJobCount, 0)
 assert.equal(terminalWorkGraph.summary.allRequiredJobsCompleted, true)
 assert.equal(terminalWorkGraph.readiness.privateInternalWorkGraphCompleted, true)
@@ -2637,7 +2709,7 @@ const terminalWorkGraphReplay = await createCanonicalPrivateWorkGraphOrchestrato
   idempotencyKey: 'run-terminal-private-review-canonical-graph',
 })
 assert.equal(terminalWorkGraphReplay.evidence.idempotentRunReplay, true)
-assert.equal(terminalWorkGraphReplay.summary.completedJobCount, 5)
+assert.equal(terminalWorkGraphReplay.summary.completedJobCount, 6)
 const terminalCompletionService = createCanonicalPrivateWorkGraphOrchestratorService({
   ...context,
   requestId: 'canonical-work-graph-completion-fresh-service',
@@ -2649,7 +2721,7 @@ const terminalWorkGraphCompletion = await terminalCompletionService.findRequired
 assert.ok(terminalWorkGraphCompletion)
 assert.equal(terminalWorkGraphCompletion.responseHash, terminalWorkGraph.responseHash)
 assert.equal(terminalWorkGraphCompletion.status, 'completed_private_test_work_graph')
-assert.equal(terminalWorkGraphCompletion.completedJobCount, 5)
+assert.equal(terminalWorkGraphCompletion.completedJobCount, 6)
 assert.equal(terminalWorkGraphCompletion.requiredBlockedJobCount, 0)
 assert.equal(terminalWorkGraphCompletion.allRequiredJobsCompleted, true)
 const terminalWorkGraphProgress = await terminalCompletionService.findLatestProgress({
@@ -2659,8 +2731,8 @@ const terminalWorkGraphProgress = await terminalCompletionService.findLatestProg
 assert.ok(terminalWorkGraphProgress)
 assert.equal(terminalWorkGraphProgress.status, 'completed_private_test_work_graph')
 assert.equal(terminalWorkGraphProgress.runFinished, true)
-assert.equal(terminalWorkGraphProgress.totalJobCount, 5)
-assert.equal(terminalWorkGraphProgress.completedJobCount, 5)
+assert.equal(terminalWorkGraphProgress.totalJobCount, 6)
+assert.equal(terminalWorkGraphProgress.completedJobCount, 6)
 assert.equal(terminalWorkGraphProgress.pendingJobCount, 0)
 assert.equal(terminalWorkGraphProgress.requiredIncompleteJobCount, 0)
 assert.equal(
@@ -2674,7 +2746,7 @@ const terminalWorkGraphSecondKey = await createCanonicalPrivateWorkGraphOrchestr
   idempotencyKey: 'run-terminal-private-review-canonical-graph-second-key',
 })
 assert.equal(terminalWorkGraphSecondKey.summary.allRequiredJobsCompleted, true)
-assert.equal(terminalWorkGraphSecondKey.summary.replayedJobCount, 5)
+assert.equal(terminalWorkGraphSecondKey.summary.replayedJobCount, 6)
 assert.notEqual(terminalWorkGraphSecondKey.responseHash, terminalWorkGraph.responseHash)
 const terminalWorkGraphProgressAfterSecondKey = await terminalCompletionService.findLatestProgress({
   workspaceId,
@@ -2743,7 +2815,7 @@ assert.equal(
   terminalAssemblyRequiredJourney.workGraph?.responseHash,
   terminalWorkGraph.responseHash,
 )
-assert.equal(terminalAssemblyRequiredJourney.workGraph?.totalJobCount, 5)
+assert.equal(terminalAssemblyRequiredJourney.workGraph?.totalJobCount, 6)
 assert.equal(terminalAssemblyRequiredJourney.workGraph?.allRequiredJobsCompleted, true)
 assert.equal(terminalAssemblyRequiredJourney.workGraphProgress, undefined)
 assert.equal(terminalAssemblyRequiredJourney.review, undefined)
@@ -2787,8 +2859,8 @@ assert.equal(
   terminalPreparation.receipt.authority.packageHash,
   terminalReviewPackage.approvedEditExecutionPackage.packageHash,
 )
-assert.equal(terminalPreparation.receipt.progress.totalJobCount, 5)
-assert.equal(terminalPreparation.receipt.progress.completedJobCount, 5)
+assert.equal(terminalPreparation.receipt.progress.totalJobCount, 6)
+assert.equal(terminalPreparation.receipt.progress.completedJobCount, 6)
 assert.equal(terminalPreparation.receipt.progress.allRequiredJobsCompleted, true)
 assert.ok(terminalPreparation.receipt.review)
 assert.equal(terminalPreparation.receipt.review.readyForPrivateReview, true)
@@ -2823,8 +2895,8 @@ const terminalPrivateReviewInput = {
 }
 const terminalPrivateReview = await privateReviewService.assemble(terminalPrivateReviewInput)
 assert.equal(terminalPrivateReview.status, 'ready_for_private_internal_review')
-assert.equal(terminalPrivateReview.requiredExecution.requiredJobCount, 5)
-assert.equal(terminalPrivateReview.requiredExecution.requiredExpectedAssetCount, 5)
+assert.equal(terminalPrivateReview.requiredExecution.requiredJobCount, 6)
+assert.equal(terminalPrivateReview.requiredExecution.requiredExpectedAssetCount, 6)
 assert.equal(terminalPrivateReview.requiredExecution.allRequiredJobsCompleted, true)
 assert.equal(terminalPrivateReview.requiredExecution.allRequiredAssetsQaPassed, true)
 assert.equal(terminalPrivateReview.requiredExecution.allRequiredAssetsReconciled, true)
@@ -3413,7 +3485,7 @@ const revisionExecutionPackage = await createCanonicalEditExecutionPackageServic
 })
 const revisionExecutionPackageId = revisionExecutionPackage.approvedEditExecutionPackage.packageRecordId
 assert.notEqual(revisionExecutionPackageId, terminalReviewPackageRecordId)
-assert.equal(revisionExecutionPackage.approvedEditExecutionPackage.jobs.length, 5)
+assert.equal(revisionExecutionPackage.approvedEditExecutionPackage.jobs.length, 6)
 const revisionWorkGraph = await createCanonicalPrivateWorkGraphOrchestratorService(context).run({
   workspaceId,
   packageRecordId: revisionExecutionPackageId,
@@ -3421,8 +3493,8 @@ const revisionWorkGraph = await createCanonicalPrivateWorkGraphOrchestratorServi
   idempotencyKey: 'run-terminal-private-review-revision-v2',
 })
 assert.equal(revisionWorkGraph.status, 'completed_private_test_work_graph')
-assert.equal(revisionWorkGraph.summary.totalJobCount, 5)
-assert.equal(revisionWorkGraph.summary.completedJobCount, 5)
+assert.equal(revisionWorkGraph.summary.totalJobCount, 6)
+assert.equal(revisionWorkGraph.summary.completedJobCount, 6)
 assert.equal(revisionWorkGraph.summary.requiredBlockedJobCount, 0)
 assert.equal(revisionWorkGraph.summary.allRequiredJobsCompleted, true)
 assert.equal(revisionWorkGraph.readiness.nextRequiredGate, 'canonical_terminal_private_review_assembly')
@@ -4365,8 +4437,8 @@ function createDispatchPlanBody(input: {
           },
           {
             lineKey: 'libass-caption-overlay-authority',
-            label: 'Controlled libass private caption overlay authorization',
-            category: 'controlled_tool', estimatedCredits: 1, removable: false,
+            label: 'Controlled libass private timed caption track authorization',
+            category: 'controlled_tool', estimatedCredits: 3, removable: false,
             metadata: { canonicalToolId: 'libass', operationId: input.libassOperationId },
           },
         ],
@@ -5244,7 +5316,11 @@ function createDispatchPlanBody(input: {
             contentType: 'application/json',
             segmentIds: components.segments.map((segment) => segment.segmentId),
             timingIds: ['master-timing-plan'],
-            rendererLayerIds: ['source-video-layer', 'libass-caption-overlay-layer'],
+            rendererLayerIds: [
+              'source-video-layer',
+              'libass-caption-overlay-layer-1',
+              'libass-caption-overlay-layer-2',
+            ],
           }],
           dependencyKeys: ['remotion-source-caption-final'],
           approvedToolIds: ['ffprobe'],
@@ -5261,11 +5337,11 @@ function createDispatchPlanBody(input: {
           workItemType: 'render_final_export',
           workerClass: 'render_worker',
           executionInput: {
-            operation: 'render_approved_source_sequence_caption_final',
+            operation: 'render_approved_source_sequence_caption_track_final',
             approvedToolOperationIds: [input.remotionOperationId],
             expectedOutputKeys: ['private-final-composition-mp4'],
             structuredPayload: {
-              compositionProfileId: 'approved_source_sequence_caption_final_v1',
+              compositionProfileId: 'approved_source_sequence_caption_track_final_v1',
               width: 640, height: 360, fps: 24, durationFrames: 48,
               sourceSegments: [{
                 sourceSequenceItemId: input.mediaSourceItem.sourceSequenceItemId,
@@ -5282,7 +5358,16 @@ function createDispatchPlanBody(input: {
               }],
               sourceFit: 'contain', panelBackground: '#000000',
               audioPolicy: 'preserve_source_sequence',
-              captionOverlayPolicy: 'approved_full_frame_rgba',
+              captionOverlayPolicy: 'approved_timed_full_frame_rgba_track',
+              captionOverlayCues: [{
+                outputKey: 'libass-caption-overlay-png',
+                startFrame: 0,
+                endFrameExclusive: 24,
+              }, {
+                outputKey: 'libass-caption-overlay-second-png',
+                startFrame: 24,
+                endFrameExclusive: 48,
+              }],
             },
           },
           sourceSequenceItemIds: [
@@ -5295,16 +5380,24 @@ function createDispatchPlanBody(input: {
           ],
           expectedOutputs: [{
             outputKey: 'private-final-composition-mp4',
-            artifactType: 'private_source_sequence_caption_final_video_export',
+            artifactType: 'private_source_sequence_caption_track_final_video_export',
             assetRole: 'final',
             required: true,
             previewPlaceholderAllowed: false,
             contentType: 'video/mp4',
             segmentIds: components.segments.map((segment) => segment.segmentId),
             timingIds: ['master-timing-plan'],
-            rendererLayerIds: ['source-video-layer', 'libass-caption-overlay-layer'],
+            rendererLayerIds: [
+              'source-video-layer',
+              'libass-caption-overlay-layer-1',
+              'libass-caption-overlay-layer-2',
+            ],
           }],
-          dependencyKeys: ['source-trim-validation', 'libass-caption-overlay-root'],
+          dependencyKeys: [
+            'source-trim-validation',
+            'libass-caption-overlay-root',
+            'libass-caption-overlay-second',
+          ],
           approvedToolIds: ['remotion'],
           providerExecutionMode: 'none',
           fallbackPolicy: {},
@@ -5405,8 +5498,8 @@ function createLibassWorkItems(
       previewPlaceholderAllowed: false,
       contentType: 'image/png',
       segmentIds: ['segment-1'],
-      timingIds: ['master-timing-plan'],
-      rendererLayerIds: ['libass-caption-overlay-layer'],
+      timingIds: ['master-timing-plan', 'caption-timing-1'],
+      rendererLayerIds: ['libass-caption-overlay-layer-1'],
     }],
     dependencyKeys: [],
     approvedToolIds: ['libass'],
@@ -5436,6 +5529,77 @@ function createLibassWorkItems(
       rendererLayerIds: [],
     }],
     dependencyKeys: ['libass-caption-overlay-root'],
+    approvedToolIds: [],
+    providerExecutionMode: 'none',
+    fallbackPolicy: {},
+    maxAttempts: 1,
+    attemptTimeoutSeconds: 120,
+    scheduledDelaySeconds: 0,
+    maximumCreditBudget: 1,
+    required: true,
+  }, {
+    workItemKey: 'libass-caption-overlay-second',
+    workItemType: 'custom',
+    workerClass: 'render_worker',
+    executionInput: {
+      operation: 'render_approved_caption_overlay',
+      approvedToolOperationIds: [input.libassOperationId],
+      expectedOutputKeys: ['libass-caption-overlay-second-png'],
+      structuredPayload: {
+        captionProfileId: 'approved_ass_track_render_v1',
+        fontPackProfileId: 'reeditpro_reviewed_fonts_v1',
+        collisionPolicy: 'fail_on_reserved_zone_collision',
+        preserveSpeechTiming: true,
+        width: 640,
+        height: 360,
+        timestampMs: 1000,
+        fontSize: 42,
+        marginV: 48,
+        alignment: 2,
+        caption: 'Approved second frame accurate caption',
+      },
+    },
+    sourceSequenceItemIds: [],
+    sourceCleanupDecisionIds: [],
+    expectedOutputs: [{
+      outputKey: 'libass-caption-overlay-second-png',
+      artifactType: 'controlled_libass_caption_overlay_png',
+      assetRole: 'processed',
+      required: true,
+      previewPlaceholderAllowed: false,
+      contentType: 'image/png',
+      segmentIds: ['segment-2'],
+      timingIds: ['master-timing-plan', 'caption-timing-2'],
+      rendererLayerIds: ['libass-caption-overlay-layer-2'],
+    }],
+    dependencyKeys: [],
+    approvedToolIds: ['libass'],
+    providerExecutionMode: 'none',
+    fallbackPolicy: {},
+    maxAttempts: 2,
+    attemptTimeoutSeconds: 300,
+    scheduledDelaySeconds: 0,
+    maximumCreditBudget: 1,
+    required: true,
+  }, {
+    workItemKey: 'libass-caption-overlay-second-proof',
+    workItemType: 'run_asset_qa',
+    workerClass: 'qa_worker',
+    executionInput: { operation: 'validate_libass_caption_overlay_artifact' },
+    sourceSequenceItemIds: [],
+    sourceCleanupDecisionIds: [],
+    expectedOutputs: [{
+      outputKey: 'libass-caption-overlay-second-proof-report',
+      artifactType: 'libass_caption_overlay_dependency_report',
+      assetRole: 'qa',
+      required: true,
+      previewPlaceholderAllowed: false,
+      contentType: 'application/json',
+      segmentIds: ['segment-2'],
+      timingIds: ['master-timing-plan', 'caption-timing-2'],
+      rendererLayerIds: [],
+    }],
+    dependencyKeys: ['libass-caption-overlay-second'],
     approvedToolIds: [],
     providerExecutionMode: 'none',
     fallbackPolicy: {},

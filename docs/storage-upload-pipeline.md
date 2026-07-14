@@ -39,6 +39,14 @@ the browser sends aligned chunks with exact committed-offset recovery. The
 browser does not buffer a large file to compute a whole-file checksum; the
 backend-computed stored-byte hash remains authority.
 
+After a resumable upload completes, the browser creates and polls a private
+large-media finalization job instead of running full-object hash/probe work in
+the ordinary finalization request. The single-process/single-host internal
+authority has checksum-protected persistence, durable idempotency, one active
+lease, heartbeats, bounded retries, expired-lease reclamation, and safe status
+views. The browser never calls the internal worker-run route. Small uploads
+retain the inline finalization path.
+
 ## Media Records
 
 `media-asset-service.ts` creates mock typed records from upload plans:
@@ -67,8 +75,9 @@ Generated assets, preview renders, final exports, QA artifacts, and worker temp 
 - No provider, rendering, SFX, music, Stripe, or Google Cloud runtime is added.
 - Profile and brand upload paths are not production-ready until backend signed uploads or safe workspace-only policies exist.
 - Live GCS resumable CORS/IAM/session behavior and genuinely large object tests
-  are not proven. Full-object verification/probing is still synchronous and
-  must become a restart-safe background stage before production large-video
-  support can be claimed.
+  are not proven. The private restart-safe finalization control plane is
+  executable, but distributed dispatch, durable byte progress, representative
+  worker capacity, and deployed recovery are still required before production
+  large-video support can be claimed.
 
 See `docs/large-media-ingestion-and-proxy-readiness-2026-07-13.md`.

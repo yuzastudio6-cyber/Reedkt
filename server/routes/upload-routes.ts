@@ -1,8 +1,9 @@
 import { Router, raw, type NextFunction, type Request, type Response } from 'express'
 import { requireAuth } from '../middleware/auth'
-import { requireIdempotency } from '../middleware/idempotency'
+import { requireIdempotency, requireSensitiveIdempotencyKey } from '../middleware/idempotency'
 import { requireInternalServiceAuth } from '../middleware/internal-service-auth'
 import { createSourceMediaAuthorityService } from '../services/source-media-authority-service'
+import { createLargeMediaFinalizationService } from '../services/large-media-finalization-service'
 import { createUploadService } from '../services/upload-service'
 import { LOCAL_RAW_UPLOAD_MAX_BYTES, assertLocalRawUploadByteLength } from '../storage/storage-validation'
 import type { RuntimeRequest } from '../types'
@@ -14,6 +15,10 @@ import {
   signedUrlEventSchema,
 } from '../validation/upload-schemas'
 import { buildSourceBindingManifestCandidateSchema } from '../validation/source-media-authority-schemas'
+import {
+  enqueueLargeMediaFinalizationJobSchema,
+  runLargeMediaFinalizationJobSchema,
+} from '../validation/large-media-finalization-schemas'
 import { validateBody } from '../validation/common-schemas'
 import { asyncRoute, getIdempotencyKey, getRouteParam, getServiceContext, sendOk } from './route-helpers'
 import { ApiError } from '../errors/api-error'
@@ -44,6 +49,12 @@ const requireBoundedUploadMetadataWrite = createBoundedAuthenticatedUploadMiddle
   maxAttemptsPerWindow: 60,
   maxConcurrentPerUser: 8,
   routeLabel: 'upload metadata write',
+})
+const requireBoundedUploadStatusRead = createBoundedAuthenticatedUploadMiddleware({
+  windowMs: 60_000,
+  maxAttemptsPerWindow: 240,
+  maxConcurrentPerUser: 16,
+  routeLabel: 'upload status read',
 })
 const parseBoundedLocalRawUpload = raw({
   type: LOCAL_RAW_UPLOAD_MIME_TYPES,
@@ -110,6 +121,38 @@ export function createUploadRoutes(): Router {
       storageObjectRecord: result.storageObjectRecord,
       mediaAsset: result.mediaAsset,
     }, result.warnings, 201)
+  }))
+
+  router.post('/v1/upload-intents/:uploadIntentId/finalization-jobs', requireAuth, requireBoundedUploadMetadataWrite, requireSensitiveIdempotencyKey, asyncRoute(async (request, response) => {
+    const body = validateBody(enqueueLargeMediaFinalizationJobSchema, request.body)
+    const result = await createLargeMediaFinalizationService(getServiceContext(request)).enqueue({
+      workspaceId: body.workspaceId,
+      uploadIntentId: getRouteParam(request, 'uploadIntentId'),
+      suppliedSizeBytes: body.sizeBytes,
+      idempotencyKey: getIdempotencyKey(request),
+    })
+    sendOk(response, { largeMediaFinalizationJob: result.job }, result.warnings, result.job.status === 'completed' ? 200 : 202)
+  }))
+
+  router.get('/v1/large-media-finalization-jobs/:jobId', requireAuth, requireBoundedUploadStatusRead, asyncRoute(async (request, response) => {
+    const { workspaceId } = validateBody(localUploadWorkspaceQuerySchema, request.query)
+    const result = await createLargeMediaFinalizationService(getServiceContext(request)).get({
+      workspaceId,
+      jobId: getRouteParam(request, 'jobId'),
+    })
+    sendOk(response, { largeMediaFinalizationJob: result.job }, result.warnings)
+  }))
+
+  router.post('/v1/internal/large-media-finalization-jobs/:jobId/run', requireAuth, requireInternalServiceAuth, requireBoundedUploadMetadataWrite, asyncRoute(async (request, response) => {
+    const body = validateBody(runLargeMediaFinalizationJobSchema, request.body)
+    const result = await createLargeMediaFinalizationService(getServiceContext(request)).run({
+      workspaceId: body.workspaceId,
+      jobId: getRouteParam(request, 'jobId'),
+    })
+    sendOk(response, {
+      largeMediaFinalizationJob: result.job,
+      executionStarted: result.executionStarted,
+    }, result.warnings, result.job.status === 'completed' ? 200 : 202)
   }))
 
   router.post('/v1/upload-intents/:uploadIntentId/signed-url-events', requireAuth, requireBoundedUploadMetadataWrite, requireSignedUrlEventAccess, requireIdempotency, asyncRoute(async (request, response) => {

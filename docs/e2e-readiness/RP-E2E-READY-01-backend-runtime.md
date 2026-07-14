@@ -42,6 +42,9 @@ Project/chat/upload:
 - `POST /v1/chat-sessions/:chatSessionId/attachments/clips`
 - `POST /v1/projects/:projectId/upload-intents`
 - `POST /v1/upload-intents/:uploadIntentId/finalize`
+- `POST /v1/upload-intents/:uploadIntentId/finalization-jobs`
+- `GET /v1/large-media-finalization-jobs/:jobId`
+- `POST /v1/internal/large-media-finalization-jobs/:jobId/run`
 - `POST /v1/upload-intents/:uploadIntentId/signed-url-events`
 
 Execution gates:

@@ -4,6 +4,7 @@ import type {
   ProjectSourceVideoBackendUploadResult,
 } from '../types/project-source-video'
 import { uploadFileToTemporaryObjectTarget } from './temporary-object-upload-client'
+import { finalizeUploadedSource } from './large-media-finalization-client'
 import type { TemporaryUploadProtocol } from '../types/large-media'
 
 interface UploadEnvelope<TData> {
@@ -41,11 +42,13 @@ interface FinalizeUploadIntentData {
     id: string
     bucketName: string
     objectPath: string
+    storageProvider?: 'local_private' | 'google_cloud_storage'
     sizeBytes?: number
     checksumSha256?: string
   }
   mediaAsset?: {
     id: string
+    storageProvider?: 'local_private' | 'google_cloud_storage'
   }
 }
 
@@ -120,7 +123,11 @@ function joinUrl(baseUrl: string, path: string): string {
 }
 
 function createIdempotencyKey(prefix: string): string {
-  return `${prefix}:${Date.now().toString(36)}:${Math.random().toString(36).slice(2, 10)}`
+  const randomUUID = globalThis.crypto?.randomUUID
+  if (typeof randomUUID !== 'function') {
+    throw new Error('Secure browser randomness is required to start a private source upload.')
+  }
+  return `${prefix}:${randomUUID.call(globalThis.crypto)}`
 }
 
 function createHeaders(input: Record<string, string | undefined>): Headers {
@@ -159,6 +166,7 @@ export async function uploadProjectSourceVideoToBackend(
   const accessToken = await (input.getAccessToken ?? getSupabaseAccessToken)()
   const createIdempotencyKeyValue = createIdempotencyKey('source-video-upload-intent')
   const finalizeIdempotencyKeyValue = createIdempotencyKey('source-video-upload-finalize')
+  const finalizationJobIdempotencyKeyValue = createIdempotencyKey('source-video-upload-finalization-job')
   const mimeType = sourceVideoMimeType(input.file.type, input.file.name)
 
   const createResponse = await fetchImpl(joinUrl(input.apiBaseUrl, `/v1/projects/${encodeURIComponent(input.projectId)}/upload-intents`), {
@@ -194,23 +202,31 @@ export async function uploadProjectSourceVideoToBackend(
     },
   })
 
-  const finalizeResponse = await fetchImpl(joinUrl(input.apiBaseUrl, `/v1/upload-intents/${encodeURIComponent(created.uploadIntent.id)}/finalize`), {
-    method: 'POST',
-    headers: createHeaders({
-      'Content-Type': 'application/json',
-      'idempotency-key': finalizeIdempotencyKeyValue,
-      authorization: accessToken ? `Bearer ${accessToken}` : undefined,
-    }),
-    body: JSON.stringify({
-      workspaceId: input.workspaceId,
-      sizeBytes: input.file.size,
-    }),
+  const finalization = await finalizeUploadedSource<FinalizeUploadIntentData>({
+    apiBaseUrl: input.apiBaseUrl,
+    uploadIntentId: created.uploadIntent.id,
+    workspaceId: input.workspaceId,
+    sizeBytes: input.file.size,
+    uploadProtocol: created.uploadTarget.uploadProtocol,
+    supportsResume: created.uploadTarget.supportsResume,
+    authorization: accessToken ? `Bearer ${accessToken}` : undefined,
+    finalizeIdempotencyKey: finalizeIdempotencyKeyValue,
+    finalizationJobIdempotencyKey: finalizationJobIdempotencyKeyValue,
+    fetchImpl,
   })
-  const finalizedEnvelope = await parseEnvelope<FinalizeUploadIntentData>(finalizeResponse)
-  const finalized = assertOk(finalizedEnvelope, 'Upload finalization failed.')
+  const finalized = finalization.finalized
+  const storageProvider = finalized.storageObjectRecord.storageProvider ?? finalized.mediaAsset?.storageProvider
+  if (storageProvider !== 'local_private' && storageProvider !== 'google_cloud_storage') {
+    throw new Error('Upload finalization returned no canonical private storage provider.')
+  }
+  const gcsWriteMade = storageProvider === 'google_cloud_storage'
   const warnings = [
-    ...(finalizedEnvelope.warnings ?? []),
-    'Backend-local upload completed without media processing, provider calls, workers, renders, credits, Supabase writes, or GCS writes.',
+    ...finalization.warnings,
+    finalization.sourceFinalizationJobCreated
+      ? 'Large source upload used restart-safe private finalization; editing, providers, rendering, credits, and public delivery did not start.'
+      : gcsWriteMade
+        ? 'Private GCS upload completed without media processing, provider calls, editing workers, renders, credits, or public delivery.'
+        : 'Backend-local upload completed without media processing, provider calls, workers, renders, credits, Supabase writes, or GCS writes.',
   ]
 
   return {
@@ -225,12 +241,13 @@ export async function uploadProjectSourceVideoToBackend(
     sizeBytes: finalized.storageObjectRecord.sizeBytes ?? input.file.size,
     checksumSha256: finalized.storageObjectRecord.checksumSha256,
     uploadedAt: new Date().toISOString(),
-    backendLocalUploadMade: true,
+    backendLocalUploadMade: storageProvider === 'local_private',
     browserFileBytesSent: true,
     fileBytesReadByBackend: true,
     storageWriteMade: true,
     supabaseWriteMade: false,
-    gcsWriteMade: false,
+    gcsWriteMade,
+    sourceFinalizationJobCreated: finalization.sourceFinalizationJobCreated,
     mediaProcessingStarted: false,
     workerJobCreated: false,
     providerCallMade: false,

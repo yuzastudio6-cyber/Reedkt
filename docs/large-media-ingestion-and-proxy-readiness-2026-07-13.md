@@ -1,6 +1,6 @@
 # Large Media Ingestion And Proxy Readiness — 2026-07-13
 
-Status: `source_hardened_local_and_fake_provider_verified_live_cloud_blocked`
+Status: `source_hardened_private_background_finalization_verified_live_cloud_blocked`
 
 This slice makes ReEditPro's upload contract suitable for professional-size
 source footage without claiming that a deployed environment has processed a
@@ -52,6 +52,36 @@ an optional SHA-256 before upload. Final authority still comes from the
 backend's server-computed hash of the actual stored generation. Temporary
 session URIs remain credentials and are never canonical storage truth.
 
+## Restart-safe finalization authority
+
+Large resumable objects no longer enter the ordinary synchronous browser
+finalization path. That route fails closed before it reads provider metadata or
+bytes. The browser instead:
+
+1. creates a checksum-protected private finalization job with a stable
+   idempotency key;
+2. receives only a safe job id/status view;
+3. polls the authenticated workspace-scoped status route;
+4. never receives or calls the internal worker-run route; and
+5. after completion, reads the already-committed canonical upload result
+   through the idempotent finalization route.
+
+The current private/internal authority persists under the backend storage root
+with create-only scope identity, atomic `0600` records, `0700` directories, a
+record checksum, hashed idempotency keys, and no session URI, local path, object
+path, or lease credential in the public view. One worker owns an opaque hashed
+lease at a time. Heartbeats, bounded attempt deadlines, three-attempt retry
+authority, expired-lease reclamation, terminal failure, and completed-result
+replay survive fresh service instances.
+
+This proves the control plane with synthetic completion evidence only. It is a
+single-process/single-host private testing boundary, not a deployed queue. The
+current worker implementation still performs full stored-byte hashing and then
+privately stages the exact generation for FFprobe; an interrupted attempt
+restarts that bounded traversal. A distributed dispatcher, representative
+huge-object runs, single-pass/range-aware optimization, durable byte-level
+progress, and deployed worker capacity remain required.
+
 Cloud Storage documents that resumable chunks must be multiples of 256 KiB,
 recommends at least 8 MiB, returns `308 Resume Incomplete` with a committed
 range, and limits a resumable session to seven days:
@@ -92,6 +122,7 @@ Run:
 
 ```sh
 npm run smoke:large-media-ingest-readiness
+npm run smoke:large-media-background-finalization
 npm run smoke:source-upload-planning-backend
 npm run smoke:upload
 npm run smoke:upload-boundary-security
@@ -106,10 +137,21 @@ cross-origin auth leakage, no browser whole-file hash, proxy settings,
 adaptive task budgets, and the unchanged 16 MiB local raw boundary.
 It allocates only a small synthetic file and does not contact GCS.
 
-The post-change internal review passed all 32 stages in 807,092 ms, including
-98 Playwright cases. Its completion audit covered 18 requirements with 142
-named evidence checks. These results prove the local/private and fake-provider
-boundaries described here; they do not promote live-cloud readiness.
+The background-finalization smoke additionally proves authenticated enqueue and
+poll routes, durable domain idempotency/conflict behavior, fresh-instance
+readback, one active lease, no duplicate execution, bounded retry, expired-lease
+reclamation, private file permissions, safe browser enqueue/poll/final-read
+routing, and zero live provider/storage-byte execution. Its synthetic executor
+does not prove that a real 50 GiB or larger object was processed.
+
+The post-change focused large-media smoke, upload/planning smoke, build, lint,
+server typecheck, and completion audit passed. The completion audit covers 19
+requirements with 152 named evidence checks. One full aggregate review attempt
+reached the existing canonical Docker dispatch stage and hit its fixed command
+timeout; the exact canonical 50-tool dispatch stage then passed in isolation.
+No post-change all-stage aggregate pass is claimed. These results prove the
+local/private and fake-provider boundaries described here; they do not promote
+live-cloud readiness.
 
 ## Remaining gates
 
@@ -120,10 +162,12 @@ ReEditPro must not claim production large-video support until all of these pass:
   lifecycle rules pass real integration tests;
 - upload session state can recover safely across browser reload without storing
   a bearer session URI in browser persistence or canonical records;
-- finalization moves full-object hashing and source probing out of an HTTP
-  request into restart-safe background authority with durable progress;
-- the current GCS finalization path no longer needs to synchronously hash and
-  privately stage the entire huge object before returning;
+- an approved distributed dispatcher claims queued jobs, reclaims abandoned
+  work, and resumes safely after process/host loss without relying on a browser
+  request or one long-lived internal HTTP request;
+- hashing/probing gains durable byte-level progress or an approved
+  generation-bound single-pass/range-aware design instead of restarting a full
+  traversal after every interrupted attempt;
 - malware/content scanning, parser isolation, hostile-media resource controls,
   and decompression-bomb defenses pass;
 - worker disk/stream capacity, heartbeats, cancellation, retry, orphan cleanup,

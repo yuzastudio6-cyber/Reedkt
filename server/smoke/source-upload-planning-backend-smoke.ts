@@ -200,6 +200,8 @@ try {
     'media.uploadIntent.create',
     'media.uploadIntent.localObject.put',
     'media.uploadIntent.finalize',
+    'media.largeFinalizationJob.create',
+    'media.largeFinalizationJob.get',
     'media.storageObject.get',
     'media.storageObject.downloadTarget.create',
     'media.storageObject.localObject.get',

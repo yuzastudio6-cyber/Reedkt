@@ -18,6 +18,7 @@ import {
   GCS_RESUMABLE_SESSION_TTL_SECONDS,
   shouldUseResumableUpload,
 } from '../../src/types/large-media'
+import { deriveMediaTaskTimeoutMs } from '../workers/media/media-task-policy'
 import type { ServiceContext } from '../types'
 import type {
   PrivateMediaAssetAuthorityRecord,
@@ -54,6 +55,24 @@ interface FinalizeUploadIntentInput {
   uploadIntentId: string
   sizeBytes?: number
   checksumSha256?: string
+}
+
+interface FinalizeUploadIntentOptions {
+  /** Server-owned background worker authority. Never accepted from an HTTP body. */
+  backgroundWorkerAuthority?: true
+}
+
+export interface UploadFinalizationCandidate {
+  uploadIntentId: string
+  ownerUserId: string
+  workspaceId: string
+  projectId: string
+  uploadPurpose: 'source_media' | 'reference_media'
+  expectedSizeBytes: number
+  status: string
+  storageMode: StorageAdapter['mode']
+  backgroundFinalizationRequired: boolean
+  authorityFingerprint: string
 }
 
 interface SignedUrlEventInput {
@@ -473,13 +492,81 @@ export function createUploadService(context: ServiceContext) {
       }
     },
 
-    async finalizeUploadIntent(input: FinalizeUploadIntentInput) {
+    async getUploadFinalizationCandidate(
+      uploadIntentId: string,
+      workspaceId: string,
+    ): Promise<UploadFinalizationCandidate> {
+      const uploadIntent = await loadUploadIntent(context, uploadIntentId, workspaceId)
+      await assertUploadIntentAccessibleByCurrentUser(context, uploadIntent, workspaceId)
+      assertUserInitiatedUploadPurpose(uploadIntent.uploadPurpose)
+      const expectedSizeBytes = uploadIntent.expectedSizeBytes
+      if (!Number.isSafeInteger(expectedSizeBytes) || Number(expectedSizeBytes) <= 0) {
+        throw new ApiError(
+          'VALIDATION_FAILED',
+          'Source finalization requires the exact positive byte size from its upload intent.',
+          400,
+        )
+      }
+      return {
+        uploadIntentId: uploadIntent.id,
+        ownerUserId: uploadIntent.requestedByUserId,
+        workspaceId: uploadIntent.workspaceId,
+        projectId: uploadIntent.projectId,
+        uploadPurpose: uploadIntent.uploadPurpose,
+        expectedSizeBytes: Number(expectedSizeBytes),
+        status: uploadIntent.status,
+        storageMode: storage.mode,
+        backgroundFinalizationRequired:
+          storage.mode === 'gcs' && shouldUseResumableUpload(Number(expectedSizeBytes)),
+        authorityFingerprint: privateUploadMediaAuthorityValueHash({
+          uploadIntentId: uploadIntent.id,
+          requestedByUserId: uploadIntent.requestedByUserId,
+          workspaceId: uploadIntent.workspaceId,
+          projectId: uploadIntent.projectId,
+          uploadPurpose: uploadIntent.uploadPurpose,
+          targetBucket: uploadIntent.targetBucket,
+          targetPath: uploadIntent.targetPath,
+          mimeType: uploadIntent.mimeType,
+          expectedSizeBytes: Number(expectedSizeBytes),
+          expiresAt: uploadIntent.expiresAt,
+        }),
+      }
+    },
+
+    async finalizeUploadIntent(
+      input: FinalizeUploadIntentInput,
+      options: FinalizeUploadIntentOptions = {},
+    ) {
       const uploadIntent = await loadUploadIntent(context, input.uploadIntentId, input.workspaceId)
       await assertUploadIntentAccessibleByCurrentUser(context, uploadIntent, input.workspaceId)
       assertUserInitiatedUploadPurpose(uploadIntent.uploadPurpose)
 
       if (uploadIntent.status === 'finalized' && uploadIntent.mediaAssetId) {
         return loadFinalizedUploadResult(context, uploadIntent)
+      }
+      if (uploadIntent.status === 'failed') {
+        throw new ApiError(
+          'UPLOAD_NOT_FINALIZED',
+          'Failed upload authority cannot be finalized without a new upload intent.',
+          409,
+        )
+      }
+
+      if (
+        storage.mode === 'gcs' &&
+        shouldUseResumableUpload(uploadIntent.expectedSizeBytes) &&
+        options.backgroundWorkerAuthority !== true
+      ) {
+        throw new ApiError(
+          'SOURCE_MEDIA_NOT_READY',
+          'Large source media must be finalized by the restart-safe background finalization worker.',
+          409,
+          {
+            uploadIntentId: uploadIntent.id,
+            backgroundFinalizationRequired: true,
+            nextAction: 'create_large_media_finalization_job',
+          },
+        )
       }
 
       if (
@@ -510,7 +597,12 @@ export function createUploadService(context: ServiceContext) {
           checksumSha256: expectedChecksumSha256,
         })
       } catch (error) {
-        await markUploadIntentFailed(context, uploadIntent.id, uploadIntent.workspaceId)
+        if (
+          options.backgroundWorkerAuthority !== true ||
+          isTerminalUploadedObjectVerificationFailure(error)
+        ) {
+          await markUploadIntentFailed(context, uploadIntent.id, uploadIntent.workspaceId)
+        }
         throw error
       }
 
@@ -760,6 +852,14 @@ function normalizeChecksumSha256(value: string | undefined): string | undefined 
   return /^[a-f0-9]{64}$/.test(normalized) ? normalized : undefined
 }
 
+function isTerminalUploadedObjectVerificationFailure(error: unknown): boolean {
+  return error instanceof ApiError && [
+    'UPLOAD_NOT_FINALIZED',
+    'UPLOAD_SOURCE_MISMATCH',
+    'VALIDATION_FAILED',
+  ].includes(error.code)
+}
+
 function normalizeMimeType(value: string): string {
   return value.trim().toLowerCase()
 }
@@ -774,7 +874,9 @@ function assertProductionUploadUsesDirectObjectStorage(context: ServiceContext, 
   }
 }
 
-function assertUserInitiatedUploadPurpose(purpose: UploadPurpose): void {
+function assertUserInitiatedUploadPurpose(
+  purpose: UploadPurpose,
+): asserts purpose is 'source_media' | 'reference_media' {
   if (purpose !== 'source_media' && purpose !== 'reference_media') {
     throw new ApiError(
       'WORKSPACE_ACCESS_DENIED',
@@ -1560,7 +1662,10 @@ async function probeSourceMediaMetadata(
   try {
     const probe = await probeMediaFile(staged.inputPath, {
       ffprobeBin: context.env.ffprobeBin,
-      timeoutMs: 10000,
+      timeoutMs: deriveMediaTaskTimeoutMs({
+        task: 'probe',
+        sourceSizeBytes: metadata.sizeBytes,
+      }),
     })
     const streamTypes = probe.rawSummary.streamTypes
     return {

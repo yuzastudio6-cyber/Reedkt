@@ -25,6 +25,11 @@ const steps: SmokeStep[] = [
     requiredFor: 'high-ceiling source policy, resumable offset recovery, browser memory safety, and quality-preserving private proxy policy',
   },
   {
+    id: 'large_media_background_finalization',
+    script: 'smoke:large-media-background-finalization',
+    requiredFor: 'restart-safe private finalization jobs, leases, retries, recovery, safe polling, and fail-closed large inline finalization',
+  },
+  {
     id: 'local_project_handoff_source_safety',
     script: 'smoke:local-project-handoff-source-safety',
     requiredFor: 'local project recovery, source fingerprint, stale private-review invalidation',

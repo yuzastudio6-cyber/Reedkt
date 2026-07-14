@@ -2,6 +2,7 @@ import { callReeditProApi, getReeditProApiAuthorizationHeader } from '../backend
 import { getBackendApiBaseUrl, getBackendRuntimeStatus } from '../backend/api/backend-runtime-config'
 import { uploadFileToSupabaseStorage } from '../backend/storage/storage-client-service'
 import { uploadFileToTemporaryObjectTarget } from './temporary-object-upload-client'
+import { finalizeUploadedSource } from './large-media-finalization-client'
 import {
   REEDITPRO_LOCAL_RAW_UPLOAD_MAX_BYTES,
   type TemporaryUploadProtocol,
@@ -158,11 +159,10 @@ export async function planSourceUploadsForEditor({
       warnings.push(...backendUpload.warnings)
       if (backendUpload.plannedUpload) {
         plannedUploads.push(backendUpload.plannedUpload)
-        continue
       }
-      if (!e2eLocalPrivateSourceUploadsEnabled()) {
-        continue
-      }
+      // Once real backend upload authority has been attempted, never replace a
+      // pending or failed canonical source with a local/mock lookalike.
+      continue
     }
 
     const fileLike: UploadFileLike = {
@@ -393,28 +393,23 @@ async function planSourceUploadThroughBackendIntent({
       target: uploadTarget,
     })
 
-    const finalizedResponse = await postBackendJson<BackendFinalizedUploadData>(
+    const finalization = await finalizeUploadedSource<BackendFinalizedUploadData>({
       apiBaseUrl,
-      `/v1/upload-intents/${encodeURIComponent(uploadIntentResponse.data.uploadIntent.id)}/finalize`,
-      {
-        workspaceId,
-        sizeBytes: file.size,
-      },
-      `source-upload-finalize:${workspaceId}:${projectId}:${uploadedOrder}:${uploadIntentResponse.data.uploadIntent.id}`,
-    )
+      uploadIntentId: uploadIntentResponse.data.uploadIntent.id,
+      workspaceId,
+      sizeBytes: file.size,
+      uploadProtocol: uploadTarget.uploadProtocol,
+      supportsResume: uploadTarget.supportsResume,
+      authorization: uploadAuthorization,
+      finalizeIdempotencyKey:
+        `source-upload-finalize:${uploadIntentResponse.data.uploadIntent.id}`,
+      finalizationJobIdempotencyKey:
+        `source-upload-finalization-job:${uploadIntentResponse.data.uploadIntent.id}`,
+    })
+    warnings.push(...finalization.warnings)
+    const finalizedUpload = finalization.finalized
 
-    warnings.push(...(finalizedResponse.warnings ?? []))
-    if (!finalizedResponse.ok || !finalizedResponse.data?.mediaAsset || !finalizedResponse.data.storageObjectRecord) {
-      return {
-        attempted: true,
-        warnings: [
-          finalizedResponse.error?.message ?? `${file.name} uploaded but could not be finalized into canonical source media.`,
-          ...warnings,
-        ],
-      }
-    }
-
-    const uploadPlan = uploadPlanFromBackendFinalizedUpload(finalizedResponse.data, {
+    const uploadPlan = uploadPlanFromBackendFinalizedUpload(finalizedUpload, {
       file,
       uploadedOrder,
       workspaceId,
@@ -426,8 +421,12 @@ async function planSourceUploadThroughBackendIntent({
       status: 'uploaded',
       bucketName: uploadPlan.bucketName,
       objectPath: uploadPlan.objectPath,
-      message: 'File uploaded through the backend private upload-intent flow.',
-      warnings: [],
+        message: finalization.sourceFinalizationJobCreated
+          ? 'File uploaded and finalized through the restart-safe private large-media flow.'
+          : 'File uploaded through the backend private upload-intent flow.',
+        warnings: finalization.sourceFinalizationJobCreated
+          ? ['Large source hashing and probing completed through private background finalization authority.']
+          : [],
     }
 
     return {

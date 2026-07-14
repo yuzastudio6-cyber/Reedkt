@@ -12,6 +12,12 @@ receive backend credentials. The session URI itself is a temporary bearer
 credential and must not be persisted. See
 `docs/large-media-ingestion-and-proxy-readiness-2026-07-13.md`.
 
+Large resumable uploads now use a private background-finalization control plane
+before they can become ready. The normal browser finalization route refuses to
+hash/probe the object inline; the browser can enqueue and poll but cannot call
+the internal leased runner. This control-plane evidence is synthetic and does
+not replace live GCS or representative huge-object execution.
+
 ## Security contract
 
 ### Signed PUT is create-only
@@ -80,6 +86,7 @@ Run:
 ```bash
 npm run smoke:gcs-upload-integrity-security
 npm run smoke:large-media-ingest-readiness
+npm run smoke:large-media-background-finalization
 npm run smoke:private-source-probe-staging
 npm run smoke:private-source-probe-orphan-reconciliation
 npm run smoke:upload

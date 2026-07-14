@@ -11,6 +11,7 @@ This milestone adds the first server-only bridge between upload intents, tempora
 - Upload intent creation with a temporary target and a signed URL audit event.
 - Local raw body upload through `PUT /v1/upload-intents/:uploadIntentId/local-object`.
 - Finalization that verifies the object, creates storage metadata, creates/links a media asset, and updates the upload intent.
+- Private background-finalization jobs for resumable sources, with authenticated enqueue/status and an internal leased runner boundary.
 - Storage object metadata and temporary download target routes.
 - Finalized clip attachment to chat/source sequence order without starting AI planning, provider calls, or rendering.
 
@@ -45,6 +46,15 @@ offset after interruption, and never sends the ReEditPro bearer token to the
 storage origin. This has deterministic fake-provider evidence only; no live GCS
 session was created.
 
+For a resumable source, the normal finalize route fails closed before reading
+the object. The browser creates `POST
+/v1/upload-intents/:uploadIntentId/finalization-jobs`, polls `GET
+/v1/large-media-finalization-jobs/:jobId`, and reads the canonical result from
+the finalize route only after the private worker commits completion. The
+browser cannot call the internal runner. This is currently
+single-process/single-host private lifecycle evidence, not deployed GCS worker
+evidence.
+
 ## Safety Rules
 
 - No provider calls.
@@ -62,7 +72,8 @@ session was created.
   interruption tests.
 - Production GCS IAM, signed URL policy review, and bucket lifecycle rules.
 - Supabase transactional RPCs for finalizing uploads and attaching source sequences atomically.
-- Production-scale asynchronous verification/probing, color-managed HDR
-  proxies, thumbnails, transcoding, or QA. A local/dev 1080p private analysis
-  proxy and adaptive task budgets exist but are not deployed evidence.
+- Production-scale distributed verification/probing, durable byte progress,
+  color-managed HDR proxies, thumbnails, transcoding, or QA. A private
+  restart-safe job control plane, local/dev 1080p analysis proxy, and adaptive
+  task budgets exist but are not deployed evidence.
 - Real provider, render, or worker execution.

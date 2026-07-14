@@ -16,7 +16,14 @@ The media foundation now uses a private 1080p CRF-20/AAC-192k analysis proxy
 while preserving the immutable original for final rendering, plus duration/size
 aware command ceilings instead of a fixed 30 seconds. See
 `docs/large-media-ingestion-and-proxy-readiness-2026-07-13.md` and run
-`npm run smoke:large-media-ingest-readiness`.
+`npm run smoke:large-media-ingest-readiness` plus
+`npm run smoke:large-media-background-finalization`.
+
+Large resumable sources now fail closed before the normal finalization request
+reads provider bytes. An authenticated browser creates and polls a
+checksum-protected private job while internal worker authority owns one leased,
+bounded attempt. This is single-process/single-host lifecycle evidence only;
+distributed dispatch and live huge-object proof remain blocked.
 
 ## What changed
 

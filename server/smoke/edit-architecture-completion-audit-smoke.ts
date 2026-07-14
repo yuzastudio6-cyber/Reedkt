@@ -30,6 +30,22 @@ const requiredEvidence: RequiredEvidence[] = [
     ],
   },
   {
+    file: 'server/smoke/large-media-background-finalization-smoke.ts',
+    requirement: 'Large resumable sources must fail closed on inline finalization and use restart-safe private enqueue, lease, retry, recovery, polling, and canonical-read authority.',
+    evidence: [
+      'large_inline_finalize_fails_closed_before_object_read',
+      'authenticated_enqueue_and_poll_routes_are_registered_and_mounted',
+      'durable_domain_idempotency_replay_and_conflict',
+      'restart_read_from_checksum_protected_private_authority',
+      'one_active_lease_prevents_duplicate_execution',
+      'bounded_retry_can_complete_on_second_attempt',
+      'operational_verification_failure_preserves_retry_eligible_upload_authority',
+      'expired_lease_is_reclaimable_without_reusing_credential',
+      'browser_resumable_path_enqueues_polls_and_reads_canonical_finalization',
+      'no_live_gcs_provider_supabase_render_credit_or_editing_execution',
+    ],
+  },
+  {
     file: 'server/smoke/source-upload-planning-backend-smoke.ts',
     requirement: 'Source uploads must create private upload targets, promote source metadata, and preserve upload order before planning.',
     evidence: [

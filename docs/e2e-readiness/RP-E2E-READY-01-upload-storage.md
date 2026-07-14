@@ -37,7 +37,13 @@ Temporary upload/download targets can be returned to clients and audited in `sig
 
 ## Future GCS Mode
 
-`@google-cloud/storage` is imported only by `server/storage/gcs-storage-adapter.ts`. GCS remains dormant unless `STORAGE_MODE=gcs` and bucket env is complete. Frontend code never receives credentials and never imports GCS code.
+`@google-cloud/storage` is imported only by `server/storage/gcs-storage-adapter.ts`. GCS remains dormant unless `STORAGE_MODE=gcs` and bucket env is complete. Frontend code never receives long-lived Google/service credentials and never imports GCS code. For a large upload it does receive a temporary resumable-session URI, which is itself a bearer credential and must remain memory-only.
+
+The source-level adapter now returns a create-only resumable session for files
+above 16 MiB. The browser client uploads aligned chunks, queries the committed
+offset after interruption, and never sends the ReEditPro bearer token to the
+storage origin. This has deterministic fake-provider evidence only; no live GCS
+session was created.
 
 ## Safety Rules
 
@@ -52,8 +58,11 @@ Temporary upload/download targets can be returned to clients and audited in `sig
 
 ## Still Not Implemented
 
-- Multipart uploads.
+- Deployed resumable-upload CORS/IAM/session cancellation and real large-file
+  interruption tests.
 - Production GCS IAM, signed URL policy review, and bucket lifecycle rules.
 - Supabase transactional RPCs for finalizing uploads and attaching source sequences atomically.
-- Media probing, thumbnails, transcoding, or QA.
+- Production-scale asynchronous verification/probing, color-managed HDR
+  proxies, thumbnails, transcoding, or QA. A local/dev 1080p private analysis
+  proxy and adaptive task budgets exist but are not deployed evidence.
 - Real provider, render, or worker execution.

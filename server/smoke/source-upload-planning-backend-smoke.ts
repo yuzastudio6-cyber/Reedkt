@@ -37,7 +37,11 @@ const server = createServer(async (request, response) => {
     assert.equal(input.workspaceId, 'workspace-upload-smoke')
     assert.equal(input.uploadPurpose, 'source_media')
     assert.equal(input.originalFileName, 'uploaded-story.mp4')
-    assert.equal(input.checksumSha256, sourceChecksumSha256)
+    assert.equal(
+      input.checksumSha256,
+      undefined,
+      'Browser upload planning must not buffer the entire source merely to submit an optional checksum.',
+    )
 
     response.setHeader('content-type', 'application/json')
     response.end(JSON.stringify({
@@ -98,7 +102,11 @@ const server = createServer(async (request, response) => {
     const input = JSON.parse(body.toString('utf8')) as Record<string, unknown>
     assert.equal(input.workspaceId, 'workspace-upload-smoke')
     assert.equal(input.sizeBytes, sourceFileBytes.byteLength)
-    assert.equal(input.checksumSha256, sourceChecksumSha256)
+    assert.equal(
+      input.checksumSha256,
+      undefined,
+      'Finalization must rely on the backend-computed stored-byte checksum rather than a browser whole-file digest.',
+    )
     response.setHeader('content-type', 'application/json')
     response.end(JSON.stringify({
       ok: true,
@@ -475,6 +483,7 @@ try {
   const externalStorageHeaders = createBackendUploadTargetHeaders({
     apiBaseUrl: `http://127.0.0.1:${address.port}`,
     uploadUrl: 'https://storage.googleapis.com/reeditpro-source-media/uploaded-story.mp4?signature=fake',
+    uploadHeaders: { Authorization: 'Bearer forged-provider-header' },
     mimeType: 'video/mp4',
     authorization: 'Bearer signed-in-test-token',
   })
@@ -499,6 +508,7 @@ try {
       'local_probe_metadata_promoted_to_source_clip',
       'local_private_storage_provider_preserved',
       'backend_upload_checksum_promoted_to_execution_source_asset',
+      'browser_whole_file_checksum_omitted_backend_hash_is_authority',
       'finalized_backend_media_asset_identity_preserved_without_mock_record_substitution',
       'source_sequence_created_from_backend_media_asset',
       'incremental_upload_batches_keep_unique_source_sequence_item_identities',

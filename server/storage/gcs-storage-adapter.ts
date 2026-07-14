@@ -12,6 +12,10 @@ import type {
   UploadTarget,
   VerifyObjectInput,
 } from './storage-types'
+import {
+  REEDITPRO_RESUMABLE_UPLOAD_CHUNK_BYTES,
+  shouldUseResumableUpload,
+} from '../../src/types/large-media'
 
 export class GcsDisabledStorageAdapter implements StorageAdapter {
   readonly mode = 'gcs_disabled' as const
@@ -61,9 +65,39 @@ export class GcsStorageAdapter implements StorageAdapter {
     bucketName: string
     objectPath: string
     mimeType: string
+    expectedSizeBytes?: number
     checksumSha256?: string
     expiresAt: string
   }): Promise<UploadTarget> {
+    if (shouldUseResumableUpload(input.expectedSizeBytes)) {
+      const [uploadUrl] = await this.storage
+        .bucket(input.bucketName)
+        .file(input.objectPath)
+        .createResumableUpload({
+          metadata: {
+            contentType: input.mimeType,
+          },
+          preconditionOpts: { ifGenerationMatch: 0 },
+        })
+
+      return {
+        uploadMethod: 'PUT',
+        uploadUrl,
+        uploadHeaders: {
+          'content-type': input.mimeType,
+        },
+        expiresAt: input.expiresAt,
+        bucketName: input.bucketName,
+        objectPath: input.objectPath,
+        temporary: true,
+        createOnly: true,
+        uploadProtocol: 'gcs_resumable',
+        supportsResume: true,
+        recommendedChunkSizeBytes: REEDITPRO_RESUMABLE_UPLOAD_CHUNK_BYTES,
+        sessionUriIsCredential: true,
+      }
+    }
+
     // The XML API generation precondition is part of the V4 signature. A
     // replay can therefore never replace an already-created live object.
     const createOnlyHeaders = { 'x-goog-if-generation-match': '0' }
@@ -90,6 +124,9 @@ export class GcsStorageAdapter implements StorageAdapter {
       objectPath: input.objectPath,
       temporary: true,
       createOnly: true,
+      uploadProtocol: 'single_put',
+      supportsResume: false,
+      sessionUriIsCredential: true,
     }
   }
 

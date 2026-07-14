@@ -39,33 +39,7 @@ export async function runFFmpegCommand(input: FFmpegCommandInput): Promise<void>
 export async function createProxyVideo(input: CreateProxyVideoInput): Promise<MediaFoundationArtifactSummary> {
   const outputPath = prepareOutputFile(input.sourceLocalPath, input.outputLocalPath, input.safeOutputRoot)
   await mkdir(path.dirname(outputPath), { recursive: true })
-
-  const keepAudio = input.keepAudio ?? true
-  const targetMaxWidth = input.targetMaxWidth ?? 1280
-  const args = [
-    '-hide_banner',
-    '-nostdin',
-    '-n',
-    '-i',
-    input.sourceLocalPath,
-    '-map',
-    '0:v:0',
-    ...(keepAudio ? ['-map', '0:a?'] : ['-an']),
-    '-vf',
-    `scale='min(${targetMaxWidth},iw)':-2`,
-    '-c:v',
-    'libx264',
-    '-preset',
-    'veryfast',
-    '-crf',
-    '28',
-    '-pix_fmt',
-    'yuv420p',
-    ...(keepAudio ? ['-c:a', 'aac', '-b:a', '96k'] : []),
-    '-movflags',
-    '+faststart',
-    outputPath,
-  ]
+  const args = buildProxyVideoArgs(input, outputPath)
 
   await runFFmpegCommand({
     ffmpegBin: input.ffmpegBin,
@@ -89,6 +63,52 @@ export async function createProxyVideo(input: CreateProxyVideoInput): Promise<Me
   }
 }
 
+export function buildProxyVideoArgs(input: CreateProxyVideoInput, outputPath: string): string[] {
+  const keepAudio = input.keepAudio ?? true
+  const targetMaxWidth = input.targetMaxWidth ?? 1280
+  const targetMaxHeight = input.targetMaxHeight ?? 720
+  const videoPreset = input.videoPreset ?? 'fast'
+  const videoCrf = Math.max(0, Math.min(51, input.videoCrf ?? 20))
+  const audioBitrate = input.audioBitrate ?? '192k'
+  return [
+    '-hide_banner',
+    '-loglevel',
+    'error',
+    '-nostats',
+    '-nostdin',
+    '-n',
+    '-i',
+    input.sourceLocalPath,
+    '-map',
+    '0:v:0',
+    ...(keepAudio ? ['-map', '0:a?'] : ['-an']),
+    '-map_metadata',
+    '-1',
+    '-map_chapters',
+    '-1',
+    '-sn',
+    '-dn',
+    '-vf',
+    `scale=w='min(${targetMaxWidth},iw)':h='min(${targetMaxHeight},ih)':force_original_aspect_ratio=decrease:force_divisible_by=2`,
+    '-c:v',
+    'libx264',
+    '-preset',
+    videoPreset,
+    '-crf',
+    String(videoCrf),
+    '-profile:v',
+    'high',
+    '-pix_fmt',
+    'yuv420p',
+    '-fps_mode:v',
+    'passthrough',
+    ...(keepAudio ? ['-c:a', 'aac', '-b:a', audioBitrate, '-ar', '48000'] : []),
+    '-movflags',
+    '+faststart',
+    outputPath,
+  ]
+}
+
 export async function extractAudioTrack(input: ExtractAudioTrackInput): Promise<MediaFoundationArtifactSummary> {
   const outputPath = prepareOutputFile(input.sourceLocalPath, input.outputLocalPath, input.safeOutputRoot)
   await mkdir(path.dirname(outputPath), { recursive: true })
@@ -100,6 +120,9 @@ export async function extractAudioTrack(input: ExtractAudioTrackInput): Promise<
     purpose: 'extract_audio',
     args: [
       '-hide_banner',
+      '-loglevel',
+      'error',
+      '-nostats',
       '-nostdin',
       '-n',
       '-i',
@@ -143,6 +166,9 @@ export async function extractKeyframes(input: ExtractKeyframesInput): Promise<Me
     purpose: 'extract_keyframes',
     args: [
       '-hide_banner',
+      '-loglevel',
+      'error',
+      '-nostats',
       '-nostdin',
       '-n',
       '-i',
@@ -179,6 +205,9 @@ export async function extractRepresentativeFrames(
       purpose: 'extract_representative_frames',
       args: [
         '-hide_banner',
+        '-loglevel',
+        'error',
+        '-nostats',
         '-nostdin',
         '-n',
         '-ss',

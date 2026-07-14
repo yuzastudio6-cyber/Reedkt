@@ -24,6 +24,7 @@ export class LocalStorageAdapter implements StorageAdapter {
     bucketName: string
     objectPath: string
     mimeType: string
+    expectedSizeBytes?: number
     checksumSha256?: string
     expiresAt: string
   }): Promise<UploadTarget> {
@@ -41,6 +42,9 @@ export class LocalStorageAdapter implements StorageAdapter {
       objectPath: input.objectPath,
       temporary: true,
       createOnly: true,
+      uploadProtocol: 'single_put',
+      supportsResume: false,
+      sessionUriIsCredential: true,
     }
   }
 

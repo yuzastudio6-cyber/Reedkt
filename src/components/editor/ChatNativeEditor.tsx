@@ -5168,7 +5168,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
           <section className="edit-upload-gate" data-testid="edit-upload-gate">
             <input
               ref={uploadGateInputRef}
-              accept="video/mp4,video/quicktime,video/webm,video/x-m4v"
+              accept="video/mp4,video/quicktime,video/webm,video/x-m4v,video/x-matroska,video/x-msvideo,video/mp2t,application/mxf,.mxf,.mkv,.avi,.m2ts,.mts,.ts,.m4v"
               data-testid="edit-upload-gate-input"
               hidden
               onChange={handleUploadGateFileChange}

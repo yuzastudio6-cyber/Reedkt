@@ -9,6 +9,27 @@ type RequiredEvidence = {
 
 const requiredEvidence: RequiredEvidence[] = [
   {
+    file: 'server/smoke/large-media-ingest-readiness-smoke.ts',
+    requirement: 'Large professional source media must use one high bounded policy, recoverable direct storage transport, browser-memory-safe upload behavior, and an immutable-original proxy strategy.',
+    evidence: [
+      'high_source_ceiling_is_below_provider_hard_limit',
+      'source_and_reference_limits_match_browser_and_backend',
+      'professional_container_and_audio_limits_are_consistent',
+      'high_media_limits_are_source_and_reference_scoped',
+      'user_source_upload_requires_exact_declared_size',
+      'large_gcs_target_is_create_only_resumable',
+      'upload_service_preserves_large_size_and_session_lifetime',
+      'resumable_browser_upload_recovers_exact_committed_offset',
+      'resumable_offset_query_is_itself_retryable',
+      'resumable_no_progress_ack_retries_without_restarting',
+      'provider_session_uri_receives_no_backend_authorization',
+      'browser_upload_does_not_require_whole_file_checksum',
+      'professional_proxy_is_bounded_1080p_and_preserves_original_for_final',
+      'media_task_timeouts_scale_for_large_duration_and_size',
+      'local_raw_route_remains_small_and_non_production',
+    ],
+  },
+  {
     file: 'server/smoke/source-upload-planning-backend-smoke.ts',
     requirement: 'Source uploads must create private upload targets, promote source metadata, and preserve upload order before planning.',
     evidence: [

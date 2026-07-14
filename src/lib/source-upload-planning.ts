@@ -1,6 +1,11 @@
 import { callReeditProApi, getReeditProApiAuthorizationHeader } from '../backend/api/frontend-api-client'
 import { getBackendApiBaseUrl, getBackendRuntimeStatus } from '../backend/api/backend-runtime-config'
 import { uploadFileToSupabaseStorage } from '../backend/storage/storage-client-service'
+import { uploadFileToTemporaryObjectTarget } from './temporary-object-upload-client'
+import {
+  REEDITPRO_LOCAL_RAW_UPLOAD_MAX_BYTES,
+  type TemporaryUploadProtocol,
+} from '../types/large-media'
 import type { ApprovedEditExecutionUploadedMediaSourceAssetClientInput } from './approved-edit-execution-package-client'
 import type { MediaStorageProvider } from '../types/media'
 import type { ClipSource } from '../types/reeditpro'
@@ -39,6 +44,8 @@ export interface PlanSourceUploadsResult {
   warnings: string[]
   message: string
 }
+
+const sourceUploadAttemptIds = new WeakMap<File, string>()
 
 export function createExecutionSourceMediaAssetsFromClips(
   clips: ClipSource[],
@@ -161,7 +168,7 @@ export async function planSourceUploadsForEditor({
     const fileLike: UploadFileLike = {
       name: file.name,
       size: file.size,
-      type: file.type || mimeTypeFromFileName(file.name),
+      type: sourceMediaMimeType(file.type, file.name),
     }
     const response = await callReeditProApi<CreateUploadPlanInput, UploadPlanResult>(
       'media.uploadPlan.create',
@@ -295,6 +302,9 @@ interface BackendUploadIntentData {
     uploadHeaders?: Record<string, string>
     bucketName: string
     objectPath: string
+    uploadProtocol?: TemporaryUploadProtocol
+    supportsResume?: boolean
+    recommendedChunkSizeBytes?: number
   }
 }
 
@@ -345,11 +355,10 @@ async function planSourceUploadThroughBackendIntent({
     return { attempted: false, warnings: [] }
   }
 
-  const mimeType = file.type || mimeTypeFromFileName(file.name)
+  const mimeType = sourceMediaMimeType(file.type, file.name)
   const warnings: string[] = []
 
   try {
-    const checksumSha256 = await computeUploadFileSha256(file)
     const uploadIntentResponse = await postBackendJson<BackendUploadIntentData>(
       apiBaseUrl,
       `/v1/projects/${encodeURIComponent(projectId)}/upload-intents`,
@@ -359,9 +368,8 @@ async function planSourceUploadThroughBackendIntent({
         originalFileName: file.name,
         mimeType,
         expectedSizeBytes: file.size,
-        checksumSha256,
       },
-      `source-upload-intent:${workspaceId}:${projectId}:${uploadedOrder}:${file.name}:${file.size}`,
+      `source-upload-intent:${sourceUploadAttemptId(file)}`,
     )
 
     warnings.push(...(uploadIntentResponse.warnings ?? []))
@@ -377,28 +385,13 @@ async function planSourceUploadThroughBackendIntent({
 
     const uploadTarget = uploadIntentResponse.data.uploadTarget
     const uploadAuthorization = await getReeditProApiAuthorizationHeader()
-    const uploadResponse = await fetch(resolveBackendUrl(apiBaseUrl, uploadTarget.uploadUrl), {
-      method: uploadTarget.uploadMethod,
-      credentials: 'omit',
-      headers: createBackendUploadTargetHeaders({
-        apiBaseUrl,
-        uploadUrl: uploadTarget.uploadUrl,
-        uploadHeaders: uploadTarget.uploadHeaders,
-        mimeType,
-        authorization: uploadAuthorization,
-      }),
-      body: file,
+    await uploadFileToTemporaryObjectTarget({
+      apiBaseUrl,
+      authorization: uploadAuthorization,
+      file,
+      mimeType,
+      target: uploadTarget,
     })
-
-    if (!uploadResponse.ok) {
-      return {
-        attempted: true,
-        warnings: [
-          `${file.name} could not be uploaded to the backend private upload target (${uploadResponse.status}).`,
-          ...warnings,
-        ],
-      }
-    }
 
     const finalizedResponse = await postBackendJson<BackendFinalizedUploadData>(
       apiBaseUrl,
@@ -406,7 +399,6 @@ async function planSourceUploadThroughBackendIntent({
       {
         workspaceId,
         sizeBytes: file.size,
-        checksumSha256,
       },
       `source-upload-finalize:${workspaceId}:${projectId}:${uploadedOrder}:${uploadIntentResponse.data.uploadIntent.id}`,
     )
@@ -463,6 +455,18 @@ async function planSourceUploadThroughBackendIntent({
   }
 }
 
+function sourceUploadAttemptId(file: File): string {
+  const existing = sourceUploadAttemptIds.get(file)
+  if (existing) return existing
+  const cryptoObject = globalThis.crypto
+  if (!cryptoObject || typeof cryptoObject.randomUUID !== 'function') {
+    throw new Error('Secure browser randomness is required to start a private source upload.')
+  }
+  const created = cryptoObject.randomUUID()
+  sourceUploadAttemptIds.set(file, created)
+  return created
+}
+
 export function createBackendUploadTargetHeaders(input: {
   apiBaseUrl: string
   uploadUrl: string
@@ -470,10 +474,13 @@ export function createBackendUploadTargetHeaders(input: {
   mimeType: string
   authorization?: string
 }): Record<string, string> {
-  const headers: Record<string, string> = {
-    ...(input.uploadHeaders ?? {}),
-    'content-type': input.mimeType,
+  const headers: Record<string, string> = {}
+  for (const [name, value] of Object.entries(input.uploadHeaders ?? {})) {
+    const normalizedName = name.trim().toLowerCase()
+    if (!normalizedName || normalizedName === 'authorization') continue
+    headers[normalizedName] = value
   }
+  headers['content-type'] = input.mimeType
 
   if (input.authorization && shouldAttachBackendAuthorization(input.apiBaseUrl, input.uploadUrl)) {
     headers.authorization = input.authorization
@@ -768,7 +775,7 @@ function formatDurationSeconds(durationSeconds: number): string {
 
 function formatBytes(bytes: number): string {
   if (!Number.isFinite(bytes) || bytes <= 0) return '0 B'
-  const units = ['B', 'KB', 'MB', 'GB']
+  const units = ['B', 'KB', 'MB', 'GB', 'TB']
   let value = bytes
   let unitIndex = 0
   while (value >= 1024 && unitIndex < units.length - 1) {
@@ -793,6 +800,11 @@ function getRuntimeEnv(): RuntimeEnvRecord {
 }
 
 async function computeUploadFileSha256(file: File): Promise<string> {
+  if (file.size > REEDITPRO_LOCAL_RAW_UPLOAD_MAX_BYTES) {
+    throw new Error(
+      'Large source media requires the resumable backend upload path; browser whole-file hashing is disabled.',
+    )
+  }
   if (typeof file.arrayBuffer !== 'function') {
     throw new Error('Source upload checksum could not be computed because file bytes are unavailable.')
   }
@@ -810,12 +822,30 @@ async function computeUploadFileSha256(file: File): Promise<string> {
 
 function mimeTypeFromFileName(fileName: string): string {
   const extension = fileName.split('.').pop()?.toLowerCase()
+  if (extension === 'avi') return 'video/x-msvideo'
+  if (extension === 'm2ts' || extension === 'mts' || extension === 'ts') return 'video/mp2t'
+  if (extension === 'm4v') return 'video/x-m4v'
+  if (extension === 'mkv') return 'video/x-matroska'
   if (extension === 'mov') return 'video/quicktime'
+  if (extension === 'mxf') return 'application/mxf'
   if (extension === 'webm') return 'video/webm'
+  if (extension === 'aac') return 'audio/aac'
   if (extension === 'mp3') return 'audio/mpeg'
   if (extension === 'wav') return 'audio/wav'
   if (extension === 'png') return 'image/png'
   if (extension === 'jpg' || extension === 'jpeg') return 'image/jpeg'
   if (extension === 'webp') return 'image/webp'
   return 'video/mp4'
+}
+
+function sourceMediaMimeType(declaredMimeType: string, fileName: string): string {
+  const normalized = declaredMimeType.trim().toLowerCase()
+  if (normalized === 'audio/mp3') return 'audio/mpeg'
+  if (normalized === 'video/mov') return 'video/quicktime'
+  if (normalized === 'video/mxf' || normalized === 'application/x-mxf') return 'application/mxf'
+  if (normalized === 'video/mkv' || normalized === 'application/x-matroska') return 'video/x-matroska'
+  if (normalized === 'video/avi' || normalized === 'video/msvideo' || normalized === 'video/vnd.avi') return 'video/x-msvideo'
+  if (normalized === 'video/x-mpeg2ts' || normalized === 'video/vnd.dlna.mpeg-tts') return 'video/mp2t'
+  if (normalized && normalized !== 'application/octet-stream') return normalized
+  return mimeTypeFromFileName(fileName)
 }

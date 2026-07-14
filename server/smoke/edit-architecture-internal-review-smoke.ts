@@ -20,6 +20,11 @@ const steps: SmokeStep[] = [
     requiredFor: 'source upload planning, private upload targets, source-sequence promotion',
   },
   {
+    id: 'large_media_ingest_readiness',
+    script: 'smoke:large-media-ingest-readiness',
+    requiredFor: 'high-ceiling source policy, resumable offset recovery, browser memory safety, and quality-preserving private proxy policy',
+  },
+  {
     id: 'local_project_handoff_source_safety',
     script: 'smoke:local-project-handoff-source-safety',
     requiredFor: 'local project recovery, source fingerprint, stale private-review invalidation',
@@ -197,6 +202,7 @@ console.log(JSON.stringify({
   checks: results.map((result) => result.id),
   guarantees: [
     'User source uploads are planned, uploaded, finalized, fingerprinted, and promoted into source sequence records.',
+    'Large source uploads have a high bounded policy, create-only resumable transport, exact offset recovery, no browser whole-file hash or cross-origin auth leak, and a private proxy that never replaces the original.',
     'Edit approval requires an approved plan snapshot, credit approval/reservation, idempotency, and owner isolation.',
     'Private edit manifests preserve approved professional skill traces without exposing adapter/tool names.',
     'The tool architecture program keeps owner-lane source truth accepted, ambiguous registry-only tools categorized, and product/frontend execution at zero.',

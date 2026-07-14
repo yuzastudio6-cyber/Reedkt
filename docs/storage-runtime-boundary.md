@@ -19,7 +19,14 @@ Service-role and admin storage logic must stay in a backend runtime. Future opti
 
 Private media should be delivered with short-lived signed URLs or a backend delivery route. Public URLs are blocked by default in the helper unless a caller explicitly allows them.
 
-GCS upload URLs are create-only: `x-goog-if-generation-match: 0` is included in the V4 signature and returned request headers. Finalized GCS reads require preserved generation/ETag identity and bind the signed URL or backend stream to that generation. Client custom metadata is never accepted as SHA-256 evidence; the backend hashes actual stored bytes before readiness.
+Small GCS signed PUT targets are create-only: `x-goog-if-generation-match: 0`
+is included in the V4 signature and returned request headers. GCS source targets
+above 16 MiB instead use a create-only resumable session whose initialization
+is bound to `ifGenerationMatch: 0`; the browser resumes only from the
+provider-confirmed committed range. Finalized GCS reads require preserved
+generation/ETag identity and bind the signed URL or backend stream to that
+generation. Client custom metadata is never accepted as SHA-256 evidence; the
+backend hashes actual stored bytes before readiness.
 
 ## Generated And Rendered Assets
 

@@ -3,6 +3,8 @@ import type {
   ProjectSourceVideoBackendUploadConfig,
   ProjectSourceVideoBackendUploadResult,
 } from '../types/project-source-video'
+import { uploadFileToTemporaryObjectTarget } from './temporary-object-upload-client'
+import type { TemporaryUploadProtocol } from '../types/large-media'
 
 interface UploadEnvelope<TData> {
   ok?: boolean
@@ -21,8 +23,12 @@ interface UploadIntentView {
 }
 
 interface UploadTargetView {
+  uploadMethod?: 'PUT' | 'POST'
   uploadUrl: string
   uploadHeaders: Record<string, string>
+  uploadProtocol?: TemporaryUploadProtocol
+  supportsResume?: boolean
+  recommendedChunkSizeBytes?: number
 }
 
 interface CreateUploadIntentData {
@@ -153,6 +159,7 @@ export async function uploadProjectSourceVideoToBackend(
   const accessToken = await (input.getAccessToken ?? getSupabaseAccessToken)()
   const createIdempotencyKeyValue = createIdempotencyKey('source-video-upload-intent')
   const finalizeIdempotencyKeyValue = createIdempotencyKey('source-video-upload-finalize')
+  const mimeType = sourceVideoMimeType(input.file.type, input.file.name)
 
   const createResponse = await fetchImpl(joinUrl(input.apiBaseUrl, `/v1/projects/${encodeURIComponent(input.projectId)}/upload-intents`), {
     method: 'POST',
@@ -166,7 +173,7 @@ export async function uploadProjectSourceVideoToBackend(
       chatSessionId: input.editSessionId,
       uploadPurpose: 'source_media',
       originalFileName: input.file.name,
-      mimeType: input.file.type || 'video/mp4',
+      mimeType,
       expectedSizeBytes: input.file.size,
     }),
   })
@@ -175,18 +182,17 @@ export async function uploadProjectSourceVideoToBackend(
     'Upload intent creation failed.',
   )
 
-  const uploadResponse = await fetchImpl(joinUrl(input.apiBaseUrl, created.uploadTarget.uploadUrl), {
-    method: 'PUT',
-    headers: createHeaders({
-      ...created.uploadTarget.uploadHeaders,
-      authorization: accessToken ? `Bearer ${accessToken}` : undefined,
-    }),
-    body: input.file,
+  await uploadFileToTemporaryObjectTarget({
+    apiBaseUrl: input.apiBaseUrl,
+    authorization: accessToken ? `Bearer ${accessToken}` : undefined,
+    fetchImpl,
+    file: input.file,
+    mimeType,
+    target: {
+      ...created.uploadTarget,
+      uploadMethod: created.uploadTarget.uploadMethod ?? 'PUT',
+    },
   })
-  if (!uploadResponse.ok) {
-    const envelope = await parseEnvelope<unknown>(uploadResponse)
-    throw new Error(envelope.error?.message ?? 'Backend-local source video upload failed.')
-  }
 
   const finalizeResponse = await fetchImpl(joinUrl(input.apiBaseUrl, `/v1/upload-intents/${encodeURIComponent(created.uploadIntent.id)}/finalize`), {
     method: 'POST',
@@ -215,7 +221,7 @@ export async function uploadProjectSourceVideoToBackend(
     bucketName: finalized.storageObjectRecord.bucketName,
     objectPath: finalized.storageObjectRecord.objectPath,
     fileName: input.file.name,
-    mimeType: input.file.type || 'video/mp4',
+    mimeType,
     sizeBytes: finalized.storageObjectRecord.sizeBytes ?? input.file.size,
     checksumSha256: finalized.storageObjectRecord.checksumSha256,
     uploadedAt: new Date().toISOString(),
@@ -234,4 +240,24 @@ export async function uploadProjectSourceVideoToBackend(
     productReady: false,
     warnings,
   }
+}
+
+function sourceVideoMimeType(declaredMimeType: string, fileName: string): string {
+  const normalized = declaredMimeType.trim().toLowerCase()
+  if (normalized === 'video/mov') return 'video/quicktime'
+  if (normalized === 'video/mxf' || normalized === 'application/x-mxf') return 'application/mxf'
+  if (normalized === 'video/mkv' || normalized === 'application/x-matroska') return 'video/x-matroska'
+  if (normalized === 'video/avi' || normalized === 'video/msvideo' || normalized === 'video/vnd.avi') return 'video/x-msvideo'
+  if (normalized === 'video/x-mpeg2ts' || normalized === 'video/vnd.dlna.mpeg-tts') return 'video/mp2t'
+  if (normalized && normalized !== 'application/octet-stream') return normalized
+
+  const extension = fileName.split('.').pop()?.toLowerCase()
+  if (extension === 'avi') return 'video/x-msvideo'
+  if (extension === 'm2ts' || extension === 'mts' || extension === 'ts') return 'video/mp2t'
+  if (extension === 'm4v') return 'video/x-m4v'
+  if (extension === 'mkv') return 'video/x-matroska'
+  if (extension === 'mov') return 'video/quicktime'
+  if (extension === 'mxf') return 'application/mxf'
+  if (extension === 'webm') return 'video/webm'
+  return 'video/mp4'
 }

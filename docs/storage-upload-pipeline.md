@@ -27,7 +27,17 @@ The validation service checks:
 - workspace requirement;
 - project requirement for project-scoped purposes.
 
-Planning limits are placeholders: source media 2 GB, references/generated assets 1 GB, previews 2 GB, exports 5 GB, thumbnails/profile/brand 20 MB, and audio assets 200 MB.
+The current source contract admits video objects up to 1 TiB and reference
+video up to 250 GiB. These are high product ceilings, not entitlements or
+production-readiness claims. Other planning limits remain purpose-specific.
+The backend and browser share the source/reference constants so one surface
+cannot promise a file that the other rejects.
+
+The development-only Express raw-body route remains capped at 16 MiB. In GCS
+mode, objects above that threshold receive a create-only resumable session and
+the browser sends aligned chunks with exact committed-offset recovery. The
+browser does not buffer a large file to compute a whole-file checksum; the
+backend-computed stored-byte hash remains authority.
 
 ## Media Records
 
@@ -56,3 +66,9 @@ Generated assets, preview renders, final exports, QA artifacts, and worker temp 
 - No remote migration or policy deployment is run.
 - No provider, rendering, SFX, music, Stripe, or Google Cloud runtime is added.
 - Profile and brand upload paths are not production-ready until backend signed uploads or safe workspace-only policies exist.
+- Live GCS resumable CORS/IAM/session behavior and genuinely large object tests
+  are not proven. Full-object verification/probing is still synchronous and
+  must become a restart-safe background stage before production large-video
+  support can be claimed.
+
+See `docs/large-media-ingestion-and-proxy-readiness-2026-07-13.md`.

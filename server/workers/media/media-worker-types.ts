@@ -173,6 +173,10 @@ export interface FFmpegMediaInputBase {
 export interface CreateProxyVideoInput extends FFmpegMediaInputBase {
   outputLocalPath: string
   targetMaxWidth?: number
+  targetMaxHeight?: number
+  videoPreset?: 'veryfast' | 'faster' | 'fast' | 'medium'
+  videoCrf?: number
+  audioBitrate?: string
   keepAudio?: boolean
 }
 

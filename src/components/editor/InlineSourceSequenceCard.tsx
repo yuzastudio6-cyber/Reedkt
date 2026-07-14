@@ -234,7 +234,7 @@ export function InlineSourceSequenceCard({
         <div className="source-sequence-add-block">
           {onAttachFiles && (
             <input
-              accept="video/mp4,video/quicktime,video/webm,audio/wav,audio/mpeg,audio/mp3,image/png,image/jpeg,image/webp"
+              accept="video/mp4,video/quicktime,video/webm,video/x-m4v,video/x-matroska,video/x-msvideo,video/mp2t,application/mxf,.mxf,.mkv,.avi,.m2ts,.mts,.ts,.m4v,audio/wav,audio/x-wav,audio/mpeg,audio/mp3,audio/aac,image/png,image/jpeg,image/webp"
               aria-hidden="true"
               className="sr-only"
               multiple

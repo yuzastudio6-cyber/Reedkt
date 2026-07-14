@@ -4,6 +4,14 @@ Status: `source_hardened_live_gcs_unverified`
 
 This change closes the source-level signed-upload overwrite and false-checksum boundary. It did not contact Google Cloud, upload an object, change IAM, create a bucket, deploy code, or mutate Supabase.
 
+The 2026-07-13 large-media follow-up keeps the signed PUT path for small
+objects and uses a create-only GCS resumable session above 16 MiB. Session
+initialization carries `ifGenerationMatch: 0`; browser chunks use exact
+`Content-Range`, recover from the provider's committed `Range`, and never
+receive backend credentials. The session URI itself is a temporary bearer
+credential and must not be persisted. See
+`docs/large-media-ingestion-and-proxy-readiness-2026-07-13.md`.
+
 ## Security contract
 
 ### Signed PUT is create-only
@@ -71,6 +79,7 @@ Run:
 
 ```bash
 npm run smoke:gcs-upload-integrity-security
+npm run smoke:large-media-ingest-readiness
 npm run smoke:private-source-probe-staging
 npm run smoke:private-source-probe-orphan-reconciliation
 npm run smoke:upload
@@ -102,6 +111,8 @@ The private staging, orphan-reconciliation, and upload service smokes additional
 Production remains blocked until deployed evidence proves:
 
 1. GCS CORS allows the required `content-type` and `x-goog-if-generation-match` request headers and no broader unsafe upload headers.
+   Resumable sessions additionally require `Content-Range` and browser-visible
+   `Range` response headers.
 2. The signing identity has least privilege. Prefer object creation plus required read/cleanup permissions; do not grant broad bucket administration.
 3. A real signed PUT replay returns `412` in the configured bucket.
 4. Real metadata exposes stable generation/ETag and CRC32C validation completes for representative video sizes.

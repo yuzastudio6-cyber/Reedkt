@@ -8,8 +8,16 @@ import {
 } from '../media/private-source-probe-staging'
 import { createStorageAdapter, resolveBucketName } from '../storage/storage-adapter'
 import { buildCanonicalObjectPath } from '../storage/storage-paths'
-import { assertAllowedUpload, assertLocalRawUploadByteLength } from '../storage/storage-validation'
+import {
+  assertAllowedUpload,
+  assertLocalRawUploadByteLength,
+  normalizeAllowedUploadMimeType,
+} from '../storage/storage-validation'
 import type { ObjectMetadata, StorageAdapter, UploadPurpose, UploadTarget } from '../storage/storage-types'
+import {
+  GCS_RESUMABLE_SESSION_TTL_SECONDS,
+  shouldUseResumableUpload,
+} from '../../src/types/large-media'
 import type { ServiceContext } from '../types'
 import type {
   PrivateMediaAssetAuthorityRecord,
@@ -262,18 +270,23 @@ export function createUploadService(context: ServiceContext) {
 
     async createUploadIntent(input: CreateUploadIntentInput) {
       const userId = getRequiredAuthUserId(context)
+      const mimeType = normalizeAllowedUploadMimeType(input.mimeType)
       await assertUploadProjectOwnedByCurrentUser(context, input.projectId, input.workspaceId)
       assertProductionUploadUsesDirectObjectStorage(context, storage)
       assertUserInitiatedUploadPurpose(input.uploadPurpose)
       assertAllowedUpload({
         purpose: input.uploadPurpose,
-        mimeType: input.mimeType,
+        mimeType,
         expectedSizeBytes: input.expectedSizeBytes,
       })
 
       const uploadIntentId = randomUUID()
       const now = nowIso()
-      const expiresAt = new Date(Date.now() + context.env.signedUrlTtlSeconds * 1000).toISOString()
+      const usesResumableCloudSession = storage.mode === 'gcs' && shouldUseResumableUpload(input.expectedSizeBytes)
+      const uploadTargetTtlSeconds = usesResumableCloudSession
+        ? GCS_RESUMABLE_SESSION_TTL_SECONDS
+        : context.env.signedUrlTtlSeconds
+      const expiresAt = new Date(Date.now() + uploadTargetTtlSeconds * 1000).toISOString()
       const targetBucket = resolveBucketName(context.env, input.uploadPurpose)
       const targetPath = buildCanonicalObjectPath({
         workspaceId: input.workspaceId,
@@ -289,7 +302,8 @@ export function createUploadService(context: ServiceContext) {
         projectId: input.projectId,
         bucketName: targetBucket,
         objectPath: targetPath,
-        mimeType: input.mimeType,
+        mimeType,
+        expectedSizeBytes: input.expectedSizeBytes,
         checksumSha256: normalizeChecksumSha256(input.checksumSha256),
         expiresAt,
       })
@@ -305,7 +319,7 @@ export function createUploadService(context: ServiceContext) {
           targetBucket,
           targetPath,
           originalFileName: input.originalFileName,
-          mimeType: input.mimeType,
+          mimeType,
           expectedSizeBytes: input.expectedSizeBytes,
           checksumSha256: input.checksumSha256,
           status: 'signed',
@@ -326,7 +340,7 @@ export function createUploadService(context: ServiceContext) {
                 chatSessionId: input.chatSessionId,
                 uploadPurpose: input.uploadPurpose,
                 originalFileName: input.originalFileName,
-                mimeType: normalizeMimeType(input.mimeType),
+                mimeType,
                 expectedSizeBytes: input.expectedSizeBytes,
                 checksumSha256: normalizeChecksumSha256(input.checksumSha256),
               })
@@ -341,6 +355,7 @@ export function createUploadService(context: ServiceContext) {
             bucketName: persistedUploadIntent.targetBucket,
             objectPath: persistedUploadIntent.targetPath,
             mimeType: persistedUploadIntent.mimeType,
+            expectedSizeBytes: persistedUploadIntent.expectedSizeBytes,
             checksumSha256: persistedUploadIntent.checksumSha256,
             expiresAt: persistedUploadIntent.expiresAt,
           })
@@ -378,7 +393,7 @@ export function createUploadService(context: ServiceContext) {
           target_bucket: targetBucket,
           target_path: targetPath,
           original_file_name: input.originalFileName,
-          mime_type: input.mimeType,
+          mime_type: mimeType,
           expected_size_bytes: input.expectedSizeBytes ?? null,
           checksum_sha256: input.checksumSha256 ?? null,
           status: 'signed',
@@ -730,6 +745,10 @@ function uploadTargetMetadata(
     uploadMethod: uploadTarget.uploadMethod,
     hasTemporaryTarget: Boolean(uploadTarget.uploadUrl),
     createOnly: uploadTarget.createOnly,
+    uploadProtocol: uploadTarget.uploadProtocol ?? 'single_put',
+    supportsResume: uploadTarget.supportsResume ?? false,
+    recommendedChunkSizeBytes: uploadTarget.recommendedChunkSizeBytes,
+    sessionUriIsCredential: uploadTarget.sessionUriIsCredential ?? true,
     bucketName,
     objectPath,
   }

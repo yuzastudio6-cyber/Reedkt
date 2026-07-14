@@ -1,4 +1,5 @@
 import type { Readable } from 'node:stream'
+import type { TemporaryUploadProtocol } from '../../src/types/large-media'
 
 export type StorageMode = 'local' | 'gcs_disabled' | 'gcs'
 
@@ -31,6 +32,14 @@ export interface UploadTarget {
   temporary: true
   /** The target may create a new live object only; replay cannot replace it. */
   createOnly: boolean
+  /** Defaults to single_put for older/local adapters. */
+  uploadProtocol?: TemporaryUploadProtocol
+  /** True only when the client can query committed bytes and continue. */
+  supportsResume?: boolean
+  /** Provider-aligned client chunk recommendation for resumable sessions. */
+  recommendedChunkSizeBytes?: number
+  /** Session URLs are bearer credentials and must never be durably persisted. */
+  sessionUriIsCredential?: boolean
 }
 
 export interface DownloadTarget {
@@ -93,6 +102,7 @@ export interface StorageAdapter {
     bucketName: string
     objectPath: string
     mimeType: string
+    expectedSizeBytes?: number
     checksumSha256?: string
     expiresAt: string
   }): Promise<UploadTarget>

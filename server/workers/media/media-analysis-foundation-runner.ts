@@ -24,6 +24,8 @@ import {
   assertWorkerPayloadHasNoSignedUrls,
 } from '../production/production-worker-gates'
 import { assertWorkerPayloadHasNoForbiddenFields } from '../production/production-worker-artifact-policy'
+import { REEDITPRO_ANALYSIS_PROXY_POLICY } from '../../../src/types/large-media'
+import { deriveMediaTaskTimeoutMs } from './media-task-policy'
 
 const defaultTasks: MediaFoundationTask[] = [
   'probe',
@@ -84,13 +86,16 @@ export async function runMediaAnalysisFoundation(input: MediaFoundationRunnerInp
 
   const ffprobeBin = input.ffprobeBin ?? 'ffprobe'
   const ffmpegBin = input.ffmpegBin ?? 'ffmpeg'
-  const timeoutMs = input.timeoutMs ?? 30_000
+  const probeTimeoutMs = input.timeoutMs ?? deriveMediaTaskTimeoutMs({
+    task: 'probe',
+    sourceSizeBytes: input.source.sizeBytes,
+  })
   const summaries: MediaFoundationArtifactSummary[] = []
   const probe = expectedActions.includes('probe')
     ? await runMediaProbeProductionWorker({
       localFilePath: resolvedSource.localFilePath,
       ffprobeBin,
-      timeoutMs,
+      timeoutMs: probeTimeoutMs,
     })
     : undefined
 
@@ -98,17 +103,23 @@ export async function runMediaAnalysisFoundation(input: MediaFoundationRunnerInp
     throw new Error('Milestone 6 local_dev runner requires probe task before artifacts/report assembly.')
   }
 
+  const timeoutFor = (task: MediaFoundationTask) => input.timeoutMs ?? deriveMediaTaskTimeoutMs({
+    task,
+    probe,
+    sourceSizeBytes: input.source.sizeBytes,
+  })
+
   const proxy = expectedActions.includes('create_proxy')
-    ? await runProxyTask(input, resolvedSource.localFilePath, outputRoot, ffmpegBin, timeoutMs, summaries)
+    ? await runProxyTask(input, resolvedSource.localFilePath, outputRoot, ffmpegBin, timeoutFor('create_proxy'), summaries, probe)
     : undefined
   const audio = expectedActions.includes('extract_audio')
-    ? await runAudioTask(input, resolvedSource.localFilePath, outputRoot, ffmpegBin, timeoutMs, probe.audioStreams.length > 0, summaries)
+    ? await runAudioTask(input, resolvedSource.localFilePath, outputRoot, ffmpegBin, timeoutFor('extract_audio'), probe.audioStreams.length > 0, summaries)
     : undefined
   const keyframes = expectedActions.includes('extract_keyframes')
-    ? await runFrameTask('keyframes', input, resolvedSource.localFilePath, outputRoot, ffmpegBin, timeoutMs, summaries)
+    ? await runFrameTask('keyframes', input, resolvedSource.localFilePath, outputRoot, ffmpegBin, timeoutFor('extract_keyframes'), summaries)
     : undefined
   const representativeFrames = expectedActions.includes('extract_representative_frames')
-    ? await runFrameTask('representative', input, resolvedSource.localFilePath, outputRoot, ffmpegBin, timeoutMs, summaries, probe.durationSeconds)
+    ? await runFrameTask('representative', input, resolvedSource.localFilePath, outputRoot, ffmpegBin, timeoutFor('extract_representative_frames'), summaries, probe.durationSeconds)
     : undefined
 
   const artifactRecords = buildArtifactRecordsFromSummaries({
@@ -174,6 +185,7 @@ async function runProxyTask(
   ffmpegBin: string,
   timeoutMs: number,
   summaries: MediaFoundationArtifactSummary[],
+  probe: Pick<NonNullable<MediaFoundationResult['probe']>, 'durationSeconds' | 'width' | 'height' | 'rotation'>,
 ): Promise<MediaProxyResult> {
   const outputLocalPath = path.join(outputRoot, 'proxy', `${input.mediaAssetId}-proxy.mp4`)
   const artifact = await runMediaProxyProductionWorker({
@@ -182,7 +194,11 @@ async function runProxyTask(
     safeOutputRoot: outputRoot,
     ffmpegBin,
     timeoutMs,
-    targetMaxWidth: 1280,
+    targetMaxWidth: REEDITPRO_ANALYSIS_PROXY_POLICY.maxWidth,
+    targetMaxHeight: REEDITPRO_ANALYSIS_PROXY_POLICY.maxHeight,
+    videoPreset: REEDITPRO_ANALYSIS_PROXY_POLICY.videoPreset,
+    videoCrf: REEDITPRO_ANALYSIS_PROXY_POLICY.videoCrf,
+    audioBitrate: REEDITPRO_ANALYSIS_PROXY_POLICY.audioBitrate,
     keepAudio: true,
   })
   const canonical = withCanonicalStoragePath(input, artifact, 'proxy', `${input.mediaAssetId}-proxy.mp4`)
@@ -190,7 +206,29 @@ async function runProxyTask(
   return {
     status: 'created',
     artifact: canonical,
+    ...fitProxyDimensions(probe.width, probe.height, probe.rotation),
+    durationSeconds: probe.durationSeconds,
   }
+}
+
+function fitProxyDimensions(width: number, height: number, rotation: number): { width: number; height: number } {
+  if (width <= 0 || height <= 0) return { width: 0, height: 0 }
+  const quarterTurn = Math.abs(rotation) % 180 === 90
+  const displayWidth = quarterTurn ? height : width
+  const displayHeight = quarterTurn ? width : height
+  const scale = Math.min(
+    1,
+    REEDITPRO_ANALYSIS_PROXY_POLICY.maxWidth / displayWidth,
+    REEDITPRO_ANALYSIS_PROXY_POLICY.maxHeight / displayHeight,
+  )
+  return {
+    width: makeEven(Math.max(2, Math.round(displayWidth * scale))),
+    height: makeEven(Math.max(2, Math.round(displayHeight * scale))),
+  }
+}
+
+function makeEven(value: number): number {
+  return value % 2 === 0 ? value : value - 1
 }
 
 async function runAudioTask(

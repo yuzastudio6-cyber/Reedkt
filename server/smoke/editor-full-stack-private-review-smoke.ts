@@ -323,7 +323,10 @@ try {
   })
   await page.goto(`${viteUrl}projects/new`)
   await expect(page).toHaveURL(/\/sign-in\?returnTo=/)
-  await expect(page.getByRole('heading', { level: 1, name: 'Sign in to test the ReEditPro app.' })).toBeVisible()
+  await expect(page.getByRole('heading', {
+    level: 1,
+    name: 'Pick up exactly where you left off.',
+  })).toBeVisible()
   await page.getByTestId('local-test-sign-in').click()
   await expect(page).toHaveURL(/\/projects\/new$/)
   await expect(page.getByTestId('app-session-identity')).toContainText('Local test user')

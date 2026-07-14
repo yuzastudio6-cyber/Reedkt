@@ -6,7 +6,10 @@ import {
 } from '../lib/canonical-planning-publication-client'
 import type { ProjectPersistenceScope } from '../lib/project-persistence-scope'
 
-type SubmissionInput = Pick<SaveCanonicalPlanningInput, 'plan' | 'plannerInput' | 'sourceMediaAssets'>
+type SubmissionInput = Pick<
+  SaveCanonicalPlanningInput,
+  'plan' | 'plannerInput' | 'sourceMediaAssets' | 'revisionJourney'
+>
 
 export type CanonicalPlanningPublicationHookResult = {
   saving: boolean

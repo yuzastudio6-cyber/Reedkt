@@ -421,6 +421,19 @@ const server = createServer((request, response) => {
       }))
       return
     }
+    if (request.url?.endsWith('/canonical-revision-plan-presentations')) {
+      response.statusCode = 201
+      response.end(JSON.stringify({
+        ok: true,
+        data: {
+          canonicalRevisionPlanPresentation: revisionPresentationFixture(
+            responseIdentity,
+          ),
+        },
+        warnings: [],
+      }))
+      return
+    }
     response.end(JSON.stringify({
       ok: true,
       data: { canonicalPlanningHandoff: handoffFixture(responseIdentity) },
@@ -452,6 +465,7 @@ try {
     'planning.canonicalHandoff.create',
     'planning.canonicalPublicationRequest.create',
     'planning.canonicalPlanPresentation.create',
+    'planning.canonicalRevisionPlanPresentation.create',
   ]) {
     const route = getApiRouteById(routeId)
     assert.equal(route?.runtimeMode, 'frontend_safe')
@@ -521,6 +535,107 @@ try {
   assert.equal(requests.some((request) => request.url?.endsWith('/publish')), false, 'The browser must never call the internal publication route.')
   assert.equal(requests.some((request) => Boolean(request.internalToken)), false)
 
+  exactPreferenceAuthority = {
+    ...exactPreferenceAuthority,
+    lifecycle: {
+      phase: 'revision_requested',
+      locked: true,
+    },
+  }
+  const revisionJourney = {
+    identity: { ...identity },
+    stage: 'revision_requested' as const,
+    privateReviewMediaAuthority: {
+      mode: 'history' as const,
+      reviewAssemblyId: 'canonical-save-review-assembly',
+      packageRecordId: 'canonical-save-package',
+      expectedDecisionManifestSha256: sha('6'),
+      expectedFinalArtifactSha256: sha('5'),
+    },
+    plan: {
+      version: 1,
+      status: 'approved' as const,
+      estimateStatus: 'approved' as const,
+      maximumCredits: exactPlan.creditEstimate.total,
+      workItemCount: 5,
+    },
+    approval: {
+      reservedCredits: exactPlan.creditEstimate.total,
+      reservationStatus: 'reserved' as const,
+      jobCount: 5,
+    },
+    review: {
+      decision: 'request_revision' as const,
+      decisionStatus: 'canonical_revision_requested' as const,
+    },
+    inspectionOnly: true as const,
+    testOnly: true as const,
+  }
+  const revisionStart = requests.length
+  const revisionResult = await saveCanonicalPlanningForNamedEdit({
+    scope,
+    projectId: identity.projectId,
+    editSessionId: identity.editSessionId,
+    plan: exactPlan,
+    plannerInput: baseInput,
+    sourceMediaAssets,
+    revisionJourney,
+  })
+  assert.equal(revisionResult.status, 'plan_published_waiting_for_approval')
+  assert.deepEqual(revisionResult.presentedPlan, {
+    planId: 'canonical-save-plan-v2',
+    planVersion: 2,
+    planHash: sha('8'),
+  })
+  assert.equal(requests.length, revisionStart + 2)
+  assert.deepEqual(
+    requests.slice(revisionStart).map((request) => request.method),
+    ['GET', 'POST'],
+    'A revision must read locked preferences, then use only the server-owned revision coordinator.',
+  )
+  const revisionRequest = requests.at(-1)
+  assert.match(
+    revisionRequest?.url ?? '',
+    /canonical-revision-plan-presentations$/,
+  )
+  assert.equal(
+    JSON.stringify(revisionRequest?.body).includes('revisionAuthority'),
+    false,
+    'Raw revision publication authority must never be browser-authored.',
+  )
+  const revisionCanonicalPlan = asRecord(revisionRequest?.body.canonicalPlan)
+  const revisionComponents = asRecord(revisionCanonicalPlan.components)
+  const revisionCompiledIntent = asRecord(revisionComponents.compiledIntent)
+  assert.equal('revisionIntentHash' in revisionCompiledIntent, false)
+  assert.equal('priorApprovedSnapshotId' in revisionCompiledIntent, false)
+  assert.equal('reviewDecisionId' in revisionCompiledIntent, false)
+
+  const changedLockedPreferenceStart = requests.length
+  const changedLockedPreference = await saveCanonicalPlanningForNamedEdit({
+    scope,
+    projectId: identity.projectId,
+    editSessionId: identity.editSessionId,
+    plan: exactPlan,
+    plannerInput: {
+      ...baseInput,
+      moodStyle: 'premium',
+    },
+    sourceMediaAssets,
+    revisionJourney,
+  })
+  assert.equal(changedLockedPreference.status, 'blocked')
+  assert.match(changedLockedPreference.message, /structural replan/i)
+  assert.equal(
+    requests.length,
+    changedLockedPreferenceStart + 1,
+    'A locked-preference change may read exact authority but must not submit a replacement plan.',
+  )
+  assert.equal(requests.at(-1)?.method, 'GET')
+
+  exactPreferenceAuthority = {
+    ...exactPreferenceAuthority,
+    lifecycle: { phase: 'planning', locked: false },
+  }
   responseIdentity = { ...identity, workspaceId: 'workspace-foreign' }
   const foreign = await saveCanonicalPlanningForNamedEdit({
     scope,
@@ -805,6 +920,58 @@ function publicationFixture(foreignIdentity: typeof identity): Record<string, un
       fullRevalidationRequired: true,
       exactReplayOnlyAfterPublication: true,
     },
+  }
+}
+
+function revisionPresentationFixture(
+  foreignIdentity: typeof identity,
+): Record<string, unknown> {
+  return {
+    schemaVersion: 'canonical-revision-plan-presentation-receipt-v1',
+    source: 'canonical_revision_plan_presentation_coordinator_service',
+    purpose: 'present_canonical_revision_plan',
+    disposition: 'replacement_plan_presented',
+    identity: {
+      ...foreignIdentity,
+      reviewAssemblyId: 'canonical-save-review-assembly',
+    },
+    replacementPlan: {
+      planId: 'canonical-save-plan-v2',
+      planVersion: 2,
+      planHash: sha('8'),
+      priorPlanVersion: 1,
+      freshEstimatePresented: true,
+      freshApprovalRequired: true,
+    },
+    authority: {
+      exactRevisionDecisionRevalidated: true,
+      immutablePriorSnapshotPreserved: true,
+      immutablePriorReviewPreserved: true,
+      lockedPreferenceEvidenceReusedWithoutMutation: true,
+    },
+    boundaries: {
+      approvalRecorded: false,
+      snapshotCreated: false,
+      creditReservationMutated: false,
+      customerWalletMutated: false,
+      workGraphStarted: false,
+      toolExecutionStarted: false,
+      providerCallStarted: false,
+      renderStarted: false,
+      billingStarted: false,
+      publicDeliveryStarted: false,
+    },
+    persistence: {
+      privateLocal: true,
+      tenantScoped: true,
+      distributed: false,
+      productionAuthority: false,
+    },
+    rawRevisionAuthorityReturned: false,
+    jobOrToolDetailsReturned: false,
+    pathOrCredentialReturned: false,
+    replayed: false,
+    testOnly: true,
   }
 }
 

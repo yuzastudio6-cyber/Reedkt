@@ -1301,6 +1301,11 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     approved ||
     approvedSnapshot ||
     canonicalApprovalRecorded ||
+    canonicalJourneyValue?.stage === 'revision_requested' ||
+    (
+      canonicalJourneyValue?.stage !== 'replanning_required' &&
+      (canonicalJourneyValue?.plan?.version ?? 0) > 1
+    ) ||
     progressStarted ||
     privateInternalTestRun ||
     (localProjectHandoff && currentEditPreferenceLockedStages.has(localProjectHandoff.stage)),
@@ -2207,6 +2212,9 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
         plan: result.editPlan,
         plannerInput: exactPlannerInput,
         sourceMediaAssets: durableUploadedPrivateSourceAssets(sourceMediaAssets),
+        ...(canonicalJourneyValue?.stage === 'revision_requested'
+          ? { revisionJourney: canonicalJourneyValue }
+          : {}),
       })
     }
   }
@@ -3079,7 +3087,15 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
       'request_revision',
       summary,
     )
-    if (result.status === 'recorded') canonicalJourney.refresh()
+    if (result.status === 'recorded') {
+      canonicalPlanningPublication.reset()
+      canonicalPlanApproval.reset()
+      canonicalExecutionPackageRequest.reset()
+      canonicalPrivateEditPreparation.reset()
+      applyUserPlanningInstruction(summary)
+      canonicalPrivateReview.reset()
+      canonicalJourney.refresh()
+    }
   }
 
   async function handleRunRevisionPrivateReview() {
@@ -3720,21 +3736,28 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
       previousApprovedSnapshotId ||
       previousCreditReservationId ||
       privateInternalTestRun ||
-      existingReview,
+      existingReview ||
+      canonicalJourneyValue?.stage === 'revision_requested' ||
+      canonicalJourneyValue?.stage === 'private_review_ready',
     )
     if (!hasPreviousApprovedWork) return undefined
 
     const previousReviewVerified = privateInternalTestRun?.editDecisionManifestVerified === true ||
       privateInternalReviewVideoMetadata?.playable === true ||
-      existingReview?.manifestVerified === true
+      existingReview?.manifestVerified === true ||
+      Boolean(canonicalPrivateReview.media)
     const previousStage = localProjectHandoff?.stage ??
       (privateInternalReviewDecision === 'accepted_for_internal_testing'
         ? 'private_review_accepted'
         : privateInternalReviewDecision === 'changes_requested'
           ? 'revision_requested'
-          : privateInternalTestRun
-            ? 'private_review_ready'
-            : undefined)
+          : canonicalJourneyValue?.stage === 'revision_requested'
+            ? 'revision_requested'
+            : canonicalJourneyValue?.stage === 'private_review_ready'
+              ? 'private_review_ready'
+              : privateInternalTestRun
+                ? 'private_review_ready'
+                : undefined)
 
     return {
       request: request.trim().slice(0, 500),
@@ -3753,12 +3776,12 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     }
   }
 
-  function handleSend() {
+  function applyUserPlanningInstruction(nextMessageInput: string) {
     if (approvalCheckingRef.current) {
       showRevisionMessage('Approval checks are in progress. Wait for them to finish before changing the edit.')
       return
     }
-    const nextMessage = composerValue.trim()
+    const nextMessage = nextMessageInput.trim()
     if (!nextMessage) {
       return
     }
@@ -3899,6 +3922,10 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     }, {
       revisionPlanContext: typedRevisionPlanContext,
     })
+  }
+
+  function handleSend() {
+    applyUserPlanningInstruction(composerValue)
   }
 
   const cleanChatMessages = useMemo(() => {

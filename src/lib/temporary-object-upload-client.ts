@@ -211,7 +211,10 @@ async function queryCommittedOffsetWithRetry(input: {
       if (input.input.signal?.aborted) throw abortError()
       if (isNonRetryableUploadError(error)) throw error
       if (retryCount >= input.maxRetries) {
-        throw new Error('Resumable upload could not recover its committed offset after the allowed retry attempts.')
+        throw new Error(
+          'Resumable upload could not recover its committed offset after the allowed retry attempts.',
+          { cause: error },
+        )
       }
 
       retryCount += 1

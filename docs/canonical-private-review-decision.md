@@ -72,13 +72,13 @@ The canonical dispatch smoke records a revision against the real bounded five-jo
 
 The snapshot-v2 lifecycle also records a successful private-internal acceptance against the second review, proves that it contains no revision handoff, and replays the same create-only decision while public delivery remains blocked.
 
-The browser-focused smoke and Playwright journey additionally prove current-review byte integrity, bearer-only browser authentication, deterministic decision idempotency, structured revision preservation rules, a fresh-plan/estimate/approval requirement, and history reopening from the exact decision-manifest descriptor.
+The browser-focused smoke and Playwright journey additionally prove current-review byte integrity, bearer-only browser authentication, deterministic decision idempotency, structured revision preservation rules, history reopening from the exact decision-manifest descriptor, and exact bounded continuation into plan v2 with a fresh estimate and separate fresh approval. The revision-plan coordinator injects the saved decision authority server-side and returns no raw revision authority to the browser.
 
 ## Boundaries
 
 Both decision outcomes keep public export, product, external-beta, production, provider, public artifact, delivery, further render, revision execution, replacement-plan publication, customer price/credit mutation, wallet, reservation, settlement, billing, and deployment authority false.
 
-Replacement-plan compilation with a fresh estimate is now proven. The next revision gate is fresh approval with explicit synthetic reservation reconciliation. Private-internal acceptance still does not authorize public delivery.
+Replacement-plan compilation with a fresh estimate and explicit synthetic fresh approval are now browser-connected for the exact bounded source-and-caption path. That approval starts no execution; the next action remains a separate approved-snapshot package request. Rich/structural revision compilation and private-internal acceptance-to-public-delivery remain gated.
 
 ## Verification
 

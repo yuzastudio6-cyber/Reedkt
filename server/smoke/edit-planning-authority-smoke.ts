@@ -915,6 +915,31 @@ try {
     authorization: 'Bearer verified-other-authority-token',
   })
   assert.equal(crossUserJourney.response.status, 404)
+  const revisionPlanPresentationUrl =
+    `${routeBaseUrl}/v1/projects/${routeProjectId}/edit-sessions/route-edit-session/` +
+    'canonical-revision-plan-presentations'
+  const unauthenticatedRevisionPresentation = await fetch(
+    revisionPlanPresentationUrl,
+    {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({}),
+    },
+  )
+  assert.equal(unauthenticatedRevisionPresentation.status, 401)
+  const malformedRevisionPresentation = await fetch(
+    revisionPlanPresentationUrl,
+    {
+      method: 'POST',
+      headers: {
+        ...routeAuthHeaders,
+        'content-type': 'application/json',
+        'idempotency-key': 'malformed-revision-plan-presentation',
+      },
+      body: JSON.stringify({}),
+    },
+  )
+  assert.equal(malformedRevisionPresentation.status, 400)
 
   planningInputExpectations.set(
     'route-edit-session',
@@ -3840,6 +3865,7 @@ console.log(JSON.stringify({
     'cross_user_snapshot_isolation',
     'production_authority_fail_closed',
     'authenticated_canonical_authority_http_routes',
+    'authenticated_canonical_revision_plan_presentation_route_fails_closed_before_authority',
     'browser_safe_exact_execution_package_request_receipt',
     'exact_execution_package_request_replay_is_stable',
     'execution_package_request_returns_no_jobs_tools_paths_credentials_or_execution_authority',

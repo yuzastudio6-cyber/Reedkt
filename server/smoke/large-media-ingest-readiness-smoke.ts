@@ -105,7 +105,7 @@ assert.throws(() => assertAllowedUpload({
 }), /exceeds max size/)
 assert.throws(() => assertAllowedUpload({
   purpose: 'generated_asset',
-  mimeType: 'application\/mxf',
+  mimeType: 'application/mxf',
   expectedSizeBytes: 1024,
 }), /is not allowed/)
 assert.equal(validateUploadFile({

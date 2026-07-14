@@ -35,6 +35,7 @@ import { createCanonicalPrivateReviewHistoryService } from '../services/canonica
 import { createCanonicalPrivateReviewMediaService } from '../services/canonical-private-review-media-service'
 import { createCanonicalPrivateStructuredToolExecutionService } from '../services/canonical-private-structured-tool-execution-service'
 import { createCanonicalPlanningHandoffService } from '../services/canonical-planning-handoff-service'
+import { createCanonicalRevisionPlanPresentationCoordinatorService } from '../services/canonical-revision-plan-presentation-coordinator-service'
 import { createCanonicalPrivateWorkGraphOrchestratorService } from '../services/canonical-private-work-graph-orchestrator-service'
 import { createCanonicalWorkerLeaseAuthorityService } from '../services/canonical-worker-lease-authority-service'
 import { createEditPlanningAuthorityService } from '../services/edit-planning-authority-service'
@@ -3146,6 +3147,9 @@ const replacementPlanBody = createDispatchPlanBody({
 replacementPlanBody.planningRequestId = 'planning-terminal-private-review-revision-v2'
 replacementPlanBody.canonicalPlan.workItems = replacementPlanBody.canonicalPlan.workItems.filter((workItem) =>
   terminalReviewWorkItemKeys.has(workItem.workItemKey))
+const browserReplacementPlanCandidate = structuredClone(
+  replacementPlanBody.canonicalPlan,
+)
 replacementPlanBody.canonicalPlan.components.compiledIntent = {
   ...replacementPlanBody.canonicalPlan.components.compiledIntent,
   revisionIntentHash: revisionHandoff.revisionIntentHash,
@@ -3216,16 +3220,67 @@ await expectApiError(
   }),
   'IDEMPOTENCY_CONFLICT',
 )
-const replacementPlanPublished = await planningHandoffService.publishFromPersistedHandoff({
-  ...planningHandoffPublicationBody(
-    replacementPlanBody,
-    replacementPlanningHandoff.handoffHash,
-  ),
+const replacementPlanPresentationService =
+  createCanonicalRevisionPlanPresentationCoordinatorService(context)
+const replacementPlanPresentationInput = {
+  workspaceId,
   projectId: seedSnapshot.projectId,
   editSessionId: terminalReviewEditSessionId,
-  handoffId: replacementPlanningHandoff.handoffId,
-  idempotencyKey: 'publish-terminal-private-review-revision-v2',
-})
+  expectedPackageRecordId: terminalReviewPackageRecordId,
+  expectedReviewAssemblyId: terminalPrivateReview.identity.reviewAssemblyId,
+  expectedDecisionManifestSha256:
+    terminalPrivateRevisionDecision.manifest.manifestSha256,
+  expectedFinalArtifactSha256: terminalPrivateReview.finalArtifact.sha256,
+  purpose: 'present_canonical_revision_plan',
+  orderedSourceItems: browserReplacementPlanCandidate.components.sourceSequence.map(
+    (item) => ({
+      sourceSequenceItemId: item.sourceSequenceItemId,
+      mediaAssetId: item.mediaAssetId,
+      uploadedOrder: item.uploadedOrder,
+      checksumSha256: requireSha256(item.checksumSha256),
+      required: item.required,
+    }),
+  ),
+  canonicalPlan: browserReplacementPlanCandidate,
+  idempotencyKey: 'present-terminal-private-review-revision-v2',
+} as const
+await expectApiError(
+  () => replacementPlanPresentationService.present({
+    ...replacementPlanPresentationInput,
+    canonicalPlan: replacementPlanBody.canonicalPlan,
+    idempotencyKey: 'reject-browser-injected-revision-authority',
+  }),
+  'VALIDATION_FAILED',
+)
+const replacementPlanPresentation = await replacementPlanPresentationService.present(
+  replacementPlanPresentationInput,
+)
+assert.equal(
+  replacementPlanPresentation.receipt.replacementPlan.planVersion,
+  2,
+)
+assert.equal(
+  replacementPlanPresentation.receipt.replacementPlan.freshApprovalRequired,
+  true,
+)
+assert.equal(
+  replacementPlanPresentation.receipt.authority
+    .lockedPreferenceEvidenceReusedWithoutMutation,
+  true,
+)
+assert.equal(
+  replacementPlanPresentation.receipt.rawRevisionAuthorityReturned,
+  false,
+)
+assert.equal(replacementPlanPresentation.receipt.boundaries.snapshotCreated, false)
+assert.equal(
+  replacementPlanPresentation.receipt.boundaries.creditReservationMutated,
+  false,
+)
+const replacementPlanPublished = await planningService.getCanonicalPlan(
+  replacementPlanPresentation.receipt.replacementPlan.planId,
+  workspaceId,
+)
 const replacementPlanAuthority = asRecord(replacementPlanPublished.authority)
 const replacementPlan = asRecord(replacementPlanAuthority.plan)
 const replacementEstimate = asRecord(replacementPlanAuthority.estimate)
@@ -3238,17 +3293,15 @@ assert.equal(asRecord(replacementPlan.componentRefs).planningHandoffAuthority !=
 assert.notEqual(replacementPlan.id, terminalPrivateRevisionDecision.authority.approvedPlanId)
 assert.equal(replacementEstimate.status, 'presented')
 assert.notEqual(replacementEstimate.id, terminalReviewPublishedEstimate.id)
-const replacementPlanReplay = await planningHandoffService.publishFromPersistedHandoff({
-  ...planningHandoffPublicationBody(
-    replacementPlanBody,
-    replacementPlanningHandoff.handoffHash,
-  ),
-  projectId: seedSnapshot.projectId,
-  editSessionId: terminalReviewEditSessionId,
-  handoffId: replacementPlanningHandoff.handoffId,
-  idempotencyKey: 'publish-terminal-private-review-revision-v2',
+const replacementPlanReplay = await replacementPlanPresentationService.present({
+  ...replacementPlanPresentationInput,
+  idempotencyKey: 'present-terminal-private-review-revision-v2',
 })
-assert.equal(asRecord(asRecord(replacementPlanReplay.authority).plan).id, replacementPlan.id)
+assert.equal(
+  replacementPlanReplay.receipt.replacementPlan.planId,
+  replacementPlan.id,
+)
+assert.equal(replacementPlanReplay.receipt.replayed, true)
 const authorityAfterReplacementPlan = await requireEditAuthority(workspaceId)
 assert.equal(
   sha256AuthorityValue(snapshotAuthoritySlice(

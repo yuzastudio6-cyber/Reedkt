@@ -736,6 +736,16 @@ test.describe('canonical journey named-edit UI bridge', () => {
     await expect(status).toContainText('fresh plan, estimate, approval, and private review')
     await expect(reviewPanel).toHaveAttribute('data-mode', 'history')
     await expect(page.getByTestId('canonical-private-review-decision')).toHaveCount(0)
+    await expect(page.getByText(revisionSummary, { exact: true })).toBeVisible()
+    await expect(page.getByText(/previous private review stays as context only/i)).toBeVisible()
+    await expect(page.getByTestId('plan-review-card')).toHaveCount(0)
+    await expect(page.getByTestId('preview-ready-card')).toHaveCount(0)
+    await clickWhenReady(page.getByTestId('current-edit-preferences-trigger'))
+    await expect(page).toHaveURL(/\?view=preferences$/)
+    await expect(page.getByTestId('current-edit-preferences-locked')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Apply to this edit' })).toBeDisabled()
+    await clickWhenReady(page.getByTestId('edit-workspace-view-chat'))
+    await expect(page).not.toHaveURL(/\?view=preferences$/)
 
     await status.getByRole('button', { name: 'Refresh saved workflow status' }).click()
     await expect(page.getByTestId('canonical-private-review-load')).toBeVisible()
@@ -754,6 +764,225 @@ test.describe('canonical journey named-edit UI bridge', () => {
     })
     await expect(page.getByTestId('canonical-private-review-player')).toBeVisible()
     await expect(reviewPanel).toContainText('Reopen this review version')
+    await expectNoInternalToolNamesInEditor(page)
+    await expectNoHorizontalOverflow(page)
+  })
+
+  test('presents revision plan v2 with a fresh estimate and requires a new approval', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 960 })
+    const identity = {
+      projectId: 'canonical-project-revision-browser',
+      editSessionId: 'canonical-edit-revision-browser',
+    }
+    const finalArtifactSha256 = '5'.repeat(64)
+    const decisionManifestSha256 = '6'.repeat(64)
+    const revisionRequests: Array<{
+      authorization: string | null
+      internalToken: string | null
+      idempotencyKey: string | null
+      body: Record<string, unknown>
+    }> = []
+    const approvalRequests: Array<{
+      authorization: string | null
+      idempotencyKey: string | null
+      body: Record<string, unknown>
+    }> = []
+    let replacementPresented = false
+    let replacementApproved = false
+    let maximumCredits = 0
+    let executionRequestCount = 0
+    let releasePresentation!: () => void
+    const presentationGate = new Promise<void>((resolve) => {
+      releasePresentation = resolve
+    })
+
+    await page.route('**/v1/projects/*/edit-sessions/*/canonical-journey?*', async (route) => {
+      const journey = replacementPresented
+        ? canonicalReplacementPlanJourneyFixture(
+            identity.projectId,
+            identity.editSessionId,
+            maximumCredits,
+            replacementApproved,
+          )
+        : canonicalRevisionRequestedJourneyFixture(
+            identity.projectId,
+            identity.editSessionId,
+            finalArtifactSha256,
+            decisionManifestSha256,
+          )
+      await route.fulfill({
+        contentType: 'application/json',
+        status: 200,
+        body: JSON.stringify({
+          ok: true,
+          data: { canonicalEditJourney: journey },
+          warnings: [],
+        }),
+      })
+    })
+    await page.route('**/v1/projects/*/edit-sessions/*/edit-preferences*', async (route) => {
+      expect(route.request().method()).toBe('GET')
+      await route.fulfill({
+        contentType: 'application/json',
+        status: 200,
+        body: JSON.stringify({
+          ok: true,
+          data: {
+            preferenceRecord: exactRevisionPreferenceAuthorityFixture(
+              identity.projectId,
+              identity.editSessionId,
+            ),
+          },
+          warnings: [],
+        }),
+      })
+    })
+    await page.route(
+      '**/v1/projects/*/edit-sessions/*/canonical-revision-plan-presentations',
+      async (route) => {
+        const body = route.request().postDataJSON() as Record<string, unknown>
+        revisionRequests.push({
+          authorization: await route.request().headerValue('authorization'),
+          internalToken: await route.request().headerValue('x-reeditpro-internal-token'),
+          idempotencyKey: await route.request().headerValue('idempotency-key'),
+          body,
+        })
+        const canonicalPlan = asRecord(body.canonicalPlan)
+        const estimate = asRecord(canonicalPlan.estimate)
+        const lineItems = estimate.lineItems as Array<{ estimatedCredits: number }>
+        maximumCredits = lineItems.reduce(
+          (total, item) => total + item.estimatedCredits,
+          Number(estimate.fallbackAllowanceCredits),
+        )
+        await presentationGate
+        replacementPresented = true
+        await route.fulfill({
+          contentType: 'application/json',
+          status: 201,
+          body: JSON.stringify({
+            ok: true,
+            data: {
+              canonicalRevisionPlanPresentation:
+                canonicalRevisionPlanPresentationReceiptFixture(
+                  identity.projectId,
+                  identity.editSessionId,
+                ),
+            },
+            warnings: [],
+          }),
+        })
+      },
+    )
+    await page.route(
+      '**/v1/edit-plans/plan-canonical-revision-browser-v2/canonical-approval',
+      async (route) => {
+        approvalRequests.push({
+          authorization: await route.request().headerValue('authorization'),
+          idempotencyKey: await route.request().headerValue('idempotency-key'),
+          body: route.request().postDataJSON() as Record<string, unknown>,
+        })
+        replacementApproved = true
+        await route.fulfill({
+          contentType: 'application/json',
+          status: 201,
+          body: JSON.stringify({
+            ok: true,
+            data: {
+              canonicalPlanApproval: canonicalReplacementPlanApprovalReceiptFixture(
+                identity.projectId,
+                identity.editSessionId,
+                maximumCredits,
+              ),
+            },
+            warnings: [],
+          }),
+        })
+      },
+    )
+    await page.route('**/v1/edit-executions/**', async (route) => {
+      executionRequestCount += 1
+      await route.abort()
+    })
+
+    await gotoRoute(page, '/sign-in')
+    await page.evaluate(async () => {
+      const harness = await import('/tests/e2e/fixtures/mount-canonical-revision-plan-browser-harness.ts')
+      harness.mountCanonicalRevisionPlanBrowserHarness()
+    })
+
+    const harness = page.getByTestId('canonical-revision-plan-browser-harness')
+    const prepare = harness.getByTestId('canonical-revision-plan-prepare')
+    await expect(harness.getByTestId('canonical-journey-status')).toHaveAttribute(
+      'data-journey-stage',
+      'revision_requested',
+    )
+    await expect(prepare).toBeEnabled()
+    await prepare.click()
+    await expect(prepare).toBeDisabled()
+    await expect(prepare).toHaveAttribute('aria-busy', 'true')
+    await expect(prepare).toHaveText('Preparing revised plan…')
+    await expect(harness.getByTestId('canonical-planning-save-saving')).toBeVisible()
+    await expect.poll(() => revisionRequests.length).toBe(1)
+
+    const revisionRequest = revisionRequests[0]!
+    expect(revisionRequest.authorization).toBe('Bearer canonical-journey-playwright-token')
+    expect(revisionRequest.internalToken).toBeNull()
+    expect(revisionRequest.idempotencyKey).toMatch(
+      /^canonical-revision-plan-presentation:[a-f0-9]{8}$/,
+    )
+    expect(Object.keys(revisionRequest.body).sort()).toEqual([
+      'canonicalPlan',
+      'expectedDecisionManifestSha256',
+      'expectedFinalArtifactSha256',
+      'expectedPackageRecordId',
+      'expectedReviewAssemblyId',
+      'orderedSourceItems',
+      'purpose',
+      'workspaceId',
+    ])
+    const canonicalPlan = asRecord(revisionRequest.body.canonicalPlan)
+    const components = asRecord(canonicalPlan.components)
+    const compiledIntent = asRecord(components.compiledIntent)
+    expect('revisionAuthority' in revisionRequest.body).toBe(false)
+    expect('revisionIntentHash' in compiledIntent).toBe(false)
+    expect('priorApprovedSnapshotId' in compiledIntent).toBe(false)
+    expect('reviewDecisionId' in compiledIntent).toBe(false)
+    expect(JSON.stringify(revisionRequest.body)).not.toMatch(
+      /storagePath|source-must-not-cross|signedUrl|publicUrl|sourceBytes|bytesBase64|internalToken/i,
+    )
+    expect(executionRequestCount).toBe(0)
+
+    releasePresentation()
+    await expect(harness.getByTestId('canonical-planning-save-plan-published-waiting-for-approval')).toContainText(
+      'previous approval was not reused',
+    )
+    await expect(harness.getByTestId('canonical-journey-status')).toHaveAttribute(
+      'data-journey-stage',
+      'plan_approval_required',
+    )
+    const approve = harness.getByTestId('plan-review-approve')
+    await expect(approve).toBeEnabled()
+    await expect(approve).toHaveText('Approve plan')
+    await approve.click()
+    await expect.poll(() => approvalRequests.length).toBe(1)
+    expect(approvalRequests[0]?.body).toEqual({
+      workspaceId: scope.workspaceId,
+      expectedProjectId: identity.projectId,
+      expectedEditSessionId: identity.editSessionId,
+      expectedPlanVersion: 2,
+      expectedPlanHash: '8'.repeat(64),
+      expectedEstimateId: 'estimate-canonical-revision-browser-v2',
+      expectedEstimateHash: 'd'.repeat(64),
+      expectedMaximumCredits: maximumCredits,
+    })
+    await expect(harness.getByTestId('canonical-plan-approval-approved')).toContainText(
+      'Plan and credits approved',
+    )
+    await expect(harness.getByTestId('canonical-journey-status')).toHaveAttribute(
+      'data-journey-stage',
+      'approved_snapshot_available',
+    )
+    expect(executionRequestCount).toBe(0)
     await expectNoInternalToolNamesInEditor(page)
     await expectNoHorizontalOverflow(page)
   })
@@ -1173,6 +1402,264 @@ function exactEditPreferenceAuthorityFixture(projectId: string, editSessionId: s
     updatedAt: now,
     privateInternalOnly: true,
   }
+}
+
+function exactRevisionPreferenceAuthorityFixture(
+  projectId: string,
+  editSessionId: string,
+) {
+  const values = {
+    editLevel: 'pro' as const,
+    workflowType: 'product_demo' as const,
+    cleanupPreference: 'preserve_natural' as const,
+    visualPreference: 'no_extra_visuals' as const,
+    moodStyle: 'clean' as const,
+    creditPreference: 'balanced' as const,
+    targetPlatform: 'youtube' as const,
+  }
+  const now = '2026-07-13T12:00:00.000Z'
+  return {
+    schemaVersion: 'private-exact-edit-preferences-v1',
+    workspaceId: scope.workspaceId,
+    projectId,
+    editSessionId,
+    baseline: {
+      values,
+      preferenceSnapshotId: 'server-revision-preference-snapshot',
+      capturedAt: now,
+      persistenceSource: 'authenticated_private_internal_backend',
+      provenance: 'saved_edit_preferences',
+    },
+    values,
+    overrideKeys: [] as string[],
+    recordRevision: 7,
+    preferenceRevision: 0,
+    preferenceUpdatedAt: now,
+    planning: {
+      planningInputRevision: 0,
+      preferenceFingerprintSha256: '7'.repeat(64),
+      replanRequired: true,
+      reestimateRequired: true,
+      sourcePreparation: {
+        status: 'ready',
+        evidenceHash: 'b'.repeat(64),
+        updatedAt: now,
+      },
+      frameConfirmation: {
+        status: 'confirmed',
+        aspectRatio: '16:9',
+        confirmationId: 'canonical-revision-frame',
+        updatedAt: now,
+      },
+    },
+    lifecycle: {
+      phase: 'revision_requested',
+      locked: true,
+      authorityReferenceId: 'snapshot-canonical-revision-prior',
+      lockedAt: now,
+    },
+    auditSummary: { eventCount: 8, latestEventAt: now },
+    createdAt: now,
+    updatedAt: now,
+    privateInternalOnly: true,
+  }
+}
+
+function canonicalReplacementPlanJourneyFixture(
+  projectId: string,
+  editSessionId: string,
+  maximumCredits: number,
+  approved: boolean,
+) {
+  const snapshotId = 'snapshot-canonical-revision-browser-v2'
+  return {
+    schemaVersion: 'canonical-edit-journey-recovery-v1',
+    source: 'canonical_edit_journey_service',
+    identity: {
+      workspaceId: scope.workspaceId,
+      projectId,
+      editSessionId,
+    },
+    stage: approved ? 'approved_snapshot_available' : 'plan_approval_required',
+    nextAction: approved
+      ? {
+          code: 'request_execution_package',
+          actor: 'authenticated_user',
+          method: 'POST',
+          routeTemplate: `/v1/approved-snapshots/${snapshotId}/canonical-execution-package`,
+        }
+      : {
+          code: 'approve_canonical_plan',
+          actor: 'authenticated_user',
+          method: 'POST',
+          routeTemplate:
+            '/v1/edit-plans/plan-canonical-revision-browser-v2/canonical-approval',
+        },
+    planningHandoff: {
+      handoffId: 'handoff-canonical-revision-browser-v2',
+      handoffHash: '9'.repeat(64),
+      canonicalPlanComponentsHash: 'a'.repeat(64),
+      publicationStatus: 'published',
+    },
+    plan: {
+      planId: 'plan-canonical-revision-browser-v2',
+      planVersion: 2,
+      status: approved ? 'approved' : 'presented',
+      planHash: '8'.repeat(64),
+      estimateId: 'estimate-canonical-revision-browser-v2',
+      estimateStatus: approved ? 'approved' : 'presented',
+      estimateHash: 'd'.repeat(64),
+      approvedMaximumCredits: maximumCredits,
+      workItemCount: 1,
+    },
+    ...(approved
+      ? {
+          approval: {
+            approvalId: 'approval-canonical-revision-browser-v2',
+            snapshotId,
+            snapshotHash: 'e'.repeat(64),
+            reservationId: 'reservation-canonical-revision-browser-v2',
+            reservationStatus: 'reserved',
+            reservedCredits: maximumCredits,
+            jobCount: 1,
+            readyJobCount: 1,
+            blockedJobCount: 0,
+          },
+        }
+      : {}),
+    permissions: {
+      inspectionOnly: true,
+      rawPlanInputsReturned: false,
+      filesystemPathReturned: false,
+      credentialReturned: false,
+      snapshotMutation: false,
+      creditMutation: false,
+      toolExecution: false,
+      providerCall: false,
+      render: false,
+    },
+    testOnly: true,
+  }
+}
+
+function canonicalRevisionPlanPresentationReceiptFixture(
+  projectId: string,
+  editSessionId: string,
+) {
+  return {
+    schemaVersion: 'canonical-revision-plan-presentation-receipt-v1',
+    source: 'canonical_revision_plan_presentation_coordinator_service',
+    purpose: 'present_canonical_revision_plan',
+    disposition: 'replacement_plan_presented',
+    identity: {
+      workspaceId: scope.workspaceId,
+      projectId,
+      editSessionId,
+      reviewAssemblyId: 'review-canonical-approval-browser',
+    },
+    replacementPlan: {
+      planId: 'plan-canonical-revision-browser-v2',
+      planVersion: 2,
+      planHash: '8'.repeat(64),
+      priorPlanVersion: 1,
+      freshEstimatePresented: true,
+      freshApprovalRequired: true,
+    },
+    authority: {
+      exactRevisionDecisionRevalidated: true,
+      immutablePriorSnapshotPreserved: true,
+      immutablePriorReviewPreserved: true,
+      lockedPreferenceEvidenceReusedWithoutMutation: true,
+    },
+    boundaries: {
+      approvalRecorded: false,
+      snapshotCreated: false,
+      creditReservationMutated: false,
+      customerWalletMutated: false,
+      workGraphStarted: false,
+      toolExecutionStarted: false,
+      providerCallStarted: false,
+      renderStarted: false,
+      billingStarted: false,
+      publicDeliveryStarted: false,
+    },
+    persistence: {
+      privateLocal: true,
+      tenantScoped: true,
+      distributed: false,
+      productionAuthority: false,
+    },
+    rawRevisionAuthorityReturned: false,
+    jobOrToolDetailsReturned: false,
+    pathOrCredentialReturned: false,
+    replayed: false,
+    testOnly: true,
+  }
+}
+
+function canonicalReplacementPlanApprovalReceiptFixture(
+  projectId: string,
+  editSessionId: string,
+  maximumCredits: number,
+) {
+  return {
+    schemaVersion: 'canonical-plan-approval-receipt-v1',
+    source: 'canonical_plan_approval_coordinator_service',
+    disposition: 'approved_now',
+    identity: {
+      workspaceId: scope.workspaceId,
+      projectId,
+      editSessionId,
+    },
+    plan: {
+      planId: 'plan-canonical-revision-browser-v2',
+      planVersion: 2,
+      status: 'approved',
+      planHash: '8'.repeat(64),
+      estimateId: 'estimate-canonical-revision-browser-v2',
+      estimateStatus: 'approved',
+      estimateHash: 'd'.repeat(64),
+      approvedMaximumCredits: maximumCredits,
+    },
+    approval: {
+      approvalId: 'approval-canonical-revision-browser-v2',
+      snapshotId: 'snapshot-canonical-revision-browser-v2',
+      snapshotHash: 'e'.repeat(64),
+      reservationId: 'reservation-canonical-revision-browser-v2',
+      reservationStatus: 'reserved',
+      reservedCredits: maximumCredits,
+      jobCount: 1,
+      readyJobCount: 1,
+      blockedJobCount: 0,
+    },
+    boundaries: {
+      approvedSnapshotAvailable: true,
+      syntheticPrivateCreditReservation: true,
+      jobRecordsDerived: true,
+      paidBillingExecuted: false,
+      customerWalletMutation: false,
+      jobExecutionStarted: false,
+      toolExecutionStarted: false,
+      providerCallStarted: false,
+      renderStarted: false,
+      publicDeliveryStarted: false,
+    },
+    persistence: {
+      privateLocal: true,
+      tenantScoped: true,
+      distributed: false,
+      productionAuthority: false,
+    },
+    rawAuthorityReturned: false,
+    pathOrCredentialReturned: false,
+    testOnly: true,
+  }
+}
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return value !== null && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {}
 }
 
 function executionJourney(projectId: string, editSessionId: string) {

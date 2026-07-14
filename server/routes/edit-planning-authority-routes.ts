@@ -4,6 +4,7 @@ import { requireAuth } from '../middleware/auth'
 import { requireInternalServiceAuth } from '../middleware/internal-service-auth'
 import { createCanonicalEditJourneyService } from '../services/canonical-edit-journey-service'
 import { createCanonicalPlanPresentationCoordinatorService } from '../services/canonical-plan-presentation-coordinator-service'
+import { createCanonicalRevisionPlanPresentationCoordinatorService } from '../services/canonical-revision-plan-presentation-coordinator-service'
 import { createCanonicalPlanApprovalCoordinatorService } from '../services/canonical-plan-approval-coordinator-service'
 import { createCanonicalPlanPublicationRequestService } from '../services/canonical-plan-publication-request-service'
 import { createEditPlanningAuthorityService } from '../services/edit-planning-authority-service'
@@ -20,6 +21,7 @@ import { cancelCanonicalApprovedSnapshotSchema } from '../validation/canonical-p
 import { compensateCanonicalApprovedSnapshotSchema } from '../validation/canonical-post-dispatch-compensation-schemas'
 import { canonicalEditJourneyQuerySchema } from '../validation/canonical-edit-journey-schemas'
 import { approvePresentedCanonicalPlanSchema } from '../validation/canonical-plan-approval-schemas'
+import { presentCanonicalRevisionPlanSchema } from '../validation/canonical-revision-plan-presentation-schemas'
 import {
   approveCanonicalEditPlanSchema,
   authorityWorkspaceQuerySchema,
@@ -130,6 +132,25 @@ export function createEditPlanningAuthorityRoutes(): Router {
           : 'The backend reused or rejected competing persisted publication authority without creating another plan.',
         'No approval, snapshot, credit reservation, job, tool, provider, render, or delivery authority was created.',
       ], 201)
+    }),
+  )
+
+  router.post(
+    '/v1/projects/:projectId/edit-sessions/:editSessionId/canonical-revision-plan-presentations',
+    requireAuth,
+    asyncRoute(async (request, response) => {
+      const body = validateBody(presentCanonicalRevisionPlanSchema, request.body)
+      const result = await createCanonicalRevisionPlanPresentationCoordinatorService(
+        getServiceContext(request),
+      ).present({
+        ...body,
+        projectId: getRouteParam(request, 'projectId'),
+        editSessionId: getRouteParam(request, 'editSessionId'),
+        idempotencyKey: getIdempotencyKey(request),
+      })
+      sendOk(response, {
+        canonicalRevisionPlanPresentation: result.receipt,
+      }, result.warnings, 201)
     }),
   )
 

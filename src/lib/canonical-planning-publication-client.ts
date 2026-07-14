@@ -1,6 +1,7 @@
 import { callReeditProApi, getFrontendApiClientStatus } from '../backend/api/frontend-api-client'
 import type { EditPlan, PlannerInput } from '../types/reeditpro'
 import type { ApprovedEditExecutionUploadedMediaSourceAssetClientInput } from './approved-edit-execution-package-client'
+import type { CanonicalEditJourney } from './canonical-edit-journey'
 import {
   buildCanonicalPlanningDraft,
   type CanonicalPlanningDraft,
@@ -23,6 +24,10 @@ type CanonicalPlanningHandoffApiResponse = {
 
 type CanonicalPublicationRequestApiResponse = {
   canonicalPlanPublicationRequest?: unknown
+}
+
+type CanonicalRevisionPlanPresentationApiResponse = {
+  canonicalRevisionPlanPresentation?: unknown
 }
 
 type ExactEditPreferenceApiResponse = {
@@ -94,6 +99,7 @@ export type SaveCanonicalPlanningInput = {
   plan: EditPlan
   plannerInput: PlannerInput
   sourceMediaAssets: ApprovedEditExecutionUploadedMediaSourceAssetClientInput[]
+  revisionJourney?: CanonicalEditJourney
 }
 
 const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]*$/
@@ -148,6 +154,9 @@ export function saveCanonicalPlanningForNamedEdit(
     source: compiled.draft.orderedSourceItems,
     components: compiled.draft.components,
     publication: compiled.draft.publication?.planningRequestIdSeed ?? null,
+    revision: input.revisionJourney?.stage === 'revision_requested'
+      ? input.revisionJourney.privateReviewMediaAuthority ?? null
+      : null,
   })
   const requestKey = [
     input.scope.authMode,
@@ -187,7 +196,23 @@ async function performCanonicalPlanningSave(
     }
   }
 
-  const preferenceAuthority = await synchronizeExactEditPreferenceAuthority(input)
+  const revisionAuthority = revisionJourneyAuthority(input)
+  if (input.revisionJourney && !revisionAuthority) {
+    return {
+      status: 'blocked',
+      message: 'Refresh the saved revision before preparing its replacement plan.',
+      retryable: false,
+      handoffSaved: false,
+      candidateSaved: false,
+      publicationBlockers: initialDraft.publicationBlockers,
+      warnings: [],
+    }
+  }
+
+  const preferenceAuthority = await synchronizeExactEditPreferenceAuthority(
+    input,
+    Boolean(revisionAuthority),
+  )
   if (!preferenceAuthority.ok) {
     return withDraftBlockers(preferenceAuthority.failure, initialDraft)
   }
@@ -218,6 +243,15 @@ async function performCanonicalPlanningSave(
     publication: draft.publication?.planningRequestIdSeed ?? null,
   })
   const requestDigest = stableClientDigest(exactAuthorityIdentity)
+
+  if (revisionAuthority) {
+    return performCanonicalRevisionPlanningSave(
+      input,
+      draft,
+      revisionAuthority,
+      requestDigest,
+    )
+  }
 
   const handoffResponse = await callReeditProApi<
     {
@@ -355,8 +389,138 @@ async function performCanonicalPlanningSave(
   )
 }
 
+type RevisionJourneyAuthority = {
+  packageRecordId: string
+  reviewAssemblyId: string
+  expectedDecisionManifestSha256: string
+  expectedFinalArtifactSha256: string
+}
+
+function revisionJourneyAuthority(
+  input: SaveCanonicalPlanningInput,
+): RevisionJourneyAuthority | null {
+  if (!input.revisionJourney) return null
+  const journey = input.revisionJourney
+  const authority = journey.privateReviewMediaAuthority
+  if (
+    journey.identity.workspaceId !== input.scope.workspaceId ||
+    journey.identity.projectId !== input.projectId ||
+    journey.identity.editSessionId !== input.editSessionId ||
+    journey.stage !== 'revision_requested' ||
+    journey.review?.decision !== 'request_revision' ||
+    journey.review.decisionStatus !== 'canonical_revision_requested' ||
+    authority?.mode !== 'history' ||
+    !isSafeId(authority.packageRecordId) ||
+    !isSafeId(authority.reviewAssemblyId) ||
+    !isSha(authority.expectedDecisionManifestSha256) ||
+    !isSha(authority.expectedFinalArtifactSha256)
+  ) return null
+  return {
+    packageRecordId: authority.packageRecordId,
+    reviewAssemblyId: authority.reviewAssemblyId,
+    expectedDecisionManifestSha256: authority.expectedDecisionManifestSha256,
+    expectedFinalArtifactSha256: authority.expectedFinalArtifactSha256,
+  }
+}
+
+async function performCanonicalRevisionPlanningSave(
+  input: SaveCanonicalPlanningInput,
+  draft: CanonicalPlanningDraft,
+  revisionAuthority: RevisionJourneyAuthority,
+  requestDigest: string,
+): Promise<CanonicalPlanningPublicationResult> {
+  if (!draft.publication) {
+    return result(
+      'blocked',
+      draft.publicationBlockers[0] ??
+        'The revised plan still needs an exact private execution graph before it can be presented.',
+      false,
+      false,
+      false,
+      draft,
+      draft.warnings,
+    )
+  }
+
+  const response = await callReeditProApi<
+    {
+      workspaceId: string
+      expectedPackageRecordId: string
+      expectedReviewAssemblyId: string
+      expectedDecisionManifestSha256: string
+      expectedFinalArtifactSha256: string
+      purpose: 'present_canonical_revision_plan'
+      orderedSourceItems: CanonicalPlanningDraft['orderedSourceItems']
+      canonicalPlan: NonNullable<CanonicalPlanningDraft['publication']>['canonicalPlan']
+    },
+    CanonicalRevisionPlanPresentationApiResponse
+  >(
+    'planning.canonicalRevisionPlanPresentation.create',
+    {
+      workspaceId: input.scope.workspaceId,
+      expectedPackageRecordId: revisionAuthority.packageRecordId,
+      expectedReviewAssemblyId: revisionAuthority.reviewAssemblyId,
+      expectedDecisionManifestSha256:
+        revisionAuthority.expectedDecisionManifestSha256,
+      expectedFinalArtifactSha256: revisionAuthority.expectedFinalArtifactSha256,
+      purpose: 'present_canonical_revision_plan',
+      orderedSourceItems: draft.orderedSourceItems,
+      canonicalPlan: draft.publication.canonicalPlan,
+    },
+    {
+      params: {
+        projectId: input.projectId,
+        editSessionId: input.editSessionId,
+      },
+      context: {
+        workspaceId: input.scope.workspaceId,
+        projectId: input.projectId,
+        userId: input.scope.backendUserId ?? input.scope.userId,
+      },
+      idempotencyKey: `canonical-revision-plan-presentation:${requestDigest}`,
+    },
+  )
+
+  if (apiResponseInvalidatesProjectPersistenceScope(response)) {
+    invalidateProjectPersistenceScope(input.scope)
+  }
+  const failure = classifyApiFailure(response, false)
+  if (failure) return withDraftBlockers(failure, draft)
+  const receipt = parseRevisionPlanPresentationReceipt(
+    response.data?.canonicalRevisionPlanPresentation,
+    input,
+    revisionAuthority,
+  )
+  if (!receipt) {
+    return result(
+      'invalid_response',
+      'The revised plan response could not be matched to this exact saved revision.',
+      false,
+      false,
+      false,
+      draft,
+      response.warnings,
+    )
+  }
+  return result(
+    'plan_published_waiting_for_approval',
+    `Revised plan v${receipt.planVersion} and its fresh estimate are ready for review. The previous approval was not reused.`,
+    false,
+    true,
+    true,
+    draft,
+    response.warnings,
+    {
+      planId: receipt.planId,
+      planVersion: receipt.planVersion,
+      planHash: receipt.planHash,
+    },
+  )
+}
+
 async function synchronizeExactEditPreferenceAuthority(
   input: SaveCanonicalPlanningInput,
+  allowLockedExactReuse = false,
 ): Promise<
   | { ok: true; authority: ExactEditPreferenceAuthority }
   | { ok: false; failure: CanonicalPlanningPublicationResult }
@@ -404,19 +568,23 @@ async function synchronizeExactEditPreferenceAuthority(
       ),
     }
   }
-  if (current.locked) {
+  const patch = exactEditPreferencePatch(current.values, desiredValues)
+  if (current.locked && (!allowLockedExactReuse || Object.keys(patch).length > 0)) {
     return {
       ok: false,
       failure: preferenceSynchronizationFailure(
         'blocked',
-        'This edit already has locked approved preference authority. Request a revision before changing it.',
+        allowLockedExactReuse
+          ? 'This revision changes locked Edit Preferences. Keep the approved values for this bounded revision, or start a separately authorized structural replan.'
+          : 'This edit already has locked approved preference authority. Request a revision before changing it.',
         false,
         readResponse.warnings,
       ),
     }
   }
-
-  const patch = exactEditPreferencePatch(current.values, desiredValues)
+  if (current.locked) {
+    return { ok: true, authority: current }
+  }
   if (Object.keys(patch).length === 0) {
     return { ok: true, authority: current }
   }
@@ -672,6 +840,84 @@ function parsePublicationReceipt(
     }
   }
   return { publicationStatus: status as PublicationReceipt['publicationStatus'] }
+}
+
+function parseRevisionPlanPresentationReceipt(
+  value: unknown,
+  input: SaveCanonicalPlanningInput,
+  expected: RevisionJourneyAuthority,
+): { planId: string; planVersion: number; planHash: string } | null {
+  const root = exactRecord(value, [
+    'schemaVersion', 'source', 'purpose', 'disposition', 'identity',
+    'replacementPlan', 'authority', 'boundaries', 'persistence',
+    'rawRevisionAuthorityReturned', 'jobOrToolDetailsReturned',
+    'pathOrCredentialReturned', 'replayed', 'testOnly',
+  ])
+  if (
+    !root ||
+    root.schemaVersion !== 'canonical-revision-plan-presentation-receipt-v1' ||
+    root.source !== 'canonical_revision_plan_presentation_coordinator_service' ||
+    root.purpose !== 'present_canonical_revision_plan' ||
+    root.disposition !== 'replacement_plan_presented' ||
+    root.rawRevisionAuthorityReturned !== false ||
+    root.jobOrToolDetailsReturned !== false ||
+    root.pathOrCredentialReturned !== false ||
+    typeof root.replayed !== 'boolean' ||
+    root.testOnly !== true ||
+    containsForbiddenPrivateMaterial(root)
+  ) return null
+  const identity = exactRecord(root.identity, [
+    'workspaceId', 'projectId', 'editSessionId', 'reviewAssemblyId',
+  ])
+  const replacementPlan = exactRecord(root.replacementPlan, [
+    'planId', 'planVersion', 'planHash', 'priorPlanVersion',
+    'freshEstimatePresented', 'freshApprovalRequired',
+  ])
+  const authority = exactRecord(root.authority, [
+    'exactRevisionDecisionRevalidated', 'immutablePriorSnapshotPreserved',
+    'immutablePriorReviewPreserved',
+    'lockedPreferenceEvidenceReusedWithoutMutation',
+  ])
+  const boundaries = exactRecord(root.boundaries, [
+    'approvalRecorded', 'snapshotCreated', 'creditReservationMutated',
+    'customerWalletMutated', 'workGraphStarted', 'toolExecutionStarted',
+    'providerCallStarted', 'renderStarted', 'billingStarted',
+    'publicDeliveryStarted',
+  ])
+  const persistence = exactRecord(root.persistence, [
+    'privateLocal', 'tenantScoped', 'distributed', 'productionAuthority',
+  ])
+  const priorVersion = replacementPlan?.priorPlanVersion
+  const nextVersion = replacementPlan?.planVersion
+  if (
+    !identity ||
+    identity.workspaceId !== input.scope.workspaceId ||
+    identity.projectId !== input.projectId ||
+    identity.editSessionId !== input.editSessionId ||
+    identity.reviewAssemblyId !== expected.reviewAssemblyId ||
+    !replacementPlan ||
+    !isSafeId(replacementPlan.planId) ||
+    !Number.isInteger(priorVersion) ||
+    Number(priorVersion) < 1 ||
+    !Number.isInteger(nextVersion) ||
+    Number(nextVersion) !== Number(priorVersion) + 1 ||
+    input.revisionJourney?.plan?.version !== Number(priorVersion) ||
+    !isSha(replacementPlan.planHash) ||
+    replacementPlan.freshEstimatePresented !== true ||
+    replacementPlan.freshApprovalRequired !== true ||
+    !allLiteral(authority, true) ||
+    !allLiteral(boundaries, false) ||
+    !persistence ||
+    persistence.privateLocal !== true ||
+    persistence.tenantScoped !== true ||
+    persistence.distributed !== false ||
+    persistence.productionAuthority !== false
+  ) return null
+  return {
+    planId: replacementPlan.planId,
+    planVersion: Number(nextVersion),
+    planHash: replacementPlan.planHash,
+  }
 }
 
 function validPublicationProjection(status: unknown, value: unknown): boolean {

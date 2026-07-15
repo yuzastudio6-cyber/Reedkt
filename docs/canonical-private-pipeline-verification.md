@@ -85,12 +85,12 @@ distinct private audio-bearing sources, synchronizes exact Edit Preferences, cre
 revises the inline Edit Brief, republishes plan v2, approves the single
 4K-ceiling estimate, requests the immutable execution package separately,
 completes the server-derived 27-work-item/27-job private work graph, loads and
-probes the exact eight-second 3840x2160 no-store review MP4, verifies all eight
+probes the exact sixteen-second 3840x2160 no-store review MP4, verifies all eight
 source-bound audio identities in approved order, reads sanitized journey state,
 and records review acceptance.
 
 The runner stops on the first failed phase and prints a machine-readable
-`canonical-private-pipeline-verification-v3` report with step exit codes and
+`canonical-private-pipeline-verification-v4` report with step exit codes and
 durations. A zero exit code means every included assertion passed, including
 assertions that production-only or unavailable behavior stays blocked.
 
@@ -100,6 +100,21 @@ and open time. Resource isolation prevents unrelated local tasks from mutating
 that discovery channel; it does not weaken image-identity validation.
 
 ## Current Evidence Record
+
+On 2026-07-15, the exact-code v4 full internal command passed all 27 phases in
+1,696,673 ms with exit code 0. It retained every v3 authority, upload, 4K
+estimate, streaming, professional-color, browser-state, and 50-tool evidence
+boundary and added exact current-duration coverage. The final signed-in phase
+completed eight distinct two-second uploads, plan v2, one approved 4K-ceiling
+estimate, the immutable snapshot/reservation/package, all 27 server-derived
+jobs, and an authenticated non-passthrough 3840x2160 review at exactly 16.000
+seconds. The artifact SHA-256 was
+`bc00bfdee634fdcb6fb87d9afe52255e1c0e2b129e7e98fb15d6732ae22a79f1`;
+all eight source-bound tones remained in approved order and acceptance
+persisted. The regenerated catalog still reported exactly 50 canonical E2E and
+50 canonical job-adapter identities. Provider activation, live billing/wallet
+mutation, remote Supabase, public delivery, deployment, external beta, and paid
+production remained false.
 
 On 2026-07-15, the exact-code v3 full internal command passed all 24 phases in
 1,029,183 ms with exit code 0. Its focused multi-source phase produced one real
@@ -177,6 +192,19 @@ evidence.
 The exact-hard-cut evidence applies only to zero-duration cuts at approved
 ordered source boundaries. It does not prove crossfades, wipes, zooms, pushes,
 match cuts, transition SFX, or arbitrary transition effects.
+
+The current versioned composition-capacity profile is
+`canonical_private_4k_source_sequence_480_frames_v1`. It keeps every individual
+source/voice/color operation at or below 240 frames and allows an ordered
+two-through-eight-source composition to reach 480 total frames. A signed-in
+local/private run on 2026-07-15 exercised that exact ceiling at 30fps: eight
+two-second sources produced a non-passthrough 3840x2160, 16.000-second MP4,
+completed all 27 jobs, preserved all eight source-bound tones in order, passed
+final QA/reconciliation/replay, and persisted acceptance. A single source
+remains capped at 240 frames. This evidence is not long-form or arbitrary-media
+proof; longer edits remain blocked until snapshot-bound chunk rendering,
+per-chunk QA, deterministic merge, merged-output QA, recovery, and replay are
+implemented and verified.
 
 The professional-color evidence applies only to the exact one-source bounded
 profile and the fixed first-source-reference multi-source profile. The compiler

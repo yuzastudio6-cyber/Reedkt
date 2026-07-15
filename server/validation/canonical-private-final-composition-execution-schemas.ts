@@ -1,5 +1,11 @@
 import { z } from 'zod'
 
+import {
+  CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES,
+  CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES,
+  CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_HARD_CUTS,
+  CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_ITEMS,
+} from '../../src/types/canonical-private-composition-capacity'
 import { REEDITPRO_SOURCE_MEDIA_MAX_BYTES } from '../../src/types/large-media'
 import {
   OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_AUDIO_OUTPUT_BYTES,
@@ -16,7 +22,8 @@ const timestamp = z.string().datetime({ offset: true })
 const approvedVoiceTracksSchema = z.array(z.object({
   sourceSequenceItemId: identity,
   outputKey: identity,
-  durationFrames: z.number().int().positive().max(240),
+  durationFrames: z.number().int().positive()
+    .max(CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES),
   voiceArtifactId: identity,
   voiceSha256: sha,
   voiceByteLength: z.number().int().min(44)
@@ -31,8 +38,10 @@ const approvedColorSourceSchema = z.object({
   originalSourceStartFrame: z.number().int().nonnegative(),
   originalSourceEndFrameExclusive: z.number().int().positive(),
   compositionStartFrame: z.literal(0),
-  compositionEndFrameExclusive: z.number().int().positive().max(240),
-  durationFrames: z.number().int().positive().max(240),
+  compositionEndFrameExclusive: z.number().int().positive()
+    .max(CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES),
+  durationFrames: z.number().int().positive()
+    .max(CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES),
   colorGradeStyle: z.enum(['clean_natural', 'premium_clean']),
   intensity: z.enum(['subtle', 'balanced']),
   approvedColorOperationIds: z.array(identity).min(1).max(32)
@@ -50,7 +59,8 @@ const approvedColorSourceSchema = z.object({
   ])).min(6).max(8).refine((value) => new Set(value).size === value.length),
   referenceSourceSequenceItemId: identity.optional(),
   referenceOutputKey: identity.optional(),
-  referenceDurationFrames: z.number().int().positive().max(240).optional(),
+  referenceDurationFrames: z.number().int().positive()
+    .max(CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES).optional(),
   outputColorSpace: z.literal('bt709'),
   outputPixelFormat: z.literal('yuv420p'),
   colorArtifactId: identity,
@@ -67,8 +77,55 @@ const approvedHardCutTransitionsSchema = z.array(z.object({
   toSegmentId: identity,
   fromSourceSequenceItemId: identity,
   toSourceSequenceItemId: identity,
-  boundaryFrame: z.number().int().min(1).max(239),
-}).strict()).min(1).max(7)
+  boundaryFrame: z.number().int().min(1)
+    .max(CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES - 1),
+}).strict()).min(1).max(CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_HARD_CUTS)
+
+const sourceSequenceInputSchema = z.object({
+  sourceSequenceItemId: identity,
+  sourceMediaAssetId: identity,
+  sourceSha256: sha,
+  sourceByteLength: z.number().int().positive().max(REEDITPRO_SOURCE_MEDIA_MAX_BYTES),
+  sourceReadEvidenceHash: sha,
+  sourceStagingEvidenceHash: sha,
+  sourceCleanupDecisionId: identity,
+  sourceStartFrame: z.number().int().nonnegative(),
+  sourceEndFrameExclusive: z.number().int().positive(),
+  timelineStartFrame: z.number().int().nonnegative()
+    .max(CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES - 1),
+  timelineEndFrameExclusive: z.number().int().positive()
+    .max(CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES),
+}).strict().superRefine((value, context) => {
+  const sourceDurationFrames = value.sourceEndFrameExclusive - value.sourceStartFrame
+  const timelineDurationFrames = value.timelineEndFrameExclusive - value.timelineStartFrame
+  if (
+    sourceDurationFrames <= 0 || timelineDurationFrames <= 0 ||
+    sourceDurationFrames !== timelineDurationFrames ||
+    timelineDurationFrames > CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES
+  ) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['timelineEndFrameExclusive'],
+      message: 'Source-sequence evidence must preserve one bounded source-operation duration.',
+    })
+  }
+})
+
+const sourceSequenceInputsSchema = z.array(sourceSequenceInputSchema).min(2)
+  .max(CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_ITEMS)
+  .superRefine((sources, context) => {
+    let expectedTimelineStartFrame = 0
+    sources.forEach((source, index) => {
+      if (source.timelineStartFrame !== expectedTimelineStartFrame) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [index, 'timelineStartFrame'],
+          message: 'Source-sequence evidence must be contiguous from frame zero.',
+        })
+      }
+      expectedTimelineStartFrame = source.timelineEndFrameExclusive
+    })
+  })
 
 export const runCanonicalPrivateFinalCompositionSchema = z.object({
   workspaceId: identity,
@@ -125,19 +182,7 @@ const singleSourceFinalCompositionInputsSchema = finalCompositionDependencyInput
 }).strict()
 
 const sourceSequenceFinalCompositionInputsSchema = finalCompositionDependencyInputsSchema.extend({
-  sources: z.array(z.object({
-    sourceSequenceItemId: identity,
-    sourceMediaAssetId: identity,
-    sourceSha256: sha,
-    sourceByteLength: z.number().int().positive().max(REEDITPRO_SOURCE_MEDIA_MAX_BYTES),
-    sourceReadEvidenceHash: sha,
-    sourceStagingEvidenceHash: sha,
-    sourceCleanupDecisionId: identity,
-    sourceStartFrame: z.number().int().nonnegative(),
-    sourceEndFrameExclusive: z.number().int().positive(),
-    timelineStartFrame: z.number().int().nonnegative(),
-    timelineEndFrameExclusive: z.number().int().positive(),
-  }).strict()).min(2).max(8),
+  sources: sourceSequenceInputsSchema,
   transitionPolicy: z.literal('approved_hard_cuts_only'),
   hardCutTransitions: approvedHardCutTransitionsSchema,
   combinedSourceByteLength: z.number().int().positive().max(REEDITPRO_SOURCE_MEDIA_MAX_BYTES * 8),
@@ -158,19 +203,7 @@ const singleSourceCaptionTrackFinalCompositionInputsSchema = captionTrackDepende
 }).strict()
 
 const sourceSequenceCaptionTrackFinalCompositionInputsSchema = captionTrackDependencyInputsSchema.extend({
-  sources: z.array(z.object({
-    sourceSequenceItemId: identity,
-    sourceMediaAssetId: identity,
-    sourceSha256: sha,
-    sourceByteLength: z.number().int().positive().max(REEDITPRO_SOURCE_MEDIA_MAX_BYTES),
-    sourceReadEvidenceHash: sha,
-    sourceStagingEvidenceHash: sha,
-    sourceCleanupDecisionId: identity,
-    sourceStartFrame: z.number().int().nonnegative(),
-    sourceEndFrameExclusive: z.number().int().positive(),
-    timelineStartFrame: z.number().int().nonnegative(),
-    timelineEndFrameExclusive: z.number().int().positive(),
-  }).strict()).min(2).max(8),
+  sources: sourceSequenceInputsSchema,
   transitionPolicy: z.literal('approved_hard_cuts_only'),
   hardCutTransitions: approvedHardCutTransitionsSchema,
   combinedSourceByteLength: z.number().int().positive().max(REEDITPRO_SOURCE_MEDIA_MAX_BYTES * 8),

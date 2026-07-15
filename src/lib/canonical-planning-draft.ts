@@ -8,6 +8,12 @@ import type {
 import type { ProfessionalExportCreditCoverage } from '../types/professional-export'
 import { REEDITPRO_SOURCE_MEDIA_MAX_BYTES } from '../types/large-media'
 import {
+  CANONICAL_PRIVATE_COMPOSITION_MINIMUM_FRAMES,
+  CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES,
+  CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES,
+  CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_ITEMS,
+} from '../types/canonical-private-composition-capacity'
+import {
   buildProfessionalExportCreditCoverage,
   resolveProfessionalExportFrame,
 } from './professional-export-policy'
@@ -615,7 +621,9 @@ function privateReviewPublicationBlockers(input: {
 }): string[] {
   const blockers: string[] = []
   const captionCues = approvedCaptionCues(input.plan, input.totalFrames)
-  if (input.orderedSourceItems.length > 8) blockers.push('Private canonical review currently supports at most eight ordered source videos per composition.')
+  if (input.orderedSourceItems.length > CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_ITEMS) {
+    blockers.push('Private canonical review currently supports at most eight ordered source videos per composition.')
+  }
   if (input.sourceMediaAssets.some((asset) => asset.mimeType.toLowerCase() !== 'video/mp4')) {
     blockers.push('Every source in the private canonical review sequence must be an MP4.')
   }
@@ -639,7 +647,19 @@ function privateReviewPublicationBlockers(input: {
     blockers.push('Private canonical execution requires an exact registered 4K UHD master frame for the confirmed aspect ratio.')
   }
   if (![24, 30].includes(input.fps)) blockers.push('Private canonical review currently supports a 24fps or 30fps timing base.')
-  if (input.totalFrames < 24 || input.totalFrames > 240) blockers.push('Private canonical review currently supports a frame-accurate review range between 1 and 8 seconds.')
+  const maximumCompositionFrames = input.orderedSourceItems.length > 1
+    ? CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES
+    : CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES
+  if (
+    input.totalFrames < CANONICAL_PRIVATE_COMPOSITION_MINIMUM_FRAMES ||
+    input.totalFrames > maximumCompositionFrames
+  ) {
+    blockers.push(
+      input.orderedSourceItems.length > 1
+        ? 'Private canonical source-sequence review currently supports 24 through 480 approved frames; longer edits require chunk render, QA, and merge evidence.'
+        : 'Private canonical single-source review currently supports 24 through 240 approved frames; longer edits require chunk render, QA, and merge evidence.',
+    )
+  }
   const sourceTimeline = buildOrderedSourceTimeline(input.orderedSourceItems, input.cleanupDecisions)
   if (!sourceTimeline || sourceTimeline.at(-1)?.timelineEndFrameExclusive !== input.totalFrames) {
     blockers.push('Approved source ranges must form one contiguous, duration-preserving final timeline in confirmed source order.')
@@ -657,6 +677,14 @@ function privateReviewPublicationBlockers(input: {
     )
     if (sourceDurationFrames === undefined || cleanupDecision.endFrameExclusive > sourceDurationFrames) {
       blockers.push(`The approved range for source ${index + 1} must fit inside its verified source duration.`)
+    }
+    if (
+      cleanupDecision.endFrameExclusive - cleanupDecision.startFrame >
+      CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES
+    ) {
+      blockers.push(
+        `The approved range for source ${index + 1} exceeds the current 240-frame source-operation ceiling and requires chunk render, QA, and merge evidence.`,
+      )
     }
   })
   if (

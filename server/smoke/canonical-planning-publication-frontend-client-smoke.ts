@@ -13,6 +13,10 @@ import type { PlanningContext } from '../../src/types'
 import type { ProjectPersistenceScope } from '../../src/lib/project-persistence-scope'
 import type { AudioOperationPlan, EditPlan, PlannerInput } from '../../src/types/reeditpro'
 import {
+  CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES,
+  CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES,
+} from '../../src/types/canonical-private-composition-capacity'
+import {
   validateOfflineFfmpegPlanningPayload,
   validateOfflineFfprobePlanningPayload,
 } from '../tool-execution/media-binary-execution/offline-media-binary-protocol'
@@ -737,7 +741,7 @@ const maximumBoundedSourceInput: PlannerInput = {
     ...multiSourceInput.clips[0]!,
     id: `canonical-maximum-clip-${index + 1}`,
     fileName: `canonical-maximum-source-${index + 1}.mp4`,
-    duration: '00:01',
+    duration: '00:02',
     notes: `Approved private source ${index + 1} is finalized in confirmed order.`,
     uploadedOrder: index + 1,
     sourceRole: index === 0 ? 'main_story' as const : 'context' as const,
@@ -752,10 +756,15 @@ const maximumBoundedSourceAssets = maximumBoundedSourceInput.clips.map((clip, in
   fileName: clip.fileName,
   storagePath: `private/maximum/source-${index + 1}.mp4`,
   checksumSha256: sha(String(index + 1)),
-  sourceMetadata: { ...multiSourceMediaAssets[0]!.sourceMetadata, durationSeconds: 1 },
+  sourceMetadata: { ...multiSourceMediaAssets[0]!.sourceMetadata, durationSeconds: 2 },
 }))
 const maximumBoundedSourcePlan = createMockEditPlan(maximumBoundedSourceInput)
 const maximumTiming = maximumBoundedSourcePlan.masterTimingPlan!
+assert.equal(
+  maximumTiming.timingBase.totalFrames,
+  CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES,
+  'The maximum-source planning fixture must exercise the exact sequence-frame ceiling.',
+)
 assert.equal(maximumTiming.captionTimingItems.length, 7)
 assert.equal(maximumTiming.captionTimingItems[0]?.timeRange.startFrame, 0)
 assert.equal(
@@ -798,6 +807,46 @@ if (maximumFinalPayload.compositionProfileId !== 'approved_source_sequence_capti
 assert.equal(maximumFinalPayload.sourceSegments.length, 8)
 assert.equal(maximumFinalPayload.hardCutTransitions.length, 7)
 assert.equal(maximumFinalPayload.voiceTracks?.length, 8)
+assert.equal(
+  maximumFinalPayload.durationFrames,
+  CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES,
+)
+assert.equal(
+  maximumFinalPayload.sourceSegments.every((segment) =>
+    segment.timelineEndFrameExclusive - segment.timelineStartFrame <=
+    CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES),
+  true,
+)
+assert.throws(
+  () => validateOfflineRemotionFinalCompositionPlanningPayload({
+    ...maximumFinalPayload,
+    durationFrames: CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES + 1,
+  }),
+  /durationFrames.*bounds/i,
+  'A source sequence above the evidence-bound frame ceiling must fail closed.',
+)
+assert.throws(
+  () => validateOfflineRemotionFinalCompositionPlanningPayload({
+    ...maximumFinalPayload,
+    sourceSegments: [{
+      ...maximumFinalPayload.sourceSegments[0]!,
+      sourceStartFrame: 0,
+      sourceEndFrameExclusive: CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES + 1,
+      timelineStartFrame: 0,
+      timelineEndFrameExclusive: CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES + 1,
+    }, {
+      ...maximumFinalPayload.sourceSegments[1]!,
+      sourceStartFrame: 0,
+      sourceEndFrameExclusive:
+        CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES -
+        CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES - 1,
+      timelineStartFrame: CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES + 1,
+      timelineEndFrameExclusive: CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES,
+    }],
+  }),
+  /source-sequence segments/i,
+  'A single source operation above 240 frames must fail even inside the sequence ceiling.',
+)
 assert.deepEqual(
   maximumCanonicalPlan.workItems.filter((item) =>
     item.workerClass === 'color_processing_worker').slice(1).map((item) =>

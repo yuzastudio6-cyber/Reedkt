@@ -1,5 +1,11 @@
 import { createHash } from 'node:crypto'
 
+import {
+  CANONICAL_PRIVATE_COMPOSITION_MINIMUM_FRAMES,
+  CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES,
+  CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES,
+  CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_ITEMS,
+} from '../../../src/types/canonical-private-composition-capacity'
 import { ApiError } from '../../errors/api-error'
 
 export const OFFLINE_REMOTION_RENDER_REQUEST_PROTOCOL =
@@ -270,7 +276,11 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
       ...(replaceVoice ? ['voiceTracks'] : []),
       ...(deliveryMasterAuthorityProvided ? DELIVERY_MASTER_AUTHORITY_KEYS : []),
     ], 'source-sequence final composition planning payload')
-    const common = commonPayload(payload, 24, 240)
+    const common = commonPayload(
+      payload,
+      CANONICAL_PRIVATE_COMPOSITION_MINIMUM_FRAMES,
+      CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES,
+    )
     const deliveryMasterAuthority = fourKDeliveryMasterAuthority(
       payload,
       common,
@@ -350,7 +360,11 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
     ...(replaceVoice ? ['voiceTracks'] : []),
     ...(deliveryMasterAuthorityProvided ? DELIVERY_MASTER_AUTHORITY_KEYS : []),
   ], 'final composition planning payload')
-  const common = commonPayload(payload, 24, 240)
+  const common = commonPayload(
+    payload,
+    CANONICAL_PRIVATE_COMPOSITION_MINIMUM_FRAMES,
+    CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES,
+  )
   const deliveryMasterAuthority = fourKDeliveryMasterAuthority(
     payload,
     common,
@@ -1275,7 +1289,12 @@ function voiceTrackPlanningPayloads(
       'voice track sourceSequenceItemId',
     )
     const outputKey = safeIdentity(track.outputKey, 'voice track outputKey')
-    const durationFrames = integer(track.durationFrames, 1, 240, 'voice track durationFrames')
+    const durationFrames = integer(
+      track.durationFrames,
+      1,
+      CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES,
+      'voice track durationFrames',
+    )
     const expectedTrack = expected[index]!
     if (
       outputKeys.has(outputKey) || sourceIds.has(sourceSequenceItemId) ||
@@ -1290,7 +1309,10 @@ function voiceTrackPlanningPayloads(
 }
 
 function sourceSequenceSegments(value: unknown, durationFrames: number): OfflineRemotionSourceSequenceSegmentPlanningPayload[] {
-  if (!Array.isArray(value) || value.length < 2 || value.length > 8) {
+  if (
+    !Array.isArray(value) || value.length < 2 ||
+    value.length > CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_ITEMS
+  ) {
     throw validationFailure('Source-sequence final composition requires two to eight ordered source segments.')
   }
   const seen = new Set<string>()
@@ -1303,12 +1325,25 @@ function sourceSequenceSegments(value: unknown, durationFrames: number): Offline
     const sourceSequenceItemId = safeIdentity(segment.sourceSequenceItemId, 'sourceSequenceItemId')
     const sourceStartFrame = integer(segment.sourceStartFrame, 0, 100_000_000, 'sourceStartFrame')
     const sourceEndFrameExclusive = integer(segment.sourceEndFrameExclusive, 1, 100_000_001, 'sourceEndFrameExclusive')
-    const timelineStartFrame = integer(segment.timelineStartFrame, 0, 240, 'timelineStartFrame')
-    const timelineEndFrameExclusive = integer(segment.timelineEndFrameExclusive, 1, 240, 'timelineEndFrameExclusive')
+    const timelineStartFrame = integer(
+      segment.timelineStartFrame,
+      0,
+      CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES - 1,
+      'timelineStartFrame',
+    )
+    const timelineEndFrameExclusive = integer(
+      segment.timelineEndFrameExclusive,
+      1,
+      CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES,
+      'timelineEndFrameExclusive',
+    )
+    const sourceDurationFrames = sourceEndFrameExclusive - sourceStartFrame
+    const timelineDurationFrames = timelineEndFrameExclusive - timelineStartFrame
     if (
       seen.has(sourceSequenceItemId) || timelineStartFrame !== expectedTimelineStart ||
       sourceEndFrameExclusive <= sourceStartFrame || timelineEndFrameExclusive <= timelineStartFrame ||
-      sourceEndFrameExclusive - sourceStartFrame !== timelineEndFrameExclusive - timelineStartFrame
+      sourceDurationFrames !== timelineDurationFrames ||
+      timelineDurationFrames > CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES
     ) throw validationFailure('Source-sequence segments must be unique, contiguous, and frame-duration preserving.')
     seen.add(sourceSequenceItemId)
     expectedTimelineStart = timelineEndFrameExclusive
@@ -1361,7 +1396,12 @@ function approvedHardCutTransitions(
         transition.toSourceSequenceItemId,
         'toSourceSequenceItemId',
       ),
-      boundaryFrame: integer(transition.boundaryFrame, 1, 239, 'boundaryFrame'),
+      boundaryFrame: integer(
+        transition.boundaryFrame,
+        1,
+        CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES - 1,
+        'boundaryFrame',
+      ),
     }
     if (
       timingIds.has(transitionTimingItemId) || refinedIds.has(refinedTransitionTimingItemId) ||

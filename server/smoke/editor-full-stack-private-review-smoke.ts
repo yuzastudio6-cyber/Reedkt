@@ -21,6 +21,9 @@ import {
   getLocalProjectHandoffStorageKey as getScopedLocalProjectHandoffStorageKey,
   type LocalInternalProjectHandoff,
 } from '../../src/lib/local-project-handoff'
+import {
+  CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES,
+} from '../../src/types/canonical-private-composition-capacity'
 
 const execFileAsync = promisify(execFile)
 const localStorageRoot = '/tmp/reeditpro-editor-full-stack-private-review-smoke'
@@ -50,6 +53,14 @@ const canonicalSourceFixtureDefinitions = [
   { fileName: 'browser-upload-source-h.mp4', width: 272, height: 154, audioFrequencyHz: 1_800, videoPattern: 'solid_dark_red' },
 ] as const
 const canonicalSourceCount = canonicalSourceFixtureDefinitions.length
+const canonicalSourceDurationSeconds = 2
+const canonicalSourceDurationLabel = `00:${String(canonicalSourceDurationSeconds).padStart(2, '0')}`
+const canonicalReviewDurationSeconds = canonicalSourceCount * canonicalSourceDurationSeconds
+assert.equal(
+  canonicalReviewDurationSeconds * 30,
+  CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES,
+  'The signed-in maximum-source fixture must exercise the exact 30fps sequence ceiling.',
+)
 const canonicalCaptionCount = Math.min(canonicalSourceCount, 7)
 const canonicalWorkItemAndJobCount = 4 + canonicalCaptionCount + canonicalSourceCount * 2
 const canonicalSourceOrders = canonicalSourceFixtureDefinitions.map((_, index) => index + 1)
@@ -270,7 +281,7 @@ const canonicalSourceFixtures = await Promise.all(canonicalSourceFixtureDefiniti
   const fixture = await createSyntheticMp4Fixture({
     localStorageRoot,
     outputPath: join(localStorageRoot, 'fixtures', definition.fileName),
-    durationSeconds: 1,
+    durationSeconds: canonicalSourceDurationSeconds,
     width: definition.width,
     height: definition.height,
     includeAudio: true,
@@ -576,7 +587,7 @@ try {
     await expect(sourceSetup).toContainText(definition.fileName, { timeout: privateUploadTimeoutMs })
   }
   await expect(page.getByTestId('source-summary')).toHaveCount(1)
-  await expect(sourceSetup).toContainText('00:01')
+  await expect(sourceSetup).toContainText(canonicalSourceDurationLabel)
   const uploadedHandoffs = await page.evaluate((storageKey) => {
     return ((JSON.parse(window.localStorage.getItem(storageKey) ?? '{}') as { handoffs?: unknown[] }).handoffs ?? []) as Array<{
       stage?: string
@@ -774,8 +785,10 @@ try {
     assert.equal(canonicalReviewMediaProbe.video?.width, 3840)
     assert.equal(canonicalReviewMediaProbe.video?.height, 2160)
     assert.ok(
-      Math.abs((canonicalReviewMediaProbe.video?.durationSeconds ?? 0) - canonicalSourceCount) <= 0.25,
-      `Canonical ${canonicalSourceCount}-source review should preserve the approved ${canonicalSourceCount}-second source sequence, got ${canonicalReviewMediaProbe.video?.durationSeconds ?? 0}s.`,
+      Math.abs(
+        (canonicalReviewMediaProbe.video?.durationSeconds ?? 0) - canonicalReviewDurationSeconds,
+      ) <= 0.25,
+      `Canonical ${canonicalSourceCount}-source review should preserve the approved ${canonicalReviewDurationSeconds}-second source sequence, got ${canonicalReviewMediaProbe.video?.durationSeconds ?? 0}s.`,
     )
     assert.equal(canonicalReviewMediaProbe.hasAudio, true)
     assertRenderedDownloadIsNotSourcePassthrough(
@@ -793,7 +806,7 @@ try {
       canonicalSourceFixtureDefinitions.map((definition, index) => probeAudioTone(
         canonicalReviewDownloadPath,
         {
-          startSeconds: index + 0.2,
+          startSeconds: index * canonicalSourceDurationSeconds + 0.2,
           durationSeconds: 0.5,
           targetFrequencyHz: definition.audioFrequencyHz,
         },
@@ -903,7 +916,7 @@ try {
         'server_derived_private_work_graph_completed',
         'maximum_source_work_items_and_snapshot_validation_completed_without_browser_execution_authority',
         'eight_source_bound_voice_tones_preserved_in_approved_order',
-        'private_4k_master_preserved_eight_second_approved_sequence',
+        'private_4k_master_preserved_sixteen_second_approved_sequence',
         'private_review_loaded_through_authenticated_no_store_bytes',
         'private_review_download_is_not_source_passthrough',
         'private_review_decision_persisted',

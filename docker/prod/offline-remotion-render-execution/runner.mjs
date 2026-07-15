@@ -26,6 +26,10 @@ const MAXIMUM_STREAMING_OUTPUT_BYTES = 256 * 1024 * 1024
 const MAXIMUM_COMBINED_VOICE_TRACK_BYTES = 2 * 1024 * 1024
 const MAXIMUM_STREAMING_COMBINED_VOICE_TRACK_BYTES = 64 * 1024 * 1024
 const MAXIMUM_PCM_WAVE_HEADER_BYTES = 64 * 1024
+const MINIMUM_COMPOSITION_FRAMES = 24
+const MAXIMUM_SOURCE_SEGMENT_FRAMES = 240
+const MAXIMUM_SOURCE_SEQUENCE_FRAMES = 480
+const MAXIMUM_SOURCE_SEQUENCE_ITEMS = 8
 const SINGLE_STREAMING_CAPTION_OUTPUT_KEY = 'approved-full-frame-caption-overlay'
 const FORBIDDEN_TEXT = /(?:https?:\/\/|ftp:\/\/|file:|data:|javascript:|\.\.\/|\.\.\\|[A-Za-z]:[\\/]|(?:^|\s)\/(?:Users|home|etc|tmp|var|opt|app|root|proc|sys|dev)(?:\/|\b)|\$\(|`|&&|\|\||#!)/i
 const PRIVATE_REVIEW_FRAMES = ['360x640', '640x360', '480x480', '480x600']
@@ -106,7 +110,7 @@ function validateDeliveryMasterAuthority(payload, dimensions, provided) {
 }
 
 function validateSourceSegments(value, durationFrames) {
-  if (!Array.isArray(value) || value.length < 2 || value.length > 8) {
+  if (!Array.isArray(value) || value.length < 2 || value.length > MAXIMUM_SOURCE_SEQUENCE_ITEMS) {
     throw new Error('source sequence requires two to eight segments')
   }
   const seen = new Set()
@@ -119,12 +123,25 @@ function validateSourceSegments(value, durationFrames) {
     const sourceSequenceItemId = safeIdentity(segment.sourceSequenceItemId, 'sourceSequenceItemId')
     const sourceStartFrame = integer(segment.sourceStartFrame, 0, 100_000_000, 'sourceStartFrame')
     const sourceEndFrameExclusive = integer(segment.sourceEndFrameExclusive, 1, 100_000_001, 'sourceEndFrameExclusive')
-    const timelineStartFrame = integer(segment.timelineStartFrame, 0, 240, 'timelineStartFrame')
-    const timelineEndFrameExclusive = integer(segment.timelineEndFrameExclusive, 1, 240, 'timelineEndFrameExclusive')
+    const timelineStartFrame = integer(
+      segment.timelineStartFrame,
+      0,
+      MAXIMUM_SOURCE_SEQUENCE_FRAMES - 1,
+      'timelineStartFrame',
+    )
+    const timelineEndFrameExclusive = integer(
+      segment.timelineEndFrameExclusive,
+      1,
+      MAXIMUM_SOURCE_SEQUENCE_FRAMES,
+      'timelineEndFrameExclusive',
+    )
+    const sourceDurationFrames = sourceEndFrameExclusive - sourceStartFrame
+    const timelineDurationFrames = timelineEndFrameExclusive - timelineStartFrame
     if (
       seen.has(sourceSequenceItemId) || timelineStartFrame !== expectedTimelineStart ||
       sourceEndFrameExclusive <= sourceStartFrame || timelineEndFrameExclusive <= timelineStartFrame ||
-      sourceEndFrameExclusive - sourceStartFrame !== timelineEndFrameExclusive - timelineStartFrame
+      sourceDurationFrames !== timelineDurationFrames ||
+      timelineDurationFrames > MAXIMUM_SOURCE_SEGMENT_FRAMES
     ) throw new Error('source segments must be unique, contiguous, and duration preserving')
     seen.add(sourceSequenceItemId)
     expectedTimelineStart = timelineEndFrameExclusive
@@ -170,7 +187,12 @@ function validateApprovedHardCuts(value, sourceSegments) {
         transition.toSourceSequenceItemId,
         'toSourceSequenceItemId',
       ),
-      boundaryFrame: integer(transition.boundaryFrame, 1, 239, 'boundaryFrame'),
+      boundaryFrame: integer(
+        transition.boundaryFrame,
+        1,
+        MAXIMUM_SOURCE_SEQUENCE_FRAMES - 1,
+        'boundaryFrame',
+      ),
     }
     if (
       timingIds.has(normalized.transitionTimingItemId) ||
@@ -279,7 +301,12 @@ function validateVoiceTrackCommitments(value, expected, fps) {
       'voice-track sourceSequenceItemId',
     )
     const outputKey = safeIdentity(track.outputKey, 'voice-track outputKey')
-    const durationFrames = integer(track.durationFrames, 1, 240, 'voice-track durationFrames')
+    const durationFrames = integer(
+      track.durationFrames,
+      1,
+      MAXIMUM_SOURCE_SEGMENT_FRAMES,
+      'voice-track durationFrames',
+    )
     if (
       sourceIds.has(sourceSequenceItemId) || outputKeys.has(outputKey) ||
       (expected[index].sourceSequenceItemId !== undefined &&
@@ -442,7 +469,12 @@ function validateRequest(value) {
     const dimensions = `${payload.width}x${payload.height}`
     oneOf(dimensions, [...PRIVATE_REVIEW_FRAMES, ...FOUR_K_MASTER_FRAMES], 'approved frame')
     validateDeliveryMasterAuthority(payload, dimensions, deliveryMasterAuthorityProvided)
-    const durationFrames = integer(payload.durationFrames, 24, 240, 'durationFrames')
+    const durationFrames = integer(
+      payload.durationFrames,
+      MINIMUM_COMPOSITION_FRAMES,
+      MAXIMUM_SOURCE_SEQUENCE_FRAMES,
+      'durationFrames',
+    )
     const fps = oneOf(payload.fps, [24, 30], 'fps')
     const sourceSegments = validateSourceSegments(payload.sourceSegments, durationFrames)
     const approvedColorIntermediate =
@@ -571,7 +603,12 @@ function validateRequest(value) {
       64,
       16 * 1024 * 1024,
     )
-    const durationFrames = integer(payload.durationFrames, 24, 240, 'durationFrames')
+    const durationFrames = integer(
+      payload.durationFrames,
+      MINIMUM_COMPOSITION_FRAMES,
+      MAXIMUM_SOURCE_SEGMENT_FRAMES,
+      'durationFrames',
+    )
     const fps = oneOf(payload.fps, [24, 30], 'fps')
     const captionOverlayCues = captionTrack
       ? validateCaptionOverlayCues(payload.captionOverlayCues, durationFrames)
@@ -680,7 +717,12 @@ function validateStreamingVoicePlans(value, expected, fps) {
       'streaming voice sourceSequenceItemId',
     )
     const outputKey = safeIdentity(track.outputKey, 'streaming voice outputKey')
-    const durationFrames = integer(track.durationFrames, 1, 240, 'streaming voice durationFrames')
+    const durationFrames = integer(
+      track.durationFrames,
+      1,
+      MAXIMUM_SOURCE_SEGMENT_FRAMES,
+      'streaming voice durationFrames',
+    )
     if (
       sourceIds.has(sourceSequenceItemId) || outputKeys.has(outputKey) ||
       (expected[index].sourceSequenceItemId !== undefined &&
@@ -716,7 +758,12 @@ function validateStreamingPlanningPayload(value) {
     const dimensions = `${payload.width}x${payload.height}`
     oneOf(dimensions, [...PRIVATE_REVIEW_FRAMES, ...FOUR_K_MASTER_FRAMES], 'approved frame')
     validateDeliveryMasterAuthority(payload, dimensions, deliveryMasterAuthorityProvided)
-    const durationFrames = integer(payload.durationFrames, 24, 240, 'durationFrames')
+    const durationFrames = integer(
+      payload.durationFrames,
+      MINIMUM_COMPOSITION_FRAMES,
+      MAXIMUM_SOURCE_SEQUENCE_FRAMES,
+      'durationFrames',
+    )
     const fps = oneOf(payload.fps, [24, 30], 'fps')
     const sourceSegments = validateSourceSegments(payload.sourceSegments, durationFrames)
     const hardCutTransitions = validateApprovedHardCuts(payload.hardCutTransitions, sourceSegments)
@@ -780,7 +827,12 @@ function validateStreamingPlanningPayload(value) {
   const dimensions = `${payload.width}x${payload.height}`
   oneOf(dimensions, [...PRIVATE_REVIEW_FRAMES, ...FOUR_K_MASTER_FRAMES], 'approved frame')
   validateDeliveryMasterAuthority(payload, dimensions, deliveryMasterAuthorityProvided)
-  const durationFrames = integer(payload.durationFrames, 24, 240, 'durationFrames')
+  const durationFrames = integer(
+    payload.durationFrames,
+    MINIMUM_COMPOSITION_FRAMES,
+    MAXIMUM_SOURCE_SEGMENT_FRAMES,
+    'durationFrames',
+  )
   const fps = oneOf(payload.fps, [24, 30], 'fps')
   const sourceStartFrame = integer(payload.sourceStartFrame, 0, 100_000_000, 'sourceStartFrame')
   const sourceEndFrameExclusive = integer(
@@ -945,7 +997,12 @@ function validateStreamingManifest(value) {
       `streaming voice ${index + 1} sourceSequenceItemId`,
     )
     const outputKey = safeIdentity(candidate.outputKey, `streaming voice ${index + 1} outputKey`)
-    const durationFrames = integer(candidate.durationFrames, 1, 240, `streaming voice ${index + 1} durationFrames`)
+    const durationFrames = integer(
+      candidate.durationFrames,
+      1,
+      MAXIMUM_SOURCE_SEGMENT_FRAMES,
+      `streaming voice ${index + 1} durationFrames`,
+    )
     const expected = expectedVoiceTracks[index]
     if (!expected || sourceSequenceItemId !== expected.sourceSequenceItemId ||
         outputKey !== expected.outputKey || durationFrames !== expected.durationFrames) {

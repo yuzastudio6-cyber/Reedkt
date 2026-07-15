@@ -107,6 +107,8 @@ const routeWorkspaceId = 'workspace-authority-route-smoke'
 const atomicCompilationWorkspaceId = 'workspace-planning-binding-integration'
 const userId = 'user-authority-smoke'
 const editSessionId = 'edit-session-canonical-tool-dispatch'
+const multiSourceSliceOnly =
+  process.env.REEDITPRO_CANONICAL_MULTI_SOURCE_SLICE_ONLY === 'true'
 const strongInternalSecret = 'rp-dispatch-local-secret-9Yh4Wm7Qk2Xs8Nv5Bc3Lp6Td1Rf0Za'
 const env = loadRuntimeEnv({
   NODE_ENV: 'test',
@@ -272,6 +274,24 @@ const secondaryMediaSourceItem = {
   checksumSha256: secondaryMediaFixture.checksumSha256,
   required: true as const,
 }
+const tertiaryMediaFixture = multiSourceSliceOnly
+  ? await uploadCanonicalMediaFixture(
+      seedSnapshot.projectId,
+      'tertiary',
+      '0x1020E0',
+      '0xF0D010',
+      880,
+    )
+  : undefined
+const tertiaryMediaSourceItem = tertiaryMediaFixture
+  ? {
+      sourceSequenceItemId: 'source-sequence-tertiary-media',
+      mediaAssetId: tertiaryMediaFixture.mediaAsset.id,
+      uploadedOrder: seedAuthority.components.sourceSequence.length + 3,
+      checksumSha256: tertiaryMediaFixture.checksumSha256,
+      required: true as const,
+    }
+  : undefined
 
 const planningInputAuthority = await prepareExactPlanningAuthority(seedSnapshot.projectId)
 const sourceCandidate = (await createSourceMediaAuthorityService(context).buildManifestCandidate({
@@ -284,7 +304,8 @@ const sourceCandidate = (await createSourceMediaAuthorityService(context).buildM
     uploadedOrder: item.uploadedOrder,
     checksumSha256: requireSha256(item.checksumSha256),
     required: item.required,
-  })), mediaSourceItem, secondaryMediaSourceItem],
+  })), mediaSourceItem, secondaryMediaSourceItem,
+  ...(tertiaryMediaSourceItem ? [tertiaryMediaSourceItem] : [])],
 })).sourceBindingManifestCandidate
 const sourceMediaAuthority = {
   authorityRevision: sourceCandidate.authorityRevision,
@@ -316,6 +337,7 @@ const dispatchPlanInput = {
   libassOperationId,
   mediaSourceItem,
   secondaryMediaSourceItem,
+  tertiaryMediaSourceItem,
   matrixOperationIds,
 }
 const planBody = createDispatchPlanBody(dispatchPlanInput)
@@ -326,7 +348,8 @@ const orderedPlanningHandoffSources = [...seedAuthority.components.sourceSequenc
   uploadedOrder: item.uploadedOrder,
   checksumSha256: requireSha256(item.checksumSha256),
   required: item.required,
-})), mediaSourceItem, secondaryMediaSourceItem]
+})), mediaSourceItem, secondaryMediaSourceItem,
+...(tertiaryMediaSourceItem ? [tertiaryMediaSourceItem] : [])]
 const planningHandoffService = createCanonicalPlanningHandoffService(context)
 await expectApiError(
   () => planningHandoffService.prepare({
@@ -885,43 +908,81 @@ const primaryVoiceWorkItem = aggregateBeforeDispatch.approvedWorkItems.find((can
   candidate.snapshotId === snapshot.snapshotId && candidate.workItemKey === 'voice-delivery-primary')
 const secondaryVoiceWorkItem = aggregateBeforeDispatch.approvedWorkItems.find((candidate) =>
   candidate.snapshotId === snapshot.snapshotId && candidate.workItemKey === 'voice-delivery-secondary')
+const tertiaryVoiceWorkItem = aggregateBeforeDispatch.approvedWorkItems.find((candidate) =>
+  candidate.snapshotId === snapshot.snapshotId && candidate.workItemKey === 'voice-delivery-tertiary')
 assert.ok(primaryVoiceWorkItem)
 assert.ok(secondaryVoiceWorkItem)
 const primaryVoiceJob = aggregateBeforeDispatch.jobs.find((candidate) =>
   candidate.snapshotId === snapshot.snapshotId && candidate.approvedWorkItemId === primaryVoiceWorkItem.id)
 const secondaryVoiceJob = aggregateBeforeDispatch.jobs.find((candidate) =>
   candidate.snapshotId === snapshot.snapshotId && candidate.approvedWorkItemId === secondaryVoiceWorkItem.id)
+const tertiaryVoiceJob = tertiaryVoiceWorkItem
+  ? aggregateBeforeDispatch.jobs.find((candidate) =>
+      candidate.snapshotId === snapshot.snapshotId &&
+      candidate.approvedWorkItemId === tertiaryVoiceWorkItem.id)
+  : undefined
 const primaryVoiceAsset = authority.assetManifest.entries.find((candidate) =>
   candidate.approvedWorkItemId === primaryVoiceWorkItem.id)
 const secondaryVoiceAsset = authority.assetManifest.entries.find((candidate) =>
   candidate.approvedWorkItemId === secondaryVoiceWorkItem.id)
+const tertiaryVoiceAsset = tertiaryVoiceWorkItem
+  ? authority.assetManifest.entries.find((candidate) =>
+      candidate.approvedWorkItemId === tertiaryVoiceWorkItem.id)
+  : undefined
 assert.ok(primaryVoiceJob)
 assert.ok(secondaryVoiceJob)
 assert.ok(primaryVoiceAsset)
 assert.ok(secondaryVoiceAsset)
 assert.deepEqual(primaryVoiceJob.dependencyJobIds, [])
 assert.deepEqual(secondaryVoiceJob.dependencyJobIds, [])
+if (tertiaryMediaSourceItem) {
+  assert.ok(tertiaryVoiceWorkItem)
+  assert.ok(tertiaryVoiceJob)
+  assert.ok(tertiaryVoiceAsset)
+  assert.deepEqual(tertiaryVoiceJob.dependencyJobIds, [])
+} else {
+  assert.equal(tertiaryVoiceWorkItem, undefined)
+}
 
 const primaryColorWorkItem = aggregateBeforeDispatch.approvedWorkItems.find((candidate) =>
   candidate.snapshotId === snapshot.snapshotId && candidate.workItemKey === 'color-delivery-primary')
 const secondaryColorWorkItem = aggregateBeforeDispatch.approvedWorkItems.find((candidate) =>
   candidate.snapshotId === snapshot.snapshotId && candidate.workItemKey === 'color-delivery-secondary')
+const tertiaryColorWorkItem = aggregateBeforeDispatch.approvedWorkItems.find((candidate) =>
+  candidate.snapshotId === snapshot.snapshotId && candidate.workItemKey === 'color-delivery-tertiary')
 assert.ok(primaryColorWorkItem)
 assert.ok(secondaryColorWorkItem)
 const primaryColorJob = aggregateBeforeDispatch.jobs.find((candidate) =>
   candidate.snapshotId === snapshot.snapshotId && candidate.approvedWorkItemId === primaryColorWorkItem.id)
 const secondaryColorJob = aggregateBeforeDispatch.jobs.find((candidate) =>
   candidate.snapshotId === snapshot.snapshotId && candidate.approvedWorkItemId === secondaryColorWorkItem.id)
+const tertiaryColorJob = tertiaryColorWorkItem
+  ? aggregateBeforeDispatch.jobs.find((candidate) =>
+      candidate.snapshotId === snapshot.snapshotId &&
+      candidate.approvedWorkItemId === tertiaryColorWorkItem.id)
+  : undefined
 const primaryColorAsset = authority.assetManifest.entries.find((candidate) =>
   candidate.approvedWorkItemId === primaryColorWorkItem.id)
 const secondaryColorAsset = authority.assetManifest.entries.find((candidate) =>
   candidate.approvedWorkItemId === secondaryColorWorkItem.id)
+const tertiaryColorAsset = tertiaryColorWorkItem
+  ? authority.assetManifest.entries.find((candidate) =>
+      candidate.approvedWorkItemId === tertiaryColorWorkItem.id)
+  : undefined
 assert.ok(primaryColorJob)
 assert.ok(secondaryColorJob)
 assert.ok(primaryColorAsset)
 assert.ok(secondaryColorAsset)
 assert.deepEqual(primaryColorJob.dependencyJobIds, [])
 assert.deepEqual(secondaryColorJob.dependencyJobIds, [primaryColorJob.id])
+if (tertiaryMediaSourceItem) {
+  assert.ok(tertiaryColorWorkItem)
+  assert.ok(tertiaryColorJob)
+  assert.ok(tertiaryColorAsset)
+  assert.deepEqual(tertiaryColorJob.dependencyJobIds, [primaryColorJob.id])
+} else {
+  assert.equal(tertiaryColorWorkItem, undefined)
+}
 
 const finalCompositionWorkItem = aggregateBeforeDispatch.approvedWorkItems.find((candidate) =>
   candidate.snapshotId === snapshot.snapshotId && candidate.workItemKey === 'remotion-source-caption-final')
@@ -951,8 +1012,10 @@ assert.deepEqual(finalCompositionJob.dependencyJobIds, [
   secondLibassJob.id,
   primaryVoiceJob.id,
   secondaryVoiceJob.id,
+  ...(tertiaryVoiceJob ? [tertiaryVoiceJob.id] : []),
   primaryColorJob.id,
   secondaryColorJob.id,
+  ...(tertiaryColorJob ? [tertiaryColorJob.id] : []),
 ])
 assert.deepEqual(finalArtifactQaJob.dependencyJobIds, [finalCompositionJob.id])
 
@@ -2554,6 +2617,35 @@ const secondaryVoiceReplay = await jobExecutionAdapter.execute(secondaryVoiceAda
 assert.equal(secondaryVoiceReplay.result.artifactId, coordinatedSecondaryVoice.result.artifactId)
 assert.equal(secondaryVoiceReplay.result.sha256, coordinatedSecondaryVoice.result.sha256)
 assert.equal(secondaryVoiceReplay.evidence.idempotentAdapterReplay, true)
+const coordinatedTertiaryVoice = tertiaryVoiceJob && tertiaryVoiceAsset
+  ? await jobExecutionAdapter.execute({
+      workspaceId,
+      projectId: snapshot.projectId,
+      editSessionId: snapshot.editSessionId,
+      jobId: tertiaryVoiceJob.id,
+      purpose: 'execute_canonical_private_job' as const,
+      idempotencyKey: 'canonical-job-adapter-voice-delivery-tertiary',
+    })
+  : undefined
+if (tertiaryMediaSourceItem) {
+  assert.ok(coordinatedTertiaryVoice)
+  assert.equal(coordinatedTertiaryVoice.identity.canonicalToolId, 'ffmpeg')
+  assert.equal(coordinatedTertiaryVoice.identity.expectedAssetId, tertiaryVoiceAsset!.id)
+  assert.equal(coordinatedTertiaryVoice.result.contentType, 'audio/wav')
+  assert.equal(coordinatedTertiaryVoice.result.qaOutcome, 'passed')
+  assert.notEqual(coordinatedTertiaryVoice.result.sha256, coordinatedPrimaryVoice.result.sha256)
+  const tertiaryVoiceReplay = await jobExecutionAdapter.execute({
+    workspaceId,
+    projectId: snapshot.projectId,
+    editSessionId: snapshot.editSessionId,
+    jobId: tertiaryVoiceJob!.id,
+    purpose: 'execute_canonical_private_job',
+    idempotencyKey: 'canonical-job-adapter-voice-delivery-tertiary',
+  })
+  assert.equal(tertiaryVoiceReplay.result.artifactId, coordinatedTertiaryVoice.result.artifactId)
+  assert.equal(tertiaryVoiceReplay.result.sha256, coordinatedTertiaryVoice.result.sha256)
+  assert.equal(tertiaryVoiceReplay.evidence.idempotentAdapterReplay, true)
+}
 
 const primaryColorAdapterInput = {
   workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
@@ -2593,6 +2685,36 @@ const secondaryColorReplay = await jobExecutionAdapter.execute(secondaryColorAda
 assert.equal(secondaryColorReplay.result.artifactId, coordinatedSecondaryColor.result.artifactId)
 assert.equal(secondaryColorReplay.result.sha256, coordinatedSecondaryColor.result.sha256)
 assert.equal(secondaryColorReplay.evidence.idempotentAdapterReplay, true)
+const coordinatedTertiaryColor = tertiaryColorJob && tertiaryColorAsset
+  ? await jobExecutionAdapter.execute({
+      workspaceId,
+      projectId: snapshot.projectId,
+      editSessionId: snapshot.editSessionId,
+      jobId: tertiaryColorJob.id,
+      purpose: 'execute_canonical_private_job' as const,
+      idempotencyKey: 'canonical-job-adapter-color-delivery-tertiary',
+    })
+  : undefined
+if (tertiaryMediaSourceItem) {
+  assert.ok(coordinatedTertiaryColor)
+  assert.equal(coordinatedTertiaryColor.identity.canonicalToolId, 'ffmpeg')
+  assert.equal(coordinatedTertiaryColor.identity.expectedAssetId, tertiaryColorAsset!.id)
+  assert.equal(coordinatedTertiaryColor.result.contentType, 'video/x-matroska')
+  assert.equal(coordinatedTertiaryColor.result.qaOutcome, 'passed')
+  assert.equal(coordinatedTertiaryColor.evidence.dependencyArtifactInput, true)
+  assert.notEqual(coordinatedTertiaryColor.result.sha256, coordinatedPrimaryColor.result.sha256)
+  const tertiaryColorReplay = await jobExecutionAdapter.execute({
+    workspaceId,
+    projectId: snapshot.projectId,
+    editSessionId: snapshot.editSessionId,
+    jobId: tertiaryColorJob!.id,
+    purpose: 'execute_canonical_private_job',
+    idempotencyKey: 'canonical-job-adapter-color-delivery-tertiary',
+  })
+  assert.equal(tertiaryColorReplay.result.artifactId, coordinatedTertiaryColor.result.artifactId)
+  assert.equal(tertiaryColorReplay.result.sha256, coordinatedTertiaryColor.result.sha256)
+  assert.equal(tertiaryColorReplay.evidence.idempotentAdapterReplay, true)
+}
 
 const sourceTrimValidationClaim = (await leaseService.claim({
   workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
@@ -2629,7 +2751,10 @@ const finalCompositionClaim = (await leaseService.claim({
   idempotencyKey: 'claim-remotion-source-caption-final',
 })).workerLeaseClaim
 assert.equal(finalCompositionClaim.lease.dependencyAuthority.state, 'private_test_dependencies_verified')
-assert.equal(finalCompositionClaim.lease.dependencyAuthority.selectedArtifacts.length, 7)
+assert.equal(
+  finalCompositionClaim.lease.dependencyAuthority.selectedArtifacts.length,
+  tertiaryMediaSourceItem ? 9 : 7,
+)
 assert.deepEqual(
   finalCompositionClaim.lease.dependencyAuthority.selectedArtifacts.map((artifact) => artifact.artifactId),
   [
@@ -2638,8 +2763,10 @@ assert.deepEqual(
     coordinatedSecondLibass.result.artifactId,
     coordinatedPrimaryVoice.result.artifactId,
     coordinatedSecondaryVoice.result.artifactId,
+    ...(coordinatedTertiaryVoice ? [coordinatedTertiaryVoice.result.artifactId] : []),
     coordinatedPrimaryColor.result.artifactId,
     coordinatedSecondaryColor.result.artifactId,
+    ...(coordinatedTertiaryColor ? [coordinatedTertiaryColor.result.artifactId] : []),
   ],
 )
 await leaseService.release({
@@ -2680,7 +2807,17 @@ assert.deepEqual(approvedFinalCompositionPayload.hardCutTransitions, [{
   fromSourceSequenceItemId: mediaSourceItem.sourceSequenceItemId,
   toSourceSequenceItemId: secondaryMediaSourceItem.sourceSequenceItemId,
   boundaryFrame: 24,
-}])
+}, ...(tertiaryMediaSourceItem
+  ? [{
+      transitionTimingItemId: 'master-approved-hard-cut-2',
+      refinedTransitionTimingItemId: 'refined-approved-hard-cut-2',
+      fromSegmentId: 'segment-2',
+      toSegmentId: 'segment-3',
+      fromSourceSequenceItemId: secondaryMediaSourceItem.sourceSequenceItemId,
+      toSourceSequenceItemId: tertiaryMediaSourceItem.sourceSequenceItemId,
+      boundaryFrame: 48,
+    }]
+  : [])])
 assert.equal(approvedFinalCompositionPayload.audioPolicy, 'replace_with_approved_voice_tracks')
 assert.equal(
   approvedFinalCompositionPayload.sourceMediaPolicy,
@@ -2694,14 +2831,22 @@ assert.deepEqual(approvedFinalCompositionPayload.voiceTracks, [{
   sourceSequenceItemId: secondaryMediaSourceItem.sourceSequenceItemId,
   outputKey: 'voice-delivery-secondary-wav',
   durationFrames: 24,
-}])
+}, ...(tertiaryMediaSourceItem
+  ? [{
+      sourceSequenceItemId: tertiaryMediaSourceItem.sourceSequenceItemId,
+      outputKey: 'voice-delivery-tertiary-wav',
+      durationFrames: 24,
+    }]
+  : [])])
 assert.deepEqual(finalCompositionExecutionWorkItem.sourceSequenceItemIds, [
   mediaSourceItem.sourceSequenceItemId,
   secondaryMediaSourceItem.sourceSequenceItemId,
+  ...(tertiaryMediaSourceItem ? [tertiaryMediaSourceItem.sourceSequenceItemId] : []),
 ])
 assert.deepEqual(finalCompositionExecutionWorkItem.sourceCleanupDecisionIds, [
   'cleanup-python-media-source',
   'cleanup-secondary-media-source',
+  ...(tertiaryMediaSourceItem ? ['cleanup-tertiary-media-source'] : []),
 ])
 const coordinatedFinalComposition = await jobExecutionAdapter.execute(finalCompositionAdapterInput)
 assert.equal(coordinatedFinalComposition.identity.canonicalToolId, 'remotion')
@@ -2750,8 +2895,11 @@ assert.equal(
   createHash('sha256').update(privateFinalDownload.bytes).digest('hex'),
   coordinatedFinalComposition.result.sha256,
 )
-const finalColorContinuity = analyzeRenderedColorContinuity(privateFinalDownload.bytes, [12, 36])
-assert.equal(finalColorContinuity.sampledFrameCount, 2)
+const finalColorContinuity = analyzeRenderedColorContinuity(
+  privateFinalDownload.bytes,
+  tertiaryMediaSourceItem ? [12, 36, 60] : [12, 36],
+)
+assert.equal(finalColorContinuity.sampledFrameCount, tertiaryMediaSourceItem ? 3 : 2)
 assert.ok(
   finalColorContinuity.chromaticityDelta <= 0.12,
   `Reference-matched final source boundary exceeded chromaticity tolerance: ${
@@ -2773,7 +2921,9 @@ const coordinatedFinalCompositionReplay = await jobExecutionAdapter.execute(fina
 assert.equal(coordinatedFinalCompositionReplay.result.artifactId, coordinatedFinalComposition.result.artifactId)
 assert.equal(coordinatedFinalCompositionReplay.result.sha256, coordinatedFinalComposition.result.sha256)
 assert.equal(coordinatedFinalCompositionReplay.evidence.idempotentAdapterReplay, true)
-if (process.env.REEDITPRO_CANONICAL_MULTI_SOURCE_SLICE_ONLY === 'true') {
+if (multiSourceSliceOnly) {
+  assert.ok(tertiaryMediaSourceItem)
+  assert.equal(finalCompositionExecutionWorkItem.sourceSequenceItemIds.length, 3)
   console.log(JSON.stringify({
     smoke: 'canonical_multi_source_final_composition',
     status: 'passed',
@@ -2782,11 +2932,11 @@ if (process.env.REEDITPRO_CANONICAL_MULTI_SOURCE_SLICE_ONLY === 'true') {
     proofs: [
       'persisted_planning_handoff_and_immutable_approved_snapshot_verified',
       'synthetic_private_test_credit_reservation_verified_without_customer_charge',
-      'two_source_trim_authority_and_dependency_readiness_verified',
+      'three_source_trim_authority_and_dependency_readiness_verified',
       'two_exact_caption_artifacts_and_frame_ranges_verified',
-      'two_source_bound_ffmpeg_voice_delivery_artifacts_qa_reconciliation_and_replay_verified',
-      'reference_color_intermediate_and_dependency_bound_shot_match_artifacts_verified',
-      'two_color_intermediates_composed_in_source_order_with_objective_boundary_continuity_verified',
+      'three_source_bound_ffmpeg_voice_delivery_artifacts_qa_reconciliation_and_replay_verified',
+      'one_reference_and_two_direct_dependency_bound_color_match_artifacts_verified',
+      'three_color_intermediates_composed_in_source_order_with_objective_boundary_continuity_verified',
       'lease_and_single_use_dispatch_verified',
       'exact_ordered_source_sequence_and_timed_caption_track_rendered_with_approved_voice_replacement',
       'approved_hard_cut_snapshot_authority_and_exact_source_boundary_execution_verified',
@@ -4288,12 +4438,13 @@ function workGraphPackageCompletionPath(
   )
 }
 
-function analyzeRenderedColorContinuity(bytes: Buffer, frames: [number, number]) {
+function analyzeRenderedColorContinuity(bytes: Buffer, frames: number[]) {
+  if (frames.length < 2) throw new Error('Color continuity needs at least two source samples.')
   const selected = frames.map((frame) => `eq(n\\,${frame})`).join('+')
   const analyzed = spawnSync('ffmpeg', [
     '-hide_banner', '-loglevel', 'error', '-i', 'pipe:0',
     '-vf', `select=${selected},scale=64:64:flags=area,format=rgb24`,
-    '-fps_mode', 'passthrough', '-frames:v', '2', '-threads', '1',
+    '-fps_mode', 'passthrough', '-frames:v', String(frames.length), '-threads', '1',
     '-f', 'rawvideo', 'pipe:1',
   ], { input: bytes, maxBuffer: 512 * 1024 })
   if (analyzed.status !== 0 || analyzed.stderr.byteLength > 0) {
@@ -4302,7 +4453,7 @@ function analyzeRenderedColorContinuity(bytes: Buffer, frames: [number, number])
     }`)
   }
   const frameByteLength = 64 * 64 * 3
-  if (analyzed.stdout.byteLength !== frameByteLength * 2) {
+  if (analyzed.stdout.byteLength !== frameByteLength * frames.length) {
     throw new Error('Rendered color continuity analysis returned the wrong frame count.')
   }
   const chromaticity = (frameBytes: Buffer) => {
@@ -4317,21 +4468,25 @@ function analyzeRenderedColorContinuity(bytes: Buffer, frames: [number, number])
     const total = Math.max(1, red + green + blue)
     return [red / total, green / total, blue / total]
   }
-  const first = chromaticity(analyzed.stdout.subarray(0, frameByteLength))
-  const second = chromaticity(analyzed.stdout.subarray(frameByteLength))
+  const chromaticities = frames.map((_frame, index) => chromaticity(
+    analyzed.stdout.subarray(index * frameByteLength, (index + 1) * frameByteLength),
+  ))
+  const boundaryDeltas = chromaticities.slice(1).map((current, index) =>
+    Number(current.reduce((total, value, channel) =>
+      total + Math.abs(value - chromaticities[index]![channel]!), 0).toFixed(6)))
   return {
-    sampledFrameCount: 2,
+    sampledFrameCount: frames.length,
     sampledFrames: frames,
-    firstChromaticity: first.map((value) => Number(value.toFixed(6))),
-    secondChromaticity: second.map((value) => Number(value.toFixed(6))),
-    chromaticityDelta: Number(first.reduce((total, value, index) =>
-      total + Math.abs(value - second[index]!), 0).toFixed(6)),
+    chromaticities: chromaticities.map((sample) =>
+      sample.map((value) => Number(value.toFixed(6)))),
+    boundaryDeltas,
+    chromaticityDelta: Math.max(...boundaryDeltas),
   }
 }
 
 async function uploadCanonicalMediaFixture(
   projectId: string,
-  fixtureId: 'primary' | 'secondary',
+  fixtureId: 'primary' | 'secondary' | 'tertiary',
   firstColor: string,
   secondColor: string,
   frequency: number,
@@ -4497,10 +4652,21 @@ function createDispatchPlanBody(input: {
     checksumSha256: string
     required: true
   }
+  tertiaryMediaSourceItem?: {
+    sourceSequenceItemId: string
+    mediaAssetId: string
+    uploadedOrder: number
+    checksumSha256: string
+    required: true
+  }
   matrixOperationIds: Record<MatrixToolId, string>
 }): PublishCanonicalEditPlanBody {
   const components = structuredClone(input.seedAuthority.components)
-  components.sourceSequence.push(input.mediaSourceItem, input.secondaryMediaSourceItem)
+  components.sourceSequence.push(
+    input.mediaSourceItem,
+    input.secondaryMediaSourceItem,
+    ...(input.tertiaryMediaSourceItem ? [input.tertiaryMediaSourceItem] : []),
+  )
   components.sourceCleanupPlan.decisions.push({
     decisionId: 'cleanup-python-media-source',
     sourceSequenceItemId: input.mediaSourceItem.sourceSequenceItemId,
@@ -4521,7 +4687,19 @@ function createDispatchPlanBody(input: {
     confidence: 1,
     meaningPreservationStatus: 'passed',
     userReviewStatus: 'not_required',
-  })
+  }, ...(input.tertiaryMediaSourceItem
+    ? [{
+        decisionId: 'cleanup-tertiary-media-source',
+        sourceSequenceItemId: input.tertiaryMediaSourceItem.sourceSequenceItemId,
+        action: 'preserve' as const,
+        startFrame: 0,
+        endFrameExclusive: 24,
+        reason: 'Preserve the third approved synthetic media range in confirmed source order.',
+        confidence: 1,
+        meaningPreservationStatus: 'passed' as const,
+        userReviewStatus: 'not_required' as const,
+      }]
+    : []))
   const firstSegment = components.segments[0]
   if (!firstSegment) throw new Error('Canonical dispatch smoke requires one seed timeline segment.')
   components.segments = [{
@@ -4534,7 +4712,14 @@ function createDispatchPlanBody(input: {
     segmentId: 'segment-2',
     startFrame: 24,
     endFrameExclusive: 48,
-  }]
+  }, ...(input.tertiaryMediaSourceItem
+    ? [{
+        ...firstSegment,
+        segmentId: 'segment-3',
+        startFrame: 48,
+        endFrameExclusive: 72,
+      }]
+    : [])]
   components.toolStrategyPlan = {
     toolIds: [
       'd3', 'duckdb', 'pyav', 'scipy', 'pyloudnorm', 'pydub', 'pydub_effects',
@@ -4693,6 +4878,20 @@ function createDispatchPlanBody(input: {
             category: 'controlled_tool', estimatedCredits: 4, removable: false,
             metadata: { canonicalToolId: 'ffmpeg', operationId: input.ffmpegOperationId },
           },
+          ...(input.tertiaryMediaSourceItem
+            ? [{
+                lineKey: 'third-source-processing-authority',
+                label: 'Controlled third-source voice and color processing authorization',
+                category: 'controlled_tool' as const,
+                estimatedCredits: 4,
+                removable: false,
+                metadata: {
+                  canonicalToolId: 'ffmpeg',
+                  operationId: input.ffmpegOperationId,
+                  sourceCount: 3,
+                },
+              }]
+            : []),
           {
             lineKey: '4k-export-ceiling',
             label: '4K UHD render and export ceiling',
@@ -4742,10 +4941,14 @@ function createDispatchPlanBody(input: {
           sourceSequenceItemIds: [
             input.mediaSourceItem.sourceSequenceItemId,
             input.secondaryMediaSourceItem.sourceSequenceItemId,
+            ...(input.tertiaryMediaSourceItem
+              ? [input.tertiaryMediaSourceItem.sourceSequenceItemId]
+              : []),
           ],
           sourceCleanupDecisionIds: [
             'cleanup-python-media-source',
             'cleanup-secondary-media-source',
+            ...(input.tertiaryMediaSourceItem ? ['cleanup-tertiary-media-source'] : []),
           ],
           expectedOutputs: [{
             outputKey: 'source-trim-validation-evidence',
@@ -4754,7 +4957,7 @@ function createDispatchPlanBody(input: {
             required: true,
             previewPlaceholderAllowed: false,
             contentType: 'application/json',
-            segmentIds: ['segment-1', 'segment-2'],
+            segmentIds: components.segments.map((segment) => segment.segmentId),
             timingIds: ['master-timing-plan'],
             rendererLayerIds: ['source-video-layer'],
           }],
@@ -5628,6 +5831,56 @@ function createDispatchPlanBody(input: {
           maxAttempts: 2, attemptTimeoutSeconds: 600, scheduledDelaySeconds: 0,
           maximumCreditBudget: 2, required: true,
         },
+        ...(input.tertiaryMediaSourceItem
+          ? [{
+              workItemKey: 'voice-delivery-tertiary',
+              workItemType: 'custom' as const,
+              workerClass: 'audio_processing_worker' as const,
+              executionInput: {
+                operation: 'process_approved_source_voice_delivery',
+                approvedToolOperationIds: [input.ffmpegOperationId],
+                expectedOutputKeys: ['voice-delivery-tertiary-wav'],
+                structuredPayload: {
+                  recipeProfileId: 'approved_voice_delivery_wav_v1',
+                  timestampPolicy: 'normalize_from_zero',
+                  overwriteExistingArtifact: false,
+                  allowUnreviewedCodec: false,
+                  trimStartFrame: 0,
+                  trimEndFrameExclusive: 24,
+                  frameRate: 24,
+                  sampleRate: 48_000,
+                  channelMode: 'stereo',
+                  targetLufs: -14,
+                  truePeakDbtp: -1,
+                  loudnessRangeLufs: 7,
+                  highpassHz: 70,
+                  compressorPreset: 'gentle_voice_v1',
+                },
+              },
+              sourceSequenceItemIds: [input.tertiaryMediaSourceItem.sourceSequenceItemId],
+              sourceCleanupDecisionIds: ['cleanup-tertiary-media-source'],
+              expectedOutputs: [{
+                outputKey: 'voice-delivery-tertiary-wav',
+                artifactType: 'controlled_ffmpeg_professional_voice_delivery_wav',
+                assetRole: 'processed' as const,
+                required: true,
+                previewPlaceholderAllowed: false,
+                contentType: 'audio/wav',
+                segmentIds: ['segment-3'],
+                timingIds: ['master-timing-plan'],
+                rendererLayerIds: ['voice-track-layer-3'],
+              }],
+              dependencyKeys: [],
+              approvedToolIds: ['ffmpeg'],
+              providerExecutionMode: 'none' as const,
+              fallbackPolicy: {},
+              maxAttempts: 2,
+              attemptTimeoutSeconds: 600,
+              scheduledDelaySeconds: 0,
+              maximumCreditBudget: 2,
+              required: true,
+            }]
+          : []),
         {
           workItemKey: 'color-delivery-primary',
           workItemType: 'custom',
@@ -5748,6 +6001,81 @@ function createDispatchPlanBody(input: {
           maxAttempts: 2, attemptTimeoutSeconds: 900, scheduledDelaySeconds: 0,
           maximumCreditBudget: 2, required: true,
         },
+        ...(input.tertiaryMediaSourceItem
+          ? [{
+              workItemKey: 'color-delivery-tertiary',
+              workItemType: 'custom' as const,
+              workerClass: 'color_processing_worker' as const,
+              executionInput: {
+                operation: 'process_approved_source_professional_color_delivery',
+                approvedToolOperationIds: [input.ffmpegOperationId],
+                expectedOutputKeys: ['color-delivery-tertiary-mkv'],
+                structuredPayload: {
+                  recipeProfileId: 'approved_source_color_match_delivery_matroska_v1',
+                  timestampPolicy: 'normalize_from_zero',
+                  overwriteExistingArtifact: false,
+                  allowUnreviewedCodec: false,
+                  trimStartFrame: 0,
+                  trimEndFrameExclusive: 24,
+                  frameRate: 24,
+                  colorGradeStyle: 'premium_clean',
+                  intensity: 'balanced',
+                  approvedColorOperationIds: [
+                    'color-tertiary-clarity',
+                    'color-tertiary-contrast-curve',
+                    'color-tertiary-exposure-correction',
+                    'color-tertiary-highlight-recovery',
+                    'color-tertiary-look-transform',
+                    'color-tertiary-qa-histogram-check',
+                    'color-tertiary-shot-matching',
+                    'color-tertiary-white-balance',
+                  ],
+                  approvedColorOperationKinds: [
+                    'clarity',
+                    'contrast_curve',
+                    'exposure_correction',
+                    'highlight_recovery',
+                    'look_transform',
+                    'qa_histogram_check',
+                    'shot_matching',
+                    'white_balance',
+                  ],
+                  analysisProfileId: 'approved_three_frame_rgb_stats_v1',
+                  correctionProfileId:
+                    'bounded_reference_matched_professional_source_color_v1',
+                  shotMatchProfileId: 'approved_reference_three_frame_rgb_match_v1',
+                  referenceSourceSequenceItemId: input.mediaSourceItem.sourceSequenceItemId,
+                  referenceDurationFrames: 24,
+                  referenceOutputKey: 'color-delivery-primary-mkv',
+                  outputColorSpace: 'bt709',
+                  outputPixelFormat: 'yuv420p',
+                  preserveAudio: false,
+                },
+              },
+              sourceSequenceItemIds: [input.tertiaryMediaSourceItem.sourceSequenceItemId],
+              sourceCleanupDecisionIds: ['cleanup-tertiary-media-source'],
+              expectedOutputs: [{
+                outputKey: 'color-delivery-tertiary-mkv',
+                artifactType: 'controlled_ffmpeg_professional_color_delivery_matroska',
+                assetRole: 'processed' as const,
+                required: true,
+                previewPlaceholderAllowed: false,
+                contentType: 'video/x-matroska',
+                segmentIds: ['segment-3'],
+                timingIds: ['master-timing-plan'],
+                rendererLayerIds: ['color-source-layer-3'],
+              }],
+              dependencyKeys: ['color-delivery-primary'],
+              approvedToolIds: ['ffmpeg'],
+              providerExecutionMode: 'none' as const,
+              fallbackPolicy: {},
+              maxAttempts: 2,
+              attemptTimeoutSeconds: 900,
+              scheduledDelaySeconds: 0,
+              maximumCreditBudget: 2,
+              required: true,
+            }]
+          : []),
         {
           workItemKey: 'final-qa',
           workItemType: 'run_final_qa',
@@ -5777,6 +6105,9 @@ function createDispatchPlanBody(input: {
               'master-timing-plan',
               'master-approved-hard-cut-1',
               'refined-approved-hard-cut-1',
+              ...(input.tertiaryMediaSourceItem
+                ? ['master-approved-hard-cut-2', 'refined-approved-hard-cut-2']
+                : []),
             ],
             rendererLayerIds: [
               'source-video-layer',
@@ -5785,6 +6116,9 @@ function createDispatchPlanBody(input: {
               'voice-track-layer-2',
               'color-source-layer-1',
               'color-source-layer-2',
+              ...(input.tertiaryMediaSourceItem
+                ? ['approved-hard-cut-boundary-2', 'voice-track-layer-3', 'color-source-layer-3']
+                : []),
               'libass-caption-overlay-layer-1',
               'libass-caption-overlay-layer-2',
             ],
@@ -5809,7 +6143,10 @@ function createDispatchPlanBody(input: {
             expectedOutputKeys: ['private-final-composition-mp4'],
             structuredPayload: {
               compositionProfileId: 'approved_source_sequence_caption_track_final_v1',
-              width: 2160, height: 3840, fps: 24, durationFrames: 48,
+              width: 2160,
+              height: 3840,
+              fps: 24,
+              durationFrames: input.tertiaryMediaSourceItem ? 72 : 48,
               sourceSegments: [{
                 sourceSequenceItemId: input.mediaSourceItem.sourceSequenceItemId,
                 sourceStartFrame: 0,
@@ -5822,7 +6159,15 @@ function createDispatchPlanBody(input: {
                 sourceEndFrameExclusive: 24,
                 timelineStartFrame: 24,
                 timelineEndFrameExclusive: 48,
-              }],
+              }, ...(input.tertiaryMediaSourceItem
+                ? [{
+                    sourceSequenceItemId: input.tertiaryMediaSourceItem.sourceSequenceItemId,
+                    sourceStartFrame: 0,
+                    sourceEndFrameExclusive: 24,
+                    timelineStartFrame: 48,
+                    timelineEndFrameExclusive: 72,
+                  }]
+                : [])],
               transitionPolicy: 'approved_hard_cuts_only',
               hardCutTransitions: [{
                 transitionTimingItemId: 'master-approved-hard-cut-1',
@@ -5832,7 +6177,19 @@ function createDispatchPlanBody(input: {
                 fromSourceSequenceItemId: input.mediaSourceItem.sourceSequenceItemId,
                 toSourceSequenceItemId: input.secondaryMediaSourceItem.sourceSequenceItemId,
                 boundaryFrame: 24,
-              }],
+              }, ...(input.tertiaryMediaSourceItem
+                ? [{
+                    transitionTimingItemId: 'master-approved-hard-cut-2',
+                    refinedTransitionTimingItemId: 'refined-approved-hard-cut-2',
+                    fromSegmentId: 'segment-2',
+                    toSegmentId: 'segment-3',
+                    fromSourceSequenceItemId:
+                      input.secondaryMediaSourceItem.sourceSequenceItemId,
+                    toSourceSequenceItemId:
+                      input.tertiaryMediaSourceItem.sourceSequenceItemId,
+                    boundaryFrame: 48,
+                  }]
+                : [])],
               sourceFit: 'contain', panelBackground: '#000000',
               audioPolicy: 'replace_with_approved_voice_tracks',
               renderPurpose: 'private_4k_delivery_master_v1',
@@ -5851,7 +6208,13 @@ function createDispatchPlanBody(input: {
                 sourceSequenceItemId: input.secondaryMediaSourceItem.sourceSequenceItemId,
                 outputKey: 'voice-delivery-secondary-wav',
                 durationFrames: 24,
-              }],
+              }, ...(input.tertiaryMediaSourceItem
+                ? [{
+                    sourceSequenceItemId: input.tertiaryMediaSourceItem.sourceSequenceItemId,
+                    outputKey: 'voice-delivery-tertiary-wav',
+                    durationFrames: 24,
+                  }]
+                : [])],
               captionOverlayPolicy: 'approved_timed_full_frame_rgba_track',
               captionOverlayCues: [{
                 outputKey: 'libass-caption-overlay-png',
@@ -5867,10 +6230,14 @@ function createDispatchPlanBody(input: {
           sourceSequenceItemIds: [
             input.mediaSourceItem.sourceSequenceItemId,
             input.secondaryMediaSourceItem.sourceSequenceItemId,
+            ...(input.tertiaryMediaSourceItem
+              ? [input.tertiaryMediaSourceItem.sourceSequenceItemId]
+              : []),
           ],
           sourceCleanupDecisionIds: [
             'cleanup-python-media-source',
             'cleanup-secondary-media-source',
+            ...(input.tertiaryMediaSourceItem ? ['cleanup-tertiary-media-source'] : []),
           ],
           expectedOutputs: [{
             outputKey: 'private-final-composition-mp4',
@@ -5884,6 +6251,9 @@ function createDispatchPlanBody(input: {
               'master-timing-plan',
               'master-approved-hard-cut-1',
               'refined-approved-hard-cut-1',
+              ...(input.tertiaryMediaSourceItem
+                ? ['master-approved-hard-cut-2', 'refined-approved-hard-cut-2']
+                : []),
             ],
             rendererLayerIds: [
               'source-video-layer',
@@ -5892,6 +6262,9 @@ function createDispatchPlanBody(input: {
               'voice-track-layer-2',
               'color-source-layer-1',
               'color-source-layer-2',
+              ...(input.tertiaryMediaSourceItem
+                ? ['approved-hard-cut-boundary-2', 'voice-track-layer-3', 'color-source-layer-3']
+                : []),
               'libass-caption-overlay-layer-1',
               'libass-caption-overlay-layer-2',
             ],
@@ -5902,8 +6275,10 @@ function createDispatchPlanBody(input: {
             'libass-caption-overlay-second',
             'voice-delivery-primary',
             'voice-delivery-secondary',
+            ...(input.tertiaryMediaSourceItem ? ['voice-delivery-tertiary'] : []),
             'color-delivery-primary',
             'color-delivery-secondary',
+            ...(input.tertiaryMediaSourceItem ? ['color-delivery-tertiary'] : []),
           ],
           approvedToolIds: ['remotion'],
           providerExecutionMode: 'none',

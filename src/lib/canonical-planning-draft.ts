@@ -1502,7 +1502,7 @@ function buildApprovedColorDeliverySources(input: {
   const color = input.plan.colorPipelinePlan
   if (!color) return null
   const sourceCount = input.plannerInput.clips.length
-  const multiSource = sourceCount === 2
+  const multiSource = sourceCount >= 2 && sourceCount <= 8
   if (
     input.plannerInput.editLevel === 'premium' ||
     (sourceCount !== 1 && !multiSource) || input.sourceItems.length !== sourceCount ||

@@ -88,7 +88,7 @@ const canonicalSteps: VerificationStep[] = [
   step(
     'canonical-multi-source-execution',
     'smoke:canonical-multi-source-final-composition',
-    'Bounded ordered multi-source execution reaches reference-bound professional color matching, approved hard-cut boundaries, exact source-bound voice delivery, lease, one-use dispatch, private artifacts, QA, reconciliation, ordered color/voice composition, objective boundary continuity, and download evidence.',
+    'Three-source execution reaches one baseline plus two directly reference-bound professional color matches, two approved hard-cut boundaries, three exact source-bound voice deliveries, lease, one-use dispatch, private artifacts, QA, reconciliation, ordered color/voice composition, objective continuity at both boundaries, and download evidence.',
   ),
   step(
     'canonical-professional-color-execution',
@@ -244,6 +244,7 @@ function printReport(
           boundedProfessionalVoiceDelivery: true,
           boundedProfessionalColorExecution: true,
           boundedReferenceBoundMultiSourceColorExecution: true,
+          boundedThreeSourcePrivateCompositionExecution: true,
           activeNamedEditJourneyStates: true,
           versionedToolIdentityEvidence: true,
           ...(full

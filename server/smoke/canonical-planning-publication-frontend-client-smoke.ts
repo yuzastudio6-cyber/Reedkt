@@ -131,6 +131,36 @@ const multiSourceMediaAssets = [{
   sourceMetadata: { ...sourceMediaAssets[0]!.sourceMetadata, durationSeconds: 1 },
 }]
 
+const threeSourceInput: PlannerInput = {
+  ...multiSourceInput,
+  clips: [
+    ...multiSourceInput.clips,
+    {
+      ...multiSourceInput.clips[0]!,
+      id: 'canonical-save-clip-3',
+      fileName: 'canonical-source-3.mp4',
+      duration: '00:01',
+      notes: 'Third private source upload is finalized and ready for planning.',
+      uploadedOrder: 3,
+      sourceRole: 'context',
+    },
+  ],
+}
+const threeSourceMediaAssets = [
+  ...multiSourceMediaAssets,
+  {
+    ...multiSourceMediaAssets[0]!,
+    mediaAssetId: 'canonical-save-media-3',
+    sourceSequenceItemId: 'canonical-save-source-3',
+    uploadedClipId: 'canonical-save-clip-3',
+    uploadedOrder: 3,
+    fileName: 'canonical-source-3.mp4',
+    storagePath: 'private/third/source/path-must-never-cross-browser-request.mp4',
+    checksumSha256: sha('3'),
+    sourceMetadata: { ...multiSourceMediaAssets[0]!.sourceMetadata, durationSeconds: 1 },
+  },
+]
+
 const cleanSignedInPlanningContext: PlanningContext = {
   id: 'canonical-clean-signed-in-planning-context',
   projectId: identity.projectId,
@@ -567,6 +597,274 @@ assert.equal(publishCanonicalEditPlanFromHandoffSchema.safeParse({
   expectedHandoffHash: sha('9'),
   canonicalPlan: realisticCanonicalPlan,
 }).success, true)
+
+const realisticThreeSourcePlan = createMockEditPlan(threeSourceInput)
+const realisticThreeSourceDraft = buildCanonicalPlanningDraft({
+  plan: realisticThreeSourcePlan,
+  plannerInput: threeSourceInput,
+  sourceMediaAssets: threeSourceMediaAssets,
+})
+if (!realisticThreeSourceDraft.ok || !realisticThreeSourceDraft.draft.publication) {
+  throw new Error(
+    `Normal three-source planning did not compile: ${
+      realisticThreeSourceDraft.ok
+        ? realisticThreeSourceDraft.draft.publicationBlockers.join(' | ')
+        : realisticThreeSourceDraft.errors.join(' | ')
+    }`,
+  )
+}
+const realisticThreeSourceCanonicalPlan =
+  realisticThreeSourceDraft.draft.publication.canonicalPlan
+const realisticThreeSourceColorItems = realisticThreeSourceCanonicalPlan.workItems.filter((item) =>
+  item.workerClass === 'color_processing_worker')
+assert.deepEqual(realisticThreeSourceColorItems.map((item) => ({
+  key: item.workItemKey,
+  sourceIds: item.sourceSequenceItemIds,
+  dependencies: item.dependencyKeys,
+  outputKey: item.expectedOutputs[0]?.outputKey,
+})), [{
+  key: 'color-delivery-1',
+  sourceIds: ['canonical-save-source-1'],
+  dependencies: [],
+  outputKey: 'color-delivery-1-mkv',
+}, {
+  key: 'color-delivery-2',
+  sourceIds: ['canonical-save-source-2'],
+  dependencies: ['color-delivery-1'],
+  outputKey: 'color-delivery-2-mkv',
+}, {
+  key: 'color-delivery-3',
+  sourceIds: ['canonical-save-source-3'],
+  dependencies: ['color-delivery-1'],
+  outputKey: 'color-delivery-3-mkv',
+}], 'Every later source must bind directly to the exact first-source color reference artifact.')
+for (const matchedColorItem of realisticThreeSourceColorItems.slice(1)) {
+  const payload = validateOfflineFfmpegPlanningPayload(
+    asRecord(matchedColorItem.executionInput.structuredPayload),
+  )
+  assert.equal(payload.recipeProfileId, 'approved_source_color_match_delivery_matroska_v1')
+  if (payload.recipeProfileId !== 'approved_source_color_match_delivery_matroska_v1') {
+    throw new Error('A later source did not compile to the exact reference-bound color recipe.')
+  }
+  assert.equal(payload.referenceSourceSequenceItemId, 'canonical-save-source-1')
+  assert.equal(payload.referenceOutputKey, 'color-delivery-1-mkv')
+  assert.equal(payload.referenceDurationFrames, 30)
+}
+const realisticThreeSourceFinalItem = realisticThreeSourceCanonicalPlan.workItems.find((item) =>
+  item.workItemKey === 'final-export')!
+assert.deepEqual(realisticThreeSourceFinalItem.dependencyKeys, [
+  'source-trim-validation',
+  'caption-overlay-1',
+  'caption-overlay-2',
+  'caption-overlay-3',
+  'voice-delivery-1',
+  'voice-delivery-2',
+  'voice-delivery-3',
+  'color-delivery-1',
+  'color-delivery-2',
+  'color-delivery-3',
+])
+const realisticThreeSourceFinalPayload = validateOfflineRemotionFinalCompositionPlanningPayload(
+  asRecord(realisticThreeSourceFinalItem.executionInput.structuredPayload),
+)
+assert.equal(
+  realisticThreeSourceFinalPayload.compositionProfileId,
+  'approved_source_sequence_caption_track_final_v1',
+)
+if (realisticThreeSourceFinalPayload.compositionProfileId !==
+  'approved_source_sequence_caption_track_final_v1') {
+  throw new Error('Three-source planning compiled to the wrong Remotion profile.')
+}
+assert.deepEqual(realisticThreeSourceFinalPayload.sourceSegments.map((segment) => ({
+  sourceSequenceItemId: segment.sourceSequenceItemId,
+  sourceRange: [segment.sourceStartFrame, segment.sourceEndFrameExclusive],
+  timelineRange: [segment.timelineStartFrame, segment.timelineEndFrameExclusive],
+})), [{
+  sourceSequenceItemId: 'canonical-save-source-1',
+  sourceRange: [0, 30],
+  timelineRange: [0, 30],
+}, {
+  sourceSequenceItemId: 'canonical-save-source-2',
+  sourceRange: [0, 30],
+  timelineRange: [30, 60],
+}, {
+  sourceSequenceItemId: 'canonical-save-source-3',
+  sourceRange: [0, 30],
+  timelineRange: [60, 90],
+}])
+assert.deepEqual(realisticThreeSourceFinalPayload.hardCutTransitions.map((transition) => ({
+  fromSourceSequenceItemId: transition.fromSourceSequenceItemId,
+  toSourceSequenceItemId: transition.toSourceSequenceItemId,
+  boundaryFrame: transition.boundaryFrame,
+})), [{
+  fromSourceSequenceItemId: 'canonical-save-source-1',
+  toSourceSequenceItemId: 'canonical-save-source-2',
+  boundaryFrame: 30,
+}, {
+  fromSourceSequenceItemId: 'canonical-save-source-2',
+  toSourceSequenceItemId: 'canonical-save-source-3',
+  boundaryFrame: 60,
+}])
+assert.deepEqual(realisticThreeSourceFinalPayload.voiceTracks?.map((track) =>
+  track.sourceSequenceItemId), [
+  'canonical-save-source-1',
+  'canonical-save-source-2',
+  'canonical-save-source-3',
+])
+const thirdSourceWithoutAudioDraft = buildCanonicalPlanningDraft({
+  plan: realisticThreeSourcePlan,
+  plannerInput: threeSourceInput,
+  sourceMediaAssets: threeSourceMediaAssets.map((asset, index) => index === 2
+    ? { ...asset, sourceMetadata: { ...asset.sourceMetadata, hasAudio: false } }
+    : asset),
+})
+assert.equal(thirdSourceWithoutAudioDraft.ok, true)
+assert.equal(
+  thirdSourceWithoutAudioDraft.ok && thirdSourceWithoutAudioDraft.draft.publication,
+  undefined,
+  'Every source-bound voice track must have verified source audio before three-source approval.',
+)
+assert.match(
+  thirdSourceWithoutAudioDraft.ok
+    ? thirdSourceWithoutAudioDraft.draft.publicationBlockers.join(' ')
+    : '',
+  /source-bound voice delivery/i,
+)
+
+const maximumBoundedSourceInput: PlannerInput = {
+  ...multiSourceInput,
+  clips: Array.from({ length: 8 }, (_unused, index) => ({
+    ...multiSourceInput.clips[0]!,
+    id: `canonical-maximum-clip-${index + 1}`,
+    fileName: `canonical-maximum-source-${index + 1}.mp4`,
+    duration: '00:01',
+    notes: `Approved private source ${index + 1} is finalized in confirmed order.`,
+    uploadedOrder: index + 1,
+    sourceRole: index === 0 ? 'main_story' as const : 'context' as const,
+  })),
+}
+const maximumBoundedSourceAssets = maximumBoundedSourceInput.clips.map((clip, index) => ({
+  ...multiSourceMediaAssets[0]!,
+  mediaAssetId: `canonical-maximum-media-${index + 1}`,
+  sourceSequenceItemId: `canonical-maximum-source-${index + 1}`,
+  uploadedClipId: clip.id,
+  uploadedOrder: index + 1,
+  fileName: clip.fileName,
+  storagePath: `private/maximum/source-${index + 1}.mp4`,
+  checksumSha256: sha(String(index + 1)),
+  sourceMetadata: { ...multiSourceMediaAssets[0]!.sourceMetadata, durationSeconds: 1 },
+}))
+const maximumBoundedSourcePlan = createMockEditPlan(maximumBoundedSourceInput)
+const maximumTiming = maximumBoundedSourcePlan.masterTimingPlan!
+const maximumCaptionTemplate = maximumTiming.captionTimingItems[0]!
+maximumTiming.captionTimingItems = [{
+  ...maximumCaptionTemplate,
+  id: 'maximum-source-full-duration-caption',
+  captionText: 'Approved full-duration caption across the confirmed eight-source sequence',
+  timeRange: {
+    startSeconds: 0,
+    endSeconds: maximumTiming.timingBase.totalDurationSeconds,
+    durationSeconds: maximumTiming.timingBase.totalDurationSeconds,
+    startFrame: 0,
+    endFrame: maximumTiming.timingBase.totalFrames,
+    durationFrames: maximumTiming.timingBase.totalFrames,
+    fps: maximumTiming.timingBase.fps,
+  },
+}]
+const maximumBoundedSourceDraft = buildCanonicalPlanningDraft({
+  plan: maximumBoundedSourcePlan,
+  plannerInput: maximumBoundedSourceInput,
+  sourceMediaAssets: maximumBoundedSourceAssets,
+})
+if (!maximumBoundedSourceDraft.ok || !maximumBoundedSourceDraft.draft.publication) {
+  throw new Error(
+    `Eight-source contract boundary did not compile: ${
+      maximumBoundedSourceDraft.ok
+        ? maximumBoundedSourceDraft.draft.publicationBlockers.join(' | ')
+        : maximumBoundedSourceDraft.errors.join(' | ')
+    }`,
+  )
+}
+const maximumCanonicalPlan = maximumBoundedSourceDraft.draft.publication.canonicalPlan
+assert.equal(maximumCanonicalPlan.workItems.filter((item) =>
+  item.workerClass === 'audio_processing_worker').length, 8)
+assert.equal(maximumCanonicalPlan.workItems.filter((item) =>
+  item.workerClass === 'color_processing_worker').length, 8)
+const maximumFinalItem = maximumCanonicalPlan.workItems.find((item) =>
+  item.workItemKey === 'final-export')!
+const maximumFinalPayload = validateOfflineRemotionFinalCompositionPlanningPayload(
+  asRecord(maximumFinalItem.executionInput.structuredPayload),
+)
+assert.equal(maximumFinalPayload.compositionProfileId, 'approved_source_sequence_caption_final_v1')
+if (maximumFinalPayload.compositionProfileId !== 'approved_source_sequence_caption_final_v1') {
+  throw new Error('Eight-source publication selected the wrong Remotion composition profile.')
+}
+assert.equal(maximumFinalPayload.sourceSegments.length, 8)
+assert.equal(maximumFinalPayload.hardCutTransitions.length, 7)
+assert.equal(maximumFinalPayload.voiceTracks?.length, 8)
+assert.deepEqual(
+  maximumCanonicalPlan.workItems.filter((item) =>
+    item.workerClass === 'color_processing_worker').slice(1).map((item) =>
+    item.dependencyKeys),
+  Array.from({ length: 7 }, () => ['color-delivery-1']),
+  'Every matched source at the eight-source boundary must depend directly on the first reference.',
+)
+const overLimitSourceInput: PlannerInput = {
+  ...maximumBoundedSourceInput,
+  clips: [...maximumBoundedSourceInput.clips, {
+    ...maximumBoundedSourceInput.clips[0]!,
+    id: 'canonical-over-limit-clip-9',
+    fileName: 'canonical-over-limit-source-9.mp4',
+    uploadedOrder: 9,
+    sourceRole: 'context',
+  }],
+}
+const overLimitSourcePlan = createMockEditPlan(overLimitSourceInput)
+const overLimitTiming = overLimitSourcePlan.masterTimingPlan!
+overLimitTiming.captionTimingItems = [{
+  ...overLimitTiming.captionTimingItems[0]!,
+  id: 'over-limit-full-duration-caption',
+  captionText: 'This over-limit sequence must fail before canonical publication',
+  timeRange: {
+    startSeconds: 0,
+    endSeconds: overLimitTiming.timingBase.totalDurationSeconds,
+    durationSeconds: overLimitTiming.timingBase.totalDurationSeconds,
+    startFrame: 0,
+    endFrame: overLimitTiming.timingBase.totalFrames,
+    durationFrames: overLimitTiming.timingBase.totalFrames,
+    fps: overLimitTiming.timingBase.fps,
+  },
+}]
+const overLimitSourceDraft = buildCanonicalPlanningDraft({
+  plan: overLimitSourcePlan,
+  plannerInput: overLimitSourceInput,
+  sourceMediaAssets: [...maximumBoundedSourceAssets, {
+    ...maximumBoundedSourceAssets[0]!,
+    mediaAssetId: 'canonical-over-limit-media-9',
+    sourceSequenceItemId: 'canonical-over-limit-source-9',
+    uploadedClipId: 'canonical-over-limit-clip-9',
+    uploadedOrder: 9,
+    fileName: 'canonical-over-limit-source-9.mp4',
+    storagePath: 'private/over-limit/source-9.mp4',
+    checksumSha256: sha('9'),
+  }],
+})
+assert.equal(
+  overLimitSourceDraft.ok,
+  true,
+  'An over-limit plan may preserve its exact planning context for user-visible recovery.',
+)
+assert.equal(
+  overLimitSourceDraft.ok && overLimitSourceDraft.draft.publication,
+  undefined,
+  'A ninth source must fail before canonical publication instead of widening the reviewed boundary.',
+)
+assert.ok(
+  overLimitSourceDraft.ok && overLimitSourceDraft.draft.publicationBlockers.includes(
+    'Private canonical review currently supports at most eight ordered source videos per composition.',
+  ),
+  'The over-limit plan must expose the exact eight-source execution boundary.',
+)
 
 const guidedSourceTruthPlan = createGuidedMockEditPlan(multiSourceInput)
 assert.equal(guidedSourceTruthPlan.masterTimingPlan?.timingBase.sourceDurationSeconds, 2)

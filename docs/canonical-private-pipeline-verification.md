@@ -16,7 +16,7 @@ and Edit Brief authority through a real resumable-sized 4K private ingest/proxy
 proof, source-only intent restraint, canonical plan
 presentation, the 4K estimate ceiling, separate approval, the opaque
 execution-package handoff, private preparation, private review,
-revision/history recovery, the bounded reference-bound multi-source
+revision/history recovery, the bounded three-source reference-bound
 voice/color proof, and the one-source professional-color regression proof. It
 also runs the active named-edit
 Playwright journey and the versioned
@@ -51,12 +51,12 @@ the compiled plan fits the bounded canonical profile.
    private-preparation, private-review, and journey-recovery clients.
 5. Exercise the real local backend authority chain for upload, publication,
    approval, synthetic reservation, snapshot, jobs, package, and readiness.
-6. Exercise the bounded ordered multi-source canonical lifecycle through lease,
+6. Exercise the bounded ordered three-source canonical lifecycle through lease,
    one-use dispatch, private artifacts, QA, reconciliation, replay, and private
-   download evidence. The focused lifecycle includes exact source-bound FFmpeg
-   voice-delivery WAVs, a QA-passed first-source color reference, a
-   dependency-bound second-source shot-match Matroska artifact, downstream
-   objective color-continuity verification, immutable approved hard-cut
+   download evidence. The focused lifecycle includes three exact source-bound
+   FFmpeg voice-delivery WAVs, a QA-passed first-source color reference, two
+   independently dependency-bound shot-match Matroska artifacts, downstream
+   objective color-continuity verification at both immutable approved hard-cut
    boundaries, ordered Remotion color/voice composition, and independent final
    H.264/AAC QA. Its Remotion image tag,
    build context, and runtime authority root are canonical-private resources so
@@ -98,8 +98,13 @@ that discovery channel; it does not weaken image-identity validation.
 
 ## Current Evidence Record
 
-On 2026-07-15, the full internal command passed all 24 phases in 671,748 ms
-with exit code 0. Its final signed-in regression completed two private uploads,
+On 2026-07-15, the full internal command passed all 24 phases in 712,956 ms
+with exit code 0. Its focused multi-source phase produced one real private 4K
+master from three ordered sources, three exact source-bound voice deliveries,
+one baseline plus two independently first-reference-bound color intermediates,
+and two approved hard cuts. Both boundary samples passed the unchanged
+continuity threshold before final QA, private download, and replay succeeded.
+The final signed-in regression separately completed two private uploads,
 backend media probing, Edit Preferences and Edit Brief compilation, confirmed
 frame preservation, plan invalidation and v2 republication, one 4K-ceiling
 approval, immutable snapshot/reservation/package creation, the server-derived
@@ -110,15 +115,14 @@ exactly 50 private canonical/job-adapter identities. Provider activation, live
 billing/wallet mutation, remote Supabase, public delivery, deployment, external
 beta, and paid production all remained false.
 
-On 2026-07-15, the canonical command passed all current 18 phases in 580,973 ms
-with exit code 0. The run included all 11 Chromium named-edit scenarios, exact
-source/preference/Edit Brief authority, the real resumable-sized 4K private
-ingest/proxy lifecycle, the universal 3840x2160 4K estimate ceiling, the bounded
-multi-source hard-cut/voice/reference-bound-color lifecycle, objective color
-continuity across the source boundary, the exact one-source professional-color
-regression, and evidence revision `2026-07-15.30` with exactly 50 private
-canonical/job-adapter identities. The prior 604,446 ms 18-phase run is the
-pre-reference-match baseline. The separate
+Earlier on 2026-07-15, the then-current canonical command passed 18 phases in
+580,973 ms with exit code 0. That historical run included the bounded
+two-source reference-match proof. Its multi-source phase is superseded by the
+three-source phase in the current 24-phase full run; it remains evidence for all
+11 Chromium named-edit scenarios, exact source/preference/Edit Brief authority,
+the real resumable-sized 4K private ingest/proxy lifecycle, the universal
+3840x2160 4K estimate ceiling, and evidence revision `2026-07-15.30`. The prior
+604,446 ms 18-phase run is the pre-reference-match baseline. The separate
 `npm run smoke:canonical-private-tool-dispatch` execution also passed with
 exit code 0, including exact dynamic unique-grant preservation after aggregate
 tamper/restore testing. These are local/private evidence results; all 50 tool
@@ -166,12 +170,15 @@ ordered source boundaries. It does not prove crossfades, wipes, zooms, pushes,
 match cuts, transition SFX, or arbitrary transition effects.
 
 The professional-color evidence applies only to the exact one-source bounded
-profile and the exact two-source first-source-reference profile. Both require
-`clean_natural` or `premium_clean`, subtle/balanced operations, approved
-replacement voice, lossless SDR intermediates, and objective QA. It does not
-prove arbitrary filters or LUTs, arbitrary reference selection, more than two
-color-matched sources, skin-tone isolation, HDR/wide-gamut delivery,
-distributed execution, public export, or production rendering.
+profile and the fixed first-source-reference multi-source profile. The compiler
+accepts two through eight sources under that fixed profile, while actual
+execution evidence reaches three sources; four through eight remain contract
+coverage. Every accepted profile requires `clean_natural` or `premium_clean`,
+subtle/balanced operations, approved replacement voice, lossless SDR
+intermediates, and objective QA. It does not prove arbitrary filters or LUTs,
+arbitrary reference selection, four-through-eight-source execution, skin-tone
+isolation, HDR/wide-gamut delivery, distributed execution, public export, or
+production rendering.
 
 The 50-tool report means exactly the reported tool identities have private
 canonical lifecycle and job-adapter evidence. It must not be restated as “50

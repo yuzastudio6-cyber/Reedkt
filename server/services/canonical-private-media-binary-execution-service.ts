@@ -4,11 +4,15 @@ import { ApiError } from '../errors/api-error'
 import {
   OFFLINE_MEDIA_BINARY_OPERATIONS,
   OFFLINE_MEDIA_BINARY_PROTOCOL,
+  OFFLINE_MEDIA_BINARY_SERVER_INPUT_MODE,
+  OFFLINE_MEDIA_BINARY_STREAM_PROTOCOL,
   openPrivateOfflineMediaBinaryRuntime,
   readPersistedOfflineMediaBinaryRuntimeAuthority,
   validateOfflineFfmpegExecutionRequest,
+  validateOfflineFfmpegStreamingExecutionRequest,
   validateOfflineFfmpegPlanningPayload,
   validateOfflineFfprobeExecutionRequest,
+  validateOfflineFfprobeStreamingExecutionRequest,
   validateOfflineFfprobePlanningPayload,
   type OfflineFfmpegExecutionResult,
   type OfflineFfmpegColorMatchDeliveryPlanningPayload,
@@ -39,6 +43,10 @@ import {
   type CanonicalPrivateDependencyArtifactReadResult,
 } from './canonical-private-dependency-artifact-read-service'
 import { createCanonicalPrivateSourceObjectReadService } from './canonical-private-source-object-read-service'
+import type {
+  CanonicalPrivateStagedSourceReadResult,
+  CanonicalPrivateStagedSourceSet,
+} from './canonical-private-source-object-read-service'
 import { createCanonicalPrivateToolDispatchAuthorityService } from './canonical-private-tool-dispatch-authority-service'
 import {
   persistCanonicalPrivateMediaArtifact,
@@ -185,47 +193,15 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
       const executionAttemptId = begun.executionFence.executionAttemptId
       let dependencyRead: CanonicalPrivateDependencyArtifactReadResult | undefined
       let referenceDependencyRead: CanonicalPrivateDependencyArtifactReadResult | undefined
-      let sourceRead: Awaited<ReturnType<ReturnType<
-        typeof createCanonicalPrivateSourceObjectReadService
-      >['readExactApprovedSource']>> | undefined
+      let sourceRead: CanonicalPrivateStagedSourceReadResult | undefined
+      let stagedSourceSet: CanonicalPrivateStagedSourceSet | undefined
       let finalMediaExpectation: CanonicalPrivateFinalMediaExpectation | undefined
-      if (dependencyFinalQa) {
-        dependencyRead = await createCanonicalPrivateDependencyArtifactReadService(context)
-          .readSingleSelectedArtifact({
-            workspaceId: body.workspaceId, projectId: body.projectId,
-            editSessionId: body.editSessionId, snapshotId: authority.snapshot.snapshotId,
-            currentJobId: body.jobId, currentApprovedWorkItemId: workItem.id,
-            leaseId: injected.leaseId, leaseCredential: injected.leaseCredential,
-            executionAttemptId, dispatchGrantId: body.grantId,
-            dependencyAuthority: begun.lease.dependencyAuthority,
-            allowedContentTypes: ['video/mp4'], maximumBytes: 16 * 1024 * 1024,
-          })
-        const finalJobReadiness = (await createCanonicalExecutionReadinessService(context).inspectJob({
-          workspaceId: body.workspaceId, projectId: body.projectId,
-          editSessionId: body.editSessionId, jobId: dependencyRead.dependencyJobId,
-          purpose: 'private_internal_dry_run_readiness',
-        })).executionReadinessEnvelope
-        const finalWorkItem = authority.workItems.find((candidate) =>
-          candidate.id === finalJobReadiness.job.approvedWorkItemId)
-        if (!finalWorkItem || finalWorkItem.workItemType !== 'render_final_export') {
-          throw denied('Final QA dependency is not the exact approved final-composition work item.')
-        }
-        finalMediaExpectation = validateOfflineRemotionFinalCompositionPlanningPayload(
-          finalWorkItem.executionInput.structuredPayload,
-        )
-      } else {
-        sourceRead = await createCanonicalPrivateSourceObjectReadService(context).readExactApprovedSource({
-          workspaceId: body.workspaceId, projectId: body.projectId,
-          snapshotId: authority.snapshot.snapshotId, jobId: body.jobId,
-          approvedWorkItem: workItem, approvedSourceManifest: authority.sourceAssetManifest,
-          leaseId: injected.leaseId, executionAttemptId, dispatchGrantId: body.grantId,
-        })
-        if (referenceColorMatch) {
-          if (
-            sourceRead.sourceSequenceItemId ===
-              referenceColorPlanningPayload!.referenceSourceSequenceItemId
-          ) throw denied('Shot-match target and reference source identities must be distinct.')
-          referenceDependencyRead = await createCanonicalPrivateDependencyArtifactReadService(context)
+      let inputByteLength: number
+      let inputSha256: string
+      let executionResult!: OfflineFfprobeExecutionResult | OfflineFfmpegExecutionResult
+      try {
+        if (dependencyFinalQa) {
+          dependencyRead = await createCanonicalPrivateDependencyArtifactReadService(context)
             .readSingleSelectedArtifact({
               workspaceId: body.workspaceId, projectId: body.projectId,
               editSessionId: body.editSessionId, snapshotId: authority.snapshot.snapshotId,
@@ -233,44 +209,105 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
               leaseId: injected.leaseId, leaseCredential: injected.leaseCredential,
               executionAttemptId, dispatchGrantId: body.grantId,
               dependencyAuthority: begun.lease.dependencyAuthority,
-              allowedContentTypes: ['video/x-matroska'], maximumBytes: 16 * 1024 * 1024,
+              allowedContentTypes: ['video/mp4'], maximumBytes: 16 * 1024 * 1024,
             })
-          assertReferenceColorDependency({
-            referenceDependencyRead,
-            planningPayload: referenceColorPlanningPayload!,
-            targetWorkItem: workItem,
-            authority,
-          })
-        }
-      }
-      const inputBytes = dependencyRead?.bytes ?? sourceRead!.bytes
-      const inputByteLength = dependencyRead?.byteLength ?? sourceRead!.byteLength
-      const inputSha256 = dependencyRead?.sha256 ?? sourceRead!.sha256
-      const sourcePayload = {
-        mimeType: 'video/mp4' as const,
-        sourceByteLength: inputByteLength,
-        sourceSha256: inputSha256,
-        sourceBytesBase64: inputBytes.toString('base64'),
-      }
-      const referencePayload = referenceDependencyRead
-        ? {
-            referenceMimeType: 'video/x-matroska' as const,
-            referenceSourceByteLength: referenceDependencyRead.byteLength,
-            referenceSourceSha256: referenceDependencyRead.sha256,
-            referenceSourceBytesBase64: referenceDependencyRead.bytes.toString('base64'),
+          const finalJobReadiness = (await createCanonicalExecutionReadinessService(context).inspectJob({
+            workspaceId: body.workspaceId, projectId: body.projectId,
+            editSessionId: body.editSessionId, jobId: dependencyRead.dependencyJobId,
+            purpose: 'private_internal_dry_run_readiness',
+          })).executionReadinessEnvelope
+          const finalWorkItem = authority.workItems.find((candidate) =>
+            candidate.id === finalJobReadiness.job.approvedWorkItemId)
+          if (!finalWorkItem || finalWorkItem.workItemType !== 'render_final_export') {
+            throw denied('Final QA dependency is not the exact approved final-composition work item.')
           }
-        : {}
-      const executionResult = toolId === 'ffmpeg'
-        ? await runtime.execute(validateOfflineFfmpegExecutionRequest({
-            schemaVersion: OFFLINE_MEDIA_BINARY_PROTOCOL,
-            toolId, operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
-            payload: { ...planningPayload, ...sourcePayload, ...referencePayload },
-          }))
-        : await runtime.execute(validateOfflineFfprobeExecutionRequest({
-            schemaVersion: OFFLINE_MEDIA_BINARY_PROTOCOL,
-            toolId, operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffprobe,
-            payload: { ...planningPayload, ...sourcePayload },
-          }))
+          finalMediaExpectation = validateOfflineRemotionFinalCompositionPlanningPayload(
+            finalWorkItem.executionInput.structuredPayload,
+          )
+        } else {
+          stagedSourceSet = await createCanonicalPrivateSourceObjectReadService(context)
+            .stageExactApprovedSource({
+              workspaceId: body.workspaceId, projectId: body.projectId,
+              editSessionId: body.editSessionId,
+              snapshotId: authority.snapshot.snapshotId, jobId: body.jobId,
+              approvedWorkItem: workItem, approvedSourceManifest: authority.sourceAssetManifest,
+              leaseId: injected.leaseId, executionAttemptId, dispatchGrantId: body.grantId,
+            })
+          sourceRead = stagedSourceSet.sources[0]
+          if (!sourceRead) throw denied('Exact approved source staging returned no source authority.')
+          if (referenceColorMatch) {
+            if (
+              sourceRead.sourceSequenceItemId ===
+                referenceColorPlanningPayload!.referenceSourceSequenceItemId
+            ) throw denied('Shot-match target and reference source identities must be distinct.')
+            referenceDependencyRead = await createCanonicalPrivateDependencyArtifactReadService(context)
+              .readSingleSelectedArtifact({
+                workspaceId: body.workspaceId, projectId: body.projectId,
+                editSessionId: body.editSessionId, snapshotId: authority.snapshot.snapshotId,
+                currentJobId: body.jobId, currentApprovedWorkItemId: workItem.id,
+                leaseId: injected.leaseId, leaseCredential: injected.leaseCredential,
+                executionAttemptId, dispatchGrantId: body.grantId,
+                dependencyAuthority: begun.lease.dependencyAuthority,
+                allowedContentTypes: ['video/x-matroska'], maximumBytes: 16 * 1024 * 1024,
+              })
+            assertReferenceColorDependency({
+              referenceDependencyRead,
+              planningPayload: referenceColorPlanningPayload!,
+              targetWorkItem: workItem,
+              authority,
+            })
+          }
+        }
+        inputByteLength = dependencyRead?.byteLength ?? sourceRead!.byteLength
+        inputSha256 = dependencyRead?.sha256 ?? sourceRead!.sha256
+        const referencePayload = referenceDependencyRead
+          ? {
+              referenceMimeType: 'video/x-matroska' as const,
+              referenceSourceByteLength: referenceDependencyRead.byteLength,
+              referenceSourceSha256: referenceDependencyRead.sha256,
+              referenceSourceBytesBase64: referenceDependencyRead.bytes.toString('base64'),
+            }
+          : {}
+        if (dependencyRead) {
+          const sourcePayload = {
+            mimeType: 'video/mp4' as const,
+            sourceByteLength: inputByteLength,
+            sourceSha256: inputSha256,
+            sourceBytesBase64: dependencyRead.bytes.toString('base64'),
+          }
+          executionResult = toolId === 'ffmpeg'
+            ? await runtime.execute(validateOfflineFfmpegExecutionRequest({
+                schemaVersion: OFFLINE_MEDIA_BINARY_PROTOCOL,
+                toolId, operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
+                payload: { ...planningPayload, ...sourcePayload, ...referencePayload },
+              }))
+            : await runtime.execute(validateOfflineFfprobeExecutionRequest({
+                schemaVersion: OFFLINE_MEDIA_BINARY_PROTOCOL,
+                toolId, operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffprobe,
+                payload: { ...planningPayload, ...sourcePayload },
+              }))
+        } else {
+          const sourcePayload = {
+            mimeType: 'video/mp4' as const,
+            sourceByteLength: inputByteLength,
+            sourceSha256: inputSha256,
+            sourceInputMode: OFFLINE_MEDIA_BINARY_SERVER_INPUT_MODE,
+          }
+          executionResult = toolId === 'ffmpeg'
+            ? await runtime.executeServerInjected(validateOfflineFfmpegStreamingExecutionRequest({
+                schemaVersion: OFFLINE_MEDIA_BINARY_STREAM_PROTOCOL,
+                toolId, operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
+                payload: { ...planningPayload, ...sourcePayload, ...referencePayload },
+              }), sourceRead!.sourceInput)
+            : await runtime.executeServerInjected(validateOfflineFfprobeStreamingExecutionRequest({
+                schemaVersion: OFFLINE_MEDIA_BINARY_STREAM_PROTOCOL,
+                toolId, operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffprobe,
+                payload: { ...planningPayload, ...sourcePayload },
+              }), sourceRead!.sourceInput)
+        }
+      } finally {
+        await stagedSourceSet?.cleanup()
+      }
       const normalized = normalizeExecutionResult(executionResult)
       if (
         executionResult.evidence.toolId !== toolId ||
@@ -404,6 +441,10 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
           inputArtifactSha256: inputSha256, inputArtifactByteLength: inputByteLength,
           sourceSequenceItemId: sourceRead!.sourceSequenceItemId,
           sourceBindingHash: sourceRead!.bindingHash,
+          sourceInputMode: OFFLINE_MEDIA_BINARY_SERVER_INPUT_MODE,
+          sourceStagingEvidenceHash: sourceRead!.stagingEvidenceHash,
+          sourceCapacityEvidenceHash: stagedSourceSet!.capacityEvidenceHash,
+          sourceStagingCleaned: true as const,
           referenceSourceSequenceItemId:
             referenceColorPlanningPayload!.referenceSourceSequenceItemId,
           referenceOutputKey: referenceColorPlanningPayload!.referenceOutputKey,
@@ -423,6 +464,10 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
           inputArtifactSha256: inputSha256, inputArtifactByteLength: inputByteLength,
           sourceSequenceItemId: sourceRead!.sourceSequenceItemId,
           sourceBindingHash: sourceRead!.bindingHash,
+          sourceInputMode: OFFLINE_MEDIA_BINARY_SERVER_INPUT_MODE,
+          sourceStagingEvidenceHash: sourceRead!.stagingEvidenceHash,
+          sourceCapacityEvidenceHash: stagedSourceSet!.capacityEvidenceHash,
+          sourceStagingCleaned: true as const,
           renderExecuted: false as const, finalExportExecuted: false as const,
         },
         finalArtifactQa,

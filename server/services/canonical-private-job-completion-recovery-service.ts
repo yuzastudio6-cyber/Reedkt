@@ -334,6 +334,12 @@ function buildRecoveredResponse(input: {
       attemptCostEvidenceRecorded: input.attemptCostEvidenceRecorded,
       dependencyArtifactInput: input.dependencyArtifactInput,
       finalArtifactQaPassed: input.input.finalCompositionExecution,
+      // Generic artifact/QA recovery does not retain attempt-level source
+      // staging evidence, so it must not infer these proofs from a completed
+      // artifact or from the current runner implementation.
+      sourceStreamInputVerified: false,
+      sourceStagingCleanupVerified: false,
+      largeSourceOverLegacyBufferVerified: false,
     },
     permissions: deniedPermissions(),
     readiness: {

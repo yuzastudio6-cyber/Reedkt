@@ -47,7 +47,11 @@ import {
   persistCanonicalPrivateRemotionArtifact,
   readCanonicalPrivateRemotionArtifact,
 } from './canonical-private-remotion-artifact-storage'
-import { createCanonicalPrivateSourceObjectReadService } from './canonical-private-source-object-read-service'
+import {
+  CANONICAL_PRIVATE_SOURCE_OBJECT_BUFFER_MAX_BYTES,
+  createCanonicalPrivateSourceObjectReadService,
+  type CanonicalPrivateStagedSourceReadResult,
+} from './canonical-private-source-object-read-service'
 import { createCanonicalPrivateToolDispatchAuthorityService } from './canonical-private-tool-dispatch-authority-service'
 import { createCanonicalWorkerLeaseAuthorityService } from './canonical-worker-lease-authority-service'
 import { createEditPlanningAuthorityService } from './edit-planning-authority-service'
@@ -262,14 +266,11 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
       const executionAttemptId = begun.executionFence.executionAttemptId
       const sourceReadInput = {
         workspaceId: body.workspaceId, projectId: body.projectId,
+        editSessionId: body.editSessionId,
         snapshotId: authority.snapshot.snapshotId, jobId: body.jobId,
         approvedWorkItem: workItem, approvedSourceManifest: authority.sourceAssetManifest,
         leaseId: injected.leaseId, executionAttemptId, dispatchGrantId: body.grantId,
       }
-      const sourceReader = createCanonicalPrivateSourceObjectReadService(context)
-      const sources = sequenceProfile
-        ? await sourceReader.readExactApprovedSources(sourceReadInput)
-        : [await sourceReader.readExactApprovedSource(sourceReadInput)]
       const dependencyReader = createCanonicalPrivateDependencyArtifactReadService(context)
       const dependencies: CanonicalPrivateDependencyArtifactReadResult[] = []
       for (
@@ -352,60 +353,74 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
         dependencyJobId: trimArtifact.dependencyJobId,
         expectedAssetId: trimArtifact.expectedAssetId,
       })
-      const request = buildOfflineRemotionFinalCompositionRequest({
-        planningPayload,
-        ...(sequenceProfile
-          ? {
-              sources: sources.map((source, index) => ({
-                sourceSequenceItemId: source.sourceSequenceItemId,
-                mimeType: colorSources[index]
-                  ? 'video/x-matroska' as const
-                  : CONTENT_TYPE,
-                bytes: colorSources[index]?.dependency.bytes ?? source.bytes,
-                sha256: colorSources[index]?.dependency.sha256 ?? source.sha256,
-              })),
-            }
-          : {
-              source: {
-                mimeType: colorSources[0] ? 'video/x-matroska' as const : CONTENT_TYPE,
-                bytes: colorSources[0]?.dependency.bytes ?? sources[0]!.bytes,
-                sha256: colorSources[0]?.dependency.sha256 ?? sources[0]!.sha256,
-              },
-            }),
-        ...(captionTrackProfile
-          ? {
-              captionOverlays: captions.map((caption, index) => ({
-                outputKey: planningPayload.captionOverlayCues[index]!.outputKey,
-                mimeType: 'image/png' as const,
-                bytes: caption.bytes,
-                sha256: caption.sha256,
-              })),
-            }
-          : {
-              captionOverlay: {
-                mimeType: 'image/png' as const,
-                bytes: captions[0]!.bytes,
-                sha256: captions[0]!.sha256,
-              },
-            }),
-        ...(replaceVoice
-          ? {
-              voiceTracks: voiceTracks.map((voiceTrack, index) => ({
-                sourceSequenceItemId:
-                  planningPayload.voiceTracks![index]!.sourceSequenceItemId,
-                outputKey: planningPayload.voiceTracks![index]!.outputKey,
-                mimeType: 'audio/wav' as const,
-                bytes: voiceTrack.bytes,
-                sha256: voiceTrack.sha256,
-              })),
-            }
-          : {}),
-      })
-      if (!isFinalCompositionPayload(request.payload)) {
-        throw denied('Final composition request resolved to the wrong profile.')
+      const sourceReader = createCanonicalPrivateSourceObjectReadService(context)
+      const stagedSourceSet = sequenceProfile
+        ? await sourceReader.stageExactApprovedSources(sourceReadInput)
+        : await sourceReader.stageExactApprovedSource(sourceReadInput)
+      const sources: CanonicalPrivateStagedSourceReadResult[] = stagedSourceSet.sources
+      let request!: ReturnType<typeof buildOfflineRemotionFinalCompositionRequest>
+      let result!: OfflineRemotionRenderResult
+      try {
+        const directSourceBytes = usesApprovedColorIntermediate
+          ? []
+          : await Promise.all(sources.map((source) => readBoundedStagedSource(source)))
+        request = buildOfflineRemotionFinalCompositionRequest({
+          planningPayload,
+          ...(sequenceProfile
+            ? {
+                sources: sources.map((source, index) => ({
+                  sourceSequenceItemId: source.sourceSequenceItemId,
+                  mimeType: colorSources[index]
+                    ? 'video/x-matroska' as const
+                    : CONTENT_TYPE,
+                  bytes: colorSources[index]?.dependency.bytes ?? directSourceBytes[index]!,
+                  sha256: colorSources[index]?.dependency.sha256 ?? source.sha256,
+                })),
+              }
+            : {
+                source: {
+                  mimeType: colorSources[0] ? 'video/x-matroska' as const : CONTENT_TYPE,
+                  bytes: colorSources[0]?.dependency.bytes ?? directSourceBytes[0]!,
+                  sha256: colorSources[0]?.dependency.sha256 ?? sources[0]!.sha256,
+                },
+              }),
+          ...(captionTrackProfile
+            ? {
+                captionOverlays: captions.map((caption, index) => ({
+                  outputKey: planningPayload.captionOverlayCues[index]!.outputKey,
+                  mimeType: 'image/png' as const,
+                  bytes: caption.bytes,
+                  sha256: caption.sha256,
+                })),
+              }
+            : {
+                captionOverlay: {
+                  mimeType: 'image/png' as const,
+                  bytes: captions[0]!.bytes,
+                  sha256: captions[0]!.sha256,
+                },
+              }),
+          ...(replaceVoice
+            ? {
+                voiceTracks: voiceTracks.map((voiceTrack, index) => ({
+                  sourceSequenceItemId:
+                    planningPayload.voiceTracks![index]!.sourceSequenceItemId,
+                  outputKey: planningPayload.voiceTracks![index]!.outputKey,
+                  mimeType: 'audio/wav' as const,
+                  bytes: voiceTrack.bytes,
+                  sha256: voiceTrack.sha256,
+                })),
+              }
+            : {}),
+        })
+        if (!isFinalCompositionPayload(request.payload)) {
+          throw denied('Final composition request resolved to the wrong profile.')
+        }
+        result = await runtime.execute(request)
+        assertFinalResult(result, request)
+      } finally {
+        await stagedSourceSet.cleanup()
       }
-      const result = await runtime.execute(request)
-      assertFinalResult(result, request)
       const probe = await mediaRuntime.execute(validateOfflineFfprobeExecutionRequest({
         schemaVersion: OFFLINE_MEDIA_BINARY_PROTOCOL,
         toolId: 'ffprobe', operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffprobe,
@@ -598,6 +613,9 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
           canonicalToolId: 'remotion' as const, operationId: OFFLINE_REMOTION_RENDER_OPERATION,
           compositionProfileId: planningPayload.compositionProfileId,
           actualRemotionOperationCompleted: true as const, approvedSourceObjectRead: true as const,
+          approvedSourceInputMode: 'server_injected_private_stream_v1' as const,
+          approvedSourceStagingCleaned: true as const,
+          approvedSourceCapacityEvidenceHash: stagedSourceSet.capacityEvidenceHash,
           approvedSourceTrimDependencyRead: true as const,
           approvedSourceTrimFramesApplied: true as const,
           approvedHardCutTransitionAuthorityRead: sequenceProfile,
@@ -628,6 +646,7 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
                 sourceSha256: source.sha256,
                 sourceByteLength: source.byteLength,
                 sourceReadEvidenceHash: source.sourceReadEvidenceHash,
+                sourceStagingEvidenceHash: source.stagingEvidenceHash,
                 sourceCleanupDecisionId: sourceTrim[index]!.decisionId,
                 sourceStartFrame: sourceTrim[index]!.startFrame,
                 sourceEndFrameExclusive: sourceTrim[index]!.endFrameExclusive,
@@ -653,6 +672,7 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
               sourceMediaAssetId: sources[0]!.mediaAssetId,
               sourceSha256: sources[0]!.sha256, sourceByteLength: sources[0]!.byteLength,
               sourceReadEvidenceHash: sources[0]!.sourceReadEvidenceHash,
+              sourceStagingEvidenceHash: sources[0]!.stagingEvidenceHash,
               sourceTrimArtifactId: trimArtifact.artifactId,
               sourceTrimSha256: trimArtifact.sha256,
               sourceTrimByteLength: trimArtifact.byteLength,
@@ -1276,6 +1296,35 @@ function assertPersisted(
     artifact.actualRunEvidence.dispatchGrantId !== input.dispatchGrantId ||
     artifact.actualRunEvidence.executionAttemptId !== input.executionAttemptId
   ) throw denied('Persisted final composition does not match actual-run evidence.')
+}
+
+async function readBoundedStagedSource(
+  source: CanonicalPrivateStagedSourceReadResult,
+): Promise<Buffer> {
+  if (
+    source.byteLength < 64 ||
+    source.byteLength > CANONICAL_PRIVATE_SOURCE_OBJECT_BUFFER_MAX_BYTES
+  ) {
+    throw denied(
+      'A large approved source requires its QA-passed professional color intermediate before final composition.',
+    )
+  }
+  const chunks: Buffer[] = []
+  let total = 0
+  const checksum = createHash('sha256')
+  for await (const chunk of await source.sourceInput.openStream()) {
+    const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)
+    total += bytes.byteLength
+    if (total > source.byteLength || total > CANONICAL_PRIVATE_SOURCE_OBJECT_BUFFER_MAX_BYTES) {
+      throw denied('Staged direct-composition source exceeded its exact byte commitment.')
+    }
+    checksum.update(bytes)
+    chunks.push(bytes)
+  }
+  if (total !== source.byteLength || checksum.digest('hex') !== source.sha256) {
+    throw denied('Staged direct-composition source failed exact size and checksum verification.')
+  }
+  return Buffer.concat(chunks, total)
 }
 
 function key(prefix: string, hash: string): string { return `${prefix}-${hash.slice(0, 56)}` }

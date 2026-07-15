@@ -157,6 +157,7 @@ export function createCanonicalPrivatePythonToolExecutionService(context: Servic
         ? await createCanonicalPrivateSourceObjectReadService(context).readExactApprovedSource({
             workspaceId: body.workspaceId,
             projectId: body.projectId,
+            editSessionId: body.editSessionId,
             snapshotId: authority.snapshot.snapshotId,
             jobId: body.jobId,
             approvedWorkItem: workItem,

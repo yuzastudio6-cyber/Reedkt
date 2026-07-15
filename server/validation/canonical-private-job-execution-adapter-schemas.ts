@@ -74,6 +74,9 @@ export const canonicalPrivateJobExecutionAdapterResponseSchema = z.object({
     attemptCostEvidenceRecorded: z.boolean(),
     dependencyArtifactInput: z.boolean(),
     finalArtifactQaPassed: z.boolean(),
+    sourceStreamInputVerified: z.boolean(),
+    sourceStagingCleanupVerified: z.boolean(),
+    largeSourceOverLegacyBufferVerified: z.boolean(),
   }).strict(),
   permissions: z.object({
     providerCall: z.literal(false),

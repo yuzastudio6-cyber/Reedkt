@@ -55,6 +55,28 @@ The focused and aggregate runs observed about 22.5 GB available on the private
 worker filesystem against an approximately 8.62 GB admission requirement.
 Available-space figures are environment observations, not deployment guarantees.
 
+## Canonical execution follow-up
+
+This ingestion/proxy proof is now complemented by
+`docs/canonical-large-source-streaming-verification-2026-07-15.md`. The follow-up
+uses a separate valid 18,874,505-byte 3840x2160 MP4 and carries it through
+resumable upload, background finalization, canonical planning and approval,
+source-bound voice and professional color, private 4K composition, independent
+final QA, replay, and private download. It preserves the original 4K estimate
+and reservation with no export-time estimate or charge.
+
+The follow-up does not turn this 27 MB proxy fixture or the 18.9 MB canonical
+fixture into long-duration, genuinely huge, live-cloud, product, beta, or
+production evidence. Canonical output/intermediate and Remotion-input buffers
+remain a separate open architecture gate.
+
+The exact post-change `npm run qa:internal-pipeline` aggregate completed all 24
+phases in 1,075,984 ms with exit code 0. It included both byte-representative 4K
+fixtures, the separate three-source continuity composition, the 50-tool identity
+report, and the maximum eight-source signed-in private-review regression. This
+is local/private aggregate evidence only; it does not close any live-cloud or
+production gate listed below.
+
 ## Honest boundary
 
 This is a short, byte-representative 4K fixture. It proves the connected private

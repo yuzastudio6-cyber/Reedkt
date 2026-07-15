@@ -671,7 +671,19 @@ function normalizeResponse(input: {
 }): CanonicalPrivateJobExecutionAdapterResponse {
   const result = input.rawResponse.result
   const coordinatorTool = optionalRecord(input.rawResponse.tool)
+  const coordinatorInputs = optionalRecord(input.rawResponse.inputs)
   const finalArtifactQa = optionalRecord(input.rawResponse.finalArtifactQa)
+  const sourceInputMode = coordinatorTool?.sourceInputMode ??
+    coordinatorTool?.approvedSourceInputMode
+  const sourceStagingCleaned = coordinatorTool?.sourceStagingCleaned ??
+    coordinatorTool?.approvedSourceStagingCleaned
+  const sourceByteLengths = [
+    coordinatorTool?.inputArtifactByteLength,
+    coordinatorInputs?.sourceByteLength,
+    ...(Array.isArray(coordinatorInputs?.sources)
+      ? coordinatorInputs.sources.map((source) => optionalRecord(source)?.sourceByteLength)
+      : []),
+  ].filter((value) => Number.isSafeInteger(value) && Number(value) > 0)
   const dependencyGates = input.finalCompositionExecution
     ? normalizeFinalCompositionDependencyGates(input.rawResponse)
     : result.liveRuntimeDependencySatisfied === undefined
@@ -733,6 +745,14 @@ function normalizeResponse(input: {
         coordinatorTool?.inputKind === 'qa_passed_dependency_artifact' ||
         coordinatorTool?.dependencyArtifactRead === true,
       finalArtifactQaPassed: finalArtifactQa?.finalQaGatesPassed === true,
+      sourceStreamInputVerified:
+        sourceInputMode === 'server_injected_private_stream_v1',
+      sourceStagingCleanupVerified:
+        sourceInputMode === 'server_injected_private_stream_v1' && sourceStagingCleaned === true,
+      largeSourceOverLegacyBufferVerified:
+        sourceInputMode === 'server_injected_private_stream_v1' &&
+        sourceStagingCleaned === true &&
+        sourceByteLengths.some((sourceByteLength) => Number(sourceByteLength) > 16 * 1024 * 1024),
     },
     permissions: {
       providerCall: false as const,

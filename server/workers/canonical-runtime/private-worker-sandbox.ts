@@ -1,12 +1,16 @@
 import { createHash, randomUUID } from 'node:crypto'
-import { lstat, rm } from 'node:fs/promises'
+import { lstat } from 'node:fs/promises'
 import { resolve, sep } from 'node:path'
 import type { Readable } from 'node:stream'
+import { finished } from 'node:stream/promises'
 import { ApiError } from '../../errors/api-error'
 import {
+  createPrivateDirectoryCreateOnlyWithinRoot,
   createPrivateReadStreamWithinRoot,
   ensurePrivateDirectoryWithinRoot,
+  removePrivateDirectoryTreeWithinRoot,
   writePrivateStreamCreateOnlyWithinRoot,
+  type PrivateDirectoryIdentity,
 } from '../../security/private-local-persistence'
 
 export const PRIVATE_CANONICAL_WORKER_SANDBOX_VERSION =
@@ -18,6 +22,7 @@ export interface PrivateCanonicalWorkerSandbox {
   localStorageRoot: string
   relativeDirectory: string
   absoluteDirectory: string
+  directoryIdentity: PrivateDirectoryIdentity
   privateInternalOnly: true
 }
 
@@ -37,8 +42,11 @@ export async function createPrivateCanonicalWorkerSandbox(input: {
   workspaceId: string
   projectId: string
   editSessionId: string
+  snapshotId: string
   jobId: string
   leaseId: string
+  executionAttemptId: string
+  dispatchGrantId: string
 }): Promise<PrivateCanonicalWorkerSandbox> {
   for (const [field, value] of Object.entries(input).filter(([key]) => key !== 'localStorageRoot')) {
     assertSafeIdentity(value, field)
@@ -48,8 +56,11 @@ export async function createPrivateCanonicalWorkerSandbox(input: {
     input.workspaceId,
     input.projectId,
     input.editSessionId,
+    input.snapshotId,
     input.jobId,
     input.leaseId,
+    input.executionAttemptId,
+    input.dispatchGrantId,
   ].join('\n')).digest('hex')
   const sandboxId = `worker_sandbox_${randomUUID()}`
   const relativeDirectory = [
@@ -58,7 +69,7 @@ export async function createPrivateCanonicalWorkerSandbox(input: {
     `scope-${scopeHash}`,
     sandboxId,
   ].join('/')
-  const absoluteDirectory = await ensurePrivateDirectoryWithinRoot({
+  const created = await createPrivateDirectoryCreateOnlyWithinRoot({
     rootPath: input.localStorageRoot,
     relativePath: relativeDirectory,
   })
@@ -67,7 +78,8 @@ export async function createPrivateCanonicalWorkerSandbox(input: {
     sandboxId,
     localStorageRoot: input.localStorageRoot,
     relativeDirectory,
-    absoluteDirectory,
+    absoluteDirectory: created.absolutePath,
+    directoryIdentity: created.identity,
     privateInternalOnly: true,
   }
 }
@@ -91,12 +103,19 @@ export async function materializeVerifiedPrivateWorkerInput(input: {
     throw new ApiError('VALIDATION_FAILED', 'Expected private worker input checksum is invalid.', 400)
   }
   const relativePath = `${input.sandbox.relativeDirectory}/inputs/${input.inputId}.${extension}`
-  const materialized = await writePrivateStreamCreateOnlyWithinRoot({
-    rootPath: input.sandbox.localStorageRoot,
-    relativePath,
-    stream: input.stream,
-    maximumBytes: input.maximumBytes,
-  })
+  let materialized: Awaited<ReturnType<typeof writePrivateStreamCreateOnlyWithinRoot>>
+  try {
+    materialized = await writePrivateStreamCreateOnlyWithinRoot({
+      rootPath: input.sandbox.localStorageRoot,
+      relativePath,
+      stream: input.stream,
+      maximumBytes: input.maximumBytes,
+    })
+  } catch (error) {
+    input.stream.destroy()
+    await finished(input.stream).catch(() => undefined)
+    throw error
+  }
   if (
     materialized.byteLength !== input.expectedByteLength ||
     materialized.checksumSha256 !== input.expectedChecksumSha256
@@ -153,12 +172,19 @@ export async function promotePrivateWorkerOutputCreateOnly(input: {
     rootPath: input.sandbox.localStorageRoot,
     relativePath: input.scratchRelativePath,
   })
-  const promoted = await writePrivateStreamCreateOnlyWithinRoot({
-    rootPath: input.sandbox.localStorageRoot,
-    relativePath: input.artifactRelativePath,
-    stream,
-    maximumBytes: input.maximumBytes,
-  })
+  let promoted: Awaited<ReturnType<typeof writePrivateStreamCreateOnlyWithinRoot>>
+  try {
+    promoted = await writePrivateStreamCreateOnlyWithinRoot({
+      rootPath: input.sandbox.localStorageRoot,
+      relativePath: input.artifactRelativePath,
+      stream,
+      maximumBytes: input.maximumBytes,
+    })
+  } catch (error) {
+    stream.destroy()
+    await finished(stream).catch(() => undefined)
+    throw error
+  }
   return {
     relativePath: input.artifactRelativePath,
     ...promoted,
@@ -170,7 +196,11 @@ export async function destroyPrivateCanonicalWorkerSandbox(
 ): Promise<void> {
   assertSandbox(sandbox)
   assertPathWithinSandbox(sandbox, sandbox.absoluteDirectory)
-  await rm(sandbox.absoluteDirectory, { force: true, recursive: true })
+  await removePrivateDirectoryTreeWithinRoot({
+    rootPath: sandbox.localStorageRoot,
+    relativePath: sandbox.relativeDirectory,
+    expectedIdentity: sandbox.directoryIdentity,
+  })
 }
 
 function assertSandbox(sandbox: PrivateCanonicalWorkerSandbox): void {
@@ -181,6 +211,8 @@ function assertSandbox(sandbox: PrivateCanonicalWorkerSandbox): void {
     sandbox.privateInternalOnly !== true ||
     !sandbox.relativeDirectory.endsWith(`/${sandbox.sandboxId}`) ||
     resolve(sandbox.absoluteDirectory) !== expectedAbsoluteDirectory ||
+    !Number.isSafeInteger(sandbox.directoryIdentity?.device) ||
+    !Number.isSafeInteger(sandbox.directoryIdentity?.inode) ||
     !expectedAbsoluteDirectory.startsWith(`${normalizedRoot}${sep}`)
   ) {
     throw new ApiError('VALIDATION_FAILED', 'Private canonical worker sandbox identity is invalid.', 400)

@@ -1,6 +1,6 @@
 # Large Media Ingestion And Proxy Readiness — 2026-07-13
 
-Status: `source_hardened_resumable_sized_4k_private_pipeline_verified_live_cloud_and_huge_scale_unverified`
+Status: `source_hardened_resumable_sized_4k_ingestion_and_canonical_private_execution_verified_live_cloud_long_duration_and_huge_scale_unverified`
 
 This slice makes ReEditPro's upload contract suitable for professional-size
 source footage without claiming that a deployed environment has processed a
@@ -13,6 +13,14 @@ stored-byte verification, generation-bound private finalization, FFprobe,
 durable replay, exact-source verification, and checksum-bound proxy creation.
 See `docs/large-media-private-4k-pipeline-verification-2026-07-15.md`. This is a
 short 27 MB fixture, not a long-duration or maximum-size claim.
+
+A second 2026-07-15 proof connects a valid 18,874,505-byte 3840x2160 MP4
+through the same resumable/background-finalization boundary and then through
+canonical planning, approval, reservation, source-bound voice and color,
+private 4K composition, final QA, replay, and download. See
+`docs/canonical-large-source-streaming-verification-2026-07-15.md`. That closes
+the former over-16-MiB canonical source-input disconnect for one short MP4; it
+does not close the long-duration/output-buffer or live-cloud gates.
 
 ## Product limits
 
@@ -81,7 +89,9 @@ lease at a time. Heartbeats, bounded attempt deadlines, three-attempt retry
 authority, expired-lease reclamation, terminal failure, and completed-result
 replay survive fresh service instances.
 
-This proves the control plane with synthetic completion evidence only. It is a
+The focused background-finalization smoke proves the control plane with
+synthetic completion evidence. The separate 27 MB ingestion/proxy and 18.9 MB
+canonical executions traverse real local-backed stored bytes. All remain a
 single-process/single-host private testing boundary, not a deployed queue. The
 current worker implementation still performs full stored-byte hashing and then
 privately stages the exact generation for FFprobe; an interrupted attempt
@@ -152,6 +162,7 @@ Run:
 npm run smoke:large-media-ingest-readiness
 npm run smoke:large-media-background-finalization
 npm run smoke:large-media-private-4k-pipeline
+npm run smoke:canonical-private-color-execution
 npm run smoke:source-upload-planning-backend
 npm run smoke:upload
 npm run smoke:upload-boundary-security
@@ -184,14 +195,16 @@ creates a checksum-bound 1920x1080 Rec.709 analysis proxy, and re-verifies that
 the immutable source checksum did not change. It intentionally keeps real
 50 GiB, 250 GiB, ceiling-boundary, long-duration, and live-cloud claims false.
 
-The post-change focused large-media smoke, upload/planning smoke, build, lint,
-server typecheck, and completion audit passed. The completion audit covers 19
-requirements with 152 named evidence checks. One full aggregate review attempt
-reached the existing canonical Docker dispatch stage and hit its fixed command
-timeout; the exact canonical 50-tool dispatch stage then passed in isolation.
-No post-change all-stage aggregate pass is claimed. These results prove the
-local/private and fake-provider boundaries described here; they do not promote
-live-cloud readiness.
+The post-change focused large-media smokes, upload and persistence security
+checks, production build, scoped lint, server typecheck, and full internal
+aggregate passed. On 2026-07-15, `npm run qa:internal-pipeline` completed all 24
+phases in 1,075,984 ms with exit code 0. The run included the 27,109,799-byte
+ingestion/proxy lifecycle, the separate 18,874,505-byte canonical source
+lifecycle, the three-source continuity composition, the 50-tool identity
+report, 11 named-edit browser tests, and the maximum eight-source signed-in
+private-review regression. These results prove only the local/private and
+fake-provider boundaries described here; they do not promote live-cloud,
+external-beta, public-delivery, or production readiness.
 
 ## Remaining gates
 
@@ -217,9 +230,15 @@ ReEditPro must not claim production large-video support until all of these pass:
   metadata/timecode sidecars are verified; current source detection blocks the
   unsafe SDR proxy route but does not yet perform the transform;
 - real 50 GiB, 250 GiB, and ceiling-boundary uploads pass interrupted/resumed
-  tests without API memory growth; and
+  tests without API memory growth;
+- canonical source-bound execution accepts the other admitted professional
+  containers, removes the current short-duration profile ceiling, and streams
+  large intermediates/final composition without the current bounded in-memory
+  dependency, request, and output contracts; and
 - workspace/project storage quotas, retention, privacy deletion, and cost
   controls are deployed.
 
 No live GCS object, IAM policy, Supabase row, provider, worker deployment,
-billing state, render, export, or package lock was changed by this slice.
+billing state, public/production render, public export, or package lock was
+changed by this slice. Private local 4K render and QA execution occurred only
+inside the explicit internal-test boundary.

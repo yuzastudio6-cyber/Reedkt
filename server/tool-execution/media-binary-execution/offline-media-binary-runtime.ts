@@ -2,6 +2,8 @@ import { spawn } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import { Readable, Transform } from 'node:stream'
+import { pipeline } from 'node:stream/promises'
 
 import { ApiError } from '../../errors/api-error'
 import {
@@ -16,6 +18,12 @@ import {
   type OfflineFfmpegExecutionRequest,
   type OfflineFfprobeExecutionRequest,
 } from './offline-media-binary-protocol'
+import {
+  validateOfflineFfmpegStreamingExecutionRequest,
+  validateOfflineFfprobeStreamingExecutionRequest,
+  type OfflineFfmpegStreamingExecutionRequest,
+  type OfflineFfprobeStreamingExecutionRequest,
+} from './offline-media-binary-streaming-protocol'
 import type {
   OfflineFfmpegExecutionResult,
   OfflineFfprobeExecutionResult,
@@ -31,6 +39,14 @@ const SOURCE_SHA256 = '464beb5e7bf0c311e68b45ae2f04e9cc2af88851abb4082231742a74d
 const STORAGE_ROOT = '/tmp/reeditpro-offline-media-binary-execution-color-v1' as const
 const AUTHORITY_PATH = 'runtime-authority/offline-media-binary-runtime-color-v1.json' as const
 const TIMEOUT_MS = 30_000
+const MAXIMUM_STREAMING_TIMEOUT_MS = 10 * 60_000
+
+export interface OfflineMediaBinaryServerInjectedInput {
+  inputMode: 'private_verified_stream_v1'
+  byteLength: number
+  sha256: string
+  openStream(): Promise<Readable>
+}
 
 export interface OfflineMediaBinaryRuntimeAuthority {
   schemaVersion: 'offline-media-binary-runtime-authority-v1'
@@ -59,6 +75,14 @@ export interface PrivateOfflineMediaBinaryRuntime {
   execute(request: OfflineFfprobeExecutionRequest): Promise<OfflineFfprobeExecutionResult>
   execute(request: OfflineFfmpegExecutionRequest): Promise<OfflineFfmpegExecutionResult>
   execute(request: unknown): Promise<OfflineFfprobeExecutionResult | OfflineFfmpegExecutionResult>
+  executeServerInjected(
+    request: OfflineFfprobeStreamingExecutionRequest,
+    source: OfflineMediaBinaryServerInjectedInput,
+  ): Promise<OfflineFfprobeExecutionResult>
+  executeServerInjected(
+    request: OfflineFfmpegStreamingExecutionRequest,
+    source: OfflineMediaBinaryServerInjectedInput,
+  ): Promise<OfflineFfmpegExecutionResult>
 }
 
 export async function activatePrivateOfflineMediaBinaryRuntime(): Promise<PrivateOfflineMediaBinaryRuntime> {
@@ -66,7 +90,9 @@ export async function activatePrivateOfflineMediaBinaryRuntime(): Promise<Privat
   const image = await inspectImage()
   await persistAuthority(image)
   const executeBound = ((request: unknown) => execute(image, request)) as PrivateOfflineMediaBinaryRuntime['execute']
-  return Object.freeze({ image, execute: executeBound })
+  const executeServerInjectedBound = ((request: unknown, source: OfflineMediaBinaryServerInjectedInput) =>
+    executeServerInjected(image, request, source)) as PrivateOfflineMediaBinaryRuntime['executeServerInjected']
+  return Object.freeze({ image, execute: executeBound, executeServerInjected: executeServerInjectedBound })
 }
 
 export async function openPrivateOfflineMediaBinaryRuntime(): Promise<PrivateOfflineMediaBinaryRuntime> {
@@ -78,7 +104,9 @@ export async function openPrivateOfflineMediaBinaryRuntime(): Promise<PrivateOff
     throw unavailable('Pinned media binary image changed after runtime activation.')
   }
   const executeBound = ((request: unknown) => execute(image, request)) as PrivateOfflineMediaBinaryRuntime['execute']
-  return Object.freeze({ image, execute: executeBound })
+  const executeServerInjectedBound = ((request: unknown, source: OfflineMediaBinaryServerInjectedInput) =>
+    executeServerInjected(image, request, source)) as PrivateOfflineMediaBinaryRuntime['executeServerInjected']
+  return Object.freeze({ image, execute: executeBound, executeServerInjected: executeServerInjectedBound })
 }
 
 export async function readPersistedOfflineMediaBinaryRuntimeAuthority():
@@ -118,6 +146,30 @@ async function execute(
     : executeFfprobe(image, value)
 }
 
+async function executeServerInjected(
+  image: OfflineMediaBinaryImageEvidence,
+  value: unknown,
+  source: OfflineMediaBinaryServerInjectedInput,
+): Promise<OfflineFfprobeExecutionResult | OfflineFfmpegExecutionResult> {
+  const candidate = value && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : undefined
+  if (candidate?.toolId === 'ffmpeg') {
+    let request: OfflineFfmpegStreamingExecutionRequest
+    try { request = validateOfflineFfmpegStreamingExecutionRequest(value) } catch {
+      throw invalid('Structured streaming FFmpeg execution request was rejected.')
+    }
+    assertServerInjectedInput(source, request.payload.sourceByteLength, request.payload.sourceSha256)
+    return executeFfmpegRequest(image, request, source)
+  }
+  let request: OfflineFfprobeStreamingExecutionRequest
+  try { request = validateOfflineFfprobeStreamingExecutionRequest(value) } catch {
+    throw invalid('Structured streaming FFprobe execution request was rejected.')
+  }
+  assertServerInjectedInput(source, request.payload.sourceByteLength, request.payload.sourceSha256)
+  return executeFfprobeRequest(image, request, source)
+}
+
 async function executeFfprobe(
   image: OfflineMediaBinaryImageEvidence,
   value: unknown,
@@ -127,12 +179,28 @@ async function executeFfprobe(
     throw invalid('Structured FFprobe execution request was rejected.')
   }
   const sourceBytes = Buffer.from(request.payload.sourceBytesBase64, 'base64')
+  return executeFfprobeRequest(image, request, verifiedBufferInput(
+    sourceBytes,
+    request.payload.sourceSha256,
+  ))
+}
+
+async function executeFfprobeRequest(
+  image: OfflineMediaBinaryImageEvidence,
+  request: OfflineFfprobeExecutionRequest | OfflineFfprobeStreamingExecutionRequest,
+  source: OfflineMediaBinaryServerInjectedInput,
+): Promise<OfflineFfprobeExecutionResult> {
   const command = ffprobeArguments(request)
   const container = await createContainer(image, FFPROBE_ENTRYPOINT, command)
   try {
     const before = await inspectContainer(container.id)
     const confinement = validateConfinement(before, image, FFPROBE_ENTRYPOINT, command)
-    const started = await dockerBuffer(['start', '--attach', '--interactive', container.id], sourceBytes, 4 * 1024 * 1024)
+    const started = await dockerVerifiedInput(
+      ['start', '--attach', '--interactive', container.id],
+      source,
+      4 * 1024 * 1024,
+      mediaExecutionTimeoutMs(source.byteLength),
+    )
     const after = await inspectContainer(container.id)
     const state = record(after.State)
     if (
@@ -175,14 +243,12 @@ async function executeFfprobe(
       evidence: {
         toolId: 'ffprobe', operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffprobe,
         binaryVersion: SOURCE_VERSION,
-        requestEnvelopeSha256: sha256AuthorityValue({
-          ...request,
-          payload: { ...request.payload, sourceBytesBase64: '[server-injected-approved-bytes]' },
-        }),
+        requestEnvelopeSha256: sha256AuthorityValue(redactedRequestEnvelope(request)),
         sourceSha256: request.payload.sourceSha256,
         resultSha256,
         semanticEvidence: {
           sourceBytesVerified: true,
+          sourceDeliveryMode: source.inputMode,
           machineJsonOnly: true,
           durationAndSyncVerified: true,
           streamCount: Array.isArray(document.streams) ? document.streams.length : 0,
@@ -213,6 +279,17 @@ async function executeFfmpeg(
     throw invalid('Structured FFmpeg execution request was rejected.')
   }
   const sourceBytes = Buffer.from(request.payload.sourceBytesBase64, 'base64')
+  return executeFfmpegRequest(image, request, verifiedBufferInput(
+    sourceBytes,
+    request.payload.sourceSha256,
+  ))
+}
+
+async function executeFfmpegRequest(
+  image: OfflineMediaBinaryImageEvidence,
+  request: OfflineFfmpegExecutionRequest | OfflineFfmpegStreamingExecutionRequest,
+  source: OfflineMediaBinaryServerInjectedInput,
+): Promise<OfflineFfmpegExecutionResult> {
   const voiceDelivery = request.payload.recipeProfileId === 'approved_voice_delivery_wav_v1'
   const colorMatchDeliveryPayload = request.payload.recipeProfileId ===
     'approved_source_color_match_delivery_matroska_v1'
@@ -228,20 +305,28 @@ async function executeFfmpeg(
     ? request.payload
     : undefined
   const trimDurationFrames = request.payload.trimEndFrameExclusive - request.payload.trimStartFrame
+  const referenceInput = colorMatchDelivery
+    ? verifiedBufferInput(
+        Buffer.from(colorMatchDeliveryPayload!.referenceSourceBytesBase64, 'base64'),
+        colorMatchDeliveryPayload!.referenceSourceSha256,
+      )
+    : undefined
   const sourceColorAnalysis = colorDelivery
     ? await analyzeVideoColor({
         image,
-        bytes: sourceBytes,
+        source,
         startFrame: request.payload.trimStartFrame,
         endFrameExclusive: request.payload.trimEndFrameExclusive,
+        frameRate: request.payload.frameRate,
       })
     : undefined
   const referenceColorAnalysis = colorMatchDelivery
     ? await analyzeVideoColor({
         image,
-        bytes: Buffer.from(colorMatchDeliveryPayload!.referenceSourceBytesBase64, 'base64'),
+        source: referenceInput!,
         startFrame: 0,
         endFrameExclusive: colorMatchDeliveryPayload!.referenceDurationFrames,
+        frameRate: request.payload.frameRate,
       })
     : undefined
   const colorCorrection = sourceColorAnalysis && colorDeliveryPayload
@@ -269,7 +354,12 @@ async function executeFfmpeg(
   try {
     const before = await inspectContainer(container.id)
     const confinement = validateConfinement(before, image, FFMPEG_ENTRYPOINT, command)
-    const started = await dockerBuffer(['start', '--attach', '--interactive', container.id], sourceBytes, 32 * 1024 * 1024)
+    const started = await dockerVerifiedInput(
+      ['start', '--attach', '--interactive', container.id],
+      source,
+      32 * 1024 * 1024,
+      mediaExecutionTimeoutMs(source.byteLength, trimDurationFrames, request.payload.frameRate),
+    )
     const after = await inspectContainer(container.id)
     const state = record(after.State)
     if (
@@ -308,9 +398,10 @@ async function executeFfmpeg(
     const outputColorAnalysis = colorDelivery
       ? await analyzeVideoColor({
           image,
-          bytes: started.stdout,
+          source: verifiedBufferInput(started.stdout, sha256(started.stdout)),
           startFrame: 0,
           endFrameExclusive: trimDurationFrames,
+          frameRate: request.payload.frameRate,
         })
       : undefined
     const colorMatchQa = colorMatchDelivery && sourceColorAnalysis &&
@@ -328,7 +419,7 @@ async function executeFfmpeg(
         outputColorAnalysis.meanLuma <= 8 || outputColorAnalysis.meanLuma >= 247 ||
         outputColorAnalysis.blackLumaFraction >= 0.98 ||
         outputColorAnalysis.whiteLumaFraction >= 0.98 ||
-        started.stdout.equals(sourceBytes) ||
+        sha256(started.stdout) === request.payload.sourceSha256 ||
         (colorMatchDelivery && (!colorMatchQa || !colorMatchQa.passed))
       )
     ) throw unavailable(
@@ -377,16 +468,7 @@ async function executeFfmpeg(
       evidence: {
         toolId: 'ffmpeg', operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
         binaryVersion: SOURCE_VERSION,
-        requestEnvelopeSha256: sha256AuthorityValue({
-          ...request,
-          payload: {
-            ...request.payload,
-            sourceBytesBase64: '[server-injected-approved-bytes]',
-            ...(colorMatchDelivery
-              ? { referenceSourceBytesBase64: '[server-injected-approved-reference-bytes]' }
-              : {}),
-          },
-        }),
+        requestEnvelopeSha256: sha256AuthorityValue(redactedRequestEnvelope(request)),
         sourceSha256: request.payload.sourceSha256,
         ...(colorMatchDelivery
           ? { referenceSourceSha256: colorMatchDeliveryPayload!.referenceSourceSha256 }
@@ -394,6 +476,7 @@ async function executeFfmpeg(
         resultSha256,
         semanticEvidence: {
           sourceBytesVerified: true,
+          sourceDeliveryMode: source.inputMode,
           fixedRecipeExecuted: true,
           recipeProfileId: request.payload.recipeProfileId,
           trimStartFrame: request.payload.trimStartFrame,
@@ -468,7 +551,9 @@ async function executeFfmpeg(
   }
 }
 
-function voiceDeliveryCommand(request: OfflineFfmpegExecutionRequest): string[] {
+function voiceDeliveryCommand(
+  request: OfflineFfmpegExecutionRequest | OfflineFfmpegStreamingExecutionRequest,
+): string[] {
   if (request.payload.recipeProfileId !== 'approved_voice_delivery_wav_v1') {
     throw invalid('Voice-delivery command requires its exact approved recipe.')
   }
@@ -534,9 +619,10 @@ type ReferenceColorMatchQa = {
 
 async function analyzeVideoColor(input: {
   image: OfflineMediaBinaryImageEvidence
-  bytes: Buffer
+  source: OfflineMediaBinaryServerInjectedInput
   startFrame: number
   endFrameExclusive: number
+  frameRate: number
 }): Promise<ColorPixelAnalysis> {
   const finalFrame = input.endFrameExclusive - 1
   const middleFrame = input.startFrame + Math.floor(
@@ -559,10 +645,15 @@ async function analyzeVideoColor(input: {
       FFMPEG_ENTRYPOINT,
       command,
     )
-    const result = await dockerBuffer(
+    const result = await dockerVerifiedInput(
       ['start', '--attach', '--interactive', container.id],
-      input.bytes,
+      input.source,
       256 * 1024,
+      mediaExecutionTimeoutMs(
+        input.source.byteLength,
+        input.endFrameExclusive - input.startFrame,
+        input.frameRate,
+      ),
     )
     const expectedBytes = selectedFrames.length * 64 * 64 * 3
     if (
@@ -783,7 +874,7 @@ function evaluateReferenceColorMatch(input: {
 }
 
 function colorDeliveryCommand(
-  request: OfflineFfmpegExecutionRequest,
+  request: OfflineFfmpegExecutionRequest | OfflineFfmpegStreamingExecutionRequest,
   correction: DerivedColorCorrection,
 ): string[] {
   if (
@@ -1079,7 +1170,9 @@ async function persistAuthority(image: OfflineMediaBinaryImageEvidence): Promise
   })
 }
 
-function ffprobeArguments(request: OfflineFfprobeExecutionRequest): string[] {
+function ffprobeArguments(
+  request: OfflineFfprobeExecutionRequest | OfflineFfprobeStreamingExecutionRequest,
+): string[] {
   return [
     '-v', 'error',
     ...(request.payload.countFrames ? ['-count_frames'] : []),
@@ -1142,7 +1235,10 @@ function validateConfinement(
   }
 }
 
-function normalizeProbe(bytes: Buffer, request: OfflineFfprobeExecutionRequest): Readonly<Record<string, unknown>> {
+function normalizeProbe(
+  bytes: Buffer,
+  request: OfflineFfprobeExecutionRequest | OfflineFfprobeStreamingExecutionRequest,
+): Readonly<Record<string, unknown>> {
   let raw: Record<string, unknown>
   try { raw = record(JSON.parse(bytes.toString('utf8'))) } catch { throw unavailable('FFprobe did not return valid JSON.') }
   const rawStreams = Array.isArray(raw.streams) ? raw.streams.slice(0, 32).map(record) : []
@@ -1226,6 +1322,156 @@ function dockerBuffer(args: string[], input: Buffer | undefined, maximumBytes: n
     if (input) child.stdin.end(input)
     else child.stdin.end()
   })
+}
+
+async function dockerVerifiedInput(
+  args: string[],
+  input: OfflineMediaBinaryServerInjectedInput,
+  maximumOutputBytes: number,
+  timeoutMs: number,
+): Promise<{ exitCode: number; stdout: Buffer; stderr: Buffer }> {
+  assertServerInjectedInput(input, input.byteLength, input.sha256)
+  const child = spawn('docker', args, {
+    stdio: ['pipe', 'pipe', 'pipe'],
+    env: { PATH: process.env.PATH ?? '' },
+  })
+  const stdout: Buffer[] = []
+  const stderr: Buffer[] = []
+  let stdoutBytes = 0
+  let stderrBytes = 0
+  const resultPromise = new Promise<{ exitCode: number; stdout: Buffer; stderr: Buffer }>(
+    (resolve, reject) => {
+      const timer = setTimeout(() => {
+        child.kill('SIGKILL')
+        reject(unavailable('Docker media operation timed out.'))
+      }, timeoutMs)
+      child.stdout.on('data', (chunk: Buffer) => {
+        stdoutBytes += chunk.byteLength
+        if (stdoutBytes > maximumOutputBytes) child.kill('SIGKILL')
+        else stdout.push(chunk)
+      })
+      child.stderr.on('data', (chunk: Buffer) => {
+        stderrBytes += chunk.byteLength
+        if (stderrBytes > 512 * 1024) child.kill('SIGKILL')
+        else stderr.push(chunk)
+      })
+      child.once('error', (error) => {
+        clearTimeout(timer)
+        reject(error)
+      })
+      child.once('close', (code) => {
+        clearTimeout(timer)
+        if (stdoutBytes > maximumOutputBytes || stderrBytes > 512 * 1024) {
+          reject(unavailable('Docker media output exceeded its fixed bound.'))
+          return
+        }
+        resolve({
+          exitCode: code ?? 1,
+          stdout: Buffer.concat(stdout),
+          stderr: Buffer.concat(stderr),
+        })
+      })
+    },
+  )
+  let totalBytes = 0
+  const checksum = createHash('sha256')
+  let stream: Readable | undefined
+  try {
+    stream = await input.openStream()
+    if (!stream || typeof stream.pipe !== 'function') {
+      throw new Error('Private media input did not return a readable stream.')
+    }
+    const verifier = new Transform({
+      transform(chunk, _encoding, callback) {
+        const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)
+        totalBytes += bytes.byteLength
+        if (totalBytes > input.byteLength) {
+          callback(new Error('Private media input exceeded its exact byte commitment.'))
+          return
+        }
+        checksum.update(bytes)
+        callback(null, bytes)
+      },
+    })
+    const [, result] = await Promise.all([
+      pipeline(stream, verifier, child.stdin),
+      resultPromise,
+    ])
+    if (totalBytes !== input.byteLength || checksum.digest('hex') !== input.sha256) {
+      throw new Error('Private media input did not match its exact byte commitment.')
+    }
+    return result
+  } catch (error) {
+    stream?.destroy()
+    child.stdin.destroy()
+    child.kill('SIGKILL')
+    await resultPromise.catch(() => undefined)
+    if (error instanceof ApiError && error.code === 'TOOL_NOT_READY') throw error
+    throw unavailable('Docker media input stream failed exact size and checksum verification.')
+  }
+}
+
+function verifiedBufferInput(
+  bytes: Buffer,
+  expectedSha256: string,
+): OfflineMediaBinaryServerInjectedInput {
+  if (sha256(bytes) !== expectedSha256) {
+    throw invalid('Buffered media input does not match its checksum commitment.')
+  }
+  return Object.freeze({
+    inputMode: 'private_verified_stream_v1' as const,
+    byteLength: bytes.byteLength,
+    sha256: expectedSha256,
+    async openStream() {
+      return Readable.from([bytes])
+    },
+  })
+}
+
+function assertServerInjectedInput(
+  input: OfflineMediaBinaryServerInjectedInput,
+  expectedByteLength: number,
+  expectedSha256: string,
+): void {
+  if (
+    !input || input.inputMode !== 'private_verified_stream_v1' ||
+    !Number.isSafeInteger(input.byteLength) || input.byteLength < 64 ||
+    input.byteLength !== expectedByteLength ||
+    !/^[a-f0-9]{64}$/u.test(input.sha256) || input.sha256 !== expectedSha256 ||
+    typeof input.openStream !== 'function'
+  ) throw invalid('Server-injected private media input authority is invalid.')
+}
+
+function redactedRequestEnvelope(
+  request:
+    | OfflineFfprobeExecutionRequest
+    | OfflineFfprobeStreamingExecutionRequest
+    | OfflineFfmpegExecutionRequest
+    | OfflineFfmpegStreamingExecutionRequest,
+): Record<string, unknown> {
+  const payload = { ...request.payload } as Record<string, unknown>
+  if ('sourceBytesBase64' in payload) {
+    payload.sourceBytesBase64 = '[server-injected-approved-bytes]'
+  }
+  if ('referenceSourceBytesBase64' in payload) {
+    payload.referenceSourceBytesBase64 = '[server-injected-approved-reference-bytes]'
+  }
+  return { ...request, payload }
+}
+
+function mediaExecutionTimeoutMs(
+  sourceByteLength: number,
+  frameCount = 0,
+  frameRate = 24,
+): number {
+  const byteAllowance = Math.ceil(sourceByteLength / (8 * 1024 * 1024)) * 5_000
+  const durationAllowance = frameCount > 0
+    ? Math.ceil(frameCount / Math.max(1, frameRate)) * 5_000
+    : 0
+  return Math.min(
+    MAXIMUM_STREAMING_TIMEOUT_MS,
+    Math.max(TIMEOUT_MS, TIMEOUT_MS + byteAllowance + durationAllowance),
+  )
 }
 
 function record(value: unknown): Record<string, unknown> {

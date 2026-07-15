@@ -1,5 +1,6 @@
 import { z } from 'zod'
 
+import { REEDITPRO_SOURCE_MEDIA_MAX_BYTES } from '../../src/types/large-media'
 import { canonicalPrivateToolDispatchCredentialSchema } from './canonical-private-tool-dispatch-schemas'
 import { canonicalWorkerLeaseCredentialSchema } from './canonical-worker-lease-authority-schemas'
 
@@ -107,8 +108,10 @@ const captionTrackDependencyInputsSchema = z.object({
 
 const singleSourceFinalCompositionInputsSchema = finalCompositionDependencyInputsSchema.extend({
   sourceSequenceItemId: identity, sourceMediaAssetId: identity,
-  sourceSha256: sha, sourceByteLength: z.number().int().positive().max(16 * 1024 * 1024),
+  sourceSha256: sha,
+  sourceByteLength: z.number().int().positive().max(REEDITPRO_SOURCE_MEDIA_MAX_BYTES),
   sourceReadEvidenceHash: sha,
+  sourceStagingEvidenceHash: sha,
   sourceCleanupDecisionId: identity,
   sourceStartFrame: z.number().int().nonnegative(),
   sourceEndFrameExclusive: z.number().int().positive(),
@@ -120,8 +123,9 @@ const sourceSequenceFinalCompositionInputsSchema = finalCompositionDependencyInp
     sourceSequenceItemId: identity,
     sourceMediaAssetId: identity,
     sourceSha256: sha,
-    sourceByteLength: z.number().int().positive().max(16 * 1024 * 1024),
+    sourceByteLength: z.number().int().positive().max(REEDITPRO_SOURCE_MEDIA_MAX_BYTES),
     sourceReadEvidenceHash: sha,
+    sourceStagingEvidenceHash: sha,
     sourceCleanupDecisionId: identity,
     sourceStartFrame: z.number().int().nonnegative(),
     sourceEndFrameExclusive: z.number().int().positive(),
@@ -130,15 +134,17 @@ const sourceSequenceFinalCompositionInputsSchema = finalCompositionDependencyInp
   }).strict()).min(2).max(8),
   transitionPolicy: z.literal('approved_hard_cuts_only'),
   hardCutTransitions: approvedHardCutTransitionsSchema,
-  combinedSourceByteLength: z.number().int().positive().max(20 * 1024 * 1024),
+  combinedSourceByteLength: z.number().int().positive().max(REEDITPRO_SOURCE_MEDIA_MAX_BYTES * 8),
   sourceSequenceReadEvidenceHash: sha,
   colorSources: z.array(approvedColorSourceSchema).min(2).max(8).optional(),
 }).strict()
 
 const singleSourceCaptionTrackFinalCompositionInputsSchema = captionTrackDependencyInputsSchema.extend({
   sourceSequenceItemId: identity, sourceMediaAssetId: identity,
-  sourceSha256: sha, sourceByteLength: z.number().int().positive().max(16 * 1024 * 1024),
+  sourceSha256: sha,
+  sourceByteLength: z.number().int().positive().max(REEDITPRO_SOURCE_MEDIA_MAX_BYTES),
   sourceReadEvidenceHash: sha,
+  sourceStagingEvidenceHash: sha,
   sourceCleanupDecisionId: identity,
   sourceStartFrame: z.number().int().nonnegative(),
   sourceEndFrameExclusive: z.number().int().positive(),
@@ -150,8 +156,9 @@ const sourceSequenceCaptionTrackFinalCompositionInputsSchema = captionTrackDepen
     sourceSequenceItemId: identity,
     sourceMediaAssetId: identity,
     sourceSha256: sha,
-    sourceByteLength: z.number().int().positive().max(16 * 1024 * 1024),
+    sourceByteLength: z.number().int().positive().max(REEDITPRO_SOURCE_MEDIA_MAX_BYTES),
     sourceReadEvidenceHash: sha,
+    sourceStagingEvidenceHash: sha,
     sourceCleanupDecisionId: identity,
     sourceStartFrame: z.number().int().nonnegative(),
     sourceEndFrameExclusive: z.number().int().positive(),
@@ -160,7 +167,7 @@ const sourceSequenceCaptionTrackFinalCompositionInputsSchema = captionTrackDepen
   }).strict()).min(2).max(8),
   transitionPolicy: z.literal('approved_hard_cuts_only'),
   hardCutTransitions: approvedHardCutTransitionsSchema,
-  combinedSourceByteLength: z.number().int().positive().max(20 * 1024 * 1024),
+  combinedSourceByteLength: z.number().int().positive().max(REEDITPRO_SOURCE_MEDIA_MAX_BYTES * 8),
   sourceSequenceReadEvidenceHash: sha,
   colorSources: z.array(approvedColorSourceSchema).min(2).max(8).optional(),
 }).strict()
@@ -184,6 +191,9 @@ export const canonicalPrivateFinalCompositionResponseSchema = z.object({
     ]),
     actualRemotionOperationCompleted: z.literal(true),
     approvedSourceObjectRead: z.literal(true),
+    approvedSourceInputMode: z.literal('server_injected_private_stream_v1'),
+    approvedSourceStagingCleaned: z.literal(true),
+    approvedSourceCapacityEvidenceHash: sha,
     approvedSourceTrimDependencyRead: z.literal(true),
     approvedSourceTrimFramesApplied: z.literal(true),
     approvedHardCutTransitionAuthorityRead: z.boolean(),

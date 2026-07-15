@@ -6,6 +6,7 @@ import type {
   TrimDecisionItem,
 } from '../types/reeditpro'
 import type { ProfessionalExportCreditCoverage } from '../types/professional-export'
+import { REEDITPRO_SOURCE_MEDIA_MAX_BYTES } from '../types/large-media'
 import {
   buildProfessionalExportCreditCoverage,
   resolveProfessionalExportFrame,
@@ -19,6 +20,7 @@ const LIBASS_OPERATION = 'tool.libass.render_approved_caption_track.v1'
 const REMOTION_OPERATION = 'tool.remotion.render_approved_composition.v1'
 const SAFE_KEY = /^[A-Za-z0-9][A-Za-z0-9._:-]*$/
 const SHA256 = /^[a-f0-9]{64}$/
+const CANONICAL_DIRECT_SOURCE_BUFFER_MAX_BYTES = 16 * 1024 * 1024
 const SUPPORTED_PRIVATE_4K_MASTER_FRAMES = new Set([
   '3840x2160',
   '2160x3840',
@@ -617,11 +619,17 @@ function privateReviewPublicationBlockers(input: {
   if (input.sourceMediaAssets.some((asset) => asset.mimeType.toLowerCase() !== 'video/mp4')) {
     blockers.push('Every source in the private canonical review sequence must be an MP4.')
   }
-  if (input.sourceMediaAssets.some((asset) => asset.byteSize < 64 || asset.byteSize > 16 * 1024 * 1024)) {
-    blockers.push('Each private canonical review source must be between 64 bytes and 16 MB.')
+  if (input.sourceMediaAssets.some((asset) =>
+    asset.byteSize < 64 || asset.byteSize > REEDITPRO_SOURCE_MEDIA_MAX_BYTES)) {
+    blockers.push('Each private canonical review source must stay within the professional source-media ceiling.')
   }
-  if (input.sourceMediaAssets.reduce((total, asset) => total + asset.byteSize, 0) > 20 * 1024 * 1024) {
-    blockers.push('The ordered private canonical review source sequence must not exceed 20 MB combined.')
+  const largeSourceCount = input.sourceMediaAssets.filter((asset) =>
+    asset.byteSize > CANONICAL_DIRECT_SOURCE_BUFFER_MAX_BYTES).length
+  if (
+    largeSourceCount > 0 &&
+    input.approvedColorDeliverySources?.length !== input.sourceMediaAssets.length
+  ) {
+    blockers.push('Large private sources require one approved professional color intermediate per source before final composition.')
   }
   if (input.sourceMediaAssets.some((asset) =>
     asset.sourceMetadata?.probeStatus !== 'probed' || asset.sourceMetadata.hasVideo !== true)) {

@@ -470,8 +470,11 @@ async function createFixture(
     workspaceId: 'actual-run-workspace',
     projectId: 'actual-run-project',
     editSessionId: 'actual-run-edit-session',
+    snapshotId: `snapshot-${label}`,
     jobId: `job-${label}`,
     leaseId: `lease-${label}`,
+    executionAttemptId: `attempt-${label}`,
+    dispatchGrantId: `grant-${label}`,
   }
   const sandbox = await createPrivateCanonicalWorkerSandbox(baseScope)
   const outputId = `output-${label}`

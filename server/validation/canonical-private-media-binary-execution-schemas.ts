@@ -1,5 +1,6 @@
 import { z } from 'zod'
 
+import { REEDITPRO_SOURCE_MEDIA_MAX_BYTES } from '../../src/types/large-media'
 import { canonicalPrivateToolDispatchCredentialSchema } from './canonical-private-tool-dispatch-schemas'
 import { canonicalWorkerLeaseCredentialSchema } from './canonical-worker-lease-authority-schemas'
 
@@ -15,10 +16,17 @@ const toolCommon = z.object({
   providerCallMade: z.literal(false),
   inputReadEvidenceHash: sha,
   inputArtifactSha256: sha,
-  inputArtifactByteLength: z.number().int().positive().max(32 * 1024 * 1024),
+  inputArtifactByteLength: z.number().int().positive().max(REEDITPRO_SOURCE_MEDIA_MAX_BYTES),
   renderExecuted: z.literal(false),
   finalExportExecuted: z.literal(false),
 })
+
+const streamedSourceEvidence = {
+  sourceInputMode: z.literal('server_injected_private_stream_v1'),
+  sourceStagingEvidenceHash: sha,
+  sourceCapacityEvidenceHash: sha,
+  sourceStagingCleaned: z.literal(true),
+}
 
 const mediaInputAuthoritySchema = z.discriminatedUnion('inputKind', [
   toolCommon.extend({
@@ -27,6 +35,7 @@ const mediaInputAuthoritySchema = z.discriminatedUnion('inputKind', [
     dependencyArtifactRead: z.literal(false),
     sourceSequenceItemId: identity,
     sourceBindingHash: sha,
+    ...streamedSourceEvidence,
   }).strict(),
   toolCommon.extend({
     inputKind: z.literal('qa_passed_dependency_artifact'),
@@ -41,6 +50,7 @@ const mediaInputAuthoritySchema = z.discriminatedUnion('inputKind', [
     dependencyArtifactRead: z.literal(true),
     sourceSequenceItemId: identity,
     sourceBindingHash: sha,
+    ...streamedSourceEvidence,
     referenceSourceSequenceItemId: identity,
     referenceOutputKey: identity,
     referenceInputArtifactId: identity,

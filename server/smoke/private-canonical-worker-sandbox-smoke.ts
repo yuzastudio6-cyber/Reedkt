@@ -19,8 +19,11 @@ const scope = {
   workspaceId: 'sandbox-workspace',
   projectId: 'sandbox-project',
   editSessionId: 'sandbox-edit-session',
+  snapshotId: 'sandbox-snapshot',
   jobId: 'sandbox-job',
   leaseId: 'sandbox-lease',
+  executionAttemptId: 'sandbox-attempt',
+  dispatchGrantId: 'sandbox-grant',
 }
 
 try {
@@ -92,6 +95,8 @@ try {
     ...scope,
     jobId: 'sandbox-job-mismatch',
     leaseId: 'sandbox-lease-mismatch',
+    executionAttemptId: 'sandbox-attempt-mismatch',
+    dispatchGrantId: 'sandbox-grant-mismatch',
   })
   await assert.rejects(
     () => materializeVerifiedPrivateWorkerInput({

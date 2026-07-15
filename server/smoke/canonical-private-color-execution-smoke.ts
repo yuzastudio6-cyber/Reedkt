@@ -10,6 +10,11 @@ import { buildCanonicalPlanningDraft } from '../../src/lib/canonical-planning-dr
 import { createGuidedMockEditPlan } from '../../src/lib/mock-planner/guided'
 import { createMockEditPlan } from '../../src/lib/mock-planner/full'
 import { buildProfessionalExportCreditCoverage } from '../../src/lib/professional-export-policy'
+import { uploadFileToTemporaryObjectTarget } from '../../src/lib/temporary-object-upload-client'
+import {
+  REEDITPRO_RESUMABLE_UPLOAD_MIN_CHUNK_BYTES,
+  REEDITPRO_RESUMABLE_UPLOAD_THRESHOLD_BYTES,
+} from '../../src/types/large-media'
 import type { EditPlan, PlannerInput } from '../../src/types/reeditpro'
 import { loadRuntimeEnv } from '../config/env'
 import { ApiError } from '../errors/api-error'
@@ -19,8 +24,10 @@ import { createCanonicalPrivateFinalArtifactDownloadService } from '../services/
 import { normalizeCanonicalPrivateFinalMediaQa } from '../services/canonical-private-final-media-qa'
 import { createCanonicalPrivateJobExecutionAdapterService } from '../services/canonical-private-job-execution-adapter-service'
 import { readCanonicalPrivateMediaArtifact } from '../services/canonical-private-media-artifact-storage'
+import { CANONICAL_PRIVATE_SOURCE_OBJECT_BUFFER_MAX_BYTES } from '../services/canonical-private-source-object-read-service'
 import { createEditPlanningAuthorityService } from '../services/edit-planning-authority-service'
 import { createExactEditPreferenceService } from '../services/exact-edit-preference-service'
+import { createLargeMediaFinalizationService } from '../services/large-media-finalization-service'
 import { readPrivateCanonicalWorkerLeaseAggregate } from '../services/private-canonical-worker-lease-store'
 import { readPrivateEditAuthorityAggregate } from '../services/private-edit-authority-store'
 import { createPrivateArtifactQaAuthorityService } from '../services/private-artifact-qa-authority-service'
@@ -38,6 +45,7 @@ import {
   publishCanonicalEditPlanFromHandoffSchema,
 } from '../validation/canonical-planning-handoff-schemas'
 import { canonicalAuthoritySmokeRoot } from './canonical-authority-smoke-root'
+import { LocalBackedResumableGcsTestAdapter } from './support/local-backed-resumable-gcs-adapter'
 
 // Reuse the canonical authority fixture only for its authenticated workspace and
 // project. This smoke creates a new source, edit session, plan, snapshot,
@@ -48,6 +56,10 @@ const localStorageRoot = canonicalAuthoritySmokeRoot
 const workspaceId = 'workspace-authority-smoke'
 const userId = 'user-authority-smoke'
 const editSessionId = 'edit-session-canonical-professional-color'
+const storage = new LocalBackedResumableGcsTestAdapter(
+  join(localStorageRoot, 'canonical-professional-color-fake-gcs'),
+  { injectResponseLossAfterChunk: 2 },
+)
 const env = loadRuntimeEnv({
   NODE_ENV: 'test',
   E2E_RUNTIME_MODE: 'local',
@@ -72,6 +84,7 @@ const context: ServiceContext = {
     accessToken: 'verified-canonical-professional-color-smoke-token',
     isMockUser: false,
   },
+  storageAdapter: storage,
 }
 
 const seedAggregate = await requireEditAuthority()
@@ -120,6 +133,9 @@ const planningPreference = await preferenceService.recordPlanningEvidence({
 const uploadedSource = await uploadProfessionalColorSource(projectId)
 assert.equal(uploadedSource.mediaAsset.sourceMetadata?.width, 3840)
 assert.equal(uploadedSource.mediaAsset.sourceMetadata?.height, 2160)
+assert.ok(
+  (uploadedSource.mediaAsset.sizeBytes ?? 0) > CANONICAL_PRIVATE_SOURCE_OBJECT_BUFFER_MAX_BYTES,
+)
 const sourceSequenceItemId = 'canonical-professional-color-source-1'
 const uploadedClipId = 'canonical-professional-color-clip-1'
 const plannerInput: PlannerInput = {
@@ -391,6 +407,9 @@ assert.equal(caption.result.contentType, 'image/png')
 const voice = await executeJob('voice-delivery-1')
 assert.equal(voice.identity.canonicalToolId, 'ffmpeg')
 assert.equal(voice.result.contentType, 'audio/wav')
+assert.equal(voice.evidence.sourceStreamInputVerified, true)
+assert.equal(voice.evidence.sourceStagingCleanupVerified, true)
+assert.equal(voice.evidence.largeSourceOverLegacyBufferVerified, true)
 const color = await executeJob('color-delivery-1')
 assert.equal(color.identity.canonicalToolId, 'ffmpeg')
 assert.equal(color.identity.runnerClass, 'offline_media_binary_execution_v1')
@@ -403,6 +422,9 @@ assert.equal(color.evidence.singleUseDispatchConsumed, true)
 assert.equal(color.evidence.privateArtifactPersisted, true)
 assert.equal(color.evidence.actualQaPassed, true)
 assert.equal(color.evidence.reconciliationPassed, true)
+assert.equal(color.evidence.sourceStreamInputVerified, true)
+assert.equal(color.evidence.sourceStagingCleanupVerified, true)
+assert.equal(color.evidence.largeSourceOverLegacyBufferVerified, true)
 assert.equal(color.readiness.productReady, false)
 
 const colorReplay = await executeJob('color-delivery-1')
@@ -445,6 +467,9 @@ assert.equal(finalComposition.result.finalRenderAuthorized, false)
 assert.equal(finalComposition.permissions.publicDelivery, false)
 assert.equal(finalComposition.permissions.customerCreditMutation, false)
 assert.equal(finalComposition.permissions.billing, false)
+assert.equal(finalComposition.evidence.sourceStreamInputVerified, true)
+assert.equal(finalComposition.evidence.sourceStagingCleanupVerified, true)
+assert.equal(finalComposition.evidence.largeSourceOverLegacyBufferVerified, true)
 assert.equal(finalComposition.readiness.productReady, false)
 const leaseAggregate = await readPrivateCanonicalWorkerLeaseAggregate({
   localStorageRoot,
@@ -602,6 +627,24 @@ console.log(JSON.stringify({
   smoke: 'canonical_private_professional_color_execution',
   status: 'passed',
   workItemCount: approvedWorkItems.length,
+  approvedSource: {
+    width: uploadedSource.mediaAsset.sourceMetadata?.width,
+    height: uploadedSource.mediaAsset.sourceMetadata?.height,
+    byteLength: uploadedSource.mediaAsset.sizeBytes,
+    legacyBufferBoundaryBytes: CANONICAL_PRIVATE_SOURCE_OBJECT_BUFFER_MAX_BYTES,
+  },
+  resumableUpload: {
+    thresholdBytes: REEDITPRO_RESUMABLE_UPLOAD_THRESHOLD_BYTES,
+    maximumChunkBodyBytes: storage.maximumChunkBodyBytes,
+    uploadRequestCount: uploadedSource.largeSourceUploadEvidence.requestCount,
+    interruptedUploadRecovered:
+      uploadedSource.largeSourceUploadEvidence.resumedAfterInterruption,
+    wholeSourceBrowserArrayBufferCalled:
+      uploadedSource.largeSourceUploadEvidence.wholeSourceArrayBufferCalled,
+    crossOriginAuthorizationSeen: storage.crossOriginAuthorizationSeen,
+    providerReadStreamCalls: storage.createReadStreamCalls,
+    providerStreamedReadBytes: storage.streamedReadBytes,
+  },
   colorArtifact: {
     contentType: color.result.contentType,
     sha256: color.result.sha256,
@@ -619,6 +662,7 @@ console.log(JSON.stringify({
     'exact_source_bound_professional_color_work_item_frozen_before_execution',
     'snapshot_validation_source_trim_caption_and_replacement_voice_dependencies_passed',
     'lease_and_single_use_ffmpeg_dispatch_verified',
+    'source_over_16mib_privately_staged_streamed_reverified_and_cleaned_for_each_attempt',
     'actual_three_frame_color_analysis_bounded_processing_and_pixel_qa_passed',
     'lossless_vp9_matroska_bt709_yuv420p_artifact_privately_persisted',
     'color_artifact_qa_reconciliation_and_idempotent_replay_verified',
@@ -670,8 +714,12 @@ async function uploadProfessionalColorSource(projectId: string) {
   if (generated.status !== 0) {
     throw new Error(`Unable to generate professional color source fixture: ${generated.stderr.slice(0, 500)}`)
   }
-  const bytes = await readFile(fixturePath)
+  const encodedBytes = await readFile(fixturePath)
   await rm(fixturePath, { force: true })
+  const bytes = appendValidMp4FreeBox(
+    encodedBytes,
+    CANONICAL_PRIVATE_SOURCE_OBJECT_BUFFER_MAX_BYTES + 2 * 1024 * 1024 + 137,
+  )
   const checksumSha256 = createHash('sha256').update(bytes).digest('hex')
   const uploadService = createUploadService(context)
   const created = await uploadService.createUploadIntent({
@@ -684,17 +732,87 @@ async function uploadProfessionalColorSource(projectId: string) {
     checksumSha256,
     idempotencyKey: 'canonical-professional-color-source-upload-intent',
   })
-  await uploadService.uploadLocalObject(
-    created.uploadIntent.id,
+  assert.equal(created.uploadTarget.uploadProtocol, 'gcs_resumable')
+  assert.equal(created.uploadTarget.supportsResume, true)
+  assert.equal(created.uploadTarget.createOnly, true)
+  assert.equal(created.uploadTarget.sessionUriIsCredential, true)
+
+  const sourceBlob = new Blob([Uint8Array.from(bytes)], { type: 'video/mp4' })
+  let wholeSourceArrayBufferCalled = false
+  Object.defineProperty(sourceBlob, 'arrayBuffer', {
+    value: async () => {
+      wholeSourceArrayBufferCalled = true
+      throw new Error('The resumable browser path must not buffer the complete source.')
+    },
+  })
+  const progressStates: string[] = []
+  const uploaded = await uploadFileToTemporaryObjectTarget({
+    apiBaseUrl: 'https://api.reeditpro.invalid',
+    authorization: 'Bearer canonical-smoke-browser-token-must-not-leak',
+    fetchImpl: storage.fetch,
+    file: sourceBlob,
+    mimeType: 'video/mp4',
+    target: created.uploadTarget,
+    retryDelayMs: 0,
+    onProgress: (progress) => progressStates.push(progress.state),
+  })
+  assert.equal(uploaded.protocol, 'gcs_resumable')
+  assert.equal(uploaded.uploadedBytes, bytes.byteLength)
+  assert.equal(uploaded.resumedAfterInterruption, true)
+  assert.equal(wholeSourceArrayBufferCalled, false)
+  assert(progressStates.includes('recovering'))
+  assert.equal(progressStates.at(-1), 'completed')
+  assert.equal(storage.crossOriginAuthorizationSeen, false)
+  assert(storage.maximumChunkBodyBytes <= REEDITPRO_RESUMABLE_UPLOAD_MIN_CHUNK_BYTES)
+  assert.equal(storage.committedBytes, bytes.byteLength)
+
+  const finalizationService = createLargeMediaFinalizationService(context)
+  const queued = await finalizationService.enqueue({
     workspaceId,
-    bytes,
-    'video/mp4',
-    bytes.byteLength,
-  )
-  return uploadService.finalizeUploadIntent({
+    uploadIntentId: created.uploadIntent.id,
+    suppliedSizeBytes: bytes.byteLength,
+    idempotencyKey: 'canonical-professional-color-source-finalization-job',
+  })
+  assert.equal(queued.job.status, 'queued')
+  const completed = await finalizationService.run({
+    workspaceId,
+    jobId: queued.job.jobId,
+  })
+  assert.equal(completed.executionStarted, true)
+  assert.equal(completed.job.status, 'completed')
+  assert.equal(completed.job.result?.checksumSha256, checksumSha256)
+  assert.equal(completed.job.result?.sizeBytes, bytes.byteLength)
+  assert.equal(storage.verifyUploadedObjectCalls, 1)
+  assert.equal(storage.createReadStreamCalls, 1)
+  assert.equal(storage.streamedReadBytes, bytes.byteLength)
+
+  const finalized = await uploadService.finalizeUploadIntent({
     workspaceId,
     uploadIntentId: created.uploadIntent.id,
   })
+  return {
+    ...finalized,
+    largeSourceUploadEvidence: {
+      requestCount: uploaded.requestCount,
+      resumedAfterInterruption: uploaded.resumedAfterInterruption,
+      wholeSourceArrayBufferCalled,
+    },
+  }
+}
+
+function appendValidMp4FreeBox(bytes: Buffer, minimumTotalBytes: number): Buffer {
+  const freeBoxByteLength = Math.max(8, minimumTotalBytes - bytes.byteLength)
+  if (freeBoxByteLength > 0xffff_ffff) {
+    throw new Error('Professional color fixture free-box size exceeds MP4 32-bit box bounds.')
+  }
+  const freeBox = Buffer.alloc(freeBoxByteLength)
+  freeBox.writeUInt32BE(freeBoxByteLength, 0)
+  freeBox.write('free', 4, 4, 'ascii')
+  const result = Buffer.concat([bytes, freeBox])
+  if (result.byteLength < minimumTotalBytes) {
+    throw new Error('Professional color fixture did not cross the required source byte boundary.')
+  }
+  return result
 }
 
 function createExactProfessionalColorPlan(input: PlannerInput): EditPlan {

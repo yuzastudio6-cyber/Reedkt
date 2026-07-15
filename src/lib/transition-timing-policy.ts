@@ -10,8 +10,8 @@ import type {
 
 export const transitionTimingPolicies = {
   basic: ['hard_cut', 'phrase_cut', 'smooth_crossfade', 'card_wipe'],
-  pro: ['phrase_cut', 'beat_cut', 'visual_motivated_cut', 'map_transition', 'chart_transition', 'browser_zoom_transition', 'graphic_wipe'],
-  premium: ['phrase_cut', 'downbeat_cut', 'match_cut', 'smooth_crossfade', 'stroke_motion_transition', 'evidence_board_transition'],
+  pro: ['hard_cut', 'phrase_cut', 'beat_cut', 'visual_motivated_cut', 'map_transition', 'chart_transition', 'browser_zoom_transition', 'graphic_wipe'],
+  premium: ['hard_cut', 'phrase_cut', 'downbeat_cut', 'match_cut', 'smooth_crossfade', 'stroke_motion_transition', 'evidence_board_transition'],
 } satisfies Record<EditLevel, TransitionTimingType[]>
 
 function wantsRestrained(input: PlannerInput) {
@@ -39,11 +39,15 @@ export function chooseTransitionTimingType(params: {
   beatSnapDecision?: BeatSnapDecisionPlan
   visualMotivated?: boolean
 }): TransitionTimingType {
+  const audioMotivated = ['snap_to_beat', 'snap_to_downbeat', 'snap_to_onset'].includes(
+    params.beatSnapDecision?.snapDecision ?? 'do_not_snap',
+  )
+  if (params.masterTransition?.transitionType === 'hard_cut') return 'hard_cut'
+  if (!params.visualMotivated && !audioMotivated) return 'hard_cut'
   if (wantsRestrained(params.input)) {
     return params.input.editLevel === 'premium' ? 'documentary_cut' : 'phrase_cut'
   }
 
-  if (params.masterTransition?.transitionType === 'hard_cut') return 'hard_cut'
   if (params.visualMotivated) return 'visual_motivated_cut'
   if (params.beatSnapDecision?.snapDecision === 'snap_to_downbeat' && params.beatSnapDecision.speechSafe && params.input.editLevel === 'premium') return 'downbeat_cut'
   if (params.beatSnapDecision?.snapDecision === 'snap_to_beat' && params.beatSnapDecision.speechSafe && params.input.editLevel !== 'basic') return 'beat_cut'

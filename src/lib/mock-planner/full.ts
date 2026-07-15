@@ -1126,28 +1126,50 @@ function linkMasterTimingToCaptionVisualCuePlan(masterTimingPlan: MasterTimingPl
 }
 
 function linkMasterTimingToSoundSyncTransitionPlan(masterTimingPlan: MasterTimingPlan, soundSyncTransitionTimingPlan: SoundSyncTransitionTimingPlan): MasterTimingPlan {
+  const refinedByMasterId = new Map(
+    soundSyncTransitionTimingPlan.refinedTransitionTimings.flatMap((item) =>
+      item.linkedMasterTransitionTimingItemId
+        ? [[item.linkedMasterTransitionTimingItemId, item] as const]
+        : []),
+  )
+  const refinedSfxByMasterId = new Map(
+    soundSyncTransitionTimingPlan.refinedSfxTimings.flatMap((item) => {
+      const refinedTransition = soundSyncTransitionTimingPlan.refinedTransitionTimings.find(
+        (transition) => transition.id === item.linkedTransitionTimingItemId,
+      )
+      return refinedTransition?.linkedMasterTransitionTimingItemId
+        ? [[refinedTransition.linkedMasterTransitionTimingItemId, item] as const]
+        : []
+    }),
+  )
   return {
     ...masterTimingPlan,
     soundSyncTransitionTimingPlanId: soundSyncTransitionTimingPlan.id,
     transitionTimingItems: masterTimingPlan.transitionTimingItems.map((transitionTiming) => {
-      const refinedTransition = soundSyncTransitionTimingPlan.refinedTransitionTimings.find((item) => item.linkedMasterTransitionTimingItemId === transitionTiming.id)
+      const refinedTransition = refinedByMasterId.get(transitionTiming.id)
 
       return {
         ...transitionTiming,
+        ...(refinedTransition?.transitionType === 'hard_cut'
+          ? {
+              transitionType: 'hard_cut' as const,
+              timeRange: refinedTransition.timeRange,
+              beatAligned: false,
+              phraseBoundaryAligned: refinedTransition.phraseBoundaryAligned,
+              reason: refinedTransition.reason,
+              qaChecks: refinedTransition.qaChecks,
+            }
+          : {}),
         refinedTransitionTimingItemId: refinedTransition?.id,
-        sfxCueId: refinedTransition?.sfxCueId ?? transitionTiming.sfxCueId,
+        sfxCueId: refinedTransition ? refinedTransition.sfxCueId : transitionTiming.sfxCueId,
       }
     }),
-    sfxTimingItems: masterTimingPlan.sfxTimingItems.map((sfxTiming) => {
-      const refinedSfx = soundSyncTransitionTimingPlan.refinedSfxTimings.find((item) =>
-        item.linkedVisualCueTimingItemId === sfxTiming.linkedVisualTimingItemId ||
-        item.linkedTransitionTimingItemId === sfxTiming.linkedTransitionTimingItemId,
-      )
-
-      return {
-        ...sfxTiming,
-        refinedSfxTimingItemId: refinedSfx?.id,
-      }
+    sfxTimingItems: masterTimingPlan.sfxTimingItems.flatMap((sfxTiming) => {
+      const refinedSfx = sfxTiming.linkedTransitionTimingItemId
+        ? refinedSfxByMasterId.get(sfxTiming.linkedTransitionTimingItemId)
+        : soundSyncTransitionTimingPlan.refinedSfxTimings.find((item) =>
+            item.linkedVisualCueTimingItemId === sfxTiming.linkedVisualTimingItemId)
+      return refinedSfx ? [{ ...sfxTiming, refinedSfxTimingItemId: refinedSfx.id }] : []
     }),
     musicDuckingTimingItems: masterTimingPlan.musicDuckingTimingItems.map((duckingTiming) => {
       const refinedDucking = soundSyncTransitionTimingPlan.refinedMusicDuckingTimings.find((item) =>
@@ -1158,6 +1180,17 @@ function linkMasterTimingToSoundSyncTransitionPlan(masterTimingPlan: MasterTimin
         ...duckingTiming,
         refinedMusicDuckingTimingItemId: refinedDucking?.id,
       }
+    }),
+    remotionLayerTimingItems: masterTimingPlan.remotionLayerTimingItems.map((layer) => {
+      const masterTransitionId = layer.id.startsWith('remotion-layer-')
+        ? layer.id.slice('remotion-layer-'.length)
+        : undefined
+      const refinedTransition = masterTransitionId
+        ? refinedByMasterId.get(masterTransitionId)
+        : undefined
+      return refinedTransition?.transitionType === 'hard_cut'
+        ? { ...layer, timeRange: refinedTransition.timeRange, reason: refinedTransition.reason, qaChecks: refinedTransition.qaChecks }
+        : layer
     }),
   }
 }

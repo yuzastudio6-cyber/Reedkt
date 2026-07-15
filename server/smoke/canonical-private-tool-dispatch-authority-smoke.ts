@@ -2594,6 +2594,16 @@ assert.deepEqual(approvedFinalCompositionPayload.captionOverlayCues, [{
   startFrame: 24,
   endFrameExclusive: 48,
 }])
+assert.equal(approvedFinalCompositionPayload.transitionPolicy, 'approved_hard_cuts_only')
+assert.deepEqual(approvedFinalCompositionPayload.hardCutTransitions, [{
+  transitionTimingItemId: 'master-approved-hard-cut-1',
+  refinedTransitionTimingItemId: 'refined-approved-hard-cut-1',
+  fromSegmentId: 'segment-1',
+  toSegmentId: 'segment-2',
+  fromSourceSequenceItemId: mediaSourceItem.sourceSequenceItemId,
+  toSourceSequenceItemId: secondaryMediaSourceItem.sourceSequenceItemId,
+  boundaryFrame: 24,
+}])
 assert.equal(approvedFinalCompositionPayload.audioPolicy, 'replace_with_approved_voice_tracks')
 assert.deepEqual(approvedFinalCompositionPayload.voiceTracks, [{
   sourceSequenceItemId: mediaSourceItem.sourceSequenceItemId,
@@ -2695,6 +2705,7 @@ if (process.env.REEDITPRO_CANONICAL_MULTI_SOURCE_SLICE_ONLY === 'true') {
       'two_source_bound_ffmpeg_voice_delivery_artifacts_qa_reconciliation_and_replay_verified',
       'lease_and_single_use_dispatch_verified',
       'exact_ordered_source_sequence_and_timed_caption_track_rendered_with_approved_voice_replacement',
+      'approved_hard_cut_snapshot_authority_and_exact_source_boundary_execution_verified',
       'private_artifact_persistence_and_independent_final_ffprobe_qa_verified',
       'artifact_reconciliation_idempotent_replay_and_private_download_verified',
       'provider_billing_public_delivery_and_production_readiness_remain_false',
@@ -5479,9 +5490,14 @@ function createDispatchPlanBody(input: {
             previewPlaceholderAllowed: false,
             contentType: 'application/json',
             segmentIds: components.segments.map((segment) => segment.segmentId),
-            timingIds: ['master-timing-plan'],
+            timingIds: [
+              'master-timing-plan',
+              'master-approved-hard-cut-1',
+              'refined-approved-hard-cut-1',
+            ],
             rendererLayerIds: [
               'source-video-layer',
+              'approved-hard-cut-boundary-1',
               'voice-track-layer-1',
               'voice-track-layer-2',
               'libass-caption-overlay-layer-1',
@@ -5522,6 +5538,16 @@ function createDispatchPlanBody(input: {
                 timelineStartFrame: 24,
                 timelineEndFrameExclusive: 48,
               }],
+              transitionPolicy: 'approved_hard_cuts_only',
+              hardCutTransitions: [{
+                transitionTimingItemId: 'master-approved-hard-cut-1',
+                refinedTransitionTimingItemId: 'refined-approved-hard-cut-1',
+                fromSegmentId: 'segment-1',
+                toSegmentId: 'segment-2',
+                fromSourceSequenceItemId: input.mediaSourceItem.sourceSequenceItemId,
+                toSourceSequenceItemId: input.secondaryMediaSourceItem.sourceSequenceItemId,
+                boundaryFrame: 24,
+              }],
               sourceFit: 'contain', panelBackground: '#000000',
               audioPolicy: 'replace_with_approved_voice_tracks',
               voiceTracks: [{
@@ -5561,9 +5587,14 @@ function createDispatchPlanBody(input: {
             previewPlaceholderAllowed: false,
             contentType: 'video/mp4',
             segmentIds: components.segments.map((segment) => segment.segmentId),
-            timingIds: ['master-timing-plan'],
+            timingIds: [
+              'master-timing-plan',
+              'master-approved-hard-cut-1',
+              'refined-approved-hard-cut-1',
+            ],
             rendererLayerIds: [
               'source-video-layer',
+              'approved-hard-cut-boundary-1',
               'voice-track-layer-1',
               'voice-track-layer-2',
               'libass-caption-overlay-layer-1',

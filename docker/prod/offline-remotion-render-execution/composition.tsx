@@ -61,6 +61,16 @@ export interface ApprovedCompositionProps {
     timelineStartFrame: number
     timelineEndFrameExclusive: number
   }>
+  transitionPolicy?: 'approved_hard_cuts_only'
+  hardCutTransitions?: Array<{
+    transitionTimingItemId: string
+    refinedTransitionTimingItemId: string
+    fromSegmentId: string
+    toSegmentId: string
+    fromSourceSequenceItemId: string
+    toSourceSequenceItemId: string
+    boundaryFrame: number
+  }>
   sourceInternalUrls?: Array<{
     sourceSequenceItemId: string
     sourceInternalUrl: string
@@ -99,7 +109,8 @@ export const ApprovedComposition: React.FC<ApprovedCompositionProps> = (props) =
     ['approved_source_sequence_caption_final_v1', 'approved_source_sequence_caption_track_final_v1']
       .includes(props.compositionProfileId ?? '') &&
     props.sourceSegments && props.sourceInternalUrls && hasApprovedCaptionInput(props) &&
-    hasApprovedAudioInput(props, props.sourceSegments.length)
+    hasApprovedAudioInput(props, props.sourceSegments.length) &&
+    hasApprovedHardCutInput(props)
   ) {
     return <ApprovedSourceSequenceCaptionComposition {...props} />
   }
@@ -280,4 +291,30 @@ function hasApprovedAudioInput(props: ApprovedCompositionProps, sourceCount: num
   if (sourceIds.size !== sourceCount || outputKeys.size !== sourceCount) return false
   if (!props.sourceSegments) return sourceCount === 1
   return props.sourceSegments.every((segment) => sourceIds.has(segment.sourceSequenceItemId))
+}
+
+function hasApprovedHardCutInput(props: ApprovedCompositionProps): boolean {
+  if (
+    props.transitionPolicy !== 'approved_hard_cuts_only' ||
+    !props.sourceSegments || !props.hardCutTransitions ||
+    props.hardCutTransitions.length !== props.sourceSegments.length - 1
+  ) return false
+  const timingIds = new Set<string>()
+  const refinedIds = new Set<string>()
+  return props.hardCutTransitions.every((transition, index) => {
+    const fromSource = props.sourceSegments![index]
+    const toSource = props.sourceSegments![index + 1]
+    const valid = Boolean(
+      fromSource && toSource &&
+      !timingIds.has(transition.transitionTimingItemId) &&
+      !refinedIds.has(transition.refinedTransitionTimingItemId) &&
+      transition.fromSourceSequenceItemId === fromSource.sourceSequenceItemId &&
+      transition.toSourceSequenceItemId === toSource.sourceSequenceItemId &&
+      transition.boundaryFrame === fromSource.timelineEndFrameExclusive &&
+      transition.boundaryFrame === toSource.timelineStartFrame
+    )
+    timingIds.add(transition.transitionTimingItemId)
+    refinedIds.add(transition.refinedTransitionTimingItemId)
+    return valid
+  })
 }

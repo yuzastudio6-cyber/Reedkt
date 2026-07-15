@@ -42,8 +42,9 @@ fail-closed regression.
 5. Exercise the bounded ordered multi-source canonical lifecycle through lease,
    one-use dispatch, private artifacts, QA, reconciliation, replay, and private
    download evidence. The focused lifecycle includes exact source-bound FFmpeg
-   voice-delivery WAVs, downstream WAV verification, ordered Remotion voice
-   replacement, and independent final H.264/AAC QA. Its Remotion image tag,
+   voice-delivery WAVs, downstream WAV verification, immutable approved
+   hard-cut boundaries, ordered Remotion voice replacement, and independent
+   final H.264/AAC QA. Its Remotion image tag,
    build context, and runtime authority root are canonical-private resources so
    a separate Motion Studio build cannot replace the image identity during this
    proof.
@@ -64,9 +65,10 @@ that discovery channel; it does not weaken image-identity validation.
 
 ## Current Evidence Record
 
-On 2026-07-14, the canonical command passed all 16 phases in 578,148 ms,
-including all 11 Chromium named-edit scenarios, the 4K estimate ceiling, and
-the bounded professional voice-delivery lifecycle. The earlier full
+On 2026-07-14, the canonical command passed all 16 phases in 805,659 ms,
+including all 11 Chromium named-edit scenarios, the 4K estimate ceiling, the
+bounded approved-hard-cut and professional voice-delivery lifecycle, and the
+versioned 50-tool private canonical/job-adapter evidence report. The earlier full
 internal-regression baseline passed all 22 phases in 719,518 ms. Its final
 signed-in regression uploaded two private
 source videos, verified distinct source-sequence and finalized-media identities,
@@ -74,9 +76,10 @@ synchronized exact Edit Preferences, persisted the canonical planning handoff,
 and correctly kept approval, reservation, snapshot, and execution locked when
 the richer plan was not exactly compilable. The separate canonical two-source
 fixture completed the approved bounded execution lifecycle, including two
-source-bound professional voice WAVs and exact ordered replacement in the final
-composition. These are complementary evidence paths, not a claim that the
-legacy rich-plan scenario silently simplified or executed.
+source-bound professional voice WAVs, one immutable exact source-boundary hard
+cut, and exact ordered voice replacement in the final composition. These are
+complementary evidence paths, not a claim that the legacy rich-plan scenario
+silently simplified or executed.
 
 ## Readiness Boundary
 
@@ -88,6 +91,10 @@ This command proves connected local/private behavior. It does not prove:
 - live provider/model execution;
 - transactional customer billing, wallet mutation, or settlement;
 - public delivery, external beta, or paid production readiness.
+
+The exact-hard-cut evidence applies only to zero-duration cuts at approved
+ordered source boundaries. It does not prove crossfades, wipes, zooms, pushes,
+match cuts, transition SFX, or arbitrary transition effects.
 
 The 50-tool report means exactly the reported tool identities have private
 canonical lifecycle and job-adapter evidence. It must not be restated as “50

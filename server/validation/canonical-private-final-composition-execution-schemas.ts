@@ -18,6 +18,16 @@ const approvedVoiceTracksSchema = z.array(z.object({
   voiceDependencyReadEvidenceHash: sha,
 }).strict()).min(1).max(8)
 
+const approvedHardCutTransitionsSchema = z.array(z.object({
+  transitionTimingItemId: identity,
+  refinedTransitionTimingItemId: identity,
+  fromSegmentId: identity,
+  toSegmentId: identity,
+  fromSourceSequenceItemId: identity,
+  toSourceSequenceItemId: identity,
+  boundaryFrame: z.number().int().min(1).max(239),
+}).strict()).min(1).max(7)
+
 export const runCanonicalPrivateFinalCompositionSchema = z.object({
   workspaceId: identity,
   projectId: identity,
@@ -82,6 +92,8 @@ const sourceSequenceFinalCompositionInputsSchema = finalCompositionDependencyInp
     timelineStartFrame: z.number().int().nonnegative(),
     timelineEndFrameExclusive: z.number().int().positive(),
   }).strict()).min(2).max(8),
+  transitionPolicy: z.literal('approved_hard_cuts_only'),
+  hardCutTransitions: approvedHardCutTransitionsSchema,
   combinedSourceByteLength: z.number().int().positive().max(20 * 1024 * 1024),
   sourceSequenceReadEvidenceHash: sha,
 }).strict()
@@ -108,6 +120,8 @@ const sourceSequenceCaptionTrackFinalCompositionInputsSchema = captionTrackDepen
     timelineStartFrame: z.number().int().nonnegative(),
     timelineEndFrameExclusive: z.number().int().positive(),
   }).strict()).min(2).max(8),
+  transitionPolicy: z.literal('approved_hard_cuts_only'),
+  hardCutTransitions: approvedHardCutTransitionsSchema,
   combinedSourceByteLength: z.number().int().positive().max(20 * 1024 * 1024),
   sourceSequenceReadEvidenceHash: sha,
 }).strict()
@@ -133,6 +147,8 @@ export const canonicalPrivateFinalCompositionResponseSchema = z.object({
     approvedSourceObjectRead: z.literal(true),
     approvedSourceTrimDependencyRead: z.literal(true),
     approvedSourceTrimFramesApplied: z.literal(true),
+    approvedHardCutTransitionAuthorityRead: z.boolean(),
+    approvedHardCutTransitionsApplied: z.boolean(),
     approvedCaptionDependencyRead: z.literal(true),
     approvedCaptionTrackTimingApplied: z.boolean(),
     audioPolicy: z.enum([
@@ -228,6 +244,48 @@ export const canonicalPrivateFinalCompositionResponseSchema = z.object({
       code: z.ZodIssueCode.custom,
       path: ['tool', 'audioPolicy'],
       message: 'Final-composition audio policy and source-bound voice evidence diverged.',
+    })
+  }
+  const sequenceInputs = 'sources' in value.inputs
+  let hardCutEvidenceValid: boolean
+  if ('sources' in value.inputs) {
+    const sequence = value.inputs
+    const timingIds = new Set<string>()
+    const refinedTimingIds = new Set<string>()
+    hardCutEvidenceValid =
+      value.tool.approvedHardCutTransitionAuthorityRead &&
+      value.tool.approvedHardCutTransitionsApplied &&
+      sequence.transitionPolicy === 'approved_hard_cuts_only' &&
+      sequence.hardCutTransitions.length === sequence.sources.length - 1 &&
+      sequence.hardCutTransitions.every((transition, index) => {
+        const fromSource = sequence.sources[index]
+        const toSource = sequence.sources[index + 1]
+        const unique =
+          !timingIds.has(transition.transitionTimingItemId) &&
+          !refinedTimingIds.has(transition.refinedTransitionTimingItemId)
+        timingIds.add(transition.transitionTimingItemId)
+        refinedTimingIds.add(transition.refinedTransitionTimingItemId)
+        return unique && Boolean(
+          fromSource && toSource &&
+          transition.fromSourceSequenceItemId === fromSource.sourceSequenceItemId &&
+          transition.toSourceSequenceItemId === toSource.sourceSequenceItemId &&
+          transition.boundaryFrame === fromSource.timelineEndFrameExclusive &&
+          transition.boundaryFrame === toSource.timelineStartFrame
+        )
+      })
+  } else {
+    hardCutEvidenceValid =
+      !value.tool.approvedHardCutTransitionAuthorityRead &&
+      !value.tool.approvedHardCutTransitionsApplied
+  }
+  if (
+    sequenceProfile !== sequenceInputs ||
+    !hardCutEvidenceValid
+  ) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['tool', 'approvedHardCutTransitionsApplied'],
+      message: 'Final-composition hard-cut evidence diverged from the approved sequence profile.',
     })
   }
 })

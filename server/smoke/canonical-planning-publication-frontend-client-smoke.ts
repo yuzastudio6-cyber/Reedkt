@@ -201,13 +201,28 @@ assert.equal(
   'Source-truth planning must remove only the duration, segment, and caption-range blockers it resolves.',
 )
 for (const expectedBlocker of [
-  'Timed transitions need their own canonical execution work items.',
-  'Sound-effect cues need their own canonical execution work items.',
   'Music ducking needs its own canonical audio work items.',
   'The planned edit includes operations outside the current source-and-caption private review runner.',
   'The planned color work needs exact canonical processing work items.',
   'The planned audio work exceeds the exact source-bound voice delivery recipe and needs additional canonical work items.',
 ]) assert.ok(realisticRichBlockers.includes(expectedBlocker), `Missing rich-operation blocker: ${expectedBlocker}`)
+assert.equal(
+  realisticRichBlockers.includes('Timed transitions need their own canonical execution work items.'),
+  false,
+  'An exact approved hard cut must not remain a transition publication blocker.',
+)
+assert.equal(
+  realisticRichBlockers.includes('Sound-effect cues need their own canonical execution work items.'),
+  false,
+  'An unmotivated hard cut must not invent a transition SFX cue.',
+)
+assert.deepEqual(realisticTiming.transitionTimingItems.map((transition) => ({
+  type: transition.transitionType,
+  startFrame: transition.timeRange.startFrame,
+  endFrame: transition.timeRange.endFrame,
+  sfxCueId: transition.sfxCueId,
+})), [{ type: 'hard_cut', startFrame: 30, endFrame: 30, sfxCueId: undefined }])
+assert.deepEqual(realisticRichMultiSourcePlan.soundSyncTransitionTimingPlan?.refinedSfxTimings, [])
 assert.match(
   realisticRichBlockers.join(' '),
   /transition|audio|operation/i,
@@ -357,6 +372,52 @@ assert.deepEqual(multiSourceFinalPayload.sourceSegments, [{
   timelineStartFrame: 24,
   timelineEndFrameExclusive: 48,
 }])
+assert.equal(multiSourceFinalPayload.transitionPolicy, 'approved_hard_cuts_only')
+assert.deepEqual(multiSourceFinalPayload.hardCutTransitions, [{
+  transitionTimingItemId: 'approved-hard-cut-1',
+  refinedTransitionTimingItemId: 'approved-refined-hard-cut-1',
+  fromSegmentId: 'segment-1',
+  toSegmentId: 'segment-2',
+  fromSourceSequenceItemId: 'canonical-save-source-1',
+  toSourceSequenceItemId: 'canonical-save-source-2',
+  boundaryFrame: 24,
+}])
+assert.throws(
+  () => validateOfflineRemotionFinalCompositionPlanningPayload({
+    ...multiSourceFinalPayload,
+    hardCutTransitions: multiSourceFinalPayload.hardCutTransitions.map((transition) => ({
+      ...transition,
+      boundaryFrame: 23,
+    })),
+  }),
+  /hard cut|boundary/,
+  'A changed hard-cut frame must fail before canonical publication or dispatch.',
+)
+const invalidSingleSourceTransitionPlan = structuredClone(exactPlan)
+invalidSingleSourceTransitionPlan.masterTimingPlan!.transitionTimingItems = structuredClone(
+  multiSourcePlan.masterTimingPlan!.transitionTimingItems,
+)
+invalidSingleSourceTransitionPlan.soundSyncTransitionTimingPlan!.refinedTransitionTimings = structuredClone(
+  multiSourcePlan.soundSyncTransitionTimingPlan!.refinedTransitionTimings,
+)
+const invalidSingleSourceTransitionDraft = buildCanonicalPlanningDraft({
+  plan: invalidSingleSourceTransitionPlan,
+  plannerInput: baseInput,
+  sourceMediaAssets,
+})
+assert.equal(invalidSingleSourceTransitionDraft.ok, true)
+assert.equal(
+  invalidSingleSourceTransitionDraft.ok && invalidSingleSourceTransitionDraft.draft.publication,
+  undefined,
+  'A single-source plan with stray transition authority must fail closed before publication.',
+)
+assert.ok(
+  invalidSingleSourceTransitionDraft.ok &&
+  invalidSingleSourceTransitionDraft.draft.publicationBlockers.includes(
+    'Timed transitions need their own canonical execution work items.',
+  ),
+  'A single-source plan must expose stray transition records as a publication blocker.',
+)
 assert.deepEqual(multiSourceFinalPayload.captionOverlayCues, [{
   outputKey: 'caption-overlay-1-png',
   startFrame: 0,
@@ -982,10 +1043,10 @@ function createExactMultiSourcePrivateReviewPlan(): EditPlan {
     timeRange: frameRange(1, 2, 24, 48),
   }]
   timing.visualTimingItems = []
-  timing.transitionTimingItems = []
   timing.sfxTimingItems = []
   timing.musicDuckingTimingItems = []
   timing.providerClipTimingItems = []
+  applyExactMultiSourceHardCut(plan, timing)
   const cleanup = plan.sourceCleanupPlan!
   const decisionTemplate = cleanup.decisions[0]!
   cleanup.decisions = multiSourceInput.clips.map((clip, index) => ({
@@ -1013,6 +1074,76 @@ function createExactMultiSourcePrivateReviewPlan(): EditPlan {
   plan.colorPipelinePlan = undefined
   plan.audioPipelinePlan = undefined
   return plan
+}
+
+function applyExactMultiSourceHardCut(
+  plan: EditPlan,
+  timing: NonNullable<EditPlan['masterTimingPlan']>,
+): void {
+  const hardCutRange = frameRange(1, 1, 24, 24)
+  timing.transitionTimingItems = [{
+    id: 'approved-hard-cut-1',
+    transitionType: 'hard_cut',
+    timeRange: hardCutRange,
+    fromSegmentId: 'segment-1',
+    toSegmentId: 'segment-2',
+    refinedTransitionTimingItemId: 'approved-refined-hard-cut-1',
+    beatAligned: false,
+    phraseBoundaryAligned: true,
+    reason: 'Exact source boundary uses an approved speech-safe hard cut.',
+    qaChecks: ['The hard cut is exactly on the approved source boundary.'],
+  }]
+  timing.remotionLayerTimingItems = [
+    ...timing.remotionLayerTimingItems.filter((layer) => layer.layerType !== 'transition'),
+    {
+      id: 'remotion-layer-approved-hard-cut-1',
+      label: 'Approved hard cut',
+      layerType: 'transition',
+      timeRange: hardCutRange,
+      zIndex: 80,
+      reason: 'Exact source boundary uses an approved speech-safe hard cut.',
+      qaChecks: ['The hard cut is exactly on the approved source boundary.'],
+    },
+  ]
+  const soundSync = plan.soundSyncTransitionTimingPlan!
+  const beatSnapTemplate = soundSync.refinedTransitionTimings[0]?.beatSnapDecision
+  const beatSnapDecision = {
+    ...(beatSnapTemplate ?? {
+      id: 'approved-hard-cut-snap-1',
+      requestedFrame: 24,
+      snappedFrame: 24,
+      snapDecision: 'snap_to_phrase_boundary' as const,
+      speechSafe: true,
+      reason: 'The exact source boundary is speech safe.',
+      qaChecks: ['Speech safety is confirmed at the source boundary.'],
+    }),
+    id: 'approved-hard-cut-snap-1',
+    targetCueId: 'approved-hard-cut-1',
+    requestedFrame: 24,
+    snappedFrame: 24,
+    snapDecision: 'snap_to_phrase_boundary' as const,
+    speechSafe: true,
+  }
+  soundSync.refinedTransitionTimings = [{
+    id: 'approved-refined-hard-cut-1',
+    transitionType: 'hard_cut',
+    timeRange: hardCutRange,
+    fromSegmentId: 'segment-1',
+    toSegmentId: 'segment-2',
+    linkedMasterTransitionTimingItemId: 'approved-hard-cut-1',
+    beatSnapDecision,
+    phraseBoundaryAligned: true,
+    beatAligned: false,
+    downbeatAligned: false,
+    visualMotivated: false,
+    audioMotivated: false,
+    durationFrames: 0,
+    riskLevel: 'low',
+    reason: 'Exact source boundary uses an approved speech-safe hard cut.',
+    qaChecks: ['The refined hard cut matches the approved source boundary.'],
+  }]
+  soundSync.refinedSfxTimings = []
+  soundSync.beatSnapDecisions = [beatSnapDecision]
 }
 
 function createExactMultiSourceVoiceDeliveryPlan(): EditPlan {

@@ -1,8 +1,8 @@
 # Canonical Multi-Source Private Composition
 
-Status date: 2026-07-13
+Status date: 2026-07-14
 
-Status: exact ordered two-source, two-caption composition is verified through the canonical private lifecycle; product, external-beta, public-delivery, and production readiness remain false.
+Status: exact ordered two-source, two-caption, approved-hard-cut composition is verified through the canonical private lifecycle; product, external-beta, public-delivery, and production readiness remain false.
 
 ## What is implemented
 
@@ -11,10 +11,10 @@ The canonical planning compiler can publish a bounded source-and-caption graph f
 1. immutable approved-snapshot validation;
 2. exact source-range validation for every ordered source;
 3. one dependency-free libass artifact for each approved caption cue;
-4. one Remotion final composition using either the legacy full-duration caption profile or `approved_source_sequence_caption_track_final_v1`;
+4. one Remotion final composition using either the legacy full-duration caption profile or `approved_source_sequence_caption_track_final_v1`, with one immutable hard-cut record per ordered source boundary;
 5. dependency-bound FFprobe final-artifact QA.
 
-The Remotion composition places each source in an explicit timeline `Sequence`, applies its exact approved source range, preserves source audio, and places every approved full-frame RGBA caption artifact in a second exact frame-bounded `Sequence`. Source bytes and caption artifacts are reopened only by the backend from their approved private manifests. Browser paths, URLs, bytes, commands, credentials, and caller-authored storage identity are rejected.
+The Remotion composition places each source in an explicit timeline `Sequence`, applies its exact approved source range, enforces `approved_hard_cuts_only`, preserves source audio, and places every approved full-frame RGBA caption artifact in a second exact frame-bounded `Sequence`. Each cut binds the master timing ID, refined timing ID, adjacent segment IDs, adjacent source IDs, and exact boundary frame. Source bytes and caption artifacts are reopened only by the backend from their approved private manifests. Browser paths, URLs, bytes, commands, credentials, and caller-authored storage identity are rejected.
 
 ## Exact sequence contract
 
@@ -22,6 +22,7 @@ The sequence contract accepts two through eight unique MP4 sources and requires 
 
 - confirmed source order and one exact cleanup decision per source;
 - duration-preserving source-to-timeline ranges with no gap or overlap;
+- exactly one unique approved hard cut at each adjacent source boundary, with no duration, overlap, SFX, or caller-selected effect;
 - exact coverage of the approved 24–240-frame final duration;
 - 24fps or 30fps and an approved bounded output frame;
 - each source between 64 bytes and 16 MB and the combined sequence no larger than 20 MB;
@@ -41,7 +42,7 @@ The container remains network-none, read-only, non-root, capability-dropped, mou
 
 ## Verified evidence
 
-`npm run smoke:offline-remotion-render-execution` proves the current source-bound image actually renders two ordered one-second MP4 sources into a 48-frame H.264 composition, preserves AAC audio, applies two distinct approved caption artifacts over frames 0–24 and 24–48, decodes distinct captioned frames, and passes an independent pinned FFprobe frame/codec/duration check.
+`npm run smoke:offline-remotion-render-execution` proves the current source-bound image actually renders two ordered one-second MP4 sources into a 48-frame H.264 composition, applies the approved hard cut at frame 24, preserves AAC audio, applies two distinct approved caption artifacts over frames 0–24 and 24–48, decodes distinct captioned frames, rejects a changed cut frame, and passes an independent pinned FFprobe frame/codec/duration check.
 
 `npm run smoke:canonical-multi-source-final-composition` proves the same exact sequence profile through:
 
@@ -50,6 +51,7 @@ The container remains network-none, read-only, non-root, capability-dropped, mou
 - synthetic private-test credit reservation without customer charging;
 - two-source trim authority and dependency readiness;
 - two exact caption artifacts and their approved frame ranges;
+- immutable hard-cut snapshot authority and exact source-boundary execution;
 - worker lease and one-use dispatch;
 - backend-only source reads and confined Remotion execution;
 - private artifact persistence;
@@ -62,12 +64,12 @@ The focused caption-track lifecycle is green through `npm run smoke:canonical-mu
 
 ## No-silent-drop boundary
 
-The normal rich two-source mock editor plan is intentionally not published into this bounded graph. Confirmed preserve-source-order planning now maps its two one-second sources to two exact contiguous segments totaling two seconds/60 frames; it neither repeats nor stretches source footage. Its two caption ranges also remain inside those segments and expose short-readability risk without extending the timeline. The compiler consequently clears only the duration, one-to-one segment, and caption-range blockers. Transitions, SFX, ducking, color/audio work, and other segment operations remain explicit blockers and create no publication candidate instead of being dropped or compressed.
+The normal rich two-source mock editor plan is intentionally not published into this bounded graph. Confirmed preserve-source-order planning maps its two one-second sources to two exact contiguous segments totaling two seconds/60 frames; it neither repeats nor stretches source footage. Its two caption ranges remain inside those segments and expose short-readability risk without extending the timeline. When no transition has a visual or audio motivation, refinement now chooses an exact hard cut at frame 30 and creates no SFX. The compiler clears the duration, one-to-one segment, caption-range, exact-hard-cut, and orphan-transition-SFX blockers. Music ducking, placeholder color/audio work, b-roll/other unsupported segment operations, and richer effects remain explicit blockers and create no publication candidate instead of being dropped or compressed.
 
 The following remain separate future work-item/compiler milestones:
 
 - caption animation, overlapping captions, more than seven cues, and transcript/word-level alignment workers;
-- transitions and visual timing cues;
+- crossfades, wipes, pushes, zooms, match cuts, other transition effects, and visual timing cues;
 - SFX, music ducking, cleanup/mix, and other audio operations;
 - color correction, grading, and shot matching;
 - provider-backed assets, visual assets, and provider clip timing;

@@ -310,7 +310,11 @@ function createRefinedSfx(params: {
     }))
     .filter(Boolean) as RefinedSfxTimingItem[]
   const transitionSfx = params.refinedTransitions
-    .filter((transition) => transition.riskLevel !== 'high' && transition.riskLevel !== 'blocking')
+    .filter((transition) =>
+      transition.transitionType !== 'hard_cut' &&
+      (transition.visualMotivated || transition.audioMotivated) &&
+      transition.riskLevel !== 'high' &&
+      transition.riskLevel !== 'blocking')
     .slice(0, params.input.editLevel === 'premium' ? 4 : params.input.editLevel === 'pro' ? 2 : 1)
     .map((transition, index) => createSfxTimingForCue({
       densityLevel,

@@ -87,6 +87,55 @@ function validateSourceSegments(value, durationFrames) {
   return segments
 }
 
+function validateApprovedHardCuts(value, sourceSegments) {
+  if (!Array.isArray(value) || value.length !== sourceSegments.length - 1) {
+    throw new Error('source sequence requires one approved hard cut per source boundary')
+  }
+  const timingIds = new Set()
+  const refinedIds = new Set()
+  return value.map((candidate, index) => {
+    const transition = exactObject(candidate, [
+      'transitionTimingItemId', 'refinedTransitionTimingItemId',
+      'fromSegmentId', 'toSegmentId',
+      'fromSourceSequenceItemId', 'toSourceSequenceItemId', 'boundaryFrame',
+    ], `hard-cut transition ${index + 1}`)
+    const fromSource = sourceSegments[index]
+    const toSource = sourceSegments[index + 1]
+    const normalized = {
+      transitionTimingItemId: safeIdentity(
+        transition.transitionTimingItemId,
+        'transitionTimingItemId',
+      ),
+      refinedTransitionTimingItemId: safeIdentity(
+        transition.refinedTransitionTimingItemId,
+        'refinedTransitionTimingItemId',
+      ),
+      fromSegmentId: safeIdentity(transition.fromSegmentId, 'fromSegmentId'),
+      toSegmentId: safeIdentity(transition.toSegmentId, 'toSegmentId'),
+      fromSourceSequenceItemId: safeIdentity(
+        transition.fromSourceSequenceItemId,
+        'fromSourceSequenceItemId',
+      ),
+      toSourceSequenceItemId: safeIdentity(
+        transition.toSourceSequenceItemId,
+        'toSourceSequenceItemId',
+      ),
+      boundaryFrame: integer(transition.boundaryFrame, 1, 239, 'boundaryFrame'),
+    }
+    if (
+      timingIds.has(normalized.transitionTimingItemId) ||
+      refinedIds.has(normalized.refinedTransitionTimingItemId) ||
+      normalized.fromSourceSequenceItemId !== fromSource.sourceSequenceItemId ||
+      normalized.toSourceSequenceItemId !== toSource.sourceSequenceItemId ||
+      normalized.boundaryFrame !== fromSource.timelineEndFrameExclusive ||
+      normalized.boundaryFrame !== toSource.timelineStartFrame
+    ) throw new Error('approved hard cuts must uniquely match the exact ordered source boundary')
+    timingIds.add(normalized.transitionTimingItemId)
+    refinedIds.add(normalized.refinedTransitionTimingItemId)
+    return normalized
+  })
+}
+
 function isSourceSequenceProfile(value) {
   return value === 'approved_source_sequence_caption_final_v1' ||
     value === 'approved_source_sequence_caption_track_final_v1'
@@ -269,7 +318,8 @@ function validateRequest(value) {
     const replaceVoice = rawPayload.audioPolicy === 'replace_with_approved_voice_tracks'
     const payload = exactObject(rawPayload, [
       'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
-      'sourceSegments', 'sourceFit', 'panelBackground', 'audioPolicy',
+      'sourceSegments', 'transitionPolicy', 'hardCutTransitions',
+      'sourceFit', 'panelBackground', 'audioPolicy',
       'captionOverlayPolicy', ...(captionTrack ? ['captionOverlayCues'] : []), 'sources',
       ...(captionTrack
         ? ['captionOverlays']
@@ -281,6 +331,10 @@ function validateRequest(value) {
     const durationFrames = integer(payload.durationFrames, 24, 240, 'durationFrames')
     const fps = oneOf(payload.fps, [24, 30], 'fps')
     const sourceSegments = validateSourceSegments(payload.sourceSegments, durationFrames)
+    const hardCutTransitions = validateApprovedHardCuts(
+      payload.hardCutTransitions,
+      sourceSegments,
+    )
     if (!Array.isArray(payload.sources) || payload.sources.length !== sourceSegments.length) {
       throw new Error('source-sequence commitments are incomplete')
     }
@@ -322,6 +376,7 @@ function validateRequest(value) {
         )
       : undefined
     if (
+      payload.transitionPolicy !== 'approved_hard_cuts_only' ||
       payload.sourceFit !== 'contain' ||
       !['preserve_source_sequence', 'replace_with_approved_voice_tracks'].includes(payload.audioPolicy) ||
       payload.captionOverlayPolicy !== (
@@ -337,7 +392,8 @@ function validateRequest(value) {
       payload: {
         ...payload,
         width: integer(payload.width, 360, 720, 'width'), height: integer(payload.height, 360, 720, 'height'),
-        fps, durationFrames, sourceSegments, sources,
+        fps, durationFrames, sourceSegments,
+        transitionPolicy: 'approved_hard_cuts_only', hardCutTransitions, sources,
         panelBackground: color(payload.panelBackground, 'panelBackground'),
         ...(captionTrack
           ? { captionOverlayCues, captionOverlays }
@@ -522,6 +578,8 @@ async function execute(request) {
         width: request.payload.width, height: request.payload.height,
         fps: request.payload.fps, durationFrames: request.payload.durationFrames,
         sourceSegments: request.payload.sourceSegments,
+        transitionPolicy: request.payload.transitionPolicy,
+        hardCutTransitions: request.payload.hardCutTransitions,
         sourceFit: request.payload.sourceFit, panelBackground: request.payload.panelBackground,
         audioPolicy: request.payload.audioPolicy, captionOverlayPolicy: request.payload.captionOverlayPolicy,
         sourceInternalUrls: request.payload.sources.map((source, index) => ({
@@ -742,6 +800,8 @@ try {
               approvedCaptionOverlayBytesVerified: true,
               approvedSourceTrimFramesApplied: true,
               approvedSourceSequenceTimelineApplied: true,
+              approvedHardCutTransitionAuthorityRead: true,
+              approvedHardCutTransitionsApplied: true,
               finalCompositionProfileExecuted: true,
               ...(request.payload.audioPolicy === 'replace_with_approved_voice_tracks'
                 ? {

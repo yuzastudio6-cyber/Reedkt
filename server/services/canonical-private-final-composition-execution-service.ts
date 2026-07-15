@@ -335,6 +335,12 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
       }))
       if (!('resultJson' in probe)) throw denied('Independent FFprobe returned the wrong final artifact class.')
       const qa = normalizeCanonicalPrivateFinalMediaQa(probe.resultJson.document, request.payload)
+      const hardCutAuthorityHash = sha256ArtifactQaValue(sequenceProfile
+        ? {
+            transitionPolicy: planningPayload.transitionPolicy,
+            hardCutTransitions: planningPayload.hardCutTransitions,
+          }
+        : { transitionPolicy: 'not_applicable_single_source' })
 
       const privateObjectIdentityHash = sha256ArtifactQaValue({
         domain: 'canonical_private_final_composition_mp4_v1',
@@ -352,6 +358,7 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
         sourceTrimSha256: trimArtifact.sha256,
         captionSha256s: captions.map((caption) => caption.sha256),
         voiceTrackSha256s: voiceTracks.map((voiceTrack) => voiceTrack.sha256),
+        hardCutAuthorityHash,
         contentSha256: result.artifact.sha256,
       })
       await persistCanonicalPrivateRemotionArtifact({
@@ -389,6 +396,7 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
         voiceDependencyReadEvidenceHashes: voiceTracks.map(
           (voiceTrack) => voiceTrack.dependencyReadEvidenceHash,
         ),
+        hardCutAuthorityHash,
       }
       const artifactAuthority = createPrivateArtifactQaAuthorityService(context, adapters(adapterInput))
       const keyHash = sha256ArtifactQaValue({
@@ -467,6 +475,8 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
           actualRemotionOperationCompleted: true as const, approvedSourceObjectRead: true as const,
           approvedSourceTrimDependencyRead: true as const,
           approvedSourceTrimFramesApplied: true as const,
+          approvedHardCutTransitionAuthorityRead: sequenceProfile,
+          approvedHardCutTransitionsApplied: sequenceProfile,
           approvedCaptionDependencyRead: true as const,
           approvedCaptionTrackTimingApplied: captionTrackProfile,
           audioPolicy: planningPayload.audioPolicy,
@@ -490,6 +500,8 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
                 timelineStartFrame: planningPayload.sourceSegments[index]!.timelineStartFrame,
                 timelineEndFrameExclusive: planningPayload.sourceSegments[index]!.timelineEndFrameExclusive,
               })),
+              transitionPolicy: planningPayload.transitionPolicy,
+              hardCutTransitions: planningPayload.hardCutTransitions,
               combinedSourceByteLength: sources.reduce((total, source) => total + source.byteLength, 0),
               sourceSequenceReadEvidenceHash: sha256ArtifactQaValue(
                 sources.map((source) => source.sourceReadEvidenceHash),
@@ -773,6 +785,7 @@ interface FinalCompositionAdapterInput {
   sourceTrimDependencyReadEvidenceHash: string
   captionDependencyReadEvidenceHashes: string[]
   voiceDependencyReadEvidenceHashes: string[]
+  hardCutAuthorityHash: string
 }
 
 function adapters(input: FinalCompositionAdapterInput): {
@@ -811,6 +824,7 @@ function adapters(input: FinalCompositionAdapterInput): {
               sourceTrimDependencyReadEvidenceHash: input.sourceTrimDependencyReadEvidenceHash,
               captionDependencyReadEvidenceHashes: input.captionDependencyReadEvidenceHashes,
               voiceDependencyReadEvidenceHashes: input.voiceDependencyReadEvidenceHashes,
+              hardCutAuthorityHash: input.hardCutAuthorityHash,
             }),
             startedAt: input.executionStartedAt,
             finishedAt: input.result.attestation.completedAt,
@@ -860,8 +874,9 @@ function adapters(input: FinalCompositionAdapterInput): {
               sourceTrimDependencyReadEvidenceHash: input.sourceTrimDependencyReadEvidenceHash,
               captionDependencyReadEvidenceHashes: input.captionDependencyReadEvidenceHashes,
               voiceDependencyReadEvidenceHashes: input.voiceDependencyReadEvidenceHashes,
+              hardCutAuthorityHash: input.hardCutAuthorityHash,
             }),
-            notesCode: 'approved_source_trim_caption_voice_dependency_and_frame_preflight_passed',
+            notesCode: 'approved_source_trim_caption_voice_transition_policy_and_frame_preflight_passed',
           }, {
             gateId: 'final_qa_gate' as const,
             category: 'asset_integrity' as const,
@@ -921,7 +936,9 @@ function assertFinalResult(
     result.evidence.semanticEvidence.finalCompositionProfileExecuted !== true ||
     (sequenceProfile && (
       result.evidence.semanticEvidence.approvedSourceSequenceBytesVerified !== true ||
-      result.evidence.semanticEvidence.approvedSourceSequenceTimelineApplied !== true
+      result.evidence.semanticEvidence.approvedSourceSequenceTimelineApplied !== true ||
+      result.evidence.semanticEvidence.approvedHardCutTransitionAuthorityRead !== true ||
+      result.evidence.semanticEvidence.approvedHardCutTransitionsApplied !== true
     )) ||
     (captionTrackProfile &&
       result.evidence.semanticEvidence.approvedCaptionTrackTimingApplied !== true) ||

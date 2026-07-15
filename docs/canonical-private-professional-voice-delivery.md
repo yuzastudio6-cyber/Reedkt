@@ -67,9 +67,10 @@ source-bound and request the same supported operation set.
 The compiler still fails closed when the approved plan requires any richer
 audio behavior, including music, music ducking, SFX, SoundSync cues, beat
 alignment, a different loudness policy, or an unsupported clip operation. It
-also remains blocked by unrelated uncompiled requirements such as transitions,
-color work, or unsupported segment operations. No requirement is silently
-dropped to obtain approval.
+also remains blocked by unrelated uncompiled requirements such as non-hard-cut
+transition effects, color work, or unsupported segment operations. Exact
+approved source-boundary hard cuts are supported separately. No requirement is
+silently dropped to obtain approval.
 
 ## Evidence
 

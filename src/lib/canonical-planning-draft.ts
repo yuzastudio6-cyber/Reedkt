@@ -28,6 +28,16 @@ type ApprovedVoiceDeliverySource = {
   durationFrames: number
 }
 
+type ApprovedHardCutTransition = {
+  transitionTimingItemId: string
+  refinedTransitionTimingItemId: string
+  fromSegmentId: string
+  toSegmentId: string
+  fromSourceSequenceItemId: string
+  toSourceSequenceItemId: string
+  boundaryFrame: number
+}
+
 export type CanonicalSourceAuthorityItem = {
   sourceSequenceItemId: string
   mediaAssetId: string
@@ -238,6 +248,13 @@ export function buildCanonicalPlanningDraft(input: {
     sourceItems: orderedSourceItems,
     cleanupDecisions: cleanup.decisions,
   })
+  const approvedHardCutTransitions = buildApprovedHardCutTransitions({
+    plan,
+    sourceItems: orderedSourceItems,
+    segments: segments.segments,
+    fps,
+    totalFrames,
+  })
 
   const frame = privatePlanningFrame(plannerInput.aspectRatio)
   const timingValidationPlan = plan.timingValidationPlan
@@ -341,6 +358,7 @@ export function buildCanonicalPlanningDraft(input: {
     cleanupDecisions: cleanup.decisions,
     segments: segments.segments,
     approvedVoiceDeliverySources,
+    approvedHardCutTransitions,
   })
   const canonicalEstimate = buildEstimate(plan)
   if (!canonicalEstimate.ok) publicationBlockers.push(canonicalEstimate.blocker)
@@ -356,6 +374,7 @@ export function buildCanonicalPlanningDraft(input: {
           fps: fps as 24 | 30,
           totalFrames,
           approvedVoiceDeliverySources,
+          approvedHardCutTransitions: approvedHardCutTransitions ?? [],
         }),
         planningRequestIdSeed: safeKey(plan.planningInputTrace?.fingerprint ?? plan.planningContextTrace?.planningContextId ?? 'named-edit-plan', 'named-edit-plan'),
       }
@@ -504,6 +523,7 @@ function privateReviewPublicationBlockers(input: {
   cleanupDecisions: CanonicalSourceCleanupDecisionDraft[]
   segments: CanonicalPlanComponentsDraft['segments']
   approvedVoiceDeliverySources: ApprovedVoiceDeliverySource[] | null
+  approvedHardCutTransitions: ApprovedHardCutTransition[] | null
 }): string[] {
   const blockers: string[] = []
   const captionCues = approvedCaptionCues(input.plan, input.totalFrames)
@@ -557,8 +577,19 @@ function privateReviewPublicationBlockers(input: {
     blockers.push('Private canonical review requires one full-duration caption or two to seven safe, ordered, non-overlapping caption cues.')
   }
   if ((input.plan.masterTimingPlan?.visualTimingItems.length ?? 0) > 0) blockers.push('Timed visual cues need their own canonical execution work items.')
-  if ((input.plan.masterTimingPlan?.transitionTimingItems.length ?? 0) > 0) blockers.push('Timed transitions need their own canonical execution work items.')
-  if ((input.plan.masterTimingPlan?.sfxTimingItems.length ?? 0) > 0) blockers.push('Sound-effect cues need their own canonical execution work items.')
+  const plannedTransitionCount = Math.max(
+    input.plan.masterTimingPlan?.transitionTimingItems.length ?? 0,
+    input.plan.soundSyncTransitionTimingPlan?.refinedTransitionTimings.length ?? 0,
+  )
+  const expectedTransitionCount = Math.max(0, input.orderedSourceItems.length - 1)
+  if (
+    plannedTransitionCount !== expectedTransitionCount ||
+    !input.approvedHardCutTransitions
+  ) blockers.push('Timed transitions need their own canonical execution work items.')
+  if (
+    (input.plan.masterTimingPlan?.sfxTimingItems.length ?? 0) > 0 ||
+    (input.plan.soundSyncTransitionTimingPlan?.refinedSfxTimings.length ?? 0) > 0
+  ) blockers.push('Sound-effect cues need their own canonical execution work items.')
   if ((input.plan.masterTimingPlan?.musicDuckingTimingItems.length ?? 0) > 0) blockers.push('Music ducking needs its own canonical audio work items.')
   if ((input.plan.masterTimingPlan?.providerClipTimingItems.length ?? 0) > 0) blockers.push('Provider clips need their own canonical execution work items.')
   if (hasUnrepresentedSegmentOperations(input.plan)) blockers.push('The planned edit includes operations outside the current source-and-caption private review runner.')
@@ -581,6 +612,7 @@ function buildPrivateReviewCanonicalPlan(input: {
   fps: 24 | 30
   totalFrames: number
   approvedVoiceDeliverySources: ApprovedVoiceDeliverySource[] | null
+  approvedHardCutTransitions: ApprovedHardCutTransition[]
 }): CanonicalPlanDraft {
   const segmentIds = input.components.segments.map((segment) => segment.segmentId)
   const timingId = safeKey(input.plan.masterTimingPlan?.id ?? 'master-timing-plan', 'master-timing-plan')
@@ -607,6 +639,17 @@ function buildPrivateReviewCanonicalPlan(input: {
   if (replaceSourceAudio && voiceDeliverySources.length !== sourceTimeline.length) {
     throw new Error('Canonical voice delivery lost its one-to-one approved source binding.')
   }
+  if (
+    sourceSequenceComposition &&
+    input.approvedHardCutTransitions.length !== sourceTimeline.length - 1
+  ) throw new Error('Canonical source sequence lost its approved hard-cut transition authority.')
+  const transitionTimingIds = input.approvedHardCutTransitions.flatMap((transition) => [
+    transition.transitionTimingItemId,
+    transition.refinedTransitionTimingItemId,
+  ])
+  const transitionRendererLayerIds = input.approvedHardCutTransitions.map(
+    (_transition, index) => `approved-hard-cut-boundary-${index + 1}`,
+  )
 
   const output = (
     outputKey: string,
@@ -809,6 +852,8 @@ function buildPrivateReviewCanonicalPlan(input: {
                     ? 'approved_source_sequence_caption_track_final_v1'
                     : 'approved_source_sequence_caption_final_v1',
                   sourceSegments: sourceTimeline,
+                  transitionPolicy: 'approved_hard_cuts_only',
+                  hardCutTransitions: input.approvedHardCutTransitions,
                   audioPolicy: replaceSourceAudio
                     ? 'replace_with_approved_voice_tracks'
                     : 'preserve_source_sequence',
@@ -849,9 +894,10 @@ function buildPrivateReviewCanonicalPlan(input: {
           'video/mp4',
           {
             segmentIds,
-            timingIds: [timingId],
+            timingIds: [timingId, ...transitionTimingIds],
             rendererLayerIds: [
               'source-video-layer',
+              ...transitionRendererLayerIds,
               ...voiceRendererLayerIds,
               ...captionRendererLayerIds,
             ],
@@ -880,9 +926,10 @@ function buildPrivateReviewCanonicalPlan(input: {
           'application/json',
           {
             segmentIds,
-            timingIds: [timingId],
+            timingIds: [timingId, ...transitionTimingIds],
             rendererLayerIds: [
               'source-video-layer',
+              ...transitionRendererLayerIds,
               ...voiceRendererLayerIds,
               ...captionRendererLayerIds,
             ],
@@ -1094,8 +1141,90 @@ function approvedCaptionCues(
   return cues
 }
 
+function buildApprovedHardCutTransitions(input: {
+  plan: EditPlan
+  sourceItems: CanonicalSourceAuthorityItem[]
+  segments: CanonicalPlanComponentsDraft['segments']
+  fps: number
+  totalFrames: number
+}): ApprovedHardCutTransition[] | null {
+  const masterTransitions = input.plan.masterTimingPlan?.transitionTimingItems ?? []
+  const refinedTransitions =
+    input.plan.soundSyncTransitionTimingPlan?.refinedTransitionTimings ?? []
+  const expectedCount = Math.max(0, input.sourceItems.length - 1)
+  if (expectedCount === 0) {
+    return masterTransitions.length === 0 && refinedTransitions.length === 0 ? [] : null
+  }
+  if (
+    input.segments.length !== input.sourceItems.length ||
+    masterTransitions.length !== expectedCount ||
+    refinedTransitions.length !== expectedCount
+  ) return null
+
+  const refinedById = new Map(refinedTransitions.map((transition) => [transition.id, transition]))
+  const transitionIds = new Set<string>()
+  const refinedIds = new Set<string>()
+  const approved = masterTransitions.flatMap((transition, index) => {
+    const fromSegment = input.segments[index]
+    const toSegment = input.segments[index + 1]
+    const fromSource = input.sourceItems[index]
+    const toSource = input.sourceItems[index + 1]
+    const refinedId = transition.refinedTransitionTimingItemId
+    const refined = refinedId ? refinedById.get(refinedId) : undefined
+    const boundaryFrame = fromSegment?.endFrameExclusive
+    if (
+      !fromSegment || !toSegment || !fromSource || !toSource || !refined ||
+      !safeIdentity(transition.id) || !safeIdentity(refined.id) ||
+      transitionIds.has(transition.id) || refinedIds.has(refined.id) ||
+      boundaryFrame !== toSegment.startFrame || boundaryFrame <= 0 ||
+      boundaryFrame >= input.totalFrames ||
+      transition.transitionType !== 'hard_cut' ||
+      transition.fromSegmentId !== fromSegment.segmentId ||
+      transition.toSegmentId !== toSegment.segmentId ||
+      transition.timeRange.startFrame !== boundaryFrame ||
+      transition.timeRange.endFrame !== boundaryFrame ||
+      transition.timeRange.durationFrames !== 0 ||
+      transition.timeRange.fps !== input.fps ||
+      transition.sfxCueId !== undefined ||
+      refined.transitionType !== 'hard_cut' ||
+      refined.linkedMasterTransitionTimingItemId !== transition.id ||
+      refined.fromSegmentId !== fromSegment.segmentId ||
+      refined.toSegmentId !== toSegment.segmentId ||
+      refined.timeRange.startFrame !== boundaryFrame ||
+      refined.timeRange.endFrame !== boundaryFrame ||
+      refined.timeRange.durationFrames !== 0 || refined.durationFrames !== 0 ||
+      refined.timeRange.fps !== input.fps || !refined.phraseBoundaryAligned ||
+      refined.riskLevel !== 'low' || refined.sfxCueId !== undefined ||
+      refined.beatSnapDecision?.speechSafe !== true ||
+      (input.plan.soundSyncTransitionTimingPlan?.refinedSfxTimings ?? []).some(
+        (sfx) => sfx.linkedTransitionTimingItemId === refined.id,
+      )
+    ) return []
+    transitionIds.add(transition.id)
+    refinedIds.add(refined.id)
+    return [{
+      transitionTimingItemId: transition.id,
+      refinedTransitionTimingItemId: refined.id,
+      fromSegmentId: fromSegment.segmentId,
+      toSegmentId: toSegment.segmentId,
+      fromSourceSequenceItemId: fromSource.sourceSequenceItemId,
+      toSourceSequenceItemId: toSource.sourceSequenceItemId,
+      boundaryFrame,
+    }]
+  })
+  return approved.length === expectedCount ? approved : null
+}
+
 function hasUnrepresentedSegmentOperations(plan: EditPlan): boolean {
-  const supported = new Set(['trim', 'caption', 'frame_layout', 'renderer_layer', 'qa_check'])
+  const supported = new Set([
+    'trim',
+    'cut',
+    'caption',
+    'transition',
+    'frame_layout',
+    'renderer_layer',
+    'qa_check',
+  ])
   return (plan.segmentEditPlans ?? []).some((segment) =>
     segment.operations.some((operation) => !supported.has(operation.operationType)))
 }

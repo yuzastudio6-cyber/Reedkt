@@ -677,6 +677,16 @@ function normalizeResponse(input: {
     coordinatorTool?.approvedSourceInputMode
   const sourceStagingCleaned = coordinatorTool?.sourceStagingCleaned ??
     coordinatorTool?.approvedSourceStagingCleaned
+  const dependencyInputMode = coordinatorTool?.dependencyInputMode ??
+    coordinatorTool?.approvedColorDependencyInputMode
+  const singleColorInput = optionalRecord(coordinatorInputs?.colorSource)
+  const dependencyByteLengths = [
+    coordinatorTool?.inputArtifactByteLength,
+    singleColorInput?.colorByteLength,
+    ...(Array.isArray(coordinatorInputs?.colorSources)
+      ? coordinatorInputs.colorSources.map((source) => optionalRecord(source)?.colorByteLength)
+      : []),
+  ].filter((value) => Number.isSafeInteger(value) && Number(value) > 0)
   const sourceByteLengths = [
     coordinatorTool?.inputArtifactByteLength,
     coordinatorInputs?.sourceByteLength,
@@ -702,7 +712,7 @@ function normalizeResponse(input: {
         finalRenderAuthorized: requireLiteral(result.finalRenderAuthorized, false, 'finalRenderAuthorized'),
       }
   const responseWithoutHash = {
-    schemaVersion: 'canonical-private-job-execution-adapter-response-v2' as const,
+    schemaVersion: 'canonical-private-job-execution-adapter-response-v3' as const,
     source: 'canonical_private_job_execution_adapter' as const,
     purpose: input.body.purpose,
     identity: {
@@ -744,6 +754,11 @@ function normalizeResponse(input: {
       dependencyArtifactInput:
         coordinatorTool?.inputKind === 'qa_passed_dependency_artifact' ||
         coordinatorTool?.dependencyArtifactRead === true,
+      dependencyStreamInputVerified:
+        dependencyInputMode === 'server_injected_private_stream_v1',
+      largeDependencyOverLegacyBufferVerified:
+        dependencyInputMode === 'server_injected_private_stream_v1' &&
+        dependencyByteLengths.some((byteLength) => Number(byteLength) > 16 * 1024 * 1024),
       finalArtifactQaPassed: finalArtifactQa?.finalQaGatesPassed === true,
       sourceStreamInputVerified:
         sourceInputMode === 'server_injected_private_stream_v1',

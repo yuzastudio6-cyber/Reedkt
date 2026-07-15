@@ -3,15 +3,12 @@ import type { ZodType } from 'zod'
 import { ApiError } from '../errors/api-error'
 import {
   OFFLINE_MEDIA_BINARY_OPERATIONS,
-  OFFLINE_MEDIA_BINARY_PROTOCOL,
   OFFLINE_MEDIA_BINARY_SERVER_INPUT_MODE,
   OFFLINE_MEDIA_BINARY_STREAM_PROTOCOL,
   openPrivateOfflineMediaBinaryRuntime,
   readPersistedOfflineMediaBinaryRuntimeAuthority,
-  validateOfflineFfmpegExecutionRequest,
   validateOfflineFfmpegStreamingExecutionRequest,
   validateOfflineFfmpegPlanningPayload,
-  validateOfflineFfprobeExecutionRequest,
   validateOfflineFfprobeStreamingExecutionRequest,
   validateOfflineFfprobePlanningPayload,
   type OfflineFfmpegExecutionResult,
@@ -41,6 +38,7 @@ import {
 import {
   createCanonicalPrivateDependencyArtifactReadService,
   type CanonicalPrivateDependencyArtifactReadResult,
+  type CanonicalPrivateDependencyArtifactStreamReadResult,
 } from './canonical-private-dependency-artifact-read-service'
 import { createCanonicalPrivateSourceObjectReadService } from './canonical-private-source-object-read-service'
 import type {
@@ -52,6 +50,7 @@ import {
   persistCanonicalPrivateMediaArtifact,
   readCanonicalPrivateMediaArtifact,
 } from './canonical-private-media-artifact-storage'
+import { CANONICAL_PRIVATE_REMOTION_STREAMING_MAXIMUM_BYTES } from './canonical-private-remotion-artifact-storage'
 import {
   persistCanonicalPrivateAudioArtifact,
   readCanonicalPrivateAudioArtifact,
@@ -191,7 +190,7 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
         runnerClass: RUNNER_CLASS,
       })
       const executionAttemptId = begun.executionFence.executionAttemptId
-      let dependencyRead: CanonicalPrivateDependencyArtifactReadResult | undefined
+      let dependencyRead: CanonicalPrivateDependencyArtifactStreamReadResult | undefined
       let referenceDependencyRead: CanonicalPrivateDependencyArtifactReadResult | undefined
       let sourceRead: CanonicalPrivateStagedSourceReadResult | undefined
       let stagedSourceSet: CanonicalPrivateStagedSourceSet | undefined
@@ -202,14 +201,15 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
       try {
         if (dependencyFinalQa) {
           dependencyRead = await createCanonicalPrivateDependencyArtifactReadService(context)
-            .readSingleSelectedArtifact({
+            .readSingleSelectedArtifactStream({
               workspaceId: body.workspaceId, projectId: body.projectId,
               editSessionId: body.editSessionId, snapshotId: authority.snapshot.snapshotId,
               currentJobId: body.jobId, currentApprovedWorkItemId: workItem.id,
               leaseId: injected.leaseId, leaseCredential: injected.leaseCredential,
               executionAttemptId, dispatchGrantId: body.grantId,
               dependencyAuthority: begun.lease.dependencyAuthority,
-              allowedContentTypes: ['video/mp4'], maximumBytes: 16 * 1024 * 1024,
+              allowedContentTypes: ['video/mp4'],
+              maximumBytes: CANONICAL_PRIVATE_REMOTION_STREAMING_MAXIMUM_BYTES,
             })
           const finalJobReadiness = (await createCanonicalExecutionReadinessService(context).inspectJob({
             workspaceId: body.workspaceId, projectId: body.projectId,
@@ -268,43 +268,31 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
               referenceSourceBytesBase64: referenceDependencyRead.bytes.toString('base64'),
             }
           : {}
-        if (dependencyRead) {
-          const sourcePayload = {
-            mimeType: 'video/mp4' as const,
-            sourceByteLength: inputByteLength,
-            sourceSha256: inputSha256,
-            sourceBytesBase64: dependencyRead.bytes.toString('base64'),
-          }
-          executionResult = toolId === 'ffmpeg'
-            ? await runtime.execute(validateOfflineFfmpegExecutionRequest({
-                schemaVersion: OFFLINE_MEDIA_BINARY_PROTOCOL,
-                toolId, operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
-                payload: { ...planningPayload, ...sourcePayload, ...referencePayload },
-              }))
-            : await runtime.execute(validateOfflineFfprobeExecutionRequest({
-                schemaVersion: OFFLINE_MEDIA_BINARY_PROTOCOL,
-                toolId, operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffprobe,
-                payload: { ...planningPayload, ...sourcePayload },
-              }))
-        } else {
-          const sourcePayload = {
-            mimeType: 'video/mp4' as const,
-            sourceByteLength: inputByteLength,
-            sourceSha256: inputSha256,
-            sourceInputMode: OFFLINE_MEDIA_BINARY_SERVER_INPUT_MODE,
-          }
-          executionResult = toolId === 'ffmpeg'
-            ? await runtime.executeServerInjected(validateOfflineFfmpegStreamingExecutionRequest({
-                schemaVersion: OFFLINE_MEDIA_BINARY_STREAM_PROTOCOL,
-                toolId, operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
-                payload: { ...planningPayload, ...sourcePayload, ...referencePayload },
-              }), sourceRead!.sourceInput)
-            : await runtime.executeServerInjected(validateOfflineFfprobeStreamingExecutionRequest({
-                schemaVersion: OFFLINE_MEDIA_BINARY_STREAM_PROTOCOL,
-                toolId, operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffprobe,
-                payload: { ...planningPayload, ...sourcePayload },
-              }), sourceRead!.sourceInput)
+        const sourcePayload = {
+          mimeType: 'video/mp4' as const,
+          sourceByteLength: inputByteLength,
+          sourceSha256: inputSha256,
+          sourceInputMode: OFFLINE_MEDIA_BINARY_SERVER_INPUT_MODE,
         }
+        const sourceInput = dependencyRead
+          ? {
+              inputMode: dependencyRead.inputMode,
+              byteLength: dependencyRead.byteLength,
+              sha256: dependencyRead.sha256,
+              openStream: dependencyRead.openStream,
+            }
+          : sourceRead!.sourceInput
+        executionResult = toolId === 'ffmpeg'
+          ? await runtime.executeServerInjected(validateOfflineFfmpegStreamingExecutionRequest({
+              schemaVersion: OFFLINE_MEDIA_BINARY_STREAM_PROTOCOL,
+              toolId, operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
+              payload: { ...planningPayload, ...sourcePayload, ...referencePayload },
+            }), sourceInput)
+          : await runtime.executeServerInjected(validateOfflineFfprobeStreamingExecutionRequest({
+              schemaVersion: OFFLINE_MEDIA_BINARY_STREAM_PROTOCOL,
+              toolId, operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffprobe,
+              payload: { ...planningPayload, ...sourcePayload },
+            }), sourceInput)
       } finally {
         await stagedSourceSet?.cleanup()
       }
@@ -418,7 +406,7 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
       )) !== authorityHashBefore) throw denied('Canonical planning authority changed during media binary execution.')
 
       const responseWithoutHash = {
-        schemaVersion: 'canonical-private-media-binary-execution-response-v2' as const,
+        schemaVersion: 'canonical-private-media-binary-execution-response-v3' as const,
         source: 'canonical_private_media_binary_execution_coordinator' as const,
         purpose: body.purpose,
         identity: { ...identity, approvedWorkItemId: workItem.id, dispatchGrantId: body.grantId },
@@ -427,6 +415,8 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
           actualBinaryOperationCompleted: true as const, providerCallMade: false as const,
           inputKind: 'qa_passed_dependency_artifact' as const,
           sourceObjectRead: false as const, dependencyArtifactRead: true as const,
+          dependencyInputMode: 'server_injected_private_stream_v1' as const,
+          dependencyArtifactStreamed: true as const,
           inputReadEvidenceHash,
           inputArtifactId: dependencyRead!.artifactId,
           inputDependencyJobId: dependencyRead!.dependencyJobId,

@@ -24,7 +24,10 @@ import { createCanonicalPlanningHandoffService } from '../services/canonical-pla
 import { createCanonicalPrivateFinalArtifactDownloadService } from '../services/canonical-private-final-artifact-download-service'
 import { normalizeCanonicalPrivateFinalMediaQa } from '../services/canonical-private-final-media-qa'
 import { createCanonicalPrivateJobExecutionAdapterService } from '../services/canonical-private-job-execution-adapter-service'
-import { readCanonicalPrivateMediaArtifact } from '../services/canonical-private-media-artifact-storage'
+import {
+  CANONICAL_PRIVATE_MEDIA_STREAMING_MAXIMUM_BYTES,
+  readCanonicalPrivateMediaArtifact,
+} from '../services/canonical-private-media-artifact-storage'
 import { CANONICAL_PRIVATE_SOURCE_OBJECT_BUFFER_MAX_BYTES } from '../services/canonical-private-source-object-read-service'
 import { createEditPlanningAuthorityService } from '../services/edit-planning-authority-service'
 import { createExactEditPreferenceService } from '../services/exact-edit-preference-service'
@@ -34,7 +37,13 @@ import { readPrivateEditAuthorityAggregate } from '../services/private-edit-auth
 import { createPrivateArtifactQaAuthorityService } from '../services/private-artifact-qa-authority-service'
 import { createUploadService } from '../services/upload-service'
 import { activatePrivateOfflineLibassCaptionRuntime } from '../tool-execution/libass-caption-execution'
-import { activatePrivateOfflineMediaBinaryRuntime } from '../tool-execution/media-binary-execution'
+import {
+  OFFLINE_MEDIA_BINARY_OPERATIONS,
+  OFFLINE_MEDIA_BINARY_SERVER_INPUT_MODE,
+  OFFLINE_MEDIA_BINARY_STREAM_PROTOCOL,
+  activatePrivateOfflineMediaBinaryRuntime,
+  validateOfflineFfprobeStreamingExecutionRequest,
+} from '../tool-execution/media-binary-execution'
 import {
   activatePrivateOfflineRemotionRenderRuntime,
   prepareOfflineRemotionDockerRuntime,
@@ -162,7 +171,7 @@ const plannerInput: PlannerInput = {
     id: uploadedClipId,
     uploadedOrder: 1,
     fileName: uploadedSource.mediaAsset.fileName,
-    duration: '00:02',
+    duration: '00:03',
     detectedType: 'Primary source',
     sourceRole: 'main_story',
   }],
@@ -419,6 +428,8 @@ assert.equal(color.result.qaOutcome, 'passed')
 assert.equal(color.result.privateTestDependencySatisfied, true)
 assert.equal(color.result.liveRuntimeDependencySatisfied, false)
 assert.equal(color.result.finalRenderAuthorized, false)
+assert.ok(color.result.byteLength > 16 * 1024 * 1024)
+assert.ok(color.result.byteLength <= CANONICAL_PRIVATE_MEDIA_STREAMING_MAXIMUM_BYTES)
 assert.equal(color.evidence.singleUseDispatchConsumed, true)
 assert.equal(color.evidence.privateArtifactPersisted, true)
 assert.equal(color.evidence.actualQaPassed, true)
@@ -471,6 +482,9 @@ assert.equal(finalComposition.permissions.billing, false)
 assert.equal(finalComposition.evidence.sourceStreamInputVerified, true)
 assert.equal(finalComposition.evidence.sourceStagingCleanupVerified, true)
 assert.equal(finalComposition.evidence.largeSourceOverLegacyBufferVerified, true)
+assert.equal(finalComposition.evidence.dependencyStreamInputVerified, true)
+assert.equal(finalComposition.evidence.largeDependencyOverLegacyBufferVerified, true)
+assert.ok(finalComposition.result.byteLength >= 1_024)
 assert.equal(finalComposition.readiness.productReady, false)
 const leaseAggregate = await readPrivateCanonicalWorkerLeaseAggregate({
   localStorageRoot,
@@ -504,6 +518,8 @@ assert.equal(finalQa.identity.canonicalToolId, 'ffprobe')
 assert.equal(finalQa.result.contentType, 'application/json')
 assert.equal(finalQa.result.qaOutcome, 'passed')
 assert.equal(finalQa.evidence.dependencyArtifactInput, true)
+assert.equal(finalQa.evidence.dependencyStreamInputVerified, true)
+assert.equal(finalQa.evidence.largeDependencyOverLegacyBufferVerified, false)
 assert.equal(finalQa.evidence.finalArtifactQaPassed, true)
 assert.equal(finalQa.permissions.publicDelivery, false)
 assert.equal(finalQa.readiness.productReady, false)
@@ -524,14 +540,15 @@ const privateDownload = await createCanonicalPrivateFinalArtifactDownloadService
 })
 assert.equal(privateDownload.mimeType, 'video/mp4')
 assert.equal(privateDownload.sha256, finalComposition.result.sha256)
-const privateDownloadBytes = await readExactPrivateStream(
+const privateDownloadCommitment = await hashExactPrivateStream(
   await privateDownload.openStream(),
   privateDownload.byteSize,
 )
 assert.equal(
-  createHash('sha256').update(privateDownloadBytes).digest('hex'),
+  privateDownloadCommitment.sha256,
   finalComposition.result.sha256,
 )
+assert.equal(privateDownloadCommitment.signature.subarray(4, 8).toString('ascii'), 'ftyp')
 assert.equal(privateDownload.publicUrlCreated, false)
 assert.equal(privateDownload.signedUrlCreated, false)
 assert.equal(privateDownload.billingMutationPerformed, false)
@@ -545,21 +562,29 @@ assert.equal(privateDownload.secondEstimateCreated, false)
 assert.equal(privateDownload.secondReservationCreated, false)
 assert.equal(privateDownload.exportCreditMutationPerformed, false)
 
-const deliveryProbe = await mediaRuntime.execute({
-  schemaVersion: 'offline-media-binary-execution-v1',
-  toolId: 'ffprobe',
-  operationId: 'tool.ffprobe.inspect_approved_media.v1',
-  payload: {
-    inspectionProfileId: 'final_export_v1',
-    countFrames: true,
-    verifyDurationAndSync: true,
-    emitMachineJsonOnly: true,
-    mimeType: 'video/mp4',
-    sourceByteLength: privateDownload.byteSize,
-    sourceSha256: privateDownload.sha256,
-    sourceBytesBase64: privateDownloadBytes.toString('base64'),
+const deliveryProbe = await mediaRuntime.executeServerInjected(
+  validateOfflineFfprobeStreamingExecutionRequest({
+    schemaVersion: OFFLINE_MEDIA_BINARY_STREAM_PROTOCOL,
+    toolId: 'ffprobe',
+    operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffprobe,
+    payload: {
+      inspectionProfileId: 'final_export_v1',
+      countFrames: true,
+      verifyDurationAndSync: true,
+      emitMachineJsonOnly: true,
+      mimeType: 'video/mp4',
+      sourceByteLength: privateDownload.byteSize,
+      sourceSha256: privateDownload.sha256,
+      sourceInputMode: OFFLINE_MEDIA_BINARY_SERVER_INPUT_MODE,
+    },
+  }),
+  {
+    inputMode: 'private_verified_stream_v1',
+    byteLength: privateDownload.byteSize,
+    sha256: privateDownload.sha256,
+    openStream: () => privateDownload.openStream(),
   },
-})
+)
 assert.ok('resultJson' in deliveryProbe)
 const deliveryStreams = deliveryProbe.resultJson.document.streams as Array<Record<string, unknown>>
 const deliveryVideo = deliveryStreams.find((stream) => stream.codecType === 'video')
@@ -579,7 +604,7 @@ assert.deepEqual({
   width: 3840,
   height: 2160,
   fps: 24,
-  readFrameCount: 48,
+  readFrameCount: 72,
   pixelFormat: 'yuv420p',
   colorSpace: 'bt709',
 })
@@ -598,7 +623,7 @@ const overbroadExpectation = {
   width: 3840,
   height: 2160,
   fps: 24,
-  durationFrames: 48,
+  durationFrames: 72,
   sourceBytesBase64: sensitiveDiagnosticSentinel,
   captionOverlayBytesBase64: sensitiveDiagnosticSentinel,
   voiceTracks: [{ bytesBase64: sensitiveDiagnosticSentinel }],
@@ -606,10 +631,10 @@ const overbroadExpectation = {
 let sanitizedFinalQaError: ApiError | undefined
 try {
   normalizeCanonicalPrivateFinalMediaQa({
-    durationSeconds: 2,
+    durationSeconds: 3,
     streams: [{
       codecType: 'video', codecName: 'h264', pixelFormat: 'yuv420p',
-      colorSpace: 'bt709', width: 3839, height: 2160, fps: 24, readFrameCount: 48,
+      colorSpace: 'bt709', width: 3839, height: 2160, fps: 24, readFrameCount: 72,
     }, {
       codecType: 'audio', codecName: 'aac', sampleRate: 48_000, channels: 2,
     }],
@@ -624,7 +649,7 @@ assert.deepEqual((sanitizedFinalQaError.details as { expected?: unknown }).expec
   width: 3840,
   height: 2160,
   fps: 24,
-  durationFrames: 48,
+  durationFrames: 72,
 })
 assert.equal(JSON.stringify(sanitizedFinalQaError.details).includes(sensitiveDiagnosticSentinel), false)
 
@@ -654,11 +679,16 @@ console.log(JSON.stringify({
     contentType: color.result.contentType,
     sha256: color.result.sha256,
     byteLength: color.result.byteLength,
+    legacyBufferBoundaryBytes: 16 * 1024 * 1024,
+    exceededLegacyBufferBoundary: color.result.byteLength > 16 * 1024 * 1024,
   },
   finalArtifact: {
     contentType: finalComposition.result.contentType,
     sha256: finalComposition.result.sha256,
     byteLength: finalComposition.result.byteLength,
+    legacyBufferBoundaryBytes: 16 * 1024 * 1024,
+    exceededLegacyBufferBoundary:
+      finalComposition.result.byteLength > 16 * 1024 * 1024,
   },
   proofs: [
     'exact_edit_preferences_source_and_confirmed_frame_bound_to_planning_handoff',
@@ -669,10 +699,11 @@ console.log(JSON.stringify({
     'lease_and_single_use_ffmpeg_dispatch_verified',
     'source_over_16mib_privately_staged_streamed_reverified_and_cleaned_for_each_attempt',
     'actual_three_frame_color_analysis_bounded_processing_and_pixel_qa_passed',
-    'lossless_vp9_matroska_bt709_yuv420p_artifact_privately_persisted',
+    'lossless_vp9_matroska_bt709_yuv420p_artifact_above_16mib_privately_persisted',
     'color_artifact_qa_reconciliation_and_idempotent_replay_verified',
-    'remotion_consumed_the_exact_selected_color_dependency_with_replacement_voice',
-    'exact_private_3840x2160_h264_delivery_master_and_independent_ffprobe_final_qa_passed',
+    'remotion_streamed_the_exact_selected_over_16mib_color_dependency_with_replacement_voice',
+    'same_attempt_canonical_4k_h264_delivery_master_completed_final_ffprobe_qa',
+    'final_qa_streamed_the_exact_qa_passed_private_mp4_without_base64_caller_path_or_large_artifact_claim',
     'original_approved_estimate_and_reservation_reused_without_second_export_charge',
     '2k_substitution_and_master_estimate_reservation_charge_authority_tampering_rejected',
     'final_qa_failure_diagnostics_exclude_source_caption_and_voice_bytes',
@@ -709,10 +740,12 @@ async function uploadProfessionalColorSource(projectId: string) {
   const generated = spawnSync('ffmpeg', [
     '-hide_banner', '-loglevel', 'error',
     '-f', 'lavfi', '-i',
-    'color=c=0x3B5F7A:s=3840x2160:r=24:d=2,drawbox=x=0:y=0:w=iw/2:h=ih:color=0x27435A:t=fill,drawbox=x=iw/2:y=0:w=iw/2:h=ih:color=0x6D879A:t=fill',
-    '-f', 'lavfi', '-i', 'sine=frequency=440:sample_rate=48000:duration=2',
-    '-map', '0:v:0', '-map', '1:a:0',
-    '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-color_primaries', 'bt709',
+    'color=c=gray:s=3840x2160:r=24:d=3',
+    '-f', 'lavfi', '-i', 'sine=frequency=440:sample_rate=48000:duration=3',
+    '-filter_complex', '[0:v]noise=alls=46:allf=t+u[v]',
+    '-map', '[v]', '-map', '1:a:0',
+    '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '40',
+    '-pix_fmt', 'yuv420p', '-color_primaries', 'bt709',
     '-color_trc', 'bt709', '-colorspace', 'bt709', '-movflags', '+faststart',
     '-c:a', 'aac', '-b:a', '128k', '-threads', '1', '-y', fixturePath,
   ], { encoding: 'utf8' })
@@ -827,20 +860,20 @@ function createExactProfessionalColorPlan(input: PlannerInput): EditPlan {
   timing.timingBase = {
     ...timing.timingBase,
     fps: 24,
-    totalDurationSeconds: 2,
-    totalFrames: 48,
-    sourceDurationSeconds: 2,
-    finalDurationSeconds: 2,
+    totalDurationSeconds: 3,
+    totalFrames: 72,
+    sourceDurationSeconds: 3,
+    finalDurationSeconds: 3,
   }
   timing.finalTimelineSegments = [{
     ...timing.finalTimelineSegments[0]!,
     segmentId: 'segment-1',
-    finalRange: frameRange(0, 2, 0, 48),
+    finalRange: frameRange(0, 3, 0, 72),
   }]
   timing.captionTimingItems = [{
     ...timing.captionTimingItems[0]!,
     captionText: 'Approved professional color',
-    timeRange: frameRange(0, 2, 0, 48),
+    timeRange: frameRange(0, 3, 0, 72),
   }]
   timing.visualTimingItems = []
   timing.transitionTimingItems = []
@@ -849,14 +882,14 @@ function createExactProfessionalColorPlan(input: PlannerInput): EditPlan {
   timing.providerClipTimingItems = []
   const cleanup = plan.sourceCleanupPlan!
   const decision = cleanup.decisions[0]! as unknown as Record<string, unknown>
-  decision.selectedRange = frameRange(0, 2, 0, 48)
+  decision.selectedRange = frameRange(0, 3, 0, 72)
   decision.sourceRange = {
     clipId: input.clips[0]!.id,
     startSeconds: 0,
-    endSeconds: 2,
-    durationSeconds: 2,
+    endSeconds: 3,
+    durationSeconds: 3,
     startFrame: 0,
-    endFrame: 48,
+    endFrame: 72,
     notes: [],
   }
   decision.decision = 'preserve'
@@ -887,7 +920,7 @@ function frameRange(startSeconds: number, endSeconds: number, startFrame: number
 
 function synchronizeProfessionalExportCoverage(plan: EditPlan): void {
   const coverage = buildProfessionalExportCreditCoverage({
-    durationSeconds: 2,
+    durationSeconds: 3,
     outputFps: 24,
     approvedAspectRatio: '16:9',
   })
@@ -913,8 +946,13 @@ function sha256Text(value: string): string {
   return createHash('sha256').update(value).digest('hex')
 }
 
-async function readExactPrivateStream(stream: Readable, expectedByteLength: number): Promise<Buffer> {
-  const chunks: Buffer[] = []
+async function hashExactPrivateStream(
+  stream: Readable,
+  expectedByteLength: number,
+): Promise<{ sha256: string; signature: Buffer }> {
+  const checksum = createHash('sha256')
+  const signatureChunks: Buffer[] = []
+  let signatureByteLength = 0
   let byteLength = 0
   for await (const chunk of stream) {
     const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)
@@ -922,12 +960,20 @@ async function readExactPrivateStream(stream: Readable, expectedByteLength: numb
     if (byteLength > expectedByteLength) {
       throw new Error('Private smoke stream exceeded its exact commitment.')
     }
-    chunks.push(bytes)
+    checksum.update(bytes)
+    if (signatureByteLength < 8) {
+      const part = bytes.subarray(0, Math.min(bytes.byteLength, 8 - signatureByteLength))
+      signatureChunks.push(Buffer.from(part))
+      signatureByteLength += part.byteLength
+    }
   }
   if (byteLength !== expectedByteLength) {
     throw new Error('Private smoke stream ended before its exact commitment.')
   }
-  return Buffer.concat(chunks, byteLength)
+  return {
+    sha256: checksum.digest('hex'),
+    signature: Buffer.concat(signatureChunks, signatureByteLength),
+  }
 }
 
 function isClientSourceStorageProvider(

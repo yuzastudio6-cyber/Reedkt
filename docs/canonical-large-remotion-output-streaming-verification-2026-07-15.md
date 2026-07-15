@@ -11,12 +11,16 @@ runtime. The latest hardened run used:
 - a 13,496,169-byte high-detail UHD MP4 source with SHA-256
   `16b6012bf02aa0822b4a2c035d0f413601fdf8f193dd7b3545368545c79787ad`;
 - a transparent approved full-frame PNG overlay; and
-- a 52,766,594-byte output with SHA-256
-  `8a025e1613a7e48bef7df516b385e02e8cba6041fc95f2776fd824845cc313df`.
+- a 52,092,354-byte output with SHA-256
+  `89ee7386177dac29b4a30c15bef59a4b09cc0231ff49b9d367d9c2004b90f20a`.
 
-The output exceeds the former 16 MiB output ceiling by 35,989,378 bytes. It is
+The output exceeds the former 16 MiB output ceiling by 35,315,138 bytes. It is
 an actual valid MP4, not padding, a sparse file, a mocked receipt, or an
 unverified copy of the input.
+
+A focused run on the same code produced a separately verified 49,802,330-byte
+MP4. The smoke binds each attempt to its exact size and SHA-256 and does not
+claim byte-identical H.264 output across independent Remotion renders.
 
 ## Streaming transport and confinement
 
@@ -79,7 +83,14 @@ a verified private stream. Existing canonical color and multi-source jobs pass
 through that path with snapshot, reservation, lease, one-use dispatch,
 artifact, QA, reconciliation, replay, and downstream verification evidence.
 
-The 52,766,594-byte fixture deliberately tests the runtime/persistence/QA
+The canonical color job now also streams a 28,278,310-byte exact
+VP9/Matroska dependency into Remotion after revalidating its lease, source
+attempt, private object, QA, and reconciliation authority. Its same-attempt
+final MP4 is 7,758,859 bytes, so it proves large canonical input-dependency
+transport but not a large canonical final artifact.
+
+The 52,092,354-byte aggregate fixture deliberately tests the
+runtime/persistence/QA
 boundary directly. It does not carry the full canonical job lifecycle in the
 same attempt. Therefore the honest claim is:
 
@@ -104,10 +115,11 @@ The focused smoke additionally proves that:
 
 This closes the whole-Buffer/base64 Remotion output gap for one short bounded
 UHD fixture. It does not prove long-duration editing, outputs above 256 MiB,
-selected inputs above 208 MiB, large upstream FFmpeg/color/caption/voice
-artifacts, source-bound Python streaming, distributed worker recovery, live
-GCS, broad professional codec/timecode/VFR/multichannel suites, HDR delivery,
-public export, or production operations.
+selected inputs above 208 MiB, FFmpeg output streaming, color intermediates
+above 32 MiB, large caption/voice dependencies, source-bound Python streaming,
+distributed worker recovery, live GCS, broad professional
+codec/timecode/VFR/multichannel suites, HDR delivery, public export, or
+production operations.
 
 The next large-media execution work should address upstream large
 intermediates and representative duration/throughput without weakening the
@@ -127,7 +139,7 @@ npm run smoke:canonical-private-color-execution
 ```
 
 The exact-code `npm run qa:internal-pipeline` run completed all 25 phases in
-1,135,934 ms with exit code 0. The streaming-output phase passed in 105,985 ms;
+1,359,639 ms with exit code 0. The streaming-output phase passed in 101,992 ms;
 the aggregate also completed the three-source canonical composition, the
 over-16-MiB canonical source/color regression, the 11-test named-edit browser
 suite, the 50-identity report, and the signed-in maximum eight-source accepted

@@ -41,6 +41,8 @@ const mediaInputAuthoritySchema = z.discriminatedUnion('inputKind', [
     inputKind: z.literal('qa_passed_dependency_artifact'),
     sourceObjectRead: z.literal(false),
     dependencyArtifactRead: z.literal(true),
+    dependencyInputMode: z.literal('server_injected_private_stream_v1'),
+    dependencyArtifactStreamed: z.literal(true),
     inputArtifactId: identity,
     inputDependencyJobId: identity,
   }).strict(),
@@ -89,7 +91,7 @@ export const canonicalPrivateMediaBinaryAuthoritySchema = z.object({
 }).strict()
 
 export const canonicalPrivateMediaBinaryResponseSchema = z.object({
-  schemaVersion: z.literal('canonical-private-media-binary-execution-response-v2'),
+  schemaVersion: z.literal('canonical-private-media-binary-execution-response-v3'),
   source: z.literal('canonical_private_media_binary_execution_coordinator'),
   purpose: z.literal('execute_canonical_private_media_binary_tool'),
   identity: z.object({

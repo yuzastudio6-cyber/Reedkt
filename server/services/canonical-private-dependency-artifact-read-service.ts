@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto'
+import type { Readable } from 'node:stream'
 
 import { ApiError } from '../errors/api-error'
 import { readPrivateFileIfExistsWithinRoot } from '../security/private-local-persistence'
@@ -13,8 +14,10 @@ import { readCanonicalPrivateImageArtifact } from './canonical-private-image-art
 import { verifyCanonicalPrivateAudioArtifact } from './canonical-private-audio-artifact-verifier'
 import { readCanonicalPrivateAudioArtifact } from './canonical-private-audio-artifact-storage'
 import { verifyCanonicalPrivateRemotionArtifact } from './canonical-private-remotion-artifact-verifier'
+import { CANONICAL_PRIVATE_REMOTION_STREAMING_MAXIMUM_BYTES } from './canonical-private-remotion-artifact-storage'
 import { readCanonicalPrivateRemotionArtifact } from './canonical-private-remotion-artifact-storage'
 import { verifyCanonicalPrivateMediaArtifact } from './canonical-private-media-artifact-verifier'
+import { CANONICAL_PRIVATE_MEDIA_STREAMING_MAXIMUM_BYTES } from './canonical-private-media-artifact-storage'
 import { readCanonicalPrivateMediaArtifact } from './canonical-private-media-artifact-storage'
 import { createCanonicalWorkerLeaseAuthorityService } from './canonical-worker-lease-authority-service'
 import { createCanonicalExecutionReadinessService } from './canonical-execution-readiness-service'
@@ -50,112 +53,51 @@ export interface CanonicalPrivateDependencyArtifactReadResult {
   dependencyReadEvidenceHash: string
 }
 
+export interface CanonicalPrivateDependencyArtifactStreamReadResult {
+  inputMode: 'private_verified_stream_v1'
+  contentType: 'video/mp4' | 'video/x-nut' | 'video/x-matroska'
+  sha256: string
+  byteLength: number
+  dependencyJobId: string
+  expectedAssetId: string
+  artifactId: string
+  artifactVersion: number
+  sourceExecutionAttemptId: string
+  sourceLeaseImmutableHash: string
+  dependencyReadEvidenceHash: string
+  openStream(): Promise<Readable>
+}
+
+type CanonicalPrivateDependencyContentType = CanonicalPrivateDependencyArtifactReadResult['contentType']
+
+interface CanonicalPrivateDependencyArtifactReadInput {
+  workspaceId: string
+  projectId: string
+  editSessionId: string
+  snapshotId: string
+  currentJobId: string
+  currentApprovedWorkItemId: string
+  leaseId: string
+  leaseCredential: string
+  executionAttemptId: string
+  dispatchGrantId: string
+  dependencyAuthority: CanonicalWorkerLeaseDependencyAuthority
+  allowedContentTypes: readonly CanonicalPrivateDependencyContentType[]
+  maximumBytes: number
+  selectedArtifactIndex?: number
+}
+
 /**
  * Reads one exact QA-passed dependency selected by worker-lease v2. A tool
  * caller cannot supply an artifact ID, storage identity, path, URL, or bytes.
  */
 export function createCanonicalPrivateDependencyArtifactReadService(context: ServiceContext) {
   return {
-    async readSingleSelectedArtifact(input: {
-      workspaceId: string
-      projectId: string
-      editSessionId: string
-      snapshotId: string
-      currentJobId: string
-      currentApprovedWorkItemId: string
-      leaseId: string
-      leaseCredential: string
-      executionAttemptId: string
-      dispatchGrantId: string
-      dependencyAuthority: CanonicalWorkerLeaseDependencyAuthority
-      allowedContentTypes: readonly (
-        | 'image/svg+xml'
-        | 'application/json'
-        | 'image/png'
-        | 'image/jpeg'
-        | 'image/webp'
-        | 'video/mp4'
-        | 'video/x-nut'
-        | 'video/x-matroska'
-        | 'audio/wav'
-      )[]
-      maximumBytes: number
-      selectedArtifactIndex?: number
-    }): Promise<CanonicalPrivateDependencyArtifactReadResult> {
-      assertPrivateRuntime(context)
-      const actorUserId = getRequiredAuthUserId(context)
-      const access = await authorizeWorkspaceAccess(context, input.workspaceId, 'write')
-      if (access.userId !== actorUserId) throw invalid('Dependency reader is outside this workspace.')
-      const selectedArtifactIndex = input.selectedArtifactIndex ?? 0
-      if (
-        input.dependencyAuthority.state !== 'private_test_dependencies_verified' ||
-        input.dependencyAuthority.liveRuntimeEligible !== false ||
-        input.dependencyAuthority.selectedArtifacts.length < 1 ||
-        input.dependencyAuthority.selectedArtifacts.length > 24 ||
-        (input.selectedArtifactIndex === undefined && input.dependencyAuthority.selectedArtifacts.length !== 1) ||
-        !Number.isSafeInteger(selectedArtifactIndex) || selectedArtifactIndex < 0 ||
-        selectedArtifactIndex >= input.dependencyAuthority.selectedArtifacts.length ||
-        input.maximumBytes < 1 || input.maximumBytes > 16 * 1024 * 1024
-      ) throw invalid('Bounded dependency execution requires an exact server-selected private artifact.')
-      const verifiedLease = (await createCanonicalWorkerLeaseAuthorityService(context).verifyActive({
-        workspaceId: access.workspaceId,
-        projectId: input.projectId,
-        editSessionId: input.editSessionId,
-        jobId: input.currentJobId,
-        purpose: 'private_internal_canonical_lease_verification',
-        leaseId: input.leaseId,
-        leaseCredential: input.leaseCredential,
-      })).workerLeaseVerification.lease
-      const currentReadiness = (await createCanonicalExecutionReadinessService(context).inspectJob({
-        workspaceId: access.workspaceId,
-        projectId: input.projectId,
-        editSessionId: input.editSessionId,
-        jobId: input.currentJobId,
-        purpose: 'private_internal_dry_run_readiness',
-      })).executionReadinessEnvelope
-      if (
-        verifiedLease.leaseId !== input.leaseId ||
-        verifiedLease.approvedPlanSnapshotId !== input.snapshotId ||
-        currentReadiness.job.approvedWorkItemId !== input.currentApprovedWorkItemId ||
-        !['started', 'completed'].includes(verifiedLease.executionFence.state) ||
-        verifiedLease.executionFence.executionAttemptId !== input.executionAttemptId ||
-        sha256AuthorityValue(verifiedLease.dependencyAuthority) !==
-          sha256AuthorityValue(input.dependencyAuthority)
-      ) throw invalid('Dependency read is not bound to the active started lease execution attempt.')
-      const selected = input.dependencyAuthority.selectedArtifacts[selectedArtifactIndex]!
-      const authority = await createPrivateArtifactQaAuthorityService(context).readArtifactAuthority({
-        workspaceId: access.workspaceId,
-        projectId: input.projectId,
-        editSessionId: input.editSessionId,
-        snapshotId: input.snapshotId,
-        jobId: selected.dependencyJobId,
-        expectedAssetId: selected.expectedAssetId,
-        artifactId: selected.artifactId,
-        purpose: 'read_private_artifact_qa_authority',
-      })
-      const internalAuthorityArtifact = [
-        'authority_validation_evidence',
-        'source_trim_validation_evidence',
-      ].includes(authority.artifact.lineage.artifactType)
-      if (
-        authority.artifact.artifactId !== selected.artifactId ||
-        authority.artifact.artifactVersion !== selected.artifactVersion ||
-        authority.artifact.content.sha256 !== selected.contentSha256 ||
-        authority.qaEvaluation?.qaEvaluationId !== selected.qaEvaluationId ||
-        authority.qaEvaluation.outcome !== 'passed' ||
-        authority.reconciliation?.reconciliationId !== selected.reconciliationId ||
-        authority.reconciliation.decision !== 'test_merged_not_live_authorized' ||
-        !authority.reconciliation.privateTestDependencySatisfied ||
-        (!internalAuthorityArtifact &&
-          authority.artifact.actualRunEvidence.state !== 'actual_run_evidence_verified_v2') ||
-        (internalAuthorityArtifact &&
-          authority.artifact.actualRunEvidence.state !== 'actual_run_evidence_placeholder') ||
-        authority.artifact.actualRunEvidence.executionAttemptId !== selected.executionAttemptId ||
-        authority.liveRuntimeEligible !== false ||
-        !input.allowedContentTypes.includes(authority.artifact.content.contentType as CanonicalPrivateDependencyArtifactReadResult['contentType'])
-      ) throw invalid('Selected dependency no longer matches immutable artifact, QA, or reconciliation authority.')
-
-      const contentType = authority.artifact.content.contentType as CanonicalPrivateDependencyArtifactReadResult['contentType']
+    async readSingleSelectedArtifact(
+      input: CanonicalPrivateDependencyArtifactReadInput,
+    ): Promise<CanonicalPrivateDependencyArtifactReadResult> {
+      const { selectedArtifactIndex, selected, authority, internalAuthorityArtifact, contentType } =
+        await authorizeSingleSelectedArtifact(context, input, 16 * 1024 * 1024)
       const verified = contentType === 'image/svg+xml'
         ? await verifyCanonicalStructuredSvgArtifact({
             localStorageRoot: context.env.localStorageRoot,
@@ -237,7 +179,7 @@ export function createCanonicalPrivateDependencyArtifactReadService(context: Ser
       ) throw invalid('Selected dependency bytes changed after lease verification.')
       const evidence = {
         domain: 'canonical_private_dependency_artifact_read_v1',
-        workspaceId: access.workspaceId, projectId: input.projectId,
+        workspaceId: input.workspaceId, projectId: input.projectId,
         editSessionId: input.editSessionId, snapshotId: input.snapshotId,
         currentJobId: input.currentJobId,
         currentApprovedWorkItemId: input.currentApprovedWorkItemId,
@@ -261,7 +203,155 @@ export function createCanonicalPrivateDependencyArtifactReadService(context: Ser
         dependencyReadEvidenceHash: sha256AuthorityValue(evidence),
       }
     },
+    async readSingleSelectedArtifactStream(
+      input: CanonicalPrivateDependencyArtifactReadInput,
+    ): Promise<CanonicalPrivateDependencyArtifactStreamReadResult> {
+      const { selectedArtifactIndex, selected, authority, contentType } =
+        await authorizeSingleSelectedArtifact(
+          context,
+          input,
+          CANONICAL_PRIVATE_REMOTION_STREAMING_MAXIMUM_BYTES,
+        )
+      if (!['video/mp4', 'video/x-nut', 'video/x-matroska'].includes(contentType)) {
+        throw invalid('Streaming dependency reads are restricted to exact private media artifacts.')
+      }
+      const verified = contentType === 'video/mp4'
+        ? await verifyCanonicalPrivateRemotionArtifact({
+            localStorageRoot: context.env.localStorageRoot,
+            artifact: authority.artifact,
+          })
+        : await verifyCanonicalPrivateMediaArtifact({
+            localStorageRoot: context.env.localStorageRoot,
+            artifact: authority.artifact,
+          })
+      const formatMaximum = contentType === 'video/mp4'
+        ? CANONICAL_PRIVATE_REMOTION_STREAMING_MAXIMUM_BYTES
+        : CANONICAL_PRIVATE_MEDIA_STREAMING_MAXIMUM_BYTES
+      if (
+        verified.executionAttemptId !== selected.executionAttemptId ||
+        verified.sha256 !== selected.contentSha256 ||
+        verified.byteLength !== authority.artifact.content.byteLength ||
+        verified.byteLength > input.maximumBytes ||
+        verified.byteLength > formatMaximum
+      ) throw invalid('Selected streaming dependency failed exact private object verification.')
+      const evidence = {
+        domain: 'canonical_private_dependency_artifact_stream_read_v1',
+        workspaceId: input.workspaceId, projectId: input.projectId,
+        editSessionId: input.editSessionId, snapshotId: input.snapshotId,
+        currentJobId: input.currentJobId,
+        currentApprovedWorkItemId: input.currentApprovedWorkItemId,
+        leaseId: input.leaseId, executionAttemptId: input.executionAttemptId,
+        dispatchGrantId: input.dispatchGrantId,
+        dependencyAuthorityHash: input.dependencyAuthority.authorityHash,
+        selectedArtifactIndex,
+        selectedArtifactCount: input.dependencyAuthority.selectedArtifacts.length,
+        selection: selected,
+        contentType, sha256: verified.sha256, byteLength: verified.byteLength,
+        sourceLeaseImmutableHash: selected.sourceLeaseImmutableHash,
+        inputMode: 'private_verified_stream_v1' as const,
+        maximumBytes: input.maximumBytes,
+      }
+      return {
+        inputMode: 'private_verified_stream_v1',
+        contentType: contentType as CanonicalPrivateDependencyArtifactStreamReadResult['contentType'],
+        sha256: verified.sha256,
+        byteLength: verified.byteLength,
+        dependencyJobId: selected.dependencyJobId,
+        expectedAssetId: selected.expectedAssetId,
+        artifactId: selected.artifactId,
+        artifactVersion: selected.artifactVersion,
+        sourceExecutionAttemptId: selected.executionAttemptId,
+        sourceLeaseImmutableHash: selected.sourceLeaseImmutableHash,
+        dependencyReadEvidenceHash: sha256AuthorityValue(evidence),
+        openStream: verified.openStream,
+      }
+    },
   }
+}
+
+async function authorizeSingleSelectedArtifact(
+  context: ServiceContext,
+  input: CanonicalPrivateDependencyArtifactReadInput,
+  maximumAllowedBytes: number,
+) {
+  assertPrivateRuntime(context)
+  const actorUserId = getRequiredAuthUserId(context)
+  const access = await authorizeWorkspaceAccess(context, input.workspaceId, 'write')
+  if (access.userId !== actorUserId) throw invalid('Dependency reader is outside this workspace.')
+  const selectedArtifactIndex = input.selectedArtifactIndex ?? 0
+  if (
+    input.dependencyAuthority.state !== 'private_test_dependencies_verified' ||
+    input.dependencyAuthority.liveRuntimeEligible !== false ||
+    input.dependencyAuthority.selectedArtifacts.length < 1 ||
+    input.dependencyAuthority.selectedArtifacts.length > 24 ||
+    (input.selectedArtifactIndex === undefined &&
+      input.dependencyAuthority.selectedArtifacts.length !== 1) ||
+    !Number.isSafeInteger(selectedArtifactIndex) || selectedArtifactIndex < 0 ||
+    selectedArtifactIndex >= input.dependencyAuthority.selectedArtifacts.length ||
+    !Number.isSafeInteger(input.maximumBytes) || input.maximumBytes < 1 ||
+    input.maximumBytes > maximumAllowedBytes ||
+    input.allowedContentTypes.length < 1 || input.allowedContentTypes.length > 9 ||
+    new Set(input.allowedContentTypes).size !== input.allowedContentTypes.length
+  ) throw invalid('Bounded dependency execution requires an exact server-selected private artifact.')
+  const verifiedLease = (await createCanonicalWorkerLeaseAuthorityService(context).verifyActive({
+    workspaceId: access.workspaceId,
+    projectId: input.projectId,
+    editSessionId: input.editSessionId,
+    jobId: input.currentJobId,
+    purpose: 'private_internal_canonical_lease_verification',
+    leaseId: input.leaseId,
+    leaseCredential: input.leaseCredential,
+  })).workerLeaseVerification.lease
+  const currentReadiness = (await createCanonicalExecutionReadinessService(context).inspectJob({
+    workspaceId: access.workspaceId,
+    projectId: input.projectId,
+    editSessionId: input.editSessionId,
+    jobId: input.currentJobId,
+    purpose: 'private_internal_dry_run_readiness',
+  })).executionReadinessEnvelope
+  if (
+    verifiedLease.leaseId !== input.leaseId ||
+    verifiedLease.approvedPlanSnapshotId !== input.snapshotId ||
+    currentReadiness.job.approvedWorkItemId !== input.currentApprovedWorkItemId ||
+    !['started', 'completed'].includes(verifiedLease.executionFence.state) ||
+    verifiedLease.executionFence.executionAttemptId !== input.executionAttemptId ||
+    sha256AuthorityValue(verifiedLease.dependencyAuthority) !==
+      sha256AuthorityValue(input.dependencyAuthority)
+  ) throw invalid('Dependency read is not bound to the active started lease execution attempt.')
+  const selected = input.dependencyAuthority.selectedArtifacts[selectedArtifactIndex]!
+  const authority = await createPrivateArtifactQaAuthorityService(context).readArtifactAuthority({
+    workspaceId: access.workspaceId,
+    projectId: input.projectId,
+    editSessionId: input.editSessionId,
+    snapshotId: input.snapshotId,
+    jobId: selected.dependencyJobId,
+    expectedAssetId: selected.expectedAssetId,
+    artifactId: selected.artifactId,
+    purpose: 'read_private_artifact_qa_authority',
+  })
+  const internalAuthorityArtifact = [
+    'authority_validation_evidence',
+    'source_trim_validation_evidence',
+  ].includes(authority.artifact.lineage.artifactType)
+  const contentType = authority.artifact.content.contentType as CanonicalPrivateDependencyContentType
+  if (
+    authority.artifact.artifactId !== selected.artifactId ||
+    authority.artifact.artifactVersion !== selected.artifactVersion ||
+    authority.artifact.content.sha256 !== selected.contentSha256 ||
+    authority.qaEvaluation?.qaEvaluationId !== selected.qaEvaluationId ||
+    authority.qaEvaluation.outcome !== 'passed' ||
+    authority.reconciliation?.reconciliationId !== selected.reconciliationId ||
+    authority.reconciliation.decision !== 'test_merged_not_live_authorized' ||
+    !authority.reconciliation.privateTestDependencySatisfied ||
+    (!internalAuthorityArtifact &&
+      authority.artifact.actualRunEvidence.state !== 'actual_run_evidence_verified_v2') ||
+    (internalAuthorityArtifact &&
+      authority.artifact.actualRunEvidence.state !== 'actual_run_evidence_placeholder') ||
+    authority.artifact.actualRunEvidence.executionAttemptId !== selected.executionAttemptId ||
+    authority.liveRuntimeEligible !== false ||
+    !input.allowedContentTypes.includes(contentType)
+  ) throw invalid('Selected dependency no longer matches immutable artifact, QA, or reconciliation authority.')
+  return { selectedArtifactIndex, selected, authority, internalAuthorityArtifact, contentType }
 }
 
 async function readInternalAuthorityArtifact(input: {

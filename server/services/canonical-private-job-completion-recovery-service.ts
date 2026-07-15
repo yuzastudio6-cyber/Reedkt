@@ -295,7 +295,7 @@ function buildRecoveredResponse(input: {
   attemptCostEvidenceRecorded: boolean
 }): CanonicalPrivateJobExecutionAdapterResponse {
   const responseWithoutHash = {
-    schemaVersion: 'canonical-private-job-execution-adapter-response-v2' as const,
+    schemaVersion: 'canonical-private-job-execution-adapter-response-v3' as const,
     source: 'canonical_private_job_execution_adapter' as const,
     purpose: 'execute_canonical_private_job' as const,
     identity: {
@@ -333,6 +333,10 @@ function buildRecoveredResponse(input: {
       idempotentAdapterReplay: false,
       attemptCostEvidenceRecorded: input.attemptCostEvidenceRecorded,
       dependencyArtifactInput: input.dependencyArtifactInput,
+      // Generic completion recovery cannot infer attempt-level dependency
+      // transport from the completed artifact alone.
+      dependencyStreamInputVerified: false,
+      largeDependencyOverLegacyBufferVerified: false,
       finalArtifactQaPassed: input.input.finalCompositionExecution,
       // Generic artifact/QA recovery does not retain attempt-level source
       // staging evidence, so it must not infer these proofs from a completed

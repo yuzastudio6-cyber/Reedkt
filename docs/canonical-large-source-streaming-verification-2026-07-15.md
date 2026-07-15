@@ -6,7 +6,7 @@ Status: `one_resumable_sized_4k_mp4_verified_through_private_canonical_execution
 
 `npm run smoke:canonical-private-color-execution` now connects one source above
 the former canonical 16 MiB buffer boundary to the existing canonical editing
-lifecycle. The fixture is a valid two-second 3840x2160, 24 fps MP4 with AAC
+lifecycle. The fixture is a valid three-second 3840x2160, 24 fps MP4 with AAC
 audio and a valid top-level MP4 `free` box. Its exact size is 18,874,505 bytes.
 
 The passing run verifies:
@@ -56,14 +56,20 @@ original directory device/inode identity. Failed materialization or promotion
 also destroys and awaits its source stream so a rejected create-only or
 symlink path cannot leak a file handle.
 
-The passing canonical run produced:
+One focused passing canonical run produced:
 
-- a 5,612-byte QA-passed lossless VP9/Matroska professional-color
-  intermediate; and
-- a 120,156-byte private 3840x2160 H.264/AAC master with 48 exact frames.
+- a 28,278,310-byte QA-passed lossless VP9/Matroska professional-color
+  intermediate with SHA-256
+  `dae33d534cc028170c18a988d4bcb26380b17169ed264421d49b634324662730`;
+  and
+- a 7,758,859-byte private 3840x2160 H.264/AAC master with 72 exact frames and
+  SHA-256 `f1d92106979cf5c0011a4b4c9ee01f2bd5f77ffcd300c74f706703bcf37d78a2`.
 
-Those small outputs are properties of the short, low-complexity fixture. They
-are not representative output-size or throughput evidence.
+The intermediate is now direct evidence above the former 16 MiB canonical
+dependency-reader boundary. The final remains below that boundary and is not
+representative output-size or throughput evidence. The exact-code aggregate
+run produced the same deterministic color size and SHA-256 while its valid
+H.264 final was 7,791,195 bytes, so no cross-run final-byte identity is claimed.
 
 ## Streamed composition policy
 
@@ -74,11 +80,10 @@ base64. Container paths are generated internally, and the final MP4 streams
 directly into create-only private persistence before independent streamed
 FFprobe QA.
 
-The currently approved professional-color canonical profile still consumes
-its QA-passed color intermediate because that is the exact frozen plan
-semantics, not because the original source must fit a 16 MiB Remotion buffer.
-The immutable original remains source authority, and the 1080p analysis proxy
-is never substituted for final render.
+The currently approved professional-color canonical profile consumes its
+QA-passed color intermediate through an authority-bound private stream because
+that is the exact frozen plan semantics. The immutable original remains source
+authority, and the 1080p analysis proxy is never substituted for final render.
 
 The confined v2 renderer caps selected sources at 192 MiB combined, all inputs
 at 208 MiB, and the output at 256 MiB. A plan or attempt outside those limits
@@ -93,11 +98,14 @@ production readiness:
 - canonical source-bound execution currently accepts MP4 only even though
   ingestion recognizes additional professional containers;
 - source-bound Python runners remain on the older 16 MiB buffered contract;
-- FFmpeg output and canonical dependency-artifact reads retain bounded buffered
-  contracts; Remotion inputs and outputs now stream, but remain explicitly
-  capped at 208 MiB combined input and 256 MiB output;
-- the same canonical attempt produced only a small output; a separate
-  52,766,594-byte confined Remotion runtime/persistence/QA proof is not a
+- FFmpeg output remains Buffer-bound and professional-color persistence remains
+  capped at 32 MiB; exact MP4/NUT/Matroska dependency reads now stream, while
+  structured, image, and audio dependency reads retain bounded Buffer
+  contracts;
+- Remotion inputs and outputs stream but remain explicitly capped at 208 MiB
+  combined input and 256 MiB output;
+- the same canonical attempt produced a 7,758,859-byte final; the aggregate's
+  separate 52,092,354-byte confined Remotion runtime/persistence/QA proof is not a
   canonical job-lifecycle claim;
 - the executable canonical profile remains short-duration and cannot yet
   represent a long professional program;
@@ -115,10 +123,11 @@ production readiness:
   rendering, public export, Motion Studio, or MS-001 authority was enabled.
 
 Product, external-beta, public-delivery, and production readiness remain
-false. The next large-video execution milestone must stream or privately
-file-bind large upstream worker/dependency outputs and then prove
-representative long-duration media, distributed recovery, and deployed storage
-behavior beyond the current explicit Remotion capacities.
+false. The next large-video execution milestone should stream large upstream
+media-binary outputs, prove a same-attempt canonical final above the former
+boundary, and then test representative long-duration media, distributed
+recovery, and deployed storage behavior beyond the current explicit
+capacities.
 
 ## Focused verification
 
@@ -147,10 +156,10 @@ no billing, customer-credit, deployment, or public-delivery action.
 ## Aggregate verification
 
 The latest exact-code `npm run qa:internal-pipeline` run completed all 25 phases
-in 1,135,934 ms with exit code 0. Its over-16-MiB canonical source/color phase
-passed in 74,055 ms, the three-source continuity phase passed in 563,989 ms,
-the separate above-16-MiB Remotion output phase passed in 105,985 ms, and the
-final signed-in maximum eight-source private-review phase passed in 342,303 ms.
+in 1,359,639 ms with exit code 0. Its over-16-MiB canonical source/color phase
+passed in 263,792 ms, the three-source continuity phase passed in 576,999 ms,
+the separate above-16-MiB Remotion output phase passed in 101,992 ms, and the
+final signed-in maximum eight-source private-review phase passed in 370,273 ms.
 The aggregate also re-reported exactly 50 canonical end-to-end and
 job-adapter-verified tool identities at evidence revision `2026-07-15.30`.
 

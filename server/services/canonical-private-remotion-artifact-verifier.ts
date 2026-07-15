@@ -38,6 +38,7 @@ export async function verifyCanonicalPrivateRemotionArtifact(input: {
   return {
     sha256: stored.sha256,
     byteLength: stored.byteLength,
+    openStream: stored.openStream,
     privateObjectIdentityHash: input.artifact.storageIdentity.opaqueObjectIdentityHash,
     semanticReportHash: sha256AuthorityValue({
       domain: 'canonical_private_remotion_lease_verification_v2',

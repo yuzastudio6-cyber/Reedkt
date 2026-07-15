@@ -50,7 +50,7 @@ const approvedColorSourceSchema = z.object({
   outputPixelFormat: z.literal('yuv420p'),
   colorArtifactId: identity,
   colorSha256: sha,
-  colorByteLength: z.number().int().min(64).max(16 * 1024 * 1024),
+  colorByteLength: z.number().int().min(64).max(32 * 1024 * 1024),
   colorDependencyReadEvidenceHash: sha,
 }).strict()
 
@@ -173,7 +173,7 @@ const sourceSequenceCaptionTrackFinalCompositionInputsSchema = captionTrackDepen
 }).strict()
 
 export const canonicalPrivateFinalCompositionResponseSchema = z.object({
-  schemaVersion: z.literal('canonical-private-final-composition-execution-response-v3'),
+  schemaVersion: z.literal('canonical-private-final-composition-execution-response-v4'),
   source: z.literal('canonical_private_final_composition_execution_coordinator'),
   purpose: z.literal('execute_canonical_private_final_composition'),
   identity: z.object({
@@ -209,6 +209,10 @@ export const canonicalPrivateFinalCompositionResponseSchema = z.object({
     approvedVoiceTrackDependencyRead: z.boolean(),
     approvedVoiceTrackReplacementApplied: z.boolean(),
     approvedColorDependencyRead: z.boolean(),
+    approvedColorDependencyInputMode: z.enum([
+      'not_applicable',
+      'server_injected_private_stream_v1',
+    ]),
     approvedColorIntermediateApplied: z.boolean(),
     renderPurpose: z.literal('private_4k_delivery_master_v1'),
     deliveryProfileId: z.literal('uhd_2160'),
@@ -309,11 +313,13 @@ export const canonicalPrivateFinalCompositionResponseSchema = z.object({
   const colorSources = 'colorSources' in value.inputs ? value.inputs.colorSources : undefined
   let colorEvidenceValid =
     !colorSource && !colorSources &&
-    !value.tool.approvedColorDependencyRead && !value.tool.approvedColorIntermediateApplied
+    !value.tool.approvedColorDependencyRead && !value.tool.approvedColorIntermediateApplied &&
+    value.tool.approvedColorDependencyInputMode === 'not_applicable'
   if (colorSource && !('sources' in value.inputs)) {
     colorEvidenceValid =
       !sequenceProfile && replacement &&
       value.tool.approvedColorDependencyRead &&
+      value.tool.approvedColorDependencyInputMode === 'server_injected_private_stream_v1' &&
       value.tool.approvedColorIntermediateApplied &&
       colorSource.sourceSequenceItemId === value.inputs.sourceSequenceItemId &&
       colorSource.sourceCleanupDecisionId === value.inputs.sourceCleanupDecisionId &&
@@ -333,6 +339,7 @@ export const canonicalPrivateFinalCompositionResponseSchema = z.object({
     colorEvidenceValid =
       sequenceProfile && replacement &&
       value.tool.approvedColorDependencyRead &&
+      value.tool.approvedColorDependencyInputMode === 'server_injected_private_stream_v1' &&
       value.tool.approvedColorIntermediateApplied &&
       colorSources.length === sourceInputs.length &&
       colorSources.every((candidate, index) => {

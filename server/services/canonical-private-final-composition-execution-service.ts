@@ -45,7 +45,9 @@ import {
 import {
   createCanonicalPrivateDependencyArtifactReadService,
   type CanonicalPrivateDependencyArtifactReadResult,
+  type CanonicalPrivateDependencyArtifactStreamReadResult,
 } from './canonical-private-dependency-artifact-read-service'
+import { CANONICAL_PRIVATE_MEDIA_STREAMING_MAXIMUM_BYTES } from './canonical-private-media-artifact-storage'
 import {
   inspectCanonicalPrivateRemotionArtifact,
   persistCanonicalPrivateRemotionArtifactStream,
@@ -276,38 +278,48 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
       }
       const dependencyReader = createCanonicalPrivateDependencyArtifactReadService(context)
       const dependencies: CanonicalPrivateDependencyArtifactReadResult[] = []
+      const colorDependencies: CanonicalPrivateDependencyArtifactStreamReadResult[] = []
       for (
         let selectedArtifactIndex = 0;
         selectedArtifactIndex < expectedDependencyCount;
         selectedArtifactIndex += 1
       ) {
-        dependencies.push(await dependencyReader.readSingleSelectedArtifact({
+        const dependencyWorkItem = dependencyWorkItems[selectedArtifactIndex]
+        const dependencyContentType = dependencyWorkItem?.expectedOutputs[0]?.contentType
+        if (!dependencyWorkItem || dependencyWorkItem.expectedOutputs.length !== 1) {
+          throw denied('Final composition dependency output authority is incomplete.')
+        }
+        const dependencyInput = {
           workspaceId: body.workspaceId, projectId: body.projectId,
           editSessionId: body.editSessionId, snapshotId: authority.snapshot.snapshotId,
           currentJobId: body.jobId, currentApprovedWorkItemId: workItem.id,
           leaseId: injected.leaseId, leaseCredential: injected.leaseCredential,
           executionAttemptId, dispatchGrantId: body.grantId,
           dependencyAuthority: begun.lease.dependencyAuthority,
-          allowedContentTypes: [
-            'application/json',
-            'image/png',
-            'audio/wav',
-            'video/x-matroska',
-          ],
-          maximumBytes: 16 * 1024 * 1024,
           selectedArtifactIndex,
-        }))
+        }
+        if (dependencyContentType === 'video/x-matroska') {
+          colorDependencies.push(await dependencyReader.readSingleSelectedArtifactStream({
+            ...dependencyInput,
+            allowedContentTypes: ['video/x-matroska'],
+            maximumBytes: CANONICAL_PRIVATE_MEDIA_STREAMING_MAXIMUM_BYTES,
+          }))
+        } else {
+          dependencies.push(await dependencyReader.readSingleSelectedArtifact({
+            ...dependencyInput,
+            allowedContentTypes: ['application/json', 'image/png', 'audio/wav'],
+            maximumBytes: 16 * 1024 * 1024,
+          }))
+        }
       }
       const trimArtifact = dependencies.find((dependency) => dependency.contentType === 'application/json')
       const captionDependencies = dependencies.filter((dependency) => dependency.contentType === 'image/png')
       const voiceDependencies = dependencies.filter((dependency) => dependency.contentType === 'audio/wav')
-      const colorDependencies = dependencies.filter((dependency) =>
-        dependency.contentType === 'video/x-matroska')
       if (
         !trimArtifact || trimArtifact.byteLength > 1024 * 1024 ||
         captionDependencies.length !== captionCueCount || voiceDependencies.length !== voiceTrackCount ||
         colorDependencies.length !== colorSourceCount ||
-        dependencies.length !== expectedDependencyCount
+        dependencies.length + colorDependencies.length !== expectedDependencyCount
       ) {
         throw denied(
           'Final composition dependencies must be one approved trim JSON plus exact caption, voice, and color artifacts.',
@@ -411,10 +423,14 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
         ...sources.map((source, index) => {
           const color = colorSources[index]?.dependency
           return color
-            ? bufferedRemotionInput({
-                inputId: sourceInputIds[index]!, mimeType: 'video/x-matroska',
-                bytes: color.bytes, sha256: color.sha256,
-              })
+            ? {
+                inputMode: color.inputMode,
+                inputId: sourceInputIds[index]!,
+                mimeType: 'video/x-matroska' as const,
+                byteLength: color.byteLength,
+                sha256: color.sha256,
+                openStream: color.openStream,
+              }
             : {
                 inputMode: 'private_verified_stream_v1' as const,
                 inputId: sourceInputIds[index]!, mimeType: CONTENT_TYPE,
@@ -644,7 +660,7 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
           : { colorSource: colorInputRecords[0]! }
         : {}
       const responseWithoutHash = {
-        schemaVersion: 'canonical-private-final-composition-execution-response-v3' as const,
+        schemaVersion: 'canonical-private-final-composition-execution-response-v4' as const,
         source: 'canonical_private_final_composition_execution_coordinator' as const,
         purpose: body.purpose,
         identity: { ...identity, approvedWorkItemId: workItem.id, dispatchGrantId: body.grantId },
@@ -666,6 +682,9 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
           approvedVoiceTrackDependencyRead: replaceVoice,
           approvedVoiceTrackReplacementApplied: replaceVoice,
           approvedColorDependencyRead: colorSources.length > 0,
+          approvedColorDependencyInputMode: colorSources.length > 0
+            ? 'server_injected_private_stream_v1' as const
+            : 'not_applicable' as const,
           approvedColorIntermediateApplied: colorSources.length > 0,
           renderPurpose: 'private_4k_delivery_master_v1' as const,
           deliveryProfileId: 'uhd_2160' as const,
@@ -881,7 +900,7 @@ function orderVoiceDependencies(input: {
 }
 
 interface ApprovedColorDependency {
-  dependency: CanonicalPrivateDependencyArtifactReadResult
+  dependency: CanonicalPrivateDependencyArtifactStreamReadResult
   sourceSequenceItemId: string
   outputKey: string
   sourceCleanupDecisionId: string
@@ -908,7 +927,7 @@ interface ApprovedColorDependency {
 }
 
 function orderColorDependencies(input: {
-  colorDependencies: CanonicalPrivateDependencyArtifactReadResult[]
+  colorDependencies: CanonicalPrivateDependencyArtifactStreamReadResult[]
   sourceSequenceItemIds: string[]
   cleanupDecisions: Array<{
     decisionId: string

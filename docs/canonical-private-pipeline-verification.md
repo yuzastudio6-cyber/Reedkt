@@ -16,9 +16,9 @@ and Edit Brief authority through a real resumable-sized 4K private ingest/proxy
 proof, source-only intent restraint, canonical plan
 presentation, the 4K estimate ceiling, separate approval, the opaque
 execution-package handoff, private preparation, private review,
-revision/history recovery, the bounded three-source reference-bound
-voice/color proof, and the one-source professional-color regression proof. It
-also runs the active named-edit
+revision/history recovery, the bounded three-source standalone reference-bound
+voice/color proof, the one-source professional-color regression proof, and the
+maximum eight-source planning-publication contract. It also runs the active named-edit
 Playwright journey and the versioned
 proven-tool identity report.
 
@@ -29,10 +29,10 @@ npm run qa:internal-pipeline
 ```
 
 That full mode adds auth/runtime, project/edit tenancy, approved tool-manifest,
-private Playwright-capture, and a signed-in three-source named-edit regression
-that now reaches an integrity-bound private 4K review, returns a sanitized
-browser journey readback, and persists acceptance when the compiled plan fits
-the bounded canonical profile.
+private Playwright-capture, and a signed-in maximum eight-source named-edit
+regression that reaches an integrity-bound private 4K review, returns a
+sanitized browser journey readback, and persists acceptance when the compiled
+plan fits the bounded canonical profile.
 
 ## Verification Phases
 
@@ -80,17 +80,17 @@ the bounded canonical profile.
    tied to exact versioned evidence.
 
 In full mode, a final browser phase also signs in through the loopback-only
-local test boundary, creates a project and named edit, uploads three distinct
-private audio-bearing sources, synchronizes exact Edit Preferences, creates and
+local test boundary, creates a project and named edit, uploads the maximum eight
+distinct private audio-bearing sources, synchronizes exact Edit Preferences, creates and
 revises the inline Edit Brief, republishes plan v2, approves the single
 4K-ceiling estimate, requests the immutable execution package separately,
-completes the server-derived 13-work-item/13-job private work graph, loads and
-probes the exact 3840x2160 no-store review MP4, verifies all three source-bound
-audio identities in approved order, reads sanitized journey state, and records
-review acceptance.
+completes the server-derived 27-work-item/27-job private work graph, loads and
+probes the exact eight-second 3840x2160 no-store review MP4, verifies all eight
+source-bound audio identities in approved order, reads sanitized journey state,
+and records review acceptance.
 
 The runner stops on the first failed phase and prints a machine-readable
-`canonical-private-pipeline-verification-v2` report with step exit codes and
+`canonical-private-pipeline-verification-v3` report with step exit codes and
 durations. A zero exit code means every included assertion passed, including
 assertions that production-only or unavailable behavior stays blocked.
 
@@ -101,29 +101,33 @@ that discovery channel; it does not weaken image-identity validation.
 
 ## Current Evidence Record
 
-On 2026-07-15, the exact-code v2 full internal command passed all 24 phases in
-947,417 ms with exit code 0. Its focused multi-source phase produced one real
+On 2026-07-15, the exact-code v3 full internal command passed all 24 phases in
+1,029,183 ms with exit code 0. Its focused multi-source phase produced one real
 private 4K master from three ordered sources, three exact source-bound voice
 deliveries, one baseline plus two independently first-reference-bound color
 intermediates, and two approved hard cuts. Both boundary samples passed the unchanged
 continuity threshold before final QA, private download, and replay succeeded.
-The final signed-in regression separately completed three distinct private
+The final signed-in regression separately completed the maximum eight distinct private
 uploads, backend media probing, Edit Preferences and Edit Brief compilation,
 confirmed frame preservation, plan invalidation and v2 republication, one 4K-ceiling
 approval, immutable snapshot/reservation/package creation, the server-derived
-13-work-item/13-job voice/color/caption/render/QA graph, authenticated no-store
+27-work-item/27-job voice/color/caption/render/QA graph, authenticated no-store
 review playback and download, sanitized browser journey readback, and persisted
-acceptance. The output was a non-passthrough 3840x2160 three-second private MP4;
-the 440 Hz, 660 Hz, and 880 Hz source-bound tones remained in approved order.
+acceptance. The output was a non-passthrough 3840x2160 eight-second private MP4;
+all eight distinct source-bound tones remained in approved order.
 The same run regenerated evidence revision `2026-07-15.30` with
 exactly 50 private canonical/job-adapter identities. Provider activation, live
 billing/wallet mutation, remote Supabase, public delivery, deployment, external
 beta, and paid production all remained false.
 
-Earlier on 2026-07-15, the then-current canonical command passed 18 phases in
+Earlier on 2026-07-15, the exact-code v2 full internal command passed all 24
+phases in 947,417 ms. Its final signed-in regression reached three sources and a
+13-work-item/13-job private graph; the v3 maximum eight-source run supersedes
+that browser-path count while preserving the focused three-source continuity
+fixture. The then-current canonical command also passed 18 phases in
 580,973 ms with exit code 0. That historical run included the bounded
 two-source reference-match proof. Its multi-source phase is superseded by the
-three-source phase in the current 24-phase full run; it remains evidence for all
+three-source focused phase in the current 24-phase full run; it remains evidence for all
 11 Chromium named-edit scenarios, exact source/preference/Edit Brief authority,
 the real resumable-sized 4K private ingest/proxy lifecycle, the universal
 3840x2160 4K estimate ceiling, and evidence revision `2026-07-15.30`. The prior
@@ -176,14 +180,16 @@ match cuts, transition SFX, or arbitrary transition effects.
 
 The professional-color evidence applies only to the exact one-source bounded
 profile and the fixed first-source-reference multi-source profile. The compiler
-accepts two through eight sources under that fixed profile, while actual
-execution evidence reaches three sources; four through eight remain contract
-coverage. Every accepted profile requires `clean_natural` or `premium_clean`,
+accepts two through eight sources under that fixed profile. The focused
+standalone execution fixture reaches three sources, while the signed-in
+full-stack regression reaches the maximum eight-source profile with seven
+caption cues, eight voice/color branches, seven hard cuts, and a 27-job graph.
+Every accepted profile requires `clean_natural` or `premium_clean`,
 subtle/balanced operations, approved replacement voice, lossless SDR
 intermediates, and objective QA. It does not prove arbitrary filters or LUTs,
-arbitrary reference selection, four-through-eight-source execution, skin-tone
-isolation, HDR/wide-gamut delivery, distributed execution, public export, or
-production rendering.
+arbitrary reference selection, source counts above eight, representative long
+or heterogeneous production media, skin-tone isolation, HDR/wide-gamut
+delivery, distributed execution, public export, or production rendering.
 
 The 50-tool report means exactly the reported tool identities have private
 canonical lifecycle and job-adapter evidence. It must not be restated as “50

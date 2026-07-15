@@ -137,7 +137,7 @@ const fullBoundarySteps: VerificationStep[] = [
   step(
     'signed-in-private-review-regression',
     'smoke:editor-full-stack-private-review',
-    'Signed-in project creation, three-source private upload and probe, exact preferences and Edit Brief, plan revision, one 4K-ceiling approval, immutable handoff, 13-item private work graph, integrity-bound 4K playback, sanitized journey readback, and review acceptance remain connected.',
+    'Signed-in project creation, maximum eight-source private upload and probe, exact preferences and Edit Brief, plan revision, one 4K-ceiling approval, immutable handoff, 27-item private work graph, integrity-bound 4K playback, sanitized journey readback, and review acceptance remain connected.',
   ),
 ]
 
@@ -215,7 +215,7 @@ function printReport(
 ): void {
   const finishedAt = new Date()
   const report = {
-    schemaVersion: 'canonical-private-pipeline-verification-v2',
+    schemaVersion: 'canonical-private-pipeline-verification-v3',
     status,
     mode: full ? 'full_internal_regression' : 'canonical_private_pipeline',
     startedAt: runStartedAt.toISOString(),
@@ -245,12 +245,13 @@ function printReport(
           boundedProfessionalColorExecution: true,
           boundedReferenceBoundMultiSourceColorExecution: true,
           boundedThreeSourcePrivateCompositionExecution: true,
+          boundedMaximumEightSourcePlanningPublicationCoverage: true,
           activeNamedEditJourneyStates: true,
           versionedToolIdentityEvidence: true,
           ...(full
             ? {
-                signedInThreeSourceUploadAndPersistence: true,
-                signedInThreeSourcePrivateReviewAccepted: true,
+                signedInMaximumEightSourceUploadAndPersistence: true,
+                signedInMaximumEightSourcePrivateReviewAccepted: true,
               }
             : {}),
         }

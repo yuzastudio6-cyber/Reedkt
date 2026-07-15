@@ -230,7 +230,6 @@ function createTranscriptTimingPlan(params: {
       ],
     }
   })
-
   return {
     id: 'master-transcript-timing-plan',
     status: 'needs_transcript_alignment',
@@ -336,29 +335,73 @@ function createCaptionTimingItems(params: {
   fps: number
   input: PlannerInput
 }): CaptionTimingItem[] {
-  return params.transcriptTimingPlan.lines.map((line) => {
-    const minimumReadFrames = getMinimumReadFrames(line.text, params.fps)
-    const range = line.timeRange
+  return groupMockCaptionLines(params.transcriptTimingPlan.lines).map((group, index) => {
+    const first = group[0]!
+    const last = group.at(-1)!
+    const text = boundedMockCaptionText(group.map((line) => line.text).join(' '))
+    const minimumReadFrames = getMinimumReadFrames(text, params.fps)
+    const range = group.length === 1
+      ? first.timeRange
+      : createFrameTimeRangeFromFrames(
+          first.timeRange.startFrame,
+          last.timeRange.endFrame,
+          params.fps,
+        )
     const readableDuration = range.durationFrames >= minimumReadFrames
 
     return {
-      id: `caption-timing-${line.id}`,
-      captionText: line.text,
+      id: group.length === 1
+        ? `caption-timing-${first.id}`
+        : `caption-timing-consolidated-${index + 1}`,
+      captionText: text,
       timeRange: range,
-      linkedTranscriptLineId: line.id,
+      ...(group.length === 1 ? { linkedTranscriptLineId: first.id } : {}),
       animationInFrames: params.input.editLevel === 'basic' ? 4 : 6,
       holdFrames: Math.max(0, range.durationFrames - (params.input.editLevel === 'basic' ? 8 : 12)),
       animationOutFrames: params.input.editLevel === 'basic' ? 4 : 6,
-      emphasisWord: params.input.editLevel === 'basic' ? undefined : line.emphasisWords[0],
+      emphasisWord: params.input.editLevel === 'basic'
+        ? undefined
+        : group.flatMap((line) => line.emphasisWords)[0],
       readabilityScore: readableDuration ? 'high' : 'medium',
       qaChecks: [
         'Caption has a frame range inside its owning transcript/segment range.',
+        ...(group.length > 1
+          ? ['Contiguous mock transcript lines share one planning caption without changing speech-boundary timing.']
+          : []),
         readableDuration
           ? 'Caption duration meets the estimated readable hold time.'
           : 'Caption duration is shorter than the readability target; simplify or merge text before approval.',
       ],
     }
   })
+}
+
+const MAXIMUM_MOCK_CAPTION_TIMING_ITEMS = 7
+const MAXIMUM_MOCK_CAPTION_TEXT_CHARACTERS = 120
+
+function groupMockCaptionLines(lines: TranscriptTimingLine[]): TranscriptTimingLine[][] {
+  if (lines.length <= MAXIMUM_MOCK_CAPTION_TIMING_ITEMS) {
+    return lines.map((line) => [line])
+  }
+  return Array.from({ length: MAXIMUM_MOCK_CAPTION_TIMING_ITEMS }, (_, groupIndex) => {
+    const startIndex = Math.floor(groupIndex * lines.length / MAXIMUM_MOCK_CAPTION_TIMING_ITEMS)
+    const endIndex = Math.floor((groupIndex + 1) * lines.length / MAXIMUM_MOCK_CAPTION_TIMING_ITEMS)
+    return lines.slice(startIndex, endIndex)
+  })
+}
+
+function boundedMockCaptionText(value: string): string {
+  const normalized = value.trim().replace(/\s+/g, ' ')
+  if (normalized.length <= MAXIMUM_MOCK_CAPTION_TEXT_CHARACTERS) return normalized
+
+  const words = normalized.split(' ')
+  let result = ''
+  for (const word of words) {
+    const candidate = result ? `${result} ${word}` : word
+    if (candidate.length > MAXIMUM_MOCK_CAPTION_TEXT_CHARACTERS - 3) break
+    result = candidate
+  }
+  return `${result || normalized.slice(0, MAXIMUM_MOCK_CAPTION_TEXT_CHARACTERS - 3).trimEnd()}...`
 }
 
 function segmentForAsset(segmentRanges: ReturnType<typeof finalRangesFromSegments>, asset: VisualAssetPlanItem, index: number) {

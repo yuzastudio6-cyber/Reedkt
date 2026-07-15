@@ -39,6 +39,21 @@ const getLocalProjectHandoffStorageKey = () => getScopedLocalProjectHandoffStora
 const editorBootTimeoutMs = 12_000
 const privateUploadTimeoutMs = 30_000
 const approvedEditBriefGoal = 'Create a clean internal review edit from the uploaded source proof, keep the speaker clear, and make the first beat more direct.'
+const canonicalSourceFixtureDefinitions = [
+  { fileName: 'browser-upload-source.mp4', width: 160, height: 90, audioFrequencyHz: 440, videoPattern: 'solid_red' },
+  { fileName: 'browser-upload-source-b.mp4', width: 176, height: 100, audioFrequencyHz: 660, videoPattern: 'solid_dark_red' },
+  { fileName: 'browser-upload-source-c.mp4', width: 192, height: 108, audioFrequencyHz: 880, videoPattern: 'solid_dark_red' },
+  { fileName: 'browser-upload-source-d.mp4', width: 208, height: 118, audioFrequencyHz: 1_000, videoPattern: 'solid_dark_red' },
+  { fileName: 'browser-upload-source-e.mp4', width: 224, height: 126, audioFrequencyHz: 1_200, videoPattern: 'solid_dark_red' },
+  { fileName: 'browser-upload-source-f.mp4', width: 240, height: 136, audioFrequencyHz: 1_400, videoPattern: 'solid_dark_red' },
+  { fileName: 'browser-upload-source-g.mp4', width: 256, height: 144, audioFrequencyHz: 1_600, videoPattern: 'solid_dark_red' },
+  { fileName: 'browser-upload-source-h.mp4', width: 272, height: 154, audioFrequencyHz: 1_800, videoPattern: 'solid_dark_red' },
+] as const
+const canonicalSourceCount = canonicalSourceFixtureDefinitions.length
+const canonicalCaptionCount = Math.min(canonicalSourceCount, 7)
+const canonicalWorkItemAndJobCount = 4 + canonicalCaptionCount + canonicalSourceCount * 2
+const canonicalSourceOrders = canonicalSourceFixtureDefinitions.map((_, index) => index + 1)
+const canonicalSourceDimensions = canonicalSourceFixtureDefinitions.map(({ width, height }) => `${width}x${height}`)
 const hiddenDemoStoryPattern = /couple starts happy|pregnan(?:t|cy)|walks away/i
 let authVerificationCount = 0
 let adminPersistenceAttemptCount = 0
@@ -126,7 +141,7 @@ type CanonicalJourneyReadbackResponse = {
 function assertUploadedSourceMetadataPreserved(
   sourceMediaAssets: SmokeSourceMediaAsset[] | undefined,
   label: string,
-  expectedDimensions = ['160x90', '176x100', '192x108'],
+  expectedDimensions = canonicalSourceDimensions,
 ): void {
   assert.deepEqual(
     sourceMediaAssets?.map((asset) => asset.sourceMetadata?.probeStatus),
@@ -251,45 +266,41 @@ const env = loadRuntimeEnv({
 assert.equal(env.mockOnly, false, 'Browser full-stack smoke should run with Supabase configured.')
 assert.equal(env.allowInternalTestExecutionWithSupabase, true)
 
-const sourceFixture = await createSyntheticMp4Fixture({
-  localStorageRoot,
-  outputPath: join(localStorageRoot, 'fixtures', 'browser-upload-source.mp4'),
-  durationSeconds: 1,
-  width: 160,
-  height: 90,
-  includeAudio: true,
-  audioFrequencyHz: 440,
-  videoPattern: 'solid_red',
-})
-assert.equal(sourceFixture.available, true, `Synthetic source fixture should be available: ${sourceFixture.warnings.join('; ')}`)
-assert.ok(sourceFixture.outputPath, 'Synthetic source fixture should expose a path.')
-assert.equal(sourceFixture.hasAudio, true, 'First synthetic source fixture should include the audio stream required by the approved voice-delivery plan.')
-const secondSourceFixture = await createSyntheticMp4Fixture({
-  localStorageRoot,
-  outputPath: join(localStorageRoot, 'fixtures', 'browser-upload-source-b.mp4'),
-  durationSeconds: 1,
-  width: 176,
-  height: 100,
-  includeAudio: true,
-  audioFrequencyHz: 660,
-  videoPattern: 'solid_dark_red',
-})
-assert.equal(secondSourceFixture.available, true, `Second synthetic source fixture should be available: ${secondSourceFixture.warnings.join('; ')}`)
-assert.ok(secondSourceFixture.outputPath, 'Second synthetic source fixture should expose a path.')
-assert.equal(secondSourceFixture.hasAudio, true, 'Second synthetic source fixture should include an audio stream for browser-path preservation proof.')
-const thirdSourceFixture = await createSyntheticMp4Fixture({
-  localStorageRoot,
-  outputPath: join(localStorageRoot, 'fixtures', 'browser-upload-source-c.mp4'),
-  durationSeconds: 1,
-  width: 192,
-  height: 108,
-  includeAudio: true,
-  audioFrequencyHz: 880,
-  videoPattern: 'solid_dark_red',
-})
-assert.equal(thirdSourceFixture.available, true, `Third synthetic source fixture should be available: ${thirdSourceFixture.warnings.join('; ')}`)
-assert.ok(thirdSourceFixture.outputPath, 'Third synthetic source fixture should expose a path.')
-assert.equal(thirdSourceFixture.hasAudio, true, 'Third synthetic source fixture should include an audio stream for source-bound voice proof.')
+const canonicalSourceFixtures = await Promise.all(canonicalSourceFixtureDefinitions.map(async (definition, index) => {
+  const fixture = await createSyntheticMp4Fixture({
+    localStorageRoot,
+    outputPath: join(localStorageRoot, 'fixtures', definition.fileName),
+    durationSeconds: 1,
+    width: definition.width,
+    height: definition.height,
+    includeAudio: true,
+    audioFrequencyHz: definition.audioFrequencyHz,
+    videoPattern: definition.videoPattern,
+  })
+  assert.equal(
+    fixture.available,
+    true,
+    `Synthetic source fixture ${index + 1} should be available: ${fixture.warnings.join('; ')}`,
+  )
+  assert.ok(fixture.outputPath, `Synthetic source fixture ${index + 1} should expose a path.`)
+  assert.equal(
+    fixture.hasAudio,
+    true,
+    `Synthetic source fixture ${index + 1} should include the audio stream required by the approved voice-delivery plan.`,
+  )
+  assert.equal(fixture.width, definition.width)
+  assert.equal(fixture.height, definition.height)
+  return {
+    ...fixture,
+    available: true as const,
+    outputPath: fixture.outputPath,
+    width: definition.width,
+    height: definition.height,
+    hasAudio: true as const,
+  }
+}))
+const sourceFixture = canonicalSourceFixtures[0]!
+const secondSourceFixture = canonicalSourceFixtures[1]!
 
 const apiServer = await listen(createServer(createReeditProApiApp(env, { clients: fakeClients })))
 const apiBaseUrl = `http://127.0.0.1:${addressPort(apiServer)}`
@@ -518,24 +529,33 @@ try {
   assert.equal(realProjectHandoffs[0]?.sourceFileCount, 0)
   assert.equal(realProjectHandoffs[0]?.sourceMediaAssets, undefined, 'Project handoff should not create executable source assets from demo state.')
 
-  const sourceBytes = await readFile(sourceFixture.outputPath)
-  const secondSourceBytes = await readFile(secondSourceFixture.outputPath)
-  const thirdSourceBytes = await readFile(thirdSourceFixture.outputPath)
-  const sourceSha256 = sha256Hex(sourceBytes)
-  const secondSourceSha256 = sha256Hex(secondSourceBytes)
-  const thirdSourceSha256 = sha256Hex(thirdSourceBytes)
-  const secondSourceMeanVolumeDb = await probeAudioMeanVolume(secondSourceFixture.outputPath)
-  assert.ok(secondSourceMeanVolumeDb > -70, `Second browser-upload source fixture should be audibly non-silent, got ${secondSourceMeanVolumeDb} dB.`)
-  const secondSourceAudioTone = await probeAudioTone(secondSourceFixture.outputPath, {
-    targetFrequencyHz: 660,
+  const canonicalSourceBytes = await Promise.all(
+    canonicalSourceFixtures.map((fixture) => readFile(fixture.outputPath)),
+  )
+  const canonicalSourceSha256s = canonicalSourceBytes.map(sha256Hex)
+  const canonicalSourceMeanVolumesDb = await Promise.all(
+    canonicalSourceFixtures.map((fixture) => probeAudioMeanVolume(fixture.outputPath)),
+  )
+  canonicalSourceMeanVolumesDb.forEach((meanVolumeDb, index) => {
+    assert.ok(
+      meanVolumeDb > -70,
+      `Browser-upload source fixture ${index + 1} should be audibly non-silent, got ${meanVolumeDb} dB.`,
+    )
   })
-  assertSourceAudioTone(secondSourceAudioTone, 'Second browser-upload source fixture')
-  const thirdSourceMeanVolumeDb = await probeAudioMeanVolume(thirdSourceFixture.outputPath)
-  assert.ok(thirdSourceMeanVolumeDb > -70, `Third browser-upload source fixture should be audibly non-silent, got ${thirdSourceMeanVolumeDb} dB.`)
-  const thirdSourceAudioTone = await probeAudioTone(thirdSourceFixture.outputPath, {
-    targetFrequencyHz: 880,
+  const canonicalSourceAudioTones = await Promise.all(
+    canonicalSourceFixtures.map((fixture, index) => probeAudioTone(fixture.outputPath, {
+      targetFrequencyHz: canonicalSourceFixtureDefinitions[index]!.audioFrequencyHz,
+    })),
+  )
+  canonicalSourceAudioTones.forEach((sample, index) => {
+    assertSourceAudioTone(sample, `Browser-upload source fixture ${index + 1}`)
   })
-  assertSourceAudioTone(thirdSourceAudioTone, 'Third browser-upload source fixture')
+  const sourceBytes = canonicalSourceBytes[0]!
+  const secondSourceBytes = canonicalSourceBytes[1]!
+  const sourceSha256 = canonicalSourceSha256s[0]!
+  const secondSourceSha256 = canonicalSourceSha256s[1]!
+  const secondSourceMeanVolumeDb = canonicalSourceMeanVolumesDb[1]!
+  const secondSourceAudioTone = canonicalSourceAudioTones[1]!
   await page.getByTestId('edit-upload-gate-input').setInputFiles({
     name: 'browser-upload-source.mp4',
     mimeType: 'video/mp4',
@@ -544,22 +564,17 @@ try {
   const sourceSetup = page.getByTestId('source-summary')
   await expect(sourceSetup).toBeVisible({ timeout: privateUploadTimeoutMs })
   await expect(page.getByTestId('chat-composer-textarea')).toBeEnabled()
-  await sourceSetup.locator('input[type="file"]').setInputFiles([
-    {
-      name: 'browser-upload-source-b.mp4',
+  await sourceSetup.locator('input[type="file"]').setInputFiles(
+    canonicalSourceFixtureDefinitions.slice(1).map((definition, index) => ({
+      name: definition.fileName,
       mimeType: 'video/mp4',
-      buffer: secondSourceBytes,
-    },
-    {
-      name: 'browser-upload-source-c.mp4',
-      mimeType: 'video/mp4',
-      buffer: thirdSourceBytes,
-    },
-  ])
+      buffer: canonicalSourceBytes[index + 1]!,
+    })),
+  )
 
-  await expect(sourceSetup).toContainText('browser-upload-source.mp4')
-  await expect(sourceSetup).toContainText('browser-upload-source-b.mp4', { timeout: privateUploadTimeoutMs })
-  await expect(sourceSetup).toContainText('browser-upload-source-c.mp4', { timeout: privateUploadTimeoutMs })
+  for (const definition of canonicalSourceFixtureDefinitions) {
+    await expect(sourceSetup).toContainText(definition.fileName, { timeout: privateUploadTimeoutMs })
+  }
   await expect(page.getByTestId('source-summary')).toHaveCount(1)
   await expect(sourceSetup).toContainText('00:01')
   const uploadedHandoffs = await page.evaluate((storageKey) => {
@@ -585,8 +600,11 @@ try {
     }>
   }, getLocalProjectHandoffStorageKey())
   assert.equal(uploadedHandoffs[0]?.stage, 'source_uploaded')
-  assert.equal(uploadedHandoffs[0]?.sourceFileCount, 3)
-  assert.deepEqual(uploadedHandoffs[0]?.sourceMediaAssets?.map((asset) => asset.uploadedOrder), [1, 2, 3])
+  assert.equal(uploadedHandoffs[0]?.sourceFileCount, canonicalSourceCount)
+  assert.deepEqual(
+    uploadedHandoffs[0]?.sourceMediaAssets?.map((asset) => asset.uploadedOrder),
+    canonicalSourceOrders,
+  )
   assert.deepEqual(new Set(uploadedHandoffs[0]?.sourceMediaAssets?.map((asset) => asset.storageProvider)), new Set(['local_private']))
   assertPrivateSourceStorageBucketsPreserved(uploadedHandoffs[0]?.sourceMediaAssets, 'Uploaded local handoff')
   assert.equal(uploadedHandoffs[0]?.sourceMediaAssets?.every((asset) => asset.privateArtifact === true), true)
@@ -614,7 +632,9 @@ try {
   await expect(page.getByRole('button', { name: /Prepare source/i }).first()).toBeEnabled()
 
   await clickWhenReady(page.getByRole('button', { name: /Prepare source/i }).first())
-  await expect(page.getByText(/Source prep is ready for 3 uploaded source files in this edit/i)).toBeVisible({ timeout: 12_000 })
+  await expect(page.getByText(
+    new RegExp(`Source prep is ready for ${canonicalSourceCount} uploaded source files in this edit`, 'i'),
+  )).toBeVisible({ timeout: 12_000 })
   await expect(page.getByText(/Ready to create the plan/i)).toBeVisible({ timeout: 12_000 })
   await clickWhenReady(page.getByRole('button', { name: /^(Add )?Edit Brief$/i }).first())
   await page.getByLabel(/Overall goal/i).fill('Create a clean internal review edit that opens with the uploaded source proof and keeps the speaker clear.')
@@ -645,7 +665,7 @@ try {
       status: 'blocked_by_exact_multi_source_and_rich_work_item_compilation',
       checks: [
         'browser_project_and_named_edit_created',
-        'two_private_source_uploads_and_metadata_readback_verified',
+        'maximum_eight_private_source_uploads_and_metadata_readback_verified',
         'incremental_source_sequence_identities_are_unique',
         'finalized_media_asset_authority_is_preserved',
         'exact_edit_preferences_initialized_and_synchronized',
@@ -654,7 +674,7 @@ try {
         'approval_credit_snapshot_and_execution_remain_blocked',
       ],
       skippedLegacyAssertions: true,
-      skippedReason: 'The exact private runner does not yet compile this two-source rich plan into complete canonical work items, so approval correctly stays locked.',
+      skippedReason: 'The exact private runner did not compile this maximum eight-source plan into complete canonical work items, so approval correctly stayed locked.',
       nextRequiredGate: 'canonical_multi_source_and_rich_work_item_compilation',
       exactRunnerBlockerText,
       canonicalPlanningResponseCount: canonicalPlanningResponses.length,
@@ -711,7 +731,7 @@ try {
       '[data-testid="canonical-journey-status"][data-journey-stage="private_review_ready"]',
     )
     const canonicalPreparationBlocked = page.getByTestId('canonical-private-edit-preparation-blocked')
-    await expect(canonicalPrivateReviewReady.or(canonicalPreparationBlocked)).toBeVisible({ timeout: 300_000 })
+    await expect(canonicalPrivateReviewReady.or(canonicalPreparationBlocked)).toBeVisible({ timeout: 900_000 })
     if (await canonicalPreparationBlocked.isVisible()) {
       throw new Error(
         `Canonical private preparation failed closed: ${(await canonicalPreparationBlocked.innerText()).replace(/\s+/g, ' ').trim()}`,
@@ -743,44 +763,42 @@ try {
     const canonicalReviewBytes = await readFile(canonicalReviewDownloadPath)
     assert.ok(canonicalReviewBytes.byteLength > 0, 'Canonical private review download should contain MP4 bytes.')
     const canonicalReviewSha256 = sha256Hex(canonicalReviewBytes)
-    assert.notEqual(canonicalReviewSha256, sourceSha256)
-    assert.notEqual(canonicalReviewSha256, secondSourceSha256)
-    assert.notEqual(canonicalReviewSha256, thirdSourceSha256)
+    canonicalSourceSha256s.forEach((sourceChecksum, index) => {
+      assert.notEqual(
+        canonicalReviewSha256,
+        sourceChecksum,
+        `Canonical private review must not be source ${index + 1} passthrough.`,
+      )
+    })
     const canonicalReviewMediaProbe = await probeMedia(canonicalReviewDownloadPath)
     assert.equal(canonicalReviewMediaProbe.video?.width, 3840)
     assert.equal(canonicalReviewMediaProbe.video?.height, 2160)
     assert.ok(
-      Math.abs((canonicalReviewMediaProbe.video?.durationSeconds ?? 0) - 3) <= 0.25,
-      `Canonical three-source review should preserve the approved three-second source sequence, got ${canonicalReviewMediaProbe.video?.durationSeconds ?? 0}s.`,
+      Math.abs((canonicalReviewMediaProbe.video?.durationSeconds ?? 0) - canonicalSourceCount) <= 0.25,
+      `Canonical ${canonicalSourceCount}-source review should preserve the approved ${canonicalSourceCount}-second source sequence, got ${canonicalReviewMediaProbe.video?.durationSeconds ?? 0}s.`,
     )
     assert.equal(canonicalReviewMediaProbe.hasAudio, true)
     assertRenderedDownloadIsNotSourcePassthrough(
       canonicalReviewSha256,
       canonicalReviewMediaProbe,
-      [
-        { label: 'first browser-uploaded source', sha256: sourceSha256, width: sourceFixture.width, height: sourceFixture.height },
-        { label: 'second browser-uploaded source', sha256: secondSourceSha256, width: secondSourceFixture.width, height: secondSourceFixture.height },
-        { label: 'third browser-uploaded source', sha256: thirdSourceSha256, width: thirdSourceFixture.width, height: thirdSourceFixture.height },
-      ],
-      'Canonical three-source private review browser download',
+      canonicalSourceFixtures.map((fixture, index) => ({
+        label: `browser-uploaded source ${index + 1}`,
+        sha256: canonicalSourceSha256s[index]!,
+        width: fixture.width,
+        height: fixture.height,
+      })),
+      `Canonical ${canonicalSourceCount}-source private review browser download`,
     )
-    const canonicalReviewAudioToneSamples = await Promise.all([
-      probeAudioTone(canonicalReviewDownloadPath, {
-        startSeconds: 0.2,
-        durationSeconds: 0.5,
-        targetFrequencyHz: 440,
-      }),
-      probeAudioTone(canonicalReviewDownloadPath, {
-        startSeconds: 1.2,
-        durationSeconds: 0.5,
-        targetFrequencyHz: 660,
-      }),
-      probeAudioTone(canonicalReviewDownloadPath, {
-        startSeconds: 2.2,
-        durationSeconds: 0.5,
-        targetFrequencyHz: 880,
-      }),
-    ])
+    const canonicalReviewAudioToneSamples = await Promise.all(
+      canonicalSourceFixtureDefinitions.map((definition, index) => probeAudioTone(
+        canonicalReviewDownloadPath,
+        {
+          startSeconds: index + 0.2,
+          durationSeconds: 0.5,
+          targetFrequencyHz: definition.audioFrequencyHz,
+        },
+      )),
+    )
     canonicalReviewAudioToneSamples.forEach((sample, index) => {
       assertSourceAudioTone(sample, `Canonical private review source-bound audio segment ${index + 1}`)
     })
@@ -806,18 +824,14 @@ try {
         }>
       }>
     }, getLocalProjectHandoffStorageKey())
-    assert.equal(canonicalAcceptedHandoffs[0]?.sourceFileCount, 3)
+    assert.equal(canonicalAcceptedHandoffs[0]?.sourceFileCount, canonicalSourceCount)
     assert.deepEqual(
       canonicalAcceptedHandoffs[0]?.sourceMediaAssets?.map((asset) => asset.uploadedOrder),
-      [1, 2, 3],
+      canonicalSourceOrders,
     )
     assert.deepEqual(
       canonicalAcceptedHandoffs[0]?.sourceMediaAssets?.map((asset) => asset.fileName),
-      [
-        'browser-upload-source.mp4',
-        'browser-upload-source-b.mp4',
-        'browser-upload-source-c.mp4',
-      ],
+      canonicalSourceFixtureDefinitions.map((definition) => definition.fileName),
     )
     assertPrivateSourceStorageBucketsPreserved(
       canonicalAcceptedHandoffs[0]?.sourceMediaAssets,
@@ -849,10 +863,10 @@ try {
     assert.equal(acceptedJourney?.plan?.status, 'approved')
     assert.equal(acceptedJourney?.plan?.estimateStatus, 'approved')
     assert.ok((acceptedJourney?.plan?.approvedMaximumCredits ?? 0) > 0)
-    assert.equal(acceptedJourney?.plan?.workItemCount, 13)
-    assert.equal(acceptedJourney?.approval?.jobCount, 13)
-    assert.equal(acceptedJourney?.workGraph?.totalJobCount, 13)
-    assert.equal(acceptedJourney?.workGraph?.completedJobCount, 13)
+    assert.equal(acceptedJourney?.plan?.workItemCount, canonicalWorkItemAndJobCount)
+    assert.equal(acceptedJourney?.approval?.jobCount, canonicalWorkItemAndJobCount)
+    assert.equal(acceptedJourney?.workGraph?.totalJobCount, canonicalWorkItemAndJobCount)
+    assert.equal(acceptedJourney?.workGraph?.completedJobCount, canonicalWorkItemAndJobCount)
     assert.equal(acceptedJourney?.workGraph?.requiredBlockedJobCount, 0)
     assert.equal(acceptedJourney?.workGraph?.allRequiredJobsCompleted, true)
     assert.deepEqual(acceptedJourney?.permissions, {
@@ -880,16 +894,16 @@ try {
       status: 'canonical_private_review_accepted',
       checks: [
         'signed_in_project_and_named_edit_created',
-        'three_private_sources_uploaded_and_backend_probed',
+        'maximum_eight_private_sources_uploaded_and_backend_probed',
         'edit_preferences_and_edit_brief_compiled',
         'confirmed_frame_preserved_across_brief_platform_context',
         'brief_revision_invalidated_and_republished_plan_v2',
         'canonical_plan_and_4k_ceiling_estimate_approved_once',
         'immutable_private_execution_handoff_requested_separately',
         'server_derived_private_work_graph_completed',
-        'twelve_three_source_work_items_and_snapshot_validation_completed_as_thirteen_jobs_without_browser_execution_authority',
-        'three_source_bound_voice_tones_preserved_in_approved_order',
-        'private_4k_master_preserved_three_second_approved_sequence',
+        'maximum_source_work_items_and_snapshot_validation_completed_without_browser_execution_authority',
+        'eight_source_bound_voice_tones_preserved_in_approved_order',
+        'private_4k_master_preserved_eight_second_approved_sequence',
         'private_review_loaded_through_authenticated_no_store_bytes',
         'private_review_download_is_not_source_passthrough',
         'private_review_decision_persisted',
@@ -904,8 +918,7 @@ try {
       canonicalJobCount: acceptedJourney?.approval?.jobCount,
       canonicalVideoSrcScheme: canonicalVideoSrc.split(':')[0],
       authVerificationCount,
-      uploadedByteCount:
-        sourceBytes.byteLength + secondSourceBytes.byteLength + thirdSourceBytes.byteLength,
+      uploadedByteCount: canonicalSourceBytes.reduce((total, bytes) => total + bytes.byteLength, 0),
     }))
   } else if (approvalBlockedByCanonicalGate) {
     assert.match(

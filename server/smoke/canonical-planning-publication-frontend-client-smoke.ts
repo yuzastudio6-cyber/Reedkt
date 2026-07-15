@@ -756,21 +756,17 @@ const maximumBoundedSourceAssets = maximumBoundedSourceInput.clips.map((clip, in
 }))
 const maximumBoundedSourcePlan = createMockEditPlan(maximumBoundedSourceInput)
 const maximumTiming = maximumBoundedSourcePlan.masterTimingPlan!
-const maximumCaptionTemplate = maximumTiming.captionTimingItems[0]!
-maximumTiming.captionTimingItems = [{
-  ...maximumCaptionTemplate,
-  id: 'maximum-source-full-duration-caption',
-  captionText: 'Approved full-duration caption across the confirmed eight-source sequence',
-  timeRange: {
-    startSeconds: 0,
-    endSeconds: maximumTiming.timingBase.totalDurationSeconds,
-    durationSeconds: maximumTiming.timingBase.totalDurationSeconds,
-    startFrame: 0,
-    endFrame: maximumTiming.timingBase.totalFrames,
-    durationFrames: maximumTiming.timingBase.totalFrames,
-    fps: maximumTiming.timingBase.fps,
-  },
-}]
+assert.equal(maximumTiming.captionTimingItems.length, 7)
+assert.equal(maximumTiming.captionTimingItems[0]?.timeRange.startFrame, 0)
+assert.equal(
+  maximumTiming.captionTimingItems.at(-1)?.timeRange.endFrame,
+  maximumTiming.timingBase.totalFrames,
+)
+maximumTiming.captionTimingItems.forEach((caption, index) => {
+  const previous = maximumTiming.captionTimingItems[index - 1]
+  if (previous) assert.equal(caption.timeRange.startFrame, previous.timeRange.endFrame)
+  assert.ok(caption.captionText.length <= 120)
+})
 const maximumBoundedSourceDraft = buildCanonicalPlanningDraft({
   plan: maximumBoundedSourcePlan,
   plannerInput: maximumBoundedSourceInput,
@@ -795,8 +791,8 @@ const maximumFinalItem = maximumCanonicalPlan.workItems.find((item) =>
 const maximumFinalPayload = validateOfflineRemotionFinalCompositionPlanningPayload(
   asRecord(maximumFinalItem.executionInput.structuredPayload),
 )
-assert.equal(maximumFinalPayload.compositionProfileId, 'approved_source_sequence_caption_final_v1')
-if (maximumFinalPayload.compositionProfileId !== 'approved_source_sequence_caption_final_v1') {
+assert.equal(maximumFinalPayload.compositionProfileId, 'approved_source_sequence_caption_track_final_v1')
+if (maximumFinalPayload.compositionProfileId !== 'approved_source_sequence_caption_track_final_v1') {
   throw new Error('Eight-source publication selected the wrong Remotion composition profile.')
 }
 assert.equal(maximumFinalPayload.sourceSegments.length, 8)

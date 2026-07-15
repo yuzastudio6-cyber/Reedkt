@@ -346,8 +346,15 @@ function validateByRunnerFamily(
     return 'sharp'
   }
   if (toolId === 'ffmpeg') {
-    validateOfflineFfmpegPlanningPayload(structuredPayload)
-    requireBinding(workItem, { source: 1, cleanup: 1, dependencies: 0 })
+    const payload = validateOfflineFfmpegPlanningPayload(structuredPayload)
+    requireBinding(workItem, {
+      source: 1,
+      cleanup: 1,
+      dependencies: payload.recipeProfileId ===
+        'approved_source_color_match_delivery_matroska_v1'
+        ? 1
+        : 0,
+    })
     return 'media_ffmpeg'
   }
   if (toolId === 'ffprobe') {
@@ -374,7 +381,7 @@ function validateByRunnerFamily(
         : 0
       const colorSourceCount = 'sourceMediaPolicy' in payload &&
         payload.sourceMediaPolicy === 'approved_professional_color_intermediate_v1'
-        ? 1
+        ? sourceCount
         : 0
       requireBinding(workItem, {
         source: sourceCount,

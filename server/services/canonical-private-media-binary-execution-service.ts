@@ -11,6 +11,7 @@ import {
   validateOfflineFfprobeExecutionRequest,
   validateOfflineFfprobePlanningPayload,
   type OfflineFfmpegExecutionResult,
+  type OfflineFfmpegColorMatchDeliveryPlanningPayload,
   type OfflineFfprobeExecutionResult,
 } from '../tool-execution/media-binary-execution'
 import { validateOfflineRemotionFinalCompositionPlanningPayload } from '../tool-execution/remotion-render-execution'
@@ -53,6 +54,7 @@ import {
 } from './canonical-structured-json-artifact-storage'
 import { createCanonicalWorkerLeaseAuthorityService } from './canonical-worker-lease-authority-service'
 import { createEditPlanningAuthorityService } from './edit-planning-authority-service'
+import type { CanonicalApprovedExecutionAuthority } from './edit-planning-authority-service'
 import {
   createPrivateArtifactQaAuthorityService,
   type ServerInjectedArtifactQaAdapter,
@@ -118,12 +120,19 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
       const contentType = toolId === 'ffmpeg'
         ? ffmpegPlanningPayload?.recipeProfileId === 'approved_voice_delivery_wav_v1'
           ? 'audio/wav' as const
-          : ffmpegPlanningPayload?.recipeProfileId ===
-              'approved_source_color_delivery_matroska_v1'
+          : [
+              'approved_source_color_delivery_matroska_v1',
+              'approved_source_color_match_delivery_matroska_v1',
+            ].includes(String(ffmpegPlanningPayload?.recipeProfileId))
             ? 'video/x-matroska' as const
             : 'video/x-nut' as const
         : 'application/json' as const
       const dependencyFinalQa = toolId === 'ffprobe' && workItem?.workItemType === 'run_final_qa'
+      const referenceColorMatch = ffmpegPlanningPayload?.recipeProfileId ===
+        'approved_source_color_match_delivery_matroska_v1'
+      const referenceColorPlanningPayload = referenceColorMatch
+        ? ffmpegPlanningPayload as OfflineFfmpegColorMatchDeliveryPlanningPayload
+        : undefined
       if (
         expectedAsset.contentType !== contentType ||
         expectedAsset.assetRole === 'final' || expectedAsset.previewPlaceholderAllowed ||
@@ -136,7 +145,9 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
           workItem.dependencyKeys.length !== 1
         )) ||
         (!dependencyFinalQa && (
-          workItem.sourceSequenceItemIds.length !== 1 || workItem.dependencyKeys.length !== 0
+          workItem.sourceSequenceItemIds.length !== 1 ||
+          workItem.sourceCleanupDecisionIds.length !== 1 ||
+          workItem.dependencyKeys.length !== (referenceColorMatch ? 1 : 0)
         ))
       ) throw denied('Media binary work-item or exact non-final output lineage is invalid.')
       const ffprobePlanningPayload = toolId === 'ffprobe'
@@ -173,6 +184,7 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
       })
       const executionAttemptId = begun.executionFence.executionAttemptId
       let dependencyRead: CanonicalPrivateDependencyArtifactReadResult | undefined
+      let referenceDependencyRead: CanonicalPrivateDependencyArtifactReadResult | undefined
       let sourceRead: Awaited<ReturnType<ReturnType<
         typeof createCanonicalPrivateSourceObjectReadService
       >['readExactApprovedSource']>> | undefined
@@ -208,6 +220,28 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
           approvedWorkItem: workItem, approvedSourceManifest: authority.sourceAssetManifest,
           leaseId: injected.leaseId, executionAttemptId, dispatchGrantId: body.grantId,
         })
+        if (referenceColorMatch) {
+          if (
+            sourceRead.sourceSequenceItemId ===
+              referenceColorPlanningPayload!.referenceSourceSequenceItemId
+          ) throw denied('Shot-match target and reference source identities must be distinct.')
+          referenceDependencyRead = await createCanonicalPrivateDependencyArtifactReadService(context)
+            .readSingleSelectedArtifact({
+              workspaceId: body.workspaceId, projectId: body.projectId,
+              editSessionId: body.editSessionId, snapshotId: authority.snapshot.snapshotId,
+              currentJobId: body.jobId, currentApprovedWorkItemId: workItem.id,
+              leaseId: injected.leaseId, leaseCredential: injected.leaseCredential,
+              executionAttemptId, dispatchGrantId: body.grantId,
+              dependencyAuthority: begun.lease.dependencyAuthority,
+              allowedContentTypes: ['video/x-matroska'], maximumBytes: 16 * 1024 * 1024,
+            })
+          assertReferenceColorDependency({
+            referenceDependencyRead,
+            planningPayload: referenceColorPlanningPayload!,
+            targetWorkItem: workItem,
+            authority,
+          })
+        }
       }
       const inputBytes = dependencyRead?.bytes ?? sourceRead!.bytes
       const inputByteLength = dependencyRead?.byteLength ?? sourceRead!.byteLength
@@ -218,11 +252,19 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
         sourceSha256: inputSha256,
         sourceBytesBase64: inputBytes.toString('base64'),
       }
+      const referencePayload = referenceDependencyRead
+        ? {
+            referenceMimeType: 'video/x-matroska' as const,
+            referenceSourceByteLength: referenceDependencyRead.byteLength,
+            referenceSourceSha256: referenceDependencyRead.sha256,
+            referenceSourceBytesBase64: referenceDependencyRead.bytes.toString('base64'),
+          }
+        : {}
       const executionResult = toolId === 'ffmpeg'
         ? await runtime.execute(validateOfflineFfmpegExecutionRequest({
             schemaVersion: OFFLINE_MEDIA_BINARY_PROTOCOL,
             toolId, operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
-            payload: { ...planningPayload, ...sourcePayload },
+            payload: { ...planningPayload, ...sourcePayload, ...referencePayload },
           }))
         : await runtime.execute(validateOfflineFfprobeExecutionRequest({
             schemaVersion: OFFLINE_MEDIA_BINARY_PROTOCOL,
@@ -234,21 +276,37 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
         executionResult.evidence.toolId !== toolId ||
         executionResult.evidence.operationId !== binding.operationId ||
         executionResult.evidence.sourceSha256 !== inputSha256 ||
+        (referenceDependencyRead && (
+          executionResult.evidence.toolId !== 'ffmpeg' ||
+          executionResult.evidence.referenceSourceSha256 !== referenceDependencyRead.sha256
+        )) ||
         executionResult.evidence.containerExitCode !== 0 || executionResult.evidence.oomKilled ||
         executionResult.readiness.productReady || normalized.contentType !== contentType
       ) throw denied('Media binary result failed exact execution verification.')
       const finalArtifactQa = dependencyFinalQa
         ? normalizeCanonicalPrivateFinalMediaQa(normalized.document!, finalMediaExpectation!)
         : null
-      const inputReadEvidenceHash = dependencyRead?.dependencyReadEvidenceHash ?? sourceRead!.sourceReadEvidenceHash
+      const inputReadEvidenceHash = referenceDependencyRead
+        ? sha256ArtifactQaValue({
+            sourceReadEvidenceHash: sourceRead!.sourceReadEvidenceHash,
+            referenceDependencyReadEvidenceHash:
+              referenceDependencyRead.dependencyReadEvidenceHash,
+          })
+        : dependencyRead?.dependencyReadEvidenceHash ?? sourceRead!.sourceReadEvidenceHash
 
       const privateObjectIdentityHash = sha256ArtifactQaValue({
         domain: 'canonical_private_media_binary_artifact_v1',
         workspaceId: body.workspaceId, snapshotId: authority.snapshot.snapshotId,
         jobId: body.jobId, expectedAssetId: expectedAsset.id,
         dispatchGrantId: body.grantId, executionAttemptId,
-        inputKind: dependencyFinalQa ? 'qa_passed_dependency_artifact' : 'approved_source_object',
+        inputKind: dependencyFinalQa
+          ? 'qa_passed_dependency_artifact'
+          : referenceDependencyRead
+            ? 'approved_source_and_reference_artifact'
+            : 'approved_source_object',
         inputSha256,
+        referenceInputSha256: referenceDependencyRead?.sha256 ?? null,
+        inputReadEvidenceHash,
         contentSha256: normalized.sha256,
       })
       if (contentType === 'application/json') {
@@ -337,6 +395,25 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
           inputDependencyJobId: dependencyRead!.dependencyJobId,
           inputArtifactSha256: inputSha256, inputArtifactByteLength: inputByteLength,
           renderExecuted: false as const, finalExportExecuted: false as const,
+        } : referenceDependencyRead ? {
+          canonicalToolId: toolId, operationId: binding.operationId,
+          actualBinaryOperationCompleted: true as const, providerCallMade: false as const,
+          inputKind: 'approved_source_and_reference_artifact' as const,
+          sourceObjectRead: true as const, dependencyArtifactRead: true as const,
+          inputReadEvidenceHash,
+          inputArtifactSha256: inputSha256, inputArtifactByteLength: inputByteLength,
+          sourceSequenceItemId: sourceRead!.sourceSequenceItemId,
+          sourceBindingHash: sourceRead!.bindingHash,
+          referenceSourceSequenceItemId:
+            referenceColorPlanningPayload!.referenceSourceSequenceItemId,
+          referenceOutputKey: referenceColorPlanningPayload!.referenceOutputKey,
+          referenceInputArtifactId: referenceDependencyRead.artifactId,
+          referenceInputDependencyJobId: referenceDependencyRead.dependencyJobId,
+          referenceInputArtifactSha256: referenceDependencyRead.sha256,
+          referenceInputArtifactByteLength: referenceDependencyRead.byteLength,
+          referenceInputReadEvidenceHash:
+            referenceDependencyRead.dependencyReadEvidenceHash,
+          renderExecuted: false as const, finalExportExecuted: false as const,
         } : {
           canonicalToolId: toolId, operationId: binding.operationId,
           actualBinaryOperationCompleted: true as const, providerCallMade: false as const,
@@ -418,6 +495,50 @@ interface MediaAdapterInput {
   normalized: NormalizedMediaBinaryResult
   inputReadEvidenceHash: string
   finalArtifactQa: CanonicalPrivateFinalMediaQa | null
+}
+
+function assertReferenceColorDependency(input: {
+  referenceDependencyRead: CanonicalPrivateDependencyArtifactReadResult
+  planningPayload: OfflineFfmpegColorMatchDeliveryPlanningPayload
+  targetWorkItem: CanonicalApprovedExecutionAuthority['workItems'][number]
+  authority: CanonicalApprovedExecutionAuthority
+}): void {
+  const asset = input.authority.assetManifest.entries.find((candidate) =>
+    candidate.id === input.referenceDependencyRead.expectedAssetId)
+  const workItem = input.authority.workItems.find((candidate) =>
+    candidate.id === asset?.approvedWorkItemId)
+  const expectedOutput = workItem?.expectedOutputs[0]
+  if (
+    !asset || !workItem || !expectedOutput ||
+    input.referenceDependencyRead.contentType !== 'video/x-matroska' ||
+    asset.contentType !== 'video/x-matroska' || asset.assetRole !== 'processed' ||
+    !asset.required || asset.previewPlaceholderAllowed ||
+    asset.outputKey !== input.planningPayload.referenceOutputKey ||
+    expectedOutput.outputKey !== asset.outputKey ||
+    expectedOutput.contentType !== 'video/x-matroska' ||
+    workItem.expectedOutputs.length !== 1 ||
+    workItem.workerClass !== 'color_processing_worker' || workItem.workItemType !== 'custom' ||
+    workItem.executionInput.operation !== 'process_approved_source_professional_color_delivery' ||
+    stableArtifactQaStringify(workItem.executionInput.approvedToolOperationIds) !==
+      stableArtifactQaStringify([OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg]) ||
+    workItem.approvedToolIds.length !== 1 || workItem.approvedToolIds[0] !== 'ffmpeg' ||
+    workItem.sourceSequenceItemIds.length !== 1 ||
+    workItem.sourceSequenceItemIds[0] !== input.planningPayload.referenceSourceSequenceItemId ||
+    workItem.sourceCleanupDecisionIds.length !== 1 || workItem.dependencyKeys.length !== 0 ||
+    stableArtifactQaStringify(input.targetWorkItem.dependencyKeys) !==
+      stableArtifactQaStringify([workItem.workItemKey])
+  ) throw denied('Shot matching requires the exact QA-passed reference color intermediate.')
+  const referencePayload = validateOfflineFfmpegPlanningPayload(
+    workItem.executionInput.structuredPayload,
+  )
+  if (
+    referencePayload.recipeProfileId !== 'approved_source_color_delivery_matroska_v1' ||
+    referencePayload.frameRate !== input.planningPayload.frameRate ||
+    referencePayload.colorGradeStyle !== input.planningPayload.colorGradeStyle ||
+    referencePayload.intensity !== input.planningPayload.intensity ||
+    referencePayload.trimEndFrameExclusive - referencePayload.trimStartFrame !==
+      input.planningPayload.referenceDurationFrames
+  ) throw denied('Shot-match reference processing diverges from the approved target color policy.')
 }
 
 interface NormalizedMediaBinaryResult {

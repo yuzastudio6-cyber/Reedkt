@@ -40,6 +40,7 @@ export type OfflineFfmpegColorOperationKind =
   | 'look_transform'
   | 'qa_histogram_check'
   | 'saturation'
+  | 'shot_matching'
   | 'white_balance'
 
 export interface OfflineFfmpegColorDeliveryPlanningPayload extends OfflineFfmpegCommonPlanningPayload {
@@ -55,10 +56,28 @@ export interface OfflineFfmpegColorDeliveryPlanningPayload extends OfflineFfmpeg
   preserveAudio: false
 }
 
+export interface OfflineFfmpegColorMatchDeliveryPlanningPayload extends OfflineFfmpegCommonPlanningPayload {
+  recipeProfileId: 'approved_source_color_match_delivery_matroska_v1'
+  colorGradeStyle: OfflineFfmpegColorGradeStyle
+  intensity: OfflineFfmpegColorIntensity
+  approvedColorOperationIds: string[]
+  approvedColorOperationKinds: OfflineFfmpegColorOperationKind[]
+  analysisProfileId: 'approved_three_frame_rgb_stats_v1'
+  correctionProfileId: 'bounded_reference_matched_professional_source_color_v1'
+  shotMatchProfileId: 'approved_reference_three_frame_rgb_match_v1'
+  referenceSourceSequenceItemId: string
+  referenceDurationFrames: number
+  referenceOutputKey: string
+  outputColorSpace: 'bt709'
+  outputPixelFormat: 'yuv420p'
+  preserveAudio: false
+}
+
 export type OfflineFfmpegPlanningPayload =
   | OfflineFfmpegTrimPlanningPayload
   | OfflineFfmpegVoiceDeliveryPlanningPayload
   | OfflineFfmpegColorDeliveryPlanningPayload
+  | OfflineFfmpegColorMatchDeliveryPlanningPayload
 
 export interface OfflineFfprobePlanningPayload {
   inspectionProfileId: 'source_intake_v1' | 'pre_render_v1' | 'final_export_v1'
@@ -79,16 +98,30 @@ export interface OfflineFfprobeExecutionRequest {
   }
 }
 
-export interface OfflineFfmpegExecutionRequest {
+type OfflineFfmpegSourceCommitment = {
+  mimeType: 'video/mp4'
+  sourceByteLength: number
+  sourceSha256: string
+  sourceBytesBase64: string
+}
+
+type OfflineFfmpegReferenceCommitment = {
+  referenceMimeType: 'video/x-matroska'
+  referenceSourceByteLength: number
+  referenceSourceSha256: string
+  referenceSourceBytesBase64: string
+}
+
+export type OfflineFfmpegExecutionRequest = {
   schemaVersion: typeof OFFLINE_MEDIA_BINARY_PROTOCOL
   toolId: 'ffmpeg'
   operationId: typeof OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg
-  payload: OfflineFfmpegPlanningPayload & {
-    mimeType: 'video/mp4'
-    sourceByteLength: number
-    sourceSha256: string
-    sourceBytesBase64: string
-  }
+} & {
+  payload:
+    | (Exclude<OfflineFfmpegPlanningPayload, OfflineFfmpegColorMatchDeliveryPlanningPayload> &
+        OfflineFfmpegSourceCommitment)
+    | (OfflineFfmpegColorMatchDeliveryPlanningPayload & OfflineFfmpegSourceCommitment &
+        OfflineFfmpegReferenceCommitment)
 }
 
 export function validateOfflineFfmpegPlanningPayload(value: unknown): OfflineFfmpegPlanningPayload {
@@ -97,6 +130,8 @@ export function validateOfflineFfmpegPlanningPayload(value: unknown): OfflineFfm
     : undefined
   const voiceDelivery = candidate?.recipeProfileId === 'approved_voice_delivery_wav_v1'
   const colorDelivery = candidate?.recipeProfileId === 'approved_source_color_delivery_matroska_v1'
+  const colorMatchDelivery = candidate?.recipeProfileId ===
+    'approved_source_color_match_delivery_matroska_v1'
   const payload = exactObject(value, [
     'recipeProfileId', 'timestampPolicy', 'overwriteExistingArtifact', 'allowUnreviewedCodec',
     'trimStartFrame', 'trimEndFrameExclusive', 'frameRate',
@@ -106,10 +141,16 @@ export function validateOfflineFfmpegPlanningPayload(value: unknown): OfflineFfm
           'loudnessRangeLufs', 'highpassHz', 'compressorPreset',
         ]
       : []),
-    ...(colorDelivery
+    ...(colorDelivery || colorMatchDelivery
       ? [
           'colorGradeStyle', 'intensity', 'approvedColorOperationIds',
           'approvedColorOperationKinds', 'analysisProfileId', 'correctionProfileId',
+          ...(colorMatchDelivery
+            ? [
+                'shotMatchProfileId', 'referenceSourceSequenceItemId',
+                'referenceDurationFrames', 'referenceOutputKey',
+              ]
+            : []),
           'outputColorSpace', 'outputPixelFormat', 'preserveAudio',
         ]
       : []),
@@ -119,6 +160,7 @@ export function validateOfflineFfmpegPlanningPayload(value: unknown): OfflineFfm
       'approved_trim_transcode_v1',
       'approved_voice_delivery_wav_v1',
       'approved_source_color_delivery_matroska_v1',
+      'approved_source_color_match_delivery_matroska_v1',
     ].includes(
       String(payload.recipeProfileId),
     ) ||
@@ -138,19 +180,48 @@ export function validateOfflineFfmpegPlanningPayload(value: unknown): OfflineFfm
     trimEndFrameExclusive: Number(payload.trimEndFrameExclusive),
     frameRate: Number(payload.frameRate) as OfflineFfmpegPlanningPayload['frameRate'],
   } as const
-  if (colorDelivery) {
+  if (colorDelivery || colorMatchDelivery) {
     const colorGradeStyle = colorGradeStyleValue(payload.colorGradeStyle)
     const intensity = colorIntensityValue(payload.intensity)
     const approvedColorOperationIds = boundedSafeKeys(payload.approvedColorOperationIds, 32)
     const approvedColorOperationKinds = colorOperationKinds(payload.approvedColorOperationKinds)
-    const expectedKinds = expectedColorOperationKinds(colorGradeStyle)
+    const expectedKinds = expectedColorOperationKinds(colorGradeStyle, colorMatchDelivery)
     if (
       payload.analysisProfileId !== 'approved_three_frame_rgb_stats_v1' ||
-      payload.correctionProfileId !== 'bounded_professional_source_color_v1' ||
+      payload.correctionProfileId !== (colorMatchDelivery
+        ? 'bounded_reference_matched_professional_source_color_v1'
+        : 'bounded_professional_source_color_v1') ||
       payload.outputColorSpace !== 'bt709' || payload.outputPixelFormat !== 'yuv420p' ||
       payload.preserveAudio !== false ||
       approvedColorOperationKinds.join('|') !== expectedKinds.join('|')
     ) throw invalid()
+    if (colorMatchDelivery) {
+      if (
+        payload.shotMatchProfileId !== 'approved_reference_three_frame_rgb_match_v1' ||
+        !safeKey(payload.referenceSourceSequenceItemId) ||
+        !Number.isSafeInteger(payload.referenceDurationFrames) ||
+        Number(payload.referenceDurationFrames) < 1 ||
+        Number(payload.referenceDurationFrames) > 100_000_000 ||
+        !safeKey(payload.referenceOutputKey)
+      ) throw invalid()
+      return {
+        recipeProfileId: 'approved_source_color_match_delivery_matroska_v1',
+        ...common,
+        colorGradeStyle,
+        intensity,
+        approvedColorOperationIds,
+        approvedColorOperationKinds,
+        analysisProfileId: 'approved_three_frame_rgb_stats_v1',
+        correctionProfileId: 'bounded_reference_matched_professional_source_color_v1',
+        shotMatchProfileId: 'approved_reference_three_frame_rgb_match_v1',
+        referenceSourceSequenceItemId: String(payload.referenceSourceSequenceItemId),
+        referenceDurationFrames: Number(payload.referenceDurationFrames),
+        referenceOutputKey: String(payload.referenceOutputKey),
+        outputColorSpace: 'bt709',
+        outputPixelFormat: 'yuv420p',
+        preserveAudio: false,
+      }
+    }
     return {
       recipeProfileId: 'approved_source_color_delivery_matroska_v1',
       ...common,
@@ -257,13 +328,17 @@ export function validateOfflineFfmpegExecutionRequest(value: unknown): OfflineFf
     request.schemaVersion !== OFFLINE_MEDIA_BINARY_PROTOCOL || request.toolId !== 'ffmpeg' ||
     request.operationId !== OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg
   ) throw invalid()
+  const requestPayload = request.payload && typeof request.payload === 'object' &&
+    !Array.isArray(request.payload)
+    ? request.payload as Record<string, unknown>
+    : undefined
+  const colorMatchDelivery = requestPayload?.recipeProfileId ===
+    'approved_source_color_match_delivery_matroska_v1'
   const payload = exactObject(request.payload, [
     'recipeProfileId', 'timestampPolicy', 'overwriteExistingArtifact', 'allowUnreviewedCodec',
     'trimStartFrame', 'trimEndFrameExclusive', 'frameRate',
     ...(
-      request.payload && typeof request.payload === 'object' &&
-      !Array.isArray(request.payload) &&
-      (request.payload as Record<string, unknown>).recipeProfileId === 'approved_voice_delivery_wav_v1'
+      requestPayload?.recipeProfileId === 'approved_voice_delivery_wav_v1'
         ? [
             'sampleRate', 'channelMode', 'targetLufs', 'truePeakDbtp',
             'loudnessRangeLufs', 'highpassHz', 'compressorPreset',
@@ -271,18 +346,28 @@ export function validateOfflineFfmpegExecutionRequest(value: unknown): OfflineFf
         : []
     ),
     ...(
-      request.payload && typeof request.payload === 'object' &&
-      !Array.isArray(request.payload) &&
-      (request.payload as Record<string, unknown>).recipeProfileId ===
-        'approved_source_color_delivery_matroska_v1'
+      requestPayload?.recipeProfileId === 'approved_source_color_delivery_matroska_v1' ||
+      colorMatchDelivery
         ? [
             'colorGradeStyle', 'intensity', 'approvedColorOperationIds',
             'approvedColorOperationKinds', 'analysisProfileId', 'correctionProfileId',
+            ...(colorMatchDelivery
+              ? [
+                  'shotMatchProfileId', 'referenceSourceSequenceItemId',
+                  'referenceDurationFrames', 'referenceOutputKey',
+                ]
+              : []),
             'outputColorSpace', 'outputPixelFormat', 'preserveAudio',
           ]
         : []
     ),
     'mimeType', 'sourceByteLength', 'sourceSha256', 'sourceBytesBase64',
+    ...(colorMatchDelivery
+      ? [
+          'referenceMimeType', 'referenceSourceByteLength',
+          'referenceSourceSha256', 'referenceSourceBytesBase64',
+        ]
+      : []),
   ])
   const planning = validateOfflineFfmpegPlanningPayload({
     recipeProfileId: payload.recipeProfileId,
@@ -303,7 +388,9 @@ export function validateOfflineFfmpegExecutionRequest(value: unknown): OfflineFf
           compressorPreset: payload.compressorPreset,
         }
       : {}),
-    ...(payload.recipeProfileId === 'approved_source_color_delivery_matroska_v1'
+    ...(
+      payload.recipeProfileId === 'approved_source_color_delivery_matroska_v1' ||
+      payload.recipeProfileId === 'approved_source_color_match_delivery_matroska_v1'
       ? {
           colorGradeStyle: payload.colorGradeStyle,
           intensity: payload.intensity,
@@ -311,6 +398,14 @@ export function validateOfflineFfmpegExecutionRequest(value: unknown): OfflineFf
           approvedColorOperationKinds: payload.approvedColorOperationKinds,
           analysisProfileId: payload.analysisProfileId,
           correctionProfileId: payload.correctionProfileId,
+          ...(payload.recipeProfileId === 'approved_source_color_match_delivery_matroska_v1'
+            ? {
+                shotMatchProfileId: payload.shotMatchProfileId,
+                referenceSourceSequenceItemId: payload.referenceSourceSequenceItemId,
+                referenceDurationFrames: payload.referenceDurationFrames,
+                referenceOutputKey: payload.referenceOutputKey,
+              }
+            : {}),
           outputColorSpace: payload.outputColorSpace,
           outputPixelFormat: payload.outputPixelFormat,
           preserveAudio: payload.preserveAudio,
@@ -318,11 +413,45 @@ export function validateOfflineFfmpegExecutionRequest(value: unknown): OfflineFf
       : {}),
   })
   const source = validateSource(payload)
+  if (planning.recipeProfileId === 'approved_source_color_match_delivery_matroska_v1') {
+    const reference = validateReferenceSource(payload)
+    return {
+      schemaVersion: OFFLINE_MEDIA_BINARY_PROTOCOL,
+      toolId: 'ffmpeg',
+      operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
+      payload: { ...planning, ...source, ...reference },
+    }
+  }
   return {
     schemaVersion: OFFLINE_MEDIA_BINARY_PROTOCOL,
     toolId: 'ffmpeg',
     operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
     payload: { ...planning, ...source },
+  }
+}
+
+function validateReferenceSource(payload: Record<string, unknown>) {
+  if (
+    payload.referenceMimeType !== 'video/x-matroska' ||
+    !Number.isSafeInteger(payload.referenceSourceByteLength) ||
+    Number(payload.referenceSourceByteLength) < 64 ||
+    Number(payload.referenceSourceByteLength) > 16 * 1024 * 1024 ||
+    typeof payload.referenceSourceSha256 !== 'string' ||
+    !/^[a-f0-9]{64}$/.test(payload.referenceSourceSha256) ||
+    typeof payload.referenceSourceBytesBase64 !== 'string'
+  ) throw invalid()
+  const bytes = Buffer.from(payload.referenceSourceBytesBase64, 'base64')
+  if (
+    bytes.byteLength !== payload.referenceSourceByteLength ||
+    bytes.toString('base64') !== payload.referenceSourceBytesBase64 ||
+    createHash('sha256').update(bytes).digest('hex') !== payload.referenceSourceSha256 ||
+    bytes[0] !== 0x1a || bytes[1] !== 0x45 || bytes[2] !== 0xdf || bytes[3] !== 0xa3
+  ) throw invalid()
+  return {
+    referenceMimeType: 'video/x-matroska' as const,
+    referenceSourceByteLength: bytes.byteLength,
+    referenceSourceSha256: payload.referenceSourceSha256,
+    referenceSourceBytesBase64: payload.referenceSourceBytesBase64,
   }
 }
 
@@ -361,13 +490,15 @@ const COLOR_OPERATION_KINDS: readonly OfflineFfmpegColorOperationKind[] = [
   'look_transform',
   'qa_histogram_check',
   'saturation',
+  'shot_matching',
   'white_balance',
 ]
 
 function expectedColorOperationKinds(
   style: OfflineFfmpegColorGradeStyle,
+  shotMatching = false,
 ): OfflineFfmpegColorOperationKind[] {
-  return style === 'premium_clean'
+  const kinds: OfflineFfmpegColorOperationKind[] = style === 'premium_clean'
     ? [
         'clarity',
         'contrast_curve',
@@ -385,6 +516,15 @@ function expectedColorOperationKinds(
         'saturation',
         'white_balance',
       ]
+  return shotMatching
+    ? [...kinds, 'shot_matching' as const].sort() as OfflineFfmpegColorOperationKind[]
+    : kinds
+}
+
+function safeKey(value: unknown): value is string {
+  return typeof value === 'string' && value.length <= 200 &&
+    /^[A-Za-z0-9][A-Za-z0-9._:-]*$/.test(value) && !value.includes('..') &&
+    value === value.trim()
 }
 
 function colorGradeStyleValue(value: unknown): OfflineFfmpegColorGradeStyle {

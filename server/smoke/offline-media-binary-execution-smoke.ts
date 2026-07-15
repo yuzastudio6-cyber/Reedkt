@@ -31,6 +31,26 @@ const sourceAuthority = {
   sourceBytesBase64: sourceBytes.toString('base64'),
 }
 
+const matchFixturePath = join('/tmp', `reeditpro-offline-ffmpeg-match-${process.pid}.mp4`)
+const generatedMatch = spawnSync('ffmpeg', [
+  '-hide_banner', '-loglevel', 'error',
+  '-f', 'lavfi', '-i', 'color=c=0x0010F0:s=320x180:r=24:d=2',
+  '-f', 'lavfi', '-i', 'sine=frequency=520:sample_rate=48000:duration=2',
+  '-map', '0:v:0', '-map', '1:a:0', '-c:v', 'libx264', '-pix_fmt', 'yuv420p',
+  '-c:a', 'aac', '-b:a', '96k', '-movflags', '+faststart', '-shortest',
+  '-threads', '1', '-y', matchFixturePath,
+], { encoding: 'utf8' })
+assert.equal(generatedMatch.status, 0, generatedMatch.stderr)
+const matchSourceBytes = await readFile(matchFixturePath)
+await rm(matchFixturePath, { force: true })
+const matchSourceAuthority = {
+  mimeType: 'video/mp4' as const,
+  sourceByteLength: matchSourceBytes.byteLength,
+  sourceSha256: createHash('sha256').update(matchSourceBytes).digest('hex'),
+  sourceBytesBase64: matchSourceBytes.toString('base64'),
+}
+assert.notEqual(matchSourceAuthority.sourceSha256, sourceAuthority.sourceSha256)
+
 const runtime = await activatePrivateOfflineMediaBinaryRuntime()
 const request = {
   schemaVersion: OFFLINE_MEDIA_BINARY_PROTOCOL,
@@ -204,6 +224,61 @@ assert.notEqual(colorDeliveryResult.resultArtifact.sha256, sourceAuthority.sourc
 const colorDeliveryReplay = await runtime.execute(colorDeliveryRequest)
 assert.equal(colorDeliveryReplay.resultArtifact.sha256, colorDeliveryResult.resultArtifact.sha256)
 
+const colorMatchRequest = {
+  schemaVersion: OFFLINE_MEDIA_BINARY_PROTOCOL,
+  toolId: 'ffmpeg' as const,
+  operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
+  payload: {
+    recipeProfileId: 'approved_source_color_match_delivery_matroska_v1' as const,
+    timestampPolicy: 'normalize_from_zero' as const,
+    overwriteExistingArtifact: false as const,
+    allowUnreviewedCodec: false as const,
+    trimStartFrame: 0,
+    trimEndFrameExclusive: 48,
+    frameRate: 24 as const,
+    colorGradeStyle: 'premium_clean' as const,
+    intensity: 'balanced' as const,
+    approvedColorOperationIds: [
+      ...colorDeliveryRequest.payload.approvedColorOperationIds,
+      'color-fixture-shot-matching',
+    ].sort(),
+    approvedColorOperationKinds: [
+      ...colorDeliveryRequest.payload.approvedColorOperationKinds,
+      'shot_matching' as const,
+    ].sort(),
+    analysisProfileId: 'approved_three_frame_rgb_stats_v1' as const,
+    correctionProfileId: 'bounded_reference_matched_professional_source_color_v1' as const,
+    shotMatchProfileId: 'approved_reference_three_frame_rgb_match_v1' as const,
+    referenceSourceSequenceItemId: 'fixture-reference-source',
+    referenceDurationFrames: 48,
+    referenceOutputKey: 'fixture-reference-color-mkv',
+    outputColorSpace: 'bt709' as const,
+    outputPixelFormat: 'yuv420p' as const,
+    preserveAudio: false as const,
+    ...matchSourceAuthority,
+    referenceMimeType: 'video/x-matroska' as const,
+    referenceSourceByteLength: colorDeliveryResult.resultArtifact.byteLength,
+    referenceSourceSha256: colorDeliveryResult.resultArtifact.sha256,
+    referenceSourceBytesBase64: colorDeliveryResult.resultArtifact.bytes.toString('base64'),
+  },
+}
+const colorMatchResult = await runtime.execute(colorMatchRequest)
+const colorMatchEvidence = colorMatchResult.evidence.semanticEvidence
+assert.equal(colorMatchResult.resultArtifact.mimeType, 'video/x-matroska')
+assert.equal(colorMatchResult.evidence.referenceSourceSha256,
+  colorDeliveryResult.resultArtifact.sha256)
+assert.equal(colorMatchEvidence.referenceBoundShotMatchingApplied, true)
+assert.equal(colorMatchEvidence.referenceSourceSequenceItemId, 'fixture-reference-source')
+assert.equal(colorMatchEvidence.referenceOutputKey, 'fixture-reference-color-mkv')
+assert.equal(colorMatchEvidence.referencePixelAnalysisExecuted, true)
+assert.equal(
+  (colorMatchEvidence.referenceMatchQa as { passed: boolean }).passed,
+  true,
+)
+assert.notEqual(colorMatchResult.resultArtifact.sha256, matchSourceAuthority.sourceSha256)
+const colorMatchReplay = await runtime.execute(colorMatchRequest)
+assert.equal(colorMatchReplay.resultArtifact.sha256, colorMatchResult.resultArtifact.sha256)
+
 const authority = await readPersistedOfflineMediaBinaryRuntimeAuthority()
 assert(authority)
 assert.equal(authority.readiness.privateInternalExecutionReady, true)
@@ -222,6 +297,13 @@ assert.equal(replay.resultJson.sha256, result.resultJson.sha256)
 await assertRejects(() => runtime.execute({
   ...request,
   payload: { ...request.payload, sourceSha256: 'f'.repeat(64) },
+}))
+await assertRejects(() => runtime.execute({
+  ...colorMatchRequest,
+  payload: {
+    ...colorMatchRequest.payload,
+    referenceSourceSha256: 'f'.repeat(64),
+  },
 }))
 await assertRejects(() => runtime.execute({
   ...ffmpegRequest,
@@ -274,6 +356,10 @@ console.log(JSON.stringify({
     'color_output_reprobed_for_vp9_matroska_yuv420p_bt709_frame_count_and_rate',
     'color_histogram_and_clipping_qa_passed',
     'color_delivery_deterministic_reexecution_result',
+    'actual_reference_artifact_bound_shot_match_delivery',
+    'reference_output_pixel_analysis_and_objective_match_qa_passed',
+    'shot_match_target_and_reference_hash_tamper_rejected',
+    'shot_match_delivery_deterministic_reexecution_result',
     'voice_highpass_compression_loudness_and_true_peak_chain',
     'voice_delivery_output_reprobed_for_pcm_rate_channels_and_duration',
     'ffmpeg_output_reprobed_for_codec_container_frame_count_and_rate',

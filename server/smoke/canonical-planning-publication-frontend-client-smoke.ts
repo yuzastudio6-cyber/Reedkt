@@ -218,46 +218,79 @@ assert.deepEqual(
   'Short captions must report readability risk without expanding beyond the final timeline.',
 )
 assert.equal(realisticRichMultiSourcePlan.timingValidationPlan?.approvalBlocked, false)
-assert.equal(realisticRichMultiSourceDraft.ok, true, 'A normal rich multi-source plan should preserve its handoff context.')
-assert.equal(
-  realisticRichMultiSourceDraft.ok && realisticRichMultiSourceDraft.draft.publication,
-  undefined,
-  'A rich multi-source editor plan must not be silently flattened into the bounded sequence composition.',
+if (!realisticRichMultiSourceDraft.ok || !realisticRichMultiSourceDraft.draft.publication) {
+  throw new Error(
+    `Normal two-source source-only planning did not compile: ${
+      realisticRichMultiSourceDraft.ok
+        ? realisticRichMultiSourceDraft.draft.publicationBlockers.join(' | ')
+        : realisticRichMultiSourceDraft.errors.join(' | ')
+    }`,
+  )
+}
+assert.equal(realisticRichMultiSourceDraft.ok, true,
+  'A normal rich multi-source plan should preserve its handoff context.')
+assert.deepEqual(realisticRichMultiSourceDraft.draft.publicationBlockers, [])
+const realisticCanonicalPlan = realisticRichMultiSourceDraft.draft.publication.canonicalPlan
+const realisticColorItems = realisticCanonicalPlan.workItems.filter((item) =>
+  item.workerClass === 'color_processing_worker')
+assert.equal(realisticColorItems.length, 2)
+assert.deepEqual(realisticColorItems.map((item) => ({
+  key: item.workItemKey,
+  sourceIds: item.sourceSequenceItemIds,
+  dependencies: item.dependencyKeys,
+  outputKey: item.expectedOutputs[0]?.outputKey,
+})), [{
+  key: 'color-delivery-1',
+  sourceIds: ['canonical-save-source-1'],
+  dependencies: [],
+  outputKey: 'color-delivery-1-mkv',
+}, {
+  key: 'color-delivery-2',
+  sourceIds: ['canonical-save-source-2'],
+  dependencies: ['color-delivery-1'],
+  outputKey: 'color-delivery-2-mkv',
+}])
+const realisticReferenceColorPayload = validateOfflineFfmpegPlanningPayload(
+  asRecord(realisticColorItems[0]!.executionInput.structuredPayload),
 )
-const realisticRichBlockers = realisticRichMultiSourceDraft.ok
-  ? realisticRichMultiSourceDraft.draft.publicationBlockers
-  : []
-assert.equal(
-  realisticRichBlockers.some((blocker) =>
-    blocker.includes('contiguous, duration-preserving') ||
-    blocker.includes('one-to-one') ||
-    blocker.includes('requires one full-duration caption')),
-  false,
-  'Source-truth planning must remove only the duration, segment, and caption-range blockers it resolves.',
+const realisticMatchedColorPayload = validateOfflineFfmpegPlanningPayload(
+  asRecord(realisticColorItems[1]!.executionInput.structuredPayload),
 )
-for (const expectedBlocker of [
-  'The planned edit includes operations outside the current source-and-caption private review runner.',
-  'The planned color work needs exact canonical processing work items.',
-]) assert.ok(realisticRichBlockers.includes(expectedBlocker), `Missing rich-operation blocker: ${expectedBlocker}`)
-for (const removedBlocker of [
-  'Music ducking needs its own canonical audio work items.',
-  'Sound-effect cues need their own canonical execution work items.',
-  'The planned audio work exceeds the exact source-bound voice delivery recipe and needs additional canonical work items.',
-]) assert.equal(
-  realisticRichBlockers.includes(removedBlocker),
-  false,
-  `Source-only planning must not retain an invented audio blocker: ${removedBlocker}`,
+assert.equal(realisticReferenceColorPayload.recipeProfileId,
+  'approved_source_color_delivery_matroska_v1')
+assert.equal(realisticMatchedColorPayload.recipeProfileId,
+  'approved_source_color_match_delivery_matroska_v1')
+if (realisticMatchedColorPayload.recipeProfileId !==
+  'approved_source_color_match_delivery_matroska_v1') {
+  throw new Error('Second source did not compile to the exact reference-bound color recipe.')
+}
+assert.equal(realisticMatchedColorPayload.referenceSourceSequenceItemId,
+  'canonical-save-source-1')
+assert.equal(realisticMatchedColorPayload.referenceOutputKey, 'color-delivery-1-mkv')
+assert.equal(realisticMatchedColorPayload.referenceDurationFrames, 30)
+assert.equal(realisticMatchedColorPayload.approvedColorOperationKinds.includes('shot_matching'), true)
+const realisticFinalItem = realisticCanonicalPlan.workItems.find((item) =>
+  item.workItemKey === 'final-export')!
+const realisticFinalPayload = validateOfflineRemotionFinalCompositionPlanningPayload(
+  asRecord(realisticFinalItem.executionInput.structuredPayload),
 )
-assert.equal(
-  realisticRichBlockers.includes('Timed transitions need their own canonical execution work items.'),
-  false,
-  'An exact approved hard cut must not remain a transition publication blocker.',
-)
-assert.equal(
-  realisticRichBlockers.includes('Sound-effect cues need their own canonical execution work items.'),
-  false,
-  'An unmotivated hard cut must not invent a transition SFX cue.',
-)
+assert.equal(realisticFinalPayload.compositionProfileId,
+  'approved_source_sequence_caption_track_final_v1')
+assert.equal(realisticFinalPayload.sourceMediaPolicy,
+  'approved_professional_color_intermediate_v1')
+assert.deepEqual(realisticFinalPayload.sourceSegments.map((segment) => [
+  segment.sourceStartFrame,
+  segment.sourceEndFrameExclusive,
+]), [[0, 30], [0, 30]])
+assert.deepEqual(realisticFinalItem.dependencyKeys, [
+  'source-trim-validation',
+  'caption-overlay-1',
+  'caption-overlay-2',
+  'voice-delivery-1',
+  'voice-delivery-2',
+  'color-delivery-1',
+  'color-delivery-2',
+])
 assert.deepEqual(realisticTiming.transitionTimingItems.map((transition) => ({
   type: transition.transitionType,
   startFrame: transition.timeRange.startFrame,
@@ -265,11 +298,12 @@ assert.deepEqual(realisticTiming.transitionTimingItems.map((transition) => ({
   sfxCueId: transition.sfxCueId,
 })), [{ type: 'hard_cut', startFrame: 30, endFrame: 30, sfxCueId: undefined }])
 assert.deepEqual(realisticRichMultiSourcePlan.soundSyncTransitionTimingPlan?.refinedSfxTimings, [])
-assert.match(
-  realisticRichBlockers.join(' '),
-  /color|operation/i,
-  'Uncompiled professional color work must remain visible as an explicit publication blocker.',
-)
+assert.equal(publishCanonicalEditPlanFromHandoffSchema.safeParse({
+  workspaceId: identity.workspaceId,
+  planningRequestId: 'canonical-rich-multi-source-request',
+  expectedHandoffHash: sha('9'),
+  canonicalPlan: realisticCanonicalPlan,
+}).success, true)
 
 const guidedSourceTruthPlan = createGuidedMockEditPlan(multiSourceInput)
 assert.equal(guidedSourceTruthPlan.masterTimingPlan?.timingBase.sourceDurationSeconds, 2)

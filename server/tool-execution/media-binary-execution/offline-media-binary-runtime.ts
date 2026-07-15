@@ -214,13 +214,17 @@ async function executeFfmpeg(
   }
   const sourceBytes = Buffer.from(request.payload.sourceBytesBase64, 'base64')
   const voiceDelivery = request.payload.recipeProfileId === 'approved_voice_delivery_wav_v1'
-  const colorDelivery = request.payload.recipeProfileId ===
-    'approved_source_color_delivery_matroska_v1'
-  const voiceDeliveryPayload = request.payload.recipeProfileId === 'approved_voice_delivery_wav_v1'
+  const colorMatchDeliveryPayload = request.payload.recipeProfileId ===
+    'approved_source_color_match_delivery_matroska_v1'
     ? request.payload
     : undefined
+  const colorMatchDelivery = Boolean(colorMatchDeliveryPayload)
   const colorDeliveryPayload = request.payload.recipeProfileId ===
     'approved_source_color_delivery_matroska_v1'
+    ? request.payload
+    : colorMatchDeliveryPayload
+  const colorDelivery = Boolean(colorDeliveryPayload)
+  const voiceDeliveryPayload = request.payload.recipeProfileId === 'approved_voice_delivery_wav_v1'
     ? request.payload
     : undefined
   const trimDurationFrames = request.payload.trimEndFrameExclusive - request.payload.trimStartFrame
@@ -232,9 +236,24 @@ async function executeFfmpeg(
         endFrameExclusive: request.payload.trimEndFrameExclusive,
       })
     : undefined
+  const referenceColorAnalysis = colorMatchDelivery
+    ? await analyzeVideoColor({
+        image,
+        bytes: Buffer.from(colorMatchDeliveryPayload!.referenceSourceBytesBase64, 'base64'),
+        startFrame: 0,
+        endFrameExclusive: colorMatchDeliveryPayload!.referenceDurationFrames,
+      })
+    : undefined
   const colorCorrection = sourceColorAnalysis && colorDeliveryPayload
-    ? deriveColorCorrection(sourceColorAnalysis, colorDeliveryPayload.colorGradeStyle,
-        colorDeliveryPayload.intensity)
+    ? referenceColorAnalysis
+      ? deriveReferenceMatchedColorCorrection(
+          sourceColorAnalysis,
+          referenceColorAnalysis,
+          colorDeliveryPayload.colorGradeStyle,
+          colorDeliveryPayload.intensity,
+        )
+      : deriveColorCorrection(sourceColorAnalysis, colorDeliveryPayload.colorGradeStyle,
+          colorDeliveryPayload.intensity)
     : undefined
   const command = voiceDelivery
     ? voiceDeliveryCommand(request)
@@ -294,6 +313,14 @@ async function executeFfmpeg(
           endFrameExclusive: trimDurationFrames,
         })
       : undefined
+    const colorMatchQa = colorMatchDelivery && sourceColorAnalysis &&
+      outputColorAnalysis && referenceColorAnalysis
+      ? evaluateReferenceColorMatch({
+          source: sourceColorAnalysis,
+          output: outputColorAnalysis,
+          reference: referenceColorAnalysis,
+        })
+      : undefined
     if (
       colorDelivery && (
         !sourceColorAnalysis || !outputColorAnalysis || !colorCorrection ||
@@ -301,12 +328,15 @@ async function executeFfmpeg(
         outputColorAnalysis.meanLuma <= 8 || outputColorAnalysis.meanLuma >= 247 ||
         outputColorAnalysis.blackLumaFraction >= 0.98 ||
         outputColorAnalysis.whiteLumaFraction >= 0.98 ||
-        started.stdout.equals(sourceBytes)
+        started.stdout.equals(sourceBytes) ||
+        (colorMatchDelivery && (!colorMatchQa || !colorMatchQa.passed))
       )
     ) throw unavailable(
       'FFmpeg professional color output failed bounded pixel QA ' +
       `(source=${JSON.stringify(sourceColorAnalysis)};` +
-      `output=${JSON.stringify(outputColorAnalysis)}).`,
+      `output=${JSON.stringify(outputColorAnalysis)};` +
+      `reference=${JSON.stringify(referenceColorAnalysis)};` +
+      `match=${JSON.stringify(colorMatchQa)}).`,
     )
     const resultSha256 = sha256(started.stdout)
     const completedAt = new Date().toISOString()
@@ -316,7 +346,11 @@ async function executeFfmpeg(
       toolId: 'ffmpeg' as const,
       operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
       sourceSha256: request.payload.sourceSha256,
+      ...(colorMatchDelivery
+        ? { referenceSourceSha256: colorMatchDeliveryPayload!.referenceSourceSha256 }
+        : {}),
       resultSha256, confinement, outputProbe,
+      ...(colorMatchQa ? { colorMatchQa } : {}),
     }
     const attestationHash = sha256AuthorityValue(attestationWithoutHash)
     const recordId = sha256AuthorityValue({ attestationHash, completedAt })
@@ -345,9 +379,18 @@ async function executeFfmpeg(
         binaryVersion: SOURCE_VERSION,
         requestEnvelopeSha256: sha256AuthorityValue({
           ...request,
-          payload: { ...request.payload, sourceBytesBase64: '[server-injected-approved-bytes]' },
+          payload: {
+            ...request.payload,
+            sourceBytesBase64: '[server-injected-approved-bytes]',
+            ...(colorMatchDelivery
+              ? { referenceSourceBytesBase64: '[server-injected-approved-reference-bytes]' }
+              : {}),
+          },
         }),
         sourceSha256: request.payload.sourceSha256,
+        ...(colorMatchDelivery
+          ? { referenceSourceSha256: colorMatchDeliveryPayload!.referenceSourceSha256 }
+          : {}),
         resultSha256,
         semanticEvidence: {
           sourceBytesVerified: true,
@@ -377,6 +420,20 @@ async function executeFfmpeg(
                     colorDeliveryPayload!.approvedColorOperationKinds,
                   sourcePixelAnalysisExecuted: true,
                   sourcePixelAnalysis: sourceColorAnalysis,
+                  ...(colorMatchDelivery
+                    ? {
+                        referenceSourceSequenceItemId:
+                          colorMatchDeliveryPayload!.referenceSourceSequenceItemId,
+                        referenceOutputKey: colorMatchDeliveryPayload!.referenceOutputKey,
+                        referenceSourceSha256:
+                          colorMatchDeliveryPayload!.referenceSourceSha256,
+                        referencePixelAnalysisExecuted: true,
+                        referencePixelAnalysis: referenceColorAnalysis,
+                        shotMatchProfileId: colorMatchDeliveryPayload!.shotMatchProfileId,
+                        referenceMatchQa: colorMatchQa,
+                        referenceBoundShotMatchingApplied: true,
+                      }
+                    : {}),
                   derivedCorrection: colorCorrection,
                   outputPixelAnalysisExecuted: true,
                   outputPixelAnalysis: outputColorAnalysis,
@@ -461,6 +518,18 @@ type DerivedColorCorrection = {
   outputBlackPoint: number
   outputWhitePoint: number
   clarityApplied: boolean
+}
+
+type ReferenceColorMatchQa = {
+  sourceLumaDelta: number
+  outputLumaDelta: number
+  maximumLumaDelta: number
+  sourceChromaticityDelta: number
+  outputChromaticityDelta: number
+  maximumChromaticityDelta: number
+  lumaPreservedOrImproved: boolean
+  chromaticityPreservedOrImproved: boolean
+  passed: boolean
 }
 
 async function analyzeVideoColor(input: {
@@ -596,11 +665,131 @@ function deriveColorCorrection(
   }
 }
 
+function deriveReferenceMatchedColorCorrection(
+  analysis: ColorPixelAnalysis,
+  reference: ColorPixelAnalysis,
+  style: 'clean_natural' | 'premium_clean',
+  intensity: 'subtle' | 'balanced',
+): DerivedColorCorrection {
+  const base = deriveColorCorrection(analysis, style, intensity)
+  const sourceMean = Math.max(
+    16,
+    (analysis.meanRed + analysis.meanGreen + analysis.meanBlue) / 3,
+  )
+  const referenceMean = Math.max(
+    16,
+    (reference.meanRed + reference.meanGreen + reference.meanBlue) / 3,
+  )
+  const matchedMultiplier = (
+    sourceChannel: number,
+    referenceChannel: number,
+    baseMultiplier: number,
+  ) => {
+    const sourceRatio = sourceChannel / sourceMean
+    const referenceRatio = referenceChannel / referenceMean
+    const referenceBound = clamp(referenceRatio / Math.max(0.25, sourceRatio), 0.88, 1.12)
+    return roundedTo(clamp(
+      baseMultiplier + (referenceBound - baseMultiplier) * 0.75,
+      0.88,
+      1.12,
+    ), 5)
+  }
+  const exposureProtectionFactor = Math.min(
+    base.exposureProtectionFactor,
+    clamp(1 - Math.abs(reference.meanLuma - analysis.meanLuma) / 192, 0.2, 1),
+  )
+  const exposureShift = clamp(
+    (reference.meanLuma - analysis.meanLuma) / 255,
+    -0.08,
+    0.08,
+  ) * exposureProtectionFactor
+  const halfInputRange = 0.5 / base.contrast
+  const baseInputBlackPoint = 0.5 - halfInputRange
+  const baseInputWhitePoint = 0.5 + halfInputRange
+  return {
+    ...base,
+    redMultiplier: matchedMultiplier(
+      analysis.meanRed,
+      reference.meanRed,
+      base.redMultiplier,
+    ),
+    greenMultiplier: matchedMultiplier(
+      analysis.meanGreen,
+      reference.meanGreen,
+      base.greenMultiplier,
+    ),
+    blueMultiplier: matchedMultiplier(
+      analysis.meanBlue,
+      reference.meanBlue,
+      base.blueMultiplier,
+    ),
+    exposureProtectionFactor: roundedTo(exposureProtectionFactor, 5),
+    exposureShift: roundedTo(exposureShift, 5),
+    inputBlackPoint: roundedTo(clamp(
+      baseInputBlackPoint - exposureShift / 2,
+      0,
+      0.1,
+    ), 5),
+    inputWhitePoint: roundedTo(clamp(
+      baseInputWhitePoint - exposureShift / 2,
+      0.88,
+      1,
+    ), 5),
+    outputBlackPoint: roundedTo(clamp(Math.max(0, exposureShift) * 0.25, 0, 0.025), 5),
+    outputWhitePoint: roundedTo(clamp(
+      (style === 'premium_clean' ? 0.985 : 0.99) + Math.min(0, exposureShift) * 0.25,
+      0.95,
+      0.995,
+    ), 5),
+  }
+}
+
+function evaluateReferenceColorMatch(input: {
+  source: ColorPixelAnalysis
+  output: ColorPixelAnalysis
+  reference: ColorPixelAnalysis
+}): ReferenceColorMatchQa {
+  const chromaticity = (analysis: ColorPixelAnalysis) => {
+    const total = Math.max(1, analysis.meanRed + analysis.meanGreen + analysis.meanBlue)
+    return [analysis.meanRed / total, analysis.meanGreen / total, analysis.meanBlue / total]
+  }
+  const referenceChromaticity = chromaticity(input.reference)
+  const chromaticityDelta = (analysis: ColorPixelAnalysis) =>
+    chromaticity(analysis).reduce((total, value, index) =>
+      total + Math.abs(value - referenceChromaticity[index]!), 0)
+  const sourceLumaDelta = Math.abs(input.source.meanLuma - input.reference.meanLuma)
+  const outputLumaDelta = Math.abs(input.output.meanLuma - input.reference.meanLuma)
+  const sourceChromaticityDelta = chromaticityDelta(input.source)
+  const outputChromaticityDelta = chromaticityDelta(input.output)
+  const maximumLumaDelta = 36
+  const maximumChromaticityDelta = 0.12
+  const lumaPreservedOrImproved = outputLumaDelta <= sourceLumaDelta + 6
+  const chromaticityPreservedOrImproved =
+    outputChromaticityDelta <= sourceChromaticityDelta + 0.03
+  const passed = outputLumaDelta <= maximumLumaDelta &&
+    outputChromaticityDelta <= maximumChromaticityDelta &&
+    lumaPreservedOrImproved && chromaticityPreservedOrImproved
+  return {
+    sourceLumaDelta: roundedTo(sourceLumaDelta, 4),
+    outputLumaDelta: roundedTo(outputLumaDelta, 4),
+    maximumLumaDelta,
+    sourceChromaticityDelta: roundedTo(sourceChromaticityDelta, 6),
+    outputChromaticityDelta: roundedTo(outputChromaticityDelta, 6),
+    maximumChromaticityDelta,
+    lumaPreservedOrImproved,
+    chromaticityPreservedOrImproved,
+    passed,
+  }
+}
+
 function colorDeliveryCommand(
   request: OfflineFfmpegExecutionRequest,
   correction: DerivedColorCorrection,
 ): string[] {
-  if (request.payload.recipeProfileId !== 'approved_source_color_delivery_matroska_v1') {
+  if (
+    request.payload.recipeProfileId !== 'approved_source_color_delivery_matroska_v1' &&
+    request.payload.recipeProfileId !== 'approved_source_color_match_delivery_matroska_v1'
+  ) {
     throw invalid('Color-delivery command requires its exact approved recipe.')
   }
   const saturationMatrix = colorSaturationMatrix(correction.saturation)

@@ -31,6 +31,9 @@ type ApprovedVoiceDeliverySource = {
 }
 
 type ApprovedColorDeliverySource = {
+  recipeProfileId:
+    | 'approved_source_color_delivery_matroska_v1'
+    | 'approved_source_color_match_delivery_matroska_v1'
   sourceSequenceItemId: string
   cleanupDecisionId: string
   trimStartFrame: number
@@ -40,6 +43,10 @@ type ApprovedColorDeliverySource = {
   intensity: 'subtle' | 'balanced'
   approvedColorOperationIds: string[]
   approvedColorOperationKinds: ApprovedColorOperationKind[]
+  referenceSourceSequenceItemId?: string
+  referenceCleanupDecisionId?: string
+  referenceDurationFrames?: number
+  referenceOutputKey?: string
 }
 
 type ApprovedColorOperationKind = Extract<
@@ -51,6 +58,7 @@ type ApprovedColorOperationKind = Extract<
   | 'look_transform'
   | 'qa_histogram_check'
   | 'saturation'
+  | 'shot_matching'
   | 'white_balance'
 >
 
@@ -885,7 +893,7 @@ function buildPrivateReviewCanonicalPlan(input: {
         approvedToolOperationIds: [FFMPEG_OPERATION],
         expectedOutputKeys: [outputKey],
         structuredPayload: {
-          recipeProfileId: 'approved_source_color_delivery_matroska_v1',
+          recipeProfileId: source.recipeProfileId,
           timestampPolicy: 'normalize_from_zero',
           overwriteExistingArtifact: false,
           allowUnreviewedCodec: false,
@@ -897,7 +905,18 @@ function buildPrivateReviewCanonicalPlan(input: {
           approvedColorOperationIds: source.approvedColorOperationIds,
           approvedColorOperationKinds: source.approvedColorOperationKinds,
           analysisProfileId: 'approved_three_frame_rgb_stats_v1',
-          correctionProfileId: 'bounded_professional_source_color_v1',
+          correctionProfileId: source.recipeProfileId ===
+            'approved_source_color_match_delivery_matroska_v1'
+            ? 'bounded_reference_matched_professional_source_color_v1'
+            : 'bounded_professional_source_color_v1',
+          ...(source.recipeProfileId === 'approved_source_color_match_delivery_matroska_v1'
+            ? {
+                shotMatchProfileId: 'approved_reference_three_frame_rgb_match_v1',
+                referenceSourceSequenceItemId: source.referenceSourceSequenceItemId!,
+                referenceDurationFrames: source.referenceDurationFrames!,
+                referenceOutputKey: source.referenceOutputKey!,
+              }
+            : {}),
           outputColorSpace: 'bt709',
           outputPixelFormat: 'yuv420p',
           preserveAudio: false,
@@ -916,7 +935,10 @@ function buildPrivateReviewCanonicalPlan(input: {
           rendererLayerIds: [rendererLayerId],
         },
       )],
-      dependencyKeys: [],
+      dependencyKeys: source.recipeProfileId ===
+        'approved_source_color_match_delivery_matroska_v1'
+        ? ['color-delivery-1']
+        : [],
       approvedToolIds: ['ffmpeg'],
       providerExecutionMode: 'none',
       fallbackPolicy: {},
@@ -1426,6 +1448,10 @@ const APPROVED_COLOR_OPERATION_KINDS: Readonly<Record<
   ],
 }
 
+function withShotMatching(kinds: ApprovedColorOperationKind[]): ApprovedColorOperationKind[] {
+  return [...new Set([...kinds, 'shot_matching' as const])].sort()
+}
+
 function buildApprovedColorDeliverySources(input: {
   plan: EditPlan
   plannerInput: PlannerInput
@@ -1434,40 +1460,56 @@ function buildApprovedColorDeliverySources(input: {
 }): ApprovedColorDeliverySource[] | null {
   const color = input.plan.colorPipelinePlan
   if (!color) return null
+  const sourceCount = input.plannerInput.clips.length
+  const multiSource = sourceCount === 2
   if (
     input.plannerInput.editLevel === 'premium' ||
-    input.plannerInput.clips.length !== 1 || input.sourceItems.length !== 1 ||
-    input.cleanupDecisions.length !== 1 || color.clipPlans.length !== 1 ||
+    (sourceCount !== 1 && !multiSource) || input.sourceItems.length !== sourceCount ||
+    input.cleanupDecisions.length !== sourceCount || color.clipPlans.length !== sourceCount ||
     color.assetMatchPlans.length !== 0 || color.status !== 'planned' ||
     (color.colorGradeStyle !== 'clean_natural' && color.colorGradeStyle !== 'premium_clean') ||
     (color.intensity !== 'subtle' && color.intensity !== 'balanced') ||
     !color.toolsPlanned.includes('ffmpeg') ||
     color.toolsPlanned.some((toolId) =>
       !['planning_only', 'remotion_preview', 'ffmpeg'].includes(toolId)) ||
-    color.stages.includes('shot_matching')
+    (multiSource
+      ? !color.stages.includes('shot_matching')
+      : color.stages.includes('shot_matching'))
   ) return null
 
-  const sourceItem = input.sourceItems[0]!
-  const cleanup = input.cleanupDecisions[0]!
-  const clipPlan = color.clipPlans[0]!
-  const expectedKinds = APPROVED_COLOR_OPERATION_KINDS[color.colorGradeStyle]
-  const expectedClipKinds = expectedKinds.filter((kind) => kind !== 'qa_histogram_check')
+  const baselineKinds = APPROVED_COLOR_OPERATION_KINDS[color.colorGradeStyle]
+  const expectedProjectKinds = multiSource ? withShotMatching(baselineKinds) : baselineKinds
+  const expectedClipKinds = multiSource
+    ? withShotMatching(baselineKinds.filter((kind) => kind !== 'qa_histogram_check'))
+    : baselineKinds.filter((kind) => kind !== 'qa_histogram_check')
   const projectKinds = [...new Set(color.projectOperations.map((operation) => operation.operation))]
     .sort() as ApprovedColorOperationKind[]
-  const clipOperations = [...clipPlan.correctionOperations, ...clipPlan.lookOperations]
-  const clipKinds = [...new Set(clipOperations.map((operation) => operation.operation))]
-    .sort() as ApprovedColorOperationKind[]
-  const allOperations = [...color.projectOperations, ...clipOperations]
+  const clipOperations = color.clipPlans.map((clipPlan) => [
+    ...clipPlan.correctionOperations,
+    ...clipPlan.lookOperations,
+  ])
+  const allOperations = [...color.projectOperations, ...clipOperations.flat()]
   const operationIds = allOperations.map((operation) => operation.id).sort()
 
   if (
-    clipPlan.clipId !== input.plannerInput.clips[0]!.id ||
-    cleanup.sourceSequenceItemId !== sourceItem.sourceSequenceItemId ||
-    clipPlan.skinToneProtection || clipPlan.referenceClipId !== undefined ||
-    projectKinds.join('|') !== expectedKinds.join('|') ||
-    clipKinds.join('|') !== expectedClipKinds.join('|') ||
-    color.projectOperations.length !== expectedKinds.length ||
-    clipOperations.length !== expectedClipKinds.length ||
+    projectKinds.join('|') !== expectedProjectKinds.join('|') ||
+    color.projectOperations.length !== expectedProjectKinds.length ||
+    color.clipPlans.some((clipPlan, index) => {
+      const sourceItem = input.sourceItems[index]!
+      const cleanup = input.cleanupDecisions[index]!
+      const kinds = [...new Set(clipOperations[index]!.map((operation) => operation.operation))]
+        .sort() as ApprovedColorOperationKind[]
+      return clipPlan.clipId !== input.plannerInput.clips[index]!.id ||
+        cleanup.sourceSequenceItemId !== sourceItem.sourceSequenceItemId ||
+        clipPlan.skinToneProtection ||
+        (multiSource
+          ? clipPlan.referenceClipId !== (index === 0
+              ? undefined
+              : input.plannerInput.clips[0]!.id)
+          : clipPlan.referenceClipId !== undefined) ||
+        kinds.join('|') !== expectedClipKinds.join('|') ||
+        clipOperations[index]!.length !== expectedClipKinds.length
+    }) ||
     new Set(operationIds).size !== operationIds.length ||
     allOperations.some((operation) =>
       !safeIdentity(operation.id) || operation.toolId !== 'ffmpeg' ||
@@ -1476,17 +1518,60 @@ function buildApprovedColorDeliverySources(input: {
       operation.settings.lookIntensity !== color.intensity)
   ) return null
 
-  return [{
-    sourceSequenceItemId: sourceItem.sourceSequenceItemId,
-    cleanupDecisionId: cleanup.decisionId,
-    trimStartFrame: cleanup.startFrame,
-    trimEndFrameExclusive: cleanup.endFrameExclusive,
-    durationFrames: cleanup.endFrameExclusive - cleanup.startFrame,
-    colorGradeStyle: color.colorGradeStyle,
-    intensity: color.intensity,
-    approvedColorOperationIds: operationIds,
-    approvedColorOperationKinds: [...expectedKinds],
-  }]
+  const projectBaselineOperations = color.projectOperations.filter((operation) =>
+    operation.operation !== 'shot_matching')
+  const shotMatchingOperations = allOperations.filter((operation) =>
+    operation.operation === 'shot_matching')
+  const referenceSource = input.sourceItems[0]!
+  const referenceCleanup = input.cleanupDecisions[0]!
+  const referenceOutputKey = 'color-delivery-1-mkv'
+  const approvedColorGradeStyle = color.colorGradeStyle as 'clean_natural' | 'premium_clean'
+  const approvedColorIntensity = color.intensity as 'subtle' | 'balanced'
+  const results = input.sourceItems.map((sourceItem, index): ApprovedColorDeliverySource => {
+    const cleanup = input.cleanupDecisions[index]!
+    const approvedOperations = index === 0 || !multiSource
+      ? [...projectBaselineOperations, ...clipOperations[index]!.filter((operation) =>
+          operation.operation !== 'shot_matching')]
+      : [
+          ...projectBaselineOperations,
+          ...clipOperations[index]!,
+          ...shotMatchingOperations,
+        ]
+    const approvedColorOperationIds = [...new Set(
+      approvedOperations.map((operation) => operation.id),
+    )].sort()
+    return {
+      recipeProfileId: index === 0 || !multiSource
+        ? 'approved_source_color_delivery_matroska_v1'
+        : 'approved_source_color_match_delivery_matroska_v1',
+      sourceSequenceItemId: sourceItem.sourceSequenceItemId,
+      cleanupDecisionId: cleanup.decisionId,
+      trimStartFrame: cleanup.startFrame,
+      trimEndFrameExclusive: cleanup.endFrameExclusive,
+      durationFrames: cleanup.endFrameExclusive - cleanup.startFrame,
+      colorGradeStyle: approvedColorGradeStyle,
+      intensity: approvedColorIntensity,
+      approvedColorOperationIds,
+      approvedColorOperationKinds: index === 0 || !multiSource
+        ? [...baselineKinds]
+        : withShotMatching(baselineKinds),
+      ...(index > 0 && multiSource
+        ? {
+            referenceSourceSequenceItemId: referenceSource.sourceSequenceItemId,
+            referenceCleanupDecisionId: referenceCleanup.decisionId,
+            referenceDurationFrames:
+              referenceCleanup.endFrameExclusive - referenceCleanup.startFrame,
+            referenceOutputKey,
+          }
+        : {}),
+    }
+  })
+  const representedOperationIds = new Set(results.flatMap((source) =>
+    source.approvedColorOperationIds))
+  return representedOperationIds.size === operationIds.length &&
+    operationIds.every((operationId) => representedOperationIds.has(operationId))
+    ? results
+    : null
 }
 
 const APPROVED_VOICE_DELIVERY_PROCESSING_OPERATIONS = new Set([

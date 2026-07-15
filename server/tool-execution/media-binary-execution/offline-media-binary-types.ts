@@ -78,6 +78,7 @@ export interface OfflineFfmpegExecutionResult {
     binaryVersion: '8.1.2'
     requestEnvelopeSha256: string
     sourceSha256: string
+    referenceSourceSha256?: string
     resultSha256: string
     semanticEvidence: Readonly<Record<string, unknown>>
     confinement: OfflineMediaBinaryConfinementEvidence

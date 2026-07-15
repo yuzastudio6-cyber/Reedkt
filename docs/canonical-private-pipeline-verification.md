@@ -16,8 +16,9 @@ and Edit Brief authority through a real resumable-sized 4K private ingest/proxy
 proof, source-only intent restraint, canonical plan
 presentation, the 4K estimate ceiling, separate approval, the opaque
 execution-package handoff, private preparation, private review,
-revision/history recovery, the bounded multi-source voice proof, and the
-bounded one-source professional-color proof. It also runs the active named-edit
+revision/history recovery, the bounded reference-bound multi-source
+voice/color proof, and the one-source professional-color regression proof. It
+also runs the active named-edit
 Playwright journey and the versioned
 proven-tool identity report.
 
@@ -52,13 +53,15 @@ fail-closed regression.
 6. Exercise the bounded ordered multi-source canonical lifecycle through lease,
    one-use dispatch, private artifacts, QA, reconciliation, replay, and private
    download evidence. The focused lifecycle includes exact source-bound FFmpeg
-   voice-delivery WAVs, downstream WAV verification, immutable approved
-   hard-cut boundaries, ordered Remotion voice replacement, and independent
-   final H.264/AAC QA. Its Remotion image tag,
+   voice-delivery WAVs, a QA-passed first-source color reference, a
+   dependency-bound second-source shot-match Matroska artifact, downstream
+   objective color-continuity verification, immutable approved hard-cut
+   boundaries, ordered Remotion color/voice composition, and independent final
+   H.264/AAC QA. Its Remotion image tag,
    build context, and runtime authority root are canonical-private resources so
    a separate Motion Studio build cannot replace the image identity during this
    proof.
-7. Exercise one exact source-bound professional-color lifecycle through the
+7. Regression-check one exact source-bound professional-color lifecycle through the
    immutable approved snapshot, synthetic private reservation, lease, one-use
    FFmpeg dispatch, three-frame RGB analysis, bounded approved correction,
    lossless VP9 BT.709/yuv420p Matroska persistence, pixel/histogram/clipping
@@ -86,13 +89,15 @@ that discovery channel; it does not weaken image-identity validation.
 
 ## Current Evidence Record
 
-On 2026-07-15, the canonical command passed all current 18 phases in 604,446 ms
+On 2026-07-15, the canonical command passed all current 18 phases in 580,973 ms
 with exit code 0. The run included all 11 Chromium named-edit scenarios, exact
 source/preference/Edit Brief authority, the real resumable-sized 4K private
-ingest/proxy lifecycle, the mandatory 4K estimate ceiling, the bounded
-multi-source hard-cut and professional-voice lifecycle, the exact one-source
-professional-color lifecycle, and evidence revision
-`2026-07-15.30` with 50 private canonical/job-adapter identities. The separate
+ingest/proxy lifecycle, the universal 3840x2160 4K estimate ceiling, the bounded
+multi-source hard-cut/voice/reference-bound-color lifecycle, objective color
+continuity across the source boundary, the exact one-source professional-color
+regression, and evidence revision `2026-07-15.30` with exactly 50 private
+canonical/job-adapter identities. The prior 604,446 ms 18-phase run is the
+pre-reference-match baseline. The separate
 `npm run smoke:canonical-private-tool-dispatch` execution also passed with
 exit code 0, including exact dynamic unique-grant preservation after aggregate
 tamper/restore testing. These are local/private evidence results; all 50 tool
@@ -138,10 +143,12 @@ ordered source boundaries. It does not prove crossfades, wipes, zooms, pushes,
 match cuts, transition SFX, or arbitrary transition effects.
 
 The professional-color evidence applies only to the exact one-source bounded
-`clean_natural` or `premium_clean` subtle/balanced operation profile with
-approved replacement voice. It does not prove arbitrary filters or LUTs,
-multi-source shot matching, skin-tone/reference matching, HDR/wide-gamut
-delivery, distributed execution, public export, or production rendering.
+profile and the exact two-source first-source-reference profile. Both require
+`clean_natural` or `premium_clean`, subtle/balanced operations, approved
+replacement voice, lossless SDR intermediates, and objective QA. It does not
+prove arbitrary filters or LUTs, arbitrary reference selection, more than two
+color-matched sources, skin-tone isolation, HDR/wide-gamut delivery,
+distributed execution, public export, or production rendering.
 
 The 50-tool report means exactly the reported tool identities have private
 canonical lifecycle and job-adapter evidence. It must not be restated as “50

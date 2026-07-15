@@ -35,6 +35,20 @@ const mediaInputAuthoritySchema = z.discriminatedUnion('inputKind', [
     inputArtifactId: identity,
     inputDependencyJobId: identity,
   }).strict(),
+  toolCommon.extend({
+    inputKind: z.literal('approved_source_and_reference_artifact'),
+    sourceObjectRead: z.literal(true),
+    dependencyArtifactRead: z.literal(true),
+    sourceSequenceItemId: identity,
+    sourceBindingHash: sha,
+    referenceSourceSequenceItemId: identity,
+    referenceOutputKey: identity,
+    referenceInputArtifactId: identity,
+    referenceInputDependencyJobId: identity,
+    referenceInputArtifactSha256: sha,
+    referenceInputArtifactByteLength: z.number().int().positive().max(16 * 1024 * 1024),
+    referenceInputReadEvidenceHash: sha,
+  }).strict(),
 ])
 
 const finalArtifactQaSchema = z.object({

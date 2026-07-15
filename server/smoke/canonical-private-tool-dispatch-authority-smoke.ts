@@ -244,7 +244,13 @@ const matrixOperationIds = Object.fromEntries(matrixToolIds.map((toolId) => {
   return [toolId, spec.allowedOperationIds[0]]
 })) as Record<MatrixToolId, string>
 
-const mediaFixture = await uploadCanonicalMediaFixture(seedSnapshot.projectId, 'primary', 'red', 'blue', 440)
+const mediaFixture = await uploadCanonicalMediaFixture(
+  seedSnapshot.projectId,
+  'primary',
+  '0x0000FF',
+  'blue',
+  440,
+)
 const mediaSourceItem = {
   sourceSequenceItemId: 'source-sequence-python-media',
   mediaAssetId: mediaFixture.mediaAsset.id,
@@ -255,7 +261,7 @@ const mediaSourceItem = {
 const secondaryMediaFixture = await uploadCanonicalMediaFixture(
   seedSnapshot.projectId,
   'secondary',
-  'green',
+  '0x0010F0',
   'yellow',
   660,
 )
@@ -896,6 +902,27 @@ assert.ok(secondaryVoiceAsset)
 assert.deepEqual(primaryVoiceJob.dependencyJobIds, [])
 assert.deepEqual(secondaryVoiceJob.dependencyJobIds, [])
 
+const primaryColorWorkItem = aggregateBeforeDispatch.approvedWorkItems.find((candidate) =>
+  candidate.snapshotId === snapshot.snapshotId && candidate.workItemKey === 'color-delivery-primary')
+const secondaryColorWorkItem = aggregateBeforeDispatch.approvedWorkItems.find((candidate) =>
+  candidate.snapshotId === snapshot.snapshotId && candidate.workItemKey === 'color-delivery-secondary')
+assert.ok(primaryColorWorkItem)
+assert.ok(secondaryColorWorkItem)
+const primaryColorJob = aggregateBeforeDispatch.jobs.find((candidate) =>
+  candidate.snapshotId === snapshot.snapshotId && candidate.approvedWorkItemId === primaryColorWorkItem.id)
+const secondaryColorJob = aggregateBeforeDispatch.jobs.find((candidate) =>
+  candidate.snapshotId === snapshot.snapshotId && candidate.approvedWorkItemId === secondaryColorWorkItem.id)
+const primaryColorAsset = authority.assetManifest.entries.find((candidate) =>
+  candidate.approvedWorkItemId === primaryColorWorkItem.id)
+const secondaryColorAsset = authority.assetManifest.entries.find((candidate) =>
+  candidate.approvedWorkItemId === secondaryColorWorkItem.id)
+assert.ok(primaryColorJob)
+assert.ok(secondaryColorJob)
+assert.ok(primaryColorAsset)
+assert.ok(secondaryColorAsset)
+assert.deepEqual(primaryColorJob.dependencyJobIds, [])
+assert.deepEqual(secondaryColorJob.dependencyJobIds, [primaryColorJob.id])
+
 const finalCompositionWorkItem = aggregateBeforeDispatch.approvedWorkItems.find((candidate) =>
   candidate.snapshotId === snapshot.snapshotId && candidate.workItemKey === 'remotion-source-caption-final')
 assert.ok(finalCompositionWorkItem)
@@ -924,6 +951,8 @@ assert.deepEqual(finalCompositionJob.dependencyJobIds, [
   secondLibassJob.id,
   primaryVoiceJob.id,
   secondaryVoiceJob.id,
+  primaryColorJob.id,
+  secondaryColorJob.id,
 ])
 assert.deepEqual(finalArtifactQaJob.dependencyJobIds, [finalCompositionJob.id])
 
@@ -2526,6 +2555,45 @@ assert.equal(secondaryVoiceReplay.result.artifactId, coordinatedSecondaryVoice.r
 assert.equal(secondaryVoiceReplay.result.sha256, coordinatedSecondaryVoice.result.sha256)
 assert.equal(secondaryVoiceReplay.evidence.idempotentAdapterReplay, true)
 
+const primaryColorAdapterInput = {
+  workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
+  jobId: primaryColorJob.id,
+  purpose: 'execute_canonical_private_job' as const,
+  idempotencyKey: 'canonical-job-adapter-color-delivery-primary',
+}
+const coordinatedPrimaryColor = await jobExecutionAdapter.execute(primaryColorAdapterInput)
+assert.equal(coordinatedPrimaryColor.identity.canonicalToolId, 'ffmpeg')
+assert.equal(coordinatedPrimaryColor.identity.runnerClass, 'offline_media_binary_execution_v1')
+assert.equal(coordinatedPrimaryColor.identity.expectedAssetId, primaryColorAsset.id)
+assert.equal(coordinatedPrimaryColor.result.contentType, 'video/x-matroska')
+assert.equal(coordinatedPrimaryColor.result.qaOutcome, 'passed')
+assert.equal(coordinatedPrimaryColor.result.privateTestDependencySatisfied, true)
+assert.equal(coordinatedPrimaryColor.evidence.dependencyArtifactInput, false)
+const primaryColorReplay = await jobExecutionAdapter.execute(primaryColorAdapterInput)
+assert.equal(primaryColorReplay.result.artifactId, coordinatedPrimaryColor.result.artifactId)
+assert.equal(primaryColorReplay.result.sha256, coordinatedPrimaryColor.result.sha256)
+assert.equal(primaryColorReplay.evidence.idempotentAdapterReplay, true)
+
+const secondaryColorAdapterInput = {
+  workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
+  jobId: secondaryColorJob.id,
+  purpose: 'execute_canonical_private_job' as const,
+  idempotencyKey: 'canonical-job-adapter-color-delivery-secondary',
+}
+const coordinatedSecondaryColor = await jobExecutionAdapter.execute(secondaryColorAdapterInput)
+assert.equal(coordinatedSecondaryColor.identity.canonicalToolId, 'ffmpeg')
+assert.equal(coordinatedSecondaryColor.identity.runnerClass, 'offline_media_binary_execution_v1')
+assert.equal(coordinatedSecondaryColor.identity.expectedAssetId, secondaryColorAsset.id)
+assert.equal(coordinatedSecondaryColor.result.contentType, 'video/x-matroska')
+assert.equal(coordinatedSecondaryColor.result.qaOutcome, 'passed')
+assert.equal(coordinatedSecondaryColor.result.privateTestDependencySatisfied, true)
+assert.equal(coordinatedSecondaryColor.evidence.dependencyArtifactInput, true)
+assert.notEqual(coordinatedSecondaryColor.result.sha256, coordinatedPrimaryColor.result.sha256)
+const secondaryColorReplay = await jobExecutionAdapter.execute(secondaryColorAdapterInput)
+assert.equal(secondaryColorReplay.result.artifactId, coordinatedSecondaryColor.result.artifactId)
+assert.equal(secondaryColorReplay.result.sha256, coordinatedSecondaryColor.result.sha256)
+assert.equal(secondaryColorReplay.evidence.idempotentAdapterReplay, true)
+
 const sourceTrimValidationClaim = (await leaseService.claim({
   workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
   jobId: sourceTrimValidationJob.id, purpose: 'private_internal_canonical_lease_claim',
@@ -2554,7 +2622,7 @@ const finalCompositionClaim = (await leaseService.claim({
   idempotencyKey: 'claim-remotion-source-caption-final',
 })).workerLeaseClaim
 assert.equal(finalCompositionClaim.lease.dependencyAuthority.state, 'private_test_dependencies_verified')
-assert.equal(finalCompositionClaim.lease.dependencyAuthority.selectedArtifacts.length, 5)
+assert.equal(finalCompositionClaim.lease.dependencyAuthority.selectedArtifacts.length, 7)
 assert.deepEqual(
   finalCompositionClaim.lease.dependencyAuthority.selectedArtifacts.map((artifact) => artifact.artifactId),
   [
@@ -2563,6 +2631,8 @@ assert.deepEqual(
     coordinatedSecondLibass.result.artifactId,
     coordinatedPrimaryVoice.result.artifactId,
     coordinatedSecondaryVoice.result.artifactId,
+    coordinatedPrimaryColor.result.artifactId,
+    coordinatedSecondaryColor.result.artifactId,
   ],
 )
 await leaseService.release({
@@ -2605,6 +2675,10 @@ assert.deepEqual(approvedFinalCompositionPayload.hardCutTransitions, [{
   boundaryFrame: 24,
 }])
 assert.equal(approvedFinalCompositionPayload.audioPolicy, 'replace_with_approved_voice_tracks')
+assert.equal(
+  approvedFinalCompositionPayload.sourceMediaPolicy,
+  'approved_professional_color_intermediate_v1',
+)
 assert.deepEqual(approvedFinalCompositionPayload.voiceTracks, [{
   sourceSequenceItemId: mediaSourceItem.sourceSequenceItemId,
   outputKey: 'voice-delivery-primary-wav',
@@ -2669,6 +2743,14 @@ assert.equal(
   createHash('sha256').update(privateFinalDownload.bytes).digest('hex'),
   coordinatedFinalComposition.result.sha256,
 )
+const finalColorContinuity = analyzeRenderedColorContinuity(privateFinalDownload.bytes, [12, 36])
+assert.equal(finalColorContinuity.sampledFrameCount, 2)
+assert.ok(
+  finalColorContinuity.chromaticityDelta <= 0.12,
+  `Reference-matched final source boundary exceeded chromaticity tolerance: ${
+    JSON.stringify(finalColorContinuity)
+  }`,
+)
 assert.equal(privateFinalDownload.publicUrlCreated, false)
 assert.equal(privateFinalDownload.signedUrlCreated, false)
 assert.equal(privateFinalDownload.billingMutationPerformed, false)
@@ -2703,6 +2785,8 @@ if (process.env.REEDITPRO_CANONICAL_MULTI_SOURCE_SLICE_ONLY === 'true') {
       'two_source_trim_authority_and_dependency_readiness_verified',
       'two_exact_caption_artifacts_and_frame_ranges_verified',
       'two_source_bound_ffmpeg_voice_delivery_artifacts_qa_reconciliation_and_replay_verified',
+      'reference_color_intermediate_and_dependency_bound_shot_match_artifacts_verified',
+      'two_color_intermediates_composed_in_source_order_with_objective_boundary_continuity_verified',
       'lease_and_single_use_dispatch_verified',
       'exact_ordered_source_sequence_and_timed_caption_track_rendered_with_approved_voice_replacement',
       'approved_hard_cut_snapshot_authority_and_exact_source_boundary_execution_verified',
@@ -2730,10 +2814,12 @@ const terminalReviewWorkItemKeys = new Set([
   'libass-caption-overlay-second',
   'voice-delivery-primary',
   'voice-delivery-secondary',
+  'color-delivery-primary',
+  'color-delivery-secondary',
   'remotion-source-caption-final',
   'final-qa',
 ])
-const terminalReviewRequiredJobCount = 8
+const terminalReviewRequiredJobCount = 10
 assert.equal(terminalReviewWorkItemKeys.size, terminalReviewRequiredJobCount)
 terminalReviewPlanBody.canonicalPlan.workItems = terminalReviewPlanBody.canonicalPlan.workItems.filter((workItem) =>
   terminalReviewWorkItemKeys.has(workItem.workItemKey))
@@ -4202,6 +4288,47 @@ function workGraphPackageCompletionPath(
   )
 }
 
+function analyzeRenderedColorContinuity(bytes: Buffer, frames: [number, number]) {
+  const selected = frames.map((frame) => `eq(n\\,${frame})`).join('+')
+  const analyzed = spawnSync('ffmpeg', [
+    '-hide_banner', '-loglevel', 'error', '-i', 'pipe:0',
+    '-vf', `select=${selected},scale=64:64:flags=area,format=rgb24`,
+    '-fps_mode', 'passthrough', '-frames:v', '2', '-threads', '1',
+    '-f', 'rawvideo', 'pipe:1',
+  ], { input: bytes, maxBuffer: 512 * 1024 })
+  if (analyzed.status !== 0 || analyzed.stderr.byteLength > 0) {
+    throw new Error(`Unable to analyze rendered color continuity: ${
+      analyzed.stderr.toString('utf8').slice(0, 500)
+    }`)
+  }
+  const frameByteLength = 64 * 64 * 3
+  if (analyzed.stdout.byteLength !== frameByteLength * 2) {
+    throw new Error('Rendered color continuity analysis returned the wrong frame count.')
+  }
+  const chromaticity = (frameBytes: Buffer) => {
+    let red = 0
+    let green = 0
+    let blue = 0
+    for (let offset = 0; offset < frameBytes.byteLength; offset += 3) {
+      red += frameBytes[offset]!
+      green += frameBytes[offset + 1]!
+      blue += frameBytes[offset + 2]!
+    }
+    const total = Math.max(1, red + green + blue)
+    return [red / total, green / total, blue / total]
+  }
+  const first = chromaticity(analyzed.stdout.subarray(0, frameByteLength))
+  const second = chromaticity(analyzed.stdout.subarray(frameByteLength))
+  return {
+    sampledFrameCount: 2,
+    sampledFrames: frames,
+    firstChromaticity: first.map((value) => Number(value.toFixed(6))),
+    secondChromaticity: second.map((value) => Number(value.toFixed(6))),
+    chromaticityDelta: Number(first.reduce((total, value, index) =>
+      total + Math.abs(value - second[index]!), 0).toFixed(6)),
+  }
+}
+
 async function uploadCanonicalMediaFixture(
   projectId: string,
   fixtureId: 'primary' | 'secondary',
@@ -4559,6 +4686,12 @@ function createDispatchPlanBody(input: {
             label: 'Controlled libass private timed caption track authorization',
             category: 'controlled_tool', estimatedCredits: 3, removable: false,
             metadata: { canonicalToolId: 'libass', operationId: input.libassOperationId },
+          },
+          {
+            lineKey: 'reference-bound-color-authority',
+            label: 'Controlled reference-bound professional color authorization',
+            category: 'controlled_tool', estimatedCredits: 4, removable: false,
+            metadata: { canonicalToolId: 'ffmpeg', operationId: input.ffmpegOperationId },
           },
           {
             lineKey: '4k-export-ceiling',
@@ -5496,6 +5629,126 @@ function createDispatchPlanBody(input: {
           maximumCreditBudget: 2, required: true,
         },
         {
+          workItemKey: 'color-delivery-primary',
+          workItemType: 'custom',
+          workerClass: 'color_processing_worker',
+          executionInput: {
+            operation: 'process_approved_source_professional_color_delivery',
+            approvedToolOperationIds: [input.ffmpegOperationId],
+            expectedOutputKeys: ['color-delivery-primary-mkv'],
+            structuredPayload: {
+              recipeProfileId: 'approved_source_color_delivery_matroska_v1',
+              timestampPolicy: 'normalize_from_zero',
+              overwriteExistingArtifact: false,
+              allowUnreviewedCodec: false,
+              trimStartFrame: 0,
+              trimEndFrameExclusive: 24,
+              frameRate: 24,
+              colorGradeStyle: 'premium_clean',
+              intensity: 'balanced',
+              approvedColorOperationIds: [
+                'color-primary-clarity',
+                'color-primary-contrast-curve',
+                'color-primary-exposure-correction',
+                'color-primary-highlight-recovery',
+                'color-primary-look-transform',
+                'color-primary-qa-histogram-check',
+                'color-primary-white-balance',
+              ],
+              approvedColorOperationKinds: [
+                'clarity',
+                'contrast_curve',
+                'exposure_correction',
+                'highlight_recovery',
+                'look_transform',
+                'qa_histogram_check',
+                'white_balance',
+              ],
+              analysisProfileId: 'approved_three_frame_rgb_stats_v1',
+              correctionProfileId: 'bounded_professional_source_color_v1',
+              outputColorSpace: 'bt709',
+              outputPixelFormat: 'yuv420p',
+              preserveAudio: false,
+            },
+          },
+          sourceSequenceItemIds: [input.mediaSourceItem.sourceSequenceItemId],
+          sourceCleanupDecisionIds: ['cleanup-python-media-source'],
+          expectedOutputs: [{
+            outputKey: 'color-delivery-primary-mkv',
+            artifactType: 'controlled_ffmpeg_professional_color_delivery_matroska',
+            assetRole: 'processed', required: true, previewPlaceholderAllowed: false,
+            contentType: 'video/x-matroska', segmentIds: ['segment-1'],
+            timingIds: ['master-timing-plan'], rendererLayerIds: ['color-source-layer-1'],
+          }],
+          dependencyKeys: [], approvedToolIds: ['ffmpeg'],
+          providerExecutionMode: 'none', fallbackPolicy: {},
+          maxAttempts: 2, attemptTimeoutSeconds: 900, scheduledDelaySeconds: 0,
+          maximumCreditBudget: 2, required: true,
+        },
+        {
+          workItemKey: 'color-delivery-secondary',
+          workItemType: 'custom',
+          workerClass: 'color_processing_worker',
+          executionInput: {
+            operation: 'process_approved_source_professional_color_delivery',
+            approvedToolOperationIds: [input.ffmpegOperationId],
+            expectedOutputKeys: ['color-delivery-secondary-mkv'],
+            structuredPayload: {
+              recipeProfileId: 'approved_source_color_match_delivery_matroska_v1',
+              timestampPolicy: 'normalize_from_zero',
+              overwriteExistingArtifact: false,
+              allowUnreviewedCodec: false,
+              trimStartFrame: 0,
+              trimEndFrameExclusive: 24,
+              frameRate: 24,
+              colorGradeStyle: 'premium_clean',
+              intensity: 'balanced',
+              approvedColorOperationIds: [
+                'color-secondary-clarity',
+                'color-secondary-contrast-curve',
+                'color-secondary-exposure-correction',
+                'color-secondary-highlight-recovery',
+                'color-secondary-look-transform',
+                'color-secondary-qa-histogram-check',
+                'color-secondary-shot-matching',
+                'color-secondary-white-balance',
+              ],
+              approvedColorOperationKinds: [
+                'clarity',
+                'contrast_curve',
+                'exposure_correction',
+                'highlight_recovery',
+                'look_transform',
+                'qa_histogram_check',
+                'shot_matching',
+                'white_balance',
+              ],
+              analysisProfileId: 'approved_three_frame_rgb_stats_v1',
+              correctionProfileId: 'bounded_reference_matched_professional_source_color_v1',
+              shotMatchProfileId: 'approved_reference_three_frame_rgb_match_v1',
+              referenceSourceSequenceItemId: input.mediaSourceItem.sourceSequenceItemId,
+              referenceDurationFrames: 24,
+              referenceOutputKey: 'color-delivery-primary-mkv',
+              outputColorSpace: 'bt709',
+              outputPixelFormat: 'yuv420p',
+              preserveAudio: false,
+            },
+          },
+          sourceSequenceItemIds: [input.secondaryMediaSourceItem.sourceSequenceItemId],
+          sourceCleanupDecisionIds: ['cleanup-secondary-media-source'],
+          expectedOutputs: [{
+            outputKey: 'color-delivery-secondary-mkv',
+            artifactType: 'controlled_ffmpeg_professional_color_delivery_matroska',
+            assetRole: 'processed', required: true, previewPlaceholderAllowed: false,
+            contentType: 'video/x-matroska', segmentIds: ['segment-2'],
+            timingIds: ['master-timing-plan'], rendererLayerIds: ['color-source-layer-2'],
+          }],
+          dependencyKeys: ['color-delivery-primary'], approvedToolIds: ['ffmpeg'],
+          providerExecutionMode: 'none', fallbackPolicy: {},
+          maxAttempts: 2, attemptTimeoutSeconds: 900, scheduledDelaySeconds: 0,
+          maximumCreditBudget: 2, required: true,
+        },
+        {
           workItemKey: 'final-qa',
           workItemType: 'run_final_qa',
           workerClass: 'qa_worker',
@@ -5530,6 +5783,8 @@ function createDispatchPlanBody(input: {
               'approved-hard-cut-boundary-1',
               'voice-track-layer-1',
               'voice-track-layer-2',
+              'color-source-layer-1',
+              'color-source-layer-2',
               'libass-caption-overlay-layer-1',
               'libass-caption-overlay-layer-2',
             ],
@@ -5580,6 +5835,7 @@ function createDispatchPlanBody(input: {
               }],
               sourceFit: 'contain', panelBackground: '#000000',
               audioPolicy: 'replace_with_approved_voice_tracks',
+              sourceMediaPolicy: 'approved_professional_color_intermediate_v1',
               voiceTracks: [{
                 sourceSequenceItemId: input.mediaSourceItem.sourceSequenceItemId,
                 outputKey: 'voice-delivery-primary-wav',
@@ -5627,6 +5883,8 @@ function createDispatchPlanBody(input: {
               'approved-hard-cut-boundary-1',
               'voice-track-layer-1',
               'voice-track-layer-2',
+              'color-source-layer-1',
+              'color-source-layer-2',
               'libass-caption-overlay-layer-1',
               'libass-caption-overlay-layer-2',
             ],
@@ -5637,6 +5895,8 @@ function createDispatchPlanBody(input: {
             'libass-caption-overlay-second',
             'voice-delivery-primary',
             'voice-delivery-secondary',
+            'color-delivery-primary',
+            'color-delivery-secondary',
           ],
           approvedToolIds: ['remotion'],
           providerExecutionMode: 'none',

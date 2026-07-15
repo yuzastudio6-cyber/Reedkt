@@ -39,8 +39,12 @@ const approvedColorSourceSchema = z.object({
     'look_transform',
     'qa_histogram_check',
     'saturation',
+    'shot_matching',
     'white_balance',
-  ])).min(6).max(7).refine((value) => new Set(value).size === value.length),
+  ])).min(6).max(8).refine((value) => new Set(value).size === value.length),
+  referenceSourceSequenceItemId: identity.optional(),
+  referenceOutputKey: identity.optional(),
+  referenceDurationFrames: z.number().int().positive().max(240).optional(),
   outputColorSpace: z.literal('bt709'),
   outputPixelFormat: z.literal('yuv420p'),
   colorArtifactId: identity,
@@ -128,6 +132,7 @@ const sourceSequenceFinalCompositionInputsSchema = finalCompositionDependencyInp
   hardCutTransitions: approvedHardCutTransitionsSchema,
   combinedSourceByteLength: z.number().int().positive().max(20 * 1024 * 1024),
   sourceSequenceReadEvidenceHash: sha,
+  colorSources: z.array(approvedColorSourceSchema).min(2).max(8).optional(),
 }).strict()
 
 const singleSourceCaptionTrackFinalCompositionInputsSchema = captionTrackDependencyInputsSchema.extend({
@@ -157,6 +162,7 @@ const sourceSequenceCaptionTrackFinalCompositionInputsSchema = captionTrackDepen
   hardCutTransitions: approvedHardCutTransitionsSchema,
   combinedSourceByteLength: z.number().int().positive().max(20 * 1024 * 1024),
   sourceSequenceReadEvidenceHash: sha,
+  colorSources: z.array(approvedColorSourceSchema).min(2).max(8).optional(),
 }).strict()
 
 export const canonicalPrivateFinalCompositionResponseSchema = z.object({
@@ -283,7 +289,9 @@ export const canonicalPrivateFinalCompositionResponseSchema = z.object({
   }
   const sequenceInputs = 'sources' in value.inputs
   const colorSource = 'colorSource' in value.inputs ? value.inputs.colorSource : undefined
+  const colorSources = 'colorSources' in value.inputs ? value.inputs.colorSources : undefined
   let colorEvidenceValid =
+    !colorSource && !colorSources &&
     !value.tool.approvedColorDependencyRead && !value.tool.approvedColorIntermediateApplied
   if (colorSource && !('sources' in value.inputs)) {
     colorEvidenceValid =
@@ -296,7 +304,47 @@ export const canonicalPrivateFinalCompositionResponseSchema = z.object({
       colorSource.originalSourceEndFrameExclusive === value.inputs.sourceEndFrameExclusive &&
       colorSource.originalSourceEndFrameExclusive - colorSource.originalSourceStartFrame ===
         colorSource.durationFrames &&
-      colorSource.compositionEndFrameExclusive === colorSource.durationFrames
+      colorSource.compositionEndFrameExclusive === colorSource.durationFrames &&
+      colorSource.referenceSourceSequenceItemId === undefined &&
+      colorSource.referenceOutputKey === undefined &&
+      colorSource.referenceDurationFrames === undefined &&
+      !colorSource.approvedColorOperationKinds.includes('shot_matching')
+  }
+  if (colorSources && 'sources' in value.inputs) {
+    const sourceInputs = value.inputs.sources
+    const outputKeys = new Set<string>()
+    colorEvidenceValid =
+      sequenceProfile && replacement &&
+      value.tool.approvedColorDependencyRead &&
+      value.tool.approvedColorIntermediateApplied &&
+      colorSources.length === sourceInputs.length &&
+      colorSources.every((candidate, index) => {
+        const source = sourceInputs[index]!
+        const baseline = colorSources[0]!
+        const referenceFields = [
+          candidate.referenceSourceSequenceItemId,
+          candidate.referenceOutputKey,
+          candidate.referenceDurationFrames,
+        ]
+        const referencesValid = index === 0
+          ? referenceFields.every((entry) => entry === undefined) &&
+            !candidate.approvedColorOperationKinds.includes('shot_matching')
+          : candidate.referenceSourceSequenceItemId === baseline.sourceSequenceItemId &&
+            candidate.referenceOutputKey === baseline.outputKey &&
+            candidate.referenceDurationFrames === baseline.durationFrames &&
+            candidate.approvedColorOperationKinds.includes('shot_matching')
+        const valid = !outputKeys.has(candidate.outputKey) && referencesValid &&
+          candidate.sourceSequenceItemId === source.sourceSequenceItemId &&
+          candidate.sourceCleanupDecisionId === source.sourceCleanupDecisionId &&
+          candidate.originalSourceStartFrame === source.sourceStartFrame &&
+          candidate.originalSourceEndFrameExclusive === source.sourceEndFrameExclusive &&
+          candidate.originalSourceEndFrameExclusive - candidate.originalSourceStartFrame ===
+            candidate.durationFrames &&
+          candidate.compositionStartFrame === 0 &&
+          candidate.compositionEndFrameExclusive === candidate.durationFrames
+        outputKeys.add(candidate.outputKey)
+        return valid
+      })
   }
   if (!colorEvidenceValid) {
     context.addIssue({

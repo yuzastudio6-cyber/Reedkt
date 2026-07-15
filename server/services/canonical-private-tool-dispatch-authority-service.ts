@@ -724,7 +724,7 @@ function resolveAndVerifyCanonicalDispatchBinding(input: {
   const finalCompositionColorSourceCount =
     finalCompositionStructuredPayload?.sourceMediaPolicy ===
       'approved_professional_color_intermediate_v1'
-      ? 1
+      ? workItem.sourceSequenceItemIds.length
       : 0
   const exactPrivateRemotionFinalComposition =
     workItem.workerClass === 'render_worker' && workItem.workItemType === 'render_final_export' &&
@@ -738,8 +738,8 @@ function resolveAndVerifyCanonicalDispatchBinding(input: {
     (finalCompositionVoiceTrackCount === 0 ||
       finalCompositionVoiceTrackCount === workItem.sourceSequenceItemIds.length) &&
     (finalCompositionColorSourceCount === 0 || (
-      workItem.sourceSequenceItemIds.length === 1 &&
-      finalCompositionVoiceTrackCount === 1
+      finalCompositionColorSourceCount === workItem.sourceSequenceItemIds.length &&
+      finalCompositionVoiceTrackCount === workItem.sourceSequenceItemIds.length
     )) &&
     workItem.sourceSequenceItemIds.length >= 1 &&
     workItem.sourceSequenceItemIds.length <= 8 &&

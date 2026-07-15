@@ -316,10 +316,12 @@ function validateRequest(value) {
   if (rawPayload && typeof rawPayload === 'object' && isSourceSequenceProfile(rawPayload.compositionProfileId)) {
     const captionTrack = rawPayload.compositionProfileId === 'approved_source_sequence_caption_track_final_v1'
     const replaceVoice = rawPayload.audioPolicy === 'replace_with_approved_voice_tracks'
+    const sourceMediaPolicyProvided = Object.hasOwn(rawPayload, 'sourceMediaPolicy')
     const payload = exactObject(rawPayload, [
       'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
       'sourceSegments', 'transitionPolicy', 'hardCutTransitions',
       'sourceFit', 'panelBackground', 'audioPolicy',
+      ...(sourceMediaPolicyProvided ? ['sourceMediaPolicy'] : []),
       'captionOverlayPolicy', ...(captionTrack ? ['captionOverlayCues'] : []), 'sources',
       ...(captionTrack
         ? ['captionOverlays']
@@ -331,6 +333,18 @@ function validateRequest(value) {
     const durationFrames = integer(payload.durationFrames, 24, 240, 'durationFrames')
     const fps = oneOf(payload.fps, [24, 30], 'fps')
     const sourceSegments = validateSourceSegments(payload.sourceSegments, durationFrames)
+    const approvedColorIntermediate =
+      payload.sourceMediaPolicy === 'approved_professional_color_intermediate_v1'
+    if (
+      (sourceMediaPolicyProvided && !approvedColorIntermediate) ||
+      (approvedColorIntermediate && (
+        payload.audioPolicy !== 'replace_with_approved_voice_tracks' ||
+        sourceSegments.some((segment) =>
+          segment.sourceStartFrame !== 0 ||
+          segment.sourceEndFrameExclusive !==
+            segment.timelineEndFrameExclusive - segment.timelineStartFrame)
+      ))
+    ) throw new Error('source-sequence color intermediate policy is unsupported')
     const hardCutTransitions = validateApprovedHardCuts(
       payload.hardCutTransitions,
       sourceSegments,
@@ -339,6 +353,7 @@ function validateRequest(value) {
       throw new Error('source-sequence commitments are incomplete')
     }
     let totalSourceBytes = 0
+    const sourceMimeType = approvedColorIntermediate ? 'video/x-matroska' : 'video/mp4'
     const sources = payload.sources.map((candidate, index) => {
       const source = exactObject(candidate, [
         'sourceSequenceItemId', 'sourceMimeType', 'sourceByteLength',
@@ -347,8 +362,10 @@ function validateRequest(value) {
       if (source.sourceSequenceItemId !== sourceSegments[index].sourceSequenceItemId) {
         throw new Error('source commitment order diverges from approved source segments')
       }
-      const bytes = committedBase64(source, 'source', 'video/mp4', 64, 16 * 1024 * 1024)
-      if (bytes.subarray(4, 8).toString('ascii') !== 'ftyp') throw new Error('source MP4 signature is invalid')
+      const bytes = committedBase64(source, 'source', sourceMimeType, 64, 16 * 1024 * 1024)
+      if (!approvedSourceSignature(bytes, sourceMimeType)) {
+        throw new Error('source-sequence dependency signature is invalid')
+      }
       totalSourceBytes += bytes.byteLength
       return { ...source, sourceBytesBase64: bytes.toString('base64') }
     })
@@ -394,6 +411,9 @@ function validateRequest(value) {
         width: integer(payload.width, 360, 720, 'width'), height: integer(payload.height, 360, 720, 'height'),
         fps, durationFrames, sourceSegments,
         transitionPolicy: 'approved_hard_cuts_only', hardCutTransitions, sources,
+        ...(approvedColorIntermediate
+          ? { sourceMediaPolicy: 'approved_professional_color_intermediate_v1' }
+          : {}),
         panelBackground: color(payload.panelBackground, 'panelBackground'),
         ...(captionTrack
           ? { captionOverlayCues, captionOverlays }

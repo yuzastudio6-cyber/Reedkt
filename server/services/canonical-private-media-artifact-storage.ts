@@ -15,15 +15,15 @@ export async function persistCanonicalPrivateMediaArtifact(input: {
   bytes: Buffer
   expectedSha256: string
 }): Promise<void> {
+  const mediaFormat = privateMediaFormat(input.bytes)
   if (
     !SHA.test(input.privateObjectIdentityHash) || !SHA.test(input.expectedSha256) ||
     input.bytes.byteLength < 64 || input.bytes.byteLength > MAXIMUM_BYTES ||
-    sha256(input.bytes) !== input.expectedSha256 ||
-    !input.bytes.subarray(0, 25).toString('ascii').includes('nut/multimedia')
+    sha256(input.bytes) !== input.expectedSha256 || !mediaFormat
   ) throw invalid('Private media intermediate failed its fixed content commitment.')
   await writePrivateFileCreateOnlyWithinRoot({
     rootPath: input.localStorageRoot,
-    relativePath: relativePath(input.privateObjectIdentityHash),
+    relativePath: relativePath(input.privateObjectIdentityHash, mediaFormat),
     content: input.bytes,
   })
   const stored = await readCanonicalPrivateMediaArtifact(input)
@@ -37,20 +37,36 @@ export async function readCanonicalPrivateMediaArtifact(input: {
   privateObjectIdentityHash: string
 }): Promise<{ bytes: Buffer; byteLength: number; sha256: string } | undefined> {
   if (!SHA.test(input.privateObjectIdentityHash)) throw invalid('Private media identity is invalid.')
-  const bytes = await readPrivateFileIfExistsWithinRoot({
-    rootPath: input.localStorageRoot,
-    relativePath: relativePath(input.privateObjectIdentityHash),
-  })
-  if (!bytes) return undefined
+  const candidates = await Promise.all((['nut', 'mkv'] as const).map(async (mediaFormat) => ({
+    mediaFormat,
+    bytes: await readPrivateFileIfExistsWithinRoot({
+      rootPath: input.localStorageRoot,
+      relativePath: relativePath(input.privateObjectIdentityHash, mediaFormat),
+    }),
+  })))
+  const stored = candidates.filter((candidate) => candidate.bytes !== undefined)
+  if (stored.length === 0) return undefined
+  if (stored.length !== 1) {
+    throw invalid('Private media identity resolved to more than one immutable object.')
+  }
+  const bytes = stored[0]!.bytes!
   if (
     bytes.byteLength < 64 || bytes.byteLength > MAXIMUM_BYTES ||
-    !bytes.subarray(0, 25).toString('ascii').includes('nut/multimedia')
+    privateMediaFormat(bytes) !== stored[0]!.mediaFormat
   ) throw invalid('Stored private media intermediate is invalid.')
   return { bytes, byteLength: bytes.byteLength, sha256: sha256(bytes) }
 }
 
-function relativePath(identity: string): string {
-  return `canonical-media-binary-results/private-v1/${identity.slice(0, 2)}/${identity}.nut`
+function relativePath(identity: string, mediaFormat: 'nut' | 'mkv'): string {
+  return `canonical-media-binary-results/private-v1/${identity.slice(0, 2)}/${identity}.${mediaFormat}`
+}
+function privateMediaFormat(bytes: Buffer): 'nut' | 'mkv' | undefined {
+  if (bytes.subarray(0, 25).toString('ascii').includes('nut/multimedia')) return 'nut'
+  if (
+    bytes.byteLength >= 4 && bytes[0] === 0x1a && bytes[1] === 0x45 &&
+    bytes[2] === 0xdf && bytes[3] === 0xa3
+  ) return 'mkv'
+  return undefined
 }
 function sha256(bytes: Buffer): string { return createHash('sha256').update(bytes).digest('hex') }
 function invalid(message: string): ApiError {

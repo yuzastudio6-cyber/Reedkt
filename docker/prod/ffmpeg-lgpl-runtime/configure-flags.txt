@@ -1,4 +1,5 @@
 --prefix=/opt/reeditpro-ffmpeg
+--pkg-config-flags=--static
 --disable-autodetect
 --disable-debug
 --disable-doc
@@ -22,6 +23,7 @@
 --enable-avformat
 --enable-swresample
 --enable-swscale
+--enable-libvpx
 --enable-protocol=file
 --enable-protocol=pipe
 --enable-indev=lavfi
@@ -43,6 +45,7 @@
 --enable-muxer=matroska
 --enable-muxer=null
 --enable-muxer=nut
+--enable-muxer=rawvideo
 --enable-muxer=wav
 --enable-parser=aac
 --enable-parser=av1
@@ -86,6 +89,7 @@
 --enable-decoder=wrapped_avframe
 --enable-encoder=ffv1
 --enable-encoder=flac
+--enable-encoder=libvpx_vp9
 --enable-encoder=pcm_f32be
 --enable-encoder=pcm_f32le
 --enable-encoder=pcm_s16be
@@ -113,6 +117,7 @@
 --enable-filter=blackdetect
 --enable-filter=blurdetect
 --enable-filter=colorbalance
+--enable-filter=colorchannelmixer
 --enable-filter=colorlevels
 --enable-filter=concat
 --enable-filter=crop
@@ -129,6 +134,7 @@
 --enable-filter=scale
 --enable-filter=select
 --enable-filter=setpts
+--enable-filter=setparams
 --enable-filter=showinfo
 --enable-filter=signalstats
 --enable-filter=silencedetect
@@ -138,4 +144,5 @@
 --enable-filter=testsrc2
 --enable-filter=thumbnail
 --enable-filter=trim
+--enable-filter=unsharp
 --enable-filter=volume

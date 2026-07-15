@@ -23,13 +23,13 @@ import type {
   OfflineMediaBinaryImageEvidence,
 } from './offline-media-binary-types'
 
-const IMAGE_TAG = 'reeditpro/ffmpeg-lgpl-internal:8.1.2-local' as const
+const IMAGE_TAG = 'reeditpro/ffmpeg-lgpl-internal:8.1.2-color-v1-local' as const
 const FFPROBE_ENTRYPOINT = '/opt/reeditpro-ffmpeg/bin/ffprobe' as const
 const FFMPEG_ENTRYPOINT = '/opt/reeditpro-ffmpeg/bin/ffmpeg' as const
 const SOURCE_VERSION = '8.1.2' as const
 const SOURCE_SHA256 = '464beb5e7bf0c311e68b45ae2f04e9cc2af88851abb4082231742a74d97b524c' as const
-const STORAGE_ROOT = '/tmp/reeditpro-offline-media-binary-execution' as const
-const AUTHORITY_PATH = 'runtime-authority/offline-media-binary-runtime-v1.json' as const
+const STORAGE_ROOT = '/tmp/reeditpro-offline-media-binary-execution-color-v1' as const
+const AUTHORITY_PATH = 'runtime-authority/offline-media-binary-runtime-color-v1.json' as const
 const TIMEOUT_MS = 30_000
 
 export interface OfflineMediaBinaryRuntimeAuthority {
@@ -214,13 +214,33 @@ async function executeFfmpeg(
   }
   const sourceBytes = Buffer.from(request.payload.sourceBytesBase64, 'base64')
   const voiceDelivery = request.payload.recipeProfileId === 'approved_voice_delivery_wav_v1'
+  const colorDelivery = request.payload.recipeProfileId ===
+    'approved_source_color_delivery_matroska_v1'
   const voiceDeliveryPayload = request.payload.recipeProfileId === 'approved_voice_delivery_wav_v1'
     ? request.payload
     : undefined
+  const colorDeliveryPayload = request.payload.recipeProfileId ===
+    'approved_source_color_delivery_matroska_v1'
+    ? request.payload
+    : undefined
   const trimDurationFrames = request.payload.trimEndFrameExclusive - request.payload.trimStartFrame
+  const sourceColorAnalysis = colorDelivery
+    ? await analyzeVideoColor({
+        image,
+        bytes: sourceBytes,
+        startFrame: request.payload.trimStartFrame,
+        endFrameExclusive: request.payload.trimEndFrameExclusive,
+      })
+    : undefined
+  const colorCorrection = sourceColorAnalysis && colorDeliveryPayload
+    ? deriveColorCorrection(sourceColorAnalysis, colorDeliveryPayload.colorGradeStyle,
+        colorDeliveryPayload.intensity)
+    : undefined
   const command = voiceDelivery
     ? voiceDeliveryCommand(request)
-    : [
+    : colorDelivery && colorCorrection
+      ? colorDeliveryCommand(request, colorCorrection)
+      : [
         '-hide_banner', '-loglevel', 'error', '-nostdin',
         '-i', 'pipe:0', '-map', '0:v:0',
         '-vf', `trim=start_frame=${request.payload.trimStartFrame}:end_frame=${request.payload.trimEndFrameExclusive},setpts=PTS-STARTPTS`,
@@ -237,12 +257,21 @@ async function executeFfmpeg(
       started.exitCode !== 0 || started.stderr.length > 0 || started.stdout.byteLength < 64 ||
       state.Status !== 'exited' || state.Running !== false ||
       state.ExitCode !== started.exitCode || state.OOMKilled !== false
-    ) throw unavailable('Confined FFmpeg operation failed closed.')
-    if (voiceDelivery ? !isPcmWave(started.stdout) :
-      !started.stdout.subarray(0, 25).toString('ascii').includes('nut/multimedia')) {
+    ) throw unavailable(
+      'Confined FFmpeg operation failed closed ' +
+      `(exit=${started.exitCode};stderrBytes=${started.stderr.length};` +
+      `stdoutBytes=${started.stdout.byteLength};state=${String(state.Status)};` +
+      `stateExit=${String(state.ExitCode)};oomKilled=${String(state.OOMKilled)};` +
+      `diagnostic=${safeFfmpegDiagnostic(started.stderr)}).`,
+    )
+    if (voiceDelivery ? !isPcmWave(started.stdout) : colorDelivery
+      ? !isMatroska(started.stdout)
+      : !started.stdout.subarray(0, 25).toString('ascii').includes('nut/multimedia')) {
       throw unavailable(voiceDelivery
         ? 'FFmpeg voice-delivery output is not the fixed PCM WAV artifact.'
-        : 'FFmpeg output is not the fixed NUT intermediate container.')
+        : colorDelivery
+          ? 'FFmpeg professional color output is not the fixed Matroska intermediate container.'
+          : 'FFmpeg output is not the fixed NUT intermediate container.')
     }
     const outputProbe = voiceDelivery
       ? await probeFfmpegVoiceDeliveryOutput(
@@ -255,7 +284,30 @@ async function executeFfmpeg(
           started.stdout,
           trimDurationFrames,
           request.payload.frameRate,
+          colorDelivery,
         )
+    const outputColorAnalysis = colorDelivery
+      ? await analyzeVideoColor({
+          image,
+          bytes: started.stdout,
+          startFrame: 0,
+          endFrameExclusive: trimDurationFrames,
+        })
+      : undefined
+    if (
+      colorDelivery && (
+        !sourceColorAnalysis || !outputColorAnalysis || !colorCorrection ||
+        outputColorAnalysis.sampledFrameCount !== sourceColorAnalysis.sampledFrameCount ||
+        outputColorAnalysis.meanLuma <= 8 || outputColorAnalysis.meanLuma >= 247 ||
+        outputColorAnalysis.blackLumaFraction >= 0.98 ||
+        outputColorAnalysis.whiteLumaFraction >= 0.98 ||
+        started.stdout.equals(sourceBytes)
+      )
+    ) throw unavailable(
+      'FFmpeg professional color output failed bounded pixel QA ' +
+      `(source=${JSON.stringify(sourceColorAnalysis)};` +
+      `output=${JSON.stringify(outputColorAnalysis)}).`,
+    )
     const resultSha256 = sha256(started.stdout)
     const completedAt = new Date().toISOString()
     const attestationWithoutHash = {
@@ -280,7 +332,12 @@ async function executeFfmpeg(
     })
     return {
       resultArtifact: {
-        mimeType: voiceDelivery ? 'audio/wav' : 'video/x-nut', bytes: started.stdout,
+        mimeType: voiceDelivery
+          ? 'audio/wav'
+          : colorDelivery
+            ? 'video/x-matroska'
+            : 'video/x-nut',
+        bytes: started.stdout,
         sha256: resultSha256, byteLength: started.stdout.byteLength,
       },
       evidence: {
@@ -308,7 +365,33 @@ async function executeFfmpeg(
                 truePeakDbtp: voiceDeliveryPayload!.truePeakDbtp,
                 sourceVideoRemoved: true,
               }
-            : {
+            : colorDelivery
+              ? {
+                  outputFrameCount: trimDurationFrames,
+                  outputContainer: 'matroska', outputVideoCodec: 'vp9', audioRemoved: true,
+                  colorGradeStyle: colorDeliveryPayload!.colorGradeStyle,
+                  colorIntensity: colorDeliveryPayload!.intensity,
+                  approvedColorOperationIds:
+                    colorDeliveryPayload!.approvedColorOperationIds,
+                  approvedColorOperationKinds:
+                    colorDeliveryPayload!.approvedColorOperationKinds,
+                  sourcePixelAnalysisExecuted: true,
+                  sourcePixelAnalysis: sourceColorAnalysis,
+                  derivedCorrection: colorCorrection,
+                  outputPixelAnalysisExecuted: true,
+                  outputPixelAnalysis: outputColorAnalysis,
+                  boundedAutoExposureApplied: true,
+                  boundedWhiteBalanceApplied: true,
+                  plannedLookApplied: true,
+                  lgplColorChannelMixerApplied: true,
+                  lgplColorLevelsApplied: true,
+                  lgplClarityFilterApplied: colorCorrection!.clarityApplied,
+                  clippingProtectionVerified: true,
+                  histogramQaPassed: true,
+                  outputColorSpace: 'bt709',
+                  outputPixelFormat: 'yuv420p',
+                }
+              : {
                 outputFrameCount: trimDurationFrames,
                 outputContainer: 'nut', outputVideoCodec: 'ffv1', audioRemoved: true,
               }),
@@ -349,6 +432,247 @@ function voiceDeliveryCommand(request: OfflineFfmpegExecutionRequest): string[] 
     '-ar', '48000', '-ac', '2', '-threads', '1',
     '-c:a', 'pcm_s16le', '-f', 'wav', 'pipe:1',
   ]
+}
+
+type ColorPixelAnalysis = {
+  sampledFrameCount: number
+  sampledPixelCount: number
+  meanRed: number
+  meanGreen: number
+  meanBlue: number
+  meanLuma: number
+  minimumLuma: number
+  maximumLuma: number
+  blackLumaFraction: number
+  whiteLumaFraction: number
+}
+
+type DerivedColorCorrection = {
+  redMultiplier: number
+  greenMultiplier: number
+  blueMultiplier: number
+  contrast: number
+  saturation: number
+  channelSpread: number
+  exposureProtectionFactor: number
+  exposureShift: number
+  inputBlackPoint: number
+  inputWhitePoint: number
+  outputBlackPoint: number
+  outputWhitePoint: number
+  clarityApplied: boolean
+}
+
+async function analyzeVideoColor(input: {
+  image: OfflineMediaBinaryImageEvidence
+  bytes: Buffer
+  startFrame: number
+  endFrameExclusive: number
+}): Promise<ColorPixelAnalysis> {
+  const finalFrame = input.endFrameExclusive - 1
+  const middleFrame = input.startFrame + Math.floor(
+    (input.endFrameExclusive - input.startFrame - 1) / 2,
+  )
+  const selectedFrames = [...new Set([input.startFrame, middleFrame, finalFrame])]
+  const expression = selectedFrames.map((frame) => `eq(n\\,${frame})`).join('+')
+  const command = [
+    '-hide_banner', '-loglevel', 'error', '-nostdin',
+    '-i', 'pipe:0', '-map', '0:v:0',
+    '-vf', `select=${expression},scale=64:64:flags=area,format=rgb24`,
+    '-fps_mode', 'passthrough', '-frames:v', String(selectedFrames.length),
+    '-threads', '1', '-f', 'rawvideo', 'pipe:1',
+  ]
+  const container = await createContainer(input.image, FFMPEG_ENTRYPOINT, command)
+  try {
+    validateConfinement(
+      await inspectContainer(container.id),
+      input.image,
+      FFMPEG_ENTRYPOINT,
+      command,
+    )
+    const result = await dockerBuffer(
+      ['start', '--attach', '--interactive', container.id],
+      input.bytes,
+      256 * 1024,
+    )
+    const expectedBytes = selectedFrames.length * 64 * 64 * 3
+    if (
+      result.exitCode !== 0 || result.stderr.length > 0 ||
+      result.stdout.byteLength !== expectedBytes
+    ) throw unavailable('FFmpeg source color analysis failed closed.')
+    return colorPixelAnalysis(result.stdout, selectedFrames.length)
+  } finally {
+    await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024)
+      .catch(() => undefined)
+  }
+}
+
+function colorPixelAnalysis(bytes: Buffer, sampledFrameCount: number): ColorPixelAnalysis {
+  let red = 0
+  let green = 0
+  let blue = 0
+  let luma = 0
+  let minimumLuma = 255
+  let maximumLuma = 0
+  let blackPixels = 0
+  let whitePixels = 0
+  const pixelCount = bytes.byteLength / 3
+  for (let offset = 0; offset < bytes.byteLength; offset += 3) {
+    const r = bytes[offset]!
+    const g = bytes[offset + 1]!
+    const b = bytes[offset + 2]!
+    const y = 0.2126 * r + 0.7152 * g + 0.0722 * b
+    red += r
+    green += g
+    blue += b
+    luma += y
+    minimumLuma = Math.min(minimumLuma, y)
+    maximumLuma = Math.max(maximumLuma, y)
+    if (y <= 8) blackPixels += 1
+    if (y >= 247) whitePixels += 1
+  }
+  return {
+    sampledFrameCount,
+    sampledPixelCount: pixelCount,
+    meanRed: roundedTo(red / pixelCount, 4),
+    meanGreen: roundedTo(green / pixelCount, 4),
+    meanBlue: roundedTo(blue / pixelCount, 4),
+    meanLuma: roundedTo(luma / pixelCount, 4),
+    minimumLuma: roundedTo(minimumLuma, 4),
+    maximumLuma: roundedTo(maximumLuma, 4),
+    blackLumaFraction: roundedTo(blackPixels / pixelCount, 6),
+    whiteLumaFraction: roundedTo(whitePixels / pixelCount, 6),
+  }
+}
+
+function deriveColorCorrection(
+  analysis: ColorPixelAnalysis,
+  style: 'clean_natural' | 'premium_clean',
+  intensity: 'subtle' | 'balanced',
+): DerivedColorCorrection {
+  const neutralMean = (analysis.meanRed + analysis.meanGreen + analysis.meanBlue) / 3
+  const channelMultiplier = (channel: number) => clamp(
+    neutralMean / Math.max(16, channel),
+    0.94,
+    1.06,
+  )
+  const targetLuma = style === 'premium_clean' ? 132 : 128
+  const intensityOffset = intensity === 'balanced' ? 0.01 : 0
+  const contrast = style === 'premium_clean' ? 1.04 + intensityOffset : 1.025
+  const channelSpread = Math.max(analysis.meanRed, analysis.meanGreen, analysis.meanBlue) -
+    Math.min(analysis.meanRed, analysis.meanGreen, analysis.meanBlue)
+  const exposureProtectionFactor = clamp(1 - channelSpread / 192, 0.1, 1)
+  const exposureShift = clamp((targetLuma - analysis.meanLuma) / 255, -0.06, 0.06) *
+    exposureProtectionFactor
+  const halfInputRange = 0.5 / contrast
+  const baseInputBlackPoint = 0.5 - halfInputRange
+  const baseInputWhitePoint = 0.5 + halfInputRange
+  return {
+    redMultiplier: roundedTo(channelMultiplier(analysis.meanRed), 5),
+    greenMultiplier: roundedTo(channelMultiplier(analysis.meanGreen), 5),
+    blueMultiplier: roundedTo(channelMultiplier(analysis.meanBlue), 5),
+    contrast: roundedTo(contrast, 5),
+    saturation: roundedTo(style === 'premium_clean' ? 1.04 + intensityOffset : 1.02, 5),
+    channelSpread: roundedTo(channelSpread, 4),
+    exposureProtectionFactor: roundedTo(exposureProtectionFactor, 5),
+    exposureShift: roundedTo(exposureShift, 5),
+    inputBlackPoint: roundedTo(clamp(
+      baseInputBlackPoint - exposureShift / 2,
+      0,
+      0.08,
+    ), 5),
+    inputWhitePoint: roundedTo(clamp(
+      baseInputWhitePoint - exposureShift / 2,
+      0.9,
+      1,
+    ), 5),
+    outputBlackPoint: roundedTo(clamp(Math.max(0, exposureShift) * 0.25, 0, 0.02), 5),
+    outputWhitePoint: roundedTo(clamp(
+      (style === 'premium_clean' ? 0.985 : 0.99) + Math.min(0, exposureShift) * 0.25,
+      0.96,
+      0.995,
+    ), 5),
+    clarityApplied: style === 'premium_clean',
+  }
+}
+
+function colorDeliveryCommand(
+  request: OfflineFfmpegExecutionRequest,
+  correction: DerivedColorCorrection,
+): string[] {
+  if (request.payload.recipeProfileId !== 'approved_source_color_delivery_matroska_v1') {
+    throw invalid('Color-delivery command requires its exact approved recipe.')
+  }
+  const saturationMatrix = colorSaturationMatrix(correction.saturation)
+  const filters = [
+    `trim=start_frame=${request.payload.trimStartFrame}:end_frame=${request.payload.trimEndFrameExclusive}`,
+    'setpts=PTS-STARTPTS',
+    `colorchannelmixer=rr=${correction.redMultiplier}:gg=${correction.greenMultiplier}:bb=${correction.blueMultiplier}:pc=lum:pa=0.75`,
+    `colorchannelmixer=${saturationMatrix}`,
+    'colorlevels=' + [
+      `rimin=${correction.inputBlackPoint}`,
+      `gimin=${correction.inputBlackPoint}`,
+      `bimin=${correction.inputBlackPoint}`,
+      `rimax=${correction.inputWhitePoint}`,
+      `gimax=${correction.inputWhitePoint}`,
+      `bimax=${correction.inputWhitePoint}`,
+      `romin=${correction.outputBlackPoint}`,
+      `gomin=${correction.outputBlackPoint}`,
+      `bomin=${correction.outputBlackPoint}`,
+      `romax=${correction.outputWhitePoint}`,
+      `gomax=${correction.outputWhitePoint}`,
+      `bomax=${correction.outputWhitePoint}`,
+      'preserve=lum',
+    ].join(':'),
+    ...(correction.clarityApplied ? ['unsharp=5:5:0.35:3:3:0'] : []),
+    'format=yuv420p',
+    'setparams=range=tv:color_primaries=bt709:color_trc=bt709:colorspace=bt709',
+  ].join(',')
+  return [
+    '-hide_banner', '-loglevel', 'error', '-nostdin',
+    '-i', 'pipe:0', '-map', '0:v:0', '-vf', filters,
+    '-an', '-threads', '1', '-c:v', 'libvpx-vp9',
+    '-lossless', '1', '-deadline', 'good', '-cpu-used', '2',
+    '-row-mt', '0', '-auto-alt-ref', '0', '-lag-in-frames', '0',
+    '-pix_fmt', 'yuv420p',
+    '-color_primaries', 'bt709', '-color_trc', 'bt709',
+    '-colorspace', 'bt709', '-color_range', 'tv',
+    '-fflags', '+bitexact', '-flags:v', '+bitexact', '-map_metadata', '-1',
+    '-metadata', 'creation_time=1970-01-01T00:00:00Z',
+    '-f', 'matroska', 'pipe:1',
+  ]
+}
+
+function isMatroska(bytes: Buffer): boolean {
+  return bytes.byteLength >= 4 &&
+    bytes[0] === 0x1a && bytes[1] === 0x45 && bytes[2] === 0xdf && bytes[3] === 0xa3
+}
+
+function safeFfmpegDiagnostic(stderr: Buffer): string {
+  const normalized = stderr.toString('utf8')
+    .replace(/0x[0-9a-f]+/gi, '0x[redacted]')
+    .replace(/[^\x20-\x7e]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+  return JSON.stringify(normalized.slice(0, 600))
+}
+
+function colorSaturationMatrix(saturation: number): string {
+  const inverse = 1 - saturation
+  const red = 0.2126 * inverse
+  const green = 0.7152 * inverse
+  const blue = 0.0722 * inverse
+  return [
+    `rr=${roundedTo(red + saturation, 6)}`,
+    `rg=${roundedTo(green, 6)}`,
+    `rb=${roundedTo(blue, 6)}`,
+    `gr=${roundedTo(red, 6)}`,
+    `gg=${roundedTo(green + saturation, 6)}`,
+    `gb=${roundedTo(blue, 6)}`,
+    `br=${roundedTo(red, 6)}`,
+    `bg=${roundedTo(green, 6)}`,
+    `bb=${roundedTo(blue + saturation, 6)}`,
+  ].join(':')
 }
 
 function isPcmWave(bytes: Buffer): boolean {
@@ -394,10 +718,11 @@ async function probeFfmpegOutput(
   bytes: Buffer,
   expectedFrameCount: number,
   expectedFrameRate: number,
+  expectProfessionalColor = false,
 ): Promise<Record<string, unknown>> {
   const command = [
     '-v', 'error', '-count_frames', '-show_entries',
-    'format=format_name,duration,size:stream=codec_name,codec_type,width,height,avg_frame_rate,nb_read_frames',
+    'format=format_name,duration,size:stream=codec_name,codec_type,width,height,avg_frame_rate,nb_read_frames,pix_fmt,color_space,color_transfer,color_primaries,color_range',
     '-print_format', 'json', '-i', 'pipe:0',
   ]
   const container = await createContainer(image, FFPROBE_ENTRYPOINT, command)
@@ -410,19 +735,39 @@ async function probeFfmpegOutput(
     const streams = Array.isArray(parsed.streams) ? parsed.streams.map(record) : []
     const video = streams.find((stream) => stream.codec_type === 'video')
     if (
-      !video || video.codec_name !== 'ffv1' || !String(format.format_name ?? '').includes('nut') ||
+      !video || video.codec_name !== (expectProfessionalColor ? 'vp9' : 'ffv1') ||
+      !String(format.format_name ?? '').includes(
+        expectProfessionalColor ? 'matroska' : 'nut',
+      ) ||
       optionalInteger(video.nb_read_frames) !== expectedFrameCount ||
-      rational(video.avg_frame_rate) !== expectedFrameRate
+      rational(video.avg_frame_rate) !== expectedFrameRate ||
+      (expectProfessionalColor && (
+        video.pix_fmt !== 'yuv420p' || video.color_space !== 'bt709' ||
+        video.color_transfer !== 'bt709' || video.color_primaries !== 'bt709'
+      ))
     ) throw unavailable('FFmpeg intermediate output failed codec, container, frame-count, or rate verification.')
     return {
-      container: 'nut', videoCodec: 'ffv1', frameCount: expectedFrameCount,
+      container: expectProfessionalColor ? 'matroska' : 'nut',
+      videoCodec: expectProfessionalColor ? 'vp9' : 'ffv1',
+      frameCount: expectedFrameCount,
       frameRate: expectedFrameRate,
       width: optionalInteger(video.width), height: optionalInteger(video.height),
+      pixelFormat: safeText(video.pix_fmt), colorSpace: safeText(video.color_space),
+      colorTransfer: safeText(video.color_transfer),
+      colorPrimaries: safeText(video.color_primaries), colorRange: safeText(video.color_range),
       durationSeconds: optionalNumber(format.duration), sizeBytes: optionalInteger(format.size),
     }
   } finally {
     await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024).catch(() => undefined)
   }
+}
+
+function clamp(value: number, minimum: number, maximum: number): number {
+  return Math.min(maximum, Math.max(minimum, value))
+}
+
+function roundedTo(value: number, digits: number): number {
+  return Number(value.toFixed(digits))
 }
 
 async function probeFfmpegVoiceDeliveryOutput(

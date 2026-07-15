@@ -372,10 +372,14 @@ function validateByRunnerFamily(
       const voiceTrackCount = payload.audioPolicy === 'replace_with_approved_voice_tracks'
         ? (payload.voiceTracks?.length ?? 0)
         : 0
+      const colorSourceCount = 'sourceMediaPolicy' in payload &&
+        payload.sourceMediaPolicy === 'approved_professional_color_intermediate_v1'
+        ? 1
+        : 0
       requireBinding(workItem, {
         source: sourceCount,
         cleanup: sourceCount,
-        dependencies: 1 + captionCount + voiceTrackCount,
+        dependencies: 1 + captionCount + voiceTrackCount + colorSourceCount,
       })
       return 'remotion_final_composition'
     }

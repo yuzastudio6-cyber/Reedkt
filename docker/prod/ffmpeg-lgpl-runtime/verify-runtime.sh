@@ -51,7 +51,7 @@ actual_demuxers=$(mktemp)
 actual_muxers=$(mktemp)
 actual_protocols=$(mktemp)
 actual_bsfs=$(mktemp)
-trap 'rm -f "$actual_encoders" "$actual_decoders" "$actual_filters" "$actual_demuxers" "$actual_muxers" "$actual_protocols" "$actual_bsfs" /tmp/reeditpro-intermediate.nut /tmp/reeditpro-frame.ppm /tmp/reeditpro-probe.json' EXIT HUP INT TERM
+trap 'rm -f "$actual_encoders" "$actual_decoders" "$actual_filters" "$actual_demuxers" "$actual_muxers" "$actual_protocols" "$actual_bsfs" /tmp/reeditpro-intermediate.nut /tmp/reeditpro-color.mkv /tmp/reeditpro-frame.ppm /tmp/reeditpro-probe.json /tmp/reeditpro-color-probe.json' EXIT HUP INT TERM
 
 $FFMPEG -hide_banner -encoders 2>/dev/null \
   | awk 'length($1) == 6 && substr($1, 1, 1) ~ /^[VAS]$/ && $2 != "=" { print $2 }' \
@@ -136,6 +136,26 @@ grep -F 'pcm_s16le' /tmp/reeditpro-probe.json >/dev/null || fail 'PCM intermedia
 
 $FFMPEG -hide_banner -loglevel error \
   -i /tmp/reeditpro-intermediate.nut \
+  -map 0:v:0 -an \
+  -filter:v 'colorchannelmixer=rr=1.01:gg=1:bb=0.99:pc=lum:pa=0.75,colorchannelmixer=rr=1.01575:rg=-0.0143:rb=-0.00145:gr=-0.00425:gg=1.0057:gb=-0.00145:br=-0.00425:bg=-0.0143:bb=1.01855,colorlevels=rimin=0.01:gimin=0.01:bimin=0.01:rimax=0.99:gimax=0.99:bimax=0.99:romax=0.985:gomax=0.985:bomax=0.985:preserve=lum,unsharp=5:5:0.20:3:3:0,format=yuv420p,setparams=range=tv:color_primaries=bt709:color_trc=bt709:colorspace=bt709' \
+  -threads 1 -c:v libvpx-vp9 -lossless 1 -deadline good -cpu-used 2 \
+  -row-mt 0 -auto-alt-ref 0 -lag-in-frames 0 -pix_fmt yuv420p \
+  -color_primaries bt709 -color_trc bt709 -colorspace bt709 -color_range tv \
+  -f matroska -y /tmp/reeditpro-color.mkv
+
+$FFPROBE -hide_banner -v error \
+  -show_entries 'format=format_name:stream=codec_name,codec_type,pix_fmt,color_space,color_transfer,color_primaries' \
+  -of json /tmp/reeditpro-color.mkv \
+  > /tmp/reeditpro-color-probe.json
+grep -F '"pix_fmt": "yuv420p"' /tmp/reeditpro-color-probe.json >/dev/null \
+  || fail 'reviewed professional color chain did not preserve yuv420p'
+grep -F '"codec_name": "vp9"' /tmp/reeditpro-color-probe.json >/dev/null \
+  || fail 'reviewed professional color chain did not produce the lossless VP9 intermediate'
+grep -F '"color_space": "bt709"' /tmp/reeditpro-color-probe.json >/dev/null \
+  || fail 'reviewed professional color chain did not set BT.709 metadata'
+
+$FFMPEG -hide_banner -loglevel error \
+  -i /tmp/reeditpro-intermediate.nut \
   -map 0:v:0 -frames:v 1 -c:v ppm -f image2 -y /tmp/reeditpro-frame.ppm
 [ -s /tmp/reeditpro-frame.ppm ] || fail 'reviewed frame extraction did not produce output'
 
@@ -146,4 +166,4 @@ $FFMPEG -hide_banner -loglevel error \
   -c:v wrapped_avframe -c:a pcm_s16le \
   -f null -
 
-printf '%s\n' '{"ok":true,"productReady":false,"finalExportAllowed":false,"h264Encoding":"blocked_not_compiled","runtimeUser":"65532:65532","network":"none","rootFilesystem":"read_only","componentSets":"exact_allowlists_verified","protocols":["file","pipe"],"intermediateVideoEncoder":"ffv1","intermediateAudioEncoder":"pcm_s16le"}'
+printf '%s\n' '{"ok":true,"productReady":false,"finalExportAllowed":false,"h264Encoding":"blocked_not_compiled","runtimeUser":"65532:65532","network":"none","rootFilesystem":"read_only","componentSets":"exact_allowlists_verified","protocols":["file","pipe"],"generalIntermediateVideoEncoder":"ffv1","professionalColorIntermediateVideoEncoder":"libvpx-vp9-lossless","intermediateAudioEncoder":"pcm_s16le"}'

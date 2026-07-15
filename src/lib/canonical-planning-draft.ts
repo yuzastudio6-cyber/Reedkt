@@ -1,11 +1,13 @@
 import type { ApprovedEditExecutionUploadedMediaSourceAssetClientInput } from './approved-edit-execution-package-client'
 import type {
   AspectRatio,
+  ColorOperationId,
   EditPlan,
   PlannerInput,
   TrimDecisionItem,
 } from '../types/reeditpro'
 import type { ProfessionalExportCreditCoverage } from '../types/professional-export'
+import { buildProfessionalExportCreditCoverage } from './professional-export-policy'
 
 export const CANONICAL_PRIVATE_PLAN_SCHEMA_VERSION = 'private-edit-authority-plan-v1' as const
 
@@ -15,7 +17,7 @@ const LIBASS_OPERATION = 'tool.libass.render_approved_caption_track.v1'
 const REMOTION_OPERATION = 'tool.remotion.render_approved_composition.v1'
 const SAFE_KEY = /^[A-Za-z0-9][A-Za-z0-9._:-]*$/
 const SHA256 = /^[a-f0-9]{64}$/
-const SUPPORTED_PRIVATE_REVIEW_FRAMES = new Set(['405x720', '720x405'])
+const SUPPORTED_PRIVATE_REVIEW_FRAMES = new Set(['360x640', '640x360'])
 const FORBIDDEN_OUTBOUND_KEY = /^(?:secret|credential|accessToken|refreshToken|signedUrl|publicUrl|storagePath|localPath|absolutePath|relativePath|sourceBytes|bytesBase64|requestBody)$/i
 
 type JsonRecord = Record<string, unknown>
@@ -27,6 +29,30 @@ type ApprovedVoiceDeliverySource = {
   trimEndFrameExclusive: number
   durationFrames: number
 }
+
+type ApprovedColorDeliverySource = {
+  sourceSequenceItemId: string
+  cleanupDecisionId: string
+  trimStartFrame: number
+  trimEndFrameExclusive: number
+  durationFrames: number
+  colorGradeStyle: 'clean_natural' | 'premium_clean'
+  intensity: 'subtle' | 'balanced'
+  approvedColorOperationIds: string[]
+  approvedColorOperationKinds: ApprovedColorOperationKind[]
+}
+
+type ApprovedColorOperationKind = Extract<
+  ColorOperationId,
+  | 'clarity'
+  | 'contrast_curve'
+  | 'exposure_correction'
+  | 'highlight_recovery'
+  | 'look_transform'
+  | 'qa_histogram_check'
+  | 'saturation'
+  | 'white_balance'
+>
 
 type ApprovedHardCutTransition = {
   transitionTimingItemId: string
@@ -91,6 +117,7 @@ export type CanonicalPlanComponentsDraft = {
     operationIds: string[]
   }>
   visualAssetPlan: JsonRecord
+  colorPipelinePlan: JsonRecord
   rendererPlan: JsonRecord
   toolStrategyPlan: JsonRecord
   qaPlan: JsonRecord
@@ -230,6 +257,26 @@ export function buildCanonicalPlanningDraft(input: {
   if (!Number.isInteger(totalFrames) || totalFrames <= 0 || !Number.isFinite(fps) || fps <= 0) {
     return { ok: false, errors: ['The approved timing base is not frame-safe.'] }
   }
+  const expectedExportCoverage = buildProfessionalExportCreditCoverage({
+    durationSeconds: totalFrames / fps,
+    outputFps: fps,
+    approvedAspectRatio: professionalExportCoverage.approvedAspectRatio!,
+  })
+  if (
+    professionalExportCoverage.outputFps !== expectedExportCoverage.outputFps ||
+    professionalExportCoverage.durationSeconds !== expectedExportCoverage.durationSeconds ||
+    professionalExportCoverage.megapixelFrames !== expectedExportCoverage.megapixelFrames ||
+    professionalExportCoverage.lowInternalToolCostCredits !== expectedExportCoverage.lowInternalToolCostCredits ||
+    professionalExportCoverage.expectedInternalToolCostCredits !== expectedExportCoverage.expectedInternalToolCostCredits ||
+    professionalExportCoverage.maximumInternalToolCostCredits !== expectedExportCoverage.maximumInternalToolCostCredits ||
+    JSON.stringify(professionalExportCoverage.approvedFrames) !==
+      JSON.stringify(expectedExportCoverage.approvedFrames)
+  ) {
+    return {
+      ok: false,
+      errors: ['The mandatory 4K UHD estimate is stale for the approved duration, FPS, or output frame.'],
+    }
+  }
 
   const cleanup = buildCleanupDecisions({
     plan,
@@ -243,6 +290,12 @@ export function buildCanonicalPlanningDraft(input: {
   const segments = buildSegments(plan, totalFrames)
   if (!segments.ok) return segments
   const approvedVoiceDeliverySources = buildApprovedVoiceDeliverySources({
+    plan,
+    plannerInput,
+    sourceItems: orderedSourceItems,
+    cleanupDecisions: cleanup.decisions,
+  })
+  const approvedColorDeliverySources = buildApprovedColorDeliverySources({
     plan,
     plannerInput,
     sourceItems: orderedSourceItems,
@@ -270,18 +323,18 @@ export function buildCanonicalPlanningDraft(input: {
     : undefined
   const toolStrategy = {
     schemaVersion: 'canonical-browser-tool-strategy-projection-v1',
-    toolIds: [
+    toolIds: unique([
       'libass',
-      ...(approvedVoiceDeliverySources ? ['ffmpeg'] : []),
+      ...(approvedVoiceDeliverySources || approvedColorDeliverySources ? ['ffmpeg'] : []),
       'remotion',
       'ffprobe',
-    ],
-    exactOperationIds: [
+    ]),
+    exactOperationIds: unique([
       LIBASS_OPERATION,
-      ...(approvedVoiceDeliverySources ? [FFMPEG_OPERATION] : []),
+      ...(approvedVoiceDeliverySources || approvedColorDeliverySources ? [FFMPEG_OPERATION] : []),
       REMOTION_OPERATION,
       FFPROBE_OPERATION,
-    ],
+    ]),
     plannedStrategy: toJsonRecord(plan.toolStrategyPlan, { status: 'not_provided' }),
     frontendExecutionAllowed: false,
   }
@@ -322,6 +375,7 @@ export function buildCanonicalPlanningDraft(input: {
       assets: toJsonValue(plan.visualAssetPlan ?? []),
       randomBrollAllowed: false,
     },
+    colorPipelinePlan: toJsonRecord(plan.colorPipelinePlan, { status: 'not_provided' }),
     rendererPlan: {
       renderer: 'remotion',
       frameOwnedByRenderer: true,
@@ -358,6 +412,7 @@ export function buildCanonicalPlanningDraft(input: {
     cleanupDecisions: cleanup.decisions,
     segments: segments.segments,
     approvedVoiceDeliverySources,
+    approvedColorDeliverySources,
     approvedHardCutTransitions,
   })
   const canonicalEstimate = buildEstimate(plan)
@@ -374,6 +429,7 @@ export function buildCanonicalPlanningDraft(input: {
           fps: fps as 24 | 30,
           totalFrames,
           approvedVoiceDeliverySources,
+          approvedColorDeliverySources,
           approvedHardCutTransitions: approvedHardCutTransitions ?? [],
         }),
         planningRequestIdSeed: safeKey(plan.planningInputTrace?.fingerprint ?? plan.planningContextTrace?.planningContextId ?? 'named-edit-plan', 'named-edit-plan'),
@@ -523,6 +579,7 @@ function privateReviewPublicationBlockers(input: {
   cleanupDecisions: CanonicalSourceCleanupDecisionDraft[]
   segments: CanonicalPlanComponentsDraft['segments']
   approvedVoiceDeliverySources: ApprovedVoiceDeliverySource[] | null
+  approvedColorDeliverySources: ApprovedColorDeliverySource[] | null
   approvedHardCutTransitions: ApprovedHardCutTransition[] | null
 }): string[] {
   const blockers: string[] = []
@@ -594,8 +651,16 @@ function privateReviewPublicationBlockers(input: {
   if ((input.plan.masterTimingPlan?.providerClipTimingItems.length ?? 0) > 0) blockers.push('Provider clips need their own canonical execution work items.')
   if (hasUnrepresentedSegmentOperations(input.plan, {
     audioCleanupRepresented: Boolean(input.approvedVoiceDeliverySources),
+    colorWorkRepresented: Boolean(input.approvedColorDeliverySources),
   })) blockers.push('The planned edit includes operations outside the current source-and-caption private review runner.')
-  if (hasUnrepresentedColorWork(input.plan)) blockers.push('The planned color work needs exact canonical processing work items.')
+  if (hasUnrepresentedColorWork(input.plan, input.approvedColorDeliverySources)) {
+    blockers.push('The planned color work needs exact canonical processing work items.')
+  }
+  if (input.approvedColorDeliverySources && !input.approvedVoiceDeliverySources) {
+    blockers.push(
+      'The source-color intermediate removes source audio and requires exact approved voice delivery before composition.',
+    )
+  }
   if (hasPlannedAudioWork(input.plan) && !input.approvedVoiceDeliverySources) {
     blockers.push(
       'The planned audio work exceeds the exact source-bound voice delivery recipe and needs additional canonical work items.',
@@ -614,6 +679,7 @@ function buildPrivateReviewCanonicalPlan(input: {
   fps: 24 | 30
   totalFrames: number
   approvedVoiceDeliverySources: ApprovedVoiceDeliverySource[] | null
+  approvedColorDeliverySources: ApprovedColorDeliverySource[] | null
   approvedHardCutTransitions: ApprovedHardCutTransition[]
 }): CanonicalPlanDraft {
   const segmentIds = input.components.segments.map((segment) => segment.segmentId)
@@ -627,6 +693,7 @@ function buildPrivateReviewCanonicalPlan(input: {
       estimate.fallbackAllowanceCredits,
     captionCues.length,
     input.approvedVoiceDeliverySources?.length ?? 0,
+    input.approvedColorDeliverySources?.length ?? 0,
   )
   const sourceIds = input.sourceItems.map((source) => source.sourceSequenceItemId)
   const cleanupIds = input.cleanupDecisions.map((decision) => decision.decisionId)
@@ -637,9 +704,13 @@ function buildPrivateReviewCanonicalPlan(input: {
   const sourceSequenceComposition = sourceTimeline.length > 1
   const captionTrackComposition = captionCues.length > 1
   const voiceDeliverySources = input.approvedVoiceDeliverySources ?? []
+  const colorDeliverySources = input.approvedColorDeliverySources ?? []
   const replaceSourceAudio = voiceDeliverySources.length > 0
   if (replaceSourceAudio && voiceDeliverySources.length !== sourceTimeline.length) {
     throw new Error('Canonical voice delivery lost its one-to-one approved source binding.')
+  }
+  if (colorDeliverySources.length > 0 && colorDeliverySources.length !== sourceTimeline.length) {
+    throw new Error('Canonical color delivery lost its one-to-one approved source binding.')
   }
   if (
     sourceSequenceComposition &&
@@ -799,7 +870,77 @@ function buildPrivateReviewCanonicalPlan(input: {
     outputKey: item.expectedOutputs[0]!.outputKey,
     durationFrames: voiceDeliverySources[index]!.durationFrames,
   }))
-  const finalBudgetIndex = 2 + captionCues.length + voiceWorkItems.length
+  const colorWorkItems = colorDeliverySources.map((source, index): CanonicalWorkItemDraft => {
+    const ordinal = index + 1
+    const workItemKey = `color-delivery-${ordinal}`
+    const outputKey = `color-delivery-${ordinal}-mkv`
+    const segmentId = input.components.segments[index]!.segmentId
+    const rendererLayerId = `color-source-layer-${ordinal}`
+    return {
+      workItemKey,
+      workItemType: 'custom',
+      workerClass: 'color_processing_worker',
+      executionInput: {
+        operation: 'process_approved_source_professional_color_delivery',
+        approvedToolOperationIds: [FFMPEG_OPERATION],
+        expectedOutputKeys: [outputKey],
+        structuredPayload: {
+          recipeProfileId: 'approved_source_color_delivery_matroska_v1',
+          timestampPolicy: 'normalize_from_zero',
+          overwriteExistingArtifact: false,
+          allowUnreviewedCodec: false,
+          trimStartFrame: source.trimStartFrame,
+          trimEndFrameExclusive: source.trimEndFrameExclusive,
+          frameRate: input.fps,
+          colorGradeStyle: source.colorGradeStyle,
+          intensity: source.intensity,
+          approvedColorOperationIds: source.approvedColorOperationIds,
+          approvedColorOperationKinds: source.approvedColorOperationKinds,
+          analysisProfileId: 'approved_three_frame_rgb_stats_v1',
+          correctionProfileId: 'bounded_professional_source_color_v1',
+          outputColorSpace: 'bt709',
+          outputPixelFormat: 'yuv420p',
+          preserveAudio: false,
+        },
+      },
+      sourceSequenceItemIds: [source.sourceSequenceItemId],
+      sourceCleanupDecisionIds: [source.cleanupDecisionId],
+      expectedOutputs: [output(
+        outputKey,
+        'controlled_ffmpeg_professional_color_delivery_matroska',
+        'processed',
+        'video/x-matroska',
+        {
+          segmentIds: [segmentId],
+          timingIds: [timingId],
+          rendererLayerIds: [rendererLayerId],
+        },
+      )],
+      dependencyKeys: [],
+      approvedToolIds: ['ffmpeg'],
+      providerExecutionMode: 'none',
+      fallbackPolicy: {},
+      maxAttempts: 2,
+      attemptTimeoutSeconds: 900,
+      scheduledDelaySeconds: 0,
+      maximumCreditBudget: budgets[
+        2 + captionCues.length + voiceWorkItems.length + index
+      ]!,
+      required: true,
+    }
+  })
+  const colorDependencyKeys = colorWorkItems.map((item) => item.workItemKey)
+  const colorRendererLayerIds = colorWorkItems.flatMap((item) =>
+    item.expectedOutputs[0]!.rendererLayerIds)
+  const compositionSourceTimeline = colorWorkItems.length > 0
+    ? sourceTimeline.map((segment, index) => ({
+        ...segment,
+        sourceStartFrame: 0,
+        sourceEndFrameExclusive: colorDeliverySources[index]!.durationFrames,
+      }))
+    : sourceTimeline
+  const finalBudgetIndex = 2 + captionCues.length + voiceWorkItems.length +
+    colorWorkItems.length
   const finalArtifactType = sourceSequenceComposition
     ? captionTrackComposition
       ? 'private_source_sequence_caption_track_final_video_export'
@@ -836,6 +977,7 @@ function buildPrivateReviewCanonicalPlan(input: {
       },
       ...captionWorkItems,
       ...voiceWorkItems,
+      ...colorWorkItems,
       {
         workItemKey: 'final-export', workItemType: 'render_final_export', workerClass: 'render_worker',
         executionInput: {
@@ -853,7 +995,7 @@ function buildPrivateReviewCanonicalPlan(input: {
                   compositionProfileId: captionTrackComposition
                     ? 'approved_source_sequence_caption_track_final_v1'
                     : 'approved_source_sequence_caption_final_v1',
-                  sourceSegments: sourceTimeline,
+                  sourceSegments: compositionSourceTimeline,
                   transitionPolicy: 'approved_hard_cuts_only',
                   hardCutTransitions: input.approvedHardCutTransitions,
                   audioPolicy: replaceSourceAudio
@@ -864,8 +1006,12 @@ function buildPrivateReviewCanonicalPlan(input: {
                   compositionProfileId: captionTrackComposition
                     ? 'approved_source_caption_track_final_v1'
                     : 'approved_source_caption_final_v1',
-                  sourceStartFrame: input.cleanupDecisions[0]!.startFrame,
-                  sourceEndFrameExclusive: input.cleanupDecisions[0]!.endFrameExclusive,
+                  sourceStartFrame: colorWorkItems.length > 0
+                    ? 0
+                    : input.cleanupDecisions[0]!.startFrame,
+                  sourceEndFrameExclusive: colorWorkItems.length > 0
+                    ? colorDeliverySources[0]!.durationFrames
+                    : input.cleanupDecisions[0]!.endFrameExclusive,
                   audioPolicy: replaceSourceAudio
                     ? 'replace_with_approved_voice_tracks'
                     : 'preserve_source',
@@ -876,6 +1022,9 @@ function buildPrivateReviewCanonicalPlan(input: {
             captionOverlayPolicy: captionTrackComposition
               ? 'approved_timed_full_frame_rgba_track'
               : 'approved_full_frame_rgba',
+            ...(colorWorkItems.length > 0
+              ? { sourceMediaPolicy: 'approved_professional_color_intermediate_v1' }
+              : {}),
             ...(captionTrackComposition
               ? {
                   captionOverlayCues: captionCues.map((cue, index) => ({
@@ -900,6 +1049,7 @@ function buildPrivateReviewCanonicalPlan(input: {
             rendererLayerIds: [
               'source-video-layer',
               ...transitionRendererLayerIds,
+              ...colorRendererLayerIds,
               ...voiceRendererLayerIds,
               ...captionRendererLayerIds,
             ],
@@ -909,6 +1059,7 @@ function buildPrivateReviewCanonicalPlan(input: {
           'source-trim-validation',
           ...captionDependencyKeys,
           ...voiceDependencyKeys,
+          ...colorDependencyKeys,
         ], approvedToolIds: ['remotion'], providerExecutionMode: 'none', fallbackPolicy: {}, maxAttempts: 2,
         attemptTimeoutSeconds: 1_800, scheduledDelaySeconds: 0, maximumCreditBudget: budgets[finalBudgetIndex]!, required: true,
       },
@@ -932,6 +1083,7 @@ function buildPrivateReviewCanonicalPlan(input: {
             rendererLayerIds: [
               'source-video-layer',
               ...transitionRendererLayerIds,
+              ...colorRendererLayerIds,
               ...voiceRendererLayerIds,
               ...captionRendererLayerIds,
             ],
@@ -1020,12 +1172,14 @@ function fitBudgets(
   maximumCredits: number,
   captionCueCount: number,
   voiceTrackCount: number,
+  colorSourceCount: number,
 ): number[] {
   const defaults = [
     1,
     3,
     ...Array.from({ length: captionCueCount }, () => 1),
     ...Array.from({ length: voiceTrackCount }, () => 2),
+    ...Array.from({ length: colorSourceCount }, () => 2),
     4,
     2,
   ]
@@ -1094,11 +1248,11 @@ function canonicalCleanupAction(value: TrimDecisionItem['decision'] | undefined)
 }
 
 function privatePlanningFrame(aspectRatio: AspectRatio): { width: number; height: number } {
-  if (aspectRatio === '16:9') return { width: 720, height: 405 }
+  if (aspectRatio === '16:9') return { width: 640, height: 360 }
   if (aspectRatio === '1:1') return { width: 480, height: 480 }
   if (aspectRatio === '4:5') return { width: 480, height: 600 }
   if (aspectRatio === '4:3') return { width: 640, height: 480 }
-  return { width: 405, height: 720 }
+  return { width: 360, height: 640 }
 }
 
 function validatedCaption(value: string | undefined): string | null {
@@ -1219,7 +1373,7 @@ function buildApprovedHardCutTransitions(input: {
 
 function hasUnrepresentedSegmentOperations(
   plan: EditPlan,
-  represented: { audioCleanupRepresented: boolean },
+  represented: { audioCleanupRepresented: boolean; colorWorkRepresented: boolean },
 ): boolean {
   const supported = new Set([
     'trim',
@@ -1231,17 +1385,108 @@ function hasUnrepresentedSegmentOperations(
     'qa_check',
   ])
   if (represented.audioCleanupRepresented) supported.add('audio_cleanup')
+  if (represented.colorWorkRepresented) supported.add('color_grade')
   return (plan.segmentEditPlans ?? []).some((segment) =>
     segment.operations.some((operation) => !supported.has(operation.operationType)))
 }
 
-function hasUnrepresentedColorWork(plan: EditPlan): boolean {
+function hasUnrepresentedColorWork(
+  plan: EditPlan,
+  approvedColorDeliverySources: ApprovedColorDeliverySource[] | null,
+): boolean {
   const color = plan.colorPipelinePlan
-  return Boolean(color && (
+  const hasWork = Boolean(color && (
     color.projectOperations.length > 0 ||
     color.clipPlans.some((clip) => clip.correctionOperations.length > 0 || clip.lookOperations.length > 0) ||
     color.assetMatchPlans.some((asset) => asset.operations.length > 0)
   ))
+  return hasWork && !approvedColorDeliverySources
+}
+
+const APPROVED_COLOR_OPERATION_KINDS: Readonly<Record<
+  ApprovedColorDeliverySource['colorGradeStyle'],
+  ApprovedColorOperationKind[]
+>> = {
+  clean_natural: [
+    'contrast_curve',
+    'exposure_correction',
+    'highlight_recovery',
+    'qa_histogram_check',
+    'saturation',
+    'white_balance',
+  ],
+  premium_clean: [
+    'clarity',
+    'contrast_curve',
+    'exposure_correction',
+    'highlight_recovery',
+    'look_transform',
+    'qa_histogram_check',
+    'white_balance',
+  ],
+}
+
+function buildApprovedColorDeliverySources(input: {
+  plan: EditPlan
+  plannerInput: PlannerInput
+  sourceItems: CanonicalSourceAuthorityItem[]
+  cleanupDecisions: CanonicalSourceCleanupDecisionDraft[]
+}): ApprovedColorDeliverySource[] | null {
+  const color = input.plan.colorPipelinePlan
+  if (!color) return null
+  if (
+    input.plannerInput.editLevel === 'premium' ||
+    input.plannerInput.clips.length !== 1 || input.sourceItems.length !== 1 ||
+    input.cleanupDecisions.length !== 1 || color.clipPlans.length !== 1 ||
+    color.assetMatchPlans.length !== 0 || color.status !== 'planned' ||
+    (color.colorGradeStyle !== 'clean_natural' && color.colorGradeStyle !== 'premium_clean') ||
+    (color.intensity !== 'subtle' && color.intensity !== 'balanced') ||
+    !color.toolsPlanned.includes('ffmpeg') ||
+    color.toolsPlanned.some((toolId) =>
+      !['planning_only', 'remotion_preview', 'ffmpeg'].includes(toolId)) ||
+    color.stages.includes('shot_matching')
+  ) return null
+
+  const sourceItem = input.sourceItems[0]!
+  const cleanup = input.cleanupDecisions[0]!
+  const clipPlan = color.clipPlans[0]!
+  const expectedKinds = APPROVED_COLOR_OPERATION_KINDS[color.colorGradeStyle]
+  const expectedClipKinds = expectedKinds.filter((kind) => kind !== 'qa_histogram_check')
+  const projectKinds = [...new Set(color.projectOperations.map((operation) => operation.operation))]
+    .sort() as ApprovedColorOperationKind[]
+  const clipOperations = [...clipPlan.correctionOperations, ...clipPlan.lookOperations]
+  const clipKinds = [...new Set(clipOperations.map((operation) => operation.operation))]
+    .sort() as ApprovedColorOperationKind[]
+  const allOperations = [...color.projectOperations, ...clipOperations]
+  const operationIds = allOperations.map((operation) => operation.id).sort()
+
+  if (
+    clipPlan.clipId !== input.plannerInput.clips[0]!.id ||
+    cleanup.sourceSequenceItemId !== sourceItem.sourceSequenceItemId ||
+    clipPlan.skinToneProtection || clipPlan.referenceClipId !== undefined ||
+    projectKinds.join('|') !== expectedKinds.join('|') ||
+    clipKinds.join('|') !== expectedClipKinds.join('|') ||
+    color.projectOperations.length !== expectedKinds.length ||
+    clipOperations.length !== expectedClipKinds.length ||
+    new Set(operationIds).size !== operationIds.length ||
+    allOperations.some((operation) =>
+      !safeIdentity(operation.id) || operation.toolId !== 'ffmpeg' ||
+      operation.intensity !== color.intensity || operation.status !== 'future_worker' ||
+      operation.settings.colorGradeStyle !== color.colorGradeStyle ||
+      operation.settings.lookIntensity !== color.intensity)
+  ) return null
+
+  return [{
+    sourceSequenceItemId: sourceItem.sourceSequenceItemId,
+    cleanupDecisionId: cleanup.decisionId,
+    trimStartFrame: cleanup.startFrame,
+    trimEndFrameExclusive: cleanup.endFrameExclusive,
+    durationFrames: cleanup.endFrameExclusive - cleanup.startFrame,
+    colorGradeStyle: color.colorGradeStyle,
+    intensity: color.intensity,
+    approvedColorOperationIds: operationIds,
+    approvedColorOperationKinds: [...expectedKinds],
+  }]
 }
 
 const APPROVED_VOICE_DELIVERY_PROCESSING_OPERATIONS = new Set([

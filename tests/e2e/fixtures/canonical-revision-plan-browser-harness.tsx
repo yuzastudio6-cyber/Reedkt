@@ -3,6 +3,7 @@ import { useCanonicalPlanApproval } from '../../../src/hooks/useCanonicalPlanApp
 import { useCanonicalPlanningPublication } from '../../../src/hooks/useCanonicalPlanningPublication'
 import { canonicalPlanApprovalReadyForPresentedPlan } from '../../../src/lib/canonical-plan-approval-readiness'
 import { createGuidedMockEditPlan } from '../../../src/lib/mock-planner/guided'
+import { buildProfessionalExportCreditCoverage } from '../../../src/lib/professional-export-policy'
 import type { ProjectPersistenceScope } from '../../../src/lib/project-persistence-scope'
 import type { EditPlan, PlannerInput } from '../../../src/types/reeditpro'
 import { Button } from '../../../src/components/Button'
@@ -217,7 +218,30 @@ function createExactRevisionPlan(): EditPlan {
   exactPlan.segmentEditPlans = []
   exactPlan.colorPipelinePlan = undefined
   exactPlan.audioPipelinePlan = undefined
+  synchronizeProfessionalExportCoverage(exactPlan)
   return exactPlan
+}
+
+function synchronizeProfessionalExportCoverage(plan: EditPlan): void {
+  const timingBase = plan.masterTimingPlan?.timingBase
+  const approvedAspectRatio = plannerInput.aspectRatio
+  if (!timingBase || approvedAspectRatio === 'let_ai_decide') {
+    throw new Error('Canonical revision fixture requires confirmed timing and output frame authority.')
+  }
+  const coverage = buildProfessionalExportCreditCoverage({
+    durationSeconds: timingBase.totalFrames / timingBase.fps,
+    outputFps: timingBase.fps,
+    approvedAspectRatio,
+  })
+  const exportLine = plan.creditEstimate.breakdown.find((item) =>
+    item.label === '4K UHD render and export ceiling')
+  if (!exportLine || !plan.creditEstimate.professionalExportCoverage) {
+    throw new Error('Canonical revision fixture requires the mandatory 4K estimate line.')
+  }
+  plan.creditEstimate.total +=
+    coverage.maximumInternalToolCostCredits - exportLine.credits
+  exportLine.credits = coverage.maximumInternalToolCostCredits
+  plan.creditEstimate.professionalExportCoverage = coverage
 }
 
 function frameRange(

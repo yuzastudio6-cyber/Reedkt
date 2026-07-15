@@ -2728,9 +2728,13 @@ const terminalReviewWorkItemKeys = new Set([
   'source-trim-validation',
   'libass-caption-overlay-root',
   'libass-caption-overlay-second',
+  'voice-delivery-primary',
+  'voice-delivery-secondary',
   'remotion-source-caption-final',
   'final-qa',
 ])
+const terminalReviewRequiredJobCount = 8
+assert.equal(terminalReviewWorkItemKeys.size, terminalReviewRequiredJobCount)
 terminalReviewPlanBody.canonicalPlan.workItems = terminalReviewPlanBody.canonicalPlan.workItems.filter((workItem) =>
   terminalReviewWorkItemKeys.has(workItem.workItemKey))
 const terminalReviewPlanningHandoff = await preparePersistedPlanningHandoff(
@@ -2784,8 +2788,8 @@ const terminalWorkGraph = await createCanonicalPrivateWorkGraphOrchestratorServi
   idempotencyKey: 'run-terminal-private-review-canonical-graph',
 })
 assert.equal(terminalWorkGraph.status, 'completed_private_test_work_graph')
-assert.equal(terminalWorkGraph.summary.totalJobCount, 6)
-assert.equal(terminalWorkGraph.summary.completedJobCount, 6)
+assert.equal(terminalWorkGraph.summary.totalJobCount, terminalReviewRequiredJobCount)
+assert.equal(terminalWorkGraph.summary.completedJobCount, terminalReviewRequiredJobCount)
 assert.equal(terminalWorkGraph.summary.requiredBlockedJobCount, 0)
 assert.equal(terminalWorkGraph.summary.allRequiredJobsCompleted, true)
 assert.equal(terminalWorkGraph.readiness.privateInternalWorkGraphCompleted, true)
@@ -2798,7 +2802,7 @@ const terminalWorkGraphReplay = await createCanonicalPrivateWorkGraphOrchestrato
   idempotencyKey: 'run-terminal-private-review-canonical-graph',
 })
 assert.equal(terminalWorkGraphReplay.evidence.idempotentRunReplay, true)
-assert.equal(terminalWorkGraphReplay.summary.completedJobCount, 6)
+assert.equal(terminalWorkGraphReplay.summary.completedJobCount, terminalReviewRequiredJobCount)
 const terminalCompletionService = createCanonicalPrivateWorkGraphOrchestratorService({
   ...context,
   requestId: 'canonical-work-graph-completion-fresh-service',
@@ -2810,7 +2814,7 @@ const terminalWorkGraphCompletion = await terminalCompletionService.findRequired
 assert.ok(terminalWorkGraphCompletion)
 assert.equal(terminalWorkGraphCompletion.responseHash, terminalWorkGraph.responseHash)
 assert.equal(terminalWorkGraphCompletion.status, 'completed_private_test_work_graph')
-assert.equal(terminalWorkGraphCompletion.completedJobCount, 6)
+assert.equal(terminalWorkGraphCompletion.completedJobCount, terminalReviewRequiredJobCount)
 assert.equal(terminalWorkGraphCompletion.requiredBlockedJobCount, 0)
 assert.equal(terminalWorkGraphCompletion.allRequiredJobsCompleted, true)
 const terminalWorkGraphProgress = await terminalCompletionService.findLatestProgress({
@@ -2820,8 +2824,8 @@ const terminalWorkGraphProgress = await terminalCompletionService.findLatestProg
 assert.ok(terminalWorkGraphProgress)
 assert.equal(terminalWorkGraphProgress.status, 'completed_private_test_work_graph')
 assert.equal(terminalWorkGraphProgress.runFinished, true)
-assert.equal(terminalWorkGraphProgress.totalJobCount, 6)
-assert.equal(terminalWorkGraphProgress.completedJobCount, 6)
+assert.equal(terminalWorkGraphProgress.totalJobCount, terminalReviewRequiredJobCount)
+assert.equal(terminalWorkGraphProgress.completedJobCount, terminalReviewRequiredJobCount)
 assert.equal(terminalWorkGraphProgress.pendingJobCount, 0)
 assert.equal(terminalWorkGraphProgress.requiredIncompleteJobCount, 0)
 assert.equal(
@@ -2835,7 +2839,7 @@ const terminalWorkGraphSecondKey = await createCanonicalPrivateWorkGraphOrchestr
   idempotencyKey: 'run-terminal-private-review-canonical-graph-second-key',
 })
 assert.equal(terminalWorkGraphSecondKey.summary.allRequiredJobsCompleted, true)
-assert.equal(terminalWorkGraphSecondKey.summary.replayedJobCount, 6)
+assert.equal(terminalWorkGraphSecondKey.summary.replayedJobCount, terminalReviewRequiredJobCount)
 assert.notEqual(terminalWorkGraphSecondKey.responseHash, terminalWorkGraph.responseHash)
 const terminalWorkGraphProgressAfterSecondKey = await terminalCompletionService.findLatestProgress({
   workspaceId,
@@ -2904,7 +2908,7 @@ assert.equal(
   terminalAssemblyRequiredJourney.workGraph?.responseHash,
   terminalWorkGraph.responseHash,
 )
-assert.equal(terminalAssemblyRequiredJourney.workGraph?.totalJobCount, 6)
+assert.equal(terminalAssemblyRequiredJourney.workGraph?.totalJobCount, terminalReviewRequiredJobCount)
 assert.equal(terminalAssemblyRequiredJourney.workGraph?.allRequiredJobsCompleted, true)
 assert.equal(terminalAssemblyRequiredJourney.workGraphProgress, undefined)
 assert.equal(terminalAssemblyRequiredJourney.review, undefined)
@@ -2948,8 +2952,8 @@ assert.equal(
   terminalPreparation.receipt.authority.packageHash,
   terminalReviewPackage.approvedEditExecutionPackage.packageHash,
 )
-assert.equal(terminalPreparation.receipt.progress.totalJobCount, 6)
-assert.equal(terminalPreparation.receipt.progress.completedJobCount, 6)
+assert.equal(terminalPreparation.receipt.progress.totalJobCount, terminalReviewRequiredJobCount)
+assert.equal(terminalPreparation.receipt.progress.completedJobCount, terminalReviewRequiredJobCount)
 assert.equal(terminalPreparation.receipt.progress.allRequiredJobsCompleted, true)
 assert.ok(terminalPreparation.receipt.review)
 assert.equal(terminalPreparation.receipt.review.readyForPrivateReview, true)
@@ -2984,8 +2988,11 @@ const terminalPrivateReviewInput = {
 }
 const terminalPrivateReview = await privateReviewService.assemble(terminalPrivateReviewInput)
 assert.equal(terminalPrivateReview.status, 'ready_for_private_internal_review')
-assert.equal(terminalPrivateReview.requiredExecution.requiredJobCount, 6)
-assert.equal(terminalPrivateReview.requiredExecution.requiredExpectedAssetCount, 6)
+assert.equal(terminalPrivateReview.requiredExecution.requiredJobCount, terminalReviewRequiredJobCount)
+assert.equal(
+  terminalPrivateReview.requiredExecution.requiredExpectedAssetCount,
+  terminalReviewRequiredJobCount,
+)
 assert.equal(terminalPrivateReview.requiredExecution.allRequiredJobsCompleted, true)
 assert.equal(terminalPrivateReview.requiredExecution.allRequiredAssetsQaPassed, true)
 assert.equal(terminalPrivateReview.requiredExecution.allRequiredAssetsReconciled, true)
@@ -3574,7 +3581,10 @@ const revisionExecutionPackage = await createCanonicalEditExecutionPackageServic
 })
 const revisionExecutionPackageId = revisionExecutionPackage.approvedEditExecutionPackage.packageRecordId
 assert.notEqual(revisionExecutionPackageId, terminalReviewPackageRecordId)
-assert.equal(revisionExecutionPackage.approvedEditExecutionPackage.jobs.length, 6)
+assert.equal(
+  revisionExecutionPackage.approvedEditExecutionPackage.jobs.length,
+  terminalReviewRequiredJobCount,
+)
 const revisionWorkGraph = await createCanonicalPrivateWorkGraphOrchestratorService(context).run({
   workspaceId,
   packageRecordId: revisionExecutionPackageId,
@@ -3582,8 +3592,8 @@ const revisionWorkGraph = await createCanonicalPrivateWorkGraphOrchestratorServi
   idempotencyKey: 'run-terminal-private-review-revision-v2',
 })
 assert.equal(revisionWorkGraph.status, 'completed_private_test_work_graph')
-assert.equal(revisionWorkGraph.summary.totalJobCount, 6)
-assert.equal(revisionWorkGraph.summary.completedJobCount, 6)
+assert.equal(revisionWorkGraph.summary.totalJobCount, terminalReviewRequiredJobCount)
+assert.equal(revisionWorkGraph.summary.completedJobCount, terminalReviewRequiredJobCount)
 assert.equal(revisionWorkGraph.summary.requiredBlockedJobCount, 0)
 assert.equal(revisionWorkGraph.summary.allRequiredJobsCompleted, true)
 assert.equal(revisionWorkGraph.readiness.nextRequiredGate, 'canonical_terminal_private_review_assembly')
@@ -3601,7 +3611,10 @@ const secondPrivateReview = await privateReviewService.assemble({
   idempotencyKey: 'assemble-terminal-private-review-revision-v2',
 })
 assert.equal(secondPrivateReview.status, 'ready_for_private_internal_review')
-assert.equal(secondPrivateReview.requiredExecution.requiredJobCount, 5)
+assert.equal(
+  secondPrivateReview.requiredExecution.requiredJobCount,
+  terminalReviewRequiredJobCount,
+)
 assert.equal(secondPrivateReview.requiredExecution.allRequiredJobsCompleted, true)
 assert.equal(secondPrivateReview.finalQaArtifact.finalQaGatesPassed, true)
 assert.equal(secondPrivateReview.chain.finalQaInputBoundToFinalArtifact, true)
@@ -3924,6 +3937,14 @@ assert.equal(
   sha256AuthorityValue(snapshotAuthoritySlice(aggregateBeforeDispatch, snapshot.snapshotId)),
 )
 
+const dispatchAggregateBeforeTamper = await requireDispatchAggregate()
+const expectedDispatchGrantIds = dispatchAggregateBeforeTamper.grants.map((record) => record.id)
+assert.equal(
+  new Set(expectedDispatchGrantIds).size,
+  expectedDispatchGrantIds.length,
+  'Every accumulated dispatch decision must retain a unique grant identity.',
+)
+const expectedDispatchGrantsHash = sha256AuthorityValue(dispatchAggregateBeforeTamper.grants)
 const originalDispatchStoreText = await readFile(persistedPath, 'utf8')
 const dependencyTamperedStore = JSON.parse(originalDispatchStoreText) as {
   aggregate: {
@@ -3948,7 +3969,15 @@ clearPrivateCanonicalToolDispatchProcessStateForSmoke()
 await expectApiError(() => requireDispatchAggregate(), 'VALIDATION_FAILED')
 await writeFile(persistedPath, originalDispatchStoreText)
 clearPrivateCanonicalToolDispatchProcessStateForSmoke()
-assert.equal((await requireDispatchAggregate()).grants.length, 62)
+const restoredDispatchAggregate = await requireDispatchAggregate()
+assert.deepEqual(
+  restoredDispatchAggregate.grants.map((record) => record.id),
+  expectedDispatchGrantIds,
+)
+assert.equal(
+  sha256AuthorityValue(restoredDispatchAggregate.grants),
+  expectedDispatchGrantsHash,
+)
 
 await expectApiError(
   () => createCanonicalPrivateToolDispatchAuthorityService({
@@ -4101,7 +4130,7 @@ console.log(JSON.stringify({
     'private_final_composition_consumes_exact_source_trim_authority_and_caption_with_h264_aac_final_qa_while_public_delivery_and_settlement_remain_false',
     'dependency_bound_final_ffprobe_reads_the_private_final_mp4_and_passes_exact_h264_aac_frame_duration_qa',
     'canonical_job_adapter_replays_final_artifact_qa_without_a_second_ffprobe_execution',
-    'five_job_canonical_work_graph_completes_snapshot_trim_caption_final_composition_and_final_qa',
+    'eight_job_canonical_work_graph_completes_snapshot_trim_two_captions_two_voice_tracks_final_composition_and_final_qa',
     'package_scoped_required_work_completion_is_create_only_restart_recoverable_and_authority_bound',
     'package_scoped_progress_checkpoint_is_restart_recoverable_and_terminally_complete',
     'different_work_graph_run_key_reuses_first_package_completion_certificate_without_replacement',
@@ -4131,7 +4160,7 @@ console.log(JSON.stringify({
     'revision_approval_atomically_releases_unused_prior_synthetic_reservation_and_reserves_fresh_maximum',
     'revision_approval_preserves_old_snapshot_work_items_jobs_and_wallet_conservation',
     'revision_approval_replay_creates_no_second_release_reservation_snapshot_or_jobs',
-    'snapshot_v2_executes_the_bounded_five_job_revision_graph_through_independent_final_qa',
+    'snapshot_v2_executes_the_bounded_eight_job_revision_graph_through_independent_final_qa',
     'revision_execution_assembles_new_private_artifacts_and_a_second_review_manifest',
     'canonical_journey_recovery_tracks_the_latest_replacement_review_assembly',
     'second_private_review_acceptance_is_create_only_replay_safe_and_public_delivery_blocked',
@@ -4144,6 +4173,7 @@ console.log(JSON.stringify({
     'journey_recovered_descriptors_reopen_current_and_superseded_private_review_bytes',
     'fresh_service_instances_reopen_current_and_superseded_review_bytes_with_stable_evidence',
     'authenticated_private_final_mp4_download_reopens_exact_qa_passed_bytes_without_public_or_signed_url',
+    'dispatch_aggregate_tamper_restore_preserves_the_exact_dynamic_unique_grant_set',
     'checksum_protected_restart_safe_private_store',
     'dependency_authority_binding_tamper_rejected_by_immutable_record_validation',
     'no_lease_secret_path_execution_input_or_capability_leakage',

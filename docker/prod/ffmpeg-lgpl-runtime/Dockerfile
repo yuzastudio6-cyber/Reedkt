@@ -30,10 +30,13 @@ RUN printf '%s\n' \
   && attempt=1 \
   && while ! apt-get install -y --no-install-recommends \
         build-essential=12.9 \
+        libvpx-dev=1.12.0-1+deb12u5 \
+        pkg-config=1.8.1-1 \
         xz-utils=5.4.1-1; do \
       [ "$attempt" -lt 3 ] || exit 1; \
       attempt=$((attempt + 1)); \
     done \
+  && find /usr/lib -type l -name libvpx.so -delete \
   && rm -rf /var/lib/apt/lists/*
 
 # Official FFmpeg 8.1.2 release source. The digest was independently checked

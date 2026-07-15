@@ -1020,7 +1020,9 @@ async function verifySelectedDependencyArtifacts(input: {
               })
             : authority.artifact.actualRunEvidence.state === 'actual_run_evidence_verified_v2' &&
                 authority.artifact.actualRunEvidence.runnerClass === 'offline_media_binary_execution_v1' &&
-                authority.artifact.content.contentType === 'video/x-nut'
+                ['video/x-nut', 'video/x-matroska'].includes(
+                  authority.artifact.content.contentType,
+                )
               ? await verifyCanonicalPrivateMediaArtifact({
                   localStorageRoot: input.context.env.localStorageRoot,
                   artifact: authority.artifact,

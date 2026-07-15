@@ -118,7 +118,10 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
       const contentType = toolId === 'ffmpeg'
         ? ffmpegPlanningPayload?.recipeProfileId === 'approved_voice_delivery_wav_v1'
           ? 'audio/wav' as const
-          : 'video/x-nut' as const
+          : ffmpegPlanningPayload?.recipeProfileId ===
+              'approved_source_color_delivery_matroska_v1'
+            ? 'video/x-matroska' as const
+            : 'video/x-nut' as const
         : 'application/json' as const
       const dependencyFinalQa = toolId === 'ffprobe' && workItem?.workItemType === 'run_final_qa'
       if (
@@ -418,7 +421,7 @@ interface MediaAdapterInput {
 }
 
 interface NormalizedMediaBinaryResult {
-  contentType: 'application/json' | 'video/x-nut' | 'audio/wav'
+  contentType: 'application/json' | 'video/x-nut' | 'video/x-matroska' | 'audio/wav'
   bytes: Buffer
   sha256: string
   byteLength: number

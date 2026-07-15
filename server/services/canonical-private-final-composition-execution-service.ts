@@ -133,8 +133,21 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
         ? planningPayload.sourceSegments.length
         : 1
       const voiceTrackCount = replaceVoice ? (planningPayload.voiceTracks?.length ?? 0) : 0
-      const expectedDependencyCount = 1 + captionCueCount + voiceTrackCount
+      const dependencyWorkItems = workItem.dependencyKeys.map((dependencyKey) =>
+        authority.workItems.find((candidate) => candidate.workItemKey === dependencyKey))
+      if (dependencyWorkItems.some((candidate) => !candidate)) {
+        throw denied('Final composition dependency work-item authority is incomplete.')
+      }
+      const colorDependencyWorkItemCount = dependencyWorkItems.filter((candidate) =>
+        candidate?.expectedOutputs.length === 1 &&
+        candidate.expectedOutputs[0]?.contentType === 'video/x-matroska').length
+      const usesApprovedColorIntermediate = 'sourceMediaPolicy' in planningPayload &&
+        planningPayload.sourceMediaPolicy === 'approved_professional_color_intermediate_v1'
+      const colorSourceCount = usesApprovedColorIntermediate ? 1 : 0
+      const expectedDependencyCount = 1 + captionCueCount + voiceTrackCount + colorSourceCount
       if (
+        colorDependencyWorkItemCount !== colorSourceCount ||
+        (usesApprovedColorIntermediate && (sequenceProfile || !replaceVoice)) ||
         workItem.workItemType !== 'render_final_export' || workItem.workerClass !== 'render_worker' ||
         workItem.approvedToolIds.length !== 1 || workItem.approvedToolIds[0] !== 'remotion' ||
         workItem.sourceSequenceItemIds.length !== sourceCount ||
@@ -163,6 +176,13 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
             segment.sourceEndFrameExclusive !== decision.endFrameExclusive
           ) throw denied('Source-sequence composition timing diverges from approved source cleanup authority.')
         })
+      } else if (usesApprovedColorIntermediate) {
+        if (
+          planningPayload.sourceStartFrame !== 0 ||
+          planningPayload.sourceEndFrameExclusive !== planningPayload.durationFrames ||
+          exactCleanupDecisions[0]!.endFrameExclusive - exactCleanupDecisions[0]!.startFrame !==
+            planningPayload.durationFrames
+        ) throw denied('Professional color composition lost its approved normalized source duration.')
       } else if (
         planningPayload.sourceStartFrame !== exactCleanupDecisions[0]!.startFrame ||
         planningPayload.sourceEndFrameExclusive !== exactCleanupDecisions[0]!.endFrameExclusive
@@ -219,21 +239,29 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
           leaseId: injected.leaseId, leaseCredential: injected.leaseCredential,
           executionAttemptId, dispatchGrantId: body.grantId,
           dependencyAuthority: begun.lease.dependencyAuthority,
-          allowedContentTypes: ['application/json', 'image/png', 'audio/wav'],
-          maximumBytes: 8 * 1024 * 1024,
+          allowedContentTypes: [
+            'application/json',
+            'image/png',
+            'audio/wav',
+            'video/x-matroska',
+          ],
+          maximumBytes: 16 * 1024 * 1024,
           selectedArtifactIndex,
         }))
       }
       const trimArtifact = dependencies.find((dependency) => dependency.contentType === 'application/json')
       const captionDependencies = dependencies.filter((dependency) => dependency.contentType === 'image/png')
       const voiceDependencies = dependencies.filter((dependency) => dependency.contentType === 'audio/wav')
+      const colorDependencies = dependencies.filter((dependency) =>
+        dependency.contentType === 'video/x-matroska')
       if (
         !trimArtifact || trimArtifact.byteLength > 1024 * 1024 ||
         captionDependencies.length !== captionCueCount || voiceDependencies.length !== voiceTrackCount ||
+        colorDependencies.length !== colorSourceCount ||
         dependencies.length !== expectedDependencyCount
       ) {
         throw denied(
-          'Final composition dependencies must be one approved trim JSON plus exact caption and voice artifacts.',
+          'Final composition dependencies must be one approved trim JSON plus exact caption, voice, and color artifacts.',
         )
       }
       const captions = orderCaptionDependencies({
@@ -251,6 +279,15 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
             authority,
           })
         : []
+      const colorSource = usesApprovedColorIntermediate
+        ? orderColorDependencies({
+            colorDependencies,
+            sourceSequenceItemId: workItem.sourceSequenceItemIds[0]!,
+            cleanupDecision: exactCleanupDecisions[0]!,
+            fps: planningPayload.fps,
+            authority,
+          })
+        : undefined
       const trimReadiness = (await createCanonicalExecutionReadinessService(context).inspectJob({
         workspaceId: body.workspaceId,
         projectId: body.projectId,
@@ -283,9 +320,9 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
             }
           : {
               source: {
-                mimeType: CONTENT_TYPE,
-                bytes: sources[0]!.bytes,
-                sha256: sources[0]!.sha256,
+                mimeType: colorSource ? 'video/x-matroska' as const : CONTENT_TYPE,
+                bytes: colorSource ? colorSource.dependency.bytes : sources[0]!.bytes,
+                sha256: colorSource ? colorSource.dependency.sha256 : sources[0]!.sha256,
               },
             }),
         ...(captionTrackProfile
@@ -358,6 +395,7 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
         sourceTrimSha256: trimArtifact.sha256,
         captionSha256s: captions.map((caption) => caption.sha256),
         voiceTrackSha256s: voiceTracks.map((voiceTrack) => voiceTrack.sha256),
+        colorIntermediateSha256: colorSource?.dependency.sha256 ?? null,
         hardCutAuthorityHash,
         contentSha256: result.artifact.sha256,
       })
@@ -396,6 +434,9 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
         voiceDependencyReadEvidenceHashes: voiceTracks.map(
           (voiceTrack) => voiceTrack.dependencyReadEvidenceHash,
         ),
+        colorDependencyReadEvidenceHashes: colorSource
+          ? [colorSource.dependency.dependencyReadEvidenceHash]
+          : [],
         hardCutAuthorityHash,
       }
       const artifactAuthority = createPrivateArtifactQaAuthorityService(context, adapters(adapterInput))
@@ -464,6 +505,35 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
             })),
           }
         : {}
+      const colorInputs = colorSource
+        ? {
+            colorSource: {
+              sourceSequenceItemId: colorSource.sourceSequenceItemId,
+              outputKey: colorSource.outputKey,
+              sourceCleanupDecisionId: colorSource.sourceCleanupDecisionId,
+              originalSourceStartFrame: colorSource.originalSourceStartFrame,
+              originalSourceEndFrameExclusive: colorSource.originalSourceEndFrameExclusive,
+              compositionStartFrame: 'sourceStartFrame' in planningPayload
+                ? planningPayload.sourceStartFrame
+                : 0,
+              compositionEndFrameExclusive: 'sourceEndFrameExclusive' in planningPayload
+                ? planningPayload.sourceEndFrameExclusive
+                : planningPayload.durationFrames,
+              durationFrames: colorSource.durationFrames,
+              colorGradeStyle: colorSource.colorGradeStyle,
+              intensity: colorSource.intensity,
+              approvedColorOperationIds: colorSource.approvedColorOperationIds,
+              approvedColorOperationKinds: colorSource.approvedColorOperationKinds,
+              outputColorSpace: 'bt709' as const,
+              outputPixelFormat: 'yuv420p' as const,
+              colorArtifactId: colorSource.dependency.artifactId,
+              colorSha256: colorSource.dependency.sha256,
+              colorByteLength: colorSource.dependency.byteLength,
+              colorDependencyReadEvidenceHash:
+                colorSource.dependency.dependencyReadEvidenceHash,
+            },
+          }
+        : {}
       const responseWithoutHash = {
         schemaVersion: 'canonical-private-final-composition-execution-response-v2' as const,
         source: 'canonical_private_final_composition_execution_coordinator' as const,
@@ -483,6 +553,8 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
           sourceAudioPreserved: !replaceVoice,
           approvedVoiceTrackDependencyRead: replaceVoice,
           approvedVoiceTrackReplacementApplied: replaceVoice,
+          approvedColorDependencyRead: Boolean(colorSource),
+          approvedColorIntermediateApplied: Boolean(colorSource),
           privateFinalCompositionExecuted: true as const, providerCallMade: false as const,
           publicDeliveryExecuted: false as const,
         },
@@ -527,6 +599,7 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
               sourceEndFrameExclusive: sourceTrim[0]!.endFrameExclusive,
               ...captionInputs,
               ...voiceInputs,
+              ...colorInputs,
             },
         lease: {
           leaseId: begun.lease.id, attemptNumber: begun.lease.attemptNumber,
@@ -685,6 +758,94 @@ function orderVoiceDependencies(input: {
   return ordered.map((entry) => entry!.dependency)
 }
 
+interface ApprovedColorDependency {
+  dependency: CanonicalPrivateDependencyArtifactReadResult
+  sourceSequenceItemId: string
+  outputKey: string
+  sourceCleanupDecisionId: string
+  originalSourceStartFrame: number
+  originalSourceEndFrameExclusive: number
+  durationFrames: number
+  colorGradeStyle: 'clean_natural' | 'premium_clean'
+  intensity: 'subtle' | 'balanced'
+  approvedColorOperationIds: string[]
+  approvedColorOperationKinds: Array<
+    | 'clarity'
+    | 'contrast_curve'
+    | 'exposure_correction'
+    | 'highlight_recovery'
+    | 'look_transform'
+    | 'qa_histogram_check'
+    | 'saturation'
+    | 'white_balance'
+  >
+}
+
+function orderColorDependencies(input: {
+  colorDependencies: CanonicalPrivateDependencyArtifactReadResult[]
+  sourceSequenceItemId: string
+  cleanupDecision: {
+    decisionId: string
+    sourceSequenceItemId: string
+    startFrame: number
+    endFrameExclusive: number
+  }
+  fps: number
+  authority: ApprovedExecutionAuthority
+}): ApprovedColorDependency {
+  if (input.colorDependencies.length !== 1) {
+    throw denied('Professional color composition requires one exact source-bound intermediate.')
+  }
+  const dependency = input.colorDependencies[0]!
+  const asset = input.authority.assetManifest.entries.find((candidate) =>
+    candidate.id === dependency.expectedAssetId)
+  const workItem = input.authority.workItems.find((candidate) =>
+    candidate.id === asset?.approvedWorkItemId)
+  const expectedOutput = workItem?.expectedOutputs[0]
+  if (
+    !asset || !workItem || !expectedOutput ||
+    asset.contentType !== 'video/x-matroska' ||
+    asset.assetRole !== 'processed' || !asset.required || asset.previewPlaceholderAllowed ||
+    asset.outputKey !== expectedOutput.outputKey ||
+    expectedOutput.contentType !== 'video/x-matroska' ||
+    workItem.expectedOutputs.length !== 1 ||
+    workItem.workerClass !== 'color_processing_worker' || workItem.workItemType !== 'custom' ||
+    workItem.executionInput.operation !== 'process_approved_source_professional_color_delivery' ||
+    stableArtifactQaStringify(workItem.executionInput.approvedToolOperationIds) !==
+      stableArtifactQaStringify([OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg]) ||
+    stableArtifactQaStringify(workItem.executionInput.expectedOutputKeys) !==
+      stableArtifactQaStringify([asset.outputKey]) ||
+    workItem.approvedToolIds.length !== 1 || workItem.approvedToolIds[0] !== 'ffmpeg' ||
+    workItem.sourceSequenceItemIds.length !== 1 ||
+    workItem.sourceSequenceItemIds[0] !== input.sourceSequenceItemId ||
+    workItem.sourceCleanupDecisionIds.length !== 1 ||
+    workItem.sourceCleanupDecisionIds[0] !== input.cleanupDecision.decisionId ||
+    input.cleanupDecision.sourceSequenceItemId !== input.sourceSequenceItemId ||
+    workItem.dependencyKeys.length !== 0
+  ) throw denied('Color dependency lineage is not an exact source-bound FFmpeg color artifact.')
+  const payload = validateOfflineFfmpegPlanningPayload(workItem.executionInput.structuredPayload)
+  if (
+    payload.recipeProfileId !== 'approved_source_color_delivery_matroska_v1' ||
+    payload.frameRate !== input.fps ||
+    payload.trimStartFrame !== input.cleanupDecision.startFrame ||
+    payload.trimEndFrameExclusive !== input.cleanupDecision.endFrameExclusive ||
+    payload.trimEndFrameExclusive - payload.trimStartFrame <= 0
+  ) throw denied('Color dependency did not execute the exact approved professional color recipe.')
+  return {
+    dependency,
+    sourceSequenceItemId: input.sourceSequenceItemId,
+    outputKey: asset.outputKey,
+    sourceCleanupDecisionId: input.cleanupDecision.decisionId,
+    originalSourceStartFrame: payload.trimStartFrame,
+    originalSourceEndFrameExclusive: payload.trimEndFrameExclusive,
+    durationFrames: payload.trimEndFrameExclusive - payload.trimStartFrame,
+    colorGradeStyle: payload.colorGradeStyle,
+    intensity: payload.intensity,
+    approvedColorOperationIds: [...payload.approvedColorOperationIds],
+    approvedColorOperationKinds: [...payload.approvedColorOperationKinds],
+  }
+}
+
 function parseApprovedSourceTrimEvidence(input: {
   bytes: Buffer
   body: RunCanonicalPrivateFinalCompositionInput
@@ -785,6 +946,7 @@ interface FinalCompositionAdapterInput {
   sourceTrimDependencyReadEvidenceHash: string
   captionDependencyReadEvidenceHashes: string[]
   voiceDependencyReadEvidenceHashes: string[]
+  colorDependencyReadEvidenceHashes: string[]
   hardCutAuthorityHash: string
 }
 
@@ -824,6 +986,7 @@ function adapters(input: FinalCompositionAdapterInput): {
               sourceTrimDependencyReadEvidenceHash: input.sourceTrimDependencyReadEvidenceHash,
               captionDependencyReadEvidenceHashes: input.captionDependencyReadEvidenceHashes,
               voiceDependencyReadEvidenceHashes: input.voiceDependencyReadEvidenceHashes,
+              colorDependencyReadEvidenceHashes: input.colorDependencyReadEvidenceHashes,
               hardCutAuthorityHash: input.hardCutAuthorityHash,
             }),
             startedAt: input.executionStartedAt,
@@ -874,9 +1037,10 @@ function adapters(input: FinalCompositionAdapterInput): {
               sourceTrimDependencyReadEvidenceHash: input.sourceTrimDependencyReadEvidenceHash,
               captionDependencyReadEvidenceHashes: input.captionDependencyReadEvidenceHashes,
               voiceDependencyReadEvidenceHashes: input.voiceDependencyReadEvidenceHashes,
+              colorDependencyReadEvidenceHashes: input.colorDependencyReadEvidenceHashes,
               hardCutAuthorityHash: input.hardCutAuthorityHash,
             }),
-            notesCode: 'approved_source_trim_caption_voice_transition_policy_and_frame_preflight_passed',
+            notesCode: 'approved_source_trim_caption_voice_color_transition_policy_and_frame_preflight_passed',
           }, {
             gateId: 'final_qa_gate' as const,
             category: 'asset_integrity' as const,

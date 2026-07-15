@@ -120,7 +120,7 @@ The runner class is `offline_deepfilternet_voice_cleanup_execution_v1`; its evid
 
 ## Current evidence snapshot
 
-Evidence revision `2026-07-12.28` records:
+Evidence revision `2026-07-15.30` records:
 
 - 72 total registry profiles with stable identities.
 - 61 callable candidates.
@@ -130,6 +130,19 @@ Evidence revision `2026-07-12.28` records:
 - 50 exact tool identities verified through the server-derived canonical job adapter.
 - 8 callable candidates that remain declared but do not yet have confined-runner proof.
 - 0 product-, external-beta-, or production-ready tools; those promotions require separate deployment evidence.
+
+This revision adds `video/x-matroska` to FFmpeg's verified private artifact
+contract and binds the color-capable build to the revision-isolated
+`8.1.2-color-v1-local` image tag and authority namespace. An older checkout
+cannot replace this runtime evidence by activating its narrower FFmpeg policy.
+`npm run smoke:offline-media-binary-execution` proves the exact
+lossless VP9 BT.709/yuv420p color intermediate, and
+`npm run smoke:canonical-private-color-execution` proves its separate
+source-bound canonical lifecycle through private persistence, pixel QA,
+reconciliation, replay, exact Remotion consumption, final FFprobe QA, and
+private download. The complete 50-tool matrix continues to use its honest
+trim/voice FFmpeg adapter evidence key; the color slice does not increase the
+tool count or imply product, beta, or production readiness.
 
 The remaining 11 callable candidates that have not reached canonical E2E stay visible in the same report. Their blocker lists identify the exact missing proof class per tool, including reviewed model/checkpoint manifests and offline caches for model-backed tools and exact fixture/artifact QA for other package-backed tools. A candidate is never promoted from declaration or import availability alone.
 

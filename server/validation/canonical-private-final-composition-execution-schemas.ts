@@ -18,6 +18,37 @@ const approvedVoiceTracksSchema = z.array(z.object({
   voiceDependencyReadEvidenceHash: sha,
 }).strict()).min(1).max(8)
 
+const approvedColorSourceSchema = z.object({
+  sourceSequenceItemId: identity,
+  outputKey: identity,
+  sourceCleanupDecisionId: identity,
+  originalSourceStartFrame: z.number().int().nonnegative(),
+  originalSourceEndFrameExclusive: z.number().int().positive(),
+  compositionStartFrame: z.literal(0),
+  compositionEndFrameExclusive: z.number().int().positive().max(240),
+  durationFrames: z.number().int().positive().max(240),
+  colorGradeStyle: z.enum(['clean_natural', 'premium_clean']),
+  intensity: z.enum(['subtle', 'balanced']),
+  approvedColorOperationIds: z.array(identity).min(1).max(32)
+    .refine((value) => new Set(value).size === value.length),
+  approvedColorOperationKinds: z.array(z.enum([
+    'clarity',
+    'contrast_curve',
+    'exposure_correction',
+    'highlight_recovery',
+    'look_transform',
+    'qa_histogram_check',
+    'saturation',
+    'white_balance',
+  ])).min(6).max(7).refine((value) => new Set(value).size === value.length),
+  outputColorSpace: z.literal('bt709'),
+  outputPixelFormat: z.literal('yuv420p'),
+  colorArtifactId: identity,
+  colorSha256: sha,
+  colorByteLength: z.number().int().min(64).max(16 * 1024 * 1024),
+  colorDependencyReadEvidenceHash: sha,
+}).strict()
+
 const approvedHardCutTransitionsSchema = z.array(z.object({
   transitionTimingItemId: identity,
   refinedTransitionTimingItemId: identity,
@@ -77,6 +108,7 @@ const singleSourceFinalCompositionInputsSchema = finalCompositionDependencyInput
   sourceCleanupDecisionId: identity,
   sourceStartFrame: z.number().int().nonnegative(),
   sourceEndFrameExclusive: z.number().int().positive(),
+  colorSource: approvedColorSourceSchema.optional(),
 }).strict()
 
 const sourceSequenceFinalCompositionInputsSchema = finalCompositionDependencyInputsSchema.extend({
@@ -105,6 +137,7 @@ const singleSourceCaptionTrackFinalCompositionInputsSchema = captionTrackDepende
   sourceCleanupDecisionId: identity,
   sourceStartFrame: z.number().int().nonnegative(),
   sourceEndFrameExclusive: z.number().int().positive(),
+  colorSource: approvedColorSourceSchema.optional(),
 }).strict()
 
 const sourceSequenceCaptionTrackFinalCompositionInputsSchema = captionTrackDependencyInputsSchema.extend({
@@ -159,6 +192,8 @@ export const canonicalPrivateFinalCompositionResponseSchema = z.object({
     sourceAudioPreserved: z.boolean(),
     approvedVoiceTrackDependencyRead: z.boolean(),
     approvedVoiceTrackReplacementApplied: z.boolean(),
+    approvedColorDependencyRead: z.boolean(),
+    approvedColorIntermediateApplied: z.boolean(),
     privateFinalCompositionExecuted: z.literal(true),
     providerCallMade: z.literal(false),
     publicDeliveryExecuted: z.literal(false),
@@ -247,6 +282,29 @@ export const canonicalPrivateFinalCompositionResponseSchema = z.object({
     })
   }
   const sequenceInputs = 'sources' in value.inputs
+  const colorSource = 'colorSource' in value.inputs ? value.inputs.colorSource : undefined
+  let colorEvidenceValid =
+    !value.tool.approvedColorDependencyRead && !value.tool.approvedColorIntermediateApplied
+  if (colorSource && !('sources' in value.inputs)) {
+    colorEvidenceValid =
+      !sequenceProfile && replacement &&
+      value.tool.approvedColorDependencyRead &&
+      value.tool.approvedColorIntermediateApplied &&
+      colorSource.sourceSequenceItemId === value.inputs.sourceSequenceItemId &&
+      colorSource.sourceCleanupDecisionId === value.inputs.sourceCleanupDecisionId &&
+      colorSource.originalSourceStartFrame === value.inputs.sourceStartFrame &&
+      colorSource.originalSourceEndFrameExclusive === value.inputs.sourceEndFrameExclusive &&
+      colorSource.originalSourceEndFrameExclusive - colorSource.originalSourceStartFrame ===
+        colorSource.durationFrames &&
+      colorSource.compositionEndFrameExclusive === colorSource.durationFrames
+  }
+  if (!colorEvidenceValid) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['tool', 'approvedColorIntermediateApplied'],
+      message: 'Final-composition professional color evidence diverged from its source-bound intermediate.',
+    })
+  }
   let hardCutEvidenceValid: boolean
   if ('sources' in value.inputs) {
     const sequence = value.inputs

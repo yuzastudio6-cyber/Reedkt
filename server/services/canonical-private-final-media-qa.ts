@@ -68,7 +68,7 @@ export function normalizeCanonicalPrivateFinalMediaQa(
     !Number.isSafeInteger(report.audioChannels) || Number(report.audioChannels) < 1 ||
     Number(report.audioChannels) > 2 || !Number.isFinite(actualDurationSeconds) ||
     actualDurationSeconds < approvedDurationSeconds || durationDriftFrames > 2
-  ) throw finalQaDenied()
+  ) throw finalQaDenied(report, expected)
   const normalized = {
     independentFfprobeExecuted: true as const,
     binaryVersion: '8.1.2' as const,
@@ -91,11 +91,23 @@ export function normalizeCanonicalPrivateFinalMediaQa(
   return { ...normalized, reportSha256: sha256AuthorityValue(normalized) }
 }
 
-function finalQaDenied(): ApiError {
+function finalQaDenied(
+  report: Readonly<Record<string, unknown>>,
+  expected: CanonicalPrivateFinalMediaExpectation,
+): ApiError {
   return new ApiError(
     'TOOL_NOT_READY',
     'Independent FFprobe final QA does not match approved video, audio, frame, and duration policy.',
     409,
-    { requiredGate: 'canonical_private_final_media_qa' },
+    {
+      requiredGate: 'canonical_private_final_media_qa',
+      expected: {
+        width: expected.width,
+        height: expected.height,
+        fps: expected.fps,
+        durationFrames: expected.durationFrames,
+      },
+      actual: report,
+    },
   )
 }

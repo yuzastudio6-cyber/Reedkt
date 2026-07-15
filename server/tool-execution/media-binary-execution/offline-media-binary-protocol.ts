@@ -30,9 +30,35 @@ export interface OfflineFfmpegVoiceDeliveryPlanningPayload extends OfflineFfmpeg
   compressorPreset: 'gentle_voice_v1'
 }
 
+export type OfflineFfmpegColorGradeStyle = 'clean_natural' | 'premium_clean'
+export type OfflineFfmpegColorIntensity = 'subtle' | 'balanced'
+export type OfflineFfmpegColorOperationKind =
+  | 'clarity'
+  | 'contrast_curve'
+  | 'exposure_correction'
+  | 'highlight_recovery'
+  | 'look_transform'
+  | 'qa_histogram_check'
+  | 'saturation'
+  | 'white_balance'
+
+export interface OfflineFfmpegColorDeliveryPlanningPayload extends OfflineFfmpegCommonPlanningPayload {
+  recipeProfileId: 'approved_source_color_delivery_matroska_v1'
+  colorGradeStyle: OfflineFfmpegColorGradeStyle
+  intensity: OfflineFfmpegColorIntensity
+  approvedColorOperationIds: string[]
+  approvedColorOperationKinds: OfflineFfmpegColorOperationKind[]
+  analysisProfileId: 'approved_three_frame_rgb_stats_v1'
+  correctionProfileId: 'bounded_professional_source_color_v1'
+  outputColorSpace: 'bt709'
+  outputPixelFormat: 'yuv420p'
+  preserveAudio: false
+}
+
 export type OfflineFfmpegPlanningPayload =
   | OfflineFfmpegTrimPlanningPayload
   | OfflineFfmpegVoiceDeliveryPlanningPayload
+  | OfflineFfmpegColorDeliveryPlanningPayload
 
 export interface OfflineFfprobePlanningPayload {
   inspectionProfileId: 'source_intake_v1' | 'pre_render_v1' | 'final_export_v1'
@@ -70,6 +96,7 @@ export function validateOfflineFfmpegPlanningPayload(value: unknown): OfflineFfm
     ? value as Record<string, unknown>
     : undefined
   const voiceDelivery = candidate?.recipeProfileId === 'approved_voice_delivery_wav_v1'
+  const colorDelivery = candidate?.recipeProfileId === 'approved_source_color_delivery_matroska_v1'
   const payload = exactObject(value, [
     'recipeProfileId', 'timestampPolicy', 'overwriteExistingArtifact', 'allowUnreviewedCodec',
     'trimStartFrame', 'trimEndFrameExclusive', 'frameRate',
@@ -79,9 +106,20 @@ export function validateOfflineFfmpegPlanningPayload(value: unknown): OfflineFfm
           'loudnessRangeLufs', 'highpassHz', 'compressorPreset',
         ]
       : []),
+    ...(colorDelivery
+      ? [
+          'colorGradeStyle', 'intensity', 'approvedColorOperationIds',
+          'approvedColorOperationKinds', 'analysisProfileId', 'correctionProfileId',
+          'outputColorSpace', 'outputPixelFormat', 'preserveAudio',
+        ]
+      : []),
   ])
   if (
-    !['approved_trim_transcode_v1', 'approved_voice_delivery_wav_v1'].includes(
+    ![
+      'approved_trim_transcode_v1',
+      'approved_voice_delivery_wav_v1',
+      'approved_source_color_delivery_matroska_v1',
+    ].includes(
       String(payload.recipeProfileId),
     ) ||
     payload.timestampPolicy !== 'normalize_from_zero' ||
@@ -100,6 +138,33 @@ export function validateOfflineFfmpegPlanningPayload(value: unknown): OfflineFfm
     trimEndFrameExclusive: Number(payload.trimEndFrameExclusive),
     frameRate: Number(payload.frameRate) as OfflineFfmpegPlanningPayload['frameRate'],
   } as const
+  if (colorDelivery) {
+    const colorGradeStyle = colorGradeStyleValue(payload.colorGradeStyle)
+    const intensity = colorIntensityValue(payload.intensity)
+    const approvedColorOperationIds = boundedSafeKeys(payload.approvedColorOperationIds, 32)
+    const approvedColorOperationKinds = colorOperationKinds(payload.approvedColorOperationKinds)
+    const expectedKinds = expectedColorOperationKinds(colorGradeStyle)
+    if (
+      payload.analysisProfileId !== 'approved_three_frame_rgb_stats_v1' ||
+      payload.correctionProfileId !== 'bounded_professional_source_color_v1' ||
+      payload.outputColorSpace !== 'bt709' || payload.outputPixelFormat !== 'yuv420p' ||
+      payload.preserveAudio !== false ||
+      approvedColorOperationKinds.join('|') !== expectedKinds.join('|')
+    ) throw invalid()
+    return {
+      recipeProfileId: 'approved_source_color_delivery_matroska_v1',
+      ...common,
+      colorGradeStyle,
+      intensity,
+      approvedColorOperationIds,
+      approvedColorOperationKinds,
+      analysisProfileId: 'approved_three_frame_rgb_stats_v1',
+      correctionProfileId: 'bounded_professional_source_color_v1',
+      outputColorSpace: 'bt709',
+      outputPixelFormat: 'yuv420p',
+      preserveAudio: false,
+    }
+  }
   if (!voiceDelivery) {
     return { recipeProfileId: 'approved_trim_transcode_v1', ...common }
   }
@@ -205,6 +270,18 @@ export function validateOfflineFfmpegExecutionRequest(value: unknown): OfflineFf
           ]
         : []
     ),
+    ...(
+      request.payload && typeof request.payload === 'object' &&
+      !Array.isArray(request.payload) &&
+      (request.payload as Record<string, unknown>).recipeProfileId ===
+        'approved_source_color_delivery_matroska_v1'
+        ? [
+            'colorGradeStyle', 'intensity', 'approvedColorOperationIds',
+            'approvedColorOperationKinds', 'analysisProfileId', 'correctionProfileId',
+            'outputColorSpace', 'outputPixelFormat', 'preserveAudio',
+          ]
+        : []
+    ),
     'mimeType', 'sourceByteLength', 'sourceSha256', 'sourceBytesBase64',
   ])
   const planning = validateOfflineFfmpegPlanningPayload({
@@ -224,6 +301,19 @@ export function validateOfflineFfmpegExecutionRequest(value: unknown): OfflineFf
           loudnessRangeLufs: payload.loudnessRangeLufs,
           highpassHz: payload.highpassHz,
           compressorPreset: payload.compressorPreset,
+        }
+      : {}),
+    ...(payload.recipeProfileId === 'approved_source_color_delivery_matroska_v1'
+      ? {
+          colorGradeStyle: payload.colorGradeStyle,
+          intensity: payload.intensity,
+          approvedColorOperationIds: payload.approvedColorOperationIds,
+          approvedColorOperationKinds: payload.approvedColorOperationKinds,
+          analysisProfileId: payload.analysisProfileId,
+          correctionProfileId: payload.correctionProfileId,
+          outputColorSpace: payload.outputColorSpace,
+          outputPixelFormat: payload.outputPixelFormat,
+          preserveAudio: payload.preserveAudio,
         }
       : {}),
   })
@@ -261,6 +351,75 @@ function exactObject(value: unknown, keys: readonly string[]): Record<string, un
   const record = value as Record<string, unknown>
   if (Object.keys(record).sort().join('|') !== [...keys].sort().join('|')) throw invalid()
   return record
+}
+
+const COLOR_OPERATION_KINDS: readonly OfflineFfmpegColorOperationKind[] = [
+  'clarity',
+  'contrast_curve',
+  'exposure_correction',
+  'highlight_recovery',
+  'look_transform',
+  'qa_histogram_check',
+  'saturation',
+  'white_balance',
+]
+
+function expectedColorOperationKinds(
+  style: OfflineFfmpegColorGradeStyle,
+): OfflineFfmpegColorOperationKind[] {
+  return style === 'premium_clean'
+    ? [
+        'clarity',
+        'contrast_curve',
+        'exposure_correction',
+        'highlight_recovery',
+        'look_transform',
+        'qa_histogram_check',
+        'white_balance',
+      ]
+    : [
+        'contrast_curve',
+        'exposure_correction',
+        'highlight_recovery',
+        'qa_histogram_check',
+        'saturation',
+        'white_balance',
+      ]
+}
+
+function colorGradeStyleValue(value: unknown): OfflineFfmpegColorGradeStyle {
+  if (value !== 'clean_natural' && value !== 'premium_clean') throw invalid()
+  return value
+}
+
+function colorIntensityValue(value: unknown): OfflineFfmpegColorIntensity {
+  if (value !== 'subtle' && value !== 'balanced') throw invalid()
+  return value
+}
+
+function colorOperationKinds(value: unknown): OfflineFfmpegColorOperationKind[] {
+  if (
+    !Array.isArray(value) || value.length < 1 || value.length > COLOR_OPERATION_KINDS.length ||
+    value.some((candidate) => !COLOR_OPERATION_KINDS.includes(
+      candidate as OfflineFfmpegColorOperationKind,
+    ))
+  ) throw invalid()
+  const normalized = [...new Set(value as OfflineFfmpegColorOperationKind[])].sort()
+  if (normalized.length !== value.length || normalized.join('|') !== value.join('|')) throw invalid()
+  return normalized
+}
+
+function boundedSafeKeys(value: unknown, maximum: number): string[] {
+  if (
+    !Array.isArray(value) || value.length < 1 || value.length > maximum ||
+    value.some((candidate) =>
+      typeof candidate !== 'string' || candidate.length > 200 ||
+      !/^[A-Za-z0-9][A-Za-z0-9._:-]*$/.test(candidate) || candidate.includes('..') ||
+      candidate !== candidate.trim())
+  ) throw invalid()
+  const normalized = [...new Set(value as string[])].sort()
+  if (normalized.length !== value.length || normalized.join('|') !== value.join('|')) throw invalid()
+  return normalized
 }
 
 function invalid(): Error {

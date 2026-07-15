@@ -14,6 +14,8 @@ import { verifyCanonicalPrivateAudioArtifact } from './canonical-private-audio-a
 import { readCanonicalPrivateAudioArtifact } from './canonical-private-audio-artifact-storage'
 import { verifyCanonicalPrivateRemotionArtifact } from './canonical-private-remotion-artifact-verifier'
 import { readCanonicalPrivateRemotionArtifact } from './canonical-private-remotion-artifact-storage'
+import { verifyCanonicalPrivateMediaArtifact } from './canonical-private-media-artifact-verifier'
+import { readCanonicalPrivateMediaArtifact } from './canonical-private-media-artifact-storage'
 import { createCanonicalWorkerLeaseAuthorityService } from './canonical-worker-lease-authority-service'
 import { createCanonicalExecutionReadinessService } from './canonical-execution-readiness-service'
 import { createPrivateArtifactQaAuthorityService } from './private-artifact-qa-authority-service'
@@ -34,6 +36,8 @@ export interface CanonicalPrivateDependencyArtifactReadResult {
     | 'image/jpeg'
     | 'image/webp'
     | 'video/mp4'
+    | 'video/x-nut'
+    | 'video/x-matroska'
     | 'audio/wav'
   sha256: string
   byteLength: number
@@ -71,6 +75,8 @@ export function createCanonicalPrivateDependencyArtifactReadService(context: Ser
         | 'image/jpeg'
         | 'image/webp'
         | 'video/mp4'
+        | 'video/x-nut'
+        | 'video/x-matroska'
         | 'audio/wav'
       )[]
       maximumBytes: number
@@ -160,6 +166,11 @@ export function createCanonicalPrivateDependencyArtifactReadService(context: Ser
               localStorageRoot: context.env.localStorageRoot,
               artifact: authority.artifact,
             })
+          : contentType === 'video/x-nut' || contentType === 'video/x-matroska'
+          ? await verifyCanonicalPrivateMediaArtifact({
+              localStorageRoot: context.env.localStorageRoot,
+              artifact: authority.artifact,
+            })
           : contentType === 'audio/wav'
           ? await verifyCanonicalPrivateAudioArtifact({
               localStorageRoot: context.env.localStorageRoot,
@@ -191,6 +202,11 @@ export function createCanonicalPrivateDependencyArtifactReadService(context: Ser
           })
         : contentType === 'video/mp4'
           ? await readCanonicalPrivateRemotionArtifact({
+              localStorageRoot: context.env.localStorageRoot,
+              privateObjectIdentityHash: verified.privateObjectIdentityHash,
+            })
+          : contentType === 'video/x-nut' || contentType === 'video/x-matroska'
+          ? await readCanonicalPrivateMediaArtifact({
               localStorageRoot: context.env.localStorageRoot,
               privateObjectIdentityHash: verified.privateObjectIdentityHash,
             })

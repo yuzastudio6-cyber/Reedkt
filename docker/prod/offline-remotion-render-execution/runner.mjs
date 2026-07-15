@@ -327,7 +327,7 @@ function validateRequest(value) {
       ...(replaceVoice ? ['voiceTracks'] : []),
     ], 'source-sequence final composition payload')
     const dimensions = `${payload.width}x${payload.height}`
-    oneOf(dimensions, ['360x640', '640x360', '480x480', '480x600', '720x405', '405x720'], 'approved frame')
+    oneOf(dimensions, ['360x640', '640x360', '480x480', '480x600'], 'approved frame')
     const durationFrames = integer(payload.durationFrames, 24, 240, 'durationFrames')
     const fps = oneOf(payload.fps, [24, 30], 'fps')
     const sourceSegments = validateSourceSegments(payload.sourceSegments, durationFrames)
@@ -409,10 +409,12 @@ function validateRequest(value) {
   ) {
     const captionTrack = rawPayload.compositionProfileId === 'approved_source_caption_track_final_v1'
     const replaceVoice = rawPayload.audioPolicy === 'replace_with_approved_voice_tracks'
+    const sourceMediaPolicyProvided = Object.hasOwn(rawPayload, 'sourceMediaPolicy')
     const payload = exactObject(rawPayload, [
       'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
       'sourceStartFrame', 'sourceEndFrameExclusive', 'sourceFit',
       'panelBackground', 'audioPolicy', 'captionOverlayPolicy',
+      ...(sourceMediaPolicyProvided ? ['sourceMediaPolicy'] : []),
       'sourceMimeType', 'sourceByteLength', 'sourceSha256', 'sourceBytesBase64',
       ...(captionTrack
         ? ['captionOverlayCues', 'captionOverlays']
@@ -420,8 +422,20 @@ function validateRequest(value) {
       ...(replaceVoice ? ['voiceTracks'] : []),
     ], 'final composition payload')
     const dimensions = `${payload.width}x${payload.height}`
-    oneOf(dimensions, ['360x640', '640x360', '480x480', '480x600', '720x405', '405x720'], 'approved frame')
-    const source = committedBase64(payload, 'source', 'video/mp4', 64, 16 * 1024 * 1024)
+    oneOf(dimensions, ['360x640', '640x360', '480x480', '480x600'], 'approved frame')
+    const approvedColorIntermediate =
+      payload.sourceMediaPolicy === 'approved_professional_color_intermediate_v1'
+    if (sourceMediaPolicyProvided && !approvedColorIntermediate) {
+      throw new Error('source media policy is unsupported')
+    }
+    const sourceMimeType = approvedColorIntermediate ? 'video/x-matroska' : 'video/mp4'
+    const source = committedBase64(
+      payload,
+      'source',
+      sourceMimeType,
+      64,
+      16 * 1024 * 1024,
+    )
     const durationFrames = integer(payload.durationFrames, 24, 240, 'durationFrames')
     const fps = oneOf(payload.fps, [24, 30], 'fps')
     const captionOverlayCues = captionTrack
@@ -434,7 +448,7 @@ function validateRequest(value) {
       ? undefined
       : committedBase64(payload, 'captionOverlay', 'image/png', 1024, 8 * 1024 * 1024)
     if (
-      source.subarray(4, 8).toString('ascii') !== 'ftyp' ||
+      !approvedSourceSignature(source, sourceMimeType) ||
       (overlay && overlay.subarray(0, 8).toString('hex') !== '89504e470d0a1a0a')
     ) throw new Error('final composition dependency signature is invalid')
     const voiceTracks = replaceVoice
@@ -460,6 +474,13 @@ function validateRequest(value) {
     if (sourceEndFrameExclusive - sourceStartFrame !== durationFrames) {
       throw new Error('final composition source trim does not match approved duration')
     }
+    if (
+      approvedColorIntermediate &&
+      (
+        payload.audioPolicy !== 'replace_with_approved_voice_tracks' ||
+        sourceStartFrame !== 0 || sourceEndFrameExclusive !== durationFrames
+      )
+    ) throw new Error('professional color intermediate policy is invalid')
     const color = (value, label) => {
       if (typeof value !== 'string' || !/^#[A-Fa-f0-9]{6}$/.test(value)) throw new Error(`${label} is invalid`)
       return value.toUpperCase()
@@ -531,9 +552,14 @@ async function execute(request) {
         isSourceSequenceProfile(request.payload.compositionProfileId)
           ? request.payload.sources.map((source) => ({
               sourceSequenceItemId: source.sourceSequenceItemId,
+              mimeType: source.sourceMimeType,
               bytes: Buffer.from(source.sourceBytesBase64, 'base64'),
             }))
-          : [{ sourceSequenceItemId: 'single-approved-source', bytes: Buffer.from(request.payload.sourceBytesBase64, 'base64') }],
+          : [{
+              sourceSequenceItemId: 'single-approved-source',
+              mimeType: request.payload.sourceMimeType,
+              bytes: Buffer.from(request.payload.sourceBytesBase64, 'base64'),
+            }],
         captionTrack
           ? request.payload.captionOverlays.map((overlay) => ({
               outputKey: overlay.outputKey,
@@ -584,7 +610,7 @@ async function execute(request) {
         audioPolicy: request.payload.audioPolicy, captionOverlayPolicy: request.payload.captionOverlayPolicy,
         sourceInternalUrls: request.payload.sources.map((source, index) => ({
           sourceSequenceItemId: source.sourceSequenceItemId,
-          sourceInternalUrl: `${mediaServer.origin}/source/${index}.mp4`,
+          sourceInternalUrl: `${mediaServer.origin}/source/${index}.${sourceExtension(source.sourceMimeType)}`,
         })),
         ...captionRenderPayload,
         ...voiceRenderPayload,
@@ -598,7 +624,7 @@ async function execute(request) {
         sourceEndFrameExclusive: request.payload.sourceEndFrameExclusive,
         sourceFit: request.payload.sourceFit, panelBackground: request.payload.panelBackground,
         audioPolicy: request.payload.audioPolicy, captionOverlayPolicy: request.payload.captionOverlayPolicy,
-        sourceInternalUrl: `${mediaServer.origin}/source/0.mp4`,
+        sourceInternalUrl: `${mediaServer.origin}/source/0.${sourceExtension(request.payload.sourceMimeType)}`,
         ...captionRenderPayload,
         ...voiceRenderPayload,
       }
@@ -672,14 +698,15 @@ async function openPrivateLoopbackMediaServer(sources, overlays, voiceTracks) {
       response.writeHead(405).end()
       return
     }
-    const sourceMatch = /^\/source\/(\d+)\.mp4$/.exec(request.url)
+    const sourceMatch = /^\/source\/(\d+)\.(mp4|mkv)$/.exec(request.url)
     if (sourceMatch) {
       const source = sources[Number(sourceMatch[1])]
-      if (!source) {
+      const expectedExtension = source ? sourceExtension(source.mimeType) : undefined
+      if (!source || sourceMatch[2] !== expectedExtension) {
         response.writeHead(404).end()
         return
       }
-      serveCommittedBytes(request, response, source.bytes, 'video/mp4')
+      serveCommittedBytes(request, response, source.bytes, source.mimeType)
       return
     }
     const captionMatch = /^\/caption\/(\d+)\.png$/.exec(request.url)
@@ -717,6 +744,19 @@ async function openPrivateLoopbackMediaServer(sources, overlays, voiceTracks) {
     origin: `http://127.0.0.1:${address.port}`,
     close: () => new Promise((resolve) => server.close(() => resolve())),
   }
+}
+
+function sourceExtension(mimeType) {
+  if (mimeType === 'video/mp4') return 'mp4'
+  if (mimeType === 'video/x-matroska') return 'mkv'
+  throw new Error('source MIME type is unsupported')
+}
+
+function approvedSourceSignature(bytes, mimeType) {
+  return mimeType === 'video/mp4'
+    ? bytes.subarray(4, 8).toString('ascii') === 'ftyp'
+    : mimeType === 'video/x-matroska' && bytes.byteLength >= 4 &&
+      bytes[0] === 0x1a && bytes[1] === 0x45 && bytes[2] === 0xdf && bytes[3] === 0xa3
 }
 
 function serveCommittedBytes(request, response, bytes, contentType) {

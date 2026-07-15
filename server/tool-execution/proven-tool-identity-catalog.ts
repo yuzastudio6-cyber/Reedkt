@@ -20,7 +20,7 @@ import { OFFLINE_REMBG_BACKGROUND_REMOVAL_PACKAGE_IDENTITIES } from './rembg-bac
 import { OFFLINE_DEEPFILTERNET_VOICE_CLEANUP_PACKAGE_IDENTITY } from './deepfilternet-voice-cleanup-execution/offline-deepfilternet-voice-cleanup-protocol'
 
 export const PROVEN_TOOL_IDENTITY_CATALOG_VERSION = 'proven-tool-identity-catalog-v1' as const
-export const PROVEN_TOOL_EVIDENCE_REVISION = '2026-07-12.28' as const
+export const PROVEN_TOOL_EVIDENCE_REVISION = '2026-07-15.30' as const
 
 export type ToolVerificationState =
   | 'canonical_e2e_verified'
@@ -203,7 +203,7 @@ const CANONICAL_JOB_ADAPTER_EVIDENCE_KEYS: Partial<Record<ProductionToolId, stri
   ffmpeg: 'server_derived_job_adapter_executes_libass_and_source_bound_ffmpeg_identities',
   ffprobe: 'canonical_job_adapter_replays_final_artifact_qa_without_a_second_ffprobe_execution',
   pyav: 'server_derived_job_adapter_executes_duckdb_and_source_bound_pyav_identities',
-  remotion: 'five_job_canonical_work_graph_completes_snapshot_trim_caption_final_composition_and_final_qa',
+  remotion: 'eight_job_canonical_work_graph_completes_snapshot_trim_two_captions_two_voice_tracks_final_composition_and_final_qa',
   libass: 'server_derived_job_adapter_executes_libass_and_source_bound_ffmpeg_identities',
   sharp: 'server_derived_job_adapter_executes_d3_and_dependency_bound_sharp_identities',
   duckdb: 'server_derived_job_adapter_executes_duckdb_and_source_bound_pyav_identities',
@@ -216,7 +216,7 @@ const OUTPUT_CONTENT_TYPES: Partial<Record<ProductionToolId, readonly string[]>>
   animejs: ['image/svg+xml'],
   three_js: ['image/svg+xml'],
   pydub: ['audio/wav'], pydub_effects: ['audio/wav'], resampy: ['audio/wav'],
-  pedalboard: ['audio/wav'], ffmpeg: ['video/x-nut', 'audio/wav'],
+  pedalboard: ['audio/wav'], ffmpeg: ['video/x-nut', 'video/x-matroska', 'audio/wav'],
   noisereduce: ['audio/wav'],
   remotion: ['video/mp4'],
   libass: ['image/png'],

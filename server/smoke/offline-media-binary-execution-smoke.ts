@@ -131,11 +131,88 @@ assert.equal(voiceDeliveryResult.evidence.semanticEvidence.outputProbeVerified, 
 const voiceDeliveryReplay = await runtime.execute(voiceDeliveryRequest)
 assert.equal(voiceDeliveryReplay.resultArtifact.sha256, voiceDeliveryResult.resultArtifact.sha256)
 
+const colorDeliveryRequest = {
+  schemaVersion: OFFLINE_MEDIA_BINARY_PROTOCOL,
+  toolId: 'ffmpeg' as const,
+  operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
+  payload: {
+    recipeProfileId: 'approved_source_color_delivery_matroska_v1' as const,
+    timestampPolicy: 'normalize_from_zero' as const,
+    overwriteExistingArtifact: false as const,
+    allowUnreviewedCodec: false as const,
+    trimStartFrame: 0,
+    trimEndFrameExclusive: 48,
+    frameRate: 24 as const,
+    colorGradeStyle: 'premium_clean' as const,
+    intensity: 'balanced' as const,
+    approvedColorOperationIds: [
+      'color-fixture-clarity',
+      'color-fixture-contrast-curve',
+      'color-fixture-exposure-correction',
+      'color-fixture-highlight-recovery',
+      'color-fixture-look-transform',
+      'color-fixture-qa-histogram-check',
+      'color-fixture-white-balance',
+    ],
+    approvedColorOperationKinds: [
+      'clarity' as const,
+      'contrast_curve' as const,
+      'exposure_correction' as const,
+      'highlight_recovery' as const,
+      'look_transform' as const,
+      'qa_histogram_check' as const,
+      'white_balance' as const,
+    ],
+    analysisProfileId: 'approved_three_frame_rgb_stats_v1' as const,
+    correctionProfileId: 'bounded_professional_source_color_v1' as const,
+    outputColorSpace: 'bt709' as const,
+    outputPixelFormat: 'yuv420p' as const,
+    preserveAudio: false as const,
+    ...sourceAuthority,
+  },
+}
+const colorDeliveryResult = await runtime.execute(colorDeliveryRequest)
+const colorEvidence = colorDeliveryResult.evidence.semanticEvidence
+assert.equal(colorDeliveryResult.resultArtifact.mimeType, 'video/x-matroska')
+assert.deepEqual(
+  [...colorDeliveryResult.resultArtifact.bytes.subarray(0, 4)],
+  [0x1a, 0x45, 0xdf, 0xa3],
+)
+assert.equal(colorEvidence.recipeProfileId, 'approved_source_color_delivery_matroska_v1')
+assert.equal(colorEvidence.outputFrameCount, 48)
+assert.equal(colorEvidence.outputContainer, 'matroska')
+assert.equal(colorEvidence.outputVideoCodec, 'vp9')
+assert.equal(colorEvidence.outputColorSpace, 'bt709')
+assert.equal(colorEvidence.outputPixelFormat, 'yuv420p')
+assert.equal(colorEvidence.sourcePixelAnalysisExecuted, true)
+assert.equal(colorEvidence.outputPixelAnalysisExecuted, true)
+assert.equal(colorEvidence.boundedAutoExposureApplied, true)
+assert.equal(colorEvidence.boundedWhiteBalanceApplied, true)
+assert.equal(colorEvidence.plannedLookApplied, true)
+assert.equal(colorEvidence.lgplColorChannelMixerApplied, true)
+assert.equal(colorEvidence.lgplColorLevelsApplied, true)
+assert.equal(colorEvidence.lgplClarityFilterApplied, true)
+assert.equal(colorEvidence.clippingProtectionVerified, true)
+assert.equal(colorEvidence.histogramQaPassed, true)
+assert.equal(colorEvidence.outputProbeVerified, true)
+assert.deepEqual(colorEvidence.approvedColorOperationIds,
+  colorDeliveryRequest.payload.approvedColorOperationIds)
+assert.deepEqual(colorEvidence.approvedColorOperationKinds,
+  colorDeliveryRequest.payload.approvedColorOperationKinds)
+assert.notDeepEqual(colorEvidence.sourcePixelAnalysis, colorEvidence.outputPixelAnalysis)
+assert.notEqual(colorDeliveryResult.resultArtifact.sha256, sourceAuthority.sourceSha256)
+const colorDeliveryReplay = await runtime.execute(colorDeliveryRequest)
+assert.equal(colorDeliveryReplay.resultArtifact.sha256, colorDeliveryResult.resultArtifact.sha256)
+
 const authority = await readPersistedOfflineMediaBinaryRuntimeAuthority()
 assert(authority)
 assert.equal(authority.readiness.privateInternalExecutionReady, true)
 assert.equal(authority.readiness.finalExportReady, false)
 assert.equal(authority.supportedOperations.length, 2)
+assert.equal(
+  authority.image.imageTag,
+  'reeditpro/ffmpeg-lgpl-internal:8.1.2-color-v1-local',
+)
 assert.equal(authority.image.imageIdentityHash, runtime.image.imageIdentityHash)
 const reopened = await openPrivateOfflineMediaBinaryRuntime()
 assert.equal(reopened.image.imageIdentityHash, runtime.image.imageIdentityHash)
@@ -159,6 +236,18 @@ await assertRejects(() => runtime.execute({
   payload: { ...voiceDeliveryRequest.payload, targetLufs: -9 },
 }))
 await assertRejects(() => runtime.execute({
+  ...colorDeliveryRequest,
+  payload: {
+    ...colorDeliveryRequest.payload,
+    approvedColorOperationKinds: colorDeliveryRequest.payload.approvedColorOperationKinds
+      .filter((kind) => kind !== 'white_balance'),
+  },
+}))
+await assertRejects(() => runtime.execute({
+  ...colorDeliveryRequest,
+  payload: { ...colorDeliveryRequest.payload, arbitraryFilter: 'negate' },
+}))
+await assertRejects(() => runtime.execute({
   ...request,
   payload: { ...request.payload, command: 'ffprobe -version' },
 }))
@@ -178,6 +267,13 @@ console.log(JSON.stringify({
     'actual_ffprobe_approved_source_inspection',
     'actual_ffmpeg_approved_frame_trim_to_ffv1_nut_intermediate',
     'actual_ffmpeg_approved_voice_delivery_pcm_wav',
+    'actual_ffmpeg_approved_source_color_delivery_lossless_vp9_matroska',
+    'actual_three_frame_rgb_pixel_analysis_before_and_after_color_processing',
+    'bounded_professional_exposure_white_balance_contrast_saturation_and_clarity_chain',
+    'approved_color_operation_ids_and_kinds_preserved_in_execution_evidence',
+    'color_output_reprobed_for_vp9_matroska_yuv420p_bt709_frame_count_and_rate',
+    'color_histogram_and_clipping_qa_passed',
+    'color_delivery_deterministic_reexecution_result',
     'voice_highpass_compression_loudness_and_true_peak_chain',
     'voice_delivery_output_reprobed_for_pcm_rate_channels_and_duration',
     'ffmpeg_output_reprobed_for_codec_container_frame_count_and_rate',
@@ -186,6 +282,7 @@ console.log(JSON.stringify({
     'machine_json_duration_stream_and_frame_count_normalization',
     'networkless_readonly_nonroot_no_mount_confinement',
     'server_owned_entrypoint_and_fixed_argument_derivation',
+    'color_capable_image_tag_and_runtime_authority_namespace_are_revision_isolated',
     'checksum_protected_runtime_authority_and_restart_safe_open',
     'deterministic_reexecution_result',
     'caller_command_path_operation_and_source_tamper_rejected',

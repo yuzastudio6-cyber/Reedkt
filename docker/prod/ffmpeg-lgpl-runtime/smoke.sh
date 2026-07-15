@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-IMAGE_TAG=${REEDITPRO_FFMPEG_IMAGE_TAG:-reeditpro/ffmpeg-lgpl-internal:8.1.2-local}
+IMAGE_TAG=${REEDITPRO_FFMPEG_IMAGE_TAG:-reeditpro/ffmpeg-lgpl-internal:8.1.2-color-v1-local}
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 
 if [ "${1:-}" = '--build' ]; then

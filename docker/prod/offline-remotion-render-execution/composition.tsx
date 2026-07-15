@@ -35,7 +35,7 @@ export interface ApprovedCompositionProps {
     | 'preserve_source_sequence'
     | 'replace_with_approved_voice_tracks'
   captionOverlayPolicy?: 'approved_full_frame_rgba' | 'approved_timed_full_frame_rgba_track'
-  sourceMimeType?: 'video/mp4'
+  sourceMimeType?: 'video/mp4' | 'video/x-matroska'
   sourceByteLength?: number
   sourceSha256?: string
   sourceBytesBase64?: string

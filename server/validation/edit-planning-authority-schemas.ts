@@ -161,6 +161,7 @@ export const canonicalPlanComponentsSchema = z.object({
   timingSummary: timingSummarySchema,
   segments: z.array(segmentSummarySchema).min(1).max(2_000),
   visualAssetPlan: jsonObjectSchema,
+  colorPipelinePlan: jsonObjectSchema.default({ status: 'not_provided' }),
   rendererPlan: jsonObjectSchema,
   toolStrategyPlan: jsonObjectSchema,
   qaPlan: jsonObjectSchema,

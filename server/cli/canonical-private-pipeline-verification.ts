@@ -86,6 +86,11 @@ const canonicalSteps: VerificationStep[] = [
     'Bounded ordered multi-source execution reaches approved hard-cut boundaries, exact source-bound voice delivery, lease, one-use dispatch, private artifacts, QA, reconciliation, ordered voice replacement, and download evidence.',
   ),
   step(
+    'canonical-professional-color-execution',
+    'smoke:canonical-private-color-execution',
+    'One exact source-bound professional color plan reaches bounded pixel analysis and correction, lossless private Matroska persistence, QA, reconciliation, replay, Remotion composition, independent final QA, and private download evidence.',
+  ),
+  step(
     'canonical-named-edit-ui',
     'qa:canonical-journey-ui',
     'The active named-edit browser exposes accessible loading, error, retry, approval, preparation, review, and revision states.',
@@ -231,6 +236,7 @@ function printReport(
           boundedPrivateMultiSourceExecution: true,
           boundedApprovedHardCutTransitions: true,
           boundedProfessionalVoiceDelivery: true,
+          boundedProfessionalColorExecution: true,
           activeNamedEditJourneyStates: true,
           versionedToolIdentityEvidence: true,
           ...(full ? { signedInTwoSourceUploadAndPersistence: true } : {}),

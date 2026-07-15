@@ -721,6 +721,11 @@ function resolveAndVerifyCanonicalDispatchBinding(input: {
     Array.isArray(finalCompositionStructuredPayload.voiceTracks)
       ? finalCompositionStructuredPayload.voiceTracks.length
       : 0
+  const finalCompositionColorSourceCount =
+    finalCompositionStructuredPayload?.sourceMediaPolicy ===
+      'approved_professional_color_intermediate_v1'
+      ? 1
+      : 0
   const exactPrivateRemotionFinalComposition =
     workItem.workerClass === 'render_worker' && workItem.workItemType === 'render_final_export' &&
     expectedAsset.assetRole === 'final' && expectedAsset.contentType === 'video/mp4' &&
@@ -728,9 +733,14 @@ function resolveAndVerifyCanonicalDispatchBinding(input: {
     body.operationId === 'tool.remotion.render_approved_composition.v1' &&
     finalCompositionCaptionCueCount >= 1 && finalCompositionCaptionCueCount <= 7 &&
     workItem.dependencyKeys.length ===
-      1 + finalCompositionCaptionCueCount + finalCompositionVoiceTrackCount &&
+      1 + finalCompositionCaptionCueCount + finalCompositionVoiceTrackCount +
+        finalCompositionColorSourceCount &&
     (finalCompositionVoiceTrackCount === 0 ||
       finalCompositionVoiceTrackCount === workItem.sourceSequenceItemIds.length) &&
+    (finalCompositionColorSourceCount === 0 || (
+      workItem.sourceSequenceItemIds.length === 1 &&
+      finalCompositionVoiceTrackCount === 1
+    )) &&
     workItem.sourceSequenceItemIds.length >= 1 &&
     workItem.sourceSequenceItemIds.length <= 8 &&
     workItem.sourceCleanupDecisionIds.length === workItem.sourceSequenceItemIds.length

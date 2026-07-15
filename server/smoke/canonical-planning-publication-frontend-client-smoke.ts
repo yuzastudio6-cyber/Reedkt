@@ -4,6 +4,7 @@ import { createServer } from 'node:http'
 import { buildCanonicalPlanningDraft } from '../../src/lib/canonical-planning-draft'
 import { createGuidedMockEditPlan } from '../../src/lib/mock-planner/guided'
 import { createMockEditPlan } from '../../src/lib/mock-planner/full'
+import { buildProfessionalExportCreditCoverage } from '../../src/lib/professional-export-policy'
 import type { ProjectPersistenceScope } from '../../src/lib/project-persistence-scope'
 import type { AudioOperationPlan, EditPlan, PlannerInput } from '../../src/types/reeditpro'
 import {
@@ -546,6 +547,131 @@ assert.deepEqual(
   ['libass', 'ffmpeg', 'remotion', 'ffprobe'],
 )
 
+const colorDeliveryPlan = createExactProfessionalColorReviewPlan()
+const colorDeliveryDraft = buildCanonicalPlanningDraft({
+  plan: colorDeliveryPlan,
+  plannerInput: baseInput,
+  sourceMediaAssets,
+})
+if (!colorDeliveryDraft.ok) {
+  throw new Error(
+    `Exact source-bound professional color delivery did not compile: ${colorDeliveryDraft.errors.join(' | ')}`,
+  )
+}
+if (!colorDeliveryDraft.draft.publication) {
+  throw new Error(
+    `Exact source-bound professional color delivery did not compile to a publication candidate: ${
+      colorDeliveryDraft.draft.publicationBlockers.join(' | ')
+    }`,
+  )
+}
+assert.equal(colorDeliveryDraft.ok, true)
+const colorCanonicalPlan = colorDeliveryDraft.draft.publication.canonicalPlan
+const colorItems = colorCanonicalPlan.workItems.filter((item) =>
+  item.workerClass === 'color_processing_worker')
+assert.deepEqual(
+  colorItems.map((item) => ({
+    key: item.workItemKey,
+    sourceIds: item.sourceSequenceItemIds,
+    cleanupIds: item.sourceCleanupDecisionIds,
+    outputKey: item.expectedOutputs[0]?.outputKey,
+    contentType: item.expectedOutputs[0]?.contentType,
+    dependencies: item.dependencyKeys,
+    tools: item.approvedToolIds,
+  })),
+  [{
+    key: 'color-delivery-1',
+    sourceIds: ['canonical-save-source-1'],
+    cleanupIds: ['guided-trim-canonical-save-clip-1'],
+    outputKey: 'color-delivery-1-mkv',
+    contentType: 'video/x-matroska',
+    dependencies: [],
+    tools: ['ffmpeg'],
+  }],
+  'Professional color must compile to one exact source-bound private Matroska artifact.',
+)
+const colorPayload = validateOfflineFfmpegPlanningPayload(
+  asRecord(colorItems[0]!.executionInput.structuredPayload),
+)
+assert.equal(colorPayload.recipeProfileId, 'approved_source_color_delivery_matroska_v1')
+if (colorPayload.recipeProfileId !== 'approved_source_color_delivery_matroska_v1') {
+  throw new Error('Professional color compiled to the wrong confined FFmpeg recipe.')
+}
+assert.equal(colorPayload.trimStartFrame, 0)
+assert.equal(colorPayload.trimEndFrameExclusive, 48)
+assert.equal(colorPayload.frameRate, 24)
+assert.equal(colorPayload.colorGradeStyle, 'premium_clean')
+assert.equal(colorPayload.intensity, 'balanced')
+assert.equal(colorPayload.preserveAudio, false)
+assert.deepEqual(colorPayload.approvedColorOperationKinds, [
+  'clarity',
+  'contrast_curve',
+  'exposure_correction',
+  'highlight_recovery',
+  'look_transform',
+  'qa_histogram_check',
+  'white_balance',
+])
+assert.equal(
+  new Set(colorPayload.approvedColorOperationIds).size,
+  colorPayload.approvedColorOperationIds.length,
+)
+const colorVoiceItem = colorCanonicalPlan.workItems.find((item) =>
+  item.workItemKey === 'voice-delivery-1')!
+assert.equal(
+  validateOfflineFfmpegPlanningPayload(
+    asRecord(colorVoiceItem.executionInput.structuredPayload),
+  ).recipeProfileId,
+  'approved_voice_delivery_wav_v1',
+)
+const colorFinalItem = colorCanonicalPlan.workItems.find((item) =>
+  item.workItemKey === 'final-export')!
+assert.deepEqual(colorFinalItem.dependencyKeys, [
+  'source-trim-validation',
+  'caption-overlay',
+  'voice-delivery-1',
+  'color-delivery-1',
+])
+const colorFinalPayload = validateOfflineRemotionFinalCompositionPlanningPayload(
+  asRecord(colorFinalItem.executionInput.structuredPayload),
+)
+assert.equal(colorFinalPayload.compositionProfileId, 'approved_source_caption_final_v1')
+if (colorFinalPayload.compositionProfileId !== 'approved_source_caption_final_v1') {
+  throw new Error('Professional color compiled to the wrong single-source Remotion profile.')
+}
+assert.equal(colorFinalPayload.sourceMediaPolicy, 'approved_professional_color_intermediate_v1')
+assert.equal(colorFinalPayload.sourceStartFrame, 0)
+assert.equal(colorFinalPayload.sourceEndFrameExclusive, 48)
+assert.equal(colorFinalPayload.audioPolicy, 'replace_with_approved_voice_tracks')
+assert.deepEqual(colorFinalPayload.voiceTracks, [{
+  sourceSequenceItemId: 'canonical-save-source-1',
+  outputKey: 'voice-delivery-1-wav',
+  durationFrames: 48,
+}])
+assert.deepEqual(
+  asRecord(colorCanonicalPlan.components.toolStrategyPlan).toolIds,
+  ['libass', 'ffmpeg', 'remotion', 'ffprobe'],
+)
+const colorWithoutReplacementVoicePlan = createExactProfessionalColorReviewPlan()
+colorWithoutReplacementVoicePlan.audioPipelinePlan = undefined
+const colorWithoutReplacementVoiceDraft = buildCanonicalPlanningDraft({
+  plan: colorWithoutReplacementVoicePlan,
+  plannerInput: baseInput,
+  sourceMediaAssets,
+})
+assert.equal(colorWithoutReplacementVoiceDraft.ok, true)
+assert.equal(
+  colorWithoutReplacementVoiceDraft.ok && colorWithoutReplacementVoiceDraft.draft.publication,
+  undefined,
+  'A silent professional-color intermediate must not replace an approved source without replacement voice.',
+)
+assert.match(
+  colorWithoutReplacementVoiceDraft.ok
+    ? colorWithoutReplacementVoiceDraft.draft.publicationBlockers.join(' ')
+    : '',
+  /color intermediate removes source audio.*voice delivery/i,
+)
+
 const badSourceDraft = buildCanonicalPlanningDraft({
   plan: exactPlan,
   plannerInput: baseInput,
@@ -804,7 +930,7 @@ try {
   }
   assert.deepEqual(exactHandoffBody.canonicalPlanComponents?.confirmedSettings, {
     aspectRatio: '16:9',
-    outputFrame: { width: 720, height: 405, fps: 24 },
+    outputFrame: { width: 640, height: 360, fps: 24 },
     outputFramePurpose: 'private_canonical_review',
     professionalExportCoverage: exactPlan.creditEstimate.professionalExportCoverage,
     outputFrameConfirmed: true,
@@ -1038,6 +1164,7 @@ function createExactPrivateReviewPlan(): EditPlan {
   }
   decision.decision = 'preserve'
   decision.riskLevel = 'low'
+  synchronizeProfessionalExportCoverage(plan)
   plan.visualAssetPlan = []
   plan.providerPromptPlans = []
   plan.segmentEditPlans = []
@@ -1109,6 +1236,7 @@ function createExactMultiSourcePrivateReviewPlan(): EditPlan {
   cleanup.cutRanges = []
   cleanup.userReviewItems = []
   cleanup.finalDurationImpactSeconds = 0
+  synchronizeProfessionalExportCoverage(plan)
   plan.visualAssetPlan = []
   plan.providerPromptPlans = []
   plan.segmentEditPlans = []
@@ -1240,6 +1368,16 @@ function createExactMultiSourceVoiceDeliveryPlan(): EditPlan {
   return plan
 }
 
+function createExactProfessionalColorReviewPlan(): EditPlan {
+  const plan = createExactPrivateReviewPlan()
+  if (!sourceOnlyFullPlan.colorPipelinePlan || !sourceOnlyFullPlan.audioPipelinePlan) {
+    throw new Error('Professional color review fixture requires planned color and source-bound voice pipelines.')
+  }
+  plan.colorPipelinePlan = structuredClone(sourceOnlyFullPlan.colorPipelinePlan)
+  plan.audioPipelinePlan = structuredClone(sourceOnlyFullPlan.audioPipelinePlan)
+  return plan
+}
+
 function approvedVoiceOperations(prefix: string): AudioOperationPlan[] {
   const operation = (
     operationId: AudioOperationPlan['operation'],
@@ -1282,6 +1420,23 @@ function frameRange(startSeconds: number, endSeconds: number, startFrame: number
     durationFrames: endFrame - startFrame,
     fps: 24,
   }
+}
+
+function synchronizeProfessionalExportCoverage(plan: EditPlan): void {
+  const coverage = buildProfessionalExportCreditCoverage({
+    durationSeconds: 2,
+    outputFps: 24,
+    approvedAspectRatio: '16:9',
+  })
+  const exportLine = plan.creditEstimate.breakdown.find((item) =>
+    item.label === '4K UHD render and export ceiling')
+  if (!exportLine || !plan.creditEstimate.professionalExportCoverage) {
+    throw new Error('Exact publication fixture requires the mandatory 4K estimate line.')
+  }
+  plan.creditEstimate.total +=
+    coverage.maximumInternalToolCostCredits - exportLine.credits
+  exportLine.credits = coverage.maximumInternalToolCostCredits
+  plan.creditEstimate.professionalExportCoverage = coverage
 }
 
 function handoffFixture(foreignIdentity: typeof identity): Record<string, unknown> {

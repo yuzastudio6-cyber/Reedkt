@@ -3,9 +3,10 @@
 Status: `internal_build_candidate_product_ready_false`
 
 This isolated image is a source-built FFmpeg/ffprobe foundation for bounded,
-private ReEditPro worker evaluation. It is not imported by existing CPU,
-render, QA, or readiness Dockerfiles and is not wired to routes, jobs, GCP,
-Supabase, providers, billing, Remotion, or final export.
+private ReEditPro worker evaluation. Its revisioned local tag and runtime
+authority namespace are used by the exact canonical private trim, voice,
+professional-color, dependency-QA, and Remotion-input paths. It is not wired
+to GCP, Supabase, providers, billing, public delivery, or production export.
 
 ## Locked inputs
 
@@ -34,8 +35,13 @@ autodetection, and every component before enabling a reviewed subset.
 
 Runtime protocols are exactly `file` and `pipe`. Input support is limited to
 common local/private media demuxing and decoding for analysis. Intermediate
-outputs are limited to Matroska/NUT, FFV1/raw/PPM video, FLAC/PCM audio, hashes,
-null analysis, and image sequences.
+outputs are limited to Matroska/NUT/rawvideo, FFV1/lossless VP9/raw/PPM video,
+FLAC/PCM audio, hashes, null analysis, and image sequences. The VP9 encoder is
+the pinned Debian `libvpx 1.12.0-1+deb12u5` build used only for the bounded,
+Remotion-decodable professional color intermediate. The exact allowlist also
+contains the bounded `colorchannelmixer`, `colorlevels`, `unsharp`, and
+`setparams` filters required by the private professional source-color recipe;
+caller-authored filter strings remain forbidden.
 
 The image does **not** compile H.264, HEVC, AAC, `libx264`, `libx265`, or
 OpenH264 encoders. It does not compile an MP4/MOV muxer. Consequently it is not
@@ -88,7 +94,8 @@ The smoke checks the immutable configuration, LGPL banner, exact encoder,
 decoder, filter, demuxer, muxer, protocol, and bitstream-filter allowlists,
 non-root identity, read-only root, network-none runtime, all runtime evidence
 hashes, synthetic FFV1+PCM intermediate creation, ffprobe JSON, frame
-extraction, and deterministic video/audio analysis filters.
+extraction, the bounded BT.709 lossless-VP9 professional color chain, and deterministic
+video/audio analysis filters.
 
 It processes synthetic media only. It does not read user artifacts or unlock
 workers, routes, rendering, previews, or export.
@@ -98,9 +105,9 @@ workers, routes, rendering, previews, or export.
 For a locally built image:
 
 ```bash
-docker image inspect --format '{{.Id}}' reeditpro/ffmpeg-lgpl-internal:8.1.2-local
-docker sbom --format spdx-json reeditpro/ffmpeg-lgpl-internal:8.1.2-local > /tmp/reeditpro-ffmpeg-8.1.2.spdx.json
-sha256sum /tmp/reeditpro-ffmpeg-8.1.2.spdx.json
+docker image inspect --format '{{.Id}}' reeditpro/ffmpeg-lgpl-internal:8.1.2-color-v1-local
+docker sbom --format spdx-json reeditpro/ffmpeg-lgpl-internal:8.1.2-color-v1-local > /tmp/reeditpro-ffmpeg-8.1.2-color-v1.spdx.json
+sha256sum /tmp/reeditpro-ffmpeg-8.1.2-color-v1.spdx.json
 ```
 
 The builder package lock and runtime binary/config hashes are stored under

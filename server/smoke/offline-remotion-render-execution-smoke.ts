@@ -322,6 +322,96 @@ try {
   }
   assert.equal(voiceDelivery.evidence.semanticEvidence.loudnessNormalizationApplied, true)
   assert.equal(voiceDelivery.evidence.semanticEvidence.truePeakLimiterApplied, true)
+  const colorDelivery = await mediaRuntime.execute({
+    schemaVersion: 'offline-media-binary-execution-v1', toolId: 'ffmpeg',
+    operationId: 'tool.ffmpeg.execute_approved_media_recipe.v1',
+    payload: {
+      recipeProfileId: 'approved_source_color_delivery_matroska_v1',
+      timestampPolicy: 'normalize_from_zero', overwriteExistingArtifact: false,
+      allowUnreviewedCodec: false, trimStartFrame: 0, trimEndFrameExclusive: 24,
+      frameRate: 24, colorGradeStyle: 'clean_natural', intensity: 'balanced',
+      approvedColorOperationIds: [
+        'color-contrast-curve-1',
+        'color-exposure-correction-1',
+        'color-highlight-recovery-1',
+        'color-qa-histogram-check-1',
+        'color-saturation-1',
+        'color-white-balance-1',
+      ],
+      approvedColorOperationKinds: [
+        'contrast_curve',
+        'exposure_correction',
+        'highlight_recovery',
+        'qa_histogram_check',
+        'saturation',
+        'white_balance',
+      ],
+      analysisProfileId: 'approved_three_frame_rgb_stats_v1',
+      correctionProfileId: 'bounded_professional_source_color_v1',
+      outputColorSpace: 'bt709', outputPixelFormat: 'yuv420p', preserveAudio: false,
+      mimeType: 'video/mp4', sourceByteLength: sourceBytes.byteLength,
+      sourceSha256: createHash('sha256').update(sourceBytes).digest('hex'),
+      sourceBytesBase64: sourceBytes.toString('base64'),
+    },
+  })
+  if (
+    !('resultArtifact' in colorDelivery) ||
+    colorDelivery.resultArtifact.mimeType !== 'video/x-matroska'
+  ) throw new Error('Approved source color delivery returned the wrong artifact class.')
+  assert.equal(colorDelivery.resultArtifact.bytes.subarray(0, 4).toString('hex'), '1a45dfa3')
+  assert.equal(colorDelivery.evidence.semanticEvidence.plannedLookApplied, true)
+  assert.equal(colorDelivery.evidence.semanticEvidence.clippingProtectionVerified, true)
+  assert.equal(colorDelivery.evidence.semanticEvidence.histogramQaPassed, true)
+  const colorFinalRequest = buildOfflineRemotionFinalCompositionRequest({
+    planningPayload: {
+      compositionProfileId: 'approved_source_caption_final_v1',
+      width: 640, height: 360, fps: 24, durationFrames: 24,
+      sourceStartFrame: 0, sourceEndFrameExclusive: 24,
+      sourceFit: 'contain', panelBackground: '#000000',
+      audioPolicy: 'replace_with_approved_voice_tracks',
+      sourceMediaPolicy: 'approved_professional_color_intermediate_v1',
+      voiceTracks: [{
+        sourceSequenceItemId: 'approved-source-color',
+        outputKey: 'voice-delivery-color-wav', durationFrames: 24,
+      }],
+      captionOverlayPolicy: 'approved_full_frame_rgba',
+    },
+    source: {
+      mimeType: 'video/x-matroska', bytes: colorDelivery.resultArtifact.bytes,
+      sha256: colorDelivery.resultArtifact.sha256,
+    },
+    captionOverlay: {
+      mimeType: 'image/png', bytes: overlay.imageArtifact.bytes,
+      sha256: overlay.imageArtifact.sha256,
+    },
+    voiceTracks: [{
+      sourceSequenceItemId: 'approved-source-color',
+      outputKey: 'voice-delivery-color-wav', mimeType: 'audio/wav',
+      bytes: voiceDelivery.resultArtifact.bytes,
+      sha256: voiceDelivery.resultArtifact.sha256,
+    }],
+  })
+  assert.throws(() => validateOfflineRemotionRenderRequest({
+    ...colorFinalRequest,
+    payload: {
+      ...colorFinalRequest.payload,
+      sourceMediaPolicy: undefined,
+    },
+  }), /unsupported|commitment|policy/)
+  assert.throws(() => validateOfflineRemotionRenderRequest({
+    ...colorFinalRequest,
+    payload: {
+      ...colorFinalRequest.payload,
+      sourceMimeType: 'video/mp4',
+    },
+  }), /commitment|content/)
+  const colorFinalResult = await reopened.execute(colorFinalRequest)
+  assert.equal(colorFinalResult.artifact.bytes.subarray(4, 8).toString('ascii'), 'ftyp')
+  assert.equal(colorFinalResult.artifact.durationFrames, 24)
+  assert.equal(colorFinalResult.evidence.semanticEvidence.approvedSourceBytesVerified, true)
+  assert.equal(colorFinalResult.evidence.semanticEvidence.approvedVoiceTrackReplacementRequested, true)
+  const colorFinalReplay = await reopened.execute(colorFinalRequest)
+  assert.equal(colorFinalReplay.artifact.sha256, colorFinalResult.artifact.sha256)
   const replacementRequest = buildOfflineRemotionFinalCompositionRequest({
     planningPayload: {
       compositionProfileId: 'approved_source_sequence_caption_track_final_v1',
@@ -448,6 +538,6 @@ try {
 
 console.log(JSON.stringify({
   smoke: 'offline_remotion_render_execution', status: 'passed',
-  proofs: ['exact_operation_payload_validated', 'caller_paths_urls_commands_and_extra_fields_rejected', 'checksum_protected_runtime_authority_persisted_and_reopened', 'pinned_image_identity_verified', 'network_none_read_only_non_root_cap_drop_confinement_verified', 'actual_remotion_select_and_render_media_executed', 'mp4_hash_frame_timing_and_header_verified', 'independent_pinned_ffprobe_h264_frame_count_pixel_format_color_space_and_duration_qa_passed', 'server_injected_source_mp4_libass_png_and_pcm_wav_hash_commitments_verified', 'approved_nonzero_source_trim_frames_applied', 'actual_source_plus_caption_final_composition_rendered', 'ordered_two_source_sequence_and_timed_caption_track_final_composition_rendered', 'approved_hard_cut_authority_and_exact_source_boundary_applied', 'distinct_caption_track_frames_decoded_and_verified', 'source_sequence_frame_ranges_and_audio_preserved', 'approved_source_bound_professional_voice_tracks_replaced_source_audio', 'voice_track_order_duration_hash_and_pcm_format_tampering_rejected', 'voice_replacement_replay_is_deterministic', 'final_aac_audio_decoded_and_independently_verified', 'final_composition_paths_urls_commands_and_tampered_bytes_rejected', 'product_beta_production_readiness_remains_false'],
+  proofs: ['exact_operation_payload_validated', 'caller_paths_urls_commands_and_extra_fields_rejected', 'checksum_protected_runtime_authority_persisted_and_reopened', 'pinned_image_identity_verified', 'network_none_read_only_non_root_cap_drop_confinement_verified', 'actual_remotion_select_and_render_media_executed', 'mp4_hash_frame_timing_and_header_verified', 'independent_pinned_ffprobe_h264_frame_count_pixel_format_color_space_and_duration_qa_passed', 'server_injected_source_mp4_libass_png_and_pcm_wav_hash_commitments_verified', 'approved_nonzero_source_trim_frames_applied', 'actual_source_plus_caption_final_composition_rendered', 'ordered_two_source_sequence_and_timed_caption_track_final_composition_rendered', 'approved_hard_cut_authority_and_exact_source_boundary_applied', 'distinct_caption_track_frames_decoded_and_verified', 'source_sequence_frame_ranges_and_audio_preserved', 'approved_source_bound_professional_voice_tracks_replaced_source_audio', 'approved_lossless_vp9_matroska_professional_color_intermediate_composed_with_replacement_voice', 'professional_color_intermediate_policy_and_mime_tampering_rejected', 'professional_color_final_composition_replay_is_deterministic', 'voice_track_order_duration_hash_and_pcm_format_tampering_rejected', 'voice_replacement_replay_is_deterministic', 'final_aac_audio_decoded_and_independently_verified', 'final_composition_paths_urls_commands_and_tampered_bytes_rejected', 'product_beta_production_readiness_remains_false'],
   artifact: { sha256: result.artifact.sha256, byteLength: result.artifact.byteLength, width: result.artifact.width, height: result.artifact.height, fps: result.artifact.fps, durationFrames: result.artifact.durationFrames },
 }, null, 2))

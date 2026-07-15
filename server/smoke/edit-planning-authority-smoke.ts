@@ -4016,7 +4016,7 @@ function createCanonicalPlanBody(
         professionalEditingDirective: { pacing: 'clean', mustFollowRules: ['Preserve meaning.'] },
         confirmedSettings: {
           aspectRatio: '9:16',
-          outputFrame: { width: 405, height: 720, fps: 30 },
+          outputFrame: { width: 360, height: 640, fps: 30 },
           outputFramePurpose: 'private_canonical_review',
           professionalExportCoverage,
           outputFrameConfirmed: true,
@@ -4071,6 +4071,7 @@ function createCanonicalPlanBody(
           { segmentId: 'segment-1', startFrame: 0, endFrameExclusive: 150, operationIds: ['operation-trim-1', 'operation-caption-1', 'operation-export-1'] },
         ],
         visualAssetPlan: { assets: [], randomBrollAllowed: false },
+        colorPipelinePlan: { status: 'not_provided' },
         rendererPlan: { renderer: 'remotion', frameOwnedByRenderer: true },
         toolStrategyPlan: {
           toolIds: ['ffmpeg', 'ffprobe', 'libass', 'remotion'],
@@ -4185,8 +4186,8 @@ function createCanonicalPlanBody(
               fontPackProfileId: 'reeditpro_reviewed_fonts_v1',
               collisionPolicy: 'fail_on_reserved_zone_collision',
               preserveSpeechTiming: true,
-              width: 405,
-              height: 720,
+              width: 360,
+              height: 640,
               timestampMs: 1000,
               fontSize: 42,
               marginV: 48,
@@ -4227,8 +4228,8 @@ function createCanonicalPlanBody(
             expectedOutputKeys: ['final-export'],
             structuredPayload: {
               compositionProfileId: 'approved_source_caption_final_v1',
-              width: 405,
-              height: 720,
+              width: 360,
+              height: 640,
               fps: 30,
               durationFrames: 150,
               sourceStartFrame: 0,

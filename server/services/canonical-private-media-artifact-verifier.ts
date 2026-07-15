@@ -8,10 +8,11 @@ export async function verifyCanonicalPrivateMediaArtifact(input: {
   artifact: PersistedArtifactResult
 }) {
   const run = input.artifact.actualRunEvidence
+  const contentType = input.artifact.lineage.contentType
   if (
     input.artifact.identity.expectedAssetId !== input.artifact.lineage.assetId ||
-    input.artifact.lineage.contentType !== 'video/x-nut' ||
-    input.artifact.content.contentType !== 'video/x-nut' ||
+    (contentType !== 'video/x-nut' && contentType !== 'video/x-matroska') ||
+    input.artifact.content.contentType !== contentType ||
     input.artifact.lineage.assetRole === 'final' || input.artifact.placeholder.isPlaceholder ||
     input.artifact.storageIdentity.storageKind !== 'private_local_test' ||
     input.artifact.evidenceClass !== 'private_internal_test_attested' ||
@@ -27,7 +28,10 @@ export async function verifyCanonicalPrivateMediaArtifact(input: {
   })
   if (
     !stored || stored.sha256 !== input.artifact.content.sha256 ||
-    stored.byteLength !== input.artifact.content.byteLength
+    stored.byteLength !== input.artifact.content.byteLength ||
+    (contentType === 'video/x-nut'
+      ? !stored.bytes.subarray(0, 25).toString('ascii').includes('nut/multimedia')
+      : !isMatroska(stored.bytes))
   ) throw invalid('Private media artifact bytes no longer match artifact authority.')
   return {
     sha256: stored.sha256, byteLength: stored.byteLength,
@@ -41,6 +45,11 @@ export async function verifyCanonicalPrivateMediaArtifact(input: {
     executionAttemptId: run.executionAttemptId,
     runnerClass: 'offline_media_binary_execution_v1' as const,
   }
+}
+
+function isMatroska(bytes: Buffer): boolean {
+  return bytes.byteLength >= 4 &&
+    bytes[0] === 0x1a && bytes[1] === 0x45 && bytes[2] === 0xdf && bytes[3] === 0xa3
 }
 
 function invalid(message: string): ApiError {

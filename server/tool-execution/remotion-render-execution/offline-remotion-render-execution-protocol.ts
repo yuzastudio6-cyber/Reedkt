@@ -15,11 +15,13 @@ const OFFLINE_REMOTION_MAXIMUM_COMBINED_VOICE_TRACK_BYTES = 2 * 1024 * 1024
 const SAFE_TEXT = /^(?!.*(?:https?:\/\/|ftp:\/\/|file:|data:|javascript:|\.\.\/|\.\.\\|(?:^|\s)\/(?:Users|home|etc|tmp|var|opt|app|root|proc|sys|dev)(?:\/|\b)|[A-Za-z]:[\\/]|\$\(|`|&&|\|\||#!))[\P{Cc}]+$/u
 const COLORS = /^#[A-F0-9]{6}$/
 const SHA256 = /^[a-f0-9]{64}$/
-const APPROVED_FRAMES = ['360x640', '640x360', '480x480', '480x600', '720x405', '405x720'] as const
+const APPROVED_FRAMES = ['360x640', '640x360', '480x480', '480x600'] as const
+
+export type OfflineRemotionSingleSourceMimeType = 'video/mp4' | 'video/x-matroska'
 
 interface CommonCompositionPayload {
-  width: 360 | 405 | 480 | 640 | 720
-  height: 360 | 405 | 480 | 600 | 640 | 720
+  width: 360 | 480 | 640
+  height: 360 | 480 | 600 | 640
   fps: 24 | 30
   durationFrames: number
 }
@@ -40,6 +42,7 @@ export interface OfflineRemotionSingleSourceFinalCompositionPlanningPayload exte
   sourceFit: 'contain'
   panelBackground: string
   audioPolicy: 'preserve_source' | 'replace_with_approved_voice_tracks'
+  sourceMediaPolicy?: 'approved_professional_color_intermediate_v1'
   voiceTracks?: OfflineRemotionVoiceTrackPlanningPayload[]
   captionOverlayPolicy: 'approved_full_frame_rgba'
 }
@@ -63,6 +66,7 @@ export interface OfflineRemotionSingleSourceCaptionTrackFinalCompositionPlanning
   sourceFit: 'contain'
   panelBackground: string
   audioPolicy: 'preserve_source' | 'replace_with_approved_voice_tracks'
+  sourceMediaPolicy?: 'approved_professional_color_intermediate_v1'
   voiceTracks?: OfflineRemotionVoiceTrackPlanningPayload[]
   captionOverlayPolicy: 'approved_timed_full_frame_rgba_track'
   captionOverlayCues: OfflineRemotionCaptionOverlayCuePlanningPayload[]
@@ -121,7 +125,7 @@ export interface OfflineRemotionSingleSourceFinalCompositionPayload extends Omit
   OfflineRemotionSingleSourceFinalCompositionPlanningPayload,
   'voiceTracks'
 > {
-  sourceMimeType: 'video/mp4'
+  sourceMimeType: OfflineRemotionSingleSourceMimeType
   sourceByteLength: number
   sourceSha256: string
   sourceBytesBase64: string
@@ -174,7 +178,7 @@ export interface OfflineRemotionSingleSourceCaptionTrackFinalCompositionPayload 
   OfflineRemotionSingleSourceCaptionTrackFinalCompositionPlanningPayload,
   'voiceTracks'
 > {
-  sourceMimeType: 'video/mp4'
+  sourceMimeType: OfflineRemotionSingleSourceMimeType
   sourceByteLength: number
   sourceSha256: string
   sourceBytesBase64: string
@@ -283,10 +287,12 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
   const captionTrack = profile === 'approved_source_caption_track_final_v1'
   const raw = record(value, 'final composition planning payload')
   const replaceVoice = raw.audioPolicy === 'replace_with_approved_voice_tracks'
+  const sourceMediaPolicyProvided = Object.hasOwn(raw, 'sourceMediaPolicy')
   const payload = exactRecord(value, [
     'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
     'sourceStartFrame', 'sourceEndFrameExclusive', 'sourceFit',
     'panelBackground', 'audioPolicy', 'captionOverlayPolicy',
+    ...(sourceMediaPolicyProvided ? ['sourceMediaPolicy'] : []),
     ...(captionTrack ? ['captionOverlayCues'] : []),
     ...(replaceVoice ? ['voiceTracks'] : []),
   ], 'final composition planning payload')
@@ -298,6 +304,8 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
     100_000_000,
     'sourceEndFrameExclusive',
   )
+  const approvedColorIntermediate =
+    payload.sourceMediaPolicy === 'approved_professional_color_intermediate_v1'
   if (
     !['approved_source_caption_final_v1', 'approved_source_caption_track_final_v1'].includes(
       String(payload.compositionProfileId),
@@ -308,6 +316,11 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
       captionTrack ? 'approved_timed_full_frame_rgba_track' : 'approved_full_frame_rgba'
     ) ||
     sourceEndFrameExclusive - sourceStartFrame !== common.durationFrames
+    || (sourceMediaPolicyProvided && !approvedColorIntermediate)
+    || (approvedColorIntermediate && (
+      payload.audioPolicy !== 'replace_with_approved_voice_tracks' ||
+      sourceStartFrame !== 0 || sourceEndFrameExclusive !== common.durationFrames
+    ))
   ) throw validationFailure('Final composition policy is unsupported.')
   const commonResult = {
     ...common,
@@ -316,6 +329,9 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
     sourceFit: 'contain',
     panelBackground: color(payload.panelBackground, 'panelBackground'),
     audioPolicy: payload.audioPolicy as 'preserve_source' | 'replace_with_approved_voice_tracks',
+    ...(approvedColorIntermediate
+      ? { sourceMediaPolicy: 'approved_professional_color_intermediate_v1' as const }
+      : {}),
     ...(replaceVoice ? {
       voiceTracks: voiceTrackPlanningPayloads(payload.voiceTracks, [{
         sourceSequenceItemId: undefined,
@@ -337,7 +353,7 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
 
 export function buildOfflineRemotionFinalCompositionRequest(input: {
   planningPayload: unknown
-  source?: { mimeType: 'video/mp4'; bytes: Buffer; sha256: string }
+  source?: { mimeType: OfflineRemotionSingleSourceMimeType; bytes: Buffer; sha256: string }
   sources?: Array<{
     sourceSequenceItemId: string
     mimeType: 'video/mp4'
@@ -423,17 +439,19 @@ export function buildOfflineRemotionFinalCompositionRequest(input: {
   if (!input.source || input.sources !== undefined) {
     throw validationFailure('Single-source composition requires one exact approved source.')
   }
-  const source = committedBytes(input.source, 'video/mp4', 64, 16 * 1024 * 1024, 'source')
-  if (source.bytes.subarray(4, 8).toString('ascii') !== 'ftyp') {
-    throw validationFailure('Final composition source is not an approved MP4.')
-  }
+  const sourceMimeType = planning.sourceMediaPolicy ===
+    'approved_professional_color_intermediate_v1'
+    ? 'video/x-matroska' as const
+    : 'video/mp4' as const
+  const source = committedBytes(input.source, sourceMimeType, 64, 16 * 1024 * 1024, 'source')
+  validateSingleSourceCommitment(source.bytes, sourceMimeType, planning)
   if (isCaptionTrackPlanningPayload(planning)) {
     return validateOfflineRemotionRenderRequest({
       schemaVersion: OFFLINE_REMOTION_RENDER_REQUEST_PROTOCOL,
       toolId: 'remotion', operationId: OFFLINE_REMOTION_RENDER_OPERATION,
       payload: {
         ...planning,
-        sourceMimeType: 'video/mp4', sourceByteLength: source.bytes.byteLength,
+        sourceMimeType, sourceByteLength: source.bytes.byteLength,
         sourceSha256: source.sha256, sourceBytesBase64: source.bytes.toString('base64'),
         captionOverlays: overlays,
         ...(voiceTracks ? { voiceTracks } : {}),
@@ -445,7 +463,7 @@ export function buildOfflineRemotionFinalCompositionRequest(input: {
     toolId: 'remotion', operationId: OFFLINE_REMOTION_RENDER_OPERATION,
     payload: {
       ...planning,
-      sourceMimeType: 'video/mp4', sourceByteLength: source.bytes.byteLength,
+      sourceMimeType, sourceByteLength: source.bytes.byteLength,
       sourceSha256: source.sha256, sourceBytesBase64: source.bytes.toString('base64'),
       captionOverlayMimeType: 'image/png',
       captionOverlayByteLength: overlays[0]!.byteLength,
@@ -554,10 +572,12 @@ export function validateOfflineRemotionRenderRequest(value: unknown): OfflineRem
     }
     const captionTrack = payloadRecord.compositionProfileId === 'approved_source_caption_track_final_v1'
     const replaceVoice = payloadRecord.audioPolicy === 'replace_with_approved_voice_tracks'
+    const sourceMediaPolicyProvided = Object.hasOwn(payloadRecord, 'sourceMediaPolicy')
     const payload = exactRecord(payloadRecord, [
       'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
       'sourceStartFrame', 'sourceEndFrameExclusive', 'sourceFit',
       'panelBackground', 'audioPolicy', 'captionOverlayPolicy',
+      ...(sourceMediaPolicyProvided ? ['sourceMediaPolicy'] : []),
       'sourceMimeType', 'sourceByteLength', 'sourceSha256', 'sourceBytesBase64',
       ...(captionTrack
         ? ['captionOverlayCues', 'captionOverlays']
@@ -571,6 +591,7 @@ export function validateOfflineRemotionRenderRequest(value: unknown): OfflineRem
       sourceEndFrameExclusive: payload.sourceEndFrameExclusive,
       panelBackground: payload.panelBackground, audioPolicy: payload.audioPolicy,
       captionOverlayPolicy: payload.captionOverlayPolicy,
+      ...(sourceMediaPolicyProvided ? { sourceMediaPolicy: payload.sourceMediaPolicy } : {}),
       ...(captionTrack ? { captionOverlayCues: payload.captionOverlayCues } : {}),
       ...(replaceVoice
         ? { voiceTracks: voiceTrackPlanningFromCommitments(payload.voiceTracks) }
@@ -579,10 +600,18 @@ export function validateOfflineRemotionRenderRequest(value: unknown): OfflineRem
     if (isSourceSequencePlanningPayload(planning)) {
       throw validationFailure('Single-source final composition profile changed during validation.')
     }
-    const source = decodeCommittedBase64(payload, 'source', 'video/mp4', 64, 16 * 1024 * 1024)
-    if (source.subarray(4, 8).toString('ascii') !== 'ftyp') {
-      throw validationFailure('Final composition source has an invalid signature.')
-    }
+    const sourceMimeType = planning.sourceMediaPolicy ===
+      'approved_professional_color_intermediate_v1'
+      ? 'video/x-matroska' as const
+      : 'video/mp4' as const
+    const source = decodeCommittedBase64(
+      payload,
+      'source',
+      sourceMimeType,
+      64,
+      16 * 1024 * 1024,
+    )
+    validateSingleSourceCommitment(source, sourceMimeType, planning)
     const voiceTracks = replaceVoice
       ? decodeVoiceTrackRecords(payload.voiceTracks, planning.voiceTracks ?? [], planning.fps)
       : undefined
@@ -592,7 +621,7 @@ export function validateOfflineRemotionRenderRequest(value: unknown): OfflineRem
         toolId: 'remotion', operationId: OFFLINE_REMOTION_RENDER_OPERATION,
         payload: {
           ...withoutVoiceTrackPlanning(planning),
-          sourceMimeType: 'video/mp4', sourceByteLength: source.byteLength,
+          sourceMimeType, sourceByteLength: source.byteLength,
           sourceSha256: String(payload.sourceSha256), sourceBytesBase64: source.toString('base64'),
           captionOverlays: decodeCaptionOverlayRecords(
             payload.captionOverlays,
@@ -607,7 +636,7 @@ export function validateOfflineRemotionRenderRequest(value: unknown): OfflineRem
       toolId: 'remotion', operationId: OFFLINE_REMOTION_RENDER_OPERATION,
       payload: {
         ...withoutVoiceTrackPlanning(planning),
-        sourceMimeType: 'video/mp4', sourceByteLength: source.byteLength,
+        sourceMimeType, sourceByteLength: source.byteLength,
         sourceSha256: String(payload.sourceSha256), sourceBytesBase64: source.toString('base64'),
         ...legacyCaptionCommitment(payload, 'Final composition'),
         ...(voiceTracks ? { voiceTracks } : {}),
@@ -662,7 +691,38 @@ function commonPayload(value: Record<string, unknown>, minimumFrames: number, ma
   }
 }
 
-function committedBytes<T extends 'video/mp4' | 'image/png' | 'audio/wav'>(
+function validateSingleSourceCommitment(
+  bytes: Buffer,
+  mimeType: OfflineRemotionSingleSourceMimeType,
+  planning: {
+    sourceStartFrame: number
+    sourceEndFrameExclusive: number
+    durationFrames: number
+    audioPolicy: 'preserve_source' | 'replace_with_approved_voice_tracks'
+  },
+): void {
+  if (mimeType === 'video/mp4') {
+    if (bytes.subarray(4, 8).toString('ascii') !== 'ftyp') {
+      throw validationFailure('Final composition MP4 source has an invalid signature.')
+    }
+    return
+  }
+  if (
+    bytes.byteLength < 4 || bytes[0] !== 0x1a || bytes[1] !== 0x45 ||
+    bytes[2] !== 0xdf || bytes[3] !== 0xa3
+  ) throw validationFailure('Final composition Matroska source has an invalid signature.')
+  if (
+    planning.audioPolicy !== 'replace_with_approved_voice_tracks' ||
+    planning.sourceStartFrame !== 0 ||
+    planning.sourceEndFrameExclusive !== planning.durationFrames
+  ) {
+    throw validationFailure(
+      'A professional color intermediate requires normalized frames and approved replacement voice audio.',
+    )
+  }
+}
+
+function committedBytes<T extends 'video/mp4' | 'video/x-matroska' | 'image/png' | 'audio/wav'>(
   input: { mimeType: T; bytes: Buffer; sha256: string },
   expectedMimeType: T,
   minimumBytes: number,
@@ -680,7 +740,7 @@ function committedBytes<T extends 'video/mp4' | 'image/png' | 'audio/wav'>(
 function decodeCommittedBase64(
   payload: Record<string, unknown>,
   prefix: 'source' | 'captionOverlay',
-  mimeType: 'video/mp4' | 'image/png',
+  mimeType: 'video/mp4' | 'video/x-matroska' | 'image/png',
   minimumBytes: number,
   maximumBytes: number,
 ): Buffer {

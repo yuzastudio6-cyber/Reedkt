@@ -1,5 +1,5 @@
 export interface OfflineMediaBinaryImageEvidence {
-  imageTag: 'reeditpro/ffmpeg-lgpl-internal:8.1.2-local'
+  imageTag: 'reeditpro/ffmpeg-lgpl-internal:8.1.2-color-v1-local'
   imageId: string
   imageIdentityHash: string
   architecture: string
@@ -67,7 +67,7 @@ export interface OfflineFfprobeExecutionResult {
 
 export interface OfflineFfmpegExecutionResult {
   resultArtifact: {
-    mimeType: 'video/x-nut' | 'audio/wav'
+    mimeType: 'video/x-nut' | 'video/x-matroska' | 'audio/wav'
     bytes: Buffer
     sha256: string
     byteLength: number

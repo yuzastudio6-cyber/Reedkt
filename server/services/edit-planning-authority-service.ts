@@ -116,6 +116,7 @@ const PLAN_COMPONENT_NAMES = [
   'timingSummary',
   'segments',
   'visualAssetPlan',
+  'colorPipelinePlan',
   'rendererPlan',
   'toolStrategyPlan',
   'qaPlan',

@@ -15,6 +15,7 @@ blurdetect
 buffer
 buffersink
 colorbalance
+colorchannelmixer
 colorlevels
 concat
 crop
@@ -22,8 +23,8 @@ ebur128
 format
 fps
 freezedetect
-highpass
 hflip
+highpass
 idet
 loudnorm
 lut3d
@@ -33,6 +34,7 @@ psnr
 rotate
 scale
 select
+setparams
 setpts
 showinfo
 signalstats
@@ -44,5 +46,6 @@ testsrc2
 thumbnail
 transpose
 trim
+unsharp
 vflip
 volume

@@ -291,6 +291,10 @@ test.describe('editor mocked browser flow', () => {
       await planFacts.evaluate((element) => getComputedStyle(element).gridTemplateColumns.trim().split(/\s+/).length),
     ).toBe(4)
     expect(await planReview.locator('.clean-plan-estimate').evaluate((element) => getComputedStyle(element).justifyItems)).toBe('end')
+    const deliveryCeiling = planReview.getByTestId('plan-review-4k-delivery-ceiling')
+    await expect(deliveryCeiling).toContainText(/4K UHD render and export ceiling/i)
+    await expect(deliveryCeiling).toContainText(/1080p, 2K, or 4K/i)
+    await expect(deliveryCeiling).toContainText(/no second export estimate or charge/i)
 
     await setViewport(page, 700)
     expect(

@@ -27,9 +27,14 @@ import type {
 import { buildProfessionalExportCreditCoverage } from '../professional-export-policy'
 
 function parseDurationSeconds(duration: string) {
-  const [minutes = '0', seconds = '0'] = duration.split(':')
-
-  return Number(minutes) * 60 + Number(seconds)
+  const cleaned = duration.trim()
+  if (!cleaned) return 0
+  const parts = cleaned.split(':').map((part) => Number(part))
+  if (parts.length < 1 || parts.length > 3 || parts.some((part) => !Number.isFinite(part) || part < 0)) {
+    return 0
+  }
+  const seconds = parts.reduce((total, part) => total * 60 + part, 0)
+  return Number.isFinite(seconds) && seconds > 0 ? seconds : 0
 }
 
 function range(startSeconds: number, durationSeconds: number, fps = 30) {
@@ -843,7 +848,19 @@ function createGuidedCreditEstimate(
   const visualCredits = routes.filter((route) => route.system === 'stroke_motion' || route.system === 'graphic_design').length * 7
   const timingCredits = timingValidationPlan.totalEstimatedTimingCredits
   const fps = masterTimingPlan.timingBase.fps
-  const durationSeconds = masterTimingPlan.timingBase.totalFrames / fps
+  const timingDurationSeconds = masterTimingPlan.timingBase.totalFrames / fps
+  const sourceDurationReady = input.clips.length > 0 && input.clips.every(
+    (clip) => parseDurationSeconds(clip.duration) > 0,
+  )
+  const timingDurationReady = Number.isFinite(timingDurationSeconds) && timingDurationSeconds > 0
+  const durationReady = sourceDurationReady && timingDurationReady
+  const knownSourceDurationSeconds = input.clips.reduce(
+    (total, clip) => total + parseDurationSeconds(clip.duration),
+    0,
+  )
+  const durationSeconds = timingDurationReady
+    ? timingDurationSeconds
+    : Math.max(1 / 30, knownSourceDurationSeconds)
   const professionalExportCoverage = buildProfessionalExportCreditCoverage({
     durationSeconds,
     outputFps: fps,
@@ -853,6 +870,14 @@ function createGuidedCreditEstimate(
   })
   const total = baseCredits + realMotionCredits + visualCredits + timingCredits +
     professionalExportCoverage.maximumInternalToolCostCredits
+  const durationBlockReason = durationReady
+    ? undefined
+    : 'Source duration must be analyzed before the 4K estimate can be approved.'
+  const approvalBlocked = timingValidationPlan.approvalBlocked || !durationReady
+  const draftReason = [
+    ...(timingValidationPlan.approvalBlocked ? timingValidationPlan.approvalBlockReasons : []),
+    durationBlockReason,
+  ].filter((reason): reason is string => Boolean(reason)).join(' ')
 
   return {
     total,
@@ -888,8 +913,8 @@ function createGuidedCreditEstimate(
     ],
     riskLevel: realMotionCredits > 0 ? 'high' : input.editLevel === 'premium' ? 'medium' : 'low',
     approvalCopy: 'Credits are estimated now and only used after you approve the plan.',
-    approvalBlocked: timingValidationPlan.approvalBlocked,
-    draftReason: timingValidationPlan.approvalBlocked ? timingValidationPlan.approvalBlockReasons.join(' ') : undefined,
+    approvalBlocked,
+    draftReason: draftReason || undefined,
     estimateVersion: 'guided-v2-4k-export-ceiling',
     professionalExportCoverage,
   }

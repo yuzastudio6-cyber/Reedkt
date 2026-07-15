@@ -29,9 +29,10 @@ npm run qa:internal-pipeline
 ```
 
 That full mode adds auth/runtime, project/edit tenancy, approved tool-manifest,
-private Playwright-capture, and a signed-in two-source named-edit regression
-that now reaches an integrity-bound private review and persists acceptance when
-the compiled plan fits the bounded canonical profile.
+private Playwright-capture, and a signed-in three-source named-edit regression
+that now reaches an integrity-bound private 4K review, returns a sanitized
+browser journey readback, and persists acceptance when the compiled plan fits
+the bounded canonical profile.
 
 ## Verification Phases
 
@@ -79,15 +80,17 @@ the compiled plan fits the bounded canonical profile.
    tied to exact versioned evidence.
 
 In full mode, a final browser phase also signs in through the loopback-only
-local test boundary, creates a project and named edit, uploads two private
-audio-bearing sources, synchronizes exact Edit Preferences, creates and revises
-the inline Edit Brief, republishes plan v2, approves the single 4K-ceiling
-estimate, requests the immutable execution package separately, completes the
-server-derived ten-job private work graph, loads the exact no-store review MP4,
-and records review acceptance.
+local test boundary, creates a project and named edit, uploads three distinct
+private audio-bearing sources, synchronizes exact Edit Preferences, creates and
+revises the inline Edit Brief, republishes plan v2, approves the single
+4K-ceiling estimate, requests the immutable execution package separately,
+completes the server-derived 13-work-item/13-job private work graph, loads and
+probes the exact 3840x2160 no-store review MP4, verifies all three source-bound
+audio identities in approved order, reads sanitized journey state, and records
+review acceptance.
 
 The runner stops on the first failed phase and prints a machine-readable
-`canonical-private-pipeline-verification-v1` report with step exit codes and
+`canonical-private-pipeline-verification-v2` report with step exit codes and
 durations. A zero exit code means every included assertion passed, including
 assertions that production-only or unavailable behavior stays blocked.
 
@@ -98,19 +101,21 @@ that discovery channel; it does not weaken image-identity validation.
 
 ## Current Evidence Record
 
-On 2026-07-15, the full internal command passed all 24 phases in 712,956 ms
-with exit code 0. Its focused multi-source phase produced one real private 4K
-master from three ordered sources, three exact source-bound voice deliveries,
-one baseline plus two independently first-reference-bound color intermediates,
-and two approved hard cuts. Both boundary samples passed the unchanged
+On 2026-07-15, the exact-code v2 full internal command passed all 24 phases in
+947,417 ms with exit code 0. Its focused multi-source phase produced one real
+private 4K master from three ordered sources, three exact source-bound voice
+deliveries, one baseline plus two independently first-reference-bound color
+intermediates, and two approved hard cuts. Both boundary samples passed the unchanged
 continuity threshold before final QA, private download, and replay succeeded.
-The final signed-in regression separately completed two private uploads,
-backend media probing, Edit Preferences and Edit Brief compilation, confirmed
-frame preservation, plan invalidation and v2 republication, one 4K-ceiling
+The final signed-in regression separately completed three distinct private
+uploads, backend media probing, Edit Preferences and Edit Brief compilation,
+confirmed frame preservation, plan invalidation and v2 republication, one 4K-ceiling
 approval, immutable snapshot/reservation/package creation, the server-derived
-ten-job voice/color/caption/render/QA graph, authenticated no-store review
-playback and download, and persisted acceptance. The output was a non-passthrough
-private MP4. The same run regenerated evidence revision `2026-07-15.30` with
+13-work-item/13-job voice/color/caption/render/QA graph, authenticated no-store
+review playback and download, sanitized browser journey readback, and persisted
+acceptance. The output was a non-passthrough 3840x2160 three-second private MP4;
+the 440 Hz, 660 Hz, and 880 Hz source-bound tones remained in approved order.
+The same run regenerated evidence revision `2026-07-15.30` with
 exactly 50 private canonical/job-adapter identities. Provider activation, live
 billing/wallet mutation, remote Supabase, public delivery, deployment, external
 beta, and paid production all remained false.

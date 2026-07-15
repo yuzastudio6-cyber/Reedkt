@@ -42,6 +42,30 @@ function uniqueSystems(plan: EditPlan): SignatureSystem[] {
   return systems.size > 0 ? Array.from(systems) : ['none']
 }
 
+function userFacingTimingBlockReason(plan: EditPlan) {
+  const blockingCheck = plan.timingValidationPlan?.globalChecks.find(
+    (check) => check.status === 'blocking' || check.status === 'failed',
+  )
+
+  switch (blockingCheck?.category) {
+    case 'frame_confirmation':
+      return 'Confirm the output frame before timing can be approved.'
+    case 'source_timing':
+      return 'Finish the source cleanup and timing review before approval.'
+    case 'caption_readability':
+    case 'caption_visual_collision':
+    case 'visual_readability':
+      return 'Resolve the caption and visual readability timing before approval.'
+    case 'beat_alignment':
+    case 'music_ducking':
+    case 'sfx_justification':
+    case 'transition_safety':
+      return 'Resolve the speech-first audio and transition timing before approval.'
+    default:
+      return 'Resolve the flagged timing setup before approval.'
+  }
+}
+
 export function PlanReviewApprovalCard({
   approved,
   approvalAuthorityBlockedLabel = 'Waiting for saved plan',
@@ -123,7 +147,9 @@ export function PlanReviewApprovalCard({
 
       <div className="clean-plan-credit-note">
         <strong>{estimate.total} Reedit Credits</strong>
-        <span>Credits are used only after you approve this estimate. No unapproved extra work is charged later.</span>
+        <span data-testid="plan-review-4k-delivery-ceiling">
+          Includes the 4K UHD render and export ceiling. Approving once covers 1080p, 2K, or 4K for this edit—no second export estimate or charge. Credits are used only after you approve.
+        </span>
       </div>
 
       {!frameConfirmed ? <p className="clean-edit-inline-warning">Confirm the output frame before approval.</p> : null}
@@ -132,7 +158,7 @@ export function PlanReviewApprovalCard({
       ) : null}
       {estimate.approvalBlocked && estimate.draftReason ? <p className="clean-edit-inline-warning">{estimate.draftReason}</p> : null}
       {timingBlocked ? (
-        <p className="clean-edit-inline-warning">{plan.timingValidationPlan?.approvalBlockReasons[0] ?? 'Timing must be resolved before approval.'}</p>
+        <p className="clean-edit-inline-warning">{userFacingTimingBlockReason(plan)}</p>
       ) : null}
 
       {approvalAuthorityStatus}

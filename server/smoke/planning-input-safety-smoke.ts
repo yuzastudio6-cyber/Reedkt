@@ -144,6 +144,31 @@ assert.notEqual(
 )
 
 const approvedPlan = createGuidedMockEditPlan(baseInput)
+const pendingDurationPlan = createGuidedMockEditPlan({
+  ...baseInput,
+  clips: baseInput.clips.map((clip) => ({
+    ...clip,
+    duration: 'Pending analysis',
+  })),
+})
+assert.equal(
+  pendingDurationPlan.creditEstimate.approvalBlocked,
+  true,
+  'Pending source duration must remain a blocked draft estimate instead of crashing or becoming approvable.',
+)
+assert.match(
+  pendingDurationPlan.creditEstimate.draftReason ?? '',
+  /Source duration must be analyzed before the 4K estimate can be approved/,
+)
+assert.equal(
+  pendingDurationPlan.creditEstimate.professionalExportCoverage?.assumption,
+  'always_estimate_4k_uhd',
+  'A blocked duration draft must preserve the universal 4K estimate policy.',
+)
+assert.ok(
+  (pendingDurationPlan.creditEstimate.professionalExportCoverage?.durationSeconds ?? 0) > 0,
+  'A blocked duration draft must remain schema-valid without claiming approval authority.',
+)
 const approvedSnapshot = createApprovedPlanSnapshot({
   approvedBy: 'planning-input-safety-smoke-user',
   editSessionId: 'planning-input-safety-smoke-session',

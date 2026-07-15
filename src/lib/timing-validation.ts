@@ -394,7 +394,9 @@ function soundSyncChecks(params: CreateTimingValidationPlanParams): TimingValida
       category: 'beat_alignment',
       label: 'AudioFlux is planned, not executed',
       passed: plan.beatGridPlan.status === 'not_needed' ||
-        (plan.beatGridPlan.analysisToolPlanned.includes('audioflux') &&
+        plan.beatGridPlan.status === 'mock_planned' ||
+        (plan.beatGridPlan.status === 'needs_audioflux_analysis' &&
+          plan.beatGridPlan.analysisToolPlanned.includes('audioflux') &&
           plan.beatGridPlan.limitations.some((limitation) => /backend-gated|review-only|audioflux/i.test(limitation))),
       failedStatus: 'blocking',
       message: 'Beat grid planning must represent AudioFlux as a future analysis tool and must not imply real audio analysis.',

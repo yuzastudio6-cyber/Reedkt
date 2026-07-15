@@ -96,10 +96,37 @@ type InternalEditStateListReadbackResponse = {
   error?: unknown
 }
 
-function assertTwoUploadedSourceMetadataPreserved(
+type CanonicalJourneyReadbackResponse = {
+  data?: {
+    canonicalEditJourney?: {
+      stage?: string
+      plan?: {
+        planVersion?: number
+        status?: string
+        estimateStatus?: string
+        approvedMaximumCredits?: number
+        workItemCount?: number
+      }
+      approval?: {
+        reservationStatus?: string
+        jobCount?: number
+      }
+      workGraph?: {
+        totalJobCount?: number
+        completedJobCount?: number
+        requiredBlockedJobCount?: number
+        allRequiredJobsCompleted?: boolean
+      }
+      permissions?: Record<string, unknown>
+    }
+  }
+  error?: unknown
+}
+
+function assertUploadedSourceMetadataPreserved(
   sourceMediaAssets: SmokeSourceMediaAsset[] | undefined,
   label: string,
-  expectedDimensions = ['160x90', '176x100'],
+  expectedDimensions = ['160x90', '176x100', '192x108'],
 ): void {
   assert.deepEqual(
     sourceMediaAssets?.map((asset) => asset.sourceMetadata?.probeStatus),
@@ -231,6 +258,7 @@ const sourceFixture = await createSyntheticMp4Fixture({
   width: 160,
   height: 90,
   includeAudio: true,
+  audioFrequencyHz: 440,
   videoPattern: 'solid_red',
 })
 assert.equal(sourceFixture.available, true, `Synthetic source fixture should be available: ${sourceFixture.warnings.join('; ')}`)
@@ -243,11 +271,25 @@ const secondSourceFixture = await createSyntheticMp4Fixture({
   width: 176,
   height: 100,
   includeAudio: true,
+  audioFrequencyHz: 660,
   videoPattern: 'solid_dark_red',
 })
 assert.equal(secondSourceFixture.available, true, `Second synthetic source fixture should be available: ${secondSourceFixture.warnings.join('; ')}`)
 assert.ok(secondSourceFixture.outputPath, 'Second synthetic source fixture should expose a path.')
 assert.equal(secondSourceFixture.hasAudio, true, 'Second synthetic source fixture should include an audio stream for browser-path preservation proof.')
+const thirdSourceFixture = await createSyntheticMp4Fixture({
+  localStorageRoot,
+  outputPath: join(localStorageRoot, 'fixtures', 'browser-upload-source-c.mp4'),
+  durationSeconds: 1,
+  width: 192,
+  height: 108,
+  includeAudio: true,
+  audioFrequencyHz: 880,
+  videoPattern: 'solid_dark_red',
+})
+assert.equal(thirdSourceFixture.available, true, `Third synthetic source fixture should be available: ${thirdSourceFixture.warnings.join('; ')}`)
+assert.ok(thirdSourceFixture.outputPath, 'Third synthetic source fixture should expose a path.')
+assert.equal(thirdSourceFixture.hasAudio, true, 'Third synthetic source fixture should include an audio stream for source-bound voice proof.')
 
 const apiServer = await listen(createServer(createReeditProApiApp(env, { clients: fakeClients })))
 const apiBaseUrl = `http://127.0.0.1:${addressPort(apiServer)}`
@@ -268,6 +310,7 @@ process.env.VITE_SUPABASE_ANON_KEY = 'test-anon-key'
 let viteServer: ViteDevServer | undefined
 let browser: Awaited<ReturnType<typeof chromium.launch>> | undefined
 let browserContext: BrowserContext | undefined
+let canonicalPrivateReviewAccepted = false
 
 try {
   viteServer = await createViteServer({
@@ -477,12 +520,22 @@ try {
 
   const sourceBytes = await readFile(sourceFixture.outputPath)
   const secondSourceBytes = await readFile(secondSourceFixture.outputPath)
+  const thirdSourceBytes = await readFile(thirdSourceFixture.outputPath)
   const sourceSha256 = sha256Hex(sourceBytes)
   const secondSourceSha256 = sha256Hex(secondSourceBytes)
+  const thirdSourceSha256 = sha256Hex(thirdSourceBytes)
   const secondSourceMeanVolumeDb = await probeAudioMeanVolume(secondSourceFixture.outputPath)
   assert.ok(secondSourceMeanVolumeDb > -70, `Second browser-upload source fixture should be audibly non-silent, got ${secondSourceMeanVolumeDb} dB.`)
-  const secondSourceAudioTone = await probeAudioTone(secondSourceFixture.outputPath)
+  const secondSourceAudioTone = await probeAudioTone(secondSourceFixture.outputPath, {
+    targetFrequencyHz: 660,
+  })
   assertSourceAudioTone(secondSourceAudioTone, 'Second browser-upload source fixture')
+  const thirdSourceMeanVolumeDb = await probeAudioMeanVolume(thirdSourceFixture.outputPath)
+  assert.ok(thirdSourceMeanVolumeDb > -70, `Third browser-upload source fixture should be audibly non-silent, got ${thirdSourceMeanVolumeDb} dB.`)
+  const thirdSourceAudioTone = await probeAudioTone(thirdSourceFixture.outputPath, {
+    targetFrequencyHz: 880,
+  })
+  assertSourceAudioTone(thirdSourceAudioTone, 'Third browser-upload source fixture')
   await page.getByTestId('edit-upload-gate-input').setInputFiles({
     name: 'browser-upload-source.mp4',
     mimeType: 'video/mp4',
@@ -497,10 +550,16 @@ try {
       mimeType: 'video/mp4',
       buffer: secondSourceBytes,
     },
+    {
+      name: 'browser-upload-source-c.mp4',
+      mimeType: 'video/mp4',
+      buffer: thirdSourceBytes,
+    },
   ])
 
   await expect(sourceSetup).toContainText('browser-upload-source.mp4')
   await expect(sourceSetup).toContainText('browser-upload-source-b.mp4', { timeout: privateUploadTimeoutMs })
+  await expect(sourceSetup).toContainText('browser-upload-source-c.mp4', { timeout: privateUploadTimeoutMs })
   await expect(page.getByTestId('source-summary')).toHaveCount(1)
   await expect(sourceSetup).toContainText('00:01')
   const uploadedHandoffs = await page.evaluate((storageKey) => {
@@ -526,14 +585,14 @@ try {
     }>
   }, getLocalProjectHandoffStorageKey())
   assert.equal(uploadedHandoffs[0]?.stage, 'source_uploaded')
-  assert.equal(uploadedHandoffs[0]?.sourceFileCount, 2)
-  assert.deepEqual(uploadedHandoffs[0]?.sourceMediaAssets?.map((asset) => asset.uploadedOrder), [1, 2])
+  assert.equal(uploadedHandoffs[0]?.sourceFileCount, 3)
+  assert.deepEqual(uploadedHandoffs[0]?.sourceMediaAssets?.map((asset) => asset.uploadedOrder), [1, 2, 3])
   assert.deepEqual(new Set(uploadedHandoffs[0]?.sourceMediaAssets?.map((asset) => asset.storageProvider)), new Set(['local_private']))
   assertPrivateSourceStorageBucketsPreserved(uploadedHandoffs[0]?.sourceMediaAssets, 'Uploaded local handoff')
   assert.equal(uploadedHandoffs[0]?.sourceMediaAssets?.every((asset) => asset.privateArtifact === true), true)
   assert.equal(uploadedHandoffs[0]?.sourceMediaAssets?.every((asset) => asset.publicUrl === null && asset.signedUrl === null), true)
   assert.equal(uploadedHandoffs[0]?.sourceMediaAssets?.every((asset) => /^[a-f0-9]{64}$/i.test(asset.checksumSha256 ?? '')), true)
-  assertTwoUploadedSourceMetadataPreserved(uploadedHandoffs[0]?.sourceMediaAssets, 'Uploaded local handoff')
+  assertUploadedSourceMetadataPreserved(uploadedHandoffs[0]?.sourceMediaAssets, 'Uploaded local handoff')
 
   await clickWhenReady(page.getByRole('button', { name: /Confirm order|Use this source/i }).first())
   await clickWhenReady(page.getByRole('radio', { name: /16:9/i }).first())
@@ -555,7 +614,7 @@ try {
   await expect(page.getByRole('button', { name: /Prepare source/i }).first()).toBeEnabled()
 
   await clickWhenReady(page.getByRole('button', { name: /Prepare source/i }).first())
-  await expect(page.getByText(/Source prep is ready for 2 uploaded source files in this edit/i)).toBeVisible({ timeout: 12_000 })
+  await expect(page.getByText(/Source prep is ready for 3 uploaded source files in this edit/i)).toBeVisible({ timeout: 12_000 })
   await expect(page.getByText(/Ready to create the plan/i)).toBeVisible({ timeout: 12_000 })
   await clickWhenReady(page.getByRole('button', { name: /^(Add )?Edit Brief$/i }).first())
   await page.getByLabel(/Overall goal/i).fill('Create a clean internal review edit that opens with the uploaded source proof and keeps the speaker clear.')
@@ -613,6 +672,10 @@ try {
   await clickWhenReady(page.getByRole('button', { name: /Create edit plan/i }).first())
   await expect(page.getByTestId('plan-review-card')).toBeVisible({ timeout: 12_000 })
   await expect(page.getByText(/Plan updated from your source assembly/i)).toBeVisible()
+  const deliveryCeiling = page.getByTestId('plan-review-4k-delivery-ceiling')
+  await expect(deliveryCeiling).toContainText(/4K UHD render and export ceiling/i)
+  await expect(deliveryCeiling).toContainText(/1080p, 2K, or 4K/i)
+  await expect(deliveryCeiling).toContainText(/no second export estimate or charge/i)
   await expect(page.getByTestId('plan-review-approve')).toBeEnabled()
   await clickWhenReady(page.getByTestId('plan-review-approve'))
   const canonicalApprovalGateMessage = page.getByText(
@@ -682,6 +745,45 @@ try {
     const canonicalReviewSha256 = sha256Hex(canonicalReviewBytes)
     assert.notEqual(canonicalReviewSha256, sourceSha256)
     assert.notEqual(canonicalReviewSha256, secondSourceSha256)
+    assert.notEqual(canonicalReviewSha256, thirdSourceSha256)
+    const canonicalReviewMediaProbe = await probeMedia(canonicalReviewDownloadPath)
+    assert.equal(canonicalReviewMediaProbe.video?.width, 3840)
+    assert.equal(canonicalReviewMediaProbe.video?.height, 2160)
+    assert.ok(
+      Math.abs((canonicalReviewMediaProbe.video?.durationSeconds ?? 0) - 3) <= 0.25,
+      `Canonical three-source review should preserve the approved three-second source sequence, got ${canonicalReviewMediaProbe.video?.durationSeconds ?? 0}s.`,
+    )
+    assert.equal(canonicalReviewMediaProbe.hasAudio, true)
+    assertRenderedDownloadIsNotSourcePassthrough(
+      canonicalReviewSha256,
+      canonicalReviewMediaProbe,
+      [
+        { label: 'first browser-uploaded source', sha256: sourceSha256, width: sourceFixture.width, height: sourceFixture.height },
+        { label: 'second browser-uploaded source', sha256: secondSourceSha256, width: secondSourceFixture.width, height: secondSourceFixture.height },
+        { label: 'third browser-uploaded source', sha256: thirdSourceSha256, width: thirdSourceFixture.width, height: thirdSourceFixture.height },
+      ],
+      'Canonical three-source private review browser download',
+    )
+    const canonicalReviewAudioToneSamples = await Promise.all([
+      probeAudioTone(canonicalReviewDownloadPath, {
+        startSeconds: 0.2,
+        durationSeconds: 0.5,
+        targetFrequencyHz: 440,
+      }),
+      probeAudioTone(canonicalReviewDownloadPath, {
+        startSeconds: 1.2,
+        durationSeconds: 0.5,
+        targetFrequencyHz: 660,
+      }),
+      probeAudioTone(canonicalReviewDownloadPath, {
+        startSeconds: 2.2,
+        durationSeconds: 0.5,
+        targetFrequencyHz: 880,
+      }),
+    ])
+    canonicalReviewAudioToneSamples.forEach((sample, index) => {
+      assertSourceAudioTone(sample, `Canonical private review source-bound audio segment ${index + 1}`)
+    })
 
     await clickWhenReady(page.getByTestId('canonical-private-review-accept'))
     await expect(canonicalJourneyStatus).toHaveAttribute(
@@ -692,25 +794,102 @@ try {
     await expect(canonicalJourneyStatus).toContainText('Private review approved')
     await expect(canonicalJourneyStatus).toContainText('Public delivery is still a separate release step')
     await expect(page.getByText(/Save needs retry/i)).toHaveCount(0)
+    const canonicalAcceptedHandoffs = await page.evaluate((storageKey) => {
+      return ((JSON.parse(window.localStorage.getItem(storageKey) ?? '{}') as { handoffs?: unknown[] }).handoffs ?? []) as Array<{
+        sourceFileCount?: number
+        sourceMediaAssets?: Array<{
+          uploadedOrder?: number
+          fileName?: string
+          storageBucket?: string
+          checksumSha256?: string
+          sourceMetadata?: SmokeSourceMediaAsset['sourceMetadata']
+        }>
+      }>
+    }, getLocalProjectHandoffStorageKey())
+    assert.equal(canonicalAcceptedHandoffs[0]?.sourceFileCount, 3)
+    assert.deepEqual(
+      canonicalAcceptedHandoffs[0]?.sourceMediaAssets?.map((asset) => asset.uploadedOrder),
+      [1, 2, 3],
+    )
+    assert.deepEqual(
+      canonicalAcceptedHandoffs[0]?.sourceMediaAssets?.map((asset) => asset.fileName),
+      [
+        'browser-upload-source.mp4',
+        'browser-upload-source-b.mp4',
+        'browser-upload-source-c.mp4',
+      ],
+    )
+    assertPrivateSourceStorageBucketsPreserved(
+      canonicalAcceptedHandoffs[0]?.sourceMediaAssets,
+      'Canonical accepted browser handoff',
+    )
+    assertUploadedSourceMetadataPreserved(
+      canonicalAcceptedHandoffs[0]?.sourceMediaAssets,
+      'Canonical accepted browser handoff',
+    )
+    assert.equal(
+      canonicalAcceptedHandoffs[0]?.sourceMediaAssets?.every((asset) =>
+        /^[a-f0-9]{64}$/i.test(asset.checksumSha256 ?? '')),
+      true,
+    )
+    const canonicalJourneyReadback = await fetchCanonicalJourneyReadback({
+      apiBaseUrl,
+      bearerToken: verifiedToken,
+      projectId: handoffs[0]?.projectId ?? '',
+      editSessionId: handoffs[0]?.editSessionId ?? '',
+    })
+    assert.equal(
+      canonicalJourneyReadback.status,
+      200,
+      `Accepted canonical journey should be recoverable: ${JSON.stringify(canonicalJourneyReadback.json)}`,
+    )
+    const acceptedJourney = canonicalJourneyReadback.json.data?.canonicalEditJourney
+    assert.equal(acceptedJourney?.stage, 'private_review_accepted')
+    assert.equal(acceptedJourney?.plan?.planVersion, 2)
+    assert.equal(acceptedJourney?.plan?.status, 'approved')
+    assert.equal(acceptedJourney?.plan?.estimateStatus, 'approved')
+    assert.ok((acceptedJourney?.plan?.approvedMaximumCredits ?? 0) > 0)
+    assert.equal(acceptedJourney?.plan?.workItemCount, 13)
+    assert.equal(acceptedJourney?.approval?.jobCount, 13)
+    assert.equal(acceptedJourney?.workGraph?.totalJobCount, 13)
+    assert.equal(acceptedJourney?.workGraph?.completedJobCount, 13)
+    assert.equal(acceptedJourney?.workGraph?.requiredBlockedJobCount, 0)
+    assert.equal(acceptedJourney?.workGraph?.allRequiredJobsCompleted, true)
+    assert.deepEqual(acceptedJourney?.permissions, {
+      inspectionOnly: true,
+      rawPlanInputsReturned: false,
+      filesystemPathReturned: false,
+      credentialReturned: false,
+      snapshotMutation: false,
+      creditMutation: false,
+      toolExecution: false,
+      providerCall: false,
+      render: false,
+    })
+    assertCanonicalJourneyDoesNotExposePrivateExecutionAuthority(acceptedJourney)
     assert.doesNotMatch(
       projectRouteResponses.join('\n'),
       /IDEMPOTENCY_REPLAY_UNAVAILABLE/,
       'Canonical approval must not make browser recovery persistence replay an obsolete exact-edit initialization.',
     )
     assert.equal(adminPersistenceAttemptCount, 0)
+    canonicalPrivateReviewAccepted = true
 
     console.log(JSON.stringify({
       ok: true,
       status: 'canonical_private_review_accepted',
       checks: [
         'signed_in_project_and_named_edit_created',
-        'two_private_sources_uploaded_and_backend_probed',
+        'three_private_sources_uploaded_and_backend_probed',
         'edit_preferences_and_edit_brief_compiled',
         'confirmed_frame_preserved_across_brief_platform_context',
         'brief_revision_invalidated_and_republished_plan_v2',
         'canonical_plan_and_4k_ceiling_estimate_approved_once',
         'immutable_private_execution_handoff_requested_separately',
         'server_derived_private_work_graph_completed',
+        'twelve_three_source_work_items_and_snapshot_validation_completed_as_thirteen_jobs_without_browser_execution_authority',
+        'three_source_bound_voice_tones_preserved_in_approved_order',
+        'private_4k_master_preserved_three_second_approved_sequence',
         'private_review_loaded_through_authenticated_no_store_bytes',
         'private_review_download_is_not_source_passthrough',
         'private_review_decision_persisted',
@@ -718,9 +897,15 @@ try {
       ],
       canonicalReviewByteLength: canonicalReviewBytes.byteLength,
       canonicalReviewSha256,
+      canonicalReviewFrame: `${canonicalReviewMediaProbe.video?.width}x${canonicalReviewMediaProbe.video?.height}`,
+      canonicalReviewDurationSeconds: canonicalReviewMediaProbe.video?.durationSeconds,
+      canonicalReviewAudioToneSamples: canonicalReviewAudioToneSamples.map(formatAudioToneSample),
+      canonicalWorkItemCount: acceptedJourney?.plan?.workItemCount,
+      canonicalJobCount: acceptedJourney?.approval?.jobCount,
       canonicalVideoSrcScheme: canonicalVideoSrc.split(':')[0],
       authVerificationCount,
-      uploadedByteCount: sourceBytes.byteLength + secondSourceBytes.byteLength,
+      uploadedByteCount:
+        sourceBytes.byteLength + secondSourceBytes.byteLength + thirdSourceBytes.byteLength,
     }))
   } else if (approvalBlockedByCanonicalGate) {
     assert.match(
@@ -857,7 +1042,7 @@ try {
   assert.equal(resumedHandoffs[0]?.approvedCreditReservationId, interruptedPlanApprovedHandoff.approvedCreditReservationId)
   assert.equal(resumedHandoffs[0]?.privateReview?.creditReservationId, interruptedPlanApprovedHandoff.approvedCreditReservationId)
   assertPrivateSourceStorageBucketsPreserved(resumedHandoffs[0]?.sourceMediaAssets, 'Restored local handoff')
-  assertTwoUploadedSourceMetadataPreserved(resumedHandoffs[0]?.sourceMediaAssets, 'Restored local handoff')
+  assertUploadedSourceMetadataPreserved(resumedHandoffs[0]?.sourceMediaAssets, 'Restored local handoff')
 
   await clickWhenReady(page.getByRole('button', { name: /Load review video/i }))
   const reviewVideo = page.getByTestId('private-internal-review-video')
@@ -1529,7 +1714,7 @@ try {
   assert.equal(backendAcceptedState?.editorPath, acceptedHandoffs[0]?.editorPath, 'Backend accepted state should preserve the editor route.')
   assert.equal(backendAcceptedState?.approvedSnapshotId, acceptedHandoffs[0]?.approvedSnapshotId, 'Backend accepted state should preserve the approved snapshot id.')
   assertPrivateSourceStorageBucketsPreserved(backendAcceptedState?.sourceMediaAssets, 'Backend accepted internal edit state')
-  assertTwoUploadedSourceMetadataPreserved(backendAcceptedState?.sourceMediaAssets, 'Backend accepted internal edit state')
+  assertUploadedSourceMetadataPreserved(backendAcceptedState?.sourceMediaAssets, 'Backend accepted internal edit state')
   assert.equal(backendAcceptedState?.privateReview?.reviewDecision, 'accepted_for_internal_testing')
   assert.equal(backendAcceptedState?.privateReview?.finalRenderArtifactId, acceptedHandoffs[0]?.privateReview?.finalRenderArtifactId, 'Backend accepted state should preserve the accepted final render artifact id.')
   assert.equal(backendAcceptedState?.privateReview?.finalRenderSha256, acceptedHandoffs[0]?.privateReview?.finalRenderSha256, 'Backend accepted state should preserve the accepted final render sha256.')
@@ -2033,7 +2218,7 @@ try {
   assert.equal(backendCompletedState?.editorPath, revisedAcceptedHandoffs[0]?.editorPath, 'Backend completed state should preserve the revised editor route.')
   assert.equal(backendCompletedState?.approvedSnapshotId, revisedAcceptedHandoffs[0]?.approvedSnapshotId, 'Backend completed state should preserve the revised approved snapshot id.')
   assertPrivateSourceStorageBucketsPreserved(backendCompletedState?.sourceMediaAssets, 'Backend completed internal edit state')
-  assertTwoUploadedSourceMetadataPreserved(backendCompletedState?.sourceMediaAssets, 'Backend completed internal edit state', ['176x100'])
+  assertUploadedSourceMetadataPreserved(backendCompletedState?.sourceMediaAssets, 'Backend completed internal edit state', ['176x100'])
   assert.equal(backendCompletedState?.privateReview?.reviewDecision, 'accepted_for_internal_testing')
   assert.equal(backendCompletedState?.privateReview?.finalRenderArtifactId, revisedAcceptedHandoffs[0]?.privateReview?.finalRenderArtifactId, 'Backend completed state should preserve the revised final render artifact id.')
   assert.equal(backendCompletedState?.privateReview?.finalRenderSha256, revisedAcceptedHandoffs[0]?.privateReview?.finalRenderSha256, 'Backend completed state should preserve the revised final render sha256.')
@@ -2093,7 +2278,7 @@ try {
     'Direct recovered edit should preserve the manifest verification final-render artifact id.',
   )
   assertPrivateSourceStorageBucketsPreserved(directRecoveredHandoffs[0]?.sourceMediaAssets, 'Direct recovered edit handoff')
-  assertTwoUploadedSourceMetadataPreserved(directRecoveredHandoffs[0]?.sourceMediaAssets, 'Direct recovered edit handoff', ['176x100'])
+  assertUploadedSourceMetadataPreserved(directRecoveredHandoffs[0]?.sourceMediaAssets, 'Direct recovered edit handoff', ['176x100'])
   await clickWhenReady(page.getByRole('button', { name: /Load review video/i }))
   await expect(page.getByTestId('private-internal-review-video')).toBeVisible({ timeout: 12_000 })
   await expect(page.getByTestId('private-internal-test-run-card')).toContainText(/Review QA record verified/i)
@@ -2340,6 +2525,11 @@ try {
   }))
   }
   }
+  assert.equal(
+    canonicalPrivateReviewAccepted,
+    true,
+    'The signed-in full-stack smoke must complete the canonical private review; a legacy or fail-closed fallback is not a passing result.',
+  )
 } finally {
   await browserContext?.close()
   await browser?.close()
@@ -3155,7 +3345,11 @@ async function probeAudioMeanVolume(localFilePath: string): Promise<number> {
 
 async function probeAudioTone(
   localFilePath: string,
-  window?: { startSeconds?: number; durationSeconds?: number },
+  window?: {
+    startSeconds?: number
+    durationSeconds?: number
+    targetFrequencyHz?: number
+  },
 ): Promise<AudioToneSample> {
   const sampleRate = 48_000
   const windowArgs = [
@@ -3198,8 +3392,14 @@ async function probeAudioTone(
     energy += sample * sample
   }
 
-  const targetFrequencyHz = 440
-  const controlFrequencies = [220, 330, 660, 880, 1320]
+  const targetFrequencyHz = window?.targetFrequencyHz ?? 440
+  assert.ok(
+    Number.isInteger(targetFrequencyHz) && targetFrequencyHz >= 20 && targetFrequencyHz <= 20_000,
+    `Audio tone target must be an integer between 20 and 20000 Hz, got ${targetFrequencyHz}.`,
+  )
+  const controlFrequencies = [220, 330, 440, 660, 880, 1320].filter(
+    (frequencyHz) => frequencyHz !== targetFrequencyHz,
+  )
   const targetPower = goertzelPower(samples, sampleRate, targetFrequencyHz)
   const controlPowers = controlFrequencies.map((frequencyHz) => ({
     frequencyHz,
@@ -3224,10 +3424,10 @@ async function probeAudioTone(
 function assertSourceAudioTone(sample: AudioToneSample, label: string) {
   assert.ok(sample.sampleCount >= 4_800, `${label} should expose enough decoded source-audio samples, got ${formatAudioToneSample(sample)}.`)
   assert.ok(sample.rms > 0.0005, `${label} should preserve audible source-audio energy, got ${formatAudioToneSample(sample)}.`)
-  assert.ok(sample.targetPower > 1e-5, `${label} should preserve measurable 440Hz source-audio power, got ${formatAudioToneSample(sample)}.`)
+  assert.ok(sample.targetPower > 1e-5, `${label} should preserve measurable ${sample.targetFrequencyHz}Hz source-audio power, got ${formatAudioToneSample(sample)}.`)
   assert.ok(
     sample.targetToControlRatio >= 3,
-    `${label} should preserve the uploaded 440Hz source-audio identity, got ${formatAudioToneSample(sample)}.`,
+    `${label} should preserve the uploaded ${sample.targetFrequencyHz}Hz source-audio identity, got ${formatAudioToneSample(sample)}.`,
   )
 }
 
@@ -3293,6 +3493,69 @@ async function fetchInternalEditStateReadback(
     status: response.status,
     json: await response.json() as InternalEditStateReadbackResponse,
   }
+}
+
+async function fetchCanonicalJourneyReadback(input: {
+  apiBaseUrl: string
+  projectId: string
+  editSessionId: string
+  bearerToken: string
+}): Promise<{ status: number; json: CanonicalJourneyReadbackResponse }> {
+  const response = await fetch(
+    `${input.apiBaseUrl}/v1/projects/${encodeURIComponent(input.projectId)}` +
+      `/edit-sessions/${encodeURIComponent(input.editSessionId)}` +
+      '/canonical-journey?workspaceId=workspace-internal-testing',
+    {
+      headers: {
+        authorization: `Bearer ${input.bearerToken}`,
+      },
+    },
+  )
+  return {
+    status: response.status,
+    json: await response.json() as CanonicalJourneyReadbackResponse,
+  }
+}
+
+function assertCanonicalJourneyDoesNotExposePrivateExecutionAuthority(value: unknown): void {
+  const keys = collectObjectKeys(value)
+  for (const forbiddenKey of [
+    'workItems',
+    'jobs',
+    'jobIds',
+    'approvedToolIds',
+    'toolIds',
+    'artifactIds',
+    'filesystemPath',
+    'storagePath',
+    'lease',
+    'leaseId',
+    'dispatchGrant',
+    'command',
+    'credentials',
+    'signedUrl',
+    'sourceBytes',
+    'rawPlanningInputs',
+  ]) {
+    assert.equal(
+      keys.has(forbiddenKey),
+      false,
+      `Canonical browser journey must not expose private execution field ${forbiddenKey}.`,
+    )
+  }
+}
+
+function collectObjectKeys(value: unknown, keys = new Set<string>()): Set<string> {
+  if (!value || typeof value !== 'object') return keys
+  if (Array.isArray(value)) {
+    value.forEach((item) => collectObjectKeys(item, keys))
+    return keys
+  }
+  for (const [key, nested] of Object.entries(value as Record<string, unknown>)) {
+    keys.add(key)
+    collectObjectKeys(nested, keys)
+  }
+  return keys
 }
 
 async function fetchProjectListReadback(

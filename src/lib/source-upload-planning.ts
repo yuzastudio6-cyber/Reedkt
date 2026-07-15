@@ -47,6 +47,7 @@ export interface PlanSourceUploadsResult {
 }
 
 const sourceUploadAttemptIds = new WeakMap<File, string>()
+const MOCK_SAFE_PLANNING_DURATION_SECONDS = 9
 
 export function createExecutionSourceMediaAssetsFromClips(
   clips: ClipSource[],
@@ -727,6 +728,8 @@ function clipFromUploadPlan(
   storageUpload?: StorageOperationResult,
 ): ClipSource {
   const uploaded = storageUpload?.status === 'uploaded'
+  const usesMockPlanningDuration = storageUpload?.mode === 'mock' &&
+    uploadPlan.sourceMetadata?.probeStatus !== 'probed'
   const sourceMetadata = uploadPlan.sourceMetadata?.probeStatus === 'probed'
     ? uploadPlan.sourceMetadata
     : undefined
@@ -744,12 +747,16 @@ function clipFromUploadPlan(
     fileName: uploadPlan.fileName,
     duration: sourceMetadata?.durationSeconds
       ? formatDurationSeconds(sourceMetadata.durationSeconds)
-      : 'Pending analysis',
+      : usesMockPlanningDuration
+        ? formatDurationSeconds(MOCK_SAFE_PLANNING_DURATION_SECONDS)
+        : 'Pending analysis',
     detectedType: uploadPlan.mimeType.startsWith('audio/') ? 'Audio source' : 'Video source',
     notes: uploaded
       ? sourceMetadata
         ? 'File uploaded to private source storage; local metadata is ready for source-order planning. Deeper transcript and content analysis still wait for approved backend workers.'
-        : 'File uploaded to private source storage; analysis and editing still wait for plan approval.'
+        : usesMockPlanningDuration
+          ? 'File uploaded to private source storage for local UI testing; 00:09 is a mock planning duration, not probe evidence. Analysis and editing still wait for plan approval.'
+          : 'File uploaded to private source storage; analysis and editing still wait for plan approval.'
       : uploadPlan.mockOnly
         ? 'Upload plan is local/mock-safe; no media bytes were uploaded in this UI session.'
         : 'Upload plan is ready for private source storage.',

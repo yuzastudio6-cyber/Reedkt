@@ -62,7 +62,6 @@ import {
 import { launchEditingCategories } from '../../lib/product-taxonomy'
 import {
   appendOrderedUserInstruction,
-  createPlanningInputFingerprint,
   findConfirmedMaterialPlanningConflicts,
   joinOrderedUserInstructions,
   normalizeOrderedUserInstructions,
@@ -114,6 +113,7 @@ import type {
   EditingCategory,
   FrameTemplateType,
   MoodStyle,
+  PlannerInput,
   SourceSequenceMode,
   TargetPlatform,
   VideoWorkflowType,
@@ -793,6 +793,14 @@ function preserveContextAwarePlanSourceOfTruth(
       contextAwarePlanResult.professionalSkillPlan ??
       contextAwarePlanResult.editPlan.professionalSkillPlan ??
       fullPlan.professionalSkillPlan,
+  }
+}
+
+function createCompiledPlanningFingerprint(input: PlannerInput): string | null {
+  try {
+    return createGuidedMockEditPlan(input).planningInputTrace?.fingerprint ?? null
+  } catch {
+    return null
   }
 }
 
@@ -1571,7 +1579,9 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
   const plan = contextAwarePlanResult?.editPlan ?? basePlan
   const liveApprovalPlanningFingerprint = useMemo(
     () => contextAwarePlanResult
-      ? createPlanningInputFingerprint(createContextAwarePlannerInput(contextAwarePlanResult.planningContext, plannerInput))
+      ? createCompiledPlanningFingerprint(
+          createContextAwarePlannerInput(contextAwarePlanResult.planningContext, plannerInput),
+        )
       : null,
     [contextAwarePlanResult, plannerInput],
   )
@@ -2906,8 +2916,11 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
       contextAwarePlanResult.planningContext,
       plannerInput,
     )
-    const currentPlanningFingerprint = createPlanningInputFingerprint(currentApprovalPlannerInput)
-    if (contextAwarePlanResult.editPlan.planningInputTrace?.fingerprint !== currentPlanningFingerprint) {
+    const currentPlanningFingerprint = createCompiledPlanningFingerprint(currentApprovalPlannerInput)
+    if (
+      !currentPlanningFingerprint ||
+      contextAwarePlanResult.editPlan.planningInputTrace?.fingerprint !== currentPlanningFingerprint
+    ) {
       blockApproval('Edit inputs changed after this plan was created. Create a fresh plan and estimate before approval.')
       setApprovalChecking(false)
       return

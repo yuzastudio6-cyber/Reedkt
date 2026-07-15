@@ -39,6 +39,7 @@ export async function createSyntheticMp4Fixture(input: {
   width?: number
   height?: number
   includeAudio?: boolean
+  audioFrequencyHz?: number
   videoPattern?: SyntheticVideoPattern
 }): Promise<SyntheticMediaFixtureResult> {
   const absoluteOutputPath = assertPathInsideRoot(input.localStorageRoot, input.outputPath)
@@ -46,6 +47,18 @@ export async function createSyntheticMp4Fixture(input: {
   const durationSeconds = input.durationSeconds ?? 2
   const width = input.width ?? 320
   const height = input.height ?? 180
+  const audioFrequencyHz = input.audioFrequencyHz ?? 440
+  if (
+    !Number.isInteger(audioFrequencyHz) ||
+    audioFrequencyHz < 20 ||
+    audioFrequencyHz > 20_000
+  ) {
+    return {
+      available: false,
+      warnings: ['Synthetic audio frequency must be an integer between 20 and 20000 Hz.'],
+      errorCode: 'invalid_audio_frequency',
+    }
+  }
   await mkdir(path.dirname(absoluteOutputPath), { recursive: true })
 
   try {
@@ -62,7 +75,7 @@ export async function createSyntheticMp4Fixture(input: {
           '-f',
           'lavfi',
           '-i',
-          `sine=frequency=440:sample_rate=48000:duration=${durationSeconds}`,
+          `sine=frequency=${audioFrequencyHz}:sample_rate=48000:duration=${durationSeconds}`,
         ]
       : []
     await execFileAsync(parsedCommand.command, [

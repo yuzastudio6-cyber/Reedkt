@@ -148,11 +148,18 @@ export function findConfirmedMaterialPlanningConflicts(
   if (!compiledIntent) return ['Compiled editing intent is missing.']
 
   const resolved = compiledIntent.resolvedSettings
+  const targetPlatformCameFromPlanningContext = compiledIntent.requirements.some(
+    (requirement) =>
+      requirement.source === 'planning_context' &&
+      requirement.mappedField === 'targetPlatform',
+  )
   return [
     input.aspectRatioConfirmed === true && resolved.aspectRatio !== input.aspectRatio
       ? `Resolved aspect ratio ${resolved.aspectRatio} does not match confirmed aspect ratio ${input.aspectRatio}.`
       : '',
-    input.aspectRatioConfirmed === true && resolved.targetPlatform !== input.targetPlatform
+    input.aspectRatioConfirmed === true &&
+    resolved.targetPlatform !== input.targetPlatform &&
+    !targetPlatformCameFromPlanningContext
       ? `Resolved target platform ${resolved.targetPlatform} does not match confirmed target platform ${input.targetPlatform}.`
       : '',
     input.aspectRatioConfirmed === true && (resolved.frameTemplateType ?? null) !== (input.frameTemplateType ?? null)

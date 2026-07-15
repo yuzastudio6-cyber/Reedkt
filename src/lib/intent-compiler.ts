@@ -87,6 +87,7 @@ function addRequirement(
   mappedField?: string,
   priority: CompiledIntentRequirement['priority'] = 'medium',
   notes?: string,
+  source?: CompiledIntentRequirement['source'],
 ) {
   const id = `intent-${accumulator.requirements.length + 1}`
   accumulator.requirements.push({
@@ -95,7 +96,7 @@ function addRequirement(
     mappedField,
     notes,
     priority,
-    source: kind === 'constraint' ? 'system_constraint' : 'user_chat',
+    source: source ?? (kind === 'constraint' ? 'system_constraint' : 'user_chat'),
     text,
   })
 }
@@ -227,32 +228,74 @@ function applyCategory(text: string, input: PlannerInput, accumulator: IntentAcc
   return match.value
 }
 
-function applyPlatform(text: string, input: PlannerInput, accumulator: IntentAccumulator) {
-  if (hasAny(text, ['tiktok', 'reels', 'shorts', 'short form', 'short-form'])) {
-    addRequirement(accumulator, 'preference', 'Use TikTok/Reels/Shorts vertical format.', 'targetPlatform')
+function applyPlatform(
+  text: string,
+  input: PlannerInput,
+  accumulator: IntentAccumulator,
+  preserveConfirmedFrame = false,
+) {
+  const platformSettings = (
+    aspectRatio: AspectRatio,
+    frameTemplateType: FrameTemplateType,
+    targetPlatform: TargetPlatform,
+  ) => {
+    const confirmedFrameIsAuthoritative =
+      preserveConfirmedFrame &&
+      input.aspectRatioConfirmed === true &&
+      input.aspectRatio !== 'let_ai_decide'
+
     return {
-      aspectRatio: '9:16' as AspectRatio,
-      frameTemplateType: 'vertical_talking_head_lower_panel' as FrameTemplateType,
-      targetPlatform: 'tiktok_reels_shorts' as TargetPlatform,
+      aspectRatio: confirmedFrameIsAuthoritative ? input.aspectRatio : aspectRatio,
+      frameTemplateType: confirmedFrameIsAuthoritative
+        ? input.frameTemplateType ?? getFrameForAspectRatio(input.aspectRatio)
+        : frameTemplateType,
+      targetPlatform,
     }
+  }
+
+  if (hasAny(text, ['tiktok', 'reels', 'shorts', 'short form', 'short-form'])) {
+    addRequirement(
+      accumulator,
+      'preference',
+      preserveConfirmedFrame && input.aspectRatioConfirmed
+        ? 'Target TikTok/Reels/Shorts while preserving the separately confirmed output frame.'
+        : 'Use TikTok/Reels/Shorts vertical format.',
+      'targetPlatform',
+      'medium',
+      undefined,
+      preserveConfirmedFrame ? 'planning_context' : undefined,
+    )
+    return platformSettings('9:16', 'vertical_talking_head_lower_panel', 'tiktok_reels_shorts')
   }
 
   if (text.includes('youtube')) {
-    addRequirement(accumulator, 'preference', 'Use YouTube landscape format.', 'targetPlatform')
-    return {
-      aspectRatio: '16:9' as AspectRatio,
-      frameTemplateType: 'youtube_side_panel' as FrameTemplateType,
-      targetPlatform: 'youtube' as TargetPlatform,
-    }
+    addRequirement(
+      accumulator,
+      'preference',
+      preserveConfirmedFrame && input.aspectRatioConfirmed
+        ? 'Target YouTube while preserving the separately confirmed output frame.'
+        : 'Use YouTube landscape format.',
+      'targetPlatform',
+      'medium',
+      undefined,
+      preserveConfirmedFrame ? 'planning_context' : undefined,
+    )
+    return platformSettings('16:9', 'youtube_side_panel', 'youtube')
   }
 
   if (text.includes('square')) {
-    addRequirement(accumulator, 'preference', 'Use square format.', 'aspectRatio')
-    return {
-      aspectRatio: '1:1' as AspectRatio,
-      frameTemplateType: 'square_center_panel' as FrameTemplateType,
-      targetPlatform: 'custom' as TargetPlatform,
-    }
+    addRequirement(
+      accumulator,
+      'preference',
+      preserveConfirmedFrame && input.aspectRatioConfirmed
+        ? 'Keep square output as planning context while preserving the separately confirmed output frame.'
+        : 'Use square format.',
+      'aspectRatio',
+      'medium',
+      undefined,
+      preserveConfirmedFrame ? 'planning_context' : undefined,
+    )
+    return platformSettings('1:1', 'square_center_panel', 'custom')
   }
 
   return {
@@ -689,7 +732,12 @@ export function compileEditingIntent(params: CompileEditingIntentParams): Compil
     const positiveMessage = positiveMessages[index] ?? ''
     const editingCategory = applyCategory(positiveMessage, resolvedInput, accumulator)
     const editLevel = applyEditLevel(positiveMessage, resolvedInput, accumulator)
-    const platformSettings = applyPlatform(positiveMessage, resolvedInput, accumulator)
+    const platformSettings = applyPlatform(
+      positiveMessage,
+      resolvedInput,
+      accumulator,
+      message.startsWith('planning context:'),
+    )
     const visualPreference = applyVisualPreference(message, positiveMessage, resolvedInput, accumulator)
     const moodStyle = applyMood(positiveMessage, resolvedInput)
     const creditPreference = applyCreditPreference(positiveMessage, resolvedInput, accumulator)

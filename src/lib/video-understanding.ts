@@ -671,9 +671,21 @@ export function createMockVideoUnderstandingReport({
     instructionSignalText,
     ...input.clips.flatMap((clip) => [clip.fileName, clip.detectedType, clip.notes, clip.sourceRole]),
   ])
+  const semanticPlanningText = normalizeText([
+    input.projectName,
+    input.workflowType,
+    input.editingCategory,
+    input.moodStyle,
+    input.visualPreference,
+    instructionSignalText,
+  ])
 
   const clips = clipUnderstanding(input, combinedText)
-  const seeds = opportunitySeedsFromText(input, combinedText, input.clips)
+  // File names and operational upload notes are weak metadata, not user intent or
+  // verified content evidence. Keep them available for per-clip advisory summaries,
+  // but never let words such as "browser" in an upload name authorize an expensive
+  // screen-capture, map, chart, or generated-story plan on their own.
+  const seeds = opportunitySeedsFromText(input, semanticPlanningText, input.clips)
   const opportunities = seeds.map((seed, index) => createOpportunity(seed, input, index))
   const opportunityTypes = Array.from(new Set(opportunities.map((opportunity) => opportunity.opportunityType)))
   const transcriptMeaning = transcriptReport(input, opportunityTypes)

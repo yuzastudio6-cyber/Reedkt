@@ -135,9 +135,9 @@ const fullBoundarySteps: VerificationStep[] = [
     'The bounded browser-capture capability revalidates server authority before private execution.',
   ),
   step(
-    'legacy-private-review-regression',
+    'signed-in-private-review-regression',
     'smoke:editor-full-stack-private-review',
-    'Signed-in project creation, two-source private upload, persistence, preference synchronization, and fail-closed rich-plan behavior remain regression-safe.',
+    'Signed-in project creation, two-source private upload, exact preferences and Edit Brief, plan revision, 4K-ceiling approval, immutable handoff, private work graph, integrity-bound playback, and review acceptance remain connected.',
   ),
 ]
 
@@ -246,7 +246,12 @@ function printReport(
           boundedReferenceBoundMultiSourceColorExecution: true,
           activeNamedEditJourneyStates: true,
           versionedToolIdentityEvidence: true,
-          ...(full ? { signedInTwoSourceUploadAndPersistence: true } : {}),
+          ...(full
+            ? {
+                signedInTwoSourceUploadAndPersistence: true,
+                signedInTwoSourcePrivateReviewAccepted: true,
+              }
+            : {}),
         }
       : {},
     boundaries: {

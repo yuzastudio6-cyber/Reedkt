@@ -2074,8 +2074,9 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
       return
     }
     const nextSearchParams = new URLSearchParams(searchParams)
-    nextSearchParams.set('view', 'brief')
+    nextSearchParams.delete('view')
     setSearchParams(nextSearchParams)
+    setEditBriefOpenRequestId((current) => current + 1)
   }
 
   function handleOpenChatWorkspace() {
@@ -2104,9 +2105,11 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     setCurrentEditPreferenceDraftDirty(false)
     setPendingPreferenceDestination(null)
     const nextSearchParams = new URLSearchParams(searchParams)
-    if (destination === 'brief') nextSearchParams.set('view', 'brief')
-    else nextSearchParams.delete('view')
+    nextSearchParams.delete('view')
     setSearchParams(nextSearchParams)
+    if (destination === 'brief') {
+      setEditBriefOpenRequestId((current) => current + 1)
+    }
   }
 
   function handleApplyCurrentEditPreferences(next: LocalInternalEditPreferenceValues) {
@@ -5238,7 +5241,11 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
           isProjectWorkspace ? (
             <ChatThread>
               <ChatMessageList messages={cleanChatMessages} renderCards={renderCleanCardsForMessage} />
-              <div className="clean-editor-stage" data-editor-stage={cleanEditorStage} data-testid="editor-stage">
+              <div
+                className="clean-editor-stage"
+                data-editor-stage={cleanEditorStage}
+                data-testid="editor-stage"
+              >
                 {setupReady ? (
                   <CleanPlanningPrepSurface
                     active={cleanEditorStage === 'planning'}

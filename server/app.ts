@@ -52,7 +52,16 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
   app.use(cors({
     origin: createCorsOriginPolicy(env),
     credentials: false,
-    exposedHeaders: ['cache-control', 'content-disposition', 'content-length', 'content-type'],
+    exposedHeaders: [
+      'cache-control',
+      'content-disposition',
+      'content-length',
+      'content-type',
+      'x-reeditpro-artifact-sha256',
+      'x-reeditpro-review-assembly-id',
+      'x-reeditpro-review-decision-manifest-sha256',
+      'x-reeditpro-review-manifest-sha256',
+    ],
   }))
   app.use((_request, response, next) => {
     response.setHeader('x-content-type-options', 'nosniff')

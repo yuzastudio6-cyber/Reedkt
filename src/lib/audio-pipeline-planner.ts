@@ -252,9 +252,15 @@ function beatSyncStrategy(input: PlannerInput, soundStyle: SoundStyleId): BeatSy
   return 'light'
 }
 
-function stagesForPlan(input: PlannerInput, musicPlan: MusicBedPlan, sfxPlan: SfxPlan, beatStrategy: BeatSyncStrategy): AudioPipelineStage[] {
+function stagesForPlan(
+  input: PlannerInput,
+  musicPlan: MusicBedPlan,
+  sfxPlan: SfxPlan,
+  beatStrategy: BeatSyncStrategy,
+  issues: Set<AudioQualityIssue>,
+): AudioPipelineStage[] {
   const stages: AudioPipelineStage[] = ['source_audio_analysis', 'voice_cleanup', 'loudness_normalization']
-  if (!preservesNaturalSourceAudio(input)) stages.push('silence_cleanup')
+  if (!preservesNaturalSourceAudio(input) && issues.has('long_silence')) stages.push('silence_cleanup')
 
   if (input.editLevel !== 'basic') {
     if (musicPlan.policy !== 'none') stages.push('music_bed_planning', 'ducking')
@@ -384,7 +390,6 @@ function projectOperations(params: {
     ...presetOps,
   ])
 
-  if (!preservesNaturalSourceAudio(params.input)) operations.add('silence_cleanup')
   if (params.input.editLevel !== 'basic') {
     operations.add('eq_cleanup')
     operations.add('compression')
@@ -392,7 +397,11 @@ function projectOperations(params: {
 
   if (params.issues.has('background_noise') || params.issues.has('echo')) operations.add('noise_reduction')
   if (params.issues.has('many_fillers')) operations.add('filler_pause_cleanup')
-  if (params.issues.has('long_silence')) operations.add('silence_cleanup')
+  if (params.issues.has('long_silence') && !preservesNaturalSourceAudio(params.input)) {
+    operations.add('silence_cleanup')
+  } else {
+    operations.delete('silence_cleanup')
+  }
   if (params.issues.has('clipping')) operations.add('qa_clipping_check')
   if (params.musicPlan.policy !== 'none') {
     operations.add('music_bed')
@@ -474,7 +483,9 @@ function clipPlans(params: {
     const issues = clipIssues(clip.id, params.report)
     const cleanupOps: AudioOperationId[] = unique([
       'voice_leveling',
-      ...(!preservesNaturalSourceAudio(params.input) ? ['silence_cleanup' as const] : []),
+      ...(!preservesNaturalSourceAudio(params.input) && issues.includes('long_silence')
+        ? ['silence_cleanup' as const]
+        : []),
       ...(issues.includes('background_noise') || issues.includes('echo') ? ['noise_reduction' as const, 'eq_cleanup' as const] : []),
       ...(issues.includes('many_fillers') ? ['filler_pause_cleanup' as const] : []),
     ])
@@ -651,7 +662,7 @@ export function createAudioPipelinePlan(params: CreateAudioPipelinePlanParams): 
     summary: `${preset.label} audio pipeline planned with ${clipAudioPlans.length} clip plan${clipAudioPlans.length === 1 ? '' : 's'} and ${cues.length} SoundSync cue${cues.length === 1 ? '' : 's'}; audio processing remains backend-gated.`,
     soundStyle,
     audioIntensity: preset.audioIntensityDefault,
-    stages: stagesForPlan(params.input, musicBedPlan, sfxPlan, strategy),
+    stages: stagesForPlan(params.input, musicBedPlan, sfxPlan, strategy, issues),
     toolsPlanned: tools,
     projectOperations: projectOps,
     clipPlans: clipAudioPlans,

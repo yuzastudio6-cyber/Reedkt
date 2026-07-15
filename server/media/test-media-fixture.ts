@@ -21,7 +21,14 @@ export interface SyntheticMediaFixtureResult {
   errorCode?: string
 }
 
-export type SyntheticVideoPattern = 'testsrc' | 'testsrc2' | 'smptebars' | 'solid_red' | 'solid_blue' | 'solid_green'
+export type SyntheticVideoPattern =
+  | 'testsrc'
+  | 'testsrc2'
+  | 'smptebars'
+  | 'solid_red'
+  | 'solid_dark_red'
+  | 'solid_blue'
+  | 'solid_green'
 
 export async function createSyntheticMp4Fixture(input: {
   outputPath: string
@@ -114,6 +121,8 @@ function syntheticVideoFilter(pattern: SyntheticVideoPattern, width: number, hei
       return `smptebars=size=${width}x${height}:rate=30`
     case 'solid_red':
       return `color=c=red:size=${width}x${height}:rate=30:duration=${durationSeconds}`
+    case 'solid_dark_red':
+      return `color=c=0x800000:size=${width}x${height}:rate=30:duration=${durationSeconds}`
     case 'solid_blue':
       return `color=c=blue:size=${width}x${height}:rate=30:duration=${durationSeconds}`
     case 'solid_green':

@@ -95,7 +95,11 @@ function qualityIssues(text: string) {
   const issues: CutReason[] = []
   if (/bad audio|noisy|muffled|wind|distorted/.test(text)) issues.push('bad_audio')
   if (/bad visual|blurry|shaky|dark|unusable/.test(text)) issues.push(text.includes('shaky') || text.includes('blurry') ? 'shaky_or_blurry' : 'bad_visual')
-  if (/privacy|sensitive|private/.test(text)) issues.push('privacy_sensitive')
+  if (
+    /\b(?:privacy (?:concern|issue|risk|sensitive)|privacy-sensitive|sensitive (?:content|data|details|footage|information)|private (?:content|data|details|information)|confidential|personally identifiable|pii|redact|blur (?:a )?(?:face|license plate))\b/.test(text)
+  ) {
+    issues.push('privacy_sensitive')
+  }
   return issues
 }
 

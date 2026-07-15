@@ -59,17 +59,25 @@ export function createInternalEditStateService(context: ServiceContext) {
 
       assertInternalEditStateHandoffSafe(input)
       await assertInternalEditStateProjectOwnedByCurrentUser(context, input.projectId, access.workspaceId)
-      const exactEditPreferenceInitialization = await createExactEditPreferenceService(context).initialize({
-        workspaceId: access.workspaceId,
-        projectId: input.projectId,
-        editSessionId: input.editSessionId,
-        idempotencyKey: exactEditPreferenceInitializationKey({
-          ownerUserId: userId,
-          workspaceId: access.workspaceId,
-          projectId: input.projectId,
-          editSessionId: input.editSessionId,
-        }),
-      })
+      const exactEditPreferenceService = createExactEditPreferenceService(context)
+      const currentExactEditPreferences = await exactEditPreferenceService.getCurrent(
+        access.workspaceId,
+        input.projectId,
+        input.editSessionId,
+      )
+      const exactEditPreferenceInitialization = currentExactEditPreferences.preferenceRecord
+        ? { created: false }
+        : await exactEditPreferenceService.initialize({
+            workspaceId: access.workspaceId,
+            projectId: input.projectId,
+            editSessionId: input.editSessionId,
+            idempotencyKey: exactEditPreferenceInitializationKey({
+              ownerUserId: userId,
+              workspaceId: access.workspaceId,
+              projectId: input.projectId,
+              editSessionId: input.editSessionId,
+            }),
+          })
       const stateKey = internalEditStateMemoryKey(userId, access.workspaceId, input.projectId, input.editSessionId)
       return withInternalEditStateWriteLock(stateKey, async () => {
         const existing = internalEditStateRecordsByKey.get(stateKey) ??

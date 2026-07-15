@@ -28,6 +28,8 @@ await rm(localStorageRoot, { force: true, recursive: true })
 
 const verifiedToken = 'browser-full-stack-private-review-supabase-token'
 const otherUserToken = 'browser-full-stack-private-review-other-user-token'
+const privateCanonicalInternalServiceToken =
+  'rp-browser-private-pipeline-lease-7Gk2Wm9Qx4Nb8Lv5'
 const browserProjectScope = {
   authMode: 'local_test' as const,
   userId: 'local-test-user',
@@ -216,6 +218,7 @@ const env = loadRuntimeEnv({
   SUPABASE_URL: 'https://browser-full-stack-auth.reeditpro.local',
   SUPABASE_ANON_KEY: 'test-anon-key',
   SUPABASE_SERVICE_ROLE_KEY: 'test-service-role-key',
+  REEDITPRO_INTERNAL_SERVICE_TOKEN: privateCanonicalInternalServiceToken,
   API_ALLOW_INTERNAL_TEST_EXECUTION_WITH_SUPABASE: 'true',
 })
 assert.equal(env.mockOnly, false, 'Browser full-stack smoke should run with Supabase configured.')
@@ -227,10 +230,12 @@ const sourceFixture = await createSyntheticMp4Fixture({
   durationSeconds: 1,
   width: 160,
   height: 90,
+  includeAudio: true,
   videoPattern: 'solid_red',
 })
 assert.equal(sourceFixture.available, true, `Synthetic source fixture should be available: ${sourceFixture.warnings.join('; ')}`)
 assert.ok(sourceFixture.outputPath, 'Synthetic source fixture should expose a path.')
+assert.equal(sourceFixture.hasAudio, true, 'First synthetic source fixture should include the audio stream required by the approved voice-delivery plan.')
 const secondSourceFixture = await createSyntheticMp4Fixture({
   localStorageRoot,
   outputPath: join(localStorageRoot, 'fixtures', 'browser-upload-source-b.mp4'),
@@ -238,7 +243,7 @@ const secondSourceFixture = await createSyntheticMp4Fixture({
   width: 176,
   height: 100,
   includeAudio: true,
-  videoPattern: 'solid_blue',
+  videoPattern: 'solid_dark_red',
 })
 assert.equal(secondSourceFixture.available, true, `Second synthetic source fixture should be available: ${secondSourceFixture.warnings.join('; ')}`)
 assert.ok(secondSourceFixture.outputPath, 'Second synthetic source fixture should expose a path.')
@@ -563,6 +568,9 @@ try {
   await expect(constrainedRunnerStatus.or(exactRunnerStatus)).toBeVisible({ timeout: 12_000 })
   const constrainedByExactRunner = await constrainedRunnerStatus.isVisible()
   if (constrainedByExactRunner) {
+    const exactRunnerBlockerText = (await constrainedRunnerStatus.innerText())
+      .replace(/\s+/g, ' ')
+      .trim()
     await expect(page.getByTestId('plan-review-approve')).toBeDisabled()
     await expect(page.getByTestId('plan-review-approve')).toHaveText('Approval not ready')
     await expect(constrainedRunnerStatus).toContainText('Planning inputs saved')
@@ -589,11 +597,14 @@ try {
       skippedLegacyAssertions: true,
       skippedReason: 'The exact private runner does not yet compile this two-source rich plan into complete canonical work items, so approval correctly stays locked.',
       nextRequiredGate: 'canonical_multi_source_and_rich_work_item_compilation',
+      exactRunnerBlockerText,
       canonicalPlanningResponseCount: canonicalPlanningResponses.length,
     }))
   } else {
   await expect(page.getByTestId('plan-review-approve')).toBeEnabled()
   await expect(page.locator('body')).not.toContainText(internalToolNameCopyPattern)
+  await clickWhenReady(page.getByRole('button', { name: /Open Edit Brief/i }).first())
+  await expect(page.getByLabel(/Overall goal/i)).toBeVisible()
   await page.getByLabel(/Overall goal/i).fill(approvedEditBriefGoal)
   await expect(page.getByText(/Planning inputs changed. Create a new edit plan from the updated context before approval./i)).toBeVisible({ timeout: 12_000 })
   await expect(page.getByTestId('plan-review-approve')).toHaveCount(0)
@@ -607,11 +618,111 @@ try {
   const canonicalApprovalGateMessage = page.getByText(
     /Standalone credit approval and reservation are disabled\. Canonical plan approval performs both in one authority transaction\./i,
   ).first()
-  const approvalOutcome = page.getByTestId('private-internal-test-run-card').or(canonicalApprovalGateMessage)
+  const canonicalApprovedJourney = page.locator(
+    '[data-testid="canonical-journey-status"][data-journey-stage="approved_snapshot_available"]',
+  )
+  const approvalOutcome = page.getByTestId('private-internal-test-run-card')
+    .or(canonicalApprovalGateMessage)
+    .or(canonicalApprovedJourney)
   await expect(approvalOutcome).toBeVisible({ timeout: 45_000 })
+  const approvedThroughCanonicalAuthority = await canonicalApprovedJourney.isVisible()
   const approvalBlockedByCanonicalGate = await canonicalApprovalGateMessage.isVisible()
 
-  if (approvalBlockedByCanonicalGate) {
+  if (approvedThroughCanonicalAuthority) {
+    const canonicalJourneyStatus = page.getByTestId('canonical-journey-status')
+    await expect(canonicalJourneyStatus).toContainText('Approval is safely recorded')
+    await expect(page.getByTestId('private-internal-test-run-card')).toHaveCount(0)
+    await expect(page.locator('body')).not.toContainText(internalToolNameCopyPattern)
+
+    await clickWhenReady(page.getByTestId('canonical-execution-package-request-submit'))
+    await expect(canonicalJourneyStatus).toHaveAttribute(
+      'data-journey-stage',
+      'execution_in_progress',
+      { timeout: 45_000 },
+    )
+    await expect(canonicalJourneyStatus).toContainText('Private preparation handoff is ready')
+    await expect(page.getByTestId('canonical-execution-package-request-submit')).toHaveCount(0)
+
+    await clickWhenReady(page.getByTestId('canonical-private-edit-preparation-submit'))
+    const canonicalPrivateReviewReady = page.locator(
+      '[data-testid="canonical-journey-status"][data-journey-stage="private_review_ready"]',
+    )
+    const canonicalPreparationBlocked = page.getByTestId('canonical-private-edit-preparation-blocked')
+    await expect(canonicalPrivateReviewReady.or(canonicalPreparationBlocked)).toBeVisible({ timeout: 300_000 })
+    if (await canonicalPreparationBlocked.isVisible()) {
+      throw new Error(
+        `Canonical private preparation failed closed: ${(await canonicalPreparationBlocked.innerText()).replace(/\s+/g, ' ').trim()}`,
+      )
+    }
+    await expect(canonicalJourneyStatus).toHaveAttribute(
+      'data-journey-stage',
+      'private_review_ready',
+    )
+    await expect(canonicalJourneyStatus).toContainText('Private review ready')
+    await expect(page.getByTestId('canonical-private-review')).toBeVisible()
+    await expect(page.locator('body')).not.toContainText(internalToolNameCopyPattern)
+
+    await clickWhenReady(page.getByTestId('canonical-private-review-load'))
+    const canonicalReviewPlayer = page.getByTestId('canonical-private-review-player')
+    await expect(canonicalReviewPlayer).toBeVisible({ timeout: 30_000 })
+    const canonicalVideoSrc = await canonicalReviewPlayer.locator('video').evaluate(
+      (node) => (node as HTMLVideoElement).currentSrc || (node as HTMLVideoElement).src,
+    )
+    assert.match(canonicalVideoSrc, /^blob:/, 'Canonical private review playback must use a browser object URL.')
+
+    const [canonicalReviewDownload] = await Promise.all([
+      page.waitForEvent('download'),
+      clickWhenReady(page.getByRole('button', { name: /Download review/i })),
+    ])
+    assert.match(canonicalReviewDownload.suggestedFilename(), /\.mp4$/i)
+    const canonicalReviewDownloadPath = await canonicalReviewDownload.path()
+    assert.ok(canonicalReviewDownloadPath, 'Canonical private review download should resolve to a local file path.')
+    const canonicalReviewBytes = await readFile(canonicalReviewDownloadPath)
+    assert.ok(canonicalReviewBytes.byteLength > 0, 'Canonical private review download should contain MP4 bytes.')
+    const canonicalReviewSha256 = sha256Hex(canonicalReviewBytes)
+    assert.notEqual(canonicalReviewSha256, sourceSha256)
+    assert.notEqual(canonicalReviewSha256, secondSourceSha256)
+
+    await clickWhenReady(page.getByTestId('canonical-private-review-accept'))
+    await expect(canonicalJourneyStatus).toHaveAttribute(
+      'data-journey-stage',
+      'private_review_accepted',
+      { timeout: 45_000 },
+    )
+    await expect(canonicalJourneyStatus).toContainText('Private review approved')
+    await expect(canonicalJourneyStatus).toContainText('Public delivery is still a separate release step')
+    await expect(page.getByText(/Save needs retry/i)).toHaveCount(0)
+    assert.doesNotMatch(
+      projectRouteResponses.join('\n'),
+      /IDEMPOTENCY_REPLAY_UNAVAILABLE/,
+      'Canonical approval must not make browser recovery persistence replay an obsolete exact-edit initialization.',
+    )
+    assert.equal(adminPersistenceAttemptCount, 0)
+
+    console.log(JSON.stringify({
+      ok: true,
+      status: 'canonical_private_review_accepted',
+      checks: [
+        'signed_in_project_and_named_edit_created',
+        'two_private_sources_uploaded_and_backend_probed',
+        'edit_preferences_and_edit_brief_compiled',
+        'confirmed_frame_preserved_across_brief_platform_context',
+        'brief_revision_invalidated_and_republished_plan_v2',
+        'canonical_plan_and_4k_ceiling_estimate_approved_once',
+        'immutable_private_execution_handoff_requested_separately',
+        'server_derived_private_work_graph_completed',
+        'private_review_loaded_through_authenticated_no_store_bytes',
+        'private_review_download_is_not_source_passthrough',
+        'private_review_decision_persisted',
+        'public_delivery_billing_providers_and_deployment_remain_blocked',
+      ],
+      canonicalReviewByteLength: canonicalReviewBytes.byteLength,
+      canonicalReviewSha256,
+      canonicalVideoSrcScheme: canonicalVideoSrc.split(':')[0],
+      authVerificationCount,
+      uploadedByteCount: sourceBytes.byteLength + secondSourceBytes.byteLength,
+    }))
+  } else if (approvalBlockedByCanonicalGate) {
     assert.match(
       creditGateResponses.join('\n'),
       /"requiredGate":"atomic_plan_approval_and_funded_credit_reservation"/,

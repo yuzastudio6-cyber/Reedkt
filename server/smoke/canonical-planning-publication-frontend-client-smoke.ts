@@ -97,12 +97,14 @@ const multiSourceInput: PlannerInput = {
     id: 'canonical-save-clip-1',
     fileName: 'canonical-source-1.mp4',
     duration: '00:01',
+    notes: 'Uploaded through backend private storage for this internal review.',
     uploadedOrder: 1,
   }, {
     ...baseInput.clips[0]!,
     id: 'canonical-save-clip-2',
     fileName: 'canonical-source-2.mp4',
     duration: '00:01',
+    notes: 'Second private source upload is finalized and ready for planning.',
     uploadedOrder: 2,
     sourceRole: 'context',
   }],
@@ -157,8 +159,11 @@ const cleanSignedInPlanningContext: PlanningContext = {
     editBriefId: 'canonical-clean-signed-in-brief',
     status: 'ready',
     goal: 'Create a clean internal review edit that opens with the uploaded source proof and keeps the speaker clear.',
-    targetPlatforms: ['youtube'],
+    targetPlatforms: ['tiktok', 'instagram_reels'],
     styleKeywords: ['clean', 'restrained'],
+    pacingPreference: 'ai_decides',
+    captionPreference: 'ai_decides',
+    musicPreference: 'ai_decides',
     mustUseAssetIds: multiSourceMediaAssets.map((asset) => asset.mediaAssetId),
     avoidAssetIds: [],
     mustIncludeNotes: ['Keep both uploaded sources in their confirmed order.'],
@@ -177,6 +182,10 @@ const cleanSignedInPlanningContext: PlanningContext = {
 }
 const cleanSignedInInput: PlannerInput = {
   ...multiSourceInput,
+  clips: multiSourceInput.clips.map((clip, index) => ({
+    ...clip,
+    fileName: index === 0 ? 'browser-upload-source.mp4' : 'browser-upload-source-b.mp4',
+  })),
   projectName: 'Clean signed-in private review',
   editingCategory: 'storytelling',
   workflowType: 'custom_let_ai_decide',
@@ -214,7 +223,7 @@ assert.notEqual(
 assert.deepEqual(
   cleanSignedInPlan.videoUnderstandingReport?.visualSupportOpportunities.map((opportunity) => opportunity.opportunityType),
   ['caption_only'],
-  'Generic source context must not create an evidence board or decorative still-card fallback.',
+  'Generic source context and operational upload file names must not create screen, evidence, or decorative visual work.',
 )
 assert.equal(cleanSignedInPlan.visualAssetPlan?.length, 0)
 assert.equal(cleanSignedInPlan.providerPromptPlans?.length, 0)
@@ -246,6 +255,16 @@ assert.equal(cleanSignedInPlan.audioPipelinePlan?.sfxPlan.policy, 'none')
 assert.equal(cleanSignedInPlan.audioPipelinePlan?.beatSyncPlan.strategy, 'none')
 assert.deepEqual(cleanSignedInPlan.masterTimingPlan?.musicDuckingTimingItems, [])
 assert.equal(
+  cleanSignedInPlan.compiledIntent?.resolvedSettings.aspectRatio,
+  '16:9',
+  'Edit Brief platform context must not silently replace the separately confirmed output frame.',
+)
+assert.equal(
+  cleanSignedInPlan.creditEstimate.professionalExportCoverage?.approvedAspectRatio,
+  '16:9',
+  'The mandatory 4K estimate must remain bound to the confirmed output frame.',
+)
+assert.equal(
   cleanSignedInPlan.colorPipelinePlan?.clipPlans.some((clipPlan) => clipPlan.skinToneProtection),
   false,
   'Audio clarity language alone must not fabricate visual skin-tone evidence.',
@@ -265,6 +284,88 @@ if (!cleanSignedInDraft.ok || !cleanSignedInDraft.draft.publication) {
   )
 }
 assert.deepEqual(cleanSignedInDraft.draft.publicationBlockers, [])
+
+const browserDefaultPlanningContext: PlanningContext = {
+  ...cleanSignedInPlanningContext,
+  id: 'canonical-browser-default-planning-context',
+  status: 'needs_review',
+  cleanAssembly: {
+    ...cleanSignedInPlanningContext.cleanAssembly!,
+    durationMs: 248_000,
+    accepted: false,
+  },
+  sourceAssets: cleanSignedInPlanningContext.sourceAssets.map((asset) => ({
+    ...asset,
+    role: 'unknown',
+    status: 'optional',
+    priority: 'optional',
+  })),
+  editBrief: {
+    ...cleanSignedInPlanningContext.editBrief!,
+    styleKeywords: [],
+    mustUseAssetIds: [],
+    mustIncludeNotes: [],
+    avoidNotes: [],
+  },
+  warningIssueCount: 2,
+}
+const browserDefaultInput: PlannerInput = {
+  ...cleanSignedInInput,
+  cleanupPreference: 'balanced_cleanup',
+  clips: cleanSignedInInput.clips.map((clip) => ({
+    ...clip,
+    detectedType: 'Video source',
+    notes: 'File uploaded to private source storage; local metadata is ready for source-order planning. Deeper transcript and content analysis still wait for approved backend workers.',
+    sourceRole: 'main_story',
+  })),
+}
+const browserDefaultExactInput = createContextAwarePlannerInput(
+  browserDefaultPlanningContext,
+  browserDefaultInput,
+)
+const browserDefaultPlan = createContextAwareMockEditPlan({
+  planningContext: browserDefaultPlanningContext,
+  existingPlannerInput: browserDefaultInput,
+}).editPlan
+const browserDefaultDraft = buildCanonicalPlanningDraft({
+  plan: browserDefaultPlan,
+  plannerInput: browserDefaultExactInput,
+  sourceMediaAssets: multiSourceMediaAssets,
+})
+assert.equal(
+  browserDefaultPlan.audioPipelinePlan?.projectOperations.some((operation) =>
+    operation.operation === 'silence_cleanup'),
+  false,
+  'Balanced cleanup must not invent silence removal without transcript or audio evidence.',
+)
+assert.equal(
+  browserDefaultPlan.masterTimingPlan?.captionTimingItems.some((caption) =>
+    /private source storage|backend workers/i.test(caption.captionText)),
+  false,
+  'Operational upload metadata must never become approved caption or transcript content.',
+)
+if (!browserDefaultDraft.ok || !browserDefaultDraft.draft.publication) {
+  throw new Error(
+    `Browser-default signed-in planning context did not compile: ${
+      browserDefaultDraft.ok
+        ? browserDefaultDraft.draft.publicationBlockers.join(' | ')
+        : browserDefaultDraft.errors.join(' | ')
+    }`,
+  )
+}
+assert.deepEqual(browserDefaultDraft.draft.publicationBlockers, [])
+
+const explicitSilenceCleanupPlan = createMockEditPlan({
+  ...browserDefaultExactInput,
+  customInstructions: 'Remove the verified long silence while preserving meaningful pauses.',
+  userInstructionHistory: ['Remove the verified long silence while preserving meaningful pauses.'],
+})
+assert.equal(
+  explicitSilenceCleanupPlan.audioPipelinePlan?.projectOperations.some((operation) =>
+    operation.operation === 'silence_cleanup'),
+  true,
+  'Explicit long-silence evidence must retain planned silence cleanup.',
+)
 
 const explicitDocumentaryPlan = createMockEditPlan({
   ...baseInput,
@@ -671,6 +772,31 @@ assert.equal(
 )
 
 const voiceDeliveryPlan = createExactMultiSourceVoiceDeliveryPlan()
+const missingSourceAudioDraft = buildCanonicalPlanningDraft({
+  plan: voiceDeliveryPlan,
+  plannerInput: multiSourceInput,
+  sourceMediaAssets: multiSourceMediaAssets.map((asset, index) => index === 0
+    ? {
+        ...asset,
+        sourceMetadata: {
+          ...asset.sourceMetadata,
+          hasAudio: false,
+        },
+      }
+    : asset),
+})
+assert.equal(missingSourceAudioDraft.ok, true)
+assert.equal(
+  missingSourceAudioDraft.ok && missingSourceAudioDraft.draft.publication,
+  undefined,
+  'A plan that requires source-bound voice delivery must fail closed before approval when any verified source has no audio stream.',
+)
+assert.ok(
+  missingSourceAudioDraft.ok && missingSourceAudioDraft.draft.publicationBlockers.includes(
+    'The planned audio work exceeds the exact source-bound voice delivery recipe and needs additional canonical work items.',
+  ),
+  'The approval boundary must explain that the mixed source-audio plan lacks an executable canonical recipe.',
+)
 const voiceDeliveryDraft = buildCanonicalPlanningDraft({
   plan: voiceDeliveryPlan,
   plannerInput: multiSourceInput,

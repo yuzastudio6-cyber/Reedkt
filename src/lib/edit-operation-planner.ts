@@ -641,7 +641,7 @@ export function createSegmentEditPlans(params: {
           ...template,
           label: clip.detectedType || template.label,
           storyPurpose: `Preserve ${clip.fileName} in confirmed source order. ${template.storyPurpose}`,
-          spokenTextSummary: clip.notes?.trim() || clip.detectedType || template.spokenTextSummary,
+          spokenTextSummary: sourceBoundSpokenTextSummary(clip.notes, template.spokenTextSummary),
         }
       })
     : categorySeeds
@@ -838,4 +838,11 @@ export function createSegmentEditPlans(params: {
     currentStart = finalTimeRange.endSeconds
     return segment
   })
+}
+
+function sourceBoundSpokenTextSummary(notes: string | undefined, fallback: string): string {
+  const explicitTranscript = notes?.trim().match(/^(?:spoken (?:text|line)|transcript):\s*(.+)$/i)?.[1]?.trim()
+  return explicitTranscript && explicitTranscript.length <= 120
+    ? explicitTranscript
+    : fallback
 }

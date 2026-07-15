@@ -110,6 +110,28 @@ assert.ok(staleConflicts.some((conflict) => conflict.includes('aspect ratio')))
 assert.ok(staleConflicts.some((conflict) => conflict.includes('edit level')))
 assert.ok(staleConflicts.some((conflict) => conflict.includes('visual preference')))
 
+const crossPlatformPlanningContextIntent = compileEditingIntent({
+  currentInput: baseInput,
+  sourceOrderConfirmed: true,
+  userMessages: ['Planning Context:\nTarget platforms: TikTok, Instagram.'],
+})
+assert.equal(
+  crossPlatformPlanningContextIntent.resolvedSettings.aspectRatio,
+  '16:9',
+  'Planning Context platform metadata must not replace the separately confirmed output frame.',
+)
+assert.equal(crossPlatformPlanningContextIntent.resolvedSettings.targetPlatform, 'tiktok_reels_shorts')
+assert.ok(
+  crossPlatformPlanningContextIntent.requirements.some((requirement) =>
+    requirement.source === 'planning_context' && requirement.mappedField === 'targetPlatform'),
+  'The compiler must retain typed authority for a platform resolved from Planning Context.',
+)
+assert.deepEqual(
+  findConfirmedMaterialPlanningConflicts(baseInput, crossPlatformPlanningContextIntent),
+  [],
+  'Cross-platform delivery metadata is compatible when the exact confirmed frame remains unchanged.',
+)
+
 const fingerprint = createPlanningInputFingerprint(baseInput)
 assert.equal(fingerprint, createPlanningInputFingerprint({ ...baseInput }), 'Fingerprint must be deterministic.')
 assert.notEqual(

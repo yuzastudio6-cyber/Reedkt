@@ -62,6 +62,25 @@ try {
   assert.equal(health.headers.get('strict-transport-security'), 'max-age=31536000; includeSubDomains')
   assert.equal(health.headers.get('access-control-allow-origin'), 'https://app.reeditpro.test')
   assert.equal(health.headers.get('access-control-allow-credentials'), null)
+  const exposedHeaders = new Set(
+    (health.headers.get('access-control-expose-headers') ?? '')
+      .toLowerCase()
+      .split(',')
+      .map((value) => value.trim())
+      .filter(Boolean),
+  )
+  assert.deepEqual(
+    [
+      'x-reeditpro-artifact-sha256',
+      'x-reeditpro-review-assembly-id',
+      'x-reeditpro-review-decision-manifest-sha256',
+      'x-reeditpro-review-manifest-sha256',
+    ].filter((header) => !exposedHeaders.has(header)),
+    [],
+    'Browser review clients must be able to verify exact non-secret artifact and manifest identities across the allowlisted origin.',
+  )
+  assert.equal(exposedHeaders.has('authorization'), false)
+  assert.equal(exposedHeaders.has('x-reeditpro-internal-token'), false)
   assert.notEqual(health.headers.get('x-request-id'), 'unsafe request id with spaces')
   const healthBody = await health.json() as { data?: Record<string, unknown> }
   assert.equal('runtime' in (healthBody.data ?? {}), false)
@@ -130,6 +149,7 @@ try {
     checks: [
       'production_security_headers',
       'credentialed_cors_disabled',
+      'private_review_integrity_headers_exposed_without_credentials',
       'unsafe_request_id_rejected',
       'public_health_does_not_expose_runtime_configuration',
       'detailed_readiness_is_internal_only',

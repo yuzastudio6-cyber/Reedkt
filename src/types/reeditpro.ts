@@ -1325,6 +1325,7 @@ export type ClarifyingQuestionPriority =
 
 export type IntentSource =
   | 'user_chat'
+  | 'planning_context'
   | 'uploaded_media'
   | 'reference_video'
   | 'category_default'

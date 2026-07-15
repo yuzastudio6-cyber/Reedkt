@@ -317,6 +317,7 @@ export function buildCanonicalPlanningDraft(input: {
     plan,
     plannerInput,
     sourceItems: orderedSourceItems,
+    sourceMediaAssets: input.sourceMediaAssets,
     cleanupDecisions: cleanup.decisions,
   })
   const approvedColorDeliverySources = buildApprovedColorDeliverySources({
@@ -1643,6 +1644,7 @@ function buildApprovedVoiceDeliverySources(input: {
   plan: EditPlan
   plannerInput: PlannerInput
   sourceItems: CanonicalSourceAuthorityItem[]
+  sourceMediaAssets: ApprovedEditExecutionUploadedMediaSourceAssetClientInput[]
   cleanupDecisions: CanonicalSourceCleanupDecisionDraft[]
 }): ApprovedVoiceDeliverySource[] | null {
   const audio = input.plan.audioPipelinePlan
@@ -1653,6 +1655,7 @@ function buildApprovedVoiceDeliverySources(input: {
     audio.beatSyncPlan.strategy !== 'none' || audio.beatSyncPlan.bpmDetectionPlanned ||
     audio.beatSyncPlan.onsetDetectionPlanned || audio.soundSyncCues.length > 0 ||
     audio.clipPlans.length !== input.sourceItems.length ||
+    input.sourceMediaAssets.length !== input.sourceItems.length ||
     input.cleanupDecisions.length !== input.sourceItems.length ||
     !audio.toolsPlanned.includes('ffmpeg')
   ) return null
@@ -1696,12 +1699,18 @@ function buildApprovedVoiceDeliverySources(input: {
     const clip = input.plannerInput.clips[index]
     const clipPlan = audio.clipPlans[index]
     const cleanup = input.cleanupDecisions[index]
+    const sourceAsset = input.sourceMediaAssets.find((asset) =>
+      asset.uploadedOrder === sourceItem.uploadedOrder &&
+      asset.mediaAssetId === sourceItem.mediaAssetId)
     const clipOperations = new Set([
       ...(clipPlan?.cleanupOperations ?? []),
       ...(clipPlan?.loudnessOperations ?? []),
     ].map((operation) => operation.operation))
     return Boolean(
       !clip || !clipPlan || clipPlan.clipId !== clip.id || !cleanup ||
+      !sourceAsset || sourceAsset.uploadedClipId !== clip.id ||
+      sourceAsset.sourceMetadata?.probeStatus !== 'probed' ||
+      sourceAsset.sourceMetadata.hasAudio !== true ||
       cleanup.sourceSequenceItemId !== sourceItem.sourceSequenceItemId ||
       !clipOperations.has('voice_leveling') ||
       !clipOperations.has('loudness_normalization') ||

@@ -29,8 +29,9 @@ npm run qa:internal-pipeline
 ```
 
 That full mode adds auth/runtime, project/edit tenancy, approved tool-manifest,
-private Playwright-capture, and a signed-in two-source upload/rich-plan
-fail-closed regression.
+private Playwright-capture, and a signed-in two-source named-edit regression
+that now reaches an integrity-bound private review and persists acceptance when
+the compiled plan fits the bounded canonical profile.
 
 ## Verification Phases
 
@@ -77,6 +78,14 @@ fail-closed regression.
 9. Regenerate the proven-tool identity report so tool readiness claims stay
    tied to exact versioned evidence.
 
+In full mode, a final browser phase also signs in through the loopback-only
+local test boundary, creates a project and named edit, uploads two private
+audio-bearing sources, synchronizes exact Edit Preferences, creates and revises
+the inline Edit Brief, republishes plan v2, approves the single 4K-ceiling
+estimate, requests the immutable execution package separately, completes the
+server-derived ten-job private work graph, loads the exact no-store review MP4,
+and records review acceptance.
+
 The runner stops on the first failed phase and prints a machine-readable
 `canonical-private-pipeline-verification-v1` report with step exit codes and
 durations. A zero exit code means every included assertion passed, including
@@ -88,6 +97,18 @@ and open time. Resource isolation prevents unrelated local tasks from mutating
 that discovery channel; it does not weaken image-identity validation.
 
 ## Current Evidence Record
+
+On 2026-07-15, the full internal command passed all 24 phases in 671,748 ms
+with exit code 0. Its final signed-in regression completed two private uploads,
+backend media probing, Edit Preferences and Edit Brief compilation, confirmed
+frame preservation, plan invalidation and v2 republication, one 4K-ceiling
+approval, immutable snapshot/reservation/package creation, the server-derived
+ten-job voice/color/caption/render/QA graph, authenticated no-store review
+playback and download, and persisted acceptance. The output was a non-passthrough
+private MP4. The same run regenerated evidence revision `2026-07-15.30` with
+exactly 50 private canonical/job-adapter identities. Provider activation, live
+billing/wallet mutation, remote Supabase, public delivery, deployment, external
+beta, and paid production all remained false.
 
 On 2026-07-15, the canonical command passed all current 18 phases in 580,973 ms
 with exit code 0. The run included all 11 Chromium named-edit scenarios, exact
@@ -110,7 +131,7 @@ voice-delivery lifecycle, and the versioned 50-tool private
 canonical/job-adapter evidence report. That historical command did not yet
 contain the separately named professional-color phase. The
 earlier full internal-regression baseline passed all then-current 22 phases in
-719,518 ms. Its final
+719,518 ms. Its then-final
 signed-in regression uploaded two private
 source videos, verified distinct source-sequence and finalized-media identities,
 synchronized exact Edit Preferences, persisted the canonical planning handoff,
@@ -119,8 +140,10 @@ the richer plan was not exactly compilable. The separate canonical two-source
 fixture completed the approved bounded execution lifecycle, including two
 source-bound professional voice WAVs, one immutable exact source-boundary hard
 cut, and exact ordered voice replacement in the final composition. These are
-complementary evidence paths, not a claim that the legacy rich-plan scenario
-silently simplified or executed.
+complementary historical evidence paths. The newer 24-phase full run supersedes
+that signed-in fail-closed result for the exact bounded plan now produced by the
+current Brief/compiler path; plans outside that bounded profile still fail
+closed rather than being silently simplified.
 
 ## Readiness Boundary
 

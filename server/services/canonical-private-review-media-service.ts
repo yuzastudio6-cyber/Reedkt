@@ -88,7 +88,7 @@ export function createCanonicalPrivateReviewMediaService(context: ServiceContext
         mimeType: file.mimeType,
         fileName: `reeditpro-private-review-${reviewAssemblyId}.mp4`,
         byteSize: file.byteSize,
-        bytes: file.bytes,
+        openStream: file.openStream,
         privateInternalOnly: true as const,
         publicUrlCreated: false as const,
         signedUrlCreated: false as const,

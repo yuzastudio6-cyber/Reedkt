@@ -179,7 +179,7 @@ export function createCanonicalPrivateReviewHistoryService(context: ServiceConte
         settlementPerformed: false,
         testOnly: true,
       })
-      return { ...metadata, bytes: verified.bytes }
+      return { ...metadata, openStream: verified.openStream }
     },
   }
 }

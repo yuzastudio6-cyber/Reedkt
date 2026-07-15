@@ -1,6 +1,6 @@
 import { ApiError } from '../errors/api-error'
 import type { PersistedArtifactResult } from '../validation/private-artifact-qa-authority-schemas'
-import { readCanonicalPrivateRemotionArtifact } from './canonical-private-remotion-artifact-storage'
+import { inspectCanonicalPrivateRemotionArtifact } from './canonical-private-remotion-artifact-storage'
 import { sha256AuthorityValue } from './private-edit-authority-store'
 
 export async function verifyCanonicalPrivateRemotionArtifact(input: {
@@ -28,7 +28,7 @@ export async function verifyCanonicalPrivateRemotionArtifact(input: {
     run.state !== 'actual_run_evidence_verified_v2' || run.runnerClass !== 'offline_remotion_render_execution_v1' ||
     !run.actualRunVerified || run.exitCode !== 0 || run.toolIds.length !== 1 || run.toolIds[0] !== 'remotion'
   ) throw invalid('Private MP4 is not an exact verified preview or final-composition Remotion artifact.')
-  const stored = await readCanonicalPrivateRemotionArtifact({
+  const stored = await inspectCanonicalPrivateRemotionArtifact({
     localStorageRoot: input.localStorageRoot,
     privateObjectIdentityHash: input.artifact.storageIdentity.opaqueObjectIdentityHash,
   })

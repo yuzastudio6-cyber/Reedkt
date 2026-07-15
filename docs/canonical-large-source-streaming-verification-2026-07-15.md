@@ -65,20 +65,24 @@ The passing canonical run produced:
 Those small outputs are properties of the short, low-complexity fixture. They
 are not representative output-size or throughput evidence.
 
-## Fail-closed composition policy
+## Streamed composition policy
 
-The current Remotion protocol still accepts bounded in-memory selected render
-inputs. Therefore, a canonical plan containing any original source above
-16 MiB may publish only when it includes one approved professional-color
-intermediate for every source. Final composition stages and re-verifies the
-immutable originals, but consumes the QA-passed color intermediates as its
-selected visual inputs. It never substitutes the 1080p analysis proxy as final
-render authority.
+Canonical final composition now uses the versioned v2 server-injected stream
+transport. Approved selected sources, captions, and voice tracks cross the
+container boundary as exact length/SHA-256-framed bytes rather than media
+base64. Container paths are generated internally, and the final MP4 streams
+directly into create-only private persistence before independent streamed
+FFprobe QA.
 
-If a large source lacks its required intermediate, planning fails before
-approval. If an intermediate or combined selected-input set exceeds the
-current bounded Remotion/media protocol, execution fails closed rather than
-silently lowering quality or switching to a proxy.
+The currently approved professional-color canonical profile still consumes
+its QA-passed color intermediate because that is the exact frozen plan
+semantics, not because the original source must fit a 16 MiB Remotion buffer.
+The immutable original remains source authority, and the 1080p analysis proxy
+is never substituted for final render.
+
+The confined v2 renderer caps selected sources at 192 MiB combined, all inputs
+at 208 MiB, and the output at 256 MiB. A plan or attempt outside those limits
+fails closed rather than silently lowering quality or switching to a proxy.
 
 ## Honest limits
 
@@ -89,8 +93,12 @@ production readiness:
 - canonical source-bound execution currently accepts MP4 only even though
   ingestion recognizes additional professional containers;
 - source-bound Python runners remain on the older 16 MiB buffered contract;
-- FFmpeg output, dependency-artifact reads, Remotion selected inputs, render
-  request serialization, and final artifacts retain bounded in-memory limits;
+- FFmpeg output and canonical dependency-artifact reads retain bounded buffered
+  contracts; Remotion inputs and outputs now stream, but remain explicitly
+  capped at 208 MiB combined input and 256 MiB output;
+- the same canonical attempt produced only a small output; a separate
+  52,766,594-byte confined Remotion runtime/persistence/QA proof is not a
+  canonical job-lifecycle claim;
 - the executable canonical profile remains short-duration and cannot yet
   represent a long professional program;
 - source staging is a full local copy per attempt and has no durable byte-level
@@ -108,9 +116,9 @@ production readiness:
 
 Product, external-beta, public-delivery, and production readiness remain
 false. The next large-video execution milestone must stream or privately
-file-bind bounded worker outputs and Remotion inputs without serializing whole
-professional programs into request buffers, then prove long-duration media,
-distributed recovery, and deployed storage behavior.
+file-bind large upstream worker/dependency outputs and then prove
+representative long-duration media, distributed recovery, and deployed storage
+behavior beyond the current explicit Remotion capacities.
 
 ## Focused verification
 
@@ -121,6 +129,8 @@ npm run typecheck:server
 npm run smoke:private-canonical-worker-sandbox
 npm run smoke:actual-run-evidence-bridge
 npm run smoke:offline-media-binary-execution
+npm run smoke:offline-remotion-render-execution
+npm run smoke:offline-remotion-streaming-output
 npm run smoke:canonical-private-color-execution
 npm run smoke:canonical-multi-source-final-composition
 npm run smoke:large-media-ingest-readiness
@@ -136,12 +146,13 @@ no billing, customer-credit, deployment, or public-delivery action.
 
 ## Aggregate verification
 
-The post-change `npm run qa:internal-pipeline` run completed all 24 phases in
-1,075,984 ms with exit code 0. Its large-source phase passed in 79,379 ms, the
-three-source continuity phase passed in 585,201 ms, and the final signed-in
-maximum eight-source private-review phase passed in 366,892 ms. The aggregate
-also re-reported exactly 50 canonical end-to-end and job-adapter-verified tool
-identities at evidence revision `2026-07-15.30`.
+The latest exact-code `npm run qa:internal-pipeline` run completed all 25 phases
+in 1,135,934 ms with exit code 0. Its over-16-MiB canonical source/color phase
+passed in 74,055 ms, the three-source continuity phase passed in 563,989 ms,
+the separate above-16-MiB Remotion output phase passed in 105,985 ms, and the
+final signed-in maximum eight-source private-review phase passed in 342,303 ms.
+The aggregate also re-reported exactly 50 canonical end-to-end and
+job-adapter-verified tool identities at evidence revision `2026-07-15.30`.
 
 That aggregate result does not change the limits above. It remains local/private
 evidence with fake-provider storage for the resumable fixtures, synthetic source

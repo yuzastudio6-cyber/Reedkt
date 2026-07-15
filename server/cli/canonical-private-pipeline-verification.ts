@@ -96,6 +96,11 @@ const canonicalSteps: VerificationStep[] = [
     'One exact source-bound professional color plan reaches bounded pixel analysis and correction, lossless private Matroska persistence, QA, reconciliation, replay, Remotion composition, independent final QA, and private download evidence.',
   ),
   step(
+    'bounded-remotion-streaming-output',
+    'smoke:offline-remotion-streaming-output',
+    'A separate confined runtime, private persistence, byte-range, and streamed-FFprobe proof produces a real UHD Remotion MP4 above the legacy 16 MiB output ceiling; this is not a canonical job-lifecycle claim.',
+  ),
+  step(
     'canonical-named-edit-ui',
     'qa:canonical-journey-ui',
     'The active named-edit browser exposes accessible loading, error, retry, approval, preparation, review, and revision states.',
@@ -215,7 +220,7 @@ function printReport(
 ): void {
   const finishedAt = new Date()
   const report = {
-    schemaVersion: 'canonical-private-pipeline-verification-v3',
+    schemaVersion: 'canonical-private-pipeline-verification-v4',
     status,
     mode: full ? 'full_internal_regression' : 'canonical_private_pipeline',
     startedAt: runStartedAt.toISOString(),
@@ -243,6 +248,7 @@ function printReport(
           boundedApprovedHardCutTransitions: true,
           boundedProfessionalVoiceDelivery: true,
           boundedProfessionalColorExecution: true,
+          boundedPrivateRemotionOutputStreamingAboveLegacyBoundary: true,
           boundedReferenceBoundMultiSourceColorExecution: true,
           boundedThreeSourcePrivateCompositionExecution: true,
           boundedMaximumEightSourcePlanningPublicationCoverage: true,

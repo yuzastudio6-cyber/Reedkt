@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto'
 import { spawnSync } from 'node:child_process'
 import { readFile, rm } from 'node:fs/promises'
 import { join } from 'node:path'
+import type { Readable } from 'node:stream'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 import type { ApprovedEditExecutionUploadedMediaSourceAssetClientInput } from '../../src/lib/approved-edit-execution-package-client'
@@ -523,8 +524,12 @@ const privateDownload = await createCanonicalPrivateFinalArtifactDownloadService
 })
 assert.equal(privateDownload.mimeType, 'video/mp4')
 assert.equal(privateDownload.sha256, finalComposition.result.sha256)
+const privateDownloadBytes = await readExactPrivateStream(
+  await privateDownload.openStream(),
+  privateDownload.byteSize,
+)
 assert.equal(
-  createHash('sha256').update(privateDownload.bytes).digest('hex'),
+  createHash('sha256').update(privateDownloadBytes).digest('hex'),
   finalComposition.result.sha256,
 )
 assert.equal(privateDownload.publicUrlCreated, false)
@@ -552,7 +557,7 @@ const deliveryProbe = await mediaRuntime.execute({
     mimeType: 'video/mp4',
     sourceByteLength: privateDownload.byteSize,
     sourceSha256: privateDownload.sha256,
-    sourceBytesBase64: privateDownload.bytes.toString('base64'),
+    sourceBytesBase64: privateDownloadBytes.toString('base64'),
   },
 })
 assert.ok('resultJson' in deliveryProbe)
@@ -906,6 +911,23 @@ function asRecord(value: unknown): Record<string, unknown> {
 
 function sha256Text(value: string): string {
   return createHash('sha256').update(value).digest('hex')
+}
+
+async function readExactPrivateStream(stream: Readable, expectedByteLength: number): Promise<Buffer> {
+  const chunks: Buffer[] = []
+  let byteLength = 0
+  for await (const chunk of stream) {
+    const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)
+    byteLength += bytes.byteLength
+    if (byteLength > expectedByteLength) {
+      throw new Error('Private smoke stream exceeded its exact commitment.')
+    }
+    chunks.push(bytes)
+  }
+  if (byteLength !== expectedByteLength) {
+    throw new Error('Private smoke stream ended before its exact commitment.')
+  }
+  return Buffer.concat(chunks, byteLength)
 }
 
 function isClientSourceStorageProvider(

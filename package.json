@@ -72,6 +72,7 @@
     "smoke:offline-media-binary-execution": "tsx server/smoke/offline-media-binary-execution-smoke.ts",
     "smoke:offline-sharp-structured-execution": "tsx server/smoke/offline-sharp-structured-execution-smoke.ts",
     "smoke:offline-remotion-render-execution": "tsx server/smoke/offline-remotion-render-execution-smoke.ts",
+    "smoke:offline-remotion-streaming-output": "tsx server/smoke/offline-remotion-streaming-output-smoke.ts",
     "smoke:offline-browser-graphics-execution": "tsx server/smoke/offline-browser-graphics-execution-smoke.ts",
     "smoke:offline-ai-capability-execution": "tsx server/smoke/offline-ai-capability-execution-smoke.ts",
     "smoke:offline-native-image-pipeline-execution": "tsx server/smoke/offline-native-image-pipeline-execution-smoke.ts",

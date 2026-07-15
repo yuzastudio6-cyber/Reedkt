@@ -1,6 +1,6 @@
 import { ApiError } from '../errors/api-error'
 import type { PersistedArtifactResult } from '../validation/private-artifact-qa-authority-schemas'
-import { readCanonicalPrivateRemotionArtifact } from './canonical-private-remotion-artifact-storage'
+import { inspectCanonicalPrivateRemotionArtifact } from './canonical-private-remotion-artifact-storage'
 import { sha256AuthorityValue } from './private-edit-authority-store'
 
 export async function verifyCanonicalPrivateFinalCompositionArtifact(input: {
@@ -29,7 +29,7 @@ export async function verifyCanonicalPrivateFinalCompositionArtifact(input: {
     !run.actualRunVerified || run.exitCode !== 0 ||
     run.toolIds.length !== 1 || run.toolIds[0] !== 'remotion'
   ) throw invalid('Private final MP4 is not an exact verified Remotion 4K delivery-master artifact.')
-  const stored = await readCanonicalPrivateRemotionArtifact({
+  const stored = await inspectCanonicalPrivateRemotionArtifact({
     localStorageRoot: input.localStorageRoot,
     privateObjectIdentityHash: input.artifact.storageIdentity.opaqueObjectIdentityHash,
   })
@@ -38,9 +38,9 @@ export async function verifyCanonicalPrivateFinalCompositionArtifact(input: {
     stored.byteLength !== input.artifact.content.byteLength
   ) throw invalid('Private final MP4 bytes no longer match artifact authority.')
   return {
-    bytes: stored.bytes,
     sha256: stored.sha256,
     byteLength: stored.byteLength,
+    openStream: stored.openStream,
     privateObjectIdentityHash: input.artifact.storageIdentity.opaqueObjectIdentityHash,
     semanticReportHash: sha256AuthorityValue({
       domain: 'canonical_private_4k_delivery_master_download_verification_v1',

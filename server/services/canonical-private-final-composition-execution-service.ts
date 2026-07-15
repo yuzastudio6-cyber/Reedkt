@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto'
+import { Readable } from 'node:stream'
 
 import type { ZodType } from 'zod'
 
@@ -6,20 +7,22 @@ import { ApiError } from '../errors/api-error'
 import { resolveProfessionalExportFrame } from '../../src/lib/professional-export-policy'
 import {
   OFFLINE_MEDIA_BINARY_OPERATIONS,
-  OFFLINE_MEDIA_BINARY_PROTOCOL,
+  OFFLINE_MEDIA_BINARY_STREAM_PROTOCOL,
+  OFFLINE_MEDIA_BINARY_SERVER_INPUT_MODE,
   openPrivateOfflineMediaBinaryRuntime,
   readPersistedOfflineMediaBinaryRuntimeAuthority,
   validateOfflineFfmpegPlanningPayload,
-  validateOfflineFfprobeExecutionRequest,
+  validateOfflineFfprobeStreamingExecutionRequest,
 } from '../tool-execution/media-binary-execution'
 import {
   OFFLINE_REMOTION_RENDER_OPERATION,
-  buildOfflineRemotionFinalCompositionRequest,
-  isFinalCompositionPayload,
+  OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_OUTPUT_BYTES,
+  buildOfflineRemotionFinalCompositionStreamingRequest,
   openPrivateOfflineRemotionRenderRuntime,
   readPersistedOfflineRemotionRenderRuntimeAuthority,
   validateOfflineRemotionFinalCompositionPlanningPayload,
-  type OfflineRemotionRenderResult,
+  type OfflineRemotionServerInjectedInput,
+  type OfflineRemotionStreamingRenderResult,
 } from '../tool-execution/remotion-render-execution'
 import type { ServiceContext } from '../types'
 import {
@@ -44,11 +47,10 @@ import {
   type CanonicalPrivateDependencyArtifactReadResult,
 } from './canonical-private-dependency-artifact-read-service'
 import {
-  persistCanonicalPrivateRemotionArtifact,
-  readCanonicalPrivateRemotionArtifact,
+  inspectCanonicalPrivateRemotionArtifact,
+  persistCanonicalPrivateRemotionArtifactStream,
 } from './canonical-private-remotion-artifact-storage'
 import {
-  CANONICAL_PRIVATE_SOURCE_OBJECT_BUFFER_MAX_BYTES,
   createCanonicalPrivateSourceObjectReadService,
   type CanonicalPrivateStagedSourceReadResult,
 } from './canonical-private-source-object-read-service'
@@ -241,6 +243,7 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
       if (
         !runtimeAuthority || !runtimeAuthority.readiness.privateInternalExecutionReady ||
         !runtimeAuthority.readiness.privateInternalFinalCompositionReady ||
+        !runtimeAuthority.readiness.serverInjectedStreamingFinalCompositionReady ||
         runtimeAuthority.readiness.productReady || runtimeAuthority.readiness.finalExportReady ||
         !runtimeAuthority.supportedOperations.some((operation) =>
           operation.toolId === 'remotion' && operation.operationId === binding.operationId)
@@ -358,91 +361,78 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
         ? await sourceReader.stageExactApprovedSources(sourceReadInput)
         : await sourceReader.stageExactApprovedSource(sourceReadInput)
       const sources: CanonicalPrivateStagedSourceReadResult[] = stagedSourceSet.sources
-      let request!: ReturnType<typeof buildOfflineRemotionFinalCompositionRequest>
-      let result!: OfflineRemotionRenderResult
-      try {
-        const directSourceBytes = usesApprovedColorIntermediate
-          ? []
-          : await Promise.all(sources.map((source) => readBoundedStagedSource(source)))
-        request = buildOfflineRemotionFinalCompositionRequest({
-          planningPayload,
-          ...(sequenceProfile
-            ? {
-                sources: sources.map((source, index) => ({
-                  sourceSequenceItemId: source.sourceSequenceItemId,
-                  mimeType: colorSources[index]
-                    ? 'video/x-matroska' as const
-                    : CONTENT_TYPE,
-                  bytes: colorSources[index]?.dependency.bytes ?? directSourceBytes[index]!,
-                  sha256: colorSources[index]?.dependency.sha256 ?? source.sha256,
-                })),
-              }
-            : {
-                source: {
-                  mimeType: colorSources[0] ? 'video/x-matroska' as const : CONTENT_TYPE,
-                  bytes: colorSources[0]?.dependency.bytes ?? directSourceBytes[0]!,
-                  sha256: colorSources[0]?.dependency.sha256 ?? sources[0]!.sha256,
-                },
-              }),
-          ...(captionTrackProfile
-            ? {
-                captionOverlays: captions.map((caption, index) => ({
-                  outputKey: planningPayload.captionOverlayCues[index]!.outputKey,
-                  mimeType: 'image/png' as const,
-                  bytes: caption.bytes,
-                  sha256: caption.sha256,
-                })),
-              }
-            : {
-                captionOverlay: {
-                  mimeType: 'image/png' as const,
-                  bytes: captions[0]!.bytes,
-                  sha256: captions[0]!.sha256,
-                },
-              }),
-          ...(replaceVoice
-            ? {
-                voiceTracks: voiceTracks.map((voiceTrack, index) => ({
-                  sourceSequenceItemId:
-                    planningPayload.voiceTracks![index]!.sourceSequenceItemId,
-                  outputKey: planningPayload.voiceTracks![index]!.outputKey,
-                  mimeType: 'audio/wav' as const,
-                  bytes: voiceTrack.bytes,
-                  sha256: voiceTrack.sha256,
-                })),
-              }
-            : {}),
-        })
-        if (!isFinalCompositionPayload(request.payload)) {
-          throw denied('Final composition request resolved to the wrong profile.')
-        }
-        result = await runtime.execute(request)
-        assertFinalResult(result, request)
-      } finally {
-        await stagedSourceSet.cleanup()
-      }
-      const probe = await mediaRuntime.execute(validateOfflineFfprobeExecutionRequest({
-        schemaVersion: OFFLINE_MEDIA_BINARY_PROTOCOL,
-        toolId: 'ffprobe', operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffprobe,
-        payload: {
-          inspectionProfileId: 'final_export_v1', countFrames: true,
-          verifyDurationAndSync: true, emitMachineJsonOnly: true,
-          mimeType: CONTENT_TYPE, sourceByteLength: result.artifact.byteLength,
-          sourceSha256: result.artifact.sha256,
-          sourceBytesBase64: result.artifact.bytes.toString('base64'),
-        },
-      }))
-      if (!('resultJson' in probe)) throw denied('Independent FFprobe returned the wrong final artifact class.')
-      const qa = normalizeCanonicalPrivateFinalMediaQa(probe.resultJson.document, request.payload)
       const hardCutAuthorityHash = sha256ArtifactQaValue(sequenceProfile
         ? {
             transitionPolicy: planningPayload.transitionPolicy,
             hardCutTransitions: planningPayload.hardCutTransitions,
           }
         : { transitionPolicy: 'not_applicable_single_source' })
-
-      const privateObjectIdentityHash = sha256ArtifactQaValue({
-        domain: 'canonical_private_4k_delivery_master_mp4_v1',
+      const sourceInputIds = sources.map((_, index) => `approved-source-${index + 1}`)
+      const captionInputIds = captions.map((_, index) => `approved-caption-${index + 1}`)
+      const voiceInputIds = voiceTracks.map((_, index) => `approved-voice-${index + 1}`)
+      const sourceCommitments = sources.map((source, index) => ({
+        inputId: sourceInputIds[index]!,
+        ...(sequenceProfile ? { sourceSequenceItemId: source.sourceSequenceItemId } : {}),
+        mimeType: colorSources[index]
+          ? 'video/x-matroska' as const
+          : CONTENT_TYPE,
+        byteLength: colorSources[index]?.dependency.byteLength ?? source.byteLength,
+        sha256: colorSources[index]?.dependency.sha256 ?? source.sha256,
+      }))
+      const captionCommitments = captions.map((caption, index) => ({
+        inputId: captionInputIds[index]!,
+        ...(captionTrackProfile
+          ? { outputKey: planningPayload.captionOverlayCues[index]!.outputKey }
+          : {}),
+        mimeType: 'image/png' as const,
+        byteLength: caption.byteLength,
+        sha256: caption.sha256,
+      }))
+      const voiceCommitments = voiceTracks.map((voiceTrack, index) => ({
+        inputId: voiceInputIds[index]!,
+        sourceSequenceItemId: planningPayload.voiceTracks![index]!.sourceSequenceItemId,
+        outputKey: planningPayload.voiceTracks![index]!.outputKey,
+        durationFrames: planningPayload.voiceTracks![index]!.durationFrames,
+        mimeType: 'audio/wav' as const,
+        byteLength: voiceTrack.byteLength,
+        sha256: voiceTrack.sha256,
+      }))
+      const request = buildOfflineRemotionFinalCompositionStreamingRequest({
+        planningPayload,
+        ...(sequenceProfile
+          ? { sources: sourceCommitments }
+          : { source: sourceCommitments[0]! }),
+        ...(captionTrackProfile
+          ? { captionOverlays: captionCommitments as Array<typeof captionCommitments[number] & { outputKey: string }> }
+          : { captionOverlay: captionCommitments[0]! }),
+        ...(replaceVoice ? { voiceTracks: voiceCommitments } : {}),
+      })
+      const runtimeInputs: OfflineRemotionServerInjectedInput[] = [
+        ...sources.map((source, index) => {
+          const color = colorSources[index]?.dependency
+          return color
+            ? bufferedRemotionInput({
+                inputId: sourceInputIds[index]!, mimeType: 'video/x-matroska',
+                bytes: color.bytes, sha256: color.sha256,
+              })
+            : {
+                inputMode: 'private_verified_stream_v1' as const,
+                inputId: sourceInputIds[index]!, mimeType: CONTENT_TYPE,
+                byteLength: source.byteLength, sha256: source.sha256,
+                openStream: source.sourceInput.openStream,
+              }
+        }),
+        ...captions.map((caption, index) => bufferedRemotionInput({
+          inputId: captionInputIds[index]!, mimeType: 'image/png',
+          bytes: caption.bytes, sha256: caption.sha256,
+        })),
+        ...voiceTracks.map((voiceTrack, index) => bufferedRemotionInput({
+          inputId: voiceInputIds[index]!, mimeType: 'audio/wav',
+          bytes: voiceTrack.bytes, sha256: voiceTrack.sha256,
+        })),
+      ]
+      const privateObjectIdentityFor = (contentSha256: string) => sha256ArtifactQaValue({
+        domain: 'canonical_private_4k_delivery_master_mp4_stream_v2',
         workspaceId: body.workspaceId, snapshotId: authority.snapshot.snapshotId,
         jobId: body.jobId, expectedAssetId: expectedAsset.id,
         dispatchGrantId: body.grantId, executionAttemptId,
@@ -459,13 +449,62 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
         voiceTrackSha256s: voiceTracks.map((voiceTrack) => voiceTrack.sha256),
         colorIntermediateSha256s: colorSources.map((source) => source.dependency.sha256),
         hardCutAuthorityHash,
-        contentSha256: result.artifact.sha256,
+        contentSha256,
       })
-      await persistCanonicalPrivateRemotionArtifact({
+      let privateObjectIdentityHash: string | undefined
+      let result!: OfflineRemotionStreamingRenderResult
+      try {
+        result = await runtime.executeServerInjected(request, runtimeInputs, {
+          maximumBytes: OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_OUTPUT_BYTES,
+          async persist(output) {
+            const identity = privateObjectIdentityFor(output.expectedSha256)
+            if (privateObjectIdentityHash && privateObjectIdentityHash !== identity) {
+              throw denied('Streaming Remotion output identity changed during persistence.')
+            }
+            privateObjectIdentityHash = identity
+            const stored = await persistCanonicalPrivateRemotionArtifactStream({
+              localStorageRoot: context.env.localStorageRoot,
+              privateObjectIdentityHash: identity,
+              stream: output.stream,
+              expectedByteLength: output.expectedByteLength,
+              expectedSha256: output.expectedSha256,
+            })
+            return { byteLength: stored.byteLength, sha256: stored.sha256 }
+          },
+        })
+        assertFinalResult(result, request)
+      } finally {
+        await stagedSourceSet.cleanup()
+      }
+      if (!privateObjectIdentityHash) {
+        throw denied('Streaming Remotion output was not committed to private storage.')
+      }
+      const persistedOutput = await inspectCanonicalPrivateRemotionArtifact({
         localStorageRoot: context.env.localStorageRoot,
-        privateObjectIdentityHash, bytes: result.artifact.bytes,
-        expectedSha256: result.artifact.sha256,
+        privateObjectIdentityHash,
       })
+      if (
+        !persistedOutput || persistedOutput.byteLength !== result.artifact.byteLength ||
+        persistedOutput.sha256 !== result.artifact.sha256
+      ) throw denied('Streaming Remotion output changed before independent final QA.')
+      const probe = await mediaRuntime.executeServerInjected(validateOfflineFfprobeStreamingExecutionRequest({
+        schemaVersion: OFFLINE_MEDIA_BINARY_STREAM_PROTOCOL,
+        toolId: 'ffprobe', operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffprobe,
+        payload: {
+          inspectionProfileId: 'final_export_v1', countFrames: true,
+          verifyDurationAndSync: true, emitMachineJsonOnly: true,
+          mimeType: CONTENT_TYPE, sourceByteLength: result.artifact.byteLength,
+          sourceSha256: result.artifact.sha256,
+          sourceInputMode: OFFLINE_MEDIA_BINARY_SERVER_INPUT_MODE,
+        },
+      }), {
+        inputMode: 'private_verified_stream_v1',
+        byteLength: persistedOutput.byteLength,
+        sha256: persistedOutput.sha256,
+        openStream: () => persistedOutput.openStream(),
+      })
+      if (!('resultJson' in probe)) throw denied('Independent FFprobe returned the wrong final artifact class.')
+      const qa = normalizeCanonicalPrivateFinalMediaQa(probe.resultJson.document, request.payload)
       const identity = {
         workspaceId: body.workspaceId, projectId: body.projectId,
         editSessionId: body.editSessionId, snapshotId: authority.snapshot.snapshotId,
@@ -1081,7 +1120,7 @@ interface FinalCompositionAdapterInput {
   dispatchGrantId: string
   runtimeAuthorityHash: string
   executionStartedAt: string
-  result: OfflineRemotionRenderResult
+  result: OfflineRemotionStreamingRenderResult
   qa: CanonicalPrivateFinalMediaQa
   sourceReadEvidenceHashes: string[]
   sourceTrimDependencyReadEvidenceHash: string
@@ -1208,22 +1247,23 @@ function adapters(input: FinalCompositionAdapterInput): {
 }
 
 function assertFinalResult(
-  result: OfflineRemotionRenderResult,
-  request: ReturnType<typeof buildOfflineRemotionFinalCompositionRequest>,
+  result: OfflineRemotionStreamingRenderResult,
+  request: ReturnType<typeof buildOfflineRemotionFinalCompositionStreamingRequest>,
 ): void {
-  const sequenceProfile = isFinalCompositionPayload(request.payload) &&
-    'sourceSegments' in request.payload
-  const captionTrackProfile = isFinalCompositionPayload(request.payload) &&
-    'captionOverlayCues' in request.payload
-  const replaceVoice = isFinalCompositionPayload(request.payload) &&
-    request.payload.audioPolicy === 'replace_with_approved_voice_tracks'
+  const sequenceProfile = 'sourceSegments' in request.payload
+  const captionTrackProfile = 'captionOverlayCues' in request.payload
+  const replaceVoice = request.payload.audioPolicy === 'replace_with_approved_voice_tracks'
   if (
-    !isFinalCompositionPayload(request.payload) || !isFinalCompositionPayload(result.request.payload) ||
     result.request.operationId !== request.operationId || result.artifact.mimeType !== CONTENT_TYPE ||
     result.artifact.width !== request.payload.width || result.artifact.height !== request.payload.height ||
     result.artifact.fps !== request.payload.fps ||
     result.artifact.durationFrames !== request.payload.durationFrames ||
     result.evidence.containerExitCode !== 0 || result.evidence.oomKilled ||
+    result.evidence.inputTransport !== 'length_framed_server_injected_private_stream_v2' ||
+    result.evidence.outputTransport !== 'length_committed_private_stream_v2' ||
+    result.evidence.semanticEvidence.serverInjectedInputStreamsMaterializedAndReverified !== true ||
+    result.evidence.semanticEvidence.serverInjectedOutputStreamEmitted !== true ||
+    result.evidence.semanticEvidence.base64MediaTransportAvoided !== true ||
     result.evidence.semanticEvidence.approvedSourceBytesVerified !== true ||
     result.evidence.semanticEvidence.approvedSourceTrimFramesApplied !== true ||
     result.evidence.semanticEvidence.approvedCaptionOverlayBytesVerified !== true ||
@@ -1252,19 +1292,19 @@ function assertFinalResult(
     result.evidence.semanticEvidence.approvedReservationReuseOnly !== true ||
     result.evidence.semanticEvidence.secondEstimateOrExportChargeForbidden !== true ||
     result.evidence.semanticEvidence.professionalHighQualityEncodeApplied !== true ||
-    result.readiness.productReady || !result.readiness.privateInternalFinalCompositionReady
+    result.readiness.productReady || !result.readiness.privateInternalFinalCompositionReady ||
+    !result.readiness.serverInjectedStreamingReady
   ) throw denied('Remotion final composition result failed exact operation and dependency verification.')
 }
 
 async function assertStored(input: FinalCompositionAdapterInput) {
-  const stored = await readCanonicalPrivateRemotionArtifact({
+  const stored = await inspectCanonicalPrivateRemotionArtifact({
     localStorageRoot: input.localStorageRoot,
     privateObjectIdentityHash: input.privateObjectIdentityHash,
   })
   if (
     !stored || stored.sha256 !== input.result.artifact.sha256 ||
-    stored.byteLength !== input.result.artifact.byteLength ||
-    !stored.bytes.equals(input.result.artifact.bytes)
+    stored.byteLength !== input.result.artifact.byteLength
   ) throw denied('Private final MP4 bytes changed before artifact authority.')
   return stored
 }
@@ -1298,33 +1338,24 @@ function assertPersisted(
   ) throw denied('Persisted final composition does not match actual-run evidence.')
 }
 
-async function readBoundedStagedSource(
-  source: CanonicalPrivateStagedSourceReadResult,
-): Promise<Buffer> {
-  if (
-    source.byteLength < 64 ||
-    source.byteLength > CANONICAL_PRIVATE_SOURCE_OBJECT_BUFFER_MAX_BYTES
-  ) {
-    throw denied(
-      'A large approved source requires its QA-passed professional color intermediate before final composition.',
-    )
+function bufferedRemotionInput(input: {
+  inputId: string
+  mimeType: 'video/mp4' | 'video/x-matroska' | 'image/png' | 'audio/wav'
+  bytes: Buffer
+  sha256: string
+}): OfflineRemotionServerInjectedInput {
+  const bytes = Buffer.from(input.bytes)
+  if (createHash('sha256').update(bytes).digest('hex') !== input.sha256) {
+    throw denied('Buffered Remotion dependency changed before stream injection.')
   }
-  const chunks: Buffer[] = []
-  let total = 0
-  const checksum = createHash('sha256')
-  for await (const chunk of await source.sourceInput.openStream()) {
-    const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)
-    total += bytes.byteLength
-    if (total > source.byteLength || total > CANONICAL_PRIVATE_SOURCE_OBJECT_BUFFER_MAX_BYTES) {
-      throw denied('Staged direct-composition source exceeded its exact byte commitment.')
-    }
-    checksum.update(bytes)
-    chunks.push(bytes)
-  }
-  if (total !== source.byteLength || checksum.digest('hex') !== source.sha256) {
-    throw denied('Staged direct-composition source failed exact size and checksum verification.')
-  }
-  return Buffer.concat(chunks, total)
+  return Object.freeze({
+    inputMode: 'private_verified_stream_v1' as const,
+    inputId: input.inputId,
+    mimeType: input.mimeType,
+    byteLength: bytes.byteLength,
+    sha256: input.sha256,
+    async openStream() { return Readable.from([bytes]) },
+  })
 }
 
 function key(prefix: string, hash: string): string { return `${prefix}-${hash.slice(0, 56)}` }

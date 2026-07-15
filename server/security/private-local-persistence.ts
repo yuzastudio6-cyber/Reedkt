@@ -631,7 +631,9 @@ export async function readPrivateTextFileIfExistsWithinRoot(input: PrivateWriteI
   return content?.toString('utf8')
 }
 
-export async function createPrivateReadStreamWithinRoot(input: PrivateWriteInput): Promise<Readable> {
+export async function createPrivateReadStreamWithinRoot(
+  input: PrivateWriteInput & { start?: number; end?: number },
+): Promise<Readable> {
   const targetPath = resolvePrivateTargetPath(input.rootPath, input.relativePath)
   const parentPath = dirname(targetPath)
   const parentExists = await assertPrivateDirectoryChain(input.rootPath, parentPath, true, true)
@@ -646,8 +648,18 @@ export async function createPrivateReadStreamWithinRoot(input: PrivateWriteInput
   try {
     const openedStat = await handle.stat()
     if (!openedStat.isFile()) throw unsafePrivatePersistencePath('private_file_not_regular')
+    const hasRange = input.start !== undefined || input.end !== undefined
+    if (
+      hasRange && (
+        !Number.isSafeInteger(input.start) || !Number.isSafeInteger(input.end) ||
+        input.start! < 0 || input.end! < input.start! || input.end! >= openedStat.size
+      )
+    ) throw unsafePrivatePersistencePath('private_file_range_invalid')
     await handle.chmod(PRIVATE_FILE_MODE)
-    return handle.createReadStream({ autoClose: true })
+    return handle.createReadStream({
+      autoClose: true,
+      ...(hasRange ? { start: input.start, end: input.end } : {}),
+    })
   } catch (error) {
     await handle.close().catch(() => undefined)
     throw error

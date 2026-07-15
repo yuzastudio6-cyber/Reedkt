@@ -255,7 +255,7 @@ export const canonicalPrivateFinalCompositionResponseSchema = z.object({
     artifactId: identity, qaEvaluationId: identity, reconciliationId: identity,
     artifactVersion: z.number().int().positive(), assetRole: z.literal('final'),
     contentType: z.literal('video/mp4'), sha256: sha,
-    byteLength: z.number().int().positive().max(16 * 1024 * 1024),
+    byteLength: z.number().int().positive().max(256 * 1024 * 1024),
     privateObjectIdentityHash: sha, qaOutcome: z.literal('passed'),
     reconciliationDecision: z.literal('test_merged_not_live_authorized'),
     privateFinalArtifactRecorded: z.literal(true), publicDeliveryAuthorized: z.literal(false),

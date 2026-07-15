@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto'
 import { spawnSync } from 'node:child_process'
 import { readFile, rm, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import type { Readable } from 'node:stream'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 import { loadRuntimeEnv } from '../config/env'
@@ -2891,12 +2892,16 @@ const privateFinalDownload = await createCanonicalPrivateFinalArtifactDownloadSe
 assert.equal(privateFinalDownload.mimeType, 'video/mp4')
 assert.equal(privateFinalDownload.byteSize, coordinatedFinalComposition.result.byteLength)
 assert.equal(privateFinalDownload.sha256, coordinatedFinalComposition.result.sha256)
+const privateFinalDownloadBytes = await readExactPrivateStream(
+  await privateFinalDownload.openStream(),
+  privateFinalDownload.byteSize,
+)
 assert.equal(
-  createHash('sha256').update(privateFinalDownload.bytes).digest('hex'),
+  createHash('sha256').update(privateFinalDownloadBytes).digest('hex'),
   coordinatedFinalComposition.result.sha256,
 )
 const finalColorContinuity = analyzeRenderedColorContinuity(
-  privateFinalDownload.bytes,
+  privateFinalDownloadBytes,
   tertiaryMediaSourceItem ? [12, 36, 60] : [12, 36],
 )
 assert.equal(finalColorContinuity.sampledFrameCount, tertiaryMediaSourceItem ? 3 : 2)
@@ -3294,7 +3299,10 @@ assert.equal(
   terminalPrivateReview.finalArtifact.sha256,
 )
 assert.equal(
-  createHash('sha256').update(terminalPrivateReviewMedia.bytes).digest('hex'),
+  createHash('sha256').update(await readExactPrivateStream(
+    await terminalPrivateReviewMedia.openStream(),
+    terminalPrivateReviewMedia.byteSize,
+  )).digest('hex'),
   terminalPrivateReview.finalArtifact.sha256,
 )
 assert.equal(terminalPrivateReviewMedia.publicUrlCreated, false)
@@ -4033,8 +4041,12 @@ assert.equal(supersededReviewHistory.sha256, terminalPrivateReview.finalArtifact
 assert.equal(supersededReviewHistory.archivedExecutionAuthorityRestored, false)
 assert.equal(supersededReviewHistory.customerCreditMutationPerformed, false)
 assert.equal(supersededReviewHistory.billingMutationPerformed, false)
+const supersededReviewHistoryBytes = await readExactPrivateStream(
+  await supersededReviewHistory.openStream(),
+  supersededReviewHistory.byteSize,
+)
 assert.equal(
-  createHash('sha256').update(supersededReviewHistory.bytes).digest('hex'),
+  createHash('sha256').update(supersededReviewHistoryBytes).digest('hex'),
   terminalPrivateReview.finalArtifact.sha256,
 )
 const currentReviewHistory = await historyService.read({
@@ -7092,6 +7104,23 @@ function consumptionExecutionAuthority(replayed: boolean) {
     settlementAuthorized: false as const,
     toolExecutionPerformedByConsume: false as const,
   }
+}
+
+async function readExactPrivateStream(stream: Readable, expectedByteLength: number): Promise<Buffer> {
+  const chunks: Buffer[] = []
+  let byteLength = 0
+  for await (const chunk of stream) {
+    const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)
+    byteLength += bytes.byteLength
+    if (byteLength > expectedByteLength) {
+      throw new Error('Private smoke stream exceeded its exact commitment.')
+    }
+    chunks.push(bytes)
+  }
+  if (byteLength !== expectedByteLength) {
+    throw new Error('Private smoke stream ended before its exact commitment.')
+  }
+  return Buffer.concat(chunks, byteLength)
 }
 
 function createMembershipAdminClient(

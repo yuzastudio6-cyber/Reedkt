@@ -80,7 +80,7 @@ export function createCanonicalPrivateFinalArtifactDownloadService(context: Serv
         fileName,
         byteSize: verified.byteLength,
         sha256: verified.sha256,
-        bytes: verified.bytes,
+        openStream: verified.openStream,
         downloadEvidenceHash: sha256AuthorityValue({
           workspaceId: access.workspaceId,
           projectId: parsed.data.projectId,

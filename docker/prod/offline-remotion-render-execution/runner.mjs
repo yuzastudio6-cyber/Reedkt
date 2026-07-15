@@ -1,6 +1,8 @@
 import { createHash } from 'node:crypto'
+import { once } from 'node:events'
+import { constants, createReadStream } from 'node:fs'
 import { createServer } from 'node:http'
-import { readFile, rm } from 'node:fs/promises'
+import { open, readFile, rm } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 
 import { renderMedia, selectComposition } from '@remotion/renderer'
@@ -9,10 +11,20 @@ const require = createRequire(import.meta.url)
 const remotionVersion = require('remotion/package.json').version
 const rendererVersion = require('@remotion/renderer/package.json').version
 const PROTOCOL = 'offline-remotion-render-execution-v1'
+const STREAMING_PROTOCOL = 'offline-remotion-render-stream-execution-v2'
+const STREAMING_CONTAINER_PROTOCOL = 'offline-remotion-render-stream-execution-container-v2'
+const STREAMING_INPUT_MODE = 'server_injected_private_stream_v1'
 const OPERATION = 'tool.remotion.render_approved_composition.v1'
 const MAXIMUM_REQUEST_BYTES = 48 * 1024 * 1024
 const MAXIMUM_OUTPUT_BYTES = 16 * 1024 * 1024
+const MAXIMUM_STREAMING_MANIFEST_BYTES = 256 * 1024
+const MAXIMUM_STREAMING_SOURCE_BYTES = 192 * 1024 * 1024
+const MAXIMUM_STREAMING_COMBINED_SOURCE_BYTES = 192 * 1024 * 1024
+const MAXIMUM_STREAMING_CAPTION_BYTES = 8 * 1024 * 1024
+const MAXIMUM_STREAMING_COMBINED_INPUT_BYTES = 208 * 1024 * 1024
+const MAXIMUM_STREAMING_OUTPUT_BYTES = 256 * 1024 * 1024
 const MAXIMUM_COMBINED_VOICE_TRACK_BYTES = 2 * 1024 * 1024
+const SINGLE_STREAMING_CAPTION_OUTPUT_KEY = 'approved-full-frame-caption-overlay'
 const FORBIDDEN_TEXT = /(?:https?:\/\/|ftp:\/\/|file:|data:|javascript:|\.\.\/|\.\.\\|[A-Za-z]:[\\/]|(?:^|\s)\/(?:Users|home|etc|tmp|var|opt|app|root|proc|sys|dev)(?:\/|\b)|\$\(|`|&&|\|\||#!)/i
 const PRIVATE_REVIEW_FRAMES = ['360x640', '640x360', '480x480', '480x600']
 const FOUR_K_MASTER_FRAMES = [
@@ -592,7 +604,423 @@ function validateRequest(value) {
   }
 }
 
-async function execute(request) {
+function validateStreamingVoicePlans(value, expected, fps) {
+  if (!Array.isArray(value) || value.length !== expected.length || expected.length < 1) {
+    throw new Error('streaming voice plans do not match approved sources')
+  }
+  const sourceIds = new Set()
+  const outputKeys = new Set()
+  return value.map((candidate, index) => {
+    const track = exactObject(candidate, [
+      'sourceSequenceItemId', 'outputKey', 'durationFrames',
+    ], `streaming voice plan ${index + 1}`)
+    const sourceSequenceItemId = safeIdentity(
+      track.sourceSequenceItemId,
+      'streaming voice sourceSequenceItemId',
+    )
+    const outputKey = safeIdentity(track.outputKey, 'streaming voice outputKey')
+    const durationFrames = integer(track.durationFrames, 1, 240, 'streaming voice durationFrames')
+    if (
+      sourceIds.has(sourceSequenceItemId) || outputKeys.has(outputKey) ||
+      (expected[index].sourceSequenceItemId !== undefined &&
+        sourceSequenceItemId !== expected[index].sourceSequenceItemId) ||
+      durationFrames !== expected[index].durationFrames ||
+      !Number.isInteger(durationFrames * (48_000 / fps))
+    ) throw new Error('streaming voice plan identity, order, or duration is invalid')
+    sourceIds.add(sourceSequenceItemId)
+    outputKeys.add(outputKey)
+    return { sourceSequenceItemId, outputKey, durationFrames }
+  })
+}
+
+function validateStreamingPlanningPayload(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error('streaming planning payload must be an object')
+  }
+  const sourceSequence = isSourceSequenceProfile(value.compositionProfileId)
+  const captionTrack = isCaptionTrackProfile(value.compositionProfileId)
+  const replaceVoice = value.audioPolicy === 'replace_with_approved_voice_tracks'
+  const sourceMediaPolicyProvided = Object.hasOwn(value, 'sourceMediaPolicy')
+  const deliveryMasterAuthorityProvided = Object.hasOwn(value, 'renderPurpose')
+  if (sourceSequence) {
+    const payload = exactObject(value, [
+      'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
+      'sourceSegments', 'transitionPolicy', 'hardCutTransitions',
+      'sourceFit', 'panelBackground', 'audioPolicy',
+      ...(sourceMediaPolicyProvided ? ['sourceMediaPolicy'] : []),
+      'captionOverlayPolicy', ...(captionTrack ? ['captionOverlayCues'] : []),
+      ...(replaceVoice ? ['voiceTracks'] : []),
+      ...(deliveryMasterAuthorityProvided ? DELIVERY_MASTER_AUTHORITY_KEYS : []),
+    ], 'streaming source-sequence planning payload')
+    const dimensions = `${payload.width}x${payload.height}`
+    oneOf(dimensions, [...PRIVATE_REVIEW_FRAMES, ...FOUR_K_MASTER_FRAMES], 'approved frame')
+    validateDeliveryMasterAuthority(payload, dimensions, deliveryMasterAuthorityProvided)
+    const durationFrames = integer(payload.durationFrames, 24, 240, 'durationFrames')
+    const fps = oneOf(payload.fps, [24, 30], 'fps')
+    const sourceSegments = validateSourceSegments(payload.sourceSegments, durationFrames)
+    const hardCutTransitions = validateApprovedHardCuts(payload.hardCutTransitions, sourceSegments)
+    const approvedColorIntermediate =
+      payload.sourceMediaPolicy === 'approved_professional_color_intermediate_v1'
+    if (
+      (sourceMediaPolicyProvided && !approvedColorIntermediate) ||
+      (approvedColorIntermediate && (
+        payload.audioPolicy !== 'replace_with_approved_voice_tracks' ||
+        sourceSegments.some((segment) =>
+          segment.sourceStartFrame !== 0 ||
+          segment.sourceEndFrameExclusive !==
+            segment.timelineEndFrameExclusive - segment.timelineStartFrame)
+      )) ||
+      payload.transitionPolicy !== 'approved_hard_cuts_only' ||
+      payload.sourceFit !== 'contain' ||
+      !['preserve_source_sequence', 'replace_with_approved_voice_tracks'].includes(payload.audioPolicy) ||
+      payload.captionOverlayPolicy !== (
+        captionTrack ? 'approved_timed_full_frame_rgba_track' : 'approved_full_frame_rgba'
+      )
+    ) throw new Error('streaming source-sequence composition policy is unsupported')
+    const voiceTracks = replaceVoice
+      ? validateStreamingVoicePlans(
+          payload.voiceTracks,
+          sourceSegments.map((segment) => ({
+            sourceSequenceItemId: segment.sourceSequenceItemId,
+            durationFrames: segment.timelineEndFrameExclusive - segment.timelineStartFrame,
+          })),
+          fps,
+        )
+      : undefined
+    return {
+      ...payload,
+      width: integer(payload.width, 360, 3840, 'width'),
+      height: integer(payload.height, 360, 3840, 'height'),
+      fps,
+      durationFrames,
+      sourceSegments,
+      hardCutTransitions,
+      panelBackground: normalizedColor(payload.panelBackground, 'panelBackground'),
+      ...(captionTrack
+        ? { captionOverlayCues: validateCaptionOverlayCues(payload.captionOverlayCues, durationFrames) }
+        : {}),
+      ...(voiceTracks ? { voiceTracks } : {}),
+    }
+  }
+
+  const payload = exactObject(value, [
+    'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
+    'sourceStartFrame', 'sourceEndFrameExclusive', 'sourceFit',
+    'panelBackground', 'audioPolicy', 'captionOverlayPolicy',
+    ...(sourceMediaPolicyProvided ? ['sourceMediaPolicy'] : []),
+    ...(captionTrack ? ['captionOverlayCues'] : []),
+    ...(replaceVoice ? ['voiceTracks'] : []),
+    ...(deliveryMasterAuthorityProvided ? DELIVERY_MASTER_AUTHORITY_KEYS : []),
+  ], 'streaming single-source planning payload')
+  if (!['approved_source_caption_final_v1', 'approved_source_caption_track_final_v1']
+    .includes(payload.compositionProfileId)) {
+    throw new Error('streaming final composition profile is unsupported')
+  }
+  const dimensions = `${payload.width}x${payload.height}`
+  oneOf(dimensions, [...PRIVATE_REVIEW_FRAMES, ...FOUR_K_MASTER_FRAMES], 'approved frame')
+  validateDeliveryMasterAuthority(payload, dimensions, deliveryMasterAuthorityProvided)
+  const durationFrames = integer(payload.durationFrames, 24, 240, 'durationFrames')
+  const fps = oneOf(payload.fps, [24, 30], 'fps')
+  const sourceStartFrame = integer(payload.sourceStartFrame, 0, 100_000_000, 'sourceStartFrame')
+  const sourceEndFrameExclusive = integer(
+    payload.sourceEndFrameExclusive,
+    1,
+    100_000_000,
+    'sourceEndFrameExclusive',
+  )
+  const approvedColorIntermediate =
+    payload.sourceMediaPolicy === 'approved_professional_color_intermediate_v1'
+  if (
+    sourceEndFrameExclusive - sourceStartFrame !== durationFrames ||
+    payload.sourceFit !== 'contain' ||
+    !['preserve_source', 'replace_with_approved_voice_tracks'].includes(payload.audioPolicy) ||
+    payload.captionOverlayPolicy !== (
+      captionTrack ? 'approved_timed_full_frame_rgba_track' : 'approved_full_frame_rgba'
+    ) ||
+    (sourceMediaPolicyProvided && !approvedColorIntermediate) ||
+    (approvedColorIntermediate && (
+      payload.audioPolicy !== 'replace_with_approved_voice_tracks' ||
+      sourceStartFrame !== 0 || sourceEndFrameExclusive !== durationFrames
+    ))
+  ) throw new Error('streaming single-source composition policy is unsupported')
+  const voiceTracks = replaceVoice
+    ? validateStreamingVoicePlans(payload.voiceTracks, [{
+        sourceSequenceItemId: undefined,
+        durationFrames,
+      }], fps)
+    : undefined
+  return {
+    ...payload,
+    width: integer(payload.width, 360, 3840, 'width'),
+    height: integer(payload.height, 360, 3840, 'height'),
+    fps,
+    durationFrames,
+    sourceStartFrame,
+    sourceEndFrameExclusive,
+    panelBackground: normalizedColor(payload.panelBackground, 'panelBackground'),
+    ...(captionTrack
+      ? { captionOverlayCues: validateCaptionOverlayCues(payload.captionOverlayCues, durationFrames) }
+      : {}),
+    ...(voiceTracks ? { voiceTracks } : {}),
+  }
+}
+
+function normalizedColor(value, label) {
+  if (typeof value !== 'string' || !/^#[A-Fa-f0-9]{6}$/.test(value)) {
+    throw new Error(`${label} is invalid`)
+  }
+  return value.toUpperCase()
+}
+
+function validateStreamingInputCommitment(value, keys, mimeType, minimumBytes, maximumBytes, label) {
+  const commitment = exactObject(value, keys, label)
+  const inputId = safeIdentity(commitment.inputId, `${label} inputId`)
+  const byteLength = integer(commitment.byteLength, minimumBytes, maximumBytes, `${label} byteLength`)
+  if (commitment.mimeType !== mimeType || typeof commitment.sha256 !== 'string' ||
+      !/^[a-f0-9]{64}$/.test(commitment.sha256)) {
+    throw new Error(`${label} commitment is invalid`)
+  }
+  return { inputId, mimeType, byteLength, sha256: commitment.sha256 }
+}
+
+function validateStreamingManifest(value) {
+  const request = exactObject(value, [
+    'schemaVersion', 'toolId', 'operationId', 'inputMode', 'payload', 'inputs',
+  ], 'streaming request')
+  if (
+    request.schemaVersion !== STREAMING_PROTOCOL || request.toolId !== 'remotion' ||
+    request.operationId !== OPERATION || request.inputMode !== STREAMING_INPUT_MODE
+  ) throw new Error('streaming request identity is unsupported')
+  const planning = validateStreamingPlanningPayload(request.payload)
+  const sourceSequence = isSourceSequenceProfile(planning.compositionProfileId)
+  const captionTrack = isCaptionTrackProfile(planning.compositionProfileId)
+  const replaceVoice = planning.audioPolicy === 'replace_with_approved_voice_tracks'
+  const inputs = exactObject(request.inputs, [
+    'sources', 'captionOverlays', 'voiceTracks',
+  ], 'streaming inputs')
+  if (!Array.isArray(inputs.sources) || !Array.isArray(inputs.captionOverlays) ||
+      !Array.isArray(inputs.voiceTracks)) {
+    throw new Error('streaming input commitments must be arrays')
+  }
+  const expectedSourceCount = sourceSequence ? planning.sourceSegments.length : 1
+  if (inputs.sources.length !== expectedSourceCount) {
+    throw new Error('streaming source count does not match approved planning')
+  }
+  const sourceMimeType = planning.sourceMediaPolicy ===
+    'approved_professional_color_intermediate_v1'
+    ? 'video/x-matroska'
+    : 'video/mp4'
+  const sources = inputs.sources.map((candidate, index) => {
+    const source = validateStreamingInputCommitment(
+      candidate,
+      sourceSequence
+        ? ['inputId', 'sourceSequenceItemId', 'mimeType', 'byteLength', 'sha256']
+        : ['inputId', 'mimeType', 'byteLength', 'sha256'],
+      sourceMimeType,
+      64,
+      MAXIMUM_STREAMING_SOURCE_BYTES,
+      `streaming source ${index + 1}`,
+    )
+    const sourceSequenceItemId = sourceSequence
+      ? safeIdentity(candidate.sourceSequenceItemId, `streaming source ${index + 1} sequence identity`)
+      : undefined
+    if (sourceSequence && sourceSequenceItemId !== planning.sourceSegments[index].sourceSequenceItemId) {
+      throw new Error('streaming source order diverges from approved planning')
+    }
+    return { ...source, ...(sourceSequence ? { sourceSequenceItemId } : {}) }
+  })
+  const combinedSourceBytes = sources.reduce((total, source) => total + source.byteLength, 0)
+  if (!Number.isSafeInteger(combinedSourceBytes) ||
+      combinedSourceBytes > MAXIMUM_STREAMING_COMBINED_SOURCE_BYTES) {
+    throw new Error('streaming sources exceed confined capacity')
+  }
+
+  const expectedCaptionCount = captionTrack ? planning.captionOverlayCues.length : 1
+  if (inputs.captionOverlays.length !== expectedCaptionCount) {
+    throw new Error('streaming caption count does not match approved planning')
+  }
+  const captionOverlays = inputs.captionOverlays.map((candidate, index) => {
+    const caption = validateStreamingInputCommitment(
+      candidate,
+      ['inputId', 'outputKey', 'mimeType', 'byteLength', 'sha256'],
+      'image/png',
+      1_024,
+      MAXIMUM_STREAMING_CAPTION_BYTES,
+      `streaming caption ${index + 1}`,
+    )
+    const outputKey = safeIdentity(candidate.outputKey, `streaming caption ${index + 1} outputKey`)
+    const expectedOutputKey = captionTrack
+      ? planning.captionOverlayCues[index].outputKey
+      : SINGLE_STREAMING_CAPTION_OUTPUT_KEY
+    if (outputKey !== expectedOutputKey) {
+      throw new Error('streaming caption order diverges from approved planning')
+    }
+    return { ...caption, outputKey }
+  })
+  const combinedCaptionBytes = captionOverlays.reduce((total, caption) => total + caption.byteLength, 0)
+  if (!Number.isSafeInteger(combinedCaptionBytes) ||
+      combinedCaptionBytes > MAXIMUM_STREAMING_CAPTION_BYTES) {
+    throw new Error('streaming captions exceed their combined ceiling')
+  }
+
+  const expectedVoiceTracks = replaceVoice ? planning.voiceTracks : []
+  if (inputs.voiceTracks.length !== expectedVoiceTracks.length) {
+    throw new Error('streaming voice count does not match approved planning')
+  }
+  const voiceTracks = inputs.voiceTracks.map((candidate, index) => {
+    const voice = validateStreamingInputCommitment(
+      candidate,
+      [
+        'inputId', 'sourceSequenceItemId', 'outputKey', 'durationFrames',
+        'mimeType', 'byteLength', 'sha256',
+      ],
+      'audio/wav',
+      44,
+      MAXIMUM_COMBINED_VOICE_TRACK_BYTES,
+      `streaming voice ${index + 1}`,
+    )
+    const sourceSequenceItemId = safeIdentity(
+      candidate.sourceSequenceItemId,
+      `streaming voice ${index + 1} sourceSequenceItemId`,
+    )
+    const outputKey = safeIdentity(candidate.outputKey, `streaming voice ${index + 1} outputKey`)
+    const durationFrames = integer(candidate.durationFrames, 1, 240, `streaming voice ${index + 1} durationFrames`)
+    const expected = expectedVoiceTracks[index]
+    if (!expected || sourceSequenceItemId !== expected.sourceSequenceItemId ||
+        outputKey !== expected.outputKey || durationFrames !== expected.durationFrames) {
+      throw new Error('streaming voice order diverges from approved planning')
+    }
+    return { ...voice, sourceSequenceItemId, outputKey, durationFrames }
+  })
+  const combinedVoiceBytes = voiceTracks.reduce((total, voice) => total + voice.byteLength, 0)
+  if (!Number.isSafeInteger(combinedVoiceBytes) ||
+      combinedVoiceBytes > MAXIMUM_COMBINED_VOICE_TRACK_BYTES) {
+    throw new Error('streaming voice tracks exceed their combined ceiling')
+  }
+  const commitments = [...sources, ...captionOverlays, ...voiceTracks]
+  const combinedInputBytes = commitments.reduce((total, input) => total + input.byteLength, 0)
+  if (new Set(commitments.map((input) => input.inputId)).size !== commitments.length ||
+      !Number.isSafeInteger(combinedInputBytes) ||
+      combinedInputBytes > MAXIMUM_STREAMING_COMBINED_INPUT_BYTES) {
+    throw new Error('streaming input identity or combined capacity is invalid')
+  }
+  return {
+    schemaVersion: STREAMING_PROTOCOL,
+    toolId: 'remotion',
+    operationId: OPERATION,
+    inputMode: STREAMING_INPUT_MODE,
+    payload: planning,
+    inputs: { sources, captionOverlays, voiceTracks },
+    commitments,
+  }
+}
+
+async function materializeStreamingRequest(manifest, reader, requestHash) {
+  const materialized = []
+  try {
+    for (const [index, commitment] of manifest.commitments.entries()) {
+      const extension = sourceExtension(commitment.mimeType)
+      const path = `/tmp/reeditpro-stream-input-${process.pid}-${index}-${requestHash.slice(0, 12)}.${extension}`
+      const file = await reader.readExactFile(path, commitment.byteLength)
+      if (file.sha256 !== commitment.sha256 ||
+          !approvedStreamingInputSignature(file.firstBytes, commitment.mimeType)) {
+        throw new Error('streaming input failed exact checksum or signature verification')
+      }
+      if (commitment.mimeType === 'audio/wav') {
+        const voicePlan = manifest.inputs.voiceTracks.find((candidate) =>
+          candidate.inputId === commitment.inputId)
+        if (!voicePlan) throw new Error('streaming voice commitment lost its approved plan')
+        validatePcmVoiceTrack(
+          await readFile(path),
+          voicePlan.durationFrames,
+          manifest.payload.fps,
+        )
+      }
+      materialized.push({ ...commitment, path })
+    }
+    await reader.assertEnd()
+    const byInputId = new Map(materialized.map((input) => [input.inputId, input]))
+    const sources = manifest.inputs.sources.map((source) => ({
+      ...source,
+      sourceMimeType: source.mimeType,
+      sourceByteLength: source.byteLength,
+      sourceSha256: source.sha256,
+      sourceInternalFilePath: byInputId.get(source.inputId).path,
+    }))
+    const captionOverlays = manifest.inputs.captionOverlays.map((caption) => ({
+      ...caption,
+      captionOverlayMimeType: 'image/png',
+      captionOverlayByteLength: caption.byteLength,
+      captionOverlaySha256: caption.sha256,
+      captionOverlayInternalFilePath: byInputId.get(caption.inputId).path,
+    }))
+    const voiceTracks = manifest.inputs.voiceTracks.map((voice) => ({
+      ...voice,
+      voiceTrackInternalFilePath: byInputId.get(voice.inputId).path,
+    }))
+    const sourceSequence = isSourceSequenceProfile(manifest.payload.compositionProfileId)
+    const captionTrack = isCaptionTrackProfile(manifest.payload.compositionProfileId)
+    const replaceVoice = manifest.payload.audioPolicy === 'replace_with_approved_voice_tracks'
+    return {
+      request: {
+        schemaVersion: STREAMING_PROTOCOL,
+        toolId: 'remotion',
+        operationId: OPERATION,
+        inputMode: STREAMING_INPUT_MODE,
+        payload: sourceSequence
+          ? {
+              ...manifest.payload,
+              sources,
+              ...(captionTrack
+                ? { captionOverlays }
+                : {
+                    captionOverlayMimeType: 'image/png',
+                    captionOverlayByteLength: captionOverlays[0].byteLength,
+                    captionOverlaySha256: captionOverlays[0].sha256,
+                    captionOverlayInternalFilePath: captionOverlays[0].captionOverlayInternalFilePath,
+                  }),
+              ...(replaceVoice ? { voiceTracks } : {}),
+            }
+          : {
+              ...manifest.payload,
+              sourceMimeType: sources[0].sourceMimeType,
+              sourceByteLength: sources[0].sourceByteLength,
+              sourceSha256: sources[0].sourceSha256,
+              sourceInternalFilePath: sources[0].sourceInternalFilePath,
+              ...(captionTrack
+                ? { captionOverlays }
+                : {
+                    captionOverlayMimeType: 'image/png',
+                    captionOverlayByteLength: captionOverlays[0].byteLength,
+                    captionOverlaySha256: captionOverlays[0].sha256,
+                    captionOverlayInternalFilePath: captionOverlays[0].captionOverlayInternalFilePath,
+                  }),
+              ...(replaceVoice ? { voiceTracks } : {}),
+            },
+      },
+      materialized,
+    }
+  } catch (error) {
+    await Promise.all(materialized.map((input) => rm(input.path, { force: true })))
+    throw error
+  }
+}
+
+function approvedStreamingInputSignature(bytes, mimeType) {
+  if (mimeType === 'video/mp4') return bytes.subarray(4, 8).toString('ascii') === 'ftyp'
+  if (mimeType === 'video/x-matroska') {
+    return bytes.length >= 4 && bytes[0] === 0x1a && bytes[1] === 0x45 &&
+      bytes[2] === 0xdf && bytes[3] === 0xa3
+  }
+  if (mimeType === 'image/png') return bytes.subarray(0, 8).toString('hex') === '89504e470d0a1a0a'
+  if (mimeType === 'audio/wav') {
+    return bytes.subarray(0, 4).toString('ascii') === 'RIFF' &&
+      bytes.subarray(8, 12).toString('ascii') === 'WAVE'
+  }
+  return false
+}
+
+async function execute(request, options = {}) {
   if (remotionVersion !== '4.0.487' || rendererVersion !== '4.0.487') throw new Error('Remotion package identity mismatch')
   const requestJson = JSON.stringify(request)
   const outputPath = `/tmp/reeditpro-remotion-${sha256(requestJson).slice(0, 24)}.mp4`
@@ -617,27 +1045,52 @@ async function execute(request) {
           ? request.payload.sources.map((source) => ({
               sourceSequenceItemId: source.sourceSequenceItemId,
               mimeType: source.sourceMimeType,
-              bytes: Buffer.from(source.sourceBytesBase64, 'base64'),
+              ...committedMediaLocation(
+                source,
+                'sourceBytesBase64',
+                'sourceInternalFilePath',
+                source.sourceByteLength,
+              ),
             }))
           : [{
               sourceSequenceItemId: 'single-approved-source',
               mimeType: request.payload.sourceMimeType,
-              bytes: Buffer.from(request.payload.sourceBytesBase64, 'base64'),
+              ...committedMediaLocation(
+                request.payload,
+                'sourceBytesBase64',
+                'sourceInternalFilePath',
+                request.payload.sourceByteLength,
+              ),
             }],
         captionTrack
           ? request.payload.captionOverlays.map((overlay) => ({
               outputKey: overlay.outputKey,
-              bytes: Buffer.from(overlay.bytesBase64, 'base64'),
+              ...committedMediaLocation(
+                overlay,
+                'bytesBase64',
+                'captionOverlayInternalFilePath',
+                overlay.byteLength,
+              ),
             }))
           : [{
               outputKey: 'legacy-caption-overlay',
-              bytes: Buffer.from(request.payload.captionOverlayBytesBase64, 'base64'),
+              ...committedMediaLocation(
+                request.payload,
+                'captionOverlayBytesBase64',
+                'captionOverlayInternalFilePath',
+                request.payload.captionOverlayByteLength,
+              ),
             }],
         replaceVoice
           ? request.payload.voiceTracks.map((track) => ({
               sourceSequenceItemId: track.sourceSequenceItemId,
               outputKey: track.outputKey,
-              bytes: Buffer.from(track.bytesBase64, 'base64'),
+              ...committedMediaLocation(
+                track,
+                'bytesBase64',
+                'voiceTrackInternalFilePath',
+                track.byteLength,
+              ),
             }))
           : [],
       )
@@ -695,6 +1148,7 @@ async function execute(request) {
         ...voiceRenderPayload,
       }
     : request.payload
+  let retainStreamingOutput = false
   try {
     const composition = await selectComposition({
       serveUrl: '/opt/remotion-bundle',
@@ -737,25 +1191,80 @@ async function execute(request) {
       offthreadVideoCacheSizeInBytes: fourKDeliveryMaster ? 256 * 1024 * 1024 : 32 * 1024 * 1024,
       offthreadVideoThreads: 1,
     })
+    if (options.streamingOutput === true) {
+      const commitment = await inspectRenderedOutput(
+        outputPath,
+        MAXIMUM_STREAMING_OUTPUT_BYTES,
+      )
+      retainStreamingOutput = true
+      return {
+        artifact: {
+          mimeType: 'video/mp4',
+          byteLength: commitment.byteLength,
+          sha256: commitment.sha256,
+          width: composition.width,
+          height: composition.height,
+          fps: composition.fps,
+          durationFrames: composition.durationInFrames,
+          durationSeconds: Number((composition.durationInFrames / composition.fps).toFixed(6)),
+        },
+        outputPath,
+      }
+    }
     const bytes = await readFile(outputPath)
     if (bytes.byteLength < 1_024 || bytes.byteLength > MAXIMUM_OUTPUT_BYTES || bytes.subarray(4, 8).toString('ascii') !== 'ftyp') {
       throw new Error('Rendered MP4 artifact is invalid or outside bounds')
     }
     return {
-      mimeType: 'video/mp4',
-      bytesBase64: bytes.toString('base64'),
-      byteLength: bytes.byteLength,
-      sha256: sha256(bytes),
-      width: composition.width,
-      height: composition.height,
-      fps: composition.fps,
-      durationFrames: composition.durationInFrames,
+      mimeType: 'video/mp4', bytesBase64: bytes.toString('base64'),
+      byteLength: bytes.byteLength, sha256: sha256(bytes),
+      width: composition.width, height: composition.height,
+      fps: composition.fps, durationFrames: composition.durationInFrames,
       durationSeconds: Number((composition.durationInFrames / composition.fps).toFixed(6)),
     }
   } finally {
-    await rm(outputPath, { force: true }).catch(() => undefined)
+    if (!retainStreamingOutput) await rm(outputPath, { force: true }).catch(() => undefined)
     await mediaServer?.close()
   }
+}
+
+function committedMediaLocation(value, base64Key, pathKey, expectedByteLength) {
+  if (typeof value[pathKey] === 'string') {
+    return { path: value[pathKey], byteLength: expectedByteLength }
+  }
+  if (typeof value[base64Key] === 'string') {
+    return { bytes: Buffer.from(value[base64Key], 'base64'), byteLength: expectedByteLength }
+  }
+  throw new Error('approved media location is unavailable')
+}
+
+async function inspectRenderedOutput(path, maximumBytes) {
+  const handle = await open(path, constants.O_RDONLY | constants.O_NOFOLLOW)
+  let byteLength
+  let signature
+  try {
+    const fileStat = await handle.stat()
+    if (!fileStat.isFile() || fileStat.size < 1_024 || fileStat.size > maximumBytes) {
+      throw new Error('rendered MP4 artifact is outside streaming bounds')
+    }
+    byteLength = fileStat.size
+    signature = Buffer.alloc(8)
+    const read = await handle.read(signature, 0, signature.length, 0)
+    if (read.bytesRead !== signature.length || signature.subarray(4, 8).toString('ascii') !== 'ftyp') {
+      throw new Error('rendered MP4 artifact signature is invalid')
+    }
+  } finally {
+    await handle.close()
+  }
+  const checksum = createHash('sha256')
+  let observedBytes = 0
+  for await (const chunk of createReadStream(path)) {
+    observedBytes += chunk.byteLength
+    if (observedBytes > byteLength) throw new Error('rendered MP4 changed during hashing')
+    checksum.update(chunk)
+  }
+  if (observedBytes !== byteLength) throw new Error('rendered MP4 changed during hashing')
+  return { byteLength, sha256: checksum.digest('hex') }
 }
 
 async function openPrivateLoopbackMediaServer(sources, overlays, voiceTracks) {
@@ -772,7 +1281,7 @@ async function openPrivateLoopbackMediaServer(sources, overlays, voiceTracks) {
         response.writeHead(404).end()
         return
       }
-      serveCommittedBytes(request, response, source.bytes, source.mimeType)
+      serveCommittedMedia(request, response, source, source.mimeType)
       return
     }
     const captionMatch = /^\/caption\/(\d+)\.png$/.exec(request.url)
@@ -782,7 +1291,7 @@ async function openPrivateLoopbackMediaServer(sources, overlays, voiceTracks) {
         response.writeHead(404).end()
         return
       }
-      serveCommittedBytes(request, response, overlay.bytes, 'image/png')
+      serveCommittedMedia(request, response, overlay, 'image/png')
       return
     }
     const voiceMatch = /^\/voice\/(\d+)\.wav$/.exec(request.url)
@@ -792,7 +1301,7 @@ async function openPrivateLoopbackMediaServer(sources, overlays, voiceTracks) {
         response.writeHead(404).end()
         return
       }
-      serveCommittedBytes(request, response, voiceTrack.bytes, 'audio/wav')
+      serveCommittedMedia(request, response, voiceTrack, 'audio/wav')
       return
     }
     response.writeHead(404).end()
@@ -815,6 +1324,8 @@ async function openPrivateLoopbackMediaServer(sources, overlays, voiceTracks) {
 function sourceExtension(mimeType) {
   if (mimeType === 'video/mp4') return 'mp4'
   if (mimeType === 'video/x-matroska') return 'mkv'
+  if (mimeType === 'image/png') return 'png'
+  if (mimeType === 'audio/wav') return 'wav'
   throw new Error('source MIME type is unsupported')
 }
 
@@ -855,47 +1366,201 @@ function serveCommittedBytes(request, response, bytes, contentType) {
   else response.end(bytes)
 }
 
-const chunks = []
-let byteLength = 0
-for await (const chunk of process.stdin) {
-  byteLength += chunk.byteLength
-  if (byteLength > MAXIMUM_REQUEST_BYTES) process.exit(2)
-  chunks.push(chunk)
+function serveCommittedMedia(request, response, media, contentType) {
+  if (Buffer.isBuffer(media.bytes)) {
+    serveCommittedBytes(request, response, media.bytes, contentType)
+    return
+  }
+  if (typeof media.path !== 'string' || !media.path.startsWith('/tmp/reeditpro-stream-input-') ||
+      !Number.isSafeInteger(media.byteLength) || media.byteLength < 1) {
+    response.writeHead(404).end()
+    return
+  }
+  response.setHeader('Accept-Ranges', 'bytes')
+  response.setHeader('Cache-Control', 'no-store')
+  response.setHeader('Content-Type', contentType)
+  const range = request.headers.range
+  let start = 0
+  let end = media.byteLength - 1
+  if (typeof range === 'string') {
+    const match = /^bytes=(\d+)-(\d*)$/.exec(range)
+    if (!match) {
+      response.writeHead(416, { 'Content-Range': `bytes */${media.byteLength}` }).end()
+      return
+    }
+    start = Number(match[1])
+    end = match[2] ? Math.min(Number(match[2]), media.byteLength - 1) : media.byteLength - 1
+    if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) ||
+        start < 0 || start > end || start >= media.byteLength) {
+      response.writeHead(416, { 'Content-Range': `bytes */${media.byteLength}` }).end()
+      return
+    }
+    response.writeHead(206, {
+      'Content-Length': end - start + 1,
+      'Content-Range': `bytes ${start}-${end}/${media.byteLength}`,
+    })
+  } else {
+    response.writeHead(200, { 'Content-Length': media.byteLength })
+  }
+  if (request.method === 'HEAD') {
+    response.end()
+    return
+  }
+  const stream = createReadStream(media.path, { start, end })
+  stream.once('error', () => response.destroy())
+  stream.pipe(response)
 }
 
-try {
-  const request = validateRequest(JSON.parse(Buffer.concat(chunks).toString('utf8')))
-  const artifact = await execute(request)
-  process.stdout.write(JSON.stringify({
-    schemaVersion: 'offline-remotion-render-execution-container-v1',
-    ok: true,
-    toolId: 'remotion',
-    operationId: OPERATION,
-    status: 'actual_remotion_media_render_completed',
-    packageIdentity: { packageName: 'remotion+@remotion/renderer', version: remotionVersion },
-    requestEnvelopeSha256: sha256(JSON.stringify(request)),
-    artifact,
-    semanticEvidence: {
-      remotionSelectCompositionExecuted: true,
-      remotionRenderMediaExecuted: true,
-      approvedFrameAndTimingPreserved: true,
-      actualMp4ArtifactProduced: true,
-      callerPathsUrlsCodeAndCommandsRejected: true,
-      ...(request.payload.renderPurpose === 'private_4k_delivery_master_v1'
-        ? {
-            approved4kDeliveryMasterAuthorityVerified: true,
-            immutableSourceMasterNoProxyPolicyVerified: true,
-            approvedReservationReuseOnly: true,
-            secondEstimateOrExportChargeForbidden: true,
-            professionalHighQualityEncodeApplied: true,
+class FramedStdinReader {
+  constructor(stream) {
+    this.iterator = stream[Symbol.asyncIterator]()
+    this.buffer = Buffer.alloc(0)
+    this.ended = false
+  }
+
+  async readLine(maximumBytes) {
+    while (true) {
+      const newlineIndex = this.buffer.indexOf(10)
+      if (newlineIndex >= 0) {
+        if (newlineIndex > maximumBytes) throw new Error('request header exceeded its byte ceiling')
+        const line = this.buffer.subarray(0, newlineIndex)
+        this.buffer = this.buffer.subarray(newlineIndex + 1)
+        return line
+      }
+      if (this.buffer.byteLength > maximumBytes) {
+        throw new Error('request header exceeded its byte ceiling')
+      }
+      const next = await this.iterator.next()
+      if (next.done) {
+        this.ended = true
+        if (this.buffer.byteLength < 1 || this.buffer.byteLength > maximumBytes) {
+          throw new Error('request header is incomplete')
+        }
+        const line = this.buffer
+        this.buffer = Buffer.alloc(0)
+        return line
+      }
+      const bytes = Buffer.isBuffer(next.value) ? next.value : Buffer.from(next.value)
+      this.buffer = this.buffer.byteLength
+        ? Buffer.concat([this.buffer, bytes])
+        : bytes
+    }
+  }
+
+  async readExactFile(path, expectedByteLength) {
+    const handle = await open(
+      path,
+      constants.O_WRONLY | constants.O_CREAT | constants.O_EXCL | constants.O_NOFOLLOW,
+      0o600,
+    )
+    const checksum = createHash('sha256')
+    const firstChunks = []
+    let firstByteLength = 0
+    let written = 0
+    try {
+      while (written < expectedByteLength) {
+        if (this.buffer.byteLength === 0) {
+          if (this.ended) throw new Error('streaming input ended before its exact byte commitment')
+          const next = await this.iterator.next()
+          if (next.done) {
+            this.ended = true
+            throw new Error('streaming input ended before its exact byte commitment')
           }
-        : {}),
-      ...(['approved_source_caption_final_v1', 'approved_source_caption_track_final_v1']
-        .includes(request.payload.compositionProfileId)
+          this.buffer = Buffer.isBuffer(next.value) ? next.value : Buffer.from(next.value)
+        }
+        const take = Math.min(expectedByteLength - written, this.buffer.byteLength)
+        const bytes = this.buffer.subarray(0, take)
+        this.buffer = this.buffer.subarray(take)
+        let offset = 0
+        while (offset < bytes.byteLength) {
+          const result = await handle.write(bytes, offset, bytes.byteLength - offset)
+          if (result.bytesWritten < 1) throw new Error('streaming input file write stalled')
+          offset += result.bytesWritten
+        }
+        checksum.update(bytes)
+        if (firstByteLength < 64) {
+          const first = bytes.subarray(0, Math.min(bytes.byteLength, 64 - firstByteLength))
+          firstChunks.push(Buffer.from(first))
+          firstByteLength += first.byteLength
+        }
+        written += bytes.byteLength
+      }
+      await handle.sync()
+      return {
+        byteLength: written,
+        sha256: checksum.digest('hex'),
+        firstBytes: Buffer.concat(firstChunks, firstByteLength),
+      }
+    } catch (error) {
+      await rm(path, { force: true }).catch(() => undefined)
+      throw error
+    } finally {
+      await handle.close().catch(() => undefined)
+    }
+  }
+
+  async assertEnd() {
+    if (this.buffer.byteLength > 0) throw new Error('request contains trailing bytes')
+    while (!this.ended) {
+      const next = await this.iterator.next()
+      if (next.done) {
+        this.ended = true
+        return
+      }
+      const bytes = Buffer.isBuffer(next.value) ? next.value : Buffer.from(next.value)
+      if (bytes.byteLength > 0) throw new Error('request contains trailing bytes')
+    }
+  }
+}
+
+function semanticEvidence(request, streaming) {
+  return {
+    remotionSelectCompositionExecuted: true,
+    remotionRenderMediaExecuted: true,
+    approvedFrameAndTimingPreserved: true,
+    actualMp4ArtifactProduced: true,
+    callerPathsUrlsCodeAndCommandsRejected: true,
+    ...(streaming ? {
+      serverInjectedInputStreamsMaterializedAndReverified: true,
+      serverInjectedOutputStreamEmitted: true,
+      base64MediaTransportAvoided: true,
+    } : {}),
+    ...(request.payload.renderPurpose === 'private_4k_delivery_master_v1'
+      ? {
+          approved4kDeliveryMasterAuthorityVerified: true,
+          immutableSourceMasterNoProxyPolicyVerified: true,
+          approvedReservationReuseOnly: true,
+          secondEstimateOrExportChargeForbidden: true,
+          professionalHighQualityEncodeApplied: true,
+        }
+      : {}),
+    ...(['approved_source_caption_final_v1', 'approved_source_caption_track_final_v1']
+      .includes(request.payload.compositionProfileId)
+      ? {
+          approvedSourceBytesVerified: true,
+          approvedCaptionOverlayBytesVerified: true,
+          approvedSourceTrimFramesApplied: true,
+          finalCompositionProfileExecuted: true,
+          ...(request.payload.audioPolicy === 'replace_with_approved_voice_tracks'
+            ? {
+                approvedVoiceTrackBytesVerified: true,
+                approvedVoiceTrackReplacementRequested: true,
+                approvedVoiceTrackTimelineApplied: true,
+              }
+            : { sourceAudioPreservationRequested: true }),
+          ...(isCaptionTrackProfile(request.payload.compositionProfileId)
+            ? { approvedCaptionTrackTimingApplied: true }
+            : {}),
+        }
+      : isSourceSequenceProfile(request.payload.compositionProfileId)
         ? {
             approvedSourceBytesVerified: true,
+            approvedSourceSequenceBytesVerified: true,
             approvedCaptionOverlayBytesVerified: true,
             approvedSourceTrimFramesApplied: true,
+            approvedSourceSequenceTimelineApplied: true,
+            approvedHardCutTransitionAuthorityRead: true,
+            approvedHardCutTransitionsApplied: true,
             finalCompositionProfileExecuted: true,
             ...(request.payload.audioPolicy === 'replace_with_approved_voice_tracks'
               ? {
@@ -908,34 +1573,87 @@ try {
               ? { approvedCaptionTrackTimingApplied: true }
               : {}),
           }
-        : isSourceSequenceProfile(request.payload.compositionProfileId)
-          ? {
-              approvedSourceBytesVerified: true,
-              approvedSourceSequenceBytesVerified: true,
-              approvedCaptionOverlayBytesVerified: true,
-              approvedSourceTrimFramesApplied: true,
-              approvedSourceSequenceTimelineApplied: true,
-              approvedHardCutTransitionAuthorityRead: true,
-              approvedHardCutTransitionsApplied: true,
-              finalCompositionProfileExecuted: true,
-              ...(request.payload.audioPolicy === 'replace_with_approved_voice_tracks'
-                ? {
-                    approvedVoiceTrackBytesVerified: true,
-                    approvedVoiceTrackReplacementRequested: true,
-                    approvedVoiceTrackTimelineApplied: true,
-                  }
-                : { sourceAudioPreservationRequested: true }),
-              ...(isCaptionTrackProfile(request.payload.compositionProfileId)
-                ? { approvedCaptionTrackTimingApplied: true }
-                : {}),
-            }
         : { boundedPreviewCompositionProfileExecuted: true }),
+  }
+}
+
+function responseEnvelope(schemaVersion, requestEnvelopeSha256, artifact, request, streaming) {
+  return {
+    schemaVersion,
+    ok: true,
+    toolId: 'remotion',
+    operationId: OPERATION,
+    status: 'actual_remotion_media_render_completed',
+    packageIdentity: { packageName: 'remotion+@remotion/renderer', version: remotionVersion },
+    requestEnvelopeSha256,
+    artifact,
+    semanticEvidence: semanticEvidence(request, streaming),
+    readiness: {
+      privateInternalOnly: true,
+      productReady: false,
+      externalBetaReady: false,
+      productionReady: false,
+      privateInternalFinalCompositionReady: true,
     },
-    readiness: { privateInternalOnly: true, productReady: false, externalBetaReady: false, productionReady: false, privateInternalFinalCompositionReady: true },
-  }))
+  }
+}
+
+async function writeFileToStdout(path) {
+  for await (const chunk of createReadStream(path)) {
+    if (!process.stdout.write(chunk)) await once(process.stdout, 'drain')
+  }
+}
+
+const reader = new FramedStdinReader(process.stdin)
+let streamingHeaderWritten = false
+let streamingFiles = []
+let streamingOutputPath
+try {
+  const rawHeader = await reader.readLine(MAXIMUM_REQUEST_BYTES)
+  const parsed = JSON.parse(rawHeader.toString('utf8'))
+  if (parsed?.schemaVersion === STREAMING_PROTOCOL) {
+    if (rawHeader.byteLength > MAXIMUM_STREAMING_MANIFEST_BYTES) {
+      throw new Error('streaming manifest exceeded its metadata ceiling')
+    }
+    const manifest = validateStreamingManifest(parsed)
+    const materialized = await materializeStreamingRequest(
+      manifest,
+      reader,
+      sha256(rawHeader),
+    )
+    streamingFiles = materialized.materialized
+    const execution = await execute(materialized.request, { streamingOutput: true })
+    streamingOutputPath = execution.outputPath
+    const response = responseEnvelope(
+      STREAMING_CONTAINER_PROTOCOL,
+      sha256(rawHeader),
+      execution.artifact,
+      materialized.request,
+      true,
+    )
+    process.stdout.write(`${JSON.stringify(response)}\n`)
+    streamingHeaderWritten = true
+    await writeFileToStdout(execution.outputPath)
+  } else {
+    await reader.assertEnd()
+    const request = validateRequest(parsed)
+    const artifact = await execute(request)
+    process.stdout.write(JSON.stringify(responseEnvelope(
+      'offline-remotion-render-execution-container-v1',
+      sha256(JSON.stringify(request)),
+      artifact,
+      request,
+      false,
+    )))
+  }
 } catch (error) {
   void error
   process.stderr.write('Private Remotion execution failed.\n')
-  process.stdout.write(JSON.stringify({ ok: false, code: 'EXECUTION_FAILED' }))
-  process.exit(3)
+  if (!streamingHeaderWritten) {
+    process.stdout.write(`${JSON.stringify({ ok: false, code: 'EXECUTION_FAILED' })}\n`)
+  }
+  process.exitCode = 3
+} finally {
+  if (streamingOutputPath) await rm(streamingOutputPath, { force: true }).catch(() => undefined)
+  await Promise.all(streamingFiles.map((input) => rm(input.path, { force: true })))
 }

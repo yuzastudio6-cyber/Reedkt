@@ -3,9 +3,22 @@ import { createHash } from 'node:crypto'
 import { ApiError } from '../../errors/api-error'
 import { readPrivateTextFileIfExistsWithinRoot, writePrivateTextFileAtomicWithinRoot } from '../../security/private-local-persistence'
 import { sha256AuthorityValue, stableAuthorityStringify } from '../../services/private-edit-authority-store'
-import { inspectExistingOfflineRemotionDockerRuntime, runOfflineRemotionContainer } from './offline-remotion-render-docker-runtime'
+import {
+  inspectExistingOfflineRemotionDockerRuntime,
+  runOfflineRemotionContainer,
+  runOfflineRemotionStreamingContainer,
+  type OfflineRemotionContainerStreamingInput,
+  type OfflineRemotionContainerStreamingOutputSink,
+} from './offline-remotion-render-docker-runtime'
 import { OFFLINE_REMOTION_RENDER_CONTAINER_PROTOCOL, OFFLINE_REMOTION_RENDER_OPERATION, offlineRemotionRequestSha256, validateOfflineRemotionRenderRequest } from './offline-remotion-render-execution-protocol'
-import type { OfflineRemotionImageEvidence, OfflineRemotionRenderResult, OfflineRemotionRuntimeAuthority } from './offline-remotion-render-execution-types'
+import type { OfflineRemotionImageEvidence, OfflineRemotionRenderResult, OfflineRemotionRuntimeAuthority, OfflineRemotionStreamingRenderResult } from './offline-remotion-render-execution-types'
+import {
+  OFFLINE_REMOTION_RENDER_STREAMING_CONTAINER_PROTOCOL,
+  OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_OUTPUT_BYTES,
+  offlineRemotionStreamingInputCommitments,
+  offlineRemotionStreamingRequestSha256,
+  validateOfflineRemotionStreamingRenderRequest,
+} from './offline-remotion-render-streaming-protocol'
 
 export const OFFLINE_REMOTION_RENDER_EXECUTION_STORAGE_ROOT =
   '/tmp/reeditpro-canonical-private-offline-remotion-render-execution' as const
@@ -22,13 +35,22 @@ const BLOCKERS = Object.freeze([
 export interface PrivateOfflineRemotionRenderRuntime {
   readonly image: OfflineRemotionImageEvidence
   execute(value: unknown): Promise<OfflineRemotionRenderResult>
+  executeServerInjected(
+    value: unknown,
+    inputs: OfflineRemotionServerInjectedInput[],
+    outputSink: OfflineRemotionContainerStreamingOutputSink,
+  ): Promise<OfflineRemotionStreamingRenderResult>
+}
+
+export interface OfflineRemotionServerInjectedInput extends OfflineRemotionContainerStreamingInput {
+  inputMode: 'private_verified_stream_v1'
 }
 
 export async function activatePrivateOfflineRemotionRenderRuntime(): Promise<PrivateOfflineRemotionRenderRuntime> {
   if (arguments.length !== 0) throw validationFailure('Remotion runtime activation accepts no caller input.')
   const image = await inspectExistingOfflineRemotionDockerRuntime()
   await persistAuthority(image)
-  return Object.freeze({ image, execute: (value: unknown) => executeWithImage(image, value) })
+  return runtimeForImage(image)
 }
 
 export async function openPrivateOfflineRemotionRenderRuntime(): Promise<PrivateOfflineRemotionRenderRuntime> {
@@ -39,7 +61,19 @@ export async function openPrivateOfflineRemotionRenderRuntime(): Promise<Private
   if (stableAuthorityStringify(image) !== stableAuthorityStringify(authority.image)) {
     throw runtimeFailure('Private Remotion image changed after runtime activation.')
   }
-  return Object.freeze({ image, execute: (value: unknown) => executeWithImage(image, value) })
+  return runtimeForImage(image)
+}
+
+function runtimeForImage(image: OfflineRemotionImageEvidence): PrivateOfflineRemotionRenderRuntime {
+  return Object.freeze({
+    image,
+    execute: (value: unknown) => executeWithImage(image, value),
+    executeServerInjected: (
+      value: unknown,
+      inputs: OfflineRemotionServerInjectedInput[],
+      outputSink: OfflineRemotionContainerStreamingOutputSink,
+    ) => executeStreamingWithImage(image, value, inputs, outputSink),
+  })
 }
 
 export async function readPersistedOfflineRemotionRenderRuntimeAuthority(): Promise<OfflineRemotionRuntimeAuthority | undefined> {
@@ -61,6 +95,7 @@ export async function readPersistedOfflineRemotionRenderRuntimeAuthority(): Prom
     record(authority.readiness).privateInternalExecutionReady !== true ||
     record(authority.readiness).productReady !== false ||
     record(authority.readiness).privateInternalFinalCompositionReady !== true ||
+    record(authority.readiness).serverInjectedStreamingFinalCompositionReady !== true ||
     record(authority.readiness).finalExportReady !== false
   ) throw runtimeFailure('Private Remotion runtime authority boundary is invalid.')
   return authority as unknown as OfflineRemotionRuntimeAuthority
@@ -121,13 +156,126 @@ async function executeWithImage(image: OfflineRemotionImageEvidence, value: unkn
   }
 }
 
+async function executeStreamingWithImage(
+  image: OfflineRemotionImageEvidence,
+  value: unknown,
+  inputs: OfflineRemotionServerInjectedInput[],
+  outputSink: OfflineRemotionContainerStreamingOutputSink,
+): Promise<OfflineRemotionStreamingRenderResult> {
+  const request = validateOfflineRemotionStreamingRenderRequest(value)
+  const expectedInputs = offlineRemotionStreamingInputCommitments(request)
+  if (
+    !Array.isArray(inputs) || inputs.length !== expectedInputs.length ||
+    inputs.some((input, index) => {
+      const expected = expectedInputs[index]
+      return !expected || input.inputMode !== 'private_verified_stream_v1' ||
+        input.inputId !== expected.inputId || input.mimeType !== expected.mimeType ||
+        input.byteLength !== expected.byteLength || input.sha256 !== expected.sha256 ||
+        typeof input.openStream !== 'function'
+    }) ||
+    !outputSink || outputSink.maximumBytes !== OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_OUTPUT_BYTES ||
+    typeof outputSink.persist !== 'function'
+  ) throw validationFailure('Server-injected Remotion streams do not match the exact request commitments.')
+  const serializedManifest = JSON.stringify(request)
+  const result = await runOfflineRemotionStreamingContainer({
+    image,
+    serializedManifest,
+    inputs,
+    outputSink,
+  })
+  if (result.exitCode !== 0 || result.oomKilled || result.stderr.trim()) {
+    throw runtimeFailure(
+      'Private streaming Remotion execution failed.',
+      new Error(result.stderr.slice(-4_000)),
+    )
+  }
+  const response = parseResponse(result.stdoutHeader)
+  const artifactRecord = record(response.artifact)
+  const byteLength = Number(artifactRecord.byteLength)
+  const artifactSha256 = string(artifactRecord.sha256)
+  if (
+    response.schemaVersion !== OFFLINE_REMOTION_RENDER_STREAMING_CONTAINER_PROTOCOL ||
+    response.ok !== true || response.toolId !== 'remotion' ||
+    response.operationId !== OFFLINE_REMOTION_RENDER_OPERATION ||
+    response.status !== 'actual_remotion_media_render_completed' ||
+    record(response.packageIdentity).packageName !== 'remotion+@remotion/renderer' ||
+    record(response.packageIdentity).version !== '4.0.487' ||
+    response.requestEnvelopeSha256 !== offlineRemotionStreamingRequestSha256(request) ||
+    artifactRecord.mimeType !== 'video/mp4' ||
+    !Number.isSafeInteger(byteLength) || byteLength < 1_024 ||
+    byteLength > OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_OUTPUT_BYTES ||
+    !/^[a-f0-9]{64}$/u.test(artifactSha256) ||
+    result.outputReceipt.byteLength !== byteLength ||
+    result.outputReceipt.sha256 !== artifactSha256 ||
+    artifactRecord.width !== request.payload.width ||
+    artifactRecord.height !== request.payload.height ||
+    artifactRecord.fps !== request.payload.fps ||
+    artifactRecord.durationFrames !== request.payload.durationFrames ||
+    record(response.readiness).privateInternalOnly !== true ||
+    record(response.readiness).productReady !== false ||
+    record(response.semanticEvidence).serverInjectedInputStreamsMaterializedAndReverified !== true ||
+    record(response.semanticEvidence).serverInjectedOutputStreamEmitted !== true ||
+    record(response.semanticEvidence).base64MediaTransportAvoided !== true ||
+    !Object.values(record(response.semanticEvidence)).every((item) => item === true)
+  ) throw runtimeFailure('Private streaming Remotion result evidence is invalid.')
+  const completedAt = new Date().toISOString()
+  const attestationWithoutHash = {
+    schemaVersion: 'offline-remotion-render-stream-execution-attestation-v2' as const,
+    completedAt,
+    imageIdentityHash: image.imageIdentityHash,
+    requestEnvelopeSha256: offlineRemotionStreamingRequestSha256(request),
+    artifactSha256,
+    artifactByteLength: byteLength,
+    confinementHash: sha256AuthorityValue(result.confinement),
+  }
+  const attestationHash = sha256AuthorityValue(attestationWithoutHash)
+  const recordId = sha256AuthorityValue({ attestationHash, completedAt })
+  const attestation = { ...attestationWithoutHash, recordId, attestationHash }
+  await writePrivateTextFileAtomicWithinRoot({
+    rootPath: STORAGE_ROOT,
+    relativePath: `attestations/${recordId.slice(0, 2)}/${recordId}.json`,
+    content: `${stableAuthorityStringify({
+      recordVersion: 'offline-remotion-render-stream-execution-attestation-record-v2',
+      source: 'private_local_checksum_protected_remotion_stream_execution',
+      attestation,
+      checksumSha256: sha256AuthorityValue(attestation),
+    })}\n`,
+  })
+  return {
+    schemaVersion: 'offline-remotion-render-stream-execution-result-v2',
+    request,
+    artifact: {
+      mimeType: 'video/mp4', byteLength, sha256: artifactSha256,
+      width: Number(artifactRecord.width), height: Number(artifactRecord.height),
+      fps: Number(artifactRecord.fps),
+      durationFrames: Number(artifactRecord.durationFrames),
+      durationSeconds: Number(artifactRecord.durationSeconds),
+    },
+    evidence: {
+      packageName: 'remotion+@remotion/renderer', packageVersion: '4.0.487',
+      requestEnvelopeSha256: String(response.requestEnvelopeSha256),
+      image, confinement: result.confinement,
+      semanticEvidence: record(response.semanticEvidence) as Record<string, true>,
+      inputTransport: 'length_framed_server_injected_private_stream_v2',
+      outputTransport: 'length_committed_private_stream_v2',
+      containerExitCode: 0, oomKilled: false,
+    },
+    attestation,
+    readiness: {
+      privateInternalOnly: true, productReady: false, externalBetaReady: false,
+      productionReady: false, privateInternalFinalCompositionReady: true,
+      serverInjectedStreamingReady: true, canonicalDispatchIntegrated: false,
+    },
+  }
+}
+
 async function persistAuthority(image: OfflineRemotionImageEvidence): Promise<void> {
   const withoutHash = {
     schemaVersion: 'offline-remotion-render-runtime-authority-v1' as const,
     source: 'private_local_offline_remotion_render_runtime_authority' as const,
     activatedAt: new Date().toISOString(), image,
     supportedOperations: [{ toolId: 'remotion' as const, operationId: OFFLINE_REMOTION_RENDER_OPERATION }] as const,
-    readiness: { privateInternalExecutionReady: true as const, exactStructuredPayloadOnly: true as const, canonicalDispatchMayReference: true as const, productReady: false as const, externalBetaReady: false as const, productionReady: false as const, privateInternalFinalCompositionReady: true as const, finalExportReady: false as const },
+    readiness: { privateInternalExecutionReady: true as const, exactStructuredPayloadOnly: true as const, canonicalDispatchMayReference: true as const, productReady: false as const, externalBetaReady: false as const, productionReady: false as const, privateInternalFinalCompositionReady: true as const, serverInjectedStreamingFinalCompositionReady: true as const, finalExportReady: false as const },
     blockers: BLOCKERS,
   }
   const authority: OfflineRemotionRuntimeAuthority = { ...withoutHash, authorityHash: sha256AuthorityValue(withoutHash) }

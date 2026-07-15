@@ -1,4 +1,6 @@
-import { Router } from 'express'
+import { pipeline } from 'node:stream/promises'
+import type { Readable } from 'node:stream'
+import { Router, type Request, type Response } from 'express'
 import { ApiError } from '../errors/api-error'
 import { requireAuth } from '../middleware/auth'
 import { requireIdempotency, requireSensitiveIdempotencyKey } from '../middleware/idempotency'
@@ -275,9 +277,7 @@ export function createEditExecutionRoutes(options: EditExecutionRouteOptions = {
         ...query,
         reviewAssemblyId: getRouteParam(request, 'reviewAssemblyId'),
       })
-      response.status(200)
       response.setHeader('content-type', file.mimeType)
-      response.setHeader('content-length', String(file.byteSize))
       response.setHeader('content-disposition', `inline; filename="${file.fileName}"`)
       response.setHeader('cache-control', 'private, no-store, max-age=0')
       response.setHeader('x-content-type-options', 'nosniff')
@@ -291,7 +291,7 @@ export function createEditExecutionRoutes(options: EditExecutionRouteOptions = {
         'x-reeditpro-review-assembly-id',
         file.identity.reviewAssemblyId,
       )
-      response.end(file.bytes)
+      await streamPrivateMp4(request, response, file)
     }),
   )
 
@@ -1276,9 +1276,7 @@ function registerEditExecutionUserRoutes(router: Router): void {
       ...query,
       reviewAssemblyId: getRouteParam(request, 'reviewAssemblyId'),
     })
-    response.status(200)
     response.setHeader('content-type', file.mimeType)
-    response.setHeader('content-length', String(file.byteSize))
     response.setHeader('content-disposition', `attachment; filename="${file.fileName}"`)
     response.setHeader('cache-control', 'private, no-store, max-age=0')
     response.setHeader('x-content-type-options', 'nosniff')
@@ -1287,7 +1285,7 @@ function registerEditExecutionUserRoutes(router: Router): void {
     response.setHeader('x-reeditpro-review-history-state', file.reviewState)
     response.setHeader('x-reeditpro-review-decision-manifest-sha256', file.decisionManifestSha256)
     response.setHeader('x-reeditpro-review-assembly-id', file.identity.reviewAssemblyId)
-    response.end(file.bytes)
+    await streamPrivateMp4(request, response, file)
   }))
 
   router.get('/v1/edit-executions/canonical-private-final-artifacts/:artifactId/file', requireAuth, asyncRoute(async (request, response) => {
@@ -1296,15 +1294,13 @@ function registerEditExecutionUserRoutes(router: Router): void {
       ...query,
       artifactId: getRouteParam(request, 'artifactId'),
     })
-    response.status(200)
     response.setHeader('content-type', file.mimeType)
-    response.setHeader('content-length', String(file.byteSize))
     response.setHeader('content-disposition', `attachment; filename="${file.fileName}"`)
     response.setHeader('cache-control', 'private, no-store, max-age=0')
     response.setHeader('x-content-type-options', 'nosniff')
     response.setHeader('content-security-policy', "default-src 'none'; sandbox")
     response.setHeader('x-reeditpro-artifact-sha256', file.sha256)
-    response.end(file.bytes)
+    await streamPrivateMp4(request, response, file)
   }))
 
   router.post('/v1/edit-executions/render-preview-assemblies/:renderPreviewAssemblyId/user-preview-review', requireAuth, requireIdempotency, asyncRoute(async (request, response) => {
@@ -1343,6 +1339,75 @@ function registerEditExecutionUserRoutes(router: Router): void {
     const stream = await file.createReadStream()
     stream.pipe(response)
   }))
+}
+
+async function streamPrivateMp4(
+  request: Request,
+  response: Response,
+  file: {
+    byteSize: number
+    openStream(range?: { start: number; end: number }): Promise<Readable>
+  },
+): Promise<void> {
+  let range: { start: number; end: number } | undefined
+  try {
+    range = parseSingleByteRange(request.headers.range, file.byteSize)
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 416) {
+      response.removeHeader('content-type')
+      response.removeHeader('content-disposition')
+      response.setHeader('content-range', `bytes */${file.byteSize}`)
+    }
+    throw error
+  }
+  response.setHeader('accept-ranges', 'bytes')
+  if (range) {
+    response.status(206)
+    response.setHeader('content-range', `bytes ${range.start}-${range.end}/${file.byteSize}`)
+    response.setHeader('content-length', String(range.end - range.start + 1))
+  } else {
+    response.status(200)
+    response.setHeader('content-length', String(file.byteSize))
+  }
+  try {
+    await pipeline(await file.openStream(range), response)
+  } catch (error) {
+    if (response.headersSent) {
+      response.destroy(error instanceof Error ? error : undefined)
+      return
+    }
+    throw error
+  }
+}
+
+function parseSingleByteRange(
+  header: string | undefined,
+  byteSize: number,
+): { start: number; end: number } | undefined {
+  if (!header) return undefined
+  const match = /^bytes=(\d*)-(\d*)$/u.exec(header.trim())
+  if (!match || (!match[1] && !match[2]) || !Number.isSafeInteger(byteSize) || byteSize < 1) {
+    throw new ApiError('VALIDATION_FAILED', 'Private media byte range is invalid.', 416, {
+      contentRange: `bytes */${byteSize}`,
+    })
+  }
+  if (!match[1]) {
+    const suffixLength = Number(match[2])
+    if (!Number.isSafeInteger(suffixLength) || suffixLength < 1) {
+      throw new ApiError('VALIDATION_FAILED', 'Private media byte range is invalid.', 416)
+    }
+    return { start: Math.max(0, byteSize - suffixLength), end: byteSize - 1 }
+  }
+  const start = Number(match[1])
+  const requestedEnd = match[2] ? Number(match[2]) : byteSize - 1
+  const end = Math.min(requestedEnd, byteSize - 1)
+  if (
+    !Number.isSafeInteger(start) || !Number.isSafeInteger(requestedEnd) ||
+    start < 0 || start >= byteSize || requestedEnd < start
+  ) throw new ApiError('VALIDATION_FAILED', 'Private media byte range is invalid.', 416, {
+    contentRange: `bytes */${byteSize}`,
+  })
+  return { start, end }
 }
 
 function stripServerLocalPaths(value: unknown): unknown {

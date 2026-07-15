@@ -21,9 +21,14 @@ Current ceilings are:
 - 192 MiB per selected source;
 - 192 MiB for selected sources combined;
 - 8 MiB for caption overlays combined;
-- 2 MiB for approved voice tracks combined;
-- 208 MiB for all render inputs combined; and
+- 64 MiB for approved voice tracks combined;
+- 272 MiB for all render inputs combined; and
 - 256 MiB for the final MP4.
+
+Approved voice tracks use the server-injected stream path. The host and
+container rehash their exact bytes, and the container validates fixed PCM from
+a bounded file prefix rather than reading the full WAV into one Buffer. The
+legacy base64 request remains capped at 2 MiB.
 
 ## Output persistence and QA
 
@@ -42,19 +47,22 @@ publish a poisoned target.
 ## Canonical same-attempt proof
 
 The canonical color workflow now provides the previously missing same-attempt
-large-final evidence. Its latest passing run streamed the exact
-57,689,613-byte VP9/Matroska color dependency into Remotion and persisted a
-16,894,658-byte 4K H.264/AAC final MP4. The final then passed independent
-streamed FFprobe QA, artifact reconciliation, idempotent replay, and private
-download integrity under the same approved snapshot and reservation.
+large-final evidence. Its latest aggregate run streamed the exact
+57,689,613-byte VP9/Matroska color dependency and its exact approved voice
+dependency into Remotion, then persisted a 16,847,752-byte 4K H.264/AAC final
+MP4 with SHA-256
+`15f9e9472d7286b57343c671aa8934de052b78eef3ab5d213f321fd5919e57d1`.
+The final then passed independent streamed FFprobe QA, artifact reconciliation,
+idempotent replay, and private download integrity under the same approved
+snapshot and reservation.
 
 The final render recorded four successful server-owned lease heartbeats. The
 heartbeat extends only the existing five-minute lease window and never the
 immutable approved attempt deadline.
 
 The exact aggregate's separate confined runtime smoke produced and
-independently verified a 51,471,394-byte two-second UHD output with SHA-256
-`5f5835b4c1d3145d95fd3d9862aa00fd423f455393b75f9753cccbef6756c12d`.
+independently verified a 49,289,463-byte two-second UHD output with SHA-256
+`6082397036f0db6e88bdab085838e324ee7ed35533f14dc7a6df35a37d5b0e41`.
 That attempt remains useful runtime/persistence stress evidence; the canonical
 workflow is the stronger lifecycle claim.
 
@@ -70,7 +78,7 @@ delivery, external-beta, and paid-production authority all remain false.
 
 This closes the short-fixture whole-Buffer Remotion output gap and the
 same-attempt canonical large-final gap. It does not prove representative
-long-duration throughput, outputs above 256 MiB, combined inputs above 208
+long-duration throughput, outputs above 256 MiB, combined inputs above 272
 MiB, distributed worker recovery, resume after host loss, live object-store
 delivery, broad professional codec/timecode/VFR/multichannel coverage, HDR
 delivery, or production operations.
@@ -79,8 +87,8 @@ delivery, or production operations.
 
 Focused Remotion streaming, canonical color, canonical multi-source,
 50-tool dispatch, lease, persistence, TypeScript, ESLint, and diff-hygiene
-checks passed. The final `npm run qa:internal-pipeline` run passed all 26
-phases in 1,732,196 ms, including the 120,012 ms Remotion streaming phase,
+checks passed. The final `npm run qa:internal-pipeline` run passed all 27
+phases in 1,678,185 ms, including the 96,614 ms Remotion streaming phase,
 11/11 named-edit browser tests, the 50-identity report, and the signed-in
 maximum-eight-source accepted review. All production/public flags remained
 false.

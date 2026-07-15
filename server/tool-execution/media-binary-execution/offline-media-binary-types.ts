@@ -2,6 +2,7 @@ import type { Readable } from 'node:stream'
 
 export const OFFLINE_MEDIA_BINARY_LEGACY_OUTPUT_BUFFER_MAXIMUM_BYTES = 32 * 1024 * 1024
 export const OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_OUTPUT_BYTES = 192 * 1024 * 1024
+export const OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_AUDIO_OUTPUT_BYTES = 64 * 1024 * 1024
 
 export interface OfflineMediaBinaryImageEvidence {
   imageTag: 'reeditpro/ffmpeg-lgpl-internal:8.1.2-color-v1-local'
@@ -104,7 +105,7 @@ export interface OfflineMediaBinaryStreamingOutputSink {
   maximumBytes: number
   persist(input: {
     stream: Readable
-    mimeType: 'video/x-matroska'
+    mimeType: 'video/x-matroska' | 'audio/wav'
     expectedByteLength: number
     expectedSha256: string
   }): Promise<{ byteLength: number; sha256: string }>
@@ -112,7 +113,7 @@ export interface OfflineMediaBinaryStreamingOutputSink {
 
 export interface OfflineFfmpegStreamingOutputExecutionResult {
   resultArtifact: {
-    mimeType: 'video/x-matroska'
+    mimeType: 'video/x-matroska' | 'audio/wav'
     sha256: string
     byteLength: number
     outputMode: 'server_committed_private_stream_v1'

@@ -712,13 +712,18 @@ function normalizeResponse(input: {
   const sourceStagingCleaned = coordinatorTool?.sourceStagingCleaned ??
     coordinatorTool?.approvedSourceStagingCleaned
   const dependencyInputMode = coordinatorTool?.dependencyInputMode ??
-    coordinatorTool?.approvedColorDependencyInputMode
+    (coordinatorTool?.approvedColorDependencyInputMode === 'server_injected_private_stream_v1'
+      ? coordinatorTool.approvedColorDependencyInputMode
+      : coordinatorTool?.approvedVoiceTrackDependencyInputMode)
   const singleColorInput = optionalRecord(coordinatorInputs?.colorSource)
   const dependencyByteLengths = [
     coordinatorTool?.inputArtifactByteLength,
     singleColorInput?.colorByteLength,
     ...(Array.isArray(coordinatorInputs?.colorSources)
       ? coordinatorInputs.colorSources.map((source) => optionalRecord(source)?.colorByteLength)
+      : []),
+    ...(Array.isArray(coordinatorInputs?.voiceTracks)
+      ? coordinatorInputs.voiceTracks.map((track) => optionalRecord(track)?.voiceByteLength)
       : []),
   ].filter((value) => Number.isSafeInteger(value) && Number(value) > 0)
   const sourceByteLengths = [

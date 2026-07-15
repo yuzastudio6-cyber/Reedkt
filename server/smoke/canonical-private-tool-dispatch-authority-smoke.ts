@@ -2594,6 +2594,7 @@ assert.equal(coordinatedPrimaryVoice.result.contentType, 'audio/wav')
 assert.equal(coordinatedPrimaryVoice.result.qaOutcome, 'passed')
 assert.equal(coordinatedPrimaryVoice.result.privateTestDependencySatisfied, true)
 assert.equal(coordinatedPrimaryVoice.result.liveRuntimeDependencySatisfied, false)
+assert.equal(coordinatedPrimaryVoice.evidence.mediaOutputStreamed, true)
 const primaryVoiceReplay = await jobExecutionAdapter.execute(primaryVoiceAdapterInput)
 assert.equal(primaryVoiceReplay.result.artifactId, coordinatedPrimaryVoice.result.artifactId)
 assert.equal(primaryVoiceReplay.result.sha256, coordinatedPrimaryVoice.result.sha256)
@@ -2613,6 +2614,7 @@ assert.equal(coordinatedSecondaryVoice.result.contentType, 'audio/wav')
 assert.equal(coordinatedSecondaryVoice.result.qaOutcome, 'passed')
 assert.equal(coordinatedSecondaryVoice.result.privateTestDependencySatisfied, true)
 assert.equal(coordinatedSecondaryVoice.result.liveRuntimeDependencySatisfied, false)
+assert.equal(coordinatedSecondaryVoice.evidence.mediaOutputStreamed, true)
 assert.notEqual(coordinatedSecondaryVoice.result.sha256, coordinatedPrimaryVoice.result.sha256)
 const secondaryVoiceReplay = await jobExecutionAdapter.execute(secondaryVoiceAdapterInput)
 assert.equal(secondaryVoiceReplay.result.artifactId, coordinatedSecondaryVoice.result.artifactId)
@@ -2634,6 +2636,7 @@ if (tertiaryMediaSourceItem) {
   assert.equal(coordinatedTertiaryVoice.identity.expectedAssetId, tertiaryVoiceAsset!.id)
   assert.equal(coordinatedTertiaryVoice.result.contentType, 'audio/wav')
   assert.equal(coordinatedTertiaryVoice.result.qaOutcome, 'passed')
+  assert.equal(coordinatedTertiaryVoice.evidence.mediaOutputStreamed, true)
   assert.notEqual(coordinatedTertiaryVoice.result.sha256, coordinatedPrimaryVoice.result.sha256)
   const tertiaryVoiceReplay = await jobExecutionAdapter.execute({
     workspaceId,
@@ -2859,6 +2862,7 @@ assert.equal(coordinatedFinalComposition.result.liveRuntimeDependencySatisfied, 
 assert.equal(coordinatedFinalComposition.result.finalRenderAuthorized, false)
 assert.equal(coordinatedFinalComposition.evidence.serverDerivedToolAndOperation, true)
 assert.equal(coordinatedFinalComposition.evidence.singleUseDispatchConsumed, true)
+assert.equal(coordinatedFinalComposition.evidence.dependencyStreamInputVerified, true)
 assert.equal(coordinatedFinalComposition.readiness.productReady, false)
 const finalArtifactQaAdapterInput = {
   workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,

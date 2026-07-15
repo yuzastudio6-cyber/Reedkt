@@ -71,6 +71,7 @@
     "smoke:offline-python-structured-execution": "tsx server/smoke/offline-python-structured-execution-smoke.ts",
     "smoke:offline-media-binary-execution": "tsx server/smoke/offline-media-binary-execution-smoke.ts",
     "smoke:canonical-private-media-streaming-output": "tsx server/smoke/canonical-private-media-streaming-output-smoke.ts",
+    "smoke:canonical-private-audio-streaming-output": "tsx server/smoke/canonical-private-audio-streaming-output-smoke.ts",
     "smoke:offline-sharp-structured-execution": "tsx server/smoke/offline-sharp-structured-execution-smoke.ts",
     "smoke:offline-remotion-render-execution": "tsx server/smoke/offline-remotion-render-execution-smoke.ts",
     "smoke:offline-remotion-streaming-output": "tsx server/smoke/offline-remotion-streaming-output-smoke.ts",

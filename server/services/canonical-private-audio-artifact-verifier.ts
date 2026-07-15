@@ -1,7 +1,7 @@
 import { ApiError } from '../errors/api-error'
 import { isOfflinePythonAudioWavToolId } from '../tool-execution/python-runner-execution'
 import type { PersistedArtifactResult } from '../validation/private-artifact-qa-authority-schemas'
-import { readCanonicalPrivateAudioArtifact } from './canonical-private-audio-artifact-storage'
+import { inspectCanonicalPrivateAudioArtifact } from './canonical-private-audio-artifact-storage'
 import { sha256AuthorityValue } from './private-edit-authority-store'
 
 export async function verifyCanonicalPrivateAudioArtifact(input: {
@@ -33,7 +33,7 @@ export async function verifyCanonicalPrivateAudioArtifact(input: {
   ) throw invalid(
     'Private audio is not an exact verified bounded Python, native audio, DeepFilterNet, or FFmpeg voice-delivery artifact.',
   )
-  const stored = await readCanonicalPrivateAudioArtifact({
+  const stored = await inspectCanonicalPrivateAudioArtifact({
     localStorageRoot: input.localStorageRoot,
     privateObjectIdentityHash: input.artifact.storageIdentity.opaqueObjectIdentityHash,
   })
@@ -49,6 +49,7 @@ export async function verifyCanonicalPrivateAudioArtifact(input: {
       executionAttemptId: run.executionAttemptId, runnerEvidenceHash: run.runnerEvidenceHash,
       dispatchGrantId: run.dispatchGrantId, executionAttestationHash: run.executionAttestationHash,
     }),
+    openStream: stored.openStream,
     executionAttemptId: run.executionAttemptId,
     runnerClass: run.runnerClass as
       | 'offline_python_structured_execution_v1'

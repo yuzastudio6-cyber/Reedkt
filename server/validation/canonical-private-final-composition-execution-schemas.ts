@@ -2,6 +2,7 @@ import { z } from 'zod'
 
 import { REEDITPRO_SOURCE_MEDIA_MAX_BYTES } from '../../src/types/large-media'
 import {
+  OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_AUDIO_OUTPUT_BYTES,
   OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_OUTPUT_BYTES,
 } from '../tool-execution/media-binary-execution/offline-media-binary-types'
 import { canonicalPrivateToolDispatchCredentialSchema } from './canonical-private-tool-dispatch-schemas'
@@ -18,7 +19,8 @@ const approvedVoiceTracksSchema = z.array(z.object({
   durationFrames: z.number().int().positive().max(240),
   voiceArtifactId: identity,
   voiceSha256: sha,
-  voiceByteLength: z.number().int().min(44).max(2 * 1024 * 1024),
+  voiceByteLength: z.number().int().min(44)
+    .max(OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_AUDIO_OUTPUT_BYTES),
   voiceDependencyReadEvidenceHash: sha,
 }).strict()).min(1).max(8)
 
@@ -177,7 +179,7 @@ const sourceSequenceCaptionTrackFinalCompositionInputsSchema = captionTrackDepen
 }).strict()
 
 export const canonicalPrivateFinalCompositionResponseSchema = z.object({
-  schemaVersion: z.literal('canonical-private-final-composition-execution-response-v4'),
+  schemaVersion: z.literal('canonical-private-final-composition-execution-response-v5'),
   source: z.literal('canonical_private_final_composition_execution_coordinator'),
   purpose: z.literal('execute_canonical_private_final_composition'),
   identity: z.object({
@@ -211,6 +213,10 @@ export const canonicalPrivateFinalCompositionResponseSchema = z.object({
     ]),
     sourceAudioPreserved: z.boolean(),
     approvedVoiceTrackDependencyRead: z.boolean(),
+    approvedVoiceTrackDependencyInputMode: z.enum([
+      'not_applicable',
+      'server_injected_private_stream_v1',
+    ]),
     approvedVoiceTrackReplacementApplied: z.boolean(),
     approvedColorDependencyRead: z.boolean(),
     approvedColorDependencyInputMode: z.enum([
@@ -298,11 +304,13 @@ export const canonicalPrivateFinalCompositionResponseSchema = z.object({
     replacement
       ? (
           value.tool.sourceAudioPreserved || !value.tool.approvedVoiceTrackDependencyRead ||
+          value.tool.approvedVoiceTrackDependencyInputMode !== 'server_injected_private_stream_v1' ||
           !value.tool.approvedVoiceTrackReplacementApplied || !voiceTracks?.length
         )
       : (
           !preservedPolicyMatchesProfile || !value.tool.sourceAudioPreserved ||
           value.tool.approvedVoiceTrackDependencyRead ||
+          value.tool.approvedVoiceTrackDependencyInputMode !== 'not_applicable' ||
           value.tool.approvedVoiceTrackReplacementApplied || voiceTracks !== undefined
         )
   ) {

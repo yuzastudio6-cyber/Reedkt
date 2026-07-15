@@ -12,12 +12,12 @@ a large final artifact. The latest passing attempt used:
 - a 57,689,613-byte lossless VP9/Matroska professional-color artifact with
   SHA-256 `16ce99bd7421c195fe6e7c41632fcbb6e21be8bb97f8bd7d0f8e0d922dce8b18`;
   and
-- a 16,894,658-byte H.264/AAC 4K final MP4 with SHA-256
-  `75179ae5add947dd86dac0451f8d1933962cb21a46aa6766d62d6e4d93a0aaee`.
+- a 16,847,752-byte H.264/AAC 4K final MP4 with SHA-256
+  `15f9e9472d7286b57343c671aa8934de052b78eef3ab5d213f321fd5919e57d1`.
 
 The color artifact exceeds the former 32 MiB whole-output-Buffer ceiling by
 24,135,181 bytes. The final MP4 exceeds the former 16 MiB canonical final
-proof boundary by 117,442 bytes. H.264 output is bound to the exact size and
+proof boundary by 70,536 bytes. H.264 output is bound to the exact size and
 SHA-256 of each attempt; this document does not claim byte-identical output
 across independent encodes.
 
@@ -47,24 +47,28 @@ revalidates:
 The returned contract contains commitments and `openStream()`. It exposes no
 bytes, base64, path, URL, signed URL, bucket/key pair, credential, or command.
 
-Canonical final composition streams Matroska color dependencies through this
-boundary. Canonical final FFprobe QA independently streams the selected
-private MP4. Attempt evidence distinguishes source streaming, dependency
-streaming, large-dependency verification, media-output streaming, and
-long-running lease renewal. Generic completed-artifact recovery leaves these
-transport-specific fields false because an artifact alone cannot prove the
-transport used by its original attempt.
+Canonical final composition streams Matroska color and approved PCM WAV voice
+dependencies through this boundary. Canonical final FFprobe QA independently
+streams the selected private MP4. Attempt evidence distinguishes source
+streaming, dependency streaming, large-dependency verification, media-output
+streaming, and long-running lease renewal. Generic completed-artifact recovery
+leaves these transport-specific fields false because an artifact alone cannot
+prove the transport used by its original attempt.
 
 ## Current bounded capacities
 
 - canonical Matroska/NUT stream persistence and dependency reads: 192 MiB;
+- canonical approved PCM WAV persistence and dependency reads: 64 MiB;
 - Remotion selected source: 192 MiB;
 - Remotion selected sources combined: 192 MiB;
-- Remotion all inputs combined: 208 MiB;
+- Remotion approved voice tracks combined: 64 MiB;
+- Remotion all inputs combined: 272 MiB;
 - canonical/private Remotion MP4: 256 MiB;
 - legacy buffered private media reads: 32 MiB;
-- structured, image, caption, and voice dependencies: their existing
-  operation-specific limits, no more than 16 MiB at the generic boundary.
+- legacy buffered private audio reads: 8 MiB;
+- structured and image dependencies: no more than 16 MiB at the generic
+  boundary; and
+- caption overlays combined: 8 MiB.
 
 These are local/private execution ceilings, not upload limits, duration
 promises, or production throughput claims.
@@ -95,11 +99,12 @@ This proof does not establish:
 
 - representative long-duration 4K throughput or recovery after host loss;
 - distributed/object-store output streaming and distributed lease recovery;
-- a Matroska/NUT artifact above 192 MiB, Remotion input above 208 MiB, or
-  final MP4 above 256 MiB;
+- a Matroska/NUT artifact above 192 MiB, PCM WAV above 64 MiB, Remotion input
+  above 272 MiB, or final MP4 above 256 MiB;
 - streaming shot-match reference input; that separate reference dependency is
   still buffered/base64-bound and capped at 16 MiB;
-- large caption, voice, image, or structured dependencies;
+- near-ceiling or representative long-duration voice, large caption, image,
+  or structured dependencies;
 - broad ProRes, VFR, timecode, multichannel, HDR, damaged-media, and hostile
   media coverage; or
 - live GCS, providers, billing, Supabase, deployment, or public delivery.
@@ -112,10 +117,11 @@ dispatch regression, the three-source composition regression, the exact
 34,603,145-byte private stream persistence smoke, and the decisive canonical
 4K workflow.
 
-The final `npm run qa:internal-pipeline` run passed all 26 phases in
-1,732,196 ms. The three-source phase passed in 598,791 ms, the streaming
-storage phase in 703 ms, the canonical professional-color phase in 585,240 ms,
-the separate Remotion stress phase in 120,012 ms, all 11 named-edit browser
-tests in 18,930 ms, and the maximum-eight-source signed-in review phase in
-379,993 ms. All provider, live billing/wallet, remote Supabase, deployment,
-public-delivery, external-beta, and paid-production flags remained false.
+The final `npm run qa:internal-pipeline` run passed all 27 phases in
+1,678,185 ms. The three-source phase passed in 585,231 ms, the media streaming
+storage phase in 739 ms, the audio streaming phase in 491 ms, the canonical
+professional-color phase in 581,021 ms, the separate Remotion stress phase in
+96,614 ms, all 11 named-edit browser tests in 15,400 ms, and the
+maximum-eight-source signed-in review phase in 370,019 ms. All provider, live
+billing/wallet, remote Supabase, deployment, public-delivery, external-beta,
+and paid-production flags remained false.

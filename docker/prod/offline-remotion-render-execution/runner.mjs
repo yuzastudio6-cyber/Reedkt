@@ -21,9 +21,11 @@ const MAXIMUM_STREAMING_MANIFEST_BYTES = 256 * 1024
 const MAXIMUM_STREAMING_SOURCE_BYTES = 192 * 1024 * 1024
 const MAXIMUM_STREAMING_COMBINED_SOURCE_BYTES = 192 * 1024 * 1024
 const MAXIMUM_STREAMING_CAPTION_BYTES = 8 * 1024 * 1024
-const MAXIMUM_STREAMING_COMBINED_INPUT_BYTES = 208 * 1024 * 1024
+const MAXIMUM_STREAMING_COMBINED_INPUT_BYTES = 272 * 1024 * 1024
 const MAXIMUM_STREAMING_OUTPUT_BYTES = 256 * 1024 * 1024
 const MAXIMUM_COMBINED_VOICE_TRACK_BYTES = 2 * 1024 * 1024
+const MAXIMUM_STREAMING_COMBINED_VOICE_TRACK_BYTES = 64 * 1024 * 1024
+const MAXIMUM_PCM_WAVE_HEADER_BYTES = 64 * 1024
 const SINGLE_STREAMING_CAPTION_OUTPUT_KEY = 'approved-full-frame-caption-overlay'
 const FORBIDDEN_TEXT = /(?:https?:\/\/|ftp:\/\/|file:|data:|javascript:|\.\.\/|\.\.\\|[A-Za-z]:[\\/]|(?:^|\s)\/(?:Users|home|etc|tmp|var|opt|app|root|proc|sys|dev)(?:\/|\b)|\$\(|`|&&|\|\||#!)/i
 const PRIVATE_REVIEW_FRAMES = ['360x640', '640x360', '480x480', '480x600']
@@ -312,29 +314,88 @@ function validateVoiceTrackCommitments(value, expected, fps) {
   return tracks
 }
 
-function validatePcmVoiceTrack(bytes, durationFrames, fps) {
-  if (
-    bytes.byteLength < 44 || bytes.subarray(0, 4).toString('ascii') !== 'RIFF' ||
-    bytes.subarray(8, 12).toString('ascii') !== 'WAVE'
-  ) throw new Error('voice track is not RIFF/WAVE')
-  const formatOffset = bytes.indexOf(Buffer.from('fmt '))
-  const dataOffset = bytes.indexOf(Buffer.from('data'))
-  if (
-    formatOffset < 12 || dataOffset <= formatOffset || formatOffset + 24 > bytes.byteLength ||
-    dataOffset + 8 > bytes.byteLength || bytes.readUInt16LE(formatOffset + 8) !== 1
-  ) throw new Error('voice track is not linear PCM WAV')
-  const channels = bytes.readUInt16LE(formatOffset + 10)
-  const sampleRate = bytes.readUInt32LE(formatOffset + 12)
-  const blockAlign = bytes.readUInt16LE(formatOffset + 20)
-  const bitsPerSample = bytes.readUInt16LE(formatOffset + 22)
-  const dataByteLength = bytes.byteLength - (dataOffset + 8)
+function validatePcmVoiceTrack(bytes, durationFrames, fps, totalByteLength = bytes.byteLength) {
+  const details = pcmWaveDetailsFromPrefix(
+    bytes.subarray(0, MAXIMUM_PCM_WAVE_HEADER_BYTES),
+    totalByteLength,
+  )
+  if (!details) throw new Error('voice track is not linear PCM WAV')
   const expectedSampleFrames = durationFrames * (48_000 / fps)
-  const actualSampleFrames = dataByteLength / blockAlign
   if (
-    channels !== 2 || sampleRate !== 48_000 || bitsPerSample !== 16 || blockAlign !== 4 ||
-    dataByteLength <= 0 || dataByteLength % blockAlign !== 0 ||
-    !Number.isInteger(expectedSampleFrames) || Math.abs(actualSampleFrames - expectedSampleFrames) > 2
+    details.channels !== 2 || details.sampleRate !== 48_000 ||
+    details.bitsPerSample !== 16 || details.blockAlign !== 4 ||
+    !Number.isInteger(expectedSampleFrames) ||
+    Math.abs(details.sampleFrameCount - expectedSampleFrames) > 2
   ) throw new Error('voice track does not match fixed 48 kHz stereo frame duration')
+}
+
+async function validatePcmVoiceTrackFile(path, byteLength, durationFrames, fps) {
+  const handle = await open(path, constants.O_RDONLY | constants.O_NOFOLLOW)
+  try {
+    const stat = await handle.stat()
+    if (!stat.isFile() || stat.size !== byteLength) {
+      throw new Error('streaming voice file changed before PCM validation')
+    }
+    const prefix = Buffer.alloc(Math.min(byteLength, MAXIMUM_PCM_WAVE_HEADER_BYTES))
+    let offset = 0
+    while (offset < prefix.byteLength) {
+      const result = await handle.read(prefix, offset, prefix.byteLength - offset, offset)
+      if (result.bytesRead < 1) break
+      offset += result.bytesRead
+    }
+    validatePcmVoiceTrack(prefix.subarray(0, offset), durationFrames, fps, byteLength)
+  } finally {
+    await handle.close()
+  }
+}
+
+function pcmWaveDetailsFromPrefix(prefix, totalByteLength) {
+  if (
+    !Number.isSafeInteger(totalByteLength) || totalByteLength < 44 ||
+    prefix.byteLength < 12 || prefix.byteLength > MAXIMUM_PCM_WAVE_HEADER_BYTES ||
+    prefix.subarray(0, 4).toString('ascii') !== 'RIFF' ||
+    prefix.subarray(8, 12).toString('ascii') !== 'WAVE'
+  ) return undefined
+  const riffSize = prefix.readUInt32LE(4)
+  if (riffSize !== 0xffffffff && riffSize + 8 !== totalByteLength) return undefined
+  let offset = 12
+  let format
+  while (offset + 8 <= prefix.byteLength) {
+    const id = prefix.subarray(offset, offset + 4).toString('ascii')
+    const size = prefix.readUInt32LE(offset + 4)
+    const dataOffset = offset + 8
+    if (id === 'fmt ') {
+      if (size < 16 || size === 0xffffffff || dataOffset + 16 > prefix.byteLength) return undefined
+      const audioFormat = prefix.readUInt16LE(dataOffset)
+      const channels = prefix.readUInt16LE(dataOffset + 2)
+      const sampleRate = prefix.readUInt32LE(dataOffset + 4)
+      const byteRate = prefix.readUInt32LE(dataOffset + 8)
+      const blockAlign = prefix.readUInt16LE(dataOffset + 12)
+      const bitsPerSample = prefix.readUInt16LE(dataOffset + 14)
+      if (
+        audioFormat !== 1 || channels < 1 || channels > 8 ||
+        sampleRate < 8_000 || sampleRate > 384_000 ||
+        ![8, 16, 24, 32].includes(bitsPerSample) ||
+        blockAlign !== channels * (bitsPerSample / 8) ||
+        byteRate !== sampleRate * blockAlign
+      ) return undefined
+      format = { channels, sampleRate, blockAlign, bitsPerSample }
+    } else if (id === 'data') {
+      if (!format) return undefined
+      const dataByteLength = totalByteLength - dataOffset
+      if (
+        dataByteLength <= 0 || dataByteLength % format.blockAlign !== 0 ||
+        (size !== 0xffffffff && size !== dataByteLength)
+      ) return undefined
+      return {
+        ...format,
+        sampleFrameCount: dataByteLength / format.blockAlign,
+      }
+    }
+    if (size === 0xffffffff) return undefined
+    offset = dataOffset + size + (size % 2)
+  }
+  return undefined
 }
 
 function committedBase64(payload, prefix, mimeType, minimumBytes, maximumBytes) {
@@ -876,7 +937,7 @@ function validateStreamingManifest(value) {
       ],
       'audio/wav',
       44,
-      MAXIMUM_COMBINED_VOICE_TRACK_BYTES,
+      MAXIMUM_STREAMING_COMBINED_VOICE_TRACK_BYTES,
       `streaming voice ${index + 1}`,
     )
     const sourceSequenceItemId = safeIdentity(
@@ -894,7 +955,7 @@ function validateStreamingManifest(value) {
   })
   const combinedVoiceBytes = voiceTracks.reduce((total, voice) => total + voice.byteLength, 0)
   if (!Number.isSafeInteger(combinedVoiceBytes) ||
-      combinedVoiceBytes > MAXIMUM_COMBINED_VOICE_TRACK_BYTES) {
+      combinedVoiceBytes > MAXIMUM_STREAMING_COMBINED_VOICE_TRACK_BYTES) {
     throw new Error('streaming voice tracks exceed their combined ceiling')
   }
   const commitments = [...sources, ...captionOverlays, ...voiceTracks]
@@ -930,8 +991,9 @@ async function materializeStreamingRequest(manifest, reader, requestHash) {
         const voicePlan = manifest.inputs.voiceTracks.find((candidate) =>
           candidate.inputId === commitment.inputId)
         if (!voicePlan) throw new Error('streaming voice commitment lost its approved plan')
-        validatePcmVoiceTrack(
-          await readFile(path),
+        await validatePcmVoiceTrackFile(
+          path,
+          commitment.byteLength,
           voicePlan.durationFrames,
           manifest.payload.fps,
         )
@@ -1524,6 +1586,9 @@ function semanticEvidence(request, streaming) {
       serverInjectedInputStreamsMaterializedAndReverified: true,
       serverInjectedOutputStreamEmitted: true,
       base64MediaTransportAvoided: true,
+      ...(request.payload.audioPolicy === 'replace_with_approved_voice_tracks'
+        ? { approvedVoiceTrackInputStreamedWithoutWholeBuffer: true }
+        : {}),
     } : {}),
     ...(request.payload.renderPurpose === 'private_4k_delivery_master_v1'
       ? {

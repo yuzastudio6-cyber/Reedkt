@@ -96,6 +96,11 @@ const canonicalSteps: VerificationStep[] = [
     'Create-only private media persistence accepts and reopens an exact Matroska stream above the legacy 32 MiB whole-buffer ceiling while rejecting replay collisions and checksum poisoning.',
   ),
   step(
+    'canonical-private-audio-streaming-output',
+    'smoke:canonical-private-audio-streaming-output',
+    'Create-only private audio persistence accepts and reopens an exact PCM WAV stream above the legacy 8 MiB whole-buffer ceiling while rejecting replay collisions and checksum poisoning.',
+  ),
+  step(
     'canonical-professional-color-execution',
     'smoke:canonical-private-color-execution',
     'One exact source-bound professional color plan streams a lossless private Matroska artifact above the legacy 32 MiB whole-buffer ceiling through lease-heartbeated execution, QA, reconciliation, replay, Remotion composition, independent final QA, and private download evidence.',

@@ -6,7 +6,7 @@ Status: `one_resumable_sized_4k_mp4_verified_through_private_canonical_execution
 
 `npm run smoke:canonical-private-color-execution` now connects one source above
 the former canonical 16 MiB buffer boundary to the existing canonical editing
-lifecycle. The fixture is a valid three-second 3840x2160, 24 fps MP4 with AAC
+lifecycle. The fixture is a valid seven-second 3840x2160, 24 fps MP4 with AAC
 audio and a valid top-level MP4 `free` box. Its exact size is 18,874,505 bytes.
 
 The passing run verifies:
@@ -56,20 +56,23 @@ original directory device/inode identity. Failed materialization or promotion
 also destroys and awaits its source stream so a rejected create-only or
 symlink path cannot leak a file handle.
 
-One focused passing canonical run produced:
+The decisive focused passing canonical run produced:
 
-- a 28,278,310-byte QA-passed lossless VP9/Matroska professional-color
+- a 57,689,613-byte QA-passed lossless VP9/Matroska professional-color
   intermediate with SHA-256
-  `dae33d534cc028170c18a988d4bcb26380b17169ed264421d49b634324662730`;
+  `16ce99bd7421c195fe6e7c41632fcbb6e21be8bb97f8bd7d0f8e0d922dce8b18`;
   and
-- a 7,758,859-byte private 3840x2160 H.264/AAC master with 72 exact frames and
-  SHA-256 `f1d92106979cf5c0011a4b4c9ee01f2bd5f77ffcd300c74f706703bcf37d78a2`.
+- a 16,919,377-byte private 3840x2160 H.264/AAC master with 168 exact frames
+  and SHA-256
+  `824146669306cc80e30f85657b97e5de1d845407d86b40577a7e23532197a33d`.
 
-The intermediate is now direct evidence above the former 16 MiB canonical
-dependency-reader boundary. The final remains below that boundary and is not
-representative output-size or throughput evidence. The exact-code aggregate
-run produced the same deterministic color size and SHA-256 while its valid
-H.264 final was 7,791,195 bytes, so no cross-run final-byte identity is claimed.
+The intermediate is direct evidence above the former 32 MiB output and
+dependency-reader ceilings. The final is direct same-attempt canonical evidence
+above the former 16 MiB final boundary. The exact-code aggregate produced the
+same deterministic color size and SHA-256 while its valid H.264 final was
+16,847,752 bytes with SHA-256
+`15f9e9472d7286b57343c671aa8934de052b78eef3ab5d213f321fd5919e57d1`,
+so no cross-run H.264 byte identity is claimed.
 
 ## Streamed composition policy
 
@@ -80,13 +83,19 @@ base64. Container paths are generated internally, and the final MP4 streams
 directly into create-only private persistence before independent streamed
 FFprobe QA.
 
+Approved PCM WAV voice tracks now remain streamed through canonical
+create-only storage, lease-selected dependency reads, and Remotion file
+validation. The larger stream path is capped at 64 MiB combined; legacy
+buffered audio remains capped at 8 MiB and legacy base64 voice input at 2 MiB.
+
 The currently approved professional-color canonical profile consumes its
 QA-passed color intermediate through an authority-bound private stream because
 that is the exact frozen plan semantics. The immutable original remains source
 authority, and the 1080p analysis proxy is never substituted for final render.
 
-The confined v2 renderer caps selected sources at 192 MiB combined, all inputs
-at 208 MiB, and the output at 256 MiB. A plan or attempt outside those limits
+The confined v2 renderer caps selected sources at 192 MiB combined, approved
+voice tracks at 64 MiB combined, all inputs at 272 MiB, and the output at 256
+MiB. A plan or attempt outside those limits
 fails closed rather than silently lowering quality or switching to a proxy.
 
 ## Honest limits
@@ -98,15 +107,15 @@ production readiness:
 - canonical source-bound execution currently accepts MP4 only even though
   ingestion recognizes additional professional containers;
 - source-bound Python runners remain on the older 16 MiB buffered contract;
-- FFmpeg output remains Buffer-bound and professional-color persistence remains
-  capped at 32 MiB; exact MP4/NUT/Matroska dependency reads now stream, while
-  structured, image, and audio dependency reads retain bounded Buffer
-  contracts;
-- Remotion inputs and outputs stream but remain explicitly capped at 208 MiB
+- legacy FFmpeg output remains Buffer-bound, while approved professional-color
+  Matroska output streams to 192 MiB and approved PCM WAV voice output streams
+  to 64 MiB; exact media and approved-audio dependency reads now stream, while
+  structured and image dependencies retain bounded Buffer contracts;
+- Remotion inputs and outputs stream but remain explicitly capped at 272 MiB
   combined input and 256 MiB output;
-- the same canonical attempt produced a 7,758,859-byte final; the aggregate's
-  separate 52,092,354-byte confined Remotion runtime/persistence/QA proof is not a
-  canonical job-lifecycle claim;
+- the same canonical attempt produced a final above 16 MiB; the aggregate's
+  separate 49,289,463-byte confined Remotion runtime/persistence/QA proof is
+  additional stress evidence, not a second canonical job-lifecycle claim;
 - the executable canonical profile remains short-duration and cannot yet
   represent a long professional program;
 - source staging is a full local copy per attempt and has no durable byte-level
@@ -123,11 +132,11 @@ production readiness:
   rendering, public export, Motion Studio, or MS-001 authority was enabled.
 
 Product, external-beta, public-delivery, and production readiness remain
-false. The next large-video execution milestone should stream large upstream
-media-binary outputs, prove a same-attempt canonical final above the former
-boundary, and then test representative long-duration media, distributed
-recovery, and deployed storage behavior beyond the current explicit
-capacities.
+false. The next large-video execution milestone should remove the current
+240-frame canonical compiler ceiling through an approved segmented long-form
+strategy, then test representative long-duration media, near-ceiling audio,
+distributed recovery, and deployed storage behavior beyond the current
+explicit capacities.
 
 ## Focused verification
 
@@ -155,11 +164,12 @@ no billing, customer-credit, deployment, or public-delivery action.
 
 ## Aggregate verification
 
-The latest exact-code `npm run qa:internal-pipeline` run completed all 25 phases
-in 1,359,639 ms with exit code 0. Its over-16-MiB canonical source/color phase
-passed in 263,792 ms, the three-source continuity phase passed in 576,999 ms,
-the separate above-16-MiB Remotion output phase passed in 101,992 ms, and the
-final signed-in maximum eight-source private-review phase passed in 370,273 ms.
+The latest exact-code `npm run qa:internal-pipeline` run completed all 27 phases
+in 1,678,185 ms with exit code 0. Its over-16-MiB canonical source/color phase
+passed in 581,021 ms, the three-source continuity phase passed in 585,231 ms,
+the separate above-16-MiB Remotion output phase passed in 96,614 ms, the new
+audio-streaming persistence phase passed in 491 ms, and the final signed-in
+maximum-eight-source private-review phase passed in 370,019 ms.
 The aggregate also re-reported exactly 50 canonical end-to-end and
 job-adapter-verified tool identities at evidence revision `2026-07-15.30`.
 

@@ -56,7 +56,10 @@ import {
 } from './canonical-private-media-artifact-storage'
 import { CANONICAL_PRIVATE_REMOTION_STREAMING_MAXIMUM_BYTES } from './canonical-private-remotion-artifact-storage'
 import {
+  CANONICAL_PRIVATE_AUDIO_STREAMING_MAXIMUM_BYTES,
+  inspectCanonicalPrivateAudioArtifact,
   persistCanonicalPrivateAudioArtifact,
+  persistCanonicalPrivateAudioArtifactStream,
   readCanonicalPrivateAudioArtifact,
 } from './canonical-private-audio-artifact-storage'
 import {
@@ -318,11 +321,13 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
             toolId, operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
             payload: { ...planningPayload, ...sourcePayload, ...referencePayload },
           })
-          executionResult = contentType === 'video/x-matroska'
+          executionResult = contentType === 'video/x-matroska' || contentType === 'audio/wav'
             ? await runtime.executeServerInjectedStreamingOutput(request, sourceInput, {
-                maximumBytes: CANONICAL_PRIVATE_MEDIA_STREAMING_MAXIMUM_BYTES,
+                maximumBytes: contentType === 'audio/wav'
+                  ? CANONICAL_PRIVATE_AUDIO_STREAMING_MAXIMUM_BYTES
+                  : CANONICAL_PRIVATE_MEDIA_STREAMING_MAXIMUM_BYTES,
                 async persist(output) {
-                  if (output.mimeType !== 'video/x-matroska') {
+                  if (output.mimeType !== contentType) {
                     throw denied('Streaming media output returned the wrong content type.')
                   }
                   const identity = privateObjectIdentityFor(output.expectedSha256)
@@ -330,14 +335,22 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
                     throw denied('Streaming media output identity changed during persistence.')
                   }
                   privateObjectIdentityHash = identity
-                  const stored = await persistCanonicalPrivateMediaArtifactStream({
-                    localStorageRoot: context.env.localStorageRoot,
-                    privateObjectIdentityHash: identity,
-                    mediaFormat: 'mkv',
-                    stream: output.stream,
-                    expectedByteLength: output.expectedByteLength,
-                    expectedSha256: output.expectedSha256,
-                  })
+                  const stored = contentType === 'audio/wav'
+                    ? await persistCanonicalPrivateAudioArtifactStream({
+                        localStorageRoot: context.env.localStorageRoot,
+                        privateObjectIdentityHash: identity,
+                        stream: output.stream,
+                        expectedByteLength: output.expectedByteLength,
+                        expectedSha256: output.expectedSha256,
+                      })
+                    : await persistCanonicalPrivateMediaArtifactStream({
+                        localStorageRoot: context.env.localStorageRoot,
+                        privateObjectIdentityHash: identity,
+                        mediaFormat: 'mkv',
+                        stream: output.stream,
+                        expectedByteLength: output.expectedByteLength,
+                        expectedSha256: output.expectedSha256,
+                      })
                   mediaOutputStreamPersisted = true
                   return { byteLength: stored.byteLength, sha256: stored.sha256 }
                 },
@@ -393,19 +406,25 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
           privateObjectIdentityHash: committedPrivateObjectIdentityHash,
           bytes: requireNormalizedBytes(normalized), expectedSha256: normalized.sha256,
         })
-      } else if (contentType === 'audio/wav') {
+      } else if (contentType === 'audio/wav' && normalized.outputMode === 'bounded_buffer_v1') {
         await persistCanonicalPrivateAudioArtifact({
           localStorageRoot: context.env.localStorageRoot,
           privateObjectIdentityHash: committedPrivateObjectIdentityHash,
           bytes: requireNormalizedBytes(normalized), expectedSha256: normalized.sha256,
         })
       } else if (normalized.outputMode === 'server_committed_private_stream_v1') {
-        const stored = await inspectCanonicalPrivateMediaArtifact({
-          localStorageRoot: context.env.localStorageRoot,
-          privateObjectIdentityHash: committedPrivateObjectIdentityHash,
-        })
+        const stored = contentType === 'audio/wav'
+          ? await inspectCanonicalPrivateAudioArtifact({
+              localStorageRoot: context.env.localStorageRoot,
+              privateObjectIdentityHash: committedPrivateObjectIdentityHash,
+            })
+          : await inspectCanonicalPrivateMediaArtifact({
+              localStorageRoot: context.env.localStorageRoot,
+              privateObjectIdentityHash: committedPrivateObjectIdentityHash,
+            })
         if (
-          !mediaOutputStreamPersisted || !stored || stored.mediaFormat !== 'mkv' ||
+          !mediaOutputStreamPersisted || !stored ||
+          (contentType !== 'audio/wav' && 'mediaFormat' in stored && stored.mediaFormat !== 'mkv') ||
           stored.byteLength !== normalized.byteLength || stored.sha256 !== normalized.sha256
         ) throw denied('Streaming media output was not committed to exact private storage.')
       } else {
@@ -764,12 +783,19 @@ function createAdapters(input: MediaAdapterInput): {
 
 async function assertStored(input: MediaAdapterInput) {
   if (input.normalized.outputMode === 'server_committed_private_stream_v1') {
-    const stored = await inspectCanonicalPrivateMediaArtifact({
-      localStorageRoot: input.localStorageRoot,
-      privateObjectIdentityHash: input.privateObjectIdentityHash,
-    })
+    const stored = input.normalized.contentType === 'audio/wav'
+      ? await inspectCanonicalPrivateAudioArtifact({
+          localStorageRoot: input.localStorageRoot,
+          privateObjectIdentityHash: input.privateObjectIdentityHash,
+        })
+      : await inspectCanonicalPrivateMediaArtifact({
+          localStorageRoot: input.localStorageRoot,
+          privateObjectIdentityHash: input.privateObjectIdentityHash,
+        })
     if (
-      !stored || stored.mediaFormat !== 'mkv' ||
+      !stored ||
+      (input.normalized.contentType !== 'audio/wav' &&
+        'mediaFormat' in stored && stored.mediaFormat !== 'mkv') ||
       stored.sha256 !== input.normalized.sha256 ||
       stored.byteLength !== input.normalized.byteLength
     ) throw denied('Streaming media binary artifact changed before artifact authority.')

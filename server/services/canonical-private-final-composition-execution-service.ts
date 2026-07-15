@@ -48,6 +48,7 @@ import {
   type CanonicalPrivateDependencyArtifactStreamReadResult,
 } from './canonical-private-dependency-artifact-read-service'
 import { CANONICAL_PRIVATE_MEDIA_STREAMING_MAXIMUM_BYTES } from './canonical-private-media-artifact-storage'
+import { CANONICAL_PRIVATE_AUDIO_STREAMING_MAXIMUM_BYTES } from './canonical-private-audio-artifact-storage'
 import {
   inspectCanonicalPrivateRemotionArtifact,
   persistCanonicalPrivateRemotionArtifactStream,
@@ -279,6 +280,7 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
       const dependencyReader = createCanonicalPrivateDependencyArtifactReadService(context)
       const dependencies: CanonicalPrivateDependencyArtifactReadResult[] = []
       const colorDependencies: CanonicalPrivateDependencyArtifactStreamReadResult[] = []
+      const voiceDependencies: CanonicalPrivateDependencyArtifactStreamReadResult[] = []
       for (
         let selectedArtifactIndex = 0;
         selectedArtifactIndex < expectedDependencyCount;
@@ -304,22 +306,27 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
             allowedContentTypes: ['video/x-matroska'],
             maximumBytes: CANONICAL_PRIVATE_MEDIA_STREAMING_MAXIMUM_BYTES,
           }))
+        } else if (dependencyContentType === 'audio/wav') {
+          voiceDependencies.push(await dependencyReader.readSingleSelectedArtifactStream({
+            ...dependencyInput,
+            allowedContentTypes: ['audio/wav'],
+            maximumBytes: CANONICAL_PRIVATE_AUDIO_STREAMING_MAXIMUM_BYTES,
+          }))
         } else {
           dependencies.push(await dependencyReader.readSingleSelectedArtifact({
             ...dependencyInput,
-            allowedContentTypes: ['application/json', 'image/png', 'audio/wav'],
+            allowedContentTypes: ['application/json', 'image/png'],
             maximumBytes: 16 * 1024 * 1024,
           }))
         }
       }
       const trimArtifact = dependencies.find((dependency) => dependency.contentType === 'application/json')
       const captionDependencies = dependencies.filter((dependency) => dependency.contentType === 'image/png')
-      const voiceDependencies = dependencies.filter((dependency) => dependency.contentType === 'audio/wav')
       if (
         !trimArtifact || trimArtifact.byteLength > 1024 * 1024 ||
         captionDependencies.length !== captionCueCount || voiceDependencies.length !== voiceTrackCount ||
         colorDependencies.length !== colorSourceCount ||
-        dependencies.length + colorDependencies.length !== expectedDependencyCount
+        dependencies.length + colorDependencies.length + voiceDependencies.length !== expectedDependencyCount
       ) {
         throw denied(
           'Final composition dependencies must be one approved trim JSON plus exact caption, voice, and color artifacts.',
@@ -442,9 +449,11 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
           inputId: captionInputIds[index]!, mimeType: 'image/png',
           bytes: caption.bytes, sha256: caption.sha256,
         })),
-        ...voiceTracks.map((voiceTrack, index) => bufferedRemotionInput({
-          inputId: voiceInputIds[index]!, mimeType: 'audio/wav',
-          bytes: voiceTrack.bytes, sha256: voiceTrack.sha256,
+        ...voiceTracks.map((voiceTrack, index) => ({
+          inputMode: voiceTrack.inputMode,
+          inputId: voiceInputIds[index]!, mimeType: 'audio/wav' as const,
+          byteLength: voiceTrack.byteLength, sha256: voiceTrack.sha256,
+          openStream: voiceTrack.openStream,
         })),
       ]
       const privateObjectIdentityFor = (contentSha256: string) => sha256ArtifactQaValue({
@@ -660,7 +669,7 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
           : { colorSource: colorInputRecords[0]! }
         : {}
       const responseWithoutHash = {
-        schemaVersion: 'canonical-private-final-composition-execution-response-v4' as const,
+        schemaVersion: 'canonical-private-final-composition-execution-response-v5' as const,
         source: 'canonical_private_final_composition_execution_coordinator' as const,
         purpose: body.purpose,
         identity: { ...identity, approvedWorkItemId: workItem.id, dispatchGrantId: body.grantId },
@@ -680,6 +689,9 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
           audioPolicy: planningPayload.audioPolicy,
           sourceAudioPreserved: !replaceVoice,
           approvedVoiceTrackDependencyRead: replaceVoice,
+          approvedVoiceTrackDependencyInputMode: replaceVoice
+            ? 'server_injected_private_stream_v1' as const
+            : 'not_applicable' as const,
           approvedVoiceTrackReplacementApplied: replaceVoice,
           approvedColorDependencyRead: colorSources.length > 0,
           approvedColorDependencyInputMode: colorSources.length > 0
@@ -846,7 +858,7 @@ function orderCaptionDependencies(input: {
 }
 
 function orderVoiceDependencies(input: {
-  voiceDependencies: CanonicalPrivateDependencyArtifactReadResult[]
+  voiceDependencies: CanonicalPrivateDependencyArtifactStreamReadResult[]
   approvedVoiceTracks: Array<{
     sourceSequenceItemId: string
     outputKey: string
@@ -854,9 +866,9 @@ function orderVoiceDependencies(input: {
   }>
   fps: number
   authority: ApprovedExecutionAuthority
-}): CanonicalPrivateDependencyArtifactReadResult[] {
+}): CanonicalPrivateDependencyArtifactStreamReadResult[] {
   const byOutputKey = new Map<string, {
-    dependency: CanonicalPrivateDependencyArtifactReadResult
+    dependency: CanonicalPrivateDependencyArtifactStreamReadResult
     sourceSequenceItemId: string
     durationFrames: number
   }>()
@@ -1289,6 +1301,7 @@ function assertFinalResult(
     (replaceVoice
       ? (
           result.evidence.semanticEvidence.approvedVoiceTrackBytesVerified !== true ||
+          result.evidence.semanticEvidence.approvedVoiceTrackInputStreamedWithoutWholeBuffer !== true ||
           result.evidence.semanticEvidence.approvedVoiceTrackReplacementRequested !== true ||
           result.evidence.semanticEvidence.approvedVoiceTrackTimelineApplied !== true ||
           result.evidence.semanticEvidence.sourceAudioPreservationRequested === true

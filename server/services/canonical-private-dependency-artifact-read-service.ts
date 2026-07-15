@@ -12,7 +12,10 @@ import { readCanonicalStructuredSvgArtifact } from './canonical-structured-svg-a
 import { verifyCanonicalPrivateImageArtifact } from './canonical-private-image-artifact-verifier'
 import { readCanonicalPrivateImageArtifact } from './canonical-private-image-artifact-storage'
 import { verifyCanonicalPrivateAudioArtifact } from './canonical-private-audio-artifact-verifier'
-import { readCanonicalPrivateAudioArtifact } from './canonical-private-audio-artifact-storage'
+import {
+  CANONICAL_PRIVATE_AUDIO_STREAMING_MAXIMUM_BYTES,
+  readCanonicalPrivateAudioArtifact,
+} from './canonical-private-audio-artifact-storage'
 import { verifyCanonicalPrivateRemotionArtifact } from './canonical-private-remotion-artifact-verifier'
 import { CANONICAL_PRIVATE_REMOTION_STREAMING_MAXIMUM_BYTES } from './canonical-private-remotion-artifact-storage'
 import { readCanonicalPrivateRemotionArtifact } from './canonical-private-remotion-artifact-storage'
@@ -55,7 +58,7 @@ export interface CanonicalPrivateDependencyArtifactReadResult {
 
 export interface CanonicalPrivateDependencyArtifactStreamReadResult {
   inputMode: 'private_verified_stream_v1'
-  contentType: 'video/mp4' | 'video/x-nut' | 'video/x-matroska'
+  contentType: 'video/mp4' | 'video/x-nut' | 'video/x-matroska' | 'audio/wav'
   sha256: string
   byteLength: number
   dependencyJobId: string
@@ -212,21 +215,28 @@ export function createCanonicalPrivateDependencyArtifactReadService(context: Ser
           input,
           CANONICAL_PRIVATE_REMOTION_STREAMING_MAXIMUM_BYTES,
         )
-      if (!['video/mp4', 'video/x-nut', 'video/x-matroska'].includes(contentType)) {
-        throw invalid('Streaming dependency reads are restricted to exact private media artifacts.')
+      if (!['video/mp4', 'video/x-nut', 'video/x-matroska', 'audio/wav'].includes(contentType)) {
+        throw invalid('Streaming dependency reads are restricted to exact private media or audio artifacts.')
       }
       const verified = contentType === 'video/mp4'
         ? await verifyCanonicalPrivateRemotionArtifact({
             localStorageRoot: context.env.localStorageRoot,
             artifact: authority.artifact,
           })
-        : await verifyCanonicalPrivateMediaArtifact({
-            localStorageRoot: context.env.localStorageRoot,
-            artifact: authority.artifact,
-          })
+        : contentType === 'audio/wav'
+          ? await verifyCanonicalPrivateAudioArtifact({
+              localStorageRoot: context.env.localStorageRoot,
+              artifact: authority.artifact,
+            })
+          : await verifyCanonicalPrivateMediaArtifact({
+              localStorageRoot: context.env.localStorageRoot,
+              artifact: authority.artifact,
+            })
       const formatMaximum = contentType === 'video/mp4'
         ? CANONICAL_PRIVATE_REMOTION_STREAMING_MAXIMUM_BYTES
-        : CANONICAL_PRIVATE_MEDIA_STREAMING_MAXIMUM_BYTES
+        : contentType === 'audio/wav'
+          ? CANONICAL_PRIVATE_AUDIO_STREAMING_MAXIMUM_BYTES
+          : CANONICAL_PRIVATE_MEDIA_STREAMING_MAXIMUM_BYTES
       if (
         verified.executionAttemptId !== selected.executionAttemptId ||
         verified.sha256 !== selected.contentSha256 ||

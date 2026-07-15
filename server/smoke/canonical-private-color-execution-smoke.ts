@@ -24,6 +24,7 @@ import { createCanonicalPlanningHandoffService } from '../services/canonical-pla
 import { createCanonicalPrivateFinalArtifactDownloadService } from '../services/canonical-private-final-artifact-download-service'
 import { normalizeCanonicalPrivateFinalMediaQa } from '../services/canonical-private-final-media-qa'
 import { createCanonicalPrivateJobExecutionAdapterService } from '../services/canonical-private-job-execution-adapter-service'
+import { inspectCanonicalPrivateAudioArtifact } from '../services/canonical-private-audio-artifact-storage'
 import {
   CANONICAL_PRIVATE_MEDIA_STREAMING_MAXIMUM_BYTES,
   inspectCanonicalPrivateMediaArtifact,
@@ -423,6 +424,29 @@ assert.equal(voice.result.contentType, 'audio/wav')
 assert.equal(voice.evidence.sourceStreamInputVerified, true)
 assert.equal(voice.evidence.sourceStagingCleanupVerified, true)
 assert.equal(voice.evidence.largeSourceOverLegacyBufferVerified, true)
+assert.equal(voice.evidence.mediaOutputStreamed, true)
+assert.equal(voice.evidence.largeMediaOutputOverLegacyBufferVerified, false)
+const voiceArtifactAuthority = await createPrivateArtifactQaAuthorityService(context)
+  .readArtifactAuthority({
+    workspaceId,
+    projectId,
+    editSessionId,
+    snapshotId: snapshot.snapshotId,
+    jobId: jobByKey.get('voice-delivery-1')!.id,
+    expectedAssetId: assetByKey.get('voice-delivery-1')!.id,
+    artifactId: voice.result.artifactId,
+    purpose: 'read_private_artifact_qa_authority',
+  })
+const storedVoice = await inspectCanonicalPrivateAudioArtifact({
+  localStorageRoot,
+  privateObjectIdentityHash:
+    voiceArtifactAuthority.artifact.storageIdentity.opaqueObjectIdentityHash,
+})
+assert.ok(storedVoice)
+assert.equal(storedVoice.sha256, voice.result.sha256)
+assert.equal(storedVoice.byteLength, voice.result.byteLength)
+assert.equal(storedVoice.sampleRate, 48_000)
+assert.equal(storedVoice.channels, 2)
 const color = await executeJob('color-delivery-1')
 assert.equal(color.identity.canonicalToolId, 'ffmpeg')
 assert.equal(color.identity.runnerClass, 'offline_media_binary_execution_v1')
@@ -725,6 +749,7 @@ console.log(JSON.stringify({
     'immutable_approved_snapshot_and_synthetic_private_reservation_verified',
     'exact_source_bound_professional_color_work_item_frozen_before_execution',
     'snapshot_validation_source_trim_caption_and_replacement_voice_dependencies_passed',
+    'ffmpeg_voice_delivery_streamed_to_create_only_pcm_wave_storage_and_reopened_without_whole_buffer',
     'lease_and_single_use_ffmpeg_dispatch_verified',
     'source_over_16mib_privately_staged_streamed_reverified_and_cleaned_for_each_attempt',
     'actual_three_frame_color_analysis_bounded_processing_and_pixel_qa_passed',
@@ -732,6 +757,7 @@ console.log(JSON.stringify({
     'color_artifact_qa_reconciliation_and_idempotent_replay_verified',
     'server_owned_lease_heartbeat_evidence_bound_to_each_attempt_and_positive_for_long_render',
     'remotion_streamed_the_exact_selected_over_32mib_color_dependency_with_replacement_voice',
+    'remotion_streamed_the_exact_lease_selected_voice_dependency_and_validated_pcm_from_file',
     'same_attempt_canonical_4k_h264_delivery_master_above_16mib_completed_final_ffprobe_qa',
     'final_qa_streamed_the_exact_qa_passed_over_16mib_private_mp4_without_base64_or_caller_path',
     'original_approved_estimate_and_reservation_reused_without_second_export_charge',

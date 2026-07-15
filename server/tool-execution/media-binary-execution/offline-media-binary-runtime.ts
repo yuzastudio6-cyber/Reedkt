@@ -6,6 +6,7 @@ import { Readable, Transform } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
 
 import { ApiError } from '../../errors/api-error'
+import { inspectPcmWavePrefix, PCM_WAVE_MAXIMUM_HEADER_BYTES } from '../../media/pcm-wave'
 import {
   createPrivateDirectoryCreateOnlyWithinRoot,
   createPrivateReadStreamWithinRoot,
@@ -38,6 +39,7 @@ import type {
 } from './offline-media-binary-types'
 import {
   OFFLINE_MEDIA_BINARY_LEGACY_OUTPUT_BUFFER_MAXIMUM_BYTES,
+  OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_AUDIO_OUTPUT_BYTES,
   OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_OUTPUT_BYTES,
 } from './offline-media-binary-types'
 
@@ -219,10 +221,11 @@ async function executeServerInjectedStreamingOutput(
   }
   if (
     request.payload.recipeProfileId !== 'approved_source_color_delivery_matroska_v1' &&
-    request.payload.recipeProfileId !== 'approved_source_color_match_delivery_matroska_v1'
-  ) throw invalid('Streaming FFmpeg output is restricted to approved professional-color recipes.')
+    request.payload.recipeProfileId !== 'approved_source_color_match_delivery_matroska_v1' &&
+    request.payload.recipeProfileId !== 'approved_voice_delivery_wav_v1'
+  ) throw invalid('Streaming FFmpeg output is restricted to approved professional-color or voice-delivery recipes.')
   assertServerInjectedInput(source, request.payload.sourceByteLength, request.payload.sourceSha256)
-  assertStreamingOutputSink(outputSink)
+  assertStreamingOutputSink(outputSink, request.payload.recipeProfileId)
   const result = await executeFfmpegRequest(image, request, source, outputSink)
   if (!('outputMode' in result.resultArtifact)) {
     throw unavailable('Streaming FFmpeg output returned a buffered artifact unexpectedly.')
@@ -448,7 +451,7 @@ async function executeFfmpegRequest(
         args: ['start', '--attach', '--interactive', container.id],
         input: source,
         maximumOutputBytes: outputSink.maximumBytes,
-        expectedFormat: 'mkv',
+        expectedFormat: voiceDelivery ? 'wav' : 'mkv',
         timeoutMs,
       })
     }
@@ -474,7 +477,12 @@ async function executeFfmpegRequest(
       `stateExit=${String(state.ExitCode)};oomKilled=${String(state.OOMKilled)};` +
       `diagnostic=${safeFfmpegDiagnostic(stderr)}).`,
     )
-    if (voiceDelivery ? !isPcmWave(bufferedOutput!.stdout) : colorDelivery
+    const wave = voiceDelivery
+      ? streamedOutputSpool
+        ? inspectPcmWavePrefix(streamedOutputSpool.signature, outputByteLength)
+        : pcmWaveDetails(bufferedOutput!.stdout)
+      : undefined
+    if (voiceDelivery ? !wave : colorDelivery
       ? !isMatroska(outputSignature)
       : !outputSignature.toString('ascii').includes('nut/multimedia')) {
       throw unavailable(voiceDelivery
@@ -486,7 +494,8 @@ async function executeFfmpegRequest(
     const outputProbe = voiceDelivery
       ? await probeFfmpegVoiceDeliveryOutput(
           image,
-          bufferedOutput!.stdout,
+          outputInput,
+          wave!,
           trimDurationFrames / request.payload.frameRate,
         )
       : await probeFfmpegOutput(
@@ -533,7 +542,7 @@ async function executeFfmpegRequest(
     if (outputSink) {
       const persisted = await outputSink.persist({
         stream: await outputInput.openStream(),
-        mimeType: 'video/x-matroska',
+        mimeType: voiceDelivery ? 'audio/wav' : 'video/x-matroska',
         expectedByteLength: outputByteLength,
         expectedSha256: resultSha256,
       })
@@ -594,6 +603,10 @@ async function executeFfmpegRequest(
                 targetLufs: voiceDeliveryPayload!.targetLufs,
                 truePeakDbtp: voiceDeliveryPayload!.truePeakDbtp,
                 sourceVideoRemoved: true,
+                outputDeliveryMode: outputSink
+                  ? 'server_committed_private_stream_v1'
+                  : 'bounded_legacy_buffer_v1',
+                outputWholeBufferAvoided: Boolean(outputSink),
               }
             : colorDelivery
               ? {
@@ -660,7 +673,7 @@ async function executeFfmpegRequest(
     if (outputSink) {
       return {
         resultArtifact: {
-          mimeType: 'video/x-matroska',
+          mimeType: voiceDelivery ? 'audio/wav' : 'video/x-matroska',
           sha256: resultSha256,
           byteLength: outputByteLength,
           outputMode: 'server_committed_private_stream_v1',
@@ -1096,10 +1109,6 @@ function colorSaturationMatrix(saturation: number): string {
   ].join(':')
 }
 
-function isPcmWave(bytes: Buffer): boolean {
-  return pcmWaveDetails(bytes) !== undefined
-}
-
 function pcmWaveDetails(bytes: Buffer): {
   sampleRate: number
   channels: number
@@ -1107,30 +1116,17 @@ function pcmWaveDetails(bytes: Buffer): {
   sampleFrameCount: number
   durationSeconds: number
 } | undefined {
-  if (
-    bytes.byteLength < 44 || bytes.subarray(0, 4).toString('ascii') !== 'RIFF' ||
-    bytes.subarray(8, 12).toString('ascii') !== 'WAVE'
-  ) return undefined
-  const formatOffset = bytes.indexOf(Buffer.from('fmt '))
-  const dataOffset = bytes.indexOf(Buffer.from('data'))
-  if (
-    formatOffset < 12 || dataOffset <= formatOffset || formatOffset + 24 > bytes.byteLength ||
-    dataOffset + 8 > bytes.byteLength || bytes.readUInt16LE(formatOffset + 8) !== 1
-  ) return undefined
-  const channels = bytes.readUInt16LE(formatOffset + 10)
-  const sampleRate = bytes.readUInt32LE(formatOffset + 12)
-  const blockAlign = bytes.readUInt16LE(formatOffset + 20)
-  const bitsPerSample = bytes.readUInt16LE(formatOffset + 22)
-  const dataByteLength = bytes.byteLength - (dataOffset + 8)
-  if (
-    ![1, 2].includes(channels) || sampleRate !== 48_000 || bitsPerSample !== 16 ||
-    blockAlign !== channels * (bitsPerSample / 8) || dataByteLength <= 0 ||
-    dataByteLength % blockAlign !== 0
-  ) return undefined
-  const sampleFrameCount = dataByteLength / blockAlign
+  const details = inspectPcmWavePrefix(
+    bytes.subarray(0, PCM_WAVE_MAXIMUM_HEADER_BYTES),
+    bytes.byteLength,
+  )
+  if (!details || ![1, 2].includes(details.channels)) return undefined
   return {
-    sampleRate, channels, bitsPerSample, sampleFrameCount,
-    durationSeconds: sampleFrameCount / sampleRate,
+    sampleRate: details.sampleRate,
+    channels: details.channels,
+    bitsPerSample: details.bitsPerSample,
+    sampleFrameCount: details.sampleFrameCount,
+    durationSeconds: details.durationSeconds,
   }
 }
 
@@ -1198,7 +1194,14 @@ function roundedTo(value: number, digits: number): number {
 
 async function probeFfmpegVoiceDeliveryOutput(
   image: OfflineMediaBinaryImageEvidence,
-  bytes: Buffer,
+  source: OfflineMediaBinaryServerInjectedInput,
+  wave: {
+    sampleRate: number
+    channels: number
+    bitsPerSample: number
+    sampleFrameCount: number
+    durationSeconds: number
+  },
   expectedDurationSeconds: number,
 ): Promise<Record<string, unknown>> {
   const command = [
@@ -1209,7 +1212,12 @@ async function probeFfmpegVoiceDeliveryOutput(
   const container = await createContainer(image, FFPROBE_ENTRYPOINT, command)
   try {
     validateConfinement(await inspectContainer(container.id), image, FFPROBE_ENTRYPOINT, command)
-    const result = await dockerBuffer(['start', '--attach', '--interactive', container.id], bytes, 2 * 1024 * 1024)
+    const result = await dockerVerifiedInput(
+      ['start', '--attach', '--interactive', container.id],
+      source,
+      2 * 1024 * 1024,
+      mediaExecutionTimeoutMs(source.byteLength),
+    )
     if (result.exitCode !== 0 || result.stderr.length > 0) {
       throw unavailable('FFmpeg voice-delivery output verification failed closed.')
     }
@@ -1217,8 +1225,6 @@ async function probeFfmpegVoiceDeliveryOutput(
     const format = record(parsed.format)
     const streams = Array.isArray(parsed.streams) ? parsed.streams.map(record) : []
     const audio = streams.find((stream) => stream.codec_type === 'audio')
-    const wave = pcmWaveDetails(bytes)
-    if (!wave) throw unavailable('FFmpeg voice-delivery output failed its PCM WAV structure verification.')
     const durationSeconds = wave.durationSeconds
     const durationToleranceSeconds = 2 / 48_000
     if (
@@ -1571,13 +1577,15 @@ async function dockerVerifiedInputToPrivateOutputSpool(input: {
   args: string[]
   input: OfflineMediaBinaryServerInjectedInput
   maximumOutputBytes: number
-  expectedFormat: 'mkv'
+  expectedFormat: 'mkv' | 'wav'
   timeoutMs: number
 }): Promise<DockerVerifiedPrivateOutputSpool> {
   assertServerInjectedInput(input.input, input.input.byteLength, input.input.sha256)
+  const expectedMaximum = input.expectedFormat === 'wav'
+    ? OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_AUDIO_OUTPUT_BYTES
+    : OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_OUTPUT_BYTES
   if (
-    input.maximumOutputBytes !== OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_OUTPUT_BYTES ||
-    input.expectedFormat !== 'mkv'
+    input.maximumOutputBytes !== expectedMaximum
   ) throw invalid('Streaming FFmpeg output spool bounds are invalid.')
   const spoolId = randomBytes(16).toString('hex')
   const relativeDirectoryPath = `runtime-output-spools/${spoolId}`
@@ -1585,7 +1593,7 @@ async function dockerVerifiedInputToPrivateOutputSpool(input: {
     rootPath: STORAGE_ROOT,
     relativePath: relativeDirectoryPath,
   })
-  const relativeArtifactPath = `${relativeDirectoryPath}/artifact.mkv`
+  const relativeArtifactPath = `${relativeDirectoryPath}/artifact.${input.expectedFormat}`
   const child = spawn('docker', input.args, {
     stdio: ['pipe', 'pipe', 'pipe'],
     env: { PATH: process.env.PATH ?? '' },
@@ -1620,8 +1628,11 @@ async function dockerVerifiedInputToPrivateOutputSpool(input: {
   const verifiedOutput = Readable.from((async function* () {
     for await (const chunk of child.stdout) {
       const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)
-      if (signatureByteLength < 25) {
-        const part = bytes.subarray(0, Math.min(bytes.byteLength, 25 - signatureByteLength))
+      if (signatureByteLength < PCM_WAVE_MAXIMUM_HEADER_BYTES) {
+        const part = bytes.subarray(
+          0,
+          Math.min(bytes.byteLength, PCM_WAVE_MAXIMUM_HEADER_BYTES - signatureByteLength),
+        )
         signatureChunks.push(Buffer.from(part))
         signatureByteLength += part.byteLength
       }
@@ -1665,8 +1676,10 @@ async function dockerVerifiedInputToPrivateOutputSpool(input: {
       inputChecksum.digest('hex') !== input.input.sha256
     ) throw new Error('Private media input did not match its exact byte commitment.')
     if (
-      persisted.byteLength < 64 || persisted.byteLength > input.maximumOutputBytes ||
-      !isMatroska(signature)
+      persisted.byteLength < 44 || persisted.byteLength > input.maximumOutputBytes ||
+      (input.expectedFormat === 'mkv'
+        ? !isMatroska(signature)
+        : !inspectPcmWavePrefix(signature, persisted.byteLength))
     ) throw new Error('Private FFmpeg output failed its streaming format commitment.')
     let cleaned = false
     const cleanup = async () => {
@@ -1732,10 +1745,16 @@ function verifiedBufferInput(
   })
 }
 
-function assertStreamingOutputSink(outputSink: OfflineMediaBinaryStreamingOutputSink): void {
+function assertStreamingOutputSink(
+  outputSink: OfflineMediaBinaryStreamingOutputSink,
+  recipeProfileId: OfflineFfmpegStreamingExecutionRequest['payload']['recipeProfileId'],
+): void {
+  const expectedMaximum = recipeProfileId === 'approved_voice_delivery_wav_v1'
+    ? OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_AUDIO_OUTPUT_BYTES
+    : OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_OUTPUT_BYTES
   if (
     !outputSink ||
-    outputSink.maximumBytes !== OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_OUTPUT_BYTES ||
+    outputSink.maximumBytes !== expectedMaximum ||
     typeof outputSink.persist !== 'function'
   ) throw invalid('Server-injected FFmpeg output sink authority is invalid.')
 }

@@ -1,6 +1,9 @@
 import { z } from 'zod'
 
 import { REEDITPRO_SOURCE_MEDIA_MAX_BYTES } from '../../src/types/large-media'
+import {
+  OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_OUTPUT_BYTES,
+} from '../tool-execution/media-binary-execution/offline-media-binary-types'
 import { canonicalPrivateToolDispatchCredentialSchema } from './canonical-private-tool-dispatch-schemas'
 import { canonicalWorkerLeaseCredentialSchema } from './canonical-worker-lease-authority-schemas'
 
@@ -50,7 +53,8 @@ const approvedColorSourceSchema = z.object({
   outputPixelFormat: z.literal('yuv420p'),
   colorArtifactId: identity,
   colorSha256: sha,
-  colorByteLength: z.number().int().min(64).max(32 * 1024 * 1024),
+  colorByteLength: z.number().int().min(64)
+    .max(OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_OUTPUT_BYTES),
   colorDependencyReadEvidenceHash: sha,
 }).strict()
 

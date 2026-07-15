@@ -1,5 +1,5 @@
 import { spawn } from 'node:child_process'
-import { createHash } from 'node:crypto'
+import { createHash, randomBytes } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { Readable, Transform } from 'node:stream'
@@ -7,7 +7,11 @@ import { pipeline } from 'node:stream/promises'
 
 import { ApiError } from '../../errors/api-error'
 import {
+  createPrivateDirectoryCreateOnlyWithinRoot,
+  createPrivateReadStreamWithinRoot,
   readPrivateTextFileIfExistsWithinRoot,
+  removePrivateDirectoryTreeWithinRoot,
+  writePrivateStreamCreateOnlyWithinRoot,
   writePrivateTextFileAtomicWithinRoot,
 } from '../../security/private-local-persistence'
 import { sha256AuthorityValue, stableAuthorityStringify } from '../../services/private-edit-authority-store'
@@ -26,9 +30,15 @@ import {
 } from './offline-media-binary-streaming-protocol'
 import type {
   OfflineFfmpegExecutionResult,
+  OfflineFfmpegStreamingOutputExecutionResult,
   OfflineFfprobeExecutionResult,
   OfflineMediaBinaryConfinementEvidence,
   OfflineMediaBinaryImageEvidence,
+  OfflineMediaBinaryStreamingOutputSink,
+} from './offline-media-binary-types'
+import {
+  OFFLINE_MEDIA_BINARY_LEGACY_OUTPUT_BUFFER_MAXIMUM_BYTES,
+  OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_OUTPUT_BYTES,
 } from './offline-media-binary-types'
 
 const IMAGE_TAG = 'reeditpro/ffmpeg-lgpl-internal:8.1.2-color-v1-local' as const
@@ -83,6 +93,11 @@ export interface PrivateOfflineMediaBinaryRuntime {
     request: OfflineFfmpegStreamingExecutionRequest,
     source: OfflineMediaBinaryServerInjectedInput,
   ): Promise<OfflineFfmpegExecutionResult>
+  executeServerInjectedStreamingOutput(
+    request: OfflineFfmpegStreamingExecutionRequest,
+    source: OfflineMediaBinaryServerInjectedInput,
+    outputSink: OfflineMediaBinaryStreamingOutputSink,
+  ): Promise<OfflineFfmpegStreamingOutputExecutionResult>
 }
 
 export async function activatePrivateOfflineMediaBinaryRuntime(): Promise<PrivateOfflineMediaBinaryRuntime> {
@@ -92,7 +107,18 @@ export async function activatePrivateOfflineMediaBinaryRuntime(): Promise<Privat
   const executeBound = ((request: unknown) => execute(image, request)) as PrivateOfflineMediaBinaryRuntime['execute']
   const executeServerInjectedBound = ((request: unknown, source: OfflineMediaBinaryServerInjectedInput) =>
     executeServerInjected(image, request, source)) as PrivateOfflineMediaBinaryRuntime['executeServerInjected']
-  return Object.freeze({ image, execute: executeBound, executeServerInjected: executeServerInjectedBound })
+  const executeServerInjectedStreamingOutputBound = ((
+    request: unknown,
+    source: OfflineMediaBinaryServerInjectedInput,
+    outputSink: OfflineMediaBinaryStreamingOutputSink,
+  ) => executeServerInjectedStreamingOutput(image, request, source, outputSink)) as
+    PrivateOfflineMediaBinaryRuntime['executeServerInjectedStreamingOutput']
+  return Object.freeze({
+    image,
+    execute: executeBound,
+    executeServerInjected: executeServerInjectedBound,
+    executeServerInjectedStreamingOutput: executeServerInjectedStreamingOutputBound,
+  })
 }
 
 export async function openPrivateOfflineMediaBinaryRuntime(): Promise<PrivateOfflineMediaBinaryRuntime> {
@@ -106,7 +132,18 @@ export async function openPrivateOfflineMediaBinaryRuntime(): Promise<PrivateOff
   const executeBound = ((request: unknown) => execute(image, request)) as PrivateOfflineMediaBinaryRuntime['execute']
   const executeServerInjectedBound = ((request: unknown, source: OfflineMediaBinaryServerInjectedInput) =>
     executeServerInjected(image, request, source)) as PrivateOfflineMediaBinaryRuntime['executeServerInjected']
-  return Object.freeze({ image, execute: executeBound, executeServerInjected: executeServerInjectedBound })
+  const executeServerInjectedStreamingOutputBound = ((
+    request: unknown,
+    source: OfflineMediaBinaryServerInjectedInput,
+    outputSink: OfflineMediaBinaryStreamingOutputSink,
+  ) => executeServerInjectedStreamingOutput(image, request, source, outputSink)) as
+    PrivateOfflineMediaBinaryRuntime['executeServerInjectedStreamingOutput']
+  return Object.freeze({
+    image,
+    execute: executeBound,
+    executeServerInjected: executeServerInjectedBound,
+    executeServerInjectedStreamingOutput: executeServerInjectedStreamingOutputBound,
+  })
 }
 
 export async function readPersistedOfflineMediaBinaryRuntimeAuthority():
@@ -168,6 +205,29 @@ async function executeServerInjected(
   }
   assertServerInjectedInput(source, request.payload.sourceByteLength, request.payload.sourceSha256)
   return executeFfprobeRequest(image, request, source)
+}
+
+async function executeServerInjectedStreamingOutput(
+  image: OfflineMediaBinaryImageEvidence,
+  value: unknown,
+  source: OfflineMediaBinaryServerInjectedInput,
+  outputSink: OfflineMediaBinaryStreamingOutputSink,
+): Promise<OfflineFfmpegStreamingOutputExecutionResult> {
+  let request: OfflineFfmpegStreamingExecutionRequest
+  try { request = validateOfflineFfmpegStreamingExecutionRequest(value) } catch {
+    throw invalid('Structured streaming-output FFmpeg execution request was rejected.')
+  }
+  if (
+    request.payload.recipeProfileId !== 'approved_source_color_delivery_matroska_v1' &&
+    request.payload.recipeProfileId !== 'approved_source_color_match_delivery_matroska_v1'
+  ) throw invalid('Streaming FFmpeg output is restricted to approved professional-color recipes.')
+  assertServerInjectedInput(source, request.payload.sourceByteLength, request.payload.sourceSha256)
+  assertStreamingOutputSink(outputSink)
+  const result = await executeFfmpegRequest(image, request, source, outputSink)
+  if (!('outputMode' in result.resultArtifact)) {
+    throw unavailable('Streaming FFmpeg output returned a buffered artifact unexpectedly.')
+  }
+  return result
 }
 
 async function executeFfprobe(
@@ -289,7 +349,19 @@ async function executeFfmpegRequest(
   image: OfflineMediaBinaryImageEvidence,
   request: OfflineFfmpegExecutionRequest | OfflineFfmpegStreamingExecutionRequest,
   source: OfflineMediaBinaryServerInjectedInput,
-): Promise<OfflineFfmpegExecutionResult> {
+): Promise<OfflineFfmpegExecutionResult>
+async function executeFfmpegRequest(
+  image: OfflineMediaBinaryImageEvidence,
+  request: OfflineFfmpegStreamingExecutionRequest,
+  source: OfflineMediaBinaryServerInjectedInput,
+  outputSink: OfflineMediaBinaryStreamingOutputSink,
+): Promise<OfflineFfmpegStreamingOutputExecutionResult>
+async function executeFfmpegRequest(
+  image: OfflineMediaBinaryImageEvidence,
+  request: OfflineFfmpegExecutionRequest | OfflineFfmpegStreamingExecutionRequest,
+  source: OfflineMediaBinaryServerInjectedInput,
+  outputSink?: OfflineMediaBinaryStreamingOutputSink,
+): Promise<OfflineFfmpegExecutionResult | OfflineFfmpegStreamingOutputExecutionResult> {
   const voiceDelivery = request.payload.recipeProfileId === 'approved_voice_delivery_wav_v1'
   const colorMatchDeliveryPayload = request.payload.recipeProfileId ===
     'approved_source_color_match_delivery_matroska_v1'
@@ -349,33 +421,62 @@ async function executeFfmpegRequest(
         '-i', 'pipe:0', '-map', '0:v:0',
         '-vf', `trim=start_frame=${request.payload.trimStartFrame}:end_frame=${request.payload.trimEndFrameExclusive},setpts=PTS-STARTPTS`,
         '-an', '-threads', '1', '-c:v', 'ffv1', '-level', '3', '-f', 'nut', 'pipe:1',
-      ]
+  ]
   const container = await createContainer(image, FFMPEG_ENTRYPOINT, command)
+  let streamedOutputSpool: DockerVerifiedPrivateOutputSpool | undefined
   try {
     const before = await inspectContainer(container.id)
     const confinement = validateConfinement(before, image, FFMPEG_ENTRYPOINT, command)
-    const started = await dockerVerifiedInput(
-      ['start', '--attach', '--interactive', container.id],
-      source,
-      32 * 1024 * 1024,
-      mediaExecutionTimeoutMs(source.byteLength, trimDurationFrames, request.payload.frameRate),
+    const calculatedTimeoutMs = mediaExecutionTimeoutMs(
+      source.byteLength,
+      trimDurationFrames,
+      request.payload.frameRate,
     )
+    const timeoutMs = outputSink
+      ? Math.max(calculatedTimeoutMs, 5 * 60_000)
+      : calculatedTimeoutMs
+    const bufferedOutput = outputSink
+      ? undefined
+      : await dockerVerifiedInput(
+          ['start', '--attach', '--interactive', container.id],
+          source,
+          OFFLINE_MEDIA_BINARY_LEGACY_OUTPUT_BUFFER_MAXIMUM_BYTES,
+          timeoutMs,
+        )
+    if (outputSink) {
+      streamedOutputSpool = await dockerVerifiedInputToPrivateOutputSpool({
+        args: ['start', '--attach', '--interactive', container.id],
+        input: source,
+        maximumOutputBytes: outputSink.maximumBytes,
+        expectedFormat: 'mkv',
+        timeoutMs,
+      })
+    }
+    const outputByteLength = streamedOutputSpool?.byteLength ?? bufferedOutput!.stdout.byteLength
+    const resultSha256 = streamedOutputSpool?.sha256 ?? sha256(bufferedOutput!.stdout)
+    const outputSignature = streamedOutputSpool?.signature ?? bufferedOutput!.stdout.subarray(0, 25)
+    const outputInput = streamedOutputSpool?.source ?? verifiedBufferInput(
+      bufferedOutput!.stdout,
+      resultSha256,
+    )
+    const exitCode = streamedOutputSpool?.exitCode ?? bufferedOutput!.exitCode
+    const stderr = streamedOutputSpool?.stderr ?? bufferedOutput!.stderr
     const after = await inspectContainer(container.id)
     const state = record(after.State)
     if (
-      started.exitCode !== 0 || started.stderr.length > 0 || started.stdout.byteLength < 64 ||
+      exitCode !== 0 || stderr.length > 0 || outputByteLength < 64 ||
       state.Status !== 'exited' || state.Running !== false ||
-      state.ExitCode !== started.exitCode || state.OOMKilled !== false
+      state.ExitCode !== exitCode || state.OOMKilled !== false
     ) throw unavailable(
       'Confined FFmpeg operation failed closed ' +
-      `(exit=${started.exitCode};stderrBytes=${started.stderr.length};` +
-      `stdoutBytes=${started.stdout.byteLength};state=${String(state.Status)};` +
+      `(exit=${exitCode};stderrBytes=${stderr.length};` +
+      `stdoutBytes=${outputByteLength};state=${String(state.Status)};` +
       `stateExit=${String(state.ExitCode)};oomKilled=${String(state.OOMKilled)};` +
-      `diagnostic=${safeFfmpegDiagnostic(started.stderr)}).`,
+      `diagnostic=${safeFfmpegDiagnostic(stderr)}).`,
     )
-    if (voiceDelivery ? !isPcmWave(started.stdout) : colorDelivery
-      ? !isMatroska(started.stdout)
-      : !started.stdout.subarray(0, 25).toString('ascii').includes('nut/multimedia')) {
+    if (voiceDelivery ? !isPcmWave(bufferedOutput!.stdout) : colorDelivery
+      ? !isMatroska(outputSignature)
+      : !outputSignature.toString('ascii').includes('nut/multimedia')) {
       throw unavailable(voiceDelivery
         ? 'FFmpeg voice-delivery output is not the fixed PCM WAV artifact.'
         : colorDelivery
@@ -385,12 +486,12 @@ async function executeFfmpegRequest(
     const outputProbe = voiceDelivery
       ? await probeFfmpegVoiceDeliveryOutput(
           image,
-          started.stdout,
+          bufferedOutput!.stdout,
           trimDurationFrames / request.payload.frameRate,
         )
       : await probeFfmpegOutput(
           image,
-          started.stdout,
+          outputInput,
           trimDurationFrames,
           request.payload.frameRate,
           colorDelivery,
@@ -398,7 +499,7 @@ async function executeFfmpegRequest(
     const outputColorAnalysis = colorDelivery
       ? await analyzeVideoColor({
           image,
-          source: verifiedBufferInput(started.stdout, sha256(started.stdout)),
+          source: outputInput,
           startFrame: 0,
           endFrameExclusive: trimDurationFrames,
           frameRate: request.payload.frameRate,
@@ -419,7 +520,7 @@ async function executeFfmpegRequest(
         outputColorAnalysis.meanLuma <= 8 || outputColorAnalysis.meanLuma >= 247 ||
         outputColorAnalysis.blackLumaFraction >= 0.98 ||
         outputColorAnalysis.whiteLumaFraction >= 0.98 ||
-        sha256(started.stdout) === request.payload.sourceSha256 ||
+        resultSha256 === request.payload.sourceSha256 ||
         (colorMatchDelivery && (!colorMatchQa || !colorMatchQa.passed))
       )
     ) throw unavailable(
@@ -429,7 +530,17 @@ async function executeFfmpegRequest(
       `reference=${JSON.stringify(referenceColorAnalysis)};` +
       `match=${JSON.stringify(colorMatchQa)}).`,
     )
-    const resultSha256 = sha256(started.stdout)
+    if (outputSink) {
+      const persisted = await outputSink.persist({
+        stream: await outputInput.openStream(),
+        mimeType: 'video/x-matroska',
+        expectedByteLength: outputByteLength,
+        expectedSha256: resultSha256,
+      })
+      if (
+        persisted.byteLength !== outputByteLength || persisted.sha256 !== resultSha256
+      ) throw unavailable('Streaming FFmpeg output sink changed the exact artifact commitment.')
+    }
     const completedAt = new Date().toISOString()
     const attestationWithoutHash = {
       domain: 'offline_media_binary_execution_attestation_v1',
@@ -441,6 +552,9 @@ async function executeFfmpegRequest(
         ? { referenceSourceSha256: colorMatchDeliveryPayload!.referenceSourceSha256 }
         : {}),
       resultSha256, confinement, outputProbe,
+      outputTransport: outputSink
+        ? 'server_committed_private_stream_v1' as const
+        : 'bounded_legacy_buffer_v1' as const,
       ...(colorMatchQa ? { colorMatchQa } : {}),
     }
     const attestationHash = sha256AuthorityValue(attestationWithoutHash)
@@ -455,17 +569,7 @@ async function executeFfmpegRequest(
         checksumSha256: sha256AuthorityValue({ ...attestationWithoutHash, recordId, attestationHash }),
       })}\n`,
     })
-    return {
-      resultArtifact: {
-        mimeType: voiceDelivery
-          ? 'audio/wav'
-          : colorDelivery
-            ? 'video/x-matroska'
-            : 'video/x-nut',
-        bytes: started.stdout,
-        sha256: resultSha256, byteLength: started.stdout.byteLength,
-      },
-      evidence: {
+    const evidence: OfflineFfmpegExecutionResult['evidence'] = {
         toolId: 'ffmpeg', operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
         binaryVersion: SOURCE_VERSION,
         requestEnvelopeSha256: sha256AuthorityValue(redactedRequestEnvelope(request)),
@@ -530,6 +634,10 @@ async function executeFfmpegRequest(
                   histogramQaPassed: true,
                   outputColorSpace: 'bt709',
                   outputPixelFormat: 'yuv420p',
+                  outputDeliveryMode: outputSink
+                    ? 'server_committed_private_stream_v1'
+                    : 'bounded_legacy_buffer_v1',
+                  outputWholeBufferAvoided: Boolean(outputSink),
                 }
               : {
                 outputFrameCount: trimDurationFrames,
@@ -538,15 +646,48 @@ async function executeFfmpegRequest(
           outputProbeVerified: true,
         },
         confinement, containerExitCode: 0, oomKilled: false,
-      },
+    }
+    const common = {
       image,
       attestation: { recordId, completedAt, attestationHash },
       readiness: {
-        privateInternalOnly: true, productReady: false,
-        externalBetaReady: false, productionReady: false,
+        privateInternalOnly: true as const,
+        productReady: false as const,
+        externalBetaReady: false as const,
+        productionReady: false as const,
       },
     }
+    if (outputSink) {
+      return {
+        resultArtifact: {
+          mimeType: 'video/x-matroska',
+          sha256: resultSha256,
+          byteLength: outputByteLength,
+          outputMode: 'server_committed_private_stream_v1',
+        },
+        evidence: {
+          ...evidence,
+          outputTransport: 'server_committed_private_stream_v1',
+        },
+        ...common,
+      }
+    }
+    return {
+      resultArtifact: {
+        mimeType: voiceDelivery
+          ? 'audio/wav'
+          : colorDelivery
+            ? 'video/x-matroska'
+            : 'video/x-nut',
+        bytes: bufferedOutput!.stdout,
+        sha256: resultSha256,
+        byteLength: outputByteLength,
+      },
+      evidence,
+      ...common,
+    }
   } finally {
+    await streamedOutputSpool?.cleanup().catch(() => undefined)
     await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024).catch(() => undefined)
   }
 }
@@ -995,7 +1136,7 @@ function pcmWaveDetails(bytes: Buffer): {
 
 async function probeFfmpegOutput(
   image: OfflineMediaBinaryImageEvidence,
-  bytes: Buffer,
+  source: OfflineMediaBinaryServerInjectedInput,
   expectedFrameCount: number,
   expectedFrameRate: number,
   expectProfessionalColor = false,
@@ -1008,7 +1149,12 @@ async function probeFfmpegOutput(
   const container = await createContainer(image, FFPROBE_ENTRYPOINT, command)
   try {
     validateConfinement(await inspectContainer(container.id), image, FFPROBE_ENTRYPOINT, command)
-    const result = await dockerBuffer(['start', '--attach', '--interactive', container.id], bytes, 2 * 1024 * 1024)
+    const result = await dockerVerifiedInput(
+      ['start', '--attach', '--interactive', container.id],
+      source,
+      2 * 1024 * 1024,
+      mediaExecutionTimeoutMs(source.byteLength),
+    )
     if (result.exitCode !== 0 || result.stderr.length > 0) throw unavailable('FFmpeg output verification failed closed.')
     const parsed = record(JSON.parse(result.stdout.toString('utf8')))
     const format = record(parsed.format)
@@ -1411,6 +1557,164 @@ async function dockerVerifiedInput(
   }
 }
 
+interface DockerVerifiedPrivateOutputSpool {
+  exitCode: number
+  stderr: Buffer
+  byteLength: number
+  sha256: string
+  signature: Buffer
+  source: OfflineMediaBinaryServerInjectedInput
+  cleanup(): Promise<void>
+}
+
+async function dockerVerifiedInputToPrivateOutputSpool(input: {
+  args: string[]
+  input: OfflineMediaBinaryServerInjectedInput
+  maximumOutputBytes: number
+  expectedFormat: 'mkv'
+  timeoutMs: number
+}): Promise<DockerVerifiedPrivateOutputSpool> {
+  assertServerInjectedInput(input.input, input.input.byteLength, input.input.sha256)
+  if (
+    input.maximumOutputBytes !== OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_OUTPUT_BYTES ||
+    input.expectedFormat !== 'mkv'
+  ) throw invalid('Streaming FFmpeg output spool bounds are invalid.')
+  const spoolId = randomBytes(16).toString('hex')
+  const relativeDirectoryPath = `runtime-output-spools/${spoolId}`
+  const createdDirectory = await createPrivateDirectoryCreateOnlyWithinRoot({
+    rootPath: STORAGE_ROOT,
+    relativePath: relativeDirectoryPath,
+  })
+  const relativeArtifactPath = `${relativeDirectoryPath}/artifact.mkv`
+  const child = spawn('docker', input.args, {
+    stdio: ['pipe', 'pipe', 'pipe'],
+    env: { PATH: process.env.PATH ?? '' },
+  })
+  const stderr: Buffer[] = []
+  let stderrBytes = 0
+  const resultPromise = new Promise<{ exitCode: number; stderr: Buffer }>((resolve, reject) => {
+    const timer = setTimeout(() => {
+      child.kill('SIGKILL')
+      reject(unavailable('Docker media operation timed out.'))
+    }, input.timeoutMs)
+    child.stderr.on('data', (chunk: Buffer) => {
+      stderrBytes += chunk.byteLength
+      if (stderrBytes > 512 * 1024) child.kill('SIGKILL')
+      else stderr.push(chunk)
+    })
+    child.once('error', (error) => {
+      clearTimeout(timer)
+      reject(error)
+    })
+    child.once('close', (code) => {
+      clearTimeout(timer)
+      if (stderrBytes > 512 * 1024) {
+        reject(unavailable('Docker media output exceeded its fixed diagnostic bound.'))
+        return
+      }
+      resolve({ exitCode: code ?? 1, stderr: Buffer.concat(stderr) })
+    })
+  })
+  const signatureChunks: Buffer[] = []
+  let signatureByteLength = 0
+  const verifiedOutput = Readable.from((async function* () {
+    for await (const chunk of child.stdout) {
+      const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)
+      if (signatureByteLength < 25) {
+        const part = bytes.subarray(0, Math.min(bytes.byteLength, 25 - signatureByteLength))
+        signatureChunks.push(Buffer.from(part))
+        signatureByteLength += part.byteLength
+      }
+      yield bytes
+    }
+  })())
+  let sourceStream: Readable | undefined
+  let inputByteLength = 0
+  const inputChecksum = createHash('sha256')
+  try {
+    sourceStream = await input.input.openStream()
+    if (!sourceStream || typeof sourceStream.pipe !== 'function') {
+      throw new Error('Private media input did not return a readable stream.')
+    }
+    const inputVerifier = new Transform({
+      transform(chunk, _encoding, callback) {
+        const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)
+        inputByteLength += bytes.byteLength
+        if (inputByteLength > input.input.byteLength) {
+          callback(new Error('Private media input exceeded its exact byte commitment.'))
+          return
+        }
+        inputChecksum.update(bytes)
+        callback(null, bytes)
+      },
+    })
+    const persistedPromise = writePrivateStreamCreateOnlyWithinRoot({
+      rootPath: STORAGE_ROOT,
+      relativePath: relativeArtifactPath,
+      stream: verifiedOutput,
+      maximumBytes: input.maximumOutputBytes,
+    })
+    const [, result, persisted] = await Promise.all([
+      pipeline(sourceStream, inputVerifier, child.stdin),
+      resultPromise,
+      persistedPromise,
+    ])
+    const signature = Buffer.concat(signatureChunks, signatureByteLength)
+    if (
+      inputByteLength !== input.input.byteLength ||
+      inputChecksum.digest('hex') !== input.input.sha256
+    ) throw new Error('Private media input did not match its exact byte commitment.')
+    if (
+      persisted.byteLength < 64 || persisted.byteLength > input.maximumOutputBytes ||
+      !isMatroska(signature)
+    ) throw new Error('Private FFmpeg output failed its streaming format commitment.')
+    let cleaned = false
+    const cleanup = async () => {
+      if (cleaned) return
+      const removed = await removePrivateDirectoryTreeWithinRoot({
+        rootPath: STORAGE_ROOT,
+        relativePath: relativeDirectoryPath,
+        expectedIdentity: createdDirectory.identity,
+      })
+      if (!removed.removed) throw unavailable('Private FFmpeg output spool disappeared before cleanup.')
+      cleaned = true
+    }
+    const source = Object.freeze({
+      inputMode: 'private_verified_stream_v1' as const,
+      byteLength: persisted.byteLength,
+      sha256: persisted.checksumSha256,
+      async openStream() {
+        return createPrivateReadStreamWithinRoot({
+          rootPath: STORAGE_ROOT,
+          relativePath: relativeArtifactPath,
+        })
+      },
+    })
+    return {
+      exitCode: result.exitCode,
+      stderr: result.stderr,
+      byteLength: persisted.byteLength,
+      sha256: persisted.checksumSha256,
+      signature,
+      source,
+      cleanup,
+    }
+  } catch (error) {
+    sourceStream?.destroy()
+    child.stdout.destroy()
+    child.stdin.destroy()
+    child.kill('SIGKILL')
+    await resultPromise.catch(() => undefined)
+    await removePrivateDirectoryTreeWithinRoot({
+      rootPath: STORAGE_ROOT,
+      relativePath: relativeDirectoryPath,
+      expectedIdentity: createdDirectory.identity,
+    }).catch(() => undefined)
+    if (error instanceof ApiError && error.code === 'TOOL_NOT_READY') throw error
+    throw unavailable('Docker media streams failed exact private output verification.')
+  }
+}
+
 function verifiedBufferInput(
   bytes: Buffer,
   expectedSha256: string,
@@ -1426,6 +1730,14 @@ function verifiedBufferInput(
       return Readable.from([bytes])
     },
   })
+}
+
+function assertStreamingOutputSink(outputSink: OfflineMediaBinaryStreamingOutputSink): void {
+  if (
+    !outputSink ||
+    outputSink.maximumBytes !== OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_OUTPUT_BYTES ||
+    typeof outputSink.persist !== 'function'
+  ) throw invalid('Server-injected FFmpeg output sink authority is invalid.')
 }
 
 function assertServerInjectedInput(

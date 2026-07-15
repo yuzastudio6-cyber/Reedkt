@@ -295,7 +295,7 @@ function buildRecoveredResponse(input: {
   attemptCostEvidenceRecorded: boolean
 }): CanonicalPrivateJobExecutionAdapterResponse {
   const responseWithoutHash = {
-    schemaVersion: 'canonical-private-job-execution-adapter-response-v3' as const,
+    schemaVersion: 'canonical-private-job-execution-adapter-response-v4' as const,
     source: 'canonical_private_job_execution_adapter' as const,
     purpose: 'execute_canonical_private_job' as const,
     identity: {
@@ -344,6 +344,12 @@ function buildRecoveredResponse(input: {
       sourceStreamInputVerified: false,
       sourceStagingCleanupVerified: false,
       largeSourceOverLegacyBufferVerified: false,
+      // Generic completion recovery cannot infer attempt-level media-output
+      // transport from a completed artifact or from the current runner code.
+      mediaOutputStreamed: false,
+      largeMediaOutputOverLegacyBufferVerified: false,
+      leaseHeartbeatCount: 0,
+      longRunningLeaseHeartbeatVerified: false,
     },
     permissions: deniedPermissions(),
     readiness: {

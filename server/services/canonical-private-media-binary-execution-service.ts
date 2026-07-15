@@ -12,6 +12,7 @@ import {
   validateOfflineFfprobeStreamingExecutionRequest,
   validateOfflineFfprobePlanningPayload,
   type OfflineFfmpegExecutionResult,
+  type OfflineFfmpegStreamingOutputExecutionResult,
   type OfflineFfmpegColorMatchDeliveryPlanningPayload,
   type OfflineFfprobeExecutionResult,
 } from '../tool-execution/media-binary-execution'
@@ -47,7 +48,10 @@ import type {
 } from './canonical-private-source-object-read-service'
 import { createCanonicalPrivateToolDispatchAuthorityService } from './canonical-private-tool-dispatch-authority-service'
 import {
+  CANONICAL_PRIVATE_MEDIA_STREAMING_MAXIMUM_BYTES,
+  inspectCanonicalPrivateMediaArtifact,
   persistCanonicalPrivateMediaArtifact,
+  persistCanonicalPrivateMediaArtifactStream,
   readCanonicalPrivateMediaArtifact,
 } from './canonical-private-media-artifact-storage'
 import { CANONICAL_PRIVATE_REMOTION_STREAMING_MAXIMUM_BYTES } from './canonical-private-remotion-artifact-storage'
@@ -197,7 +201,11 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
       let finalMediaExpectation: CanonicalPrivateFinalMediaExpectation | undefined
       let inputByteLength: number
       let inputSha256: string
-      let executionResult!: OfflineFfprobeExecutionResult | OfflineFfmpegExecutionResult
+      let inputReadEvidenceHash: string
+      let privateObjectIdentityHash: string | undefined
+      let mediaOutputStreamPersisted = false
+      let executionResult!: OfflineFfprobeExecutionResult | OfflineFfmpegExecutionResult |
+        OfflineFfmpegStreamingOutputExecutionResult
       try {
         if (dependencyFinalQa) {
           dependencyRead = await createCanonicalPrivateDependencyArtifactReadService(context)
@@ -260,6 +268,28 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
         }
         inputByteLength = dependencyRead?.byteLength ?? sourceRead!.byteLength
         inputSha256 = dependencyRead?.sha256 ?? sourceRead!.sha256
+        inputReadEvidenceHash = referenceDependencyRead
+          ? sha256ArtifactQaValue({
+              sourceReadEvidenceHash: sourceRead!.sourceReadEvidenceHash,
+              referenceDependencyReadEvidenceHash:
+                referenceDependencyRead.dependencyReadEvidenceHash,
+            })
+          : dependencyRead?.dependencyReadEvidenceHash ?? sourceRead!.sourceReadEvidenceHash
+        const privateObjectIdentityFor = (contentSha256: string) => sha256ArtifactQaValue({
+          domain: 'canonical_private_media_binary_artifact_v1',
+          workspaceId: body.workspaceId, snapshotId: authority.snapshot.snapshotId,
+          jobId: body.jobId, expectedAssetId: expectedAsset.id,
+          dispatchGrantId: body.grantId, executionAttemptId,
+          inputKind: dependencyFinalQa
+            ? 'qa_passed_dependency_artifact'
+            : referenceDependencyRead
+              ? 'approved_source_and_reference_artifact'
+              : 'approved_source_object',
+          inputSha256,
+          referenceInputSha256: referenceDependencyRead?.sha256 ?? null,
+          inputReadEvidenceHash,
+          contentSha256,
+        })
         const referencePayload = referenceDependencyRead
           ? {
               referenceMimeType: 'video/x-matroska' as const,
@@ -282,17 +312,47 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
               openStream: dependencyRead.openStream,
             }
           : sourceRead!.sourceInput
-        executionResult = toolId === 'ffmpeg'
-          ? await runtime.executeServerInjected(validateOfflineFfmpegStreamingExecutionRequest({
-              schemaVersion: OFFLINE_MEDIA_BINARY_STREAM_PROTOCOL,
-              toolId, operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
-              payload: { ...planningPayload, ...sourcePayload, ...referencePayload },
-            }), sourceInput)
-          : await runtime.executeServerInjected(validateOfflineFfprobeStreamingExecutionRequest({
+        if (toolId === 'ffmpeg') {
+          const request = validateOfflineFfmpegStreamingExecutionRequest({
+            schemaVersion: OFFLINE_MEDIA_BINARY_STREAM_PROTOCOL,
+            toolId, operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
+            payload: { ...planningPayload, ...sourcePayload, ...referencePayload },
+          })
+          executionResult = contentType === 'video/x-matroska'
+            ? await runtime.executeServerInjectedStreamingOutput(request, sourceInput, {
+                maximumBytes: CANONICAL_PRIVATE_MEDIA_STREAMING_MAXIMUM_BYTES,
+                async persist(output) {
+                  if (output.mimeType !== 'video/x-matroska') {
+                    throw denied('Streaming media output returned the wrong content type.')
+                  }
+                  const identity = privateObjectIdentityFor(output.expectedSha256)
+                  if (privateObjectIdentityHash && privateObjectIdentityHash !== identity) {
+                    throw denied('Streaming media output identity changed during persistence.')
+                  }
+                  privateObjectIdentityHash = identity
+                  const stored = await persistCanonicalPrivateMediaArtifactStream({
+                    localStorageRoot: context.env.localStorageRoot,
+                    privateObjectIdentityHash: identity,
+                    mediaFormat: 'mkv',
+                    stream: output.stream,
+                    expectedByteLength: output.expectedByteLength,
+                    expectedSha256: output.expectedSha256,
+                  })
+                  mediaOutputStreamPersisted = true
+                  return { byteLength: stored.byteLength, sha256: stored.sha256 }
+                },
+              })
+            : await runtime.executeServerInjected(request, sourceInput)
+        } else {
+          executionResult = await runtime.executeServerInjected(
+            validateOfflineFfprobeStreamingExecutionRequest({
               schemaVersion: OFFLINE_MEDIA_BINARY_STREAM_PROTOCOL,
               toolId, operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffprobe,
               payload: { ...planningPayload, ...sourcePayload },
-            }), sourceInput)
+            }),
+            sourceInput,
+          )
+        }
       } finally {
         await stagedSourceSet?.cleanup()
       }
@@ -311,15 +371,7 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
       const finalArtifactQa = dependencyFinalQa
         ? normalizeCanonicalPrivateFinalMediaQa(normalized.document!, finalMediaExpectation!)
         : null
-      const inputReadEvidenceHash = referenceDependencyRead
-        ? sha256ArtifactQaValue({
-            sourceReadEvidenceHash: sourceRead!.sourceReadEvidenceHash,
-            referenceDependencyReadEvidenceHash:
-              referenceDependencyRead.dependencyReadEvidenceHash,
-          })
-        : dependencyRead?.dependencyReadEvidenceHash ?? sourceRead!.sourceReadEvidenceHash
-
-      const privateObjectIdentityHash = sha256ArtifactQaValue({
+      privateObjectIdentityHash ??= sha256ArtifactQaValue({
         domain: 'canonical_private_media_binary_artifact_v1',
         workspaceId: body.workspaceId, snapshotId: authority.snapshot.snapshotId,
         jobId: body.jobId, expectedAssetId: expectedAsset.id,
@@ -334,20 +386,33 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
         inputReadEvidenceHash,
         contentSha256: normalized.sha256,
       })
+      const committedPrivateObjectIdentityHash = privateObjectIdentityHash
       if (contentType === 'application/json') {
         await persistCanonicalStructuredJsonArtifact({
-          localStorageRoot: context.env.localStorageRoot, privateObjectIdentityHash,
-          bytes: normalized.bytes, expectedSha256: normalized.sha256,
+          localStorageRoot: context.env.localStorageRoot,
+          privateObjectIdentityHash: committedPrivateObjectIdentityHash,
+          bytes: requireNormalizedBytes(normalized), expectedSha256: normalized.sha256,
         })
       } else if (contentType === 'audio/wav') {
         await persistCanonicalPrivateAudioArtifact({
-          localStorageRoot: context.env.localStorageRoot, privateObjectIdentityHash,
-          bytes: normalized.bytes, expectedSha256: normalized.sha256,
+          localStorageRoot: context.env.localStorageRoot,
+          privateObjectIdentityHash: committedPrivateObjectIdentityHash,
+          bytes: requireNormalizedBytes(normalized), expectedSha256: normalized.sha256,
         })
+      } else if (normalized.outputMode === 'server_committed_private_stream_v1') {
+        const stored = await inspectCanonicalPrivateMediaArtifact({
+          localStorageRoot: context.env.localStorageRoot,
+          privateObjectIdentityHash: committedPrivateObjectIdentityHash,
+        })
+        if (
+          !mediaOutputStreamPersisted || !stored || stored.mediaFormat !== 'mkv' ||
+          stored.byteLength !== normalized.byteLength || stored.sha256 !== normalized.sha256
+        ) throw denied('Streaming media output was not committed to exact private storage.')
       } else {
         await persistCanonicalPrivateMediaArtifact({
-          localStorageRoot: context.env.localStorageRoot, privateObjectIdentityHash,
-          bytes: normalized.bytes, expectedSha256: normalized.sha256,
+          localStorageRoot: context.env.localStorageRoot,
+          privateObjectIdentityHash: committedPrivateObjectIdentityHash,
+          bytes: requireNormalizedBytes(normalized), expectedSha256: normalized.sha256,
         })
       }
       const identity = {
@@ -368,7 +433,8 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
       }
       const adapterInput: MediaAdapterInput = {
         localStorageRoot: context.env.localStorageRoot, identity, lineage,
-        privateObjectIdentityHash, executionAttemptId, dispatchGrantId: body.grantId,
+        privateObjectIdentityHash: committedPrivateObjectIdentityHash,
+        executionAttemptId, dispatchGrantId: body.grantId,
         runtimeAuthorityHash: runtimeAuthority.authorityHash,
         executionStartedAt: begun.executionFence.startedAt,
         executionResult, normalized, inputReadEvidenceHash, finalArtifactQa,
@@ -406,7 +472,7 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
       )) !== authorityHashBefore) throw denied('Canonical planning authority changed during media binary execution.')
 
       const responseWithoutHash = {
-        schemaVersion: 'canonical-private-media-binary-execution-response-v3' as const,
+        schemaVersion: 'canonical-private-media-binary-execution-response-v4' as const,
         source: 'canonical_private_media_binary_execution_coordinator' as const,
         purpose: body.purpose,
         identity: { ...identity, approvedWorkItemId: workItem.id, dispatchGrantId: body.grantId },
@@ -482,6 +548,7 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
           reconciliationId: reconciliation.reconciliation.reconciliationId,
           contentType, sha256: artifactResult.artifact.content.sha256,
           byteLength: artifactResult.artifact.content.byteLength,
+          outputMode: normalized.outputMode,
           privateObjectIdentityHash: artifactResult.artifact.storageIdentity.opaqueObjectIdentityHash,
           qaOutcome: 'passed' as const,
           reconciliationDecision: 'test_merged_not_live_authorized' as const,
@@ -504,6 +571,11 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
         persistence: {
           privateLocalCreateOnlyArtifact: true as const, actualRunEvidenceVerified: true as const,
           actualQaEvidenceVerified: true as const, checksumProtectedAuthority: true as const,
+          mediaOutputStreamed:
+            normalized.outputMode === 'server_committed_private_stream_v1',
+          largeMediaOutputOverLegacyBufferVerified:
+            normalized.outputMode === 'server_committed_private_stream_v1' &&
+            normalized.byteLength > 16 * 1024 * 1024,
           distributedAuthority: false as const, productionAuthority: false as const,
         },
         completedAt: reconciliation.reconciliation.createdAt,
@@ -526,7 +598,8 @@ interface MediaAdapterInput {
   dispatchGrantId: string
   runtimeAuthorityHash: string
   executionStartedAt: string
-  executionResult: OfflineFfprobeExecutionResult | OfflineFfmpegExecutionResult
+  executionResult: OfflineFfprobeExecutionResult | OfflineFfmpegExecutionResult |
+    OfflineFfmpegStreamingOutputExecutionResult
   normalized: NormalizedMediaBinaryResult
   inputReadEvidenceHash: string
   finalArtifactQa: CanonicalPrivateFinalMediaQa | null
@@ -578,10 +651,11 @@ function assertReferenceColorDependency(input: {
 
 interface NormalizedMediaBinaryResult {
   contentType: 'application/json' | 'video/x-nut' | 'video/x-matroska' | 'audio/wav'
-  bytes: Buffer
+  bytes?: Buffer
   sha256: string
   byteLength: number
   document?: Readonly<Record<string, unknown>>
+  outputMode: 'bounded_buffer_v1' | 'server_committed_private_stream_v1'
 }
 
 function createAdapters(input: MediaAdapterInput): {
@@ -689,6 +763,18 @@ function createAdapters(input: MediaAdapterInput): {
 }
 
 async function assertStored(input: MediaAdapterInput) {
+  if (input.normalized.outputMode === 'server_committed_private_stream_v1') {
+    const stored = await inspectCanonicalPrivateMediaArtifact({
+      localStorageRoot: input.localStorageRoot,
+      privateObjectIdentityHash: input.privateObjectIdentityHash,
+    })
+    if (
+      !stored || stored.mediaFormat !== 'mkv' ||
+      stored.sha256 !== input.normalized.sha256 ||
+      stored.byteLength !== input.normalized.byteLength
+    ) throw denied('Streaming media binary artifact changed before artifact authority.')
+    return stored
+  }
   const stored = input.normalized.contentType === 'application/json'
     ? await readCanonicalStructuredJsonArtifact({
         localStorageRoot: input.localStorageRoot,
@@ -706,7 +792,7 @@ async function assertStored(input: MediaAdapterInput) {
   if (
     !stored || stored.sha256 !== input.normalized.sha256 ||
     stored.byteLength !== input.normalized.byteLength ||
-    !stored.bytes.equals(input.normalized.bytes)
+    !stored.bytes.equals(requireNormalizedBytes(input.normalized))
   ) throw denied('Media binary bytes changed before artifact authority.')
   return stored
 }
@@ -730,22 +816,38 @@ function assertArtifact(artifact: PersistedArtifactResult, input: MediaAdapterIn
 }
 
 function normalizeExecutionResult(
-  result: OfflineFfprobeExecutionResult | OfflineFfmpegExecutionResult,
+  result: OfflineFfprobeExecutionResult | OfflineFfmpegExecutionResult |
+    OfflineFfmpegStreamingOutputExecutionResult,
 ): NormalizedMediaBinaryResult {
-  return 'resultArtifact' in result
-    ? {
-        contentType: result.resultArtifact.mimeType,
-        bytes: result.resultArtifact.bytes,
-        sha256: result.resultArtifact.sha256,
-        byteLength: result.resultArtifact.byteLength,
-      }
-    : {
-        contentType: result.resultJson.mimeType,
-        bytes: result.resultJson.bytes,
-        sha256: result.resultJson.sha256,
-        byteLength: result.resultJson.byteLength,
-        document: result.resultJson.document,
-      }
+  if ('resultArtifact' in result) {
+    return 'outputMode' in result.resultArtifact
+      ? {
+          contentType: result.resultArtifact.mimeType,
+          sha256: result.resultArtifact.sha256,
+          byteLength: result.resultArtifact.byteLength,
+          outputMode: result.resultArtifact.outputMode,
+        }
+      : {
+          contentType: result.resultArtifact.mimeType,
+          bytes: result.resultArtifact.bytes,
+          sha256: result.resultArtifact.sha256,
+          byteLength: result.resultArtifact.byteLength,
+          outputMode: 'bounded_buffer_v1',
+        }
+  }
+  return {
+    contentType: result.resultJson.mimeType,
+    bytes: result.resultJson.bytes,
+    sha256: result.resultJson.sha256,
+    byteLength: result.resultJson.byteLength,
+    document: result.resultJson.document,
+    outputMode: 'bounded_buffer_v1',
+  }
+}
+
+function requireNormalizedBytes(result: NormalizedMediaBinaryResult): Buffer {
+  if (!result.bytes) throw denied('Buffered media binary result bytes are unavailable.')
+  return result.bytes
 }
 
 function mediaBinaryToolId(value: string): MediaBinaryToolId | undefined {

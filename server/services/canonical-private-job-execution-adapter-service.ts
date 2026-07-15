@@ -44,6 +44,7 @@ import { createCanonicalPrivateToolDispatchAuthorityService } from './canonical-
 import { createCanonicalPrivateVapourSynthFramePipelineExecutionService } from './canonical-private-vapoursynth-frame-pipeline-execution-service'
 import { createCanonicalExecutionReadinessService } from './canonical-execution-readiness-service'
 import {
+  CANONICAL_PRIVATE_WORKER_LEASE_TTL_SECONDS,
   createCanonicalWorkerLeaseAuthorityService,
   type CanonicalWorkerLeaseInternalExecutionFailureResult,
   type CanonicalWorkerLeaseInternalFailureCategory,
@@ -55,6 +56,9 @@ import { sha256AuthorityValue, stableAuthorityStringify } from './private-edit-a
 
 const RESPONSE_PATH_PREFIX = 'private-internal/canonical-job-execution-adapter/v1'
 const adapterExecutionLocks = new Map<string, Promise<void>>()
+const LEASE_HEARTBEAT_INTERVAL_MS = Math.floor(
+  CANONICAL_PRIVATE_WORKER_LEASE_TTL_SECONDS * 1_000 / 3,
+)
 
 export interface ExecuteCanonicalPrivateJobAdapterInput extends ExecuteCanonicalPrivateJobAdapterBody {
   jobId: string
@@ -407,73 +411,100 @@ export function createCanonicalPrivateJobExecutionAdapterService(context: Servic
         throw adapterFailureError(failure)
       }
 
+      const leaseHeartbeat = startCanonicalLeaseHeartbeat({
+        leaseService,
+        workspaceId: body.workspaceId,
+        projectId: body.projectId,
+        editSessionId: body.editSessionId,
+        jobId,
+        leaseId: claim.lease.leaseId,
+        leaseCredential: claim.leaseCredential,
+        idempotencyKeyForSequence: (sequence) => stageKey(`heartbeat-${sequence}`),
+      })
       try {
-      let rawResponse: CoordinatorResponse
+      let rawResponse: CoordinatorResponse | undefined
       let singleUseDispatchConsumed = false
+      let executionFailure: { error: unknown } | undefined
 
-      if (internalServerJob) {
-        rawResponse = asCoordinatorResponse(await createCanonicalInternalAuthorityRunnerService(context).execute({
-          workspaceId: body.workspaceId,
-          projectId: body.projectId,
-          editSessionId: body.editSessionId,
-          jobId,
-          expectedAssetId: expectedAsset.id,
-          purpose: internalSourceTrimJob
-            ? 'execute_canonical_internal_source_trim_validation'
-            : 'execute_canonical_internal_authority_validation',
-        }, leaseAuthority))
-      } else {
-        const provenTool = resolvedProvenTool!
-        const provenRunnerClass = provenTool.runtime.runnerClass
-        if (!provenRunnerClass) {
-          throw new ApiError('TOOL_NOT_READY', 'Approved canonical tool runner identity is unavailable.', 409)
-        }
-        const grant = (await createCanonicalPrivateToolDispatchAuthorityService(context).authorize({
-          workspaceId: body.workspaceId,
-          projectId: body.projectId,
-          editSessionId: body.editSessionId,
-          jobId,
-          approvedWorkItemId: workItem.id,
-          expectedAssetId: expectedAsset.id,
-          requestedToolName: provenTool.canonicalToolId,
-          operationId: provenTool.operationId,
-          purpose: 'private_internal_canonical_tool_dispatch_authorization',
-          idempotencyKey: stageKey('authorize'),
-        }, leaseAuthority)).toolDispatchGrant
-        if (grant.grant.status !== 'authorized' || !grant.dispatchCredential) {
-          await leaseService.release({
+      try {
+        if (internalServerJob) {
+          rawResponse = asCoordinatorResponse(await createCanonicalInternalAuthorityRunnerService(context).execute({
             workspaceId: body.workspaceId,
             projectId: body.projectId,
             editSessionId: body.editSessionId,
             jobId,
-            leaseId: claim.lease.leaseId,
-            leaseCredential: claim.leaseCredential,
-            purpose: 'private_internal_canonical_lease_release',
-            idempotencyKey: stageKey('release-denied-dispatch'),
+            expectedAssetId: expectedAsset.id,
+            purpose: internalSourceTrimJob
+              ? 'execute_canonical_internal_source_trim_validation'
+              : 'execute_canonical_internal_authority_validation',
+          }, leaseAuthority))
+        } else {
+          const provenTool = resolvedProvenTool!
+          const provenRunnerClass = provenTool.runtime.runnerClass
+          if (!provenRunnerClass) {
+            throw new ApiError('TOOL_NOT_READY', 'Approved canonical tool runner identity is unavailable.', 409)
+          }
+          const grant = (await createCanonicalPrivateToolDispatchAuthorityService(context).authorize({
+            workspaceId: body.workspaceId,
+            projectId: body.projectId,
+            editSessionId: body.editSessionId,
+            jobId,
+            approvedWorkItemId: workItem.id,
+            expectedAssetId: expectedAsset.id,
+            requestedToolName: provenTool.canonicalToolId,
+            operationId: provenTool.operationId,
+            purpose: 'private_internal_canonical_tool_dispatch_authorization',
+            idempotencyKey: stageKey('authorize'),
+          }, leaseAuthority)).toolDispatchGrant
+          if (grant.grant.status !== 'authorized' || !grant.dispatchCredential) {
+            await leaseService.release({
+              workspaceId: body.workspaceId,
+              projectId: body.projectId,
+              editSessionId: body.editSessionId,
+              jobId,
+              leaseId: claim.lease.leaseId,
+              leaseCredential: claim.leaseCredential,
+              purpose: 'private_internal_canonical_lease_release',
+              idempotencyKey: stageKey('release-denied-dispatch'),
+            })
+            throw new ApiError(
+              'TOOL_NOT_READY',
+              'Canonical tool dispatch did not issue exact single-use private execution authority.',
+              409,
+              {
+                canonicalToolId,
+                operationId,
+                dispatchStatus: grant.grant.status,
+                privateInternalRuntimeReady: grant.evidence.runtimePrivateInternalReady,
+              },
+            )
+          }
+          rawResponse = await executeToolCoordinator({
+            context,
+            body,
+            jobId,
+            grantId: grant.grant.grantId,
+            idempotencyKey: stageKey('consume'),
+            runnerClass: provenRunnerClass,
+            finalCompositionExecution,
+            serverAuthority: { ...leaseAuthority, dispatchCredential: grant.dispatchCredential },
           })
-          throw new ApiError(
-            'TOOL_NOT_READY',
-            'Canonical tool dispatch did not issue exact single-use private execution authority.',
-            409,
-            {
-              canonicalToolId,
-              operationId,
-              dispatchStatus: grant.grant.status,
-              privateInternalRuntimeReady: grant.evidence.runtimePrivateInternalReady,
-            },
-          )
+          singleUseDispatchConsumed = true
         }
-        rawResponse = await executeToolCoordinator({
-          context,
-          body,
-          jobId,
-          grantId: grant.grant.grantId,
-          idempotencyKey: stageKey('consume'),
-          runnerClass: provenRunnerClass,
-          finalCompositionExecution,
-          serverAuthority: { ...leaseAuthority, dispatchCredential: grant.dispatchCredential },
-        })
-        singleUseDispatchConsumed = true
+      } catch (error) {
+        executionFailure = { error }
+      }
+      const leaseHeartbeatResult = await leaseHeartbeat.stop()
+      if (executionFailure) throw executionFailure.error
+      if (leaseHeartbeatResult.heartbeatFailure) {
+        throw leaseHeartbeatResult.heartbeatFailure
+      }
+      if (!rawResponse) {
+        throw new ApiError(
+          'INTERNAL_ERROR',
+          'Canonical tool coordinator returned no execution response.',
+          500,
+        )
       }
 
       const normalized = normalizeResponse({
@@ -489,6 +520,7 @@ export function createCanonicalPrivateJobExecutionAdapterService(context: Servic
         finalCompositionExecution,
         rawResponse,
         idempotentAdapterReplay: false,
+        leaseHeartbeatCount: leaseHeartbeatResult.successfulHeartbeatCount,
       })
       const persisted: PersistedAdapterResponse = {
         schemaVersion: 'canonical-private-job-execution-adapter-idempotency-v1',
@@ -545,7 +577,7 @@ export function createCanonicalPrivateJobExecutionAdapterService(context: Servic
         await persistAdapterFailure(context, failureRelativePath, requestHash, failure)
         throw adapterFailureError(failure, originalError)
       }
-        })
+      })
       })
     },
   }
@@ -668,10 +700,12 @@ function normalizeResponse(input: {
   finalCompositionExecution: boolean
   rawResponse: CoordinatorResponse
   idempotentAdapterReplay: boolean
+  leaseHeartbeatCount: number
 }): CanonicalPrivateJobExecutionAdapterResponse {
   const result = input.rawResponse.result
   const coordinatorTool = optionalRecord(input.rawResponse.tool)
   const coordinatorInputs = optionalRecord(input.rawResponse.inputs)
+  const coordinatorPersistence = optionalRecord(input.rawResponse.persistence)
   const finalArtifactQa = optionalRecord(input.rawResponse.finalArtifactQa)
   const sourceInputMode = coordinatorTool?.sourceInputMode ??
     coordinatorTool?.approvedSourceInputMode
@@ -712,7 +746,7 @@ function normalizeResponse(input: {
         finalRenderAuthorized: requireLiteral(result.finalRenderAuthorized, false, 'finalRenderAuthorized'),
       }
   const responseWithoutHash = {
-    schemaVersion: 'canonical-private-job-execution-adapter-response-v3' as const,
+    schemaVersion: 'canonical-private-job-execution-adapter-response-v4' as const,
     source: 'canonical_private_job_execution_adapter' as const,
     purpose: input.body.purpose,
     identity: {
@@ -768,6 +802,13 @@ function normalizeResponse(input: {
         sourceInputMode === 'server_injected_private_stream_v1' &&
         sourceStagingCleaned === true &&
         sourceByteLengths.some((sourceByteLength) => Number(sourceByteLength) > 16 * 1024 * 1024),
+      mediaOutputStreamed:
+        coordinatorPersistence?.mediaOutputStreamed === true,
+      largeMediaOutputOverLegacyBufferVerified:
+        coordinatorPersistence?.mediaOutputStreamed === true &&
+        coordinatorPersistence.largeMediaOutputOverLegacyBufferVerified === true,
+      leaseHeartbeatCount: input.leaseHeartbeatCount,
+      longRunningLeaseHeartbeatVerified: input.leaseHeartbeatCount > 0,
     },
     permissions: {
       providerCall: false as const,
@@ -1298,6 +1339,73 @@ function adapterCompletionRelativePath(
     jobId,
   ].join('\u0000'))
   return `${RESPONSE_PATH_PREFIX}/${scopeHash.slice(0, 32)}/completed-jobs/${jobHash}.json`
+}
+
+function startCanonicalLeaseHeartbeat(input: {
+  leaseService: ReturnType<typeof createCanonicalWorkerLeaseAuthorityService>
+  workspaceId: string
+  projectId: string
+  editSessionId: string
+  jobId: string
+  leaseId: string
+  leaseCredential: string
+  idempotencyKeyForSequence(sequence: number): string
+}): {
+  stop(): Promise<{
+    successfulHeartbeatCount: number
+    heartbeatFailure?: ApiError
+  }>
+} {
+  let stopped = false
+  let sequence = 0
+  let successfulHeartbeatCount = 0
+  let heartbeatFailure: ApiError | undefined
+  let timer: ReturnType<typeof setTimeout> | undefined
+  let activeHeartbeat: Promise<void> | undefined
+
+  const schedule = () => {
+    if (stopped) return
+    timer = setTimeout(() => {
+      activeHeartbeat = runHeartbeat()
+    }, LEASE_HEARTBEAT_INTERVAL_MS)
+    timer.unref()
+  }
+  const runHeartbeat = async () => {
+    if (stopped) return
+    sequence += 1
+    try {
+      await input.leaseService.heartbeat({
+        workspaceId: input.workspaceId,
+        projectId: input.projectId,
+        editSessionId: input.editSessionId,
+        jobId: input.jobId,
+        leaseId: input.leaseId,
+        leaseCredential: input.leaseCredential,
+        purpose: 'private_internal_canonical_lease_heartbeat',
+        idempotencyKey: input.idempotencyKeyForSequence(sequence),
+      })
+      successfulHeartbeatCount += 1
+    } catch (error) {
+      heartbeatFailure = normalizeUnknownError(error)
+      stopped = true
+    } finally {
+      activeHeartbeat = undefined
+      schedule()
+    }
+  }
+
+  schedule()
+  return {
+    async stop() {
+      stopped = true
+      if (timer) clearTimeout(timer)
+      await activeHeartbeat
+      return {
+        successfulHeartbeatCount,
+        ...(heartbeatFailure ? { heartbeatFailure } : {}),
+      }
+    },
+  }
 }
 
 async function withAdapterExecutionLock<T>(key: string, operation: () => Promise<T>): Promise<T> {

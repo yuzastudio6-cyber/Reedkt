@@ -1,6 +1,9 @@
 import { z } from 'zod'
 
 import { REEDITPRO_SOURCE_MEDIA_MAX_BYTES } from '../../src/types/large-media'
+import {
+  OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_OUTPUT_BYTES,
+} from '../tool-execution/media-binary-execution/offline-media-binary-types'
 import { canonicalPrivateToolDispatchCredentialSchema } from './canonical-private-tool-dispatch-schemas'
 import { canonicalWorkerLeaseCredentialSchema } from './canonical-worker-lease-authority-schemas'
 
@@ -91,7 +94,7 @@ export const canonicalPrivateMediaBinaryAuthoritySchema = z.object({
 }).strict()
 
 export const canonicalPrivateMediaBinaryResponseSchema = z.object({
-  schemaVersion: z.literal('canonical-private-media-binary-execution-response-v3'),
+  schemaVersion: z.literal('canonical-private-media-binary-execution-response-v4'),
   source: z.literal('canonical_private_media_binary_execution_coordinator'),
   purpose: z.literal('execute_canonical_private_media_binary_tool'),
   identity: z.object({
@@ -116,7 +119,9 @@ export const canonicalPrivateMediaBinaryResponseSchema = z.object({
     artifactId: identity, qaEvaluationId: identity, reconciliationId: identity,
     contentType: z.enum(['application/json', 'video/x-nut', 'video/x-matroska', 'audio/wav']),
     sha256: sha,
-    byteLength: z.number().int().positive().max(32 * 1024 * 1024),
+    byteLength: z.number().int().positive()
+      .max(OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_OUTPUT_BYTES),
+    outputMode: z.enum(['bounded_buffer_v1', 'server_committed_private_stream_v1']),
     privateObjectIdentityHash: sha,
     qaOutcome: z.literal('passed'),
     reconciliationDecision: z.literal('test_merged_not_live_authorized'),
@@ -137,6 +142,8 @@ export const canonicalPrivateMediaBinaryResponseSchema = z.object({
   persistence: z.object({
     privateLocalCreateOnlyArtifact: z.literal(true), actualRunEvidenceVerified: z.literal(true),
     actualQaEvidenceVerified: z.literal(true), checksumProtectedAuthority: z.literal(true),
+    mediaOutputStreamed: z.boolean(),
+    largeMediaOutputOverLegacyBufferVerified: z.boolean(),
     distributedAuthority: z.literal(false), productionAuthority: z.literal(false),
   }).strict(),
   completedAt: timestamp,

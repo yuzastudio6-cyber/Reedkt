@@ -26,6 +26,7 @@ import { normalizeCanonicalPrivateFinalMediaQa } from '../services/canonical-pri
 import { createCanonicalPrivateJobExecutionAdapterService } from '../services/canonical-private-job-execution-adapter-service'
 import {
   CANONICAL_PRIVATE_MEDIA_STREAMING_MAXIMUM_BYTES,
+  inspectCanonicalPrivateMediaArtifact,
   readCanonicalPrivateMediaArtifact,
 } from '../services/canonical-private-media-artifact-storage'
 import { CANONICAL_PRIVATE_SOURCE_OBJECT_BUFFER_MAX_BYTES } from '../services/canonical-private-source-object-read-service'
@@ -66,6 +67,8 @@ const localStorageRoot = canonicalAuthoritySmokeRoot
 const workspaceId = 'workspace-authority-smoke'
 const userId = 'user-authority-smoke'
 const editSessionId = 'edit-session-canonical-professional-color'
+const fixtureDurationSeconds = 7
+const fixtureDurationFrames = fixtureDurationSeconds * 24
 const storage = new LocalBackedResumableGcsTestAdapter(
   join(localStorageRoot, 'canonical-professional-color-fake-gcs'),
   { injectResponseLossAfterChunk: 2 },
@@ -437,6 +440,13 @@ assert.equal(color.evidence.reconciliationPassed, true)
 assert.equal(color.evidence.sourceStreamInputVerified, true)
 assert.equal(color.evidence.sourceStagingCleanupVerified, true)
 assert.equal(color.evidence.largeSourceOverLegacyBufferVerified, true)
+assert.equal(color.evidence.mediaOutputStreamed, true)
+assert.equal(color.evidence.largeMediaOutputOverLegacyBufferVerified, true)
+assert.equal(
+  color.evidence.longRunningLeaseHeartbeatVerified,
+  color.evidence.leaseHeartbeatCount > 0,
+)
+assert.ok(color.result.byteLength > 32 * 1024 * 1024)
 assert.equal(color.readiness.productReady, false)
 
 const colorReplay = await executeJob('color-delivery-1')
@@ -458,7 +468,12 @@ const colorArtifactAuthority = await createPrivateArtifactQaAuthorityService(con
 assert.equal(colorArtifactAuthority.artifact.content.contentType, 'video/x-matroska')
 assert.equal(colorArtifactAuthority.qaEvaluation?.outcome, 'passed')
 assert.equal(colorArtifactAuthority.reconciliation?.decision, 'test_merged_not_live_authorized')
-const storedColor = await readCanonicalPrivateMediaArtifact({
+await assert.rejects(readCanonicalPrivateMediaArtifact({
+  localStorageRoot,
+  privateObjectIdentityHash:
+    colorArtifactAuthority.artifact.storageIdentity.opaqueObjectIdentityHash,
+}), /require the streaming reader/)
+const storedColor = await inspectCanonicalPrivateMediaArtifact({
   localStorageRoot,
   privateObjectIdentityHash:
     colorArtifactAuthority.artifact.storageIdentity.opaqueObjectIdentityHash,
@@ -466,7 +481,12 @@ const storedColor = await readCanonicalPrivateMediaArtifact({
 assert.ok(storedColor)
 assert.equal(storedColor.sha256, color.result.sha256)
 assert.equal(storedColor.byteLength, color.result.byteLength)
-assert.deepEqual([...storedColor.bytes.subarray(0, 4)], [0x1a, 0x45, 0xdf, 0xa3])
+const storedColorStream = await hashExactPrivateStream(
+  await storedColor.openStream(),
+  storedColor.byteLength,
+)
+assert.equal(storedColorStream.sha256, color.result.sha256)
+assert.deepEqual([...storedColorStream.signature.subarray(0, 4)], [0x1a, 0x45, 0xdf, 0xa3])
 
 const finalComposition = await executeJob('final-export')
 assert.equal(finalComposition.identity.canonicalToolId, 'remotion')
@@ -484,7 +504,10 @@ assert.equal(finalComposition.evidence.sourceStagingCleanupVerified, true)
 assert.equal(finalComposition.evidence.largeSourceOverLegacyBufferVerified, true)
 assert.equal(finalComposition.evidence.dependencyStreamInputVerified, true)
 assert.equal(finalComposition.evidence.largeDependencyOverLegacyBufferVerified, true)
+assert.ok(finalComposition.evidence.leaseHeartbeatCount > 0)
+assert.equal(finalComposition.evidence.longRunningLeaseHeartbeatVerified, true)
 assert.ok(finalComposition.result.byteLength >= 1_024)
+assert.ok(finalComposition.result.byteLength > 16 * 1024 * 1024)
 assert.equal(finalComposition.readiness.productReady, false)
 const leaseAggregate = await readPrivateCanonicalWorkerLeaseAggregate({
   localStorageRoot,
@@ -519,7 +542,7 @@ assert.equal(finalQa.result.contentType, 'application/json')
 assert.equal(finalQa.result.qaOutcome, 'passed')
 assert.equal(finalQa.evidence.dependencyArtifactInput, true)
 assert.equal(finalQa.evidence.dependencyStreamInputVerified, true)
-assert.equal(finalQa.evidence.largeDependencyOverLegacyBufferVerified, false)
+assert.equal(finalQa.evidence.largeDependencyOverLegacyBufferVerified, true)
 assert.equal(finalQa.evidence.finalArtifactQaPassed, true)
 assert.equal(finalQa.permissions.publicDelivery, false)
 assert.equal(finalQa.readiness.productReady, false)
@@ -604,7 +627,7 @@ assert.deepEqual({
   width: 3840,
   height: 2160,
   fps: 24,
-  readFrameCount: 72,
+  readFrameCount: fixtureDurationFrames,
   pixelFormat: 'yuv420p',
   colorSpace: 'bt709',
 })
@@ -623,7 +646,7 @@ const overbroadExpectation = {
   width: 3840,
   height: 2160,
   fps: 24,
-  durationFrames: 72,
+  durationFrames: fixtureDurationFrames,
   sourceBytesBase64: sensitiveDiagnosticSentinel,
   captionOverlayBytesBase64: sensitiveDiagnosticSentinel,
   voiceTracks: [{ bytesBase64: sensitiveDiagnosticSentinel }],
@@ -631,10 +654,11 @@ const overbroadExpectation = {
 let sanitizedFinalQaError: ApiError | undefined
 try {
   normalizeCanonicalPrivateFinalMediaQa({
-    durationSeconds: 3,
+    durationSeconds: fixtureDurationSeconds,
     streams: [{
       codecType: 'video', codecName: 'h264', pixelFormat: 'yuv420p',
-      colorSpace: 'bt709', width: 3839, height: 2160, fps: 24, readFrameCount: 72,
+      colorSpace: 'bt709', width: 3839, height: 2160, fps: 24,
+      readFrameCount: fixtureDurationFrames,
     }, {
       codecType: 'audio', codecName: 'aac', sampleRate: 48_000, channels: 2,
     }],
@@ -649,7 +673,7 @@ assert.deepEqual((sanitizedFinalQaError.details as { expected?: unknown }).expec
   width: 3840,
   height: 2160,
   fps: 24,
-  durationFrames: 72,
+  durationFrames: fixtureDurationFrames,
 })
 assert.equal(JSON.stringify(sanitizedFinalQaError.details).includes(sensitiveDiagnosticSentinel), false)
 
@@ -681,6 +705,10 @@ console.log(JSON.stringify({
     byteLength: color.result.byteLength,
     legacyBufferBoundaryBytes: 16 * 1024 * 1024,
     exceededLegacyBufferBoundary: color.result.byteLength > 16 * 1024 * 1024,
+    formerMediaOutputBufferCeilingBytes: 32 * 1024 * 1024,
+    exceededFormerMediaOutputBufferCeiling:
+      color.result.byteLength > 32 * 1024 * 1024,
+    leaseHeartbeatCount: color.evidence.leaseHeartbeatCount,
   },
   finalArtifact: {
     contentType: finalComposition.result.contentType,
@@ -689,6 +717,7 @@ console.log(JSON.stringify({
     legacyBufferBoundaryBytes: 16 * 1024 * 1024,
     exceededLegacyBufferBoundary:
       finalComposition.result.byteLength > 16 * 1024 * 1024,
+    leaseHeartbeatCount: finalComposition.evidence.leaseHeartbeatCount,
   },
   proofs: [
     'exact_edit_preferences_source_and_confirmed_frame_bound_to_planning_handoff',
@@ -699,11 +728,12 @@ console.log(JSON.stringify({
     'lease_and_single_use_ffmpeg_dispatch_verified',
     'source_over_16mib_privately_staged_streamed_reverified_and_cleaned_for_each_attempt',
     'actual_three_frame_color_analysis_bounded_processing_and_pixel_qa_passed',
-    'lossless_vp9_matroska_bt709_yuv420p_artifact_above_16mib_privately_persisted',
+    'lossless_vp9_matroska_bt709_yuv420p_artifact_above_32mib_streamed_to_private_persistence',
     'color_artifact_qa_reconciliation_and_idempotent_replay_verified',
-    'remotion_streamed_the_exact_selected_over_16mib_color_dependency_with_replacement_voice',
-    'same_attempt_canonical_4k_h264_delivery_master_completed_final_ffprobe_qa',
-    'final_qa_streamed_the_exact_qa_passed_private_mp4_without_base64_caller_path_or_large_artifact_claim',
+    'server_owned_lease_heartbeat_evidence_bound_to_each_attempt_and_positive_for_long_render',
+    'remotion_streamed_the_exact_selected_over_32mib_color_dependency_with_replacement_voice',
+    'same_attempt_canonical_4k_h264_delivery_master_above_16mib_completed_final_ffprobe_qa',
+    'final_qa_streamed_the_exact_qa_passed_over_16mib_private_mp4_without_base64_or_caller_path',
     'original_approved_estimate_and_reservation_reused_without_second_export_charge',
     '2k_substitution_and_master_estimate_reservation_charge_authority_tampering_rejected',
     'final_qa_failure_diagnostics_exclude_source_caption_and_voice_bytes',
@@ -740,8 +770,9 @@ async function uploadProfessionalColorSource(projectId: string) {
   const generated = spawnSync('ffmpeg', [
     '-hide_banner', '-loglevel', 'error',
     '-f', 'lavfi', '-i',
-    'color=c=gray:s=3840x2160:r=24:d=3',
-    '-f', 'lavfi', '-i', 'sine=frequency=440:sample_rate=48000:duration=3',
+    `color=c=gray:s=3840x2160:r=24:d=${fixtureDurationSeconds}`,
+    '-f', 'lavfi', '-i',
+    `sine=frequency=440:sample_rate=48000:duration=${fixtureDurationSeconds}`,
     '-filter_complex', '[0:v]noise=alls=46:allf=t+u[v]',
     '-map', '[v]', '-map', '1:a:0',
     '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '40',
@@ -860,20 +891,20 @@ function createExactProfessionalColorPlan(input: PlannerInput): EditPlan {
   timing.timingBase = {
     ...timing.timingBase,
     fps: 24,
-    totalDurationSeconds: 3,
-    totalFrames: 72,
-    sourceDurationSeconds: 3,
-    finalDurationSeconds: 3,
+    totalDurationSeconds: fixtureDurationSeconds,
+    totalFrames: fixtureDurationFrames,
+    sourceDurationSeconds: fixtureDurationSeconds,
+    finalDurationSeconds: fixtureDurationSeconds,
   }
   timing.finalTimelineSegments = [{
     ...timing.finalTimelineSegments[0]!,
     segmentId: 'segment-1',
-    finalRange: frameRange(0, 3, 0, 72),
+    finalRange: frameRange(0, fixtureDurationSeconds, 0, fixtureDurationFrames),
   }]
   timing.captionTimingItems = [{
     ...timing.captionTimingItems[0]!,
     captionText: 'Approved professional color',
-    timeRange: frameRange(0, 3, 0, 72),
+    timeRange: frameRange(0, fixtureDurationSeconds, 0, fixtureDurationFrames),
   }]
   timing.visualTimingItems = []
   timing.transitionTimingItems = []
@@ -882,14 +913,14 @@ function createExactProfessionalColorPlan(input: PlannerInput): EditPlan {
   timing.providerClipTimingItems = []
   const cleanup = plan.sourceCleanupPlan!
   const decision = cleanup.decisions[0]! as unknown as Record<string, unknown>
-  decision.selectedRange = frameRange(0, 3, 0, 72)
+  decision.selectedRange = frameRange(0, fixtureDurationSeconds, 0, fixtureDurationFrames)
   decision.sourceRange = {
     clipId: input.clips[0]!.id,
     startSeconds: 0,
-    endSeconds: 3,
-    durationSeconds: 3,
+    endSeconds: fixtureDurationSeconds,
+    durationSeconds: fixtureDurationSeconds,
     startFrame: 0,
-    endFrame: 72,
+    endFrame: fixtureDurationFrames,
     notes: [],
   }
   decision.decision = 'preserve'
@@ -920,7 +951,7 @@ function frameRange(startSeconds: number, endSeconds: number, startFrame: number
 
 function synchronizeProfessionalExportCoverage(plan: EditPlan): void {
   const coverage = buildProfessionalExportCreditCoverage({
-    durationSeconds: 3,
+    durationSeconds: fixtureDurationSeconds,
     outputFps: 24,
     approvedAspectRatio: '16:9',
   })

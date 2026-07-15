@@ -91,9 +91,14 @@ const canonicalSteps: VerificationStep[] = [
     'Three-source execution reaches one baseline plus two directly reference-bound professional color matches, two approved hard-cut boundaries, three exact source-bound voice deliveries, lease, one-use dispatch, private artifacts, QA, reconciliation, ordered color/voice composition, objective continuity at both boundaries, and download evidence.',
   ),
   step(
+    'canonical-private-media-streaming-output',
+    'smoke:canonical-private-media-streaming-output',
+    'Create-only private media persistence accepts and reopens an exact Matroska stream above the legacy 32 MiB whole-buffer ceiling while rejecting replay collisions and checksum poisoning.',
+  ),
+  step(
     'canonical-professional-color-execution',
     'smoke:canonical-private-color-execution',
-    'One exact source-bound professional color plan reaches bounded pixel analysis and correction, lossless private Matroska persistence, QA, reconciliation, replay, Remotion composition, independent final QA, and private download evidence.',
+    'One exact source-bound professional color plan streams a lossless private Matroska artifact above the legacy 32 MiB whole-buffer ceiling through lease-heartbeated execution, QA, reconciliation, replay, Remotion composition, independent final QA, and private download evidence.',
   ),
   step(
     'bounded-remotion-streaming-output',
@@ -248,6 +253,8 @@ function printReport(
           boundedApprovedHardCutTransitions: true,
           boundedProfessionalVoiceDelivery: true,
           boundedProfessionalColorExecution: true,
+          boundedPrivateMediaStreamingOutputAboveLegacyBoundary: true,
+          boundedLongRunningLeaseHeartbeat: true,
           boundedPrivateRemotionOutputStreamingAboveLegacyBoundary: true,
           boundedReferenceBoundMultiSourceColorExecution: true,
           boundedThreeSourcePrivateCompositionExecution: true,

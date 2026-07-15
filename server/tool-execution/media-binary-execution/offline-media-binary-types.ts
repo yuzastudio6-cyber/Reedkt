@@ -1,3 +1,8 @@
+import type { Readable } from 'node:stream'
+
+export const OFFLINE_MEDIA_BINARY_LEGACY_OUTPUT_BUFFER_MAXIMUM_BYTES = 32 * 1024 * 1024
+export const OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_OUTPUT_BYTES = 192 * 1024 * 1024
+
 export interface OfflineMediaBinaryImageEvidence {
   imageTag: 'reeditpro/ffmpeg-lgpl-internal:8.1.2-color-v1-local'
   imageId: string
@@ -93,4 +98,29 @@ export interface OfflineFfmpegExecutionResult {
     externalBetaReady: false
     productionReady: false
   }
+}
+
+export interface OfflineMediaBinaryStreamingOutputSink {
+  maximumBytes: number
+  persist(input: {
+    stream: Readable
+    mimeType: 'video/x-matroska'
+    expectedByteLength: number
+    expectedSha256: string
+  }): Promise<{ byteLength: number; sha256: string }>
+}
+
+export interface OfflineFfmpegStreamingOutputExecutionResult {
+  resultArtifact: {
+    mimeType: 'video/x-matroska'
+    sha256: string
+    byteLength: number
+    outputMode: 'server_committed_private_stream_v1'
+  }
+  evidence: OfflineFfmpegExecutionResult['evidence'] & {
+    outputTransport: 'server_committed_private_stream_v1'
+  }
+  image: OfflineMediaBinaryImageEvidence
+  attestation: OfflineFfmpegExecutionResult['attestation']
+  readiness: OfflineFfmpegExecutionResult['readiness']
 }

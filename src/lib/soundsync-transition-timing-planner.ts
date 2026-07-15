@@ -211,7 +211,7 @@ function createRefinedTransitions(params: {
     const nearbyCue = params.captionVisualCueTimingPlan?.visualCueTimings.find((cue) =>
       Math.abs(cue.timeRange.endFrame - transition.timeRange.startFrame) <= params.masterTimingPlan.timingBase.fps,
     )
-    const snapDecision = createBeatSnapDecision({
+    let snapDecision = createBeatSnapDecision({
       beatGridPlan: params.beatGridPlan,
       id: `beat-snap-transition-${index + 1}`,
       input: params.input,
@@ -227,6 +227,23 @@ function createRefinedTransitions(params: {
       masterTransition: transition,
       visualMotivated: Boolean(nearbyCue),
     })
+    if (transitionType === 'hard_cut') {
+      const toSegment = params.masterTimingPlan.finalTimelineSegments.find((segment) =>
+        segment.segmentId === transition.toSegmentId || segment.id === transition.toSegmentId)
+      const exactBoundaryFrame = toSegment?.finalRange.startFrame
+      if (exactBoundaryFrame !== undefined) {
+        snapDecision = createBeatSnapDecision({
+          beatGridPlan: params.beatGridPlan,
+          id: `beat-snap-transition-${index + 1}`,
+          input: params.input,
+          masterTimingPlan: params.masterTimingPlan,
+          preferBeat: false,
+          requestedFrame: exactBoundaryFrame,
+          targetCueId: transition.id,
+          linkedTranscriptLineId: nearbyCue?.linkedTranscriptLineId,
+        })
+      }
+    }
     const durationFrames = estimateTransitionDurationFrames({
       fps: transition.timeRange.fps,
       input: params.input,

@@ -705,7 +705,9 @@ export function createSegmentEditPlans(params: {
       },
       brollPlan: {
         ...getDefaultBrollPlan(directive, input.editLevel),
-        policy: adaptiveStrategy?.recommendedBrollPolicy ?? directive.brollPolicy,
+        policy: directive.brollPolicy === 'none'
+          ? 'none'
+          : adaptiveStrategy?.recommendedBrollPolicy ?? directive.brollPolicy,
         notes: [
           ...getDefaultBrollPlan(directive, input.editLevel).notes,
           ...trimDecisions.filter((decision) => decision.finalUse === 'broll').map((decision) => `Source cleanup routes ${decision.clipId} as b-roll support.`),

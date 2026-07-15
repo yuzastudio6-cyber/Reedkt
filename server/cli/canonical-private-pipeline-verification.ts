@@ -224,6 +224,7 @@ function printReport(
     verifiedClaims: status === 'passed'
       ? {
           exactSourcePreferenceBriefAuthority: true,
+          sourceOnlyIntentAuthority: true,
           fourKEstimateDeliveryCeiling: true,
           canonicalBrowserContracts: true,
           canonicalBackendAuthority: true,

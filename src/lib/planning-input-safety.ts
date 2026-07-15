@@ -274,7 +274,17 @@ function extractEditLevelPatch(text: string): MaterialInstructionPatch {
 
 function extractVisualPreferencePatch(text: string): MaterialInstructionPatch {
   const matches: Array<[VisualPreference, string[]]> = [
-    ['no_extra_visuals', ['no extra visuals', 'no visuals', 'no b-roll', 'no broll']],
+    ['no_extra_visuals', [
+      'no extra visuals',
+      'no visuals',
+      'no b-roll',
+      'no broll',
+      'source only',
+      'source footage only',
+      'uploaded footage only',
+      'only use the source',
+      'use only the source',
+    ]],
     ['keep_visuals_minimal', ['keep visuals minimal', 'minimal visuals', 'not too much', "don't overdo", 'dont overdo']],
     ['more_stroke_motion', ['more stroke motion', 'use stroke motion']],
     ['more_graphic_design', ['more graphic design', 'use visualexplain', 'more diagrams']],

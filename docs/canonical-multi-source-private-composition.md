@@ -64,13 +64,13 @@ The focused caption-track lifecycle is green through `npm run smoke:canonical-mu
 
 ## No-silent-drop boundary
 
-The normal rich two-source mock editor plan is intentionally not published into this bounded graph. Confirmed preserve-source-order planning maps its two one-second sources to two exact contiguous segments totaling two seconds/60 frames; it neither repeats nor stretches source footage. Its two caption ranges remain inside those segments and expose short-readability risk without extending the timeline. When no transition has a visual or audio motivation, refinement now chooses an exact hard cut at frame 30 and creates no SFX. The compiler clears the duration, one-to-one segment, caption-range, exact-hard-cut, and orphan-transition-SFX blockers. Music ducking, placeholder color/audio work, b-roll/other unsupported segment operations, and richer effects remain explicit blockers and create no publication candidate instead of being dropped or compressed.
+The normal rich two-source mock editor plan is intentionally not published into this bounded graph. Confirmed preserve-source-order planning maps its two one-second sources to two exact contiguous segments totaling two seconds/60 frames; it neither repeats nor stretches source footage. Its two caption ranges remain inside those segments and expose short-readability risk without extending the timeline. The explicit `use the source only` instruction now suppresses b-roll, music, SFX, beat analysis, SoundSync cues, ducking, and silence removal while preserving the exact professional voice-delivery chain. With no transition motivation, refinement chooses an exact hard cut at frame 30. The compiler clears the duration, segment, caption, transition, SFX, ducking, and audio blockers. The normal plan still fails closed on its uncompiled professional color operation instead of silently dropping color to obtain publication.
 
 The following remain separate future work-item/compiler milestones:
 
 - caption animation, overlapping captions, more than seven cues, and transcript/word-level alignment workers;
 - crossfades, wipes, pushes, zooms, match cuts, other transition effects, and visual timing cues;
-- SFX, music ducking, cleanup/mix, and other audio operations;
+- added music, SFX, music ducking, silence detection/removal, and richer audio operations;
 - color correction, grading, and shot matching;
 - provider-backed assets, visual assets, and provider clip timing;
 - speed changes, retiming, non-contiguous selects, and richer segment operations;

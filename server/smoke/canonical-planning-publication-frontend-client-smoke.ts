@@ -128,6 +128,40 @@ assert.equal(sourceOnlyFullPlan.visualAssetPlan?.length, 0, 'Source-only prefere
 assert.equal(sourceOnlyFullPlan.mapAnimationPlan?.items.length, 0, 'Source-only preference must create no map work.')
 assert.equal(sourceOnlyFullPlan.dataVizPlan?.items.length, 0, 'Source-only preference must create no data-visualization work.')
 assert.equal(sourceOnlyFullPlan.providerPromptPlans?.length, 0, 'Source-only preference must create no provider prompts.')
+assert.equal(sourceOnlyFullPlan.compiledIntent?.professionalEditingDirective.brollPolicy, 'none')
+assert.equal(sourceOnlyFullPlan.compiledIntent?.professionalEditingDirective.soundStyle, 'clean_voice_only')
+assert.equal(
+  sourceOnlyFullPlan.segmentEditPlans?.some((segment) =>
+    segment.operations.some((operation) => operation.operationType === 'b_roll')),
+  false,
+  'Source-only intent must not produce a b-roll operation without an approved b-roll asset.',
+)
+assert.equal(sourceOnlyFullPlan.audioPipelinePlan?.musicBedPlan.policy, 'none')
+assert.equal(sourceOnlyFullPlan.audioPipelinePlan?.musicBedPlan.duckingEnabled, false)
+assert.equal(sourceOnlyFullPlan.audioPipelinePlan?.sfxPlan.policy, 'none')
+assert.equal(sourceOnlyFullPlan.audioPipelinePlan?.beatSyncPlan.strategy, 'none')
+assert.deepEqual(sourceOnlyFullPlan.audioPipelinePlan?.soundSyncCues, [])
+assert.deepEqual(sourceOnlyFullPlan.audioPipelinePlan?.toolsPlanned, ['planning_only', 'ffmpeg'])
+assert.deepEqual(sourceOnlyFullPlan.audioPipelinePlan?.stages, [
+  'source_audio_analysis',
+  'voice_cleanup',
+  'loudness_normalization',
+  'qa_check',
+])
+assert.deepEqual(sourceOnlyFullPlan.masterTimingPlan?.musicDuckingTimingItems, [])
+assert.deepEqual(sourceOnlyFullPlan.soundSyncTransitionTimingPlan?.refinedMusicDuckingTimings, [])
+assert.deepEqual(
+  sourceOnlyFullPlan.audioPipelinePlan?.projectOperations.map((operation) => operation.operation).sort(),
+  [
+    'compression',
+    'eq_cleanup',
+    'loudness_normalization',
+    'qa_loudness_check',
+    'true_peak_limit',
+    'voice_leveling',
+  ],
+  'Source-only Pro audio must retain the exact professional voice chain without invented music, SFX, beats, or silence removal.',
+)
 
 const richPlan = createGuidedMockEditPlan(baseInput)
 richPlan.visualAssetPlan = [{ id: 'unrepresented-rich-visual' }] as unknown as NonNullable<EditPlan['visualAssetPlan']>
@@ -201,11 +235,18 @@ assert.equal(
   'Source-truth planning must remove only the duration, segment, and caption-range blockers it resolves.',
 )
 for (const expectedBlocker of [
-  'Music ducking needs its own canonical audio work items.',
   'The planned edit includes operations outside the current source-and-caption private review runner.',
   'The planned color work needs exact canonical processing work items.',
-  'The planned audio work exceeds the exact source-bound voice delivery recipe and needs additional canonical work items.',
 ]) assert.ok(realisticRichBlockers.includes(expectedBlocker), `Missing rich-operation blocker: ${expectedBlocker}`)
+for (const removedBlocker of [
+  'Music ducking needs its own canonical audio work items.',
+  'Sound-effect cues need their own canonical execution work items.',
+  'The planned audio work exceeds the exact source-bound voice delivery recipe and needs additional canonical work items.',
+]) assert.equal(
+  realisticRichBlockers.includes(removedBlocker),
+  false,
+  `Source-only planning must not retain an invented audio blocker: ${removedBlocker}`,
+)
 assert.equal(
   realisticRichBlockers.includes('Timed transitions need their own canonical execution work items.'),
   false,
@@ -225,8 +266,8 @@ assert.deepEqual(realisticTiming.transitionTimingItems.map((transition) => ({
 assert.deepEqual(realisticRichMultiSourcePlan.soundSyncTransitionTimingPlan?.refinedSfxTimings, [])
 assert.match(
   realisticRichBlockers.join(' '),
-  /transition|audio|operation/i,
-  'Rich timing and edit work must remain visible as an explicit publication blocker.',
+  /color|operation/i,
+  'Uncompiled professional color work must remain visible as an explicit publication blocker.',
 )
 
 const guidedSourceTruthPlan = createGuidedMockEditPlan(multiSourceInput)

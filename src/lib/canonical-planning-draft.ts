@@ -592,7 +592,9 @@ function privateReviewPublicationBlockers(input: {
   ) blockers.push('Sound-effect cues need their own canonical execution work items.')
   if ((input.plan.masterTimingPlan?.musicDuckingTimingItems.length ?? 0) > 0) blockers.push('Music ducking needs its own canonical audio work items.')
   if ((input.plan.masterTimingPlan?.providerClipTimingItems.length ?? 0) > 0) blockers.push('Provider clips need their own canonical execution work items.')
-  if (hasUnrepresentedSegmentOperations(input.plan)) blockers.push('The planned edit includes operations outside the current source-and-caption private review runner.')
+  if (hasUnrepresentedSegmentOperations(input.plan, {
+    audioCleanupRepresented: Boolean(input.approvedVoiceDeliverySources),
+  })) blockers.push('The planned edit includes operations outside the current source-and-caption private review runner.')
   if (hasUnrepresentedColorWork(input.plan)) blockers.push('The planned color work needs exact canonical processing work items.')
   if (hasPlannedAudioWork(input.plan) && !input.approvedVoiceDeliverySources) {
     blockers.push(
@@ -1215,7 +1217,10 @@ function buildApprovedHardCutTransitions(input: {
   return approved.length === expectedCount ? approved : null
 }
 
-function hasUnrepresentedSegmentOperations(plan: EditPlan): boolean {
+function hasUnrepresentedSegmentOperations(
+  plan: EditPlan,
+  represented: { audioCleanupRepresented: boolean },
+): boolean {
   const supported = new Set([
     'trim',
     'cut',
@@ -1225,6 +1230,7 @@ function hasUnrepresentedSegmentOperations(plan: EditPlan): boolean {
     'renderer_layer',
     'qa_check',
   ])
+  if (represented.audioCleanupRepresented) supported.add('audio_cleanup')
   return (plan.segmentEditPlans ?? []).some((segment) =>
     segment.operations.some((operation) => !supported.has(operation.operationType)))
 }

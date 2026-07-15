@@ -453,18 +453,20 @@ export function createCustomEditingDirective(params: {
 export function getDefaultProfessionalEditingDirective(params: DefaultDirectiveParams): ProfessionalEditingDirective {
   const baseDirective = defaultMapping(params)
   const levelAdjusted = applyLevelRules(baseDirective, params.editLevel)
+  const sourceVisualsOnly = params.visualPreference === 'no_extra_visuals'
 
   return {
     ...levelAdjusted,
-    customDirectives: params.visualPreference === 'no_extra_visuals'
+    brollPolicy: sourceVisualsOnly ? 'none' : levelAdjusted.brollPolicy,
+    customDirectives: sourceVisualsOnly
       ? [
           createCustomEditingDirective({
             rawUserRequest: 'No extra visuals',
-            interpretedMeaning: 'Keep visuals minimal unless an essential card is needed for clarity.',
-            mappedPresetIds: [levelAdjusted.editStyle, levelAdjusted.brollPolicy],
-            customOverrides: ['Avoid nonessential visual assets'],
+            interpretedMeaning: 'Keep approved source footage primary and add no b-roll unless the user approves a revision.',
+            mappedPresetIds: [levelAdjusted.editStyle, 'none'],
+            customOverrides: ['Disable b-roll and avoid nonessential visual assets'],
             mustFollowRules: ['Respect no-extra-visuals preference until the user approves a revision'],
-            avoidRules: ['Do not add decorative Stroke Motion, Real Motion, or generated b-roll'],
+            avoidRules: ['Do not add uploaded, decorative, Stroke Motion, Real Motion, or generated b-roll'],
             confidence: 'high',
           }),
         ]

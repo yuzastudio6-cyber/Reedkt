@@ -79,6 +79,23 @@ assert.equal(resolution.next.aspectRatio, '1:1')
 assert.equal(resolution.next.editLevel, 'basic')
 assert.equal(resolution.next.visualPreference, 'no_extra_visuals')
 
+const sourceOnlyResolution = resolveMaterialPlanningInstruction(
+  'Use only the source with one readable caption.',
+  baseInput,
+)
+assert.equal(sourceOnlyResolution.next.visualPreference, 'no_extra_visuals')
+assert.equal(sourceOnlyResolution.invalidates.visualPreference, true)
+const sourceOnlyIntent = compileEditingIntent({
+  currentInput: baseInput,
+  sourceOrderConfirmed: true,
+  userMessages: ['Use only the source with one readable caption.'],
+})
+assert.equal(sourceOnlyIntent.resolvedSettings.visualPreference, 'no_extra_visuals')
+assert.equal(sourceOnlyIntent.professionalEditingDirective.brollPolicy, 'none')
+assert.equal(sourceOnlyIntent.professionalEditingDirective.soundStyle, 'clean_voice_only')
+assert.ok(sourceOnlyIntent.mustFollowRules.some((rule) => rule.includes('approved source footage')))
+assert.ok(sourceOnlyIntent.avoidRules.some((rule) => rule.includes('music, SFX')))
+
 const staleCompiledIntent = compileEditingIntent({
   currentInput: baseInput,
   sourceOrderConfirmed: true,
@@ -202,6 +219,7 @@ console.log(JSON.stringify({
   checks: [
     'ordered_chat_instructions_preserved',
     'latest_material_instruction_wins',
+    'source_only_intent_suppresses_unapproved_assets',
     'confirmed_setup_conflicts_detected',
     'planning_input_fingerprint_deterministic',
     'preference_application_bound_to_approved_snapshot',

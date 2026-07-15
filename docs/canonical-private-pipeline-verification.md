@@ -12,11 +12,12 @@ misleading use of the retired caller-authored private-execution route as the
 primary pipeline signal.
 
 The command verifies the connected path from exact source, Edit Preferences,
-and Edit Brief authority through canonical plan presentation, the 4K estimate
-ceiling, separate approval, the opaque execution-package handoff, private
-preparation, private review, revision/history recovery, and the bounded
-multi-source execution proof. It also runs the active named-edit Playwright
-journey and the versioned proven-tool identity report.
+and Edit Brief authority through source-only intent restraint, canonical plan
+presentation, the 4K estimate ceiling, separate approval, the opaque
+execution-package handoff, private preparation, private review,
+revision/history recovery, and the bounded multi-source execution proof. It
+also runs the active named-edit Playwright journey and the versioned
+proven-tool identity report.
 
 Run the broader regression boundary with:
 
@@ -31,7 +32,9 @@ fail-closed regression.
 ## Verification Phases
 
 1. Preserve structured planning input, exact Edit Preferences, Edit Brief,
-   source identity, source order, and checksums.
+   source identity, source order, and checksums. Explicit source-only intent
+   must suppress unapproved b-roll, music, SFX, beat timing, and generated
+   media without weakening the professional voice baseline.
 2. Prove that every approved edit estimate carries the 4K UHD delivery ceiling
    and that 1080p, 2K/1440p, and 4K exports stay within the same approved
    deliverable rather than prompting for a second estimate.
@@ -65,11 +68,12 @@ that discovery channel; it does not weaken image-identity validation.
 
 ## Current Evidence Record
 
-On 2026-07-14, the canonical command passed all 16 phases in 805,659 ms,
-including all 11 Chromium named-edit scenarios, the 4K estimate ceiling, the
-bounded approved-hard-cut and professional voice-delivery lifecycle, and the
-versioned 50-tool private canonical/job-adapter evidence report. The earlier full
-internal-regression baseline passed all 22 phases in 719,518 ms. Its final
+On 2026-07-14, the canonical command passed all 16 phases in 647,865 ms,
+including all 11 Chromium named-edit scenarios, source-only intent authority,
+the 4K estimate ceiling, the bounded approved-hard-cut and professional
+voice-delivery lifecycle, and the versioned 50-tool private
+canonical/job-adapter evidence report. The earlier full internal-regression
+baseline passed all 22 phases in 719,518 ms. Its final
 signed-in regression uploaded two private
 source videos, verified distinct source-sequence and finalized-media identities,
 synchronized exact Edit Preferences, persisted the canonical planning handoff,

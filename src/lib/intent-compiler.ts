@@ -48,6 +48,14 @@ function hasAny(text: string, keywords: string[]) {
   return keywords.some((keyword) => text.includes(keyword))
 }
 
+const sourceOnlyKeywords = [
+  'source only',
+  'source footage only',
+  'uploaded footage only',
+  'only use the source',
+  'use only the source',
+]
+
 function addUnique(list: string[], value: string) {
   if (!list.includes(value)) {
     list.push(value)
@@ -241,7 +249,13 @@ function applyCreditPreference(text: string, input: PlannerInput, accumulator: I
 }
 
 function applyVisualPreference(text: string, input: PlannerInput, accumulator: IntentAccumulator) {
-  if (hasAny(text, ['no extra visuals', 'no visuals', 'no b-roll', 'no broll'])) {
+  if (hasAny(text, [
+    'no extra visuals',
+    'no visuals',
+    'no b-roll',
+    'no broll',
+    ...sourceOnlyKeywords,
+  ])) {
     addRequirement(accumulator, 'avoid', 'Avoid extra visuals unless essential.', 'visualPreference')
     addUnique(accumulator.avoidRules, 'Avoid extra visuals unless essential for clarity.')
     return 'no_extra_visuals'
@@ -313,6 +327,20 @@ function applyDirectiveOverrides(text: string, directive: MutableDirective, accu
   if (sound) {
     directive.soundStyle = sound.value
     addRequirement(accumulator, 'preference', sound.requirement, 'professionalEditingDirective.soundStyle')
+  }
+
+  if (hasAny(text, sourceOnlyKeywords)) {
+    directive.brollPolicy = 'none'
+    directive.soundStyle = 'clean_voice_only'
+    addUnique(accumulator.mustFollowRules, 'Use only approved source footage, its source audio, and explicitly approved editorial layers.')
+    addUnique(accumulator.avoidRules, 'Do not add b-roll, music, SFX, beat-driven timing, or generated media.')
+    addRequirement(
+      accumulator,
+      'must_follow',
+      'Use source-only editing with no added b-roll, music, SFX, beat-driven timing, or generated media.',
+      'professionalEditingDirective',
+      'high',
+    )
   }
 
   if (hasAny(text, ['not too viral', "don't make it viral", 'dont make it viral', 'not chaotic'])) {

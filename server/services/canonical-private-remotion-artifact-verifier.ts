@@ -12,10 +12,10 @@ export async function verifyCanonicalPrivateRemotionArtifact(input: {
   const exactPrivateFinalComposition =
     input.artifact.lineage.assetRole === 'final' &&
     [
-      'private_source_caption_final_video_export',
-      'private_source_sequence_caption_final_video_export',
-      'private_source_caption_track_final_video_export',
-      'private_source_sequence_caption_track_final_video_export',
+      'private_source_caption_4k_delivery_master_v1',
+      'private_source_sequence_caption_4k_delivery_master_v1',
+      'private_source_caption_track_4k_delivery_master_v1',
+      'private_source_sequence_caption_track_4k_delivery_master_v1',
     ].includes(input.artifact.lineage.artifactType) &&
     input.artifact.lineage.required === true &&
     input.artifact.lineage.previewPlaceholderAllowed === false
@@ -41,7 +41,7 @@ export async function verifyCanonicalPrivateRemotionArtifact(input: {
     privateObjectIdentityHash: input.artifact.storageIdentity.opaqueObjectIdentityHash,
     semanticReportHash: sha256AuthorityValue({
       domain: 'canonical_private_remotion_lease_verification_v2',
-      artifactProfile: exactPrivateFinalComposition ? 'private_final_composition' : 'private_preview',
+      artifactProfile: exactPrivateFinalComposition ? 'private_4k_delivery_master' : 'private_preview',
       assetRole: input.artifact.lineage.assetRole,
       artifactType: input.artifact.lineage.artifactType,
       sha256: stored.sha256, byteLength: stored.byteLength,

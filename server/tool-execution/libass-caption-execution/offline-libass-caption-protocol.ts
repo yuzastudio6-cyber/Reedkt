@@ -33,10 +33,20 @@ export function validateOfflineLibassCaptionRequest(value: unknown): OfflineLiba
     'captionProfileId', 'fontPackProfileId', 'collisionPolicy', 'preserveSpeechTiming',
     'width', 'height', 'timestampMs', 'fontSize', 'marginV', 'alignment', 'caption',
   ], 'payload')
-  const width = integer(payload.width, 320, 1920, 'width')
-  const height = integer(payload.height, 180, 1080, 'height')
-  if (!['640x360', '360x640', '720x405', '405x720'].includes(`${width}x${height}`)) {
-    throw invalid('libass proof frame is unsupported.')
+  const width = integer(payload.width, 320, 3840, 'width')
+  const height = integer(payload.height, 180, 3840, 'height')
+  if (![
+    '640x360',
+    '360x640',
+    '720x405',
+    '405x720',
+    '3840x2160',
+    '2160x3840',
+    '2160x2160',
+    '2160x2700',
+    '2880x2160',
+  ].includes(`${width}x${height}`)) {
+    throw invalid('libass approved review or 4K delivery-master frame is unsupported.')
   }
   const caption = safeCaption(payload.caption)
   if (
@@ -51,7 +61,7 @@ export function validateOfflineLibassCaptionRequest(value: unknown): OfflineLiba
       captionProfileId: 'approved_ass_track_render_v1', fontPackProfileId: 'reeditpro_reviewed_fonts_v1',
       collisionPolicy: 'fail_on_reserved_zone_collision', preserveSpeechTiming: true,
       width, height, timestampMs: integer(payload.timestampMs, 0, 1999, 'timestampMs'),
-      fontSize: integer(payload.fontSize, 18, 72, 'fontSize'), marginV: integer(payload.marginV, 20, 240, 'marginV'),
+      fontSize: integer(payload.fontSize, 18, 160, 'fontSize'), marginV: integer(payload.marginV, 20, 360, 'marginV'),
       alignment: Number(payload.alignment) as 2 | 8, caption,
     },
   }

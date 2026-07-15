@@ -1098,7 +1098,7 @@ async function createContainer(
   const created = await dockerBuffer([
     'create', '--interactive', '--network', 'none', '--read-only',
     '--cap-drop', 'ALL', '--security-opt', 'no-new-privileges:true',
-    '--pids-limit', '128', '--memory', '512m', '--memory-swap', '512m', '--cpus', '2',
+    '--pids-limit', '128', '--memory', '2g', '--memory-swap', '2g', '--cpus', '2',
     '--tmpfs', '/tmp:rw,noexec,nosuid,nodev,size=67108864,mode=1777',
     '--user', '65532:65532', '--entrypoint', entrypoint,
     image.imageId, ...command,
@@ -1124,8 +1124,8 @@ function validateConfinement(
     inspect.Image !== image.imageId || host.NetworkMode !== 'none' || host.ReadonlyRootfs !== true ||
     host.Privileged !== false || stringArray(host.CapDrop).join('|') !== 'ALL' ||
     !security.some((value) => value.startsWith('no-new-privileges')) ||
-    Number(host.PidsLimit) !== 128 || Number(host.Memory) !== 536_870_912 ||
-    Number(host.MemorySwap) !== 536_870_912 || Number(host.NanoCpus) !== 2_000_000_000 ||
+    Number(host.PidsLimit) !== 128 || Number(host.Memory) !== 2_147_483_648 ||
+    Number(host.MemorySwap) !== 2_147_483_648 || Number(host.NanoCpus) !== 2_000_000_000 ||
     config.User !== '65532:65532' || stringArray(config.Entrypoint).join('|') !== entrypoint ||
     stableAuthorityStringify(stringArray(config.Cmd)) !== stableAuthorityStringify(command) ||
     (Array.isArray(inspect.Mounts) && inspect.Mounts.length > 0) ||
@@ -1135,7 +1135,7 @@ function validateConfinement(
   return {
     networkMode: 'none', readOnlyRootFilesystem: true, capDropAll: true,
     noNewPrivileges: true, privileged: false, pidsLimit: 128,
-    memoryLimitBytes: 536_870_912, memoryAndSwapLimitBytes: 536_870_912,
+    memoryLimitBytes: 2_147_483_648, memoryAndSwapLimitBytes: 2_147_483_648,
     nanoCpus: 2_000_000_000, tmpfsPath: '/tmp', user: '65532:65532',
     callerBindsPresent: false, callerMountsPresent: false, callerEnvironmentPresent: false,
     serverOwnedEntrypoint: entrypoint, serverDerivedArgumentsOnly: true,

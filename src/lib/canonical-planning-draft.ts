@@ -1,15 +1,17 @@
 import type { ApprovedEditExecutionUploadedMediaSourceAssetClientInput } from './approved-edit-execution-package-client'
 import type {
-  AspectRatio,
   ColorOperationId,
   EditPlan,
   PlannerInput,
   TrimDecisionItem,
 } from '../types/reeditpro'
 import type { ProfessionalExportCreditCoverage } from '../types/professional-export'
-import { buildProfessionalExportCreditCoverage } from './professional-export-policy'
+import {
+  buildProfessionalExportCreditCoverage,
+  resolveProfessionalExportFrame,
+} from './professional-export-policy'
 
-export const CANONICAL_PRIVATE_PLAN_SCHEMA_VERSION = 'private-edit-authority-plan-v1' as const
+export const CANONICAL_PRIVATE_PLAN_SCHEMA_VERSION = 'private-edit-authority-plan-v2' as const
 
 const FFPROBE_OPERATION = 'tool.ffprobe.inspect_approved_media.v1'
 const FFMPEG_OPERATION = 'tool.ffmpeg.execute_approved_media_recipe.v1'
@@ -17,7 +19,13 @@ const LIBASS_OPERATION = 'tool.libass.render_approved_caption_track.v1'
 const REMOTION_OPERATION = 'tool.remotion.render_approved_composition.v1'
 const SAFE_KEY = /^[A-Za-z0-9][A-Za-z0-9._:-]*$/
 const SHA256 = /^[a-f0-9]{64}$/
-const SUPPORTED_PRIVATE_REVIEW_FRAMES = new Set(['360x640', '640x360'])
+const SUPPORTED_PRIVATE_4K_MASTER_FRAMES = new Set([
+  '3840x2160',
+  '2160x3840',
+  '2160x2160',
+  '2160x2700',
+  '2880x2160',
+])
 const FORBIDDEN_OUTBOUND_KEY = /^(?:secret|credential|accessToken|refreshToken|signedUrl|publicUrl|storagePath|localPath|absolutePath|relativePath|sourceBytes|bytesBase64|requestBody)$/i
 
 type JsonRecord = Record<string, unknown>
@@ -86,7 +94,7 @@ export type CanonicalPlanComponentsDraft = {
   confirmedSettings: {
     aspectRatio: string
     outputFrame: { width: number; height: number; fps: number }
-    outputFramePurpose: 'private_canonical_review'
+    outputFramePurpose: 'private_canonical_4k_master_review'
     professionalExportCoverage: ProfessionalExportCreditCoverage
     outputFrameConfirmed: true
     sourceOrderConfirmed: true
@@ -245,9 +253,11 @@ export function buildCanonicalPlanningDraft(input: {
     errors.push('The plan must include compiled intent and professional editing direction.')
   }
   const professionalExportCoverage = plan.creditEstimate.professionalExportCoverage
+  const approvedExportAspectRatio = professionalExportCoverage?.approvedAspectRatio
   if (
     !professionalExportCoverage ||
-    professionalExportCoverage.approvedAspectRatio !== plannerInput.aspectRatio ||
+    !approvedExportAspectRatio ||
+    approvedExportAspectRatio !== plannerInput.aspectRatio ||
     professionalExportCoverage.costBasisProfileId !== 'uhd_2160' ||
     professionalExportCoverage.includedInInitialEstimate !== true ||
     professionalExportCoverage.requiresSeparateExportEstimate !== false ||
@@ -256,7 +266,13 @@ export function buildCanonicalPlanningDraft(input: {
     errors.push('The canonical plan requires the confirmed aspect ratio and mandatory 4K UHD export ceiling in the initial edit estimate.')
   }
 
-  if (errors.length > 0 || !plan.masterTimingPlan || !plannerInput.cleanupPreference || !professionalExportCoverage) {
+  if (
+    errors.length > 0 ||
+    !plan.masterTimingPlan ||
+    !plannerInput.cleanupPreference ||
+    !professionalExportCoverage ||
+    !approvedExportAspectRatio
+  ) {
     return { ok: false, errors: unique(errors) }
   }
 
@@ -268,7 +284,7 @@ export function buildCanonicalPlanningDraft(input: {
   const expectedExportCoverage = buildProfessionalExportCreditCoverage({
     durationSeconds: totalFrames / fps,
     outputFps: fps,
-    approvedAspectRatio: professionalExportCoverage.approvedAspectRatio!,
+    approvedAspectRatio: approvedExportAspectRatio,
   })
   if (
     professionalExportCoverage.outputFps !== expectedExportCoverage.outputFps ||
@@ -317,7 +333,7 @@ export function buildCanonicalPlanningDraft(input: {
     totalFrames,
   })
 
-  const frame = privatePlanningFrame(plannerInput.aspectRatio)
+  const frame = canonicalFourKMasterFrame(approvedExportAspectRatio)
   const timingValidationPlan = plan.timingValidationPlan
   if (!timingValidationPlan) {
     return { ok: false, errors: ['The timing validation result is missing.'] }
@@ -353,7 +369,7 @@ export function buildCanonicalPlanningDraft(input: {
     confirmedSettings: {
       aspectRatio: plannerInput.aspectRatio,
       outputFrame: { ...frame, fps },
-      outputFramePurpose: 'private_canonical_review',
+      outputFramePurpose: 'private_canonical_4k_master_review',
       professionalExportCoverage,
       outputFrameConfirmed: true,
       sourceOrderConfirmed: true,
@@ -387,6 +403,10 @@ export function buildCanonicalPlanningDraft(input: {
     rendererPlan: {
       renderer: 'remotion',
       frameOwnedByRenderer: true,
+      renderPurpose: 'private_4k_delivery_master_v1',
+      deliveryProfileId: 'uhd_2160',
+      sourceQualityPolicy: 'immutable_source_master_no_proxy_v1',
+      reviewUsesExactMasterArtifact: true,
       composition: toJsonValue(plan.rendererCompositionPlan ?? {}),
       strategy: toJsonValue(plan.renderStrategyPlan ?? {}),
     },
@@ -606,7 +626,9 @@ function privateReviewPublicationBlockers(input: {
     asset.sourceMetadata?.probeStatus !== 'probed' || asset.sourceMetadata.hasVideo !== true)) {
     blockers.push('Every private canonical review source requires verified video metadata before an execution candidate can be saved.')
   }
-  if (!SUPPORTED_PRIVATE_REVIEW_FRAMES.has(`${input.frame.width}x${input.frame.height}`)) blockers.push('Private canonical review currently supports confirmed 9:16 or 16:9 frames.')
+  if (!SUPPORTED_PRIVATE_4K_MASTER_FRAMES.has(`${input.frame.width}x${input.frame.height}`)) {
+    blockers.push('Private canonical execution requires an exact registered 4K UHD master frame for the confirmed aspect ratio.')
+  }
   if (![24, 30].includes(input.fps)) blockers.push('Private canonical review currently supports a 24fps or 30fps timing base.')
   if (input.totalFrames < 24 || input.totalFrames > 240) blockers.push('Private canonical review currently supports a frame-accurate review range between 1 and 8 seconds.')
   const sourceTimeline = buildOrderedSourceTimeline(input.orderedSourceItems, input.cleanupDecisions)
@@ -765,6 +787,7 @@ function buildPrivateReviewCanonicalPlan(input: {
       .filter((segment) =>
         segment.startFrame < cue.endFrameExclusive && segment.endFrameExclusive > cue.startFrame)
       .map((segment) => segment.segmentId)
+    const captionLayout = professionalCaptionLayout(input.frame)
     return {
       workItemKey,
       workItemType: 'custom',
@@ -781,8 +804,8 @@ function buildPrivateReviewCanonicalPlan(input: {
           width: input.frame.width,
           height: input.frame.height,
           timestampMs: 1_000,
-          fontSize: input.frame.height >= 700 ? 42 : 34,
-          marginV: 48,
+          fontSize: captionLayout.fontSize,
+          marginV: captionLayout.marginV,
           alignment: 2,
           caption: cue.caption,
         },
@@ -965,11 +988,11 @@ function buildPrivateReviewCanonicalPlan(input: {
     colorWorkItems.length
   const finalArtifactType = sourceSequenceComposition
     ? captionTrackComposition
-      ? 'private_source_sequence_caption_track_final_video_export'
-      : 'private_source_sequence_caption_final_video_export'
+      ? 'private_source_sequence_caption_track_4k_delivery_master_v1'
+      : 'private_source_sequence_caption_4k_delivery_master_v1'
     : captionTrackComposition
-      ? 'private_source_caption_track_final_video_export'
-      : 'private_source_caption_final_video_export'
+      ? 'private_source_caption_track_4k_delivery_master_v1'
+      : 'private_source_caption_4k_delivery_master_v1'
 
   return {
     schemaVersion: CANONICAL_PRIVATE_PLAN_SCHEMA_VERSION,
@@ -1041,6 +1064,13 @@ function buildPrivateReviewCanonicalPlan(input: {
             width: input.frame.width, height: input.frame.height,
             fps: input.fps, durationFrames: input.totalFrames, sourceFit: 'contain',
             panelBackground,
+            renderPurpose: 'private_4k_delivery_master_v1',
+            deliveryProfileId: 'uhd_2160',
+            estimateCostBasisProfileId: 'uhd_2160',
+            sourceQualityPolicy: 'immutable_source_master_no_proxy_v1',
+            usesApprovedEditReservation: true,
+            requiresSeparateExportEstimate: false,
+            allowsAdditionalExportCharge: false,
             captionOverlayPolicy: captionTrackComposition
               ? 'approved_timed_full_frame_rgba_track'
               : 'approved_full_frame_rgba',
@@ -1269,12 +1299,22 @@ function canonicalCleanupAction(value: TrimDecisionItem['decision'] | undefined)
   return 'preserve'
 }
 
-function privatePlanningFrame(aspectRatio: AspectRatio): { width: number; height: number } {
-  if (aspectRatio === '16:9') return { width: 640, height: 360 }
-  if (aspectRatio === '1:1') return { width: 480, height: 480 }
-  if (aspectRatio === '4:5') return { width: 480, height: 600 }
-  if (aspectRatio === '4:3') return { width: 640, height: 480 }
-  return { width: 360, height: 640 }
+function canonicalFourKMasterFrame(
+  aspectRatio: NonNullable<ProfessionalExportCreditCoverage['approvedAspectRatio']>,
+): { width: number; height: number } {
+  const frame = resolveProfessionalExportFrame(aspectRatio, 'uhd_2160')
+  return { width: frame.width, height: frame.height }
+}
+
+function professionalCaptionLayout(frame: { width: number; height: number }): {
+  fontSize: number
+  marginV: number
+} {
+  const shortEdge = Math.min(frame.width, frame.height)
+  return {
+    fontSize: Math.max(72, Math.min(160, Math.round(shortEdge * 0.045))),
+    marginV: Math.max(96, Math.min(360, Math.round(frame.height * 0.055))),
+  }
 }
 
 function validatedCaption(value: string | undefined): string | null {

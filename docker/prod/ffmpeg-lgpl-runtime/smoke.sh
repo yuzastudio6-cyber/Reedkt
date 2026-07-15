@@ -31,7 +31,8 @@ docker run --rm \
   --cap-drop=ALL \
   --security-opt=no-new-privileges:true \
   --pids-limit=128 \
-  --memory=512m \
+  --memory=2g \
+  --memory-swap=2g \
   --cpus=2 \
   --tmpfs /tmp:rw,noexec,nosuid,nodev,size=64m,mode=1777 \
   --entrypoint /usr/local/bin/reeditpro-ffmpeg-verify \

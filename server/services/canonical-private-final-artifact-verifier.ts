@@ -8,10 +8,17 @@ export async function verifyCanonicalPrivateFinalCompositionArtifact(input: {
   artifact: PersistedArtifactResult
 }) {
   const run = input.artifact.actualRunEvidence
+  const approvedMasterTypes = new Set([
+    'private_source_caption_4k_delivery_master_v1',
+    'private_source_sequence_caption_4k_delivery_master_v1',
+    'private_source_caption_track_4k_delivery_master_v1',
+    'private_source_sequence_caption_track_4k_delivery_master_v1',
+  ])
   if (
     input.artifact.identity.expectedAssetId !== input.artifact.lineage.assetId ||
     input.artifact.lineage.contentType !== 'video/mp4' ||
     input.artifact.content.contentType !== 'video/mp4' ||
+    !approvedMasterTypes.has(input.artifact.lineage.artifactType) ||
     input.artifact.lineage.assetRole !== 'final' || !input.artifact.lineage.required ||
     input.artifact.lineage.previewPlaceholderAllowed || input.artifact.placeholder.isPlaceholder ||
     input.artifact.storageIdentity.storageKind !== 'private_local_test' ||
@@ -21,7 +28,7 @@ export async function verifyCanonicalPrivateFinalCompositionArtifact(input: {
     run.runnerClass !== 'offline_remotion_render_execution_v1' ||
     !run.actualRunVerified || run.exitCode !== 0 ||
     run.toolIds.length !== 1 || run.toolIds[0] !== 'remotion'
-  ) throw invalid('Private final MP4 is not an exact verified Remotion final-composition artifact.')
+  ) throw invalid('Private final MP4 is not an exact verified Remotion 4K delivery-master artifact.')
   const stored = await readCanonicalPrivateRemotionArtifact({
     localStorageRoot: input.localStorageRoot,
     privateObjectIdentityHash: input.artifact.storageIdentity.opaqueObjectIdentityHash,
@@ -36,7 +43,7 @@ export async function verifyCanonicalPrivateFinalCompositionArtifact(input: {
     byteLength: stored.byteLength,
     privateObjectIdentityHash: input.artifact.storageIdentity.opaqueObjectIdentityHash,
     semanticReportHash: sha256AuthorityValue({
-      domain: 'canonical_private_final_composition_download_verification_v1',
+      domain: 'canonical_private_4k_delivery_master_download_verification_v1',
       artifactId: input.artifact.artifactId,
       sha256: stored.sha256,
       byteLength: stored.byteLength,

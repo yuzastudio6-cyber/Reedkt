@@ -1,10 +1,12 @@
 import { ApiError } from '../errors/api-error'
+import { resolveProfessionalExportFrame } from '../../src/lib/professional-export-policy'
 import type { ServiceContext } from '../types'
 import {
   canonicalPrivateFinalArtifactDownloadQuerySchema,
   type CanonicalPrivateFinalArtifactDownloadQuery,
 } from '../validation/canonical-private-final-artifact-download-schemas'
 import { verifyCanonicalPrivateFinalCompositionArtifact } from './canonical-private-final-artifact-verifier'
+import { createEditPlanningAuthorityService } from './edit-planning-authority-service'
 import { createPrivateArtifactQaAuthorityService } from './private-artifact-qa-authority-service'
 import { sha256AuthorityValue } from './private-edit-authority-store'
 import { getRequiredAuthUserId } from './service-helpers'
@@ -36,6 +38,13 @@ export function createCanonicalPrivateFinalArtifactDownloadService(context: Serv
         purpose: 'read_private_artifact_qa_authority',
       })
       const gateIds = new Set(authority.qaEvaluation?.gateResults.map((gate) => gate.gateId) ?? [])
+      const executionAuthority = await createEditPlanningAuthorityService(context)
+        .loadApprovedExecutionAuthority(parsed.data.snapshotId, access.workspaceId)
+      const coverage = executionAuthority.components.confirmedSettings.professionalExportCoverage
+      const exactFourKFrame = resolveProfessionalExportFrame(
+        coverage.approvedAspectRatio,
+        'uhd_2160',
+      )
       if (
         authority.qaEvaluation?.outcome !== 'passed' ||
         !gateIds.has('asset_received_gate') || !gateIds.has('asset_quality_gate') ||
@@ -43,13 +52,25 @@ export function createCanonicalPrivateFinalArtifactDownloadService(context: Serv
         authority.reconciliation?.decision !== 'test_merged_not_live_authorized' ||
         !authority.reconciliation.privateTestDependencySatisfied ||
         authority.reconciliation.liveRuntimeDependencySatisfied !== false ||
-        authority.liveRuntimeEligible !== false
+        authority.liveRuntimeEligible !== false ||
+        executionAuthority.snapshot.snapshotId !== parsed.data.snapshotId ||
+        executionAuthority.snapshot.estimateId !== executionAuthority.estimate.id ||
+        executionAuthority.snapshot.estimateId !== executionAuthority.reservation.estimateId ||
+        executionAuthority.snapshot.reservationId !== executionAuthority.reservation.id ||
+        executionAuthority.components.confirmedSettings.outputFramePurpose !==
+          'private_canonical_4k_master_review' ||
+        executionAuthority.components.confirmedSettings.outputFrame.width !== exactFourKFrame.width ||
+        executionAuthority.components.confirmedSettings.outputFrame.height !== exactFourKFrame.height ||
+        coverage.assumption !== 'always_estimate_4k_uhd' ||
+        coverage.requiresSeparateExportEstimate !== false ||
+        coverage.allowsAdditionalExportCharge !== false ||
+        coverage.usesApprovedEditReservation !== true
       ) throw new ApiError('JOB_DEPENDENCY_NOT_READY', 'Private final artifact has not passed exact final delivery QA.', 409)
       const verified = await verifyCanonicalPrivateFinalCompositionArtifact({
         localStorageRoot: context.env.localStorageRoot,
         artifact: authority.artifact,
       })
-      const fileName = `reeditpro-private-final-${authority.artifact.artifactId}.mp4`
+      const fileName = `reeditpro-private-4k-master-${authority.artifact.artifactId}.mp4`
       return {
         schemaVersion: 'canonical-private-final-artifact-download-v1' as const,
         source: 'canonical_private_final_artifact_download_service' as const,
@@ -69,7 +90,21 @@ export function createCanonicalPrivateFinalArtifactDownloadService(context: Serv
           qaEvaluationId: authority.qaEvaluation.qaEvaluationId,
           reconciliationId: authority.reconciliation.reconciliationId,
           semanticReportHash: verified.semanticReportHash,
+          deliveryProfileId: 'uhd_2160',
+          approvedEstimateId: executionAuthority.estimate.id,
+          approvedReservationId: executionAuthority.reservation.id,
+          secondEstimateCreated: false,
+          secondReservationCreated: false,
+          exportCreditMutationPerformed: false,
         }),
+        deliveryProfileId: 'uhd_2160' as const,
+        width: exactFourKFrame.width,
+        height: exactFourKFrame.height,
+        originalApprovedEstimateReused: true as const,
+        originalApprovedReservationReused: true as const,
+        secondEstimateCreated: false as const,
+        secondReservationCreated: false as const,
+        exportCreditMutationPerformed: false as const,
         privateInternalOnly: true as const,
         publicUrlCreated: false as const,
         signedUrlCreated: false as const,

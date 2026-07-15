@@ -505,7 +505,7 @@ assert.deepEqual(multiSourceFinalPayload.captionOverlayCues, [{
 }])
 assert.equal(
   multiSourceFinalItem.expectedOutputs[0]?.artifactType,
-  'private_source_sequence_caption_track_final_video_export',
+  'private_source_sequence_caption_track_4k_delivery_master_v1',
 )
 
 const voiceDeliveryPlan = createExactMultiSourceVoiceDeliveryPlan()
@@ -964,8 +964,8 @@ try {
   }
   assert.deepEqual(exactHandoffBody.canonicalPlanComponents?.confirmedSettings, {
     aspectRatio: '16:9',
-    outputFrame: { width: 640, height: 360, fps: 24 },
-    outputFramePurpose: 'private_canonical_review',
+    outputFrame: { width: 3840, height: 2160, fps: 24 },
+    outputFramePurpose: 'private_canonical_4k_master_review',
     professionalExportCoverage: exactPlan.creditEstimate.professionalExportCoverage,
     outputFrameConfirmed: true,
     sourceOrderConfirmed: true,

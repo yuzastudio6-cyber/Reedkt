@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto'
 import type { ZodType } from 'zod'
 
 import { ApiError } from '../errors/api-error'
+import { resolveProfessionalExportFrame } from '../../src/lib/professional-export-policy'
 import {
   OFFLINE_MEDIA_BINARY_OPERATIONS,
   OFFLINE_MEDIA_BINARY_PROTOCOL,
@@ -124,6 +125,46 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
       if (!workItem || !expectedAsset) throw denied('Final composition work item or output lineage is missing.')
       const planningPayload = validateOfflineRemotionFinalCompositionPlanningPayload(
         workItem.executionInput.structuredPayload,
+      )
+      const exportCoverage = authority.components.confirmedSettings.professionalExportCoverage
+      const exactFourKFrame = resolveProfessionalExportFrame(
+        exportCoverage.approvedAspectRatio,
+        'uhd_2160',
+      )
+      const exportEstimateLine = authority.estimate.lineItems.find((lineItem) =>
+        lineItem.label === '4K UHD render and export ceiling')
+      if (
+        authority.components.confirmedSettings.outputFramePurpose !==
+          'private_canonical_4k_master_review' ||
+        authority.components.confirmedSettings.outputFrame.width !== exactFourKFrame.width ||
+        authority.components.confirmedSettings.outputFrame.height !== exactFourKFrame.height ||
+        planningPayload.width !== exactFourKFrame.width ||
+        planningPayload.height !== exactFourKFrame.height ||
+        planningPayload.renderPurpose !== 'private_4k_delivery_master_v1' ||
+        planningPayload.deliveryProfileId !== 'uhd_2160' ||
+        planningPayload.estimateCostBasisProfileId !== 'uhd_2160' ||
+        planningPayload.sourceQualityPolicy !== 'immutable_source_master_no_proxy_v1' ||
+        planningPayload.usesApprovedEditReservation !== true ||
+        planningPayload.requiresSeparateExportEstimate !== false ||
+        planningPayload.allowsAdditionalExportCharge !== false ||
+        exportCoverage.assumption !== 'always_estimate_4k_uhd' ||
+        exportCoverage.costBasisProfileId !== 'uhd_2160' ||
+        exportCoverage.defaultDeliveryProfileId !== 'uhd_2160' ||
+        exportCoverage.includedInInitialEstimate !== true ||
+        exportCoverage.usesApprovedEditReservation !== true ||
+        exportCoverage.requiresSeparateExportEstimate !== false ||
+        exportCoverage.allowsAdditionalExportCharge !== false ||
+        !exportEstimateLine || exportEstimateLine.removable ||
+        exportEstimateLine.estimatedCredits !== exportCoverage.maximumInternalToolCostCredits ||
+        authority.snapshot.estimateId !== authority.estimate.id ||
+        authority.snapshot.estimateId !== authority.reservation.estimateId ||
+        authority.snapshot.estimateId !== authority.approval.estimateId ||
+        authority.snapshot.reservationId !== authority.reservation.id ||
+        authority.snapshot.reservationId !== authority.approval.reservationId ||
+        authority.estimate.status !== 'approved' ||
+        !['reserved', 'partially_spent'].includes(authority.reservation.status)
+      ) throw denied(
+        'Final composition is not the exact 4K delivery master covered by the original approved estimate and reservation.',
       )
       const sequenceProfile = 'sourceSegments' in planningPayload
       const captionTrackProfile = 'captionOverlayCues' in planningPayload
@@ -386,7 +427,7 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
         : { transitionPolicy: 'not_applicable_single_source' })
 
       const privateObjectIdentityHash = sha256ArtifactQaValue({
-        domain: 'canonical_private_final_composition_mp4_v1',
+        domain: 'canonical_private_4k_delivery_master_mp4_v1',
         workspaceId: body.workspaceId, snapshotId: authority.snapshot.snapshotId,
         jobId: body.jobId, expectedAssetId: expectedAsset.id,
         dispatchGrantId: body.grantId, executionAttemptId,
@@ -549,7 +590,7 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
           : { colorSource: colorInputRecords[0]! }
         : {}
       const responseWithoutHash = {
-        schemaVersion: 'canonical-private-final-composition-execution-response-v2' as const,
+        schemaVersion: 'canonical-private-final-composition-execution-response-v3' as const,
         source: 'canonical_private_final_composition_execution_coordinator' as const,
         purpose: body.purpose,
         identity: { ...identity, approvedWorkItemId: workItem.id, dispatchGrantId: body.grantId },
@@ -569,6 +610,13 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
           approvedVoiceTrackReplacementApplied: replaceVoice,
           approvedColorDependencyRead: colorSources.length > 0,
           approvedColorIntermediateApplied: colorSources.length > 0,
+          renderPurpose: 'private_4k_delivery_master_v1' as const,
+          deliveryProfileId: 'uhd_2160' as const,
+          immutableSourceMasterNoProxyPolicyVerified: true as const,
+          originalApprovedEstimateAndReservationReused: true as const,
+          secondEstimateCreated: false as const,
+          secondReservationCreated: false as const,
+          exportCreditMutationPerformed: false as const,
           privateFinalCompositionExecuted: true as const, providerCallMade: false as const,
           publicDeliveryExecuted: false as const,
         },
@@ -1179,6 +1227,11 @@ function assertFinalResult(
     )) ||
     (captionTrackProfile &&
       result.evidence.semanticEvidence.approvedCaptionTrackTimingApplied !== true) ||
+    result.evidence.semanticEvidence.approved4kDeliveryMasterAuthorityVerified !== true ||
+    result.evidence.semanticEvidence.immutableSourceMasterNoProxyPolicyVerified !== true ||
+    result.evidence.semanticEvidence.approvedReservationReuseOnly !== true ||
+    result.evidence.semanticEvidence.secondEstimateOrExportChargeForbidden !== true ||
+    result.evidence.semanticEvidence.professionalHighQualityEncodeApplied !== true ||
     result.readiness.productReady || !result.readiness.privateInternalFinalCompositionReady
   ) throw denied('Remotion final composition result failed exact operation and dependency verification.')
 }

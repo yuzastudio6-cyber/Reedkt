@@ -23,7 +23,7 @@ for (const invalid of [
   { ...request, payload: { ...request.payload, caption: '{\\pos(1,1)}unsafe' } },
   { ...request, payload: { ...request.payload, caption: 'https://example.test/caption' } },
   { ...request, payload: { ...request.payload, caption: '../../etc/passwd' } },
-  { ...request, payload: { ...request.payload, width: 3840, height: 2160 } },
+  { ...request, payload: { ...request.payload, width: 4096, height: 2160 } },
   { ...request, payload: { ...request.payload, fontPackProfileId: '/tmp/fonts' } },
 ]) assert.throws(() => validateOfflineLibassCaptionRequest(invalid), /unsupported|outside|contains/)
 
@@ -50,6 +50,23 @@ assert.equal(bottom.evidence.confinement.readOnlyRootFilesystem, true)
 assert.equal(bottom.evidence.confinement.capDropAll, true)
 assert.equal(bottom.evidence.confinement.user, '10001:10001')
 
+const fourKMasterOverlay = await runtime.execute({
+  ...request,
+  payload: {
+    ...request.payload,
+    width: 3840,
+    height: 2160,
+    fontSize: 97,
+    marginV: 119,
+    caption: 'Approved 4K delivery master caption',
+  },
+})
+assert.equal(fourKMasterOverlay.imageArtifact.width, 3840)
+assert.equal(fourKMasterOverlay.imageArtifact.height, 2160)
+assert.equal(fourKMasterOverlay.imageArtifact.hasAlpha, true)
+assert.ok(fourKMasterOverlay.imageArtifact.nonTransparentPixelCount > 1_000)
+assert.ok(fourKMasterOverlay.imageArtifact.alphaBoundingBox.top > 1_500)
+
 const replay = await runtime.execute(request)
 assert.equal(replay.imageArtifact.sha256, bottom.imageArtifact.sha256)
 assert.deepEqual(replay.imageArtifact.alphaBoundingBox, bottom.imageArtifact.alphaBoundingBox)
@@ -69,6 +86,7 @@ console.log(JSON.stringify({
     'network_none_read_only_non_root_cap_drop_confinement_verified',
     'actual_ass_read_memory_and_ass_render_frame_executed',
     'transparent_rgba_png_caption_overlay_semantics_verified',
+    'exact_3840x2160_delivery_master_overlay_rendered',
     'bottom_and_top_safe_zone_placement_verified',
     'exact_replay_is_pixel_deterministic',
     'full_track_video_burnin_product_beta_production_readiness_remains_false',

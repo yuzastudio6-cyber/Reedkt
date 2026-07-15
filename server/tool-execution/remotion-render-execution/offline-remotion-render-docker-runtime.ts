@@ -16,7 +16,7 @@ const PINNED_BASE = `node:22-bookworm-slim@${BASE_DIGEST}` as const
 const ENTRYPOINT = ['node', '/app/runner.mjs'] as const
 const SOURCE_FILES = ['Dockerfile', 'package.json', 'package-lock.json', 'entry.tsx', 'composition.tsx', 'build-bundle.mjs', 'ensure-browser.mjs', 'runner.mjs'] as const
 const BUILD_CONTEXT = '/tmp/reeditpro-canonical-private-offline-remotion-build-context-v1'
-const TIMEOUT_MS = 120_000
+const TIMEOUT_MS = 15 * 60_000
 
 interface HostResult { exitCode: number; stdout: string; stderr: string }
 interface Inspect { Image?: unknown; State?: unknown; HostConfig?: unknown; Mounts?: unknown; Config?: unknown; RootFS?: unknown; Id?: unknown; Os?: unknown; Architecture?: unknown }
@@ -76,8 +76,8 @@ export async function runOfflineRemotionContainer(input: { image: OfflineRemotio
   }
   const created = await runDocker([
     'create', '--interactive', '--network', 'none', '--read-only', '--cap-drop', 'ALL',
-    '--security-opt', 'no-new-privileges:true', '--pids-limit', '256', '--memory', '2g', '--memory-swap', '2g', '--cpus', '2',
-    '--tmpfs', '/tmp:rw,noexec,nosuid,nodev,size=536870912', '--shm-size', '268435456', '--user', '10001:10001', input.image.imageId,
+    '--security-opt', 'no-new-privileges:true', '--pids-limit', '256', '--memory', '4g', '--memory-swap', '4g', '--cpus', '2',
+    '--tmpfs', '/tmp:rw,noexec,nosuid,nodev,size=1073741824', '--shm-size', '536870912', '--user', '10001:10001', input.image.imageId,
   ], { timeoutMs: TIMEOUT_MS, maxBytes: 64 * 1024 })
   if (created.exitCode !== 0 || created.stderr.trim()) throw runtimeFailure('Confined Remotion container could not be created.')
   const id = created.stdout.trim()
@@ -103,12 +103,12 @@ function validateConfinement(inspect: Inspect, image: OfflineRemotionImageEviden
   if (
     inspect.Image !== image.imageId || host.NetworkMode !== 'none' || host.ReadonlyRootfs !== true || host.Privileged !== false ||
     caps.length !== 1 || caps[0] !== 'ALL' || !security.some((v) => v.startsWith('no-new-privileges')) ||
-    Number(host.PidsLimit) !== 256 || Number(host.Memory) !== 2147483648 || Number(host.MemorySwap) !== 2147483648 || Number(host.NanoCpus) !== 2000000000 ||
-    Number(host.ShmSize) !== 268435456 || config.User !== '10001:10001' || command.length || mounts.length || binds.length ||
-    !tokens.has('rw') || !tokens.has('noexec') || !tokens.has('nosuid') || !tokens.has('nodev') || !tokens.has('size=536870912') ||
+    Number(host.PidsLimit) !== 256 || Number(host.Memory) !== 4294967296 || Number(host.MemorySwap) !== 4294967296 || Number(host.NanoCpus) !== 2000000000 ||
+    Number(host.ShmSize) !== 536870912 || config.User !== '10001:10001' || command.length || mounts.length || binds.length ||
+    !tokens.has('rw') || !tokens.has('noexec') || !tokens.has('nosuid') || !tokens.has('nodev') || !tokens.has('size=1073741824') ||
     stableAuthorityStringify(envNames) !== stableAuthorityStringify(image.imageEnvironmentNames) || secretLikeEnvironmentNames(envNames).length
   ) throw runtimeFailure('Remotion container confinement is invalid.')
-  return { networkMode: 'none', readOnlyRootFilesystem: true, capDropAll: true, noNewPrivileges: true, privileged: false, pidsLimit: 256, memoryLimitBytes: 2147483648, memoryAndSwapLimitBytes: 2147483648, nanoCpus: 2000000000, tmpfsPath: '/tmp', tmpfsSizeBytes: 536870912, tmpfsNoExec: true, tmpfsNoSuid: true, tmpfsNoDevice: true, shmSizeBytes: 268435456, user: '10001:10001', callerCommandPresent: false, callerBindsPresent: false, callerMountsPresent: false, callerEnvironmentPresent: false, secretLikeImageEnvironmentNames: [] }
+  return { networkMode: 'none', readOnlyRootFilesystem: true, capDropAll: true, noNewPrivileges: true, privileged: false, pidsLimit: 256, memoryLimitBytes: 4294967296, memoryAndSwapLimitBytes: 4294967296, nanoCpus: 2000000000, tmpfsPath: '/tmp', tmpfsSizeBytes: 1073741824, tmpfsNoExec: true, tmpfsNoSuid: true, tmpfsNoDevice: true, shmSizeBytes: 536870912, user: '10001:10001', callerCommandPresent: false, callerBindsPresent: false, callerMountsPresent: false, callerEnvironmentPresent: false, secretLikeImageEnvironmentNames: [] }
 }
 
 async function inspectContainer(id: string): Promise<Inspect> {

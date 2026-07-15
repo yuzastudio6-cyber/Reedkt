@@ -71,10 +71,10 @@ static int write_png(const unsigned char *rgba, int width, int height) {
 int main(int argc, char **argv) {
     if (argc != 7) return 2;
     int width, height, timestamp_ms, font_size, margin_v, alignment;
-    if (!parse_int(argv[1], 320, 1920, &width) || !parse_int(argv[2], 180, 1080, &height) ||
-        !parse_int(argv[3], 0, 1999, &timestamp_ms) || !parse_int(argv[4], 18, 96, &font_size) ||
+    if (!parse_int(argv[1], 320, 3840, &width) || !parse_int(argv[2], 180, 3840, &height) ||
+        !parse_int(argv[3], 0, 1999, &timestamp_ms) || !parse_int(argv[4], 18, 160, &font_size) ||
         !parse_int(argv[5], 20, 360, &margin_v) || !parse_int(argv[6], 1, 9, &alignment)) return 2;
-    if ((long long)width * height > 2073600) return 2;
+    if ((long long)width * height > 8294400) return 2;
 
     unsigned char caption[MAX_CAPTION_BYTES + 1];
     size_t caption_length = fread(caption, 1, sizeof(caption), stdin);

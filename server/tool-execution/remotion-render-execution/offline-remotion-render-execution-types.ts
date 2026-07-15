@@ -21,15 +21,15 @@ export interface OfflineRemotionConfinementEvidence {
   noNewPrivileges: true
   privileged: false
   pidsLimit: 256
-  memoryLimitBytes: 2147483648
-  memoryAndSwapLimitBytes: 2147483648
+  memoryLimitBytes: 4294967296
+  memoryAndSwapLimitBytes: 4294967296
   nanoCpus: 2000000000
   tmpfsPath: '/tmp'
-  tmpfsSizeBytes: 536870912
+  tmpfsSizeBytes: 1073741824
   tmpfsNoExec: true
   tmpfsNoSuid: true
   tmpfsNoDevice: true
-  shmSizeBytes: 268435456
+  shmSizeBytes: 536870912
   user: '10001:10001'
   callerCommandPresent: false
   callerBindsPresent: false

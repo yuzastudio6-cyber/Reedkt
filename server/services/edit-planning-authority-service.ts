@@ -2097,8 +2097,15 @@ function validateCanonicalPlanDraft(
       frame.pixelCount === expectedFrame.pixelCount,
     )
   })
+  const exactFourKMasterFrame = resolveProfessionalExportFrame(
+    exportCoverage.approvedAspectRatio,
+    'uhd_2160',
+  )
   if (
     exportCoverage.approvedAspectRatio !== components.confirmedSettings.aspectRatio ||
+    components.confirmedSettings.outputFramePurpose !== 'private_canonical_4k_master_review' ||
+    components.confirmedSettings.outputFrame.width !== exactFourKMasterFrame.width ||
+    components.confirmedSettings.outputFrame.height !== exactFourKMasterFrame.height ||
     exportCoverage.costBasisProfileId !== 'uhd_2160' ||
     exportCoverage.includedInInitialEstimate !== true ||
     exportCoverage.requiresSeparateExportEstimate !== false ||
@@ -2114,7 +2121,11 @@ function validateCanonicalPlanDraft(
     exportCoverage.lowInternalToolCostCredits > exportCoverage.expectedInternalToolCostCredits ||
     exportCoverage.expectedInternalToolCostCredits > exportCoverage.maximumInternalToolCostCredits
   ) {
-    throw new ApiError('VALIDATION_FAILED', 'Canonical final export coverage must be bound to the confirmed aspect ratio and the initial 4K edit estimate.', 400)
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      'Canonical final export must use the exact registered 4K master frame bound to the confirmed aspect ratio and initial 4K edit estimate.',
+      400,
+    )
   }
   const exportEstimateLine = estimate.lineItems.find((item) => item.label === '4K UHD render and export ceiling')
   if (

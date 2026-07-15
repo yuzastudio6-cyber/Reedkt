@@ -15,15 +15,42 @@ const OFFLINE_REMOTION_MAXIMUM_COMBINED_VOICE_TRACK_BYTES = 2 * 1024 * 1024
 const SAFE_TEXT = /^(?!.*(?:https?:\/\/|ftp:\/\/|file:|data:|javascript:|\.\.\/|\.\.\\|(?:^|\s)\/(?:Users|home|etc|tmp|var|opt|app|root|proc|sys|dev)(?:\/|\b)|[A-Za-z]:[\\/]|\$\(|`|&&|\|\||#!))[\P{Cc}]+$/u
 const COLORS = /^#[A-F0-9]{6}$/
 const SHA256 = /^[a-f0-9]{64}$/
-const APPROVED_FRAMES = ['360x640', '640x360', '480x480', '480x600'] as const
+const PRIVATE_REVIEW_FRAMES = ['360x640', '640x360', '480x480', '480x600'] as const
+const FOUR_K_MASTER_FRAMES = [
+  '3840x2160',
+  '2160x3840',
+  '2160x2160',
+  '2160x2700',
+  '2880x2160',
+] as const
+const APPROVED_FRAMES = [...PRIVATE_REVIEW_FRAMES, ...FOUR_K_MASTER_FRAMES] as const
+const DELIVERY_MASTER_AUTHORITY_KEYS = [
+  'renderPurpose',
+  'deliveryProfileId',
+  'estimateCostBasisProfileId',
+  'sourceQualityPolicy',
+  'usesApprovedEditReservation',
+  'requiresSeparateExportEstimate',
+  'allowsAdditionalExportCharge',
+] as const
 
 export type OfflineRemotionSingleSourceMimeType = 'video/mp4' | 'video/x-matroska'
 
 interface CommonCompositionPayload {
-  width: 360 | 480 | 640
-  height: 360 | 480 | 600 | 640
+  width: 360 | 480 | 640 | 2160 | 2880 | 3840
+  height: 360 | 480 | 600 | 640 | 2160 | 2700 | 3840
   fps: 24 | 30
   durationFrames: number
+}
+
+interface OfflineRemotionFourKDeliveryMasterAuthority {
+  renderPurpose?: 'private_4k_delivery_master_v1'
+  deliveryProfileId?: 'uhd_2160'
+  estimateCostBasisProfileId?: 'uhd_2160'
+  sourceQualityPolicy?: 'immutable_source_master_no_proxy_v1'
+  usesApprovedEditReservation?: true
+  requiresSeparateExportEstimate?: false
+  allowsAdditionalExportCharge?: false
 }
 
 export interface OfflineRemotionPreviewPlanningPayload extends CommonCompositionPayload {
@@ -35,7 +62,7 @@ export interface OfflineRemotionPreviewPlanningPayload extends CommonComposition
   caption: string
 }
 
-export interface OfflineRemotionSingleSourceFinalCompositionPlanningPayload extends CommonCompositionPayload {
+export interface OfflineRemotionSingleSourceFinalCompositionPlanningPayload extends CommonCompositionPayload, OfflineRemotionFourKDeliveryMasterAuthority {
   compositionProfileId: 'approved_source_caption_final_v1'
   sourceStartFrame: number
   sourceEndFrameExclusive: number
@@ -59,7 +86,7 @@ export interface OfflineRemotionVoiceTrackPlanningPayload {
   durationFrames: number
 }
 
-export interface OfflineRemotionSingleSourceCaptionTrackFinalCompositionPlanningPayload extends CommonCompositionPayload {
+export interface OfflineRemotionSingleSourceCaptionTrackFinalCompositionPlanningPayload extends CommonCompositionPayload, OfflineRemotionFourKDeliveryMasterAuthority {
   compositionProfileId: 'approved_source_caption_track_final_v1'
   sourceStartFrame: number
   sourceEndFrameExclusive: number
@@ -90,7 +117,7 @@ export interface OfflineRemotionHardCutTransitionPlanningPayload {
   boundaryFrame: number
 }
 
-export interface OfflineRemotionSourceSequenceFinalCompositionPlanningPayload extends CommonCompositionPayload {
+export interface OfflineRemotionSourceSequenceFinalCompositionPlanningPayload extends CommonCompositionPayload, OfflineRemotionFourKDeliveryMasterAuthority {
   compositionProfileId: 'approved_source_sequence_caption_final_v1'
   sourceSegments: OfflineRemotionSourceSequenceSegmentPlanningPayload[]
   transitionPolicy: 'approved_hard_cuts_only'
@@ -103,7 +130,7 @@ export interface OfflineRemotionSourceSequenceFinalCompositionPlanningPayload ex
   captionOverlayPolicy: 'approved_full_frame_rgba'
 }
 
-export interface OfflineRemotionSourceSequenceCaptionTrackFinalCompositionPlanningPayload extends CommonCompositionPayload {
+export interface OfflineRemotionSourceSequenceCaptionTrackFinalCompositionPlanningPayload extends CommonCompositionPayload, OfflineRemotionFourKDeliveryMasterAuthority {
   compositionProfileId: 'approved_source_sequence_caption_track_final_v1'
   sourceSegments: OfflineRemotionSourceSequenceSegmentPlanningPayload[]
   transitionPolicy: 'approved_hard_cuts_only'
@@ -233,6 +260,7 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
     const raw = record(value, 'source-sequence final composition planning payload')
     const replaceVoice = raw.audioPolicy === 'replace_with_approved_voice_tracks'
     const sourceMediaPolicyProvided = Object.hasOwn(raw, 'sourceMediaPolicy')
+    const deliveryMasterAuthorityProvided = Object.hasOwn(raw, 'renderPurpose')
     const payload = exactRecord(value, [
       'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
       'sourceSegments', 'transitionPolicy', 'hardCutTransitions',
@@ -240,8 +268,14 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
       ...(sourceMediaPolicyProvided ? ['sourceMediaPolicy'] : []),
       'captionOverlayPolicy', ...(captionTrack ? ['captionOverlayCues'] : []),
       ...(replaceVoice ? ['voiceTracks'] : []),
+      ...(deliveryMasterAuthorityProvided ? DELIVERY_MASTER_AUTHORITY_KEYS : []),
     ], 'source-sequence final composition planning payload')
     const common = commonPayload(payload, 24, 240)
+    const deliveryMasterAuthority = fourKDeliveryMasterAuthority(
+      payload,
+      common,
+      deliveryMasterAuthorityProvided,
+    )
     const sourceSegments = sourceSequenceSegments(payload.sourceSegments, common.durationFrames)
     const hardCutTransitions = approvedHardCutTransitions(
       payload.hardCutTransitions,
@@ -289,6 +323,7 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
           })),
         ),
       } : {}),
+      ...deliveryMasterAuthority,
     } as const
     return captionTrack ? {
       ...commonResult,
@@ -305,6 +340,7 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
   const raw = record(value, 'final composition planning payload')
   const replaceVoice = raw.audioPolicy === 'replace_with_approved_voice_tracks'
   const sourceMediaPolicyProvided = Object.hasOwn(raw, 'sourceMediaPolicy')
+  const deliveryMasterAuthorityProvided = Object.hasOwn(raw, 'renderPurpose')
   const payload = exactRecord(value, [
     'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
     'sourceStartFrame', 'sourceEndFrameExclusive', 'sourceFit',
@@ -312,8 +348,14 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
     ...(sourceMediaPolicyProvided ? ['sourceMediaPolicy'] : []),
     ...(captionTrack ? ['captionOverlayCues'] : []),
     ...(replaceVoice ? ['voiceTracks'] : []),
+    ...(deliveryMasterAuthorityProvided ? DELIVERY_MASTER_AUTHORITY_KEYS : []),
   ], 'final composition planning payload')
   const common = commonPayload(payload, 24, 240)
+  const deliveryMasterAuthority = fourKDeliveryMasterAuthority(
+    payload,
+    common,
+    deliveryMasterAuthorityProvided,
+  )
   const sourceStartFrame = integer(payload.sourceStartFrame, 0, 100_000_000, 'sourceStartFrame')
   const sourceEndFrameExclusive = integer(
     payload.sourceEndFrameExclusive,
@@ -355,6 +397,7 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
         durationFrames: common.durationFrames,
       }]),
     } : {}),
+    ...deliveryMasterAuthority,
   } as const
   return captionTrack ? {
     ...commonResult,
@@ -506,6 +549,7 @@ export function validateOfflineRemotionRenderRequest(value: unknown): OfflineRem
         'approved_source_sequence_caption_track_final_v1'
       const replaceVoice = payloadRecord.audioPolicy === 'replace_with_approved_voice_tracks'
       const sourceMediaPolicyProvided = Object.hasOwn(payloadRecord, 'sourceMediaPolicy')
+      const deliveryMasterAuthorityProvided = Object.hasOwn(payloadRecord, 'renderPurpose')
       const payload = exactRecord(payloadRecord, [
         'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
         'sourceSegments', 'transitionPolicy', 'hardCutTransitions',
@@ -516,6 +560,7 @@ export function validateOfflineRemotionRenderRequest(value: unknown): OfflineRem
           ? ['captionOverlays']
           : ['captionOverlayMimeType', 'captionOverlayByteLength', 'captionOverlaySha256', 'captionOverlayBytesBase64']),
         ...(replaceVoice ? ['voiceTracks'] : []),
+        ...(deliveryMasterAuthorityProvided ? DELIVERY_MASTER_AUTHORITY_KEYS : []),
       ], 'source-sequence final composition payload')
       const planning = validateOfflineRemotionFinalCompositionPlanningPayload({
         compositionProfileId: payload.compositionProfileId, width: payload.width,
@@ -530,6 +575,9 @@ export function validateOfflineRemotionRenderRequest(value: unknown): OfflineRem
         ...(captionTrack ? { captionOverlayCues: payload.captionOverlayCues } : {}),
         ...(replaceVoice
           ? { voiceTracks: voiceTrackPlanningFromCommitments(payload.voiceTracks) }
+          : {}),
+        ...(deliveryMasterAuthorityProvided
+          ? pickDeliveryMasterAuthority(payload)
           : {}),
       })
       if (!isSourceSequencePlanningPayload(planning)) {
@@ -603,6 +651,7 @@ export function validateOfflineRemotionRenderRequest(value: unknown): OfflineRem
     const captionTrack = payloadRecord.compositionProfileId === 'approved_source_caption_track_final_v1'
     const replaceVoice = payloadRecord.audioPolicy === 'replace_with_approved_voice_tracks'
     const sourceMediaPolicyProvided = Object.hasOwn(payloadRecord, 'sourceMediaPolicy')
+    const deliveryMasterAuthorityProvided = Object.hasOwn(payloadRecord, 'renderPurpose')
     const payload = exactRecord(payloadRecord, [
       'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
       'sourceStartFrame', 'sourceEndFrameExclusive', 'sourceFit',
@@ -613,6 +662,7 @@ export function validateOfflineRemotionRenderRequest(value: unknown): OfflineRem
         ? ['captionOverlayCues', 'captionOverlays']
         : ['captionOverlayMimeType', 'captionOverlayByteLength', 'captionOverlaySha256', 'captionOverlayBytesBase64']),
       ...(replaceVoice ? ['voiceTracks'] : []),
+      ...(deliveryMasterAuthorityProvided ? DELIVERY_MASTER_AUTHORITY_KEYS : []),
     ], 'final composition payload')
     const planning = validateOfflineRemotionFinalCompositionPlanningPayload({
       compositionProfileId: payload.compositionProfileId, width: payload.width, height: payload.height,
@@ -625,6 +675,9 @@ export function validateOfflineRemotionRenderRequest(value: unknown): OfflineRem
       ...(captionTrack ? { captionOverlayCues: payload.captionOverlayCues } : {}),
       ...(replaceVoice
         ? { voiceTracks: voiceTrackPlanningFromCommitments(payload.voiceTracks) }
+        : {}),
+      ...(deliveryMasterAuthorityProvided
+        ? pickDeliveryMasterAuthority(payload)
         : {}),
     })
     if (isSourceSequencePlanningPayload(planning)) {
@@ -678,6 +731,9 @@ export function validateOfflineRemotionRenderRequest(value: unknown): OfflineRem
     'panelBackground', 'accentColor', 'title', 'subtitle', 'caption',
   ], 'preview payload')
   const common = commonPayload(payload, 24, 90)
+  if (!(PRIVATE_REVIEW_FRAMES as readonly string[]).includes(`${common.width}x${common.height}`)) {
+    throw validationFailure('Preview compositions cannot request a delivery-master frame.')
+  }
   return boundedRequest({
     schemaVersion: OFFLINE_REMOTION_RENDER_REQUEST_PROTOCOL,
     toolId: 'remotion', operationId: OFFLINE_REMOTION_RENDER_OPERATION,
@@ -710,14 +766,60 @@ function boundedRequest(request: OfflineRemotionRenderRequest): OfflineRemotionR
 }
 
 function commonPayload(value: Record<string, unknown>, minimumFrames: number, maximumFrames: number): CommonCompositionPayload {
-  const width = integer(value.width, 360, 720, 'width') as CommonCompositionPayload['width']
-  const height = integer(value.height, 360, 720, 'height') as CommonCompositionPayload['height']
+  const width = integer(value.width, 360, 3840, 'width') as CommonCompositionPayload['width']
+  const height = integer(value.height, 360, 3840, 'height') as CommonCompositionPayload['height']
   if (!(APPROVED_FRAMES as readonly string[]).includes(`${width}x${height}`)) {
     throw validationFailure('Remotion output frame is not approved.')
   }
   return {
     width, height, fps: oneOf(value.fps, [24, 30], 'fps'),
     durationFrames: integer(value.durationFrames, minimumFrames, maximumFrames, 'durationFrames'),
+  }
+}
+
+function fourKDeliveryMasterAuthority(
+  value: Record<string, unknown>,
+  frame: Pick<CommonCompositionPayload, 'width' | 'height'>,
+  provided: boolean,
+): OfflineRemotionFourKDeliveryMasterAuthority {
+  if (!provided) {
+    if (!(PRIVATE_REVIEW_FRAMES as readonly string[]).includes(`${frame.width}x${frame.height}`)) {
+      throw validationFailure('A 4K final frame requires exact delivery-master authority.')
+    }
+    return {}
+  }
+  if (
+    !(FOUR_K_MASTER_FRAMES as readonly string[]).includes(`${frame.width}x${frame.height}`) ||
+    value.renderPurpose !== 'private_4k_delivery_master_v1' ||
+    value.deliveryProfileId !== 'uhd_2160' ||
+    value.estimateCostBasisProfileId !== 'uhd_2160' ||
+    value.sourceQualityPolicy !== 'immutable_source_master_no_proxy_v1' ||
+    value.usesApprovedEditReservation !== true ||
+    value.requiresSeparateExportEstimate !== false ||
+    value.allowsAdditionalExportCharge !== false
+  ) throw validationFailure('4K delivery-master authority is incomplete or inconsistent.')
+  return {
+    renderPurpose: 'private_4k_delivery_master_v1',
+    deliveryProfileId: 'uhd_2160',
+    estimateCostBasisProfileId: 'uhd_2160',
+    sourceQualityPolicy: 'immutable_source_master_no_proxy_v1',
+    usesApprovedEditReservation: true,
+    requiresSeparateExportEstimate: false,
+    allowsAdditionalExportCharge: false,
+  }
+}
+
+function pickDeliveryMasterAuthority(
+  value: Record<string, unknown>,
+): OfflineRemotionFourKDeliveryMasterAuthority {
+  return {
+    renderPurpose: value.renderPurpose as 'private_4k_delivery_master_v1',
+    deliveryProfileId: value.deliveryProfileId as 'uhd_2160',
+    estimateCostBasisProfileId: value.estimateCostBasisProfileId as 'uhd_2160',
+    sourceQualityPolicy: value.sourceQualityPolicy as 'immutable_source_master_no_proxy_v1',
+    usesApprovedEditReservation: value.usesApprovedEditReservation as true,
+    requiresSeparateExportEstimate: value.requiresSeparateExportEstimate as false,
+    allowsAdditionalExportCharge: value.allowsAdditionalExportCharge as false,
   }
 }
 

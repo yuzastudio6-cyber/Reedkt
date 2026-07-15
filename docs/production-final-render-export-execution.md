@@ -8,6 +8,8 @@ Final export additionally requires the professional export authority frozen from
 
 The private local evidence includes an actual FFmpeg export probed at exactly 3840×2160. This proves the bounded local path, not public or production delivery.
 
+The canonical private execution path additionally freezes `private_4k_delivery_master_v1` into the approved work item. It uses the exact 4K frame registered for the confirmed aspect ratio, immutable source or approved lossless color-intermediate dependencies, exact caption/audio lineage, and the original estimate/reservation. The QA-passed artifact is the same artifact used for private review and authenticated private download. A 1080p or 2K delivery derivative may later be produced from that approved master without a second estimate, but no public derivative/export service is authorized by this private evidence.
+
 M16A does not deploy, run `gcloud`, call providers, download model weights, run unapproved GPU jobs, process arbitrary media paths, overwrite source artifacts, use raw prompts as instructions, make Revideo core, or bypass QA.
 
 Milestone 16B validates this final render/export foundation in full workflow context. The E2E suite feeds render/export with private artifacts from prior dry-run stages, checks command plan creation, keeps `final_delivery` blocked without private `final_export`, and summarizes readiness blockers without running cloud jobs or arbitrary media.

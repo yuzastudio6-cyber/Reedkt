@@ -10,7 +10,7 @@ import {
   PROFESSIONAL_EXPORT_SOURCE_RATE_CARD_VERSION,
 } from '../../src/types/professional-export'
 
-export const PRIVATE_EDIT_AUTHORITY_SCHEMA_VERSION = 'private-edit-authority-plan-v1' as const
+export const PRIVATE_EDIT_AUTHORITY_SCHEMA_VERSION = 'private-edit-authority-plan-v2' as const
 
 const safeKeySchema = z.string()
   .trim()
@@ -71,7 +71,7 @@ const confirmedSettingsSchema = z.object({
     height: z.number().int().positive().max(16_384),
     fps: z.number().positive().max(240),
   }).strict(),
-  outputFramePurpose: z.literal('private_canonical_review'),
+  outputFramePurpose: z.literal('private_canonical_4k_master_review'),
   professionalExportCoverage: professionalExportCoverageSchema,
   outputFrameConfirmed: z.literal(true),
   sourceOrderConfirmed: z.literal(true),

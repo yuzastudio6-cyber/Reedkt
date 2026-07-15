@@ -30,6 +30,7 @@ import { activatePrivateOfflineMediaBinaryRuntime } from '../tool-execution/medi
 import {
   activatePrivateOfflineRemotionRenderRuntime,
   prepareOfflineRemotionDockerRuntime,
+  validateOfflineRemotionFinalCompositionPlanningPayload,
 } from '../tool-execution/remotion-render-execution'
 import type { ServiceContext } from '../types'
 import {
@@ -117,6 +118,8 @@ const planningPreference = await preferenceService.recordPlanningEvidence({
 })
 
 const uploadedSource = await uploadProfessionalColorSource(projectId)
+assert.equal(uploadedSource.mediaAsset.sourceMetadata?.width, 3840)
+assert.equal(uploadedSource.mediaAsset.sourceMetadata?.height, 2160)
 const sourceSequenceItemId = 'canonical-professional-color-source-1'
 const uploadedClipId = 'canonical-professional-color-clip-1'
 const plannerInput: PlannerInput = {
@@ -220,6 +223,62 @@ assert.equal(
   asRecord(finalWorkItemDraft.executionInput.structuredPayload).sourceMediaPolicy,
   'approved_professional_color_intermediate_v1',
 )
+assert.deepEqual(canonicalPlan.components.confirmedSettings.outputFrame, {
+  width: 3840,
+  height: 2160,
+  fps: 24,
+})
+assert.equal(
+  canonicalPlan.components.confirmedSettings.outputFramePurpose,
+  'private_canonical_4k_master_review',
+)
+assert.deepEqual(
+  {
+    width: asRecord(finalWorkItemDraft.executionInput.structuredPayload).width,
+    height: asRecord(finalWorkItemDraft.executionInput.structuredPayload).height,
+    renderPurpose: asRecord(finalWorkItemDraft.executionInput.structuredPayload).renderPurpose,
+    deliveryProfileId: asRecord(finalWorkItemDraft.executionInput.structuredPayload).deliveryProfileId,
+    estimateCostBasisProfileId:
+      asRecord(finalWorkItemDraft.executionInput.structuredPayload).estimateCostBasisProfileId,
+    sourceQualityPolicy:
+      asRecord(finalWorkItemDraft.executionInput.structuredPayload).sourceQualityPolicy,
+    usesApprovedEditReservation:
+      asRecord(finalWorkItemDraft.executionInput.structuredPayload).usesApprovedEditReservation,
+    requiresSeparateExportEstimate:
+      asRecord(finalWorkItemDraft.executionInput.structuredPayload).requiresSeparateExportEstimate,
+    allowsAdditionalExportCharge:
+      asRecord(finalWorkItemDraft.executionInput.structuredPayload).allowsAdditionalExportCharge,
+  },
+  {
+    width: 3840,
+    height: 2160,
+    renderPurpose: 'private_4k_delivery_master_v1',
+    deliveryProfileId: 'uhd_2160',
+    estimateCostBasisProfileId: 'uhd_2160',
+    sourceQualityPolicy: 'immutable_source_master_no_proxy_v1',
+    usesApprovedEditReservation: true,
+    requiresSeparateExportEstimate: false,
+    allowsAdditionalExportCharge: false,
+  },
+)
+const approvedFinalMasterPayload = structuredClone(
+  asRecord(finalWorkItemDraft.executionInput.structuredPayload),
+)
+for (const invalidMasterPayload of [
+  { ...approvedFinalMasterPayload, width: 2560, height: 1440 },
+  { ...approvedFinalMasterPayload, deliveryProfileId: 'qhd_1440' },
+  { ...approvedFinalMasterPayload, usesApprovedEditReservation: false },
+  { ...approvedFinalMasterPayload, requiresSeparateExportEstimate: true },
+  { ...approvedFinalMasterPayload, allowsAdditionalExportCharge: true },
+  Object.fromEntries(
+    Object.entries(approvedFinalMasterPayload).filter(([key]) => key !== 'renderPurpose'),
+  ),
+]) {
+  assert.throws(
+    () => validateOfflineRemotionFinalCompositionPlanningPayload(invalidMasterPayload),
+    /4K|authority|approved|unsupported|profile|reservation|estimate|charge/i,
+  )
+}
 const exportCoverage = asRecord(
   asRecord(canonicalPlan.components.confirmedSettings).professionalExportCoverage,
 )
@@ -314,7 +373,7 @@ assert.deepEqual(
   ],
 )
 
-await activatePrivateOfflineMediaBinaryRuntime()
+const mediaRuntime = await activatePrivateOfflineMediaBinaryRuntime()
 await activatePrivateOfflineLibassCaptionRuntime()
 await prepareOfflineRemotionDockerRuntime()
 await activatePrivateOfflineRemotionRenderRuntime()
@@ -447,11 +506,67 @@ assert.equal(privateDownload.publicUrlCreated, false)
 assert.equal(privateDownload.signedUrlCreated, false)
 assert.equal(privateDownload.billingMutationPerformed, false)
 assert.equal(privateDownload.settlementPerformed, false)
+assert.equal(privateDownload.deliveryProfileId, 'uhd_2160')
+assert.equal(privateDownload.width, 3840)
+assert.equal(privateDownload.height, 2160)
+assert.equal(privateDownload.originalApprovedEstimateReused, true)
+assert.equal(privateDownload.originalApprovedReservationReused, true)
+assert.equal(privateDownload.secondEstimateCreated, false)
+assert.equal(privateDownload.secondReservationCreated, false)
+assert.equal(privateDownload.exportCreditMutationPerformed, false)
+
+const deliveryProbe = await mediaRuntime.execute({
+  schemaVersion: 'offline-media-binary-execution-v1',
+  toolId: 'ffprobe',
+  operationId: 'tool.ffprobe.inspect_approved_media.v1',
+  payload: {
+    inspectionProfileId: 'final_export_v1',
+    countFrames: true,
+    verifyDurationAndSync: true,
+    emitMachineJsonOnly: true,
+    mimeType: 'video/mp4',
+    sourceByteLength: privateDownload.byteSize,
+    sourceSha256: privateDownload.sha256,
+    sourceBytesBase64: privateDownload.bytes.toString('base64'),
+  },
+})
+assert.ok('resultJson' in deliveryProbe)
+const deliveryStreams = deliveryProbe.resultJson.document.streams as Array<Record<string, unknown>>
+const deliveryVideo = deliveryStreams.find((stream) => stream.codecType === 'video')
+const deliveryAudio = deliveryStreams.find((stream) => stream.codecType === 'audio')
+assert.ok(deliveryVideo)
+assert.ok(deliveryAudio)
+assert.deepEqual({
+  codecName: deliveryVideo.codecName,
+  width: deliveryVideo.width,
+  height: deliveryVideo.height,
+  fps: deliveryVideo.fps,
+  readFrameCount: deliveryVideo.readFrameCount,
+  pixelFormat: deliveryVideo.pixelFormat,
+  colorSpace: deliveryVideo.colorSpace,
+}, {
+  codecName: 'h264',
+  width: 3840,
+  height: 2160,
+  fps: 24,
+  readFrameCount: 48,
+  pixelFormat: 'yuv420p',
+  colorSpace: 'bt709',
+})
+assert.deepEqual({
+  codecName: deliveryAudio.codecName,
+  sampleRate: deliveryAudio.sampleRate,
+  channels: deliveryAudio.channels,
+}, {
+  codecName: 'aac',
+  sampleRate: 48_000,
+  channels: 2,
+})
 
 const sensitiveDiagnosticSentinel = 'must-never-appear-in-final-qa-diagnostics'
 const overbroadExpectation = {
-  width: 640,
-  height: 360,
+  width: 3840,
+  height: 2160,
   fps: 24,
   durationFrames: 48,
   sourceBytesBase64: sensitiveDiagnosticSentinel,
@@ -464,7 +579,7 @@ try {
     durationSeconds: 2,
     streams: [{
       codecType: 'video', codecName: 'h264', pixelFormat: 'yuv420p',
-      colorSpace: 'bt709', width: 639, height: 360, fps: 24, readFrameCount: 48,
+      colorSpace: 'bt709', width: 3839, height: 2160, fps: 24, readFrameCount: 48,
     }, {
       codecType: 'audio', codecName: 'aac', sampleRate: 48_000, channels: 2,
     }],
@@ -476,8 +591,8 @@ try {
 assert.ok(sanitizedFinalQaError)
 assert.equal(sanitizedFinalQaError.code, 'TOOL_NOT_READY')
 assert.deepEqual((sanitizedFinalQaError.details as { expected?: unknown }).expected, {
-  width: 640,
-  height: 360,
+  width: 3840,
+  height: 2160,
   fps: 24,
   durationFrames: 48,
 })
@@ -508,7 +623,9 @@ console.log(JSON.stringify({
     'lossless_vp9_matroska_bt709_yuv420p_artifact_privately_persisted',
     'color_artifact_qa_reconciliation_and_idempotent_replay_verified',
     'remotion_consumed_the_exact_selected_color_dependency_with_replacement_voice',
-    'private_h264_final_composition_and_independent_ffprobe_final_qa_passed',
+    'exact_private_3840x2160_h264_delivery_master_and_independent_ffprobe_final_qa_passed',
+    'original_approved_estimate_and_reservation_reused_without_second_export_charge',
+    '2k_substitution_and_master_estimate_reservation_charge_authority_tampering_rejected',
     'final_qa_failure_diagnostics_exclude_source_caption_and_voice_bytes',
     'private_download_replay_and_hash_integrity_verified',
     'provider_billing_public_delivery_and_product_beta_production_readiness_remain_false',
@@ -542,7 +659,8 @@ async function uploadProfessionalColorSource(projectId: string) {
   const fixturePath = join('/tmp', `reeditpro-canonical-professional-color-${process.pid}.mp4`)
   const generated = spawnSync('ffmpeg', [
     '-hide_banner', '-loglevel', 'error',
-    '-f', 'lavfi', '-i', 'testsrc2=s=640x360:r=24:d=2',
+    '-f', 'lavfi', '-i',
+    'color=c=0x3B5F7A:s=3840x2160:r=24:d=2,drawbox=x=0:y=0:w=iw/2:h=ih:color=0x27435A:t=fill,drawbox=x=iw/2:y=0:w=iw/2:h=ih:color=0x6D879A:t=fill',
     '-f', 'lavfi', '-i', 'sine=frequency=440:sample_rate=48000:duration=2',
     '-map', '0:v:0', '-map', '1:a:0',
     '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-color_primaries', 'bt709',

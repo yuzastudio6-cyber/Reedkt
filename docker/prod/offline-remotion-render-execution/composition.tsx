@@ -2,6 +2,7 @@ import React from 'react'
 import {
   AbsoluteFill,
   Audio,
+  Html5Video,
   Img,
   interpolate,
   OffthreadVideo,
@@ -27,6 +28,7 @@ export interface ApprovedCompositionProps {
     | 'approved_source_sequence_caption_final_v1'
     | 'approved_source_caption_track_final_v1'
     | 'approved_source_sequence_caption_track_final_v1'
+  deliveryProfileId?: 'uhd_2160'
   sourceStartFrame?: number
   sourceEndFrameExclusive?: number
   sourceFit?: 'contain'
@@ -189,13 +191,23 @@ const ApprovedSourceCaptionComposition: React.FC<ApprovedCompositionProps> = (pr
   const replaceVoice = props.audioPolicy === 'replace_with_approved_voice_tracks'
   return (
     <AbsoluteFill style={{ backgroundColor: props.panelBackground, overflow: 'hidden' }}>
-      <OffthreadVideo
-        src={props.sourceInternalUrl!}
-        startFrom={props.sourceStartFrame!}
-        endAt={props.sourceEndFrameExclusive!}
-        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-        volume={replaceVoice ? 0 : 1}
-      />
+      {props.deliveryProfileId === 'uhd_2160'
+        ? <Html5Video
+            src={props.sourceInternalUrl!}
+            startFrom={props.sourceStartFrame!}
+            endAt={props.sourceEndFrameExclusive!}
+            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+            volume={replaceVoice ? 0 : 1}
+            delayRenderTimeoutInMilliseconds={180_000}
+            delayRenderRetries={1}
+          />
+        : <OffthreadVideo
+            src={props.sourceInternalUrl!}
+            startFrom={props.sourceStartFrame!}
+            endAt={props.sourceEndFrameExclusive!}
+            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+            volume={replaceVoice ? 0 : 1}
+          />}
       {replaceVoice && <Audio src={props.voiceTrackInternalUrls![0]!.voiceTrackInternalUrl} />}
       <ApprovedCaptionOverlays {...props} />
     </AbsoluteFill>
@@ -222,13 +234,23 @@ const ApprovedSourceSequenceCaptionComposition: React.FC<ApprovedCompositionProp
           durationInFrames={segment.timelineEndFrameExclusive - segment.timelineStartFrame}
           name={`Approved source ${segment.sourceSequenceItemId}`}
         >
-          <OffthreadVideo
-            src={sourceUrlById.get(segment.sourceSequenceItemId)!}
-            startFrom={segment.sourceStartFrame}
-            endAt={segment.sourceEndFrameExclusive}
-            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-            volume={replaceVoice ? 0 : 1}
-          />
+          {props.deliveryProfileId === 'uhd_2160'
+            ? <Html5Video
+                src={sourceUrlById.get(segment.sourceSequenceItemId)!}
+                startFrom={segment.sourceStartFrame}
+                endAt={segment.sourceEndFrameExclusive}
+                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                volume={replaceVoice ? 0 : 1}
+                delayRenderTimeoutInMilliseconds={180_000}
+                delayRenderRetries={1}
+              />
+            : <OffthreadVideo
+                src={sourceUrlById.get(segment.sourceSequenceItemId)!}
+                startFrom={segment.sourceStartFrame}
+                endAt={segment.sourceEndFrameExclusive}
+                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                volume={replaceVoice ? 0 : 1}
+              />}
           {replaceVoice && <Audio src={voiceUrlBySourceId.get(segment.sourceSequenceItemId)!} />}
         </Sequence>
       ))}

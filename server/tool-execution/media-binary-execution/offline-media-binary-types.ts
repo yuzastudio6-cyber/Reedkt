@@ -19,8 +19,8 @@ export interface OfflineMediaBinaryConfinementEvidence {
   noNewPrivileges: true
   privileged: false
   pidsLimit: 128
-  memoryLimitBytes: 536870912
-  memoryAndSwapLimitBytes: 536870912
+  memoryLimitBytes: 2147483648
+  memoryAndSwapLimitBytes: 2147483648
   nanoCpus: 2000000000
   tmpfsPath: '/tmp'
   user: '65532:65532'

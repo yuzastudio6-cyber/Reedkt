@@ -14,6 +14,23 @@ const MAXIMUM_REQUEST_BYTES = 48 * 1024 * 1024
 const MAXIMUM_OUTPUT_BYTES = 16 * 1024 * 1024
 const MAXIMUM_COMBINED_VOICE_TRACK_BYTES = 2 * 1024 * 1024
 const FORBIDDEN_TEXT = /(?:https?:\/\/|ftp:\/\/|file:|data:|javascript:|\.\.\/|\.\.\\|[A-Za-z]:[\\/]|(?:^|\s)\/(?:Users|home|etc|tmp|var|opt|app|root|proc|sys|dev)(?:\/|\b)|\$\(|`|&&|\|\||#!)/i
+const PRIVATE_REVIEW_FRAMES = ['360x640', '640x360', '480x480', '480x600']
+const FOUR_K_MASTER_FRAMES = [
+  '3840x2160',
+  '2160x3840',
+  '2160x2160',
+  '2160x2700',
+  '2880x2160',
+]
+const DELIVERY_MASTER_AUTHORITY_KEYS = [
+  'renderPurpose',
+  'deliveryProfileId',
+  'estimateCostBasisProfileId',
+  'sourceQualityPolicy',
+  'usesApprovedEditReservation',
+  'requiresSeparateExportEstimate',
+  'allowsAdditionalExportCharge',
+]
 
 const canonical = (value) => JSON.stringify(value, Object.keys(value).sort())
 const sha256 = (value) => createHash('sha256').update(value).digest('hex')
@@ -53,6 +70,25 @@ function safeIdentity(value, label) {
     !/^[A-Za-z0-9][A-Za-z0-9._:-]*$/.test(value)
   ) throw new Error(`${label} is invalid`)
   return value
+}
+
+function validateDeliveryMasterAuthority(payload, dimensions, provided) {
+  if (!provided) {
+    if (!PRIVATE_REVIEW_FRAMES.includes(dimensions)) {
+      throw new Error('a 4K final frame requires exact delivery-master authority')
+    }
+    return
+  }
+  if (
+    !FOUR_K_MASTER_FRAMES.includes(dimensions) ||
+    payload.renderPurpose !== 'private_4k_delivery_master_v1' ||
+    payload.deliveryProfileId !== 'uhd_2160' ||
+    payload.estimateCostBasisProfileId !== 'uhd_2160' ||
+    payload.sourceQualityPolicy !== 'immutable_source_master_no_proxy_v1' ||
+    payload.usesApprovedEditReservation !== true ||
+    payload.requiresSeparateExportEstimate !== false ||
+    payload.allowsAdditionalExportCharge !== false
+  ) throw new Error('4K delivery-master authority is incomplete or inconsistent')
 }
 
 function validateSourceSegments(value, durationFrames) {
@@ -317,6 +353,7 @@ function validateRequest(value) {
     const captionTrack = rawPayload.compositionProfileId === 'approved_source_sequence_caption_track_final_v1'
     const replaceVoice = rawPayload.audioPolicy === 'replace_with_approved_voice_tracks'
     const sourceMediaPolicyProvided = Object.hasOwn(rawPayload, 'sourceMediaPolicy')
+    const deliveryMasterAuthorityProvided = Object.hasOwn(rawPayload, 'renderPurpose')
     const payload = exactObject(rawPayload, [
       'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
       'sourceSegments', 'transitionPolicy', 'hardCutTransitions',
@@ -327,9 +364,11 @@ function validateRequest(value) {
         ? ['captionOverlays']
         : ['captionOverlayMimeType', 'captionOverlayByteLength', 'captionOverlaySha256', 'captionOverlayBytesBase64']),
       ...(replaceVoice ? ['voiceTracks'] : []),
+      ...(deliveryMasterAuthorityProvided ? DELIVERY_MASTER_AUTHORITY_KEYS : []),
     ], 'source-sequence final composition payload')
     const dimensions = `${payload.width}x${payload.height}`
-    oneOf(dimensions, ['360x640', '640x360', '480x480', '480x600'], 'approved frame')
+    oneOf(dimensions, [...PRIVATE_REVIEW_FRAMES, ...FOUR_K_MASTER_FRAMES], 'approved frame')
+    validateDeliveryMasterAuthority(payload, dimensions, deliveryMasterAuthorityProvided)
     const durationFrames = integer(payload.durationFrames, 24, 240, 'durationFrames')
     const fps = oneOf(payload.fps, [24, 30], 'fps')
     const sourceSegments = validateSourceSegments(payload.sourceSegments, durationFrames)
@@ -408,7 +447,7 @@ function validateRequest(value) {
       schemaVersion: PROTOCOL, toolId: 'remotion', operationId: OPERATION,
       payload: {
         ...payload,
-        width: integer(payload.width, 360, 720, 'width'), height: integer(payload.height, 360, 720, 'height'),
+        width: integer(payload.width, 360, 3840, 'width'), height: integer(payload.height, 360, 3840, 'height'),
         fps, durationFrames, sourceSegments,
         transitionPolicy: 'approved_hard_cuts_only', hardCutTransitions, sources,
         ...(approvedColorIntermediate
@@ -430,6 +469,7 @@ function validateRequest(value) {
     const captionTrack = rawPayload.compositionProfileId === 'approved_source_caption_track_final_v1'
     const replaceVoice = rawPayload.audioPolicy === 'replace_with_approved_voice_tracks'
     const sourceMediaPolicyProvided = Object.hasOwn(rawPayload, 'sourceMediaPolicy')
+    const deliveryMasterAuthorityProvided = Object.hasOwn(rawPayload, 'renderPurpose')
     const payload = exactObject(rawPayload, [
       'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
       'sourceStartFrame', 'sourceEndFrameExclusive', 'sourceFit',
@@ -440,9 +480,11 @@ function validateRequest(value) {
         ? ['captionOverlayCues', 'captionOverlays']
         : ['captionOverlayMimeType', 'captionOverlayByteLength', 'captionOverlaySha256', 'captionOverlayBytesBase64']),
       ...(replaceVoice ? ['voiceTracks'] : []),
+      ...(deliveryMasterAuthorityProvided ? DELIVERY_MASTER_AUTHORITY_KEYS : []),
     ], 'final composition payload')
     const dimensions = `${payload.width}x${payload.height}`
-    oneOf(dimensions, ['360x640', '640x360', '480x480', '480x600'], 'approved frame')
+    oneOf(dimensions, [...PRIVATE_REVIEW_FRAMES, ...FOUR_K_MASTER_FRAMES], 'approved frame')
+    validateDeliveryMasterAuthority(payload, dimensions, deliveryMasterAuthorityProvided)
     const approvedColorIntermediate =
       payload.sourceMediaPolicy === 'approved_professional_color_intermediate_v1'
     if (sourceMediaPolicyProvided && !approvedColorIntermediate) {
@@ -509,7 +551,7 @@ function validateRequest(value) {
       schemaVersion: PROTOCOL, toolId: 'remotion', operationId: OPERATION,
       payload: {
         ...payload,
-        width: integer(payload.width, 360, 720, 'width'), height: integer(payload.height, 360, 720, 'height'),
+        width: integer(payload.width, 360, 3840, 'width'), height: integer(payload.height, 360, 3840, 'height'),
         fps, durationFrames,
         sourceStartFrame, sourceEndFrameExclusive,
         panelBackground: color(payload.panelBackground, 'panelBackground'),
@@ -526,7 +568,7 @@ function validateRequest(value) {
     'panelBackground', 'accentColor', 'title', 'subtitle', 'caption',
   ], 'preview payload')
   const dimensions = `${payload.width}x${payload.height}`
-  oneOf(dimensions, ['360x640', '640x360', '480x480', '480x600'], 'approved frame')
+  oneOf(dimensions, PRIVATE_REVIEW_FRAMES, 'approved frame')
   const color = (value, label) => {
     if (typeof value !== 'string' || !/^#[A-Fa-f0-9]{6}$/.test(value)) throw new Error(`${label} is invalid`)
     return value.toUpperCase()
@@ -567,6 +609,8 @@ async function execute(request) {
   const captionTrack = isCaptionTrackProfile(request.payload.compositionProfileId)
   const replaceVoice = finalComposition &&
     request.payload.audioPolicy === 'replace_with_approved_voice_tracks'
+  const fourKDeliveryMaster = finalComposition &&
+    request.payload.renderPurpose === 'private_4k_delivery_master_v1'
   const mediaServer = finalComposition
     ? await openPrivateLoopbackMediaServer(
         isSourceSequenceProfile(request.payload.compositionProfileId)
@@ -621,6 +665,7 @@ async function execute(request) {
   const renderPayload = isSourceSequenceProfile(request.payload.compositionProfileId)
     ? {
         compositionProfileId: request.payload.compositionProfileId,
+        ...(fourKDeliveryMaster ? { deliveryProfileId: 'uhd_2160' } : {}),
         width: request.payload.width, height: request.payload.height,
         fps: request.payload.fps, durationFrames: request.payload.durationFrames,
         sourceSegments: request.payload.sourceSegments,
@@ -638,6 +683,7 @@ async function execute(request) {
     : finalComposition
     ? {
         compositionProfileId: request.payload.compositionProfileId,
+        ...(fourKDeliveryMaster ? { deliveryProfileId: 'uhd_2160' } : {}),
         width: request.payload.width, height: request.payload.height,
         fps: request.payload.fps, durationFrames: request.payload.durationFrames,
         sourceStartFrame: request.payload.sourceStartFrame,
@@ -657,9 +703,9 @@ async function execute(request) {
       browserExecutable,
       chromeMode: 'headless-shell',
       logLevel: 'error',
-      timeoutInMilliseconds: 30_000,
-      mediaCacheSizeInBytes: 32 * 1024 * 1024,
-      offthreadVideoCacheSizeInBytes: 32 * 1024 * 1024,
+      timeoutInMilliseconds: fourKDeliveryMaster ? 180_000 : 30_000,
+      mediaCacheSizeInBytes: fourKDeliveryMaster ? 128 * 1024 * 1024 : 32 * 1024 * 1024,
+      offthreadVideoCacheSizeInBytes: fourKDeliveryMaster ? 256 * 1024 * 1024 : 32 * 1024 * 1024,
       offthreadVideoThreads: 1,
     })
     if (
@@ -676,9 +722,9 @@ async function execute(request) {
       chromeMode: 'headless-shell',
       chromiumOptions: { enableMultiProcessOnLinux: true },
       imageFormat: 'jpeg',
-      jpegQuality: 80,
-      crf: 24,
-      x264Preset: 'veryfast',
+      jpegQuality: fourKDeliveryMaster ? 95 : 80,
+      crf: fourKDeliveryMaster ? 18 : 24,
+      x264Preset: fourKDeliveryMaster ? 'medium' : 'veryfast',
       pixelFormat: 'yuv420p',
       colorSpace: 'bt709',
       muted: !finalComposition,
@@ -686,9 +732,9 @@ async function execute(request) {
       disallowParallelEncoding: true,
       overwrite: false,
       logLevel: 'error',
-      timeoutInMilliseconds: 30_000,
-      mediaCacheSizeInBytes: 32 * 1024 * 1024,
-      offthreadVideoCacheSizeInBytes: 32 * 1024 * 1024,
+      timeoutInMilliseconds: fourKDeliveryMaster ? 180_000 : 30_000,
+      mediaCacheSizeInBytes: fourKDeliveryMaster ? 128 * 1024 * 1024 : 32 * 1024 * 1024,
+      offthreadVideoCacheSizeInBytes: fourKDeliveryMaster ? 256 * 1024 * 1024 : 32 * 1024 * 1024,
       offthreadVideoThreads: 1,
     })
     const bytes = await readFile(outputPath)
@@ -835,6 +881,15 @@ try {
       approvedFrameAndTimingPreserved: true,
       actualMp4ArtifactProduced: true,
       callerPathsUrlsCodeAndCommandsRejected: true,
+      ...(request.payload.renderPurpose === 'private_4k_delivery_master_v1'
+        ? {
+            approved4kDeliveryMasterAuthorityVerified: true,
+            immutableSourceMasterNoProxyPolicyVerified: true,
+            approvedReservationReuseOnly: true,
+            secondEstimateOrExportChargeForbidden: true,
+            professionalHighQualityEncodeApplied: true,
+          }
+        : {}),
       ...(['approved_source_caption_final_v1', 'approved_source_caption_track_final_v1']
         .includes(request.payload.compositionProfileId)
         ? {

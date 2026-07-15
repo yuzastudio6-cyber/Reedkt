@@ -166,7 +166,7 @@ const sourceSequenceCaptionTrackFinalCompositionInputsSchema = captionTrackDepen
 }).strict()
 
 export const canonicalPrivateFinalCompositionResponseSchema = z.object({
-  schemaVersion: z.literal('canonical-private-final-composition-execution-response-v2'),
+  schemaVersion: z.literal('canonical-private-final-composition-execution-response-v3'),
   source: z.literal('canonical_private_final_composition_execution_coordinator'),
   purpose: z.literal('execute_canonical_private_final_composition'),
   identity: z.object({
@@ -200,6 +200,13 @@ export const canonicalPrivateFinalCompositionResponseSchema = z.object({
     approvedVoiceTrackReplacementApplied: z.boolean(),
     approvedColorDependencyRead: z.boolean(),
     approvedColorIntermediateApplied: z.boolean(),
+    renderPurpose: z.literal('private_4k_delivery_master_v1'),
+    deliveryProfileId: z.literal('uhd_2160'),
+    immutableSourceMasterNoProxyPolicyVerified: z.literal(true),
+    originalApprovedEstimateAndReservationReused: z.literal(true),
+    secondEstimateCreated: z.literal(false),
+    secondReservationCreated: z.literal(false),
+    exportCreditMutationPerformed: z.literal(false),
     privateFinalCompositionExecuted: z.literal(true),
     providerCallMade: z.literal(false),
     publicDeliveryExecuted: z.literal(false),

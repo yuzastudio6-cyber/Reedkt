@@ -48,4 +48,8 @@ ReEditPro may encode a low-resolution source into a 4K container, but it must di
 
 `smoke:professional-export` proves the profile map, shared rate-card units, one-estimate/no-second-charge contract, reservation mismatch rejection, out-of-scope frame rejection, and a real private FFmpeg output probed at exactly 3840×2160.
 
+`smoke:canonical-private-color-execution` now proves the same rule through the canonical private workflow. The immutable plan freezes an exact aspect-ratio-specific 4K master frame, `uhd_2160` delivery and estimate authority, source-master policy, and reuse of the original approved estimate and reservation. A real 3840×2160 source is uploaded and probed, processed through the approved lossless color intermediate, composed with the exact approved caption and replacement voice dependencies, encoded as a private H.264/AAC 3840×2160 master, independently probed, reconciled, replayed, and downloaded by hash. Substituting a 2K frame or changing the estimate, reservation, or additional-charge authority fails before execution.
+
+The canonical private review and the private download consume the exact same QA-passed 4K master artifact. There is no second export estimate, second reservation, export-time wallet mutation, or customer charge. A future review proxy may be derived as an optimization, but it must never replace the immutable source/master path or become delivery authority.
+
 This is private/local backend evidence. Public delivery, deployment, remote storage, production billing, provider activation, and production rendering remain gated.

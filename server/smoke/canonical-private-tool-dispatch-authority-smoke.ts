@@ -2615,6 +2615,13 @@ const sourceTrimValidationRun = await createCanonicalInternalAuthorityRunnerServ
 })
 assert.equal(sourceTrimValidationRun.result.contentType, 'application/json')
 assert.equal(sourceTrimValidationRun.result.qaOutcome, 'passed')
+await leaseService.release({
+  workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
+  jobId: sourceTrimValidationJob.id, leaseId: sourceTrimValidationClaim.lease.leaseId,
+  leaseCredential: sourceTrimValidationClaim.leaseCredential,
+  purpose: 'private_internal_canonical_lease_release',
+  idempotencyKey: 'release-source-trim-validation-for-final-composition',
+})
 
 const finalCompositionClaim = (await leaseService.claim({
   workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
@@ -2766,13 +2773,6 @@ const coordinatedFinalCompositionReplay = await jobExecutionAdapter.execute(fina
 assert.equal(coordinatedFinalCompositionReplay.result.artifactId, coordinatedFinalComposition.result.artifactId)
 assert.equal(coordinatedFinalCompositionReplay.result.sha256, coordinatedFinalComposition.result.sha256)
 assert.equal(coordinatedFinalCompositionReplay.evidence.idempotentAdapterReplay, true)
-await leaseService.release({
-  workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
-  jobId: sourceTrimValidationJob.id, leaseId: sourceTrimValidationClaim.lease.leaseId,
-  leaseCredential: sourceTrimValidationClaim.leaseCredential,
-  purpose: 'private_internal_canonical_lease_release',
-  idempotencyKey: 'release-source-trim-validation-for-final-composition',
-})
 if (process.env.REEDITPRO_CANONICAL_MULTI_SOURCE_SLICE_ONLY === 'true') {
   console.log(JSON.stringify({
     smoke: 'canonical_multi_source_final_composition',
@@ -5809,7 +5809,7 @@ function createDispatchPlanBody(input: {
             expectedOutputKeys: ['private-final-composition-mp4'],
             structuredPayload: {
               compositionProfileId: 'approved_source_sequence_caption_track_final_v1',
-              width: 640, height: 360, fps: 24, durationFrames: 48,
+              width: 2160, height: 3840, fps: 24, durationFrames: 48,
               sourceSegments: [{
                 sourceSequenceItemId: input.mediaSourceItem.sourceSequenceItemId,
                 sourceStartFrame: 0,
@@ -5835,6 +5835,13 @@ function createDispatchPlanBody(input: {
               }],
               sourceFit: 'contain', panelBackground: '#000000',
               audioPolicy: 'replace_with_approved_voice_tracks',
+              renderPurpose: 'private_4k_delivery_master_v1',
+              deliveryProfileId: 'uhd_2160',
+              estimateCostBasisProfileId: 'uhd_2160',
+              sourceQualityPolicy: 'immutable_source_master_no_proxy_v1',
+              usesApprovedEditReservation: true,
+              requiresSeparateExportEstimate: false,
+              allowsAdditionalExportCharge: false,
               sourceMediaPolicy: 'approved_professional_color_intermediate_v1',
               voiceTracks: [{
                 sourceSequenceItemId: input.mediaSourceItem.sourceSequenceItemId,
@@ -5867,7 +5874,7 @@ function createDispatchPlanBody(input: {
           ],
           expectedOutputs: [{
             outputKey: 'private-final-composition-mp4',
-            artifactType: 'private_source_sequence_caption_track_final_video_export',
+            artifactType: 'private_source_sequence_caption_track_4k_delivery_master_v1',
             assetRole: 'final',
             required: true,
             previewPlaceholderAllowed: false,
@@ -5979,11 +5986,11 @@ function createLibassWorkItems(
         fontPackProfileId: 'reeditpro_reviewed_fonts_v1',
         collisionPolicy: 'fail_on_reserved_zone_collision',
         preserveSpeechTiming: true,
-        width: 640,
-        height: 360,
+        width: 2160,
+        height: 3840,
         timestampMs: 1000,
-        fontSize: 42,
-        marginV: 48,
+        fontSize: 97,
+        marginV: 211,
         alignment: 2,
         caption: 'Approved frame accurate caption',
       },
@@ -6050,11 +6057,11 @@ function createLibassWorkItems(
         fontPackProfileId: 'reeditpro_reviewed_fonts_v1',
         collisionPolicy: 'fail_on_reserved_zone_collision',
         preserveSpeechTiming: true,
-        width: 640,
-        height: 360,
+        width: 2160,
+        height: 3840,
         timestampMs: 1000,
-        fontSize: 42,
-        marginV: 48,
+        fontSize: 97,
+        marginV: 211,
         alignment: 2,
         caption: 'Approved second frame accurate caption',
       },

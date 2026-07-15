@@ -32,6 +32,7 @@ import {
   getDefaultSoundStyleForCategory,
   getSoundStylePreset,
 } from './audio-presets'
+import { getPositiveInstructionSignalText } from './intent-compiler'
 
 type CreateAudioPipelinePlanParams = {
   input: PlannerInput
@@ -98,7 +99,7 @@ function assetText(asset: VisualAssetPlanItem) {
 }
 
 function chooseSoundStyle(params: CreateAudioPipelinePlanParams): SoundStyleId {
-  const text = params.input.customInstructions.toLowerCase()
+  const text = getPositiveInstructionSignalText(params.input.customInstructions.toLowerCase())
   const instructions = audioInstructions(params.input)
 
   if (instructions.sourceOnly || includesAny(text, ['voice only', 'no music', 'clean audio', 'just voice'])) return 'clean_voice_only'
@@ -119,6 +120,7 @@ function chooseSoundStyle(params: CreateAudioPipelinePlanParams): SoundStyleId {
 
 function audioInstructions(input: PlannerInput) {
   const text = input.customInstructions.toLowerCase()
+  const positiveText = getPositiveInstructionSignalText(text)
   const sourceOnly = includesAny(text, [
     'source only',
     'source footage only',
@@ -128,13 +130,13 @@ function audioInstructions(input: PlannerInput) {
   ])
 
   return {
-    highRetention: includesAny(text, ['high retention', 'viral', 'fast paced', 'impact']),
+    highRetention: includesAny(positiveText, ['high retention', 'viral', 'fast paced', 'impact']),
     noMusic: sourceOnly || includesAny(text, ['no music', 'voice only', 'just voice']),
     noSfx: sourceOnly || includesAny(text, ['no sfx', 'no sound effects', 'no whoosh', 'no whooshes']),
-    preservePauses: includesAny(text, ['preserve pauses', 'emotional pause', 'natural pauses', 'not too fast']),
+    preservePauses: includesAny(positiveText, ['preserve pauses', 'emotional pause', 'natural pauses']) || text.includes('not too fast'),
     sourceOnly,
-    subtle: includesAny(text, ['subtle', 'not too much', 'minimal', 'natural']),
-    wantsSfx: includesAny(text, ['sound effects', 'sfx', 'whoosh', 'impact hit', 'transition sound']),
+    subtle: includesAny(positiveText, ['subtle', 'minimal', 'natural']) || text.includes('not too much'),
+    wantsSfx: includesAny(positiveText, ['sound effects', 'sfx', 'whoosh', 'impact hit', 'transition sound']),
   }
 }
 

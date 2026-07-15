@@ -265,9 +265,17 @@ function confirmedSourceBoundSegments(input: PlannerInput): Array<{
   sourceStartSeconds: number
   sourceEndSeconds: number
 }> | null {
+  const sourceSequenceIsAlreadyOrdered =
+    input.sourceSequenceMode === 'single_complete_video' ||
+    input.sourceSequenceMode === 'multi_clip_story_order'
+  const structureAllowsCurrentOrder =
+    input.structurePreference === 'preserve_source_order' ||
+    input.structurePreference === 'improve_if_needed'
+
   if (
     input.sourceOrderConfirmed !== true ||
-    input.structurePreference !== 'preserve_source_order' ||
+    !sourceSequenceIsAlreadyOrdered ||
+    !structureAllowsCurrentOrder ||
     input.sourceCleanupPlan?.status !== 'confirmed' ||
     input.clips.length === 0
   ) return null
@@ -280,6 +288,7 @@ function confirmedSourceBoundSegments(input: PlannerInput): Array<{
     const sourceEndSeconds = decision?.sourceRange.endSeconds
     if (
       !decision || !['keep', 'preserve'].includes(decision.decision) ||
+      !['main_timeline', 'proof'].includes(decision.finalUse) ||
       decision.userReviewRequired || ['high', 'blocking'].includes(decision.riskLevel) ||
       typeof sourceStartSeconds !== 'number' || typeof sourceEndSeconds !== 'number' ||
       !Number.isFinite(sourceStartSeconds) || !Number.isFinite(sourceEndSeconds) ||
@@ -638,6 +647,14 @@ export function createSegmentEditPlans(params: {
     : categorySeeds
   const visualAssetsBySegment = mapVisualAssetsToSegments(visualAssetPlan, seeds.length)
   const rendererLayersByAsset = mapRendererLayersToVisualAssets(rendererCompositionPlan)
+  const globalSourceLedStrategy = adaptiveEditStrategyPlan?.segmentStrategies.find((strategy) =>
+    !strategy.segmentId &&
+    !strategy.clipId &&
+    (
+      strategy.recommendedVisualSupport === 'caption_only' ||
+      strategy.recommendedVisualSupport === 'no_extra_visual'
+    ),
+  )
   let currentStart = 0
 
   return seeds.map((seed, index) => {
@@ -669,7 +686,7 @@ export function createSegmentEditPlans(params: {
       strategy.segmentId === segmentId ||
       Boolean(strategy.clipId && clip?.id === strategy.clipId) ||
       strategyIndex === index,
-    )
+    ) ?? globalSourceLedStrategy
     const visualAssetPlanItemIds = visualAssetsBySegment[index]
     const rendererLayerIds = visualAssetPlanItemIds.flatMap((assetId) => rendererLayersByAsset.get(assetId) ?? [])
     const trimDecisions = input.sourceCleanupPlan?.decisions.filter((decision) => clip?.id === decision.clipId) ?? []

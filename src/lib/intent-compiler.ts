@@ -48,6 +48,24 @@ function hasAny(text: string, keywords: string[]) {
   return keywords.some((keyword) => text.includes(keyword))
 }
 
+export function getPositiveInstructionSignalText(text: string) {
+  return text
+    .split(/[.!?]+/)
+    .map((clause) => {
+      const normalizedClause = clause.trim()
+      if (!normalizedClause || /^no\b/.test(normalizedClause)) return ''
+
+      const negativeIndex = normalizedClause.search(
+        /\b(?:avoid|do not|don't|dont|must not|never|without|not)\b/,
+      )
+      if (negativeIndex === 0) return ''
+      if (negativeIndex > 0) return normalizedClause.slice(0, negativeIndex).trim()
+      return normalizedClause
+    })
+    .filter(Boolean)
+    .join(' ')
+}
+
 const sourceOnlyKeywords = [
   'source only',
   'source footage only',
@@ -156,13 +174,42 @@ const colorMatches: KeywordMatch<ColorGradeStyleId>[] = [
 
 const brollMatches: KeywordMatch<BrollPolicyId>[] = [
   { value: 'support_key_points', keywords: ['b-roll only when it helps', 'broll only when it helps', 'b-roll when it helps', 'only when it helps'], requirement: 'Use b-roll only when it supports meaning.' },
-  { value: 'documentary_evidence_b_roll', keywords: ['proof', 'evidence'], requirement: 'Use proof/evidence b-roll.' },
   { value: 'product_feature_b_roll', keywords: ['product shots'], requirement: 'Use product feature b-roll.' },
   { value: 'uploaded_footage_first', keywords: ['use my clips first', 'uploaded footage first'], requirement: 'Use uploaded footage first.' },
 ]
 
+const documentaryEvidenceBrollKeywords = [
+  'documentary evidence',
+  'documentary proof',
+  'evidence b-roll',
+  'evidence broll',
+  'evidence footage',
+  'proof b-roll',
+  'proof broll',
+  'proof footage',
+  'case evidence',
+]
+
 const soundMatches: KeywordMatch<SoundStyleId>[] = [
-  { value: 'clean_voice_only', keywords: ['clean audio', 'voice only'], requirement: 'Use clean voice-first audio.' },
+  {
+    value: 'clean_voice_only',
+    keywords: [
+      'clean audio',
+      'voice only',
+      'voice-first',
+      'voice first',
+      'keep the speaker clear',
+      'keep speaker clear',
+      'speaker clear',
+      'clear dialogue',
+      'keep dialogue clear',
+      'clear voice',
+      'keep the voice clear',
+      'keep voice clear',
+      'speech clear',
+    ],
+    requirement: 'Use clean voice-first audio.',
+  },
   { value: 'subtle_premium_bed', keywords: ['subtle music'], requirement: 'Use a subtle premium music bed.' },
   { value: 'cinematic_emotional', keywords: ['cinematic music'], requirement: 'Use cinematic emotional sound.' },
   { value: 'documentary_serious', keywords: ['serious documentary'], requirement: 'Use serious documentary sound.' },
@@ -248,7 +295,12 @@ function applyCreditPreference(text: string, input: PlannerInput, accumulator: I
   return input.creditPreference
 }
 
-function applyVisualPreference(text: string, input: PlannerInput, accumulator: IntentAccumulator) {
+function applyVisualPreference(
+  text: string,
+  positiveText: string,
+  input: PlannerInput,
+  accumulator: IntentAccumulator,
+) {
   if (hasAny(text, [
     'no extra visuals',
     'no visuals',
@@ -261,23 +313,26 @@ function applyVisualPreference(text: string, input: PlannerInput, accumulator: I
     return 'no_extra_visuals'
   }
 
-  if (hasAny(text, ['keep visuals minimal', 'minimal visuals', 'not too much', "don't overdo", 'dont overdo'])) {
+  if (
+    hasAny(positiveText, ['keep visuals minimal', 'minimal visuals']) ||
+    hasAny(text, ['not too much', "don't overdo", 'dont overdo'])
+  ) {
     addRequirement(accumulator, 'preference', 'Keep visuals minimal.', 'visualPreference')
     addUnique(accumulator.avoidRules, 'Avoid clutter and excessive effects.')
     return 'keep_visuals_minimal'
   }
 
-  if (hasAny(text, ['more stroke motion', 'stroke motion'])) {
+  if (hasAny(positiveText, ['more stroke motion', 'stroke motion'])) {
     addRequirement(accumulator, 'preference', 'Use more Stroke Motion where it improves story beats.', 'visualPreference')
     return 'more_stroke_motion'
   }
 
-  if (hasAny(text, ['more graphic design', 'visualexplain', 'diagrams'])) {
+  if (hasAny(positiveText, ['more graphic design', 'visualexplain', 'diagrams'])) {
     addRequirement(accumulator, 'preference', 'Use more Graphic Design / VisualExplain where useful.', 'visualPreference')
     return 'more_graphic_design'
   }
 
-  if (hasAny(text, ['real motion if useful', 'real motion'])) {
+  if (hasAny(positiveText, ['real motion if useful', 'real motion'])) {
     addRequirement(accumulator, 'preference', 'Allow Real Motion only where useful.', 'visualPreference')
     return 'real_motion_if_useful'
   }
@@ -298,32 +353,54 @@ function applyMood(text: string, input: PlannerInput) {
   return input.moodStyle
 }
 
-function applyDirectiveOverrides(text: string, directive: MutableDirective, accumulator: IntentAccumulator) {
-  const editStyle = firstMatch(text, editStyleMatches)
+function applyDirectiveOverrides(
+  text: string,
+  positiveText: string,
+  editingCategory: EditingCategory,
+  directive: MutableDirective,
+  accumulator: IntentAccumulator,
+) {
+  const editStyle = firstMatch(positiveText, editStyleMatches)
   if (editStyle) {
     directive.editStyle = editStyle.value
     addRequirement(accumulator, 'preference', editStyle.requirement, 'professionalEditingDirective.editStyle')
   }
 
-  const caption = firstMatch(text, captionMatches)
+  const caption = firstMatch(positiveText, captionMatches)
   if (caption) {
     directive.captionStyle = caption.value
     addRequirement(accumulator, 'preference', caption.requirement, 'professionalEditingDirective.captionStyle')
   }
 
-  const color = firstMatch(text, colorMatches)
+  const color = firstMatch(positiveText, colorMatches)
   if (color) {
     directive.colorGradeStyle = color.value
     addRequirement(accumulator, 'preference', color.requirement, 'professionalEditingDirective.colorGradeStyle')
   }
 
-  const broll = firstMatch(text, brollMatches)
+  const broll = firstMatch(positiveText, brollMatches)
   if (broll) {
     directive.brollPolicy = broll.value
     addRequirement(accumulator, 'preference', broll.requirement, 'professionalEditingDirective.brollPolicy')
   }
 
-  const sound = firstMatch(text, soundMatches)
+  const documentaryEvidenceBrollRequested =
+    hasAny(positiveText, documentaryEvidenceBrollKeywords) ||
+    (
+      editingCategory === 'documentary_case_study' &&
+      hasAny(positiveText, ['proof', 'evidence', 'claim', 'investigation', 'allegation'])
+    )
+  if (documentaryEvidenceBrollRequested) {
+    directive.brollPolicy = 'documentary_evidence_b_roll'
+    addRequirement(
+      accumulator,
+      'preference',
+      'Use proof/evidence b-roll for documentary or explicitly evidence-led material.',
+      'professionalEditingDirective.brollPolicy',
+    )
+  }
+
+  const sound = firstMatch(positiveText, soundMatches)
   if (sound) {
     directive.soundStyle = sound.value
     addRequirement(accumulator, 'preference', sound.requirement, 'professionalEditingDirective.soundStyle')
@@ -380,19 +457,24 @@ function applyDirectiveOverrides(text: string, directive: MutableDirective, accu
   }
 }
 
-function applyTransitionOverrides(text: string, directive: MutableDirective, accumulator: IntentAccumulator) {
-  if (hasAny(text, ['documentary', 'evidence', 'case'])) {
+function applyTransitionOverrides(
+  text: string,
+  positiveText: string,
+  directive: MutableDirective,
+  accumulator: IntentAccumulator,
+) {
+  if (hasAny(positiveText, ['documentary', 'evidence', 'case'])) {
     directive.transitionFamilies = ['documentary_evidence_transitions', 'clean_cut_transitions']
   }
 
-  if (hasAny(text, ['modern social pacing', 'high retention', 'fast paced', 'fast-paced'])) {
+  if (hasAny(positiveText, ['modern social pacing', 'high retention', 'fast paced', 'fast-paced'])) {
     directive.pacingStyle = 'high_retention'
     directive.transitionFamilies = directive.transitionFamilies.includes('social_viral_transitions')
       ? directive.transitionFamilies
       : [...directive.transitionFamilies, 'social_viral_transitions']
   }
 
-  if (hasAny(text, ['clean', 'simple', 'not too viral'])) {
+  if (hasAny(positiveText, ['clean', 'simple']) || text.includes('not too viral')) {
     directive.transitionFamilies = directive.transitionFamilies.filter((family) => family !== 'social_viral_transitions')
     if (!directive.transitionFamilies.includes('clean_cut_transitions')) {
       directive.transitionFamilies.unshift('clean_cut_transitions')
@@ -590,7 +672,9 @@ function confidenceFor(accumulator: IntentAccumulator) {
 export function compileEditingIntent(params: CompileEditingIntentParams): CompiledEditingIntent {
   const instructionHistory = normalizeOrderedUserInstructions(params.userMessages)
   const normalizedMessages = instructionHistory.map((message) => message.toLowerCase())
+  const positiveMessages = normalizedMessages.map(getPositiveInstructionSignalText)
   const text = normalizedMessages.join(' ')
+  const positiveText = positiveMessages.join(' ')
   const accumulator: IntentAccumulator = {
     avoidRules: [],
     clarifyingQuestions: [],
@@ -601,13 +685,14 @@ export function compileEditingIntent(params: CompileEditingIntentParams): Compil
   }
   let resolvedInput = params.currentInput
 
-  for (const message of normalizedMessages) {
-    const editingCategory = applyCategory(message, resolvedInput, accumulator)
-    const editLevel = applyEditLevel(message, resolvedInput, accumulator)
-    const platformSettings = applyPlatform(message, resolvedInput, accumulator)
-    const visualPreference = applyVisualPreference(message, resolvedInput, accumulator)
-    const moodStyle = applyMood(message, resolvedInput)
-    const creditPreference = applyCreditPreference(message, resolvedInput, accumulator)
+  for (const [index, message] of normalizedMessages.entries()) {
+    const positiveMessage = positiveMessages[index] ?? ''
+    const editingCategory = applyCategory(positiveMessage, resolvedInput, accumulator)
+    const editLevel = applyEditLevel(positiveMessage, resolvedInput, accumulator)
+    const platformSettings = applyPlatform(positiveMessage, resolvedInput, accumulator)
+    const visualPreference = applyVisualPreference(message, positiveMessage, resolvedInput, accumulator)
+    const moodStyle = applyMood(positiveMessage, resolvedInput)
+    const creditPreference = applyCreditPreference(positiveMessage, resolvedInput, accumulator)
     resolvedInput = {
       ...resolvedInput,
       editingCategory,
@@ -639,10 +724,11 @@ export function compileEditingIntent(params: CompileEditingIntentParams): Compil
     }),
   }
 
-  for (const message of normalizedMessages) {
-    applyDirectiveOverrides(message, professionalEditingDirective, accumulator)
-    applyTransitionOverrides(message, professionalEditingDirective, accumulator)
-    applyCustomDirectives(message, professionalEditingDirective, accumulator)
+  for (const [index, message] of normalizedMessages.entries()) {
+    const positiveMessage = positiveMessages[index] ?? ''
+    applyDirectiveOverrides(message, positiveMessage, editingCategory, professionalEditingDirective, accumulator)
+    applyTransitionOverrides(message, positiveMessage, professionalEditingDirective, accumulator)
+    applyCustomDirectives(positiveMessage, professionalEditingDirective, accumulator)
     applyModelSignals(message, editLevel, accumulator)
   }
 
@@ -663,7 +749,7 @@ export function compileEditingIntent(params: CompileEditingIntentParams): Compil
   addUnique(accumulator.mustFollowRules, 'No editing, generation, rendering, or credit deduction before plan and credit approval.')
   addUnique(accumulator.avoidRules, 'Avoid random b-roll, random transitions, random captions, random color grading, and random visuals.')
 
-  addClarifyingQuestions(text, params.currentInput, editLevel, Boolean(params.sourceOrderConfirmed), accumulator)
+  addClarifyingQuestions(positiveText, params.currentInput, editLevel, Boolean(params.sourceOrderConfirmed), accumulator)
 
   const lockedTierConstraints = buildTierConstraints(editLevel)
   const qaImplications = [

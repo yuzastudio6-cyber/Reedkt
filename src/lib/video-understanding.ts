@@ -1,4 +1,5 @@
 import { createAdaptiveEditStrategy } from './adaptive-edit-strategy'
+import { getPositiveInstructionSignalText } from './intent-compiler'
 import type {
   AudioQualityIssue,
   AudioUnderstandingReport,
@@ -359,7 +360,14 @@ function opportunitySeedsFromText(input: PlannerInput, text: string, clips: Clip
     })
   }
 
-  if (/\b(evidence|document|source|claim|case|investigation|allegation)\b/i.test(text)) {
+  if (
+    /\b(evidence|claim|investigation|allegation)\b/i.test(text) ||
+    /\b(source document|source citation|case file|court filing|evidence board)\b/i.test(text) ||
+    (
+      input.editingCategory === 'documentary_case_study' &&
+      /\b(document|case|proof|receipt|record)\b/i.test(text)
+    )
+  ) {
     seeds = addOpportunitySeed(seeds, {
       type: 'evidence_board',
       label: 'Evidence context',
@@ -444,9 +452,9 @@ function opportunitySeedsFromText(input: PlannerInput, text: string, clips: Clip
 
   if (seeds.length === 0) {
     seeds = addOpportunitySeed(seeds, {
-      type: input.editLevel === 'basic' ? 'caption_only' : 'still_card',
-      label: 'Clean support visual',
-      reason: 'The mock report did not find a stronger specific visual need, so keep the edit restrained.',
+      type: 'caption_only',
+      label: 'Source-led caption support',
+      reason: 'The mock report found no specific visual need, so the source footage and readable captions should carry the edit.',
       priority: 'low',
     })
   }
@@ -650,14 +658,17 @@ export function createMockVideoUnderstandingReport({
   input,
   compiledIntent,
 }: CreateMockVideoUnderstandingReportParams): VideoUnderstandingReport {
+  const instructionSignalText = getPositiveInstructionSignalText(normalizeText([
+    input.customInstructions,
+    compiledIntent?.goalSummary,
+  ]))
   const combinedText = normalizeText([
     input.projectName,
     input.workflowType,
     input.editingCategory,
     input.moodStyle,
     input.visualPreference,
-    input.customInstructions,
-    compiledIntent?.goalSummary,
+    instructionSignalText,
     ...input.clips.flatMap((clip) => [clip.fileName, clip.detectedType, clip.notes, clip.sourceRole]),
   ])
 

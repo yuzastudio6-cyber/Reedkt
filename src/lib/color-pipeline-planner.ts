@@ -80,11 +80,14 @@ function includesAny(text: string, terms: string[]) {
 
 function hasPeople(input: PlannerInput, report?: VideoUnderstandingReport) {
   const explicitSourceText = [
-    input.customInstructions,
     ...input.clips.map((clip) => `${clip.fileName} ${clip.detectedType} ${clip.notes ?? ''} ${clip.sourceRole ?? ''}`),
   ].filter(Boolean).join(' ').toLowerCase()
+  const explicitVisualInstruction = /\b(?:face|person|people|speaker)\s+(?:is\s+|are\s+)?(?:visible|on[ -]camera|in (?:the )?frame)|\b(?:protect|preserve)\s+(?:the\s+)?skin tones?\b/i
 
   return report?.clips.some((clip) => clip.detectedRole === 'speaker') === true ||
+    input.workflowType === 'talking_head_personal_brand' ||
+    input.workflowType === 'podcast_clip' ||
+    explicitVisualInstruction.test(input.customInstructions) ||
     includesAny(explicitSourceText, [
       'speaker',
       'face',

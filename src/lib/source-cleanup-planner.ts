@@ -126,7 +126,12 @@ function chooseDecision(params: {
 
   if (clip?.isImportant) keepReasons.push('user_marked_important')
   if (role === 'hook_candidate' || /hook|opening|first line/.test(params.text)) keepReasons.push('strong_hook')
-  if (role === 'proof' || /proof|evidence|source|claim/.test(params.text)) keepReasons.push('proof_or_evidence', 'source_context_required')
+  if (
+    role === 'proof' ||
+    /\b(proof|evidence|claim)\b|\b(source document|source citation|case file|court filing)\b/.test(params.text)
+  ) {
+    keepReasons.push('proof_or_evidence', 'source_context_required')
+  }
   if (role === 'product' || /product|feature|demo|screen|ui|dashboard/.test(params.text)) keepReasons.push('product_demo_required')
   if (isTutorial) keepReasons.push('tutorial_step_required')
   if (role === 'ending' || /cta|call to action|subscribe|book|buy/.test(params.text)) keepReasons.push('cta')

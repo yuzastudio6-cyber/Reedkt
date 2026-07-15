@@ -4,7 +4,12 @@ import { createServer } from 'node:http'
 import { buildCanonicalPlanningDraft } from '../../src/lib/canonical-planning-draft'
 import { createGuidedMockEditPlan } from '../../src/lib/mock-planner/guided'
 import { createMockEditPlan } from '../../src/lib/mock-planner/full'
+import {
+  createContextAwareMockEditPlan,
+  createContextAwarePlannerInput,
+} from '../../src/lib/planning/mock-edit-plan-from-context'
 import { buildProfessionalExportCreditCoverage } from '../../src/lib/professional-export-policy'
+import type { PlanningContext } from '../../src/types'
 import type { ProjectPersistenceScope } from '../../src/lib/project-persistence-scope'
 import type { AudioOperationPlan, EditPlan, PlannerInput } from '../../src/types/reeditpro'
 import {
@@ -123,6 +128,163 @@ const multiSourceMediaAssets = [{
   checksumSha256: sha('2'),
   sourceMetadata: { ...sourceMediaAssets[0]!.sourceMetadata, durationSeconds: 1 },
 }]
+
+const cleanSignedInPlanningContext: PlanningContext = {
+  id: 'canonical-clean-signed-in-planning-context',
+  projectId: identity.projectId,
+  workspaceId: identity.workspaceId,
+  userId: 'canonical-clean-signed-in-user',
+  status: 'ready',
+  cleanAssembly: {
+    cleanAssemblyId: 'canonical-clean-signed-in-assembly',
+    version: 1,
+    durationMs: 2_000,
+    accepted: true,
+    segmentCount: 2,
+    sourceTimeMappingCount: 2,
+    summary: 'Two accepted one-second private source clips in uploaded story order.',
+  },
+  sourceAssets: multiSourceMediaAssets.map((asset) => ({
+    mediaAssetId: asset.mediaAssetId,
+    sourceLibraryAssetId: asset.sourceSequenceItemId,
+    label: asset.fileName,
+    role: 'main_footage',
+    status: 'main_footage',
+    priority: 'must_follow',
+    explanation: 'Use this accepted private source in confirmed uploaded order.',
+  })),
+  editBrief: {
+    editBriefId: 'canonical-clean-signed-in-brief',
+    status: 'ready',
+    goal: 'Create a clean internal review edit that opens with the uploaded source proof and keeps the speaker clear.',
+    targetPlatforms: ['youtube'],
+    styleKeywords: ['clean', 'restrained'],
+    mustUseAssetIds: multiSourceMediaAssets.map((asset) => asset.mediaAssetId),
+    avoidAssetIds: [],
+    mustIncludeNotes: ['Keep both uploaded sources in their confirmed order.'],
+    avoidNotes: ['Do not add evidence boards, documentary claims, or decorative generated visuals.'],
+    userProvidedReferenceUrls: [],
+    ready: true,
+  },
+  cueUsages: [],
+  readinessIssues: [],
+  unresolvedConflictIds: [],
+  blockingIssueCount: 0,
+  warningIssueCount: 0,
+  summary: 'Accepted two-source planning context with a ready clean Edit Brief.',
+  createdAt: '2026-07-15T12:00:00.000Z',
+  updatedAt: '2026-07-15T12:00:00.000Z',
+}
+const cleanSignedInInput: PlannerInput = {
+  ...multiSourceInput,
+  projectName: 'Clean signed-in private review',
+  editingCategory: 'storytelling',
+  workflowType: 'custom_let_ai_decide',
+  structurePreference: 'improve_if_needed',
+  moodStyle: 'clean',
+  visualPreference: 'balanced_visual_mix',
+  customInstructions: '',
+  userInstructionHistory: [],
+}
+const cleanSignedInExactInput = createContextAwarePlannerInput(
+  cleanSignedInPlanningContext,
+  cleanSignedInInput,
+)
+const cleanSignedInPlanResult = createContextAwareMockEditPlan({
+  planningContext: cleanSignedInPlanningContext,
+  existingPlannerInput: cleanSignedInInput,
+})
+const cleanSignedInPlan = cleanSignedInPlanResult.editPlan
+assert.match(
+  cleanSignedInExactInput.userInstructionHistory?.at(-1) ?? '',
+  /Edit Brief goal: Create a clean internal review edit that opens with the uploaded source proof and keeps the speaker clear\./,
+  'A new signed-in edit with an empty chat history must compile its Edit Brief direction.',
+)
+assert.deepEqual(
+  createContextAwarePlannerInput(cleanSignedInPlanningContext, cleanSignedInExactInput).userInstructionHistory,
+  cleanSignedInExactInput.userInstructionHistory,
+  'Canonical planning retries must not duplicate the same context instruction.',
+)
+assert.equal(cleanSignedInPlan.compiledIntent?.professionalEditingDirective.soundStyle, 'clean_voice_only')
+assert.notEqual(
+  cleanSignedInPlan.compiledIntent?.professionalEditingDirective.brollPolicy,
+  'documentary_evidence_b_roll',
+  'The phrase uploaded source proof must not be treated as a documentary b-roll request.',
+)
+assert.deepEqual(
+  cleanSignedInPlan.videoUnderstandingReport?.visualSupportOpportunities.map((opportunity) => opportunity.opportunityType),
+  ['caption_only'],
+  'Generic source context must not create an evidence board or decorative still-card fallback.',
+)
+assert.equal(cleanSignedInPlan.visualAssetPlan?.length, 0)
+assert.equal(cleanSignedInPlan.providerPromptPlans?.length, 0)
+assert.deepEqual(
+  cleanSignedInPlan.segmentEditPlans?.map((segment) => ({
+    sourceClipIds: segment.sourceClipIds,
+    sourceRange: [segment.sourceTimeRange?.startSeconds, segment.sourceTimeRange?.endSeconds],
+    finalRange: [segment.finalTimeRange.startSeconds, segment.finalTimeRange.endSeconds],
+  })),
+  [{
+    sourceClipIds: ['canonical-save-clip-1'],
+    sourceRange: [0, 1],
+    finalRange: [0, 1],
+  }, {
+    sourceClipIds: ['canonical-save-clip-2'],
+    sourceRange: [0, 1],
+    finalRange: [1, 2],
+  }],
+  'Confirmed improve-if-needed planning must preserve exact source ranges until a real reorder decision exists.',
+)
+assert.equal(
+  cleanSignedInPlan.segmentEditPlans?.some((segment) =>
+    segment.operations.some((operation) => operation.operationType === 'b_roll')),
+  false,
+  'A source-led caption decision must suppress unrequested b-roll across every source segment.',
+)
+assert.equal(cleanSignedInPlan.audioPipelinePlan?.musicBedPlan.policy, 'none')
+assert.equal(cleanSignedInPlan.audioPipelinePlan?.sfxPlan.policy, 'none')
+assert.equal(cleanSignedInPlan.audioPipelinePlan?.beatSyncPlan.strategy, 'none')
+assert.deepEqual(cleanSignedInPlan.masterTimingPlan?.musicDuckingTimingItems, [])
+assert.equal(
+  cleanSignedInPlan.colorPipelinePlan?.clipPlans.some((clipPlan) => clipPlan.skinToneProtection),
+  false,
+  'Audio clarity language alone must not fabricate visual skin-tone evidence.',
+)
+const cleanSignedInDraft = buildCanonicalPlanningDraft({
+  plan: cleanSignedInPlan,
+  plannerInput: cleanSignedInExactInput,
+  sourceMediaAssets: multiSourceMediaAssets,
+})
+if (!cleanSignedInDraft.ok || !cleanSignedInDraft.draft.publication) {
+  throw new Error(
+    `Clean signed-in planning context did not compile: ${
+      cleanSignedInDraft.ok
+        ? cleanSignedInDraft.draft.publicationBlockers.join(' | ')
+        : cleanSignedInDraft.errors.join(' | ')
+    }`,
+  )
+}
+assert.deepEqual(cleanSignedInDraft.draft.publicationBlockers, [])
+
+const explicitDocumentaryPlan = createMockEditPlan({
+  ...baseInput,
+  editingCategory: 'documentary_case_study',
+  workflowType: 'custom_let_ai_decide',
+  customInstructions: 'Build a neutral evidence board from the verified case evidence.',
+  userInstructionHistory: ['Build a neutral evidence board from the verified case evidence.'],
+  visualPreference: 'balanced_visual_mix',
+})
+assert.equal(
+  explicitDocumentaryPlan.videoUnderstandingReport?.visualSupportOpportunities.some((opportunity) =>
+    opportunity.opportunityType === 'evidence_board'),
+  true,
+  'Explicit documentary evidence direction must retain evidence-board planning.',
+)
+assert.equal(
+  explicitDocumentaryPlan.compiledIntent?.professionalEditingDirective.brollPolicy,
+  'documentary_evidence_b_roll',
+  'Narrowing generic proof matching must preserve genuine documentary evidence b-roll intent.',
+)
 
 const sourceOnlyFullPlan = createMockEditPlan(baseInput)
 assert.equal(sourceOnlyFullPlan.visualAssetPlan?.length, 0, 'Source-only preference must create no visual assets.')

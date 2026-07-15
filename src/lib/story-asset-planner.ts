@@ -755,8 +755,26 @@ function mergeUnderstandingBeats(
 ) {
   const strategyBeats = beatsFromAdaptiveStrategy(input, adaptiveEditStrategyPlan)
   const understandingBeats = beatsFromVideoUnderstanding(input, report)
+  const reportExplicitlyKeepsSourcePrimary = Boolean(
+    report?.visualSupportOpportunities.length &&
+    report.visualSupportOpportunities.every((opportunity) =>
+      opportunity.opportunityType === 'caption_only' ||
+      opportunity.opportunityType === 'no_extra_visual'
+    ),
+  )
+  const strategyExplicitlyKeepsSourcePrimary = Boolean(
+    adaptiveEditStrategyPlan?.segmentStrategies.length &&
+    adaptiveEditStrategyPlan.segmentStrategies.every((strategy) =>
+      strategy.recommendedVisualSupport === 'caption_only' ||
+      strategy.recommendedVisualSupport === 'no_extra_visual'
+    ),
+  )
 
   if (understandingBeats.length === 0 && strategyBeats.length === 0) {
+    if (reportExplicitlyKeepsSourcePrimary || strategyExplicitlyKeepsSourcePrimary) {
+      return []
+    }
+
     return baseBeats
   }
 

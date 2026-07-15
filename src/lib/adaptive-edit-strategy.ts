@@ -518,7 +518,10 @@ function strategyFromOpportunity(
     recommendedTransitionFamilies: directive?.transitionFamilies ?? ['clean_cut_transitions'],
     recommendedColorGrade: directive?.colorGradeStyle ?? 'clean_natural',
     recommendedCaptionStyle: directive?.captionStyle ?? 'clean_subtitle',
-    recommendedBrollPolicy: directive?.brollPolicy ?? 'support_key_points',
+    recommendedBrollPolicy:
+      opportunityType === 'caption_only' || opportunityType === 'no_extra_visual'
+        ? 'none'
+        : directive?.brollPolicy ?? 'support_key_points',
     costComplexity: costForOpportunity(opportunityType, restraint, input),
     reasons: strategyReasons({ compiledIntent, input, opportunity, restraint }),
     mustFollowRules: [

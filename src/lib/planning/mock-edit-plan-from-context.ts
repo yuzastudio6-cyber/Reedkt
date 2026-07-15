@@ -6,7 +6,11 @@ import type {
   PlanningCueUsage,
 } from '../../types'
 import type { EditPlan, PlannerInput, PlanningContextTrace } from '../../types/reeditpro'
-import { createMockEditPlan } from '../mock-planner'
+import { createMockEditPlan } from '../mock-planner/full'
+import {
+  appendOrderedUserInstruction,
+  normalizeOrderedUserInstructions,
+} from '../planning-input-safety'
 import { createProfessionalSkillPlan } from '../professional-skills'
 import { buildPlanningContextSummary } from './build-planning-context'
 
@@ -26,7 +30,39 @@ function formatDuration(durationMs: number) {
 }
 
 function labels(items: PlanningAssetUsage[]) {
-  return items.map((item) => item.label).join(', ') || 'none'
+  const labels = items.map((item) => item.label)
+  const visibleLabels = labels.slice(0, 8)
+  const remainingCount = labels.length - visibleLabels.length
+
+  return [
+    visibleLabels.join(', ') || 'none',
+    remainingCount > 0 ? `(+${remainingCount} more)` : '',
+  ].filter(Boolean).join(' ')
+}
+
+function boundedValues(values: string[], limit = 8) {
+  const normalized = values.map((value) => value.trim()).filter(Boolean)
+  const visibleValues = normalized.slice(0, limit)
+  const remainingCount = normalized.length - visibleValues.length
+
+  return [
+    visibleValues.join('; '),
+    remainingCount > 0 ? `(+${remainingCount} more)` : '',
+  ].filter(Boolean).join(' ')
+}
+
+function statement(label: string, value: string) {
+  const normalizedValue = value.trim()
+  return `${label}: ${normalizedValue}${/[.!?]$/.test(normalizedValue) ? '' : '.'}`
+}
+
+function appendUniqueInstruction(history: string[], instruction: string | undefined) {
+  if (!instruction?.trim()) return history
+
+  const normalizedInstruction = normalizeOrderedUserInstructions([instruction])[0]
+  if (!normalizedInstruction || history.includes(normalizedInstruction)) return history
+
+  return appendOrderedUserInstruction(history, normalizedInstruction)
 }
 
 function cueSummary(cueUsages: PlanningCueUsage[]) {
@@ -49,6 +85,29 @@ function buildContextInstruction(context: PlanningContext) {
     .filter((cue) => cue.status === 'needs_review' || cue.status === 'blocked')
     .map((cue) => cue.title)
     .slice(0, 5)
+  const brief = context.editBrief
+  const editBriefDirection = brief
+    ? [
+        brief.goal?.trim() ? statement('Edit Brief goal', brief.goal) : '',
+        brief.audience?.trim() ? statement('Audience', brief.audience) : '',
+        brief.targetPlatforms.length ? statement('Target platforms', brief.targetPlatforms.join(', ')) : '',
+        brief.targetDurationMs ? statement('Target duration', formatDuration(brief.targetDurationMs)) : '',
+        brief.styleKeywords.length ? statement('Style keywords', boundedValues(brief.styleKeywords)) : '',
+        brief.pacingPreference ? statement('Pacing preference', brief.pacingPreference) : '',
+        brief.captionPreference ? statement('Caption preference', brief.captionPreference) : '',
+        brief.musicPreference ? statement('Music preference', brief.musicPreference) : '',
+        brief.bRollPreference?.trim() ? statement('B-roll preference', brief.bRollPreference) : '',
+        brief.brandNotes?.trim() ? statement('Brand notes', brief.brandNotes) : '',
+        brief.specialInstructions?.trim() ? statement('Special instructions', brief.specialInstructions) : '',
+        brief.mustUseAssetIds.length ? statement('Brief must-use asset IDs', boundedValues(brief.mustUseAssetIds)) : '',
+        brief.avoidAssetIds.length ? statement('Brief avoid asset IDs', boundedValues(brief.avoidAssetIds)) : '',
+        brief.mustIncludeNotes.length ? statement('Must include', boundedValues(brief.mustIncludeNotes)) : '',
+        brief.avoidNotes.length ? statement('Avoid', boundedValues(brief.avoidNotes)) : '',
+        brief.userProvidedReferenceUrls.length
+          ? statement('User-provided reference links', boundedValues(brief.userProvidedReferenceUrls, 5))
+          : '',
+      ].filter(Boolean)
+    : ['Edit Brief: not provided.']
 
   return [
     'Planning Context:',
@@ -56,11 +115,7 @@ function buildContextInstruction(context: PlanningContext) {
     `Cleanup review accepted: ${context.cleanAssembly.accepted ? 'yes' : 'no'}.`,
     `Must-use or main assets: ${labels(mustUseAssets)}.`,
     `Avoid or do-not-use assets: ${labels(avoidAssets)}.`,
-    context.editBrief?.goal ? `Edit Brief goal: ${context.editBrief.goal}.` : 'No Edit Brief goal was provided.',
-    context.editBrief?.styleKeywords.length ? `Style keywords: ${context.editBrief.styleKeywords.join(', ')}.` : 'No style keywords were provided.',
-    context.editBrief?.mustIncludeNotes.length ? `Must include: ${context.editBrief.mustIncludeNotes.join('; ')}.` : 'No must-include notes were provided.',
-    context.editBrief?.avoidNotes.length ? `Avoid: ${context.editBrief.avoidNotes.join('; ')}.` : 'No avoid notes were provided.',
-    context.editBrief?.userProvidedReferenceUrls.length ? `Approved reference links: ${context.editBrief.userProvidedReferenceUrls.join(', ')}.` : 'No reference links were provided.',
+    ...editBriefDirection,
     readyCueTitles.length ? `Ready cues to use: ${readyCueTitles.join(', ')}.` : 'No ready cues were provided.',
     reviewCueTitles.length ? `Cues needing review or blocked: ${reviewCueTitles.join(', ')}.` : 'No cue review blockers were provided.',
     context.unresolvedConflictIds.length ? `Unresolved cue conflicts: ${context.unresolvedConflictIds.join(', ')}.` : 'No unresolved cue conflicts.',
@@ -119,13 +174,29 @@ export function createContextAwarePlannerInput(
   existingPlannerInput: PlannerInput,
   existingUserPrompt?: string,
 ): PlannerInput {
+  const contextInstruction = buildContextInstruction(context)
+  const baseInstructionHistory = normalizeOrderedUserInstructions(
+    existingPlannerInput.userInstructionHistory,
+    existingPlannerInput.customInstructions,
+  )
+  const instructionHistoryWithPrompt = appendUniqueInstruction(
+    baseInstructionHistory,
+    existingUserPrompt,
+  )
+  const userInstructionHistory = appendUniqueInstruction(
+    instructionHistoryWithPrompt,
+    contextInstruction,
+  )
+  const customInstructionParts = [
+    existingPlannerInput.customInstructions,
+    existingUserPrompt,
+    contextInstruction,
+  ].reduce<string[]>((parts, instruction) => appendUniqueInstruction(parts, instruction), [])
+
   return {
     ...existingPlannerInput,
-    customInstructions: [
-      existingPlannerInput.customInstructions,
-      existingUserPrompt,
-      buildContextInstruction(context),
-    ].filter(Boolean).join('\n\n'),
+    customInstructions: customInstructionParts.join('\n\n'),
+    userInstructionHistory,
   }
 }
 

@@ -9,6 +9,10 @@ import {
 } from '../../src/lib/planning-input-safety'
 import { createGuidedMockEditPlan } from '../../src/lib/mock-planner/guided'
 import { buildPlanningContext } from '../../src/lib/planning/build-planning-context'
+import {
+  createContextAwareMockEditPlan,
+  createContextAwarePlannerInput,
+} from '../../src/lib/planning/mock-edit-plan-from-context'
 import { parseEditBriefStateForHandoff } from '../../src/lib/edit-brief/edit-brief-persistence'
 import type { EditBriefState } from '../../src/types'
 import type { PlannerInput } from '../../src/types/reeditpro'
@@ -201,6 +205,57 @@ assert.deepEqual(planningContext.editBrief?.mustIncludeNotes, fullEditBriefState
 assert.deepEqual(planningContext.editBrief?.avoidNotes, fullEditBriefState.editBrief.avoidNotes)
 assert.deepEqual(planningContext.editBrief?.userProvidedReferenceUrls, fullEditBriefState.editBrief.userProvidedReferenceUrls)
 
+const contextAwareInput = createContextAwarePlannerInput(planningContext, {
+  ...baseInput,
+  customInstructions: '',
+  userInstructionHistory: [],
+})
+const contextInstruction = contextAwareInput.userInstructionHistory?.at(-1) ?? ''
+assert.match(contextInstruction, /Edit Brief goal: Create a concise product launch update\./)
+assert.match(contextInstruction, /Audience: Existing customers\./)
+assert.match(contextInstruction, /Target platforms: youtube, linkedin\./)
+assert.match(contextInstruction, /Target duration: 45s\./)
+assert.match(contextInstruction, /Style keywords: calm; premium\./)
+assert.match(contextInstruction, /Pacing preference: tight\./)
+assert.match(contextInstruction, /Caption preference: premium_subtle\./)
+assert.match(contextInstruction, /Music preference: subtle\./)
+assert.match(contextInstruction, /B-roll preference: Use product proof only when it supports the spoken point\./)
+assert.match(contextInstruction, /Brand notes: Use the approved dark product palette\./)
+assert.match(contextInstruction, /Special instructions: Protect speech clarity and keep transitions restrained\./)
+assert.match(contextInstruction, /Must include: Keep the launch date and CTA\./)
+assert.match(contextInstruction, /Avoid: Do not overstate the product claim\./)
+assert.match(contextInstruction, /User-provided reference links: https:\/\/example\.com\/approved-reference\./)
+assert.equal(
+  contextAwareInput.userInstructionHistory?.length,
+  1,
+  'An explicitly empty new-edit history must still receive the full planning-context instruction.',
+)
+const repeatedContextAwareInput = createContextAwarePlannerInput(planningContext, contextAwareInput)
+assert.deepEqual(
+  repeatedContextAwareInput.userInstructionHistory,
+  contextAwareInput.userInstructionHistory,
+  'Rebuilding the same planning input must not duplicate the deterministic context instruction.',
+)
+assert.equal(
+  repeatedContextAwareInput.customInstructions,
+  contextAwareInput.customInstructions,
+  'Retrying the same context transfer must keep the downstream planner text stable.',
+)
+const contextAwarePlan = createContextAwareMockEditPlan({
+  planningContext,
+  existingPlannerInput: {
+    ...baseInput,
+    customInstructions: '',
+    userInstructionHistory: [],
+  },
+})
+assert.equal(contextAwarePlan.editPlan.goalSummary, fullEditBriefState.editBrief.goal)
+assert.match(
+  contextAwarePlan.editPlan.compiledIntent?.instructionHistory?.at(-1) ?? '',
+  /Edit Brief goal: Create a concise product launch update\./,
+  'The Intent Compiler must receive Edit Brief direction, not only an out-of-band plan summary.',
+)
+
 const briefBoundSnapshot = createApprovedPlanSnapshot({
   approvedBy: 'planning-input-safety-smoke-user',
   editBriefSnapshot: planningContext.editBrief,
@@ -225,6 +280,8 @@ console.log(JSON.stringify({
     'preference_application_bound_to_approved_snapshot',
     'full_edit_brief_handoff_round_trip',
     'full_edit_brief_planning_context_transfer',
+    'full_edit_brief_compiled_into_ordered_intent',
+    'planning_context_retry_deduplicated',
     'full_edit_brief_frozen_in_approved_snapshot',
   ],
   fingerprint,

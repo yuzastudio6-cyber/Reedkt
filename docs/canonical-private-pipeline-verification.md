@@ -12,7 +12,8 @@ misleading use of the retired caller-authored private-execution route as the
 primary pipeline signal.
 
 The command verifies the connected path from exact source, Edit Preferences,
-and Edit Brief authority through source-only intent restraint, canonical plan
+and Edit Brief authority through a real resumable-sized 4K private ingest/proxy
+proof, source-only intent restraint, canonical plan
 presentation, the 4K estimate ceiling, separate approval, the opaque
 execution-package handoff, private preparation, private review,
 revision/history recovery, the bounded multi-source voice proof, and the
@@ -36,14 +37,19 @@ fail-closed regression.
    source identity, source order, and checksums. Explicit source-only intent
    must suppress unapproved b-roll, music, SFX, beat timing, and generated
    media without weakening the professional voice baseline.
-2. Prove that every approved edit estimate carries the 4K UHD delivery ceiling
+2. Execute a real 3840x2160 source above the resumable threshold through
+   interrupted chunk recovery, backend byte hash and generation/ETag authority,
+   capacity admission, private probe/finalization, restart/replay, exact-source
+   verification, and a checksum-bound 1920x1080 analysis proxy that cannot
+   replace the immutable render master.
+3. Prove that every approved edit estimate carries the 4K UHD delivery ceiling
    and that 1080p, 2K/1440p, and 4K exports stay within the same approved
    deliverable rather than prompting for a second estimate.
-3. Verify frontend-safe planning publication, approval, execution-package,
+4. Verify frontend-safe planning publication, approval, execution-package,
    private-preparation, private-review, and journey-recovery clients.
-4. Exercise the real local backend authority chain for upload, publication,
+5. Exercise the real local backend authority chain for upload, publication,
    approval, synthetic reservation, snapshot, jobs, package, and readiness.
-5. Exercise the bounded ordered multi-source canonical lifecycle through lease,
+6. Exercise the bounded ordered multi-source canonical lifecycle through lease,
    one-use dispatch, private artifacts, QA, reconciliation, replay, and private
    download evidence. The focused lifecycle includes exact source-bound FFmpeg
    voice-delivery WAVs, downstream WAV verification, immutable approved
@@ -52,7 +58,7 @@ fail-closed regression.
    build context, and runtime authority root are canonical-private resources so
    a separate Motion Studio build cannot replace the image identity during this
    proof.
-6. Exercise one exact source-bound professional-color lifecycle through the
+7. Exercise one exact source-bound professional-color lifecycle through the
    immutable approved snapshot, synthetic private reservation, lease, one-use
    FFmpeg dispatch, three-frame RGB analysis, bounded approved correction,
    lossless VP9 BT.709/yuv420p Matroska persistence, pixel/histogram/clipping
@@ -63,9 +69,9 @@ fail-closed regression.
    The color-capable FFmpeg image tag and checksum-protected runtime authority
    namespace are revision-isolated so an older parallel checkout cannot replace
    this exact policy evidence.
-7. Verify active named-edit loading, failure, retry, approval, progress, review,
+8. Verify active named-edit loading, failure, retry, approval, progress, review,
    and revision states in Chromium.
-8. Regenerate the proven-tool identity report so tool readiness claims stay
+9. Regenerate the proven-tool identity report so tool readiness claims stay
    tied to exact versioned evidence.
 
 The runner stops on the first failed phase and prints a machine-readable
@@ -80,11 +86,12 @@ that discovery channel; it does not weaken image-identity validation.
 
 ## Current Evidence Record
 
-On 2026-07-15, the canonical command passed all current 17 phases in 929,931 ms
+On 2026-07-15, the canonical command passed all current 18 phases in 604,446 ms
 with exit code 0. The run included all 11 Chromium named-edit scenarios, exact
-source/preference/Edit Brief authority, the mandatory 4K estimate ceiling,
-the bounded multi-source hard-cut and professional-voice lifecycle, the exact
-one-source professional-color lifecycle, and evidence revision
+source/preference/Edit Brief authority, the real resumable-sized 4K private
+ingest/proxy lifecycle, the mandatory 4K estimate ceiling, the bounded
+multi-source hard-cut and professional-voice lifecycle, the exact one-source
+professional-color lifecycle, and evidence revision
 `2026-07-15.30` with 50 private canonical/job-adapter identities. The separate
 `npm run smoke:canonical-private-tool-dispatch` execution also passed with
 exit code 0, including exact dynamic unique-grant preservation after aggregate
@@ -120,6 +127,11 @@ This command proves connected local/private behavior. It does not prove:
 - live provider/model execution;
 - transactional customer billing, wallet mutation, or settlement;
 - public delivery, external beta, or paid production readiness.
+
+The canonical command does prove one short 27,109,799-byte 3840x2160 source
+above the resumable threshold through the local-backed provider boundary. That
+must not be restated as live GCS, long-duration, 50 GiB, 250 GiB, or ceiling-size
+evidence.
 
 The exact-hard-cut evidence applies only to zero-duration cuts at approved
 ordered source boundaries. It does not prove crossfades, wipes, zooms, pushes,

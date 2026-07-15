@@ -36,6 +36,11 @@ const canonicalSteps: VerificationStep[] = [
     'Finalized source identity, checksum, source order, project scope, and immutable source authority.',
   ),
   step(
+    'large-media-private-4k-pipeline',
+    'smoke:large-media-private-4k-pipeline',
+    'A real resumable-sized 4K source crosses interrupted chunk recovery, backend byte verification, generation-bound private finalization, durable replay, and immutable-master proxy lineage.',
+  ),
+  step(
     'professional-export-policy',
     'smoke:professional-export',
     'One approved 4K UHD delivery ceiling covers 1080p, 2K, and 4K exports without a second estimate.',
@@ -229,6 +234,7 @@ function printReport(
     verifiedClaims: status === 'passed'
       ? {
           exactSourcePreferenceBriefAuthority: true,
+          resumableSized4kPrivateSourcePipeline: true,
           sourceOnlyIntentAuthority: true,
           fourKEstimateDeliveryCeiling: true,
           canonicalBrowserContracts: true,

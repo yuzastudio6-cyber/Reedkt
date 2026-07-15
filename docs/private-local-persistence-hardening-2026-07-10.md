@@ -52,6 +52,13 @@ promotion designs:
 - `server/workers/smart-cut/smart-cut-preview-runner.ts`
 - `server/workers/speech/faster-whisper-command-runner.ts`
 
+The 2026-07-15 large-media proof narrows the `ffmpeg-media-adapter.ts` gap:
+returned proxy/audio/frame files are now `0600`, their output directories are
+`0700`, and every returned artifact carries backend-computed SHA-256 evidence.
+The adapter remains on this list because restrictive post-write modes and
+checksums do not by themselves prove directory-FD ownership, subprocess
+sandboxing, create-only atomic promotion, or hostile same-UID resistance.
+
 The upload object writer and upload-time probe staging boundary are complete for the current private backend scope. Local object writes are create-only and byte-identical on retry; local and GCS probe reads now flow through their storage adapters into a random, scope-hashed create-only private attempt with exact byte-ceiling and SHA-256 verification before FFprobe. Each attempt owns a newly created directory identity, never adopts a collision, shares concurrent cleanup work, and removes only its original device/inode. Focused evidence proves `0700`/`0600` modes, independent retry attempts, no residual staged files on normal success/failure, size/hash/overrun rejection, retryable operational failure, and ancestor/attempt identity substitution refusal without external mutation.
 
 A separate stopped-request local maintenance boundary now inspects or removes stale attempt directories. It is inspect-only by default, requires at least 24 hours of inactivity, enforces hard traversal/delete limits, skips active/recent/future-dated attempts, fails closed on malformed or non-flat content, revalidates exact identity before deletion, and emits aggregate counts without paths, tenant identifiers, hashes, or filenames. Deletion requires explicit exclusive-root authority and serializes only within one process. This closes bounded single-host orphan recovery evidence; it does not provide distributed locking, deployed retention, shared-storage safety, or protection from a hostile same-UID actor without future dirfd/unlinkat isolation. Run `npm run smoke:private-source-probe-orphan-reconciliation` and see `docs/private-source-probe-orphan-reconciliation-2026-07-13.md`.

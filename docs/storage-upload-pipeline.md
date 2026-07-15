@@ -77,14 +77,19 @@ Generated assets, preview renders, final exports, QA artifacts, and worker temp 
 
 ## What Remains Mock-Only
 
-- No file is uploaded by this task.
+- No file is uploaded to live/cloud storage. The bounded 4K proof writes only
+  disposable private local test bytes behind a GCS-compatible adapter.
 - No Supabase Storage bucket is created remotely.
 - No remote migration or policy deployment is run.
 - No provider, rendering, SFX, music, Stripe, or Google Cloud runtime is added.
 - Profile and brand upload paths are not production-ready until backend signed uploads or safe workspace-only policies exist.
 - Live GCS resumable CORS/IAM/session behavior and genuinely large object tests
   are not proven. The private restart-safe finalization control plane is
-  executable and capacity-admitted, but distributed dispatch, durable byte
+  executable and capacity-admitted. A real short 3840x2160 source above the
+  resumable threshold now passes interrupted chunk recovery, byte hashing,
+  private probe/finalization, replay, and checksum-bound analysis-proxy
+  creation. This does not replace genuinely large or long-duration tests;
+  distributed dispatch, durable byte
   progress, representative worker I/O/throughput, an executed color-managed
   HDR transform, and deployed recovery are still required before production
   large-video support can be claimed.

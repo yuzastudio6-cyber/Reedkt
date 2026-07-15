@@ -296,6 +296,15 @@ if (fixtureResult.ok) {
     check(localResult.proxy?.status === 'created', 'Local fixture should create a proxy.')
     const proxyPath = localResult.proxy?.artifact?.localFilePath
     check(Boolean(proxyPath), 'Local proxy must retain its private worker path for immediate QA.')
+    check(
+      /^[a-f0-9]{64}$/.test(localResult.proxy?.artifact?.checksum ?? ''),
+      'Local proxy must carry backend-computed SHA-256 artifact evidence.',
+    )
+    check(
+      localResult.artifactRecords.find((record) => record.artifactType === 'proxy_video')?.checksum ===
+        localResult.proxy?.artifact?.checksum,
+      'Proxy checksum must survive into the private artifact record.',
+    )
     const proxyProbe = await probeMediaFile({
       localFilePath: proxyPath!,
       ffprobeBin: 'ffprobe',
@@ -331,6 +340,7 @@ console.log(JSON.stringify({
     'signed_url_payload_rejected',
     'optional_cpu_worker_route',
     'bounded_rec709_proxy_execution_verified',
+    'processed_media_artifacts_are_checksum_bound',
     'no_revideo_or_gpu_tools',
   ],
   fixtureMode,

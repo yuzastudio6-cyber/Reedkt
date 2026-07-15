@@ -1,11 +1,18 @@
 # Large Media Ingestion And Proxy Readiness — 2026-07-13
 
-Status: `source_hardened_private_background_finalization_and_capacity_admission_verified_live_cloud_blocked`
+Status: `source_hardened_resumable_sized_4k_private_pipeline_verified_live_cloud_and_huge_scale_unverified`
 
 This slice makes ReEditPro's upload contract suitable for professional-size
 source footage without claiming that a deployed environment has processed a
 terabyte file. The immutable original remains the render master. A private
 proxy is a working/analysis derivative only.
+
+The 2026-07-15 follow-up additionally executes one real 3840x2160 lossless
+source above the resumable threshold through interrupted chunk recovery,
+stored-byte verification, generation-bound private finalization, FFprobe,
+durable replay, exact-source verification, and checksum-bound proxy creation.
+See `docs/large-media-private-4k-pipeline-verification-2026-07-15.md`. This is a
+short 27 MB fixture, not a long-duration or maximum-size claim.
 
 ## Product limits
 
@@ -144,6 +151,7 @@ Run:
 ```sh
 npm run smoke:large-media-ingest-readiness
 npm run smoke:large-media-background-finalization
+npm run smoke:large-media-private-4k-pipeline
 npm run smoke:source-upload-planning-backend
 npm run smoke:upload
 npm run smoke:upload-boundary-security
@@ -167,6 +175,14 @@ readback, one active lease, no duplicate execution, bounded retry, expired-lease
 reclamation, private file permissions, safe browser enqueue/poll/final-read
 routing, and zero live provider/storage-byte execution. Its synthetic executor
 does not prove that a real 50 GiB or larger object was processed.
+
+The private 4K pipeline smoke closes the earlier zero-byte lifecycle gap for a
+bounded representative object: it processes a real 27,109,799-byte 3840x2160
+source, recovers after a committed-chunk response loss, hashes and stages the
+stored bytes, probes the exact generation, survives process-state clearing,
+creates a checksum-bound 1920x1080 Rec.709 analysis proxy, and re-verifies that
+the immutable source checksum did not change. It intentionally keeps real
+50 GiB, 250 GiB, ceiling-boundary, long-duration, and live-cloud claims false.
 
 The post-change focused large-media smoke, upload/planning smoke, build, lint,
 server typecheck, and completion audit passed. The completion audit covers 19
@@ -194,8 +210,8 @@ ReEditPro must not claim production large-video support until all of these pass:
   traversal after every interrupted attempt;
 - malware/content scanning, parser isolation, hostile-media resource controls,
   and decompression-bomb defenses pass;
-- worker disk/stream capacity, I/O throughput, heartbeats, cancellation, retry,
-  orphan cleanup, and observability pass with representative 4K/8K, ProRes, long-GOP, VFR,
+- worker disk/stream capacity, sustained I/O throughput, heartbeats, cancellation, retry,
+  orphan cleanup, and observability pass with long-duration and broader representative 4K/8K, ProRes, long-GOP, VFR,
   multi-channel audio, timecode, HDR, and damaged inputs;
 - a color-managed HDR/wide-gamut transform runtime, objective/visual QA, and
   metadata/timecode sidecars are verified; current source detection blocks the

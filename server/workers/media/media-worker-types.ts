@@ -26,6 +26,10 @@ export interface MediaFoundationStorageReference {
   localFilePath?: string
   contentType?: string
   sizeBytes?: number
+  checksumSha256?: string
+  generation?: string
+  etag?: string
+  authorityRole?: 'immutable_source_master' | 'analysis_derivative'
   isPrivate: true
   sourceOfTruth: true
 }
@@ -90,8 +94,29 @@ export interface MediaFoundationArtifactSummary {
   frameNumber?: number
   width?: number
   height?: number
+  sourceStorageObjectId?: string
+  sourceChecksumSha256?: string
+  sourceGeneration?: string
+  sourceEtag?: string
+  sourceAuthorityRole?: 'immutable_source_master'
+  derivativeRole?: 'analysis_proxy' | 'analysis_audio' | 'analysis_frame'
+  finalRenderEligible?: false
+  immutableSourceMasterPreserved?: true
   sourceOfTruth: true
   isPrivate: true
+}
+
+export interface MediaFoundationSourceAuthorityEvidence {
+  sourceStorageObjectId: string
+  authorityRole: 'immutable_source_master'
+  expectedSizeBytes: number
+  expectedChecksumSha256: string
+  generation?: string
+  etag?: string
+  verifiedBeforeProcessing: true
+  verifiedAfterProcessing: true
+  immutableSourceMasterPreserved: true
+  analysisDerivativesFinalRenderEligible: false
 }
 
 export interface MediaProxyResult {
@@ -131,6 +156,7 @@ export interface MediaFoundationResult {
   audio?: ExtractedAudioResult
   keyframes?: ExtractedFrameResult
   representativeFrames?: ExtractedFrameResult
+  sourceAuthorityEvidence?: MediaFoundationSourceAuthorityEvidence
   artifactRecords: ToolArtifact[]
   mediaAnalysisReport?: MediaAnalysisReport
   skipReasons: MediaFoundationSkipReason[]
@@ -148,6 +174,7 @@ export interface MediaFoundationRunnerInput {
   idempotencyKey?: string
   workerPayload?: ProductionWorkerJobPayload
   source: MediaFoundationStorageReference
+  requireExactSourceAuthority?: boolean
   localStorageRoot?: string
   outputRoot?: string
   ffprobeBin?: string

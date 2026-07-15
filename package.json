@@ -106,6 +106,7 @@
     "smoke:upload-boundary-security": "tsx server/smoke/upload-boundary-security-smoke.ts",
     "smoke:large-media-ingest-readiness": "tsx server/smoke/large-media-ingest-readiness-smoke.ts",
     "smoke:large-media-background-finalization": "tsx server/smoke/large-media-background-finalization-smoke.ts",
+    "smoke:large-media-private-4k-pipeline": "tsx server/smoke/large-media-private-4k-pipeline-smoke.ts",
     "smoke:source-upload-planning-backend": "tsx server/smoke/source-upload-planning-backend-smoke.ts",
     "smoke:tools": "tsx server/smoke/tool-readiness-smoke.ts",
     "smoke:worker": "tsx server/smoke/worker-claim-smoke.ts",

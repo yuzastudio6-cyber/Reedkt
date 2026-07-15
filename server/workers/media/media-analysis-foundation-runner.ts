@@ -27,6 +27,7 @@ import {
 import { assertWorkerPayloadHasNoForbiddenFields } from '../production/production-worker-artifact-policy'
 import { REEDITPRO_ANALYSIS_PROXY_POLICY } from '../../../src/types/large-media'
 import { deriveMediaTaskTimeoutMs } from './media-task-policy'
+import { verifyLocalMediaFileAuthority } from './media-file-integrity'
 
 const defaultTasks: MediaFoundationTask[] = [
   'probe',
@@ -84,6 +85,10 @@ export async function runMediaAnalysisFoundation(input: MediaFoundationRunnerInp
   }
 
   assertExistingLocalFile(resolvedSource.localFilePath)
+  const sourceAuthorityBefore = await verifyExactSourceAuthorityIfRequired(
+    input,
+    resolvedSource.localFilePath,
+  )
 
   const ffprobeBin = input.ffprobeBin ?? 'ffprobe'
   const ffmpegBin = input.ffmpegBin ?? 'ffmpeg'
@@ -145,6 +150,10 @@ export async function runMediaAnalysisFoundation(input: MediaFoundationRunnerInp
     })
     : undefined
 
+  const sourceAuthorityEvidence = sourceAuthorityBefore
+    ? await verifySourceMasterPreserved(input, resolvedSource.localFilePath, sourceAuthorityBefore)
+    : undefined
+
   return {
     mode: input.mode,
     status: mediaAnalysisReport ? 'partial' : 'completed',
@@ -154,6 +163,7 @@ export async function runMediaAnalysisFoundation(input: MediaFoundationRunnerInp
     audio,
     keyframes,
     representativeFrames,
+    ...(sourceAuthorityEvidence ? { sourceAuthorityEvidence } : {}),
     artifactRecords,
     mediaAnalysisReport,
     skipReasons: [
@@ -180,6 +190,19 @@ function validateRunnerInput(input: MediaFoundationRunnerInput): void {
 
   if (!input.workspaceId || !input.projectId || !input.mediaAssetId || !input.sourceStorageObjectId) {
     throw new Error('Media foundation requires workspaceId, projectId, mediaAssetId, and sourceStorageObjectId.')
+  }
+  if (input.requireExactSourceAuthority) {
+    if (
+      input.source.authorityRole !== 'immutable_source_master' ||
+      !Number.isSafeInteger(input.source.sizeBytes) ||
+      Number(input.source.sizeBytes) <= 0 ||
+      !/^[a-f0-9]{64}$/.test(input.source.checksumSha256 ?? '')
+    ) {
+      throw new Error('Exact media foundation execution requires immutable source-master size and SHA-256 authority.')
+    }
+    if (input.source.generation && !input.source.etag || input.source.etag && !input.source.generation) {
+      throw new Error('Exact generation-bound source authority requires generation and ETag together.')
+    }
   }
 }
 
@@ -358,6 +381,11 @@ function withCanonicalStoragePath(
   folder: string,
   filename: string,
 ): MediaFoundationArtifactSummary {
+  const derivativeRole = artifact.artifactType === 'proxy_video'
+    ? 'analysis_proxy'
+    : artifact.artifactType === 'extracted_audio'
+      ? 'analysis_audio'
+      : 'analysis_frame'
   return {
     ...artifact,
     storageObjectPath: buildMediaObjectPath({
@@ -367,5 +395,51 @@ function withCanonicalStoragePath(
       folder,
       filename,
     }),
+    sourceStorageObjectId: input.sourceStorageObjectId,
+    sourceChecksumSha256: input.source.checksumSha256,
+    sourceGeneration: input.source.generation,
+    sourceEtag: input.source.etag,
+    sourceAuthorityRole: input.source.authorityRole === 'immutable_source_master'
+      ? 'immutable_source_master'
+      : undefined,
+    derivativeRole,
+    finalRenderEligible: false,
+    immutableSourceMasterPreserved: true,
+  }
+}
+
+async function verifyExactSourceAuthorityIfRequired(
+  input: MediaFoundationRunnerInput,
+  localFilePath: string,
+): Promise<{ sizeBytes: number; checksumSha256: string } | undefined> {
+  if (!input.requireExactSourceAuthority) return undefined
+  return verifyLocalMediaFileAuthority({
+    localFilePath,
+    expectedSizeBytes: Number(input.source.sizeBytes),
+    expectedChecksumSha256: input.source.checksumSha256!,
+  })
+}
+
+async function verifySourceMasterPreserved(
+  input: MediaFoundationRunnerInput,
+  localFilePath: string,
+  before: { sizeBytes: number; checksumSha256: string },
+): Promise<NonNullable<MediaFoundationResult['sourceAuthorityEvidence']>> {
+  const after = await verifyLocalMediaFileAuthority({
+    localFilePath,
+    expectedSizeBytes: before.sizeBytes,
+    expectedChecksumSha256: before.checksumSha256,
+  })
+  return {
+    sourceStorageObjectId: input.sourceStorageObjectId,
+    authorityRole: 'immutable_source_master',
+    expectedSizeBytes: after.sizeBytes,
+    expectedChecksumSha256: after.checksumSha256,
+    generation: input.source.generation,
+    etag: input.source.etag,
+    verifiedBeforeProcessing: true,
+    verifiedAfterProcessing: true,
+    immutableSourceMasterPreserved: true,
+    analysisDerivativesFinalRenderEligible: false,
   }
 }

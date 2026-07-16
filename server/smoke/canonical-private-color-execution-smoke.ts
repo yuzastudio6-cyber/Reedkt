@@ -648,6 +648,9 @@ assert.deepEqual({
   readFrameCount: deliveryVideo.readFrameCount,
   pixelFormat: deliveryVideo.pixelFormat,
   colorSpace: deliveryVideo.colorSpace,
+  colorTransfer: deliveryVideo.colorTransfer,
+  colorPrimaries: deliveryVideo.colorPrimaries,
+  colorRange: deliveryVideo.colorRange,
 }, {
   codecName: 'h264',
   width: 3840,
@@ -656,6 +659,9 @@ assert.deepEqual({
   readFrameCount: fixtureDurationFrames,
   pixelFormat: 'yuv420p',
   colorSpace: 'bt709',
+  colorTransfer: 'bt709',
+  colorPrimaries: 'bt709',
+  colorRange: 'tv',
 })
 assert.deepEqual({
   codecName: deliveryAudio.codecName,

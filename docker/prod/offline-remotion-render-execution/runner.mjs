@@ -62,6 +62,8 @@ const DELIVERY_MASTER_AUTHORITY_KEYS = [
   'requiresSeparateExportEstimate',
   'allowsAdditionalExportCharge',
 ]
+const FIXED_BT709_X264_VUI_PARAMETERS =
+  'colorprim=bt709:transfer=bt709:colormatrix=bt709:fullrange=off'
 
 const canonical = (value) => JSON.stringify(value, Object.keys(value).sort())
 const sha256 = (value) => createHash('sha256').update(value).digest('hex')
@@ -87,6 +89,24 @@ function safeText(value, maximum, label) {
 function oneOf(value, choices, label) {
   if (!choices.includes(value)) throw new Error(`${label} is unsupported`)
   return value
+}
+
+function enforceFixedBt709H264Vui({ type, args }) {
+  if (!['pre-stitcher', 'stitcher'].includes(type) || !Array.isArray(args)) {
+    throw new Error('Remotion FFmpeg override input is invalid')
+  }
+  const encoderIndex = args.findIndex((argument, index) =>
+    argument === '-c:v' && args[index + 1] === 'libx264')
+  if (encoderIndex === -1) return args
+  if (
+    args.includes('-x264-params') || args.length < 2 ||
+    typeof args[args.length - 1] !== 'string' || args[args.length - 1].startsWith('-')
+  ) throw new Error('Remotion H.264 encoder arguments are outside the fixed color policy')
+  return [
+    ...args.slice(0, -1),
+    '-x264-params', FIXED_BT709_X264_VUI_PARAMETERS,
+    args[args.length - 1],
+  ]
 }
 
 function integer(value, minimum, maximum, label) {
@@ -1710,6 +1730,7 @@ async function execute(request, options = {}) {
       x264Preset: fourKDeliveryMaster ? 'medium' : 'veryfast',
       pixelFormat: 'yuv420p',
       colorSpace: 'bt709',
+      ffmpegOverride: enforceFixedBt709H264Vui,
       muted: !finalComposition,
       concurrency: 1,
       disallowParallelEncoding: true,
@@ -2048,6 +2069,7 @@ function semanticEvidence(request, streaming) {
     remotionRenderMediaExecuted: true,
     approvedFrameAndTimingPreserved: true,
     actualMp4ArtifactProduced: true,
+    fixedBt709H264VuiParametersApplied: true,
     callerPathsUrlsCodeAndCommandsRejected: true,
     ...(streaming ? {
       serverInjectedInputStreamsMaterializedAndReverified: true,

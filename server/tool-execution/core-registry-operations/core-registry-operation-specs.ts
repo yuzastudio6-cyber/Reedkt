@@ -148,6 +148,7 @@ const mediaRecipeSettings = strictSettings({
     'proxy_h264_aac_v1',
     'audio_extract_pcm_v1',
     'approved_trim_transcode_v1',
+    'approved_4k_source_slice_mezzanine_finalize_v1',
     'final_export_h264_aac_v1',
   ]),
   timestampPolicy: enumConstraint(['preserve_approved_timeline', 'normalize_from_zero']),

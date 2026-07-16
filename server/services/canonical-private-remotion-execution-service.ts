@@ -346,16 +346,24 @@ function normalizeProbe(document: Readonly<Record<string, unknown>>, request: Re
   const video = streams.find((stream) => stream.codecType === 'video')
   const report = {
     codecName: video?.codecName, pixelFormat: video?.pixelFormat, colorSpace: video?.colorSpace,
+    colorTransfer: video?.colorTransfer, colorPrimaries: video?.colorPrimaries,
+    colorRange: video?.colorRange,
     width: video?.width, height: video?.height, fps: video?.fps,
     frameCount: video?.readFrameCount, durationSeconds: document.durationSeconds,
   }
   if (
     report.codecName !== 'h264' || report.pixelFormat !== 'yuv420p' || report.colorSpace !== 'bt709' ||
+    report.colorTransfer !== 'bt709' || report.colorPrimaries !== 'bt709' || report.colorRange !== 'tv' ||
     report.width !== request.payload.width || report.height !== request.payload.height ||
     report.fps !== request.payload.fps || report.frameCount !== request.payload.durationFrames ||
     report.durationSeconds !== Number((request.payload.durationFrames / request.payload.fps).toFixed(6))
   ) throw denied('Independent FFprobe QA does not match approved Remotion frame and codec policy.')
-  return { ...(report as Omit<RemotionQa, 'reportSha256'>), reportSha256: sha256AuthorityValue(report) }
+  return {
+    codecName: 'h264', pixelFormat: 'yuv420p', colorSpace: 'bt709',
+    width: Number(report.width), height: Number(report.height), fps: Number(report.fps),
+    frameCount: Number(report.frameCount), durationSeconds: Number(report.durationSeconds),
+    reportSha256: sha256AuthorityValue(report),
+  }
 }
 function assertRemotionResult(result: OfflineRemotionRenderResult, request: ReturnType<typeof validateOfflineRemotionRenderRequest>, runtimeAuthorityHash: string): void {
   if (

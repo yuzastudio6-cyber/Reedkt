@@ -15,11 +15,12 @@ import {
   CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES,
   CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_ITEMS,
   CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID,
-  CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_FRAMES,
+  CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_CAPACITY_PROFILE_ID,
+  CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_MAXIMUM_FRAMES,
 } from '../types/canonical-private-composition-capacity'
 import {
   planCanonicalPrivateLongFormChunks,
-  planCanonicalPrivateSourceSliceLongFormChunks,
+  planCanonicalPrivateSourceSliceMezzanineChunks,
   type CanonicalPrivateLongFormChunkPlan,
 } from './canonical-private-long-form-chunk-plan'
 import {
@@ -364,17 +365,22 @@ export function buildCanonicalPlanningDraft(input: {
     Number(plannerInput.currentEditPreferenceRevision) >= 0
     ? Number(plannerInput.currentEditPreferenceRevision)
     : undefined
+  const sourceSliceMezzanineFinalizationRequired =
+    orderedSourceItems.length === 1 &&
+    totalFrames > CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES
   const toolStrategy = {
     schemaVersion: 'canonical-browser-tool-strategy-projection-v1',
     toolIds: unique([
       'libass',
-      ...(approvedVoiceDeliverySources || approvedColorDeliverySources ? ['ffmpeg'] : []),
+      ...(approvedVoiceDeliverySources || approvedColorDeliverySources ||
+        sourceSliceMezzanineFinalizationRequired ? ['ffmpeg'] : []),
       'remotion',
       'ffprobe',
     ]),
     exactOperationIds: unique([
       LIBASS_OPERATION,
-      ...(approvedVoiceDeliverySources || approvedColorDeliverySources ? [FFMPEG_OPERATION] : []),
+      ...(approvedVoiceDeliverySources || approvedColorDeliverySources ||
+        sourceSliceMezzanineFinalizationRequired ? [FFMPEG_OPERATION] : []),
       REMOTION_OPERATION,
       FFPROBE_OPERATION,
     ]),
@@ -665,14 +671,17 @@ function privateReviewPublicationBlockers(input: {
     blockers.push('Private canonical composition requires at least 24 approved frames.')
   } else if (input.orderedSourceItems.length === 1) {
     if (input.totalFrames > CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES) {
-      if (input.totalFrames > CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_FRAMES) {
+      if (input.totalFrames > CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_MAXIMUM_FRAMES) {
         blockers.push('The private single-source slice profile supports at most 3,840 approved frames; larger programs require distributed object/mezzanine evidence.')
       } else if (sourceTimeline) {
-        const sourceSlicePlan = planCanonicalPrivateSourceSliceLongFormChunks({
+        const sourceSlicePlan = planCanonicalPrivateSourceSliceMezzanineChunks({
           totalFrames: input.totalFrames,
           sourceSegments: sourceTimeline,
         })
         if (!sourceSlicePlan.ok) blockers.push(sourceSlicePlan.blocker)
+      }
+      if (input.sourceMediaAssets[0]?.sourceMetadata?.hasAudio !== true) {
+        blockers.push('The private mezzanine finalizer requires one verified approved source audio stream for continuous final audio.')
       }
     }
   } else if (input.totalFrames > CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES) {
@@ -795,7 +804,7 @@ function buildPrivateReviewCanonicalPlan(input: {
   }
   const longFormChunkPlan = sourceTimeline.length === 1 &&
     input.totalFrames > CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES
-    ? planCanonicalPrivateSourceSliceLongFormChunks({
+    ? planCanonicalPrivateSourceSliceMezzanineChunks({
         totalFrames: input.totalFrames,
         sourceSegments: sourceTimeline,
       })
@@ -1319,8 +1328,11 @@ function buildLongFormRenderWorkItems(input: {
     rendererLayerIds: string[]
   }
 }): CanonicalWorkItemDraft[] {
-  const sourceSliceProfile = input.chunkPlan.profileId ===
-    CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID
+  const mezzanineFinalizationProfile = input.chunkPlan.profileId ===
+    CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_CAPACITY_PROFILE_ID
+  const sourceSliceProfile = mezzanineFinalizationProfile ||
+    input.chunkPlan.profileId ===
+      CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID
   if (
     sourceSliceProfile &&
     (input.voiceWorkItems.length > 0 || input.colorWorkItems.length > 0)
@@ -1560,15 +1572,87 @@ function buildLongFormRenderWorkItems(input: {
         }
       })
     : []
+  const finalizerSource = mezzanineFinalizationProfile
+    ? input.chunkPlan.chunks[0]?.sourceSegments[0]
+    : undefined
+  const finalizerCleanup = finalizerSource
+    ? input.cleanupDecisions[sourceIndexById.get(finalizerSource.sourceSequenceItemId)!]
+    : undefined
+  if (
+    mezzanineFinalizationProfile &&
+    (!finalizerSource || !finalizerCleanup || input.cleanupDecisions.length !== 1 ||
+      finalizerSource.sourceStartFrame !== finalizerCleanup.startFrame ||
+      input.chunkPlan.chunks.at(-1)?.sourceSegments[0]?.sourceEndFrameExclusive !==
+        finalizerCleanup.endFrameExclusive)
+  ) throw new Error(
+    'Mezzanine finalization lost its exact approved source cleanup authority.',
+  )
   const finalMerge: CanonicalWorkItemDraft = {
     workItemKey: 'final-export',
     workItemType: 'render_final_export',
     workerClass: 'render_worker',
     executionInput: {
-      operation: 'merge_approved_4k_composition_chunks',
-      approvedToolOperationIds: [REMOTION_OPERATION],
+      operation: mezzanineFinalizationProfile
+        ? 'finalize_approved_4k_mezzanine_chunks'
+        : 'merge_approved_4k_composition_chunks',
+      approvedToolOperationIds: [
+        mezzanineFinalizationProfile ? FFMPEG_OPERATION : REMOTION_OPERATION,
+      ],
       expectedOutputKeys: ['final-export'],
-      structuredPayload: {
+      structuredPayload: mezzanineFinalizationProfile ? {
+        recipeProfileId: 'approved_4k_source_slice_mezzanine_finalize_v1',
+        capacityProfileId: input.chunkPlan.profileId,
+        width: input.frame.width,
+        height: input.frame.height,
+        fps: input.fps,
+        durationFrames: input.totalFrames,
+        sourceSequenceItemId: finalizerSource!.sourceSequenceItemId,
+        sourceCleanupDecisionId: finalizerCleanup!.decisionId,
+        sourceStartFrame: finalizerCleanup!.startFrame,
+        sourceEndFrameExclusive: finalizerCleanup!.endFrameExclusive,
+        chunks: input.chunkPlan.chunks.map((chunk) => {
+          const sourceSlice = chunk.sourceSegments[0]
+          if (chunk.sourceSegments.length !== 1 || !sourceSlice?.sourceSliceKey) {
+            throw new Error('Mezzanine finalization lost exact source-slice lineage.')
+          }
+          return {
+            outputKey: chunk.outputKey,
+            chunkIndex: chunk.chunkIndex,
+            chunkCount: chunk.chunkCount,
+            globalStartFrame: chunk.globalStartFrame,
+            globalEndFrameExclusive: chunk.globalEndFrameExclusive,
+            durationFrames: chunk.durationFrames,
+            sourceSliceKey: sourceSlice.sourceSliceKey,
+            sourceStartFrame: sourceSlice.sourceStartFrame,
+            sourceEndFrameExclusive: sourceSlice.sourceEndFrameExclusive,
+          }
+        }),
+        chunkBoundaryContinuity: chunkBoundaryContinuity.map((continuity) => ({
+          boundaryFrame: continuity.boundaryFrame,
+          previousSourceEndFrameExclusive:
+            continuity.previousSourceEndFrameExclusive,
+          nextSourceStartFrame: continuity.nextSourceStartFrame,
+          fromSourceSliceKey: continuity.fromSourceSliceKey,
+          toSourceSliceKey: continuity.toSourceSliceKey,
+        })),
+        videoFinalizationPolicy: 'compatible_h264_stream_copy_v1',
+        audioFinalizationPolicy: 'single_approved_source_audio_encode_v1',
+        codecCompatibilityPolicy: 'exact_h264_extradata_timebase_frame_color_v1',
+        timestampPolicy: 'normalize_from_zero',
+        outputContainer: 'mp4',
+        outputVideoCodec: 'copy_h264',
+        outputAudioCodec: 'aac_lc',
+        audioSampleRate: 48_000,
+        audioChannels: 2,
+        audioBitrateKbps: 192,
+        renderPurpose: 'private_4k_delivery_master_v1',
+        deliveryProfileId: 'uhd_2160',
+        estimateCostBasisProfileId: 'uhd_2160',
+        sourceQualityPolicy: 'immutable_source_master_no_proxy_v1',
+        usesApprovedEditReservation: true,
+        requiresSeparateExportEstimate: false,
+        allowsAdditionalExportCharge: false,
+      } : {
         compositionProfileId: LONG_FORM_MERGE_COMPOSITION_PROFILE,
         longFormCapacityProfileId: input.chunkPlan.profileId,
         width: input.frame.width,
@@ -1632,12 +1716,15 @@ function buildLongFormRenderWorkItems(input: {
       'video/mp4',
       input.finalLineage,
     )],
-    dependencyKeys: chunkWorkItems.map((item) => item.workItemKey),
-    approvedToolIds: ['remotion'],
+    dependencyKeys: [
+      ...(mezzanineFinalizationProfile ? ['source-trim-validation'] : []),
+      ...chunkWorkItems.map((item) => item.workItemKey),
+    ],
+    approvedToolIds: [mezzanineFinalizationProfile ? 'ffmpeg' : 'remotion'],
     providerExecutionMode: 'none',
     fallbackPolicy: {},
     maxAttempts: 2,
-    attemptTimeoutSeconds: 3_600,
+    attemptTimeoutSeconds: mezzanineFinalizationProfile ? 1_800 : 3_600,
     scheduledDelaySeconds: 0,
     maximumCreditBudget:
       input.budgets[input.finalBudgetIndex + input.chunkPlan.chunkCount]!,

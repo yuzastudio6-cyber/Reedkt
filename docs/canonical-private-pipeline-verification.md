@@ -101,6 +101,21 @@ that discovery channel; it does not weaken image-identity validation.
 
 ## Current Evidence Record
 
+On 2026-07-16, the exact-code full internal command passed all 27 phases in
+1,985,135 ms with exit code 0. The final signed-in phase completed in 425,312
+ms and produced an authenticated non-passthrough 3840x2160 review at exactly
+16.000 seconds from eight distinct two-second private sources. It completed all
+27 server-derived jobs, preserved all eight source-bound tones in approved
+order, persisted acceptance, and returned no browser-owned execution authority.
+The private-preparation coordinator advanced three content-addressed graph runs:
+two runs preserved exact attempt-one `failed_retry_available` outcomes and
+replayed completed siblings, while the third completed all 27 jobs. No job
+exceeded its approved attempt allowance, and no user-review, fallback, or
+post-commit reconciliation state was auto-bypassed. The catalog still reported
+exactly 50 canonical E2E and 50 canonical job-adapter identities. Provider
+activation, live billing/wallet mutation, remote Supabase, public delivery,
+deployment, external beta, and paid production remained false.
+
 On 2026-07-15, the exact-code v4 full internal command passed all 27 phases in
 1,696,673 ms with exit code 0. It retained every v3 authority, upload, 4K
 estimate, streaming, professional-color, browser-state, and 50-tool evidence
@@ -209,6 +224,17 @@ QA, and bounded recovery. Its actual signed-in proof is 660 frames; the
 3,840-frame ceiling is planning/mutation evidence. See
 `docs/canonical-source-slice-long-form-verification-2026-07-16.md`. This is
 still not arbitrary-media, 30-minute, or multi-hour production proof.
+
+The additive
+`canonical_private_4k_source_slice_mezzanine_finalize_3840_frames_v3` profile
+keeps those planning limits and replaces the serial full-program Remotion
+re-render with exact H.264 compatibility preflight, stream-copy video, and one
+continuous approved-source AAC encode. Its fresh signed-in 660-frame run passed
+8/8 jobs, private final QA/download/review replay, complete BT.709 VUI, and
+attempt-level internal cost for all completed and failed started attempts. See
+`docs/canonical-source-slice-mezzanine-finalization-verification-2026-07-16.md`.
+This remains bounded local/private evidence, not distributed or professional-
+scale readiness.
 
 The professional-color evidence applies only to the exact one-source bounded
 profile and the fixed first-source-reference multi-source profile. The compiler

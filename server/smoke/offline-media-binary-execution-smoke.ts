@@ -3,9 +3,17 @@ import { spawnSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { readFile, rm } from 'node:fs/promises'
 import { join } from 'node:path'
+import { Readable } from 'node:stream'
+
+import {
+  CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_CAPACITY_PROFILE_ID,
+} from '../../src/types/canonical-private-composition-capacity'
 
 import {
   activatePrivateOfflineMediaBinaryRuntime,
+  buildOfflineMediaBinaryMezzanineFinalizationRequest,
+  OFFLINE_MEDIA_BINARY_MEZZANINE_FINALIZATION_MAXIMUM_OUTPUT_BYTES,
+  OFFLINE_MEDIA_BINARY_MEZZANINE_FINALIZATION_RECIPE,
   OFFLINE_MEDIA_BINARY_OPERATIONS,
   OFFLINE_MEDIA_BINARY_PROTOCOL,
   openPrivateOfflineMediaBinaryRuntime,
@@ -279,6 +287,254 @@ assert.notEqual(colorMatchResult.resultArtifact.sha256, matchSourceAuthority.sou
 const colorMatchReplay = await runtime.execute(colorMatchRequest)
 assert.equal(colorMatchReplay.resultArtifact.sha256, colorMatchResult.resultArtifact.sha256)
 
+const mezzanineFrameRate = 24 as const
+const mezzanineChunkFrames = 121
+const mezzanineDurationFrames = mezzanineChunkFrames * 2
+const mezzanineChunkAudioDurationSeconds =
+  mezzanineChunkFrames / mezzanineFrameRate + 0.05
+const mezzanineChunkPaths = [
+  join('/tmp', `reeditpro-mezzanine-chunk-1-${process.pid}.mp4`),
+  join('/tmp', `reeditpro-mezzanine-chunk-2-${process.pid}.mp4`),
+]
+for (const [index, path] of mezzanineChunkPaths.entries()) {
+  const videoOnlyPath = `${path}.video-only.mp4`
+  const generatedVideo = spawnSync('ffmpeg', [
+    '-hide_banner', '-loglevel', 'error',
+    '-f', 'lavfi', '-i',
+    `color=c=${index === 0 ? '0x2646A8' : '0xA84626'}:s=2160x2160:r=24`,
+    '-frames:v', String(mezzanineChunkFrames),
+    '-c:v', 'libx264', '-preset', 'ultrafast', '-tune', 'zerolatency',
+    '-x264-params',
+    `keyint=${mezzanineChunkFrames}:min-keyint=${mezzanineChunkFrames}:scenecut=0:open-gop=0:colorprim=bt709:transfer=bt709:colormatrix=bt709`,
+    '-bf', '0', '-pix_fmt', 'yuv420p',
+    '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709',
+    '-an', '-movflags', '+faststart', '-threads', '1', '-y', videoOnlyPath,
+  ], { encoding: 'utf8' })
+  assert.equal(generatedVideo.status, 0, generatedVideo.stderr)
+  const muxedChunk = spawnSync('ffmpeg', [
+    '-hide_banner', '-loglevel', 'error',
+    '-i', videoOnlyPath,
+    '-f', 'lavfi', '-i',
+    `sine=frequency=${index === 0 ? 540 : 720}:sample_rate=48000:duration=${mezzanineChunkAudioDurationSeconds.toFixed(9)}`,
+    '-map', '0:v:0', '-map', '1:a:0', '-c:v', 'copy',
+    '-c:a', 'aac', '-b:a', '96k', '-ar', '48000', '-ac', '2',
+    '-t', mezzanineChunkAudioDurationSeconds.toFixed(9),
+    '-movflags', '+faststart', '-threads', '1', '-y', path,
+  ], { encoding: 'utf8' })
+  await rm(videoOnlyPath, { force: true })
+  assert.equal(muxedChunk.status, 0, muxedChunk.stderr)
+}
+const mezzanineChunkBytes = await Promise.all(
+  mezzanineChunkPaths.map((path) => readFile(path)),
+)
+await Promise.all(mezzanineChunkPaths.map((path) => rm(path, { force: true })))
+const mezzanineSourcePath = join(
+  '/tmp',
+  `reeditpro-mezzanine-source-${process.pid}.mp4`,
+)
+const mezzanineDurationSeconds = mezzanineDurationFrames / mezzanineFrameRate
+const generatedMezzanineSource = spawnSync('ffmpeg', [
+  '-hide_banner', '-loglevel', 'error',
+  '-f', 'lavfi', '-i',
+  `color=c=black:s=320x180:r=24:d=${mezzanineDurationSeconds.toFixed(9)}`,
+  '-f', 'lavfi', '-i',
+  `sine=frequency=660:sample_rate=48000:duration=${mezzanineDurationSeconds.toFixed(9)}`,
+  '-map', '0:v:0', '-map', '1:a:0',
+  '-frames:v', String(mezzanineDurationFrames),
+  '-c:v', 'libx264', '-preset', 'ultrafast', '-pix_fmt', 'yuv420p',
+  '-c:a', 'aac', '-b:a', '128k', '-ar', '48000', '-ac', '2',
+  '-movflags', '+faststart', '-threads', '1', '-y', mezzanineSourcePath,
+], { encoding: 'utf8' })
+assert.equal(generatedMezzanineSource.status, 0, generatedMezzanineSource.stderr)
+const mezzanineSourceBytes = await readFile(mezzanineSourcePath)
+await rm(mezzanineSourcePath, { force: true })
+const hashBytes = (bytes: Buffer) => createHash('sha256').update(bytes).digest('hex')
+const mezzaninePlanningPayload = {
+  recipeProfileId: OFFLINE_MEDIA_BINARY_MEZZANINE_FINALIZATION_RECIPE,
+  capacityProfileId: CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_CAPACITY_PROFILE_ID,
+  width: 2160 as const,
+  height: 2160 as const,
+  fps: mezzanineFrameRate,
+  durationFrames: mezzanineDurationFrames,
+  sourceSequenceItemId: 'mezzanine-source-fixture',
+  sourceCleanupDecisionId: 'mezzanine-cleanup-fixture',
+  sourceStartFrame: 0,
+  sourceEndFrameExclusive: mezzanineDurationFrames,
+  chunks: [
+    {
+      outputKey: 'mezzanine-chunk-output-1', chunkIndex: 1, chunkCount: 2,
+      globalStartFrame: 0, globalEndFrameExclusive: mezzanineChunkFrames,
+      durationFrames: mezzanineChunkFrames, sourceSliceKey: 'source-slice-1-of-2',
+      sourceStartFrame: 0, sourceEndFrameExclusive: mezzanineChunkFrames,
+    },
+    {
+      outputKey: 'mezzanine-chunk-output-2', chunkIndex: 2, chunkCount: 2,
+      globalStartFrame: mezzanineChunkFrames,
+      globalEndFrameExclusive: mezzanineDurationFrames,
+      durationFrames: mezzanineChunkFrames, sourceSliceKey: 'source-slice-2-of-2',
+      sourceStartFrame: mezzanineChunkFrames,
+      sourceEndFrameExclusive: mezzanineDurationFrames,
+    },
+  ],
+  chunkBoundaryContinuity: [{
+    boundaryFrame: mezzanineChunkFrames,
+    previousSourceEndFrameExclusive: mezzanineChunkFrames,
+    nextSourceStartFrame: mezzanineChunkFrames,
+    fromSourceSliceKey: 'source-slice-1-of-2',
+    toSourceSliceKey: 'source-slice-2-of-2',
+  }],
+  videoFinalizationPolicy: 'compatible_h264_stream_copy_v1' as const,
+  audioFinalizationPolicy: 'single_approved_source_audio_encode_v1' as const,
+  codecCompatibilityPolicy: 'exact_h264_extradata_timebase_frame_color_v1' as const,
+  timestampPolicy: 'normalize_from_zero' as const,
+  outputContainer: 'mp4' as const,
+  outputVideoCodec: 'copy_h264' as const,
+  outputAudioCodec: 'aac_lc' as const,
+  audioSampleRate: 48_000 as const,
+  audioChannels: 2 as const,
+  audioBitrateKbps: 192 as const,
+  renderPurpose: 'private_4k_delivery_master_v1' as const,
+  deliveryProfileId: 'uhd_2160' as const,
+  estimateCostBasisProfileId: 'uhd_2160' as const,
+  sourceQualityPolicy: 'immutable_source_master_no_proxy_v1' as const,
+  usesApprovedEditReservation: true as const,
+  requiresSeparateExportEstimate: false as const,
+  allowsAdditionalExportCharge: false as const,
+}
+const mezzanineRequest = buildOfflineMediaBinaryMezzanineFinalizationRequest({
+  planningPayload: mezzaninePlanningPayload,
+  chunks: mezzanineChunkBytes.map((bytes, index) => ({
+    inputId: `mezzanine-chunk-input-${index + 1}`,
+    outputKey: `mezzanine-chunk-output-${index + 1}`,
+    chunkIndex: index + 1,
+    mimeType: 'video/mp4' as const,
+    byteLength: bytes.byteLength,
+    sha256: hashBytes(bytes),
+  })),
+  source: {
+    inputId: 'mezzanine-source-input',
+    sourceSequenceItemId: 'mezzanine-source-fixture',
+    mimeType: 'video/mp4',
+    byteLength: mezzanineSourceBytes.byteLength,
+    sha256: hashBytes(mezzanineSourceBytes),
+  },
+})
+const privateStreamInput = (bytes: Buffer) => Object.freeze({
+  inputMode: 'private_verified_stream_v1' as const,
+  byteLength: bytes.byteLength,
+  sha256: hashBytes(bytes),
+  async openStream() { return Readable.from([bytes]) },
+})
+const mezzanineInputs = {
+  chunks: mezzanineChunkBytes.map(privateStreamInput),
+  source: privateStreamInput(mezzanineSourceBytes),
+}
+let mezzanineOutputBytes: Buffer = Buffer.alloc(0)
+const createMezzanineOutputSink = (capture: (bytes: Buffer) => void) => ({
+  maximumBytes: OFFLINE_MEDIA_BINARY_MEZZANINE_FINALIZATION_MAXIMUM_OUTPUT_BYTES,
+  async persist(input: {
+    stream: Readable
+    mimeType: 'video/x-matroska' | 'audio/wav' | 'video/mp4'
+    expectedByteLength: number
+    expectedSha256: string
+  }) {
+    assert.equal(input.mimeType, 'video/mp4')
+    const chunks: Buffer[] = []
+    for await (const chunk of input.stream) {
+      chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk))
+    }
+    const bytes = Buffer.concat(chunks)
+    assert.equal(bytes.byteLength, input.expectedByteLength)
+    assert.equal(hashBytes(bytes), input.expectedSha256)
+    capture(bytes)
+    return { byteLength: bytes.byteLength, sha256: hashBytes(bytes) }
+  },
+})
+const mezzanineResult = await runtime.executeMezzanineFinalizationServerInjected(
+  mezzanineRequest,
+  mezzanineInputs,
+  createMezzanineOutputSink((bytes) => { mezzanineOutputBytes = bytes }),
+)
+assert.equal(mezzanineResult.resultArtifact.mimeType, 'video/mp4')
+assert.equal(mezzanineResult.resultArtifact.outputMode, 'server_committed_private_stream_v1')
+assert.equal(mezzanineResult.resultArtifact.sha256, hashBytes(mezzanineOutputBytes))
+assert.equal(mezzanineOutputBytes.subarray(4, 8).toString('ascii'), 'ftyp')
+assert.equal(mezzanineResult.image.aacEncoding, 'private_source_slice_finalizer_only')
+assert.equal(mezzanineResult.image.mp4Mux, 'private_source_slice_finalizer_only')
+assert.equal(mezzanineResult.evidence.confinement.serverOwnedEntrypoint,
+  '/usr/local/bin/reeditpro-ffmpeg-source-slice-finalizer')
+assert.equal(mezzanineResult.evidence.confinement.memoryLimitBytes, 4_294_967_296)
+assert.equal(mezzanineResult.evidence.confinement.tmpfsSizeBytes, 1_342_177_280)
+assert.equal(
+  mezzanineResult.evidence.semanticEvidence.h264VideoStreamCopiedWithoutDecodeOrReencode,
+  true,
+)
+assert.equal(mezzanineResult.evidence.semanticEvidence.sourceAudioDecodedAndEncodedOnce, true)
+assert.equal(mezzanineResult.evidence.semanticEvidence.chunkBoundaryContinuityVerified, true)
+assert.equal(mezzanineResult.evidence.semanticEvidence.frameDerivedConcatDurationsApplied, true)
+assert.equal(
+  mezzanineResult.evidence.semanticEvidence
+    .outputTimestampsNormalizedFromZeroWithinOneFrame,
+  true,
+)
+assert.equal(mezzanineResult.evidence.semanticEvidence.additionalExportChargeAllowed, false)
+const independentMezzanineProbe = spawnSync('ffprobe', [
+  '-v', 'error', '-count_frames', '-show_entries',
+  'format=format_name,duration:stream=codec_name,codec_type,width,height,avg_frame_rate,nb_read_frames,sample_rate,channels',
+  '-of', 'json', '-i', 'pipe:0',
+], { input: mezzanineOutputBytes, maxBuffer: 4 * 1024 * 1024 })
+assert.equal(independentMezzanineProbe.status, 0,
+  independentMezzanineProbe.stderr.toString('utf8'))
+const independentMezzanineDocument = JSON.parse(
+  independentMezzanineProbe.stdout.toString('utf8'),
+) as {
+  streams: Array<Record<string, string | number>>
+  format: Record<string, string>
+}
+const independentMezzanineVideo = independentMezzanineDocument.streams.find(
+  (stream) => stream.codec_type === 'video',
+)
+const independentMezzanineAudio = independentMezzanineDocument.streams.find(
+  (stream) => stream.codec_type === 'audio',
+)
+assert.equal(independentMezzanineVideo?.codec_name, 'h264')
+assert.equal(Number(independentMezzanineVideo?.nb_read_frames), mezzanineDurationFrames)
+assert.equal(independentMezzanineAudio?.codec_name, 'aac')
+assert.equal(Number(independentMezzanineAudio?.sample_rate), 48_000)
+assert.equal(Number(independentMezzanineAudio?.channels), 2)
+let replayMezzanineOutput: Buffer = Buffer.alloc(0)
+const mezzanineReplay = await runtime.executeMezzanineFinalizationServerInjected(
+  mezzanineRequest,
+  mezzanineInputs,
+  createMezzanineOutputSink((bytes) => { replayMezzanineOutput = bytes }),
+)
+assert.equal(mezzanineReplay.resultArtifact.sha256, mezzanineResult.resultArtifact.sha256)
+assert.equal(hashBytes(replayMezzanineOutput), hashBytes(mezzanineOutputBytes))
+assert.throws(() => buildOfflineMediaBinaryMezzanineFinalizationRequest({
+  planningPayload: {
+    ...mezzaninePlanningPayload,
+    command: 'ffmpeg -i caller.mp4',
+  },
+  chunks: mezzanineRequest.inputs.chunks,
+  source: mezzanineRequest.inputs.source,
+}))
+assert.throws(() => buildOfflineMediaBinaryMezzanineFinalizationRequest({
+  planningPayload: mezzaninePlanningPayload,
+  chunks: [...mezzanineRequest.inputs.chunks].reverse(),
+  source: mezzanineRequest.inputs.source,
+}))
+await assertRejects(() => runtime.executeMezzanineFinalizationServerInjected(
+  mezzanineRequest,
+  {
+    ...mezzanineInputs,
+    chunks: [
+      { ...mezzanineInputs.chunks[0]!, sha256: 'f'.repeat(64) },
+      mezzanineInputs.chunks[1]!,
+    ],
+  },
+  createMezzanineOutputSink(() => undefined),
+))
+
 const authority = await readPersistedOfflineMediaBinaryRuntimeAuthority()
 assert(authority)
 assert.equal(authority.readiness.privateInternalExecutionReady, true)
@@ -286,7 +542,7 @@ assert.equal(authority.readiness.finalExportReady, false)
 assert.equal(authority.supportedOperations.length, 2)
 assert.equal(
   authority.image.imageTag,
-  'reeditpro/ffmpeg-lgpl-internal:8.1.2-color-v1-local',
+  'reeditpro/ffmpeg-lgpl-internal:8.1.2-color-finalizer-v2-local',
 )
 assert.equal(authority.image.imageIdentityHash, runtime.image.imageIdentityHash)
 const reopened = await openPrivateOfflineMediaBinaryRuntime()
@@ -369,10 +625,16 @@ console.log(JSON.stringify({
     'networkless_readonly_nonroot_no_mount_confinement',
     'server_owned_entrypoint_and_fixed_argument_derivation',
     'color_capable_image_tag_and_runtime_authority_namespace_are_revision_isolated',
+    'exact_source_slice_mezzanine_finalizer_stream_copies_h264_video',
+    'exact_source_slice_mezzanine_finalizer_encodes_continuous_source_audio_once',
+    'frame_derived_concat_duration_prevents_chunk_container_timing_gaps',
+    'finalizer_output_reprobed_for_exact_frames_timestamps_bt709_h264_aac',
+    'finalizer_replay_is_byte_identical_and_input_mutations_fail_closed',
+    'original_approved_estimate_reused_without_second_export_charge',
     'checksum_protected_runtime_authority_and_restart_safe_open',
     'deterministic_reexecution_result',
     'caller_command_path_operation_and_source_tamper_rejected',
-    'h264_encoding_and_final_export_remain_blocked',
+    'generic_h264_encoding_and_caller_selected_final_export_remain_blocked',
     'private_internal_only_without_product_beta_or_production_promotion',
   ],
 }))

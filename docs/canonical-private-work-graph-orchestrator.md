@@ -47,7 +47,20 @@ Cloud autoscaling policy or performance SLA.
 
 Completed job identity is stored independently of a request key by the job adapter. A later work-graph run therefore reuses the completed artifact instead of claiming another lease or executing the tool again. A denied pre-execution dispatch releases its lease so a later run can retry with newly available runtime evidence.
 
-Canonical failure outcomes are explicit: `failed_retry_available`, `failed_user_review_required`, or `completed_recovery_required`. The current run never loops blindly. It continues unrelated dependency-ready branches, blocks only descendants of the failed job, and exposes a same-operation retry only when the immutable work item has remaining `maxAttempts`. A new authenticated run uses a new per-job key, while completed siblings replay their final adapter completion. When the prior execution fence is completed but the adapter record is missing, the new run invokes server-owned evidence recovery before any claim; it never retries the completed operation.
+Canonical failure outcomes are explicit: `failed_retry_available`,
+`failed_user_review_required`, or `completed_recovery_required`. One graph run
+never loops blindly. It continues unrelated dependency-ready branches, blocks
+only descendants of the failed job, and exposes a same-operation retry only
+when the immutable work item has remaining `maxAttempts`. The authenticated
+private-preparation coordinator may start a bounded follow-up run only while an
+exact `failed_retry_available` outcome still carries remaining approved
+attempts. Each follow-up uses a new server-owned run/per-job idempotency key;
+completed siblings replay their final adapter completion. The coordinator is
+bounded by the schema's maximum ten attempts and stops immediately for user
+review, fallback, exhausted attempts, or post-commit reconciliation. When a
+prior execution fence completed but the adapter record is missing, the next run
+invokes server-owned evidence recovery before any claim; it never retries the
+completed operation.
 
 ## Current evidence
 
@@ -90,6 +103,15 @@ passed independent QA, replay, private-download integrity, and PCM continuity
 checks at both technical boundaries. This is still single-host local/private
 evidence, not distributed scheduling or a long-program SLA.
 
+The additive V3 run keeps the same eight-job/660-frame authority and recovery
+shape while replacing the final full-program Remotion encode with exact FFmpeg
+compatibility preflight, H.264 stream-copy, and one continuous approved-source
+audio encode. A fresh run completed in 379,285 ms, preserved one failed started
+chunk attempt as ReEditPro-absorbed internal cost, verified four completed cost
+records, and bound all five evidence hashes into terminal private review. This
+remains local in-process/single-host evidence; it is not physical or cloud
+worker concurrency, a production scheduler, or an SLA.
+
 ## Boundaries
 
 This proves honest run-to-blocked behavior, deterministic resource-aware
@@ -110,8 +132,9 @@ Supabase, billing, public delivery, and production promotion remain gated.
 - `REEDITPRO_SOURCE_SLICE_LONG_FORM_PROOF=1 ./node_modules/.bin/tsx server/smoke/canonical-private-long-form-execution-smoke.ts`
 - `npm run smoke:canonical-private-tool-dispatch`
 - `npm run qa:internal-pipeline` — post-change full run passed 27/27 stages on
-  2026-07-16 in `1,720,287 ms`, including the standalone authenticated
-  maximum-eight-source journey and all 50 versioned tool identities
+  2026-07-16 in `1,985,135 ms`, including the standalone authenticated
+  maximum-eight-source journey, bounded approved-attempt recovery, and all 50
+  versioned tool identities
 
 The measured duration is a local correctness-regression result. It is not a
 real-program editing benchmark, deployed worker-concurrency result, cloud ETA,

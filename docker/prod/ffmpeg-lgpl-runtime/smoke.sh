@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-IMAGE_TAG=${REEDITPRO_FFMPEG_IMAGE_TAG:-reeditpro/ffmpeg-lgpl-internal:8.1.2-color-v1-local}
+IMAGE_TAG=${REEDITPRO_FFMPEG_IMAGE_TAG:-reeditpro/ffmpeg-lgpl-internal:8.1.2-color-finalizer-v2-local}
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 
 if [ "${1:-}" = '--build' ]; then
@@ -24,6 +24,10 @@ docker image inspect "$IMAGE_TAG" >/dev/null 2>&1 \
   || { printf '%s\n' 'image must remain productReady=false' >&2; exit 1; }
 [ "$(docker image inspect --format '{{index .Config.Labels "reeditpro.h264-encoding"}}' "$IMAGE_TAG")" = 'blocked_not_compiled' ] \
   || { printf '%s\n' 'image must keep H.264 encoding blocked' >&2; exit 1; }
+[ "$(docker image inspect --format '{{index .Config.Labels "reeditpro.aac-encoding"}}' "$IMAGE_TAG")" = 'private_source_slice_finalizer_only' ] \
+  || { printf '%s\n' 'image must scope AAC encoding to the private finalizer' >&2; exit 1; }
+[ "$(docker image inspect --format '{{index .Config.Labels "reeditpro.mp4-mux"}}' "$IMAGE_TAG")" = 'private_source_slice_finalizer_only' ] \
+  || { printf '%s\n' 'image must scope MP4 muxing to the private finalizer' >&2; exit 1; }
 
 docker run --rm \
   --network=none \
@@ -39,5 +43,5 @@ docker run --rm \
   "$IMAGE_TAG"
 
 docker image inspect --format \
-  '{"imageId":"{{.Id}}","architecture":"{{.Architecture}}","os":"{{.Os}}","user":"{{.Config.User}}","productReady":"{{index .Config.Labels "reeditpro.product-ready"}}","h264Encoding":"{{index .Config.Labels "reeditpro.h264-encoding"}}"}' \
+  '{"imageId":"{{.Id}}","architecture":"{{.Architecture}}","os":"{{.Os}}","user":"{{.Config.User}}","productReady":"{{index .Config.Labels "reeditpro.product-ready"}}","h264Encoding":"{{index .Config.Labels "reeditpro.h264-encoding"}}","aacEncoding":"{{index .Config.Labels "reeditpro.aac-encoding"}}","mp4Mux":"{{index .Config.Labels "reeditpro.mp4-mux"}}"}' \
   "$IMAGE_TAG"

@@ -17,7 +17,9 @@ import { loadRuntimeEnv } from '../config/env'
 import { createCanonicalEditExecutionPackageService } from '../services/canonical-edit-execution-package-service'
 import { createCanonicalPlanningHandoffService } from '../services/canonical-planning-handoff-service'
 import { createCanonicalPrivateFinalArtifactDownloadService } from '../services/canonical-private-final-artifact-download-service'
+import { verifyCanonicalPrivateFinalCompositionArtifact } from '../services/canonical-private-final-artifact-verifier'
 import { createCanonicalPrivateJobExecutionAdapterService } from '../services/canonical-private-job-execution-adapter-service'
+import { createCanonicalPrivateReviewAssemblyService } from '../services/canonical-private-review-assembly-service'
 import { createCanonicalPrivateWorkGraphOrchestratorService } from '../services/canonical-private-work-graph-orchestrator-service'
 import { createEditPlanningAuthorityService } from '../services/edit-planning-authority-service'
 import { createExactEditPreferenceService } from '../services/exact-edit-preference-service'
@@ -33,12 +35,18 @@ import {
   OFFLINE_MEDIA_BINARY_STREAM_PROTOCOL,
   activatePrivateOfflineMediaBinaryRuntime,
   validateOfflineFfprobeStreamingExecutionRequest,
+  validateOfflineMediaBinaryMezzanineFinalizationPlanningPayload,
 } from '../tool-execution/media-binary-execution'
 import {
   activatePrivateOfflineRemotionRenderRuntime,
   prepareOfflineRemotionDockerRuntime,
   validateOfflineRemotionLongFormMergePlanningPayload,
 } from '../tool-execution/remotion-render-execution'
+import {
+  PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS,
+  readPrivateInternalAttemptCostEvidence,
+  resolvePrivateInternalAttemptCostProfileId,
+} from '../tool-cost-metering/private-internal-attempt-cost-evidence'
 import type { ServiceContext } from '../types'
 import {
   createCanonicalPlanningHandoffSchema,
@@ -56,9 +64,11 @@ const localStorageRoot = canonicalAuthoritySmokeRoot
 const workspaceId = 'workspace-authority-smoke'
 const userId = 'user-authority-smoke'
 const sourceSliceMode = process.env.REEDITPRO_SOURCE_SLICE_LONG_FORM_PROOF === '1'
-const scenarioKey = sourceSliceMode ? 'source-slice-v2' : 'source-boundary-v1'
+const scenarioKey = sourceSliceMode
+  ? 'source-slice-mezzanine-v3'
+  : 'source-boundary-v1'
 const editSessionId = sourceSliceMode
-  ? 'edit-session-canonical-source-slice-long-form-execution'
+  ? 'edit-session-canonical-source-slice-mezzanine-execution-v3'
   : 'edit-session-canonical-long-form-execution'
 const sourceCount = sourceSliceMode ? 1 : 8
 const sourceDurationSeconds = sourceSliceMode ? 22 : 3
@@ -267,14 +277,22 @@ const canonicalPlan = draft.draft.publication.canonicalPlan
 const chunkDrafts = canonicalPlan.workItems.filter((workItem) =>
   workItem.executionInput.operation === 'render_approved_4k_composition_chunk')
 const mergeDraft = canonicalPlan.workItems.find((workItem) =>
-  workItem.executionInput.operation === 'merge_approved_4k_composition_chunks')
+  workItem.executionInput.operation === (sourceSliceMode
+    ? 'finalize_approved_4k_mezzanine_chunks'
+    : 'merge_approved_4k_composition_chunks'))
 const expectedChunkCount = sourceSliceMode ? 3 : 2
 const expectedChunkDurations = sourceSliceMode ? [220, 220, 220] : [450, 270]
 assert.equal(chunkDrafts.length, expectedChunkCount)
 assert.ok(mergeDraft)
-const mergePayload = validateOfflineRemotionLongFormMergePlanningPayload(
-  mergeDraft!.executionInput.structuredPayload,
-)
+const mezzaninePayload = sourceSliceMode
+  ? validateOfflineMediaBinaryMezzanineFinalizationPlanningPayload(
+      mergeDraft!.executionInput.structuredPayload,
+    )
+  : null
+const mergePayload = mezzaninePayload ??
+  validateOfflineRemotionLongFormMergePlanningPayload(
+    mergeDraft!.executionInput.structuredPayload,
+  )
 assert.equal(mergePayload.durationFrames, totalFrames)
 assert.deepEqual(
   mergePayload.chunks.map((chunk) => chunk.durationFrames),
@@ -282,10 +300,9 @@ assert.deepEqual(
 )
 if (sourceSliceMode) {
   assert.equal(
-    mergePayload.longFormCapacityProfileId,
-    'canonical_private_4k_source_slice_chunk_merge_3840_frames_v2',
+    mezzaninePayload!.capacityProfileId,
+    'canonical_private_4k_source_slice_mezzanine_finalize_3840_frames_v3',
   )
-  assert.equal(mergePayload.chunkBoundaryTransitions.length, 0)
   assert.ok('chunkBoundaryContinuity' in mergePayload)
   assert.equal(mergePayload.chunkBoundaryContinuity.length, expectedChunkCount - 1)
   assert.deepEqual(mergePayload.chunks.map((chunk) => ({
@@ -378,7 +395,10 @@ const assetByKey = new Map(approvedWorkItems.map((workItem) => {
 }))
 assert.deepEqual(
   jobByKey.get('final-export')!.dependencyJobIds,
-  chunkDrafts.map((chunk) => jobByKey.get(chunk.workItemKey)!.id),
+  [
+    ...(sourceSliceMode ? [jobByKey.get('source-trim-validation')!.id] : []),
+    ...chunkDrafts.map((chunk) => jobByKey.get(chunk.workItemKey)!.id),
+  ],
 )
 
 const mediaRuntime = await activatePrivateOfflineMediaBinaryRuntime()
@@ -409,6 +429,20 @@ for (let attempt = 1; attempt <= maximumWorkGraphPasses; attempt += 1) {
 }
 const workGraphElapsedMilliseconds = Date.now() - workGraphStartedAt
 assert.ok(workGraphRun)
+if (workGraphRun.status !== 'completed_private_test_work_graph') {
+  console.error(JSON.stringify({
+    smoke: 'canonical_private_long_form_execution',
+    phase: 'work_graph_blocked_diagnostic',
+    status: workGraphRun.status,
+    summary: workGraphRun.summary,
+    jobs: workGraphRun.jobs.map((job) => ({
+      workItemKey: job.workItemKey,
+      status: job.status,
+      blockerCode: job.blockerCode,
+      retryDisposition: job.retryDisposition,
+    })),
+  }))
+}
 assert.equal(workGraphRun.status, 'completed_private_test_work_graph')
 assert.equal(workGraphRun.summary.totalJobCount, expectedJobCount)
 assert.equal(workGraphRun.summary.completedJobCount, expectedJobCount)
@@ -471,6 +505,11 @@ for (const workItem of canonicalPlan.workItems) {
   assert.equal(response.permissions.billing, false)
   assert.equal(response.readiness.productReady, false)
   assert.equal(response.evidence.idempotentAdapterReplay, true)
+  const meteredV3Operation = sourceSliceMode && (
+    workItem.executionInput.operation === 'render_approved_4k_composition_chunk' ||
+    workItem.executionInput.operation === 'finalize_approved_4k_mezzanine_chunks'
+  )
+  assert.equal(response.evidence.attemptCostEvidenceRecorded, meteredV3Operation)
 }
 
 const chunks = chunkDrafts.map((chunk) => executed.get(chunk.workItemKey)!)
@@ -501,7 +540,7 @@ for (const chunkDraft of chunkDrafts) {
 }
 
 const merge = executed.get('final-export')!
-assert.equal(merge.identity.canonicalToolId, 'remotion')
+assert.equal(merge.identity.canonicalToolId, sourceSliceMode ? 'ffmpeg' : 'remotion')
 assert.equal(merge.result.contentType, 'video/mp4')
 assert.equal(merge.evidence.dependencyArtifactInput, true)
 assert.equal(merge.evidence.dependencyStreamInputVerified, true)
@@ -510,6 +549,125 @@ const finalQa = executed.get('final-qa')!
 assert.equal(finalQa.identity.canonicalToolId, 'ffprobe')
 assert.equal(finalQa.evidence.dependencyArtifactInput, true)
 assert.equal(finalQa.evidence.finalArtifactQaPassed, true)
+assert.equal(finalQa.evidence.attemptCostEvidenceRecorded, false)
+
+const finalArtifactAuthority = await createPrivateArtifactQaAuthorityService(context)
+  .readArtifactAuthority({
+    workspaceId,
+    projectId,
+    editSessionId,
+    snapshotId: snapshot.snapshotId,
+    jobId: jobByKey.get('final-export')!.id,
+    expectedAssetId: assetByKey.get('final-export')!.id,
+    artifactId: merge.result.artifactId,
+    purpose: 'read_private_artifact_qa_authority',
+  })
+const verifiedFinalArtifact = await verifyCanonicalPrivateFinalCompositionArtifact({
+  localStorageRoot,
+  artifact: finalArtifactAuthority.artifact,
+})
+assert.equal(verifiedFinalArtifact.sha256, merge.result.sha256)
+assert.equal(
+  verifiedFinalArtifact.runnerClass,
+  sourceSliceMode
+    ? 'offline_media_binary_execution_v1'
+    : 'offline_remotion_render_execution_v1',
+)
+if (sourceSliceMode) {
+  await assert.rejects(
+    () => verifyCanonicalPrivateFinalCompositionArtifact({
+      localStorageRoot,
+      artifact: {
+        ...finalArtifactAuthority.artifact,
+        lineage: {
+          ...finalArtifactAuthority.artifact.lineage,
+          artifactType: 'private_source_caption_4k_delivery_master_v1',
+        },
+      } as never,
+    }),
+    /exact verified 4K delivery-master artifact/u,
+  )
+  await assert.rejects(
+    () => verifyCanonicalPrivateFinalCompositionArtifact({
+      localStorageRoot,
+      artifact: {
+        ...finalArtifactAuthority.artifact,
+        actualRunEvidence: {
+          ...finalArtifactAuthority.artifact.actualRunEvidence,
+          runnerClass: 'offline_remotion_render_execution_v1',
+          toolIds: ['ffmpeg'],
+        },
+      } as never,
+    }),
+    /exact verified 4K delivery-master artifact/u,
+  )
+}
+
+const privateReviewInput = {
+  workspaceId,
+  packageRecordId: packaged.approvedEditExecutionPackage.packageRecordId,
+  purpose: 'assemble_canonical_private_review' as const,
+  idempotencyKey: `assemble-canonical-long-form-review-${scenarioKey}`,
+}
+const privateReview = await createCanonicalPrivateReviewAssemblyService(context)
+  .assemble(privateReviewInput)
+assert.equal(privateReview.status, 'ready_for_private_internal_review')
+assert.equal(privateReview.requiredExecution.requiredJobCount, expectedJobCount)
+assert.equal(privateReview.requiredExecution.requiredExpectedAssetCount, expectedJobCount)
+assert.equal(privateReview.requiredExecution.passedQaArtifactCount, expectedJobCount)
+assert.equal(privateReview.requiredExecution.reconciledArtifactCount, expectedJobCount)
+assert.equal(privateReview.requiredExecution.allRequiredJobsCompleted, true)
+assert.equal(privateReview.requiredExecution.allRequiredAssetsQaPassed, true)
+assert.equal(privateReview.requiredExecution.allRequiredAssetsReconciled, true)
+assert.equal(privateReview.finalArtifact.artifactId, merge.result.artifactId)
+assert.equal(privateReview.finalArtifact.sha256, merge.result.sha256)
+assert.equal(privateReview.finalQaArtifact.artifactId, finalQa.result.artifactId)
+assert.equal(privateReview.finalQaArtifact.canonicalToolId, 'ffprobe')
+assert.equal(privateReview.finalQaArtifact.finalQaGatesPassed, true)
+assert.ok(privateReview.internalAttemptCostEvidence)
+assert.equal(
+  privateReview.internalAttemptCostEvidence.requiredProfileCount,
+  sourceSliceMode ? expectedChunkCount + 1 : 0,
+)
+assert.equal(
+  privateReview.internalAttemptCostEvidence.verifiedCompletedEvidenceCount,
+  sourceSliceMode ? expectedChunkCount + 1 : 0,
+)
+assert.equal(
+  privateReview.internalAttemptCostEvidence.verifiedAttemptEvidenceCount,
+  privateReview.internalAttemptCostEvidence.verifiedCompletedEvidenceCount +
+    privateReview.internalAttemptCostEvidence.failedAttemptEvidenceCount,
+)
+assert.ok(
+  privateReview.internalAttemptCostEvidence.verifiedAttemptEvidenceCount >=
+    (sourceSliceMode ? expectedChunkCount + 1 : 0),
+)
+assert.equal(privateReview.internalAttemptCostEvidence.customerPriceIncluded, false)
+assert.equal(privateReview.internalAttemptCostEvidence.customerCreditsIncluded, false)
+assert.equal(privateReview.internalAttemptCostEvidence.serviceFeeIncluded, false)
+assert.equal(privateReview.internalAttemptCostEvidence.walletMutationAuthorized, false)
+assert.equal(privateReview.internalAttemptCostEvidence.settlementAuthorized, false)
+assert.equal(privateReview.chain.finalQaInputBoundToFinalArtifact, true)
+assert.equal(privateReview.chain.immutablePackageRevalidated, true)
+assert.equal(privateReview.chain.immutablePlanRevalidated, true)
+assert.equal(privateReview.manifest.privateCreateOnlyPersistence, true)
+assert.equal(privateReview.manifest.credentialFree, true)
+assert.equal(privateReview.readiness.privateReviewReady, true)
+assert.equal(privateReview.readiness.publicExportReady, false)
+assert.equal(privateReview.permissions.publicDelivery, false)
+assert.equal(privateReview.permissions.customerCreditMutation, false)
+assert.equal(privateReview.permissions.billing, false)
+const privateReviewReplay = await createCanonicalPrivateReviewAssemblyService(context)
+  .assemble(privateReviewInput)
+assert.equal(privateReviewReplay.replay.idempotentReplay, true)
+assert.equal(
+  privateReviewReplay.manifest.manifestSha256,
+  privateReview.manifest.manifestSha256,
+)
+assert.deepEqual(
+  privateReviewReplay.internalAttemptCostEvidence,
+  privateReview.internalAttemptCostEvidence,
+)
 
 const chunkReplay = await executeJob('composition-chunk-2')
 assert.equal(chunkReplay.result.artifactId, chunks[1]!.result.artifactId)
@@ -530,11 +688,79 @@ const completedMergeLease = leaseAggregate?.leases.find((lease) =>
 assert.ok(completedMergeLease)
 assert.equal(
   completedMergeLease.dependencyAuthority.selectedArtifacts.length,
-  expectedChunkCount,
+  expectedChunkCount + (sourceSliceMode ? 1 : 0),
 )
 assert.deepEqual(
-  completedMergeLease.dependencyAuthority.selectedArtifacts.map((artifact) => artifact.artifactId),
+  completedMergeLease.dependencyAuthority.selectedArtifacts
+    .slice(sourceSliceMode ? 1 : 0)
+    .map((artifact) => artifact.artifactId),
   chunks.map((chunk) => chunk.result.artifactId),
+)
+
+const meteredWorkItemKeys = sourceSliceMode
+  ? [...chunkDrafts.map((chunk) => chunk.workItemKey), 'final-export']
+  : []
+const internalAttemptCostEvidence = []
+const completedInternalAttemptCostEvidence = []
+const failedInternalAttemptCostEvidence = []
+for (const [workItemKey, job] of jobByKey) {
+  const attemptLeases = leaseAggregate?.leases.filter((lease) =>
+    lease.jobId === job.id &&
+    ['completed', 'failed'].includes(lease.executionFence.state)) ?? []
+  assert.ok(attemptLeases.length >= 1)
+  let completedAttemptCount = 0
+  for (const lease of attemptLeases) {
+    const executionAttemptId = lease.executionFence.executionAttemptId
+    assert.ok(executionAttemptId)
+    const cost = await readPrivateInternalAttemptCostEvidence({
+      localStorageRoot,
+      workspaceId,
+      projectId,
+      executionAttemptId,
+    })
+    if (!meteredWorkItemKeys.includes(workItemKey)) {
+      assert.equal(cost, undefined)
+      continue
+    }
+    assert.ok(cost)
+    const response = executed.get(workItemKey)!
+    const expectedProfileId = workItemKey === 'final-export'
+      ? PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFourKMezzanineFinalization
+      : PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.remotionFourKSourceSliceChunk
+    assert.equal(resolvePrivateInternalAttemptCostProfileId(cost.identity), expectedProfileId)
+    assert.equal(cost.identity.jobId, job.id)
+    assert.equal(cost.identity.approvedPlanSnapshotId, snapshot.snapshotId)
+    assert.equal(cost.identity.executionAttemptId, executionAttemptId)
+    assert.equal(cost.identity.retryAttempt, Math.max(0, lease.attemptNumber - 1))
+    assert.equal(cost.resourceUsage.vcpuCount, 2)
+    assert.equal(cost.resourceUsage.memoryGib, 4)
+    assert.equal(cost.resourceUsage.gpuCount, 0)
+    assert.ok(cost.actualInternalCostMicros > 0)
+    assertNoCommercialCostFields(cost)
+    if (lease.executionFence.state === 'completed') {
+      completedAttemptCount += 1
+      assert.equal(cost.resourceUsage.outputByteLength, response.result.byteLength)
+      assert.equal(cost.outcome.status, 'completed')
+      assert.equal(cost.outcome.failureCategory, 'none')
+      assert.ok(cost.linkedCanonicalOutcomeHash)
+      completedInternalAttemptCostEvidence.push(cost)
+    } else {
+      assert.equal(cost.outcome.status, 'failed')
+      assert.notEqual(cost.outcome.failureCategory, 'none')
+      assert.equal(cost.linkedCanonicalOutcomeHash, null)
+      failedInternalAttemptCostEvidence.push(cost)
+    }
+    internalAttemptCostEvidence.push(cost)
+  }
+  if (meteredWorkItemKeys.includes(workItemKey)) assert.equal(completedAttemptCount, 1)
+}
+assert.equal(
+  completedInternalAttemptCostEvidence.length,
+  sourceSliceMode ? expectedChunkCount + 1 : 0,
+)
+assert.equal(
+  internalAttemptCostEvidence.length,
+  completedInternalAttemptCostEvidence.length + failedInternalAttemptCostEvidence.length,
 )
 
 const privateDownload = await createCanonicalPrivateFinalArtifactDownloadService(context).read({
@@ -603,6 +829,9 @@ assert.deepEqual({
   frameCount: video?.readFrameCount,
   pixelFormat: video?.pixelFormat,
   colorSpace: video?.colorSpace,
+  colorTransfer: video?.colorTransfer,
+  colorPrimaries: video?.colorPrimaries,
+  colorRange: video?.colorRange,
 }, {
   codecName: 'h264',
   width: 3840,
@@ -611,6 +840,9 @@ assert.deepEqual({
   frameCount: totalFrames,
   pixelFormat: 'yuv420p',
   colorSpace: 'bt709',
+  colorTransfer: 'bt709',
+  colorPrimaries: 'bt709',
+  colorRange: 'tv',
 })
 assert.deepEqual({
   codecName: audio?.codecName,
@@ -654,6 +886,21 @@ console.log(JSON.stringify({
     benchmarkQualified: false,
     performanceSlaProven: false,
   },
+  internalAttemptCostEvidence: {
+    boundary: 'internal_production_cost_only',
+    evidenceClassification: 'provisional_local_metered',
+    rateCardVersion: internalAttemptCostEvidence[0]?.rateCardVersion ?? null,
+    completedAttemptEvidenceCount: completedInternalAttemptCostEvidence.length,
+    failedAttemptEvidenceCount: failedInternalAttemptCostEvidence.length,
+    totalAttemptEvidenceCount: internalAttemptCostEvidence.length,
+    provisionalInternalCostMicros: internalAttemptCostEvidence.reduce(
+      (total, evidence) => total + evidence.actualInternalCostMicros,
+      0,
+    ),
+    customerPriceIncluded: false,
+    customerCreditsIncluded: false,
+    serviceFeeIncluded: false,
+  },
   chunkArtifacts: chunks.map((chunk, index) => ({
     chunkIndex: index + 1,
     artifactId: chunk.result.artifactId,
@@ -683,13 +930,53 @@ console.log(JSON.stringify({
     sourceSliceMode
       ? 'exact_source_slice_ranges_and_continuity_records_preserved_without_invented_cuts'
       : 'approved_source_boundary_hard_cuts_preserved',
-    'final_merge_reads_only_lease_selected_qa_passed_chunk_streams',
+    sourceSliceMode
+      ? 'finalizer_reads_exact_source_trim_and_lease_selected_qa_passed_chunk_streams'
+      : 'final_merge_reads_only_lease_selected_qa_passed_chunk_streams',
+    sourceSliceMode
+      ? 'h264_video_stream_copied_and_continuous_approved_source_audio_encoded_once'
+      : 'remotion_final_merge_preserves_approved_chunk_audio',
     `final_${totalFrames}_frame_4k_h264_aac_master_independently_ffprobe_qa_reconciled`,
     'chunk_and_final_adapter_replay_are_content_stable',
     'private_download_hash_and_ffprobe_match_recorded_final_artifact',
+    'private_review_assembly_and_idempotent_manifest_replay_passed',
+    sourceSliceMode
+      ? `${expectedChunkCount}_completed_chunk_and_1_completed_finalizer_internal_cost_records_passed`
+      : 'scoped_attempt_internal_cost_not_applicable_to_v1_merge',
+    'failed_started_attempt_internal_cost_is_preserved_and_absorbed_by_reeditpro',
+    'internal_cost_evidence_has_no_customer_price_credits_service_fee_wallet_or_settlement',
+    'final_master_verifier_accepts_only_exact_runner_tool_and_artifact_class_tuple',
     'provider_billing_public_delivery_settlement_and_production_authority_remain_false',
   ],
 }))
+
+function assertNoCommercialCostFields(value: unknown): void {
+  const forbidden: string[] = []
+  const visit = (entry: unknown): void => {
+    if (!entry || typeof entry !== 'object') return
+    if (Array.isArray(entry)) {
+      entry.forEach(visit)
+      return
+    }
+    for (const [key, nested] of Object.entries(entry as Record<string, unknown>)) {
+      const normalized = key.replace(/[^a-z0-9]/giu, '').toLowerCase()
+      if (
+        normalized.includes('customerprice') ||
+        normalized.includes('customercredit') ||
+        normalized.includes('servicefee') ||
+        normalized.includes('markup') ||
+        normalized.includes('margin') ||
+        normalized.includes('wallet') ||
+        normalized.includes('settlement') ||
+        normalized.includes('billabletouser') ||
+        normalized === 'credits'
+      ) forbidden.push(key)
+      visit(nested)
+    }
+  }
+  visit(value)
+  assert.deepEqual(forbidden, [])
+}
 
 async function executeJob(workItemKey: string) {
   const job = jobByKey.get(workItemKey)

@@ -11,6 +11,7 @@ import {
   CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_CHUNKS,
   CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_FRAMES,
   CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MINIMUM_FRAMES,
+  CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_CAPACITY_PROFILE_ID,
   type CanonicalPrivateLongFormCapacityProfileId,
 } from '../types/canonical-private-composition-capacity'
 
@@ -45,6 +46,11 @@ export interface CanonicalPrivateLongFormChunkPlan {
 export interface CanonicalPrivateSourceSliceLongFormChunkPlan
   extends CanonicalPrivateLongFormChunkPlan {
   profileId: typeof CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID
+}
+
+export interface CanonicalPrivateSourceSliceMezzanineChunkPlan
+  extends CanonicalPrivateLongFormChunkPlan {
+  profileId: typeof CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_CAPACITY_PROFILE_ID
 }
 
 export type CanonicalPrivateLongFormChunkPlanResult =
@@ -276,6 +282,25 @@ export function planCanonicalPrivateSourceSliceLongFormChunks(input: {
       chunkCount,
       chunks,
     } satisfies CanonicalPrivateSourceSliceLongFormChunkPlan,
+  }
+}
+
+/**
+ * Uses the already-proven exact v2 slice partition while freezing the
+ * separately versioned v3 finalization authority into the approved graph.
+ */
+export function planCanonicalPrivateSourceSliceMezzanineChunks(input: {
+  totalFrames: number
+  sourceSegments: CanonicalPrivateLongFormSourceSegment[]
+}): CanonicalPrivateLongFormChunkPlanResult {
+  const planned = planCanonicalPrivateSourceSliceLongFormChunks(input)
+  if (!planned.ok) return planned
+  return {
+    ok: true,
+    plan: {
+      ...planned.plan,
+      profileId: CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_CAPACITY_PROFILE_ID,
+    } satisfies CanonicalPrivateSourceSliceMezzanineChunkPlan,
   }
 }
 

@@ -193,6 +193,9 @@ try {
     readFrameCount: video?.readFrameCount,
     pixelFormat: video?.pixelFormat,
     colorSpace: video?.colorSpace,
+    colorTransfer: video?.colorTransfer,
+    colorPrimaries: video?.colorPrimaries,
+    colorRange: video?.colorRange,
   }, {
     codecName: 'h264',
     width: 3840,
@@ -201,6 +204,9 @@ try {
     readFrameCount: 48,
     pixelFormat: 'yuv420p',
     colorSpace: 'bt709',
+    colorTransfer: 'bt709',
+    colorPrimaries: 'bt709',
+    colorRange: 'tv',
   })
   assert.equal(audio?.codecName, 'aac')
   assert.equal(audio?.sampleRate, 48_000)
@@ -230,7 +236,7 @@ try {
       'rejected_stream_commitment_left_no_create_only_target',
       'private_create_only_stream_persistence_reopened_and_rehashed',
       'authenticated_delivery_storage_supports_exact_byte_ranges',
-      'independent_streamed_ffprobe_h264_aac_frame_and_color_qa_passed',
+      'independent_streamed_ffprobe_h264_aac_frame_and_complete_bt709_vui_qa_passed',
       'product_beta_production_provider_billing_and_public_delivery_remain_false',
     ],
   })}\n`)

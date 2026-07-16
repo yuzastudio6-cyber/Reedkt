@@ -33,36 +33,72 @@ const failureCategory = z.enum([
   'unknown',
 ])
 
+export const PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS = {
+  deepFilterNetVoiceCleanup: 'deepfilternet_cpu_4vcpu_4gib_v1',
+  remotionFourKSourceSliceChunk: 'remotion_4k_source_slice_chunk_cpu_2vcpu_4gib_v1',
+  ffmpegFourKMezzanineFinalization:
+    'ffmpeg_4k_mezzanine_finalization_cpu_2vcpu_4gib_v1',
+} as const
+
+export type PrivateInternalAttemptCostProfileId =
+  (typeof PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS)[keyof typeof PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS]
+
+const commonAttemptIdentityFields = {
+  workspaceId: identity,
+  projectId: identity,
+  editSessionId: identity,
+  approvedPlanSnapshotId: identity,
+  approvedWorkItemId: identity,
+  jobId: identity,
+  executionAttemptId: identity,
+  retryAttempt: safeInteger,
+}
+
+const privateInternalAttemptCostIdentitySchema = z.discriminatedUnion('toolId', [
+  z.object({
+    ...commonAttemptIdentityFields,
+    toolId: z.literal('deepfilternet'),
+    operationId: z.literal('tool.deepfilternet.enhance_voice.v1'),
+  }).strict(),
+  z.object({
+    ...commonAttemptIdentityFields,
+    toolId: z.literal('remotion'),
+    operationId: z.literal('tool.remotion.render_approved_composition.v1'),
+    workloadProfileId: z.literal(
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.remotionFourKSourceSliceChunk,
+    ),
+  }).strict(),
+  z.object({
+    ...commonAttemptIdentityFields,
+    toolId: z.literal('ffmpeg'),
+    operationId: z.literal('tool.ffmpeg.execute_approved_media_recipe.v1'),
+    workloadProfileId: z.literal(
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFourKMezzanineFinalization,
+    ),
+  }).strict(),
+])
+
+const resourceUsageSchema = z.object({
+  wallTimeMilliseconds: positiveSafeInteger,
+  billableMilliseconds: positiveSafeInteger,
+  vcpuCount: z.union([z.literal(2), z.literal(4)]),
+  memoryGib: z.literal(4),
+  gpuCount: z.literal(0),
+  outputByteLength: safeInteger.nullable(),
+  networkEgressMib: z.literal(0),
+}).strict()
+
 export const privateInternalAttemptCostEvidenceSchema = z.object({
   schemaVersion: z.literal('private-internal-attempt-cost-evidence-v1'),
   boundary: z.literal('internal_production_cost_only'),
   evidenceClassification: z.literal('provisional_local_metered'),
   evidenceId: identity,
-  identity: z.object({
-    workspaceId: identity,
-    projectId: identity,
-    editSessionId: identity,
-    approvedPlanSnapshotId: identity,
-    approvedWorkItemId: identity,
-    jobId: identity,
-    executionAttemptId: identity,
-    retryAttempt: safeInteger,
-    toolId: z.literal('deepfilternet'),
-    operationId: z.literal('tool.deepfilternet.enhance_voice.v1'),
-  }).strict(),
+  identity: privateInternalAttemptCostIdentitySchema,
   attemptIdentityHash: sha256,
   attemptInputHash: sha256,
   rateCardVersion: z.literal(TOOL_COST_RATE_CARD_VERSION),
   sourceKind: z.literal('infrastructure_runtime'),
-  resourceUsage: z.object({
-    wallTimeMilliseconds: positiveSafeInteger,
-    billableMilliseconds: positiveSafeInteger,
-    vcpuCount: z.literal(4),
-    memoryGib: z.literal(4),
-    gpuCount: z.literal(0),
-    outputByteLength: safeInteger.nullable(),
-    networkEgressMib: z.literal(0),
-  }).strict(),
+  resourceUsage: resourceUsageSchema,
   breakdownMicros: z.record(z.string(), safeInteger),
   actualInternalCostMicros: safeInteger,
   outcome: z.object({
@@ -79,6 +115,18 @@ export const privateInternalAttemptCostEvidenceSchema = z.object({
   createdAt: timestamp,
   evidenceHash: sha256,
 }).strict().superRefine((value, context) => {
+  const expectedResources = fixedResourceEnvelope(value.identity)
+  if (
+    value.resourceUsage.vcpuCount !== expectedResources.vcpuCount ||
+    value.resourceUsage.memoryGib !== expectedResources.memoryGib ||
+    value.resourceUsage.gpuCount !== expectedResources.gpuCount
+  ) {
+    context.addIssue({
+      code: 'custom',
+      path: ['resourceUsage'],
+      message: 'Attempt-cost resources diverge from the immutable workload profile.',
+    })
+  }
   if (value.outcome.status === 'completed') {
     if (value.outcome.failureCategory !== 'none') {
       context.addIssue({ code: 'custom', path: ['outcome', 'failureCategory'], message: 'Completed attempts cannot have a failure category.' })
@@ -98,7 +146,7 @@ export const privateInternalAttemptCostEvidenceSchema = z.object({
 
 export type PrivateInternalAttemptCostEvidence = z.infer<typeof privateInternalAttemptCostEvidenceSchema>
 
-export interface BeginPrivateInternalAttemptCostEvidenceInput {
+interface CommonBeginPrivateInternalAttemptCostEvidenceInput {
   localStorageRoot: string
   workspaceId: string
   projectId: string
@@ -108,9 +156,27 @@ export interface BeginPrivateInternalAttemptCostEvidenceInput {
   jobId: string
   executionAttemptId: string
   retryAttempt: number
-  toolId: 'deepfilternet'
-  operationId: 'tool.deepfilternet.enhance_voice.v1'
 }
+
+export type BeginPrivateInternalAttemptCostEvidenceInput =
+  CommonBeginPrivateInternalAttemptCostEvidenceInput & (
+    | {
+        toolId: 'deepfilternet'
+        operationId: 'tool.deepfilternet.enhance_voice.v1'
+      }
+    | {
+        toolId: 'remotion'
+        operationId: 'tool.remotion.render_approved_composition.v1'
+        workloadProfileId:
+          typeof PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.remotionFourKSourceSliceChunk
+      }
+    | {
+        toolId: 'ffmpeg'
+        operationId: 'tool.ffmpeg.execute_approved_media_recipe.v1'
+        workloadProfileId:
+          typeof PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFourKMezzanineFinalization
+      }
+  )
 
 export interface FinalizePrivateInternalAttemptCostEvidenceInput {
   status: 'completed' | 'failed'
@@ -119,29 +185,54 @@ export interface FinalizePrivateInternalAttemptCostEvidenceInput {
   linkedCanonicalOutcomeHash: string | null
 }
 
-export interface PrivateInternalAttemptCostEvidenceResult {
-  evidence: PrivateInternalAttemptCostEvidence
-  idempotencyStatus: 'inserted' | 'duplicate_returned'
-}
+export const privateInternalAttemptCostEvidenceResultSchema = z.object({
+  evidence: privateInternalAttemptCostEvidenceSchema,
+  idempotencyStatus: z.enum(['inserted', 'duplicate_returned']),
+}).strict()
+
+export type PrivateInternalAttemptCostEvidenceResult = z.infer<
+  typeof privateInternalAttemptCostEvidenceResultSchema
+>
 
 export interface PrivateInternalAttemptCostClock {
   nowIso(): string
   monotonicNanoseconds(): bigint
 }
 
-const beginInputSchema = z.object({
-  localStorageRoot: z.string().min(1),
-  workspaceId: identity,
-  projectId: identity,
-  editSessionId: identity,
-  approvedPlanSnapshotId: identity,
-  approvedWorkItemId: identity,
-  jobId: identity,
-  executionAttemptId: identity,
-  retryAttempt: safeInteger.max(10),
-  toolId: z.literal('deepfilternet'),
-  operationId: z.literal('tool.deepfilternet.enhance_voice.v1'),
-}).strict()
+const beginInputSchema = z.discriminatedUnion('toolId', [
+  z.object({
+    localStorageRoot: z.string().min(1),
+    ...commonAttemptIdentityFields,
+    toolId: z.literal('deepfilternet'),
+    operationId: z.literal('tool.deepfilternet.enhance_voice.v1'),
+  }).strict(),
+  z.object({
+    localStorageRoot: z.string().min(1),
+    ...commonAttemptIdentityFields,
+    toolId: z.literal('remotion'),
+    operationId: z.literal('tool.remotion.render_approved_composition.v1'),
+    workloadProfileId: z.literal(
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.remotionFourKSourceSliceChunk,
+    ),
+  }).strict(),
+  z.object({
+    localStorageRoot: z.string().min(1),
+    ...commonAttemptIdentityFields,
+    toolId: z.literal('ffmpeg'),
+    operationId: z.literal('tool.ffmpeg.execute_approved_media_recipe.v1'),
+    workloadProfileId: z.literal(
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFourKMezzanineFinalization,
+    ),
+  }).strict(),
+]).superRefine((value, context) => {
+  if (value.retryAttempt > 10) {
+    context.addIssue({
+      code: 'custom',
+      path: ['retryAttempt'],
+      message: 'Attempt-cost retry exceeds the bounded retry policy.',
+    })
+  }
+})
 
 const finalizeInputSchema = z.object({
   status: z.enum(['completed', 'failed']),
@@ -165,7 +256,7 @@ export async function beginPrivateInternalAttemptCostEvidence(
     domain: 'private_internal_attempt_cost_input_v1',
     identity: costIdentity(input),
     rateCardVersion: TOOL_COST_RATE_CARD_VERSION,
-    resourceEnvelope: fixedResourceEnvelope(),
+    resourceEnvelope: fixedResourceEnvelope(input),
   })
   const existing = await readPrivateInternalAttemptCostEvidence({
     localStorageRoot: input.localStorageRoot,
@@ -191,14 +282,13 @@ export async function beginPrivateInternalAttemptCostEvidence(
 
       const finishedAtNanoseconds = clock.monotonicNanoseconds()
       const wallTimeMilliseconds = elapsedMilliseconds(startedAtNanoseconds, finishedAtNanoseconds)
+      const resourceEnvelope = fixedResourceEnvelope(input)
       const calculated = calculateToolActualCostMicros({
         sourceKind: 'infrastructure_runtime',
         runtime: {
           wallTimeMilliseconds,
           renderSeconds: 0,
-          vcpuCount: 4,
-          memoryGib: 4,
-          gpuCount: 0,
+          ...resourceEnvelope,
           tempStorageGibHours: 0,
           outputStorageGibHours: 0,
           networkEgressMib: 0,
@@ -229,7 +319,7 @@ export async function beginPrivateInternalAttemptCostEvidence(
         resourceUsage: {
           wallTimeMilliseconds,
           billableMilliseconds: calculated.data.billableMilliseconds!,
-          ...fixedResourceEnvelope(),
+          ...resourceEnvelope,
           outputByteLength: final.outputByteLength,
           networkEgressMib: 0 as const,
         },
@@ -316,7 +406,7 @@ function attemptIdentity(input: {
 }
 
 function costIdentity(input: BeginPrivateInternalAttemptCostEvidenceInput) {
-  return {
+  const common = {
     workspaceId: input.workspaceId,
     projectId: input.projectId,
     editSessionId: input.editSessionId,
@@ -328,10 +418,54 @@ function costIdentity(input: BeginPrivateInternalAttemptCostEvidenceInput) {
     toolId: input.toolId,
     operationId: input.operationId,
   }
+  return 'workloadProfileId' in input
+    ? { ...common, workloadProfileId: input.workloadProfileId }
+    : common
 }
 
-function fixedResourceEnvelope() {
-  return { vcpuCount: 4 as const, memoryGib: 4 as const, gpuCount: 0 as const }
+function fixedResourceEnvelope(
+  input: Pick<PrivateInternalAttemptCostEvidence['identity'], 'toolId'> &
+    Partial<Pick<Extract<PrivateInternalAttemptCostEvidence['identity'], {
+      toolId: 'remotion' | 'ffmpeg'
+    }>, 'workloadProfileId'>>,
+) {
+  const profileId = resolvePrivateInternalAttemptCostProfileId(input)
+  return profileId === PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.deepFilterNetVoiceCleanup
+    ? { vcpuCount: 4 as const, memoryGib: 4 as const, gpuCount: 0 as const }
+    : { vcpuCount: 2 as const, memoryGib: 4 as const, gpuCount: 0 as const }
+}
+
+export function resolvePrivateInternalAttemptCostProfileId(
+  input: Pick<PrivateInternalAttemptCostEvidence['identity'], 'toolId'> & {
+    workloadProfileId?: unknown
+  },
+): PrivateInternalAttemptCostProfileId {
+  if (input.toolId === 'deepfilternet') {
+    return PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.deepFilterNetVoiceCleanup
+  }
+  if (
+    input.toolId === 'remotion' &&
+    input.workloadProfileId ===
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.remotionFourKSourceSliceChunk
+  ) return input.workloadProfileId
+  if (
+    input.toolId === 'ffmpeg' &&
+    input.workloadProfileId ===
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFourKMezzanineFinalization
+  ) return input.workloadProfileId
+  throw invalid('Internal attempt-cost workload profile is unsupported.')
+}
+
+export function classifyPrivateInternalAttemptCostFailure(
+  error: unknown,
+): ToolCostFailureCategory {
+  if (error instanceof ApiError) {
+    if (error.code === 'VALIDATION_FAILED') return 'validation_error'
+    if (error.status === 408 || /timeout/i.test(error.message)) return 'timeout'
+    return 'reeditpro_error_absorbed'
+  }
+  if (error instanceof Error && /timeout/i.test(error.message)) return 'timeout'
+  return 'unknown'
 }
 
 function assertOutcome(input: FinalizePrivateInternalAttemptCostEvidenceInput): void {

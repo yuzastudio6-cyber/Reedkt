@@ -3,6 +3,9 @@ import { createHash } from 'node:crypto'
 import { ApiError, normalizeUnknownError } from '../errors/api-error'
 import { API_ERROR_CODES, type ApiErrorCode } from '../errors/error-codes'
 import {
+  CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_CAPACITY_PROFILE_ID,
+} from '../../src/types/canonical-private-composition-capacity'
+import {
   readPrivateFileIfExistsWithinRoot,
   writePrivateFileCreateOnlyWithinRoot,
 } from '../security/private-local-persistence'
@@ -11,6 +14,12 @@ import {
   listProvenToolIdentityCatalog,
   type ProvenToolRunnerClass,
 } from '../tool-execution/proven-tool-identity-catalog'
+import {
+  PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS,
+  privateInternalAttemptCostEvidenceResultSchema,
+  resolvePrivateInternalAttemptCostProfileId,
+  type PrivateInternalAttemptCostProfileId,
+} from '../tool-cost-metering/private-internal-attempt-cost-evidence'
 import type { ServiceContext } from '../types'
 import {
   canonicalPrivateJobExecutionAdapterResponseSchema,
@@ -261,16 +270,34 @@ export function createCanonicalPrivateJobExecutionAdapterService(context: Servic
           ? 'canonical_source_trim_validation_runner_v1'
           : 'canonical_authority_validation_runner_v1'
         : resolvedProvenTool!.runtime.runnerClass!
-      const finalCompositionExecution = !internalServerJob &&
-        resolvedProvenTool!.canonicalToolId === 'remotion' &&
+      const ffmpegMezzanineFinalization = !internalServerJob &&
+        resolvedProvenTool!.canonicalToolId === 'ffmpeg' &&
         workItem.workItemType === 'render_final_export' &&
+        workItem.executionInput.operation ===
+          'finalize_approved_4k_mezzanine_chunks' &&
         expectedAsset.assetRole === 'final'
+      const finalCompositionExecution = !internalServerJob &&
+        workItem.workItemType === 'render_final_export' &&
+        expectedAsset.assetRole === 'final' && (
+          resolvedProvenTool!.canonicalToolId === 'remotion' ||
+          ffmpegMezzanineFinalization
+        )
       const compositionChunkExecution = !internalServerJob &&
         resolvedProvenTool!.canonicalToolId === 'remotion' &&
         workItem.workItemType === 'custom' &&
         workItem.executionInput.operation === 'render_approved_4k_composition_chunk' &&
         expectedAsset.assetRole === 'processed' &&
         expectedAsset.artifactType === 'private_4k_composition_chunk_v1'
+      const chunkAuthority = optionalRecord(workItem.executionInput.chunkAuthority)
+      const attemptCostProfileId: PrivateInternalAttemptCostProfileId | null =
+        !internalServerJob && canonicalToolId === 'deepfilternet'
+          ? PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.deepFilterNetVoiceCleanup
+          : compositionChunkExecution && chunkAuthority?.profileId ===
+              CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_CAPACITY_PROFILE_ID
+            ? PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.remotionFourKSourceSliceChunk
+            : ffmpegMezzanineFinalization
+              ? PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFourKMezzanineFinalization
+              : null
       const longFormMergeExecution = finalCompositionExecution &&
         workItem.executionInput.operation === 'merge_approved_4k_composition_chunks'
       const completionRecovery = await createCanonicalPrivateJobCompletionRecoveryService(
@@ -288,6 +315,7 @@ export function createCanonicalPrivateJobExecutionAdapterService(context: Servic
         runnerClass,
         internalServerJob,
         finalCompositionExecution,
+        attemptCostProfileId,
         readiness,
       })
       if (completionRecovery.status === 'blocked') {
@@ -529,6 +557,7 @@ export function createCanonicalPrivateJobExecutionAdapterService(context: Servic
         runnerClass,
         singleUseDispatchConsumed,
         finalCompositionExecution,
+        attemptCostProfileId,
         rawResponse,
         idempotentAdapterReplay: false,
         leaseHeartbeatCount: leaseHeartbeatResult.successfulHeartbeatCount,
@@ -719,11 +748,24 @@ function normalizeResponse(input: {
   runnerClass: string
   singleUseDispatchConsumed: boolean
   finalCompositionExecution: boolean
+  attemptCostProfileId: PrivateInternalAttemptCostProfileId | null
   rawResponse: CoordinatorResponse
   idempotentAdapterReplay: boolean
   leaseHeartbeatCount: number
 }): CanonicalPrivateJobExecutionAdapterResponse {
   const result = input.rawResponse.result
+  const attemptCostEvidenceRecorded = validateAttemptCostResponse({
+    rawAttemptCost: input.rawResponse.attemptCost,
+    expectedProfileId: input.attemptCostProfileId,
+    body: input.body,
+    approvedPlanSnapshotId: input.approvedPlanSnapshotId,
+    approvedWorkItemId: input.approvedWorkItemId,
+    jobId: input.jobId,
+    canonicalToolId: input.canonicalToolId,
+    operationId: input.operationId,
+    rawLease: optionalRecord(input.rawResponse.lease),
+    rawResult: result,
+  })
   const coordinatorTool = optionalRecord(input.rawResponse.tool)
   const coordinatorInputs = optionalRecord(input.rawResponse.inputs)
   const coordinatorPersistence = optionalRecord(input.rawResponse.persistence)
@@ -745,6 +787,9 @@ function normalizeResponse(input: {
       : []),
     ...(Array.isArray(coordinatorInputs?.voiceTracks)
       ? coordinatorInputs.voiceTracks.map((track) => optionalRecord(track)?.voiceByteLength)
+      : []),
+    ...(Array.isArray(coordinatorTool?.chunkInputByteLengths)
+      ? coordinatorTool.chunkInputByteLengths
       : []),
   ].filter((value) => Number.isSafeInteger(value) && Number(value) > 0)
   const sourceByteLengths = [
@@ -810,7 +855,7 @@ function normalizeResponse(input: {
       actualQaPassed: true as const,
       reconciliationPassed: true as const,
       idempotentAdapterReplay: input.idempotentAdapterReplay,
-      attemptCostEvidenceRecorded: Boolean(input.rawResponse.attemptCost),
+      attemptCostEvidenceRecorded,
       dependencyArtifactInput:
         coordinatorTool?.inputKind === 'qa_passed_dependency_artifact' ||
         coordinatorTool?.dependencyArtifactRead === true,
@@ -862,6 +907,73 @@ function normalizeResponse(input: {
     ...responseWithoutHash,
     responseHash: sha256AuthorityValue(responseWithoutHash),
   })
+}
+
+function validateAttemptCostResponse(input: {
+  rawAttemptCost: unknown
+  expectedProfileId: PrivateInternalAttemptCostProfileId | null
+  body: ExecuteCanonicalPrivateJobAdapterBody
+  approvedPlanSnapshotId: string
+  approvedWorkItemId: string
+  jobId: string
+  canonicalToolId: string | null
+  operationId: string
+  rawLease: Record<string, unknown> | undefined
+  rawResult: Record<string, unknown>
+}): boolean {
+  if (input.expectedProfileId === null) {
+    if (input.rawAttemptCost !== undefined) {
+      throw new ApiError(
+        'VALIDATION_FAILED',
+        'Coordinator returned internal-cost evidence for an unmetered workload.',
+        409,
+        { requiredGate: 'canonical_scoped_internal_attempt_cost_authority' },
+      )
+    }
+    return false
+  }
+  const parsed = privateInternalAttemptCostEvidenceResultSchema.safeParse(
+    input.rawAttemptCost,
+  )
+  if (!parsed.success) {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      'Coordinator omitted or invalidated required internal attempt-cost evidence.',
+      409,
+      { requiredGate: 'canonical_scoped_internal_attempt_cost_evidence' },
+    )
+  }
+  const evidence = parsed.data.evidence
+  const executionAttemptId = requireString(
+    input.rawLease?.executionAttemptId,
+    'lease.executionAttemptId',
+  )
+  if (
+    resolvePrivateInternalAttemptCostProfileId(evidence.identity) !==
+      input.expectedProfileId ||
+    evidence.identity.workspaceId !== input.body.workspaceId ||
+    evidence.identity.projectId !== input.body.projectId ||
+    evidence.identity.editSessionId !== input.body.editSessionId ||
+    evidence.identity.approvedPlanSnapshotId !== input.approvedPlanSnapshotId ||
+    evidence.identity.approvedWorkItemId !== input.approvedWorkItemId ||
+    evidence.identity.jobId !== input.jobId ||
+    evidence.identity.executionAttemptId !== executionAttemptId ||
+    evidence.identity.toolId !== input.canonicalToolId ||
+    evidence.identity.operationId !== input.operationId ||
+    evidence.outcome.status !== 'completed' ||
+    evidence.outcome.failureCategory !== 'none' ||
+    evidence.resourceUsage.outputByteLength !==
+      requirePositiveInteger(input.rawResult.byteLength, 'result.byteLength') ||
+    !evidence.linkedCanonicalOutcomeHash
+  ) {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      'Coordinator internal attempt-cost evidence diverged from the canonical job outcome.',
+      409,
+      { requiredGate: 'canonical_scoped_internal_attempt_cost_evidence' },
+    )
+  }
+  return true
 }
 
 function buildAdapterFailure(input: {
@@ -1146,11 +1258,23 @@ function normalizeFinalCompositionDependencyGates(response: CoordinatorResponse)
   const result = response.result
   const permissions = requireRecord(response.permissions, 'permissions')
   const runtime = requireRecord(response.runtime, 'runtime')
-  requireLiteral(result.privateFinalArtifactRecorded, true, 'privateFinalArtifactRecorded')
-  requireLiteral(result.publicDeliveryAuthorized, false, 'publicDeliveryAuthorized')
-  requireLiteral(result.settlementAuthorized, false, 'settlementAuthorized')
-  requireLiteral(permissions.furtherRender, false, 'permissions.furtherRender')
-  requireLiteral(permissions.publicDelivery, false, 'permissions.publicDelivery')
+  if (result.privateFinalArtifactRecorded === undefined) {
+    requireLiteral(
+      result.privateTestDependencySatisfied,
+      true,
+      'privateTestDependencySatisfied',
+    )
+    requireLiteral(result.finalRenderAuthorized, false, 'finalRenderAuthorized')
+    requireLiteral(permissions.render, false, 'permissions.render')
+    requireLiteral(permissions.delivery, false, 'permissions.delivery')
+    requireLiteral(permissions.settlement, false, 'permissions.settlement')
+  } else {
+    requireLiteral(result.privateFinalArtifactRecorded, true, 'privateFinalArtifactRecorded')
+    requireLiteral(result.publicDeliveryAuthorized, false, 'publicDeliveryAuthorized')
+    requireLiteral(result.settlementAuthorized, false, 'settlementAuthorized')
+    requireLiteral(permissions.furtherRender, false, 'permissions.furtherRender')
+    requireLiteral(permissions.publicDelivery, false, 'permissions.publicDelivery')
+  }
   requireLiteral(runtime.productReady, false, 'runtime.productReady')
   requireLiteral(runtime.externalBetaReady, false, 'runtime.externalBetaReady')
   requireLiteral(runtime.productionReady, false, 'runtime.productionReady')

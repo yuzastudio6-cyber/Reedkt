@@ -51,7 +51,7 @@ actual_demuxers=$(mktemp)
 actual_muxers=$(mktemp)
 actual_protocols=$(mktemp)
 actual_bsfs=$(mktemp)
-trap 'rm -f "$actual_encoders" "$actual_decoders" "$actual_filters" "$actual_demuxers" "$actual_muxers" "$actual_protocols" "$actual_bsfs" /tmp/reeditpro-intermediate.nut /tmp/reeditpro-color.mkv /tmp/reeditpro-frame.ppm /tmp/reeditpro-probe.json /tmp/reeditpro-color-probe.json' EXIT HUP INT TERM
+trap 'rm -f "$actual_encoders" "$actual_decoders" "$actual_filters" "$actual_demuxers" "$actual_muxers" "$actual_protocols" "$actual_bsfs" /tmp/reeditpro-intermediate.nut /tmp/reeditpro-color.mkv /tmp/reeditpro-frame.ppm /tmp/reeditpro-probe.json /tmp/reeditpro-color-probe.json /tmp/reeditpro-finalizer-audio.m4a /tmp/reeditpro-finalizer-audio-probe.json' EXIT HUP INT TERM
 
 $FFMPEG -hide_banner -encoders 2>/dev/null \
   | awk 'length($1) == 6 && substr($1, 1, 1) ~ /^[VAS]$/ && $2 != "=" { print $2 }' \
@@ -61,8 +61,10 @@ if ! cmp -s "$EVIDENCE_ROOT/allowed-encoders.txt" "$actual_encoders"; then
   fail 'compiled encoder set differs from the reviewed allowlist'
 fi
 
-if grep -Eq '^(aac|h26[45]|hevc|libx26[45]|libopenh264)$' "$actual_encoders"; then
-  fail 'patent/legal-blocked production encoder is compiled'
+grep -Fx 'aac' "$actual_encoders" >/dev/null \
+  || fail 'fixed private-finalizer AAC encoder is missing'
+if grep -Eq '^(h26[45]|hevc|libx26[45]|libopenh264)$' "$actual_encoders"; then
+  fail 'blocked H.264/HEVC production encoder is compiled'
 fi
 
 $FFMPEG -hide_banner -decoders 2>/dev/null \
@@ -94,11 +96,10 @@ $FFMPEG -hide_banner -muxers 2>/dev/null \
   | LC_ALL=C sort -u > "$actual_muxers"
 if ! cmp -s "$EVIDENCE_ROOT/allowed-muxers.txt" "$actual_muxers"; then
   diff -u "$EVIDENCE_ROOT/allowed-muxers.txt" "$actual_muxers" >&2 || true
-  fail 'compiled muxer set differs from the reviewed intermediate-only allowlist'
+  fail 'compiled muxer set differs from the reviewed bounded allowlist'
 fi
-if grep -Eq '(^|,)(mov|mp4)(,|$)' "$actual_muxers"; then
-  fail 'final-delivery MOV/MP4 muxer is compiled'
-fi
+grep -Eq '(^|,)(mov|mp4)(,|$)' "$actual_muxers" \
+  || fail 'fixed private-finalizer MP4 muxer is missing'
 
 $FFMPEG -hide_banner -protocols 2>/dev/null \
   | awk '/^Input:$/ { section=1; next } /^Output:$/ { section=1; next } section && /^[[:space:]]+[a-z0-9_]+$/ { gsub(/[[:space:]]/, ""); print }' \
@@ -166,4 +167,19 @@ $FFMPEG -hide_banner -loglevel error \
   -c:v wrapped_avframe -c:a pcm_s16le \
   -f null -
 
-printf '%s\n' '{"ok":true,"productReady":false,"finalExportAllowed":false,"h264Encoding":"blocked_not_compiled","runtimeUser":"65532:65532","network":"none","rootFilesystem":"read_only","componentSets":"exact_allowlists_verified","protocols":["file","pipe"],"generalIntermediateVideoEncoder":"ffv1","professionalColorIntermediateVideoEncoder":"libvpx-vp9-lossless","intermediateAudioEncoder":"pcm_s16le"}'
+$FFMPEG -hide_banner -loglevel error \
+  -f lavfi -i 'sine=frequency=997:sample_rate=48000:duration=1' \
+  -map 0:a:0 -c:a aac -b:a 192k -ar 48000 -ac 2 \
+  -f mp4 -movflags +faststart -y /tmp/reeditpro-finalizer-audio.m4a
+$FFPROBE -hide_banner -v error \
+  -show_entries 'format=format_name:stream=codec_name,codec_type,sample_rate,channels' \
+  -of json /tmp/reeditpro-finalizer-audio.m4a \
+  > /tmp/reeditpro-finalizer-audio-probe.json
+grep -F '"codec_name": "aac"' /tmp/reeditpro-finalizer-audio-probe.json >/dev/null \
+  || fail 'private-finalizer AAC encode failed'
+grep -F '"format_name": "mov,mp4,m4a,3gp,3g2,mj2"' /tmp/reeditpro-finalizer-audio-probe.json >/dev/null \
+  || fail 'private-finalizer MP4 mux failed'
+[ -x /usr/local/bin/reeditpro-ffmpeg-source-slice-finalizer ] \
+  || fail 'source-slice finalizer entrypoint is missing'
+
+printf '%s\n' '{"ok":true,"productReady":false,"publicFinalExportAllowed":false,"privateSourceSliceFinalizationAllowed":true,"h264Encoding":"blocked_not_compiled","aacEncoding":"private_source_slice_finalizer_only","mp4Mux":"private_source_slice_finalizer_only","runtimeUser":"65532:65532","network":"none","rootFilesystem":"read_only","componentSets":"exact_allowlists_verified","protocols":["file","pipe"],"generalIntermediateVideoEncoder":"ffv1","professionalColorIntermediateVideoEncoder":"libvpx-vp9-lossless","intermediateAudioEncoder":"pcm_s16le"}'

@@ -12,6 +12,7 @@ import { validateOfflineSharpPlanningPayload } from '../tool-execution/node-runn
 import {
   validateOfflineFfmpegPlanningPayload,
   validateOfflineFfprobePlanningPayload,
+  validateOfflineMediaBinaryMezzanineFinalizationPlanningPayload,
 } from '../tool-execution/media-binary-execution'
 import {
   OFFLINE_PYTHON_STRUCTURED_EXECUTION_PROTOCOL,
@@ -77,7 +78,8 @@ import { sha256AuthorityValue, stableAuthorityStringify } from '../services/priv
 import {
   CANONICAL_PRIVATE_LONG_FORM_CAPACITY_PROFILE_ID,
   CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID,
-  CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_CHUNKS,
+  CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_CAPACITY_PROFILE_ID,
+  CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_MAXIMUM_CHUNKS,
 } from '../../src/types/canonical-private-composition-capacity'
 
 export const CANONICAL_TOOL_PAYLOAD_AUTHORITY_VERSION =
@@ -361,6 +363,41 @@ function validateByRunnerFamily(
     return 'sharp'
   }
   if (toolId === 'ffmpeg') {
+    if (
+      workItem.workItemType === 'render_final_export' &&
+      workItem.workerClass === 'render_worker' &&
+      workItem.executionInput.operation ===
+        'finalize_approved_4k_mezzanine_chunks'
+    ) {
+      const payload =
+        validateOfflineMediaBinaryMezzanineFinalizationPlanningPayload(
+          structuredPayload,
+        )
+      requireBinding(workItem, {
+        source: 1,
+        cleanup: 1,
+        dependencies: payload.chunks.length + 1,
+      })
+      if (
+        payload.capacityProfileId !==
+          CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_CAPACITY_PROFILE_ID ||
+        payload.chunks.length < 2 ||
+        payload.chunks.length >
+          CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_MAXIMUM_CHUNKS ||
+        workItem.dependencyKeys[0] !== 'source-trim-validation' ||
+        workItem.expectedOutputs.length !== 1 ||
+        workItem.expectedOutputs[0]?.assetRole !== 'final' ||
+        workItem.expectedOutputs[0]?.contentType !== 'video/mp4' ||
+        workItem.sourceSequenceItemIds[0] !== payload.sourceSequenceItemId ||
+        workItem.sourceCleanupDecisionIds[0] !==
+          payload.sourceCleanupDecisionId
+      ) throw invalidPayload(
+        'FFmpeg mezzanine finalization lost its exact source, chunk, or final-output authority.',
+        workItem.workItemKey,
+        'canonical_ffmpeg_mezzanine_finalization_authority',
+      )
+      return 'media_ffmpeg'
+    }
     const payload = validateOfflineFfmpegPlanningPayload(structuredPayload)
     requireBinding(workItem, {
       source: 1,
@@ -438,7 +475,9 @@ function validateByRunnerFamily(
           ? chunkAuthority as Record<string, unknown>
           : undefined
         const sourceSliceProfile = chunk?.profileId ===
-          CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID
+          CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID ||
+          chunk?.profileId ===
+            CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_CAPACITY_PROFILE_ID
         const sourceBoundaryProfile = chunk?.profileId ===
           CANONICAL_PRIVATE_LONG_FORM_CAPACITY_PROFILE_ID
         if (
@@ -447,7 +486,7 @@ function validateByRunnerFamily(
           Number(chunk.chunkIndex) < 1 || Number(chunk.chunkIndex) > Number(chunk.chunkCount) ||
           Number(chunk.chunkCount) < 2 ||
           Number(chunk.chunkCount) > (sourceSliceProfile
-            ? CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_CHUNKS
+            ? CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_MAXIMUM_CHUNKS
             : 8) ||
           (sourceSliceProfile && (
             !Number.isSafeInteger(chunk.sourceStartFrame) ||
@@ -599,8 +638,20 @@ function validateArtifactAndNetworkPolicy(
 ): void {
   const record = getToolIdentityRecord(spec.canonicalToolId)
   const allowedContentTypes = record.artifactContract.verifiedOutputContentTypes
+  const exactFfmpegMezzanineFinalization = spec.canonicalToolId === 'ffmpeg' &&
+    workItem.workItemType === 'render_final_export' &&
+    workItem.workerClass === 'render_worker' &&
+    workItem.executionInput.operation ===
+      'finalize_approved_4k_mezzanine_chunks' &&
+    workItem.expectedOutputs.length === 1 &&
+    workItem.expectedOutputs[0]?.assetRole === 'final' &&
+    workItem.expectedOutputs[0]?.contentType === 'video/mp4'
   for (const output of workItem.expectedOutputs) {
-    if (!output.contentType || !allowedContentTypes.includes(output.contentType)) {
+    if (
+      !output.contentType ||
+      (!allowedContentTypes.includes(output.contentType) &&
+        !(exactFfmpegMezzanineFinalization && output.contentType === 'video/mp4'))
+    ) {
       throw invalidPayload(
         'Canonical tool output content type is not covered by exact private artifact evidence.',
         workItem.workItemKey,
@@ -609,9 +660,13 @@ function validateArtifactAndNetworkPolicy(
       )
     }
   }
-  const exactFinalComposition = spec.canonicalToolId === 'remotion' &&
-    workItem.workItemType === 'render_final_export' && workItem.workerClass === 'render_worker' &&
-    workItem.expectedOutputs.every((output) => output.assetRole === 'final' && output.contentType === 'video/mp4')
+  const exactFinalComposition = exactFfmpegMezzanineFinalization || (
+    spec.canonicalToolId === 'remotion' &&
+    workItem.workItemType === 'render_final_export' &&
+    workItem.workerClass === 'render_worker' &&
+    workItem.expectedOutputs.every((output) =>
+      output.assetRole === 'final' && output.contentType === 'video/mp4')
+  )
   const exactPlaywrightCapture = spec.canonicalToolId === 'playwright' &&
     (workItem.executionInput.structuredPayload as Record<string, unknown>)?.capturePolicyConfirmed === true &&
     workItem.expectedOutputs.every((output) => output.assetRole !== 'final' && output.contentType === 'image/png')

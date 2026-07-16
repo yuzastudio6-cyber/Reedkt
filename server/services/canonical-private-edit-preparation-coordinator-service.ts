@@ -6,10 +6,15 @@ import {
   type CanonicalPrivateEditPreparationReceipt,
   type PrepareCanonicalPrivateEditBody,
 } from '../validation/canonical-private-edit-preparation-schemas'
+import type {
+  CanonicalPrivateWorkGraphRunResponse,
+} from '../validation/canonical-private-work-graph-run-schemas'
 import { createCanonicalEditExecutionPackageService } from './canonical-edit-execution-package-service'
 import { createCanonicalPrivateReviewAssemblyService } from './canonical-private-review-assembly-service'
 import { createCanonicalPrivateWorkGraphOrchestratorService } from './canonical-private-work-graph-orchestrator-service'
 import { sha256AuthorityValue } from './private-edit-authority-store'
+
+const MAXIMUM_APPROVED_WORK_GRAPH_ATTEMPTS = 10
 
 export type CanonicalPrivateEditPreparationCoordinatorResult = {
   receipt: CanonicalPrivateEditPreparationReceipt
@@ -94,14 +99,28 @@ export function createCanonicalPrivateEditPreparationCoordinatorService(
         snapshotHash: body.expectedSnapshotHash,
         requestIdempotencyKey: input.idempotencyKey,
       })
-      const workGraphRun = existingCompletion
-        ? undefined
-        : await workGraphService.run({
+      let workGraphRun: CanonicalPrivateWorkGraphRunResponse | undefined
+      if (!existingCompletion) {
+        for (
+          let runNumber = 1;
+          runNumber <= MAXIMUM_APPROVED_WORK_GRAPH_ATTEMPTS;
+          runNumber += 1
+        ) {
+          workGraphRun = await workGraphService.run({
             workspaceId: body.workspaceId,
             packageRecordId: input.packageRecordId,
             purpose: 'run_canonical_private_work_graph',
-            idempotencyKey: `canonical-private-edit:${operationKey}:graph`,
+            idempotencyKey: workGraphRunIdempotencyKey(operationKey, runNumber),
           })
+          if (
+            workGraphRun.summary.allRequiredJobsCompleted ||
+            !workGraphRun.jobs.some((job) =>
+              job.status === 'failed_retry_available' &&
+              job.retryDisposition === 'retry_same_approved_operation' &&
+              (job.remainingAttempts ?? 0) > 0)
+          ) break
+        }
+      }
 
       if (workGraphRun && !workGraphRun.summary.allRequiredJobsCompleted) {
         const blockedJobCount = workGraphRun.summary.capabilityBlockedJobCount +
@@ -323,4 +342,10 @@ async function optionalIncomplete<T>(operation: () => Promise<T>): Promise<T | u
     ) return undefined
     throw error
   }
+}
+
+function workGraphRunIdempotencyKey(operationKey: string, runNumber: number): string {
+  return runNumber === 1
+    ? `canonical-private-edit:${operationKey}:graph`
+    : `canonical-private-edit:${operationKey}:graph:approved-retry-${runNumber - 1}`
 }

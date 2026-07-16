@@ -48,6 +48,9 @@ export function normalizeCanonicalPrivateFinalMediaQa(
     videoCodecName: video?.codecName,
     pixelFormat: video?.pixelFormat,
     colorSpace: video?.colorSpace,
+    colorTransfer: video?.colorTransfer,
+    colorPrimaries: video?.colorPrimaries,
+    colorRange: video?.colorRange,
     width: video?.width,
     height: video?.height,
     fps: video?.fps,
@@ -62,7 +65,9 @@ export function normalizeCanonicalPrivateFinalMediaQa(
   }
   if (
     report.videoCodecName !== 'h264' || report.pixelFormat !== 'yuv420p' ||
-    report.colorSpace !== 'bt709' || report.width !== expected.width || report.height !== expected.height ||
+    report.colorSpace !== 'bt709' || report.colorTransfer !== 'bt709' ||
+    report.colorPrimaries !== 'bt709' || report.colorRange !== 'tv' ||
+    report.width !== expected.width || report.height !== expected.height ||
     report.fps !== expected.fps || report.frameCount !== expected.durationFrames ||
     report.audioCodecName !== 'aac' || report.audioSampleRate !== 48_000 ||
     !Number.isSafeInteger(report.audioChannels) || Number(report.audioChannels) < 1 ||
@@ -88,7 +93,7 @@ export function normalizeCanonicalPrivateFinalMediaQa(
     durationDriftFrames,
     finalQaGatesPassed: true as const,
   }
-  return { ...normalized, reportSha256: sha256AuthorityValue(normalized) }
+  return { ...normalized, reportSha256: sha256AuthorityValue(report) }
 }
 
 function finalQaDenied(

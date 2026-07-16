@@ -4,6 +4,14 @@ import { REEDITPRO_SOURCE_MEDIA_MAX_BYTES } from '../../src/types/large-media'
 import {
   OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_OUTPUT_BYTES,
 } from '../tool-execution/media-binary-execution/offline-media-binary-types'
+import {
+  OFFLINE_MEDIA_BINARY_MEZZANINE_FINALIZATION_MAXIMUM_CHUNK_BYTES,
+  OFFLINE_MEDIA_BINARY_MEZZANINE_FINALIZATION_MAXIMUM_OUTPUT_BYTES,
+} from '../tool-execution/media-binary-execution/offline-media-binary-mezzanine-finalization-protocol'
+import {
+  PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS,
+  privateInternalAttemptCostEvidenceResultSchema,
+} from '../tool-cost-metering/private-internal-attempt-cost-evidence'
 import { canonicalPrivateToolDispatchCredentialSchema } from './canonical-private-tool-dispatch-schemas'
 import { canonicalWorkerLeaseCredentialSchema } from './canonical-worker-lease-authority-schemas'
 
@@ -64,7 +72,41 @@ const mediaInputAuthoritySchema = z.discriminatedUnion('inputKind', [
     referenceInputArtifactByteLength: z.number().int().positive().max(16 * 1024 * 1024),
     referenceInputReadEvidenceHash: sha,
   }).strict(),
-])
+  toolCommon.extend({
+    inputKind: z.literal('approved_source_and_chunk_dependencies'),
+    sourceObjectRead: z.literal(true),
+    dependencyArtifactRead: z.literal(true),
+    dependencyInputMode: z.literal('server_injected_private_stream_v1'),
+    dependencyArtifactStreamed: z.literal(true),
+    sourceSequenceItemId: identity,
+    sourceBindingHash: sha,
+    ...streamedSourceEvidence,
+    sourceTrimDependencyArtifactId: identity,
+    sourceTrimDependencyJobId: identity,
+    sourceTrimDependencyReadEvidenceHash: sha,
+    chunkInputCount: z.number().int().min(2).max(16),
+    chunkInputArtifactIds: z.array(identity).min(2).max(16),
+    chunkInputDependencyJobIds: z.array(identity).min(2).max(16),
+    chunkInputSha256s: z.array(sha).min(2).max(16),
+    chunkInputByteLengths: z.array(z.number().int().min(1_024)
+      .max(OFFLINE_MEDIA_BINARY_MEZZANINE_FINALIZATION_MAXIMUM_CHUNK_BYTES))
+      .min(2).max(16),
+    chunkDependencyReadEvidenceHash: sha,
+  }).strict(),
+]).superRefine((value, context) => {
+  if (
+    value.inputKind === 'approved_source_and_chunk_dependencies' && (
+      value.chunkInputArtifactIds.length !== value.chunkInputCount ||
+      value.chunkInputDependencyJobIds.length !== value.chunkInputCount ||
+      value.chunkInputSha256s.length !== value.chunkInputCount ||
+      value.chunkInputByteLengths.length !== value.chunkInputCount
+    )
+  ) context.addIssue({
+    code: z.ZodIssueCode.custom,
+    path: ['chunkInputCount'],
+    message: 'Mezzanine chunk evidence arrays must match the exact chunk count.',
+  })
+})
 
 const finalArtifactQaSchema = z.object({
   independentFfprobeExecuted: z.literal(true), binaryVersion: z.literal('8.1.2'),
@@ -117,10 +159,16 @@ export const canonicalPrivateMediaBinaryResponseSchema = z.object({
   }).strict(),
   result: z.object({
     artifactId: identity, qaEvaluationId: identity, reconciliationId: identity,
-    contentType: z.enum(['application/json', 'video/x-nut', 'video/x-matroska', 'audio/wav']),
+    contentType: z.enum([
+      'application/json', 'video/x-nut', 'video/x-matroska', 'audio/wav',
+      'video/mp4',
+    ]),
     sha256: sha,
     byteLength: z.number().int().positive()
-      .max(OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_OUTPUT_BYTES),
+      .max(Math.max(
+        OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_OUTPUT_BYTES,
+        OFFLINE_MEDIA_BINARY_MEZZANINE_FINALIZATION_MAXIMUM_OUTPUT_BYTES,
+      )),
     outputMode: z.enum(['bounded_buffer_v1', 'server_committed_private_stream_v1']),
     privateObjectIdentityHash: sha,
     qaOutcome: z.literal('passed'),
@@ -128,10 +176,12 @@ export const canonicalPrivateMediaBinaryResponseSchema = z.object({
     privateTestDependencySatisfied: z.literal(true),
     finalRenderAuthorized: z.literal(false),
   }).strict(),
+  attemptCost: privateInternalAttemptCostEvidenceResultSchema.optional(),
   replay: z.object({
     dispatchConsumptionReplayed: z.boolean(), executionFenceBeginReplayed: z.boolean(),
     executionFenceCompleteReplayed: z.boolean(), artifactRecordReplayed: z.boolean(),
     qaRecordReplayed: z.boolean(), reconciliationReplayed: z.boolean(),
+    attemptCostEvidenceReplayed: z.boolean().optional(),
   }).strict(),
   permissions: z.object({
     furtherWorkerDispatch: z.literal(false), providerCall: z.literal(false),
@@ -149,7 +199,35 @@ export const canonicalPrivateMediaBinaryResponseSchema = z.object({
   completedAt: timestamp,
   responseHash: sha,
   testOnly: z.literal(true),
-}).strict()
+}).strict().superRefine((value, context) => {
+  const costRequired = value.tool.inputKind ===
+    'approved_source_and_chunk_dependencies'
+  const cost = value.attemptCost?.evidence
+  if (
+    costRequired !== Boolean(cost) ||
+    costRequired !== (value.replay.attemptCostEvidenceReplayed !== undefined) ||
+    (cost && (
+      cost.identity.toolId !== 'ffmpeg' ||
+      cost.identity.workloadProfileId !==
+        PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFourKMezzanineFinalization ||
+      cost.identity.workspaceId !== value.identity.workspaceId ||
+      cost.identity.projectId !== value.identity.projectId ||
+      cost.identity.editSessionId !== value.identity.editSessionId ||
+      cost.identity.approvedPlanSnapshotId !== value.identity.snapshotId ||
+      cost.identity.approvedWorkItemId !== value.identity.approvedWorkItemId ||
+      cost.identity.jobId !== value.identity.jobId ||
+      cost.identity.executionAttemptId !== value.lease.executionAttemptId ||
+      cost.resourceUsage.outputByteLength !== value.result.byteLength ||
+      cost.outcome.status !== 'completed' ||
+      cost.outcome.failureCategory !== 'none' ||
+      !cost.linkedCanonicalOutcomeHash
+    ))
+  ) context.addIssue({
+    code: z.ZodIssueCode.custom,
+    path: ['attemptCost'],
+    message: 'Media finalization internal-cost evidence is missing or inconsistent.',
+  })
+})
 
 export type RunCanonicalPrivateMediaBinaryInput = z.infer<typeof runCanonicalPrivateMediaBinarySchema>
 export type CanonicalPrivateMediaBinaryAuthority = z.infer<typeof canonicalPrivateMediaBinaryAuthoritySchema>

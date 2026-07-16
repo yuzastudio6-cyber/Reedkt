@@ -9,7 +9,11 @@ import {
   getProvenEndToEndToolIdentity,
   listProvenToolIdentityCatalog,
 } from '../tool-execution/proven-tool-identity-catalog'
-import { readPrivateInternalAttemptCostEvidence } from '../tool-cost-metering/private-internal-attempt-cost-evidence'
+import {
+  readPrivateInternalAttemptCostEvidence,
+  resolvePrivateInternalAttemptCostProfileId,
+  type PrivateInternalAttemptCostProfileId,
+} from '../tool-cost-metering/private-internal-attempt-cost-evidence'
 import type { ServiceContext } from '../types'
 import {
   canonicalPrivateJobCompletionRecoveryRecordSchema,
@@ -46,6 +50,7 @@ export interface RecoverCanonicalPrivateJobCompletionInput {
   runnerClass: string
   internalServerJob: boolean
   finalCompositionExecution: boolean
+  attemptCostProfileId: PrivateInternalAttemptCostProfileId | null
   readiness: CanonicalExecutionReadinessEnvelope
 }
 
@@ -419,7 +424,7 @@ function assertAttemptCostEvidence(
   lease: CanonicalPrivateJobCompletionRecoveryLeaseEvidence,
   artifact: NonNullable<Awaited<ReturnType<typeof readPrivateArtifactQaAggregate>>>['artifacts'][number],
 ): void {
-  if (input.canonicalToolId !== 'deepfilternet') {
+  if (input.attemptCostProfileId === null) {
     if (attemptCost) {
       throw new ApiError('VALIDATION_FAILED', 'Unexpected internal-cost evidence is bound to this completed job.', 409)
     }
@@ -435,6 +440,9 @@ function assertAttemptCostEvidence(
     attemptCost.identity.jobId !== input.jobId ||
     attemptCost.identity.executionAttemptId !== lease.executionFence.executionAttemptId ||
     attemptCost.identity.retryAttempt !== Math.max(0, lease.attemptNumber - 1) ||
+    resolvePrivateInternalAttemptCostProfileId(attemptCost.identity) !==
+      input.attemptCostProfileId ||
+    attemptCost.identity.toolId !== input.canonicalToolId ||
     attemptCost.identity.operationId !== input.operationId ||
     attemptCost.outcome.status !== 'completed' ||
     attemptCost.outcome.failureCategory !== 'none' ||
@@ -443,7 +451,7 @@ function assertAttemptCostEvidence(
   ) {
     throw new ApiError(
       'JOB_DEPENDENCY_NOT_READY',
-      'Completed DeepFilterNet execution lacks exact internal-cost recovery evidence.',
+      'Completed metered execution lacks exact internal-cost recovery evidence.',
       409,
       { requiredGate: 'canonical_completed_execution_internal_cost_evidence' },
     )
@@ -535,7 +543,7 @@ function assertRecoveryInput(input: RecoverCanonicalPrivateJobCompletionInput): 
       provenTool?.operationId === input.operationId &&
       provenTool?.runtime.runnerClass === input.runnerClass
   const finalCompositionExecution =
-    input.canonicalToolId === 'remotion' &&
+    (input.canonicalToolId === 'remotion' || input.canonicalToolId === 'ffmpeg') &&
     input.readiness.job.jobType === 'render_final_export' &&
     expectedAsset?.assetRole === 'final'
   if (

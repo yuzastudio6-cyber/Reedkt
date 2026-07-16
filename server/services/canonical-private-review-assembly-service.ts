@@ -2,10 +2,21 @@ import { createHash } from 'node:crypto'
 
 import { ApiError } from '../errors/api-error'
 import {
+  CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_CAPACITY_PROFILE_ID,
+} from '../../src/types/canonical-private-composition-capacity'
+import {
   readPrivateFileIfExistsWithinRoot,
   writePrivateFileCreateOnlyWithinRoot,
 } from '../security/private-local-persistence'
 import { validateOfflineRemotionFinalCompositionPlanningPayload } from '../tool-execution/remotion-render-execution'
+import { validateOfflineMediaBinaryMezzanineFinalizationPlanningPayload } from '../tool-execution/media-binary-execution'
+import {
+  PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS,
+  readPrivateInternalAttemptCostEvidence,
+  resolvePrivateInternalAttemptCostProfileId,
+  type PrivateInternalAttemptCostProfileId,
+} from '../tool-cost-metering/private-internal-attempt-cost-evidence'
+import { TOOL_COST_RATE_CARD_VERSION } from '../tool-cost-metering/rate-card'
 import type { ServiceContext } from '../types'
 import {
   assembleCanonicalPrivateReviewSchema,
@@ -22,7 +33,7 @@ import { createCanonicalEditExecutionPackageService } from './canonical-edit-exe
 import {
   normalizeCanonicalPrivateFinalMediaQa,
 } from './canonical-private-final-media-qa'
-import { verifyCanonicalPrivateRemotionArtifact } from './canonical-private-remotion-artifact-verifier'
+import { verifyCanonicalPrivateFinalCompositionArtifact } from './canonical-private-final-artifact-verifier'
 import { readCanonicalStructuredJsonArtifact } from './canonical-structured-json-artifact-storage'
 import { verifyCanonicalStructuredJsonArtifact } from './canonical-structured-json-artifact-verifier'
 import { createEditPlanningAuthorityService } from './edit-planning-authority-service'
@@ -175,6 +186,120 @@ export function createCanonicalPrivateReviewAssemblyService(context: ServiceCont
             }
           }
 
+          const completedScopedAttemptCosts = []
+          const failedScopedAttemptCosts = []
+          let requiredAttemptCostProfileCount = 0
+          for (const workItem of requiredWorkItems) {
+            const expectedProfileId = expectedAttemptCostProfileId(workItem)
+            if (!expectedProfileId) continue
+            requiredAttemptCostProfileCount += 1
+            const job = jobsByWorkItemId.get(workItem.id)
+            const selection = requiredSelections.find((candidate) =>
+              candidate.artifact.lineage.approvedWorkItemId === workItem.id)
+            if (!job || !selection) {
+              throw blocked('Metered private-review work is missing its exact job or artifact selection.')
+            }
+            const attemptLeases = leaseAggregate.leases.filter((candidate) =>
+              candidate.jobId === job.id &&
+              ['completed', 'failed'].includes(candidate.executionFence.state),
+            ).sort((left, right) => left.attemptNumber - right.attemptNumber)
+            if (attemptLeases.length < 1) {
+              throw blocked('Metered private-review work has no terminal execution attempt.')
+            }
+            let completedAttemptCount = 0
+            for (const lease of attemptLeases) {
+              const executionAttemptId = lease.executionFence.executionAttemptId
+              if (!executionAttemptId) {
+                throw blocked('Metered terminal execution lost its attempt identity.')
+              }
+              const evidence = await readPrivateInternalAttemptCostEvidence({
+                localStorageRoot: context.env.localStorageRoot,
+                workspaceId: access.workspaceId,
+                projectId: executionPackage.projectId,
+                executionAttemptId,
+              })
+              const commonEvidenceInvalid =
+                !evidence ||
+                resolvePrivateInternalAttemptCostProfileId(evidence.identity) !==
+                  expectedProfileId ||
+                evidence.identity.workspaceId !== access.workspaceId ||
+                evidence.identity.projectId !== executionPackage.projectId ||
+                evidence.identity.editSessionId !== executionPackage.editSessionId ||
+                evidence.identity.approvedPlanSnapshotId !==
+                  executionPackage.approvedPlanSnapshotId ||
+                evidence.identity.approvedWorkItemId !== workItem.id ||
+                evidence.identity.jobId !== job.id ||
+                evidence.identity.executionAttemptId !== executionAttemptId ||
+                evidence.identity.retryAttempt !== Math.max(0, lease.attemptNumber - 1) ||
+                workItem.approvedToolIds.length !== 1 ||
+                evidence.identity.toolId !== workItem.approvedToolIds[0] ||
+                !stringArray(workItem.executionInput.approvedToolOperationIds).includes(
+                  evidence.identity.operationId,
+                ) ||
+                evidence.rateCardVersion !== TOOL_COST_RATE_CARD_VERSION ||
+                !Number.isSafeInteger(evidence.actualInternalCostMicros) ||
+                evidence.actualInternalCostMicros <= 0
+              if (commonEvidenceInvalid || !evidence) {
+                throw blocked(
+                  'Metered private-review work lacks exact scoped internal-cost evidence.',
+                )
+              }
+              if (lease.executionFence.state === 'completed') {
+                completedAttemptCount += 1
+                if (
+                  executionAttemptId !==
+                    selection.artifact.actualRunEvidence.executionAttemptId ||
+                  evidence.outcome.status !== 'completed' ||
+                  evidence.outcome.failureCategory !== 'none' ||
+                  evidence.resourceUsage.outputByteLength !==
+                    selection.artifact.content.byteLength ||
+                  !evidence.linkedCanonicalOutcomeHash
+                ) throw blocked(
+                  'Completed private-review work lacks its exact successful attempt cost.',
+                )
+                completedScopedAttemptCosts.push(evidence)
+              } else {
+                if (
+                  evidence.outcome.status !== 'failed' ||
+                  evidence.outcome.failureCategory === 'none' ||
+                  evidence.linkedCanonicalOutcomeHash !== null
+                ) throw blocked(
+                  'Failed private-review work lacks its absorbed attempt cost.',
+                )
+                failedScopedAttemptCosts.push(evidence)
+              }
+            }
+            if (completedAttemptCount !== 1) {
+              throw blocked('Metered private-review work must have one exact completed attempt.')
+            }
+          }
+          const scopedAttemptCosts = [
+            ...completedScopedAttemptCosts,
+            ...failedScopedAttemptCosts,
+          ]
+          const internalAttemptCostEvidence = {
+            boundary: 'internal_production_cost_only' as const,
+            evidenceClassification: 'provisional_local_metered' as const,
+            rateCardVersion: TOOL_COST_RATE_CARD_VERSION,
+            requiredProfileCount: requiredAttemptCostProfileCount,
+            verifiedCompletedEvidenceCount: completedScopedAttemptCosts.length,
+            failedAttemptEvidenceCount: failedScopedAttemptCosts.length,
+            verifiedAttemptEvidenceCount: scopedAttemptCosts.length,
+            evidenceHashes: scopedAttemptCosts.map((evidence) => evidence.evidenceHash),
+            provisionalInternalCostMicros: scopedAttemptCosts.reduce(
+              (total, evidence) => total + evidence.actualInternalCostMicros,
+              0,
+            ),
+            customerPriceIncluded: false as const,
+            customerCreditsIncluded: false as const,
+            serviceFeeIncluded: false as const,
+            walletMutationAuthorized: false as const,
+            settlementAuthorized: false as const,
+            privateLocalCreateOnly: true as const,
+            databaseBacked: false as const,
+            invoiceReconciled: false as const,
+          }
+
           const finalWorkItems = requiredWorkItems.filter((workItem) =>
             workItem.workItemType === 'render_final_export')
           const finalQaWorkItems = requiredWorkItems.filter((workItem) =>
@@ -186,8 +311,15 @@ export function createCanonicalPrivateReviewAssemblyService(context: ServiceCont
           const finalQaWorkItem = finalQaWorkItems[0]!
           const finalJob = jobsByWorkItemId.get(finalWorkItem.id)!
           const finalQaJob = jobsByWorkItemId.get(finalQaWorkItem.id)!
+          const finalToolId = finalWorkItem.approvedToolIds[0]
+          const supportedFinalExecution =
+            finalToolId === 'remotion' || (
+              finalToolId === 'ffmpeg' &&
+              finalWorkItem.executionInput.operation ===
+                'finalize_approved_4k_mezzanine_chunks'
+            )
           if (
-            finalWorkItem.approvedToolIds.length !== 1 || finalWorkItem.approvedToolIds[0] !== 'remotion' ||
+            finalWorkItem.approvedToolIds.length !== 1 || !supportedFinalExecution ||
             finalQaWorkItem.approvedToolIds.length !== 1 || finalQaWorkItem.approvedToolIds[0] !== 'ffprobe' ||
             finalQaJob.dependencyJobIds.length !== 1 || finalQaJob.dependencyJobIds[0] !== finalJob.id
           ) throw blocked('Final artifact and final-QA dependency lineage is not exact.')
@@ -212,7 +344,7 @@ export function createCanonicalPrivateReviewAssemblyService(context: ServiceCont
             jobId: finalQaJob.id,
             expectedAssetId: finalQaExpected[0]!.id,
           })
-          const verifiedFinal = await verifyCanonicalPrivateRemotionArtifact({
+          const verifiedFinal = await verifyCanonicalPrivateFinalCompositionArtifact({
             localStorageRoot: context.env.localStorageRoot,
             artifact: finalSelection.artifact,
           })
@@ -225,9 +357,13 @@ export function createCanonicalPrivateReviewAssemblyService(context: ServiceCont
             privateObjectIdentityHash: verifiedFinalQa.privateObjectIdentityHash,
           })
           if (!storedFinalQa) throw blocked('Private final-QA report bytes are unavailable.')
-          const finalExpectation = validateOfflineRemotionFinalCompositionPlanningPayload(
-            finalWorkItem.executionInput.structuredPayload,
-          )
+          const finalExpectation = finalToolId === 'ffmpeg'
+            ? validateOfflineMediaBinaryMezzanineFinalizationPlanningPayload(
+                finalWorkItem.executionInput.structuredPayload,
+              )
+            : validateOfflineRemotionFinalCompositionPlanningPayload(
+                finalWorkItem.executionInput.structuredPayload,
+              )
           const normalizedFinalQa = normalizeCanonicalPrivateFinalMediaQa(
             storedFinalQa.document,
             finalExpectation,
@@ -235,7 +371,8 @@ export function createCanonicalPrivateReviewAssemblyService(context: ServiceCont
 
           const finalLease = leaseAggregate.leases.find((lease) =>
             lease.jobId === finalJob.id && lease.executionFence.state === 'completed' &&
-            lease.executionFence.executionAttemptId === verifiedFinal.executionAttemptId)
+            lease.executionFence.executionAttemptId === verifiedFinal.executionAttemptId &&
+            lease.executionFence.runnerClass === verifiedFinal.runnerClass)
           const finalQaLease = leaseAggregate.leases.find((lease) =>
             lease.jobId === finalQaJob.id && lease.executionFence.state === 'completed' &&
             lease.executionFence.executionAttemptId === finalQaSelection.artifact.actualRunEvidence.executionAttemptId &&
@@ -280,6 +417,7 @@ export function createCanonicalPrivateReviewAssemblyService(context: ServiceCont
             finalArtifact,
             finalQaArtifact,
             finalQaReportSha256: normalizedFinalQa.reportSha256,
+            internalAttemptCostEvidence,
             chain,
             assembledAt,
             privateInternalOnly: true as const,
@@ -326,6 +464,7 @@ export function createCanonicalPrivateReviewAssemblyService(context: ServiceCont
               finalQaGatesPassed: true as const,
               finalQaReportSha256: normalizedFinalQa.reportSha256,
             },
+            internalAttemptCostEvidence,
             chain,
             manifest: {
               schemaVersion: 'canonical-private-review-manifest-v1' as const,
@@ -403,6 +542,45 @@ function responseArtifact(
     byteLength: selection.artifact.content.byteLength,
     privateObjectIdentityHash: selection.artifact.storageIdentity.opaqueObjectIdentityHash,
   }
+}
+
+function expectedAttemptCostProfileId(workItem: {
+  approvedToolIds: readonly string[]
+  workItemType: string
+  executionInput: Record<string, unknown>
+}): PrivateInternalAttemptCostProfileId | null {
+  if (
+    workItem.approvedToolIds.length === 1 &&
+    workItem.approvedToolIds[0] === 'deepfilternet'
+  ) return PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.deepFilterNetVoiceCleanup
+  const chunkAuthority = optionalRecord(workItem.executionInput.chunkAuthority)
+  if (
+    workItem.approvedToolIds.length === 1 &&
+    workItem.approvedToolIds[0] === 'remotion' &&
+    workItem.workItemType === 'custom' &&
+    workItem.executionInput.operation === 'render_approved_4k_composition_chunk' &&
+    chunkAuthority?.profileId ===
+      CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_CAPACITY_PROFILE_ID
+  ) return PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.remotionFourKSourceSliceChunk
+  if (
+    workItem.approvedToolIds.length === 1 &&
+    workItem.approvedToolIds[0] === 'ffmpeg' &&
+    workItem.workItemType === 'render_final_export' &&
+    workItem.executionInput.operation === 'finalize_approved_4k_mezzanine_chunks'
+  ) return PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFourKMezzanineFinalization
+  return null
+}
+
+function optionalRecord(value: unknown): Record<string, unknown> | undefined {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : undefined
+}
+
+function stringArray(value: unknown): string[] {
+  return Array.isArray(value) && value.every((entry) => typeof entry === 'string')
+    ? value
+    : []
 }
 
 function deniedPermissions() {

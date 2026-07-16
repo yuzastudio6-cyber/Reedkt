@@ -2,6 +2,11 @@
 
 Status: `verified_local_private_bounded_source_slice_v2`
 
+Historical profile note: V2 remains the source-slice planning and recovery
+evidence baseline. The additive V3 compatibility-preflight, H.264 stream-copy,
+single-source-audio finalization, terminal-review, and attempt-cost proof is in
+`docs/canonical-source-slice-mezzanine-finalization-verification-2026-07-16.md`.
+
 ## Outcome
 
 ReEditPro now has a second, additive private long-form capacity profile for one

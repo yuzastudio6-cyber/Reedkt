@@ -1,4 +1,8 @@
 import { z } from 'zod'
+import {
+  OFFLINE_MEDIA_BINARY_MEZZANINE_FINALIZATION_MAXIMUM_OUTPUT_BYTES,
+} from '../tool-execution/media-binary-execution'
+import { TOOL_COST_RATE_CARD_VERSION } from '../tool-cost-metering/rate-card'
 
 const identity = z.string().trim().min(1).max(200)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/)
@@ -20,7 +24,8 @@ const artifactAuthority = z.object({
   reconciliationId: identity,
   contentType: z.string().trim().min(1).max(160),
   sha256: sha,
-  byteLength: z.number().int().positive().max(32 * 1024 * 1024),
+  byteLength: z.number().int().positive()
+    .max(OFFLINE_MEDIA_BINARY_MEZZANINE_FINALIZATION_MAXIMUM_OUTPUT_BYTES),
   privateObjectIdentityHash: sha,
 }).strict()
 
@@ -58,6 +63,26 @@ export const canonicalPrivateReviewAssemblyResponseSchema = z.object({
     finalQaGatesPassed: z.literal(true),
     finalQaReportSha256: sha,
   }).strict(),
+  internalAttemptCostEvidence: z.object({
+    boundary: z.literal('internal_production_cost_only'),
+    evidenceClassification: z.literal('provisional_local_metered'),
+    rateCardVersion: z.literal(TOOL_COST_RATE_CARD_VERSION),
+    requiredProfileCount: z.number().int().nonnegative().max(256),
+    verifiedCompletedEvidenceCount: z.number().int().nonnegative().max(256),
+    failedAttemptEvidenceCount: z.number().int().nonnegative().max(2560),
+    verifiedAttemptEvidenceCount: z.number().int().nonnegative().max(2816),
+    evidenceHashes: z.array(sha).max(2816),
+    provisionalInternalCostMicros: z.number().int().nonnegative()
+      .refine(Number.isSafeInteger),
+    customerPriceIncluded: z.literal(false),
+    customerCreditsIncluded: z.literal(false),
+    serviceFeeIncluded: z.literal(false),
+    walletMutationAuthorized: z.literal(false),
+    settlementAuthorized: z.literal(false),
+    privateLocalCreateOnly: z.literal(true),
+    databaseBacked: z.literal(false),
+    invoiceReconciled: z.literal(false),
+  }).strict().optional(),
   chain: z.object({
     finalQaLeaseId: identity,
     finalQaExecutionAttemptId: identity,
@@ -103,7 +128,24 @@ export const canonicalPrivateReviewAssemblyResponseSchema = z.object({
   assembledAt: z.string().datetime({ offset: true }),
   responseHash: sha,
   testOnly: z.literal(true),
-}).strict()
+}).strict().superRefine((value, context) => {
+  const cost = value.internalAttemptCostEvidence
+  if (!cost) return
+  if (
+    cost.requiredProfileCount !== cost.verifiedCompletedEvidenceCount ||
+    cost.verifiedAttemptEvidenceCount !==
+      cost.verifiedCompletedEvidenceCount + cost.failedAttemptEvidenceCount ||
+    cost.verifiedAttemptEvidenceCount !== cost.evidenceHashes.length ||
+    new Set(cost.evidenceHashes).size !== cost.evidenceHashes.length ||
+    (cost.verifiedAttemptEvidenceCount === 0
+      ? cost.provisionalInternalCostMicros !== 0
+      : cost.provisionalInternalCostMicros <= 0)
+  ) context.addIssue({
+    code: z.ZodIssueCode.custom,
+    path: ['internalAttemptCostEvidence'],
+    message: 'Private-review internal-cost coverage is inconsistent.',
+  })
+})
 
 export type AssembleCanonicalPrivateReviewBody = z.infer<typeof assembleCanonicalPrivateReviewSchema>
 export type CanonicalPrivateReviewAssemblyResponse = z.infer<

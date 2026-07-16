@@ -28,6 +28,7 @@
 --enable-protocol=pipe
 --enable-indev=lavfi
 --enable-demuxer=aac
+--enable-demuxer=concat
 --enable-demuxer=flac
 --enable-demuxer=h264
 --enable-demuxer=hevc
@@ -43,6 +44,7 @@
 --enable-muxer=framemd5
 --enable-muxer=image2
 --enable-muxer=matroska
+--enable-muxer=mp4
 --enable-muxer=null
 --enable-muxer=nut
 --enable-muxer=rawvideo
@@ -88,6 +90,7 @@
 --enable-decoder=vp9
 --enable-decoder=wrapped_avframe
 --enable-encoder=ffv1
+--enable-encoder=aac
 --enable-encoder=flac
 --enable-encoder=libvpx_vp9
 --enable-encoder=pcm_f32be

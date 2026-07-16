@@ -10,12 +10,19 @@ import {
   CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID,
   CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_CHUNKS,
   CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_FRAMES,
+  CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_CAPACITY_PROFILE_ID,
+  CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_MAXIMUM_CHUNKS,
+  CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_MAXIMUM_FRAMES,
 } from '../../src/types/canonical-private-composition-capacity'
 import { REEDITPRO_SOURCE_MEDIA_MAX_BYTES } from '../../src/types/large-media'
 import {
   OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_AUDIO_OUTPUT_BYTES,
   OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_OUTPUT_BYTES,
 } from '../tool-execution/media-binary-execution/offline-media-binary-types'
+import {
+  PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS,
+  privateInternalAttemptCostEvidenceResultSchema,
+} from '../tool-cost-metering/private-internal-attempt-cost-evidence'
 import { canonicalPrivateToolDispatchCredentialSchema } from './canonical-private-tool-dispatch-schemas'
 import { canonicalWorkerLeaseCredentialSchema } from './canonical-worker-lease-authority-schemas'
 
@@ -524,12 +531,34 @@ export const canonicalPrivateCompositionChunkAuthoritySchema = z.discriminatedUn
       sourceStartFrame: z.number().int().nonnegative(),
       sourceEndFrameExclusive: z.number().int().positive(),
     }).strict(),
+    canonicalPrivateCompositionChunkAuthorityBase.extend({
+      profileId: z.literal(
+        CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_CAPACITY_PROFILE_ID,
+      ),
+      chunkIndex: z.number().int().min(1)
+        .max(CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_MAXIMUM_CHUNKS),
+      chunkCount: z.number().int().min(2)
+        .max(CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_MAXIMUM_CHUNKS),
+      globalStartFrame: z.number().int().nonnegative()
+        .max(CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_MAXIMUM_FRAMES - 1),
+      globalEndFrameExclusive: z.number().int().positive()
+        .max(CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_MAXIMUM_FRAMES),
+      durationFrames: z.number().int()
+        .min(CANONICAL_PRIVATE_COMPOSITION_MINIMUM_FRAMES)
+        .max(CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES),
+      sourceSliceKey: identity,
+      sourceStartFrame: z.number().int().nonnegative(),
+      sourceEndFrameExclusive: z.number().int().positive(),
+    }).strict(),
   ],
 ).superRefine((value, context) => {
   if (
     value.globalEndFrameExclusive - value.globalStartFrame !== value.durationFrames ||
     value.chunkIndex > value.chunkCount ||
-    (value.profileId === CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID && (
+    ((value.profileId ===
+      CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID ||
+      value.profileId ===
+        CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_CAPACITY_PROFILE_ID) && (
       value.sourceEndFrameExclusive - value.sourceStartFrame !== value.durationFrames ||
       value.sourceSliceKey !==
         `source-slice-${value.chunkIndex}-of-${value.chunkCount}`
@@ -638,10 +667,12 @@ export const canonicalPrivateCompositionChunkResponseSchema = z.object({
     liveRuntimeDependencySatisfied: z.literal(false),
     finalRenderAuthorized: z.literal(false),
   }).strict(),
+  attemptCost: privateInternalAttemptCostEvidenceResultSchema.optional(),
   replay: z.object({
     dispatchConsumptionReplayed: z.boolean(), executionFenceBeginReplayed: z.boolean(),
     executionFenceCompleteReplayed: z.boolean(), artifactRecordReplayed: z.boolean(),
-    qaRecordReplayed: z.boolean(), reconciliationReplayed: z.boolean(), sameIdempotentAttemptOnly: z.literal(true),
+    qaRecordReplayed: z.boolean(), reconciliationReplayed: z.boolean(),
+    attemptCostEvidenceReplayed: z.boolean().optional(), sameIdempotentAttemptOnly: z.literal(true),
   }).strict(),
   permissions: z.object({
     furtherWorkerDispatch: z.literal(false), providerCall: z.literal(false), sourceObjectRead: z.literal(false),
@@ -657,15 +688,36 @@ export const canonicalPrivateCompositionChunkResponseSchema = z.object({
   responseHash: sha,
   testOnly: z.literal(true),
 }).strict().superRefine((value, context) => {
+  const costRequired = value.chunkAuthority.profileId ===
+    CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_CAPACITY_PROFILE_ID
+  const cost = value.attemptCost?.evidence
   if (
     value.chunkAuthority.globalEndFrameExclusive - value.chunkAuthority.globalStartFrame !==
       value.chunkAuthority.durationFrames ||
-    value.chunkAuthority.chunkIndex > value.chunkAuthority.chunkCount
+    value.chunkAuthority.chunkIndex > value.chunkAuthority.chunkCount ||
+    costRequired !== Boolean(cost) ||
+    costRequired !== (value.replay.attemptCostEvidenceReplayed !== undefined) ||
+    (cost && (
+      cost.identity.toolId !== 'remotion' ||
+      cost.identity.workloadProfileId !==
+        PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.remotionFourKSourceSliceChunk ||
+      cost.identity.workspaceId !== value.identity.workspaceId ||
+      cost.identity.projectId !== value.identity.projectId ||
+      cost.identity.editSessionId !== value.identity.editSessionId ||
+      cost.identity.approvedPlanSnapshotId !== value.identity.snapshotId ||
+      cost.identity.approvedWorkItemId !== value.identity.approvedWorkItemId ||
+      cost.identity.jobId !== value.identity.jobId ||
+      cost.identity.executionAttemptId !== value.lease.executionAttemptId ||
+      cost.resourceUsage.outputByteLength !== value.result.byteLength ||
+      cost.outcome.status !== 'completed' ||
+      cost.outcome.failureCategory !== 'none' ||
+      !cost.linkedCanonicalOutcomeHash
+    ))
   ) {
     context.addIssue({
       code: z.ZodIssueCode.custom,
       path: ['chunkAuthority'],
-      message: 'Composition chunk authority is not duration preserving.',
+      message: 'Composition chunk authority or scoped internal-cost evidence is invalid.',
     })
   }
 })

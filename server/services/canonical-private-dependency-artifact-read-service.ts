@@ -17,6 +17,7 @@ import {
   readCanonicalPrivateAudioArtifact,
 } from './canonical-private-audio-artifact-storage'
 import { verifyCanonicalPrivateRemotionArtifact } from './canonical-private-remotion-artifact-verifier'
+import { verifyCanonicalPrivateFinalCompositionArtifact } from './canonical-private-final-artifact-verifier'
 import { CANONICAL_PRIVATE_REMOTION_STREAMING_MAXIMUM_BYTES } from './canonical-private-remotion-artifact-storage'
 import { readCanonicalPrivateRemotionArtifact } from './canonical-private-remotion-artifact-storage'
 import { verifyCanonicalPrivateMediaArtifact } from './canonical-private-media-artifact-verifier'
@@ -107,7 +108,7 @@ export function createCanonicalPrivateDependencyArtifactReadService(context: Ser
             artifact: authority.artifact,
           })
         : contentType === 'video/mp4'
-          ? await verifyCanonicalPrivateRemotionArtifact({
+          ? await verifyCanonicalPrivateMp4DependencyArtifact({
               localStorageRoot: context.env.localStorageRoot,
               artifact: authority.artifact,
             })
@@ -219,7 +220,7 @@ export function createCanonicalPrivateDependencyArtifactReadService(context: Ser
         throw invalid('Streaming dependency reads are restricted to exact private media or audio artifacts.')
       }
       const verified = contentType === 'video/mp4'
-        ? await verifyCanonicalPrivateRemotionArtifact({
+        ? await verifyCanonicalPrivateMp4DependencyArtifact({
             localStorageRoot: context.env.localStorageRoot,
             artifact: authority.artifact,
           })
@@ -378,6 +379,14 @@ async function readInternalAuthorityArtifact(input: {
     sha256: createHash('sha256').update(bytes).digest('hex'),
     byteLength: bytes.byteLength,
   }
+}
+
+async function verifyCanonicalPrivateMp4DependencyArtifact(
+  input: Parameters<typeof verifyCanonicalPrivateRemotionArtifact>[0],
+) {
+  return input.artifact.lineage.assetRole === 'final'
+    ? verifyCanonicalPrivateFinalCompositionArtifact(input)
+    : verifyCanonicalPrivateRemotionArtifact(input)
 }
 
 function assertPrivateRuntime(context: ServiceContext): void {

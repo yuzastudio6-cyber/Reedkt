@@ -43,6 +43,7 @@ import { verifyCanonicalPrivateMediaArtifact } from './canonical-private-media-a
 import { verifyCanonicalPrivateRemotionArtifact } from './canonical-private-remotion-artifact-verifier'
 import { verifyCanonicalPrivateImageArtifact } from './canonical-private-image-artifact-verifier'
 import { verifyCanonicalPrivateAudioArtifact } from './canonical-private-audio-artifact-verifier'
+import { verifyCanonicalPrivateFinalCompositionArtifact } from './canonical-private-final-artifact-verifier'
 import { createPrivateArtifactQaAuthorityService } from './private-artifact-qa-authority-service'
 import {
   MAX_CANONICAL_WORKER_LEASE_AUDIT_EVENTS,
@@ -1045,6 +1046,12 @@ async function verifySelectedDependencyArtifacts(input: {
                 ['offline_python_structured_execution_v1', 'offline_native_audio_processing_execution_v1', 'offline_deepfilternet_voice_cleanup_execution_v1', 'offline_media_binary_execution_v1'].includes(authority.artifact.actualRunEvidence.runnerClass) &&
                 authority.artifact.content.contentType === 'audio/wav'
               ? await verifyCanonicalPrivateAudioArtifact({
+                  localStorageRoot: input.context.env.localStorageRoot,
+                  artifact: authority.artifact,
+                })
+            : authority.artifact.lineage.assetRole === 'final' &&
+                authority.artifact.content.contentType === 'video/mp4'
+              ? await verifyCanonicalPrivateFinalCompositionArtifact({
                   localStorageRoot: input.context.env.localStorageRoot,
                   artifact: authority.artifact,
                 })

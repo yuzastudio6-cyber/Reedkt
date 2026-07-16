@@ -7,6 +7,7 @@ import { ApiError } from '../errors/api-error'
 import { resolveProfessionalExportFrame } from '../../src/lib/professional-export-policy'
 import {
   CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID,
+  CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_CAPACITY_PROFILE_ID,
 } from '../../src/types/canonical-private-composition-capacity'
 import {
   OFFLINE_MEDIA_BINARY_OPERATIONS,
@@ -27,6 +28,11 @@ import {
   type OfflineRemotionServerInjectedInput,
   type OfflineRemotionStreamingRenderResult,
 } from '../tool-execution/remotion-render-execution'
+import {
+  PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS,
+  beginPrivateInternalAttemptCostEvidence,
+  classifyPrivateInternalAttemptCostFailure,
+} from '../tool-cost-metering/private-internal-attempt-cost-evidence'
 import type { ServiceContext } from '../types'
 import {
   canonicalPrivateFinalCompositionAuthoritySchema,
@@ -161,7 +167,9 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
           )
         : undefined
       const sourceSliceChunkProfile = chunkAuthority?.profileId ===
-        CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID
+        CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID ||
+        chunkAuthority?.profileId ===
+          CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_CAPACITY_PROFILE_ID
       const exportCoverage = authority.components.confirmedSettings.professionalExportCoverage
       const exactFourKFrame = resolveProfessionalExportFrame(
         exportCoverage.approvedAspectRatio,
@@ -337,6 +345,27 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
         runnerClass: RUNNER_CLASS,
       })
       const executionAttemptId = begun.executionFence.executionAttemptId
+      const attemptCostMeter = mode === 'chunk' && chunkAuthority?.profileId ===
+        CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_CAPACITY_PROFILE_ID
+        ? await beginPrivateInternalAttemptCostEvidence({
+            localStorageRoot: context.env.localStorageRoot,
+            workspaceId: body.workspaceId,
+            projectId: body.projectId,
+            editSessionId: body.editSessionId,
+            approvedPlanSnapshotId: authority.snapshot.snapshotId,
+            approvedWorkItemId: workItem.id,
+            jobId: body.jobId,
+            executionAttemptId,
+            retryAttempt: Math.max(0, begun.lease.attemptNumber - 1),
+            toolId: 'remotion',
+            operationId: OFFLINE_REMOTION_RENDER_OPERATION,
+            workloadProfileId:
+              PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.remotionFourKSourceSliceChunk,
+          })
+        : undefined
+      let canonicalLifecycleCompleted = false
+      let attemptOutputByteLength: number | null = null
+      try {
       const sourceReadInput = {
         workspaceId: body.workspaceId, projectId: body.projectId,
         editSessionId: body.editSessionId,
@@ -612,6 +641,7 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
           },
         })
         assertFinalResult(result, request)
+        attemptOutputByteLength = result.artifact.byteLength
       } finally {
         await stagedSourceSet.cleanup()
       }
@@ -719,6 +749,52 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
         authority.snapshot.snapshotId,
         access.workspaceId,
       )) !== beforeHash) throw denied('Canonical authority changed during final composition execution.')
+
+      const attemptCost = attemptCostMeter
+        ? await (async () => {
+            const canonicalOutcomeHash = sha256AuthorityValue({
+              domain: 'canonical_private_4k_source_slice_chunk_outcome_v1',
+              identity: {
+                workspaceId: body.workspaceId,
+                projectId: body.projectId,
+                editSessionId: body.editSessionId,
+                approvedPlanSnapshotId: authority.snapshot.snapshotId,
+                approvedWorkItemId: workItem.id,
+                jobId: body.jobId,
+                expectedAssetId: expectedAsset.id,
+                executionAttemptId,
+              },
+              chunkAuthority,
+              tool: {
+                canonicalToolId: 'remotion',
+                operationId: OFFLINE_REMOTION_RENDER_OPERATION,
+              },
+              runtime: {
+                runtimeAuthorityHash: runtimeAuthority.authorityHash,
+                imageIdentityHash: runtime.image.imageIdentityHash,
+                executionAttestationHash: result.attestation.attestationHash,
+                requestEnvelopeSha256: result.evidence.requestEnvelopeSha256,
+              },
+              result: {
+                artifactId: artifactResult.artifact.artifactId,
+                qaEvaluationId: qaResult.qaEvaluation.qaEvaluationId,
+                reconciliationId: reconciliation.reconciliation.reconciliationId,
+                sha256: artifactResult.artifact.content.sha256,
+                byteLength: artifactResult.artifact.content.byteLength,
+                privateObjectIdentityHash:
+                  artifactResult.artifact.storageIdentity.opaqueObjectIdentityHash,
+                finalQaReportSha256: qa.reportSha256,
+              },
+            })
+            canonicalLifecycleCompleted = true
+            return attemptCostMeter.finalize({
+              status: 'completed',
+              failureCategory: 'none',
+              outputByteLength: result.artifact.byteLength,
+              linkedCanonicalOutcomeHash: canonicalOutcomeHash,
+            })
+          })()
+        : undefined
 
       const captionInputs = captionTrackProfile
         ? {
@@ -934,6 +1010,7 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
               liveRuntimeDependencySatisfied: false as const,
               finalRenderAuthorized: false as const,
             },
+        ...(attemptCost ? { attemptCost } : {}),
         replay: {
           dispatchConsumptionReplayed: dispatch.consumptionReplayed,
           executionFenceBeginReplayed: begun.replayed,
@@ -941,6 +1018,12 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
           artifactRecordReplayed: artifactResult.replayed,
           qaRecordReplayed: qaResult.replayed,
           reconciliationReplayed: reconciliation.replayed,
+          ...(attemptCost
+            ? {
+                attemptCostEvidenceReplayed:
+                  attemptCost.idempotencyStatus === 'duplicate_returned',
+              }
+            : {}),
           sameIdempotentAttemptOnly: true as const,
         },
         permissions: {
@@ -966,6 +1049,17 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
       return mode === 'final'
         ? canonicalPrivateFinalCompositionResponseSchema.parse(responseWithHash)
         : canonicalPrivateCompositionChunkResponseSchema.parse(responseWithHash)
+      } catch (error) {
+        if (attemptCostMeter && !canonicalLifecycleCompleted) {
+          await attemptCostMeter.finalize({
+            status: 'failed',
+            failureCategory: classifyPrivateInternalAttemptCostFailure(error),
+            outputByteLength: attemptOutputByteLength,
+            linkedCanonicalOutcomeHash: null,
+          })
+        }
+        throw error
+      }
   }
   return {
     async execute(

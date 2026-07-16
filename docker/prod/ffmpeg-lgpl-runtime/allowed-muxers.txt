@@ -2,6 +2,8 @@ framecrc
 framemd5
 image2
 matroska
+mov
+mp4
 null
 nut
 rawvideo

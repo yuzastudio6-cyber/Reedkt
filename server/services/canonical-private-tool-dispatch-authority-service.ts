@@ -12,7 +12,10 @@ import {
 } from '../tool-execution/core-registry-operations/core-registry-operation-specs'
 import type { ProfessionalToolOperationSpec } from '../tool-execution/professional-tool-operation-spec-types'
 import { readPersistedOfflineNodeStructuredRuntimeAuthority } from '../tool-execution/node-runner-execution/offline-node-structured-execution-service'
-import { readPersistedOfflineMediaBinaryRuntimeAuthority } from '../tool-execution/media-binary-execution'
+import {
+  readPersistedOfflineMediaBinaryRuntimeAuthority,
+  validateOfflineMediaBinaryMezzanineFinalizationPlanningPayload,
+} from '../tool-execution/media-binary-execution'
 import { readPersistedOfflinePythonStructuredRuntimeAuthority } from '../tool-execution/python-runner-execution/offline-python-structured-execution-service'
 import { readPersistedOfflineRemotionRenderRuntimeAuthority } from '../tool-execution/remotion-render-execution/offline-remotion-render-execution-service'
 import { readPersistedOfflineLibassRuntimeAuthority } from '../tool-execution/libass-caption-execution/offline-libass-caption-service'
@@ -83,6 +86,8 @@ import {
   CANONICAL_PRIVATE_LONG_FORM_CAPACITY_PROFILE_ID,
   CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID,
   CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_CHUNKS,
+  CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_CAPACITY_PROFILE_ID,
+  CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_MAXIMUM_CHUNKS,
 } from '../../src/types/canonical-private-composition-capacity'
 
 export const CANONICAL_PRIVATE_TOOL_DISPATCH_TTL_SECONDS = 45 as const
@@ -741,7 +746,9 @@ function resolveAndVerifyCanonicalDispatchBinding(input: {
     | Record<string, unknown>
     | undefined
   const sourceSliceChunkProfile = compositionChunkAuthority?.profileId ===
-    CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID
+    CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID ||
+    compositionChunkAuthority?.profileId ===
+      CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_CAPACITY_PROFILE_ID
   const sourceBoundaryChunkProfile = compositionChunkAuthority?.profileId ===
     CANONICAL_PRIVATE_LONG_FORM_CAPACITY_PROFILE_ID
   const exactPrivateRemotionCompositionChunk =
@@ -758,7 +765,7 @@ function resolveAndVerifyCanonicalDispatchBinding(input: {
     Number(compositionChunkAuthority?.chunkIndex) <= Number(compositionChunkAuthority?.chunkCount) &&
     Number(compositionChunkAuthority?.chunkCount) >= 2 &&
     Number(compositionChunkAuthority?.chunkCount) <= (sourceSliceChunkProfile
-      ? CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_CHUNKS
+      ? CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_MAXIMUM_CHUNKS
       : 8) &&
     (!sourceSliceChunkProfile || (
       Number.isSafeInteger(compositionChunkAuthority?.sourceStartFrame) &&
@@ -835,10 +842,42 @@ function resolveAndVerifyCanonicalDispatchBinding(input: {
     workItem.sourceSequenceItemIds.length >= 1 &&
     workItem.sourceSequenceItemIds.length <= 8 &&
     workItem.sourceCleanupDecisionIds.length === workItem.sourceSequenceItemIds.length
+  let exactPrivateFfmpegMezzanineFinalization = false
+  if (
+    workItem.workerClass === 'render_worker' &&
+    workItem.workItemType === 'render_final_export' &&
+    workItem.executionInput.operation ===
+      'finalize_approved_4k_mezzanine_chunks' &&
+    expectedAsset.assetRole === 'final' &&
+    expectedAsset.contentType === 'video/mp4' &&
+    workItem.approvedToolIds.length === 1 &&
+    workItem.approvedToolIds[0] === 'ffmpeg' &&
+    body.operationId === 'tool.ffmpeg.execute_approved_media_recipe.v1'
+  ) {
+    const finalizerPayload =
+      validateOfflineMediaBinaryMezzanineFinalizationPlanningPayload(
+        workItem.executionInput.structuredPayload,
+      )
+    exactPrivateFfmpegMezzanineFinalization =
+      finalizerPayload.capacityProfileId ===
+        CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_CAPACITY_PROFILE_ID &&
+      finalizerPayload.chunks.length >= 2 &&
+      finalizerPayload.chunks.length <=
+        CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_MAXIMUM_CHUNKS &&
+      workItem.dependencyKeys.length === finalizerPayload.chunks.length + 1 &&
+      workItem.dependencyKeys[0] === 'source-trim-validation' &&
+      workItem.sourceSequenceItemIds.length === 1 &&
+      workItem.sourceSequenceItemIds[0] ===
+        finalizerPayload.sourceSequenceItemId &&
+      workItem.sourceCleanupDecisionIds.length === 1 &&
+      workItem.sourceCleanupDecisionIds[0] ===
+        finalizerPayload.sourceCleanupDecisionId
+  }
   if (
     !exactPrivateRemotionPreview && !exactPrivateLibassCaptionOverlay &&
     !exactPrivateRemotionCompositionChunk && !exactPrivateRemotionLongFormMerge &&
-    !exactPrivateRemotionFinalComposition && (
+    !exactPrivateRemotionFinalComposition &&
+    !exactPrivateFfmpegMezzanineFinalization && (
       workItem.workerClass === 'render_worker' ||
       ['render_remotion_preview', 'render_final_export'].includes(workItem.workItemType) ||
       ['preview', 'final'].includes(expectedAsset.assetRole)
@@ -1478,9 +1517,14 @@ function buildConsumptionResponse(
         record.binding.canonicalToolId === 'libass' &&
         record.binding.operationId === 'tool.libass.render_approved_caption_track.v1',
       privateFinalCompositionAuthorized:
-        record.binding.canonicalToolId === 'remotion' &&
-        record.binding.operationId === 'tool.remotion.render_approved_composition.v1' &&
-        record.binding.expectedOutput.assetRole === 'final',
+        record.binding.expectedOutput.assetRole === 'final' && (
+          (record.binding.canonicalToolId === 'remotion' &&
+            record.binding.operationId ===
+              'tool.remotion.render_approved_composition.v1') ||
+          (record.binding.canonicalToolId === 'ffmpeg' &&
+            record.binding.operationId ===
+              'tool.ffmpeg.execute_approved_media_recipe.v1')
+        ),
       privateCompositionChunkAuthorized:
         record.binding.canonicalToolId === 'remotion' &&
         record.binding.operationId === 'tool.remotion.render_approved_composition.v1' &&

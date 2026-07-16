@@ -5,7 +5,9 @@ import { join } from 'node:path'
 
 import { ApiError } from '../errors/api-error'
 import {
+  PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS,
   beginPrivateInternalAttemptCostEvidence,
+  privateInternalAttemptCostEvidenceSchema,
   readPrivateInternalAttemptCostEvidence,
   type PrivateInternalAttemptCostClock,
 } from '../tool-cost-metering/private-internal-attempt-cost-evidence'
@@ -105,6 +107,81 @@ try {
   assert.notEqual(failed.evidence.evidenceHash, inserted.evidence.evidenceHash)
   assertNoCommercialKeys(failed.evidence)
 
+  const remotionInput = {
+    ...common,
+    approvedWorkItemId: 'work-item-remotion-chunk-cost-proof',
+    jobId: 'job-remotion-chunk-cost-proof',
+    executionAttemptId: 'attempt-cost-remotion-chunk-proof',
+    toolId: 'remotion' as const,
+    operationId: 'tool.remotion.render_approved_composition.v1' as const,
+    workloadProfileId:
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.remotionFourKSourceSliceChunk,
+  }
+  const remotionMeter = await beginPrivateInternalAttemptCostEvidence(
+    remotionInput,
+    clock([20_000_000_000n, 24_250_000_000n], ['2026-07-11T12:03:00.000Z']),
+  )
+  const remotion = await remotionMeter.finalize({
+    status: 'completed',
+    failureCategory: 'none',
+    outputByteLength: 24_000_000,
+    linkedCanonicalOutcomeHash: 'b'.repeat(64),
+  })
+  assert.equal(remotion.evidence.identity.toolId, 'remotion')
+  assert.equal(remotion.evidence.identity.workloadProfileId,
+    PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.remotionFourKSourceSliceChunk)
+  assert.equal(remotion.evidence.resourceUsage.vcpuCount, 2)
+  assert.equal(remotion.evidence.resourceUsage.memoryGib, 4)
+  assert.equal(remotion.evidence.resourceUsage.gpuCount, 0)
+  assertNoCommercialKeys(remotion.evidence)
+  assert.equal(privateInternalAttemptCostEvidenceSchema.safeParse({
+    ...remotion.evidence,
+    resourceUsage: { ...remotion.evidence.resourceUsage, vcpuCount: 4 },
+  }).success, false)
+  assert.equal(privateInternalAttemptCostEvidenceSchema.safeParse({
+    ...remotion.evidence,
+    customerCredits: 1,
+  }).success, false)
+  await expectCode(() => beginPrivateInternalAttemptCostEvidence({
+    ...remotionInput,
+    workloadProfileId: undefined,
+  } as never), 'VALIDATION_FAILED')
+
+  const ffmpegInput = {
+    ...common,
+    approvedWorkItemId: 'work-item-ffmpeg-finalizer-cost-proof',
+    jobId: 'job-ffmpeg-finalizer-cost-proof',
+    executionAttemptId: 'attempt-cost-ffmpeg-finalizer-proof',
+    toolId: 'ffmpeg' as const,
+    operationId: 'tool.ffmpeg.execute_approved_media_recipe.v1' as const,
+    workloadProfileId:
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFourKMezzanineFinalization,
+  }
+  const ffmpegMeter = await beginPrivateInternalAttemptCostEvidence(
+    ffmpegInput,
+    clock([30_000_000_000n, 32_750_000_000n], ['2026-07-11T12:04:00.000Z']),
+  )
+  const ffmpeg = await ffmpegMeter.finalize({
+    status: 'completed',
+    failureCategory: 'none',
+    outputByteLength: 32_000_000,
+    linkedCanonicalOutcomeHash: 'c'.repeat(64),
+  })
+  assert.equal(ffmpeg.evidence.identity.toolId, 'ffmpeg')
+  assert.equal(ffmpeg.evidence.identity.workloadProfileId,
+    PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFourKMezzanineFinalization)
+  assert.equal(ffmpeg.evidence.resourceUsage.vcpuCount, 2)
+  assert.equal(ffmpeg.evidence.resourceUsage.memoryGib, 4)
+  assert.equal(ffmpeg.evidence.resourceUsage.gpuCount, 0)
+  assertNoCommercialKeys(ffmpeg.evidence)
+
+  await expectCode(() => beginPrivateInternalAttemptCostEvidence({
+    ...ffmpegInput,
+    jobId: remotionInput.jobId,
+    approvedWorkItemId: remotionInput.approvedWorkItemId,
+    executionAttemptId: remotionInput.executionAttemptId,
+  }), 'IDEMPOTENCY_CONFLICT')
+
   await expectCode(async () => {
     const conflict = await beginPrivateInternalAttemptCostEvidence(failedInput)
     await conflict.finalize({
@@ -121,6 +198,8 @@ try {
     rateCardVersion: inserted.evidence.rateCardVersion,
     successfulAttemptCostMicros: inserted.evidence.actualInternalCostMicros,
     failedAttemptCostMicros: failed.evidence.actualInternalCostMicros,
+    remotionChunkAttemptCostMicros: remotion.evidence.actualInternalCostMicros,
+    ffmpegFinalizationAttemptCostMicros: ffmpeg.evidence.actualInternalCostMicros,
     replayHash: replay.evidence.evidenceHash,
     checks: [
       'attempt_level_internal_cost_only',
@@ -130,6 +209,10 @@ try {
       'conflicting_replay_fails_closed',
       'retry_attempt_has_distinct_cost_record',
       'executed_failure_retains_internal_cost',
+      'remotion_4k_chunk_profile_is_2vcpu_4gib_cpu_only',
+      'ffmpeg_4k_finalization_profile_is_2vcpu_4gib_cpu_only',
+      'cross_profile_attempt_identity_conflict_fails_closed',
+      'resource_profile_and_commercial_field_mutations_fail_schema_validation',
       'commercial_pricing_credit_and_wallet_fields_absent',
     ],
   }))

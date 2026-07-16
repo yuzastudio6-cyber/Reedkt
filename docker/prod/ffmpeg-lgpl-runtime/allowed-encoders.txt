@@ -1,3 +1,4 @@
+aac
 ffv1
 flac
 libvpx-vp9

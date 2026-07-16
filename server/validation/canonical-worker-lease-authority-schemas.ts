@@ -1,10 +1,10 @@
 import { z } from 'zod'
 
 export const CANONICAL_PRIVATE_LOCAL_WORKER_IDENTITY = 'private-local-canonical-worker-v1' as const
-export const CANONICAL_WORKER_LEASE_RECORD_VERSION = 'canonical-worker-lease-record-v2' as const
-export const CANONICAL_WORKER_LEASE_AGGREGATE_VERSION = 'canonical-worker-lease-aggregate-v1' as const
-export const CANONICAL_WORKER_LEASE_RESPONSE_VERSION = 'canonical-worker-lease-response-v2' as const
-export const CANONICAL_WORKER_LEASE_VERIFICATION_VERSION = 'canonical-worker-lease-verification-v2' as const
+export const CANONICAL_WORKER_LEASE_RECORD_VERSION = 'canonical-worker-lease-record-v3' as const
+export const CANONICAL_WORKER_LEASE_AGGREGATE_VERSION = 'canonical-worker-lease-aggregate-v2' as const
+export const CANONICAL_WORKER_LEASE_RESPONSE_VERSION = 'canonical-worker-lease-response-v3' as const
+export const CANONICAL_WORKER_LEASE_VERIFICATION_VERSION = 'canonical-worker-lease-verification-v3' as const
 
 const safeIdentitySchema = z.string()
   .min(1)
@@ -37,6 +37,9 @@ export const canonicalWorkerLeaseHashesSchema = z.object({
   approvedSourceAssetManifestHash: sha256Schema,
   approvedAssetManifestHash: sha256Schema,
   executionPackageHash: sha256Schema,
+  toolExecutionAuthorityHash: sha256Schema,
+  resourcePlacementAuthorityHash: sha256Schema,
+  resourcePlacementHash: sha256Schema,
   jobAuthorityHash: sha256Schema,
 }).strict()
 

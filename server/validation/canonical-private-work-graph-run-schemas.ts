@@ -26,9 +26,11 @@ const observedWorkerConcurrencyEvidence = z.object({
 }).strict()
 
 const resourceSchedulingEvidence = z.object({
-  schedulerVersion: z.literal('canonical-private-resource-wave-scheduler-v1'),
+  schedulerVersion: z.literal('canonical-private-resource-wave-scheduler-v2'),
   placementPolicyVersion: z.literal('canonical-private-resource-placement-policy-v1'),
   placementManifestHash: sha256,
+  toolExecutionAuthorityHash: sha256,
+  approvedResourcePlacementAuthorityHash: sha256,
   provenToolPlacementCatalogHash: sha256,
   configuredGlobalMaxConcurrency: z.literal(4),
   configuredWorkerConcurrencyLimits: workerConcurrencyEvidence,
@@ -50,7 +52,7 @@ const resourceSchedulingEvidence = z.object({
   physicalWorkerProcessConcurrencyProven: z.literal(false),
   cloudWorkerConcurrencyProven: z.literal(false),
   performanceSlaProven: z.literal(false),
-  immutableSnapshotPlacementBindingProven: z.literal(false),
+  immutableSnapshotPlacementBindingProven: z.literal(true),
 }).strict().superRefine((evidence, context) => {
   if (
     evidence.parallelWaveCount > evidence.waveCount ||
@@ -160,7 +162,7 @@ const jobOutcome = z.object({
 })
 
 export const canonicalPrivateWorkGraphRunResponseSchema = z.object({
-  schemaVersion: z.literal('canonical-private-work-graph-run-response-v1'),
+  schemaVersion: z.literal('canonical-private-work-graph-run-response-v2'),
   source: z.literal('canonical_private_work_graph_orchestrator'),
   purpose: z.literal('run_canonical_private_work_graph'),
   identity: z.object({

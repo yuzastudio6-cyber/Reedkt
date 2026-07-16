@@ -3,11 +3,11 @@ import { z } from 'zod'
 import { canonicalWorkerLeaseCredentialSchema, canonicalWorkerLeaseHashesSchema } from './canonical-worker-lease-authority-schemas'
 
 export const CANONICAL_PRIVATE_TOOL_DISPATCH_RECORD_VERSION =
-  'canonical-private-tool-dispatch-record-v1' as const
+  'canonical-private-tool-dispatch-record-v2' as const
 export const CANONICAL_PRIVATE_TOOL_DISPATCH_AGGREGATE_VERSION =
-  'canonical-private-tool-dispatch-aggregate-v1' as const
+  'canonical-private-tool-dispatch-aggregate-v2' as const
 export const CANONICAL_PRIVATE_TOOL_DISPATCH_RESPONSE_VERSION =
-  'canonical-private-tool-dispatch-response-v1' as const
+  'canonical-private-tool-dispatch-response-v2' as const
 
 const safeIdentitySchema = z.string()
   .min(1)

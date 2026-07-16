@@ -1,6 +1,6 @@
 # Canonical Resource-Aware Work-Graph Scheduling Verification — 2026-07-15/16
 
-Status: `verified_local_private_orchestrator_waves_cloud_and_sla_blocked`
+Status: `verified_local_private_snapshot_bound_orchestrator_waves_cloud_and_sla_blocked`
 
 ## Outcome
 
@@ -34,21 +34,30 @@ those worker types. A caller cannot supply or override any of these values.
 
 ## Authority And Fail-Closed Behavior
 
-Placement is derived only after the orchestrator reloads the authenticated
-canonical execution package. The derivation revalidates:
+Canonical publication now freezes a per-work-item placement projection inside
+the content-addressed `canonical-tool-execution-authority-v2`. That component
+is part of the plan hash, copied into approved snapshot component references,
+and therefore committed by the snapshot hash before execution packaging. The
+orchestrator later reloads the authenticated package and reconciles each
+job-specific manifest entry against that frozen authority. Revalidation covers:
 
 - package, snapshot, work-graph, and tool-manifest lineage;
 - exact one-tool/one-operation work-item authority;
 - operation-binding hashes;
 - registry worker type, GPU requirement, and CPU allowance;
 - proven runner class, identity hash, and lifecycle proof hash; and
-- the fixed worker and global concurrency policy.
+- the fixed worker and global concurrency policy; and
+- the exact frozen tool-execution-authority, placement-authority, and
+  work-item-placement hashes carried through readiness, lease, dispatch, and
+  scheduling evidence.
 
-The resulting placement manifest is content-addressed and bound to the exact
-execution package. Unknown worker classes, changed tool profiles, mismatched
-operation bindings, unproven tools, and provider-backed work fail closed or
-remain explicitly blocked. Placement is not yet part of the immutable approved
-snapshot, so snapshot-level placement authority remains false.
+The resulting placement manifest is content-addressed and bound to both the
+immutable approved snapshot authority and exact execution package. Unknown
+worker classes, changed tool profiles, mismatched operation bindings, changed
+resource classes/concurrency, unproven tools, and provider-backed work fail
+closed or remain explicitly blocked. Callers cannot replace placement fields
+by recomputing hashes because runtime reconciliation re-derives the exact
+versioned policy from immutable work-item and tool identities.
 
 ## Wave Semantics
 
@@ -75,6 +84,8 @@ exit code 0 and proved:
 - exactly 50 placements: 28 CPU-analysis, 19 render, and three GPU;
 - exact L4 placement for the three GPU identities;
 - catalog, worker, identity, profile-placement, and hash mutation rejection;
+- approved-placement resource-class, concurrency, and proof mutation rejection
+  even after placement and authority hashes are recomputed;
 - deterministic synthetic wave widths `1, 4, 2, 1, 1` across repeated runs;
 - global observed in-process peak four, CPU peak four, and render peak two; and
 - a failing sibling does not return control before an independent sibling has
@@ -115,20 +126,22 @@ local correctness/recovery evidence, not a cloud benchmark or SLA.
 
 ## Full Internal Regression Evidence
 
-The final post-change `npm run qa:internal-pipeline` run passed all 27 of 27
-stages with exit code 0. It ran from `2026-07-16T16:14:06.386Z` through
-`2026-07-16T16:42:46.673Z` and took `1,720,287 ms` locally.
+The final post-placement-authority `npm run qa:internal-pipeline` run passed all
+27 of 27 stages with exit code 0. It ran from
+`2026-07-16T23:04:14.764Z` through `2026-07-16T23:33:00.326Z` and took
+`1,725,562 ms` locally.
 
 The same run included:
 
-- the three-source private composition lifecycle in `552,999 ms`;
-- the deterministic professional-color lifecycle in `655,997 ms`, including a
-  `67,338,001`-byte lossless color artifact and a `19,322,810`-byte final
+- the three-source private composition lifecycle in `544,102 ms`;
+- the deterministic professional-color lifecycle in `639,894 ms`, including a
+  `67,338,001`-byte lossless color artifact and a `19,357,384`-byte final
   composition above the exercised 16 MiB streaming boundary;
-- the separate bounded UHD Remotion streaming proof in `105,886 ms`;
+- the separate `54,206,253`-byte bounded UHD Remotion streaming proof in
+  `114,315 ms`;
 - all 50 versioned proven-tool identities;
-- the active named-edit browser journey; and
-- the standalone authenticated maximum-eight-source journey in `362,341 ms`,
+- the active named-edit browser journey with all 11 tests in `16,256 ms`; and
+- the standalone authenticated maximum-eight-source journey in `384,735 ms`,
   with all 27 server-derived work items completed and the private 4K review
   accepted.
 
@@ -143,7 +156,7 @@ Two full-regression failures were corrected before this clean pass:
    keeping the exercised final artifact safely above the streaming boundary,
    instead of allowing random compressibility to move it below the assertion.
 
-This 36-minute local regression is correctness and recovery evidence. It is
+This 28-minute-45-second local regression is correctness and recovery evidence. It is
 not a 30-minute real-program editing benchmark, cloud throughput result, ETA,
 or customer SLA.
 
@@ -169,9 +182,6 @@ and p95 must be reported.
 The following remain required before cloud or professional-scale readiness can
 be claimed:
 
-- freeze the approved placement policy or an equivalent immutable execution
-  profile into snapshot authority without colliding with the coordinated Edit
-  Reference/Edit Preferences work;
 - replace process-local waves with a durable distributed queue, service
   identity, leases, heartbeats, cancellation, host-loss recovery, and
   reconciliation;
@@ -180,11 +190,12 @@ be claimed:
 - deploy and benchmark separate CPU, GPU, render, QA, and readiness worker
   images with bounded autoscaling and quota admission;
 - prove actual physical worker concurrency and data-local transfer behavior;
-- adopt a professionally reviewed mezzanine/segment and codec-compatible
-  concat/mux or distributed final-encode strategy that avoids unnecessary
-  whole-program generation loss and serial re-rendering;
+- extend the verified V3 source-slice mezzanine/stream-copy finalization design
+  across representative professional codecs, VFR/timecode, multichannel audio,
+  HDR/wide-gamut, multicamera, and multi-hour source corpora;
 - add work-graph-derived ETA confidence and stage progress;
-- preserve attempt-level internal production cost separately from future
-  customer price, credits, fee, margin, and settlement; and
+- extend the already-separated scoped attempt-cost evidence to every future
+  deployed worker/runtime profile without mixing it with customer price,
+  credits, fee, margin, or settlement; and
 - retain all provider, Supabase, billing, public delivery, deployment, Motion
   Studio, and production gates until their independent evidence passes.

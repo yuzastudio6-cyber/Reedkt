@@ -6991,7 +6991,7 @@ function proveConsumptionReplayResponseSemantics(): void {
   const timestamp = new Date().toISOString()
   const hash = 'a'.repeat(64)
   const base = {
-    schemaVersion: 'canonical-private-tool-dispatch-response-v1' as const,
+    schemaVersion: 'canonical-private-tool-dispatch-response-v2' as const,
     source: 'canonical_private_tool_dispatch_authority' as const,
     purpose: 'private_internal_canonical_tool_dispatch_consume' as const,
     consumed: true as const,

@@ -26,7 +26,7 @@ import { getRequiredAuthUserId } from './service-helpers'
 import { authorizeWorkspaceAccess } from './workspace-access-service'
 
 export const CANONICAL_EXECUTION_READINESS_ENVELOPE_VERSION =
-  'canonical-execution-readiness-envelope-v1' as const
+  'canonical-execution-readiness-envelope-v2' as const
 
 export interface CanonicalExecutionReadinessResponse {
   executionReadinessEnvelope: CanonicalExecutionReadinessEnvelope
@@ -127,6 +127,7 @@ export function createCanonicalExecutionReadinessService(context: ServiceContext
         packageRecord: finalPackageRecord,
         executionPackage: packageRead.approvedEditExecutionPackage,
         toolCapabilityManifest: packageRead.toolCapabilityManifest,
+        toolExecutionAuthority: packageRead.toolExecutionAuthority,
       })
       return {
         executionReadinessEnvelope,
@@ -149,12 +150,33 @@ function buildCanonicalExecutionReadinessEnvelope(input: {
   packageRecord: AuthorityExecutionPackageRecord
   executionPackage: PackageRead['approvedEditExecutionPackage']
   toolCapabilityManifest: PackageRead['toolCapabilityManifest']
+  toolExecutionAuthority: PackageRead['toolExecutionAuthority']
 }): CanonicalExecutionReadinessEnvelope {
-  const { body, authority, job, packageRecord, executionPackage, toolCapabilityManifest } = input
+  const {
+    body,
+    authority,
+    job,
+    packageRecord,
+    executionPackage,
+    toolCapabilityManifest,
+    toolExecutionAuthority,
+  } = input
   const snapshot = authority.snapshot
   const workItem = authority.workItems.find((candidate) => candidate.id === job.approvedWorkItemId)
   if (!workItem) throw invalidAuthority('Canonical job does not resolve to one approved work item.')
   assertIdentityAndPackageLineage(input, workItem)
+  const placementAuthority = authority.toolExecutionAuthority.resourcePlacementAuthority
+  const resourcePlacement = placementAuthority.placements.find((placement) =>
+    placement.workItemKey === workItem.workItemKey)
+  const toolExecutionAuthorityRef = snapshot.componentRefs.canonicalToolExecutionAuthority
+  if (
+    !resourcePlacement ||
+    !toolExecutionAuthorityRef ||
+    toolExecutionAuthorityRef.sha256 !== sha256AuthorityValue(authority.toolExecutionAuthority) ||
+    toolExecutionAuthority.authorityHash !== authority.toolExecutionAuthority.authorityHash ||
+    toolExecutionAuthority.resourcePlacementAuthority.authorityHash !==
+      placementAuthority.authorityHash
+  ) throw invalidAuthority('Canonical job resource placement is not bound to its approved snapshot.')
 
   const expectedAssets = expectedAssetsForJob(authority, job, workItem)
   const dependencies = dependencyEvidenceForJob(authority, job, workItem)
@@ -186,6 +208,7 @@ function buildCanonicalExecutionReadinessEnvelope(input: {
     ...(scheduledInFuture ? ['The approved scheduled delay has not elapsed.'] : []),
     'This read-only readiness inspection does not issue or verify the separate tenant-bound opaque worker lease.',
     'Job-scoped tool runtime, runner, image, model, and license evidence has not been evaluated by the separate dispatch authority for this inspection.',
+    'Resource placement is snapshot-bound and locally compatible, but distributed Google Cloud dispatch is not authorized.',
     'This inspection does not load produced artifact, QA, reconciliation, or actual-cost evidence; those remain separate execution gates.',
     'Worker claim, dispatch, provider/tool execution, rendering, and credit spend remain unauthorized.',
   ]
@@ -193,6 +216,7 @@ function buildCanonicalExecutionReadinessEnvelope(input: {
   const jobAuthorityHash = sha256AuthorityValue({
     job,
     approvedWorkItem: safeWorkItemAuthority(workItem),
+    resourcePlacement,
     expectedAssets: expectedAssets.map((asset) => ({ ...asset })),
     dependencies: dependencies.map((dependency) => ({ ...dependency })),
   })
@@ -218,6 +242,9 @@ function buildCanonicalExecutionReadinessEnvelope(input: {
       approvedSourceAssetManifestHash: snapshot.approvedSourceAssetManifestHash,
       approvedAssetManifestHash: snapshot.approvedAssetManifestHash,
       executionPackageHash: packageRecord.packageHash,
+      toolExecutionAuthorityHash: authority.toolExecutionAuthority.authorityHash,
+      resourcePlacementAuthorityHash: placementAuthority.authorityHash,
+      resourcePlacementHash: resourcePlacement.placementHash,
       jobAuthorityHash,
     },
     executionPackage: {
@@ -277,6 +304,19 @@ function buildCanonicalExecutionReadinessEnvelope(input: {
       runtimeEvidenceReadyCount: 0 as const,
       workerDispatchAuthorized: false as const,
     },
+    resourcePlacement: {
+      placementPolicyVersion: placementAuthority.placementPolicyVersion,
+      workerType: resourcePlacement.workerType,
+      resourceClassId: resourcePlacement.resourceClassId,
+      plannedCloudExecutionTarget: resourcePlacement.plannedCloudExecutionTarget,
+      preferredAccelerator: resourcePlacement.preferredAccelerator,
+      workerConcurrencyLimit: resourcePlacement.workerConcurrencyLimit,
+      globalConcurrencyLimit: resourcePlacement.globalConcurrencyLimit,
+      snapshotBound: true as const,
+      currentRuntimeCompatible: true as const,
+      callerSelectedPlacement: false as const,
+      cloudDispatchAuthorized: false as const,
+    },
     gates: {
       identityScope: 'passed' as const,
       approvedAuthority: 'passed' as const,
@@ -284,6 +324,7 @@ function buildCanonicalExecutionReadinessEnvelope(input: {
       planningInputAuthority: 'passed' as const,
       sourceMediaAuthority: 'passed' as const,
       plannedAssetAuthority: 'passed' as const,
+      resourcePlacementAuthority: 'passed' as const,
       fundedReservation: 'passed' as const,
       dependencyEvidence: hasDependencies
         ? 'blocked_pending_results_and_qa' as const

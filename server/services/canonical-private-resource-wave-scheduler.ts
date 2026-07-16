@@ -9,7 +9,7 @@ import {
 import { sha256AuthorityValue } from './private-edit-authority-store'
 
 export const CANONICAL_PRIVATE_RESOURCE_WAVE_SCHEDULER_VERSION =
-  'canonical-private-resource-wave-scheduler-v1' as const
+  'canonical-private-resource-wave-scheduler-v2' as const
 
 export interface CanonicalPrivateResourceSchedulableJob {
   id: string
@@ -56,6 +56,8 @@ export interface CanonicalPrivateResourceSchedulingEvidence {
   schedulerVersion: typeof CANONICAL_PRIVATE_RESOURCE_WAVE_SCHEDULER_VERSION
   placementPolicyVersion: typeof CANONICAL_PRIVATE_RESOURCE_PLACEMENT_POLICY_VERSION
   placementManifestHash: string
+  toolExecutionAuthorityHash: string
+  approvedResourcePlacementAuthorityHash: string
   provenToolPlacementCatalogHash: string
   configuredGlobalMaxConcurrency: typeof CANONICAL_PRIVATE_GLOBAL_MAX_CONCURRENCY
   configuredWorkerConcurrencyLimits:
@@ -79,7 +81,7 @@ export interface CanonicalPrivateResourceSchedulingEvidence {
   physicalWorkerProcessConcurrencyProven: false
   cloudWorkerConcurrencyProven: false
   performanceSlaProven: false
-  immutableSnapshotPlacementBindingProven: false
+  immutableSnapshotPlacementBindingProven: true
 }
 
 export function selectCanonicalPrivateResourceWave<
@@ -120,6 +122,10 @@ export function selectCanonicalPrivateResourceWave<
     schedulerVersion: CANONICAL_PRIVATE_RESOURCE_WAVE_SCHEDULER_VERSION,
     waveNumber: input.waveNumber,
     placementManifestHash: input.placementManifest.manifestHash,
+    toolExecutionAuthorityHash:
+      input.placementManifest.identity.toolExecutionAuthorityHash,
+    approvedResourcePlacementAuthorityHash:
+      input.placementManifest.identity.approvedResourcePlacementAuthorityHash,
     entries: entries.map(({ job, placement }) => ({
       jobId: job.id,
       approvedWorkItemId: job.approvedWorkItemId,
@@ -219,6 +225,10 @@ export function createCanonicalPrivateResourceSchedulingEvidence(input: {
     schedulerVersion: CANONICAL_PRIVATE_RESOURCE_WAVE_SCHEDULER_VERSION,
     placementPolicyVersion: CANONICAL_PRIVATE_RESOURCE_PLACEMENT_POLICY_VERSION,
     placementManifestHash: input.placementManifest.manifestHash,
+    toolExecutionAuthorityHash:
+      input.placementManifest.identity.toolExecutionAuthorityHash,
+    approvedResourcePlacementAuthorityHash:
+      input.placementManifest.identity.approvedResourcePlacementAuthorityHash,
     provenToolPlacementCatalogHash:
       input.placementManifest.identity.provenToolPlacementCatalogHash,
     configuredGlobalMaxConcurrency: CANONICAL_PRIVATE_GLOBAL_MAX_CONCURRENCY,
@@ -246,6 +256,6 @@ export function createCanonicalPrivateResourceSchedulingEvidence(input: {
     physicalWorkerProcessConcurrencyProven: false,
     cloudWorkerConcurrencyProven: false,
     performanceSlaProven: false,
-    immutableSnapshotPlacementBindingProven: false,
+    immutableSnapshotPlacementBindingProven: true,
   }
 }

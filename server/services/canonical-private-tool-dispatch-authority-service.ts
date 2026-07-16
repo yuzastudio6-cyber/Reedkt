@@ -637,6 +637,9 @@ function resolveAndVerifyCanonicalDispatchBinding(input: {
 
   const job = authority.jobs.find((candidate) => candidate.id === body.jobId)
   const workItem = authority.workItems.find((candidate) => candidate.id === body.approvedWorkItemId)
+  const placementAuthority = authority.toolExecutionAuthority.resourcePlacementAuthority
+  const resourcePlacement = placementAuthority.placements.find((candidate) =>
+    candidate.workItemKey === workItem?.workItemKey)
   const exactRootDependencyAuthority =
     readiness.readinessState === 'authority_verified_runtime_blocked' &&
     readiness.dependencyEvidenceState === 'not_required_for_root_job' &&
@@ -658,11 +661,29 @@ function resolveAndVerifyCanonicalDispatchBinding(input: {
   if (
     !job ||
     !workItem ||
+    !resourcePlacement ||
     job.snapshotId !== authority.snapshot.snapshotId ||
     job.approvedWorkItemId !== workItem.id ||
     readiness.job.approvedWorkItemId !== workItem.id ||
     readiness.job.workItemKey !== workItem.workItemKey ||
     readiness.job.executionInputHash !== workItem.executionInputHash ||
+    readiness.authorityHashes.toolExecutionAuthorityHash !==
+      authority.toolExecutionAuthority.authorityHash ||
+    readiness.authorityHashes.resourcePlacementAuthorityHash !==
+      placementAuthority.authorityHash ||
+    readiness.authorityHashes.resourcePlacementHash !== resourcePlacement.placementHash ||
+    !resourcePlacement.privateExecutionReady ||
+    resourcePlacement.providerExecutionMode !== 'none' ||
+    resourcePlacement.workerType !== readiness.resourcePlacement.workerType ||
+    resourcePlacement.resourceClassId !== readiness.resourcePlacement.resourceClassId ||
+    resourcePlacement.plannedCloudExecutionTarget !==
+      readiness.resourcePlacement.plannedCloudExecutionTarget ||
+    resourcePlacement.preferredAccelerator !==
+      readiness.resourcePlacement.preferredAccelerator ||
+    resourcePlacement.workerConcurrencyLimit !==
+      readiness.resourcePlacement.workerConcurrencyLimit ||
+    resourcePlacement.globalConcurrencyLimit !==
+      readiness.resourcePlacement.globalConcurrencyLimit ||
     (!exactRootDependencyAuthority && !exactPrivateDependentAuthority)
   ) {
     throw new ApiError(
@@ -1758,6 +1779,10 @@ function canonicalHashesFromReadiness(readiness: ReadinessEnvelope): CanonicalWo
     approvedSourceAssetManifestHash: readiness.authorityHashes.approvedSourceAssetManifestHash,
     approvedAssetManifestHash: readiness.authorityHashes.approvedAssetManifestHash,
     executionPackageHash: readiness.authorityHashes.executionPackageHash,
+    toolExecutionAuthorityHash: readiness.authorityHashes.toolExecutionAuthorityHash,
+    resourcePlacementAuthorityHash:
+      readiness.authorityHashes.resourcePlacementAuthorityHash,
+    resourcePlacementHash: readiness.authorityHashes.resourcePlacementHash,
     jobAuthorityHash: readiness.authorityHashes.jobAuthorityHash,
   }
 }

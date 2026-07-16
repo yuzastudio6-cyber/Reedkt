@@ -2,10 +2,13 @@ import assert from 'node:assert/strict'
 
 import {
   CANONICAL_PRIVATE_GLOBAL_MAX_CONCURRENCY,
+  assertCanonicalApprovedWorkGraphResourcePlacementAuthority,
   assertCanonicalPrivateProvenToolPlacementCatalog,
   canonicalPrivateResourcePlacementManifestSchema,
   canonicalPrivateToolPlacementFor,
+  createCanonicalApprovedWorkGraphResourcePlacementAuthority,
   createCanonicalPrivateProvenToolPlacementCatalog,
+  type CanonicalApprovedWorkGraphResourcePlacementAuthority,
   type CanonicalPrivateExecutableWorkerType,
   type CanonicalPrivateResourcePlacementManifest,
 } from '../edit-architecture/canonical-private-resource-placement-authority'
@@ -56,6 +59,95 @@ async function main() {
   assert.equal(ffprobe.resourceClassId, 'cpu_analysis_standard_v1')
   assert.equal(ffprobe.workerConcurrencyLimit, 4)
 
+  const approvedPlacementAuthority =
+    createCanonicalApprovedWorkGraphResourcePlacementAuthority({
+      workItems: [
+        {
+          workItemKey: 'validate-approved-snapshot',
+          workItemType: 'validate_approved_snapshot',
+          workerClass: 'authority_worker',
+          required: true,
+          approvedToolIds: [],
+          approvedToolOperationIds: [],
+          providerExecutionMode: 'none',
+        },
+        {
+          workItemKey: 'render-approved-export',
+          workItemType: 'render_final_export',
+          workerClass: 'render_worker',
+          required: true,
+          approvedToolIds: ['ffmpeg'],
+          approvedToolOperationIds: [
+            canonicalPrivateToolPlacementFor(catalog, 'ffmpeg').operationId,
+          ],
+          providerExecutionMode: 'none',
+        },
+      ],
+      tools: [toolIdentityForPlacement(catalog, 'ffmpeg')],
+    })
+  assert.equal(approvedPlacementAuthority.summary.totalWorkItemCount, 2)
+  assert.equal(approvedPlacementAuthority.summary.privatelyExecutableWorkItemCount, 2)
+  assert.equal(approvedPlacementAuthority.boundaries.approvedSnapshotHashBindingRequired, true)
+  assert.equal(approvedPlacementAuthority.boundaries.placementMutationAfterApprovalAllowed, false)
+  assertCanonicalApprovedWorkGraphResourcePlacementAuthority({
+    value: approvedPlacementAuthority,
+    workItems: [
+      {
+        workItemKey: 'render-approved-export',
+        workItemType: 'render_final_export',
+        workerClass: 'render_worker',
+        required: true,
+        approvedToolIds: ['ffmpeg'],
+        approvedToolOperationIds: [
+          canonicalPrivateToolPlacementFor(catalog, 'ffmpeg').operationId,
+        ],
+        providerExecutionMode: 'none',
+      },
+      {
+        workItemKey: 'validate-approved-snapshot',
+        workItemType: 'validate_approved_snapshot',
+        workerClass: 'authority_worker',
+        required: true,
+        approvedToolIds: [],
+        approvedToolOperationIds: [],
+        providerExecutionMode: 'none',
+      },
+    ],
+    tools: [toolIdentityForPlacement(catalog, 'ffmpeg')],
+  })
+  for (const mutation of [
+    (value: CanonicalApprovedWorkGraphResourcePlacementAuthority) => {
+      value.placements.find((placement) =>
+        placement.workItemKey === 'render-approved-export')!.resourceClassId =
+          'qa_cpu_standard_v1'
+    },
+    (value: CanonicalApprovedWorkGraphResourcePlacementAuthority) => {
+      value.placements.find((placement) =>
+        placement.workItemKey === 'render-approved-export')!.workerConcurrencyLimit = 4
+    },
+    (value: CanonicalApprovedWorkGraphResourcePlacementAuthority) => {
+      value.placements.find((placement) =>
+        placement.workItemKey === 'render-approved-export')!.toolProofHash = 'f'.repeat(64)
+    },
+  ]) {
+    const changed = structuredClone(approvedPlacementAuthority)
+    mutation(changed)
+    rehashApprovedPlacementAuthority(changed)
+    assert.throws(() => assertCanonicalApprovedWorkGraphResourcePlacementAuthority({
+      value: changed,
+      workItems: approvedPlacementAuthority.placements.map((placement) => ({
+        workItemKey: placement.workItemKey,
+        workItemType: placement.workItemType,
+        workerClass: placement.canonicalWorkerClass,
+        required: placement.required,
+        approvedToolIds: [...placement.approvedToolIds],
+        approvedToolOperationIds: [...placement.approvedToolOperationIds],
+        providerExecutionMode: placement.providerExecutionMode,
+      })),
+      tools: [toolIdentityForPlacement(catalog, 'ffmpeg')],
+    }))
+  }
+
   for (const mutation of [
     (value: typeof catalog) => {
       value.tools[0]!.workerType = value.tools[0]!.workerType === 'render_worker'
@@ -82,7 +174,11 @@ async function main() {
     smokeJob('job_merge', 'render_worker', ['job_render_a', 'job_render_b']),
     smokeJob('job_qa', 'qa_worker', ['job_merge']),
   ]
-  const placementManifest = smokePlacementManifest(jobs, catalog.catalogHash)
+  const placementManifest = smokePlacementManifest(
+    jobs,
+    catalog.catalogHash,
+    approvedPlacementAuthority.authorityHash,
+  )
   const firstExecution = await executeGraph(jobs, placementManifest)
   const secondExecution = await executeGraph(jobs, placementManifest)
   assert.deepEqual(firstExecution.waveHashes, secondExecution.waveHashes)
@@ -109,7 +205,11 @@ async function main() {
   assert.equal(firstExecution.evidence.physicalWorkerProcessConcurrencyProven, false)
   assert.equal(firstExecution.evidence.cloudWorkerConcurrencyProven, false)
   assert.equal(firstExecution.evidence.performanceSlaProven, false)
-  assert.equal(firstExecution.evidence.immutableSnapshotPlacementBindingProven, false)
+  assert.equal(firstExecution.evidence.immutableSnapshotPlacementBindingProven, true)
+  assert.equal(
+    firstExecution.evidence.approvedResourcePlacementAuthorityHash,
+    approvedPlacementAuthority.authorityHash,
+  )
 
   const cpuWave = selectCanonicalPrivateResourceWave({
     waveNumber: 2,
@@ -148,6 +248,7 @@ async function main() {
     failureIsolationWaitedForIndependentSibling: independentSiblingFinished,
     boundaries: {
       localSingleHostOnly: true,
+      placementFrozenInApprovedSnapshot: true,
       cloudDispatchAuthorized: false,
       providerActivationAuthorized: false,
       productionExecutionAuthorized: false,
@@ -225,6 +326,7 @@ function smokeJob(
 function smokePlacementManifest(
   jobs: readonly SmokeJob[],
   provenToolPlacementCatalogHash: string,
+  approvedResourcePlacementAuthorityHash: string,
 ): CanonicalPrivateResourcePlacementManifest {
   const placements = jobs.map((job) => {
     const resource = resourceForWorker(job.workerType)
@@ -234,6 +336,7 @@ function smokePlacementManifest(
       workItemKey: `work_key_${job.id.slice(4)}`,
       workItemType: 'custom',
       canonicalWorkerClass: job.workerType,
+      required: true,
       approvedToolIds: [`tool_${job.id.slice(4)}`],
       approvedToolOperationIds: [`operation.${job.id.slice(4)}.v1`],
       providerExecutionMode: 'none' as const,
@@ -254,7 +357,7 @@ function smokePlacementManifest(
   })
   const hash = (label: string) => sha256AuthorityValue(['smoke', label])
   const payload = {
-    schemaVersion: 'canonical-private-resource-placement-manifest-v1' as const,
+    schemaVersion: 'canonical-private-resource-placement-manifest-v2' as const,
     source: 'canonical_execution_package_resource_reconciliation' as const,
     placementPolicyVersion: 'canonical-private-resource-placement-policy-v1' as const,
     identity: {
@@ -267,6 +370,9 @@ function smokePlacementManifest(
       snapshotHash: hash('snapshot'),
       workGraphHash: hash('work_graph'),
       toolCapabilityManifestHash: hash('tool_manifest'),
+      toolExecutionAuthorityHash: hash('tool_execution_authority'),
+      approvedResourcePlacementAuthorityHash,
+      approvedResourcePlacementAuthorityBlobHash: hash('tool_execution_authority_blob'),
       provenToolPlacementCatalogHash,
     },
     placements,
@@ -285,7 +391,7 @@ function smokePlacementManifest(
     },
     boundaries: {
       privateInternalOnly: true as const,
-      placementFrozenInApprovedSnapshot: false as const,
+      placementFrozenInApprovedSnapshot: true as const,
       placementBoundToExecutionPackage: true as const,
       cloudDispatchAuthorized: false as const,
       googleCloudResourceMutationAuthorized: false as const,
@@ -300,6 +406,38 @@ function smokePlacementManifest(
     ...payload,
     manifestHash: sha256AuthorityValue(payload),
   })
+}
+
+function toolIdentityForPlacement(
+  catalog: ReturnType<typeof createCanonicalPrivateProvenToolPlacementCatalog>,
+  toolId: 'ffmpeg',
+) {
+  const placement = canonicalPrivateToolPlacementFor(catalog, toolId)
+  return {
+    canonicalToolId: toolId,
+    operationId: placement.operationId,
+    identityHash: placement.toolIdentityHash,
+    proofHash: placement.toolProofHash,
+    verificationState: 'canonical_e2e_verified',
+    runtime: { runnerClass: placement.runnerClass },
+    readiness: {
+      privateInternalEndToEndReady: true,
+      privateInternalJobAdapterReady: true,
+    },
+  }
+}
+
+function rehashApprovedPlacementAuthority(
+  authority: CanonicalApprovedWorkGraphResourcePlacementAuthority,
+): void {
+  for (const placement of authority.placements) {
+    const withoutHash = { ...placement } as Partial<typeof placement>
+    delete withoutHash.placementHash
+    placement.placementHash = sha256AuthorityValue(withoutHash)
+  }
+  const withoutHash = { ...authority } as Partial<typeof authority>
+  delete withoutHash.authorityHash
+  authority.authorityHash = sha256AuthorityValue(withoutHash)
 }
 
 function resourceForWorker(workerType: CanonicalPrivateExecutableWorkerType) {

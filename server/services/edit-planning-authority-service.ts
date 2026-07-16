@@ -1749,6 +1749,7 @@ async function loadPlanToolAuthorityWorkItems(
       sourceCleanupDecisionIds: [...workItem.sourceCleanupDecisionIds],
       dependencyKeys: [...workItem.dependencyKeys],
       approvedToolIds: [...workItem.approvedToolIds],
+      providerExecutionMode: workItem.providerExecutionMode,
       required: workItem.required,
       expectedOutputs: workItem.expectedOutputs.map((output) => ({
         outputKey: output.outputKey,

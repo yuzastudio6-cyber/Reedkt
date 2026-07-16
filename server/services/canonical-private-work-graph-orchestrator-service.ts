@@ -166,6 +166,7 @@ export function createCanonicalPrivateWorkGraphOrchestratorService(context: Serv
           placementManifest = createCanonicalPrivateResourcePlacementManifest({
             executionPackage,
             toolCapabilityManifest: packageResult.toolCapabilityManifest,
+            toolExecutionAuthority: packageResult.toolExecutionAuthority,
           })
         } catch {
           throw new ApiError(
@@ -360,7 +361,7 @@ export function createCanonicalPrivateWorkGraphOrchestratorService(context: Serv
             ? 'completed_required_jobs_with_optional_blocks' as const
             : 'blocked_required_jobs' as const
         const responseWithoutHash = {
-          schemaVersion: 'canonical-private-work-graph-run-response-v1' as const,
+          schemaVersion: 'canonical-private-work-graph-run-response-v2' as const,
           source: 'canonical_private_work_graph_orchestrator' as const,
           purpose: body.purpose,
           identity: {

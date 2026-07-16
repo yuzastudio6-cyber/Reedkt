@@ -11,9 +11,16 @@ import {
   getToolIdentityRecord,
 } from '../tool-execution/proven-tool-identity-catalog'
 import { sha256AuthorityValue, stableAuthorityStringify } from '../services/private-edit-authority-store'
+import {
+  assertCanonicalApprovedWorkGraphResourcePlacementAuthority,
+  canonicalApprovedWorkGraphResourcePlacementAuthoritySchema,
+  createCanonicalApprovedWorkGraphResourcePlacementAuthority,
+  type CanonicalApprovedWorkGraphResourcePlacementAuthority,
+  type CanonicalResourcePlacementAuthorityWorkItem,
+} from './canonical-private-resource-placement-authority'
 
 export const CANONICAL_TOOL_EXECUTION_AUTHORITY_VERSION =
-  'canonical-tool-execution-authority-v1' as const
+  'canonical-tool-execution-authority-v2' as const
 
 const safeKey = z.string()
   .trim()
@@ -83,6 +90,7 @@ export const canonicalToolExecutionAuthoritySchema = z.object({
     declarationHash: sha256,
   }).strict(),
   tools: z.array(toolAuthorityEntrySchema).max(256),
+  resourcePlacementAuthority: canonicalApprovedWorkGraphResourcePlacementAuthoritySchema,
   summary: z.object({
     declaredToolCount: z.number().int().nonnegative(),
     workGraphToolCount: z.number().int().nonnegative(),
@@ -91,6 +99,7 @@ export const canonicalToolExecutionAuthoritySchema = z.object({
     privateJobAdapterReadyToolCount: z.number().int().nonnegative(),
     allRequiredToolsPrivateEndToEndReady: z.literal(true),
     allRequiredToolsPrivateJobAdapterReady: z.literal(true),
+    allWorkItemsHaveFrozenResourcePlacement: z.literal(true),
     frontendExecutionAllowed: z.literal(false),
     providerExecutionAuthorized: z.literal(false),
     customerBillingAuthorized: z.literal(false),
@@ -105,6 +114,9 @@ export type CanonicalToolExecutionAuthority = z.infer<
 
 export interface CanonicalToolAuthorityWorkItem {
   workItemKey: string
+  workItemType: string
+  workerClass: string
+  providerExecutionMode: string
   approvedToolIds: string[]
   required: boolean
   expectedOutputs: Array<{
@@ -207,6 +219,12 @@ export function createCanonicalToolExecutionAuthority(input: {
       workItems,
     }
   })
+  const resourcePlacementWorkItems = input.workItems.map(resourcePlacementWorkItem)
+  const resourcePlacementAuthority =
+    createCanonicalApprovedWorkGraphResourcePlacementAuthority({
+      workItems: resourcePlacementWorkItems,
+      tools,
+    })
   const payload = {
     schemaVersion: CANONICAL_TOOL_EXECUTION_AUTHORITY_VERSION,
     source: 'server_proven_tool_identity_catalog_reconciliation' as const,
@@ -214,6 +232,7 @@ export function createCanonicalToolExecutionAuthority(input: {
     evidenceRevision: PROVEN_TOOL_EVIDENCE_REVISION,
     strategyAuthority,
     tools,
+    resourcePlacementAuthority,
     summary: {
       declaredToolCount: strategyAuthority.declaredToolIds.length,
       workGraphToolCount: tools.length,
@@ -224,6 +243,7 @@ export function createCanonicalToolExecutionAuthority(input: {
         tool.readiness.privateInternalJobAdapterReady).length,
       allRequiredToolsPrivateEndToEndReady: true as const,
       allRequiredToolsPrivateJobAdapterReady: true as const,
+      allWorkItemsHaveFrozenResourcePlacement: true as const,
       frontendExecutionAllowed: false as const,
       providerExecutionAuthorized: false as const,
       customerBillingAuthorized: false as const,
@@ -251,6 +271,17 @@ export function assertCanonicalToolExecutionAuthority(input: {
   const { authorityHash, ...payload } = authority
   if (authorityHash !== sha256AuthorityValue(payload)) {
     throw invalidPersisted('Canonical tool execution authority hash is invalid.')
+  }
+  try {
+    assertCanonicalApprovedWorkGraphResourcePlacementAuthority({
+      value: authority.resourcePlacementAuthority,
+      workItems: input.workItems.map(resourcePlacementWorkItem),
+      tools: authority.tools,
+    })
+  } catch {
+    throw invalidPersisted(
+      'Canonical tool execution resource placement authority is invalid or no longer executable.',
+    )
   }
 
   const current = createCanonicalToolExecutionAuthority({
@@ -356,15 +387,62 @@ function structuralAuthority(authority: CanonicalToolExecutionAuthority) {
       runtime: tool.runtime,
       workItems: tool.workItems,
     })),
+    resourcePlacementAuthority: structuralResourcePlacementAuthority(
+      authority.resourcePlacementAuthority,
+    ),
     summary: {
       declaredToolCount: authority.summary.declaredToolCount,
       workGraphToolCount: authority.summary.workGraphToolCount,
       requiredWorkGraphToolCount: authority.summary.requiredWorkGraphToolCount,
+      allWorkItemsHaveFrozenResourcePlacement:
+        authority.summary.allWorkItemsHaveFrozenResourcePlacement,
       frontendExecutionAllowed: authority.summary.frontendExecutionAllowed,
       providerExecutionAuthorized: authority.summary.providerExecutionAuthorized,
       customerBillingAuthorized: authority.summary.customerBillingAuthorized,
       productionExecutionAuthorized: authority.summary.productionExecutionAuthorized,
     },
+  }
+}
+
+function resourcePlacementWorkItem(
+  workItem: CanonicalToolAuthorityWorkItem,
+): CanonicalResourcePlacementAuthorityWorkItem {
+  const rawOperationIds = workItem.executionInput.approvedToolOperationIds
+  const approvedToolOperationIds = rawOperationIds === undefined &&
+    workItem.approvedToolIds.length === 0
+    ? []
+    : Array.isArray(rawOperationIds) && rawOperationIds.every((value) =>
+      typeof value === 'string')
+      ? [...rawOperationIds] as string[]
+      : undefined
+  if (!approvedToolOperationIds) {
+    throw invalid('Canonical resource placement requires exact approved tool operation identities.', {
+      workItemKey: workItem.workItemKey,
+    })
+  }
+  return {
+    workItemKey: workItem.workItemKey,
+    workItemType: workItem.workItemType,
+    workerClass: workItem.workerClass,
+    required: workItem.required,
+    approvedToolIds: [...workItem.approvedToolIds],
+    approvedToolOperationIds,
+    providerExecutionMode: workItem.providerExecutionMode,
+  }
+}
+
+function structuralResourcePlacementAuthority(
+  authority: CanonicalApprovedWorkGraphResourcePlacementAuthority,
+) {
+  return {
+    schemaVersion: authority.schemaVersion,
+    source: authority.source,
+    placementPolicyVersion: authority.placementPolicyVersion,
+    workItemAuthorityHash: authority.workItemAuthorityHash,
+    toolIdentityAuthorityHash: authority.toolIdentityAuthorityHash,
+    placements: authority.placements,
+    summary: authority.summary,
+    boundaries: authority.boundaries,
   }
 }
 

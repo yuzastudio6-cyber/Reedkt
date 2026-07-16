@@ -484,7 +484,7 @@ assert.ok(schedulingAttempts.every((scheduling) =>
   !scheduling.physicalWorkerProcessConcurrencyProven &&
   !scheduling.cloudWorkerConcurrencyProven &&
   !scheduling.performanceSlaProven &&
-  !scheduling.immutableSnapshotPlacementBindingProven))
+  scheduling.immutableSnapshotPlacementBindingProven))
 const adapter = createCanonicalPrivateJobExecutionAdapterService(context)
 const executed = new Map<string, Awaited<ReturnType<typeof adapter.execute>>>()
 for (const workItem of canonicalPlan.workItems) {

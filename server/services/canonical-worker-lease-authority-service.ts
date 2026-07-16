@@ -1178,6 +1178,10 @@ function hashesFromReadiness(readiness: CanonicalExecutionReadinessEnvelope): Ca
     approvedSourceAssetManifestHash: readiness.authorityHashes.approvedSourceAssetManifestHash,
     approvedAssetManifestHash: readiness.authorityHashes.approvedAssetManifestHash,
     executionPackageHash: readiness.authorityHashes.executionPackageHash,
+    toolExecutionAuthorityHash: readiness.authorityHashes.toolExecutionAuthorityHash,
+    resourcePlacementAuthorityHash:
+      readiness.authorityHashes.resourcePlacementAuthorityHash,
+    resourcePlacementHash: readiness.authorityHashes.resourcePlacementHash,
     jobAuthorityHash: readiness.authorityHashes.jobAuthorityHash,
   }
 }

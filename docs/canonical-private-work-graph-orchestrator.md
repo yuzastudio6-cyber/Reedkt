@@ -17,12 +17,15 @@ The caller cannot provide jobs, ordering, tools, operations, outputs, snapshots,
 
 ## Scheduling behavior
 
-The orchestrator reloads and revalidates the canonical execution package,
-derives its exact job/work-item graph, and derives a content-addressed resource
-placement manifest from the package's exact tool-operation manifest, the current
-proven-tool identity catalog, the production registry, and the fixed worker
-concurrency policy. The caller cannot choose placement, accelerator, worker
-class, or concurrency.
+Canonical publication freezes the exact per-work-item resource placement in
+the content-addressed `canonical-tool-execution-authority-v2`; its component
+reference is committed by the plan and approved snapshot hashes. The
+orchestrator reloads and revalidates the canonical execution package, derives
+its exact job/work-item graph, and reconciles a job-specific placement manifest
+against that immutable authority, the package's exact tool-operation manifest,
+current compatible tool evidence, the production registry, and the fixed
+worker concurrency policy. The caller cannot choose placement, accelerator,
+worker class, or concurrency.
 
 It then repeatedly:
 
@@ -83,7 +86,8 @@ The resource-scheduler smoke reconciles all 50 proven private canonical tool
 identities to exact server-owned placement: 28 CPU-analysis, 19 render, and
 three GPU identities. It proves a deterministic `1,4,2,1,1` synthetic wave
 shape, CPU peak four, render peak two, global peak four, catalog/profile/hash
-mutation rejection, and all-settled sibling failure isolation.
+mutation rejection, recomputed-hash placement-forgery rejection, immutable
+snapshot placement binding, and all-settled sibling failure isolation.
 
 The signed-in eight-source long-form execution proves the scheduler on the real
 29-job graph: all jobs completed through 15 waves, 12 waves had overlapping
@@ -115,11 +119,10 @@ worker concurrency, a production scheduler, or an SLA.
 ## Boundaries
 
 This proves honest run-to-blocked behavior, deterministic resource-aware
-single-host admission, and one bounded dependency-complete private graph
-against generated fixture media. Placement is bound to the execution package,
-but is not yet frozen into the immutable approved snapshot. It is not a general
-real-user upload-to-review claim. The separate terminal service assembles that
-bounded graph for private internal review only. Arbitrary rich
+single-host admission, immutable snapshot-bound placement, and one bounded
+dependency-complete private graph against generated fixture media. It is not a
+general real-user upload-to-review claim. The separate terminal service
+assembles that bounded graph for private internal review only. Arbitrary rich
 capability-plan compilation, browser continuation from a revision into
 replacement planning, deployed real-user storage and workers, providers,
 Supabase, billing, public delivery, and production promotion remain gated.
@@ -131,10 +134,11 @@ Supabase, billing, public delivery, and production promotion remain gated.
 - `./node_modules/.bin/tsx server/smoke/canonical-private-long-form-execution-smoke.ts`
 - `REEDITPRO_SOURCE_SLICE_LONG_FORM_PROOF=1 ./node_modules/.bin/tsx server/smoke/canonical-private-long-form-execution-smoke.ts`
 - `npm run smoke:canonical-private-tool-dispatch`
-- `npm run qa:internal-pipeline` — post-change full run passed 27/27 stages on
-  2026-07-16 in `1,985,135 ms`, including the standalone authenticated
-  maximum-eight-source journey, bounded approved-attempt recovery, and all 50
-  versioned tool identities
+- `npm run qa:internal-pipeline` — post-placement-authority full run passed
+  27/27 stages from `2026-07-16T23:04:14.764Z` through
+  `2026-07-16T23:33:00.326Z` in `1,725,562 ms`, including the standalone
+  authenticated maximum-eight-source journey, bounded approved-attempt
+  recovery, and all 50 versioned tool identities
 
 The measured duration is a local correctness-regression result. It is not a
 real-program editing benchmark, deployed worker-concurrency result, cloud ETA,

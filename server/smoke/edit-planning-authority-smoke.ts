@@ -173,6 +173,10 @@ assert.equal(
   persistedToolExecutionAuthority.source,
   'server_proven_tool_identity_catalog_reconciliation',
 )
+assert.equal(
+  persistedToolExecutionAuthority.schemaVersion,
+  'canonical-tool-execution-authority-v2',
+)
 assert.match(String(persistedToolExecutionAuthority.authorityHash), /^[a-f0-9]{64}$/)
 assert.equal(asRecord(persistedToolExecutionAuthority.summary).workGraphToolCount, 4)
 assert.equal(
@@ -194,6 +198,23 @@ assert.ok(persistedToolEntries.every((entry) =>
   /^[a-f0-9]{64}$/.test(String(entry.proofHash)) &&
   asRecord(entry.readiness).privateInternalEndToEndReady === true &&
   asRecord(entry.readiness).privateInternalJobAdapterReady === true))
+const persistedResourcePlacementAuthority = asRecord(
+  persistedToolExecutionAuthority.resourcePlacementAuthority,
+)
+const persistedResourcePlacements =
+  persistedResourcePlacementAuthority.placements as Record<string, unknown>[]
+assert.equal(
+  persistedResourcePlacementAuthority.schemaVersion,
+  'canonical-approved-work-graph-resource-placement-authority-v1',
+)
+assert.equal(persistedResourcePlacements.length, 5)
+assert.equal(
+  asRecord(persistedResourcePlacementAuthority.boundaries)
+    .approvedSnapshotHashBindingRequired,
+  true,
+)
+assert.ok(persistedResourcePlacements.every((placement) =>
+  /^[a-f0-9]{64}$/.test(String(placement.placementHash))))
 const toolPayloadAuthorityRef = asRecord(
   publishedComponentRefs.canonicalToolPayloadAuthority,
 )
@@ -604,6 +625,10 @@ assert.equal(loadedExecutionAuthority.sourceAssetManifest.bindings.length, 2)
 assert.equal(loadedExecutionAuthority.sourceAssetManifest.requiredBindingCount, 2)
 assert.equal(loadedExecutionAuthority.sourceAssetManifest.manifestHash, snapshot.approvedSourceAssetManifestHash)
 assert.equal(loadedExecutionAuthority.toolExecutionAuthority.authorityHash, persistedToolExecutionAuthority.authorityHash)
+assert.equal(
+  loadedExecutionAuthority.toolExecutionAuthority.resourcePlacementAuthority.authorityHash,
+  persistedResourcePlacementAuthority.authorityHash,
+)
 assert.equal(loadedExecutionAuthority.toolPayloadAuthority.authorityHash, persistedToolPayloadAuthority.authorityHash)
 assert.deepEqual(
   loadedExecutionAuthority.toolExecutionAuthority.tools.map((tool) => tool.canonicalToolId),
@@ -677,6 +702,10 @@ assert.ok(packagedLeft.toolCapabilityManifest.operationBindings.every((binding) 
 assert.equal(packagedLeft.toolCapabilityManifest.workerDispatchAuthorized, false)
 assert.equal(packagedLeft.toolCapabilityManifest.runtimeEvidenceReadyCount, 0)
 assert.equal(packagedLeft.toolCapabilityManifest.tools.length, 4)
+assert.equal(
+  packagedLeft.toolExecutionAuthority.resourcePlacementAuthority.authorityHash,
+  persistedResourcePlacementAuthority.authorityHash,
+)
 
 await expectApiError(
   () => packageService.createPackage({
@@ -1998,6 +2027,15 @@ try {
   assert.equal(routeReadiness.source, 'immutable_canonical_edit_authority')
   assert.equal(routeReadiness.dispatchAuthorized, false)
   assert.equal(routeReadiness.claimAuthorized, false)
+  const routeReadinessHashes = asRecord(routeReadiness.authorityHashes)
+  const routeResourcePlacement = asRecord(routeReadiness.resourcePlacement)
+  assert.match(String(routeReadinessHashes.toolExecutionAuthorityHash), /^[a-f0-9]{64}$/)
+  assert.match(String(routeReadinessHashes.resourcePlacementAuthorityHash), /^[a-f0-9]{64}$/)
+  assert.match(String(routeReadinessHashes.resourcePlacementHash), /^[a-f0-9]{64}$/)
+  assert.equal(routeResourcePlacement.snapshotBound, true)
+  assert.equal(routeResourcePlacement.currentRuntimeCompatible, true)
+  assert.equal(routeResourcePlacement.callerSelectedPlacement, false)
+  assert.equal(routeResourcePlacement.cloudDispatchAuthorized, false)
   assert.equal(JSON.stringify(routeReadiness).includes('objectPath'), false)
 
   const callerSelectedJobExecution = await fetch(
@@ -2029,7 +2067,11 @@ try {
     headers: { ...routeAuthHeaders, 'content-type': 'application/json', 'idempotency-key': 'route-canonical-job-execution' },
     body: JSON.stringify(canonicalJobExecutionRequest),
   })
-  assert.equal(canonicalJobExecution.status, 201)
+  assert.equal(
+    canonicalJobExecution.status,
+    201,
+    await canonicalJobExecution.clone().text(),
+  )
   const canonicalJobExecutionEnvelope = await canonicalJobExecution.json() as {
     data?: { canonicalPrivateJobExecution?: Record<string, unknown> }
   }
@@ -2202,6 +2244,7 @@ try {
   const workGraphRun = asRecord(workGraphRunEnvelope.data?.canonicalPrivateWorkGraphRun)
   const workGraphRunSummary = asRecord(workGraphRun.summary)
   const workGraphRunReadiness = asRecord(workGraphRun.readiness)
+  const workGraphScheduling = asRecord(workGraphRun.scheduling)
   const workGraphJobOutcomes = workGraphRun.jobs as Record<string, unknown>[]
   const sourceTrimValidationOutcome = workGraphJobOutcomes.find((job) =>
     job.workItemKey === 'source-trim')
@@ -2220,6 +2263,13 @@ try {
   assert.equal(workGraphRunReadiness.privateInternalWorkGraphCompleted, false)
   assert.equal(workGraphRunReadiness.privateReviewReady, false)
   assert.equal(workGraphRunReadiness.nextRequiredGate, 'canonical_job_capability_blockers')
+  assert.equal(workGraphScheduling.immutableSnapshotPlacementBindingProven, true)
+  assert.match(String(workGraphScheduling.toolExecutionAuthorityHash), /^[a-f0-9]{64}$/)
+  assert.match(
+    String(workGraphScheduling.approvedResourcePlacementAuthorityHash),
+    /^[a-f0-9]{64}$/,
+  )
+  assert.equal(workGraphScheduling.cloudDispatchAuthorized, false)
   assert.equal(asRecord(workGraphRun.permissions).providerCall, false)
   assert.equal(asRecord(workGraphRun.permissions).billing, false)
 
@@ -3865,6 +3915,9 @@ console.log(JSON.stringify({
     'work_graph_cycle_gate',
     'production_tool_registry_gate',
     'server_proven_tool_identity_authority_frozen_into_plan_and_snapshot',
+    'server_derived_resource_placement_authority_frozen_into_plan_and_snapshot',
+    'exact_resource_placement_hash_bound_through_readiness_lease_and_dispatch',
+    'work_graph_scheduler_proves_immutable_snapshot_placement_binding',
     'tool_authority_reconciliation_does_not_mutate_hash_bound_publication_input',
     'tool_strategy_work_graph_and_exact_operation_reconciliation_gate',
     'required_tool_canonical_lifecycle_and_job_adapter_readiness_gate',

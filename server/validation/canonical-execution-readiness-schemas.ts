@@ -55,7 +55,7 @@ const dependencyEvidenceSchema = z.object({
 }).strict()
 
 export const canonicalExecutionReadinessEnvelopeSchema = z.object({
-  schemaVersion: z.literal('canonical-execution-readiness-envelope-v1'),
+  schemaVersion: z.literal('canonical-execution-readiness-envelope-v2'),
   source: z.literal('immutable_canonical_edit_authority'),
   purpose: z.literal('private_internal_dry_run_readiness'),
   identity: z.object({
@@ -76,6 +76,9 @@ export const canonicalExecutionReadinessEnvelopeSchema = z.object({
     approvedSourceAssetManifestHash: sha256Schema,
     approvedAssetManifestHash: sha256Schema,
     executionPackageHash: sha256Schema,
+    toolExecutionAuthorityHash: sha256Schema,
+    resourcePlacementAuthorityHash: sha256Schema,
+    resourcePlacementHash: sha256Schema,
     jobAuthorityHash: sha256Schema,
   }).strict(),
   executionPackage: z.object({
@@ -136,6 +139,33 @@ export const canonicalExecutionReadinessEnvelopeSchema = z.object({
     runtimeEvidenceReadyCount: z.literal(0),
     workerDispatchAuthorized: z.literal(false),
   }).strict(),
+  resourcePlacement: z.object({
+    placementPolicyVersion: z.literal('canonical-private-resource-placement-policy-v1'),
+    workerType: z.enum([
+      'api_service',
+      'cpu_analysis_worker',
+      'gpu_ai_worker',
+      'render_worker',
+      'qa_worker',
+      'tool_readiness_worker',
+    ]),
+    resourceClassId: z.enum([
+      'control_plane_cpu_v1',
+      'cpu_analysis_standard_v1',
+      'gpu_l4_standard_v1',
+      'render_cpu_high_memory_v1',
+      'qa_cpu_standard_v1',
+      'tool_readiness_cpu_v1',
+    ]),
+    plannedCloudExecutionTarget: z.enum(['cloud_run_service', 'cloud_run_job']),
+    preferredAccelerator: z.enum(['none', 'nvidia_l4']),
+    workerConcurrencyLimit: z.number().int().positive().max(100),
+    globalConcurrencyLimit: z.literal(4),
+    snapshotBound: z.literal(true),
+    currentRuntimeCompatible: z.literal(true),
+    callerSelectedPlacement: z.literal(false),
+    cloudDispatchAuthorized: z.literal(false),
+  }).strict(),
   gates: z.object({
     identityScope: z.literal('passed'),
     approvedAuthority: z.literal('passed'),
@@ -143,6 +173,7 @@ export const canonicalExecutionReadinessEnvelopeSchema = z.object({
     planningInputAuthority: z.literal('passed'),
     sourceMediaAuthority: z.literal('passed'),
     plannedAssetAuthority: z.literal('passed'),
+    resourcePlacementAuthority: z.literal('passed'),
     fundedReservation: z.literal('passed'),
     dependencyEvidence: z.enum(['not_required', 'blocked_pending_results_and_qa']),
     tenantBoundLease: z.literal('separate_authority_not_issued'),

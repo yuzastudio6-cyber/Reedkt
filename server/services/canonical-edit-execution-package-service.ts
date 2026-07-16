@@ -198,6 +198,7 @@ export function createCanonicalEditExecutionPackageService(context: ServiceConte
       })
       return {
         ...response,
+        toolExecutionAuthority: authority.toolExecutionAuthority,
         warnings: [
           'Canonical execution packaging is private single-host internal-test evidence only.',
           'No provider, worker, media, render, GCS, paid billing, wallet settlement, or external delivery side effect occurred.',
@@ -231,6 +232,7 @@ export function createCanonicalEditExecutionPackageService(context: ServiceConte
           }),
           toolCapabilityManifest,
         ),
+        toolExecutionAuthority: authority.toolExecutionAuthority,
         warnings: ['Canonical execution package read revalidated current tenant, snapshot, reservation, and content-addressed manifest authority.'],
       }
     },

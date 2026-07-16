@@ -1,6 +1,6 @@
 # Canonical Private Work-Graph Orchestrator
 
-Status: private single-host run-to-blocked and bounded complete-graph evidence
+Status: private single-host run-to-blocked, resource-aware wave scheduling, and bounded complete-graph evidence
 
 The canonical private work-graph orchestrator advances an approved execution package in immutable dependency order. It uses the canonical single-job adapter and never revives the caller-authored legacy pipeline.
 
@@ -17,13 +17,33 @@ The caller cannot provide jobs, ordering, tools, operations, outputs, snapshots,
 
 ## Scheduling behavior
 
-The orchestrator reloads and revalidates the canonical execution package, derives its exact job/work-item graph, and then repeatedly:
+The orchestrator reloads and revalidates the canonical execution package,
+derives its exact job/work-item graph, and derives a content-addressed resource
+placement manifest from the package's exact tool-operation manifest, the current
+proven-tool identity catalog, the production registry, and the fixed worker
+concurrency policy. The caller cannot choose placement, accelerator, worker
+class, or concurrency.
 
-1. selects only jobs whose canonical dependency jobs completed through private artifact, QA, and reconciliation authority;
-2. calls the single-job adapter with server-derived project, edit-session, and job identity;
-3. records a completed private artifact or a scoped job-capability blocker;
-4. leaves descendants of blocked jobs unattempted and marks their exact blocked dependency IDs;
-5. persists a credential-free, checksum-protected run response.
+It then repeatedly:
+
+1. selects a stable dependency-ready wave in canonical package order;
+2. applies both the global four-job cap and the exact worker-lane cap;
+3. starts only entries with server-derived private execution evidence and calls
+   the single-job adapter with server-derived project, edit-session, and job
+   identity;
+4. waits for every sibling in the wave to settle before advancing graph state,
+   so one unexpected failure cannot abandon still-running siblings;
+5. records a completed private artifact or a scoped job-capability blocker;
+6. leaves descendants of blocked jobs unattempted and marks their exact blocked
+   dependency IDs; and
+7. persists a credential-free, checksum-protected response with the placement
+   hash, deterministic wave hashes, configured caps, and observed in-process
+   orchestrator-task concurrency.
+
+The fixed local/private limits are 20 API tasks, four CPU-analysis tasks, one
+GPU task, two render tasks, four QA tasks, and one readiness task, all under the
+stricter global cap of four. These are admission limits, not a deployed Google
+Cloud autoscaling policy or performance SLA.
 
 Completed job identity is stored independently of a request key by the job adapter. A later work-graph run therefore reuses the completed artifact instead of claiming another lease or executing the tool again. A denied pre-execution dispatch releases its lease so a later run can retry with newly available runtime evidence.
 
@@ -46,12 +66,41 @@ The prior aggregate smoke baseline publishes and approves a dependency-complete 
 
 The grouped D3-to-ECharts fixture also proves failure isolation and bounded recovery: D3 first records an idempotent pre-execution runtime failure while unrelated work continues and ECharts remains dependency-blocked; after the runtime becomes available, a new work-graph run consumes only attempt two for D3, reuses already completed work, and then completes ECharts.
 
+The resource-scheduler smoke reconciles all 50 proven private canonical tool
+identities to exact server-owned placement: 28 CPU-analysis, 19 render, and
+three GPU identities. It proves a deterministic `1,4,2,1,1` synthetic wave
+shape, CPU peak four, render peak two, global peak four, catalog/profile/hash
+mutation rejection, and all-settled sibling failure isolation.
+
+The signed-in eight-source long-form execution proves the scheduler on the real
+29-job graph: all jobs completed through 15 waves, 12 waves had overlapping
+in-process adapter tasks, maximum wave width was three, and observed peak was
+three. That metric covers orchestrator tasks, including time waiting on inner
+single-host runtime locks. It does not prove simultaneous physical worker
+processes, distributed execution, Cloud Run concurrency, or an SLA.
+
 ## Boundaries
 
-This proves both honest run-to-blocked behavior and one bounded, dependency-complete private graph against generated fixture media. It is not a general real-user upload-to-review claim. The separate terminal service assembles that bounded graph for private internal review only. Arbitrary rich capability-plan compilation, browser continuation from a revision into replacement planning, deployed real-user storage and workers, providers, Supabase, billing, public delivery, and production promotion remain gated.
+This proves honest run-to-blocked behavior, deterministic resource-aware
+single-host admission, and one bounded dependency-complete private graph
+against generated fixture media. Placement is bound to the execution package,
+but is not yet frozen into the immutable approved snapshot. It is not a general
+real-user upload-to-review claim. The separate terminal service assembles that
+bounded graph for private internal review only. Arbitrary rich
+capability-plan compilation, browser continuation from a revision into
+replacement planning, deployed real-user storage and workers, providers,
+Supabase, billing, public delivery, and production promotion remain gated.
 
 ## Verification
 
 - `npm run typecheck:server`
+- `./node_modules/.bin/tsx server/smoke/canonical-private-resource-wave-scheduler-smoke.ts`
+- `./node_modules/.bin/tsx server/smoke/canonical-private-long-form-execution-smoke.ts`
 - `npm run smoke:canonical-private-tool-dispatch`
-- `npm run qa:internal-pipeline`
+- `npm run qa:internal-pipeline` — post-change full run passed 27/27 stages on
+  2026-07-16 in `2,186,391 ms`, including the standalone authenticated
+  maximum-eight-source journey and all 50 versioned tool identities
+
+The measured duration is a local correctness-regression result. It is not a
+real-program editing benchmark, deployed worker-concurrency result, cloud ETA,
+or customer SLA.

@@ -16,6 +16,12 @@ import { createSyntheticMp4Fixture } from '../media/test-media-fixture'
 import { clearApprovedEditExecutionPrivateDownloadMemoryForSmoke } from '../services/approved-edit-execution-package-service'
 import { clearInternalEditStateMemoryForSmoke } from '../services/internal-edit-state-service'
 import { clearLocalProjectMemoryForSmoke } from '../services/project-service'
+import { activatePrivateOfflineLibassCaptionRuntime } from '../tool-execution/libass-caption-execution'
+import { activatePrivateOfflineMediaBinaryRuntime } from '../tool-execution/media-binary-execution'
+import {
+  activatePrivateOfflineRemotionRenderRuntime,
+  prepareOfflineRemotionDockerRuntime,
+} from '../tool-execution/remotion-render-execution'
 import type { RuntimeClients } from '../types'
 import {
   getLocalProjectHandoffStorageKey as getScopedLocalProjectHandoffStorageKey,
@@ -312,6 +318,14 @@ const canonicalSourceFixtures = await Promise.all(canonicalSourceFixtureDefiniti
 }))
 const sourceFixture = canonicalSourceFixtures[0]!
 const secondSourceFixture = canonicalSourceFixtures[1]!
+
+// This smoke is a standalone signed-in execution proof. Refresh every exact
+// runtime authority it consumes instead of relying on an earlier smoke's
+// process-external /tmp side effect or a mutable Docker tag remaining stable.
+await activatePrivateOfflineMediaBinaryRuntime()
+await activatePrivateOfflineLibassCaptionRuntime()
+await prepareOfflineRemotionDockerRuntime()
+await activatePrivateOfflineRemotionRenderRuntime()
 
 const apiServer = await listen(createServer(createReeditProApiApp(env, { clients: fakeClients })))
 const apiBaseUrl = `http://127.0.0.1:${addressPort(apiServer)}`

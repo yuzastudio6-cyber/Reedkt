@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto'
 
 import { ApiError } from '../errors/api-error'
+import { createCanonicalPrivateResourcePlacementManifest } from '../edit-architecture/canonical-private-resource-placement-authority'
 import {
   readPrivateFileIfExistsWithinRoot,
   writePrivateFileCreateOnlyWithinRoot,
@@ -19,6 +20,12 @@ import type {
 } from '../validation/canonical-private-work-graph-progress-schemas'
 import { createCanonicalEditExecutionPackageService } from './canonical-edit-execution-package-service'
 import { createCanonicalPrivateJobExecutionAdapterService } from './canonical-private-job-execution-adapter-service'
+import {
+  createCanonicalPrivateResourceSchedulingEvidence,
+  executeCanonicalPrivateResourceWave,
+  selectCanonicalPrivateResourceWave,
+  type CanonicalPrivateResourceWaveResult,
+} from './canonical-private-resource-wave-scheduler'
 import { withCanonicalWorkGraphPackageLock } from './canonical-work-graph-package-lock'
 import { getRequiredAuthUserId } from './service-helpers'
 import { sha256AuthorityValue, stableAuthorityStringify } from './private-edit-authority-store'
@@ -154,6 +161,20 @@ export function createCanonicalPrivateWorkGraphOrchestratorService(context: Serv
         ) {
           throw new ApiError('VALIDATION_FAILED', 'Canonical execution package cannot be orchestrated safely.', 409)
         }
+        let placementManifest
+        try {
+          placementManifest = createCanonicalPrivateResourcePlacementManifest({
+            executionPackage,
+            toolCapabilityManifest: packageResult.toolCapabilityManifest,
+          })
+        } catch {
+          throw new ApiError(
+            'TOOL_NOT_READY',
+            'Canonical execution package has no valid server-owned resource placement authority.',
+            409,
+            { requiredGate: 'canonical_private_resource_placement_authority' },
+          )
+        }
 
         const workItems = new Map(executionPackage.approvedWorkItems.map((workItem) => [workItem.id, workItem]))
         const jobs = [...executionPackage.jobs]
@@ -182,82 +203,121 @@ export function createCanonicalPrivateWorkGraphOrchestratorService(context: Serv
           }),
         })
         const adapter = createCanonicalPrivateJobExecutionAdapterService(context)
-        let progress = true
-        while (progress) {
-          progress = false
-          for (const job of jobs) {
-            if (!remaining.has(job.id)) continue
-            if (!job.dependencyJobIds.every((dependencyJobId) => completedJobIds.has(dependencyJobId))) {
+        const waveResults: Array<CanonicalPrivateResourceWaveResult<
+          (typeof jobs)[number],
+          CanonicalPrivateWorkGraphJobOutcome
+        >> = []
+        let waveNumber = 1
+        while (true) {
+          const wave = selectCanonicalPrivateResourceWave({
+            waveNumber,
+            jobs,
+            remainingJobIds: remaining,
+            completedJobIds,
+            placementManifest,
+          })
+          if (!wave) break
+          const waveResult = await executeCanonicalPrivateResourceWave({
+            wave,
+            execute: async ({ job, placement }) => {
+              const workItem = workItems.get(job.approvedWorkItemId)!
+              if (!placement.privateExecutionReady) {
+                return {
+                  jobId: job.id,
+                  approvedWorkItemId: job.approvedWorkItemId,
+                  workItemKey: job.workItemKey,
+                  required: workItem.required,
+                  dependencyJobIds: [...job.dependencyJobIds],
+                  status: 'blocked_by_job_capability' as const,
+                  adapterReplayed: false,
+                  blockerCode: 'TOOL_NOT_READY',
+                  requiredGate: placement.requiredGate ??
+                    'canonical_private_resource_placement_execution_evidence',
+                  blockedDependencyJobIds: [],
+                }
+              }
+              try {
+                const jobExecution = await adapter.execute({
+                  workspaceId: executionPackage.workspaceId,
+                  projectId: executionPackage.projectId,
+                  editSessionId: executionPackage.editSessionId,
+                  jobId: job.id,
+                  purpose: 'execute_canonical_private_job',
+                  idempotencyKey: perJobIdempotencyKey(packageRecordId, job.id, idempotencyKey),
+                })
+                return {
+                  jobId: job.id,
+                  approvedWorkItemId: job.approvedWorkItemId,
+                  workItemKey: job.workItemKey,
+                  required: workItem.required,
+                  dependencyJobIds: [...job.dependencyJobIds],
+                  status: 'completed_private_test' as const,
+                  artifactId: jobExecution.result.artifactId,
+                  contentType: jobExecution.result.contentType,
+                  sha256: jobExecution.result.sha256,
+                  adapterReplayed: jobExecution.evidence.idempotentAdapterReplay,
+                  blockedDependencyJobIds: [],
+                }
+              } catch (error) {
+                if (!isScopedCapabilityBlocker(error)) throw error
+                const executionFailure = executionFailureMetadata(error)
+                return {
+                  jobId: job.id,
+                  approvedWorkItemId: job.approvedWorkItemId,
+                  workItemKey: job.workItemKey,
+                  required: workItem.required,
+                  dependencyJobIds: [...job.dependencyJobIds],
+                  status: executionFailure?.retryDisposition === 'retry_same_approved_operation'
+                    ? 'failed_retry_available' as const
+                    : [
+                        'manual_reconciliation_required',
+                        'server_reconciliation_required',
+                      ].includes(executionFailure?.retryDisposition ?? '')
+                      ? 'completed_recovery_required' as const
+                      : executionFailure
+                        ? 'failed_user_review_required' as const
+                        : 'blocked_by_job_capability' as const,
+                  adapterReplayed: false,
+                  blockerCode: error.code,
+                  requiredGate: requiredGate(error),
+                  ...(executionFailure ? executionFailure : {}),
+                  blockedDependencyJobIds: [],
+                }
+              }
+            },
+          })
+          waveResults.push(waveResult)
+          let unexpectedError: unknown
+          let hasUnexpectedError = false
+          for (const settled of waveResult.settled) {
+            if (settled.status === 'rejected') {
+              if (!hasUnexpectedError) unexpectedError = settled.error
+              hasUnexpectedError = true
               continue
             }
-            const workItem = workItems.get(job.approvedWorkItemId)!
-            try {
-              const jobExecution = await adapter.execute({
-                workspaceId: executionPackage.workspaceId,
-                projectId: executionPackage.projectId,
-                editSessionId: executionPackage.editSessionId,
-                jobId: job.id,
-                purpose: 'execute_canonical_private_job',
-                idempotencyKey: perJobIdempotencyKey(packageRecordId, job.id, idempotencyKey),
-              })
-              outcomes.set(job.id, {
-                jobId: job.id,
-                approvedWorkItemId: job.approvedWorkItemId,
-                workItemKey: job.workItemKey,
-                required: workItem.required,
-                dependencyJobIds: [...job.dependencyJobIds],
-                status: 'completed_private_test',
-                artifactId: jobExecution.result.artifactId,
-                contentType: jobExecution.result.contentType,
-                sha256: jobExecution.result.sha256,
-                adapterReplayed: jobExecution.evidence.idempotentAdapterReplay,
-                blockedDependencyJobIds: [],
-              })
-              completedJobIds.add(job.id)
-            } catch (error) {
-              if (!isScopedCapabilityBlocker(error)) throw error
-              const executionFailure = executionFailureMetadata(error)
-              outcomes.set(job.id, {
-                jobId: job.id,
-                approvedWorkItemId: job.approvedWorkItemId,
-                workItemKey: job.workItemKey,
-                required: workItem.required,
-                dependencyJobIds: [...job.dependencyJobIds],
-                status: executionFailure?.retryDisposition === 'retry_same_approved_operation'
-                  ? 'failed_retry_available'
-                  : [
-                      'manual_reconciliation_required',
-                      'server_reconciliation_required',
-                    ].includes(executionFailure?.retryDisposition ?? '')
-                    ? 'completed_recovery_required'
-                    : executionFailure
-                      ? 'failed_user_review_required'
-                      : 'blocked_by_job_capability',
-                adapterReplayed: false,
-                blockerCode: error.code,
-                requiredGate: requiredGate(error),
-                ...(executionFailure ? executionFailure : {}),
-                blockedDependencyJobIds: [],
-              })
-            }
-            remaining.delete(job.id)
-            if (remaining.size > 0) {
-              await persistPrivateCanonicalWorkGraphProgress({
-                scope: progressScope,
-                draft: progressCheckpointDraft({
-                  executionPackage,
-                  jobs,
-                  workItems,
-                  outcomes,
-                  remaining,
-                  status: 'advancing_private_test_work_graph',
-                  runFinished: false,
-                  nextRequiredGate: 'canonical_private_work_graph_advancement',
-                }),
-              })
-            }
-            progress = true
+            const outcome = settled.result!
+            outcomes.set(outcome.jobId, outcome)
+            if (outcome.status === 'completed_private_test') completedJobIds.add(outcome.jobId)
+            remaining.delete(outcome.jobId)
           }
+          if (remaining.size > 0 && waveResult.settled.some((entry) =>
+            entry.status === 'fulfilled')) {
+            await persistPrivateCanonicalWorkGraphProgress({
+              scope: progressScope,
+              draft: progressCheckpointDraft({
+                executionPackage,
+                jobs,
+                workItems,
+                outcomes,
+                remaining,
+                status: 'advancing_private_test_work_graph',
+                runFinished: false,
+                nextRequiredGate: 'canonical_private_work_graph_advancement',
+              }),
+            })
+          }
+          if (hasUnexpectedError) throw unexpectedError
+          waveNumber += 1
         }
 
         for (const job of jobs) {
@@ -290,6 +350,10 @@ export function createCanonicalPrivateWorkGraphOrchestratorService(context: Serv
           job.required && job.status !== 'completed_private_test').length
         const allRequiredJobsCompleted = requiredBlockedJobCount === 0
         const allJobsCompleted = completedJobCount === orderedOutcomes.length
+        const scheduling = createCanonicalPrivateResourceSchedulingEvidence({
+          placementManifest,
+          waveResults,
+        })
         const status = allJobsCompleted
           ? 'completed_private_test_work_graph' as const
           : allRequiredJobsCompleted
@@ -317,6 +381,7 @@ export function createCanonicalPrivateWorkGraphOrchestratorService(context: Serv
             requiredBlockedJobCount,
             allRequiredJobsCompleted,
           },
+          scheduling,
           evidence: {
             canonicalPackageReloaded: true as const,
             serverDerivedTopologicalOrder: true as const,

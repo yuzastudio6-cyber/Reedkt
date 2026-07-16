@@ -68,7 +68,9 @@ const localStorageRoot = canonicalAuthoritySmokeRoot
 const workspaceId = 'workspace-authority-smoke'
 const userId = 'user-authority-smoke'
 const editSessionId = 'edit-session-canonical-professional-color'
-const fixtureDurationSeconds = 7
+// Keep a deterministic safety margin above the 16 MiB streamed-final boundary.
+// Seven seconds sat too close to the H.264 entropy-dependent cutoff.
+const fixtureDurationSeconds = 8
 const fixtureDurationFrames = fixtureDurationSeconds * 24
 const storage = new LocalBackedResumableGcsTestAdapter(
   join(localStorageRoot, 'canonical-professional-color-fake-gcs'),
@@ -175,7 +177,7 @@ const plannerInput: PlannerInput = {
     id: uploadedClipId,
     uploadedOrder: 1,
     fileName: uploadedSource.mediaAsset.fileName,
-    duration: '00:03',
+    duration: '00:08',
     detectedType: 'Primary source',
     sourceRole: 'main_story',
   }],
@@ -799,7 +801,7 @@ async function uploadProfessionalColorSource(projectId: string) {
     `color=c=gray:s=3840x2160:r=24:d=${fixtureDurationSeconds}`,
     '-f', 'lavfi', '-i',
     `sine=frequency=440:sample_rate=48000:duration=${fixtureDurationSeconds}`,
-    '-filter_complex', '[0:v]noise=alls=46:allf=t+u[v]',
+    '-filter_complex', '[0:v]noise=alls=46:allf=t+u:all_seed=1307[v]',
     '-map', '[v]', '-map', '1:a:0',
     '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '40',
     '-pix_fmt', 'yuv420p', '-color_primaries', 'bt709',

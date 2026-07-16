@@ -17,6 +17,7 @@ import { createCanonicalEditExecutionPackageService } from '../services/canonica
 import { createCanonicalPlanningHandoffService } from '../services/canonical-planning-handoff-service'
 import { createCanonicalPrivateFinalArtifactDownloadService } from '../services/canonical-private-final-artifact-download-service'
 import { createCanonicalPrivateJobExecutionAdapterService } from '../services/canonical-private-job-execution-adapter-service'
+import { createCanonicalPrivateWorkGraphOrchestratorService } from '../services/canonical-private-work-graph-orchestrator-service'
 import { createEditPlanningAuthorityService } from '../services/edit-planning-authority-service'
 import { createExactEditPreferenceService } from '../services/exact-edit-preference-service'
 import { createLargeMediaFinalizationService } from '../services/large-media-finalization-service'
@@ -266,7 +267,7 @@ const approved = await planningService.approveAndFundCanonicalPlan({
   idempotencyKey: 'approve-canonical-long-form-plan',
 })
 const approvedSnapshot = asRecord(asRecord(approved.authority).snapshot)
-await createCanonicalEditExecutionPackageService(context).createPackage({
+const packaged = await createCanonicalEditExecutionPackageService(context).createPackage({
   workspaceId,
   approvedPlanSnapshotId: String(approvedSnapshot.snapshotId),
   expectedSnapshotHash: String(approvedSnapshot.snapshotHash),
@@ -307,12 +308,38 @@ const mediaRuntime = await activatePrivateOfflineMediaBinaryRuntime()
 await activatePrivateOfflineLibassCaptionRuntime()
 await prepareOfflineRemotionDockerRuntime()
 await activatePrivateOfflineRemotionRenderRuntime()
+const workGraphStartedAt = Date.now()
+const workGraphRun = await createCanonicalPrivateWorkGraphOrchestratorService(context).run({
+  workspaceId,
+  packageRecordId: packaged.approvedEditExecutionPackage.packageRecordId,
+  purpose: 'run_canonical_private_work_graph',
+  idempotencyKey: 'run-canonical-long-form-resource-waves-v1',
+})
+const workGraphElapsedMilliseconds = Date.now() - workGraphStartedAt
+assert.equal(workGraphRun.status, 'completed_private_test_work_graph')
+assert.equal(workGraphRun.summary.totalJobCount, 29)
+assert.equal(workGraphRun.summary.completedJobCount, 29)
+assert.equal(workGraphRun.summary.requiredBlockedJobCount, 0)
+assert.equal(workGraphRun.summary.allRequiredJobsCompleted, true)
+assert.ok(workGraphRun.scheduling)
+assert.equal(workGraphRun.scheduling.actualExecutionCount, 29)
+assert.ok(workGraphRun.scheduling.waveCount > 1)
+assert.ok(workGraphRun.scheduling.parallelWaveCount > 0)
+assert.ok(workGraphRun.scheduling.maximumWaveWidth > 1)
+assert.ok(workGraphRun.scheduling.observedPeakConcurrency > 1)
+assert.ok(workGraphRun.scheduling.observedPeakConcurrency <= 4)
+assert.equal(workGraphRun.scheduling.cloudDispatchAuthorized, false)
+assert.equal(workGraphRun.scheduling.distributedExecutionProven, false)
+assert.equal(workGraphRun.scheduling.physicalWorkerProcessConcurrencyProven, false)
+assert.equal(workGraphRun.scheduling.cloudWorkerConcurrencyProven, false)
+assert.equal(workGraphRun.scheduling.performanceSlaProven, false)
+assert.equal(workGraphRun.scheduling.immutableSnapshotPlacementBindingProven, false)
 const adapter = createCanonicalPrivateJobExecutionAdapterService(context)
 const executed = new Map<string, Awaited<ReturnType<typeof adapter.execute>>>()
 for (const workItem of canonicalPlan.workItems) {
   console.log(JSON.stringify({
     smoke: 'canonical_private_long_form_execution',
-    phase: 'execute_job',
+    phase: 'read_job_replay',
     workItemKey: workItem.workItemKey,
     operation: workItem.executionInput.operation,
   }))
@@ -326,6 +353,7 @@ for (const workItem of canonicalPlan.workItems) {
   assert.equal(response.permissions.customerCreditMutation, false)
   assert.equal(response.permissions.billing, false)
   assert.equal(response.readiness.productReady, false)
+  assert.equal(response.evidence.idempotentAdapterReplay, true)
 }
 
 const chunks = chunkDrafts.map((chunk) => executed.get(chunk.workItemKey)!)
@@ -483,6 +511,14 @@ console.log(JSON.stringify({
   totalFrames,
   approvedWorkItemCount: approvedWorkItems.length,
   completedJobCount: executed.size,
+  resourceScheduling: workGraphRun.scheduling,
+  resourceWaveExecutionTiming: {
+    elapsedMilliseconds: workGraphElapsedMilliseconds,
+    elapsedMinutes: Number((workGraphElapsedMilliseconds / 60_000).toFixed(2)),
+    includesLocalContainerStartup: true,
+    benchmarkQualified: false,
+    performanceSlaProven: false,
+  },
   chunkArtifacts: chunks.map((chunk, index) => ({
     chunkIndex: index + 1,
     artifactId: chunk.result.artifactId,
@@ -503,6 +539,8 @@ console.log(JSON.stringify({
     'eight_private_uploaded_sources_and_immutable_approved_snapshot',
     'original_4k_estimate_and_reservation_reused_without_export_recharge',
     '29_of_29_required_jobs_completed',
+    '29_jobs_executed_through_server_derived_resource_aware_dependency_waves',
+    'bounded_overlapping_orchestrator_execution_tasks_observed_on_one_private_host',
     'two_private_4k_chunk_renders_each_independently_ffprobe_qa_reconciled',
     'final_merge_reads_only_lease_selected_qa_passed_chunk_streams',
     'final_720_frame_4k_h264_aac_master_independently_ffprobe_qa_reconciled',

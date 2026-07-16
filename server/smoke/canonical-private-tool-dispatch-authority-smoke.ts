@@ -7103,6 +7103,7 @@ function consumptionExecutionAuthority(replayed: boolean) {
     privatePreviewRenderAuthorized: false,
     privateCaptionRenderAuthorized: false,
     privateFinalCompositionAuthorized: false,
+    privateCompositionChunkAuthorized: false,
     creditSpendAuthorized: false as const,
     walletMutationAuthorized: false as const,
     settlementAuthorized: false as const,

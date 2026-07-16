@@ -84,6 +84,12 @@ export const CANONICAL_PRIVATE_TOOL_DISPATCH_TTL_SECONDS = 45 as const
 
 const DISPATCH_CREDENTIAL_DOMAIN = 'reeditpro:canonical-private-tool-dispatch:v1'
 const DISPATCH_IDEMPOTENCY_DOMAIN = 'reeditpro:canonical-private-tool-dispatch-idempotency:v1'
+const DIRECT_FINAL_COMPOSITION_OPERATIONS = new Set([
+  'render_approved_source_caption_final',
+  'render_approved_source_sequence_caption_final',
+  'render_approved_source_caption_track_final',
+  'render_approved_source_sequence_caption_track_final',
+])
 
 export interface CanonicalPrivateToolDispatchAuthorizationResult {
   toolDispatchGrant: CanonicalPrivateToolDispatchResponse
@@ -726,8 +732,60 @@ function resolveAndVerifyCanonicalDispatchBinding(input: {
       'approved_professional_color_intermediate_v1'
       ? workItem.sourceSequenceItemIds.length
       : 0
+  const compositionChunkAuthority = workItem.executionInput.chunkAuthority as
+    | Record<string, unknown>
+    | undefined
+  const exactPrivateRemotionCompositionChunk =
+    workItem.workerClass === 'render_worker' && workItem.workItemType === 'custom' &&
+    workItem.executionInput.operation === 'render_approved_4k_composition_chunk' &&
+    expectedAsset.assetRole === 'processed' && expectedAsset.contentType === 'video/mp4' &&
+    expectedAsset.artifactType === 'private_4k_composition_chunk_v1' &&
+    workItem.approvedToolIds.length === 1 && workItem.approvedToolIds[0] === 'remotion' &&
+    body.operationId === 'tool.remotion.render_approved_composition.v1' &&
+    compositionChunkAuthority?.profileId ===
+      'canonical_private_4k_chunk_merge_1920_frames_v1' &&
+    Number.isSafeInteger(compositionChunkAuthority?.chunkIndex) &&
+    Number.isSafeInteger(compositionChunkAuthority?.chunkCount) &&
+    Number(compositionChunkAuthority?.chunkIndex) >= 1 &&
+    Number(compositionChunkAuthority?.chunkIndex) <= Number(compositionChunkAuthority?.chunkCount) &&
+    Number(compositionChunkAuthority?.chunkCount) >= 2 &&
+    Number(compositionChunkAuthority?.chunkCount) <= 8 &&
+    compositionChunkAuthority?.outputKey === expectedAsset.outputKey &&
+    finalCompositionCaptionCueCount >= 1 && finalCompositionCaptionCueCount <= 7 &&
+    workItem.dependencyKeys.length ===
+      1 + finalCompositionCaptionCueCount + finalCompositionVoiceTrackCount +
+        finalCompositionColorSourceCount &&
+    (finalCompositionVoiceTrackCount === 0 ||
+      finalCompositionVoiceTrackCount === workItem.sourceSequenceItemIds.length) &&
+    (finalCompositionColorSourceCount === 0 || (
+      finalCompositionColorSourceCount === workItem.sourceSequenceItemIds.length &&
+      finalCompositionVoiceTrackCount === workItem.sourceSequenceItemIds.length
+    )) &&
+    workItem.sourceSequenceItemIds.length >= 1 &&
+    workItem.sourceSequenceItemIds.length <= 8 &&
+    workItem.sourceCleanupDecisionIds.length === workItem.sourceSequenceItemIds.length
+  const longFormMergeChunks = Array.isArray(finalCompositionStructuredPayload?.chunks)
+    ? finalCompositionStructuredPayload.chunks
+    : []
+  const exactPrivateRemotionLongFormMerge =
+    workItem.workerClass === 'render_worker' && workItem.workItemType === 'render_final_export' &&
+    workItem.executionInput.operation === 'merge_approved_4k_composition_chunks' &&
+    expectedAsset.assetRole === 'final' && expectedAsset.contentType === 'video/mp4' &&
+    workItem.approvedToolIds.length === 1 && workItem.approvedToolIds[0] === 'remotion' &&
+    body.operationId === 'tool.remotion.render_approved_composition.v1' &&
+    finalCompositionStructuredPayload?.compositionProfileId ===
+      'approved_4k_composition_chunk_merge_final_v1' &&
+    finalCompositionStructuredPayload?.longFormCapacityProfileId ===
+      'canonical_private_4k_chunk_merge_1920_frames_v1' &&
+    longFormMergeChunks.length >= 2 && longFormMergeChunks.length <= 8 &&
+    workItem.dependencyKeys.length === longFormMergeChunks.length &&
+    workItem.sourceSequenceItemIds.length >= 2 &&
+    workItem.sourceSequenceItemIds.length <= 8 &&
+    workItem.sourceCleanupDecisionIds.length === workItem.sourceSequenceItemIds.length
   const exactPrivateRemotionFinalComposition =
     workItem.workerClass === 'render_worker' && workItem.workItemType === 'render_final_export' &&
+    typeof workItem.executionInput.operation === 'string' &&
+    DIRECT_FINAL_COMPOSITION_OPERATIONS.has(workItem.executionInput.operation) &&
     expectedAsset.assetRole === 'final' && expectedAsset.contentType === 'video/mp4' &&
     workItem.approvedToolIds.length === 1 && workItem.approvedToolIds[0] === 'remotion' &&
     body.operationId === 'tool.remotion.render_approved_composition.v1' &&
@@ -746,6 +804,7 @@ function resolveAndVerifyCanonicalDispatchBinding(input: {
     workItem.sourceCleanupDecisionIds.length === workItem.sourceSequenceItemIds.length
   if (
     !exactPrivateRemotionPreview && !exactPrivateLibassCaptionOverlay &&
+    !exactPrivateRemotionCompositionChunk && !exactPrivateRemotionLongFormMerge &&
     !exactPrivateRemotionFinalComposition && (
       workItem.workerClass === 'render_worker' ||
       ['render_remotion_preview', 'render_final_export'].includes(workItem.workItemType) ||
@@ -1297,6 +1356,7 @@ function buildDispatchResponse(
       privatePreviewRenderAuthorized: false as const,
       privateCaptionRenderAuthorized: false as const,
       privateFinalCompositionAuthorized: false as const,
+      privateCompositionChunkAuthorized: false as const,
       creditSpendAuthorized: false as const,
       walletMutationAuthorized: false as const,
       settlementAuthorized: false as const,
@@ -1388,6 +1448,10 @@ function buildConsumptionResponse(
         record.binding.canonicalToolId === 'remotion' &&
         record.binding.operationId === 'tool.remotion.render_approved_composition.v1' &&
         record.binding.expectedOutput.assetRole === 'final',
+      privateCompositionChunkAuthorized:
+        record.binding.canonicalToolId === 'remotion' &&
+        record.binding.operationId === 'tool.remotion.render_approved_composition.v1' &&
+        record.binding.expectedOutput.assetRole === 'processed',
       creditSpendAuthorized: false as const,
       walletMutationAuthorized: false as const,
       settlementAuthorized: false as const,

@@ -1,5 +1,6 @@
 import type { OfflineRemotionRenderRequest } from './offline-remotion-render-execution-protocol'
 import type { OfflineRemotionStreamingRenderRequest } from './offline-remotion-render-streaming-protocol'
+import type { OfflineRemotionLongFormMergeStreamingRequest } from './offline-remotion-long-form-merge-protocol'
 
 export interface OfflineRemotionImageEvidence {
   imageTag: 'reeditpro-offline-remotion-render-execution:canonical-private-local-v1'
@@ -130,6 +131,34 @@ export interface OfflineRemotionStreamingRenderResult {
   }
 }
 
+export interface OfflineRemotionLongFormMergeStreamingResult {
+  schemaVersion: 'offline-remotion-long-form-merge-stream-execution-result-v1'
+  request: OfflineRemotionLongFormMergeStreamingRequest
+  artifact: OfflineRemotionStreamingRenderResult['artifact']
+  evidence: OfflineRemotionStreamingRenderResult['evidence']
+  attestation: {
+    schemaVersion: 'offline-remotion-long-form-merge-stream-execution-attestation-v1'
+    recordId: string
+    completedAt: string
+    imageIdentityHash: string
+    requestEnvelopeSha256: string
+    artifactSha256: string
+    artifactByteLength: number
+    confinementHash: string
+    attestationHash: string
+  }
+  readiness: {
+    privateInternalOnly: true
+    productReady: false
+    externalBetaReady: false
+    productionReady: false
+    privateInternalFinalCompositionReady: true
+    privateInternalLongFormMergeReady: true
+    serverInjectedStreamingReady: true
+    canonicalDispatchIntegrated: false
+  }
+}
+
 export interface OfflineRemotionRuntimeAuthority {
   schemaVersion: 'offline-remotion-render-runtime-authority-v1'
   source: 'private_local_offline_remotion_render_runtime_authority'
@@ -145,6 +174,7 @@ export interface OfflineRemotionRuntimeAuthority {
     productionReady: false
     privateInternalFinalCompositionReady: true
     serverInjectedStreamingFinalCompositionReady: true
+    serverInjectedStreamingLongFormMergeReady: true
     finalExportReady: false
   }
   blockers: readonly string[]

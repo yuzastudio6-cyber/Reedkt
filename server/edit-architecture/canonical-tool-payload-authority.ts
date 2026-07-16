@@ -26,6 +26,9 @@ import {
   validateOfflineRemotionRenderPlanningPayload,
 } from '../tool-execution/remotion-render-execution/offline-remotion-render-execution-protocol'
 import {
+  validateOfflineRemotionLongFormMergePlanningPayload,
+} from '../tool-execution/remotion-render-execution/offline-remotion-long-form-merge-protocol'
+import {
   OFFLINE_LIBASS_CAPTION_OPERATION,
   OFFLINE_LIBASS_CAPTION_PROTOCOL,
   validateOfflineLibassCaptionRequest,
@@ -76,6 +79,13 @@ export const CANONICAL_TOOL_PAYLOAD_AUTHORITY_VERSION =
   'canonical-tool-payload-authority-v1' as const
 export const CANONICAL_TOOL_PAYLOAD_VALIDATION_VERSION =
   'canonical-tool-payload-validation-v1' as const
+
+const DIRECT_FINAL_COMPOSITION_OPERATIONS = new Set([
+  'render_approved_source_caption_final',
+  'render_approved_source_sequence_caption_final',
+  'render_approved_source_caption_track_final',
+  'render_approved_source_sequence_caption_track_final',
+])
 
 const safeKey = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/)
@@ -368,7 +378,37 @@ function validateByRunnerFamily(
     return 'media_ffprobe'
   }
   if (toolId === 'remotion') {
-    if (workItem.workItemType === 'render_final_export') {
+    if (
+      workItem.workItemType === 'render_final_export' &&
+      workItem.executionInput.operation === 'merge_approved_4k_composition_chunks'
+    ) {
+      const payload = validateOfflineRemotionLongFormMergePlanningPayload(structuredPayload)
+      requireBinding(workItem, {
+        source: payload.chunks.reduce(
+          (total, chunk) => total + chunk.sourceSequenceItemIds.length,
+          0,
+        ),
+        cleanup: payload.chunks.reduce(
+          (total, chunk) => total + chunk.sourceCleanupDecisionIds.length,
+          0,
+        ),
+        dependencies: payload.chunks.length,
+      })
+      return 'remotion_final_composition'
+    }
+    const compositionChunk = workItem.workItemType === 'custom' &&
+      workItem.executionInput.operation === 'render_approved_4k_composition_chunk'
+    const directFinalComposition = workItem.workItemType === 'render_final_export' &&
+      typeof workItem.executionInput.operation === 'string' &&
+      DIRECT_FINAL_COMPOSITION_OPERATIONS.has(workItem.executionInput.operation)
+    if (workItem.workItemType === 'render_final_export' && !directFinalComposition) {
+      throw invalidPayload(
+        'Remotion final composition has an unsupported operation identity.',
+        workItem.workItemKey,
+        'canonical_remotion_final_composition_operation',
+      )
+    }
+    if (directFinalComposition || compositionChunk) {
       const payload = validateOfflineRemotionFinalCompositionPlanningPayload(structuredPayload)
       const sourceCount = 'sourceSegments' in payload
         ? payload.sourceSegments.length
@@ -388,6 +428,28 @@ function validateByRunnerFamily(
         cleanup: sourceCount,
         dependencies: 1 + captionCount + voiceTrackCount + colorSourceCount,
       })
+      if (compositionChunk) {
+        const chunkAuthority = workItem.executionInput.chunkAuthority
+        const chunk = chunkAuthority && typeof chunkAuthority === 'object' &&
+          !Array.isArray(chunkAuthority)
+          ? chunkAuthority as Record<string, unknown>
+          : undefined
+        if (
+          chunk?.profileId !== 'canonical_private_4k_chunk_merge_1920_frames_v1' ||
+          !Number.isSafeInteger(chunk.chunkIndex) || !Number.isSafeInteger(chunk.chunkCount) ||
+          Number(chunk.chunkIndex) < 1 || Number(chunk.chunkIndex) > Number(chunk.chunkCount) ||
+          Number(chunk.chunkCount) < 2 || Number(chunk.chunkCount) > 8 ||
+          chunk.durationFrames !== payload.durationFrames ||
+          workItem.expectedOutputs.length !== 1 ||
+          workItem.expectedOutputs[0]?.assetRole !== 'processed' ||
+          workItem.expectedOutputs[0]?.contentType !== 'video/mp4' ||
+          chunk.outputKey !== workItem.expectedOutputs[0]?.outputKey
+        ) throw invalidPayload(
+          'Remotion composition chunk lost its exact approved long-form authority.',
+          workItem.workItemKey,
+          'canonical_remotion_composition_chunk_authority',
+        )
+      }
       return 'remotion_final_composition'
     }
     validateOfflineRemotionRenderPlanningPayload(structuredPayload)

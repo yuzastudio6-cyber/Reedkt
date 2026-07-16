@@ -16,7 +16,10 @@ import {
   type OfflineFfmpegColorMatchDeliveryPlanningPayload,
   type OfflineFfprobeExecutionResult,
 } from '../tool-execution/media-binary-execution'
-import { validateOfflineRemotionFinalCompositionPlanningPayload } from '../tool-execution/remotion-render-execution'
+import {
+  validateOfflineRemotionFinalCompositionPlanningPayload,
+  validateOfflineRemotionLongFormMergePlanningPayload,
+} from '../tool-execution/remotion-render-execution'
 import type { ServiceContext } from '../types'
 import {
   canonicalPrivateMediaBinaryAuthoritySchema,
@@ -80,6 +83,12 @@ import { getRequiredAuthUserId } from './service-helpers'
 import { authorizeWorkspaceAccess } from './workspace-access-service'
 
 const RUNNER_CLASS = 'offline_media_binary_execution_v1' as const
+const DIRECT_FINAL_COMPOSITION_OPERATIONS: ReadonlySet<string> = new Set([
+  'render_approved_source_sequence_caption_track_final',
+  'render_approved_source_sequence_caption_final',
+  'render_approved_source_caption_track_final',
+  'render_approved_source_caption_final',
+])
 type MediaBinaryToolId = 'ffmpeg' | 'ffprobe'
 
 export function createCanonicalPrivateMediaBinaryExecutionService(context: ServiceContext) {
@@ -232,9 +241,25 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
           if (!finalWorkItem || finalWorkItem.workItemType !== 'render_final_export') {
             throw denied('Final QA dependency is not the exact approved final-composition work item.')
           }
-          finalMediaExpectation = validateOfflineRemotionFinalCompositionPlanningPayload(
-            finalWorkItem.executionInput.structuredPayload,
-          )
+          if (
+            finalWorkItem.executionInput.operation ===
+              'merge_approved_4k_composition_chunks'
+          ) {
+            finalMediaExpectation = validateOfflineRemotionLongFormMergePlanningPayload(
+              finalWorkItem.executionInput.structuredPayload,
+            )
+          } else if (
+            typeof finalWorkItem.executionInput.operation === 'string' &&
+            DIRECT_FINAL_COMPOSITION_OPERATIONS.has(
+              finalWorkItem.executionInput.operation,
+            )
+          ) {
+            finalMediaExpectation = validateOfflineRemotionFinalCompositionPlanningPayload(
+              finalWorkItem.executionInput.structuredPayload,
+            )
+          } else {
+            throw denied('Final QA dependency has an unsupported final-composition operation.')
+          }
         } else {
           stagedSourceSet = await createCanonicalPrivateSourceObjectReadService(context)
             .stageExactApprovedSource({

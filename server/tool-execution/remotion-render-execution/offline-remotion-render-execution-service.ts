@@ -19,6 +19,15 @@ import {
   offlineRemotionStreamingRequestSha256,
   validateOfflineRemotionStreamingRenderRequest,
 } from './offline-remotion-render-streaming-protocol'
+import {
+  OFFLINE_REMOTION_LONG_FORM_MERGE_STREAMING_CONTAINER_PROTOCOL,
+  offlineRemotionLongFormMergeInputCommitments,
+  offlineRemotionLongFormMergeRequestSha256,
+  validateOfflineRemotionLongFormMergeStreamingRequest,
+} from './offline-remotion-long-form-merge-protocol'
+import type {
+  OfflineRemotionLongFormMergeStreamingResult,
+} from './offline-remotion-render-execution-types'
 
 export const OFFLINE_REMOTION_RENDER_EXECUTION_STORAGE_ROOT =
   '/tmp/reeditpro-canonical-private-offline-remotion-render-execution' as const
@@ -30,6 +39,7 @@ const BLOCKERS = Object.freeze([
   'Canonical approved-snapshot execution, private artifact authority, reconciliation, replay, cost events, and final render/export settlement remain separate evidence gates.',
   'This runtime is private single-host evidence and is not deployed worker-fleet, service-identity, multi-architecture, scanning, observability, or recovery evidence.',
   'The bounded proof composition is not a public delivery or production final-export authority.',
+  'The long-form merge profile is limited to eight privately reconciled chunks and 1,920 approved frames; source-slice and distributed object merge evidence remain blocked.',
 ] as const)
 
 export interface PrivateOfflineRemotionRenderRuntime {
@@ -40,6 +50,11 @@ export interface PrivateOfflineRemotionRenderRuntime {
     inputs: OfflineRemotionServerInjectedInput[],
     outputSink: OfflineRemotionContainerStreamingOutputSink,
   ): Promise<OfflineRemotionStreamingRenderResult>
+  executeLongFormMergeServerInjected(
+    value: unknown,
+    inputs: OfflineRemotionServerInjectedInput[],
+    outputSink: OfflineRemotionContainerStreamingOutputSink,
+  ): Promise<OfflineRemotionLongFormMergeStreamingResult>
 }
 
 export interface OfflineRemotionServerInjectedInput extends OfflineRemotionContainerStreamingInput {
@@ -73,6 +88,11 @@ function runtimeForImage(image: OfflineRemotionImageEvidence): PrivateOfflineRem
       inputs: OfflineRemotionServerInjectedInput[],
       outputSink: OfflineRemotionContainerStreamingOutputSink,
     ) => executeStreamingWithImage(image, value, inputs, outputSink),
+    executeLongFormMergeServerInjected: (
+      value: unknown,
+      inputs: OfflineRemotionServerInjectedInput[],
+      outputSink: OfflineRemotionContainerStreamingOutputSink,
+    ) => executeLongFormMergeStreamingWithImage(image, value, inputs, outputSink),
   })
 }
 
@@ -96,6 +116,7 @@ export async function readPersistedOfflineRemotionRenderRuntimeAuthority(): Prom
     record(authority.readiness).productReady !== false ||
     record(authority.readiness).privateInternalFinalCompositionReady !== true ||
     record(authority.readiness).serverInjectedStreamingFinalCompositionReady !== true ||
+    record(authority.readiness).serverInjectedStreamingLongFormMergeReady !== true ||
     record(authority.readiness).finalExportReady !== false
   ) throw runtimeFailure('Private Remotion runtime authority boundary is invalid.')
   return authority as unknown as OfflineRemotionRuntimeAuthority
@@ -271,13 +292,137 @@ async function executeStreamingWithImage(
   }
 }
 
+async function executeLongFormMergeStreamingWithImage(
+  image: OfflineRemotionImageEvidence,
+  value: unknown,
+  inputs: OfflineRemotionServerInjectedInput[],
+  outputSink: OfflineRemotionContainerStreamingOutputSink,
+): Promise<OfflineRemotionLongFormMergeStreamingResult> {
+  const request = validateOfflineRemotionLongFormMergeStreamingRequest(value)
+  const expectedInputs = offlineRemotionLongFormMergeInputCommitments(request)
+  if (
+    !Array.isArray(inputs) || inputs.length !== expectedInputs.length ||
+    inputs.some((input, index) => {
+      const expected = expectedInputs[index]
+      return !expected || input.inputMode !== 'private_verified_stream_v1' ||
+        input.inputId !== expected.inputId || input.mimeType !== expected.mimeType ||
+        input.byteLength !== expected.byteLength || input.sha256 !== expected.sha256 ||
+        typeof input.openStream !== 'function'
+    }) ||
+    !outputSink || outputSink.maximumBytes !== OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_OUTPUT_BYTES ||
+    typeof outputSink.persist !== 'function'
+  ) throw validationFailure('Server-injected long-form chunk streams do not match their exact commitments.')
+  const result = await runOfflineRemotionStreamingContainer({
+    image,
+    serializedManifest: JSON.stringify(request),
+    inputs,
+    outputSink,
+  })
+  if (result.exitCode !== 0 || result.oomKilled || result.stderr.trim()) {
+    throw runtimeFailure(
+      'Private streaming Remotion long-form merge failed.',
+      new Error(result.stderr.slice(-4_000)),
+    )
+  }
+  const response = parseResponse(result.stdoutHeader)
+  const artifactRecord = record(response.artifact)
+  const byteLength = Number(artifactRecord.byteLength)
+  const artifactSha256 = string(artifactRecord.sha256)
+  const semantic = record(response.semanticEvidence)
+  const readiness = record(response.readiness)
+  if (
+    response.schemaVersion !== OFFLINE_REMOTION_LONG_FORM_MERGE_STREAMING_CONTAINER_PROTOCOL ||
+    response.ok !== true || response.toolId !== 'remotion' ||
+    response.operationId !== OFFLINE_REMOTION_RENDER_OPERATION ||
+    response.status !== 'actual_remotion_media_render_completed' ||
+    record(response.packageIdentity).packageName !== 'remotion+@remotion/renderer' ||
+    record(response.packageIdentity).version !== '4.0.487' ||
+    response.requestEnvelopeSha256 !== offlineRemotionLongFormMergeRequestSha256(request) ||
+    artifactRecord.mimeType !== 'video/mp4' ||
+    !Number.isSafeInteger(byteLength) || byteLength < 1_024 ||
+    byteLength > OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_OUTPUT_BYTES ||
+    !/^[a-f0-9]{64}$/u.test(artifactSha256) ||
+    result.outputReceipt.byteLength !== byteLength ||
+    result.outputReceipt.sha256 !== artifactSha256 ||
+    artifactRecord.width !== request.payload.width ||
+    artifactRecord.height !== request.payload.height ||
+    artifactRecord.fps !== request.payload.fps ||
+    artifactRecord.durationFrames !== request.payload.durationFrames ||
+    readiness.privateInternalOnly !== true || readiness.productReady !== false ||
+    readiness.privateInternalFinalCompositionReady !== true ||
+    readiness.privateInternalLongFormMergeReady !== true ||
+    semantic.serverInjectedInputStreamsMaterializedAndReverified !== true ||
+    semantic.serverInjectedOutputStreamEmitted !== true ||
+    semantic.base64MediaTransportAvoided !== true ||
+    semantic.approvedCompositionChunkBytesVerified !== true ||
+    semantic.approvedCompositionChunkOrderApplied !== true ||
+    semantic.approvedCompositionChunkFrameContinuityApplied !== true ||
+    semantic.approvedCompositionChunkAudioPreserved !== true ||
+    semantic.approvedCompositionChunkBoundaryAuthorityRead !== true ||
+    semantic.approvedCompositionChunkHardCutsApplied !== true ||
+    semantic.approvedLongFormCapacityProfileVerified !== true ||
+    semantic.finalCompositionProfileExecuted !== true ||
+    !Object.values(semantic).every((item) => item === true)
+  ) throw runtimeFailure('Private streaming long-form merge evidence is invalid.')
+  const completedAt = new Date().toISOString()
+  const attestationWithoutHash = {
+    schemaVersion: 'offline-remotion-long-form-merge-stream-execution-attestation-v1' as const,
+    completedAt,
+    imageIdentityHash: image.imageIdentityHash,
+    requestEnvelopeSha256: offlineRemotionLongFormMergeRequestSha256(request),
+    artifactSha256,
+    artifactByteLength: byteLength,
+    confinementHash: sha256AuthorityValue(result.confinement),
+  }
+  const attestationHash = sha256AuthorityValue(attestationWithoutHash)
+  const recordId = sha256AuthorityValue({ attestationHash, completedAt })
+  const attestation = { ...attestationWithoutHash, recordId, attestationHash }
+  await writePrivateTextFileAtomicWithinRoot({
+    rootPath: STORAGE_ROOT,
+    relativePath: `attestations/${recordId.slice(0, 2)}/${recordId}.json`,
+    content: `${stableAuthorityStringify({
+      recordVersion: 'offline-remotion-long-form-merge-stream-execution-attestation-record-v1',
+      source: 'private_local_checksum_protected_remotion_long_form_merge_execution',
+      attestation,
+      checksumSha256: sha256AuthorityValue(attestation),
+    })}\n`,
+  })
+  return {
+    schemaVersion: 'offline-remotion-long-form-merge-stream-execution-result-v1',
+    request,
+    artifact: {
+      mimeType: 'video/mp4', byteLength, sha256: artifactSha256,
+      width: Number(artifactRecord.width), height: Number(artifactRecord.height),
+      fps: Number(artifactRecord.fps),
+      durationFrames: Number(artifactRecord.durationFrames),
+      durationSeconds: Number(artifactRecord.durationSeconds),
+    },
+    evidence: {
+      packageName: 'remotion+@remotion/renderer', packageVersion: '4.0.487',
+      requestEnvelopeSha256: String(response.requestEnvelopeSha256),
+      image, confinement: result.confinement,
+      semanticEvidence: semantic as Record<string, true>,
+      inputTransport: 'length_framed_server_injected_private_stream_v2',
+      outputTransport: 'length_committed_private_stream_v2',
+      containerExitCode: 0, oomKilled: false,
+    },
+    attestation,
+    readiness: {
+      privateInternalOnly: true, productReady: false, externalBetaReady: false,
+      productionReady: false, privateInternalFinalCompositionReady: true,
+      privateInternalLongFormMergeReady: true,
+      serverInjectedStreamingReady: true, canonicalDispatchIntegrated: false,
+    },
+  }
+}
+
 async function persistAuthority(image: OfflineRemotionImageEvidence): Promise<void> {
   const withoutHash = {
     schemaVersion: 'offline-remotion-render-runtime-authority-v1' as const,
     source: 'private_local_offline_remotion_render_runtime_authority' as const,
     activatedAt: new Date().toISOString(), image,
     supportedOperations: [{ toolId: 'remotion' as const, operationId: OFFLINE_REMOTION_RENDER_OPERATION }] as const,
-    readiness: { privateInternalExecutionReady: true as const, exactStructuredPayloadOnly: true as const, canonicalDispatchMayReference: true as const, productReady: false as const, externalBetaReady: false as const, productionReady: false as const, privateInternalFinalCompositionReady: true as const, serverInjectedStreamingFinalCompositionReady: true as const, finalExportReady: false as const },
+    readiness: { privateInternalExecutionReady: true as const, exactStructuredPayloadOnly: true as const, canonicalDispatchMayReference: true as const, productReady: false as const, externalBetaReady: false as const, productionReady: false as const, privateInternalFinalCompositionReady: true as const, serverInjectedStreamingFinalCompositionReady: true as const, serverInjectedStreamingLongFormMergeReady: true as const, finalExportReady: false as const },
     blockers: BLOCKERS,
   }
   const authority: OfflineRemotionRuntimeAuthority = { ...withoutHash, authorityHash: sha256AuthorityValue(withoutHash) }

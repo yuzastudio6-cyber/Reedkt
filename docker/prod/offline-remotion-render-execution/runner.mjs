@@ -14,6 +14,10 @@ const PROTOCOL = 'offline-remotion-render-execution-v1'
 const STREAMING_PROTOCOL = 'offline-remotion-render-stream-execution-v2'
 const STREAMING_CONTAINER_PROTOCOL = 'offline-remotion-render-stream-execution-container-v2'
 const STREAMING_INPUT_MODE = 'server_injected_private_stream_v1'
+const LONG_FORM_MERGE_STREAMING_PROTOCOL = 'offline-remotion-long-form-merge-stream-execution-v1'
+const LONG_FORM_MERGE_STREAMING_CONTAINER_PROTOCOL = 'offline-remotion-long-form-merge-stream-execution-container-v1'
+const LONG_FORM_MERGE_COMPOSITION_PROFILE = 'approved_4k_composition_chunk_merge_final_v1'
+const LONG_FORM_CAPACITY_PROFILE = 'canonical_private_4k_chunk_merge_1920_frames_v1'
 const OPERATION = 'tool.remotion.render_approved_composition.v1'
 const MAXIMUM_REQUEST_BYTES = 48 * 1024 * 1024
 const MAXIMUM_OUTPUT_BYTES = 16 * 1024 * 1024
@@ -23,6 +27,8 @@ const MAXIMUM_STREAMING_COMBINED_SOURCE_BYTES = 192 * 1024 * 1024
 const MAXIMUM_STREAMING_CAPTION_BYTES = 8 * 1024 * 1024
 const MAXIMUM_STREAMING_COMBINED_INPUT_BYTES = 272 * 1024 * 1024
 const MAXIMUM_STREAMING_OUTPUT_BYTES = 256 * 1024 * 1024
+const MAXIMUM_LONG_FORM_CHUNK_BYTES = 256 * 1024 * 1024
+const MAXIMUM_LONG_FORM_COMBINED_CHUNK_BYTES = 640 * 1024 * 1024
 const MAXIMUM_COMBINED_VOICE_TRACK_BYTES = 2 * 1024 * 1024
 const MAXIMUM_STREAMING_COMBINED_VOICE_TRACK_BYTES = 64 * 1024 * 1024
 const MAXIMUM_PCM_WAVE_HEADER_BYTES = 64 * 1024
@@ -30,6 +36,8 @@ const MINIMUM_COMPOSITION_FRAMES = 24
 const MAXIMUM_SOURCE_SEGMENT_FRAMES = 240
 const MAXIMUM_SOURCE_SEQUENCE_FRAMES = 480
 const MAXIMUM_SOURCE_SEQUENCE_ITEMS = 8
+const MINIMUM_LONG_FORM_FRAMES = MAXIMUM_SOURCE_SEQUENCE_FRAMES + 1
+const MAXIMUM_LONG_FORM_FRAMES = MAXIMUM_SOURCE_SEGMENT_FRAMES * MAXIMUM_SOURCE_SEQUENCE_ITEMS
 const SINGLE_STREAMING_CAPTION_OUTPUT_KEY = 'approved-full-frame-caption-overlay'
 const FORBIDDEN_TEXT = /(?:https?:\/\/|ftp:\/\/|file:|data:|javascript:|\.\.\/|\.\.\\|[A-Za-z]:[\\/]|(?:^|\s)\/(?:Users|home|etc|tmp|var|opt|app|root|proc|sys|dev)(?:\/|\b)|\$\(|`|&&|\|\||#!)/i
 const PRIVATE_REVIEW_FRAMES = ['360x640', '640x360', '480x480', '480x600']
@@ -219,8 +227,8 @@ function isCaptionTrackProfile(value) {
 }
 
 function validateCaptionOverlayCues(value, durationFrames) {
-  if (!Array.isArray(value) || value.length < 2 || value.length > 7) {
-    throw new Error('caption track requires two to seven cues')
+  if (!Array.isArray(value) || value.length < 1 || value.length > 7) {
+    throw new Error('caption track requires one to seven cues')
   }
   const seen = new Set()
   let previousEndFrame = 0
@@ -1033,6 +1041,234 @@ function validateStreamingManifest(value) {
   }
 }
 
+function validateLongFormMergeManifest(value) {
+  const request = exactObject(value, [
+    'schemaVersion', 'toolId', 'operationId', 'inputMode', 'payload', 'inputs',
+  ], 'long-form merge streaming request')
+  if (
+    request.schemaVersion !== LONG_FORM_MERGE_STREAMING_PROTOCOL ||
+    request.toolId !== 'remotion' || request.operationId !== OPERATION ||
+    request.inputMode !== STREAMING_INPUT_MODE
+  ) throw new Error('long-form merge streaming identity is unsupported')
+  const payload = exactObject(request.payload, [
+    'compositionProfileId', 'longFormCapacityProfileId',
+    'width', 'height', 'fps', 'durationFrames', 'chunks',
+    'mergePolicy', 'transitionPolicy', 'chunkBoundaryTransitions',
+    'audioPolicy', 'frameContinuityPolicy',
+    'renderPurpose', 'deliveryProfileId', 'estimateCostBasisProfileId',
+    'sourceQualityPolicy', 'usesApprovedEditReservation',
+    'requiresSeparateExportEstimate', 'allowsAdditionalExportCharge',
+  ], 'long-form merge planning payload')
+  const dimensions = `${payload.width}x${payload.height}`
+  if (
+    payload.compositionProfileId !== LONG_FORM_MERGE_COMPOSITION_PROFILE ||
+    payload.longFormCapacityProfileId !== LONG_FORM_CAPACITY_PROFILE ||
+    !FOUR_K_MASTER_FRAMES.includes(dimensions) ||
+    ![24, 30].includes(payload.fps) ||
+    !Number.isSafeInteger(payload.durationFrames) ||
+    payload.durationFrames < MINIMUM_LONG_FORM_FRAMES ||
+    payload.durationFrames > MAXIMUM_LONG_FORM_FRAMES ||
+    payload.mergePolicy !== 'approved_contiguous_4k_chunks_v1' ||
+    payload.transitionPolicy !== 'approved_hard_cuts_only' ||
+    payload.audioPolicy !== 'preserve_approved_chunk_audio' ||
+    payload.frameContinuityPolicy !== 'exact_integer_frame_boundaries_v1' ||
+    payload.renderPurpose !== 'private_4k_delivery_master_v1' ||
+    payload.deliveryProfileId !== 'uhd_2160' ||
+    payload.estimateCostBasisProfileId !== 'uhd_2160' ||
+    payload.sourceQualityPolicy !== 'immutable_source_master_no_proxy_v1' ||
+    payload.usesApprovedEditReservation !== true ||
+    payload.requiresSeparateExportEstimate !== false ||
+    payload.allowsAdditionalExportCharge !== false
+  ) throw new Error('long-form merge planning authority is unsupported')
+  if (!Array.isArray(payload.chunks) || payload.chunks.length < 2 ||
+      payload.chunks.length > MAXIMUM_SOURCE_SEQUENCE_ITEMS) {
+    throw new Error('long-form merge requires two through eight chunks')
+  }
+  let expectedStart = 0
+  const outputKeys = new Set()
+  const sourceIds = new Set()
+  const cleanupIds = new Set()
+  const chunks = payload.chunks.map((candidate, index) => {
+    const chunk = exactObject(candidate, [
+      'outputKey', 'chunkIndex', 'chunkCount',
+      'globalStartFrame', 'globalEndFrameExclusive', 'durationFrames',
+      'sourceSequenceItemIds', 'sourceCleanupDecisionIds',
+    ], `long-form merge chunk ${index + 1}`)
+    if (!Array.isArray(chunk.sourceSequenceItemIds) ||
+        !Array.isArray(chunk.sourceCleanupDecisionIds) ||
+        chunk.sourceSequenceItemIds.length < 1 ||
+        chunk.sourceSequenceItemIds.length > MAXIMUM_SOURCE_SEQUENCE_ITEMS ||
+        chunk.sourceSequenceItemIds.length !== chunk.sourceCleanupDecisionIds.length) {
+      throw new Error('long-form merge chunk lineage is incomplete')
+    }
+    const normalized = {
+      outputKey: safeIdentity(chunk.outputKey, 'chunk outputKey'),
+      chunkIndex: integer(chunk.chunkIndex, 1, payload.chunks.length, 'chunkIndex'),
+      chunkCount: integer(chunk.chunkCount, payload.chunks.length, payload.chunks.length, 'chunkCount'),
+      globalStartFrame: integer(chunk.globalStartFrame, 0, payload.durationFrames - 1, 'globalStartFrame'),
+      globalEndFrameExclusive: integer(chunk.globalEndFrameExclusive, 1, payload.durationFrames, 'globalEndFrameExclusive'),
+      durationFrames: integer(
+        chunk.durationFrames,
+        MINIMUM_COMPOSITION_FRAMES,
+        MAXIMUM_SOURCE_SEQUENCE_FRAMES,
+        'chunk durationFrames',
+      ),
+      sourceSequenceItemIds: chunk.sourceSequenceItemIds.map((id) =>
+        safeIdentity(id, 'chunk sourceSequenceItemId')),
+      sourceCleanupDecisionIds: chunk.sourceCleanupDecisionIds.map((id) =>
+        safeIdentity(id, 'chunk sourceCleanupDecisionId')),
+    }
+    if (
+      normalized.chunkIndex !== index + 1 ||
+      normalized.globalStartFrame !== expectedStart ||
+      normalized.globalEndFrameExclusive <= normalized.globalStartFrame ||
+      normalized.durationFrames !==
+        normalized.globalEndFrameExclusive - normalized.globalStartFrame ||
+      outputKeys.has(normalized.outputKey) ||
+      new Set(normalized.sourceSequenceItemIds).size !== normalized.sourceSequenceItemIds.length ||
+      new Set(normalized.sourceCleanupDecisionIds).size !== normalized.sourceCleanupDecisionIds.length ||
+      normalized.sourceSequenceItemIds.some((id) => sourceIds.has(id)) ||
+      normalized.sourceCleanupDecisionIds.some((id) => cleanupIds.has(id))
+    ) throw new Error('long-form chunks are not unique, contiguous, and duration preserving')
+    outputKeys.add(normalized.outputKey)
+    normalized.sourceSequenceItemIds.forEach((id) => sourceIds.add(id))
+    normalized.sourceCleanupDecisionIds.forEach((id) => cleanupIds.add(id))
+    expectedStart = normalized.globalEndFrameExclusive
+    return normalized
+  })
+  if (expectedStart !== payload.durationFrames) {
+    throw new Error('long-form chunks do not cover the approved duration')
+  }
+  if (
+    sourceIds.size < 2 || sourceIds.size > MAXIMUM_SOURCE_SEQUENCE_ITEMS ||
+    cleanupIds.size !== sourceIds.size
+  ) {
+    throw new Error('long-form merge requires two through eight ordered approved sources')
+  }
+  if (!Array.isArray(payload.chunkBoundaryTransitions) ||
+      payload.chunkBoundaryTransitions.length !== chunks.length - 1) {
+    throw new Error('long-form merge requires one hard cut per chunk boundary')
+  }
+  const timingIds = new Set()
+  const refinedIds = new Set()
+  const chunkBoundaryTransitions = payload.chunkBoundaryTransitions.map((candidate, index) => {
+    const transition = exactObject(candidate, [
+      'transitionTimingItemId', 'refinedTransitionTimingItemId',
+      'fromSourceSequenceItemId', 'toSourceSequenceItemId', 'boundaryFrame',
+    ], `long-form boundary transition ${index + 1}`)
+    const normalized = {
+      transitionTimingItemId: safeIdentity(transition.transitionTimingItemId, 'transitionTimingItemId'),
+      refinedTransitionTimingItemId: safeIdentity(
+        transition.refinedTransitionTimingItemId,
+        'refinedTransitionTimingItemId',
+      ),
+      fromSourceSequenceItemId: safeIdentity(
+        transition.fromSourceSequenceItemId,
+        'fromSourceSequenceItemId',
+      ),
+      toSourceSequenceItemId: safeIdentity(
+        transition.toSourceSequenceItemId,
+        'toSourceSequenceItemId',
+      ),
+      boundaryFrame: integer(transition.boundaryFrame, 1, payload.durationFrames - 1, 'boundaryFrame'),
+    }
+    const fromChunk = chunks[index]
+    const toChunk = chunks[index + 1]
+    if (
+      timingIds.has(normalized.transitionTimingItemId) ||
+      refinedIds.has(normalized.refinedTransitionTimingItemId) ||
+      normalized.boundaryFrame !== fromChunk.globalEndFrameExclusive ||
+      normalized.boundaryFrame !== toChunk.globalStartFrame ||
+      normalized.fromSourceSequenceItemId !== fromChunk.sourceSequenceItemIds.at(-1) ||
+      normalized.toSourceSequenceItemId !== toChunk.sourceSequenceItemIds[0]
+    ) throw new Error('long-form hard-cut authority diverges from a chunk boundary')
+    timingIds.add(normalized.transitionTimingItemId)
+    refinedIds.add(normalized.refinedTransitionTimingItemId)
+    return normalized
+  })
+  const inputs = exactObject(request.inputs, ['chunks'], 'long-form merge inputs')
+  if (!Array.isArray(inputs.chunks) || inputs.chunks.length !== chunks.length) {
+    throw new Error('long-form chunk commitments are incomplete')
+  }
+  const inputIds = new Set()
+  let combinedBytes = 0
+  const commitments = inputs.chunks.map((candidate, index) => {
+    const commitment = validateStreamingInputCommitment(
+      candidate,
+      ['inputId', 'outputKey', 'chunkIndex', 'mimeType', 'byteLength', 'sha256'],
+      'video/mp4',
+      1_024,
+      MAXIMUM_LONG_FORM_CHUNK_BYTES,
+      `long-form chunk commitment ${index + 1}`,
+    )
+    const outputKey = safeIdentity(candidate.outputKey, 'chunk commitment outputKey')
+    const chunkIndex = integer(candidate.chunkIndex, 1, chunks.length, 'chunk commitment index')
+    if (
+      inputIds.has(commitment.inputId) ||
+      outputKey !== chunks[index].outputKey || chunkIndex !== chunks[index].chunkIndex
+    ) throw new Error('long-form chunk commitment diverges from approved order')
+    inputIds.add(commitment.inputId)
+    combinedBytes += commitment.byteLength
+    return { ...commitment, outputKey, chunkIndex }
+  })
+  if (!Number.isSafeInteger(combinedBytes) ||
+      combinedBytes > MAXIMUM_LONG_FORM_COMBINED_CHUNK_BYTES) {
+    throw new Error('long-form chunk commitments exceed combined capacity')
+  }
+  return {
+    schemaVersion: LONG_FORM_MERGE_STREAMING_PROTOCOL,
+    toolId: 'remotion', operationId: OPERATION, inputMode: STREAMING_INPUT_MODE,
+    payload: {
+      ...payload,
+      width: integer(payload.width, 2160, 3840, 'width'),
+      height: integer(payload.height, 2160, 3840, 'height'),
+      fps: payload.fps,
+      durationFrames: payload.durationFrames,
+      chunks,
+      chunkBoundaryTransitions,
+    },
+    inputs: { chunks: commitments },
+    commitments,
+  }
+}
+
+async function materializeLongFormMergeRequest(manifest, reader, requestHash) {
+  const materialized = []
+  try {
+    for (const [index, commitment] of manifest.commitments.entries()) {
+      const path = `/tmp/reeditpro-stream-input-long-form-chunk-${process.pid}-${index}-${requestHash.slice(0, 12)}.mp4`
+      const file = await reader.readExactFile(path, commitment.byteLength)
+      if (file.sha256 !== commitment.sha256 ||
+          !approvedStreamingInputSignature(file.firstBytes, 'video/mp4')) {
+        throw new Error('long-form chunk failed exact checksum or MP4 signature verification')
+      }
+      materialized.push({ ...commitment, path })
+    }
+    await reader.assertEnd()
+    const byInputId = new Map(materialized.map((input) => [input.inputId, input]))
+    return {
+      request: {
+        schemaVersion: LONG_FORM_MERGE_STREAMING_PROTOCOL,
+        toolId: 'remotion', operationId: OPERATION, inputMode: STREAMING_INPUT_MODE,
+        payload: {
+          ...manifest.payload,
+          chunks: manifest.payload.chunks.map((chunk, index) => ({
+            ...chunk,
+            chunkMimeType: 'video/mp4',
+            chunkByteLength: manifest.inputs.chunks[index].byteLength,
+            chunkSha256: manifest.inputs.chunks[index].sha256,
+            chunkInternalFilePath: byInputId.get(manifest.inputs.chunks[index].inputId).path,
+          })),
+        },
+      },
+      materialized,
+    }
+  } catch (error) {
+    await Promise.all(materialized.map((input) => rm(input.path, { force: true })))
+    throw error
+  }
+}
+
 async function materializeStreamingRequest(manifest, reader, requestHash) {
   const materialized = []
   try {
@@ -1147,11 +1383,14 @@ async function execute(request, options = {}) {
   if (!browserExecutable.startsWith('/app/node_modules/.remotion/chrome-headless-shell/')) {
     throw new Error('Prepared Remotion browser identity is invalid')
   }
+  const longFormMerge =
+    request.payload.compositionProfileId === LONG_FORM_MERGE_COMPOSITION_PROFILE
   const finalComposition = [
     'approved_source_caption_final_v1',
     'approved_source_sequence_caption_final_v1',
     'approved_source_caption_track_final_v1',
     'approved_source_sequence_caption_track_final_v1',
+    LONG_FORM_MERGE_COMPOSITION_PROFILE,
   ].includes(request.payload.compositionProfileId)
   const captionTrack = isCaptionTrackProfile(request.payload.compositionProfileId)
   const replaceVoice = finalComposition &&
@@ -1160,7 +1399,14 @@ async function execute(request, options = {}) {
     request.payload.renderPurpose === 'private_4k_delivery_master_v1'
   const mediaServer = finalComposition
     ? await openPrivateLoopbackMediaServer(
-        isSourceSequenceProfile(request.payload.compositionProfileId)
+        longFormMerge
+          ? request.payload.chunks.map((chunk) => ({
+              sourceSequenceItemId: chunk.outputKey,
+              mimeType: 'video/mp4',
+              path: chunk.chunkInternalFilePath,
+              byteLength: chunk.chunkByteLength,
+            }))
+          : isSourceSequenceProfile(request.payload.compositionProfileId)
           ? request.payload.sources.map((source) => ({
               sourceSequenceItemId: source.sourceSequenceItemId,
               mimeType: source.sourceMimeType,
@@ -1181,7 +1427,9 @@ async function execute(request, options = {}) {
                 request.payload.sourceByteLength,
               ),
             }],
-        captionTrack
+        longFormMerge
+          ? []
+          : captionTrack
           ? request.payload.captionOverlays.map((overlay) => ({
               outputKey: overlay.outputKey,
               ...committedMediaLocation(
@@ -1200,7 +1448,7 @@ async function execute(request, options = {}) {
                 request.payload.captionOverlayByteLength,
               ),
             }],
-        replaceVoice
+        !longFormMerge && replaceVoice
           ? request.payload.voiceTracks.map((track) => ({
               sourceSequenceItemId: track.sourceSequenceItemId,
               outputKey: track.outputKey,
@@ -1234,7 +1482,26 @@ async function execute(request, options = {}) {
         })),
       }
     : {}
-  const renderPayload = isSourceSequenceProfile(request.payload.compositionProfileId)
+  const renderPayload = longFormMerge
+    ? {
+        compositionProfileId: LONG_FORM_MERGE_COMPOSITION_PROFILE,
+        deliveryProfileId: 'uhd_2160',
+        width: request.payload.width, height: request.payload.height,
+        fps: request.payload.fps, durationFrames: request.payload.durationFrames,
+        chunkSegments: request.payload.chunks.map((chunk) => ({
+          outputKey: chunk.outputKey,
+          chunkIndex: chunk.chunkIndex,
+          globalStartFrame: chunk.globalStartFrame,
+          globalEndFrameExclusive: chunk.globalEndFrameExclusive,
+          durationFrames: chunk.durationFrames,
+        })),
+        chunkInternalUrls: request.payload.chunks.map((chunk, index) => ({
+          outputKey: chunk.outputKey,
+          chunkIndex: chunk.chunkIndex,
+          chunkInternalUrl: `${mediaServer.origin}/source/${index}.mp4`,
+        })),
+      }
+    : isSourceSequenceProfile(request.payload.compositionProfileId)
     ? {
         compositionProfileId: request.payload.compositionProfileId,
         ...(fourKDeliveryMaster ? { deliveryProfileId: 'uhd_2160' } : {}),
@@ -1656,7 +1923,18 @@ function semanticEvidence(request, streaming) {
           professionalHighQualityEncodeApplied: true,
         }
       : {}),
-    ...(['approved_source_caption_final_v1', 'approved_source_caption_track_final_v1']
+    ...(request.payload.compositionProfileId === LONG_FORM_MERGE_COMPOSITION_PROFILE
+      ? {
+          approvedCompositionChunkBytesVerified: true,
+          approvedCompositionChunkOrderApplied: true,
+          approvedCompositionChunkFrameContinuityApplied: true,
+          approvedCompositionChunkAudioPreserved: true,
+          approvedCompositionChunkBoundaryAuthorityRead: true,
+          approvedCompositionChunkHardCutsApplied: true,
+          approvedLongFormCapacityProfileVerified: true,
+          finalCompositionProfileExecuted: true,
+        }
+      : ['approved_source_caption_final_v1', 'approved_source_caption_track_final_v1']
       .includes(request.payload.compositionProfileId)
       ? {
           approvedSourceBytesVerified: true,
@@ -1716,6 +1994,9 @@ function responseEnvelope(schemaVersion, requestEnvelopeSha256, artifact, reques
       externalBetaReady: false,
       productionReady: false,
       privateInternalFinalCompositionReady: true,
+      ...(request.payload.compositionProfileId === LONG_FORM_MERGE_COMPOSITION_PROFILE
+        ? { privateInternalLongFormMergeReady: true }
+        : {}),
     },
   }
 }
@@ -1733,7 +2014,30 @@ let streamingOutputPath
 try {
   const rawHeader = await reader.readLine(MAXIMUM_REQUEST_BYTES)
   const parsed = JSON.parse(rawHeader.toString('utf8'))
-  if (parsed?.schemaVersion === STREAMING_PROTOCOL) {
+  if (parsed?.schemaVersion === LONG_FORM_MERGE_STREAMING_PROTOCOL) {
+    if (rawHeader.byteLength > MAXIMUM_STREAMING_MANIFEST_BYTES) {
+      throw new Error('long-form merge manifest exceeded its metadata ceiling')
+    }
+    const manifest = validateLongFormMergeManifest(parsed)
+    const materialized = await materializeLongFormMergeRequest(
+      manifest,
+      reader,
+      sha256(rawHeader),
+    )
+    streamingFiles = materialized.materialized
+    const execution = await execute(materialized.request, { streamingOutput: true })
+    streamingOutputPath = execution.outputPath
+    const response = responseEnvelope(
+      LONG_FORM_MERGE_STREAMING_CONTAINER_PROTOCOL,
+      sha256(rawHeader),
+      execution.artifact,
+      materialized.request,
+      true,
+    )
+    process.stdout.write(`${JSON.stringify(response)}\n`)
+    streamingHeaderWritten = true
+    await writeFileToStdout(execution.outputPath)
+  } else if (parsed?.schemaVersion === STREAMING_PROTOCOL) {
     if (rawHeader.byteLength > MAXIMUM_STREAMING_MANIFEST_BYTES) {
       throw new Error('streaming manifest exceeded its metadata ceiling')
     }

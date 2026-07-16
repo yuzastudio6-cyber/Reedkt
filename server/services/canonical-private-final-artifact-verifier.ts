@@ -1,4 +1,5 @@
 import { ApiError } from '../errors/api-error'
+import { CANONICAL_PRIVATE_LONG_FORM_FINAL_ARTIFACT_TYPE } from '../../src/types/canonical-private-composition-capacity'
 import type { PersistedArtifactResult } from '../validation/private-artifact-qa-authority-schemas'
 import { inspectCanonicalPrivateRemotionArtifact } from './canonical-private-remotion-artifact-storage'
 import { sha256AuthorityValue } from './private-edit-authority-store'
@@ -13,6 +14,7 @@ export async function verifyCanonicalPrivateFinalCompositionArtifact(input: {
     'private_source_sequence_caption_4k_delivery_master_v1',
     'private_source_caption_track_4k_delivery_master_v1',
     'private_source_sequence_caption_track_4k_delivery_master_v1',
+    CANONICAL_PRIVATE_LONG_FORM_FINAL_ARTIFACT_TYPE,
   ])
   if (
     input.artifact.identity.expectedAssetId !== input.artifact.lineage.assetId ||

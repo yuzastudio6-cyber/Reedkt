@@ -28,6 +28,7 @@ export interface ApprovedCompositionProps {
     | 'approved_source_sequence_caption_final_v1'
     | 'approved_source_caption_track_final_v1'
     | 'approved_source_sequence_caption_track_final_v1'
+    | 'approved_4k_composition_chunk_merge_final_v1'
   deliveryProfileId?: 'uhd_2160'
   sourceStartFrame?: number
   sourceEndFrameExclusive?: number
@@ -82,6 +83,18 @@ export interface ApprovedCompositionProps {
     outputKey: string
     voiceTrackInternalUrl: string
   }>
+  chunkSegments?: Array<{
+    outputKey: string
+    chunkIndex: number
+    globalStartFrame: number
+    globalEndFrameExclusive: number
+    durationFrames: number
+  }>
+  chunkInternalUrls?: Array<{
+    outputKey: string
+    chunkIndex: number
+    chunkInternalUrl: string
+  }>
 }
 
 export const defaultApprovedCompositionProps: ApprovedCompositionProps = {
@@ -100,6 +113,12 @@ export const defaultApprovedCompositionProps: ApprovedCompositionProps = {
 export const ApprovedComposition: React.FC<ApprovedCompositionProps> = (props) => {
   const frame = useCurrentFrame()
   const { fps, durationInFrames, width, height } = useVideoConfig()
+  if (
+    props.compositionProfileId === 'approved_4k_composition_chunk_merge_final_v1' &&
+    hasApprovedChunkMergeInput(props)
+  ) {
+    return <ApprovedChunkMergeComposition {...props} />
+  }
   if (
     ['approved_source_caption_final_v1', 'approved_source_caption_track_final_v1']
       .includes(props.compositionProfileId ?? '') &&
@@ -183,6 +202,34 @@ export const ApprovedComposition: React.FC<ApprovedCompositionProps> = (props) =
       >
         {props.caption}
       </div>
+    </AbsoluteFill>
+  )
+}
+
+const ApprovedChunkMergeComposition: React.FC<ApprovedCompositionProps> = (props) => {
+  const urlByOutputKey = new Map(
+    props.chunkInternalUrls!.map((chunk) => [chunk.outputKey, chunk.chunkInternalUrl]),
+  )
+  return (
+    <AbsoluteFill style={{ backgroundColor: '#000000', overflow: 'hidden' }}>
+      {props.chunkSegments!.map((chunk) => (
+        <Sequence
+          key={chunk.outputKey}
+          from={chunk.globalStartFrame}
+          durationInFrames={chunk.durationFrames}
+          name={`Approved composition chunk ${chunk.chunkIndex}`}
+        >
+          <Html5Video
+            src={urlByOutputKey.get(chunk.outputKey)!}
+            startFrom={0}
+            endAt={chunk.durationFrames}
+            style={{ width: '100%', height: '100%', objectFit: 'fill' }}
+            volume={1}
+            delayRenderTimeoutInMilliseconds={180_000}
+            delayRenderRetries={1}
+          />
+        </Sequence>
+      ))}
     </AbsoluteFill>
   )
 }
@@ -339,4 +386,27 @@ function hasApprovedHardCutInput(props: ApprovedCompositionProps): boolean {
     refinedIds.add(transition.refinedTransitionTimingItemId)
     return valid
   })
+}
+
+function hasApprovedChunkMergeInput(props: ApprovedCompositionProps): boolean {
+  if (
+    !props.chunkSegments || !props.chunkInternalUrls ||
+    props.chunkSegments.length < 2 ||
+    props.chunkSegments.length !== props.chunkInternalUrls.length
+  ) return false
+  const urls = new Map(
+    props.chunkInternalUrls.map((chunk) => [chunk.outputKey, chunk]),
+  )
+  let expectedStart = 0
+  for (const [index, chunk] of props.chunkSegments.entries()) {
+    const url = urls.get(chunk.outputKey)
+    if (
+      !url || chunk.chunkIndex !== index + 1 || url.chunkIndex !== chunk.chunkIndex ||
+      chunk.globalStartFrame !== expectedStart ||
+      chunk.globalEndFrameExclusive <= chunk.globalStartFrame ||
+      chunk.durationFrames !== chunk.globalEndFrameExclusive - chunk.globalStartFrame
+    ) return false
+    expectedStart = chunk.globalEndFrameExclusive
+  }
+  return expectedStart === props.durationFrames && urls.size === props.chunkSegments.length
 }

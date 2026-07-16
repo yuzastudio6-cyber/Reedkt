@@ -30,6 +30,7 @@ import { createCanonicalPrivateBrowserGraphicsExecutionService } from './canonic
 import { createCanonicalPrivateContainerPackagingValidationExecutionService } from './canonical-private-container-packaging-validation-execution-service'
 import { createCanonicalPrivateDeepFilterNetVoiceCleanupExecutionService } from './canonical-private-deepfilternet-voice-cleanup-execution-service'
 import { createCanonicalPrivateFinalCompositionExecutionService } from './canonical-private-final-composition-execution-service'
+import { createCanonicalPrivateLongFormMergeExecutionService } from './canonical-private-long-form-merge-execution-service'
 import { createCanonicalPrivateJobCompletionRecoveryService } from './canonical-private-job-completion-recovery-service'
 import { createCanonicalPrivateLibassExecutionService } from './canonical-private-libass-execution-service'
 import { createCanonicalPrivateMediaBinaryExecutionService } from './canonical-private-media-binary-execution-service'
@@ -264,6 +265,14 @@ export function createCanonicalPrivateJobExecutionAdapterService(context: Servic
         resolvedProvenTool!.canonicalToolId === 'remotion' &&
         workItem.workItemType === 'render_final_export' &&
         expectedAsset.assetRole === 'final'
+      const compositionChunkExecution = !internalServerJob &&
+        resolvedProvenTool!.canonicalToolId === 'remotion' &&
+        workItem.workItemType === 'custom' &&
+        workItem.executionInput.operation === 'render_approved_4k_composition_chunk' &&
+        expectedAsset.assetRole === 'processed' &&
+        expectedAsset.artifactType === 'private_4k_composition_chunk_v1'
+      const longFormMergeExecution = finalCompositionExecution &&
+        workItem.executionInput.operation === 'merge_approved_4k_composition_chunks'
       const completionRecovery = await createCanonicalPrivateJobCompletionRecoveryService(
         context,
       ).recoverIfCompleted({
@@ -487,6 +496,8 @@ export function createCanonicalPrivateJobExecutionAdapterService(context: Servic
             idempotencyKey: stageKey('consume'),
             runnerClass: provenRunnerClass,
             finalCompositionExecution,
+            compositionChunkExecution,
+            longFormMergeExecution,
             serverAuthority: { ...leaseAuthority, dispatchCredential: grant.dispatchCredential },
           })
           singleUseDispatchConsumed = true
@@ -591,6 +602,8 @@ async function executeToolCoordinator(input: {
   idempotencyKey: string
   runnerClass: ProvenToolRunnerClass
   finalCompositionExecution: boolean
+  compositionChunkExecution: boolean
+  longFormMergeExecution: boolean
   serverAuthority: { leaseId: string; leaseCredential: string; dispatchCredential: string }
 }): Promise<CoordinatorResponse> {
   const base = {
@@ -625,13 +638,21 @@ async function executeToolCoordinator(input: {
       }, authority)
       break
     case 'offline_remotion_render_execution_v1':
-      response = input.finalCompositionExecution
-        ? await createCanonicalPrivateFinalCompositionExecutionService(input.context).execute({
+      response = input.longFormMergeExecution
+        ? await createCanonicalPrivateLongFormMergeExecutionService(input.context).execute({
+            ...base, purpose: 'execute_canonical_private_long_form_merge',
+          }, authority)
+        : input.compositionChunkExecution
+          ? await createCanonicalPrivateFinalCompositionExecutionService(input.context).executeChunk({
+              ...base, purpose: 'execute_canonical_private_composition_chunk',
+            }, authority)
+          : input.finalCompositionExecution
+            ? await createCanonicalPrivateFinalCompositionExecutionService(input.context).execute({
             ...base, purpose: 'execute_canonical_private_final_composition',
-          }, authority)
-        : await createCanonicalPrivateRemotionExecutionService(input.context).execute({
-            ...base, purpose: 'execute_canonical_private_remotion_tool',
-          }, authority)
+              }, authority)
+            : await createCanonicalPrivateRemotionExecutionService(input.context).execute({
+                ...base, purpose: 'execute_canonical_private_remotion_tool',
+              }, authority)
       break
     case 'offline_libass_caption_execution_v1':
       response = await createCanonicalPrivateLibassExecutionService(input.context).execute({

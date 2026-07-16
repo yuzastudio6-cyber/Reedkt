@@ -28,10 +28,15 @@ import type { ServiceContext } from '../types'
 import {
   canonicalPrivateFinalCompositionAuthoritySchema,
   canonicalPrivateFinalCompositionResponseSchema,
+  canonicalPrivateCompositionChunkAuthoritySchema,
+  canonicalPrivateCompositionChunkResponseSchema,
   runCanonicalPrivateFinalCompositionSchema,
+  runCanonicalPrivateCompositionChunkSchema,
   type CanonicalPrivateFinalCompositionAuthority,
   type CanonicalPrivateFinalCompositionResponse,
+  type CanonicalPrivateCompositionChunkResponse,
   type RunCanonicalPrivateFinalCompositionInput,
+  type RunCanonicalPrivateCompositionChunkInput,
 } from '../validation/canonical-private-final-composition-execution-schemas'
 import type {
   CanonicalExpectedArtifactLineage,
@@ -76,16 +81,22 @@ type EditPlanningService = ReturnType<typeof createEditPlanningAuthorityService>
 type ApprovedExecutionAuthority = Awaited<ReturnType<EditPlanningService['loadApprovedExecutionAuthority']>>
 
 export function createCanonicalPrivateFinalCompositionExecutionService(context: ServiceContext) {
-  return {
-    async execute(
-      input: RunCanonicalPrivateFinalCompositionInput,
-      serverAuthority: CanonicalPrivateFinalCompositionAuthority,
-    ): Promise<CanonicalPrivateFinalCompositionResponse> {
-      const body = parse(
-        runCanonicalPrivateFinalCompositionSchema,
-        input,
-        'Final composition execution identity is invalid.',
-      )
+  const executeComposition = async (
+    input: RunCanonicalPrivateFinalCompositionInput | RunCanonicalPrivateCompositionChunkInput,
+    serverAuthority: CanonicalPrivateFinalCompositionAuthority,
+    mode: 'final' | 'chunk',
+  ): Promise<CanonicalPrivateFinalCompositionResponse | CanonicalPrivateCompositionChunkResponse> => {
+      const body = mode === 'final'
+        ? parse(
+            runCanonicalPrivateFinalCompositionSchema,
+            input,
+            'Final composition execution identity is invalid.',
+          )
+        : parse(
+            runCanonicalPrivateCompositionChunkSchema,
+            input,
+            'Composition chunk execution identity is invalid.',
+          )
       const injected = parse(
         canonicalPrivateFinalCompositionAuthoritySchema,
         serverAuthority,
@@ -93,7 +104,7 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
       )
       const actor = getRequiredAuthUserId(context)
       const access = await authorizeWorkspaceAccess(context, body.workspaceId, 'write')
-      if (actor !== access.userId) throw denied('Final composition actor is outside this workspace.')
+      if (actor !== access.userId) throw denied('Composition actor is outside this workspace.')
 
       const dispatch = (await createCanonicalPrivateToolDispatchAuthorityService(context).consume({
         workspaceId: body.workspaceId,
@@ -105,15 +116,19 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
         idempotencyKey: body.idempotencyKey,
       }, injected)).toolDispatchConsumption
       const binding = dispatch.grant.binding
+      const expectedAssetRole = mode === 'final' ? 'final' : 'processed'
       if (
         binding.canonicalToolId !== 'remotion' || binding.operationId !== OFFLINE_REMOTION_RENDER_OPERATION ||
         binding.leaseId !== injected.leaseId || binding.jobId !== body.jobId ||
         binding.workspaceId !== body.workspaceId || binding.projectId !== body.projectId ||
-        binding.editSessionId !== body.editSessionId || binding.expectedOutput.assetRole !== 'final' ||
-        !dispatch.executionAuthority.privateFinalCompositionAuthorized ||
+        binding.editSessionId !== body.editSessionId ||
+        binding.expectedOutput.assetRole !== expectedAssetRole ||
+        (mode === 'final'
+          ? !dispatch.executionAuthority.privateFinalCompositionAuthorized
+          : !dispatch.executionAuthority.privateCompositionChunkAuthorized) ||
         (!dispatch.executionAuthority.newExecutionStartAuthorized &&
           !dispatch.executionAuthority.resumeSameIdempotentAttemptOnly)
-      ) throw denied('Consumed dispatch grant does not match final composition identity.')
+      ) throw denied('Consumed dispatch grant does not match composition identity.')
 
       const readiness = (await createCanonicalExecutionReadinessService(context).inspectJob({
         workspaceId: body.workspaceId,
@@ -135,6 +150,13 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
       const planningPayload = validateOfflineRemotionFinalCompositionPlanningPayload(
         workItem.executionInput.structuredPayload,
       )
+      const chunkAuthority = mode === 'chunk'
+        ? parse(
+            canonicalPrivateCompositionChunkAuthoritySchema,
+            workItem.executionInput.chunkAuthority,
+            'Composition chunk authority is invalid.',
+          )
+        : undefined
       const exportCoverage = authority.components.confirmedSettings.professionalExportCoverage
       const exactFourKFrame = resolveProfessionalExportFrame(
         exportCoverage.approvedAspectRatio,
@@ -195,20 +217,42 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
         planningPayload.sourceMediaPolicy === 'approved_professional_color_intermediate_v1'
       const colorSourceCount = usesApprovedColorIntermediate ? sourceCount : 0
       const expectedDependencyCount = 1 + captionCueCount + voiceTrackCount + colorSourceCount
+      const directFinalOperations = new Set([
+        'render_approved_source_caption_final',
+        'render_approved_source_sequence_caption_final',
+        'render_approved_source_caption_track_final',
+        'render_approved_source_sequence_caption_track_final',
+      ])
+      const exactModeSpecificAuthority = mode === 'final'
+        ? (
+            workItem.workItemType === 'render_final_export' &&
+            typeof workItem.executionInput.operation === 'string' &&
+            directFinalOperations.has(workItem.executionInput.operation) &&
+            expectedAsset.assetRole === 'final'
+          )
+        : (
+            workItem.workItemType === 'custom' &&
+            workItem.executionInput.operation === 'render_approved_4k_composition_chunk' &&
+            expectedAsset.assetRole === 'processed' &&
+            expectedAsset.artifactType === 'private_4k_composition_chunk_v1' &&
+            captionTrackProfile &&
+            chunkAuthority?.outputKey === expectedAsset.outputKey &&
+            chunkAuthority.durationFrames === planningPayload.durationFrames
+          )
       if (
         colorDependencyWorkItemCount !== colorSourceCount ||
         (usesApprovedColorIntermediate && !replaceVoice) ||
-        workItem.workItemType !== 'render_final_export' || workItem.workerClass !== 'render_worker' ||
+        !exactModeSpecificAuthority || workItem.workerClass !== 'render_worker' ||
         workItem.approvedToolIds.length !== 1 || workItem.approvedToolIds[0] !== 'remotion' ||
         workItem.sourceSequenceItemIds.length !== sourceCount ||
         workItem.sourceCleanupDecisionIds.length !== sourceCount ||
         workItem.dependencyKeys.length !== expectedDependencyCount ||
         expectedAsset.contentType !== CONTENT_TYPE || binding.expectedOutput.contentType !== CONTENT_TYPE ||
-        expectedAsset.assetRole !== 'final' || !expectedAsset.required || expectedAsset.previewPlaceholderAllowed ||
+        !expectedAsset.required || expectedAsset.previewPlaceholderAllowed ||
         binding.expectedOutput.outputKey !== expectedAsset.outputKey ||
         readiness.job.approvedWorkItemId !== workItem.id ||
         binding.approvedPlanSnapshotId !== authority.snapshot.snapshotId
-      ) throw denied('Final composition requires exact ordered sources, trim decisions, and caption dependencies.')
+      ) throw denied('Composition requires exact ordered sources, trim decisions, and caption dependencies.')
       const approvedCleanupDecisions = workItem.sourceCleanupDecisionIds.map((decisionId, index) =>
         authority.components.sourceCleanupPlan.decisions.find((decision) =>
           decision.decisionId === decisionId &&
@@ -347,11 +391,26 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
             authority,
           })
         : []
+      const globalSourceSequenceItemIds = mode === 'chunk'
+        ? authority.components.sourceSequence.map((source) => source.sourceSequenceItemId)
+        : [...workItem.sourceSequenceItemIds]
+      const globalCleanupDecisions = mode === 'chunk'
+        ? globalSourceSequenceItemIds.map((sourceSequenceItemId) =>
+            authority.components.sourceCleanupPlan.decisions.find((decision) =>
+              decision.sourceSequenceItemId === sourceSequenceItemId && decision.action !== 'cut'))
+        : [...exactCleanupDecisions]
+      if (globalCleanupDecisions.some((decision) => !decision)) {
+        throw denied('Global source/color reference authority is incomplete.')
+      }
       const colorSources = usesApprovedColorIntermediate
         ? orderColorDependencies({
             colorDependencies,
             sourceSequenceItemIds: workItem.sourceSequenceItemIds,
             cleanupDecisions: exactCleanupDecisions,
+            globalSourceSequenceItemIds,
+            globalCleanupDecisions: globalCleanupDecisions as Array<NonNullable<
+              (typeof globalCleanupDecisions)[number]
+            >>,
             fps: planningPayload.fps,
             authority,
           })
@@ -363,17 +422,46 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
         jobId: trimArtifact.dependencyJobId,
         purpose: 'private_internal_dry_run_readiness',
       })).executionReadinessEnvelope
-      const sourceTrim = parseApprovedSourceTrimEvidence({
+      const trimWorkItem = authority.workItems.find((candidate) =>
+        candidate.id === trimReadiness.job.approvedWorkItemId)
+      if (
+        !trimWorkItem || trimWorkItem.workItemType !== 'prepare_source_trim' ||
+        trimWorkItem.workerClass !== 'authority_worker' ||
+        trimWorkItem.executionInput.operation !== 'validate_approved_source_trim_plan' ||
+        trimWorkItem.sourceSequenceItemIds.length < workItem.sourceSequenceItemIds.length ||
+        trimWorkItem.sourceSequenceItemIds.length !== trimWorkItem.sourceCleanupDecisionIds.length
+      ) throw denied('Approved source trim dependency lost its complete canonical work-item authority.')
+      const trimCleanupDecisions = trimWorkItem.sourceCleanupDecisionIds.map((decisionId, index) =>
+        authority.components.sourceCleanupPlan.decisions.find((decision) =>
+          decision.decisionId === decisionId &&
+          decision.sourceSequenceItemId === trimWorkItem.sourceSequenceItemIds[index]))
+      if (trimCleanupDecisions.some((decision) => !decision || decision.action === 'cut')) {
+        throw denied('Approved source trim dependency lost a complete executable cleanup decision.')
+      }
+      const completeSourceTrim = parseApprovedSourceTrimEvidence({
         bytes: trimArtifact.bytes,
         body,
         snapshotId: authority.snapshot.snapshotId,
         workItemId: trimReadiness.job.approvedWorkItemId,
-        sourceSequenceItemIds: workItem.sourceSequenceItemIds,
-        sourceCleanupDecisionIds: workItem.sourceCleanupDecisionIds,
-        approvedCleanupDecisions: exactCleanupDecisions,
+        sourceSequenceItemIds: trimWorkItem.sourceSequenceItemIds,
+        sourceCleanupDecisionIds: trimWorkItem.sourceCleanupDecisionIds,
+        approvedCleanupDecisions: trimCleanupDecisions as Array<NonNullable<
+          (typeof trimCleanupDecisions)[number]
+        >>,
         authorityHashes: readiness.authorityHashes,
         dependencyJobId: trimArtifact.dependencyJobId,
         expectedAssetId: trimArtifact.expectedAssetId,
+      })
+      const completeSourceTrimByDecision = new Map(
+        completeSourceTrim.map((decision) => [decision.decisionId, decision]),
+      )
+      const sourceTrim = workItem.sourceCleanupDecisionIds.map((decisionId, index) => {
+        const decision = completeSourceTrimByDecision.get(decisionId)
+        if (
+          !decision ||
+          decision.sourceSequenceItemId !== workItem.sourceSequenceItemIds[index]
+        ) throw denied('Composition source subset diverged from complete approved trim evidence.')
+        return decision
       })
       const sourceReader = createCanonicalPrivateSourceObjectReadService(context)
       const stagedSourceSet = sequenceProfile
@@ -457,7 +545,9 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
         })),
       ]
       const privateObjectIdentityFor = (contentSha256: string) => sha256ArtifactQaValue({
-        domain: 'canonical_private_4k_delivery_master_mp4_stream_v2',
+        domain: mode === 'final'
+          ? 'canonical_private_4k_delivery_master_mp4_stream_v2'
+          : 'canonical_private_4k_composition_chunk_mp4_stream_v1',
         workspaceId: body.workspaceId, snapshotId: authority.snapshot.snapshotId,
         jobId: body.jobId, expectedAssetId: expectedAsset.id,
         dispatchGrantId: body.grantId, executionAttemptId,
@@ -474,6 +564,7 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
         voiceTrackSha256s: voiceTracks.map((voiceTrack) => voiceTrack.sha256),
         colorIntermediateSha256s: colorSources.map((source) => source.dependency.sha256),
         hardCutAuthorityHash,
+        ...(chunkAuthority ? { chunkAuthority } : {}),
         contentSha256,
       })
       let privateObjectIdentityHash: string | undefined
@@ -548,6 +639,7 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
       }
       const adapterInput: FinalCompositionAdapterInput = {
         localStorageRoot: context.env.localStorageRoot, identity, lineage,
+        mode,
         privateObjectIdentityHash, executionAttemptId, dispatchGrantId: body.grantId,
         runtimeAuthorityHash: runtimeAuthority.authorityHash,
         executionStartedAt: begun.executionFence.startedAt,
@@ -567,15 +659,20 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
       }
       const artifactAuthority = createPrivateArtifactQaAuthorityService(context, adapters(adapterInput))
       const keyHash = sha256ArtifactQaValue({
-        domain: 'canonical_final_composition_idempotency_v1', body, executionAttemptId,
+        domain: mode === 'final'
+          ? 'canonical_final_composition_idempotency_v1'
+          : 'canonical_composition_chunk_idempotency_v1',
+        body,
+        executionAttemptId,
       })
+      const idempotencyPrefix = mode === 'final' ? 'final-composition' : 'composition-chunk'
       const artifactResult = await artifactAuthority.recordArtifactResult({
-        ...identity, idempotencyKey: key('final-composition-artifact', keyHash),
+        ...identity, idempotencyKey: key(`${idempotencyPrefix}-artifact`, keyHash),
         purpose: 'record_server_verified_internal_artifact_result',
       })
       const qaResult = await artifactAuthority.recordArtifactQa({
         ...identity, artifactId: artifactResult.artifact.artifactId,
-        idempotencyKey: key('final-composition-qa', keyHash),
+        idempotencyKey: key(`${idempotencyPrefix}-qa`, keyHash),
         purpose: 'record_server_verified_internal_artifact_qa',
       })
       const completed = await leaseService.completeInternalExecution({
@@ -586,7 +683,7 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
       })
       const reconciliation = await artifactAuthority.reconcileArtifact({
         ...identity, artifactId: artifactResult.artifact.artifactId,
-        idempotencyKey: key('final-composition-reconcile', keyHash),
+        idempotencyKey: key(`${idempotencyPrefix}-reconcile`, keyHash),
         purpose: 'reconcile_server_verified_internal_artifact',
       })
       if (
@@ -669,10 +766,15 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
           : { colorSource: colorInputRecords[0]! }
         : {}
       const responseWithoutHash = {
-        schemaVersion: 'canonical-private-final-composition-execution-response-v5' as const,
-        source: 'canonical_private_final_composition_execution_coordinator' as const,
+        schemaVersion: mode === 'final'
+          ? 'canonical-private-final-composition-execution-response-v5' as const
+          : 'canonical-private-composition-chunk-execution-response-v1' as const,
+        source: mode === 'final'
+          ? 'canonical_private_final_composition_execution_coordinator' as const
+          : 'canonical_private_composition_chunk_execution_coordinator' as const,
         purpose: body.purpose,
         identity: { ...identity, approvedWorkItemId: workItem.id, dispatchGrantId: body.grantId },
+        ...(chunkAuthority ? { chunkAuthority } : {}),
         tool: {
           canonicalToolId: 'remotion' as const, operationId: OFFLINE_REMOTION_RENDER_OPERATION,
           compositionProfileId: planningPayload.compositionProfileId,
@@ -705,7 +807,10 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
           secondEstimateCreated: false as const,
           secondReservationCreated: false as const,
           exportCreditMutationPerformed: false as const,
-          privateFinalCompositionExecuted: true as const, providerCallMade: false as const,
+          ...(mode === 'final'
+            ? { privateFinalCompositionExecuted: true as const }
+            : { privateCompositionChunkExecuted: true as const }),
+          providerCallMade: false as const,
           publicDeliveryExecuted: false as const,
         },
         inputs: sequenceProfile
@@ -773,20 +878,39 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
           productReady: false as const, externalBetaReady: false as const, productionReady: false as const,
         },
         qa,
-        result: {
-          artifactId: artifactResult.artifact.artifactId,
-          qaEvaluationId: qaResult.qaEvaluation.qaEvaluationId,
-          reconciliationId: reconciliation.reconciliation.reconciliationId,
-          artifactVersion: artifactResult.artifact.artifactVersion,
-          assetRole: 'final' as const, contentType: CONTENT_TYPE,
-          sha256: artifactResult.artifact.content.sha256,
-          byteLength: artifactResult.artifact.content.byteLength,
-          privateObjectIdentityHash: artifactResult.artifact.storageIdentity.opaqueObjectIdentityHash,
-          qaOutcome: 'passed' as const,
-          reconciliationDecision: 'test_merged_not_live_authorized' as const,
-          privateFinalArtifactRecorded: true as const,
-          publicDeliveryAuthorized: false as const, settlementAuthorized: false as const,
-        },
+        result: mode === 'final'
+          ? {
+              artifactId: artifactResult.artifact.artifactId,
+              qaEvaluationId: qaResult.qaEvaluation.qaEvaluationId,
+              reconciliationId: reconciliation.reconciliation.reconciliationId,
+              artifactVersion: artifactResult.artifact.artifactVersion,
+              assetRole: 'final' as const, contentType: CONTENT_TYPE,
+              sha256: artifactResult.artifact.content.sha256,
+              byteLength: artifactResult.artifact.content.byteLength,
+              privateObjectIdentityHash:
+                artifactResult.artifact.storageIdentity.opaqueObjectIdentityHash,
+              qaOutcome: 'passed' as const,
+              reconciliationDecision: 'test_merged_not_live_authorized' as const,
+              privateFinalArtifactRecorded: true as const,
+              publicDeliveryAuthorized: false as const,
+              settlementAuthorized: false as const,
+            }
+          : {
+              artifactId: artifactResult.artifact.artifactId,
+              qaEvaluationId: qaResult.qaEvaluation.qaEvaluationId,
+              reconciliationId: reconciliation.reconciliation.reconciliationId,
+              artifactVersion: artifactResult.artifact.artifactVersion,
+              assetRole: 'processed' as const, contentType: CONTENT_TYPE,
+              sha256: artifactResult.artifact.content.sha256,
+              byteLength: artifactResult.artifact.content.byteLength,
+              privateObjectIdentityHash:
+                artifactResult.artifact.storageIdentity.opaqueObjectIdentityHash,
+              qaOutcome: 'passed' as const,
+              reconciliationDecision: 'test_merged_not_live_authorized' as const,
+              privateTestDependencySatisfied: true as const,
+              liveRuntimeDependencySatisfied: false as const,
+              finalRenderAuthorized: false as const,
+            },
         replay: {
           dispatchConsumptionReplayed: dispatch.consumptionReplayed,
           executionFenceBeginReplayed: begun.replayed,
@@ -812,10 +936,28 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
         completedAt: reconciliation.reconciliation.createdAt,
         testOnly: true as const,
       }
-      return canonicalPrivateFinalCompositionResponseSchema.parse({
+      const responseWithHash = {
         ...responseWithoutHash,
         responseHash: sha256AuthorityValue(responseWithoutHash),
-      })
+      }
+      return mode === 'final'
+        ? canonicalPrivateFinalCompositionResponseSchema.parse(responseWithHash)
+        : canonicalPrivateCompositionChunkResponseSchema.parse(responseWithHash)
+  }
+  return {
+    async execute(
+      input: RunCanonicalPrivateFinalCompositionInput,
+      serverAuthority: CanonicalPrivateFinalCompositionAuthority,
+    ): Promise<CanonicalPrivateFinalCompositionResponse> {
+      return executeComposition(input, serverAuthority, 'final') as
+        Promise<CanonicalPrivateFinalCompositionResponse>
+    },
+    async executeChunk(
+      input: RunCanonicalPrivateCompositionChunkInput,
+      serverAuthority: CanonicalPrivateFinalCompositionAuthority,
+    ): Promise<CanonicalPrivateCompositionChunkResponse> {
+      return executeComposition(input, serverAuthority, 'chunk') as
+        Promise<CanonicalPrivateCompositionChunkResponse>
     },
   }
 }
@@ -947,18 +1089,33 @@ function orderColorDependencies(input: {
     startFrame: number
     endFrameExclusive: number
   }>
+  globalSourceSequenceItemIds: string[]
+  globalCleanupDecisions: Array<{
+    sourceSequenceItemId: string
+    startFrame: number
+    endFrameExclusive: number
+  }>
   fps: number
   authority: ApprovedExecutionAuthority
 }): ApprovedColorDependency[] {
   if (
     input.colorDependencies.length !== input.sourceSequenceItemIds.length ||
-    input.cleanupDecisions.length !== input.sourceSequenceItemIds.length
+    input.cleanupDecisions.length !== input.sourceSequenceItemIds.length ||
+    input.globalSourceSequenceItemIds.length < input.sourceSequenceItemIds.length ||
+    input.globalCleanupDecisions.length !== input.globalSourceSequenceItemIds.length
   ) {
     throw denied('Professional color composition requires one exact intermediate per source.')
   }
   const usedDependencies = new Set<string>()
   const ordered = input.sourceSequenceItemIds.map((sourceSequenceItemId, index) => {
     const cleanupDecision = input.cleanupDecisions[index]!
+    const globalIndex = input.globalSourceSequenceItemIds.indexOf(sourceSequenceItemId)
+    const globalReferenceSourceSequenceItemId = input.globalSourceSequenceItemIds[0]
+    const globalReferenceCleanupDecision = input.globalCleanupDecisions[0]
+    if (
+      globalIndex < 0 || !globalReferenceSourceSequenceItemId || !globalReferenceCleanupDecision ||
+      globalReferenceCleanupDecision.sourceSequenceItemId !== globalReferenceSourceSequenceItemId
+    ) throw denied('Professional color composition lost its global approved reference source.')
     const match = input.colorDependencies.map((dependency) => {
       const asset = input.authority.assetManifest.entries.find((candidate) =>
         candidate.id === dependency.expectedAssetId)
@@ -993,7 +1150,7 @@ function orderColorDependencies(input: {
       cleanupDecision.sourceSequenceItemId !== sourceSequenceItemId
     ) throw denied('Color dependency lineage is not an exact source-bound FFmpeg color artifact.')
     const payload = validateOfflineFfmpegPlanningPayload(workItem.executionInput.structuredPayload)
-    const referenceWorkItem = index > 0
+    const referenceWorkItem = globalIndex > 0
       ? input.authority.workItems.find((candidate) =>
           candidate.workItemKey === workItem.dependencyKeys[0])
       : undefined
@@ -1010,19 +1167,19 @@ function orderColorDependencies(input: {
       payload.trimStartFrame !== cleanupDecision.startFrame ||
       payload.trimEndFrameExclusive !== cleanupDecision.endFrameExclusive ||
       payload.trimEndFrameExclusive - payload.trimStartFrame <= 0 ||
-      (index === 0 && (
+      (globalIndex === 0 && (
         payload.recipeProfileId !== 'approved_source_color_delivery_matroska_v1' ||
         workItem.dependencyKeys.length !== 0
       )) ||
-      (index > 0 && (
+      (globalIndex > 0 && (
         payload.recipeProfileId !== 'approved_source_color_match_delivery_matroska_v1' ||
         workItem.dependencyKeys.length !== 1 || !referenceWorkItem || !referenceAsset ||
-        referenceWorkItem.sourceSequenceItemIds[0] !== input.sourceSequenceItemIds[0] ||
+        referenceWorkItem.sourceSequenceItemIds[0] !== globalReferenceSourceSequenceItemId ||
         referenceAsset.outputKey !== payload.referenceOutputKey ||
-        payload.referenceSourceSequenceItemId !== input.sourceSequenceItemIds[0] ||
+        payload.referenceSourceSequenceItemId !== globalReferenceSourceSequenceItemId ||
         payload.referenceDurationFrames !==
-          input.cleanupDecisions[0]!.endFrameExclusive -
-            input.cleanupDecisions[0]!.startFrame
+          globalReferenceCleanupDecision.endFrameExclusive -
+            globalReferenceCleanupDecision.startFrame
       ))
     ) throw denied('Color dependency did not execute the exact approved professional color recipe.')
     if (
@@ -1059,7 +1216,7 @@ function orderColorDependencies(input: {
 
 function parseApprovedSourceTrimEvidence(input: {
   bytes: Buffer
-  body: RunCanonicalPrivateFinalCompositionInput
+  body: RunCanonicalPrivateFinalCompositionInput | RunCanonicalPrivateCompositionChunkInput
   snapshotId: string
   workItemId: string
   sourceSequenceItemIds: string[]
@@ -1137,6 +1294,7 @@ function objectRecord(value: unknown, label: string): Record<string, unknown> {
 
 interface FinalCompositionAdapterInput {
   localStorageRoot: string
+  mode: 'final' | 'chunk'
   identity: {
     workspaceId: string
     projectId: string
@@ -1230,14 +1388,18 @@ function adapters(input: FinalCompositionAdapterInput): {
             status: 'passed' as const,
             failureScope: 'none' as const,
             evidenceHash: sha256ArtifactQaValue(adapterInput.artifact.content),
-            notesCode: 'final_mp4_hash_size_signature_storage_match',
+            notesCode: input.mode === 'final'
+              ? 'final_mp4_hash_size_signature_storage_match'
+              : 'composition_chunk_mp4_hash_size_signature_storage_match',
           }, {
             gateId: 'asset_quality_gate' as const,
             category: 'render_composition' as const,
             status: 'passed' as const,
             failureScope: 'none' as const,
             evidenceHash: input.qa.reportSha256,
-            notesCode: 'final_h264_aac_frame_audio_duration_qa_passed',
+            notesCode: input.mode === 'final'
+              ? 'final_h264_aac_frame_audio_duration_qa_passed'
+              : 'composition_chunk_h264_aac_frame_audio_duration_qa_passed',
           }, {
             gateId: 'render_preflight_gate' as const,
             category: 'render_composition' as const,
@@ -1252,7 +1414,7 @@ function adapters(input: FinalCompositionAdapterInput): {
               hardCutAuthorityHash: input.hardCutAuthorityHash,
             }),
             notesCode: 'approved_source_trim_caption_voice_color_transition_policy_and_frame_preflight_passed',
-          }, {
+          }, ...(input.mode === 'final' ? [{
             gateId: 'final_qa_gate' as const,
             category: 'asset_integrity' as const,
             status: 'passed' as const,
@@ -1262,11 +1424,13 @@ function adapters(input: FinalCompositionAdapterInput): {
               qa: input.qa,
             }),
             notesCode: 'private_final_composition_independent_qa_passed',
-          }],
+          }] : [])],
           recovery: {
             state: 'none' as const, action: 'none' as const,
             approvedWithinSnapshot: true,
-            reasonCode: 'private_final_composition_pass_no_recovery',
+            reasonCode: input.mode === 'final'
+              ? 'private_final_composition_pass_no_recovery'
+              : 'private_composition_chunk_pass_no_recovery',
           },
           evaluatedAt: new Date().toISOString(),
           actualQaEvidenceState: 'actual_remotion_mp4_ffprobe_qa_verified_v1' as const,
@@ -1337,7 +1501,7 @@ async function assertStored(input: FinalCompositionAdapterInput) {
   if (
     !stored || stored.sha256 !== input.result.artifact.sha256 ||
     stored.byteLength !== input.result.artifact.byteLength
-  ) throw denied('Private final MP4 bytes changed before artifact authority.')
+  ) throw denied('Private composition MP4 bytes changed before artifact authority.')
   return stored
 }
 
@@ -1349,7 +1513,7 @@ function assertLineage(
   if (
     stableArtifactQaStringify(identity) !== stableArtifactQaStringify(input.identity) ||
     stableArtifactQaStringify(lineage) !== stableArtifactQaStringify(input.lineage)
-  ) throw denied('Final composition adapter received different canonical lineage.')
+  ) throw denied('Composition adapter received different canonical lineage.')
 }
 
 function assertPersisted(
@@ -1357,7 +1521,8 @@ function assertPersisted(
   input: FinalCompositionAdapterInput,
 ): void {
   if (
-    artifact.artifactVersion !== 1 || artifact.lineage.assetRole !== 'final' ||
+    artifact.artifactVersion !== 1 ||
+    artifact.lineage.assetRole !== (input.mode === 'final' ? 'final' : 'processed') ||
     artifact.content.sha256 !== input.result.artifact.sha256 ||
     artifact.content.byteLength !== input.result.artifact.byteLength ||
     artifact.content.contentType !== CONTENT_TYPE ||
@@ -1367,7 +1532,7 @@ function assertPersisted(
     artifact.actualRunEvidence.runnerClass !== RUNNER_CLASS ||
     artifact.actualRunEvidence.dispatchGrantId !== input.dispatchGrantId ||
     artifact.actualRunEvidence.executionAttemptId !== input.executionAttemptId
-  ) throw denied('Persisted final composition does not match actual-run evidence.')
+  ) throw denied('Persisted composition does not match actual-run evidence.')
 }
 
 function bufferedRemotionInput(input: {

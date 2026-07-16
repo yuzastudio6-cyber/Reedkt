@@ -975,8 +975,8 @@ function captionOverlayCues(
   value: unknown,
   durationFrames: number,
 ): OfflineRemotionCaptionOverlayCuePlanningPayload[] {
-  if (!Array.isArray(value) || value.length < 2 || value.length > 7) {
-    throw validationFailure('Caption-track composition requires two to seven approved cues.')
+  if (!Array.isArray(value) || value.length < 1 || value.length > 7) {
+    throw validationFailure('Caption-track composition requires one to seven approved cues.')
   }
   const seen = new Set<string>()
   let previousEndFrame = 0

@@ -9,10 +9,16 @@ import type { ProfessionalExportCreditCoverage } from '../types/professional-exp
 import { REEDITPRO_SOURCE_MEDIA_MAX_BYTES } from '../types/large-media'
 import {
   CANONICAL_PRIVATE_COMPOSITION_MINIMUM_FRAMES,
+  CANONICAL_PRIVATE_LONG_FORM_FINAL_ARTIFACT_TYPE,
+  CANONICAL_PRIVATE_LONG_FORM_MAXIMUM_FRAMES,
   CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES,
   CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES,
   CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_ITEMS,
 } from '../types/canonical-private-composition-capacity'
+import {
+  planCanonicalPrivateLongFormChunks,
+  type CanonicalPrivateLongFormChunkPlan,
+} from './canonical-private-long-form-chunk-plan'
 import {
   buildProfessionalExportCreditCoverage,
   resolveProfessionalExportFrame,
@@ -24,6 +30,7 @@ const FFPROBE_OPERATION = 'tool.ffprobe.inspect_approved_media.v1'
 const FFMPEG_OPERATION = 'tool.ffmpeg.execute_approved_media_recipe.v1'
 const LIBASS_OPERATION = 'tool.libass.render_approved_caption_track.v1'
 const REMOTION_OPERATION = 'tool.remotion.render_approved_composition.v1'
+const LONG_FORM_MERGE_COMPOSITION_PROFILE = 'approved_4k_composition_chunk_merge_final_v1'
 const SAFE_KEY = /^[A-Za-z0-9][A-Za-z0-9._:-]*$/
 const SHA256 = /^[a-f0-9]{64}$/
 const CANONICAL_DIRECT_SOURCE_BUFFER_MAX_BYTES = 16 * 1024 * 1024
@@ -647,22 +654,26 @@ function privateReviewPublicationBlockers(input: {
     blockers.push('Private canonical execution requires an exact registered 4K UHD master frame for the confirmed aspect ratio.')
   }
   if (![24, 30].includes(input.fps)) blockers.push('Private canonical review currently supports a 24fps or 30fps timing base.')
-  const maximumCompositionFrames = input.orderedSourceItems.length > 1
-    ? CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES
-    : CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES
-  if (
-    input.totalFrames < CANONICAL_PRIVATE_COMPOSITION_MINIMUM_FRAMES ||
-    input.totalFrames > maximumCompositionFrames
-  ) {
-    blockers.push(
-      input.orderedSourceItems.length > 1
-        ? 'Private canonical source-sequence review currently supports 24 through 480 approved frames; longer edits require chunk render, QA, and merge evidence.'
-        : 'Private canonical single-source review currently supports 24 through 240 approved frames; longer edits require chunk render, QA, and merge evidence.',
-    )
-  }
   const sourceTimeline = buildOrderedSourceTimeline(input.orderedSourceItems, input.cleanupDecisions)
   if (!sourceTimeline || sourceTimeline.at(-1)?.timelineEndFrameExclusive !== input.totalFrames) {
     blockers.push('Approved source ranges must form one contiguous, duration-preserving final timeline in confirmed source order.')
+  }
+  if (input.totalFrames < CANONICAL_PRIVATE_COMPOSITION_MINIMUM_FRAMES) {
+    blockers.push('Private canonical composition requires at least 24 approved frames.')
+  } else if (input.orderedSourceItems.length === 1) {
+    if (input.totalFrames > CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES) {
+      blockers.push('Private canonical single-source review currently supports at most 240 approved frames; exact source-slice chunk authority is still required for longer single-source edits.')
+    }
+  } else if (input.totalFrames > CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES) {
+    if (input.totalFrames > CANONICAL_PRIVATE_LONG_FORM_MAXIMUM_FRAMES) {
+      blockers.push('The first private long-form profile supports at most 1,920 approved frames; a larger profile requires source-slice and distributed merge evidence.')
+    } else if (sourceTimeline) {
+      const longFormPlan = planCanonicalPrivateLongFormChunks({
+        totalFrames: input.totalFrames,
+        sourceSegments: sourceTimeline,
+      })
+      if (!longFormPlan.ok) blockers.push(longFormPlan.blocker)
+    }
   }
   input.cleanupDecisions.forEach((cleanupDecision, index) => {
     const sourceItem = input.orderedSourceItems[index]
@@ -755,19 +766,32 @@ function buildPrivateReviewCanonicalPlan(input: {
   if (!captionCues) throw new Error('Canonical caption cues changed after publication validation.')
   const panelBackground = safeColor(input.plan.aspectRatioFramePlan?.panelBackgroundColor)
   const estimate = input.estimate
-  const budgets = fitBudgets(
-    estimate.lineItems.reduce((sum, item) => sum + item.estimatedCredits, 0) +
-      estimate.fallbackAllowanceCredits,
-    captionCues.length,
-    input.approvedVoiceDeliverySources?.length ?? 0,
-    input.approvedColorDeliverySources?.length ?? 0,
-  )
   const sourceIds = input.sourceItems.map((source) => source.sourceSequenceItemId)
   const cleanupIds = input.cleanupDecisions.map((decision) => decision.decisionId)
   const sourceTimeline = buildOrderedSourceTimeline(input.sourceItems, input.cleanupDecisions)
   if (!sourceTimeline || sourceTimeline.at(-1)?.timelineEndFrameExclusive !== input.totalFrames) {
     throw new Error('Canonical source sequence lost its exact approved timeline during compilation.')
   }
+  const longFormChunkPlan = input.totalFrames > CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES
+    ? planCanonicalPrivateLongFormChunks({
+        totalFrames: input.totalFrames,
+        sourceSegments: sourceTimeline,
+      })
+    : null
+  if (longFormChunkPlan && !longFormChunkPlan.ok) {
+    throw new Error(`Canonical long-form compilation failed: ${longFormChunkPlan.blocker}`)
+  }
+  const approvedLongFormChunkPlan = longFormChunkPlan?.ok
+    ? longFormChunkPlan.plan
+    : null
+  const budgets = fitBudgets(
+    estimate.lineItems.reduce((sum, item) => sum + item.estimatedCredits, 0) +
+      estimate.fallbackAllowanceCredits,
+    captionCues.length,
+    input.approvedVoiceDeliverySources?.length ?? 0,
+    input.approvedColorDeliverySources?.length ?? 0,
+    approvedLongFormChunkPlan ? approvedLongFormChunkPlan.chunkCount + 1 : 1,
+  )
   const sourceSequenceComposition = sourceTimeline.length > 1
   const captionTrackComposition = captionCues.length > 1
   const voiceDeliverySources = input.approvedVoiceDeliverySources ?? []
@@ -1031,6 +1055,42 @@ function buildPrivateReviewCanonicalPlan(input: {
       ? 'private_source_caption_track_4k_delivery_master_v1'
       : 'private_source_caption_4k_delivery_master_v1'
 
+  const longFormRenderWorkItems: CanonicalWorkItemDraft[] = approvedLongFormChunkPlan
+    ? buildLongFormRenderWorkItems({
+        chunkPlan: approvedLongFormChunkPlan,
+        frame: input.frame,
+        fps: input.fps,
+        totalFrames: input.totalFrames,
+        panelBackground,
+        timingId,
+        components: input.components,
+        cleanupDecisions: input.cleanupDecisions,
+        captionCues,
+        captionWorkItems,
+        captionOutputKeys,
+        voiceWorkItems,
+        approvedVoiceTracks,
+        colorWorkItems,
+        compositionSourceTimeline,
+        approvedHardCutTransitions: input.approvedHardCutTransitions,
+        finalBudgetIndex,
+        budgets,
+        output,
+        finalArtifactType: CANONICAL_PRIVATE_LONG_FORM_FINAL_ARTIFACT_TYPE,
+        finalLineage: {
+          segmentIds,
+          timingIds: [timingId, ...transitionTimingIds],
+          rendererLayerIds: [
+            'source-video-layer',
+            ...transitionRendererLayerIds,
+            ...colorRendererLayerIds,
+            ...voiceRendererLayerIds,
+            ...captionRendererLayerIds,
+          ],
+        },
+      })
+    : []
+
   return {
     schemaVersion: CANONICAL_PRIVATE_PLAN_SCHEMA_VERSION,
     components: input.components,
@@ -1060,7 +1120,7 @@ function buildPrivateReviewCanonicalPlan(input: {
       ...captionWorkItems,
       ...voiceWorkItems,
       ...colorWorkItems,
-      {
+      ...(approvedLongFormChunkPlan ? longFormRenderWorkItems : [{
         workItemKey: 'final-export', workItemType: 'render_final_export', workerClass: 'render_worker',
         executionInput: {
           operation: sourceSequenceComposition
@@ -1151,7 +1211,7 @@ function buildPrivateReviewCanonicalPlan(input: {
           ...colorDependencyKeys,
         ], approvedToolIds: ['remotion'], providerExecutionMode: 'none', fallbackPolicy: {}, maxAttempts: 2,
         attemptTimeoutSeconds: 1_800, scheduledDelaySeconds: 0, maximumCreditBudget: budgets[finalBudgetIndex]!, required: true,
-      },
+      }]),
       {
         workItemKey: 'final-qa', workItemType: 'run_final_qa', workerClass: 'qa_worker',
         executionInput: {
@@ -1179,10 +1239,323 @@ function buildPrivateReviewCanonicalPlan(input: {
           },
         )],
         dependencyKeys: ['final-export'], approvedToolIds: ['ffprobe'], providerExecutionMode: 'none', fallbackPolicy: {}, maxAttempts: 2,
-        attemptTimeoutSeconds: 300, scheduledDelaySeconds: 0, maximumCreditBudget: budgets[finalBudgetIndex + 1]!, required: true,
+        attemptTimeoutSeconds: 300, scheduledDelaySeconds: 0,
+        maximumCreditBudget: budgets[
+          finalBudgetIndex + (approvedLongFormChunkPlan ? approvedLongFormChunkPlan.chunkCount + 1 : 1)
+        ]!, required: true,
       },
-    ],
+    ] as CanonicalWorkItemDraft[],
   }
+}
+
+function buildLongFormRenderWorkItems(input: {
+  chunkPlan: CanonicalPrivateLongFormChunkPlan
+  frame: { width: number; height: number }
+  fps: 24 | 30
+  totalFrames: number
+  panelBackground: string
+  timingId: string
+  components: CanonicalPlanComponentsDraft
+  cleanupDecisions: CanonicalSourceCleanupDecisionDraft[]
+  captionCues: Array<{
+    timingId: string
+    caption: string
+    startFrame: number
+    endFrameExclusive: number
+  }>
+  captionWorkItems: CanonicalWorkItemDraft[]
+  captionOutputKeys: string[]
+  voiceWorkItems: CanonicalWorkItemDraft[]
+  approvedVoiceTracks: Array<{
+    sourceSequenceItemId: string
+    outputKey: string
+    durationFrames: number
+  }>
+  colorWorkItems: CanonicalWorkItemDraft[]
+  compositionSourceTimeline: Array<{
+    sourceSequenceItemId: string
+    sourceStartFrame: number
+    sourceEndFrameExclusive: number
+    timelineStartFrame: number
+    timelineEndFrameExclusive: number
+  }>
+  approvedHardCutTransitions: ApprovedHardCutTransition[]
+  finalBudgetIndex: number
+  budgets: number[]
+  output: (
+    outputKey: string,
+    artifactType: string,
+    assetRole: CanonicalExpectedOutputDraft['assetRole'],
+    contentType: string,
+    lineage?: {
+      segmentIds?: string[]
+      timingIds?: string[]
+      rendererLayerIds?: string[]
+    },
+  ) => CanonicalExpectedOutputDraft
+  finalArtifactType: string
+  finalLineage: {
+    segmentIds: string[]
+    timingIds: string[]
+    rendererLayerIds: string[]
+  }
+}): CanonicalWorkItemDraft[] {
+  const sourceIndexById = new Map(
+    input.cleanupDecisions.map((decision, index) => [decision.sourceSequenceItemId, index]),
+  )
+  const chunkWorkItems = input.chunkPlan.chunks.map((chunk, chunkOffset): CanonicalWorkItemDraft => {
+    const sourceIndices = chunk.sourceSegments.map((segment) => {
+      const index = sourceIndexById.get(segment.sourceSequenceItemId)
+      if (index === undefined) throw new Error('Long-form chunk lost approved source order.')
+      return index
+    })
+    const sourceIds = sourceIndices.map((index) =>
+      input.cleanupDecisions[index]!.sourceSequenceItemId)
+    const cleanupIds = sourceIndices.map((index) => input.cleanupDecisions[index]!.decisionId)
+    const sourceIdSet = new Set(sourceIds)
+    const chunkCaptionEntries = input.captionCues.flatMap((cue, captionIndex) => {
+      const startFrame = Math.max(cue.startFrame, chunk.globalStartFrame)
+      const endFrameExclusive = Math.min(cue.endFrameExclusive, chunk.globalEndFrameExclusive)
+      if (endFrameExclusive <= startFrame) return []
+      return [{
+        captionIndex,
+        outputKey: input.captionOutputKeys[captionIndex]!,
+        timingId: cue.timingId,
+        startFrame: startFrame - chunk.globalStartFrame,
+        endFrameExclusive: endFrameExclusive - chunk.globalStartFrame,
+      }]
+    })
+    if (chunkCaptionEntries.length < 1 || chunkCaptionEntries.length > 7) {
+      throw new Error('Every long-form chunk requires one through seven exact caption cues.')
+    }
+    const chunkTransitions = input.approvedHardCutTransitions
+      .filter((transition) =>
+        sourceIdSet.has(transition.fromSourceSequenceItemId) &&
+        sourceIdSet.has(transition.toSourceSequenceItemId) &&
+        transition.boundaryFrame > chunk.globalStartFrame &&
+        transition.boundaryFrame < chunk.globalEndFrameExclusive)
+      .map((transition) => ({
+        ...transition,
+        boundaryFrame: transition.boundaryFrame - chunk.globalStartFrame,
+      }))
+    if (chunkTransitions.length !== Math.max(0, sourceIds.length - 1)) {
+      throw new Error('Long-form chunk lost its approved hard-cut authority.')
+    }
+    const sourceSegments = sourceIndices.map((sourceIndex) => {
+      const segment = input.compositionSourceTimeline[sourceIndex]!
+      return {
+        ...segment,
+        timelineStartFrame: segment.timelineStartFrame - chunk.globalStartFrame,
+        timelineEndFrameExclusive:
+          segment.timelineEndFrameExclusive - chunk.globalStartFrame,
+      }
+    })
+    const voiceTracks = input.approvedVoiceTracks.filter((track) =>
+      sourceIdSet.has(track.sourceSequenceItemId))
+    const voiceDependencyKeys = sourceIndices.flatMap((sourceIndex) => {
+      const item = input.voiceWorkItems[sourceIndex]
+      return item ? [item.workItemKey] : []
+    })
+    const colorDependencyKeys = sourceIndices.flatMap((sourceIndex) => {
+      const item = input.colorWorkItems[sourceIndex]
+      return item ? [item.workItemKey] : []
+    })
+    if (
+      (input.voiceWorkItems.length > 0 && voiceTracks.length !== sourceIds.length) ||
+      (input.colorWorkItems.length > 0 && colorDependencyKeys.length !== sourceIds.length)
+    ) throw new Error('Long-form chunk lost source-bound voice or color authority.')
+    const segmentIds = input.components.segments
+      .filter((segment) =>
+        segment.startFrame < chunk.globalEndFrameExclusive &&
+        segment.endFrameExclusive > chunk.globalStartFrame)
+      .map((segment) => segment.segmentId)
+    const rendererLayerIds = [
+      'source-video-layer',
+      ...chunkTransitions.map((_transition, index) =>
+        `approved-hard-cut-boundary-${sourceIndices[0]! + index + 1}`),
+      ...sourceIndices.flatMap((sourceIndex) => [
+        ...(input.colorWorkItems[sourceIndex]?.expectedOutputs[0]?.rendererLayerIds ?? []),
+        ...(input.voiceWorkItems[sourceIndex]?.expectedOutputs[0]?.rendererLayerIds ?? []),
+      ]),
+      ...chunkCaptionEntries.flatMap(({ captionIndex }) =>
+        input.captionWorkItems[captionIndex]?.expectedOutputs[0]?.rendererLayerIds ?? []),
+    ]
+    const sequence = sourceIds.length > 1
+    const structuredPayload = {
+      ...(sequence
+        ? {
+            compositionProfileId: 'approved_source_sequence_caption_track_final_v1',
+            sourceSegments,
+            transitionPolicy: 'approved_hard_cuts_only',
+            hardCutTransitions: chunkTransitions,
+            audioPolicy: voiceTracks.length > 0
+              ? 'replace_with_approved_voice_tracks'
+              : 'preserve_source_sequence',
+          }
+        : {
+            compositionProfileId: 'approved_source_caption_track_final_v1',
+            sourceStartFrame: sourceSegments[0]!.sourceStartFrame,
+            sourceEndFrameExclusive: sourceSegments[0]!.sourceEndFrameExclusive,
+            audioPolicy: voiceTracks.length > 0
+              ? 'replace_with_approved_voice_tracks'
+              : 'preserve_source',
+          }),
+      width: input.frame.width,
+      height: input.frame.height,
+      fps: input.fps,
+      durationFrames: chunk.durationFrames,
+      sourceFit: 'contain',
+      panelBackground: input.panelBackground,
+      renderPurpose: 'private_4k_delivery_master_v1',
+      deliveryProfileId: 'uhd_2160',
+      estimateCostBasisProfileId: 'uhd_2160',
+      sourceQualityPolicy: 'immutable_source_master_no_proxy_v1',
+      usesApprovedEditReservation: true,
+      requiresSeparateExportEstimate: false,
+      allowsAdditionalExportCharge: false,
+      captionOverlayPolicy: 'approved_timed_full_frame_rgba_track',
+      captionOverlayCues: chunkCaptionEntries.map((cue) => ({
+        outputKey: cue.outputKey,
+        startFrame: cue.startFrame,
+        endFrameExclusive: cue.endFrameExclusive,
+      })),
+      ...(input.colorWorkItems.length > 0
+        ? { sourceMediaPolicy: 'approved_professional_color_intermediate_v1' }
+        : {}),
+      ...(voiceTracks.length > 0 ? { voiceTracks } : {}),
+    }
+    return {
+      workItemKey: `composition-chunk-${chunk.chunkIndex}`,
+      workItemType: 'custom',
+      workerClass: 'render_worker',
+      executionInput: {
+        operation: 'render_approved_4k_composition_chunk',
+        approvedToolOperationIds: [REMOTION_OPERATION],
+        expectedOutputKeys: [chunk.outputKey],
+        chunkAuthority: {
+          profileId: input.chunkPlan.profileId,
+          chunkIndex: chunk.chunkIndex,
+          chunkCount: chunk.chunkCount,
+          globalStartFrame: chunk.globalStartFrame,
+          globalEndFrameExclusive: chunk.globalEndFrameExclusive,
+          durationFrames: chunk.durationFrames,
+          outputKey: chunk.outputKey,
+        },
+        structuredPayload,
+      },
+      sourceSequenceItemIds: sourceIds,
+      sourceCleanupDecisionIds: cleanupIds,
+      expectedOutputs: [input.output(
+        chunk.outputKey,
+        'private_4k_composition_chunk_v1',
+        'processed',
+        'video/mp4',
+        {
+          segmentIds,
+          timingIds: [
+            input.timingId,
+            ...chunkTransitions.flatMap((transition) => [
+              transition.transitionTimingItemId,
+              transition.refinedTransitionTimingItemId,
+            ]),
+            ...chunkCaptionEntries.map((cue) => cue.timingId),
+          ],
+          rendererLayerIds: unique(rendererLayerIds),
+        },
+      )],
+      dependencyKeys: [
+        'source-trim-validation',
+        ...chunkCaptionEntries.map(({ captionIndex }) =>
+          input.captionWorkItems[captionIndex]!.workItemKey),
+        ...voiceDependencyKeys,
+        ...colorDependencyKeys,
+      ],
+      approvedToolIds: ['remotion'],
+      providerExecutionMode: 'none',
+      fallbackPolicy: {},
+      maxAttempts: 2,
+      attemptTimeoutSeconds: 1_800,
+      scheduledDelaySeconds: 0,
+      maximumCreditBudget: input.budgets[input.finalBudgetIndex + chunkOffset]!,
+      required: true,
+    }
+  })
+
+  const chunkBoundaryTransitions = input.chunkPlan.chunks.slice(0, -1).map((chunk) => {
+    const transition = input.approvedHardCutTransitions.find((candidate) =>
+      candidate.boundaryFrame === chunk.globalEndFrameExclusive)
+    if (!transition) throw new Error('Long-form final merge lost a chunk-boundary hard cut.')
+    return {
+      transitionTimingItemId: transition.transitionTimingItemId,
+      refinedTransitionTimingItemId: transition.refinedTransitionTimingItemId,
+      fromSourceSequenceItemId: transition.fromSourceSequenceItemId,
+      toSourceSequenceItemId: transition.toSourceSequenceItemId,
+      boundaryFrame: transition.boundaryFrame,
+    }
+  })
+  const finalMerge: CanonicalWorkItemDraft = {
+    workItemKey: 'final-export',
+    workItemType: 'render_final_export',
+    workerClass: 'render_worker',
+    executionInput: {
+      operation: 'merge_approved_4k_composition_chunks',
+      approvedToolOperationIds: [REMOTION_OPERATION],
+      expectedOutputKeys: ['final-export'],
+      structuredPayload: {
+        compositionProfileId: LONG_FORM_MERGE_COMPOSITION_PROFILE,
+        longFormCapacityProfileId: input.chunkPlan.profileId,
+        width: input.frame.width,
+        height: input.frame.height,
+        fps: input.fps,
+        durationFrames: input.totalFrames,
+        chunks: input.chunkPlan.chunks.map((chunk) => ({
+          outputKey: chunk.outputKey,
+          chunkIndex: chunk.chunkIndex,
+          chunkCount: chunk.chunkCount,
+          globalStartFrame: chunk.globalStartFrame,
+          globalEndFrameExclusive: chunk.globalEndFrameExclusive,
+          durationFrames: chunk.durationFrames,
+          sourceSequenceItemIds: chunk.sourceSegments.map((segment) =>
+            segment.sourceSequenceItemId),
+          sourceCleanupDecisionIds: chunk.sourceSegments.map((segment) =>
+            input.cleanupDecisions[sourceIndexById.get(segment.sourceSequenceItemId)!]!.decisionId),
+        })),
+        mergePolicy: 'approved_contiguous_4k_chunks_v1',
+        transitionPolicy: 'approved_hard_cuts_only',
+        chunkBoundaryTransitions,
+        audioPolicy: 'preserve_approved_chunk_audio',
+        frameContinuityPolicy: 'exact_integer_frame_boundaries_v1',
+        renderPurpose: 'private_4k_delivery_master_v1',
+        deliveryProfileId: 'uhd_2160',
+        estimateCostBasisProfileId: 'uhd_2160',
+        sourceQualityPolicy: 'immutable_source_master_no_proxy_v1',
+        usesApprovedEditReservation: true,
+        requiresSeparateExportEstimate: false,
+        allowsAdditionalExportCharge: false,
+      },
+    },
+    sourceSequenceItemIds: input.cleanupDecisions.map((decision) =>
+      decision.sourceSequenceItemId),
+    sourceCleanupDecisionIds: input.cleanupDecisions.map((decision) => decision.decisionId),
+    expectedOutputs: [input.output(
+      'final-export',
+      input.finalArtifactType,
+      'final',
+      'video/mp4',
+      input.finalLineage,
+    )],
+    dependencyKeys: chunkWorkItems.map((item) => item.workItemKey),
+    approvedToolIds: ['remotion'],
+    providerExecutionMode: 'none',
+    fallbackPolicy: {},
+    maxAttempts: 2,
+    attemptTimeoutSeconds: 3_600,
+    scheduledDelaySeconds: 0,
+    maximumCreditBudget:
+      input.budgets[input.finalBudgetIndex + input.chunkPlan.chunkCount]!,
+    required: true,
+  }
+  return [...chunkWorkItems, finalMerge]
 }
 
 function buildEstimate(plan: EditPlan):
@@ -1262,14 +1635,21 @@ function fitBudgets(
   captionCueCount: number,
   voiceTrackCount: number,
   colorSourceCount: number,
+  remotionStageCount = 1,
 ): number[] {
+  const remotionBudgets = remotionStageCount === 1
+    ? [4]
+    : [
+        ...Array.from({ length: remotionStageCount - 1 }, () => 2),
+        4,
+      ]
   const defaults = [
     1,
     3,
     ...Array.from({ length: captionCueCount }, () => 1),
     ...Array.from({ length: voiceTrackCount }, () => 2),
     ...Array.from({ length: colorSourceCount }, () => 2),
-    4,
+    ...remotionBudgets,
     2,
   ]
   if (maximumCredits >= defaults.reduce((sum, budget) => sum + budget, 0)) return defaults

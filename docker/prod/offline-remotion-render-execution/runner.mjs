@@ -18,6 +18,8 @@ const LONG_FORM_MERGE_STREAMING_PROTOCOL = 'offline-remotion-long-form-merge-str
 const LONG_FORM_MERGE_STREAMING_CONTAINER_PROTOCOL = 'offline-remotion-long-form-merge-stream-execution-container-v1'
 const LONG_FORM_MERGE_COMPOSITION_PROFILE = 'approved_4k_composition_chunk_merge_final_v1'
 const LONG_FORM_CAPACITY_PROFILE = 'canonical_private_4k_chunk_merge_1920_frames_v1'
+const SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE =
+  'canonical_private_4k_source_slice_chunk_merge_3840_frames_v2'
 const OPERATION = 'tool.remotion.render_approved_composition.v1'
 const MAXIMUM_REQUEST_BYTES = 48 * 1024 * 1024
 const MAXIMUM_OUTPUT_BYTES = 16 * 1024 * 1024
@@ -38,6 +40,9 @@ const MAXIMUM_SOURCE_SEQUENCE_FRAMES = 480
 const MAXIMUM_SOURCE_SEQUENCE_ITEMS = 8
 const MINIMUM_LONG_FORM_FRAMES = MAXIMUM_SOURCE_SEQUENCE_FRAMES + 1
 const MAXIMUM_LONG_FORM_FRAMES = MAXIMUM_SOURCE_SEGMENT_FRAMES * MAXIMUM_SOURCE_SEQUENCE_ITEMS
+const MAXIMUM_SOURCE_SLICE_LONG_FORM_CHUNKS = 16
+const MAXIMUM_SOURCE_SLICE_LONG_FORM_FRAMES =
+  MAXIMUM_SOURCE_SEGMENT_FRAMES * MAXIMUM_SOURCE_SLICE_LONG_FORM_CHUNKS
 const SINGLE_STREAMING_CAPTION_OUTPUT_KEY = 'approved-full-frame-caption-overlay'
 const FORBIDDEN_TEXT = /(?:https?:\/\/|ftp:\/\/|file:|data:|javascript:|\.\.\/|\.\.\\|[A-Za-z]:[\\/]|(?:^|\s)\/(?:Users|home|etc|tmp|var|opt|app|root|proc|sys|dev)(?:\/|\b)|\$\(|`|&&|\|\||#!)/i
 const PRIVATE_REVIEW_FRAMES = ['360x640', '640x360', '480x480', '480x600']
@@ -1050,28 +1055,50 @@ function validateLongFormMergeManifest(value) {
     request.toolId !== 'remotion' || request.operationId !== OPERATION ||
     request.inputMode !== STREAMING_INPUT_MODE
   ) throw new Error('long-form merge streaming identity is unsupported')
+  const rawPayload = request.payload && typeof request.payload === 'object' &&
+    !Array.isArray(request.payload)
+    ? request.payload
+    : {}
+  const sourceSliceProfile = rawPayload.longFormCapacityProfileId ===
+    SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE
   const payload = exactObject(request.payload, [
     'compositionProfileId', 'longFormCapacityProfileId',
     'width', 'height', 'fps', 'durationFrames', 'chunks',
     'mergePolicy', 'transitionPolicy', 'chunkBoundaryTransitions',
+    ...(sourceSliceProfile ? ['chunkBoundaryContinuity'] : []),
     'audioPolicy', 'frameContinuityPolicy',
     'renderPurpose', 'deliveryProfileId', 'estimateCostBasisProfileId',
     'sourceQualityPolicy', 'usesApprovedEditReservation',
     'requiresSeparateExportEstimate', 'allowsAdditionalExportCharge',
   ], 'long-form merge planning payload')
   const dimensions = `${payload.width}x${payload.height}`
+  const maximumFrames = sourceSliceProfile
+    ? MAXIMUM_SOURCE_SLICE_LONG_FORM_FRAMES
+    : MAXIMUM_LONG_FORM_FRAMES
+  const minimumFrames = sourceSliceProfile
+    ? MAXIMUM_SOURCE_SEGMENT_FRAMES + 1
+    : MINIMUM_LONG_FORM_FRAMES
+  const maximumChunks = sourceSliceProfile
+    ? MAXIMUM_SOURCE_SLICE_LONG_FORM_CHUNKS
+    : MAXIMUM_SOURCE_SEQUENCE_ITEMS
+  const validProfilePolicy = sourceSliceProfile
+    ? payload.mergePolicy === 'approved_contiguous_source_slice_4k_chunks_v2' &&
+      payload.transitionPolicy === 'continuous_approved_source_slices_only' &&
+      payload.frameContinuityPolicy ===
+        'exact_integer_frame_and_source_slice_boundaries_v2'
+    : payload.longFormCapacityProfileId === LONG_FORM_CAPACITY_PROFILE &&
+      payload.mergePolicy === 'approved_contiguous_4k_chunks_v1' &&
+      payload.transitionPolicy === 'approved_hard_cuts_only' &&
+      payload.frameContinuityPolicy === 'exact_integer_frame_boundaries_v1'
   if (
     payload.compositionProfileId !== LONG_FORM_MERGE_COMPOSITION_PROFILE ||
-    payload.longFormCapacityProfileId !== LONG_FORM_CAPACITY_PROFILE ||
+    !validProfilePolicy ||
     !FOUR_K_MASTER_FRAMES.includes(dimensions) ||
     ![24, 30].includes(payload.fps) ||
     !Number.isSafeInteger(payload.durationFrames) ||
-    payload.durationFrames < MINIMUM_LONG_FORM_FRAMES ||
-    payload.durationFrames > MAXIMUM_LONG_FORM_FRAMES ||
-    payload.mergePolicy !== 'approved_contiguous_4k_chunks_v1' ||
-    payload.transitionPolicy !== 'approved_hard_cuts_only' ||
+    payload.durationFrames < minimumFrames ||
+    payload.durationFrames > maximumFrames ||
     payload.audioPolicy !== 'preserve_approved_chunk_audio' ||
-    payload.frameContinuityPolicy !== 'exact_integer_frame_boundaries_v1' ||
     payload.renderPurpose !== 'private_4k_delivery_master_v1' ||
     payload.deliveryProfileId !== 'uhd_2160' ||
     payload.estimateCostBasisProfileId !== 'uhd_2160' ||
@@ -1081,8 +1108,8 @@ function validateLongFormMergeManifest(value) {
     payload.allowsAdditionalExportCharge !== false
   ) throw new Error('long-form merge planning authority is unsupported')
   if (!Array.isArray(payload.chunks) || payload.chunks.length < 2 ||
-      payload.chunks.length > MAXIMUM_SOURCE_SEQUENCE_ITEMS) {
-    throw new Error('long-form merge requires two through eight chunks')
+      payload.chunks.length > maximumChunks) {
+    throw new Error(`long-form merge requires two through ${maximumChunks} chunks`)
   }
   let expectedStart = 0
   const outputKeys = new Set()
@@ -1093,6 +1120,9 @@ function validateLongFormMergeManifest(value) {
       'outputKey', 'chunkIndex', 'chunkCount',
       'globalStartFrame', 'globalEndFrameExclusive', 'durationFrames',
       'sourceSequenceItemIds', 'sourceCleanupDecisionIds',
+      ...(sourceSliceProfile
+        ? ['sourceSliceKey', 'sourceStartFrame', 'sourceEndFrameExclusive']
+        : []),
     ], `long-form merge chunk ${index + 1}`)
     if (!Array.isArray(chunk.sourceSequenceItemIds) ||
         !Array.isArray(chunk.sourceCleanupDecisionIds) ||
@@ -1110,14 +1140,43 @@ function validateLongFormMergeManifest(value) {
       durationFrames: integer(
         chunk.durationFrames,
         MINIMUM_COMPOSITION_FRAMES,
-        MAXIMUM_SOURCE_SEQUENCE_FRAMES,
+        sourceSliceProfile
+          ? MAXIMUM_SOURCE_SEGMENT_FRAMES
+          : MAXIMUM_SOURCE_SEQUENCE_FRAMES,
         'chunk durationFrames',
       ),
       sourceSequenceItemIds: chunk.sourceSequenceItemIds.map((id) =>
         safeIdentity(id, 'chunk sourceSequenceItemId')),
       sourceCleanupDecisionIds: chunk.sourceCleanupDecisionIds.map((id) =>
         safeIdentity(id, 'chunk sourceCleanupDecisionId')),
+      ...(sourceSliceProfile
+        ? {
+            sourceSliceKey: safeIdentity(chunk.sourceSliceKey, 'chunk sourceSliceKey'),
+            sourceStartFrame: integer(
+              chunk.sourceStartFrame,
+              0,
+              Number.MAX_SAFE_INTEGER - 1,
+              'chunk sourceStartFrame',
+            ),
+            sourceEndFrameExclusive: integer(
+              chunk.sourceEndFrameExclusive,
+              1,
+              Number.MAX_SAFE_INTEGER,
+              'chunk sourceEndFrameExclusive',
+            ),
+          }
+        : {}),
     }
+    const repeatedSourceBoundaryLineage = !sourceSliceProfile && (
+      normalized.sourceSequenceItemIds.some((id) => sourceIds.has(id)) ||
+      normalized.sourceCleanupDecisionIds.some((id) => cleanupIds.has(id))
+    )
+    const invalidSourceSliceLineage = sourceSliceProfile && (
+      normalized.sourceEndFrameExclusive - normalized.sourceStartFrame !==
+        normalized.durationFrames ||
+      normalized.sourceSliceKey !==
+        `source-slice-${index + 1}-of-${payload.chunks.length}`
+    )
     if (
       normalized.chunkIndex !== index + 1 ||
       normalized.globalStartFrame !== expectedStart ||
@@ -1127,8 +1186,8 @@ function validateLongFormMergeManifest(value) {
       outputKeys.has(normalized.outputKey) ||
       new Set(normalized.sourceSequenceItemIds).size !== normalized.sourceSequenceItemIds.length ||
       new Set(normalized.sourceCleanupDecisionIds).size !== normalized.sourceCleanupDecisionIds.length ||
-      normalized.sourceSequenceItemIds.some((id) => sourceIds.has(id)) ||
-      normalized.sourceCleanupDecisionIds.some((id) => cleanupIds.has(id))
+      repeatedSourceBoundaryLineage ||
+      invalidSourceSliceLineage
     ) throw new Error('long-form chunks are not unique, contiguous, and duration preserving')
     outputKeys.add(normalized.outputKey)
     normalized.sourceSequenceItemIds.forEach((id) => sourceIds.add(id))
@@ -1139,15 +1198,28 @@ function validateLongFormMergeManifest(value) {
   if (expectedStart !== payload.durationFrames) {
     throw new Error('long-form chunks do not cover the approved duration')
   }
-  if (
-    sourceIds.size < 2 || sourceIds.size > MAXIMUM_SOURCE_SEQUENCE_ITEMS ||
-    cleanupIds.size !== sourceIds.size
-  ) {
-    throw new Error('long-form merge requires two through eight ordered approved sources')
+  if (sourceSliceProfile && chunks.some((chunk, index) => index > 0 &&
+    chunk.sourceStartFrame !== chunks[index - 1].sourceEndFrameExclusive)) {
+    throw new Error('source-slice chunks do not preserve exact approved source-frame continuity')
+  }
+  const validSourceLineage = sourceSliceProfile
+    ? sourceIds.size === 1 && cleanupIds.size === 1 && chunks.every((chunk) =>
+      chunk.sourceSequenceItemIds.length === 1 &&
+      chunk.sourceCleanupDecisionIds.length === 1 &&
+      chunk.sourceSequenceItemIds[0] === chunks[0].sourceSequenceItemIds[0] &&
+      chunk.sourceCleanupDecisionIds[0] === chunks[0].sourceCleanupDecisionIds[0])
+    : sourceIds.size >= 2 && sourceIds.size <= MAXIMUM_SOURCE_SEQUENCE_ITEMS &&
+      cleanupIds.size === sourceIds.size
+  if (!validSourceLineage) {
+    throw new Error(sourceSliceProfile
+      ? 'source-slice merge requires one exact approved source across every chunk'
+      : 'long-form merge requires two through eight ordered approved sources')
   }
   if (!Array.isArray(payload.chunkBoundaryTransitions) ||
-      payload.chunkBoundaryTransitions.length !== chunks.length - 1) {
-    throw new Error('long-form merge requires one hard cut per chunk boundary')
+      payload.chunkBoundaryTransitions.length !== (sourceSliceProfile ? 0 : chunks.length - 1)) {
+    throw new Error(sourceSliceProfile
+      ? 'source-slice merge cannot invent hard cuts at technical chunk boundaries'
+      : 'long-form merge requires one hard cut per chunk boundary')
   }
   const timingIds = new Set()
   const refinedIds = new Set()
@@ -1186,6 +1258,76 @@ function validateLongFormMergeManifest(value) {
     refinedIds.add(normalized.refinedTransitionTimingItemId)
     return normalized
   })
+  if (sourceSliceProfile && (
+    !Array.isArray(payload.chunkBoundaryContinuity) ||
+    payload.chunkBoundaryContinuity.length !== chunks.length - 1
+  )) throw new Error('source-slice merge requires one continuity record per chunk boundary')
+  let expectedFromSliceKey
+  const chunkBoundaryContinuity = sourceSliceProfile
+    ? payload.chunkBoundaryContinuity.map((candidate, index) => {
+        const continuity = exactObject(candidate, [
+          'sourceSequenceItemId', 'sourceCleanupDecisionId', 'boundaryFrame',
+          'previousSourceEndFrameExclusive', 'nextSourceStartFrame',
+          'fromSourceSliceKey', 'toSourceSliceKey',
+        ], `long-form source-slice continuity ${index + 1}`)
+        const fromChunk = chunks[index]
+        const toChunk = chunks[index + 1]
+        const normalized = {
+          sourceSequenceItemId: safeIdentity(
+            continuity.sourceSequenceItemId,
+            'sourceSequenceItemId',
+          ),
+          sourceCleanupDecisionId: safeIdentity(
+            continuity.sourceCleanupDecisionId,
+            'sourceCleanupDecisionId',
+          ),
+          boundaryFrame: integer(
+            continuity.boundaryFrame,
+            1,
+            payload.durationFrames - 1,
+            'boundaryFrame',
+          ),
+          previousSourceEndFrameExclusive: integer(
+            continuity.previousSourceEndFrameExclusive,
+            1,
+            Number.MAX_SAFE_INTEGER,
+            'previousSourceEndFrameExclusive',
+          ),
+          nextSourceStartFrame: integer(
+            continuity.nextSourceStartFrame,
+            0,
+            Number.MAX_SAFE_INTEGER - 1,
+            'nextSourceStartFrame',
+          ),
+          fromSourceSliceKey: safeIdentity(
+            continuity.fromSourceSliceKey,
+            'fromSourceSliceKey',
+          ),
+          toSourceSliceKey: safeIdentity(
+            continuity.toSourceSliceKey,
+            'toSourceSliceKey',
+          ),
+        }
+        if (
+          normalized.boundaryFrame !== fromChunk.globalEndFrameExclusive ||
+          normalized.boundaryFrame !== toChunk.globalStartFrame ||
+          normalized.sourceSequenceItemId !== fromChunk.sourceSequenceItemIds[0] ||
+          normalized.sourceSequenceItemId !== toChunk.sourceSequenceItemIds[0] ||
+          normalized.sourceCleanupDecisionId !== fromChunk.sourceCleanupDecisionIds[0] ||
+          normalized.sourceCleanupDecisionId !== toChunk.sourceCleanupDecisionIds[0] ||
+          normalized.previousSourceEndFrameExclusive !== fromChunk.sourceEndFrameExclusive ||
+          normalized.nextSourceStartFrame !== toChunk.sourceStartFrame ||
+          normalized.fromSourceSliceKey !== fromChunk.sourceSliceKey ||
+          normalized.toSourceSliceKey !== toChunk.sourceSliceKey ||
+          normalized.previousSourceEndFrameExclusive !== normalized.nextSourceStartFrame ||
+          normalized.fromSourceSliceKey === normalized.toSourceSliceKey ||
+          (expectedFromSliceKey !== undefined &&
+            normalized.fromSourceSliceKey !== expectedFromSliceKey)
+        ) throw new Error('long-form source-slice continuity diverges from a chunk boundary')
+        expectedFromSliceKey = normalized.toSourceSliceKey
+        return normalized
+      })
+    : []
   const inputs = exactObject(request.inputs, ['chunks'], 'long-form merge inputs')
   if (!Array.isArray(inputs.chunks) || inputs.chunks.length !== chunks.length) {
     throw new Error('long-form chunk commitments are incomplete')
@@ -1226,6 +1368,7 @@ function validateLongFormMergeManifest(value) {
       durationFrames: payload.durationFrames,
       chunks,
       chunkBoundaryTransitions,
+      ...(sourceSliceProfile ? { chunkBoundaryContinuity } : {}),
     },
     inputs: { chunks: commitments },
     commitments,
@@ -1930,7 +2073,10 @@ function semanticEvidence(request, streaming) {
           approvedCompositionChunkFrameContinuityApplied: true,
           approvedCompositionChunkAudioPreserved: true,
           approvedCompositionChunkBoundaryAuthorityRead: true,
-          approvedCompositionChunkHardCutsApplied: true,
+          ...(request.payload.longFormCapacityProfileId ===
+            SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE
+            ? { approvedCompositionSourceSliceContinuityApplied: true }
+            : { approvedCompositionChunkHardCutsApplied: true }),
           approvedLongFormCapacityProfileVerified: true,
           finalCompositionProfileExecuted: true,
         }

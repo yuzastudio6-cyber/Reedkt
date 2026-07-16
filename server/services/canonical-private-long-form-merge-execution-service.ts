@@ -62,6 +62,9 @@ import { sha256ArtifactQaValue, stableArtifactQaStringify } from './private-arti
 import { sha256AuthorityValue } from './private-edit-authority-store'
 import { getRequiredAuthUserId } from './service-helpers'
 import { authorizeWorkspaceAccess } from './workspace-access-service'
+import {
+  CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID,
+} from '../../src/types/canonical-private-composition-capacity'
 
 const RUNNER_CLASS = 'offline_remotion_render_execution_v1' as const
 const CONTENT_TYPE = 'video/mp4' as const
@@ -205,6 +208,7 @@ export function createCanonicalPrivateLongFormMergeExecutionService(context: Ser
           body,
           authority,
           currentWorkItemId: workItem.id,
+          profileId: payload.longFormCapacityProfileId,
           planned: payload.chunks[index]!,
           dependency,
           dependencyKey: workItem.dependencyKeys[index]!,
@@ -405,6 +409,8 @@ export function createCanonicalPrivateLongFormMergeExecutionService(context: Ser
         authority.snapshot.snapshotId,
         access.workspaceId,
       )) !== beforeHash) throw denied('Canonical authority changed during long-form merge execution.')
+      const sourceSliceProfile = payload.longFormCapacityProfileId ===
+        CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID
 
       const responseWithoutHash = {
         schemaVersion: 'canonical-private-long-form-merge-execution-response-v1' as const,
@@ -431,7 +437,8 @@ export function createCanonicalPrivateLongFormMergeExecutionService(context: Ser
           approvedChunkFrameContinuityApplied: true as const,
           approvedChunkAudioPreserved: true as const,
           approvedChunkBoundaryAuthorityRead: true as const,
-          approvedChunkHardCutsApplied: true as const,
+          approvedChunkHardCutsApplied: !sourceSliceProfile,
+          approvedContinuousSourceSliceBoundariesApplied: sourceSliceProfile,
           renderPurpose: payload.renderPurpose,
           deliveryProfileId: payload.deliveryProfileId,
           immutableSourceMasterNoProxyPolicyVerified: true as const,
@@ -461,6 +468,9 @@ export function createCanonicalPrivateLongFormMergeExecutionService(context: Ser
           chunkDependencySetEvidenceHash: adapterInput.chunkLineageHash,
           transitionPolicy: payload.transitionPolicy,
           chunkBoundaryTransitionCount: payload.chunkBoundaryTransitions.length,
+          chunkBoundaryContinuityCount: sourceSliceProfile
+            ? payload.chunkBoundaryContinuity.length
+            : 0,
           frameContinuityPolicy: payload.frameContinuityPolicy,
           audioPolicy: payload.audioPolicy,
         },
@@ -574,6 +584,14 @@ function assertMergeAuthority(input: {
     lineItem.label === '4K UHD render and export ceiling')
   const flattenedSourceIds = payload.chunks.flatMap((chunk) => chunk.sourceSequenceItemIds)
   const flattenedCleanupIds = payload.chunks.flatMap((chunk) => chunk.sourceCleanupDecisionIds)
+  const sourceSliceProfile = payload.longFormCapacityProfileId ===
+    CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID
+  const expectedSourceBindings = sourceSliceProfile
+    ? [...new Set(flattenedSourceIds)]
+    : flattenedSourceIds
+  const expectedCleanupBindings = sourceSliceProfile
+    ? [...new Set(flattenedCleanupIds)]
+    : flattenedCleanupIds
   if (
     authority.components.confirmedSettings.outputFramePurpose !==
       'private_canonical_4k_master_review' ||
@@ -608,9 +626,9 @@ function assertMergeAuthority(input: {
     workItem.providerExecutionMode !== 'none' ||
     workItem.dependencyKeys.length !== payload.chunks.length ||
     stableArtifactQaStringify(workItem.sourceSequenceItemIds) !==
-      stableArtifactQaStringify(flattenedSourceIds) ||
+      stableArtifactQaStringify(expectedSourceBindings) ||
     stableArtifactQaStringify(workItem.sourceCleanupDecisionIds) !==
-      stableArtifactQaStringify(flattenedCleanupIds) ||
+      stableArtifactQaStringify(expectedCleanupBindings) ||
     expectedAsset.assetRole !== 'final' || expectedAsset.contentType !== CONTENT_TYPE ||
     !expectedAsset.required || expectedAsset.previewPlaceholderAllowed ||
     binding.expectedOutput.outputKey !== expectedAsset.outputKey ||
@@ -626,6 +644,7 @@ async function verifyChunkDependency(input: {
   body: RunCanonicalPrivateLongFormMergeInput
   authority: ApprovedAuthority
   currentWorkItemId: string
+  profileId: OfflineRemotionLongFormMergePlanningPayload['longFormCapacityProfileId']
   planned: OfflineRemotionLongFormMergePlanningPayload['chunks'][number]
   dependency: CanonicalPrivateDependencyArtifactStreamReadResult
   dependencyKey: string
@@ -648,6 +667,17 @@ async function verifyChunkDependency(input: {
   const chunkPayload = validateOfflineRemotionFinalCompositionPlanningPayload(
     workItem.executionInput.structuredPayload,
   )
+  const sourceSliceProfile = input.profileId ===
+    CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID
+  const exactSourceSlicePayload = !sourceSliceProfile || (
+    'sourceStartFrame' in chunkPayload &&
+    chunkPayload.compositionProfileId === 'approved_source_caption_track_final_v1' &&
+    chunkPayload.sourceStartFrame === input.planned.sourceStartFrame &&
+    chunkPayload.sourceEndFrameExclusive === input.planned.sourceEndFrameExclusive &&
+    chunkPayload.audioPolicy === 'preserve_source' &&
+    !('sourceMediaPolicy' in chunkPayload) &&
+    !('voiceTracks' in chunkPayload)
+  )
   if (
     !chunkAuthority.success ||
     workItem.workItemType !== 'custom' || workItem.workerClass !== 'render_worker' ||
@@ -661,14 +691,22 @@ async function verifyChunkDependency(input: {
     expectedAsset.outputKey !== input.planned.outputKey ||
     dependencyReadiness.job.approvedWorkItemId !== workItem.id ||
     stableArtifactQaStringify(chunkAuthority.data) !== stableArtifactQaStringify({
-      profileId: 'canonical_private_4k_chunk_merge_1920_frames_v1',
+      profileId: input.profileId,
       chunkIndex: input.planned.chunkIndex,
       chunkCount: input.planned.chunkCount,
       globalStartFrame: input.planned.globalStartFrame,
       globalEndFrameExclusive: input.planned.globalEndFrameExclusive,
       durationFrames: input.planned.durationFrames,
       outputKey: input.planned.outputKey,
+      ...(sourceSliceProfile
+        ? {
+            sourceSliceKey: input.planned.sourceSliceKey,
+            sourceStartFrame: input.planned.sourceStartFrame,
+            sourceEndFrameExclusive: input.planned.sourceEndFrameExclusive,
+          }
+        : {}),
     }) ||
+    !exactSourceSlicePayload ||
     chunkPayload.durationFrames !== input.planned.durationFrames ||
     chunkPayload.deliveryProfileId !== 'uhd_2160' ||
     chunkPayload.estimateCostBasisProfileId !== 'uhd_2160' ||
@@ -691,6 +729,8 @@ function assertMergeResult(
   request: ReturnType<typeof buildOfflineRemotionLongFormMergeStreamingRequest>,
 ): void {
   const semantic = result.evidence.semanticEvidence
+  const sourceSliceProfile = request.payload.longFormCapacityProfileId ===
+    CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID
   if (
     result.request.operationId !== request.operationId ||
     result.artifact.mimeType !== CONTENT_TYPE ||
@@ -706,7 +746,10 @@ function assertMergeResult(
     semantic.approvedCompositionChunkFrameContinuityApplied !== true ||
     semantic.approvedCompositionChunkAudioPreserved !== true ||
     semantic.approvedCompositionChunkBoundaryAuthorityRead !== true ||
-    semantic.approvedCompositionChunkHardCutsApplied !== true ||
+    (sourceSliceProfile
+      ? semantic.approvedCompositionSourceSliceContinuityApplied !== true ||
+        semantic.approvedCompositionChunkHardCutsApplied === true
+      : semantic.approvedCompositionChunkHardCutsApplied !== true) ||
     semantic.approvedLongFormCapacityProfileVerified !== true ||
     semantic.finalCompositionProfileExecuted !== true ||
     result.readiness.productReady || !result.readiness.privateInternalFinalCompositionReady ||

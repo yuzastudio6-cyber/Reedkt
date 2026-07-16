@@ -6,8 +6,14 @@ import {
   CANONICAL_PRIVATE_LONG_FORM_MAXIMUM_CHUNKS,
   CANONICAL_PRIVATE_LONG_FORM_MAXIMUM_FRAMES,
   CANONICAL_PRIVATE_LONG_FORM_MINIMUM_FRAMES,
+  CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES,
   CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES,
   CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_ITEMS,
+  CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID,
+  CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_CHUNKS,
+  CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_FRAMES,
+  CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MINIMUM_FRAMES,
+  type CanonicalPrivateLongFormCapacityProfileId,
 } from '../../../src/types/canonical-private-composition-capacity'
 import { ApiError } from '../../errors/api-error'
 import { OFFLINE_REMOTION_RENDER_OPERATION } from './offline-remotion-render-execution-protocol'
@@ -45,6 +51,9 @@ export interface OfflineRemotionLongFormMergeChunkPlanningPayload {
   durationFrames: number
   sourceSequenceItemIds: string[]
   sourceCleanupDecisionIds: string[]
+  sourceSliceKey?: string
+  sourceStartFrame?: number
+  sourceEndFrameExclusive?: number
 }
 
 export interface OfflineRemotionLongFormMergeBoundaryTransitionPlanningPayload {
@@ -55,19 +64,25 @@ export interface OfflineRemotionLongFormMergeBoundaryTransitionPlanningPayload {
   boundaryFrame: number
 }
 
-export interface OfflineRemotionLongFormMergePlanningPayload {
+export interface OfflineRemotionLongFormMergeBoundaryContinuityPlanningPayload {
+  sourceSequenceItemId: string
+  sourceCleanupDecisionId: string
+  boundaryFrame: number
+  previousSourceEndFrameExclusive: number
+  nextSourceStartFrame: number
+  fromSourceSliceKey: string
+  toSourceSliceKey: string
+}
+
+interface OfflineRemotionLongFormMergePlanningPayloadBase {
   compositionProfileId: typeof OFFLINE_REMOTION_LONG_FORM_MERGE_COMPOSITION_PROFILE_ID
-  longFormCapacityProfileId: typeof CANONICAL_PRIVATE_LONG_FORM_CAPACITY_PROFILE_ID
+  longFormCapacityProfileId: CanonicalPrivateLongFormCapacityProfileId
   width: 2160 | 2880 | 3840
   height: 2160 | 2700 | 3840
   fps: 24 | 30
   durationFrames: number
   chunks: OfflineRemotionLongFormMergeChunkPlanningPayload[]
-  mergePolicy: 'approved_contiguous_4k_chunks_v1'
-  transitionPolicy: 'approved_hard_cuts_only'
-  chunkBoundaryTransitions: OfflineRemotionLongFormMergeBoundaryTransitionPlanningPayload[]
   audioPolicy: 'preserve_approved_chunk_audio'
-  frameContinuityPolicy: 'exact_integer_frame_boundaries_v1'
   renderPurpose: 'private_4k_delivery_master_v1'
   deliveryProfileId: 'uhd_2160'
   estimateCostBasisProfileId: 'uhd_2160'
@@ -76,6 +91,31 @@ export interface OfflineRemotionLongFormMergePlanningPayload {
   requiresSeparateExportEstimate: false
   allowsAdditionalExportCharge: false
 }
+
+export interface OfflineRemotionLongFormSourceBoundaryMergePlanningPayload
+  extends OfflineRemotionLongFormMergePlanningPayloadBase {
+  longFormCapacityProfileId: typeof CANONICAL_PRIVATE_LONG_FORM_CAPACITY_PROFILE_ID
+  mergePolicy: 'approved_contiguous_4k_chunks_v1'
+  transitionPolicy: 'approved_hard_cuts_only'
+  chunkBoundaryTransitions: OfflineRemotionLongFormMergeBoundaryTransitionPlanningPayload[]
+  frameContinuityPolicy: 'exact_integer_frame_boundaries_v1'
+}
+
+export interface OfflineRemotionLongFormSourceSliceMergePlanningPayload
+  extends OfflineRemotionLongFormMergePlanningPayloadBase {
+  longFormCapacityProfileId:
+    typeof CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID
+  mergePolicy: 'approved_contiguous_source_slice_4k_chunks_v2'
+  transitionPolicy: 'continuous_approved_source_slices_only'
+  chunkBoundaryTransitions: []
+  chunkBoundaryContinuity:
+    OfflineRemotionLongFormMergeBoundaryContinuityPlanningPayload[]
+  frameContinuityPolicy: 'exact_integer_frame_and_source_slice_boundaries_v2'
+}
+
+export type OfflineRemotionLongFormMergePlanningPayload =
+  | OfflineRemotionLongFormSourceBoundaryMergePlanningPayload
+  | OfflineRemotionLongFormSourceSliceMergePlanningPayload
 
 export interface OfflineRemotionLongFormMergeChunkCommitment {
   inputId: string
@@ -100,28 +140,30 @@ export interface OfflineRemotionLongFormMergeStreamingRequest {
 export function validateOfflineRemotionLongFormMergePlanningPayload(
   value: unknown,
 ): OfflineRemotionLongFormMergePlanningPayload {
+  const raw = record(value, 'long-form merge planning payload')
+  const sourceSliceProfile = raw.longFormCapacityProfileId ===
+    CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID
   const payload = exactRecord(value, [
     'compositionProfileId', 'longFormCapacityProfileId',
     'width', 'height', 'fps', 'durationFrames', 'chunks',
     'mergePolicy', 'transitionPolicy', 'chunkBoundaryTransitions',
+    ...(sourceSliceProfile ? ['chunkBoundaryContinuity'] : []),
     'audioPolicy', 'frameContinuityPolicy',
     'renderPurpose', 'deliveryProfileId', 'estimateCostBasisProfileId',
     'sourceQualityPolicy', 'usesApprovedEditReservation',
     'requiresSeparateExportEstimate', 'allowsAdditionalExportCharge',
   ], 'long-form merge planning payload')
+  const capacity = longFormCapacity(payload.longFormCapacityProfileId)
   if (
     payload.compositionProfileId !== OFFLINE_REMOTION_LONG_FORM_MERGE_COMPOSITION_PROFILE_ID ||
-    payload.longFormCapacityProfileId !== CANONICAL_PRIVATE_LONG_FORM_CAPACITY_PROFILE_ID ||
+    !capacity ||
     !Number.isSafeInteger(payload.width) || !Number.isSafeInteger(payload.height) ||
     !FOUR_K_MASTER_FRAMES.has(`${String(payload.width)}x${String(payload.height)}`) ||
     ![24, 30].includes(Number(payload.fps)) ||
     !Number.isSafeInteger(payload.durationFrames) ||
-    Number(payload.durationFrames) < CANONICAL_PRIVATE_LONG_FORM_MINIMUM_FRAMES ||
-    Number(payload.durationFrames) > CANONICAL_PRIVATE_LONG_FORM_MAXIMUM_FRAMES ||
-    payload.mergePolicy !== 'approved_contiguous_4k_chunks_v1' ||
-    payload.transitionPolicy !== 'approved_hard_cuts_only' ||
+    Number(payload.durationFrames) < capacity.minimumFrames ||
+    Number(payload.durationFrames) > capacity.maximumFrames ||
     payload.audioPolicy !== 'preserve_approved_chunk_audio' ||
-    payload.frameContinuityPolicy !== 'exact_integer_frame_boundaries_v1' ||
     payload.renderPurpose !== 'private_4k_delivery_master_v1' ||
     payload.deliveryProfileId !== 'uhd_2160' ||
     payload.estimateCostBasisProfileId !== 'uhd_2160' ||
@@ -131,31 +173,66 @@ export function validateOfflineRemotionLongFormMergePlanningPayload(
     payload.allowsAdditionalExportCharge !== false
   ) throw invalid('Long-form merge planning authority is unsupported.')
 
-  const chunks = validateChunks(payload.chunks, Number(payload.durationFrames))
-  const transitions = validateBoundaryTransitions(
-    payload.chunkBoundaryTransitions,
-    chunks,
+  const chunks = validateChunks(
+    payload.chunks,
+    Number(payload.durationFrames),
+    capacity.profileId,
   )
-  return {
-    compositionProfileId: OFFLINE_REMOTION_LONG_FORM_MERGE_COMPOSITION_PROFILE_ID,
-    longFormCapacityProfileId: CANONICAL_PRIVATE_LONG_FORM_CAPACITY_PROFILE_ID,
+  const common = {
+    compositionProfileId:
+      OFFLINE_REMOTION_LONG_FORM_MERGE_COMPOSITION_PROFILE_ID,
     width: Number(payload.width) as OfflineRemotionLongFormMergePlanningPayload['width'],
     height: Number(payload.height) as OfflineRemotionLongFormMergePlanningPayload['height'],
     fps: Number(payload.fps) as 24 | 30,
     durationFrames: Number(payload.durationFrames),
     chunks,
-    mergePolicy: 'approved_contiguous_4k_chunks_v1',
-    transitionPolicy: 'approved_hard_cuts_only',
-    chunkBoundaryTransitions: transitions,
-    audioPolicy: 'preserve_approved_chunk_audio',
-    frameContinuityPolicy: 'exact_integer_frame_boundaries_v1',
-    renderPurpose: 'private_4k_delivery_master_v1',
-    deliveryProfileId: 'uhd_2160',
-    estimateCostBasisProfileId: 'uhd_2160',
-    sourceQualityPolicy: 'immutable_source_master_no_proxy_v1',
-    usesApprovedEditReservation: true,
-    requiresSeparateExportEstimate: false,
-    allowsAdditionalExportCharge: false,
+    audioPolicy: 'preserve_approved_chunk_audio' as const,
+    renderPurpose: 'private_4k_delivery_master_v1' as const,
+    deliveryProfileId: 'uhd_2160' as const,
+    estimateCostBasisProfileId: 'uhd_2160' as const,
+    sourceQualityPolicy: 'immutable_source_master_no_proxy_v1' as const,
+    usesApprovedEditReservation: true as const,
+    requiresSeparateExportEstimate: false as const,
+    allowsAdditionalExportCharge: false as const,
+  }
+  if (capacity.profileId === CANONICAL_PRIVATE_LONG_FORM_CAPACITY_PROFILE_ID) {
+    if (
+      payload.mergePolicy !== 'approved_contiguous_4k_chunks_v1' ||
+      payload.transitionPolicy !== 'approved_hard_cuts_only' ||
+      payload.frameContinuityPolicy !== 'exact_integer_frame_boundaries_v1'
+    ) throw invalid('Long-form source-boundary merge policy is unsupported.')
+    return {
+      ...common,
+      longFormCapacityProfileId: CANONICAL_PRIVATE_LONG_FORM_CAPACITY_PROFILE_ID,
+      mergePolicy: 'approved_contiguous_4k_chunks_v1',
+      transitionPolicy: 'approved_hard_cuts_only',
+      chunkBoundaryTransitions: validateBoundaryTransitions(
+        payload.chunkBoundaryTransitions,
+        chunks,
+      ),
+      frameContinuityPolicy: 'exact_integer_frame_boundaries_v1',
+    }
+  }
+  if (
+    payload.mergePolicy !== 'approved_contiguous_source_slice_4k_chunks_v2' ||
+    payload.transitionPolicy !== 'continuous_approved_source_slices_only' ||
+    payload.frameContinuityPolicy !==
+      'exact_integer_frame_and_source_slice_boundaries_v2' ||
+    !Array.isArray(payload.chunkBoundaryTransitions) ||
+    payload.chunkBoundaryTransitions.length !== 0
+  ) throw invalid('Long-form source-slice merge policy is unsupported.')
+  return {
+    ...common,
+    longFormCapacityProfileId:
+      CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID,
+    mergePolicy: 'approved_contiguous_source_slice_4k_chunks_v2',
+    transitionPolicy: 'continuous_approved_source_slices_only',
+    chunkBoundaryTransitions: [],
+    chunkBoundaryContinuity: validateBoundaryContinuity(
+      payload.chunkBoundaryContinuity,
+      chunks,
+    ),
+    frameContinuityPolicy: 'exact_integer_frame_and_source_slice_boundaries_v2',
   }
 }
 
@@ -264,11 +341,14 @@ export function offlineRemotionLongFormMergeRequestSha256(
 function validateChunks(
   value: unknown,
   totalFrames: number,
+  profileId: CanonicalPrivateLongFormCapacityProfileId,
 ): OfflineRemotionLongFormMergeChunkPlanningPayload[] {
+  const capacity = longFormCapacity(profileId)
+  if (!capacity) throw invalid('Long-form capacity profile is unsupported.')
   if (
     !Array.isArray(value) || value.length < 2 ||
-    value.length > CANONICAL_PRIVATE_LONG_FORM_MAXIMUM_CHUNKS
-  ) throw invalid('Long-form merge requires two through eight approved chunks.')
+    value.length > capacity.maximumChunks
+  ) throw invalid(`Long-form merge requires two through ${capacity.maximumChunks} approved chunks.`)
   const outputKeys = new Set<string>()
   const sourceIds = new Set<string>()
   const cleanupIds = new Set<string>()
@@ -278,6 +358,9 @@ function validateChunks(
       'outputKey', 'chunkIndex', 'chunkCount',
       'globalStartFrame', 'globalEndFrameExclusive', 'durationFrames',
       'sourceSequenceItemIds', 'sourceCleanupDecisionIds',
+      ...(profileId === CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID
+        ? ['sourceSliceKey', 'sourceStartFrame', 'sourceEndFrameExclusive']
+        : []),
     ], `long-form merge chunk ${index + 1}`)
     const sourceSequenceItemIds = identities(
       chunk.sourceSequenceItemIds,
@@ -301,11 +384,28 @@ function validateChunks(
       durationFrames: integer(
         chunk.durationFrames,
         CANONICAL_PRIVATE_COMPOSITION_MINIMUM_FRAMES,
-        CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES,
+        capacity.maximumChunkFrames,
         'chunk durationFrames',
       ),
       sourceSequenceItemIds,
       sourceCleanupDecisionIds,
+      ...(profileId === CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID
+        ? {
+            sourceSliceKey: identity(chunk.sourceSliceKey, 'chunk sourceSliceKey'),
+            sourceStartFrame: integer(
+              chunk.sourceStartFrame,
+              0,
+              Number.MAX_SAFE_INTEGER - 1,
+              'chunk sourceStartFrame',
+            ),
+            sourceEndFrameExclusive: integer(
+              chunk.sourceEndFrameExclusive,
+              1,
+              Number.MAX_SAFE_INTEGER,
+              'chunk sourceEndFrameExclusive',
+            ),
+          }
+        : {}),
     }
     if (
       normalized.chunkIndex !== index + 1 ||
@@ -315,8 +415,15 @@ function validateChunks(
         normalized.globalEndFrameExclusive - normalized.globalStartFrame ||
       sourceSequenceItemIds.length !== sourceCleanupDecisionIds.length ||
       outputKeys.has(normalized.outputKey) ||
-      sourceSequenceItemIds.some((sourceId) => sourceIds.has(sourceId)) ||
-      sourceCleanupDecisionIds.some((decisionId) => cleanupIds.has(decisionId))
+      (profileId === CANONICAL_PRIVATE_LONG_FORM_CAPACITY_PROFILE_ID &&
+        (sourceSequenceItemIds.some((sourceId) => sourceIds.has(sourceId)) ||
+          sourceCleanupDecisionIds.some((decisionId) => cleanupIds.has(decisionId)))) ||
+      (profileId === CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID && (
+        normalized.sourceEndFrameExclusive! - normalized.sourceStartFrame! !==
+          normalized.durationFrames ||
+        normalized.sourceSliceKey !==
+          `source-slice-${index + 1}-of-${value.length}`
+      ))
     ) throw invalid('Long-form merge chunks are not unique, contiguous, and duration preserving.')
     outputKeys.add(normalized.outputKey)
     sourceSequenceItemIds.forEach((sourceId) => sourceIds.add(sourceId))
@@ -328,11 +435,25 @@ function validateChunks(
     throw invalid('Long-form merge chunks do not cover the exact approved duration.')
   }
   if (
-    sourceIds.size < 2 ||
-    sourceIds.size > CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_ITEMS ||
-    cleanupIds.size !== sourceIds.size
+    profileId === CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID &&
+    chunks.some((chunk, index) => index > 0 &&
+      chunk.sourceStartFrame !== chunks[index - 1]!.sourceEndFrameExclusive)
   ) {
-    throw invalid('Long-form merge requires two through eight ordered approved sources.')
+    throw invalid('Source-slice merge chunks do not preserve exact approved source-frame continuity.')
+  }
+  const validSourceLineage = profileId === CANONICAL_PRIVATE_LONG_FORM_CAPACITY_PROFILE_ID
+    ? sourceIds.size >= 2 &&
+      sourceIds.size <= CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_ITEMS &&
+      cleanupIds.size === sourceIds.size
+    : sourceIds.size === 1 && cleanupIds.size === 1 && chunks.every((chunk) =>
+      chunk.sourceSequenceItemIds.length === 1 &&
+      chunk.sourceCleanupDecisionIds.length === 1 &&
+      chunk.sourceSequenceItemIds[0] === chunks[0]!.sourceSequenceItemIds[0] &&
+      chunk.sourceCleanupDecisionIds[0] === chunks[0]!.sourceCleanupDecisionIds[0])
+  if (!validSourceLineage) {
+    throw invalid(profileId === CANONICAL_PRIVATE_LONG_FORM_CAPACITY_PROFILE_ID
+      ? 'Long-form merge requires two through eight ordered approved sources.'
+      : 'Source-slice merge requires one exact approved source and cleanup identity across every chunk.')
   }
   return chunks
 }
@@ -391,6 +512,116 @@ function validateBoundaryTransitions(
   })
 }
 
+function validateBoundaryContinuity(
+  value: unknown,
+  chunks: OfflineRemotionLongFormMergeChunkPlanningPayload[],
+): OfflineRemotionLongFormMergeBoundaryContinuityPlanningPayload[] {
+  if (!Array.isArray(value) || value.length !== chunks.length - 1) {
+    throw invalid('Source-slice merge requires one exact continuity record per chunk boundary.')
+  }
+  const sliceKeys = new Set<string>()
+  let expectedFromSliceKey: string | undefined
+  return value.map((candidate, index) => {
+    const continuity = exactRecord(candidate, [
+      'sourceSequenceItemId', 'sourceCleanupDecisionId', 'boundaryFrame',
+      'previousSourceEndFrameExclusive', 'nextSourceStartFrame',
+      'fromSourceSliceKey', 'toSourceSliceKey',
+    ], `long-form source-slice continuity ${index + 1}`)
+    const fromChunk = chunks[index]!
+    const toChunk = chunks[index + 1]!
+    const normalized = {
+      sourceSequenceItemId: identity(
+        continuity.sourceSequenceItemId,
+        'sourceSequenceItemId',
+      ),
+      sourceCleanupDecisionId: identity(
+        continuity.sourceCleanupDecisionId,
+        'sourceCleanupDecisionId',
+      ),
+      boundaryFrame: integer(
+        continuity.boundaryFrame,
+        1,
+        chunks.at(-1)!.globalEndFrameExclusive - 1,
+        'boundaryFrame',
+      ),
+      previousSourceEndFrameExclusive: integer(
+        continuity.previousSourceEndFrameExclusive,
+        1,
+        Number.MAX_SAFE_INTEGER,
+        'previousSourceEndFrameExclusive',
+      ),
+      nextSourceStartFrame: integer(
+        continuity.nextSourceStartFrame,
+        0,
+        Number.MAX_SAFE_INTEGER - 1,
+        'nextSourceStartFrame',
+      ),
+      fromSourceSliceKey: identity(
+        continuity.fromSourceSliceKey,
+        'fromSourceSliceKey',
+      ),
+      toSourceSliceKey: identity(
+        continuity.toSourceSliceKey,
+        'toSourceSliceKey',
+      ),
+    }
+    if (
+      normalized.boundaryFrame !== fromChunk.globalEndFrameExclusive ||
+      normalized.boundaryFrame !== toChunk.globalStartFrame ||
+      normalized.sourceSequenceItemId !== fromChunk.sourceSequenceItemIds[0] ||
+      normalized.sourceSequenceItemId !== toChunk.sourceSequenceItemIds[0] ||
+      normalized.sourceCleanupDecisionId !== fromChunk.sourceCleanupDecisionIds[0] ||
+      normalized.sourceCleanupDecisionId !== toChunk.sourceCleanupDecisionIds[0] ||
+      normalized.previousSourceEndFrameExclusive !== fromChunk.sourceEndFrameExclusive ||
+      normalized.nextSourceStartFrame !== toChunk.sourceStartFrame ||
+      normalized.fromSourceSliceKey !== fromChunk.sourceSliceKey ||
+      normalized.toSourceSliceKey !== toChunk.sourceSliceKey ||
+      normalized.previousSourceEndFrameExclusive !== normalized.nextSourceStartFrame ||
+      sliceKeys.has(normalized.fromSourceSliceKey) ||
+      normalized.fromSourceSliceKey === normalized.toSourceSliceKey ||
+      (expectedFromSliceKey !== undefined &&
+        normalized.fromSourceSliceKey !== expectedFromSliceKey)
+    ) throw invalid('Long-form source-slice continuity diverges from a chunk boundary.')
+    sliceKeys.add(normalized.fromSourceSliceKey)
+    expectedFromSliceKey = normalized.toSourceSliceKey
+    if (index === value.length - 1) {
+      if (sliceKeys.has(normalized.toSourceSliceKey)) {
+        throw invalid('Long-form source-slice identities are not unique and ordered.')
+      }
+      sliceKeys.add(normalized.toSourceSliceKey)
+    }
+    return normalized
+  })
+}
+
+function longFormCapacity(value: unknown): {
+  profileId: CanonicalPrivateLongFormCapacityProfileId
+  minimumFrames: number
+  maximumFrames: number
+  maximumChunks: number
+  maximumChunkFrames: number
+} | undefined {
+  if (value === CANONICAL_PRIVATE_LONG_FORM_CAPACITY_PROFILE_ID) {
+    return {
+      profileId: CANONICAL_PRIVATE_LONG_FORM_CAPACITY_PROFILE_ID,
+      minimumFrames: CANONICAL_PRIVATE_LONG_FORM_MINIMUM_FRAMES,
+      maximumFrames: CANONICAL_PRIVATE_LONG_FORM_MAXIMUM_FRAMES,
+      maximumChunks: CANONICAL_PRIVATE_LONG_FORM_MAXIMUM_CHUNKS,
+      maximumChunkFrames: CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES,
+    }
+  }
+  if (value === CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID) {
+    return {
+      profileId: CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID,
+      minimumFrames: CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MINIMUM_FRAMES,
+      maximumFrames: CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_FRAMES,
+      maximumChunks: CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_CHUNKS,
+      maximumChunkFrames: CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES,
+    }
+  }
+  return undefined
+}
+
 function identities(value: unknown, label: string): string[] {
   if (!Array.isArray(value) || value.length < 1 || value.length > 8) {
     throw invalid(`${label} is outside its fixed bound.`)
@@ -417,14 +648,18 @@ function integer(value: unknown, minimum: number, maximum: number, label: string
 }
 
 function exactRecord(value: unknown, keys: readonly string[], label: string): Record<string, unknown> {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    throw invalid(`${label} must be an object.`)
-  }
-  const result = value as Record<string, unknown>
+  const result = record(value, label)
   if (Object.keys(result).sort().join('|') !== [...keys].sort().join('|')) {
     throw invalid(`${label} contains unsupported fields.`)
   }
   return result
+}
+
+function record(value: unknown, label: string): Record<string, unknown> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw invalid(`${label} must be an object.`)
+  }
+  return value as Record<string, unknown>
 }
 
 function invalid(message: string): ApiError {

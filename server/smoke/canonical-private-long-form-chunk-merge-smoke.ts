@@ -284,7 +284,7 @@ console.log(JSON.stringify({
     'direct_final_operation_cannot_substitute_for_chunk_or_merge_payload_authority',
     'merge_request_rejects_noncontiguous_or_substituted_chunks',
     'ninth_global_source_is_rejected_by_long_form_profile',
-    'single_source_slicing_remains_fail_closed',
+    'v1_single_source_slicing_remains_fail_closed',
     'provider_billing_public_delivery_and_production_authority_not_added',
   ],
 }))

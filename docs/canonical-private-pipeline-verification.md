@@ -200,11 +200,15 @@ two-through-eight-source composition to reach 480 total frames. A signed-in
 local/private run on 2026-07-15 exercised that exact ceiling at 30fps: eight
 two-second sources produced a non-passthrough 3840x2160, 16.000-second MP4,
 completed all 27 jobs, preserved all eight source-bound tones in order, passed
-final QA/reconciliation/replay, and persisted acceptance. A single source
-remains capped at 240 frames. This evidence is not long-form or arbitrary-media
-proof; longer edits remain blocked until snapshot-bound chunk rendering,
-per-chunk QA, deterministic merge, merged-output QA, recovery, and replay are
-implemented and verified.
+final QA/reconciliation/replay, and persisted acceptance. The direct
+single-source profile remains capped at 240 frames. The additive
+`canonical_private_4k_source_slice_chunk_merge_3840_frames_v2` profile now
+executes one 241–3,840-frame approved preserve-source range through exact
+technical chunks, per-chunk QA/reconciliation/replay, continuous merge, final
+QA, and bounded recovery. Its actual signed-in proof is 660 frames; the
+3,840-frame ceiling is planning/mutation evidence. See
+`docs/canonical-source-slice-long-form-verification-2026-07-16.md`. This is
+still not arbitrary-media, 30-minute, or multi-hour production proof.
 
 The professional-color evidence applies only to the exact one-source bounded
 profile and the fixed first-source-reference multi-source profile. The compiler

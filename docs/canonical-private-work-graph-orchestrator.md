@@ -79,6 +79,17 @@ three. That metric covers orchestrator tasks, including time waiting on inner
 single-host runtime locks. It does not prove simultaneous physical worker
 processes, distributed execution, Cloud Run concurrency, or an SLA.
 
+The additive signed-in source-slice v2 run proves recovery across a real
+eight-job continuous-source graph above the prior single-source ceiling. One
+22-second/660-frame approved source compiled into three exact 220-frame 4K
+chunks. A retryable local runtime failure affected one chunk only; the next
+graph pass replayed five completed jobs, executed the same signed chunk
+operation within its remaining attempt, and then advanced to final merge and
+final QA. All eight jobs completed, and the final 660-frame 4K H.264/AAC master
+passed independent QA, replay, private-download integrity, and PCM continuity
+checks at both technical boundaries. This is still single-host local/private
+evidence, not distributed scheduling or a long-program SLA.
+
 ## Boundaries
 
 This proves honest run-to-blocked behavior, deterministic resource-aware
@@ -96,9 +107,10 @@ Supabase, billing, public delivery, and production promotion remain gated.
 - `npm run typecheck:server`
 - `./node_modules/.bin/tsx server/smoke/canonical-private-resource-wave-scheduler-smoke.ts`
 - `./node_modules/.bin/tsx server/smoke/canonical-private-long-form-execution-smoke.ts`
+- `REEDITPRO_SOURCE_SLICE_LONG_FORM_PROOF=1 ./node_modules/.bin/tsx server/smoke/canonical-private-long-form-execution-smoke.ts`
 - `npm run smoke:canonical-private-tool-dispatch`
 - `npm run qa:internal-pipeline` — post-change full run passed 27/27 stages on
-  2026-07-16 in `2,186,391 ms`, including the standalone authenticated
+  2026-07-16 in `1,720,287 ms`, including the standalone authenticated
   maximum-eight-source journey and all 50 versioned tool identities
 
 The measured duration is a local correctness-regression result. It is not a

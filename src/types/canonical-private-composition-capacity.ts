@@ -32,6 +32,25 @@ export const CANONICAL_PRIVATE_LONG_FORM_MAXIMUM_FRAMES =
 export const CANONICAL_PRIVATE_LONG_FORM_MAXIMUM_CHUNKS =
   CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_ITEMS
 
+/**
+ * The second private long-form profile adds exact execution slices inside one
+ * already-approved source cleanup range. It deliberately remains bounded to
+ * sixteen independently rendered and QA-reconciled chunks while the deployed
+ * distributed/object-mezzanine path is still unproven.
+ */
+export const CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID =
+  'canonical_private_4k_source_slice_chunk_merge_3840_frames_v2' as const
+export const CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MINIMUM_FRAMES =
+  CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES + 1
+export const CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_CHUNKS = 16
+export const CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_FRAMES =
+  CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES *
+  CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_CHUNKS
+
+export type CanonicalPrivateLongFormCapacityProfileId =
+  | typeof CANONICAL_PRIVATE_LONG_FORM_CAPACITY_PROFILE_ID
+  | typeof CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID
+
 export const CANONICAL_PRIVATE_LONG_FORM_CAPACITY = {
   profileId: CANONICAL_PRIVATE_LONG_FORM_CAPACITY_PROFILE_ID,
   minimumFrames: CANONICAL_PRIVATE_LONG_FORM_MINIMUM_FRAMES,
@@ -46,6 +65,24 @@ export const CANONICAL_PRIVATE_LONG_FORM_CAPACITY = {
   distributedObjectMergeReady: false,
 } as const
 
+export const CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY = {
+  profileId: CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID,
+  minimumFrames: CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MINIMUM_FRAMES,
+  maximumFrames: CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_FRAMES,
+  minimumChunkFrames: CANONICAL_PRIVATE_COMPOSITION_MINIMUM_FRAMES,
+  maximumChunkFrames: CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES,
+  maximumChunks: CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_CHUNKS,
+  sourceCount: 1,
+  chunkBoundaryPolicy: 'continuous_approved_source_slices_only',
+  exactSourceFrameLineageRequired: true,
+  decoderPrerollAllowedWithoutTimelineFrameDrift: true,
+  perChunkActualRenderQaReconciliationRequired: true,
+  finalMergeActualRenderQaReconciliationRequired: true,
+  sourceSlicePlanningReady: true,
+  distributedObjectMergeReady: false,
+  professionalScaleReady: false,
+} as const
+
 export const CANONICAL_PRIVATE_COMPOSITION_CAPACITY = {
   profileId: CANONICAL_PRIVATE_COMPOSITION_CAPACITY_PROFILE_ID,
   minimumFrames: CANONICAL_PRIVATE_COMPOSITION_MINIMUM_FRAMES,
@@ -55,4 +92,6 @@ export const CANONICAL_PRIVATE_COMPOSITION_CAPACITY = {
   maximumHardCuts: CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_HARD_CUTS,
   longerDurationRequiresChunkRenderQaAndMerge: true,
   longFormProfileId: CANONICAL_PRIVATE_LONG_FORM_CAPACITY_PROFILE_ID,
+  sourceSliceLongFormProfileId:
+    CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID,
 } as const

@@ -79,6 +79,11 @@ import {
 import { withPlanningDomainMutationLock } from './planning-domain-mutation-lock'
 import { getRequiredAuthUserId } from './service-helpers'
 import { authorizeWorkspaceAccess } from './workspace-access-service'
+import {
+  CANONICAL_PRIVATE_LONG_FORM_CAPACITY_PROFILE_ID,
+  CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID,
+  CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_CHUNKS,
+} from '../../src/types/canonical-private-composition-capacity'
 
 export const CANONICAL_PRIVATE_TOOL_DISPATCH_TTL_SECONDS = 45 as const
 
@@ -735,6 +740,10 @@ function resolveAndVerifyCanonicalDispatchBinding(input: {
   const compositionChunkAuthority = workItem.executionInput.chunkAuthority as
     | Record<string, unknown>
     | undefined
+  const sourceSliceChunkProfile = compositionChunkAuthority?.profileId ===
+    CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID
+  const sourceBoundaryChunkProfile = compositionChunkAuthority?.profileId ===
+    CANONICAL_PRIVATE_LONG_FORM_CAPACITY_PROFILE_ID
   const exactPrivateRemotionCompositionChunk =
     workItem.workerClass === 'render_worker' && workItem.workItemType === 'custom' &&
     workItem.executionInput.operation === 'render_approved_4k_composition_chunk' &&
@@ -742,14 +751,25 @@ function resolveAndVerifyCanonicalDispatchBinding(input: {
     expectedAsset.artifactType === 'private_4k_composition_chunk_v1' &&
     workItem.approvedToolIds.length === 1 && workItem.approvedToolIds[0] === 'remotion' &&
     body.operationId === 'tool.remotion.render_approved_composition.v1' &&
-    compositionChunkAuthority?.profileId ===
-      'canonical_private_4k_chunk_merge_1920_frames_v1' &&
+    (sourceBoundaryChunkProfile || sourceSliceChunkProfile) &&
     Number.isSafeInteger(compositionChunkAuthority?.chunkIndex) &&
     Number.isSafeInteger(compositionChunkAuthority?.chunkCount) &&
     Number(compositionChunkAuthority?.chunkIndex) >= 1 &&
     Number(compositionChunkAuthority?.chunkIndex) <= Number(compositionChunkAuthority?.chunkCount) &&
     Number(compositionChunkAuthority?.chunkCount) >= 2 &&
-    Number(compositionChunkAuthority?.chunkCount) <= 8 &&
+    Number(compositionChunkAuthority?.chunkCount) <= (sourceSliceChunkProfile
+      ? CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_CHUNKS
+      : 8) &&
+    (!sourceSliceChunkProfile || (
+      Number.isSafeInteger(compositionChunkAuthority?.sourceStartFrame) &&
+      Number.isSafeInteger(compositionChunkAuthority?.sourceEndFrameExclusive) &&
+      Number(compositionChunkAuthority?.sourceStartFrame) >= 0 &&
+      Number(compositionChunkAuthority?.sourceEndFrameExclusive) -
+        Number(compositionChunkAuthority?.sourceStartFrame) ===
+        Number(compositionChunkAuthority?.durationFrames) &&
+      compositionChunkAuthority?.sourceSliceKey ===
+        `source-slice-${String(compositionChunkAuthority?.chunkIndex)}-of-${String(compositionChunkAuthority?.chunkCount)}`
+    )) &&
     compositionChunkAuthority?.outputKey === expectedAsset.outputKey &&
     finalCompositionCaptionCueCount >= 1 && finalCompositionCaptionCueCount <= 7 &&
     workItem.dependencyKeys.length ===
@@ -775,11 +795,24 @@ function resolveAndVerifyCanonicalDispatchBinding(input: {
     body.operationId === 'tool.remotion.render_approved_composition.v1' &&
     finalCompositionStructuredPayload?.compositionProfileId ===
       'approved_4k_composition_chunk_merge_final_v1' &&
-    finalCompositionStructuredPayload?.longFormCapacityProfileId ===
-      'canonical_private_4k_chunk_merge_1920_frames_v1' &&
-    longFormMergeChunks.length >= 2 && longFormMergeChunks.length <= 8 &&
+    (finalCompositionStructuredPayload?.longFormCapacityProfileId ===
+      CANONICAL_PRIVATE_LONG_FORM_CAPACITY_PROFILE_ID ||
+      finalCompositionStructuredPayload?.longFormCapacityProfileId ===
+        CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID) &&
+    longFormMergeChunks.length >= 2 &&
+    longFormMergeChunks.length <= (
+      finalCompositionStructuredPayload?.longFormCapacityProfileId ===
+        CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID
+        ? CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_CHUNKS
+        : 8
+    ) &&
     workItem.dependencyKeys.length === longFormMergeChunks.length &&
-    workItem.sourceSequenceItemIds.length >= 2 &&
+    workItem.sourceSequenceItemIds.length >= (
+      finalCompositionStructuredPayload?.longFormCapacityProfileId ===
+        CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID
+        ? 1
+        : 2
+    ) &&
     workItem.sourceSequenceItemIds.length <= 8 &&
     workItem.sourceCleanupDecisionIds.length === workItem.sourceSequenceItemIds.length
   const exactPrivateRemotionFinalComposition =

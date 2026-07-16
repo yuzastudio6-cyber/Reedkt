@@ -74,6 +74,11 @@ import {
 } from '../tool-execution/core-registry-operations/core-registry-operation-specs'
 import { isProductionToolId, type ProductionToolId } from '../tool-registry'
 import { sha256AuthorityValue, stableAuthorityStringify } from '../services/private-edit-authority-store'
+import {
+  CANONICAL_PRIVATE_LONG_FORM_CAPACITY_PROFILE_ID,
+  CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID,
+  CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_CHUNKS,
+} from '../../src/types/canonical-private-composition-capacity'
 
 export const CANONICAL_TOOL_PAYLOAD_AUTHORITY_VERSION =
   'canonical-tool-payload-authority-v1' as const
@@ -383,15 +388,13 @@ function validateByRunnerFamily(
       workItem.executionInput.operation === 'merge_approved_4k_composition_chunks'
     ) {
       const payload = validateOfflineRemotionLongFormMergePlanningPayload(structuredPayload)
+      const sourceBindingCount = new Set(payload.chunks.flatMap((chunk) =>
+        chunk.sourceSequenceItemIds)).size
+      const cleanupBindingCount = new Set(payload.chunks.flatMap((chunk) =>
+        chunk.sourceCleanupDecisionIds)).size
       requireBinding(workItem, {
-        source: payload.chunks.reduce(
-          (total, chunk) => total + chunk.sourceSequenceItemIds.length,
-          0,
-        ),
-        cleanup: payload.chunks.reduce(
-          (total, chunk) => total + chunk.sourceCleanupDecisionIds.length,
-          0,
-        ),
+        source: sourceBindingCount,
+        cleanup: cleanupBindingCount,
         dependencies: payload.chunks.length,
       })
       return 'remotion_final_composition'
@@ -434,11 +437,27 @@ function validateByRunnerFamily(
           !Array.isArray(chunkAuthority)
           ? chunkAuthority as Record<string, unknown>
           : undefined
+        const sourceSliceProfile = chunk?.profileId ===
+          CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID
+        const sourceBoundaryProfile = chunk?.profileId ===
+          CANONICAL_PRIVATE_LONG_FORM_CAPACITY_PROFILE_ID
         if (
-          chunk?.profileId !== 'canonical_private_4k_chunk_merge_1920_frames_v1' ||
+          (!sourceBoundaryProfile && !sourceSliceProfile) ||
           !Number.isSafeInteger(chunk.chunkIndex) || !Number.isSafeInteger(chunk.chunkCount) ||
           Number(chunk.chunkIndex) < 1 || Number(chunk.chunkIndex) > Number(chunk.chunkCount) ||
-          Number(chunk.chunkCount) < 2 || Number(chunk.chunkCount) > 8 ||
+          Number(chunk.chunkCount) < 2 ||
+          Number(chunk.chunkCount) > (sourceSliceProfile
+            ? CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_CHUNKS
+            : 8) ||
+          (sourceSliceProfile && (
+            !Number.isSafeInteger(chunk.sourceStartFrame) ||
+            !Number.isSafeInteger(chunk.sourceEndFrameExclusive) ||
+            Number(chunk.sourceStartFrame) < 0 ||
+            Number(chunk.sourceEndFrameExclusive) - Number(chunk.sourceStartFrame) !==
+              Number(chunk.durationFrames) ||
+            chunk.sourceSliceKey !==
+              `source-slice-${String(chunk.chunkIndex)}-of-${String(chunk.chunkCount)}`
+          )) ||
           chunk.durationFrames !== payload.durationFrames ||
           workItem.expectedOutputs.length !== 1 ||
           workItem.expectedOutputs[0]?.assetRole !== 'processed' ||

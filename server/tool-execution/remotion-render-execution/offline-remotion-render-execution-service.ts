@@ -39,7 +39,7 @@ const BLOCKERS = Object.freeze([
   'Canonical approved-snapshot execution, private artifact authority, reconciliation, replay, cost events, and final render/export settlement remain separate evidence gates.',
   'This runtime is private single-host evidence and is not deployed worker-fleet, service-identity, multi-architecture, scanning, observability, or recovery evidence.',
   'The bounded proof composition is not a public delivery or production final-export authority.',
-  'The long-form merge profile is limited to eight privately reconciled chunks and 1,920 approved frames; source-slice and distributed object merge evidence remain blocked.',
+  'The source-boundary profile remains limited to eight chunks/1,920 frames; the source-slice profile remains limited to sixteen chunks/3,840 frames, and distributed object/mezzanine evidence remains blocked.',
 ] as const)
 
 export interface PrivateOfflineRemotionRenderRuntime {
@@ -330,6 +330,8 @@ async function executeLongFormMergeStreamingWithImage(
   const artifactSha256 = string(artifactRecord.sha256)
   const semantic = record(response.semanticEvidence)
   const readiness = record(response.readiness)
+  const sourceSliceProfile = request.payload.longFormCapacityProfileId ===
+    'canonical_private_4k_source_slice_chunk_merge_3840_frames_v2'
   if (
     response.schemaVersion !== OFFLINE_REMOTION_LONG_FORM_MERGE_STREAMING_CONTAINER_PROTOCOL ||
     response.ok !== true || response.toolId !== 'remotion' ||
@@ -359,7 +361,10 @@ async function executeLongFormMergeStreamingWithImage(
     semantic.approvedCompositionChunkFrameContinuityApplied !== true ||
     semantic.approvedCompositionChunkAudioPreserved !== true ||
     semantic.approvedCompositionChunkBoundaryAuthorityRead !== true ||
-    semantic.approvedCompositionChunkHardCutsApplied !== true ||
+    (sourceSliceProfile
+      ? semantic.approvedCompositionSourceSliceContinuityApplied !== true ||
+        semantic.approvedCompositionChunkHardCutsApplied === true
+      : semantic.approvedCompositionChunkHardCutsApplied !== true) ||
     semantic.approvedLongFormCapacityProfileVerified !== true ||
     semantic.finalCompositionProfileExecuted !== true ||
     !Object.values(semantic).every((item) => item === true)

@@ -1,10 +1,14 @@
 import { z } from 'zod'
 
 import {
-  CANONICAL_PRIVATE_LONG_FORM_MAXIMUM_CHUNKS,
   CANONICAL_PRIVATE_LONG_FORM_MAXIMUM_FRAMES,
   CANONICAL_PRIVATE_LONG_FORM_MINIMUM_FRAMES,
+  CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES,
   CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES,
+  CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID,
+  CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_CHUNKS,
+  CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_FRAMES,
+  CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MINIMUM_FRAMES,
 } from '../../src/types/canonical-private-composition-capacity'
 
 const identity = z.string().min(1).max(200).regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/)
@@ -24,17 +28,22 @@ export const runCanonicalPrivateLongFormMergeSchema = z.object({
 
 const chunkInputSchema = z.object({
   outputKey: identity,
-  chunkIndex: z.number().int().min(1).max(CANONICAL_PRIVATE_LONG_FORM_MAXIMUM_CHUNKS),
-  chunkCount: z.number().int().min(2).max(CANONICAL_PRIVATE_LONG_FORM_MAXIMUM_CHUNKS),
+  chunkIndex: z.number().int().min(1)
+    .max(CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_CHUNKS),
+  chunkCount: z.number().int().min(2)
+    .max(CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_CHUNKS),
   globalStartFrame: z.number().int().nonnegative(),
   globalEndFrameExclusive: z.number().int().positive()
-    .max(CANONICAL_PRIVATE_LONG_FORM_MAXIMUM_FRAMES),
+    .max(CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_FRAMES),
   durationFrames: z.number().int().positive()
     .max(CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES),
   sourceSequenceItemIds: z.array(identity).min(1).max(8)
     .refine((values) => new Set(values).size === values.length),
   sourceCleanupDecisionIds: z.array(identity).min(1).max(8)
     .refine((values) => new Set(values).size === values.length),
+  sourceSliceKey: identity.optional(),
+  sourceStartFrame: z.number().int().nonnegative().optional(),
+  sourceEndFrameExclusive: z.number().int().positive().optional(),
   artifactId: identity,
   artifactVersion: z.number().int().positive(),
   sha256: sha,
@@ -94,19 +103,25 @@ export const canonicalPrivateLongFormMergeResponseSchema = z.object({
     canonicalToolId: z.literal('remotion'),
     operationId: z.literal('tool.remotion.render_approved_composition.v1'),
     compositionProfileId: z.literal('approved_4k_composition_chunk_merge_final_v1'),
-    longFormCapacityProfileId: z.literal('canonical_private_4k_chunk_merge_1920_frames_v1'),
+    longFormCapacityProfileId: z.enum([
+      'canonical_private_4k_chunk_merge_1920_frames_v1',
+      CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID,
+    ]),
     actualRemotionOperationCompleted: z.literal(true),
     inputKind: z.literal('qa_passed_dependency_artifact'),
     dependencyArtifactRead: z.literal(true),
     dependencyInputMode: z.literal('server_injected_private_stream_v1'),
     approvedChunkDependencyRead: z.literal(true),
     approvedChunkInputMode: z.literal('server_injected_private_stream_v1'),
-    approvedChunkCount: z.number().int().min(2).max(8),
+    approvedChunkCount: z.number().int().min(2)
+      .max(CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_CHUNKS),
     approvedChunkOrderApplied: z.literal(true),
     approvedChunkFrameContinuityApplied: z.literal(true),
     approvedChunkAudioPreserved: z.literal(true),
     approvedChunkBoundaryAuthorityRead: z.literal(true),
-    approvedChunkHardCutsApplied: z.literal(true),
+    approvedChunkHardCutsApplied: z.boolean(),
+    // Optional only for pre-v2 persisted local/private response replay.
+    approvedContinuousSourceSliceBoundariesApplied: z.boolean().optional(),
     renderPurpose: z.literal('private_4k_delivery_master_v1'),
     deliveryProfileId: z.literal('uhd_2160'),
     immutableSourceMasterNoProxyPolicyVerified: z.literal(true),
@@ -119,12 +134,23 @@ export const canonicalPrivateLongFormMergeResponseSchema = z.object({
     publicDeliveryExecuted: z.literal(false),
   }).strict(),
   inputs: z.object({
-    chunks: z.array(chunkInputSchema).min(2).max(8),
+    chunks: z.array(chunkInputSchema).min(2)
+      .max(CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_CHUNKS),
     combinedChunkByteLength: z.number().int().positive().max(640 * 1024 * 1024),
     chunkDependencySetEvidenceHash: sha,
-    transitionPolicy: z.literal('approved_hard_cuts_only'),
-    chunkBoundaryTransitionCount: z.number().int().min(1).max(7),
-    frameContinuityPolicy: z.literal('exact_integer_frame_boundaries_v1'),
+    transitionPolicy: z.enum([
+      'approved_hard_cuts_only',
+      'continuous_approved_source_slices_only',
+    ]),
+    chunkBoundaryTransitionCount: z.number().int().nonnegative()
+      .max(CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_CHUNKS - 1),
+    chunkBoundaryContinuityCount: z.number().int().nonnegative()
+      .max(CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_CHUNKS - 1)
+      .optional(),
+    frameContinuityPolicy: z.enum([
+      'exact_integer_frame_boundaries_v1',
+      'exact_integer_frame_and_source_slice_boundaries_v2',
+    ]),
     audioPolicy: z.literal('preserve_approved_chunk_audio'),
   }).strict(),
   lease: z.object({
@@ -208,29 +234,69 @@ export const canonicalPrivateLongFormMergeResponseSchema = z.object({
   const chunks = response.inputs.chunks
   const flattenedSourceIds = chunks.flatMap((chunk) => chunk.sourceSequenceItemIds)
   const flattenedCleanupIds = chunks.flatMap((chunk) => chunk.sourceCleanupDecisionIds)
+  const sourceSliceProfile = response.tool.longFormCapacityProfileId ===
+    CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID
   let expectedStart = 0
   let valid = chunks.length === response.tool.approvedChunkCount
   chunks.forEach((chunk, index) => {
     valid = valid &&
       chunk.chunkIndex === index + 1 &&
       chunk.chunkCount === chunks.length &&
-      chunk.globalStartFrame === expectedStart
+      chunk.globalStartFrame === expectedStart &&
+      chunk.globalEndFrameExclusive - chunk.globalStartFrame === chunk.durationFrames
+    if (sourceSliceProfile) {
+      valid = valid &&
+        chunk.durationFrames <= CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES &&
+        chunk.sourceSliceKey === `source-slice-${index + 1}-of-${chunks.length}` &&
+        chunk.sourceStartFrame !== undefined &&
+        chunk.sourceEndFrameExclusive !== undefined &&
+        chunk.sourceEndFrameExclusive - chunk.sourceStartFrame === chunk.durationFrames &&
+        (index === 0 ||
+          chunk.sourceStartFrame === chunks[index - 1]!.sourceEndFrameExclusive)
+    } else {
+      valid = valid &&
+        chunk.sourceSliceKey === undefined &&
+        chunk.sourceStartFrame === undefined &&
+        chunk.sourceEndFrameExclusive === undefined
+    }
     expectedStart = chunk.globalEndFrameExclusive
   })
   valid = valid &&
-    expectedStart >= CANONICAL_PRIVATE_LONG_FORM_MINIMUM_FRAMES &&
-    expectedStart <= CANONICAL_PRIVATE_LONG_FORM_MAXIMUM_FRAMES &&
-    flattenedSourceIds.length >= 2 && flattenedSourceIds.length <= 8 &&
-    new Set(flattenedSourceIds).size === flattenedSourceIds.length &&
-    flattenedCleanupIds.length === flattenedSourceIds.length &&
-    new Set(flattenedCleanupIds).size === flattenedCleanupIds.length &&
+    expectedStart >= (sourceSliceProfile
+      ? CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MINIMUM_FRAMES
+      : CANONICAL_PRIVATE_LONG_FORM_MINIMUM_FRAMES) &&
+    expectedStart <= (sourceSliceProfile
+      ? CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_FRAMES
+      : CANONICAL_PRIVATE_LONG_FORM_MAXIMUM_FRAMES) &&
+    (sourceSliceProfile
+      ? new Set(flattenedSourceIds).size === 1 &&
+        new Set(flattenedCleanupIds).size === 1 &&
+        flattenedSourceIds.length === chunks.length &&
+        flattenedCleanupIds.length === chunks.length
+      : flattenedSourceIds.length >= 2 && flattenedSourceIds.length <= 8 &&
+        new Set(flattenedSourceIds).size === flattenedSourceIds.length &&
+        flattenedCleanupIds.length === flattenedSourceIds.length &&
+        new Set(flattenedCleanupIds).size === flattenedCleanupIds.length) &&
     response.inputs.combinedChunkByteLength === chunks.reduce(
       (total, chunk) => total + chunk.byteLength,
       0,
     ) &&
     response.qa.frameCount === expectedStart &&
     response.runtime.resultSha256 === response.result.sha256 &&
-    response.inputs.chunkBoundaryTransitionCount === chunks.length - 1
+    (sourceSliceProfile
+      ? response.inputs.transitionPolicy === 'continuous_approved_source_slices_only' &&
+        response.inputs.frameContinuityPolicy ===
+          'exact_integer_frame_and_source_slice_boundaries_v2' &&
+        response.inputs.chunkBoundaryTransitionCount === 0 &&
+        response.inputs.chunkBoundaryContinuityCount === chunks.length - 1 &&
+        response.tool.approvedChunkHardCutsApplied === false &&
+        response.tool.approvedContinuousSourceSliceBoundariesApplied === true
+      : response.inputs.transitionPolicy === 'approved_hard_cuts_only' &&
+        response.inputs.frameContinuityPolicy === 'exact_integer_frame_boundaries_v1' &&
+        response.inputs.chunkBoundaryTransitionCount === chunks.length - 1 &&
+        (response.inputs.chunkBoundaryContinuityCount ?? 0) === 0 &&
+        response.tool.approvedChunkHardCutsApplied === true &&
+        response.tool.approvedContinuousSourceSliceBoundariesApplied !== true)
   if (!valid) {
     context.addIssue({
       code: z.ZodIssueCode.custom,

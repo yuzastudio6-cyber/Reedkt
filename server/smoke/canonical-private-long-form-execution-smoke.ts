@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict'
-import { spawnSync } from 'node:child_process'
+import { spawn, spawnSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { readFile, rm } from 'node:fs/promises'
 import { join } from 'node:path'
 import type { Readable } from 'node:stream'
+import { pipeline } from 'node:stream/promises'
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 
@@ -54,13 +55,17 @@ await import('./edit-planning-authority-smoke')
 const localStorageRoot = canonicalAuthoritySmokeRoot
 const workspaceId = 'workspace-authority-smoke'
 const userId = 'user-authority-smoke'
-const editSessionId = 'edit-session-canonical-long-form-execution'
-const sourceCount = 8
-const sourceDurationSeconds = 3
+const sourceSliceMode = process.env.REEDITPRO_SOURCE_SLICE_LONG_FORM_PROOF === '1'
+const scenarioKey = sourceSliceMode ? 'source-slice-v2' : 'source-boundary-v1'
+const editSessionId = sourceSliceMode
+  ? 'edit-session-canonical-source-slice-long-form-execution'
+  : 'edit-session-canonical-long-form-execution'
+const sourceCount = sourceSliceMode ? 1 : 8
+const sourceDurationSeconds = sourceSliceMode ? 22 : 3
 const fps = 30
 const totalFrames = sourceCount * sourceDurationSeconds * fps
 const storage = new LocalBackedResumableGcsTestAdapter(
-  join(localStorageRoot, 'canonical-long-form-fake-gcs'),
+  join(localStorageRoot, `canonical-long-form-${scenarioKey}-fake-gcs`),
 )
 const env = loadRuntimeEnv({
   NODE_ENV: 'test',
@@ -80,7 +85,7 @@ const context: ServiceContext = {
     admin: createMembershipAdminClient([{ workspaceId, userId, role: 'owner' }]),
     public: null,
   },
-  requestId: 'canonical-private-long-form-execution-smoke',
+  requestId: `canonical-private-long-form-execution-smoke-${scenarioKey}`,
   auth: {
     userId,
     accessToken: 'verified-canonical-long-form-smoke-token',
@@ -101,7 +106,7 @@ const initializedPreference = await preferenceService.initialize({
   workspaceId,
   projectId,
   editSessionId,
-  idempotencyKey: 'initialize-canonical-long-form-preferences',
+  idempotencyKey: `initialize-canonical-long-form-preferences-${scenarioKey}`,
 })
 const updatedPreference = await preferenceService.updateCurrent({
   workspaceId,
@@ -113,7 +118,7 @@ const updatedPreference = await preferenceService.updateCurrent({
     targetPlatform: 'youtube',
     cleanupPreference: 'preserve_natural',
   },
-  idempotencyKey: 'update-canonical-long-form-preferences',
+  idempotencyKey: `update-canonical-long-form-preferences-${scenarioKey}`,
 })
 const planningPreference = await preferenceService.recordPlanningEvidence({
   workspaceId,
@@ -122,14 +127,14 @@ const planningPreference = await preferenceService.recordPlanningEvidence({
   expectedRevision: updatedPreference.preferenceRecord.recordRevision,
   sourcePreparation: {
     status: 'ready',
-    evidenceHash: sha256Text('canonical-long-form-source-ready'),
+    evidenceHash: sha256Text(`canonical-long-form-source-ready-${scenarioKey}`),
   },
   frameConfirmation: {
     status: 'confirmed',
     aspectRatio: '16:9',
-    confirmationId: 'canonical-long-form-frame-confirmation',
+    confirmationId: `canonical-long-form-frame-confirmation-${scenarioKey}`,
   },
-  idempotencyKey: 'record-canonical-long-form-planning-evidence',
+  idempotencyKey: `record-canonical-long-form-planning-evidence-${scenarioKey}`,
 })
 
 const sourceFixture = await createSourceFixture()
@@ -148,7 +153,7 @@ assert.equal(uploadedSources.every((source) =>
   source.mediaAsset.sourceMetadata.hasAudio === true), true)
 
 const plannerInput: PlannerInput = {
-  projectName: 'Canonical long-form private execution',
+  projectName: `Canonical long-form private execution ${scenarioKey}`,
   targetPlatform: planningPreference.preferenceRecord.values.targetPlatform,
   aspectRatio: '16:9',
   aspectRatioConfirmed: true,
@@ -161,21 +166,29 @@ const plannerInput: PlannerInput = {
   moodStyle: 'clean',
   visualPreference: 'no_extra_visuals',
   referenceUrl: '',
-  customInstructions: 'Preserve all eight approved sources in order with exact captions. Use only hard cuts. Use clean voice only with no music, no SFX, no beat sync, and no decorative transitions.',
+  customInstructions: sourceSliceMode
+    ? 'Preserve the complete approved source and original audio continuously with exact captions. Do not add cuts, music, SFX, beat sync, or decorative transitions.'
+    : 'Preserve all eight approved sources in order with exact captions. Use only hard cuts. Use clean voice only with no music, no SFX, no beat sync, and no decorative transitions.',
   userInstructionHistory: [
-    'Preserve all eight approved sources in order with exact captions. Use only hard cuts. Use clean voice only with no music, no SFX, no beat sync, and no decorative transitions.',
+    sourceSliceMode
+      ? 'Preserve the complete approved source and original audio continuously with exact captions. Do not add cuts, music, SFX, beat sync, or decorative transitions.'
+      : 'Preserve all eight approved sources in order with exact captions. Use only hard cuts. Use clean voice only with no music, no SFX, no beat sync, and no decorative transitions.',
   ],
   creditPreference: 'balanced',
   clips: uploadedSources.map((source, index) => ({
-    id: `canonical-long-form-clip-${index + 1}`,
+    id: `canonical-long-form-${scenarioKey}-clip-${index + 1}`,
     uploadedOrder: index + 1,
     fileName: source.mediaAsset.fileName,
-    duration: '00:03',
+    duration: sourceSliceMode ? '00:22' : '00:03',
     detectedType: 'Primary source',
     sourceRole: index === 0 ? 'main_story' as const : 'context' as const,
-    notes: `Approved long-form source ${index + 1} is finalized in exact order.`,
+    notes: sourceSliceMode
+      ? 'The complete approved source is required and already has acceptable source audio/color.'
+      : `Approved long-form source ${index + 1} is finalized in exact order.`,
   })),
-  sourceSequenceMode: 'multi_clip_story_order',
+  sourceSequenceMode: sourceSliceMode
+    ? 'single_complete_video'
+    : 'multi_clip_story_order',
   sourceOrderConfirmed: true,
   cleanupPreference: planningPreference.preferenceRecord.values.cleanupPreference,
   cleanupPreferenceConfirmed: true,
@@ -191,7 +204,7 @@ const sourceMediaAssets: ApprovedEditExecutionUploadedMediaSourceAssetClientInpu
     }
     return {
       mediaAssetId: source.mediaAsset.id,
-      sourceSequenceItemId: `canonical-long-form-source-${index + 1}`,
+      sourceSequenceItemId: `canonical-long-form-${scenarioKey}-source-${index + 1}`,
       uploadedClipId: plannerInput.clips[index]!.id,
       uploadedOrder: index + 1,
       storageProvider,
@@ -210,6 +223,38 @@ const sourceMediaAssets: ApprovedEditExecutionUploadedMediaSourceAssetClientInpu
 
 const plan = createMockEditPlan(plannerInput)
 assert.equal(plan.masterTimingPlan?.timingBase.totalFrames, totalFrames)
+if (sourceSliceMode) {
+  assert.ok(plan.masterTimingPlan)
+  assert.ok(plan.soundSyncTransitionTimingPlan)
+  const originalCaption = plan.masterTimingPlan.captionTimingItems[0]
+  assert.ok(originalCaption)
+  plan.audioPipelinePlan = undefined
+  plan.colorPipelinePlan = undefined
+  plan.segmentEditPlans = []
+  plan.masterTimingPlan.finalTimelineSegments = []
+  plan.masterTimingPlan.transitionTimingItems = []
+  plan.masterTimingPlan.visualTimingItems = []
+  plan.masterTimingPlan.sfxTimingItems = []
+  plan.masterTimingPlan.musicDuckingTimingItems = []
+  plan.masterTimingPlan.providerClipTimingItems = []
+  plan.masterTimingPlan.captionTimingItems = [{
+    ...originalCaption,
+    id: 'caption-timing-complete-approved-source',
+    captionText: 'Preserve the complete approved source.',
+    timeRange: {
+      startSeconds: 0,
+      endSeconds: sourceDurationSeconds,
+      durationSeconds: sourceDurationSeconds,
+      startFrame: 0,
+      endFrame: totalFrames,
+      durationFrames: totalFrames,
+      fps,
+    },
+  }]
+  plan.soundSyncTransitionTimingPlan.refinedTransitionTimings = []
+  plan.soundSyncTransitionTimingPlan.refinedSfxTimings = []
+  plan.soundSyncTransitionTimingPlan.refinedMusicDuckingTimings = []
+}
 const draft = buildCanonicalPlanningDraft({ plan, plannerInput, sourceMediaAssets })
 if (!draft.ok || !draft.draft.publication) {
   throw new Error(
@@ -223,13 +268,44 @@ const chunkDrafts = canonicalPlan.workItems.filter((workItem) =>
   workItem.executionInput.operation === 'render_approved_4k_composition_chunk')
 const mergeDraft = canonicalPlan.workItems.find((workItem) =>
   workItem.executionInput.operation === 'merge_approved_4k_composition_chunks')
-assert.equal(chunkDrafts.length, 2)
+const expectedChunkCount = sourceSliceMode ? 3 : 2
+const expectedChunkDurations = sourceSliceMode ? [220, 220, 220] : [450, 270]
+assert.equal(chunkDrafts.length, expectedChunkCount)
 assert.ok(mergeDraft)
 const mergePayload = validateOfflineRemotionLongFormMergePlanningPayload(
   mergeDraft!.executionInput.structuredPayload,
 )
 assert.equal(mergePayload.durationFrames, totalFrames)
-assert.deepEqual(mergePayload.chunks.map((chunk) => chunk.durationFrames), [450, 270])
+assert.deepEqual(
+  mergePayload.chunks.map((chunk) => chunk.durationFrames),
+  expectedChunkDurations,
+)
+if (sourceSliceMode) {
+  assert.equal(
+    mergePayload.longFormCapacityProfileId,
+    'canonical_private_4k_source_slice_chunk_merge_3840_frames_v2',
+  )
+  assert.equal(mergePayload.chunkBoundaryTransitions.length, 0)
+  assert.ok('chunkBoundaryContinuity' in mergePayload)
+  assert.equal(mergePayload.chunkBoundaryContinuity.length, expectedChunkCount - 1)
+  assert.deepEqual(mergePayload.chunks.map((chunk) => ({
+    sourceSliceKey: chunk.sourceSliceKey,
+    sourceStartFrame: chunk.sourceStartFrame,
+    sourceEndFrameExclusive: chunk.sourceEndFrameExclusive,
+  })), [{
+    sourceSliceKey: 'source-slice-1-of-3',
+    sourceStartFrame: 0,
+    sourceEndFrameExclusive: 220,
+  }, {
+    sourceSliceKey: 'source-slice-2-of-3',
+    sourceStartFrame: 220,
+    sourceEndFrameExclusive: 440,
+  }, {
+    sourceSliceKey: 'source-slice-3-of-3',
+    sourceStartFrame: 440,
+    sourceEndFrameExclusive: 660,
+  }])
+}
 
 const planningHandoffService = createCanonicalPlanningHandoffService(context)
 const handoff = await planningHandoffService.prepare({
@@ -245,14 +321,14 @@ const handoff = await planningHandoffService.prepare({
 const published = await planningHandoffService.publishFromPersistedHandoff({
   ...publishCanonicalEditPlanFromHandoffSchema.parse({
     workspaceId,
-    planningRequestId: 'publish-canonical-long-form-plan',
+    planningRequestId: `publish-canonical-long-form-plan-${scenarioKey}`,
     expectedHandoffHash: handoff.handoffHash,
     canonicalPlan,
   }),
   projectId,
   editSessionId,
   handoffId: handoff.handoffId,
-  idempotencyKey: 'publish-canonical-long-form-plan',
+  idempotencyKey: `publish-canonical-long-form-plan-${scenarioKey}`,
 })
 const publishedAuthority = asRecord(published.authority)
 const publishedPlan = asRecord(publishedAuthority.plan)
@@ -264,7 +340,7 @@ const approved = await planningService.approveAndFundCanonicalPlan({
   expectedAuthorityRevision: Number(publishedAuthority.authorityRevision),
   expectedPlanHash: String(publishedPlan.planHash),
   expectedEstimateHash: String(publishedEstimate.estimateHash),
-  idempotencyKey: 'approve-canonical-long-form-plan',
+  idempotencyKey: `approve-canonical-long-form-plan-${scenarioKey}`,
 })
 const approvedSnapshot = asRecord(asRecord(approved.authority).snapshot)
 const packaged = await createCanonicalEditExecutionPackageService(context).createPackage({
@@ -272,7 +348,7 @@ const packaged = await createCanonicalEditExecutionPackageService(context).creat
   approvedPlanSnapshotId: String(approvedSnapshot.snapshotId),
   expectedSnapshotHash: String(approvedSnapshot.snapshotHash),
   purpose: 'private_internal_execution_handoff',
-  idempotencyKey: 'package-canonical-long-form-plan',
+  idempotencyKey: `package-canonical-long-form-plan-${scenarioKey}`,
 })
 
 const aggregate = await requireEditAuthority()
@@ -282,8 +358,9 @@ assert.ok(snapshot)
 const approvedWorkItems = aggregate.approvedWorkItems.filter((candidate) =>
   candidate.snapshotId === snapshot.snapshotId)
 const jobs = aggregate.jobs.filter((candidate) => candidate.snapshotId === snapshot.snapshotId)
-assert.equal(approvedWorkItems.length, 29)
-assert.equal(jobs.length, 29)
+const expectedJobCount = sourceSliceMode ? 8 : 29
+assert.equal(approvedWorkItems.length, expectedJobCount)
+assert.equal(jobs.length, expectedJobCount)
 const jobByKey = new Map(approvedWorkItems.map((workItem) => {
   const job = jobs.find((candidate) => candidate.approvedWorkItemId === workItem.id)
   assert.ok(job)
@@ -299,41 +376,81 @@ const assetByKey = new Map(approvedWorkItems.map((workItem) => {
   assert.ok(asset)
   return [workItem.workItemKey, asset] as const
 }))
-assert.deepEqual(jobByKey.get('final-export')!.dependencyJobIds, [
-  jobByKey.get('composition-chunk-1')!.id,
-  jobByKey.get('composition-chunk-2')!.id,
-])
+assert.deepEqual(
+  jobByKey.get('final-export')!.dependencyJobIds,
+  chunkDrafts.map((chunk) => jobByKey.get(chunk.workItemKey)!.id),
+)
 
 const mediaRuntime = await activatePrivateOfflineMediaBinaryRuntime()
 await activatePrivateOfflineLibassCaptionRuntime()
 await prepareOfflineRemotionDockerRuntime()
 await activatePrivateOfflineRemotionRenderRuntime()
 const workGraphStartedAt = Date.now()
-const workGraphRun = await createCanonicalPrivateWorkGraphOrchestratorService(context).run({
-  workspaceId,
-  packageRecordId: packaged.approvedEditExecutionPackage.packageRecordId,
-  purpose: 'run_canonical_private_work_graph',
-  idempotencyKey: 'run-canonical-long-form-resource-waves-v1',
-})
+const workGraphService = createCanonicalPrivateWorkGraphOrchestratorService(context)
+const workGraphAttempts: Array<Awaited<ReturnType<typeof workGraphService.run>>> = []
+let workGraphRun: Awaited<ReturnType<typeof workGraphService.run>> | undefined
+const maximumWorkGraphPasses = 1 + canonicalPlan.workItems.reduce(
+  (total, workItem) => total + Math.max(0, workItem.maxAttempts - 1),
+  0,
+)
+for (let attempt = 1; attempt <= maximumWorkGraphPasses; attempt += 1) {
+  workGraphRun = await workGraphService.run({
+    workspaceId,
+    packageRecordId: packaged.approvedEditExecutionPackage.packageRecordId,
+    purpose: 'run_canonical_private_work_graph',
+    idempotencyKey:
+      `run-canonical-long-form-resource-waves-${scenarioKey}-attempt-${attempt}`,
+  })
+  workGraphAttempts.push(workGraphRun)
+  if (workGraphRun.status === 'completed_private_test_work_graph') break
+  const retryAvailable = workGraphRun.jobs.some((job) =>
+    job.status === 'failed_retry_available')
+  if (!retryAvailable || attempt === maximumWorkGraphPasses) break
+}
 const workGraphElapsedMilliseconds = Date.now() - workGraphStartedAt
+assert.ok(workGraphRun)
 assert.equal(workGraphRun.status, 'completed_private_test_work_graph')
-assert.equal(workGraphRun.summary.totalJobCount, 29)
-assert.equal(workGraphRun.summary.completedJobCount, 29)
+assert.equal(workGraphRun.summary.totalJobCount, expectedJobCount)
+assert.equal(workGraphRun.summary.completedJobCount, expectedJobCount)
 assert.equal(workGraphRun.summary.requiredBlockedJobCount, 0)
 assert.equal(workGraphRun.summary.allRequiredJobsCompleted, true)
-assert.ok(workGraphRun.scheduling)
-assert.equal(workGraphRun.scheduling.actualExecutionCount, 29)
-assert.ok(workGraphRun.scheduling.waveCount > 1)
-assert.ok(workGraphRun.scheduling.parallelWaveCount > 0)
-assert.ok(workGraphRun.scheduling.maximumWaveWidth > 1)
-assert.ok(workGraphRun.scheduling.observedPeakConcurrency > 1)
-assert.ok(workGraphRun.scheduling.observedPeakConcurrency <= 4)
-assert.equal(workGraphRun.scheduling.cloudDispatchAuthorized, false)
-assert.equal(workGraphRun.scheduling.distributedExecutionProven, false)
-assert.equal(workGraphRun.scheduling.physicalWorkerProcessConcurrencyProven, false)
-assert.equal(workGraphRun.scheduling.cloudWorkerConcurrencyProven, false)
-assert.equal(workGraphRun.scheduling.performanceSlaProven, false)
-assert.equal(workGraphRun.scheduling.immutableSnapshotPlacementBindingProven, false)
+assert.equal(workGraphAttempts.every((attempt) => Boolean(attempt.scheduling)), true)
+const schedulingAttempts = workGraphAttempts.map((attempt) => attempt.scheduling!)
+const schedulerJobObservationCount = schedulingAttempts.reduce(
+  (total, scheduling) => total + scheduling.actualExecutionCount,
+  0,
+)
+assert.equal(workGraphRun.scheduling?.actualExecutionCount, expectedJobCount)
+assert.equal(schedulingAttempts.every((scheduling) =>
+  scheduling.actualExecutionCount >= 1 &&
+  scheduling.actualExecutionCount <= expectedJobCount), true)
+workGraphAttempts.slice(1).forEach((attempt, index) => {
+  const previous = workGraphAttempts[index]!
+  const retryKeys = previous.jobs.filter((job) =>
+    job.status === 'failed_retry_available').map((job) => job.workItemKey)
+  assert.ok(retryKeys.length >= 1)
+  assert.equal(attempt.summary.replayedJobCount, previous.summary.completedJobCount)
+  assert.ok(attempt.summary.completedJobCount >= previous.summary.completedJobCount)
+  assert.equal(attempt.jobs.every((job) => {
+    const previousJob = previous.jobs.find((candidate) =>
+      candidate.workItemKey === job.workItemKey)
+    return previousJob?.status !== 'completed_private_test' || (
+      job.status === 'completed_private_test' && job.adapterReplayed
+    )
+  }), true)
+})
+assert.ok(schedulingAttempts.some((scheduling) => scheduling.waveCount > 1))
+assert.ok(schedulingAttempts.some((scheduling) => scheduling.parallelWaveCount > 0))
+assert.ok(schedulingAttempts.some((scheduling) => scheduling.maximumWaveWidth > 1))
+assert.ok(schedulingAttempts.some((scheduling) => scheduling.observedPeakConcurrency > 1))
+assert.ok(schedulingAttempts.every((scheduling) =>
+  scheduling.observedPeakConcurrency <= 4 &&
+  !scheduling.cloudDispatchAuthorized &&
+  !scheduling.distributedExecutionProven &&
+  !scheduling.physicalWorkerProcessConcurrencyProven &&
+  !scheduling.cloudWorkerConcurrencyProven &&
+  !scheduling.performanceSlaProven &&
+  !scheduling.immutableSnapshotPlacementBindingProven))
 const adapter = createCanonicalPrivateJobExecutionAdapterService(context)
 const executed = new Map<string, Awaited<ReturnType<typeof adapter.execute>>>()
 for (const workItem of canonicalPlan.workItems) {
@@ -411,7 +528,10 @@ const completedMergeLease = leaseAggregate?.leases.find((lease) =>
   lease.jobId === jobByKey.get('final-export')!.id &&
   lease.executionFence.state === 'completed')
 assert.ok(completedMergeLease)
-assert.equal(completedMergeLease.dependencyAuthority.selectedArtifacts.length, 2)
+assert.equal(
+  completedMergeLease.dependencyAuthority.selectedArtifacts.length,
+  expectedChunkCount,
+)
 assert.deepEqual(
   completedMergeLease.dependencyAuthority.selectedArtifacts.map((artifact) => artifact.artifactId),
   chunks.map((chunk) => chunk.result.artifactId),
@@ -501,17 +621,32 @@ assert.deepEqual({
   sampleRate: 48_000,
   channels: 2,
 })
+const approvedSourceSliceBoundaryFrames = 'chunkBoundaryContinuity' in mergePayload
+  ? mergePayload.chunkBoundaryContinuity.map((boundary) => boundary.boundaryFrame)
+  : []
+if (sourceSliceMode) assert.equal(approvedSourceSliceBoundaryFrames.length, 2)
+const sourceSliceAudioContinuity = sourceSliceMode
+  ? await inspectSourceSliceAudioContinuity(
+      await privateDownload.openStream(),
+      approvedSourceSliceBoundaryFrames,
+    )
+  : null
 
 console.log(JSON.stringify({
   smoke: 'canonical_private_long_form_execution',
   status: 'passed',
+  scenarioKey,
   signedInUserId: userId,
   sourceCount,
   sourceDurationSeconds,
   totalFrames,
   approvedWorkItemCount: approvedWorkItems.length,
   completedJobCount: executed.size,
-  resourceScheduling: workGraphRun.scheduling,
+  resourceScheduling: {
+    attemptCount: schedulingAttempts.length,
+    schedulerJobObservationCount,
+    attempts: schedulingAttempts,
+  },
   resourceWaveExecutionTiming: {
     elapsedMilliseconds: workGraphElapsedMilliseconds,
     elapsedMinutes: Number((workGraphElapsedMilliseconds / 60_000).toFixed(2)),
@@ -533,17 +668,23 @@ console.log(JSON.stringify({
     height: video?.height,
     fps: video?.fps,
     frameCount: video?.readFrameCount,
+    sourceSliceAudioContinuity,
   },
   proofs: [
     'signed_in_workspace_scoped_canonical_authority',
-    'eight_private_uploaded_sources_and_immutable_approved_snapshot',
+    sourceSliceMode
+      ? 'one_22_second_private_source_and_immutable_approved_snapshot'
+      : 'eight_private_uploaded_sources_and_immutable_approved_snapshot',
     'original_4k_estimate_and_reservation_reused_without_export_recharge',
-    '29_of_29_required_jobs_completed',
-    '29_jobs_executed_through_server_derived_resource_aware_dependency_waves',
+    `${expectedJobCount}_of_${expectedJobCount}_required_jobs_completed`,
+    `${expectedJobCount}_jobs_executed_through_server_derived_resource_aware_dependency_waves`,
     'bounded_overlapping_orchestrator_execution_tasks_observed_on_one_private_host',
-    'two_private_4k_chunk_renders_each_independently_ffprobe_qa_reconciled',
+    `${expectedChunkCount}_private_4k_chunk_renders_each_independently_ffprobe_qa_reconciled`,
+    sourceSliceMode
+      ? 'exact_source_slice_ranges_and_continuity_records_preserved_without_invented_cuts'
+      : 'approved_source_boundary_hard_cuts_preserved',
     'final_merge_reads_only_lease_selected_qa_passed_chunk_streams',
-    'final_720_frame_4k_h264_aac_master_independently_ffprobe_qa_reconciled',
+    `final_${totalFrames}_frame_4k_h264_aac_master_independently_ffprobe_qa_reconciled`,
     'chunk_and_final_adapter_replay_are_content_stable',
     'private_download_hash_and_ffprobe_match_recorded_final_artifact',
     'provider_billing_public_delivery_settlement_and_production_authority_remain_false',
@@ -559,7 +700,7 @@ async function executeJob(workItemKey: string) {
     editSessionId,
     jobId: job.id,
     purpose: 'execute_canonical_private_job',
-    idempotencyKey: `execute-canonical-long-form-${workItemKey}`,
+    idempotencyKey: `execute-canonical-long-form-${scenarioKey}-${workItemKey}`,
   })
 }
 
@@ -574,7 +715,10 @@ async function requireEditAuthority() {
 }
 
 async function createSourceFixture(): Promise<{ path: string; bytes: Buffer; sha256: string }> {
-  const path = join('/tmp', `reeditpro-canonical-long-form-source-${process.pid}.mp4`)
+  const path = join(
+    '/tmp',
+    `reeditpro-canonical-long-form-${scenarioKey}-source-${process.pid}.mp4`,
+  )
   const generated = spawnSync('ffmpeg', [
     '-hide_banner', '-loglevel', 'error',
     '-f', 'lavfi', '-i',
@@ -603,11 +747,11 @@ async function uploadSource(
     workspaceId,
     projectId,
     uploadPurpose: 'source_media',
-    originalFileName: `canonical-long-form-source-${index}.mp4`,
+    originalFileName: `canonical-long-form-${scenarioKey}-source-${index}.mp4`,
     mimeType: 'video/mp4',
     expectedSizeBytes: fixture.bytes.byteLength,
     checksumSha256: fixture.sha256,
-    idempotencyKey: `canonical-long-form-source-${index}-upload-intent`,
+    idempotencyKey: `canonical-long-form-${scenarioKey}-source-${index}-upload-intent`,
   })
   const uploaded = await uploadFileToTemporaryObjectTarget({
     apiBaseUrl: 'https://api.reeditpro.invalid',
@@ -629,7 +773,8 @@ async function uploadSource(
       workspaceId,
       uploadIntentId: created.uploadIntent.id,
       suppliedSizeBytes: fixture.bytes.byteLength,
-      idempotencyKey: `canonical-long-form-source-${index}-finalization-job`,
+      idempotencyKey:
+        `canonical-long-form-${scenarioKey}-source-${index}-finalization-job`,
     })
     const completed = await finalizationService.run({ workspaceId, jobId: queued.job.jobId })
     assert.equal(completed.job.status, 'completed')
@@ -723,4 +868,85 @@ async function hashExactPrivateStream(
     sha256: checksum.digest('hex'),
     signature: Buffer.concat(signatureChunks, signatureByteLength),
   }
+}
+
+async function inspectSourceSliceAudioContinuity(
+  stream: Readable,
+  boundaryFrames: number[],
+): Promise<{
+  sampleCount: number
+  durationSeconds: number
+  boundaries: Array<{
+    frame: number
+    sample: number
+    adjacentDelta: number
+    rmsBefore: number
+    rmsAfter: number
+  }>
+}> {
+  const child = spawn('ffmpeg', [
+    '-v', 'error', '-i', 'pipe:0', '-map', '0:a:0',
+    '-ac', '1', '-ar', '48000', '-f', 'f32le', 'pipe:1',
+  ], { stdio: ['pipe', 'pipe', 'pipe'] })
+  const stdout = readBoundedProcessStream(child.stdout, 8 * 1024 * 1024)
+  const stderr = readBoundedProcessStream(child.stderr, 64 * 1024)
+  const exited = new Promise<number | null>((resolve, reject) => {
+    child.once('error', reject)
+    child.once('close', resolve)
+  })
+  await pipeline(stream, child.stdin)
+  const [exitCode, pcm, errorBytes] = await Promise.all([exited, stdout, stderr])
+  if (exitCode !== 0 || errorBytes.length > 0 || pcm.length % 4 !== 0) {
+    throw new Error(
+      `Unable to decode final source-slice audio continuity: ${errorBytes.toString('utf8').slice(-500)}`,
+    )
+  }
+  const sampleCount = pcm.length / 4
+  const expectedSamples = Math.round(totalFrames / fps * 48_000)
+  assert.ok(sampleCount >= expectedSamples)
+  assert.ok(sampleCount <= expectedSamples + 4_096)
+  const sample = (index: number) => pcm.readFloatLE(index * 4)
+  const rms = (start: number, end: number) => {
+    let squareSum = 0
+    for (let index = start; index < end; index += 1) {
+      squareSum += sample(index) ** 2
+    }
+    return Math.sqrt(squareSum / (end - start))
+  }
+  const boundaries = boundaryFrames.map((frame) => {
+    const boundarySample = Math.round(frame / fps * 48_000)
+    const evidence = {
+      frame,
+      sample: boundarySample,
+      adjacentDelta: Math.abs(sample(boundarySample) - sample(boundarySample - 1)),
+      rmsBefore: rms(boundarySample - 4_800, boundarySample),
+      rmsAfter: rms(boundarySample, boundarySample + 4_800),
+    }
+    assert.ok(evidence.adjacentDelta < 0.02)
+    assert.ok(evidence.rmsBefore > 0.03)
+    assert.ok(evidence.rmsAfter > 0.03)
+    return evidence
+  })
+  return {
+    sampleCount,
+    durationSeconds: sampleCount / 48_000,
+    boundaries,
+  }
+}
+
+async function readBoundedProcessStream(
+  stream: Readable,
+  maximumBytes: number,
+): Promise<Buffer> {
+  const chunks: Buffer[] = []
+  let byteLength = 0
+  for await (const chunk of stream) {
+    const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)
+    byteLength += bytes.length
+    if (byteLength > maximumBytes) {
+      throw new Error('Process evidence stream exceeded its bounded memory ceiling.')
+    }
+    chunks.push(bytes)
+  }
+  return Buffer.concat(chunks, byteLength)
 }

@@ -7,6 +7,11 @@ import {
   CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES,
   CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES,
   CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_ITEMS,
+  CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID,
+  CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_CHUNKS,
+  CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_FRAMES,
+  CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MINIMUM_FRAMES,
+  type CanonicalPrivateLongFormCapacityProfileId,
 } from '../types/canonical-private-composition-capacity'
 
 export interface CanonicalPrivateLongFormSourceSegment {
@@ -15,6 +20,9 @@ export interface CanonicalPrivateLongFormSourceSegment {
   sourceEndFrameExclusive: number
   timelineStartFrame: number
   timelineEndFrameExclusive: number
+  sourceSliceKey?: string
+  sourceSliceIndex?: number
+  sourceSliceCount?: number
 }
 
 export interface CanonicalPrivateLongFormChunk {
@@ -28,10 +36,15 @@ export interface CanonicalPrivateLongFormChunk {
 }
 
 export interface CanonicalPrivateLongFormChunkPlan {
-  profileId: typeof CANONICAL_PRIVATE_LONG_FORM_CAPACITY_PROFILE_ID
+  profileId: CanonicalPrivateLongFormCapacityProfileId
   totalFrames: number
   chunkCount: number
   chunks: CanonicalPrivateLongFormChunk[]
+}
+
+export interface CanonicalPrivateSourceSliceLongFormChunkPlan
+  extends CanonicalPrivateLongFormChunkPlan {
+  profileId: typeof CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID
 }
 
 export type CanonicalPrivateLongFormChunkPlanResult =
@@ -137,6 +150,132 @@ export function planCanonicalPrivateLongFormChunks(input: {
       chunkCount,
       chunks,
     },
+  }
+}
+
+/**
+ * Partitions one approved cleanup range into balanced, frame-exact execution
+ * slices. These are technical render boundaries only: they do not create cuts,
+ * change the approved source range, or reinterpret timing/meaning.
+ */
+export function planCanonicalPrivateSourceSliceLongFormChunks(input: {
+  totalFrames: number
+  sourceSegments: CanonicalPrivateLongFormSourceSegment[]
+}): CanonicalPrivateLongFormChunkPlanResult {
+  if (
+    !Number.isSafeInteger(input.totalFrames) ||
+    input.totalFrames < CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MINIMUM_FRAMES ||
+    input.totalFrames > CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_FRAMES
+  ) {
+    return {
+      ok: false,
+      blocker: `The private source-slice profile requires ${CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MINIMUM_FRAMES} through ${CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_FRAMES} approved frames.`,
+    }
+  }
+  if (input.sourceSegments.length !== 1) {
+    return {
+      ok: false,
+      blocker: 'The private source-slice profile currently requires exactly one approved source cleanup range.',
+    }
+  }
+  const source = input.sourceSegments[0]!
+  const sourceDuration = source.sourceEndFrameExclusive - source.sourceStartFrame
+  const timelineDuration = source.timelineEndFrameExclusive - source.timelineStartFrame
+  if (
+    !source.sourceSequenceItemId ||
+    !Number.isSafeInteger(source.sourceStartFrame) ||
+    !Number.isSafeInteger(source.sourceEndFrameExclusive) ||
+    !Number.isSafeInteger(source.timelineStartFrame) ||
+    !Number.isSafeInteger(source.timelineEndFrameExclusive) ||
+    source.sourceStartFrame < 0 ||
+    source.sourceEndFrameExclusive <= source.sourceStartFrame ||
+    source.timelineStartFrame !== 0 ||
+    source.timelineEndFrameExclusive !== input.totalFrames ||
+    sourceDuration !== timelineDuration ||
+    sourceDuration !== input.totalFrames ||
+    source.sourceSliceKey !== undefined ||
+    source.sourceSliceIndex !== undefined ||
+    source.sourceSliceCount !== undefined
+  ) {
+    return {
+      ok: false,
+      blocker: 'The source-slice profile requires one exact duration-preserving approved range covering the complete timeline.',
+    }
+  }
+
+  const chunkCount = Math.ceil(
+    input.totalFrames / CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES,
+  )
+  if (chunkCount < 2 ||
+    chunkCount > CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_CHUNKS) {
+    return {
+      ok: false,
+      blocker: 'The source-slice profile cannot represent the approved range inside its fixed chunk ceiling.',
+    }
+  }
+  const baseDuration = Math.floor(input.totalFrames / chunkCount)
+  const remainder = input.totalFrames % chunkCount
+  if (
+    baseDuration < CANONICAL_PRIVATE_COMPOSITION_MINIMUM_FRAMES ||
+    baseDuration + (remainder > 0 ? 1 : 0) >
+      CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES
+  ) {
+    return {
+      ok: false,
+      blocker: 'The source-slice profile cannot create balanced chunks inside its proven frame limits.',
+    }
+  }
+
+  let globalStartFrame = 0
+  let approvedSourceStartFrame = source.sourceStartFrame
+  const chunks: CanonicalPrivateLongFormChunk[] = Array.from(
+    { length: chunkCount },
+    (_unused, offset) => {
+      const durationFrames = baseDuration + (offset < remainder ? 1 : 0)
+      const globalEndFrameExclusive = globalStartFrame + durationFrames
+      const approvedSourceEndFrameExclusive = approvedSourceStartFrame + durationFrames
+      const chunkIndex = offset + 1
+      const sourceSliceKey = `source-slice-${chunkIndex}-of-${chunkCount}`
+      const chunk: CanonicalPrivateLongFormChunk = {
+        chunkIndex,
+        chunkCount,
+        outputKey: `composition-chunk-${chunkIndex}-mp4`,
+        globalStartFrame,
+        globalEndFrameExclusive,
+        durationFrames,
+        sourceSegments: [{
+          sourceSequenceItemId: source.sourceSequenceItemId,
+          sourceStartFrame: approvedSourceStartFrame,
+          sourceEndFrameExclusive: approvedSourceEndFrameExclusive,
+          timelineStartFrame: 0,
+          timelineEndFrameExclusive: durationFrames,
+          sourceSliceKey,
+          sourceSliceIndex: chunkIndex,
+          sourceSliceCount: chunkCount,
+        }],
+      }
+      globalStartFrame = globalEndFrameExclusive
+      approvedSourceStartFrame = approvedSourceEndFrameExclusive
+      return chunk
+    },
+  )
+  if (
+    globalStartFrame !== input.totalFrames ||
+    approvedSourceStartFrame !== source.sourceEndFrameExclusive
+  ) {
+    return {
+      ok: false,
+      blocker: 'The source-slice profile failed to conserve exact source and timeline frames.',
+    }
+  }
+  return {
+    ok: true,
+    plan: {
+      profileId: CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID,
+      totalFrames: input.totalFrames,
+      chunkCount,
+      chunks,
+    } satisfies CanonicalPrivateSourceSliceLongFormChunkPlan,
   }
 }
 

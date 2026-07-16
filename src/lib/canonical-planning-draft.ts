@@ -14,9 +14,12 @@ import {
   CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES,
   CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES,
   CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_ITEMS,
+  CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID,
+  CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_FRAMES,
 } from '../types/canonical-private-composition-capacity'
 import {
   planCanonicalPrivateLongFormChunks,
+  planCanonicalPrivateSourceSliceLongFormChunks,
   type CanonicalPrivateLongFormChunkPlan,
 } from './canonical-private-long-form-chunk-plan'
 import {
@@ -662,7 +665,15 @@ function privateReviewPublicationBlockers(input: {
     blockers.push('Private canonical composition requires at least 24 approved frames.')
   } else if (input.orderedSourceItems.length === 1) {
     if (input.totalFrames > CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES) {
-      blockers.push('Private canonical single-source review currently supports at most 240 approved frames; exact source-slice chunk authority is still required for longer single-source edits.')
+      if (input.totalFrames > CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_FRAMES) {
+        blockers.push('The private single-source slice profile supports at most 3,840 approved frames; larger programs require distributed object/mezzanine evidence.')
+      } else if (sourceTimeline) {
+        const sourceSlicePlan = planCanonicalPrivateSourceSliceLongFormChunks({
+          totalFrames: input.totalFrames,
+          sourceSegments: sourceTimeline,
+        })
+        if (!sourceSlicePlan.ok) blockers.push(sourceSlicePlan.blocker)
+      }
     }
   } else if (input.totalFrames > CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES) {
     if (input.totalFrames > CANONICAL_PRIVATE_LONG_FORM_MAXIMUM_FRAMES) {
@@ -691,7 +702,8 @@ function privateReviewPublicationBlockers(input: {
     }
     if (
       cleanupDecision.endFrameExclusive - cleanupDecision.startFrame >
-      CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES
+      CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES &&
+      input.orderedSourceItems.length !== 1
     ) {
       blockers.push(
         `The approved range for source ${index + 1} exceeds the current 240-frame source-operation ceiling and requires chunk render, QA, and merge evidence.`,
@@ -744,6 +756,15 @@ function privateReviewPublicationBlockers(input: {
       'The planned audio work exceeds the exact source-bound voice delivery recipe and needs additional canonical work items.',
     )
   }
+  if (
+    input.orderedSourceItems.length === 1 &&
+    input.totalFrames > CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES &&
+    (input.approvedVoiceDeliverySources || input.approvedColorDeliverySources)
+  ) {
+    blockers.push(
+      'The source-slice profile preserves the approved source audio/color as-is; slice-aware professional audio and color preprocessing need separate continuity evidence before this planned processing can execute.',
+    )
+  }
   return unique(blockers)
 }
 
@@ -772,12 +793,18 @@ function buildPrivateReviewCanonicalPlan(input: {
   if (!sourceTimeline || sourceTimeline.at(-1)?.timelineEndFrameExclusive !== input.totalFrames) {
     throw new Error('Canonical source sequence lost its exact approved timeline during compilation.')
   }
-  const longFormChunkPlan = input.totalFrames > CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES
-    ? planCanonicalPrivateLongFormChunks({
+  const longFormChunkPlan = sourceTimeline.length === 1 &&
+    input.totalFrames > CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES
+    ? planCanonicalPrivateSourceSliceLongFormChunks({
         totalFrames: input.totalFrames,
         sourceSegments: sourceTimeline,
       })
-    : null
+    : input.totalFrames > CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES
+      ? planCanonicalPrivateLongFormChunks({
+          totalFrames: input.totalFrames,
+          sourceSegments: sourceTimeline,
+        })
+      : null
   if (longFormChunkPlan && !longFormChunkPlan.ok) {
     throw new Error(`Canonical long-form compilation failed: ${longFormChunkPlan.blocker}`)
   }
@@ -1071,7 +1098,6 @@ function buildPrivateReviewCanonicalPlan(input: {
         voiceWorkItems,
         approvedVoiceTracks,
         colorWorkItems,
-        compositionSourceTimeline,
         approvedHardCutTransitions: input.approvedHardCutTransitions,
         finalBudgetIndex,
         budgets,
@@ -1272,13 +1298,6 @@ function buildLongFormRenderWorkItems(input: {
     durationFrames: number
   }>
   colorWorkItems: CanonicalWorkItemDraft[]
-  compositionSourceTimeline: Array<{
-    sourceSequenceItemId: string
-    sourceStartFrame: number
-    sourceEndFrameExclusive: number
-    timelineStartFrame: number
-    timelineEndFrameExclusive: number
-  }>
   approvedHardCutTransitions: ApprovedHardCutTransition[]
   finalBudgetIndex: number
   budgets: number[]
@@ -1300,6 +1319,16 @@ function buildLongFormRenderWorkItems(input: {
     rendererLayerIds: string[]
   }
 }): CanonicalWorkItemDraft[] {
+  const sourceSliceProfile = input.chunkPlan.profileId ===
+    CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID
+  if (
+    sourceSliceProfile &&
+    (input.voiceWorkItems.length > 0 || input.colorWorkItems.length > 0)
+  ) {
+    throw new Error(
+      'Source-slice compilation cannot execute planned audio/color processing without continuity evidence.',
+    )
+  }
   const sourceIndexById = new Map(
     input.cleanupDecisions.map((decision, index) => [decision.sourceSequenceItemId, index]),
   )
@@ -1341,13 +1370,13 @@ function buildLongFormRenderWorkItems(input: {
     if (chunkTransitions.length !== Math.max(0, sourceIds.length - 1)) {
       throw new Error('Long-form chunk lost its approved hard-cut authority.')
     }
-    const sourceSegments = sourceIndices.map((sourceIndex) => {
-      const segment = input.compositionSourceTimeline[sourceIndex]!
+    const sourceSegments = chunk.sourceSegments.map((segment) => {
       return {
-        ...segment,
-        timelineStartFrame: segment.timelineStartFrame - chunk.globalStartFrame,
-        timelineEndFrameExclusive:
-          segment.timelineEndFrameExclusive - chunk.globalStartFrame,
+        sourceSequenceItemId: segment.sourceSequenceItemId,
+        sourceStartFrame: segment.sourceStartFrame,
+        sourceEndFrameExclusive: segment.sourceEndFrameExclusive,
+        timelineStartFrame: segment.timelineStartFrame,
+        timelineEndFrameExclusive: segment.timelineEndFrameExclusive,
       }
     })
     const voiceTracks = input.approvedVoiceTracks.filter((track) =>
@@ -1440,6 +1469,14 @@ function buildLongFormRenderWorkItems(input: {
           globalEndFrameExclusive: chunk.globalEndFrameExclusive,
           durationFrames: chunk.durationFrames,
           outputKey: chunk.outputKey,
+          ...(sourceSliceProfile
+            ? {
+                sourceSliceKey: chunk.sourceSegments[0]!.sourceSliceKey,
+                sourceStartFrame: chunk.sourceSegments[0]!.sourceStartFrame,
+                sourceEndFrameExclusive:
+                  chunk.sourceSegments[0]!.sourceEndFrameExclusive,
+              }
+            : {}),
         },
         structuredPayload,
       },
@@ -1481,18 +1518,48 @@ function buildLongFormRenderWorkItems(input: {
     }
   })
 
-  const chunkBoundaryTransitions = input.chunkPlan.chunks.slice(0, -1).map((chunk) => {
-    const transition = input.approvedHardCutTransitions.find((candidate) =>
-      candidate.boundaryFrame === chunk.globalEndFrameExclusive)
-    if (!transition) throw new Error('Long-form final merge lost a chunk-boundary hard cut.')
-    return {
-      transitionTimingItemId: transition.transitionTimingItemId,
-      refinedTransitionTimingItemId: transition.refinedTransitionTimingItemId,
-      fromSourceSequenceItemId: transition.fromSourceSequenceItemId,
-      toSourceSequenceItemId: transition.toSourceSequenceItemId,
-      boundaryFrame: transition.boundaryFrame,
-    }
-  })
+  const chunkBoundaryTransitions = sourceSliceProfile
+    ? []
+    : input.chunkPlan.chunks.slice(0, -1).map((chunk) => {
+        const transition = input.approvedHardCutTransitions.find((candidate) =>
+          candidate.boundaryFrame === chunk.globalEndFrameExclusive)
+        if (!transition) {
+          throw new Error('Long-form final merge lost a chunk-boundary hard cut.')
+        }
+        return {
+          transitionTimingItemId: transition.transitionTimingItemId,
+          refinedTransitionTimingItemId: transition.refinedTransitionTimingItemId,
+          fromSourceSequenceItemId: transition.fromSourceSequenceItemId,
+          toSourceSequenceItemId: transition.toSourceSequenceItemId,
+          boundaryFrame: transition.boundaryFrame,
+        }
+      })
+  const chunkBoundaryContinuity = sourceSliceProfile
+    ? input.chunkPlan.chunks.slice(0, -1).map((chunk, index) => {
+        const fromSlice = chunk.sourceSegments.at(-1)!
+        const toSlice = input.chunkPlan.chunks[index + 1]!.sourceSegments[0]!
+        const sourceIndex = sourceIndexById.get(fromSlice.sourceSequenceItemId)
+        if (
+          sourceIndex === undefined ||
+          fromSlice.sourceSequenceItemId !== toSlice.sourceSequenceItemId ||
+          fromSlice.sourceEndFrameExclusive !== toSlice.sourceStartFrame ||
+          fromSlice.sourceSliceIndex !== index + 1 ||
+          toSlice.sourceSliceIndex !== index + 2 ||
+          fromSlice.sourceSliceCount !== input.chunkPlan.chunkCount ||
+          toSlice.sourceSliceCount !== input.chunkPlan.chunkCount ||
+          !fromSlice.sourceSliceKey || !toSlice.sourceSliceKey
+        ) throw new Error('Long-form source-slice continuity authority diverged.')
+        return {
+          sourceSequenceItemId: fromSlice.sourceSequenceItemId,
+          sourceCleanupDecisionId: input.cleanupDecisions[sourceIndex]!.decisionId,
+          boundaryFrame: chunk.globalEndFrameExclusive,
+          previousSourceEndFrameExclusive: fromSlice.sourceEndFrameExclusive,
+          nextSourceStartFrame: toSlice.sourceStartFrame,
+          fromSourceSliceKey: fromSlice.sourceSliceKey,
+          toSourceSliceKey: toSlice.sourceSliceKey,
+        }
+      })
+    : []
   const finalMerge: CanonicalWorkItemDraft = {
     workItemKey: 'final-export',
     workItemType: 'render_final_export',
@@ -1508,23 +1575,44 @@ function buildLongFormRenderWorkItems(input: {
         height: input.frame.height,
         fps: input.fps,
         durationFrames: input.totalFrames,
-        chunks: input.chunkPlan.chunks.map((chunk) => ({
-          outputKey: chunk.outputKey,
-          chunkIndex: chunk.chunkIndex,
-          chunkCount: chunk.chunkCount,
-          globalStartFrame: chunk.globalStartFrame,
-          globalEndFrameExclusive: chunk.globalEndFrameExclusive,
-          durationFrames: chunk.durationFrames,
-          sourceSequenceItemIds: chunk.sourceSegments.map((segment) =>
-            segment.sourceSequenceItemId),
-          sourceCleanupDecisionIds: chunk.sourceSegments.map((segment) =>
-            input.cleanupDecisions[sourceIndexById.get(segment.sourceSequenceItemId)!]!.decisionId),
-        })),
-        mergePolicy: 'approved_contiguous_4k_chunks_v1',
-        transitionPolicy: 'approved_hard_cuts_only',
+        chunks: input.chunkPlan.chunks.map((chunk) => {
+          const sourceSlice = chunk.sourceSegments[0]
+          if (
+            sourceSliceProfile &&
+            (chunk.sourceSegments.length !== 1 || !sourceSlice?.sourceSliceKey)
+          ) throw new Error('Long-form merge lost exact source-slice lineage.')
+          return {
+            outputKey: chunk.outputKey,
+            chunkIndex: chunk.chunkIndex,
+            chunkCount: chunk.chunkCount,
+            globalStartFrame: chunk.globalStartFrame,
+            globalEndFrameExclusive: chunk.globalEndFrameExclusive,
+            durationFrames: chunk.durationFrames,
+            sourceSequenceItemIds: chunk.sourceSegments.map((segment) =>
+              segment.sourceSequenceItemId),
+            sourceCleanupDecisionIds: chunk.sourceSegments.map((segment) =>
+              input.cleanupDecisions[sourceIndexById.get(segment.sourceSequenceItemId)!]!.decisionId),
+            ...(sourceSliceProfile
+              ? {
+                  sourceSliceKey: sourceSlice!.sourceSliceKey!,
+                  sourceStartFrame: sourceSlice!.sourceStartFrame,
+                  sourceEndFrameExclusive: sourceSlice!.sourceEndFrameExclusive,
+                }
+              : {}),
+          }
+        }),
+        mergePolicy: sourceSliceProfile
+          ? 'approved_contiguous_source_slice_4k_chunks_v2'
+          : 'approved_contiguous_4k_chunks_v1',
+        transitionPolicy: sourceSliceProfile
+          ? 'continuous_approved_source_slices_only'
+          : 'approved_hard_cuts_only',
         chunkBoundaryTransitions,
+        ...(sourceSliceProfile ? { chunkBoundaryContinuity } : {}),
         audioPolicy: 'preserve_approved_chunk_audio',
-        frameContinuityPolicy: 'exact_integer_frame_boundaries_v1',
+        frameContinuityPolicy: sourceSliceProfile
+          ? 'exact_integer_frame_and_source_slice_boundaries_v2'
+          : 'exact_integer_frame_boundaries_v1',
         renderPurpose: 'private_4k_delivery_master_v1',
         deliveryProfileId: 'uhd_2160',
         estimateCostBasisProfileId: 'uhd_2160',

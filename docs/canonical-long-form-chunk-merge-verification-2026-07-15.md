@@ -2,6 +2,13 @@
 
 Status: `verified_local_private_bounded_long_form`
 
+Historical profile note: this document remains the evidence record for the
+source-boundary v1 profile. The additive single-source slice v2 profile and its
+new readiness limits are verified in
+`docs/canonical-source-slice-long-form-verification-2026-07-16.md`. Statements
+below that v1 cannot slice a source describe the v1 contract, not the current
+combined capability set.
+
 ## Scope
 
 This backend slice adds the first snapshot-bound long-form bridge above the

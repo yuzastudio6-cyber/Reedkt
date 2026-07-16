@@ -6,6 +6,9 @@ import type { ZodType } from 'zod'
 import { ApiError } from '../errors/api-error'
 import { resolveProfessionalExportFrame } from '../../src/lib/professional-export-policy'
 import {
+  CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID,
+} from '../../src/types/canonical-private-composition-capacity'
+import {
   OFFLINE_MEDIA_BINARY_OPERATIONS,
   OFFLINE_MEDIA_BINARY_STREAM_PROTOCOL,
   OFFLINE_MEDIA_BINARY_SERVER_INPUT_MODE,
@@ -157,6 +160,8 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
             'Composition chunk authority is invalid.',
           )
         : undefined
+      const sourceSliceChunkProfile = chunkAuthority?.profileId ===
+        CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID
       const exportCoverage = authority.components.confirmedSettings.professionalExportCoverage
       const exactFourKFrame = resolveProfessionalExportFrame(
         exportCoverage.approvedAspectRatio,
@@ -237,7 +242,13 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
             expectedAsset.artifactType === 'private_4k_composition_chunk_v1' &&
             captionTrackProfile &&
             chunkAuthority?.outputKey === expectedAsset.outputKey &&
-            chunkAuthority.durationFrames === planningPayload.durationFrames
+            chunkAuthority.durationFrames === planningPayload.durationFrames &&
+            (!sourceSliceChunkProfile || (
+              'sourceStartFrame' in planningPayload &&
+              chunkAuthority.sourceStartFrame === planningPayload.sourceStartFrame &&
+              chunkAuthority.sourceEndFrameExclusive ===
+                planningPayload.sourceEndFrameExclusive
+            ))
           )
       if (
         colorDependencyWorkItemCount !== colorSourceCount ||
@@ -281,6 +292,18 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
           exactCleanupDecisions[0]!.endFrameExclusive - exactCleanupDecisions[0]!.startFrame !==
             planningPayload.durationFrames
         ) throw denied('Professional color composition lost its approved normalized source duration.')
+      } else if (sourceSliceChunkProfile) {
+        const decision = exactCleanupDecisions[0]!
+        if (
+          !('sourceStartFrame' in planningPayload) ||
+          planningPayload.sourceStartFrame !== chunkAuthority.sourceStartFrame ||
+          planningPayload.sourceEndFrameExclusive !==
+            chunkAuthority.sourceEndFrameExclusive ||
+          planningPayload.sourceStartFrame < decision.startFrame ||
+          planningPayload.sourceEndFrameExclusive > decision.endFrameExclusive
+        ) throw denied(
+          'Composition source slice diverges from its exact approved cleanup range.',
+        )
       } else if (
         planningPayload.sourceStartFrame !== exactCleanupDecisions[0]!.startFrame ||
         planningPayload.sourceEndFrameExclusive !== exactCleanupDecisions[0]!.endFrameExclusive

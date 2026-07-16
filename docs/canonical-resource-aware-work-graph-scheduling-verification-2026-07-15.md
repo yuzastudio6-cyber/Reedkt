@@ -103,22 +103,32 @@ The concurrency measurement scope is intentionally
 single-host locks. It does not claim that two OS processes, containers, GPUs,
 or Cloud Run jobs were physically executing at the same instant.
 
+The same smoke now has an explicit source-slice v2 mode. A fresh exit-zero run
+used one 22-second/660-frame source, three 220-frame 4K chunks, and eight jobs.
+Its first graph pass observed six runnable job adapters with render-task peak
+two; one chunk recorded a retryable local-runtime failure. The second pass
+replayed the five completed jobs, recovered only the unresolved signed chunk,
+then completed final merge and final QA. The two passes reported 14 scheduler
+job observations in total, not 14 media executions. The final 32,450,267-byte
+4K master and both PCM slice boundaries passed. The measured 19.81 minutes is
+local correctness/recovery evidence, not a cloud benchmark or SLA.
+
 ## Full Internal Regression Evidence
 
 The final post-change `npm run qa:internal-pipeline` run passed all 27 of 27
-stages with exit code 0. It ran from `2026-07-16T13:13:45.747Z` through
-`2026-07-16T13:50:12.138Z` and took `2,186,391 ms` locally.
+stages with exit code 0. It ran from `2026-07-16T16:14:06.386Z` through
+`2026-07-16T16:42:46.673Z` and took `1,720,287 ms` locally.
 
 The same run included:
 
-- the three-source private composition lifecycle in `656,545 ms`;
-- the deterministic professional-color lifecycle in `766,735 ms`, including a
-  `67,338,001`-byte lossless color artifact and a `19,473,909`-byte final
+- the three-source private composition lifecycle in `552,999 ms`;
+- the deterministic professional-color lifecycle in `655,997 ms`, including a
+  `67,338,001`-byte lossless color artifact and a `19,322,810`-byte final
   composition above the exercised 16 MiB streaming boundary;
-- the separate bounded UHD Remotion streaming proof in `116,285 ms`;
+- the separate bounded UHD Remotion streaming proof in `105,886 ms`;
 - all 50 versioned proven-tool identities;
 - the active named-edit browser journey; and
-- the standalone authenticated maximum-eight-source journey in `600,447 ms`,
+- the standalone authenticated maximum-eight-source journey in `362,341 ms`,
   with all 27 server-derived work items completed and the private 4K review
   accepted.
 

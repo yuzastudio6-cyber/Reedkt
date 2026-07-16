@@ -7,6 +7,9 @@ import {
   CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES,
   CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_HARD_CUTS,
   CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_ITEMS,
+  CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID,
+  CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_CHUNKS,
+  CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_FRAMES,
 } from '../../src/types/canonical-private-composition-capacity'
 import { REEDITPRO_SOURCE_MEDIA_MAX_BYTES } from '../../src/types/large-media'
 import {
@@ -477,22 +480,60 @@ export const runCanonicalPrivateCompositionChunkSchema = z.object({
   idempotencyKey: z.string().min(8).max(240).refine((value) => value === value.trim()),
 }).strict()
 
-export const canonicalPrivateCompositionChunkAuthoritySchema = z.object({
-  profileId: z.literal('canonical_private_4k_chunk_merge_1920_frames_v1'),
-  chunkIndex: z.number().int().min(1).max(8),
-  chunkCount: z.number().int().min(2).max(8),
-  globalStartFrame: z.number().int().nonnegative()
-    .max(CANONICAL_PRIVATE_LONG_FORM_MAXIMUM_FRAMES - 1),
-  globalEndFrameExclusive: z.number().int().positive()
-    .max(CANONICAL_PRIVATE_LONG_FORM_MAXIMUM_FRAMES),
+const canonicalPrivateCompositionChunkAuthorityBase = z.object({
+  chunkIndex: z.number().int().min(1),
+  chunkCount: z.number().int().min(2),
+  globalStartFrame: z.number().int().nonnegative(),
+  globalEndFrameExclusive: z.number().int().positive(),
   durationFrames: z.number().int()
-    .min(CANONICAL_PRIVATE_COMPOSITION_MINIMUM_FRAMES)
-    .max(CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES),
+    .min(CANONICAL_PRIVATE_COMPOSITION_MINIMUM_FRAMES),
   outputKey: identity,
-}).strict().superRefine((value, context) => {
+})
+
+export const canonicalPrivateCompositionChunkAuthoritySchema = z.discriminatedUnion(
+  'profileId',
+  [
+    canonicalPrivateCompositionChunkAuthorityBase.extend({
+      profileId: z.literal('canonical_private_4k_chunk_merge_1920_frames_v1'),
+      chunkIndex: z.number().int().min(1).max(8),
+      chunkCount: z.number().int().min(2).max(8),
+      globalStartFrame: z.number().int().nonnegative()
+        .max(CANONICAL_PRIVATE_LONG_FORM_MAXIMUM_FRAMES - 1),
+      globalEndFrameExclusive: z.number().int().positive()
+        .max(CANONICAL_PRIVATE_LONG_FORM_MAXIMUM_FRAMES),
+      durationFrames: z.number().int()
+        .min(CANONICAL_PRIVATE_COMPOSITION_MINIMUM_FRAMES)
+        .max(CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES),
+    }).strict(),
+    canonicalPrivateCompositionChunkAuthorityBase.extend({
+      profileId: z.literal(
+        CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID,
+      ),
+      chunkIndex: z.number().int().min(1)
+        .max(CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_CHUNKS),
+      chunkCount: z.number().int().min(2)
+        .max(CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_CHUNKS),
+      globalStartFrame: z.number().int().nonnegative()
+        .max(CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_FRAMES - 1),
+      globalEndFrameExclusive: z.number().int().positive()
+        .max(CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_FRAMES),
+      durationFrames: z.number().int()
+        .min(CANONICAL_PRIVATE_COMPOSITION_MINIMUM_FRAMES)
+        .max(CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES),
+      sourceSliceKey: identity,
+      sourceStartFrame: z.number().int().nonnegative(),
+      sourceEndFrameExclusive: z.number().int().positive(),
+    }).strict(),
+  ],
+).superRefine((value, context) => {
   if (
     value.globalEndFrameExclusive - value.globalStartFrame !== value.durationFrames ||
-    value.chunkIndex > value.chunkCount
+    value.chunkIndex > value.chunkCount ||
+    (value.profileId === CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID && (
+      value.sourceEndFrameExclusive - value.sourceStartFrame !== value.durationFrames ||
+      value.sourceSliceKey !==
+        `source-slice-${value.chunkIndex}-of-${value.chunkCount}`
+    ))
   ) {
     context.addIssue({
       code: z.ZodIssueCode.custom,

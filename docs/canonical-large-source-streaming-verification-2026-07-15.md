@@ -138,6 +138,14 @@ strategy, then test representative long-duration media, near-ceiling audio,
 distributed recovery, and deployed storage behavior beyond the current
 explicit capacities.
 
+Follow-up: the bounded single-source segmentation portion is now implemented
+and verified by
+`docs/canonical-source-slice-long-form-verification-2026-07-16.md`. Its actual
+proof is one 22-second/660-frame source and its planning ceiling is 3,840
+frames. Representative long-duration/near-ceiling media, deployed storage,
+distributed recovery, and professional slice-aware audio/color processing
+remain open; the historical large-object conclusions above are unchanged.
+
 ## Focused verification
 
 The following passed on the changed code before the aggregate pipeline run:

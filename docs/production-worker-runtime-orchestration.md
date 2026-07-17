@@ -67,16 +67,29 @@ snapshot while recording that no live Google key fetch occurred. No raw
 authorization token, claim credential, media, prompt, path, signed URL, or
 worker command is persisted.
 
+The accepted-worker completion contract is also implemented for the same
+single-host private boundary. It revalidates the process-branded worker
+principal, derives the completed queue outcome from the immutable job, requires
+private artifact/QA/reconciliation/downstream-lease evidence plus an
+attempt-level internal production-cost evidence hash, and commits queue
+completion with one terminal outbox receipt through the package WAL. Real
+process exits at both completion commit stages and separate-process completion
+races recover to one result plus exact replay. Customer price, credits, service
+fee, wallet, billing, and settlement authority remain absent.
+
 This is single-host private evidence only. The service rejects production and
 purported live Google-verifier output until Google's supported live
 auth-library/key-rotation adapter is wired outside request JSON. The local
 package queue and outbox now share a process-recoverable write-ahead commit,
-but distributed database atomicity, multi-replica locking, Cloud Tasks
+and the completion transition uses the same lock plus a versioned completion
+WAL. Distributed database atomicity, multi-replica locking, Cloud Tasks
 creation, Cloud Run Jobs calls, live OIDC/IAM, private GCS transport, worker
-execution, and completion reconciliation remain blocked. See
+execution, and live completion reconciliation remain blocked. See
 `docs/canonical-service-identity-verifier-verification-2026-07-17.md` and
 `docs/canonical-cloud-dispatch-outbox-receiver-verification-2026-07-17.md`, plus
-`docs/canonical-private-package-state-transaction-verification-2026-07-17.md`.
+`docs/canonical-private-package-state-transaction-verification-2026-07-17.md`
+and
+`docs/canonical-private-worker-completion-reconciliation-verification-2026-07-17.md`.
 
 ## Throughput And ETA Principle
 

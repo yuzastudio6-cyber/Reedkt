@@ -22,8 +22,10 @@ maximum eight-source planning-publication contract. Before media execution it
 also verifies the durable package queue, a cross-process single-host
 queue/outbox write-ahead transaction, all 50 regional cloud-target mappings, a
 zero-network cryptographic service-identity core, and restart-safe controller
-and worker outbox receivers. It also runs the active named-edit Playwright
-journey and the versioned proven-tool identity report.
+and worker outbox receivers. The accepted worker result then uses the same
+package lock and write-ahead boundary to reconcile one queue completion with one
+terminal outbox receipt. It also runs the active named-edit Playwright journey
+and the versioned proven-tool identity report.
 
 Run the broader regression boundary with:
 
@@ -59,9 +61,12 @@ plan fits the bounded canonical profile.
    cooperative cross-process package lock, crash-consistent queue/outbox
    write-ahead commit, all 50 exact regional Cloud Tasks/Cloud Run target
    contracts, RS256/JWKS service identity with a non-serializable process trust
-   handoff, and durable idempotent controller and worker receipts. Live Google
-   keys, IAM, cloud calls, distributed database queue/outbox atomicity, and
-   worker execution remain blocked.
+   handoff, durable idempotent controller and worker receipts, and a second
+   crash-consistent transition that binds the accepted worker, private
+   artifact/QA/reconciliation/downstream evidence, and attempt-level internal
+   production-cost evidence to one terminal queue/outbox completion. Live
+   Google keys, IAM, cloud calls, distributed database queue/outbox atomicity,
+   and worker execution remain blocked.
 7. Exercise the bounded ordered three-source canonical lifecycle through lease,
    one-use dispatch, private artifacts, QA, reconciliation, replay, and private
    download evidence. The focused lifecycle includes three exact source-bound
@@ -100,7 +105,7 @@ source-bound audio identities in approved order, reads sanitized journey state,
 and records review acceptance.
 
 The runner stops on the first failed phase and prints a machine-readable
-`canonical-private-pipeline-verification-v9` report with step exit codes and
+`canonical-private-pipeline-verification-v10` report with step exit codes and
 durations. A zero exit code means every included assertion passed, including
 assertions that production-only or unavailable behavior stays blocked.
 
@@ -111,33 +116,40 @@ that discovery channel; it does not weaken image-identity validation.
 
 ## Current Evidence Record
 
-On 2026-07-17, the exact-code v9 canonical command passed all 26 phases in
-1,262,485 ms and the full internal command passed all 32 phases in 1,643,063 ms,
-both with exit code 0. The added package-state transaction phase completed in
-2,072 ms and 2,096 ms respectively. It proved a server-selected package
-delivery attempt, one cross-process package lock, one queue/outbox write-ahead
-commit point, real process-exit recovery, separate-process race convergence,
-dead-owner recovery, tamper and projection-drift refusal, and restrictive file
-modes while distributed database authority stayed false. The canonical run
-started at `2026-07-17T10:53:30.311Z` and finished at
-`2026-07-17T11:14:32.796Z`; the full run started at
-`2026-07-17T11:14:45.729Z` and finished at
-`2026-07-17T11:42:08.792Z`.
+On 2026-07-17, the exact-code v10 canonical command passed all 26 phases in
+`1,278,840 ms` and the full internal command passed all 32 phases in
+`1,651,012 ms`, both with exit code 0. The package-state phase completed in
+`4,063 ms` and `3,965 ms` respectively. In addition to the server-selected
+attempt and claim/outbox commit, it proved one accepted worker completion
+reconciled through the same cross-process package lock and a second
+checksum-protected write-ahead commit. Deterministic and real process exits at
+both completion commit stages recovered exactly one queue completion and one
+terminal outbox receipt; separate processes converged on one reconciliation
+plus one exact replay. Changed completion evidence, changed worker identity,
+expired attempts, tampered WAL content, and projection drift failed closed.
+The canonical run started at `2026-07-17T12:23:05.305Z` and finished at
+`2026-07-17T12:44:24.145Z`; the full run started at
+`2026-07-17T12:44:36.442Z` and finished at
+`2026-07-17T13:12:07.454Z`.
 
-The v9 canonical/full runs respectively completed the 50-tool cloud handoff in
-394/400 ms, cryptographic service identity in 380/385 ms, outbox receivers in
-768/749 ms, three-source composition in 512,451/531,023 ms, professional color
-in 614,743/609,961 ms, bounded UHD Remotion streaming in 98,315/99,356 ms, and
-the 11-test named-edit browser journey in 14,083/15,371 ms. The full run's final
-signed-in stage completed in 357,731 ms, executed all 27 server-derived jobs for
-eight ordered sources, produced and authenticated a 16-second 3840x2160 private
-review, preserved all eight source-bound tones, and persisted acceptance. The
-catalog remained exactly 50 canonical E2E and 50 canonical job-adapter
-identities. Live Google keys/IAM, distributed queue/outbox atomicity and cloud
+The v10 canonical/full runs respectively completed the 50-tool cloud handoff
+in `402/397 ms`, cryptographic service identity in `398/561 ms`,
+completion-aware outbox receivers in `925/920 ms`, three-source composition in
+`533,080/529,890 ms`, professional color in `604,722/600,954 ms`, bounded UHD
+Remotion streaming in `99,414/99,619 ms`, and the 11-test named-edit browser
+journey in `16,231/16,042 ms`. The full run's final signed-in stage completed in
+`372,731 ms`, executed all 27 server-derived jobs for eight ordered sources,
+produced and authenticated a 16-second 3840x2160 private review, preserved all
+eight source-bound tones, and persisted acceptance. The catalog remained
+exactly 50 canonical E2E and 50 canonical job-adapter identities. Attempt-level
+internal production-cost evidence was hash-bound at completion while customer
+price, credits, service fee, wallet, billing, and settlement authority stayed
+absent. Live Google keys/IAM, distributed queue/outbox atomicity and cloud
 execution, providers, billing/wallet mutation, remote Supabase, public delivery,
-deployment, external beta, and paid production remained false. The earlier v8
-25/25 and 31/31 runs are retained as pre-transaction historical evidence and
-are superseded by these exact-code v9 aggregate verdicts.
+deployment, external beta, and paid production remained false. The v9 26/26
+and 32/32 results remain pre-completion-reconciliation historical evidence and
+are superseded by these exact-code v10 aggregate verdicts; the earlier v8
+25/25 and 31/31 runs remain pre-transaction history.
 
 On 2026-07-16, the exact-code full internal command passed all 27 phases in
 1,985,135 ms with exit code 0. The final signed-in phase completed in 425,312

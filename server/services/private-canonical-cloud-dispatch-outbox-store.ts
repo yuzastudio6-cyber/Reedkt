@@ -12,11 +12,13 @@ import {
   CANONICAL_CLOUD_DISPATCH_OUTBOX_EVENT_VERSION,
   canonicalCloudDispatchControllerReceiptSchema,
   canonicalCloudDispatchOutboxAggregateSchema,
+  canonicalCloudDispatchWorkerCompletionReceiptSchema,
   canonicalCloudDispatchWorkerReceiptSchema,
   type CanonicalCloudDispatchControllerReceipt,
   type CanonicalCloudDispatchOutboxAggregate,
   type CanonicalCloudDispatchOutboxEntry,
   type CanonicalCloudDispatchOutboxEvent,
+  type CanonicalCloudDispatchWorkerCompletionReceipt,
   type CanonicalCloudDispatchWorkerReceipt,
 } from '../validation/canonical-cloud-dispatch-outbox-schemas'
 import { sha256AuthorityValue, stableAuthorityStringify } from './private-edit-authority-store'
@@ -84,6 +86,79 @@ export function preparePrivateCanonicalCloudDispatchOutboxEntry(input: {
     aggregateHash: undefined,
   })
   return { ...mutation.result, aggregate: finalized }
+}
+
+export function preparePrivateCanonicalCloudDispatchCompletion(input: {
+  aggregate: CanonicalCloudDispatchOutboxAggregate
+  dispatchIntentId: string
+  completionReceipt: CanonicalCloudDispatchWorkerCompletionReceipt
+  now: string
+}): {
+  aggregate: CanonicalCloudDispatchOutboxAggregate
+  entry: CanonicalCloudDispatchOutboxEntry & {
+    completionReceipt: CanonicalCloudDispatchWorkerCompletionReceipt
+  }
+  disposition: 'reconciled' | 'exact_replay'
+} {
+  const now = validTimestamp(input.now, 'worker completion reconciliation')
+  const aggregate = structuredClone(input.aggregate)
+  const before = structuredClone(aggregate)
+  const entry = requiredEntry(aggregate, input.dispatchIntentId)
+  const completionReceipt = canonicalCloudDispatchWorkerCompletionReceiptSchema.parse(
+    input.completionReceipt,
+  )
+  if (entry.completionReceipt) {
+    if (
+      entry.completionReceipt.receiptHash !== completionReceipt.receiptHash ||
+      entry.completionReceipt.completionEvidenceHash !==
+        completionReceipt.completionEvidenceHash ||
+      entry.completionReceipt.queueCompletionHash !==
+        completionReceipt.queueCompletionHash
+    ) {
+      throw idempotencyConflict(
+        'Worker completion replay does not match the reconciled outbox result.',
+      )
+    }
+    return {
+      aggregate,
+      entry: entry as CanonicalCloudDispatchOutboxEntry & {
+        completionReceipt: CanonicalCloudDispatchWorkerCompletionReceipt
+      },
+      disposition: 'exact_replay',
+    }
+  }
+  if (entry.state !== 'worker_identity_accepted' || !entry.workerReceipt) {
+    throw invalidOutbox(
+      'Worker completion reconciliation requires accepted worker identity.',
+    )
+  }
+  const updated = finalizeCanonicalCloudDispatchOutboxEntry({
+    ...withoutEntryHashes(entry),
+    state: 'worker_completion_reconciled',
+    completionReceipt,
+    updatedAt: now,
+  })
+  replaceEntry(aggregate, updated)
+  appendEvent(aggregate, updated, 'worker_completion_reconciled', now)
+  assertAppendOnlyTransition(before, aggregate)
+  const finalized = finalizeAggregate({
+    ...aggregate,
+    revision: aggregate.revision + 1,
+    updatedAt: now,
+    summary: undefined,
+    aggregateHash: undefined,
+  })
+  const finalizedEntry = requiredEntry(finalized, input.dispatchIntentId)
+  if (!finalizedEntry.completionReceipt) {
+    throw invalidOutbox('Worker completion receipt did not finalize exactly.')
+  }
+  return {
+    aggregate: finalized,
+    entry: finalizedEntry as CanonicalCloudDispatchOutboxEntry & {
+      completionReceipt: CanonicalCloudDispatchWorkerCompletionReceipt
+    },
+    disposition: 'reconciled',
+  }
 }
 
 export async function acceptPrivateCanonicalCloudDispatchController(input: {
@@ -440,6 +515,8 @@ function finalizeAggregate(
       entry.controllerReceipt !== undefined).length,
     workerIdentityAcceptedCount: input.entries.filter((entry) =>
       entry.workerReceipt !== undefined).length,
+    workerCompletionReconciledCount: input.entries.filter((entry) =>
+      entry.completionReceipt !== undefined).length,
     eventCount: input.events.length,
   }
   const payload = { ...input, summary }
@@ -515,9 +592,9 @@ function assertAppendOnlyTransition(
     if (!current || previous.immutableEntryHash !== current.immutableEntryHash) {
       throw invalidOutbox('Cloud dispatch outbox immutable attempt changed or disappeared.')
     }
-    if (previous.state === 'worker_identity_accepted' &&
+    if (previous.state === 'worker_completion_reconciled' &&
       stableAuthorityStringify(previous) !== stableAuthorityStringify(current)) {
-      throw invalidOutbox('Terminal worker receiver acceptance cannot change.')
+      throw invalidOutbox('Terminal worker completion reconciliation cannot change.')
     }
     if (previous.controllerReceipt &&
       stableAuthorityStringify(previous.controllerReceipt) !==
@@ -528,6 +605,11 @@ function assertAppendOnlyTransition(
       stableAuthorityStringify(previous.workerReceipt) !==
         stableAuthorityStringify(current.workerReceipt)) {
       throw invalidOutbox('Accepted worker receipt cannot change.')
+    }
+    if (previous.completionReceipt &&
+      stableAuthorityStringify(previous.completionReceipt) !==
+        stableAuthorityStringify(current.completionReceipt)) {
+      throw invalidOutbox('Reconciled worker completion receipt cannot change.')
     }
   }
 }

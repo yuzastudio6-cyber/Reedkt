@@ -11,19 +11,26 @@ import {
 } from './canonical-private-package-work-queue-authority'
 import {
   canonicalPrivatePackageWorkQueueAggregateSchema,
+  canonicalPrivatePackageWorkQueueCompletionSchema,
   type CanonicalPrivatePackageWorkQueueAggregate,
+  type CanonicalPrivatePackageWorkQueueCompletion,
 } from '../validation/canonical-private-package-work-queue-schemas'
 import {
   CANONICAL_CLOUD_DISPATCH_CONTROLLER_RECEIPT_VERSION,
   CANONICAL_CLOUD_DISPATCH_OUTBOX_ENTRY_VERSION,
+  CANONICAL_CLOUD_DISPATCH_WORKER_COMPLETION_RECEIPT_VERSION,
   CANONICAL_CLOUD_DISPATCH_WORKER_RECEIPT_VERSION,
   canonicalCloudDispatchControllerReceiptSchema,
   canonicalCloudDispatchOutboxEntrySchema,
+  canonicalCloudDispatchWorkerCompletionEvidenceSchema,
+  canonicalCloudDispatchWorkerCompletionReceiptSchema,
   canonicalCloudDispatchWorkerInvocationSchema,
   canonicalCloudDispatchWorkerReceiptSchema,
   canonicalServiceIdentityEvidenceSchema,
   type CanonicalCloudDispatchControllerReceipt,
   type CanonicalCloudDispatchOutboxEntry,
+  type CanonicalCloudDispatchWorkerCompletionEvidence,
+  type CanonicalCloudDispatchWorkerCompletionReceipt,
   type CanonicalCloudDispatchWorkerInvocation,
   type CanonicalCloudDispatchWorkerReceipt,
   type CanonicalServiceIdentityEvidence,
@@ -214,10 +221,18 @@ export function assertCanonicalCloudDispatchOutboxCurrentAttempt(input: {
   manifest: CanonicalCloudWorkerDispatchHandoffManifest
   attemptPlan: CanonicalCloudWorkerDispatchAttemptPlan
   now: string
+  allowReconciledCompletionReplay?: boolean
 }): void {
   const entry = assertCanonicalCloudDispatchOutboxEntryIntegrity(input.entry)
-  const authority = assertCanonicalCloudDispatchAttemptAuthority(input)
   const now = validTimestamp(input.now, 'current outbox attempt verification')
+  if (
+    input.allowReconciledCompletionReplay === true &&
+    entry.state === 'worker_completion_reconciled'
+  ) {
+    assertCanonicalCloudDispatchCompletedAttemptReplay({ ...input, entry })
+    return
+  }
+  const authority = assertCanonicalCloudDispatchAttemptAuthority(input)
   assertEntryMatchesAttempt(entry, authority.attemptPlan)
   if (
     authority.queueClaim.claimId !== entry.immutable.queueClaimId ||
@@ -232,6 +247,56 @@ export function assertCanonicalCloudDispatchOutboxCurrentAttempt(input: {
       'WORKER_LEASE_EXPIRED',
       'Cloud dispatch receiver requires the exact active package attempt.',
       409,
+    )
+  }
+}
+
+function assertCanonicalCloudDispatchCompletedAttemptReplay(input: {
+  entry: CanonicalCloudDispatchOutboxEntry
+  queueDefinition: CanonicalPrivatePackageWorkQueueDefinition
+  queueAggregate: CanonicalPrivatePackageWorkQueueAggregate
+  manifest: CanonicalCloudWorkerDispatchHandoffManifest
+  attemptPlan: CanonicalCloudWorkerDispatchAttemptPlan
+}): void {
+  const queueDefinition = assertQueueDefinitionIntegrity(input.queueDefinition)
+  const queueAggregate = assertQueueAggregateIntegrity(
+    input.queueAggregate,
+    queueDefinition,
+  )
+  const manifest = assertManifestIntegrity(input.manifest)
+  const attemptPlan = assertAttemptPlanIntegrity(input.attemptPlan)
+  assertEntryMatchesAttempt(input.entry, attemptPlan)
+  const queueEntry = queueAggregate.entries.find((entry) =>
+    entry.definition.jobId === input.entry.immutable.jobId)
+  const manifestEntry = manifest.entries.find((entry) =>
+    entry.jobId === input.entry.immutable.jobId)
+  const completion = queueEntry?.completion
+  const completionReceipt = input.entry.completionReceipt
+  if (
+    queueAggregate.definitionHash !== queueDefinition.definitionHash ||
+    manifest.identity.queueDefinitionHash !== queueDefinition.definitionHash ||
+    attemptPlan.queueDefinitionHash !== queueDefinition.definitionHash ||
+    attemptPlan.handoffManifestHash !== manifest.manifestHash ||
+    attemptPlan.regionAuthorityHash !== manifest.identity.regionAuthorityHash ||
+    manifest.runtimeRegion !== attemptPlan.runtimeRegion ||
+    stableAuthorityStringify(queueAggregate.identity) !==
+      stableAuthorityStringify(queueDefinition.identity) ||
+    queueEntry?.state !== 'completed' || !completion || !completionReceipt ||
+    !input.entry.controllerReceipt || !input.entry.workerReceipt || !manifestEntry ||
+    queueEntry.deliveryAttemptCount !== input.entry.immutable.packageDeliveryAttempt ||
+    completion.claimId !== input.entry.immutable.queueClaimId ||
+    completion.completionHash !== completionReceipt.queueCompletionHash ||
+    completionReceipt.completionOutcomeHash !== sha256AuthorityValue(completion.outcome) ||
+    completionReceipt.workerReceiptHash !== input.entry.workerReceipt.receiptHash ||
+    queueEntry.definition.definitionHash !== input.entry.immutable.queueJobDefinitionHash ||
+    manifestEntry.entryHash !== input.entry.immutable.manifestEntryHash ||
+    manifestEntry.target.targetHash !== input.entry.immutable.targetHash ||
+    Date.parse(completion.completedAt) >=
+      Date.parse(input.entry.immutable.queueClaimAttemptDeadlineAt) ||
+    completionReceipt.completedAt !== completion.completedAt
+  ) {
+    throw invalidAuthority(
+      'Completed cloud dispatch receipt replay no longer matches exact package authority.',
     )
   }
 }
@@ -474,6 +539,133 @@ export function createCanonicalCloudDispatchWorkerReceipt(input: {
   })
 }
 
+export function createCanonicalCloudDispatchWorkerCompletionReceipt(input: {
+  entry: CanonicalCloudDispatchOutboxEntry
+  completionEvidence: CanonicalCloudDispatchWorkerCompletionEvidence
+  queueCompletion: CanonicalPrivatePackageWorkQueueCompletion
+  verifiedIdentity: CanonicalVerifiedServiceIdentity
+  expectedAudience: string
+  now: string
+  completedAt: string
+  privateContractFixtureAllowed: boolean
+  trustedJwksContractFixtureAllowed: boolean
+  trustedGoogleVerifierOutputAllowed: boolean
+}): CanonicalCloudDispatchWorkerCompletionReceipt {
+  const entry = assertCanonicalCloudDispatchOutboxEntryIntegrity(input.entry)
+  const completionEvidence = canonicalCloudDispatchWorkerCompletionEvidenceSchema.parse(
+    input.completionEvidence,
+  )
+  const queueCompletion = canonicalPrivatePackageWorkQueueCompletionSchema.parse(
+    input.queueCompletion,
+  )
+  const workerReceipt = entry.workerReceipt
+  if (
+    !workerReceipt ||
+    (entry.state !== 'worker_identity_accepted' &&
+      entry.state !== 'worker_completion_reconciled')
+  ) {
+    throw invalidAuthority(
+      'Worker completion reconciliation requires an accepted worker receipt.',
+    )
+  }
+  const { completionHash, ...completionPayload } = queueCompletion
+  if (
+    completionHash !== sha256AuthorityValue(completionPayload) ||
+    queueCompletion.claimId !== entry.immutable.queueClaimId ||
+    queueCompletion.outcome.jobId !== entry.immutable.jobId ||
+    queueCompletion.outcome.artifactId !== completionEvidence.artifactId ||
+    queueCompletion.outcome.contentType !== completionEvidence.contentType ||
+    queueCompletion.outcome.sha256 !== completionEvidence.artifactSha256 ||
+    queueCompletion.outcome.adapterReplayed !== completionEvidence.adapterReplayed ||
+    queueCompletion.outcome.status !== 'completed_private_test' ||
+    queueCompletion.outcome.blockedDependencyJobIds.length !== 0
+  ) {
+    throw invalidAuthority(
+      'Worker completion evidence does not match the exact queue completion.',
+    )
+  }
+  const verifiedEvidence = assertCanonicalVerifiedServiceIdentity(
+    input.verifiedIdentity,
+  )
+  const evidence = assertCanonicalServiceIdentityEvidence({
+    value: verifiedEvidence,
+    expectedMechanism: 'google_cloud_run_workload_identity',
+    expectedPrincipalEmail: entry.immutable.workerServiceAccountEmail,
+    expectedAudience: input.expectedAudience,
+    now: input.now,
+    privateContractFixtureAllowed: input.privateContractFixtureAllowed,
+    trustedJwksContractFixtureAllowed: input.trustedJwksContractFixtureAllowed,
+    trustedGoogleVerifierOutputAllowed: input.trustedGoogleVerifierOutputAllowed,
+  })
+  const currentIdentity = receiptIdentity(evidence)
+  if (!sameServicePrincipal(workerReceipt.identity, currentIdentity)) {
+    throw serviceIdentityDenied(
+      'Worker completion identity does not match the accepted worker principal.',
+    )
+  }
+  const completedAt = validTimestamp(input.completedAt, 'worker completion')
+  if (Date.parse(completedAt) > Date.parse(input.now)) {
+    throw invalidAuthority('Worker completion timestamp is in the future.')
+  }
+  const completionEvidenceHash = sha256AuthorityValue(completionEvidence)
+  const completionOutcomeHash = sha256AuthorityValue(queueCompletion.outcome)
+  const receiptBindingHash = sha256AuthorityValue({
+    domain: 'reeditpro:canonical-cloud-dispatch-worker-completion:v1',
+    dispatchIntentId: entry.immutable.dispatchIntentId,
+    jobId: entry.immutable.jobId,
+    packageDeliveryAttempt: entry.immutable.packageDeliveryAttempt,
+    queueClaimId: entry.immutable.queueClaimId,
+    queueClaimHash: entry.immutable.queueClaimHash,
+    workerReceiptHash: workerReceipt.receiptHash,
+    completionEvidenceHash,
+    completionOutcomeHash,
+    queueCompletionHash: queueCompletion.completionHash,
+    attemptInternalCostEvidenceHash:
+      completionEvidence.attemptInternalCostEvidenceHash,
+    principalBindingHash: serviceIdentityPrincipalBindingHash(evidence),
+  })
+  const payload = {
+    schemaVersion: CANONICAL_CLOUD_DISPATCH_WORKER_COMPLETION_RECEIPT_VERSION,
+    receiptId: `worker_completion_${receiptBindingHash.slice(0, 32)}`,
+    dispatchIntentId: entry.immutable.dispatchIntentId,
+    jobId: entry.immutable.jobId,
+    packageDeliveryAttempt: entry.immutable.packageDeliveryAttempt,
+    queueClaimId: entry.immutable.queueClaimId,
+    queueClaimHash: entry.immutable.queueClaimHash,
+    workerReceiptHash: workerReceipt.receiptHash,
+    completionEvidenceHash,
+    completionOutcomeHash,
+    queueCompletionHash: queueCompletion.completionHash,
+    attemptInternalCostEvidenceHash:
+      completionEvidence.attemptInternalCostEvidenceHash,
+    identity: workerReceipt.identity,
+    completedAt,
+    boundaries: {
+      exactWorkerReceiptVerified: true as const,
+      exactOutboxAttemptVerified: true as const,
+      exactQueueCompletionVerified: true as const,
+      privateArtifactManifestRequired: true as const,
+      qaPassedRequired: true as const,
+      assetReconciliationRequired: true as const,
+      downstreamLeaseVerificationRequired: true as const,
+      attemptInternalProductionCostEvidenceHashRequired: true as const,
+      customerPriceCreditsServiceFeeWalletOrBillingIncluded: false as const,
+      rawAuthorizationHeaderAccepted: false as const,
+      rawBearerTokenPersisted: false as const,
+      rawMediaPromptPathSignedUrlOrCredentialPersisted: false as const,
+      toolOrMediaExecutionClaimedByReceipt: false as const,
+      liveGoogleWorkloadIdentityAndIamVerified:
+        evidence.verificationMode === 'trusted_google_identity_verifier',
+      productionExecutionAuthorized: false as const,
+      productionAuthority: false as const,
+    },
+  }
+  return canonicalCloudDispatchWorkerCompletionReceiptSchema.parse({
+    ...payload,
+    receiptHash: sha256AuthorityValue(payload),
+  })
+}
+
 export function serviceIdentityPrincipalBindingHash(
   evidence: CanonicalServiceIdentityEvidence,
 ): string {
@@ -484,6 +676,19 @@ export function serviceIdentityPrincipalBindingHash(
     principalEmail: evidence.principalEmail,
     audience: evidence.audience,
   })
+}
+
+function sameServicePrincipal(
+  left: CanonicalCloudDispatchWorkerReceipt['identity'],
+  right: CanonicalCloudDispatchWorkerReceipt['identity'],
+): boolean {
+  return left.verificationMode === right.verificationMode &&
+    left.authenticationMechanism === right.authenticationMechanism &&
+    left.verifierId === right.verifierId &&
+    left.issuerHash === right.issuerHash &&
+    left.subjectHash === right.subjectHash &&
+    left.principalEmailHash === right.principalEmailHash &&
+    left.audienceHash === right.audienceHash
 }
 
 function assertEntryMatchesAttempt(
@@ -524,6 +729,10 @@ function receiptHashesValid(entry: CanonicalCloudDispatchOutboxEntry): boolean {
   }
   if (entry.workerReceipt) {
     const { receiptHash, ...payload } = entry.workerReceipt
+    if (receiptHash !== sha256AuthorityValue(payload)) return false
+  }
+  if (entry.completionReceipt) {
+    const { receiptHash, ...payload } = entry.completionReceipt
     if (receiptHash !== sha256AuthorityValue(payload)) return false
   }
   return true

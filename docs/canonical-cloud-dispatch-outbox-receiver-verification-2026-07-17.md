@@ -1,6 +1,6 @@
 # Canonical Cloud Dispatch Outbox And Receiver Verification — 2026-07-17
 
-Status: `private_cross_process_crash_consistent_contract_verified_live_distribution_blocked`
+Status: `private_cross_process_crash_consistent_completion_contract_verified_live_distribution_blocked`
 
 ## Outcome
 
@@ -8,8 +8,9 @@ ReEditPro now has a checksum-protected, restart-safe private outbox contract
 whose package attempt is selected by the server and committed atomically with
 the outbox entry through a private write-ahead record. The same contract
 defines the exact identity and authority checks for the controller and worker
-receiver without creating a Cloud Task, starting a Cloud Run Job, executing a
-tool, or making a network call.
+receiver, and now defines the terminal accepted-worker completion receipt,
+without creating a Cloud Task, starting a Cloud Run Job, executing a tool, or
+making a network call.
 
 This is the dependency-safe source contract needed before a distributed
 database transaction and Google identity verifier can be connected. It is not
@@ -26,7 +27,9 @@ immutable funded package queue
   -> exact controller identity contract acceptance
   -> exact controller receipt and Cloud Run request hash
   -> exact worker invocation and workload-identity contract acceptance
-  -> worker receiver receipt only; no tool or media execution
+  -> worker receiver receipt; no tool or media execution
+  -> exact private artifact/QA/reconciliation/downstream/cost evidence
+  -> one crash-consistent queue completion plus terminal outbox receipt
 ```
 
 The package queue remains the sole owner of approved attempts. The enqueue API
@@ -42,6 +45,11 @@ Concurrent identical controller or worker deliveries produce one durable
 receipt and one exact replay; they do not increment the package delivery
 attempt and do not create another execution authority.
 
+Concurrent identical completion deliveries likewise produce one terminal
+reconciliation and one exact replay. The queue completion and terminal outbox
+receipt share one completion write-ahead commit, so restart cannot turn a
+persisted queue result into an untracked dispatch completion.
+
 ## Durable Private Record
 
 The outbox aggregate is scoped to owner, workspace, project, edit session,
@@ -53,7 +61,7 @@ It uses the shared private-local persistence boundary for:
 - same-directory atomic replacement and durability sync;
 - a checksum-protected aggregate;
 - immutable per-attempt hashes;
-- append-only hash-chained creation/controller/worker events; and
+- append-only hash-chained creation/controller/worker/completion events; and
 - bounded entries, events, and total bytes.
 
 The persisted record contains opaque IDs, hashes, regional resource names,
@@ -64,8 +72,9 @@ claim credential, provider credential, or worker command.
 The queue and outbox now share one cooperative cross-process package lock. A
 fully written hard-link owner record prevents partial lock publication, and a
 dead same-host process can be reclaimed after exact owner-record validation.
-One transient `0600` write-ahead record is the queue/outbox commit point; the
-next reader replays either missing projection and refuses checksum drift.
+One transient `0600` write-ahead record is the queue/outbox commit point for
+claim/dispatch or accepted-worker completion; the next reader replays either
+missing projection and refuses checksum drift.
 
 This proves Node-process interruption recovery and cooperating-process
 serialization on one host. It does not prove sudden host-power/filesystem
@@ -111,11 +120,17 @@ The worker receiver requires:
 - the server-owned worker receiver audience; and
 - unexpired trusted-verifier evidence.
 
-The receipt explicitly records that no tool, media, provider, render, or worker
-execution started. A later Cloud Run bootstrap may load private package and
-artifact authority only after the live workload-identity adapter, distributed
-transaction, private object transport, worker lease/reconciliation, and
-deployment gates pass.
+The worker-acceptance receipt explicitly records that no tool, media, provider,
+render, or worker execution started. The separate terminal completion receipt
+requires the exact accepted worker principal, claim and attempt, private
+artifact hash, private manifest, passed QA, asset reconciliation, downstream
+lease verification, and attempt-level internal production-cost evidence hash.
+It derives the queue result from the immutable job and grants no customer
+price, credits, service fee, wallet, billing, or settlement authority.
+
+A later Cloud Run bootstrap may load private package and artifact authority only
+after the live workload-identity adapter, distributed transaction, private
+object transport, worker lease/reconciliation, and deployment gates pass.
 
 ## Focused Evidence
 
@@ -135,6 +150,11 @@ the receiver state machine:
 - restart readback and exact enqueue replay preserve identical bytes;
 - concurrent controller redelivery yields one acceptance and one replay;
 - concurrent worker redelivery yields one acceptance and one replay;
+- concurrent worker completion yields one reconciliation and one exact replay;
+- real process exits after completion commit and after queue completion recover
+  exactly one queue result plus terminal outbox receipt;
+- changed completion evidence, changed worker identity, expired attempts,
+  tampered completion WAL content, and completion projection drift fail closed;
 - the package queue advances exactly once to the outbox-bound delivery attempt;
 - forged principal, audience, task body, controller receipt, worker principal,
   expired claim, cross-tenant scope, and tampered persisted bytes fail closed;
@@ -149,42 +169,42 @@ the receiver state machine:
 
 The canonical pipeline runs this stage immediately after the 50-tool cloud
 handoff contract. The handoff stage proves all 50 target mappings; this focused
-stage uses one representative CPU attempt to prove the generic outbox and
-receiver state machine. It does not claim that a deployed task was delivered
-for each tool.
+stage uses one representative CPU attempt to prove the generic outbox,
+receiver, and terminal completion state machine. It does not claim that a
+deployed task or completion callback ran for each tool.
 
 ## Pipeline Verification
 
 The exact-code canonical private pipeline completed all `26/26` stages with
-exit code `0` under schema `canonical-private-pipeline-verification-v9`:
+exit code `0` under schema `canonical-private-pipeline-verification-v10`:
 
-- started: `2026-07-17T10:53:30.311Z`;
-- finished: `2026-07-17T11:14:32.796Z`;
-- duration: `1,262,485 ms`;
-- package-state transaction: `2,072 ms`;
-- cloud dispatch handoff: `394 ms`;
-- cryptographic service identity: `380 ms`;
-- outbox and receiver contract: `768 ms`;
-- three-source canonical composition: `512,451 ms`;
-- professional color execution: `614,743 ms`;
-- bounded UHD Remotion stream: `98,315 ms`; and
-- signed-in named-edit browser journey: `11/11` tests in `14,083 ms`.
+- started: `2026-07-17T12:23:05.305Z`;
+- finished: `2026-07-17T12:44:24.145Z`;
+- duration: `1,278,840 ms`;
+- package-state transaction and completion recovery: `4,063 ms`;
+- cloud dispatch handoff: `402 ms`;
+- cryptographic service identity: `398 ms`;
+- completion-aware outbox and receiver contract: `925 ms`;
+- three-source canonical composition: `533,080 ms`;
+- professional color execution: `604,722 ms`;
+- bounded UHD Remotion stream: `99,414 ms`; and
+- signed-in named-edit browser journey: `11/11` tests in `16,231 ms`.
 
 The broader exact-code internal regression then completed all `32/32` stages
-with exit code `0` under the same v9 schema:
+with exit code `0` under the same v10 schema:
 
-- started: `2026-07-17T11:14:45.729Z`;
-- finished: `2026-07-17T11:42:08.792Z`;
-- duration: `1,643,063 ms`;
-- package-state transaction: `2,096 ms`;
-- cloud dispatch handoff: `400 ms`;
-- cryptographic service identity: `385 ms`;
-- outbox and receiver contract: `749 ms`;
-- three-source canonical composition: `531,023 ms`;
-- professional color execution: `609,961 ms`;
-- bounded UHD Remotion stream: `99,356 ms`;
-- signed-in named-edit browser journey: `11/11` tests in `15,371 ms`; and
-- maximum-eight-source signed-in private review: `357,731 ms`.
+- started: `2026-07-17T12:44:36.442Z`;
+- finished: `2026-07-17T13:12:07.454Z`;
+- duration: `1,651,012 ms`;
+- package-state transaction and completion recovery: `3,965 ms`;
+- cloud dispatch handoff: `397 ms`;
+- cryptographic service identity: `561 ms`;
+- completion-aware outbox and receiver contract: `920 ms`;
+- three-source canonical composition: `529,890 ms`;
+- professional color execution: `600,954 ms`;
+- bounded UHD Remotion stream: `99,619 ms`;
+- signed-in named-edit browser journey: `11/11` tests in `16,042 ms`; and
+- maximum-eight-source signed-in private review: `372,731 ms`.
 
 The final regression preserved eight approved source-bound audio tones in
 order, completed `27` private work items and jobs, produced a `3840x2160`
@@ -194,9 +214,9 @@ private/internal end-to-end and job-adapter-verified tools. Product, external
 beta, live cloud, public delivery, and paid-production readiness remained
 false throughout both runs.
 
-The earlier v8 `25/25` and `31/31` runs remain pre-transaction historical
-evidence and are superseded by these v9 aggregate results for the exact current
-implementation.
+The earlier v9 `26/26` and `32/32` runs remain pre-completion-reconciliation
+historical evidence and are superseded by these v10 aggregate results. The v8
+`25/25` and `31/31` runs remain pre-transaction history.
 
 ## Explicit Boundaries
 
@@ -210,17 +230,21 @@ The following remain false:
 - deployed private controller or worker receiver;
 - live service-account and regional resource reconciliation;
 - private generation-bound GCS transport;
-- worker execution, completion, QA, and reconciliation through this handoff;
+- live worker execution and live completion/QA/reconciliation through this
+  handoff;
 - dead-letter reconciliation and production observability;
 - provider activation, billing/wallet mutation, remote Supabase, deployment,
   public delivery, external beta, and paid production.
 
 ## Next Gate
 
-The process-brand, cryptographic verifier core, and private single-host
-queue/outbox transaction are now proven. The next dependency-safe gate is a
-reviewed distributed database transaction/RPC plus the live Google
-key-cache/auth-library adapter and controlled staging-token proof. Any live
-implementation still requires explicit authorization for canonical database
-work and staging Google Cloud deployment. See
-`docs/canonical-private-package-state-transaction-verification-2026-07-17.md`.
+The process-brand, cryptographic verifier core, private single-host
+queue/outbox claim transaction, and private single-host completion transaction
+are now proven. The next dependency-safe gate is a reviewed distributed
+database transaction/RPC plus the live Google key-cache/auth-library adapter
+and controlled staging-token proof. Any live implementation still requires
+explicit authorization for canonical database work and staging Google Cloud
+deployment. See
+`docs/canonical-private-package-state-transaction-verification-2026-07-17.md`
+and
+`docs/canonical-private-worker-completion-reconciliation-verification-2026-07-17.md`.

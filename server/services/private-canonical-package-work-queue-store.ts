@@ -178,6 +178,96 @@ export function preparePrivateCanonicalPackageWorkQueueJobClaim(input: {
   return { ...value, aggregate: finalized } as CanonicalPrivatePackageWorkQueueClaimResult
 }
 
+export function preparePrivateCanonicalPackageWorkQueueDispatchCompletion(input: {
+  aggregate: CanonicalPrivatePackageWorkQueueAggregate
+  definition: CanonicalPrivatePackageWorkQueueDefinition
+  jobId: string
+  queueClaimId: string
+  queueClaimHash: string
+  outcome: CanonicalPrivatePackageWorkQueueCompletedOutcome
+  now: string
+}): {
+  aggregate: CanonicalPrivatePackageWorkQueueAggregate
+  entry: CanonicalPrivatePackageWorkQueueEntry & {
+    completion: NonNullable<CanonicalPrivatePackageWorkQueueEntry['completion']>
+  }
+  disposition: 'completed' | 'exact_replay'
+} {
+  const now = validTimestamp(input.now, 'dispatch completion')
+  const outcome = canonicalPrivatePackageWorkQueueCompletedOutcomeSchema.parse(input.outcome)
+  const aggregate = structuredClone(input.aggregate)
+  const before = structuredClone(aggregate)
+  const entry = requiredEntry(aggregate, input.jobId)
+  assertOutcomeMatchesDefinition(outcome, entry.definition)
+  if (entry.state === 'completed') {
+    if (
+      entry.completion?.claimId !== input.queueClaimId ||
+      stableAuthorityStringify(entry.completion.outcome) !==
+        stableAuthorityStringify(outcome)
+    ) {
+      throw new ApiError(
+        'IDEMPOTENCY_CONFLICT',
+        'Canonical dispatch completion already has different authority.',
+        409,
+      )
+    }
+    return {
+      aggregate,
+      entry: entry as CanonicalPrivatePackageWorkQueueEntry & {
+        completion: NonNullable<CanonicalPrivatePackageWorkQueueEntry['completion']>
+      },
+      disposition: 'exact_replay',
+    }
+  }
+  const claim = entry.activeClaim
+  if (
+    entry.state !== 'leased' || !claim ||
+    claim.claimId !== input.queueClaimId ||
+    claim.claimHash !== input.queueClaimHash ||
+    Date.parse(claim.expiresAt) <= Date.parse(now) ||
+    Date.parse(claim.attemptDeadlineAt) <= Date.parse(now)
+  ) throw workerLeaseExpired()
+  const completionWithoutHash = {
+    claimId: claim.claimId,
+    credentialSha256: claim.credentialSha256,
+    outcome,
+    completedAt: now,
+  }
+  entry.state = 'completed'
+  entry.activeClaim = undefined
+  entry.completion = {
+    ...completionWithoutHash,
+    completionHash: sha256AuthorityValue(completionWithoutHash),
+  }
+  entry.lastRelease = undefined
+  touchEntry(entry, now)
+  appendEvent(aggregate, {
+    eventType: 'job_completed',
+    jobId: entry.definition.jobId,
+    claimId: claim.claimId,
+    at: now,
+  })
+  assertCompletedEntriesImmutable(before, aggregate)
+  const finalized = finalizeAggregate({
+    ...aggregate,
+    updatedAt: now,
+    aggregateHash: undefined,
+    summary: undefined,
+  })
+  const completedEntry = finalized.entries.find((candidate) =>
+    candidate.definition.jobId === input.jobId)
+  if (!completedEntry?.completion) {
+    throw invalidQueue('Canonical dispatch completion did not finalize exactly.')
+  }
+  return {
+    aggregate: finalized,
+    entry: completedEntry as CanonicalPrivatePackageWorkQueueEntry & {
+      completion: NonNullable<CanonicalPrivatePackageWorkQueueEntry['completion']>
+    },
+    disposition: 'completed',
+  }
+}
+
 export async function heartbeatPrivateCanonicalPackageWorkQueueClaim(input: {
   scope: CanonicalPrivatePackageWorkQueueStoreScope
   definition: CanonicalPrivatePackageWorkQueueDefinition

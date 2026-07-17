@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises'
 
+import { loadRuntimeEnv } from '../../config/env'
 import {
   canonicalCloudWorkerDispatchHandoffManifestSchema,
 } from '../../edit-architecture/canonical-cloud-worker-dispatch-handoff-authority'
@@ -9,6 +10,12 @@ import {
 import {
   withPrivateCooperativeFileLockWithinRoot,
 } from '../../security/private-local-persistence'
+import {
+  createCanonicalPrivateServiceIdentityFixture,
+} from '../../security/canonical-service-identity-verifier'
+import {
+  createCanonicalPrivateCloudDispatchReceiverService,
+} from '../../services/canonical-private-cloud-dispatch-receiver-service'
 import {
   claimAndEnqueuePrivateCanonicalPackageCloudDispatchAttempt,
 } from '../../services/private-canonical-package-cloud-dispatch-transaction-store'
@@ -20,8 +27,20 @@ import {
   type CanonicalPrivatePackageStateFaultStage,
   type CanonicalPrivatePackageStateScope,
 } from '../../services/private-canonical-package-state-transaction'
+import type { ServiceContext } from '../../types'
+import {
+  canonicalCloudDispatchWorkerCompletionEvidenceSchema,
+} from '../../validation/canonical-cloud-dispatch-outbox-schemas'
 
-const [mode, scopePath, definitionPath, manifestPath, now] = process.argv.slice(2)
+const [
+  mode,
+  scopePath,
+  definitionPath,
+  manifestPath,
+  now,
+  completionEvidencePath,
+  dispatchIntentId,
+] = process.argv.slice(2)
 if (!mode || !scopePath) throw new Error('Package-state child mode and scope are required.')
 const scope = JSON.parse(await readFile(scopePath, 'utf8')) as CanonicalPrivatePackageStateScope
 
@@ -95,6 +114,80 @@ if (mode === 'hold-lock') {
         : {}),
     })}\n`)
   }
+} else if (
+  mode === 'complete' || mode === 'crash-completion-after-commit' ||
+  mode === 'crash-completion-after-queue'
+) {
+  if (
+    !definitionPath || !manifestPath || !now || !completionEvidencePath ||
+    !dispatchIntentId
+  ) {
+    throw new Error('Package-state completion child inputs are incomplete.')
+  }
+  const definition = canonicalPrivatePackageWorkQueueDefinitionSchema.parse(
+    JSON.parse(await readFile(definitionPath, 'utf8')),
+  )
+  const manifest = canonicalCloudWorkerDispatchHandoffManifestSchema.parse(
+    JSON.parse(await readFile(manifestPath, 'utf8')),
+  )
+  const completionEvidence = canonicalCloudDispatchWorkerCompletionEvidenceSchema.parse(
+    JSON.parse(await readFile(completionEvidencePath, 'utf8')),
+  )
+  const manifestEntry = manifest.entries.find((entry) =>
+    entry.jobId === definition.jobs[0]!.jobId)
+  if (!manifestEntry) throw new Error('Completion child manifest entry is missing.')
+  const context: ServiceContext = {
+    env: loadRuntimeEnv({
+      NODE_ENV: 'test',
+      E2E_RUNTIME_MODE: 'local',
+      WORKER_RUNTIME_MODE: 'local',
+      STORAGE_MODE: 'local',
+      API_ALLOW_MOCK_WITHOUT_SUPABASE: 'true',
+      LOCAL_STORAGE_ROOT: scope.localStorageRoot,
+    }),
+    clients: { admin: null, public: null },
+    requestId: `completion-child-${process.pid}`,
+    auth: { userId: scope.ownerUserId, isMockUser: true },
+  }
+  const service = createCanonicalPrivateCloudDispatchReceiverService({
+    context,
+    ownerUserId: scope.ownerUserId,
+    queueDefinition: definition,
+    manifest,
+    controllerAudience: 'https://private-controller.reeditpro.test',
+    workerReceiverAudience: 'https://private-worker.reeditpro.test',
+    now: () => new Date(now),
+  })
+  const nowMs = Date.parse(now)
+  const workerIdentity = createCanonicalPrivateServiceIdentityFixture({
+    authenticationMechanism: 'google_cloud_run_workload_identity',
+    subject: 'completion-worker-subject',
+    principalEmail: manifestEntry.target.workerServiceAccountEmail,
+    audience: 'https://private-worker.reeditpro.test',
+    issuedAt: new Date(nowMs - 1_000).toISOString(),
+    expiresAt: new Date(nowMs + 120_000).toISOString(),
+    verifiedAt: new Date(nowMs - 500).toISOString(),
+  })
+  const result = await service.reconcileWorkerCompletion({
+    dispatchIntentId,
+    completionEvidence,
+    verifiedIdentity: workerIdentity,
+    ...(mode === 'crash-completion-after-commit' ||
+      mode === 'crash-completion-after-queue'
+      ? {
+          faultInjectionForSmoke: (stage: CanonicalPrivatePackageStateFaultStage) => {
+            const expected = mode === 'crash-completion-after-commit'
+              ? 'after_write_ahead_commit'
+              : 'after_queue_projection'
+            if (stage === expected) process.exit(78)
+          },
+        }
+      : {}),
+  })
+  process.stdout.write(`${JSON.stringify({
+    disposition: result.disposition,
+    receiptHash: result.receipt.receiptHash,
+  })}\n`)
 } else {
   throw new Error(`Unknown package-state child mode: ${mode}`)
 }

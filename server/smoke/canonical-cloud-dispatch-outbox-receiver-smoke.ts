@@ -40,6 +40,7 @@ import { canonicalPrivatePackageStatePaths } from
 import { sha256AuthorityValue } from '../services/private-edit-authority-store'
 import type { ServiceContext } from '../types'
 import {
+  type CanonicalCloudDispatchWorkerCompletionEvidence,
   type CanonicalServiceIdentityEvidence,
 } from '../validation/canonical-cloud-dispatch-outbox-schemas'
 import {
@@ -326,6 +327,125 @@ try {
     'WORKER_LEASE_EXPIRED',
   )
 
+  currentTimeMs = baseTimeMs + 2_000
+  const completionEvidence: CanonicalCloudDispatchWorkerCompletionEvidence = {
+    schemaVersion: 'canonical-cloud-dispatch-worker-completion-evidence-v1',
+    artifactId: 'artifact_cloud_dispatch_completion',
+    contentType: 'application/json',
+    artifactSha256: '1'.repeat(64),
+    adapterReplayed: false,
+    privateArtifactManifestHash: '2'.repeat(64),
+    qaEvidenceHash: '3'.repeat(64),
+    assetReconciliationEvidenceHash: '4'.repeat(64),
+    downstreamLeaseVerificationHash: '5'.repeat(64),
+    attemptInternalCostEvidenceHash: '7'.repeat(64),
+    artifactStorageClass: 'private_internal_test',
+    qaStatus: 'passed',
+    assetReconciliationStatus: 'reconciled',
+    downstreamLeaseStatus: 'verified',
+  }
+  const completionResults = await Promise.all([
+    service.reconcileWorkerCompletion({
+      dispatchIntentId: enqueued.outboxEntry.immutable.dispatchIntentId,
+      completionEvidence,
+      verifiedIdentity: workerIdentity,
+    }),
+    service.reconcileWorkerCompletion({
+      dispatchIntentId: enqueued.outboxEntry.immutable.dispatchIntentId,
+      completionEvidence,
+      verifiedIdentity: workerIdentity,
+    }),
+  ])
+  assert.deepEqual(
+    completionResults.map((result) => result.disposition).sort(),
+    ['exact_replay', 'reconciled'],
+  )
+  assert.equal(completionResults[0]?.receipt.receiptHash,
+    completionResults[1]?.receipt.receiptHash)
+  assert.equal(completionResults[0]?.outboxState, 'worker_completion_reconciled')
+  assert.equal(completionResults[0]?.queueOutcome.jobId, 'job_cloud_dispatch_cpu')
+  assert.equal(completionResults[0]?.queueOutcome.artifactId,
+    completionEvidence.artifactId)
+  assert.equal(
+    completionResults[0]?.boundaries.queueCompletionAndOutboxReceiptShareAtomicWriteAheadCommit,
+    true,
+  )
+  assert.equal(completionResults[0]?.boundaries.toolOrMediaExecutionClaimedByThisBoundary, false)
+  assert.equal(completionResults[0]?.receipt.attemptInternalCostEvidenceHash,
+    completionEvidence.attemptInternalCostEvidenceHash)
+  assert.equal(
+    completionResults[0]?.receipt.boundaries
+      .customerPriceCreditsServiceFeeWalletOrBillingIncluded,
+    false,
+  )
+
+  clearPrivateCanonicalCloudDispatchOutboxProcessStateForSmoke()
+  service = createService(context)
+  const completionReplay = await service.reconcileWorkerCompletion({
+    dispatchIntentId: enqueued.outboxEntry.immutable.dispatchIntentId,
+    completionEvidence,
+    verifiedIdentity: workerIdentity,
+  })
+  assert.equal(completionReplay.disposition, 'exact_replay')
+  await expectApiError(
+    () => service.reconcileWorkerCompletion({
+      dispatchIntentId: enqueued.outboxEntry.immutable.dispatchIntentId,
+      completionEvidence: {
+        ...completionEvidence,
+        artifactSha256: '6'.repeat(64),
+      },
+      verifiedIdentity: workerIdentity,
+    }),
+    'IDEMPOTENCY_CONFLICT',
+  )
+  await expectApiError(
+    () => service.reconcileWorkerCompletion({
+      dispatchIntentId: enqueued.outboxEntry.immutable.dispatchIntentId,
+      completionEvidence,
+      verifiedIdentity: privateIdentityFixture({
+        authenticationMechanism: 'google_cloud_run_workload_identity',
+        principalEmail: 'wrong-completion-worker@reeditpro.iam.gserviceaccount.com',
+        audience: workerAudience,
+        subject: '100000000000000000003',
+      }),
+    }),
+    'INTERNAL_SERVICE_AUTH_INVALID',
+  )
+  const completedQueue = await readPrivateCanonicalPackageWorkQueue({
+    scope: queueScope,
+    definition: queueDefinition,
+  })
+  const completedOutbox = await readPrivateCanonicalCloudDispatchOutbox({ scope })
+  assert.equal(completedQueue?.summary.completedJobCount, 1)
+  assert.equal(completedQueue?.entries[0]?.activeClaim, undefined)
+  assert.equal(completedQueue?.entries[0]?.completion?.outcome.sha256,
+    completionEvidence.artifactSha256)
+  assert.equal(completedOutbox?.summary.workerCompletionReconciledCount, 1)
+  assert.equal(completedOutbox?.entries[0]?.state, 'worker_completion_reconciled')
+  assert.equal((await service.evidence()).workerCompletionReconciledCount, 1)
+  const completionBytes = await readFile(outboxPath, 'utf8')
+  assert.equal(completionBytes.includes('/Users/'), false)
+  assert.equal(completionBytes.includes('signedUrl'), false)
+  assert.equal(completionBytes.includes('Bearer '), false)
+  assert.equal(completionBytes.includes('claimCredential'), false)
+  const postCompletionControllerReplay = await service.receiveController({
+    taskBody,
+    verifiedIdentity: controllerIdentity,
+  })
+  const postCompletionWorkerReplay = await service.receiveWorker({
+    invocation,
+    verifiedIdentity: workerIdentity,
+  })
+  assert.equal(postCompletionControllerReplay.disposition, 'exact_replay')
+  assert.equal(postCompletionWorkerReplay.disposition, 'exact_replay')
+  assert.equal(
+    (await readPrivateCanonicalPackageWorkQueue({
+      scope: queueScope,
+      definition: queueDefinition,
+    }))?.summary.totalDeliveryAttemptCount,
+    1,
+  )
+
   assert.throws(() => createService(createContext('production')), (error: unknown) =>
     error instanceof ApiError && error.code === 'TOOL_NOT_READY')
 
@@ -340,6 +460,9 @@ try {
       'forged_principal_audience_task_worker_and_persistence_bytes_fail_closed',
       'outbox_persists_no_raw_bearer_claim_credential_media_prompt_path_or_signed_url',
       'receiver_atomically_claims_queue_without_starting_cloud_job_tool_media_or_network_work',
+      'worker_completion_reconciles_private_artifact_qa_manifest_and_downstream_evidence_once',
+      'queue_completion_and_outbox_completion_receipt_share_one_recoverable_commit',
+      'late_controller_and_worker_redelivery_replay_after_terminal_completion',
       'distributed_transaction_live_google_oidc_iam_cloud_and_production_remain_false',
     ],
     summary: {
@@ -347,6 +470,7 @@ try {
       packageDeliveryAttemptCount: queueAfter?.summary.totalDeliveryAttemptCount,
       controllerReceiptReplayCount: 1,
       workerReceiptReplayCount: 1,
+      workerCompletionReplayCount: 1,
       cloudRunHiddenRetryCount: 0,
     },
   }))

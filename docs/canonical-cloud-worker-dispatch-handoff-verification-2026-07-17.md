@@ -24,6 +24,8 @@ immutable approved execution package
   -> short private dispatch controller
   -> OAuth Cloud Run Jobs run request
   -> one exact worker job
+  -> exact accepted-worker evidence
+  -> terminal queue/outbox completion reconciliation
 ```
 
 The two queues are regional and purpose-specific:
@@ -90,6 +92,8 @@ The following passed on the exact implementation:
 - `npm run smoke:canonical-cloud-dispatch-handoff`
 - `npm run smoke:gcp-foundation`
 - `npm run smoke:canonical-private-package-work-queue`
+- `npm run smoke:canonical-private-package-state-transaction`
+- `npm run smoke:canonical-cloud-dispatch-outbox-receivers`
 - `npm run qa:canonical-private-pipeline`
 - `npm run smoke:offline-media-binary-execution`
 - `npm run smoke:editor-full-stack-private-review`
@@ -160,6 +164,17 @@ order. Provider activation, billing/wallet mutation, remote Supabase, public
 delivery, deployment, external-beta readiness, and paid-production readiness
 remained false throughout.
 
+The current completion-aware v10 aggregate supersedes those earlier handoff
+snapshots for the exact branch. The canonical command passed `26/26` stages in
+`1,278,840 ms` and the full command passed `32/32` stages in `1,651,012 ms`.
+The handoff stages passed in `402/397 ms`; the completion-aware receiver stages
+passed in `925/920 ms`; and the package claim/completion WAL stages passed in
+`4,063/3,965 ms`. The full run again completed all 27 server-derived jobs for
+eight sources and accepted a 3840x2160, 16-second private review. Exactly 50
+canonical E2E and job-adapter identities remained verified. This is still
+local/private evidence: no task, job, IAM binding, live Google token, provider,
+billing action, public delivery, or deployment occurred.
+
 ## Performance Meaning
 
 This contract enables later parallel execution; it does not prove speed. A
@@ -186,7 +201,7 @@ These remain false:
 - reconciliation of the legacy foundation defaults with the canonical
   regional resource and service-identity map;
 - user-managed service identities and private GCS object permissions;
-- worker-side authority reload and completion reconciliation;
+- deployed worker-side authority reload and live completion reconciliation;
 - dead-letter/recovery operations and production observability;
 - deployed concurrency, quota, autoscaling, and kill-switch evidence;
 - representative latency/cost benchmarks and calibrated ETA model;
@@ -197,15 +212,19 @@ The bounded private outbox plus controller/worker receiver contract is now
 implemented and verified by
 `docs/canonical-cloud-dispatch-outbox-receiver-verification-2026-07-17.md`.
 It proves checksum-protected single-host durability, restart recovery,
-idempotent redelivery, and exact identity/attempt contracts without live Google
-verification or cloud calls. The queue claim and outbox insert now additionally
-share one package-scoped cross-process write-ahead commit with real
-process-exit recovery; see
+idempotent redelivery, exact identity/attempt contracts, and one terminal
+completion reconciliation without live Google verification or cloud calls. The
+queue claim/outbox insert and accepted-worker completion each use a
+package-scoped cross-process write-ahead commit with real process-exit recovery;
+see
 `docs/canonical-private-package-state-transaction-verification-2026-07-17.md`.
 A follow-up cryptographic verifier proves
 RS256, bounded JWKS, issuer, audience, principal, timing, and process-only trust
 handoff with a local signed fixture; see
 `docs/canonical-service-identity-verifier-verification-2026-07-17.md`. The
-remaining gate is the actual distributed package-queue/outbox transaction plus
-the live Google auth-library/key-rotation adapter, followed only with explicit
-authorization by staging deployment and the representative benchmark program.
+completion boundary is detailed in
+`docs/canonical-private-worker-completion-reconciliation-verification-2026-07-17.md`.
+The remaining gate is the actual distributed package-queue/outbox/completion
+transaction plus the live Google auth-library/key-rotation adapter, followed
+only with explicit authorization by staging deployment and the representative
+benchmark program.

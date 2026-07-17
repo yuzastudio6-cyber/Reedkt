@@ -93,7 +93,7 @@ const canonicalSteps: VerificationStep[] = [
   step(
     'canonical-package-state-transaction',
     'smoke:canonical-private-package-state-transaction',
-    'A server-selected package attempt and dispatch outbox entry share one private write-ahead commit; crash injection, separate-process races, dead-owner recovery, tamper refusal, projection-drift refusal, and restrictive modes pass while distributed authority remains false.',
+    'A server-selected package attempt and dispatch outbox entry share one private write-ahead commit, and the accepted worker result uses the same crash-consistent boundary to reconcile queue completion with one terminal outbox receipt; crash injection, real process exits, separate-process races, tamper refusal, projection-drift refusal, and restrictive modes pass while distributed authority remains false.',
   ),
   step(
     'canonical-cloud-dispatch-handoff',
@@ -108,7 +108,7 @@ const canonicalSteps: VerificationStep[] = [
   step(
     'canonical-cloud-dispatch-outbox-receivers',
     'smoke:canonical-cloud-dispatch-outbox-receivers',
-    'One active package attempt persists one restart-safe opaque outbox record; exact controller and worker identity contracts reject forged issuer, principal, audience, expiry, task, receipt, and attempt bindings while distributed transaction, live Google verification, cloud calls, and execution remain false.',
+    'One active package attempt persists one restart-safe opaque outbox record; exact controller, worker, and terminal completion contracts bind the accepted service principal, private artifact/QA/reconciliation/downstream evidence, and attempt-level internal cost evidence while rejecting changed identity, task, receipt, attempt, or completion bindings. Distributed authority, live Google verification, cloud calls, and execution remain false.',
   ),
   step(
     'canonical-multi-source-execution',
@@ -255,7 +255,7 @@ function printReport(
 ): void {
   const finishedAt = new Date()
   const report = {
-    schemaVersion: 'canonical-private-pipeline-verification-v9',
+    schemaVersion: 'canonical-private-pipeline-verification-v10',
     status,
     mode: full ? 'full_internal_regression' : 'canonical_private_pipeline',
     startedAt: runStartedAt.toISOString(),
@@ -283,6 +283,7 @@ function printReport(
           durableCompletedJobReplayWithoutExecution: true,
           cooperativeCrossProcessPackageStateLock: true,
           singleHostCrashConsistentPackageQueueOutboxCommit: true,
+          singleHostCrashConsistentWorkerCompletionReconciliation: true,
           serverSelectedPackageDeliveryAttempt: true,
           canonicalCloudDispatchHandoffContract: true,
           cryptographicServiceIdentityVerifierCore: true,
@@ -315,6 +316,7 @@ function printReport(
       publicDeliveryAuthorized: false,
       deploymentAuthorized: false,
       distributedPackageQueueOutboxTransactionVerified: false,
+      liveGoogleCloudWorkerCompletionVerified: false,
       externalBetaReady: false,
       paidProductionReady: false,
     },

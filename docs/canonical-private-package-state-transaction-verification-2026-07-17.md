@@ -11,8 +11,17 @@ lock and one checksum-protected write-ahead record as the commit point. Queue
 and outbox JSON files are projections of that committed record until both have
 been atomically replaced and checksum-verified.
 
-This closes the former local crash window where a queue claim could persist
-without an outbox entry. It also closes lost-update races between cooperating
+The same lock and recovery protocol now owns a second transaction kind for an
+accepted worker result. It commits the exact leased queue entry as completed
+together with one terminal `worker_completion_reconciled` outbox receipt. The
+receipt binds the accepted worker principal, private artifact, QA,
+reconciliation, downstream-lease, and attempt-level internal production-cost
+evidence without granting customer price, credits, service fee, wallet,
+billing, or settlement authority.
+
+This closes the former local crash windows where either a queue claim could
+persist without an outbox entry or a queue completion could persist without its
+terminal outbox receipt. It also closes lost-update races between cooperating
 Node processes on the same host. It does not claim a distributed database
 transaction, shared-filesystem lock, multi-replica authority, Cloud Tasks
 creation, Cloud Run execution, provider activation, customer charging, remote
@@ -43,6 +52,14 @@ writer replays only the missing projection. If either projection matches
 neither its committed before nor after checksum, recovery fails closed instead
 of overwriting unknown state.
 
+Worker completion uses the same sequence with a versioned
+`canonical-private-package-completion-transaction-v1` record. Before publishing
+that record, semantic validation proves one exact leased claim becomes one
+completed queue entry, one accepted-worker outbox entry becomes one terminal
+completion receipt, immutable controller/worker receipts remain byte-identical,
+unrelated entries remain unchanged, and exactly one queue event plus one outbox
+event are appended.
+
 This evidence covers Node-process interruption and restart on one local host.
 It does not prove sudden host-power loss, storage-controller/filesystem failure,
 or directory-entry durability across those failures; those require a deployed
@@ -70,10 +87,11 @@ The write-ahead record contains the same private queue/outbox projections and
 does not persist the plaintext credential, caller bearer token, media path,
 prompt, signed URL, provider credential, or worker command.
 
-The outbox controller and worker receipts now revalidate the exact active queue
+The outbox controller and worker receipts revalidate the exact active queue
 attempt while holding the same package-state lock that serializes their outbox
-mutation. The server no longer accepts a caller-selected delivery-attempt
-number at the enqueue boundary.
+mutation. Completion additionally requires the exact accepted worker receipt
+and same process-branded service principal. The server no longer accepts a
+caller-selected delivery-attempt number at the enqueue boundary.
 
 ## Focused Evidence
 
@@ -97,14 +115,22 @@ number at the enqueue boundary.
 - two separate Node processes racing the generic queue create one claim;
 - two separate Node processes racing atomic dispatch create one claim, one
   attempt, and one outbox entry (`created` plus `exact_replay`);
+- deterministic interruption plus real child-process exit with code `78` after
+  completion WAL commit replay both completion projections;
+- deterministic interruption plus real child-process exit with code `78` after
+  queue completion replay only the missing terminal outbox receipt;
+- two separate Node processes racing the exact completion create one
+  `reconciled` result and one `exact_replay` result;
+- completion-WAL tampering, completion projection drift, changed evidence, and
+  expired-attempt completion fail closed without another attempt;
 - a real killed lock-owner child is safely reclaimed;
 - a lock-target symlink is refused without changing its external target;
 - queue, outbox, write-ahead, and lock files are `0600`; and
 - distributed database, Google Cloud execution, and production authority stay
   false.
 
-The strengthened smoke passed four additional concurrent stress repetitions on
-the exact implementation. `npm run smoke:canonical-private-package-work-queue`,
+The focused transaction smoke now passes `23` assertions.
+`npm run smoke:canonical-private-package-work-queue`,
 `npm run smoke:canonical-cloud-dispatch-outbox-receivers`,
 `npm run smoke:private-local-persistence`, and `npm run typecheck:server` also
 pass after the integration.
@@ -112,28 +138,28 @@ pass after the integration.
 ## Aggregate Verification
 
 The exact-code canonical private pipeline passed all `26/26` stages with exit
-code `0` under schema `canonical-private-pipeline-verification-v9`:
+code `0` under schema `canonical-private-pipeline-verification-v10`:
 
-- started: `2026-07-17T10:53:30.311Z`;
-- finished: `2026-07-17T11:14:32.796Z`;
-- duration: `1,262,485 ms`;
-- package-state transaction: `2,072 ms`;
-- 50-tool cloud handoff: `394 ms`;
-- cryptographic service identity: `380 ms`;
-- durable outbox receivers: `768 ms`; and
+- started: `2026-07-17T12:23:05.305Z`;
+- finished: `2026-07-17T12:44:24.145Z`;
+- duration: `1,278,840 ms`;
+- package-state transaction and completion recovery: `4,063 ms`;
+- 50-tool cloud handoff: `402 ms`;
+- cryptographic service identity: `398 ms`;
+- completion-aware outbox receivers: `925 ms`; and
 - exactly `50` canonical end-to-end and job-adapter identities.
 
 The broader exact-code internal regression then passed all `32/32` stages with
-exit code `0` under the same v9 schema:
+exit code `0` under the same v10 schema:
 
-- started: `2026-07-17T11:14:45.729Z`;
-- finished: `2026-07-17T11:42:08.792Z`;
-- duration: `1,643,063 ms`;
-- package-state transaction: `2,096 ms`;
-- 50-tool cloud handoff: `400 ms`;
-- cryptographic service identity: `385 ms`;
-- durable outbox receivers: `749 ms`; and
-- signed-in maximum-eight-source private review: `357,731 ms`.
+- started: `2026-07-17T12:44:36.442Z`;
+- finished: `2026-07-17T13:12:07.454Z`;
+- duration: `1,651,012 ms`;
+- package-state transaction and completion recovery: `3,965 ms`;
+- 50-tool cloud handoff: `397 ms`;
+- cryptographic service identity: `561 ms`;
+- completion-aware outbox receivers: `920 ms`; and
+- signed-in maximum-eight-source private review: `372,731 ms`.
 
 The final full-regression stage completed `27` private work items and jobs,
 produced and authenticated a `3840x2160`, 16-second private review, preserved
@@ -153,5 +179,6 @@ staging must then prove rollback, duplicate delivery, worker death, retry,
 dead-letter reconciliation, regional private object transport, live Google
 OIDC/key rotation, Invoker/Jobs Developer IAM, observability, and recovery.
 
-The local write-ahead proof is a production-architecture precursor, not a
-substitute for that distributed evidence.
+The local claim and completion write-ahead proofs are production-architecture
+precursors, not substitutes for that distributed evidence. See
+`docs/canonical-private-worker-completion-reconciliation-verification-2026-07-17.md`.

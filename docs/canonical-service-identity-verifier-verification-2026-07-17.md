@@ -89,32 +89,32 @@ worker receipt state machine while caller-authored evidence is rejected.
 ## Aggregate Verification
 
 The exact-code canonical private pipeline passed all `26/26` stages with exit
-code `0` under schema `canonical-private-pipeline-verification-v9`:
+code `0` under schema `canonical-private-pipeline-verification-v10`:
 
-- started: `2026-07-17T10:53:30.311Z`;
-- finished: `2026-07-17T11:14:32.796Z`;
-- duration: `1,262,485 ms`;
-- package-state transaction: `2,072 ms`;
-- 50-tool cloud handoff: `394 ms`;
-- cryptographic service identity: `380 ms`;
-- durable outbox receivers: `768 ms`;
-- three-source composition: `512,451 ms`;
-- professional color: `614,743 ms`;
-- UHD Remotion streaming: `98,315 ms`; and
-- canonical named-edit UI: `11/11` tests in `14,083 ms`.
+- started: `2026-07-17T12:23:05.305Z`;
+- finished: `2026-07-17T12:44:24.145Z`;
+- duration: `1,278,840 ms`;
+- package-state claim/completion transaction: `4,063 ms`;
+- 50-tool cloud handoff: `402 ms`;
+- cryptographic service identity: `398 ms`;
+- completion-aware outbox receivers: `925 ms`;
+- three-source composition: `533,080 ms`;
+- professional color: `604,722 ms`;
+- UHD Remotion streaming: `99,414 ms`; and
+- canonical named-edit UI: `11/11` tests in `16,231 ms`.
 
 The broader exact-code internal regression then passed all `32/32` stages with
-exit code `0` under the same v9 schema:
+exit code `0` under the same v10 schema:
 
-- started: `2026-07-17T11:14:45.729Z`;
-- finished: `2026-07-17T11:42:08.792Z`;
-- duration: `1,643,063 ms`;
-- package-state transaction: `2,096 ms`;
-- 50-tool cloud handoff: `400 ms`;
-- cryptographic service identity: `385 ms`;
-- durable outbox receivers: `749 ms`;
-- canonical named-edit UI: `11/11` tests in `15,371 ms`; and
-- maximum-eight-source signed-in review: `357,731 ms`.
+- started: `2026-07-17T12:44:36.442Z`;
+- finished: `2026-07-17T13:12:07.454Z`;
+- duration: `1,651,012 ms`;
+- package-state claim/completion transaction: `3,965 ms`;
+- 50-tool cloud handoff: `397 ms`;
+- cryptographic service identity: `561 ms`;
+- completion-aware outbox receivers: `920 ms`;
+- canonical named-edit UI: `11/11` tests in `16,042 ms`; and
+- maximum-eight-source signed-in review: `372,731 ms`.
 
 The final signed-in stage completed all `27` server-derived work items and
 jobs, produced and authenticated a `3840x2160`, `16`-second private review,
@@ -136,8 +136,8 @@ The following remain false:
 - deployed controller and worker receiver endpoints;
 - distributed package-queue/outbox transaction and multi-replica locking (the
   cooperative single-host write-ahead transaction is separately proven);
-- worker bootstrap, tool execution, completion, QA, and reconciliation through
-  the Cloud dispatch path;
+- live worker bootstrap, tool execution, completion, QA, and reconciliation
+  through the Cloud dispatch path;
 - provider activation, billing/wallet mutation, remote Supabase, deployment,
   public delivery, external beta, and paid production.
 

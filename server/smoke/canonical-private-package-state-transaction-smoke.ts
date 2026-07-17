@@ -12,6 +12,7 @@ import {
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 
+import { loadRuntimeEnv } from '../config/env'
 import { GCP_PRODUCTION_API_SERVICE } from '../config/gcp-production-config'
 import {
   canonicalCloudWorkerDispatchHandoffManifestSchema,
@@ -24,6 +25,13 @@ import {
   type CanonicalPrivatePackageWorkQueueDefinition,
 } from '../edit-architecture/canonical-private-package-work-queue-authority'
 import { ApiError } from '../errors/api-error'
+import {
+  createCanonicalPrivateServiceIdentityFixture,
+  type CanonicalVerifiedServiceIdentity,
+} from '../security/canonical-service-identity-verifier'
+import {
+  createCanonicalPrivateCloudDispatchReceiverService,
+} from '../services/canonical-private-cloud-dispatch-receiver-service'
 import {
   readPrivateCanonicalCloudDispatchOutbox,
   readPrivateCanonicalCloudDispatchOutboxForPackageStateTransaction,
@@ -43,11 +51,19 @@ import {
   type CanonicalPrivatePackageStateScope,
 } from '../services/private-canonical-package-state-transaction'
 import { sha256AuthorityValue } from '../services/private-edit-authority-store'
+import type { ServiceContext } from '../types'
+import type {
+  CanonicalCloudDispatchWorkerCompletionEvidence,
+  CanonicalServiceIdentityEvidence,
+} from '../validation/canonical-cloud-dispatch-outbox-schemas'
 import { REEDITPRO_GCP_PRODUCTION_RESOURCE_MAP } from
   '../../src/backend/cloud/reeditpro-gcp-production-resource-map'
 
 const baseTimeMs = Date.parse('2026-07-17T08:00:00.000Z')
 const committedAt = new Date(baseTimeMs + 1_000).toISOString()
+const completionAt = new Date(baseTimeMs + 2_000).toISOString()
+const controllerAudience = 'https://private-controller.reeditpro.test'
+const workerAudience = 'https://private-worker.reeditpro.test'
 const roots: string[] = []
 
 try {
@@ -61,6 +77,26 @@ try {
     'crash-after-queue',
     'real-crash-after-queue',
   )
+  const completionAfterCommit = await proveCompletionFaultRecovery(
+    'after_write_ahead_commit',
+    'completion-after-commit',
+  )
+  const completionAfterQueue = await proveCompletionFaultRecovery(
+    'after_queue_projection',
+    'completion-after-queue',
+  )
+  const realCompletionCrashAfterCommit = await proveRealCompletionProcessCrashRecovery(
+    'crash-completion-after-commit',
+    'real-completion-crash-after-commit',
+  )
+  const realCompletionCrashAfterQueue = await proveRealCompletionProcessCrashRecovery(
+    'crash-completion-after-queue',
+    'real-completion-crash-after-queue',
+  )
+  const completionRace = await proveCrossProcessCompletionRace()
+  await proveTamperedCompletionTransactionFailsClosed()
+  await proveCompletionProjectionDriftFailsClosed()
+  await proveExpiredCompletionFailsClosed()
   await proveTamperedTransactionFailsClosed()
   await proveProjectionDriftFailsClosed()
   await proveTransactionOnlyReadsRequireActiveLock()
@@ -78,6 +114,14 @@ try {
       'crash_after_queue_projection_recovers_missing_outbox_without_another_attempt',
       'real_process_exit_after_commit_recovers_wal_and_dead_owner_lock',
       'real_process_exit_after_queue_projection_recovers_outbox_without_another_attempt',
+      'worker_completion_queue_and_outbox_share_one_write_ahead_commit',
+      'completion_crash_after_commit_recovers_queue_and_outbox_together',
+      'completion_crash_after_queue_projection_recovers_outbox_without_duplicate_completion',
+      'real_process_exit_during_completion_recovers_exactly_once_at_both_commit_stages',
+      'separate_node_processes_reconcile_one_completion_and_one_exact_replay',
+      'tampered_completion_transaction_fails_closed_without_projection_mutation',
+      'completion_projection_drift_fails_closed_without_overwrite',
+      'expired_package_attempt_cannot_reconcile_worker_completion',
       'tampered_transaction_record_fails_closed_without_projection_mutation',
       'out_of_band_projection_drift_fails_closed_without_overwrite',
       'transaction_only_projection_reads_require_live_package_lock_capability',
@@ -94,6 +138,11 @@ try {
       recoveredAfterQueueProjection: afterQueue,
       realProcessCrashAfterCommit: realCrashAfterCommit,
       realProcessCrashAfterQueueProjection: realCrashAfterQueue,
+      completionAfterCommit,
+      completionAfterQueueProjection: completionAfterQueue,
+      realCompletionCrashAfterCommit,
+      realCompletionCrashAfterQueueProjection: realCompletionCrashAfterQueue,
+      crossProcessCompletionDispositions: completionRace,
       genericQueueCrossProcessDispositions: queueRace,
       crossProcessDispositions: race,
       expiredClaimAttemptProgression: expiredClaim,
@@ -179,6 +228,333 @@ async function proveRealProcessCrashRecovery(
     outboxProjectionReplayed: recovered.recovery.outboxProjectionReplayed,
     packageDeliveryAttemptCount: queue?.summary.totalDeliveryAttemptCount,
   }
+}
+
+async function proveCompletionFaultRecovery(
+  stage: CanonicalPrivatePackageStateFaultStage,
+  suffix: string,
+) {
+  const accepted = await createAcceptedCompletionFixture(suffix)
+  const initialQueueBytes = await readFile(accepted.fixture.queuePath, 'utf8')
+  const initialOutboxBytes = await readFile(accepted.fixture.outboxPath, 'utf8')
+  const sentinel = new Error(`simulated-completion-crash-${stage}`)
+  await assert.rejects(
+    () => accepted.service.reconcileWorkerCompletion({
+      dispatchIntentId: accepted.dispatchIntentId,
+      completionEvidence: accepted.completionEvidence,
+      verifiedIdentity: accepted.workerIdentity,
+      faultInjectionForSmoke: (currentStage) => {
+        if (currentStage === stage) throw sentinel
+      },
+    }),
+    (error: unknown) => error === sentinel,
+  )
+  const transactionBytes = await readFile(accepted.fixture.transactionPath, 'utf8')
+  assert.equal((await stat(accepted.fixture.transactionPath)).mode & 0o777, 0o600)
+  assert.equal(transactionBytes.includes('claimCredential'), false)
+  assert.equal(transactionBytes.includes('Bearer '), false)
+  assert.equal(transactionBytes.includes('signedUrl'), false)
+  assert.equal(transactionBytes.includes('/Users/'), false)
+  if (stage === 'after_write_ahead_commit') {
+    assert.equal(await readFile(accepted.fixture.queuePath, 'utf8'), initialQueueBytes)
+  } else {
+    assert.notEqual(await readFile(accepted.fixture.queuePath, 'utf8'), initialQueueBytes)
+  }
+  assert.equal(await readFile(accepted.fixture.outboxPath, 'utf8'), initialOutboxBytes)
+
+  const recovered = await createCompletionService(accepted.fixture, completionAt)
+    .reconcileWorkerCompletion({
+      dispatchIntentId: accepted.dispatchIntentId,
+      completionEvidence: accepted.completionEvidence,
+      verifiedIdentity: accepted.workerIdentity,
+    })
+  assert.equal(recovered.disposition, 'exact_replay')
+  assert.equal(recovered.recovery.pendingTransactionRecovered, true)
+  assert.equal(recovered.recovery.outboxProjectionReplayed, true)
+  assert.equal(
+    recovered.recovery.queueProjectionReplayed,
+    stage === 'after_write_ahead_commit',
+  )
+  await assertCompletionPersistedExactlyOnce(accepted)
+  return {
+    queueProjectionReplayed: recovered.recovery.queueProjectionReplayed,
+    outboxProjectionReplayed: recovered.recovery.outboxProjectionReplayed,
+    disposition: recovered.disposition,
+  }
+}
+
+async function proveRealCompletionProcessCrashRecovery(
+  mode: 'crash-completion-after-commit' | 'crash-completion-after-queue',
+  suffix: string,
+) {
+  const accepted = await createAcceptedCompletionFixture(suffix)
+  const initialQueueBytes = await readFile(accepted.fixture.queuePath, 'utf8')
+  const initialOutboxBytes = await readFile(accepted.fixture.outboxPath, 'utf8')
+  const childInputs = await writeCompletionChildInputs(accepted, suffix)
+  const child = spawnChild(mode, childInputs)
+  const exit = await waitForExit(child)
+  assert.equal(exit.code, 78)
+  assert.equal(exit.signal, null)
+  assert.equal(await pathExists(accepted.fixture.transactionPath), true)
+  assert.equal(await pathExists(accepted.fixture.lockPath), true)
+  if (mode === 'crash-completion-after-commit') {
+    assert.equal(await readFile(accepted.fixture.queuePath, 'utf8'), initialQueueBytes)
+  } else {
+    assert.notEqual(await readFile(accepted.fixture.queuePath, 'utf8'), initialQueueBytes)
+  }
+  assert.equal(await readFile(accepted.fixture.outboxPath, 'utf8'), initialOutboxBytes)
+
+  const recovered = await createCompletionService(accepted.fixture, completionAt)
+    .reconcileWorkerCompletion({
+      dispatchIntentId: accepted.dispatchIntentId,
+      completionEvidence: accepted.completionEvidence,
+      verifiedIdentity: accepted.workerIdentity,
+    })
+  assert.equal(recovered.disposition, 'exact_replay')
+  assert.equal(recovered.recovery.pendingTransactionRecovered, true)
+  assert.equal(
+    recovered.recovery.queueProjectionReplayed,
+    mode === 'crash-completion-after-commit',
+  )
+  assert.equal(recovered.recovery.outboxProjectionReplayed, true)
+  assert.equal(await pathExists(accepted.fixture.transactionPath), false)
+  assert.equal(await pathExists(accepted.fixture.lockPath), false)
+  await assertCompletionPersistedExactlyOnce(accepted)
+  return {
+    childExitCode: exit.code,
+    queueProjectionReplayed: recovered.recovery.queueProjectionReplayed,
+    outboxProjectionReplayed: recovered.recovery.outboxProjectionReplayed,
+  }
+}
+
+async function proveCrossProcessCompletionRace(): Promise<string[]> {
+  const accepted = await createAcceptedCompletionFixture('completion-cross-process-race')
+  const args = await writeCompletionChildInputs(accepted, 'completion-race')
+  const results = await Promise.all([
+    runChild('complete', args),
+    runChild('complete', args),
+  ])
+  const parsed = results.map((stdout) => JSON.parse(lastNonEmptyLine(stdout)) as {
+    disposition: string
+    receiptHash: string
+  })
+  assert.deepEqual(
+    parsed.map((result) => result.disposition).sort(),
+    ['exact_replay', 'reconciled'],
+  )
+  assert.equal(new Set(parsed.map((result) => result.receiptHash)).size, 1)
+  await assertCompletionPersistedExactlyOnce(accepted)
+  return parsed.map((result) => result.disposition).sort()
+}
+
+async function proveTamperedCompletionTransactionFailsClosed(): Promise<void> {
+  const accepted = await createAcceptedCompletionFixture('tampered-completion-transaction')
+  const initialQueueBytes = await readFile(accepted.fixture.queuePath, 'utf8')
+  const initialOutboxBytes = await readFile(accepted.fixture.outboxPath, 'utf8')
+  const sentinel = new Error('stop-after-completion-commit')
+  await assert.rejects(
+    () => accepted.service.reconcileWorkerCompletion({
+      dispatchIntentId: accepted.dispatchIntentId,
+      completionEvidence: accepted.completionEvidence,
+      verifiedIdentity: accepted.workerIdentity,
+      faultInjectionForSmoke: () => { throw sentinel },
+    }),
+    (error: unknown) => error === sentinel,
+  )
+  const untampered = await readFile(accepted.fixture.transactionPath, 'utf8')
+  const decoded = JSON.parse(untampered) as {
+    authority: { completionReceiptHash: string }
+  }
+  decoded.authority.completionReceiptHash = 'f'.repeat(64)
+  await writeFile(accepted.fixture.transactionPath, JSON.stringify(decoded))
+  await expectApiError(
+    () => createCompletionService(accepted.fixture, completionAt)
+      .reconcileWorkerCompletion({
+        dispatchIntentId: accepted.dispatchIntentId,
+        completionEvidence: accepted.completionEvidence,
+        verifiedIdentity: accepted.workerIdentity,
+      }),
+    'VALIDATION_FAILED',
+  )
+  assert.equal(await readFile(accepted.fixture.queuePath, 'utf8'), initialQueueBytes)
+  assert.equal(await readFile(accepted.fixture.outboxPath, 'utf8'), initialOutboxBytes)
+  await writeFile(accepted.fixture.transactionPath, untampered)
+  assert.equal(
+    (await createCompletionService(accepted.fixture, completionAt)
+      .reconcileWorkerCompletion({
+        dispatchIntentId: accepted.dispatchIntentId,
+        completionEvidence: accepted.completionEvidence,
+        verifiedIdentity: accepted.workerIdentity,
+      })).disposition,
+    'exact_replay',
+  )
+}
+
+async function proveCompletionProjectionDriftFailsClosed(): Promise<void> {
+  const accepted = await createAcceptedCompletionFixture('completion-projection-drift')
+  const initialQueueBytes = await readFile(accepted.fixture.queuePath, 'utf8')
+  const initialOutboxBytes = await readFile(accepted.fixture.outboxPath, 'utf8')
+  const sentinel = new Error('stop-before-completion-projection')
+  await assert.rejects(
+    () => accepted.service.reconcileWorkerCompletion({
+      dispatchIntentId: accepted.dispatchIntentId,
+      completionEvidence: accepted.completionEvidence,
+      verifiedIdentity: accepted.workerIdentity,
+      faultInjectionForSmoke: () => { throw sentinel },
+    }),
+    (error: unknown) => error === sentinel,
+  )
+  await writeFile(accepted.fixture.queuePath, `${initialQueueBytes} `)
+  await expectApiError(
+    () => createCompletionService(accepted.fixture, completionAt)
+      .reconcileWorkerCompletion({
+        dispatchIntentId: accepted.dispatchIntentId,
+        completionEvidence: accepted.completionEvidence,
+        verifiedIdentity: accepted.workerIdentity,
+      }),
+    'IDEMPOTENCY_CONFLICT',
+  )
+  assert.equal(await readFile(accepted.fixture.outboxPath, 'utf8'), initialOutboxBytes)
+  await writeFile(accepted.fixture.queuePath, initialQueueBytes)
+  assert.equal(
+    (await createCompletionService(accepted.fixture, completionAt)
+      .reconcileWorkerCompletion({
+        dispatchIntentId: accepted.dispatchIntentId,
+        completionEvidence: accepted.completionEvidence,
+        verifiedIdentity: accepted.workerIdentity,
+      })).disposition,
+    'exact_replay',
+  )
+}
+
+async function proveExpiredCompletionFailsClosed(): Promise<void> {
+  const accepted = await createAcceptedCompletionFixture('expired-completion')
+  const expiredAt = new Date(baseTimeMs + 121_000).toISOString()
+  const expiredIdentity = privateServiceIdentity({
+    authenticationMechanism: 'google_cloud_run_workload_identity',
+    principalEmail: accepted.fixture.manifest.entries[0]!.target.workerServiceAccountEmail,
+    audience: workerAudience,
+    subject: 'completion-worker-subject',
+    now: expiredAt,
+  })
+  await expectApiError(
+    () => createCompletionService(accepted.fixture, expiredAt)
+      .reconcileWorkerCompletion({
+        dispatchIntentId: accepted.dispatchIntentId,
+        completionEvidence: accepted.completionEvidence,
+        verifiedIdentity: expiredIdentity,
+      }),
+    'WORKER_LEASE_EXPIRED',
+  )
+  const queue = await readPrivateCanonicalPackageWorkQueue({
+    scope: accepted.fixture.scope,
+    definition: accepted.fixture.definition,
+  })
+  const outbox = await readPrivateCanonicalCloudDispatchOutbox({
+    scope: accepted.fixture.scope,
+  })
+  assert.equal(queue?.entries[0]?.state, 'leased')
+  assert.equal(outbox?.entries[0]?.state, 'worker_identity_accepted')
+  assert.equal(outbox?.summary.workerCompletionReconciledCount, 0)
+}
+
+interface AcceptedCompletionFixture {
+  fixture: Fixture
+  service: ReturnType<typeof createCanonicalPrivateCloudDispatchReceiverService>
+  dispatchIntentId: string
+  workerIdentity: CanonicalVerifiedServiceIdentity
+  completionEvidence: CanonicalCloudDispatchWorkerCompletionEvidence
+}
+
+async function createAcceptedCompletionFixture(
+  suffix: string,
+): Promise<AcceptedCompletionFixture> {
+  const fixture = await createFixture(suffix)
+  const service = createCompletionService(fixture, committedAt)
+  const enqueued = await service.enqueueApprovedAttempt({
+    jobId: fixture.definition.jobs[0]!.jobId,
+  })
+  const outboxEntry = 'outboxEntry' in enqueued ? enqueued.outboxEntry : undefined
+  const attemptPlan = 'attemptPlan' in enqueued ? enqueued.attemptPlan : undefined
+  if (!outboxEntry || !attemptPlan) {
+    throw new Error('Completion fixture did not create a dispatch attempt.')
+  }
+  const taskBody = attemptPlan.cloudTask?.taskBody
+  if (!taskBody) throw new Error('Completion fixture task body is missing.')
+  await service.receiveController({
+    taskBody,
+    verifiedIdentity: privateServiceIdentity({
+      authenticationMechanism: 'google_oidc_id_token',
+      principalEmail: outboxEntry.immutable.controllerServiceAccountEmail,
+      audience: controllerAudience,
+      subject: 'completion-controller-subject',
+      now: committedAt,
+    }),
+  })
+  const invocation = await service.createWorkerInvocation(
+    outboxEntry.immutable.dispatchIntentId,
+  )
+  const workerIdentity = privateServiceIdentity({
+    authenticationMechanism: 'google_cloud_run_workload_identity',
+    principalEmail: outboxEntry.immutable.workerServiceAccountEmail,
+    audience: workerAudience,
+    subject: 'completion-worker-subject',
+    now: committedAt,
+  })
+  await service.receiveWorker({ invocation, verifiedIdentity: workerIdentity })
+  return {
+    fixture,
+    service: createCompletionService(fixture, completionAt),
+    dispatchIntentId: outboxEntry.immutable.dispatchIntentId,
+    workerIdentity,
+    completionEvidence: completionEvidence(suffix),
+  }
+}
+
+async function assertCompletionPersistedExactlyOnce(
+  accepted: AcceptedCompletionFixture,
+): Promise<void> {
+  const queue = await readPrivateCanonicalPackageWorkQueue({
+    scope: accepted.fixture.scope,
+    definition: accepted.fixture.definition,
+  })
+  const outbox = await readPrivateCanonicalCloudDispatchOutbox({
+    scope: accepted.fixture.scope,
+  })
+  assert.ok(queue)
+  assert.ok(outbox)
+  assert.equal(queue?.summary.completedJobCount, 1)
+  assert.equal(queue?.summary.leasedJobCount, 0)
+  assert.equal(queue?.events.filter((event) => event.eventType === 'job_completed').length, 1)
+  assert.equal(outbox?.summary.workerCompletionReconciledCount, 1)
+  assert.equal(outbox?.events.filter((event) =>
+    event.eventType === 'worker_completion_reconciled').length, 1)
+  assert.ok(queue.entries[0]?.completion)
+  assert.equal(outbox.entries[0]?.completionReceipt?.completionOutcomeHash,
+    sha256AuthorityValue(queue.entries[0].completion.outcome))
+  assert.equal(await pathExists(accepted.fixture.transactionPath), false)
+}
+
+async function writeCompletionChildInputs(
+  accepted: AcceptedCompletionFixture,
+  suffix: string,
+): Promise<string[]> {
+  const scopePath = join(accepted.fixture.rootPath, `${suffix}-scope.json`)
+  const definitionPath = join(accepted.fixture.rootPath, `${suffix}-definition.json`)
+  const manifestPath = join(accepted.fixture.rootPath, `${suffix}-manifest.json`)
+  const evidencePath = join(accepted.fixture.rootPath, `${suffix}-completion-evidence.json`)
+  await writeFile(scopePath, JSON.stringify(accepted.fixture.scope))
+  await writeFile(definitionPath, JSON.stringify(accepted.fixture.definition))
+  await writeFile(manifestPath, JSON.stringify(accepted.fixture.manifest))
+  await writeFile(evidencePath, JSON.stringify(accepted.completionEvidence))
+  return [
+    scopePath,
+    definitionPath,
+    manifestPath,
+    completionAt,
+    evidencePath,
+    accepted.dispatchIntentId,
+  ]
 }
 
 async function proveFaultRecovery(
@@ -483,6 +859,78 @@ function claim(
   })
 }
 
+function createCompletionService(fixture: Fixture, now: string) {
+  const context: ServiceContext = {
+    env: loadRuntimeEnv({
+      NODE_ENV: 'test',
+      E2E_RUNTIME_MODE: 'local',
+      WORKER_RUNTIME_MODE: 'local',
+      STORAGE_MODE: 'local',
+      API_ALLOW_MOCK_WITHOUT_SUPABASE: 'true',
+      LOCAL_STORAGE_ROOT: fixture.rootPath,
+    }),
+    clients: { admin: null, public: null },
+    requestId: `completion-${fixture.scope.packageRecordId}`,
+    auth: { userId: fixture.scope.ownerUserId, isMockUser: true },
+  }
+  return createCanonicalPrivateCloudDispatchReceiverService({
+    context,
+    ownerUserId: fixture.scope.ownerUserId,
+    queueDefinition: fixture.definition,
+    manifest: fixture.manifest,
+    controllerAudience,
+    workerReceiverAudience: workerAudience,
+    now: () => new Date(now),
+  })
+}
+
+function privateServiceIdentity(input: {
+  authenticationMechanism: CanonicalServiceIdentityEvidence['authenticationMechanism']
+  principalEmail: string
+  audience: string
+  subject: string
+  now: string
+}): CanonicalVerifiedServiceIdentity {
+  const nowMs = Date.parse(input.now)
+  return createCanonicalPrivateServiceIdentityFixture({
+    authenticationMechanism: input.authenticationMechanism,
+    subject: input.subject,
+    principalEmail: input.principalEmail,
+    audience: input.audience,
+    issuedAt: new Date(nowMs - 1_000).toISOString(),
+    expiresAt: new Date(nowMs + 120_000).toISOString(),
+    verifiedAt: new Date(nowMs - 500).toISOString(),
+  })
+}
+
+function completionEvidence(suffix: string): CanonicalCloudDispatchWorkerCompletionEvidence {
+  return {
+    schemaVersion: 'canonical-cloud-dispatch-worker-completion-evidence-v1',
+    artifactId: `artifact-${suffix}`,
+    contentType: 'application/json',
+    artifactSha256: sha256AuthorityValue({ suffix, kind: 'artifact' }),
+    adapterReplayed: false,
+    privateArtifactManifestHash: sha256AuthorityValue({ suffix, kind: 'manifest' }),
+    qaEvidenceHash: sha256AuthorityValue({ suffix, kind: 'qa' }),
+    assetReconciliationEvidenceHash: sha256AuthorityValue({
+      suffix,
+      kind: 'reconciliation',
+    }),
+    downstreamLeaseVerificationHash: sha256AuthorityValue({
+      suffix,
+      kind: 'downstream-lease',
+    }),
+    attemptInternalCostEvidenceHash: sha256AuthorityValue({
+      suffix,
+      kind: 'attempt-internal-cost',
+    }),
+    artifactStorageClass: 'private_internal_test',
+    qaStatus: 'passed',
+    assetReconciliationStatus: 'reconciled',
+    downstreamLeaseStatus: 'verified',
+  }
+}
+
 function createQueueDefinition(suffix: string): CanonicalPrivatePackageWorkQueueDefinition {
   const target = createCanonicalProvenToolCloudDispatchCatalog().tools.find((tool) =>
     tool.canonicalToolId === 'ffprobe')
@@ -657,7 +1105,9 @@ function createManifest(
 }
 
 function spawnChild(
-  mode: 'claim' | 'queue-claim' | 'hold-lock' | 'crash-after-commit' | 'crash-after-queue',
+  mode: 'claim' | 'queue-claim' | 'hold-lock' | 'crash-after-commit' |
+    'crash-after-queue' | 'complete' | 'crash-completion-after-commit' |
+    'crash-completion-after-queue',
   args: string[],
 ): ChildProcess {
   return spawn(
@@ -672,7 +1122,10 @@ function spawnChild(
   )
 }
 
-async function runChild(mode: 'claim' | 'queue-claim', args: string[]): Promise<string> {
+async function runChild(
+  mode: 'claim' | 'queue-claim' | 'complete',
+  args: string[],
+): Promise<string> {
   const child = spawnChild(mode, args)
   let stdout = ''
   let stderr = ''

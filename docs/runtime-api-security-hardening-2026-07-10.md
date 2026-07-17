@@ -31,6 +31,17 @@ and purported live Google-verifier output remain rejected. Google's supported
 live auth-library/key-rotation adapter, Cloud Run IAM, and deployed request
 integration are still required.
 
+The private completion follow-up uses the same process-branded worker identity
+and requires the same accepted service principal before it can reconcile a
+result. Its terminal receipt binds the exact claim/attempt, worker receipt,
+private artifact, passed QA, asset reconciliation, downstream lease
+verification, and attempt-level internal production-cost evidence. It persists
+no bearer token, plaintext claim credential, path, prompt, signed URL, or media
+bytes and explicitly excludes customer price, credits, service fee, wallet,
+billing, and settlement authority. This remains a zero-network local contract;
+no HTTP authorization-header adapter, live Google verifier, IAM, Cloud Run
+worker, or production completion route was enabled.
+
 ## User-resource scope
 
 Additional checks now bind user-facing server reads and writes to authenticated scope:

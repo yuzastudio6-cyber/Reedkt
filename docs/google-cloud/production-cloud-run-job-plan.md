@@ -68,10 +68,14 @@ principal, audience, issue/expiry time, task, attempt, controller receipt,
 region, and target bindings while persisting no bearer token or claim
 credential. The test snapshot cannot claim live Google key retrieval. The
 private package queue and outbox now share one same-host cross-process
-write-ahead commit with process-restart recovery. A distributed
-database-backed transactional outbox, live Google auth-library/key-rotation
-adapter, IAM, multi-replica coordination, deployment, and worker completion
-flow are still required.
+write-ahead commit with process-restart recovery. A second versioned
+same-host WAL now reconciles one accepted-worker queue completion with one
+terminal outbox receipt and exact replay, including private
+artifact/QA/reconciliation/downstream and attempt-level internal-cost evidence.
+This does not execute a job or grant customer commercial authority. A
+distributed database-backed transactional outbox/completion boundary, live
+Google auth-library/key-rotation adapter, IAM, multi-replica coordination,
+deployment, and live worker completion flow are still required.
 
 The existing `us-central1` foundation defaults and coarse service-account
 templates must be reconciled with the canonical `us-east1`/`europe-west1`

@@ -103,11 +103,21 @@ missing projection and refuses tampered records or projection drift. Focused
 evidence proves `0700`/`0600` modes, real two-process claim races, real process
 exit after each commit stage, dead-owner recovery, target-symlink refusal,
 restart readback, exact concurrent replay, and absence of plaintext claim
-credentials or bearer tokens. This remains a cooperative single-host contract;
-it is not host-power/filesystem-failure proof, the future distributed database
-package-queue/outbox transaction, a shared-filesystem lock, or deployed Google
-identity authority. See
-`docs/canonical-private-package-state-transaction-verification-2026-07-17.md`.
+credentials or bearer tokens.
+
+The same package lock and WAL path now accept a versioned worker-completion
+transaction. It commits one exact leased queue entry as completed together with
+one terminal outbox receipt, preserves only the stored claim-credential digest,
+and binds private artifact/QA/reconciliation/downstream plus attempt-level
+internal-cost evidence. Real process exits at both completion commit stages and
+real two-process completion races recover to one completion plus one exact
+replay. This remains a cooperative single-host contract; it is not
+host-power/filesystem-failure proof, the future distributed database
+package-queue/outbox/completion transaction, a shared-filesystem lock, or
+deployed Google identity authority. See
+`docs/canonical-private-package-state-transaction-verification-2026-07-17.md`
+and
+`docs/canonical-private-worker-completion-reconciliation-verification-2026-07-17.md`.
 
 This hardening is for single-host internal testing. It is not a replacement
 for private GCS generation-bound objects, canonical Supabase records, malware

@@ -1,45 +1,44 @@
-name: Beta Readiness API Staging Deploy
+name: Private Browser API Gateway Staging Activation
 
 on:
   workflow_dispatch:
     inputs:
-      confirm_staging_api_deploy:
-        description: "Type DEPLOY_STAGING_BETA_READINESS_API to deploy the guarded staging API service"
+      confirm_private_browser_gateway_activation:
+        description: "Type ACTIVATE_REEDITPRO_PRIVATE_BROWSER_STAGING"
+        required: true
+        type: string
+      confirm_internal_cloud_cost:
+        description: "Type ACCEPT_REEDITPRO_PRIVATE_STAGING_CLOUD_COST; this never charges customer credits"
         required: true
         type: string
       source_ref:
-        description: "Readiness source branch/ref to fetch"
+        description: "Exact reviewed source branch"
         required: true
-        default: "codex/sound-music-audio-1abc-checkpoint"
+        default: "codex/backend-workflow-pipeline-continuation"
         type: string
       source_sha:
-        description: "Exact source commit SHA to check out and deploy"
+        description: "Exact 40-character source SHA at the tip of source_ref"
         required: true
         type: string
-      image_tag:
-        description: "Immutable Artifact Registry image tag for this staging API deployment"
+      expected_cloud_run_revision:
+        description: "Current ready revision that this activation is allowed to replace"
         required: true
         type: string
-      artifact_region:
-        description: "Artifact Registry region, for example us-central1"
+      supabase_url_secret_version:
+        description: "Pinned positive Secret Manager version for SUPABASE_URL"
         required: true
         type: string
-      artifact_repository:
-        description: "Artifact Registry repository name for staging images"
+      supabase_anon_key_secret_version:
+        description: "Pinned positive Secret Manager version for SUPABASE_ANON_KEY"
         required: true
         type: string
-      deployer_service_account:
-        description: "Workload Identity service account allowed to build, push, and deploy staging"
+      supabase_service_role_key_secret_version:
+        description: "Pinned positive Secret Manager version for SUPABASE_SERVICE_ROLE_KEY"
         required: true
         type: string
-      runtime_service_account:
-        description: "Cloud Run runtime service account for the staging API service"
+      internal_service_token_secret_version:
+        description: "Pinned positive Secret Manager version for REEDITPRO_INTERNAL_SERVICE_TOKEN"
         required: true
-        type: string
-      service_name:
-        description: "Staging Cloud Run service name"
-        required: true
-        default: "reeditpro-api-staging"
         type: string
 
 permissions:
@@ -47,122 +46,124 @@ permissions:
   id-token: write
 
 concurrency:
-  group: beta-readiness-api-staging-deploy
+  group: reeditpro-private-browser-api-gateway-staging-activation
   cancel-in-progress: false
 
 jobs:
-  preflight:
-    name: Guarded staging API deploy preflight
+  activate-private-browser-gateway:
+    name: Activate exact private browser staging lane
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-    env:
-      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID || vars.GCP_PROJECT_ID }}
-      GCP_REGION: ${{ secrets.GCP_REGION || vars.GCP_REGION }}
-      GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER || vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-    outputs:
-      image: ${{ steps.derive.outputs.image }}
-      service_name: ${{ steps.derive.outputs.service_name }}
-      registry_host: ${{ steps.derive.outputs.registry_host }}
-    steps:
-      - name: Fail closed unless this is the exact staging API lane
-        shell: bash
-        env:
-          CONFIRM_STAGING_API_DEPLOY: ${{ inputs.confirm_staging_api_deploy }}
-          SOURCE_REF: ${{ inputs.source_ref }}
-          SOURCE_SHA: ${{ inputs.source_sha }}
-          IMAGE_TAG: ${{ inputs.image_tag }}
-          SERVICE_NAME: ${{ inputs.service_name }}
-          ARTIFACT_REGION: ${{ inputs.artifact_region }}
-          ARTIFACT_REPOSITORY: ${{ inputs.artifact_repository }}
-          DEPLOYER_SERVICE_ACCOUNT: ${{ inputs.deployer_service_account }}
-          RUNTIME_SERVICE_ACCOUNT: ${{ inputs.runtime_service_account }}
-        run: |
-          set -euo pipefail
-          test "${CONFIRM_STAGING_API_DEPLOY}" = "DEPLOY_STAGING_BETA_READINESS_API"
-          test "${SOURCE_REF}" = "codex/sound-music-audio-1abc-checkpoint"
-          [[ "${SOURCE_SHA}" =~ ^[0-9a-f]{40}$ ]]
-          [[ "${IMAGE_TAG}" =~ ^[A-Za-z0-9._-]+$ ]]
-          test "${IMAGE_TAG}" != "latest"
-          test "${SERVICE_NAME}" = "reeditpro-api-staging"
-          test "${GCP_PROJECT_ID}" = "reeditpro"
-          test -n "${GCP_REGION}"
-          test -n "${GCP_WORKLOAD_IDENTITY_PROVIDER}"
-          test -n "${ARTIFACT_REGION}"
-          test -n "${ARTIFACT_REPOSITORY}"
-          test -n "${DEPLOYER_SERVICE_ACCOUNT}"
-          test -n "${RUNTIME_SERVICE_ACCOUNT}"
-          case "${SERVICE_NAME} ${SOURCE_REF} ${IMAGE_TAG}" in
-            *prod*|*production*|*live*)
-              echo "Refusing production-looking staging API deploy target." >&2
-              exit 1
-              ;;
-          esac
-
-      - name: Checkout requested source branch
-        uses: actions/checkout@v5
-        with:
-          ref: ${{ inputs.source_ref }}
-          fetch-depth: 0
-
-      - name: Verify exact source commit and deployable API inputs
-        shell: bash
-        run: |
-          set -euo pipefail
-          git merge-base --is-ancestor "${{ inputs.source_sha }}" HEAD
-          git checkout --detach "${{ inputs.source_sha }}"
-          actual="$(git rev-parse HEAD)"
-          test "${actual}" = "${{ inputs.source_sha }}"
-          test -f docker/prod/api/Dockerfile
-          test -f package-lock.json
-          git diff --exit-code -- package-lock.json .dockerignore docker/prod/api/Dockerfile
-
-      - name: Derive immutable staging API image
-        id: derive
-        shell: bash
-        env:
-          ARTIFACT_REGION: ${{ inputs.artifact_region }}
-          ARTIFACT_REPOSITORY: ${{ inputs.artifact_repository }}
-          IMAGE_TAG: ${{ inputs.image_tag }}
-          SERVICE_NAME: ${{ inputs.service_name }}
-        run: |
-          set -euo pipefail
-          image="${ARTIFACT_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REPOSITORY}/reeditpro-api:${IMAGE_TAG}"
-          registry_host="${ARTIFACT_REGION}-docker.pkg.dev"
-          echo "image=${image}" >> "${GITHUB_OUTPUT}"
-          echo "service_name=${SERVICE_NAME}" >> "${GITHUB_OUTPUT}"
-          echo "registry_host=${registry_host}" >> "${GITHUB_OUTPUT}"
-
-  build-and-deploy:
-    name: Build and deploy private staging API service
-    needs: preflight
-    runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     environment: staging
     env:
       GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID || vars.GCP_PROJECT_ID }}
       GCP_REGION: ${{ secrets.GCP_REGION || vars.GCP_REGION }}
       GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER || vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      GCP_DEPLOYER_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT || vars.GCP_SERVICE_ACCOUNT }}
+      STAGING_APP_ORIGIN: ${{ vars.REEDITPRO_STAGING_APP_ORIGIN }}
+      STAGING_SUPABASE_URL: ${{ secrets.STAGING_SUPABASE_URL }}
+      EXPECTED_LEGACY_INVOKER_MEMBER: ${{ secrets.REEDITPRO_STAGING_LEGACY_INVOKER_MEMBER }}
+      CLOUD_RUN_SERVICE: reeditpro-api-staging
+      CLOUD_RUN_RUNTIME_SERVICE_ACCOUNT: reeditpro-api-staging@reeditpro.iam.gserviceaccount.com
+      API_GATEWAY_API_ID: reeditpro-browser-staging
+      API_GATEWAY_ID: reeditpro-browser-staging
+      API_GATEWAY_SERVICE_ACCOUNT: reeditpro-api-gateway-staging@reeditpro.iam.gserviceaccount.com
+      ARTIFACT_REGION: us-central1
+      ARTIFACT_REPOSITORY: reeditpro-staging-workers
     steps:
-      - name: Checkout requested source branch
+      - name: Fail closed unless every activation input is exact
+        shell: bash
+        env:
+          CONFIRM_ACTIVATION: ${{ inputs.confirm_private_browser_gateway_activation }}
+          CONFIRM_INTERNAL_CLOUD_COST: ${{ inputs.confirm_internal_cloud_cost }}
+          SOURCE_REF: ${{ inputs.source_ref }}
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          EXPECTED_CLOUD_RUN_REVISION: ${{ inputs.expected_cloud_run_revision }}
+          SUPABASE_URL_SECRET_VERSION: ${{ inputs.supabase_url_secret_version }}
+          SUPABASE_ANON_KEY_SECRET_VERSION: ${{ inputs.supabase_anon_key_secret_version }}
+          SUPABASE_SERVICE_ROLE_KEY_SECRET_VERSION: ${{ inputs.supabase_service_role_key_secret_version }}
+          INTERNAL_SERVICE_TOKEN_SECRET_VERSION: ${{ inputs.internal_service_token_secret_version }}
+        run: |
+          set -euo pipefail
+          test "${CONFIRM_ACTIVATION}" = "ACTIVATE_REEDITPRO_PRIVATE_BROWSER_STAGING"
+          test "${CONFIRM_INTERNAL_CLOUD_COST}" = "ACCEPT_REEDITPRO_PRIVATE_STAGING_CLOUD_COST"
+          test "${SOURCE_REF}" = "codex/backend-workflow-pipeline-continuation"
+          [[ "${SOURCE_SHA}" =~ ^[0-9a-f]{40}$ ]]
+          [[ "${EXPECTED_CLOUD_RUN_REVISION}" =~ ^reeditpro-api-staging-[a-z0-9-]+$ ]]
+          test "${GCP_PROJECT_ID}" = "reeditpro"
+          test "${GCP_REGION}" = "us-east1"
+          test -n "${GCP_WORKLOAD_IDENTITY_PROVIDER}"
+          [[ "${GCP_DEPLOYER_SERVICE_ACCOUNT}" =~ ^[a-z0-9-]+@reeditpro\.iam\.gserviceaccount\.com$ ]]
+          test "${CLOUD_RUN_SERVICE}" = "reeditpro-api-staging"
+          test "${CLOUD_RUN_RUNTIME_SERVICE_ACCOUNT}" = "reeditpro-api-staging@reeditpro.iam.gserviceaccount.com"
+          test "${API_GATEWAY_API_ID}" = "reeditpro-browser-staging"
+          test "${API_GATEWAY_ID}" = "reeditpro-browser-staging"
+          test "${API_GATEWAY_SERVICE_ACCOUNT}" = "reeditpro-api-gateway-staging@reeditpro.iam.gserviceaccount.com"
+          test "${ARTIFACT_REGION}" = "us-central1"
+          test "${ARTIFACT_REPOSITORY}" = "reeditpro-staging-workers"
+          case "${STAGING_APP_ORIGIN}" in
+            "https://yuzastudio6-cyber.github.io"|"https://app.reeditpro.com") ;;
+            *) exit 1 ;;
+          esac
+          [[ "${STAGING_SUPABASE_URL}" =~ ^https://[a-z0-9]+\.supabase\.co$ ]]
+          for version in \
+            "${SUPABASE_URL_SECRET_VERSION}" \
+            "${SUPABASE_ANON_KEY_SECRET_VERSION}" \
+            "${SUPABASE_SERVICE_ROLE_KEY_SECRET_VERSION}" \
+            "${INTERNAL_SERVICE_TOKEN_SECRET_VERSION}"; do
+            [[ "${version}" =~ ^[1-9][0-9]*$ ]]
+          done
+          if [ -n "${EXPECTED_LEGACY_INVOKER_MEMBER}" ]; then
+            echo "::add-mask::${EXPECTED_LEGACY_INVOKER_MEMBER}"
+            [[ "${EXPECTED_LEGACY_INVOKER_MEMBER}" =~ ^serviceAccount:[a-z0-9-]+@reeditpro\.iam\.gserviceaccount\.com$ ]]
+            test "${EXPECTED_LEGACY_INVOKER_MEMBER}" != "serviceAccount:${API_GATEWAY_SERVICE_ACCOUNT}"
+          fi
+
+      - name: Checkout exact reviewed source
         uses: actions/checkout@v5
         with:
           ref: ${{ inputs.source_ref }}
-          fetch-depth: 0
+          fetch-depth: 1
 
-      - name: Verify exact source commit
+      - name: Verify immutable source tip and clean deploy context
         shell: bash
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
         run: |
           set -euo pipefail
-          git merge-base --is-ancestor "${{ inputs.source_sha }}" HEAD
-          git checkout --detach "${{ inputs.source_sha }}"
-          actual="$(git rev-parse HEAD)"
-          test "${actual}" = "${{ inputs.source_sha }}"
+          test "$(git rev-parse HEAD)" = "${SOURCE_SHA}"
+          test -z "$(git status --porcelain)"
+          test -f docker/prod/api/Dockerfile
+          test -f package-lock.json
+          test -f server/config/google-api-gateway-openapi.ts
+          test -f server/config/google-api-gateway-readiness.ts
+          git diff --exit-code -- package-lock.json .dockerignore docker/prod/api/Dockerfile
 
-      - name: Authenticate to Google Cloud with OIDC/WIF
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install immutable dependencies
+        run: npm ci --no-audit --no-fund --progress=false
+
+      - name: Prove source security and gateway contracts before cloud access
+        run: |
+          set -euo pipefail
+          npm run smoke:google-api-gateway-browser-transport
+          npm run smoke:google-api-gateway-readiness
+          npm run smoke:production-api-deployment-contract
+          npm run smoke:runtime-api-security
+          npm run typecheck:server
+          npm run check:frontend-boundary
+          npm run check:secrets
+
+      - name: Authenticate to Google Cloud with keyless OIDC
         uses: google-github-actions/auth@v3
         with:
           workload_identity_provider: ${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: ${{ inputs.deployer_service_account }}
+          service_account: ${{ env.GCP_DEPLOYER_SERVICE_ACCOUNT }}
           create_credentials_file: true
           export_environment_variables: true
           cleanup_credentials: true
@@ -170,38 +171,494 @@ jobs:
       - name: Setup gcloud
         uses: google-github-actions/setup-gcloud@v3
 
-      - name: Build, push, and deploy private staging API service
+      - name: Run read-only cloud IAM secret and Supabase JWKS preflight
         shell: bash
         env:
-          IMAGE: ${{ needs.preflight.outputs.image }}
-          REGISTRY_HOST: ${{ needs.preflight.outputs.registry_host }}
-          SERVICE_NAME: ${{ needs.preflight.outputs.service_name }}
-          RUNTIME_SERVICE_ACCOUNT: ${{ inputs.runtime_service_account }}
+          EXPECTED_CLOUD_RUN_REVISION: ${{ inputs.expected_cloud_run_revision }}
+          SUPABASE_URL_SECRET_VERSION: ${{ inputs.supabase_url_secret_version }}
+          SUPABASE_ANON_KEY_SECRET_VERSION: ${{ inputs.supabase_anon_key_secret_version }}
+          SUPABASE_SERVICE_ROLE_KEY_SECRET_VERSION: ${{ inputs.supabase_service_role_key_secret_version }}
+          INTERNAL_SERVICE_TOKEN_SECRET_VERSION: ${{ inputs.internal_service_token_secret_version }}
         run: |
           set -euo pipefail
-          gcloud auth configure-docker "${REGISTRY_HOST}" --quiet
-          docker build -f docker/prod/api/Dockerfile -t "${IMAGE}" .
-          docker push "${IMAGE}"
-          gcloud run deploy "${SERVICE_NAME}" \
+          current_revision="$(
+            gcloud run services describe "${CLOUD_RUN_SERVICE}" \
+              --project="${GCP_PROJECT_ID}" \
+              --region="${GCP_REGION}" \
+              --format='value(status.latestReadyRevisionName)'
+          )"
+          test "${current_revision}" = "${EXPECTED_CLOUD_RUN_REVISION}"
+          runtime_account="$(
+            gcloud run services describe "${CLOUD_RUN_SERVICE}" \
+              --project="${GCP_PROJECT_ID}" \
+              --region="${GCP_REGION}" \
+              --format='value(spec.template.spec.serviceAccountName)'
+          )"
+          test "${runtime_account}" = "${CLOUD_RUN_RUNTIME_SERVICE_ACCOUNT}"
+          gcloud iam service-accounts describe "${CLOUD_RUN_RUNTIME_SERVICE_ACCOUNT}" \
+            --project="${GCP_PROJECT_ID}" \
+            --format=none
+
+          service_policy="${RUNNER_TEMP}/cloud-run-service-iam.json"
+          project_policy="${RUNNER_TEMP}/project-iam.json"
+          gcloud run services get-iam-policy "${CLOUD_RUN_SERVICE}" \
             --project="${GCP_PROJECT_ID}" \
             --region="${GCP_REGION}" \
-            --image="${IMAGE}" \
-            --service-account="${RUNTIME_SERVICE_ACCOUNT}" \
-            --set-env-vars="REEDITPRO_ENV=staging,E2E_RUNTIME_MODE=cloud_run,WORKER_RUNTIME_MODE=disabled,STORAGE_MODE=gcs_disabled,GOOGLE_CLOUD_PROJECT_ID=${GCP_PROJECT_ID},GOOGLE_CLOUD_REGION=${GCP_REGION}" \
-            --set-secrets="SUPABASE_URL=SUPABASE_URL:latest,SUPABASE_ANON_KEY=SUPABASE_ANON_KEY:latest,SUPABASE_SERVICE_ROLE_KEY=SUPABASE_SERVICE_ROLE_KEY:latest,PROVIDER_GATEWAY_SHARED_SECRET=PROVIDER_GATEWAY_SHARED_SECRET:latest,WORKER_WEBHOOK_SECRET=WORKER_WEBHOOK_SECRET:latest" \
-            --no-allow-unauthenticated \
-            --quiet
+            --format=json > "${service_policy}"
+          gcloud projects get-iam-policy "${GCP_PROJECT_ID}" \
+            --format=json > "${project_policy}"
+          python3 - \
+            "${service_policy}" \
+            "${project_policy}" \
+            "serviceAccount:${API_GATEWAY_SERVICE_ACCOUNT}" \
+            "${EXPECTED_LEGACY_INVOKER_MEMBER}" \
+            "${GITHUB_ENV}" <<'PY'
+          import json
+          import pathlib
+          import sys
 
-      - name: Report deployed private staging API URL
+          service_policy = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8") or "{}")
+          project_policy = json.loads(pathlib.Path(sys.argv[2]).read_text(encoding="utf-8") or "{}")
+          gateway_member = sys.argv[3]
+          legacy_member = sys.argv[4]
+          github_env = pathlib.Path(sys.argv[5])
+
+          def invokers(policy):
+              members = set()
+              for binding in policy.get("bindings") or []:
+                  if binding.get("role") == "roles/run.invoker":
+                      members.update(member for member in binding.get("members") or [] if isinstance(member, str))
+              return members
+
+          service_invokers = invokers(service_policy)
+          project_invokers = invokers(project_policy)
+          if project_invokers:
+              raise SystemExit("Project-level roles/run.invoker is forbidden for this staging lane.")
+          if {"allUsers", "allAuthenticatedUsers"} & service_invokers:
+              raise SystemExit("Public Cloud Run invocation is forbidden.")
+          allowed = {gateway_member}
+          if legacy_member:
+              allowed.add(legacy_member)
+          if service_invokers - allowed:
+              raise SystemExit("An unexpected service-level Cloud Run invoker exists.")
+          with github_env.open("a", encoding="utf-8") as handle:
+              handle.write(f"GATEWAY_WAS_INVOKER={'true' if gateway_member in service_invokers else 'false'}\n")
+              handle.write(f"LEGACY_WAS_INVOKER={'true' if legacy_member and legacy_member in service_invokers else 'false'}\n")
+          PY
+
+          gcloud secrets versions describe "${SUPABASE_URL_SECRET_VERSION}" \
+            --secret=SUPABASE_URL --project="${GCP_PROJECT_ID}" --format=none
+          gcloud secrets versions describe "${SUPABASE_ANON_KEY_SECRET_VERSION}" \
+            --secret=SUPABASE_ANON_KEY --project="${GCP_PROJECT_ID}" --format=none
+          gcloud secrets versions describe "${SUPABASE_SERVICE_ROLE_KEY_SECRET_VERSION}" \
+            --secret=SUPABASE_SERVICE_ROLE_KEY --project="${GCP_PROJECT_ID}" --format=none
+          gcloud secrets versions describe "${INTERNAL_SERVICE_TOKEN_SECRET_VERSION}" \
+            --secret=REEDITPRO_INTERNAL_SERVICE_TOKEN --project="${GCP_PROJECT_ID}" --format=none
+
+          jwks_file="${RUNNER_TEMP}/supabase-jwks.json"
+          curl --fail --silent --show-error --max-time 15 \
+            "${STAGING_SUPABASE_URL}/auth/v1/.well-known/jwks.json" > "${jwks_file}"
+          python3 - "${jwks_file}" <<'PY'
+          import json
+          import pathlib
+          import sys
+
+          jwks = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8") or "{}")
+          keys = jwks.get("keys")
+          if not isinstance(keys, list) or not keys:
+              raise SystemExit("Supabase JWKS has no asymmetric verification key.")
+          private_fields = {"d", "p", "q", "dp", "dq", "qi", "oth"}
+          for key in keys:
+              if not isinstance(key, dict) or private_fields & set(key):
+                  raise SystemExit("Supabase JWKS contains an invalid key record.")
+              is_es256 = key.get("kty") == "EC" and key.get("alg") == "ES256" and key.get("crv") == "P-256"
+              is_rs256 = key.get("kty") == "RSA" and key.get("alg") == "RS256"
+              if not (is_es256 or is_rs256) or not key.get("kid"):
+                  raise SystemExit("Supabase JWKS is not fully ES256/RS256 gateway compatible.")
+          PY
+          echo "PREVIOUS_CLOUD_RUN_REVISION=${current_revision}" >> "${GITHUB_ENV}"
+          echo "ROLLBACK_STATE_CAPTURED=true" >> "${GITHUB_ENV}"
+
+      - name: Enable only the required API Gateway services
         shell: bash
-        env:
-          SERVICE_NAME: ${{ needs.preflight.outputs.service_name }}
         run: |
           set -euo pipefail
-          service_url="$(
-            gcloud run services describe "${SERVICE_NAME}" \
+          gcloud services enable \
+            apigateway.googleapis.com \
+            servicemanagement.googleapis.com \
+            servicecontrol.googleapis.com \
+            --project="${GCP_PROJECT_ID}" \
+            --quiet
+
+      - name: Capture existing gateway rollback target
+        shell: bash
+        run: |
+          set -euo pipefail
+          previous_gateway_config=""
+          if gcloud api-gateway gateways describe "${API_GATEWAY_ID}" \
+            --project="${GCP_PROJECT_ID}" \
+            --location="${GCP_REGION}" \
+            --format=none >/dev/null 2>&1; then
+            previous_gateway_config="$(
+              gcloud api-gateway gateways describe "${API_GATEWAY_ID}" \
+                --project="${GCP_PROJECT_ID}" \
+                --location="${GCP_REGION}" \
+                --format='value(apiConfig)'
+            )"
+          fi
+          echo "PREVIOUS_GATEWAY_CONFIG=${previous_gateway_config}" >> "${GITHUB_ENV}"
+
+      - name: Create keyless gateway identity and exact service-level authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! gcloud iam service-accounts describe "${API_GATEWAY_SERVICE_ACCOUNT}" \
+            --project="${GCP_PROJECT_ID}" --format=none >/dev/null 2>&1; then
+            gcloud iam service-accounts create reeditpro-api-gateway-staging \
+              --project="${GCP_PROJECT_ID}" \
+              --display-name="ReEditPro private browser staging gateway" \
+              --quiet
+          fi
+          disabled="$(
+            gcloud iam service-accounts describe "${API_GATEWAY_SERVICE_ACCOUNT}" \
+              --project="${GCP_PROJECT_ID}" \
+              --format='value(disabled)'
+          )"
+          test "${disabled,,}" != "true"
+          gcloud iam service-accounts add-iam-policy-binding "${API_GATEWAY_SERVICE_ACCOUNT}" \
+            --project="${GCP_PROJECT_ID}" \
+            --member="serviceAccount:${GCP_DEPLOYER_SERVICE_ACCOUNT}" \
+            --role=roles/iam.serviceAccountUser \
+            --condition=None \
+            --format=none \
+            --quiet
+          gcloud run services add-iam-policy-binding "${CLOUD_RUN_SERVICE}" \
+            --project="${GCP_PROJECT_ID}" \
+            --region="${GCP_REGION}" \
+            --member="serviceAccount:${API_GATEWAY_SERVICE_ACCOUNT}" \
+            --role=roles/run.invoker \
+            --condition=None \
+            --format=none \
+            --quiet
+
+      - name: Build and push immutable staging API image
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+        run: |
+          set -euo pipefail
+          registry_host="${ARTIFACT_REGION}-docker.pkg.dev"
+          image="${registry_host}/${GCP_PROJECT_ID}/${ARTIFACT_REPOSITORY}/reeditpro-api:sha-${SOURCE_SHA}"
+          gcloud auth configure-docker "${registry_host}" --quiet
+          docker build -f docker/prod/api/Dockerfile -t "${image}" .
+          docker push "${image}"
+          image_digest_ref="$(docker inspect --format='{{index .RepoDigests 0}}' "${image}")"
+          [[ "${image_digest_ref}" =~ @sha256:[0-9a-f]{64}$ ]]
+          echo "STAGING_API_IMAGE=${image_digest_ref}" >> "${GITHUB_ENV}"
+
+      - name: Deploy reviewed IAM-private Cloud Run browser API revision
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          SUPABASE_URL_SECRET_VERSION: ${{ inputs.supabase_url_secret_version }}
+          SUPABASE_ANON_KEY_SECRET_VERSION: ${{ inputs.supabase_anon_key_secret_version }}
+          SUPABASE_SERVICE_ROLE_KEY_SECRET_VERSION: ${{ inputs.supabase_service_role_key_secret_version }}
+          INTERNAL_SERVICE_TOKEN_SECRET_VERSION: ${{ inputs.internal_service_token_secret_version }}
+        run: |
+          set -euo pipefail
+          gcloud run deploy "${CLOUD_RUN_SERVICE}" \
+            --project="${GCP_PROJECT_ID}" \
+            --region="${GCP_REGION}" \
+            --image="${STAGING_API_IMAGE}" \
+            --service-account="${CLOUD_RUN_RUNTIME_SERVICE_ACCOUNT}" \
+            --port=8080 \
+            --cpu=2 \
+            --memory=2Gi \
+            --concurrency=20 \
+            --min-instances=0 \
+            --max-instances=3 \
+            --timeout=60s \
+            --execution-environment=gen2 \
+            --ingress=all \
+            --invoker-iam-check \
+            --set-env-vars="^@^REEDITPRO_ENV=staging@E2E_RUNTIME_MODE=cloud_run@WORKER_RUNTIME_MODE=disabled@STORAGE_MODE=gcs_disabled@REEDITPRO_DISABLE_DOTENV=true@REEDITPRO_BROWSER_API_TRANSPORT=google_api_gateway@API_ALLOWED_CORS_ORIGINS=${STAGING_APP_ORIGIN}@GOOGLE_CLOUD_PROJECT_ID=${GCP_PROJECT_ID}@GOOGLE_CLOUD_REGION=${GCP_REGION}" \
+            --set-secrets="SUPABASE_URL=SUPABASE_URL:${SUPABASE_URL_SECRET_VERSION},SUPABASE_ANON_KEY=SUPABASE_ANON_KEY:${SUPABASE_ANON_KEY_SECRET_VERSION},SUPABASE_SERVICE_ROLE_KEY=SUPABASE_SERVICE_ROLE_KEY:${SUPABASE_SERVICE_ROLE_KEY_SECRET_VERSION},REEDITPRO_INTERNAL_SERVICE_TOKEN=REEDITPRO_INTERNAL_SERVICE_TOKEN:${INTERNAL_SERVICE_TOKEN_SECRET_VERSION}" \
+            --labels="lane=private-browser,source-sha=${SOURCE_SHA}" \
+            --no-allow-unauthenticated \
+            --quiet
+          cloud_run_url="$(
+            gcloud run services describe "${CLOUD_RUN_SERVICE}" \
               --project="${GCP_PROJECT_ID}" \
               --region="${GCP_REGION}" \
               --format='value(status.url)'
           )"
-          echo "Staging API deployed at ${service_url}"
+          [[ "${cloud_run_url}" =~ ^https://[a-z0-9-]+([.][a-z0-9-]+)*[.]run[.]app$ ]]
+          new_revision="$(
+            gcloud run services describe "${CLOUD_RUN_SERVICE}" \
+              --project="${GCP_PROJECT_ID}" \
+              --region="${GCP_REGION}" \
+              --format='value(status.latestReadyRevisionName)'
+          )"
+          test -n "${new_revision}"
+          revision_image="$(
+            gcloud run revisions describe "${new_revision}" \
+              --project="${GCP_PROJECT_ID}" \
+              --region="${GCP_REGION}" \
+              --format='value(spec.containers[0].image)'
+          )"
+          test "${revision_image}" = "${STAGING_API_IMAGE}"
+          echo "CLOUD_RUN_URL=${cloud_run_url}" >> "${GITHUB_ENV}"
+          echo "NEW_CLOUD_RUN_REVISION=${new_revision}" >> "${GITHUB_ENV}"
+
+      - name: Create immutable JWT gateway API config
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+        run: |
+          set -euo pipefail
+          if ! gcloud api-gateway apis describe "${API_GATEWAY_API_ID}" \
+            --project="${GCP_PROJECT_ID}" --format=none >/dev/null 2>&1; then
+            gcloud api-gateway apis create "${API_GATEWAY_API_ID}" \
+              --project="${GCP_PROJECT_ID}" \
+              --display-name="ReEditPro private browser staging API" \
+              --labels=lane=private-browser \
+              --quiet
+          fi
+          managed_service="$(
+            gcloud api-gateway apis describe "${API_GATEWAY_API_ID}" \
+              --project="${GCP_PROJECT_ID}" \
+              --format='value(managedService)'
+          )"
+          [[ "${managed_service}" =~ ^[a-z0-9-]+\.apigateway\.reeditpro\.cloud\.goog$ ]]
+          openapi_file="${RUNNER_TEMP}/reeditpro-private-browser-openapi.json"
+          REEDITPRO_API_GATEWAY_HOSTNAME="${managed_service}" \
+          REEDITPRO_CLOUD_RUN_API_URL="${CLOUD_RUN_URL}" \
+          SUPABASE_URL="${STAGING_SUPABASE_URL}" \
+            npm run --silent staging:render-google-api-gateway-openapi > "${openapi_file}"
+          openapi_sha="$(sha256sum "${openapi_file}" | awk '{print $1}')"
+          config_id="cfg-${SOURCE_SHA:0:16}"
+          spec_label="${openapi_sha:0:32}"
+          if gcloud api-gateway api-configs describe "${config_id}" \
+            --api="${API_GATEWAY_API_ID}" \
+            --project="${GCP_PROJECT_ID}" \
+            --format=json > "${RUNNER_TEMP}/existing-api-config.json" 2>/dev/null; then
+            python3 - \
+              "${RUNNER_TEMP}/existing-api-config.json" \
+              "${SOURCE_SHA}" \
+              "${spec_label}" \
+              "${API_GATEWAY_SERVICE_ACCOUNT}" <<'PY'
+          import json
+          import pathlib
+          import sys
+
+          config = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8") or "{}")
+          labels = config.get("labels") or {}
+          backend = ((config.get("gatewayConfig") or {}).get("backendConfig") or {})
+          if config.get("state") != "ACTIVE":
+              raise SystemExit("Existing immutable API config is not ACTIVE.")
+          if labels.get("source-sha") != sys.argv[2] or labels.get("spec-sha") != sys.argv[3]:
+              raise SystemExit("Existing immutable API config labels do not match source/spec evidence.")
+          if backend.get("googleServiceAccount") != sys.argv[4]:
+              raise SystemExit("Existing immutable API config uses the wrong backend identity.")
+          PY
+          else
+            gcloud api-gateway api-configs create "${config_id}" \
+              --api="${API_GATEWAY_API_ID}" \
+              --project="${GCP_PROJECT_ID}" \
+              --openapi-spec="${openapi_file}" \
+              --backend-auth-service-account="${API_GATEWAY_SERVICE_ACCOUNT}" \
+              --display-name="${config_id}" \
+              --labels="lane=private-browser,source-sha=${SOURCE_SHA},spec-sha=${spec_label}" \
+              --quiet
+          fi
+          test "$(
+            gcloud api-gateway api-configs describe "${config_id}" \
+              --api="${API_GATEWAY_API_ID}" \
+              --project="${GCP_PROJECT_ID}" \
+              --format='value(state)'
+          )" = "ACTIVE"
+          gcloud services enable "${managed_service}" \
+            --project="${GCP_PROJECT_ID}" \
+            --quiet
+          echo "TARGET_API_CONFIG_ID=${config_id}" >> "${GITHUB_ENV}"
+
+      - name: Deploy or update the regional gateway
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+        run: |
+          set -euo pipefail
+          if gcloud api-gateway gateways describe "${API_GATEWAY_ID}" \
+            --project="${GCP_PROJECT_ID}" \
+            --location="${GCP_REGION}" \
+            --format=none >/dev/null 2>&1; then
+            gcloud api-gateway gateways update "${API_GATEWAY_ID}" \
+              --project="${GCP_PROJECT_ID}" \
+              --location="${GCP_REGION}" \
+              --api="${API_GATEWAY_API_ID}" \
+              --api-config="${TARGET_API_CONFIG_ID}" \
+              --update-labels="lane=private-browser,source-sha=${SOURCE_SHA}" \
+              --quiet
+          else
+            gcloud api-gateway gateways create "${API_GATEWAY_ID}" \
+              --project="${GCP_PROJECT_ID}" \
+              --location="${GCP_REGION}" \
+              --api="${API_GATEWAY_API_ID}" \
+              --api-config="${TARGET_API_CONFIG_ID}" \
+              --display-name="ReEditPro private browser staging gateway" \
+              --labels="lane=private-browser,source-sha=${SOURCE_SHA}" \
+              --quiet
+          fi
+          gateway_json="${RUNNER_TEMP}/deployed-gateway.json"
+          gcloud api-gateway gateways describe "${API_GATEWAY_ID}" \
+            --project="${GCP_PROJECT_ID}" \
+            --location="${GCP_REGION}" \
+            --format=json > "${gateway_json}"
+          gateway_hostname="$(python3 - "${gateway_json}" "${TARGET_API_CONFIG_ID}" <<'PY'
+          import json
+          import pathlib
+          import sys
+
+          gateway = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8") or "{}")
+          if gateway.get("state") not in {"ACTIVE", "READY"}:
+              raise SystemExit("Gateway is not active.")
+          if str(gateway.get("apiConfig", "")).split("/")[-1] != sys.argv[2]:
+              raise SystemExit("Gateway does not reference the target immutable API config.")
+          hostname = gateway.get("defaultHostname")
+          if not isinstance(hostname, str) or not hostname.endswith(".gateway.dev"):
+              raise SystemExit("Gateway hostname is missing or invalid.")
+          print(hostname)
+          PY
+          )"
+          echo "GATEWAY_ORIGIN=https://${gateway_hostname}" >> "${GITHUB_ENV}"
+
+      - name: Verify public health private backend denial auth denial and exact CORS
+        shell: bash
+        run: |
+          set -euo pipefail
+          health_body="${RUNNER_TEMP}/gateway-health.json"
+          health_status="$(curl --silent --show-error --max-time 20 \
+            --output "${health_body}" --write-out '%{http_code}' \
+            "${GATEWAY_ORIGIN}/health")"
+          test "${health_status}" = "200"
+          python3 - "${health_body}" <<'PY'
+          import json
+          import pathlib
+          import sys
+          body = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8") or "{}")
+          data = body.get("data") or {}
+          if body.get("ok") is not True or data.get("service") != "reeditpro-api" or data.get("status") != "ok":
+              raise SystemExit("Gateway public health response is invalid.")
+          PY
+
+          direct_status="$(curl --silent --show-error --max-time 20 \
+            --output /dev/null --write-out '%{http_code}' \
+            "${CLOUD_RUN_URL}/health")"
+          test "${direct_status}" = "403"
+
+          auth_status="$(curl --silent --show-error --max-time 20 \
+            --output /dev/null --write-out '%{http_code}' \
+            "${GATEWAY_ORIGIN}/v1/projects")"
+          test "${auth_status}" = "401"
+
+          cors_headers="${RUNNER_TEMP}/gateway-cors-headers.txt"
+          cors_status="$(curl --silent --show-error --max-time 20 \
+            --request OPTIONS \
+            --header "Origin: ${STAGING_APP_ORIGIN}" \
+            --header "Access-Control-Request-Method: POST" \
+            --header "Access-Control-Request-Headers: authorization,content-type,x-reeditpro-user-authorization" \
+            --dump-header "${cors_headers}" \
+            --output /dev/null \
+            --write-out '%{http_code}' \
+            "${GATEWAY_ORIGIN}/v1/projects")"
+          test "${cors_status}" = "204"
+          grep -Fqi "access-control-allow-origin: ${STAGING_APP_ORIGIN}" "${cors_headers}"
+          grep -Fqi "x-reeditpro-user-authorization" "${cors_headers}"
+          if grep -Fqi "access-control-allow-credentials: true" "${cors_headers}"; then
+            exit 1
+          fi
+
+      - name: Reconcile the exact legacy invoker only after gateway proof
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${LEGACY_WAS_INVOKER}" = "true" ]; then
+            gcloud run services remove-iam-policy-binding "${CLOUD_RUN_SERVICE}" \
+              --project="${GCP_PROJECT_ID}" \
+              --region="${GCP_REGION}" \
+              --member="${EXPECTED_LEGACY_INVOKER_MEMBER}" \
+              --role=roles/run.invoker \
+              --condition=None \
+              --format=none \
+              --quiet
+          fi
+
+      - name: Require strict sanitized deployed readiness
+        env:
+          REEDITPRO_REQUIRE_GATEWAY_READY: "true"
+        run: npm run staging:verify-google-api-gateway-readiness
+
+      - name: Record private staging activation boundary
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+        run: |
+          set -euo pipefail
+          {
+            echo '# ReEditPro Private Browser Staging Activation'
+            echo ''
+            echo "- Source SHA: \`${SOURCE_SHA}\`"
+            echo "- Cloud Run revision: \`${NEW_CLOUD_RUN_REVISION}\`"
+            echo "- API config: \`${TARGET_API_CONFIG_ID}\`"
+            echo "- Gateway origin: \`${GATEWAY_ORIGIN}\`"
+            echo '- Cloud Run is IAM-private and the gateway service account is its sole service-level invoker.'
+            echo '- Internal Google Cloud staging cost was explicitly accepted; no customer price, credit, wallet, or billing mutation occurred.'
+            echo '- Supabase was contacted only through its public JWKS endpoint; no Supabase write or migration occurred.'
+            echo '- Providers, workers, GCS media execution, public rendering, customer billing, external beta, and production remain disabled.'
+            echo '- A real Google user session and protected tenant route still require the separate interactive signed-in test gate.'
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Restore prior private access state after any activation failure
+        if: ${{ failure() }}
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          if [ "${ROLLBACK_STATE_CAPTURED:-false}" = "true" ]; then
+            if [ -n "${PREVIOUS_GATEWAY_CONFIG:-}" ]; then
+              gcloud api-gateway gateways update "${API_GATEWAY_ID}" \
+                --project="${GCP_PROJECT_ID}" \
+                --location="${GCP_REGION}" \
+                --api-config="${PREVIOUS_GATEWAY_CONFIG}" \
+                --quiet
+            fi
+            if [ -n "${PREVIOUS_CLOUD_RUN_REVISION:-}" ]; then
+              gcloud run services update-traffic "${CLOUD_RUN_SERVICE}" \
+                --project="${GCP_PROJECT_ID}" \
+                --region="${GCP_REGION}" \
+                --to-revisions="${PREVIOUS_CLOUD_RUN_REVISION}=100" \
+                --quiet
+            fi
+            if [ "${LEGACY_WAS_INVOKER:-false}" = "true" ] && [ -n "${EXPECTED_LEGACY_INVOKER_MEMBER}" ]; then
+              gcloud run services add-iam-policy-binding "${CLOUD_RUN_SERVICE}" \
+                --project="${GCP_PROJECT_ID}" \
+                --region="${GCP_REGION}" \
+                --member="${EXPECTED_LEGACY_INVOKER_MEMBER}" \
+                --role=roles/run.invoker \
+                --condition=None \
+                --format=none \
+                --quiet
+            fi
+            if [ "${GATEWAY_WAS_INVOKER:-false}" != "true" ]; then
+              gcloud run services remove-iam-policy-binding "${CLOUD_RUN_SERVICE}" \
+                --project="${GCP_PROJECT_ID}" \
+                --region="${GCP_REGION}" \
+                --member="serviceAccount:${API_GATEWAY_SERVICE_ACCOUNT}" \
+                --role=roles/run.invoker \
+                --condition=None \
+                --format=none \
+                --quiet
+            fi
+          fi
+          echo 'Activation failed; prior Cloud Run traffic and service-level invoker state were restored when available.' >> "${GITHUB_STEP_SUMMARY}"
+          echo 'New API/config/gateway resources are intentionally retained for owner review; this workflow never deletes cloud resources.' >> "${GITHUB_STEP_SUMMARY}"

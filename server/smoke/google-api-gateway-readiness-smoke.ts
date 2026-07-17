@@ -45,7 +45,9 @@ assert.equal(readyReport.ok, true)
 assert.equal(readyReport.decision, 'ready_for_signed_in_gateway_route_test')
 assert.equal(readyReport.blockers.length, 0)
 assert.equal(readyReport.counts.enabledRequiredGoogleApis, 3)
+assert.equal(readyReport.counts.cloudRunInvokerMembers, 1)
 assert.equal(readyReport.counts.cloudRunPublicInvokerMembers, 0)
+assert.equal(readyReport.counts.cloudRunUnexpectedInvokerMembers, 0)
 assert.deepEqual(readyReport.missingRuntimeEnvNames, [])
 assert.deepEqual(Object.values(readyReport.gates), Object.values(readyReport.gates).map(() => true))
 assert.deepEqual(readyReport.boundaries, {
@@ -94,7 +96,28 @@ const hostileResults = readyResults.map((result) => result.id === 'cloud_run_iam
 const hostileReport = evaluateGoogleApiGatewayReadiness(target, hostileResults)
 assert.equal(hostileReport.ok, false)
 assert.equal(hostileReport.gates.cloudRunPublicInvokerAbsent, false)
+assert.equal(hostileReport.gates.cloudRunOnlyExpectedGatewayInvoker, false)
 assert.equal(hostileReport.counts.cloudRunPublicInvokerMembers, 1)
+assert.equal(hostileReport.counts.cloudRunUnexpectedInvokerMembers, 2)
+
+const extraPrivateInvokerResults = readyResults.map((result) => result.id === 'cloud_run_iam'
+  ? passedResult(result.id, JSON.stringify({
+    bindings: [{
+      role: 'roles/run.invoker',
+      members: [
+        `serviceAccount:${target.gatewayServiceAccount}`,
+        'serviceAccount:unexpected-private-invoker@example.test',
+      ],
+    }],
+  }))
+  : result)
+const extraPrivateInvokerReport = evaluateGoogleApiGatewayReadiness(target, extraPrivateInvokerResults)
+assert.equal(extraPrivateInvokerReport.ok, false)
+assert.equal(extraPrivateInvokerReport.gates.cloudRunPublicInvokerAbsent, true)
+assert.equal(extraPrivateInvokerReport.gates.gatewayServiceAccountIsInvoker, true)
+assert.equal(extraPrivateInvokerReport.gates.cloudRunOnlyExpectedGatewayInvoker, false)
+assert.equal(extraPrivateInvokerReport.counts.cloudRunUnexpectedInvokerMembers, 1)
+assert.equal(JSON.stringify(extraPrivateInvokerReport).includes('unexpected-private-invoker'), false)
 
 const hostileSerialized = JSON.stringify(hostileReport)
 assert.equal(hostileSerialized.includes('allUsers'), false)

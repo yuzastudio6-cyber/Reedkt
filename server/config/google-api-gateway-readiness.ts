@@ -62,6 +62,7 @@ export interface GoogleApiGatewayReadinessReport {
     cloudRunSensitiveEnvUsesSecretReferences: boolean
     cloudRunPublicInvokerAbsent: boolean
     gatewayServiceAccountIsInvoker: boolean
+    cloudRunOnlyExpectedGatewayInvoker: boolean
     apiResourcePresent: boolean
     apiConfigPresent: boolean
     gatewayPresent: boolean
@@ -71,7 +72,9 @@ export interface GoogleApiGatewayReadinessReport {
     enabledRequiredGoogleApis: number
     requiredGoogleApis: number
     cloudRunInvokerBindings: number
+    cloudRunInvokerMembers: number
     cloudRunPublicInvokerMembers: number
+    cloudRunUnexpectedInvokerMembers: number
     apiResources: number
     apiConfigs: number
     gateways: number
@@ -241,9 +244,11 @@ export function evaluateGoogleApiGatewayReadiness(
   const invokerBindings = bindings.filter((binding) => binding.role === 'roles/run.invoker')
   const invokerMembers = invokerBindings.flatMap((binding) =>
     Array.isArray(binding.members) ? binding.members.filter((member): member is string => typeof member === 'string') : [])
-  const publicInvokerMembers = invokerMembers.filter((member) =>
+  const uniqueInvokerMembers = [...new Set(invokerMembers)]
+  const publicInvokerMembers = uniqueInvokerMembers.filter((member) =>
     member === 'allUsers' || member === 'allAuthenticatedUsers')
   const gatewayInvokerMember = `serviceAccount:${target.gatewayServiceAccount}`
+  const unexpectedInvokerMembers = uniqueInvokerMembers.filter((member) => member !== gatewayInvokerMember)
 
   const apiResources = safeJsonArray(byId.get('api_gateway_apis'))
   const apiConfigs = safeJsonArray(byId.get('api_gateway_configs'))
@@ -269,7 +274,10 @@ export function evaluateGoogleApiGatewayReadiness(
     cloudRunRequiredEnvNamesPresent: missingRuntimeEnvNames.length === 0,
     cloudRunSensitiveEnvUsesSecretReferences: sensitiveEnvUsesSecretReferences,
     cloudRunPublicInvokerAbsent: byId.get('cloud_run_iam')?.ok === true && publicInvokerMembers.length === 0,
-    gatewayServiceAccountIsInvoker: invokerMembers.includes(gatewayInvokerMember),
+    gatewayServiceAccountIsInvoker: uniqueInvokerMembers.includes(gatewayInvokerMember),
+    cloudRunOnlyExpectedGatewayInvoker: byId.get('cloud_run_iam')?.ok === true &&
+      uniqueInvokerMembers.length === 1 &&
+      unexpectedInvokerMembers.length === 0,
     apiResourcePresent,
     apiConfigPresent,
     gatewayPresent: Boolean(matchingGateway),
@@ -297,7 +305,9 @@ export function evaluateGoogleApiGatewayReadiness(
       enabledRequiredGoogleApis,
       requiredGoogleApis: REQUIRED_GOOGLE_APIS.length,
       cloudRunInvokerBindings: invokerBindings.length,
+      cloudRunInvokerMembers: uniqueInvokerMembers.length,
       cloudRunPublicInvokerMembers: publicInvokerMembers.length,
+      cloudRunUnexpectedInvokerMembers: unexpectedInvokerMembers.length,
       apiResources: apiResources.length,
       apiConfigs: apiConfigs.length,
       gateways: gateways.length,

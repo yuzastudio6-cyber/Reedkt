@@ -142,7 +142,7 @@ export function loadRuntimeEnv(source: NodeJS.ProcessEnv = process.env): Runtime
 
   if (parsed.REEDITPRO_BROWSER_API_TRANSPORT === 'google_api_gateway') {
     warnings.push(
-      'Google API Gateway browser transport is selected; the gateway JWT policy, exclusive Cloud Run invoker binding, and deployed route evidence must pass before browser traffic is enabled.',
+      'Google API Gateway browser transport is selected; the gateway JWT policy, exclusive service-level Cloud Run invoker binding, and deployed route evidence must pass before browser traffic is enabled.',
     )
   }
 

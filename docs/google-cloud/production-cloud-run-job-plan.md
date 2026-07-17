@@ -58,6 +58,17 @@ Invoker/Developer IAM, outbox atomicity, private GCS transport, dead-letter
 reconciliation, concurrency controls, and representative performance
 benchmarks remain release gates.
 
+The follow-up private source contract adds a durable single-host outbox and
+exact controller/worker receiver state machine. One active package claim
+creates one opaque outbox entry; concurrent task or worker redelivery returns
+the same receipt without authorizing another package attempt. The contract
+checks server-owned issuer, principal, audience, expiry, task, attempt,
+controller receipt, region, and target bindings while persisting no bearer
+token or claim credential. It performs no Google API call and deliberately
+rejects production and purported live-verifier use. A real transactional
+outbox, trusted Google token verifier, IAM, multi-replica coordination,
+deployment, and worker completion flow are still required.
+
 The existing `us-central1` foundation defaults and coarse service-account
 templates must be reconciled with the canonical `us-east1`/`europe-west1`
 resource map before any human-run deployment. Target existence and IAM remain

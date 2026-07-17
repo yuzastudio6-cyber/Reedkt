@@ -95,6 +95,14 @@ existing server-owned zero-network template.
 Other project-adjacent stores not named above still require compatibility review
 before their storage boundary can be promoted.
 
+The canonical Cloud dispatch outbox now also uses this boundary for its
+tenant/package-scoped checksum envelope, immutable attempt bindings, and
+append-only controller/worker receipt history. Its focused smoke proves
+`0600` persistence, restart readback, exact concurrent replay, tamper refusal,
+and absence of plaintext claim credentials or bearer tokens. This remains a
+single-host contract; it is not the future distributed package-queue/outbox
+transaction or deployed Google identity authority.
+
 This hardening is for single-host internal testing. It is not a replacement
 for private GCS generation-bound objects, canonical Supabase records, malware
 isolation, worker sandboxes, retention policy, or deployed IAM evidence.

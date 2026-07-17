@@ -96,6 +96,11 @@ const canonicalSteps: VerificationStep[] = [
     'The exact package queue and all 50 proven tools bind to regional Cloud Tasks and Cloud Run Jobs handoff contracts with opaque task bodies, zero hidden job retries, and every live cloud/IAM boundary still fail-closed.',
   ),
   step(
+    'canonical-cloud-dispatch-outbox-receivers',
+    'smoke:canonical-cloud-dispatch-outbox-receivers',
+    'One active package attempt persists one restart-safe opaque outbox record; exact controller and worker identity contracts reject forged issuer, principal, audience, expiry, task, receipt, and attempt bindings while distributed transaction, live Google verification, cloud calls, and execution remain false.',
+  ),
+  step(
     'canonical-multi-source-execution',
     'smoke:canonical-multi-source-final-composition',
     'Three-source execution reaches one baseline plus two directly reference-bound professional color matches, two approved hard-cut boundaries, three exact source-bound voice deliveries, lease, one-use dispatch, private artifacts, QA, reconciliation, ordered color/voice composition, objective continuity at both boundaries, and download evidence.',
@@ -240,7 +245,7 @@ function printReport(
 ): void {
   const finishedAt = new Date()
   const report = {
-    schemaVersion: 'canonical-private-pipeline-verification-v6',
+    schemaVersion: 'canonical-private-pipeline-verification-v7',
     status,
     mode: full ? 'full_internal_regression' : 'canonical_private_pipeline',
     startedAt: runStartedAt.toISOString(),
@@ -267,6 +272,7 @@ function printReport(
           durablePrivatePackageWorkQueue: true,
           durableCompletedJobReplayWithoutExecution: true,
           canonicalCloudDispatchHandoffContract: true,
+          durablePrivateCloudDispatchOutboxReceiverContract: true,
           boundedPrivateMultiSourceExecution: true,
           boundedApprovedHardCutTransitions: true,
           boundedProfessionalVoiceDelivery: true,

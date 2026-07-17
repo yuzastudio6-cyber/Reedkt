@@ -193,6 +193,12 @@ These remain false:
 - provider activation, customer billing/wallet mutation, public delivery,
   external beta, and paid production.
 
-The next bounded gate is the distributed outbox plus authenticated private
-controller/worker receiver contract, followed by an explicitly authorized
-staging deployment and representative benchmark program.
+The bounded private outbox plus controller/worker receiver contract is now
+implemented and verified by
+`docs/canonical-cloud-dispatch-outbox-receiver-verification-2026-07-17.md`.
+It proves checksum-protected single-host durability, restart recovery,
+idempotent redelivery, and exact identity/attempt contracts without live Google
+verification or cloud calls. The remaining gate is the actual distributed
+package-queue/outbox transaction plus a trusted Google verifier adapter,
+followed only with explicit authorization by staging deployment and the
+representative benchmark program.

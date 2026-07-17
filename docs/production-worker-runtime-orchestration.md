@@ -54,6 +54,21 @@ OIDC/IAM, controller and job deployment, service identity, private GCS object
 transport, dead-letter reconciliation, capacity controls, production telemetry,
 and benchmark evidence remain false and fail closed.
 
+The follow-up private outbox/receiver contract now binds one active package
+claim to one checksum-protected, restart-safe opaque dispatch entry. Exact
+controller and worker identity receipts are idempotent under concurrent
+redelivery and require server-owned issuer, principal, audience, expiry,
+region, task, attempt, and receipt bindings. No raw authorization token, claim
+credential, media, prompt, path, signed URL, or worker command is persisted.
+
+This is single-host private evidence only. The service rejects production and
+rejects purported live Google-verifier output until a trusted cryptographic
+adapter is wired outside request JSON. Distributed package-queue/outbox
+atomicity, multi-replica locking, Cloud Tasks creation, Cloud Run Jobs calls,
+live OIDC/IAM, private GCS transport, worker execution, and completion
+reconciliation remain blocked. See
+`docs/canonical-cloud-dispatch-outbox-receiver-verification-2026-07-17.md`.
+
 ## Throughput And ETA Principle
 
 ReEditPro should optimize dependency-safe work in parallel, not deliberately

@@ -240,6 +240,7 @@ try {
     'server/services/private-preference-intelligence-store.ts',
     'server/services/project-service.ts',
     'server/services/private-canonical-work-graph-progress-store.ts',
+    'server/services/private-canonical-cloud-dispatch-outbox-store.ts',
     'server/media/private-source-probe-staging.ts',
     'server/media/private-source-probe-orphan-reconciler.ts',
     'server/workers/browser-capture/private-playwright-capture-runner.ts',

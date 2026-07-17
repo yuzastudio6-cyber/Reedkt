@@ -20,6 +20,14 @@ Production startup fails closed unless `REEDITPRO_INTERNAL_SERVICE_TOKEN` is con
 
 This shared token is a transitional boundary. Before Cloud Run production, replace or supplement it with verified service identity (for example Cloud Run IAM/OIDC), audience validation, rotation, and per-service authorization. Provider webhooks require provider-specific signature verification before they can become live; the current route fails closed before request validation or persistence. It cannot persist caller-selected workspace/project scope.
 
+The canonical Cloud dispatch follow-up defines the stricter controller/worker
+identity contract but does not mount a live route or accept caller-authored
+identity JSON. Its private service accepts only explicitly labelled local
+contract fixtures, validates exact issuer/principal/audience/expiry and
+attempt bindings, persists only hashed receipts, and rejects production and
+purported live Google-verifier output. A trusted cryptographic verifier adapter,
+Cloud Run IAM, and deployed request integration are still required.
+
 ## User-resource scope
 
 Additional checks now bind user-facing server reads and writes to authenticated scope:

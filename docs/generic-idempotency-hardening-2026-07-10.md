@@ -77,6 +77,13 @@ do not use `requireIdempotency` are unchanged. This includes the current Edit
 Preferences private single-host CAS path and the approved-snapshot service
 boundary; their production readiness remains governed by their own evidence.
 
+The private Cloud dispatch outbox is another route-specific, non-HTTP
+single-host authority. It content-binds one package attempt and replays the
+same controller/worker receipts under concurrent redelivery without rerunning
+an execution action. It deliberately reports distributed transaction proof as
+false; the future package-queue mutation and outbox insert must share one
+reviewed database transaction before Cloud Tasks creation is enabled.
+
 ## Safe Failure Semantics
 
 - `409 IDEMPOTENCY_CONFLICT`: the key was reused with another request hash.

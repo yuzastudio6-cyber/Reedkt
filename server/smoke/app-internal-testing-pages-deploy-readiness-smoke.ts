@@ -40,14 +40,14 @@ assert.equal(
   'tsx server/smoke/app-internal-testing-pages-deploy-readiness-smoke.ts',
 )
 
-assertMentions('src/main.tsx', ['import.meta.env.BASE_URL', 'BrowserRouter basename={routerBaseName}'])
+assertMentions('src/main.tsx', ['createBrowserRouter', 'appRouterBasename', 'import.meta.env.BASE_URL'])
 assertMentions('src/backend/supabase/supabase-config.ts', [
-  'import.meta.env.VITE_SUPABASE_URL',
-  'import.meta.env.VITE_SUPABASE_ANON_KEY',
+  'import.meta.env?.VITE_SUPABASE_URL',
+  'import.meta.env?.VITE_SUPABASE_ANON_KEY',
 ])
 assert.doesNotMatch(
   read('src/backend/supabase/supabase-config.ts'),
-  /import\.meta\.env\[[^\]]+\]/,
+  /import\.meta\.env\s*\[[^\]]+\]/,
   'Supabase public env values must use static Vite env access so Pages builds inline them.',
 )
 
@@ -59,8 +59,10 @@ assertMentions('.github/workflows/app-internal-testing-pages-deploy.yml', [
   '/Reedkt/',
   'STAGING_SUPABASE_URL',
   'STAGING_SUPABASE_ANON_KEY',
+  'VITE_REEDITPRO_AUTH_MODE: supabase',
   'VITE_REEDITPRO_API_MODE: mock',
   'npm run build -- --base=',
+  'cp dist/index.html dist/404.html',
   'actions/deploy-pages',
 ])
 
@@ -74,16 +76,43 @@ const doc = JSON.parse(read('docs/app-internal-testing-pages-deploy-readiness.js
   defaultBasePath?: string
   githubPagesSignInUrl?: string
   frontendAuthMode?: string
+  currentImplementationBranch?: string
+  currentSliceIntegratedIntoSourceRef?: boolean
+  routerBasePathAware?: boolean
+  spaFallbackIncluded?: boolean
+  compiledSubpathPreviewVerified?: boolean
+  compiledSubpathProviderHandoffVerified?: boolean
+  googleOAuthCodeReady?: boolean
+  googleOAuthProviderConfiguredRemotely?: boolean
+  hostedCallbackVerified?: boolean
+  hostedDeploymentVerified?: boolean
+  existingLiveHostStatus?: string
+  hostedApiMode?: string
   blockedScope?: Record<string, boolean>
   blockedSecrets?: string[]
+  nextGate?: string
 }
 
-assert.equal(doc.decision, 'app_internal_testing_pages_deploy_readiness_passed_ready_for_manual_pages_workflow')
+assert.equal(doc.decision, 'app_internal_testing_pages_workflow_locally_ready_google_oauth_hosted_configuration_pending')
 assert.equal(doc.sourceRef, 'codex/reeditpro-web-ui-shell')
+assert.equal(doc.currentImplementationBranch, 'codex/backend-workflow-pipeline-continuation')
+assert.equal(doc.currentSliceIntegratedIntoSourceRef, false)
 assert.equal(doc.defaultBasePath, '/Reedkt/')
 assert.equal(doc.githubPagesSignInUrl, 'https://yuzastudio6-cyber.github.io/Reedkt/sign-in')
-assert.equal(doc.frontendAuthMode, 'supabase_anon_client_only')
+assert.equal(doc.frontendAuthMode, 'supabase_anon_client_google_oauth_with_email_password_fallback')
+assert.equal(doc.routerBasePathAware, true)
+assert.equal(doc.spaFallbackIncluded, true)
+assert.equal(doc.compiledSubpathPreviewVerified, true)
+assert.equal(doc.compiledSubpathProviderHandoffVerified, true)
+assert.equal(doc.googleOAuthCodeReady, true)
+assert.equal(doc.googleOAuthProviderConfiguredRemotely, false)
+assert.equal(doc.hostedCallbackVerified, false)
+assert.equal(doc.hostedDeploymentVerified, false)
+assert.equal(doc.existingLiveHostStatus, 'blocked_sign_in_surface_missing')
+assert.equal(doc.hostedApiMode, 'mock')
 assert.ok(doc.blockedSecrets?.includes('STAGING_SUPABASE_SERVICE_ROLE_KEY'))
+assert.ok(doc.blockedSecrets?.includes('GOOGLE_CLIENT_SECRET'))
+assert.equal(doc.nextGate, 'REVIEWED_SOURCE_INTEGRATION_SUPABASE_GOOGLE_PROVIDER_AND_HOSTED_CALLBACK_VERIFICATION')
 
 for (const [scope, value] of Object.entries(doc.blockedScope ?? {})) {
   assert.equal(value, false, `${scope} should remain false`)
@@ -105,5 +134,8 @@ console.log(JSON.stringify({
   defaultBasePath: doc.defaultBasePath,
   githubPagesSignInUrl: doc.githubPagesSignInUrl,
   frontendAuthMode: doc.frontendAuthMode,
+  googleOAuthCodeReady: doc.googleOAuthCodeReady,
+  hostedDeploymentVerified: doc.hostedDeploymentVerified,
+  nextGate: doc.nextGate,
   blockedScope: doc.blockedScope,
 }, null, 2))

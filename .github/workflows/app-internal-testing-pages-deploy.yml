@@ -88,6 +88,7 @@ jobs:
         env:
           VITE_SUPABASE_URL: ${{ secrets.STAGING_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.STAGING_SUPABASE_ANON_KEY }}
+          VITE_REEDITPRO_AUTH_MODE: supabase
           VITE_REEDITPRO_API_MODE: mock
           VITE_REEDITPRO_API_BASE_URL: ""
           VITE_REEDITPRO_APP_DEPLOYMENT: github_pages_internal_testing

@@ -90,6 +90,7 @@ export type ProviderSecretName =
 export type FrontendPublicConfigName =
   | 'VITE_SUPABASE_URL'
   | 'VITE_SUPABASE_ANON_KEY'
+  | 'VITE_REEDITPRO_AUTH_MODE'
   | 'VITE_REEDITPRO_API_BASE_URL'
   | 'VITE_REEDITPRO_API_MODE'
   | 'VITE_REEDITPRO_MOCK_MODE'

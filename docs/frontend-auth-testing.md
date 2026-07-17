@@ -4,7 +4,7 @@ Status: `implemented_frontend_entry_not_production_onboarding`
 
 ## Purpose
 
-ReeditPro app routes require an explicit browser session. The public landing page and `/sign-in` remain public. This slice provides a professional entry point for local end-to-end testing and Supabase email/password sign-in when approved public browser configuration exists.
+ReeditPro app routes require an explicit browser session. The public landing page and `/sign-in` remain public. This slice provides a professional entry point for local end-to-end testing and a Google-first Supabase sign-in surface when approved public browser configuration exists. Email/password remains a quiet recovery and internal-tester fallback.
 
 It does not create production accounts, provision subscriptions, mutate wallets, bypass backend authorization, or enable public delivery/provider execution.
 
@@ -12,7 +12,7 @@ It does not create production accounts, provision subscriptions, mutate wallets,
 
 Set `VITE_REEDITPRO_AUTH_MODE` explicitly:
 
-- `supabase`: uses the existing frontend-safe Supabase client and email/password helper. `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` must both be configured.
+- `supabase`: uses the frontend-safe Supabase client, Google OAuth handoff, and email/password fallback. `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` must both be configured. Google provider enablement and callback allowlisting remain remote prerequisites.
 - `local_test`: available only when Vite reports `DEV` and the browser hostname is `localhost`, `127.x.x.x`, or `::1`.
 - blank/unknown: fails closed. App routes redirect to `/sign-in`, which explains that authentication is unavailable.
 
@@ -51,7 +51,7 @@ Public routes:
 
 ## Supabase Sign-In
 
-In `supabase` mode, `/sign-in` calls `signInWithEmailPassword` from the existing auth client service. Supabase owns browser session persistence and refresh. The app subscribes to Supabase auth state changes and uses the verified session identity in the shell.
+In `supabase` mode, `/sign-in` calls `signInWithOAuth({ provider: 'google' })` through the auth client service. The callback uses the exact browser origin, Vite base path, and sanitized same-app return target. Email/password calls `signInWithEmailPassword` only after the tester opens the fallback disclosure. Supabase owns browser session persistence and refresh. The app subscribes to Supabase auth state changes and uses the verified session identity and provider label in the shell.
 
 Only the public anon key belongs in Vite configuration. Service-role keys, database credentials, provider secrets, and raw tokens must never be exposed through `VITE_*` variables.
 
@@ -70,3 +70,12 @@ Representative editor QA remains required after auth changes:
 ```bash
 PLAYWRIGHT_PORT=5194 PLAYWRIGHT_REUSE_SERVER=false npm run qa:editor
 ```
+
+Google-specific local contract and browser QA:
+
+```bash
+npm run smoke:google-oauth-sign-in
+npm run qa:google-oauth-sign-in
+```
+
+These checks do not contact Google or prove a real Gmail session. That requires hosted provider/callback configuration and interactive browser readback.

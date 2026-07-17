@@ -2,81 +2,72 @@
 
 ## Decision
 
-`hosted_sign_in_route_readiness_passed_ready_for_browser_sign_in_verification`
+`hosted_sign_in_route_readiness_contract_ready_live_host_pending`
 
 ## Purpose
 
-This verifier closes the gap between source-level sign-in readiness and a real hosted page. It opens the deployed ReEditPro app route in a browser, verifies the `/sign-in?redirect=/internal-testing` surface, and confirms the "Open testing" handoff points back into `/internal-testing`.
+This verifier closes the gap between source-level sign-in work and a deployed page. It opens `/sign-in?returnTo=/dashboard` on the exact hosted app base URL and checks that the current ReEditPro surface is present with:
 
-It does not submit credentials, does not use service-role, does not write Supabase data, does not upload media, does not run Edit Brief, does not call Qwen, does not dispatch workers, does not render/export, and does not unlock beta or production.
+- Google as the primary action;
+- the email/password recovery disclosure;
+- browser-safe Supabase configuration active;
+- the private-preview billing/delivery boundary;
+- no stale reference to a different app origin.
+
+It does not click Google, follow the provider redirect, submit credentials, create a session, use service-role access, mutate Supabase, upload media, call providers, dispatch workers, render/export, or unlock beta/production.
+
+The verifier itself has passed against a locally served compiled `/Reedkt/` artifact with browser-safe fixture values. A read-only check of the public GitHub Pages host on 2026-07-17 reached the URL but returned `blocked_sign_in_surface_missing`; the current hosted artifact is not the reviewed Google-first build.
 
 ## Command
 
 ```bash
 REEDITPRO_CONFIRM_HOSTED_SIGN_IN_ROUTE_READINESS=VERIFY_REEDITPRO_HOSTED_SIGN_IN_ROUTE \
+REEDITPRO_EXPECT_HOSTED_SUPABASE_CONFIGURED=true \
 REEDITPRO_HOSTED_APP_URL=https://yuzastudio6-cyber.github.io/Reedkt/ \
 npm run internal-testing:verify-hosted-sign-in-route
 ```
 
-To require public Supabase auth configuration to be present in the deployed app bundle, add:
-
-```bash
-REEDITPRO_EXPECT_HOSTED_SUPABASE_CONFIGURED=true
-```
-
-Use the GitHub Pages URL until `app.reeditpro.com` DNS is configured. If the launchpad button still sends testers to `app.reeditpro.com` before DNS exists, the app will remain unreachable even when this repository's `/sign-in` route is correct.
+Use the reviewed GitHub Pages URL until `app.reeditpro.com` DNS and hosting are configured. Exact loopback HTTP is supported for local verification; non-loopback targets must use HTTPS and credential-bearing URLs are rejected.
 
 ## Output
 
-The CLI emits sanitized JSON:
+The CLI emits sanitized JSON containing:
 
-- target base URL
-- target sign-in URL
-- final browser URL
-- whether the sign-in safety surface was found
-- whether `/internal-testing` handoff was found
-- whether public Supabase env appears configured
-- `credentialsSubmitted: false`
-- `serviceRoleUsed: false`
-- `tokenPrinted: false`
-- `passwordPrinted: false`
+- target base, sign-in, and final URLs;
+- current sign-in surface status;
+- Google primary-action status;
+- email/password fallback status;
+- inferred browser-safe Supabase configuration status;
+- `credentialsSubmitted: false`;
+- `providerRedirectFollowed: false`;
+- `serviceRoleUsed: false`;
+- `tokenPrinted: false`;
+- `passwordPrinted: false`.
+
+The browser is closed before the result is emitted, including on failure.
 
 ## Failure Meaning
 
-- `blocked_unreachable`: hosted page or DNS is not reachable.
-- `blocked_sign_in_surface_missing`: the deployed app is stale or not serving the ReEditPro sign-in surface.
-- `blocked_internal_testing_handoff_missing`: the route exists, but the safe testing handoff is wrong.
-- `blocked_supabase_public_env_missing`: the route is reachable, but public Supabase env was required and missing.
-- `blocked_unexpected_app_subdomain_reference`: visible hosted UI still points testers at `app.reeditpro.com`.
+- `blocked_unreachable`: the deployment or DNS is unavailable.
+- `blocked_sign_in_surface_missing`: a stale or incorrect app is deployed.
+- `blocked_google_primary_action_missing`: the Google-first surface or its fallback is missing.
+- `blocked_supabase_public_env_missing`: required browser-safe Supabase/Auth mode configuration was not inlined.
+- `blocked_unexpected_app_subdomain_reference`: the visible page points at a different app origin.
 
 ## Next Gate
 
-After this passes, run:
+A passing hosted route check is not Gmail authentication proof. The next gate is an interactive Google sign-in that verifies:
 
-```bash
-REEDITPRO_CONFIRM_INTERNAL_TESTER_BROWSER_SIGN_IN=VERIFY_REEDITPRO_INTERNAL_TESTER_BROWSER_SIGN_IN \
-VITE_SUPABASE_URL=... \
-VITE_SUPABASE_ANON_KEY=... \
-INTERNAL_TESTER_EMAIL=... \
-INTERNAL_TESTER_PASSWORD=... \
-npm run internal-testing:verify-browser-sign-in
-```
-
-The browser sign-in verifier proves the public anon Supabase email/password path returns a session. The hosted route verifier proves the deployed page itself is reachable and shaped correctly.
-
-For the safest hosted path, dispatch `.github/workflows/internal-tester-browser-sign-in-verification.yml` after adding the `STAGING_INTERNAL_TESTER_PASSWORD` repository secret. That workflow combines hosted route verification and browser-safe Supabase sign-in without exposing credentials in shell history or repo files.
+1. the Google consent/account flow reaches the exact allowlisted callback;
+2. Supabase returns a real Google-backed session;
+3. `/dashboard` and another guarded route survive a browser reload;
+4. identity/provider labeling is correct;
+5. sign-out clears the session and returns to guarded sign-in;
+6. no access or refresh token is printed or placed in application logs.
 
 ## Boundaries
 
-- Browser route readiness only.
-- No credential submission.
-- No service-role access.
-- No Supabase write.
-- No Storage write.
-- No signed URL.
-- No media upload.
-- No worker dispatch.
-- No provider or Qwen call.
-- No render/export.
-- No credit reservation or spend.
-- No external beta or production unlock.
+- Hosted route inspection only.
+- No credential submission or provider redirect.
+- No service-role access or Supabase mutation.
+- No storage, media, tools, worker, provider, render/export, credit, billing, public-delivery, external-beta, or production authority.

@@ -22,9 +22,11 @@ type RuntimeGlobal = typeof globalThis & {
 }
 
 function readPublicEnv(key: SupabasePublicEnvKey): string | undefined {
-  const viteEnv = (import.meta as ImportMeta & { env?: RuntimeEnvRecord }).env
   const processEnv = (globalThis as RuntimeGlobal).process?.env
-  const value = (viteEnv ?? processEnv ?? {})[key]
+  const viteValue = key === 'VITE_SUPABASE_URL'
+    ? import.meta.env?.VITE_SUPABASE_URL
+    : import.meta.env?.VITE_SUPABASE_ANON_KEY
+  const value = viteValue ?? processEnv?.[key]
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : undefined
 }
 

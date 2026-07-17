@@ -1,16 +1,33 @@
 {
-  "decision": "app_internal_testing_pages_deploy_readiness_passed_ready_for_manual_pages_workflow",
+  "decision": "app_internal_testing_pages_workflow_locally_ready_google_oauth_hosted_configuration_pending",
   "sourceRef": "codex/reeditpro-web-ui-shell",
+  "currentImplementationBranch": "codex/backend-workflow-pipeline-continuation",
+  "currentSliceIntegratedIntoSourceRef": false,
   "workflow": ".github/workflows/app-internal-testing-pages-deploy.yml",
   "defaultBasePath": "/Reedkt/",
   "githubPagesSignInUrl": "https://yuzastudio6-cyber.github.io/Reedkt/sign-in",
   "futureCustomDomainSignInUrl": "https://app.reeditpro.com/sign-in",
-  "frontendAuthMode": "supabase_anon_client_only",
+  "frontendAuthMode": "supabase_anon_client_google_oauth_with_email_password_fallback",
+  "routerBasePathAware": true,
+  "spaFallbackIncluded": true,
+  "compiledSubpathPreviewVerified": true,
+  "compiledSubpathProviderHandoffVerified": true,
+  "googleOAuthCodeReady": true,
+  "googleOAuthProviderConfiguredRemotely": false,
+  "hostedCallbackVerified": false,
+  "hostedDeploymentVerified": false,
+  "existingLiveHostCheckedOn": "2026-07-17",
+  "existingLiveHostStatus": "blocked_sign_in_surface_missing",
+  "hostedApiMode": "mock",
   "safeSecretMappings": {
     "STAGING_SUPABASE_URL": "VITE_SUPABASE_URL",
     "STAGING_SUPABASE_ANON_KEY": "VITE_SUPABASE_ANON_KEY"
   },
+  "safeLiteralBuildEnv": {
+    "VITE_REEDITPRO_AUTH_MODE": "supabase"
+  },
   "blockedSecrets": [
+    "GOOGLE_CLIENT_SECRET",
     "STAGING_SUPABASE_SERVICE_ROLE_KEY",
     "SUPABASE_SERVICE_ROLE_KEY",
     "PROVIDER_GATEWAY_SHARED_SECRET",
@@ -18,9 +35,12 @@
     "STRIPE_SECRET_KEY"
   ],
   "blockedScope": {
+    "deployPerformed": false,
     "backendApiDeploy": false,
     "serviceRole": false,
     "supabaseWrite": false,
+    "oauthRemoteConfiguration": false,
+    "googleClientSecretInBrowser": false,
     "storageSignedUrls": false,
     "providerCalls": false,
     "workerDispatch": false,
@@ -30,8 +50,9 @@
     "creditReservation": false,
     "creditSpend": false,
     "stripe": false,
+    "customerBilling": false,
     "externalBeta": false,
     "production": false
   },
-  "nextGate": "HOSTED_SIGN_IN_ROUTE_READINESS_AND_AUTH_READBACK"
+  "nextGate": "REVIEWED_SOURCE_INTEGRATION_SUPABASE_GOOGLE_PROVIDER_AND_HOSTED_CALLBACK_VERIFICATION"
 }

@@ -1,6 +1,8 @@
 import type { AuthChangeEvent, Session, User } from '@supabase/supabase-js'
+import { validateGoogleProviderHandoffUrl } from '../../auth/google-oauth'
 import type { AuthBootstrapMode, AuthBootstrapStatus } from '../../types/auth-bootstrap'
 import { getSupabaseClient, getSupabaseClientStatus } from '../supabase/supabase-client'
+import { getSupabasePublicConfig } from '../supabase/supabase-config'
 
 const INTERNAL_TESTING_AUTH_SESSION_KEY = 'reeditpro:internal-testing-auth-session:v1'
 
@@ -44,8 +46,116 @@ export interface SupabaseAuthActionResult {
   user?: User | null
   session?: Session | null
   emailConfirmationRequired?: boolean
+  oauthRedirectUrl?: string
   message: string
   warnings: string[]
+}
+
+export async function signInWithGoogleOAuth(
+  redirectTo: string,
+  expectedOrigin: string,
+): Promise<SupabaseAuthActionResult> {
+  const client = getSupabaseClient()
+  if (!client) {
+    const status = notConfiguredStatus()
+    return {
+      ok: false,
+      mode: status.mode,
+      status: status.status,
+      message: status.message,
+      warnings: status.warnings,
+    }
+  }
+
+  let callback: URL
+  let trustedOrigin: URL
+  try {
+    callback = new URL(redirectTo)
+    trustedOrigin = new URL(expectedOrigin)
+  } catch {
+    return {
+      ok: false,
+      mode: 'supabase_frontend',
+      status: 'error',
+      message: 'Google sign-in could not start because the return address is invalid.',
+      warnings: ['OAuth redirect validation failed before provider handoff.'],
+    }
+  }
+
+  if (
+    callback.username
+    || callback.password
+    || trustedOrigin.username
+    || trustedOrigin.password
+    || trustedOrigin.pathname !== '/'
+    || trustedOrigin.search
+    || trustedOrigin.hash
+    || callback.origin !== trustedOrigin.origin
+    || !callback.pathname.endsWith('/sign-in')
+    || (callback.protocol !== 'https:' && !isLoopbackOAuthHostname(callback.hostname))
+  ) {
+    return {
+      ok: false,
+      mode: 'supabase_frontend',
+      status: 'error',
+      message: 'Google sign-in could not start because the return address is not trusted.',
+      warnings: ['OAuth redirect validation failed before provider handoff.'],
+    }
+  }
+
+  const { data, error } = await client.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: callback.toString(),
+      skipBrowserRedirect: true,
+    },
+  })
+  if (error || !data.url) {
+    return {
+      ok: false,
+      mode: 'supabase_frontend',
+      status: 'error',
+      message: 'Google sign-in could not start. Try again, or use email and password.',
+      warnings: ['Google OAuth handoff failed before an authenticated session was created.'],
+    }
+  }
+
+  const providerUrl = validateGoogleProviderHandoffUrl({
+    callback,
+    providerUrl: data.url,
+    supabaseUrl: getSupabasePublicConfig().url ?? '',
+  })
+  if (!providerUrl) {
+    return {
+      ok: false,
+      mode: 'supabase_frontend',
+      status: 'error',
+      message: 'Google sign-in could not start safely. Try again, or use email and password.',
+      warnings: ['OAuth provider URL validation failed before browser navigation.'],
+    }
+  }
+
+  if (typeof window !== 'undefined') {
+    window.location.assign(providerUrl.toString())
+  }
+
+  return {
+    ok: true,
+    mode: 'supabase_frontend',
+    status: 'signed_out',
+    oauthRedirectUrl: providerUrl.toString(),
+    message: 'Opening Google sign-in.',
+    warnings: [],
+  }
+}
+
+function isLoopbackOAuthHostname(value: string): boolean {
+  const normalized = value.toLowerCase()
+  if (normalized === 'localhost' || normalized === '::1') return true
+  const parts = normalized.split('.')
+  return parts.length === 4
+    && parts[0] === '127'
+    && parts.every((part) => /^\d{1,3}$/.test(part) && Number(part) <= 255)
 }
 
 export type SupabaseAuthStateChangeCallback = (event: AuthChangeEvent, session: Session | null) => void

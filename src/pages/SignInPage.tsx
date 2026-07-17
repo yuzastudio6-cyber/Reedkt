@@ -5,6 +5,10 @@ import { sanitizeInternalReturnTo } from '../auth/auth-navigation'
 import { useAuthSession } from '../auth/useAuthSession'
 import { BrandLogo } from '../components/BrandLogo'
 import { Button } from '../components/Button'
+import { GoogleMark } from '../components/auth/GoogleMark'
+import { readGoogleOAuthCallbackError } from '../auth/google-oauth'
+
+type PendingAuthAction = 'google' | 'local_test' | 'password' | null
 
 export function SignInPage() {
   const auth = useAuthSession()
@@ -14,18 +18,22 @@ export function SignInPage() {
   const returnTo = sanitizeInternalReturnTo(searchParams.get('returnTo') ?? searchParams.get('redirect'))
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [pending, setPending] = useState(false)
-  const [error, setError] = useState('')
+  const [pendingAction, setPendingAction] = useState<PendingAuthAction>(null)
+  const [error, setError] = useState(() => (
+    typeof window === 'undefined'
+      ? ''
+      : readGoogleOAuthCallbackError(window.location.search, window.location.hash)
+  ))
 
   if (auth.status === 'signed_in') {
     return <Navigate replace to={returnTo} />
   }
 
   const enterLocalTestSession = async () => {
-    setPending(true)
+    setPendingAction('local_test')
     setError('')
     const result = await auth.signInLocalTest()
-    setPending(false)
+    setPendingAction(null)
 
     if (!result.ok) {
       setError(result.message)
@@ -35,12 +43,23 @@ export function SignInPage() {
     navigate(returnTo, { replace: true })
   }
 
+  const startGoogleSignIn = async () => {
+    setPendingAction('google')
+    setError('')
+    const result = await auth.signInWithGoogle(returnTo)
+
+    if (!result.ok) {
+      setPendingAction(null)
+      setError(result.message)
+    }
+  }
+
   const submitSupabaseSignIn = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    setPending(true)
+    setPendingAction('password')
     setError('')
     const result = await auth.signInWithPassword(email, password)
-    setPending(false)
+    setPendingAction(null)
 
     if (!result.ok) {
       setError(result.message)
@@ -102,55 +121,71 @@ export function SignInPage() {
                 </div>
                 <Button
                   data-testid="local-test-sign-in"
-                  disabled={pending}
+                  disabled={pendingAction !== null}
                   icon={KeyRound}
                   onClick={() => { void enterLocalTestSession() }}
                   variant="primary"
                 >
-                  {pending ? 'Opening workspace…' : 'Enter test workspace'}
+                  {pendingAction === 'local_test' ? 'Opening workspace…' : 'Enter test workspace'}
                 </Button>
               </div>
             )}
 
             {auth.status !== 'loading' && auth.mode === 'supabase' && (
-              <form className="auth-form" onSubmit={(event) => { void submitSupabaseSignIn(event) }}>
-                <label className="planning-field">
-                  <span>Email</span>
-                  <input
-                    autoComplete="email"
-                    inputMode="email"
-                    name="email"
-                    onChange={(event) => setEmail(event.target.value)}
-                    required
-                    type="email"
-                    value={email}
-                  />
-                </label>
-                <label className="planning-field">
-                  <span>Password</span>
-                  <input
-                    autoComplete="current-password"
-                    name="password"
-                    onChange={(event) => setPassword(event.target.value)}
-                    required
-                    type="password"
-                    value={password}
-                  />
-                </label>
-                <Button data-testid="auth-submit-button" disabled={pending} icon={KeyRound} type="submit" variant="primary">
-                  {pending ? 'Signing in…' : 'Sign in'}
-                </Button>
-              </form>
+              <div className="auth-secure-sign-in">
+                <button
+                  className="auth-google-button"
+                  data-testid="google-sign-in"
+                  disabled={pendingAction !== null}
+                  onClick={() => { void startGoogleSignIn() }}
+                  type="button"
+                >
+                  <GoogleMark />
+                  <span>{pendingAction === 'google' ? 'Opening Google…' : 'Continue with Google'}</span>
+                </button>
+
+                <details className="auth-password-fallback">
+                  <summary data-testid="auth-password-toggle">Use email and password</summary>
+                  <form className="auth-form" onSubmit={(event) => { void submitSupabaseSignIn(event) }}>
+                    <label className="planning-field">
+                      <span>Email</span>
+                      <input
+                        autoComplete="email"
+                        inputMode="email"
+                        name="email"
+                        onChange={(event) => setEmail(event.target.value)}
+                        required
+                        type="email"
+                        value={email}
+                      />
+                    </label>
+                    <label className="planning-field">
+                      <span>Password</span>
+                      <input
+                        autoComplete="current-password"
+                        name="password"
+                        onChange={(event) => setPassword(event.target.value)}
+                        required
+                        type="password"
+                        value={password}
+                      />
+                    </label>
+                    <Button data-testid="auth-submit-button" disabled={pendingAction !== null} icon={KeyRound} type="submit" variant="secondary">
+                      {pendingAction === 'password' ? 'Signing in…' : 'Sign in with email'}
+                    </Button>
+                  </form>
+                </details>
+              </div>
             )}
 
             {auth.status === 'unavailable' && (
               <div className="auth-unavailable" role="status">
                 <strong>Sign-in is not available here.</strong>
-                <p>{auth.message} Use an approved local testing environment or configure Supabase public browser auth.</p>
+                <p>{auth.message} Use an approved local testing environment or configure secure browser sign-in.</p>
               </div>
             )}
 
-            {error && <p className="auth-error" role="alert">{error}</p>}
+            {error && <p aria-live="assertive" className="auth-error" role="alert">{error}</p>}
 
             <p className="auth-boundary-note">Private preview · No production billing or public delivery.</p>
           </div>

@@ -6,6 +6,7 @@ import {
 } from 'react'
 import { AuthSessionContext } from './auth-session-context'
 import { getAuthRuntimeConfig, type AuthRuntimeConfig } from './auth-runtime-config'
+import { buildGoogleOAuthCallbackUrl } from './google-oauth'
 import type { AuthActionResult, AuthIdentity, AuthSessionSnapshot } from './auth-session-types'
 
 interface LocalTestSessionRecord {
@@ -53,7 +54,7 @@ function identityFromSupabaseUser(user: User): AuthIdentity {
       ?? readStringMetadata(user, 'name')
       ?? emailName
       ?? 'ReeditPro user',
-    provider: 'supabase',
+    provider: user.app_metadata?.provider === 'google' ? 'google' : 'supabase',
   }
 }
 
@@ -141,7 +142,7 @@ class AuthSessionStore {
         identity: identityFromSupabaseUser(session.user),
         mode: 'supabase',
         status: 'signed_in',
-        message: 'Signed in with Supabase.',
+        message: 'Secure session active.',
       })
       return
     }
@@ -183,7 +184,7 @@ class AuthSessionStore {
         config,
         mode: 'supabase',
         status: 'loading',
-        message: 'Checking your Supabase session.',
+        message: 'Checking your secure session.',
       })
       void this.startSupabaseSession(currentRun, config)
     }
@@ -280,6 +281,30 @@ class AuthSessionStore {
     }
   }
 
+  signInWithGoogle = async (returnTo: string): Promise<AuthActionResult> => {
+    const config = getAuthRuntimeConfig()
+    if (!config.available || config.mode !== 'supabase') {
+      return { ok: false, message: config.message }
+    }
+    if (typeof window === 'undefined') {
+      return { ok: false, message: 'Google sign-in requires a browser.' }
+    }
+
+    try {
+      const authClient = await import('../backend/auth/auth-client-service')
+      const viteEnv = (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env
+      const redirectTo = buildGoogleOAuthCallbackUrl({
+        origin: window.location.origin,
+        appBasePath: viteEnv?.BASE_URL,
+        returnTo,
+      })
+      const result = await authClient.signInWithGoogleOAuth(redirectTo, window.location.origin)
+      return { ok: result.ok, message: result.message }
+    } catch {
+      return { ok: false, message: 'Google sign-in could not be loaded. Try again.' }
+    }
+  }
+
   signOut = async (): Promise<AuthActionResult> => {
     if (this.snapshot.mode === 'local_test') {
       clearLocalTestSession()
@@ -326,6 +351,7 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
       value={{
         ...snapshot,
         signInLocalTest: authSessionStore.signInLocalTest,
+        signInWithGoogle: authSessionStore.signInWithGoogle,
         signInWithPassword: authSessionStore.signInWithPassword,
         signOut: authSessionStore.signOut,
       }}

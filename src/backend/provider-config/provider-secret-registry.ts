@@ -83,6 +83,14 @@ export const REEDITPRO_FRONTEND_PUBLIC_CONFIG_REGISTRY: FrontendPublicConfigDefi
     notes: ['Do not log key contents even though it is browser-public.'],
   },
   {
+    name: 'VITE_REEDITPRO_AUTH_MODE',
+    description: 'Public fail-closed selector for Supabase or loopback-only local test authentication.',
+    requiredForLocalDev: false,
+    requiredForProduction: true,
+    mayBeLogged: true,
+    notes: ['Mode only; Google client secrets and Supabase service-role values remain backend configuration.'],
+  },
+  {
     name: 'VITE_REEDITPRO_API_BASE_URL',
     description: 'Public API base URL for future backend route calls.',
     requiredForLocalDev: false,

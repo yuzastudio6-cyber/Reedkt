@@ -28,6 +28,12 @@ export function AppShell({
   const showStandardChrome = chrome === 'standard'
   const identityLabel = auth.identity?.displayName ?? auth.identity?.email ?? 'Signed-in user'
   const identityDetail = auth.identity?.email ?? (auth.mode === 'local_test' ? 'Local test session' : 'Verified session')
+  let sessionModeLabel = 'Secure session'
+  if (auth.mode === 'local_test') {
+    sessionModeLabel = 'Test session'
+  } else if (auth.identity?.provider === 'google') {
+    sessionModeLabel = 'Google session'
+  }
 
   return (
     <div className={`app-shell app-shell-${chrome}`} data-testid="app-shell">
@@ -65,7 +71,7 @@ export function AppShell({
             </div>
           </div>
           <span className="sidebar-auth-mode">
-            {auth.mode === 'local_test' ? 'Test session' : 'Supabase session'}
+            {sessionModeLabel}
           </span>
           <Button
             className="sidebar-auth-signout"

@@ -163,9 +163,87 @@
 }
 
 .auth-local-test,
-.auth-form {
+.auth-form,
+.auth-secure-sign-in {
   display: grid;
   gap: var(--rp-space-4);
+}
+
+.auth-google-button {
+  align-items: center;
+  background: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  border-radius: var(--rp-radius-md);
+  color: #1f2937;
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 750;
+  gap: var(--rp-space-3);
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 var(--rp-space-5);
+  transition: background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+  width: 100%;
+}
+
+.auth-google-button:hover:not(:disabled) {
+  background: #f8fafc;
+  border-color: var(--rp-brand-cyan);
+  box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.12);
+}
+
+.auth-google-button:focus-visible {
+  box-shadow: var(--rp-shadow-focus);
+  outline: none;
+}
+
+.auth-google-button:disabled {
+  cursor: wait;
+  opacity: 0.58;
+}
+
+.google-mark {
+  display: block;
+  flex: 0 0 auto;
+  height: 20px;
+  width: 20px;
+}
+
+.auth-password-fallback {
+  border-top: 1px solid var(--rp-border-subtle);
+  padding-top: var(--rp-space-2);
+}
+
+.auth-password-fallback summary {
+  align-items: center;
+  color: var(--rp-text-secondary);
+  cursor: pointer;
+  display: flex;
+  font-size: 0.82rem;
+  font-weight: 700;
+  justify-content: center;
+  min-height: 44px;
+  padding-inline: var(--rp-space-2);
+}
+
+.auth-password-fallback summary:hover {
+  color: var(--rp-text-primary);
+}
+
+.auth-password-fallback summary:focus-visible {
+  border-radius: var(--rp-radius-sm);
+  box-shadow: var(--rp-shadow-focus);
+  outline: none;
+}
+
+.auth-password-fallback[open] summary {
+  justify-content: flex-start;
+}
+
+.auth-password-fallback .auth-form {
+  padding-top: var(--rp-space-3);
 }
 
 .auth-mode-note {
@@ -202,8 +280,15 @@
 }
 
 .auth-form .rp-button,
-.auth-local-test .rp-button {
+.auth-local-test .rp-button,
+.auth-secure-sign-in .rp-button {
   width: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-google-button {
+    transition: none;
+  }
 }
 
 .auth-error {
@@ -311,13 +396,39 @@
 }
 
 @media (max-width: 620px) {
+  .auth-page {
+    padding: var(--rp-space-4) var(--rp-space-5) var(--rp-space-8);
+  }
+
   .auth-brand-row {
     align-items: flex-start;
     flex-direction: column;
+    gap: var(--rp-space-2);
+  }
+
+  .auth-layout {
+    gap: var(--rp-space-6);
+    padding-block: var(--rp-space-6);
+  }
+
+  .auth-intro {
+    gap: var(--rp-space-3);
   }
 
   .auth-intro h1 {
     font-size: clamp(2rem, 11vw, 2.8rem);
+  }
+
+  .auth-intro > p {
+    line-height: 1.55;
+  }
+
+  .auth-trust-list {
+    display: none;
+  }
+
+  .auth-card {
+    gap: var(--rp-space-4);
   }
 
   .sidebar-auth {

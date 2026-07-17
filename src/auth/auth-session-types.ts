@@ -6,7 +6,7 @@ export interface AuthIdentity {
   id: string
   email?: string
   displayName: string
-  provider: 'local_test' | 'supabase'
+  provider: 'google' | 'local_test' | 'supabase'
 }
 
 export interface AuthSessionSnapshot {
@@ -24,6 +24,7 @@ export interface AuthActionResult {
 
 export interface AuthSessionContextValue extends AuthSessionSnapshot {
   signInLocalTest: () => Promise<AuthActionResult>
+  signInWithGoogle: (returnTo: string) => Promise<AuthActionResult>
   signInWithPassword: (email: string, password: string) => Promise<AuthActionResult>
   signOut: () => Promise<AuthActionResult>
 }

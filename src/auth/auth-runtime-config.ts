@@ -57,8 +57,8 @@ export function getAuthRuntimeConfig(): AuthRuntimeConfig {
       mode: config.configured ? 'supabase' : 'unavailable',
       requestedMode,
       message: config.configured
-        ? 'Supabase email and password sign-in is available.'
-        : 'Supabase sign-in is selected, but its public browser configuration is incomplete.',
+        ? 'Secure workspace sign-in is available.'
+        : 'Secure sign-in is selected, but its public browser configuration is incomplete.',
     }
   }
 

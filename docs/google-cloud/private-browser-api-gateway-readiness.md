@@ -34,7 +34,24 @@ The original token is request-scoped only. It is not placed in a Vite build vari
 
 ## Read-Only Cloud Observation
 
-The existing `reeditpro-api-staging` Cloud Run service resolves in `us-east1` and has no `allUsers` or `allAuthenticatedUsers` invoker member. That is the correct private posture. The API Gateway API is not enabled, so no API, API config, gateway, gateway service identity, or gateway-to-Cloud-Run invocation evidence exists yet.
+The repository now includes a bounded verifier for this exact staging lane:
+
+```bash
+npm run staging:verify-google-api-gateway-readiness
+```
+
+It runs only `gcloud ... list`, `describe`, and `get-iam-policy` probes. It never enables an API, creates a resource, changes IAM, deploys, contacts Supabase, calls a provider, charges billing, or prints environment values or raw IAM principals. Audit mode exits successfully with a blocked report so evidence can be collected safely; set `REEDITPRO_REQUIRE_GATEWAY_READY=true` only when a CI gate should fail on any blocker.
+
+The 2026-07-17 sanitized report confirms:
+
+- The exact `reeditpro-api-staging` Cloud Run service resolves in `us-east1`, is Ready, and uses the expected runtime service account.
+- No `allUsers` or `allAuthenticatedUsers` invoker is present in the Cloud Run service-level IAM policy. That is the correct private posture; broader project-level IAM still requires explicit verification during activation.
+- Only 1 of the 3 gateway/service-control APIs required by this contract is enabled.
+- `API_ALLOWED_CORS_ORIGINS`, `REEDITPRO_BROWSER_API_TRANSPORT`, and `REEDITPRO_INTERNAL_SERVICE_TOKEN` are absent from the current Cloud Run revision.
+- The required sensitive runtime settings are not all backed by Cloud Run Secret Manager references.
+- The dedicated gateway service account is not an invoker, and no API, API config, gateway, or active gateway was found because API Gateway remains disabled.
+
+Therefore the service is correctly private but not ready for a signed-in browser route test. The verifier reported every mutation boundary as false.
 
 The checked-in older staging API workflow also remains insufficient for this browser path: it deploys Cloud Run with `--no-allow-unauthenticated` but does not create a gateway bridge, configure the current browser transport, or prove the current production startup requirements. It must not be treated as a working browser deployment.
 
@@ -64,7 +81,9 @@ Google documents that API Gateway can validate user JWTs from a configured issue
 
 ```bash
 npm run smoke:google-api-gateway-browser-transport
+npm run smoke:google-api-gateway-readiness
+npm run staging:verify-google-api-gateway-readiness
 npm run typecheck:server
 ```
 
-The focused smoke proves the local trust boundary and generated OpenAPI invariants. It does not prove API enablement, IAM, a deployed gateway, live Supabase signing keys, real Gmail sign-in, durable database state, GCS, workers, providers, billing, or production readiness.
+The focused smokes prove the local trust boundary, generated OpenAPI invariants, read-only command plan, sanitized report shape, ready fixture, disabled-service fixture, and public-invoker rejection. The live verifier proves only current read-only Google Cloud configuration. It does not prove API enablement, IAM mutation, a deployed gateway, live Supabase signing keys, real Gmail sign-in, durable database state, GCS, workers, providers, billing, or production readiness.

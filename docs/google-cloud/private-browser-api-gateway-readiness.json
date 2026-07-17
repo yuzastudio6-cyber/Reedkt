@@ -28,9 +28,50 @@
   "readOnlyGoogleCloudObservation": {
     "projectIdMatched": true,
     "privateCloudRunApiServiceResolved": true,
+    "privateCloudRunApiServiceReady": true,
+    "expectedRuntimeServiceAccountConfigured": true,
     "cloudRunAllUsersOrAllAuthenticatedUsersInvokerPresent": false,
+    "requiredGoogleApisEnabled": 1,
+    "requiredGoogleApis": 3,
     "apiGatewayApiEnabled": false,
     "apiGatewayResourcesQueryable": false,
+    "browserGatewayTransportConfigured": false,
+    "missingRuntimeEnvNames": [
+      "API_ALLOWED_CORS_ORIGINS",
+      "REEDITPRO_BROWSER_API_TRANSPORT",
+      "REEDITPRO_INTERNAL_SERVICE_TOKEN"
+    ],
+    "allSensitiveRuntimeEnvUsesSecretReferences": false,
+    "gatewayServiceAccountIsCloudRunInvoker": false,
+    "apiResourcePresent": false,
+    "apiConfigPresent": false,
+    "gatewayPresent": false,
+    "gatewayActive": false,
+    "verifier": "npm run staging:verify-google-api-gateway-readiness",
+    "verifierDecision": "blocked_before_signed_in_gateway_route_test",
+    "verifierBlockers": [
+      "requiredGoogleApisEnabled",
+      "cloudRunBrowserTransportConfigured",
+      "cloudRunRequiredEnvNamesPresent",
+      "cloudRunSensitiveEnvUsesSecretReferences",
+      "gatewayServiceAccountIsInvoker",
+      "apiResourcePresent",
+      "apiConfigPresent",
+      "gatewayPresent",
+      "gatewayActive"
+    ],
+    "verifierBoundaries": {
+      "readOnly": true,
+      "apiEnablementPerformed": false,
+      "resourceCreationPerformed": false,
+      "iamMutationPerformed": false,
+      "deploymentPerformed": false,
+      "supabaseContacted": false,
+      "providerCalled": false,
+      "billingCalled": false,
+      "secretsPrinted": false,
+      "rawIamPrincipalsPrinted": false
+    },
     "cloudMutationPerformed": false
   },
   "requiredRemoteGates": [

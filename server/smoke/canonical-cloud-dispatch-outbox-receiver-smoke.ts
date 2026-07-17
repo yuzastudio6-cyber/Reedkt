@@ -1,4 +1,9 @@
 import assert from 'node:assert/strict'
+import {
+  generateKeyPairSync,
+  sign,
+  type KeyObject,
+} from 'node:crypto'
 import { mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -34,10 +39,14 @@ import {
 import { sha256AuthorityValue } from '../services/private-edit-authority-store'
 import type { ServiceContext } from '../types'
 import {
-  CANONICAL_SERVICE_IDENTITY_EVIDENCE_VERSION,
-  canonicalServiceIdentityEvidenceSchema,
   type CanonicalServiceIdentityEvidence,
 } from '../validation/canonical-cloud-dispatch-outbox-schemas'
+import {
+  createCanonicalPrivateServiceIdentityFixture,
+  createCanonicalTrustedJwksContractSnapshot,
+  createCanonicalTrustedJwksContractVerifier,
+  type CanonicalVerifiedServiceIdentity,
+} from '../security/canonical-service-identity-verifier'
 import { REEDITPRO_GCP_PRODUCTION_RESOURCE_MAP } from
   '../../src/backend/cloud/reeditpro-gcp-production-resource-map'
 
@@ -48,6 +57,30 @@ const workerAudience = 'https://reeditpro-worker-receiver.example.run.app'
 const baseTimeMs = Date.parse('2026-07-17T06:00:00.000Z')
 let currentTimeMs = baseTimeMs + 1_000
 const now = () => new Date(currentTimeMs)
+const identityKeyId = 'reeditpro-outbox-contract-key-20260717'
+const identityKeys = generateKeyPairSync('rsa', {
+  modulusLength: 2_048,
+  publicExponent: 0x10001,
+})
+const identityPublicJwk = identityKeys.publicKey.export({ format: 'jwk' })
+assert.ok(identityPublicJwk.n)
+assert.ok(identityPublicJwk.e)
+const identityVerifier = createCanonicalTrustedJwksContractVerifier({
+  snapshot: createCanonicalTrustedJwksContractSnapshot({
+    keySetId: 'reeditpro-outbox-contract-jwks-20260717',
+    fetchedAt: new Date(baseTimeMs - 60_000).toISOString(),
+    expiresAt: new Date(baseTimeMs + 180_000).toISOString(),
+    keys: [{
+      kty: 'RSA',
+      kid: identityKeyId,
+      alg: 'RS256',
+      use: 'sig',
+      n: identityPublicJwk.n,
+      e: identityPublicJwk.e,
+    }],
+  }),
+  now,
+})
 const queueDefinition = createQueueDefinition()
 const manifest = createManifest(queueDefinition)
 const scope: CanonicalCloudDispatchOutboxStoreScope = {
@@ -116,7 +149,7 @@ try {
 
   const taskBody = enqueued.attemptPlan.cloudTask?.taskBody
   assert.ok(taskBody)
-  const controllerIdentity = identityEvidence({
+  const controllerIdentity = signedIdentity({
     authenticationMechanism: 'google_oidc_id_token',
     principalEmail: enqueued.outboxEntry.immutable.controllerServiceAccountEmail,
     audience: controllerAudience,
@@ -125,7 +158,7 @@ try {
   await expectApiError(
     () => service.receiveController({
       taskBody,
-      identityEvidence: identityEvidence({
+      verifiedIdentity: privateIdentityFixture({
         authenticationMechanism: 'google_oidc_id_token',
         principalEmail: 'attacker@reeditpro.iam.gserviceaccount.com',
         audience: controllerAudience,
@@ -137,7 +170,7 @@ try {
   await expectApiError(
     () => service.receiveController({
       taskBody,
-      identityEvidence: identityEvidence({
+      verifiedIdentity: privateIdentityFixture({
         authenticationMechanism: 'google_oidc_id_token',
         principalEmail: enqueued.outboxEntry.immutable.controllerServiceAccountEmail,
         audience: 'https://attacker.example.test',
@@ -149,20 +182,17 @@ try {
   await expectApiError(
     () => service.receiveController({
       taskBody: { ...taskBody, sourcePath: '/private/source.mov' },
-      identityEvidence: controllerIdentity,
+      verifiedIdentity: controllerIdentity,
     }),
     'VALIDATION_FAILED',
   )
+  const callerAuthoredIdentity = {
+    evidence: controllerIdentity.evidence,
+  } as unknown as CanonicalVerifiedServiceIdentity
   await expectApiError(
     () => service.receiveController({
       taskBody,
-      identityEvidence: identityEvidence({
-        authenticationMechanism: 'google_oidc_id_token',
-        principalEmail: enqueued.outboxEntry.immutable.controllerServiceAccountEmail,
-        audience: controllerAudience,
-        subject: '100000000000000000001',
-        verificationMode: 'trusted_google_identity_verifier',
-      }),
+      verifiedIdentity: callerAuthoredIdentity,
     }),
     'INTERNAL_SERVICE_AUTH_INVALID',
   )
@@ -174,8 +204,8 @@ try {
   )
 
   const controllerResults = await Promise.all([
-    service.receiveController({ taskBody, identityEvidence: controllerIdentity }),
-    service.receiveController({ taskBody, identityEvidence: controllerIdentity }),
+    service.receiveController({ taskBody, verifiedIdentity: controllerIdentity }),
+    service.receiveController({ taskBody, verifiedIdentity: controllerIdentity }),
   ])
   assert.deepEqual(
     controllerResults.map((result) => result.disposition).sort(),
@@ -187,6 +217,10 @@ try {
   )
   assert.equal(controllerResults[0]?.receipt.boundaries.cloudRunJobsRunCallPerformed, false)
   assert.equal(controllerResults[0]?.receipt.boundaries.liveGoogleOidcAndIamVerified, false)
+  assert.equal(
+    controllerResults[0]?.receipt.identity.verificationMode,
+    'trusted_jwks_contract_fixture',
+  )
   assert.equal(controllerResults[0]?.cloudRunJobRequest?.taskMaxRetries, 0)
 
   clearPrivateCanonicalCloudDispatchOutboxProcessStateForSmoke()
@@ -194,7 +228,7 @@ try {
   const invocation = await service.createWorkerInvocation(
     enqueued.outboxEntry.immutable.dispatchIntentId,
   )
-  const workerIdentity = identityEvidence({
+  const workerIdentity = signedIdentity({
     authenticationMechanism: 'google_cloud_run_workload_identity',
     principalEmail: enqueued.outboxEntry.immutable.workerServiceAccountEmail,
     audience: workerAudience,
@@ -203,14 +237,14 @@ try {
   await expectApiError(
     () => service.receiveWorker({
       invocation: { ...invocation, controllerReceiptHash: 'f'.repeat(64) },
-      identityEvidence: workerIdentity,
+      verifiedIdentity: workerIdentity,
     }),
     'VALIDATION_FAILED',
   )
   await expectApiError(
     () => service.receiveWorker({
       invocation,
-      identityEvidence: identityEvidence({
+      verifiedIdentity: privateIdentityFixture({
         authenticationMechanism: 'google_cloud_run_workload_identity',
         principalEmail: 'wrong-worker@reeditpro.iam.gserviceaccount.com',
         audience: workerAudience,
@@ -221,8 +255,8 @@ try {
   )
 
   const workerResults = await Promise.all([
-    service.receiveWorker({ invocation, identityEvidence: workerIdentity }),
-    service.receiveWorker({ invocation, identityEvidence: workerIdentity }),
+    service.receiveWorker({ invocation, verifiedIdentity: workerIdentity }),
+    service.receiveWorker({ invocation, verifiedIdentity: workerIdentity }),
   ])
   assert.deepEqual(
     workerResults.map((result) => result.disposition).sort(),
@@ -245,6 +279,8 @@ try {
   assert.equal(evidence.cloudTaskCreated, false)
   assert.equal(evidence.cloudRunJobExecuted, false)
   assert.equal(evidence.workerExecutionAuthorized, false)
+  assert.equal(evidence.processBrandedVerifiedIdentityRequired, true)
+  assert.equal(evidence.cryptographicJwksVerifierCoreAvailable, true)
 
   const queueAfter = await readPrivateCanonicalPackageWorkQueue({
     scope: queueScope,
@@ -281,7 +317,7 @@ try {
 
   currentTimeMs = baseTimeMs + 121_000
   await expectApiError(
-    () => service.receiveWorker({ invocation, identityEvidence: workerIdentity }),
+    () => service.receiveWorker({ invocation, verifiedIdentity: workerIdentity }),
     'WORKER_LEASE_EXPIRED',
   )
 
@@ -295,6 +331,7 @@ try {
       'restart_and_concurrent_task_redelivery_replay_without_another_attempt',
       'controller_requires_exact_issuer_principal_audience_expiry_task_and_outbox_binding',
       'worker_requires_exact_controller_receipt_workload_identity_and_attempt_binding',
+      'controller_and_worker_accept_only_process_branded_cryptographically_verified_identity',
       'forged_principal_audience_task_worker_and_persistence_bytes_fail_closed',
       'outbox_persists_no_raw_bearer_claim_credential_media_prompt_path_or_signed_url',
       'receiver_does_not_mutate_package_queue_or_start_cloud_job_tool_media_or_network_work',
@@ -358,43 +395,66 @@ function createContext(mode: 'test' | 'production'): ServiceContext {
   }
 }
 
-function identityEvidence(input: {
+function privateIdentityFixture(input: {
   authenticationMechanism: CanonicalServiceIdentityEvidence['authenticationMechanism']
   principalEmail: string
   audience: string
   subject: string
-  verificationMode?: CanonicalServiceIdentityEvidence['verificationMode']
-}): CanonicalServiceIdentityEvidence {
-  const verificationMode = input.verificationMode ?? 'private_contract_fixture'
-  const trustedGoogle = verificationMode === 'trusted_google_identity_verifier'
-  const payload = {
-    schemaVersion: CANONICAL_SERVICE_IDENTITY_EVIDENCE_VERSION,
-    source: 'trusted_service_identity_verifier_output' as const,
-    verificationMode,
+}): CanonicalVerifiedServiceIdentity {
+  return createCanonicalPrivateServiceIdentityFixture({
     authenticationMechanism: input.authenticationMechanism,
-    verifierId: trustedGoogle
-      ? 'reeditpro-google-identity-verifier'
-      : 'reeditpro-private-contract-fixture',
-    issuer: 'https://accounts.google.com',
     subject: input.subject,
     principalEmail: input.principalEmail,
     audience: input.audience,
     issuedAt: new Date(baseTimeMs).toISOString(),
     expiresAt: new Date(baseTimeMs + 120_000).toISOString(),
     verifiedAt: new Date(baseTimeMs + 500).toISOString(),
-    emailVerified: true as const,
-    issuerVerified: true as const,
-    audienceVerified: true as const,
-    expiryVerified: true as const,
-    cryptographicSignatureVerified: trustedGoogle,
-    liveGoogleVerificationPerformed: trustedGoogle,
-    rawBearerTokenRetained: false as const,
-    callerAuthoredClaimsAccepted: false as const,
-  }
-  return canonicalServiceIdentityEvidenceSchema.parse({
-    ...payload,
-    evidenceHash: sha256AuthorityValue(payload),
   })
+}
+
+function signedIdentity(input: {
+  authenticationMechanism: CanonicalServiceIdentityEvidence['authenticationMechanism']
+  principalEmail: string
+  audience: string
+  subject: string
+}): CanonicalVerifiedServiceIdentity {
+  return identityVerifier.verify({
+    idToken: signIdentityToken(input),
+    authenticationMechanism: input.authenticationMechanism,
+    expectedPrincipalEmail: input.principalEmail,
+    expectedAudience: input.audience,
+  })
+}
+
+function signIdentityToken(
+  input: {
+    principalEmail: string
+    audience: string
+    subject: string
+  },
+  privateKey: KeyObject = identityKeys.privateKey,
+): string {
+  const header = Buffer.from(JSON.stringify({
+    alg: 'RS256',
+    kid: identityKeyId,
+    typ: 'JWT',
+  }), 'utf8').toString('base64url')
+  const payload = Buffer.from(JSON.stringify({
+    iss: 'https://accounts.google.com',
+    sub: input.subject,
+    aud: input.audience,
+    email: input.principalEmail,
+    email_verified: true,
+    iat: Math.floor(baseTimeMs / 1_000),
+    exp: Math.floor((baseTimeMs + 120_000) / 1_000),
+  }), 'utf8').toString('base64url')
+  const signingInput = `${header}.${payload}`
+  const signature = sign(
+    'RSA-SHA256',
+    Buffer.from(signingInput, 'ascii'),
+    privateKey,
+  ).toString('base64url')
+  return `${signingInput}.${signature}`
 }
 
 function createQueueDefinition(): CanonicalPrivatePackageWorkQueueDefinition {

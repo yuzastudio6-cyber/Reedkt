@@ -34,6 +34,7 @@ export const canonicalServiceIdentityEvidenceSchema = z.object({
   source: z.literal('trusted_service_identity_verifier_output'),
   verificationMode: z.enum([
     'private_contract_fixture',
+    'trusted_jwks_contract_fixture',
     'trusted_google_identity_verifier',
   ]),
   authenticationMechanism: z.enum([
@@ -64,9 +65,12 @@ export const canonicalServiceIdentityEvidenceSchema = z.object({
   if (expiresAt <= issuedAt || verifiedAt < issuedAt || verifiedAt >= expiresAt) {
     context.addIssue({ code: 'custom', message: 'Service identity evidence timing is invalid.' })
   }
-  const trustedGoogle = evidence.verificationMode === 'trusted_google_identity_verifier'
+  const cryptographicVerification =
+    evidence.verificationMode !== 'private_contract_fixture'
+  const trustedGoogle =
+    evidence.verificationMode === 'trusted_google_identity_verifier'
   if (
-    trustedGoogle !== evidence.cryptographicSignatureVerified ||
+    cryptographicVerification !== evidence.cryptographicSignatureVerified ||
     trustedGoogle !== evidence.liveGoogleVerificationPerformed
   ) {
     context.addIssue({

@@ -20,6 +20,9 @@ import {
   type CanonicalCloudDispatchOutboxAggregate,
   type CanonicalCloudDispatchOutboxEntry,
 } from '../validation/canonical-cloud-dispatch-outbox-schemas'
+import type {
+  CanonicalVerifiedServiceIdentity,
+} from '../security/canonical-service-identity-verifier'
 import {
   readPrivateCanonicalPackageWorkQueue,
   type CanonicalPrivatePackageWorkQueueStoreScope,
@@ -44,6 +47,8 @@ export interface CanonicalPrivateCloudDispatchReceiverEvidence {
   taskRedeliveryReplaysWithoutAnotherExecutionAttempt: true
   rawBearerTokenPersisted: false
   rawMediaPromptPathSignedUrlOrCredentialPersisted: false
+  processBrandedVerifiedIdentityRequired: true
+  cryptographicJwksVerifierCoreAvailable: true
   packageQueueOwnsApprovedAttempts: true
   crossProcessAtomicClaimProven: false
   distributedOutboxTransactionVerified: false
@@ -140,7 +145,7 @@ export function createCanonicalPrivateCloudDispatchReceiverService(input: {
 
     async receiveController(request: {
       taskBody: unknown
-      identityEvidence: unknown
+      verifiedIdentity: CanonicalVerifiedServiceIdentity
     }) {
       const timestamp = now().toISOString()
       const dispatchIntentId = opaqueDispatchIntentId(request.taskBody)
@@ -160,10 +165,11 @@ export function createCanonicalPrivateCloudDispatchReceiverService(input: {
           entry,
           taskBody: request.taskBody,
           attemptPlan: current.attemptPlan,
-          identityEvidence: request.identityEvidence,
+          verifiedIdentity: request.verifiedIdentity,
           expectedAudience: controllerAudience,
           now: timestamp,
           privateContractFixtureAllowed: true,
+          trustedJwksContractFixtureAllowed: true,
           trustedGoogleVerifierOutputAllowed: false,
         }),
       })
@@ -191,7 +197,7 @@ export function createCanonicalPrivateCloudDispatchReceiverService(input: {
 
     async receiveWorker(request: {
       invocation: unknown
-      identityEvidence: unknown
+      verifiedIdentity: CanonicalVerifiedServiceIdentity
     }) {
       const timestamp = now().toISOString()
       const invocation = canonicalCloudDispatchWorkerInvocationSchema.safeParse(
@@ -219,10 +225,11 @@ export function createCanonicalPrivateCloudDispatchReceiverService(input: {
         buildReceipt: (entry) => createCanonicalCloudDispatchWorkerReceipt({
           entry,
           invocation: invocation.data,
-          identityEvidence: request.identityEvidence,
+          verifiedIdentity: request.verifiedIdentity,
           expectedAudience: workerReceiverAudience,
           now: timestamp,
           privateContractFixtureAllowed: true,
+          trustedJwksContractFixtureAllowed: true,
           trustedGoogleVerifierOutputAllowed: false,
         }),
       })
@@ -256,6 +263,8 @@ export function createCanonicalPrivateCloudDispatchReceiverService(input: {
         taskRedeliveryReplaysWithoutAnotherExecutionAttempt: true,
         rawBearerTokenPersisted: false,
         rawMediaPromptPathSignedUrlOrCredentialPersisted: false,
+        processBrandedVerifiedIdentityRequired: true,
+        cryptographicJwksVerifierCoreAvailable: true,
         packageQueueOwnsApprovedAttempts: true,
         crossProcessAtomicClaimProven: false,
         distributedOutboxTransactionVerified: false,
@@ -364,6 +373,8 @@ function receiverBoundaries() {
     cloudRunJobExecuted: false as const,
     rawAuthorizationHeaderAccepted: false as const,
     rawBearerTokenPersisted: false as const,
+    processBrandedVerifiedIdentityRequired: true as const,
+    cryptographicJwksVerifierCoreAvailable: true as const,
     trustedGoogleVerifierAdapterWired: false as const,
     distributedOutboxTransactionVerified: false as const,
     liveGoogleOidcAndIamVerified: false as const,

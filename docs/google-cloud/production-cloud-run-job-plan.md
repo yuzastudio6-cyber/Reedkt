@@ -61,13 +61,15 @@ benchmarks remain release gates.
 The follow-up private source contract adds a durable single-host outbox and
 exact controller/worker receiver state machine. One active package claim
 creates one opaque outbox entry; concurrent task or worker redelivery returns
-the same receipt without authorizing another package attempt. The contract
-checks server-owned issuer, principal, audience, expiry, task, attempt,
-controller receipt, region, and target bindings while persisting no bearer
-token or claim credential. It performs no Google API call and deliberately
-rejects production and purported live-verifier use. A real transactional
-outbox, trusted Google token verifier, IAM, multi-replica coordination,
-deployment, and worker completion flow are still required.
+the same receipt without authorizing another package attempt. The receiver
+accepts only process-branded verifier output. Its zero-network cryptographic
+core verifies RS256, a bounded server-owned test JWKS snapshot, issuer,
+principal, audience, issue/expiry time, task, attempt, controller receipt,
+region, and target bindings while persisting no bearer token or claim
+credential. The test snapshot cannot claim live Google key retrieval. A real
+transactional outbox, live Google auth-library/key-rotation adapter, IAM,
+multi-replica coordination, deployment, and worker completion flow are still
+required.
 
 The existing `us-central1` foundation defaults and coarse service-account
 templates must be reconciled with the canonical `us-east1`/`europe-west1`

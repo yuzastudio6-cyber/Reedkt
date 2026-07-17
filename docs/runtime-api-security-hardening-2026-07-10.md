@@ -22,11 +22,14 @@ This shared token is a transitional boundary. Before Cloud Run production, repla
 
 The canonical Cloud dispatch follow-up defines the stricter controller/worker
 identity contract but does not mount a live route or accept caller-authored
-identity JSON. Its private service accepts only explicitly labelled local
-contract fixtures, validates exact issuer/principal/audience/expiry and
-attempt bindings, persists only hashed receipts, and rejects production and
-purported live Google-verifier output. A trusted cryptographic verifier adapter,
-Cloud Run IAM, and deployed request integration are still required.
+identity JSON. Its private service now requires a non-serializable process
+brand. A bounded verifier proves RS256 against a checksum-bound server-owned
+test JWKS snapshot, then validates exact issuer/principal/audience/issue/expiry
+and attempt bindings while persisting only hashed receipts. The exercised
+snapshot explicitly records that no live Google key fetch occurred; production
+and purported live Google-verifier output remain rejected. Google's supported
+live auth-library/key-rotation adapter, Cloud Run IAM, and deployed request
+integration are still required.
 
 ## User-resource scope
 

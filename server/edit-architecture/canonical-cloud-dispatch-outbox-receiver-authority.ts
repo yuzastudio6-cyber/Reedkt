@@ -32,9 +32,14 @@ import {
   sha256AuthorityValue,
   stableAuthorityStringify,
 } from '../services/private-edit-authority-store'
+import {
+  assertCanonicalVerifiedServiceIdentity,
+  type CanonicalVerifiedServiceIdentity,
+} from '../security/canonical-service-identity-verifier'
 
 const GOOGLE_IDENTITY_ISSUER = 'https://accounts.google.com'
 const PRIVATE_FIXTURE_VERIFIER_ID = 'reeditpro-private-contract-fixture'
+const TRUSTED_JWKS_FIXTURE_VERIFIER_ID = 'reeditpro-trusted-jwks-contract-fixture'
 const TRUSTED_GOOGLE_VERIFIER_ID = 'reeditpro-google-identity-verifier'
 
 export function createCanonicalCloudDispatchOutboxEntry(input: {
@@ -249,6 +254,7 @@ export function assertCanonicalServiceIdentityEvidence(input: {
   expectedAudience: string
   now: string
   privateContractFixtureAllowed: boolean
+  trustedJwksContractFixtureAllowed: boolean
   trustedGoogleVerifierOutputAllowed: boolean
 }): CanonicalServiceIdentityEvidence {
   const parsed = canonicalServiceIdentityEvidenceSchema.safeParse(input.value)
@@ -260,7 +266,9 @@ export function assertCanonicalServiceIdentityEvidence(input: {
   const now = validTimestamp(input.now, 'service identity verification')
   const expectedVerifierId = evidence.verificationMode === 'private_contract_fixture'
     ? PRIVATE_FIXTURE_VERIFIER_ID
-    : TRUSTED_GOOGLE_VERIFIER_ID
+    : evidence.verificationMode === 'trusted_jwks_contract_fixture'
+      ? TRUSTED_JWKS_FIXTURE_VERIFIER_ID
+      : TRUSTED_GOOGLE_VERIFIER_ID
   if (
     evidenceHash !== sha256AuthorityValue(payload) ||
     evidence.authenticationMechanism !== input.expectedMechanism ||
@@ -273,6 +281,8 @@ export function assertCanonicalServiceIdentityEvidence(input: {
     Date.parse(evidence.expiresAt) <= Date.parse(now) ||
     (evidence.verificationMode === 'private_contract_fixture' &&
       !input.privateContractFixtureAllowed) ||
+    (evidence.verificationMode === 'trusted_jwks_contract_fixture' &&
+      !input.trustedJwksContractFixtureAllowed) ||
     (evidence.verificationMode === 'trusted_google_identity_verifier' &&
       !input.trustedGoogleVerifierOutputAllowed)
   ) {
@@ -302,10 +312,11 @@ export function createCanonicalCloudDispatchControllerReceipt(input: {
   entry: CanonicalCloudDispatchOutboxEntry
   taskBody: unknown
   attemptPlan: CanonicalCloudWorkerDispatchAttemptPlan
-  identityEvidence: unknown
+  verifiedIdentity: CanonicalVerifiedServiceIdentity
   expectedAudience: string
   now: string
   privateContractFixtureAllowed: boolean
+  trustedJwksContractFixtureAllowed: boolean
   trustedGoogleVerifierOutputAllowed: boolean
 }): CanonicalCloudDispatchControllerReceipt {
   const entry = assertCanonicalCloudDispatchOutboxEntryIntegrity(input.entry)
@@ -317,13 +328,17 @@ export function createCanonicalCloudDispatchControllerReceipt(input: {
     throw invalidAuthority('Private dispatch controller received a changed opaque task body.')
   }
   assertEntryMatchesAttempt(entry, attemptPlan)
+  const verifiedEvidence = assertCanonicalVerifiedServiceIdentity(
+    input.verifiedIdentity,
+  )
   const evidence = assertCanonicalServiceIdentityEvidence({
-    value: input.identityEvidence,
+    value: verifiedEvidence,
     expectedMechanism: 'google_oidc_id_token',
     expectedPrincipalEmail: entry.immutable.controllerServiceAccountEmail,
     expectedAudience: input.expectedAudience,
     now: input.now,
     privateContractFixtureAllowed: input.privateContractFixtureAllowed,
+    trustedJwksContractFixtureAllowed: input.trustedJwksContractFixtureAllowed,
     trustedGoogleVerifierOutputAllowed: input.trustedGoogleVerifierOutputAllowed,
   })
   const requestBindingHash = canonicalCloudDispatchControllerRequestBindingHash({
@@ -393,10 +408,11 @@ export function canonicalCloudDispatchWorkerRequestBindingHash(input: {
 export function createCanonicalCloudDispatchWorkerReceipt(input: {
   entry: CanonicalCloudDispatchOutboxEntry
   invocation: unknown
-  identityEvidence: unknown
+  verifiedIdentity: CanonicalVerifiedServiceIdentity
   expectedAudience: string
   now: string
   privateContractFixtureAllowed: boolean
+  trustedJwksContractFixtureAllowed: boolean
   trustedGoogleVerifierOutputAllowed: boolean
 }): CanonicalCloudDispatchWorkerReceipt {
   const entry = assertCanonicalCloudDispatchOutboxEntryIntegrity(input.entry)
@@ -412,13 +428,17 @@ export function createCanonicalCloudDispatchWorkerReceipt(input: {
   ) {
     throw invalidAuthority('Worker receiver invocation does not match the exact outbox attempt.')
   }
+  const verifiedEvidence = assertCanonicalVerifiedServiceIdentity(
+    input.verifiedIdentity,
+  )
   const evidence = assertCanonicalServiceIdentityEvidence({
-    value: input.identityEvidence,
+    value: verifiedEvidence,
     expectedMechanism: 'google_cloud_run_workload_identity',
     expectedPrincipalEmail: entry.immutable.workerServiceAccountEmail,
     expectedAudience: input.expectedAudience,
     now: input.now,
     privateContractFixtureAllowed: input.privateContractFixtureAllowed,
+    trustedJwksContractFixtureAllowed: input.trustedJwksContractFixtureAllowed,
     trustedGoogleVerifierOutputAllowed: input.trustedGoogleVerifierOutputAllowed,
   })
   const requestBindingHash = canonicalCloudDispatchWorkerRequestBindingHash({

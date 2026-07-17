@@ -58,15 +58,20 @@ The follow-up private outbox/receiver contract now binds one active package
 claim to one checksum-protected, restart-safe opaque dispatch entry. Exact
 controller and worker identity receipts are idempotent under concurrent
 redelivery and require server-owned issuer, principal, audience, expiry,
-region, task, attempt, and receipt bindings. No raw authorization token, claim
-credential, media, prompt, path, signed URL, or worker command is persisted.
+region, task, attempt, and receipt bindings. The receiver accepts only a
+non-serializable process capability produced by an explicit verifier. Its
+bounded cryptographic path verifies RS256 against a checksum-bound test JWKS
+snapshot while recording that no live Google key fetch occurred. No raw
+authorization token, claim credential, media, prompt, path, signed URL, or
+worker command is persisted.
 
 This is single-host private evidence only. The service rejects production and
-rejects purported live Google-verifier output until a trusted cryptographic
-adapter is wired outside request JSON. Distributed package-queue/outbox
-atomicity, multi-replica locking, Cloud Tasks creation, Cloud Run Jobs calls,
-live OIDC/IAM, private GCS transport, worker execution, and completion
-reconciliation remain blocked. See
+purported live Google-verifier output until Google's supported live
+auth-library/key-rotation adapter is wired outside request JSON. Distributed
+package-queue/outbox atomicity, multi-replica locking, Cloud Tasks creation,
+Cloud Run Jobs calls, live OIDC/IAM, private GCS transport, worker execution,
+and completion reconciliation remain blocked. See
+`docs/canonical-service-identity-verifier-verification-2026-07-17.md` and
 `docs/canonical-cloud-dispatch-outbox-receiver-verification-2026-07-17.md`.
 
 ## Throughput And ETA Principle

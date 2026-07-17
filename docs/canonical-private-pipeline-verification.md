@@ -2,7 +2,7 @@
 
 Status: `implemented_local_private_verification_entrypoint`
 
-Status date: 2026-07-15
+Status date: 2026-07-17
 
 ## Purpose
 
@@ -18,9 +18,11 @@ presentation, the 4K estimate ceiling, separate approval, the opaque
 execution-package handoff, private preparation, private review,
 revision/history recovery, the bounded three-source standalone reference-bound
 voice/color proof, the one-source professional-color regression proof, and the
-maximum eight-source planning-publication contract. It also runs the active named-edit
-Playwright journey and the versioned
-proven-tool identity report.
+maximum eight-source planning-publication contract. Before media execution it
+also verifies the durable package queue, all 50 regional cloud-target mappings,
+a zero-network cryptographic service-identity core, and restart-safe controller
+and worker outbox receivers. It also runs the active named-edit Playwright
+journey and the versioned proven-tool identity report.
 
 Run the broader regression boundary with:
 
@@ -52,7 +54,12 @@ plan fits the bounded canonical profile.
    private-preparation, private-review, and journey-recovery clients.
 5. Exercise the real local backend authority chain for upload, publication,
    approval, synthetic reservation, snapshot, jobs, package, and readiness.
-6. Exercise the bounded ordered three-source canonical lifecycle through lease,
+6. Verify the checksum-protected package queue, all 50 exact regional Cloud
+   Tasks/Cloud Run target contracts, RS256/JWKS service identity with a
+   non-serializable process trust handoff, and durable idempotent controller and
+   worker receipts. Live Google keys, IAM, cloud calls, distributed queue/outbox
+   atomicity, and worker execution remain blocked.
+7. Exercise the bounded ordered three-source canonical lifecycle through lease,
    one-use dispatch, private artifacts, QA, reconciliation, replay, and private
    download evidence. The focused lifecycle includes three exact source-bound
    FFmpeg voice-delivery WAVs, a QA-passed first-source color reference, two
@@ -63,7 +70,7 @@ plan fits the bounded canonical profile.
    build context, and runtime authority root are canonical-private resources so
    a separate Motion Studio build cannot replace the image identity during this
    proof.
-7. Regression-check one exact source-bound professional-color lifecycle through the
+8. Regression-check one exact source-bound professional-color lifecycle through the
    immutable approved snapshot, synthetic private reservation, lease, one-use
    FFmpeg dispatch, three-frame RGB analysis, bounded approved correction,
    lossless VP9 BT.709/yuv420p Matroska persistence, pixel/histogram/clipping
@@ -74,9 +81,9 @@ plan fits the bounded canonical profile.
    The color-capable FFmpeg image tag and checksum-protected runtime authority
    namespace are revision-isolated so an older parallel checkout cannot replace
    this exact policy evidence.
-8. Verify active named-edit loading, failure, retry, approval, progress, review,
+9. Verify active named-edit loading, failure, retry, approval, progress, review,
    and revision states in Chromium.
-9. Regenerate the proven-tool identity report so tool readiness claims stay
+10. Regenerate the proven-tool identity report so tool readiness claims stay
    tied to exact versioned evidence.
 
 In full mode, a final browser phase also signs in through the loopback-only
@@ -90,7 +97,7 @@ source-bound audio identities in approved order, reads sanitized journey state,
 and records review acceptance.
 
 The runner stops on the first failed phase and prints a machine-readable
-`canonical-private-pipeline-verification-v4` report with step exit codes and
+`canonical-private-pipeline-verification-v8` report with step exit codes and
 durations. A zero exit code means every included assertion passed, including
 assertions that production-only or unavailable behavior stays blocked.
 
@@ -100,6 +107,21 @@ and open time. Resource isolation prevents unrelated local tasks from mutating
 that discovery channel; it does not weaken image-identity validation.
 
 ## Current Evidence Record
+
+On 2026-07-17, the exact-code v8 canonical command passed all 25 phases in
+1,295,454 ms and the full internal command passed all 31 phases in 1,624,505 ms,
+both with exit code 0. The new cryptographic-identity phase verified RS256,
+bounded checksum-protected JWKS input, 2048-bit RSA with public exponent 65537,
+exact issuer/audience/service-account/timing claims, and a process-only trust
+brand. The adjacent outbox phase proved restart-safe idempotent controller and
+worker receipts while caller-authored or cloned identity evidence failed
+closed. The final signed-in phase completed in 360,277 ms, executed all 27
+server-derived jobs for eight ordered sources, produced a 16-second 3840x2160
+private review, preserved all eight source-bound tones, and persisted
+acceptance. The catalog remained exactly 50 canonical E2E and 50 canonical
+job-adapter identities. Live Google keys/IAM, distributed dispatch, providers,
+billing/wallet mutation, remote Supabase, public delivery, deployment, external
+beta, and paid production remained false.
 
 On 2026-07-16, the exact-code full internal command passed all 27 phases in
 1,985,135 ms with exit code 0. The final signed-in phase completed in 425,312

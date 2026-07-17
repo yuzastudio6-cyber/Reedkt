@@ -77,10 +77,14 @@ body. The exact contract requires:
 - the exact hashed Cloud Run Jobs request.
 
 Raw authorization headers and bearer tokens are neither accepted by this
-service API nor persisted. The current local proof uses an explicitly labelled
-`private_contract_fixture`; it cannot be passed off as live verification.
-`trusted_google_identity_verifier` output is rejected by the private service
-until a reviewed cryptographic adapter is actually wired.
+service API nor persisted. The receiver now accepts only a non-serializable,
+process-branded verifier capability; caller-authored evidence JSON and cloned
+objects fail closed. Its valid controller and worker path uses an explicitly
+labelled `trusted_jwks_contract_fixture` with an actual RS256 signature and a
+bounded server-owned test JWKS snapshot. The snapshot records that no live
+Google key fetch occurred, and `trusted_google_identity_verifier` remains
+rejected until the live adapter is wired. See
+`docs/canonical-service-identity-verifier-verification-2026-07-17.md`.
 
 The controller receipt records only hashed identity binding, verifier evidence,
 request binding, and Cloud Run request identity. It explicitly records that no
@@ -114,6 +118,9 @@ deployment gates pass.
 - the package queue remains byte/hash identical with one delivery attempt;
 - forged principal, audience, task body, controller receipt, worker principal,
   expired claim, cross-tenant scope, and tampered persisted bytes fail closed;
+- the successful controller and worker paths use process-branded,
+  cryptographically verified RS256 identities, while caller-authored verifier
+  evidence is rejected;
 - the outbox file is `0600` and contains no plaintext claim credential, bearer
   credential, internal audience URL, source path, or signed URL;
 - Cloud Run internal retries remain zero; and
@@ -128,32 +135,34 @@ for each tool.
 
 ## Pipeline Verification
 
-The canonical private pipeline completed all `24/24` stages with exit code
-`0` under schema `canonical-private-pipeline-verification-v7`:
+The canonical private pipeline completed all `25/25` stages with exit code
+`0` under schema `canonical-private-pipeline-verification-v8`:
 
-- started: `2026-07-17T05:03:51.586Z`;
-- finished: `2026-07-17T05:35:15.199Z`;
-- duration: `1,883,613 ms`;
-- cloud dispatch handoff: `528 ms`;
-- outbox and receiver contract: `839 ms`;
-- three-source canonical composition: `790,920 ms`;
-- professional color execution: `909,638 ms`;
-- bounded UHD Remotion stream: `133,094 ms`; and
-- signed-in named-edit browser journey: `11/11` tests in `19,505 ms`.
+- started: `2026-07-17T06:50:34.211Z`;
+- finished: `2026-07-17T07:12:09.665Z`;
+- duration: `1,295,454 ms`;
+- cloud dispatch handoff: `446 ms`;
+- cryptographic service identity: `400 ms`;
+- outbox and receiver contract: `521 ms`;
+- three-source canonical composition: `555,203 ms`;
+- professional color execution: `601,705 ms`;
+- bounded UHD Remotion stream: `98,807 ms`; and
+- signed-in named-edit browser journey: `11/11` tests in `16,319 ms`.
 
-The broader internal regression then completed all `30/30` stages with exit
-code `0` under the same v7 schema:
+The broader internal regression then completed all `31/31` stages with exit
+code `0` under the same v8 schema:
 
-- started: `2026-07-17T05:36:38.665Z`;
-- finished: `2026-07-17T06:22:42.889Z`;
-- duration: `2,764,224 ms`;
-- cloud dispatch handoff: `776 ms`;
-- outbox and receiver contract: `779 ms`;
-- three-source canonical composition: `1,098,020 ms`;
-- professional color execution: `862,532 ms`;
-- bounded UHD Remotion stream: `130,202 ms`;
-- signed-in named-edit browser journey: `11/11` tests in `19,303 ms`; and
-- maximum-eight-source signed-in private review: `615,683 ms`.
+- started: `2026-07-17T07:12:17.250Z`;
+- finished: `2026-07-17T07:39:21.755Z`;
+- duration: `1,624,505 ms`;
+- cloud dispatch handoff: `429 ms`;
+- cryptographic service identity: `541 ms`;
+- outbox and receiver contract: `552 ms`;
+- three-source canonical composition: `524,779 ms`;
+- professional color execution: `598,561 ms`;
+- bounded UHD Remotion stream: `97,983 ms`;
+- signed-in named-edit browser journey: `11/11` tests in `14,520 ms`; and
+- maximum-eight-source signed-in private review: `360,277 ms`.
 
 The final regression preserved eight approved source-bound audio tones in
 order, completed `27` private work items and jobs, produced a `3840x2160`
@@ -169,7 +178,7 @@ The following remain false:
 
 - distributed package-queue plus outbox transaction;
 - cross-process or multi-replica atomic claim/outbox coordination;
-- live Google token signature, issuer, audience, and expiry verification;
+- live Google signing-key retrieval, rotation, token verification, and IAM;
 - Cloud Tasks OIDC configuration and Invoker IAM;
 - Jobs Developer IAM and Cloud Run Jobs execution;
 - deployed private controller or worker receiver;
@@ -182,8 +191,9 @@ The following remain false:
 
 ## Next Gate
 
-The next dependency-safe source gate is a reviewed transactional persistence
-design that atomically couples package-attempt ownership with outbox creation,
-plus a trusted Google verifier adapter boundary that cannot be constructed from
-request JSON. Any live implementation still requires explicit authorization
-for canonical database work and staging Google Cloud deployment.
+The process-brand and cryptographic verifier core are now proven. The next
+dependency-safe gate is a reviewed transactional persistence design that
+atomically couples package-attempt ownership with outbox creation, plus the
+live Google key-cache/auth-library adapter and controlled staging-token proof.
+Any live implementation still requires explicit authorization for canonical
+database work and staging Google Cloud deployment.

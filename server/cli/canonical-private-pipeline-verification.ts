@@ -96,6 +96,11 @@ const canonicalSteps: VerificationStep[] = [
     'The exact package queue and all 50 proven tools bind to regional Cloud Tasks and Cloud Run Jobs handoff contracts with opaque task bodies, zero hidden job retries, and every live cloud/IAM boundary still fail-closed.',
   ),
   step(
+    'canonical-service-identity-verifier',
+    'smoke:canonical-service-identity-verifier',
+    'A bounded server-owned JWKS snapshot verifies RS256, issuer, audience, service-account principal, subject, issue/expiry time, and token lifetime before producing a non-serializable process identity; live Google key retrieval, IAM, and deployment remain false.',
+  ),
+  step(
     'canonical-cloud-dispatch-outbox-receivers',
     'smoke:canonical-cloud-dispatch-outbox-receivers',
     'One active package attempt persists one restart-safe opaque outbox record; exact controller and worker identity contracts reject forged issuer, principal, audience, expiry, task, receipt, and attempt bindings while distributed transaction, live Google verification, cloud calls, and execution remain false.',
@@ -245,7 +250,7 @@ function printReport(
 ): void {
   const finishedAt = new Date()
   const report = {
-    schemaVersion: 'canonical-private-pipeline-verification-v7',
+    schemaVersion: 'canonical-private-pipeline-verification-v8',
     status,
     mode: full ? 'full_internal_regression' : 'canonical_private_pipeline',
     startedAt: runStartedAt.toISOString(),
@@ -272,6 +277,7 @@ function printReport(
           durablePrivatePackageWorkQueue: true,
           durableCompletedJobReplayWithoutExecution: true,
           canonicalCloudDispatchHandoffContract: true,
+          cryptographicServiceIdentityVerifierCore: true,
           durablePrivateCloudDispatchOutboxReceiverContract: true,
           boundedPrivateMultiSourceExecution: true,
           boundedApprovedHardCutTransitions: true,

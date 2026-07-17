@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url'
 
 import { ApiError } from '../../errors/api-error'
 import { sha256AuthorityValue, stableAuthorityStringify } from '../../services/private-edit-authority-store'
+import { createPrivateDockerCliInvocation } from '../private-docker-cli'
 import { OFFLINE_REMOTION_RENDER_MAXIMUM_REQUEST_BYTES } from './offline-remotion-render-execution-protocol'
 import type { OfflineRemotionConfinementEvidence, OfflineRemotionImageEvidence } from './offline-remotion-render-execution-types'
 import {
@@ -179,8 +180,9 @@ async function runStreamingDockerStart(input: {
   stderr: string
   outputReceipt: { byteLength: number; sha256: string }
 }> {
-  const child = spawn('docker', ['start', '--attach', '--interactive', input.id], {
-    env: { PATH: process.env.PATH ?? '/usr/local/bin:/usr/bin:/bin' },
+  const invocation = createPrivateDockerCliInvocation(['start', '--attach', '--interactive', input.id])
+  const child = spawn(invocation.executable, invocation.args, {
+    env: invocation.env,
     stdio: ['pipe', 'pipe', 'pipe'],
   })
   const stderr: Buffer[] = []
@@ -439,7 +441,8 @@ function sourceDirectory() { return join(repositoryRoot(), 'docker/prod/offline-
 function repositoryRoot() { return fileURLToPath(new URL('../../../', import.meta.url)).replace(/[\\/]$/, '') }
 function runDocker(args: string[], options: { cwd?: string; input?: string; timeoutMs: number; maxBytes: number }): Promise<HostResult> {
   return new Promise((resolvePromise, reject) => {
-    const child = spawn('docker', args, { cwd: options.cwd, env: { PATH: process.env.PATH ?? '/usr/local/bin:/usr/bin:/bin' }, stdio: ['pipe', 'pipe', 'pipe'] })
+    const invocation = createPrivateDockerCliInvocation(args)
+    const child = spawn(invocation.executable, invocation.args, { cwd: options.cwd, env: invocation.env, stdio: ['pipe', 'pipe', 'pipe'] })
     const stdout: Buffer[] = []; const stderr: Buffer[] = []; let total = 0; let settled = false
     const timer = setTimeout(() => { child.kill('SIGKILL'); if (!settled) { settled = true; reject(runtimeFailure('Docker command exceeded timeout.')) } }, options.timeoutMs)
     const collect = (target: Buffer[]) => (chunk: Buffer) => { total += chunk.length; if (total > options.maxBytes) { child.kill('SIGKILL'); if (!settled) { settled = true; clearTimeout(timer); reject(runtimeFailure('Docker output exceeded ceiling.')) } } else target.push(Buffer.from(chunk)) }

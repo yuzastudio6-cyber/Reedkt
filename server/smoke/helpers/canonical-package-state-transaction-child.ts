@@ -205,20 +205,9 @@ if (mode === 'hold-lock') {
         if (stage === expected) process.exit(isTimeout ? 80 : isFailure ? 79 : 78)
       }
     : undefined
-  const timeoutCostHash = (workerEvidence as {
-    attemptInternalCostEvidenceHash?: unknown
-  }).attemptInternalCostEvidenceHash
-  if (
-    isTimeout &&
-    (typeof timeoutCostHash !== 'string' ||
-      !/^[a-f0-9]{64}$/u.test(timeoutCostHash))
-  ) {
-    throw new Error('Package-state timeout cost evidence hash is invalid.')
-  }
   const result = isTimeout
     ? await service.reconcileWorkerTimeout({
         dispatchIntentId,
-        attemptInternalCostEvidenceHash: timeoutCostHash as string,
         verifiedIdentity,
         faultInjectionForSmoke,
       })

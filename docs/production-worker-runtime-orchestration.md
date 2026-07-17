@@ -85,6 +85,35 @@ an automatic retry loop. Real process exits at both failure commit stages,
 separate-process replay, completion/failure terminal racing, stale fencing,
 tamper refusal, and versioned failed-attempt internal-cost evidence pass.
 
+The accepted-worker timeout contract also uses that package lock. Its API
+accepts no cost hash; the server resolves the exact create-only failed-timeout
+record by dispatch intent and checks tenant, snapshot, work item, job, retry,
+tool, operation, accepted-worker time window, and replay hash before committing
+the queue release and terminal timeout receipt. Missing, checksum-tampered, or
+attempt-mismatched evidence fails closed. This is exact evidence for the
+currently metered private DeepFilterNet, Remotion, and FFmpeg workloads, not a
+durable start journal for every worker crash. A controller-owned timeout
+finalizer remains required before a deployed death observer can reconcile a
+worker that died before terminal evidence was written.
+
+## Private Docker Subprocess Boundary
+
+Every server-side private Docker subprocess now goes through one credential-
+isolated CLI boundary. Each invocation receives a fresh path that intentionally
+does not exist as `DOCKER_CONFIG`, strips any inherited Docker host and context,
+and supplies only the minimum environment needed by the local runtime. Image
+builds invoke a reviewed, executable, non-world-writable local Buildx binary
+directly and force local image loading. Callers cannot add push, remote output,
+secret, SSH, or builder transport options. Non-build invocations keep using the
+local Docker CLI under the same isolation.
+
+This prevents a local private verification run from hanging on or inheriting a
+developer credential helper, and it prevents the execution code from turning a
+local build into a registry publication. It does not establish Artifact
+Registry identity, Google IAM, remote build provenance, deployed-worker
+identity, or any production authority. Those require separate controlled-
+staging evidence.
+
 This is single-host private evidence only. The service rejects production and
 purported live Google-verifier output until Google's supported live
 auth-library/key-rotation adapter is wired outside request JSON. The local
@@ -100,7 +129,9 @@ blocked. See
 and
 `docs/canonical-private-worker-completion-reconciliation-verification-2026-07-17.md`,
 plus
-`docs/canonical-private-worker-failure-reconciliation-verification-2026-07-17.md`.
+`docs/canonical-private-worker-failure-reconciliation-verification-2026-07-17.md`
+and
+`docs/canonical-private-worker-timeout-reconciliation-verification-2026-07-17.md`.
 
 ## Throughput And ETA Principle
 

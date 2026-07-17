@@ -50,9 +50,14 @@ import {
   type CanonicalPrivatePackageStateFaultStage,
   type CanonicalPrivatePackageStateScope,
 } from '../services/private-canonical-package-state-transaction'
-import { sha256AuthorityValue } from '../services/private-edit-authority-store'
+import {
+  sha256AuthorityValue,
+  stableAuthorityStringify,
+} from '../services/private-edit-authority-store'
 import {
   beginPrivateInternalAttemptCostEvidence,
+  privateInternalAttemptCostEvidenceRelativePath,
+  privateInternalAttemptCostEvidenceSchema,
   readPrivateInternalAttemptCostEvidence,
 } from '../tool-cost-metering/private-internal-attempt-cost-evidence'
 import type { ServiceContext } from '../types'
@@ -151,6 +156,9 @@ try {
   await proveTimeoutProjectionDriftFailsClosed()
   await proveTimeoutBeforeExpiryFailsClosed()
   await proveWrongControllerTimeoutIdentityFailsClosed()
+  await proveMissingTimeoutAttemptCostEvidenceFailsClosed()
+  await proveTamperedTimeoutAttemptCostEvidenceFailsClosed()
+  await proveMismatchedTimeoutAttemptCostEvidenceFailsClosed()
   const timeoutCost = await proveVersionedAttemptCostEvidenceBoundToTimeout()
   await proveTamperedTransactionFailsClosed()
   await proveProjectionDriftFailsClosed()
@@ -200,6 +208,9 @@ try {
       'timeout_projection_drift_fails_closed_without_overwrite',
       'unexpired_accepted_worker_attempt_cannot_be_reconciled_as_timed_out',
       'timeout_requires_the_exact_accepted_controller_principal',
+      'timeout_refuses_missing_persisted_attempt_cost_evidence_without_mutation',
+      'timeout_refuses_tampered_persisted_attempt_cost_evidence_without_mutation',
+      'timeout_refuses_valid_but_mismatched_attempt_cost_identity_without_mutation',
       'timed_out_attempt_receipt_binds_versioned_internal_production_cost_evidence',
       'tampered_transaction_record_fails_closed_without_projection_mutation',
       'out_of_band_projection_drift_fails_closed_without_overwrite',
@@ -1094,11 +1105,8 @@ interface AcceptedTimeoutFixture extends AcceptedCompletionFixture {
 
 async function createAcceptedTimeoutFixture(
   suffix: string,
-  canonicalToolId = 'ffprobe',
-  attemptInternalCostEvidenceHash = sha256AuthorityValue({
-    suffix,
-    kind: 'timeout-attempt-internal-cost',
-  }),
+  canonicalToolId = 'deepfilternet',
+  persistCostEvidence = true,
 ): Promise<AcceptedTimeoutFixture> {
   const accepted = await createAcceptedCompletionFixture(suffix, canonicalToolId)
   const outbox = await readPrivateCanonicalCloudDispatchOutbox({
@@ -1107,13 +1115,54 @@ async function createAcceptedTimeoutFixture(
   const entry = outbox?.entries.find((candidate) =>
     candidate.immutable.dispatchIntentId === accepted.dispatchIntentId)
   if (!entry) throw new Error('Accepted timeout outbox entry is missing.')
+  const attemptCost = persistCostEvidence
+    ? await persistTimeoutAttemptCostEvidence({
+        accepted,
+        dispatchIntentId: accepted.dispatchIntentId,
+        retryAttempt: entry.immutable.packageDeliveryAttempt - 1,
+      })
+    : undefined
   return {
     ...accepted,
     controllerServiceAccountEmail:
       entry.immutable.controllerServiceAccountEmail,
     workerServiceAccountEmail: entry.immutable.workerServiceAccountEmail,
-    attemptInternalCostEvidenceHash,
+    attemptInternalCostEvidenceHash: attemptCost?.evidenceHash ?? '0'.repeat(64),
   }
+}
+
+async function persistTimeoutAttemptCostEvidence(input: {
+  accepted: AcceptedCompletionFixture
+  dispatchIntentId: string
+  retryAttempt: number
+}) {
+  const job = input.accepted.fixture.definition.jobs[0]!
+  const meter = await beginPrivateInternalAttemptCostEvidence({
+    localStorageRoot: input.accepted.fixture.rootPath,
+    workspaceId: input.accepted.fixture.definition.identity.workspaceId,
+    projectId: input.accepted.fixture.definition.identity.projectId,
+    editSessionId: input.accepted.fixture.definition.identity.editSessionId,
+    approvedPlanSnapshotId:
+      input.accepted.fixture.definition.identity.approvedPlanSnapshotId,
+    approvedWorkItemId: job.approvedWorkItemId,
+    jobId: job.jobId,
+    executionAttemptId: input.dispatchIntentId,
+    retryAttempt: input.retryAttempt,
+    toolId: 'deepfilternet',
+    operationId: 'tool.deepfilternet.enhance_voice.v1',
+  }, {
+    nowIso: () => timeoutAt,
+    monotonicNanoseconds: (() => {
+      const values = [3_000_000_000n, 4_750_000_000n]
+      return () => values.shift() ?? 4_750_000_000n
+    })(),
+  })
+  return (await meter.finalize({
+    status: 'failed',
+    failureCategory: 'timeout',
+    outputByteLength: null,
+    linkedCanonicalOutcomeHash: null,
+  })).evidence
 }
 
 function timeoutControllerIdentity(
@@ -1149,7 +1198,6 @@ function reconcileAcceptedTimeout(
   options: {
     now?: string
     verifiedIdentity?: CanonicalVerifiedServiceIdentity
-    attemptInternalCostEvidenceHash?: string
     faultInjectionForSmoke?: (
       stage: CanonicalPrivatePackageStateFaultStage,
     ) => void
@@ -1158,9 +1206,6 @@ function reconcileAcceptedTimeout(
   const now = options.now ?? timeoutAt
   return createCompletionService(accepted.fixture, now).reconcileWorkerTimeout({
     dispatchIntentId: accepted.dispatchIntentId,
-    attemptInternalCostEvidenceHash:
-      options.attemptInternalCostEvidenceHash ??
-      accepted.attemptInternalCostEvidenceHash,
     verifiedIdentity:
       options.verifiedIdentity ?? timeoutControllerIdentity(accepted, now),
     faultInjectionForSmoke: options.faultInjectionForSmoke,
@@ -1303,8 +1348,6 @@ async function proveTimeoutCompletionFailureTerminalRace(): Promise<string> {
   const results = await Promise.allSettled([
     service.reconcileWorkerTimeout({
       dispatchIntentId: accepted.dispatchIntentId,
-      attemptInternalCostEvidenceHash:
-        accepted.attemptInternalCostEvidenceHash,
       verifiedIdentity: timeoutControllerIdentity(accepted, timeoutAt),
     }),
     service.reconcileWorkerCompletion({
@@ -1475,39 +1518,93 @@ async function proveWrongControllerTimeoutIdentityFailsClosed(): Promise<void> {
   assert.equal(await readFile(accepted.fixture.outboxPath, 'utf8'), outboxBytes)
 }
 
+async function proveMissingTimeoutAttemptCostEvidenceFailsClosed(): Promise<void> {
+  const accepted = await createAcceptedTimeoutFixture(
+    'missing-timeout-attempt-cost',
+    'deepfilternet',
+    false,
+  )
+  const queueBytes = await readFile(accepted.fixture.queuePath, 'utf8')
+  const outboxBytes = await readFile(accepted.fixture.outboxPath, 'utf8')
+  await expectApiError(
+    () => reconcileAcceptedTimeout(accepted),
+    'JOB_DEPENDENCY_NOT_READY',
+  )
+  assert.equal(await readFile(accepted.fixture.queuePath, 'utf8'), queueBytes)
+  assert.equal(await readFile(accepted.fixture.outboxPath, 'utf8'), outboxBytes)
+}
+
+async function proveTamperedTimeoutAttemptCostEvidenceFailsClosed(): Promise<void> {
+  const accepted = await createAcceptedTimeoutFixture(
+    'tampered-timeout-attempt-cost',
+  )
+  const queueBytes = await readFile(accepted.fixture.queuePath, 'utf8')
+  const outboxBytes = await readFile(accepted.fixture.outboxPath, 'utf8')
+  const evidencePath = timeoutAttemptCostEvidencePath(accepted)
+  const evidence = privateInternalAttemptCostEvidenceSchema.parse(
+    JSON.parse(await readFile(evidencePath, 'utf8')),
+  )
+  await writeFile(evidencePath, `${stableAuthorityStringify({
+    ...evidence,
+    actualInternalCostMicros: evidence.actualInternalCostMicros + 1,
+  })}\n`)
+  await expectApiError(
+    () => reconcileAcceptedTimeout(accepted),
+    'VALIDATION_FAILED',
+  )
+  assert.equal(await readFile(accepted.fixture.queuePath, 'utf8'), queueBytes)
+  assert.equal(await readFile(accepted.fixture.outboxPath, 'utf8'), outboxBytes)
+}
+
+async function proveMismatchedTimeoutAttemptCostEvidenceFailsClosed(): Promise<void> {
+  const accepted = await createAcceptedTimeoutFixture(
+    'mismatched-timeout-attempt-cost',
+  )
+  const queueBytes = await readFile(accepted.fixture.queuePath, 'utf8')
+  const outboxBytes = await readFile(accepted.fixture.outboxPath, 'utf8')
+  const evidencePath = timeoutAttemptCostEvidencePath(accepted)
+  const evidence = privateInternalAttemptCostEvidenceSchema.parse(
+    JSON.parse(await readFile(evidencePath, 'utf8')),
+  )
+  const { evidenceHash: originalEvidenceHash, ...withoutHash } = evidence
+  assert.equal(originalEvidenceHash, accepted.attemptInternalCostEvidenceHash)
+  const mismatchedWithoutHash = {
+    ...withoutHash,
+    identity: {
+      ...withoutHash.identity,
+      approvedWorkItemId: 'work-intentionally-wrong-timeout-attempt-cost',
+    },
+  }
+  await writeFile(evidencePath, `${stableAuthorityStringify({
+    ...mismatchedWithoutHash,
+    evidenceHash: sha256AuthorityValue(mismatchedWithoutHash),
+  })}\n`)
+  await expectApiError(
+    () => reconcileAcceptedTimeout(accepted),
+    'IDEMPOTENCY_CONFLICT',
+  )
+  assert.equal(await readFile(accepted.fixture.queuePath, 'utf8'), queueBytes)
+  assert.equal(await readFile(accepted.fixture.outboxPath, 'utf8'), outboxBytes)
+}
+
+function timeoutAttemptCostEvidencePath(
+  accepted: AcceptedTimeoutFixture,
+): string {
+  return join(
+    accepted.fixture.rootPath,
+    privateInternalAttemptCostEvidenceRelativePath({
+      workspaceId: accepted.fixture.definition.identity.workspaceId,
+      projectId: accepted.fixture.definition.identity.projectId,
+      executionAttemptId: accepted.dispatchIntentId,
+    }),
+  )
+}
+
 async function proveVersionedAttemptCostEvidenceBoundToTimeout() {
   const suffix = 'versioned-timeout-cost'
   const accepted = await createAcceptedTimeoutFixture(suffix, 'deepfilternet')
   const job = accepted.fixture.definition.jobs[0]!
-  const meter = await beginPrivateInternalAttemptCostEvidence({
-    localStorageRoot: accepted.fixture.rootPath,
-    workspaceId: accepted.fixture.definition.identity.workspaceId,
-    projectId: accepted.fixture.definition.identity.projectId,
-    editSessionId: accepted.fixture.definition.identity.editSessionId,
-    approvedPlanSnapshotId:
-      accepted.fixture.definition.identity.approvedPlanSnapshotId,
-    approvedWorkItemId: job.approvedWorkItemId,
-    jobId: job.jobId,
-    executionAttemptId: accepted.dispatchIntentId,
-    retryAttempt: 0,
-    toolId: 'deepfilternet',
-    operationId: 'tool.deepfilternet.enhance_voice.v1',
-  }, {
-    nowIso: () => timeoutAt,
-    monotonicNanoseconds: (() => {
-      const values = [3_000_000_000n, 4_750_000_000n]
-      return () => values.shift() ?? 4_750_000_000n
-    })(),
-  })
-  const finalized = await meter.finalize({
-    status: 'failed',
-    failureCategory: 'timeout',
-    outputByteLength: null,
-    linkedCanonicalOutcomeHash: null,
-  })
-  const reconciled = await reconcileAcceptedTimeout(accepted, {
-    attemptInternalCostEvidenceHash: finalized.evidence.evidenceHash,
-  })
+  const reconciled = await reconcileAcceptedTimeout(accepted)
   const persisted = await readPrivateInternalAttemptCostEvidence({
     localStorageRoot: accepted.fixture.rootPath,
     workspaceId: accepted.fixture.definition.identity.workspaceId,
@@ -1601,8 +1698,7 @@ async function writeTimeoutChildInputs(
   await writeFile(definitionPath, JSON.stringify(accepted.fixture.definition))
   await writeFile(manifestPath, JSON.stringify(accepted.fixture.manifest))
   await writeFile(evidencePath, JSON.stringify({
-    attemptInternalCostEvidenceHash:
-      accepted.attemptInternalCostEvidenceHash,
+    persistedAttemptCostEvidenceRequired: true,
   }))
   return [
     scopePath,
@@ -1949,12 +2045,16 @@ async function proveAcceptedWorkerTimeoutFencesAndExhaustionPersists() {
     outboxBeforeSecondFence,
   )
   const secondTimeoutCostHash = sha256AuthorityValue({
-    suffix: 'accepted-worker-timeout-progression',
-    kind: 'second-timeout-internal-cost',
+    suffix: 'accepted-worker-timeout-progression-unused-caller-hash',
   })
+  const secondAttemptCost = await persistTimeoutAttemptCostEvidence({
+    accepted,
+    dispatchIntentId: second.outboxEntry.immutable.dispatchIntentId,
+    retryAttempt: second.outboxEntry.immutable.packageDeliveryAttempt - 1,
+  })
+  assert.notEqual(secondAttemptCost.evidenceHash, secondTimeoutCostHash)
   const secondTimeout = await secondTimeoutService.reconcileWorkerTimeout({
     dispatchIntentId: second.outboxEntry.immutable.dispatchIntentId,
-    attemptInternalCostEvidenceHash: secondTimeoutCostHash,
     verifiedIdentity: privateServiceIdentity({
       authenticationMechanism: 'google_oidc_id_token',
       principalEmail:
@@ -1973,7 +2073,6 @@ async function proveAcceptedWorkerTimeoutFencesAndExhaustionPersists() {
   assert.equal(secondTimeout.remainingAttempts, 0)
   const secondReplay = await secondTimeoutService.reconcileWorkerTimeout({
     dispatchIntentId: second.outboxEntry.immutable.dispatchIntentId,
-    attemptInternalCostEvidenceHash: secondTimeoutCostHash,
     verifiedIdentity: privateServiceIdentity({
       authenticationMechanism: 'google_oidc_id_token',
       principalEmail:

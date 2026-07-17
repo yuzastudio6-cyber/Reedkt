@@ -67,7 +67,11 @@ export async function reconcilePrivateCanonicalCloudDispatchTimeout(input: {
   definition: CanonicalPrivatePackageWorkQueueDefinition
   manifest: CanonicalCloudWorkerDispatchHandoffManifest
   dispatchIntentId: string
-  attemptInternalCostEvidenceHash: string
+  resolveAttemptInternalCostEvidenceHash: (input: {
+    outboxEntry: CanonicalCloudDispatchOutboxEntry
+    queueEntry: CanonicalPrivatePackageWorkQueueEntry
+    expectedEvidenceHash: string | null
+  }) => Promise<string>
   now: string
   buildReceipt: (input: {
     entry: CanonicalCloudDispatchOutboxEntry
@@ -136,7 +140,20 @@ export async function reconcilePrivateCanonicalCloudDispatchTimeout(input: {
           now: input.now,
           allowReconciledTimeoutReplay: true,
         })
-        return replayTimeout({ input, recovery, queueEntry, outboxEntry })
+        const attemptInternalCostEvidenceHash =
+          await input.resolveAttemptInternalCostEvidenceHash({
+            outboxEntry,
+            queueEntry,
+            expectedEvidenceHash:
+              outboxEntry.timeoutReceipt?.attemptInternalCostEvidenceHash ?? null,
+          })
+        return replayTimeout({
+          input,
+          recovery,
+          queueEntry,
+          outboxEntry,
+          attemptInternalCostEvidenceHash,
+        })
       }
       if (
         outboxEntry.state === 'worker_completion_reconciled' ||
@@ -172,10 +189,16 @@ export async function reconcilePrivateCanonicalCloudDispatchTimeout(input: {
           attemptPlan,
           now: input.now,
         })
+      const attemptInternalCostEvidenceHash =
+        await input.resolveAttemptInternalCostEvidenceHash({
+          outboxEntry,
+          queueEntry,
+          expectedEvidenceHash: null,
+        })
       const timeoutEvidence = createCanonicalCloudDispatchWorkerTimeoutEvidence({
         entry: outboxEntry,
         queueClaim: expiredClaim,
-        attemptInternalCostEvidenceHash: input.attemptInternalCostEvidenceHash,
+        attemptInternalCostEvidenceHash,
         now: input.now,
       })
       const preparedQueue =
@@ -290,6 +313,7 @@ function replayTimeout(input: {
   recovery: CanonicalPrivatePackageStateRecoveryEvidence
   queueEntry: CanonicalPrivatePackageWorkQueueEntry
   outboxEntry: CanonicalCloudDispatchOutboxEntry
+  attemptInternalCostEvidenceHash: string
 }): CanonicalPrivateCloudDispatchTimeoutResult {
   const receipt = input.outboxEntry.timeoutReceipt
   if (
@@ -305,7 +329,7 @@ function replayTimeout(input: {
       input.outboxEntry.controllerReceipt.receiptHash ||
     receipt.workerReceiptHash !== input.outboxEntry.workerReceipt.receiptHash ||
     receipt.attemptInternalCostEvidenceHash !==
-      input.input.attemptInternalCostEvidenceHash
+      input.attemptInternalCostEvidenceHash
   ) {
     throw new ApiError(
       'IDEMPOTENCY_CONFLICT',
@@ -365,6 +389,8 @@ function timeoutBoundaries() {
     queueReleaseDerivedFromImmutableAttemptAllowance: true as const,
     automaticRetryLoopStarted: false as const,
     attemptInternalProductionCostEvidenceHashRequired: true as const,
+    attemptInternalProductionCostEvidenceResolvedByServer: true as const,
+    callerSuppliedAttemptCostHashAccepted: false as const,
     customerPriceCreditsServiceFeeWalletOrBillingIncluded: false as const,
     queueReleaseAndOutboxReceiptShareAtomicWriteAheadCommit: true as const,
     crashRecoveryReplaysBothProjections: true as const,

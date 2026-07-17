@@ -1,6 +1,6 @@
 # Canonical Cloud Dispatch Outbox And Receiver Verification — 2026-07-17
 
-Status: `private_cross_process_crash_consistent_completion_failure_timeout_reconciliation_verified_live_distribution_blocked`
+Status: `private_crash_consistent_terminal_reconciliation_and_server_resolved_timeout_cost_verified_live_distribution_blocked`
 
 ## Outcome
 
@@ -36,6 +36,7 @@ immutable funded package queue
   OR accepted worker lease expires before committed result
   -> later attempt remains fenced
   -> exact accepted controller reconciles derived timeout evidence
+  -> server loads exact failed-timeout cost evidence under the package lock
   -> one crash-consistent queue release plus terminal timeout receipt
 ```
 
@@ -180,8 +181,11 @@ fee, wallet, billing, settlement, and charging authority.
 The timeout boundary is controller-authenticated because an expired worker is
 not trusted to declare its own death. It requires the same accepted controller
 service principal, exact accepted worker receipt, exact expired queue claim,
-immutable attempt deadline, and one attempt-level internal production-cost
-evidence hash. The server derives `execution_timeout`,
+and immutable attempt deadline. The service rejects a caller-supplied cost
+hash. While holding the same package lock, the server loads the private cost
+record by dispatch intent and verifies exact tenant, snapshot, work item, job,
+retry, tool, operation, failed-timeout outcome, accepted-worker time window,
+and replay hash. The server derives `execution_timeout`,
 `WORKER_LEASE_EXPIRED`, `failed_before_commit`, release reason, and the
 remaining approved attempt allowance.
 
@@ -192,6 +196,11 @@ log, stack, media, path, prompt, signed URL, claim credential, token, price,
 credit, fee, wallet, or billing material. A DeepFilterNet timeout proof uses the
 existing versioned rate card and records `1,296` internal-cost micros with
 future customer commercial authority still absent.
+
+A missing record returns the dependency gate without queue/outbox mutation.
+Checksum tampering and a validly checksummed but mismatched attempt identity
+also fail closed. Exact replay re-reads the record and requires the already
+committed timeout receipt to contain the same evidence hash.
 
 ## Focused Evidence
 
@@ -235,9 +244,13 @@ the receiver state machine:
   terminal timeout cannot later become completion or failure;
 - pre-expiry timeout, wrong controller, timeout-WAL tamper, and timeout
   projection drift fail closed;
+- missing, checksum-tampered, and validly checksummed but attempt-mismatched
+  timeout cost records fail closed without queue/outbox mutation;
+- the service rejects a caller-supplied timeout cost hash as authority;
 - first timeout reconciliation exposes only one later explicit attempt and a
   second timeout persists exhaustion without a third outbox;
-- timed-out DeepFilterNet cost evidence stays internal-only and hash-bound;
+- timed-out DeepFilterNet cost evidence is loaded from the exact private record
+  and stays internal-only and hash-bound;
 - the failed-attempt cost record uses integer micros and the versioned rate card
   while all customer commercial authority stays false;
 - the package queue advances exactly once to the outbox-bound delivery attempt;
@@ -252,8 +265,8 @@ the receiver state machine:
 - network, Cloud Tasks, Cloud Run, worker execution, distributed transaction,
   live identity, and production authority all remain false.
 
-The receiver smoke passes `21` checks and the package-state transaction smoke
-passes `49` checks. The canonical pipeline runs this stage immediately after
+The receiver smoke passes `23` checks and the package-state transaction smoke
+passes `51` checks. The canonical pipeline runs this stage immediately after
 the 50-tool cloud handoff contract. The handoff stage proves all 50 target
 mappings. This focused stage uses one representative CPU attempt to prove the
 generic outbox, receiver, and mutually exclusive terminal state machine. It does not claim that
@@ -262,14 +275,25 @@ a deployed task or terminal callback ran for each tool.
 ## Pipeline Verification
 
 The current exact-code full internal pipeline completed all `32/32` stages with
-exit code `0` under schema `canonical-private-pipeline-verification-v12`. The
-timeout-aware receiver stage completed in `1,577 ms`; the report explicitly
+exit code `0` under schema `canonical-private-pipeline-verification-v13`. It
+started at `2026-07-17T21:17:11.077Z`, finished at
+`2026-07-17T21:47:27.541Z`, and completed in `1,816,464 ms`. The package-state
+phase completed in `10,073 ms`, and the timeout-aware receiver stage completed
+in `1,571 ms`; the report explicitly
 verified crash-consistent accepted-worker timeout reconciliation, later-attempt
-fencing, and timed-out-attempt internal-cost evidence. The maximum-eight-source
-signed-in private review completed in `382,429 ms`, and exactly 50 canonical
+fencing, and timed-out-attempt internal-cost evidence. Three-source composition
+completed in `695,974 ms`, professional color in `615,010 ms`, bounded UHD
+Remotion streaming in `96,703 ms`, all `11/11` named-edit browser tests in
+`13,967 ms`, and the maximum-eight-source signed-in private review in
+`357,508 ms`. Exactly 50 canonical
 E2E plus 50 job-adapter identities remained verified. All distributed,
 live-cloud, provider, commercial, deployment, public-delivery, external-beta,
 and paid-production gates remained false.
+
+The preceding exact-code v12 pipeline also passed all `32/32` stages. Its
+timeout-aware receiver completed in `1,577 ms`, and the maximum-eight-source
+signed-in private review completed in `382,429 ms`. It remains historical
+pre-Docker-transport-hardening evidence.
 
 The preceding exact-code full internal pipeline completed all `32/32` stages
 with exit code `0` under schema `canonical-private-pipeline-verification-v11`:
@@ -333,8 +357,9 @@ private/internal end-to-end and job-adapter-verified tools. Product, external
 beta, live cloud, public delivery, and paid-production readiness remained
 false throughout both runs.
 
-The v11 run remains pre-timeout-reconciliation historical evidence and is
-superseded by the v12 aggregate result. The v10 `26/26` and `32/32` runs remain
+The v12 run remains pre-Docker-transport-hardening historical evidence, and the
+v11 run remains pre-timeout-reconciliation historical evidence. Both are
+superseded by the v13 aggregate result. The v10 `26/26` and `32/32` runs remain
 pre-failure-reconciliation history. The v9 runs remain
 pre-completion-reconciliation history, and the v8 `25/25` and `31/31` runs
 remain pre-transaction history.
@@ -363,7 +388,8 @@ The process-brand, cryptographic verifier core, private single-host
 queue/outbox claim transaction, and private single-host terminal
 completion/failure/timeout transactions are now proven. The next
 dependency-safe gate
-is a reviewed distributed
+is a durable attempt-start/cost binding and controller-owned timeout finalizer,
+followed by a reviewed distributed
 database transaction/RPC plus the live Google key-cache/auth-library adapter
 and controlled staging-token proof. Any live implementation still requires
 explicit authorization for canonical database work and staging Google Cloud

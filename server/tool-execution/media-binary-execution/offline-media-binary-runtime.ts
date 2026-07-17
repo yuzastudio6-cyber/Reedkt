@@ -16,6 +16,7 @@ import {
   writePrivateTextFileAtomicWithinRoot,
 } from '../../security/private-local-persistence'
 import { sha256AuthorityValue, stableAuthorityStringify } from '../../services/private-edit-authority-store'
+import { createPrivateDockerCliInvocation } from '../private-docker-cli'
 import {
   OFFLINE_MEDIA_BINARY_OPERATIONS,
   validateOfflineFfmpegExecutionRequest,
@@ -1807,7 +1808,8 @@ async function policyHashes(): Promise<Record<string, string>> {
 
 function dockerBuffer(args: string[], input: Buffer | undefined, maximumBytes: number): Promise<{ exitCode: number; stdout: Buffer; stderr: Buffer }> {
   return new Promise((resolve, reject) => {
-    const child = spawn('docker', args, { stdio: ['pipe', 'pipe', 'pipe'], env: { PATH: process.env.PATH ?? '' } })
+    const invocation = createPrivateDockerCliInvocation(args)
+    const child = spawn(invocation.executable, invocation.args, { stdio: ['pipe', 'pipe', 'pipe'], env: invocation.env })
     const stdout: Buffer[] = []
     const stderr: Buffer[] = []
     let stdoutBytes = 0
@@ -1844,9 +1846,10 @@ async function dockerVerifiedInput(
   timeoutMs: number,
 ): Promise<{ exitCode: number; stdout: Buffer; stderr: Buffer }> {
   assertServerInjectedInput(input, input.byteLength, input.sha256)
-  const child = spawn('docker', args, {
+  const invocation = createPrivateDockerCliInvocation(args)
+  const child = spawn(invocation.executable, invocation.args, {
     stdio: ['pipe', 'pipe', 'pipe'],
-    env: { PATH: process.env.PATH ?? '' },
+    env: invocation.env,
   })
   const stdout: Buffer[] = []
   const stderr: Buffer[] = []
@@ -2055,9 +2058,10 @@ async function dockerVerifiedMezzanineInputToPrivateOutputSpool(input: {
     relativePath: relativeDirectoryPath,
   })
   const relativeArtifactPath = `${relativeDirectoryPath}/artifact.mp4`
-  const child = spawn('docker', input.args, {
+  const invocation = createPrivateDockerCliInvocation(input.args)
+  const child = spawn(invocation.executable, invocation.args, {
     stdio: ['pipe', 'pipe', 'pipe'],
-    env: { PATH: process.env.PATH ?? '' },
+    env: invocation.env,
   })
   const stderr: Buffer[] = []
   let stderrBytes = 0
@@ -2208,9 +2212,10 @@ async function dockerVerifiedInputToPrivateOutputSpool(input: {
     relativePath: relativeDirectoryPath,
   })
   const relativeArtifactPath = `${relativeDirectoryPath}/artifact.${input.expectedFormat}`
-  const child = spawn('docker', input.args, {
+  const invocation = createPrivateDockerCliInvocation(input.args)
+  const child = spawn(invocation.executable, invocation.args, {
     stdio: ['pipe', 'pipe', 'pipe'],
-    env: { PATH: process.env.PATH ?? '' },
+    env: invocation.env,
   })
   const stderr: Buffer[] = []
   let stderrBytes = 0

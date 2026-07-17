@@ -392,6 +392,14 @@ export async function readPrivateInternalAttemptCostEvidence(input: {
   return evidence
 }
 
+export function privateInternalAttemptCostEvidenceRelativePath(input: {
+  workspaceId: string
+  projectId: string
+  executionAttemptId: string
+}): string {
+  return relativePath(attemptIdentity(input))
+}
+
 function attemptIdentity(input: {
   workspaceId: string
   projectId: string

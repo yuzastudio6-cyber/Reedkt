@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url'
 
 import { ApiError } from '../../errors/api-error'
 import { sha256AuthorityValue, stableAuthorityStringify } from '../../services/private-edit-authority-store'
+import { createPrivateDockerCliInvocation } from '../private-docker-cli'
 import type { OfflineRembgBackgroundRemovalConfinementEvidence, OfflineRembgBackgroundRemovalImageEvidence } from './offline-rembg-background-removal-types'
 
 export const OFFLINE_REMBG_BACKGROUND_REMOVAL_IMAGE_TAG = 'reeditpro-offline-rembg-background-removal-execution:private-local-v1' as const
@@ -55,9 +56,10 @@ function sourceDirectory() { return join(repositoryRoot(), 'docker/prod/offline-
 function repositoryRoot() { return fileURLToPath(new URL('../../../', import.meta.url)).replace(/[\\/]$/, '') }
 function runDocker(args: string[], options: { cwd?: string; input?: string; timeoutMs: number; maxBytes: number }): Promise<HostResult> {
   return new Promise((resolvePromise, reject) => {
-    const child = spawn('docker', args, {
+    const invocation = createPrivateDockerCliInvocation(args)
+    const child = spawn(invocation.executable, invocation.args, {
       cwd: options.cwd,
-      env: { PATH: process.env.PATH ?? '/usr/local/bin:/usr/bin:/bin' },
+      env: invocation.env,
       stdio: ['pipe', 'pipe', 'pipe'],
     })
     const stdout: Buffer[] = []

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { existsSync } from 'node:fs'
 
 import { prepareOfflineBrowserGraphicsDockerRuntime } from '../tool-execution/browser-graphics-execution/offline-browser-graphics-docker-runtime'
 import {
@@ -9,6 +10,7 @@ import {
   activatePrivateOfflineBrowserGraphicsRuntime, openPrivateOfflineBrowserGraphicsRuntime,
   readPersistedOfflineBrowserGraphicsRuntimeAuthority,
 } from '../tool-execution/browser-graphics-execution/offline-browser-graphics-service'
+import { createPrivateDockerCliInvocation } from '../tool-execution/private-docker-cli'
 
 const tokens = { eyebrow: 'EDIT PLAN', title: 'Approved Story Card', body: 'Meaning first. Timing locked.', callout: 'Ready for private review' }
 const requests = [
@@ -27,6 +29,29 @@ for (const invalid of [
   { ...requests[4], payload: { ...requests[4].payload, captureAuthorizationConfirmed: false } },
   { ...requests[4], payload: { ...requests[4].payload, url: 'https://example.test/private' } },
 ]) assert.throws(() => validateOfflineBrowserGraphicsRequest(invalid), /unsupported|unsafe/)
+
+const inspectInvocation = createPrivateDockerCliInvocation(['image', 'inspect', 'fixture-image'])
+const buildInvocation = createPrivateDockerCliInvocation(['build', '--pull=false', '.'])
+assert.equal(inspectInvocation.executable, 'docker')
+assert.deepEqual(Object.keys(inspectInvocation.env).sort(), ['DOCKER_CONFIG', 'PATH'])
+assert.equal(existsSync(String(inspectInvocation.env.DOCKER_CONFIG)), false)
+assert.equal(inspectInvocation.evidence.credentialIsolated, true)
+assert.equal(inspectInvocation.evidence.inheritedDockerConfigAccepted, false)
+assert.equal(inspectInvocation.evidence.inheritedDockerContextAccepted, false)
+assert.equal(inspectInvocation.evidence.inheritedDockerHostAccepted, false)
+assert.notEqual(buildInvocation.executable, 'docker')
+assert.deepEqual(buildInvocation.args.slice(0, 2), ['build', '--load'])
+assert.equal(buildInvocation.evidence.directTrustedBuildx, true)
+assert.equal(buildInvocation.evidence.localImageLoadRequired, true)
+assert.notEqual(buildInvocation.env.DOCKER_CONFIG, inspectInvocation.env.DOCKER_CONFIG)
+assert.throws(
+  () => createPrivateDockerCliInvocation(['build', '--push', '.']),
+  /forbidden transport option/,
+)
+assert.throws(
+  () => createPrivateDockerCliInvocation(['build', '--secret', 'id=unsafe', '.']),
+  /forbidden transport option/,
+)
 
 await prepareOfflineBrowserGraphicsDockerRuntime()
 const activated = await activatePrivateOfflineBrowserGraphicsRuntime()
@@ -68,6 +93,7 @@ console.log(JSON.stringify({
     'five_exact_tool_and_operation_identities_validated', 'exact_package_versions_executed',
     'caller_urls_html_scripts_commands_paths_credentials_and_extra_fields_rejected',
     'playwright_capture_limited_to_authorized_server_owned_internal_template',
+    'docker_buildx_uses_fresh_credential_free_config_and_rejects_push_secret_transport',
     'checksum_protected_runtime_authority_persisted_and_reopened', 'pinned_image_identity_verified',
     'network_none_read_only_non_root_cap_drop_no_new_privileges_confinement_verified',
     'actual_lottie_pixi_konva_babylon_and_playwright_entrypoints_executed',

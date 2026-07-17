@@ -38,6 +38,9 @@ import {
 import { canonicalPrivatePackageStatePaths } from
   '../services/private-canonical-package-state-transaction'
 import { sha256AuthorityValue } from '../services/private-edit-authority-store'
+import {
+  beginPrivateInternalAttemptCostEvidence,
+} from '../tool-cost-metering/private-internal-attempt-cost-evidence'
 import type { ServiceContext } from '../types'
 import {
   type CanonicalCloudDispatchWorkerCompletionEvidence,
@@ -473,9 +476,11 @@ try {
       'post_commit_ambiguity_never_releases_or_authorizes_retry',
       'first_failure_allows_one_server_selected_retry_and_second_exhausts_attempts',
       'expired_accepted_worker_fences_later_attempt_until_timeout_reconciliation',
+      'missing_timeout_attempt_cost_record_fails_closed_without_queue_or_outbox_mutation',
+      'caller_supplied_timeout_cost_hash_is_rejected_as_authority',
       'controller_authenticated_timeout_reconciles_queue_and_outbox_once',
       'timeout_exact_replay_and_later_explicit_attempt_preserve_one_use_dispatch',
-      'attempt_internal_cost_hash_stays_separate_from_customer_commercial_authority',
+      'server_loaded_timeout_attempt_cost_record_stays_separate_from_customer_commercial_authority',
       'distributed_transaction_live_google_oidc_iam_cloud_and_production_remain_false',
     ],
     summary: {
@@ -506,8 +511,8 @@ async function proveWorkerTimeoutReconciliation(): Promise<{
   const previousTimeMs = currentTimeMs
   try {
     currentTimeMs = baseTimeMs + 10_000
-    const definition = createQueueDefinition()
-    const timeoutManifest = createManifest(definition)
+    const definition = createQueueDefinition('deepfilternet')
+    const timeoutManifest = createManifest(definition, 'deepfilternet')
     const timeoutScope: CanonicalCloudDispatchOutboxStoreScope = {
       localStorageRoot: timeoutRoot,
       ownerUserId,
@@ -565,15 +570,9 @@ async function proveWorkerTimeoutReconciliation(): Promise<{
       invocation,
       verifiedIdentity: workerIdentity,
     })
-    const attemptInternalCostEvidenceHash = sha256AuthorityValue({
-      dispatchIntentId: firstOutboxEntry.immutable.dispatchIntentId,
-      boundary: 'internal_production_cost_only',
-      kind: 'receiver-timeout-attempt-cost',
-    })
     await expectApiError(
       () => timeoutService.reconcileWorkerTimeout({
         dispatchIntentId: firstOutboxEntry.immutable.dispatchIntentId,
-        attemptInternalCostEvidenceHash,
         verifiedIdentity: controllerIdentity,
       }),
       'VALIDATION_FAILED',
@@ -608,6 +607,59 @@ async function proveWorkerTimeoutReconciliation(): Promise<{
     })
     assert.equal(queueAfterFence?.aggregateHash, queueBeforeFence.aggregateHash)
     assert.equal(outboxAfterFence?.aggregateHash, outboxBeforeFence.aggregateHash)
+    await expectApiError(
+      () => timeoutService.reconcileWorkerTimeout({
+        dispatchIntentId: firstOutboxEntry.immutable.dispatchIntentId,
+        verifiedIdentity: controllerIdentity,
+      }),
+      'JOB_DEPENDENCY_NOT_READY',
+    )
+    const queueAfterMissingCost = await readPrivateCanonicalPackageWorkQueue({
+      scope: timeoutScope,
+      definition,
+    })
+    const outboxAfterMissingCost = await readPrivateCanonicalCloudDispatchOutbox({
+      scope: timeoutScope,
+    })
+    assert.equal(queueAfterMissingCost?.aggregateHash, queueBeforeFence.aggregateHash)
+    assert.equal(outboxAfterMissingCost?.aggregateHash, outboxBeforeFence.aggregateHash)
+
+    const job = definition.jobs[0]!
+    const costMeter = await beginPrivateInternalAttemptCostEvidence({
+      localStorageRoot: timeoutRoot,
+      workspaceId: definition.identity.workspaceId,
+      projectId: definition.identity.projectId,
+      editSessionId: definition.identity.editSessionId,
+      approvedPlanSnapshotId: definition.identity.approvedPlanSnapshotId,
+      approvedWorkItemId: job.approvedWorkItemId,
+      jobId: job.jobId,
+      executionAttemptId: firstOutboxEntry.immutable.dispatchIntentId,
+      retryAttempt: firstOutboxEntry.immutable.packageDeliveryAttempt - 1,
+      toolId: 'deepfilternet',
+      operationId: 'tool.deepfilternet.enhance_voice.v1',
+    }, {
+      nowIso: () => new Date(currentTimeMs).toISOString(),
+      monotonicNanoseconds: (() => {
+        const values = [3_000_000_000n, 4_750_000_000n]
+        return () => values.shift() ?? 4_750_000_000n
+      })(),
+    })
+    const attemptInternalCostEvidence = await costMeter.finalize({
+      status: 'failed',
+      failureCategory: 'timeout',
+      outputByteLength: null,
+      linkedCanonicalOutcomeHash: null,
+    })
+    const attemptInternalCostEvidenceHash =
+      attemptInternalCostEvidence.evidence.evidenceHash
+    await expectApiError(
+      () => timeoutService.reconcileWorkerTimeout({
+        dispatchIntentId: firstOutboxEntry.immutable.dispatchIntentId,
+        verifiedIdentity: controllerIdentity,
+        attemptInternalCostEvidenceHash: 'f'.repeat(64),
+      } as Parameters<typeof timeoutService.reconcileWorkerTimeout>[0]),
+      'VALIDATION_FAILED',
+    )
 
     const wrongControllerIdentity = privateIdentityFixtureAt({
       authenticationMechanism: 'google_oidc_id_token',
@@ -618,14 +670,12 @@ async function proveWorkerTimeoutReconciliation(): Promise<{
     await expectApiError(
       () => timeoutService.reconcileWorkerTimeout({
         dispatchIntentId: firstOutboxEntry.immutable.dispatchIntentId,
-        attemptInternalCostEvidenceHash,
         verifiedIdentity: wrongControllerIdentity,
       }),
       'INTERNAL_SERVICE_AUTH_INVALID',
     )
     const reconciled = await timeoutService.reconcileWorkerTimeout({
       dispatchIntentId: firstOutboxEntry.immutable.dispatchIntentId,
-      attemptInternalCostEvidenceHash,
       verifiedIdentity: controllerIdentity,
     })
     assert.equal(reconciled.disposition, 'reconciled')
@@ -643,13 +693,17 @@ async function proveWorkerTimeoutReconciliation(): Promise<{
       attemptInternalCostEvidenceHash,
     )
     assert.equal(
+      reconciled.boundaries.attemptInternalProductionCostEvidenceResolvedByServer,
+      true,
+    )
+    assert.equal(reconciled.boundaries.callerSuppliedAttemptCostHashAccepted, false)
+    assert.equal(
       reconciled.receipt.boundaries
         .customerPriceCreditsServiceFeeWalletOrBillingIncluded,
       false,
     )
     const replay = await timeoutService.reconcileWorkerTimeout({
       dispatchIntentId: firstOutboxEntry.immutable.dispatchIntentId,
-      attemptInternalCostEvidenceHash,
       verifiedIdentity: controllerIdentity,
     })
     assert.equal(replay.disposition, 'exact_replay')
@@ -691,6 +745,8 @@ async function proveWorkerTimeoutReconciliation(): Promise<{
     assert.equal(evidence.workerTimeoutReconciledCount, 1)
     assert.equal(evidence.acceptedWorkerTimeoutReconciliationVerified, true)
     assert.equal(evidence.timeoutQueueAndOutboxWriteAheadCommitVerified, true)
+    assert.equal(evidence.timeoutAttemptCostEvidenceLoadedFromPrivateStore, true)
+    assert.equal(evidence.callerSuppliedTimeoutCostHashAccepted, false)
     assert.equal(evidence.distributedOutboxTransactionVerified, false)
     assert.equal(evidence.liveGoogleOidcAndIamVerified, false)
     assert.equal(evidence.cloudTaskCreated, false)
@@ -1118,9 +1174,11 @@ function signIdentityToken(
   return `${signingInput}.${signature}`
 }
 
-function createQueueDefinition(): CanonicalPrivatePackageWorkQueueDefinition {
+function createQueueDefinition(
+  canonicalToolId = 'ffprobe',
+): CanonicalPrivatePackageWorkQueueDefinition {
   const target = createCanonicalProvenToolCloudDispatchCatalog().tools.find((tool) =>
-    tool.canonicalToolId === 'ffprobe')
+    tool.canonicalToolId === canonicalToolId)
   assert.ok(target)
   const jobPayload = {
     canonicalOrder: 0,
@@ -1129,10 +1187,11 @@ function createQueueDefinition(): CanonicalPrivatePackageWorkQueueDefinition {
     workItemKey: 'cloud-dispatch-cpu',
     required: true,
     dependencyJobIds: [],
-    workerType: 'cpu_analysis_worker' as const,
-    resourceClassId: 'cpu_analysis_standard_v1' as const,
+    workerType: target.workerType,
+    resourceClassId: target.resourceClassId,
     plannedCloudExecutionTarget: 'cloud_run_job' as const,
-    preferredAccelerator: 'none' as const,
+    preferredAccelerator:
+      target.workerType === 'gpu_ai_worker' ? 'nvidia_l4' as const : 'none' as const,
     placementHash: target.privatePlacementHash,
     privateExecutionReady: true,
     providerExecutionMode: 'none' as const,
@@ -1161,9 +1220,9 @@ function createQueueDefinition(): CanonicalPrivatePackageWorkQueueDefinition {
     summary: {
       totalJobCount: 1,
       requiredJobCount: 1,
-      cpuAnalysisJobCount: 1,
-      gpuJobCount: 0,
-      renderJobCount: 0,
+      cpuAnalysisJobCount: target.workerType === 'cpu_analysis_worker' ? 1 : 0,
+      gpuJobCount: target.workerType === 'gpu_ai_worker' ? 1 : 0,
+      renderJobCount: target.workerType === 'render_worker' ? 1 : 0,
       allJobsHaveSnapshotBoundPlacement: true as const,
       callerSelectedJobs: false as const,
       callerSelectedDependencies: false as const,
@@ -1190,9 +1249,11 @@ function createQueueDefinition(): CanonicalPrivatePackageWorkQueueDefinition {
 
 function createManifest(
   definition: CanonicalPrivatePackageWorkQueueDefinition,
+  canonicalToolId = 'ffprobe',
 ): CanonicalCloudWorkerDispatchHandoffManifest {
   const catalog = createCanonicalProvenToolCloudDispatchCatalog()
-  const tool = catalog.tools.find((candidate) => candidate.canonicalToolId === 'ffprobe')
+  const tool = catalog.tools.find((candidate) =>
+    candidate.canonicalToolId === canonicalToolId)
   assert.ok(tool)
   const regionAuthority = createCanonicalCloudRuntimeRegionAuthority({
     queueDefinition: definition,
@@ -1261,9 +1322,9 @@ function createManifest(
       totalJobCount: 1,
       controlPlaneJobCount: 0,
       cloudTaskHandoffJobCount: 1,
-      cpuAnalysisJobCount: 1,
-      gpuJobCount: 0,
-      renderJobCount: 0,
+      cpuAnalysisJobCount: queueJob.workerType === 'cpu_analysis_worker' ? 1 : 0,
+      gpuJobCount: queueJob.workerType === 'gpu_ai_worker' ? 1 : 0,
+      renderJobCount: queueJob.workerType === 'render_worker' ? 1 : 0,
       allJobsHaveExactCloudTargetContract: true as const,
       cloudRunHiddenRetryCount: 0 as const,
       allTaskBodiesOpaque: true as const,

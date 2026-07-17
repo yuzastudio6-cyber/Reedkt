@@ -72,6 +72,11 @@ write-ahead commit with process-restart recovery. A second versioned
 same-host WAL now reconciles one accepted-worker queue completion with one
 terminal outbox receipt and exact replay, including private
 artifact/QA/reconciliation/downstream and attempt-level internal-cost evidence.
+Accepted-worker timeout reconciliation now resolves the exact persisted
+failed-timeout cost record under the package lock and rejects caller-supplied
+hashes. A durable attempt-start/cost binding, controller-owned timeout
+finalizer, and deployed heartbeat/death observer are still required for the
+hard-crash path.
 This does not execute a job or grant customer commercial authority. A
 distributed database-backed transactional outbox/completion boundary, live
 Google auth-library/key-rotation adapter, IAM, multi-replica coordination,

@@ -1,6 +1,6 @@
 # Canonical Private Package-State Transaction Verification — 2026-07-17
 
-Status: `single_host_crash_consistent_completion_failure_timeout_reconciliation_verified_distributed_database_blocked`
+Status: `single_host_terminal_reconciliation_and_server_resolved_timeout_cost_verified_distributed_database_blocked`
 
 ## Outcome
 
@@ -32,7 +32,9 @@ the same accepted controller principal atomically commits one
 `worker_timeout_reconciled` receipt. Timeout retry/exhaustion is derived from
 the immutable attempt ceiling and never starts automatically. Completion,
 failure, and timeout are mutually exclusive terminal states under the same
-package lock.
+package lock. The timeout path also loads and verifies the exact persisted
+attempt-cost record while holding that lock; no caller-supplied cost hash is
+accepted.
 
 This closes the former local crash windows where either a queue claim could
 persist without an outbox entry or a queue completion or failure/timeout release
@@ -133,9 +135,12 @@ versioned private internal-cost record, binds its hash to the terminal receipt,
 and keeps customer price, credits, service fee, wallet, billing, and settlement
 authority absent.
 
-Timeout reconciliation accepts only the opaque dispatch intent, an
-attempt-level internal-cost evidence hash, and the process-branded accepted
-controller principal. The server derives the timeout category/code, exact
+Timeout reconciliation accepts only the opaque dispatch intent and the
+process-branded accepted controller principal. It explicitly rejects a
+caller-supplied cost hash. The server loads the exact create-only cost record by
+dispatch intent and verifies tenant, snapshot, work item, job, retry, tool,
+operation, failed-timeout outcome, accepted-worker time window, and replay
+hash before it derives the timeout category/code, exact
 expired claim, heartbeat/deadline evidence, release reason, remaining attempt
 allowance, and reconciliation timestamp. A deterministic DeepFilterNet timeout
 proof binds a versioned failed `timeout` internal-cost record to the terminal
@@ -166,6 +171,8 @@ receipt while keeping every customer commercial field absent.
   failure;
 - timeout-WAL tampering, timeout projection drift, pre-expiry reconciliation,
   and a changed controller principal fail closed;
+- missing, checksum-tampered, and validly checksummed but attempt-mismatched
+  timeout cost records fail closed without changing queue or outbox bytes;
 - a first reconciled timeout exposes only the one remaining approved attempt,
   a later explicit server enqueue allocates it, and a second reconciled timeout
   persists `attempts_exhausted` without a third outbox entry;
@@ -203,7 +210,7 @@ receipt while keeping every customer commercial field absent.
 - distributed database, Google Cloud execution, and production authority stay
   false.
 
-The focused transaction smoke now passes `49` assertions.
+The focused transaction smoke now passes `51` checks.
 `npm run smoke:canonical-private-package-work-queue`,
 `npm run smoke:canonical-cloud-dispatch-outbox-receivers`,
 `npm run smoke:private-local-persistence`, and `npm run typecheck:server` also
@@ -212,15 +219,23 @@ pass after the integration.
 ## Aggregate Verification
 
 The current exact-code full internal pipeline passed all `32/32` stages with
-exit code `0` under schema `canonical-private-pipeline-verification-v12`.
+exit code `0` under schema `canonical-private-pipeline-verification-v13`. It
+started at `2026-07-17T21:17:11.077Z`, finished at
+`2026-07-17T21:47:27.541Z`, and completed in `1,816,464 ms`.
 The package-state report now asserts crash-consistent completion, failure, and
 accepted-worker timeout reconciliation, later-attempt fencing until timeout
 reconciliation, and versioned timed-out-attempt internal-cost evidence. The
-timeout-aware outbox receiver stage completed in `1,577 ms`; the same run
+package-state phase completed in `10,073 ms`, and the timeout-aware outbox
+receiver stage completed in `1,571 ms`; the same run
 completed the bounded 27-job maximum-eight-source signed-in private review in
-`382,429 ms` and preserved exactly 50 canonical E2E plus 50 job-adapter
+`357,508 ms` and preserved exactly 50 canonical E2E plus 50 job-adapter
 identities. Distributed database/cloud authority and all production-only gates
 remained false.
+
+The preceding exact-code v12 pipeline also passed all `32/32` stages. Its
+timeout-aware receiver completed in `1,577 ms`, and its maximum-eight-source
+signed-in review completed in `382,429 ms`. It remains historical pre-Docker-
+transport-hardening evidence.
 
 The preceding exact-code full internal pipeline passed all `32/32` stages with
 exit code `0` under schema `canonical-private-pipeline-verification-v11`:
@@ -284,6 +299,12 @@ message/response identity, and audit evidence across replicas. Controlled
 staging must then prove rollback, duplicate delivery, worker death, retry,
 dead-letter reconciliation, regional private object transport, live Google
 OIDC/key rotation, Invoker/Jobs Developer IAM, observability, and recovery.
+
+Before a deployed worker-death observer can reconcile a hard crash, the runtime
+also needs a durable attempt-start/cost binding and a controller-owned timeout
+finalizer. The current create-only meter proves exact terminal evidence for the
+explicitly metered private workloads, but a worker that dies before finalizing
+that evidence correctly leaves timeout reconciliation blocked.
 
 The local claim, completion, failure, and accepted-worker timeout write-ahead proofs are
 production-architecture

@@ -27,8 +27,14 @@ import {
   type CanonicalCloudDispatchWorkerFailureEvidence,
 } from '../validation/canonical-cloud-dispatch-outbox-schemas'
 import type {
+  CanonicalPrivatePackageWorkQueueEntry,
+} from '../validation/canonical-private-package-work-queue-schemas'
+import type {
   CanonicalVerifiedServiceIdentity,
 } from '../security/canonical-service-identity-verifier'
+import {
+  readPrivateInternalAttemptCostEvidence,
+} from '../tool-cost-metering/private-internal-attempt-cost-evidence'
 import {
   readPrivateCanonicalPackageWorkQueue,
   readPrivateCanonicalPackageWorkQueueForPackageStateTransaction,
@@ -83,6 +89,8 @@ export interface CanonicalPrivateCloudDispatchReceiverEvidence {
   failureQueueAndOutboxWriteAheadCommitVerified: true
   acceptedWorkerTimeoutReconciliationVerified: true
   timeoutQueueAndOutboxWriteAheadCommitVerified: true
+  timeoutAttemptCostEvidenceLoadedFromPrivateStore: true
+  callerSuppliedTimeoutCostHashAccepted: false
   crossProcessAtomicClaimProven: true
   distributedOutboxTransactionVerified: false
   liveGoogleOidcAndIamVerified: false
@@ -387,18 +395,42 @@ export function createCanonicalPrivateCloudDispatchReceiverService(input: {
 
     async reconcileWorkerTimeout(request: {
       dispatchIntentId: string
-      attemptInternalCostEvidenceHash: string
       verifiedIdentity: CanonicalVerifiedServiceIdentity
       faultInjectionForSmoke?: (stage: CanonicalPrivatePackageStateFaultStage) => void
     }) {
+      if (Object.prototype.hasOwnProperty.call(
+        request,
+        'attemptInternalCostEvidenceHash',
+      )) {
+        throw new ApiError(
+          'VALIDATION_FAILED',
+          'Worker timeout reconciliation does not accept caller-supplied cost evidence hashes.',
+          400,
+          {
+            requiredGate:
+              'canonical_cloud_dispatch_server_resolved_timeout_cost_evidence',
+          },
+        )
+      }
       const timestamp = now().toISOString()
       const result = await reconcilePrivateCanonicalCloudDispatchTimeout({
         scope,
         definition: input.queueDefinition,
         manifest: input.manifest,
         dispatchIntentId: request.dispatchIntentId,
-        attemptInternalCostEvidenceHash:
-          request.attemptInternalCostEvidenceHash,
+        resolveAttemptInternalCostEvidenceHash: async ({
+          outboxEntry,
+          queueEntry,
+          expectedEvidenceHash,
+        }) => requirePersistedTimeoutAttemptCostEvidence({
+          localStorageRoot: input.context.env.localStorageRoot,
+          definition: input.queueDefinition,
+          manifest: input.manifest,
+          outboxEntry,
+          queueEntry,
+          expectedEvidenceHash,
+          timedOutAt: timestamp,
+        }),
         now: timestamp,
         buildReceipt: ({
           entry,
@@ -421,7 +453,7 @@ export function createCanonicalPrivateCloudDispatchReceiverService(input: {
           assertCanonicalCloudDispatchWorkerTimeoutReceiptReplay({
             entry,
             attemptInternalCostEvidenceHash:
-              request.attemptInternalCostEvidenceHash,
+              entry.timeoutReceipt?.attemptInternalCostEvidenceHash ?? '',
             verifiedIdentity: request.verifiedIdentity,
             expectedAudience: controllerAudience,
             now: timestamp,
@@ -485,6 +517,8 @@ export function createCanonicalPrivateCloudDispatchReceiverService(input: {
         failureQueueAndOutboxWriteAheadCommitVerified: true,
         acceptedWorkerTimeoutReconciliationVerified: true,
         timeoutQueueAndOutboxWriteAheadCommitVerified: true,
+        timeoutAttemptCostEvidenceLoadedFromPrivateStore: true,
+        callerSuppliedTimeoutCostHashAccepted: false,
         crossProcessAtomicClaimProven: true,
         distributedOutboxTransactionVerified: false,
         liveGoogleOidcAndIamVerified: false,
@@ -641,6 +675,8 @@ function receiverBoundaries() {
     failureQueueAndOutboxWriteAheadCommitVerified: true as const,
     acceptedWorkerTimeoutReconciliationVerified: true as const,
     timeoutQueueAndOutboxWriteAheadCommitVerified: true as const,
+    timeoutAttemptCostEvidenceLoadedFromPrivateStore: true as const,
+    callerSuppliedTimeoutCostHashAccepted: false as const,
     networkCallPerformed: false as const,
     cloudTaskCreated: false as const,
     cloudRunJobExecuted: false as const,
@@ -660,4 +696,76 @@ function receiverBoundaries() {
 function boundedLeaseDurationMs(value: number): number {
   if (!Number.isFinite(value)) return 300_000
   return Math.max(1_000, Math.min(86_400_000, Math.floor(value)))
+}
+
+async function requirePersistedTimeoutAttemptCostEvidence(input: {
+  localStorageRoot: string
+  definition: CanonicalPrivatePackageWorkQueueDefinition
+  manifest: CanonicalCloudWorkerDispatchHandoffManifest
+  outboxEntry: CanonicalCloudDispatchOutboxEntry
+  queueEntry: CanonicalPrivatePackageWorkQueueEntry
+  expectedEvidenceHash: string | null
+  timedOutAt: string
+}): Promise<string> {
+  const evidence = await readPrivateInternalAttemptCostEvidence({
+    localStorageRoot: input.localStorageRoot,
+    workspaceId: input.definition.identity.workspaceId,
+    projectId: input.definition.identity.projectId,
+    executionAttemptId: input.outboxEntry.immutable.dispatchIntentId,
+  })
+  if (!evidence) {
+    throw new ApiError(
+      'JOB_DEPENDENCY_NOT_READY',
+      'Accepted-worker timeout reconciliation requires exact persisted attempt-cost evidence.',
+      409,
+      {
+        requiredGate:
+          'canonical_cloud_dispatch_timeout_persisted_attempt_cost_evidence',
+      },
+    )
+  }
+  const manifestEntry = input.manifest.entries.find((entry) =>
+    entry.jobId === input.outboxEntry.immutable.jobId)
+  const workerReceipt = input.outboxEntry.workerReceipt
+  const evidenceIdentity = evidence.identity
+  const expectedOperationId = manifestEntry?.approvedToolOperationIds[0]
+  if (
+    !manifestEntry || !workerReceipt || !manifestEntry.approvedToolId ||
+    !expectedOperationId || manifestEntry.approvedToolOperationIds.length !== 1 ||
+    input.queueEntry.definition.jobId !== input.outboxEntry.immutable.jobId ||
+    input.queueEntry.definition.approvedWorkItemId !==
+      manifestEntry.approvedWorkItemId ||
+    evidenceIdentity.workspaceId !== input.definition.identity.workspaceId ||
+    evidenceIdentity.projectId !== input.definition.identity.projectId ||
+    evidenceIdentity.editSessionId !== input.definition.identity.editSessionId ||
+    evidenceIdentity.approvedPlanSnapshotId !==
+      input.definition.identity.approvedPlanSnapshotId ||
+    evidenceIdentity.approvedWorkItemId !== manifestEntry.approvedWorkItemId ||
+    evidenceIdentity.jobId !== manifestEntry.jobId ||
+    evidenceIdentity.executionAttemptId !==
+      input.outboxEntry.immutable.dispatchIntentId ||
+    evidenceIdentity.retryAttempt !==
+      input.outboxEntry.immutable.packageDeliveryAttempt - 1 ||
+    evidenceIdentity.toolId !== manifestEntry.approvedToolId ||
+    evidenceIdentity.operationId !== expectedOperationId ||
+    evidence.outcome.status !== 'failed' ||
+    evidence.outcome.failureCategory !== 'timeout' ||
+    evidence.resourceUsage.outputByteLength !== null ||
+    evidence.linkedCanonicalOutcomeHash !== null ||
+    Date.parse(evidence.createdAt) < Date.parse(workerReceipt.acceptedAt) ||
+    Date.parse(evidence.createdAt) > Date.parse(input.timedOutAt) ||
+    (input.expectedEvidenceHash !== null &&
+      evidence.evidenceHash !== input.expectedEvidenceHash)
+  ) {
+    throw new ApiError(
+      'IDEMPOTENCY_CONFLICT',
+      'Persisted timeout attempt-cost evidence does not match the exact accepted worker attempt.',
+      409,
+      {
+        requiredGate:
+          'canonical_cloud_dispatch_timeout_persisted_attempt_cost_evidence_integrity',
+      },
+    )
+  }
+  return evidence.evidenceHash
 }

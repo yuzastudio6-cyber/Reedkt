@@ -13,6 +13,7 @@ import { dirname, join, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { ApiError } from '../../errors/api-error'
+import { createPrivateDockerCliInvocation } from '../private-docker-cli'
 import {
   readPrivateTextFileIfExistsWithinRoot,
   writePrivateTextFileAtomicWithinRoot,
@@ -1038,9 +1039,10 @@ async function runHostCommand(args: readonly string[], options: {
 }): Promise<HostCommandResult> {
   const maximumOutputBytes = options.maximumOutputBytes ?? MAXIMUM_COMMAND_OUTPUT_BYTES
   return new Promise((resolvePromise, rejectPromise) => {
-    const child = spawn('docker', [...args], {
+    const invocation = createPrivateDockerCliInvocation(args)
+    const child = spawn(invocation.executable, invocation.args, {
       cwd: options.cwd,
-      env: process.env,
+      env: invocation.env,
       shell: false,
       stdio: ['pipe', 'pipe', 'pipe'],
     })

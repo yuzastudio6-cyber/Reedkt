@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url'
 
 import { ApiError } from '../../errors/api-error'
 import { sha256AuthorityValue, stableAuthorityStringify } from '../../services/private-edit-authority-store'
+import { createPrivateDockerCliInvocation } from '../private-docker-cli'
 import type {
   OfflinePythonStructuredConfinementEvidence,
   OfflinePythonStructuredImageEvidence,
@@ -324,9 +325,10 @@ async function runDocker(
   options: { cwd?: string; input?: string; timeoutMs: number; maximumOutputBytes: number },
 ): Promise<HostResult> {
   return new Promise((resolvePromise, reject) => {
-    const child = spawn('docker', args, {
+    const invocation = createPrivateDockerCliInvocation(args)
+    const child = spawn(invocation.executable, invocation.args, {
       cwd: options.cwd,
-      env: { PATH: process.env.PATH ?? '/usr/local/bin:/usr/bin:/bin' },
+      env: invocation.env,
       stdio: ['pipe', 'pipe', 'pipe'],
     })
     const stdout: Buffer[] = []

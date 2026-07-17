@@ -1,6 +1,6 @@
 # Canonical Accepted-Worker Timeout Reconciliation Verification — 2026-07-17
 
-Status: `single_host_crash_consistent_timeout_reconciliation_verified_distributed_worker_death_detection_blocked`
+Status: `single_host_timeout_and_server_resolved_cost_evidence_verified_distributed_worker_death_detection_blocked`
 
 ## Outcome
 
@@ -20,6 +20,12 @@ atomically commit both results:
   `retry_available` or `attempts_exhausted` authority; and
 - the accepted-worker outbox entry becomes the mutually exclusive terminal
   state `worker_timeout_reconciled` with one versioned timeout receipt.
+
+Before that commit, the server loads the exact create-only attempt-cost record
+by the immutable dispatch intent while it still owns the package lock. It
+verifies the complete tenant, snapshot, work-item, job, retry, tool, operation,
+failed-timeout outcome, accepted-worker time window, and (on replay) receipt
+hash. The timeout API no longer accepts a cost-evidence hash from its caller.
 
 No automatic retry starts. When an approved attempt remains, only a later
 explicit server enqueue can allocate it. When the attempt ceiling is exhausted,
@@ -42,6 +48,7 @@ immutable approved package attempt
   -> queue lease reaches its immutable/heartbeat-bounded expiry
   -> later-attempt enqueue returns stale_attempt_reconciliation_required
   -> same accepted controller service principal authenticates reconciliation
+  -> server loads and verifies exact persisted failed-timeout cost evidence
   -> server derives timeout evidence from the exact expired queue claim
   -> server derives retry/exhaustion from immutable maxAttempts
   -> one timeout WAL commits queue release + terminal outbox receipt
@@ -49,9 +56,9 @@ immutable approved package attempt
   -> optional later attempt requires a separate explicit server enqueue
 ```
 
-The timeout service boundary accepts only the opaque dispatch intent, one attempt-level
-internal production-cost evidence hash, and a process-branded verified
-controller identity. It does not accept a caller-selected attempt number,
+The timeout service boundary accepts only the opaque dispatch intent and a
+process-branded verified controller identity. It explicitly rejects a
+caller-supplied attempt-cost hash. It does not accept a caller-selected attempt number,
 retry count, queue disposition, release reason, worker state, timeout timestamp,
 projection path, raw failure message, log, stack, media path, prompt, signed URL,
 claim credential, bearer token, price, credit amount, service fee, wallet
@@ -125,7 +132,14 @@ converted into completion or failure.
 The focused DeepFilterNet timeout fixture uses the existing versioned private
 attempt-cost meter and `rp-ratecard-01-mock-safe` rate card. It persisted a
 failed `timeout` outcome with `1,296` internal-cost micros, then bound that exact
-evidence hash into the timeout receipt.
+evidence hash into the timeout receipt. The transaction resolved that hash from
+the exact private record; the controller did not provide it.
+
+Missing evidence returns `JOB_DEPENDENCY_NOT_READY`. Invalid checksums are
+refused, and a validly checksummed record with the wrong work-item identity
+returns `IDEMPOTENCY_CONFLICT`. All three cases leave the queue and outbox
+projections byte-identical. Exact timeout replay re-reads the private record and
+requires its hash to match the already committed receipt.
 
 This is INTERNAL production-cost evidence only. It is not a future customer
 price, customer credit amount, ReEditPro service fee, margin, wallet mutation,
@@ -133,7 +147,7 @@ invoice, settlement, charge, or refund. All of those authorities remain false.
 
 ## Focused Verification
 
-`npm run smoke:canonical-private-package-state-transaction` passes `49` checks,
+`npm run smoke:canonical-private-package-state-transaction` passes `51` checks,
 including:
 
 - deterministic crashes after timeout WAL commit and after queue projection;
@@ -143,6 +157,8 @@ including:
   `exact_replay`;
 - completion/failure/timeout terminal exclusivity;
 - rejection before lease expiry and for the wrong controller principal;
+- rejection of missing, checksum-tampered, and validly checksummed but
+  attempt-mismatched private cost records without queue/outbox mutation;
 - tampered timeout WAL and projection-drift refusal;
 - later-attempt fencing before reconciliation;
 - first timeout exposing only one remaining approved attempt;
@@ -150,18 +166,21 @@ including:
   third outbox entry; and
 - versioned timeout attempt-cost evidence with no customer commercial fields.
 
-`npm run smoke:canonical-cloud-dispatch-outbox-receivers` passes `21` checks.
-Its representative CPU dispatch proves the public service boundary returns the
+`npm run smoke:canonical-cloud-dispatch-outbox-receivers` passes `23` checks.
+Its representative private dispatch proves the service boundary returns the
 stale-attempt gate, rejects an unexpired timeout and wrong controller, commits
 one exact timeout, replays it, and creates attempt two only after a separate
-explicit enqueue.
+explicit enqueue. It also proves a missing record fails closed and a
+caller-supplied cost hash is rejected as authority.
 
 `npm run typecheck:server`, targeted ESLint, and `git diff --check` also pass.
 
 ## Aggregate Verification
 
 The exact-code full internal pipeline passed all `32/32` stages with exit code
-`0` under `canonical-private-pipeline-verification-v12`. The report includes
+`0` under `canonical-private-pipeline-verification-v13`. It started at
+`2026-07-17T21:17:11.077Z`, finished at `2026-07-17T21:47:27.541Z`, and
+completed in `1,816,464 ms`. The report includes
 explicit verified claims for:
 
 - crash-consistent worker completion reconciliation;
@@ -170,10 +189,11 @@ explicit verified claims for:
 - later-attempt fencing until accepted-worker timeout reconciliation; and
 - versioned internal production-cost evidence for the timed-out attempt.
 
-Observed v12 stage durations included `1,577 ms` for the timeout-aware outbox
-receiver, `647,129 ms` for three-source composition, `647,366 ms` for the
-professional-color lifecycle, `109,293 ms` for the separate UHD Remotion stream,
-`16,219 ms` for all `11/11` named-edit browser tests, and `382,429 ms` for the
+Observed v13 stage durations included `10,073 ms` for package-state
+transactions, `1,571 ms` for the timeout-aware outbox receiver, `695,974 ms`
+for three-source composition, `615,010 ms` for the professional-color
+lifecycle, `96,703 ms` for the separate UHD Remotion stream, `13,967 ms` for
+all `11/11` named-edit browser tests, and `357,508 ms` for the
 signed-in maximum-eight-source private-review regression.
 
 The run preserved exactly `50` canonical E2E and `50` job-adapter identities,
@@ -181,6 +201,11 @@ completed the bounded `27`-job signed-in private workflow, and kept distributed
 queue/outbox authority, live Google Cloud execution, provider activation,
 customer billing/wallet mutation, remote Supabase, deployment, public delivery,
 external beta, and paid production false.
+
+The preceding exact-code v12 pipeline also passed all `32/32` stages. Its
+timeout-aware receiver completed in `1,577 ms`, and its maximum-eight-source
+signed-in review completed in `382,429 ms`. It remains historical pre-Docker-
+transport-hardening evidence.
 
 ## Remaining Gate
 
@@ -191,3 +216,11 @@ tests, Cloud Tasks retry/dead-letter reconciliation, Cloud Run termination and
 late-completion fencing, regional private object transport, telemetry, alerts,
 incident recovery, and controlled staging fault injection. Those actions remain
 gated and were not performed in this slice.
+
+There is also one prerequisite before a deployed sweeper can be called
+complete: the current private meter persists terminal cost evidence only when
+one of the explicitly metered DeepFilterNet, Remotion, or FFmpeg attempts is
+finalized. A hard worker death before finalization therefore leaves no terminal
+cost record, and reconciliation correctly remains blocked. Production needs a
+durable attempt-start binding plus a controller-owned timeout finalizer before
+the distributed observer can reconcile that crash path.

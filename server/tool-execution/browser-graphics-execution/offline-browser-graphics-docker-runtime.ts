@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url'
 
 import { ApiError } from '../../errors/api-error'
 import { sha256AuthorityValue, stableAuthorityStringify } from '../../services/private-edit-authority-store'
+import { createPrivateDockerCliInvocation } from '../private-docker-cli'
 import type { OfflineBrowserGraphicsConfinementEvidence, OfflineBrowserGraphicsImageEvidence } from './offline-browser-graphics-types'
 
 export const OFFLINE_BROWSER_GRAPHICS_IMAGE_TAG = 'reeditpro-offline-browser-graphics-execution:private-local-v1' as const
@@ -129,7 +130,8 @@ function sourceDirectory() { return join(repositoryRoot(), 'docker/prod/offline-
 function repositoryRoot() { return fileURLToPath(new URL('../../../', import.meta.url)).replace(/[\\/]$/, '') }
 function runDocker(args: string[], options: { cwd?: string; input?: string; timeoutMs: number; maxBytes: number }): Promise<HostResult> {
   return new Promise((resolvePromise, reject) => {
-    const child = spawn('docker', args, { cwd: options.cwd, env: { PATH: process.env.PATH ?? '/usr/local/bin:/usr/bin:/bin' }, stdio: ['pipe', 'pipe', 'pipe'] })
+    const invocation = createPrivateDockerCliInvocation(args)
+    const child = spawn(invocation.executable, invocation.args, { cwd: options.cwd, env: invocation.env, stdio: ['pipe', 'pipe', 'pipe'] })
     const stdout: Buffer[] = []; const stderr: Buffer[] = []; let total = 0; let settled = false
     const timer = setTimeout(() => { child.kill('SIGKILL'); if (!settled) { settled = true; reject(runtimeFailure('Docker command exceeded timeout.')) } }, options.timeoutMs)
     const collect = (target: Buffer[]) => (chunk: Buffer) => { total += chunk.length; if (total > options.maxBytes) { child.kill('SIGKILL'); if (!settled) { settled = true; clearTimeout(timer); reject(runtimeFailure('Docker output exceeded ceiling.')) } } else target.push(Buffer.from(chunk)) }

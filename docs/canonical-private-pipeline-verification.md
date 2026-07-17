@@ -70,7 +70,9 @@ plan fits the bounded canonical profile.
    production-cost evidence to one terminal queue/outbox completion. The same
    lock/WAL boundary proves bounded pre-commit failure and accepted-worker
    timeout receipts, mutually exclusive terminal racing, crash recovery, exact
-   replay, and later-attempt fencing until timeout reconciliation. Live
+   replay, and later-attempt fencing until timeout reconciliation. Timeout
+   reconciliation resolves exact persisted failed-attempt cost evidence under
+   the package lock and rejects caller-supplied hashes. Live
    Google keys, IAM, cloud calls, distributed database queue/outbox atomicity,
    and worker execution remain blocked.
 7. Exercise the bounded ordered three-source canonical lifecycle through lease,
@@ -111,7 +113,7 @@ source-bound audio identities in approved order, reads sanitized journey state,
 and records review acceptance.
 
 The runner stops on the first failed phase and prints a machine-readable
-`canonical-private-pipeline-verification-v12` report with step exit codes and
+`canonical-private-pipeline-verification-v13` report with step exit codes and
 durations. A zero exit code means every included assertion passed, including
 assertions that production-only or unavailable behavior stays blocked.
 
@@ -122,8 +124,10 @@ that discovery channel; it does not weaken image-identity validation.
 
 ## Current Evidence Record
 
-On 2026-07-17, the exact-code v12 full internal command passed all `32/32`
-phases with exit code `0`. The package-state phase now proves mutually exclusive
+On 2026-07-17, the exact-code v13 full internal command passed all `32/32`
+phases with exit code `0`. It started at `2026-07-17T21:17:11.077Z`, finished
+at `2026-07-17T21:47:27.541Z`, and completed in `1,816,464 ms`. The package-
+state phase now proves mutually exclusive
 accepted-worker completion, pre-commit failure, and lease-timeout transactions.
 Timeout proof includes deterministic faults, real child exits with code `80`,
 cross-process exact replay, a three-way terminal race, later-attempt fencing,
@@ -131,14 +135,30 @@ two-attempt exhaustion without a third outbox, and a versioned DeepFilterNet
 timeout cost record containing `1,296` internal-cost micros and no customer
 commercial authority.
 
-The timeout-aware receiver completed in `1,577 ms`, three-source composition in
-`647,129 ms`, professional color in `647,366 ms`, bounded UHD Remotion streaming
-in `109,293 ms`, all `11/11` named-edit browser tests in `16,219 ms`, and the
-maximum-eight-source signed-in review in `382,429 ms`. The run preserved exactly
+The package-state phase completed in `10,073 ms`, the timeout-aware receiver in
+`1,571 ms`, three-source composition in `695,974 ms`, professional color in
+`615,010 ms`, bounded UHD Remotion streaming in `96,703 ms`, all `11/11` named-
+edit browser tests in `13,967 ms`, and the maximum-eight-source signed-in review
+in `357,508 ms`. The run preserved exactly
 50 canonical E2E and 50 job-adapter identities. Distributed queue/outbox
 atomicity, live Google identity/IAM and cloud execution, providers,
 billing/wallet mutation, remote Supabase, public delivery, deployment, external
 beta, and paid production remained false.
+
+The same exact-code v13 run also proved that private Docker subprocesses do not
+inherit a developer Docker credential configuration, daemon host, or context.
+Each invocation receives a fresh intentionally absent configuration path;
+builds use a reviewed local Buildx executable and local image loading while
+push, remote-output, secret, SSH, and builder overrides fail closed. This is a
+local/private transport property, not Google Cloud identity, Artifact Registry,
+deployment, or production-worker evidence.
+
+The preceding exact-code v12 run passed all `32/32` phases. Its timeout-aware
+receiver completed in `1,577 ms`, three-source composition in `647,129 ms`,
+professional color in `647,366 ms`, bounded UHD Remotion streaming in
+`109,293 ms`, all `11/11` named-edit browser tests in `16,219 ms`, and the
+maximum-eight-source signed-in review in `382,429 ms`. It remains historical
+pre-Docker-transport-hardening evidence.
 
 Earlier on 2026-07-17, the exact-code v11 full internal command passed all `32/32`
 phases in `1,686,223 ms` with exit code `0`. It started at
@@ -168,8 +188,9 @@ absent. Live Google keys/IAM, distributed queue/outbox atomicity and cloud
 execution, providers, billing/wallet mutation, remote Supabase, public delivery,
 deployment, external beta, and paid production remained false.
 
-The v11 result remains pre-timeout-reconciliation historical evidence and is
-superseded by the exact-code v12 aggregate verdict. The prior v10 `26/26` and
+The v12 result remains pre-Docker-transport-hardening historical evidence, and
+the v11 result remains pre-timeout-reconciliation historical evidence. Both are
+superseded by the exact-code v13 aggregate verdict. The prior v10 `26/26` and
 `32/32` results remain pre-failure-reconciliation historical evidence.
 The v9 results remain pre-completion-reconciliation history, and the earlier v8
 results remain pre-transaction history.

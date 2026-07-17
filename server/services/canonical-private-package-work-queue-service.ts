@@ -48,7 +48,7 @@ export interface CanonicalPrivatePackageWorkQueueRunEvidence {
   plaintextClaimCredentialsPersisted: false
   claimCredentialDigestsPersisted: true
   browserClaimAllowed: false
-  crossProcessAtomicClaimProven: false
+  crossProcessAtomicClaimProven: true
   distributedTransactionProven: false
   cloudServiceIdentityVerified: false
   cloudDispatchAuthorized: false
@@ -257,7 +257,7 @@ export function createCanonicalPrivatePackageWorkQueueService(input: {
         plaintextClaimCredentialsPersisted: false,
         claimCredentialDigestsPersisted: true,
         browserClaimAllowed: false,
-        crossProcessAtomicClaimProven: false,
+        crossProcessAtomicClaimProven: true,
         distributedTransactionProven: false,
         cloudServiceIdentityVerified: false,
         cloudDispatchAuthorized: false,

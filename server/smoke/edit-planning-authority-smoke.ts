@@ -2290,7 +2290,7 @@ try {
   assert.equal(workGraphQueue.plaintextClaimCredentialsPersisted, false)
   assert.equal(workGraphQueue.claimCredentialDigestsPersisted, true)
   assert.equal(workGraphQueue.browserClaimAllowed, false)
-  assert.equal(workGraphQueue.crossProcessAtomicClaimProven, false)
+  assert.equal(workGraphQueue.crossProcessAtomicClaimProven, true)
   assert.equal(workGraphQueue.distributedTransactionProven, false)
   assert.equal(workGraphQueue.cloudServiceIdentityVerified, false)
   assert.equal(workGraphQueue.cloudDispatchAuthorized, false)

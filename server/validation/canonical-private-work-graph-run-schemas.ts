@@ -96,7 +96,7 @@ const durablePackageWorkQueueEvidence = z.object({
   plaintextClaimCredentialsPersisted: z.literal(false),
   claimCredentialDigestsPersisted: z.literal(true),
   browserClaimAllowed: z.literal(false),
-  crossProcessAtomicClaimProven: z.literal(false),
+  crossProcessAtomicClaimProven: z.boolean(),
   distributedTransactionProven: z.literal(false),
   cloudServiceIdentityVerified: z.literal(false),
   cloudDispatchAuthorized: z.literal(false),

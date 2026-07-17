@@ -54,9 +54,9 @@ extending an attempt.
 
 The contract is implemented and privately verified, but no task, controller,
 job, service identity, IAM binding, or cloud resource was created. Live OIDC,
-Invoker/Developer IAM, outbox atomicity, private GCS transport, dead-letter
-reconciliation, concurrency controls, and representative performance
-benchmarks remain release gates.
+Invoker/Developer IAM, distributed database outbox atomicity, private GCS
+transport, dead-letter reconciliation, concurrency controls, and
+representative performance benchmarks remain release gates.
 
 The follow-up private source contract adds a durable single-host outbox and
 exact controller/worker receiver state machine. One active package claim
@@ -66,10 +66,12 @@ accepts only process-branded verifier output. Its zero-network cryptographic
 core verifies RS256, a bounded server-owned test JWKS snapshot, issuer,
 principal, audience, issue/expiry time, task, attempt, controller receipt,
 region, and target bindings while persisting no bearer token or claim
-credential. The test snapshot cannot claim live Google key retrieval. A real
-transactional outbox, live Google auth-library/key-rotation adapter, IAM,
-multi-replica coordination, deployment, and worker completion flow are still
-required.
+credential. The test snapshot cannot claim live Google key retrieval. The
+private package queue and outbox now share one same-host cross-process
+write-ahead commit with process-restart recovery. A distributed
+database-backed transactional outbox, live Google auth-library/key-rotation
+adapter, IAM, multi-replica coordination, deployment, and worker completion
+flow are still required.
 
 The existing `us-central1` foundation defaults and coarse service-account
 templates must be reconciled with the canonical `us-east1`/`europe-west1`

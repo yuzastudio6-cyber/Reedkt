@@ -30,6 +30,11 @@ export interface LargeMediaWorkerCapacityReservation {
   release: () => void
 }
 
+// Each filesystem keeps one shared safety floor. Concurrent attempts reserve
+// only their own staging bytes; every new admission is still checked against
+// its full staging-plus-safety requirement after the existing staging bytes
+// are deducted. Reserving the safety floor per attempt would multiply the
+// same headroom and reject safe concurrent work long before the disk is full.
 const activeReservations = new Map<string, Map<symbol, number>>()
 
 export function clearLargeMediaWorkerCapacityReservationsForSmoke(): void {
@@ -117,8 +122,12 @@ export function reserveLargeMediaWorkerCapacity(input: {
 
   const filesystemKey = path.resolve(input.filesystemPath)
   const reservations = activeReservations.get(filesystemKey) ?? new Map<symbol, number>()
-  const reservedBytes = [...reservations.values()].reduce((total, value) => safeSum(total, value), 0)
-  const availableAfterExistingReservationsBytes = Math.max(0, availableBytes - reservedBytes)
+  const reservedStagingBytes = [...reservations.values()]
+    .reduce((total, value) => safeSum(total, value), 0)
+  const availableAfterExistingReservationsBytes = Math.max(
+    0,
+    availableBytes - reservedStagingBytes,
+  )
   if (availableAfterExistingReservationsBytes < input.assessment.requiredAvailableBytes) {
     return {
       acquired: false,
@@ -128,7 +137,7 @@ export function reserveLargeMediaWorkerCapacity(input: {
   }
 
   const token = Symbol('large-media-worker-capacity')
-  reservations.set(token, input.assessment.requiredAvailableBytes)
+  reservations.set(token, input.assessment.sourceStagingBytes)
   activeReservations.set(filesystemKey, reservations)
   let released = false
   return {

@@ -1,6 +1,6 @@
 # Canonical Private Durable Package Work Queue Verification — 2026-07-16
 
-Status: `verified_private_local_restart_safe_distributed_cloud_blocked`
+Status: `verified_private_single_host_cross_process_restart_safe_distributed_cloud_blocked`
 
 ## Outcome
 
@@ -10,7 +10,7 @@ single-job adapter. A host restart no longer requires the orchestrator to call
 every already-completed adapter again to reconstruct graph state.
 
 This is a private/local blocker-reduction milestone. It does not deploy a
-Google Cloud queue or worker, prove cross-process atomic claims, activate a
+Google Cloud queue or worker, prove a distributed transaction, activate a
 provider, call remote Supabase, charge a customer, mutate a wallet, publish an
 artifact, deploy the product, or establish an editing-time SLA.
 
@@ -39,7 +39,8 @@ For each exact entry, the private store:
 
 1. admits a claim only after worker-type, private-capability, approved-schedule,
    dependency-completion, and maximum-attempt checks pass;
-2. permits one active claim under the explicitly process-local lock;
+2. permits one active claim under a cooperative cross-process, same-host
+   package lock;
 3. returns a random 256-bit base64url credential to the controller and stores
    only its SHA-256 digest plus a hashed worker identity;
 4. binds the claim to worker type, resource class, placement hash, delivery
@@ -71,6 +72,12 @@ The bounded aggregate is limited to 256 jobs, ten approved attempts per job,
 8,192 events, and 8 MiB. The event bound covers the maximum approved-attempt
 lifecycle without silently growing an unbounded local log.
 
+Every queue read and mutation now acquires the shared package-state lock and
+recovers any committed queue/outbox write-ahead record first. A real
+two-process race proves one generic claim winner. The lock is private,
+no-follow, hard-link published only after its owner record is fully written,
+and reclaimable only when the recorded same-host PID is no longer alive.
+
 ## Work-Graph Integration
 
 New work-graph responses use
@@ -97,6 +104,7 @@ The following pass on the exact implementation:
 
 - `npm run typecheck:server`
 - `npm run smoke:canonical-private-package-work-queue`
+- `npm run smoke:canonical-private-package-state-transaction`
 - `npm run smoke:edit-planning-authority`
 - `npm run smoke:canonical-private-tool-dispatch`
 - `REEDITPRO_SOURCE_SLICE_LONG_FORM_PROOF=1 ./node_modules/.bin/tsx server/smoke/canonical-private-long-form-execution-smoke.ts`
@@ -108,6 +116,14 @@ It proves one concurrent claim winner, wrong-credential rejection, heartbeat,
 credential-bound idempotent replay, restart recovery, stale-worker fencing,
 terminal immutability, tenant isolation, event chaining, checksum tamper
 rejection, and recomputed-hash placement substitution rejection.
+
+The package-state transaction smoke additionally launches separate Node
+processes and proves one generic claim winner plus one server-selected atomic
+claim/outbox commit. It combines deterministic interruption with real child
+process exits after write-ahead publication and after queue projection,
+recovers the exact missing projections, refuses tampered recovery bytes and
+out-of-band projection drift, reclaims a truly killed same-host lock owner, and
+refuses a lock-target symlink.
 
 The route-level planning smoke proves the orchestrator creates the v3 evidence,
 completes two jobs, leaves exact blocked descendants queued, recovers those two
@@ -151,12 +167,13 @@ pipeline regression.
 
 ## Honest Boundary And Next Gate
 
-Atomic replacement is not a compare-and-swap transaction across processes.
-Two independent OS processes are not proven unable to race on the same local
-aggregate. Therefore these flags remain false:
+The cooperative file lock now proves cross-process atomic claims for Node
+processes on one host. It is not a shared-filesystem lease, hostile same-UID
+boundary, host-power/filesystem-failure proof, or database transaction.
+Therefore these gates remain false:
 
-- cross-process atomic claim;
 - distributed transaction;
+- multi-host and multi-replica claim authority;
 - cloud service identity;
 - Google Cloud dispatch; and
 - production authority.
@@ -170,7 +187,8 @@ regional Cloud Tasks -> private controller -> Cloud Run Jobs handoff and binds
 all 50 proven tools to their frozen target class. It deliberately leaves live
 outbox, OIDC/IAM, job deployment, object transport, dead-letter handling,
 capacity, and benchmark evidence false. See
-`docs/canonical-cloud-worker-dispatch-handoff-verification-2026-07-17.md`.
+`docs/canonical-cloud-worker-dispatch-handoff-verification-2026-07-17.md` and
+`docs/canonical-private-package-state-transaction-verification-2026-07-17.md`.
 
 Only after those remaining live checks exist can local runner evidence support
 a Google Cloud throughput or customer ETA claim.

@@ -1,5 +1,3 @@
-import { createHash } from 'node:crypto'
-
 import { ApiError } from '../errors/api-error'
 import {
   assertCanonicalCloudDispatchOutboxEntryIntegrity,
@@ -22,13 +20,18 @@ import {
   type CanonicalCloudDispatchWorkerReceipt,
 } from '../validation/canonical-cloud-dispatch-outbox-schemas'
 import { sha256AuthorityValue, stableAuthorityStringify } from './private-edit-authority-store'
+import {
+  assertCanonicalPrivatePackageStateLockAuthority,
+  canonicalPrivatePackageStatePaths,
+  withCanonicalPrivatePackageStateLock,
+  type CanonicalPrivatePackageStateLockAuthority,
+} from './private-canonical-package-state-transaction'
 
 const STORE_RECORD_VERSION = 'private-canonical-cloud-dispatch-outbox-record-v1' as const
 const STORE_RECORD_SOURCE = 'private_canonical_cloud_dispatch_outbox_store' as const
 const MAX_OUTBOX_BYTES = 8 * 1024 * 1024
 const MAX_OUTBOX_ENTRIES = 256
 const MAX_OUTBOX_EVENTS = 1_024
-const outboxLocks = new Map<string, Promise<void>>()
 
 export interface CanonicalCloudDispatchOutboxStoreScope {
   localStorageRoot: string
@@ -49,59 +52,38 @@ interface PersistedOutboxEnvelope {
 }
 
 export function clearPrivateCanonicalCloudDispatchOutboxProcessStateForSmoke(): void {
-  outboxLocks.clear()
+  // Filesystem-backed package locks have no process cache to clear.
 }
 
-export async function ensurePrivateCanonicalCloudDispatchOutboxEntry(input: {
+export function preparePrivateCanonicalCloudDispatchOutboxEntry(input: {
   scope: CanonicalCloudDispatchOutboxStoreScope
+  aggregate: CanonicalCloudDispatchOutboxAggregate | undefined
   entry: CanonicalCloudDispatchOutboxEntry
   now: string
-}): Promise<{
+}): {
   aggregate: CanonicalCloudDispatchOutboxAggregate
   entry: CanonicalCloudDispatchOutboxEntry
   disposition: 'created' | 'exact_replay'
-}> {
+} {
   assertScope(input.scope)
   const entry = assertCanonicalCloudDispatchOutboxEntryIntegrity(input.entry)
   assertEntryScope(input.scope, entry)
   const now = validTimestamp(input.now, 'outbox ensure')
-  return mutateOutbox<{
-    entry: CanonicalCloudDispatchOutboxEntry
-    disposition: 'created' | 'exact_replay'
-  }>(input.scope, now, (aggregate) => {
-    assertAggregateAuthorityMatchesEntry(aggregate, entry)
-    const existing = aggregate.entries.find((candidate) =>
-      candidate.immutable.dispatchIntentId === entry.immutable.dispatchIntentId)
-    if (existing) {
-      if (
-        existing.immutableEntryHash !== entry.immutableEntryHash ||
-        stableAuthorityStringify(existing.immutable) !== stableAuthorityStringify(entry.immutable)
-      ) {
-        throw idempotencyConflict(
-          'Cloud dispatch outbox intent already exists with another immutable attempt.',
-        )
-      }
-      return {
-        changed: false,
-        result: { entry: existing, disposition: 'exact_replay' as const },
-      }
-    }
-    if (
-      aggregate.entries.length >= MAX_OUTBOX_ENTRIES ||
-      aggregate.events.length >= MAX_OUTBOX_EVENTS
-    ) throw capacityExceeded()
-    if (aggregate.entries.some((candidate) =>
-      candidate.immutable.jobId === entry.immutable.jobId &&
-      candidate.immutable.packageDeliveryAttempt === entry.immutable.packageDeliveryAttempt)) {
-      throw idempotencyConflict('Package attempt is already bound to another outbox intent.')
-    }
-    aggregate.entries.push(entry)
-    appendEvent(aggregate, entry, 'outbox_entry_created', now)
-    return {
-      changed: true,
-      result: { entry, disposition: 'created' as const },
-    }
+  const aggregate = input.aggregate
+    ? structuredClone(input.aggregate)
+    : createEmptyAggregate(input.scope, now)
+  const before = input.aggregate ? structuredClone(input.aggregate) : undefined
+  const mutation = applyEnsureEntryMutation(aggregate, entry, now)
+  if (!mutation.changed) return { ...mutation.result, aggregate }
+  assertAppendOnlyTransition(before, aggregate)
+  const finalized = finalizeAggregate({
+    ...aggregate,
+    revision: aggregate.revision + 1,
+    updatedAt: now,
+    summary: undefined,
+    aggregateHash: undefined,
   })
+  return { ...mutation.result, aggregate: finalized }
 }
 
 export async function acceptPrivateCanonicalCloudDispatchController(input: {
@@ -111,6 +93,10 @@ export async function acceptPrivateCanonicalCloudDispatchController(input: {
   buildReceipt: (
     entry: CanonicalCloudDispatchOutboxEntry,
   ) => CanonicalCloudDispatchControllerReceipt
+  validateCurrentEntry: (
+    entry: CanonicalCloudDispatchOutboxEntry,
+    lockAuthority: CanonicalPrivatePackageStateLockAuthority,
+  ) => Promise<void>
 }): Promise<{
   aggregate: CanonicalCloudDispatchOutboxAggregate
   entry: CanonicalCloudDispatchOutboxEntry
@@ -122,8 +108,9 @@ export async function acceptPrivateCanonicalCloudDispatchController(input: {
     entry: CanonicalCloudDispatchOutboxEntry
     receipt: CanonicalCloudDispatchControllerReceipt
     disposition: 'accepted' | 'exact_replay'
-  }>(input.scope, now, (aggregate) => {
+  }>(input.scope, now, async (aggregate, lockAuthority) => {
     const entry = requiredEntry(aggregate, input.dispatchIntentId)
+    await input.validateCurrentEntry(entry, lockAuthority)
     const requestedReceipt = canonicalCloudDispatchControllerReceiptSchema.parse(
       input.buildReceipt(entry),
     )
@@ -175,6 +162,10 @@ export async function acceptPrivateCanonicalCloudDispatchWorker(input: {
   buildReceipt: (
     entry: CanonicalCloudDispatchOutboxEntry,
   ) => CanonicalCloudDispatchWorkerReceipt
+  validateCurrentEntry: (
+    entry: CanonicalCloudDispatchOutboxEntry,
+    lockAuthority: CanonicalPrivatePackageStateLockAuthority,
+  ) => Promise<void>
 }): Promise<{
   aggregate: CanonicalCloudDispatchOutboxAggregate
   entry: CanonicalCloudDispatchOutboxEntry
@@ -186,8 +177,9 @@ export async function acceptPrivateCanonicalCloudDispatchWorker(input: {
     entry: CanonicalCloudDispatchOutboxEntry
     receipt: CanonicalCloudDispatchWorkerReceipt
     disposition: 'accepted' | 'exact_replay'
-  }>(input.scope, now, (aggregate) => {
+  }>(input.scope, now, async (aggregate, lockAuthority) => {
     const entry = requiredEntry(aggregate, input.dispatchIntentId)
+    await input.validateCurrentEntry(entry, lockAuthority)
     if (!entry.controllerReceipt) {
       throw invalidOutbox('Worker receiver requires an accepted controller receipt.')
     }
@@ -237,22 +229,60 @@ export async function readPrivateCanonicalCloudDispatchOutbox(input: {
   scope: CanonicalCloudDispatchOutboxStoreScope
 }): Promise<CanonicalCloudDispatchOutboxAggregate | undefined> {
   assertScope(input.scope)
-  return readOutbox(input.scope)
+  return withCanonicalPrivatePackageStateLock({
+    scope: input.scope,
+    operation: async (lockAuthority) =>
+      readPrivateCanonicalCloudDispatchOutboxForPackageStateTransaction(
+        lockAuthority,
+        input.scope,
+      ),
+  })
 }
 
 export function canonicalCloudDispatchOutboxAggregateRelativePath(
   scope: CanonicalCloudDispatchOutboxStoreScope,
 ): string {
   assertScope(scope)
-  const tenantHash = sha256Text(`${scope.ownerUserId}\u0000${scope.workspaceId}`).slice(0, 32)
-  const packageHash = sha256Text([
-    tenantHash,
-    scope.projectId,
-    scope.editSessionId,
-    scope.packageRecordId,
-    scope.approvedPlanSnapshotId,
-  ].join('\u0000'))
-  return `private-internal/canonical-cloud-dispatch-outboxes/v1/${tenantHash}/${packageHash}.json`
+  return canonicalPrivatePackageStatePaths(scope).outboxRelativePath
+}
+
+function applyEnsureEntryMutation(
+  aggregate: CanonicalCloudDispatchOutboxAggregate,
+  entry: CanonicalCloudDispatchOutboxEntry,
+  now: string,
+) {
+  assertAggregateAuthorityMatchesEntry(aggregate, entry)
+  const existing = aggregate.entries.find((candidate) =>
+    candidate.immutable.dispatchIntentId === entry.immutable.dispatchIntentId)
+  if (existing) {
+    if (
+      existing.immutableEntryHash !== entry.immutableEntryHash ||
+      stableAuthorityStringify(existing.immutable) !== stableAuthorityStringify(entry.immutable)
+    ) {
+      throw idempotencyConflict(
+        'Cloud dispatch outbox intent already exists with another immutable attempt.',
+      )
+    }
+    return {
+      changed: false,
+      result: { entry: existing, disposition: 'exact_replay' as const },
+    }
+  }
+  if (
+    aggregate.entries.length >= MAX_OUTBOX_ENTRIES ||
+    aggregate.events.length >= MAX_OUTBOX_EVENTS
+  ) throw capacityExceeded()
+  if (aggregate.entries.some((candidate) =>
+    candidate.immutable.jobId === entry.immutable.jobId &&
+    candidate.immutable.packageDeliveryAttempt === entry.immutable.packageDeliveryAttempt)) {
+    throw idempotencyConflict('Package attempt is already bound to another outbox intent.')
+  }
+  aggregate.entries.push(entry)
+  appendEvent(aggregate, entry, 'outbox_entry_created', now)
+  return {
+    changed: true,
+    result: { entry, disposition: 'created' as const },
+  }
 }
 
 async function mutateOutbox<T extends object>(
@@ -260,26 +290,33 @@ async function mutateOutbox<T extends object>(
   now: string,
   mutation: (
     aggregate: CanonicalCloudDispatchOutboxAggregate,
-  ) => { changed: boolean; result: T },
+    lockAuthority: CanonicalPrivatePackageStateLockAuthority,
+  ) => { changed: boolean; result: T } | Promise<{ changed: boolean; result: T }>,
 ): Promise<T & { aggregate: CanonicalCloudDispatchOutboxAggregate }> {
   assertScope(scope)
-  const path = canonicalCloudDispatchOutboxAggregateRelativePath(scope)
-  return withOutboxLock(path, async () => {
-    const existing = await readOutbox(scope)
-    const aggregate = existing ?? createEmptyAggregate(scope, now)
-    const before = existing ? structuredClone(existing) : undefined
-    const mutationResult = mutation(aggregate)
-    if (!mutationResult.changed) return { ...mutationResult.result, aggregate }
-    assertAppendOnlyTransition(before, aggregate)
-    const finalized = finalizeAggregate({
-      ...aggregate,
-      revision: aggregate.revision + 1,
-      updatedAt: now,
-      summary: undefined,
-      aggregateHash: undefined,
-    })
-    await persistOutbox(scope, finalized)
-    return { ...mutationResult.result, aggregate: finalized }
+  return withCanonicalPrivatePackageStateLock({
+    scope,
+    operation: async (lockAuthority) => {
+      const existing =
+        await readPrivateCanonicalCloudDispatchOutboxForPackageStateTransaction(
+          lockAuthority,
+          scope,
+        )
+      const aggregate = existing ?? createEmptyAggregate(scope, now)
+      const before = existing ? structuredClone(existing) : undefined
+      const mutationResult = await mutation(aggregate, lockAuthority)
+      if (!mutationResult.changed) return { ...mutationResult.result, aggregate }
+      assertAppendOnlyTransition(before, aggregate)
+      const finalized = finalizeAggregate({
+        ...aggregate,
+        revision: aggregate.revision + 1,
+        updatedAt: now,
+        summary: undefined,
+        aggregateHash: undefined,
+      })
+      await persistOutbox(scope, finalized)
+      return { ...mutationResult.result, aggregate: finalized }
+    },
   })
 }
 
@@ -327,9 +364,11 @@ function assertAggregateAuthorityMatchesEntry(
   ) throw invalidOutbox('Cloud dispatch outbox package authority changed.')
 }
 
-async function readOutbox(
+export async function readPrivateCanonicalCloudDispatchOutboxForPackageStateTransaction(
+  lockAuthority: CanonicalPrivatePackageStateLockAuthority,
   scope: CanonicalCloudDispatchOutboxStoreScope,
 ): Promise<CanonicalCloudDispatchOutboxAggregate | undefined> {
+  assertCanonicalPrivatePackageStateLockAuthority({ lockAuthority, scope })
   const content = await readPrivateTextFileIfExistsWithinRoot({
     rootPath: scope.localStorageRoot,
     relativePath: canonicalCloudDispatchOutboxAggregateRelativePath(scope),
@@ -363,20 +402,28 @@ async function persistOutbox(
   scope: CanonicalCloudDispatchOutboxStoreScope,
   aggregate: CanonicalCloudDispatchOutboxAggregate,
 ): Promise<void> {
-  const envelope: PersistedOutboxEnvelope = {
-    recordVersion: STORE_RECORD_VERSION,
-    source: STORE_RECORD_SOURCE,
-    ownerUserId: scope.ownerUserId,
-    aggregate,
-    checksumSha256: sha256AuthorityValue(aggregate),
-  }
-  const content = `${stableAuthorityStringify(envelope)}\n`
-  if (Buffer.byteLength(content, 'utf8') > MAX_OUTBOX_BYTES) throw capacityExceeded()
+  const content = serializePrivateCanonicalCloudDispatchOutboxAggregate({ scope, aggregate })
   await writePrivateTextFileAtomicWithinRoot({
     rootPath: scope.localStorageRoot,
     relativePath: canonicalCloudDispatchOutboxAggregateRelativePath(scope),
     content,
   })
+}
+
+export function serializePrivateCanonicalCloudDispatchOutboxAggregate(input: {
+  scope: CanonicalCloudDispatchOutboxStoreScope
+  aggregate: CanonicalCloudDispatchOutboxAggregate
+}): string {
+  const envelope: PersistedOutboxEnvelope = {
+    recordVersion: STORE_RECORD_VERSION,
+    source: STORE_RECORD_SOURCE,
+    ownerUserId: input.scope.ownerUserId,
+    aggregate: input.aggregate,
+    checksumSha256: sha256AuthorityValue(input.aggregate),
+  }
+  const content = `${stableAuthorityStringify(envelope)}\n`
+  if (Buffer.byteLength(content, 'utf8') > MAX_OUTBOX_BYTES) throw capacityExceeded()
+  return content
 }
 
 function finalizeAggregate(
@@ -554,10 +601,6 @@ function validTimestamp(value: string, label: string): string {
   return value
 }
 
-function sha256Text(value: string): string {
-  return createHash('sha256').update(value).digest('hex')
-}
-
 function outboxBoundaries() {
   return {
     privateLocalPersistence: true as const,
@@ -568,7 +611,7 @@ function outboxBoundaries() {
     opaqueHashOnlyHandoffPersistence: true as const,
     rawMediaPromptPathSignedUrlOrCredentialPersisted: false as const,
     packageQueueOwnsApprovedAttempts: true as const,
-    crossProcessAtomicClaimProven: false as const,
+    crossProcessAtomicClaimProven: true as const,
     distributedOutboxTransactionVerified: false as const,
     liveGoogleOidcAndIamVerified: false as const,
     cloudTaskCreated: false as const,
@@ -576,21 +619,6 @@ function outboxBoundaries() {
     workerExecutionAuthorized: false as const,
     cloudDispatchAuthorized: false as const,
     productionAuthority: false as const,
-  }
-}
-
-async function withOutboxLock<T>(key: string, operation: () => Promise<T>): Promise<T> {
-  const previous = outboxLocks.get(key) ?? Promise.resolve()
-  let release!: () => void
-  const current = new Promise<void>((resolve) => { release = resolve })
-  const tail = previous.catch(() => undefined).then(() => current)
-  outboxLocks.set(key, tail)
-  await previous.catch(() => undefined)
-  try {
-    return await operation()
-  } finally {
-    release()
-    if (outboxLocks.get(key) === tail) outboxLocks.delete(key)
   }
 }
 

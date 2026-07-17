@@ -2,7 +2,6 @@ import { ApiError } from '../errors/api-error'
 import {
   assertCanonicalCloudDispatchOutboxCurrentAttempt,
   createCanonicalCloudDispatchControllerReceipt,
-  createCanonicalCloudDispatchOutboxEntry,
   createCanonicalCloudDispatchWorkerInvocation,
   createCanonicalCloudDispatchWorkerReceipt,
 } from '../edit-architecture/canonical-cloud-dispatch-outbox-receiver-authority'
@@ -25,15 +24,18 @@ import type {
 } from '../security/canonical-service-identity-verifier'
 import {
   readPrivateCanonicalPackageWorkQueue,
+  readPrivateCanonicalPackageWorkQueueForPackageStateTransaction,
   type CanonicalPrivatePackageWorkQueueStoreScope,
 } from './private-canonical-package-work-queue-store'
 import {
   acceptPrivateCanonicalCloudDispatchController,
   acceptPrivateCanonicalCloudDispatchWorker,
-  ensurePrivateCanonicalCloudDispatchOutboxEntry,
   readPrivateCanonicalCloudDispatchOutbox,
   type CanonicalCloudDispatchOutboxStoreScope,
 } from './private-canonical-cloud-dispatch-outbox-store'
+import {
+  claimAndEnqueuePrivateCanonicalPackageCloudDispatchAttempt,
+} from './private-canonical-package-cloud-dispatch-transaction-store'
 
 export interface CanonicalPrivateCloudDispatchReceiverEvidence {
   aggregateHash: string
@@ -50,7 +52,11 @@ export interface CanonicalPrivateCloudDispatchReceiverEvidence {
   processBrandedVerifiedIdentityRequired: true
   cryptographicJwksVerifierCoreAvailable: true
   packageQueueOwnsApprovedAttempts: true
-  crossProcessAtomicClaimProven: false
+  packageAttemptSelectedByServer: true
+  cooperativeCrossProcessPackageLockVerified: true
+  singleHostCrashConsistentQueueClaimAndOutboxCommitVerified: true
+  committedTransactionRecoveryVerified: true
+  crossProcessAtomicClaimProven: true
   distributedOutboxTransactionVerified: false
   liveGoogleOidcAndIamVerified: false
   cloudTaskCreated: false
@@ -112,33 +118,31 @@ export function createCanonicalPrivateCloudDispatchReceiverService(input: {
   const queueScope: CanonicalPrivatePackageWorkQueueStoreScope = { ...scope }
 
   return {
-    async enqueueApprovedAttempt(request: {
-      jobId: string
-      packageDeliveryAttempt: number
-    }) {
+    async enqueueApprovedAttempt(request: { jobId: string }) {
       const timestamp = now().toISOString()
-      const attemptPlan = createCanonicalCloudWorkerDispatchAttemptPlan({
+      const result = await claimAndEnqueuePrivateCanonicalPackageCloudDispatchAttempt({
+        scope,
+        definition: input.queueDefinition,
         manifest: input.manifest,
         jobId: request.jobId,
-        deliveryAttempt: request.packageDeliveryAttempt,
-      })
-      const queueAggregate = await requireQueueAggregate(queueScope, input.queueDefinition)
-      const entry = createCanonicalCloudDispatchOutboxEntry({
-        queueDefinition: input.queueDefinition,
-        queueAggregate,
-        manifest: input.manifest,
-        attemptPlan,
+        workerIdentity: input.context.env.workerInstanceId,
         now: timestamp,
+        leaseDurationMs: boundedLeaseDurationMs(
+          input.context.env.workerClaimLeaseSeconds * 1_000,
+        ),
       })
-      const ensured = await ensurePrivateCanonicalCloudDispatchOutboxEntry({
-        scope,
-        entry,
-        now: timestamp,
-      })
+      if (!('outboxEntry' in result)) {
+        return {
+          disposition: result.disposition,
+          queueEntry: result.queueEntry,
+          ...('outcome' in result ? { outcome: result.outcome } : {}),
+          boundaries: receiverBoundaries(),
+        }
+      }
       return {
-        disposition: ensured.disposition,
-        outboxEntry: ensured.entry,
-        attemptPlan,
+        disposition: result.disposition,
+        outboxEntry: result.outboxEntry,
+        attemptPlan: result.attemptPlan,
         boundaries: receiverBoundaries(),
       }
     },
@@ -161,6 +165,15 @@ export function createCanonicalPrivateCloudDispatchReceiverService(input: {
         scope,
         dispatchIntentId,
         now: timestamp,
+        validateCurrentEntry: async (entry, lockAuthority) =>
+          validateCurrentEntryUnderPackageStateLock({
+            entry,
+            lockAuthority,
+            queueScope,
+            queueDefinition: input.queueDefinition,
+            manifest: input.manifest,
+            now: timestamp,
+          }),
         buildReceipt: (entry) => createCanonicalCloudDispatchControllerReceipt({
           entry,
           taskBody: request.taskBody,
@@ -222,6 +235,15 @@ export function createCanonicalPrivateCloudDispatchReceiverService(input: {
         scope,
         dispatchIntentId: invocation.data.dispatchIntentId,
         now: timestamp,
+        validateCurrentEntry: async (entry, lockAuthority) =>
+          validateCurrentEntryUnderPackageStateLock({
+            entry,
+            lockAuthority,
+            queueScope,
+            queueDefinition: input.queueDefinition,
+            manifest: input.manifest,
+            now: timestamp,
+          }),
         buildReceipt: (entry) => createCanonicalCloudDispatchWorkerReceipt({
           entry,
           invocation: invocation.data,
@@ -266,7 +288,11 @@ export function createCanonicalPrivateCloudDispatchReceiverService(input: {
         processBrandedVerifiedIdentityRequired: true,
         cryptographicJwksVerifierCoreAvailable: true,
         packageQueueOwnsApprovedAttempts: true,
-        crossProcessAtomicClaimProven: false,
+        packageAttemptSelectedByServer: true,
+        cooperativeCrossProcessPackageLockVerified: true,
+        singleHostCrashConsistentQueueClaimAndOutboxCommitVerified: true,
+        committedTransactionRecoveryVerified: true,
+        crossProcessAtomicClaimProven: true,
         distributedOutboxTransactionVerified: false,
         liveGoogleOidcAndIamVerified: false,
         cloudTaskCreated: false,
@@ -277,6 +303,44 @@ export function createCanonicalPrivateCloudDispatchReceiverService(input: {
       }
     },
   }
+}
+
+async function validateCurrentEntryUnderPackageStateLock(input: {
+  entry: CanonicalCloudDispatchOutboxEntry
+  lockAuthority: Parameters<
+    typeof readPrivateCanonicalPackageWorkQueueForPackageStateTransaction
+  >[0]
+  queueScope: CanonicalPrivatePackageWorkQueueStoreScope
+  queueDefinition: CanonicalPrivatePackageWorkQueueDefinition
+  manifest: CanonicalCloudWorkerDispatchHandoffManifest
+  now: string
+}): Promise<void> {
+  const queueAggregate =
+    await readPrivateCanonicalPackageWorkQueueForPackageStateTransaction(
+      input.lockAuthority,
+      input.queueScope,
+      input.queueDefinition,
+    )
+  if (!queueAggregate) {
+    throw new ApiError(
+      'JOB_NOT_FOUND',
+      'Canonical package work queue is unavailable for cloud dispatch.',
+      404,
+    )
+  }
+  const attemptPlan = createCanonicalCloudWorkerDispatchAttemptPlan({
+    manifest: input.manifest,
+    jobId: input.entry.immutable.jobId,
+    deliveryAttempt: input.entry.immutable.packageDeliveryAttempt,
+  })
+  assertCanonicalCloudDispatchOutboxCurrentAttempt({
+    entry: input.entry,
+    queueDefinition: input.queueDefinition,
+    queueAggregate,
+    manifest: input.manifest,
+    attemptPlan,
+    now: input.now,
+  })
 }
 
 async function requireCurrentEntry(input: {
@@ -368,6 +432,10 @@ function receiverBoundaries() {
   return {
     contractOnly: true as const,
     privateLocalPersistenceOnly: true as const,
+    packageAttemptSelectedByServer: true as const,
+    cooperativeCrossProcessPackageLockVerified: true as const,
+    singleHostCrashConsistentQueueClaimAndOutboxCommitVerified: true as const,
+    committedTransactionRecoveryVerified: true as const,
     networkCallPerformed: false as const,
     cloudTaskCreated: false as const,
     cloudRunJobExecuted: false as const,
@@ -382,4 +450,9 @@ function receiverBoundaries() {
     cloudDispatchAuthorized: false as const,
     productionAuthority: false as const,
   }
+}
+
+function boundedLeaseDurationMs(value: number): number {
+  if (!Number.isFinite(value)) return 300_000
+  return Math.max(1_000, Math.min(86_400_000, Math.floor(value)))
 }

@@ -273,7 +273,7 @@ export const canonicalCloudDispatchOutboxAggregateSchema = z.object({
     opaqueHashOnlyHandoffPersistence: z.literal(true),
     rawMediaPromptPathSignedUrlOrCredentialPersisted: z.literal(false),
     packageQueueOwnsApprovedAttempts: z.literal(true),
-    crossProcessAtomicClaimProven: z.literal(false),
+    crossProcessAtomicClaimProven: z.boolean(),
     distributedOutboxTransactionVerified: z.literal(false),
     liveGoogleOidcAndIamVerified: z.literal(false),
     cloudTaskCreated: z.literal(false),

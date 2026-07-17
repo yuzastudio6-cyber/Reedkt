@@ -49,10 +49,12 @@ execution attempt. Cloud Run job templates therefore set internal retries to
 zero. Failed work can run again only through a new bounded package-queue
 attempt after reconciliation/fallback policy permits it.
 
-This is a pure, no-network authority contract. Distributed outbox atomicity,
-OIDC/IAM, controller and job deployment, service identity, private GCS object
-transport, dead-letter reconciliation, capacity controls, production telemetry,
-and benchmark evidence remain false and fail closed.
+This is a pure, no-network authority contract. A later private slice proves
+one same-host cross-process queue/outbox write-ahead transaction and exact
+process-restart recovery. Distributed database outbox atomicity, OIDC/IAM,
+controller and job deployment, service identity, private GCS object transport,
+dead-letter reconciliation, capacity controls, production telemetry, and
+benchmark evidence remain false and fail closed.
 
 The follow-up private outbox/receiver contract now binds one active package
 claim to one checksum-protected, restart-safe opaque dispatch entry. Exact
@@ -67,12 +69,14 @@ worker command is persisted.
 
 This is single-host private evidence only. The service rejects production and
 purported live Google-verifier output until Google's supported live
-auth-library/key-rotation adapter is wired outside request JSON. Distributed
-package-queue/outbox atomicity, multi-replica locking, Cloud Tasks creation,
-Cloud Run Jobs calls, live OIDC/IAM, private GCS transport, worker execution,
-and completion reconciliation remain blocked. See
+auth-library/key-rotation adapter is wired outside request JSON. The local
+package queue and outbox now share a process-recoverable write-ahead commit,
+but distributed database atomicity, multi-replica locking, Cloud Tasks
+creation, Cloud Run Jobs calls, live OIDC/IAM, private GCS transport, worker
+execution, and completion reconciliation remain blocked. See
 `docs/canonical-service-identity-verifier-verification-2026-07-17.md` and
-`docs/canonical-cloud-dispatch-outbox-receiver-verification-2026-07-17.md`.
+`docs/canonical-cloud-dispatch-outbox-receiver-verification-2026-07-17.md`, plus
+`docs/canonical-private-package-state-transaction-verification-2026-07-17.md`.
 
 ## Throughput And ETA Principle
 

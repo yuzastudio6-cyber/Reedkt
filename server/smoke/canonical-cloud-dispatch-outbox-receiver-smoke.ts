@@ -31,11 +31,12 @@ import {
   type CanonicalCloudDispatchOutboxStoreScope,
 } from '../services/private-canonical-cloud-dispatch-outbox-store'
 import {
-  claimPrivateCanonicalPackageWorkQueueJob,
   ensurePrivateCanonicalPackageWorkQueue,
   readPrivateCanonicalPackageWorkQueue,
   type CanonicalPrivatePackageWorkQueueStoreScope,
 } from '../services/private-canonical-package-work-queue-store'
+import { canonicalPrivatePackageStatePaths } from
+  '../services/private-canonical-package-state-transaction'
 import { sha256AuthorityValue } from '../services/private-edit-authority-store'
 import type { ServiceContext } from '../types'
 import {
@@ -101,17 +102,6 @@ try {
     definition: queueDefinition,
     now: new Date(baseTimeMs).toISOString(),
   })
-  const claim = await claimPrivateCanonicalPackageWorkQueueJob({
-    scope: queueScope,
-    definition: queueDefinition,
-    jobId: 'job_cloud_dispatch_cpu',
-    workerIdentity: 'regional-cloud-dispatch-controller',
-    workerType: 'cpu_analysis_worker',
-    now: new Date(baseTimeMs).toISOString(),
-    leaseDurationMs: 120_000,
-  })
-  assert.equal(claim.disposition, 'claimed')
-  if (claim.disposition !== 'claimed') throw new Error('Cloud dispatch queue claim was not acquired.')
   const queueBefore = await readPrivateCanonicalPackageWorkQueue({
     scope: queueScope,
     definition: queueDefinition,
@@ -121,19 +111,26 @@ try {
   let service = createService(context)
   const enqueued = await service.enqueueApprovedAttempt({
     jobId: 'job_cloud_dispatch_cpu',
-    packageDeliveryAttempt: 1,
   })
   assert.equal(enqueued.disposition, 'created')
+  if (!('outboxEntry' in enqueued) || !('attemptPlan' in enqueued)) {
+    throw new Error('Cloud dispatch transaction did not create an outbox attempt.')
+  }
   assert.equal(enqueued.outboxEntry.state, 'pending_controller_delivery')
-  assert.equal(enqueued.outboxEntry.immutable.queueClaimId, claim.entry.activeClaim.claimId)
   assert.equal(enqueued.outboxEntry.immutable.packageDeliveryAttempt, 1)
   assert.equal(enqueued.attemptPlan.cloudRunJob?.taskMaxRetries, 0)
   assert.equal(enqueued.boundaries.networkCallPerformed, false)
 
   const outboxPath = join(rootPath, canonicalCloudDispatchOutboxAggregateRelativePath(scope))
+  const transactionPath = join(
+    rootPath,
+    canonicalPrivatePackageStatePaths(scope).transactionRelativePath,
+  )
   assert.equal((await stat(outboxPath)).mode & 0o777, 0o600)
   const enqueuedBytes = await readFile(outboxPath, 'utf8')
-  assert.equal(enqueuedBytes.includes(claim.claimCredential), false)
+  await assert.rejects(() => stat(transactionPath), (error: unknown) =>
+    typeof error === 'object' && error !== null && 'code' in error && error.code === 'ENOENT')
+  assert.equal(enqueuedBytes.includes('credentialSha256'), false)
   assert.equal(enqueuedBytes.includes('Bearer '), false)
   assert.equal(enqueuedBytes.includes('/Users/'), false)
   assert.equal(enqueuedBytes.includes('signedUrl'), false)
@@ -142,7 +139,6 @@ try {
   service = createService(context)
   const replayedEnqueue = await service.enqueueApprovedAttempt({
     jobId: 'job_cloud_dispatch_cpu',
-    packageDeliveryAttempt: 1,
   })
   assert.equal(replayedEnqueue.disposition, 'exact_replay')
   assert.equal(await readFile(outboxPath, 'utf8'), enqueuedBytes)
@@ -281,16 +277,25 @@ try {
   assert.equal(evidence.workerExecutionAuthorized, false)
   assert.equal(evidence.processBrandedVerifiedIdentityRequired, true)
   assert.equal(evidence.cryptographicJwksVerifierCoreAvailable, true)
+  assert.equal(evidence.packageAttemptSelectedByServer, true)
+  assert.equal(evidence.cooperativeCrossProcessPackageLockVerified, true)
+  assert.equal(evidence.singleHostCrashConsistentQueueClaimAndOutboxCommitVerified, true)
+  assert.equal(evidence.committedTransactionRecoveryVerified, true)
+  assert.equal(evidence.crossProcessAtomicClaimProven, true)
 
   const queueAfter = await readPrivateCanonicalPackageWorkQueue({
     scope: queueScope,
     definition: queueDefinition,
   })
-  assert.equal(queueAfter?.aggregateHash, queueBefore.aggregateHash)
+  assert.notEqual(queueAfter?.aggregateHash, queueBefore.aggregateHash)
   assert.equal(queueAfter?.summary.totalDeliveryAttemptCount, 1)
+  assert.equal(
+    queueAfter?.entries[0]?.activeClaim?.claimId,
+    enqueued.outboxEntry.immutable.queueClaimId,
+  )
 
   const terminalBytes = await readFile(outboxPath, 'utf8')
-  assert.equal(terminalBytes.includes(claim.claimCredential), false)
+  assert.equal(terminalBytes.includes('credentialSha256'), false)
   assert.equal(terminalBytes.includes(controllerAudience), false)
   assert.equal(terminalBytes.includes(workerAudience), false)
   assert.equal(terminalBytes.includes('rawBearerToken'), true)
@@ -327,14 +332,14 @@ try {
   console.log(JSON.stringify({
     ok: true,
     checks: [
-      'one_active_package_queue_attempt_creates_one_durable_outbox_entry',
+      'one_server_selected_package_queue_attempt_and_outbox_entry_commit_together',
       'restart_and_concurrent_task_redelivery_replay_without_another_attempt',
       'controller_requires_exact_issuer_principal_audience_expiry_task_and_outbox_binding',
       'worker_requires_exact_controller_receipt_workload_identity_and_attempt_binding',
       'controller_and_worker_accept_only_process_branded_cryptographically_verified_identity',
       'forged_principal_audience_task_worker_and_persistence_bytes_fail_closed',
       'outbox_persists_no_raw_bearer_claim_credential_media_prompt_path_or_signed_url',
-      'receiver_does_not_mutate_package_queue_or_start_cloud_job_tool_media_or_network_work',
+      'receiver_atomically_claims_queue_without_starting_cloud_job_tool_media_or_network_work',
       'distributed_transaction_live_google_oidc_iam_cloud_and_production_remain_false',
     ],
     summary: {

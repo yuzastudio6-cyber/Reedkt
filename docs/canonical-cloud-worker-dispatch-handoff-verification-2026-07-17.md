@@ -198,7 +198,11 @@ implemented and verified by
 `docs/canonical-cloud-dispatch-outbox-receiver-verification-2026-07-17.md`.
 It proves checksum-protected single-host durability, restart recovery,
 idempotent redelivery, and exact identity/attempt contracts without live Google
-verification or cloud calls. A follow-up cryptographic verifier now proves
+verification or cloud calls. The queue claim and outbox insert now additionally
+share one package-scoped cross-process write-ahead commit with real
+process-exit recovery; see
+`docs/canonical-private-package-state-transaction-verification-2026-07-17.md`.
+A follow-up cryptographic verifier proves
 RS256, bounded JWKS, issuer, audience, principal, timing, and process-only trust
 handoff with a local signed fixture; see
 `docs/canonical-service-identity-verifier-verification-2026-07-17.md`. The

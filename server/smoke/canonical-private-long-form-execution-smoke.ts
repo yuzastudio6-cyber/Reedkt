@@ -478,7 +478,7 @@ assert.equal(queueAttempts.every((queue) =>
   !queue.plaintextClaimCredentialsPersisted &&
   queue.claimCredentialDigestsPersisted &&
   !queue.browserClaimAllowed &&
-  !queue.crossProcessAtomicClaimProven &&
+  queue.crossProcessAtomicClaimProven &&
   !queue.distributedTransactionProven &&
   !queue.cloudServiceIdentityVerified &&
   !queue.cloudDispatchAuthorized &&

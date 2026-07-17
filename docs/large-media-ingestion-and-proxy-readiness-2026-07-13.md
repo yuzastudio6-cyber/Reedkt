@@ -108,9 +108,13 @@ object bytes, and consumes zero attempts. This prevents a 100 GiB, 1 TiB, or
 other huge source from entering the current full-stage implementation on an
 undersized worker. A process-local reservation also prevents concurrent jobs on
 that worker from each spending the same observed free bytes; it is released
-after the leased attempt ends. This is admission safety, not proof that a
-distributed deployment has shared capacity reservations, the advertised disk,
-I/O throughput, quota, or lifecycle behavior.
+after the leased attempt ends. The fixed 8 GiB minimum is one shared filesystem
+safety floor, not a separate 8 GiB allocation per attempt: concurrent attempts
+accumulate their exact staging-copy bytes, and every new admission still must
+leave its own full source copy plus the shared floor after existing staging
+reservations. This is admission safety, not proof that a distributed deployment
+has shared capacity reservations, the advertised disk, I/O throughput, quota,
+or lifecycle behavior.
 
 Cloud Storage documents that resumable chunks must be multiples of 256 KiB,
 recommends at least 8 MiB, returns `308 Resume Incomplete` with a committed
@@ -179,6 +183,15 @@ capacity math, adaptive task budgets, and the unchanged 16 MiB local raw
 boundary. The media-foundation smoke also executes a real local SDR fixture and
 independently probes the resulting bounded Rec.709 proxy.
 It allocates only a small synthetic file and does not contact GCS.
+
+The 2026-07-17 capacity regression adds a deterministic shared-floor boundary:
+with 9 GiB available, sixteen 64 MiB staging reservations are admitted while a
+seventeenth is refused because it would consume the remaining 8 GiB floor. The
+same exact code then completed the signed-in maximum-eight-source private graph
+at `27/27` jobs and the full v9 internal aggregate at `32/32`. This corrects
+artificial per-attempt multiplication of the safety floor; it does not weaken
+the one-full-source-copy-plus-headroom requirement or prove distributed disk
+admission.
 
 The background-finalization smoke additionally proves authenticated enqueue and
 poll routes, durable domain idempotency/conflict behavior, fresh-instance

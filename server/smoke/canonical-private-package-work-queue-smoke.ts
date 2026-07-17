@@ -324,7 +324,7 @@ try {
   assert.equal(finalAggregate.boundaries.plaintextClaimCredentialsPersisted, false)
   assert.equal(finalAggregate.boundaries.claimCredentialDigestsPersisted, true)
   assert.equal(finalAggregate.boundaries.browserClaimAllowed, false)
-  assert.equal(finalAggregate.boundaries.crossProcessAtomicClaimProven, false)
+  assert.equal(finalAggregate.boundaries.crossProcessAtomicClaimProven, true)
   assert.equal(finalAggregate.boundaries.distributedTransactionProven, false)
   assert.equal(finalAggregate.boundaries.cloudServiceIdentityVerified, false)
   assert.equal(finalAggregate.boundaries.cloudDispatchAuthorized, false)
@@ -395,7 +395,7 @@ try {
     checks: [
       'immutable_snapshot_and_resource_placement_queue_definition',
       'dependency_capability_schedule_and_worker_type_admission',
-      'one_process_local_active_claim_and_opaque_credential',
+      'one_cross_process_single_host_active_claim_and_opaque_credential',
       'timing_safe_credential_bound_heartbeat_completion_and_release',
       'read_only_idempotent_terminal_replay',
       'host_restart_completed_job_replay_without_execution',

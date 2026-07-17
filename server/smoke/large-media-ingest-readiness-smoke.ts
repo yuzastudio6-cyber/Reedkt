@@ -477,6 +477,26 @@ const capacityReservationAfterRelease = reserveLargeMediaWorkerCapacity({
 })
 assert.equal(capacityReservationAfterRelease.acquired, true)
 capacityReservationAfterRelease.release()
+
+const sharedSafetyFloorAssessment = assessLargeMediaFinalizationCapacity({
+  expectedSourceBytes: 64 * 1024 ** 2,
+  availableBytes: 9 * 1024 ** 3,
+})
+const sharedSafetyFloorReservations = Array.from({ length: 16 }, () =>
+  reserveLargeMediaWorkerCapacity({
+    filesystemPath: '/private/shared-safety-floor-worker-root',
+    assessment: sharedSafetyFloorAssessment,
+  }))
+assert.equal(
+  sharedSafetyFloorReservations.every((reservation) => reservation.acquired),
+  true,
+)
+const sharedSafetyFloorOverflow = reserveLargeMediaWorkerCapacity({
+  filesystemPath: '/private/shared-safety-floor-worker-root',
+  assessment: sharedSafetyFloorAssessment,
+})
+assert.equal(sharedSafetyFloorOverflow.acquired, false)
+for (const reservation of sharedSafetyFloorReservations) reservation.release()
 clearLargeMediaWorkerCapacityReservationsForSmoke()
 evidence.concurrent_local_jobs_cannot_double_reserve_the_same_worker_capacity = true
 

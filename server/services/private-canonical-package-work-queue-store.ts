@@ -22,12 +22,17 @@ import {
   type CanonicalPrivatePackageWorkQueueRelease,
 } from '../validation/canonical-private-package-work-queue-schemas'
 import { sha256AuthorityValue, stableAuthorityStringify } from './private-edit-authority-store'
+import {
+  assertCanonicalPrivatePackageStateLockAuthority,
+  canonicalPrivatePackageStatePaths,
+  withCanonicalPrivatePackageStateLock,
+  type CanonicalPrivatePackageStateLockAuthority,
+} from './private-canonical-package-state-transaction'
 
 const STORE_RECORD_VERSION = 'private-canonical-package-work-queue-record-v1' as const
 const STORE_RECORD_SOURCE = 'private_canonical_package_work_queue_store' as const
 const MAX_AGGREGATE_BYTES = 8 * 1024 * 1024
 const MAX_QUEUE_EVENTS = 8_192
-const queueLocks = new Map<string, Promise<void>>()
 
 export interface CanonicalPrivatePackageWorkQueueStoreScope {
   localStorageRoot: string
@@ -68,7 +73,7 @@ export type CanonicalPrivatePackageWorkQueueClaimResult =
     }
 
 export function clearPrivateCanonicalPackageWorkQueueProcessStateForSmoke(): void {
-  queueLocks.clear()
+  // Filesystem-backed package locks have no process cache to clear.
 }
 
 export async function ensurePrivateCanonicalPackageWorkQueue(input: {
@@ -78,31 +83,38 @@ export async function ensurePrivateCanonicalPackageWorkQueue(input: {
 }): Promise<{ aggregate: CanonicalPrivatePackageWorkQueueAggregate; created: boolean }> {
   assertScope(input.scope)
   assertDefinitionScope(input.scope, input.definition)
-  const path = canonicalPrivatePackageWorkQueueAggregateRelativePath(input.scope)
-  return withQueueLock(path, async () => {
-    const existing = await readQueueAggregate(input.scope, input.definition)
-    if (existing) return { aggregate: existing, created: false }
-    const createdAt = validTimestamp(input.now ?? new Date().toISOString(), 'queue creation')
-    const entries = input.definition.jobs.map((definition) => createQueuedEntry(definition, createdAt))
-    const queueCreated = createEvent({
-      priorEvents: [],
-      eventType: 'queue_created',
-      at: createdAt,
-    })
-    const aggregate = finalizeAggregate({
-      schemaVersion: CANONICAL_PRIVATE_PACKAGE_WORK_QUEUE_AGGREGATE_VERSION,
-      source: 'private_canonical_package_work_queue_store',
-      ownerUserId: input.scope.ownerUserId,
-      definitionHash: input.definition.definitionHash,
-      identity: { ...input.definition.identity },
-      entries,
-      events: [queueCreated],
-      boundaries: queueBoundaries(),
-      createdAt,
-      updatedAt: createdAt,
-    })
-    await persistQueueAggregate(input.scope, aggregate)
-    return { aggregate, created: true }
+  return withCanonicalPrivatePackageStateLock({
+    scope: input.scope,
+    operation: async (lockAuthority) => {
+      const existing = await readPrivateCanonicalPackageWorkQueueForPackageStateTransaction(
+        lockAuthority,
+        input.scope,
+        input.definition,
+      )
+      if (existing) return { aggregate: existing, created: false }
+      const createdAt = validTimestamp(input.now ?? new Date().toISOString(), 'queue creation')
+      const entries = input.definition.jobs.map((definition) =>
+        createQueuedEntry(definition, createdAt))
+      const queueCreated = createEvent({
+        priorEvents: [],
+        eventType: 'queue_created',
+        at: createdAt,
+      })
+      const aggregate = finalizeAggregate({
+        schemaVersion: CANONICAL_PRIVATE_PACKAGE_WORK_QUEUE_AGGREGATE_VERSION,
+        source: 'private_canonical_package_work_queue_store',
+        ownerUserId: input.scope.ownerUserId,
+        definitionHash: input.definition.definitionHash,
+        identity: { ...input.definition.identity },
+        entries,
+        events: [queueCreated],
+        boundaries: queueBoundaries(),
+        createdAt,
+        updatedAt: createdAt,
+      })
+      await persistQueueAggregate(input.scope, aggregate)
+      return { aggregate, created: true }
+    },
   })
 }
 
@@ -112,7 +124,15 @@ export async function readPrivateCanonicalPackageWorkQueue(input: {
 }): Promise<CanonicalPrivatePackageWorkQueueAggregate | undefined> {
   assertScope(input.scope)
   assertDefinitionScope(input.scope, input.definition)
-  return readQueueAggregate(input.scope, input.definition)
+  return withCanonicalPrivatePackageStateLock({
+    scope: input.scope,
+    operation: async (lockAuthority) =>
+      readPrivateCanonicalPackageWorkQueueForPackageStateTransaction(
+        lockAuthority,
+        input.scope,
+        input.definition,
+      ),
+  })
 }
 
 export async function claimPrivateCanonicalPackageWorkQueueJob(input: {
@@ -127,94 +147,35 @@ export async function claimPrivateCanonicalPackageWorkQueueJob(input: {
   const now = validTimestamp(input.now, 'queue claim')
   assertWorkerIdentity(input.workerIdentity)
   assertLeaseDuration(input.leaseDurationMs)
-  return mutateQueue(input.scope, input.definition, now, (aggregate) => {
-    expireClaims(aggregate, now)
-    const entry = requiredEntry(aggregate, input.jobId)
-    if (entry.definition.workerType !== input.workerType) {
-      throw new ApiError(
-        'WORKER_CLAIM_CONFLICT',
-        'Canonical queue worker type does not match immutable resource placement.',
-        409,
-      )
-    }
-    if (entry.state === 'completed') {
-      return {
-        disposition: 'completed' as const,
-        entry,
-        outcome: entry.completion!.outcome,
-      }
-    }
-    if (entry.state === 'leased') {
-      return { disposition: 'already_leased' as const, entry }
-    }
-    if (entry.deliveryAttemptCount >= entry.definition.maxAttempts) {
-      return { disposition: 'attempts_exhausted' as const, entry }
-    }
-    if (!entry.definition.privateExecutionReady) {
-      return { disposition: 'capability_blocked' as const, entry }
-    }
-    if (Date.parse(entry.definition.scheduledFor) > Date.parse(now)) {
-      return { disposition: 'scheduled_wait' as const, entry }
-    }
-    const completedJobIds = new Set(aggregate.entries
-      .filter((candidate) => candidate.state === 'completed')
-      .map((candidate) => candidate.definition.jobId))
-    if (entry.definition.dependencyJobIds.some((dependencyJobId) =>
-      !completedJobIds.has(dependencyJobId))) {
-      return { disposition: 'dependency_blocked' as const, entry }
-    }
+  return mutateQueue(input.scope, input.definition, now, (aggregate) =>
+    applyQueueClaimMutation(aggregate, { ...input, now }))
+}
 
-    const claimCredential = randomBytes(32).toString('base64url')
-    const claimId = `queue_claim_${randomUUID()}`
-    const deliveryAttempt = entry.deliveryAttemptCount + 1
-    const attemptDeadlineAt = new Date(
-      Date.parse(now) + entry.definition.attemptTimeoutSeconds * 1_000,
-    ).toISOString()
-    const expiresAt = new Date(Math.min(
-      Date.parse(now) + input.leaseDurationMs,
-      Date.parse(attemptDeadlineAt),
-    )).toISOString()
-    const claimWithoutHash = {
-      claimId,
-      credentialSha256: sha256Text(claimCredential),
-      workerIdentityHash: sha256AuthorityValue({
-        domain: 'reeditpro:canonical-private-package-work-queue-worker:v1',
-        workerIdentity: input.workerIdentity,
-      }),
-      workerType: entry.definition.workerType,
-      resourceClassId: entry.definition.resourceClassId,
-      placementHash: entry.definition.placementHash,
-      deliveryAttempt,
-      claimedAt: now,
-      heartbeatAt: now,
-      heartbeatCount: 0,
-      expiresAt,
-      attemptDeadlineAt,
-    }
-    const claim: CanonicalPrivatePackageWorkQueueClaim = {
-      ...claimWithoutHash,
-      claimHash: sha256AuthorityValue(claimWithoutHash),
-    }
-    entry.state = 'leased'
-    entry.deliveryAttemptCount = deliveryAttempt
-    entry.activeClaim = claim
-    entry.completion = undefined
-    entry.lastRelease = undefined
-    touchEntry(entry, now)
-    appendEvent(aggregate, {
-      eventType: 'job_claimed',
-      jobId: entry.definition.jobId,
-      claimId,
-      at: now,
-    })
-    return {
-      disposition: 'claimed' as const,
-      entry: entry as CanonicalPrivatePackageWorkQueueEntry & {
-        activeClaim: CanonicalPrivatePackageWorkQueueClaim
-      },
-      claimCredential,
-    }
-  })
+export function preparePrivateCanonicalPackageWorkQueueJobClaim(input: {
+  aggregate: CanonicalPrivatePackageWorkQueueAggregate
+  definition: CanonicalPrivatePackageWorkQueueDefinition
+  jobId: string
+  workerIdentity: string
+  workerType: CanonicalPrivatePackageWorkQueueJobDefinition['workerType']
+  now: string
+  leaseDurationMs: number
+}): CanonicalPrivatePackageWorkQueueClaimResult {
+  const now = validTimestamp(input.now, 'queue claim')
+  assertWorkerIdentity(input.workerIdentity)
+  assertLeaseDuration(input.leaseDurationMs)
+  const aggregate = structuredClone(input.aggregate)
+  const before = structuredClone(aggregate)
+  const value = applyQueueClaimMutation(aggregate, { ...input, now })
+  assertCompletedEntriesImmutable(before, aggregate)
+  const finalized = stableAuthorityStringify(before) === stableAuthorityStringify(aggregate)
+    ? aggregate
+    : finalizeAggregate({
+        ...aggregate,
+        updatedAt: now,
+        aggregateHash: undefined,
+        summary: undefined,
+      })
+  return { ...value, aggregate: finalized } as CanonicalPrivatePackageWorkQueueClaimResult
 }
 
 export async function heartbeatPrivateCanonicalPackageWorkQueueClaim(input: {
@@ -350,15 +311,7 @@ export function canonicalPrivatePackageWorkQueueAggregateRelativePath(
   scope: CanonicalPrivatePackageWorkQueueStoreScope,
 ): string {
   assertScope(scope)
-  const tenantHash = sha256Text(`${scope.ownerUserId}\u0000${scope.workspaceId}`).slice(0, 32)
-  const packageHash = sha256Text([
-    tenantHash,
-    scope.projectId,
-    scope.editSessionId,
-    scope.packageRecordId,
-    scope.approvedPlanSnapshotId,
-  ].join('\u0000'))
-  return `private-internal/canonical-package-work-queues/v1/${tenantHash}/${packageHash}.json`
+  return canonicalPrivatePackageStatePaths(scope).queueRelativePath
 }
 
 async function mutateQueue<T extends { disposition: string }>(
@@ -369,31 +322,137 @@ async function mutateQueue<T extends { disposition: string }>(
 ): Promise<T & { aggregate: CanonicalPrivatePackageWorkQueueAggregate }> {
   assertScope(scope)
   assertDefinitionScope(scope, definition)
-  const path = canonicalPrivatePackageWorkQueueAggregateRelativePath(scope)
-  return withQueueLock(path, async () => {
-    const current = await readQueueAggregate(scope, definition)
-    if (!current) throw invalidQueue('Canonical package work queue has not been created.')
-    const before = structuredClone(current)
-    const value = mutation(current)
-    assertCompletedEntriesImmutable(before, current)
-    if (stableAuthorityStringify(before) === stableAuthorityStringify(current)) {
-      return { ...value, aggregate: current }
-    }
-    const aggregate = finalizeAggregate({
-      ...current,
-      updatedAt: now,
-      aggregateHash: undefined,
-      summary: undefined,
-    })
-    await persistQueueAggregate(scope, aggregate)
-    return { ...value, aggregate }
+  return withCanonicalPrivatePackageStateLock({
+    scope,
+    operation: async (lockAuthority) => {
+      const current = await readPrivateCanonicalPackageWorkQueueForPackageStateTransaction(
+        lockAuthority,
+        scope,
+        definition,
+      )
+      if (!current) throw invalidQueue('Canonical package work queue has not been created.')
+      const before = structuredClone(current)
+      const value = mutation(current)
+      assertCompletedEntriesImmutable(before, current)
+      if (stableAuthorityStringify(before) === stableAuthorityStringify(current)) {
+        return { ...value, aggregate: current }
+      }
+      const aggregate = finalizeAggregate({
+        ...current,
+        updatedAt: now,
+        aggregateHash: undefined,
+        summary: undefined,
+      })
+      await persistQueueAggregate(scope, aggregate)
+      return { ...value, aggregate }
+    },
   })
 }
 
-async function readQueueAggregate(
+function applyQueueClaimMutation(
+  aggregate: CanonicalPrivatePackageWorkQueueAggregate,
+  input: {
+    jobId: string
+    workerIdentity: string
+    workerType: CanonicalPrivatePackageWorkQueueJobDefinition['workerType']
+    now: string
+    leaseDurationMs: number
+  },
+) {
+  expireClaims(aggregate, input.now)
+  const entry = requiredEntry(aggregate, input.jobId)
+  if (entry.definition.workerType !== input.workerType) {
+    throw new ApiError(
+      'WORKER_CLAIM_CONFLICT',
+      'Canonical queue worker type does not match immutable resource placement.',
+      409,
+    )
+  }
+  if (entry.state === 'completed') {
+    return {
+      disposition: 'completed' as const,
+      entry,
+      outcome: entry.completion!.outcome,
+    }
+  }
+  if (entry.state === 'leased') {
+    return { disposition: 'already_leased' as const, entry }
+  }
+  if (entry.deliveryAttemptCount >= entry.definition.maxAttempts) {
+    return { disposition: 'attempts_exhausted' as const, entry }
+  }
+  if (!entry.definition.privateExecutionReady) {
+    return { disposition: 'capability_blocked' as const, entry }
+  }
+  if (Date.parse(entry.definition.scheduledFor) > Date.parse(input.now)) {
+    return { disposition: 'scheduled_wait' as const, entry }
+  }
+  const completedJobIds = new Set(aggregate.entries
+    .filter((candidate) => candidate.state === 'completed')
+    .map((candidate) => candidate.definition.jobId))
+  if (entry.definition.dependencyJobIds.some((dependencyJobId) =>
+    !completedJobIds.has(dependencyJobId))) {
+    return { disposition: 'dependency_blocked' as const, entry }
+  }
+
+  const claimCredential = randomBytes(32).toString('base64url')
+  const claimId = `queue_claim_${randomUUID()}`
+  const deliveryAttempt = entry.deliveryAttemptCount + 1
+  const attemptDeadlineAt = new Date(
+    Date.parse(input.now) + entry.definition.attemptTimeoutSeconds * 1_000,
+  ).toISOString()
+  const expiresAt = new Date(Math.min(
+    Date.parse(input.now) + input.leaseDurationMs,
+    Date.parse(attemptDeadlineAt),
+  )).toISOString()
+  const claimWithoutHash = {
+    claimId,
+    credentialSha256: sha256Text(claimCredential),
+    workerIdentityHash: sha256AuthorityValue({
+      domain: 'reeditpro:canonical-private-package-work-queue-worker:v1',
+      workerIdentity: input.workerIdentity,
+    }),
+    workerType: entry.definition.workerType,
+    resourceClassId: entry.definition.resourceClassId,
+    placementHash: entry.definition.placementHash,
+    deliveryAttempt,
+    claimedAt: input.now,
+    heartbeatAt: input.now,
+    heartbeatCount: 0,
+    expiresAt,
+    attemptDeadlineAt,
+  }
+  const claim: CanonicalPrivatePackageWorkQueueClaim = {
+    ...claimWithoutHash,
+    claimHash: sha256AuthorityValue(claimWithoutHash),
+  }
+  entry.state = 'leased'
+  entry.deliveryAttemptCount = deliveryAttempt
+  entry.activeClaim = claim
+  entry.completion = undefined
+  entry.lastRelease = undefined
+  touchEntry(entry, input.now)
+  appendEvent(aggregate, {
+    eventType: 'job_claimed',
+    jobId: entry.definition.jobId,
+    claimId,
+    at: input.now,
+  })
+  return {
+    disposition: 'claimed' as const,
+    entry: entry as CanonicalPrivatePackageWorkQueueEntry & {
+      activeClaim: CanonicalPrivatePackageWorkQueueClaim
+    },
+    claimCredential,
+  }
+}
+
+export async function readPrivateCanonicalPackageWorkQueueForPackageStateTransaction(
+  lockAuthority: CanonicalPrivatePackageStateLockAuthority,
   scope: CanonicalPrivatePackageWorkQueueStoreScope,
   definition: CanonicalPrivatePackageWorkQueueDefinition,
 ): Promise<CanonicalPrivatePackageWorkQueueAggregate | undefined> {
+  assertCanonicalPrivatePackageStateLockAuthority({ lockAuthority, scope })
   const content = await readPrivateTextFileIfExistsWithinRoot({
     rootPath: scope.localStorageRoot,
     relativePath: canonicalPrivatePackageWorkQueueAggregateRelativePath(scope),
@@ -429,12 +488,24 @@ async function persistQueueAggregate(
   scope: CanonicalPrivatePackageWorkQueueStoreScope,
   aggregate: CanonicalPrivatePackageWorkQueueAggregate,
 ): Promise<void> {
+  const content = serializePrivateCanonicalPackageWorkQueueAggregate({ scope, aggregate })
+  await writePrivateTextFileAtomicWithinRoot({
+    rootPath: scope.localStorageRoot,
+    relativePath: canonicalPrivatePackageWorkQueueAggregateRelativePath(scope),
+    content,
+  })
+}
+
+export function serializePrivateCanonicalPackageWorkQueueAggregate(input: {
+  scope: CanonicalPrivatePackageWorkQueueStoreScope
+  aggregate: CanonicalPrivatePackageWorkQueueAggregate
+}): string {
   const envelope: PersistedQueueEnvelope = {
     recordVersion: STORE_RECORD_VERSION,
     source: STORE_RECORD_SOURCE,
-    ownerUserId: scope.ownerUserId,
-    aggregate,
-    checksumSha256: sha256AuthorityValue(aggregate),
+    ownerUserId: input.scope.ownerUserId,
+    aggregate: input.aggregate,
+    checksumSha256: sha256AuthorityValue(input.aggregate),
   }
   const content = `${stableAuthorityStringify(envelope)}\n`
   if (Buffer.byteLength(content, 'utf8') > MAX_AGGREGATE_BYTES) {
@@ -444,11 +515,16 @@ async function persistQueueAggregate(
       503,
     )
   }
-  await writePrivateTextFileAtomicWithinRoot({
-    rootPath: scope.localStorageRoot,
-    relativePath: canonicalPrivatePackageWorkQueueAggregateRelativePath(scope),
-    content,
-  })
+  return content
+}
+
+export async function persistPrivateCanonicalPackageWorkQueueForPackageStateTransaction(
+  lockAuthority: CanonicalPrivatePackageStateLockAuthority,
+  scope: CanonicalPrivatePackageWorkQueueStoreScope,
+  aggregate: CanonicalPrivatePackageWorkQueueAggregate,
+): Promise<void> {
+  assertCanonicalPrivatePackageStateLockAuthority({ lockAuthority, scope })
+  await persistQueueAggregate(scope, aggregate)
 }
 
 function finalizeAggregate(input: Omit<CanonicalPrivatePackageWorkQueueAggregate, 'summary' | 'aggregateHash'> & {
@@ -750,26 +826,11 @@ function queueBoundaries() {
     plaintextClaimCredentialsPersisted: false as const,
     claimCredentialDigestsPersisted: true as const,
     browserClaimAllowed: false as const,
-    crossProcessAtomicClaimProven: false as const,
+    crossProcessAtomicClaimProven: true as const,
     distributedTransactionProven: false as const,
     cloudServiceIdentityVerified: false as const,
     cloudDispatchAuthorized: false as const,
     productionAuthority: false as const,
-  }
-}
-
-async function withQueueLock<T>(key: string, operation: () => Promise<T>): Promise<T> {
-  const previous = queueLocks.get(key) ?? Promise.resolve()
-  let release!: () => void
-  const current = new Promise<void>((resolve) => { release = resolve })
-  const tail = previous.catch(() => undefined).then(() => current)
-  queueLocks.set(key, tail)
-  await previous.catch(() => undefined)
-  try {
-    return await operation()
-  } finally {
-    release()
-    if (queueLocks.get(key) === tail) queueLocks.delete(key)
   }
 }
 

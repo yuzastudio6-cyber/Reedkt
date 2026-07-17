@@ -88,31 +88,33 @@ worker receipt state machine while caller-authored evidence is rejected.
 
 ## Aggregate Verification
 
-The exact-code canonical private pipeline passed all `25/25` stages with exit
-code `0` under schema `canonical-private-pipeline-verification-v8`:
+The exact-code canonical private pipeline passed all `26/26` stages with exit
+code `0` under schema `canonical-private-pipeline-verification-v9`:
 
-- started: `2026-07-17T06:50:34.211Z`;
-- finished: `2026-07-17T07:12:09.665Z`;
-- duration: `1,295,454 ms`;
-- 50-tool cloud handoff: `446 ms`;
-- cryptographic service identity: `400 ms`;
-- durable outbox receivers: `521 ms`;
-- three-source composition: `555,203 ms`;
-- professional color: `601,705 ms`;
-- UHD Remotion streaming: `98,807 ms`; and
-- canonical named-edit UI: `11/11` tests in `16,319 ms`.
+- started: `2026-07-17T10:53:30.311Z`;
+- finished: `2026-07-17T11:14:32.796Z`;
+- duration: `1,262,485 ms`;
+- package-state transaction: `2,072 ms`;
+- 50-tool cloud handoff: `394 ms`;
+- cryptographic service identity: `380 ms`;
+- durable outbox receivers: `768 ms`;
+- three-source composition: `512,451 ms`;
+- professional color: `614,743 ms`;
+- UHD Remotion streaming: `98,315 ms`; and
+- canonical named-edit UI: `11/11` tests in `14,083 ms`.
 
-The broader internal regression then passed all `31/31` stages with exit code
-`0` under the same v8 schema:
+The broader exact-code internal regression then passed all `32/32` stages with
+exit code `0` under the same v9 schema:
 
-- started: `2026-07-17T07:12:17.250Z`;
-- finished: `2026-07-17T07:39:21.755Z`;
-- duration: `1,624,505 ms`;
-- 50-tool cloud handoff: `429 ms`;
-- cryptographic service identity: `541 ms`;
-- durable outbox receivers: `552 ms`;
-- canonical named-edit UI: `11/11` tests in `14,520 ms`; and
-- maximum-eight-source signed-in review: `360,277 ms`.
+- started: `2026-07-17T11:14:45.729Z`;
+- finished: `2026-07-17T11:42:08.792Z`;
+- duration: `1,643,063 ms`;
+- package-state transaction: `2,096 ms`;
+- 50-tool cloud handoff: `400 ms`;
+- cryptographic service identity: `385 ms`;
+- durable outbox receivers: `749 ms`;
+- canonical named-edit UI: `11/11` tests in `15,371 ms`; and
+- maximum-eight-source signed-in review: `357,731 ms`.
 
 The final signed-in stage completed all `27` server-derived work items and
 jobs, produced and authenticated a `3840x2160`, `16`-second private review,
@@ -132,7 +134,8 @@ The following remain false:
 - Cloud Tasks OIDC configuration and Cloud Run Invoker IAM;
 - workload-identity token acquisition from the Cloud Run metadata server;
 - deployed controller and worker receiver endpoints;
-- distributed package-queue/outbox transaction and multi-replica locking;
+- distributed package-queue/outbox transaction and multi-replica locking (the
+  cooperative single-host write-ahead transaction is separately proven);
 - worker bootstrap, tool execution, completion, QA, and reconciliation through
   the Cloud dispatch path;
 - provider activation, billing/wallet mutation, remote Supabase, deployment,
@@ -160,4 +163,5 @@ including key rotation, cache-control handling, outage behavior, token-source
 headers, and controlled staging tokens. That live adapter must be constructed
 outside request JSON and combined with the still-gated distributed
 package-queue/outbox transaction before any receiver route or Cloud dispatch is
-enabled.
+enabled. The private same-host precursor is documented in
+`docs/canonical-private-package-state-transaction-verification-2026-07-17.md`.

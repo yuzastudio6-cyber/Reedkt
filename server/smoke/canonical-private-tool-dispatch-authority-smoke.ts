@@ -3037,6 +3037,26 @@ assert.equal(terminalWorkGraph.summary.totalJobCount, terminalReviewRequiredJobC
 assert.equal(terminalWorkGraph.summary.completedJobCount, terminalReviewRequiredJobCount)
 assert.equal(terminalWorkGraph.summary.requiredBlockedJobCount, 0)
 assert.equal(terminalWorkGraph.summary.allRequiredJobsCompleted, true)
+assert.equal(terminalWorkGraph.schemaVersion, 'canonical-private-work-graph-run-response-v3')
+assert.ok(terminalWorkGraph.queue)
+assert.equal(terminalWorkGraph.queue.totalJobCount, terminalReviewRequiredJobCount)
+assert.equal(terminalWorkGraph.queue.completedJobCount, terminalReviewRequiredJobCount)
+assert.equal(terminalWorkGraph.queue.queuedJobCount, 0)
+assert.equal(terminalWorkGraph.queue.leasedJobCount, 0)
+assert.equal(terminalWorkGraph.queue.recoveredCompletedJobCount, 0)
+assert.equal(terminalWorkGraph.queue.claimedJobCount, terminalReviewRequiredJobCount)
+assert.equal(terminalWorkGraph.queue.claimCompletionCount, terminalReviewRequiredJobCount)
+assert.equal(terminalWorkGraph.queue.claimReleaseCount, 0)
+assert.equal(terminalWorkGraph.queue.hostRestartRecoveryAvailable, true)
+assert.equal(terminalWorkGraph.queue.completedJobReplayWithoutExecution, true)
+assert.equal(terminalWorkGraph.queue.plaintextClaimCredentialsPersisted, false)
+assert.equal(terminalWorkGraph.queue.claimCredentialDigestsPersisted, true)
+assert.equal(terminalWorkGraph.queue.browserClaimAllowed, false)
+assert.equal(terminalWorkGraph.queue.crossProcessAtomicClaimProven, false)
+assert.equal(terminalWorkGraph.queue.distributedTransactionProven, false)
+assert.equal(terminalWorkGraph.queue.cloudServiceIdentityVerified, false)
+assert.equal(terminalWorkGraph.queue.cloudDispatchAuthorized, false)
+assert.equal(terminalWorkGraph.queue.productionAuthority, false)
 assert.equal(terminalWorkGraph.readiness.privateInternalWorkGraphCompleted, true)
 assert.equal(terminalWorkGraph.readiness.privateReviewReady, false)
 assert.equal(terminalWorkGraph.readiness.nextRequiredGate, 'canonical_terminal_private_review_assembly')
@@ -3085,6 +3105,23 @@ const terminalWorkGraphSecondKey = await createCanonicalPrivateWorkGraphOrchestr
 })
 assert.equal(terminalWorkGraphSecondKey.summary.allRequiredJobsCompleted, true)
 assert.equal(terminalWorkGraphSecondKey.summary.replayedJobCount, terminalReviewRequiredJobCount)
+assert.ok(terminalWorkGraphSecondKey.queue)
+assert.equal(
+  terminalWorkGraphSecondKey.queue.definitionHash,
+  terminalWorkGraph.queue.definitionHash,
+)
+assert.equal(
+  terminalWorkGraphSecondKey.queue.aggregateHash,
+  terminalWorkGraph.queue.aggregateHash,
+)
+assert.equal(
+  terminalWorkGraphSecondKey.queue.recoveredCompletedJobCount,
+  terminalReviewRequiredJobCount,
+)
+assert.equal(terminalWorkGraphSecondKey.queue.claimedJobCount, 0)
+assert.equal(terminalWorkGraphSecondKey.queue.claimCompletionCount, 0)
+assert.equal(terminalWorkGraphSecondKey.queue.claimReleaseCount, 0)
+assert.equal(terminalWorkGraphSecondKey.scheduling?.actualExecutionCount, 0)
 assert.notEqual(terminalWorkGraphSecondKey.responseHash, terminalWorkGraph.responseHash)
 const terminalWorkGraphProgressAfterSecondKey = await terminalCompletionService.findLatestProgress({
   workspaceId,
@@ -4383,6 +4420,8 @@ console.log(JSON.stringify({
     'dependency_bound_final_ffprobe_reads_the_private_final_mp4_and_passes_exact_h264_aac_frame_duration_qa',
     'canonical_job_adapter_replays_final_artifact_qa_without_a_second_ffprobe_execution',
     'eight_job_canonical_work_graph_completes_snapshot_trim_two_captions_two_voice_tracks_final_composition_and_final_qa',
+    'durable_package_queue_completes_all_eight_jobs_with_zero_queued_or_leased_entries',
+    'fresh_work_graph_service_recovers_all_eight_terminal_jobs_without_adapter_execution',
     'package_scoped_required_work_completion_is_create_only_restart_recoverable_and_authority_bound',
     'package_scoped_progress_checkpoint_is_restart_recoverable_and_terminally_complete',
     'different_work_graph_run_key_reuses_first_package_completion_certificate_without_replacement',

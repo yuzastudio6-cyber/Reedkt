@@ -20,6 +20,7 @@ import type {
 } from '../validation/canonical-private-work-graph-progress-schemas'
 import { createCanonicalEditExecutionPackageService } from './canonical-edit-execution-package-service'
 import { createCanonicalPrivateJobExecutionAdapterService } from './canonical-private-job-execution-adapter-service'
+import { createCanonicalPrivatePackageWorkQueueService } from './canonical-private-package-work-queue-service'
 import {
   createCanonicalPrivateResourceSchedulingEvidence,
   executeCanonicalPrivateResourceWave,
@@ -186,23 +187,36 @@ export function createCanonicalPrivateWorkGraphOrchestratorService(context: Serv
           throw new ApiError('VALIDATION_FAILED', 'Canonical package job graph has invalid lineage.', 409)
         }
 
-        const completedJobIds = new Set<string>()
-        const outcomes = new Map<string, CanonicalPrivateWorkGraphJobOutcome>()
-        const remaining = new Set(jobs.map((job) => job.id))
-        const progressScope = progressStoreScope(context, actorUserId, executionPackage)
-        await persistPrivateCanonicalWorkGraphProgress({
-          scope: progressScope,
-          draft: progressCheckpointDraft({
-            executionPackage,
-            jobs,
-            workItems,
-            outcomes,
-            remaining,
-            status: 'advancing_private_test_work_graph',
-            runFinished: false,
-            nextRequiredGate: 'canonical_private_work_graph_advancement',
-          }),
+        const packageQueue = createCanonicalPrivatePackageWorkQueueService({
+          context,
+          ownerUserId: actorUserId,
+          executionPackage,
+          placementManifest,
         })
+        const initializedQueue = await packageQueue.initialize()
+        const completedJobIds = new Set(initializedQueue.recoveredCompletedOutcomes.map((outcome) =>
+          outcome.jobId))
+        const outcomes = new Map<string, CanonicalPrivateWorkGraphJobOutcome>(
+          initializedQueue.recoveredCompletedOutcomes.map((outcome) => [outcome.jobId, outcome]),
+        )
+        const remaining = new Set(jobs.map((job) => job.id))
+        for (const completedJobId of completedJobIds) remaining.delete(completedJobId)
+        const progressScope = progressStoreScope(context, actorUserId, executionPackage)
+        if (remaining.size > 0) {
+          await persistPrivateCanonicalWorkGraphProgress({
+            scope: progressScope,
+            draft: progressCheckpointDraft({
+              executionPackage,
+              jobs,
+              workItems,
+              outcomes,
+              remaining,
+              status: 'advancing_private_test_work_graph',
+              runFinished: false,
+              nextRequiredGate: 'canonical_private_work_graph_advancement',
+            }),
+          })
+        }
         const adapter = createCanonicalPrivateJobExecutionAdapterService(context)
         const waveResults: Array<CanonicalPrivateResourceWaveResult<
           (typeof jobs)[number],
@@ -222,68 +236,114 @@ export function createCanonicalPrivateWorkGraphOrchestratorService(context: Serv
             wave,
             execute: async ({ job, placement }) => {
               const workItem = workItems.get(job.approvedWorkItemId)!
-              if (!placement.privateExecutionReady) {
-                return {
-                  jobId: job.id,
-                  approvedWorkItemId: job.approvedWorkItemId,
-                  workItemKey: job.workItemKey,
-                  required: workItem.required,
-                  dependencyJobIds: [...job.dependencyJobIds],
-                  status: 'blocked_by_job_capability' as const,
-                  adapterReplayed: false,
-                  blockerCode: 'TOOL_NOT_READY',
-                  requiredGate: placement.requiredGate ??
-                    'canonical_private_resource_placement_execution_evidence',
-                  blockedDependencyJobIds: [],
-                }
+              const queueExecution = await packageQueue.execute({
+                jobId: job.id,
+                workerType: placement.workerType,
+                operation: async () => {
+                  if (!placement.privateExecutionReady) {
+                    return {
+                      jobId: job.id,
+                      approvedWorkItemId: job.approvedWorkItemId,
+                      workItemKey: job.workItemKey,
+                      required: workItem.required,
+                      dependencyJobIds: [...job.dependencyJobIds],
+                      status: 'blocked_by_job_capability' as const,
+                      adapterReplayed: false,
+                      blockerCode: 'TOOL_NOT_READY',
+                      requiredGate: placement.requiredGate ??
+                        'canonical_private_resource_placement_execution_evidence',
+                      blockedDependencyJobIds: [],
+                    }
+                  }
+                  try {
+                    const jobExecution = await adapter.execute({
+                      workspaceId: executionPackage.workspaceId,
+                      projectId: executionPackage.projectId,
+                      editSessionId: executionPackage.editSessionId,
+                      jobId: job.id,
+                      purpose: 'execute_canonical_private_job',
+                      idempotencyKey: perJobIdempotencyKey(packageRecordId, job.id, idempotencyKey),
+                    })
+                    return {
+                      jobId: job.id,
+                      approvedWorkItemId: job.approvedWorkItemId,
+                      workItemKey: job.workItemKey,
+                      required: workItem.required,
+                      dependencyJobIds: [...job.dependencyJobIds],
+                      status: 'completed_private_test' as const,
+                      artifactId: jobExecution.result.artifactId,
+                      contentType: jobExecution.result.contentType,
+                      sha256: jobExecution.result.sha256,
+                      adapterReplayed: jobExecution.evidence.idempotentAdapterReplay,
+                      blockedDependencyJobIds: [],
+                    }
+                  } catch (error) {
+                    if (!isScopedCapabilityBlocker(error)) throw error
+                    const executionFailure = executionFailureMetadata(error)
+                    return {
+                      jobId: job.id,
+                      approvedWorkItemId: job.approvedWorkItemId,
+                      workItemKey: job.workItemKey,
+                      required: workItem.required,
+                      dependencyJobIds: [...job.dependencyJobIds],
+                      status: executionFailure?.retryDisposition === 'retry_same_approved_operation'
+                        ? 'failed_retry_available' as const
+                        : [
+                            'manual_reconciliation_required',
+                            'server_reconciliation_required',
+                          ].includes(executionFailure?.retryDisposition ?? '')
+                          ? 'completed_recovery_required' as const
+                          : executionFailure
+                            ? 'failed_user_review_required' as const
+                            : 'blocked_by_job_capability' as const,
+                      adapterReplayed: false,
+                      blockerCode: error.code,
+                      requiredGate: requiredGate(error),
+                      ...(executionFailure ? executionFailure : {}),
+                      blockedDependencyJobIds: [],
+                    }
+                  }
+                },
+              })
+              if ('outcome' in queueExecution) return queueExecution.outcome
+              if (queueExecution.disposition === 'dependency_blocked') {
+                throw new ApiError(
+                  'INTERNAL_ERROR',
+                  'Durable queue dependency state disagrees with canonical resource scheduling.',
+                  500,
+                )
               }
-              try {
-                const jobExecution = await adapter.execute({
-                  workspaceId: executionPackage.workspaceId,
-                  projectId: executionPackage.projectId,
-                  editSessionId: executionPackage.editSessionId,
-                  jobId: job.id,
-                  purpose: 'execute_canonical_private_job',
-                  idempotencyKey: perJobIdempotencyKey(packageRecordId, job.id, idempotencyKey),
-                })
-                return {
-                  jobId: job.id,
-                  approvedWorkItemId: job.approvedWorkItemId,
-                  workItemKey: job.workItemKey,
-                  required: workItem.required,
-                  dependencyJobIds: [...job.dependencyJobIds],
-                  status: 'completed_private_test' as const,
-                  artifactId: jobExecution.result.artifactId,
-                  contentType: jobExecution.result.contentType,
-                  sha256: jobExecution.result.sha256,
-                  adapterReplayed: jobExecution.evidence.idempotentAdapterReplay,
-                  blockedDependencyJobIds: [],
-                }
-              } catch (error) {
-                if (!isScopedCapabilityBlocker(error)) throw error
-                const executionFailure = executionFailureMetadata(error)
-                return {
-                  jobId: job.id,
-                  approvedWorkItemId: job.approvedWorkItemId,
-                  workItemKey: job.workItemKey,
-                  required: workItem.required,
-                  dependencyJobIds: [...job.dependencyJobIds],
-                  status: executionFailure?.retryDisposition === 'retry_same_approved_operation'
-                    ? 'failed_retry_available' as const
-                    : [
-                        'manual_reconciliation_required',
-                        'server_reconciliation_required',
-                      ].includes(executionFailure?.retryDisposition ?? '')
-                      ? 'completed_recovery_required' as const
-                      : executionFailure
-                        ? 'failed_user_review_required' as const
-                        : 'blocked_by_job_capability' as const,
-                  adapterReplayed: false,
-                  blockerCode: error.code,
-                  requiredGate: requiredGate(error),
-                  ...(executionFailure ? executionFailure : {}),
-                  blockedDependencyJobIds: [],
-                }
+              const queueBlocked = queueExecution.disposition === 'already_leased'
+                ? {
+                    blockerCode: 'WORKER_CLAIM_CONFLICT' as const,
+                    requiredGate: 'canonical_package_work_queue_active_claim',
+                  }
+                : queueExecution.disposition === 'scheduled_wait'
+                  ? {
+                      blockerCode: 'JOB_DEPENDENCY_NOT_READY' as const,
+                      requiredGate: 'canonical_approved_scheduled_execution_time',
+                    }
+                  : queueExecution.disposition === 'attempts_exhausted'
+                    ? {
+                        blockerCode: 'TOOL_NOT_READY' as const,
+                        requiredGate: 'canonical_package_work_queue_approved_attempts_exhausted',
+                      }
+                  : {
+                      blockerCode: 'TOOL_NOT_READY' as const,
+                      requiredGate: queueExecution.requiredGate ??
+                        'canonical_private_resource_placement_execution_evidence',
+                    }
+              return {
+                jobId: job.id,
+                approvedWorkItemId: job.approvedWorkItemId,
+                workItemKey: job.workItemKey,
+                required: workItem.required,
+                dependencyJobIds: [...job.dependencyJobIds],
+                status: 'blocked_by_job_capability' as const,
+                adapterReplayed: false,
+                blockerCode: queueBlocked.blockerCode,
+                requiredGate: queueBlocked.requiredGate,
+                blockedDependencyJobIds: [],
               }
             },
           })
@@ -355,13 +415,14 @@ export function createCanonicalPrivateWorkGraphOrchestratorService(context: Serv
           placementManifest,
           waveResults,
         })
+        const queue = await packageQueue.evidence()
         const status = allJobsCompleted
           ? 'completed_private_test_work_graph' as const
           : allRequiredJobsCompleted
             ? 'completed_required_jobs_with_optional_blocks' as const
             : 'blocked_required_jobs' as const
         const responseWithoutHash = {
-          schemaVersion: 'canonical-private-work-graph-run-response-v2' as const,
+          schemaVersion: 'canonical-private-work-graph-run-response-v3' as const,
           source: 'canonical_private_work_graph_orchestrator' as const,
           purpose: body.purpose,
           identity: {
@@ -383,6 +444,7 @@ export function createCanonicalPrivateWorkGraphOrchestratorService(context: Serv
             allRequiredJobsCompleted,
           },
           scheduling,
+          queue,
           evidence: {
             canonicalPackageReloaded: true as const,
             serverDerivedTopologicalOrder: true as const,

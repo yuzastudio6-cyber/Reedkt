@@ -86,6 +86,11 @@ const canonicalSteps: VerificationStep[] = [
     'Real local backend upload, planning, publication, approval, reservation, snapshot, jobs, package, and readiness authority.',
   ),
   step(
+    'canonical-durable-package-work-queue',
+    'smoke:canonical-private-package-work-queue',
+    'The immutable package and resource placement produce a private durable queue with opaque claims, heartbeat, attempt ceilings, restart recovery, terminal replay, and tamper rejection.',
+  ),
+  step(
     'canonical-multi-source-execution',
     'smoke:canonical-multi-source-final-composition',
     'Three-source execution reaches one baseline plus two directly reference-bound professional color matches, two approved hard-cut boundaries, three exact source-bound voice deliveries, lease, one-use dispatch, private artifacts, QA, reconciliation, ordered color/voice composition, objective continuity at both boundaries, and download evidence.',
@@ -230,7 +235,7 @@ function printReport(
 ): void {
   const finishedAt = new Date()
   const report = {
-    schemaVersion: 'canonical-private-pipeline-verification-v4',
+    schemaVersion: 'canonical-private-pipeline-verification-v5',
     status,
     mode: full ? 'full_internal_regression' : 'canonical_private_pipeline',
     startedAt: runStartedAt.toISOString(),
@@ -254,6 +259,8 @@ function printReport(
           fourKEstimateDeliveryCeiling: true,
           canonicalBrowserContracts: true,
           canonicalBackendAuthority: true,
+          durablePrivatePackageWorkQueue: true,
+          durableCompletedJobReplayWithoutExecution: true,
           boundedPrivateMultiSourceExecution: true,
           boundedApprovedHardCutTransitions: true,
           boundedProfessionalVoiceDelivery: true,

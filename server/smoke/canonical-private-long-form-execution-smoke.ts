@@ -449,21 +449,47 @@ assert.equal(workGraphRun.summary.completedJobCount, expectedJobCount)
 assert.equal(workGraphRun.summary.requiredBlockedJobCount, 0)
 assert.equal(workGraphRun.summary.allRequiredJobsCompleted, true)
 assert.equal(workGraphAttempts.every((attempt) => Boolean(attempt.scheduling)), true)
+assert.equal(workGraphAttempts.every((attempt) => Boolean(attempt.queue)), true)
 const schedulingAttempts = workGraphAttempts.map((attempt) => attempt.scheduling!)
+const queueAttempts = workGraphAttempts.map((attempt) => attempt.queue!)
 const schedulerJobObservationCount = schedulingAttempts.reduce(
   (total, scheduling) => total + scheduling.actualExecutionCount,
   0,
 )
-assert.equal(workGraphRun.scheduling?.actualExecutionCount, expectedJobCount)
+const queueClaimCount = queueAttempts.reduce(
+  (total, queue) => total + queue.claimedJobCount,
+  0,
+)
+assert.equal(schedulerJobObservationCount, queueClaimCount)
+assert.ok(schedulerJobObservationCount >= expectedJobCount)
+assert.equal(workGraphRun.queue?.completedJobCount, expectedJobCount)
+assert.equal(workGraphRun.queue?.queuedJobCount, 0)
+assert.equal(workGraphRun.queue?.leasedJobCount, 0)
 assert.equal(schedulingAttempts.every((scheduling) =>
   scheduling.actualExecutionCount >= 1 &&
   scheduling.actualExecutionCount <= expectedJobCount), true)
+assert.equal(queueAttempts.every((queue) =>
+  queue.totalJobCount === expectedJobCount &&
+  queue.completedJobCount + queue.queuedJobCount + queue.leasedJobCount === expectedJobCount &&
+  queue.leasedJobCount === 0 &&
+  queue.hostRestartRecoveryAvailable &&
+  queue.completedJobReplayWithoutExecution &&
+  queue.immutableSnapshotAndPlacementBinding &&
+  !queue.plaintextClaimCredentialsPersisted &&
+  queue.claimCredentialDigestsPersisted &&
+  !queue.browserClaimAllowed &&
+  !queue.crossProcessAtomicClaimProven &&
+  !queue.distributedTransactionProven &&
+  !queue.cloudServiceIdentityVerified &&
+  !queue.cloudDispatchAuthorized &&
+  !queue.productionAuthority), true)
 workGraphAttempts.slice(1).forEach((attempt, index) => {
   const previous = workGraphAttempts[index]!
   const retryKeys = previous.jobs.filter((job) =>
     job.status === 'failed_retry_available').map((job) => job.workItemKey)
   assert.ok(retryKeys.length >= 1)
   assert.equal(attempt.summary.replayedJobCount, previous.summary.completedJobCount)
+  assert.equal(attempt.queue?.recoveredCompletedJobCount, previous.summary.completedJobCount)
   assert.ok(attempt.summary.completedJobCount >= previous.summary.completedJobCount)
   assert.equal(attempt.jobs.every((job) => {
     const previousJob = previous.jobs.find((candidate) =>
@@ -878,6 +904,11 @@ console.log(JSON.stringify({
     attemptCount: schedulingAttempts.length,
     schedulerJobObservationCount,
     attempts: schedulingAttempts,
+  },
+  durablePackageWorkQueue: {
+    attemptCount: queueAttempts.length,
+    totalClaimCount: queueClaimCount,
+    final: workGraphRun.queue,
   },
   resourceWaveExecutionTiming: {
     elapsedMilliseconds: workGraphElapsedMilliseconds,

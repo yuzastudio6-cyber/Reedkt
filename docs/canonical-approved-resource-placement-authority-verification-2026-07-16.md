@@ -42,8 +42,9 @@ per-job placement hash are carried through:
 2. canonical worker-lease immutable hashes;
 3. one-use tool-dispatch reconciliation;
 4. internal authority-runner validation;
-5. deterministic resource-wave hashes; and
-6. final work-graph scheduling evidence.
+5. immutable durable package-queue definition and per-entry claim validation;
+6. deterministic resource-wave hashes; and
+7. final work-graph scheduling and queue evidence.
 
 Current registry/runtime compatibility is revalidated. Changed worker type,
 GPU requirement, CPU allowance, resource class, concurrency, operation,
@@ -60,8 +61,11 @@ The verified lineage uses these exact contract versions:
 - `canonical-execution-readiness-envelope-v2`;
 - worker-lease record, response, and verification `v3`, with aggregate `v2`;
 - private tool-dispatch record, aggregate, and response `v2`;
+- `canonical-private-package-work-queue-definition-v1`;
+- `canonical-private-package-work-queue-aggregate-v1`;
 - `canonical-private-resource-wave-scheduler-v2`; and
-- `canonical-private-work-graph-run-response-v2`.
+- `canonical-private-work-graph-run-response-v3` for new runs, with persisted
+  v2 responses remaining readable.
 
 ## Evidence
 
@@ -70,12 +74,16 @@ The following passed with exit code 0:
 - `npm run typecheck:server`
 - `./node_modules/.bin/tsx server/smoke/canonical-private-resource-wave-scheduler-smoke.ts`
 - `npm run smoke:edit-planning-authority`
+- `npm run smoke:canonical-private-package-work-queue`
 - `npm run smoke:canonical-tool-operation-package`
 - `npm run smoke:canonical-worker-lease-verification`
 - `npm run smoke:canonical-private-tool-dispatch`
 - `npm run qa:internal-pipeline` — 27/27 stages, exit code 0,
   `1,725,562 ms` (`2026-07-16T23:04:14.764Z` through
   `2026-07-16T23:33:00.326Z`)
+- `npm run qa:internal-pipeline` — post-durable-queue 28/28 stages, exit code 0,
+  `2,133,848 ms` (`2026-07-17T00:53:09.135Z` through
+  `2026-07-17T01:28:42.983Z`)
 
 Focused resource evidence confirms:
 
@@ -92,6 +100,17 @@ approved snapshot, reservation, lease, one-use dispatch, private persistence,
 QA, reconciliation, replay, and downstream verification with the new placement
 hash lineage intact.
 
+The additive durable-queue follow-up derives each queue entry only from that
+same frozen placement and exact package authority. Focused evidence verifies
+opaque claims, digest-bound heartbeat and terminal replay, immutable attempt
+ceilings, same-host restart recovery, completed-job skip, and tamper rejection.
+It keeps cross-process atomic claims, distributed transactions, cloud service
+identity, Google Cloud dispatch, and production authority explicitly false.
+The post-change source-slice rerun additionally bound all eight exact queue
+entries to the frozen placement authority, recovered five completed entries on
+pass two, and completed the 660-frame private 4K graph with zero queued or
+leased entries.
+
 The full regression also retained the signed-in maximum-eight-source result:
 27 approved jobs completed, the accepted private review was 3840×2160 for 16
 seconds, all eight source-bound audio identities were detected in approved
@@ -101,6 +120,13 @@ artifact and 19,357,384-byte color final master completed in 639,894 ms; the
 54,206,253-byte bounded UHD Remotion artifact completed in 114,315 ms; and all
 11 named-edit browser journey tests passed in 16,256 ms. The standalone
 signed-in maximum-eight-source journey completed in 384,735 ms.
+
+The post-queue exact-code regression retained the same accepted review identity
+and completed all 28 stages in 2,133,848 ms. In that run, three-source
+composition completed in 579,008 ms, professional color in 704,254 ms, bounded
+UHD Remotion streaming in 113,863 ms, all 11 named-edit browser journey tests
+in 18,174 ms, and the standalone signed-in maximum-eight-source journey in
+690,806 ms. These are local correctness timings, not cloud throughput claims.
 
 ## Honest Boundary
 

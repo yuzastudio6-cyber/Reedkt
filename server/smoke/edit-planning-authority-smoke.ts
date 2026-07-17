@@ -2245,6 +2245,7 @@ try {
   const workGraphRunSummary = asRecord(workGraphRun.summary)
   const workGraphRunReadiness = asRecord(workGraphRun.readiness)
   const workGraphScheduling = asRecord(workGraphRun.scheduling)
+  const workGraphQueue = asRecord(workGraphRun.queue)
   const workGraphJobOutcomes = workGraphRun.jobs as Record<string, unknown>[]
   const sourceTrimValidationOutcome = workGraphJobOutcomes.find((job) =>
     job.workItemKey === 'source-trim')
@@ -2270,6 +2271,33 @@ try {
     /^[a-f0-9]{64}$/,
   )
   assert.equal(workGraphScheduling.cloudDispatchAuthorized, false)
+  assert.equal(workGraphRun.schemaVersion, 'canonical-private-work-graph-run-response-v3')
+  assert.match(String(workGraphQueue.definitionHash), /^[a-f0-9]{64}$/)
+  assert.match(String(workGraphQueue.aggregateHash), /^[a-f0-9]{64}$/)
+  assert.equal(workGraphQueue.totalJobCount, 5)
+  assert.equal(workGraphQueue.completedJobCount, 2)
+  assert.equal(workGraphQueue.queuedJobCount, 3)
+  assert.equal(workGraphQueue.leasedJobCount, 0)
+  assert.equal(workGraphQueue.recoveredCompletedJobCount, 0)
+  assert.equal(workGraphQueue.completedReplayCount, 0)
+  assert.equal(workGraphQueue.claimedJobCount, 3)
+  assert.equal(workGraphQueue.claimCompletionCount, 2)
+  assert.equal(workGraphQueue.claimReleaseCount, 1)
+  assert.equal(workGraphQueue.expiredClaimRecoveryCount, 0)
+  assert.equal(workGraphQueue.hostRestartRecoveryAvailable, true)
+  assert.equal(workGraphQueue.completedJobReplayWithoutExecution, true)
+  assert.equal(workGraphQueue.immutableSnapshotAndPlacementBinding, true)
+  assert.equal(workGraphQueue.plaintextClaimCredentialsPersisted, false)
+  assert.equal(workGraphQueue.claimCredentialDigestsPersisted, true)
+  assert.equal(workGraphQueue.browserClaimAllowed, false)
+  assert.equal(workGraphQueue.crossProcessAtomicClaimProven, false)
+  assert.equal(workGraphQueue.distributedTransactionProven, false)
+  assert.equal(workGraphQueue.cloudServiceIdentityVerified, false)
+  assert.equal(workGraphQueue.cloudDispatchAuthorized, false)
+  assert.equal(workGraphQueue.productionAuthority, false)
+  assert.equal(JSON.stringify(workGraphRun).includes('"claimCredential":'), false)
+  assert.equal(JSON.stringify(workGraphRun).includes('"credentialSha256":'), false)
+  assert.equal(JSON.stringify(workGraphRun).includes('"workerIdentityHash":'), false)
   assert.equal(asRecord(workGraphRun.permissions).providerCall, false)
   assert.equal(asRecord(workGraphRun.permissions).billing, false)
 
@@ -2410,10 +2438,23 @@ try {
   }
   const workGraphContinuation = asRecord(workGraphContinuationEnvelope.data?.canonicalPrivateWorkGraphRun)
   const workGraphContinuationSummary = asRecord(workGraphContinuation.summary)
+  const workGraphContinuationScheduling = asRecord(workGraphContinuation.scheduling)
+  const workGraphContinuationQueue = asRecord(workGraphContinuation.queue)
   assert.equal(workGraphContinuation.status, 'blocked_required_jobs')
   assert.equal(workGraphContinuationSummary.completedJobCount, 2)
   assert.equal(workGraphContinuationSummary.replayedJobCount, 2)
   assert.equal(workGraphContinuationSummary.capabilityBlockedJobCount, 1)
+  assert.equal(workGraphContinuationScheduling.actualExecutionCount, 1)
+  assert.equal(workGraphContinuationQueue.definitionHash, workGraphQueue.definitionHash)
+  assert.notEqual(workGraphContinuationQueue.aggregateHash, workGraphQueue.aggregateHash)
+  assert.equal(workGraphContinuationQueue.completedJobCount, 2)
+  assert.equal(workGraphContinuationQueue.queuedJobCount, 3)
+  assert.equal(workGraphContinuationQueue.leasedJobCount, 0)
+  assert.equal(workGraphContinuationQueue.recoveredCompletedJobCount, 2)
+  assert.equal(workGraphContinuationQueue.completedReplayCount, 0)
+  assert.equal(workGraphContinuationQueue.claimedJobCount, 0)
+  assert.equal(workGraphContinuationQueue.claimCompletionCount, 0)
+  assert.equal(workGraphContinuationQueue.claimReleaseCount, 0)
   assert.equal(
     await readFile(workGraphProgressPointerPath, 'utf8'),
     workGraphProgressPointerBeforeContinuation,
@@ -3994,6 +4035,8 @@ console.log(JSON.stringify({
     'authenticated_canonical_execution_readiness_http_route',
     'authenticated_canonical_single_job_execution_http_route_with_replay_and_conflict',
     'authenticated_canonical_work_graph_advances_ready_job_and_persists_exact_blockers',
+    'canonical_work_graph_uses_durable_snapshot_and_placement_bound_package_queue',
+    'durable_package_queue_skips_completed_jobs_on_continuation_without_cloud_authority',
     'authenticated_browser_safe_private_preparation_returns_bounded_blockers_without_jobs_tools_paths_or_credentials',
     'canonical_work_graph_persists_content_addressed_monotonic_package_progress',
     'canonical_journey_recovers_bounded_blocked_work_graph_progress_without_job_or_artifact_details',

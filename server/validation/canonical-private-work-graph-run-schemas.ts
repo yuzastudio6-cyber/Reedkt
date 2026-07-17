@@ -75,6 +75,45 @@ const resourceSchedulingEvidence = z.object({
   }
 })
 
+const durablePackageWorkQueueEvidence = z.object({
+  definitionVersion: z.literal('canonical-private-package-work-queue-definition-v1'),
+  definitionHash: sha256,
+  aggregateVersion: z.literal('canonical-private-package-work-queue-aggregate-v1'),
+  aggregateHash: sha256,
+  totalJobCount: z.number().int().positive().max(256),
+  completedJobCount: z.number().int().nonnegative().max(256),
+  queuedJobCount: z.number().int().nonnegative().max(256),
+  leasedJobCount: z.number().int().nonnegative().max(256),
+  recoveredCompletedJobCount: z.number().int().nonnegative().max(256),
+  completedReplayCount: z.number().int().nonnegative().max(256),
+  claimedJobCount: z.number().int().nonnegative().max(256),
+  claimCompletionCount: z.number().int().nonnegative().max(256),
+  claimReleaseCount: z.number().int().nonnegative().max(256),
+  expiredClaimRecoveryCount: z.number().int().nonnegative().max(100_000),
+  hostRestartRecoveryAvailable: z.literal(true),
+  completedJobReplayWithoutExecution: z.literal(true),
+  immutableSnapshotAndPlacementBinding: z.literal(true),
+  plaintextClaimCredentialsPersisted: z.literal(false),
+  claimCredentialDigestsPersisted: z.literal(true),
+  browserClaimAllowed: z.literal(false),
+  crossProcessAtomicClaimProven: z.literal(false),
+  distributedTransactionProven: z.literal(false),
+  cloudServiceIdentityVerified: z.literal(false),
+  cloudDispatchAuthorized: z.literal(false),
+  productionAuthority: z.literal(false),
+}).strict().superRefine((queue, context) => {
+  if (
+    queue.completedJobCount + queue.queuedJobCount + queue.leasedJobCount !== queue.totalJobCount ||
+    queue.recoveredCompletedJobCount > queue.completedJobCount ||
+    queue.completedReplayCount > queue.completedJobCount ||
+    queue.claimCompletionCount + queue.claimReleaseCount !== queue.claimedJobCount ||
+    queue.completedJobCount !== queue.recoveredCompletedJobCount +
+      queue.completedReplayCount + queue.claimCompletionCount
+  ) {
+    context.addIssue({ code: 'custom', message: 'Durable package work-queue evidence is inconsistent.' })
+  }
+})
+
 export const runCanonicalPrivateWorkGraphSchema = z.object({
   workspaceId: identity,
   purpose: z.literal('run_canonical_private_work_graph'),
@@ -162,7 +201,10 @@ const jobOutcome = z.object({
 })
 
 export const canonicalPrivateWorkGraphRunResponseSchema = z.object({
-  schemaVersion: z.literal('canonical-private-work-graph-run-response-v2'),
+  schemaVersion: z.enum([
+    'canonical-private-work-graph-run-response-v2',
+    'canonical-private-work-graph-run-response-v3',
+  ]),
   source: z.literal('canonical_private_work_graph_orchestrator'),
   purpose: z.literal('run_canonical_private_work_graph'),
   identity: z.object({
@@ -190,6 +232,9 @@ export const canonicalPrivateWorkGraphRunResponseSchema = z.object({
   // Optional only so persisted pre-scheduler private-test responses remain replayable.
   // Every newly produced response includes this server-derived evidence.
   scheduling: resourceSchedulingEvidence.optional(),
+  // Optional only so persisted v2 private/local responses remain replayable.
+  // Every newly produced v3 response carries durable queue evidence.
+  queue: durablePackageWorkQueueEvidence.optional(),
   evidence: z.object({
     canonicalPackageReloaded: z.literal(true),
     serverDerivedTopologicalOrder: z.literal(true),
@@ -224,7 +269,19 @@ export const canonicalPrivateWorkGraphRunResponseSchema = z.object({
   completedAt: z.string().datetime({ offset: true }),
   responseHash: sha256,
   testOnly: z.literal(true),
-}).strict()
+}).strict().superRefine((response, context) => {
+  if (response.schemaVersion === 'canonical-private-work-graph-run-response-v3' && !response.queue) {
+    context.addIssue({ code: 'custom', message: 'Work-graph v3 requires durable queue evidence.' })
+  }
+  if (
+    response.queue &&
+    (response.queue.completedJobCount !== response.summary.completedJobCount ||
+      response.queue.totalJobCount !== response.summary.totalJobCount ||
+      response.queue.recoveredCompletedJobCount > response.summary.replayedJobCount)
+  ) {
+    context.addIssue({ code: 'custom', message: 'Work-graph completion and durable queue evidence disagree.' })
+  }
+})
 
 export type RunCanonicalPrivateWorkGraphBody = z.infer<typeof runCanonicalPrivateWorkGraphSchema>
 export type CanonicalPrivateWorkGraphRunResponse = z.infer<

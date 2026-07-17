@@ -1,4 +1,7 @@
-import { callReeditProApi, getReeditProApiAuthorizationHeader } from '../backend/api/frontend-api-client'
+import {
+  callReeditProApi,
+  getReeditProApiAuthorizationHeaders,
+} from '../backend/api/frontend-api-client'
 import { getBackendApiBaseUrl, getBackendRuntimeStatus } from '../backend/api/backend-runtime-config'
 import { uploadFileToSupabaseStorage } from '../backend/storage/storage-client-service'
 import { uploadFileToTemporaryObjectTarget } from './temporary-object-upload-client'
@@ -385,10 +388,11 @@ async function planSourceUploadThroughBackendIntent({
     }
 
     const uploadTarget = uploadIntentResponse.data.uploadTarget
-    const uploadAuthorization = await getReeditProApiAuthorizationHeader()
+    const uploadAuthorization = await getReeditProApiAuthorizationHeaders()
     await uploadFileToTemporaryObjectTarget({
       apiBaseUrl,
-      authorization: uploadAuthorization,
+      authorization: uploadAuthorization.authorization,
+      reeditProUserAuthorization: uploadAuthorization.reeditProUserAuthorization,
       file,
       mimeType,
       target: uploadTarget,
@@ -401,7 +405,8 @@ async function planSourceUploadThroughBackendIntent({
       sizeBytes: file.size,
       uploadProtocol: uploadTarget.uploadProtocol,
       supportsResume: uploadTarget.supportsResume,
-      authorization: uploadAuthorization,
+      authorization: uploadAuthorization.authorization,
+      reeditProUserAuthorization: uploadAuthorization.reeditProUserAuthorization,
       finalizeIdempotencyKey:
         `source-upload-finalize:${uploadIntentResponse.data.uploadIntent.id}`,
       finalizationJobIdempotencyKey:
@@ -630,14 +635,17 @@ async function postBackendJson<TData>(
   body: Record<string, unknown>,
   idempotencyKey: string,
 ): Promise<BackendApiEnvelope<TData>> {
-  const authorization = await getReeditProApiAuthorizationHeader()
+  const authorization = await getReeditProApiAuthorizationHeaders()
   const headers: Record<string, string> = {
     accept: 'application/json',
     'content-type': 'application/json',
     'idempotency-key': idempotencyKey,
   }
 
-  if (authorization) headers.authorization = authorization
+  if (authorization.authorization) headers.authorization = authorization.authorization
+  if (authorization.reeditProUserAuthorization) {
+    headers['x-reeditpro-user-authorization'] = authorization.reeditProUserAuthorization
+  }
 
   const response = await fetch(resolveBackendUrl(apiBaseUrl, routePath), {
     method: 'POST',

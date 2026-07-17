@@ -35,6 +35,7 @@ export interface UploadFileToTemporaryObjectTargetInput {
   mimeType: string
   target: TemporaryObjectUploadTarget
   authorization?: string
+  reeditProUserAuthorization?: string
   fetchImpl?: typeof fetch
   signal?: AbortSignal
   onProgress?: (progress: TemporaryObjectUploadProgress) => void
@@ -262,6 +263,9 @@ function createUploadHeaders(input: UploadFileToTemporaryObjectTargetInput): Rec
   headers['content-type'] = input.mimeType
   if (input.authorization && isBackendTarget(input.apiBaseUrl, input.target.uploadUrl)) {
     headers.authorization = input.authorization
+    if (input.reeditProUserAuthorization) {
+      headers['x-reeditpro-user-authorization'] = input.reeditProUserAuthorization
+    }
   }
   return headers
 }

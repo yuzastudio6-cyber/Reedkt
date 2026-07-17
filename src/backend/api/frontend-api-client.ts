@@ -1,7 +1,18 @@
 import type { ApiRequestEnvelope, ApiResponseEnvelope, ApiRouteDefinition } from './api-runtime-contracts'
 import { createApiBackendRequiredResponse, createApiErrorResponse } from './api-response'
 import { getApiRouteById } from './api-route-registry'
-import { getBackendApiBaseUrl, getBackendRuntimeStatus } from './backend-runtime-config'
+import {
+  getBackendApiBaseUrl,
+  getBackendApiTransportMode,
+  getBackendRuntimeStatus,
+} from './backend-runtime-config'
+
+export const REEDITPRO_USER_AUTHORIZATION_HEADER = 'x-reeditpro-user-authorization'
+
+export interface ReeditProApiAuthorizationHeaders {
+  authorization?: string
+  reeditProUserAuthorization?: string
+}
 
 type RuntimeEnvRecord = Record<string, string | undefined>
 
@@ -150,10 +161,7 @@ async function callReeditProHttpRoute<TBody, TData>(
       headers.set('idempotency-key', options.idempotencyKey ?? createClientIdempotencyKey(route.id))
     }
 
-    const authorization = await getReeditProApiAuthorizationHeader()
-    if (authorization) {
-      headers.set('authorization', authorization)
-    }
+    await applyReeditProApiAuthorizationHeaders(headers)
 
     const response = await fetch(url, {
       method: route.method,
@@ -211,16 +219,49 @@ function normalizeBaseUrl(apiBaseUrl: string): string {
 }
 
 export async function getReeditProApiAuthorizationHeader(): Promise<string | undefined> {
+  return (await getReeditProApiAuthorizationHeaders()).authorization
+}
+
+export async function getReeditProApiAuthorizationHeaders(): Promise<ReeditProApiAuthorizationHeaders> {
+  const authorization = await resolveReeditProApiAuthorizationHeader()
+  return createReeditProApiAuthorizationHeaders(authorization)
+}
+
+export function createReeditProApiAuthorizationHeaders(
+  authorization: string | undefined,
+): ReeditProApiAuthorizationHeaders {
+  if (!authorization) return {}
+
+  return getBackendApiTransportMode() === 'google_api_gateway'
+    ? {
+        authorization,
+        reeditProUserAuthorization: authorization,
+      }
+    : { authorization }
+}
+
+export async function applyReeditProApiAuthorizationHeaders(headers: Headers): Promise<void> {
+  const authorization = await getReeditProApiAuthorizationHeaders()
+  if (authorization.authorization) {
+    headers.set('authorization', authorization.authorization)
+  }
+  if (authorization.reeditProUserAuthorization) {
+    headers.set(REEDITPRO_USER_AUTHORIZATION_HEADER, authorization.reeditProUserAuthorization)
+  }
+}
+
+function resolveReeditProApiAuthorizationHeader(): Promise<string | undefined> {
   const e2eAuthorization = getE2EReeditProApiAuthorizationHeader()
-  if (e2eAuthorization) return e2eAuthorization
+  if (e2eAuthorization) return Promise.resolve(e2eAuthorization)
 
-  const { getSupabaseClient } = await import('../supabase/supabase-client')
-  const client = getSupabaseClient()
-  if (!client) return undefined
+  return import('../supabase/supabase-client').then(async ({ getSupabaseClient }) => {
+    const client = getSupabaseClient()
+    if (!client) return undefined
 
-  const { data } = await client.auth.getSession()
-  const token = data.session?.access_token
-  return token ? `Bearer ${token}` : undefined
+    const { data } = await client.auth.getSession()
+    const token = data.session?.access_token
+    return token ? `Bearer ${token}` : undefined
+  })
 }
 
 function getE2EReeditProApiAuthorizationHeader(): string | undefined {

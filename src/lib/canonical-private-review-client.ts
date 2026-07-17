@@ -1,7 +1,7 @@
 import {
+  applyReeditProApiAuthorizationHeaders,
   callReeditProApi,
   getFrontendApiClientStatus,
-  getReeditProApiAuthorizationHeader,
 } from '../backend/api/frontend-api-client'
 import { getBackendApiBaseUrl } from '../backend/api/backend-runtime-config'
 import type { CanonicalEditJourney } from './canonical-edit-journey'
@@ -167,8 +167,7 @@ async function performMediaRequest(
       accept: 'video/mp4',
       'x-request-id': `canonical-private-review-media-${newAttemptToken()}`,
     })
-    const authorization = await getReeditProApiAuthorizationHeader()
-    if (authorization) headers.set('authorization', authorization)
+    await applyReeditProApiAuthorizationHeaders(headers)
     const response = await fetch(url, {
       method: 'GET',
       credentials: 'omit',

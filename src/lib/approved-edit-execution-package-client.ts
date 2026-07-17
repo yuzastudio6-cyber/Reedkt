@@ -1,7 +1,10 @@
 import { createApiErrorResponse, createApiSuccessResponse } from '../backend/api/api-response'
 import type { ApiResponseEnvelope } from '../backend/api/api-runtime-contracts'
 import { getBackendApiBaseUrl, getBackendRuntimeStatus } from '../backend/api/backend-runtime-config'
-import { callReeditProApi, getReeditProApiAuthorizationHeader } from '../backend/api/frontend-api-client'
+import {
+  applyReeditProApiAuthorizationHeaders,
+  callReeditProApi,
+} from '../backend/api/frontend-api-client'
 import type {
   BoundedAdapterModelWeightApprovalSource,
   BoundedAdapterModelWeightApprovalStatus,
@@ -2996,10 +2999,7 @@ export async function fetchApprovedEditExecutionPrivateInternalDownloadFileClien
     headers.set('accept', 'video/mp4,application/octet-stream')
     headers.set('x-request-id', `private-internal-download-${Date.now().toString(36)}`)
 
-    const authorization = await getReeditProApiAuthorizationHeader()
-    if (authorization) {
-      headers.set('authorization', authorization)
-    }
+    await applyReeditProApiAuthorizationHeaders(headers)
 
     const response = await fetch(resolveBackendFileUrl(apiBaseUrl, privateInternalDownloadPath), {
       method: 'GET',
@@ -3122,10 +3122,7 @@ export async function fetchApprovedEditExecutionPrivateInternalDownloadManifestC
     headers.set('accept', 'application/json')
     headers.set('x-request-id', `private-internal-manifest-${Date.now().toString(36)}`)
 
-    const authorization = await getReeditProApiAuthorizationHeader()
-    if (authorization) {
-      headers.set('authorization', authorization)
-    }
+    await applyReeditProApiAuthorizationHeaders(headers)
 
     const response = await fetch(resolveBackendFileUrl(apiBaseUrl, privateInternalManifestPath), {
       method: 'GET',

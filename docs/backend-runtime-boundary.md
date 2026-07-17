@@ -4,7 +4,7 @@
 
 RP-FIX-06 adds frontend-safe Supabase Auth bootstrap code. RP-FIX-07 adds frontend-safe storage/upload planning. RP-FIX-08 adds API route contracts, a route registry, and a frontend API client. RP-FIX-11 adds mock runtime transport and worker lease contracts. RP-FIX-12 selects Cloud Run API service as the first backend runtime target and adds a mock-only Node server scaffold.
 
-The repo still has no deployed Cloud Run API, serverless route layer, Supabase Edge Function, worker queue, or service-role process.
+An IAM-private `reeditpro-api-staging` Cloud Run service now exists, but its revision is not verified as the reviewed current source and it has no browser gateway. API Gateway is disabled. The repository therefore still has no proven signed-in browser-to-Cloud-Run staging runtime, durable worker queue, or production-ready service-role process.
 
 ## Frontend Boundary
 
@@ -14,6 +14,7 @@ Frontend code may use:
 - `VITE_SUPABASE_ANON_KEY`
 - `VITE_REEDITPRO_API_BASE_URL`
 - `VITE_REEDITPRO_API_MODE`
+- `VITE_REEDITPRO_API_TRANSPORT`
 
 Frontend code must not use:
 
@@ -49,7 +50,9 @@ Storage/upload pipeline readiness is partially fixed: frontend-safe helpers, upl
 
 ## RP-FIX-08 Result
 
-Backend API/runtime boundary is partially fixed: route contracts, route registry, mock router, frontend API client, and route docs exist. No backend is deployed, and real service-role/provider/payment/worker/render routes remain backend-required.
+Backend API/runtime boundary is partially fixed: route contracts, route registry, mock router, frontend API client, and route docs exist. A private staging service resolves but is not verified as the reviewed current runtime; real service-role/provider/payment/worker/render routes remain backend-required.
+
+The private browser transport follow-up adds an opt-in Google API Gateway contract. It validates a Supabase user JWT at the gateway, keeps Cloud Run IAM-private, and revalidates the original user token in Express. Source evidence passes, but API Gateway enablement, gateway service identity, live IAM, hosted frontend configuration, and real-user route readback remain blocked.
 
 ## RP-FIX-11 Result
 
@@ -57,4 +60,4 @@ Backend runtime transport and worker leasing are partially fixed: runtime envelo
 
 ## RP-FIX-12 Result
 
-Production backend runtime target selection is partially fixed: Cloud Run API service is selected and a mock-only server scaffold exists. No Cloud Run service, Secret Manager binding, service-role handler, provider call, Stripe call, worker dispatch, FFmpeg/Remotion job, or render execution is deployed.
+Production backend runtime target selection is partially fixed: Cloud Run API service is selected, a server scaffold exists, and an IAM-private staging service name resolves. That deployed revision, Secret Manager binding, API Gateway bridge, durable service-role handlers, provider calls, Stripe, distributed worker dispatch, and production rendering are not verified or enabled.

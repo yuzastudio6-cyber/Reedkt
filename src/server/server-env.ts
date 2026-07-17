@@ -50,6 +50,7 @@ const SAFE_FRONTEND_ENV_KEYS = new Set([
   'VITE_REEDITPRO_AUTH_MODE',
   'VITE_REEDITPRO_API_BASE_URL',
   'VITE_REEDITPRO_API_MODE',
+  'VITE_REEDITPRO_API_TRANSPORT',
 ])
 
 export function getBackendEnvStatus(env: NodeJS.ProcessEnv = process.env): BackendEnvStatus {

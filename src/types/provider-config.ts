@@ -93,6 +93,7 @@ export type FrontendPublicConfigName =
   | 'VITE_REEDITPRO_AUTH_MODE'
   | 'VITE_REEDITPRO_API_BASE_URL'
   | 'VITE_REEDITPRO_API_MODE'
+  | 'VITE_REEDITPRO_API_TRANSPORT'
   | 'VITE_REEDITPRO_MOCK_MODE'
 
 export type ProviderConfigNextStep =

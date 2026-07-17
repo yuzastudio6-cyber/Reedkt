@@ -9,6 +9,7 @@ dotenv.config({
 export type E2ERuntimeMode = 'local' | 'mock' | 'cloud_run' | 'disabled'
 export type StorageMode = 'local' | 'gcs_disabled' | 'gcs'
 export type WorkerRuntimeMode = 'local' | 'mock' | 'cloud_run' | 'disabled'
+export type BrowserApiTransportMode = 'direct' | 'google_api_gateway'
 
 export interface RuntimeEnv {
   nodeEnv: string
@@ -16,6 +17,7 @@ export interface RuntimeEnv {
   apiPort: number
   jsonBodyLimit: string
   allowedCorsOrigins: string[]
+  browserApiTransport: BrowserApiTransportMode
   internalServiceToken?: string
   allowMockWithoutSupabase: boolean
   allowInternalTestExecutionWithSupabase: boolean
@@ -61,6 +63,7 @@ const envSchema = z.object({
   API_PORT: z.coerce.number().int().positive().max(65535).optional(),
   API_JSON_BODY_LIMIT: z.string().default('8mb'),
   API_ALLOWED_CORS_ORIGINS: z.string().optional(),
+  REEDITPRO_BROWSER_API_TRANSPORT: z.enum(['direct', 'google_api_gateway']).default('direct'),
   REEDITPRO_INTERNAL_SERVICE_TOKEN: z.string().optional(),
   PORT: z.coerce.number().int().positive().max(65535).optional(),
   E2E_RUNTIME_MODE: z.enum(['local', 'mock', 'cloud_run', 'disabled']).default('local'),
@@ -137,6 +140,12 @@ export function loadRuntimeEnv(source: NodeJS.ProcessEnv = process.env): Runtime
     warnings.push('REEDITPRO_INTERNAL_SERVICE_TOKEN is missing; internal worker/provider routes cannot start securely.')
   }
 
+  if (parsed.REEDITPRO_BROWSER_API_TRANSPORT === 'google_api_gateway') {
+    warnings.push(
+      'Google API Gateway browser transport is selected; the gateway JWT policy, exclusive Cloud Run invoker binding, and deployed route evidence must pass before browser traffic is enabled.',
+    )
+  }
+
   if (hasSupabaseAdmin && parsed.E2E_RUNTIME_MODE === 'mock') {
     warnings.push('Supabase admin env is present, but E2E_RUNTIME_MODE=mock keeps runtime in mock-only mode.')
   }
@@ -157,6 +166,7 @@ export function loadRuntimeEnv(source: NodeJS.ProcessEnv = process.env): Runtime
     apiPort: parsed.API_PORT ?? parsed.PORT ?? 8787,
     jsonBodyLimit: clean(parsed.API_JSON_BODY_LIMIT) ?? '8mb',
     allowedCorsOrigins,
+    browserApiTransport: parsed.REEDITPRO_BROWSER_API_TRANSPORT,
     internalServiceToken,
     allowMockWithoutSupabase,
     allowInternalTestExecutionWithSupabase,
@@ -242,6 +252,18 @@ export function assertRuntimeCanStart(env: RuntimeEnv): void {
   if (env.nodeEnv === 'production' && !env.internalServiceToken) {
     throw new Error('REEDITPRO_INTERNAL_SERVICE_TOKEN is required for production internal control-plane routes.')
   }
+
+  if (env.browserApiTransport === 'google_api_gateway') {
+    if (env.mode !== 'cloud_run') {
+      throw new Error('REEDITPRO_BROWSER_API_TRANSPORT=google_api_gateway requires E2E_RUNTIME_MODE=cloud_run.')
+    }
+    if (!env.hasSupabasePublic || !isSecureSupabaseOrigin(env.supabaseUrl)) {
+      throw new Error('Google API Gateway browser transport requires an exact HTTPS Supabase origin and anon key for user-token revalidation.')
+    }
+    if (env.allowedCorsOrigins.length === 0) {
+      throw new Error('Google API Gateway browser transport requires at least one exact API_ALLOWED_CORS_ORIGINS entry.')
+    }
+  }
 }
 
 export function createSafeRuntimeSummary(env: RuntimeEnv): Record<string, unknown> {
@@ -250,6 +272,7 @@ export function createSafeRuntimeSummary(env: RuntimeEnv): Record<string, unknow
     mode: env.mode,
     apiPort: env.apiPort,
     allowedCorsOriginCount: env.allowedCorsOrigins.length,
+    browserApiTransport: env.browserApiTransport,
     internalServiceAuthConfigured: Boolean(env.internalServiceToken),
     allowMockWithoutSupabase: env.allowMockWithoutSupabase,
     allowInternalTestExecutionWithSupabase: env.allowInternalTestExecutionWithSupabase,
@@ -345,4 +368,21 @@ function hasRequiredGcsBuckets(parsed: z.infer<typeof envSchema>): boolean {
     clean(parsed.GCS_QA_ARTIFACTS_BUCKET) &&
     clean(parsed.GCS_WORKER_TEMP_BUCKET),
   )
+}
+
+function isSecureSupabaseOrigin(value: string | undefined): boolean {
+  if (!value) return false
+
+  try {
+    const url = new URL(value)
+    return url.protocol === 'https:' &&
+      !url.username &&
+      !url.password &&
+      !url.search &&
+      !url.hash &&
+      url.pathname === '/' &&
+      url.origin === value.replace(/\/$/, '')
+  } catch {
+    return false
+  }
 }

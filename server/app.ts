@@ -6,6 +6,7 @@ import { createSupabasePublicClient } from './supabase/public-client'
 import { requestIdMiddleware } from './middleware/request-id'
 import { errorHandlerMiddleware } from './middleware/error-handler'
 import { isExplicitLocalInternalTestRuntime } from './middleware/canonical-worker-runtime'
+import { REEDITPRO_USER_AUTHORIZATION_HEADER } from './middleware/browser-api-auth-transport'
 import { createApprovalRoutes } from './routes/approval-routes'
 import { createChatRoutes } from './routes/chat-routes'
 import { createCreditDataRoutes } from './routes/credit-data-routes'
@@ -52,6 +53,15 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
   app.use(cors({
     origin: createCorsOriginPolicy(env),
     credentials: false,
+    allowedHeaders: [
+      'accept',
+      'authorization',
+      'content-type',
+      'idempotency-key',
+      'range',
+      'x-request-id',
+      REEDITPRO_USER_AUTHORIZATION_HEADER,
+    ],
     exposedHeaders: [
       'cache-control',
       'content-disposition',

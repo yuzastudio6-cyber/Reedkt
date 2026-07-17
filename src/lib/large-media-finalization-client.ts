@@ -46,6 +46,7 @@ export interface FinalizeUploadedSourceInput {
   uploadProtocol?: TemporaryUploadProtocol
   supportsResume?: boolean
   authorization?: string
+  reeditProUserAuthorization?: string
   finalizeIdempotencyKey: string
   finalizationJobIdempotencyKey: string
   fetchImpl?: typeof fetch
@@ -95,6 +96,7 @@ export async function finalizeUploadedSource<TFinalizedData>(
     ),
     method: 'POST',
     authorization: input.authorization,
+    reeditProUserAuthorization: input.reeditProUserAuthorization,
     idempotencyKey: input.finalizationJobIdempotencyKey,
     body: { workspaceId: input.workspaceId, sizeBytes: input.sizeBytes },
     signal: input.signal,
@@ -122,6 +124,7 @@ export async function finalizeUploadedSource<TFinalizedData>(
       ),
       method: 'GET',
       authorization: input.authorization,
+      reeditProUserAuthorization: input.reeditProUserAuthorization,
       signal: input.signal,
     })
     warnings.push(...polled.warnings)
@@ -154,6 +157,7 @@ async function finalizeRead<TFinalizedData>(
     ),
     method: 'POST',
     authorization: input.authorization,
+    reeditProUserAuthorization: input.reeditProUserAuthorization,
     idempotencyKey: input.finalizeIdempotencyKey,
     body: { workspaceId: input.workspaceId, sizeBytes: input.sizeBytes },
     signal: input.signal,
@@ -167,12 +171,16 @@ async function requestJson<TData>(input: {
   url: string
   method: 'GET' | 'POST'
   authorization?: string
+  reeditProUserAuthorization?: string
   idempotencyKey?: string
   body?: Record<string, unknown>
   signal?: AbortSignal
 }): Promise<{ data?: TData; warnings: string[] }> {
   const headers = new Headers({ accept: 'application/json' })
   if (input.authorization) headers.set('authorization', input.authorization)
+  if (input.reeditProUserAuthorization) {
+    headers.set('x-reeditpro-user-authorization', input.reeditProUserAuthorization)
+  }
   if (input.body) headers.set('content-type', 'application/json')
   if (input.idempotencyKey) headers.set('idempotency-key', input.idempotencyKey)
   const response = await input.fetchImpl(input.url, {

@@ -89,6 +89,8 @@ jobs:
           test "${CONFIRM_INTERNAL_CLOUD_COST}" = "ACCEPT_REEDITPRO_PRIVATE_STAGING_CLOUD_COST"
           test "${SOURCE_REF}" = "codex/backend-workflow-pipeline-continuation"
           [[ "${SOURCE_SHA}" =~ ^[0-9a-f]{40}$ ]]
+          test "${GITHUB_REF}" = "refs/heads/${SOURCE_REF}"
+          test "${GITHUB_SHA}" = "${SOURCE_SHA}"
           [[ "${EXPECTED_CLOUD_RUN_REVISION}" =~ ^reeditpro-api-staging-[a-z0-9-]+$ ]]
           test "${GCP_PROJECT_ID}" = "reeditpro"
           test "${GCP_REGION}" = "us-east1"
@@ -597,6 +599,115 @@ jobs:
         env:
           REEDITPRO_REQUIRE_GATEWAY_READY: "true"
         run: npm run staging:verify-google-api-gateway-readiness
+
+      - name: Create sanitized activation evidence for the hosted app handoff
+        shell: bash
+        env:
+          SOURCE_REF: ${{ inputs.source_ref }}
+          SOURCE_SHA: ${{ inputs.source_sha }}
+        run: |
+          set -euo pipefail
+          evidence_file="${RUNNER_TEMP}/reeditpro-private-browser-staging-activation.json"
+          python3 - \
+            "${evidence_file}" \
+            "${GITHUB_REPOSITORY}" \
+            "${GITHUB_RUN_ID}" \
+            "${GITHUB_RUN_ATTEMPT}" \
+            "${SOURCE_REF}" \
+            "${SOURCE_SHA}" \
+            "${GCP_PROJECT_ID}" \
+            "${GCP_REGION}" \
+            "${CLOUD_RUN_SERVICE}" \
+            "${NEW_CLOUD_RUN_REVISION}" \
+            "${API_GATEWAY_API_ID}" \
+            "${TARGET_API_CONFIG_ID}" \
+            "${API_GATEWAY_ID}" \
+            "${GATEWAY_ORIGIN}" \
+            "${STAGING_APP_ORIGIN}" <<'PY'
+          import json
+          import pathlib
+          import re
+          import sys
+
+          (
+              output_path,
+              repository,
+              run_id,
+              run_attempt,
+              source_ref,
+              source_sha,
+              project_id,
+              region,
+              cloud_run_service,
+              cloud_run_revision,
+              api_id,
+              api_config_id,
+              gateway_id,
+              gateway_origin,
+              app_origin,
+          ) = sys.argv[1:]
+
+          if not re.fullmatch(r"[1-9][0-9]*", run_id) or not re.fullmatch(r"[1-9][0-9]*", run_attempt):
+              raise SystemExit("Workflow run evidence is invalid.")
+          if repository != "yuzastudio6-cyber/Reedkt":
+              raise SystemExit("Activation evidence repository is invalid.")
+          if source_ref != "codex/backend-workflow-pipeline-continuation" or not re.fullmatch(r"[0-9a-f]{40}", source_sha):
+              raise SystemExit("Activation evidence source is invalid.")
+          if project_id != "reeditpro" or region != "us-east1" or cloud_run_service != "reeditpro-api-staging":
+              raise SystemExit("Activation evidence cloud scope is invalid.")
+          if not re.fullmatch(r"reeditpro-api-staging-[a-z0-9-]+", cloud_run_revision):
+              raise SystemExit("Activation evidence Cloud Run revision is invalid.")
+          if api_id != "reeditpro-browser-staging" or gateway_id != "reeditpro-browser-staging":
+              raise SystemExit("Activation evidence gateway identity is invalid.")
+          if api_config_id != f"cfg-{source_sha[:16]}":
+              raise SystemExit("Activation evidence API config does not match the source SHA.")
+          if not re.fullmatch(r"https://[a-z0-9-]+(?:[.][a-z0-9-]+)*[.]gateway[.]dev", gateway_origin):
+              raise SystemExit("Activation evidence gateway origin is invalid.")
+          if app_origin not in {"https://yuzastudio6-cyber.github.io", "https://app.reeditpro.com"}:
+              raise SystemExit("Activation evidence app origin is invalid.")
+
+          evidence = {
+              "schemaVersion": 1,
+              "repository": repository,
+              "workflowPath": ".github/workflows/beta-readiness-api-staging-deploy.yml",
+              "workflowRunId": int(run_id),
+              "workflowRunAttempt": int(run_attempt),
+              "sourceRef": source_ref,
+              "sourceSha": source_sha,
+              "projectId": project_id,
+              "region": region,
+              "cloudRunService": cloud_run_service,
+              "cloudRunRevision": cloud_run_revision,
+              "apiId": api_id,
+              "apiConfigId": api_config_id,
+              "gatewayId": gateway_id,
+              "gatewayOrigin": gateway_origin,
+              "appOrigin": app_origin,
+              "browserApiTransport": "google_api_gateway",
+              "strictReadinessPassed": True,
+              "cloudRunIamPrivate": True,
+              "gatewaySoleServiceLevelInvoker": True,
+              "providersEnabled": False,
+              "workersEnabled": False,
+              "storageExecutionEnabled": False,
+              "customerBillingEnabled": False,
+              "publicDeliveryEnabled": False,
+              "productionEnabled": False,
+          }
+          pathlib.Path(output_path).write_text(
+              json.dumps(evidence, indent=2, sort_keys=True) + "\n",
+              encoding="utf-8",
+          )
+          PY
+          test -s "${evidence_file}"
+
+      - name: Upload immutable sanitized activation evidence
+        uses: actions/upload-artifact@v7
+        with:
+          name: reeditpro-private-browser-staging-activation-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/reeditpro-private-browser-staging-activation.json
+          if-no-files-found: error
+          retention-days: 30
 
       - name: Record private staging activation boundary
         shell: bash

@@ -2,28 +2,38 @@
 
 ## Decision
 
-`app_internal_testing_pages_workflow_locally_ready_google_oauth_hosted_configuration_pending`
+`app_signed_in_internal_testing_pages_gateway_workflow_source_ready_remote_activation_and_deploy_pending`
 
 ## Deployment Target
 
 - Manual workflow: `.github/workflows/app-internal-testing-pages-deploy.yml`
-- Reviewed integration source ref: `codex/reeditpro-web-ui-shell`
+- Exact reviewed source ref: `codex/backend-workflow-pipeline-continuation`
 - Default Vite base path: `/Reedkt/`
+- Required successful upstream workflow: `Private Browser API Gateway Staging Activation`
 - Browser-safe configuration:
   - `STAGING_SUPABASE_URL` -> `VITE_SUPABASE_URL`
   - `STAGING_SUPABASE_ANON_KEY` -> `VITE_SUPABASE_ANON_KEY`
   - literal `VITE_REEDITPRO_AUTH_MODE=supabase`
-- API mode: `mock`
+  - literal `VITE_REEDITPRO_API_MODE=cloud_run`
+  - literal `VITE_REEDITPRO_API_TRANSPORT=google_api_gateway`
+  - immutable activation-evidence `.gateway.dev` origin -> `VITE_REEDITPRO_API_BASE_URL`
+- API mode: authenticated browser transport through Google API Gateway to IAM-private Cloud Run
 
-The workflow checks out an exact operator-supplied SHA, builds with the requested allowlisted base path, and copies `index.html` to `404.html` so GitHub Pages deep links return to the React router. The router and Google OAuth callback now both honor the same Vite base path.
+The workflow requires its own dispatch ref/SHA to equal the exact continuation branch tip, checks out that same SHA, and refuses to build unless a successful `Private Browser API Gateway Staging Activation` run from the same repository, branch, and SHA is proven through the GitHub Actions API. The activation workflow enforces the same self-ref/self-SHA rule and uploads a sanitized, immutable, attempt-specific evidence artifact only after strict gateway readiness passes. The Pages workflow downloads the artifact from that exact run and attempt, validates its closed schema and all source/cloud/security boundaries, and derives the gateway origin from it instead of accepting a separately typed hostname. It then reproves gateway health, protected-route auth denial, and exact noncredentialed CORS for the GitHub Pages origin before installing or building frontend dependencies.
 
-The compiled app was locally served with `--base=/Reedkt/` and passed the hosted-route verifier at `/Reedkt/sign-in?returnTo=/dashboard`: the current sign-in card, Google action, password fallback, and Supabase-mode surface were all present. A separately intercepted click produced the exact `/Reedkt/sign-in?returnTo=...` callback, selected `provider=google`, and included no anon key. This is compiled-subpath evidence, not a GitHub Pages deployment or live-provider result.
+The static build receives only the public Supabase origin/anon key, the authenticated API Gateway origin, and literal browser modes. It audits the compiled artifact for the exact gateway transport and refuses backend-only secret-name leakage. It copies `index.html` to `404.html` so Pages deep links return to the React router. Both the router and Google OAuth callback honor `/Reedkt/`.
 
-The workflow intentionally does not use a Google client secret, `STAGING_SUPABASE_SERVICE_ROLE_KEY`, provider secrets, worker secrets, Google Cloud credentials, Stripe secrets, or any backend-only value.
+Before upload, the workflow serves the compiled subpath locally with the exact reviewed Vite base path and a strict port, then runs the credential-free hosted-route verifier. After Pages deployment, it retries that verifier against the deployed URL. This proves the current Google-first sign-in surface and browser-safe Supabase configuration are present; it does not click Google, submit credentials, or prove a session.
+
+The gateway-mode compiled app was locally built and served with `--base=/Reedkt/` using public fixture Supabase and `.gateway.dev` values. It passed the compiled-artifact gateway/secret-boundary audit and the hosted-route verifier at `/Reedkt/sign-in?returnTo=/dashboard`: the current sign-in card, Google action, password fallback, and Supabase-mode surface were all present. A base-unaware preview attempt correctly failed because its `/Reedkt/assets/*` requests returned 404; the guarded workflow now passes the exact reviewed base path to both build and preview and uses `--strictPort`. A separately intercepted click produced the exact `/Reedkt/sign-in?returnTo=...` callback, selected `provider=google`, and included no anon key. This is local compiled-subpath evidence, not a GitHub Pages deployment, live gateway, or live-provider result.
+
+The workflow intentionally does not use a Google client secret, `STAGING_SUPABASE_SERVICE_ROLE_KEY`, provider secrets, worker secrets, Google Cloud credentials, Stripe secrets, or any backend-only value. It cannot deploy the backend, alter IAM, write Supabase, call a provider, run a worker, process media, render, reserve/spend customer credits, or bill a customer.
 
 ## Current Integration Boundary
 
-The Google OAuth changes are on `codex/backend-workflow-pipeline-continuation`. The workflow remains fail-closed to the reviewed integration source `codex/reeditpro-web-ui-shell`, so this slice cannot be deployed through it until an authorized review/integration places the commit on that source ref. This document does not claim that integration or deployment has happened.
+The Google OAuth, gateway browser transport, guarded backend activation, and Pages deployment bridge now share `codex/backend-workflow-pipeline-continuation` locally. The branch has not been pushed, the gateway activation workflow has not run, and Pages has not been redeployed. Therefore the workflow cannot yet obtain its required successful same-SHA activation run evidence.
+
+Edit Preferences/Edit Reference and Motion Studio remain separately owned. This deployment bridge does not implement, rewrite, or claim their UI/backend contracts; a later reviewed integration SHA must include their verified handoffs before a whole-product release test.
 
 A read-only browser check on 2026-07-17 reached the current GitHub Pages URL but found no current ReEditPro sign-in card. Its status is `blocked_sign_in_surface_missing`, confirming that the public test artifact is stale or incorrect and must not be used for Gmail testing yet.
 
@@ -37,7 +47,7 @@ When custom app DNS is ready, the same workflow can be run with base path `/`, a
 
 `https://app.reeditpro.com/sign-in`
 
-After reviewed integration, Supabase Google-provider configuration, exact callback allowlisting, and deployment, verify the hosted surface without submitting credentials:
+After owner-authorized gateway activation, Supabase Google-provider configuration, exact callback allowlisting, and Pages deployment, verify the hosted surface without submitting credentials:
 
 ```bash
 REEDITPRO_CONFIRM_HOSTED_SIGN_IN_ROUTE_READINESS=VERIFY_REEDITPRO_HOSTED_SIGN_IN_ROUTE \
@@ -50,8 +60,8 @@ That verifier must find the current Google-first sign-in surface. It does not pr
 
 ## Boundaries
 
-This readiness packet does not deploy the app or backend API, configure Supabase or Google OAuth, alter IAM/DNS, run tools, dispatch workers, process media, write Supabase data, sign storage URLs, reserve or spend credits, call providers, enable customer billing, or enable external beta/production. With API mode still `mock`, the hosted artifact is only a sign-in/app shell and cannot run the professional backend pipeline.
+This readiness packet does not deploy the app or backend API, configure Supabase or Google OAuth, alter IAM/DNS, run tools, dispatch workers, process media, write Supabase data, sign storage URLs, reserve or spend credits, call providers, enable customer billing, or enable external beta/production. The future hosted artifact will use the real authenticated gateway transport, but backend routes remain evidence-gated and unavailable stages must continue to fail closed.
 
 ## Next Gate
 
-`REVIEWED_SOURCE_INTEGRATION_SUPABASE_GOOGLE_PROVIDER_AND_HOSTED_CALLBACK_VERIFICATION`
+`OWNER_AUTHORIZED_GATEWAY_ACTIVATION_AND_PAGES_DEPLOY_THEN_INTERACTIVE_GOOGLE_SESSION`

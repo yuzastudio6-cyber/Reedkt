@@ -66,7 +66,7 @@ The workflow cannot run on push, pull request, or schedule. A staging environmen
 - positive numeric Secret Manager versions for `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, and `REEDITPRO_INTERNAL_SERVICE_TOKEN`—never `latest`;
 - keyless GitHub OIDC/Workload Identity configuration, the exact staging app origin, the public staging Supabase origin, and the exact expected legacy private invoker through the protected `staging` environment.
 
-Before mutation it proves the checked-out SHA is the clean branch tip, runs the source security suite, checks the current Cloud Run revision/runtime identity, rejects every project-level `roles/run.invoker` binding, rejects public or unexpected service-level invokers, verifies the four pinned secret versions without reading their values, and accepts only an all-public-key ES256/RS256 Supabase JWKS. A legacy/shared-secret Supabase signing configuration therefore fails before API enablement.
+Before mutation it proves the workflow dispatch itself and the checked-out source both use the exact reviewed branch tip SHA, runs the source security suite, checks the current Cloud Run revision/runtime identity, rejects every project-level `roles/run.invoker` binding, rejects public or unexpected service-level invokers, verifies the four pinned secret versions without reading their values, and accepts only an all-public-key ES256/RS256 Supabase JWKS. A legacy/shared-secret Supabase signing configuration therefore fails before API enablement.
 
 Only after that preflight can it:
 
@@ -76,7 +76,8 @@ Only after that preflight can it:
 4. deploy the production-startup-safe Cloud Run revision with worker/storage execution disabled, exact browser transport/CORS, pinned Secret Manager bindings, IAM invoker checks, and no unauthenticated invoker;
 5. derive the API's generated managed-service hostname, render the reviewed OpenAPI contract, and create/reuse an immutable source/spec-hash-labelled API config;
 6. create or update the `us-east1` gateway and prove public health, unauthenticated direct-Cloud-Run denial, protected-route auth denial, and exact noncredentialed CORS;
-7. remove only the preflight-matched legacy private invoker after those proofs, then require the sanitized readiness verifier to pass with the gateway identity as the sole service-level invoker.
+7. remove only the preflight-matched legacy private invoker after those proofs, then require the sanitized readiness verifier to pass with the gateway identity as the sole service-level invoker;
+8. create and upload an immutable, attempt-specific, sanitized activation-evidence artifact containing the exact source SHA, Cloud Run revision, API config, gateway origin, app origin, and disabled-scope flags. No token, credential, IAM member, secret value, or signed URL enters that artifact.
 
 Cloud Run uses `ingress=all` because API Gateway invokes the service's Google-managed `run.app` endpoint; IAM remains the access boundary and the workflow requires a direct unauthenticated request to return `403`. On any later failure, the workflow attempts to restore the previous gateway config, previous Cloud Run traffic revision, and exact prior service-level invoker set. It intentionally never deletes an API, config, gateway, service account, image, secret, or revision during rollback.
 
@@ -91,7 +92,7 @@ Remote work remains gated. When the owner authorizes the staging mutation window
 1. Verify Google OAuth callback/redirect configuration and the Supabase hosted sign-in session.
 2. Verify Supabase uses an asymmetric signing key whose JWKS and algorithm are accepted by the target API Gateway config; do not expose a symmetric JWT secret.
 3. Configure and review the protected staging workflow inputs, then dispatch the guarded activation workflow. Do not run equivalent ad hoc mutation commands.
-4. Preserve the workflow evidence for its immutable source SHA, image digest, Cloud Run revision, API config, gateway origin, route probes, exclusive service-level IAM result, and strict readiness report.
+4. Preserve the successful workflow run and its immutable, attempt-specific activation-evidence artifact. The Pages deployment must download that exact artifact and derive its gateway origin from the artifact rather than accepting a separately entered endpoint.
 5. Prove expired token, wrong issuer, wrong audience, wrong subject, revoked user, cross-workspace access, and sanitized deployed logging.
 6. Point the reviewed hosted frontend at the verified gateway and run real Google sign-in, reload, sign-out, upload, plan, approval, private execution, QA, review, and export tests.
 
@@ -113,4 +114,4 @@ npm run staging:verify-google-api-gateway-readiness
 npm run typecheck:server
 ```
 
-The focused smokes prove the local trust boundary, generated OpenAPI invariants, read-only command plan, sanitized report shape, ready fixture, disabled-service fixture, public/unexpected-invoker rejection, and the static activation workflow's confirmations, pinned inputs, mutation order, route probes, exclusivity cutover, rollback, and blocked scopes. The live verifier proves only current read-only Google Cloud configuration. It does not prove that the workflow ran, API enablement, IAM mutation, a deployed gateway, live Supabase signing keys, real Gmail sign-in, durable database state, GCS, workers, providers, billing, or production readiness.
+The focused smokes prove the local trust boundary, generated OpenAPI invariants, read-only command plan, sanitized report shape, ready fixture, disabled-service fixture, public/unexpected-invoker rejection, activation confirmations, pinned inputs, mutation order, route probes, exclusivity cutover, rollback, and blocked scopes. They also execute the embedded activation-evidence producer and Pages consumer with a valid fixture and prove tampered sole-invoker evidence fails closed. The live verifier proves only current read-only Google Cloud configuration. It does not prove that the workflow ran, API enablement, IAM mutation, a deployed gateway, live Supabase signing keys, real Gmail sign-in, durable database state, GCS, workers, providers, billing, or production readiness.

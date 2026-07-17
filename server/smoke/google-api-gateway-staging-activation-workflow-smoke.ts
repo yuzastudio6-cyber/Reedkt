@@ -28,6 +28,8 @@ for (const exactBoundary of [
 
 assert.match(workflow, /test "\$\(git rev-parse HEAD\)" = "\$\{SOURCE_SHA\}"/)
 assert.match(workflow, /test -z "\$\(git status --porcelain\)"/)
+assert.match(workflow, /test "\$\{GITHUB_REF\}" = "refs\/heads\/\$\{SOURCE_REF\}"/)
+assert.match(workflow, /test "\$\{GITHUB_SHA\}" = "\$\{SOURCE_SHA\}"/)
 assert.match(workflow, /npm ci --no-audit --no-fund --progress=false/)
 for (const sourceProof of [
   'smoke:google-api-gateway-browser-transport',
@@ -147,6 +149,42 @@ const legacyCutoverIndex = workflow.indexOf('- name: Reconcile the exact legacy 
 const strictReadinessIndex = workflow.indexOf('- name: Require strict sanitized deployed readiness')
 assert.ok(routeProofIndex > 0 && legacyCutoverIndex > routeProofIndex && strictReadinessIndex > legacyCutoverIndex)
 assert.match(workflow, /REEDITPRO_REQUIRE_GATEWAY_READY: "true"/)
+
+const activationEvidenceStep = between(
+  workflow,
+  '- name: Create sanitized activation evidence for the hosted app handoff',
+  '- name: Upload immutable sanitized activation evidence',
+)
+for (const evidenceBoundary of [
+  '"schemaVersion": 1',
+  '"workflowRunId": int(run_id)',
+  '"workflowRunAttempt": int(run_attempt)',
+  '"sourceSha": source_sha',
+  '"cloudRunRevision": cloud_run_revision',
+  '"apiConfigId": api_config_id',
+  '"gatewayOrigin": gateway_origin',
+  '"appOrigin": app_origin',
+  '"browserApiTransport": "google_api_gateway"',
+  '"strictReadinessPassed": True',
+  '"cloudRunIamPrivate": True',
+  '"gatewaySoleServiceLevelInvoker": True',
+  '"providersEnabled": False',
+  '"workersEnabled": False',
+  '"storageExecutionEnabled": False',
+  '"customerBillingEnabled": False',
+  '"publicDeliveryEnabled": False',
+  '"productionEnabled": False',
+] as const) {
+  assert.equal(activationEvidenceStep.includes(evidenceBoundary), true, `Missing activation evidence boundary ${evidenceBoundary}`)
+}
+assert.match(workflow, /uses: actions\/upload-artifact@v7/)
+assert.match(workflow, /name: reeditpro-private-browser-staging-activation-\$\{\{ github\.run_id \}\}-\$\{\{ github\.run_attempt \}\}/)
+assert.match(workflow, /if-no-files-found: error/)
+assert.match(workflow, /retention-days: 30/)
+assert.ok(
+  workflow.indexOf('- name: Upload immutable sanitized activation evidence') > strictReadinessIndex,
+  'Activation evidence must be uploaded only after strict deployed readiness passes.',
+)
 
 const rollbackStep = between(
   workflow,

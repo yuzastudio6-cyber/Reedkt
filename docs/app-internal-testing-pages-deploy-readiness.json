@@ -1,8 +1,8 @@
 {
-  "decision": "app_internal_testing_pages_workflow_locally_ready_google_oauth_hosted_configuration_pending",
-  "sourceRef": "codex/reeditpro-web-ui-shell",
+  "decision": "app_signed_in_internal_testing_pages_gateway_workflow_source_ready_remote_activation_and_deploy_pending",
+  "sourceRef": "codex/backend-workflow-pipeline-continuation",
   "currentImplementationBranch": "codex/backend-workflow-pipeline-continuation",
-  "currentSliceIntegratedIntoSourceRef": false,
+  "currentSliceIntegratedIntoSourceRef": true,
   "workflow": ".github/workflows/app-internal-testing-pages-deploy.yml",
   "defaultBasePath": "/Reedkt/",
   "githubPagesSignInUrl": "https://yuzastudio6-cyber.github.io/Reedkt/sign-in",
@@ -18,13 +18,27 @@
   "hostedDeploymentVerified": false,
   "existingLiveHostCheckedOn": "2026-07-17",
   "existingLiveHostStatus": "blocked_sign_in_surface_missing",
-  "hostedApiMode": "mock",
+  "hostedApiMode": "cloud_run_google_api_gateway",
+  "sourceWorkflowReady": true,
+  "sourceWorkflowPushed": false,
+  "gatewayActivationRunRequired": true,
+  "gatewayActivationWorkflow": ".github/workflows/beta-readiness-api-staging-deploy.yml",
+  "gatewayActivationEvidenceArtifactRequired": true,
+  "gatewayActivationEvidenceSchemaVersion": 1,
+  "gatewayOriginDerivedFromActivationEvidence": true,
+  "sameSourceShaAsGatewayRequired": true,
+  "gatewayHealthAuthAndCorsReproofRequired": true,
+  "compiledGatewayArtifactAuditRequired": true,
+  "compiledGatewayBuildVerified": true,
+  "postDeploySignInSurfaceVerificationRequired": true,
   "safeSecretMappings": {
     "STAGING_SUPABASE_URL": "VITE_SUPABASE_URL",
     "STAGING_SUPABASE_ANON_KEY": "VITE_SUPABASE_ANON_KEY"
   },
   "safeLiteralBuildEnv": {
-    "VITE_REEDITPRO_AUTH_MODE": "supabase"
+    "VITE_REEDITPRO_AUTH_MODE": "supabase",
+    "VITE_REEDITPRO_API_MODE": "cloud_run",
+    "VITE_REEDITPRO_API_TRANSPORT": "google_api_gateway"
   },
   "blockedSecrets": [
     "GOOGLE_CLIENT_SECRET",
@@ -54,5 +68,5 @@
     "externalBeta": false,
     "production": false
   },
-  "nextGate": "REVIEWED_SOURCE_INTEGRATION_SUPABASE_GOOGLE_PROVIDER_AND_HOSTED_CALLBACK_VERIFICATION"
+  "nextGate": "OWNER_AUTHORIZED_GATEWAY_ACTIVATION_AND_PAGES_DEPLOY_THEN_INTERACTIVE_GOOGLE_SESSION"
 }

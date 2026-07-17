@@ -1,79 +1,256 @@
-name: App Internal Testing Pages Deploy
+name: App Signed-In Internal Testing Pages Deploy
 
 on:
   workflow_dispatch:
     inputs:
       confirm_internal_testing_app_deploy:
-        description: "Type DEPLOY_REEDITPRO_INTERNAL_TESTING_APP to deploy the static app shell to GitHub Pages"
+        description: "Type DEPLOY_REEDITPRO_SIGNED_IN_INTERNAL_TEST_APP"
         required: true
         type: string
       source_ref:
-        description: "Source ref to deploy"
+        description: "Exact reviewed source branch"
         required: true
-        default: "codex/reeditpro-web-ui-shell"
+        default: "codex/backend-workflow-pipeline-continuation"
         type: string
       source_sha:
-        description: "Exact source commit SHA to deploy"
+        description: "Exact 40-character source SHA deployed by the successful gateway activation run"
+        required: true
+        type: string
+      gateway_activation_run_id:
+        description: "Successful Private Browser API Gateway Staging Activation workflow run ID"
         required: true
         type: string
       vite_base_path:
-        description: "Vite base path. Use /Reedkt/ for github.io testing, or / only after custom app DNS is ready."
+        description: "The reviewed GitHub Pages repository base path"
         required: true
         default: "/Reedkt/"
         type: string
 
 permissions:
+  actions: read
   contents: read
   pages: write
   id-token: write
 
 concurrency:
-  group: app-internal-testing-pages-deploy
+  group: app-signed-in-internal-testing-pages-deploy
   cancel-in-progress: false
 
 jobs:
-  build-and-deploy:
-    name: Build and deploy internal testing app shell
+  build-verify-and-deploy:
+    name: Build verify and deploy signed-in internal testing app
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     environment:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
+    env:
+      REVIEWED_APP_ORIGIN: https://yuzastudio6-cyber.github.io
     steps:
-      - name: Fail closed unless this is the internal testing app deploy lane
+      - name: Fail closed unless this is the exact signed-in Pages lane
         shell: bash
         env:
           CONFIRM_INTERNAL_TESTING_APP_DEPLOY: ${{ inputs.confirm_internal_testing_app_deploy }}
           SOURCE_REF: ${{ inputs.source_ref }}
           SOURCE_SHA: ${{ inputs.source_sha }}
+          GATEWAY_ACTIVATION_RUN_ID: ${{ inputs.gateway_activation_run_id }}
           VITE_BASE_PATH: ${{ inputs.vite_base_path }}
         run: |
           set -euo pipefail
-          test "${CONFIRM_INTERNAL_TESTING_APP_DEPLOY}" = "DEPLOY_REEDITPRO_INTERNAL_TESTING_APP"
-          test "${SOURCE_REF}" = "codex/reeditpro-web-ui-shell"
+          test "${CONFIRM_INTERNAL_TESTING_APP_DEPLOY}" = "DEPLOY_REEDITPRO_SIGNED_IN_INTERNAL_TEST_APP"
+          test "${SOURCE_REF}" = "codex/backend-workflow-pipeline-continuation"
           [[ "${SOURCE_SHA}" =~ ^[0-9a-f]{40}$ ]]
-          case "${VITE_BASE_PATH}" in
-            "/"|"/Reedkt/") ;;
-            *)
-              echo "Refusing unsupported Vite base path: ${VITE_BASE_PATH}" >&2
-              exit 1
-              ;;
-          esac
+          test "${GITHUB_REF}" = "refs/heads/${SOURCE_REF}"
+          test "${GITHUB_SHA}" = "${SOURCE_SHA}"
+          [[ "${GATEWAY_ACTIVATION_RUN_ID}" =~ ^[1-9][0-9]*$ ]]
+          test "${VITE_BASE_PATH}" = "/Reedkt/"
 
-      - name: Checkout requested source
+      - name: Checkout exact reviewed source
         uses: actions/checkout@v5
         with:
           ref: ${{ inputs.source_ref }}
-          fetch-depth: 0
+          fetch-depth: 1
 
-      - name: Verify exact source commit
+      - name: Verify immutable source tip and clean static deploy context
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${SOURCE_SHA}"
+          test -z "$(git status --porcelain)"
+          git diff --exit-code -- package-lock.json
+
+      - name: Require successful same-SHA private gateway activation evidence
+        id: gateway_activation_run
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_REF: ${{ inputs.source_ref }}
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          GATEWAY_ACTIVATION_RUN_ID: ${{ inputs.gateway_activation_run_id }}
+        run: |
+          set -euo pipefail
+          activation_run="${RUNNER_TEMP}/gateway-activation-run.json"
+          gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${GATEWAY_ACTIVATION_RUN_ID}" > "${activation_run}"
+          python3 - \
+            "${activation_run}" \
+            "${GITHUB_REPOSITORY}" \
+            "${SOURCE_REF}" \
+            "${SOURCE_SHA}" \
+            "${GATEWAY_ACTIVATION_RUN_ID}" \
+            "${GITHUB_OUTPUT}" <<'PY'
+          import json
+          import pathlib
+          import sys
+
+          run = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8") or "{}")
+          repository = (run.get("repository") or {}).get("full_name")
+          workflow_path = str(run.get("path") or "").split("@")[0]
+          if repository != sys.argv[2]:
+              raise SystemExit("Gateway activation evidence belongs to another repository.")
+          if run.get("name") != "Private Browser API Gateway Staging Activation":
+              raise SystemExit("Gateway activation evidence has the wrong workflow name.")
+          if workflow_path != ".github/workflows/beta-readiness-api-staging-deploy.yml":
+              raise SystemExit("Gateway activation evidence has the wrong workflow path.")
+          if run.get("event") != "workflow_dispatch" or run.get("status") != "completed" or run.get("conclusion") != "success":
+              raise SystemExit("Gateway activation workflow did not complete successfully.")
+          if run.get("head_branch") != sys.argv[3] or run.get("head_sha") != sys.argv[4]:
+              raise SystemExit("Gateway activation source does not match the Pages source exactly.")
+          if run.get("id") != int(sys.argv[5]):
+              raise SystemExit("Gateway activation run ID does not match the requested evidence.")
+          run_attempt = run.get("run_attempt")
+          if not isinstance(run_attempt, int) or run_attempt < 1:
+              raise SystemExit("Gateway activation run attempt is missing or invalid.")
+          with pathlib.Path(sys.argv[6]).open("a", encoding="utf-8") as handle:
+              handle.write(f"run_attempt={run_attempt}\n")
+          PY
+
+      - name: Download exact immutable gateway activation evidence
+        uses: actions/download-artifact@v8
+        with:
+          name: reeditpro-private-browser-staging-activation-${{ inputs.gateway_activation_run_id }}-${{ steps.gateway_activation_run.outputs.run_attempt }}
+          path: ${{ runner.temp }}/gateway-activation-evidence
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ inputs.gateway_activation_run_id }}
+
+      - name: Bind the app to the exact activated gateway evidence
+        shell: bash
+        env:
+          SOURCE_REF: ${{ inputs.source_ref }}
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          GATEWAY_ACTIVATION_RUN_ID: ${{ inputs.gateway_activation_run_id }}
+          GATEWAY_ACTIVATION_RUN_ATTEMPT: ${{ steps.gateway_activation_run.outputs.run_attempt }}
+        run: |
+          set -euo pipefail
+          evidence_file="${RUNNER_TEMP}/gateway-activation-evidence/reeditpro-private-browser-staging-activation.json"
+          test -s "${evidence_file}"
+          python3 - \
+            "${evidence_file}" \
+            "${GITHUB_REPOSITORY}" \
+            "${SOURCE_REF}" \
+            "${SOURCE_SHA}" \
+            "${GATEWAY_ACTIVATION_RUN_ID}" \
+            "${GATEWAY_ACTIVATION_RUN_ATTEMPT}" \
+            "${REVIEWED_APP_ORIGIN}" \
+            "${GITHUB_ENV}" <<'PY'
+          import json
+          import pathlib
+          import re
+          import sys
+
+          evidence = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8") or "{}")
+          expected_keys = {
+              "schemaVersion", "repository", "workflowPath", "workflowRunId", "workflowRunAttempt",
+              "sourceRef", "sourceSha", "projectId", "region", "cloudRunService", "cloudRunRevision",
+              "apiId", "apiConfigId", "gatewayId", "gatewayOrigin", "appOrigin", "browserApiTransport",
+              "strictReadinessPassed", "cloudRunIamPrivate", "gatewaySoleServiceLevelInvoker",
+              "providersEnabled", "workersEnabled", "storageExecutionEnabled", "customerBillingEnabled",
+              "publicDeliveryEnabled", "productionEnabled",
+          }
+          if not isinstance(evidence, dict) or set(evidence) != expected_keys:
+              raise SystemExit("Gateway activation evidence schema is invalid.")
+          expected = {
+              "schemaVersion": 1,
+              "repository": sys.argv[2],
+              "workflowPath": ".github/workflows/beta-readiness-api-staging-deploy.yml",
+              "workflowRunId": int(sys.argv[5]),
+              "workflowRunAttempt": int(sys.argv[6]),
+              "sourceRef": sys.argv[3],
+              "sourceSha": sys.argv[4],
+              "projectId": "reeditpro",
+              "region": "us-east1",
+              "cloudRunService": "reeditpro-api-staging",
+              "apiId": "reeditpro-browser-staging",
+              "apiConfigId": f"cfg-{sys.argv[4][:16]}",
+              "gatewayId": "reeditpro-browser-staging",
+              "appOrigin": sys.argv[7],
+              "browserApiTransport": "google_api_gateway",
+              "strictReadinessPassed": True,
+              "cloudRunIamPrivate": True,
+              "gatewaySoleServiceLevelInvoker": True,
+              "providersEnabled": False,
+              "workersEnabled": False,
+              "storageExecutionEnabled": False,
+              "customerBillingEnabled": False,
+              "publicDeliveryEnabled": False,
+              "productionEnabled": False,
+          }
+          for key, value in expected.items():
+              if evidence.get(key) != value:
+                  raise SystemExit(f"Gateway activation evidence mismatch: {key}")
+          if not re.fullmatch(r"reeditpro-api-staging-[a-z0-9-]+", str(evidence.get("cloudRunRevision", ""))):
+              raise SystemExit("Gateway activation Cloud Run revision is invalid.")
+          gateway_origin = evidence.get("gatewayOrigin")
+          if not isinstance(gateway_origin, str) or not re.fullmatch(
+              r"https://[a-z0-9-]+(?:[.][a-z0-9-]+)*[.]gateway[.]dev",
+              gateway_origin,
+          ):
+              raise SystemExit("Gateway activation origin is invalid.")
+          with pathlib.Path(sys.argv[8]).open("a", encoding="utf-8") as handle:
+              handle.write(f"VERIFIED_API_GATEWAY_ORIGIN={gateway_origin}\n")
+          PY
+
+      - name: Reprove gateway health auth denial and exact Pages CORS
         shell: bash
         run: |
           set -euo pipefail
-          git merge-base --is-ancestor "${{ inputs.source_sha }}" HEAD
-          git checkout --detach "${{ inputs.source_sha }}"
-          test "$(git rev-parse HEAD)" = "${{ inputs.source_sha }}"
-          git diff --exit-code -- package-lock.json .dockerignore docker/prod docker/worker Dockerfile.backend
+          [[ "${VERIFIED_API_GATEWAY_ORIGIN}" =~ ^https://[a-z0-9-]+([.][a-z0-9-]+)*[.]gateway[.]dev$ ]]
+          health_body="${RUNNER_TEMP}/gateway-health.json"
+          health_status="$(curl --silent --show-error --max-time 20 \
+            --output "${health_body}" --write-out '%{http_code}' \
+            "${VERIFIED_API_GATEWAY_ORIGIN}/health")"
+          test "${health_status}" = "200"
+          python3 - "${health_body}" <<'PY'
+          import json
+          import pathlib
+          import sys
+          body = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8") or "{}")
+          data = body.get("data") or {}
+          if body.get("ok") is not True or data.get("service") != "reeditpro-api" or data.get("status") != "ok":
+              raise SystemExit("Gateway health response is invalid.")
+          PY
+          auth_status="$(curl --silent --show-error --max-time 20 \
+            --output /dev/null --write-out '%{http_code}' \
+            "${VERIFIED_API_GATEWAY_ORIGIN}/v1/projects")"
+          test "${auth_status}" = "401"
+          cors_headers="${RUNNER_TEMP}/gateway-pages-cors-headers.txt"
+          cors_status="$(curl --silent --show-error --max-time 20 \
+            --request OPTIONS \
+            --header "Origin: ${REVIEWED_APP_ORIGIN}" \
+            --header "Access-Control-Request-Method: POST" \
+            --header "Access-Control-Request-Headers: authorization,content-type,x-reeditpro-user-authorization" \
+            --dump-header "${cors_headers}" \
+            --output /dev/null \
+            --write-out '%{http_code}' \
+            "${VERIFIED_API_GATEWAY_ORIGIN}/v1/projects")"
+          test "${cors_status}" = "204"
+          grep -Fqi "access-control-allow-origin: ${REVIEWED_APP_ORIGIN}" "${cors_headers}"
+          grep -Fqi "x-reeditpro-user-authorization" "${cors_headers}"
+          if grep -Fqi "access-control-allow-credentials: true" "${cors_headers}"; then
+            exit 1
+          fi
 
       - name: Setup Node
         uses: actions/setup-node@v5
@@ -81,35 +258,108 @@ jobs:
           node-version: 24
           cache: npm
 
-      - name: Install dependencies
+      - name: Install immutable dependencies
         run: npm ci --no-audit --no-fund --progress=false
 
-      - name: Build static app shell
+      - name: Prove browser auth transport and static deployment contracts
+        run: |
+          set -euo pipefail
+          npm run smoke:app-sign-in-entrypoint
+          npm run smoke:google-oauth-sign-in
+          npm run smoke:google-api-gateway-browser-transport
+          npm run smoke:app-internal-testing-pages-deploy-readiness
+          npm run check:frontend-boundary
+          npm run check:secrets
+
+      - name: Build signed-in static app against verified gateway
         env:
           VITE_SUPABASE_URL: ${{ secrets.STAGING_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.STAGING_SUPABASE_ANON_KEY }}
           VITE_REEDITPRO_AUTH_MODE: supabase
-          VITE_REEDITPRO_API_MODE: mock
-          VITE_REEDITPRO_API_BASE_URL: ""
-          VITE_REEDITPRO_APP_DEPLOYMENT: github_pages_internal_testing
-        run: npm run build -- --base="${{ inputs.vite_base_path }}"
+          VITE_REEDITPRO_API_MODE: cloud_run
+          VITE_REEDITPRO_API_TRANSPORT: google_api_gateway
+          VITE_REEDITPRO_APP_DEPLOYMENT: github_pages_signed_in_internal_testing
+        run: |
+          set -euo pipefail
+          export VITE_REEDITPRO_API_BASE_URL="${VERIFIED_API_GATEWAY_ORIGIN}"
+          npm run build -- --base="${{ inputs.vite_base_path }}"
 
-      - name: Add SPA fallback
+      - name: Audit compiled browser artifact boundary
         shell: bash
         run: |
           set -euo pipefail
-          # GitHub Pages serves the Vite app from 404.html for deep links.
-          # Explicit route directories made Pages deployment reject the artifact.
+          test -f dist/index.html
+          grep -FRq -- "${VERIFIED_API_GATEWAY_ORIGIN}" dist
+          grep -FRq -- "google_api_gateway" dist
+          for forbidden_name in \
+            'SUPABASE_'SERVICE_ROLE_KEY \
+            'REEDITPRO_'INTERNAL_SERVICE_TOKEN \
+            'STRIPE_'SECRET_KEY \
+            'PROVIDER_GATEWAY_'SHARED_SECRET \
+            'WORKER_WEBHOOK_'SECRET; do
+            if grep -FRq -- "${forbidden_name}" dist; then
+              exit 1
+            fi
+          done
           cp dist/index.html dist/404.html
+
+      - name: Install Playwright Chromium for compiled and hosted route proof
+        run: npx playwright install --with-deps chromium
+
+      - name: Verify compiled subpath sign-in surface
+        shell: bash
+        env:
+          REEDITPRO_CONFIRM_HOSTED_SIGN_IN_ROUTE_READINESS: VERIFY_REEDITPRO_HOSTED_SIGN_IN_ROUTE
+          REEDITPRO_EXPECT_HOSTED_SUPABASE_CONFIGURED: "true"
+          REEDITPRO_HOSTED_APP_URL: http://127.0.0.1:4173/Reedkt/
+          VITE_BASE_PATH: ${{ inputs.vite_base_path }}
+        run: |
+          set -euo pipefail
+          ./node_modules/.bin/vite preview \
+            --host 127.0.0.1 \
+            --port 4173 \
+            --strictPort \
+            --base="${VITE_BASE_PATH}" \
+            > "${RUNNER_TEMP}/vite-preview.log" 2>&1 &
+          preview_pid=$!
+          trap 'kill "${preview_pid}" >/dev/null 2>&1 || true; wait "${preview_pid}" >/dev/null 2>&1 || true' EXIT
+          for attempt in 1 2 3 4 5; do
+            if curl --fail --silent --max-time 2 "${REEDITPRO_HOSTED_APP_URL}" >/dev/null; then
+              break
+            fi
+            if [ "${attempt}" = "5" ]; then
+              exit 1
+            fi
+            sleep 2
+          done
+          npm run internal-testing:verify-hosted-sign-in-route
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
 
-      - name: Upload GitHub Pages artifact
+      - name: Upload reviewed GitHub Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: dist
 
-      - name: Deploy GitHub Pages
+      - name: Deploy reviewed GitHub Pages artifact
         id: deploy
         uses: actions/deploy-pages@v4
+
+      - name: Verify deployed Google-first sign-in route without credentials
+        shell: bash
+        env:
+          REEDITPRO_CONFIRM_HOSTED_SIGN_IN_ROUTE_READINESS: VERIFY_REEDITPRO_HOSTED_SIGN_IN_ROUTE
+          REEDITPRO_EXPECT_HOSTED_SUPABASE_CONFIGURED: "true"
+          REEDITPRO_HOSTED_APP_URL: ${{ steps.deploy.outputs.page_url }}
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3 4 5 6; do
+            if npm run internal-testing:verify-hosted-sign-in-route; then
+              exit 0
+            fi
+            if [ "${attempt}" = "6" ]; then
+              exit 1
+            fi
+            sleep 10
+          done

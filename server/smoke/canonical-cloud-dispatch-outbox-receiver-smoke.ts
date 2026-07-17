@@ -41,6 +41,7 @@ import { sha256AuthorityValue } from '../services/private-edit-authority-store'
 import type { ServiceContext } from '../types'
 import {
   type CanonicalCloudDispatchWorkerCompletionEvidence,
+  type CanonicalCloudDispatchWorkerFailureEvidence,
   type CanonicalServiceIdentityEvidence,
 } from '../validation/canonical-cloud-dispatch-outbox-schemas'
 import {
@@ -446,6 +447,8 @@ try {
     1,
   )
 
+  const failureProof = await proveWorkerFailureReconciliation()
+
   assert.throws(() => createService(createContext('production')), (error: unknown) =>
     error instanceof ApiError && error.code === 'TOOL_NOT_READY')
 
@@ -463,6 +466,12 @@ try {
       'worker_completion_reconciles_private_artifact_qa_manifest_and_downstream_evidence_once',
       'queue_completion_and_outbox_completion_receipt_share_one_recoverable_commit',
       'late_controller_and_worker_redelivery_replay_after_terminal_completion',
+      'accepted_worker_failure_releases_queue_and_reconciles_terminal_outbox_once',
+      'concurrent_failure_and_late_redelivery_replay_without_duplicate_release',
+      'changed_failure_evidence_and_worker_principal_fail_closed',
+      'post_commit_ambiguity_never_releases_or_authorizes_retry',
+      'first_failure_allows_one_server_selected_retry_and_second_exhausts_attempts',
+      'attempt_internal_cost_hash_stays_separate_from_customer_commercial_authority',
       'distributed_transaction_live_google_oidc_iam_cloud_and_production_remain_false',
     ],
     summary: {
@@ -471,11 +480,292 @@ try {
       controllerReceiptReplayCount: 1,
       workerReceiptReplayCount: 1,
       workerCompletionReplayCount: 1,
+      workerFailureReplayCount: failureProof.failureReplayCount,
+      workerFailureReconciledCount: failureProof.failureReconciledCount,
+      exhaustedDeliveryAttemptCount: failureProof.deliveryAttemptCount,
       cloudRunHiddenRetryCount: 0,
     },
   }))
 } finally {
   await rm(rootPath, { recursive: true, force: true })
+}
+
+async function proveWorkerFailureReconciliation(): Promise<{
+  failureReplayCount: number
+  failureReconciledCount: number
+  deliveryAttemptCount: number
+}> {
+  const failureRoot = await mkdtemp(join(tmpdir(), 'reeditpro-cloud-dispatch-failure-'))
+  const previousTimeMs = currentTimeMs
+  try {
+    currentTimeMs = baseTimeMs + 3_000
+    const definition = createQueueDefinition()
+    const failureManifest = createManifest(definition)
+    const failureScope: CanonicalCloudDispatchOutboxStoreScope = {
+      localStorageRoot: failureRoot,
+      ownerUserId,
+      workspaceId: definition.identity.workspaceId,
+      projectId: definition.identity.projectId,
+      editSessionId: definition.identity.editSessionId,
+      packageRecordId: definition.identity.packageRecordId,
+      approvedPlanSnapshotId: definition.identity.approvedPlanSnapshotId,
+    }
+    await ensurePrivateCanonicalPackageWorkQueue({
+      scope: failureScope,
+      definition,
+      now: new Date(baseTimeMs).toISOString(),
+    })
+    const failureContext = createContext('test', failureRoot)
+    let failureService = createCanonicalPrivateCloudDispatchReceiverService({
+      context: failureContext,
+      ownerUserId,
+      queueDefinition: definition,
+      manifest: failureManifest,
+      controllerAudience,
+      workerReceiverAudience: workerAudience,
+      now,
+    })
+    const firstAttempt = await failureService.enqueueApprovedAttempt({
+      jobId: 'job_cloud_dispatch_cpu',
+    })
+    if (!firstAttempt.outboxEntry || !firstAttempt.attemptPlan) {
+      throw new Error('Worker failure proof did not create its first attempt.')
+    }
+    const firstOutboxEntry = firstAttempt.outboxEntry
+    const firstAttemptPlan = firstAttempt.attemptPlan
+    const firstTaskBody = firstAttemptPlan.cloudTask?.taskBody
+    assert.ok(firstTaskBody)
+    const controllerIdentity = signedIdentity({
+      authenticationMechanism: 'google_oidc_id_token',
+      principalEmail: firstOutboxEntry.immutable.controllerServiceAccountEmail,
+      audience: controllerAudience,
+      subject: '100000000000000000011',
+    })
+    const workerIdentity = signedIdentity({
+      authenticationMechanism: 'google_cloud_run_workload_identity',
+      principalEmail: firstOutboxEntry.immutable.workerServiceAccountEmail,
+      audience: workerAudience,
+      subject: '100000000000000000012',
+    })
+    await failureService.receiveController({
+      taskBody: firstTaskBody,
+      verifiedIdentity: controllerIdentity,
+    })
+    const firstInvocation = await failureService.createWorkerInvocation(
+      firstOutboxEntry.immutable.dispatchIntentId,
+    )
+    await failureService.receiveWorker({
+      invocation: firstInvocation,
+      verifiedIdentity: workerIdentity,
+    })
+    const firstFailure = workerFailureEvidence({
+      failureCategory: 'runtime_unavailable',
+      failureCode: 'TOOL_NOT_READY',
+      executionState: 'failed_before_commit',
+      failureDetailHash: '8'.repeat(64),
+      attemptInternalCostEvidenceHash: '9'.repeat(64),
+    })
+    const firstResults = await Promise.all([
+      failureService.reconcileWorkerFailure({
+        dispatchIntentId: firstOutboxEntry.immutable.dispatchIntentId,
+        failureEvidence: firstFailure,
+        verifiedIdentity: workerIdentity,
+      }),
+      failureService.reconcileWorkerFailure({
+        dispatchIntentId: firstOutboxEntry.immutable.dispatchIntentId,
+        failureEvidence: firstFailure,
+        verifiedIdentity: workerIdentity,
+      }),
+    ])
+    assert.deepEqual(
+      firstResults.map((result) => result.disposition).sort(),
+      ['exact_replay', 'reconciled'],
+    )
+    assert.equal(firstResults[0]?.receipt.receiptHash, firstResults[1]?.receipt.receiptHash)
+    assert.equal(firstResults[0]?.queueDisposition, 'retry_available')
+    assert.equal(firstResults[0]?.retryDisposition, 'retry_same_approved_operation')
+    assert.equal(firstResults[0]?.remainingAttempts, 1)
+    assert.equal(firstResults[0]?.approvedMaxAttempts, 2)
+    assert.equal(
+      firstResults[0]?.receipt.attemptInternalCostEvidenceHash,
+      firstFailure.attemptInternalCostEvidenceHash,
+    )
+    assert.equal(
+      firstResults[0]?.receipt.boundaries
+        .customerPriceCreditsServiceFeeWalletOrBillingIncluded,
+      false,
+    )
+    assert.equal(firstResults[0]?.boundaries.automaticRetryLoopStarted, false)
+    await expectApiError(
+      () => failureService.reconcileWorkerFailure({
+        dispatchIntentId: firstOutboxEntry.immutable.dispatchIntentId,
+        failureEvidence: {
+          ...firstFailure,
+          failureDetailHash: 'a'.repeat(64),
+        },
+        verifiedIdentity: workerIdentity,
+      }),
+      'IDEMPOTENCY_CONFLICT',
+    )
+    await expectApiError(
+      () => failureService.reconcileWorkerFailure({
+        dispatchIntentId: firstOutboxEntry.immutable.dispatchIntentId,
+        failureEvidence: firstFailure,
+        verifiedIdentity: privateIdentityFixture({
+          authenticationMechanism: 'google_cloud_run_workload_identity',
+          principalEmail: 'wrong-failure-worker@reeditpro.iam.gserviceaccount.com',
+          audience: workerAudience,
+          subject: '100000000000000000013',
+        }),
+      }),
+      'INTERNAL_SERVICE_AUTH_INVALID',
+    )
+    assert.equal((await failureService.receiveController({
+      taskBody: firstTaskBody,
+      verifiedIdentity: controllerIdentity,
+    })).disposition, 'exact_replay')
+    assert.equal((await failureService.receiveWorker({
+      invocation: firstInvocation,
+      verifiedIdentity: workerIdentity,
+    })).disposition, 'exact_replay')
+
+    clearPrivateCanonicalCloudDispatchOutboxProcessStateForSmoke()
+    failureService = createCanonicalPrivateCloudDispatchReceiverService({
+      context: failureContext,
+      ownerUserId,
+      queueDefinition: definition,
+      manifest: failureManifest,
+      controllerAudience,
+      workerReceiverAudience: workerAudience,
+      now,
+    })
+    const secondAttempt = await failureService.enqueueApprovedAttempt({
+      jobId: 'job_cloud_dispatch_cpu',
+    })
+    assert.equal(secondAttempt.disposition, 'created')
+    if (!('outboxEntry' in secondAttempt) || !('attemptPlan' in secondAttempt)) {
+      throw new Error('Worker failure proof did not create its second attempt.')
+    }
+    assert.equal(secondAttempt.outboxEntry.immutable.packageDeliveryAttempt, 2)
+    const secondTaskBody = secondAttempt.attemptPlan.cloudTask?.taskBody
+    assert.ok(secondTaskBody)
+    await failureService.receiveController({
+      taskBody: secondTaskBody,
+      verifiedIdentity: controllerIdentity,
+    })
+    const secondInvocation = await failureService.createWorkerInvocation(
+      secondAttempt.outboxEntry.immutable.dispatchIntentId,
+    )
+    await failureService.receiveWorker({
+      invocation: secondInvocation,
+      verifiedIdentity: workerIdentity,
+    })
+    const postCommitAmbiguity = workerFailureEvidence({
+      failureCategory: 'post_commit_reconciliation',
+      failureCode: 'IDEMPOTENCY_ATOMICITY_REQUIRED',
+      executionState: 'completed_requires_reconciliation',
+      failureDetailHash: 'b'.repeat(64),
+      attemptInternalCostEvidenceHash: 'c'.repeat(64),
+    })
+    await expectApiError(
+      () => failureService.reconcileWorkerFailure({
+        dispatchIntentId: secondAttempt.outboxEntry.immutable.dispatchIntentId,
+        failureEvidence: postCommitAmbiguity,
+        verifiedIdentity: workerIdentity,
+      }),
+      'IDEMPOTENCY_ATOMICITY_REQUIRED',
+    )
+    const beforeSecondFailureQueue = await readPrivateCanonicalPackageWorkQueue({
+      scope: failureScope,
+      definition,
+    })
+    const beforeSecondFailureOutbox = await readPrivateCanonicalCloudDispatchOutbox({
+      scope: failureScope,
+    })
+    assert.equal(beforeSecondFailureQueue?.entries[0]?.state, 'leased')
+    assert.equal(beforeSecondFailureOutbox?.entries[1]?.state, 'worker_identity_accepted')
+
+    const secondFailure = workerFailureEvidence({
+      failureCategory: 'execution_timeout',
+      failureCode: 'WORKER_LEASE_EXPIRED',
+      executionState: 'failed_before_commit',
+      failureDetailHash: 'd'.repeat(64),
+      attemptInternalCostEvidenceHash: 'e'.repeat(64),
+    })
+    const exhausted = await failureService.reconcileWorkerFailure({
+      dispatchIntentId: secondAttempt.outboxEntry.immutable.dispatchIntentId,
+      failureEvidence: secondFailure,
+      verifiedIdentity: workerIdentity,
+    })
+    assert.equal(exhausted.disposition, 'reconciled')
+    assert.equal(exhausted.queueDisposition, 'attempts_exhausted')
+    assert.equal(exhausted.retryDisposition, 'fallback_or_user_review_required')
+    assert.equal(exhausted.remainingAttempts, 0)
+    const noThirdAttempt = await failureService.enqueueApprovedAttempt({
+      jobId: 'job_cloud_dispatch_cpu',
+    })
+    assert.equal(noThirdAttempt.disposition, 'attempts_exhausted')
+    const firstFailureReplayAfterRetry = await failureService.reconcileWorkerFailure({
+      dispatchIntentId: firstOutboxEntry.immutable.dispatchIntentId,
+      failureEvidence: firstFailure,
+      verifiedIdentity: workerIdentity,
+    })
+    assert.equal(firstFailureReplayAfterRetry.disposition, 'exact_replay')
+
+    const queue = await readPrivateCanonicalPackageWorkQueue({
+      scope: failureScope,
+      definition,
+    })
+    const outbox = await readPrivateCanonicalCloudDispatchOutbox({ scope: failureScope })
+    assert.ok(queue)
+    assert.ok(outbox)
+    assert.equal(queue.summary.totalDeliveryAttemptCount, 2)
+    assert.equal(queue.summary.releasedClaimCount, 2)
+    assert.equal(queue.summary.completedJobCount, 0)
+    assert.equal(queue.entries[0]?.state, 'queued')
+    assert.equal(queue.entries[0]?.lastRelease?.dispatchFailure?.queueDisposition,
+      'attempts_exhausted')
+    assert.equal(outbox.summary.totalEntryCount, 2)
+    assert.equal(outbox.summary.workerFailureReconciledCount, 2)
+    assert.equal(outbox.summary.workerCompletionReconciledCount, 0)
+    assert.equal(outbox.events.filter((event) =>
+      event.eventType === 'worker_failure_reconciled').length, 2)
+    const outboxBytes = await readFile(
+      join(failureRoot, canonicalCloudDispatchOutboxAggregateRelativePath(failureScope)),
+      'utf8',
+    )
+    assert.equal(outboxBytes.includes('failure stack trace'), false)
+    assert.equal(outboxBytes.includes('claimCredential'), false)
+    assert.equal(outboxBytes.includes(
+      '"customerPriceCreditsServiceFeeWalletOrBillingIncluded":false',
+    ), true)
+    assert.equal(outboxBytes.includes('walletMutation'), false)
+    assert.equal((await failureService.evidence()).workerFailureReconciledCount, 2)
+    return {
+      failureReplayCount: 2,
+      failureReconciledCount: 2,
+      deliveryAttemptCount: queue.summary.totalDeliveryAttemptCount,
+    }
+  } finally {
+    currentTimeMs = previousTimeMs
+    await rm(failureRoot, { recursive: true, force: true })
+  }
+}
+
+function workerFailureEvidence(input: {
+  failureCategory: CanonicalCloudDispatchWorkerFailureEvidence['failureCategory']
+  failureCode: CanonicalCloudDispatchWorkerFailureEvidence['failureCode']
+  executionState: CanonicalCloudDispatchWorkerFailureEvidence['executionState']
+  failureDetailHash: string
+  attemptInternalCostEvidenceHash: string
+}): CanonicalCloudDispatchWorkerFailureEvidence {
+  return {
+    schemaVersion: 'canonical-cloud-dispatch-worker-failure-evidence-v1',
+    ...input,
+    attemptCostBoundary: 'internal_production_cost_only',
+    customerPriceCreditsServiceFeeWalletOrBillingIncluded: false,
+    rawFailureMessageLogStackPathOrCredentialRetained: false,
+  }
 }
 
 function createService(context: ServiceContext) {
@@ -490,7 +780,10 @@ function createService(context: ServiceContext) {
   })
 }
 
-function createContext(mode: 'test' | 'production'): ServiceContext {
+function createContext(
+  mode: 'test' | 'production',
+  localStorageRoot = rootPath,
+): ServiceContext {
   if (mode === 'production') {
     return {
       env: loadRuntimeEnv({
@@ -516,7 +809,7 @@ function createContext(mode: 'test' | 'production'): ServiceContext {
       WORKER_RUNTIME_MODE: 'local',
       STORAGE_MODE: 'local',
       API_ALLOW_MOCK_WITHOUT_SUPABASE: 'true',
-      LOCAL_STORAGE_ROOT: rootPath,
+      LOCAL_STORAGE_ROOT: localStorageRoot,
     }),
     clients: { admin: null, public: null },
     requestId: 'cloud-dispatch-outbox-receiver-smoke',

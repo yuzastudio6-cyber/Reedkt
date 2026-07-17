@@ -1,5 +1,10 @@
 import { z } from 'zod'
 
+import { API_ERROR_CODES } from '../errors/error-codes'
+import {
+  canonicalPrivateJobExecutionFailureCategorySchema,
+} from './canonical-private-job-execution-adapter-schemas'
+
 export const CANONICAL_CLOUD_DISPATCH_OUTBOX_ENTRY_VERSION =
   'canonical-cloud-dispatch-outbox-entry-v1' as const
 export const CANONICAL_CLOUD_DISPATCH_OUTBOX_AGGREGATE_VERSION =
@@ -14,6 +19,10 @@ export const CANONICAL_CLOUD_DISPATCH_WORKER_COMPLETION_EVIDENCE_VERSION =
   'canonical-cloud-dispatch-worker-completion-evidence-v1' as const
 export const CANONICAL_CLOUD_DISPATCH_WORKER_COMPLETION_RECEIPT_VERSION =
   'canonical-cloud-dispatch-worker-completion-receipt-v1' as const
+export const CANONICAL_CLOUD_DISPATCH_WORKER_FAILURE_EVIDENCE_VERSION =
+  'canonical-cloud-dispatch-worker-failure-evidence-v1' as const
+export const CANONICAL_CLOUD_DISPATCH_WORKER_FAILURE_RECEIPT_VERSION =
+  'canonical-cloud-dispatch-worker-failure-receipt-v1' as const
 export const CANONICAL_CLOUD_DISPATCH_WORKER_INVOCATION_VERSION =
   'canonical-cloud-dispatch-worker-invocation-v1' as const
 export const CANONICAL_SERVICE_IDENTITY_EVIDENCE_VERSION =
@@ -193,6 +202,98 @@ export const canonicalCloudDispatchWorkerCompletionReceiptSchema = z.object({
   receiptHash: sha256,
 }).strict()
 
+export const canonicalCloudDispatchWorkerFailureEvidenceSchema = z.object({
+  schemaVersion: z.literal(CANONICAL_CLOUD_DISPATCH_WORKER_FAILURE_EVIDENCE_VERSION),
+  failureCategory: canonicalPrivateJobExecutionFailureCategorySchema,
+  failureCode: z.enum(API_ERROR_CODES),
+  executionState: z.enum([
+    'released_before_execution',
+    'failed_before_commit',
+    'completed_requires_reconciliation',
+  ]),
+  failureDetailHash: sha256,
+  attemptInternalCostEvidenceHash: sha256,
+  attemptCostBoundary: z.literal('internal_production_cost_only'),
+  customerPriceCreditsServiceFeeWalletOrBillingIncluded: z.literal(false),
+  rawFailureMessageLogStackPathOrCredentialRetained: z.literal(false),
+}).strict().superRefine((evidence, context) => {
+  if (
+    (evidence.executionState === 'completed_requires_reconciliation') !==
+      (evidence.failureCategory === 'post_commit_reconciliation')
+  ) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Cloud dispatch worker failure commit state is inconsistent.',
+    })
+  }
+})
+
+export const canonicalCloudDispatchWorkerFailureReceiptSchema = z.object({
+  schemaVersion: z.literal(CANONICAL_CLOUD_DISPATCH_WORKER_FAILURE_RECEIPT_VERSION),
+  receiptId: identity,
+  dispatchIntentId: identity,
+  jobId: identity,
+  packageDeliveryAttempt: z.number().int().positive().max(10),
+  queueClaimId: identity,
+  queueClaimHash: sha256,
+  workerReceiptHash: sha256,
+  failureEvidenceHash: sha256,
+  failureCategory: canonicalPrivateJobExecutionFailureCategorySchema.exclude([
+    'post_commit_reconciliation',
+  ]),
+  failureCode: z.enum(API_ERROR_CODES),
+  failureDetailHash: sha256,
+  queueReleaseHash: sha256,
+  attemptInternalCostEvidenceHash: sha256,
+  retryDisposition: z.enum([
+    'retry_same_approved_operation',
+    'fallback_or_user_review_required',
+  ]),
+  queueDisposition: z.enum([
+    'retry_available',
+    'attempts_exhausted',
+    'user_review_required',
+  ]),
+  approvedMaxAttempts: z.number().int().positive().max(10),
+  remainingAttempts: z.number().int().nonnegative().max(10),
+  identity: receiptIdentitySchema,
+  failedAt: timestamp,
+  boundaries: z.object({
+    exactWorkerReceiptVerified: z.literal(true),
+    exactOutboxAttemptVerified: z.literal(true),
+    exactQueueReleaseVerified: z.literal(true),
+    approvedAttemptAllowanceDerivedByServer: z.literal(true),
+    postCommitFailureRetryAuthorized: z.literal(false),
+    attemptInternalProductionCostEvidenceHashRequired: z.literal(true),
+    customerPriceCreditsServiceFeeWalletOrBillingIncluded: z.literal(false),
+    rawAuthorizationHeaderAccepted: z.literal(false),
+    rawBearerTokenPersisted: z.literal(false),
+    rawFailureMessageLogStackMediaPromptPathSignedUrlOrCredentialPersisted: z.literal(false),
+    toolOrMediaExecutionClaimedByReceipt: z.literal(false),
+    liveGoogleWorkloadIdentityAndIamVerified: z.boolean(),
+    productionExecutionAuthorized: z.literal(false),
+    productionAuthority: z.literal(false),
+  }).strict(),
+  receiptHash: sha256,
+}).strict().superRefine((receipt, context) => {
+  if (
+    receipt.remainingAttempts > receipt.approvedMaxAttempts ||
+    (receipt.queueDisposition === 'retry_available' &&
+      (receipt.retryDisposition !== 'retry_same_approved_operation' ||
+        receipt.remainingAttempts === 0)) ||
+    (receipt.queueDisposition === 'attempts_exhausted' &&
+      (receipt.retryDisposition !== 'fallback_or_user_review_required' ||
+        receipt.remainingAttempts !== 0)) ||
+    (receipt.queueDisposition === 'user_review_required' &&
+      receipt.retryDisposition !== 'fallback_or_user_review_required')
+  ) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Cloud dispatch worker failure receipt retry authority is inconsistent.',
+    })
+  }
+})
+
 export const canonicalCloudDispatchWorkerInvocationSchema = z.object({
   schemaVersion: z.literal(CANONICAL_CLOUD_DISPATCH_WORKER_INVOCATION_VERSION),
   purpose: z.literal('canonical_cloud_dispatch_worker_receiver'),
@@ -246,10 +347,12 @@ export const canonicalCloudDispatchOutboxEntrySchema = z.object({
     'controller_identity_accepted',
     'worker_identity_accepted',
     'worker_completion_reconciled',
+    'worker_failure_reconciled',
   ]),
   controllerReceipt: canonicalCloudDispatchControllerReceiptSchema.optional(),
   workerReceipt: canonicalCloudDispatchWorkerReceiptSchema.optional(),
   completionReceipt: canonicalCloudDispatchWorkerCompletionReceiptSchema.optional(),
+  failureReceipt: canonicalCloudDispatchWorkerFailureReceiptSchema.optional(),
   createdAt: timestamp,
   updatedAt: timestamp,
   immutableEntryHash: sha256,
@@ -258,15 +361,18 @@ export const canonicalCloudDispatchOutboxEntrySchema = z.object({
   const hasController = entry.controllerReceipt !== undefined
   const hasWorker = entry.workerReceipt !== undefined
   const hasCompletion = entry.completionReceipt !== undefined
+  const hasFailure = entry.failureReceipt !== undefined
   if (
     (entry.state === 'pending_controller_delivery' &&
-      (hasController || hasWorker || hasCompletion)) ||
+      (hasController || hasWorker || hasCompletion || hasFailure)) ||
     (entry.state === 'controller_identity_accepted' &&
-      (!hasController || hasWorker || hasCompletion)) ||
+      (!hasController || hasWorker || hasCompletion || hasFailure)) ||
     (entry.state === 'worker_identity_accepted' &&
-      (!hasController || !hasWorker || hasCompletion)) ||
+      (!hasController || !hasWorker || hasCompletion || hasFailure)) ||
     (entry.state === 'worker_completion_reconciled' &&
-      (!hasController || !hasWorker || !hasCompletion))
+      (!hasController || !hasWorker || !hasCompletion || hasFailure)) ||
+    (entry.state === 'worker_failure_reconciled' &&
+      (!hasController || !hasWorker || hasCompletion || !hasFailure))
   ) {
     context.addIssue({ code: 'custom', message: 'Cloud dispatch outbox state is inconsistent.' })
   }
@@ -302,6 +408,20 @@ export const canonicalCloudDispatchOutboxEntrySchema = z.object({
       message: 'Worker completion receipt is not bound to the exact outbox attempt.',
     })
   }
+  if (entry.failureReceipt && (
+    entry.failureReceipt.dispatchIntentId !== entry.immutable.dispatchIntentId ||
+    entry.failureReceipt.jobId !== entry.immutable.jobId ||
+    entry.failureReceipt.packageDeliveryAttempt !==
+      entry.immutable.packageDeliveryAttempt ||
+    entry.failureReceipt.queueClaimId !== entry.immutable.queueClaimId ||
+    entry.failureReceipt.queueClaimHash !== entry.immutable.queueClaimHash ||
+    entry.failureReceipt.workerReceiptHash !== entry.workerReceipt?.receiptHash
+  )) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Worker failure receipt is not bound to the exact outbox attempt.',
+    })
+  }
 })
 
 export const canonicalCloudDispatchOutboxEventSchema = z.object({
@@ -312,6 +432,7 @@ export const canonicalCloudDispatchOutboxEventSchema = z.object({
     'controller_identity_accepted',
     'worker_identity_accepted',
     'worker_completion_reconciled',
+    'worker_failure_reconciled',
   ]),
   dispatchIntentId: identity,
   jobId: identity,
@@ -343,6 +464,7 @@ export const canonicalCloudDispatchOutboxAggregateSchema = z.object({
     controllerIdentityAcceptedCount: z.number().int().nonnegative().max(256),
     workerIdentityAcceptedCount: z.number().int().nonnegative().max(256),
     workerCompletionReconciledCount: z.number().int().nonnegative().max(256).optional(),
+    workerFailureReconciledCount: z.number().int().nonnegative().max(256).optional(),
     eventCount: z.number().int().nonnegative().max(1_024),
   }).strict(),
   boundaries: z.object({
@@ -378,6 +500,8 @@ export const canonicalCloudDispatchOutboxAggregateSchema = z.object({
       summary.workerIdentityAcceptedCount ||
     aggregate.entries.filter((entry) => entry.completionReceipt !== undefined).length !==
       (summary.workerCompletionReconciledCount ?? 0) ||
+    aggregate.entries.filter((entry) => entry.failureReceipt !== undefined).length !==
+      (summary.workerFailureReconciledCount ?? 0) ||
     aggregate.events.length !== summary.eventCount
   ) {
     context.addIssue({ code: 'custom', message: 'Cloud dispatch outbox summary is inconsistent.' })
@@ -416,6 +540,12 @@ export type CanonicalCloudDispatchWorkerCompletionEvidence = z.infer<
 >
 export type CanonicalCloudDispatchWorkerCompletionReceipt = z.infer<
   typeof canonicalCloudDispatchWorkerCompletionReceiptSchema
+>
+export type CanonicalCloudDispatchWorkerFailureEvidence = z.infer<
+  typeof canonicalCloudDispatchWorkerFailureEvidenceSchema
+>
+export type CanonicalCloudDispatchWorkerFailureReceipt = z.infer<
+  typeof canonicalCloudDispatchWorkerFailureReceiptSchema
 >
 export type CanonicalCloudDispatchWorkerInvocation = z.infer<
   typeof canonicalCloudDispatchWorkerInvocationSchema

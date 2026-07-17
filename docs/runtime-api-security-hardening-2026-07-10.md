@@ -42,6 +42,16 @@ billing, and settlement authority. This remains a zero-network local contract;
 no HTTP authorization-header adapter, live Google verifier, IAM, Cloud Run
 worker, or production completion route was enabled.
 
+The private failure follow-up uses that same accepted process-branded worker
+principal. It accepts only safe failure category/code, execution state,
+failure-detail hash, and internal-cost evidence hash; commits the exact queue
+release and terminal outbox receipt together; derives bounded
+retry/exhaustion/user review on the server; and rejects post-commit retry. It
+persists no raw error, log, stack, path, credential, media, or bearer token and
+grants no customer price, credits, service fee, wallet, billing, settlement, or
+automatic-retry authority. This is still a zero-network local contract, not a
+deployed worker callback.
+
 ## User-resource scope
 
 Additional checks now bind user-facing server reads and writes to authenticated scope:

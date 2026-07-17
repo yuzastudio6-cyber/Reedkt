@@ -10,6 +10,10 @@ import {
   writePrivateTextFileAtomicWithinRoot,
 } from '../security/private-local-persistence'
 import {
+  canonicalCloudDispatchWorkerFailureEvidenceSchema,
+  type CanonicalCloudDispatchWorkerFailureEvidence,
+} from '../validation/canonical-cloud-dispatch-outbox-schemas'
+import {
   CANONICAL_PRIVATE_PACKAGE_WORK_QUEUE_AGGREGATE_VERSION,
   CANONICAL_PRIVATE_PACKAGE_WORK_QUEUE_EVENT_VERSION,
   canonicalPrivatePackageWorkQueueAggregateSchema,
@@ -19,6 +23,7 @@ import {
   type CanonicalPrivatePackageWorkQueueCompletedOutcome,
   type CanonicalPrivatePackageWorkQueueEntry,
   type CanonicalPrivatePackageWorkQueueEvent,
+  type CanonicalPrivatePackageWorkQueueDispatchFailure,
   type CanonicalPrivatePackageWorkQueueRelease,
 } from '../validation/canonical-private-package-work-queue-schemas'
 import { sha256AuthorityValue, stableAuthorityStringify } from './private-edit-authority-store'
@@ -67,7 +72,7 @@ export type CanonicalPrivatePackageWorkQueueClaimResult =
     }
   | {
       disposition: 'already_leased' | 'dependency_blocked' | 'scheduled_wait' |
-        'capability_blocked' | 'attempts_exhausted'
+        'capability_blocked' | 'attempts_exhausted' | 'user_review_required'
       aggregate: CanonicalPrivatePackageWorkQueueAggregate
       entry: CanonicalPrivatePackageWorkQueueEntry
     }
@@ -265,6 +270,126 @@ export function preparePrivateCanonicalPackageWorkQueueDispatchCompletion(input:
       completion: NonNullable<CanonicalPrivatePackageWorkQueueEntry['completion']>
     },
     disposition: 'completed',
+  }
+}
+
+export function preparePrivateCanonicalPackageWorkQueueDispatchFailure(input: {
+  aggregate: CanonicalPrivatePackageWorkQueueAggregate
+  definition: CanonicalPrivatePackageWorkQueueDefinition
+  jobId: string
+  queueClaimId: string
+  queueClaimHash: string
+  workerReceiptHash: string
+  failureEvidence: CanonicalCloudDispatchWorkerFailureEvidence
+  now: string
+}): {
+  aggregate: CanonicalPrivatePackageWorkQueueAggregate
+  entry: CanonicalPrivatePackageWorkQueueEntry & {
+    lastRelease: CanonicalPrivatePackageWorkQueueRelease & {
+      dispatchFailure: CanonicalPrivatePackageWorkQueueDispatchFailure
+    }
+  }
+  disposition: 'released' | 'exact_replay'
+} {
+  const now = validTimestamp(input.now, 'dispatch failure')
+  const failureEvidence = canonicalCloudDispatchWorkerFailureEvidenceSchema.parse(
+    input.failureEvidence,
+  )
+  if (failureEvidence.executionState === 'completed_requires_reconciliation') {
+    throw new ApiError(
+      'IDEMPOTENCY_ATOMICITY_REQUIRED',
+      'A post-commit worker failure requires completion reconciliation and cannot release the attempt.',
+      503,
+    )
+  }
+  const retryableFailureEvidence = failureEvidence as
+    CanonicalCloudDispatchWorkerFailureEvidence & {
+      executionState: 'released_before_execution' | 'failed_before_commit'
+      failureCategory: Exclude<
+        CanonicalCloudDispatchWorkerFailureEvidence['failureCategory'],
+        'post_commit_reconciliation'
+      >
+    }
+  const aggregate = structuredClone(input.aggregate)
+  const before = structuredClone(aggregate)
+  const entry = requiredEntry(aggregate, input.jobId)
+  if (entry.state === 'completed') {
+    throw new ApiError(
+      'IDEMPOTENCY_ATOMICITY_REQUIRED',
+      'A completed package attempt cannot be converted into a retryable worker failure.',
+      503,
+    )
+  }
+  const failureEvidenceHash = sha256AuthorityValue(failureEvidence)
+  const dispatchFailure = createDispatchFailureAuthority({
+    definition: entry.definition,
+    deliveryAttemptCount: entry.deliveryAttemptCount,
+    queueClaimHash: input.queueClaimHash,
+    workerReceiptHash: input.workerReceiptHash,
+    failureEvidenceHash,
+    failureEvidence: retryableFailureEvidence,
+  })
+  if (entry.state === 'queued' && entry.lastRelease?.claimId === input.queueClaimId) {
+    if (
+      entry.lastRelease.dispatchFailure === undefined ||
+      stableAuthorityStringify(entry.lastRelease.dispatchFailure) !==
+        stableAuthorityStringify(dispatchFailure)
+    ) throw workerLeaseExpired()
+    return {
+      aggregate,
+      entry: entry as CanonicalPrivatePackageWorkQueueEntry & {
+        lastRelease: CanonicalPrivatePackageWorkQueueRelease & {
+          dispatchFailure: CanonicalPrivatePackageWorkQueueDispatchFailure
+        }
+      },
+      disposition: 'exact_replay',
+    }
+  }
+  const claim = entry.activeClaim
+  if (
+    entry.state !== 'leased' || !claim ||
+    claim.claimId !== input.queueClaimId ||
+    claim.claimHash !== input.queueClaimHash ||
+    Date.parse(claim.expiresAt) <= Date.parse(now) ||
+    Date.parse(claim.attemptDeadlineAt) <= Date.parse(now)
+  ) throw workerLeaseExpired()
+  const reason = dispatchFailure.queueDisposition === 'user_review_required'
+    ? 'unexpected_execution_failure'
+    : 'approved_attempt_failure'
+  releaseEntry(
+    entry,
+    claim.claimId,
+    claim.credentialSha256,
+    reason,
+    now,
+    dispatchFailure,
+  )
+  appendEvent(aggregate, {
+    eventType: 'claim_released',
+    jobId: entry.definition.jobId,
+    claimId: claim.claimId,
+    at: now,
+  })
+  assertCompletedEntriesImmutable(before, aggregate)
+  const finalized = finalizeAggregate({
+    ...aggregate,
+    updatedAt: now,
+    aggregateHash: undefined,
+    summary: undefined,
+  })
+  const releasedEntry = finalized.entries.find((candidate) =>
+    candidate.definition.jobId === input.jobId)
+  if (!releasedEntry?.lastRelease?.dispatchFailure) {
+    throw invalidQueue('Canonical dispatch failure did not finalize exactly.')
+  }
+  return {
+    aggregate: finalized,
+    entry: releasedEntry as CanonicalPrivatePackageWorkQueueEntry & {
+      lastRelease: CanonicalPrivatePackageWorkQueueRelease & {
+        dispatchFailure: CanonicalPrivatePackageWorkQueueDispatchFailure
+      }
+    },
+    disposition: 'released',
   }
 }
 
@@ -467,6 +592,9 @@ function applyQueueClaimMutation(
   }
   if (entry.state === 'leased') {
     return { disposition: 'already_leased' as const, entry }
+  }
+  if (entry.lastRelease?.dispatchFailure?.queueDisposition === 'user_review_required') {
+    return { disposition: 'user_review_required' as const, entry }
   }
   if (entry.deliveryAttemptCount >= entry.definition.maxAttempts) {
     return { disposition: 'attempts_exhausted' as const, entry }
@@ -697,8 +825,15 @@ function releaseEntry(
   credentialSha256: string,
   reason: CanonicalPrivatePackageWorkQueueRelease['reason'],
   now: string,
+  dispatchFailure?: CanonicalPrivatePackageWorkQueueDispatchFailure,
 ): void {
-  const releaseWithoutHash = { claimId, credentialSha256, reason, releasedAt: now }
+  const releaseWithoutHash = {
+    claimId,
+    credentialSha256,
+    reason,
+    ...(dispatchFailure ? { dispatchFailure } : {}),
+    releasedAt: now,
+  }
   entry.state = 'queued'
   entry.activeClaim = undefined
   entry.completion = undefined
@@ -707,6 +842,49 @@ function releaseEntry(
     releaseHash: sha256AuthorityValue(releaseWithoutHash),
   }
   touchEntry(entry, now)
+}
+
+function createDispatchFailureAuthority(input: {
+  definition: CanonicalPrivatePackageWorkQueueJobDefinition
+  deliveryAttemptCount: number
+  queueClaimHash: string
+  workerReceiptHash: string
+  failureEvidenceHash: string
+  failureEvidence: CanonicalCloudDispatchWorkerFailureEvidence & {
+    executionState: 'released_before_execution' | 'failed_before_commit'
+    failureCategory: Exclude<
+      CanonicalCloudDispatchWorkerFailureEvidence['failureCategory'],
+      'post_commit_reconciliation'
+    >
+  }
+}): CanonicalPrivatePackageWorkQueueDispatchFailure {
+  const remainingAttempts = Math.max(
+    0,
+    input.definition.maxAttempts - input.deliveryAttemptCount,
+  )
+  const userReviewRequired = ['authority_changed', 'unknown_internal'].includes(
+    input.failureEvidence.failureCategory,
+  )
+  const queueDisposition = userReviewRequired
+    ? 'user_review_required' as const
+    : remainingAttempts === 0
+      ? 'attempts_exhausted' as const
+      : 'retry_available' as const
+  return {
+    queueClaimHash: input.queueClaimHash,
+    workerReceiptHash: input.workerReceiptHash,
+    failureEvidenceHash: input.failureEvidenceHash,
+    attemptInternalCostEvidenceHash:
+      input.failureEvidence.attemptInternalCostEvidenceHash,
+    executionState: input.failureEvidence.executionState,
+    failureCategory: input.failureEvidence.failureCategory,
+    retryDisposition: queueDisposition === 'retry_available'
+      ? 'retry_same_approved_operation'
+      : 'fallback_or_user_review_required',
+    queueDisposition,
+    approvedMaxAttempts: input.definition.maxAttempts,
+    remainingAttempts,
+  }
 }
 
 function appendEvent(

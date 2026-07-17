@@ -77,19 +77,30 @@ process exits at both completion commit stages and separate-process completion
 races recover to one result plus exact replay. Customer price, credits, service
 fee, wallet, billing, and settlement authority remain absent.
 
+The accepted-worker pre-commit failure contract now uses the same package lock
+and a separate versioned failure WAL. It releases only the exact claim, writes
+one terminal outbox receipt, derives retry availability/exhaustion/user review
+from the approved attempt ceiling, rejects post-commit retry, and never starts
+an automatic retry loop. Real process exits at both failure commit stages,
+separate-process replay, completion/failure terminal racing, stale fencing,
+tamper refusal, and versioned failed-attempt internal-cost evidence pass.
+
 This is single-host private evidence only. The service rejects production and
 purported live Google-verifier output until Google's supported live
 auth-library/key-rotation adapter is wired outside request JSON. The local
 package queue and outbox now share a process-recoverable write-ahead commit,
-and the completion transition uses the same lock plus a versioned completion
-WAL. Distributed database atomicity, multi-replica locking, Cloud Tasks
-creation, Cloud Run Jobs calls, live OIDC/IAM, private GCS transport, worker
-execution, and live completion reconciliation remain blocked. See
+and the completion/failure transitions use the same lock plus versioned
+terminal WAL records. Distributed database atomicity, multi-replica locking,
+Cloud Tasks creation, Cloud Run Jobs calls, live OIDC/IAM, private GCS
+transport, worker execution, and live completion reconciliation remain
+blocked. See
 `docs/canonical-service-identity-verifier-verification-2026-07-17.md` and
 `docs/canonical-cloud-dispatch-outbox-receiver-verification-2026-07-17.md`, plus
 `docs/canonical-private-package-state-transaction-verification-2026-07-17.md`
 and
-`docs/canonical-private-worker-completion-reconciliation-verification-2026-07-17.md`.
+`docs/canonical-private-worker-completion-reconciliation-verification-2026-07-17.md`,
+plus
+`docs/canonical-private-worker-failure-reconciliation-verification-2026-07-17.md`.
 
 ## Throughput And ETA Principle
 

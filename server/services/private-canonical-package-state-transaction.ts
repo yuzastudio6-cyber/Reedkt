@@ -17,6 +17,7 @@ import {
 } from '../validation/canonical-private-package-work-queue-schemas'
 import {
   CANONICAL_PRIVATE_PACKAGE_COMPLETION_TRANSACTION_VERSION,
+  CANONICAL_PRIVATE_PACKAGE_FAILURE_TRANSACTION_VERSION,
   CANONICAL_PRIVATE_PACKAGE_STATE_TRANSACTION_VERSION,
   canonicalPrivatePackageStateTransactionSchema,
   type CanonicalPrivatePackageStateTransaction,
@@ -112,6 +113,35 @@ export interface CanonicalPrivatePackageCompletionTransactionAuthority {
   completionReceiptHash: string
 }
 
+export interface CanonicalPrivatePackageFailureTransactionAuthority {
+  queueDefinitionHash: string
+  queueAggregateHashBefore: string
+  queueAggregateHashAfter: string
+  outboxAggregateHashBefore: string
+  outboxAggregateHashAfter: string
+  jobId: string
+  packageDeliveryAttempt: number
+  queueClaimId: string
+  queueClaimHash: string
+  dispatchIntentId: string
+  workerReceiptHash: string
+  failureEvidenceHash: string
+  queueReleaseHash: string
+  attemptInternalCostEvidenceHash: string
+  retryDisposition:
+    | 'retry_same_approved_operation'
+    | 'fallback_or_user_review_required'
+  queueDisposition:
+    | 'retry_available'
+    | 'attempts_exhausted'
+    | 'user_review_required'
+  approvedMaxAttempts: number
+  remainingAttempts: number
+  outboxEntryHashBefore: string
+  outboxEntryHashAfter: string
+  failureReceiptHash: string
+}
+
 export interface CanonicalPrivatePackageStateTransactionCommitEvidence {
   transactionHash: string
   queueProjectionReplayed: boolean
@@ -166,15 +196,26 @@ export async function commitCanonicalPrivatePackageQueueOutboxTransaction(input:
   afterOutboxContent: string
   committedAt: string
   faultInjectionForSmoke?: (stage: CanonicalPrivatePackageStateFaultStage) => void
+} | {
+  lockAuthority: CanonicalPrivatePackageStateLockAuthority
+  transactionId: string
+  transactionType: 'worker_failure_reconciliation'
+  authority: CanonicalPrivatePackageFailureTransactionAuthority
+  afterQueueContent: string
+  afterOutboxContent: string
+  committedAt: string
+  faultInjectionForSmoke?: (stage: CanonicalPrivatePackageStateFaultStage) => void
 }): Promise<CanonicalPrivatePackageStateTransactionCommitEvidence> {
   assertActiveLockAuthority(input.lockAuthority)
   assertSafeIdentity(input.transactionId, 'package-state transaction identity')
   const committedAt = validTimestamp(input.committedAt, 'package-state transaction commit')
   assertProjectionContent(input.afterQueueContent, 'queue')
   assertProjectionContent(input.afterOutboxContent, 'outbox')
-  if (input.transactionType !== 'worker_completion_reconciliation' &&
+  if (
+    (input.transactionType === 'package_claim_and_cloud_dispatch_outbox_insert' ||
+      input.transactionType === 'legacy_active_claim_cloud_dispatch_outbox_reconciliation') &&
     (input.transactionType === 'package_claim_and_cloud_dispatch_outbox_insert') !==
-    input.authority.queueClaimCreatedInTransaction
+      input.authority.queueClaimCreatedInTransaction
   ) {
     throw new ApiError(
       'IDEMPOTENCY_CONFLICT',
@@ -221,7 +262,9 @@ export async function commitCanonicalPrivatePackageQueueOutboxTransaction(input:
   const payload = {
     schemaVersion: input.transactionType === 'worker_completion_reconciliation'
       ? CANONICAL_PRIVATE_PACKAGE_COMPLETION_TRANSACTION_VERSION
-      : CANONICAL_PRIVATE_PACKAGE_STATE_TRANSACTION_VERSION,
+      : input.transactionType === 'worker_failure_reconciliation'
+        ? CANONICAL_PRIVATE_PACKAGE_FAILURE_TRANSACTION_VERSION
+        : CANONICAL_PRIVATE_PACKAGE_STATE_TRANSACTION_VERSION,
     source: 'private_canonical_package_queue_outbox_transaction' as const,
     ownerUserId: scope.ownerUserId,
     identity: packageIdentity(scope),
@@ -487,9 +530,11 @@ function assertProjectionAuthority(input: {
   afterOutboxContent: string
   transactionType: 'package_claim_and_cloud_dispatch_outbox_insert' |
     'legacy_active_claim_cloud_dispatch_outbox_reconciliation' |
-    'worker_completion_reconciliation'
+    'worker_completion_reconciliation' |
+    'worker_failure_reconciliation'
   authority: CanonicalPrivatePackageStateTransactionAuthority |
-    CanonicalPrivatePackageCompletionTransactionAuthority
+    CanonicalPrivatePackageCompletionTransactionAuthority |
+    CanonicalPrivatePackageFailureTransactionAuthority
 }): void {
   const beforeQueue = readQueueProjectionEnvelope(input.beforeQueueContent, 'queue before')
   const afterQueue = readQueueProjectionEnvelope(input.afterQueueContent, 'queue after')
@@ -526,6 +571,23 @@ function assertProjectionAuthority(input: {
       beforeOutbox: beforeOutbox.aggregate,
       afterOutbox: afterOutbox.aggregate,
       authority: input.authority as CanonicalPrivatePackageCompletionTransactionAuthority,
+    })
+    return
+  }
+  if (input.transactionType === 'worker_failure_reconciliation') {
+    if (!beforeOutbox) {
+      throw new ApiError(
+        'IDEMPOTENCY_CONFLICT',
+        'Worker failure reconciliation requires an existing outbox projection.',
+        409,
+      )
+    }
+    assertExactFailureProjectionAuthority({
+      beforeQueue: beforeQueue.aggregate,
+      afterQueue: afterQueue.aggregate,
+      beforeOutbox: beforeOutbox.aggregate,
+      afterOutbox: afterOutbox.aggregate,
+      authority: input.authority as CanonicalPrivatePackageFailureTransactionAuthority,
     })
     return
   }
@@ -717,6 +779,119 @@ function assertExactCompletionProjectionAuthority(input: {
     throw new ApiError(
       'IDEMPOTENCY_CONFLICT',
       'Canonical package-state projections do not contain one exact worker completion reconciliation.',
+      409,
+    )
+  }
+}
+
+function assertExactFailureProjectionAuthority(input: {
+  beforeQueue: CanonicalPrivatePackageWorkQueueAggregate
+  afterQueue: CanonicalPrivatePackageWorkQueueAggregate
+  beforeOutbox: CanonicalCloudDispatchOutboxAggregate
+  afterOutbox: CanonicalCloudDispatchOutboxAggregate
+  authority: CanonicalPrivatePackageFailureTransactionAuthority
+}): void {
+  const beforeQueueEntry = input.beforeQueue.entries.find((entry) =>
+    entry.definition.jobId === input.authority.jobId)
+  const afterQueueEntry = input.afterQueue.entries.find((entry) =>
+    entry.definition.jobId === input.authority.jobId)
+  const beforeClaim = beforeQueueEntry?.activeClaim
+  const release = afterQueueEntry?.lastRelease
+  const dispatchFailure = release?.dispatchFailure
+  const beforeOutboxEntry = input.beforeOutbox.entries.find((entry) =>
+    entry.immutable.dispatchIntentId === input.authority.dispatchIntentId)
+  const afterOutboxEntry = input.afterOutbox.entries.find((entry) =>
+    entry.immutable.dispatchIntentId === input.authority.dispatchIntentId)
+  const failureReceipt = afterOutboxEntry?.failureReceipt
+  const queueEvent = input.afterQueue.events.at(-1)
+  const outboxEvent = input.afterOutbox.events.at(-1)
+  const expectedReleaseReason = input.authority.queueDisposition === 'user_review_required'
+    ? 'unexpected_execution_failure'
+    : 'approved_attempt_failure'
+  if (
+    beforeQueueEntry?.state !== 'leased' || !beforeClaim ||
+    beforeClaim.claimId !== input.authority.queueClaimId ||
+    beforeClaim.claimHash !== input.authority.queueClaimHash ||
+    beforeClaim.deliveryAttempt !== input.authority.packageDeliveryAttempt ||
+    beforeQueueEntry.deliveryAttemptCount !== input.authority.packageDeliveryAttempt ||
+    afterQueueEntry?.state !== 'queued' ||
+    afterQueueEntry.activeClaim !== undefined ||
+    afterQueueEntry.completion !== undefined ||
+    afterQueueEntry.deliveryAttemptCount !== input.authority.packageDeliveryAttempt ||
+    !release || !dispatchFailure ||
+    release.claimId !== input.authority.queueClaimId ||
+    release.credentialSha256 !== beforeClaim.credentialSha256 ||
+    release.reason !== expectedReleaseReason ||
+    release.releaseHash !== input.authority.queueReleaseHash ||
+    dispatchFailure.queueClaimHash !== input.authority.queueClaimHash ||
+    dispatchFailure.workerReceiptHash !== input.authority.workerReceiptHash ||
+    dispatchFailure.failureEvidenceHash !== input.authority.failureEvidenceHash ||
+    dispatchFailure.attemptInternalCostEvidenceHash !==
+      input.authority.attemptInternalCostEvidenceHash ||
+    dispatchFailure.retryDisposition !== input.authority.retryDisposition ||
+    dispatchFailure.queueDisposition !== input.authority.queueDisposition ||
+    dispatchFailure.approvedMaxAttempts !== input.authority.approvedMaxAttempts ||
+    dispatchFailure.remainingAttempts !== input.authority.remainingAttempts ||
+    dispatchFailure.approvedMaxAttempts !== afterQueueEntry.definition.maxAttempts ||
+    dispatchFailure.remainingAttempts !== Math.max(
+      0,
+      afterQueueEntry.definition.maxAttempts - afterQueueEntry.deliveryAttemptCount,
+    ) ||
+    beforeOutboxEntry?.state !== 'worker_identity_accepted' ||
+    !beforeOutboxEntry.workerReceipt ||
+    beforeOutboxEntry.completionReceipt !== undefined ||
+    beforeOutboxEntry.failureReceipt !== undefined ||
+    beforeOutboxEntry.entryHash !== input.authority.outboxEntryHashBefore ||
+    beforeOutboxEntry.workerReceipt.receiptHash !== input.authority.workerReceiptHash ||
+    beforeOutboxEntry.immutable.queueClaimId !== input.authority.queueClaimId ||
+    beforeOutboxEntry.immutable.queueClaimHash !== input.authority.queueClaimHash ||
+    beforeOutboxEntry.immutable.packageDeliveryAttempt !==
+      input.authority.packageDeliveryAttempt ||
+    afterOutboxEntry?.state !== 'worker_failure_reconciled' ||
+    afterOutboxEntry.entryHash !== input.authority.outboxEntryHashAfter ||
+    stableAuthorityStringify(afterOutboxEntry.immutable) !==
+      stableAuthorityStringify(beforeOutboxEntry.immutable) ||
+    stableAuthorityStringify(afterOutboxEntry.controllerReceipt) !==
+      stableAuthorityStringify(beforeOutboxEntry.controllerReceipt) ||
+    stableAuthorityStringify(afterOutboxEntry.workerReceipt) !==
+      stableAuthorityStringify(beforeOutboxEntry.workerReceipt) ||
+    afterOutboxEntry.completionReceipt !== undefined ||
+    !failureReceipt ||
+    failureReceipt.receiptHash !== input.authority.failureReceiptHash ||
+    failureReceipt.workerReceiptHash !== input.authority.workerReceiptHash ||
+    failureReceipt.failureEvidenceHash !== input.authority.failureEvidenceHash ||
+    failureReceipt.queueReleaseHash !== input.authority.queueReleaseHash ||
+    failureReceipt.attemptInternalCostEvidenceHash !==
+      input.authority.attemptInternalCostEvidenceHash ||
+    failureReceipt.retryDisposition !== input.authority.retryDisposition ||
+    failureReceipt.queueDisposition !== input.authority.queueDisposition ||
+    failureReceipt.approvedMaxAttempts !== input.authority.approvedMaxAttempts ||
+    failureReceipt.remainingAttempts !== input.authority.remainingAttempts ||
+    input.afterQueue.events.length !== input.beforeQueue.events.length + 1 ||
+    stableAuthorityStringify(input.afterQueue.events.slice(0, -1)) !==
+      stableAuthorityStringify(input.beforeQueue.events) ||
+    queueEvent?.eventType !== 'claim_released' ||
+    queueEvent.jobId !== input.authority.jobId ||
+    queueEvent.claimId !== input.authority.queueClaimId ||
+    input.afterOutbox.events.length !== input.beforeOutbox.events.length + 1 ||
+    stableAuthorityStringify(input.afterOutbox.events.slice(0, -1)) !==
+      stableAuthorityStringify(input.beforeOutbox.events) ||
+    outboxEvent?.eventType !== 'worker_failure_reconciled' ||
+    outboxEvent.dispatchIntentId !== input.authority.dispatchIntentId ||
+    outboxEvent.jobId !== input.authority.jobId ||
+    outboxEvent.packageDeliveryAttempt !== input.authority.packageDeliveryAttempt ||
+    stableAuthorityStringify(input.afterQueue.entries.filter((entry) =>
+      entry.definition.jobId !== input.authority.jobId)) !==
+      stableAuthorityStringify(input.beforeQueue.entries.filter((entry) =>
+        entry.definition.jobId !== input.authority.jobId)) ||
+    stableAuthorityStringify(input.afterOutbox.entries.filter((entry) =>
+      entry.immutable.dispatchIntentId !== input.authority.dispatchIntentId)) !==
+      stableAuthorityStringify(input.beforeOutbox.entries.filter((entry) =>
+        entry.immutable.dispatchIntentId !== input.authority.dispatchIntentId))
+  ) {
+    throw new ApiError(
+      'IDEMPOTENCY_CONFLICT',
+      'Canonical package-state projections do not contain one exact worker failure reconciliation.',
       409,
     )
   }

@@ -105,7 +105,7 @@ source-bound audio identities in approved order, reads sanitized journey state,
 and records review acceptance.
 
 The runner stops on the first failed phase and prints a machine-readable
-`canonical-private-pipeline-verification-v10` report with step exit codes and
+`canonical-private-pipeline-verification-v11` report with step exit codes and
 durations. A zero exit code means every included assertion passed, including
 assertions that production-only or unavailable behavior stays blocked.
 
@@ -116,40 +116,38 @@ that discovery channel; it does not weaken image-identity validation.
 
 ## Current Evidence Record
 
-On 2026-07-17, the exact-code v10 canonical command passed all 26 phases in
-`1,278,840 ms` and the full internal command passed all 32 phases in
-`1,651,012 ms`, both with exit code 0. The package-state phase completed in
-`4,063 ms` and `3,965 ms` respectively. In addition to the server-selected
-attempt and claim/outbox commit, it proved one accepted worker completion
-reconciled through the same cross-process package lock and a second
-checksum-protected write-ahead commit. Deterministic and real process exits at
-both completion commit stages recovered exactly one queue completion and one
-terminal outbox receipt; separate processes converged on one reconciliation
-plus one exact replay. Changed completion evidence, changed worker identity,
-expired attempts, tampered WAL content, and projection drift failed closed.
-The canonical run started at `2026-07-17T12:23:05.305Z` and finished at
-`2026-07-17T12:44:24.145Z`; the full run started at
-`2026-07-17T12:44:36.442Z` and finished at
-`2026-07-17T13:12:07.454Z`.
+On 2026-07-17, the exact-code v11 full internal command passed all `32/32`
+phases in `1,686,223 ms` with exit code `0`. It started at
+`2026-07-17T14:08:50.714Z` and finished at
+`2026-07-17T14:36:56.937Z`. The package-state phase completed in `6,660 ms` and
+proved server-selected claim/outbox commit plus mutually exclusive accepted-
+worker completion and pre-commit failure transactions. Deterministic and real
+process exits at both completion and failure commit stages recovered exactly
+one terminal result; separate processes converged on one reconciliation plus
+one exact replay. Completion/failure racing, changed evidence/principal, stale
+attempts, tampered WAL, projection drift, post-commit retry, exhaustion, and
+user-review blocking all failed or converged as required.
 
-The v10 canonical/full runs respectively completed the 50-tool cloud handoff
-in `402/397 ms`, cryptographic service identity in `398/561 ms`,
-completion-aware outbox receivers in `925/920 ms`, three-source composition in
-`533,080/529,890 ms`, professional color in `604,722/600,954 ms`, bounded UHD
-Remotion streaming in `99,414/99,619 ms`, and the 11-test named-edit browser
-journey in `16,231/16,042 ms`. The full run's final signed-in stage completed in
-`372,731 ms`, executed all 27 server-derived jobs for eight ordered sources,
-produced and authenticated a 16-second 3840x2160 private review, preserved all
+The v11 run completed the 50-tool cloud handoff in `436 ms`, cryptographic
+service identity in `529 ms`, completion/failure-aware outbox receivers in
+`1,306 ms`, three-source composition in `562,364 ms`, professional color in
+`611,537 ms`, bounded UHD Remotion streaming in `103,790 ms`, and the 11-test
+named-edit browser journey in `15,397 ms`. The final signed-in stage completed
+in `357,513 ms`, executed all 27 server-derived jobs for eight ordered sources,
+produced and authenticated a 16-second `3840x2160` private review, preserved all
 eight source-bound tones, and persisted acceptance. The catalog remained
-exactly 50 canonical E2E and 50 canonical job-adapter identities. Attempt-level
-internal production-cost evidence was hash-bound at completion while customer
+exactly 50 canonical E2E and 50 canonical job-adapter identities. One failed
+DeepFilterNet attempt used the versioned `rp-ratecard-01-mock-safe` internal
+cost record and bound its evidence hash to the failure receipt while customer
 price, credits, service fee, wallet, billing, and settlement authority stayed
 absent. Live Google keys/IAM, distributed queue/outbox atomicity and cloud
 execution, providers, billing/wallet mutation, remote Supabase, public delivery,
-deployment, external beta, and paid production remained false. The v9 26/26
-and 32/32 results remain pre-completion-reconciliation historical evidence and
-are superseded by these exact-code v10 aggregate verdicts; the earlier v8
-25/25 and 31/31 runs remain pre-transaction history.
+deployment, external beta, and paid production remained false.
+
+The prior v10 `26/26` and `32/32` results remain pre-failure-reconciliation
+historical evidence and are superseded by the exact-code v11 aggregate verdict.
+The v9 results remain pre-completion-reconciliation history, and the earlier v8
+results remain pre-transaction history.
 
 On 2026-07-16, the exact-code full internal command passed all 27 phases in
 1,985,135 ms with exit code 0. The final signed-in phase completed in 425,312

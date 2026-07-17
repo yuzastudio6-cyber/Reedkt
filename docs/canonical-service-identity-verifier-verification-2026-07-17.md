@@ -88,8 +88,31 @@ worker receipt state machine while caller-authored evidence is rejected.
 
 ## Aggregate Verification
 
-The exact-code canonical private pipeline passed all `26/26` stages with exit
-code `0` under schema `canonical-private-pipeline-verification-v10`:
+The exact-code full internal pipeline passed all `32/32` stages with exit code
+`0` under schema `canonical-private-pipeline-verification-v11`:
+
+- started: `2026-07-17T14:08:50.714Z`;
+- finished: `2026-07-17T14:36:56.937Z`;
+- duration: `1,686,223 ms`;
+- package claim/completion/failure transaction recovery: `6,660 ms`;
+- 50-tool cloud handoff: `436 ms`;
+- cryptographic service identity: `529 ms`;
+- completion/failure-aware outbox receivers: `1,306 ms`;
+- canonical named-edit UI: `11/11` tests in `15,397 ms`; and
+- maximum-eight-source signed-in review: `357,513 ms`.
+
+The final stage completed all `27` server-derived work items and jobs, produced
+and authenticated a `3840x2160`, `16`-second private review, preserved eight
+source-bound audio identities in order, and persisted review acceptance. The
+versioned catalog remained exactly `50` canonical end-to-end and `50`
+canonical job-adapter identities. Live Google identity, Cloud Tasks, Cloud Run
+execution, provider activation, billing/wallet mutation, remote Supabase,
+public delivery, deployment, external beta, and paid production all remained
+false.
+
+The preceding v10 exact-code canonical private pipeline passed all `26/26`
+stages with exit code `0` under schema
+`canonical-private-pipeline-verification-v10`:
 
 - started: `2026-07-17T12:23:05.305Z`;
 - finished: `2026-07-17T12:44:24.145Z`;
@@ -103,8 +126,8 @@ code `0` under schema `canonical-private-pipeline-verification-v10`:
 - UHD Remotion streaming: `99,414 ms`; and
 - canonical named-edit UI: `11/11` tests in `16,231 ms`.
 
-The broader exact-code internal regression then passed all `32/32` stages with
-exit code `0` under the same v10 schema:
+The preceding broader exact-code internal regression passed all `32/32` stages
+with exit code `0` under the same v10 schema:
 
 - started: `2026-07-17T12:44:36.442Z`;
 - finished: `2026-07-17T13:12:07.454Z`;
@@ -116,14 +139,8 @@ exit code `0` under the same v10 schema:
 - canonical named-edit UI: `11/11` tests in `16,042 ms`; and
 - maximum-eight-source signed-in review: `372,731 ms`.
 
-The final signed-in stage completed all `27` server-derived work items and
-jobs, produced and authenticated a `3840x2160`, `16`-second private review,
-preserved eight source-bound audio identities in order, and persisted review
-acceptance. The versioned catalog remained exactly `50` canonical end-to-end
-and `50` canonical job-adapter identities. Live Google identity, Cloud Tasks,
-Cloud Run execution, provider activation, billing/wallet mutation, remote
-Supabase, public delivery, deployment, external beta, and paid production all
-remained false.
+These v10 runs remain historical pre-failure-reconciliation evidence and are
+superseded by the exact-code v11 aggregate verdict.
 
 ## Explicit Boundaries
 

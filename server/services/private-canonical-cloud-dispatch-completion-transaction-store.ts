@@ -120,6 +120,17 @@ export async function reconcilePrivateCanonicalCloudDispatchCompletion(input: {
       const outcome = createQueueOutcome(queueEntry.definition, completionEvidence)
       const queueCompleted = queueEntry.state === 'completed'
       const outboxCompleted = outboxEntry.state === 'worker_completion_reconciled'
+      const exactAttemptFailed = outboxEntry.state === 'worker_failure_reconciled' || (
+        queueEntry.lastRelease?.claimId === outboxEntry.immutable.queueClaimId &&
+        queueEntry.lastRelease.dispatchFailure !== undefined
+      )
+      if (exactAttemptFailed) {
+        throw new ApiError(
+          'IDEMPOTENCY_ATOMICITY_REQUIRED',
+          'A failed worker attempt cannot be reconciled as completed.',
+          503,
+        )
+      }
       if (queueCompleted !== outboxCompleted) {
         throw new ApiError(
           'IDEMPOTENCY_ATOMICITY_REQUIRED',

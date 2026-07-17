@@ -1,6 +1,6 @@
 # Canonical Private Package-State Transaction Verification — 2026-07-17
 
-Status: `single_host_crash_consistent_cross_process_verified_distributed_database_blocked`
+Status: `single_host_crash_consistent_terminal_reconciliation_verified_distributed_database_blocked`
 
 ## Outcome
 
@@ -19,10 +19,18 @@ reconciliation, downstream-lease, and attempt-level internal production-cost
 evidence without granting customer price, credits, service fee, wallet,
 billing, or settlement authority.
 
+A third transaction kind now reconciles an accepted worker's bounded
+pre-commit failure. It commits one exact queue-claim release together with one
+terminal `worker_failure_reconciled` outbox receipt, derives retry availability,
+attempt exhaustion, or user review from the immutable job, and refuses
+post-commit retry. Completion and failure are mutually exclusive terminal
+states under the same package lock.
+
 This closes the former local crash windows where either a queue claim could
-persist without an outbox entry or a queue completion could persist without its
-terminal outbox receipt. It also closes lost-update races between cooperating
-Node processes on the same host. It does not claim a distributed database
+persist without an outbox entry or a queue completion/failure release could
+persist without its terminal outbox receipt. It also closes lost-update races
+between cooperating Node processes on the same host. It does not claim a
+distributed database
 transaction, shared-filesystem lock, multi-replica authority, Cloud Tasks
 creation, Cloud Run execution, provider activation, customer charging, remote
 Supabase, deployment, public delivery, external beta, or production readiness.
@@ -60,6 +68,14 @@ completion receipt, immutable controller/worker receipts remain byte-identical,
 unrelated entries remain unchanged, and exactly one queue event plus one outbox
 event are appended.
 
+Worker failure uses
+`canonical-private-package-failure-transaction-v1`. Semantic validation proves
+one exact leased claim becomes one digest-only queue release, one accepted
+worker attempt becomes one terminal failure receipt, one release event plus one
+failure event are appended, immutable/unrelated bytes do not change, and
+server-derived retry/review authority matches the approved attempt ceiling.
+Post-commit evidence cannot enter this transaction.
+
 This evidence covers Node-process interruption and restart on one local host.
 It does not prove sudden host-power loss, storage-controller/filesystem failure,
 or directory-entry durability across those failures; those require a deployed
@@ -93,6 +109,14 @@ mutation. Completion additionally requires the exact accepted worker receipt
 and same process-branded service principal. The server no longer accepts a
 caller-selected delivery-attempt number at the enqueue boundary.
 
+Failure reconciliation accepts only a safe category/code, execution-state
+marker, failure-detail hash, and attempt-level internal-cost evidence hash. It
+does not accept or persist raw failure messages, logs, stacks, local paths, or
+credentials. A deterministic DeepFilterNet failure proof creates the existing
+versioned private internal-cost record, binds its hash to the terminal receipt,
+and keeps customer price, credits, service fee, wallet, billing, and settlement
+authority absent.
+
 ## Focused Evidence
 
 `npm run smoke:canonical-private-package-state-transaction` passes and proves:
@@ -123,13 +147,26 @@ caller-selected delivery-attempt number at the enqueue boundary.
   `reconciled` result and one `exact_replay` result;
 - completion-WAL tampering, completion projection drift, changed evidence, and
   expired-attempt completion fail closed without another attempt;
+- deterministic interruption plus real child-process exit with code `79` at
+  both failure commit stages recover one queue release and one terminal failure
+  receipt;
+- separate-process failure races converge on one reconciliation plus exact
+  replay;
+- completion versus failure commits exactly one mutually exclusive terminal
+  outcome, and neither terminal state can later become the other;
+- failure-WAL tampering, failure projection drift, expired-attempt failure,
+  changed failure evidence, and changed worker identity fail closed;
+- retry availability advances through only the remaining approved attempt,
+  final exhaustion persists, and `unknown_internal` blocks for user review;
+- failed DeepFilterNet attempt-cost evidence uses the versioned mock-safe rate
+  card and remains separate from all customer commercial fields;
 - a real killed lock-owner child is safely reclaimed;
 - a lock-target symlink is refused without changing its external target;
 - queue, outbox, write-ahead, and lock files are `0600`; and
 - distributed database, Google Cloud execution, and production authority stay
   false.
 
-The focused transaction smoke now passes `23` assertions.
+The focused transaction smoke now passes `35` assertions.
 `npm run smoke:canonical-private-package-work-queue`,
 `npm run smoke:canonical-cloud-dispatch-outbox-receivers`,
 `npm run smoke:private-local-persistence`, and `npm run typecheck:server` also
@@ -137,8 +174,29 @@ pass after the integration.
 
 ## Aggregate Verification
 
-The exact-code canonical private pipeline passed all `26/26` stages with exit
-code `0` under schema `canonical-private-pipeline-verification-v10`:
+The exact-code full internal pipeline passed all `32/32` stages with exit code
+`0` under schema `canonical-private-pipeline-verification-v11`:
+
+- started: `2026-07-17T14:08:50.714Z`;
+- finished: `2026-07-17T14:36:56.937Z`;
+- duration: `1,686,223 ms`;
+- package claim/completion/failure transaction recovery: `6,660 ms`;
+- 50-tool cloud handoff: `436 ms`;
+- cryptographic service identity: `529 ms`;
+- completion/failure-aware outbox receivers: `1,306 ms`; and
+- signed-in maximum-eight-source private review: `357,513 ms`.
+
+The final stage completed `27` private work items and jobs, produced and
+authenticated a `3840x2160`, 16-second private review, preserved all eight
+approved source-bound audio identities in order, and persisted review
+acceptance. Exactly `50` canonical E2E and `50` job-adapter identities remained
+verified. Distributed queue/outbox terminal transactions, live Google identity
+and cloud execution, providers, customer billing/wallet mutation, remote
+Supabase, deployment, public delivery, external beta, and paid production all
+remained false.
+
+The preceding v10 exact-code canonical pipeline passed all `26/26` stages with
+exit code `0` under schema `canonical-private-pipeline-verification-v10`:
 
 - started: `2026-07-17T12:23:05.305Z`;
 - finished: `2026-07-17T12:44:24.145Z`;
@@ -149,8 +207,8 @@ code `0` under schema `canonical-private-pipeline-verification-v10`:
 - completion-aware outbox receivers: `925 ms`; and
 - exactly `50` canonical end-to-end and job-adapter identities.
 
-The broader exact-code internal regression then passed all `32/32` stages with
-exit code `0` under the same v10 schema:
+The preceding broader exact-code internal regression passed all `32/32` stages
+with exit code `0` under the same v10 schema:
 
 - started: `2026-07-17T12:44:36.442Z`;
 - finished: `2026-07-17T13:12:07.454Z`;
@@ -179,6 +237,9 @@ staging must then prove rollback, duplicate delivery, worker death, retry,
 dead-letter reconciliation, regional private object transport, live Google
 OIDC/key rotation, Invoker/Jobs Developer IAM, observability, and recovery.
 
-The local claim and completion write-ahead proofs are production-architecture
+The local claim, completion, and failure write-ahead proofs are
+production-architecture
 precursors, not substitutes for that distributed evidence. See
-`docs/canonical-private-worker-completion-reconciliation-verification-2026-07-17.md`.
+`docs/canonical-private-worker-completion-reconciliation-verification-2026-07-17.md`
+and
+`docs/canonical-private-worker-failure-reconciliation-verification-2026-07-17.md`.

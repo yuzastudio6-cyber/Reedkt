@@ -30,6 +30,7 @@ import {
 import type { ServiceContext } from '../../types'
 import {
   canonicalCloudDispatchWorkerCompletionEvidenceSchema,
+  canonicalCloudDispatchWorkerFailureEvidenceSchema,
 } from '../../validation/canonical-cloud-dispatch-outbox-schemas'
 
 const [
@@ -38,7 +39,7 @@ const [
   definitionPath,
   manifestPath,
   now,
-  completionEvidencePath,
+  workerEvidencePath,
   dispatchIntentId,
 ] = process.argv.slice(2)
 if (!mode || !scopePath) throw new Error('Package-state child mode and scope are required.')
@@ -116,13 +117,14 @@ if (mode === 'hold-lock') {
   }
 } else if (
   mode === 'complete' || mode === 'crash-completion-after-commit' ||
-  mode === 'crash-completion-after-queue'
+  mode === 'crash-completion-after-queue' || mode === 'fail' ||
+  mode === 'crash-failure-after-commit' || mode === 'crash-failure-after-queue'
 ) {
   if (
-    !definitionPath || !manifestPath || !now || !completionEvidencePath ||
+    !definitionPath || !manifestPath || !now || !workerEvidencePath ||
     !dispatchIntentId
   ) {
-    throw new Error('Package-state completion child inputs are incomplete.')
+    throw new Error('Package-state worker-result child inputs are incomplete.')
   }
   const definition = canonicalPrivatePackageWorkQueueDefinitionSchema.parse(
     JSON.parse(await readFile(definitionPath, 'utf8')),
@@ -130,12 +132,10 @@ if (mode === 'hold-lock') {
   const manifest = canonicalCloudWorkerDispatchHandoffManifestSchema.parse(
     JSON.parse(await readFile(manifestPath, 'utf8')),
   )
-  const completionEvidence = canonicalCloudDispatchWorkerCompletionEvidenceSchema.parse(
-    JSON.parse(await readFile(completionEvidencePath, 'utf8')),
-  )
+  const workerEvidence = JSON.parse(await readFile(workerEvidencePath, 'utf8'))
   const manifestEntry = manifest.entries.find((entry) =>
     entry.jobId === definition.jobs[0]!.jobId)
-  if (!manifestEntry) throw new Error('Completion child manifest entry is missing.')
+  if (!manifestEntry) throw new Error('Worker-result child manifest entry is missing.')
   const context: ServiceContext = {
     env: loadRuntimeEnv({
       NODE_ENV: 'test',
@@ -146,7 +146,7 @@ if (mode === 'hold-lock') {
       LOCAL_STORAGE_ROOT: scope.localStorageRoot,
     }),
     clients: { admin: null, public: null },
-    requestId: `completion-child-${process.pid}`,
+    requestId: `worker-result-child-${process.pid}`,
     auth: { userId: scope.ownerUserId, isMockUser: true },
   }
   const service = createCanonicalPrivateCloudDispatchReceiverService({
@@ -168,22 +168,40 @@ if (mode === 'hold-lock') {
     expiresAt: new Date(nowMs + 120_000).toISOString(),
     verifiedAt: new Date(nowMs - 500).toISOString(),
   })
-  const result = await service.reconcileWorkerCompletion({
-    dispatchIntentId,
-    completionEvidence,
-    verifiedIdentity: workerIdentity,
-    ...(mode === 'crash-completion-after-commit' ||
-      mode === 'crash-completion-after-queue'
-      ? {
-          faultInjectionForSmoke: (stage: CanonicalPrivatePackageStateFaultStage) => {
-            const expected = mode === 'crash-completion-after-commit'
-              ? 'after_write_ahead_commit'
-              : 'after_queue_projection'
-            if (stage === expected) process.exit(78)
-          },
-        }
-      : {}),
-  })
+  const isFailure = mode === 'fail' || mode === 'crash-failure-after-commit' ||
+    mode === 'crash-failure-after-queue'
+  const faultInjectionForSmoke = (
+    mode === 'crash-completion-after-commit' ||
+    mode === 'crash-completion-after-queue' ||
+    mode === 'crash-failure-after-commit' ||
+    mode === 'crash-failure-after-queue'
+  )
+    ? (stage: CanonicalPrivatePackageStateFaultStage) => {
+        const afterCommit = mode === 'crash-completion-after-commit' ||
+          mode === 'crash-failure-after-commit'
+        const expected = afterCommit
+          ? 'after_write_ahead_commit'
+          : 'after_queue_projection'
+        if (stage === expected) process.exit(isFailure ? 79 : 78)
+      }
+    : undefined
+  const result = isFailure
+    ? await service.reconcileWorkerFailure({
+        dispatchIntentId,
+        failureEvidence: canonicalCloudDispatchWorkerFailureEvidenceSchema.parse(
+          workerEvidence,
+        ),
+        verifiedIdentity: workerIdentity,
+        faultInjectionForSmoke,
+      })
+    : await service.reconcileWorkerCompletion({
+        dispatchIntentId,
+        completionEvidence: canonicalCloudDispatchWorkerCompletionEvidenceSchema.parse(
+          workerEvidence,
+        ),
+        verifiedIdentity: workerIdentity,
+        faultInjectionForSmoke,
+      })
   process.stdout.write(`${JSON.stringify({
     disposition: result.disposition,
     receiptHash: result.receipt.receiptHash,

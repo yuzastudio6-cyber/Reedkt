@@ -45,6 +45,7 @@ type NonDispatchDisposition =
   | 'scheduled_wait'
   | 'capability_blocked'
   | 'attempts_exhausted'
+  | 'user_review_required'
 
 export type CanonicalPrivatePackageCloudDispatchTransactionResult =
   | {

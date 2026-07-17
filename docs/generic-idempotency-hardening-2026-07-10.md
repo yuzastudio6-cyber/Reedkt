@@ -81,14 +81,18 @@ The private Cloud dispatch outbox is another route-specific, non-HTTP
 single-host authority. Its server-selected package claim and outbox insert now
 share one cross-process package lock and one crash-recoverable write-ahead
 commit, and the same controller/worker receipts replay under concurrent
-redelivery without rerunning an execution action. The accepted worker result
-uses a second versioned write-ahead transaction to commit queue completion and
-one terminal outbox receipt. Concurrent completion converges on one mutation
-plus exact replay, and a changed result or identity fails closed. It
+redelivery without rerunning an execution action. Accepted-worker completion
+and bounded pre-commit failure use separate versioned write-ahead transactions
+to commit either queue completion or one exact claim release with a mutually
+exclusive terminal outbox receipt. Concurrent terminal replay converges on one
+mutation plus exact replay, and a changed result, failure evidence, attempt, or
+identity fails closed. Failure derives retry/exhaustion/user review from
+immutable attempt authority, refuses post-commit retry, and never starts an
+automatic retry loop. It
 deliberately reports distributed database transaction proof as false; the live
-package-queue mutation, outbox insert, and terminal completion must share one
-reviewed distributed transaction/RPC before Cloud Tasks and live worker
-completion are enabled. The local evidence covers real Node-process
+package-queue mutation, outbox insert, and terminal completion/failure must
+share one reviewed distributed transaction/RPC before Cloud Tasks and live worker
+callbacks are enabled. The local evidence covers real Node-process
 exit/restart, not host-power or filesystem-failure durability.
 
 ## Safe Failure Semantics

@@ -119,6 +119,17 @@ deployed Google identity authority. See
 and
 `docs/canonical-private-worker-completion-reconciliation-verification-2026-07-17.md`.
 
+The same lock and WAL path now also accepts
+`canonical-private-package-failure-transaction-v1`. One exact accepted-worker
+pre-commit failure commits a digest-only queue release plus one terminal
+failure receipt. Real process exits at both commit stages, separate-process
+replay, completion/failure terminal exclusivity, stale fencing, WAL tamper,
+projection drift, retry exhaustion, user-review blocking, and versioned failed
+DeepFilterNet attempt-cost persistence pass. Raw failure messages, logs,
+stacks, paths, signed URLs, bearer tokens, and plaintext claim credentials are
+not persisted. See
+`docs/canonical-private-worker-failure-reconciliation-verification-2026-07-17.md`.
+
 This hardening is for single-host internal testing. It is not a replacement
 for private GCS generation-bound objects, canonical Supabase records, malware
 isolation, worker sandboxes, retention policy, or deployed IAM evidence.

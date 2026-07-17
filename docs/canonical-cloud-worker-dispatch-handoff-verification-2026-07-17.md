@@ -164,16 +164,17 @@ order. Provider activation, billing/wallet mutation, remote Supabase, public
 delivery, deployment, external-beta readiness, and paid-production readiness
 remained false throughout.
 
-The current completion-aware v10 aggregate supersedes those earlier handoff
-snapshots for the exact branch. The canonical command passed `26/26` stages in
-`1,278,840 ms` and the full command passed `32/32` stages in `1,651,012 ms`.
-The handoff stages passed in `402/397 ms`; the completion-aware receiver stages
-passed in `925/920 ms`; and the package claim/completion WAL stages passed in
-`4,063/3,965 ms`. The full run again completed all 27 server-derived jobs for
-eight sources and accepted a 3840x2160, 16-second private review. Exactly 50
-canonical E2E and job-adapter identities remained verified. This is still
-local/private evidence: no task, job, IAM binding, live Google token, provider,
-billing action, public delivery, or deployment occurred.
+The current terminal-reconciliation-aware v11 aggregate supersedes those
+earlier handoff snapshots for the exact branch. The full command passed
+`32/32` stages in `1,686,223 ms`. The handoff stage passed in `436 ms`; the
+completion/failure-aware receiver stage passed in `1,306 ms`; and the package
+claim/completion/failure WAL stage passed in `6,660 ms`. The run again completed
+all 27 server-derived jobs for eight sources and accepted a 3840x2160,
+16-second private review. Exactly 50 canonical E2E and job-adapter identities
+remained verified. The v10 runs remain historical pre-failure-reconciliation
+evidence. This is still local/private evidence: no task, job, IAM binding, live
+Google token, provider, billing action, public delivery, or deployment
+occurred.
 
 ## Performance Meaning
 

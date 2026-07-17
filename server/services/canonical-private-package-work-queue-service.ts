@@ -59,7 +59,7 @@ export type CanonicalPrivatePackageWorkQueueExecutionResult =
   | { disposition: 'executed' | 'completed_replay'; outcome: CanonicalPrivateWorkGraphJobOutcome }
   | {
       disposition: 'already_leased' | 'dependency_blocked' | 'scheduled_wait' |
-        'capability_blocked' | 'attempts_exhausted'
+        'capability_blocked' | 'attempts_exhausted' | 'user_review_required'
       requiredGate?: string
     }
 
@@ -159,6 +159,8 @@ export function createCanonicalPrivatePackageWorkQueueService(input: {
             ? { requiredGate: jobDefinition.requiredGate }
             : claim.disposition === 'attempts_exhausted'
               ? { requiredGate: 'canonical_package_work_queue_approved_attempts_exhausted' }
+            : claim.disposition === 'user_review_required'
+              ? { requiredGate: 'canonical_package_work_queue_user_review_required' }
             : {}),
         }
       }

@@ -2,6 +2,9 @@ import { z } from 'zod'
 
 import { canonicalPrivatePackageWorkQueueJobDefinitionSchema } from
   '../edit-architecture/canonical-private-package-work-queue-authority'
+import {
+  canonicalPrivateJobExecutionFailureCategorySchema,
+} from './canonical-private-job-execution-adapter-schemas'
 
 export const CANONICAL_PRIVATE_PACKAGE_WORK_QUEUE_AGGREGATE_VERSION =
   'canonical-private-package-work-queue-aggregate-v1' as const
@@ -65,6 +68,45 @@ export const canonicalPrivatePackageWorkQueueCompletionSchema = z.object({
   completionHash: sha256,
 }).strict()
 
+export const canonicalPrivatePackageWorkQueueDispatchFailureSchema = z.object({
+  queueClaimHash: sha256,
+  workerReceiptHash: sha256,
+  failureEvidenceHash: sha256,
+  attemptInternalCostEvidenceHash: sha256,
+  executionState: z.enum(['released_before_execution', 'failed_before_commit']),
+  failureCategory: canonicalPrivateJobExecutionFailureCategorySchema.exclude([
+    'post_commit_reconciliation',
+  ]),
+  retryDisposition: z.enum([
+    'retry_same_approved_operation',
+    'fallback_or_user_review_required',
+  ]),
+  queueDisposition: z.enum([
+    'retry_available',
+    'attempts_exhausted',
+    'user_review_required',
+  ]),
+  approvedMaxAttempts: z.number().int().positive().max(10),
+  remainingAttempts: z.number().int().nonnegative().max(10),
+}).strict().superRefine((failure, context) => {
+  if (
+    failure.remainingAttempts > failure.approvedMaxAttempts ||
+    (failure.queueDisposition === 'retry_available' &&
+      (failure.retryDisposition !== 'retry_same_approved_operation' ||
+        failure.remainingAttempts === 0)) ||
+    (failure.queueDisposition === 'attempts_exhausted' &&
+      (failure.retryDisposition !== 'fallback_or_user_review_required' ||
+        failure.remainingAttempts !== 0)) ||
+    (failure.queueDisposition === 'user_review_required' &&
+      failure.retryDisposition !== 'fallback_or_user_review_required')
+  ) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Canonical dispatch failure retry authority is inconsistent.',
+    })
+  }
+})
+
 export const canonicalPrivatePackageWorkQueueReleaseSchema = z.object({
   claimId: identity,
   credentialSha256: sha256,
@@ -75,9 +117,21 @@ export const canonicalPrivatePackageWorkQueueReleaseSchema = z.object({
     'orchestrator_shutdown',
     'expired_claim_recovered',
   ]),
+  dispatchFailure: canonicalPrivatePackageWorkQueueDispatchFailureSchema.optional(),
   releasedAt: timestamp,
   releaseHash: sha256,
-}).strict()
+}).strict().superRefine((release, context) => {
+  if (!release.dispatchFailure) return
+  const expectedReason = release.dispatchFailure.queueDisposition === 'user_review_required'
+    ? 'unexpected_execution_failure'
+    : 'approved_attempt_failure'
+  if (release.reason !== expectedReason) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Canonical dispatch failure release reason is inconsistent.',
+    })
+  }
+})
 
 export const canonicalPrivatePackageWorkQueueEntrySchema = z.object({
   definition: canonicalPrivatePackageWorkQueueJobDefinitionSchema,
@@ -234,6 +288,9 @@ export type CanonicalPrivatePackageWorkQueueClaim = z.infer<
 >
 export type CanonicalPrivatePackageWorkQueueCompletion = z.infer<
   typeof canonicalPrivatePackageWorkQueueCompletionSchema
+>
+export type CanonicalPrivatePackageWorkQueueDispatchFailure = z.infer<
+  typeof canonicalPrivatePackageWorkQueueDispatchFailureSchema
 >
 export type CanonicalPrivatePackageWorkQueueRelease = z.infer<
   typeof canonicalPrivatePackageWorkQueueReleaseSchema

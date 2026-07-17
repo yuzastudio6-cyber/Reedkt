@@ -1,6 +1,6 @@
 # Canonical Cloud Dispatch Outbox And Receiver Verification — 2026-07-17
 
-Status: `private_cross_process_crash_consistent_completion_contract_verified_live_distribution_blocked`
+Status: `private_cross_process_crash_consistent_terminal_reconciliation_verified_live_distribution_blocked`
 
 ## Outcome
 
@@ -8,7 +8,8 @@ ReEditPro now has a checksum-protected, restart-safe private outbox contract
 whose package attempt is selected by the server and committed atomically with
 the outbox entry through a private write-ahead record. The same contract
 defines the exact identity and authority checks for the controller and worker
-receiver, and now defines the terminal accepted-worker completion receipt,
+receiver, and now defines mutually exclusive terminal accepted-worker
+completion and pre-commit failure receipts,
 without creating a Cloud Task, starting a Cloud Run Job, executing a tool, or
 making a network call.
 
@@ -30,6 +31,8 @@ immutable funded package queue
   -> worker receiver receipt; no tool or media execution
   -> exact private artifact/QA/reconciliation/downstream/cost evidence
   -> one crash-consistent queue completion plus terminal outbox receipt
+  OR bounded pre-commit failure + internal-cost evidence
+  -> one crash-consistent queue release plus terminal failure receipt
 ```
 
 The package queue remains the sole owner of approved attempts. The enqueue API
@@ -50,6 +53,13 @@ reconciliation and one exact replay. The queue completion and terminal outbox
 receipt share one completion write-ahead commit, so restart cannot turn a
 persisted queue result into an untracked dispatch completion.
 
+Concurrent identical failure deliveries produce one terminal failure
+reconciliation and one exact replay. The queue release and terminal outbox
+receipt share a failure write-ahead commit. The server derives retry
+availability, final exhaustion, or user review from the immutable job and does
+not automatically start another attempt. Completion and failure cannot both
+terminalize the same claim.
+
 ## Durable Private Record
 
 The outbox aggregate is scoped to owner, workspace, project, edit session,
@@ -61,7 +71,8 @@ It uses the shared private-local persistence boundary for:
 - same-directory atomic replacement and durability sync;
 - a checksum-protected aggregate;
 - immutable per-attempt hashes;
-- append-only hash-chained creation/controller/worker/completion events; and
+- append-only hash-chained creation/controller/worker/completion/failure events;
+  and
 - bounded entries, events, and total bytes.
 
 The persisted record contains opaque IDs, hashes, regional resource names,
@@ -73,7 +84,8 @@ The queue and outbox now share one cooperative cross-process package lock. A
 fully written hard-link owner record prevents partial lock publication, and a
 dead same-host process can be reclaimed after exact owner-record validation.
 One transient `0600` write-ahead record is the queue/outbox commit point for
-claim/dispatch or accepted-worker completion; the next reader replays either
+claim/dispatch, accepted-worker completion, or accepted-worker failure; the
+next reader replays either
 missing projection and refuses checksum drift.
 
 This proves Node-process interruption recovery and cooperating-process
@@ -132,6 +144,25 @@ A later Cloud Run bootstrap may load private package and artifact authority only
 after the live workload-identity adapter, distributed transaction, private
 object transport, worker lease/reconciliation, and deployment gates pass.
 
+## Worker Failure Contract
+
+The failure receiver requires the same accepted worker principal and exact
+current claim. It accepts only a safe category/code, execution-state marker,
+failure-detail hash, and internal-cost evidence hash. It never persists raw
+failure messages, logs, stacks, media, paths, signed URLs, or credentials.
+
+Retryable pre-commit categories can expose one new server-selected attempt only
+inside the immutable approved maximum. Final exhaustion persists without a
+third attempt. `authority_changed` and `unknown_internal` require user review.
+Post-commit ambiguity never releases the claim or authorizes retry; it must use
+completion reconciliation.
+
+Focused proof also creates a failed DeepFilterNet attempt-cost record under
+`private-internal-attempt-cost-evidence-v1` and
+`rp-ratecard-01-mock-safe`, then binds the same evidence hash into the failure
+receipt. Internal cost remains separate from customer price, credits, service
+fee, wallet, billing, settlement, and charging authority.
+
 ## Focused Evidence
 
 `npm run smoke:canonical-private-package-state-transaction` proves the commit
@@ -155,6 +186,17 @@ the receiver state machine:
   exactly one queue result plus terminal outbox receipt;
 - changed completion evidence, changed worker identity, expired attempts,
   tampered completion WAL content, and completion projection drift fail closed;
+- concurrent worker failure yields one reconciliation and one exact replay;
+- real process exits at both failure commit stages recover one release plus one
+  terminal receipt;
+- completion/failure races commit exactly one mutually exclusive terminal
+  result;
+- changed failure evidence/principal, stale attempts, tampered failure WAL,
+  failure projection drift, and post-commit retry all fail closed;
+- one first failure permits only the remaining approved attempt, the second
+  persists exhaustion, and unknown internal failure persists user review;
+- the failed-attempt cost record uses integer micros and the versioned rate card
+  while all customer commercial authority stays false;
 - the package queue advances exactly once to the outbox-bound delivery attempt;
 - forged principal, audience, task body, controller receipt, worker principal,
   expired claim, cross-tenant scope, and tampered persisted bytes fail closed;
@@ -167,16 +209,41 @@ the receiver state machine:
 - network, Cloud Tasks, Cloud Run, worker execution, distributed transaction,
   live identity, and production authority all remain false.
 
-The canonical pipeline runs this stage immediately after the 50-tool cloud
-handoff contract. The handoff stage proves all 50 target mappings; this focused
-stage uses one representative CPU attempt to prove the generic outbox,
+The receiver smoke passes `18` checks and the package-state transaction smoke
+passes `35` checks. The canonical pipeline runs this stage immediately after
+the 50-tool cloud handoff contract. The handoff stage proves all 50 target
+mappings. This focused stage uses one representative CPU attempt to prove the
+generic outbox,
 receiver, and terminal completion state machine. It does not claim that a
 deployed task or completion callback ran for each tool.
 
 ## Pipeline Verification
 
-The exact-code canonical private pipeline completed all `26/26` stages with
-exit code `0` under schema `canonical-private-pipeline-verification-v10`:
+The exact-code full internal pipeline completed all `32/32` stages with exit
+code `0` under schema `canonical-private-pipeline-verification-v11`:
+
+- started: `2026-07-17T14:08:50.714Z`;
+- finished: `2026-07-17T14:36:56.937Z`;
+- duration: `1,686,223 ms`;
+- package claim/completion/failure transactions: `6,660 ms`;
+- cloud dispatch handoff: `436 ms`;
+- cryptographic service identity: `529 ms`;
+- completion/failure-aware outbox and receiver contract: `1,306 ms`;
+- three-source composition: `562,364 ms`;
+- professional color execution: `611,537 ms`;
+- bounded UHD Remotion stream: `103,790 ms`;
+- signed-in named-edit browser journey: `11/11` tests in `15,397 ms`; and
+- maximum-eight-source signed-in review: `357,513 ms`.
+
+The run preserved exactly `50` canonical E2E and `50` job-adapter tool
+identities, completed `27/27` final private jobs, and accepted an integrity-
+bound `3840x2160`, 16-second private review with all eight source-bound audio
+identities in order. Product, external beta, live cloud, public delivery, and
+paid-production readiness remained false.
+
+The preceding v10 exact-code canonical private pipeline completed all `26/26`
+stages with exit code `0` under schema
+`canonical-private-pipeline-verification-v10`:
 
 - started: `2026-07-17T12:23:05.305Z`;
 - finished: `2026-07-17T12:44:24.145Z`;
@@ -190,7 +257,7 @@ exit code `0` under schema `canonical-private-pipeline-verification-v10`:
 - bounded UHD Remotion stream: `99,414 ms`; and
 - signed-in named-edit browser journey: `11/11` tests in `16,231 ms`.
 
-The broader exact-code internal regression then completed all `32/32` stages
+The preceding broader exact-code internal regression completed all `32/32` stages
 with exit code `0` under the same v10 schema:
 
 - started: `2026-07-17T12:44:36.442Z`;
@@ -214,9 +281,10 @@ private/internal end-to-end and job-adapter-verified tools. Product, external
 beta, live cloud, public delivery, and paid-production readiness remained
 false throughout both runs.
 
-The earlier v9 `26/26` and `32/32` runs remain pre-completion-reconciliation
-historical evidence and are superseded by these v10 aggregate results. The v8
-`25/25` and `31/31` runs remain pre-transaction history.
+The v10 `26/26` and `32/32` runs remain pre-failure-reconciliation historical
+evidence and are superseded by the v11 aggregate result. The v9 runs remain
+pre-completion-reconciliation history, and the v8 `25/25` and `31/31` runs
+remain pre-transaction history.
 
 ## Explicit Boundaries
 
@@ -239,12 +307,15 @@ The following remain false:
 ## Next Gate
 
 The process-brand, cryptographic verifier core, private single-host
-queue/outbox claim transaction, and private single-host completion transaction
-are now proven. The next dependency-safe gate is a reviewed distributed
+queue/outbox claim transaction, and private single-host terminal
+completion/failure transactions are now proven. The next dependency-safe gate
+is a reviewed distributed
 database transaction/RPC plus the live Google key-cache/auth-library adapter
 and controlled staging-token proof. Any live implementation still requires
 explicit authorization for canonical database work and staging Google Cloud
 deployment. See
 `docs/canonical-private-package-state-transaction-verification-2026-07-17.md`
 and
-`docs/canonical-private-worker-completion-reconciliation-verification-2026-07-17.md`.
+`docs/canonical-private-worker-completion-reconciliation-verification-2026-07-17.md`,
+plus
+`docs/canonical-private-worker-failure-reconciliation-verification-2026-07-17.md`.

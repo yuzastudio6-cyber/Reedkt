@@ -93,6 +93,11 @@ Tampered completion WAL content, out-of-band projection drift, changed evidence,
 changed identity, and expired attempts fail closed without overwriting unknown
 state.
 
+The sibling failure transaction is terminally exclusive with completion. A
+completion/failure race commits exactly one result under the package lock; a
+terminal failure cannot later become completion, and a completed attempt cannot
+later be released as failed.
+
 ## Cost And Commercial Boundary
 
 The receipt requires and hash-binds attempt-level internal production-cost
@@ -111,7 +116,7 @@ customer charge, credit spend, or wallet mutation was added or executed.
 
 ## Focused Evidence
 
-`npm run smoke:canonical-cloud-dispatch-outbox-receivers` passes 12 assertions,
+`npm run smoke:canonical-cloud-dispatch-outbox-receivers` passes 18 assertions,
 including:
 
 - one completion reconciliation and one exact concurrent replay;
@@ -124,7 +129,7 @@ including:
 - absence of bearer tokens, plaintext claim credentials, paths, prompts, signed
   URLs, media bytes, or commercial authority in persistence.
 
-`npm run smoke:canonical-private-package-state-transaction` passes 23
+`npm run smoke:canonical-private-package-state-transaction` passes 35
 assertions, including:
 
 - deterministic recovery at both completion commit stages;
@@ -132,14 +137,33 @@ assertions, including:
 - separate-process completion convergence;
 - one queue completion event and one outbox completion event;
 - tampered completion WAL and projection-drift refusal;
-- expired-attempt completion refusal; and
+- expired-attempt completion refusal;
+- mutually exclusive completion/failure terminal racing and reverse-transition
+  refusal; and
 - all prior claim/outbox crash, race, lock, mode, and tamper evidence.
 
 `npm run typecheck:server` and the repository lint command also pass.
 
 ## Aggregate Verification
 
-The exact-code canonical private pipeline passed all `26/26` stages with exit
+The exact-code full internal pipeline passed all `32/32` stages with exit code
+`0` under schema `canonical-private-pipeline-verification-v11`:
+
+- started: `2026-07-17T14:08:50.714Z`;
+- finished: `2026-07-17T14:36:56.937Z`;
+- duration: `1,686,223 ms`;
+- package claim/completion/failure transaction recovery: `6,660 ms`;
+- 50-tool cloud handoff: `436 ms`;
+- cryptographic service identity: `529 ms`;
+- completion/failure-aware outbox receivers: `1,306 ms`; and
+- maximum-eight-source signed-in review: `357,513 ms`.
+
+The completion proof remained terminally exclusive with the new failure path,
+and exactly `50` canonical E2E plus `50` job-adapter identities remained
+verified. All live cloud, distributed transaction, customer commercial,
+provider, deployment, and public-delivery gates stayed false.
+
+The preceding v10 exact-code canonical private pipeline passed all `26/26` stages with exit
 code `0` under schema `canonical-private-pipeline-verification-v10`:
 
 - started: `2026-07-17T12:23:05.305Z`;
@@ -151,7 +175,7 @@ code `0` under schema `canonical-private-pipeline-verification-v10`:
 - completion-aware outbox receivers: `925 ms`; and
 - exactly `50` canonical E2E and job-adapter identities.
 
-The broader exact-code internal regression passed all `32/32` stages with exit
+The preceding broader exact-code internal regression passed all `32/32` stages with exit
 code `0` under the same v10 schema:
 
 - started: `2026-07-17T12:44:36.442Z`;

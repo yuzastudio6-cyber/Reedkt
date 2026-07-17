@@ -1,8 +1,10 @@
 import { ApiError } from '../errors/api-error'
 import {
   assertCanonicalCloudDispatchOutboxCurrentAttempt,
+  assertCanonicalCloudDispatchWorkerFailureReceiptReplay,
   createCanonicalCloudDispatchControllerReceipt,
   createCanonicalCloudDispatchWorkerCompletionReceipt,
+  createCanonicalCloudDispatchWorkerFailureReceipt,
   createCanonicalCloudDispatchWorkerInvocation,
   createCanonicalCloudDispatchWorkerReceipt,
 } from '../edit-architecture/canonical-cloud-dispatch-outbox-receiver-authority'
@@ -20,6 +22,7 @@ import {
   type CanonicalCloudDispatchOutboxAggregate,
   type CanonicalCloudDispatchOutboxEntry,
   type CanonicalCloudDispatchWorkerCompletionEvidence,
+  type CanonicalCloudDispatchWorkerFailureEvidence,
 } from '../validation/canonical-cloud-dispatch-outbox-schemas'
 import type {
   CanonicalVerifiedServiceIdentity,
@@ -41,6 +44,9 @@ import {
 import {
   reconcilePrivateCanonicalCloudDispatchCompletion,
 } from './private-canonical-cloud-dispatch-completion-transaction-store'
+import {
+  reconcilePrivateCanonicalCloudDispatchFailure,
+} from './private-canonical-cloud-dispatch-failure-transaction-store'
 import type { CanonicalPrivatePackageStateFaultStage } from
   './private-canonical-package-state-transaction'
 
@@ -51,6 +57,7 @@ export interface CanonicalPrivateCloudDispatchReceiverEvidence {
   controllerIdentityAcceptedCount: number
   workerIdentityAcceptedCount: number
   workerCompletionReconciledCount: number
+  workerFailureReconciledCount: number
   hostRestartRecoveryAvailable: true
   exactPackageAttemptRevalidatedAtEveryReceiver: true
   exactIdentityIssuerPrincipalAudienceAndExpiryRequired: true
@@ -66,6 +73,8 @@ export interface CanonicalPrivateCloudDispatchReceiverEvidence {
   committedTransactionRecoveryVerified: true
   workerCompletionReconciliationVerified: true
   completionQueueAndOutboxWriteAheadCommitVerified: true
+  workerFailureReconciliationVerified: true
+  failureQueueAndOutboxWriteAheadCommitVerified: true
   crossProcessAtomicClaimProven: true
   distributedOutboxTransactionVerified: false
   liveGoogleOidcAndIamVerified: false
@@ -312,6 +321,59 @@ export function createCanonicalPrivateCloudDispatchReceiverService(input: {
       }
     },
 
+    async reconcileWorkerFailure(request: {
+      dispatchIntentId: string
+      failureEvidence: CanonicalCloudDispatchWorkerFailureEvidence
+      verifiedIdentity: CanonicalVerifiedServiceIdentity
+      faultInjectionForSmoke?: (stage: CanonicalPrivatePackageStateFaultStage) => void
+    }) {
+      const timestamp = now().toISOString()
+      const result = await reconcilePrivateCanonicalCloudDispatchFailure({
+        scope,
+        definition: input.queueDefinition,
+        manifest: input.manifest,
+        dispatchIntentId: request.dispatchIntentId,
+        failureEvidence: request.failureEvidence,
+        now: timestamp,
+        buildReceipt: ({ entry, queueRelease, failedAt }) =>
+          createCanonicalCloudDispatchWorkerFailureReceipt({
+            entry,
+            failureEvidence: request.failureEvidence,
+            queueRelease,
+            verifiedIdentity: request.verifiedIdentity,
+            expectedAudience: workerReceiverAudience,
+            now: timestamp,
+            failedAt,
+            privateContractFixtureAllowed: true,
+            trustedJwksContractFixtureAllowed: true,
+            trustedGoogleVerifierOutputAllowed: false,
+          }),
+        validateReplayReceipt: ({ entry }) =>
+          assertCanonicalCloudDispatchWorkerFailureReceiptReplay({
+            entry,
+            failureEvidence: request.failureEvidence,
+            verifiedIdentity: request.verifiedIdentity,
+            expectedAudience: workerReceiverAudience,
+            now: timestamp,
+            privateContractFixtureAllowed: true,
+            trustedJwksContractFixtureAllowed: true,
+            trustedGoogleVerifierOutputAllowed: false,
+          }),
+        faultInjectionForSmoke: request.faultInjectionForSmoke,
+      })
+      return {
+        disposition: result.disposition,
+        queueDisposition: result.queueDisposition,
+        retryDisposition: result.retryDisposition,
+        remainingAttempts: result.remainingAttempts,
+        approvedMaxAttempts: result.approvedMaxAttempts,
+        receipt: result.failureReceipt,
+        outboxState: result.outboxEntry.state,
+        recovery: result.recovery,
+        boundaries: result.boundaries,
+      }
+    },
+
     async evidence(): Promise<CanonicalPrivateCloudDispatchReceiverEvidence> {
       const aggregate = await readPrivateCanonicalCloudDispatchOutbox({ scope })
       if (!aggregate) {
@@ -330,6 +392,8 @@ export function createCanonicalPrivateCloudDispatchReceiverService(input: {
         workerIdentityAcceptedCount: aggregate.summary.workerIdentityAcceptedCount,
         workerCompletionReconciledCount:
           aggregate.summary.workerCompletionReconciledCount ?? 0,
+        workerFailureReconciledCount:
+          aggregate.summary.workerFailureReconciledCount ?? 0,
         hostRestartRecoveryAvailable: true,
         exactPackageAttemptRevalidatedAtEveryReceiver: true,
         exactIdentityIssuerPrincipalAudienceAndExpiryRequired: true,
@@ -345,6 +409,8 @@ export function createCanonicalPrivateCloudDispatchReceiverService(input: {
         committedTransactionRecoveryVerified: true,
         workerCompletionReconciliationVerified: true,
         completionQueueAndOutboxWriteAheadCommitVerified: true,
+        workerFailureReconciliationVerified: true,
+        failureQueueAndOutboxWriteAheadCommitVerified: true,
         crossProcessAtomicClaimProven: true,
         distributedOutboxTransactionVerified: false,
         liveGoogleOidcAndIamVerified: false,
@@ -394,6 +460,7 @@ async function validateCurrentEntryUnderPackageStateLock(input: {
     attemptPlan,
     now: input.now,
     allowReconciledCompletionReplay: true,
+    allowReconciledFailureReplay: true,
   })
 }
 
@@ -432,6 +499,7 @@ async function requireCurrentEntry(input: {
     attemptPlan,
     now: input.now,
     allowReconciledCompletionReplay: true,
+    allowReconciledFailureReplay: true,
   })
   return { aggregate, entry, attemptPlan }
 }
@@ -493,6 +561,8 @@ function receiverBoundaries() {
     committedTransactionRecoveryVerified: true as const,
     workerCompletionReconciliationVerified: true as const,
     completionQueueAndOutboxWriteAheadCommitVerified: true as const,
+    workerFailureReconciliationVerified: true as const,
+    failureQueueAndOutboxWriteAheadCommitVerified: true as const,
     networkCallPerformed: false as const,
     cloudTaskCreated: false as const,
     cloudRunJobExecuted: false as const,

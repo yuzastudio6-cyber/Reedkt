@@ -328,6 +328,11 @@ export function createCanonicalPrivateWorkGraphOrchestratorService(context: Serv
                         blockerCode: 'TOOL_NOT_READY' as const,
                         requiredGate: 'canonical_package_work_queue_approved_attempts_exhausted',
                       }
+                  : queueExecution.disposition === 'user_review_required'
+                    ? {
+                        blockerCode: 'TOOL_NOT_READY' as const,
+                        requiredGate: 'canonical_package_work_queue_user_review_required',
+                      }
                   : {
                       blockerCode: 'TOOL_NOT_READY' as const,
                       requiredGate: queueExecution.requiredGate ??

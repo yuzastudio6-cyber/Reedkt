@@ -20,7 +20,9 @@ const PINNED_BASE_IMAGE = `python:3.13.11-slim-bookworm@${BASE_IMAGE_DIGEST}` as
 const BUILD_CONTEXT_PATH = '/tmp/reeditpro-offline-python-structured-build-context-v1'
 const ENTRYPOINT = ['python', '-s', '/app/runner.py'] as const
 const SHA256_PATTERN = /^[a-f0-9]{64}$/
-const RUN_TIMEOUT_MS = 30_000
+// Keep the command bounded while allowing cold Docker/Python startup under the
+// same loaded internal-regression conditions as the newer confined runtimes.
+const RUN_TIMEOUT_MS = 120_000
 const BUILD_TIMEOUT_MS = 15 * 60 * 1_000
 
 interface HostResult { exitCode: number; stdout: string; stderr: string }

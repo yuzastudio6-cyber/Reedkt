@@ -164,8 +164,16 @@ aggregate. Therefore these flags remain false:
 The next infrastructure gate is a reviewed distributed queue/transaction
 authority with authenticated service identity, exact immutable-message
 binding, dead-letter/reconciliation policy, private object transport, and
-deployed concurrency/failure evidence. Only after that evidence exists can a
-local runner result support a Google Cloud throughput or customer ETA claim.
+deployed concurrency/failure evidence. The bounded
+`canonical-cloud-worker-dispatch-handoff-v1` contract now defines the exact
+regional Cloud Tasks -> private controller -> Cloud Run Jobs handoff and binds
+all 50 proven tools to their frozen target class. It deliberately leaves live
+outbox, OIDC/IAM, job deployment, object transport, dead-letter handling,
+capacity, and benchmark evidence false. See
+`docs/canonical-cloud-worker-dispatch-handoff-verification-2026-07-17.md`.
+
+Only after those remaining live checks exist can local runner evidence support
+a Google Cloud throughput or customer ETA claim.
 
 This queue improves reliability and prevents completed-work re-execution after
 restart. It does not itself make a 30-minute edit complete in 10–20 minutes;

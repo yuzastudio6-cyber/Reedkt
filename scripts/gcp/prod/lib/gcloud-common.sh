@@ -18,6 +18,8 @@ logging.googleapis.com
 monitoring.googleapis.com
 eventarc.googleapis.com
 pubsub.googleapis.com
+cloudtasks.googleapis.com
+iamcredentials.googleapis.com
 EOF
 }
 

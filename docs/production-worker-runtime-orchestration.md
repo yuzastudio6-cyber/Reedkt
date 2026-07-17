@@ -30,6 +30,46 @@ approved snapshot
 
 Later Cloud Run Jobs can call this runtime after container/tool readiness and real backend persistence exist. Until then, lease, idempotency, event, and result helpers are mock-safe/in-memory or draft-only.
 
+## Canonical Cloud Dispatch Boundary
+
+`canonical-cloud-worker-dispatch-handoff-v1` now freezes the dependency-safe
+handoff between the durable package queue and future Google Cloud workers:
+
+1. the package queue creates the only approved execution-attempt identity;
+2. a regional Cloud Tasks message carries only opaque identity and hashes;
+3. a private OIDC-authenticated controller reloads and revalidates the exact
+   package, queue, region, job, placement, and attempt authority;
+4. the controller calls the exact regional Cloud Run Jobs `run` API through a
+   user-managed service identity and Application Default Credentials; and
+5. the worker reloads the same authority and persists private evidence before
+   completion is reconciled to the package queue.
+
+Cloud Tasks delivery retry is transport recovery, not permission for another
+execution attempt. Cloud Run job templates therefore set internal retries to
+zero. Failed work can run again only through a new bounded package-queue
+attempt after reconciliation/fallback policy permits it.
+
+This is a pure, no-network authority contract. Distributed outbox atomicity,
+OIDC/IAM, controller and job deployment, service identity, private GCS object
+transport, dead-letter reconciliation, capacity controls, production telemetry,
+and benchmark evidence remain false and fail closed.
+
+## Throughput And ETA Principle
+
+ReEditPro should optimize dependency-safe work in parallel, not deliberately
+slow a job to resemble professional effort. A straightforward 30-minute source
+workload may target roughly 10–20 minutes on provisioned cloud capacity, but
+the actual estimate must be computed from source hours, resolution, codec,
+camera count, transcript/vision passes, approved tools, AI generations,
+render variants, QA passes, queue load, and available CPU/GPU/render capacity.
+
+Before an ETA can be shown as reliable, representative deployed benchmarks
+must record at least queue delay, cold-start time, source-minutes processed per
+worker-minute, GPU utilization, per-stage wall time, critical-path time,
+retry/recovery time, final render real-time factor, and QA time. Long work must
+be sharded at approved boundaries so that a single GPU attempt never exceeds
+the one-hour platform envelope and completed shards survive worker restart.
+
 ## Milestone 6 Media Foundation Route
 
 Milestone 6 keeps the default `cpu_analysis_worker` route as placeholder-only. It adds an explicit optional `metadata.mediaFoundation` route for `dry_run` or `local_dev` media foundation work.

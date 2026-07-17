@@ -91,6 +91,8 @@ export const GCP_PRODUCTION_REQUIRED_APIS = [
   'monitoring.googleapis.com',
   'eventarc.googleapis.com',
   'pubsub.googleapis.com',
+  'cloudtasks.googleapis.com',
+  'iamcredentials.googleapis.com',
 ] as const
 
 export const GCP_PRODUCTION_BUCKETS: GcpProductionBucketTemplate[] = [
@@ -236,10 +238,13 @@ export const GCP_PRODUCTION_CLOUD_RUN_JOBS: GcpCloudRunTemplate[] = [
     cpu: 2,
     memory: '4Gi',
     parallelism: 1,
-    maxRetries: 1,
+    maxRetries: 0,
     deployedByMilestone3: false,
     includesRevideo: false,
-    notes: ['No GPU. Command placeholder for future CPU analysis recipes.'],
+    notes: [
+      'No GPU. Command placeholder for future CPU analysis recipes.',
+      'Cloud Run task retries stay zero because the canonical package queue owns approved attempts.',
+    ],
   },
   {
     name: 'reeditpro-gpu-ai-worker',
@@ -252,10 +257,13 @@ export const GCP_PRODUCTION_CLOUD_RUN_JOBS: GcpCloudRunTemplate[] = [
     gpuCount: 1,
     noGpuZonalRedundancy: true,
     parallelism: 1,
-    maxRetries: 1,
+    maxRetries: 0,
     deployedByMilestone3: false,
     includesRevideo: false,
-    notes: ['First production GPU test target is nvidia-l4 with one GPU per instance.'],
+    notes: [
+      'First production GPU test target is nvidia-l4 with one GPU per instance.',
+      'Cloud Run task retries stay zero because the canonical package queue owns approved attempts.',
+    ],
   },
   {
     name: 'reeditpro-render-worker',
@@ -265,10 +273,13 @@ export const GCP_PRODUCTION_CLOUD_RUN_JOBS: GcpCloudRunTemplate[] = [
     cpu: 2,
     memory: '4Gi',
     parallelism: 1,
-    maxRetries: 1,
+    maxRetries: 0,
     deployedByMilestone3: false,
     includesRevideo: false,
-    notes: ['No GPU by default; core render stack is Hyperframe + Remotion + FFmpeg + libass + OpenTimelineIO.'],
+    notes: [
+      'No GPU by default; core render stack is Hyperframe + Remotion + FFmpeg + libass + OpenTimelineIO.',
+      'Cloud Run task retries stay zero because the canonical package queue owns approved attempts.',
+    ],
   },
   {
     name: 'reeditpro-qa-worker',
@@ -278,10 +289,13 @@ export const GCP_PRODUCTION_CLOUD_RUN_JOBS: GcpCloudRunTemplate[] = [
     cpu: 2,
     memory: '4Gi',
     parallelism: 1,
-    maxRetries: 1,
+    maxRetries: 0,
     deployedByMilestone3: false,
     includesRevideo: false,
-    notes: ['No GPU by default unless a later heavy CV QA milestone approves it.'],
+    notes: [
+      'No GPU by default unless a later heavy CV QA milestone approves it.',
+      'Cloud Run task retries stay zero because the canonical package queue owns approved attempts.',
+    ],
   },
   {
     name: 'reeditpro-tool-readiness-worker',

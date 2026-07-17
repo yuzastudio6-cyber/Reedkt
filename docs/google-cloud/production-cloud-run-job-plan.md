@@ -21,6 +21,56 @@
 | `reeditpro-qa-worker` | Cloud Run Job | `reeditpro-qa-worker-sa` | No by default | GPU only if a later heavy CV QA milestone approves it. |
 | `reeditpro-tool-readiness-worker` | Cloud Run Job | `reeditpro-tool-readiness-sa` | No | No source media access by default. |
 
+Every job template uses task count `1`, parallelism `1`, and Cloud Run internal
+maximum retries `0`. The approved package queue is the sole authority for a
+new execution attempt. Cloud Tasks delivery retries may redeliver the same
+opaque dispatch intent to the private controller, but they must never create a
+second package attempt or allow Cloud Run to hide another execution attempt.
+
+## Canonical Dispatch Handoff
+
+The frozen future flow is:
+
+```text
+approved package queue entry
+  -> regional Cloud Tasks queue
+  -> private authenticated dispatch controller
+  -> Cloud Run Jobs run API
+  -> one exact CPU, GPU, render, QA, or readiness job execution
+```
+
+Cloud Tasks carries only an opaque dispatch-intent ID, package/job identity,
+delivery attempt, and integrity hashes. It never carries media bytes, prompts,
+storage paths, signed URLs, secrets, or credentials. The controller must load
+the immutable server-owned authority, reject stale or duplicate delivery, and
+call the exact regional Cloud Run Job through OAuth Application Default
+Credentials. Cloud Run Jobs do not expose a long-running HTTP handler.
+
+The controller deadline is intentionally short (`60` seconds). Media work runs
+inside the job, not inside the task request. CPU job attempts are capped by the
+contract at seven days and GPU attempts at one hour; work beyond those bounds
+must be split into independently recoverable approved jobs rather than silently
+extending an attempt.
+
+The contract is implemented and privately verified, but no task, controller,
+job, service identity, IAM binding, or cloud resource was created. Live OIDC,
+Invoker/Developer IAM, outbox atomicity, private GCS transport, dead-letter
+reconciliation, concurrency controls, and representative performance
+benchmarks remain release gates.
+
+The existing `us-central1` foundation defaults and coarse service-account
+templates must be reconciled with the canonical `us-east1`/`europe-west1`
+resource map before any human-run deployment. Target existence and IAM remain
+false until that reconciliation and live inspection pass.
+
+Primary platform constraints:
+
+- [Cloud Tasks quotas](https://docs.cloud.google.com/tasks/docs/quotas)
+- [Cloud Tasks HTTP target authentication](https://docs.cloud.google.com/tasks/docs/creating-http-target-tasks)
+- [Cloud Run Jobs execution](https://docs.cloud.google.com/run/docs/execute/jobs)
+- [Cloud Run Jobs task timeouts](https://docs.cloud.google.com/run/docs/configuring/task-timeout)
+- [Cloud Run service identity](https://docs.cloud.google.com/run/docs/securing/service-identity)
+
 ## Revideo Policy
 
 Revideo is not deployed. It remains evaluation-only and future optional.
@@ -61,3 +111,9 @@ Cloud Run Jobs should not be deployed until the unified production readiness rep
 Cloud Run service/job deployment is blocked until cost controls, worker concurrency limits, rate limits, job timeouts, kill switches, sanitized logging, and audit policies are approved.
 
 Render/GPU/provider paths must remain kill-switched until the M17 scorecard blockers are cleared by humans.
+
+No customer-facing 30-minute-video ETA is authorized by these templates. A
+10–20 minute target for a straightforward 30-minute source workload is an
+engineering benchmark target, not a guaranteed minimum or SLA. Multi-hour,
+multicam, 4K, effects-heavy, provider-dependent, or revision-heavy work must be
+estimated from measured stage telemetry after deployment.

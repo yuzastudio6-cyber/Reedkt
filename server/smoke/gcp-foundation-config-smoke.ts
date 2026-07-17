@@ -60,6 +60,8 @@ const expectedApis = [
   'monitoring.googleapis.com',
   'eventarc.googleapis.com',
   'pubsub.googleapis.com',
+  'cloudtasks.googleapis.com',
+  'iamcredentials.googleapis.com',
 ]
 
 for (const api of expectedApis) {
@@ -125,6 +127,7 @@ check(!GCP_PRODUCTION_API_SERVICE.includesRevideo, 'API service template must no
 for (const job of GCP_PRODUCTION_CLOUD_RUN_JOBS) {
   check(!job.includesRevideo, `${job.name} must not deploy Revideo.`)
   check(!job.deployedByMilestone3, `${job.name} must remain template-only in Milestone 3.`)
+  check(job.maxRetries === 0, `${job.name} must not hide execution retries from the package queue.`)
 }
 
 const packageJson = readRepoFile('package.json')
@@ -168,6 +171,18 @@ check(gpuScript.includes('--memory=16Gi'), 'GPU deploy example must include --me
 check(gpuScript.includes('--parallelism=1'), 'GPU deploy example must include --parallelism=1.')
 check(gpuScript.includes('REEDITPRO_GPU_WORKER_SERVICE_ACCOUNT'), 'GPU deploy example must use the GPU worker service account env var.')
 check(envExample.includes('REEDITPRO_GPU_WORKER_SERVICE_ACCOUNT=reeditpro-gpu-worker-sa'), 'Env example must map GPU worker service account to reeditpro-gpu-worker-sa.')
+
+for (const workerScriptPath of [
+  'scripts/gcp/prod/09-deploy-cpu-worker-job.example.sh',
+  'scripts/gcp/prod/10-deploy-gpu-worker-job.example.sh',
+  'scripts/gcp/prod/11-deploy-render-worker-job.example.sh',
+  'scripts/gcp/prod/12-deploy-qa-worker-job.example.sh',
+  'scripts/gcp/prod/13-run-tool-readiness-job.example.sh',
+]) {
+  const workerScript = readRepoFile(workerScriptPath)
+  check(workerScript.includes('--max-retries=0'), `${workerScriptPath} must leave retries to the canonical package queue.`)
+  check(!/--max-retries=[1-9]/u.test(workerScript), `${workerScriptPath} must not configure hidden Cloud Run retries.`)
+}
 
 const allScriptText = scriptPaths.map(readRepoFile).join('\n')
 check(!/signed_url/i.test(allScriptText), 'Scripts must not persist signed_url fields.')

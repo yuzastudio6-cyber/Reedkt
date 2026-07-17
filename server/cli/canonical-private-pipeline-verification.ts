@@ -91,6 +91,11 @@ const canonicalSteps: VerificationStep[] = [
     'The immutable package and resource placement produce a private durable queue with opaque claims, heartbeat, attempt ceilings, restart recovery, terminal replay, and tamper rejection.',
   ),
   step(
+    'canonical-cloud-dispatch-handoff',
+    'smoke:canonical-cloud-dispatch-handoff',
+    'The exact package queue and all 50 proven tools bind to regional Cloud Tasks and Cloud Run Jobs handoff contracts with opaque task bodies, zero hidden job retries, and every live cloud/IAM boundary still fail-closed.',
+  ),
+  step(
     'canonical-multi-source-execution',
     'smoke:canonical-multi-source-final-composition',
     'Three-source execution reaches one baseline plus two directly reference-bound professional color matches, two approved hard-cut boundaries, three exact source-bound voice deliveries, lease, one-use dispatch, private artifacts, QA, reconciliation, ordered color/voice composition, objective continuity at both boundaries, and download evidence.',
@@ -235,7 +240,7 @@ function printReport(
 ): void {
   const finishedAt = new Date()
   const report = {
-    schemaVersion: 'canonical-private-pipeline-verification-v5',
+    schemaVersion: 'canonical-private-pipeline-verification-v6',
     status,
     mode: full ? 'full_internal_regression' : 'canonical_private_pipeline',
     startedAt: runStartedAt.toISOString(),
@@ -261,6 +266,7 @@ function printReport(
           canonicalBackendAuthority: true,
           durablePrivatePackageWorkQueue: true,
           durableCompletedJobReplayWithoutExecution: true,
+          canonicalCloudDispatchHandoffContract: true,
           boundedPrivateMultiSourceExecution: true,
           boundedApprovedHardCutTransitions: true,
           boundedProfessionalVoiceDelivery: true,

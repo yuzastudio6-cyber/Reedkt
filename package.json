@@ -29,6 +29,7 @@
     "smoke:approved-snapshot": "tsx server/smoke/approved-snapshot-smoke.ts",
     "smoke:edit-planning-authority": "tsx server/smoke/edit-planning-authority-smoke.ts",
     "smoke:canonical-private-package-work-queue": "tsx server/smoke/canonical-private-package-work-queue-smoke.ts",
+    "smoke:canonical-cloud-dispatch-handoff": "tsx server/smoke/canonical-cloud-worker-dispatch-handoff-smoke.ts",
     "smoke:canonical-edit-journey-client": "tsx server/smoke/canonical-edit-journey-frontend-client-smoke.ts",
     "smoke:canonical-plan-approval-client": "tsx server/smoke/canonical-plan-approval-frontend-client-smoke.ts",
     "smoke:canonical-execution-package-request-client": "tsx server/smoke/canonical-execution-package-request-frontend-client-smoke.ts",

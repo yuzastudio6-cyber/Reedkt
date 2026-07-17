@@ -17,6 +17,6 @@ run_gcloud run jobs deploy reeditpro-cpu-analysis-worker \
   --memory=4Gi \
   --tasks=1 \
   --parallelism=1 \
-  --max-retries=1 \
+  --max-retries=0 \
   --set-env-vars="REEDITPRO_ENV=${REEDITPRO_ENV},WORKER_GROUP=cpu_analysis_worker" \
   --args="worker,cpu-analysis,placeholder"

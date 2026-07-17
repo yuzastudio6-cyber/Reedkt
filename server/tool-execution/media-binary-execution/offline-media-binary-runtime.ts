@@ -61,7 +61,7 @@ const SOURCE_VERSION = '8.1.2' as const
 const SOURCE_SHA256 = '464beb5e7bf0c311e68b45ae2f04e9cc2af88851abb4082231742a74d97b524c' as const
 const STORAGE_ROOT = '/tmp/reeditpro-offline-media-binary-execution-finalizer-v2' as const
 const AUTHORITY_PATH = 'runtime-authority/offline-media-binary-runtime-finalizer-v2.json' as const
-const TIMEOUT_MS = 30_000
+const DOCKER_CONTROL_TIMEOUT_MS = 120_000
 const MAXIMUM_STREAMING_TIMEOUT_MS = 10 * 60_000
 
 export interface OfflineMediaBinaryServerInjectedInput {
@@ -1812,7 +1812,10 @@ function dockerBuffer(args: string[], input: Buffer | undefined, maximumBytes: n
     const stderr: Buffer[] = []
     let stdoutBytes = 0
     let stderrBytes = 0
-    const timer = setTimeout(() => { child.kill('SIGKILL'); reject(unavailable('Docker media operation timed out.')) }, TIMEOUT_MS)
+    const timer = setTimeout(() => {
+      child.kill('SIGKILL')
+      reject(unavailable('Docker media operation timed out.'))
+    }, DOCKER_CONTROL_TIMEOUT_MS)
     child.stdout.on('data', (chunk: Buffer) => {
       stdoutBytes += chunk.byteLength
       if (stdoutBytes > maximumBytes) child.kill('SIGKILL')
@@ -2412,7 +2415,10 @@ function mediaExecutionTimeoutMs(
     : 0
   return Math.min(
     MAXIMUM_STREAMING_TIMEOUT_MS,
-    Math.max(TIMEOUT_MS, TIMEOUT_MS + byteAllowance + durationAllowance),
+    Math.max(
+      DOCKER_CONTROL_TIMEOUT_MS,
+      DOCKER_CONTROL_TIMEOUT_MS + byteAllowance + durationAllowance,
+    ),
   )
 }
 

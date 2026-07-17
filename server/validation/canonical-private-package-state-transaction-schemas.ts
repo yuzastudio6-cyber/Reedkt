@@ -6,6 +6,8 @@ export const CANONICAL_PRIVATE_PACKAGE_COMPLETION_TRANSACTION_VERSION =
   'canonical-private-package-completion-transaction-v1' as const
 export const CANONICAL_PRIVATE_PACKAGE_FAILURE_TRANSACTION_VERSION =
   'canonical-private-package-failure-transaction-v1' as const
+export const CANONICAL_PRIVATE_PACKAGE_TIMEOUT_TRANSACTION_VERSION =
+  'canonical-private-package-timeout-transaction-v1' as const
 
 const identity = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:@/-]*$/u)
@@ -208,10 +210,92 @@ const canonicalPrivatePackageFailureTransactionSchema = z.object({
   transactionHash: sha256,
 }).strict()
 
+const canonicalPrivatePackageTimeoutTransactionSchema = z.object({
+  schemaVersion: z.literal(CANONICAL_PRIVATE_PACKAGE_TIMEOUT_TRANSACTION_VERSION),
+  source: z.literal('private_canonical_package_queue_outbox_transaction'),
+  ownerUserId: identity,
+  identity: z.object({
+    workspaceId: identity,
+    projectId: identity,
+    editSessionId: identity,
+    packageRecordId: identity,
+    approvedPlanSnapshotId: identity,
+  }).strict(),
+  transactionId: identity,
+  transactionType: z.literal('accepted_worker_timeout_reconciliation'),
+  authority: z.object({
+    queueDefinitionHash: sha256,
+    queueAggregateHashBefore: sha256,
+    queueAggregateHashAfter: sha256,
+    outboxAggregateHashBefore: sha256,
+    outboxAggregateHashAfter: sha256,
+    jobId: identity,
+    packageDeliveryAttempt: z.number().int().positive().max(100_000),
+    queueClaimId: identity,
+    queueClaimHash: sha256,
+    expiredQueueClaimHash: sha256,
+    queueClaimExpiresAt: timestamp,
+    queueClaimAttemptDeadlineAt: timestamp,
+    timeoutReconciledAt: timestamp,
+    dispatchIntentId: identity,
+    controllerReceiptHash: sha256,
+    workerReceiptHash: sha256,
+    timeoutEvidenceHash: sha256,
+    timeoutDetailHash: sha256,
+    queueReleaseHash: sha256,
+    attemptInternalCostEvidenceHash: sha256,
+    retryDisposition: z.enum([
+      'retry_same_approved_operation',
+      'fallback_or_user_review_required',
+    ]),
+    queueDisposition: z.enum([
+      'retry_available',
+      'attempts_exhausted',
+    ]),
+    approvedMaxAttempts: z.number().int().positive().max(10),
+    remainingAttempts: z.number().int().nonnegative().max(10),
+    outboxEntryHashBefore: sha256,
+    outboxEntryHashAfter: sha256,
+    timeoutReceiptHash: sha256,
+  }).strict(),
+  projections: z.object({
+    queue: queueProjectionSchema,
+    outbox: queueProjectionSchema,
+  }).strict(),
+  committedAt: timestamp,
+  boundaries: z.object({
+    privateLocalPersistence: z.literal(true),
+    singleHostOnly: z.literal(true),
+    cooperativeCrossProcessLockRequired: z.literal(true),
+    atomicWriteAheadCommitPoint: z.literal(true),
+    queueAndOutboxCrashRecoveryRequired: z.literal(true),
+    callerSelectedProjectionPathsAllowed: z.literal(false),
+    plaintextClaimCredentialPersisted: z.literal(false),
+    rawBearerTokenMediaPathPromptOrSignedUrlPersisted: z.literal(false),
+    distributedDatabaseTransactionVerified: z.literal(false),
+    productionAuthority: z.literal(false),
+  }).strict(),
+  transactionHash: sha256,
+}).strict().superRefine((transaction, context) => {
+  if (
+    Date.parse(transaction.authority.timeoutReconciledAt) <
+      Date.parse(transaction.authority.queueClaimExpiresAt) ||
+    Date.parse(transaction.authority.queueClaimExpiresAt) >
+      Date.parse(transaction.authority.queueClaimAttemptDeadlineAt) ||
+    transaction.authority.timeoutReconciledAt !== transaction.committedAt
+  ) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Canonical package timeout transaction timing is inconsistent.',
+    })
+  }
+})
+
 export const canonicalPrivatePackageStateTransactionSchema = z.union([
   canonicalPrivatePackageStateTransactionV1Schema,
   canonicalPrivatePackageCompletionTransactionSchema,
   canonicalPrivatePackageFailureTransactionSchema,
+  canonicalPrivatePackageTimeoutTransactionSchema,
 ])
 
 export type CanonicalPrivatePackageStateTransaction = z.infer<

@@ -107,6 +107,48 @@ export const canonicalPrivatePackageWorkQueueDispatchFailureSchema = z.object({
   }
 })
 
+export const canonicalPrivatePackageWorkQueueDispatchTimeoutSchema = z.object({
+  queueClaimHash: sha256,
+  expiredQueueClaimHash: sha256,
+  controllerReceiptHash: sha256,
+  workerReceiptHash: sha256,
+  timeoutEvidenceHash: sha256,
+  timeoutDetailHash: sha256,
+  queueClaimExpiresAt: timestamp,
+  queueClaimAttemptDeadlineAt: timestamp,
+  attemptInternalCostEvidenceHash: sha256,
+  failureCategory: z.literal('execution_timeout'),
+  failureCode: z.literal('WORKER_LEASE_EXPIRED'),
+  executionState: z.literal('failed_before_commit'),
+  retryDisposition: z.enum([
+    'retry_same_approved_operation',
+    'fallback_or_user_review_required',
+  ]),
+  queueDisposition: z.enum([
+    'retry_available',
+    'attempts_exhausted',
+  ]),
+  approvedMaxAttempts: z.number().int().positive().max(10),
+  remainingAttempts: z.number().int().nonnegative().max(10),
+}).strict().superRefine((timeout, context) => {
+  if (
+    timeout.remainingAttempts > timeout.approvedMaxAttempts ||
+    Date.parse(timeout.queueClaimExpiresAt) >
+      Date.parse(timeout.queueClaimAttemptDeadlineAt) ||
+    (timeout.queueDisposition === 'retry_available' &&
+      (timeout.retryDisposition !== 'retry_same_approved_operation' ||
+        timeout.remainingAttempts === 0)) ||
+    (timeout.queueDisposition === 'attempts_exhausted' &&
+      (timeout.retryDisposition !== 'fallback_or_user_review_required' ||
+        timeout.remainingAttempts !== 0))
+  ) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Canonical dispatch timeout retry authority is inconsistent.',
+    })
+  }
+})
+
 export const canonicalPrivatePackageWorkQueueReleaseSchema = z.object({
   claimId: identity,
   credentialSha256: sha256,
@@ -118,17 +160,32 @@ export const canonicalPrivatePackageWorkQueueReleaseSchema = z.object({
     'expired_claim_recovered',
   ]),
   dispatchFailure: canonicalPrivatePackageWorkQueueDispatchFailureSchema.optional(),
+  dispatchTimeout: canonicalPrivatePackageWorkQueueDispatchTimeoutSchema.optional(),
   releasedAt: timestamp,
   releaseHash: sha256,
 }).strict().superRefine((release, context) => {
-  if (!release.dispatchFailure) return
-  const expectedReason = release.dispatchFailure.queueDisposition === 'user_review_required'
-    ? 'unexpected_execution_failure'
-    : 'approved_attempt_failure'
-  if (release.reason !== expectedReason) {
+  if (release.dispatchFailure && release.dispatchTimeout) {
     context.addIssue({
       code: 'custom',
-      message: 'Canonical dispatch failure release reason is inconsistent.',
+      message: 'Canonical queue release cannot be both a worker failure and a timeout.',
+    })
+    return
+  }
+  if (release.dispatchFailure) {
+    const expectedReason = release.dispatchFailure.queueDisposition === 'user_review_required'
+      ? 'unexpected_execution_failure'
+      : 'approved_attempt_failure'
+    if (release.reason !== expectedReason) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Canonical dispatch failure release reason is inconsistent.',
+      })
+    }
+  }
+  if (release.dispatchTimeout && release.reason !== 'expired_claim_recovered') {
+    context.addIssue({
+      code: 'custom',
+      message: 'Canonical dispatch timeout release reason is inconsistent.',
     })
   }
 })
@@ -291,6 +348,9 @@ export type CanonicalPrivatePackageWorkQueueCompletion = z.infer<
 >
 export type CanonicalPrivatePackageWorkQueueDispatchFailure = z.infer<
   typeof canonicalPrivatePackageWorkQueueDispatchFailureSchema
+>
+export type CanonicalPrivatePackageWorkQueueDispatchTimeout = z.infer<
+  typeof canonicalPrivatePackageWorkQueueDispatchTimeoutSchema
 >
 export type CanonicalPrivatePackageWorkQueueRelease = z.infer<
   typeof canonicalPrivatePackageWorkQueueReleaseSchema

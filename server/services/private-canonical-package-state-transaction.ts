@@ -19,6 +19,7 @@ import {
   CANONICAL_PRIVATE_PACKAGE_COMPLETION_TRANSACTION_VERSION,
   CANONICAL_PRIVATE_PACKAGE_FAILURE_TRANSACTION_VERSION,
   CANONICAL_PRIVATE_PACKAGE_STATE_TRANSACTION_VERSION,
+  CANONICAL_PRIVATE_PACKAGE_TIMEOUT_TRANSACTION_VERSION,
   canonicalPrivatePackageStateTransactionSchema,
   type CanonicalPrivatePackageStateTransaction,
 } from '../validation/canonical-private-package-state-transaction-schemas'
@@ -142,6 +143,40 @@ export interface CanonicalPrivatePackageFailureTransactionAuthority {
   failureReceiptHash: string
 }
 
+export interface CanonicalPrivatePackageTimeoutTransactionAuthority {
+  queueDefinitionHash: string
+  queueAggregateHashBefore: string
+  queueAggregateHashAfter: string
+  outboxAggregateHashBefore: string
+  outboxAggregateHashAfter: string
+  jobId: string
+  packageDeliveryAttempt: number
+  queueClaimId: string
+  queueClaimHash: string
+  expiredQueueClaimHash: string
+  queueClaimExpiresAt: string
+  queueClaimAttemptDeadlineAt: string
+  timeoutReconciledAt: string
+  dispatchIntentId: string
+  controllerReceiptHash: string
+  workerReceiptHash: string
+  timeoutEvidenceHash: string
+  timeoutDetailHash: string
+  queueReleaseHash: string
+  attemptInternalCostEvidenceHash: string
+  retryDisposition:
+    | 'retry_same_approved_operation'
+    | 'fallback_or_user_review_required'
+  queueDisposition:
+    | 'retry_available'
+    | 'attempts_exhausted'
+  approvedMaxAttempts: number
+  remainingAttempts: number
+  outboxEntryHashBefore: string
+  outboxEntryHashAfter: string
+  timeoutReceiptHash: string
+}
+
 export interface CanonicalPrivatePackageStateTransactionCommitEvidence {
   transactionHash: string
   queueProjectionReplayed: boolean
@@ -205,6 +240,15 @@ export async function commitCanonicalPrivatePackageQueueOutboxTransaction(input:
   afterOutboxContent: string
   committedAt: string
   faultInjectionForSmoke?: (stage: CanonicalPrivatePackageStateFaultStage) => void
+} | {
+  lockAuthority: CanonicalPrivatePackageStateLockAuthority
+  transactionId: string
+  transactionType: 'accepted_worker_timeout_reconciliation'
+  authority: CanonicalPrivatePackageTimeoutTransactionAuthority
+  afterQueueContent: string
+  afterOutboxContent: string
+  committedAt: string
+  faultInjectionForSmoke?: (stage: CanonicalPrivatePackageStateFaultStage) => void
 }): Promise<CanonicalPrivatePackageStateTransactionCommitEvidence> {
   assertActiveLockAuthority(input.lockAuthority)
   assertSafeIdentity(input.transactionId, 'package-state transaction identity')
@@ -264,7 +308,9 @@ export async function commitCanonicalPrivatePackageQueueOutboxTransaction(input:
       ? CANONICAL_PRIVATE_PACKAGE_COMPLETION_TRANSACTION_VERSION
       : input.transactionType === 'worker_failure_reconciliation'
         ? CANONICAL_PRIVATE_PACKAGE_FAILURE_TRANSACTION_VERSION
-        : CANONICAL_PRIVATE_PACKAGE_STATE_TRANSACTION_VERSION,
+        : input.transactionType === 'accepted_worker_timeout_reconciliation'
+          ? CANONICAL_PRIVATE_PACKAGE_TIMEOUT_TRANSACTION_VERSION
+          : CANONICAL_PRIVATE_PACKAGE_STATE_TRANSACTION_VERSION,
     source: 'private_canonical_package_queue_outbox_transaction' as const,
     ownerUserId: scope.ownerUserId,
     identity: packageIdentity(scope),
@@ -531,10 +577,12 @@ function assertProjectionAuthority(input: {
   transactionType: 'package_claim_and_cloud_dispatch_outbox_insert' |
     'legacy_active_claim_cloud_dispatch_outbox_reconciliation' |
     'worker_completion_reconciliation' |
-    'worker_failure_reconciliation'
+    'worker_failure_reconciliation' |
+    'accepted_worker_timeout_reconciliation'
   authority: CanonicalPrivatePackageStateTransactionAuthority |
     CanonicalPrivatePackageCompletionTransactionAuthority |
-    CanonicalPrivatePackageFailureTransactionAuthority
+    CanonicalPrivatePackageFailureTransactionAuthority |
+    CanonicalPrivatePackageTimeoutTransactionAuthority
 }): void {
   const beforeQueue = readQueueProjectionEnvelope(input.beforeQueueContent, 'queue before')
   const afterQueue = readQueueProjectionEnvelope(input.afterQueueContent, 'queue after')
@@ -588,6 +636,23 @@ function assertProjectionAuthority(input: {
       beforeOutbox: beforeOutbox.aggregate,
       afterOutbox: afterOutbox.aggregate,
       authority: input.authority as CanonicalPrivatePackageFailureTransactionAuthority,
+    })
+    return
+  }
+  if (input.transactionType === 'accepted_worker_timeout_reconciliation') {
+    if (!beforeOutbox) {
+      throw new ApiError(
+        'IDEMPOTENCY_CONFLICT',
+        'Accepted-worker timeout reconciliation requires an existing outbox projection.',
+        409,
+      )
+    }
+    assertExactTimeoutProjectionAuthority({
+      beforeQueue: beforeQueue.aggregate,
+      afterQueue: afterQueue.aggregate,
+      beforeOutbox: beforeOutbox.aggregate,
+      afterOutbox: afterOutbox.aggregate,
+      authority: input.authority as CanonicalPrivatePackageTimeoutTransactionAuthority,
     })
     return
   }
@@ -892,6 +957,138 @@ function assertExactFailureProjectionAuthority(input: {
     throw new ApiError(
       'IDEMPOTENCY_CONFLICT',
       'Canonical package-state projections do not contain one exact worker failure reconciliation.',
+      409,
+    )
+  }
+}
+
+function assertExactTimeoutProjectionAuthority(input: {
+  beforeQueue: CanonicalPrivatePackageWorkQueueAggregate
+  afterQueue: CanonicalPrivatePackageWorkQueueAggregate
+  beforeOutbox: CanonicalCloudDispatchOutboxAggregate
+  afterOutbox: CanonicalCloudDispatchOutboxAggregate
+  authority: CanonicalPrivatePackageTimeoutTransactionAuthority
+}): void {
+  const beforeQueueEntry = input.beforeQueue.entries.find((entry) =>
+    entry.definition.jobId === input.authority.jobId)
+  const afterQueueEntry = input.afterQueue.entries.find((entry) =>
+    entry.definition.jobId === input.authority.jobId)
+  const beforeClaim = beforeQueueEntry?.activeClaim
+  const release = afterQueueEntry?.lastRelease
+  const dispatchTimeout = release?.dispatchTimeout
+  const beforeOutboxEntry = input.beforeOutbox.entries.find((entry) =>
+    entry.immutable.dispatchIntentId === input.authority.dispatchIntentId)
+  const afterOutboxEntry = input.afterOutbox.entries.find((entry) =>
+    entry.immutable.dispatchIntentId === input.authority.dispatchIntentId)
+  const timeoutReceipt = afterOutboxEntry?.timeoutReceipt
+  const queueEvent = input.afterQueue.events.at(-1)
+  const outboxEvent = input.afterOutbox.events.at(-1)
+  if (
+    beforeQueueEntry?.state !== 'leased' || !beforeClaim ||
+    beforeClaim.claimId !== input.authority.queueClaimId ||
+    beforeClaim.claimHash !== input.authority.expiredQueueClaimHash ||
+    beforeClaim.deliveryAttempt !== input.authority.packageDeliveryAttempt ||
+    beforeClaim.expiresAt !== input.authority.queueClaimExpiresAt ||
+    beforeClaim.attemptDeadlineAt !== input.authority.queueClaimAttemptDeadlineAt ||
+    Date.parse(input.authority.timeoutReconciledAt) <
+      Date.parse(beforeClaim.expiresAt) ||
+    beforeQueueEntry.deliveryAttemptCount !== input.authority.packageDeliveryAttempt ||
+    afterQueueEntry?.state !== 'queued' ||
+    afterQueueEntry.activeClaim !== undefined ||
+    afterQueueEntry.completion !== undefined ||
+    afterQueueEntry.deliveryAttemptCount !== input.authority.packageDeliveryAttempt ||
+    afterQueueEntry.expiredClaimRecoveryCount !==
+      beforeQueueEntry.expiredClaimRecoveryCount + 1 ||
+    !release || !dispatchTimeout ||
+    release.claimId !== input.authority.queueClaimId ||
+    release.credentialSha256 !== beforeClaim.credentialSha256 ||
+    release.reason !== 'expired_claim_recovered' ||
+    release.releasedAt !== input.authority.timeoutReconciledAt ||
+    release.releaseHash !== input.authority.queueReleaseHash ||
+    release.dispatchFailure !== undefined ||
+    dispatchTimeout.queueClaimHash !== input.authority.queueClaimHash ||
+    dispatchTimeout.expiredQueueClaimHash !== input.authority.expiredQueueClaimHash ||
+    dispatchTimeout.controllerReceiptHash !== input.authority.controllerReceiptHash ||
+    dispatchTimeout.workerReceiptHash !== input.authority.workerReceiptHash ||
+    dispatchTimeout.timeoutEvidenceHash !== input.authority.timeoutEvidenceHash ||
+    dispatchTimeout.timeoutDetailHash !== input.authority.timeoutDetailHash ||
+    dispatchTimeout.queueClaimExpiresAt !== input.authority.queueClaimExpiresAt ||
+    dispatchTimeout.queueClaimAttemptDeadlineAt !==
+      input.authority.queueClaimAttemptDeadlineAt ||
+    dispatchTimeout.attemptInternalCostEvidenceHash !==
+      input.authority.attemptInternalCostEvidenceHash ||
+    dispatchTimeout.retryDisposition !== input.authority.retryDisposition ||
+    dispatchTimeout.queueDisposition !== input.authority.queueDisposition ||
+    dispatchTimeout.approvedMaxAttempts !== input.authority.approvedMaxAttempts ||
+    dispatchTimeout.remainingAttempts !== input.authority.remainingAttempts ||
+    dispatchTimeout.approvedMaxAttempts !== afterQueueEntry.definition.maxAttempts ||
+    dispatchTimeout.remainingAttempts !== Math.max(
+      0,
+      afterQueueEntry.definition.maxAttempts - afterQueueEntry.deliveryAttemptCount,
+    ) ||
+    beforeOutboxEntry?.state !== 'worker_identity_accepted' ||
+    !beforeOutboxEntry.controllerReceipt || !beforeOutboxEntry.workerReceipt ||
+    beforeOutboxEntry.completionReceipt !== undefined ||
+    beforeOutboxEntry.failureReceipt !== undefined ||
+    beforeOutboxEntry.timeoutReceipt !== undefined ||
+    beforeOutboxEntry.entryHash !== input.authority.outboxEntryHashBefore ||
+    beforeOutboxEntry.controllerReceipt.receiptHash !==
+      input.authority.controllerReceiptHash ||
+    beforeOutboxEntry.workerReceipt.receiptHash !== input.authority.workerReceiptHash ||
+    beforeOutboxEntry.immutable.queueClaimId !== input.authority.queueClaimId ||
+    beforeOutboxEntry.immutable.queueClaimHash !== input.authority.queueClaimHash ||
+    beforeOutboxEntry.immutable.packageDeliveryAttempt !==
+      input.authority.packageDeliveryAttempt ||
+    afterOutboxEntry?.state !== 'worker_timeout_reconciled' ||
+    afterOutboxEntry.entryHash !== input.authority.outboxEntryHashAfter ||
+    stableAuthorityStringify(afterOutboxEntry.immutable) !==
+      stableAuthorityStringify(beforeOutboxEntry.immutable) ||
+    stableAuthorityStringify(afterOutboxEntry.controllerReceipt) !==
+      stableAuthorityStringify(beforeOutboxEntry.controllerReceipt) ||
+    stableAuthorityStringify(afterOutboxEntry.workerReceipt) !==
+      stableAuthorityStringify(beforeOutboxEntry.workerReceipt) ||
+    afterOutboxEntry.completionReceipt !== undefined ||
+    afterOutboxEntry.failureReceipt !== undefined ||
+    !timeoutReceipt ||
+    timeoutReceipt.receiptHash !== input.authority.timeoutReceiptHash ||
+    timeoutReceipt.controllerReceiptHash !== input.authority.controllerReceiptHash ||
+    timeoutReceipt.workerReceiptHash !== input.authority.workerReceiptHash ||
+    timeoutReceipt.timeoutEvidenceHash !== input.authority.timeoutEvidenceHash ||
+    timeoutReceipt.timeoutDetailHash !== input.authority.timeoutDetailHash ||
+    timeoutReceipt.queueReleaseHash !== input.authority.queueReleaseHash ||
+    timeoutReceipt.expiredQueueClaimHash !== input.authority.expiredQueueClaimHash ||
+    timeoutReceipt.attemptInternalCostEvidenceHash !==
+      input.authority.attemptInternalCostEvidenceHash ||
+    timeoutReceipt.retryDisposition !== input.authority.retryDisposition ||
+    timeoutReceipt.queueDisposition !== input.authority.queueDisposition ||
+    timeoutReceipt.approvedMaxAttempts !== input.authority.approvedMaxAttempts ||
+    timeoutReceipt.remainingAttempts !== input.authority.remainingAttempts ||
+    timeoutReceipt.timedOutAt !== input.authority.timeoutReconciledAt ||
+    input.afterQueue.events.length !== input.beforeQueue.events.length + 1 ||
+    stableAuthorityStringify(input.afterQueue.events.slice(0, -1)) !==
+      stableAuthorityStringify(input.beforeQueue.events) ||
+    queueEvent?.eventType !== 'expired_claim_recovered' ||
+    queueEvent.jobId !== input.authority.jobId ||
+    queueEvent.claimId !== input.authority.queueClaimId ||
+    input.afterOutbox.events.length !== input.beforeOutbox.events.length + 1 ||
+    stableAuthorityStringify(input.afterOutbox.events.slice(0, -1)) !==
+      stableAuthorityStringify(input.beforeOutbox.events) ||
+    outboxEvent?.eventType !== 'worker_timeout_reconciled' ||
+    outboxEvent.dispatchIntentId !== input.authority.dispatchIntentId ||
+    outboxEvent.jobId !== input.authority.jobId ||
+    outboxEvent.packageDeliveryAttempt !== input.authority.packageDeliveryAttempt ||
+    stableAuthorityStringify(input.afterQueue.entries.filter((entry) =>
+      entry.definition.jobId !== input.authority.jobId)) !==
+      stableAuthorityStringify(input.beforeQueue.entries.filter((entry) =>
+        entry.definition.jobId !== input.authority.jobId)) ||
+    stableAuthorityStringify(input.afterOutbox.entries.filter((entry) =>
+      entry.immutable.dispatchIntentId !== input.authority.dispatchIntentId)) !==
+      stableAuthorityStringify(input.beforeOutbox.entries.filter((entry) =>
+        entry.immutable.dispatchIntentId !== input.authority.dispatchIntentId))
+  ) {
+    throw new ApiError(
+      'IDEMPOTENCY_CONFLICT',
+      'Canonical package-state projections do not contain one exact accepted-worker timeout reconciliation.',
       409,
     )
   }

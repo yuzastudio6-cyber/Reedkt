@@ -2,6 +2,8 @@ import { ApiError } from '../errors/api-error'
 import {
   assertCanonicalCloudDispatchOutboxCurrentAttempt,
   assertCanonicalCloudDispatchOutboxEntryIntegrity,
+  assertCanonicalCloudDispatchOutboxExpiredAcceptedWorkerAttempt,
+  createCanonicalCloudDispatchWorkerTimeoutEvidence,
 } from '../edit-architecture/canonical-cloud-dispatch-outbox-receiver-authority'
 import {
   createCanonicalCloudWorkerDispatchAttemptPlan,
@@ -11,24 +13,23 @@ import type {
   CanonicalPrivatePackageWorkQueueDefinition,
 } from '../edit-architecture/canonical-private-package-work-queue-authority'
 import {
-  canonicalCloudDispatchWorkerFailureEvidenceSchema,
-  canonicalCloudDispatchWorkerFailureReceiptSchema,
+  canonicalCloudDispatchWorkerTimeoutReceiptSchema,
   type CanonicalCloudDispatchOutboxEntry,
-  type CanonicalCloudDispatchWorkerFailureEvidence,
-  type CanonicalCloudDispatchWorkerFailureReceipt,
+  type CanonicalCloudDispatchWorkerTimeoutEvidence,
+  type CanonicalCloudDispatchWorkerTimeoutReceipt,
 } from '../validation/canonical-cloud-dispatch-outbox-schemas'
 import type {
   CanonicalPrivatePackageWorkQueueEntry,
   CanonicalPrivatePackageWorkQueueRelease,
 } from '../validation/canonical-private-package-work-queue-schemas'
 import {
-  preparePrivateCanonicalCloudDispatchFailure,
+  preparePrivateCanonicalCloudDispatchTimeout,
   readPrivateCanonicalCloudDispatchOutboxForPackageStateTransaction,
   serializePrivateCanonicalCloudDispatchOutboxAggregate,
   type CanonicalCloudDispatchOutboxStoreScope,
 } from './private-canonical-cloud-dispatch-outbox-store'
 import {
-  preparePrivateCanonicalPackageWorkQueueDispatchFailure,
+  preparePrivateCanonicalPackageWorkQueueDispatchTimeout,
   readPrivateCanonicalPackageWorkQueueForPackageStateTransaction,
   serializePrivateCanonicalPackageWorkQueueAggregate,
   type CanonicalPrivatePackageWorkQueueStoreScope,
@@ -42,55 +43,44 @@ import {
 } from './private-canonical-package-state-transaction'
 import { sha256AuthorityValue } from './private-edit-authority-store'
 
-export interface CanonicalPrivateCloudDispatchFailureResult {
+export interface CanonicalPrivateCloudDispatchTimeoutResult {
   disposition: 'reconciled' | 'exact_replay'
-  queueDisposition:
-    | 'retry_available'
-    | 'attempts_exhausted'
-    | 'user_review_required'
+  queueDisposition: 'retry_available' | 'attempts_exhausted'
   retryDisposition:
     | 'retry_same_approved_operation'
     | 'fallback_or_user_review_required'
   remainingAttempts: number
   approvedMaxAttempts: number
+  timeoutEvidence: CanonicalCloudDispatchWorkerTimeoutEvidence | null
   outboxEntry: CanonicalCloudDispatchOutboxEntry & {
-    failureReceipt: CanonicalCloudDispatchWorkerFailureReceipt
+    timeoutReceipt: CanonicalCloudDispatchWorkerTimeoutReceipt
   }
-  failureReceipt: CanonicalCloudDispatchWorkerFailureReceipt
+  timeoutReceipt: CanonicalCloudDispatchWorkerTimeoutReceipt
   recovery: CanonicalPrivatePackageStateRecoveryEvidence
   commit: CanonicalPrivatePackageStateTransactionCommitEvidence | null
-  boundaries: ReturnType<typeof failureBoundaries>
+  boundaries: ReturnType<typeof timeoutBoundaries>
 }
 
-export async function reconcilePrivateCanonicalCloudDispatchFailure(input: {
+export async function reconcilePrivateCanonicalCloudDispatchTimeout(input: {
   scope: CanonicalPrivatePackageWorkQueueStoreScope &
     CanonicalCloudDispatchOutboxStoreScope
   definition: CanonicalPrivatePackageWorkQueueDefinition
   manifest: CanonicalCloudWorkerDispatchHandoffManifest
   dispatchIntentId: string
-  failureEvidence: CanonicalCloudDispatchWorkerFailureEvidence
+  attemptInternalCostEvidenceHash: string
   now: string
   buildReceipt: (input: {
     entry: CanonicalCloudDispatchOutboxEntry
+    timeoutEvidence: CanonicalCloudDispatchWorkerTimeoutEvidence
     queueRelease: CanonicalPrivatePackageWorkQueueRelease
-    failedAt: string
-  }) => CanonicalCloudDispatchWorkerFailureReceipt
+    timedOutAt: string
+  }) => CanonicalCloudDispatchWorkerTimeoutReceipt
   validateReplayReceipt: (input: {
     entry: CanonicalCloudDispatchOutboxEntry
-    failureReceipt: CanonicalCloudDispatchWorkerFailureReceipt
-  }) => CanonicalCloudDispatchWorkerFailureReceipt
+    timeoutReceipt: CanonicalCloudDispatchWorkerTimeoutReceipt
+  }) => CanonicalCloudDispatchWorkerTimeoutReceipt
   faultInjectionForSmoke?: (stage: CanonicalPrivatePackageStateFaultStage) => void
-}): Promise<CanonicalPrivateCloudDispatchFailureResult> {
-  const failureEvidence = canonicalCloudDispatchWorkerFailureEvidenceSchema.parse(
-    input.failureEvidence,
-  )
-  if (failureEvidence.executionState === 'completed_requires_reconciliation') {
-    throw new ApiError(
-      'IDEMPOTENCY_ATOMICITY_REQUIRED',
-      'Post-commit worker failure requires completion reconciliation and cannot become a retry.',
-      503,
-    )
-  }
+}): Promise<CanonicalPrivateCloudDispatchTimeoutResult> {
   return withCanonicalPrivatePackageStateLock({
     scope: input.scope,
     operation: async (lockAuthority, recovery) => {
@@ -108,7 +98,7 @@ export async function reconcilePrivateCanonicalCloudDispatchFailure(input: {
       if (!queueBefore || !outboxBefore) {
         throw new ApiError(
           'JOB_NOT_FOUND',
-          'Canonical queue and dispatch outbox are required for worker failure reconciliation.',
+          'Canonical queue and dispatch outbox are required for accepted-worker timeout reconciliation.',
           404,
         )
       }
@@ -117,7 +107,7 @@ export async function reconcilePrivateCanonicalCloudDispatchFailure(input: {
       if (!outboxEntry) {
         throw new ApiError(
           'JOB_NOT_FOUND',
-          'Canonical dispatch attempt was not found for worker failure reconciliation.',
+          'Canonical dispatch attempt was not found for accepted-worker timeout reconciliation.',
           404,
         )
       }
@@ -127,21 +117,8 @@ export async function reconcilePrivateCanonicalCloudDispatchFailure(input: {
       if (!queueEntry) {
         throw new ApiError(
           'JOB_NOT_FOUND',
-          'Canonical package job was not found for worker failure reconciliation.',
+          'Canonical package job was not found for accepted-worker timeout reconciliation.',
           404,
-        )
-      }
-      if (
-        outboxEntry.state === 'worker_completion_reconciled' ||
-        outboxEntry.state === 'worker_timeout_reconciled' ||
-        queueEntry.completion?.claimId === outboxEntry.immutable.queueClaimId ||
-        (queueEntry.lastRelease?.claimId === outboxEntry.immutable.queueClaimId &&
-          queueEntry.lastRelease.dispatchTimeout !== undefined)
-      ) {
-        throw new ApiError(
-          'IDEMPOTENCY_ATOMICITY_REQUIRED',
-          'A completed or timed-out worker attempt cannot be released or retried as failed.',
-          503,
         )
       }
       const attemptPlan = createCanonicalCloudWorkerDispatchAttemptPlan({
@@ -149,7 +126,7 @@ export async function reconcilePrivateCanonicalCloudDispatchFailure(input: {
         jobId: outboxEntry.immutable.jobId,
         deliveryAttempt: outboxEntry.immutable.packageDeliveryAttempt,
       })
-      if (outboxEntry.state === 'worker_failure_reconciled') {
+      if (outboxEntry.state === 'worker_timeout_reconciled') {
         assertCanonicalCloudDispatchOutboxCurrentAttempt({
           entry: outboxEntry,
           queueDefinition: input.definition,
@@ -157,87 +134,99 @@ export async function reconcilePrivateCanonicalCloudDispatchFailure(input: {
           manifest: input.manifest,
           attemptPlan,
           now: input.now,
-          allowReconciledFailureReplay: true,
+          allowReconciledTimeoutReplay: true,
         })
-        return replayFailure({
-          input,
-          recovery,
-          queueEntry,
-          outboxEntry,
-          failureEvidence,
-        })
+        return replayTimeout({ input, recovery, queueEntry, outboxEntry })
+      }
+      if (
+        outboxEntry.state === 'worker_completion_reconciled' ||
+        outboxEntry.state === 'worker_failure_reconciled' ||
+        queueEntry.completion?.claimId === outboxEntry.immutable.queueClaimId ||
+        (queueEntry.lastRelease?.claimId === outboxEntry.immutable.queueClaimId &&
+          (queueEntry.lastRelease.dispatchFailure !== undefined ||
+            queueEntry.lastRelease.dispatchTimeout !== undefined))
+      ) {
+        throw new ApiError(
+          'IDEMPOTENCY_ATOMICITY_REQUIRED',
+          'A terminal worker attempt cannot be reconciled as timed out.',
+          503,
+        )
       }
       if (
         outboxEntry.state !== 'worker_identity_accepted' ||
-        !outboxEntry.workerReceipt ||
-        queueEntry.state !== 'leased'
+        !outboxEntry.controllerReceipt || !outboxEntry.workerReceipt ||
+        queueEntry.state !== 'leased' || !queueEntry.activeClaim
       ) {
-        const matchingRelease = queueEntry.lastRelease?.claimId ===
-          outboxEntry.immutable.queueClaimId
         throw new ApiError(
-          matchingRelease
-            ? 'IDEMPOTENCY_ATOMICITY_REQUIRED'
-            : 'VALIDATION_FAILED',
-          matchingRelease
-            ? 'Canonical queue and outbox failure projections diverged outside recovery.'
-            : 'Worker failure requires one accepted, currently leased dispatch attempt.',
-          matchingRelease ? 503 : 409,
+          'VALIDATION_FAILED',
+          'Worker timeout requires one accepted, currently leased dispatch attempt.',
+          409,
         )
       }
-      assertCanonicalCloudDispatchOutboxCurrentAttempt({
+      const expiredClaim =
+        assertCanonicalCloudDispatchOutboxExpiredAcceptedWorkerAttempt({
+          entry: outboxEntry,
+          queueDefinition: input.definition,
+          queueAggregate: queueBefore,
+          manifest: input.manifest,
+          attemptPlan,
+          now: input.now,
+        })
+      const timeoutEvidence = createCanonicalCloudDispatchWorkerTimeoutEvidence({
         entry: outboxEntry,
-        queueDefinition: input.definition,
-        queueAggregate: queueBefore,
-        manifest: input.manifest,
-        attemptPlan,
+        queueClaim: expiredClaim,
+        attemptInternalCostEvidenceHash: input.attemptInternalCostEvidenceHash,
         now: input.now,
       })
       const preparedQueue =
-        preparePrivateCanonicalPackageWorkQueueDispatchFailure({
+        preparePrivateCanonicalPackageWorkQueueDispatchTimeout({
           aggregate: queueBefore,
           definition: input.definition,
           jobId: outboxEntry.immutable.jobId,
           queueClaimId: outboxEntry.immutable.queueClaimId,
           queueClaimHash: outboxEntry.immutable.queueClaimHash,
+          queueClaimInitialExpiresAt: outboxEntry.immutable.queueClaimExpiresAt,
+          controllerReceiptHash: outboxEntry.controllerReceipt.receiptHash,
           workerReceiptHash: outboxEntry.workerReceipt.receiptHash,
-          failureEvidence,
+          timeoutEvidence,
           now: input.now,
         })
       if (preparedQueue.disposition !== 'released') {
         throw new ApiError(
           'IDEMPOTENCY_CONFLICT',
-          'A fresh dispatch failure unexpectedly replayed queue state.',
+          'A fresh accepted-worker timeout unexpectedly replayed queue state.',
           409,
         )
       }
-      const failureReceipt = canonicalCloudDispatchWorkerFailureReceiptSchema.parse(
+      const timeoutReceipt = canonicalCloudDispatchWorkerTimeoutReceiptSchema.parse(
         input.buildReceipt({
           entry: outboxEntry,
+          timeoutEvidence,
           queueRelease: preparedQueue.entry.lastRelease,
-          failedAt: input.now,
+          timedOutAt: input.now,
         }),
       )
-      const preparedOutbox = preparePrivateCanonicalCloudDispatchFailure({
+      const preparedOutbox = preparePrivateCanonicalCloudDispatchTimeout({
         aggregate: outboxBefore,
         dispatchIntentId: input.dispatchIntentId,
-        failureReceipt,
+        timeoutReceipt,
         now: input.now,
       })
       if (preparedOutbox.disposition !== 'reconciled') {
         throw new ApiError(
           'IDEMPOTENCY_CONFLICT',
-          'A fresh dispatch failure unexpectedly replayed outbox state.',
+          'A fresh accepted-worker timeout unexpectedly replayed outbox state.',
           409,
         )
       }
-      const dispatchFailure = preparedQueue.entry.lastRelease.dispatchFailure
+      const dispatchTimeout = preparedQueue.entry.lastRelease.dispatchTimeout
       const commit = await commitCanonicalPrivatePackageQueueOutboxTransaction({
         lockAuthority,
-        transactionId: `package_failure_tx_${sha256AuthorityValue({
+        transactionId: `package_timeout_tx_${sha256AuthorityValue({
           dispatchIntentId: input.dispatchIntentId,
-          failureReceiptHash: failureReceipt.receiptHash,
+          timeoutReceiptHash: timeoutReceipt.receiptHash,
         }).slice(0, 32)}`,
-        transactionType: 'worker_failure_reconciliation',
+        transactionType: 'accepted_worker_timeout_reconciliation',
         authority: {
           queueDefinitionHash: input.definition.definitionHash,
           queueAggregateHashBefore: queueBefore.aggregateHash,
@@ -248,19 +237,25 @@ export async function reconcilePrivateCanonicalCloudDispatchFailure(input: {
           packageDeliveryAttempt: outboxEntry.immutable.packageDeliveryAttempt,
           queueClaimId: outboxEntry.immutable.queueClaimId,
           queueClaimHash: outboxEntry.immutable.queueClaimHash,
+          expiredQueueClaimHash: expiredClaim.claimHash,
+          queueClaimExpiresAt: expiredClaim.expiresAt,
+          queueClaimAttemptDeadlineAt: expiredClaim.attemptDeadlineAt,
+          timeoutReconciledAt: input.now,
           dispatchIntentId: input.dispatchIntentId,
+          controllerReceiptHash: outboxEntry.controllerReceipt.receiptHash,
           workerReceiptHash: outboxEntry.workerReceipt.receiptHash,
-          failureEvidenceHash: failureReceipt.failureEvidenceHash,
+          timeoutEvidenceHash: sha256AuthorityValue(timeoutEvidence),
+          timeoutDetailHash: timeoutEvidence.timeoutDetailHash,
           queueReleaseHash: preparedQueue.entry.lastRelease.releaseHash,
           attemptInternalCostEvidenceHash:
-            failureEvidence.attemptInternalCostEvidenceHash,
-          retryDisposition: dispatchFailure.retryDisposition,
-          queueDisposition: dispatchFailure.queueDisposition,
-          approvedMaxAttempts: dispatchFailure.approvedMaxAttempts,
-          remainingAttempts: dispatchFailure.remainingAttempts,
+            timeoutEvidence.attemptInternalCostEvidenceHash,
+          retryDisposition: dispatchTimeout.retryDisposition,
+          queueDisposition: dispatchTimeout.queueDisposition,
+          approvedMaxAttempts: dispatchTimeout.approvedMaxAttempts,
+          remainingAttempts: dispatchTimeout.remainingAttempts,
           outboxEntryHashBefore: outboxEntry.entryHash,
           outboxEntryHashAfter: preparedOutbox.entry.entryHash,
-          failureReceiptHash: failureReceipt.receiptHash,
+          timeoutReceiptHash: timeoutReceipt.receiptHash,
         },
         afterQueueContent: serializePrivateCanonicalPackageWorkQueueAggregate({
           scope: input.scope,
@@ -275,47 +270,46 @@ export async function reconcilePrivateCanonicalCloudDispatchFailure(input: {
       })
       return {
         disposition: 'reconciled',
-        queueDisposition: dispatchFailure.queueDisposition,
-        retryDisposition: dispatchFailure.retryDisposition,
-        remainingAttempts: dispatchFailure.remainingAttempts,
-        approvedMaxAttempts: dispatchFailure.approvedMaxAttempts,
+        queueDisposition: dispatchTimeout.queueDisposition,
+        retryDisposition: dispatchTimeout.retryDisposition,
+        remainingAttempts: dispatchTimeout.remainingAttempts,
+        approvedMaxAttempts: dispatchTimeout.approvedMaxAttempts,
+        timeoutEvidence,
         outboxEntry: preparedOutbox.entry,
-        failureReceipt,
+        timeoutReceipt,
         recovery,
         commit,
-        boundaries: failureBoundaries(),
+        boundaries: timeoutBoundaries(),
       }
     },
   })
 }
 
-function replayFailure(input: {
-  input: Parameters<typeof reconcilePrivateCanonicalCloudDispatchFailure>[0]
+function replayTimeout(input: {
+  input: Parameters<typeof reconcilePrivateCanonicalCloudDispatchTimeout>[0]
   recovery: CanonicalPrivatePackageStateRecoveryEvidence
   queueEntry: CanonicalPrivatePackageWorkQueueEntry
   outboxEntry: CanonicalCloudDispatchOutboxEntry
-  failureEvidence: CanonicalCloudDispatchWorkerFailureEvidence
-}): CanonicalPrivateCloudDispatchFailureResult {
-  const receipt = input.outboxEntry.failureReceipt
+}): CanonicalPrivateCloudDispatchTimeoutResult {
+  const receipt = input.outboxEntry.timeoutReceipt
   if (
-    !receipt || !input.outboxEntry.workerReceipt ||
+    !receipt || !input.outboxEntry.controllerReceipt ||
+    !input.outboxEntry.workerReceipt ||
     input.outboxEntry.immutable.queueDefinitionHash !==
       input.input.definition.definitionHash ||
     input.outboxEntry.immutable.handoffManifestHash !==
       input.input.manifest.manifestHash ||
     input.queueEntry.deliveryAttemptCount <
       input.outboxEntry.immutable.packageDeliveryAttempt ||
+    receipt.controllerReceiptHash !==
+      input.outboxEntry.controllerReceipt.receiptHash ||
     receipt.workerReceiptHash !== input.outboxEntry.workerReceipt.receiptHash ||
-    receipt.failureEvidenceHash !== sha256AuthorityValue(input.failureEvidence) ||
-    receipt.failureCategory !== input.failureEvidence.failureCategory ||
-    receipt.failureCode !== input.failureEvidence.failureCode ||
-    receipt.failureDetailHash !== input.failureEvidence.failureDetailHash ||
     receipt.attemptInternalCostEvidenceHash !==
-      input.failureEvidence.attemptInternalCostEvidenceHash
+      input.input.attemptInternalCostEvidenceHash
   ) {
     throw new ApiError(
       'IDEMPOTENCY_CONFLICT',
-      'Worker failure replay does not match the exact reconciled result.',
+      'Worker timeout replay does not match the exact reconciled result.',
       409,
     )
   }
@@ -325,23 +319,24 @@ function replayFailure(input: {
     if (
       input.queueEntry.state !== 'queued' ||
       release?.claimId !== input.outboxEntry.immutable.queueClaimId ||
-      release.releaseHash !== receipt.queueReleaseHash
+      release.releaseHash !== receipt.queueReleaseHash ||
+      release.dispatchTimeout?.timeoutEvidenceHash !== receipt.timeoutEvidenceHash
     ) {
       throw new ApiError(
         'IDEMPOTENCY_ATOMICITY_REQUIRED',
-        'Worker failure replay no longer has its exact queue release projection.',
+        'Worker timeout replay no longer has its exact queue release projection.',
         503,
       )
     }
   }
   const validatedReceipt = input.input.validateReplayReceipt({
     entry: input.outboxEntry,
-    failureReceipt: receipt,
+    timeoutReceipt: receipt,
   })
   if (validatedReceipt.receiptHash !== receipt.receiptHash) {
     throw new ApiError(
       'IDEMPOTENCY_CONFLICT',
-      'Worker failure identity replay does not match the accepted result.',
+      'Worker timeout identity replay does not match the accepted result.',
       409,
     )
   }
@@ -351,22 +346,24 @@ function replayFailure(input: {
     retryDisposition: receipt.retryDisposition,
     remainingAttempts: receipt.remainingAttempts,
     approvedMaxAttempts: receipt.approvedMaxAttempts,
+    timeoutEvidence: null,
     outboxEntry: input.outboxEntry as CanonicalCloudDispatchOutboxEntry & {
-      failureReceipt: CanonicalCloudDispatchWorkerFailureReceipt
+      timeoutReceipt: CanonicalCloudDispatchWorkerTimeoutReceipt
     },
-    failureReceipt: receipt,
+    timeoutReceipt: receipt,
     recovery: input.recovery,
     commit: null,
-    boundaries: failureBoundaries(),
+    boundaries: timeoutBoundaries(),
   }
 }
 
-function failureBoundaries() {
+function timeoutBoundaries() {
   return {
     privateLocalPersistenceOnly: true as const,
-    acceptedWorkerIdentityRequired: true as const,
+    acceptedControllerAndWorkerIdentityRequired: true as const,
+    timeoutEvidenceDerivedFromExactExpiredClaim: true as const,
     queueReleaseDerivedFromImmutableAttemptAllowance: true as const,
-    postCommitFailureRetryAuthorized: false as const,
+    automaticRetryLoopStarted: false as const,
     attemptInternalProductionCostEvidenceHashRequired: true as const,
     customerPriceCreditsServiceFeeWalletOrBillingIncluded: false as const,
     queueReleaseAndOutboxReceiptShareAtomicWriteAheadCommit: true as const,
@@ -374,7 +371,6 @@ function failureBoundaries() {
     plaintextClaimCredentialPersisted: false as const,
     rawBearerTokenFailureLogStackMediaPathPromptOrSignedUrlPersisted: false as const,
     toolOrMediaExecutionClaimedByThisBoundary: false as const,
-    automaticRetryLoopStarted: false as const,
     distributedDatabaseTransactionVerified: false as const,
     liveGoogleOidcAndIamVerified: false as const,
     cloudTaskCreated: false as const,

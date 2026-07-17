@@ -1,6 +1,6 @@
 # Canonical Private Package-State Transaction Verification — 2026-07-17
 
-Status: `single_host_crash_consistent_terminal_reconciliation_verified_distributed_database_blocked`
+Status: `single_host_crash_consistent_completion_failure_timeout_reconciliation_verified_distributed_database_blocked`
 
 ## Outcome
 
@@ -23,12 +23,20 @@ A third transaction kind now reconciles an accepted worker's bounded
 pre-commit failure. It commits one exact queue-claim release together with one
 terminal `worker_failure_reconciled` outbox receipt, derives retry availability,
 attempt exhaustion, or user review from the immutable job, and refuses
-post-commit retry. Completion and failure are mutually exclusive terminal
-states under the same package lock.
+post-commit retry.
+
+A fourth transaction kind now reconciles an accepted worker whose exact queue
+lease expired before a committed result. A later attempt remains fenced until
+the same accepted controller principal atomically commits one
+`expired_claim_recovered` queue release and one terminal
+`worker_timeout_reconciled` receipt. Timeout retry/exhaustion is derived from
+the immutable attempt ceiling and never starts automatically. Completion,
+failure, and timeout are mutually exclusive terminal states under the same
+package lock.
 
 This closes the former local crash windows where either a queue claim could
-persist without an outbox entry or a queue completion/failure release could
-persist without its terminal outbox receipt. It also closes lost-update races
+persist without an outbox entry or a queue completion or failure/timeout release
+could persist without its terminal outbox receipt. It also closes lost-update races
 between cooperating Node processes on the same host. It does not claim a
 distributed database
 transaction, shared-filesystem lock, multi-replica authority, Cloud Tasks
@@ -76,6 +84,14 @@ failure event are appended, immutable/unrelated bytes do not change, and
 server-derived retry/review authority matches the approved attempt ceiling.
 Post-commit evidence cannot enter this transaction.
 
+Accepted-worker timeout uses
+`canonical-private-package-timeout-transaction-v1`. Semantic validation proves
+the accepted outbox attempt still owns the exact expired queue claim, the same
+accepted controller principal authorizes reconciliation, the queue receives one
+server-derived timeout release, the outbox receives one terminal timeout
+receipt, exactly one event is appended to each projection, and unrelated state
+does not change. No later attempt can be selected before this commit.
+
 This evidence covers Node-process interruption and restart on one local host.
 It does not prove sudden host-power loss, storage-controller/filesystem failure,
 or directory-entry durability across those failures; those require a deployed
@@ -117,6 +133,14 @@ versioned private internal-cost record, binds its hash to the terminal receipt,
 and keeps customer price, credits, service fee, wallet, billing, and settlement
 authority absent.
 
+Timeout reconciliation accepts only the opaque dispatch intent, an
+attempt-level internal-cost evidence hash, and the process-branded accepted
+controller principal. The server derives the timeout category/code, exact
+expired claim, heartbeat/deadline evidence, release reason, remaining attempt
+allowance, and reconciliation timestamp. A deterministic DeepFilterNet timeout
+proof binds a versioned failed `timeout` internal-cost record to the terminal
+receipt while keeping every customer commercial field absent.
+
 ## Focused Evidence
 
 `npm run smoke:canonical-private-package-state-transaction` passes and proves:
@@ -129,9 +153,22 @@ authority absent.
 - write-ahead recovery cross-checks the transaction kind, queue claim identity
   and hash, dispatch intent, outbox entry identity and hash, and absence of a
   preexisting same-intent entry before applying either projection;
-- an expired active attempt advances exactly once to the next approved attempt,
-  while a second expiry persists terminal `attempts_exhausted` state without
-  creating another outbox entry;
+- an expired accepted-worker attempt leaves queue and outbox unchanged and
+  returns `stale_attempt_reconciliation_required` until exact atomic timeout
+  reconciliation succeeds;
+- deterministic interruption plus real child-process exit with code `80` at
+  both timeout commit stages recover one queue release and one terminal timeout
+  receipt;
+- separate-process timeout races converge on one reconciliation plus exact
+  replay;
+- completion, failure, and timeout races commit exactly one mutually exclusive
+  terminal outcome, and a terminal timeout cannot later become completion or
+  failure;
+- timeout-WAL tampering, timeout projection drift, pre-expiry reconciliation,
+  and a changed controller principal fail closed;
+- a first reconciled timeout exposes only the one remaining approved attempt,
+  a later explicit server enqueue allocates it, and a second reconciled timeout
+  persists `attempts_exhausted` without a third outbox entry;
 - a tampered write-ahead record fails before either projection changes;
 - out-of-band queue drift fails without overwrite;
 - transaction-only queue/outbox reads reject a forged or inactive lock
@@ -158,15 +195,15 @@ authority absent.
   changed failure evidence, and changed worker identity fail closed;
 - retry availability advances through only the remaining approved attempt,
   final exhaustion persists, and `unknown_internal` blocks for user review;
-- failed DeepFilterNet attempt-cost evidence uses the versioned mock-safe rate
-  card and remains separate from all customer commercial fields;
+- failed and timed-out DeepFilterNet attempt-cost evidence uses the versioned
+  mock-safe rate card and remains separate from all customer commercial fields;
 - a real killed lock-owner child is safely reclaimed;
 - a lock-target symlink is refused without changing its external target;
 - queue, outbox, write-ahead, and lock files are `0600`; and
 - distributed database, Google Cloud execution, and production authority stay
   false.
 
-The focused transaction smoke now passes `35` assertions.
+The focused transaction smoke now passes `49` assertions.
 `npm run smoke:canonical-private-package-work-queue`,
 `npm run smoke:canonical-cloud-dispatch-outbox-receivers`,
 `npm run smoke:private-local-persistence`, and `npm run typecheck:server` also
@@ -174,8 +211,19 @@ pass after the integration.
 
 ## Aggregate Verification
 
-The exact-code full internal pipeline passed all `32/32` stages with exit code
-`0` under schema `canonical-private-pipeline-verification-v11`:
+The current exact-code full internal pipeline passed all `32/32` stages with
+exit code `0` under schema `canonical-private-pipeline-verification-v12`.
+The package-state report now asserts crash-consistent completion, failure, and
+accepted-worker timeout reconciliation, later-attempt fencing until timeout
+reconciliation, and versioned timed-out-attempt internal-cost evidence. The
+timeout-aware outbox receiver stage completed in `1,577 ms`; the same run
+completed the bounded 27-job maximum-eight-source signed-in private review in
+`382,429 ms` and preserved exactly 50 canonical E2E plus 50 job-adapter
+identities. Distributed database/cloud authority and all production-only gates
+remained false.
+
+The preceding exact-code full internal pipeline passed all `32/32` stages with
+exit code `0` under schema `canonical-private-pipeline-verification-v11`:
 
 - started: `2026-07-17T14:08:50.714Z`;
 - finished: `2026-07-17T14:36:56.937Z`;
@@ -237,9 +285,11 @@ staging must then prove rollback, duplicate delivery, worker death, retry,
 dead-letter reconciliation, regional private object transport, live Google
 OIDC/key rotation, Invoker/Jobs Developer IAM, observability, and recovery.
 
-The local claim, completion, and failure write-ahead proofs are
+The local claim, completion, failure, and accepted-worker timeout write-ahead proofs are
 production-architecture
 precursors, not substitutes for that distributed evidence. See
 `docs/canonical-private-worker-completion-reconciliation-verification-2026-07-17.md`
 and
-`docs/canonical-private-worker-failure-reconciliation-verification-2026-07-17.md`.
+`docs/canonical-private-worker-failure-reconciliation-verification-2026-07-17.md`,
+plus
+`docs/canonical-private-worker-timeout-reconciliation-verification-2026-07-17.md`.

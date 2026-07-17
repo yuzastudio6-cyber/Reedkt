@@ -116,7 +116,7 @@ customer charge, credit spend, or wallet mutation was added or executed.
 
 ## Focused Evidence
 
-`npm run smoke:canonical-cloud-dispatch-outbox-receivers` passes 18 assertions,
+`npm run smoke:canonical-cloud-dispatch-outbox-receivers` now passes 21 assertions,
 including:
 
 - one completion reconciliation and one exact concurrent replay;
@@ -129,7 +129,7 @@ including:
 - absence of bearer tokens, plaintext claim credentials, paths, prompts, signed
   URLs, media bytes, or commercial authority in persistence.
 
-`npm run smoke:canonical-private-package-state-transaction` passes 35
+`npm run smoke:canonical-private-package-state-transaction` now passes 49
 assertions, including:
 
 - deterministic recovery at both completion commit stages;
@@ -146,7 +146,13 @@ assertions, including:
 
 ## Aggregate Verification
 
-The exact-code full internal pipeline passed all `32/32` stages with exit code
+The current exact-code v12 full internal pipeline passed all `32/32` stages
+with exit code `0`. It preserves this completion evidence while adding mutually
+exclusive accepted-worker timeout reconciliation and later-attempt fencing.
+See
+`docs/canonical-private-worker-timeout-reconciliation-verification-2026-07-17.md`.
+
+The preceding exact-code full internal pipeline passed all `32/32` stages with exit code
 `0` under schema `canonical-private-pipeline-verification-v11`:
 
 - started: `2026-07-17T14:08:50.714Z`;

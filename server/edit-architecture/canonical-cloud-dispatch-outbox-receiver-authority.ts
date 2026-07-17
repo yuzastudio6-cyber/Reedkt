@@ -11,9 +11,11 @@ import {
 } from './canonical-private-package-work-queue-authority'
 import {
   canonicalPrivatePackageWorkQueueAggregateSchema,
+  canonicalPrivatePackageWorkQueueClaimSchema,
   canonicalPrivatePackageWorkQueueCompletionSchema,
   canonicalPrivatePackageWorkQueueReleaseSchema,
   type CanonicalPrivatePackageWorkQueueAggregate,
+  type CanonicalPrivatePackageWorkQueueClaim,
   type CanonicalPrivatePackageWorkQueueCompletion,
   type CanonicalPrivatePackageWorkQueueRelease,
 } from '../validation/canonical-private-package-work-queue-schemas'
@@ -22,6 +24,8 @@ import {
   CANONICAL_CLOUD_DISPATCH_OUTBOX_ENTRY_VERSION,
   CANONICAL_CLOUD_DISPATCH_WORKER_COMPLETION_RECEIPT_VERSION,
   CANONICAL_CLOUD_DISPATCH_WORKER_FAILURE_RECEIPT_VERSION,
+  CANONICAL_CLOUD_DISPATCH_WORKER_TIMEOUT_EVIDENCE_VERSION,
+  CANONICAL_CLOUD_DISPATCH_WORKER_TIMEOUT_RECEIPT_VERSION,
   CANONICAL_CLOUD_DISPATCH_WORKER_RECEIPT_VERSION,
   canonicalCloudDispatchControllerReceiptSchema,
   canonicalCloudDispatchOutboxEntrySchema,
@@ -29,6 +33,8 @@ import {
   canonicalCloudDispatchWorkerCompletionReceiptSchema,
   canonicalCloudDispatchWorkerFailureEvidenceSchema,
   canonicalCloudDispatchWorkerFailureReceiptSchema,
+  canonicalCloudDispatchWorkerTimeoutEvidenceSchema,
+  canonicalCloudDispatchWorkerTimeoutReceiptSchema,
   canonicalCloudDispatchWorkerInvocationSchema,
   canonicalCloudDispatchWorkerReceiptSchema,
   canonicalServiceIdentityEvidenceSchema,
@@ -38,6 +44,8 @@ import {
   type CanonicalCloudDispatchWorkerCompletionReceipt,
   type CanonicalCloudDispatchWorkerFailureEvidence,
   type CanonicalCloudDispatchWorkerFailureReceipt,
+  type CanonicalCloudDispatchWorkerTimeoutEvidence,
+  type CanonicalCloudDispatchWorkerTimeoutReceipt,
   type CanonicalCloudDispatchWorkerInvocation,
   type CanonicalCloudDispatchWorkerReceipt,
   type CanonicalServiceIdentityEvidence,
@@ -230,6 +238,7 @@ export function assertCanonicalCloudDispatchOutboxCurrentAttempt(input: {
   now: string
   allowReconciledCompletionReplay?: boolean
   allowReconciledFailureReplay?: boolean
+  allowReconciledTimeoutReplay?: boolean
 }): void {
   const entry = assertCanonicalCloudDispatchOutboxEntryIntegrity(input.entry)
   const now = validTimestamp(input.now, 'current outbox attempt verification')
@@ -247,6 +256,13 @@ export function assertCanonicalCloudDispatchOutboxCurrentAttempt(input: {
     assertCanonicalCloudDispatchFailedAttemptReplay({ ...input, entry })
     return
   }
+  if (
+    input.allowReconciledTimeoutReplay === true &&
+    entry.state === 'worker_timeout_reconciled'
+  ) {
+    assertCanonicalCloudDispatchTimedOutAttemptReplay({ ...input, entry })
+    return
+  }
   const authority = assertCanonicalCloudDispatchAttemptAuthority(input)
   assertEntryMatchesAttempt(entry, authority.attemptPlan)
   if (
@@ -262,6 +278,104 @@ export function assertCanonicalCloudDispatchOutboxCurrentAttempt(input: {
       'WORKER_LEASE_EXPIRED',
       'Cloud dispatch receiver requires the exact active package attempt.',
       409,
+    )
+  }
+}
+
+export function assertCanonicalCloudDispatchOutboxExpiredAcceptedWorkerAttempt(input: {
+  entry: CanonicalCloudDispatchOutboxEntry
+  queueDefinition: CanonicalPrivatePackageWorkQueueDefinition
+  queueAggregate: CanonicalPrivatePackageWorkQueueAggregate
+  manifest: CanonicalCloudWorkerDispatchHandoffManifest
+  attemptPlan: CanonicalCloudWorkerDispatchAttemptPlan
+  now: string
+}): CanonicalPrivatePackageWorkQueueClaim {
+  const entry = assertCanonicalCloudDispatchOutboxEntryIntegrity(input.entry)
+  const now = validTimestamp(input.now, 'expired accepted-worker attempt verification')
+  const authority = assertCanonicalCloudDispatchAttemptAuthority(input)
+  assertEntryMatchesAttempt(entry, authority.attemptPlan)
+  if (
+    entry.state !== 'worker_identity_accepted' ||
+    !entry.controllerReceipt || !entry.workerReceipt ||
+    authority.queueClaim.claimId !== entry.immutable.queueClaimId ||
+    authority.queueClaim.deliveryAttempt !== entry.immutable.packageDeliveryAttempt ||
+    authority.queueClaim.attemptDeadlineAt !==
+      entry.immutable.queueClaimAttemptDeadlineAt ||
+    authority.queueJob.definition.definitionHash !==
+      entry.immutable.queueJobDefinitionHash ||
+    authority.manifestEntry.target.targetHash !== entry.immutable.targetHash ||
+    Date.parse(authority.queueClaim.expiresAt) > Date.parse(now)
+  ) {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      'Worker timeout reconciliation requires the exact expired accepted-worker attempt.',
+      409,
+    )
+  }
+  return authority.queueClaim
+}
+
+function assertCanonicalCloudDispatchTimedOutAttemptReplay(input: {
+  entry: CanonicalCloudDispatchOutboxEntry
+  queueDefinition: CanonicalPrivatePackageWorkQueueDefinition
+  queueAggregate: CanonicalPrivatePackageWorkQueueAggregate
+  manifest: CanonicalCloudWorkerDispatchHandoffManifest
+  attemptPlan: CanonicalCloudWorkerDispatchAttemptPlan
+}): void {
+  const queueDefinition = assertQueueDefinitionIntegrity(input.queueDefinition)
+  const queueAggregate = assertQueueAggregateIntegrity(
+    input.queueAggregate,
+    queueDefinition,
+  )
+  const manifest = assertManifestIntegrity(input.manifest)
+  const attemptPlan = assertAttemptPlanIntegrity(input.attemptPlan)
+  assertEntryMatchesAttempt(input.entry, attemptPlan)
+  const queueEntry = queueAggregate.entries.find((entry) =>
+    entry.definition.jobId === input.entry.immutable.jobId)
+  const manifestEntry = manifest.entries.find((entry) =>
+    entry.jobId === input.entry.immutable.jobId)
+  const timeoutReceipt = input.entry.timeoutReceipt
+  const currentRelease = queueEntry?.lastRelease
+  const currentAttemptStillReleased =
+    queueEntry?.deliveryAttemptCount === input.entry.immutable.packageDeliveryAttempt &&
+    queueEntry.state === 'queued'
+  const currentReleaseMatches = currentAttemptStillReleased &&
+    currentRelease?.claimId === input.entry.immutable.queueClaimId &&
+    currentRelease.releaseHash === timeoutReceipt?.queueReleaseHash &&
+    currentRelease.dispatchTimeout?.timeoutEvidenceHash ===
+      timeoutReceipt?.timeoutEvidenceHash &&
+    currentRelease.dispatchTimeout?.workerReceiptHash ===
+      input.entry.workerReceipt?.receiptHash
+  const timeoutEventExists = queueAggregate.events.some((event) =>
+    event.eventType === 'expired_claim_recovered' &&
+    event.jobId === input.entry.immutable.jobId &&
+    event.claimId === input.entry.immutable.queueClaimId)
+  if (
+    queueAggregate.definitionHash !== queueDefinition.definitionHash ||
+    manifest.identity.queueDefinitionHash !== queueDefinition.definitionHash ||
+    attemptPlan.queueDefinitionHash !== queueDefinition.definitionHash ||
+    attemptPlan.handoffManifestHash !== manifest.manifestHash ||
+    attemptPlan.regionAuthorityHash !== manifest.identity.regionAuthorityHash ||
+    manifest.runtimeRegion !== attemptPlan.runtimeRegion ||
+    stableAuthorityStringify(queueAggregate.identity) !==
+      stableAuthorityStringify(queueDefinition.identity) ||
+    !queueEntry || !timeoutReceipt || !input.entry.controllerReceipt ||
+    !input.entry.workerReceipt || !manifestEntry || !timeoutEventExists ||
+    queueEntry.deliveryAttemptCount < input.entry.immutable.packageDeliveryAttempt ||
+    (queueEntry.deliveryAttemptCount === input.entry.immutable.packageDeliveryAttempt &&
+      !currentReleaseMatches) ||
+    queueEntry.completion?.claimId === input.entry.immutable.queueClaimId ||
+    timeoutReceipt.controllerReceiptHash !==
+      input.entry.controllerReceipt.receiptHash ||
+    timeoutReceipt.workerReceiptHash !== input.entry.workerReceipt.receiptHash ||
+    timeoutReceipt.queueClaimId !== input.entry.immutable.queueClaimId ||
+    timeoutReceipt.queueClaimHash !== input.entry.immutable.queueClaimHash ||
+    queueEntry.definition.definitionHash !== input.entry.immutable.queueJobDefinitionHash ||
+    manifestEntry.entryHash !== input.entry.immutable.manifestEntryHash ||
+    manifestEntry.target.targetHash !== input.entry.immutable.targetHash
+  ) {
+    throw invalidAuthority(
+      'Timed-out cloud dispatch receipt replay no longer matches exact package authority.',
     )
   }
 }
@@ -938,6 +1052,264 @@ export function assertCanonicalCloudDispatchWorkerFailureReceiptReplay(input: {
   return receipt
 }
 
+export function createCanonicalCloudDispatchWorkerTimeoutEvidence(input: {
+  entry: CanonicalCloudDispatchOutboxEntry
+  queueClaim: CanonicalPrivatePackageWorkQueueClaim
+  attemptInternalCostEvidenceHash: string
+  now: string
+}): CanonicalCloudDispatchWorkerTimeoutEvidence {
+  const entry = assertCanonicalCloudDispatchOutboxEntryIntegrity(input.entry)
+  const queueClaim = canonicalPrivatePackageWorkQueueClaimSchema.parse(input.queueClaim)
+  const now = validTimestamp(input.now, 'accepted-worker timeout observation')
+  if (
+    (entry.state !== 'worker_identity_accepted' &&
+      entry.state !== 'worker_timeout_reconciled') ||
+    !entry.controllerReceipt || !entry.workerReceipt ||
+    queueClaim.claimId !== entry.immutable.queueClaimId ||
+    queueClaim.deliveryAttempt !== entry.immutable.packageDeliveryAttempt ||
+    queueClaim.workerType !== entry.immutable.workerType ||
+    queueClaim.resourceClassId !== entry.immutable.resourceClassId ||
+    queueClaim.placementHash !== entry.immutable.placementHash ||
+    queueClaim.attemptDeadlineAt !== entry.immutable.queueClaimAttemptDeadlineAt ||
+    Date.parse(queueClaim.expiresAt) > Date.parse(now)
+  ) {
+    throw invalidAuthority(
+      'Accepted-worker timeout evidence requires the exact expired queue claim.',
+    )
+  }
+  const timeoutDetailHash = sha256AuthorityValue({
+    domain: 'reeditpro:canonical-cloud-dispatch-accepted-worker-timeout:v1',
+    jobId: entry.immutable.jobId,
+    packageDeliveryAttempt: entry.immutable.packageDeliveryAttempt,
+    queueClaimId: entry.immutable.queueClaimId,
+    initialQueueClaimHash: entry.immutable.queueClaimHash,
+    expiredQueueClaimHash: queueClaim.claimHash,
+    initialQueueClaimExpiresAt: entry.immutable.queueClaimExpiresAt,
+    expiredQueueClaimExpiresAt: queueClaim.expiresAt,
+    queueClaimHeartbeatAt: queueClaim.heartbeatAt,
+    queueClaimHeartbeatCount: queueClaim.heartbeatCount,
+    queueClaimAttemptDeadlineAt: queueClaim.attemptDeadlineAt,
+  })
+  return canonicalCloudDispatchWorkerTimeoutEvidenceSchema.parse({
+    schemaVersion: CANONICAL_CLOUD_DISPATCH_WORKER_TIMEOUT_EVIDENCE_VERSION,
+    failureCategory: 'execution_timeout',
+    failureCode: 'WORKER_LEASE_EXPIRED',
+    executionState: 'failed_before_commit',
+    initialQueueClaimHash: entry.immutable.queueClaimHash,
+    expiredQueueClaimHash: queueClaim.claimHash,
+    initialQueueClaimExpiresAt: entry.immutable.queueClaimExpiresAt,
+    expiredQueueClaimExpiresAt: queueClaim.expiresAt,
+    queueClaimHeartbeatAt: queueClaim.heartbeatAt,
+    queueClaimHeartbeatCount: queueClaim.heartbeatCount,
+    queueClaimAttemptDeadlineAt: queueClaim.attemptDeadlineAt,
+    timeoutDetailHash,
+    attemptInternalCostEvidenceHash: input.attemptInternalCostEvidenceHash,
+    attemptCostBoundary: 'internal_production_cost_only',
+    customerPriceCreditsServiceFeeWalletOrBillingIncluded: false,
+    rawFailureMessageLogStackPathOrCredentialRetained: false,
+  })
+}
+
+export function createCanonicalCloudDispatchWorkerTimeoutReceipt(input: {
+  entry: CanonicalCloudDispatchOutboxEntry
+  timeoutEvidence: CanonicalCloudDispatchWorkerTimeoutEvidence
+  queueRelease: CanonicalPrivatePackageWorkQueueRelease
+  verifiedIdentity: CanonicalVerifiedServiceIdentity
+  expectedAudience: string
+  now: string
+  timedOutAt: string
+  privateContractFixtureAllowed: boolean
+  trustedJwksContractFixtureAllowed: boolean
+  trustedGoogleVerifierOutputAllowed: boolean
+}): CanonicalCloudDispatchWorkerTimeoutReceipt {
+  const entry = assertCanonicalCloudDispatchOutboxEntryIntegrity(input.entry)
+  const timeoutEvidence = canonicalCloudDispatchWorkerTimeoutEvidenceSchema.parse(
+    input.timeoutEvidence,
+  )
+  const queueRelease = canonicalPrivatePackageWorkQueueReleaseSchema.parse(
+    input.queueRelease,
+  )
+  const controllerReceipt = entry.controllerReceipt
+  const workerReceipt = entry.workerReceipt
+  const dispatchTimeout = queueRelease.dispatchTimeout
+  const timeoutEvidenceHash = sha256AuthorityValue(timeoutEvidence)
+  if (
+    !controllerReceipt || !workerReceipt || !dispatchTimeout ||
+    (entry.state !== 'worker_identity_accepted' &&
+      entry.state !== 'worker_timeout_reconciled') ||
+    queueRelease.claimId !== entry.immutable.queueClaimId ||
+    dispatchTimeout.queueClaimHash !== entry.immutable.queueClaimHash ||
+    dispatchTimeout.expiredQueueClaimHash !==
+      timeoutEvidence.expiredQueueClaimHash ||
+    dispatchTimeout.controllerReceiptHash !== controllerReceipt.receiptHash ||
+    dispatchTimeout.workerReceiptHash !== workerReceipt.receiptHash ||
+    dispatchTimeout.timeoutEvidenceHash !== timeoutEvidenceHash ||
+    dispatchTimeout.timeoutDetailHash !== timeoutEvidence.timeoutDetailHash ||
+    dispatchTimeout.queueClaimExpiresAt !==
+      timeoutEvidence.expiredQueueClaimExpiresAt ||
+    dispatchTimeout.queueClaimAttemptDeadlineAt !==
+      timeoutEvidence.queueClaimAttemptDeadlineAt ||
+    dispatchTimeout.attemptInternalCostEvidenceHash !==
+      timeoutEvidence.attemptInternalCostEvidenceHash
+  ) {
+    throw invalidAuthority(
+      'Accepted-worker timeout evidence does not match the exact queue release.',
+    )
+  }
+  const verifiedEvidence = assertCanonicalVerifiedServiceIdentity(
+    input.verifiedIdentity,
+  )
+  const evidence = assertCanonicalServiceIdentityEvidence({
+    value: verifiedEvidence,
+    expectedMechanism: 'google_oidc_id_token',
+    expectedPrincipalEmail: entry.immutable.controllerServiceAccountEmail,
+    expectedAudience: input.expectedAudience,
+    now: input.now,
+    privateContractFixtureAllowed: input.privateContractFixtureAllowed,
+    trustedJwksContractFixtureAllowed: input.trustedJwksContractFixtureAllowed,
+    trustedGoogleVerifierOutputAllowed: input.trustedGoogleVerifierOutputAllowed,
+  })
+  if (!sameServicePrincipal(controllerReceipt.identity, receiptIdentity(evidence))) {
+    throw serviceIdentityDenied(
+      'Worker timeout controller identity does not match the accepted controller principal.',
+    )
+  }
+  const timedOutAt = validTimestamp(input.timedOutAt, 'accepted-worker timeout')
+  if (
+    Date.parse(timedOutAt) > Date.parse(input.now) ||
+    Date.parse(timedOutAt) < Date.parse(timeoutEvidence.expiredQueueClaimExpiresAt)
+  ) {
+    throw invalidAuthority('Worker timeout timestamp is outside the expired attempt.')
+  }
+  const receiptBindingHash = sha256AuthorityValue({
+    domain: 'reeditpro:canonical-cloud-dispatch-worker-timeout:v1',
+    dispatchIntentId: entry.immutable.dispatchIntentId,
+    jobId: entry.immutable.jobId,
+    packageDeliveryAttempt: entry.immutable.packageDeliveryAttempt,
+    queueClaimId: entry.immutable.queueClaimId,
+    queueClaimHash: entry.immutable.queueClaimHash,
+    expiredQueueClaimHash: timeoutEvidence.expiredQueueClaimHash,
+    controllerReceiptHash: controllerReceipt.receiptHash,
+    workerReceiptHash: workerReceipt.receiptHash,
+    timeoutEvidenceHash,
+    timeoutDetailHash: timeoutEvidence.timeoutDetailHash,
+    queueClaimExpiresAt: timeoutEvidence.expiredQueueClaimExpiresAt,
+    queueClaimAttemptDeadlineAt: timeoutEvidence.queueClaimAttemptDeadlineAt,
+    queueReleaseHash: queueRelease.releaseHash,
+    attemptInternalCostEvidenceHash:
+      timeoutEvidence.attemptInternalCostEvidenceHash,
+    retryDisposition: dispatchTimeout.retryDisposition,
+    queueDisposition: dispatchTimeout.queueDisposition,
+    approvedMaxAttempts: dispatchTimeout.approvedMaxAttempts,
+    remainingAttempts: dispatchTimeout.remainingAttempts,
+    principalBindingHash: serviceIdentityPrincipalBindingHash(evidence),
+  })
+  const payload = {
+    schemaVersion: CANONICAL_CLOUD_DISPATCH_WORKER_TIMEOUT_RECEIPT_VERSION,
+    receiptId: `worker_timeout_${receiptBindingHash.slice(0, 32)}`,
+    dispatchIntentId: entry.immutable.dispatchIntentId,
+    jobId: entry.immutable.jobId,
+    packageDeliveryAttempt: entry.immutable.packageDeliveryAttempt,
+    queueClaimId: entry.immutable.queueClaimId,
+    queueClaimHash: entry.immutable.queueClaimHash,
+    expiredQueueClaimHash: timeoutEvidence.expiredQueueClaimHash,
+    controllerReceiptHash: controllerReceipt.receiptHash,
+    workerReceiptHash: workerReceipt.receiptHash,
+    timeoutEvidenceHash,
+    timeoutDetailHash: timeoutEvidence.timeoutDetailHash,
+    queueClaimExpiresAt: timeoutEvidence.expiredQueueClaimExpiresAt,
+    queueClaimAttemptDeadlineAt: timeoutEvidence.queueClaimAttemptDeadlineAt,
+    queueReleaseHash: queueRelease.releaseHash,
+    attemptInternalCostEvidenceHash:
+      timeoutEvidence.attemptInternalCostEvidenceHash,
+    failureCategory: 'execution_timeout' as const,
+    failureCode: 'WORKER_LEASE_EXPIRED' as const,
+    executionState: 'failed_before_commit' as const,
+    retryDisposition: dispatchTimeout.retryDisposition,
+    queueDisposition: dispatchTimeout.queueDisposition,
+    approvedMaxAttempts: dispatchTimeout.approvedMaxAttempts,
+    remainingAttempts: dispatchTimeout.remainingAttempts,
+    identity: controllerReceipt.identity,
+    timedOutAt,
+    boundaries: {
+      exactControllerReceiptVerified: true as const,
+      acceptedWorkerReceiptBound: true as const,
+      exactOutboxAttemptVerified: true as const,
+      exactExpiredQueueClaimVerified: true as const,
+      exactQueueReleaseVerified: true as const,
+      timeoutEvidenceDerivedByServer: true as const,
+      approvedAttemptAllowanceDerivedByServer: true as const,
+      automaticRetryStarted: false as const,
+      attemptInternalProductionCostEvidenceHashRequired: true as const,
+      customerPriceCreditsServiceFeeWalletOrBillingIncluded: false as const,
+      rawAuthorizationHeaderAccepted: false as const,
+      rawBearerTokenPersisted: false as const,
+      rawFailureMessageLogStackMediaPromptPathSignedUrlOrCredentialPersisted:
+        false as const,
+      toolOrMediaExecutionClaimedByReceipt: false as const,
+      liveGoogleOidcAndIamVerified:
+        evidence.verificationMode === 'trusted_google_identity_verifier',
+      productionExecutionAuthorized: false as const,
+      productionAuthority: false as const,
+    },
+  }
+  return canonicalCloudDispatchWorkerTimeoutReceiptSchema.parse({
+    ...payload,
+    receiptHash: sha256AuthorityValue(payload),
+  })
+}
+
+export function assertCanonicalCloudDispatchWorkerTimeoutReceiptReplay(input: {
+  entry: CanonicalCloudDispatchOutboxEntry
+  attemptInternalCostEvidenceHash: string
+  verifiedIdentity: CanonicalVerifiedServiceIdentity
+  expectedAudience: string
+  now: string
+  privateContractFixtureAllowed: boolean
+  trustedJwksContractFixtureAllowed: boolean
+  trustedGoogleVerifierOutputAllowed: boolean
+}): CanonicalCloudDispatchWorkerTimeoutReceipt {
+  const entry = assertCanonicalCloudDispatchOutboxEntryIntegrity(input.entry)
+  const receipt = entry.timeoutReceipt
+  const controllerReceipt = entry.controllerReceipt
+  const workerReceipt = entry.workerReceipt
+  if (
+    entry.state !== 'worker_timeout_reconciled' || !receipt ||
+    !controllerReceipt || !workerReceipt ||
+    receipt.attemptInternalCostEvidenceHash !==
+      input.attemptInternalCostEvidenceHash ||
+    receipt.controllerReceiptHash !== controllerReceipt.receiptHash ||
+    receipt.workerReceiptHash !== workerReceipt.receiptHash ||
+    stableAuthorityStringify(receipt.identity) !==
+      stableAuthorityStringify(controllerReceipt.identity)
+  ) {
+    throw new ApiError(
+      'IDEMPOTENCY_CONFLICT',
+      'Worker timeout replay does not match the accepted result.',
+      409,
+    )
+  }
+  const verifiedEvidence = assertCanonicalVerifiedServiceIdentity(
+    input.verifiedIdentity,
+  )
+  const evidence = assertCanonicalServiceIdentityEvidence({
+    value: verifiedEvidence,
+    expectedMechanism: 'google_oidc_id_token',
+    expectedPrincipalEmail: entry.immutable.controllerServiceAccountEmail,
+    expectedAudience: input.expectedAudience,
+    now: input.now,
+    privateContractFixtureAllowed: input.privateContractFixtureAllowed,
+    trustedJwksContractFixtureAllowed: input.trustedJwksContractFixtureAllowed,
+    trustedGoogleVerifierOutputAllowed: input.trustedGoogleVerifierOutputAllowed,
+  })
+  if (!sameServicePrincipal(controllerReceipt.identity, receiptIdentity(evidence))) {
+    throw serviceIdentityDenied(
+      'Worker timeout replay identity does not match the accepted controller principal.',
+    )
+  }
+  return receipt
+}
+
 export function serviceIdentityPrincipalBindingHash(
   evidence: CanonicalServiceIdentityEvidence,
 ): string {
@@ -1009,6 +1381,10 @@ function receiptHashesValid(entry: CanonicalCloudDispatchOutboxEntry): boolean {
   }
   if (entry.failureReceipt) {
     const { receiptHash, ...payload } = entry.failureReceipt
+    if (receiptHash !== sha256AuthorityValue(payload)) return false
+  }
+  if (entry.timeoutReceipt) {
+    const { receiptHash, ...payload } = entry.timeoutReceipt
     if (receiptHash !== sha256AuthorityValue(payload)) return false
   }
   return true

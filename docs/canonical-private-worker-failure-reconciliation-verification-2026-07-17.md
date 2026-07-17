@@ -119,7 +119,7 @@ authority.
 
 ## Focused Evidence
 
-`npm run smoke:canonical-private-package-state-transaction` passes `35`
+`npm run smoke:canonical-private-package-state-transaction` now passes `49`
 checks, including:
 
 - deterministic and real process-crash recovery at both failure commit stages;
@@ -134,20 +134,26 @@ checks, including:
 - absence of plaintext claim credentials, bearer tokens, paths, signed URLs,
   raw failure data, or production authority.
 
-`npm run smoke:canonical-cloud-dispatch-outbox-receivers` passes `18` checks,
+`npm run smoke:canonical-cloud-dispatch-outbox-receivers` now passes `21` checks,
 including concurrent failure replay, changed evidence and principal refusal,
 post-commit retry refusal, one server-selected retry, final exhaustion, replay
 of the first immutable failure after the later attempt, and cost/commercial
 separation.
 
 The package queue, service-identity verifier, cloud-handoff, internal-cost,
-server typecheck, and diff-integrity focused checks also pass. Aggregate v11
-pipeline evidence is recorded in
+server typecheck, and diff-integrity focused checks also pass. Aggregate v12
+pipeline evidence, including the later accepted-worker timeout follow-up, is recorded in
 `docs/canonical-private-pipeline-verification.md` after the exact full command.
 
 ## Aggregate Verification
 
-The exact-code full internal pipeline passed all `32/32` stages with exit code
+The current exact-code v12 full internal pipeline passed all `32/32` stages
+with exit code `0`. It preserves this failure evidence while adding mutually
+exclusive accepted-worker timeout reconciliation and later-attempt fencing.
+See
+`docs/canonical-private-worker-timeout-reconciliation-verification-2026-07-17.md`.
+
+The preceding exact-code full internal pipeline passed all `32/32` stages with exit code
 `0` under schema `canonical-private-pipeline-verification-v11`:
 
 - started: `2026-07-17T14:08:50.714Z`;
@@ -187,7 +193,7 @@ The following remain false or unimplemented:
 ## Next Gate
 
 The next authorized production-facing gate would require one reviewed
-distributed transaction/RPC for queue, outbox, attempt, completion/failure,
+distributed transaction/RPC for queue, outbox, attempt, completion/failure/timeout,
 and immutable response authority; deployed Google identity verification and
 IAM; private object transport; dead-letter and worker-death reconciliation;
 multi-replica fault tests; and controlled staging evidence. None of those

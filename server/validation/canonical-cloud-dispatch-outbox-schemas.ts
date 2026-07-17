@@ -23,6 +23,10 @@ export const CANONICAL_CLOUD_DISPATCH_WORKER_FAILURE_EVIDENCE_VERSION =
   'canonical-cloud-dispatch-worker-failure-evidence-v1' as const
 export const CANONICAL_CLOUD_DISPATCH_WORKER_FAILURE_RECEIPT_VERSION =
   'canonical-cloud-dispatch-worker-failure-receipt-v1' as const
+export const CANONICAL_CLOUD_DISPATCH_WORKER_TIMEOUT_EVIDENCE_VERSION =
+  'canonical-cloud-dispatch-worker-timeout-evidence-v1' as const
+export const CANONICAL_CLOUD_DISPATCH_WORKER_TIMEOUT_RECEIPT_VERSION =
+  'canonical-cloud-dispatch-worker-timeout-receipt-v1' as const
 export const CANONICAL_CLOUD_DISPATCH_WORKER_INVOCATION_VERSION =
   'canonical-cloud-dispatch-worker-invocation-v1' as const
 export const CANONICAL_SERVICE_IDENTITY_EVIDENCE_VERSION =
@@ -294,6 +298,114 @@ export const canonicalCloudDispatchWorkerFailureReceiptSchema = z.object({
   }
 })
 
+export const canonicalCloudDispatchWorkerTimeoutEvidenceSchema = z.object({
+  schemaVersion: z.literal(CANONICAL_CLOUD_DISPATCH_WORKER_TIMEOUT_EVIDENCE_VERSION),
+  failureCategory: z.literal('execution_timeout'),
+  failureCode: z.literal('WORKER_LEASE_EXPIRED'),
+  executionState: z.literal('failed_before_commit'),
+  initialQueueClaimHash: sha256,
+  expiredQueueClaimHash: sha256,
+  initialQueueClaimExpiresAt: timestamp,
+  expiredQueueClaimExpiresAt: timestamp,
+  queueClaimHeartbeatAt: timestamp,
+  queueClaimHeartbeatCount: z.number().int().nonnegative().max(100_000),
+  queueClaimAttemptDeadlineAt: timestamp,
+  timeoutDetailHash: sha256,
+  attemptInternalCostEvidenceHash: sha256,
+  attemptCostBoundary: z.literal('internal_production_cost_only'),
+  customerPriceCreditsServiceFeeWalletOrBillingIncluded: z.literal(false),
+  rawFailureMessageLogStackPathOrCredentialRetained: z.literal(false),
+}).strict().superRefine((evidence, context) => {
+  if (
+    Date.parse(evidence.initialQueueClaimExpiresAt) >
+      Date.parse(evidence.expiredQueueClaimExpiresAt) ||
+    Date.parse(evidence.initialQueueClaimExpiresAt) >
+      Date.parse(evidence.queueClaimAttemptDeadlineAt) ||
+    Date.parse(evidence.queueClaimHeartbeatAt) >
+      Date.parse(evidence.expiredQueueClaimExpiresAt) ||
+    Date.parse(evidence.expiredQueueClaimExpiresAt) >
+      Date.parse(evidence.queueClaimAttemptDeadlineAt)
+  ) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Cloud dispatch worker timeout evidence timing is inconsistent.',
+    })
+  }
+})
+
+export const canonicalCloudDispatchWorkerTimeoutReceiptSchema = z.object({
+  schemaVersion: z.literal(CANONICAL_CLOUD_DISPATCH_WORKER_TIMEOUT_RECEIPT_VERSION),
+  receiptId: identity,
+  dispatchIntentId: identity,
+  jobId: identity,
+  packageDeliveryAttempt: z.number().int().positive().max(10),
+  queueClaimId: identity,
+  queueClaimHash: sha256,
+  expiredQueueClaimHash: sha256,
+  controllerReceiptHash: sha256,
+  workerReceiptHash: sha256,
+  timeoutEvidenceHash: sha256,
+  timeoutDetailHash: sha256,
+  queueClaimExpiresAt: timestamp,
+  queueClaimAttemptDeadlineAt: timestamp,
+  queueReleaseHash: sha256,
+  attemptInternalCostEvidenceHash: sha256,
+  failureCategory: z.literal('execution_timeout'),
+  failureCode: z.literal('WORKER_LEASE_EXPIRED'),
+  executionState: z.literal('failed_before_commit'),
+  retryDisposition: z.enum([
+    'retry_same_approved_operation',
+    'fallback_or_user_review_required',
+  ]),
+  queueDisposition: z.enum([
+    'retry_available',
+    'attempts_exhausted',
+  ]),
+  approvedMaxAttempts: z.number().int().positive().max(10),
+  remainingAttempts: z.number().int().nonnegative().max(10),
+  identity: receiptIdentitySchema,
+  timedOutAt: timestamp,
+  boundaries: z.object({
+    exactControllerReceiptVerified: z.literal(true),
+    acceptedWorkerReceiptBound: z.literal(true),
+    exactOutboxAttemptVerified: z.literal(true),
+    exactExpiredQueueClaimVerified: z.literal(true),
+    exactQueueReleaseVerified: z.literal(true),
+    timeoutEvidenceDerivedByServer: z.literal(true),
+    approvedAttemptAllowanceDerivedByServer: z.literal(true),
+    automaticRetryStarted: z.literal(false),
+    attemptInternalProductionCostEvidenceHashRequired: z.literal(true),
+    customerPriceCreditsServiceFeeWalletOrBillingIncluded: z.literal(false),
+    rawAuthorizationHeaderAccepted: z.literal(false),
+    rawBearerTokenPersisted: z.literal(false),
+    rawFailureMessageLogStackMediaPromptPathSignedUrlOrCredentialPersisted:
+      z.literal(false),
+    toolOrMediaExecutionClaimedByReceipt: z.literal(false),
+    liveGoogleOidcAndIamVerified: z.boolean(),
+    productionExecutionAuthorized: z.literal(false),
+    productionAuthority: z.literal(false),
+  }).strict(),
+  receiptHash: sha256,
+}).strict().superRefine((receipt, context) => {
+  if (
+    receipt.remainingAttempts > receipt.approvedMaxAttempts ||
+    Date.parse(receipt.timedOutAt) < Date.parse(receipt.queueClaimExpiresAt) ||
+    Date.parse(receipt.queueClaimExpiresAt) >
+      Date.parse(receipt.queueClaimAttemptDeadlineAt) ||
+    (receipt.queueDisposition === 'retry_available' &&
+      (receipt.retryDisposition !== 'retry_same_approved_operation' ||
+        receipt.remainingAttempts === 0)) ||
+    (receipt.queueDisposition === 'attempts_exhausted' &&
+      (receipt.retryDisposition !== 'fallback_or_user_review_required' ||
+        receipt.remainingAttempts !== 0))
+  ) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Cloud dispatch worker timeout receipt authority is inconsistent.',
+    })
+  }
+})
+
 export const canonicalCloudDispatchWorkerInvocationSchema = z.object({
   schemaVersion: z.literal(CANONICAL_CLOUD_DISPATCH_WORKER_INVOCATION_VERSION),
   purpose: z.literal('canonical_cloud_dispatch_worker_receiver'),
@@ -348,11 +460,13 @@ export const canonicalCloudDispatchOutboxEntrySchema = z.object({
     'worker_identity_accepted',
     'worker_completion_reconciled',
     'worker_failure_reconciled',
+    'worker_timeout_reconciled',
   ]),
   controllerReceipt: canonicalCloudDispatchControllerReceiptSchema.optional(),
   workerReceipt: canonicalCloudDispatchWorkerReceiptSchema.optional(),
   completionReceipt: canonicalCloudDispatchWorkerCompletionReceiptSchema.optional(),
   failureReceipt: canonicalCloudDispatchWorkerFailureReceiptSchema.optional(),
+  timeoutReceipt: canonicalCloudDispatchWorkerTimeoutReceiptSchema.optional(),
   createdAt: timestamp,
   updatedAt: timestamp,
   immutableEntryHash: sha256,
@@ -362,17 +476,20 @@ export const canonicalCloudDispatchOutboxEntrySchema = z.object({
   const hasWorker = entry.workerReceipt !== undefined
   const hasCompletion = entry.completionReceipt !== undefined
   const hasFailure = entry.failureReceipt !== undefined
+  const hasTimeout = entry.timeoutReceipt !== undefined
   if (
     (entry.state === 'pending_controller_delivery' &&
-      (hasController || hasWorker || hasCompletion || hasFailure)) ||
+      (hasController || hasWorker || hasCompletion || hasFailure || hasTimeout)) ||
     (entry.state === 'controller_identity_accepted' &&
-      (!hasController || hasWorker || hasCompletion || hasFailure)) ||
+      (!hasController || hasWorker || hasCompletion || hasFailure || hasTimeout)) ||
     (entry.state === 'worker_identity_accepted' &&
-      (!hasController || !hasWorker || hasCompletion || hasFailure)) ||
+      (!hasController || !hasWorker || hasCompletion || hasFailure || hasTimeout)) ||
     (entry.state === 'worker_completion_reconciled' &&
-      (!hasController || !hasWorker || !hasCompletion || hasFailure)) ||
+      (!hasController || !hasWorker || !hasCompletion || hasFailure || hasTimeout)) ||
     (entry.state === 'worker_failure_reconciled' &&
-      (!hasController || !hasWorker || hasCompletion || !hasFailure))
+      (!hasController || !hasWorker || hasCompletion || !hasFailure || hasTimeout)) ||
+    (entry.state === 'worker_timeout_reconciled' &&
+      (!hasController || !hasWorker || hasCompletion || hasFailure || !hasTimeout))
   ) {
     context.addIssue({ code: 'custom', message: 'Cloud dispatch outbox state is inconsistent.' })
   }
@@ -422,6 +539,24 @@ export const canonicalCloudDispatchOutboxEntrySchema = z.object({
       message: 'Worker failure receipt is not bound to the exact outbox attempt.',
     })
   }
+  if (entry.timeoutReceipt && (
+    entry.timeoutReceipt.dispatchIntentId !== entry.immutable.dispatchIntentId ||
+    entry.timeoutReceipt.jobId !== entry.immutable.jobId ||
+    entry.timeoutReceipt.packageDeliveryAttempt !==
+      entry.immutable.packageDeliveryAttempt ||
+    entry.timeoutReceipt.queueClaimId !== entry.immutable.queueClaimId ||
+    entry.timeoutReceipt.queueClaimHash !== entry.immutable.queueClaimHash ||
+    entry.timeoutReceipt.controllerReceiptHash !==
+      entry.controllerReceipt?.receiptHash ||
+    entry.timeoutReceipt.workerReceiptHash !== entry.workerReceipt?.receiptHash ||
+    entry.timeoutReceipt.queueClaimAttemptDeadlineAt !==
+      entry.immutable.queueClaimAttemptDeadlineAt
+  )) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Worker timeout receipt is not bound to the exact outbox attempt.',
+    })
+  }
 })
 
 export const canonicalCloudDispatchOutboxEventSchema = z.object({
@@ -433,6 +568,7 @@ export const canonicalCloudDispatchOutboxEventSchema = z.object({
     'worker_identity_accepted',
     'worker_completion_reconciled',
     'worker_failure_reconciled',
+    'worker_timeout_reconciled',
   ]),
   dispatchIntentId: identity,
   jobId: identity,
@@ -465,6 +601,7 @@ export const canonicalCloudDispatchOutboxAggregateSchema = z.object({
     workerIdentityAcceptedCount: z.number().int().nonnegative().max(256),
     workerCompletionReconciledCount: z.number().int().nonnegative().max(256).optional(),
     workerFailureReconciledCount: z.number().int().nonnegative().max(256).optional(),
+    workerTimeoutReconciledCount: z.number().int().nonnegative().max(256).optional(),
     eventCount: z.number().int().nonnegative().max(1_024),
   }).strict(),
   boundaries: z.object({
@@ -502,6 +639,8 @@ export const canonicalCloudDispatchOutboxAggregateSchema = z.object({
       (summary.workerCompletionReconciledCount ?? 0) ||
     aggregate.entries.filter((entry) => entry.failureReceipt !== undefined).length !==
       (summary.workerFailureReconciledCount ?? 0) ||
+    aggregate.entries.filter((entry) => entry.timeoutReceipt !== undefined).length !==
+      (summary.workerTimeoutReconciledCount ?? 0) ||
     aggregate.events.length !== summary.eventCount
   ) {
     context.addIssue({ code: 'custom', message: 'Cloud dispatch outbox summary is inconsistent.' })
@@ -546,6 +685,12 @@ export type CanonicalCloudDispatchWorkerFailureEvidence = z.infer<
 >
 export type CanonicalCloudDispatchWorkerFailureReceipt = z.infer<
   typeof canonicalCloudDispatchWorkerFailureReceiptSchema
+>
+export type CanonicalCloudDispatchWorkerTimeoutEvidence = z.infer<
+  typeof canonicalCloudDispatchWorkerTimeoutEvidenceSchema
+>
+export type CanonicalCloudDispatchWorkerTimeoutReceipt = z.infer<
+  typeof canonicalCloudDispatchWorkerTimeoutReceiptSchema
 >
 export type CanonicalCloudDispatchWorkerInvocation = z.infer<
   typeof canonicalCloudDispatchWorkerInvocationSchema

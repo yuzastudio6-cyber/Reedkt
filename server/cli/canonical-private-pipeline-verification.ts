@@ -93,7 +93,7 @@ const canonicalSteps: VerificationStep[] = [
   step(
     'canonical-package-state-transaction',
     'smoke:canonical-private-package-state-transaction',
-    'A server-selected package attempt and dispatch outbox entry share one private write-ahead commit. Accepted-worker completion and pre-commit failure each use the same crash-consistent boundary for one mutually exclusive terminal receipt; bounded retry, exhaustion, user review, versioned internal-cost evidence, real process exits, races, tamper refusal, projection-drift refusal, and restrictive modes pass while distributed authority remains false.',
+    'A server-selected package attempt and dispatch outbox entry share one private write-ahead commit. Accepted-worker completion, pre-commit failure, and accepted-worker lease timeout each use the same crash-consistent boundary for one mutually exclusive terminal receipt; later attempts remain fenced until timeout reconciliation, bounded retry, exhaustion, user review, versioned internal-cost evidence, real process exits, races, tamper refusal, projection-drift refusal, and restrictive modes pass while distributed authority remains false.',
   ),
   step(
     'canonical-cloud-dispatch-handoff',
@@ -108,7 +108,7 @@ const canonicalSteps: VerificationStep[] = [
   step(
     'canonical-cloud-dispatch-outbox-receivers',
     'smoke:canonical-cloud-dispatch-outbox-receivers',
-    'One active package attempt persists one restart-safe opaque outbox record. Exact controller, worker, terminal completion, and terminal pre-commit failure contracts bind the accepted principal and attempt; failure derives bounded retry, exhaustion, or user review and hash-binds internal production cost without customer commercial authority. Changed identity, task, receipt, attempt, completion, failure, and post-commit retry bindings fail closed. Distributed authority, live Google verification, cloud calls, and execution remain false.',
+    'One active package attempt persists one restart-safe opaque outbox record. Exact controller, worker, terminal completion, terminal pre-commit failure, and controller-authenticated accepted-worker timeout contracts bind the accepted principal and attempt; failure and timeout derive bounded retry or exhaustion and hash-bind internal production cost without customer commercial authority. Changed identity, task, receipt, attempt, completion, failure, timeout, and post-commit retry bindings fail closed. Distributed authority, live Google verification, cloud calls, and execution remain false.',
   ),
   step(
     'canonical-multi-source-execution',
@@ -255,7 +255,7 @@ function printReport(
 ): void {
   const finishedAt = new Date()
   const report = {
-    schemaVersion: 'canonical-private-pipeline-verification-v11',
+    schemaVersion: 'canonical-private-pipeline-verification-v12',
     status,
     mode: full ? 'full_internal_regression' : 'canonical_private_pipeline',
     startedAt: runStartedAt.toISOString(),
@@ -284,6 +284,10 @@ function printReport(
           cooperativeCrossProcessPackageStateLock: true,
           singleHostCrashConsistentPackageQueueOutboxCommit: true,
           singleHostCrashConsistentWorkerCompletionReconciliation: true,
+          singleHostCrashConsistentWorkerFailureReconciliation: true,
+          singleHostCrashConsistentAcceptedWorkerTimeoutReconciliation: true,
+          acceptedWorkerTimeoutFencesLaterAttempt: true,
+          timedOutAttemptInternalProductionCostEvidence: true,
           serverSelectedPackageDeliveryAttempt: true,
           canonicalCloudDispatchHandoffContract: true,
           cryptographicServiceIdentityVerifierCore: true,

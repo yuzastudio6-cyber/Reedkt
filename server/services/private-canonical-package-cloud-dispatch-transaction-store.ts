@@ -46,6 +46,7 @@ type NonDispatchDisposition =
   | 'capability_blocked'
   | 'attempts_exhausted'
   | 'user_review_required'
+  | 'stale_attempt_reconciliation_required'
 
 export type CanonicalPrivatePackageCloudDispatchTransactionResult =
   | {
@@ -69,6 +70,7 @@ export type CanonicalPrivatePackageCloudDispatchTransactionResult =
   | {
       disposition: NonDispatchDisposition
       queueEntry: CanonicalPrivatePackageWorkQueueEntry
+      requiredGate?: string
       recovery: CanonicalPrivatePackageStateRecoveryEvidence
       boundaries: ReturnType<typeof transactionBoundaries>
     }
@@ -107,6 +109,38 @@ export async function claimAndEnqueuePrivateCanonicalPackageCloudDispatchAttempt
         entry.definition.jobId === input.jobId)
       if (!currentEntry) {
         throw new ApiError('JOB_NOT_FOUND', 'Canonical package queue job was not found.', 404)
+      }
+
+      const expiredClaim = currentEntry.state === 'leased' && currentEntry.activeClaim &&
+        Date.parse(currentEntry.activeClaim.expiresAt) <= Date.parse(input.now)
+        ? currentEntry.activeClaim
+        : undefined
+      if (expiredClaim) {
+        const existingAttempt = outboxBefore?.entries.find((entry) =>
+          entry.immutable.jobId === currentEntry.definition.jobId &&
+          entry.immutable.packageDeliveryAttempt === expiredClaim.deliveryAttempt &&
+          entry.immutable.queueClaimId === expiredClaim.claimId)
+        if (existingAttempt?.state === 'worker_identity_accepted') {
+          return {
+            disposition: 'stale_attempt_reconciliation_required',
+            queueEntry: currentEntry,
+            requiredGate:
+              'canonical_cloud_dispatch_accepted_worker_timeout_reconciliation',
+            recovery,
+            boundaries: transactionBoundaries(),
+          }
+        }
+        if (existingAttempt && [
+          'worker_completion_reconciled',
+          'worker_failure_reconciled',
+          'worker_timeout_reconciled',
+        ].includes(existingAttempt.state)) {
+          throw new ApiError(
+            'IDEMPOTENCY_ATOMICITY_REQUIRED',
+            'A terminal cloud-dispatch attempt cannot retain a leased queue projection.',
+            503,
+          )
+        }
       }
 
       const preparedClaim = preparePrivateCanonicalPackageWorkQueueJobClaim({

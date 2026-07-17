@@ -1,6 +1,6 @@
 # Canonical Cloud Dispatch Outbox And Receiver Verification — 2026-07-17
 
-Status: `private_cross_process_crash_consistent_terminal_reconciliation_verified_live_distribution_blocked`
+Status: `private_cross_process_crash_consistent_completion_failure_timeout_reconciliation_verified_live_distribution_blocked`
 
 ## Outcome
 
@@ -9,7 +9,7 @@ whose package attempt is selected by the server and committed atomically with
 the outbox entry through a private write-ahead record. The same contract
 defines the exact identity and authority checks for the controller and worker
 receiver, and now defines mutually exclusive terminal accepted-worker
-completion and pre-commit failure receipts,
+completion, pre-commit failure, and controller-authenticated lease-timeout receipts,
 without creating a Cloud Task, starting a Cloud Run Job, executing a tool, or
 making a network call.
 
@@ -33,6 +33,10 @@ immutable funded package queue
   -> one crash-consistent queue completion plus terminal outbox receipt
   OR bounded pre-commit failure + internal-cost evidence
   -> one crash-consistent queue release plus terminal failure receipt
+  OR accepted worker lease expires before committed result
+  -> later attempt remains fenced
+  -> exact accepted controller reconciles derived timeout evidence
+  -> one crash-consistent queue release plus terminal timeout receipt
 ```
 
 The package queue remains the sole owner of approved attempts. The enqueue API
@@ -57,7 +61,14 @@ Concurrent identical failure deliveries produce one terminal failure
 reconciliation and one exact replay. The queue release and terminal outbox
 receipt share a failure write-ahead commit. The server derives retry
 availability, final exhaustion, or user review from the immutable job and does
-not automatically start another attempt. Completion and failure cannot both
+not automatically start another attempt.
+
+An expired accepted-worker claim cannot silently advance. The enqueue boundary
+returns `stale_attempt_reconciliation_required` without mutation until the
+exact accepted controller principal reconciles that claim. Timeout
+reconciliation derives retry/exhaustion from the immutable job, atomically
+persists the queue release and terminal timeout receipt, and never starts the
+next attempt automatically. Completion, failure, and timeout cannot jointly
 terminalize the same claim.
 
 ## Durable Private Record
@@ -71,7 +82,8 @@ It uses the shared private-local persistence boundary for:
 - same-directory atomic replacement and durability sync;
 - a checksum-protected aggregate;
 - immutable per-attempt hashes;
-- append-only hash-chained creation/controller/worker/completion/failure events;
+- append-only hash-chained
+  creation/controller/worker/completion/failure/timeout events;
   and
 - bounded entries, events, and total bytes.
 
@@ -84,8 +96,8 @@ The queue and outbox now share one cooperative cross-process package lock. A
 fully written hard-link owner record prevents partial lock publication, and a
 dead same-host process can be reclaimed after exact owner-record validation.
 One transient `0600` write-ahead record is the queue/outbox commit point for
-claim/dispatch, accepted-worker completion, or accepted-worker failure; the
-next reader replays either
+claim/dispatch, accepted-worker completion, accepted-worker failure, or
+accepted-worker timeout; the next reader replays either
 missing projection and refuses checksum drift.
 
 This proves Node-process interruption recovery and cooperating-process
@@ -163,6 +175,24 @@ Focused proof also creates a failed DeepFilterNet attempt-cost record under
 receipt. Internal cost remains separate from customer price, credits, service
 fee, wallet, billing, settlement, and charging authority.
 
+## Accepted-Worker Timeout Contract
+
+The timeout boundary is controller-authenticated because an expired worker is
+not trusted to declare its own death. It requires the same accepted controller
+service principal, exact accepted worker receipt, exact expired queue claim,
+immutable attempt deadline, and one attempt-level internal production-cost
+evidence hash. The server derives `execution_timeout`,
+`WORKER_LEASE_EXPIRED`, `failed_before_commit`, release reason, and the
+remaining approved attempt allowance.
+
+The versioned timeout receipt binds the initial and expired claim hashes,
+heartbeat evidence, controller and worker receipts, timeout evidence, queue
+release, cost evidence, and retry/exhaustion result. It persists no raw failure,
+log, stack, media, path, prompt, signed URL, claim credential, token, price,
+credit, fee, wallet, or billing material. A DeepFilterNet timeout proof uses the
+existing versioned rate card and records `1,296` internal-cost micros with
+future customer commercial authority still absent.
+
 ## Focused Evidence
 
 `npm run smoke:canonical-private-package-state-transaction` proves the commit
@@ -195,6 +225,19 @@ the receiver state machine:
   failure projection drift, and post-commit retry all fail closed;
 - one first failure permits only the remaining approved attempt, the second
   persists exhaustion, and unknown internal failure persists user review;
+- an expired accepted-worker attempt fences later enqueue without changing
+  queue or outbox until exact timeout reconciliation;
+- timeout crashes at both write-ahead stages, including real child exits with
+  code `80`, recover one queue release and one terminal timeout receipt;
+- separate-process timeout races converge on one reconciliation plus exact
+  replay;
+- completion/failure/timeout races commit exactly one terminal outcome, and a
+  terminal timeout cannot later become completion or failure;
+- pre-expiry timeout, wrong controller, timeout-WAL tamper, and timeout
+  projection drift fail closed;
+- first timeout reconciliation exposes only one later explicit attempt and a
+  second timeout persists exhaustion without a third outbox;
+- timed-out DeepFilterNet cost evidence stays internal-only and hash-bound;
 - the failed-attempt cost record uses integer micros and the versioned rate card
   while all customer commercial authority stays false;
 - the package queue advances exactly once to the outbox-bound delivery attempt;
@@ -209,18 +252,27 @@ the receiver state machine:
 - network, Cloud Tasks, Cloud Run, worker execution, distributed transaction,
   live identity, and production authority all remain false.
 
-The receiver smoke passes `18` checks and the package-state transaction smoke
-passes `35` checks. The canonical pipeline runs this stage immediately after
+The receiver smoke passes `21` checks and the package-state transaction smoke
+passes `49` checks. The canonical pipeline runs this stage immediately after
 the 50-tool cloud handoff contract. The handoff stage proves all 50 target
 mappings. This focused stage uses one representative CPU attempt to prove the
-generic outbox,
-receiver, and terminal completion state machine. It does not claim that a
-deployed task or completion callback ran for each tool.
+generic outbox, receiver, and mutually exclusive terminal state machine. It does not claim that
+a deployed task or terminal callback ran for each tool.
 
 ## Pipeline Verification
 
-The exact-code full internal pipeline completed all `32/32` stages with exit
-code `0` under schema `canonical-private-pipeline-verification-v11`:
+The current exact-code full internal pipeline completed all `32/32` stages with
+exit code `0` under schema `canonical-private-pipeline-verification-v12`. The
+timeout-aware receiver stage completed in `1,577 ms`; the report explicitly
+verified crash-consistent accepted-worker timeout reconciliation, later-attempt
+fencing, and timed-out-attempt internal-cost evidence. The maximum-eight-source
+signed-in private review completed in `382,429 ms`, and exactly 50 canonical
+E2E plus 50 job-adapter identities remained verified. All distributed,
+live-cloud, provider, commercial, deployment, public-delivery, external-beta,
+and paid-production gates remained false.
+
+The preceding exact-code full internal pipeline completed all `32/32` stages
+with exit code `0` under schema `canonical-private-pipeline-verification-v11`:
 
 - started: `2026-07-17T14:08:50.714Z`;
 - finished: `2026-07-17T14:36:56.937Z`;
@@ -281,8 +333,9 @@ private/internal end-to-end and job-adapter-verified tools. Product, external
 beta, live cloud, public delivery, and paid-production readiness remained
 false throughout both runs.
 
-The v10 `26/26` and `32/32` runs remain pre-failure-reconciliation historical
-evidence and are superseded by the v11 aggregate result. The v9 runs remain
+The v11 run remains pre-timeout-reconciliation historical evidence and is
+superseded by the v12 aggregate result. The v10 `26/26` and `32/32` runs remain
+pre-failure-reconciliation history. The v9 runs remain
 pre-completion-reconciliation history, and the v8 `25/25` and `31/31` runs
 remain pre-transaction history.
 
@@ -308,7 +361,8 @@ The following remain false:
 
 The process-brand, cryptographic verifier core, private single-host
 queue/outbox claim transaction, and private single-host terminal
-completion/failure transactions are now proven. The next dependency-safe gate
+completion/failure/timeout transactions are now proven. The next
+dependency-safe gate
 is a reviewed distributed
 database transaction/RPC plus the live Google key-cache/auth-library adapter
 and controlled staging-token proof. Any live implementation still requires
@@ -318,4 +372,6 @@ deployment. See
 and
 `docs/canonical-private-worker-completion-reconciliation-verification-2026-07-17.md`,
 plus
-`docs/canonical-private-worker-failure-reconciliation-verification-2026-07-17.md`.
+`docs/canonical-private-worker-failure-reconciliation-verification-2026-07-17.md`
+and
+`docs/canonical-private-worker-timeout-reconciliation-verification-2026-07-17.md`.

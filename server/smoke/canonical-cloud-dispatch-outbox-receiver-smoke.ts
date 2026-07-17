@@ -448,6 +448,7 @@ try {
   )
 
   const failureProof = await proveWorkerFailureReconciliation()
+  const timeoutProof = await proveWorkerTimeoutReconciliation()
 
   assert.throws(() => createService(createContext('production')), (error: unknown) =>
     error instanceof ApiError && error.code === 'TOOL_NOT_READY')
@@ -471,6 +472,9 @@ try {
       'changed_failure_evidence_and_worker_principal_fail_closed',
       'post_commit_ambiguity_never_releases_or_authorizes_retry',
       'first_failure_allows_one_server_selected_retry_and_second_exhausts_attempts',
+      'expired_accepted_worker_fences_later_attempt_until_timeout_reconciliation',
+      'controller_authenticated_timeout_reconciles_queue_and_outbox_once',
+      'timeout_exact_replay_and_later_explicit_attempt_preserve_one_use_dispatch',
       'attempt_internal_cost_hash_stays_separate_from_customer_commercial_authority',
       'distributed_transaction_live_google_oidc_iam_cloud_and_production_remain_false',
     ],
@@ -483,11 +487,226 @@ try {
       workerFailureReplayCount: failureProof.failureReplayCount,
       workerFailureReconciledCount: failureProof.failureReconciledCount,
       exhaustedDeliveryAttemptCount: failureProof.deliveryAttemptCount,
+      workerTimeoutReplayCount: timeoutProof.timeoutReplayCount,
+      workerTimeoutReconciledCount: timeoutProof.timeoutReconciledCount,
+      timeoutProgressionDeliveryAttemptCount: timeoutProof.deliveryAttemptCount,
       cloudRunHiddenRetryCount: 0,
     },
   }))
 } finally {
   await rm(rootPath, { recursive: true, force: true })
+}
+
+async function proveWorkerTimeoutReconciliation(): Promise<{
+  timeoutReplayCount: number
+  timeoutReconciledCount: number
+  deliveryAttemptCount: number
+}> {
+  const timeoutRoot = await mkdtemp(join(tmpdir(), 'reeditpro-cloud-dispatch-timeout-'))
+  const previousTimeMs = currentTimeMs
+  try {
+    currentTimeMs = baseTimeMs + 10_000
+    const definition = createQueueDefinition()
+    const timeoutManifest = createManifest(definition)
+    const timeoutScope: CanonicalCloudDispatchOutboxStoreScope = {
+      localStorageRoot: timeoutRoot,
+      ownerUserId,
+      workspaceId: definition.identity.workspaceId,
+      projectId: definition.identity.projectId,
+      editSessionId: definition.identity.editSessionId,
+      packageRecordId: definition.identity.packageRecordId,
+      approvedPlanSnapshotId: definition.identity.approvedPlanSnapshotId,
+    }
+    await ensurePrivateCanonicalPackageWorkQueue({
+      scope: timeoutScope,
+      definition,
+      now: new Date(baseTimeMs).toISOString(),
+    })
+    const timeoutContext = createContext('test', timeoutRoot)
+    const timeoutService = createCanonicalPrivateCloudDispatchReceiverService({
+      context: timeoutContext,
+      ownerUserId,
+      queueDefinition: definition,
+      manifest: timeoutManifest,
+      controllerAudience,
+      workerReceiverAudience: workerAudience,
+      now,
+    })
+    const firstAttempt = await timeoutService.enqueueApprovedAttempt({
+      jobId: 'job_cloud_dispatch_cpu',
+    })
+    const firstOutboxEntry = firstAttempt.outboxEntry
+    const firstAttemptPlan = firstAttempt.attemptPlan
+    if (!firstOutboxEntry || !firstAttemptPlan) {
+      throw new Error('Worker timeout proof did not create its first attempt.')
+    }
+    const taskBody = firstAttemptPlan.cloudTask?.taskBody
+    assert.ok(taskBody)
+    const controllerIdentity = signedIdentity({
+      authenticationMechanism: 'google_oidc_id_token',
+      principalEmail: firstOutboxEntry.immutable.controllerServiceAccountEmail,
+      audience: controllerAudience,
+      subject: '100000000000000000021',
+    })
+    const workerIdentity = signedIdentity({
+      authenticationMechanism: 'google_cloud_run_workload_identity',
+      principalEmail: firstOutboxEntry.immutable.workerServiceAccountEmail,
+      audience: workerAudience,
+      subject: '100000000000000000022',
+    })
+    await timeoutService.receiveController({
+      taskBody,
+      verifiedIdentity: controllerIdentity,
+    })
+    const invocation = await timeoutService.createWorkerInvocation(
+      firstOutboxEntry.immutable.dispatchIntentId,
+    )
+    await timeoutService.receiveWorker({
+      invocation,
+      verifiedIdentity: workerIdentity,
+    })
+    const attemptInternalCostEvidenceHash = sha256AuthorityValue({
+      dispatchIntentId: firstOutboxEntry.immutable.dispatchIntentId,
+      boundary: 'internal_production_cost_only',
+      kind: 'receiver-timeout-attempt-cost',
+    })
+    await expectApiError(
+      () => timeoutService.reconcileWorkerTimeout({
+        dispatchIntentId: firstOutboxEntry.immutable.dispatchIntentId,
+        attemptInternalCostEvidenceHash,
+        verifiedIdentity: controllerIdentity,
+      }),
+      'VALIDATION_FAILED',
+    )
+
+    currentTimeMs = Date.parse(
+      firstOutboxEntry.immutable.queueClaimExpiresAt,
+    )
+    const queueBeforeFence = await readPrivateCanonicalPackageWorkQueue({
+      scope: timeoutScope,
+      definition,
+    })
+    const outboxBeforeFence = await readPrivateCanonicalCloudDispatchOutbox({
+      scope: timeoutScope,
+    })
+    assert.ok(queueBeforeFence)
+    assert.ok(outboxBeforeFence)
+    const fenced = await timeoutService.enqueueApprovedAttempt({
+      jobId: 'job_cloud_dispatch_cpu',
+    })
+    assert.equal(fenced.disposition, 'stale_attempt_reconciliation_required')
+    assert.equal(
+      'requiredGate' in fenced ? fenced.requiredGate : undefined,
+      'canonical_cloud_dispatch_accepted_worker_timeout_reconciliation',
+    )
+    const queueAfterFence = await readPrivateCanonicalPackageWorkQueue({
+      scope: timeoutScope,
+      definition,
+    })
+    const outboxAfterFence = await readPrivateCanonicalCloudDispatchOutbox({
+      scope: timeoutScope,
+    })
+    assert.equal(queueAfterFence?.aggregateHash, queueBeforeFence.aggregateHash)
+    assert.equal(outboxAfterFence?.aggregateHash, outboxBeforeFence.aggregateHash)
+
+    const wrongControllerIdentity = privateIdentityFixtureAt({
+      authenticationMechanism: 'google_oidc_id_token',
+      principalEmail: 'wrong-timeout-controller@reeditpro.iam.gserviceaccount.com',
+      audience: controllerAudience,
+      subject: '100000000000000000023',
+    }, currentTimeMs)
+    await expectApiError(
+      () => timeoutService.reconcileWorkerTimeout({
+        dispatchIntentId: firstOutboxEntry.immutable.dispatchIntentId,
+        attemptInternalCostEvidenceHash,
+        verifiedIdentity: wrongControllerIdentity,
+      }),
+      'INTERNAL_SERVICE_AUTH_INVALID',
+    )
+    const reconciled = await timeoutService.reconcileWorkerTimeout({
+      dispatchIntentId: firstOutboxEntry.immutable.dispatchIntentId,
+      attemptInternalCostEvidenceHash,
+      verifiedIdentity: controllerIdentity,
+    })
+    assert.equal(reconciled.disposition, 'reconciled')
+    assert.equal(reconciled.queueDisposition, 'retry_available')
+    assert.equal(reconciled.retryDisposition, 'retry_same_approved_operation')
+    assert.equal(reconciled.remainingAttempts, 1)
+    assert.equal(reconciled.outboxState, 'worker_timeout_reconciled')
+    assert.equal(reconciled.boundaries.automaticRetryLoopStarted, false)
+    assert.equal(
+      reconciled.boundaries.queueReleaseAndOutboxReceiptShareAtomicWriteAheadCommit,
+      true,
+    )
+    assert.equal(
+      reconciled.receipt.attemptInternalCostEvidenceHash,
+      attemptInternalCostEvidenceHash,
+    )
+    assert.equal(
+      reconciled.receipt.boundaries
+        .customerPriceCreditsServiceFeeWalletOrBillingIncluded,
+      false,
+    )
+    const replay = await timeoutService.reconcileWorkerTimeout({
+      dispatchIntentId: firstOutboxEntry.immutable.dispatchIntentId,
+      attemptInternalCostEvidenceHash,
+      verifiedIdentity: controllerIdentity,
+    })
+    assert.equal(replay.disposition, 'exact_replay')
+    assert.equal(replay.receipt.receiptHash, reconciled.receipt.receiptHash)
+
+    const queueBeforeExplicitRetry = await readPrivateCanonicalPackageWorkQueue({
+      scope: timeoutScope,
+      definition,
+    })
+    assert.equal(queueBeforeExplicitRetry?.summary.totalDeliveryAttemptCount, 1)
+    const secondAttempt = await timeoutService.enqueueApprovedAttempt({
+      jobId: 'job_cloud_dispatch_cpu',
+    })
+    assert.equal(secondAttempt.disposition, 'created')
+    if (!('outboxEntry' in secondAttempt)) {
+      throw new Error('Worker timeout proof did not create its explicit retry.')
+    }
+    assert.equal(secondAttempt.outboxEntry.immutable.packageDeliveryAttempt, 2)
+    assert.notEqual(
+      secondAttempt.outboxEntry.immutable.queueClaimId,
+      firstOutboxEntry.immutable.queueClaimId,
+    )
+
+    const queue = await readPrivateCanonicalPackageWorkQueue({
+      scope: timeoutScope,
+      definition,
+    })
+    const outbox = await readPrivateCanonicalCloudDispatchOutbox({
+      scope: timeoutScope,
+    })
+    const evidence = await timeoutService.evidence()
+    assert.ok(queue)
+    assert.ok(outbox)
+    assert.equal(queue.summary.totalDeliveryAttemptCount, 2)
+    assert.equal(queue.summary.expiredClaimRecoveryCount, 1)
+    assert.equal(outbox.summary.workerTimeoutReconciledCount, 1)
+    assert.equal(outbox.entries[0]?.state, 'worker_timeout_reconciled')
+    assert.equal(outbox.entries[1]?.state, 'pending_controller_delivery')
+    assert.equal(evidence.workerTimeoutReconciledCount, 1)
+    assert.equal(evidence.acceptedWorkerTimeoutReconciliationVerified, true)
+    assert.equal(evidence.timeoutQueueAndOutboxWriteAheadCommitVerified, true)
+    assert.equal(evidence.distributedOutboxTransactionVerified, false)
+    assert.equal(evidence.liveGoogleOidcAndIamVerified, false)
+    assert.equal(evidence.cloudTaskCreated, false)
+    assert.equal(evidence.cloudRunJobExecuted, false)
+    assert.equal(evidence.workerExecutionAuthorized, false)
+    assert.equal(evidence.cloudDispatchAuthorized, false)
+    assert.equal(evidence.productionAuthority, false)
+    return {
+      timeoutReplayCount: 1,
+      timeoutReconciledCount: outbox.summary.workerTimeoutReconciledCount ?? 0,
+      deliveryAttemptCount: queue.summary.totalDeliveryAttemptCount,
+    }
+  } finally {
+    currentTimeMs = previousTimeMs
+    await rm(timeoutRoot, { recursive: true, force: true })
+  }
 }
 
 async function proveWorkerFailureReconciliation(): Promise<{
@@ -834,6 +1053,26 @@ function privateIdentityFixture(input: {
   })
 }
 
+function privateIdentityFixtureAt(
+  input: {
+    authenticationMechanism: CanonicalServiceIdentityEvidence['authenticationMechanism']
+    principalEmail: string
+    audience: string
+    subject: string
+  },
+  validAtMs: number,
+): CanonicalVerifiedServiceIdentity {
+  return createCanonicalPrivateServiceIdentityFixture({
+    authenticationMechanism: input.authenticationMechanism,
+    subject: input.subject,
+    principalEmail: input.principalEmail,
+    audience: input.audience,
+    issuedAt: new Date(validAtMs - 1_000).toISOString(),
+    expiresAt: new Date(validAtMs + 120_000).toISOString(),
+    verifiedAt: new Date(validAtMs - 500).toISOString(),
+  })
+}
+
 function signedIdentity(input: {
   authenticationMechanism: CanonicalServiceIdentityEvidence['authenticationMechanism']
   principalEmail: string
@@ -868,7 +1107,7 @@ function signIdentityToken(
     email: input.principalEmail,
     email_verified: true,
     iat: Math.floor(baseTimeMs / 1_000),
-    exp: Math.floor((baseTimeMs + 120_000) / 1_000),
+    exp: Math.floor((baseTimeMs + 180_000) / 1_000),
   }), 'utf8').toString('base64url')
   const signingInput = `${header}.${payload}`
   const signature = sign(

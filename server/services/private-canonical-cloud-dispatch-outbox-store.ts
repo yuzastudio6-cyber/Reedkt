@@ -14,6 +14,7 @@ import {
   canonicalCloudDispatchOutboxAggregateSchema,
   canonicalCloudDispatchWorkerCompletionReceiptSchema,
   canonicalCloudDispatchWorkerFailureReceiptSchema,
+  canonicalCloudDispatchWorkerTimeoutReceiptSchema,
   canonicalCloudDispatchWorkerReceiptSchema,
   type CanonicalCloudDispatchControllerReceipt,
   type CanonicalCloudDispatchOutboxAggregate,
@@ -21,6 +22,7 @@ import {
   type CanonicalCloudDispatchOutboxEvent,
   type CanonicalCloudDispatchWorkerCompletionReceipt,
   type CanonicalCloudDispatchWorkerFailureReceipt,
+  type CanonicalCloudDispatchWorkerTimeoutReceipt,
   type CanonicalCloudDispatchWorkerReceipt,
 } from '../validation/canonical-cloud-dispatch-outbox-schemas'
 import { sha256AuthorityValue, stableAuthorityStringify } from './private-edit-authority-store'
@@ -234,6 +236,83 @@ export function preparePrivateCanonicalCloudDispatchFailure(input: {
     aggregate: finalized,
     entry: finalizedEntry as CanonicalCloudDispatchOutboxEntry & {
       failureReceipt: CanonicalCloudDispatchWorkerFailureReceipt
+    },
+    disposition: 'reconciled',
+  }
+}
+
+export function preparePrivateCanonicalCloudDispatchTimeout(input: {
+  aggregate: CanonicalCloudDispatchOutboxAggregate
+  dispatchIntentId: string
+  timeoutReceipt: CanonicalCloudDispatchWorkerTimeoutReceipt
+  now: string
+}): {
+  aggregate: CanonicalCloudDispatchOutboxAggregate
+  entry: CanonicalCloudDispatchOutboxEntry & {
+    timeoutReceipt: CanonicalCloudDispatchWorkerTimeoutReceipt
+  }
+  disposition: 'reconciled' | 'exact_replay'
+} {
+  const now = validTimestamp(input.now, 'accepted-worker timeout reconciliation')
+  const aggregate = structuredClone(input.aggregate)
+  const before = structuredClone(aggregate)
+  const entry = requiredEntry(aggregate, input.dispatchIntentId)
+  const timeoutReceipt = canonicalCloudDispatchWorkerTimeoutReceiptSchema.parse(
+    input.timeoutReceipt,
+  )
+  if (entry.timeoutReceipt) {
+    if (
+      entry.timeoutReceipt.receiptHash !== timeoutReceipt.receiptHash ||
+      entry.timeoutReceipt.timeoutEvidenceHash !==
+        timeoutReceipt.timeoutEvidenceHash ||
+      entry.timeoutReceipt.queueReleaseHash !== timeoutReceipt.queueReleaseHash
+    ) {
+      throw idempotencyConflict(
+        'Worker timeout replay does not match the reconciled outbox result.',
+      )
+    }
+    return {
+      aggregate,
+      entry: entry as CanonicalCloudDispatchOutboxEntry & {
+        timeoutReceipt: CanonicalCloudDispatchWorkerTimeoutReceipt
+      },
+      disposition: 'exact_replay',
+    }
+  }
+  if (entry.completionReceipt || entry.failureReceipt) {
+    throw idempotencyConflict(
+      'A terminal worker attempt cannot be reconciled as a timeout.',
+    )
+  }
+  if (entry.state !== 'worker_identity_accepted' || !entry.workerReceipt) {
+    throw invalidOutbox(
+      'Worker timeout reconciliation requires accepted worker identity.',
+    )
+  }
+  const updated = finalizeCanonicalCloudDispatchOutboxEntry({
+    ...withoutEntryHashes(entry),
+    state: 'worker_timeout_reconciled',
+    timeoutReceipt,
+    updatedAt: now,
+  })
+  replaceEntry(aggregate, updated)
+  appendEvent(aggregate, updated, 'worker_timeout_reconciled', now)
+  assertAppendOnlyTransition(before, aggregate)
+  const finalized = finalizeAggregate({
+    ...aggregate,
+    revision: aggregate.revision + 1,
+    updatedAt: now,
+    summary: undefined,
+    aggregateHash: undefined,
+  })
+  const finalizedEntry = requiredEntry(finalized, input.dispatchIntentId)
+  if (!finalizedEntry.timeoutReceipt) {
+    throw invalidOutbox('Worker timeout receipt did not finalize exactly.')
+  }
+  return {
+    aggregate: finalized,
+    entry: finalizedEntry as CanonicalCloudDispatchOutboxEntry & {
+      timeoutReceipt: CanonicalCloudDispatchWorkerTimeoutReceipt
     },
     disposition: 'reconciled',
   }
@@ -597,6 +676,8 @@ function finalizeAggregate(
       entry.completionReceipt !== undefined).length,
     workerFailureReconciledCount: input.entries.filter((entry) =>
       entry.failureReceipt !== undefined).length,
+    workerTimeoutReconciledCount: input.entries.filter((entry) =>
+      entry.timeoutReceipt !== undefined).length,
     eventCount: input.events.length,
   }
   const payload = { ...input, summary }
@@ -672,7 +753,11 @@ function assertAppendOnlyTransition(
     if (!current || previous.immutableEntryHash !== current.immutableEntryHash) {
       throw invalidOutbox('Cloud dispatch outbox immutable attempt changed or disappeared.')
     }
-    if (['worker_completion_reconciled', 'worker_failure_reconciled'].includes(previous.state) &&
+    if ([
+      'worker_completion_reconciled',
+      'worker_failure_reconciled',
+      'worker_timeout_reconciled',
+    ].includes(previous.state) &&
       stableAuthorityStringify(previous) !== stableAuthorityStringify(current)) {
       throw invalidOutbox('Terminal worker reconciliation cannot change.')
     }
@@ -695,6 +780,11 @@ function assertAppendOnlyTransition(
       stableAuthorityStringify(previous.failureReceipt) !==
         stableAuthorityStringify(current.failureReceipt)) {
       throw invalidOutbox('Reconciled worker failure receipt cannot change.')
+    }
+    if (previous.timeoutReceipt &&
+      stableAuthorityStringify(previous.timeoutReceipt) !==
+        stableAuthorityStringify(current.timeoutReceipt)) {
+      throw invalidOutbox('Reconciled worker timeout receipt cannot change.')
     }
   }
 }

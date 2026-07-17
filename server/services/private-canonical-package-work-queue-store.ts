@@ -11,7 +11,9 @@ import {
 } from '../security/private-local-persistence'
 import {
   canonicalCloudDispatchWorkerFailureEvidenceSchema,
+  canonicalCloudDispatchWorkerTimeoutEvidenceSchema,
   type CanonicalCloudDispatchWorkerFailureEvidence,
+  type CanonicalCloudDispatchWorkerTimeoutEvidence,
 } from '../validation/canonical-cloud-dispatch-outbox-schemas'
 import {
   CANONICAL_PRIVATE_PACKAGE_WORK_QUEUE_AGGREGATE_VERSION,
@@ -24,6 +26,7 @@ import {
   type CanonicalPrivatePackageWorkQueueEntry,
   type CanonicalPrivatePackageWorkQueueEvent,
   type CanonicalPrivatePackageWorkQueueDispatchFailure,
+  type CanonicalPrivatePackageWorkQueueDispatchTimeout,
   type CanonicalPrivatePackageWorkQueueRelease,
 } from '../validation/canonical-private-package-work-queue-schemas'
 import { sha256AuthorityValue, stableAuthorityStringify } from './private-edit-authority-store'
@@ -387,6 +390,139 @@ export function preparePrivateCanonicalPackageWorkQueueDispatchFailure(input: {
     entry: releasedEntry as CanonicalPrivatePackageWorkQueueEntry & {
       lastRelease: CanonicalPrivatePackageWorkQueueRelease & {
         dispatchFailure: CanonicalPrivatePackageWorkQueueDispatchFailure
+      }
+    },
+    disposition: 'released',
+  }
+}
+
+export function preparePrivateCanonicalPackageWorkQueueDispatchTimeout(input: {
+  aggregate: CanonicalPrivatePackageWorkQueueAggregate
+  definition: CanonicalPrivatePackageWorkQueueDefinition
+  jobId: string
+  queueClaimId: string
+  queueClaimHash: string
+  queueClaimInitialExpiresAt: string
+  controllerReceiptHash: string
+  workerReceiptHash: string
+  timeoutEvidence: CanonicalCloudDispatchWorkerTimeoutEvidence
+  now: string
+}): {
+  aggregate: CanonicalPrivatePackageWorkQueueAggregate
+  entry: CanonicalPrivatePackageWorkQueueEntry & {
+    lastRelease: CanonicalPrivatePackageWorkQueueRelease & {
+      dispatchTimeout: CanonicalPrivatePackageWorkQueueDispatchTimeout
+    }
+  }
+  disposition: 'released' | 'exact_replay'
+} {
+  const now = validTimestamp(input.now, 'dispatch timeout')
+  const timeoutEvidence = canonicalCloudDispatchWorkerTimeoutEvidenceSchema.parse(
+    input.timeoutEvidence,
+  )
+  const aggregate = structuredClone(input.aggregate)
+  const before = structuredClone(aggregate)
+  const entry = requiredEntry(aggregate, input.jobId)
+  if (entry.state === 'completed') {
+    throw new ApiError(
+      'IDEMPOTENCY_ATOMICITY_REQUIRED',
+      'A completed package attempt cannot be converted into an accepted-worker timeout.',
+      503,
+    )
+  }
+  const timeoutEvidenceHash = sha256AuthorityValue(timeoutEvidence)
+  const dispatchTimeout = createDispatchTimeoutAuthority({
+    definition: entry.definition,
+    deliveryAttemptCount: entry.deliveryAttemptCount,
+    queueClaimHash: input.queueClaimHash,
+    controllerReceiptHash: input.controllerReceiptHash,
+    workerReceiptHash: input.workerReceiptHash,
+    timeoutEvidenceHash,
+    timeoutEvidence,
+  })
+  if (entry.state === 'queued' && entry.lastRelease?.claimId === input.queueClaimId) {
+    if (
+      entry.lastRelease.dispatchTimeout === undefined ||
+      stableAuthorityStringify(entry.lastRelease.dispatchTimeout) !==
+        stableAuthorityStringify(dispatchTimeout)
+    ) throw workerLeaseExpired()
+    return {
+      aggregate,
+      entry: entry as CanonicalPrivatePackageWorkQueueEntry & {
+        lastRelease: CanonicalPrivatePackageWorkQueueRelease & {
+          dispatchTimeout: CanonicalPrivatePackageWorkQueueDispatchTimeout
+        }
+      },
+      disposition: 'exact_replay',
+    }
+  }
+  const claim = entry.activeClaim
+  const expectedTimeoutDetailHash = sha256AuthorityValue({
+    domain: 'reeditpro:canonical-cloud-dispatch-accepted-worker-timeout:v1',
+    jobId: entry.definition.jobId,
+    packageDeliveryAttempt: entry.deliveryAttemptCount,
+    queueClaimId: input.queueClaimId,
+    initialQueueClaimHash: input.queueClaimHash,
+    expiredQueueClaimHash: claim?.claimHash,
+    initialQueueClaimExpiresAt: input.queueClaimInitialExpiresAt,
+    expiredQueueClaimExpiresAt: claim?.expiresAt,
+    queueClaimHeartbeatAt: claim?.heartbeatAt,
+    queueClaimHeartbeatCount: claim?.heartbeatCount,
+    queueClaimAttemptDeadlineAt: claim?.attemptDeadlineAt,
+  })
+  if (
+    entry.state !== 'leased' || !claim ||
+    claim.claimId !== input.queueClaimId ||
+    claim.deliveryAttempt !== entry.deliveryAttemptCount ||
+    Date.parse(claim.expiresAt) > Date.parse(now) ||
+    timeoutEvidence.initialQueueClaimHash !== input.queueClaimHash ||
+    timeoutEvidence.expiredQueueClaimHash !== claim.claimHash ||
+    timeoutEvidence.initialQueueClaimExpiresAt !== input.queueClaimInitialExpiresAt ||
+    timeoutEvidence.expiredQueueClaimExpiresAt !== claim.expiresAt ||
+    timeoutEvidence.queueClaimHeartbeatAt !== claim.heartbeatAt ||
+    timeoutEvidence.queueClaimHeartbeatCount !== claim.heartbeatCount ||
+    timeoutEvidence.queueClaimAttemptDeadlineAt !== claim.attemptDeadlineAt ||
+    timeoutEvidence.timeoutDetailHash !== expectedTimeoutDetailHash
+  ) {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      'Accepted-worker timeout evidence does not match the exact expired queue claim.',
+      409,
+    )
+  }
+  entry.expiredClaimRecoveryCount += 1
+  releaseEntry(
+    entry,
+    claim.claimId,
+    claim.credentialSha256,
+    'expired_claim_recovered',
+    now,
+    undefined,
+    dispatchTimeout,
+  )
+  appendEvent(aggregate, {
+    eventType: 'expired_claim_recovered',
+    jobId: entry.definition.jobId,
+    claimId: claim.claimId,
+    at: now,
+  })
+  assertCompletedEntriesImmutable(before, aggregate)
+  const finalized = finalizeAggregate({
+    ...aggregate,
+    updatedAt: now,
+    aggregateHash: undefined,
+    summary: undefined,
+  })
+  const releasedEntry = finalized.entries.find((candidate) =>
+    candidate.definition.jobId === input.jobId)
+  if (!releasedEntry?.lastRelease?.dispatchTimeout) {
+    throw invalidQueue('Canonical dispatch timeout did not finalize exactly.')
+  }
+  return {
+    aggregate: finalized,
+    entry: releasedEntry as CanonicalPrivatePackageWorkQueueEntry & {
+      lastRelease: CanonicalPrivatePackageWorkQueueRelease & {
+        dispatchTimeout: CanonicalPrivatePackageWorkQueueDispatchTimeout
       }
     },
     disposition: 'released',
@@ -826,12 +962,14 @@ function releaseEntry(
   reason: CanonicalPrivatePackageWorkQueueRelease['reason'],
   now: string,
   dispatchFailure?: CanonicalPrivatePackageWorkQueueDispatchFailure,
+  dispatchTimeout?: CanonicalPrivatePackageWorkQueueDispatchTimeout,
 ): void {
   const releaseWithoutHash = {
     claimId,
     credentialSha256,
     reason,
     ...(dispatchFailure ? { dispatchFailure } : {}),
+    ...(dispatchTimeout ? { dispatchTimeout } : {}),
     releasedAt: now,
   }
   entry.state = 'queued'
@@ -842,6 +980,46 @@ function releaseEntry(
     releaseHash: sha256AuthorityValue(releaseWithoutHash),
   }
   touchEntry(entry, now)
+}
+
+function createDispatchTimeoutAuthority(input: {
+  definition: CanonicalPrivatePackageWorkQueueJobDefinition
+  deliveryAttemptCount: number
+  queueClaimHash: string
+  controllerReceiptHash: string
+  workerReceiptHash: string
+  timeoutEvidenceHash: string
+  timeoutEvidence: CanonicalCloudDispatchWorkerTimeoutEvidence
+}): CanonicalPrivatePackageWorkQueueDispatchTimeout {
+  const remainingAttempts = Math.max(
+    0,
+    input.definition.maxAttempts - input.deliveryAttemptCount,
+  )
+  const queueDisposition = remainingAttempts === 0
+    ? 'attempts_exhausted' as const
+    : 'retry_available' as const
+  return {
+    queueClaimHash: input.queueClaimHash,
+    expiredQueueClaimHash: input.timeoutEvidence.expiredQueueClaimHash,
+    controllerReceiptHash: input.controllerReceiptHash,
+    workerReceiptHash: input.workerReceiptHash,
+    timeoutEvidenceHash: input.timeoutEvidenceHash,
+    timeoutDetailHash: input.timeoutEvidence.timeoutDetailHash,
+    queueClaimExpiresAt: input.timeoutEvidence.expiredQueueClaimExpiresAt,
+    queueClaimAttemptDeadlineAt:
+      input.timeoutEvidence.queueClaimAttemptDeadlineAt,
+    attemptInternalCostEvidenceHash:
+      input.timeoutEvidence.attemptInternalCostEvidenceHash,
+    failureCategory: 'execution_timeout',
+    failureCode: 'WORKER_LEASE_EXPIRED',
+    executionState: 'failed_before_commit',
+    retryDisposition: queueDisposition === 'retry_available'
+      ? 'retry_same_approved_operation'
+      : 'fallback_or_user_review_required',
+    queueDisposition,
+    approvedMaxAttempts: input.definition.maxAttempts,
+    remainingAttempts,
+  }
 }
 
 function createDispatchFailureAuthority(input: {

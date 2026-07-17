@@ -25,7 +25,7 @@ immutable approved execution package
   -> OAuth Cloud Run Jobs run request
   -> one exact worker job
   -> exact accepted-worker evidence
-  -> terminal queue/outbox completion reconciliation
+  -> one terminal queue/outbox completion, failure, or timeout reconciliation
 ```
 
 The two queues are regional and purpose-specific:
@@ -164,17 +164,26 @@ order. Provider activation, billing/wallet mutation, remote Supabase, public
 delivery, deployment, external-beta readiness, and paid-production readiness
 remained false throughout.
 
-The current terminal-reconciliation-aware v11 aggregate supersedes those
+The current terminal-reconciliation-aware v12 aggregate supersedes those
 earlier handoff snapshots for the exact branch. The full command passed
+`32/32` stages. The timeout-aware receiver stage passed in `1,577 ms`, and the
+run again completed all 27 server-derived jobs for eight sources and accepted a
+3840x2160, 16-second private review. Exactly 50 canonical E2E and job-adapter
+identities remained verified. Accepted-worker timeout now fences later attempts
+until atomic controller-authenticated reconciliation, with no automatic retry
+or customer commercial authority. The v11 result remains historical
+pre-timeout-reconciliation evidence. This is still local/private evidence: no
+task, job, IAM binding, live Google token, provider, billing action, public
+delivery, or deployment occurred.
+
+The preceding v11 full command passed
 `32/32` stages in `1,686,223 ms`. The handoff stage passed in `436 ms`; the
 completion/failure-aware receiver stage passed in `1,306 ms`; and the package
 claim/completion/failure WAL stage passed in `6,660 ms`. The run again completed
 all 27 server-derived jobs for eight sources and accepted a 3840x2160,
 16-second private review. Exactly 50 canonical E2E and job-adapter identities
 remained verified. The v10 runs remain historical pre-failure-reconciliation
-evidence. This is still local/private evidence: no task, job, IAM binding, live
-Google token, provider, billing action, public delivery, or deployment
-occurred.
+evidence.
 
 ## Performance Meaning
 
@@ -213,9 +222,10 @@ The bounded private outbox plus controller/worker receiver contract is now
 implemented and verified by
 `docs/canonical-cloud-dispatch-outbox-receiver-verification-2026-07-17.md`.
 It proves checksum-protected single-host durability, restart recovery,
-idempotent redelivery, exact identity/attempt contracts, and one terminal
-completion reconciliation without live Google verification or cloud calls. The
-queue claim/outbox insert and accepted-worker completion each use a
+idempotent redelivery, exact identity/attempt contracts, and mutually exclusive
+terminal completion/failure/timeout reconciliation without live Google
+verification or cloud calls. Queue claim/outbox insert, accepted-worker
+completion, failure, and timeout each use a
 package-scoped cross-process write-ahead commit with real process-exit recovery;
 see
 `docs/canonical-private-package-state-transaction-verification-2026-07-17.md`.
@@ -225,7 +235,9 @@ handoff with a local signed fixture; see
 `docs/canonical-service-identity-verifier-verification-2026-07-17.md`. The
 completion boundary is detailed in
 `docs/canonical-private-worker-completion-reconciliation-verification-2026-07-17.md`.
-The remaining gate is the actual distributed package-queue/outbox/completion
+Accepted-worker timeout is detailed in
+`docs/canonical-private-worker-timeout-reconciliation-verification-2026-07-17.md`.
+The remaining gate is the actual distributed package-queue/outbox/terminal
 transaction plus the live Google auth-library/key-rotation adapter, followed
 only with explicit authorization by staging deployment and the representative
 benchmark program.

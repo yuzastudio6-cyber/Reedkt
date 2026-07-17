@@ -118,7 +118,9 @@ if (mode === 'hold-lock') {
 } else if (
   mode === 'complete' || mode === 'crash-completion-after-commit' ||
   mode === 'crash-completion-after-queue' || mode === 'fail' ||
-  mode === 'crash-failure-after-commit' || mode === 'crash-failure-after-queue'
+  mode === 'crash-failure-after-commit' || mode === 'crash-failure-after-queue' ||
+  mode === 'timeout' || mode === 'crash-timeout-after-commit' ||
+  mode === 'crash-timeout-after-queue'
 ) {
   if (
     !definitionPath || !manifestPath || !now || !workerEvidencePath ||
@@ -159,39 +161,74 @@ if (mode === 'hold-lock') {
     now: () => new Date(now),
   })
   const nowMs = Date.parse(now)
-  const workerIdentity = createCanonicalPrivateServiceIdentityFixture({
-    authenticationMechanism: 'google_cloud_run_workload_identity',
-    subject: 'completion-worker-subject',
-    principalEmail: manifestEntry.target.workerServiceAccountEmail,
-    audience: 'https://private-worker.reeditpro.test',
+  const isFailure = mode === 'fail' || mode === 'crash-failure-after-commit' ||
+    mode === 'crash-failure-after-queue'
+  const isTimeout = mode === 'timeout' || mode === 'crash-timeout-after-commit' ||
+    mode === 'crash-timeout-after-queue'
+  const controllerServiceAccountEmail =
+    manifestEntry.taskOidcServiceAccountEmail
+  if (isTimeout && !controllerServiceAccountEmail) {
+    throw new Error('Package-state timeout controller identity is missing.')
+  }
+  const verifiedIdentity = createCanonicalPrivateServiceIdentityFixture({
+    authenticationMechanism: isTimeout
+      ? 'google_oidc_id_token'
+      : 'google_cloud_run_workload_identity',
+    subject: isTimeout
+      ? 'completion-controller-subject'
+      : 'completion-worker-subject',
+    principalEmail: isTimeout
+      ? controllerServiceAccountEmail!
+      : manifestEntry.target.workerServiceAccountEmail,
+    audience: isTimeout
+      ? 'https://private-controller.reeditpro.test'
+      : 'https://private-worker.reeditpro.test',
     issuedAt: new Date(nowMs - 1_000).toISOString(),
     expiresAt: new Date(nowMs + 120_000).toISOString(),
     verifiedAt: new Date(nowMs - 500).toISOString(),
   })
-  const isFailure = mode === 'fail' || mode === 'crash-failure-after-commit' ||
-    mode === 'crash-failure-after-queue'
   const faultInjectionForSmoke = (
     mode === 'crash-completion-after-commit' ||
     mode === 'crash-completion-after-queue' ||
     mode === 'crash-failure-after-commit' ||
-    mode === 'crash-failure-after-queue'
+    mode === 'crash-failure-after-queue' ||
+    mode === 'crash-timeout-after-commit' ||
+    mode === 'crash-timeout-after-queue'
   )
     ? (stage: CanonicalPrivatePackageStateFaultStage) => {
         const afterCommit = mode === 'crash-completion-after-commit' ||
-          mode === 'crash-failure-after-commit'
+          mode === 'crash-failure-after-commit' ||
+          mode === 'crash-timeout-after-commit'
         const expected = afterCommit
           ? 'after_write_ahead_commit'
           : 'after_queue_projection'
-        if (stage === expected) process.exit(isFailure ? 79 : 78)
+        if (stage === expected) process.exit(isTimeout ? 80 : isFailure ? 79 : 78)
       }
     : undefined
-  const result = isFailure
+  const timeoutCostHash = (workerEvidence as {
+    attemptInternalCostEvidenceHash?: unknown
+  }).attemptInternalCostEvidenceHash
+  if (
+    isTimeout &&
+    (typeof timeoutCostHash !== 'string' ||
+      !/^[a-f0-9]{64}$/u.test(timeoutCostHash))
+  ) {
+    throw new Error('Package-state timeout cost evidence hash is invalid.')
+  }
+  const result = isTimeout
+    ? await service.reconcileWorkerTimeout({
+        dispatchIntentId,
+        attemptInternalCostEvidenceHash: timeoutCostHash as string,
+        verifiedIdentity,
+        faultInjectionForSmoke,
+      })
+    : isFailure
     ? await service.reconcileWorkerFailure({
         dispatchIntentId,
         failureEvidence: canonicalCloudDispatchWorkerFailureEvidenceSchema.parse(
           workerEvidence,
         ),
-        verifiedIdentity: workerIdentity,
+        verifiedIdentity,
         faultInjectionForSmoke,
       })
     : await service.reconcileWorkerCompletion({
@@ -199,7 +236,7 @@ if (mode === 'hold-lock') {
         completionEvidence: canonicalCloudDispatchWorkerCompletionEvidenceSchema.parse(
           workerEvidence,
         ),
-        verifiedIdentity: workerIdentity,
+        verifiedIdentity,
         faultInjectionForSmoke,
       })
   process.stdout.write(`${JSON.stringify({

@@ -68,6 +68,7 @@ const baseTimeMs = Date.parse('2026-07-17T08:00:00.000Z')
 const committedAt = new Date(baseTimeMs + 1_000).toISOString()
 const completionAt = new Date(baseTimeMs + 2_000).toISOString()
 const failureAt = completionAt
+const timeoutAt = new Date(baseTimeMs + 121_000).toISOString()
 const controllerAudience = 'https://private-controller.reeditpro.test'
 const workerAudience = 'https://private-worker.reeditpro.test'
 const roots: string[] = []
@@ -127,12 +128,36 @@ try {
   await proveExpiredFailureFailsClosed()
   await proveUserReviewFailureDoesNotRetry()
   const failureCost = await proveVersionedAttemptCostEvidenceBoundToFailure()
+  const timeoutAfterCommit = await proveTimeoutFaultRecovery(
+    'after_write_ahead_commit',
+    'timeout-after-commit',
+  )
+  const timeoutAfterQueue = await proveTimeoutFaultRecovery(
+    'after_queue_projection',
+    'timeout-after-queue',
+  )
+  const realTimeoutCrashAfterCommit = await proveRealTimeoutProcessCrashRecovery(
+    'crash-timeout-after-commit',
+    'real-timeout-crash-after-commit',
+  )
+  const realTimeoutCrashAfterQueue = await proveRealTimeoutProcessCrashRecovery(
+    'crash-timeout-after-queue',
+    'real-timeout-crash-after-queue',
+  )
+  const timeoutRace = await proveCrossProcessTimeoutRace()
+  const timeoutTerminalRace = await proveTimeoutCompletionFailureTerminalRace()
+  await proveTimedOutAttemptCannotCompleteOrFail()
+  await proveTamperedTimeoutTransactionFailsClosed()
+  await proveTimeoutProjectionDriftFailsClosed()
+  await proveTimeoutBeforeExpiryFailsClosed()
+  await proveWrongControllerTimeoutIdentityFailsClosed()
+  const timeoutCost = await proveVersionedAttemptCostEvidenceBoundToTimeout()
   await proveTamperedTransactionFailsClosed()
   await proveProjectionDriftFailsClosed()
   await proveTransactionOnlyReadsRequireActiveLock()
   const queueRace = await proveGenericQueueCrossProcessClaimRace()
   const race = await proveCrossProcessClaimRace()
-  const expiredClaim = await proveExpiredClaimAdvancesAndExhaustionPersists()
+  const expiredClaim = await proveAcceptedWorkerTimeoutFencesAndExhaustionPersists()
   const staleLock = await proveDeadOwnerLockRecovery()
   await proveLockSymlinkRefusal()
 
@@ -164,12 +189,25 @@ try {
       'expired_package_attempt_cannot_reconcile_worker_failure',
       'unknown_internal_failure_requires_user_review_without_automatic_retry',
       'failed_attempt_receipt_binds_versioned_internal_production_cost_evidence',
+      'accepted_worker_timeout_release_and_terminal_outbox_share_one_write_ahead_commit',
+      'timeout_crash_after_commit_recovers_queue_and_outbox_together',
+      'timeout_crash_after_queue_projection_recovers_outbox_without_duplicate_release',
+      'real_process_exit_during_timeout_recovers_exactly_once_at_both_commit_stages',
+      'separate_node_processes_reconcile_one_timeout_and_one_exact_replay',
+      'timeout_completion_and_failure_race_terminalizes_exactly_one_outcome',
+      'terminal_timeout_cannot_later_be_reconciled_as_completion_or_failure',
+      'tampered_timeout_transaction_fails_closed_without_projection_mutation',
+      'timeout_projection_drift_fails_closed_without_overwrite',
+      'unexpired_accepted_worker_attempt_cannot_be_reconciled_as_timed_out',
+      'timeout_requires_the_exact_accepted_controller_principal',
+      'timed_out_attempt_receipt_binds_versioned_internal_production_cost_evidence',
       'tampered_transaction_record_fails_closed_without_projection_mutation',
       'out_of_band_projection_drift_fails_closed_without_overwrite',
       'transaction_only_projection_reads_require_live_package_lock_capability',
       'separate_node_processes_create_one_generic_queue_claim',
       'separate_node_processes_create_one_claim_one_attempt_and_one_outbox_entry',
-      'expired_active_claim_advances_once_and_attempt_exhaustion_persists_without_another_outbox',
+      'expired_accepted_worker_attempt_fences_later_attempt_until_atomic_timeout_reconciliation',
+      'second_reconciled_timeout_exhausts_attempts_without_a_third_outbox',
       'dead_same_host_lock_owner_is_reclaimed_after_real_child_process_termination',
       'lock_target_symlink_is_refused_without_external_file_mutation',
       'private_queue_outbox_transaction_and_lock_files_use_restrictive_modes',
@@ -192,6 +230,13 @@ try {
       crossProcessFailureDispositions: failureRace,
       completionFailureTerminalRace: terminalRace,
       failedAttemptInternalCostEvidence: failureCost,
+      timeoutAfterCommit,
+      timeoutAfterQueueProjection: timeoutAfterQueue,
+      realTimeoutCrashAfterCommit,
+      realTimeoutCrashAfterQueueProjection: realTimeoutCrashAfterQueue,
+      crossProcessTimeoutDispositions: timeoutRace,
+      timeoutCompletionFailureTerminalRace: timeoutTerminalRace,
+      timedOutAttemptInternalCostEvidence: timeoutCost,
       genericQueueCrossProcessDispositions: queueRace,
       crossProcessDispositions: race,
       expiredClaimAttemptProgression: expiredClaim,
@@ -1041,6 +1086,534 @@ async function proveVersionedAttemptCostEvidenceBoundToFailure() {
   }
 }
 
+interface AcceptedTimeoutFixture extends AcceptedCompletionFixture {
+  controllerServiceAccountEmail: string
+  workerServiceAccountEmail: string
+  attemptInternalCostEvidenceHash: string
+}
+
+async function createAcceptedTimeoutFixture(
+  suffix: string,
+  canonicalToolId = 'ffprobe',
+  attemptInternalCostEvidenceHash = sha256AuthorityValue({
+    suffix,
+    kind: 'timeout-attempt-internal-cost',
+  }),
+): Promise<AcceptedTimeoutFixture> {
+  const accepted = await createAcceptedCompletionFixture(suffix, canonicalToolId)
+  const outbox = await readPrivateCanonicalCloudDispatchOutbox({
+    scope: accepted.fixture.scope,
+  })
+  const entry = outbox?.entries.find((candidate) =>
+    candidate.immutable.dispatchIntentId === accepted.dispatchIntentId)
+  if (!entry) throw new Error('Accepted timeout outbox entry is missing.')
+  return {
+    ...accepted,
+    controllerServiceAccountEmail:
+      entry.immutable.controllerServiceAccountEmail,
+    workerServiceAccountEmail: entry.immutable.workerServiceAccountEmail,
+    attemptInternalCostEvidenceHash,
+  }
+}
+
+function timeoutControllerIdentity(
+  accepted: AcceptedTimeoutFixture,
+  now: string,
+  options: { principalEmail?: string; subject?: string } = {},
+): CanonicalVerifiedServiceIdentity {
+  return privateServiceIdentity({
+    authenticationMechanism: 'google_oidc_id_token',
+    principalEmail:
+      options.principalEmail ?? accepted.controllerServiceAccountEmail,
+    audience: controllerAudience,
+    subject: options.subject ?? 'completion-controller-subject',
+    now,
+  })
+}
+
+function timeoutWorkerIdentity(
+  accepted: AcceptedTimeoutFixture,
+  now: string,
+): CanonicalVerifiedServiceIdentity {
+  return privateServiceIdentity({
+    authenticationMechanism: 'google_cloud_run_workload_identity',
+    principalEmail: accepted.workerServiceAccountEmail,
+    audience: workerAudience,
+    subject: 'completion-worker-subject',
+    now,
+  })
+}
+
+function reconcileAcceptedTimeout(
+  accepted: AcceptedTimeoutFixture,
+  options: {
+    now?: string
+    verifiedIdentity?: CanonicalVerifiedServiceIdentity
+    attemptInternalCostEvidenceHash?: string
+    faultInjectionForSmoke?: (
+      stage: CanonicalPrivatePackageStateFaultStage,
+    ) => void
+  } = {},
+) {
+  const now = options.now ?? timeoutAt
+  return createCompletionService(accepted.fixture, now).reconcileWorkerTimeout({
+    dispatchIntentId: accepted.dispatchIntentId,
+    attemptInternalCostEvidenceHash:
+      options.attemptInternalCostEvidenceHash ??
+      accepted.attemptInternalCostEvidenceHash,
+    verifiedIdentity:
+      options.verifiedIdentity ?? timeoutControllerIdentity(accepted, now),
+    faultInjectionForSmoke: options.faultInjectionForSmoke,
+  })
+}
+
+async function proveTimeoutFaultRecovery(
+  stage: CanonicalPrivatePackageStateFaultStage,
+  suffix: string,
+) {
+  const accepted = await createAcceptedTimeoutFixture(suffix)
+  const initialQueueBytes = await readFile(accepted.fixture.queuePath, 'utf8')
+  const initialOutboxBytes = await readFile(accepted.fixture.outboxPath, 'utf8')
+  const sentinel = new Error(`simulated-timeout-crash-${stage}`)
+  await assert.rejects(
+    () => reconcileAcceptedTimeout(accepted, {
+      faultInjectionForSmoke: (currentStage) => {
+        if (currentStage === stage) throw sentinel
+      },
+    }),
+    (error: unknown) => error === sentinel,
+  )
+  const transactionBytes = await readFile(
+    accepted.fixture.transactionPath,
+    'utf8',
+  )
+  assert.equal((await stat(accepted.fixture.transactionPath)).mode & 0o777, 0o600)
+  assert.equal(transactionBytes.includes('claimCredential'), false)
+  assert.equal(transactionBytes.includes('Bearer '), false)
+  assert.equal(transactionBytes.includes('signedUrl'), false)
+  assert.equal(transactionBytes.includes('/Users/'), false)
+  assert.equal(transactionBytes.includes('timeout stack trace'), false)
+  if (stage === 'after_write_ahead_commit') {
+    assert.equal(
+      await readFile(accepted.fixture.queuePath, 'utf8'),
+      initialQueueBytes,
+    )
+  } else {
+    assert.notEqual(
+      await readFile(accepted.fixture.queuePath, 'utf8'),
+      initialQueueBytes,
+    )
+  }
+  assert.equal(
+    await readFile(accepted.fixture.outboxPath, 'utf8'),
+    initialOutboxBytes,
+  )
+  const recovered = await reconcileAcceptedTimeout(accepted)
+  assert.equal(recovered.disposition, 'exact_replay')
+  assert.equal(recovered.recovery.pendingTransactionRecovered, true)
+  assert.equal(recovered.recovery.outboxProjectionReplayed, true)
+  assert.equal(
+    recovered.recovery.queueProjectionReplayed,
+    stage === 'after_write_ahead_commit',
+  )
+  assert.equal(recovered.queueDisposition, 'retry_available')
+  assert.equal(recovered.remainingAttempts, 1)
+  await assertTimeoutPersistedExactlyOnce(accepted)
+  return {
+    queueProjectionReplayed: recovered.recovery.queueProjectionReplayed,
+    outboxProjectionReplayed: recovered.recovery.outboxProjectionReplayed,
+    disposition: recovered.disposition,
+  }
+}
+
+async function proveRealTimeoutProcessCrashRecovery(
+  mode: 'crash-timeout-after-commit' | 'crash-timeout-after-queue',
+  suffix: string,
+) {
+  const accepted = await createAcceptedTimeoutFixture(suffix)
+  const initialQueueBytes = await readFile(accepted.fixture.queuePath, 'utf8')
+  const initialOutboxBytes = await readFile(accepted.fixture.outboxPath, 'utf8')
+  const childInputs = await writeTimeoutChildInputs(accepted, suffix)
+  const child = spawnChild(mode, childInputs)
+  const exit = await waitForExit(child)
+  assert.equal(exit.code, 80)
+  assert.equal(exit.signal, null)
+  assert.equal(await pathExists(accepted.fixture.transactionPath), true)
+  assert.equal(await pathExists(accepted.fixture.lockPath), true)
+  if (mode === 'crash-timeout-after-commit') {
+    assert.equal(
+      await readFile(accepted.fixture.queuePath, 'utf8'),
+      initialQueueBytes,
+    )
+  } else {
+    assert.notEqual(
+      await readFile(accepted.fixture.queuePath, 'utf8'),
+      initialQueueBytes,
+    )
+  }
+  assert.equal(
+    await readFile(accepted.fixture.outboxPath, 'utf8'),
+    initialOutboxBytes,
+  )
+  const recovered = await reconcileAcceptedTimeout(accepted)
+  assert.equal(recovered.disposition, 'exact_replay')
+  assert.equal(recovered.recovery.pendingTransactionRecovered, true)
+  assert.equal(
+    recovered.recovery.queueProjectionReplayed,
+    mode === 'crash-timeout-after-commit',
+  )
+  assert.equal(recovered.recovery.outboxProjectionReplayed, true)
+  assert.equal(await pathExists(accepted.fixture.transactionPath), false)
+  assert.equal(await pathExists(accepted.fixture.lockPath), false)
+  await assertTimeoutPersistedExactlyOnce(accepted)
+  return {
+    childExitCode: exit.code,
+    queueProjectionReplayed: recovered.recovery.queueProjectionReplayed,
+    outboxProjectionReplayed: recovered.recovery.outboxProjectionReplayed,
+  }
+}
+
+async function proveCrossProcessTimeoutRace(): Promise<string[]> {
+  const accepted = await createAcceptedTimeoutFixture('timeout-cross-process-race')
+  const args = await writeTimeoutChildInputs(accepted, 'timeout-race')
+  const results = await Promise.all([
+    runChild('timeout', args),
+    runChild('timeout', args),
+  ])
+  const parsed = results.map((stdout) =>
+    JSON.parse(lastNonEmptyLine(stdout)) as {
+      disposition: string
+      receiptHash: string
+    })
+  assert.deepEqual(
+    parsed.map((result) => result.disposition).sort(),
+    ['exact_replay', 'reconciled'],
+  )
+  assert.equal(new Set(parsed.map((result) => result.receiptHash)).size, 1)
+  await assertTimeoutPersistedExactlyOnce(accepted)
+  return parsed.map((result) => result.disposition).sort()
+}
+
+async function proveTimeoutCompletionFailureTerminalRace(): Promise<string> {
+  const accepted = await createAcceptedTimeoutFixture(
+    'timeout-completion-failure-race',
+  )
+  const service = createCompletionService(accepted.fixture, timeoutAt)
+  const workerIdentity = timeoutWorkerIdentity(accepted, timeoutAt)
+  const results = await Promise.allSettled([
+    service.reconcileWorkerTimeout({
+      dispatchIntentId: accepted.dispatchIntentId,
+      attemptInternalCostEvidenceHash:
+        accepted.attemptInternalCostEvidenceHash,
+      verifiedIdentity: timeoutControllerIdentity(accepted, timeoutAt),
+    }),
+    service.reconcileWorkerCompletion({
+      dispatchIntentId: accepted.dispatchIntentId,
+      completionEvidence: accepted.completionEvidence,
+      verifiedIdentity: workerIdentity,
+    }),
+    service.reconcileWorkerFailure({
+      dispatchIntentId: accepted.dispatchIntentId,
+      failureEvidence: failureEvidence('timeout-completion-failure-race'),
+      verifiedIdentity: workerIdentity,
+    }),
+  ])
+  const fulfilled = results.filter((result) => result.status === 'fulfilled')
+  assert.equal(fulfilled.length, 1)
+  assert.equal(
+    fulfilled[0]?.status === 'fulfilled'
+      ? fulfilled[0].value.outboxState
+      : undefined,
+    'worker_timeout_reconciled',
+  )
+  for (const rejected of results.filter((result) =>
+    result.status === 'rejected')) {
+    assert.ok(rejected.status === 'rejected')
+    assert.ok(rejected.reason instanceof ApiError)
+    assert.ok([
+      'WORKER_LEASE_EXPIRED',
+      'IDEMPOTENCY_ATOMICITY_REQUIRED',
+    ].includes(rejected.reason.code))
+  }
+  const queue = await readPrivateCanonicalPackageWorkQueue({
+    scope: accepted.fixture.scope,
+    definition: accepted.fixture.definition,
+  })
+  const outbox = await readPrivateCanonicalCloudDispatchOutbox({
+    scope: accepted.fixture.scope,
+  })
+  assert.ok(queue)
+  assert.ok(outbox)
+  assert.equal(
+    (outbox.summary.workerCompletionReconciledCount ?? 0) +
+      (outbox.summary.workerFailureReconciledCount ?? 0) +
+      (outbox.summary.workerTimeoutReconciledCount ?? 0),
+    1,
+  )
+  assert.equal(queue.summary.completedJobCount, 0)
+  assert.equal(queue.summary.expiredClaimRecoveryCount, 1)
+  assert.equal(await pathExists(accepted.fixture.transactionPath), false)
+  return outbox.entries[0]!.state
+}
+
+async function proveTimedOutAttemptCannotCompleteOrFail(): Promise<void> {
+  const accepted = await createAcceptedTimeoutFixture('timeout-before-worker-result')
+  await reconcileAcceptedTimeout(accepted)
+  const queueBytes = await readFile(accepted.fixture.queuePath, 'utf8')
+  const outboxBytes = await readFile(accepted.fixture.outboxPath, 'utf8')
+  const service = createCompletionService(accepted.fixture, timeoutAt)
+  const workerIdentity = timeoutWorkerIdentity(accepted, timeoutAt)
+  await expectApiError(
+    () => service.reconcileWorkerCompletion({
+      dispatchIntentId: accepted.dispatchIntentId,
+      completionEvidence: accepted.completionEvidence,
+      verifiedIdentity: workerIdentity,
+    }),
+    'IDEMPOTENCY_ATOMICITY_REQUIRED',
+  )
+  await expectApiError(
+    () => service.reconcileWorkerFailure({
+      dispatchIntentId: accepted.dispatchIntentId,
+      failureEvidence: failureEvidence('timeout-before-worker-result'),
+      verifiedIdentity: workerIdentity,
+    }),
+    'IDEMPOTENCY_ATOMICITY_REQUIRED',
+  )
+  assert.equal(await readFile(accepted.fixture.queuePath, 'utf8'), queueBytes)
+  assert.equal(await readFile(accepted.fixture.outboxPath, 'utf8'), outboxBytes)
+}
+
+async function proveTamperedTimeoutTransactionFailsClosed(): Promise<void> {
+  const accepted = await createAcceptedTimeoutFixture('tampered-timeout-transaction')
+  const initialQueueBytes = await readFile(accepted.fixture.queuePath, 'utf8')
+  const initialOutboxBytes = await readFile(accepted.fixture.outboxPath, 'utf8')
+  const sentinel = new Error('stop-after-timeout-commit')
+  await assert.rejects(
+    () => reconcileAcceptedTimeout(accepted, {
+      faultInjectionForSmoke: (stage) => {
+        if (stage === 'after_write_ahead_commit') throw sentinel
+      },
+    }),
+    (error: unknown) => error === sentinel,
+  )
+  const untampered = await readFile(accepted.fixture.transactionPath, 'utf8')
+  const decoded = JSON.parse(untampered) as {
+    authority: { timeoutReceiptHash: string }
+  }
+  decoded.authority.timeoutReceiptHash = 'f'.repeat(64)
+  await writeFile(accepted.fixture.transactionPath, JSON.stringify(decoded))
+  await expectApiError(
+    () => reconcileAcceptedTimeout(accepted),
+    'VALIDATION_FAILED',
+  )
+  assert.equal(
+    await readFile(accepted.fixture.queuePath, 'utf8'),
+    initialQueueBytes,
+  )
+  assert.equal(
+    await readFile(accepted.fixture.outboxPath, 'utf8'),
+    initialOutboxBytes,
+  )
+  await writeFile(accepted.fixture.transactionPath, untampered)
+  assert.equal((await reconcileAcceptedTimeout(accepted)).disposition, 'exact_replay')
+}
+
+async function proveTimeoutProjectionDriftFailsClosed(): Promise<void> {
+  const accepted = await createAcceptedTimeoutFixture('timeout-projection-drift')
+  const initialQueueBytes = await readFile(accepted.fixture.queuePath, 'utf8')
+  const initialOutboxBytes = await readFile(accepted.fixture.outboxPath, 'utf8')
+  const sentinel = new Error('stop-before-timeout-projection')
+  await assert.rejects(
+    () => reconcileAcceptedTimeout(accepted, {
+      faultInjectionForSmoke: (stage) => {
+        if (stage === 'after_write_ahead_commit') throw sentinel
+      },
+    }),
+    (error: unknown) => error === sentinel,
+  )
+  await writeFile(accepted.fixture.queuePath, `${initialQueueBytes} `)
+  await expectApiError(
+    () => reconcileAcceptedTimeout(accepted),
+    'IDEMPOTENCY_CONFLICT',
+  )
+  assert.equal(
+    await readFile(accepted.fixture.outboxPath, 'utf8'),
+    initialOutboxBytes,
+  )
+  await writeFile(accepted.fixture.queuePath, initialQueueBytes)
+  assert.equal((await reconcileAcceptedTimeout(accepted)).disposition, 'exact_replay')
+}
+
+async function proveTimeoutBeforeExpiryFailsClosed(): Promise<void> {
+  const accepted = await createAcceptedTimeoutFixture('timeout-before-expiry')
+  const queueBytes = await readFile(accepted.fixture.queuePath, 'utf8')
+  const outboxBytes = await readFile(accepted.fixture.outboxPath, 'utf8')
+  await expectApiError(
+    () => reconcileAcceptedTimeout(accepted, {
+      now: completionAt,
+      verifiedIdentity: timeoutControllerIdentity(accepted, completionAt),
+    }),
+    'VALIDATION_FAILED',
+  )
+  assert.equal(await readFile(accepted.fixture.queuePath, 'utf8'), queueBytes)
+  assert.equal(await readFile(accepted.fixture.outboxPath, 'utf8'), outboxBytes)
+}
+
+async function proveWrongControllerTimeoutIdentityFailsClosed(): Promise<void> {
+  const accepted = await createAcceptedTimeoutFixture('wrong-timeout-controller')
+  const queueBytes = await readFile(accepted.fixture.queuePath, 'utf8')
+  const outboxBytes = await readFile(accepted.fixture.outboxPath, 'utf8')
+  await expectApiError(
+    () => reconcileAcceptedTimeout(accepted, {
+      verifiedIdentity: timeoutControllerIdentity(accepted, timeoutAt, {
+        principalEmail: 'wrong-controller@reeditpro-test.iam.gserviceaccount.com',
+      }),
+    }),
+    'INTERNAL_SERVICE_AUTH_INVALID',
+  )
+  assert.equal(await readFile(accepted.fixture.queuePath, 'utf8'), queueBytes)
+  assert.equal(await readFile(accepted.fixture.outboxPath, 'utf8'), outboxBytes)
+}
+
+async function proveVersionedAttemptCostEvidenceBoundToTimeout() {
+  const suffix = 'versioned-timeout-cost'
+  const accepted = await createAcceptedTimeoutFixture(suffix, 'deepfilternet')
+  const job = accepted.fixture.definition.jobs[0]!
+  const meter = await beginPrivateInternalAttemptCostEvidence({
+    localStorageRoot: accepted.fixture.rootPath,
+    workspaceId: accepted.fixture.definition.identity.workspaceId,
+    projectId: accepted.fixture.definition.identity.projectId,
+    editSessionId: accepted.fixture.definition.identity.editSessionId,
+    approvedPlanSnapshotId:
+      accepted.fixture.definition.identity.approvedPlanSnapshotId,
+    approvedWorkItemId: job.approvedWorkItemId,
+    jobId: job.jobId,
+    executionAttemptId: accepted.dispatchIntentId,
+    retryAttempt: 0,
+    toolId: 'deepfilternet',
+    operationId: 'tool.deepfilternet.enhance_voice.v1',
+  }, {
+    nowIso: () => timeoutAt,
+    monotonicNanoseconds: (() => {
+      const values = [3_000_000_000n, 4_750_000_000n]
+      return () => values.shift() ?? 4_750_000_000n
+    })(),
+  })
+  const finalized = await meter.finalize({
+    status: 'failed',
+    failureCategory: 'timeout',
+    outputByteLength: null,
+    linkedCanonicalOutcomeHash: null,
+  })
+  const reconciled = await reconcileAcceptedTimeout(accepted, {
+    attemptInternalCostEvidenceHash: finalized.evidence.evidenceHash,
+  })
+  const persisted = await readPrivateInternalAttemptCostEvidence({
+    localStorageRoot: accepted.fixture.rootPath,
+    workspaceId: accepted.fixture.definition.identity.workspaceId,
+    projectId: accepted.fixture.definition.identity.projectId,
+    executionAttemptId: accepted.dispatchIntentId,
+  })
+  assert.ok(persisted)
+  assert.equal(
+    persisted.evidenceHash,
+    reconciled.receipt.attemptInternalCostEvidenceHash,
+  )
+  assert.equal(persisted.rateCardVersion, 'rp-ratecard-01-mock-safe')
+  assert.equal(persisted.boundary, 'internal_production_cost_only')
+  assert.equal(persisted.outcome.status, 'failed')
+  assert.equal(persisted.outcome.failureCategory, 'timeout')
+  assert.equal(persisted.identity.toolId, 'deepfilternet')
+  assert.equal(persisted.identity.jobId, job.jobId)
+  assert.equal(persisted.actualInternalCostMicros > 0, true)
+  assert.equal(persisted.persistence.databaseBacked, false)
+  assert.equal(persisted.persistence.invoiceReconciled, false)
+  assert.equal(reconciled.receipt.failureCategory, 'execution_timeout')
+  assert.equal(reconciled.receipt.failureCode, 'WORKER_LEASE_EXPIRED')
+  assert.equal(
+    reconciled.receipt.boundaries
+      .customerPriceCreditsServiceFeeWalletOrBillingIncluded,
+    false,
+  )
+  return {
+    rateCardVersion: persisted.rateCardVersion,
+    actualInternalCostMicros: persisted.actualInternalCostMicros,
+    attemptCostBoundary: persisted.boundary,
+    failureCategory: persisted.outcome.failureCategory,
+    customerCommercialAuthorityIncluded: false,
+  }
+}
+
+async function assertTimeoutPersistedExactlyOnce(
+  accepted: AcceptedTimeoutFixture,
+): Promise<void> {
+  const queue = await readPrivateCanonicalPackageWorkQueue({
+    scope: accepted.fixture.scope,
+    definition: accepted.fixture.definition,
+  })
+  const outbox = await readPrivateCanonicalCloudDispatchOutbox({
+    scope: accepted.fixture.scope,
+  })
+  assert.ok(queue)
+  assert.ok(outbox)
+  assert.equal(queue.summary.completedJobCount, 0)
+  assert.equal(queue.summary.leasedJobCount, 0)
+  assert.equal(queue.summary.expiredClaimRecoveryCount, 1)
+  assert.equal(queue.entries[0]?.state, 'queued')
+  assert.equal(queue.entries[0]?.activeClaim, undefined)
+  assert.equal(queue.entries[0]?.completion, undefined)
+  assert.equal(outbox.summary.workerTimeoutReconciledCount, 1)
+  assert.equal(outbox.summary.workerCompletionReconciledCount, 0)
+  assert.equal(outbox.summary.workerFailureReconciledCount, 0)
+  assert.equal(outbox.events.filter((event) =>
+    event.eventType === 'worker_timeout_reconciled').length, 1)
+  const release = queue.entries[0]?.lastRelease
+  const receipt = outbox.entries[0]?.timeoutReceipt
+  assert.ok(release?.dispatchTimeout)
+  assert.ok(receipt)
+  assert.equal(receipt.queueReleaseHash, release.releaseHash)
+  assert.equal(
+    receipt.attemptInternalCostEvidenceHash,
+    accepted.attemptInternalCostEvidenceHash,
+  )
+  assert.equal(
+    receipt.boundaries.customerPriceCreditsServiceFeeWalletOrBillingIncluded,
+    false,
+  )
+  assert.equal(await pathExists(accepted.fixture.transactionPath), false)
+}
+
+async function writeTimeoutChildInputs(
+  accepted: AcceptedTimeoutFixture,
+  suffix: string,
+): Promise<string[]> {
+  const scopePath = join(accepted.fixture.rootPath, `${suffix}-scope.json`)
+  const definitionPath = join(
+    accepted.fixture.rootPath,
+    `${suffix}-definition.json`,
+  )
+  const manifestPath = join(accepted.fixture.rootPath, `${suffix}-manifest.json`)
+  const evidencePath = join(
+    accepted.fixture.rootPath,
+    `${suffix}-timeout-evidence.json`,
+  )
+  await writeFile(scopePath, JSON.stringify(accepted.fixture.scope))
+  await writeFile(definitionPath, JSON.stringify(accepted.fixture.definition))
+  await writeFile(manifestPath, JSON.stringify(accepted.fixture.manifest))
+  await writeFile(evidencePath, JSON.stringify({
+    attemptInternalCostEvidenceHash:
+      accepted.attemptInternalCostEvidenceHash,
+  }))
+  return [
+    scopePath,
+    definitionPath,
+    manifestPath,
+    timeoutAt,
+    evidencePath,
+    accepted.dispatchIntentId,
+  ]
+}
+
 async function assertFailurePersistedExactlyOnce(
   accepted: AcceptedFailureFixture,
 ): Promise<void> {
@@ -1266,40 +1839,180 @@ async function proveGenericQueueCrossProcessClaimRace(): Promise<string[]> {
   return parsed.map((result) => result.disposition).sort()
 }
 
-async function proveExpiredClaimAdvancesAndExhaustionPersists() {
-  const fixture = await createFixture('expired-claim-progression')
-  const first = await claim(fixture)
-  assert.equal(first.disposition, 'created')
-  if (!('outboxEntry' in first)) throw new Error('First dispatch attempt was not created.')
-  assert.equal(first.queueEntry.activeClaim.deliveryAttempt, 1)
-
-  const secondAttemptAt = new Date(Date.parse(committedAt) + 121_000).toISOString()
-  const second = await claim(fixture, { now: secondAttemptAt })
-  assert.equal(second.disposition, 'created')
-  if (!('outboxEntry' in second)) throw new Error('Second dispatch attempt was not created.')
-  assert.equal(second.queueEntry.activeClaim.deliveryAttempt, 2)
-  assert.notEqual(second.queueEntry.activeClaim.claimId, first.queueEntry.activeClaim.claimId)
-
-  const exhaustedAt = new Date(Date.parse(secondAttemptAt) + 121_000).toISOString()
-  const exhausted = await claim(fixture, { now: exhaustedAt })
-  assert.equal(exhausted.disposition, 'attempts_exhausted')
-  assert.equal(exhausted.queueEntry.state, 'queued')
-  assert.equal(exhausted.queueEntry.activeClaim, undefined)
-
-  const queue = await readPrivateCanonicalPackageWorkQueue({
-    scope: fixture.scope,
-    definition: fixture.definition,
+async function proveAcceptedWorkerTimeoutFencesAndExhaustionPersists() {
+  const accepted = await createAcceptedTimeoutFixture(
+    'accepted-worker-timeout-progression',
+  )
+  const initialOutbox = await readPrivateCanonicalCloudDispatchOutbox({
+    scope: accepted.fixture.scope,
   })
-  const outbox = await readPrivateCanonicalCloudDispatchOutbox({ scope: fixture.scope })
+  const firstEntry = initialOutbox?.entries.find((entry) =>
+    entry.immutable.dispatchIntentId === accepted.dispatchIntentId)
+  if (!firstEntry) throw new Error('First accepted timeout attempt is missing.')
+  const queueBeforeFence = await readFile(accepted.fixture.queuePath, 'utf8')
+  const outboxBeforeFence = await readFile(accepted.fixture.outboxPath, 'utf8')
+  const timeoutService = createCompletionService(accepted.fixture, timeoutAt)
+  const fenced = await timeoutService.enqueueApprovedAttempt({
+    jobId: accepted.fixture.definition.jobs[0]!.jobId,
+  })
+  assert.equal(fenced.disposition, 'stale_attempt_reconciliation_required')
+  assert.equal(
+    'requiredGate' in fenced ? fenced.requiredGate : undefined,
+    'canonical_cloud_dispatch_accepted_worker_timeout_reconciliation',
+  )
+  assert.equal(
+    await readFile(accepted.fixture.queuePath, 'utf8'),
+    queueBeforeFence,
+  )
+  assert.equal(
+    await readFile(accepted.fixture.outboxPath, 'utf8'),
+    outboxBeforeFence,
+  )
+
+  const firstTimeout = await reconcileAcceptedTimeout(accepted)
+  assert.equal(firstTimeout.disposition, 'reconciled')
+  assert.equal(firstTimeout.queueDisposition, 'retry_available')
+  assert.equal(firstTimeout.retryDisposition, 'retry_same_approved_operation')
+  assert.equal(firstTimeout.remainingAttempts, 1)
+  assert.equal(firstTimeout.boundaries.automaticRetryLoopStarted, false)
+  const firstReplay = await reconcileAcceptedTimeout(accepted)
+  assert.equal(firstReplay.disposition, 'exact_replay')
+  assert.equal(firstReplay.receipt.receiptHash, firstTimeout.receipt.receiptHash)
+
+  const secondService = createCompletionService(accepted.fixture, timeoutAt)
+  const second = await secondService.enqueueApprovedAttempt({
+    jobId: accepted.fixture.definition.jobs[0]!.jobId,
+  })
+  assert.equal(second.disposition, 'created')
+  if (!('outboxEntry' in second) || !('attemptPlan' in second)) {
+    throw new Error('Second dispatch attempt was not created after reconciliation.')
+  }
+  assert.equal(second.outboxEntry.immutable.packageDeliveryAttempt, 2)
+  assert.notEqual(
+    second.outboxEntry.immutable.queueClaimId,
+    firstEntry.immutable.queueClaimId,
+  )
+  const secondTaskBody = second.attemptPlan.cloudTask?.taskBody
+  if (!secondTaskBody) throw new Error('Second timeout task body is missing.')
+  const secondControllerSubject = 'timeout-second-controller-subject'
+  await secondService.receiveController({
+    taskBody: secondTaskBody,
+    verifiedIdentity: privateServiceIdentity({
+      authenticationMechanism: 'google_oidc_id_token',
+      principalEmail:
+        second.outboxEntry.immutable.controllerServiceAccountEmail,
+      audience: controllerAudience,
+      subject: secondControllerSubject,
+      now: timeoutAt,
+    }),
+  })
+  const secondInvocation = await secondService.createWorkerInvocation(
+    second.outboxEntry.immutable.dispatchIntentId,
+  )
+  await secondService.receiveWorker({
+    invocation: secondInvocation,
+    verifiedIdentity: privateServiceIdentity({
+      authenticationMechanism: 'google_cloud_run_workload_identity',
+      principalEmail: second.outboxEntry.immutable.workerServiceAccountEmail,
+      audience: workerAudience,
+      subject: 'timeout-second-worker-subject',
+      now: timeoutAt,
+    }),
+  })
+
+  const secondTimeoutAt = new Date(Date.parse(timeoutAt) + 121_000).toISOString()
+  const queueBeforeSecondFence = await readFile(
+    accepted.fixture.queuePath,
+    'utf8',
+  )
+  const outboxBeforeSecondFence = await readFile(
+    accepted.fixture.outboxPath,
+    'utf8',
+  )
+  const secondTimeoutService = createCompletionService(
+    accepted.fixture,
+    secondTimeoutAt,
+  )
+  const secondFenced = await secondTimeoutService.enqueueApprovedAttempt({
+    jobId: accepted.fixture.definition.jobs[0]!.jobId,
+  })
+  assert.equal(
+    secondFenced.disposition,
+    'stale_attempt_reconciliation_required',
+  )
+  assert.equal(
+    await readFile(accepted.fixture.queuePath, 'utf8'),
+    queueBeforeSecondFence,
+  )
+  assert.equal(
+    await readFile(accepted.fixture.outboxPath, 'utf8'),
+    outboxBeforeSecondFence,
+  )
+  const secondTimeoutCostHash = sha256AuthorityValue({
+    suffix: 'accepted-worker-timeout-progression',
+    kind: 'second-timeout-internal-cost',
+  })
+  const secondTimeout = await secondTimeoutService.reconcileWorkerTimeout({
+    dispatchIntentId: second.outboxEntry.immutable.dispatchIntentId,
+    attemptInternalCostEvidenceHash: secondTimeoutCostHash,
+    verifiedIdentity: privateServiceIdentity({
+      authenticationMechanism: 'google_oidc_id_token',
+      principalEmail:
+        second.outboxEntry.immutable.controllerServiceAccountEmail,
+      audience: controllerAudience,
+      subject: secondControllerSubject,
+      now: secondTimeoutAt,
+    }),
+  })
+  assert.equal(secondTimeout.disposition, 'reconciled')
+  assert.equal(secondTimeout.queueDisposition, 'attempts_exhausted')
+  assert.equal(
+    secondTimeout.retryDisposition,
+    'fallback_or_user_review_required',
+  )
+  assert.equal(secondTimeout.remainingAttempts, 0)
+  const secondReplay = await secondTimeoutService.reconcileWorkerTimeout({
+    dispatchIntentId: second.outboxEntry.immutable.dispatchIntentId,
+    attemptInternalCostEvidenceHash: secondTimeoutCostHash,
+    verifiedIdentity: privateServiceIdentity({
+      authenticationMechanism: 'google_oidc_id_token',
+      principalEmail:
+        second.outboxEntry.immutable.controllerServiceAccountEmail,
+      audience: controllerAudience,
+      subject: secondControllerSubject,
+      now: secondTimeoutAt,
+    }),
+  })
+  assert.equal(secondReplay.disposition, 'exact_replay')
+  assert.equal(secondReplay.receipt.receiptHash, secondTimeout.receipt.receiptHash)
+
+  const exhausted = await secondTimeoutService.enqueueApprovedAttempt({
+    jobId: accepted.fixture.definition.jobs[0]!.jobId,
+  })
+  assert.equal(exhausted.disposition, 'attempts_exhausted')
+  const queue = await readPrivateCanonicalPackageWorkQueue({
+    scope: accepted.fixture.scope,
+    definition: accepted.fixture.definition,
+  })
+  const outbox = await readPrivateCanonicalCloudDispatchOutbox({
+    scope: accepted.fixture.scope,
+  })
   assert.equal(queue?.entries[0]?.state, 'queued')
   assert.equal(queue?.entries[0]?.activeClaim, undefined)
   assert.equal(queue?.summary.totalDeliveryAttemptCount, 2)
   assert.equal(queue?.summary.expiredClaimRecoveryCount, 2)
   assert.equal(outbox?.summary.totalEntryCount, 2)
+  assert.equal(outbox?.summary.workerTimeoutReconciledCount, 2)
+  assert.equal(outbox?.summary.workerCompletionReconciledCount, 0)
+  assert.equal(outbox?.summary.workerFailureReconciledCount, 0)
   return {
+    firstFence: fenced.disposition,
+    firstTimeoutDisposition: firstTimeout.queueDisposition,
+    secondFence: secondFenced.disposition,
     deliveryAttemptCount: queue?.summary.totalDeliveryAttemptCount,
     expiredClaimRecoveryCount: queue?.summary.expiredClaimRecoveryCount,
     outboxEntryCount: outbox?.summary.totalEntryCount,
+    terminalTimeoutCount: outbox?.summary.workerTimeoutReconciledCount,
     finalDisposition: exhausted.disposition,
   }
 }
@@ -1685,7 +2398,8 @@ function spawnChild(
   mode: 'claim' | 'queue-claim' | 'hold-lock' | 'crash-after-commit' |
     'crash-after-queue' | 'complete' | 'crash-completion-after-commit' |
     'crash-completion-after-queue' | 'fail' | 'crash-failure-after-commit' |
-    'crash-failure-after-queue',
+    'crash-failure-after-queue' | 'timeout' | 'crash-timeout-after-commit' |
+    'crash-timeout-after-queue',
   args: string[],
 ): ChildProcess {
   return spawn(
@@ -1701,7 +2415,7 @@ function spawnChild(
 }
 
 async function runChild(
-  mode: 'claim' | 'queue-claim' | 'complete' | 'fail',
+  mode: 'claim' | 'queue-claim' | 'complete' | 'fail' | 'timeout',
   args: string[],
 ): Promise<string> {
   const child = spawnChild(mode, args)

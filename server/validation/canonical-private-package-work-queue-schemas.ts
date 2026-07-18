@@ -15,6 +15,9 @@ import {
   PROFESSIONAL_LONG_FORM_SOURCE_AUTHORITY_WORK_ITEM_ID,
 } from '../edit-architecture/professional-long-form-source-authority-execution-contract'
 import {
+  PROFESSIONAL_LONG_FORM_MASTER_TIMING_WORK_ITEM_ID,
+} from '../edit-architecture/professional-long-form-master-timing-execution-contract'
+import {
   professionalLongFormAuthorizedChildAuthorizationReceiptSchema,
   professionalLongFormAuthorizedChildCompletionSchema,
   professionalLongFormAuthorizedChildExecutionAttemptSchema,
@@ -266,7 +269,9 @@ export const canonicalPrivatePackageWorkQueueEntrySchema = z.object({
     (entry.definition.approvedWorkItemId !==
       PROFESSIONAL_LONG_FORM_FIRST_CHILD_WORK_ITEM_ID &&
       entry.definition.approvedWorkItemId !==
-        PROFESSIONAL_LONG_FORM_SOURCE_AUTHORITY_WORK_ITEM_ID) ||
+        PROFESSIONAL_LONG_FORM_SOURCE_AUTHORITY_WORK_ITEM_ID &&
+      entry.definition.approvedWorkItemId !==
+        PROFESSIONAL_LONG_FORM_MASTER_TIMING_WORK_ITEM_ID) ||
     entry.definition.requiredGate !==
       'canonical_professional_long_form_exact_tool_cost_runner_and_qa_authority' ||
     authorization.jobId !== entry.definition.jobId ||

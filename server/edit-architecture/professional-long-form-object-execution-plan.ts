@@ -693,7 +693,12 @@ function buildWorkGraph(
     const renderId = `${chunk.chunkId}:render`
     const qaId = `${chunk.chunkId}:qa`
     return [
-      workItem(renderId, 'render_object_mezzanine_chunk', [validateSnapshotId, validateSourcesId], chunk.expectedObject.objectIdentity),
+      workItem(
+        renderId,
+        'render_object_mezzanine_chunk',
+        [validateSnapshotId, validateSourcesId, timingQaId],
+        chunk.expectedObject.objectIdentity,
+      ),
       workItem(qaId, 'qa_object_mezzanine_chunk', [renderId], `${chunk.expectedObject.objectIdentity}:qa`),
     ]
   })

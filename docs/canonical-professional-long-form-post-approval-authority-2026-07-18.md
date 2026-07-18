@@ -1,6 +1,6 @@
 # Canonical Professional Long-Form Post-Approval Authority — 2026-07-18
 
-Status: `superseded_by_private_source_authority_validation_execution`
+Status: `superseded_by_private_master_timing_validation_execution`
 
 ## Outcome
 
@@ -33,8 +33,11 @@ The promotion snapshot initially leaves all children capability-blocked. The
 root snapshot-validation continuation executes the first child; see
 `docs/canonical-professional-long-form-first-child-execution-2026-07-18.md`.
 The source-authority continuation now executes the second child while the
-remaining 253 stay blocked; see
+master-timing continuation executes the third child while the remaining 252
+stay blocked; see
 `docs/canonical-professional-long-form-source-authority-execution-2026-07-18.md`.
+The timing boundary is documented in
+`docs/canonical-professional-long-form-master-timing-execution-2026-07-18.md`.
 This remains far short of long-form media execution.
 
 ## Honest Work-Graph Boundary
@@ -67,7 +70,7 @@ it does not rewrite or weaken the derivation record above.
 ## Focused Evidence
 
 The post-approval/promotion baseline passed 32 checks. The current combined
-promotion/root/source-authority smoke passes 61 checks.
+promotion/root/source-authority/master-timing smoke passes 80 checks.
 Its maximum-capacity local/private fixture uses:
 
 - one confirmed `3840x2160`, 30 fps frame;
@@ -83,32 +86,35 @@ Its maximum-capacity local/private fixture uses:
 - four parent jobs in the canonical aggregate; and
 - zero ordinary execution packages; and
 - one specialized 255-job private queue that begins with zero leases, attempts,
-  or completions and now ends the focused continuation with exactly two
-  completed validation children and 253 blocked children.
+  or completions and now ends the focused continuation with exactly three
+  completed validation children and 252 blocked children.
 
 The smoke proves exact publication replay, changed-seed idempotency conflict,
 identity and source-content substitution rejection, publication-without-jobs,
 approval-time seed/controller freezing, fresh-service authority reload, package
 refusal, restart-safe bridge/manifest replay, child-record tamper rejection,
 concurrent one-create/one-replay queue promotion, exact placement counts,
-capability-blocked render/audio claim refusal without mutation, queue checksum
+capability-blocked render/audio/finalization claim refusal without mutation,
+queue checksum
 corruption refusal/recovery, dispatch self-promotion rejection, aggregate
 non-mutation, exact source-authority validation over all 512 ranges, and
-fail-closed root/source content-addressed evidence corruption after restart.
+fail-closed root/source/timing content-addressed evidence corruption after
+restart, exact 18-category timing validation, and approved timing component,
+segment, estimate-metadata, and expected-output tamper refusal.
 
-`npm run smoke:professional-long-form-object-plan` continues to pass 26 checks,
+`npm run smoke:professional-long-form-object-plan` continues to pass 27 checks,
 `npm run smoke:professional-long-form-snapshot-bridge` passes 22 checks, and
 `npm run smoke:edit-planning-authority` passes its complete canonical authority
 regression after this integration.
 
 ## Aggregate Evidence
 
-The exact-code `npm run qa:internal-pipeline` v21 aggregate passed all `37/37`
-stages with exit code `0`. It started at `2026-07-18T11:38:02.672Z`, finished
-at `2026-07-18T12:05:41.896Z`, and completed in `1,659,224 ms`. The long-form
-planning stage passed in `340 ms`, the approved-snapshot bridge in `612 ms`,
-and this canonical post-approval/promotion/root/source-authority stage passed
-61 checks in `12,856 ms`.
+The exact-code `npm run qa:internal-pipeline` v22 aggregate passed all `37/37`
+stages with exit code `0`. It started at `2026-07-18T12:52:16.698Z`, finished
+at `2026-07-18T13:23:50.164Z`, and completed in `1,893,466 ms`. The long-form
+planning stage passed 27 checks in `434 ms`, the approved-snapshot bridge passed
+22 checks in `736 ms`, and this canonical post-approval/promotion/root/source-
+authority/master-timing stage passed 80 checks in `24,569 ms`.
 
 The aggregate reverified exactly 50 canonical E2E tool identities and 50 job
 adapters, the existing bounded private media lifecycles, all 11 named-edit
@@ -116,20 +122,24 @@ browser tests, and the accepted maximum-eight-source 27-job private review.
 That machine-readable report marks canonical seed-component, server-loaded
 controller, child-manifest, specialized child-package, child-placement, and
 child-queue persistence true. It separately marks both the root and private
-source-authority children's authority, lease, exact operation binding, attempt
-cost, one-use internal dispatch, private validation-artifact persistence, QA,
-reconciliation, dependency evidence, completion, and replay true. The source
-child validates all 512 ranges and 125 direct downstream dependencies without
-granting media execution. Source-media, chunk-render, and object-storage
-execution, remaining-child execution, live Google Cloud completion, external
-beta, and paid production remain false. The v20 root-only and v18 promotion-
+source-authority, and master-timing children's authority, lease, exact
+operation binding, attempt cost, one-use internal dispatch, private validation-
+artifact persistence, QA, reconciliation, dependency evidence, completion,
+and replay true. The source child validates all 512 ranges and 125 direct
+downstream dependencies without granting media execution. The timing child
+validates the exact approved timing components, rational frame base, all 512
+segments, 18 validation categories, estimate coverage, and 126 downstream
+dependencies. Source-media, chunk-render, and object-storage execution, the
+remaining 252 children, live Google Cloud completion, external beta, and paid
+production remain false. The v21 source-only, v20 root-only, and v18 promotion-
 only aggregates are historical evidence.
 
 ## Cost and Commercial Boundary
 
 The approved seed requires attempt-level internal production-cost evidence.
-That requirement alone creates no attempt or cost record; the root and source
-executions now satisfy it for their two separate exact attempts. The other 253
+That requirement alone creates no attempt or cost record; the root, source, and
+timing executions now satisfy it for their three separate exact attempts. The
+other 252
 children still need separate scoped evidence. Neither the requirement nor
 either validation record
 creates customer price, customer credit amount, service fee, wallet mutation,
@@ -151,7 +161,7 @@ Preference/Edit Reference implementation changed in this slice.
 
 ## Readiness Truth
 
-Now verified through this foundation and its root/source continuations:
+Now verified through this foundation and its root/source/timing continuations:
 
 - canonical long-form seed-component persistence;
 - server-loaded controller persistence and approval binding;
@@ -164,12 +174,15 @@ Now verified through this foundation and its root/source continuations:
 - one source-authority operation/runner authorization, lease, one-use start,
   512-range validation, private artifact, QA, reconciliation, attempt cost,
   completion, and replay;
+- one master-timing operation/runner authorization, QA-worker lease, one-use
+  start, exact component/frame/approval/estimate validation, private artifact,
+  QA, 126-dependent reconciliation, attempt cost, completion, and replay;
 - exact restart/replay behavior; and
 - fail-closed normal-package, dispatch, tamper, and self-promotion boundaries.
 
 Still false:
 
-- remaining 253 child leases and one-use dispatches;
+- remaining 252 child leases and one-use dispatches;
 - source-media decode/transform and chunk tool-operation, cost-budget, runner,
   and QA authority;
 - object-store media persistence;
@@ -183,8 +196,9 @@ Still false:
 
 ## Next Evidence Gate
 
-The root snapshot-validation and private source-authority gates are complete.
-The next dependency-safe slice must remain a separately versioned timing or
-chunk/media operation with exact private-object, QA, recovery, reconciliation,
+The root snapshot-validation, private source-authority, and structured master-
+timing gates are complete. The next dependency-safe slice must remain a
+separately versioned representative chunk/media operation with exact private-
+object, QA, recovery, reconciliation,
 and attempt-cost authority. It must not grant a broad class of render jobs or
 imply that long-form media has already been decoded or rendered.

@@ -38,8 +38,14 @@ import {
   PROFESSIONAL_LONG_FORM_SOURCE_AUTHORITY_WORK_ITEM_ID,
 } from '../edit-architecture/professional-long-form-source-authority-execution-contract'
 import {
+  PROFESSIONAL_LONG_FORM_MASTER_TIMING_EXECUTION_ATTEMPT_VERSION,
+  PROFESSIONAL_LONG_FORM_MASTER_TIMING_WORK_ITEM_ID,
+} from '../edit-architecture/professional-long-form-master-timing-execution-contract'
+import {
   isProfessionalLongFormFirstChildAuthorization,
   isProfessionalLongFormFirstChildExecutionAuthority,
+  isProfessionalLongFormMasterTimingAuthorization,
+  isProfessionalLongFormMasterTimingExecutionAuthority,
   isProfessionalLongFormSourceAuthorityAuthorization,
   isProfessionalLongFormSourceAuthorityExecutionAuthority,
   professionalLongFormAuthorizedChildAuthorizationReceiptSchema,
@@ -352,10 +358,15 @@ export async function beginPrivateCanonicalPackageWorkQueueExecutionAttempt(inpu
     const sourceAuthorityAttempt =
       authorization.approvedWorkItemId ===
         PROFESSIONAL_LONG_FORM_SOURCE_AUTHORITY_WORK_ITEM_ID
+    const masterTimingAttempt =
+      authorization.approvedWorkItemId ===
+        PROFESSIONAL_LONG_FORM_MASTER_TIMING_WORK_ITEM_ID
     const attemptWithoutHash = {
-      schemaVersion: sourceAuthorityAttempt
-        ? PROFESSIONAL_LONG_FORM_SOURCE_AUTHORITY_EXECUTION_ATTEMPT_VERSION
-        : PROFESSIONAL_LONG_FORM_FIRST_CHILD_EXECUTION_ATTEMPT_VERSION,
+      schemaVersion: masterTimingAttempt
+        ? PROFESSIONAL_LONG_FORM_MASTER_TIMING_EXECUTION_ATTEMPT_VERSION
+        : sourceAuthorityAttempt
+          ? PROFESSIONAL_LONG_FORM_SOURCE_AUTHORITY_EXECUTION_ATTEMPT_VERSION
+          : PROFESSIONAL_LONG_FORM_FIRST_CHILD_EXECUTION_ATTEMPT_VERSION,
       source: 'private_canonical_package_work_queue_store' as const,
       executionAttemptId: `long-form-child-attempt-${sha256AuthorityValue({
         authorizationId: authorization.authorizationId,
@@ -1590,6 +1601,17 @@ function assertPersistedProfessionalLongFormExecutionAuthority(input: {
         input.authorization.placementHash ||
       input.executionAuthority.lineage.sourceRangesHash !==
         input.authorization.expectedOutputIdentity
+  } else if (
+    isProfessionalLongFormMasterTimingAuthorization(input.authorization)
+  ) {
+    pairInvalid = !isProfessionalLongFormMasterTimingExecutionAuthority(
+      input.executionAuthority,
+    ) || input.executionAuthority.lineage.timingJobDefinitionHash !==
+      input.authorization.jobDefinitionHash ||
+      input.executionAuthority.lineage.timingPlacementHash !==
+        input.authorization.placementHash ||
+      input.executionAuthority.lineage.timingHash !==
+        input.authorization.expectedOutputIdentity
   }
   if (commonInvalid || pairInvalid) {
     throw new ApiError(
@@ -1626,39 +1648,61 @@ function exactProfessionalLongFormAuthorizationMatches(
     entry.definition.approvedWorkItemId === authorization.approvedWorkItemId &&
     entry.definition.definitionHash === authorization.jobDefinitionHash &&
     entry.definition.placementHash === authorization.placementHash &&
-    entry.definition.workerType === 'api_service' &&
-    entry.definition.resourceClassId === 'control_plane_cpu_v1' &&
-    entry.definition.maxAttempts === 1 &&
-    entry.definition.attemptTimeoutSeconds === 300 &&
+    entry.definition.expectedOutputIdentity ===
+      authorization.expectedOutputIdentity &&
     !entry.definition.privateExecutionReady &&
     entry.definition.providerExecutionMode === 'none' &&
     authorization.authorityRef.sha256.length === 64
   if (!commonMatches) return false
   if (isProfessionalLongFormFirstChildAuthorization(authorization)) {
-    return entry.definition.canonicalOrder === 0 &&
+    return entry.definition.workerType === 'api_service' &&
+      entry.definition.resourceClassId === 'control_plane_cpu_v1' &&
+      entry.definition.maxAttempts === 1 &&
+      entry.definition.attemptTimeoutSeconds === 300 &&
+      entry.definition.canonicalOrder === 0 &&
       entry.definition.approvedWorkItemId ===
         PROFESSIONAL_LONG_FORM_FIRST_CHILD_WORK_ITEM_ID &&
       entry.definition.dependencyJobIds.length === 0 &&
       entry.definition.satisfiedPromotionDependencyJobIds?.length === 1 &&
       authorization.expectedOutputIdentity === aggregate.identity.snapshotHash
   }
-  if (!isProfessionalLongFormSourceAuthorityAuthorization(authorization)) {
+  const hasCompletedRootDependency = (): boolean => {
+    const rootDependencyJobId = entry.definition.dependencyJobIds[0]
+    const rootDependency = aggregate.entries.find((candidate) =>
+      candidate.definition.jobId === rootDependencyJobId)
+    return rootDependency?.definition.canonicalOrder === 0 &&
+      rootDependency.definition.approvedWorkItemId ===
+        PROFESSIONAL_LONG_FORM_FIRST_CHILD_WORK_ITEM_ID &&
+      rootDependency.state === 'completed' &&
+      rootDependency.completion?.outcome.professionalLongFormExecution !== undefined
+  }
+  if (isProfessionalLongFormSourceAuthorityAuthorization(authorization)) {
+    return entry.definition.workerType === 'api_service' &&
+      entry.definition.resourceClassId === 'control_plane_cpu_v1' &&
+      entry.definition.maxAttempts === 1 &&
+      entry.definition.attemptTimeoutSeconds === 300 &&
+      entry.definition.canonicalOrder === 1 &&
+      entry.definition.approvedWorkItemId ===
+        PROFESSIONAL_LONG_FORM_SOURCE_AUTHORITY_WORK_ITEM_ID &&
+      entry.definition.dependencyJobIds.length === 1 &&
+      entry.definition.satisfiedPromotionDependencyJobIds?.length === 0 &&
+      authorization.expectedOutputIdentity.length === 64 &&
+      hasCompletedRootDependency()
+  }
+  if (!isProfessionalLongFormMasterTimingAuthorization(authorization)) {
     return false
   }
-  const rootDependencyJobId = entry.definition.dependencyJobIds[0]
-  const rootDependency = aggregate.entries.find((candidate) =>
-    candidate.definition.jobId === rootDependencyJobId)
-  return entry.definition.canonicalOrder === 1 &&
+  return entry.definition.workerType === 'qa_worker' &&
+    entry.definition.resourceClassId === 'qa_cpu_standard_v1' &&
+    entry.definition.maxAttempts === 1 &&
+    entry.definition.attemptTimeoutSeconds === 900 &&
+    entry.definition.canonicalOrder === 2 &&
     entry.definition.approvedWorkItemId ===
-      PROFESSIONAL_LONG_FORM_SOURCE_AUTHORITY_WORK_ITEM_ID &&
+      PROFESSIONAL_LONG_FORM_MASTER_TIMING_WORK_ITEM_ID &&
     entry.definition.dependencyJobIds.length === 1 &&
     entry.definition.satisfiedPromotionDependencyJobIds?.length === 0 &&
     authorization.expectedOutputIdentity.length === 64 &&
-    rootDependency?.definition.canonicalOrder === 0 &&
-    rootDependency.definition.approvedWorkItemId ===
-      PROFESSIONAL_LONG_FORM_FIRST_CHILD_WORK_ITEM_ID &&
-    rootDependency.state === 'completed' &&
-    rootDependency.completion?.outcome.professionalLongFormExecution !== undefined
+    hasCompletedRootDependency()
 }
 
 function assertProfessionalLongFormCompletionEvidence(

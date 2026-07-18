@@ -1,6 +1,6 @@
 # Canonical Professional Long-Form Source-Authority Execution — 2026-07-18
 
-Status: `private_structured_source_authority_completed_remaining_253_children_blocked`
+Status: `superseded_by_private_master_timing_validation_execution`
 
 ## Outcome
 
@@ -116,15 +116,16 @@ The exact-code focused checks pass:
 - `npm run smoke:private-internal-attempt-cost-evidence`; and
 - `npm run smoke:canonical-professional-long-form-post-approval`.
 
-The long-form smoke now passes 61 checks over the maximum six-hour,
-512-range, 124-chunk, 255-child fixture. It proves:
+The long-form smoke now passes 80 checks over the maximum six-hour,
+512-range, 124-chunk, 255-child fixture. The source-authority assertions prove:
 
 - expired reservation refusal without queue/event mutation;
 - concurrent one-authorization/one-lease/one-attempt execution;
 - exact checksum, size, generation, cleanup, segment, and frame coverage;
 - private artifact, QA, 125-dependent reconciliation, cost, and terminal
   persistence;
-- two completed queue lineages and 253 blocked entries;
+- the source-authority lifecycle within three completed queue lineages and 252
+  blocked entries;
 - source and root restart replay without re-execution;
 - root replay after downstream queue progress;
 - render and audio claim refusal without queue mutation;
@@ -135,11 +136,12 @@ The long-form smoke now passes 61 checks over the maximum six-hour,
 
 ## Aggregate Evidence
 
-The exact-code `npm run qa:internal-pipeline` v21 aggregate passed all `37/37`
-stages with exit code `0`. It started at `2026-07-18T11:38:02.672Z`, finished
-at `2026-07-18T12:05:41.896Z`, and completed in `1,659,224 ms`. The long-form
-plan passed in `340 ms`, the approved-snapshot bridge in `612 ms`, and this
-61-check post-approval/root/source-authority stage passed in `12,856 ms`.
+The exact-code `npm run qa:internal-pipeline` v22 aggregate passed all `37/37`
+stages with exit code `0`. It started at `2026-07-18T12:52:16.698Z`, finished
+at `2026-07-18T13:23:50.164Z`, and completed in `1,893,466 ms`. The long-form
+plan passed 27 checks in `434 ms`, the approved-snapshot bridge passed 22 checks
+in `736 ms`, and the 80-check post-approval/root/source-authority/master-timing
+stage passed in `24,569 ms`.
 
 The same run reverified exactly 50 canonical E2E tool identities and 50 job
 adapters, the crash-consistent private package lifecycle, real bounded three-
@@ -148,8 +150,8 @@ streaming, all 11 named-edit browser tests, and the maximum-eight-source signed-
 in private review. The final review completed all 27 jobs and accepted the same
 sixteen-second `3840x2160` artifact with SHA-256
 `584cdd265fc32d81ca70f5f08420bf65ebfac998a1d4db38fb94efe5aa847505`.
-The report records exactly two completed long-form validation children and 253
-blocked children. It keeps media decoding/rendering, object storage, live
+The report records exactly three completed long-form validation children and
+252 blocked children. It keeps media decoding/rendering, object storage, live
 Google Cloud completion, distributed database activation, customer billing,
 public delivery, external beta, and paid production false.
 
@@ -169,7 +171,7 @@ Still false:
 
 - direct runner media-byte reading, probing, decoding, or transformation;
 - live source-object region and source frame-capacity proof;
-- the remaining 253 child leases, operation authorities, attempts, and costs;
+- the remaining 252 child leases, operation authorities, attempts, and costs;
 - 124 chunk renders and independent chunk QA;
 - continuous program-audio execution;
 - cross-chunk color-continuity execution;
@@ -185,10 +187,14 @@ Preference/Edit Reference implementation changed in this slice.
 
 ## Next Evidence Gate
 
-The next dependency-safe long-form operation should be selected from the
+The next dependency-safe operation was the structured master-timing child; its
+completed focused evidence is documented in
+`docs/canonical-professional-long-form-master-timing-execution-2026-07-18.md`.
+The next operation after that timing gate should be selected from the
 remaining topological control/media boundary without granting a broad class of
 jobs at once. The master-timing validation child is source-independent after
-the root; the 124 render jobs depend on both completed validations but still
+the root; the 124 render jobs now depend on root, source, and timing authority
+but still
 require one exact approved chunk operation, object-read boundary, private
 output persistence, independent QA, reconciliation, failure recovery, and
 attempt-cost contract before any claim may succeed.

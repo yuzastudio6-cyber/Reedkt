@@ -24,7 +24,13 @@ validation child through exact private authority, QA, reconciliation,
 attempt-cost, terminal completion, and replay, then executes the exact
 private-source-authority child through the same one-use lifecycle while
 validating all 512 checksum/size/generation, cleanup, segment, and frame-range
-bindings. The remaining 253 children stay capability-blocked,
+bindings. It then executes the structured master-timing child through an exact
+QA-worker authorization, one-use lease/attempt, private artifact, QA,
+126-dependent reconciliation, internal cost, terminal completion, and replay.
+The timing runner validates exact rational frames, all 18 timing categories,
+approved estimate coverage, and the source-led no-generated-cue boundary. Every
+chunk render, continuous audio, and finalization path remains timing-dependent.
+The remaining 252 children stay capability-blocked,
 source-only intent restraint, canonical plan
 presentation, the 4K estimate ceiling, separate approval, the opaque
 execution-package handoff, private preparation, private review,
@@ -92,7 +98,11 @@ plan fits the bounded canonical profile.
    artifact, QA, 125-dependent reconciliation, internal cost, terminal commit,
    and replay. All 512 approved ranges must match exact source identity,
    checksum, size, generation, cleanup containment, segment timing, and
-   gap-free timeline coverage. The remaining 253 child leases, chunk
+   gap-free timeline coverage. Then authorize and complete the master-timing
+   child through its separate QA-worker lease, one-use attempt, exact component
+   hash and frame validation, artifact, QA, 126-dependent reconciliation,
+   internal cost, terminal commit, and replay. The remaining 252 child leases,
+   chunk
    tool-cost-runner authority, long-form media
    execution, object storage, database, cloud, staging, and production
    authority remain false.
@@ -159,7 +169,7 @@ source-bound audio identities in approved order, reads sanitized journey state,
 and records review acceptance.
 
 The runner stops on the first failed phase and prints a machine-readable
-`canonical-private-pipeline-verification-v21` report with step exit codes and
+`canonical-private-pipeline-verification-v22` report with step exit codes and
 durations. A zero exit code means every included assertion passed, including
 assertions that production-only or unavailable behavior stays blocked.
 
@@ -170,19 +180,19 @@ that discovery channel; it does not weaken image-identity validation.
 
 ## Current Evidence Record
 
-On 2026-07-18, the exact-code v21 full internal command passed all `37/37`
-phases with exit code `0`. It started at `2026-07-18T11:38:02.672Z`, finished
-at `2026-07-18T12:05:41.896Z`, and completed in `1,659,224 ms`. The
-professional long-form object-backed plan passed its 26 adversarial checks in
-`340 ms`, the approved-snapshot binding bridge passed its 22 checks in
-`612 ms`, and the canonical post-approval/promotion/root/source-authority stage
-passed its 61 checks in `12,856 ms`. The database-neutral distributed package-
-state port passed in `392 ms`, the locked server-only RPC transport adapter in
-`310 ms`, the package-state transaction in `10,633 ms`, and the timeout-aware
-receiver in `2,180 ms`. Three-source composition passed in `527,432 ms`,
-professional color in `608,833 ms`, bounded UHD Remotion streaming in
-`97,842 ms`, all 11 named-edit browser tests in `13,982 ms`, and the maximum-
-eight-source signed-in review in `358,338 ms`.
+On 2026-07-18, the exact-code v22 full internal command passed all `37/37`
+phases with exit code `0`. It started at `2026-07-18T12:52:16.698Z`, finished
+at `2026-07-18T13:23:50.164Z`, and completed in `1,893,466 ms`. The
+professional long-form object-backed plan passed its 27 adversarial checks in
+`434 ms`, the approved-snapshot binding bridge passed its 22 checks in
+`736 ms`, and the canonical post-approval/promotion/root/source-authority/
+master-timing stage passed its 80 checks in `24,569 ms`. The database-neutral
+distributed package-state port passed in `713 ms`, the locked server-only RPC
+transport adapter in `484 ms`, the package-state transaction in `18,477 ms`,
+and the timeout-aware receiver in `2,417 ms`. Three-source composition passed
+in `632,678 ms`, professional color in `637,463 ms`, bounded UHD Remotion
+streaming in `103,322 ms`, all 11 named-edit browser tests in `14,810 ms`, and
+the maximum-eight-source signed-in review in `426,251 ms`.
 
 The final stage completed all `27` snapshot-bound work items and jobs, produced
 an authenticated non-passthrough `3840x2160` sixteen-second private review with
@@ -194,17 +204,24 @@ job-adapter identities. The long-form phases proved frame-exact planning,
 exact approved-snapshot binding, canonical seed/controller persistence, and
 restart-safe derivation plus content-addressed persistence of a 255-child
 blocked manifest, specialized package, server-derived placement, and exact
-private queue. The root and private source-authority children each completed
-through their own authorization, lease, one-use attempt, internal-cost record,
-private validation artifact, QA, reconciliation, terminal completion, and exact
-replay. The source child validated all 512 approved ranges and recorded 125
-direct downstream dependencies without granting execution. The other 253 child
+private queue. The root, private source-authority, and strict master-timing
+children each completed through their own authorization, lease, one-use
+attempt, internal-cost record, private validation artifact, QA, reconciliation,
+terminal completion, and exact replay. The source child validated all 512
+approved ranges and recorded 125 direct downstream dependencies without
+granting execution. The timing child validated the exact approved timing
+components, rational frame base, 512 segments, all 18 validation categories,
+estimate coverage, and 126 direct downstream dependencies. The other 252 child
 leases, chunk operation/cost bindings, remaining dispatch, long-form media/
 object execution, and live-cloud completion remained false. No
 canonical package-state SQL function was executed and no live RPC client was
 activated. Distributed database atomicity, live Google identity/IAM and cloud
 execution, providers, billing/wallet mutation, remote Supabase, public
 delivery, deployment, external beta, and paid production remained false.
+
+The preceding exact-code v21 full internal command passed all `37/37` phases
+from `2026-07-18T11:38:02.672Z` through `2026-07-18T12:05:41.896Z` in
+`1,659,224 ms`. It remains historical pre-master-timing-execution evidence.
 
 The preceding exact-code v20 full internal command passed all `37/37` phases
 from `2026-07-18T10:12:50.412Z` through `2026-07-18T10:46:03.933Z` in
@@ -296,7 +313,7 @@ deployment, external beta, and paid production remained false.
 The v13 result remains pre-distributed-port/RPC-adapter historical evidence,
 the v12 result remains pre-Docker-transport-hardening historical evidence, and
 the v11 result remains pre-timeout-reconciliation historical evidence. All are
-superseded by the exact-code v21 aggregate verdict. The prior v10 `26/26` and
+superseded by the exact-code v22 aggregate verdict. The prior v10 `26/26` and
 `32/32` results remain pre-failure-reconciliation historical evidence.
 The v9 results remain pre-completion-reconciliation history, and the earlier v8
 results remain pre-transaction history.

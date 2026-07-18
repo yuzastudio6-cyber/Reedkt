@@ -522,6 +522,7 @@ export function buildCanonicalProfessionalLongFormChildQueueDefinition(input: {
       jobId: job.jobId,
       approvedWorkItemId: job.childWorkItemId,
       workItemKey: job.childWorkItemId,
+      expectedOutputIdentity: job.expectedOutputIdentity,
       required: true,
       dependencyJobIds: [...placement.queueDependencyJobIds],
       satisfiedPromotionDependencyJobIds: [

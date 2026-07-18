@@ -38,8 +38,11 @@ specialized package, placement manifest, parent service-only controller, and
 blocked child policy. Ordinary queues cannot carry promotion-satisfied parent
 dependencies. Specialized server services now grant separate exact authority
 to the dependency-root snapshot-validation entry and then the private
-source-authority entry. Each completes through its own lease, one-use attempt,
-private artifact, QA, reconciliation, internal cost, and replay. The other 253
+source-authority entry, and the strict structured master-timing entry. Each
+completes through its own lease, one-use attempt, private artifact, QA,
+reconciliation, internal cost, and replay. The timing child additionally records
+124 render, one continuous-audio, and one finalization dependency without
+authorizing them. The other 252
 long-form children remain unclaimable until their own exact
 tool/cost/runner/QA authority is added. See
 `docs/canonical-professional-long-form-child-package-promotion-2026-07-18.md`
@@ -47,6 +50,9 @@ and
 `docs/canonical-professional-long-form-first-child-execution-2026-07-18.md`.
 The current second-child proof is in
 `docs/canonical-professional-long-form-source-authority-execution-2026-07-18.md`.
+
+The timing continuation is documented in
+`docs/canonical-professional-long-form-master-timing-execution-2026-07-18.md`.
 
 The ordinary orchestrator then repeatedly:
 
@@ -251,6 +257,15 @@ Supabase, billing, public delivery, and production promotion remain gated.
   authority/lease/attempt/cost/artifact/QA/reconciliation/replay lifecycles,
   validated all 512 approved ranges, and kept the remaining 253 children plus
   all long-form media/object/cloud execution false
+- `npm run qa:internal-pipeline` — strict master-timing execution v22 full run
+  passed 37/37 stages from `2026-07-18T12:52:16.698Z` through
+  `2026-07-18T13:23:50.164Z` in `1,893,466 ms`; the 80-check long-form stage
+  completed the root, source-authority, and master-timing validation children
+  through separate exact authority/lease/attempt/cost/artifact/QA/
+  reconciliation/replay lifecycles, validated all 512 approved timing segments
+  across 18 timing categories and 126 timing-dependent downstream jobs, and
+  kept the remaining 252 children plus all long-form media/object/cloud
+  execution false
 
 The measured duration is a local correctness-regression result. It is not a
 real-program editing benchmark, deployed worker-concurrency result, cloud ETA,

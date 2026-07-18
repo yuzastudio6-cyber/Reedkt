@@ -86,6 +86,21 @@ check(
   thirtyMinutePlan.workGraph.finalizationDependsOnEveryChunkQa,
   'immutable_work_graph_requires_every_chunk_qa_before_finalization',
 )
+const timingWorkItem = thirtyMinutePlan.workGraph.workItems.find((item) =>
+  item.kind === 'validate_master_timing')
+const renderWorkItems = thirtyMinutePlan.workGraph.workItems.filter((item) =>
+  item.kind === 'render_object_mezzanine_chunk')
+const audioWorkItem = thirtyMinutePlan.workGraph.workItems.find((item) =>
+  item.kind === 'mix_continuous_program_audio')
+check(
+  timingWorkItem !== undefined &&
+  renderWorkItems.length === thirtyMinutePlan.chunks.length &&
+  renderWorkItems.every((item) =>
+    item.dependsOn.includes(timingWorkItem.workItemId)) &&
+  audioWorkItem?.dependsOn.includes(timingWorkItem.workItemId) &&
+  finalizer?.dependsOn.includes(timingWorkItem.workItemId),
+  'render_audio_and_finalization_require_verified_master_timing',
+)
 check(
   thirtyMinutePlan.workGraph.workItems.every((item) =>
     item.required && item.executionAuthorized === false),

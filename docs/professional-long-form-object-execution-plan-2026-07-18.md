@@ -21,11 +21,12 @@ the blocked child-job manifest after exact server reload. The next follow-up
 also persists an immutable specialized child package and placement manifest and
 atomically publishes one exact 255-job private queue. The bounded continuation
 executes the dependency-root snapshot-validation child and then the exact
-private source-authority child through separate authority, lease/attempt,
+private source-authority and structured master-timing children through separate
+authority, lease/attempt,
 private artifact, QA, reconciliation, internal cost, completion, and replay
 lifecycles. The source child validates all 512 approved ranges without reading
 or transforming media. This does not raise the existing V3 media-execution
-limit, authorize any of the remaining 253 children, silently activate a media
+limit, authorize any of the remaining 252 children, silently activate a media
 worker, or claim that long media was rendered.
 
 ## Bounded Professional Capacity
@@ -69,7 +70,7 @@ the exact ranges selected into one approved plan.
 
 ## Focused Evidence
 
-`npm run smoke:professional-long-form-object-plan` passes 26 adversarial
+`npm run smoke:professional-long-form-object-plan` passes 27 adversarial
 checks. The exact 30-minute fixture contains:
 
 - 24 approved source ranges;
@@ -100,12 +101,13 @@ reservation, child-graph, and persisted-manifest substitution. A new approval
 may reuse the same content seed, but it receives distinct snapshot and plan
 authority.
 
-`npm run smoke:canonical-professional-long-form-post-approval` passes 61
+`npm run smoke:canonical-professional-long-form-post-approval` passes 80
 checks against a real canonical six-hour/512-range publication and
 approval. It persists and reopens the seed, controller, bridge, and 255-child
 blocked manifest plus the specialized package, placement, and exact 255-job
 private queue; refuses ordinary package creation, authorizes and completes the
 root snapshot-validation child and then the exact source-authority child,
+followed by the strict master-timing validation child,
 proves exact concurrent/restart replay and separate attempt-level internal-cost
 evidence, keeps all media children blocked, and rejects persisted blob,
 root/source-artifact, and queue tampering. See
@@ -117,17 +119,20 @@ The root lifecycle is documented in
 The source lifecycle is documented in
 `docs/canonical-professional-long-form-source-authority-execution-2026-07-18.md`.
 
+The timing continuation is documented in
+`docs/canonical-professional-long-form-master-timing-execution-2026-07-18.md`.
+
 The planner source imports no Google Cloud, Supabase, Stripe, HTTP, child
 process, environment, or network-fetch activation path.
 
 ## Current Aggregate Evidence
 
-The exact-code `npm run qa:internal-pipeline` v21 aggregate passed all `37/37`
-stages with exit code `0`. It started at `2026-07-18T11:38:02.672Z`, finished
-at `2026-07-18T12:05:41.896Z`, and completed in `1,659,224 ms`. The long-form
-plan passed in `340 ms`, the approved-snapshot bridge in `612 ms`, and the
-canonical post-approval/promotion/root/source-authority stage passed 61 checks
-in `12,856 ms`.
+The exact-code `npm run qa:internal-pipeline` v22 aggregate passed all `37/37`
+stages with exit code `0`. It started at `2026-07-18T12:52:16.698Z`, finished
+at `2026-07-18T13:23:50.164Z`, and completed in `1,893,466 ms`. The long-form
+plan passed 27 checks in `434 ms`, the approved-snapshot bridge passed 22 checks
+in `736 ms`, and the canonical post-approval/promotion/root/source-authority/
+master-timing stage passed 80 checks in `24,569 ms`.
 
 The remaining stages reverified exactly 50 canonical tool lifecycles and 50
 job adapters, the crash-consistent package lifecycle, bounded three-source
@@ -138,15 +143,17 @@ That review completed 27 jobs and produced the same authenticated sixteen-second
 `584cdd265fc32d81ca70f5f08420bf65ebfac998a1d4db38fb94efe5aa847505`.
 The aggregate also persisted and reopened the exact six-hour/512-range seed,
 blocked controller, approved-snapshot bridge, 255-child blocked manifest,
-specialized child package, placement authority, and exact private queue. It did
-then authorized and completed the root snapshot-validation child and private
-source-authority child through two exact lease/attempt, internal cost, private
-artifact, QA, reconciliation, terminal commit, and replay lifecycles. The
-source child validated all 512 approved ranges without reading or transforming
-media. The remaining 253 children, source-media and chunk execution, object
-storage, live Google Cloud, external beta, and paid production stayed false.
-The v20 root-only aggregate and v18 promotion-only aggregate remain historical
-evidence.
+specialized child package, placement authority, and exact private queue. It
+then authorized and completed the root snapshot-validation, private source-
+authority, and strict master-timing children through three exact lease/attempt,
+internal cost, private artifact, QA, reconciliation, terminal commit, and replay
+lifecycles. The source child validated all 512 approved ranges without reading
+or transforming media. The timing child separately proved exact component,
+frame, approval, estimate, and 18-category validation plus 126 downstream
+dependency records without media execution. The remaining 252 children,
+source-media and chunk execution, object storage, live Google Cloud, external
+beta, and paid production stayed false. The v21 source-only, v20 root-only, and
+v18 promotion-only aggregates remain historical evidence.
 
 Those media stages exercise their existing bounded fixtures. They do not turn
 the 30-minute or six-hour planning fixtures into long-form execution evidence.
@@ -179,7 +186,8 @@ blocked child-manifest derivation/persistence, specialized package/placement
 persistence, atomic local/private child-queue promotion, and the root child's
 exact authority/lease/operation/cost/artifact/QA/reconciliation/replay lifecycle
 are true. The source-authority child's exact structured validation lifecycle is
-also true. The remaining 253 child leases, source-media and chunk
+also true. The master-timing child's structured validation lifecycle is true.
+The remaining 252 child leases, source-media and chunk
 tool/cost/runner binding, object persistence, chunk runners, continuous-audio
 execution, cross-chunk color QA, finalizer execution,
 distributed database, live Google Cloud, staging, product, and production

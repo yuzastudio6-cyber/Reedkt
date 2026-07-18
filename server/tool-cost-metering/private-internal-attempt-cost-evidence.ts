@@ -22,6 +22,10 @@ import {
   PROFESSIONAL_LONG_FORM_SOURCE_AUTHORITY_COST_PROFILE_ID,
   PROFESSIONAL_LONG_FORM_SOURCE_AUTHORITY_OPERATION_ID,
 } from '../edit-architecture/professional-long-form-source-authority-execution-contract'
+import {
+  PROFESSIONAL_LONG_FORM_MASTER_TIMING_COST_PROFILE_ID,
+  PROFESSIONAL_LONG_FORM_MASTER_TIMING_OPERATION_ID,
+} from '../edit-architecture/professional-long-form-master-timing-execution-contract'
 
 const identity = z.string().min(1).max(200).regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/)
   .refine((value) => value === value.trim() && !value.includes('..'))
@@ -50,6 +54,8 @@ export const PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS = {
     PROFESSIONAL_LONG_FORM_FIRST_CHILD_COST_PROFILE_ID,
   professionalLongFormSourceAuthorityValidation:
     PROFESSIONAL_LONG_FORM_SOURCE_AUTHORITY_COST_PROFILE_ID,
+  professionalLongFormMasterTimingValidation:
+    PROFESSIONAL_LONG_FORM_MASTER_TIMING_COST_PROFILE_ID,
 } as const
 
 export type PrivateInternalAttemptCostProfileId =
@@ -103,6 +109,15 @@ export const privateInternalAttemptCostIdentitySchema = z.union([
     workloadProfileId: z.literal(
       PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS
         .professionalLongFormSourceAuthorityValidation,
+    ),
+  }).strict(),
+  z.object({
+    ...commonAttemptIdentityFields,
+    toolId: z.literal('reeditpro_internal'),
+    operationId: z.literal(PROFESSIONAL_LONG_FORM_MASTER_TIMING_OPERATION_ID),
+    workloadProfileId: z.literal(
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS
+        .professionalLongFormMasterTimingValidation,
     ),
   }).strict(),
 ])
@@ -230,6 +245,13 @@ export type BeginPrivateInternalAttemptCostEvidenceInput =
         workloadProfileId:
           typeof PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.professionalLongFormSourceAuthorityValidation
       }
+    | {
+        toolId: 'reeditpro_internal'
+        operationId:
+          typeof PROFESSIONAL_LONG_FORM_MASTER_TIMING_OPERATION_ID
+        workloadProfileId:
+          typeof PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.professionalLongFormMasterTimingValidation
+      }
   )
 
 export interface FinalizePrivateInternalAttemptCostEvidenceInput {
@@ -295,6 +317,16 @@ const beginInputSchema = z.union([
     workloadProfileId: z.literal(
       PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS
         .professionalLongFormSourceAuthorityValidation,
+    ),
+  }).strict(),
+  z.object({
+    localStorageRoot: z.string().min(1),
+    ...commonAttemptIdentityFields,
+    toolId: z.literal('reeditpro_internal'),
+    operationId: z.literal(PROFESSIONAL_LONG_FORM_MASTER_TIMING_OPERATION_ID),
+    workloadProfileId: z.literal(
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS
+        .professionalLongFormMasterTimingValidation,
     ),
   }).strict(),
 ]).superRefine((value, context) => {
@@ -608,6 +640,12 @@ export function resolvePrivateInternalAttemptCostProfileId(
     input.workloadProfileId ===
       PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS
         .professionalLongFormSourceAuthorityValidation
+  ) return input.workloadProfileId
+  if (
+    input.toolId === 'reeditpro_internal' &&
+    input.workloadProfileId ===
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS
+        .professionalLongFormMasterTimingValidation
   ) return input.workloadProfileId
   throw invalid('Internal attempt-cost workload profile is unsupported.')
 }

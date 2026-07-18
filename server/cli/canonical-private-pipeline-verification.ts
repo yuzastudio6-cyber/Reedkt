@@ -53,7 +53,7 @@ const canonicalSteps: VerificationStep[] = [
   step(
     'canonical-professional-long-form-post-approval',
     'smoke:canonical-professional-long-form-post-approval',
-    'A six-hour/512-range 4K seed persists through canonical publication and approval; restart-safe server derivation reopens the exact authority, persists a content-addressed 255-child package/placement/queue, and executes the root snapshot-validation child plus the exact private source-authority child through separate persisted authorizations, one-use lease/starts, private artifacts, QA, reconciliation, attempt-level internal costs, terminal completion, and exact replay. All 512 ranges bind to approved checksum/size/generation, cleanup, segment, and frame coverage; the remaining 253 children, media decoding/rendering, cloud, commerce, product, and production execution stay blocked.',
+    'A six-hour/512-range 4K seed persists through canonical publication and approval; restart-safe server derivation reopens the exact authority, persists a content-addressed 255-child package/placement/queue, and executes the root snapshot-validation, exact private source-authority, and structured master-timing children through separate persisted authorizations, one-use lease/starts, private artifacts, QA, reconciliation, attempt-level internal costs, terminal completion, and exact replay. All 512 ranges bind to approved source and frame authority, all 18 timing categories are validated against exact rational timing and approved estimate coverage, and render/audio/finalization remain timing-dependent. The remaining 252 children, media decoding/rendering, cloud, commerce, product, and production execution stay blocked.',
   ),
   step(
     'professional-export-policy',
@@ -280,7 +280,7 @@ function printReport(
 ): void {
   const finishedAt = new Date()
   const report = {
-    schemaVersion: 'canonical-private-pipeline-verification-v21',
+    schemaVersion: 'canonical-private-pipeline-verification-v22',
     status,
     mode: full ? 'full_internal_regression' : 'canonical_private_pipeline',
     startedAt: runStartedAt.toISOString(),
@@ -319,6 +319,13 @@ function printReport(
           professionalLongFormSourceAuthorityAttemptInternalCostEvidence: true,
           professionalLongFormSourceAuthorityArtifactQaReconciliationReplay: true,
           professionalLongFormSourceAuthorityDirectDownstreamEvidence: true,
+          professionalLongFormMasterTimingAuthorizationPersistence: true,
+          professionalLongFormMasterTimingLeaseAndOneUseExecution: true,
+          professionalLongFormMasterTimingExactComponentAndFrameValidation: true,
+          professionalLongFormMasterTimingApprovalAndEstimateCoverage: true,
+          professionalLongFormMasterTimingAttemptInternalCostEvidence: true,
+          professionalLongFormMasterTimingArtifactQaReconciliationReplay: true,
+          professionalLongFormMasterTimingDirectDownstreamEvidence: true,
           sourceOnlyIntentAuthority: true,
           fourKEstimateDeliveryCeiling: true,
           canonicalBrowserContracts: true,
@@ -373,7 +380,7 @@ function printReport(
       distributedPackageQueueOutboxTransactionVerified: false,
       canonicalPackageStateDatabaseFunctionsExecuted: false,
       canonicalPackageStateRpcLiveClientActivated: false,
-      professionalLongFormRemaining253ChildLeasesVerified: false,
+      professionalLongFormRemaining252ChildLeasesVerified: false,
       professionalLongFormChunkOperationBindingsVerified: false,
       professionalLongFormRemainingChildAttemptCostsVerified: false,
       professionalLongFormRemainingChildDispatchVerified: false,

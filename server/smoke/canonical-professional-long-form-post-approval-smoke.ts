@@ -49,6 +49,20 @@ import {
   assertProfessionalLongFormSourceAuthorityTerminalEvidence,
   assertProfessionalLongFormSourceAuthorityValidationArtifact,
 } from '../edit-architecture/professional-long-form-source-authority-execution'
+import {
+  PROFESSIONAL_LONG_FORM_MASTER_TIMING_COST_PROFILE_ID,
+  PROFESSIONAL_LONG_FORM_MASTER_TIMING_ESTIMATE_LINE_KEY,
+  PROFESSIONAL_LONG_FORM_MASTER_TIMING_OPERATION_ID,
+  PROFESSIONAL_LONG_FORM_MASTER_TIMING_PROFILE_ID,
+  PROFESSIONAL_LONG_FORM_MASTER_TIMING_WORK_ITEM_ID,
+} from '../edit-architecture/professional-long-form-master-timing-execution-contract'
+import {
+  assertProfessionalLongFormMasterTimingQaEvidence,
+  assertProfessionalLongFormMasterTimingReconciliationEvidence,
+  assertProfessionalLongFormMasterTimingTerminalEvidence,
+  assertProfessionalLongFormMasterTimingValidationArtifact,
+  buildCanonicalProfessionalLongFormSourceLedTimingComponents,
+} from '../edit-architecture/professional-long-form-master-timing-execution'
 import { ApiError } from '../errors/api-error'
 import {
   createCanonicalEditExecutionPackageService,
@@ -69,6 +83,9 @@ import {
 import {
   createCanonicalProfessionalLongFormSourceAuthorityExecutionService,
 } from '../services/canonical-professional-long-form-source-authority-execution-service'
+import {
+  createCanonicalProfessionalLongFormMasterTimingExecutionService,
+} from '../services/canonical-professional-long-form-master-timing-execution-service'
 import { createEditPlanningAuthorityService } from '../services/edit-planning-authority-service'
 import { createExactEditPreferenceService } from '../services/exact-edit-preference-service'
 import {
@@ -1444,6 +1461,633 @@ try {
     'restored_exact_source_validation_artifact_replays_without_reexecution',
   )
 
+  const queueBeforeExpiredTimingAuthorization =
+    await readPrivateCanonicalPackageWorkQueue({
+      scope: queueScope,
+      definition: promotion.queueDefinition,
+    })
+  assert.ok(queueBeforeExpiredTimingAuthorization)
+  const originalDateNowForTiming = Date.now
+  try {
+    Date.now = () =>
+      Date.parse(preparedRootAuthority.approval.reservationExpiresAt) + 1
+    await expectApiError(
+      () => createCanonicalProfessionalLongFormMasterTimingExecutionService(
+        context,
+      ).authorizeAndExecute({
+        workspaceId,
+        approvedPlanSnapshotId: String(snapshot.snapshotId),
+      }),
+      'CREDITS_NOT_RESERVED',
+      'expired_reservation_cannot_publish_master_timing_queue_authorization',
+    )
+  } finally {
+    Date.now = originalDateNowForTiming
+  }
+  const queueAfterExpiredTimingAuthorization =
+    await readPrivateCanonicalPackageWorkQueue({
+      scope: queueScope,
+      definition: promotion.queueDefinition,
+    })
+  const timingAfterExpiredAuthorization =
+    queueAfterExpiredTimingAuthorization?.entries.find((entry) =>
+      entry.definition.approvedWorkItemId ===
+        PROFESSIONAL_LONG_FORM_MASTER_TIMING_WORK_ITEM_ID)
+  check(
+    queueAfterExpiredTimingAuthorization?.aggregateHash ===
+      queueBeforeExpiredTimingAuthorization.aggregateHash &&
+      !timingAfterExpiredAuthorization
+        ?.professionalLongFormExecutionAuthorization &&
+      queueAfterExpiredTimingAuthorization.events.filter((event) =>
+        event.eventType === 'job_execution_authorized' &&
+        event.jobId === timingAfterExpiredAuthorization?.definition.jobId)
+        .length === 0,
+    'expired_master_timing_refusal_leaves_queue_entry_and_events_unchanged',
+  )
+
+  const concurrentTimingRuns = await Promise.all([
+    createCanonicalProfessionalLongFormMasterTimingExecutionService(context)
+      .authorizeAndExecute({
+        workspaceId,
+        approvedPlanSnapshotId: String(snapshot.snapshotId),
+      }),
+    createCanonicalProfessionalLongFormMasterTimingExecutionService(context)
+      .authorizeAndExecute({
+        workspaceId,
+        approvedPlanSnapshotId: String(snapshot.snapshotId),
+      }),
+  ])
+  const completedTiming = concurrentTimingRuns.find((item) =>
+    item.disposition === 'completed')
+  assert.ok(completedTiming)
+  check(
+    concurrentTimingRuns.filter((item) =>
+      item.disposition === 'completed').length === 1 &&
+      concurrentTimingRuns.every((item) =>
+        ['completed', 'already_in_progress', 'exact_replay'].includes(
+          item.disposition,
+        )),
+    'concurrent_master_timing_calls_consume_one_lease_and_one_execution_attempt',
+  )
+  assert.ok(completedTiming.executionAttempt)
+  assert.ok(completedTiming.validationArtifact)
+  assert.ok(completedTiming.validationArtifactRef)
+  assert.ok(completedTiming.qaEvidence)
+  assert.ok(completedTiming.qaEvidenceRef)
+  assert.ok(completedTiming.reconciliationEvidence)
+  assert.ok(completedTiming.reconciliationEvidenceRef)
+  assert.ok(completedTiming.attemptInternalCostEvidence)
+  assert.ok(completedTiming.terminalEvidence)
+  assert.ok(completedTiming.terminalEvidenceRef)
+  const timingAttempt = completedTiming.executionAttempt
+  const timingArtifact = completedTiming.validationArtifact
+  const timingArtifactRef = completedTiming.validationArtifactRef
+  const timingQa = completedTiming.qaEvidence
+  const timingQaRef = completedTiming.qaEvidenceRef
+  const timingReconciliation = completedTiming.reconciliationEvidence
+  const timingReconciliationRef = completedTiming.reconciliationEvidenceRef
+  const timingCost = completedTiming.attemptInternalCostEvidence
+  const timingTerminal = completedTiming.terminalEvidence
+  const timingTerminalRef = completedTiming.terminalEvidenceRef
+  const timingCompletedQueue = completedTiming.queueAggregate
+  const completedTimingEntry = timingCompletedQueue.entries.find((entry) =>
+    entry.definition.approvedWorkItemId ===
+      PROFESSIONAL_LONG_FORM_MASTER_TIMING_WORK_ITEM_ID)
+  check(
+    timingCompletedQueue.summary.totalJobCount === 255 &&
+      timingCompletedQueue.summary.completedJobCount === 3 &&
+      timingCompletedQueue.summary.queuedJobCount === 252 &&
+      timingCompletedQueue.summary.leasedJobCount === 0 &&
+      timingCompletedQueue.summary.totalDeliveryAttemptCount === 3 &&
+      completedTimingEntry?.state === 'completed' &&
+      completedTimingEntry.deliveryAttemptCount === 1 &&
+      completedTimingEntry.definition.workerType === 'qa_worker' &&
+      completedTimingEntry.definition.resourceClassId ===
+        'qa_cpu_standard_v1' &&
+      completedTimingEntry.definition.expectedOutputIdentity ===
+        completedTiming.authority.identity.expectedOutputIdentity &&
+      timingCompletedQueue.events.filter((event) =>
+        event.eventType === 'job_execution_authorized').length === 3 &&
+      timingCompletedQueue.events.filter((event) =>
+        event.eventType === 'job_execution_started').length === 3 &&
+      timingCompletedQueue.events.filter((event) =>
+        event.eventType === 'job_completed').length === 3,
+    'root_source_and_master_timing_children_form_three_exact_terminal_queue_lineages',
+  )
+  check(
+    timingArtifact.approvedTimingHash ===
+      completedTiming.authority.identity.expectedOutputIdentity &&
+      timingArtifact.timingCoverage.profileId ===
+        PROFESSIONAL_LONG_FORM_MASTER_TIMING_PROFILE_ID &&
+      timingArtifact.timingCoverage.fps === fps &&
+      timingArtifact.timingCoverage.totalFrames === totalFrames &&
+      timingArtifact.timingCoverage.segmentCount ===
+        PROFESSIONAL_LONG_FORM_MAXIMUM_SOURCE_RANGES &&
+      timingArtifact.timingCoverage.approvedHardCutCount ===
+        PROFESSIONAL_LONG_FORM_MAXIMUM_SOURCE_RANGES - 1 &&
+      timingArtifact.timingCoverage.validationCategoryCount === 18 &&
+      timingArtifact.validation.exactApprovedComponentRefs &&
+      timingArtifact.validation.confirmedOutputFrameAndRationalRate &&
+      timingArtifact.validation.gapFreeOverlapFreeFullFrameCoverage &&
+      timingArtifact.validation.speechFirstPriorityHierarchy &&
+      timingArtifact.validation.captionVisualNoRandomCueBoundary &&
+      timingArtifact.validation.approvedHardCutSoundSyncBoundary &&
+      timingArtifact.validation.timingValidationApprovalGatePassed &&
+      timingArtifact.validation.timingComplexityIncludedInApprovedEstimate &&
+      timingArtifact.validation.approvedSnapshotOnlyWorkerPolicy &&
+      timingArtifact.validation.structuredMetadataOnly &&
+      !timingArtifact.validation.mediaOrTranscriptAnalysisPerformed &&
+      !timingArtifact.validation.renderOrProviderExecutionPerformed,
+    'master_timing_validates_exact_rational_frames_all_segments_priorities_approval_and_estimate_without_media_claims',
+  )
+  check(
+    timingQa.outcome === 'passed' &&
+      timingReconciliation.summary.directDownstreamCount ===
+        PROFESSIONAL_LONG_FORM_MAXIMUM_CHUNKS + 2 &&
+      timingReconciliation.summary.renderJobCount ===
+        PROFESSIONAL_LONG_FORM_MAXIMUM_CHUNKS &&
+      timingReconciliation.summary.continuousAudioJobCount === 1 &&
+      timingReconciliation.summary.finalizationJobCount === 1 &&
+      timingReconciliation.summary.remainingQueueJobCountAfterCompletion ===
+        252 &&
+      timingReconciliation.directDownstream.every((entry) =>
+        entry.timingDependencySatisfiedByThisCompletion &&
+        !entry.executionAuthorized && entry.capabilityBlocked) &&
+      timingTerminal.permissions.timingDependencyEvidenceCreated &&
+      !timingTerminal.permissions.downstreamExecutionAuthorized &&
+      !timingTerminal.permissions.mediaExecutionAuthorized &&
+      !timingTerminal.permissions.renderAuthorized,
+    'timing_qa_reconciles_124_render_audio_and_finalizer_dependencies_without_execution_authority',
+  )
+  check(
+    timingCost.boundary === 'internal_production_cost_only' &&
+      timingCost.identity.toolId === 'reeditpro_internal' &&
+      timingCost.identity.operationId ===
+        PROFESSIONAL_LONG_FORM_MASTER_TIMING_OPERATION_ID &&
+      timingCost.identity.workloadProfileId ===
+        PROFESSIONAL_LONG_FORM_MASTER_TIMING_COST_PROFILE_ID &&
+      timingCost.identity.executionAttemptId === timingAttempt.executionAttemptId &&
+      timingCost.resourceUsage.vcpuCount === 2 &&
+      timingCost.resourceUsage.memoryGib === 4 &&
+      timingCost.resourceUsage.gpuCount === 0 &&
+      Number.isSafeInteger(timingCost.actualInternalCostMicros) &&
+      timingCost.actualInternalCostMicros >= 0 &&
+      timingTerminal.attemptInternalCostEvidenceHash === timingCost.evidenceHash,
+    'master_timing_attempt_internal_production_cost_is_versioned_metered_and_noncommercial',
+  )
+  const serializedTiming = stableAuthorityStringify(completedTiming)
+  check(
+    !serializedTiming.includes('https://') &&
+      !serializedTiming.includes('gs://') &&
+      !serializedTiming.includes('"claimCredential":') &&
+      !serializedTiming.includes('customerPriceMicros') &&
+      !serializedTiming.includes('customerCreditAmount') &&
+      !serializedTiming.includes('serviceFeeMicros') &&
+      !serializedTiming.includes('walletBalance') &&
+      !serializedTiming.includes('providerRequest') &&
+      !completedTiming.readiness.transcriptOrMediaAnalysisPerformed &&
+      !completedTiming.readiness.mediaDecodeOrTransformPerformed &&
+      !completedTiming.readiness.renderPerformed &&
+      !completedTiming.readiness.liveGoogleCloudVerified &&
+      !completedTiming.readiness.productReady &&
+      !completedTiming.readiness.productionReady,
+    'master_timing_execution_contains_no_secret_provider_media_render_customer_or_live_cloud_authority',
+  )
+
+  clearPrivateEditAuthorityProcessStateForSmoke()
+  clearPrivateCanonicalPackageWorkQueueProcessStateForSmoke()
+  const replayedTiming =
+    await createCanonicalProfessionalLongFormMasterTimingExecutionService(
+      context,
+    ).authorizeAndExecute({
+      workspaceId,
+      approvedPlanSnapshotId: String(snapshot.snapshotId),
+    })
+  check(
+    replayedTiming.disposition === 'exact_replay' &&
+      replayedTiming.evidenceHash === completedTiming.evidenceHash &&
+      replayedTiming.queueAggregate.aggregateHash ===
+        timingCompletedQueue.aggregateHash &&
+      replayedTiming.executionAttempt?.executionAttemptId ===
+        timingAttempt.executionAttemptId &&
+      replayedTiming.validationArtifactRef?.sha256 === timingArtifactRef.sha256 &&
+      replayedTiming.qaEvidenceRef?.sha256 === timingQaRef.sha256 &&
+      replayedTiming.reconciliationEvidenceRef?.sha256 ===
+        timingReconciliationRef.sha256 &&
+      replayedTiming.terminalEvidenceRef?.sha256 === timingTerminalRef.sha256 &&
+      replayedTiming.attemptInternalCostEvidence?.evidenceHash ===
+        timingCost.evidenceHash,
+    'master_timing_restart_replay_reopens_exact_terminal_refs_cost_and_queue_without_reexecution',
+  )
+
+  const rootReplayAfterTimingCompletion =
+    await createCanonicalProfessionalLongFormFirstChildExecutionService(context)
+      .authorizeAndExecute({
+        workspaceId,
+        approvedPlanSnapshotId: String(snapshot.snapshotId),
+      })
+  const sourceReplayAfterTimingCompletion =
+    await createCanonicalProfessionalLongFormSourceAuthorityExecutionService(
+      context,
+    ).authorizeAndExecute({
+      workspaceId,
+      approvedPlanSnapshotId: String(snapshot.snapshotId),
+    })
+  check(
+    rootReplayAfterTimingCompletion.disposition === 'exact_replay' &&
+      sourceReplayAfterTimingCompletion.disposition === 'exact_replay' &&
+      rootReplayAfterTimingCompletion.queueAggregate.summary.completedJobCount ===
+        3 &&
+      sourceReplayAfterTimingCompletion.queueAggregate.summary.completedJobCount ===
+        3 &&
+      rootReplayAfterTimingCompletion.executionAttempt?.executionAttemptId ===
+        firstChildAttempt.executionAttemptId &&
+      sourceReplayAfterTimingCompletion.executionAttempt?.executionAttemptId ===
+        sourceAttempt.executionAttemptId,
+    'root_and_source_exact_replay_preserve_immutable_evidence_after_timing_queue_progress',
+  )
+
+  const timingCurrentAfterCompletion = await promotionService.loadCurrent({
+    workspaceId,
+    approvedPlanSnapshotId: String(snapshot.snapshotId),
+  })
+  const timingKindByWorkItemId = new Map(
+    timingCurrentAfterCompletion.postApproval.childJobManifest.jobs.map((job) =>
+      [job.childWorkItemId, job.kind]),
+  )
+  const timingRenderEntry = timingCompletedQueue.entries.find((entry) =>
+    timingKindByWorkItemId.get(entry.definition.approvedWorkItemId) ===
+      'render_object_mezzanine_chunk')
+  const timingAudioEntry = timingCompletedQueue.entries.find((entry) =>
+    timingKindByWorkItemId.get(entry.definition.approvedWorkItemId) ===
+      'mix_continuous_program_audio')
+  const timingFinalizerEntry = timingCompletedQueue.entries.find((entry) =>
+    timingKindByWorkItemId.get(entry.definition.approvedWorkItemId) ===
+      'finalize_private_4k_master')
+  assert.ok(timingRenderEntry)
+  assert.ok(timingAudioEntry)
+  assert.ok(timingFinalizerEntry)
+  const queueBeforeTimingDownstreamClaims =
+    await readPrivateCanonicalPackageWorkQueue({
+      scope: queueScope,
+      definition: promotion.queueDefinition,
+    })
+  assert.ok(queueBeforeTimingDownstreamClaims)
+  const blockedTimingRenderClaim = await claimPrivateCanonicalPackageWorkQueueJob({
+    scope: queueScope,
+    definition: promotion.queueDefinition,
+    jobId: timingRenderEntry.definition.jobId,
+    workerIdentity: 'timing-completion-must-not-authorize-render',
+    workerType: timingRenderEntry.definition.workerType,
+    now: new Date().toISOString(),
+    leaseDurationMs: 60_000,
+  })
+  const blockedTimingAudioClaim = await claimPrivateCanonicalPackageWorkQueueJob({
+    scope: queueScope,
+    definition: promotion.queueDefinition,
+    jobId: timingAudioEntry.definition.jobId,
+    workerIdentity: 'timing-completion-must-not-authorize-audio',
+    workerType: timingAudioEntry.definition.workerType,
+    now: new Date().toISOString(),
+    leaseDurationMs: 60_000,
+  })
+  const blockedTimingFinalizerClaim =
+    await claimPrivateCanonicalPackageWorkQueueJob({
+      scope: queueScope,
+      definition: promotion.queueDefinition,
+      jobId: timingFinalizerEntry.definition.jobId,
+      workerIdentity: 'timing-completion-must-not-authorize-finalizer',
+      workerType: timingFinalizerEntry.definition.workerType,
+      now: new Date().toISOString(),
+      leaseDurationMs: 60_000,
+    })
+  const queueAfterTimingDownstreamClaims =
+    await readPrivateCanonicalPackageWorkQueue({
+      scope: queueScope,
+      definition: promotion.queueDefinition,
+    })
+  check(
+    blockedTimingRenderClaim.disposition === 'capability_blocked' &&
+      blockedTimingAudioClaim.disposition === 'capability_blocked' &&
+      blockedTimingFinalizerClaim.disposition === 'capability_blocked' &&
+      queueAfterTimingDownstreamClaims?.aggregateHash ===
+        queueBeforeTimingDownstreamClaims.aggregateHash &&
+      queueAfterTimingDownstreamClaims.summary.completedJobCount === 3 &&
+      queueAfterTimingDownstreamClaims.summary.totalDeliveryAttemptCount === 3,
+    'timing_completion_does_not_authorize_render_audio_or_finalization_or_mutate_queue',
+  )
+
+  const timingArtifactTamper = structuredClone(timingArtifact)
+  timingArtifactTamper.timingCoverage.segmentCount -= 1
+  const timingArtifactTamperPayload = {
+    ...timingArtifactTamper,
+  } as Record<string, unknown>
+  delete timingArtifactTamperPayload.artifactHash
+  timingArtifactTamper.artifactHash = sha256AuthorityValue(
+    timingArtifactTamperPayload,
+  )
+  assert.throws(
+    () => assertProfessionalLongFormMasterTimingValidationArtifact({
+      value: timingArtifactTamper,
+      current: timingCurrentAfterCompletion,
+      authority: completedTiming.authority,
+      authorization: completedTiming.authorization,
+      executionAttempt: timingAttempt,
+    }),
+    /failed exact replay/i,
+  )
+  const timingQaTamper = structuredClone(timingQa)
+  timingQaTamper.validationArtifactHash = 'f'.repeat(64)
+  const timingQaTamperPayload = { ...timingQaTamper } as Record<string, unknown>
+  delete timingQaTamperPayload.qaHash
+  timingQaTamper.qaHash = sha256AuthorityValue(timingQaTamperPayload)
+  assert.throws(
+    () => assertProfessionalLongFormMasterTimingQaEvidence({
+      value: timingQaTamper,
+      authority: completedTiming.authority,
+      authorization: completedTiming.authorization,
+      executionAttempt: timingAttempt,
+      validationArtifact: timingArtifact,
+      validationArtifactRef: timingArtifactRef,
+    }),
+    /failed exact replay/i,
+  )
+  const timingReconciliationTamper = structuredClone(timingReconciliation)
+  timingReconciliationTamper.directDownstream[0]!.jobId =
+    'fabricated-timing-downstream-job'
+  timingReconciliationTamper.summary.directDownstreamHash =
+    sha256AuthorityValue(timingReconciliationTamper.directDownstream)
+  const timingReconciliationTamperPayload = {
+    ...timingReconciliationTamper,
+  } as Record<string, unknown>
+  delete timingReconciliationTamperPayload.reconciliationHash
+  timingReconciliationTamper.reconciliationHash = sha256AuthorityValue(
+    timingReconciliationTamperPayload,
+  )
+  assert.throws(
+    () => assertProfessionalLongFormMasterTimingReconciliationEvidence({
+      value: timingReconciliationTamper,
+      current: timingCurrentAfterCompletion,
+      authority: completedTiming.authority,
+      authorization: completedTiming.authorization,
+      executionAttempt: timingAttempt,
+      validationArtifactRef: timingArtifactRef,
+      qaEvidence: timingQa,
+      qaEvidenceRef: timingQaRef,
+    }),
+    /failed exact replay/i,
+  )
+  const timingTerminalTamper = structuredClone(timingTerminal)
+  timingTerminalTamper.canonicalResultHash = 'e'.repeat(64)
+  const timingTerminalTamperPayload = {
+    ...timingTerminalTamper,
+  } as Record<string, unknown>
+  delete timingTerminalTamperPayload.terminalHash
+  timingTerminalTamper.terminalHash = sha256AuthorityValue(
+    timingTerminalTamperPayload,
+  )
+  assert.throws(
+    () => assertProfessionalLongFormMasterTimingTerminalEvidence({
+      value: timingTerminalTamper,
+      authority: completedTiming.authority,
+      authorization: completedTiming.authorization,
+      executionAttempt: timingAttempt,
+      validationArtifactRef: timingArtifactRef,
+      qaEvidenceRef: timingQaRef,
+      reconciliationEvidenceRef: timingReconciliationRef,
+      canonicalResultHash: timingTerminal.canonicalResultHash,
+      attemptInternalCostEvidenceHash: timingCost.evidenceHash,
+    }),
+    /failed exact replay/i,
+  )
+  check(
+    !privateInternalAttemptCostEvidenceSchema.safeParse({
+      ...timingCost,
+      boundary: 'customer_price_authority',
+    }).success,
+    'master_timing_artifact_qa_reconciliation_terminal_and_cost_tampering_fail_closed',
+  )
+
+  const timingValidationBlobPath = join(
+    localStorageRoot,
+    'edit-authority',
+    'blobs',
+    'sha256',
+    timingArtifactRef.sha256.slice(0, 2),
+    `${timingArtifactRef.sha256}.json`,
+  )
+  const originalTimingValidationBlobRecord = await readFile(
+    timingValidationBlobPath,
+    'utf8',
+  )
+  const corruptedTimingValidationBlobRecord = JSON.parse(
+    originalTimingValidationBlobRecord,
+  ) as { value: { validation: { gapFreeOverlapFreeFullFrameCoverage: boolean } } }
+  corruptedTimingValidationBlobRecord.value.validation
+    .gapFreeOverlapFreeFullFrameCoverage = false
+  await writeFile(
+    timingValidationBlobPath,
+    `${JSON.stringify(corruptedTimingValidationBlobRecord)}\n`,
+    'utf8',
+  )
+  clearPrivateEditAuthorityProcessStateForSmoke()
+  clearPrivateCanonicalPackageWorkQueueProcessStateForSmoke()
+  await expectApiError(
+    () => createCanonicalProfessionalLongFormMasterTimingExecutionService(
+      context,
+    ).authorizeAndExecute({
+      workspaceId,
+      approvedPlanSnapshotId: String(snapshot.snapshotId),
+    }),
+    'VALIDATION_FAILED',
+    'content_addressed_master_timing_validation_artifact_tamper_fails_closed_after_restart',
+  )
+  await writeFile(
+    timingValidationBlobPath,
+    originalTimingValidationBlobRecord,
+    'utf8',
+  )
+  clearPrivateEditAuthorityProcessStateForSmoke()
+  clearPrivateCanonicalPackageWorkQueueProcessStateForSmoke()
+  const replayAfterTimingValidationBlobRestore =
+    await createCanonicalProfessionalLongFormMasterTimingExecutionService(
+      context,
+    ).authorizeAndExecute({
+      workspaceId,
+      approvedPlanSnapshotId: String(snapshot.snapshotId),
+    })
+  check(
+    replayAfterTimingValidationBlobRestore.disposition === 'exact_replay' &&
+      replayAfterTimingValidationBlobRestore.validationArtifactRef?.sha256 ===
+        timingArtifactRef.sha256 &&
+      replayAfterTimingValidationBlobRestore.attemptInternalCostEvidence
+        ?.evidenceHash === timingCost.evidenceHash &&
+      replayAfterTimingValidationBlobRestore.queueAggregate.summary
+        .completedJobCount === 3,
+    'restored_exact_master_timing_validation_artifact_replays_without_reexecution',
+  )
+
+  const fabricatedTimingAuthorization = structuredClone(
+    completedTiming.authorization,
+  )
+  fabricatedTimingAuthorization.expectedOutputIdentity = 'a'.repeat(64)
+  const fabricatedTimingAuthorizationPayload = {
+    ...fabricatedTimingAuthorization,
+  } as Record<string, unknown>
+  delete fabricatedTimingAuthorizationPayload.receiptHash
+  fabricatedTimingAuthorization.receiptHash = sha256AuthorityValue(
+    fabricatedTimingAuthorizationPayload,
+  )
+  await expectApiError(
+    () => authorizePrivateCanonicalPackageWorkQueueJob({
+      scope: queueScope,
+      definition: promotion.queueDefinition,
+      jobId: completedTiming.authority.identity.jobId,
+      authorization: fabricatedTimingAuthorization,
+      executionAuthority: completedTiming.authority,
+      now: new Date().toISOString(),
+    }),
+    'VALIDATION_FAILED',
+    'fabricated_master_timing_expected_output_identity_is_rejected',
+  )
+
+  const masterTimingPlanRef = timingCurrentAfterCompletion.authority.snapshot
+    .componentRefs.masterTimingPlan
+  assert.ok(masterTimingPlanRef)
+  const masterTimingPlanBlobPath = join(
+    localStorageRoot,
+    'edit-authority',
+    'blobs',
+    'sha256',
+    masterTimingPlanRef.sha256.slice(0, 2),
+    `${masterTimingPlanRef.sha256}.json`,
+  )
+  const originalMasterTimingPlanBlobRecord = await readFile(
+    masterTimingPlanBlobPath,
+    'utf8',
+  )
+  const corruptedMasterTimingPlanBlobRecord = JSON.parse(
+    originalMasterTimingPlanBlobRecord,
+  ) as { value: { timingBase: { totalFrames: number } } }
+  corruptedMasterTimingPlanBlobRecord.value.timingBase.totalFrames -= 1
+  await writeFile(
+    masterTimingPlanBlobPath,
+    `${JSON.stringify(corruptedMasterTimingPlanBlobRecord)}\n`,
+    'utf8',
+  )
+  clearPrivateEditAuthorityProcessStateForSmoke()
+  clearPrivateCanonicalPackageWorkQueueProcessStateForSmoke()
+  await expectApiError(
+    () => createCanonicalProfessionalLongFormMasterTimingExecutionService(
+      context,
+    ).authorizeAndExecute({
+      workspaceId,
+      approvedPlanSnapshotId: String(snapshot.snapshotId),
+    }),
+    'VALIDATION_FAILED',
+    'approved_master_timing_component_blob_tamper_fails_closed_after_restart',
+  )
+  await writeFile(
+    masterTimingPlanBlobPath,
+    originalMasterTimingPlanBlobRecord,
+    'utf8',
+  )
+
+  const segmentsRef = timingCurrentAfterCompletion.authority.snapshot
+    .componentRefs.segments
+  assert.ok(segmentsRef)
+  const segmentsBlobPath = join(
+    localStorageRoot,
+    'edit-authority',
+    'blobs',
+    'sha256',
+    segmentsRef.sha256.slice(0, 2),
+    `${segmentsRef.sha256}.json`,
+  )
+  const originalSegmentsBlobRecord = await readFile(segmentsBlobPath, 'utf8')
+  const corruptedSegmentsBlobRecord = JSON.parse(
+    originalSegmentsBlobRecord,
+  ) as { value: Array<{ endFrameExclusive: number }> }
+  corruptedSegmentsBlobRecord.value[0]!.endFrameExclusive -= 1
+  await writeFile(
+    segmentsBlobPath,
+    `${JSON.stringify(corruptedSegmentsBlobRecord)}\n`,
+    'utf8',
+  )
+  clearPrivateEditAuthorityProcessStateForSmoke()
+  clearPrivateCanonicalPackageWorkQueueProcessStateForSmoke()
+  await expectApiError(
+    () => createCanonicalProfessionalLongFormMasterTimingExecutionService(
+      context,
+    ).authorizeAndExecute({
+      workspaceId,
+      approvedPlanSnapshotId: String(snapshot.snapshotId),
+    }),
+    'VALIDATION_FAILED',
+    'approved_timing_segment_blob_tamper_fails_closed_after_restart',
+  )
+  await writeFile(segmentsBlobPath, originalSegmentsBlobRecord, 'utf8')
+
+  const timingEstimateLine = timingCurrentAfterCompletion.authority.estimate
+    .lineItems.find((line) =>
+      line.lineKey === PROFESSIONAL_LONG_FORM_MASTER_TIMING_ESTIMATE_LINE_KEY)
+  assert.ok(timingEstimateLine)
+  const timingEstimateMetadataPath = join(
+    localStorageRoot,
+    'edit-authority',
+    'blobs',
+    'sha256',
+    timingEstimateLine.metadataRef.sha256.slice(0, 2),
+    `${timingEstimateLine.metadataRef.sha256}.json`,
+  )
+  const originalTimingEstimateMetadataRecord = await readFile(
+    timingEstimateMetadataPath,
+    'utf8',
+  )
+  const corruptedTimingEstimateMetadataRecord = JSON.parse(
+    originalTimingEstimateMetadataRecord,
+  ) as { value: { timingComplexityLevel: string } }
+  corruptedTimingEstimateMetadataRecord.value.timingComplexityLevel = 'complex'
+  await writeFile(
+    timingEstimateMetadataPath,
+    `${JSON.stringify(corruptedTimingEstimateMetadataRecord)}\n`,
+    'utf8',
+  )
+  clearPrivateEditAuthorityProcessStateForSmoke()
+  clearPrivateCanonicalPackageWorkQueueProcessStateForSmoke()
+  await expectApiError(
+    () => createCanonicalProfessionalLongFormMasterTimingExecutionService(
+      context,
+    ).authorizeAndExecute({
+      workspaceId,
+      approvedPlanSnapshotId: String(snapshot.snapshotId),
+    }),
+    'VALIDATION_FAILED',
+    'approved_timing_estimate_metadata_blob_tamper_fails_closed_after_restart',
+  )
+  await writeFile(
+    timingEstimateMetadataPath,
+    originalTimingEstimateMetadataRecord,
+    'utf8',
+  )
+  clearPrivateEditAuthorityProcessStateForSmoke()
+  clearPrivateCanonicalPackageWorkQueueProcessStateForSmoke()
+  const replayAfterApprovedTimingAuthorityRestore =
+    await createCanonicalProfessionalLongFormMasterTimingExecutionService(
+      context,
+    ).authorizeAndExecute({
+      workspaceId,
+      approvedPlanSnapshotId: String(snapshot.snapshotId),
+    })
+  check(
+    replayAfterApprovedTimingAuthorityRestore.disposition === 'exact_replay' &&
+      replayAfterApprovedTimingAuthorityRestore.evidenceHash ===
+        completedTiming.evidenceHash &&
+      replayAfterApprovedTimingAuthorityRestore.queueAggregate.summary
+        .completedJobCount === 3,
+    'restored_timing_components_segments_and_estimate_metadata_replay_exactly',
+  )
+
   await assertNoActivationImports()
 
   const childBlobPath = join(
@@ -1472,7 +2116,7 @@ try {
 
   console.log(JSON.stringify({
     ok: true,
-    schemaVersion: 'canonical-professional-long-form-post-approval-smoke-v4',
+    schemaVersion: 'canonical-professional-long-form-post-approval-smoke-v5',
     checkCount: checks.length,
     checks,
     evidence: {
@@ -1501,8 +2145,10 @@ try {
       rootSnapshotChildCompleted: completedQueue.summary.completedJobCount === 1,
       sourceAuthorityChildCompleted:
         sourceCompletedQueue.summary.completedJobCount === 2,
-      completedChildCount: sourceCompletedQueue.summary.completedJobCount,
-      remainingBlockedChildCount: sourceCompletedQueue.summary.queuedJobCount,
+      sourceCheckpointCompletedChildCount:
+        sourceCompletedQueue.summary.completedJobCount,
+      sourceCheckpointRemainingBlockedChildCount:
+        sourceCompletedQueue.summary.queuedJobCount,
       sourceAuthorityExecutionAuthorized: true,
       sourceAuthorityRangeCount:
         sourceArtifact.sourceCoverage.sourceRangeCount,
@@ -1514,6 +2160,18 @@ try {
         sourceArtifactRef.byteLength,
       sourceAuthorityAttemptInternalCostEvidenceVerified: true,
       sourceAuthorityRunnerReadOrDecodedMedia: false,
+      masterTimingChildCompleted:
+        timingCompletedQueue.summary.completedJobCount === 3,
+      masterTimingExecutionAuthorized: true,
+      masterTimingValidationCategoryCount:
+        timingArtifact.timingCoverage.validationCategoryCount,
+      masterTimingDirectDownstreamCount:
+        timingReconciliation.summary.directDownstreamCount,
+      masterTimingValidationArtifactByteLength: timingArtifactRef.byteLength,
+      masterTimingAttemptInternalCostEvidenceVerified: true,
+      masterTimingRunnerReadOrDecodedMedia: false,
+      completedChildCount: timingCompletedQueue.summary.completedJobCount,
+      remainingBlockedChildCount: timingCompletedQueue.summary.queuedJobCount,
       mediaExecutionVerified: false,
       chunkRenderExecutionVerified: false,
       googleCloudDispatchAuthorized: false,
@@ -1711,6 +2369,24 @@ function createCanonicalPlanBody(input: {
     userReviewStatus: 'not_required' as const,
   }))
   const sourceRanges = buildSourceRanges(input.sourceFixture)
+  const segments = sourceRanges.map((range, index) => ({
+    segmentId: range.segmentId,
+    startFrame: range.timelineStartFrame,
+    endFrameExclusive: range.timelineEndFrameExclusive,
+    operationIds: [`approved-long-form-operation-${index + 1}`],
+  }))
+  const timingComponents =
+    buildCanonicalProfessionalLongFormSourceLedTimingComponents({
+      fps,
+      frameRate: { numerator: 30, denominator: 1 },
+      totalFrames,
+      segments,
+      sourceCleanupPlan: {
+        status: 'confirmed',
+        decisions: sourceCleanupDecisions,
+      },
+      approvedHardCutCount: sourceRanges.length - 1,
+    })
   const components: PublishCanonicalEditPlanBody['canonicalPlan']['components'] = {
     compiledIntent: {
       goal:
@@ -1751,39 +2427,8 @@ function createCanonicalPlanBody(input: {
       status: 'confirmed',
       decisions: sourceCleanupDecisions,
     },
-    masterTimingPlan: {
-      status: 'ready',
-      timingBase: { fps },
-      totalFrames,
-      executionValuesAreFrames: true,
-    },
-    captionVisualCueTimingPlan: {
-      status: 'synced',
-      collisionCount: 0,
-      speechClarityPriority: true,
-    },
-    soundSyncTransitionTimingPlan: {
-      status: 'ready',
-      speechPriority: true,
-      transitions: 'approved_hard_cuts_only',
-    },
-    timingValidationPlan: {
-      overallStatus: 'passed',
-      approvalBlocked: false,
-      frameCoverageVerified: true,
-    },
-    timingSummary: {
-      validationStatus: 'passed',
-      approvalBlocked: false,
-      fps,
-      totalFrames,
-    },
-    segments: sourceRanges.map((range, index) => ({
-      segmentId: range.segmentId,
-      startFrame: range.timelineStartFrame,
-      endFrameExclusive: range.timelineEndFrameExclusive,
-      operationIds: [`approved-long-form-operation-${index + 1}`],
-    })),
+    ...timingComponents,
+    segments,
     visualAssetPlan: {
       assets: [],
       randomBrollAllowed: false,
@@ -1843,6 +2488,10 @@ function createCanonicalPlanBody(input: {
             removable: false,
             metadata: {
               childExecutionIncludedInApprovedReservation: true,
+              timingComplexityIncludedInApprovedEstimate: true,
+              timingComplexityProfileId:
+                PROFESSIONAL_LONG_FORM_MASTER_TIMING_PROFILE_ID,
+              timingComplexityLevel: 'simple',
             },
           },
           {
@@ -2068,6 +2717,9 @@ async function assertNoActivationImports(): Promise<void> {
     'server/edit-architecture/professional-long-form-source-authority-execution-contract.ts',
     'server/edit-architecture/professional-long-form-source-authority-execution.ts',
     'server/services/canonical-professional-long-form-source-authority-execution-service.ts',
+    'server/edit-architecture/professional-long-form-master-timing-execution-contract.ts',
+    'server/edit-architecture/professional-long-form-master-timing-execution.ts',
+    'server/services/canonical-professional-long-form-master-timing-execution-service.ts',
   ].map((path) => readFile(path, 'utf8')))
   check(
     sources.every((source) =>

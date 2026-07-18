@@ -20,29 +20,43 @@ import {
   professionalLongFormSourceAuthorityExecutionAttemptSchema,
   professionalLongFormSourceAuthorityExecutionAuthoritySchema,
 } from './professional-long-form-source-authority-execution-contract'
+import {
+  PROFESSIONAL_LONG_FORM_MASTER_TIMING_AUTHORIZATION_RECEIPT_VERSION,
+  PROFESSIONAL_LONG_FORM_MASTER_TIMING_COMPLETION_VERSION,
+  PROFESSIONAL_LONG_FORM_MASTER_TIMING_EXECUTION_ATTEMPT_VERSION,
+  PROFESSIONAL_LONG_FORM_MASTER_TIMING_EXECUTION_AUTHORITY_VERSION,
+  professionalLongFormMasterTimingAuthorizationReceiptSchema,
+  professionalLongFormMasterTimingCompletionSchema,
+  professionalLongFormMasterTimingExecutionAttemptSchema,
+  professionalLongFormMasterTimingExecutionAuthoritySchema,
+} from './professional-long-form-master-timing-execution-contract'
 
 export const professionalLongFormAuthorizedChildAuthorizationReceiptSchema =
   z.discriminatedUnion('schemaVersion', [
     professionalLongFormFirstChildAuthorizationReceiptSchema,
     professionalLongFormSourceAuthorityAuthorizationReceiptSchema,
+    professionalLongFormMasterTimingAuthorizationReceiptSchema,
   ])
 
 export const professionalLongFormAuthorizedChildExecutionAuthoritySchema =
   z.discriminatedUnion('schemaVersion', [
     professionalLongFormFirstChildExecutionAuthoritySchema,
     professionalLongFormSourceAuthorityExecutionAuthoritySchema,
+    professionalLongFormMasterTimingExecutionAuthoritySchema,
   ])
 
 export const professionalLongFormAuthorizedChildExecutionAttemptSchema =
   z.discriminatedUnion('schemaVersion', [
     professionalLongFormFirstChildExecutionAttemptSchema,
     professionalLongFormSourceAuthorityExecutionAttemptSchema,
+    professionalLongFormMasterTimingExecutionAttemptSchema,
   ])
 
 export const professionalLongFormAuthorizedChildCompletionSchema =
   z.discriminatedUnion('schemaVersion', [
     professionalLongFormFirstChildCompletionSchema,
     professionalLongFormSourceAuthorityCompletionSchema,
+    professionalLongFormMasterTimingCompletionSchema,
   ])
 
 export type ProfessionalLongFormAuthorizedChildAuthorizationReceipt = z.infer<
@@ -72,6 +86,13 @@ export function isProfessionalLongFormSourceAuthorityAuthorization(
     PROFESSIONAL_LONG_FORM_SOURCE_AUTHORITY_AUTHORIZATION_RECEIPT_VERSION
 }
 
+export function isProfessionalLongFormMasterTimingAuthorization(
+  value: ProfessionalLongFormAuthorizedChildAuthorizationReceipt,
+): value is z.infer<typeof professionalLongFormMasterTimingAuthorizationReceiptSchema> {
+  return value.schemaVersion ===
+    PROFESSIONAL_LONG_FORM_MASTER_TIMING_AUTHORIZATION_RECEIPT_VERSION
+}
+
 export function isProfessionalLongFormFirstChildExecutionAuthority(
   value: ProfessionalLongFormAuthorizedChildExecutionAuthority,
 ): value is z.infer<typeof professionalLongFormFirstChildExecutionAuthoritySchema> {
@@ -84,6 +105,13 @@ export function isProfessionalLongFormSourceAuthorityExecutionAuthority(
 ): value is z.infer<typeof professionalLongFormSourceAuthorityExecutionAuthoritySchema> {
   return value.schemaVersion ===
     PROFESSIONAL_LONG_FORM_SOURCE_AUTHORITY_EXECUTION_AUTHORITY_VERSION
+}
+
+export function isProfessionalLongFormMasterTimingExecutionAuthority(
+  value: ProfessionalLongFormAuthorizedChildExecutionAuthority,
+): value is z.infer<typeof professionalLongFormMasterTimingExecutionAuthoritySchema> {
+  return value.schemaVersion ===
+    PROFESSIONAL_LONG_FORM_MASTER_TIMING_EXECUTION_AUTHORITY_VERSION
 }
 
 export function isProfessionalLongFormFirstChildExecutionAttempt(
@@ -100,6 +128,13 @@ export function isProfessionalLongFormSourceAuthorityExecutionAttempt(
     PROFESSIONAL_LONG_FORM_SOURCE_AUTHORITY_EXECUTION_ATTEMPT_VERSION
 }
 
+export function isProfessionalLongFormMasterTimingExecutionAttempt(
+  value: ProfessionalLongFormAuthorizedChildExecutionAttempt,
+): value is z.infer<typeof professionalLongFormMasterTimingExecutionAttemptSchema> {
+  return value.schemaVersion ===
+    PROFESSIONAL_LONG_FORM_MASTER_TIMING_EXECUTION_ATTEMPT_VERSION
+}
+
 export function isProfessionalLongFormFirstChildCompletion(
   value: ProfessionalLongFormAuthorizedChildCompletion,
 ): value is z.infer<typeof professionalLongFormFirstChildCompletionSchema> {
@@ -111,4 +146,11 @@ export function isProfessionalLongFormSourceAuthorityCompletion(
 ): value is z.infer<typeof professionalLongFormSourceAuthorityCompletionSchema> {
   return value.schemaVersion ===
     PROFESSIONAL_LONG_FORM_SOURCE_AUTHORITY_COMPLETION_VERSION
+}
+
+export function isProfessionalLongFormMasterTimingCompletion(
+  value: ProfessionalLongFormAuthorizedChildCompletion,
+): value is z.infer<typeof professionalLongFormMasterTimingCompletionSchema> {
+  return value.schemaVersion ===
+    PROFESSIONAL_LONG_FORM_MASTER_TIMING_COMPLETION_VERSION
 }

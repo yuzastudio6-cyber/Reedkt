@@ -21,12 +21,14 @@ const identity = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
   .refine((value) => !value.includes('..'))
 const sha256 = z.string().regex(/^[a-f0-9]{64}$/u)
+const expectedOutputIdentity = z.string().trim().min(1).max(512)
 
 export const canonicalPrivatePackageWorkQueueJobDefinitionSchema = z.object({
   canonicalOrder: z.number().int().nonnegative().max(255),
   jobId: identity,
   approvedWorkItemId: identity,
   workItemKey: identity,
+  expectedOutputIdentity: expectedOutputIdentity.optional(),
   required: z.boolean(),
   dependencyJobIds: z.array(identity).max(128),
   satisfiedPromotionDependencyJobIds: z.array(identity).max(1).optional(),
@@ -180,6 +182,7 @@ export const canonicalPrivatePackageWorkQueueDefinitionSchema = z.object({
     promotionSatisfied.length !== professionalLongForm.rootChildJobCount ||
     definition.jobs.some((job) =>
       job.satisfiedPromotionDependencyJobIds === undefined ||
+      !job.expectedOutputIdentity ||
       job.satisfiedPromotionDependencyJobIds.some((dependencyJobId) =>
         dependencyJobId !== professionalLongForm.parentControllerJobId) ||
       job.dependencyJobIds.includes(professionalLongForm.parentControllerJobId) ||

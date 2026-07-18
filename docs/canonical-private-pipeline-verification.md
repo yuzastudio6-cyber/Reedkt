@@ -2,7 +2,7 @@
 
 Status: `implemented_local_private_verification_entrypoint`
 
-Status date: 2026-07-17
+Status date: 2026-07-18
 
 ## Purpose
 
@@ -13,7 +13,8 @@ primary pipeline signal.
 
 The command verifies the connected path from exact source, Edit Preferences,
 and Edit Brief authority through a real resumable-sized 4K private ingest/proxy
-proof, source-only intent restraint, canonical plan
+proof, a frame-exact professional long-form object-backed planning contract,
+source-only intent restraint, canonical plan
 presentation, the 4K estimate ceiling, separate approval, the opaque
 execution-package handoff, private preparation, private review,
 revision/history recovery, the bounded three-source standalone reference-bound
@@ -61,14 +62,21 @@ plan fits the bounded canonical profile.
    capacity admission, private probe/finalization, restart/replay, exact-source
    verification, and a checksum-bound 1920x1080 analysis proxy that cannot
    replace the immutable render master.
-3. Prove that every approved edit estimate carries the 4K UHD delivery ceiling
+3. Verify the additive professional long-form object-backed planning profile
+   against a 30-minute, 24-source fixture and the bounded six-hour,
+   512-source-range capacity fixture. The plan must conserve exact frames,
+   distinguish approved hard cuts from continuous technical splits, require
+   per-chunk QA, continuous program audio, cross-chunk color QA, and reuse of
+   the one approved 4K estimate while long-form media execution, object
+   storage, database, cloud, staging, and production authority remain false.
+4. Prove that every approved edit estimate carries the 4K UHD delivery ceiling
    and that 1080p, 2K/1440p, and 4K exports stay within the same approved
    deliverable rather than prompting for a second estimate.
-4. Verify frontend-safe planning publication, approval, execution-package,
+5. Verify frontend-safe planning publication, approval, execution-package,
    private-preparation, private-review, and journey-recovery clients.
-5. Exercise the real local backend authority chain for upload, publication,
+6. Exercise the real local backend authority chain for upload, publication,
    approval, synthetic reservation, snapshot, jobs, package, and readiness.
-6. Verify the checksum-protected package queue, server-selected attempt,
+7. Verify the checksum-protected package queue, server-selected attempt,
    cooperative cross-process package lock, crash-consistent queue/outbox
    write-ahead commit, all 50 exact regional Cloud Tasks/Cloud Run target
    contracts, RS256/JWKS service identity with a non-serializable process trust
@@ -86,7 +94,7 @@ plan fits the bounded canonical profile.
    and locked seven-function RPC transport are checked in the same aggregate,
    but no corresponding SQL function or live Supabase/Postgres client is
    activated.
-7. Exercise the bounded ordered three-source canonical lifecycle through lease,
+8. Exercise the bounded ordered three-source canonical lifecycle through lease,
    one-use dispatch, private artifacts, QA, reconciliation, replay, and private
    download evidence. The focused lifecycle includes three exact source-bound
    FFmpeg voice-delivery WAVs, a QA-passed first-source color reference, two
@@ -97,7 +105,7 @@ plan fits the bounded canonical profile.
    build context, and runtime authority root are canonical-private resources so
    a separate Motion Studio build cannot replace the image identity during this
    proof.
-8. Regression-check one exact source-bound professional-color lifecycle through the
+9. Regression-check one exact source-bound professional-color lifecycle through the
    immutable approved snapshot, synthetic private reservation, lease, one-use
    FFmpeg dispatch, three-frame RGB analysis, bounded approved correction,
    lossless VP9 BT.709/yuv420p Matroska persistence, pixel/histogram/clipping
@@ -108,9 +116,9 @@ plan fits the bounded canonical profile.
    The color-capable FFmpeg image tag and checksum-protected runtime authority
    namespace are revision-isolated so an older parallel checkout cannot replace
    this exact policy evidence.
-9. Verify active named-edit loading, failure, retry, approval, progress, review,
+10. Verify active named-edit loading, failure, retry, approval, progress, review,
    and revision states in Chromium.
-10. Regenerate the proven-tool identity report so tool readiness claims stay
+11. Regenerate the proven-tool identity report so tool readiness claims stay
    tied to exact versioned evidence.
 
 In full mode, a final browser phase also signs in through the loopback-only
@@ -124,7 +132,7 @@ source-bound audio identities in approved order, reads sanitized journey state,
 and records review acceptance.
 
 The runner stops on the first failed phase and prints a machine-readable
-`canonical-private-pipeline-verification-v14` report with step exit codes and
+`canonical-private-pipeline-verification-v15` report with step exit codes and
 durations. A zero exit code means every included assertion passed, including
 assertions that production-only or unavailable behavior stays blocked.
 
@@ -135,15 +143,17 @@ that discovery channel; it does not weaken image-identity validation.
 
 ## Current Evidence Record
 
-On 2026-07-18, the exact-code v14 full internal command passed all `34/34`
-phases with exit code `0`. It started at `2026-07-18T02:45:56.431Z`, finished
-at `2026-07-18T03:17:07.879Z`, and completed in `1,871,448 ms`. The two added
-phases verified the database-neutral distributed package-state port in `479 ms`
-and the locked server-only RPC transport adapter in `428 ms`. The package-state
-transaction completed in `11,968 ms`, the timeout-aware receiver in `2,222 ms`,
-three-source composition in `628,982 ms`, professional color in `697,292 ms`,
-bounded UHD Remotion streaming in `92,816 ms`, the named-edit browser journey
-in `15,330 ms`, and the maximum-eight-source signed-in review in `391,960 ms`.
+On 2026-07-18, the exact-code v15 full internal command passed all `35/35`
+phases with exit code `0`. It started at `2026-07-18T04:27:10.498Z`, finished
+at `2026-07-18T04:55:52.877Z`, and completed in `1,722,379 ms`. The added
+professional long-form object-backed plan phase passed its 24 adversarial
+checks in `457 ms`. The database-neutral distributed package-state port passed
+in `439 ms`, the locked server-only RPC transport adapter in `331 ms`, the
+package-state transaction in `10,797 ms`, and the timeout-aware receiver in
+`2,163 ms`. Three-source composition passed in `538,570 ms`, professional color
+in `641,705 ms`, bounded UHD Remotion streaming in `96,720 ms`, the named-edit
+browser journey in `15,149 ms`, and the maximum-eight-source signed-in review
+in `387,622 ms`.
 
 The final stage completed all `27` snapshot-bound work items and jobs, produced
 an authenticated non-passthrough `3840x2160` sixteen-second private review with
@@ -151,11 +161,19 @@ SHA-256
 `584cdd265fc32d81ca70f5f08420bf65ebfac998a1d4db38fb94efe5aa847505`,
 preserved all eight source-bound audio identities in approved order, and
 persisted review acceptance. The run preserved exactly 50 canonical E2E and 50
-job-adapter identities. It proved the new lifecycle and RPC contracts only; no
-canonical package-state SQL function was executed and no live RPC client was
-activated. Distributed database atomicity, live Google identity/IAM and cloud
+job-adapter identities. The long-form phase proved frame-exact planning only;
+it did not process a 30-minute video or use object storage. The run proved the
+new lifecycle and RPC contracts only; no canonical package-state SQL function
+was executed and no live RPC client was activated. Distributed database
+atomicity, live Google identity/IAM and cloud
 execution, providers, billing/wallet mutation, remote Supabase, public
 delivery, deployment, external beta, and paid production remained false.
+
+The preceding exact-code v14 full internal command passed all `34/34` phases
+with exit code `0` on 2026-07-18. It started at
+`2026-07-18T02:45:56.431Z`, finished at `2026-07-18T03:17:07.879Z`, and
+completed in `1,871,448 ms`. It remains historical pre-long-form-plan aggregate
+evidence.
 
 The preceding exact-code v13 full internal command passed all `32/32` phases
 with exit code `0` on 2026-07-17. It started at
@@ -209,7 +227,7 @@ deployment, external beta, and paid production remained false.
 The v13 result remains pre-distributed-port/RPC-adapter historical evidence,
 the v12 result remains pre-Docker-transport-hardening historical evidence, and
 the v11 result remains pre-timeout-reconciliation historical evidence. All are
-superseded by the exact-code v14 aggregate verdict. The prior v10 `26/26` and
+superseded by the exact-code v15 aggregate verdict. The prior v10 `26/26` and
 `32/32` results remain pre-failure-reconciliation historical evidence.
 The v9 results remain pre-completion-reconciliation history, and the earlier v8
 results remain pre-transaction history.

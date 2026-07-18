@@ -1,6 +1,6 @@
 # Runtime API Security Hardening — 2026-07-10
 
-Status: source-hardened, production still blocked
+Status: `source_hardened_live_deployed_security_evidence_gated`
 
 This change separates customer authentication from backend control-plane authorization. It does not certify a deployed API, Supabase project, worker, provider, or Cloud Run service.
 
@@ -26,10 +26,15 @@ identity JSON. Its private service now requires a non-serializable process
 brand. A bounded verifier proves RS256 against a checksum-bound server-owned
 test JWKS snapshot, then validates exact issuer/principal/audience/issue/expiry
 and attempt bindings while persisting only hashed receipts. The exercised
-snapshot explicitly records that no live Google key fetch occurred; production
-and purported live Google-verifier output remain rejected. Google's supported
-live auth-library/key-rotation adapter, Cloud Run IAM, and deployed request
-integration are still required.
+snapshot explicitly records that no live Google key fetch occurred. A new
+server-only adapter now uses the supported `google-auth-library` verification
+path with a strict bounded Authorization/JWT preflight, server-frozen
+service-account principal/audience/mechanism, independent claim rechecks, a
+bounded timeout, generic failures, and the same non-serializable capability.
+Its isolated smoke stubs the library method and performs no live Google key or
+token verification. Cloud Run IAM, controlled live-token/key-cache evidence,
+the distributed transaction, and deployed request integration are still
+required before a receiver route can be mounted.
 
 The private completion follow-up uses the same process-branded worker identity
 and requires the same accepted service principal before it can reconcile a
@@ -129,7 +134,8 @@ Production remains blocked until all of the following are proven:
 2. Two users/two workspaces negative API and RLS tests.
 3. Atomic authorization + idempotency + mutation transactions.
 4. Distributed rate limiting, request quotas, and edge/WAF controls.
-5. Cloud service identity and token rotation.
+5. Live cloud service identity, token/key rotation, exact IAM, and deployed
+   receiver integration; the supported adapter exists only as source evidence.
 6. Provider webhook signature verification and replay prevention.
 7. Sanitized public DTOs for the remaining preview/review/execution-artifact
    surfaces; job/event and render reads are already projected.

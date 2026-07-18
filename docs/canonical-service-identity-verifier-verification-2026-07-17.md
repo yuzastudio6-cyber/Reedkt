@@ -1,6 +1,6 @@
 # Canonical Service Identity Verifier Verification — 2026-07-17
 
-Status: `cryptographic_contract_verified_live_google_jwks_iam_blocked`
+Status: `cryptographic_contract_and_supported_adapter_source_verified_live_google_token_iam_blocked`
 
 ## Outcome
 
@@ -14,6 +14,13 @@ This is source and private-contract proof. The exercised JWKS snapshot uses a
 locally generated test key and explicitly records
 `liveGoogleJwksFetchPerformed = false`. No Google public key was fetched, no
 Cloud Task or Cloud Run Job was called, and no IAM or deployment claim is made.
+
+An additive server-only adapter now calls the supported `google-auth-library`
+verification path from a server-frozen principal, audience, mechanism,
+lifetime, and timeout. Its focused smoke stubs the library method inside the
+test process, so the adapter path is proven without claiming a live Google
+token or key fetch. See
+`docs/canonical-live-google-service-identity-adapter-2026-07-17.md`.
 
 ## Exact Verification Contract
 
@@ -86,7 +93,20 @@ attempt, zero Cloud Run hidden retries, and no queue mutation or execution.
 that the signed verifier output is accepted by the exact durable controller and
 worker receipt state machine while caller-authored evidence is rejected.
 
-## Aggregate Verification
+`npm run smoke:canonical-live-google-service-identity-verifier` proves the
+supported-library adapter path, strict Authorization/JWT preflight, frozen
+server authority, independent post-verification claim checks, bounded timeout,
+generic failure behavior, client reuse, and token-free process branding. The
+library verifier is stubbed only inside that smoke process; live Google token,
+key, cache, outage, and IAM behavior are not claimed.
+
+## Historical Aggregate Verification
+
+The following aggregate runs predate the additive live-adapter source. They
+remain valid evidence for the unchanged private contract verifier and receiver
+state machine, but they are not an exact-code aggregate pass for the new
+adapter. The focused adapter smoke above is the current evidence for this
+bounded increment.
 
 The exact-code full internal pipeline passed all `32/32` stages with exit code
 `0` under schema `canonical-private-pipeline-verification-v11`:
@@ -146,8 +166,9 @@ superseded by the exact-code v11 aggregate verdict.
 
 The following remain false:
 
-- live retrieval and cache-control rotation of Google signing keys;
-- use of Google's official authentication library against a live token;
+- exercised live retrieval and cache-control rotation of Google signing keys;
+- use of Google's official authentication library against a live token (the
+  supported adapter exists in source and its method is stubbed in focused QA);
 - Cloud Tasks OIDC configuration and Cloud Run Invoker IAM;
 - workload-identity token acquisition from the Cloud Run metadata server;
 - deployed controller and worker receiver endpoints;
@@ -174,11 +195,11 @@ The source contract follows current Google primary guidance:
 
 ## Next Gate
 
-The next identity gate is a reviewed live adapter using Google's supported
-authentication library or equivalently reviewed Google-key cache integration,
-including key rotation, cache-control handling, outage behavior, token-source
-headers, and controlled staging tokens. That live adapter must be constructed
-outside request JSON and combined with the still-gated distributed
+The next identity gate is controlled staging evidence using a real
+Google-issued token, exact deployed audience and service account, live key
+rotation/cache-control behavior, outage behavior, duplicate-header rejection,
+and negative principal/audience checks. The adapter is constructed outside
+request JSON, but it must still be combined with the gated distributed
 package-queue/outbox transaction before any receiver route or Cloud dispatch is
 enabled. The private same-host precursor is documented in
 `docs/canonical-private-package-state-transaction-verification-2026-07-17.md`.

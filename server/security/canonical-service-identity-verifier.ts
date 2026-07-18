@@ -5,6 +5,7 @@ import {
 } from 'node:crypto'
 import { TextDecoder } from 'node:util'
 
+import { OAuth2Client } from 'google-auth-library'
 import { z } from 'zod'
 
 import { ApiError } from '../errors/api-error'
@@ -21,10 +22,13 @@ export const CANONICAL_TRUSTED_JWKS_SNAPSHOT_VERSION =
 const GOOGLE_IDENTITY_ISSUER = 'https://accounts.google.com'
 const PRIVATE_FIXTURE_VERIFIER_ID = 'reeditpro-private-contract-fixture'
 const TRUSTED_JWKS_FIXTURE_VERIFIER_ID = 'reeditpro-trusted-jwks-contract-fixture'
+const LIVE_GOOGLE_VERIFIER_ID = 'reeditpro-google-auth-library-v9'
 const MAX_TOKEN_BYTES = 16 * 1024
+const MAX_AUTHORIZATION_HEADER_BYTES = MAX_TOKEN_BYTES + 7
 const MAX_JWT_SEGMENT_BYTES = 12 * 1024
 const MAX_JWKS_KEYS = 16
 const DEFAULT_MAX_TOKEN_LIFETIME_SECONDS = 65 * 60
+const DEFAULT_LIVE_VERIFICATION_TIMEOUT_MS = 5_000
 const utf8Decoder = new TextDecoder('utf-8', { fatal: true })
 const verifiedIdentityBrands = new WeakSet<object>()
 
@@ -97,6 +101,12 @@ export type CanonicalTrustedJwksSnapshot = z.infer<
  */
 export interface CanonicalVerifiedServiceIdentity {
   readonly evidence: CanonicalServiceIdentityEvidence
+}
+
+export interface CanonicalLiveGoogleServiceIdentityVerifier {
+  verifyAuthorizationHeader(
+    authorizationHeader: unknown,
+  ): Promise<CanonicalVerifiedServiceIdentity>
 }
 
 export function createCanonicalTrustedJwksContractSnapshot(input: {
@@ -222,6 +232,111 @@ export function createCanonicalTrustedJwksContractVerifier(input: {
   })
 }
 
+/**
+ * Server-construction-only adapter for a deployed Google-authenticated HTTP
+ * boundary. Expected identity and audience are frozen in the closure; a
+ * request can supply only its Authorization header. OAuth2Client owns Google's
+ * signing-key retrieval, cache-control, and rotation behavior. No receiver is
+ * mounted merely by constructing this adapter.
+ */
+export function createCanonicalLiveGoogleServiceIdentityVerifier(input: {
+  authenticationMechanism:
+    CanonicalServiceIdentityEvidence['authenticationMechanism']
+  expectedPrincipalEmail: string
+  expectedAudience: string
+  maxTokenLifetimeSeconds?: number
+  verificationTimeoutMs?: number
+}): CanonicalLiveGoogleServiceIdentityVerifier {
+  const authenticationMechanism = parseAuthenticationMechanism(
+    input.authenticationMechanism,
+  )
+  const expectedPrincipalEmail = parseExpectedServiceAccountEmail(
+    input.expectedPrincipalEmail,
+  )
+  const expectedAudience = parseExpectedAudience(input.expectedAudience)
+  const maxTokenLifetimeSeconds = boundedMaxTokenLifetimeSeconds(
+    input.maxTokenLifetimeSeconds,
+  )
+  const verificationTimeoutMs = boundedLiveVerificationTimeoutMs(
+    input.verificationTimeoutMs,
+  )
+  const googleAuthClient = new OAuth2Client({
+    transporterOptions: {
+      timeout: verificationTimeoutMs,
+      retry: false,
+      maxContentLength: 1024 * 1024,
+    },
+  })
+
+  return Object.freeze({
+    async verifyAuthorizationHeader(
+      authorizationHeader: unknown,
+    ): Promise<CanonicalVerifiedServiceIdentity> {
+      try {
+        const idToken = extractBearerIdToken(authorizationHeader)
+        const parsedToken = parseJwt(idToken)
+        jwtHeaderSchema.parse(parsedToken.header)
+
+        const ticket = await withVerificationTimeout(
+          googleAuthClient.verifyIdToken({
+            idToken,
+            audience: expectedAudience,
+            maxExpiry: maxTokenLifetimeSeconds,
+          }),
+          verificationTimeoutMs,
+        )
+        const payload = jwtPayloadSchema.parse(ticket.getPayload())
+        const principalEmail = parseExpectedServiceAccountEmail(payload.email)
+        const verifiedAt = new Date()
+        if (!Number.isFinite(verifiedAt.getTime())) {
+          throw new Error('Invalid verifier clock.')
+        }
+        const verifiedAtMs = verifiedAt.getTime()
+        const issuedAtMs = payload.iat * 1_000
+        const expiresAtMs = payload.exp * 1_000
+        if (
+          payload.aud !== expectedAudience ||
+          principalEmail !== expectedPrincipalEmail ||
+          issuedAtMs > verifiedAtMs ||
+          expiresAtMs <= verifiedAtMs ||
+          expiresAtMs <= issuedAtMs ||
+          payload.exp - payload.iat > maxTokenLifetimeSeconds ||
+          (payload.nbf !== undefined && payload.nbf * 1_000 > verifiedAtMs)
+        ) throw new Error('Google identity claims do not match receiver authority.')
+
+        const evidencePayload = {
+          schemaVersion: CANONICAL_SERVICE_IDENTITY_EVIDENCE_VERSION,
+          source: 'trusted_service_identity_verifier_output' as const,
+          verificationMode: 'trusted_google_identity_verifier' as const,
+          authenticationMechanism,
+          verifierId: LIVE_GOOGLE_VERIFIER_ID,
+          issuer: payload.iss,
+          subject: payload.sub,
+          principalEmail,
+          audience: payload.aud,
+          issuedAt: new Date(issuedAtMs).toISOString(),
+          expiresAt: new Date(expiresAtMs).toISOString(),
+          verifiedAt: verifiedAt.toISOString(),
+          emailVerified: true as const,
+          issuerVerified: true as const,
+          audienceVerified: true as const,
+          expiryVerified: true as const,
+          cryptographicSignatureVerified: true,
+          liveGoogleVerificationPerformed: true,
+          rawBearerTokenRetained: false as const,
+          callerAuthoredClaimsAccepted: false as const,
+        }
+        return brandVerifiedIdentity(canonicalServiceIdentityEvidenceSchema.parse({
+          ...evidencePayload,
+          evidenceHash: sha256AuthorityValue(evidencePayload),
+        }))
+      } catch {
+        throw serviceIdentityDenied()
+      }
+    },
+  })
+}
+
 export function createCanonicalPrivateServiceIdentityFixture(input: {
   authenticationMechanism:
     CanonicalServiceIdentityEvidence['authenticationMechanism']
@@ -330,6 +445,22 @@ function parseJwt(value: string): {
   }
 }
 
+function extractBearerIdToken(value: unknown): string {
+  if (
+    typeof value !== 'string' ||
+    value.trim() !== value ||
+    Buffer.byteLength(value, 'utf8') > MAX_AUTHORIZATION_HEADER_BYTES
+  ) throw new Error('Authorization header is invalid.')
+  const match = /^Bearer ([A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+)$/iu
+    .exec(value)
+  if (!match) throw new Error('Authorization header is invalid.')
+  const idToken = match[1]
+  if (Buffer.byteLength(idToken, 'utf8') > MAX_TOKEN_BYTES) {
+    throw new Error('Authorization token is too large.')
+  }
+  return idToken
+}
+
 function decodeBase64Url(value: string): Buffer {
   if (!/^[A-Za-z0-9_-]+$/u.test(value)) throw new Error('JWT encoding is invalid.')
   const decoded = Buffer.from(value, 'base64url')
@@ -347,6 +478,80 @@ function boundedMaxTokenLifetimeSeconds(value: number | undefined): number {
     )
   }
   return resolved
+}
+
+function parseAuthenticationMechanism(
+  value: unknown,
+): CanonicalServiceIdentityEvidence['authenticationMechanism'] {
+  const parsed = canonicalServiceIdentityEvidenceSchema.shape
+    .authenticationMechanism.safeParse(value)
+  if (!parsed.success) throw liveVerifierConfigurationInvalid()
+  return parsed.data
+}
+
+function parseExpectedServiceAccountEmail(value: unknown): string {
+  if (
+    typeof value !== 'string' ||
+    value.trim() !== value ||
+    value.length > 254
+  ) throw liveVerifierConfigurationInvalid()
+  const normalized = value.toLowerCase()
+  const parsed = z.string().email().safeParse(normalized)
+  if (!parsed.success || !parsed.data.endsWith('.gserviceaccount.com')) {
+    throw liveVerifierConfigurationInvalid()
+  }
+  return parsed.data
+}
+
+function parseExpectedAudience(value: unknown): string {
+  if (
+    typeof value !== 'string' ||
+    value.trim() !== value ||
+    value.length < 1 || value.length > 1_024 ||
+    containsControlCharacter(value)
+  ) throw liveVerifierConfigurationInvalid()
+  return value
+}
+
+function containsControlCharacter(value: string): boolean {
+  return Array.from(value).some((character) => {
+    const codePoint = character.codePointAt(0)
+    return codePoint !== undefined && (codePoint <= 0x1f || codePoint === 0x7f)
+  })
+}
+
+function boundedLiveVerificationTimeoutMs(value: number | undefined): number {
+  const resolved = value ?? DEFAULT_LIVE_VERIFICATION_TIMEOUT_MS
+  if (!Number.isInteger(resolved) || resolved < 10 || resolved > 30_000) {
+    throw liveVerifierConfigurationInvalid()
+  }
+  return resolved
+}
+
+async function withVerificationTimeout<T>(
+  operation: Promise<T>,
+  timeoutMs: number,
+): Promise<T> {
+  let timeout: NodeJS.Timeout | undefined
+  const timeoutFailure = new Promise<never>((_, reject) => {
+    timeout = setTimeout(
+      () => reject(new Error('Google identity verification timed out.')),
+      timeoutMs,
+    )
+  })
+  try {
+    return await Promise.race([operation, timeoutFailure])
+  } finally {
+    if (timeout) clearTimeout(timeout)
+  }
+}
+
+function liveVerifierConfigurationInvalid(): ApiError {
+  return new ApiError(
+    'VALIDATION_FAILED',
+    'Canonical live Google service identity verifier configuration is invalid.',
+    400,
+  )
 }
 
 function serviceIdentityDenied(): ApiError {

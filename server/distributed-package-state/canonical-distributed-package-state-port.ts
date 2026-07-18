@@ -732,6 +732,31 @@ export function createCanonicalDistributedPackageStateFixtureDescriptor(
   })
 }
 
+export function createCanonicalDistributedPackageStateUnverifiedDatabaseAdapterDescriptor(
+  adapterId: string,
+): CanonicalDistributedPackageStatePortDescriptor {
+  const payload = {
+    schemaVersion: CANONICAL_DISTRIBUTED_PACKAGE_STATE_PORT_VERSION,
+    adapterId,
+    implementationClass: 'database_transaction_adapter' as const,
+    serviceOnly: true as const,
+    exactInputAndOutputSchemasEnforced: true as const,
+    serializableTransactionSemanticsExercised: false,
+    durableResponseReplaySemanticsExercised: false,
+    terminalExclusivitySemanticsExercised: false,
+    databaseBackend: 'none' as const,
+    distributedDatabaseTransactionVerified: false,
+    multiReplicaDurabilityVerified: false,
+    liveSupabaseOrPostgresCallPerformed: false,
+    cloudCallPerformed: false,
+    productionAuthority: false as const,
+  }
+  return canonicalDistributedPackageStatePortDescriptorSchema.parse({
+    ...payload,
+    descriptorHash: sha256AuthorityValue(payload),
+  })
+}
+
 export function canonicalDistributedPersistenceBoundaries() {
   return {
     serviceOnly: true as const,

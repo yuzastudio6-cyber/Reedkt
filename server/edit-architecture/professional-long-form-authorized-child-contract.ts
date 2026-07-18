@@ -48,6 +48,16 @@ import {
   professionalLongFormFirstObjectChunkRenderAuthorizationSchema,
   professionalLongFormFirstObjectChunkRenderCompletionSchema,
 } from './professional-long-form-first-object-chunk-execution-contract'
+import {
+  PROFESSIONAL_LONG_FORM_CONTINUOUS_PROGRAM_AUDIO_ATTEMPT_VERSION,
+  PROFESSIONAL_LONG_FORM_CONTINUOUS_PROGRAM_AUDIO_AUTHORITY_VERSION,
+  PROFESSIONAL_LONG_FORM_CONTINUOUS_PROGRAM_AUDIO_AUTHORIZATION_VERSION,
+  PROFESSIONAL_LONG_FORM_CONTINUOUS_PROGRAM_AUDIO_COMPLETION_VERSION,
+  professionalLongFormContinuousProgramAudioAttemptSchema,
+  professionalLongFormContinuousProgramAudioAuthoritySchema,
+  professionalLongFormContinuousProgramAudioAuthorizationSchema,
+  professionalLongFormContinuousProgramAudioCompletionSchema,
+} from './professional-long-form-continuous-program-audio-execution-contract'
 
 export const professionalLongFormAuthorizedChildAuthorizationReceiptSchema =
   z.discriminatedUnion('schemaVersion', [
@@ -56,6 +66,7 @@ export const professionalLongFormAuthorizedChildAuthorizationReceiptSchema =
     professionalLongFormMasterTimingAuthorizationReceiptSchema,
     professionalLongFormFirstObjectChunkRenderAuthorizationSchema,
     professionalLongFormFirstObjectChunkQaAuthorizationSchema,
+    professionalLongFormContinuousProgramAudioAuthorizationSchema,
   ])
 
 export const professionalLongFormAuthorizedChildExecutionAuthoritySchema =
@@ -65,6 +76,7 @@ export const professionalLongFormAuthorizedChildExecutionAuthoritySchema =
     professionalLongFormMasterTimingExecutionAuthoritySchema,
     professionalLongFormFirstObjectChunkRenderAuthoritySchema,
     professionalLongFormFirstObjectChunkQaAuthoritySchema,
+    professionalLongFormContinuousProgramAudioAuthoritySchema,
   ])
 
 export const professionalLongFormAuthorizedChildExecutionAttemptSchema =
@@ -74,6 +86,7 @@ export const professionalLongFormAuthorizedChildExecutionAttemptSchema =
     professionalLongFormMasterTimingExecutionAttemptSchema,
     professionalLongFormFirstObjectChunkRenderAttemptSchema,
     professionalLongFormFirstObjectChunkQaAttemptSchema,
+    professionalLongFormContinuousProgramAudioAttemptSchema,
   ])
 
 export const professionalLongFormAuthorizedChildCompletionSchema =
@@ -83,6 +96,7 @@ export const professionalLongFormAuthorizedChildCompletionSchema =
     professionalLongFormMasterTimingCompletionSchema,
     professionalLongFormFirstObjectChunkRenderCompletionSchema,
     professionalLongFormFirstObjectChunkQaCompletionSchema,
+    professionalLongFormContinuousProgramAudioCompletionSchema,
   ])
 
 export type ProfessionalLongFormAuthorizedChildAuthorizationReceipt = z.infer<
@@ -137,6 +151,15 @@ export function isProfessionalLongFormFirstObjectChunkQaAuthorization(
     PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_AUTHORIZATION_VERSION
 }
 
+export function isProfessionalLongFormContinuousProgramAudioAuthorization(
+  value: ProfessionalLongFormAuthorizedChildAuthorizationReceipt,
+): value is z.infer<
+  typeof professionalLongFormContinuousProgramAudioAuthorizationSchema
+> {
+  return value.schemaVersion ===
+    PROFESSIONAL_LONG_FORM_CONTINUOUS_PROGRAM_AUDIO_AUTHORIZATION_VERSION
+}
+
 export function isProfessionalLongFormFirstChildExecutionAuthority(
   value: ProfessionalLongFormAuthorizedChildExecutionAuthority,
 ): value is z.infer<typeof professionalLongFormFirstChildExecutionAuthoritySchema> {
@@ -172,6 +195,15 @@ export function isProfessionalLongFormFirstObjectChunkQaAuthority(
 ): value is z.infer<typeof professionalLongFormFirstObjectChunkQaAuthoritySchema> {
   return value.schemaVersion ===
     PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_AUTHORITY_VERSION
+}
+
+export function isProfessionalLongFormContinuousProgramAudioAuthority(
+  value: ProfessionalLongFormAuthorizedChildExecutionAuthority,
+): value is z.infer<
+  typeof professionalLongFormContinuousProgramAudioAuthoritySchema
+> {
+  return value.schemaVersion ===
+    PROFESSIONAL_LONG_FORM_CONTINUOUS_PROGRAM_AUDIO_AUTHORITY_VERSION
 }
 
 export function isProfessionalLongFormFirstChildExecutionAttempt(
@@ -211,6 +243,15 @@ export function isProfessionalLongFormFirstObjectChunkQaAttempt(
     PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_ATTEMPT_VERSION
 }
 
+export function isProfessionalLongFormContinuousProgramAudioAttempt(
+  value: ProfessionalLongFormAuthorizedChildExecutionAttempt,
+): value is z.infer<
+  typeof professionalLongFormContinuousProgramAudioAttemptSchema
+> {
+  return value.schemaVersion ===
+    PROFESSIONAL_LONG_FORM_CONTINUOUS_PROGRAM_AUDIO_ATTEMPT_VERSION
+}
+
 export function isProfessionalLongFormFirstChildCompletion(
   value: ProfessionalLongFormAuthorizedChildCompletion,
 ): value is z.infer<typeof professionalLongFormFirstChildCompletionSchema> {
@@ -245,4 +286,13 @@ export function isProfessionalLongFormFirstObjectChunkQaCompletion(
 ): value is z.infer<typeof professionalLongFormFirstObjectChunkQaCompletionSchema> {
   return value.schemaVersion ===
     PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_COMPLETION_VERSION
+}
+
+export function isProfessionalLongFormContinuousProgramAudioCompletion(
+  value: ProfessionalLongFormAuthorizedChildCompletion,
+): value is z.infer<
+  typeof professionalLongFormContinuousProgramAudioCompletionSchema
+> {
+  return value.schemaVersion ===
+    PROFESSIONAL_LONG_FORM_CONTINUOUS_PROGRAM_AUDIO_COMPLETION_VERSION
 }

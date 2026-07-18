@@ -39,14 +39,22 @@ blocked child policy. Ordinary queues cannot carry promotion-satisfied parent
 dependencies. Specialized server services now grant separate exact authority
 to the dependency-root snapshot-validation entry and then the private
 source-authority entry, the strict structured master-timing entry, and then the
-server-selected first object render plus its paired independent QA. Each
+server-selected first object render plus its paired independent QA. A separate
+bounded continuation now grants the exact continuous-program-audio entry its
+own authorization, one queue lease with durable heartbeat evidence, one-use
+FFmpeg dispatch, create-only FLAC persistence, independent FFprobe and decoded-
+sample QA attempt, two internal-cost records, reconciliation, completion,
+tamper refusal, and replay. Each
 completes through its own lease, one-use attempt, private artifact, QA,
 reconciliation, internal cost, terminal queue commit, and replay. The timing
 child additionally records 124 render, one continuous-audio, and one
 finalization dependency without authorizing them. The first media pair stages
 only its five exact approved objects/slices, produces one deterministic
 5,226-frame private Matroska object, and separately reprobes the persisted
-bytes. The other 250 long-form children remain unclaimable until their own
+bytes. The continuous-audio maximum fixture stages eight exact sources and 512
+approved ranges into a six-hour, 1,144,083,803-byte lossless FLAC with exactly
+1,036,800,000 decoded stereo sample frames. The other 249 long-form children
+remain unclaimable until their own
 exact tool/cost/runner/QA authority is added. See
 `docs/canonical-professional-long-form-child-package-promotion-2026-07-18.md`
 and
@@ -59,6 +67,9 @@ The timing continuation is documented in
 
 The bounded first-media-pair continuation is documented in
 `docs/canonical-professional-long-form-first-object-chunk-execution-2026-07-18.md`.
+
+The bounded continuous-program-audio continuation is documented in
+`docs/canonical-professional-long-form-continuous-program-audio-execution-2026-07-18.md`.
 
 The ordinary orchestrator then repeatedly:
 
@@ -280,6 +291,14 @@ Supabase, billing, public delivery, and production promotion remain gated.
   exact terminal result without redispatch, and kept the remaining 250
   children plus complete long-form, cloud, commerce, product, and production
   execution false
+- `npm run qa:internal-pipeline` — continuous-program-audio execution v24 full
+  run passed 38/38 stages from `2026-07-18T19:00:39.984Z` through
+  `2026-07-18T19:43:20.646Z` in `2,560,662 ms`; the 96-check long-form stage
+  completed exact queue job six, persisted and independently decoded the six-
+  hour FLAC, retained heartbeat and two internal-cost records, rejected byte
+  tampering, replayed without redispatch, and kept the remaining 249 children
+  plus complete long-form, cloud, commerce, product, and production execution
+  false
 
 The measured duration is a local correctness-regression result. It is not a
 real-program editing benchmark, deployed worker-concurrency result, cloud ETA,

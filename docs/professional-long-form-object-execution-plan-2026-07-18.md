@@ -2,6 +2,10 @@
 
 Status: `first_4k_object_chunk_and_paired_qa_completed_remaining_250_children_blocked`
 
+Supersession note: the later bounded continuous-program-audio continuation
+completed one additional queue job, leaving 249 children blocked. See
+`docs/canonical-professional-long-form-continuous-program-audio-execution-2026-07-18.md`.
+
 ## Outcome
 
 ReEditPro now has an additive server-owned planning contract for professional

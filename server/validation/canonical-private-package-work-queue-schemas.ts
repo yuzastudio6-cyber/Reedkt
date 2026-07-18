@@ -21,6 +21,7 @@ import {
   professionalLongFormAuthorizedChildAuthorizationReceiptSchema,
   professionalLongFormAuthorizedChildCompletionSchema,
   professionalLongFormAuthorizedChildExecutionAttemptSchema,
+  isProfessionalLongFormContinuousProgramAudioAuthorization,
   isProfessionalLongFormFirstObjectChunkQaAuthorization,
   isProfessionalLongFormFirstObjectChunkRenderAuthorization,
 } from '../edit-architecture/professional-long-form-authorized-child-contract'
@@ -275,7 +276,8 @@ export const canonicalPrivatePackageWorkQueueEntrySchema = z.object({
       entry.definition.approvedWorkItemId !==
         PROFESSIONAL_LONG_FORM_MASTER_TIMING_WORK_ITEM_ID &&
       !isProfessionalLongFormFirstObjectChunkRenderAuthorization(authorization) &&
-      !isProfessionalLongFormFirstObjectChunkQaAuthorization(authorization)) ||
+      !isProfessionalLongFormFirstObjectChunkQaAuthorization(authorization) &&
+      !isProfessionalLongFormContinuousProgramAudioAuthorization(authorization)) ||
     entry.definition.requiredGate !==
       'canonical_professional_long_form_exact_tool_cost_runner_and_qa_authority' ||
     authorization.jobId !== entry.definition.jobId ||

@@ -11,4 +11,5 @@ mp3
 mpegts
 nut
 ogg
+s24le
 wav

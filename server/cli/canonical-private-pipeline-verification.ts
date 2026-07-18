@@ -58,7 +58,7 @@ const canonicalSteps: VerificationStep[] = [
   step(
     'canonical-professional-long-form-post-approval',
     'smoke:canonical-professional-long-form-post-approval',
-    'A six-hour/512-range 4K seed persists through canonical publication and approval; restart-safe server derivation reopens the exact authority, persists a content-addressed 255-child package/placement/queue, and executes the root snapshot-validation, exact private source-authority, structured master-timing, first server-selected object-mezzanine render, and its paired independent QA through separate persisted authorizations, one-use lease/starts, private artifacts, reconciliation, attempt-level internal costs, terminal completion, tamper detection, and exact replay. The first real 4K chunk uses exact approved source slices and one fixed FFmpeg stream-copy recipe; its QA separately reopens the persisted Matroska object with FFprobe. The remaining 250 children, continuous program audio, the other 123 chunks and QA pairs, cross-chunk color, finalization, final QA, cloud, commerce, product, and production execution stay blocked.',
+    'A six-hour/512-range 4K seed persists through canonical publication and approval; restart-safe server derivation reopens the exact authority, persists a content-addressed 255-child package/placement/queue, and completes six exact queue jobs: root snapshot validation, private source authority, structured master timing, the first server-selected object-mezzanine render, its independent QA job, and continuous lossless source program audio. The audio job embeds a separately metered independent decoded-sample QA attempt, stages eight exact private 4K MP4 sources, executes 512 approved hard-cut ranges into a create-only FLAC under one lease with heartbeat, records separate FFmpeg and FFprobe internal-cost attempts, rejects persisted byte tampering, replays without redispatch, and reuses the approved 4K reservation without a second estimate or charge. The remaining 249 children, the other 123 chunks and QA pairs, cross-chunk color, finalization, final QA, live cloud, commerce, product, and production execution stay blocked.',
   ),
   step(
     'professional-export-policy',
@@ -285,7 +285,7 @@ function printReport(
 ): void {
   const finishedAt = new Date()
   const report = {
-    schemaVersion: 'canonical-private-pipeline-verification-v23',
+    schemaVersion: 'canonical-private-pipeline-verification-v24',
     status,
     mode: full ? 'full_internal_regression' : 'canonical_private_pipeline',
     startedAt: runStartedAt.toISOString(),
@@ -340,6 +340,15 @@ function printReport(
           professionalLongFormFirstObjectChunkAttemptInternalCostEvidence: true,
           professionalLongFormFirstObjectChunkReconciliationAndExactReplay: true,
           professionalLongFormFirstObjectChunkApprovedFourKEstimateReused: true,
+          professionalLongFormContinuousProgramAudioAuthorizationPersistence: true,
+          professionalLongFormContinuousProgramAudioLeaseHeartbeatAndOneUseExecution: true,
+          professionalLongFormContinuousProgramAudioExactSourceStaging: true,
+          professionalLongFormContinuousProgramAudioLosslessFlacExecution: true,
+          professionalLongFormContinuousProgramAudioCreateOnlyPrivatePersistence: true,
+          professionalLongFormContinuousProgramAudioIndependentDecodedSampleQa: true,
+          professionalLongFormContinuousProgramAudioAttemptInternalCostEvidence: true,
+          professionalLongFormContinuousProgramAudioReconciliationAndExactReplay: true,
+          professionalLongFormContinuousProgramAudioApprovedFourKEstimateReused: true,
           sourceOnlyIntentAuthority: true,
           fourKEstimateDeliveryCeiling: true,
           canonicalBrowserContracts: true,
@@ -394,12 +403,11 @@ function printReport(
       distributedPackageQueueOutboxTransactionVerified: false,
       canonicalPackageStateDatabaseFunctionsExecuted: false,
       canonicalPackageStateRpcLiveClientActivated: false,
-      professionalLongFormRemaining250ChildLeasesVerified: false,
+      professionalLongFormRemaining249ChildLeasesVerified: false,
       professionalLongFormAllChunkOperationBindingsVerified: false,
       professionalLongFormRemainingChildAttemptCostsVerified: false,
       professionalLongFormRemainingChildDispatchVerified: false,
       professionalLongFormCompleteMediaExecutionVerified: false,
-      professionalLongFormContinuousProgramAudioVerified: false,
       professionalLongFormOther123ChunkRendersVerified: false,
       professionalLongFormOther123IndependentChunkQaVerified: false,
       professionalLongFormCrossChunkColorContinuityVerified: false,

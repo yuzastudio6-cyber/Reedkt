@@ -1,6 +1,6 @@
 # Canonical Professional Long-Form Post-Approval Authority — 2026-07-18
 
-Status: `superseded_by_first_private_4k_object_chunk_and_independent_qa`
+Status: `continued_through_bounded_six_hour_continuous_program_audio_and_independent_qa`
 
 ## Outcome
 
@@ -34,13 +34,16 @@ root snapshot-validation continuation executes the first child; see
 `docs/canonical-professional-long-form-first-child-execution-2026-07-18.md`.
 The source-authority continuation executes the second child and the
 master-timing continuation executes the third. The next continuation executes
-the server-selected first object render plus paired QA while the remaining 250
-stay blocked; see
+the server-selected first object render plus paired QA. A further bounded
+continuation executes the exact continuous-program-audio child and its
+independent QA attempt while the remaining 249 stay blocked; see
 `docs/canonical-professional-long-form-source-authority-execution-2026-07-18.md`.
 The timing boundary is documented in
 `docs/canonical-professional-long-form-master-timing-execution-2026-07-18.md`.
 The first bounded media pair is documented in
 `docs/canonical-professional-long-form-first-object-chunk-execution-2026-07-18.md`.
+The continuous program-audio lifecycle is documented in
+`docs/canonical-professional-long-form-continuous-program-audio-execution-2026-07-18.md`.
 This remains far short of complete long-form media execution.
 
 ## Honest Work-Graph Boundary
@@ -73,8 +76,8 @@ it does not rewrite or weaken the derivation record above.
 ## Focused Evidence
 
 The post-approval/promotion baseline passed 32 checks. The current combined
-promotion/root/source-authority/master-timing/first-object smoke passes 88
-checks.
+promotion/root/source-authority/master-timing/first-object/program-audio smoke
+passes 96 checks.
 Its maximum-capacity local/private fixture uses:
 
 - one confirmed `3840x2160`, 30 fps frame;
@@ -92,7 +95,8 @@ Its maximum-capacity local/private fixture uses:
 - one specialized 255-job private queue that begins with zero leases, attempts,
   or completions and now ends the focused continuation with exactly three
   completed validation children, one completed first-object render, one
-  completed paired QA, and 250 blocked children.
+  completed paired QA, one completed continuous-program-audio child, and 249
+  blocked children.
 
 The smoke proves exact publication replay, changed-seed idempotency conflict,
 identity and source-content substitution rejection, publication-without-jobs,
@@ -109,7 +113,12 @@ segment, estimate-metadata, and expected-output tamper refusal. It additionally
 proves exact server selection, five-source/five-slice private staging, one
 5,226-frame deterministic 4K Matroska stream-copy object, independent persisted
 FFprobe QA, separate measured internal costs, media-byte tamper refusal, and
-exact no-redispatch replay.
+exact no-redispatch replay. The continuous-audio continuation additionally
+proves eight-source/512-range staging, one heartbeat-retained lease, fixed
+lossless FLAC execution, one create-only 1,144,083,803-byte six-hour artifact,
+exact 1,036,800,000 decoded stereo sample frames, an independent QA attempt,
+two separate measured internal costs, persisted-byte tamper refusal, and exact
+no-redispatch replay.
 
 `npm run smoke:professional-long-form-object-plan` continues to pass 27 checks,
 `npm run smoke:professional-long-form-snapshot-bridge` passes 22 checks, and
@@ -118,18 +127,21 @@ regression after this integration.
 
 ## Aggregate Evidence
 
-The exact-code `npm run qa:internal-pipeline` v23 aggregate passed all `38/38`
-stages with exit code `0`. It started at `2026-07-18T15:34:20.145Z`, finished
-at `2026-07-18T16:14:33.676Z`, and completed in `2,413,531 ms`. The long-form
-planning stage passed 27 checks in `371 ms`, the approved-snapshot bridge passed
-22 checks in `789 ms`, the deterministic isolated object runner passed in
-`21,735 ms`, and this 88-check canonical lifecycle passed in `85,596 ms`.
+The corrected exact-code `npm run qa:internal-pipeline` v24 aggregate passed
+all `38/38` stages with exit code `0`. It started at
+`2026-07-18T19:00:39.984Z`, finished at `2026-07-18T19:43:20.646Z`, and
+completed in `2,560,662 ms`; this 96-check canonical lifecycle passed in
+`326,801 ms`. The deterministic isolated object runner passed in `27,989 ms`,
+three-source composition in `855,387 ms`, professional color in `725,226 ms`,
+bounded UHD Remotion streaming in `93,746 ms`, all 11 named-edit browser tests
+in `15,595 ms`, and the maximum-eight-source signed-in private review in
+`466,430 ms`.
 
 The aggregate reverified exactly 50 canonical E2E tool identities and 50 job
 adapters, the existing bounded private media lifecycles, all 11 named-edit
 browser tests, and the accepted maximum-eight-source 27-job private review.
-That machine-readable report marks canonical seed-component, server-loaded
-controller, child-manifest, specialized child-package, child-placement, and
+The corrected machine-readable report marks canonical seed-component, server-
+loaded controller, child-manifest, specialized child-package, child-placement, and
 child-queue persistence true. It separately marks both the root and private
 source-authority, and master-timing children's authority, lease, exact
 operation binding, attempt cost, one-use internal dispatch, private validation-
@@ -139,18 +151,23 @@ downstream dependencies without granting media execution. The timing child
 validates the exact approved timing components, rational frame base, all 512
 segments, 18 validation categories, estimate coverage, and 126 downstream
 dependencies. The first render and QA separately execute, persist, reconcile,
-terminalize, and replay one 220,341-byte, 5,226-frame private object. Complete
-source-media/chunk execution, object storage, the remaining 250 children, live
+terminalize, and replay one 220,341-byte, 5,226-frame private object. It also
+marks the continuous-audio authorization, lease heartbeat, one-use execution,
+exact source staging, lossless FLAC persistence, decoded-sample QA, two attempt-
+cost records, reconciliation, and replay true. Complete source-media/chunk
+execution, object storage, the remaining 249 children, live
 Google Cloud completion, external beta, and paid production remain false. The
-v22 timing-only, v21 source-only, v20 root-only, and v18 promotion-only
-aggregates are historical evidence.
+earlier transitional v23 audio run, first-object-only v23 run, v22 timing-only,
+v21 source-only, v20 root-only, and v18 promotion-only aggregates are historical
+evidence.
 
 ## Cost and Commercial Boundary
 
 The approved seed requires attempt-level internal production-cost evidence.
 That requirement alone creates no attempt or cost record; the root, source,
-timing, first render, and paired QA executions now satisfy it for five separate
-exact attempts. The other 250 children still need separate scoped evidence.
+timing, first render, paired QA, program-audio FFmpeg, and program-audio QA
+executions now satisfy it for seven separate exact attempts. The other 249
+children still need separate scoped evidence.
 Neither the requirement nor any validation/media record
 creates customer price, customer credit amount, service fee, wallet mutation,
 billing instruction, or settlement authority. The original approved 4K
@@ -171,7 +188,8 @@ Preference/Edit Reference implementation changed in this slice.
 
 ## Readiness Truth
 
-Now verified through this foundation and its root/source/timing continuations:
+Now verified through this foundation and its root/source/timing, first-object,
+and continuous-program-audio continuations:
 
 - canonical long-form seed-component persistence;
 - server-loaded controller persistence and approval binding;
@@ -193,17 +211,21 @@ Now verified through this foundation and its root/source/timing continuations:
 - one paired FFprobe QA authorization, lease, one-use start, exact persisted
   object verification, private QA evidence, internal attempt cost,
   reconciliation, completion, and replay;
+- one continuous-program-audio authorization, lease, durable heartbeat,
+  one-use FFmpeg start, exact eight-source/512-range staging, lossless FLAC
+  persistence, independent FFprobe/decoded-sample QA attempt, two internal
+  attempt costs, reconciliation, completion, tamper refusal, and replay;
 - exact restart/replay behavior; and
 - fail-closed normal-package, dispatch, tamper, and self-promotion boundaries.
 
 Still false:
 
-- remaining 250 child leases and one-use dispatches;
+- remaining 249 child leases and one-use dispatches;
 - broad source-media decode/transform and the other 123 chunk render/QA
   operation, cost-budget, runner, and QA authorities;
 - object-store media persistence;
 - the other 123 chunk renders and paired QA executions;
-- continuous-audio and color-continuity execution;
+- cross-chunk color-continuity execution;
 - final 4K assembly and QA;
 - distributed database authority;
 - live Google Cloud worker completion;
@@ -213,8 +235,9 @@ Still false:
 ## Next Evidence Gate
 
 The root snapshot-validation, private source-authority, structured master-
-timing, and first render/QA gates are complete. The next dependency-safe slice
-must prove either separate continuous program audio or a bounded multi-chunk
-set with cross-chunk continuity through exact private object, QA, recovery,
-reconciliation, and attempt-cost authority. It must not grant a broad class of
-render jobs or imply that the complete long-form edit has rendered.
+timing, first render/QA, and continuous-program-audio gates are complete. The
+next dependency-safe slice must prove a bounded additional set of object-chunk
+render/QA pairs and cross-chunk color continuity through exact private object,
+QA, recovery, reconciliation, and attempt-cost authority. It must not grant a
+broad class of render jobs or imply that the complete long-form edit has
+rendered.

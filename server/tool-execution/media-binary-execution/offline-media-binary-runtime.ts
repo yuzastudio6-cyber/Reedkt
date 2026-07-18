@@ -44,7 +44,18 @@ import {
   validateOfflineMediaBinaryObjectMezzanineChunkRequest,
   type OfflineMediaBinaryObjectMezzanineChunkRequest,
 } from './offline-media-binary-object-mezzanine-chunk-protocol'
+import {
+  OFFLINE_MEDIA_BINARY_CONTINUOUS_PROGRAM_AUDIO_MAGIC,
+  OFFLINE_MEDIA_BINARY_CONTINUOUS_PROGRAM_AUDIO_MAXIMUM_OUTPUT_BYTES,
+  OFFLINE_MEDIA_BINARY_CONTINUOUS_PROGRAM_AUDIO_SAMPLE_RATE,
+  OFFLINE_MEDIA_BINARY_CONTINUOUS_PROGRAM_AUDIO_SAMPLES_PER_FRAME,
+  offlineMediaBinaryContinuousProgramAudioRequestSha256,
+  validateOfflineMediaBinaryContinuousProgramAudioRequest,
+  type OfflineMediaBinaryContinuousProgramAudioRequest,
+} from './offline-media-binary-continuous-program-audio-protocol'
 import type {
+  OfflineContinuousProgramAudioQaExecutionResult,
+  OfflineFfmpegContinuousProgramAudioExecutionResult,
   OfflineFfmpegMezzanineFinalizationExecutionResult,
   OfflineFfmpegObjectMezzanineChunkExecutionResult,
   OfflineFfmpegExecutionResult,
@@ -60,7 +71,7 @@ import {
   OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_OUTPUT_BYTES,
 } from './offline-media-binary-types'
 
-const IMAGE_TAG = 'reeditpro/ffmpeg-lgpl-internal:8.1.2-object-chunk-v3-local' as const
+const IMAGE_TAG = 'reeditpro/ffmpeg-lgpl-internal:8.1.2-program-audio-v4-local' as const
 const FFPROBE_ENTRYPOINT = '/opt/reeditpro-ffmpeg/bin/ffprobe' as const
 const FFMPEG_ENTRYPOINT = '/opt/reeditpro-ffmpeg/bin/ffmpeg' as const
 const MEZZANINE_FINALIZER_ENTRYPOINT =
@@ -69,12 +80,18 @@ const MEZZANINE_FINALIZER_COMMAND = ['source-slice-finalization-v1'] as const
 const OBJECT_MEZZANINE_CHUNK_ENTRYPOINT =
   '/usr/local/bin/reeditpro-ffmpeg-object-mezzanine-chunk' as const
 const OBJECT_MEZZANINE_CHUNK_COMMAND = ['object-mezzanine-chunk-v1'] as const
+const CONTINUOUS_PROGRAM_AUDIO_ENTRYPOINT =
+  '/usr/local/bin/reeditpro-ffmpeg-continuous-program-audio' as const
+const CONTINUOUS_PROGRAM_AUDIO_COMMAND = ['continuous-program-audio-v1'] as const
+const CONTINUOUS_PROGRAM_AUDIO_PROBE_ENTRYPOINT =
+  '/usr/local/bin/reeditpro-ffmpeg-continuous-program-audio-probe' as const
 const SOURCE_VERSION = '8.1.2' as const
 const SOURCE_SHA256 = '464beb5e7bf0c311e68b45ae2f04e9cc2af88851abb4082231742a74d97b524c' as const
-const STORAGE_ROOT = '/tmp/reeditpro-offline-media-binary-execution-object-chunk-v3' as const
-const AUTHORITY_PATH = 'runtime-authority/offline-media-binary-runtime-object-chunk-v3.json' as const
+const STORAGE_ROOT = '/tmp/reeditpro-offline-media-binary-execution-program-audio-v4' as const
+const AUTHORITY_PATH = 'runtime-authority/offline-media-binary-runtime-program-audio-v4.json' as const
 const DOCKER_CONTROL_TIMEOUT_MS = 120_000
 const MAXIMUM_STREAMING_TIMEOUT_MS = 10 * 60_000
+const CONTINUOUS_PROGRAM_AUDIO_TIMEOUT_MS = 60 * 60_000
 
 export interface OfflineMediaBinaryServerInjectedInput {
   inputMode: 'private_verified_stream_v1'
@@ -98,6 +115,7 @@ export interface OfflineMediaBinaryRuntimeAuthority {
     canonicalDispatchMayReference: true
     privateInternalMezzanineFinalizationReady: true
     privateInternalFirstObjectMezzanineChunkReady: true
+    privateInternalContinuousProgramAudioReady: true
     productReady: false
     externalBetaReady: false
     productionReady: false
@@ -138,6 +156,15 @@ export interface PrivateOfflineMediaBinaryRuntime {
     sources: readonly OfflineMediaBinaryServerInjectedInput[],
     outputSink: OfflineMediaBinaryStreamingOutputSink,
   ): Promise<OfflineFfmpegObjectMezzanineChunkExecutionResult>
+  executeContinuousProgramAudioServerInjected(
+    request: OfflineMediaBinaryContinuousProgramAudioRequest,
+    sources: readonly OfflineMediaBinaryServerInjectedInput[],
+    outputSink: OfflineMediaBinaryStreamingOutputSink,
+  ): Promise<OfflineFfmpegContinuousProgramAudioExecutionResult>
+  executeContinuousProgramAudioQaServerInjected(
+    request: OfflineMediaBinaryContinuousProgramAudioRequest,
+    source: OfflineMediaBinaryServerInjectedInput,
+  ): Promise<OfflineContinuousProgramAudioQaExecutionResult>
 }
 
 export async function activatePrivateOfflineMediaBinaryRuntime(): Promise<PrivateOfflineMediaBinaryRuntime> {
@@ -172,6 +199,28 @@ export async function activatePrivateOfflineMediaBinaryRuntime(): Promise<Privat
     sources,
     outputSink,
   )) as PrivateOfflineMediaBinaryRuntime['executeObjectMezzanineChunkServerInjected']
+  const executeContinuousProgramAudioServerInjectedBound = ((
+    request: OfflineMediaBinaryContinuousProgramAudioRequest,
+    sources: readonly OfflineMediaBinaryServerInjectedInput[],
+    outputSink: OfflineMediaBinaryStreamingOutputSink,
+  ) => executeContinuousProgramAudioServerInjected(
+    image,
+    request,
+    sources,
+    outputSink,
+  )) as PrivateOfflineMediaBinaryRuntime[
+    'executeContinuousProgramAudioServerInjected'
+  ]
+  const executeContinuousProgramAudioQaServerInjectedBound = ((
+    request: OfflineMediaBinaryContinuousProgramAudioRequest,
+    source: OfflineMediaBinaryServerInjectedInput,
+  ) => executeContinuousProgramAudioQaServerInjected(
+    image,
+    request,
+    source,
+  )) as PrivateOfflineMediaBinaryRuntime[
+    'executeContinuousProgramAudioQaServerInjected'
+  ]
   return Object.freeze({
     image,
     execute: executeBound,
@@ -181,6 +230,10 @@ export async function activatePrivateOfflineMediaBinaryRuntime(): Promise<Privat
       executeMezzanineFinalizationServerInjectedBound,
     executeObjectMezzanineChunkServerInjected:
       executeObjectMezzanineChunkServerInjectedBound,
+    executeContinuousProgramAudioServerInjected:
+      executeContinuousProgramAudioServerInjectedBound,
+    executeContinuousProgramAudioQaServerInjected:
+      executeContinuousProgramAudioQaServerInjectedBound,
   })
 }
 
@@ -220,6 +273,28 @@ export async function openPrivateOfflineMediaBinaryRuntime(): Promise<PrivateOff
     sources,
     outputSink,
   )) as PrivateOfflineMediaBinaryRuntime['executeObjectMezzanineChunkServerInjected']
+  const executeContinuousProgramAudioServerInjectedBound = ((
+    request: OfflineMediaBinaryContinuousProgramAudioRequest,
+    sources: readonly OfflineMediaBinaryServerInjectedInput[],
+    outputSink: OfflineMediaBinaryStreamingOutputSink,
+  ) => executeContinuousProgramAudioServerInjected(
+    image,
+    request,
+    sources,
+    outputSink,
+  )) as PrivateOfflineMediaBinaryRuntime[
+    'executeContinuousProgramAudioServerInjected'
+  ]
+  const executeContinuousProgramAudioQaServerInjectedBound = ((
+    request: OfflineMediaBinaryContinuousProgramAudioRequest,
+    source: OfflineMediaBinaryServerInjectedInput,
+  ) => executeContinuousProgramAudioQaServerInjected(
+    image,
+    request,
+    source,
+  )) as PrivateOfflineMediaBinaryRuntime[
+    'executeContinuousProgramAudioQaServerInjected'
+  ]
   return Object.freeze({
     image,
     execute: executeBound,
@@ -229,6 +304,10 @@ export async function openPrivateOfflineMediaBinaryRuntime(): Promise<PrivateOff
       executeMezzanineFinalizationServerInjectedBound,
     executeObjectMezzanineChunkServerInjected:
       executeObjectMezzanineChunkServerInjectedBound,
+    executeContinuousProgramAudioServerInjected:
+      executeContinuousProgramAudioServerInjectedBound,
+    executeContinuousProgramAudioQaServerInjected:
+      executeContinuousProgramAudioQaServerInjectedBound,
   })
 }
 
@@ -253,6 +332,7 @@ Promise<OfflineMediaBinaryRuntimeAuthority | undefined> {
     record(authority.readiness).privateInternalExecutionReady !== true ||
     record(authority.readiness).privateInternalMezzanineFinalizationReady !== true ||
     record(authority.readiness).privateInternalFirstObjectMezzanineChunkReady !== true ||
+    record(authority.readiness).privateInternalContinuousProgramAudioReady !== true ||
     record(authority.readiness).productReady !== false ||
     record(authority.readiness).finalExportReady !== false
   ) throw unavailable('Media binary runtime authority boundary is invalid.')
@@ -689,6 +769,302 @@ async function executeObjectMezzanineChunkServerInjected(
     await outputSpool?.cleanup().catch(() => undefined)
     await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024)
       .catch(() => undefined)
+  }
+}
+
+async function executeContinuousProgramAudioServerInjected(
+  image: OfflineMediaBinaryImageEvidence,
+  value: unknown,
+  sources: readonly OfflineMediaBinaryServerInjectedInput[],
+  outputSink: OfflineMediaBinaryStreamingOutputSink,
+): Promise<OfflineFfmpegContinuousProgramAudioExecutionResult> {
+  let request: OfflineMediaBinaryContinuousProgramAudioRequest
+  try {
+    request = validateOfflineMediaBinaryContinuousProgramAudioRequest(value)
+  } catch {
+    throw invalid('Structured continuous program-audio request was rejected.')
+  }
+  assertContinuousProgramAudioServerInjectedInputs(request, sources)
+  if (
+    !outputSink ||
+    outputSink.maximumBytes !==
+      OFFLINE_MEDIA_BINARY_CONTINUOUS_PROGRAM_AUDIO_MAXIMUM_OUTPUT_BYTES ||
+    typeof outputSink.persist !== 'function'
+  ) throw invalid('Continuous program-audio output sink authority is invalid.')
+
+  const container = await createContainer(
+    image,
+    CONTINUOUS_PROGRAM_AUDIO_ENTRYPOINT,
+    [...CONTINUOUS_PROGRAM_AUDIO_COMMAND],
+  )
+  let outputSpool: DockerVerifiedPrivateOutputSpool | undefined
+  try {
+    const confinement = validateConfinement(
+      await inspectContainer(container.id),
+      image,
+      CONTINUOUS_PROGRAM_AUDIO_ENTRYPOINT,
+      [...CONTINUOUS_PROGRAM_AUDIO_COMMAND],
+    )
+    outputSpool = await dockerVerifiedContinuousProgramAudioToPrivateOutputSpool({
+      args: ['start', '--attach', '--interactive', container.id],
+      request,
+      sources,
+      maximumOutputBytes:
+        OFFLINE_MEDIA_BINARY_CONTINUOUS_PROGRAM_AUDIO_MAXIMUM_OUTPUT_BYTES,
+      timeoutMs: CONTINUOUS_PROGRAM_AUDIO_TIMEOUT_MS,
+    })
+    const after = await inspectContainer(container.id)
+    const state = record(after.State)
+    if (
+      outputSpool.exitCode !== 0 || outputSpool.stderr.length > 0 ||
+      outputSpool.byteLength < 1_024 || state.Status !== 'exited' ||
+      state.Running !== false || state.ExitCode !== outputSpool.exitCode ||
+      state.OOMKilled !== false
+    ) throw unavailable(
+      'Confined continuous program-audio execution failed closed ' +
+      `(exit=${outputSpool.exitCode};stderrBytes=${outputSpool.stderr.length};` +
+      `stdoutBytes=${outputSpool.byteLength};state=${String(state.Status)};` +
+      `stateExit=${String(state.ExitCode)};oomKilled=${String(state.OOMKilled)};` +
+      `diagnostic=${safeFfmpegDiagnostic(outputSpool.stderr)}).`,
+    )
+    const outputProbe = await probeContinuousProgramAudioOutput(
+      image,
+      outputSpool.source,
+      request,
+    )
+    const persisted = await outputSink.persist({
+      stream: await outputSpool.source.openStream(),
+      mimeType: 'audio/flac',
+      expectedByteLength: outputSpool.byteLength,
+      expectedSha256: outputSpool.sha256,
+    })
+    if (
+      persisted.byteLength !== outputSpool.byteLength ||
+      persisted.sha256 !== outputSpool.sha256
+    ) throw unavailable(
+      'Continuous program-audio sink changed the exact artifact commitment.',
+    )
+
+    const completedAt = new Date().toISOString()
+    const requestEnvelopeSha256 =
+      offlineMediaBinaryContinuousProgramAudioRequestSha256(request)
+    const semanticEvidence = Object.freeze({
+      fixedRecipeExecuted: true,
+      recipeProfileId: request.payload.recipeProfileId,
+      audioAuthorityHash: request.payload.audioAuthorityHash,
+      expectedObjectIdentity: request.payload.expectedObjectIdentity,
+      immutableSourceBytesVerified: true,
+      sourceDeliveryMode: 'private_verified_stream_v1',
+      uniqueSourceCount: request.inputs.sources.length,
+      sourceSliceCount: request.payload.sourceSlices.length,
+      sourceOrderAndFrameRangesVerified: true,
+      approvedHardCutBoundariesVerified: true,
+      frameToSampleMappingExact: true,
+      samplesPerFrame: 1_600,
+      completeTimelineCoverageVerified: true,
+      outputContainer: 'flac',
+      outputAudioCodec: 'flac',
+      outputSampleRate: 48_000,
+      outputChannels: 2,
+      outputBitsPerRawSample: 24,
+      losslessSourceAudioAssembly: true,
+      musicGeneratedOrMixed: false,
+      sfxGeneratedOrMixed: false,
+      duckingApplied: false,
+      realAudioAnalysisClaimed: false,
+      callerPathsAccepted: false,
+      callerUrlsAccepted: false,
+      callerCommandsAccepted: false,
+      callerCodecSettingsAccepted: false,
+      outputProbeVerified: true,
+      outputProbe,
+      originalApprovedEditReservationUsed: true,
+      separateExportEstimateRequired: false,
+      additionalExportChargeAllowed: false,
+      publicDeliveryAuthorized: false,
+      distributedExecutionProven: false,
+    })
+    const attestationWithoutHash = {
+      domain: 'offline_media_binary_continuous_program_audio_attestation_v1',
+      completedAt,
+      imageIdentityHash: image.imageIdentityHash,
+      toolId: 'ffmpeg' as const,
+      operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
+      requestEnvelopeSha256,
+      sourceSha256s: request.inputs.sources.map((source) => source.sha256),
+      resultSha256: outputSpool.sha256,
+      confinement,
+      outputProbe,
+      outputTransport: 'server_committed_private_stream_v1' as const,
+    }
+    const attestationHash = sha256AuthorityValue(attestationWithoutHash)
+    const recordId = sha256AuthorityValue({ attestationHash, completedAt })
+    await writePrivateTextFileAtomicWithinRoot({
+      rootPath: STORAGE_ROOT,
+      relativePath: `attestations/${recordId.slice(0, 2)}/${recordId}.json`,
+      content: `${stableAuthorityStringify({
+        recordVersion:
+          'offline-media-binary-continuous-program-audio-attestation-record-v1',
+        source:
+          'private_local_checksum_protected_continuous_program_audio_execution',
+        attestation: { ...attestationWithoutHash, recordId, attestationHash },
+        checksumSha256: sha256AuthorityValue({
+          ...attestationWithoutHash,
+          recordId,
+          attestationHash,
+        }),
+      })}\n`,
+    })
+    return {
+      resultArtifact: {
+        mimeType: 'audio/flac',
+        sha256: outputSpool.sha256,
+        byteLength: outputSpool.byteLength,
+        outputMode: 'server_committed_private_stream_v1',
+      },
+      evidence: {
+        toolId: 'ffmpeg',
+        operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
+        binaryVersion: SOURCE_VERSION,
+        requestEnvelopeSha256,
+        sourceSha256s: request.inputs.sources.map((source) => source.sha256),
+        resultSha256: outputSpool.sha256,
+        semanticEvidence,
+        confinement,
+        containerExitCode: 0,
+        oomKilled: false,
+        outputTransport: 'server_committed_private_stream_v1',
+      },
+      image,
+      attestation: { recordId, completedAt, attestationHash },
+      readiness: {
+        privateInternalOnly: true,
+        productReady: false,
+        externalBetaReady: false,
+        productionReady: false,
+      },
+    }
+  } finally {
+    await outputSpool?.cleanup().catch(() => undefined)
+    await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024)
+      .catch(() => undefined)
+  }
+}
+
+async function executeContinuousProgramAudioQaServerInjected(
+  image: OfflineMediaBinaryImageEvidence,
+  value: unknown,
+  source: OfflineMediaBinaryServerInjectedInput,
+): Promise<OfflineContinuousProgramAudioQaExecutionResult> {
+  let request: OfflineMediaBinaryContinuousProgramAudioRequest
+  try {
+    request = validateOfflineMediaBinaryContinuousProgramAudioRequest(value)
+  } catch {
+    throw invalid('Structured continuous program-audio QA request was rejected.')
+  }
+  if (
+    !source || source.inputMode !== 'private_verified_stream_v1' ||
+    !Number.isSafeInteger(source.byteLength) || source.byteLength < 1_024 ||
+    source.byteLength >
+      OFFLINE_MEDIA_BINARY_CONTINUOUS_PROGRAM_AUDIO_MAXIMUM_OUTPUT_BYTES ||
+    !/^[a-f0-9]{64}$/u.test(source.sha256) ||
+    typeof source.openStream !== 'function'
+  ) throw invalid(
+    'Continuous program-audio QA requires one exact private FLAC commitment.',
+  )
+
+  const outputProbe = await probeContinuousProgramAudioOutput(
+    image,
+    source,
+    request,
+  )
+  const confinement = outputProbe.decodedSampleVerificationConfinement as
+    OfflineMediaBinaryConfinementEvidence
+  const requestEnvelopeSha256 =
+    offlineMediaBinaryContinuousProgramAudioRequestSha256(request)
+  const completedAt = new Date().toISOString()
+  const document = Object.freeze({
+    schemaVersion: 'offline-continuous-program-audio-qa-result-v1' as const,
+    source: 'private_persisted_continuous_program_audio_independent_qa' as const,
+    requestEnvelopeSha256,
+    sourceSha256: source.sha256,
+    sourceByteLength: source.byteLength,
+    outputProbe,
+    checks: {
+      exactPrivateArtifactReopened: 'passed' as const,
+      flacStreamShapeVerified: 'passed' as const,
+      exactLosslessDecodedSampleCountVerified: 'passed' as const,
+      exactFrameToSampleDurationVerified: 'passed' as const,
+      mediaMutationPerformed: false as const,
+    },
+    outcome: 'passed' as const,
+    evaluatedAt: completedAt,
+  })
+  const bytes = Buffer.from(`${stableAuthorityStringify(document)}\n`)
+  const resultSha256 = sha256(bytes)
+  const semanticEvidence = Object.freeze({
+    exactPersistedArtifactReopened: true,
+    independentProbeExecuted: true,
+    exactLosslessDecodedSampleCountVerified: true,
+    mediaMutationPerformed: false,
+    outputProbe,
+  })
+  const attestationWithoutHash = {
+    domain: 'offline_continuous_program_audio_qa_attestation_v1',
+    completedAt,
+    imageIdentityHash: image.imageIdentityHash,
+    toolId: 'ffprobe' as const,
+    operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffprobe,
+    requestEnvelopeSha256,
+    sourceSha256: source.sha256,
+    resultSha256,
+    confinement,
+  }
+  const attestationHash = sha256AuthorityValue(attestationWithoutHash)
+  const recordId = sha256AuthorityValue({ attestationHash, completedAt })
+  await writePrivateTextFileAtomicWithinRoot({
+    rootPath: STORAGE_ROOT,
+    relativePath: `attestations/${recordId.slice(0, 2)}/${recordId}.json`,
+    content: `${stableAuthorityStringify({
+      recordVersion:
+        'offline-continuous-program-audio-qa-attestation-record-v1',
+      source: 'private_local_checksum_protected_continuous_program_audio_qa',
+      attestation: { ...attestationWithoutHash, recordId, attestationHash },
+      checksumSha256: sha256AuthorityValue({
+        ...attestationWithoutHash,
+        recordId,
+        attestationHash,
+      }),
+    })}\n`,
+  })
+  return {
+    resultJson: {
+      mimeType: 'application/json',
+      bytes,
+      document,
+      sha256: resultSha256,
+      byteLength: bytes.byteLength,
+    },
+    evidence: {
+      toolId: 'ffprobe',
+      operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffprobe,
+      binaryVersion: SOURCE_VERSION,
+      requestEnvelopeSha256,
+      sourceSha256: source.sha256,
+      resultSha256,
+      semanticEvidence,
+      confinement,
+      containerExitCode: 0,
+      oomKilled: false,
+    },
+    image,
+    attestation: { recordId, completedAt, attestationHash },
+    readiness: {
+      privateInternalOnly: true,
+      productReady: false,
+      externalBetaReady: false,
+      productionReady: false,
+    },
   }
 }
 
@@ -1545,6 +1921,10 @@ function isMp4(bytes: Buffer): boolean {
   return bytes.byteLength >= 12 && bytes.subarray(4, 8).toString('ascii') === 'ftyp'
 }
 
+function isFlac(bytes: Buffer): boolean {
+  return bytes.byteLength >= 4 && bytes.subarray(0, 4).toString('ascii') === 'fLaC'
+}
+
 function safeFfmpegDiagnostic(stderr: Buffer): string {
   const normalized = stderr.toString('utf8')
     .replace(/0x[0-9a-f]+/gi, '0x[redacted]')
@@ -1675,6 +2055,198 @@ async function probeObjectMezzanineChunkOutput(
       maximumDurationDriftSeconds: rounded(maximumDurationDriftSeconds),
       sizeBytes: optionalInteger(format.size),
     }
+  } finally {
+    await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024)
+      .catch(() => undefined)
+  }
+}
+
+async function probeContinuousProgramAudioOutput(
+  image: OfflineMediaBinaryImageEvidence,
+  source: OfflineMediaBinaryServerInjectedInput,
+  request: OfflineMediaBinaryContinuousProgramAudioRequest,
+): Promise<Record<string, unknown>> {
+  const command = [
+    '-v', 'error', '-count_frames', '-show_entries',
+    'format=format_name,start_time,duration,size:stream=codec_name,codec_type,start_time,sample_rate,channels,channel_layout,sample_fmt,bits_per_raw_sample,time_base,duration_ts,nb_read_frames',
+    '-print_format', 'json', '-i', 'pipe:0',
+  ]
+  const container = await createContainer(image, FFPROBE_ENTRYPOINT, command)
+  try {
+    validateConfinement(
+      await inspectContainer(container.id),
+      image,
+      FFPROBE_ENTRYPOINT,
+      command,
+    )
+    const result = await dockerVerifiedInput(
+      ['start', '--attach', '--interactive', container.id],
+      source,
+      2 * 1024 * 1024,
+      CONTINUOUS_PROGRAM_AUDIO_TIMEOUT_MS,
+    )
+    if (result.exitCode !== 0 || result.stderr.length > 0) {
+      throw unavailable('Continuous program-audio output verification failed closed.')
+    }
+    const parsed = record(JSON.parse(result.stdout.toString('utf8')))
+    const format = record(parsed.format)
+    const streams = Array.isArray(parsed.streams) ? parsed.streams.map(record) : []
+    const audios = streams.filter((stream) => stream.codec_type === 'audio')
+    const audio = audios[0]
+    const expectedSamples = request.payload.totalFrames *
+      OFFLINE_MEDIA_BINARY_CONTINUOUS_PROGRAM_AUDIO_SAMPLES_PER_FRAME
+    const approvedDurationSeconds =
+      request.payload.totalFrames / request.payload.frameRateNumerator
+    const maximumDurationDriftSeconds =
+      1 / OFFLINE_MEDIA_BINARY_CONTINUOUS_PROGRAM_AUDIO_SAMPLE_RATE
+    const formatStartSeconds = optionalNumber(format.start_time)
+    const audioStartSeconds = optionalNumber(audio?.start_time)
+    const headerDurationSeconds = optionalNumber(format.duration)
+    const headerDurationSamples = optionalInteger(audio?.duration_ts)
+    const headerSizeBytes = optionalInteger(format.size)
+    const metadataReadFrameCount = optionalInteger(audio?.nb_read_frames)
+    if (
+      streams.length !== 1 || audios.length !== 1 || !audio ||
+      audio.codec_name !== 'flac' ||
+      !String(format.format_name ?? '').split(',').includes('flac') ||
+      optionalInteger(audio.sample_rate) !==
+        OFFLINE_MEDIA_BINARY_CONTINUOUS_PROGRAM_AUDIO_SAMPLE_RATE ||
+      optionalInteger(audio.channels) !== 2 ||
+      audio.channel_layout !== 'stereo' || audio.sample_fmt !== 's32' ||
+      optionalInteger(audio.bits_per_raw_sample) !== 24 ||
+      audio.time_base !== '1/48000' ||
+      metadataReadFrameCount === undefined || metadataReadFrameCount < 1 ||
+      (headerDurationSamples !== undefined &&
+        headerDurationSamples !== expectedSamples) ||
+      formatStartSeconds === undefined ||
+      Math.abs(formatStartSeconds) > maximumDurationDriftSeconds ||
+      audioStartSeconds === undefined ||
+      Math.abs(audioStartSeconds) > maximumDurationDriftSeconds ||
+      (headerDurationSeconds !== undefined &&
+        Math.abs(headerDurationSeconds - approvedDurationSeconds) >
+          maximumDurationDriftSeconds) ||
+      (headerSizeBytes !== undefined && headerSizeBytes !== source.byteLength)
+    ) throw unavailable(
+      'Continuous program-audio output failed FLAC, stream, sample, timestamp, or duration verification.',
+      {
+        formatName: format.format_name,
+        formatStartSeconds,
+        headerDurationSeconds,
+        headerSizeBytes,
+        streamCount: streams.length,
+        audioStreamCount: audios.length,
+        audioCodec: audio?.codec_name,
+        audioStartSeconds,
+        sampleRate: optionalInteger(audio?.sample_rate),
+        channels: optionalInteger(audio?.channels),
+        channelLayout: audio?.channel_layout,
+        sampleFormat: audio?.sample_fmt,
+        bitsPerRawSample: optionalInteger(audio?.bits_per_raw_sample),
+        timeBase: audio?.time_base,
+        headerDurationSamples,
+        metadataReadFrameCount,
+        expectedDurationSamples: expectedSamples,
+        expectedDurationSeconds: approvedDurationSeconds,
+        expectedSizeBytes: source.byteLength,
+      },
+    )
+    const decoded = await probeContinuousProgramAudioDecodedSamples(
+      image,
+      source,
+      expectedSamples,
+    )
+    const actualDurationSeconds = decoded.decodedSamples /
+      OFFLINE_MEDIA_BINARY_CONTINUOUS_PROGRAM_AUDIO_SAMPLE_RATE
+    return {
+      container: 'flac',
+      audioCodec: 'flac',
+      audioCodecOperation: 'lossless_source_range_assembly',
+      streamCount: 1,
+      sampleRate: OFFLINE_MEDIA_BINARY_CONTINUOUS_PROGRAM_AUDIO_SAMPLE_RATE,
+      channels: 2,
+      channelLayout: 'stereo',
+      sampleFormat: 's32',
+      bitsPerRawSample: 24,
+      timeBase: '1/48000',
+      expectedSamples,
+      actualSamples: decoded.decodedSamples,
+      decodedBytes: decoded.decodedBytes,
+      decodedSampleVerificationConfinement: decoded.confinement,
+      formatStartSeconds,
+      audioStartSeconds,
+      approvedDurationSeconds: rounded(approvedDurationSeconds),
+      actualDurationSeconds,
+      maximumDurationDriftSeconds: rounded(maximumDurationDriftSeconds),
+      sizeBytes: source.byteLength,
+      streamingHeaderDurationPresent: headerDurationSamples !== undefined,
+      streamingHeaderSizePresent: headerSizeBytes !== undefined,
+      metadataReadFrameCount,
+    }
+  } finally {
+    await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024)
+      .catch(() => undefined)
+  }
+}
+
+async function probeContinuousProgramAudioDecodedSamples(
+  image: OfflineMediaBinaryImageEvidence,
+  source: OfflineMediaBinaryServerInjectedInput,
+  expectedSamples: number,
+): Promise<{
+  decodedBytes: number
+  decodedSamples: number
+  confinement: OfflineMediaBinaryConfinementEvidence
+}> {
+  const command = [
+    'continuous-program-audio-probe-v1',
+    String(expectedSamples),
+  ]
+  const container = await createContainer(
+    image,
+    CONTINUOUS_PROGRAM_AUDIO_PROBE_ENTRYPOINT,
+    command,
+  )
+  try {
+    const confinement = validateConfinement(
+      await inspectContainer(container.id),
+      image,
+      CONTINUOUS_PROGRAM_AUDIO_PROBE_ENTRYPOINT,
+      command,
+    )
+    const result = await dockerVerifiedInput(
+      ['start', '--attach', '--interactive', container.id],
+      source,
+      64 * 1024,
+      CONTINUOUS_PROGRAM_AUDIO_TIMEOUT_MS,
+    )
+    if (result.exitCode !== 0 || result.stderr.length > 0) {
+      throw unavailable(
+        'Continuous program-audio lossless decoded-sample verification failed closed.',
+        {
+          exitCode: result.exitCode,
+          stderrBytes: result.stderr.length,
+          diagnostic: safeFfmpegDiagnostic(result.stderr),
+        },
+      )
+    }
+    let parsed: Record<string, unknown>
+    try {
+      parsed = record(JSON.parse(result.stdout.toString('utf8')))
+    } catch {
+      throw unavailable(
+        'Continuous program-audio decoded-sample verifier returned invalid evidence.',
+      )
+    }
+    const decodedBytes = optionalInteger(parsed.decodedBytes)
+    const decodedSamples = optionalInteger(parsed.decodedSamples)
+    if (
+      decodedBytes !== expectedSamples * 6 ||
+      decodedSamples !== expectedSamples
+    ) throw unavailable(
+      'Continuous program-audio decoded-sample verifier changed the approved sample count.',
+      { decodedBytes, decodedSamples, expectedSamples },
+    )
+    return { decodedBytes, decodedSamples, confinement }
   } finally {
     await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024)
       .catch(() => undefined)
@@ -1910,7 +2482,11 @@ async function inspectImage(): Promise<OfflineMediaBinaryImageEvidence> {
     labels['reeditpro.mp4-mux'] !==
       'private_source_slice_finalizer_and_object_chunk_only' ||
     labels['reeditpro.object-mezzanine-chunk'] !==
-      'private_first_chunk_stream_copy_only'
+      'private_first_chunk_stream_copy_only' ||
+    labels['reeditpro.flac-encoding'] !==
+      'private_continuous_program_audio_only' ||
+    labels['reeditpro.continuous-program-audio'] !==
+      'private_30fps_48khz_source_audio_only'
   ) throw unavailable('Pinned media image identity or safety labels are invalid.')
   const sourcePolicyHashes = await policyHashes()
   const imageIdentityHash = sha256AuthorityValue({
@@ -1932,6 +2508,8 @@ async function inspectImage(): Promise<OfflineMediaBinaryImageEvidence> {
     aacEncoding: 'private_source_slice_finalizer_only',
     mp4Mux: 'private_source_slice_finalizer_and_object_chunk_only',
     objectMezzanineChunk: 'private_first_chunk_stream_copy_only',
+    flacEncoding: 'private_continuous_program_audio_only',
+    continuousProgramAudio: 'private_30fps_48khz_source_audio_only',
     sourcePolicyHashes,
   }
 }
@@ -1952,6 +2530,7 @@ async function persistAuthority(image: OfflineMediaBinaryImageEvidence): Promise
       canonicalDispatchMayReference: true as const,
       privateInternalMezzanineFinalizationReady: true as const,
       privateInternalFirstObjectMezzanineChunkReady: true as const,
+      privateInternalContinuousProgramAudioReady: true as const,
       productReady: false as const,
       externalBetaReady: false as const,
       productionReady: false as const,
@@ -1964,6 +2543,7 @@ async function persistAuthority(image: OfflineMediaBinaryImageEvidence): Promise
       'AAC encoding is restricted to the fixed private source-slice finalizer.',
       'MP4 muxing is restricted to the fixed private source-slice finalizer and first object-chunk runner.',
       'Object-mezzanine chunking is restricted to the first 30 fps source-led chunk with compatible H.264 keyframe-zero inputs.',
+      'Continuous program audio is restricted to approved 30 fps source ranges with 48 kHz mono/stereo input and lossless 48 kHz stereo FLAC output.',
     ] as const,
   }
   const authority: OfflineMediaBinaryRuntimeAuthority = {
@@ -1989,7 +2569,7 @@ function ffprobeArguments(
     '-v', 'error',
     ...(request.payload.countFrames ? ['-count_frames'] : []),
     '-show_entries',
-    'format=format_name,start_time,duration,size:stream=index,codec_name,codec_type,start_time,width,height,avg_frame_rate,r_frame_rate,duration,pix_fmt,color_space,color_transfer,color_primaries,color_range,sample_rate,channels,nb_read_frames',
+    'format=format_name,start_time,duration,size:stream=index,codec_name,codec_type,start_time,width,height,avg_frame_rate,r_frame_rate,duration,pix_fmt,color_space,color_transfer,color_primaries,color_range,sample_rate,channels,channel_layout,sample_fmt,bits_per_raw_sample,time_base,duration_ts,nb_read_frames',
     '-print_format', 'json',
     '-i', 'pipe:0',
   ]
@@ -2001,12 +2581,15 @@ async function createContainer(
     | typeof FFPROBE_ENTRYPOINT
     | typeof FFMPEG_ENTRYPOINT
     | typeof MEZZANINE_FINALIZER_ENTRYPOINT
-    | typeof OBJECT_MEZZANINE_CHUNK_ENTRYPOINT,
+    | typeof OBJECT_MEZZANINE_CHUNK_ENTRYPOINT
+    | typeof CONTINUOUS_PROGRAM_AUDIO_ENTRYPOINT
+    | typeof CONTINUOUS_PROGRAM_AUDIO_PROBE_ENTRYPOINT,
   command: string[],
 ) {
   const largeMediaEntrypoint =
     entrypoint === MEZZANINE_FINALIZER_ENTRYPOINT ||
-    entrypoint === OBJECT_MEZZANINE_CHUNK_ENTRYPOINT
+    entrypoint === OBJECT_MEZZANINE_CHUNK_ENTRYPOINT ||
+    entrypoint === CONTINUOUS_PROGRAM_AUDIO_ENTRYPOINT
   const memory = largeMediaEntrypoint ? '4g' : '2g'
   const tmpfsSizeBytes = largeMediaEntrypoint ? 1_342_177_280 : 67_108_864
   const created = await dockerBuffer([
@@ -2031,7 +2614,9 @@ function validateConfinement(
     | typeof FFPROBE_ENTRYPOINT
     | typeof FFMPEG_ENTRYPOINT
     | typeof MEZZANINE_FINALIZER_ENTRYPOINT
-    | typeof OBJECT_MEZZANINE_CHUNK_ENTRYPOINT,
+    | typeof OBJECT_MEZZANINE_CHUNK_ENTRYPOINT
+    | typeof CONTINUOUS_PROGRAM_AUDIO_ENTRYPOINT
+    | typeof CONTINUOUS_PROGRAM_AUDIO_PROBE_ENTRYPOINT,
   command: string[],
 ): OfflineMediaBinaryConfinementEvidence {
   const host = record(inspect.HostConfig)
@@ -2040,7 +2625,8 @@ function validateConfinement(
   const security = stringArray(host.SecurityOpt)
   const largeMediaEntrypoint =
     entrypoint === MEZZANINE_FINALIZER_ENTRYPOINT ||
-    entrypoint === OBJECT_MEZZANINE_CHUNK_ENTRYPOINT
+    entrypoint === OBJECT_MEZZANINE_CHUNK_ENTRYPOINT ||
+    entrypoint === CONTINUOUS_PROGRAM_AUDIO_ENTRYPOINT
   const memoryLimitBytes = largeMediaEntrypoint ? 4_294_967_296 : 2_147_483_648
   const tmpfsSizeBytes = largeMediaEntrypoint ? 1_342_177_280 : 67_108_864
   const tmpfsPolicy = String(tmpfs['/tmp'] ?? '')
@@ -2092,6 +2678,11 @@ function normalizeProbe(
     colorRange: optionalText(stream.color_range),
     sampleRate: optionalNumber(stream.sample_rate),
     channels: optionalInteger(stream.channels),
+    channelLayout: optionalText(stream.channel_layout),
+    sampleFormat: optionalText(stream.sample_fmt),
+    bitsPerRawSample: optionalInteger(stream.bits_per_raw_sample),
+    timeBase: optionalRationalText(stream.time_base),
+    durationTimestamp: optionalInteger(stream.duration_ts),
     readFrameCount: request.payload.countFrames ? optionalInteger(stream.nb_read_frames) : undefined,
   }))
   if (streams.length === 0 || !streams.some((stream) => stream.codecType === 'video' || stream.codecType === 'audio')) {
@@ -2130,6 +2721,7 @@ async function policyHashes(): Promise<Record<string, string>> {
     'allowed-encoders.txt', 'allowed-decoders.txt', 'allowed-filters.txt',
     'allowed-demuxers.txt', 'allowed-muxers.txt', 'allowed-protocols.txt', 'allowed-bsfs.txt',
     'source-slice-finalizer.sh', 'object-mezzanine-chunk.sh',
+    'continuous-program-audio.sh', 'continuous-program-audio-probe.sh',
   ]
   return Object.fromEntries(await Promise.all(names.map(async (name) => [name, sha256(await readFile(join(directory, name)))])))
 }
@@ -2508,6 +3100,261 @@ async function dockerVerifiedObjectMezzanineChunkToPrivateOutputSpool(input: {
     if (error instanceof ApiError && error.code === 'TOOL_NOT_READY') throw error
     throw unavailable(
       `Docker object-mezzanine streams failed exact private verification: ${
+        error instanceof Error ? error.message : 'unknown error'
+      }`,
+    )
+  }
+}
+
+function assertContinuousProgramAudioServerInjectedInputs(
+  request: OfflineMediaBinaryContinuousProgramAudioRequest,
+  sources: readonly OfflineMediaBinaryServerInjectedInput[],
+): void {
+  if (
+    !Array.isArray(sources) ||
+    sources.length !== request.inputs.sources.length
+  ) throw invalid(
+    'Server-injected continuous program-audio source authority is incomplete.',
+  )
+  request.inputs.sources.forEach((commitment, index) => {
+    assertServerInjectedInput(
+      sources[index]!,
+      commitment.byteLength,
+      commitment.sha256,
+    )
+  })
+}
+
+function continuousProgramAudioProtocolStream(
+  request: OfflineMediaBinaryContinuousProgramAudioRequest,
+  sources: readonly OfflineMediaBinaryServerInjectedInput[],
+): Readable {
+  assertContinuousProgramAudioServerInjectedInputs(request, sources)
+  const line = (values: readonly (string | number)[]) =>
+    Buffer.from(`${values.join('\t')}\n`, 'utf8')
+  const verifiedBlob = async function* (
+    source: OfflineMediaBinaryServerInjectedInput,
+    expectedByteLength: number,
+    expectedSha256: string,
+  ) {
+    const stream = await source.openStream()
+    if (!stream || typeof stream.pipe !== 'function') {
+      throw new Error(
+        'Private continuous program-audio source did not return a readable stream.',
+      )
+    }
+    let byteLength = 0
+    const checksum = createHash('sha256')
+    for await (const chunk of stream) {
+      const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)
+      byteLength += bytes.byteLength
+      if (byteLength > expectedByteLength) {
+        throw new Error(
+          'Private continuous program-audio source exceeded its commitment.',
+        )
+      }
+      checksum.update(bytes)
+      yield bytes
+    }
+    if (
+      byteLength !== expectedByteLength ||
+      checksum.digest('hex') !== expectedSha256
+    ) throw new Error(
+      'Private continuous program-audio source did not match its exact commitment.',
+    )
+  }
+  return Readable.from((async function* () {
+    yield line([OFFLINE_MEDIA_BINARY_CONTINUOUS_PROGRAM_AUDIO_MAGIC])
+    yield line([
+      'timeline', request.payload.frameRateNumerator,
+      request.payload.totalFrames, request.payload.sampleRate, 2,
+      request.inputs.sources.length, request.payload.sourceSlices.length,
+    ])
+    for (let index = 0; index < request.inputs.sources.length; index += 1) {
+      const commitment = request.inputs.sources[index]!
+      yield line([
+        'source', index + 1, commitment.byteLength, commitment.sha256,
+      ])
+      yield* verifiedBlob(
+        sources[index]!,
+        commitment.byteLength,
+        commitment.sha256,
+      )
+      yield Buffer.from('\n', 'utf8')
+    }
+    const sourceIndexBySequenceId = new Map(
+      request.inputs.sources.map((source, index) => [
+        source.sourceSequenceItemId,
+        index + 1,
+      ]),
+    )
+    for (const slice of request.payload.sourceSlices) {
+      const sourceIndex = sourceIndexBySequenceId.get(
+        slice.sourceSequenceItemId,
+      )
+      if (!sourceIndex) {
+        throw new Error(
+          'Continuous program-audio slice lost its source input index.',
+        )
+      }
+      yield line([
+        'slice', slice.sliceIndex, sourceIndex,
+        slice.sourceStartFrame, slice.sourceEndFrameExclusive,
+        slice.timelineStartFrame, slice.timelineEndFrameExclusive,
+        slice.boundaryBefore,
+      ])
+    }
+    yield line(['end'])
+  })())
+}
+
+async function dockerVerifiedContinuousProgramAudioToPrivateOutputSpool(input: {
+  args: string[]
+  request: OfflineMediaBinaryContinuousProgramAudioRequest
+  sources: readonly OfflineMediaBinaryServerInjectedInput[]
+  maximumOutputBytes: number
+  timeoutMs: number
+}): Promise<DockerVerifiedPrivateOutputSpool> {
+  if (
+    input.maximumOutputBytes !==
+      OFFLINE_MEDIA_BINARY_CONTINUOUS_PROGRAM_AUDIO_MAXIMUM_OUTPUT_BYTES
+  ) throw invalid('Continuous program-audio output spool bound is invalid.')
+  const spoolId = randomBytes(16).toString('hex')
+  const relativeDirectoryPath = `runtime-output-spools/${spoolId}`
+  const createdDirectory = await createPrivateDirectoryCreateOnlyWithinRoot({
+    rootPath: STORAGE_ROOT,
+    relativePath: relativeDirectoryPath,
+  })
+  const relativeArtifactPath = `${relativeDirectoryPath}/artifact.flac`
+  const invocation = createPrivateDockerCliInvocation(input.args)
+  const child = spawn(invocation.executable, invocation.args, {
+    stdio: ['pipe', 'pipe', 'pipe'],
+    env: invocation.env,
+  })
+  const stderr: Buffer[] = []
+  let stderrBytes = 0
+  const resultPromise = new Promise<{ exitCode: number; stderr: Buffer }>(
+    (resolve, reject) => {
+      const timer = setTimeout(() => {
+        child.kill('SIGKILL')
+        reject(unavailable('Docker continuous program-audio timed out.'))
+      }, input.timeoutMs)
+      child.stderr.on('data', (chunk: Buffer) => {
+        stderrBytes += chunk.byteLength
+        if (stderrBytes > 512 * 1024) child.kill('SIGKILL')
+        else stderr.push(chunk)
+      })
+      child.once('error', (error) => {
+        clearTimeout(timer)
+        reject(error)
+      })
+      child.once('close', (code) => {
+        clearTimeout(timer)
+        if (stderrBytes > 512 * 1024) {
+          reject(unavailable(
+            'Docker continuous program-audio diagnostic exceeded its fixed bound.',
+          ))
+          return
+        }
+        resolve({ exitCode: code ?? 1, stderr: Buffer.concat(stderr) })
+      })
+    },
+  )
+  const signatureChunks: Buffer[] = []
+  let signatureByteLength = 0
+  const verifiedOutput = Readable.from((async function* () {
+    for await (const chunk of child.stdout) {
+      const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)
+      if (signatureByteLength < 64) {
+        const part = bytes.subarray(
+          0,
+          Math.min(bytes.byteLength, 64 - signatureByteLength),
+        )
+        signatureChunks.push(Buffer.from(part))
+        signatureByteLength += part.byteLength
+      }
+      yield bytes
+    }
+  })())
+  const protocolStream = continuousProgramAudioProtocolStream(
+    input.request,
+    input.sources,
+  )
+  try {
+    const persistedPromise = writePrivateStreamCreateOnlyWithinRoot({
+      rootPath: STORAGE_ROOT,
+      relativePath: relativeArtifactPath,
+      stream: verifiedOutput,
+      maximumBytes: input.maximumOutputBytes,
+    })
+    const [, result, persisted] = await Promise.all([
+      pipeline(protocolStream, child.stdin),
+      resultPromise,
+      persistedPromise,
+    ])
+    const signature = Buffer.concat(signatureChunks, signatureByteLength)
+    if (result.exitCode !== 0 || result.stderr.length > 0) {
+      throw new Error(
+        'Private continuous program-audio runner rejected the fixed request ' +
+        `(exit=${result.exitCode};diagnostic=${safeFfmpegDiagnostic(result.stderr)}).`,
+      )
+    }
+    if (
+      persisted.byteLength < 1_024 ||
+      persisted.byteLength > input.maximumOutputBytes ||
+      !isFlac(signature)
+    ) throw new Error(
+      'Private continuous program-audio output failed its streaming FLAC commitment.',
+    )
+    let cleaned = false
+    const cleanup = async () => {
+      if (cleaned) return
+      const removed = await removePrivateDirectoryTreeWithinRoot({
+        rootPath: STORAGE_ROOT,
+        relativePath: relativeDirectoryPath,
+        expectedIdentity: createdDirectory.identity,
+      })
+      if (!removed.removed) {
+        throw unavailable(
+          'Private continuous program-audio output spool disappeared before cleanup.',
+        )
+      }
+      cleaned = true
+    }
+    const source = Object.freeze({
+      inputMode: 'private_verified_stream_v1' as const,
+      byteLength: persisted.byteLength,
+      sha256: persisted.checksumSha256,
+      async openStream() {
+        return createPrivateReadStreamWithinRoot({
+          rootPath: STORAGE_ROOT,
+          relativePath: relativeArtifactPath,
+        })
+      },
+    })
+    return {
+      exitCode: result.exitCode,
+      stderr: result.stderr,
+      byteLength: persisted.byteLength,
+      sha256: persisted.checksumSha256,
+      signature,
+      source,
+      cleanup,
+    }
+  } catch (error) {
+    protocolStream.destroy()
+    child.stdout.destroy()
+    child.stdin.destroy()
+    child.kill('SIGKILL')
+    await resultPromise.catch(() => undefined)
+    await removePrivateDirectoryTreeWithinRoot({
+      rootPath: STORAGE_ROOT,
+      relativePath: relativeDirectoryPath,
+      expectedIdentity: createdDirectory.identity,
+    }).catch(() => undefined)
+    if (error instanceof ApiError && error.code === 'TOOL_NOT_READY') throw error
+    throw unavailable(
+      `Docker continuous program-audio streams failed exact private verification: ${
         error instanceof Error ? error.message : 'unknown error'
       }`,
     )
@@ -3023,7 +3870,13 @@ function optionalNumber(value: unknown): number | undefined { const parsed = Num
 function rational(value: unknown): number | undefined { const [a, b] = String(value ?? '').split('/').map(Number); return Number.isFinite(a) && Number.isFinite(b) && b ? rounded(a / b) : undefined }
 function safeText(value: unknown): string { const text = String(value ?? 'unknown'); return /^[A-Za-z0-9,._ -]{1,160}$/.test(text) ? text : 'unknown' }
 function optionalText(value: unknown): string | undefined { return value === undefined ? undefined : safeText(value) }
+function optionalRationalText(value: unknown): string | undefined {
+  const text = String(value ?? '')
+  return /^[0-9]{1,12}\/[1-9][0-9]{0,12}$/u.test(text) ? text : undefined
+}
 function rounded(value: number): number { return Number(value.toFixed(6)) }
 function sha256(value: Buffer): string { return createHash('sha256').update(value).digest('hex') }
 function invalid(message: string): ApiError { return new ApiError('VALIDATION_FAILED', message, 400) }
-function unavailable(message: string): ApiError { return new ApiError('TOOL_NOT_READY', message, 503) }
+function unavailable(message: string, details?: unknown): ApiError {
+  return new ApiError('TOOL_NOT_READY', message, 503, details)
+}

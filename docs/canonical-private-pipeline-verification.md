@@ -28,11 +28,17 @@ bindings. It then executes the structured master-timing child through an exact
 QA-worker authorization, one-use lease/attempt, private artifact, QA,
 126-dependent reconciliation, internal cost, terminal completion, and replay.
 The timing runner validates exact rational frames, all 18 timing categories,
-approved estimate coverage, and the source-led no-generated-cue boundary. Every
-chunk render, continuous audio, and finalization path remains timing-dependent.
-The remaining 252 children stay capability-blocked,
-source-only intent restraint, canonical plan
-presentation, the 4K estimate ceiling, separate approval, the opaque
+approved estimate coverage, and the source-led no-generated-cue boundary. It
+then executes the exact first object-render and paired independent QA jobs, and
+the continuous-program-audio job with an embedded independent QA attempt. The
+audio proof stages eight checksum-bound 4K sources and 512 approved ranges,
+retains its lease with durable heartbeat evidence, writes one create-only six-
+hour lossless FLAC, independently verifies metadata and 1,036,800,000 decoded
+stereo sample frames, records separate FFmpeg and FFprobe internal costs,
+rejects persisted-byte tampering, and replays without redispatch. The remaining
+249 children stay capability-blocked. The command continues with source-only
+intent restraint, canonical plan presentation, the 4K estimate ceiling,
+separate approval, the opaque
 execution-package handoff, private preparation, private review,
 revision/history recovery, the bounded three-source standalone reference-bound
 voice/color proof, the one-source professional-color regression proof, and the
@@ -101,9 +107,13 @@ plan fits the bounded canonical profile.
    gap-free timeline coverage. Then authorize and complete the master-timing
    child through its separate QA-worker lease, one-use attempt, exact component
    hash and frame validation, artifact, QA, 126-dependent reconciliation,
-   internal cost, terminal commit, and replay. The remaining 252 child leases,
-   chunk
-   tool-cost-runner authority, long-form media
+   internal cost, terminal commit, and replay. Then complete the first object-
+   chunk render and paired independent QA through separate one-use queue
+   lifecycles, followed by the continuous-program-audio job and its independent
+   QA attempt through exact source staging, heartbeat, fixed lossless FLAC
+   execution, create-only persistence, two internal-cost records, tamper
+   refusal, reconciliation, and replay. The remaining 249 child leases, other
+   chunk tool-cost-runner authority, complete long-form media
    execution, object storage, database, cloud, staging, and production
    authority remain false.
 4. Prove that every approved edit estimate carries the 4K UHD delivery ceiling
@@ -169,7 +179,7 @@ source-bound audio identities in approved order, reads sanitized journey state,
 and records review acceptance.
 
 The runner stops on the first failed phase and prints a machine-readable
-`canonical-private-pipeline-verification-v22` report with step exit codes and
+`canonical-private-pipeline-verification-v24` report with step exit codes and
 durations. A zero exit code means every included assertion passed, including
 assertions that production-only or unavailable behavior stays blocked.
 
@@ -179,6 +189,24 @@ and open time. Resource isolation prevents unrelated local tasks from mutating
 that discovery channel; it does not weaken image-identity validation.
 
 ## Current Evidence Record
+
+On 2026-07-18, the exact-code v24 full internal command passed all `38/38`
+phases with exit code `0`. It started at `2026-07-18T19:00:39.984Z`, finished
+at `2026-07-18T19:43:20.646Z`, and completed in `2,560,662 ms`. The canonical
+long-form stage passed all 96 checks in `326,801 ms`, including the exact six-
+hour FLAC, decoded-sample QA, two program-audio internal-cost attempts,
+heartbeat, tamper refusal, and replay. The report correctly records six of 255
+queue jobs complete and 249 still blocked, exactly 50 canonical E2E and 50 job-
+adapter identities, all 11 browser tests, and the accepted maximum-eight-source
+signed-in private review. It keeps distributed database execution, live Google
+Cloud, providers, billing/wallet mutation, remote Supabase, deployment, public
+delivery, external beta, and paid production false.
+
+The preceding transitional audio-integrated run passed `38/38` phases from
+`2026-07-18T18:05:39.846Z` through `2026-07-18T18:43:35.414Z` in
+`2,275,568 ms`, but still emitted stale v23 first-object-only boundary field
+names. Its runtime assertions remain historical evidence; v24 supersedes its
+machine-readable metadata.
 
 On 2026-07-18, the exact-code v22 full internal command passed all `37/37`
 phases with exit code `0`. It started at `2026-07-18T12:52:16.698Z`, finished

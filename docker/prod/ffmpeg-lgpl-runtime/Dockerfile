@@ -2,7 +2,8 @@
 
 # Isolated ReEditPro FFmpeg foundation for internal/private worker evaluation.
 # This image is deliberately not wired into any route or worker image.
-# It is not production-ready and it does not provide H.264/HEVC/AAC encoding.
+# It is not production-ready and it does not authorize production H.264,
+# HEVC, AAC, FLAC, render, export, or public-delivery execution.
 
 ARG DEBIAN_BASE=debian:bookworm-slim@sha256:60eac759739651111db372c07be67863818726f754804b8707c90979bda511df
 ARG SOURCE_DATE_EPOCH=1781664539
@@ -55,6 +56,8 @@ COPY allowed-bsfs.txt /tmp/allowed-bsfs.txt
 COPY verify-runtime.sh /tmp/verify-runtime.sh
 COPY source-slice-finalizer.sh /tmp/source-slice-finalizer.sh
 COPY object-mezzanine-chunk.sh /tmp/object-mezzanine-chunk.sh
+COPY continuous-program-audio.sh /tmp/continuous-program-audio.sh
+COPY continuous-program-audio-probe.sh /tmp/continuous-program-audio-probe.sh
 COPY source-provenance.lock /tmp/source-provenance.lock
 
 WORKDIR /tmp/ffmpeg-source
@@ -116,6 +119,10 @@ RUN printf '%s  %s\n' \
       /runtime-rootfs/usr/local/bin/reeditpro-ffmpeg-source-slice-finalizer \
   && install -m 0555 /tmp/object-mezzanine-chunk.sh \
       /runtime-rootfs/usr/local/bin/reeditpro-ffmpeg-object-mezzanine-chunk \
+  && install -m 0555 /tmp/continuous-program-audio.sh \
+      /runtime-rootfs/usr/local/bin/reeditpro-ffmpeg-continuous-program-audio \
+  && install -m 0555 /tmp/continuous-program-audio-probe.sh \
+      /runtime-rootfs/usr/local/bin/reeditpro-ffmpeg-continuous-program-audio-probe \
   && sha256sum /runtime-rootfs/usr/local/bin/reeditpro-ffmpeg-verify \
       | sed 's#  /runtime-rootfs/#  /#' \
       >> /runtime-rootfs/opt/reeditpro-ffmpeg/share/reeditpro/runtime-files.sha256 \
@@ -123,6 +130,12 @@ RUN printf '%s  %s\n' \
       | sed 's#  /runtime-rootfs/#  /#' \
       >> /runtime-rootfs/opt/reeditpro-ffmpeg/share/reeditpro/runtime-files.sha256 \
   && sha256sum /runtime-rootfs/usr/local/bin/reeditpro-ffmpeg-object-mezzanine-chunk \
+      | sed 's#  /runtime-rootfs/#  /#' \
+      >> /runtime-rootfs/opt/reeditpro-ffmpeg/share/reeditpro/runtime-files.sha256 \
+  && sha256sum /runtime-rootfs/usr/local/bin/reeditpro-ffmpeg-continuous-program-audio \
+      | sed 's#  /runtime-rootfs/#  /#' \
+      >> /runtime-rootfs/opt/reeditpro-ffmpeg/share/reeditpro/runtime-files.sha256 \
+  && sha256sum /runtime-rootfs/usr/local/bin/reeditpro-ffmpeg-continuous-program-audio-probe \
       | sed 's#  /runtime-rootfs/#  /#' \
       >> /runtime-rootfs/opt/reeditpro-ffmpeg/share/reeditpro/runtime-files.sha256 \
   && chmod -R a+rX /runtime-rootfs/opt/reeditpro-ffmpeg \
@@ -145,6 +158,8 @@ LABEL org.opencontainers.image.title="ReEditPro minimal FFmpeg internal-worker f
       reeditpro.aac-encoding="private_source_slice_finalizer_only" \
       reeditpro.mp4-mux="private_source_slice_finalizer_and_object_chunk_only" \
       reeditpro.object-mezzanine-chunk="private_first_chunk_stream_copy_only" \
+      reeditpro.flac-encoding="private_continuous_program_audio_only" \
+      reeditpro.continuous-program-audio="private_30fps_48khz_source_audio_only" \
       reeditpro.codec-patent-legal-review="required" \
       reeditpro.runtime-network="must_run_with_network_none" \
       reeditpro.runtime-rootfs="must_run_read_only"

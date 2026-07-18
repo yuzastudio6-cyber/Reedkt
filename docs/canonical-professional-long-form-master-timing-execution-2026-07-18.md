@@ -3,9 +3,9 @@
 Status: `superseded_by_first_object_chunk_execution`
 
 The master-timing milestone described below remains historical evidence. The
-current continuation also completes the first 4K object render and its paired
-independent QA, leaving 250 children blocked; see
-`docs/canonical-professional-long-form-first-object-chunk-execution-2026-07-18.md`.
+later first-object render/QA and continuous-program-audio continuations leave
+249 children blocked; see
+`docs/canonical-professional-long-form-continuous-program-audio-execution-2026-07-18.md`.
 
 ## Outcome
 

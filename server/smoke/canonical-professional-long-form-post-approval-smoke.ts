@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
-import { readFile, rm, writeFile } from 'node:fs/promises'
+import { open, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
@@ -90,6 +90,9 @@ import {
 import {
   createCanonicalProfessionalLongFormFirstObjectChunkExecutionService,
 } from '../services/canonical-professional-long-form-first-object-chunk-execution-service'
+import {
+  createCanonicalProfessionalLongFormContinuousProgramAudioExecutionService,
+} from '../services/canonical-professional-long-form-continuous-program-audio-execution-service'
 import { createEditPlanningAuthorityService } from '../services/edit-planning-authority-service'
 import { createExactEditPreferenceService } from '../services/exact-edit-preference-service'
 import {
@@ -137,6 +140,12 @@ import {
   PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_COST_PROFILE_ID,
   PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_OPERATION_ID,
 } from '../edit-architecture/professional-long-form-first-object-chunk-execution-contract'
+import {
+  PROFESSIONAL_LONG_FORM_CONTINUOUS_PROGRAM_AUDIO_COST_PROFILE_ID,
+  PROFESSIONAL_LONG_FORM_CONTINUOUS_PROGRAM_AUDIO_OPERATION_ID,
+  PROFESSIONAL_LONG_FORM_CONTINUOUS_PROGRAM_AUDIO_QA_COST_PROFILE_ID,
+  PROFESSIONAL_LONG_FORM_CONTINUOUS_PROGRAM_AUDIO_QA_OPERATION_ID,
+} from '../edit-architecture/professional-long-form-continuous-program-audio-execution-contract'
 import {
   activatePrivateOfflineMediaBinaryRuntime,
 } from '../tool-execution/media-binary-execution'
@@ -2248,6 +2257,188 @@ try {
     'completed_first_object_chunk_and_qa_restart_reopen_as_exact_replay_without_redispatch',
   )
 
+  const programAudioService =
+    createCanonicalProfessionalLongFormContinuousProgramAudioExecutionService(
+      context,
+    )
+  await expectApiError(
+    () => programAudioService.execute({
+      workspaceId,
+      approvedPlanSnapshotId: String(snapshot.snapshotId),
+      callerSelectedAudioRecipe: 'caller-must-not-select-a-recipe',
+    } as unknown as {
+      workspaceId: string
+      approvedPlanSnapshotId: string
+    }),
+    'VALIDATION_FAILED',
+    'caller_cannot_select_program_audio_source_range_recipe_command_codec_cost_or_artifact',
+  )
+  const completedProgramAudio = await programAudioService.execute({
+    workspaceId,
+    approvedPlanSnapshotId: String(snapshot.snapshotId),
+  })
+  check(
+    completedProgramAudio.disposition === 'completed' &&
+      completedProgramAudio.queueAggregate.summary.totalJobCount === 255 &&
+      completedProgramAudio.queueAggregate.summary.completedJobCount === 6 &&
+      completedProgramAudio.queueAggregate.summary.queuedJobCount === 249 &&
+      completedProgramAudio.queueAggregate.summary.leasedJobCount === 0 &&
+      completedProgramAudio.queueAggregate.summary.totalDeliveryAttemptCount === 6,
+    'six_hour_continuous_program_audio_completes_exact_canonical_job_six',
+  )
+  check(
+    completedProgramAudio.programAudio.outputArtifact.contentType ===
+      'audio/flac' &&
+      completedProgramAudio.programAudio.outputArtifact.mediaFormat === 'flac' &&
+      completedProgramAudio.programAudio.outputArtifact.totalFrames ===
+        totalFrames &&
+      completedProgramAudio.programAudio.outputArtifact.sampleCount ===
+        totalFrames * 1_600 &&
+      completedProgramAudio.programAudio.outputArtifact.sampleRate === 48_000 &&
+      completedProgramAudio.programAudio.outputArtifact.channels === 2 &&
+      completedProgramAudio.programAudio.outputArtifact.bitsPerRawSample === 24 &&
+      completedProgramAudio.programAudio.outputArtifact.objectVersion === 1 &&
+      completedProgramAudio.programAudio.outputArtifact.assetRole === 'processed' &&
+      !completedProgramAudio.programAudio.outputArtifact.placeholderAllowed &&
+      completedProgramAudio.programAudio.runtimeEvidence.queueLeaseEvidence
+        .heartbeatCount >= 1 &&
+      completedProgramAudio.programAudio.runtimeEvidence.queueLeaseEvidence
+        .boundedLeaseRenewalObserved,
+    'program_audio_is_lossless_private_create_only_and_retains_bounded_lease_heartbeat_evidence',
+  )
+  check(
+    completedProgramAudio.programAudio.qaArtifact.outcome === 'passed' &&
+      completedProgramAudio.programAudio.qaArtifact.observed.container ===
+        'flac' &&
+      completedProgramAudio.programAudio.qaArtifact.observed.audioCodec ===
+        'flac' &&
+      completedProgramAudio.programAudio.qaArtifact.observed.streamCount === 1 &&
+      completedProgramAudio.programAudio.qaArtifact.observed.sampleRate ===
+        48_000 &&
+      completedProgramAudio.programAudio.qaArtifact.observed.channels === 2 &&
+      completedProgramAudio.programAudio.qaArtifact.observed.bitsPerRawSample ===
+        24 &&
+      completedProgramAudio.programAudio.qaArtifact.observed.actualSamples ===
+        totalFrames * 1_600 &&
+      completedProgramAudio.programAudio.qaArtifact.observed.expectedSamples ===
+        totalFrames * 1_600 &&
+      completedProgramAudio.programAudio.qaArtifact.observed.durationSeconds ===
+        PROFESSIONAL_LONG_FORM_MAXIMUM_SECONDS,
+    'independent_ffprobe_reopens_six_hour_flac_and_decodes_the_exact_sample_count_without_mutation',
+  )
+  const programAudioCosts = [
+    completedProgramAudio.programAudio.assemblyCostEvidence,
+    completedProgramAudio.programAudio.qaCostEvidence,
+  ]
+  check(
+    programAudioCosts[0]!.identity.toolId === 'ffmpeg' &&
+      programAudioCosts[0]!.identity.operationId ===
+        PROFESSIONAL_LONG_FORM_CONTINUOUS_PROGRAM_AUDIO_OPERATION_ID &&
+      programAudioCosts[0]!.identity.workloadProfileId ===
+        PROFESSIONAL_LONG_FORM_CONTINUOUS_PROGRAM_AUDIO_COST_PROFILE_ID &&
+      programAudioCosts[1]!.identity.toolId === 'ffprobe' &&
+      programAudioCosts[1]!.identity.operationId ===
+        PROFESSIONAL_LONG_FORM_CONTINUOUS_PROGRAM_AUDIO_QA_OPERATION_ID &&
+      programAudioCosts[1]!.identity.workloadProfileId ===
+        PROFESSIONAL_LONG_FORM_CONTINUOUS_PROGRAM_AUDIO_QA_COST_PROFILE_ID &&
+      programAudioCosts.every((cost) =>
+        cost.boundary === 'internal_production_cost_only' &&
+        cost.resourceUsage.vcpuCount === 2 &&
+        cost.resourceUsage.memoryGib === 4 && cost.resourceUsage.gpuCount === 0 &&
+        cost.outcome.status === 'completed' &&
+        cost.outcome.failureCategory === 'none' &&
+        Number.isSafeInteger(cost.actualInternalCostMicros) &&
+        cost.actualInternalCostMicros >= 0 &&
+        !/customerPrice|customerCredit|serviceFee|wallet|billingAuthority/u
+          .test(stableAuthorityStringify(cost))),
+    'program_audio_ffmpeg_and_ffprobe_attempt_costs_remain_internal_production_cost_only',
+  )
+  check(
+    completedProgramAudio.readiness.fundedFourKEstimateReservationReused &&
+      !completedProgramAudio.readiness.secondExportEstimateCreated &&
+      !completedProgramAudio.readiness.secondExportChargeCreated &&
+      !completedProgramAudio.readiness.providerActivationAuthorized &&
+      !completedProgramAudio.readiness.customerBillingAuthorized &&
+      !completedProgramAudio.readiness.walletMutationAuthorized &&
+      !completedProgramAudio.readiness.liveGoogleCloudVerified &&
+      !completedProgramAudio.readiness.publicDeliveryAuthorized &&
+      !completedProgramAudio.readiness.productReady &&
+      !completedProgramAudio.readiness.productionReady,
+    'program_audio_reuses_approved_4k_reservation_without_second_charge_and_keeps_external_gates_closed',
+  )
+
+  const programAudioPath = join(
+    localStorageRoot,
+    'canonical-program-audio',
+    'private-v1',
+    completedProgramAudio.programAudio.outputArtifact.objectIdentity.slice(0, 2),
+    `${completedProgramAudio.programAudio.outputArtifact.objectIdentity}.flac`,
+  )
+  const lastByteOffset =
+    completedProgramAudio.programAudio.outputArtifact.byteLength - 1
+  const originalLastByte = Buffer.alloc(1)
+  const programAudioHandle = await open(programAudioPath, 'r+')
+  try {
+    const readResult = await programAudioHandle.read(
+      originalLastByte,
+      0,
+      1,
+      lastByteOffset,
+    )
+    assert.equal(readResult.bytesRead, 1)
+    const corruptedLastByte = Buffer.from([originalLastByte[0]! ^ 0xff])
+    const writeResult = await programAudioHandle.write(
+      corruptedLastByte,
+      0,
+      1,
+      lastByteOffset,
+    )
+    assert.equal(writeResult.bytesWritten, 1)
+    await programAudioHandle.sync()
+  } finally {
+    await programAudioHandle.close()
+  }
+  clearPrivateEditAuthorityProcessStateForSmoke()
+  clearPrivateCanonicalPackageWorkQueueProcessStateForSmoke()
+  await expectApiError(
+    () => programAudioService.execute({
+      workspaceId,
+      approvedPlanSnapshotId: String(snapshot.snapshotId),
+    }),
+    'VALIDATION_FAILED',
+    'persisted_six_hour_program_audio_byte_tamper_fails_closed_after_restart',
+  )
+  const restoreProgramAudioHandle = await open(programAudioPath, 'r+')
+  try {
+    const writeResult = await restoreProgramAudioHandle.write(
+      originalLastByte,
+      0,
+      1,
+      lastByteOffset,
+    )
+    assert.equal(writeResult.bytesWritten, 1)
+    await restoreProgramAudioHandle.sync()
+  } finally {
+    await restoreProgramAudioHandle.close()
+  }
+  clearPrivateEditAuthorityProcessStateForSmoke()
+  clearPrivateCanonicalPackageWorkQueueProcessStateForSmoke()
+  const replayedProgramAudio = await programAudioService.execute({
+    workspaceId,
+    approvedPlanSnapshotId: String(snapshot.snapshotId),
+  })
+  check(
+    replayedProgramAudio.disposition === 'exact_replay' &&
+      replayedProgramAudio.evidenceHash === completedProgramAudio.evidenceHash &&
+      replayedProgramAudio.programAudio.outputArtifact.sha256 ===
+        completedProgramAudio.programAudio.outputArtifact.sha256 &&
+      replayedProgramAudio.programAudio.qaArtifact.qaHash ===
+        completedProgramAudio.programAudio.qaArtifact.qaHash &&
+      replayedProgramAudio.queueAggregate.summary.completedJobCount === 6 &&
+      replayedProgramAudio.queueAggregate.summary.queuedJobCount === 249,
+    'completed_program_audio_and_independent_qa_restart_reopen_as_exact_replay_without_redispatch',
+  )
+
   await assertNoActivationImports()
 
   const childBlobPath = join(
@@ -2276,7 +2467,7 @@ try {
 
   console.log(JSON.stringify({
     ok: true,
-    schemaVersion: 'canonical-professional-long-form-post-approval-smoke-v6',
+    schemaVersion: 'canonical-professional-long-form-post-approval-smoke-v7',
     checkCount: checks.length,
     checks,
     evidence: {
@@ -2331,9 +2522,9 @@ try {
       masterTimingAttemptInternalCostEvidenceVerified: true,
       masterTimingRunnerReadOrDecodedMedia: false,
       completedChildCount:
-        completedFirstObjectChunk.queueAggregate.summary.completedJobCount,
+        completedProgramAudio.queueAggregate.summary.completedJobCount,
       remainingBlockedChildCount:
-        completedFirstObjectChunk.queueAggregate.summary.queuedJobCount,
+        completedProgramAudio.queueAggregate.summary.queuedJobCount,
       mediaExecutionVerified: true,
       chunkRenderExecutionVerified: true,
       firstObjectChunkIndependentQaVerified: true,
@@ -2349,6 +2540,28 @@ try {
         completedFirstObjectChunk.render.costEvidence.actualInternalCostMicros,
       firstObjectChunkQaInternalCostMicros:
         completedFirstObjectChunk.qa.costEvidence.actualInternalCostMicros,
+      continuousProgramAudioExecutionVerified: true,
+      continuousProgramAudioIndependentQaVerified: true,
+      continuousProgramAudioByteLength:
+        completedProgramAudio.programAudio.outputArtifact.byteLength,
+      continuousProgramAudioTotalFrames:
+        completedProgramAudio.programAudio.outputArtifact.totalFrames,
+      continuousProgramAudioSampleCount:
+        completedProgramAudio.programAudio.outputArtifact.sampleCount,
+      continuousProgramAudioSourceCount:
+        completedProgramAudio.programAudio.runtimeEvidence.sourceSha256s.length,
+      continuousProgramAudioSourceSliceCount:
+        completedProgramAudio.programAudio.authority.approvedAudioPlan
+          .sourceSlices.length,
+      continuousProgramAudioHeartbeatCount:
+        completedProgramAudio.programAudio.runtimeEvidence.queueLeaseEvidence
+          .heartbeatCount,
+      continuousProgramAudioAssemblyInternalCostMicros:
+        completedProgramAudio.programAudio.assemblyCostEvidence
+          .actualInternalCostMicros,
+      continuousProgramAudioQaInternalCostMicros:
+        completedProgramAudio.programAudio.qaCostEvidence
+          .actualInternalCostMicros,
       googleCloudDispatchAuthorized: false,
       liveGoogleCloudVerified: false,
       productReady: false,
@@ -2464,17 +2677,23 @@ async function prepareSourceMediaAuthority(
   const sourceFrames = Math.ceil(
     totalFrames / PROFESSIONAL_LONG_FORM_MAXIMUM_SOURCE_RANGES,
   )
+  const sourceDurationSeconds = sourceFrames / fps
   const baseSourcePath = join(localStorageRoot, 'fixture-4k-source-base.mp4')
   const generatedBase = spawnSync('ffmpeg', [
     '-hide_banner', '-loglevel', 'error',
     '-f', 'lavfi', '-i', `color=c=0x174EA6:s=3840x2160:r=${fps}`,
+    '-f', 'lavfi', '-i',
+    `sine=frequency=440:sample_rate=48000:duration=${sourceDurationSeconds}`,
+    '-map', '0:v:0', '-map', '1:a:0',
     '-frames:v', String(sourceFrames),
     '-c:v', 'libx264', '-preset', 'ultrafast', '-tune', 'zerolatency',
     '-x264-params',
     `keyint=${sourceFrames}:min-keyint=${sourceFrames}:scenecut=0:open-gop=0:colorprim=bt709:transfer=bt709:colormatrix=bt709`,
     '-bf', '0', '-pix_fmt', 'yuv420p', '-color_range', 'tv',
     '-colorspace', 'bt709', '-color_primaries', 'bt709',
-    '-color_trc', 'bt709', '-an', '-movflags', '+faststart',
+    '-color_trc', 'bt709',
+    '-c:a', 'aac', '-b:a', '192k', '-ar', '48000', '-ac', '2',
+    '-t', String(sourceDurationSeconds), '-movflags', '+faststart',
     '-threads', '1', '-y', baseSourcePath,
   ], { encoding: 'utf8' })
   assert.equal(generatedBase.status, 0, generatedBase.stderr)
@@ -2485,7 +2704,8 @@ async function prepareSourceMediaAuthority(
     )
     const generated = spawnSync('ffmpeg', [
       '-hide_banner', '-loglevel', 'error',
-      '-i', baseSourcePath, '-map', '0:v:0', '-c:v', 'copy',
+      '-i', baseSourcePath, '-map', '0:v:0', '-map', '0:a:0',
+      '-c:v', 'copy', '-c:a', 'copy',
       '-metadata', `title=ReeditPro immutable source ${index + 1}`,
       '-metadata', `comment=approved-source-${index + 1}`,
       '-movflags', '+faststart', '-y', sourcePath,
@@ -2927,6 +3147,10 @@ async function assertNoActivationImports(): Promise<void> {
     'server/edit-architecture/professional-long-form-first-object-chunk-execution-contract.ts',
     'server/edit-architecture/professional-long-form-first-object-chunk-execution.ts',
     'server/services/canonical-professional-long-form-first-object-chunk-execution-service.ts',
+    'server/edit-architecture/professional-long-form-continuous-program-audio-execution-contract.ts',
+    'server/edit-architecture/professional-long-form-continuous-program-audio-execution.ts',
+    'server/services/canonical-private-program-audio-artifact-storage.ts',
+    'server/services/canonical-professional-long-form-continuous-program-audio-execution-service.ts',
   ].map((path) => readFile(path, 'utf8')))
   check(
     sources.every((source) =>

@@ -46,6 +46,13 @@ import {
   PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_ATTEMPT_VERSION,
 } from '../edit-architecture/professional-long-form-first-object-chunk-execution-contract'
 import {
+  PROFESSIONAL_LONG_FORM_CONTINUOUS_PROGRAM_AUDIO_ATTEMPT_VERSION,
+  PROFESSIONAL_LONG_FORM_CONTINUOUS_PROGRAM_AUDIO_WORK_ITEM_ID,
+} from '../edit-architecture/professional-long-form-continuous-program-audio-execution-contract'
+import {
+  isProfessionalLongFormContinuousProgramAudioAuthorization,
+  isProfessionalLongFormContinuousProgramAudioAuthority,
+  isProfessionalLongFormContinuousProgramAudioCompletion,
   isProfessionalLongFormFirstChildAuthorization,
   isProfessionalLongFormFirstChildExecutionAuthority,
   isProfessionalLongFormFirstObjectChunkQaAuthorization,
@@ -55,8 +62,10 @@ import {
   isProfessionalLongFormFirstObjectChunkRenderCompletion,
   isProfessionalLongFormFirstObjectChunkQaCompletion,
   isProfessionalLongFormMasterTimingAuthorization,
+  isProfessionalLongFormMasterTimingCompletion,
   isProfessionalLongFormMasterTimingExecutionAuthority,
   isProfessionalLongFormSourceAuthorityAuthorization,
+  isProfessionalLongFormSourceAuthorityCompletion,
   isProfessionalLongFormSourceAuthorityExecutionAuthority,
   professionalLongFormAuthorizedChildAuthorizationReceiptSchema,
   professionalLongFormAuthorizedChildExecutionAttemptSchema,
@@ -375,8 +384,12 @@ export async function beginPrivateCanonicalPackageWorkQueueExecutionAttempt(inpu
       isProfessionalLongFormFirstObjectChunkRenderAuthorization(authorization)
     const firstObjectChunkQaAttempt =
       isProfessionalLongFormFirstObjectChunkQaAuthorization(authorization)
+    const continuousProgramAudioAttempt =
+      isProfessionalLongFormContinuousProgramAudioAuthorization(authorization)
     const attemptWithoutHash = {
-      schemaVersion: firstObjectChunkQaAttempt
+      schemaVersion: continuousProgramAudioAttempt
+        ? PROFESSIONAL_LONG_FORM_CONTINUOUS_PROGRAM_AUDIO_ATTEMPT_VERSION
+        : firstObjectChunkQaAttempt
         ? PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_ATTEMPT_VERSION
         : firstObjectChunkRenderAttempt
           ? PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_ATTEMPT_VERSION
@@ -1631,6 +1644,19 @@ function assertPersistedProfessionalLongFormExecutionAuthority(input: {
       input.executionAuthority.lineage.timingHash !==
         input.authorization.expectedOutputIdentity
   } else if (
+    isProfessionalLongFormContinuousProgramAudioAuthorization(
+      input.authorization,
+    )
+  ) {
+    pairInvalid = !isProfessionalLongFormContinuousProgramAudioAuthority(
+      input.executionAuthority,
+    ) || input.executionAuthority.lineage.audioJobDefinitionHash !==
+      input.authorization.jobDefinitionHash ||
+      input.executionAuthority.lineage.audioPlacementHash !==
+        input.authorization.placementHash ||
+      input.executionAuthority.identity.expectedOutputIdentity !==
+        input.authorization.expectedOutputIdentity
+  } else if (
     isProfessionalLongFormFirstObjectChunkRenderAuthorization(
       input.authorization,
     )
@@ -1731,6 +1757,40 @@ function exactProfessionalLongFormAuthorizationMatches(
       authorization.expectedOutputIdentity.length === 64 &&
       hasCompletedRootDependency()
   }
+  if (isProfessionalLongFormContinuousProgramAudioAuthorization(authorization)) {
+    const sourceDependency = aggregate.entries.find((candidate) =>
+      candidate.definition.approvedWorkItemId ===
+        PROFESSIONAL_LONG_FORM_SOURCE_AUTHORITY_WORK_ITEM_ID)
+    const timingDependency = aggregate.entries.find((candidate) =>
+      candidate.definition.approvedWorkItemId ===
+        PROFESSIONAL_LONG_FORM_MASTER_TIMING_WORK_ITEM_ID)
+    const sourceCompletion = sourceDependency?.completion?.outcome
+      .professionalLongFormExecution
+    const timingCompletion = timingDependency?.completion?.outcome
+      .professionalLongFormExecution
+    return entry.definition.workerType === 'cpu_analysis_worker' &&
+      entry.definition.resourceClassId === 'cpu_analysis_standard_v1' &&
+      entry.definition.maxAttempts === 2 &&
+      entry.definition.attemptTimeoutSeconds === 3_600 &&
+      entry.definition.canonicalOrder > 2 &&
+      entry.definition.approvedWorkItemId ===
+        PROFESSIONAL_LONG_FORM_CONTINUOUS_PROGRAM_AUDIO_WORK_ITEM_ID &&
+      entry.definition.dependencyJobIds.length === 2 &&
+      entry.definition.satisfiedPromotionDependencyJobIds?.length === 0 &&
+      stableAuthorityStringify(entry.definition.dependencyJobIds) ===
+        stableAuthorityStringify([
+          sourceDependency?.definition.jobId,
+          timingDependency?.definition.jobId,
+        ]) &&
+      sourceDependency?.state === 'completed' &&
+      timingDependency?.state === 'completed' &&
+      Boolean(sourceCompletion &&
+        isProfessionalLongFormSourceAuthorityCompletion(sourceCompletion)) &&
+      Boolean(timingCompletion &&
+        isProfessionalLongFormMasterTimingCompletion(timingCompletion)) &&
+      authorization.expectedOutputIdentity ===
+        `${aggregate.identity.approvedPlanSnapshotId}:continuous-audio`
+  }
   if (isProfessionalLongFormFirstObjectChunkRenderAuthorization(authorization)) {
     const dependencies = entry.definition.dependencyJobIds.map((jobId) =>
       aggregate.entries.find((candidate) => candidate.definition.jobId === jobId))
@@ -1795,7 +1855,11 @@ function assertProfessionalLongFormCompletionEvidence(
   const completion = outcome.professionalLongFormExecution
   if (!authorization && !attempt && !completion) return
   const exactArtifactMatches = completion &&
-    isProfessionalLongFormFirstObjectChunkRenderCompletion(completion)
+    isProfessionalLongFormContinuousProgramAudioCompletion(completion)
+    ? outcome.contentType === 'audio/flac' &&
+      outcome.artifactId === completion.outputArtifact.objectIdentity &&
+      outcome.sha256 === completion.outputArtifact.sha256
+    : completion && isProfessionalLongFormFirstObjectChunkRenderCompletion(completion)
     ? outcome.contentType === 'video/x-matroska' &&
       outcome.artifactId === completion.outputArtifact.objectIdentity &&
       outcome.sha256 === completion.outputArtifact.sha256

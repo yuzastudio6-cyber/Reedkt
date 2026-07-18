@@ -18,7 +18,13 @@ export const PROFESSIONAL_LONG_FORM_TARGET_CHUNK_SECONDS = 120
 export const PROFESSIONAL_LONG_FORM_MINIMUM_CHUNK_SECONDS = 45
 export const PROFESSIONAL_LONG_FORM_MAXIMUM_CHUNK_SECONDS = 180
 export const PROFESSIONAL_LONG_FORM_MAXIMUM_SOURCE_RANGES = 512
-export const PROFESSIONAL_LONG_FORM_MAXIMUM_CHUNKS = 256
+export const PROFESSIONAL_LONG_FORM_CANONICAL_WORK_ITEM_CEILING = 256
+export const PROFESSIONAL_LONG_FORM_CANONICAL_DEPENDENCY_CEILING = 128
+export const PROFESSIONAL_LONG_FORM_GLOBAL_WORK_ITEM_COUNT = 7
+export const PROFESSIONAL_LONG_FORM_MAXIMUM_CHUNKS = Math.floor(
+  (PROFESSIONAL_LONG_FORM_CANONICAL_WORK_ITEM_CEILING -
+    PROFESSIONAL_LONG_FORM_GLOBAL_WORK_ITEM_COUNT) / 2,
+)
 export const PROFESSIONAL_LONG_FORM_UHD_PIXEL_CEILING = 3_840 * 2_160
 
 export const PROFESSIONAL_LONG_FORM_FRAME_RATE_PROFILE_IDS = [
@@ -84,11 +90,17 @@ export const professionalLongFormObjectExecutionRequestSchema = z.object({
     workspaceId: identity,
     projectId: identity,
     editSessionId: identity,
+    planningRequestId: identity,
+    approvedPlanId: identity,
+    approvedPlanHash: sha256,
     approvedPlanSnapshotId: identity,
     approvedPlanSnapshotHash: sha256,
     approvedEstimateId: identity,
     approvedEstimateHash: sha256,
     approvalRecordId: identity,
+    creditReservationId: identity,
+    approvedWorkGraphHash: sha256,
+    approvedTimingHash: sha256,
   }).strict(),
   runtimeRegion,
   confirmedOutputFrame: z.object({
@@ -197,6 +209,30 @@ export type ProfessionalLongFormObjectExecutionRequest = z.infer<
   typeof professionalLongFormObjectExecutionRequestSchema
 >
 
+export const PROFESSIONAL_LONG_FORM_OBJECT_PLAN_SEED_VERSION =
+  'professional-long-form-object-plan-seed-v1' as const
+
+export function deriveProfessionalLongFormObjectPlanSeed(
+  request: ProfessionalLongFormObjectExecutionRequest,
+) {
+  return {
+    schemaVersion: PROFESSIONAL_LONG_FORM_OBJECT_PLAN_SEED_VERSION,
+    identity: {
+      workspaceId: request.identity.workspaceId,
+      projectId: request.identity.projectId,
+      editSessionId: request.identity.editSessionId,
+      planningRequestId: request.identity.planningRequestId,
+      approvedTimingHash: request.identity.approvedTimingHash,
+    },
+    runtimeRegion: request.runtimeRegion,
+    confirmedOutputFrame: request.confirmedOutputFrame,
+    totalFrames: request.totalFrames,
+    sourceRanges: request.sourceRanges,
+    executionPolicy: request.executionPolicy,
+    approvalAndCostBoundary: request.approvalAndCostBoundary,
+  }
+}
+
 export interface ProfessionalLongFormChunkSourceSlice {
   segmentId: string
   sourceSequenceItemId: string
@@ -265,12 +301,15 @@ export interface ProfessionalLongFormObjectExecutionPlan {
   source: 'server_owned_professional_long_form_object_execution_planner'
   status: 'planning_contract_ready_execution_not_activated'
   request: ProfessionalLongFormObjectExecutionRequest
+  planSeedHash: string
   capacity: {
     profileId: typeof PROFESSIONAL_LONG_FORM_OBJECT_CAPACITY_PROFILE_ID
     minimumSeconds: number
     maximumSeconds: number
     maximumSourceRanges: number
     maximumChunks: number
+    canonicalWorkItemCeiling: number
+    canonicalDependencyCeiling: number
     targetChunkSeconds: number
     sourceRangeCount: number
     uniqueSourceObjectCount: number
@@ -331,12 +370,18 @@ export function buildProfessionalLongFormObjectExecutionPlan(
 ): ProfessionalLongFormObjectExecutionPlan {
   const request = professionalLongFormObjectExecutionRequestSchema.parse(input)
   const rate = FRAME_RATE_PROFILES[request.confirmedOutputFrame.frameRate.profileId]
+  const planSeedHash = sha256AuthorityValue(
+    deriveProfessionalLongFormObjectPlanSeed(request),
+  )
   const exactFramesPerTargetChunk = Math.max(
     1,
     Math.floor(PROFESSIONAL_LONG_FORM_TARGET_CHUNK_SECONDS * rate.numerator /
       rate.denominator),
   )
-  const chunkCount = Math.ceil(request.totalFrames / exactFramesPerTargetChunk)
+  const chunkCount = Math.min(
+    Math.ceil(request.totalFrames / exactFramesPerTargetChunk),
+    PROFESSIONAL_LONG_FORM_MAXIMUM_CHUNKS,
+  )
   if (chunkCount < 2 || chunkCount > PROFESSIONAL_LONG_FORM_MAXIMUM_CHUNKS) {
     throw new Error('Professional long-form plan exceeds the fixed object-chunk ceiling.')
   }
@@ -366,7 +411,7 @@ export function buildProfessionalLongFormObjectExecutionPlan(
       globalEndFrameExclusive,
     )
     const chunkId = `long-form-chunk-${sha256AuthorityValue({
-      snapshotId: request.identity.approvedPlanSnapshotId,
+      planSeedHash,
       chunkIndex,
       chunkCount,
       globalStartFrame,
@@ -374,7 +419,7 @@ export function buildProfessionalLongFormObjectExecutionPlan(
       sourceSlices,
     }).slice(0, 40)}`
     const objectIdentity = sha256AuthorityValue({
-      snapshotId: request.identity.approvedPlanSnapshotId,
+      planSeedHash,
       chunkId,
       runtimeRegion: request.runtimeRegion,
       objectRole: 'processed-media',
@@ -415,6 +460,15 @@ export function buildProfessionalLongFormObjectExecutionPlan(
   }
 
   const workItems = buildWorkGraph(request, chunks)
+  if (
+    workItems.length > PROFESSIONAL_LONG_FORM_CANONICAL_WORK_ITEM_CEILING ||
+    workItems.some((item) =>
+      item.dependsOn.length > PROFESSIONAL_LONG_FORM_CANONICAL_DEPENDENCY_CEILING)
+  ) {
+    throw new Error(
+      'Professional long-form work graph exceeds the canonical work-item or dependency ceiling.',
+    )
+  }
   const chunkQaIds = workItems
     .filter((item) => item.kind === 'qa_object_mezzanine_chunk')
     .map((item) => item.workItemId)
@@ -429,7 +483,7 @@ export function buildProfessionalLongFormObjectExecutionPlan(
   }
   const finalizationWithoutHash = {
     finalObjectIdentity: sha256AuthorityValue({
-      snapshotId: request.identity.approvedPlanSnapshotId,
+      planSeedHash,
       objectRole: 'final-private-4k-master',
       runtimeRegion: request.runtimeRegion,
       chunkHashes: chunks.map((chunk) => chunk.chunkAuthorityHash),
@@ -454,12 +508,15 @@ export function buildProfessionalLongFormObjectExecutionPlan(
     source: 'server_owned_professional_long_form_object_execution_planner' as const,
     status: 'planning_contract_ready_execution_not_activated' as const,
     request,
+    planSeedHash,
     capacity: {
       profileId: PROFESSIONAL_LONG_FORM_OBJECT_CAPACITY_PROFILE_ID,
       minimumSeconds: PROFESSIONAL_LONG_FORM_MINIMUM_SECONDS,
       maximumSeconds: PROFESSIONAL_LONG_FORM_MAXIMUM_SECONDS,
       maximumSourceRanges: PROFESSIONAL_LONG_FORM_MAXIMUM_SOURCE_RANGES,
       maximumChunks: PROFESSIONAL_LONG_FORM_MAXIMUM_CHUNKS,
+      canonicalWorkItemCeiling: PROFESSIONAL_LONG_FORM_CANONICAL_WORK_ITEM_CEILING,
+      canonicalDependencyCeiling: PROFESSIONAL_LONG_FORM_CANONICAL_DEPENDENCY_CEILING,
       targetChunkSeconds: PROFESSIONAL_LONG_FORM_TARGET_CHUNK_SECONDS,
       sourceRangeCount: request.sourceRanges.length,
       uniqueSourceObjectCount,
@@ -593,7 +650,12 @@ function buildWorkGraph(
   return [
     workItem(validateSnapshotId, 'validate_approved_snapshot', [], request.identity.approvedPlanSnapshotHash),
     workItem(validateSourcesId, 'validate_private_source_authority', [validateSnapshotId], sha256AuthorityValue(request.sourceRanges)),
-    workItem(timingQaId, 'validate_master_timing', [validateSnapshotId], sha256AuthorityValue({ totalFrames: request.totalFrames, frameRate: request.confirmedOutputFrame.frameRate })),
+    workItem(
+      timingQaId,
+      'validate_master_timing',
+      [validateSnapshotId],
+      request.identity.approvedTimingHash,
+    ),
     ...chunkWork,
     workItem(audioMixId, 'mix_continuous_program_audio', [validateSourcesId, timingQaId], `${request.identity.approvedPlanSnapshotId}:continuous-audio`),
     workItem(colorQaId, 'validate_cross_chunk_color_continuity', chunkQaIds, `${request.identity.approvedPlanSnapshotId}:color-continuity`),

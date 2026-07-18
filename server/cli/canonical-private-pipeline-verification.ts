@@ -46,6 +46,11 @@ const canonicalSteps: VerificationStep[] = [
     'A server-owned object-backed plan conserves exact frames across a 30-minute 24-source fixture and a bounded six-hour/512-range capacity fixture, requires chunk QA, continuous program audio, color continuity, one approved 4K estimate, and keeps snapshot wiring, media execution, storage, database, cloud, staging, and production false.',
   ),
   step(
+    'professional-long-form-approved-snapshot-bridge',
+    'smoke:professional-long-form-snapshot-bridge',
+    'The exact long-form seed, plan, estimate, timing, reservation, controller, and bounded 255-item child graph bind to one approved snapshot while canonical seed/controller persistence, child-job derivation, object storage, media execution, database, cloud, product, and production readiness remain false.',
+  ),
+  step(
     'professional-export-policy',
     'smoke:professional-export',
     'One approved 4K UHD delivery ceiling covers 1080p, 2K, and 4K exports without a second estimate.',
@@ -270,7 +275,7 @@ function printReport(
 ): void {
   const finishedAt = new Date()
   const report = {
-    schemaVersion: 'canonical-private-pipeline-verification-v15',
+    schemaVersion: 'canonical-private-pipeline-verification-v16',
     status,
     mode: full ? 'full_internal_regression' : 'canonical_private_pipeline',
     startedAt: runStartedAt.toISOString(),
@@ -291,6 +296,7 @@ function printReport(
           exactSourcePreferenceBriefAuthority: true,
           resumableSized4kPrivateSourcePipeline: true,
           professionalLongFormObjectBackedPlanningContract: true,
+          professionalLongFormApprovedSnapshotBindingContract: true,
           sourceOnlyIntentAuthority: true,
           fourKEstimateDeliveryCeiling: true,
           canonicalBrowserContracts: true,
@@ -345,6 +351,9 @@ function printReport(
       distributedPackageQueueOutboxTransactionVerified: false,
       canonicalPackageStateDatabaseFunctionsExecuted: false,
       canonicalPackageStateRpcLiveClientActivated: false,
+      professionalLongFormSeedComponentPersistenceVerified: false,
+      professionalLongFormServerLoadedControllerPersistenceVerified: false,
+      professionalLongFormChildJobDerivationVerified: false,
       professionalLongFormMediaExecutionVerified: false,
       professionalLongFormObjectStorageVerified: false,
       liveGoogleCloudWorkerCompletionVerified: false,

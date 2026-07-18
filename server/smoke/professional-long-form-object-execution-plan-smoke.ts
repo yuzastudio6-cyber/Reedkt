@@ -2,12 +2,15 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 
 import {
+  PROFESSIONAL_LONG_FORM_CANONICAL_DEPENDENCY_CEILING,
+  PROFESSIONAL_LONG_FORM_CANONICAL_WORK_ITEM_CEILING,
   PROFESSIONAL_LONG_FORM_MAXIMUM_CHUNKS,
   PROFESSIONAL_LONG_FORM_MAXIMUM_SECONDS,
   PROFESSIONAL_LONG_FORM_MAXIMUM_SOURCE_RANGES,
   PROFESSIONAL_LONG_FORM_OBJECT_CAPACITY_PROFILE_ID,
   assertProfessionalLongFormObjectExecutionProductionAuthority,
   buildProfessionalLongFormObjectExecutionPlan,
+  deriveProfessionalLongFormObjectPlanSeed,
   type ProfessionalLongFormFrameRateProfileId,
   type ProfessionalLongFormObjectExecutionRequest,
   verifyProfessionalLongFormObjectExecutionPlan,
@@ -97,9 +100,23 @@ const sixHourPlan = buildProfessionalLongFormObjectExecutionPlan(makeRequest({
 check(
   sixHourPlan.capacity.durationSeconds === PROFESSIONAL_LONG_FORM_MAXIMUM_SECONDS &&
   sixHourPlan.capacity.sourceRangeCount === PROFESSIONAL_LONG_FORM_MAXIMUM_SOURCE_RANGES &&
-  sixHourPlan.capacity.chunkCount === 180 &&
-  sixHourPlan.capacity.chunkCount <= PROFESSIONAL_LONG_FORM_MAXIMUM_CHUNKS,
+  sixHourPlan.capacity.chunkCount === PROFESSIONAL_LONG_FORM_MAXIMUM_CHUNKS &&
+  sixHourPlan.workGraph.workItemCount === 255 &&
+  sixHourPlan.workGraph.workItemCount < PROFESSIONAL_LONG_FORM_CANONICAL_WORK_ITEM_CEILING &&
+  sixHourPlan.workGraph.workItems.every((item) =>
+    item.dependsOn.length <= PROFESSIONAL_LONG_FORM_CANONICAL_DEPENDENCY_CEILING),
   'six_hour_sixty_fps_five_hundred_twelve_range_capacity_is_bounded',
+)
+check(
+  sixHourPlan.capacity.canonicalWorkItemCeiling ===
+    PROFESSIONAL_LONG_FORM_CANONICAL_WORK_ITEM_CEILING &&
+  sixHourPlan.capacity.canonicalDependencyCeiling ===
+    PROFESSIONAL_LONG_FORM_CANONICAL_DEPENDENCY_CEILING &&
+  sixHourPlan.capacity.maximumChunks === PROFESSIONAL_LONG_FORM_MAXIMUM_CHUNKS &&
+  sixHourPlan.workGraph.workItems.filter((item) =>
+    item.kind === 'qa_object_mezzanine_chunk').length ===
+    PROFESSIONAL_LONG_FORM_MAXIMUM_CHUNKS,
+  'canonical_capacity_ceiling_preserves_one_independent_qa_item_per_chunk',
 )
 
 const fractionalRatePlan = buildProfessionalLongFormObjectExecutionPlan(makeRequest({
@@ -142,6 +159,15 @@ const allProfessionalRateWindowsStayExact = ([
 check(
   allProfessionalRateWindowsStayExact,
   'all_supported_rational_rates_keep_every_chunk_inside_exact_duration_bounds',
+)
+check(
+  thirtyMinutePlan.planSeedHash === sha256AuthorityValue(
+    deriveProfessionalLongFormObjectPlanSeed(thirtyMinutePlan.request),
+  ) &&
+  thirtyMinutePlan.workGraph.workItems.find((item) =>
+    item.kind === 'validate_master_timing')?.expectedOutputIdentity ===
+    thirtyMinutePlan.request.identity.approvedTimingHash,
+  'snapshot_independent_seed_and_exact_approved_timing_hash_are_bound',
 )
 
 const verified = verifyProfessionalLongFormObjectExecutionPlan(thirtyMinutePlan)
@@ -291,11 +317,17 @@ function makeRequest(input: {
       workspaceId: 'workspace-professional-long-form',
       projectId: 'project-professional-long-form',
       editSessionId: 'edit-professional-long-form',
+      planningRequestId: 'planning-request-professional-long-form-v1',
+      approvedPlanId: 'plan-professional-long-form-v1',
+      approvedPlanHash: sha256AuthorityValue('plan-professional-long-form-v1'),
       approvedPlanSnapshotId: 'snapshot-professional-long-form-v1',
       approvedPlanSnapshotHash: sha256AuthorityValue('snapshot-professional-long-form-v1'),
       approvedEstimateId: 'estimate-professional-long-form-4k-v1',
       approvedEstimateHash: sha256AuthorityValue('estimate-professional-long-form-4k-v1'),
       approvalRecordId: 'approval-professional-long-form-v1',
+      creditReservationId: 'reservation-professional-long-form-v1',
+      approvedWorkGraphHash: sha256AuthorityValue('work-graph-professional-long-form-v1'),
+      approvedTimingHash: sha256AuthorityValue('timing-professional-long-form-v1'),
     },
     runtimeRegion: 'us-east1',
     confirmedOutputFrame: {

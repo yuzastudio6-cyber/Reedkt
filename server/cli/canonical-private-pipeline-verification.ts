@@ -53,7 +53,7 @@ const canonicalSteps: VerificationStep[] = [
   step(
     'canonical-professional-long-form-post-approval',
     'smoke:canonical-professional-long-form-post-approval',
-    'A six-hour/512-range 4K seed and one blocked controller persist through real canonical publication and approval; restart-safe server derivation reopens the exact authority and persists a content-addressed 255-child manifest while ordinary package creation, queue promotion, dispatch, media, cloud, commerce, product, and production remain blocked.',
+    'A six-hour/512-range 4K seed and one blocked service-only controller persist through real canonical publication and approval; restart-safe server derivation reopens the exact authority, persists a content-addressed 255-child manifest plus specialized child package and placement authority, and atomically promotes one exact 255-job private queue while every child remains blocked from lease, tool binding, cost, dispatch, media, cloud, commerce, product, and production execution.',
   ),
   step(
     'professional-export-policy',
@@ -280,7 +280,7 @@ function printReport(
 ): void {
   const finishedAt = new Date()
   const report = {
-    schemaVersion: 'canonical-private-pipeline-verification-v17',
+    schemaVersion: 'canonical-private-pipeline-verification-v18',
     status,
     mode: full ? 'full_internal_regression' : 'canonical_private_pipeline',
     startedAt: runStartedAt.toISOString(),
@@ -305,6 +305,9 @@ function printReport(
           professionalLongFormCanonicalSeedComponentPersistence: true,
           professionalLongFormServerLoadedControllerPersistence: true,
           professionalLongFormChildJobManifestDerivationAndPersistence: true,
+          professionalLongFormChildPackagePersistence: true,
+          professionalLongFormChildPlacementPersistence: true,
+          professionalLongFormChildPackageQueuePersistence: true,
           sourceOnlyIntentAuthority: true,
           fourKEstimateDeliveryCeiling: true,
           canonicalBrowserContracts: true,
@@ -359,7 +362,10 @@ function printReport(
       distributedPackageQueueOutboxTransactionVerified: false,
       canonicalPackageStateDatabaseFunctionsExecuted: false,
       canonicalPackageStateRpcLiveClientActivated: false,
-      professionalLongFormChildPackageQueuePersistenceVerified: false,
+      professionalLongFormChildLeaseVerified: false,
+      professionalLongFormExactToolOperationBindingVerified: false,
+      professionalLongFormChildAttemptCostBudgetVerified: false,
+      professionalLongFormChildDispatchVerified: false,
       professionalLongFormMediaExecutionVerified: false,
       professionalLongFormObjectStorageVerified: false,
       liveGoogleCloudWorkerCompletionVerified: false,

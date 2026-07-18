@@ -1,6 +1,6 @@
 # Canonical Professional Long-Form Post-Approval Authority — 2026-07-18
 
-Status: `seed_controller_and_child_manifest_persisted_execution_blocked`
+Status: `superseded_by_specialized_child_package_and_queue_promotion`
 
 ## Outcome
 
@@ -25,6 +25,13 @@ the object plan and approved-snapshot bridge, derives the child-job manifest,
 persists both as content-addressed private blobs, reopens them, and performs an
 exact rebuild comparison.
 
+The follow-up specialized promotion service now persists the immutable child
+package and server-derived placement manifest and atomically publishes one
+exact 255-job private queue. See
+`docs/canonical-professional-long-form-child-package-promotion-2026-07-18.md`.
+All children remain capability-blocked; this is queue persistence, not
+long-form media execution.
+
 ## Honest Work-Graph Boundary
 
 The pre-expansion canonical plan contains three authority preflights and one
@@ -34,24 +41,28 @@ continuous program audio, timing validation, cross-chunk color continuity,
 private 4K finalization, and final QA.
 
 The parent snapshot cannot enter the ordinary execution-package service. The
-resource-placement authority records the controller as a blocked control-plane
-contract with required gate
-`canonical_professional_long_form_child_package_queue_persistence`. Package
-creation fails closed until a later milestone transactionally promotes the
-exact child graph into the canonical package queue.
+resource-placement authority records the controller as a permanently
+service-only control-plane contract with required gate
+`canonical_professional_long_form_controller_service_only_no_worker_dispatch`.
+Only the specialized server-derived child package may enter the long-form
+queue.
 
 The derived child records are not added to the canonical job aggregate. Every
 record carries the exact snapshot, reservation, controller work-item, controller
 job, seed, bridge, expected output, and dependency identity, while preserving:
 
-- `canonicalPackageQueuePersisted = false`;
+- `canonicalPackageQueuePersisted = false` in the immutable derivation record;
 - `dispatchAuthorized = false`;
 - `executionAuthorized = false`; and
 - `derivationStatus = derived_execution_blocked`.
 
+The later promotion record proves the separately scoped queue aggregate exists;
+it does not rewrite or weaken the derivation record above.
+
 ## Focused Evidence
 
-`npm run smoke:canonical-professional-long-form-post-approval` passes 23 checks.
+`npm run smoke:canonical-professional-long-form-post-approval` now passes 32
+checks.
 Its maximum-capacity local/private fixture uses:
 
 - one confirmed `3840x2160`, 30 fps frame;
@@ -65,14 +76,18 @@ Its maximum-capacity local/private fixture uses:
 - a persisted bridge below the 4 MiB authority ceiling;
 - a persisted child manifest below the 4 MiB authority ceiling;
 - four parent jobs in the canonical aggregate; and
-- zero execution packages.
+- zero ordinary execution packages; and
+- one specialized 255-job private queue with zero leases, attempts, or
+  completions.
 
 The smoke proves exact publication replay, changed-seed idempotency conflict,
 identity and source-content substitution rejection, publication-without-jobs,
 approval-time seed/controller freezing, fresh-service authority reload, package
 refusal, restart-safe bridge/manifest replay, child-record tamper rejection,
-dispatch self-promotion rejection, aggregate non-mutation, and fail-closed
-content-addressed blob corruption after another restart.
+concurrent one-create/one-replay queue promotion, exact placement counts,
+capability-blocked claim refusal without mutation, queue checksum corruption
+refusal/recovery, dispatch self-promotion rejection, aggregate non-mutation,
+and fail-closed content-addressed blob corruption after another restart.
 
 `npm run smoke:professional-long-form-object-plan` continues to pass 26 checks,
 `npm run smoke:professional-long-form-snapshot-bridge` passes 22 checks, and
@@ -81,20 +96,21 @@ regression after this integration.
 
 ## Aggregate Evidence
 
-The exact-code `npm run qa:internal-pipeline` v17 aggregate passed all `37/37`
-stages with exit code `0`. It started at `2026-07-18T06:34:21.425Z`, finished
-at `2026-07-18T07:03:58.045Z`, and completed in `1,776,620 ms`. The long-form
-planning stage passed in `354 ms`, the approved-snapshot bridge in `628 ms`,
-and this canonical post-approval stage in `2,056 ms`.
+The exact-code `npm run qa:internal-pipeline` v18 aggregate passed all `37/37`
+stages with exit code `0`. It started at `2026-07-18T07:34:57.913Z`, finished
+at `2026-07-18T08:04:51.495Z`, and completed in `1,793,582 ms`. The long-form
+planning stage passed in `356 ms`, the approved-snapshot bridge in `622 ms`,
+and this canonical post-approval/promotion stage in `4,997 ms`.
 
 The aggregate reverified exactly 50 canonical E2E tool identities and 50 job
 adapters, the existing bounded private media lifecycles, all 11 named-edit
 browser tests, and the accepted maximum-eight-source 27-job private review.
-Its machine-readable report marks canonical seed-component persistence,
-server-loaded controller persistence, and child-manifest derivation/persistence
-true. It explicitly keeps child package-queue persistence, long-form media and
-object-storage execution, live Google Cloud completion, external beta, and
-paid production false.
+Its machine-readable report marks canonical seed-component, server-loaded
+controller, child-manifest, specialized child-package, child-placement, and
+child-queue persistence true. It explicitly keeps long-form child lease, exact
+tool-operation binding, attempt cost budget, dispatch, media and object-storage
+execution, live Google Cloud completion, external beta, and paid production
+false.
 
 ## Cost and Commercial Boundary
 
@@ -125,13 +141,15 @@ Now verified:
 - server-loaded controller persistence and approval binding;
 - deterministic post-approval child-job derivation;
 - content-addressed bridge and child-manifest persistence;
+- immutable specialized package and placement persistence;
+- atomic local/private 255-job queue persistence;
 - exact restart/replay behavior; and
 - fail-closed normal-package, dispatch, tamper, and self-promotion boundaries.
 
 Still false:
 
-- transactional child promotion into the canonical package queue;
 - child lease and one-use dispatch;
+- exact child tool-operation, cost-budget, runner, and QA authority;
 - object-store media persistence;
 - chunk media execution;
 - continuous-audio and color-continuity execution;
@@ -143,9 +161,9 @@ Still false:
 
 ## Next Evidence Gate
 
-The next dependency-safe slice should design and prove an atomic child-graph
-promotion transaction that binds the persisted manifest to canonical package
-records without weakening snapshot, reservation, dependency, idempotency,
-resource-placement, cost, lease, or replay authority. It must remain local and
-fail closed until the separately gated distributed database and Google Cloud
-evidence exists.
+The atomic local/private child-package promotion gate is complete. The next
+dependency-safe slice should prove one exact child operation through proven
+tool/runner binding, attempt-level internal-cost authority, lease, one-use
+dispatch, private artifact persistence, QA, reconciliation, replay, and
+downstream verification. It must remain local/private and must not imply that
+all 255 children or a six-hour program have executed.

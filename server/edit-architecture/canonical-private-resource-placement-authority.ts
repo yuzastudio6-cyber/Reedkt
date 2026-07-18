@@ -512,7 +512,7 @@ export function createCanonicalApprovedWorkGraphResourcePlacementAuthority(input
       ...(!privateExecutionReady
         ? {
             requiredGate: longFormController
-              ? 'canonical_professional_long_form_child_package_queue_persistence' as const
+              ? 'canonical_professional_long_form_controller_service_only_no_worker_dispatch' as const
               : 'provider_activation_and_approved_route' as const,
           }
         : {}),

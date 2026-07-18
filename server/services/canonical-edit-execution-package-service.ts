@@ -280,11 +280,11 @@ function assertProfessionalLongFormPackageQueuePromotionReady(
   }
   throw new ApiError(
     'JOB_DEPENDENCY_NOT_READY',
-    'Professional long-form execution packaging is blocked until the exact derived child graph is transactionally promoted into the canonical package queue.',
+    'Professional long-form snapshots require the server-derived specialized child package and cannot enter the ordinary execution-package path.',
     409,
     {
       requiredGate:
-        'canonical_professional_long_form_child_package_queue_persistence',
+        'canonical_professional_long_form_specialized_child_package_only',
       approvedPlanSnapshotId: authority.snapshot.snapshotId,
       approvedPlanSnapshotHash: authority.snapshot.snapshotHash,
     },

@@ -9,6 +9,9 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { buildProfessionalExportCreditCoverage } from '../../src/lib/professional-export-policy'
 import { loadRuntimeEnv } from '../config/env'
 import {
+  CANONICAL_PROFESSIONAL_LONG_FORM_CHILD_REQUIRED_GATE,
+} from '../edit-architecture/professional-long-form-child-package-promotion'
+import {
   PROFESSIONAL_LONG_FORM_SEED_COMPONENT_KEY,
 } from '../edit-architecture/professional-long-form-approved-snapshot-bridge'
 import {
@@ -31,10 +34,20 @@ import {
   CANONICAL_PROFESSIONAL_LONG_FORM_SEED_DRAFT_VERSION,
 } from '../services/canonical-professional-long-form-publication-authority'
 import {
+  createCanonicalProfessionalLongFormChildPackagePromotionService,
+} from '../services/canonical-professional-long-form-child-package-promotion-service'
+import {
   createCanonicalProfessionalLongFormPostApprovalService,
 } from '../services/canonical-professional-long-form-post-approval-service'
 import { createEditPlanningAuthorityService } from '../services/edit-planning-authority-service'
 import { createExactEditPreferenceService } from '../services/exact-edit-preference-service'
+import {
+  canonicalPrivatePackageWorkQueueAggregateRelativePath,
+  claimPrivateCanonicalPackageWorkQueueJob,
+  clearPrivateCanonicalPackageWorkQueueProcessStateForSmoke,
+  readPrivateCanonicalPackageWorkQueue,
+  type CanonicalPrivatePackageWorkQueueStoreScope,
+} from '../services/private-canonical-package-work-queue-store'
 import {
   clearPrivateEditAuthorityProcessStateForSmoke,
   readPrivateAuthorityJsonBlob,
@@ -252,7 +265,7 @@ try {
       idempotencyKey: 'package-must-remain-blocked-before-child-promotion',
     }),
     'JOB_DEPENDENCY_NOT_READY',
-    'ordinary_execution_packaging_is_blocked_before_child_graph_promotion',
+    'ordinary_execution_packaging_is_permanently_refused_for_long_form_snapshot',
   )
 
   const postApprovalService = createCanonicalProfessionalLongFormPostApprovalService(
@@ -364,6 +377,162 @@ try {
     'future_attempt_cost_evidence_is_required_and_separate_from_customer_commercial_authority',
   )
 
+  const promotionService =
+    createCanonicalProfessionalLongFormChildPackagePromotionService(context)
+  const concurrentPromotions = await Promise.all([
+    promotionService.promote({
+      workspaceId,
+      approvedPlanSnapshotId: String(snapshot.snapshotId),
+    }),
+    createCanonicalProfessionalLongFormChildPackagePromotionService(context)
+      .promote({
+        workspaceId,
+        approvedPlanSnapshotId: String(snapshot.snapshotId),
+      }),
+  ])
+  const promotion = concurrentPromotions[0]!
+  check(
+    concurrentPromotions.filter((item) => item.disposition === 'created').length === 1 &&
+      concurrentPromotions.filter((item) =>
+        item.disposition === 'exact_replay').length === 1 &&
+      concurrentPromotions.every((item) =>
+        item.evidenceHash === promotion.evidenceHash &&
+        item.queueAggregate.aggregateHash ===
+          promotion.queueAggregate.aggregateHash),
+    'concurrent_promotion_creates_one_atomic_queue_commit_and_one_exact_replay',
+  )
+  check(
+    promotion.package.summary.childJobCount === 255 &&
+      promotion.placementManifest.placements.length === 255 &&
+      promotion.queueDefinition.jobs.length === 255 &&
+      promotion.queueAggregate.summary.totalJobCount === 255 &&
+      promotion.queueAggregate.summary.queuedJobCount === 255 &&
+      promotion.queueAggregate.summary.leasedJobCount === 0 &&
+      promotion.queueAggregate.summary.completedJobCount === 0 &&
+      promotion.queueAggregate.events.length === 1,
+    'all_255_children_are_atomically_persisted_once_in_the_canonical_private_queue',
+  )
+  check(
+    promotion.placementManifest.summary.controlPlaneJobCount === 2 &&
+      promotion.placementManifest.summary.cpuAnalysisJobCount === 1 &&
+      promotion.placementManifest.summary.renderJobCount === 125 &&
+      promotion.placementManifest.summary.qaJobCount === 127 &&
+      promotion.placementManifest.summary.privatelyExecutableJobCount === 0 &&
+      promotion.placementManifest.summary.blockedJobCount === 255,
+    'server_frozen_profile_places_every_child_without_granting_execution_readiness',
+  )
+  check(
+    promotion.queueDefinition.source ===
+      'canonical_professional_long_form_child_package_promotion' &&
+      promotion.queueDefinition.identity.professionalLongFormAuthority
+        ?.childJobManifestHash === evidence.childJobManifest.manifestHash &&
+      promotion.queueDefinition.jobs.every((job) =>
+        !job.privateExecutionReady &&
+        job.requiredGate ===
+          CANONICAL_PROFESSIONAL_LONG_FORM_CHILD_REQUIRED_GATE &&
+        job.providerExecutionMode === 'none'),
+    'queue_identity_binds_exact_manifest_package_placement_and_permanent_claim_gate',
+  )
+  check(
+    promotion.packageRef.byteLength < 4 * 1024 * 1024 &&
+      promotion.placementManifestRef.byteLength < 4 * 1024 * 1024 &&
+      promotion.readiness.childPackageQueuePersistenceVerified &&
+      !promotion.readiness.childLeaseVerified &&
+      !promotion.readiness.childDispatchVerified &&
+      !promotion.readiness.childToolOperationBindingVerified &&
+      !promotion.readiness.mediaExecutionVerified &&
+      !promotion.readiness.liveGoogleCloudVerified &&
+      !promotion.readiness.productReady &&
+      !promotion.readiness.productionReady,
+    'package_and_placement_fit_private_bounds_while_execution_and_live_gates_remain_false',
+  )
+
+  const queueScope: CanonicalPrivatePackageWorkQueueStoreScope = {
+    localStorageRoot,
+    ownerUserId: userId,
+    workspaceId,
+    projectId: String(snapshot.projectId),
+    editSessionId,
+    packageRecordId: promotion.package.identity.packageRecordId,
+    approvedPlanSnapshotId: String(snapshot.snapshotId),
+  }
+  const rootQueueJob = promotion.queueDefinition.jobs.find((job) =>
+    job.satisfiedPromotionDependencyJobIds?.length === 1)
+  assert.ok(rootQueueJob)
+  const blockedClaim = await claimPrivateCanonicalPackageWorkQueueJob({
+    scope: queueScope,
+    definition: promotion.queueDefinition,
+    jobId: rootQueueJob.jobId,
+    workerIdentity: 'long-form-promotion-smoke-worker',
+    workerType: rootQueueJob.workerType,
+    now: new Date(Date.parse(String(snapshot.approvedAt)) + 1_000).toISOString(),
+    leaseDurationMs: 60_000,
+  })
+  const queueAfterBlockedClaim = await readPrivateCanonicalPackageWorkQueue({
+    scope: queueScope,
+    definition: promotion.queueDefinition,
+  })
+  check(
+    blockedClaim.disposition === 'capability_blocked' &&
+      queueAfterBlockedClaim?.aggregateHash ===
+        promotion.queueAggregate.aggregateHash &&
+      queueAfterBlockedClaim.summary.totalDeliveryAttemptCount === 0 &&
+      queueAfterBlockedClaim.summary.leasedJobCount === 0,
+    'claim_attempt_fails_before_lease_attempt_or_queue_mutation',
+  )
+
+  clearPrivateEditAuthorityProcessStateForSmoke()
+  clearPrivateCanonicalPackageWorkQueueProcessStateForSmoke()
+  const replayedPromotion =
+    await createCanonicalProfessionalLongFormChildPackagePromotionService(context)
+      .promote({
+        workspaceId,
+        approvedPlanSnapshotId: String(snapshot.snapshotId),
+      })
+  check(
+    replayedPromotion.disposition === 'exact_replay' &&
+      replayedPromotion.evidenceHash === promotion.evidenceHash &&
+      replayedPromotion.packageRef.sha256 === promotion.packageRef.sha256 &&
+      replayedPromotion.placementManifestRef.sha256 ===
+        promotion.placementManifestRef.sha256 &&
+      replayedPromotion.queueAggregate.aggregateHash ===
+        promotion.queueAggregate.aggregateHash,
+    'restart_reopens_exact_package_placement_and_atomic_queue_commit',
+  )
+
+  const queuePath = join(
+    localStorageRoot,
+    canonicalPrivatePackageWorkQueueAggregateRelativePath(queueScope),
+  )
+  const originalQueueRecord = await readFile(queuePath, 'utf8')
+  const corruptedQueueRecord = JSON.parse(originalQueueRecord) as {
+    aggregate: { summary: { queuedJobCount: number } }
+  }
+  corruptedQueueRecord.aggregate.summary.queuedJobCount -= 1
+  await writeFile(queuePath, `${JSON.stringify(corruptedQueueRecord)}\n`, 'utf8')
+  clearPrivateCanonicalPackageWorkQueueProcessStateForSmoke()
+  await expectApiError(
+    () => createCanonicalProfessionalLongFormChildPackagePromotionService(context)
+      .promote({
+        workspaceId,
+        approvedPlanSnapshotId: String(snapshot.snapshotId),
+      }),
+    'INTERNAL_ERROR',
+    'checksum_tampered_queue_commit_fails_closed_after_restart',
+  )
+  await writeFile(queuePath, originalQueueRecord, 'utf8')
+  clearPrivateCanonicalPackageWorkQueueProcessStateForSmoke()
+  const restoredPromotion =
+    await createCanonicalProfessionalLongFormChildPackagePromotionService(context)
+      .promote({
+        workspaceId,
+        approvedPlanSnapshotId: String(snapshot.snapshotId),
+      })
+  check(
+    restoredPromotion.evidenceHash === promotion.evidenceHash,
+    'restored_exact_queue_bytes_replay_without_new_package_or_jobs',
+  )
+
   await assertNoActivationImports()
 
   const childBlobPath = join(
@@ -392,7 +561,7 @@ try {
 
   console.log(JSON.stringify({
     ok: true,
-    schemaVersion: 'canonical-professional-long-form-post-approval-smoke-v1',
+    schemaVersion: 'canonical-professional-long-form-post-approval-smoke-v2',
     checkCount: checks.length,
     checks,
     evidence: {
@@ -407,9 +576,14 @@ try {
         evidence.childJobManifest.summary.maximumDependencyCount,
       bridgeByteLength: evidence.bridgeRef.byteLength,
       childManifestByteLength: evidence.childJobManifestRef.byteLength,
+      childPackageByteLength: promotion.packageRef.byteLength,
+      childPlacementByteLength: promotion.placementManifestRef.byteLength,
+      childQueueByteLength: Buffer.byteLength(originalQueueRecord, 'utf8'),
       canonicalAggregateJobCount: aggregateAfterDerivation.jobs.length,
       executionPackageCount: aggregateAfterDerivation.executionPackages.length,
-      packageQueuePersisted: false,
+      childPackageQueueJobCount: promotion.queueAggregate.summary.totalJobCount,
+      childPackageQueuePersisted: true,
+      childLeaseAuthorized: false,
       dispatchAuthorized: false,
       liveGoogleCloudVerified: false,
       productReady: false,
@@ -950,8 +1124,10 @@ async function expectApiError(
 async function assertNoActivationImports(): Promise<void> {
   const sources = await Promise.all([
     'server/edit-architecture/professional-long-form-derived-child-job-manifest.ts',
+    'server/edit-architecture/professional-long-form-child-package-promotion.ts',
     'server/services/canonical-professional-long-form-publication-authority.ts',
     'server/services/canonical-professional-long-form-post-approval-service.ts',
+    'server/services/canonical-professional-long-form-child-package-promotion-service.ts',
   ].map((path) => readFile(path, 'utf8')))
   check(
     sources.every((source) =>

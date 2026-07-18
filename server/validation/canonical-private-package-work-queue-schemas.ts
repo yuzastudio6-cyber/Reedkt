@@ -1,6 +1,9 @@
 import { z } from 'zod'
 
-import { canonicalPrivatePackageWorkQueueJobDefinitionSchema } from
+import {
+  canonicalPrivatePackageWorkQueueIdentitySchema,
+  canonicalPrivatePackageWorkQueueJobDefinitionSchema,
+} from
   '../edit-architecture/canonical-private-package-work-queue-authority'
 import {
   canonicalPrivateJobExecutionFailureCategorySchema,
@@ -253,19 +256,7 @@ export const canonicalPrivatePackageWorkQueueAggregateSchema = z.object({
   source: z.literal('private_canonical_package_work_queue_store'),
   ownerUserId: identity,
   definitionHash: sha256,
-  identity: z.object({
-    workspaceId: identity,
-    projectId: identity,
-    editSessionId: identity,
-    packageRecordId: identity,
-    approvedPlanSnapshotId: identity,
-    packageHash: sha256,
-    snapshotHash: sha256,
-    workGraphHash: sha256,
-    placementManifestHash: sha256,
-    toolExecutionAuthorityHash: sha256,
-    approvedResourcePlacementAuthorityHash: sha256,
-  }).strict(),
+  identity: canonicalPrivatePackageWorkQueueIdentitySchema,
   entries: z.array(canonicalPrivatePackageWorkQueueEntrySchema).min(1).max(256),
   events: z.array(canonicalPrivatePackageWorkQueueEventSchema).min(1).max(8_192),
   summary: z.object({

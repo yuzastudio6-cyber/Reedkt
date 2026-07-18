@@ -6,10 +6,12 @@ Status: `superseded_by_persisted_canonical_post_approval_authority`
 
 ReEditPro has a server-only, fail-closed bridge contract between the
 professional long-form object plan and one exact approved plan snapshot. The
-bridge verifies authority. The follow-up canonical integration now persists the
-seed and controller through real local/private publication and approval and
-persists a deterministic blocked child-job manifest. The bridge itself still
-does not dispatch workers or execute media.
+bridge verifies authority. The canonical follow-ups now persist the seed and
+service-only controller through real local/private publication and approval,
+persist a deterministic blocked child-job manifest, and atomically promote an
+immutable specialized child package and placement manifest into one exact
+255-job private queue. The bridge itself still does not lease or dispatch
+workers or execute media.
 
 The contract binds all of the following before any future child-job
 derivation can be considered:
@@ -73,20 +75,21 @@ estimate, and the same canonical graph ceilings.
 
 ## Aggregate Evidence
 
-The exact-code `npm run qa:internal-pipeline` v17 aggregate passed all `37/37`
-stages with exit code `0`. It started at `2026-07-18T06:34:21.425Z`, finished
-at `2026-07-18T07:03:58.045Z`, and completed in `1,776,620 ms`. The planning
-stage passed in `354 ms`, this bridge stage in `628 ms`, and the canonical
-post-approval authority stage in `2,056 ms`.
+The exact-code `npm run qa:internal-pipeline` v18 aggregate passed all `37/37`
+stages with exit code `0`. It started at `2026-07-18T07:34:57.913Z`, finished
+at `2026-07-18T08:04:51.495Z`, and completed in `1,793,582 ms`. The planning
+stage passed in `356 ms`, this bridge stage in `622 ms`, and the canonical
+post-approval/promotion stage in `4,997 ms`.
 
 The aggregate reverified exactly 50 canonical E2E tool identities and 50 job
 adapters, the existing bounded private media lifecycles, all 11 named-edit
 browser tests, and the accepted maximum-eight-source 27-job private review.
-The aggregate report now marks canonical seed/controller persistence and
-child-manifest derivation/persistence true through the separately bounded
-post-approval authority. It explicitly keeps child package-queue persistence,
-long-form object storage, long-form media execution, live Google Cloud
-completion, external beta, and paid production false.
+The aggregate report now marks canonical seed/controller, child-manifest,
+specialized child-package, child-placement, and child-queue persistence true
+through separately bounded follow-ups. It explicitly keeps child lease, exact
+tool/cost/runner binding, dispatch, long-form object storage, long-form media
+execution, live Google Cloud completion, external beta, and paid production
+false.
 
 ## Security and Commercial Boundary
 
@@ -102,14 +105,17 @@ billing authority.
 
 ## Follow-Up Readiness Truth
 
-The follow-up
+The follow-ups
 `docs/canonical-professional-long-form-post-approval-authority-2026-07-18.md`
-and its 23-check smoke now verify canonical seed/controller persistence,
-server-loaded approval revalidation, deterministic 255-child derivation, and
-content-addressed bridge/manifest persistence. The following remain false:
+and
+`docs/canonical-professional-long-form-child-package-promotion-2026-07-18.md`
+plus the now 32-check smoke verify canonical seed/controller persistence,
+server-loaded approval revalidation, deterministic 255-child derivation,
+content-addressed bridge/manifest/package/placement persistence, and one exact
+private queue. The following remain false:
 
 - object-store persistence;
-- child-package queue persistence;
+- child lease, tool/cost binding, and dispatch;
 - long-form media execution;
 - distributed database execution;
 - live Google Cloud execution;
@@ -122,7 +128,7 @@ implementation changed in this slice.
 
 ## Historical Next Gate
 
-The seed/controller persistence and blocked child-manifest derivation gate was
-completed by the follow-up document above. Transactional child-package queue
-promotion is now the next dependency-safe gate. Object-store and worker
-execution remain later gates.
+The seed/controller, blocked child-manifest, and local/private atomic child-
+package queue-promotion gates were completed by the follow-up documents above.
+One exact child tool/cost/runner/QA lifecycle is now the next dependency-safe
+gate. Full long-form object storage and worker execution remain later gates.

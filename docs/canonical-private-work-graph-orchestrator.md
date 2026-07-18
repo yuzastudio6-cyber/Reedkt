@@ -30,8 +30,17 @@ worker class, or concurrency.
 Before scheduling, it derives one content-addressed durable queue definition
 from the exact package, approved snapshot, work graph, and frozen placement
 manifest. It creates or reopens a tenant/package-scoped private aggregate and
-recovers terminal completed outcomes without calling their adapters again. It
-then repeatedly:
+recovers terminal completed outcomes without calling their adapters again.
+
+The professional long-form path is an additive specialized queue source. Its
+identity additionally binds the exact persisted seed, bridge, child manifest,
+specialized package, placement manifest, parent service-only controller, and
+blocked child policy. Ordinary queues cannot carry promotion-satisfied parent
+dependencies, and long-form children cannot be claimed until their exact
+tool/cost/runner/QA authority is added. See
+`docs/canonical-professional-long-form-child-package-promotion-2026-07-18.md`.
+
+The ordinary orchestrator then repeatedly:
 
 1. selects a stable dependency-ready wave in canonical package order;
 2. applies both the global four-job cap and the exact worker-lane cap;
@@ -181,6 +190,7 @@ Supabase, billing, public delivery, and production promotion remain gated.
 
 - `npm run typecheck:server`
 - `npm run smoke:canonical-private-package-work-queue`
+- `npm run smoke:canonical-professional-long-form-post-approval`
 - `npm run smoke:edit-planning-authority`
 - `./node_modules/.bin/tsx server/smoke/canonical-private-resource-wave-scheduler-smoke.ts`
 - `./node_modules/.bin/tsx server/smoke/canonical-private-long-form-execution-smoke.ts`
@@ -201,6 +211,11 @@ Supabase, billing, public delivery, and production promotion remain gated.
   recovery, the three-source and professional-color executions, streamed UHD
   Remotion output, all 50 versioned tool identities, and the accepted signed-in
   maximum-eight-source private review
+- `npm run qa:internal-pipeline` — post-long-form child-package promotion v18
+  full run passed 37/37 stages from `2026-07-18T07:34:57.913Z` through
+  `2026-07-18T08:04:51.495Z` in `1,793,582 ms`; the 255-job long-form queue was
+  persisted while lease, exact tool/cost binding, dispatch, and execution
+  remained false
 
 The measured duration is a local correctness-regression result. It is not a
 real-program editing benchmark, deployed worker-concurrency result, cloud ETA,

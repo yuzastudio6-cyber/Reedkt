@@ -3,6 +3,13 @@ import { z } from 'zod'
 import type { CanonicalApprovedEditExecutionPackage } from './canonical-approved-edit-execution-package'
 import type { CanonicalPrivateResourcePlacementManifest } from './canonical-private-resource-placement-authority'
 import {
+  PROFESSIONAL_LONG_FORM_CHILD_ATTEMPT_POLICY_ID,
+  PROFESSIONAL_LONG_FORM_CHILD_PACKAGE_PLACEMENT_PROFILE_ID,
+  PROFESSIONAL_LONG_FORM_CHILD_TOOL_OPERATION_BINDING_POLICY_ID,
+} from './professional-long-form-approved-snapshot-bridge'
+import { PROFESSIONAL_LONG_FORM_OBJECT_CAPACITY_PROFILE_ID } from
+  './professional-long-form-object-execution-plan'
+import {
   sha256AuthorityValue,
   stableAuthorityStringify,
 } from '../services/private-edit-authority-store'
@@ -22,6 +29,7 @@ export const canonicalPrivatePackageWorkQueueJobDefinitionSchema = z.object({
   workItemKey: identity,
   required: z.boolean(),
   dependencyJobIds: z.array(identity).max(128),
+  satisfiedPromotionDependencyJobIds: z.array(identity).max(1).optional(),
   workerType: z.enum([
     'api_service',
     'cpu_analysis_worker',
@@ -50,22 +58,53 @@ export const canonicalPrivatePackageWorkQueueJobDefinitionSchema = z.object({
   definitionHash: sha256,
 }).strict()
 
+const professionalLongFormQueueAuthoritySchema = z.object({
+  capacityProfileId: z.literal(PROFESSIONAL_LONG_FORM_OBJECT_CAPACITY_PROFILE_ID),
+  planSeedHash: sha256,
+  bridgeAuthorityHash: sha256,
+  childJobManifestHash: sha256,
+  childJobManifestRefSha256: sha256,
+  childPackageRefSha256: sha256,
+  childPlacementManifestRefSha256: sha256,
+  parentControllerApprovedWorkItemId: identity,
+  parentControllerJobId: identity,
+  childJobCount: z.number().int().positive().max(256),
+  rootChildJobCount: z.number().int().positive().max(256),
+  childPackagePlacementProfileId: z.literal(
+    PROFESSIONAL_LONG_FORM_CHILD_PACKAGE_PLACEMENT_PROFILE_ID,
+  ),
+  childAttemptPolicyId: z.literal(PROFESSIONAL_LONG_FORM_CHILD_ATTEMPT_POLICY_ID),
+  childToolOperationBindingPolicyId: z.literal(
+    PROFESSIONAL_LONG_FORM_CHILD_TOOL_OPERATION_BINDING_POLICY_ID,
+  ),
+  childToolOperationAuthorityStatus: z.literal(
+    'blocked_pending_exact_tool_operation_cost_and_runner_authority',
+  ),
+  childExecutionAuthorized: z.literal(false),
+}).strict()
+
+export const canonicalPrivatePackageWorkQueueIdentitySchema = z.object({
+  workspaceId: identity,
+  projectId: identity,
+  editSessionId: identity,
+  packageRecordId: identity,
+  approvedPlanSnapshotId: identity,
+  packageHash: sha256,
+  snapshotHash: sha256,
+  workGraphHash: sha256,
+  placementManifestHash: sha256,
+  toolExecutionAuthorityHash: sha256,
+  approvedResourcePlacementAuthorityHash: sha256,
+  professionalLongFormAuthority: professionalLongFormQueueAuthoritySchema.optional(),
+}).strict()
+
 export const canonicalPrivatePackageWorkQueueDefinitionSchema = z.object({
   schemaVersion: z.literal(CANONICAL_PRIVATE_PACKAGE_WORK_QUEUE_DEFINITION_VERSION),
-  source: z.literal('canonical_execution_package_and_snapshot_resource_placement'),
-  identity: z.object({
-    workspaceId: identity,
-    projectId: identity,
-    editSessionId: identity,
-    packageRecordId: identity,
-    approvedPlanSnapshotId: identity,
-    packageHash: sha256,
-    snapshotHash: sha256,
-    workGraphHash: sha256,
-    placementManifestHash: sha256,
-    toolExecutionAuthorityHash: sha256,
-    approvedResourcePlacementAuthorityHash: sha256,
-  }).strict(),
+  source: z.enum([
+    'canonical_execution_package_and_snapshot_resource_placement',
+    'canonical_professional_long_form_child_package_promotion',
+  ]),
+  identity: canonicalPrivatePackageWorkQueueIdentitySchema,
   jobs: z.array(canonicalPrivatePackageWorkQueueJobDefinitionSchema).min(1).max(256),
   summary: z.object({
     totalJobCount: z.number().int().positive().max(256),
@@ -92,6 +131,15 @@ export const canonicalPrivatePackageWorkQueueDefinitionSchema = z.object({
   }).strict(),
   definitionHash: sha256,
 }).strict().superRefine((definition, context) => {
+  const professionalLongForm = definition.identity.professionalLongFormAuthority
+  const professionalSource = definition.source ===
+    'canonical_professional_long_form_child_package_promotion'
+  if (Boolean(professionalLongForm) !== professionalSource) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Canonical work-queue source and professional long-form authority disagree.',
+    })
+  }
   if (
     definition.jobs.length !== definition.summary.totalJobCount ||
     definition.jobs.filter((job) => job.required).length !== definition.summary.requiredJobCount ||
@@ -115,6 +163,35 @@ export const canonicalPrivatePackageWorkQueueDefinitionSchema = z.object({
     job.dependencyJobIds.includes(job.jobId) ||
     job.dependencyJobIds.some((dependencyJobId) => !jobIds.has(dependencyJobId)))) {
     context.addIssue({ code: 'custom', message: 'Canonical work-queue dependency identity is invalid.' })
+  }
+  if (!professionalLongForm) {
+    if (definition.jobs.some((job) => job.satisfiedPromotionDependencyJobIds !== undefined)) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Ordinary canonical queue jobs cannot contain promotion-satisfied dependencies.',
+      })
+    }
+    return
+  }
+  const promotionSatisfied = definition.jobs.filter((job) =>
+    job.satisfiedPromotionDependencyJobIds?.length === 1)
+  if (
+    definition.jobs.length !== professionalLongForm.childJobCount ||
+    promotionSatisfied.length !== professionalLongForm.rootChildJobCount ||
+    definition.jobs.some((job) =>
+      job.satisfiedPromotionDependencyJobIds === undefined ||
+      job.satisfiedPromotionDependencyJobIds.some((dependencyJobId) =>
+        dependencyJobId !== professionalLongForm.parentControllerJobId) ||
+      job.dependencyJobIds.includes(professionalLongForm.parentControllerJobId) ||
+      job.privateExecutionReady ||
+      job.providerExecutionMode !== 'none' ||
+      job.requiredGate !==
+        'canonical_professional_long_form_exact_tool_cost_runner_and_qa_authority')
+  ) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Professional long-form child queue lost its blocked promotion authority.',
+    })
   }
 })
 

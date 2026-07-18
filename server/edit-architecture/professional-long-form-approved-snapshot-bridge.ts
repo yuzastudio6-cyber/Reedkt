@@ -18,11 +18,17 @@ import {
 export const PROFESSIONAL_LONG_FORM_APPROVED_SNAPSHOT_BRIDGE_VERSION =
   'professional-long-form-approved-snapshot-bridge-v1' as const
 export const PROFESSIONAL_LONG_FORM_CONTROLLER_INPUT_VERSION =
-  'professional-long-form-controller-input-v1' as const
+  'professional-long-form-controller-input-v2' as const
 export const PROFESSIONAL_LONG_FORM_SEED_COMPONENT_KEY =
   'professionalLongFormObjectPlanSeed' as const
 export const PROFESSIONAL_LONG_FORM_CONTROLLER_WORKER_CLASS =
   'professional-long-form-object-graph-controller-v1' as const
+export const PROFESSIONAL_LONG_FORM_CHILD_PACKAGE_PLACEMENT_PROFILE_ID =
+  'canonical-professional-long-form-child-placement-blocked-v1' as const
+export const PROFESSIONAL_LONG_FORM_CHILD_ATTEMPT_POLICY_ID =
+  'canonical-professional-long-form-child-attempt-policy-v1' as const
+export const PROFESSIONAL_LONG_FORM_CHILD_TOOL_OPERATION_BINDING_POLICY_ID =
+  'canonical-professional-long-form-exact-tool-binding-required-v1' as const
 
 const identity = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
@@ -75,8 +81,18 @@ export const professionalLongFormControllerExecutionInputSchema = z.object({
     PROFESSIONAL_LONG_FORM_CANONICAL_DEPENDENCY_CEILING,
   ),
   expansionMode: z.literal('deterministic_post_approval_child_graph_v1'),
+  childPackagePlacementProfileId: z.literal(
+    PROFESSIONAL_LONG_FORM_CHILD_PACKAGE_PLACEMENT_PROFILE_ID,
+  ),
+  childAttemptPolicyId: z.literal(
+    PROFESSIONAL_LONG_FORM_CHILD_ATTEMPT_POLICY_ID,
+  ),
+  childToolOperationBindingPolicyId: z.literal(
+    PROFESSIONAL_LONG_FORM_CHILD_TOOL_OPERATION_BINDING_POLICY_ID,
+  ),
   approvedSnapshotRequired: z.literal(true),
   fundedReservationRequired: z.literal(true),
+  childPackageQueuePromotionAfterApprovalAllowed: z.literal(true),
   childExecutionAuthorized: z.literal(false),
 }).strict()
 
@@ -97,8 +113,14 @@ export function buildProfessionalLongFormControllerExecutionInput(input: {
     maximumExpandedWorkItems: PROFESSIONAL_LONG_FORM_CANONICAL_WORK_ITEM_CEILING,
     maximumExpandedDependencies: PROFESSIONAL_LONG_FORM_CANONICAL_DEPENDENCY_CEILING,
     expansionMode: 'deterministic_post_approval_child_graph_v1',
+    childPackagePlacementProfileId:
+      PROFESSIONAL_LONG_FORM_CHILD_PACKAGE_PLACEMENT_PROFILE_ID,
+    childAttemptPolicyId: PROFESSIONAL_LONG_FORM_CHILD_ATTEMPT_POLICY_ID,
+    childToolOperationBindingPolicyId:
+      PROFESSIONAL_LONG_FORM_CHILD_TOOL_OPERATION_BINDING_POLICY_ID,
     approvedSnapshotRequired: true,
     fundedReservationRequired: true,
+    childPackageQueuePromotionAfterApprovalAllowed: true,
     childExecutionAuthorized: false,
   })
 }

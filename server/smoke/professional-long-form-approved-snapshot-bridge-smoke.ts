@@ -3,11 +3,11 @@ import { readFileSync } from 'node:fs'
 
 import {
   PROFESSIONAL_LONG_FORM_APPROVED_SNAPSHOT_BRIDGE_VERSION,
-  PROFESSIONAL_LONG_FORM_CONTROLLER_INPUT_VERSION,
   PROFESSIONAL_LONG_FORM_CONTROLLER_WORKER_CLASS,
   PROFESSIONAL_LONG_FORM_SEED_COMPONENT_KEY,
   assertProfessionalLongFormApprovedSnapshotProductionAuthority,
   buildProfessionalLongFormApprovedSnapshotBridge,
+  buildProfessionalLongFormControllerExecutionInput,
   verifyProfessionalLongFormApprovedSnapshotBridge,
   type ProfessionalLongFormApprovedSnapshotBridgeRequest,
 } from '../edit-architecture/professional-long-form-approved-snapshot-bridge'
@@ -17,7 +17,6 @@ import {
   PROFESSIONAL_LONG_FORM_MAXIMUM_CHUNKS,
   PROFESSIONAL_LONG_FORM_MAXIMUM_SECONDS,
   PROFESSIONAL_LONG_FORM_MAXIMUM_SOURCE_RANGES,
-  PROFESSIONAL_LONG_FORM_OBJECT_CAPACITY_PROFILE_ID,
   buildProfessionalLongFormObjectExecutionPlan,
   deriveProfessionalLongFormObjectPlanSeed,
   type ProfessionalLongFormObjectExecutionRequest,
@@ -333,21 +332,10 @@ function makeBridgeFixture(suffix: string): {
     timingHash,
   })
   const plan = buildProfessionalLongFormObjectExecutionPlan(longFormRequest)
-  const controllerExecutionInput = {
-    schemaVersion: PROFESSIONAL_LONG_FORM_CONTROLLER_INPUT_VERSION,
-    capacityProfileId: PROFESSIONAL_LONG_FORM_OBJECT_CAPACITY_PROFILE_ID,
-    planSeedComponentKey: PROFESSIONAL_LONG_FORM_SEED_COMPONENT_KEY,
+  const controllerExecutionInput = buildProfessionalLongFormControllerExecutionInput({
     planSeedHash: seedHash,
     planSeedComponentRefSha256: seedHash,
-    maximumExpandedWorkItems:
-      PROFESSIONAL_LONG_FORM_CANONICAL_WORK_ITEM_CEILING as 256,
-    maximumExpandedDependencies:
-      PROFESSIONAL_LONG_FORM_CANONICAL_DEPENDENCY_CEILING as 128,
-    expansionMode: 'deterministic_post_approval_child_graph_v1' as const,
-    approvedSnapshotRequired: true as const,
-    fundedReservationRequired: true as const,
-    childExecutionAuthorized: false as const,
-  }
+  })
   return {
     seedHash,
     request: {

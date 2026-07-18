@@ -14,6 +14,10 @@ import {
 import { calculateToolActualCostMicros } from './cost-math'
 import { TOOL_COST_RATE_CARD_VERSION } from './rate-card'
 import type { ToolCostFailureCategory } from './types'
+import {
+  PROFESSIONAL_LONG_FORM_FIRST_CHILD_COST_PROFILE_ID,
+  PROFESSIONAL_LONG_FORM_FIRST_CHILD_OPERATION_ID,
+} from '../edit-architecture/professional-long-form-first-child-execution-contract'
 
 const identity = z.string().min(1).max(200).regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/)
   .refine((value) => value === value.trim() && !value.includes('..'))
@@ -38,6 +42,8 @@ export const PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS = {
   remotionFourKSourceSliceChunk: 'remotion_4k_source_slice_chunk_cpu_2vcpu_4gib_v1',
   ffmpegFourKMezzanineFinalization:
     'ffmpeg_4k_mezzanine_finalization_cpu_2vcpu_4gib_v1',
+  professionalLongFormSnapshotValidation:
+    PROFESSIONAL_LONG_FORM_FIRST_CHILD_COST_PROFILE_ID,
 } as const
 
 export type PrivateInternalAttemptCostProfileId =
@@ -74,6 +80,14 @@ export const privateInternalAttemptCostIdentitySchema = z.discriminatedUnion('to
     operationId: z.literal('tool.ffmpeg.execute_approved_media_recipe.v1'),
     workloadProfileId: z.literal(
       PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFourKMezzanineFinalization,
+    ),
+  }).strict(),
+  z.object({
+    ...commonAttemptIdentityFields,
+    toolId: z.literal('reeditpro_internal'),
+    operationId: z.literal(PROFESSIONAL_LONG_FORM_FIRST_CHILD_OPERATION_ID),
+    workloadProfileId: z.literal(
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.professionalLongFormSnapshotValidation,
     ),
   }).strict(),
 ])
@@ -188,6 +202,12 @@ export type BeginPrivateInternalAttemptCostEvidenceInput =
         workloadProfileId:
           typeof PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFourKMezzanineFinalization
       }
+    | {
+        toolId: 'reeditpro_internal'
+        operationId: typeof PROFESSIONAL_LONG_FORM_FIRST_CHILD_OPERATION_ID
+        workloadProfileId:
+          typeof PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.professionalLongFormSnapshotValidation
+      }
   )
 
 export interface FinalizePrivateInternalAttemptCostEvidenceInput {
@@ -234,6 +254,15 @@ const beginInputSchema = z.discriminatedUnion('toolId', [
     operationId: z.literal('tool.ffmpeg.execute_approved_media_recipe.v1'),
     workloadProfileId: z.literal(
       PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFourKMezzanineFinalization,
+    ),
+  }).strict(),
+  z.object({
+    localStorageRoot: z.string().min(1),
+    ...commonAttemptIdentityFields,
+    toolId: z.literal('reeditpro_internal'),
+    operationId: z.literal(PROFESSIONAL_LONG_FORM_FIRST_CHILD_OPERATION_ID),
+    workloadProfileId: z.literal(
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.professionalLongFormSnapshotValidation,
     ),
   }).strict(),
 ]).superRefine((value, context) => {
@@ -510,7 +539,7 @@ function describeParsedAttempt(
 function fixedResourceEnvelope(
   input: Pick<PrivateInternalAttemptCostEvidence['identity'], 'toolId'> &
     Partial<Pick<Extract<PrivateInternalAttemptCostEvidence['identity'], {
-      toolId: 'remotion' | 'ffmpeg'
+      toolId: 'remotion' | 'ffmpeg' | 'reeditpro_internal'
     }>, 'workloadProfileId'>>,
 ) {
   const profileId = resolvePrivateInternalAttemptCostProfileId(input)
@@ -536,6 +565,11 @@ export function resolvePrivateInternalAttemptCostProfileId(
     input.toolId === 'ffmpeg' &&
     input.workloadProfileId ===
       PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFourKMezzanineFinalization
+  ) return input.workloadProfileId
+  if (
+    input.toolId === 'reeditpro_internal' &&
+    input.workloadProfileId ===
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.professionalLongFormSnapshotValidation
   ) return input.workloadProfileId
   throw invalid('Internal attempt-cost workload profile is unsupported.')
 }

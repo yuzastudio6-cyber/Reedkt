@@ -25,6 +25,19 @@ import {
   assertProfessionalLongFormDerivedChildJobsDispatchAuthority,
   verifyProfessionalLongFormDerivedChildJobManifest,
 } from '../edit-architecture/professional-long-form-derived-child-job-manifest'
+import {
+  PROFESSIONAL_LONG_FORM_FIRST_CHILD_COST_PROFILE_ID,
+  PROFESSIONAL_LONG_FORM_FIRST_CHILD_OPERATION_ID,
+  PROFESSIONAL_LONG_FORM_FIRST_CHILD_WORK_ITEM_ID,
+} from '../edit-architecture/professional-long-form-first-child-execution-contract'
+import {
+  assertProfessionalLongFormFirstChildQaEvidence,
+  assertProfessionalLongFormFirstChildReconciliationEvidence,
+  assertProfessionalLongFormFirstChildTerminalEvidence,
+  assertProfessionalLongFormFirstChildValidationArtifact,
+  buildProfessionalLongFormFirstChildAuthorizationReceipt,
+  buildProfessionalLongFormFirstChildExecutionAuthority,
+} from '../edit-architecture/professional-long-form-first-child-execution'
 import { ApiError } from '../errors/api-error'
 import {
   createCanonicalEditExecutionPackageService,
@@ -39,10 +52,14 @@ import {
 import {
   createCanonicalProfessionalLongFormPostApprovalService,
 } from '../services/canonical-professional-long-form-post-approval-service'
+import {
+  createCanonicalProfessionalLongFormFirstChildExecutionService,
+} from '../services/canonical-professional-long-form-first-child-execution-service'
 import { createEditPlanningAuthorityService } from '../services/edit-planning-authority-service'
 import { createExactEditPreferenceService } from '../services/exact-edit-preference-service'
 import {
   canonicalPrivatePackageWorkQueueAggregateRelativePath,
+  authorizePrivateCanonicalPackageWorkQueueJob,
   claimPrivateCanonicalPackageWorkQueueJob,
   clearPrivateCanonicalPackageWorkQueueProcessStateForSmoke,
   readPrivateCanonicalPackageWorkQueue,
@@ -50,6 +67,7 @@ import {
 } from '../services/private-canonical-package-work-queue-store'
 import {
   clearPrivateEditAuthorityProcessStateForSmoke,
+  putPrivateAuthorityJsonBlob,
   readPrivateAuthorityJsonBlob,
   readPrivateEditAuthorityAggregate,
   sha256AuthorityValue,
@@ -75,6 +93,9 @@ import type {
   SourceBindingManifestCandidate,
   SourceMediaAuthorityExpectation,
 } from '../validation/source-media-authority-schemas'
+import {
+  privateInternalAttemptCostEvidenceSchema,
+} from '../tool-cost-metering/private-internal-attempt-cost-evidence'
 
 const workspaceId = 'workspace-canonical-professional-long-form'
 const userId = 'user-canonical-professional-long-form'
@@ -95,7 +116,12 @@ const check = (condition: unknown, name: string): void => {
 }
 
 try {
-  await rm(localStorageRoot, { recursive: true, force: true })
+  await rm(localStorageRoot, {
+    recursive: true,
+    force: true,
+    maxRetries: 5,
+    retryDelay: 50,
+  })
   clearLocalProjectMemoryForSmoke()
   clearPrivateEditAuthorityProcessStateForSmoke()
   clearPrivateExactEditPreferenceProcessStateForSmoke()
@@ -533,6 +559,430 @@ try {
     'restored_exact_queue_bytes_replay_without_new_package_or_jobs',
   )
 
+  const currentBeforeExecution = await promotionService.loadCurrent({
+    workspaceId,
+    approvedPlanSnapshotId: String(snapshot.snapshotId),
+  })
+  const preparedRootAuthority =
+    buildProfessionalLongFormFirstChildExecutionAuthority({
+      ownerUserId: userId,
+      current: currentBeforeExecution,
+    })
+  const preparedRootAuthorityRef = await putPrivateAuthorityJsonBlob({
+    localStorageRoot,
+    value: preparedRootAuthority as unknown as Record<string, unknown>,
+  })
+  const preparedRootAuthorization =
+    buildProfessionalLongFormFirstChildAuthorizationReceipt({
+      authority: preparedRootAuthority,
+      authorityRef: preparedRootAuthorityRef,
+    })
+  const queueBeforeOrphanAuthorityClaim =
+    await readPrivateCanonicalPackageWorkQueue({
+      scope: queueScope,
+      definition: promotion.queueDefinition,
+    })
+  assert.ok(queueBeforeOrphanAuthorityClaim)
+  const orphanAuthorityClaim = await claimPrivateCanonicalPackageWorkQueueJob({
+    scope: queueScope,
+    definition: promotion.queueDefinition,
+    jobId: preparedRootAuthority.identity.jobId,
+    workerIdentity: 'orphan-authority-must-not-grant-claim',
+    workerType: 'api_service',
+    now: new Date().toISOString(),
+    leaseDurationMs: 60_000,
+  })
+  const queueAfterOrphanAuthorityClaim =
+    await readPrivateCanonicalPackageWorkQueue({
+      scope: queueScope,
+      definition: promotion.queueDefinition,
+    })
+  check(
+    orphanAuthorityClaim.disposition === 'capability_blocked' &&
+      queueAfterOrphanAuthorityClaim?.aggregateHash ===
+        queueBeforeOrphanAuthorityClaim.aggregateHash &&
+      queueAfterOrphanAuthorityClaim.summary.totalDeliveryAttemptCount === 0,
+    'content_addressed_authority_blob_alone_grants_no_claim_or_execution_authority',
+  )
+  const fabricatedPreCommitAuthorization = structuredClone(
+    preparedRootAuthorization,
+  )
+  fabricatedPreCommitAuthorization.expectedOutputIdentity = 'f'.repeat(64)
+  const fabricatedPreCommitPayload = {
+    ...fabricatedPreCommitAuthorization,
+  } as Record<string, unknown>
+  delete fabricatedPreCommitPayload.receiptHash
+  fabricatedPreCommitAuthorization.receiptHash = sha256AuthorityValue(
+    fabricatedPreCommitPayload,
+  )
+  await expectApiError(
+    () => authorizePrivateCanonicalPackageWorkQueueJob({
+      scope: queueScope,
+      definition: promotion.queueDefinition,
+      jobId: preparedRootAuthority.identity.jobId,
+      authorization: fabricatedPreCommitAuthorization,
+      executionAuthority: preparedRootAuthority,
+      now: preparedRootAuthority.authorizedAt,
+    }),
+    'VALIDATION_FAILED',
+    'caller_fabricated_precommit_receipt_cannot_authorize_root_execution',
+  )
+
+  const queueBeforeExpiredReservationAttempt =
+    await readPrivateCanonicalPackageWorkQueue({
+      scope: queueScope,
+      definition: promotion.queueDefinition,
+    })
+  assert.ok(queueBeforeExpiredReservationAttempt)
+  const originalDateNow = Date.now
+  try {
+    Date.now = () =>
+      Date.parse(preparedRootAuthority.approval.reservationExpiresAt) + 1
+    await expectApiError(
+      () => createCanonicalProfessionalLongFormFirstChildExecutionService(context)
+        .authorizeAndExecute({
+          workspaceId,
+          approvedPlanSnapshotId: String(snapshot.snapshotId),
+        }),
+      'CREDITS_NOT_RESERVED',
+      'expired_reservation_cannot_publish_root_queue_authorization',
+    )
+  } finally {
+    Date.now = originalDateNow
+  }
+  const queueAfterExpiredReservationAttempt =
+    await readPrivateCanonicalPackageWorkQueue({
+      scope: queueScope,
+      definition: promotion.queueDefinition,
+    })
+  const rootAfterExpiredReservationAttempt =
+    queueAfterExpiredReservationAttempt?.entries.find((entry) =>
+      entry.definition.jobId === preparedRootAuthority.identity.jobId)
+  check(
+    queueAfterExpiredReservationAttempt?.aggregateHash ===
+      queueBeforeExpiredReservationAttempt.aggregateHash &&
+      !rootAfterExpiredReservationAttempt
+        ?.professionalLongFormExecutionAuthorization &&
+      queueAfterExpiredReservationAttempt.events.every((event) =>
+        event.eventType !== 'job_execution_authorized'),
+    'expired_reservation_refusal_leaves_queue_events_and_root_entry_unchanged',
+  )
+
+  const firstChildExecutionService =
+    createCanonicalProfessionalLongFormFirstChildExecutionService(context)
+  const concurrentFirstChildRuns = await Promise.all([
+    firstChildExecutionService.authorizeAndExecute({
+      workspaceId,
+      approvedPlanSnapshotId: String(snapshot.snapshotId),
+    }),
+    createCanonicalProfessionalLongFormFirstChildExecutionService(context)
+      .authorizeAndExecute({
+        workspaceId,
+        approvedPlanSnapshotId: String(snapshot.snapshotId),
+      }),
+  ])
+  const completedFirstChild = concurrentFirstChildRuns.find((item) =>
+    item.disposition === 'completed')
+  assert.ok(completedFirstChild)
+  check(
+    concurrentFirstChildRuns.filter((item) =>
+      item.disposition === 'completed').length === 1 &&
+      concurrentFirstChildRuns.every((item) =>
+        ['completed', 'already_in_progress', 'exact_replay'].includes(
+          item.disposition,
+        )),
+    'concurrent_first_child_calls_consume_one_lease_and_one_execution_attempt',
+  )
+  assert.ok(completedFirstChild.executionAttempt)
+  assert.ok(completedFirstChild.validationArtifact)
+  assert.ok(completedFirstChild.validationArtifactRef)
+  assert.ok(completedFirstChild.qaEvidence)
+  assert.ok(completedFirstChild.qaEvidenceRef)
+  assert.ok(completedFirstChild.reconciliationEvidence)
+  assert.ok(completedFirstChild.reconciliationEvidenceRef)
+  assert.ok(completedFirstChild.attemptInternalCostEvidence)
+  assert.ok(completedFirstChild.terminalEvidence)
+  assert.ok(completedFirstChild.terminalEvidenceRef)
+  const firstChildAttempt = completedFirstChild.executionAttempt
+  const firstChildArtifact = completedFirstChild.validationArtifact
+  const firstChildArtifactRef = completedFirstChild.validationArtifactRef
+  const firstChildQa = completedFirstChild.qaEvidence
+  const firstChildQaRef = completedFirstChild.qaEvidenceRef
+  const firstChildReconciliation = completedFirstChild.reconciliationEvidence
+  const firstChildReconciliationRef =
+    completedFirstChild.reconciliationEvidenceRef
+  const firstChildCost = completedFirstChild.attemptInternalCostEvidence
+  const firstChildTerminal = completedFirstChild.terminalEvidence
+  const firstChildTerminalRef = completedFirstChild.terminalEvidenceRef
+  const completedQueue = completedFirstChild.queueAggregate
+  const completedRoot = completedQueue.entries.find((entry) =>
+    entry.definition.approvedWorkItemId ===
+      PROFESSIONAL_LONG_FORM_FIRST_CHILD_WORK_ITEM_ID)
+  const downstreamSourceAuthority = completedQueue.entries.find((entry) =>
+    entry.definition.approvedWorkItemId === 'long-form-validate-private-sources')
+  check(
+    completedQueue.summary.totalJobCount === 255 &&
+      completedQueue.summary.completedJobCount === 1 &&
+      completedQueue.summary.queuedJobCount === 254 &&
+      completedQueue.summary.leasedJobCount === 0 &&
+      completedQueue.summary.totalDeliveryAttemptCount === 1 &&
+      completedRoot?.state === 'completed' &&
+      completedRoot.deliveryAttemptCount === 1 &&
+      completedRoot.professionalLongFormExecutionAuthorization
+        ?.authorityHash === completedFirstChild.authority.authorityHash &&
+      completedRoot.professionalLongFormExecutionAttempt?.executionAttemptId ===
+        firstChildAttempt.executionAttemptId &&
+      completedQueue.events.filter((event) =>
+        event.eventType === 'job_execution_authorized').length === 1 &&
+      completedQueue.events.filter((event) =>
+        event.eventType === 'job_execution_started').length === 1 &&
+      completedQueue.events.filter((event) =>
+        event.eventType === 'job_completed').length === 1,
+    'root_authorization_claim_one_use_start_and_terminal_completion_are_one_queue_lineage',
+  )
+  check(
+    firstChildArtifact.valid &&
+      firstChildQa.outcome === 'passed' &&
+      firstChildReconciliation.downstream.jobId ===
+        downstreamSourceAuthority?.definition.jobId &&
+      firstChildReconciliation.downstream
+        .dependencySatisfiedByThisCompletion &&
+      !firstChildReconciliation.downstream.executionAuthorized &&
+      firstChildReconciliation.downstream.capabilityBlocked &&
+      firstChildTerminal.outcome === 'completed_private_test' &&
+      firstChildTerminal.permissions.downstreamDependencyEvidenceCreated &&
+      !firstChildTerminal.permissions.downstreamExecutionAuthorized &&
+      completedFirstChild.readiness.rootValidationArtifactVerified &&
+      completedFirstChild.readiness.rootQaVerified &&
+      completedFirstChild.readiness.rootReconciliationVerified &&
+      completedFirstChild.readiness.downstreamDependencySatisfied,
+    'private_validation_artifact_qa_reconciliation_and_downstream_dependency_evidence_pass',
+  )
+  check(
+    firstChildCost.boundary === 'internal_production_cost_only' &&
+      firstChildCost.identity.toolId === 'reeditpro_internal' &&
+      firstChildCost.identity.operationId ===
+        PROFESSIONAL_LONG_FORM_FIRST_CHILD_OPERATION_ID &&
+      firstChildCost.identity.workloadProfileId ===
+        PROFESSIONAL_LONG_FORM_FIRST_CHILD_COST_PROFILE_ID &&
+      firstChildCost.identity.executionAttemptId ===
+        firstChildAttempt.executionAttemptId &&
+      firstChildCost.resourceUsage.vcpuCount === 2 &&
+      firstChildCost.resourceUsage.memoryGib === 4 &&
+      firstChildCost.resourceUsage.gpuCount === 0 &&
+      Number.isSafeInteger(firstChildCost.actualInternalCostMicros) &&
+      firstChildCost.actualInternalCostMicros >= 0 &&
+      firstChildTerminal.attemptInternalCostEvidenceHash ===
+        firstChildCost.evidenceHash,
+    'attempt_internal_production_cost_is_versioned_metered_and_separate_from_customer_commercial_authority',
+  )
+  const serializedFirstChild = stableAuthorityStringify(completedFirstChild)
+  check(
+    !serializedFirstChild.includes('https://') &&
+      !serializedFirstChild.includes('gs://') &&
+      !serializedFirstChild.includes('"claimCredential":') &&
+      !serializedFirstChild.includes('customerPriceMicros') &&
+      !serializedFirstChild.includes('customerCreditAmount') &&
+      !serializedFirstChild.includes('serviceFeeMicros') &&
+      !serializedFirstChild.includes('walletBalance') &&
+      !serializedFirstChild.includes('providerRequest') &&
+      !completedFirstChild.readiness.sourceMediaExecutionVerified &&
+      !completedFirstChild.readiness.chunkRenderExecutionVerified &&
+      !completedFirstChild.readiness.liveGoogleCloudVerified &&
+      !completedFirstChild.readiness.productReady &&
+      !completedFirstChild.readiness.productionReady,
+    'root_execution_contains_no_secret_provider_media_render_customer_or_live_cloud_authority',
+  )
+
+  clearPrivateEditAuthorityProcessStateForSmoke()
+  clearPrivateCanonicalPackageWorkQueueProcessStateForSmoke()
+  const replayedFirstChild =
+    await createCanonicalProfessionalLongFormFirstChildExecutionService(context)
+      .authorizeAndExecute({
+        workspaceId,
+        approvedPlanSnapshotId: String(snapshot.snapshotId),
+      })
+  check(
+    replayedFirstChild.disposition === 'exact_replay' &&
+      replayedFirstChild.evidenceHash === completedFirstChild.evidenceHash &&
+      replayedFirstChild.queueAggregate.aggregateHash ===
+        completedQueue.aggregateHash &&
+      replayedFirstChild.executionAttempt?.executionAttemptId ===
+        firstChildAttempt.executionAttemptId &&
+      replayedFirstChild.validationArtifactRef?.sha256 ===
+        firstChildArtifactRef.sha256 &&
+      replayedFirstChild.qaEvidenceRef?.sha256 === firstChildQaRef.sha256 &&
+      replayedFirstChild.reconciliationEvidenceRef?.sha256 ===
+        firstChildReconciliationRef.sha256 &&
+      replayedFirstChild.terminalEvidenceRef?.sha256 ===
+        firstChildTerminalRef.sha256 &&
+      replayedFirstChild.attemptInternalCostEvidence?.evidenceHash ===
+        firstChildCost.evidenceHash,
+    'restart_replay_reopens_terminal_refs_cost_and_queue_without_reexecution',
+  )
+
+  const fabricatedAuthorization = structuredClone(
+    completedFirstChild.authorization,
+  )
+  fabricatedAuthorization.authorityHash = 'e'.repeat(64)
+  const fabricatedAuthorizationPayload = {
+    ...fabricatedAuthorization,
+  } as Record<string, unknown>
+  delete fabricatedAuthorizationPayload.receiptHash
+  fabricatedAuthorization.receiptHash = sha256AuthorityValue(
+    fabricatedAuthorizationPayload,
+  )
+  await expectApiError(
+    () => authorizePrivateCanonicalPackageWorkQueueJob({
+      scope: queueScope,
+      definition: promotion.queueDefinition,
+      jobId: completedFirstChild.authority.identity.jobId,
+      authorization: fabricatedAuthorization,
+      executionAuthority: completedFirstChild.authority,
+      now: new Date().toISOString(),
+    }),
+    'VALIDATION_FAILED',
+    'fabricated_changed_root_authorization_is_rejected_after_commit',
+  )
+
+  assert.ok(downstreamSourceAuthority)
+  const queueBeforeDownstreamClaim = await readPrivateCanonicalPackageWorkQueue({
+    scope: queueScope,
+    definition: promotion.queueDefinition,
+  })
+  assert.ok(queueBeforeDownstreamClaim)
+  const downstreamClaim = await claimPrivateCanonicalPackageWorkQueueJob({
+    scope: queueScope,
+    definition: promotion.queueDefinition,
+    jobId: downstreamSourceAuthority.definition.jobId,
+    workerIdentity: 'long-form-source-authority-must-remain-blocked',
+    workerType: downstreamSourceAuthority.definition.workerType,
+    now: new Date().toISOString(),
+    leaseDurationMs: 60_000,
+  })
+  const queueAfterDownstreamClaim = await readPrivateCanonicalPackageWorkQueue({
+    scope: queueScope,
+    definition: promotion.queueDefinition,
+  })
+  check(
+    downstreamClaim.disposition === 'capability_blocked' &&
+      queueAfterDownstreamClaim?.aggregateHash ===
+        queueBeforeDownstreamClaim.aggregateHash &&
+      downstreamSourceAuthority.definition.dependencyJobIds.includes(
+        completedFirstChild.authority.identity.jobId,
+      ) &&
+      downstreamSourceAuthority.deliveryAttemptCount === 0 &&
+      !downstreamSourceAuthority.professionalLongFormExecutionAuthorization &&
+      !downstreamSourceAuthority.professionalLongFormExecutionAttempt,
+    'root_dependency_is_satisfied_but_source_authority_child_remains_capability_blocked_without_attempt',
+  )
+
+  const artifactTamper = structuredClone(firstChildArtifact)
+  artifactTamper.artifactHash = 'd'.repeat(64)
+  assert.throws(
+    () => assertProfessionalLongFormFirstChildValidationArtifact({
+      value: artifactTamper,
+      authority: completedFirstChild.authority,
+      authorization: completedFirstChild.authorization,
+      executionAttempt: firstChildAttempt,
+    }),
+    /artifactHash is invalid/i,
+  )
+  const qaTamper = structuredClone(firstChildQa)
+  qaTamper.qaHash = 'c'.repeat(64)
+  assert.throws(
+    () => assertProfessionalLongFormFirstChildQaEvidence({
+      value: qaTamper,
+      authority: completedFirstChild.authority,
+      authorization: completedFirstChild.authorization,
+      executionAttempt: firstChildAttempt,
+      validationArtifact: firstChildArtifact,
+      validationArtifactRef: firstChildArtifactRef,
+    }),
+    /qaHash is invalid/i,
+  )
+  const reconciliationTamper = structuredClone(firstChildReconciliation)
+  reconciliationTamper.reconciliationHash = 'b'.repeat(64)
+  assert.throws(
+    () => assertProfessionalLongFormFirstChildReconciliationEvidence({
+      value: reconciliationTamper,
+      authority: completedFirstChild.authority,
+      authorization: completedFirstChild.authorization,
+      executionAttempt: firstChildAttempt,
+      validationArtifactRef: firstChildArtifactRef,
+      qaEvidence: firstChildQa,
+      qaEvidenceRef: firstChildQaRef,
+    }),
+    /reconciliationHash is invalid/i,
+  )
+  const terminalTamper = structuredClone(firstChildTerminal)
+  terminalTamper.terminalHash = 'a'.repeat(64)
+  assert.throws(
+    () => assertProfessionalLongFormFirstChildTerminalEvidence({
+      value: terminalTamper,
+      authority: completedFirstChild.authority,
+      authorization: completedFirstChild.authorization,
+      executionAttempt: firstChildAttempt,
+      canonicalResultHash: firstChildTerminal.canonicalResultHash,
+      attemptInternalCostEvidenceHash: firstChildCost.evidenceHash,
+    }),
+    /terminalHash is invalid/i,
+  )
+  check(
+    !privateInternalAttemptCostEvidenceSchema.safeParse({
+      ...firstChildCost,
+      boundary: 'customer_price_authority',
+    }).success,
+    'artifact_qa_reconciliation_terminal_and_cost_boundary_tampering_fail_closed',
+  )
+
+  const validationBlobPath = join(
+    localStorageRoot,
+    'edit-authority',
+    'blobs',
+    'sha256',
+    firstChildArtifactRef.sha256.slice(0, 2),
+    `${firstChildArtifactRef.sha256}.json`,
+  )
+  const originalValidationBlobRecord = await readFile(validationBlobPath, 'utf8')
+  const corruptedValidationBlobRecord = JSON.parse(
+    originalValidationBlobRecord,
+  ) as { value: { valid: boolean } }
+  corruptedValidationBlobRecord.value.valid = false
+  await writeFile(
+    validationBlobPath,
+    `${JSON.stringify(corruptedValidationBlobRecord)}\n`,
+    'utf8',
+  )
+  clearPrivateEditAuthorityProcessStateForSmoke()
+  clearPrivateCanonicalPackageWorkQueueProcessStateForSmoke()
+  await expectApiError(
+    () => createCanonicalProfessionalLongFormFirstChildExecutionService(context)
+      .authorizeAndExecute({
+        workspaceId,
+        approvedPlanSnapshotId: String(snapshot.snapshotId),
+      }),
+    'VALIDATION_FAILED',
+    'content_addressed_root_validation_artifact_tamper_fails_closed_after_restart',
+  )
+  await writeFile(validationBlobPath, originalValidationBlobRecord, 'utf8')
+  clearPrivateEditAuthorityProcessStateForSmoke()
+  clearPrivateCanonicalPackageWorkQueueProcessStateForSmoke()
+  const replayAfterValidationBlobRestore =
+    await createCanonicalProfessionalLongFormFirstChildExecutionService(context)
+      .authorizeAndExecute({
+        workspaceId,
+        approvedPlanSnapshotId: String(snapshot.snapshotId),
+      })
+  check(
+    replayAfterValidationBlobRestore.disposition === 'exact_replay' &&
+      replayAfterValidationBlobRestore.evidenceHash ===
+        completedFirstChild.evidenceHash &&
+      replayAfterValidationBlobRestore.validationArtifactRef?.sha256 ===
+        firstChildArtifactRef.sha256,
+    'restored_exact_root_validation_artifact_replays_without_reexecution',
+  )
+
   await assertNoActivationImports()
 
   const childBlobPath = join(
@@ -561,7 +1011,7 @@ try {
 
   console.log(JSON.stringify({
     ok: true,
-    schemaVersion: 'canonical-professional-long-form-post-approval-smoke-v2',
+    schemaVersion: 'canonical-professional-long-form-post-approval-smoke-v3',
     checkCount: checks.length,
     checks,
     evidence: {
@@ -583,15 +1033,28 @@ try {
       executionPackageCount: aggregateAfterDerivation.executionPackages.length,
       childPackageQueueJobCount: promotion.queueAggregate.summary.totalJobCount,
       childPackageQueuePersisted: true,
-      childLeaseAuthorized: false,
-      dispatchAuthorized: false,
+      rootChildLeaseVerified: true,
+      rootOneUseInternalDispatchVerified: true,
+      rootValidationArtifactQaAndReconciliationVerified: true,
+      rootAttemptInternalCostEvidenceVerified: true,
+      rootCompletedChildCount: completedQueue.summary.completedJobCount,
+      remainingBlockedChildCount: completedQueue.summary.queuedJobCount,
+      sourceAuthorityExecutionAuthorized: false,
+      mediaExecutionVerified: false,
+      chunkRenderExecutionVerified: false,
+      googleCloudDispatchAuthorized: false,
       liveGoogleCloudVerified: false,
       productReady: false,
       productionReady: false,
     },
   }, null, 2))
 } finally {
-  await rm(localStorageRoot, { recursive: true, force: true })
+  await rm(localStorageRoot, {
+    recursive: true,
+    force: true,
+    maxRetries: 5,
+    retryDelay: 50,
+  })
 }
 
 function createContext(): ServiceContext {

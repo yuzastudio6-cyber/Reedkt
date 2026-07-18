@@ -1,6 +1,6 @@
 # Canonical Professional Long-Form Post-Approval Authority — 2026-07-18
 
-Status: `superseded_by_specialized_child_package_and_queue_promotion`
+Status: `superseded_by_root_snapshot_validation_execution`
 
 ## Outcome
 
@@ -29,8 +29,11 @@ The follow-up specialized promotion service now persists the immutable child
 package and server-derived placement manifest and atomically publishes one
 exact 255-job private queue. See
 `docs/canonical-professional-long-form-child-package-promotion-2026-07-18.md`.
-All children remain capability-blocked; this is queue persistence, not
-long-form media execution.
+The promotion snapshot initially leaves all children capability-blocked. The
+root snapshot-validation continuation now executes exactly one child while the
+remaining 254 stay blocked; see
+`docs/canonical-professional-long-form-first-child-execution-2026-07-18.md`.
+This remains far short of long-form media execution.
 
 ## Honest Work-Graph Boundary
 
@@ -61,8 +64,8 @@ it does not rewrite or weaken the derivation record above.
 
 ## Focused Evidence
 
-`npm run smoke:canonical-professional-long-form-post-approval` now passes 32
-checks.
+The post-approval/promotion baseline passed 32 checks. The current combined
+promotion/root-execution smoke passes 47 checks.
 Its maximum-capacity local/private fixture uses:
 
 - one confirmed `3840x2160`, 30 fps frame;
@@ -77,8 +80,9 @@ Its maximum-capacity local/private fixture uses:
 - a persisted child manifest below the 4 MiB authority ceiling;
 - four parent jobs in the canonical aggregate; and
 - zero ordinary execution packages; and
-- one specialized 255-job private queue with zero leases, attempts, or
-  completions.
+- one specialized 255-job private queue that begins with zero leases, attempts,
+  or completions and now ends the focused continuation with exactly one root
+  completion and 254 blocked children.
 
 The smoke proves exact publication replay, changed-seed idempotency conflict,
 identity and source-content substitution rejection, publication-without-jobs,
@@ -96,30 +100,36 @@ regression after this integration.
 
 ## Aggregate Evidence
 
-The exact-code `npm run qa:internal-pipeline` v18 aggregate passed all `37/37`
-stages with exit code `0`. It started at `2026-07-18T07:34:57.913Z`, finished
-at `2026-07-18T08:04:51.495Z`, and completed in `1,793,582 ms`. The long-form
-planning stage passed in `356 ms`, the approved-snapshot bridge in `622 ms`,
-and this canonical post-approval/promotion stage in `4,997 ms`.
+The exact-code `npm run qa:internal-pipeline` v20 aggregate passed all `37/37`
+stages with exit code `0`. It started at `2026-07-18T10:12:50.412Z`, finished
+at `2026-07-18T10:46:03.933Z`, and completed in `1,993,521 ms`. The long-form
+planning stage passed in `363 ms`, the approved-snapshot bridge in `746 ms`,
+and this canonical post-approval/promotion/root stage passed 47 checks in
+`9,103 ms`.
 
 The aggregate reverified exactly 50 canonical E2E tool identities and 50 job
 adapters, the existing bounded private media lifecycles, all 11 named-edit
 browser tests, and the accepted maximum-eight-source 27-job private review.
-Its machine-readable report marks canonical seed-component, server-loaded
+That machine-readable report marks canonical seed-component, server-loaded
 controller, child-manifest, specialized child-package, child-placement, and
-child-queue persistence true. It explicitly keeps long-form child lease, exact
-tool-operation binding, attempt cost budget, dispatch, media and object-storage
-execution, live Google Cloud completion, external beta, and paid production
-false.
+child-queue persistence true. It also marks only the first child's authority,
+lease, exact tool-operation binding, attempt cost, one-use internal dispatch,
+private validation-artifact persistence, QA, reconciliation, dependency
+evidence, and replay true. Source-media, chunk-render, and object-storage
+execution, remaining-child execution, live Google Cloud completion, external
+beta, and paid production remain false. The v18 promotion-only aggregate is
+historical evidence.
 
 ## Cost and Commercial Boundary
 
-The approved seed requires future attempt-level internal production-cost
-evidence. That field does not create an attempt, cost event, customer price,
-customer credit amount, service fee, wallet mutation, billing instruction, or
-settlement authority. The original approved 4K estimate and reservation remain
-the only commercial-adjacent authority in this local/private proof; no second
-export estimate or charge is allowed.
+The approved seed requires attempt-level internal production-cost evidence.
+That requirement alone creates no attempt or cost record; the root execution
+now satisfies it only for its own exact attempt. The other 254 children still
+need separate scoped evidence. Neither the requirement nor the root record
+creates customer price, customer credit amount, service fee, wallet mutation,
+billing instruction, or settlement authority. The original approved 4K
+estimate and reservation remain the only commercial-adjacent authority in this
+local/private proof; no second export estimate or charge is allowed.
 
 ## Security Boundary
 
@@ -135,7 +145,7 @@ Preference/Edit Reference implementation changed in this slice.
 
 ## Readiness Truth
 
-Now verified:
+Now verified through this foundation and its root continuation:
 
 - canonical long-form seed-component persistence;
 - server-loaded controller persistence and approval binding;
@@ -143,13 +153,16 @@ Now verified:
 - content-addressed bridge and child-manifest persistence;
 - immutable specialized package and placement persistence;
 - atomic local/private 255-job queue persistence;
+- one root operation/runner authorization, lease, one-use start, private
+  artifact, QA, reconciliation, attempt cost, completion, and replay;
 - exact restart/replay behavior; and
 - fail-closed normal-package, dispatch, tamper, and self-promotion boundaries.
 
 Still false:
 
-- child lease and one-use dispatch;
-- exact child tool-operation, cost-budget, runner, and QA authority;
+- remaining 254 child leases and one-use dispatches;
+- private-source and chunk tool-operation, cost-budget, runner, and QA
+  authority;
 - object-store media persistence;
 - chunk media execution;
 - continuous-audio and color-continuity execution;
@@ -161,9 +174,6 @@ Still false:
 
 ## Next Evidence Gate
 
-The atomic local/private child-package promotion gate is complete. The next
-dependency-safe slice should prove one exact child operation through proven
-tool/runner binding, attempt-level internal-cost authority, lease, one-use
-dispatch, private artifact persistence, QA, reconciliation, replay, and
-downstream verification. It must remain local/private and must not imply that
-all 255 children or a six-hour program have executed.
+The root snapshot-validation gate is complete. The next dependency-safe slice
+is `validate_private_source_authority`; it must use exact persisted source/range
+authority and must not imply that any chunk media has rendered.

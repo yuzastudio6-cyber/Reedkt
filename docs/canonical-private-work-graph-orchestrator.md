@@ -36,9 +36,14 @@ The professional long-form path is an additive specialized queue source. Its
 identity additionally binds the exact persisted seed, bridge, child manifest,
 specialized package, placement manifest, parent service-only controller, and
 blocked child policy. Ordinary queues cannot carry promotion-satisfied parent
-dependencies, and long-form children cannot be claimed until their exact
-tool/cost/runner/QA authority is added. See
-`docs/canonical-professional-long-form-child-package-promotion-2026-07-18.md`.
+dependencies. A specialized server service now grants exact authority only to
+the dependency-root snapshot-validation entry and completes it through one
+lease, one-use attempt, private artifact, QA, reconciliation, internal cost,
+and replay. The other 254 long-form children remain unclaimable until their own
+exact tool/cost/runner/QA authority is added. See
+`docs/canonical-professional-long-form-child-package-promotion-2026-07-18.md`
+and
+`docs/canonical-professional-long-form-first-child-execution-2026-07-18.md`.
 
 The ordinary orchestrator then repeatedly:
 
@@ -124,6 +129,13 @@ The exact-code complete tool-dispatch smoke reverified all 50 proven identities
 and its terminal eight-job review graph with eight completed, zero queued, and
 zero leased queue entries. A fresh service recovered all eight terminal jobs
 with no new claim or scheduler execution.
+
+The specialized long-form smoke separately proves that an authority blob alone
+cannot unlock the root, a fabricated precommit receipt is rejected, concurrent
+calls consume exactly one root lease and attempt, one queue completion binds
+the artifact/QA/reconciliation/internal-cost lineage, restart replay does not
+re-execute, persisted artifact corruption fails closed, and the downstream
+source-authority child remains capability-blocked.
 
 The prior aggregate smoke baseline publishes and approves a dependency-complete five-job single-caption plan and proves exact topological execution and replay. The caption-track continuation expands the corresponding graph to six jobs—snapshot validation, source-trim validation, two independent libass caption artifacts, trim-authoritative timed Remotion composition, and independent dependency-bound FFprobe final QA. The focused caption-track lifecycle is verified through final QA, replay, and private download; this slice does not claim a fresh post-change rerun of the aggregate terminal-assembly/revision branch.
 
@@ -216,6 +228,19 @@ Supabase, billing, public delivery, and production promotion remain gated.
   `2026-07-18T08:04:51.495Z` in `1,793,582 ms`; the 255-job long-form queue was
   persisted while lease, exact tool/cost binding, dispatch, and execution
   remained false
+- `npm run qa:internal-pipeline` — root snapshot-validation execution v19 full
+  run passed 37/37 stages from `2026-07-18T09:03:54.040Z` through
+  `2026-07-18T09:31:58.011Z` in `1,683,971 ms`; exactly one long-form root
+  authorization, lease, attempt, internal-cost record, artifact, QA,
+  reconciliation, completion, and replay passed while the remaining 254 child
+  leases and all long-form media/cloud execution remained false
+- `npm run qa:internal-pipeline` — reservation-expiry-hardened root execution
+  v20 full run passed 37/37 stages from `2026-07-18T10:12:50.412Z` through
+  `2026-07-18T10:46:03.933Z` in `1,993,521 ms`; the 47-check long-form stage
+  additionally refused expired reservation authorization without queue or
+  event mutation, while exactly one valid root lifecycle passed and the
+  remaining 254 child leases and all long-form media/cloud execution remained
+  false
 
 The measured duration is a local correctness-regression result. It is not a
 real-program editing benchmark, deployed worker-concurrency result, cloud ETA,

@@ -1,6 +1,6 @@
 # Professional Long-Form Object Execution Plan — 2026-07-18
 
-Status: `canonical_child_package_and_queue_persisted_execution_blocked`
+Status: `root_snapshot_validation_completed_private_local_remaining_execution_blocked`
 
 ## Outcome
 
@@ -19,9 +19,12 @@ approved snapshot. The follow-up canonical integration now persists the seed
 and controller through real local/private publication and approval and persists
 the blocked child-job manifest after exact server reload. The next follow-up
 also persists an immutable specialized child package and placement manifest and
-atomically publishes one exact 255-job private queue. It does not raise the
-existing V3 media-execution limit, lease or dispatch a child, silently activate
-a worker, or claim that long media was rendered.
+atomically publishes one exact 255-job private queue. The bounded continuation
+executes only the dependency-root snapshot-validation child through exact
+authority, one lease/attempt, private artifact, QA, reconciliation, internal
+cost, completion, and replay. It does not raise the existing V3 media-execution
+limit, authorize any of the remaining 254 children, silently activate a worker,
+or claim that long media was rendered.
 
 ## Bounded Professional Capacity
 
@@ -95,26 +98,31 @@ reservation, child-graph, and persisted-manifest substitution. A new approval
 may reuse the same content seed, but it receives distinct snapshot and plan
 authority.
 
-`npm run smoke:canonical-professional-long-form-post-approval` passes 32
-additional checks against a real canonical six-hour/512-range publication and
+`npm run smoke:canonical-professional-long-form-post-approval` passes 47
+checks against a real canonical six-hour/512-range publication and
 approval. It persists and reopens the seed, controller, bridge, and 255-child
 blocked manifest plus the specialized package, placement, and exact 255-job
-private queue; refuses ordinary package creation and every claim; proves exact
-concurrent/restart replay; and rejects persisted blob and queue tampering. See
+private queue; refuses ordinary package creation, authorizes and completes only
+the root snapshot-validation child, proves exact concurrent/restart replay and
+attempt-level internal-cost separation, keeps the downstream source-authority
+child blocked, and rejects persisted blob, root-artifact, and queue tampering. See
 `docs/canonical-professional-long-form-post-approval-authority-2026-07-18.md`
 and
 `docs/canonical-professional-long-form-child-package-promotion-2026-07-18.md`.
+The root lifecycle is documented in
+`docs/canonical-professional-long-form-first-child-execution-2026-07-18.md`.
 
 The planner source imports no Google Cloud, Supabase, Stripe, HTTP, child
 process, environment, or network-fetch activation path.
 
 ## Current Aggregate Evidence
 
-The exact-code `npm run qa:internal-pipeline` v18 aggregate passed all `37/37`
-stages with exit code `0`. It started at `2026-07-18T07:34:57.913Z`, finished
-at `2026-07-18T08:04:51.495Z`, and completed in `1,793,582 ms`. The long-form
-plan passed in `356 ms`, the approved-snapshot bridge in `622 ms`, and the
-canonical post-approval/promotion authority in `4,997 ms`.
+The exact-code `npm run qa:internal-pipeline` v20 aggregate passed all `37/37`
+stages with exit code `0`. It started at `2026-07-18T10:12:50.412Z`, finished
+at `2026-07-18T10:46:03.933Z`, and completed in `1,993,521 ms`. The long-form
+plan passed in `363 ms`, the approved-snapshot bridge in `746 ms`, and the
+canonical post-approval/promotion/root authority passed 47 checks in
+`9,103 ms`.
 
 The remaining stages reverified exactly 50 canonical tool lifecycles and 50
 job adapters, the crash-consistent package lifecycle, bounded three-source
@@ -126,7 +134,12 @@ That review completed 27 jobs and produced the same authenticated sixteen-second
 The aggregate also persisted and reopened the exact six-hour/512-range seed,
 blocked controller, approved-snapshot bridge, 255-child blocked manifest,
 specialized child package, placement authority, and exact private queue. It did
-not lease, bind tools/cost, dispatch, or execute those children.
+then authorized and completed exactly the root snapshot-validation child through
+one lease/attempt, internal cost, private artifact, QA, reconciliation, terminal
+commit, and replay. The remaining 254 children, source-media and chunk
+execution, object storage, live Google Cloud, external beta, and paid
+production stayed false. The v18 promotion-only aggregate remains historical
+evidence.
 
 Those media stages exercise their existing bounded fixtures. They do not turn
 the 30-minute or six-hour planning fixtures into long-form execution evidence.
@@ -156,18 +169,19 @@ Preference/Edit Reference work.
 `frameExactPlanningContractReady`,
 `approvedSnapshotBindingContractReady`, canonical seed/controller persistence,
 blocked child-manifest derivation/persistence, specialized package/placement
-persistence, and atomic local/private child-queue promotion are true. Child
-lease, exact tool/cost/runner binding, object persistence, chunk runners,
-continuous-audio execution, cross-chunk color QA, finalizer execution,
+persistence, atomic local/private child-queue promotion, and the root child's
+exact authority/lease/operation/cost/artifact/QA/reconciliation/replay lifecycle
+are true. The remaining 254 child leases, private-source and chunk
+tool/cost/runner binding, object persistence, chunk runners, continuous-audio
+execution, cross-chunk color QA, finalizer execution,
 distributed database, live Google Cloud, staging, product, and production
 readiness all remain false.
 
 ## Next Required Evidence
 
-1. Bind one server-derived child to an exact proven tool/runner, attempt-level
-   internal-cost budget, lease, one-use dispatch, private artifact, QA,
-   reconciliation, replay, and downstream verification without touching the
-   separately owned Preference implementation.
+1. Execute the next topological `validate_private_source_authority` child
+   through the same exact persisted lifecycle without reading or transforming
+   media and without touching the separately owned Preference implementation.
 2. Add the remaining object-backed chunk, QA, continuous-audio, color-continuity, and
    finalization job adapters with exact attempt-cost evidence.
 3. Execute a representative 30-minute, many-source 4K private corpus and prove

@@ -8,6 +8,12 @@ import {
 import {
   canonicalPrivateJobExecutionFailureCategorySchema,
 } from './canonical-private-job-execution-adapter-schemas'
+import {
+  PROFESSIONAL_LONG_FORM_FIRST_CHILD_WORK_ITEM_ID,
+  professionalLongFormFirstChildAuthorizationReceiptSchema,
+  professionalLongFormFirstChildCompletionSchema,
+  professionalLongFormFirstChildExecutionAttemptSchema,
+} from '../edit-architecture/professional-long-form-first-child-execution-contract'
 
 export const CANONICAL_PRIVATE_PACKAGE_WORK_QUEUE_AGGREGATE_VERSION =
   'canonical-private-package-work-queue-aggregate-v1' as const
@@ -33,6 +39,8 @@ export const canonicalPrivatePackageWorkQueueCompletedOutcomeSchema = z.object({
   sha256,
   adapterReplayed: z.boolean(),
   blockedDependencyJobIds: z.array(identity).length(0),
+  professionalLongFormExecution:
+    professionalLongFormFirstChildCompletionSchema.optional(),
 }).strict()
 
 export const canonicalPrivatePackageWorkQueueClaimSchema = z.object({
@@ -198,6 +206,10 @@ export const canonicalPrivatePackageWorkQueueEntrySchema = z.object({
   state: z.enum(['queued', 'leased', 'completed']),
   deliveryAttemptCount: boundedCount,
   expiredClaimRecoveryCount: boundedCount,
+  professionalLongFormExecutionAuthorization:
+    professionalLongFormFirstChildAuthorizationReceiptSchema.optional(),
+  professionalLongFormExecutionAttempt:
+    professionalLongFormFirstChildExecutionAttemptSchema.optional(),
   activeClaim: canonicalPrivatePackageWorkQueueClaimSchema.optional(),
   completion: canonicalPrivatePackageWorkQueueCompletionSchema.optional(),
   lastRelease: canonicalPrivatePackageWorkQueueReleaseSchema.optional(),
@@ -232,6 +244,70 @@ export const canonicalPrivatePackageWorkQueueEntrySchema = z.object({
       context.addIssue({ code: 'custom', message: 'Canonical work-queue completion identity is inconsistent.' })
     }
   }
+  const authorization = entry.professionalLongFormExecutionAuthorization
+  const executionAttempt = entry.professionalLongFormExecutionAttempt
+  const professionalCompletion = entry.completion?.outcome.professionalLongFormExecution
+  if (!authorization) {
+    if (executionAttempt || professionalCompletion) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Canonical professional long-form execution evidence lacks authorization.',
+      })
+    }
+    return
+  }
+  if (
+    entry.definition.privateExecutionReady ||
+    entry.definition.approvedWorkItemId !==
+      PROFESSIONAL_LONG_FORM_FIRST_CHILD_WORK_ITEM_ID ||
+    entry.definition.requiredGate !==
+      'canonical_professional_long_form_exact_tool_cost_runner_and_qa_authority' ||
+    authorization.jobId !== entry.definition.jobId ||
+    authorization.approvedWorkItemId !== entry.definition.approvedWorkItemId ||
+    authorization.jobDefinitionHash !== entry.definition.definitionHash ||
+    authorization.placementHash !== entry.definition.placementHash
+  ) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Canonical professional long-form execution authorization lost root-job authority.',
+    })
+  }
+  if (executionAttempt) {
+    const terminalClaim = entry.activeClaim ?? entry.completion
+    if (
+      executionAttempt.authorizationId !== authorization.authorizationId ||
+      executionAttempt.authorityHash !== authorization.authorityHash ||
+      executionAttempt.jobId !== entry.definition.jobId ||
+      executionAttempt.approvedWorkItemId !== entry.definition.approvedWorkItemId ||
+      executionAttempt.claimId !== terminalClaim?.claimId ||
+      executionAttempt.deliveryAttempt !== entry.deliveryAttemptCount ||
+      (entry.state === 'queued' && entry.lastRelease !== undefined)
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Canonical professional long-form execution attempt lost claim authority.',
+      })
+    }
+  }
+  if (
+    (entry.state === 'completed') !== Boolean(professionalCompletion) ||
+    Boolean(professionalCompletion) !== Boolean(executionAttempt && entry.completion)
+  ) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Canonical professional long-form terminal evidence is incomplete.',
+    })
+  }
+  if (professionalCompletion && executionAttempt && (
+    professionalCompletion.executionAttemptId !== executionAttempt.executionAttemptId ||
+    professionalCompletion.authorizationId !== authorization.authorizationId ||
+    professionalCompletion.authorityHash !== authorization.authorityHash
+  )) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Canonical professional long-form completion lost execution lineage.',
+    })
+  }
 })
 
 export const canonicalPrivatePackageWorkQueueEventSchema = z.object({
@@ -239,17 +315,37 @@ export const canonicalPrivatePackageWorkQueueEventSchema = z.object({
   sequence: z.number().int().positive().max(100_000),
   eventType: z.enum([
     'queue_created',
+    'job_execution_authorized',
     'job_claimed',
+    'job_execution_started',
     'expired_claim_recovered',
     'claim_released',
     'job_completed',
   ]),
   jobId: identity.optional(),
   claimId: identity.optional(),
+  authorizationId: identity.optional(),
+  executionAttemptId: identity.optional(),
   at: timestamp,
   previousEventHash: sha256.nullable(),
   eventHash: sha256,
-}).strict()
+}).strict().superRefine((event, context) => {
+  if (
+    (event.eventType === 'job_execution_authorized' &&
+      (!event.jobId || !event.authorizationId || event.claimId ||
+        event.executionAttemptId)) ||
+    (event.eventType === 'job_execution_started' &&
+      (!event.jobId || !event.claimId || !event.authorizationId ||
+        !event.executionAttemptId)) ||
+    (!['job_execution_authorized', 'job_execution_started'].includes(event.eventType) &&
+      (event.authorizationId || event.executionAttemptId))
+  ) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Canonical work-queue execution event identity is inconsistent.',
+    })
+  }
+})
 
 export const canonicalPrivatePackageWorkQueueAggregateSchema = z.object({
   schemaVersion: z.literal(CANONICAL_PRIVATE_PACKAGE_WORK_QUEUE_AGGREGATE_VERSION),
@@ -323,6 +419,34 @@ export const canonicalPrivatePackageWorkQueueAggregateSchema = z.object({
       event.previousEventHash !== (previous?.eventHash ?? null)
     ) {
       context.addIssue({ code: 'custom', message: 'Canonical work-queue event chain is invalid.' })
+      break
+    }
+  }
+  for (const entry of aggregate.entries) {
+    const authorization = entry.professionalLongFormExecutionAuthorization
+    const executionAttempt = entry.professionalLongFormExecutionAttempt
+    const authorizationEvents = aggregate.events.filter((event) =>
+      event.eventType === 'job_execution_authorized' &&
+      event.jobId === entry.definition.jobId)
+    const attemptEvents = aggregate.events.filter((event) =>
+      event.eventType === 'job_execution_started' &&
+      event.jobId === entry.definition.jobId)
+    if (
+      authorizationEvents.length !== (authorization ? 1 : 0) ||
+      (authorization && authorizationEvents[0]?.authorizationId !==
+        authorization.authorizationId) ||
+      attemptEvents.length !== (executionAttempt ? 1 : 0) ||
+      (executionAttempt && (
+        attemptEvents[0]?.authorizationId !== executionAttempt.authorizationId ||
+        attemptEvents[0]?.executionAttemptId !==
+          executionAttempt.executionAttemptId ||
+        attemptEvents[0]?.claimId !== executionAttempt.claimId
+      ))
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Canonical professional long-form event lineage is inconsistent.',
+      })
       break
     }
   }

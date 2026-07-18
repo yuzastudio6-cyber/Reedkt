@@ -5,6 +5,9 @@ import { join } from 'node:path'
 
 import { ApiError } from '../errors/api-error'
 import {
+  PROFESSIONAL_LONG_FORM_FIRST_CHILD_OPERATION_ID,
+} from '../edit-architecture/professional-long-form-first-child-execution-contract'
+import {
   PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS,
   beginPrivateInternalAttemptCostEvidence,
   privateInternalAttemptCostEvidenceSchema,
@@ -175,6 +178,34 @@ try {
   assert.equal(ffmpeg.evidence.resourceUsage.gpuCount, 0)
   assertNoCommercialKeys(ffmpeg.evidence)
 
+  const longFormValidationInput = {
+    ...common,
+    approvedWorkItemId: 'long-form-validate-approved-snapshot',
+    jobId: 'long-form-child-job-cost-proof',
+    executionAttemptId: 'attempt-long-form-snapshot-validation-cost-proof',
+    toolId: 'reeditpro_internal' as const,
+    operationId: PROFESSIONAL_LONG_FORM_FIRST_CHILD_OPERATION_ID,
+    workloadProfileId:
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.professionalLongFormSnapshotValidation,
+  }
+  const longFormValidationMeter = await beginPrivateInternalAttemptCostEvidence(
+    longFormValidationInput,
+    clock([40_000_000_000n, 40_250_000_000n], ['2026-07-11T12:05:00.000Z']),
+  )
+  const longFormValidation = await longFormValidationMeter.finalize({
+    status: 'completed',
+    failureCategory: 'none',
+    outputByteLength: 8_192,
+    linkedCanonicalOutcomeHash: 'd'.repeat(64),
+  })
+  assert.equal(longFormValidation.evidence.identity.toolId, 'reeditpro_internal')
+  assert.equal(longFormValidation.evidence.identity.workloadProfileId,
+    PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.professionalLongFormSnapshotValidation)
+  assert.equal(longFormValidation.evidence.resourceUsage.vcpuCount, 2)
+  assert.equal(longFormValidation.evidence.resourceUsage.memoryGib, 4)
+  assert.equal(longFormValidation.evidence.resourceUsage.gpuCount, 0)
+  assertNoCommercialKeys(longFormValidation.evidence)
+
   await expectCode(() => beginPrivateInternalAttemptCostEvidence({
     ...ffmpegInput,
     jobId: remotionInput.jobId,
@@ -200,6 +231,8 @@ try {
     failedAttemptCostMicros: failed.evidence.actualInternalCostMicros,
     remotionChunkAttemptCostMicros: remotion.evidence.actualInternalCostMicros,
     ffmpegFinalizationAttemptCostMicros: ffmpeg.evidence.actualInternalCostMicros,
+    longFormSnapshotValidationAttemptCostMicros:
+      longFormValidation.evidence.actualInternalCostMicros,
     replayHash: replay.evidence.evidenceHash,
     checks: [
       'attempt_level_internal_cost_only',
@@ -211,6 +244,7 @@ try {
       'executed_failure_retains_internal_cost',
       'remotion_4k_chunk_profile_is_2vcpu_4gib_cpu_only',
       'ffmpeg_4k_finalization_profile_is_2vcpu_4gib_cpu_only',
+      'professional_long_form_snapshot_validation_profile_is_2vcpu_4gib_cpu_only',
       'cross_profile_attempt_identity_conflict_fails_closed',
       'resource_profile_and_commercial_field_mutations_fail_schema_validation',
       'commercial_pricing_credit_and_wallet_fields_absent',

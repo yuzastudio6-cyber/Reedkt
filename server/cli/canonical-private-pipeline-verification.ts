@@ -53,7 +53,7 @@ const canonicalSteps: VerificationStep[] = [
   step(
     'canonical-professional-long-form-post-approval',
     'smoke:canonical-professional-long-form-post-approval',
-    'A six-hour/512-range 4K seed and one blocked service-only controller persist through real canonical publication and approval; restart-safe server derivation reopens the exact authority, persists a content-addressed 255-child manifest plus specialized child package and placement authority, and atomically promotes one exact 255-job private queue while every child remains blocked from lease, tool binding, cost, dispatch, media, cloud, commerce, product, and production execution.',
+    'A six-hour/512-range 4K seed persists through canonical publication and approval; restart-safe server derivation reopens the exact authority, persists a content-addressed 255-child package/placement/queue, and executes only the root snapshot-validation child through persisted authorization, one lease/start, private artifact, QA, reconciliation, attempt-level internal cost, terminal completion, and exact replay. The remaining 254 children, source/media work, cloud, commerce, product, and production execution stay blocked.',
   ),
   step(
     'professional-export-policy',
@@ -280,7 +280,7 @@ function printReport(
 ): void {
   const finishedAt = new Date()
   const report = {
-    schemaVersion: 'canonical-private-pipeline-verification-v18',
+    schemaVersion: 'canonical-private-pipeline-verification-v20',
     status,
     mode: full ? 'full_internal_regression' : 'canonical_private_pipeline',
     startedAt: runStartedAt.toISOString(),
@@ -308,6 +308,11 @@ function printReport(
           professionalLongFormChildPackagePersistence: true,
           professionalLongFormChildPlacementPersistence: true,
           professionalLongFormChildPackageQueuePersistence: true,
+          professionalLongFormFirstChildAuthorizationPersistence: true,
+          professionalLongFormFirstChildLeaseAndOneUseExecution: true,
+          professionalLongFormFirstChildAttemptInternalCostEvidence: true,
+          professionalLongFormFirstChildArtifactQaReconciliationReplay: true,
+          professionalLongFormFirstChildDownstreamDependencyEvidence: true,
           sourceOnlyIntentAuthority: true,
           fourKEstimateDeliveryCeiling: true,
           canonicalBrowserContracts: true,
@@ -362,10 +367,11 @@ function printReport(
       distributedPackageQueueOutboxTransactionVerified: false,
       canonicalPackageStateDatabaseFunctionsExecuted: false,
       canonicalPackageStateRpcLiveClientActivated: false,
-      professionalLongFormChildLeaseVerified: false,
-      professionalLongFormExactToolOperationBindingVerified: false,
-      professionalLongFormChildAttemptCostBudgetVerified: false,
-      professionalLongFormChildDispatchVerified: false,
+      professionalLongFormRemaining254ChildLeasesVerified: false,
+      professionalLongFormSourceAuthorityExecutionVerified: false,
+      professionalLongFormChunkOperationBindingsVerified: false,
+      professionalLongFormRemainingChildAttemptCostsVerified: false,
+      professionalLongFormRemainingChildDispatchVerified: false,
       professionalLongFormMediaExecutionVerified: false,
       professionalLongFormObjectStorageVerified: false,
       liveGoogleCloudWorkerCompletionVerified: false,

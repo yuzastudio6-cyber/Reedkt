@@ -53,12 +53,6 @@ COPY allowed-demuxers.txt /tmp/allowed-demuxers.txt
 COPY allowed-muxers.txt /tmp/allowed-muxers.txt
 COPY allowed-protocols.txt /tmp/allowed-protocols.txt
 COPY allowed-bsfs.txt /tmp/allowed-bsfs.txt
-COPY verify-runtime.sh /tmp/verify-runtime.sh
-COPY source-slice-finalizer.sh /tmp/source-slice-finalizer.sh
-COPY object-mezzanine-chunk.sh /tmp/object-mezzanine-chunk.sh
-COPY continuous-program-audio.sh /tmp/continuous-program-audio.sh
-COPY continuous-program-audio-probe.sh /tmp/continuous-program-audio-probe.sh
-COPY source-provenance.lock /tmp/source-provenance.lock
 
 WORKDIR /tmp/ffmpeg-source
 RUN printf '%s  %s\n' \
@@ -95,8 +89,19 @@ RUN printf '%s  %s\n' \
       | LC_ALL=C sort \
       > /opt/reeditpro-ffmpeg/share/reeditpro/builder-packages.lock \
   && /opt/reeditpro-ffmpeg/bin/ffmpeg -hide_banner -buildconf \
-      > /opt/reeditpro-ffmpeg/share/reeditpro/ffmpeg-buildconf.txt 2>&1 \
-  && find \
+      > /opt/reeditpro-ffmpeg/share/reeditpro/ffmpeg-buildconf.txt 2>&1
+
+# Runtime policy scripts are packaged after the expensive source build so a
+# bounded runner correction cannot invalidate the pinned FFmpeg compile layer.
+COPY verify-runtime.sh /tmp/verify-runtime.sh
+COPY source-slice-finalizer.sh /tmp/source-slice-finalizer.sh
+COPY object-mezzanine-chunk.sh /tmp/object-mezzanine-chunk.sh
+COPY continuous-program-audio.sh /tmp/continuous-program-audio.sh
+COPY continuous-program-audio-probe.sh /tmp/continuous-program-audio-probe.sh
+COPY long-form-master-assembly.sh /tmp/long-form-master-assembly.sh
+COPY source-provenance.lock /tmp/source-provenance.lock
+
+RUN find \
       /opt/reeditpro-ffmpeg/bin \
       /opt/reeditpro-ffmpeg/share/reeditpro \
       -type f ! -name runtime-files.sha256 -print0 \
@@ -123,6 +128,8 @@ RUN printf '%s  %s\n' \
       /runtime-rootfs/usr/local/bin/reeditpro-ffmpeg-continuous-program-audio \
   && install -m 0555 /tmp/continuous-program-audio-probe.sh \
       /runtime-rootfs/usr/local/bin/reeditpro-ffmpeg-continuous-program-audio-probe \
+  && install -m 0555 /tmp/long-form-master-assembly.sh \
+      /runtime-rootfs/usr/local/bin/reeditpro-ffmpeg-long-form-master-assembly \
   && sha256sum /runtime-rootfs/usr/local/bin/reeditpro-ffmpeg-verify \
       | sed 's#  /runtime-rootfs/#  /#' \
       >> /runtime-rootfs/opt/reeditpro-ffmpeg/share/reeditpro/runtime-files.sha256 \
@@ -136,6 +143,9 @@ RUN printf '%s  %s\n' \
       | sed 's#  /runtime-rootfs/#  /#' \
       >> /runtime-rootfs/opt/reeditpro-ffmpeg/share/reeditpro/runtime-files.sha256 \
   && sha256sum /runtime-rootfs/usr/local/bin/reeditpro-ffmpeg-continuous-program-audio-probe \
+      | sed 's#  /runtime-rootfs/#  /#' \
+      >> /runtime-rootfs/opt/reeditpro-ffmpeg/share/reeditpro/runtime-files.sha256 \
+  && sha256sum /runtime-rootfs/usr/local/bin/reeditpro-ffmpeg-long-form-master-assembly \
       | sed 's#  /runtime-rootfs/#  /#' \
       >> /runtime-rootfs/opt/reeditpro-ffmpeg/share/reeditpro/runtime-files.sha256 \
   && chmod -R a+rX /runtime-rootfs/opt/reeditpro-ffmpeg \
@@ -160,6 +170,7 @@ LABEL org.opencontainers.image.title="ReEditPro minimal FFmpeg internal-worker f
       reeditpro.object-mezzanine-chunk="private_all_chunk_vp9_cq12_only" \
       reeditpro.flac-encoding="private_continuous_program_audio_only" \
       reeditpro.continuous-program-audio="private_30fps_48khz_source_audio_only" \
+      reeditpro.long-form-master-assembly="private_vp9_flac_matroska_stream_copy_only" \
       reeditpro.codec-patent-legal-review="required" \
       reeditpro.runtime-network="must_run_with_network_none" \
       reeditpro.runtime-rootfs="must_run_read_only"

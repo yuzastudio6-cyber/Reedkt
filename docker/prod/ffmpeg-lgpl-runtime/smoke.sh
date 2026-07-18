@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-IMAGE_TAG=${REEDITPRO_FFMPEG_IMAGE_TAG:-reeditpro/ffmpeg-lgpl-internal:8.1.2-object-chunk-v5-local}
+IMAGE_TAG=${REEDITPRO_FFMPEG_IMAGE_TAG:-reeditpro/ffmpeg-lgpl-internal:8.1.2-object-chunk-v6-local}
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 
 if [ "${1:-}" = '--build' ]; then
@@ -34,6 +34,8 @@ docker image inspect "$IMAGE_TAG" >/dev/null 2>&1 \
   || { printf '%s\n' 'image must scope FLAC encoding to continuous program audio' >&2; exit 1; }
 [ "$(docker image inspect --format '{{index .Config.Labels "reeditpro.continuous-program-audio"}}' "$IMAGE_TAG")" = 'private_30fps_48khz_source_audio_only' ] \
   || { printf '%s\n' 'image must scope continuous program audio to the fixed private recipe' >&2; exit 1; }
+[ "$(docker image inspect --format '{{index .Config.Labels "reeditpro.long-form-master-assembly"}}' "$IMAGE_TAG")" = 'private_vp9_flac_matroska_stream_copy_only' ] \
+  || { printf '%s\n' 'image must scope long-form assembly to VP9/FLAC stream copy' >&2; exit 1; }
 
 docker run --rm \
   --network=none \
@@ -49,5 +51,5 @@ docker run --rm \
   "$IMAGE_TAG"
 
 docker image inspect --format \
-  '{"imageId":"{{.Id}}","architecture":"{{.Architecture}}","os":"{{.Os}}","user":"{{.Config.User}}","productReady":"{{index .Config.Labels "reeditpro.product-ready"}}","h264Encoding":"{{index .Config.Labels "reeditpro.h264-encoding"}}","aacEncoding":"{{index .Config.Labels "reeditpro.aac-encoding"}}","mp4Mux":"{{index .Config.Labels "reeditpro.mp4-mux"}}","objectMezzanineChunk":"{{index .Config.Labels "reeditpro.object-mezzanine-chunk"}}","flacEncoding":"{{index .Config.Labels "reeditpro.flac-encoding"}}","continuousProgramAudio":"{{index .Config.Labels "reeditpro.continuous-program-audio"}}"}' \
+  '{"imageId":"{{.Id}}","architecture":"{{.Architecture}}","os":"{{.Os}}","user":"{{.Config.User}}","productReady":"{{index .Config.Labels "reeditpro.product-ready"}}","h264Encoding":"{{index .Config.Labels "reeditpro.h264-encoding"}}","aacEncoding":"{{index .Config.Labels "reeditpro.aac-encoding"}}","mp4Mux":"{{index .Config.Labels "reeditpro.mp4-mux"}}","objectMezzanineChunk":"{{index .Config.Labels "reeditpro.object-mezzanine-chunk"}}","flacEncoding":"{{index .Config.Labels "reeditpro.flac-encoding"}}","continuousProgramAudio":"{{index .Config.Labels "reeditpro.continuous-program-audio"}}","longFormMasterAssembly":"{{index .Config.Labels "reeditpro.long-form-master-assembly"}}"}' \
   "$IMAGE_TAG"

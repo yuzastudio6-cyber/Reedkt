@@ -64,12 +64,20 @@ import {
 import {
   evaluateOfflineMediaBinaryCrossChunkColorContinuity,
 } from './offline-media-binary-cross-chunk-color-continuity-evaluation'
+import {
+  OFFLINE_MEDIA_BINARY_LONG_FORM_MASTER_ASSEMBLY_MAGIC,
+  OFFLINE_MEDIA_BINARY_LONG_FORM_MASTER_MAXIMUM_OUTPUT_BYTES,
+  offlineMediaBinaryLongFormMasterAssemblyRequestSha256,
+  validateOfflineMediaBinaryLongFormMasterAssemblyRequest,
+  type OfflineMediaBinaryLongFormMasterAssemblyRequest,
+} from './offline-media-binary-long-form-master-assembly-protocol'
 import type {
   OfflineContinuousProgramAudioQaExecutionResult,
   OfflineCrossChunkColorContinuityExecutionResult,
   OfflineColorPixelAnalysis,
   OfflineFfmpegContinuousProgramAudioExecutionResult,
   OfflineFfmpegMezzanineFinalizationExecutionResult,
+  OfflineFfmpegLongFormMasterAssemblyExecutionResult,
   OfflineFfmpegObjectMezzanineChunkExecutionResult,
   OfflineFfmpegExecutionResult,
   OfflineFfmpegStreamingOutputExecutionResult,
@@ -84,7 +92,7 @@ import {
   OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_OUTPUT_BYTES,
 } from './offline-media-binary-types'
 
-const IMAGE_TAG = 'reeditpro/ffmpeg-lgpl-internal:8.1.2-object-chunk-v5-local' as const
+const IMAGE_TAG = 'reeditpro/ffmpeg-lgpl-internal:8.1.2-object-chunk-v6-local' as const
 const FFPROBE_ENTRYPOINT = '/opt/reeditpro-ffmpeg/bin/ffprobe' as const
 const FFMPEG_ENTRYPOINT = '/opt/reeditpro-ffmpeg/bin/ffmpeg' as const
 const MEZZANINE_FINALIZER_ENTRYPOINT =
@@ -98,6 +106,10 @@ const CONTINUOUS_PROGRAM_AUDIO_ENTRYPOINT =
 const CONTINUOUS_PROGRAM_AUDIO_COMMAND = ['continuous-program-audio-v1'] as const
 const CONTINUOUS_PROGRAM_AUDIO_PROBE_ENTRYPOINT =
   '/usr/local/bin/reeditpro-ffmpeg-continuous-program-audio-probe' as const
+const LONG_FORM_MASTER_ASSEMBLY_ENTRYPOINT =
+  '/usr/local/bin/reeditpro-ffmpeg-long-form-master-assembly' as const
+const LONG_FORM_MASTER_ASSEMBLY_COMMAND =
+  ['long-form-master-assembly-v1'] as const
 const SOURCE_VERSION = '8.1.2' as const
 const SOURCE_SHA256 = '464beb5e7bf0c311e68b45ae2f04e9cc2af88851abb4082231742a74d97b524c' as const
 const STORAGE_ROOT = '/tmp/reeditpro-offline-media-binary-execution-program-audio-v4' as const
@@ -105,6 +117,7 @@ const AUTHORITY_PATH = 'runtime-authority/offline-media-binary-runtime-program-a
 const DOCKER_CONTROL_TIMEOUT_MS = 120_000
 const MAXIMUM_STREAMING_TIMEOUT_MS = 10 * 60_000
 const CONTINUOUS_PROGRAM_AUDIO_TIMEOUT_MS = 60 * 60_000
+const LONG_FORM_MASTER_ASSEMBLY_TIMEOUT_MS = 6 * 60 * 60_000
 
 export interface OfflineMediaBinaryServerInjectedInput {
   inputMode: 'private_verified_stream_v1'
@@ -130,6 +143,7 @@ export interface OfflineMediaBinaryRuntimeAuthority {
     privateInternalObjectMezzanineChunkSeriesReady: true
     privateInternalContinuousProgramAudioReady: true
     privateInternalCrossChunkColorBoundaryReady: true
+    privateInternalLongFormMasterAssemblyReady: true
     productReady: false
     externalBetaReady: false
     productionReady: false
@@ -186,6 +200,14 @@ export interface PrivateOfflineMediaBinaryRuntime {
       right: OfflineMediaBinaryServerInjectedInput
     },
   ): Promise<OfflineCrossChunkColorContinuityExecutionResult>
+  executeLongFormMasterAssemblyServerInjected(
+    request: OfflineMediaBinaryLongFormMasterAssemblyRequest,
+    inputs: {
+      chunks: readonly OfflineMediaBinaryServerInjectedInput[]
+      programAudio: OfflineMediaBinaryServerInjectedInput
+    },
+    outputSink: OfflineMediaBinaryStreamingOutputSink,
+  ): Promise<OfflineFfmpegLongFormMasterAssemblyExecutionResult>
 }
 
 export async function activatePrivateOfflineMediaBinaryRuntime(): Promise<PrivateOfflineMediaBinaryRuntime> {
@@ -255,6 +277,18 @@ export async function activatePrivateOfflineMediaBinaryRuntime(): Promise<Privat
   )) as PrivateOfflineMediaBinaryRuntime[
     'executeCrossChunkColorContinuityServerInjected'
   ]
+  const executeLongFormMasterAssemblyServerInjectedBound = ((
+    request: OfflineMediaBinaryLongFormMasterAssemblyRequest,
+    inputs: {
+      chunks: readonly OfflineMediaBinaryServerInjectedInput[]
+      programAudio: OfflineMediaBinaryServerInjectedInput
+    },
+    outputSink: OfflineMediaBinaryStreamingOutputSink,
+  ) => executeLongFormMasterAssemblyServerInjected(
+    image, request, inputs, outputSink,
+  )) as PrivateOfflineMediaBinaryRuntime[
+    'executeLongFormMasterAssemblyServerInjected'
+  ]
   return Object.freeze({
     image,
     execute: executeBound,
@@ -270,6 +304,8 @@ export async function activatePrivateOfflineMediaBinaryRuntime(): Promise<Privat
       executeContinuousProgramAudioQaServerInjectedBound,
     executeCrossChunkColorContinuityServerInjected:
       executeCrossChunkColorContinuityServerInjectedBound,
+    executeLongFormMasterAssemblyServerInjected:
+      executeLongFormMasterAssemblyServerInjectedBound,
   })
 }
 
@@ -344,6 +380,18 @@ export async function openPrivateOfflineMediaBinaryRuntime(): Promise<PrivateOff
   )) as PrivateOfflineMediaBinaryRuntime[
     'executeCrossChunkColorContinuityServerInjected'
   ]
+  const executeLongFormMasterAssemblyServerInjectedBound = ((
+    request: OfflineMediaBinaryLongFormMasterAssemblyRequest,
+    inputs: {
+      chunks: readonly OfflineMediaBinaryServerInjectedInput[]
+      programAudio: OfflineMediaBinaryServerInjectedInput
+    },
+    outputSink: OfflineMediaBinaryStreamingOutputSink,
+  ) => executeLongFormMasterAssemblyServerInjected(
+    image, request, inputs, outputSink,
+  )) as PrivateOfflineMediaBinaryRuntime[
+    'executeLongFormMasterAssemblyServerInjected'
+  ]
   return Object.freeze({
     image,
     execute: executeBound,
@@ -359,6 +407,8 @@ export async function openPrivateOfflineMediaBinaryRuntime(): Promise<PrivateOff
       executeContinuousProgramAudioQaServerInjectedBound,
     executeCrossChunkColorContinuityServerInjected:
       executeCrossChunkColorContinuityServerInjectedBound,
+    executeLongFormMasterAssemblyServerInjected:
+      executeLongFormMasterAssemblyServerInjectedBound,
   })
 }
 
@@ -385,6 +435,7 @@ Promise<OfflineMediaBinaryRuntimeAuthority | undefined> {
     record(authority.readiness).privateInternalObjectMezzanineChunkSeriesReady !== true ||
     record(authority.readiness).privateInternalContinuousProgramAudioReady !== true ||
     record(authority.readiness).privateInternalCrossChunkColorBoundaryReady !== true ||
+    record(authority.readiness).privateInternalLongFormMasterAssemblyReady !== true ||
     record(authority.readiness).productReady !== false ||
     record(authority.readiness).finalExportReady !== false
   ) throw unavailable('Media binary runtime authority boundary is invalid.')
@@ -815,6 +866,154 @@ async function executeObjectMezzanineChunkServerInjected(
         productReady: false,
         externalBetaReady: false,
         productionReady: false,
+      },
+    }
+  } finally {
+    await outputSpool?.cleanup().catch(() => undefined)
+    await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024)
+      .catch(() => undefined)
+  }
+}
+
+async function executeLongFormMasterAssemblyServerInjected(
+  image: OfflineMediaBinaryImageEvidence,
+  value: unknown,
+  inputs: {
+    chunks: readonly OfflineMediaBinaryServerInjectedInput[]
+    programAudio: OfflineMediaBinaryServerInjectedInput
+  },
+  outputSink: OfflineMediaBinaryStreamingOutputSink,
+): Promise<OfflineFfmpegLongFormMasterAssemblyExecutionResult> {
+  let request: OfflineMediaBinaryLongFormMasterAssemblyRequest
+  try {
+    request = validateOfflineMediaBinaryLongFormMasterAssemblyRequest(value)
+  } catch {
+    throw invalid('Structured long-form master assembly request was rejected.')
+  }
+  assertLongFormMasterAssemblyInputs(request, inputs)
+  if (
+    !outputSink ||
+    outputSink.maximumBytes !==
+      OFFLINE_MEDIA_BINARY_LONG_FORM_MASTER_MAXIMUM_OUTPUT_BYTES ||
+    typeof outputSink.persist !== 'function'
+  ) throw invalid('Long-form master output sink authority is invalid.')
+  const container = await createContainer(
+    image,
+    LONG_FORM_MASTER_ASSEMBLY_ENTRYPOINT,
+    [...LONG_FORM_MASTER_ASSEMBLY_COMMAND],
+  )
+  let outputSpool: DockerVerifiedPrivateOutputSpool | undefined
+  try {
+    const confinement = validateConfinement(
+      await inspectContainer(container.id),
+      image,
+      LONG_FORM_MASTER_ASSEMBLY_ENTRYPOINT,
+      [...LONG_FORM_MASTER_ASSEMBLY_COMMAND],
+    )
+    outputSpool = await dockerVerifiedLongFormMasterToPrivateOutputSpool({
+      args: ['start', '--attach', '--interactive', container.id],
+      containerId: container.id,
+      request,
+      inputs,
+      maximumOutputBytes:
+        OFFLINE_MEDIA_BINARY_LONG_FORM_MASTER_MAXIMUM_OUTPUT_BYTES,
+      timeoutMs: LONG_FORM_MASTER_ASSEMBLY_TIMEOUT_MS,
+    })
+    const state = record((await inspectContainer(container.id)).State)
+    if (
+      outputSpool.exitCode !== 0 || outputSpool.stderr.length > 0 ||
+      outputSpool.byteLength < 1_024 || state.Status !== 'exited' ||
+      state.Running !== false || state.ExitCode !== 0 || state.OOMKilled !== false
+    ) throw unavailable('Confined long-form master assembly failed closed.')
+    const outputProbe = await probeLongFormMasterOutput(
+      image, outputSpool.source, request,
+    )
+    const persisted = await outputSink.persist({
+      stream: await outputSpool.source.openStream(),
+      mimeType: 'video/x-matroska',
+      expectedByteLength: outputSpool.byteLength,
+      expectedSha256: outputSpool.sha256,
+    })
+    if (
+      persisted.byteLength !== outputSpool.byteLength ||
+      persisted.sha256 !== outputSpool.sha256
+    ) throw unavailable('Long-form master sink changed its exact commitment.')
+    const completedAt = new Date().toISOString()
+    const requestEnvelopeSha256 =
+      offlineMediaBinaryLongFormMasterAssemblyRequestSha256(request)
+    const semanticEvidence = Object.freeze({
+      fixedRecipeExecuted: true,
+      recipeProfileId: request.payload.recipeProfileId,
+      everyPrivateInputChecksumVerified: true,
+      chunkCount: request.inputs.chunks.length,
+      orderedVp9ObjectChunksStreamCopied: true,
+      continuousFlacProgramAudioStreamCopied: true,
+      videoOrAudioReencoded: false,
+      completeFrameAndSampleTimelineMuxed: true,
+      outputContainer: 'matroska',
+      outputVideoCodec: 'vp9_stream_copy',
+      outputAudioCodec: 'flac_stream_copy',
+      outputProbeVerified: true,
+      outputProbe,
+      callerPathsAccepted: false,
+      callerUrlsAccepted: false,
+      callerCommandsAccepted: false,
+      callerCodecSettingsAccepted: false,
+      originalApprovedEditReservationUsed: true,
+      separateExportEstimateRequired: false,
+      additionalExportChargeAllowed: false,
+      publicDeliveryAuthorized: false,
+      distributedExecutionProven: false,
+    })
+    const attestationWithoutHash = {
+      domain: 'offline_media_binary_long_form_master_assembly_attestation_v1',
+      completedAt,
+      imageIdentityHash: image.imageIdentityHash,
+      toolId: 'ffmpeg' as const,
+      operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
+      requestEnvelopeSha256,
+      chunkSha256s: request.inputs.chunks.map((chunk) => chunk.sha256),
+      programAudioSha256: request.inputs.programAudio.sha256,
+      resultSha256: outputSpool.sha256,
+      confinement,
+      outputProbe,
+      outputTransport: 'server_committed_private_stream_v1' as const,
+    }
+    const attestationHash = sha256AuthorityValue(attestationWithoutHash)
+    const recordId = sha256AuthorityValue({ attestationHash, completedAt })
+    await writePrivateTextFileAtomicWithinRoot({
+      rootPath: STORAGE_ROOT,
+      relativePath: `attestations/${recordId.slice(0, 2)}/${recordId}.json`,
+      content: `${stableAuthorityStringify({
+        recordVersion:
+          'offline-media-binary-long-form-master-assembly-attestation-record-v1',
+        source: 'private_checksum_protected_long_form_master_assembly',
+        attestation: { ...attestationWithoutHash, recordId, attestationHash },
+        checksumSha256: sha256AuthorityValue({
+          ...attestationWithoutHash, recordId, attestationHash,
+        }),
+      })}\n`,
+    })
+    return {
+      resultArtifact: {
+        mimeType: 'video/x-matroska', sha256: outputSpool.sha256,
+        byteLength: outputSpool.byteLength,
+        outputMode: 'server_committed_private_stream_v1',
+      },
+      evidence: {
+        toolId: 'ffmpeg', operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
+        binaryVersion: SOURCE_VERSION, requestEnvelopeSha256,
+        chunkSha256s: request.inputs.chunks.map((chunk) => chunk.sha256),
+        programAudioSha256: request.inputs.programAudio.sha256,
+        resultSha256: outputSpool.sha256, semanticEvidence, confinement,
+        containerExitCode: 0, oomKilled: false,
+        outputTransport: 'server_committed_private_stream_v1',
+      },
+      image,
+      attestation: { recordId, completedAt, attestationHash },
+      readiness: {
+        privateInternalOnly: true, productReady: false,
+        externalBetaReady: false, productionReady: false,
       },
     }
   } finally {
@@ -2243,6 +2442,107 @@ async function probeObjectMezzanineChunkOutput(
   })).probe
 }
 
+async function probeLongFormMasterOutput(
+  image: OfflineMediaBinaryImageEvidence,
+  source: OfflineMediaBinaryServerInjectedInput,
+  request: OfflineMediaBinaryLongFormMasterAssemblyRequest,
+): Promise<Record<string, unknown>> {
+  const command = [
+    '-v', 'error', '-show_entries',
+    'format=format_name,start_time,duration,size:stream=codec_name,codec_type,start_time,width,height,avg_frame_rate,pix_fmt,color_range,color_space,color_transfer,color_primaries,sample_rate,channels,channel_layout,duration,nb_read_frames',
+    '-count_frames', '-print_format', 'json', '-i', 'pipe:0',
+  ]
+  const container = await createContainer(image, FFPROBE_ENTRYPOINT, command)
+  try {
+    validateConfinement(
+      await inspectContainer(container.id), image, FFPROBE_ENTRYPOINT, command,
+    )
+    const result = await dockerVerifiedInput(
+      ['start', '--attach', '--interactive', container.id], source,
+      2 * 1024 * 1024, LONG_FORM_MASTER_ASSEMBLY_TIMEOUT_MS,
+    )
+    if (result.exitCode !== 0 || result.stderr.length > 0) {
+      throw unavailable('Long-form master output probe failed closed.')
+    }
+    const parsed = record(JSON.parse(result.stdout.toString('utf8')))
+    const format = record(parsed.format)
+    const streams = Array.isArray(parsed.streams) ? parsed.streams.map(record) : []
+    const videos = streams.filter((stream) => stream.codec_type === 'video')
+    const audios = streams.filter((stream) => stream.codec_type === 'audio')
+    const video = videos[0]
+    const audio = audios[0]
+    const expectedDuration = request.payload.totalFrames / request.payload.fps
+    const countedFrames = optionalInteger(video?.nb_read_frames)
+    const containerDuration = optionalNumber(format.duration)
+    const videoDuration = optionalNumber(video?.duration)
+    const actualDuration = containerDuration ?? videoDuration ??
+      (countedFrames === undefined ? undefined : countedFrames / request.payload.fps)
+    const durationAuthority = containerDuration !== undefined
+      ? 'matroska_container_duration_v1'
+      : videoDuration !== undefined
+        ? 'vp9_stream_duration_v1'
+        : 'exact_counted_video_frames_v1'
+    const tolerance = 1 / request.payload.fps + 0.001
+    if (
+      videos.length !== 1 || audios.length !== 1 || !video || !audio ||
+      video.codec_name !== 'vp9' || audio.codec_name !== 'flac' ||
+      !String(format.format_name ?? '').includes('matroska') ||
+      optionalInteger(video.width) !== request.payload.width ||
+      optionalInteger(video.height) !== request.payload.height ||
+      rational(video.avg_frame_rate) !== 30 || video.pix_fmt !== 'yuv420p' ||
+      countedFrames !== request.payload.totalFrames ||
+      video.color_range !== 'tv' || video.color_space !== 'bt709' ||
+      video.color_transfer !== 'bt709' || video.color_primaries !== 'bt709' ||
+      optionalInteger(audio.sample_rate) !== 48_000 ||
+      optionalInteger(audio.channels) !== 2 ||
+      actualDuration === undefined || Math.abs(actualDuration - expectedDuration) > tolerance
+    ) throw unavailable(
+      'Long-form master failed VP9, FLAC, 4K, color, frame-rate, or duration verification.',
+      {
+        videoCount: videos.length,
+        audioCount: audios.length,
+        formatName: safeText(format.format_name),
+        videoCodec: safeText(video?.codec_name),
+        audioCodec: safeText(audio?.codec_name),
+        width: optionalInteger(video?.width),
+        height: optionalInteger(video?.height),
+        frameRate: rational(video?.avg_frame_rate),
+        pixelFormat: safeText(video?.pix_fmt),
+        frameCount: optionalInteger(video?.nb_read_frames),
+        colorRange: safeText(video?.color_range),
+        colorSpace: safeText(video?.color_space),
+        colorTransfer: safeText(video?.color_transfer),
+        colorPrimaries: safeText(video?.color_primaries),
+        sampleRate: optionalInteger(audio?.sample_rate),
+        channels: optionalInteger(audio?.channels),
+        actualDuration,
+        containerDuration,
+        videoDuration,
+        audioDuration: optionalNumber(audio?.duration),
+        durationAuthority,
+        expectedDuration: rounded(expectedDuration),
+        tolerance: rounded(tolerance),
+      },
+    )
+    return {
+      container: 'matroska', videoCodec: 'vp9_stream_copy',
+      audioCodec: 'flac_stream_copy', width: request.payload.width,
+      height: request.payload.height, frameRate: 30, sampleRate: 48_000,
+      frameCount: request.payload.totalFrames,
+      channels: 2, colorRange: 'tv', colorSpace: 'bt709',
+      colorTransfer: 'bt709', colorPrimaries: 'bt709',
+      expectedDurationSeconds: rounded(expectedDuration),
+      actualDurationSeconds: actualDuration,
+      durationAuthority,
+      maximumDurationDriftSeconds: rounded(tolerance),
+      sizeBytes: optionalInteger(format.size),
+    }
+  } finally {
+    await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024)
+      .catch(() => undefined)
+  }
+}
+
 async function probePrivateVp9ObjectChunk(
   image: OfflineMediaBinaryImageEvidence,
   source: OfflineMediaBinaryServerInjectedInput,
@@ -2773,7 +3073,9 @@ async function inspectImage(): Promise<OfflineMediaBinaryImageEvidence> {
     labels['reeditpro.flac-encoding'] !==
       'private_continuous_program_audio_only' ||
     labels['reeditpro.continuous-program-audio'] !==
-      'private_30fps_48khz_source_audio_only'
+      'private_30fps_48khz_source_audio_only' ||
+    labels['reeditpro.long-form-master-assembly'] !==
+      'private_vp9_flac_matroska_stream_copy_only'
   ) throw unavailable('Pinned media image identity or safety labels are invalid.')
   const sourcePolicyHashes = await policyHashes()
   const imageIdentityHash = sha256AuthorityValue({
@@ -2797,6 +3099,8 @@ async function inspectImage(): Promise<OfflineMediaBinaryImageEvidence> {
     objectMezzanineChunk: 'private_all_chunk_vp9_cq12_only',
     flacEncoding: 'private_continuous_program_audio_only',
     continuousProgramAudio: 'private_30fps_48khz_source_audio_only',
+    longFormMasterAssembly:
+      'private_vp9_flac_matroska_stream_copy_only',
     sourcePolicyHashes,
   }
 }
@@ -2819,6 +3123,7 @@ async function persistAuthority(image: OfflineMediaBinaryImageEvidence): Promise
       privateInternalObjectMezzanineChunkSeriesReady: true as const,
       privateInternalContinuousProgramAudioReady: true as const,
       privateInternalCrossChunkColorBoundaryReady: true as const,
+      privateInternalLongFormMasterAssemblyReady: true as const,
       productReady: false as const,
       externalBetaReady: false as const,
       productionReady: false as const,
@@ -2833,6 +3138,7 @@ async function persistAuthority(image: OfflineMediaBinaryImageEvidence): Promise
       'Object-mezzanine chunking is restricted to approved 30 fps private H.264 sources and VP9 CQ12 intermediates.',
       'Continuous program audio is restricted to approved 30 fps source ranges with 48 kHz mono/stereo input and lossless 48 kHz stereo FLAC output.',
       'Cross-chunk color analysis is restricted to adjacent independently QA-passed private VP9 BT.709 chunks and does not mutate media.',
+      'Long-form master assembly is private VP9 and FLAC Matroska stream copy only; customer export codecs and delivery remain blocked.',
     ] as const,
   }
   const authority: OfflineMediaBinaryRuntimeAuthority = {
@@ -2872,13 +3178,15 @@ async function createContainer(
     | typeof MEZZANINE_FINALIZER_ENTRYPOINT
     | typeof OBJECT_MEZZANINE_CHUNK_ENTRYPOINT
     | typeof CONTINUOUS_PROGRAM_AUDIO_ENTRYPOINT
-    | typeof CONTINUOUS_PROGRAM_AUDIO_PROBE_ENTRYPOINT,
+    | typeof CONTINUOUS_PROGRAM_AUDIO_PROBE_ENTRYPOINT
+    | typeof LONG_FORM_MASTER_ASSEMBLY_ENTRYPOINT,
   command: string[],
 ) {
   const largeMediaEntrypoint =
     entrypoint === MEZZANINE_FINALIZER_ENTRYPOINT ||
     entrypoint === OBJECT_MEZZANINE_CHUNK_ENTRYPOINT ||
-    entrypoint === CONTINUOUS_PROGRAM_AUDIO_ENTRYPOINT
+    entrypoint === CONTINUOUS_PROGRAM_AUDIO_ENTRYPOINT ||
+    entrypoint === LONG_FORM_MASTER_ASSEMBLY_ENTRYPOINT
   const memory = largeMediaEntrypoint ? '4g' : '2g'
   const tmpfsSizeBytes = largeMediaEntrypoint ? 1_342_177_280 : 67_108_864
   const created = await dockerBuffer([
@@ -2905,7 +3213,8 @@ function validateConfinement(
     | typeof MEZZANINE_FINALIZER_ENTRYPOINT
     | typeof OBJECT_MEZZANINE_CHUNK_ENTRYPOINT
     | typeof CONTINUOUS_PROGRAM_AUDIO_ENTRYPOINT
-    | typeof CONTINUOUS_PROGRAM_AUDIO_PROBE_ENTRYPOINT,
+    | typeof CONTINUOUS_PROGRAM_AUDIO_PROBE_ENTRYPOINT
+    | typeof LONG_FORM_MASTER_ASSEMBLY_ENTRYPOINT,
   command: string[],
 ): OfflineMediaBinaryConfinementEvidence {
   const host = record(inspect.HostConfig)
@@ -2915,7 +3224,8 @@ function validateConfinement(
   const largeMediaEntrypoint =
     entrypoint === MEZZANINE_FINALIZER_ENTRYPOINT ||
     entrypoint === OBJECT_MEZZANINE_CHUNK_ENTRYPOINT ||
-    entrypoint === CONTINUOUS_PROGRAM_AUDIO_ENTRYPOINT
+    entrypoint === CONTINUOUS_PROGRAM_AUDIO_ENTRYPOINT ||
+    entrypoint === LONG_FORM_MASTER_ASSEMBLY_ENTRYPOINT
   const memoryLimitBytes = largeMediaEntrypoint ? 4_294_967_296 : 2_147_483_648
   const tmpfsSizeBytes = largeMediaEntrypoint ? 1_342_177_280 : 67_108_864
   const tmpfsPolicy = String(tmpfs['/tmp'] ?? '')
@@ -3011,6 +3321,7 @@ async function policyHashes(): Promise<Record<string, string>> {
     'allowed-demuxers.txt', 'allowed-muxers.txt', 'allowed-protocols.txt', 'allowed-bsfs.txt',
     'source-slice-finalizer.sh', 'object-mezzanine-chunk.sh',
     'continuous-program-audio.sh', 'continuous-program-audio-probe.sh',
+    'long-form-master-assembly.sh',
   ]
   return Object.fromEntries(await Promise.all(names.map(async (name) => [name, sha256(await readFile(join(directory, name)))])))
 }
@@ -3130,9 +3441,17 @@ async function dockerVerifiedInput(
     stream?.destroy()
     child.stdin.destroy()
     child.kill('SIGKILL')
-    await resultPromise.catch(() => undefined)
+    const failedResult = await resultPromise.catch(() => undefined)
     if (error instanceof ApiError && error.code === 'TOOL_NOT_READY') throw error
-    throw unavailable('Docker media input stream failed exact size and checksum verification.')
+    throw unavailable(
+      'Docker media input stream failed exact size and checksum verification.',
+      failedResult
+        ? {
+            containerExitCode: failedResult.exitCode,
+            diagnostic: safeFfmpegDiagnostic(failedResult.stderr),
+          }
+        : undefined,
+    )
   }
 }
 
@@ -3144,6 +3463,256 @@ interface DockerVerifiedPrivateOutputSpool {
   signature: Buffer
   source: OfflineMediaBinaryServerInjectedInput
   cleanup(): Promise<void>
+}
+
+function assertLongFormMasterAssemblyInputs(
+  request: OfflineMediaBinaryLongFormMasterAssemblyRequest,
+  inputs: {
+    chunks: readonly OfflineMediaBinaryServerInjectedInput[]
+    programAudio: OfflineMediaBinaryServerInjectedInput
+  },
+): void {
+  if (!Array.isArray(inputs.chunks) ||
+    inputs.chunks.length !== request.inputs.chunks.length) {
+    throw invalid('Server-injected long-form chunk authority is incomplete.')
+  }
+  request.inputs.chunks.forEach((commitment, index) => {
+    assertServerInjectedInput(
+      inputs.chunks[index]!, commitment.byteLength, commitment.sha256,
+    )
+  })
+  assertServerInjectedInput(
+    inputs.programAudio,
+    request.inputs.programAudio.byteLength,
+    request.inputs.programAudio.sha256,
+  )
+}
+
+function longFormMasterAssemblyProtocolStream(
+  request: OfflineMediaBinaryLongFormMasterAssemblyRequest,
+  inputs: {
+    chunks: readonly OfflineMediaBinaryServerInjectedInput[]
+    programAudio: OfflineMediaBinaryServerInjectedInput
+  },
+): Readable {
+  const blockBytes = 16_384
+  assertLongFormMasterAssemblyInputs(request, inputs)
+  const line = (values: readonly (string | number)[]) =>
+    Buffer.from(`${values.join('\t')}\n`, 'utf8')
+  const blocks = async function* (
+    input: OfflineMediaBinaryServerInjectedInput,
+    expectedBytes: number,
+    expectedSha256: string,
+  ) {
+    const stream = await input.openStream()
+    let observed = 0
+    const checksum = createHash('sha256')
+    for await (const chunk of stream) {
+      const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)
+      for (let offset = 0; offset < bytes.byteLength; offset += blockBytes) {
+        const block = bytes.subarray(
+          offset,
+          Math.min(offset + blockBytes, bytes.byteLength),
+        )
+        observed += block.byteLength
+        if (observed > expectedBytes) {
+          throw new Error('Long-form master input exceeded its commitment.')
+        }
+        checksum.update(block)
+        yield block
+      }
+    }
+    if (observed !== expectedBytes || checksum.digest('hex') !== expectedSha256) {
+      throw new Error('Long-form master input changed from its commitment.')
+    }
+  }
+  return Readable.from((async function* () {
+    yield line([OFFLINE_MEDIA_BINARY_LONG_FORM_MASTER_ASSEMBLY_MAGIC])
+    yield line([
+      'timeline', request.payload.width, request.payload.height,
+      request.payload.fps, request.payload.totalFrames,
+      request.inputs.chunks.length, request.inputs.programAudio.byteLength,
+      request.inputs.programAudio.sha256,
+    ])
+    for (let index = 0; index < request.inputs.chunks.length; index += 1) {
+      const chunk = request.inputs.chunks[index]!
+      const plan = request.payload.chunks[index]!
+      yield line([
+        'chunk', chunk.chunkIndex, plan.globalStartFrame,
+        plan.globalEndFrameExclusive, plan.durationFrames,
+        chunk.byteLength, chunk.sha256,
+      ])
+    }
+    yield line(['begin'])
+    for (let index = 0; index < inputs.chunks.length; index += 1) {
+      const commitment = request.inputs.chunks[index]!
+      const videoIterator = blocks(
+        inputs.chunks[index]!, commitment.byteLength, commitment.sha256,
+      )[Symbol.asyncIterator]()
+      while (true) {
+        const video = await videoIterator.next()
+        if (video.done) break
+        yield line(['block', 'video', index + 1, video.value.byteLength])
+        yield video.value
+        yield Buffer.from('\n', 'utf8')
+      }
+      yield line(['close', 'video', index + 1, 0])
+    }
+    yield line(['end', 'protocol', 0, 0])
+  })())
+}
+
+async function dockerVerifiedLongFormMasterToPrivateOutputSpool(input: {
+  args: string[]
+  containerId: string
+  request: OfflineMediaBinaryLongFormMasterAssemblyRequest
+  inputs: {
+    chunks: readonly OfflineMediaBinaryServerInjectedInput[]
+    programAudio: OfflineMediaBinaryServerInjectedInput
+  }
+  maximumOutputBytes: number
+  timeoutMs: number
+}): Promise<DockerVerifiedPrivateOutputSpool> {
+  if (input.maximumOutputBytes !==
+    OFFLINE_MEDIA_BINARY_LONG_FORM_MASTER_MAXIMUM_OUTPUT_BYTES) {
+    throw invalid('Long-form master spool bound is invalid.')
+  }
+  const spoolId = randomBytes(16).toString('hex')
+  const directory = `runtime-output-spools/${spoolId}`
+  const created = await createPrivateDirectoryCreateOnlyWithinRoot({
+    rootPath: STORAGE_ROOT, relativePath: directory,
+  })
+  const artifactPath = `${directory}/artifact.mkv`
+  const invocation = createPrivateDockerCliInvocation(input.args)
+  const child = spawn(invocation.executable, invocation.args, {
+    stdio: ['pipe', 'pipe', 'pipe'], env: invocation.env,
+  })
+  const stderr: Buffer[] = []
+  let stderrBytes = 0
+  const resultPromise = new Promise<{ exitCode: number; stderr: Buffer }>(
+    (resolve, reject) => {
+      const timer = setTimeout(() => {
+        child.kill('SIGKILL')
+        reject(unavailable('Docker long-form master assembly timed out.'))
+      }, input.timeoutMs)
+      child.stderr.on('data', (chunk: Buffer) => {
+        stderrBytes += chunk.byteLength
+        if (stderrBytes > 512 * 1024) child.kill('SIGKILL')
+        else stderr.push(chunk)
+      })
+      child.once('error', (error) => { clearTimeout(timer); reject(error) })
+      child.once('close', (code) => {
+        clearTimeout(timer)
+        if (stderrBytes > 512 * 1024) {
+          reject(unavailable('Long-form master diagnostic exceeded its bound.'))
+        } else resolve({ exitCode: code ?? 1, stderr: Buffer.concat(stderr) })
+      })
+    },
+  )
+  const signature: Buffer[] = []
+  let signatureBytes = 0
+  const output = Readable.from((async function* () {
+    for await (const chunk of child.stdout) {
+      const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)
+      if (signatureBytes < 64) {
+        const part = bytes.subarray(0, Math.min(bytes.byteLength, 64 - signatureBytes))
+        signature.push(Buffer.from(part))
+        signatureBytes += part.byteLength
+      }
+      yield bytes
+    }
+  })())
+  const protocol = longFormMasterAssemblyProtocolStream(input.request, input.inputs)
+  let audioResultPromise:
+    | Promise<{ exitCode: number; stdout: Buffer; stderr: Buffer }>
+    | undefined
+  try {
+    const persistedPromise = writePrivateStreamCreateOnlyWithinRoot({
+      rootPath: STORAGE_ROOT, relativePath: artifactPath, stream: output,
+      maximumBytes: input.maximumOutputBytes,
+    })
+    audioResultPromise = waitForRunningLongFormMasterContainer(input.containerId)
+      .then(() => dockerVerifiedInput(
+        [
+          'exec', '--interactive', input.containerId,
+          LONG_FORM_MASTER_ASSEMBLY_ENTRYPOINT,
+          'long-form-master-audio-writer-v1',
+        ],
+        input.inputs.programAudio,
+        1_024,
+        input.timeoutMs,
+      ))
+    const [, result, persisted, audioResult] = await Promise.all([
+      pipeline(protocol, child.stdin), resultPromise, persistedPromise,
+      audioResultPromise,
+    ])
+    const prefix = Buffer.concat(signature, signatureBytes)
+    if (
+      result.exitCode !== 0 || result.stderr.length > 0 ||
+      audioResult.exitCode !== 0 || audioResult.stdout.length > 0 ||
+      audioResult.stderr.length > 0 ||
+      persisted.byteLength < 1_024 || !isMatroska(prefix)
+    ) throw unavailable(
+      `Long-form master runner failed closed: ${safeFfmpegDiagnostic(result.stderr)}`,
+    )
+    let cleaned = false
+    return {
+      exitCode: result.exitCode, stderr: result.stderr,
+      byteLength: persisted.byteLength, sha256: persisted.checksumSha256,
+      signature: prefix,
+      source: Object.freeze({
+        inputMode: 'private_verified_stream_v1' as const,
+        byteLength: persisted.byteLength,
+        sha256: persisted.checksumSha256,
+        async openStream() {
+          return createPrivateReadStreamWithinRoot({
+            rootPath: STORAGE_ROOT, relativePath: artifactPath,
+          })
+        },
+      }),
+      async cleanup() {
+        if (cleaned) return
+        const removed = await removePrivateDirectoryTreeWithinRoot({
+          rootPath: STORAGE_ROOT, relativePath: directory,
+          expectedIdentity: created.identity,
+        })
+        if (!removed.removed) throw unavailable('Long-form master spool vanished.')
+        cleaned = true
+      },
+    }
+  } catch (error) {
+    protocol.destroy(); child.stdout.destroy(); child.stdin.destroy()
+    child.kill('SIGKILL')
+    void audioResultPromise?.catch(() => undefined)
+    await resultPromise.catch(() => undefined)
+    await removePrivateDirectoryTreeWithinRoot({
+      rootPath: STORAGE_ROOT, relativePath: directory,
+      expectedIdentity: created.identity,
+    }).catch(() => undefined)
+    throw error instanceof ApiError ? error : unavailable(
+      `Long-form master streams failed: ${error instanceof Error ? error.message : 'unknown error'}`,
+    )
+  }
+}
+
+async function waitForRunningLongFormMasterContainer(
+  containerId: string,
+): Promise<void> {
+  if (!/^[a-f0-9]{12,64}$/u.test(containerId)) {
+    throw invalid('Long-form master container identity is invalid.')
+  }
+  for (let attempt = 0; attempt < 100; attempt += 1) {
+    const inspected = await dockerBuffer(
+      ['inspect', '--format', '{{.State.Running}}', containerId],
+      undefined,
+      64,
+    )
+    if (inspected.exitCode === 0 && inspected.stdout.toString('utf8').trim() === 'true') {
+      return
+    }
+    await new Promise<void>((resolve) => setTimeout(resolve, 25))
+  }
+  throw unavailable('Long-form master container did not enter its running state.')
 }
 
 function assertObjectMezzanineChunkServerInjectedInputs(

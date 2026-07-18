@@ -132,14 +132,31 @@ throughput, broad codec support, remaining chunk execution proof, final renderin
 or export. Neither smoke reads user artifacts or unlocks workers, routes,
 previews, public delivery, or production export.
 
+The private long-form master contract and real-media smokes prove the bounded
+2-to-124 chunk, six-hour-capacity assembly surface and one actual two-chunk UHD
+master. Video chunks and continuous program audio enter through independent,
+checksum-verified, fixed-command streams so FFmpeg demuxer pacing cannot
+deadlock the other input. The output is one private Matroska VP9/FLAC master;
+both streams are copied without re-encoding and independently probed through
+all exact video frames:
+
+```bash
+npm run smoke:offline-media-binary-long-form-master-contract
+npm run smoke:offline-media-binary-long-form-master
+```
+
+This is runner evidence, not canonical queue/lease/one-use dispatch, retained
+six-hour execution, final-master QA, Google Cloud, public export, or production
+readiness.
+
 ## SBOM and digest evidence
 
 For a locally built image:
 
 ```bash
-docker image inspect --format '{{.Id}}' reeditpro/ffmpeg-lgpl-internal:8.1.2-object-chunk-v5-local
-docker sbom --format spdx-json reeditpro/ffmpeg-lgpl-internal:8.1.2-object-chunk-v5-local > /tmp/reeditpro-ffmpeg-8.1.2-object-chunk-v5.spdx.json
-sha256sum /tmp/reeditpro-ffmpeg-8.1.2-object-chunk-v5.spdx.json
+docker image inspect --format '{{.Id}}' reeditpro/ffmpeg-lgpl-internal:8.1.2-object-chunk-v6-local
+docker sbom --format spdx-json reeditpro/ffmpeg-lgpl-internal:8.1.2-object-chunk-v6-local > /tmp/reeditpro-ffmpeg-8.1.2-object-chunk-v6.spdx.json
+sha256sum /tmp/reeditpro-ffmpeg-8.1.2-object-chunk-v6.spdx.json
 ```
 
 The builder package lock and runtime binary/config hashes are stored under

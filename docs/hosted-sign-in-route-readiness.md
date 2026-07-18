@@ -16,7 +16,7 @@ This verifier closes the gap between source-level sign-in work and a deployed pa
 
 It does not click Google, follow the provider redirect, submit credentials, create a session, use service-role access, mutate Supabase, upload media, call providers, dispatch workers, render/export, or unlock beta/production.
 
-The verifier itself has passed against a locally served compiled `/Reedkt/` artifact with browser-safe fixture values. A read-only check of the public GitHub Pages host on 2026-07-17 reached the URL but returned `blocked_sign_in_surface_missing`; the current hosted artifact is not the reviewed Google-first build.
+The verifier itself has passed against a locally served compiled `/Reedkt/` artifact with browser-safe fixture values. A read-only check of the public GitHub Pages host on 2026-07-18 reached the URL but returned `blocked_sign_in_surface_missing`; the current hosted artifact is not the reviewed Google-first build.
 
 ## Command
 

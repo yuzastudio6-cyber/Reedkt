@@ -157,6 +157,12 @@ jobs:
           npm run smoke:google-api-gateway-readiness
           npm run smoke:production-api-deployment-contract
           npm run smoke:runtime-api-security
+          npm run smoke:canonical-private-package-state-transaction
+          npm run smoke:canonical-distributed-package-state-port
+          npm run smoke:canonical-distributed-package-state-rpc-adapter
+          npm run smoke:canonical-cloud-dispatch-handoff
+          npm run smoke:canonical-live-google-service-identity-verifier
+          npm run smoke:canonical-cloud-dispatch-outbox-receivers
           npm run typecheck:server
           npm run check:frontend-boundary
           npm run check:secrets

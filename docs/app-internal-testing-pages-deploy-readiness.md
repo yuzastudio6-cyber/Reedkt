@@ -35,7 +35,7 @@ The Google OAuth, gateway browser transport, guarded backend activation, and Pag
 
 Edit Preferences/Edit Reference and Motion Studio remain separately owned. This deployment bridge does not implement, rewrite, or claim their UI/backend contracts; a later reviewed integration SHA must include their verified handoffs before a whole-product release test.
 
-A read-only browser check on 2026-07-17 reached the current GitHub Pages URL but found no current ReEditPro sign-in card. Its status is `blocked_sign_in_surface_missing`, confirming that the public test artifact is stale or incorrect and must not be used for Gmail testing yet.
+A read-only browser check on 2026-07-18 reached the current GitHub Pages URL but found no current ReEditPro sign-in card. Its status is `blocked_sign_in_surface_missing`, confirming that the public test artifact is stale or incorrect and must not be used for Gmail testing yet.
 
 ## Sign-In Test Path
 

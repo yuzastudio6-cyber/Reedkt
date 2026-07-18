@@ -2,7 +2,7 @@
 
 Status: `source_contract_and_guarded_activation_workflow_ready_remote_gateway_and_signed_in_journey_blocked`
 
-Checked: 2026-07-17
+Checked: 2026-07-18
 
 ## Outcome
 
@@ -42,7 +42,7 @@ npm run staging:verify-google-api-gateway-readiness
 
 It runs only `gcloud ... list`, `describe`, and `get-iam-policy` probes. It never enables an API, creates a resource, changes IAM, deploys, contacts Supabase, calls a provider, charges billing, or prints environment values or raw IAM principals. Audit mode exits successfully with a blocked report so evidence can be collected safely; set `REEDITPRO_REQUIRE_GATEWAY_READY=true` only when a CI gate should fail on any blocker.
 
-The 2026-07-17 sanitized report confirms:
+The 2026-07-18 sanitized report confirms:
 
 - The exact `reeditpro-api-staging` Cloud Run service resolves in `us-east1`, is Ready, and uses the expected runtime service account.
 - No `allUsers` or `allAuthenticatedUsers` invoker is present in the Cloud Run service-level IAM policy. That is the correct private posture; broader project-level IAM still requires explicit verification during activation.
@@ -66,7 +66,7 @@ The workflow cannot run on push, pull request, or schedule. A staging environmen
 - positive numeric Secret Manager versions for `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, and `REEDITPRO_INTERNAL_SERVICE_TOKEN`—never `latest`;
 - keyless GitHub OIDC/Workload Identity configuration, the exact staging app origin, the public staging Supabase origin, and the exact expected legacy private invoker through the protected `staging` environment.
 
-Before mutation it proves the workflow dispatch itself and the checked-out source both use the exact reviewed branch tip SHA, runs the source security suite, checks the current Cloud Run revision/runtime identity, rejects every project-level `roles/run.invoker` binding, rejects public or unexpected service-level invokers, verifies the four pinned secret versions without reading their values, and accepts only an all-public-key ES256/RS256 Supabase JWKS. A legacy/shared-secret Supabase signing configuration therefore fails before API enablement.
+Before mutation it proves the workflow dispatch itself and the checked-out source both use the exact reviewed branch tip SHA, runs the source security suite, checks the current Cloud Run revision/runtime identity, rejects every project-level `roles/run.invoker` binding, rejects public or unexpected service-level invokers, verifies the four pinned secret versions without reading their values, and accepts only an all-public-key ES256/RS256 Supabase JWKS. The source suite now explicitly includes the single-host package transaction, database-neutral distributed package-state contract, locked seven-function RPC adapter, all-50-tool cloud dispatch handoff, live-Google verifier adapter, and controller/worker receiver contracts. These are source/fail-closed proofs only; they do not activate SQL, a live RPC client, workers, or Google dispatch. A legacy/shared-secret Supabase signing configuration therefore fails before API enablement.
 
 Only after that preflight can it:
 
@@ -110,6 +110,12 @@ Google documents that API Gateway can validate user JWTs from a configured issue
 npm run smoke:google-api-gateway-browser-transport
 npm run smoke:google-api-gateway-readiness
 npm run smoke:google-api-gateway-staging-activation
+npm run smoke:canonical-private-package-state-transaction
+npm run smoke:canonical-distributed-package-state-port
+npm run smoke:canonical-distributed-package-state-rpc-adapter
+npm run smoke:canonical-cloud-dispatch-handoff
+npm run smoke:canonical-live-google-service-identity-verifier
+npm run smoke:canonical-cloud-dispatch-outbox-receivers
 npm run staging:verify-google-api-gateway-readiness
 npm run typecheck:server
 ```

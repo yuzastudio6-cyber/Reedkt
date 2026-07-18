@@ -116,7 +116,8 @@ customer charge, credit spend, or wallet mutation was added or executed.
 
 ## Focused Evidence
 
-`npm run smoke:canonical-cloud-dispatch-outbox-receivers` now passes 21 assertions,
+`npm run smoke:canonical-cloud-dispatch-outbox-receivers` now passes 31 checks;
+the completion subset includes:
 including:
 
 - one completion reconciliation and one exact concurrent replay;

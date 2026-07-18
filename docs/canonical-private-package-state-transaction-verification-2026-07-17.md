@@ -216,9 +216,10 @@ The focused transaction smoke now passes `51` checks.
 `npm run smoke:private-local-persistence`, and `npm run typecheck:server` also
 pass after the integration.
 
-## Aggregate Verification
+## Historical Aggregate Verification
 
-The current exact-code full internal pipeline passed all `32/32` stages with
+Before the durable-start/finalizer follow-up, the full internal pipeline passed
+all `32/32` stages with
 exit code `0` under schema `canonical-private-pipeline-verification-v13`. It
 started at `2026-07-17T21:17:11.077Z`, finished at
 `2026-07-17T21:47:27.541Z`, and completed in `1,816,464 ms`.
@@ -231,6 +232,10 @@ completed the bounded 27-job maximum-eight-source signed-in private review in
 `357,508 ms` and preserved exactly 50 canonical E2E plus 50 job-adapter
 identities. Distributed database/cloud authority and all production-only gates
 remained false.
+
+That v13 report is historical for the newer attempt-start/finalizer source. The
+51-check transaction smoke, 31-check receiver smoke, and focused cost/type/lint
+checks are current; the v14 aggregate has not yet been run.
 
 The preceding exact-code v12 pipeline also passed all `32/32` stages. Its
 timeout-aware receiver completed in `1,577 ms`, and its maximum-eight-source
@@ -300,11 +305,14 @@ staging must then prove rollback, duplicate delivery, worker death, retry,
 dead-letter reconciliation, regional private object transport, live Google
 OIDC/key rotation, Invoker/Jobs Developer IAM, observability, and recovery.
 
-Before a deployed worker-death observer can reconcile a hard crash, the runtime
-also needs a durable attempt-start/cost binding and a controller-owned timeout
-finalizer. The current create-only meter proves exact terminal evidence for the
-explicitly metered private workloads, but a worker that dies before finalizing
-that evidence correctly leaves timeout reconciliation blocked.
+The follow-up private runtime now persists a durable attempt-start/cost binding
+and provides a controller-owned package timeout finalizer for the explicitly
+metered DeepFilterNet, Remotion, and FFmpeg workloads. A worker that dies after
+that start but before terminal evidence can therefore be reconciled on one host
+without caller-selected job identity. Unmetered tools remain blocked, and a
+deployed distributed worker-death observer, database transaction/RPC, and
+multi-replica proof are still required. See
+`docs/canonical-private-worker-timeout-finalizer-verification-2026-07-17.md`.
 
 The local claim, completion, failure, and accepted-worker timeout write-ahead proofs are
 production-architecture

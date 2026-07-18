@@ -1,5 +1,6 @@
 import { ApiError } from '../errors/api-error'
 import {
+  assertCanonicalServiceIdentityEvidence,
   assertCanonicalCloudDispatchOutboxCurrentAttempt,
   assertCanonicalCloudDispatchWorkerFailureReceiptReplay,
   assertCanonicalCloudDispatchWorkerTimeoutReceiptReplay,
@@ -29,8 +30,9 @@ import {
 import type {
   CanonicalPrivatePackageWorkQueueEntry,
 } from '../validation/canonical-private-package-work-queue-schemas'
-import type {
-  CanonicalVerifiedServiceIdentity,
+import {
+  assertCanonicalVerifiedServiceIdentity,
+  type CanonicalVerifiedServiceIdentity,
 } from '../security/canonical-service-identity-verifier'
 import {
   readPrivateInternalAttemptCostEvidence,
@@ -44,6 +46,7 @@ import {
   acceptPrivateCanonicalCloudDispatchController,
   acceptPrivateCanonicalCloudDispatchWorker,
   readPrivateCanonicalCloudDispatchOutbox,
+  readPrivateCanonicalCloudDispatchOutboxForPackageStateTransaction,
   type CanonicalCloudDispatchOutboxStoreScope,
 } from './private-canonical-cloud-dispatch-outbox-store'
 import {
@@ -55,11 +58,19 @@ import {
 import {
   reconcilePrivateCanonicalCloudDispatchFailure,
 } from './private-canonical-cloud-dispatch-failure-transaction-store'
+import { sha256AuthorityValue } from './private-edit-authority-store'
+import {
+  finalizePrivateCanonicalCloudDispatchTimedOutAttemptCost,
+  readPrivateCanonicalCloudDispatchAttemptStart,
+  recordPrivateCanonicalCloudDispatchAttemptStart,
+} from './private-canonical-cloud-dispatch-attempt-start-store'
 import {
   reconcilePrivateCanonicalCloudDispatchTimeout,
 } from './private-canonical-cloud-dispatch-timeout-transaction-store'
-import type { CanonicalPrivatePackageStateFaultStage } from
-  './private-canonical-package-state-transaction'
+import {
+  withCanonicalPrivatePackageStateLock,
+  type CanonicalPrivatePackageStateFaultStage,
+} from './private-canonical-package-state-transaction'
 
 export interface CanonicalPrivateCloudDispatchReceiverEvidence {
   aggregateHash: string
@@ -90,6 +101,10 @@ export interface CanonicalPrivateCloudDispatchReceiverEvidence {
   acceptedWorkerTimeoutReconciliationVerified: true
   timeoutQueueAndOutboxWriteAheadCommitVerified: true
   timeoutAttemptCostEvidenceLoadedFromPrivateStore: true
+  durableAttemptStartCostBindingVerified: true
+  controllerOwnedTimeoutFinalizerVerified: true
+  automaticTimeoutRetryStarted: false
+  distributedWorkerDeathObserverVerified: false
   callerSuppliedTimeoutCostHashAccepted: false
   crossProcessAtomicClaimProven: true
   distributedOutboxTransactionVerified: false
@@ -99,6 +114,42 @@ export interface CanonicalPrivateCloudDispatchReceiverEvidence {
   workerExecutionAuthorized: false
   cloudDispatchAuthorized: false
   productionAuthority: false
+}
+
+export interface CanonicalPrivateCloudDispatchTimeoutFinalizerResult {
+  status: 'no_expired_attempts' | 'completed' | 'blocked'
+  observedAt: string
+  expiredCandidateCount: number
+  selectedCandidateCount: number
+  reconciledCount: number
+  exactReplayCount: number
+  blockedCount: number
+  unresolvedCandidateCount: number
+  outcomes: Array<{
+    dispatchIntentId: string
+    disposition: 'reconciled' | 'exact_replay' | 'blocked'
+    requiredGate: string | null
+    durableAttemptStartEvidenceHash: string | null
+    attemptInternalCostEvidenceHash: string | null
+    terminalCostCreatedByFinalizer: boolean
+  }>
+  boundaries: {
+    packageScopeSelectedByServer: true
+    dispatchIntentSelectedByController: true
+    durableAttemptStartRequired: true
+    attemptCostFinalizedAtImmutableLeaseExpiry: true
+    automaticRetryStarted: false
+    customerCommercialAuthorityIncluded: false
+    distributedWorkerDeathObserverVerified: false
+    cloudCallPerformed: false
+    productionAuthority: false
+  }
+}
+
+interface TimeoutAttemptCostResolution {
+  evidenceHash: string
+  durableAttemptStartEvidenceHash: string | null
+  terminalCostCreatedFromAttemptStart: boolean
 }
 
 export function createCanonicalPrivateCloudDispatchReceiverService(input: {
@@ -151,6 +202,98 @@ export function createCanonicalPrivateCloudDispatchReceiverService(input: {
     approvedPlanSnapshotId: input.queueDefinition.identity.approvedPlanSnapshotId,
   }
   const queueScope: CanonicalPrivatePackageWorkQueueStoreScope = { ...scope }
+
+  type TimeoutRequest = {
+    dispatchIntentId: string
+    verifiedIdentity: CanonicalVerifiedServiceIdentity
+    faultInjectionForSmoke?: (stage: CanonicalPrivatePackageStateFaultStage) => void
+  }
+
+  const reconcileWorkerTimeoutAt = async (
+    request: TimeoutRequest,
+    timestamp: string,
+    onCostResolved?: (resolution: TimeoutAttemptCostResolution) => void,
+  ) => {
+    if (Object.prototype.hasOwnProperty.call(
+      request,
+      'attemptInternalCostEvidenceHash',
+    )) {
+      throw new ApiError(
+        'VALIDATION_FAILED',
+        'Worker timeout reconciliation does not accept caller-supplied cost evidence hashes.',
+        400,
+        {
+          requiredGate:
+            'canonical_cloud_dispatch_server_resolved_timeout_cost_evidence',
+        },
+      )
+    }
+    const result = await reconcilePrivateCanonicalCloudDispatchTimeout({
+      scope,
+      definition: input.queueDefinition,
+      manifest: input.manifest,
+      dispatchIntentId: request.dispatchIntentId,
+      resolveAttemptInternalCostEvidenceHash: async ({
+        outboxEntry,
+        queueEntry,
+        expectedEvidenceHash,
+      }) => {
+        const resolution = await requirePersistedTimeoutAttemptCostEvidence({
+          scope,
+          definition: input.queueDefinition,
+          manifest: input.manifest,
+          outboxEntry,
+          queueEntry,
+          expectedEvidenceHash,
+          timedOutAt: timestamp,
+        })
+        onCostResolved?.(resolution)
+        return resolution.evidenceHash
+      },
+      now: timestamp,
+      buildReceipt: ({
+        entry,
+        timeoutEvidence,
+        queueRelease,
+        timedOutAt,
+      }) => createCanonicalCloudDispatchWorkerTimeoutReceipt({
+        entry,
+        timeoutEvidence,
+        queueRelease,
+        verifiedIdentity: request.verifiedIdentity,
+        expectedAudience: controllerAudience,
+        now: timestamp,
+        timedOutAt,
+        privateContractFixtureAllowed: true,
+        trustedJwksContractFixtureAllowed: true,
+        trustedGoogleVerifierOutputAllowed: false,
+      }),
+      validateReplayReceipt: ({ entry }) =>
+        assertCanonicalCloudDispatchWorkerTimeoutReceiptReplay({
+          entry,
+          attemptInternalCostEvidenceHash:
+            entry.timeoutReceipt?.attemptInternalCostEvidenceHash ?? '',
+          verifiedIdentity: request.verifiedIdentity,
+          expectedAudience: controllerAudience,
+          now: timestamp,
+          privateContractFixtureAllowed: true,
+          trustedJwksContractFixtureAllowed: true,
+          trustedGoogleVerifierOutputAllowed: false,
+        }),
+      faultInjectionForSmoke: request.faultInjectionForSmoke,
+    })
+    return {
+      disposition: result.disposition,
+      queueDisposition: result.queueDisposition,
+      retryDisposition: result.retryDisposition,
+      remainingAttempts: result.remainingAttempts,
+      approvedMaxAttempts: result.approvedMaxAttempts,
+      receipt: result.timeoutReceipt,
+      outboxState: result.outboxEntry.state,
+      recovery: result.recovery,
+      boundaries: result.boundaries,
+    }
+  }
 
   return {
     async enqueueApprovedAttempt(request: { jobId: string }) {
@@ -301,6 +444,47 @@ export function createCanonicalPrivateCloudDispatchReceiverService(input: {
       }
     },
 
+    async beginWorkerExecutionAttempt(request: {
+      dispatchIntentId: string
+      verifiedIdentity: CanonicalVerifiedServiceIdentity
+    }) {
+      assertExactOwnRequestKeys(
+        request,
+        ['dispatchIntentId', 'verifiedIdentity'],
+        'worker attempt start',
+      )
+      const timestamp = now().toISOString()
+      const result = await recordPrivateCanonicalCloudDispatchAttemptStart({
+        scope,
+        definition: input.queueDefinition,
+        manifest: input.manifest,
+        dispatchIntentId: request.dispatchIntentId,
+        now: timestamp,
+        validateAcceptedWorker: (entry) =>
+          assertAcceptedWorkerStartIdentity({
+            entry,
+            verifiedIdentity: request.verifiedIdentity,
+            expectedAudience: workerReceiverAudience,
+            now: timestamp,
+          }),
+      })
+      return {
+        disposition: result.disposition,
+        attemptStart: result.evidence,
+        packageStateRecoveryPerformed: result.packageStateRecoveryPerformed,
+        boundaries: {
+          contractOnly: true as const,
+          privateLocalCreateOnly: true as const,
+          exactAcceptedWorkerAttemptRequired: true as const,
+          durableRuntimeCostStartRecorded: true as const,
+          toolOrMediaOutcomeClaimed: false as const,
+          customerCommercialAuthorityIncluded: false as const,
+          cloudExecutionAuthorized: false as const,
+          productionAuthority: false as const,
+        },
+      }
+    },
+
     async reconcileWorkerCompletion(request: {
       dispatchIntentId: string
       completionEvidence: CanonicalCloudDispatchWorkerCompletionEvidence
@@ -398,81 +582,102 @@ export function createCanonicalPrivateCloudDispatchReceiverService(input: {
       verifiedIdentity: CanonicalVerifiedServiceIdentity
       faultInjectionForSmoke?: (stage: CanonicalPrivatePackageStateFaultStage) => void
     }) {
-      if (Object.prototype.hasOwnProperty.call(
+      return reconcileWorkerTimeoutAt(request, now().toISOString())
+    },
+
+    async finalizeExpiredWorkerTimeouts(request: {
+      verifiedIdentity: CanonicalVerifiedServiceIdentity
+    }): Promise<CanonicalPrivateCloudDispatchTimeoutFinalizerResult> {
+      assertExactOwnRequestKeys(
         request,
-        'attemptInternalCostEvidenceHash',
-      )) {
-        throw new ApiError(
-          'VALIDATION_FAILED',
-          'Worker timeout reconciliation does not accept caller-supplied cost evidence hashes.',
-          400,
-          {
-            requiredGate:
-              'canonical_cloud_dispatch_server_resolved_timeout_cost_evidence',
-          },
-        )
-      }
+        ['verifiedIdentity'],
+        'worker timeout finalizer',
+      )
       const timestamp = now().toISOString()
-      const result = await reconcilePrivateCanonicalCloudDispatchTimeout({
+      assertControllerFinalizerIdentity({
+        manifest: input.manifest,
+        verifiedIdentity: request.verifiedIdentity,
+        expectedAudience: controllerAudience,
+        now: timestamp,
+      })
+      const candidates = await selectExpiredAcceptedWorkerAttempts({
         scope,
         definition: input.queueDefinition,
-        manifest: input.manifest,
-        dispatchIntentId: request.dispatchIntentId,
-        resolveAttemptInternalCostEvidenceHash: async ({
-          outboxEntry,
-          queueEntry,
-          expectedEvidenceHash,
-        }) => requirePersistedTimeoutAttemptCostEvidence({
-          localStorageRoot: input.context.env.localStorageRoot,
-          definition: input.queueDefinition,
-          manifest: input.manifest,
-          outboxEntry,
-          queueEntry,
-          expectedEvidenceHash,
-          timedOutAt: timestamp,
-        }),
         now: timestamp,
-        buildReceipt: ({
-          entry,
-          timeoutEvidence,
-          queueRelease,
-          timedOutAt,
-        }) => createCanonicalCloudDispatchWorkerTimeoutReceipt({
-          entry,
-          timeoutEvidence,
-          queueRelease,
-          verifiedIdentity: request.verifiedIdentity,
-          expectedAudience: controllerAudience,
-          now: timestamp,
-          timedOutAt,
-          privateContractFixtureAllowed: true,
-          trustedJwksContractFixtureAllowed: true,
-          trustedGoogleVerifierOutputAllowed: false,
-        }),
-        validateReplayReceipt: ({ entry }) =>
-          assertCanonicalCloudDispatchWorkerTimeoutReceiptReplay({
-            entry,
-            attemptInternalCostEvidenceHash:
-              entry.timeoutReceipt?.attemptInternalCostEvidenceHash ?? '',
-            verifiedIdentity: request.verifiedIdentity,
-            expectedAudience: controllerAudience,
-            now: timestamp,
-            privateContractFixtureAllowed: true,
-            trustedJwksContractFixtureAllowed: true,
-            trustedGoogleVerifierOutputAllowed: false,
-          }),
-        faultInjectionForSmoke: request.faultInjectionForSmoke,
       })
+      const outcomes: CanonicalPrivateCloudDispatchTimeoutFinalizerResult['outcomes'] = []
+      for (const candidate of candidates.selected) {
+        const start = await readPrivateCanonicalCloudDispatchAttemptStart({
+          scope,
+          dispatchIntentId: candidate.dispatchIntentId,
+        })
+        let costResolution: TimeoutAttemptCostResolution | undefined
+        try {
+          const result = await reconcileWorkerTimeoutAt({
+            dispatchIntentId: candidate.dispatchIntentId,
+            verifiedIdentity: request.verifiedIdentity,
+          }, timestamp, (resolution) => {
+            costResolution = resolution
+          })
+          outcomes.push({
+            dispatchIntentId: candidate.dispatchIntentId,
+            disposition: result.disposition,
+            requiredGate: null,
+            durableAttemptStartEvidenceHash: start?.evidenceHash ?? null,
+            attemptInternalCostEvidenceHash:
+              result.receipt.attemptInternalCostEvidenceHash,
+            terminalCostCreatedByFinalizer:
+              costResolution?.terminalCostCreatedFromAttemptStart ?? false,
+          })
+        } catch (error) {
+          if (error instanceof ApiError && error.code === 'JOB_DEPENDENCY_NOT_READY') {
+            outcomes.push({
+              dispatchIntentId: candidate.dispatchIntentId,
+              disposition: 'blocked',
+              requiredGate: requiredGateFromApiError(error) ??
+                'canonical_cloud_dispatch_durable_attempt_start',
+              durableAttemptStartEvidenceHash: start?.evidenceHash ?? null,
+              attemptInternalCostEvidenceHash: null,
+              terminalCostCreatedByFinalizer: false,
+            })
+            continue
+          }
+          throw error
+        }
+      }
+      const reconciledCount = outcomes.filter((outcome) =>
+        outcome.disposition === 'reconciled').length
+      const exactReplayCount = outcomes.filter((outcome) =>
+        outcome.disposition === 'exact_replay').length
+      const blockedCount = outcomes.filter((outcome) =>
+        outcome.disposition === 'blocked').length
+      const unresolvedCandidateCount = blockedCount +
+        Math.max(0, candidates.total - candidates.selected.length)
       return {
-        disposition: result.disposition,
-        queueDisposition: result.queueDisposition,
-        retryDisposition: result.retryDisposition,
-        remainingAttempts: result.remainingAttempts,
-        approvedMaxAttempts: result.approvedMaxAttempts,
-        receipt: result.timeoutReceipt,
-        outboxState: result.outboxEntry.state,
-        recovery: result.recovery,
-        boundaries: result.boundaries,
+        status: candidates.total === 0
+          ? 'no_expired_attempts'
+          : unresolvedCandidateCount > 0
+            ? 'blocked'
+            : 'completed',
+        observedAt: timestamp,
+        expiredCandidateCount: candidates.total,
+        selectedCandidateCount: candidates.selected.length,
+        reconciledCount,
+        exactReplayCount,
+        blockedCount,
+        unresolvedCandidateCount,
+        outcomes,
+        boundaries: {
+          packageScopeSelectedByServer: true,
+          dispatchIntentSelectedByController: true,
+          durableAttemptStartRequired: true,
+          attemptCostFinalizedAtImmutableLeaseExpiry: true,
+          automaticRetryStarted: false,
+          customerCommercialAuthorityIncluded: false,
+          distributedWorkerDeathObserverVerified: false,
+          cloudCallPerformed: false,
+          productionAuthority: false,
+        },
       }
     },
 
@@ -518,6 +723,10 @@ export function createCanonicalPrivateCloudDispatchReceiverService(input: {
         acceptedWorkerTimeoutReconciliationVerified: true,
         timeoutQueueAndOutboxWriteAheadCommitVerified: true,
         timeoutAttemptCostEvidenceLoadedFromPrivateStore: true,
+        durableAttemptStartCostBindingVerified: true,
+        controllerOwnedTimeoutFinalizerVerified: true,
+        automaticTimeoutRetryStarted: false,
+        distributedWorkerDeathObserverVerified: false,
         callerSuppliedTimeoutCostHashAccepted: false,
         crossProcessAtomicClaimProven: true,
         distributedOutboxTransactionVerified: false,
@@ -676,6 +885,10 @@ function receiverBoundaries() {
     acceptedWorkerTimeoutReconciliationVerified: true as const,
     timeoutQueueAndOutboxWriteAheadCommitVerified: true as const,
     timeoutAttemptCostEvidenceLoadedFromPrivateStore: true as const,
+    durableAttemptStartCostBindingVerified: true as const,
+    controllerOwnedTimeoutFinalizerVerified: true as const,
+    automaticTimeoutRetryStarted: false as const,
+    distributedWorkerDeathObserverVerified: false as const,
     callerSuppliedTimeoutCostHashAccepted: false as const,
     networkCallPerformed: false as const,
     cloudTaskCreated: false as const,
@@ -698,31 +911,208 @@ function boundedLeaseDurationMs(value: number): number {
   return Math.max(1_000, Math.min(86_400_000, Math.floor(value)))
 }
 
+function assertAcceptedWorkerStartIdentity(input: {
+  entry: CanonicalCloudDispatchOutboxEntry
+  verifiedIdentity: CanonicalVerifiedServiceIdentity
+  expectedAudience: string
+  now: string
+}): void {
+  const receipt = input.entry.workerReceipt
+  if (!receipt) {
+    throw new ApiError(
+      'INTERNAL_SERVICE_AUTH_INVALID',
+      'Accepted worker identity is unavailable for attempt start.',
+      401,
+    )
+  }
+  const verified = assertCanonicalVerifiedServiceIdentity(input.verifiedIdentity)
+  const evidence = assertCanonicalServiceIdentityEvidence({
+    value: verified,
+    expectedMechanism: 'google_cloud_run_workload_identity',
+    expectedPrincipalEmail: input.entry.immutable.workerServiceAccountEmail,
+    expectedAudience: input.expectedAudience,
+    now: input.now,
+    privateContractFixtureAllowed: true,
+    trustedJwksContractFixtureAllowed: true,
+    trustedGoogleVerifierOutputAllowed: false,
+  })
+  if (
+    receipt.identity.verificationMode !== evidence.verificationMode ||
+    receipt.identity.authenticationMechanism !== evidence.authenticationMechanism ||
+    receipt.identity.verifierId !== evidence.verifierId ||
+    receipt.identity.issuerHash !== sha256AuthorityValue(evidence.issuer) ||
+    receipt.identity.subjectHash !== sha256AuthorityValue(evidence.subject) ||
+    receipt.identity.principalEmailHash !==
+      sha256AuthorityValue(evidence.principalEmail) ||
+    receipt.identity.audienceHash !== sha256AuthorityValue(evidence.audience)
+  ) {
+    throw new ApiError(
+      'INTERNAL_SERVICE_AUTH_INVALID',
+      'Attempt-start identity does not match the accepted worker principal.',
+      401,
+    )
+  }
+}
+
+function assertControllerFinalizerIdentity(input: {
+  manifest: CanonicalCloudWorkerDispatchHandoffManifest
+  verifiedIdentity: CanonicalVerifiedServiceIdentity
+  expectedAudience: string
+  now: string
+}): void {
+  const principals = [...new Set(input.manifest.entries.flatMap((entry) =>
+    entry.taskOidcServiceAccountEmail ? [entry.taskOidcServiceAccountEmail] : []))]
+  if (principals.length !== 1) {
+    throw new ApiError(
+      'IDEMPOTENCY_ATOMICITY_REQUIRED',
+      'Timeout finalizer requires one server-owned controller service principal.',
+      503,
+    )
+  }
+  const verified = assertCanonicalVerifiedServiceIdentity(input.verifiedIdentity)
+  assertCanonicalServiceIdentityEvidence({
+    value: verified,
+    expectedMechanism: 'google_oidc_id_token',
+    expectedPrincipalEmail: principals[0]!,
+    expectedAudience: input.expectedAudience,
+    now: input.now,
+    privateContractFixtureAllowed: true,
+    trustedJwksContractFixtureAllowed: true,
+    trustedGoogleVerifierOutputAllowed: false,
+  })
+}
+
+async function selectExpiredAcceptedWorkerAttempts(input: {
+  scope: CanonicalPrivatePackageWorkQueueStoreScope &
+    CanonicalCloudDispatchOutboxStoreScope
+  definition: CanonicalPrivatePackageWorkQueueDefinition
+  now: string
+}): Promise<{
+  total: number
+  selected: Array<{ dispatchIntentId: string; expiresAt: string }>
+}> {
+  const observedAt = Date.parse(input.now)
+  if (!Number.isFinite(observedAt)) {
+    throw new ApiError('VALIDATION_FAILED', 'Timeout finalizer time is invalid.', 400)
+  }
+  return withCanonicalPrivatePackageStateLock({
+    scope: input.scope,
+    operation: async (lockAuthority) => {
+      const queue = await readPrivateCanonicalPackageWorkQueueForPackageStateTransaction(
+        lockAuthority,
+        input.scope,
+        input.definition,
+      )
+      const outbox = await readPrivateCanonicalCloudDispatchOutboxForPackageStateTransaction(
+        lockAuthority,
+        input.scope,
+      )
+      if (!queue || !outbox) {
+        throw new ApiError(
+          'JOB_NOT_FOUND',
+          'Timeout finalizer requires the canonical package queue and dispatch outbox.',
+          404,
+        )
+      }
+      const candidates: Array<{ dispatchIntentId: string; expiresAt: string }> = []
+      for (const entry of outbox.entries) {
+        if (entry.state !== 'worker_identity_accepted') continue
+        const queueEntry = queue.entries.find((candidate) =>
+          candidate.definition.jobId === entry.immutable.jobId)
+        const claim = queueEntry?.activeClaim
+        if (
+          !queueEntry || queueEntry.state !== 'leased' || !claim ||
+          claim.claimId !== entry.immutable.queueClaimId ||
+          claim.claimHash !== entry.immutable.queueClaimHash ||
+          claim.deliveryAttempt !== entry.immutable.packageDeliveryAttempt ||
+          claim.expiresAt !== entry.immutable.queueClaimExpiresAt
+        ) {
+          throw new ApiError(
+            'IDEMPOTENCY_ATOMICITY_REQUIRED',
+            'Accepted-worker timeout candidate no longer matches the active package claim.',
+            503,
+          )
+        }
+        if (Date.parse(claim.expiresAt) <= observedAt) {
+          candidates.push({
+            dispatchIntentId: entry.immutable.dispatchIntentId,
+            expiresAt: claim.expiresAt,
+          })
+        }
+      }
+      candidates.sort((left, right) =>
+        left.expiresAt.localeCompare(right.expiresAt) ||
+        left.dispatchIntentId.localeCompare(right.dispatchIntentId))
+      return { total: candidates.length, selected: candidates.slice(0, 32) }
+    },
+  })
+}
+
+function requiredGateFromApiError(error: ApiError): string | null {
+  if (!error.details || typeof error.details !== 'object' || Array.isArray(error.details)) {
+    return null
+  }
+  const value = (error.details as { requiredGate?: unknown }).requiredGate
+  return typeof value === 'string' && /^[a-z0-9_:-]{1,160}$/u.test(value)
+    ? value
+    : null
+}
+
+function assertExactOwnRequestKeys(
+  value: unknown,
+  expectedKeys: string[],
+  label: string,
+): void {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new ApiError('VALIDATION_FAILED', `Cloud-dispatch ${label} request is invalid.`, 400)
+  }
+  const keys = Reflect.ownKeys(value)
+  const expected = [...expectedKeys].sort()
+  const actual = keys.filter((key): key is string => typeof key === 'string').sort()
+  if (
+    actual.length !== keys.length ||
+    actual.length !== expected.length ||
+    actual.some((key, index) => key !== expected[index])
+  ) {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      `Cloud-dispatch ${label} accepts only its server-owned identity inputs.`,
+      400,
+    )
+  }
+}
+
 async function requirePersistedTimeoutAttemptCostEvidence(input: {
-  localStorageRoot: string
+  scope: CanonicalPrivatePackageWorkQueueStoreScope &
+    CanonicalCloudDispatchOutboxStoreScope
   definition: CanonicalPrivatePackageWorkQueueDefinition
   manifest: CanonicalCloudWorkerDispatchHandoffManifest
   outboxEntry: CanonicalCloudDispatchOutboxEntry
   queueEntry: CanonicalPrivatePackageWorkQueueEntry
   expectedEvidenceHash: string | null
   timedOutAt: string
-}): Promise<string> {
-  const evidence = await readPrivateInternalAttemptCostEvidence({
-    localStorageRoot: input.localStorageRoot,
+}): Promise<TimeoutAttemptCostResolution> {
+  let durableAttemptStartEvidenceHash: string | null = null
+  let terminalCostCreatedFromAttemptStart = false
+  let evidence = await readPrivateInternalAttemptCostEvidence({
+    localStorageRoot: input.scope.localStorageRoot,
     workspaceId: input.definition.identity.workspaceId,
     projectId: input.definition.identity.projectId,
     executionAttemptId: input.outboxEntry.immutable.dispatchIntentId,
   })
   if (!evidence) {
-    throw new ApiError(
-      'JOB_DEPENDENCY_NOT_READY',
-      'Accepted-worker timeout reconciliation requires exact persisted attempt-cost evidence.',
-      409,
-      {
-        requiredGate:
-          'canonical_cloud_dispatch_timeout_persisted_attempt_cost_evidence',
-      },
-    )
+    const finalized = await finalizePrivateCanonicalCloudDispatchTimedOutAttemptCost({
+      scope: input.scope,
+      definition: input.definition,
+      manifest: input.manifest,
+      outboxEntry: input.outboxEntry,
+      queueEntry: input.queueEntry,
+      observedAt: input.timedOutAt,
+    })
+    evidence = finalized.attemptCost.evidence
+    durableAttemptStartEvidenceHash = finalized.attemptStart.evidenceHash
+    terminalCostCreatedFromAttemptStart =
+      finalized.attemptCost.idempotencyStatus === 'inserted'
   }
   const manifestEntry = input.manifest.entries.find((entry) =>
     entry.jobId === input.outboxEntry.immutable.jobId)
@@ -767,5 +1157,9 @@ async function requirePersistedTimeoutAttemptCostEvidence(input: {
       },
     )
   }
-  return evidence.evidenceHash
+  return {
+    evidenceHash: evidence.evidenceHash,
+    durableAttemptStartEvidenceHash,
+    terminalCostCreatedFromAttemptStart,
+  }
 }

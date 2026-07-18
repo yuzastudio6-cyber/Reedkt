@@ -91,10 +91,14 @@ record by dispatch intent and checks tenant, snapshot, work item, job, retry,
 tool, operation, accepted-worker time window, and replay hash before committing
 the queue release and terminal timeout receipt. Missing, checksum-tampered, or
 attempt-mismatched evidence fails closed. This is exact evidence for the
-currently metered private DeepFilterNet, Remotion, and FFmpeg workloads, not a
-durable start journal for every worker crash. A controller-owned timeout
-finalizer remains required before a deployed death observer can reconcile a
-worker that died before terminal evidence was written.
+currently metered private DeepFilterNet, Remotion, and FFmpeg workloads. A
+follow-up now adds an exact create-only attempt-start journal and a
+controller-owned bounded package finalizer for those three profiles. A hard
+worker death after start can therefore finalize internal cost through immutable
+lease expiry and enter this timeout transaction without caller-selected job
+identity or automatic retry. Other tool profiles, a deployed distributed death
+observer/sweeper, and multi-replica transaction evidence remain blocked. See
+`docs/canonical-private-worker-timeout-finalizer-verification-2026-07-17.md`.
 
 ## Private Docker Subprocess Boundary
 

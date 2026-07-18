@@ -134,8 +134,8 @@ checks, including:
 - absence of plaintext claim credentials, bearer tokens, paths, signed URLs,
   raw failure data, or production authority.
 
-`npm run smoke:canonical-cloud-dispatch-outbox-receivers` now passes `21` checks,
-including concurrent failure replay, changed evidence and principal refusal,
+`npm run smoke:canonical-cloud-dispatch-outbox-receivers` now passes `31` checks;
+the failure subset includes concurrent failure replay, changed evidence and principal refusal,
 post-commit retry refusal, one server-selected retry, final exhaustion, replay
 of the first immutable failure after the later attempt, and cost/commercial
 separation.

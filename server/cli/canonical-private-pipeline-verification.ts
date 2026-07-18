@@ -108,7 +108,7 @@ const canonicalSteps: VerificationStep[] = [
   step(
     'canonical-cloud-dispatch-outbox-receivers',
     'smoke:canonical-cloud-dispatch-outbox-receivers',
-    'One active package attempt persists one restart-safe opaque outbox record. Exact controller, worker, terminal completion, terminal pre-commit failure, and controller-authenticated accepted-worker timeout contracts bind the accepted principal and attempt; timeout reconciliation resolves an exact persisted failed-timeout internal-cost record by server-owned identity and refuses caller-supplied hashes. Missing, tampered, mismatched, changed, and post-commit bindings fail closed without customer commercial authority. Distributed authority, live Google verification, cloud calls, and execution remain false.',
+    'One active package attempt persists one restart-safe opaque outbox record. Exact controller, worker, terminal completion, terminal pre-commit failure, and controller-authenticated accepted-worker timeout contracts bind the accepted principal and attempt. The three currently metered private workloads record a create-only attempt start before execution; a controller-owned package scanner selects expired attempts, finalizes bounded internal cost through immutable lease expiry, and atomically reconciles timeout without automatic retry. Missing, tampered, unsupported, mismatched, changed, and post-commit bindings fail closed without customer commercial authority. Distributed death observation, live cloud calls, and production execution remain false.',
   ),
   step(
     'canonical-multi-source-execution',
@@ -255,7 +255,7 @@ function printReport(
 ): void {
   const finishedAt = new Date()
   const report = {
-    schemaVersion: 'canonical-private-pipeline-verification-v13',
+    schemaVersion: 'canonical-private-pipeline-verification-v14',
     status,
     mode: full ? 'full_internal_regression' : 'canonical_private_pipeline',
     startedAt: runStartedAt.toISOString(),
@@ -287,6 +287,9 @@ function printReport(
           singleHostCrashConsistentWorkerFailureReconciliation: true,
           singleHostCrashConsistentAcceptedWorkerTimeoutReconciliation: true,
           acceptedWorkerTimeoutFencesLaterAttempt: true,
+          durableAcceptedWorkerAttemptStartCostBinding: true,
+          controllerOwnedExpiredWorkerTimeoutFinalizer: true,
+          automaticTimeoutRetryStarted: false,
           timedOutAttemptInternalProductionCostEvidence: true,
           timedOutAttemptCostEvidenceResolvedFromPrivateStore: true,
           callerSuppliedTimeoutCostHashAccepted: false,

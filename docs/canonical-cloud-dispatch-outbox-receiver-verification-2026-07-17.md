@@ -265,16 +265,19 @@ the receiver state machine:
 - network, Cloud Tasks, Cloud Run, worker execution, distributed transaction,
   live identity, and production authority all remain false.
 
-The receiver smoke passes `23` checks and the package-state transaction smoke
+The receiver smoke now passes `31` checks and the package-state transaction smoke
 passes `51` checks. The canonical pipeline runs this stage immediately after
 the 50-tool cloud handoff contract. The handoff stage proves all 50 target
 mappings. This focused stage uses one representative CPU attempt to prove the
-generic outbox, receiver, and mutually exclusive terminal state machine. It does not claim that
-a deployed task or terminal callback ran for each tool.
+generic outbox, receiver, and mutually exclusive terminal state machine, then
+uses the three metered profiles to prove durable attempt-start identity and
+resource binding. It does not claim that a deployed task, runtime, or terminal
+callback ran for each tool.
 
 ## Pipeline Verification
 
-The current exact-code full internal pipeline completed all `32/32` stages with
+Before the durable-start/finalizer follow-up, the full internal pipeline
+completed all `32/32` stages with
 exit code `0` under schema `canonical-private-pipeline-verification-v13`. It
 started at `2026-07-17T21:17:11.077Z`, finished at
 `2026-07-17T21:47:27.541Z`, and completed in `1,816,464 ms`. The package-state
@@ -289,6 +292,11 @@ Remotion streaming in `96,703 ms`, all `11/11` named-edit browser tests in
 E2E plus 50 job-adapter identities remained verified. All distributed,
 live-cloud, provider, commercial, deployment, public-delivery, external-beta,
 and paid-production gates remained false.
+
+That v13 report is historical for the newer attempt-start/finalizer source. The
+31-check receiver smoke plus cost-meter and package-transaction smokes are the
+current exact-code evidence; the full aggregate has not yet been rerun on this
+follow-up.
 
 The preceding exact-code v12 pipeline also passed all `32/32` stages. Its
 timeout-aware receiver completed in `1,577 ms`, and the maximum-eight-source
@@ -386,12 +394,13 @@ The following remain false:
 
 The process-brand, cryptographic verifier core, private single-host
 queue/outbox claim transaction, and private single-host terminal
-completion/failure/timeout transactions are now proven. The next
-dependency-safe gate
-is a durable attempt-start/cost binding and controller-owned timeout finalizer,
-followed by a reviewed distributed
-database transaction/RPC plus the live Google key-cache/auth-library adapter
-and controlled staging-token proof. Any live implementation still requires
+completion/failure/timeout transactions are now proven. A follow-up also proves
+one durable attempt-start/cost binding and a controller-owned timeout finalizer
+for the three currently metered private workloads; see
+`docs/canonical-private-worker-timeout-finalizer-verification-2026-07-17.md`.
+The next dependency-safe gate is a reviewed distributed database
+transaction/RPC, followed by controlled live Google token/IAM and staging
+worker-death proof using the source-implemented auth-library adapter. Any live implementation still requires
 explicit authorization for canonical database work and staging Google Cloud
 deployment. See
 `docs/canonical-private-package-state-transaction-verification-2026-07-17.md`

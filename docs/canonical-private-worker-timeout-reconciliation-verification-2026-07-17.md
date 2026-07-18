@@ -1,6 +1,6 @@
 # Canonical Accepted-Worker Timeout Reconciliation Verification — 2026-07-17
 
-Status: `single_host_timeout_and_server_resolved_cost_evidence_verified_distributed_worker_death_detection_blocked`
+Status: `single_host_timeout_attempt_start_and_controller_finalizer_verified_distributed_worker_death_detection_blocked`
 
 ## Outcome
 
@@ -37,6 +37,22 @@ worker in deployed Google Cloud, run a distributed sweeper, create a Cloud Task,
 invoke a Cloud Run Job, execute a tool, activate a provider, mutate a wallet,
 charge a customer, write remote Supabase, deploy, render publicly, or authorize
 production delivery.
+
+## Durable Attempt-Start And Controller Finalizer Follow-Up
+
+The previously named pre-finalization crash gap is now closed for the three
+currently metered private workload profiles. DeepFilterNet, Remotion 4K source
+slice chunks, and FFmpeg 4K mezzanine finalization must persist one exact,
+create-only runtime-cost start before execution. A controller-authenticated
+package scanner selects expired accepted-worker attempts without accepting a
+caller-supplied dispatch ID, reconstructs bounded internal cost through the
+immutable lease expiry, and invokes this existing timeout transaction. Missing,
+tampered, mismatched, expired-at-start, wrong-principal, and unsupported-profile
+cases fail closed. See
+`docs/canonical-private-worker-timeout-finalizer-verification-2026-07-17.md`.
+
+This follow-up does not imply a distributed death observer or production
+authority. The remaining distributed requirements below still apply.
 
 ## Exact Authority Flow
 
@@ -166,18 +182,21 @@ including:
   third outbox entry; and
 - versioned timeout attempt-cost evidence with no customer commercial fields.
 
-`npm run smoke:canonical-cloud-dispatch-outbox-receivers` passes `23` checks.
+`npm run smoke:canonical-cloud-dispatch-outbox-receivers` passes `31` checks.
 Its representative private dispatch proves the service boundary returns the
 stale-attempt gate, rejects an unexpired timeout and wrong controller, commits
 one exact timeout, replays it, and creates attempt two only after a separate
-explicit enqueue. It also proves a missing record fails closed and a
-caller-supplied cost hash is rejected as authority.
+explicit enqueue. It also proves one durable start plus concurrent/restart
+replay, all three supported metered profiles, checksum tamper and missing-start
+refusal, controller-selected timeout finalization, and rejection of a
+caller-supplied cost hash. Unmetered profiles remain fail-closed.
 
 `npm run typecheck:server`, targeted ESLint, and `git diff --check` also pass.
 
-## Aggregate Verification
+## Historical Aggregate Verification
 
-The exact-code full internal pipeline passed all `32/32` stages with exit code
+Before the durable-start follow-up, the full internal pipeline passed all
+`32/32` stages with exit code
 `0` under `canonical-private-pipeline-verification-v13`. It started at
 `2026-07-17T21:17:11.077Z`, finished at `2026-07-17T21:47:27.541Z`, and
 completed in `1,816,464 ms`. The report includes
@@ -202,6 +221,12 @@ queue/outbox authority, live Google Cloud execution, provider activation,
 customer billing/wallet mutation, remote Supabase, deployment, public delivery,
 external beta, and paid production false.
 
+That v13 report is historical evidence for the preceding timeout transaction
+and Docker transport hardening, not exact-code aggregate evidence for the new
+attempt-start/finalizer source. The focused 31-check receiver smoke and the
+related cost/transaction smokes are current; a full aggregate rerun remains a
+separate long-running verification step.
+
 The preceding exact-code v12 pipeline also passed all `32/32` stages. Its
 timeout-aware receiver completed in `1,577 ms`, and its maximum-eight-source
 signed-in review completed in `382,429 ms`. It remains historical pre-Docker-
@@ -217,10 +242,9 @@ late-completion fencing, regional private object transport, telemetry, alerts,
 incident recovery, and controlled staging fault injection. Those actions remain
 gated and were not performed in this slice.
 
-There is also one prerequisite before a deployed sweeper can be called
-complete: the current private meter persists terminal cost evidence only when
-one of the explicitly metered DeepFilterNet, Remotion, or FFmpeg attempts is
-finalized. A hard worker death before finalization therefore leaves no terminal
-cost record, and reconciliation correctly remains blocked. Production needs a
-durable attempt-start binding plus a controller-owned timeout finalizer before
-the distributed observer can reconcile that crash path.
+The private prerequisite for a pre-finalization crash is now present for the
+three explicitly metered DeepFilterNet, Remotion, and FFmpeg workload profiles.
+Every other tool remains blocked at durable attempt start until it has an exact
+reviewed runtime-cost profile. Production still needs the distributed
+transaction and deployed observer/controller evidence listed above; this local
+scanner is not a deployed sweeper.

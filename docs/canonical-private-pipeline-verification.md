@@ -30,6 +30,12 @@ accepted-worker timeout is reconciled. It also runs the active named-edit
 Playwright journey
 and the versioned proven-tool identity report.
 
+The receiver phase now additionally requires a create-only durable runtime-cost
+start for the three metered DeepFilterNet, Remotion, and FFmpeg profiles and
+proves a controller-owned bounded expired-attempt finalizer. Unmetered profiles
+fail closed. See
+`docs/canonical-private-worker-timeout-finalizer-verification-2026-07-17.md`.
+
 Run the broader regression boundary with:
 
 ```sh
@@ -113,7 +119,7 @@ source-bound audio identities in approved order, reads sanitized journey state,
 and records review acceptance.
 
 The runner stops on the first failed phase and prints a machine-readable
-`canonical-private-pipeline-verification-v13` report with step exit codes and
+`canonical-private-pipeline-verification-v14` report with step exit codes and
 durations. A zero exit code means every included assertion passed, including
 assertions that production-only or unavailable behavior stays blocked.
 
@@ -123,6 +129,11 @@ and open time. Resource isolation prevents unrelated local tasks from mutating
 that discovery channel; it does not weaken image-identity validation.
 
 ## Current Evidence Record
+
+The durable-start/finalizer follow-up currently has focused exact-code smoke,
+type, lint, cost-meter, and package-transaction evidence. The full v13 record
+below predates that follow-up and remains historical until the aggregate command
+is rerun on the newer source.
 
 On 2026-07-17, the exact-code v13 full internal command passed all `32/32`
 phases with exit code `0`. It started at `2026-07-17T21:17:11.077Z`, finished

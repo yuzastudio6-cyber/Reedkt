@@ -54,7 +54,7 @@ const commonAttemptIdentityFields = {
   retryAttempt: safeInteger,
 }
 
-const privateInternalAttemptCostIdentitySchema = z.discriminatedUnion('toolId', [
+export const privateInternalAttemptCostIdentitySchema = z.discriminatedUnion('toolId', [
   z.object({
     ...commonAttemptIdentityFields,
     toolId: z.literal('deepfilternet'),
@@ -145,6 +145,18 @@ export const privateInternalAttemptCostEvidenceSchema = z.object({
 })
 
 export type PrivateInternalAttemptCostEvidence = z.infer<typeof privateInternalAttemptCostEvidenceSchema>
+
+export interface PrivateInternalAttemptCostDescriptor {
+  identity: z.infer<typeof privateInternalAttemptCostIdentitySchema>
+  attemptIdentityHash: string
+  attemptInputHash: string
+  rateCardVersion: typeof TOOL_COST_RATE_CARD_VERSION
+  resourceEnvelope: {
+    vcpuCount: 2 | 4
+    memoryGib: 4
+    gpuCount: 0
+  }
+}
 
 interface CommonBeginPrivateInternalAttemptCostEvidenceInput {
   localStorageRoot: string
@@ -251,13 +263,8 @@ export async function beginPrivateInternalAttemptCostEvidence(
   clock: PrivateInternalAttemptCostClock = defaultClock,
 ) {
   const input = parse(beginInputSchema, rawInput, 'Internal attempt-cost identity is invalid.')
-  const attemptIdentityHash = attemptIdentity(input)
-  const attemptInputHash = sha256AuthorityValue({
-    domain: 'private_internal_attempt_cost_input_v1',
-    identity: costIdentity(input),
-    rateCardVersion: TOOL_COST_RATE_CARD_VERSION,
-    resourceEnvelope: fixedResourceEnvelope(input),
-  })
+  const descriptor = describeParsedAttempt(input)
+  const { attemptIdentityHash, attemptInputHash } = descriptor
   const existing = await readPrivateInternalAttemptCostEvidence({
     localStorageRoot: input.localStorageRoot,
     workspaceId: input.workspaceId,
@@ -360,6 +367,54 @@ export async function beginPrivateInternalAttemptCostEvidence(
   }
 }
 
+/**
+ * Returns the immutable identity and fixed infrastructure envelope used by the
+ * private attempt-cost meter. The descriptor contains no timer, terminal
+ * outcome, customer price, credits, service fee, wallet, or billing authority.
+ */
+export function describePrivateInternalAttemptCostEvidence(
+  rawInput: BeginPrivateInternalAttemptCostEvidenceInput,
+): PrivateInternalAttemptCostDescriptor {
+  const input = parse(beginInputSchema, rawInput, 'Internal attempt-cost identity is invalid.')
+  return describeParsedAttempt(input)
+}
+
+/**
+ * Finalizes a metered attempt from a server-persisted start and a bounded
+ * server-owned finish time. This is used only when an in-memory monotonic timer
+ * cannot survive worker death. The caller must first verify the durable start
+ * record against the exact accepted worker attempt.
+ */
+export async function finalizePrivateInternalAttemptCostEvidenceForBoundedDuration(
+  rawInput: BeginPrivateInternalAttemptCostEvidenceInput,
+  input: FinalizePrivateInternalAttemptCostEvidenceInput & {
+    startedAt: string
+    finishedAt: string
+  },
+): Promise<PrivateInternalAttemptCostEvidenceResult> {
+  const startedAt = parse(timestamp, input.startedAt, 'Internal attempt-cost start time is invalid.')
+  const finishedAt = parse(timestamp, input.finishedAt, 'Internal attempt-cost finish time is invalid.')
+  const elapsed = Date.parse(finishedAt) - Date.parse(startedAt)
+  if (!Number.isSafeInteger(elapsed) || elapsed <= 0 || elapsed > 604_800_000) {
+    throw invalid('Durable internal attempt-cost duration is outside the bounded worker window.')
+  }
+  let clockReadCount = 0
+  const elapsedNanoseconds = BigInt(elapsed) * 1_000_000n
+  const meter = await beginPrivateInternalAttemptCostEvidence(rawInput, {
+    nowIso: () => finishedAt,
+    monotonicNanoseconds: () => {
+      clockReadCount += 1
+      return clockReadCount === 1 ? 0n : elapsedNanoseconds
+    },
+  })
+  return meter.finalize({
+    status: input.status,
+    failureCategory: input.failureCategory,
+    outputByteLength: input.outputByteLength,
+    linkedCanonicalOutcomeHash: input.linkedCanonicalOutcomeHash,
+  })
+}
+
 export async function readPrivateInternalAttemptCostEvidence(input: {
   localStorageRoot: string
   workspaceId: string
@@ -426,9 +481,30 @@ function costIdentity(input: BeginPrivateInternalAttemptCostEvidenceInput) {
     toolId: input.toolId,
     operationId: input.operationId,
   }
-  return 'workloadProfileId' in input
-    ? { ...common, workloadProfileId: input.workloadProfileId }
-    : common
+  return privateInternalAttemptCostIdentitySchema.parse(
+    'workloadProfileId' in input
+      ? { ...common, workloadProfileId: input.workloadProfileId }
+      : common,
+  )
+}
+
+function describeParsedAttempt(
+  input: BeginPrivateInternalAttemptCostEvidenceInput,
+): PrivateInternalAttemptCostDescriptor {
+  const identity = costIdentity(input)
+  const resourceEnvelope = fixedResourceEnvelope(input)
+  return {
+    identity,
+    attemptIdentityHash: attemptIdentity(input),
+    attemptInputHash: sha256AuthorityValue({
+      domain: 'private_internal_attempt_cost_input_v1',
+      identity,
+      rateCardVersion: TOOL_COST_RATE_CARD_VERSION,
+      resourceEnvelope,
+    }),
+    rateCardVersion: TOOL_COST_RATE_CARD_VERSION,
+    resourceEnvelope,
+  }
 }
 
 function fixedResourceEnvelope(

@@ -74,13 +74,16 @@ terminal outbox receipt and exact replay, including private
 artifact/QA/reconciliation/downstream and attempt-level internal-cost evidence.
 Accepted-worker timeout reconciliation now resolves the exact persisted
 failed-timeout cost record under the package lock and rejects caller-supplied
-hashes. A durable attempt-start/cost binding, controller-owned timeout
-finalizer, and deployed heartbeat/death observer are still required for the
-hard-crash path.
+hashes. The three currently metered DeepFilterNet, Remotion, and FFmpeg
+profiles now add a create-only attempt-start/cost binding and a
+controller-owned single-host timeout finalizer for the hard-crash path. A
+distributed package transaction, production profiles for other tools, and a
+deployed heartbeat/death observer remain required.
 This does not execute a job or grant customer commercial authority. A
 distributed database-backed transactional outbox/completion boundary, live
-Google auth-library/key-rotation adapter, IAM, multi-replica coordination,
-deployment, and live worker completion flow are still required.
+Google token/key-rotation and IAM proof using the source-implemented
+auth-library adapter, multi-replica coordination, deployment, and live worker
+completion flow are still required.
 
 The existing `us-central1` foundation defaults and coarse service-account
 templates must be reconciled with the canonical `us-east1`/`europe-west1`

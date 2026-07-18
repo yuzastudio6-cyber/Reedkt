@@ -72,9 +72,11 @@ Supabase client, Google Cloud client, Stripe boundary, child-process runner, or
 network `fetch` path. `npm run typecheck:server` and focused ESLint pass on the
 same source.
 
-The historical full private-pipeline v13 report remains the latest aggregate
-run. The newer v14 aggregate has not been run, so this focused evidence must not
-be presented as a fresh full-pipeline result.
+On 2026-07-18, the exact-code v14 full private-pipeline aggregate passed all
+`34/34` phases with exit code `0` in `1,871,448 ms`. This port's focused phase
+passed inside that run in `479 ms`. The aggregate proves the port remains
+connected to the private verification control plane; it does not convert the
+in-memory fixture into database durability or activate any live adapter.
 
 ## Explicitly Not Proven Or Activated
 

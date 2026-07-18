@@ -78,6 +78,12 @@ proves:
 
 Focused ESLint and `npm run typecheck:server` pass with the adapter smoke.
 
+On 2026-07-18, the exact-code v14 full private-pipeline aggregate passed all
+`34/34` phases with exit code `0` in `1,871,448 ms`. The adapter phase passed
+inside that aggregate in `428 ms`. The report explicitly records
+`canonicalPackageStateDatabaseFunctionsExecuted: false` and
+`canonicalPackageStateRpcLiveClientActivated: false`.
+
 ## Explicitly Not Performed
 
 No SQL or migration was created, copied, ported, or executed. No existing local

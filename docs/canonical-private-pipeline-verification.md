@@ -22,11 +22,13 @@ maximum eight-source planning-publication contract. Before media execution it
 also verifies the durable package queue, a cross-process single-host
 queue/outbox write-ahead transaction, all 50 regional cloud-target mappings, a
 zero-network cryptographic service-identity core, and restart-safe controller
-and worker outbox receivers. The accepted worker result then uses the same
-package lock and write-ahead boundary to reconcile exactly one mutually
-exclusive queue/outbox completion, bounded pre-commit failure, or
-controller-authenticated lease timeout. A later attempt remains fenced until an
-accepted-worker timeout is reconciled. It also runs the active named-edit
+and worker outbox receivers. It also verifies the database-neutral distributed
+package-state contract and its locked server-only seven-function RPC transport
+adapter without activating SQL or a live database client. The accepted worker
+result then uses the same package lock and write-ahead boundary to reconcile
+exactly one mutually exclusive queue/outbox completion, bounded pre-commit
+failure, or controller-authenticated lease timeout. A later attempt remains
+fenced until an accepted-worker timeout is reconciled. It also runs the active named-edit
 Playwright journey
 and the versioned proven-tool identity report.
 
@@ -80,7 +82,10 @@ plan fits the bounded canonical profile.
    reconciliation resolves exact persisted failed-attempt cost evidence under
    the package lock and rejects caller-supplied hashes. Live
    Google keys, IAM, cloud calls, distributed database queue/outbox atomicity,
-   and worker execution remain blocked.
+   and worker execution remain blocked. The database-neutral lifecycle port
+   and locked seven-function RPC transport are checked in the same aggregate,
+   but no corresponding SQL function or live Supabase/Postgres client is
+   activated.
 7. Exercise the bounded ordered three-source canonical lifecycle through lease,
    one-use dispatch, private artifacts, QA, reconciliation, replay, and private
    download evidence. The focused lifecycle includes three exact source-bound
@@ -130,31 +135,33 @@ that discovery channel; it does not weaken image-identity validation.
 
 ## Current Evidence Record
 
-The durable-start/finalizer follow-up currently has focused exact-code smoke,
-type, lint, cost-meter, and package-transaction evidence. The full v13 record
-below predates that follow-up and remains historical until the aggregate command
-is rerun on the newer source.
+On 2026-07-18, the exact-code v14 full internal command passed all `34/34`
+phases with exit code `0`. It started at `2026-07-18T02:45:56.431Z`, finished
+at `2026-07-18T03:17:07.879Z`, and completed in `1,871,448 ms`. The two added
+phases verified the database-neutral distributed package-state port in `479 ms`
+and the locked server-only RPC transport adapter in `428 ms`. The package-state
+transaction completed in `11,968 ms`, the timeout-aware receiver in `2,222 ms`,
+three-source composition in `628,982 ms`, professional color in `697,292 ms`,
+bounded UHD Remotion streaming in `92,816 ms`, the named-edit browser journey
+in `15,330 ms`, and the maximum-eight-source signed-in review in `391,960 ms`.
 
-On 2026-07-17, the exact-code v13 full internal command passed all `32/32`
-phases with exit code `0`. It started at `2026-07-17T21:17:11.077Z`, finished
-at `2026-07-17T21:47:27.541Z`, and completed in `1,816,464 ms`. The package-
-state phase now proves mutually exclusive
-accepted-worker completion, pre-commit failure, and lease-timeout transactions.
-Timeout proof includes deterministic faults, real child exits with code `80`,
-cross-process exact replay, a three-way terminal race, later-attempt fencing,
-two-attempt exhaustion without a third outbox, and a versioned DeepFilterNet
-timeout cost record containing `1,296` internal-cost micros and no customer
-commercial authority.
+The final stage completed all `27` snapshot-bound work items and jobs, produced
+an authenticated non-passthrough `3840x2160` sixteen-second private review with
+SHA-256
+`584cdd265fc32d81ca70f5f08420bf65ebfac998a1d4db38fb94efe5aa847505`,
+preserved all eight source-bound audio identities in approved order, and
+persisted review acceptance. The run preserved exactly 50 canonical E2E and 50
+job-adapter identities. It proved the new lifecycle and RPC contracts only; no
+canonical package-state SQL function was executed and no live RPC client was
+activated. Distributed database atomicity, live Google identity/IAM and cloud
+execution, providers, billing/wallet mutation, remote Supabase, public
+delivery, deployment, external beta, and paid production remained false.
 
-The package-state phase completed in `10,073 ms`, the timeout-aware receiver in
-`1,571 ms`, three-source composition in `695,974 ms`, professional color in
-`615,010 ms`, bounded UHD Remotion streaming in `96,703 ms`, all `11/11` named-
-edit browser tests in `13,967 ms`, and the maximum-eight-source signed-in review
-in `357,508 ms`. The run preserved exactly
-50 canonical E2E and 50 job-adapter identities. Distributed queue/outbox
-atomicity, live Google identity/IAM and cloud execution, providers,
-billing/wallet mutation, remote Supabase, public delivery, deployment, external
-beta, and paid production remained false.
+The preceding exact-code v13 full internal command passed all `32/32` phases
+with exit code `0` on 2026-07-17. It started at
+`2026-07-17T21:17:11.077Z`, finished at `2026-07-17T21:47:27.541Z`, and
+completed in `1,816,464 ms`. It remains historical pre-distributed-port and
+pre-RPC-adapter aggregate evidence.
 
 The same exact-code v13 run also proved that private Docker subprocesses do not
 inherit a developer Docker credential configuration, daemon host, or context.
@@ -199,9 +206,10 @@ absent. Live Google keys/IAM, distributed queue/outbox atomicity and cloud
 execution, providers, billing/wallet mutation, remote Supabase, public delivery,
 deployment, external beta, and paid production remained false.
 
-The v12 result remains pre-Docker-transport-hardening historical evidence, and
-the v11 result remains pre-timeout-reconciliation historical evidence. Both are
-superseded by the exact-code v13 aggregate verdict. The prior v10 `26/26` and
+The v13 result remains pre-distributed-port/RPC-adapter historical evidence,
+the v12 result remains pre-Docker-transport-hardening historical evidence, and
+the v11 result remains pre-timeout-reconciliation historical evidence. All are
+superseded by the exact-code v14 aggregate verdict. The prior v10 `26/26` and
 `32/32` results remain pre-failure-reconciliation historical evidence.
 The v9 results remain pre-completion-reconciliation history, and the earlier v8
 results remain pre-transaction history.

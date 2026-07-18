@@ -19,6 +19,7 @@ import type {
 import type {
   CanonicalToolExecutionAuthority,
 } from './canonical-tool-execution-authority'
+import { PROFESSIONAL_LONG_FORM_CONTROLLER_WORKER_CLASS } from './professional-long-form-approved-snapshot-bridge'
 import {
   sha256AuthorityValue,
   stableAuthorityStringify,
@@ -127,6 +128,7 @@ const workItemPlacementCoreSchema = placementCoreSchema.extend({
     'proven_tool_identity',
     'tool_registry_contract_only',
     'tool_free_control_plane_policy',
+    'long_form_controller_contract_only',
     'provider_route_contract_only',
   ]),
   privateExecutionReady: z.boolean(),
@@ -175,6 +177,17 @@ function validatePlacementEvidence(
     if (toolBacked || !entry.privateExecutionReady || entry.runtimeRunnerClass ||
       entry.toolIdentityHash || entry.toolProofHash || entry.requiredGate) {
       context.addIssue({ code: 'custom', message: 'Tool-free placement evidence is inconsistent.' })
+    }
+  }
+  if (entry.placementSource === 'long_form_controller_contract_only') {
+    if (
+      toolBacked || entry.privateExecutionReady || entry.runtimeRunnerClass ||
+      entry.toolIdentityHash || entry.toolProofHash || !entry.requiredGate
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Long-form controller placement must remain execution blocked.',
+      })
     }
   }
   if (entry.placementSource === 'provider_route_contract_only') {
@@ -477,7 +490,10 @@ export function createCanonicalApprovedWorkGraphResourcePlacementAuthority(input
     }
 
     const workerType = toolFreeWorkerType(workItem.workerClass, workItem.workItemType)
-    const privateExecutionReady = workItem.providerExecutionMode === 'none'
+    const longFormController = workItem.workerClass ===
+      PROFESSIONAL_LONG_FORM_CONTROLLER_WORKER_CLASS
+    const privateExecutionReady = !longFormController &&
+      workItem.providerExecutionMode === 'none'
     const withoutHash = {
       workItemKey: workItem.workItemKey,
       workItemType: workItem.workItemType,
@@ -486,13 +502,19 @@ export function createCanonicalApprovedWorkGraphResourcePlacementAuthority(input
       approvedToolIds: [],
       approvedToolOperationIds: [],
       providerExecutionMode: resourceProviderExecutionMode(workItem.providerExecutionMode),
-      placementSource: privateExecutionReady
-        ? 'tool_free_control_plane_policy' as const
-        : 'provider_route_contract_only' as const,
+      placementSource: longFormController
+        ? 'long_form_controller_contract_only' as const
+        : privateExecutionReady
+          ? 'tool_free_control_plane_policy' as const
+          : 'provider_route_contract_only' as const,
       privateExecutionReady,
       ...placementForWorkerType(workerType, { gpuRequired: false, cpuAllowed: true }),
       ...(!privateExecutionReady
-        ? { requiredGate: 'provider_activation_and_approved_route' as const }
+        ? {
+            requiredGate: longFormController
+              ? 'canonical_professional_long_form_child_package_queue_persistence' as const
+              : 'provider_activation_and_approved_route' as const,
+          }
         : {}),
     }
     return frozenWorkItemPlacementSchema.parse({
@@ -845,6 +867,9 @@ function toolFreeWorkerType(
   workItemType: string,
 ): CanonicalPrivateExecutableWorkerType {
   if (workerClass === 'authority_worker' || workerClass === 'private_test_worker') {
+    return 'api_service'
+  }
+  if (workerClass === PROFESSIONAL_LONG_FORM_CONTROLLER_WORKER_CLASS) {
     return 'api_service'
   }
   if (workerClass === 'qa_worker' || workItemType === 'run_final_qa' ||

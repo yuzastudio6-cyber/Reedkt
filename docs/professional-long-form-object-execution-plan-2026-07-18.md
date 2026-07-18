@@ -1,6 +1,6 @@
 # Professional Long-Form Object Execution Plan — 2026-07-18
 
-Status: `approved_snapshot_binding_contract_ready_persistence_and_execution_blocked`
+Status: `canonical_seed_controller_and_child_manifest_persisted_execution_blocked`
 
 ## Outcome
 
@@ -13,11 +13,13 @@ execution ceiling. The profile is:
 It accepts exact confirmed-frame, approved-estimate, timing, reservation, and
 source-range authority and produces a snapshot-independent content seed, a
 content-addressed object-chunk plan, and an immutable dependency graph. A
-separate server-only bridge now verifies that the exact seed, plan, estimate,
+separate server-only bridge verifies that the exact seed, plan, estimate,
 timing, reservation, controller input, and expanded child graph belong to one
-approved snapshot. It does not persist those components into the canonical
-approval service, raise the existing V3 execution limit, silently activate a
-worker, or claim that long media was rendered.
+approved snapshot. The follow-up canonical integration now persists the seed
+and controller through real local/private publication and approval and persists
+the blocked child-job manifest after exact server reload. It does not raise the
+existing V3 media-execution limit, silently activate a worker, or claim that
+long media was rendered.
 
 ## Bounded Professional Capacity
 
@@ -68,7 +70,7 @@ checks. The exact 30-minute fixture contains:
 - 15 balanced object chunks;
 - 37 immutable required work items; and
 - plan authority hash
-  `aee0e350833247eca5057aaf8f6e77803fb2b783098245a307f1236d61afcddf`.
+  `4705141a64853d334429b10c0fe93513078d761bb380cad8a51edfda825faa94`.
 
 The maximum-capacity fixture separately plans six hours at 60 fps across 512
 approved ranges, 1,296,000 frames, and 124 object chunks. That ceiling expands
@@ -85,22 +87,29 @@ chunk lineage, and self-promotion to production authority.
 checks. The six-hour fixture binds plan seed
 `de8deb17a7b255d3591abc54917c009d7078de350faffa17fb82c2eda7d9fa6b`
 to bridge authority
-`ece9106af3f9b74f5a21bb5556f778fd4f28e889a2a8199f114ff6fe0499b0f7`.
+`01a497445e1772b95250eee2b3eb6c8023f111130f7dd200ef842e8e39db7e94`.
 It rejects snapshot, seed, controller, blob-reference, estimate, timing,
 reservation, child-graph, and persisted-manifest substitution. A new approval
 may reuse the same content seed, but it receives distinct snapshot and plan
 authority.
+
+`npm run smoke:canonical-professional-long-form-post-approval` passes 23
+additional checks against a real canonical six-hour/512-range publication and
+approval. It persists and reopens the seed, controller, bridge, and 255-child
+blocked manifest; refuses ordinary package creation; proves exact restart and
+replay; and rejects persisted blob tampering. See
+`docs/canonical-professional-long-form-post-approval-authority-2026-07-18.md`.
 
 The planner source imports no Google Cloud, Supabase, Stripe, HTTP, child
 process, environment, or network-fetch activation path.
 
 ## Current Aggregate Evidence
 
-The exact-code `npm run qa:internal-pipeline` v16 aggregate passed all `36/36`
-stages with exit code `0`. It started at `2026-07-18T05:21:30.437Z`, finished
-at `2026-07-18T05:49:59.399Z`, and completed in `1,708,962 ms`. The long-form
-plan passed in `402 ms`, and the new approved-snapshot bridge passed in
-`682 ms`.
+The exact-code `npm run qa:internal-pipeline` v17 aggregate passed all `37/37`
+stages with exit code `0`. It started at `2026-07-18T06:34:21.425Z`, finished
+at `2026-07-18T07:03:58.045Z`, and completed in `1,776,620 ms`. The long-form
+plan passed in `354 ms`, the approved-snapshot bridge in `628 ms`, and the
+canonical post-approval authority in `2,056 ms`.
 
 The remaining stages reverified exactly 50 canonical tool lifecycles and 50
 job adapters, the crash-consistent package lifecycle, bounded three-source
@@ -109,6 +118,9 @@ named-edit browser tests, and the accepted maximum-eight-source private review.
 That review completed 27 jobs and produced the same authenticated sixteen-second
 `3840x2160` artifact with SHA-256
 `584cdd265fc32d81ca70f5f08420bf65ebfac998a1d4db38fb94efe5aa847505`.
+The aggregate also persisted and reopened the exact six-hour/512-range seed,
+blocked controller, approved-snapshot bridge, and 255-child blocked manifest.
+It did not queue, lease, dispatch, or execute those children.
 
 Those media stages exercise their existing bounded fixtures. They do not turn
 the 30-minute or six-hour planning fixtures into long-form execution evidence.
@@ -135,10 +147,10 @@ Google Cloud action, provider call, customer credit operation, billing action,
 deployment, public delivery, Motion Studio/MS-001 work, or Edit
 Preference/Edit Reference work.
 
-`frameExactPlanningContractReady` and
-`approvedSnapshotBindingContractReady` are true. Canonical seed-component
-persistence, server-loaded controller persistence, child-job derivation,
-object persistence, chunk runners, continuous-audio execution, cross-chunk
+`frameExactPlanningContractReady`,
+`approvedSnapshotBindingContractReady`, canonical seed/controller persistence,
+and blocked child-manifest derivation/persistence are true. Child-package queue
+promotion, object persistence, chunk runners, continuous-audio execution, cross-chunk
 color QA, finalizer execution, distributed database, live Google Cloud,
 staging, product, and production readiness all remain false.
 

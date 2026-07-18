@@ -62,7 +62,7 @@ const approvedSnapshotSchema = z.object({
   snapshotHash: sha256,
 }).strict()
 
-const controllerExecutionInputSchema = z.object({
+export const professionalLongFormControllerExecutionInputSchema = z.object({
   schemaVersion: z.literal(PROFESSIONAL_LONG_FORM_CONTROLLER_INPUT_VERSION),
   capacityProfileId: z.literal(PROFESSIONAL_LONG_FORM_OBJECT_CAPACITY_PROFILE_ID),
   planSeedComponentKey: z.literal(PROFESSIONAL_LONG_FORM_SEED_COMPONENT_KEY),
@@ -80,6 +80,29 @@ const controllerExecutionInputSchema = z.object({
   childExecutionAuthorized: z.literal(false),
 }).strict()
 
+export type ProfessionalLongFormControllerExecutionInput = z.infer<
+  typeof professionalLongFormControllerExecutionInputSchema
+>
+
+export function buildProfessionalLongFormControllerExecutionInput(input: {
+  planSeedHash: string
+  planSeedComponentRefSha256: string
+}): ProfessionalLongFormControllerExecutionInput {
+  return professionalLongFormControllerExecutionInputSchema.parse({
+    schemaVersion: PROFESSIONAL_LONG_FORM_CONTROLLER_INPUT_VERSION,
+    capacityProfileId: PROFESSIONAL_LONG_FORM_OBJECT_CAPACITY_PROFILE_ID,
+    planSeedComponentKey: PROFESSIONAL_LONG_FORM_SEED_COMPONENT_KEY,
+    planSeedHash: input.planSeedHash,
+    planSeedComponentRefSha256: input.planSeedComponentRefSha256,
+    maximumExpandedWorkItems: PROFESSIONAL_LONG_FORM_CANONICAL_WORK_ITEM_CEILING,
+    maximumExpandedDependencies: PROFESSIONAL_LONG_FORM_CANONICAL_DEPENDENCY_CEILING,
+    expansionMode: 'deterministic_post_approval_child_graph_v1',
+    approvedSnapshotRequired: true,
+    fundedReservationRequired: true,
+    childExecutionAuthorized: false,
+  })
+}
+
 const controllerBindingSchema = z.object({
   source: z.literal('server_loaded_approved_work_item_view'),
   approvedWorkItemId: identity,
@@ -91,7 +114,7 @@ const controllerBindingSchema = z.object({
   required: z.literal(true),
   maximumAttempts: z.literal(1),
   executionInputRef: jsonBlobRefSchema,
-  executionInput: controllerExecutionInputSchema,
+  executionInput: professionalLongFormControllerExecutionInputSchema,
 }).strict()
 
 export const professionalLongFormApprovedSnapshotBridgeRequestSchema = z.object({

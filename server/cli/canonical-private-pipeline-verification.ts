@@ -51,6 +51,11 @@ const canonicalSteps: VerificationStep[] = [
     'The exact long-form seed, plan, estimate, timing, reservation, controller, and bounded 255-item child graph bind to one approved snapshot while canonical seed/controller persistence, child-job derivation, object storage, media execution, database, cloud, product, and production readiness remain false.',
   ),
   step(
+    'canonical-professional-long-form-post-approval',
+    'smoke:canonical-professional-long-form-post-approval',
+    'A six-hour/512-range 4K seed and one blocked controller persist through real canonical publication and approval; restart-safe server derivation reopens the exact authority and persists a content-addressed 255-child manifest while ordinary package creation, queue promotion, dispatch, media, cloud, commerce, product, and production remain blocked.',
+  ),
+  step(
     'professional-export-policy',
     'smoke:professional-export',
     'One approved 4K UHD delivery ceiling covers 1080p, 2K, and 4K exports without a second estimate.',
@@ -275,7 +280,7 @@ function printReport(
 ): void {
   const finishedAt = new Date()
   const report = {
-    schemaVersion: 'canonical-private-pipeline-verification-v16',
+    schemaVersion: 'canonical-private-pipeline-verification-v17',
     status,
     mode: full ? 'full_internal_regression' : 'canonical_private_pipeline',
     startedAt: runStartedAt.toISOString(),
@@ -297,6 +302,9 @@ function printReport(
           resumableSized4kPrivateSourcePipeline: true,
           professionalLongFormObjectBackedPlanningContract: true,
           professionalLongFormApprovedSnapshotBindingContract: true,
+          professionalLongFormCanonicalSeedComponentPersistence: true,
+          professionalLongFormServerLoadedControllerPersistence: true,
+          professionalLongFormChildJobManifestDerivationAndPersistence: true,
           sourceOnlyIntentAuthority: true,
           fourKEstimateDeliveryCeiling: true,
           canonicalBrowserContracts: true,
@@ -351,9 +359,7 @@ function printReport(
       distributedPackageQueueOutboxTransactionVerified: false,
       canonicalPackageStateDatabaseFunctionsExecuted: false,
       canonicalPackageStateRpcLiveClientActivated: false,
-      professionalLongFormSeedComponentPersistenceVerified: false,
-      professionalLongFormServerLoadedControllerPersistenceVerified: false,
-      professionalLongFormChildJobDerivationVerified: false,
+      professionalLongFormChildPackageQueuePersistenceVerified: false,
       professionalLongFormMediaExecutionVerified: false,
       professionalLongFormObjectStorageVerified: false,
       liveGoogleCloudWorkerCompletionVerified: false,

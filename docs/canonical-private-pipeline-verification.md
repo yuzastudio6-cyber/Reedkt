@@ -15,7 +15,9 @@ The command verifies the connected path from exact source, Edit Preferences,
 and Edit Brief authority through a real resumable-sized 4K private ingest/proxy
 proof, a frame-exact professional long-form object-backed planning contract,
 an exact approved-snapshot binding contract for that long-form seed and bounded
-expanded child graph,
+expanded child graph, and a canonical post-approval persistence proof that
+reopens the exact seed/controller and persists a deterministic blocked
+255-child manifest,
 source-only intent restraint, canonical plan
 presentation, the 4K estimate ceiling, separate approval, the opaque
 execution-package handoff, private preparation, private review,
@@ -71,9 +73,12 @@ plan fits the bounded canonical profile.
    per-chunk QA, continuous program audio, cross-chunk color QA, and reuse of
    the one approved 4K estimate. Then bind the exact plan seed, plan, estimate,
    timing, reservation, server-loaded controller input, and 255-item maximum
-   expanded graph to one approved snapshot while canonical seed/controller
-   persistence, child-job derivation, long-form media execution, object
-   storage, database, cloud, staging, and production authority remain false.
+   expanded graph to one approved snapshot. Then publish and approve a real
+   local/private maximum-capacity seed, reopen the exact seed/controller after
+   restart, and persist the deterministic 255-child manifest while ordinary
+   package creation, child queue promotion, dispatch, long-form media execution,
+   object storage, database, cloud, staging, and production authority remain
+   false.
 4. Prove that every approved edit estimate carries the 4K UHD delivery ceiling
    and that 1080p, 2K/1440p, and 4K exports stay within the same approved
    deliverable rather than prompting for a second estimate.
@@ -137,7 +142,7 @@ source-bound audio identities in approved order, reads sanitized journey state,
 and records review acceptance.
 
 The runner stops on the first failed phase and prints a machine-readable
-`canonical-private-pipeline-verification-v16` report with step exit codes and
+`canonical-private-pipeline-verification-v17` report with step exit codes and
 durations. A zero exit code means every included assertion passed, including
 assertions that production-only or unavailable behavior stays blocked.
 
@@ -148,18 +153,19 @@ that discovery channel; it does not weaken image-identity validation.
 
 ## Current Evidence Record
 
-On 2026-07-18, the exact-code v16 full internal command passed all `36/36`
-phases with exit code `0`. It started at `2026-07-18T05:21:30.437Z`, finished
-at `2026-07-18T05:49:59.399Z`, and completed in `1,708,962 ms`. The
+On 2026-07-18, the exact-code v17 full internal command passed all `37/37`
+phases with exit code `0`. It started at `2026-07-18T06:34:21.425Z`, finished
+at `2026-07-18T07:03:58.045Z`, and completed in `1,776,620 ms`. The
 professional long-form object-backed plan passed its 26 adversarial checks in
-`402 ms`, and the approved-snapshot binding bridge passed its 22 checks in
-`682 ms`. The database-neutral distributed package-state port passed in
-`501 ms`, the locked server-only RPC transport adapter in `371 ms`, the
-package-state transaction in `12,045 ms`, and the timeout-aware receiver in
-`2,179 ms`. Three-source composition passed in `551,262 ms`, professional color
-in `624,712 ms`, bounded UHD Remotion streaming in `104,120 ms`, all 11
-named-edit browser tests in `13,956 ms`, and the maximum-eight-source signed-in
-review in `369,408 ms`.
+`354 ms`, the approved-snapshot binding bridge passed its 22 checks in
+`628 ms`, and the canonical post-approval authority passed its 23 checks in
+`2,056 ms`. The database-neutral distributed package-state port passed in
+`428 ms`, the locked server-only RPC transport adapter in `332 ms`, the
+package-state transaction in `10,922 ms`, and the timeout-aware receiver in
+`2,123 ms`. Three-source composition passed in `562,075 ms`, professional color
+in `647,850 ms`, bounded UHD Remotion streaming in `97,784 ms`, all 11
+named-edit browser tests in `15,873 ms`, and the maximum-eight-source signed-in
+review in `410,266 ms`.
 
 The final stage completed all `27` snapshot-bound work items and jobs, produced
 an authenticated non-passthrough `3840x2160` sixteen-second private review with
@@ -167,13 +173,21 @@ SHA-256
 `584cdd265fc32d81ca70f5f08420bf65ebfac998a1d4db38fb94efe5aa847505`,
 preserved all eight source-bound audio identities in approved order, and
 persisted review acceptance. The run preserved exactly 50 canonical E2E and 50
-job-adapter identities. The long-form phases proved frame-exact planning and
-exact approved-snapshot binding only; canonical seed/controller persistence,
-child-job derivation, 30-minute media execution, and object storage remained
-false. No canonical package-state SQL function was executed and no live RPC
-client was activated. Distributed database atomicity, live Google identity/IAM and cloud
-execution, providers, billing/wallet mutation, remote Supabase, public
-delivery, deployment, external beta, and paid production remained false.
+job-adapter identities. The long-form phases proved frame-exact planning,
+exact approved-snapshot binding, canonical seed/controller persistence, and
+restart-safe derivation plus content-addressed persistence of a 255-child
+blocked manifest. Child package-queue persistence, lease, dispatch, long-form
+media execution, and object storage remained false. No canonical package-state
+SQL function was executed and no live RPC client was activated. Distributed
+database atomicity, live Google identity/IAM and cloud execution, providers,
+billing/wallet mutation, remote Supabase, public delivery, deployment,
+external beta, and paid production remained false.
+
+The preceding exact-code v16 full internal command passed all `36/36` phases
+with exit code `0` on 2026-07-18. It started at
+`2026-07-18T05:21:30.437Z`, finished at `2026-07-18T05:49:59.399Z`, and
+completed in `1,708,962 ms`. It remains historical pre-canonical-post-approval
+long-form authority evidence.
 
 The preceding exact-code v15 full internal command passed all `35/35` phases
 with exit code `0` on 2026-07-18. It started at
@@ -239,7 +253,7 @@ deployment, external beta, and paid production remained false.
 The v13 result remains pre-distributed-port/RPC-adapter historical evidence,
 the v12 result remains pre-Docker-transport-hardening historical evidence, and
 the v11 result remains pre-timeout-reconciliation historical evidence. All are
-superseded by the exact-code v16 aggregate verdict. The prior v10 `26/26` and
+superseded by the exact-code v17 aggregate verdict. The prior v10 `26/26` and
 `32/32` results remain pre-failure-reconciliation historical evidence.
 The v9 results remain pre-completion-reconciliation history, and the earlier v8
 results remain pre-transaction history.

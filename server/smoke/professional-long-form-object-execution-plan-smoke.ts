@@ -65,7 +65,7 @@ check(
 check(
   thirtyMinutePlan.chunks.every((chunk) =>
     chunk.expectedObject.runtimeRegion === thirtyMinuteRequest.runtimeRegion &&
-    chunk.expectedObject.canonicalSignedUrlStored === false &&
+    chunk.expectedObject.ephemeralAccessGrantPersisted === false &&
     chunk.expectedObject.createOnlyRequired === true),
   'chunk_objects_are_region_bound_create_only_and_store_no_signed_url',
 )

@@ -1,13 +1,15 @@
 # Professional Long-Form Approved-Snapshot Bridge — 2026-07-18
 
-Status: `approved_snapshot_binding_contract_ready_persistence_and_execution_blocked`
+Status: `superseded_by_persisted_canonical_post_approval_authority`
 
 ## Outcome
 
-ReEditPro now has a server-only, fail-closed bridge contract between the
+ReEditPro has a server-only, fail-closed bridge contract between the
 professional long-form object plan and one exact approved plan snapshot. The
-bridge verifies authority; it does not persist approval components, derive
-canonical jobs, dispatch workers, or execute media.
+bridge verifies authority. The follow-up canonical integration now persists the
+seed and controller through real local/private publication and approval and
+persists a deterministic blocked child-job manifest. The bridge itself still
+does not dispatch workers or execute media.
 
 The contract binds all of the following before any future child-job
 derivation can be considered:
@@ -56,7 +58,7 @@ maximum fixture contains 512 approved ranges, 124 chunks, 255 child work
 items, and a maximum dependency count of 127. Its plan-seed hash is
 `de8deb17a7b255d3591abc54917c009d7078de350faffa17fb82c2eda7d9fa6b` and
 its bridge-authority hash is
-`ece9106af3f9b74f5a21bb5556f778fd4f28e889a2a8199f114ff6fe0499b0f7`.
+`01a497445e1772b95250eee2b3eb6c8023f111130f7dd200ef842e8e39db7e94`.
 
 The smoke verifies exact rebuild and replay and rejects tampering with the
 snapshot hash, seed component, controller input, component reference,
@@ -71,17 +73,20 @@ estimate, and the same canonical graph ceilings.
 
 ## Aggregate Evidence
 
-The exact-code `npm run qa:internal-pipeline` v16 aggregate passed all `36/36`
-stages with exit code `0`. It started at `2026-07-18T05:21:30.437Z`, finished
-at `2026-07-18T05:49:59.399Z`, and completed in `1,708,962 ms`. The planning
-stage passed in `402 ms`, and this bridge stage passed in `682 ms`.
+The exact-code `npm run qa:internal-pipeline` v17 aggregate passed all `37/37`
+stages with exit code `0`. It started at `2026-07-18T06:34:21.425Z`, finished
+at `2026-07-18T07:03:58.045Z`, and completed in `1,776,620 ms`. The planning
+stage passed in `354 ms`, this bridge stage in `628 ms`, and the canonical
+post-approval authority stage in `2,056 ms`.
 
 The aggregate reverified exactly 50 canonical E2E tool identities and 50 job
 adapters, the existing bounded private media lifecycles, all 11 named-edit
 browser tests, and the accepted maximum-eight-source 27-job private review.
-The aggregate report explicitly kept canonical seed/controller persistence,
-child-job derivation, long-form object storage, long-form media execution, live
-Google Cloud completion, external beta, and paid production false.
+The aggregate report now marks canonical seed/controller persistence and
+child-manifest derivation/persistence true through the separately bounded
+post-approval authority. It explicitly keeps child package-queue persistence,
+long-form object storage, long-form media execution, live Google Cloud
+completion, external beta, and paid production false.
 
 ## Security and Commercial Boundary
 
@@ -95,14 +100,14 @@ Attempt-level internal production cost remains a separate future execution
 record. It is not customer price, customer credits, ReEditPro service fee, or
 billing authority.
 
-## Readiness Truth
+## Follow-Up Readiness Truth
 
-Only the approved-snapshot binding contract is ready. All of the following
-remain false:
+The follow-up
+`docs/canonical-professional-long-form-post-approval-authority-2026-07-18.md`
+and its 23-check smoke now verify canonical seed/controller persistence,
+server-loaded approval revalidation, deterministic 255-child derivation, and
+content-addressed bridge/manifest persistence. The following remain false:
 
-- canonical seed-component persistence;
-- server-loaded controller persistence;
-- canonical child-job derivation;
 - object-store persistence;
 - child-package queue persistence;
 - long-form media execution;
@@ -115,10 +120,9 @@ No SQL, remote Supabase, provider, billing, customer charging, deployment,
 public delivery, Motion Studio/MS-001, or Edit Preference/Edit Reference
 implementation changed in this slice.
 
-## Next Evidence Gate
+## Historical Next Gate
 
-The next dependency-safe backend slice must persist this exact seed component
-and controller input through the canonical plan-publication and approval
-service, reload them server-side, and deterministically derive the bounded
-child jobs without accepting caller-authored graph authority. Object-store and
-worker execution remain later gates.
+The seed/controller persistence and blocked child-manifest derivation gate was
+completed by the follow-up document above. Transactional child-package queue
+promotion is now the next dependency-safe gate. Object-store and worker
+execution remain later gates.

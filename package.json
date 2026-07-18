@@ -52,6 +52,7 @@
     "smoke:canonical-distributed-package-state-rpc-adapter": "tsx server/smoke/canonical-distributed-package-state-rpc-adapter-smoke.ts",
     "smoke:professional-long-form-object-plan": "tsx server/smoke/professional-long-form-object-execution-plan-smoke.ts",
     "smoke:professional-long-form-snapshot-bridge": "tsx server/smoke/professional-long-form-approved-snapshot-bridge-smoke.ts",
+    "smoke:canonical-professional-long-form-post-approval": "tsx server/smoke/canonical-professional-long-form-post-approval-smoke.ts",
     "smoke:canonical-cloud-dispatch-handoff": "tsx server/smoke/canonical-cloud-worker-dispatch-handoff-smoke.ts",
     "smoke:canonical-service-identity-verifier": "tsx server/smoke/canonical-service-identity-verifier-smoke.ts",
     "smoke:canonical-live-google-service-identity-verifier": "tsx server/smoke/canonical-live-google-service-identity-verifier-smoke.ts",

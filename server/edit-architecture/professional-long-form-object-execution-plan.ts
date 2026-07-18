@@ -233,6 +233,57 @@ export function deriveProfessionalLongFormObjectPlanSeed(
   }
 }
 
+export type ProfessionalLongFormObjectPlanSeed = ReturnType<
+  typeof deriveProfessionalLongFormObjectPlanSeed
+>
+
+export function verifyProfessionalLongFormObjectPlanSeed(
+  input: unknown,
+): ProfessionalLongFormObjectPlanSeed {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) {
+    throw new Error('Professional long-form object-plan seed is malformed.')
+  }
+  const record = input as Record<string, unknown>
+  const seedIdentity = record.identity
+  if (!seedIdentity || typeof seedIdentity !== 'object' || Array.isArray(seedIdentity)) {
+    throw new Error('Professional long-form object-plan seed identity is malformed.')
+  }
+  const seedIdentityRecord = seedIdentity as Record<string, unknown>
+  const verificationHash = '0'.repeat(64)
+  const reconstructedRequest = professionalLongFormObjectExecutionRequestSchema.parse({
+    schemaVersion: PROFESSIONAL_LONG_FORM_OBJECT_EXECUTION_REQUEST_VERSION,
+    identity: {
+      workspaceId: seedIdentityRecord.workspaceId,
+      projectId: seedIdentityRecord.projectId,
+      editSessionId: seedIdentityRecord.editSessionId,
+      planningRequestId: seedIdentityRecord.planningRequestId,
+      approvedPlanId: 'long-form-seed-verification-plan',
+      approvedPlanHash: verificationHash,
+      approvedPlanSnapshotId: 'long-form-seed-verification-snapshot',
+      approvedPlanSnapshotHash: verificationHash,
+      approvedEstimateId: 'long-form-seed-verification-estimate',
+      approvedEstimateHash: verificationHash,
+      approvalRecordId: 'long-form-seed-verification-approval',
+      creditReservationId: 'long-form-seed-verification-reservation',
+      approvedWorkGraphHash: verificationHash,
+      approvedTimingHash: seedIdentityRecord.approvedTimingHash,
+    },
+    runtimeRegion: record.runtimeRegion,
+    confirmedOutputFrame: record.confirmedOutputFrame,
+    totalFrames: record.totalFrames,
+    sourceRanges: record.sourceRanges,
+    executionPolicy: record.executionPolicy,
+    approvalAndCostBoundary: record.approvalAndCostBoundary,
+  })
+  const expected = deriveProfessionalLongFormObjectPlanSeed(reconstructedRequest)
+  if (stableAuthorityStringify(expected) !== stableAuthorityStringify(input)) {
+    throw new Error(
+      'Professional long-form object-plan seed failed exact authority verification.',
+    )
+  }
+  return expected
+}
+
 export interface ProfessionalLongFormChunkSourceSlice {
   segmentId: string
   sourceSequenceItemId: string
@@ -262,7 +313,7 @@ export interface ProfessionalLongFormObjectChunk {
     runtimeRegion: 'us-east1' | 'europe-west1'
     bucketPurpose: 'processed-media'
     contentType: 'video/x-matroska'
-    canonicalSignedUrlStored: false
+    ephemeralAccessGrantPersisted: false
     createOnlyRequired: true
   }
   requiredQa: {
@@ -276,16 +327,20 @@ export interface ProfessionalLongFormObjectChunk {
   chunkAuthorityHash: string
 }
 
-type ProfessionalLongFormWorkItemKind =
-  | 'validate_approved_snapshot'
-  | 'validate_private_source_authority'
-  | 'render_object_mezzanine_chunk'
-  | 'qa_object_mezzanine_chunk'
-  | 'mix_continuous_program_audio'
-  | 'validate_master_timing'
-  | 'validate_cross_chunk_color_continuity'
-  | 'finalize_private_4k_master'
-  | 'qa_private_4k_master'
+export const PROFESSIONAL_LONG_FORM_WORK_ITEM_KINDS = [
+  'validate_approved_snapshot',
+  'validate_private_source_authority',
+  'render_object_mezzanine_chunk',
+  'qa_object_mezzanine_chunk',
+  'mix_continuous_program_audio',
+  'validate_master_timing',
+  'validate_cross_chunk_color_continuity',
+  'finalize_private_4k_master',
+  'qa_private_4k_master',
+] as const
+
+export type ProfessionalLongFormWorkItemKind =
+  (typeof PROFESSIONAL_LONG_FORM_WORK_ITEM_KINDS)[number]
 
 export interface ProfessionalLongFormWorkItem {
   workItemId: string
@@ -335,7 +390,7 @@ export interface ProfessionalLongFormObjectExecutionPlan {
     colorPolicy: 'source_bound_transform_plus_boundary_continuity_v1'
     frameContinuityPolicy: 'exact_integer_frame_conservation_v1'
     crossRegionMediaTransferAllowed: false
-    canonicalSignedUrlStored: false
+    ephemeralAccessGrantPersisted: false
     fullProgramVideoReencodeRequired: false
     originalApprovedFourKEstimateReused: true
     secondEstimateOrChargeCreated: false
@@ -437,7 +492,7 @@ export function buildProfessionalLongFormObjectExecutionPlan(
         runtimeRegion: request.runtimeRegion,
         bucketPurpose: 'processed-media' as const,
         contentType: 'video/x-matroska' as const,
-        canonicalSignedUrlStored: false as const,
+        ephemeralAccessGrantPersisted: false as const,
         createOnlyRequired: true as const,
       },
       requiredQa: {
@@ -495,7 +550,7 @@ export function buildProfessionalLongFormObjectExecutionPlan(
     colorPolicy: 'source_bound_transform_plus_boundary_continuity_v1' as const,
     frameContinuityPolicy: 'exact_integer_frame_conservation_v1' as const,
     crossRegionMediaTransferAllowed: false as const,
-    canonicalSignedUrlStored: false as const,
+    ephemeralAccessGrantPersisted: false as const,
     fullProgramVideoReencodeRequired: false as const,
     originalApprovedFourKEstimateReused: true as const,
     secondEstimateOrChargeCreated: false as const,

@@ -8,6 +8,7 @@ import {
   type CanonicalApprovedEditExecutionPackage,
   type CanonicalToolAuthorizationManifest,
 } from '../edit-architecture/canonical-approved-edit-execution-package'
+import { PROFESSIONAL_LONG_FORM_SEED_COMPONENT_KEY } from '../edit-architecture/professional-long-form-approved-snapshot-bridge'
 import type { ServiceContext } from '../types'
 import {
   createApprovedEditExecutionPackageSchema,
@@ -51,6 +52,7 @@ export function createCanonicalEditExecutionPackageService(context: ServiceConte
         body.approvedPlanSnapshotId,
         access.workspaceId,
       )
+      assertProfessionalLongFormPackageQueuePromotionReady(authority)
       if (authority.snapshot.snapshotHash !== body.expectedSnapshotHash) {
         throw new ApiError('IDEMPOTENCY_CONFLICT', 'Canonical approved snapshot hash changed or does not match the requested package.', 409, {
           approvedPlanSnapshotId: body.approvedPlanSnapshotId,
@@ -217,6 +219,7 @@ export function createCanonicalEditExecutionPackageService(context: ServiceConte
         executionPackageRecord.snapshotId,
         access.workspaceId,
       )
+      assertProfessionalLongFormPackageQueuePromotionReady(authority)
       assertCurrentPackageAuthority({
         aggregate,
         authority,
@@ -249,6 +252,7 @@ export function createCanonicalEditExecutionPackageService(context: ServiceConte
         executionPackageRecord.snapshotId,
         access.workspaceId,
       )
+      assertProfessionalLongFormPackageQueuePromotionReady(authority)
       assertCurrentPackageAuthority({
         aggregate,
         authority,
@@ -262,6 +266,29 @@ export function createCanonicalEditExecutionPackageService(context: ServiceConte
       }
     },
   }
+}
+
+function assertProfessionalLongFormPackageQueuePromotionReady(
+  authority: Awaited<
+    ReturnType<
+      ReturnType<typeof createEditPlanningAuthorityService>['loadApprovedExecutionAuthority']
+    >
+  >,
+): void {
+  if (!authority.snapshot.componentRefs[PROFESSIONAL_LONG_FORM_SEED_COMPONENT_KEY]) {
+    return
+  }
+  throw new ApiError(
+    'JOB_DEPENDENCY_NOT_READY',
+    'Professional long-form execution packaging is blocked until the exact derived child graph is transactionally promoted into the canonical package queue.',
+    409,
+    {
+      requiredGate:
+        'canonical_professional_long_form_child_package_queue_persistence',
+      approvedPlanSnapshotId: authority.snapshot.snapshotId,
+      approvedPlanSnapshotHash: authority.snapshot.snapshotHash,
+    },
+  )
 }
 
 function assertCurrentPackageAuthority(input: {

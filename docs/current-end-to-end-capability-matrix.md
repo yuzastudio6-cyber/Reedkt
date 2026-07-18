@@ -166,38 +166,43 @@ work items with at most 127 dependencies, inside the existing 256/128 canonical
 ceilings. A separate server-only bridge now verifies that the exact seed,
 plan, estimate, timing, reservation, controller input, and expanded child graph
 belong to one approved snapshot and rejects substitution or self-promotion.
-This remains `contract_ready` only: the seed/controller are not persisted by
-the canonical approval service, canonical child jobs are not derived from that
-persisted authority, and no long media, object storage, distributed database,
-or Google Cloud execution has occurred.
+The canonical follow-up now persists the exact seed and one blocked controller
+through real local/private plan publication and approval, reloads both from the
+approved snapshot, and persists a deterministic content-addressed 255-child
+manifest after approval. The ordinary execution-package service refuses this
+snapshot, every child remains outside the canonical queue and dispatch path,
+and no long media, object storage, distributed database, or Google Cloud
+execution has occurred.
 
 ## Private Pipeline Evidence
 
 `npm run qa:canonical-private-pipeline` is the authoritative bounded canonical audit command. It verifies exact source, Edit Preferences, Edit Brief, a real resumable-sized 4K private ingest/proxy lifecycle, an over-16-MiB 4K canonical source execution, 4K estimate/export policy, browser-safe publication/approval/package/preparation/review/recovery clients, real local backend authority, bounded first-source-reference multi-source voice/color execution, bounded one-source professional-color regression, one separately labeled above-16-MiB Remotion runtime/persistence/QA output proof, active named-edit Playwright states, and the versioned proven-tool identity report. The current `npm run qa:internal-pipeline` adds auth/runtime, project/edit tenancy, approved tool-manifest, private Playwright capture, and the signed-in named-edit workflow. On 2026-07-15, its exact-code v3 24-phase run completed all 24 phases in 1,029,183 ms with exit code 0. The focused backend/runtime phase produced one private 4K master from three ordered sources, three exact source-bound voice deliveries, one baseline plus two independently first-reference-bound color intermediates, and two approved hard cuts; objective continuity passed at both boundaries before final QA, download, and replay. The final browser phase created a project and named edit, uploaded and probed the maximum eight distinct private audio-bearing sources, synchronized exact Edit Preferences, created and revised the inline Edit Brief, preserved the confirmed frame, approved one 4K-ceiling estimate, requested the immutable package separately, completed the 27-work-item/27-job private work graph, loaded and downloaded the integrity-bound non-passthrough eight-second 3840x2160 MP4, confirmed all eight source-bound tones in approved order, read sanitized journey state, and persisted acceptance. The same run regenerated evidence revision `2026-07-15.30` with exactly 50 private canonical/job-adapter identities and kept provider activation, live billing/wallet mutation, remote Supabase, public delivery, deployment, external beta, and paid production false. The earlier exact-code v2 24-phase run completed in 947,417 ms with the then-current three-source signed-in path; v3 supersedes that maximum-count browser evidence. The earlier 580,973 ms canonical run proved the then-current two-source reference match, the prior 604,446 ms canonical run predates reference matching, and the 719,518 ms 22-phase full run remains a historical fail-closed baseline. A separate complete `npm run smoke:canonical-private-tool-dispatch` execution passed with exit code 0 and reverified all 50 exact private canonical/job-adapter identities, including dynamic grant-set tamper/restore preservation. Both aggregate commands stop on the first failure and emit a machine-readable step report; a zero exit code means every included assertion passed, including assertions that unavailable or production-only behavior stays blocked.
 
-The exact-code v16 full run on 2026-07-18 supersedes the older aggregate verdicts
-for the current branch. It started at `2026-07-18T05:21:30.437Z`, finished at
-`2026-07-18T05:49:59.399Z`, and passed `36/36` stages in `1,708,962 ms`.
+The exact-code v17 full run on 2026-07-18 supersedes the older aggregate verdicts
+for the current branch. It started at `2026-07-18T06:34:21.425Z`, finished at
+`2026-07-18T07:03:58.045Z`, and passed `37/37` stages in `1,776,620 ms`.
 The 30-minute/six-hour long-form planning-contract stage passed 26 adversarial
-checks in `402 ms`, and the approved-snapshot binding bridge passed 22 checks
-in `682 ms`. The database-neutral distributed package-state port passed in
-`501 ms`, its locked server-only RPC adapter passed in `371 ms`, the
-single-host package transaction passed in `12,045 ms`, and the timeout-aware
-receiver passed in `2,179 ms`. Three-source composition passed in `551,262 ms`,
-professional color in `624,712 ms`, and the final stage completed the exact
+checks in `354 ms`, the approved-snapshot binding bridge passed 22 checks in
+`628 ms`, and the canonical post-approval authority passed 23 checks in
+`2,056 ms`. The database-neutral distributed package-state port passed in
+`428 ms`, its locked server-only RPC adapter passed in `332 ms`, the
+single-host package transaction passed in `10,922 ms`, and the timeout-aware
+receiver passed in `2,123 ms`. Three-source composition passed in `562,075 ms`,
+professional color in `647,850 ms`, and the final stage completed the exact
 eight-source, 27-job, 16-second `3840x2160` private-review journey in
-`369,408 ms`. Exactly 50 canonical E2E and 50 job-adapter identities remained
-verified. No canonical
-package-state SQL function was executed and no live RPC client was activated.
-The long-form seed/controller was not persisted into the canonical approval
-service, child jobs were not derived, no 30-minute media was processed, and no
-long-form object storage was used.
-Distributed database queue/outbox/terminal atomicity, deployed worker-death
-detection, live Google identity/IAM and cloud execution, providers, customer
-billing/wallet mutation, remote Supabase, deployment, public delivery,
-external beta, and paid production remained false.
+`410,266 ms`. Exactly 50 canonical E2E and 50 job-adapter identities remained
+verified. Canonical long-form publication now persists the exact seed and one
+blocked controller; after approval, a fresh service revalidates that authority
+and persists the deterministic 255-child bridge/manifest. Ordinary package
+creation, child queue promotion, lease, dispatch, long-form media execution,
+and object storage remain blocked. No canonical package-state SQL function was
+executed and no live RPC client was activated. Distributed database
+queue/outbox/terminal atomicity, deployed worker-death detection, live Google
+identity/IAM and cloud execution, providers, customer billing/wallet mutation,
+remote Supabase, deployment, public delivery, external beta, and paid
+production remained false.
 
-The v16 aggregate also reverified the private Docker execution transport after
+The v17 aggregate also reverified the private Docker execution transport after
 credential-helper deadlock hardening. Server-side private Docker subprocesses
 receive a fresh intentionally absent configuration path and inherit no Docker
 credential config, context, or host; builds use a reviewed local Buildx binary

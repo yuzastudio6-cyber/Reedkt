@@ -73,6 +73,13 @@ import {
 import { authorizeWorkspaceAccess } from './workspace-access-service'
 import { createSourceMediaAuthorityService } from './source-media-authority-service'
 import {
+  CANONICAL_PROFESSIONAL_LONG_FORM_CONTROLLER_WORK_ITEM_KEY,
+  loadCanonicalProfessionalLongFormPublicationAuthority,
+  persistPreparedCanonicalProfessionalLongFormPublication,
+  prepareCanonicalProfessionalLongFormPublication,
+} from './canonical-professional-long-form-publication-authority'
+import { PROFESSIONAL_LONG_FORM_SEED_COMPONENT_KEY } from '../edit-architecture/professional-long-form-approved-snapshot-bridge'
+import {
   resolvePlanningInputAuthorityBinding,
   revalidatePlanningInputAuthorityBinding,
   planningInputAuthorityExpectationFromResolvedBinding,
@@ -133,6 +140,7 @@ export interface PublishCanonicalEditPlanInput extends PublishCanonicalEditPlanB
   idempotencyKey: string
   requestPath?: string
   planningHandoffBinding?: CanonicalPlanningHandoffPublicationBinding
+  professionalLongFormSeedDraft?: unknown
 }
 
 export interface ApproveCanonicalEditPlanInput extends ApproveCanonicalEditPlanBody {
@@ -196,13 +204,57 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
       const body = validatedBody.data
       const access = await authorizeWorkspaceAccess(context, body.workspaceId, 'write')
       await createProjectService(context).getProject(input.projectId, access.workspaceId)
-      const workItemCompilation = compileCanonicalWorkItems(body.canonicalPlan.workItems)
+      const idempotencyKey = requireIdempotencyKey(input.idempotencyKey)
+      const planningInputAuthority = await resolvePlanningInputAuthorityBinding({
+        context,
+        scope: {
+          localStorageRoot: context.env.localStorageRoot,
+          ownerUserId: access.userId,
+          workspaceId: access.workspaceId,
+          projectId: input.projectId,
+          editSessionId: input.editSessionId,
+        },
+        expectation: body.planningInputAuthority,
+        components: body.canonicalPlan.components,
+      })
+      const sourceMediaAuthority = await buildAndVerifySourceMediaAuthority({
+        context,
+        workspaceId: access.workspaceId,
+        projectId: input.projectId,
+        sourceSequence: body.canonicalPlan.components.sourceSequence,
+        expectation: body.sourceMediaAuthority,
+      })
+      const professionalLongFormPublication = input.professionalLongFormSeedDraft === undefined
+        ? undefined
+        : prepareCanonicalProfessionalLongFormPublication({
+            seedDraft: input.professionalLongFormSeedDraft,
+            workspaceId: access.workspaceId,
+            projectId: input.projectId,
+            editSessionId: input.editSessionId,
+            planningRequestId: body.planningRequestId,
+            components: body.canonicalPlan.components,
+            sourceMediaAuthority,
+            existingWorkItems: body.canonicalPlan.workItems,
+          })
+      const workItemCompilation = compileCanonicalWorkItems([
+        ...body.canonicalPlan.workItems,
+        ...(professionalLongFormPublication
+          ? [professionalLongFormPublication.controllerWorkItem]
+          : []),
+      ])
       const canonicalPlan = {
         ...body.canonicalPlan,
         workItems: workItemCompilation.workItems,
       }
-      const idempotencyKey = requireIdempotencyKey(input.idempotencyKey)
-      validateCanonicalPlanDraft(canonicalPlan.components, canonicalPlan.workItems, canonicalPlan.estimate)
+      validateCanonicalPlanDraft(
+        canonicalPlan.components,
+        canonicalPlan.workItems,
+        canonicalPlan.estimate,
+        {
+          professionalLongFormControllerRequired:
+            professionalLongFormPublication !== undefined,
+        },
+      )
       const toolExecutionAuthority = createCanonicalToolExecutionAuthority({
         toolStrategyPlan: canonicalPlan.components.toolStrategyPlan,
         workItems: canonicalPlan.workItems,
@@ -221,25 +273,6 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
           })
         : undefined
 
-      const planningInputAuthority = await resolvePlanningInputAuthorityBinding({
-        context,
-        scope: {
-          localStorageRoot: context.env.localStorageRoot,
-          ownerUserId: access.userId,
-          workspaceId: access.workspaceId,
-          projectId: input.projectId,
-          editSessionId: input.editSessionId,
-        },
-        expectation: body.planningInputAuthority,
-        components: canonicalPlan.components,
-      })
-      const sourceMediaAuthority = await buildAndVerifySourceMediaAuthority({
-        context,
-        workspaceId: access.workspaceId,
-        projectId: input.projectId,
-        sourceSequence: canonicalPlan.components.sourceSequence,
-        expectation: body.sourceMediaAuthority,
-      })
       if (planningHandoffBinding && (
         planningHandoffBinding.canonicalPlanComponentsHash !== sha256AuthorityValue(canonicalPlan.components) ||
         planningHandoffBinding.sourceCandidateHash !== sourceMediaAuthority.candidateHash ||
@@ -261,9 +294,21 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
           409,
         )
       }
+      if (professionalLongFormPublication) {
+        await persistPreparedCanonicalProfessionalLongFormPublication({
+          context,
+          publication: professionalLongFormPublication,
+        })
+      }
       const baseComponentRefs = await persistPlanComponents(context, canonicalPlan.components)
       const componentRefs: Record<string, AuthorityJsonBlobRef> = {
         ...baseComponentRefs,
+        ...(professionalLongFormPublication
+          ? {
+              [PROFESSIONAL_LONG_FORM_SEED_COMPONENT_KEY]:
+                professionalLongFormPublication.seedRef,
+            }
+          : {}),
         planningInputAuthority: await putPrivateAuthorityJsonBlob({
           localStorageRoot: context.env.localStorageRoot,
           value: planningInputAuthority as unknown as Record<string, unknown>,
@@ -546,6 +591,11 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
           ...(planningHandoffBinding
             ? ['Canonical plan authority includes the exact persisted and revalidated planning-handoff binding.']
             : []),
+          ...(professionalLongFormPublication
+            ? [
+                'Canonical plan authority includes one content-addressed professional long-form seed and one non-authorizing controller work item; no child job was derived or dispatched before approval.',
+              ]
+            : []),
           'Canonical plan authority is private single-host internal-test persistence.',
           ...(body.revisionAuthority
             ? ['Replacement plan publication consumed one exact private-review revision handoff; fresh approval remains blocked pending reservation reconciliation.']
@@ -582,6 +632,8 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
       if (!targetPlan) throw new ApiError('PLAN_NOT_APPROVED', 'Canonical edit plan was not found.', 404)
       await createProjectService(context).getProject(targetPlan.projectId, access.workspaceId)
       const approvalComponents = await loadCanonicalPlanComponents(context, targetPlan.componentRefs)
+      const approvalPlanWorkItems = targetPlan.workItemIds.map((workItemId) =>
+        requirePlanWorkItem(aggregateBefore!, workItemId, targetPlan.id))
       const approvalToolWorkItems = await loadPlanToolAuthorityWorkItems(
         context,
         aggregateBefore!,
@@ -617,6 +669,18 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         planningInputAuthority: approvalPlanningInputAuthority,
         sourceMediaAuthority: approvalSourceMediaAuthority,
       })
+      const approvalLongFormPublication =
+        await loadCanonicalProfessionalLongFormPublicationAuthority({
+          context,
+          workspaceId: access.workspaceId,
+          projectId: targetPlan.projectId,
+          editSessionId: targetPlan.editSessionId,
+          planningRequestId: targetPlan.planningRequestId,
+          components: approvalComponents,
+          sourceMediaAuthority: approvalSourceMediaAuthority,
+          componentRefs: targetPlan.componentRefs,
+          planWorkItems: approvalPlanWorkItems,
+        })
       await revalidatePlanningInputAuthorityBinding({
         context,
         scope: planningAuthorityScope(context, access.userId, access.workspaceId, targetPlan),
@@ -719,6 +783,30 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
           }
 
           const sourceWorkItems = plan.workItemIds.map((workItemId) => requirePlanWorkItem(aggregate, workItemId, plan.id))
+          const lockedLongFormPublication =
+            await loadCanonicalProfessionalLongFormPublicationAuthority({
+              context,
+              workspaceId: access.workspaceId,
+              projectId: plan.projectId,
+              editSessionId: plan.editSessionId,
+              planningRequestId: plan.planningRequestId,
+              components: approvalComponents,
+              sourceMediaAuthority: approvalSourceMediaAuthority,
+              componentRefs: plan.componentRefs,
+              planWorkItems: sourceWorkItems,
+            })
+          if (
+            Boolean(lockedLongFormPublication) !== Boolean(approvalLongFormPublication) ||
+            (lockedLongFormPublication && approvalLongFormPublication &&
+              stableAuthorityStringify(lockedLongFormPublication) !==
+                stableAuthorityStringify(approvalLongFormPublication))
+          ) {
+            throw new ApiError(
+              'IDEMPOTENCY_CONFLICT',
+              'Professional long-form publication authority changed before approval.',
+              409,
+            )
+          }
           const approvalId = `authority_approval_${randomUUID()}`
           const snapshotId = `authority_snapshot_${randomUUID()}`
           const reservationId = `authority_reservation_${randomUUID()}`
@@ -977,6 +1065,11 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         warnings: [
           ...(targetPlan.revisionAuthority
             ? ['Revision approval atomically released the unused prior synthetic reservation and reserved the newly approved maximum.']
+            : []),
+          ...(approvalLongFormPublication
+            ? [
+                'Approval froze the exact professional long-form seed and controller; post-approval child derivation remains a separate server-owned step with no dispatch authority.',
+              ]
             : []),
           'Approval reserved synthetic private-internal test credits only; no paid billing, customer wallet, or external credit mutation occurred.',
           'Jobs were derived from immutable approved work items but were not claimed or executed.',
@@ -1319,6 +1412,11 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         reconstructedPlan.data.canonicalPlan.components,
         reconstructedPlan.data.canonicalPlan.workItems,
         reconstructedPlan.data.canonicalPlan.estimate,
+        {
+          professionalLongFormControllerRequired:
+            snapshot.componentRefs[PROFESSIONAL_LONG_FORM_SEED_COMPONENT_KEY] !==
+            undefined,
+        },
       )
       assertReconstructedAuthorityHashes({
         plan: lineage.plan,
@@ -2052,6 +2150,9 @@ function validateCanonicalPlanDraft(
   components: CanonicalPlanComponentsInput,
   workItems: CanonicalWorkItemInput[],
   estimate: PublishCanonicalEditPlanBody['canonicalPlan']['estimate'],
+  options: {
+    professionalLongFormControllerRequired: boolean
+  },
 ): void {
   const uploadedOrders = components.sourceSequence.map((item) => item.uploadedOrder)
   const expectedOrders = components.sourceSequence.map((_, index) => index + 1)
@@ -2225,14 +2326,40 @@ function validateCanonicalPlanDraft(
     }
   }
   assertAcyclicWorkGraph(workItems)
-  for (const requiredType of ['validate_approved_snapshot', 'run_final_qa', 'render_final_export'] as const) {
+  const requiredTypes = options.professionalLongFormControllerRequired
+    ? ['validate_approved_snapshot'] as const
+    : ['validate_approved_snapshot', 'run_final_qa', 'render_final_export'] as const
+  for (const requiredType of requiredTypes) {
     if (!workItems.some((item) => item.workItemType === requiredType && item.required)) {
       throw new ApiError('VALIDATION_FAILED', `Canonical work graph is missing required ${requiredType} authority.`, 400)
     }
   }
-  const finalExportItems = workItems.filter((item) => item.workItemType === 'render_final_export' && item.required)
-  if (!finalExportItems.some((item) => item.expectedOutputs.some((output) => output.assetRole === 'final' && output.required))) {
-    throw new ApiError('VALIDATION_FAILED', 'Required final export work must declare a required final artifact.', 400)
+  const finalExportItems = workItems.filter((item) =>
+    item.workItemType === 'render_final_export' && item.required)
+  if (options.professionalLongFormControllerRequired) {
+    const controllers = workItems.filter((item) =>
+      item.workItemKey ===
+        CANONICAL_PROFESSIONAL_LONG_FORM_CONTROLLER_WORK_ITEM_KEY)
+    if (
+      controllers.length !== 1 ||
+      !controllers[0]!.required ||
+      finalExportItems.length > 0 ||
+      workItems.some((item) => item.workItemType === 'run_final_qa')
+    ) {
+      throw new ApiError(
+        'VALIDATION_FAILED',
+        'Professional long-form publication requires one controller and forbids competing pre-expansion final-export or final-QA authority.',
+        400,
+      )
+    }
+  } else if (!finalExportItems.some((item) =>
+    item.expectedOutputs.some((output) =>
+      output.assetRole === 'final' && output.required))) {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      'Required final export work must declare a required final artifact.',
+      400,
+    )
   }
 
   const estimatedCredits = estimate.lineItems.reduce((total, item) => total + item.estimatedCredits, 0)

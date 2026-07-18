@@ -79,3 +79,25 @@ npm run qa:google-oauth-sign-in
 ```
 
 These checks do not contact Google or prove a real Gmail session. That requires hosted provider/callback configuration and interactive browser readback.
+
+## Hosted Google Session Evidence
+
+The hosted staging path is deliberately split so CI never handles a tester password or automates a Google account:
+
+1. `.github/workflows/beta-readiness-api-staging-deploy.yml` must activate and verify the IAM-private API Gateway path for the exact reviewed SHA and emit its sanitized immutable evidence artifact.
+2. `.github/workflows/app-internal-testing-pages-deploy.yml` must consume that exact successful same-SHA artifact, derive the gateway origin from it, build the Supabase/Google-first app, and verify the deployed `/Reedkt/sign-in` route.
+3. `.github/workflows/internal-tester-browser-sign-in-verification.yml` must prove the exact Pages run and hosted sign-in surface without accepting an email/password, using a service-role key, clicking Google, or creating a session.
+4. The owner then runs the headed local verifier and completes Google's account UI directly:
+
+```bash
+REEDITPRO_CONFIRM_INTERACTIVE_GOOGLE_SESSION=VERIFY_REEDITPRO_INTERACTIVE_GOOGLE_SESSION \
+REEDITPRO_HOSTED_APP_URL=https://yuzastudio6-cyber.github.io/Reedkt/ \
+REEDITPRO_EXPECTED_SUPABASE_ORIGIN=https://PROJECT_REF.supabase.co \
+REEDITPRO_EXPECTED_API_GATEWAY_ORIGIN=https://ACTIVATED_GATEWAY.gateway.dev \
+REEDITPRO_EXPECTED_GOOGLE_EMAIL=OWNER_GOOGLE_EMAIL \
+npm run internal-testing:verify-interactive-google-session
+```
+
+The verifier clicks only ReEditPro's Google action. It does not enter or read Google credentials, print tokens, export browser storage, or retain a trace, screenshot, video, or storage state. A pass requires the exact callback, expected Google identity, protected dashboard reload, an authenticated 2xx `/v1/projects` response from the exact activated gateway, sign-out, and protected-route denial afterward.
+
+Current status: all four source lanes and their local fail-closed checks exist on `codex/backend-workflow-pipeline-continuation`, but no workflow has been pushed or dispatched and no live Gmail session has passed. This is source readiness, not deployed authentication evidence.

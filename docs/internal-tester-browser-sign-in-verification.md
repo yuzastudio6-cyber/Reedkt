@@ -1,81 +1,59 @@
-# Internal Tester Browser Sign-In Verification
+# Internal Tester Google Session Readiness
 
 ## Decision
 
-`internal_tester_browser_sign_in_verification_passed_ready_for_internal_testing_route`
+`internal_tester_google_session_readiness_workflow_source_ready_remote_pages_and_interactive_session_pending`
 
 ## Purpose
 
-The existing backend readback confirms that a tester Auth user, profile, workspace, and membership exist. This verifier closes the next practical sign-in gap: it checks whether the same tester email/password can obtain a browser-safe Supabase session through the public anon auth path used by `/sign-in`.
+`.github/workflows/internal-tester-browser-sign-in-verification.yml` is now a credential-free CI readiness gate for the real Google session test. It replaces the stale password-based lane that checked out an unrelated branch and attempted a public Supabase email/password call.
 
-This is a verification command only. It does not create users, reset passwords, bypass email confirmation, write profile/workspace rows, upload media, and does not upload media through Storage. It does not run Edit Brief, call Qwen, dispatch workers, render, reserve credits, or unlock beta/production.
+The workflow does not store a tester password, accept a tester email, use a Supabase service-role key, click Google, submit credentials, create a browser session, or claim Gmail sign-in success.
 
-## Command
+## Required Evidence
 
-```bash
-REEDITPRO_CONFIRM_INTERNAL_TESTER_BROWSER_SIGN_IN=VERIFY_REEDITPRO_INTERNAL_TESTER_BROWSER_SIGN_IN \
-VITE_SUPABASE_URL=... \
-VITE_SUPABASE_ANON_KEY=... \
-INTERNAL_TESTER_EMAIL=... \
-INTERNAL_TESTER_PASSWORD=... \
-npm run internal-testing:verify-browser-sign-in
-```
+The manual workflow requires:
 
-`SUPABASE_URL` and `SUPABASE_ANON_KEY` are accepted as backend/operator aliases for the same public browser-safe values. Do not pass a service-role key; this verifier does not use service-role access.
+- exact confirmation `VERIFY_REEDITPRO_GOOGLE_SESSION_READINESS`;
+- its own dispatch ref and SHA to equal the reviewed `codex/backend-workflow-pipeline-continuation` tip;
+- a successful `App Signed-In Internal Testing Pages Deploy` run from the same repository, branch, and SHA;
+- the exact reviewed GitHub Pages base URL;
+- the hosted Google-first sign-in card, public Supabase configuration, Google action, and password fallback to remain visible;
+- the interactive verifier's source/confidentiality smoke plus repository boundary and secret scans to pass.
 
-## GitHub Actions
+The same-SHA Pages run is already downstream of the immutable API Gateway activation artifact. Therefore this gate cannot silently verify a stale mock-mode frontend or an unrelated gateway.
 
-Preferred hosted verification path:
+## What CI Proves
 
-1. Add or rotate repository secret `STAGING_INTERNAL_TESTER_PASSWORD`.
-2. Run `.github/workflows/internal-tester-browser-password-bootstrap.yml` so the staging Auth user has the same secret-backed password and confirmed email status.
-3. Confirm `STAGING_SUPABASE_URL` and `STAGING_SUPABASE_ANON_KEY` are present.
-4. Run `.github/workflows/internal-tester-browser-sign-in-verification.yml`.
+Credential-free CI readiness proves that the correct app was deployed from the same reviewed source and that the owner-local verifier is present and fail-closed. It does not prove a Gmail session because Google account selection, password/passkey/MFA, and consent must stay under the owner's direct control.
 
-The workflow installs Playwright Chromium on the ephemeral GitHub runner, first runs `npm run internal-testing:verify-hosted-sign-in-route` against the deployed app URL, then runs `npm run internal-testing:verify-browser-sign-in` with the tester email input and password secret. It does not use service-role access, does not print the password or tokens, does not write Supabase data, and does not run upload/media/tool/provider/Qwen/render/credit/production behavior.
-
-## Output
-
-The CLI emits sanitized JSON:
-
-- `emailHash`
-- `userId`
-- `sessionReturned`
-- `emailConfirmed`
-- `expiresAt`
-- `serviceRoleUsed: false`
-- `passwordPrinted: false`
-- `tokenPrinted: false`
-
-It does not print tokens, refresh tokens, passwords, invite links, signed URLs, service-role keys, raw prompts, or media paths.
-
-## Failure Meaning
-
-- `blocked_email_not_confirmed`: the public sign-in path still needs a confirmed/provisioned tester account before browser sign-in can work.
-- `blocked_sign_in_failed`: the email/password or public Auth settings are wrong.
-- `blocked_session_missing`: Supabase accepted the request but did not return a usable browser session.
-- `blocked_missing_env`: public Supabase URL/anon key are not configured.
-
-## Next Step
-
-When the verifier passes, open the deployed `/sign-in` route with the same tester credentials and continue to `/internal-testing`. For local upload/edit-preview proof, use:
+CI explicitly does not invoke:
 
 ```bash
-npm run test:internal-testing:local-upload-e2e
+npm run internal-testing:verify-interactive-google-session
 ```
 
-The local upload verifier separately proves sign-in, Edit Brief upload, preview-only local edit smoke, and Qwen 3.7 Max reasoning identity recording without live Qwen/provider calls.
+That command is rejected when `CI=true`.
+
+## Owner-Interactive Gate
+
+After this readiness workflow passes, use the owner-local process in `docs/internal-tester-interactive-google-session.md`. The headed browser verifier requires the exact hosted app, public Supabase origin, activation-evidence gateway origin, and expected Google email. It clicks only ReEditPro's Google handoff and waits for the owner to complete Google's UI.
+
+A pass requires exact callback return, `Google session` identity, expected email match, protected dashboard reload, a successful protected `/v1/projects` gateway response, sign-out, and guarded-route denial after sign-out.
+
+## Current State
+
+Source readiness is implemented locally on `codex/backend-workflow-pipeline-continuation`. The workflow has not been pushed or run, the Pages/gateway activation workflows have not run, and no live Google session has been attempted.
 
 ## Boundaries
 
-- Browser-safe public Supabase auth only.
-- No service-role access.
-- No Supabase data write.
-- No Storage write.
-- No signed URL.
-- No media upload.
-- No worker dispatch.
-- No provider or Qwen call.
-- No render/export.
-- No credit reservation or spend.
-- No external beta or production unlock.
+- No tester password secret.
+- No automated Google credential entry.
+- No service-role access or Supabase admin operation.
+- No Supabase write or migration.
+- No browser storage export, trace, screenshot, or video.
+- No upload, media processing, tools, providers, workers, render/export, credits, Stripe, billing, public delivery, external beta, or production authority.
+
+## Next Gate
+
+`RUN_CREDENTIAL_FREE_READINESS_THEN_OWNER_INTERACTIVE_GOOGLE_SESSION`

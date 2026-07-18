@@ -54,7 +54,8 @@ Local code and browser interception do not prove a real Gmail session. Before ca
 2. Register the exact Supabase provider callback URI in Google Cloud.
 3. Add the exact hosted ReEditPro `/sign-in` callback to the Supabase redirect allowlist.
 4. Integrate this commit into the reviewed deployment source and deploy the static app with the three browser-safe variables above.
-5. Run the hosted route verifier and then complete a real Google browser sign-in, session readback, protected-route reload, and sign-out test without printing tokens.
+5. Run the hosted route verifier through the same-SHA credential-free Google session readiness workflow.
+6. Complete the real Google browser sign-in with `npm run internal-testing:verify-interactive-google-session` on the owner desktop and require exact callback, Google identity, protected-route reload, authenticated private-gateway readback, and sign-out evidence without printing tokens or exporting browser storage.
 
 No remote Supabase setting, Google credential, GitHub Pages deployment, or live Gmail login was changed or performed in this slice.
 

@@ -1,79 +1,119 @@
-name: Internal Tester Browser Sign-In Verification
+name: Internal Tester Google Session Readiness
 
 on:
   workflow_dispatch:
     inputs:
-      confirm_internal_tester_browser_sign_in:
-        description: "Type VERIFY_REEDITPRO_INTERNAL_TESTER_BROWSER_SIGN_IN to verify browser-safe tester sign-in"
+      confirm_google_session_readiness:
+        description: "Type VERIFY_REEDITPRO_GOOGLE_SESSION_READINESS"
         required: true
         type: string
-      tester_email:
-        description: "Internal tester email address to verify"
+      source_ref:
+        description: "Exact reviewed source branch"
+        required: true
+        default: "codex/backend-workflow-pipeline-continuation"
+        type: string
+      source_sha:
+        description: "Exact reviewed source SHA deployed to the signed-in app"
+        required: true
+        type: string
+      pages_deploy_run_id:
+        description: "Successful App Signed-In Internal Testing Pages Deploy workflow run ID"
         required: true
         type: string
       hosted_app_url:
-        description: "Hosted app base URL to verify before credential sign-in"
+        description: "Exact reviewed hosted app base URL"
         required: true
         default: "https://yuzastudio6-cyber.github.io/Reedkt/"
         type: string
-      require_hosted_supabase_config:
-        description: "Require the hosted sign-in page to show public Supabase env configured"
-        required: true
-        default: true
-        type: boolean
 
 permissions:
+  actions: read
   contents: read
 
 concurrency:
-  group: internal-tester-browser-sign-in-verification
+  group: internal-tester-google-session-readiness
   cancel-in-progress: false
 
 jobs:
-  verify-browser-sign-in:
-    name: Verify hosted route and browser-safe Supabase sign-in
+  verify-google-session-readiness:
+    name: Verify credential-free hosted Google session readiness
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
+    environment: staging
     env:
       REEDITPRO_CONFIRM_HOSTED_SIGN_IN_ROUTE_READINESS: VERIFY_REEDITPRO_HOSTED_SIGN_IN_ROUTE
+      REEDITPRO_EXPECT_HOSTED_SUPABASE_CONFIGURED: "true"
       REEDITPRO_HOSTED_APP_URL: ${{ inputs.hosted_app_url }}
-      REEDITPRO_EXPECT_HOSTED_SUPABASE_CONFIGURED: ${{ inputs.require_hosted_supabase_config && 'true' || 'false' }}
-      REEDITPRO_CONFIRM_INTERNAL_TESTER_BROWSER_SIGN_IN: ${{ inputs.confirm_internal_tester_browser_sign_in }}
-      SUPABASE_URL: ${{ secrets.STAGING_SUPABASE_URL }}
-      SUPABASE_ANON_KEY: ${{ secrets.STAGING_SUPABASE_ANON_KEY }}
-      INTERNAL_TESTER_EMAIL: ${{ inputs.tester_email }}
-      INTERNAL_TESTER_PASSWORD: ${{ secrets.STAGING_INTERNAL_TESTER_PASSWORD }}
     steps:
-      - name: Fail closed unless browser sign-in verification is explicitly approved
+      - name: Fail closed unless this is the exact credential-free readiness lane
         shell: bash
+        env:
+          CONFIRM_GOOGLE_SESSION_READINESS: ${{ inputs.confirm_google_session_readiness }}
+          SOURCE_REF: ${{ inputs.source_ref }}
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          PAGES_DEPLOY_RUN_ID: ${{ inputs.pages_deploy_run_id }}
         run: |
           set -euo pipefail
-          test "${REEDITPRO_CONFIRM_INTERNAL_TESTER_BROWSER_SIGN_IN}" = "VERIFY_REEDITPRO_INTERNAL_TESTER_BROWSER_SIGN_IN"
-          test "${REEDITPRO_CONFIRM_HOSTED_SIGN_IN_ROUTE_READINESS}" = "VERIFY_REEDITPRO_HOSTED_SIGN_IN_ROUTE"
-          test -n "${SUPABASE_URL}"
-          test -n "${SUPABASE_ANON_KEY}"
-          if [ -z "${INTERNAL_TESTER_PASSWORD}" ]; then
-            echo "::error::Add GitHub secret STAGING_INTERNAL_TESTER_PASSWORD before running browser sign-in verification."
-            exit 1
-          fi
-          if ! [[ "${INTERNAL_TESTER_EMAIL}" =~ ^[^[:space:]@]+@[^[:space:]@]+\.[^[:space:]@]+$ ]]; then
-            echo "::error::tester_email must be an email address."
-            exit 1
-          fi
-          case "${REEDITPRO_HOSTED_APP_URL}" in
-            https://yuzastudio6-cyber.github.io/Reedkt/|https://yuzastudio6-cyber.github.io/Reedkt|https://app.reeditpro.com/|https://app.reeditpro.com) ;;
-            http://127.0.0.1:*|http://localhost:*) ;;
-            *)
-              echo "::error::hosted_app_url must target the approved Pages URL or configured app.reeditpro.com host."
-              exit 1
-              ;;
-          esac
+          test "${CONFIRM_GOOGLE_SESSION_READINESS}" = "VERIFY_REEDITPRO_GOOGLE_SESSION_READINESS"
+          test "${SOURCE_REF}" = "codex/backend-workflow-pipeline-continuation"
+          [[ "${SOURCE_SHA}" =~ ^[0-9a-f]{40}$ ]]
+          test "${GITHUB_REF}" = "refs/heads/${SOURCE_REF}"
+          test "${GITHUB_SHA}" = "${SOURCE_SHA}"
+          [[ "${PAGES_DEPLOY_RUN_ID}" =~ ^[1-9][0-9]*$ ]]
+          test "${REEDITPRO_HOSTED_APP_URL}" = "https://yuzastudio6-cyber.github.io/Reedkt/"
 
-      - name: Checkout app source
+      - name: Checkout exact reviewed source
         uses: actions/checkout@v5
         with:
-          ref: codex/reeditpro-web-ui-shell
-          fetch-depth: 0
+          ref: ${{ inputs.source_ref }}
+          fetch-depth: 1
+
+      - name: Verify immutable source tip and clean readiness context
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${SOURCE_SHA}"
+          test -z "$(git status --porcelain)"
+
+      - name: Require successful same-SHA signed-in Pages deployment
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_REF: ${{ inputs.source_ref }}
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          PAGES_DEPLOY_RUN_ID: ${{ inputs.pages_deploy_run_id }}
+        run: |
+          set -euo pipefail
+          deploy_run="${RUNNER_TEMP}/pages-deploy-run.json"
+          gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${PAGES_DEPLOY_RUN_ID}" > "${deploy_run}"
+          python3 - \
+            "${deploy_run}" \
+            "${GITHUB_REPOSITORY}" \
+            "${SOURCE_REF}" \
+            "${SOURCE_SHA}" \
+            "${PAGES_DEPLOY_RUN_ID}" <<'PY'
+          import json
+          import pathlib
+          import sys
+
+          run = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8") or "{}")
+          repository = (run.get("repository") or {}).get("full_name")
+          workflow_path = str(run.get("path") or "").split("@")[0]
+          if repository != sys.argv[2]:
+              raise SystemExit("Pages deployment evidence belongs to another repository.")
+          if run.get("name") != "App Signed-In Internal Testing Pages Deploy":
+              raise SystemExit("Pages deployment evidence has the wrong workflow name.")
+          if workflow_path != ".github/workflows/app-internal-testing-pages-deploy.yml":
+              raise SystemExit("Pages deployment evidence has the wrong workflow path.")
+          if run.get("event") != "workflow_dispatch" or run.get("status") != "completed" or run.get("conclusion") != "success":
+              raise SystemExit("The signed-in Pages deployment did not complete successfully.")
+          if run.get("head_branch") != sys.argv[3] or run.get("head_sha") != sys.argv[4]:
+              raise SystemExit("Pages deployment source does not match this readiness source exactly.")
+          if run.get("id") != int(sys.argv[5]):
+              raise SystemExit("Pages deployment run ID does not match the requested evidence.")
+          PY
 
       - name: Setup Node
         uses: actions/setup-node@v5
@@ -81,14 +121,35 @@ jobs:
           node-version: 24
           cache: npm
 
-      - name: Install dependencies for browser-safe verification CLIs
+      - name: Install immutable dependencies
         run: npm ci --no-audit --no-fund --progress=false
 
-      - name: Install Playwright Chromium for hosted route verification
+      - name: Install Chromium for credential-free hosted route proof
         run: npx playwright install --with-deps chromium
 
-      - name: Verify hosted sign-in route readiness
+      - name: Prove hosted and interactive-verifier source boundaries
+        run: |
+          set -euo pipefail
+          npm run smoke:hosted-sign-in-route-readiness
+          npm run smoke:app-sign-in-entrypoint
+          npm run smoke:google-oauth-sign-in
+          npm run smoke:internal-tester-interactive-google-session
+          npm run smoke:internal-tester-browser-sign-in-verification
+          npm run check:frontend-boundary
+          npm run check:secrets
+
+      - name: Verify deployed Google-first sign-in surface without credentials
         run: npm run internal-testing:verify-hosted-sign-in-route
 
-      - name: Verify internal tester browser-safe Supabase sign-in
-        run: npm run internal-testing:verify-browser-sign-in
+      - name: Record the owner-interactive next gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo '# ReEditPro Google Session Readiness'
+            echo ''
+            echo '- The exact same-SHA signed-in Pages deployment and hosted Google-first sign-in surface passed.'
+            echo '- This CI run did not click Google, submit credentials, create a session, read browser storage, or claim Gmail sign-in success.'
+            echo '- Run `npm run internal-testing:verify-interactive-google-session` on the owner desktop with the expected public Supabase and activation-evidence gateway origins.'
+            echo '- That owner-local gate must pass callback, Google identity, reload, authenticated gateway readback, and sign-out before signed-in pipeline testing.'
+          } >> "${GITHUB_STEP_SUMMARY}"

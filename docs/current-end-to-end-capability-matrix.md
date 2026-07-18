@@ -175,46 +175,53 @@ exact 255-job private queue. The ordinary execution-package service refuses
 this snapshot. The dependency-root snapshot-validation child now completes
 through exact authority, one lease/attempt, private artifact, QA,
 reconciliation, versioned internal-cost evidence, terminal queue commit, and
-restart replay. The remaining 254 children are capability-blocked from lease,
-exact tool/cost binding, and dispatch, and no long media, object storage,
-distributed database, or Google Cloud execution has occurred.
+restart replay. The second topological private-source-authority child now
+separately completes the same one-use lifecycle and validates all 512 exact
+source checksum/size/generation, cleanup, segment, and gap-free frame-range
+bindings. Its reconciliation records 124 render dependents plus continuous
+audio without authorizing them. The remaining 253 children are
+capability-blocked from lease, exact tool/cost binding, and dispatch, and no
+long-form media decode/render, object storage, distributed database, or Google
+Cloud execution has occurred.
 
 ## Private Pipeline Evidence
 
 `npm run qa:canonical-private-pipeline` is the authoritative bounded canonical audit command. It verifies exact source, Edit Preferences, Edit Brief, a real resumable-sized 4K private ingest/proxy lifecycle, an over-16-MiB 4K canonical source execution, 4K estimate/export policy, browser-safe publication/approval/package/preparation/review/recovery clients, real local backend authority, bounded first-source-reference multi-source voice/color execution, bounded one-source professional-color regression, one separately labeled above-16-MiB Remotion runtime/persistence/QA output proof, active named-edit Playwright states, and the versioned proven-tool identity report. The current `npm run qa:internal-pipeline` adds auth/runtime, project/edit tenancy, approved tool-manifest, private Playwright capture, and the signed-in named-edit workflow. On 2026-07-15, its exact-code v3 24-phase run completed all 24 phases in 1,029,183 ms with exit code 0. The focused backend/runtime phase produced one private 4K master from three ordered sources, three exact source-bound voice deliveries, one baseline plus two independently first-reference-bound color intermediates, and two approved hard cuts; objective continuity passed at both boundaries before final QA, download, and replay. The final browser phase created a project and named edit, uploaded and probed the maximum eight distinct private audio-bearing sources, synchronized exact Edit Preferences, created and revised the inline Edit Brief, preserved the confirmed frame, approved one 4K-ceiling estimate, requested the immutable package separately, completed the 27-work-item/27-job private work graph, loaded and downloaded the integrity-bound non-passthrough eight-second 3840x2160 MP4, confirmed all eight source-bound tones in approved order, read sanitized journey state, and persisted acceptance. The same run regenerated evidence revision `2026-07-15.30` with exactly 50 private canonical/job-adapter identities and kept provider activation, live billing/wallet mutation, remote Supabase, public delivery, deployment, external beta, and paid production false. The earlier exact-code v2 24-phase run completed in 947,417 ms with the then-current three-source signed-in path; v3 supersedes that maximum-count browser evidence. The earlier 580,973 ms canonical run proved the then-current two-source reference match, the prior 604,446 ms canonical run predates reference matching, and the 719,518 ms 22-phase full run remains a historical fail-closed baseline. A separate complete `npm run smoke:canonical-private-tool-dispatch` execution passed with exit code 0 and reverified all 50 exact private canonical/job-adapter identities, including dynamic grant-set tamper/restore preservation. Both aggregate commands stop on the first failure and emit a machine-readable step report; a zero exit code means every included assertion passed, including assertions that unavailable or production-only behavior stays blocked.
 
-The exact-code v20 full run on 2026-07-18 supersedes the older aggregate verdicts
-for the current branch. It started at `2026-07-18T10:12:50.412Z`, finished at
-`2026-07-18T10:46:03.933Z`, and passed `37/37` stages in `1,993,521 ms`.
+The exact-code v21 full run on 2026-07-18 supersedes the older aggregate verdicts
+for the current branch. It started at `2026-07-18T11:38:02.672Z`, finished at
+`2026-07-18T12:05:41.896Z`, and passed `37/37` stages in `1,659,224 ms`.
 The 30-minute/six-hour long-form planning-contract stage passed 26 adversarial
-checks in `363 ms`, the approved-snapshot binding bridge passed 22 checks in
-`746 ms`, and the canonical post-approval/promotion/root authority passed 47
-checks in `9,103 ms`. The database-neutral distributed package-state port passed
-in `468 ms`, its locked server-only RPC adapter passed in `429 ms`, the
-single-host package transaction passed in `10,922 ms`, and the timeout-aware
-receiver passed in `2,293 ms`. Three-source composition passed in `678,857 ms`,
-professional color in `611,623 ms`, and the final stage completed the exact
+checks in `340 ms`, the approved-snapshot binding bridge passed 22 checks in
+`612 ms`, and the canonical post-approval/promotion/root/source-authority stage
+passed 61 checks in `12,856 ms`. The database-neutral distributed package-state
+port passed in `392 ms`, its locked server-only RPC adapter passed in `310 ms`,
+the single-host package transaction passed in `10,633 ms`, and the timeout-aware
+receiver passed in `2,180 ms`. Three-source composition passed in `527,432 ms`,
+professional color in `608,833 ms`, and the final stage completed the exact
 eight-source, 27-job, 16-second `3840x2160` private-review journey in
-`541,132 ms`. Exactly 50 canonical E2E and 50 job-adapter identities remained
+`358,338 ms`. Exactly 50 canonical E2E and 50 job-adapter identities remained
 verified. Canonical long-form publication now persists the exact seed and one
 blocked controller; after approval, a fresh service revalidates that authority
 and persists the deterministic 255-child bridge/manifest, immutable specialized
 package, placement authority, and exact private queue. Ordinary package
-creation remains refused. Exactly the root snapshot-validation child completes
-through authority, lease, one-use attempt, internal cost, private artifact, QA,
-reconciliation, terminal commit, and replay; the remaining 254 child leases,
-source/chunk tool-cost authority, dispatch, long-form media execution, and
-object storage remain blocked. No canonical package-state SQL function was
+creation remains refused. The root snapshot-validation and private source-
+authority children each complete through separate authority, lease, one-use
+attempt, internal cost, private artifact, QA, reconciliation, terminal commit,
+and replay lifecycles. The source child validates all 512 exact ranges while the
+remaining 253 child leases, chunk tool-cost authority, dispatch, long-form media
+execution, and object storage remain blocked. No canonical package-state SQL function was
 executed and no live RPC client was activated. Distributed database
 queue/outbox/terminal atomicity, deployed worker-death detection, live Google
 identity/IAM and cloud execution, providers, customer billing/wallet mutation,
 remote Supabase, deployment, public delivery, external beta, and paid
-production remained false. The v18 promotion-only aggregate remains historical
-pre-root-execution evidence.
+production remained false. The v20 aggregate remains historical pre-source-
+authority-execution evidence, and v18 remains historical pre-root-execution
+evidence.
 
 The v19 aggregate remains historical pre-reservation-expiry-hardening evidence.
 
-The v20 aggregate also reverified the private Docker execution transport after
+The v21 aggregate also reverified the private Docker execution transport after
 credential-helper deadlock hardening. Server-side private Docker subprocesses
 receive a fresh intentionally absent configuration path and inherit no Docker
 credential config, context, or host; builds use a reviewed local Buildx binary

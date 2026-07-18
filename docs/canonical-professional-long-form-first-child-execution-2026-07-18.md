@@ -1,6 +1,10 @@
 # Canonical Professional Long-Form First-Child Execution — 2026-07-18
 
-Status: `root_snapshot_validation_completed_private_local_remaining_254_children_blocked`
+Status: `superseded_by_private_source_authority_validation_execution`
+
+This document preserves the root-only milestone. The current two-child state is
+documented in
+`docs/canonical-professional-long-form-source-authority-execution-2026-07-18.md`.
 
 ## Outcome
 
@@ -102,7 +106,7 @@ The following exact-code checks pass:
 - `npm run smoke:canonical-private-package-work-queue`; and
 - `npm run smoke:canonical-professional-long-form-post-approval`.
 
-The long-form smoke now passes 47 checks over the maximum six-hour,
+At this root-only checkpoint, the long-form smoke passed 47 checks over the maximum six-hour,
 512-source-range, 124-chunk, 255-child fixture. It proves orphan-blob refusal,
 fabricated-receipt refusal, concurrent one-claim/one-attempt behavior, private
 artifact/QA/reconciliation persistence, versioned attempt cost, terminal queue
@@ -175,12 +179,13 @@ No SQL, migration, remote Supabase action, provider activation, billing,
 customer charging, deployment, public delivery, Motion Studio/MS-001, or Edit
 Preference/Edit Reference implementation changed in this slice.
 
-## Next Evidence Gate
+## Completed Follow-Up Gate
 
-The next topological child is `validate_private_source_authority`. Its bounded
-gate must reopen the exact 512 approved source ranges, finalized private source
-identities, object generations, checksums, cleanup decisions, and timeline
-coverage; persist private validation/QA/reconciliation and attempt-cost evidence;
-complete exactly once; and leave every chunk render blocked until that authority
-passes. It must not read or transform media until a separately approved source
-byte/runtime authority exists.
+The topological `validate_private_source_authority` gate described here is now
+implemented and verified. It reopens all 512 approved ranges, source identities,
+object generations, checksums, cleanup decisions, and frame coverage; persists
+private validation/QA/reconciliation and attempt-cost evidence; completes
+exactly once; and leaves every render/audio child blocked. See the current
+source-authority execution document above. It does not read or transform media
+inside the runner; a separately approved source
+byte/runtime authority is required for later media execution.

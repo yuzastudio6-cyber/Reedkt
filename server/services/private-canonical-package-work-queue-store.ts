@@ -32,13 +32,23 @@ import {
 import {
   PROFESSIONAL_LONG_FORM_FIRST_CHILD_EXECUTION_ATTEMPT_VERSION,
   PROFESSIONAL_LONG_FORM_FIRST_CHILD_WORK_ITEM_ID,
-  professionalLongFormFirstChildAuthorizationReceiptSchema,
-  professionalLongFormFirstChildExecutionAuthoritySchema,
-  professionalLongFormFirstChildExecutionAttemptSchema,
-  type ProfessionalLongFormFirstChildAuthorizationReceipt,
-  type ProfessionalLongFormFirstChildExecutionAuthority,
-  type ProfessionalLongFormFirstChildExecutionAttempt,
 } from '../edit-architecture/professional-long-form-first-child-execution-contract'
+import {
+  PROFESSIONAL_LONG_FORM_SOURCE_AUTHORITY_EXECUTION_ATTEMPT_VERSION,
+  PROFESSIONAL_LONG_FORM_SOURCE_AUTHORITY_WORK_ITEM_ID,
+} from '../edit-architecture/professional-long-form-source-authority-execution-contract'
+import {
+  isProfessionalLongFormFirstChildAuthorization,
+  isProfessionalLongFormFirstChildExecutionAuthority,
+  isProfessionalLongFormSourceAuthorityAuthorization,
+  isProfessionalLongFormSourceAuthorityExecutionAuthority,
+  professionalLongFormAuthorizedChildAuthorizationReceiptSchema,
+  professionalLongFormAuthorizedChildExecutionAttemptSchema,
+  professionalLongFormAuthorizedChildExecutionAuthoritySchema,
+  type ProfessionalLongFormAuthorizedChildAuthorizationReceipt,
+  type ProfessionalLongFormAuthorizedChildExecutionAttempt,
+  type ProfessionalLongFormAuthorizedChildExecutionAuthority,
+} from '../edit-architecture/professional-long-form-authorized-child-contract'
 import {
   readPrivateAuthorityJsonBlob,
   sha256AuthorityValue,
@@ -177,24 +187,26 @@ export async function authorizePrivateCanonicalPackageWorkQueueJob(input: {
   scope: CanonicalPrivatePackageWorkQueueStoreScope
   definition: CanonicalPrivatePackageWorkQueueDefinition
   jobId: string
-  authorization: ProfessionalLongFormFirstChildAuthorizationReceipt
-  executionAuthority: ProfessionalLongFormFirstChildExecutionAuthority
+  authorization: ProfessionalLongFormAuthorizedChildAuthorizationReceipt
+  executionAuthority: ProfessionalLongFormAuthorizedChildExecutionAuthority
   now: string
 }): Promise<{
   disposition: 'authorized' | 'exact_replay'
   aggregate: CanonicalPrivatePackageWorkQueueAggregate
   entry: CanonicalPrivatePackageWorkQueueEntry & {
     professionalLongFormExecutionAuthorization:
-      ProfessionalLongFormFirstChildAuthorizationReceipt
+      ProfessionalLongFormAuthorizedChildAuthorizationReceipt
   }
 }> {
   const now = validTimestamp(input.now, 'professional long-form execution authorization')
-  const authorization = professionalLongFormFirstChildAuthorizationReceiptSchema.parse(
-    input.authorization,
-  )
-  const executionAuthority = professionalLongFormFirstChildExecutionAuthoritySchema.parse(
-    input.executionAuthority,
-  )
+  const authorization =
+    professionalLongFormAuthorizedChildAuthorizationReceiptSchema.parse(
+      input.authorization,
+    )
+  const executionAuthority =
+    professionalLongFormAuthorizedChildExecutionAuthoritySchema.parse(
+      input.executionAuthority,
+    )
   const persistedAuthority = await readPrivateAuthorityJsonBlob({
     localStorageRoot: input.scope.localStorageRoot,
     ref: authorization.authorityRef,
@@ -233,7 +245,7 @@ export async function authorizePrivateCanonicalPackageWorkQueueJob(input: {
         disposition: 'exact_replay' as const,
         entry: entry as CanonicalPrivatePackageWorkQueueEntry & {
           professionalLongFormExecutionAuthorization:
-            ProfessionalLongFormFirstChildAuthorizationReceipt
+            ProfessionalLongFormAuthorizedChildAuthorizationReceipt
         },
       }
     }
@@ -247,7 +259,7 @@ export async function authorizePrivateCanonicalPackageWorkQueueJob(input: {
     ) {
       throw new ApiError(
         'IDEMPOTENCY_ATOMICITY_REQUIRED',
-        'Professional long-form child authorization requires one pristine root queue entry.',
+        'Professional long-form child authorization requires one pristine exact queue entry.',
         503,
       )
     }
@@ -263,7 +275,7 @@ export async function authorizePrivateCanonicalPackageWorkQueueJob(input: {
       disposition: 'authorized' as const,
       entry: entry as CanonicalPrivatePackageWorkQueueEntry & {
         professionalLongFormExecutionAuthorization:
-          ProfessionalLongFormFirstChildAuthorizationReceipt
+          ProfessionalLongFormAuthorizedChildAuthorizationReceipt
       },
     }
   })
@@ -281,15 +293,15 @@ export async function beginPrivateCanonicalPackageWorkQueueExecutionAttempt(inpu
   aggregate: CanonicalPrivatePackageWorkQueueAggregate
   entry: CanonicalPrivatePackageWorkQueueEntry & {
     professionalLongFormExecutionAttempt:
-      ProfessionalLongFormFirstChildExecutionAttempt
+      ProfessionalLongFormAuthorizedChildExecutionAttempt
   }
-  executionAttempt: ProfessionalLongFormFirstChildExecutionAttempt
+  executionAttempt: ProfessionalLongFormAuthorizedChildExecutionAttempt
 }> {
   const now = validTimestamp(input.now, 'professional long-form execution attempt')
   return mutateQueue(input.scope, input.definition, now, (aggregate) => {
     const entry = requiredEntry(aggregate, input.jobId)
     const authorization = entry.professionalLongFormExecutionAuthorization
-    if (!authorization || !isExactProfessionalLongFormAuthorizedRoot(aggregate, entry)) {
+    if (!authorization || !isExactProfessionalLongFormAuthorizedChild(aggregate, entry)) {
       throw new ApiError(
         'TOOL_NOT_READY',
         'Professional long-form child lacks exact persisted operation authority.',
@@ -332,13 +344,18 @@ export async function beginPrivateCanonicalPackageWorkQueueExecutionAttempt(inpu
         disposition: 'exact_replay' as const,
         entry: entry as CanonicalPrivatePackageWorkQueueEntry & {
           professionalLongFormExecutionAttempt:
-            ProfessionalLongFormFirstChildExecutionAttempt
+            ProfessionalLongFormAuthorizedChildExecutionAttempt
         },
         executionAttempt: existing,
       }
     }
+    const sourceAuthorityAttempt =
+      authorization.approvedWorkItemId ===
+        PROFESSIONAL_LONG_FORM_SOURCE_AUTHORITY_WORK_ITEM_ID
     const attemptWithoutHash = {
-      schemaVersion: PROFESSIONAL_LONG_FORM_FIRST_CHILD_EXECUTION_ATTEMPT_VERSION,
+      schemaVersion: sourceAuthorityAttempt
+        ? PROFESSIONAL_LONG_FORM_SOURCE_AUTHORITY_EXECUTION_ATTEMPT_VERSION
+        : PROFESSIONAL_LONG_FORM_FIRST_CHILD_EXECUTION_ATTEMPT_VERSION,
       source: 'private_canonical_package_work_queue_store' as const,
       executionAttemptId: `long-form-child-attempt-${sha256AuthorityValue({
         authorizationId: authorization.authorizationId,
@@ -350,7 +367,7 @@ export async function beginPrivateCanonicalPackageWorkQueueExecutionAttempt(inpu
       authorizationId: authorization.authorizationId,
       authorityHash: authorization.authorityHash,
       jobId: entry.definition.jobId,
-      approvedWorkItemId: PROFESSIONAL_LONG_FORM_FIRST_CHILD_WORK_ITEM_ID,
+      approvedWorkItemId: authorization.approvedWorkItemId,
       claimId: claim.claimId,
       claimHash: claim.claimHash,
       workerIdentityHash: claim.workerIdentityHash,
@@ -360,10 +377,11 @@ export async function beginPrivateCanonicalPackageWorkQueueExecutionAttempt(inpu
       dispatchConsumed: true as const,
       plaintextClaimCredentialPersisted: false as const,
     }
-    const executionAttempt = professionalLongFormFirstChildExecutionAttemptSchema.parse({
-      ...attemptWithoutHash,
-      attemptHash: sha256AuthorityValue(attemptWithoutHash),
-    })
+    const executionAttempt =
+      professionalLongFormAuthorizedChildExecutionAttemptSchema.parse({
+        ...attemptWithoutHash,
+        attemptHash: sha256AuthorityValue(attemptWithoutHash),
+      })
     if (claim.deliveryAttempt !== 1) {
       throw new ApiError(
         'WORKER_CLAIM_CONFLICT',
@@ -385,7 +403,7 @@ export async function beginPrivateCanonicalPackageWorkQueueExecutionAttempt(inpu
       disposition: 'started' as const,
       entry: entry as CanonicalPrivatePackageWorkQueueEntry & {
         professionalLongFormExecutionAttempt:
-          ProfessionalLongFormFirstChildExecutionAttempt
+          ProfessionalLongFormAuthorizedChildExecutionAttempt
       },
       executionAttempt,
     }
@@ -993,11 +1011,11 @@ function applyQueueClaimMutation(
   }
   const professionalLongFormAuthorization =
     entry.professionalLongFormExecutionAuthorization
-  const exactProfessionalLongFormRoot =
-    isExactProfessionalLongFormAuthorizedRoot(aggregate, entry)
+  const exactProfessionalLongFormChild =
+    isExactProfessionalLongFormAuthorizedChild(aggregate, entry)
   if (
     !entry.definition.privateExecutionReady &&
-    (!exactProfessionalLongFormRoot ||
+    (!exactProfessionalLongFormChild ||
       !professionalLongFormAuthorization ||
       Date.parse(professionalLongFormAuthorization.reservationExpiresAt) <=
         Date.parse(input.now))
@@ -1496,7 +1514,7 @@ function assertProfessionalLongFormAuthorizationTarget(input: {
   aggregate: CanonicalPrivatePackageWorkQueueAggregate
   definition: CanonicalPrivatePackageWorkQueueDefinition
   entry: CanonicalPrivatePackageWorkQueueEntry
-  authorization: ProfessionalLongFormFirstChildAuthorizationReceipt
+  authorization: ProfessionalLongFormAuthorizedChildAuthorizationReceipt
 }): void {
   const { aggregate, definition, entry, authorization } = input
   if (
@@ -1511,7 +1529,7 @@ function assertProfessionalLongFormAuthorizationTarget(input: {
   ) {
     throw new ApiError(
       'VALIDATION_FAILED',
-      'Professional long-form authorization does not match the exact canonical root child.',
+      'Professional long-form authorization does not match the exact canonical child or its completed dependencies.',
       409,
     )
   }
@@ -1519,12 +1537,12 @@ function assertProfessionalLongFormAuthorizationTarget(input: {
 
 function assertPersistedProfessionalLongFormExecutionAuthority(input: {
   definition: CanonicalPrivatePackageWorkQueueDefinition
-  authorization: ProfessionalLongFormFirstChildAuthorizationReceipt
-  executionAuthority: ProfessionalLongFormFirstChildExecutionAuthority
+  authorization: ProfessionalLongFormAuthorizedChildAuthorizationReceipt
+  executionAuthority: ProfessionalLongFormAuthorizedChildExecutionAuthority
   persistedAuthority: Record<string, unknown> | unknown[]
 }): void {
   const { authorityHash, ...authorityPayload } = input.executionAuthority
-  if (
+  const commonInvalid =
     authorityHash !== sha256AuthorityValue(authorityPayload) ||
     input.authorization.authorityHash !== authorityHash ||
     input.authorization.authorityRef.sha256 !==
@@ -1550,14 +1568,30 @@ function assertPersistedProfessionalLongFormExecutionAuthority(input: {
       input.authorization.expectedOutputIdentity ||
     input.executionAuthority.lineage.queueDefinitionHash !==
       input.definition.definitionHash ||
-    input.executionAuthority.lineage.rootJobDefinitionHash !==
-      input.authorization.jobDefinitionHash ||
-    input.executionAuthority.lineage.rootPlacementHash !==
-      input.authorization.placementHash ||
     input.executionAuthority.authorizedAt !== input.authorization.authorizedAt
     || input.executionAuthority.approval.reservationExpiresAt !==
       input.authorization.reservationExpiresAt
+  let pairInvalid = true
+  if (isProfessionalLongFormFirstChildAuthorization(input.authorization)) {
+    pairInvalid = !isProfessionalLongFormFirstChildExecutionAuthority(
+      input.executionAuthority,
+    ) || input.executionAuthority.lineage.rootJobDefinitionHash !==
+      input.authorization.jobDefinitionHash ||
+      input.executionAuthority.lineage.rootPlacementHash !==
+        input.authorization.placementHash
+  } else if (
+    isProfessionalLongFormSourceAuthorityAuthorization(input.authorization)
   ) {
+    pairInvalid = !isProfessionalLongFormSourceAuthorityExecutionAuthority(
+      input.executionAuthority,
+    ) || input.executionAuthority.lineage.sourceJobDefinitionHash !==
+      input.authorization.jobDefinitionHash ||
+      input.executionAuthority.lineage.sourcePlacementHash !==
+        input.authorization.placementHash ||
+      input.executionAuthority.lineage.sourceRangesHash !==
+        input.authorization.expectedOutputIdentity
+  }
+  if (commonInvalid || pairInvalid) {
     throw new ApiError(
       'VALIDATION_FAILED',
       'Persisted professional long-form execution authority does not match its queue receipt.',
@@ -1566,7 +1600,7 @@ function assertPersistedProfessionalLongFormExecutionAuthority(input: {
   }
 }
 
-function isExactProfessionalLongFormAuthorizedRoot(
+function isExactProfessionalLongFormAuthorizedChild(
   aggregate: CanonicalPrivatePackageWorkQueueAggregate,
   entry: CanonicalPrivatePackageWorkQueueEntry,
 ): boolean {
@@ -1582,16 +1616,13 @@ function isExactProfessionalLongFormAuthorizedRoot(
 function exactProfessionalLongFormAuthorizationMatches(
   aggregate: CanonicalPrivatePackageWorkQueueAggregate,
   entry: CanonicalPrivatePackageWorkQueueEntry,
-  authorization: ProfessionalLongFormFirstChildAuthorizationReceipt,
+  authorization: ProfessionalLongFormAuthorizedChildAuthorizationReceipt,
 ): boolean {
   const { receiptHash, ...receiptPayload } = authorization
-  return Boolean(aggregate.identity.professionalLongFormAuthority) &&
+  const commonMatches = Boolean(aggregate.identity.professionalLongFormAuthority) &&
     authorization.queueDefinitionHash === aggregate.definitionHash &&
     receiptHash === sha256AuthorityValue(receiptPayload) &&
-    entry.definition.canonicalOrder === 0 &&
     entry.definition.jobId === authorization.jobId &&
-    entry.definition.approvedWorkItemId ===
-      PROFESSIONAL_LONG_FORM_FIRST_CHILD_WORK_ITEM_ID &&
     entry.definition.approvedWorkItemId === authorization.approvedWorkItemId &&
     entry.definition.definitionHash === authorization.jobDefinitionHash &&
     entry.definition.placementHash === authorization.placementHash &&
@@ -1601,10 +1632,33 @@ function exactProfessionalLongFormAuthorizationMatches(
     entry.definition.attemptTimeoutSeconds === 300 &&
     !entry.definition.privateExecutionReady &&
     entry.definition.providerExecutionMode === 'none' &&
-    entry.definition.dependencyJobIds.length === 0 &&
-    entry.definition.satisfiedPromotionDependencyJobIds?.length === 1 &&
-    authorization.expectedOutputIdentity === aggregate.identity.snapshotHash &&
     authorization.authorityRef.sha256.length === 64
+  if (!commonMatches) return false
+  if (isProfessionalLongFormFirstChildAuthorization(authorization)) {
+    return entry.definition.canonicalOrder === 0 &&
+      entry.definition.approvedWorkItemId ===
+        PROFESSIONAL_LONG_FORM_FIRST_CHILD_WORK_ITEM_ID &&
+      entry.definition.dependencyJobIds.length === 0 &&
+      entry.definition.satisfiedPromotionDependencyJobIds?.length === 1 &&
+      authorization.expectedOutputIdentity === aggregate.identity.snapshotHash
+  }
+  if (!isProfessionalLongFormSourceAuthorityAuthorization(authorization)) {
+    return false
+  }
+  const rootDependencyJobId = entry.definition.dependencyJobIds[0]
+  const rootDependency = aggregate.entries.find((candidate) =>
+    candidate.definition.jobId === rootDependencyJobId)
+  return entry.definition.canonicalOrder === 1 &&
+    entry.definition.approvedWorkItemId ===
+      PROFESSIONAL_LONG_FORM_SOURCE_AUTHORITY_WORK_ITEM_ID &&
+    entry.definition.dependencyJobIds.length === 1 &&
+    entry.definition.satisfiedPromotionDependencyJobIds?.length === 0 &&
+    authorization.expectedOutputIdentity.length === 64 &&
+    rootDependency?.definition.canonicalOrder === 0 &&
+    rootDependency.definition.approvedWorkItemId ===
+      PROFESSIONAL_LONG_FORM_FIRST_CHILD_WORK_ITEM_ID &&
+    rootDependency.state === 'completed' &&
+    rootDependency.completion?.outcome.professionalLongFormExecution !== undefined
 }
 
 function assertProfessionalLongFormCompletionEvidence(

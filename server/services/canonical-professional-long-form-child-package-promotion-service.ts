@@ -181,11 +181,10 @@ async function loadCurrentChildPackageAuthority(
       401,
     )
   }
-  const authority = await createEditPlanningAuthorityService(context)
-    .loadApprovedExecutionAuthority(
-      input.approvedPlanSnapshotId,
-      input.workspaceId,
-    )
+  const reopened =
+    await createCanonicalProfessionalLongFormPostApprovalService(context)
+      .derivePersistAndLoadCurrent(input)
+  const authority = reopened.authority
   if (
     authority.snapshot.approvedByUserId !== ownerUserId ||
     authority.reservation.status !== 'reserved' ||
@@ -198,9 +197,7 @@ async function loadCurrentChildPackageAuthority(
       409,
     )
   }
-  const postApproval =
-    await createCanonicalProfessionalLongFormPostApprovalService(context)
-      .deriveAndPersist(input)
+  const postApproval = reopened.evidence
   const reservation = {
     reservationStatus: authority.reservation.status,
     approvedMaximumCredits: authority.estimate.approvedMaximumCredits,
@@ -284,7 +281,8 @@ async function loadCurrentChildPackageAuthority(
     definition: queueDefinition,
   })
   const sharedInvalid = !reopenedQueue ||
-    reopenedQueue.aggregateHash !== ensured.aggregate.aggregateHash ||
+    (requirePristinePromotion &&
+      reopenedQueue.aggregateHash !== ensured.aggregate.aggregateHash) ||
     reopenedQueue.summary.totalJobCount !==
       postApproval.childJobManifest.summary.childJobCount ||
     reopenedQueue.entries.some((entry) => entry.definition.privateExecutionReady)

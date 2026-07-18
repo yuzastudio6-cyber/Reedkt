@@ -8,6 +8,9 @@ import {
   PROFESSIONAL_LONG_FORM_FIRST_CHILD_OPERATION_ID,
 } from '../edit-architecture/professional-long-form-first-child-execution-contract'
 import {
+  PROFESSIONAL_LONG_FORM_SOURCE_AUTHORITY_OPERATION_ID,
+} from '../edit-architecture/professional-long-form-source-authority-execution-contract'
+import {
   PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS,
   beginPrivateInternalAttemptCostEvidence,
   privateInternalAttemptCostEvidenceSchema,
@@ -206,6 +209,48 @@ try {
   assert.equal(longFormValidation.evidence.resourceUsage.gpuCount, 0)
   assertNoCommercialKeys(longFormValidation.evidence)
 
+  const longFormSourceAuthorityInput = {
+    ...common,
+    approvedWorkItemId: 'long-form-validate-private-sources',
+    jobId: 'long-form-source-authority-job-cost-proof',
+    executionAttemptId: 'attempt-long-form-source-authority-cost-proof',
+    toolId: 'reeditpro_internal' as const,
+    operationId: PROFESSIONAL_LONG_FORM_SOURCE_AUTHORITY_OPERATION_ID,
+    workloadProfileId:
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS
+        .professionalLongFormSourceAuthorityValidation,
+  }
+  const longFormSourceAuthorityMeter =
+    await beginPrivateInternalAttemptCostEvidence(
+      longFormSourceAuthorityInput,
+      clock([50_000_000_000n, 50_375_000_000n], [
+        '2026-07-11T12:06:00.000Z',
+      ]),
+    )
+  const longFormSourceAuthority = await longFormSourceAuthorityMeter.finalize({
+    status: 'completed',
+    failureCategory: 'none',
+    outputByteLength: 16_384,
+    linkedCanonicalOutcomeHash: 'e'.repeat(64),
+  })
+  assert.equal(
+    longFormSourceAuthority.evidence.identity.toolId,
+    'reeditpro_internal',
+  )
+  assert.equal(
+    longFormSourceAuthority.evidence.identity.operationId,
+    PROFESSIONAL_LONG_FORM_SOURCE_AUTHORITY_OPERATION_ID,
+  )
+  assert.equal(
+    longFormSourceAuthority.evidence.identity.workloadProfileId,
+    PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS
+      .professionalLongFormSourceAuthorityValidation,
+  )
+  assert.equal(longFormSourceAuthority.evidence.resourceUsage.vcpuCount, 2)
+  assert.equal(longFormSourceAuthority.evidence.resourceUsage.memoryGib, 4)
+  assert.equal(longFormSourceAuthority.evidence.resourceUsage.gpuCount, 0)
+  assertNoCommercialKeys(longFormSourceAuthority.evidence)
+
   await expectCode(() => beginPrivateInternalAttemptCostEvidence({
     ...ffmpegInput,
     jobId: remotionInput.jobId,
@@ -233,6 +278,8 @@ try {
     ffmpegFinalizationAttemptCostMicros: ffmpeg.evidence.actualInternalCostMicros,
     longFormSnapshotValidationAttemptCostMicros:
       longFormValidation.evidence.actualInternalCostMicros,
+    longFormSourceAuthorityValidationAttemptCostMicros:
+      longFormSourceAuthority.evidence.actualInternalCostMicros,
     replayHash: replay.evidence.evidenceHash,
     checks: [
       'attempt_level_internal_cost_only',
@@ -245,6 +292,7 @@ try {
       'remotion_4k_chunk_profile_is_2vcpu_4gib_cpu_only',
       'ffmpeg_4k_finalization_profile_is_2vcpu_4gib_cpu_only',
       'professional_long_form_snapshot_validation_profile_is_2vcpu_4gib_cpu_only',
+      'professional_long_form_source_authority_validation_profile_is_2vcpu_4gib_cpu_only',
       'cross_profile_attempt_identity_conflict_fails_closed',
       'resource_profile_and_commercial_field_mutations_fail_schema_validation',
       'commercial_pricing_credit_and_wallet_fields_absent',

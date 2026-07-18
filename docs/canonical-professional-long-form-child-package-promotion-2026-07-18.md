@@ -1,10 +1,12 @@
 # Canonical Professional Long-Form Child Package Promotion — 2026-07-18
 
-Status: `superseded_by_root_snapshot_validation_execution`
+Status: `superseded_by_private_source_authority_validation_execution`
 
 The promotion boundary described here remains the immutable package/placement/
 queue foundation. The root execution continuation is documented in
 `docs/canonical-professional-long-form-first-child-execution-2026-07-18.md`.
+The current two-child continuation is documented in
+`docs/canonical-professional-long-form-source-authority-execution-2026-07-18.md`.
 
 ## Outcome
 
@@ -65,14 +67,16 @@ At promotion time, every child is queued with:
   `canonical_professional_long_form_exact_tool_cost_runner_and_qa_authority`.
 
 A claim request therefore returns `capability_blocked` until a later exact
-entry-level authority is committed. The root snapshot-validation child now has
-that authority; the remaining 254 children do not.
+entry-level authority is committed. At the promotion/root milestone, only the
+root snapshot-validation child had that authority. The current continuation has
+also completed the exact source-authority child; 253 children remain blocked.
 
 ## Focused Evidence
 
 The promotion-era
 `npm run smoke:canonical-professional-long-form-post-approval` baseline passed
-32 checks. The current combined promotion/root-execution smoke passes 47 checks.
+32 checks. The current combined promotion/root/source-authority smoke passes
+61 checks.
 The six-hour fixture contains 512 exact source ranges, 124 object chunks, 255
 child jobs, and a maximum dependency count of 127. The focused proof persists
 and reopens an approximately 1.58 MiB bridge, 270 KiB child manifest, 3.4 KiB
@@ -81,10 +85,10 @@ all below their reviewed local authority ceilings.
 
 The smoke also proves ordinary-package refusal, controller non-dispatchability,
 concurrent exact promotion, restart replay, queue checksum failure, immutable
-blob and child-manifest tamper refusal, root-claim capability blocking, no
-aggregate mutation, persisted root-artifact corruption refusal and exact-byte
-recovery, and no cloud/provider/database/network activation import in the
-bounded implementation.
+blob and child-manifest tamper refusal, render/audio claim capability blocking,
+no aggregate mutation, persisted root/source-artifact corruption refusal and
+exact-byte recovery, and no cloud/provider/database/network activation import
+in the bounded implementation.
 An expired reservation additionally fails before the queue can persist the root
 authorization receipt or event.
 
@@ -100,12 +104,12 @@ ESLint, server TypeScript, frontend/server boundary, repository secret scan, and
 
 ## Aggregate Evidence
 
-The exact-code `npm run qa:internal-pipeline` v20 aggregate passed all `37/37`
-stages with exit code `0`. It started at `2026-07-18T10:12:50.412Z`, finished
-at `2026-07-18T10:46:03.933Z`, and completed in `1,993,521 ms`. The long-form
-planning stage passed in `363 ms`, the approved-snapshot bridge in `746 ms`,
-and the combined post-approval, promotion, and root-execution stage passed 47
-checks in `9,103 ms`.
+The exact-code `npm run qa:internal-pipeline` v21 aggregate passed all `37/37`
+stages with exit code `0`. It started at `2026-07-18T11:38:02.672Z`, finished
+at `2026-07-18T12:05:41.896Z`, and completed in `1,659,224 ms`. The long-form
+planning stage passed in `340 ms`, the approved-snapshot bridge in `612 ms`,
+and the combined post-approval, promotion, root, and source-authority stage
+passed 61 checks in `12,856 ms`.
 
 The aggregate reverified exactly 50 canonical E2E tool identities and 50 job
 adapters, the existing crash-consistent package lifecycle, the real bounded
@@ -114,17 +118,19 @@ Remotion output, all 11 named-edit browser states, and the signed-in maximum
 eight-source 27-job private review. That final review produced and accepted the
 same exact sixteen-second `3840x2160` artifact with SHA-256
 `584cdd265fc32d81ca70f5f08420bf65ebfac998a1d4db38fb94efe5aa847505`.
-The aggregate records the root lifecycle true while preserving every
-remaining-child, source-media, chunk-render, object-storage, live-cloud,
-external-beta, and paid-production boundary as false. The v18 promotion-only
-aggregate remains historical evidence.
+The aggregate records separate root and source-authority lifecycles true while
+preserving all 253 remaining-child, source-media, chunk-render, object-storage,
+live-cloud, external-beta, and paid-production boundaries as false. The v20
+root-only and v18 promotion-only aggregates remain historical evidence.
 
 ## Cost and Commercial Boundary
 
 Queue promotion itself creates no attempt and therefore creates no attempt-level
 internal production-cost record. The later root snapshot-validation operation
-now records one exact attempt-level internal production-cost record; the other
-254 children still require their own exact operation and cost authority.
+records one exact attempt-level internal production-cost record. The current
+source-authority continuation records a separate second internal-cost record;
+the other 253 children still require their own exact operation and cost
+authority.
 Internal production cost remains separate from customer price, customer
 credits, ReEditPro service fee, wallet state, billing, and settlement. The
 original approved 4K estimate and reservation remain the only commercial-
@@ -141,12 +147,12 @@ Promotion foundation verified:
 - exact concurrent/restart replay; and
 - fail-closed claim, tamper, ordinary-package, and activation boundaries.
 
-The follow-up root slice additionally verifies one root authorization, lease,
-one-use internal dispatch, private artifact, QA, reconciliation, attempt cost,
-completion, and restart replay. Still false:
+The root and source-authority follow-ups additionally verify two separate
+authorizations, leases, one-use internal dispatches, private artifacts, QA,
+reconciliations, attempt costs, completions, and restart replays. Still false:
 
-- remaining 254 long-form child leases or one-use dispatches;
-- private-source and chunk tool-operation/runner binding;
+- remaining 253 long-form child leases or one-use dispatches;
+- source-media decode/transform and chunk tool-operation/runner binding;
 - remaining child attempt-level internal-cost budgeting and evidence;
 - chunk media/audio/color execution and private object persistence;
 - long-form final 4K assembly and QA;
@@ -158,9 +164,10 @@ No raw SQL, migration, remote Supabase action, provider activation, billing,
 customer charging, deployment, public delivery, Motion Studio/MS-001, or Edit
 Preference/Edit Reference implementation changed in this slice.
 
-## Next Evidence Gate
+## Completed Follow-Up Gate
 
-The next bounded long-form gate is the topological
-`validate_private_source_authority` child. It must validate the exact persisted
-source/range authority through the same lifecycle and must not imply that any
-chunk media has rendered.
+The topological `validate_private_source_authority` child is now complete
+through the same lifecycle without implying that any chunk media has rendered.
+The next gate must remain a separately versioned timing or chunk/media
+operation with exact private object, QA, recovery, reconciliation, and cost
+authority.

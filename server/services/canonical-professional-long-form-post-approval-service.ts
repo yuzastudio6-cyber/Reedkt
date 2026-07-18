@@ -69,11 +69,10 @@ export interface CanonicalProfessionalLongFormPostApprovalEvidence {
 export function createCanonicalProfessionalLongFormPostApprovalService(
   context: ServiceContext,
 ) {
-  return {
-    async deriveAndPersist(input: {
-      workspaceId: string
-      approvedPlanSnapshotId: string
-    }): Promise<CanonicalProfessionalLongFormPostApprovalEvidence> {
+  const derivePersistAndLoadCurrent = async (input: {
+    workspaceId: string
+    approvedPlanSnapshotId: string
+  }) => {
       const authority = await createEditPlanningAuthorityService(context)
         .loadApprovedExecutionAuthority(
           input.approvedPlanSnapshotId,
@@ -249,10 +248,19 @@ export function createCanonicalProfessionalLongFormPostApprovalService(
           productionReady: false as const,
         },
       }
-      return {
+      const evidence: CanonicalProfessionalLongFormPostApprovalEvidence = {
         ...payload,
         evidenceHash: sha256AuthorityValue(payload),
       }
+      return { authority, evidence }
+  }
+  return {
+    async deriveAndPersist(input: {
+      workspaceId: string
+      approvedPlanSnapshotId: string
+    }): Promise<CanonicalProfessionalLongFormPostApprovalEvidence> {
+      return (await derivePersistAndLoadCurrent(input)).evidence
     },
+    derivePersistAndLoadCurrent,
   }
 }

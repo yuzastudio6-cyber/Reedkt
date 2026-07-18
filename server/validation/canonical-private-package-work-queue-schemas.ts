@@ -10,10 +10,15 @@ import {
 } from './canonical-private-job-execution-adapter-schemas'
 import {
   PROFESSIONAL_LONG_FORM_FIRST_CHILD_WORK_ITEM_ID,
-  professionalLongFormFirstChildAuthorizationReceiptSchema,
-  professionalLongFormFirstChildCompletionSchema,
-  professionalLongFormFirstChildExecutionAttemptSchema,
 } from '../edit-architecture/professional-long-form-first-child-execution-contract'
+import {
+  PROFESSIONAL_LONG_FORM_SOURCE_AUTHORITY_WORK_ITEM_ID,
+} from '../edit-architecture/professional-long-form-source-authority-execution-contract'
+import {
+  professionalLongFormAuthorizedChildAuthorizationReceiptSchema,
+  professionalLongFormAuthorizedChildCompletionSchema,
+  professionalLongFormAuthorizedChildExecutionAttemptSchema,
+} from '../edit-architecture/professional-long-form-authorized-child-contract'
 
 export const CANONICAL_PRIVATE_PACKAGE_WORK_QUEUE_AGGREGATE_VERSION =
   'canonical-private-package-work-queue-aggregate-v1' as const
@@ -40,7 +45,7 @@ export const canonicalPrivatePackageWorkQueueCompletedOutcomeSchema = z.object({
   adapterReplayed: z.boolean(),
   blockedDependencyJobIds: z.array(identity).length(0),
   professionalLongFormExecution:
-    professionalLongFormFirstChildCompletionSchema.optional(),
+    professionalLongFormAuthorizedChildCompletionSchema.optional(),
 }).strict()
 
 export const canonicalPrivatePackageWorkQueueClaimSchema = z.object({
@@ -207,9 +212,9 @@ export const canonicalPrivatePackageWorkQueueEntrySchema = z.object({
   deliveryAttemptCount: boundedCount,
   expiredClaimRecoveryCount: boundedCount,
   professionalLongFormExecutionAuthorization:
-    professionalLongFormFirstChildAuthorizationReceiptSchema.optional(),
+    professionalLongFormAuthorizedChildAuthorizationReceiptSchema.optional(),
   professionalLongFormExecutionAttempt:
-    professionalLongFormFirstChildExecutionAttemptSchema.optional(),
+    professionalLongFormAuthorizedChildExecutionAttemptSchema.optional(),
   activeClaim: canonicalPrivatePackageWorkQueueClaimSchema.optional(),
   completion: canonicalPrivatePackageWorkQueueCompletionSchema.optional(),
   lastRelease: canonicalPrivatePackageWorkQueueReleaseSchema.optional(),
@@ -258,8 +263,10 @@ export const canonicalPrivatePackageWorkQueueEntrySchema = z.object({
   }
   if (
     entry.definition.privateExecutionReady ||
-    entry.definition.approvedWorkItemId !==
-      PROFESSIONAL_LONG_FORM_FIRST_CHILD_WORK_ITEM_ID ||
+    (entry.definition.approvedWorkItemId !==
+      PROFESSIONAL_LONG_FORM_FIRST_CHILD_WORK_ITEM_ID &&
+      entry.definition.approvedWorkItemId !==
+        PROFESSIONAL_LONG_FORM_SOURCE_AUTHORITY_WORK_ITEM_ID) ||
     entry.definition.requiredGate !==
       'canonical_professional_long_form_exact_tool_cost_runner_and_qa_authority' ||
     authorization.jobId !== entry.definition.jobId ||
@@ -269,7 +276,7 @@ export const canonicalPrivatePackageWorkQueueEntrySchema = z.object({
   ) {
     context.addIssue({
       code: 'custom',
-      message: 'Canonical professional long-form execution authorization lost root-job authority.',
+      message: 'Canonical professional long-form execution authorization lost exact child-job authority.',
     })
   }
   if (executionAttempt) {

@@ -18,6 +18,10 @@ import {
   PROFESSIONAL_LONG_FORM_FIRST_CHILD_COST_PROFILE_ID,
   PROFESSIONAL_LONG_FORM_FIRST_CHILD_OPERATION_ID,
 } from '../edit-architecture/professional-long-form-first-child-execution-contract'
+import {
+  PROFESSIONAL_LONG_FORM_SOURCE_AUTHORITY_COST_PROFILE_ID,
+  PROFESSIONAL_LONG_FORM_SOURCE_AUTHORITY_OPERATION_ID,
+} from '../edit-architecture/professional-long-form-source-authority-execution-contract'
 
 const identity = z.string().min(1).max(200).regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/)
   .refine((value) => value === value.trim() && !value.includes('..'))
@@ -44,6 +48,8 @@ export const PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS = {
     'ffmpeg_4k_mezzanine_finalization_cpu_2vcpu_4gib_v1',
   professionalLongFormSnapshotValidation:
     PROFESSIONAL_LONG_FORM_FIRST_CHILD_COST_PROFILE_ID,
+  professionalLongFormSourceAuthorityValidation:
+    PROFESSIONAL_LONG_FORM_SOURCE_AUTHORITY_COST_PROFILE_ID,
 } as const
 
 export type PrivateInternalAttemptCostProfileId =
@@ -60,7 +66,7 @@ const commonAttemptIdentityFields = {
   retryAttempt: safeInteger,
 }
 
-export const privateInternalAttemptCostIdentitySchema = z.discriminatedUnion('toolId', [
+export const privateInternalAttemptCostIdentitySchema = z.union([
   z.object({
     ...commonAttemptIdentityFields,
     toolId: z.literal('deepfilternet'),
@@ -88,6 +94,15 @@ export const privateInternalAttemptCostIdentitySchema = z.discriminatedUnion('to
     operationId: z.literal(PROFESSIONAL_LONG_FORM_FIRST_CHILD_OPERATION_ID),
     workloadProfileId: z.literal(
       PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.professionalLongFormSnapshotValidation,
+    ),
+  }).strict(),
+  z.object({
+    ...commonAttemptIdentityFields,
+    toolId: z.literal('reeditpro_internal'),
+    operationId: z.literal(PROFESSIONAL_LONG_FORM_SOURCE_AUTHORITY_OPERATION_ID),
+    workloadProfileId: z.literal(
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS
+        .professionalLongFormSourceAuthorityValidation,
     ),
   }).strict(),
 ])
@@ -208,6 +223,13 @@ export type BeginPrivateInternalAttemptCostEvidenceInput =
         workloadProfileId:
           typeof PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.professionalLongFormSnapshotValidation
       }
+    | {
+        toolId: 'reeditpro_internal'
+        operationId:
+          typeof PROFESSIONAL_LONG_FORM_SOURCE_AUTHORITY_OPERATION_ID
+        workloadProfileId:
+          typeof PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.professionalLongFormSourceAuthorityValidation
+      }
   )
 
 export interface FinalizePrivateInternalAttemptCostEvidenceInput {
@@ -231,7 +253,7 @@ export interface PrivateInternalAttemptCostClock {
   monotonicNanoseconds(): bigint
 }
 
-const beginInputSchema = z.discriminatedUnion('toolId', [
+const beginInputSchema = z.union([
   z.object({
     localStorageRoot: z.string().min(1),
     ...commonAttemptIdentityFields,
@@ -263,6 +285,16 @@ const beginInputSchema = z.discriminatedUnion('toolId', [
     operationId: z.literal(PROFESSIONAL_LONG_FORM_FIRST_CHILD_OPERATION_ID),
     workloadProfileId: z.literal(
       PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.professionalLongFormSnapshotValidation,
+    ),
+  }).strict(),
+  z.object({
+    localStorageRoot: z.string().min(1),
+    ...commonAttemptIdentityFields,
+    toolId: z.literal('reeditpro_internal'),
+    operationId: z.literal(PROFESSIONAL_LONG_FORM_SOURCE_AUTHORITY_OPERATION_ID),
+    workloadProfileId: z.literal(
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS
+        .professionalLongFormSourceAuthorityValidation,
     ),
   }).strict(),
 ]).superRefine((value, context) => {
@@ -570,6 +602,12 @@ export function resolvePrivateInternalAttemptCostProfileId(
     input.toolId === 'reeditpro_internal' &&
     input.workloadProfileId ===
       PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.professionalLongFormSnapshotValidation
+  ) return input.workloadProfileId
+  if (
+    input.toolId === 'reeditpro_internal' &&
+    input.workloadProfileId ===
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS
+        .professionalLongFormSourceAuthorityValidation
   ) return input.workloadProfileId
   throw invalid('Internal attempt-cost workload profile is unsupported.')
 }

@@ -1,6 +1,6 @@
 # Canonical Professional Long-Form Post-Approval Authority — 2026-07-18
 
-Status: `superseded_by_root_snapshot_validation_execution`
+Status: `superseded_by_private_source_authority_validation_execution`
 
 ## Outcome
 
@@ -30,9 +30,11 @@ package and server-derived placement manifest and atomically publishes one
 exact 255-job private queue. See
 `docs/canonical-professional-long-form-child-package-promotion-2026-07-18.md`.
 The promotion snapshot initially leaves all children capability-blocked. The
-root snapshot-validation continuation now executes exactly one child while the
-remaining 254 stay blocked; see
+root snapshot-validation continuation executes the first child; see
 `docs/canonical-professional-long-form-first-child-execution-2026-07-18.md`.
+The source-authority continuation now executes the second child while the
+remaining 253 stay blocked; see
+`docs/canonical-professional-long-form-source-authority-execution-2026-07-18.md`.
 This remains far short of long-form media execution.
 
 ## Honest Work-Graph Boundary
@@ -65,7 +67,7 @@ it does not rewrite or weaken the derivation record above.
 ## Focused Evidence
 
 The post-approval/promotion baseline passed 32 checks. The current combined
-promotion/root-execution smoke passes 47 checks.
+promotion/root/source-authority smoke passes 61 checks.
 Its maximum-capacity local/private fixture uses:
 
 - one confirmed `3840x2160`, 30 fps frame;
@@ -81,17 +83,18 @@ Its maximum-capacity local/private fixture uses:
 - four parent jobs in the canonical aggregate; and
 - zero ordinary execution packages; and
 - one specialized 255-job private queue that begins with zero leases, attempts,
-  or completions and now ends the focused continuation with exactly one root
-  completion and 254 blocked children.
+  or completions and now ends the focused continuation with exactly two
+  completed validation children and 253 blocked children.
 
 The smoke proves exact publication replay, changed-seed idempotency conflict,
 identity and source-content substitution rejection, publication-without-jobs,
 approval-time seed/controller freezing, fresh-service authority reload, package
 refusal, restart-safe bridge/manifest replay, child-record tamper rejection,
 concurrent one-create/one-replay queue promotion, exact placement counts,
-capability-blocked claim refusal without mutation, queue checksum corruption
-refusal/recovery, dispatch self-promotion rejection, aggregate non-mutation,
-and fail-closed content-addressed blob corruption after another restart.
+capability-blocked render/audio claim refusal without mutation, queue checksum
+corruption refusal/recovery, dispatch self-promotion rejection, aggregate
+non-mutation, exact source-authority validation over all 512 ranges, and
+fail-closed root/source content-addressed evidence corruption after restart.
 
 `npm run smoke:professional-long-form-object-plan` continues to pass 26 checks,
 `npm run smoke:professional-long-form-snapshot-bridge` passes 22 checks, and
@@ -100,32 +103,35 @@ regression after this integration.
 
 ## Aggregate Evidence
 
-The exact-code `npm run qa:internal-pipeline` v20 aggregate passed all `37/37`
-stages with exit code `0`. It started at `2026-07-18T10:12:50.412Z`, finished
-at `2026-07-18T10:46:03.933Z`, and completed in `1,993,521 ms`. The long-form
-planning stage passed in `363 ms`, the approved-snapshot bridge in `746 ms`,
-and this canonical post-approval/promotion/root stage passed 47 checks in
-`9,103 ms`.
+The exact-code `npm run qa:internal-pipeline` v21 aggregate passed all `37/37`
+stages with exit code `0`. It started at `2026-07-18T11:38:02.672Z`, finished
+at `2026-07-18T12:05:41.896Z`, and completed in `1,659,224 ms`. The long-form
+planning stage passed in `340 ms`, the approved-snapshot bridge in `612 ms`,
+and this canonical post-approval/promotion/root/source-authority stage passed
+61 checks in `12,856 ms`.
 
 The aggregate reverified exactly 50 canonical E2E tool identities and 50 job
 adapters, the existing bounded private media lifecycles, all 11 named-edit
 browser tests, and the accepted maximum-eight-source 27-job private review.
 That machine-readable report marks canonical seed-component, server-loaded
 controller, child-manifest, specialized child-package, child-placement, and
-child-queue persistence true. It also marks only the first child's authority,
-lease, exact tool-operation binding, attempt cost, one-use internal dispatch,
-private validation-artifact persistence, QA, reconciliation, dependency
-evidence, and replay true. Source-media, chunk-render, and object-storage
+child-queue persistence true. It separately marks both the root and private
+source-authority children's authority, lease, exact operation binding, attempt
+cost, one-use internal dispatch, private validation-artifact persistence, QA,
+reconciliation, dependency evidence, completion, and replay true. The source
+child validates all 512 ranges and 125 direct downstream dependencies without
+granting media execution. Source-media, chunk-render, and object-storage
 execution, remaining-child execution, live Google Cloud completion, external
-beta, and paid production remain false. The v18 promotion-only aggregate is
-historical evidence.
+beta, and paid production remain false. The v20 root-only and v18 promotion-
+only aggregates are historical evidence.
 
 ## Cost and Commercial Boundary
 
 The approved seed requires attempt-level internal production-cost evidence.
-That requirement alone creates no attempt or cost record; the root execution
-now satisfies it only for its own exact attempt. The other 254 children still
-need separate scoped evidence. Neither the requirement nor the root record
+That requirement alone creates no attempt or cost record; the root and source
+executions now satisfy it for their two separate exact attempts. The other 253
+children still need separate scoped evidence. Neither the requirement nor
+either validation record
 creates customer price, customer credit amount, service fee, wallet mutation,
 billing instruction, or settlement authority. The original approved 4K
 estimate and reservation remain the only commercial-adjacent authority in this
@@ -145,7 +151,7 @@ Preference/Edit Reference implementation changed in this slice.
 
 ## Readiness Truth
 
-Now verified through this foundation and its root continuation:
+Now verified through this foundation and its root/source continuations:
 
 - canonical long-form seed-component persistence;
 - server-loaded controller persistence and approval binding;
@@ -155,14 +161,17 @@ Now verified through this foundation and its root continuation:
 - atomic local/private 255-job queue persistence;
 - one root operation/runner authorization, lease, one-use start, private
   artifact, QA, reconciliation, attempt cost, completion, and replay;
+- one source-authority operation/runner authorization, lease, one-use start,
+  512-range validation, private artifact, QA, reconciliation, attempt cost,
+  completion, and replay;
 - exact restart/replay behavior; and
 - fail-closed normal-package, dispatch, tamper, and self-promotion boundaries.
 
 Still false:
 
-- remaining 254 child leases and one-use dispatches;
-- private-source and chunk tool-operation, cost-budget, runner, and QA
-  authority;
+- remaining 253 child leases and one-use dispatches;
+- source-media decode/transform and chunk tool-operation, cost-budget, runner,
+  and QA authority;
 - object-store media persistence;
 - chunk media execution;
 - continuous-audio and color-continuity execution;
@@ -174,6 +183,8 @@ Still false:
 
 ## Next Evidence Gate
 
-The root snapshot-validation gate is complete. The next dependency-safe slice
-is `validate_private_source_authority`; it must use exact persisted source/range
-authority and must not imply that any chunk media has rendered.
+The root snapshot-validation and private source-authority gates are complete.
+The next dependency-safe slice must remain a separately versioned timing or
+chunk/media operation with exact private-object, QA, recovery, reconciliation,
+and attempt-cost authority. It must not grant a broad class of render jobs or
+imply that long-form media has already been decoded or rendered.

@@ -4,6 +4,8 @@ import {
   PROFESSIONAL_LONG_FORM_FIRST_CHILD_COST_PROFILE_ID,
   PROFESSIONAL_LONG_FORM_FIRST_CHILD_DOWNSTREAM_WORK_ITEM_ID,
   PROFESSIONAL_LONG_FORM_FIRST_CHILD_OPERATION_ID,
+  professionalLongFormFirstChildCompletionSchema,
+  professionalLongFormFirstChildExecutionAttemptSchema,
   type ProfessionalLongFormFirstChildAuthorizationReceipt,
   type ProfessionalLongFormFirstChildExecutionAttempt,
   type ProfessionalLongFormFirstChildExecutionAuthority,
@@ -62,6 +64,7 @@ export interface CanonicalProfessionalLongFormFirstChildExecutionEvidence {
   source: 'canonical_professional_long_form_first_child_execution_service'
   status:
     | 'root_snapshot_validation_completed_remaining_children_blocked'
+    | 'root_snapshot_validation_completed_queue_progress_preserved'
     | 'root_snapshot_validation_in_progress_remaining_children_blocked'
   disposition: 'completed' | 'exact_replay' | 'already_in_progress'
   authority: ProfessionalLongFormFirstChildExecutionAuthority
@@ -88,7 +91,8 @@ export interface CanonicalProfessionalLongFormFirstChildExecutionEvidence {
     rootAttemptInternalCostVerified: boolean
     rootQueueCompletionVerified: boolean
     downstreamDependencySatisfied: boolean
-    downstreamExecutionAuthorized: false
+    downstreamExecutionAuthorizedByRootCompletion: false
+    downstreamCurrentlyAuthorizedOrCompleted: boolean
     remainingChildJobCount: number
     sourceMediaExecutionVerified: false
     chunkRenderExecutionVerified: false
@@ -225,7 +229,10 @@ export function createCanonicalProfessionalLongFormFirstChildExecutionService(
           claimCredential: claim.claimCredential,
           now: new Date().toISOString(),
         })
-      const executionAttempt = begun.executionAttempt
+      const executionAttempt =
+        professionalLongFormFirstChildExecutionAttemptSchema.parse(
+          begun.executionAttempt,
+        )
       const costMeter = await beginPrivateInternalAttemptCostEvidence({
         localStorageRoot: context.env.localStorageRoot,
         workspaceId: authority.identity.workspaceId,
@@ -510,11 +517,20 @@ async function loadCompletedEvidence(input: {
 }): Promise<CanonicalProfessionalLongFormFirstChildExecutionEvidence> {
   const root = input.aggregate.entries.find((entry) =>
     entry.definition.jobId === input.authority.identity.jobId)
-  const attempt = root?.professionalLongFormExecutionAttempt
-  const completion = root?.completion?.outcome.professionalLongFormExecution
-  if (!root || root.state !== 'completed' || !attempt || !completion) {
+  const parsedAttempt = professionalLongFormFirstChildExecutionAttemptSchema.safeParse(
+    root?.professionalLongFormExecutionAttempt,
+  )
+  const parsedCompletion = professionalLongFormFirstChildCompletionSchema.safeParse(
+    root?.completion?.outcome.professionalLongFormExecution,
+  )
+  if (
+    !root || root.state !== 'completed' ||
+    !parsedAttempt.success || !parsedCompletion.success
+  ) {
     throw invalid('Professional long-form root completion is not terminal.')
   }
+  const attempt = parsedAttempt.data
+  const completion = parsedCompletion.data
   const validationValue = await readPrivateAuthorityJsonBlob({
     localStorageRoot: input.context.env.localStorageRoot,
     ref: completion.validationArtifactRef,
@@ -587,28 +603,34 @@ async function loadCompletedEvidence(input: {
       attemptInternalCostEvidenceHash: costEvidence.evidenceHash,
     })
   const downstream = requireDownstreamEntry(input.current, root.definition.jobId)
+  const storedAuthorization = root.professionalLongFormExecutionAuthorization
   if (
+    !storedAuthorization ||
+    stableAuthorityStringify(storedAuthorization) !==
+      stableAuthorityStringify(input.authorization) ||
     completion.canonicalResultHash !== canonicalResultHash ||
     completion.attemptInternalCostEvidenceHash !== costEvidence.evidenceHash ||
     completion.authorityHash !== input.authority.authorityHash ||
     completion.authorizationId !== input.authorization.authorizationId ||
     completion.executionAttemptId !== attempt.executionAttemptId ||
     root.completion?.outcome.sha256 !== completion.validationArtifactRef.sha256 ||
-    input.aggregate.summary.completedJobCount !== 1 ||
-    input.aggregate.summary.queuedJobCount !== input.aggregate.summary.totalJobCount - 1 ||
-    input.aggregate.summary.leasedJobCount !== 0 ||
-    input.aggregate.summary.totalDeliveryAttemptCount !== 1 ||
-    downstream.state !== 'queued' ||
-    downstream.professionalLongFormExecutionAuthorization ||
-    downstream.professionalLongFormExecutionAttempt ||
-    downstream.completion ||
+    input.aggregate.summary.completedJobCount < 1 ||
+    input.aggregate.summary.queuedJobCount +
+      input.aggregate.summary.leasedJobCount +
+      input.aggregate.summary.completedJobCount !==
+      input.aggregate.summary.totalJobCount ||
+    input.aggregate.summary.totalDeliveryAttemptCount < 1 ||
+    root.deliveryAttemptCount !== 1 ||
     !downstream.definition.dependencyJobIds.includes(root.definition.jobId) ||
     input.aggregate.events.filter((event) =>
-      event.eventType === 'job_execution_authorized').length !== 1 ||
+      event.eventType === 'job_execution_authorized' &&
+      event.jobId === root.definition.jobId).length !== 1 ||
     input.aggregate.events.filter((event) =>
-      event.eventType === 'job_execution_started').length !== 1 ||
+      event.eventType === 'job_execution_started' &&
+      event.jobId === root.definition.jobId).length !== 1 ||
     input.aggregate.events.filter((event) =>
-      event.eventType === 'job_completed').length !== 1
+      event.eventType === 'job_completed' &&
+      event.jobId === root.definition.jobId).length !== 1
   ) throw invalid('Professional long-form root completion did not preserve queue invariants.')
 
   const stablePayload = {
@@ -617,7 +639,7 @@ async function loadCompletedEvidence(input: {
     source:
       'canonical_professional_long_form_first_child_execution_service' as const,
     status:
-      'root_snapshot_validation_completed_remaining_children_blocked' as const,
+      'root_snapshot_validation_completed_queue_progress_preserved' as const,
     authority: input.authority,
     authorityRef: input.authorityRef,
     authorization: input.authorization,
@@ -642,8 +664,13 @@ async function loadCompletedEvidence(input: {
       rootAttemptInternalCostVerified: true,
       rootQueueCompletionVerified: true,
       downstreamDependencySatisfied: true,
-      downstreamExecutionAuthorized: false as const,
-      remainingChildJobCount: input.aggregate.summary.totalJobCount - 1,
+      downstreamExecutionAuthorizedByRootCompletion: false as const,
+      downstreamCurrentlyAuthorizedOrCompleted:
+        downstream.professionalLongFormExecutionAuthorization !== undefined ||
+        downstream.state === 'completed',
+      remainingChildJobCount:
+        input.aggregate.summary.totalJobCount -
+        input.aggregate.summary.completedJobCount,
       sourceMediaExecutionVerified: false as const,
       chunkRenderExecutionVerified: false as const,
       distributedDatabaseVerified: false as const,
@@ -690,7 +717,8 @@ function buildInProgressEvidence(input: {
       rootAttemptInternalCostVerified: false,
       rootQueueCompletionVerified: false,
       downstreamDependencySatisfied: false,
-      downstreamExecutionAuthorized: false as const,
+      downstreamExecutionAuthorizedByRootCompletion: false as const,
+      downstreamCurrentlyAuthorizedOrCompleted: false,
       remainingChildJobCount: input.aggregate.summary.totalJobCount,
       sourceMediaExecutionVerified: false as const,
       chunkRenderExecutionVerified: false as const,

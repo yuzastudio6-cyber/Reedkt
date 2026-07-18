@@ -53,7 +53,7 @@ const canonicalSteps: VerificationStep[] = [
   step(
     'canonical-professional-long-form-post-approval',
     'smoke:canonical-professional-long-form-post-approval',
-    'A six-hour/512-range 4K seed persists through canonical publication and approval; restart-safe server derivation reopens the exact authority, persists a content-addressed 255-child package/placement/queue, and executes only the root snapshot-validation child through persisted authorization, one lease/start, private artifact, QA, reconciliation, attempt-level internal cost, terminal completion, and exact replay. The remaining 254 children, source/media work, cloud, commerce, product, and production execution stay blocked.',
+    'A six-hour/512-range 4K seed persists through canonical publication and approval; restart-safe server derivation reopens the exact authority, persists a content-addressed 255-child package/placement/queue, and executes the root snapshot-validation child plus the exact private source-authority child through separate persisted authorizations, one-use lease/starts, private artifacts, QA, reconciliation, attempt-level internal costs, terminal completion, and exact replay. All 512 ranges bind to approved checksum/size/generation, cleanup, segment, and frame coverage; the remaining 253 children, media decoding/rendering, cloud, commerce, product, and production execution stay blocked.',
   ),
   step(
     'professional-export-policy',
@@ -280,7 +280,7 @@ function printReport(
 ): void {
   const finishedAt = new Date()
   const report = {
-    schemaVersion: 'canonical-private-pipeline-verification-v20',
+    schemaVersion: 'canonical-private-pipeline-verification-v21',
     status,
     mode: full ? 'full_internal_regression' : 'canonical_private_pipeline',
     startedAt: runStartedAt.toISOString(),
@@ -313,6 +313,12 @@ function printReport(
           professionalLongFormFirstChildAttemptInternalCostEvidence: true,
           professionalLongFormFirstChildArtifactQaReconciliationReplay: true,
           professionalLongFormFirstChildDownstreamDependencyEvidence: true,
+          professionalLongFormSourceAuthorityAuthorizationPersistence: true,
+          professionalLongFormSourceAuthorityLeaseAndOneUseExecution: true,
+          professionalLongFormSourceManifestRangeCleanupFrameValidation: true,
+          professionalLongFormSourceAuthorityAttemptInternalCostEvidence: true,
+          professionalLongFormSourceAuthorityArtifactQaReconciliationReplay: true,
+          professionalLongFormSourceAuthorityDirectDownstreamEvidence: true,
           sourceOnlyIntentAuthority: true,
           fourKEstimateDeliveryCeiling: true,
           canonicalBrowserContracts: true,
@@ -367,8 +373,7 @@ function printReport(
       distributedPackageQueueOutboxTransactionVerified: false,
       canonicalPackageStateDatabaseFunctionsExecuted: false,
       canonicalPackageStateRpcLiveClientActivated: false,
-      professionalLongFormRemaining254ChildLeasesVerified: false,
-      professionalLongFormSourceAuthorityExecutionVerified: false,
+      professionalLongFormRemaining253ChildLeasesVerified: false,
       professionalLongFormChunkOperationBindingsVerified: false,
       professionalLongFormRemainingChildAttemptCostsVerified: false,
       professionalLongFormRemainingChildDispatchVerified: false,

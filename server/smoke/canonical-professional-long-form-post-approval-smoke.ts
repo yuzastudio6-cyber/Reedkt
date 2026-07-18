@@ -38,6 +38,17 @@ import {
   buildProfessionalLongFormFirstChildAuthorizationReceipt,
   buildProfessionalLongFormFirstChildExecutionAuthority,
 } from '../edit-architecture/professional-long-form-first-child-execution'
+import {
+  PROFESSIONAL_LONG_FORM_SOURCE_AUTHORITY_COST_PROFILE_ID,
+  PROFESSIONAL_LONG_FORM_SOURCE_AUTHORITY_OPERATION_ID,
+  PROFESSIONAL_LONG_FORM_SOURCE_AUTHORITY_WORK_ITEM_ID,
+} from '../edit-architecture/professional-long-form-source-authority-execution-contract'
+import {
+  assertProfessionalLongFormSourceAuthorityQaEvidence,
+  assertProfessionalLongFormSourceAuthorityReconciliationEvidence,
+  assertProfessionalLongFormSourceAuthorityTerminalEvidence,
+  assertProfessionalLongFormSourceAuthorityValidationArtifact,
+} from '../edit-architecture/professional-long-form-source-authority-execution'
 import { ApiError } from '../errors/api-error'
 import {
   createCanonicalEditExecutionPackageService,
@@ -55,6 +66,9 @@ import {
 import {
   createCanonicalProfessionalLongFormFirstChildExecutionService,
 } from '../services/canonical-professional-long-form-first-child-execution-service'
+import {
+  createCanonicalProfessionalLongFormSourceAuthorityExecutionService,
+} from '../services/canonical-professional-long-form-source-authority-execution-service'
 import { createEditPlanningAuthorityService } from '../services/edit-planning-authority-service'
 import { createExactEditPreferenceService } from '../services/exact-edit-preference-service'
 import {
@@ -983,6 +997,453 @@ try {
     'restored_exact_root_validation_artifact_replays_without_reexecution',
   )
 
+  const queueBeforeExpiredSourceAuthorization =
+    await readPrivateCanonicalPackageWorkQueue({
+      scope: queueScope,
+      definition: promotion.queueDefinition,
+    })
+  assert.ok(queueBeforeExpiredSourceAuthorization)
+  const originalDateNowForSource = Date.now
+  try {
+    Date.now = () =>
+      Date.parse(preparedRootAuthority.approval.reservationExpiresAt) + 1
+    await expectApiError(
+      () => createCanonicalProfessionalLongFormSourceAuthorityExecutionService(
+        context,
+      ).authorizeAndExecute({
+        workspaceId,
+        approvedPlanSnapshotId: String(snapshot.snapshotId),
+      }),
+      'CREDITS_NOT_RESERVED',
+      'expired_reservation_cannot_publish_source_authority_queue_authorization',
+    )
+  } finally {
+    Date.now = originalDateNowForSource
+  }
+  const queueAfterExpiredSourceAuthorization =
+    await readPrivateCanonicalPackageWorkQueue({
+      scope: queueScope,
+      definition: promotion.queueDefinition,
+    })
+  const sourceAfterExpiredAuthorization =
+    queueAfterExpiredSourceAuthorization?.entries.find((entry) =>
+      entry.definition.approvedWorkItemId ===
+        PROFESSIONAL_LONG_FORM_SOURCE_AUTHORITY_WORK_ITEM_ID)
+  check(
+    queueAfterExpiredSourceAuthorization?.aggregateHash ===
+      queueBeforeExpiredSourceAuthorization.aggregateHash &&
+      !sourceAfterExpiredAuthorization
+        ?.professionalLongFormExecutionAuthorization &&
+      queueAfterExpiredSourceAuthorization.events.filter((event) =>
+        event.eventType === 'job_execution_authorized' &&
+        event.jobId === sourceAfterExpiredAuthorization?.definition.jobId)
+        .length === 0,
+    'expired_source_authority_refusal_leaves_queue_entry_and_events_unchanged',
+  )
+
+  const concurrentSourceAuthorityRuns = await Promise.all([
+    createCanonicalProfessionalLongFormSourceAuthorityExecutionService(context)
+      .authorizeAndExecute({
+        workspaceId,
+        approvedPlanSnapshotId: String(snapshot.snapshotId),
+      }),
+    createCanonicalProfessionalLongFormSourceAuthorityExecutionService(context)
+      .authorizeAndExecute({
+        workspaceId,
+        approvedPlanSnapshotId: String(snapshot.snapshotId),
+      }),
+  ])
+  const completedSourceAuthority = concurrentSourceAuthorityRuns.find((item) =>
+    item.disposition === 'completed')
+  assert.ok(completedSourceAuthority)
+  check(
+    concurrentSourceAuthorityRuns.filter((item) =>
+      item.disposition === 'completed').length === 1 &&
+      concurrentSourceAuthorityRuns.every((item) =>
+        ['completed', 'already_in_progress', 'exact_replay'].includes(
+          item.disposition,
+        )),
+    'concurrent_source_authority_calls_consume_one_lease_and_one_execution_attempt',
+  )
+  assert.ok(completedSourceAuthority.executionAttempt)
+  assert.ok(completedSourceAuthority.validationArtifact)
+  assert.ok(completedSourceAuthority.validationArtifactRef)
+  assert.ok(completedSourceAuthority.qaEvidence)
+  assert.ok(completedSourceAuthority.qaEvidenceRef)
+  assert.ok(completedSourceAuthority.reconciliationEvidence)
+  assert.ok(completedSourceAuthority.reconciliationEvidenceRef)
+  assert.ok(completedSourceAuthority.attemptInternalCostEvidence)
+  assert.ok(completedSourceAuthority.terminalEvidence)
+  assert.ok(completedSourceAuthority.terminalEvidenceRef)
+  const sourceAttempt = completedSourceAuthority.executionAttempt
+  const sourceArtifact = completedSourceAuthority.validationArtifact
+  const sourceArtifactRef = completedSourceAuthority.validationArtifactRef
+  const sourceQa = completedSourceAuthority.qaEvidence
+  const sourceQaRef = completedSourceAuthority.qaEvidenceRef
+  const sourceReconciliation = completedSourceAuthority.reconciliationEvidence
+  const sourceReconciliationRef =
+    completedSourceAuthority.reconciliationEvidenceRef
+  const sourceCost = completedSourceAuthority.attemptInternalCostEvidence
+  const sourceTerminal = completedSourceAuthority.terminalEvidence
+  const sourceTerminalRef = completedSourceAuthority.terminalEvidenceRef
+  const sourceCompletedQueue = completedSourceAuthority.queueAggregate
+  const completedSourceEntry = sourceCompletedQueue.entries.find((entry) =>
+    entry.definition.approvedWorkItemId ===
+      PROFESSIONAL_LONG_FORM_SOURCE_AUTHORITY_WORK_ITEM_ID)
+  check(
+    sourceCompletedQueue.summary.totalJobCount === 255 &&
+      sourceCompletedQueue.summary.completedJobCount === 2 &&
+      sourceCompletedQueue.summary.queuedJobCount === 253 &&
+      sourceCompletedQueue.summary.leasedJobCount === 0 &&
+      sourceCompletedQueue.summary.totalDeliveryAttemptCount === 2 &&
+      completedSourceEntry?.state === 'completed' &&
+      completedSourceEntry.deliveryAttemptCount === 1 &&
+      sourceCompletedQueue.events.filter((event) =>
+        event.eventType === 'job_execution_authorized').length === 2 &&
+      sourceCompletedQueue.events.filter((event) =>
+        event.eventType === 'job_execution_started').length === 2 &&
+      sourceCompletedQueue.events.filter((event) =>
+        event.eventType === 'job_completed').length === 2,
+    'root_and_source_children_form_two_exact_terminal_queue_lineages',
+  )
+  check(
+    sourceArtifact.valid &&
+      sourceArtifact.sourceCoverage.sourceRangeCount ===
+        PROFESSIONAL_LONG_FORM_MAXIMUM_SOURCE_RANGES &&
+      sourceArtifact.sourceCoverage.approvedBindingCount === sourceCount &&
+      sourceArtifact.sourceCoverage.requiredBindingCount === sourceCount &&
+      sourceArtifact.sourceCoverage.referencedBindingCount === sourceCount &&
+      sourceArtifact.sourceCoverage.localPrivateBindingCount === sourceCount &&
+      sourceArtifact.sourceCoverage.googleCloudStorageBindingCount === 0 &&
+      sourceArtifact.sourceCoverage.exactGenerationRangeCount ===
+        PROFESSIONAL_LONG_FORM_MAXIMUM_SOURCE_RANGES &&
+      sourceArtifact.sourceCoverage.totalFrames === totalFrames &&
+      sourceArtifact.hashes.sourceRangesHash ===
+        completedSourceAuthority.authority.identity.expectedOutputIdentity &&
+      sourceArtifact.readinessTruth.canonicalLoaderSourceAuthorityRevalidated &&
+      !sourceArtifact.readinessTruth.runnerDirectSourceBytesRead &&
+      !sourceArtifact.readinessTruth.mediaDecoded &&
+      !sourceArtifact.readinessTruth.sourceObjectResidencyVerified &&
+      !sourceArtifact.readinessTruth.sourceFrameCapacityVerified &&
+      !sourceArtifact.readinessTruth.sourceTransformed &&
+      !sourceArtifact.readinessTruth.rendered,
+    'all_512_ranges_match_approved_bindings_cleanup_segments_and_gap_free_timeline_without_media_decode',
+  )
+  check(
+    sourceQa.outcome === 'passed' &&
+      sourceReconciliation.summary.directDownstreamCount ===
+        PROFESSIONAL_LONG_FORM_MAXIMUM_CHUNKS + 1 &&
+      sourceReconciliation.summary.renderJobCount ===
+        PROFESSIONAL_LONG_FORM_MAXIMUM_CHUNKS &&
+      sourceReconciliation.summary.continuousAudioJobCount === 1 &&
+      sourceReconciliation.summary.remainingQueueJobCountAfterCompletion ===
+        253 &&
+      sourceReconciliation.directDownstream.every((entry) =>
+        entry.sourceDependencySatisfiedByThisCompletion &&
+        !entry.executionAuthorized && entry.capabilityBlocked) &&
+      sourceTerminal.permissions.structuredSourceAuthorityValidated &&
+      sourceTerminal.permissions
+        .directDownstreamDependencyEvidenceCreated &&
+      !sourceTerminal.permissions.downstreamExecutionAuthorized &&
+      !sourceTerminal.permissions.sourceMediaDecodeOrTransformAuthorized,
+    'source_qa_and_reconciliation_record_124_render_and_one_audio_dependency_without_execution_authority',
+  )
+  check(
+    sourceCost.boundary === 'internal_production_cost_only' &&
+      sourceCost.identity.toolId === 'reeditpro_internal' &&
+      sourceCost.identity.operationId ===
+        PROFESSIONAL_LONG_FORM_SOURCE_AUTHORITY_OPERATION_ID &&
+      sourceCost.identity.workloadProfileId ===
+        PROFESSIONAL_LONG_FORM_SOURCE_AUTHORITY_COST_PROFILE_ID &&
+      sourceCost.identity.executionAttemptId === sourceAttempt.executionAttemptId &&
+      sourceCost.resourceUsage.vcpuCount === 2 &&
+      sourceCost.resourceUsage.memoryGib === 4 &&
+      sourceCost.resourceUsage.gpuCount === 0 &&
+      Number.isSafeInteger(sourceCost.actualInternalCostMicros) &&
+      sourceCost.actualInternalCostMicros >= 0 &&
+      sourceTerminal.attemptInternalCostEvidenceHash === sourceCost.evidenceHash,
+    'source_attempt_internal_production_cost_is_versioned_metered_and_noncommercial',
+  )
+  const serializedSourceAuthority = stableAuthorityStringify(
+    completedSourceAuthority,
+  )
+  check(
+    !serializedSourceAuthority.includes('https://') &&
+      !serializedSourceAuthority.includes('gs://') &&
+      !serializedSourceAuthority.includes('"claimCredential":') &&
+      !serializedSourceAuthority.includes('customerPriceMicros') &&
+      !serializedSourceAuthority.includes('customerCreditAmount') &&
+      !serializedSourceAuthority.includes('serviceFeeMicros') &&
+      !serializedSourceAuthority.includes('walletBalance') &&
+      !serializedSourceAuthority.includes('providerRequest') &&
+      !completedSourceAuthority.readiness.sourceAuthorityRunnerDirectByteRead &&
+      !completedSourceAuthority.readiness
+        .sourceAuthorityRunnerMediaDecodeOrTransform &&
+      !completedSourceAuthority.readiness.liveGoogleCloudVerified &&
+      !completedSourceAuthority.readiness.productReady &&
+      !completedSourceAuthority.readiness.productionReady,
+    'source_execution_contains_no_secret_provider_decode_render_customer_or_live_cloud_authority',
+  )
+
+  clearPrivateEditAuthorityProcessStateForSmoke()
+  clearPrivateCanonicalPackageWorkQueueProcessStateForSmoke()
+  const replayedSourceAuthority =
+    await createCanonicalProfessionalLongFormSourceAuthorityExecutionService(
+      context,
+    ).authorizeAndExecute({
+      workspaceId,
+      approvedPlanSnapshotId: String(snapshot.snapshotId),
+    })
+  check(
+    replayedSourceAuthority.disposition === 'exact_replay' &&
+      replayedSourceAuthority.evidenceHash ===
+        completedSourceAuthority.evidenceHash &&
+      replayedSourceAuthority.queueAggregate.aggregateHash ===
+        sourceCompletedQueue.aggregateHash &&
+      replayedSourceAuthority.executionAttempt?.executionAttemptId ===
+        sourceAttempt.executionAttemptId &&
+      replayedSourceAuthority.validationArtifactRef?.sha256 ===
+        sourceArtifactRef.sha256 &&
+      replayedSourceAuthority.qaEvidenceRef?.sha256 === sourceQaRef.sha256 &&
+      replayedSourceAuthority.reconciliationEvidenceRef?.sha256 ===
+        sourceReconciliationRef.sha256 &&
+      replayedSourceAuthority.terminalEvidenceRef?.sha256 ===
+        sourceTerminalRef.sha256 &&
+      replayedSourceAuthority.attemptInternalCostEvidence?.evidenceHash ===
+        sourceCost.evidenceHash,
+    'source_restart_replay_reopens_exact_terminal_refs_cost_and_queue_without_reexecution',
+  )
+
+  const rootReplayAfterSourceCompletion =
+    await createCanonicalProfessionalLongFormFirstChildExecutionService(context)
+      .authorizeAndExecute({
+        workspaceId,
+        approvedPlanSnapshotId: String(snapshot.snapshotId),
+      })
+  check(
+    rootReplayAfterSourceCompletion.disposition === 'exact_replay' &&
+      rootReplayAfterSourceCompletion.queueAggregate.summary.completedJobCount ===
+        2 &&
+      rootReplayAfterSourceCompletion.readiness
+        .downstreamCurrentlyAuthorizedOrCompleted &&
+      rootReplayAfterSourceCompletion.readiness.remainingChildJobCount === 253 &&
+      rootReplayAfterSourceCompletion.executionAttempt?.executionAttemptId ===
+        firstChildAttempt.executionAttemptId &&
+      rootReplayAfterSourceCompletion.validationArtifactRef?.sha256 ===
+        firstChildArtifactRef.sha256 &&
+      rootReplayAfterSourceCompletion.qaEvidenceRef?.sha256 ===
+        firstChildQaRef.sha256 &&
+      rootReplayAfterSourceCompletion.reconciliationEvidenceRef?.sha256 ===
+        firstChildReconciliationRef.sha256 &&
+      rootReplayAfterSourceCompletion.terminalEvidenceRef?.sha256 ===
+        firstChildTerminalRef.sha256 &&
+      rootReplayAfterSourceCompletion.attemptInternalCostEvidence?.evidenceHash ===
+        firstChildCost.evidenceHash,
+    'root_restart_replay_preserves_immutable_root_evidence_after_source_queue_progress',
+  )
+
+  const sourceCurrentAfterCompletion = await promotionService.loadCurrent({
+    workspaceId,
+    approvedPlanSnapshotId: String(snapshot.snapshotId),
+  })
+  const kindByChildWorkItemId = new Map(
+    sourceCurrentAfterCompletion.postApproval.childJobManifest.jobs.map((job) =>
+      [job.childWorkItemId, job.kind]),
+  )
+  const renderEntry = sourceCompletedQueue.entries.find((entry) =>
+    kindByChildWorkItemId.get(entry.definition.approvedWorkItemId) ===
+      'render_object_mezzanine_chunk')
+  const audioEntry = sourceCompletedQueue.entries.find((entry) =>
+    kindByChildWorkItemId.get(entry.definition.approvedWorkItemId) ===
+      'mix_continuous_program_audio')
+  assert.ok(renderEntry)
+  assert.ok(audioEntry)
+  const queueBeforeMediaClaims = await readPrivateCanonicalPackageWorkQueue({
+    scope: queueScope,
+    definition: promotion.queueDefinition,
+  })
+  assert.ok(queueBeforeMediaClaims)
+  const blockedRenderClaim = await claimPrivateCanonicalPackageWorkQueueJob({
+    scope: queueScope,
+    definition: promotion.queueDefinition,
+    jobId: renderEntry.definition.jobId,
+    workerIdentity: 'source-completion-must-not-authorize-render',
+    workerType: renderEntry.definition.workerType,
+    now: new Date().toISOString(),
+    leaseDurationMs: 60_000,
+  })
+  const blockedAudioClaim = await claimPrivateCanonicalPackageWorkQueueJob({
+    scope: queueScope,
+    definition: promotion.queueDefinition,
+    jobId: audioEntry.definition.jobId,
+    workerIdentity: 'source-completion-must-not-authorize-audio',
+    workerType: audioEntry.definition.workerType,
+    now: new Date().toISOString(),
+    leaseDurationMs: 60_000,
+  })
+  const queueAfterMediaClaims = await readPrivateCanonicalPackageWorkQueue({
+    scope: queueScope,
+    definition: promotion.queueDefinition,
+  })
+  check(
+    blockedRenderClaim.disposition === 'capability_blocked' &&
+      blockedAudioClaim.disposition === 'capability_blocked' &&
+      queueAfterMediaClaims?.aggregateHash === queueBeforeMediaClaims.aggregateHash &&
+      queueAfterMediaClaims.summary.completedJobCount === 2 &&
+      queueAfterMediaClaims.summary.totalDeliveryAttemptCount === 2,
+    'source_completion_does_not_authorize_render_or_audio_claims_or_mutate_queue',
+  )
+
+  const sourceArtifactTamper = structuredClone(sourceArtifact)
+  sourceArtifactTamper.sourceCoverage.sourceRangeCount -= 1
+  const sourceArtifactTamperPayload = {
+    ...sourceArtifactTamper,
+  } as Record<string, unknown>
+  delete sourceArtifactTamperPayload.artifactHash
+  sourceArtifactTamper.artifactHash = sha256AuthorityValue(
+    sourceArtifactTamperPayload,
+  )
+  assert.throws(
+    () => assertProfessionalLongFormSourceAuthorityValidationArtifact({
+      value: sourceArtifactTamper,
+      current: sourceCurrentAfterCompletion,
+      authority: completedSourceAuthority.authority,
+      authorization: completedSourceAuthority.authorization,
+      executionAttempt: sourceAttempt,
+    }),
+    /failed exact replay|coverage counts are inconsistent/i,
+  )
+  const sourceQaTamper = structuredClone(sourceQa)
+  sourceQaTamper.checks.frameExactTimelineCoverage = 'passed'
+  sourceQaTamper.validationArtifactHash = 'f'.repeat(64)
+  const sourceQaTamperPayload = { ...sourceQaTamper } as Record<string, unknown>
+  delete sourceQaTamperPayload.qaHash
+  sourceQaTamper.qaHash = sha256AuthorityValue(sourceQaTamperPayload)
+  assert.throws(
+    () => assertProfessionalLongFormSourceAuthorityQaEvidence({
+      value: sourceQaTamper,
+      authority: completedSourceAuthority.authority,
+      authorization: completedSourceAuthority.authorization,
+      executionAttempt: sourceAttempt,
+      validationArtifact: sourceArtifact,
+      validationArtifactRef: sourceArtifactRef,
+    }),
+    /failed exact replay/i,
+  )
+  const sourceReconciliationTamper = structuredClone(sourceReconciliation)
+  sourceReconciliationTamper.directDownstream[0]!.jobId =
+    'fabricated-direct-downstream-job'
+  sourceReconciliationTamper.summary.directDownstreamHash =
+    sha256AuthorityValue(sourceReconciliationTamper.directDownstream)
+  const sourceReconciliationTamperPayload = {
+    ...sourceReconciliationTamper,
+  } as Record<string, unknown>
+  delete sourceReconciliationTamperPayload.reconciliationHash
+  sourceReconciliationTamper.reconciliationHash = sha256AuthorityValue(
+    sourceReconciliationTamperPayload,
+  )
+  assert.throws(
+    () => assertProfessionalLongFormSourceAuthorityReconciliationEvidence({
+      value: sourceReconciliationTamper,
+      current: sourceCurrentAfterCompletion,
+      authority: completedSourceAuthority.authority,
+      authorization: completedSourceAuthority.authorization,
+      executionAttempt: sourceAttempt,
+      validationArtifactRef: sourceArtifactRef,
+      qaEvidence: sourceQa,
+      qaEvidenceRef: sourceQaRef,
+    }),
+    /failed exact replay/i,
+  )
+  const sourceTerminalTamper = structuredClone(sourceTerminal)
+  sourceTerminalTamper.canonicalResultHash = 'e'.repeat(64)
+  const sourceTerminalTamperPayload = {
+    ...sourceTerminalTamper,
+  } as Record<string, unknown>
+  delete sourceTerminalTamperPayload.terminalHash
+  sourceTerminalTamper.terminalHash = sha256AuthorityValue(
+    sourceTerminalTamperPayload,
+  )
+  assert.throws(
+    () => assertProfessionalLongFormSourceAuthorityTerminalEvidence({
+      value: sourceTerminalTamper,
+      authority: completedSourceAuthority.authority,
+      authorization: completedSourceAuthority.authorization,
+      executionAttempt: sourceAttempt,
+      validationArtifactRef: sourceArtifactRef,
+      qaEvidenceRef: sourceQaRef,
+      reconciliationEvidenceRef: sourceReconciliationRef,
+      canonicalResultHash: sourceTerminal.canonicalResultHash,
+      attemptInternalCostEvidenceHash: sourceCost.evidenceHash,
+    }),
+    /failed exact replay/i,
+  )
+  check(
+    !privateInternalAttemptCostEvidenceSchema.safeParse({
+      ...sourceCost,
+      boundary: 'customer_price_authority',
+    }).success,
+    'source_artifact_qa_reconciliation_terminal_and_cost_tampering_fail_closed',
+  )
+
+  const sourceValidationBlobPath = join(
+    localStorageRoot,
+    'edit-authority',
+    'blobs',
+    'sha256',
+    sourceArtifactRef.sha256.slice(0, 2),
+    `${sourceArtifactRef.sha256}.json`,
+  )
+  const originalSourceValidationBlobRecord = await readFile(
+    sourceValidationBlobPath,
+    'utf8',
+  )
+  const corruptedSourceValidationBlobRecord = JSON.parse(
+    originalSourceValidationBlobRecord,
+  ) as { value: { valid: boolean } }
+  corruptedSourceValidationBlobRecord.value.valid = false
+  await writeFile(
+    sourceValidationBlobPath,
+    `${JSON.stringify(corruptedSourceValidationBlobRecord)}\n`,
+    'utf8',
+  )
+  clearPrivateEditAuthorityProcessStateForSmoke()
+  clearPrivateCanonicalPackageWorkQueueProcessStateForSmoke()
+  await expectApiError(
+    () => createCanonicalProfessionalLongFormSourceAuthorityExecutionService(
+      context,
+    ).authorizeAndExecute({
+      workspaceId,
+      approvedPlanSnapshotId: String(snapshot.snapshotId),
+    }),
+    'VALIDATION_FAILED',
+    'content_addressed_source_validation_artifact_tamper_fails_closed_after_restart',
+  )
+  await writeFile(
+    sourceValidationBlobPath,
+    originalSourceValidationBlobRecord,
+    'utf8',
+  )
+  clearPrivateEditAuthorityProcessStateForSmoke()
+  clearPrivateCanonicalPackageWorkQueueProcessStateForSmoke()
+  const replayAfterSourceValidationBlobRestore =
+    await createCanonicalProfessionalLongFormSourceAuthorityExecutionService(
+      context,
+    ).authorizeAndExecute({
+      workspaceId,
+      approvedPlanSnapshotId: String(snapshot.snapshotId),
+    })
+  check(
+    replayAfterSourceValidationBlobRestore.disposition === 'exact_replay' &&
+      replayAfterSourceValidationBlobRestore.validationArtifactRef?.sha256 ===
+        sourceArtifactRef.sha256 &&
+      replayAfterSourceValidationBlobRestore.attemptInternalCostEvidence
+        ?.evidenceHash === sourceCost.evidenceHash &&
+      replayAfterSourceValidationBlobRestore.queueAggregate.summary
+        .completedJobCount === 2,
+    'restored_exact_source_validation_artifact_replays_without_reexecution',
+  )
+
   await assertNoActivationImports()
 
   const childBlobPath = join(
@@ -1011,7 +1472,7 @@ try {
 
   console.log(JSON.stringify({
     ok: true,
-    schemaVersion: 'canonical-professional-long-form-post-approval-smoke-v3',
+    schemaVersion: 'canonical-professional-long-form-post-approval-smoke-v4',
     checkCount: checks.length,
     checks,
     evidence: {
@@ -1037,9 +1498,22 @@ try {
       rootOneUseInternalDispatchVerified: true,
       rootValidationArtifactQaAndReconciliationVerified: true,
       rootAttemptInternalCostEvidenceVerified: true,
-      rootCompletedChildCount: completedQueue.summary.completedJobCount,
-      remainingBlockedChildCount: completedQueue.summary.queuedJobCount,
-      sourceAuthorityExecutionAuthorized: false,
+      rootSnapshotChildCompleted: completedQueue.summary.completedJobCount === 1,
+      sourceAuthorityChildCompleted:
+        sourceCompletedQueue.summary.completedJobCount === 2,
+      completedChildCount: sourceCompletedQueue.summary.completedJobCount,
+      remainingBlockedChildCount: sourceCompletedQueue.summary.queuedJobCount,
+      sourceAuthorityExecutionAuthorized: true,
+      sourceAuthorityRangeCount:
+        sourceArtifact.sourceCoverage.sourceRangeCount,
+      sourceAuthorityBindingCount:
+        sourceArtifact.sourceCoverage.approvedBindingCount,
+      sourceAuthorityDirectDownstreamCount:
+        sourceReconciliation.summary.directDownstreamCount,
+      sourceAuthorityValidationArtifactByteLength:
+        sourceArtifactRef.byteLength,
+      sourceAuthorityAttemptInternalCostEvidenceVerified: true,
+      sourceAuthorityRunnerReadOrDecodedMedia: false,
       mediaExecutionVerified: false,
       chunkRenderExecutionVerified: false,
       googleCloudDispatchAuthorized: false,
@@ -1591,6 +2065,9 @@ async function assertNoActivationImports(): Promise<void> {
     'server/services/canonical-professional-long-form-publication-authority.ts',
     'server/services/canonical-professional-long-form-post-approval-service.ts',
     'server/services/canonical-professional-long-form-child-package-promotion-service.ts',
+    'server/edit-architecture/professional-long-form-source-authority-execution-contract.ts',
+    'server/edit-architecture/professional-long-form-source-authority-execution.ts',
+    'server/services/canonical-professional-long-form-source-authority-execution-service.ts',
   ].map((path) => readFile(path, 'utf8')))
   check(
     sources.every((source) =>

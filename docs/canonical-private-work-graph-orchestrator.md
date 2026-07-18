@@ -36,14 +36,17 @@ The professional long-form path is an additive specialized queue source. Its
 identity additionally binds the exact persisted seed, bridge, child manifest,
 specialized package, placement manifest, parent service-only controller, and
 blocked child policy. Ordinary queues cannot carry promotion-satisfied parent
-dependencies. A specialized server service now grants exact authority only to
-the dependency-root snapshot-validation entry and completes it through one
-lease, one-use attempt, private artifact, QA, reconciliation, internal cost,
-and replay. The other 254 long-form children remain unclaimable until their own
-exact tool/cost/runner/QA authority is added. See
+dependencies. Specialized server services now grant separate exact authority
+to the dependency-root snapshot-validation entry and then the private
+source-authority entry. Each completes through its own lease, one-use attempt,
+private artifact, QA, reconciliation, internal cost, and replay. The other 253
+long-form children remain unclaimable until their own exact
+tool/cost/runner/QA authority is added. See
 `docs/canonical-professional-long-form-child-package-promotion-2026-07-18.md`
 and
 `docs/canonical-professional-long-form-first-child-execution-2026-07-18.md`.
+The current second-child proof is in
+`docs/canonical-professional-long-form-source-authority-execution-2026-07-18.md`.
 
 The ordinary orchestrator then repeatedly:
 
@@ -241,6 +244,13 @@ Supabase, billing, public delivery, and production promotion remain gated.
   event mutation, while exactly one valid root lifecycle passed and the
   remaining 254 child leases and all long-form media/cloud execution remained
   false
+- `npm run qa:internal-pipeline` — private source-authority execution v21 full
+  run passed 37/37 stages from `2026-07-18T11:38:02.672Z` through
+  `2026-07-18T12:05:41.896Z` in `1,659,224 ms`; the 61-check long-form stage
+  completed the root and source validation children through separate exact
+  authority/lease/attempt/cost/artifact/QA/reconciliation/replay lifecycles,
+  validated all 512 approved ranges, and kept the remaining 253 children plus
+  all long-form media/object/cloud execution false
 
 The measured duration is a local correctness-regression result. It is not a
 real-program editing benchmark, deployed worker-concurrency result, cloud ETA,

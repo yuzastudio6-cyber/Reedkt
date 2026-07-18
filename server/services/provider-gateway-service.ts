@@ -6,6 +6,13 @@ import type { ServiceContext } from '../types'
 import { createMockId, mockWarning, nowIso, throwOnSupabaseError } from './service-helpers'
 import type { ReEditProModelRoleId, ReEditProRequestedModelUse } from '../../src/types'
 import { validateReEditProModelRoleUse } from '../../src/lib/model-role-routing-contract'
+import { findReEditProReasoningModelRoute } from '../../src/lib/reasoning-model-routing-contract'
+import {
+  calculateReasoningModelInternalCost,
+  type ReasoningModelFxSnapshot,
+  type ReasoningModelInternalCostCalculation,
+  type ReasoningModelTokenUsage,
+} from '../reasoning-model-cost'
 
 export interface ProviderWebhookEventSummary {
   provider: string
@@ -55,6 +62,8 @@ export function createProviderGatewayService(context: ServiceContext) {
       toolId?: ProductionToolId
       approvedReservationRemainingCredits?: number
       providerUsage?: ExternalProviderCostInput
+      reasoningModelUsageEstimate?: ReasoningModelTokenUsage
+      reasoningModelFxSnapshot?: ReasoningModelFxSnapshot
       requestPayloadHash: string
       mockOnly?: boolean
     }) {
@@ -79,6 +88,7 @@ export function createProviderGatewayService(context: ServiceContext) {
       const adminClient = context.clients.admin
       if (!adminClient || context.env.mockOnly) {
         const toolCostEstimate = buildProviderToolCostEstimate(input)
+        const reasoningModelInternalCostEstimate = buildReasoningModelInternalCostEstimate(input)
         return {
           providerRequestAttempt: {
             id: createMockId('provider_attempt'),
@@ -106,10 +116,12 @@ export function createProviderGatewayService(context: ServiceContext) {
             mockOnly: true,
           },
           toolCostEstimate,
+          reasoningModelInternalCostEstimate,
+          reasoningModelAttemptCostEvidenceCreated: false as const,
           warnings: [
             mockWarning('Provider gateway attempt'),
             ...modelRoleValidation.warnings,
-            'No OpenAI, Qwen, DeepSeek, Wan, Hailuo, Veo, Lyria, Mirelo, or MMAudio call was made.',
+            'No OpenAI, Kimi, Qwen, DeepSeek, Wan, Hailuo, Veo, Lyria, Mirelo, or MMAudio call was made.',
           ],
         }
       }
@@ -154,6 +166,42 @@ export function createProviderGatewayService(context: ServiceContext) {
       assertProviderWebhookRuntimeDisabled()
     },
   }
+}
+
+function buildReasoningModelInternalCostEstimate(input: {
+  providerRoute: string
+  providerModel?: string
+  modelRoleId?: ReEditProModelRoleId
+  reasoningModelUsageEstimate?: ReasoningModelTokenUsage
+  reasoningModelFxSnapshot?: ReasoningModelFxSnapshot
+}): ReasoningModelInternalCostCalculation | undefined {
+  if (!input.reasoningModelUsageEstimate) return undefined
+  const route = findReEditProReasoningModelRoute({
+    modelRoleId: input.modelRoleId,
+    providerBoundary: input.providerRoute,
+    providerModel: input.providerModel,
+  })
+  if (!route) {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      'Reasoning-model usage was supplied for a non-reasoning provider route.',
+      400,
+    )
+  }
+  const result = calculateReasoningModelInternalCost({
+    routeId: route.routeId,
+    usage: input.reasoningModelUsageEstimate,
+    fxSnapshot: input.reasoningModelFxSnapshot,
+  })
+  if (!result.ok) {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      `Reasoning-model internal cost estimate failed: ${result.error.message}`,
+      400,
+      result.error,
+    )
+  }
+  return result.data
 }
 
 export function buildProviderWebhookEventSummary(input: {

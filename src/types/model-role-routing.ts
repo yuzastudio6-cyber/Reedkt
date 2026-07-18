@@ -1,4 +1,5 @@
 export const REEDITPRO_MODEL_ROLE_IDS = [
+  'kimi_k3_main_edit_agent',
   'qwen_3_7_main_edit_agent',
   'qwen2_5_vl_visual_understanding',
   'deepseek_v4_tool_code_agent',
@@ -8,8 +9,10 @@ export type ReEditProModelRoleId = (typeof REEDITPRO_MODEL_ROLE_IDS)[number]
 
 export type ReEditProModelRole =
   | 'main_edit_reasoning_agent'
+  | 'fallback_edit_reasoning_agent'
   | 'visual_understanding_specialist'
-  | 'tool_code_agent'
+
+export type ReEditProReasoningRouteRole = 'primary' | 'fallback' | 'specialist'
 
 export type ReEditProModelExecutionStatus =
   | 'policy_defined_runtime_disabled'
@@ -18,6 +21,8 @@ export type ReEditProModelExecutionStatus =
 export const REEDITPRO_REQUESTED_MODEL_USES = [
   'user_reasoning',
   'edit_planning',
+  'creative_edit_strategy',
+  'edit_qa_reasoning',
   'visual_understanding',
   'tool_code',
   'remotion_draft',
@@ -32,9 +37,14 @@ export interface ReEditProModelRoleContract {
   aliases: string[]
   canonicalProviderModel: string
   role: ReEditProModelRole
+  reasoningRouteRole: ReEditProReasoningRouteRole
+  reasoningRoutePriority: number | null
+  fallbackOnly: boolean
   executionStatus: ReEditProModelExecutionStatus
   userReasoningAllowed: boolean
   editPlanningAllowed: boolean
+  creativeStrategyAllowed: boolean
+  editQaReasoningAllowed: boolean
   visualUnderstandingAllowed: boolean
   toolCodeAllowed: boolean
   remotionDraftAllowed: boolean

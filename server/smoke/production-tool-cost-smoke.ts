@@ -525,7 +525,7 @@ const qwenPlanningProviderResult = await createProviderGatewayService(context).c
   workspaceId: 'workspace-toolcost-smoke',
   projectId: 'project-toolcost-smoke',
   providerRoute: 'qwen_3_7_provider_boundary',
-  providerModel: 'Qwen 3.7 Max',
+  providerModel: 'qwen3.7-max-2026-06-08',
   requestedModelUse: 'edit_planning',
   approvedPlanSnapshotId: 'approved-toolcost-smoke',
   creditEstimateId: 'estimate-toolcost-smoke',
@@ -534,10 +534,10 @@ const qwenPlanningProviderResult = await createProviderGatewayService(context).c
   mockOnly: true,
 })
 assert.equal(qwenPlanningProviderResult.providerRequestAttempt.modelRoleId, 'qwen_3_7_main_edit_agent')
-assert.equal(qwenPlanningProviderResult.providerRequestAttempt.canonicalProviderModel, 'qwen-3.7-max')
+assert.equal(qwenPlanningProviderResult.providerRequestAttempt.canonicalProviderModel, 'qwen3.7-max-2026-06-08')
 assert.equal(qwenPlanningProviderResult.providerRequestAttempt.modelRoleProviderBoundary, 'qwen_3_7_provider_boundary')
 assert.equal(qwenPlanningProviderResult.providerRequestAttempt.requestedModelUse, 'edit_planning')
-assert.equal(qwenPlanningProviderResult.warnings.some((warning) => warning.includes('No OpenAI, Qwen, DeepSeek')), true)
+assert.equal(qwenPlanningProviderResult.warnings.some((warning) => warning.includes('No OpenAI, Kimi, Qwen, DeepSeek')), true)
 
 await assert.rejects(
   () => createProviderGatewayService(context).createProviderRequestAttempt({
@@ -583,7 +583,7 @@ await assert.rejects(
     projectId: 'project-toolcost-smoke',
     providerRoute: 'deepseek_v4_pro_tool_code_boundary',
     providerModel: 'DeepSeek V4 Pro',
-    requestedModelUse: 'user_reasoning',
+    requestedModelUse: 'visual_understanding',
     approvedPlanSnapshotId: 'approved-toolcost-smoke',
     creditEstimateId: 'estimate-toolcost-smoke',
     creditReservationId: 'reservation-toolcost-smoke',
@@ -593,7 +593,7 @@ await assert.rejects(
   (error) => error instanceof Error &&
     'code' in error &&
     error.code === 'PROVIDER_MODEL_ROLE_FORBIDDEN',
-  'Provider gateway must reject DeepSeek for user-facing reasoning.',
+  'Provider gateway must reject DeepSeek for visual understanding while allowing it only in the ordered reasoning fallback chain.',
 )
 
 const providerGatewayRoleRequestBase: ProviderGatewayRequest = {
@@ -630,12 +630,18 @@ assert.equal(validateProviderGatewayRequest({
   ...providerGatewayRoleRequestBase,
   modelRoleId: 'deepseek_v4_tool_code_agent',
   requestedModelUse: 'user_reasoning',
-}).ok, false)
+}).ok, true)
+assert.equal(validateProviderGatewayRequest({
+  ...providerGatewayRoleRequestBase,
+  modelRoleId: 'kimi_k3_main_edit_agent',
+  requestedModelUse: 'edit_planning',
+  safetyConstraints: { routeRole: 'primary' },
+}).ok, true)
 
 const qwenCloudGatewayRequest: ProviderGatewayRequest = {
   ...providerGatewayRoleRequestBase,
   providerRoute: 'qwen_3_7_provider_boundary',
-  providerModel: 'Qwen 3.7 Max',
+  providerModel: 'qwen3.7-max-2026-06-08',
   modelRoleId: 'qwen_3_7_main_edit_agent',
   requestedModelUse: 'edit_planning',
 }
@@ -681,7 +687,7 @@ const unknownQwenModelResult = validateProviderGatewayRequest({
 })
 assert.equal(unknownQwenModelResult.ok, false)
 assert.equal(
-  unknownQwenModelResult.errors.some((error) => error.includes('canonical provider model qwen-3.7-max')),
+  unknownQwenModelResult.errors.some((error) => error.includes('canonical provider model qwen3.7-max-2026-06-08')),
   true,
 )
 const concreteRouteWithModelRoleResult = validateProviderGatewayRequest({
@@ -696,9 +702,11 @@ assert.equal(
   true,
 )
 assert.equal(PROVIDER_ROUTES.includes('qwen_3_7_provider_boundary'), true)
+assert.equal(PROVIDER_ROUTES.includes('kimi_k3_provider_boundary'), true)
 assert.equal(PROVIDER_ROUTES.includes('qwen2_5_vl_7b_instruct_provider_boundary'), true)
 assert.equal(PROVIDER_ROUTES.includes('deepseek_v4_pro_tool_code_boundary'), true)
 assert.deepEqual([...MODEL_ROLE_PROVIDER_ROUTES], [
+  'kimi_k3_provider_boundary',
   'qwen_3_7_provider_boundary',
   'qwen2_5_vl_7b_instruct_provider_boundary',
   'deepseek_v4_pro_tool_code_boundary',
@@ -803,23 +811,24 @@ const qwenMockGatewayResponse = createMockProviderGatewayClient('qwen_3_7_provid
 assert.equal(qwenMockGatewayResponse.status, 'accepted_mock')
 assert.equal(qwenMockGatewayResponse.generatedAssetDraft, undefined)
 assert.equal(qwenMockGatewayResponse.secretReferenceName, 'reeditpro-prod-qwen-api-key')
-assert.equal(qwenMockGatewayResponse.providerModel, 'Qwen 3.7 Max')
+assert.equal(qwenMockGatewayResponse.providerModel, 'qwen3.7-max-2026-06-08')
 assert.equal(qwenMockGatewayResponse.modelRoleId, 'qwen_3_7_main_edit_agent')
-assert.equal(qwenMockGatewayResponse.canonicalProviderModel, 'qwen-3.7-max')
+assert.equal(qwenMockGatewayResponse.canonicalProviderModel, 'qwen3.7-max-2026-06-08')
 assert.equal(qwenMockGatewayResponse.modelRoleProviderBoundary, 'qwen_3_7_provider_boundary')
 assert.equal(qwenMockGatewayResponse.requestedModelUse, 'edit_planning')
-assert.equal(qwenMockGatewayResponse.usageEstimate.providerModel, 'Qwen 3.7 Max')
+assert.equal(qwenMockGatewayResponse.usageEstimate.providerModel, 'qwen3.7-max-2026-06-08')
 assert.equal(qwenMockGatewayResponse.usageEstimate.modelRoleId, 'qwen_3_7_main_edit_agent')
-assert.equal(qwenMockGatewayResponse.usageEstimate.canonicalProviderModel, 'qwen-3.7-max')
+assert.equal(qwenMockGatewayResponse.usageEstimate.canonicalProviderModel, 'qwen3.7-max-2026-06-08')
 assert.equal(qwenMockGatewayResponse.usageEstimate.modelRoleProviderBoundary, 'qwen_3_7_provider_boundary')
 assert.equal(qwenMockGatewayResponse.usageEstimate.requestedModelUse, 'edit_planning')
 assert.equal(qwenMockGatewayResponse.providerEventPayload.providerRoute, 'qwen_3_7_provider_boundary')
-assert.equal(qwenMockGatewayResponse.providerEventPayload.providerModel, 'Qwen 3.7 Max')
+assert.equal(qwenMockGatewayResponse.providerEventPayload.providerModel, 'qwen3.7-max-2026-06-08')
 assert.equal(qwenMockGatewayResponse.providerEventPayload.modelRoleId, 'qwen_3_7_main_edit_agent')
-assert.equal(qwenMockGatewayResponse.providerEventPayload.canonicalProviderModel, 'qwen-3.7-max')
+assert.equal(qwenMockGatewayResponse.providerEventPayload.canonicalProviderModel, 'qwen3.7-max-2026-06-08')
 assert.equal(qwenMockGatewayResponse.providerEventPayload.modelRoleProviderBoundary, 'qwen_3_7_provider_boundary')
 assert.equal(qwenMockGatewayResponse.providerEventPayload.requestedModelUse, 'edit_planning')
 assert.equal(getProviderSecretReference('qwen2_5_vl_7b_instruct_provider_boundary')?.secretName, 'reeditpro-prod-qwen-api-key')
+assert.equal(getProviderSecretReference('kimi_k3_provider_boundary')?.secretName, 'reeditpro-prod-kimi-api-key')
 assert.equal(getProviderSecretReference('deepseek_v4_pro_tool_code_boundary')?.secretName, 'reeditpro-prod-deepseek-api-key')
 assert.equal(isKnownProviderSecretName('reeditpro-prod-qwen-api-key'), true)
 assert.equal(isKnownProviderSecretName('reeditpro-prod-deepseek-api-key'), true)
@@ -849,8 +858,7 @@ const deepseekDispatchResult = dispatchProviderGatewayRequest({
   modelRoleId: 'deepseek_v4_tool_code_agent',
   requestedModelUse: 'user_reasoning',
 })
-assert.equal(deepseekDispatchResult.ok, false)
-assert.equal(deepseekDispatchResult.errors.some((error) => error.includes('DeepSeek V4 Pro')), true)
+assert.equal(deepseekDispatchResult.ok, true)
 const blockedRealProviderDispatch = dispatchProviderGatewayRequest(qwenCloudGatewayRequest, {
   executionMode: 'real_provider_blocked',
   allowRealProviderCalls: false,

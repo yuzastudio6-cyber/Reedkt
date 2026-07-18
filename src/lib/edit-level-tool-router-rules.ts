@@ -14,12 +14,15 @@ import { createEditLevelQAProfileDefinition } from './edit-level-profile-mappers
 import { getReEditProModelRoleContract } from './model-role-routing-contract'
 import { hideInternalToolNamesInCopy } from './tool-display-labels'
 
-const qwenMainAgentContract = getReEditProModelRoleContract('qwen_3_7_main_edit_agent')
+const kimiPrimaryAgentContract = getReEditProModelRoleContract('kimi_k3_main_edit_agent')
 const qwenVisualContract = getReEditProModelRoleContract('qwen2_5_vl_visual_understanding')
-const deepseekToolCodeContract = getReEditProModelRoleContract('deepseek_v4_tool_code_agent')
+const deepseekFallbackContract = getReEditProModelRoleContract('deepseek_v4_tool_code_agent')
 
 export const EDIT_LEVEL_TOOL_CAPABILITY_DEFINITIONS: EditLevelToolCapabilityDefinition[] = [
-  capability('qwen_3_reasoning', 'Main edit planning', 'reasoning', qwenMainAgentContract.purpose, 'runtime_disabled', [], [qwenMainAgentContract.providerBoundary]),
+  // qwen_3_reasoning is a persisted RP-EDITLEVEL-05 capability ID. Its
+  // implementation now resolves the canonical Kimi-primary route; renaming
+  // stored capability IDs requires a separate compatibility migration.
+  capability('qwen_3_reasoning', 'Main edit planning', 'reasoning', kimiPrimaryAgentContract.purpose, 'runtime_disabled', [], [kimiPrimaryAgentContract.providerBoundary]),
   capability('qwen25vl_visual_understanding', 'Visual understanding', 'visual_understanding', qwenVisualContract.purpose, 'provider_required', [], [qwenVisualContract.providerBoundary]),
   capability('speech_transcript', 'Speech transcript', 'transcript', 'Transcript and speech timing plan for speech-aware edits and captions.', 'worker_required', ['whisper_cpp'], ['faster_whisper', 'whisper_cpp']),
   capability('media_extraction', 'Media extraction', 'media_metadata', 'Metadata, duration, dimensions, keyframes, waveform, and future extraction planning.', 'worker_required', ['ffmpeg', 'sharp'], ['ffmpeg', 'ffprobe', 'pyav', 'pyscenedetect']),
@@ -34,7 +37,7 @@ export const EDIT_LEVEL_TOOL_CAPABILITY_DEFINITIONS: EditLevelToolCapabilityDefi
   capability('source_video_understanding_package', 'Source understanding package', 'visual_understanding', 'Future source package combining metadata, transcript, visual, audio, and marker context.', 'future_gated', ['ffmpeg', 'opencv', 'audioflux'], ['ffmpeg', 'ffprobe', 'faster_whisper', 'opencv', 'audioflux']),
   capability('media_asset_repository', 'Media asset repository', 'storage', 'Mock/local media asset references and future persisted asset catalog.', 'available_mock', [], ['media_asset_repository_boundary']),
   capability('storage_runtime', 'Storage runtime', 'storage', 'Future private storage runtime for source/proxy/generated/render artifacts.', 'storage_required', [], ['supabase_storage_or_gcs_runtime_boundary']),
-  capability('deepseek_tool_code', 'Tool-code support', 'coding', deepseekToolCodeContract.purpose, 'future_gated', [], [deepseekToolCodeContract.providerBoundary]),
+  capability('deepseek_tool_code', 'Final reasoning and coding fallback', 'coding', deepseekFallbackContract.purpose, 'future_gated', [], [deepseekFallbackContract.providerBoundary]),
   capability('render_worker', 'Render worker', 'render', 'Future Remotion/render/export worker path after approval and required assets.', 'future_gated', ['remotion', 'ffmpeg'], ['remotion', 'ffmpeg', 'libass', 'opentimelineio']),
   capability('credit_gate', 'Credit gate', 'credits', 'Estimate-only planning now; future reservation/spend gates after approval.', 'future_gated', [], ['credit_gate_runtime_boundary']),
 ]

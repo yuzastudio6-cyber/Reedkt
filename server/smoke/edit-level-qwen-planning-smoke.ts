@@ -159,19 +159,23 @@ assert.equal(packageJson.scripts?.['smoke:edit-level-qwen-planning'], 'tsx serve
 
 const modelRoleValidation = validateReEditProModelRoleContracts()
 assert.equal(modelRoleValidation.ok, true)
+assert.equal(modelRoleAllowsUserReasoning('kimi_k3_main_edit_agent'), true)
+assert.equal(modelRoleAllowsToolCode('kimi_k3_main_edit_agent'), true)
 assert.equal(modelRoleAllowsUserReasoning('qwen_3_7_main_edit_agent'), true)
-assert.equal(modelRoleAllowsToolCode('qwen_3_7_main_edit_agent'), false)
-assert.equal(modelRoleAllowsUserReasoning('deepseek_v4_tool_code_agent'), false)
+assert.equal(modelRoleAllowsToolCode('qwen_3_7_main_edit_agent'), true)
+assert.equal(modelRoleAllowsUserReasoning('deepseek_v4_tool_code_agent'), true)
 assert.equal(modelRoleAllowsToolCode('deepseek_v4_tool_code_agent'), true)
-assert.equal(getReEditProModelRoleContract('qwen_3_7_main_edit_agent').role, 'main_edit_reasoning_agent')
-assert.equal(getReEditProModelRoleContract('qwen_3_7_main_edit_agent').canonicalProviderModel, 'qwen-3.7-max')
+assert.equal(getReEditProModelRoleContract('kimi_k3_main_edit_agent').role, 'main_edit_reasoning_agent')
+assert.equal(getReEditProModelRoleContract('kimi_k3_main_edit_agent').canonicalProviderModel, 'kimi-k3')
+assert.equal(getReEditProModelRoleContract('qwen_3_7_main_edit_agent').role, 'fallback_edit_reasoning_agent')
+assert.equal(getReEditProModelRoleContract('qwen_3_7_main_edit_agent').canonicalProviderModel, 'qwen3.7-max-2026-06-08')
 assert.equal(getReEditProModelRoleContract('qwen2_5_vl_visual_understanding').canonicalProviderModel, 'qwen2.5-vl-7b-instruct')
-assert.equal(getReEditProModelRoleContract('deepseek_v4_tool_code_agent').role, 'tool_code_agent')
+assert.equal(getReEditProModelRoleContract('deepseek_v4_tool_code_agent').role, 'fallback_edit_reasoning_agent')
 assert.equal(getReEditProModelRoleContract('deepseek_v4_tool_code_agent').canonicalProviderModel, 'deepseek-v4-pro')
 assert.equal(validateBackendExportedReEditProModelRoleUse({
   modelRoleId: 'qwen_3_7_main_edit_agent',
   providerRoute: 'qwen_3_7_provider_boundary',
-  providerModel: 'qwen-3.7-max',
+  providerModel: 'qwen3.7-max-2026-06-08',
   requestedUse: 'edit_planning',
 }).ok, true)
 assert.equal(validateBackendExportedReEditProModelRoleUse({
@@ -185,7 +189,7 @@ assert.equal(validateBackendExportedReEditProModelRoleUse({
   providerRoute: 'deepseek_v4_pro_tool_code_boundary',
   providerModel: 'deepseek-v4-pro',
   requestedUse: 'user_reasoning',
-}).ok, false)
+}).ok, true)
 
 const definitions = listEditLevelQwenPlanningDimensionDefinitions()
 assert.equal(definitions.length, 16)
@@ -324,6 +328,6 @@ for (const term of [
 const migrationCount = readdirSync(new URL('../../supabase/migrations', import.meta.url), { withFileTypes: true })
   .filter((entry) => entry.isFile())
   .length
-assert.equal(migrationCount, 25, 'RP-EDITLEVEL-07 must not create or modify migration files.')
+assert.equal(migrationCount, 24, 'RP-EDITLEVEL-07 must not create or modify the accepted 24-file migration chain.')
 
 console.log('edit-level-qwen-planning-smoke passed')

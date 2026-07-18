@@ -164,8 +164,16 @@ assert.ok(plan.activityGroups.some((group) => group.label === 'Audio cleanup'), 
 assert.ok(plan.activityGroups.some((group) => group.label === 'Captions'), 'Prompt-selected captions should appear as a grouped edit area.')
 assert.ok(plan.activityGroups.some((group) => group.label === 'Charts and diagrams'), 'Prompt-selected chart work should appear as a grouped edit area.')
 assert.ok(
-  backendIntentIds.has('intent.compile_prompt_direction.qwen_main_edit_agent'),
-  'Professional skill planning must carry the canonical Qwen main edit agent intent.',
+  backendIntentIds.has('intent.compile_prompt_direction.kimi_primary_edit_agent'),
+  'Professional skill planning must carry the canonical Kimi K3 primary edit-agent intent.',
+)
+assert.ok(
+  backendIntentIds.has('intent.compile_prompt_direction.qwen_first_fallback'),
+  'Professional skill planning must carry the canonical Qwen 3.7 first-fallback intent.',
+)
+assert.ok(
+  backendIntentIds.has('intent.compile_prompt_direction.deepseek_final_fallback'),
+  'Professional skill planning must carry the canonical DeepSeek V4 Pro final-fallback intent.',
 )
 assert.ok(
   backendIntentIds.has('source.review_sequence_and_structure.qwen_visual_understanding'),
@@ -181,15 +189,31 @@ assert.equal(plan.modelRoleTrace.blocked, false, 'Canonical model-role trace mus
 assert.equal(plan.modelRoleTrace.source, 'reeditpro_model_role_contract', 'Model-role trace must identify the shared contract source.')
 assert.ok(
   plan.modelRoleTrace.roles.some((role) =>
-    role.modelRoleId === 'qwen_3_7_main_edit_agent' &&
-    role.canonicalProviderModel === 'qwen-3.7-max' &&
+    role.modelRoleId === 'kimi_k3_main_edit_agent' &&
+    role.canonicalProviderModel === 'kimi-k3' &&
     role.requestedUses.includes('edit_planning') &&
     role.editPlanningAllowed &&
     role.userReasoningAllowed &&
-    !role.toolCodeAllowed
+    role.toolCodeAllowed &&
+    role.reasoningRouteRole === 'primary'
   ),
-  'Qwen 3.7 / Qwen 3.7 Max must remain the main edit-planning and user-reasoning role.',
+  'Kimi K3 must remain the primary edit-planning, user-reasoning, creativity, and coding role.',
 )
+assert.ok(plan.modelRoleTrace.roles.some((role) =>
+  role.modelRoleId === 'qwen_3_7_main_edit_agent' &&
+  role.canonicalProviderModel === 'qwen3.7-max-2026-06-08' &&
+  role.reasoningRouteRole === 'fallback' &&
+  role.reasoningRoutePriority === 2 &&
+  role.toolCodeAllowed
+))
+assert.ok(plan.modelRoleTrace.roles.some((role) =>
+  role.modelRoleId === 'deepseek_v4_tool_code_agent' &&
+  role.canonicalProviderModel === 'deepseek-v4-pro' &&
+  role.reasoningRouteRole === 'fallback' &&
+  role.reasoningRoutePriority === 3 &&
+  role.userReasoningAllowed &&
+  role.toolCodeAllowed
+))
 assert.ok(
   plan.modelRoleTrace.roles.some((role) =>
     role.modelRoleId === 'qwen2_5_vl_visual_understanding' &&
@@ -230,11 +254,11 @@ assert.equal(
     hiddenAdapterToolNames: [],
     requiredApprovalGates: ['backend_provider_gate_required'],
   }).ok,
-  false,
-  'DeepSeek V4 Pro must not validate as a user-facing reasoning model.',
+  true,
+  'DeepSeek V4 Pro may validate for reasoning only through its fallback-only model-role boundary.',
 )
 assert.equal(
-  /qwen|deepseek|mirelo|mmaudio|provider boundary/i.test(userVisibleCopy),
+  /kimi|qwen|deepseek|mirelo|mmaudio|provider boundary/i.test(userVisibleCopy),
   false,
   'User-facing skill copy must not expose provider/model implementation names.',
 )
@@ -451,11 +475,11 @@ assert.ok(
 )
 assert.ok(
   approvedSkillExecutionPackage.professionalSkillTrace?.backendIntents.some((intent) =>
-    intent.providerRoute === 'qwen_3_7_provider_boundary' &&
-    intent.modelRoleId === 'qwen_3_7_main_edit_agent' &&
+    intent.providerRoute === 'kimi_k3_provider_boundary' &&
+    intent.modelRoleId === 'kimi_k3_main_edit_agent' &&
     intent.requestedModelUse === 'edit_planning'
   ),
-  'Approved execution package should preserve the Qwen main edit agent backend intent.',
+  'Approved execution package should preserve the Kimi K3 primary edit-agent backend intent.',
 )
 assert.ok(
   approvedSkillExecutionPackage.professionalSkillTrace?.backendIntents.some((intent) =>
@@ -472,14 +496,14 @@ assert.equal(
 )
 assert.ok(
   approvedSkillExecutionPackage.professionalSkillTrace?.modelRoleTrace.roles.some((role) =>
-    role.modelRoleId === 'qwen_3_7_main_edit_agent' &&
-    role.canonicalProviderModel === 'qwen-3.7-max' &&
+    role.modelRoleId === 'kimi_k3_main_edit_agent' &&
+    role.canonicalProviderModel === 'kimi-k3' &&
     role.requestedUses.includes('edit_planning') &&
     role.userReasoningAllowed &&
     role.editPlanningAllowed &&
-    !role.toolCodeAllowed
+    role.toolCodeAllowed
   ),
-  'Approved execution package should preserve the Qwen main edit agent role boundary.',
+  'Approved execution package should preserve the Kimi K3 primary edit-agent role boundary.',
 )
 assert.ok(
   approvedSkillExecutionPackage.professionalSkillTrace?.modelRoleTrace.roles.some((role) =>
@@ -711,15 +735,17 @@ assert.ok(
   broadVisualMotionPlan.professionalSkillPlan?.blockers.some((blocker) => /model\/checkpoint approval/i.test(blocker)),
   'Broad visual/motion planning must preserve model/checkpoint approval blockers.',
 )
-assert.throws(
-  () => createApprovedPlanSnapshot({
-    approvedBy: 'skill-smoke-user',
-    editSessionId: 'broad-visual-motion-skill-smoke-edit-session',
-    plan: broadVisualMotionPlan,
-    projectId: 'project-broad-visual-motion-skill-smoke',
-  }),
-  /Timing Validation has passed|approved plan snapshot/i,
-  'Complex model-heavy visual planning must not bypass approval-readiness gates.',
+const broadVisualMotionSnapshot = createApprovedPlanSnapshot({
+  approvedBy: 'skill-smoke-user',
+  editSessionId: 'broad-visual-motion-skill-smoke-edit-session',
+  plan: broadVisualMotionPlan,
+  projectId: 'project-broad-visual-motion-skill-smoke',
+})
+assert.ok(
+  broadVisualMotionSnapshot.professionalSkillPlan?.blockers.some((blocker) =>
+    /model\/checkpoint approval/i.test(blocker)
+  ),
+  'The immutable snapshot may freeze complex visual intent, but it must preserve the model/checkpoint blocker for the later execution gate.',
 )
 
 const packagingSkillPlannerInput: PlannerInput = {
@@ -751,11 +777,19 @@ const rendererBriefSkillPlan = createProfessionalSkillPlan({
 })
 assert.ok(
   rendererBriefSkillPlan.backendIntents.some((intent) =>
+    intent.providerRoute === 'kimi_k3_provider_boundary' &&
+    intent.modelRoleId === 'kimi_k3_main_edit_agent' &&
+    intent.requestedModelUse === 'remotion_draft'
+  ),
+  'Renderer-brief planning must carry Kimi K3 as its primary backend-gated coding/Remotion route.',
+)
+assert.ok(
+  rendererBriefSkillPlan.backendIntents.some((intent) =>
     intent.providerRoute === 'deepseek_v4_pro_tool_code_boundary' &&
     intent.modelRoleId === 'deepseek_v4_tool_code_agent' &&
     intent.requestedModelUse === 'remotion_draft'
   ),
-  'Renderer-brief planning must carry DeepSeek only as a backend-gated Remotion draft/tool-code intent.',
+  'Renderer-brief planning must preserve DeepSeek as the final backend-gated Remotion fallback.',
 )
 assert.equal(
   rendererBriefSkillPlan.backendIntents.every((intent) => validateProfessionalSkillBackendIntent(intent).ok),

@@ -1,6 +1,9 @@
 import type { ID, JSONObject, JSONValue } from '../../types/shared'
 import type { ReEditProModelRoleId, ReEditProRequestedModelUse } from '../../types/model-role-routing'
-import { validateReEditProModelRoleUse } from '../../lib/model-role-routing-contract'
+import {
+  getReEditProModelRoleContract,
+  validateReEditProModelRoleUse,
+} from '../../lib/model-role-routing-contract'
 import {
   cloudValidationResult,
   hasNonEmptyString,
@@ -13,6 +16,7 @@ export const PROVIDER_ROUTES = [
   'wan',
   'hailuo',
   'veo',
+  'kimi_k3_provider_boundary',
   'qwen_3_7_provider_boundary',
   'qwen2_5_vl_7b_instruct_provider_boundary',
   'deepseek_v4_pro_tool_code_boundary',
@@ -27,6 +31,7 @@ export const PROVIDER_ROUTES = [
 export type ProviderRoute = (typeof PROVIDER_ROUTES)[number]
 
 export const MODEL_ROLE_PROVIDER_ROUTES = [
+  'kimi_k3_provider_boundary',
   'qwen_3_7_provider_boundary',
   'qwen2_5_vl_7b_instruct_provider_boundary',
   'deepseek_v4_pro_tool_code_boundary',
@@ -137,9 +142,10 @@ export const PROVIDER_GATEWAY_POLICY: string[] = [
   'Wan is primary animation route.',
   'Hailuo is normal fallback/alternate.',
   'GPT-Image-2 is still/keyframe/card route.',
-  'Qwen 3.7 is the main edit reasoning/planning route.',
+  'Kimi K3 is the primary edit reasoning, planning, creativity, and coding route.',
+  'Qwen 3.7 is the first edit reasoning fallback.',
   'Qwen2.5-VL is visual-understanding only.',
-  'DeepSeek V4 Pro is tool-code/Remotion-draft support only.',
+  'DeepSeek V4 Pro is the final bounded edit reasoning/coding fallback.',
   'Mirelo SFX V1.5 and MMAudio V2 are generated audio/SFX routes.',
   'Remotion/SVG/Lottie are deterministic/compositor routes.',
 ]
@@ -228,6 +234,16 @@ export function validateProviderGatewayRequest(request: ProviderGatewayRequest):
   })
   errors.push(...modelRoleValidation.errors)
   warnings.push(...modelRoleValidation.warnings)
+
+  if (modelRoleValidation.resolvedModelRoleId) {
+    const role = getReEditProModelRoleContract(modelRoleValidation.resolvedModelRoleId)
+    if (role.reasoningRouteRole === 'primary' && request.safetyConstraints.routeRole !== 'primary') {
+      errors.push(`${role.displayName} must be invoked as the primary reasoning route.`)
+    }
+    if (role.fallbackOnly && request.safetyConstraints.routeRole !== 'fallback') {
+      errors.push(`${role.displayName} is fallback-only and requires explicit fallback route authority.`)
+    }
+  }
 
   if ((request.modelTier === 'basic' || request.modelTier === 'pro') && request.providerRoute === 'veo') {
     errors.push('Basic and Pro requests must never route to Veo.')

@@ -9,6 +9,7 @@ import {
   type ReEditProModelRoleId,
   type ReEditProRequestedModelUse,
 } from '../types/model-role-routing'
+import type { ProfessionalSkillModelRoleTrace } from '../types/professional-skills'
 
 export type PrivateEditDecisionManifestVerification = {
   manifestVersion: 'private-internal-edit-decision-manifest-v1'
@@ -76,8 +77,13 @@ export type PrivateEditDecisionManifestVerification = {
           canonicalProviderModel: string
           requestedUses: string[]
           intentIds: string[]
+          reasoningRouteRole: 'primary' | 'fallback' | 'specialist'
+          reasoningRoutePriority: number | null
+          fallbackOnly: boolean
           userReasoningAllowed: boolean
           editPlanningAllowed: boolean
+          creativeStrategyAllowed: boolean
+          editQaReasoningAllowed: boolean
           visualUnderstandingAllowed: boolean
           toolCodeAllowed: boolean
           remotionDraftAllowed: boolean
@@ -575,8 +581,13 @@ function parseProfessionalSkillModelRoleTrace(
             typeof roleRecord.modelRoleId !== 'string' ||
             typeof roleRecord.providerBoundary !== 'string' ||
             typeof roleRecord.canonicalProviderModel !== 'string' ||
+            !isReasoningRouteRole(roleRecord.reasoningRouteRole) ||
+            !isReasoningRoutePriority(roleRecord.reasoningRoutePriority) ||
+            typeof roleRecord.fallbackOnly !== 'boolean' ||
             typeof roleRecord.userReasoningAllowed !== 'boolean' ||
             typeof roleRecord.editPlanningAllowed !== 'boolean' ||
+            typeof roleRecord.creativeStrategyAllowed !== 'boolean' ||
+            typeof roleRecord.editQaReasoningAllowed !== 'boolean' ||
             typeof roleRecord.visualUnderstandingAllowed !== 'boolean' ||
             typeof roleRecord.toolCodeAllowed !== 'boolean' ||
             typeof roleRecord.remotionDraftAllowed !== 'boolean'
@@ -590,8 +601,13 @@ function parseProfessionalSkillModelRoleTrace(
             canonicalProviderModel: roleRecord.canonicalProviderModel,
             requestedUses: parseStringArray(roleRecord.requestedUses),
             intentIds: parseStringArray(roleRecord.intentIds),
+            reasoningRouteRole: roleRecord.reasoningRouteRole,
+            reasoningRoutePriority: roleRecord.reasoningRoutePriority,
+            fallbackOnly: roleRecord.fallbackOnly,
             userReasoningAllowed: roleRecord.userReasoningAllowed,
             editPlanningAllowed: roleRecord.editPlanningAllowed,
+            creativeStrategyAllowed: roleRecord.creativeStrategyAllowed,
+            editQaReasoningAllowed: roleRecord.editQaReasoningAllowed,
             visualUnderstandingAllowed: roleRecord.visualUnderstandingAllowed,
             toolCodeAllowed: roleRecord.toolCodeAllowed,
             remotionDraftAllowed: roleRecord.remotionDraftAllowed,
@@ -604,7 +620,10 @@ function parseProfessionalSkillModelRoleTrace(
 }
 
 function validateApprovedEditModelRoleTrace(
-  trace: NonNullable<PrivateEditDecisionManifestVerification['approvedEditContext']['professionalSkillTrace']>['modelRoleTrace'],
+  trace:
+    | NonNullable<PrivateEditDecisionManifestVerification['approvedEditContext']['professionalSkillTrace']>['modelRoleTrace']
+    | ProfessionalSkillModelRoleTrace
+    | undefined,
 ): { ok: true } | { ok: false; message: string } {
   if (!trace || trace.source !== 'reeditpro_model_role_contract') {
     return { ok: false, message: 'Private edit manifest approved edit context is missing model-role trace evidence.' }
@@ -615,18 +634,44 @@ function validateApprovedEditModelRoleTrace(
   }
 
   const roles = trace.roles ?? []
-  const qwenMainRole = roles.find((role) => role.modelRoleId === 'qwen_3_7_main_edit_agent')
+  const kimiPrimaryRole = roles.find((role) => role.modelRoleId === 'kimi_k3_main_edit_agent')
   if (
-    !qwenMainRole ||
-    !qwenMainRole.requestedUses.includes('edit_planning') ||
-    qwenMainRole.providerBoundary !== 'qwen_3_7_provider_boundary' ||
-    qwenMainRole.canonicalProviderModel !== 'qwen-3.7-max' ||
-    qwenMainRole.userReasoningAllowed !== true ||
-    qwenMainRole.editPlanningAllowed !== true ||
-    qwenMainRole.visualUnderstandingAllowed !== false ||
-    qwenMainRole.toolCodeAllowed !== false
+    !kimiPrimaryRole ||
+    !kimiPrimaryRole.requestedUses.includes('edit_planning') ||
+    kimiPrimaryRole.providerBoundary !== 'kimi_k3_provider_boundary' ||
+    kimiPrimaryRole.canonicalProviderModel !== 'kimi-k3' ||
+    kimiPrimaryRole.reasoningRouteRole !== 'primary' ||
+    kimiPrimaryRole.reasoningRoutePriority !== 1 ||
+    kimiPrimaryRole.fallbackOnly !== false ||
+    kimiPrimaryRole.userReasoningAllowed !== true ||
+    kimiPrimaryRole.editPlanningAllowed !== true ||
+    kimiPrimaryRole.creativeStrategyAllowed !== true ||
+    kimiPrimaryRole.editQaReasoningAllowed !== true ||
+    kimiPrimaryRole.visualUnderstandingAllowed !== false ||
+    kimiPrimaryRole.toolCodeAllowed !== true ||
+    kimiPrimaryRole.remotionDraftAllowed !== true
   ) {
-    return { ok: false, message: 'Private edit manifest model-role trace does not preserve Qwen 3.7 as the main edit planning role.' }
+    return { ok: false, message: 'Private edit manifest model-role trace does not preserve Kimi K3 as the primary edit reasoning/planning/coding role.' }
+  }
+
+  const qwenFallbackRole = roles.find((role) => role.modelRoleId === 'qwen_3_7_main_edit_agent')
+  if (
+    !qwenFallbackRole ||
+    !qwenFallbackRole.requestedUses.includes('edit_planning') ||
+    qwenFallbackRole.providerBoundary !== 'qwen_3_7_provider_boundary' ||
+    qwenFallbackRole.canonicalProviderModel !== 'qwen3.7-max-2026-06-08' ||
+    qwenFallbackRole.reasoningRouteRole !== 'fallback' ||
+    qwenFallbackRole.reasoningRoutePriority !== 2 ||
+    qwenFallbackRole.fallbackOnly !== true ||
+    qwenFallbackRole.userReasoningAllowed !== true ||
+    qwenFallbackRole.editPlanningAllowed !== true ||
+    qwenFallbackRole.creativeStrategyAllowed !== true ||
+    qwenFallbackRole.editQaReasoningAllowed !== true ||
+    qwenFallbackRole.visualUnderstandingAllowed !== false ||
+    qwenFallbackRole.toolCodeAllowed !== true ||
+    qwenFallbackRole.remotionDraftAllowed !== true
+  ) {
+    return { ok: false, message: 'Private edit manifest model-role trace does not preserve Qwen 3.7 as the first full-capability fallback.' }
   }
 
   const visualRole = roles.find((role) => role.modelRoleId === 'qwen2_5_vl_visual_understanding')
@@ -635,30 +680,48 @@ function validateApprovedEditModelRoleTrace(
     !visualRole.requestedUses.includes('visual_understanding') ||
     visualRole.providerBoundary !== 'qwen2_5_vl_7b_instruct_provider_boundary' ||
     visualRole.canonicalProviderModel !== 'qwen2.5-vl-7b-instruct' ||
+    visualRole.reasoningRouteRole !== 'specialist' ||
+    visualRole.reasoningRoutePriority !== null ||
+    visualRole.fallbackOnly !== false ||
     visualRole.userReasoningAllowed !== false ||
     visualRole.editPlanningAllowed !== false ||
+    visualRole.creativeStrategyAllowed !== false ||
+    visualRole.editQaReasoningAllowed !== false ||
     visualRole.visualUnderstandingAllowed !== true ||
     visualRole.toolCodeAllowed !== false
   ) {
     return { ok: false, message: 'Private edit manifest model-role trace does not preserve Qwen2.5-VL as visual-understanding only.' }
   }
 
-  const invalidDeepSeekRole = roles.find((role) =>
-    role.modelRoleId === 'deepseek_v4_tool_code_agent' &&
-    (
-      role.userReasoningAllowed !== false ||
-      role.editPlanningAllowed !== false ||
-      role.canonicalProviderModel !== 'deepseek-v4-pro' ||
-      role.toolCodeAllowed !== true ||
-      role.remotionDraftAllowed !== true ||
-      role.requestedUses.some((use) => use === 'user_reasoning' || use === 'edit_planning' || use === 'visual_understanding')
-    )
-  )
-  if (invalidDeepSeekRole) {
-    return { ok: false, message: 'Private edit manifest model-role trace uses DeepSeek outside tool-code or Remotion draft scope.' }
+  const deepSeekFallbackRole = roles.find((role) => role.modelRoleId === 'deepseek_v4_tool_code_agent')
+  if (
+    !deepSeekFallbackRole ||
+    !deepSeekFallbackRole.requestedUses.includes('edit_planning') ||
+    deepSeekFallbackRole.providerBoundary !== 'deepseek_v4_pro_tool_code_boundary' ||
+    deepSeekFallbackRole.canonicalProviderModel !== 'deepseek-v4-pro' ||
+    deepSeekFallbackRole.reasoningRouteRole !== 'fallback' ||
+    deepSeekFallbackRole.reasoningRoutePriority !== 3 ||
+    deepSeekFallbackRole.fallbackOnly !== true ||
+    deepSeekFallbackRole.userReasoningAllowed !== true ||
+    deepSeekFallbackRole.editPlanningAllowed !== true ||
+    deepSeekFallbackRole.creativeStrategyAllowed !== true ||
+    deepSeekFallbackRole.editQaReasoningAllowed !== true ||
+    deepSeekFallbackRole.visualUnderstandingAllowed !== false ||
+    deepSeekFallbackRole.toolCodeAllowed !== true ||
+    deepSeekFallbackRole.remotionDraftAllowed !== true
+  ) {
+    return { ok: false, message: 'Private edit manifest model-role trace does not preserve DeepSeek V4 Pro as the final full-capability fallback.' }
   }
 
   return { ok: true }
+}
+
+function isReasoningRouteRole(value: unknown): value is 'primary' | 'fallback' | 'specialist' {
+  return value === 'primary' || value === 'fallback' || value === 'specialist'
+}
+
+function isReasoningRoutePriority(value: unknown): value is number | null {
+  return value === null || (typeof value === 'number' && Number.isInteger(value) && value > 0)
 }
 
 function validateApprovedEditModelRoleBackendIntents(

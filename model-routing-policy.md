@@ -2,13 +2,36 @@
 
 ## Edit Agent Model Roles
 
-ReEditPro separates user-facing edit reasoning, source/video understanding, and technical implementation support. These are model-role boundaries, not permission to call providers from the frontend.
+ReEditPro separates editorial reasoning from source/video understanding. These are backend model-role boundaries, not permission to call providers from the frontend.
 
-- Main edit planning and user-intent reasoning: Qwen 3.7 Max through `qwen_3_7_main_edit_agent`.
-- Source/video visual understanding: Qwen2.5-VL through `qwen2_5_vl_visual_understanding`.
-- Coding, adapter, tool-code, and Remotion draft support: DeepSeek V4 Pro through `deepseek_v4_tool_code_agent`.
+The canonical reasoning route is ordered and may not be skipped:
 
-Qwen 3.7 Max is the only main edit-planning/user-reasoning role. Qwen2.5-VL must not create the canonical edit plan by itself. DeepSeek V4 Pro must not reason with the user or replace the main edit planner. All three roles remain backend/provider-gated and mock-disabled until the approved backend gates exist.
+1. Kimi K3 through `kimi_k3_main_edit_agent` is the primary route for user-intent reasoning, edit planning, creative edit strategy, edit-QA reasoning, tool code, and Remotion drafts.
+2. Qwen 3.7 through the retained compatibility identifier `qwen_3_7_main_edit_agent` is the first full-capability fallback. The identifier is persisted compatibility metadata; it no longer means Qwen is the default route.
+3. DeepSeek V4 Pro through the retained compatibility identifier `deepseek_v4_tool_code_agent` is the final full-capability fallback. It may perform reasoning or coding only after the two earlier routes have reached an allowed terminal failure.
+
+Qwen2.5-VL through `qwen2_5_vl_visual_understanding` remains a separate visual-understanding specialist. It produces source-bound, timestamped visual evidence for the reasoning route. It must not create canonical edit authority independently, and Kimi/Qwen/DeepSeek must not claim that they inspected video when no visual-specialist evidence exists.
+
+Fallback is permitted only for a classified provider availability/rate-limit/timeout/transient error, malformed structured output, or deterministic quality-validation failure. Missing approval, reservation, immutable snapshot, tenant authority, safety authority, or a valid request blocks the operation instead of selecting another model. The final DeepSeek failure requires deterministic recovery or user review.
+
+All four roles remain backend/provider-gated. This policy does not activate a provider, read a secret, dispatch a worker, or make a model call.
+
+## Visual Specialist Runtime Boundary
+
+For production, "ReEditPro-hosted" means Qwen2.5-VL runs on private ReEditPro Google Cloud GPU workers. It does not run in the customer's browser or on the customer's computer. "Development-only proof" means workstation/container evidence and must never be presented as deployed Google Cloud proof.
+
+The intended visual path preserves the immutable original media for editing/export, creates bounded analysis proxies for whole-source coverage, increases sampling around ambiguous or important windows, and uses targeted original-resolution crops for fine text, products, faces, or color detail. Evidence must be cached by immutable source checksum, exact model/checkpoint, and sampling-policy version. Quality gates decide whether denser inspection is required; cost optimization must not remove required coverage.
+
+An external visual API may be introduced only as a separately approved overflow or recovery route after quality, privacy, cost, and operational evidence exists. It is not silently interchangeable with the private Google Cloud worker.
+
+## Reasoning Cost Boundary
+
+Every attempted reasoning route, including a failed attempt that triggers fallback, must retain provisional internal provider-cost evidence bound to the exact approved snapshot, reservation, idempotency key, request hash, response-usage hash, route ordinal, outcome, and rate-card version.
+
+- Kimi and DeepSeek rates are recorded in their native USD pricing boundary.
+- Qwen rates are recorded in native CNY. USD normalization requires an immutable, sourced FX snapshot; ReEditPro must not guess an exchange rate.
+- Qwen2.5-VL on ReEditPro-hosted Google Cloud is infrastructure cost: GPU/CPU runtime, storage, and networking. It is not assigned a provider-token price without an approved external-provider route.
+- Internal production cost is separate from customer price, customer credits, wallet mutation, and the ReEditPro service fee.
 
 ## Launch Router
 

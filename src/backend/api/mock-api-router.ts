@@ -1290,13 +1290,20 @@ function createMockProfessionalSkillModelRoleTrace(skillPlan: Record<string, unk
           const modelRoleId = sanitizeMockSkillTraceIdentifier(role.modelRoleId)
           const providerBoundary = sanitizeMockSkillTraceIdentifier(role.providerBoundary)
           const canonicalProviderModel = sanitizeMockSkillTraceIdentifier(role.canonicalProviderModel)
+          const reasoningRouteRole = mockReasoningRouteRole(role.reasoningRouteRole)
+          const reasoningRoutePriority = mockReasoningRoutePriority(role.reasoningRoutePriority)
 
           if (
             !modelRoleId ||
             !providerBoundary ||
             !canonicalProviderModel ||
+            !reasoningRouteRole ||
+            reasoningRoutePriority === undefined ||
+            typeof role.fallbackOnly !== 'boolean' ||
             typeof role.userReasoningAllowed !== 'boolean' ||
             typeof role.editPlanningAllowed !== 'boolean' ||
+            typeof role.creativeStrategyAllowed !== 'boolean' ||
+            typeof role.editQaReasoningAllowed !== 'boolean' ||
             typeof role.visualUnderstandingAllowed !== 'boolean' ||
             typeof role.toolCodeAllowed !== 'boolean' ||
             typeof role.remotionDraftAllowed !== 'boolean'
@@ -1310,8 +1317,13 @@ function createMockProfessionalSkillModelRoleTrace(skillPlan: Record<string, unk
             canonicalProviderModel,
             requestedUses: uniqueMockSkillTraceIdentifiers(role.requestedUses),
             intentIds: uniqueMockSkillTraceIdentifiers(role.intentIds),
+            reasoningRouteRole,
+            reasoningRoutePriority,
+            fallbackOnly: role.fallbackOnly,
             userReasoningAllowed: role.userReasoningAllowed,
             editPlanningAllowed: role.editPlanningAllowed,
+            creativeStrategyAllowed: role.creativeStrategyAllowed,
+            editQaReasoningAllowed: role.editQaReasoningAllowed,
             visualUnderstandingAllowed: role.visualUnderstandingAllowed,
             toolCodeAllowed: role.toolCodeAllowed,
             remotionDraftAllowed: role.remotionDraftAllowed,
@@ -1336,16 +1348,42 @@ function mockProfessionalSkillModelRoleTraceIsPackageReady(
     return false
   }
 
-  const qwenMainRole = trace.roles.find((role) => role.modelRoleId === 'qwen_3_7_main_edit_agent')
+  const kimiPrimaryRole = trace.roles.find((role) => role.modelRoleId === 'kimi_k3_main_edit_agent')
   if (
-    !qwenMainRole ||
-    qwenMainRole.providerBoundary !== 'qwen_3_7_provider_boundary' ||
-    qwenMainRole.canonicalProviderModel !== 'qwen-3.7-max' ||
-    !qwenMainRole.requestedUses.includes('edit_planning') ||
-    qwenMainRole.userReasoningAllowed !== true ||
-    qwenMainRole.editPlanningAllowed !== true ||
-    qwenMainRole.visualUnderstandingAllowed !== false ||
-    qwenMainRole.toolCodeAllowed !== false
+    !kimiPrimaryRole ||
+    kimiPrimaryRole.providerBoundary !== 'kimi_k3_provider_boundary' ||
+    kimiPrimaryRole.canonicalProviderModel !== 'kimi-k3' ||
+    !kimiPrimaryRole.requestedUses.includes('edit_planning') ||
+    kimiPrimaryRole.reasoningRouteRole !== 'primary' ||
+    kimiPrimaryRole.reasoningRoutePriority !== 1 ||
+    kimiPrimaryRole.fallbackOnly !== false ||
+    kimiPrimaryRole.userReasoningAllowed !== true ||
+    kimiPrimaryRole.editPlanningAllowed !== true ||
+    kimiPrimaryRole.creativeStrategyAllowed !== true ||
+    kimiPrimaryRole.editQaReasoningAllowed !== true ||
+    kimiPrimaryRole.visualUnderstandingAllowed !== false ||
+    kimiPrimaryRole.toolCodeAllowed !== true ||
+    kimiPrimaryRole.remotionDraftAllowed !== true
+  ) {
+    return false
+  }
+
+  const qwenFallbackRole = trace.roles.find((role) => role.modelRoleId === 'qwen_3_7_main_edit_agent')
+  if (
+    !qwenFallbackRole ||
+    qwenFallbackRole.providerBoundary !== 'qwen_3_7_provider_boundary' ||
+    qwenFallbackRole.canonicalProviderModel !== 'qwen3.7-max-2026-06-08' ||
+    !qwenFallbackRole.requestedUses.includes('edit_planning') ||
+    qwenFallbackRole.reasoningRouteRole !== 'fallback' ||
+    qwenFallbackRole.reasoningRoutePriority !== 2 ||
+    qwenFallbackRole.fallbackOnly !== true ||
+    qwenFallbackRole.userReasoningAllowed !== true ||
+    qwenFallbackRole.editPlanningAllowed !== true ||
+    qwenFallbackRole.creativeStrategyAllowed !== true ||
+    qwenFallbackRole.editQaReasoningAllowed !== true ||
+    qwenFallbackRole.visualUnderstandingAllowed !== false ||
+    qwenFallbackRole.toolCodeAllowed !== true ||
+    qwenFallbackRole.remotionDraftAllowed !== true
   ) {
     return false
   }
@@ -1356,29 +1394,49 @@ function mockProfessionalSkillModelRoleTraceIsPackageReady(
     visualRole.providerBoundary !== 'qwen2_5_vl_7b_instruct_provider_boundary' ||
     visualRole.canonicalProviderModel !== 'qwen2.5-vl-7b-instruct' ||
     !visualRole.requestedUses.includes('visual_understanding') ||
+    visualRole.reasoningRouteRole !== 'specialist' ||
+    visualRole.reasoningRoutePriority !== null ||
+    visualRole.fallbackOnly !== false ||
     visualRole.userReasoningAllowed !== false ||
     visualRole.editPlanningAllowed !== false ||
+    visualRole.creativeStrategyAllowed !== false ||
+    visualRole.editQaReasoningAllowed !== false ||
     visualRole.visualUnderstandingAllowed !== true ||
     visualRole.toolCodeAllowed !== false
   ) {
     return false
   }
 
-  const invalidDeepSeekRole = trace.roles.find((role) =>
-    role.modelRoleId === 'deepseek_v4_tool_code_agent' &&
-    (
-      role.providerBoundary !== 'deepseek_v4_pro_tool_code_boundary' ||
-      role.canonicalProviderModel !== 'deepseek-v4-pro' ||
-      role.userReasoningAllowed !== false ||
-      role.editPlanningAllowed !== false ||
-      role.visualUnderstandingAllowed !== false ||
-      role.toolCodeAllowed !== true ||
-      role.remotionDraftAllowed !== true ||
-      role.requestedUses.some((use) => use === 'user_reasoning' || use === 'edit_planning' || use === 'visual_understanding')
-    )
+  const deepSeekFallbackRole = trace.roles.find((role) => role.modelRoleId === 'deepseek_v4_tool_code_agent')
+  return Boolean(
+    deepSeekFallbackRole &&
+    deepSeekFallbackRole.providerBoundary === 'deepseek_v4_pro_tool_code_boundary' &&
+    deepSeekFallbackRole.canonicalProviderModel === 'deepseek-v4-pro' &&
+    deepSeekFallbackRole.requestedUses.includes('edit_planning') &&
+    deepSeekFallbackRole.reasoningRouteRole === 'fallback' &&
+    deepSeekFallbackRole.reasoningRoutePriority === 3 &&
+    deepSeekFallbackRole.fallbackOnly === true &&
+    deepSeekFallbackRole.userReasoningAllowed === true &&
+    deepSeekFallbackRole.editPlanningAllowed === true &&
+    deepSeekFallbackRole.creativeStrategyAllowed === true &&
+    deepSeekFallbackRole.editQaReasoningAllowed === true &&
+    deepSeekFallbackRole.visualUnderstandingAllowed === false &&
+    deepSeekFallbackRole.toolCodeAllowed === true &&
+    deepSeekFallbackRole.remotionDraftAllowed === true
   )
+}
 
-  return !invalidDeepSeekRole
+function mockReasoningRouteRole(value: unknown): 'primary' | 'fallback' | 'specialist' | undefined {
+  return value === 'primary' || value === 'fallback' || value === 'specialist'
+    ? value
+    : undefined
+}
+
+function mockReasoningRoutePriority(value: unknown): number | null | undefined {
+  if (value === null) return null
+  return typeof value === 'number' && Number.isInteger(value) && value > 0
+    ? value
+    : undefined
 }
 
 function createMockApprovedPackageBackendIntentTrace(value: unknown): Array<{

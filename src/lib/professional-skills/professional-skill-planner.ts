@@ -157,7 +157,10 @@ export function validateProfessionalSkillBackendIntent(intent: ProfessionalSkill
       outputAssetType: intent.outputAssetType ?? 'none',
     },
     safetyConstraints: {
-      routeRole: 'fallback',
+      routeRole: intent.modelRoleId &&
+        getReEditProModelRoleContract(intent.modelRoleId).reasoningRouteRole === 'primary'
+        ? 'primary'
+        : 'fallback',
     },
     idempotencyKey: `${intent.intentId}.idempotency`,
     metadata: {
@@ -190,8 +193,16 @@ function createModelRoleTrace(backendIntents: ProfessionalSkillBackendIntent[]):
     roleIntentMap.set(intent.modelRoleId, [...(roleIntentMap.get(intent.modelRoleId) ?? []), intent])
   }
 
+  if (!roleIntentMap.has('kimi_k3_main_edit_agent')) {
+    errors.push('Professional skill planning must carry the Kimi K3 primary edit-agent role intent.')
+  }
+
   if (!roleIntentMap.has('qwen_3_7_main_edit_agent')) {
-    errors.push('Professional skill planning must carry the Qwen 3.7 main edit agent role intent.')
+    errors.push('Professional skill planning must carry the Qwen 3.7 first-fallback role intent.')
+  }
+
+  if (!roleIntentMap.has('deepseek_v4_tool_code_agent')) {
+    errors.push('Professional skill planning must carry the DeepSeek V4 Pro final-fallback role intent.')
   }
 
   if (!roleIntentMap.has('qwen2_5_vl_visual_understanding')) {
@@ -212,8 +223,13 @@ function createModelRoleTrace(backendIntents: ProfessionalSkillBackendIntent[]):
       canonicalProviderModel: contract.canonicalProviderModel,
       requestedUses,
       intentIds: unique(intents.map((intent) => intent.intentId)),
+      reasoningRouteRole: contract.reasoningRouteRole,
+      reasoningRoutePriority: contract.reasoningRoutePriority,
+      fallbackOnly: contract.fallbackOnly,
       userReasoningAllowed: contract.userReasoningAllowed,
       editPlanningAllowed: contract.editPlanningAllowed,
+      creativeStrategyAllowed: contract.creativeStrategyAllowed,
+      editQaReasoningAllowed: contract.editQaReasoningAllowed,
       visualUnderstandingAllowed: contract.visualUnderstandingAllowed,
       toolCodeAllowed: contract.toolCodeAllowed,
       remotionDraftAllowed: contract.remotionDraftAllowed,

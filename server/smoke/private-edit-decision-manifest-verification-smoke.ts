@@ -120,15 +120,31 @@ const validManifest: ProfessionalEditDecisionManifestClientModel = {
           userFacingSummary: 'Prepare readable captions where the edit plan needs them.',
         },
       ],
-      backendIntentCount: 3,
+      backendIntentCount: 4,
       backendIntentKinds: ['model_role'],
       backendIntents: [
         {
-          intentId: 'intent.private_manifest.qwen_main_edit_agent',
+          intentId: 'intent.private_manifest.kimi_primary_edit_agent',
+          intentKind: 'model_role',
+          executionBoundary: 'backend_approved_after_snapshot',
+          providerRoute: 'kimi_k3_provider_boundary',
+          providerModel: 'kimi-k3',
+          modelRoleId: 'kimi_k3_main_edit_agent',
+          requestedModelUse: 'edit_planning',
+          hiddenAdapterToolCount: 0,
+          requiredApprovalGates: [
+            'approved_plan_snapshot',
+            'credit_reservation',
+            'idempotency_key',
+            'private_artifact_policy',
+          ],
+        },
+        {
+          intentId: 'intent.private_manifest.qwen_first_fallback',
           intentKind: 'model_role',
           executionBoundary: 'backend_approved_after_snapshot',
           providerRoute: 'qwen_3_7_provider_boundary',
-          providerModel: 'qwen-3.7-max',
+          providerModel: 'qwen3.7-max-2026-06-08',
           modelRoleId: 'qwen_3_7_main_edit_agent',
           requestedModelUse: 'edit_planning',
           hiddenAdapterToolCount: 0,
@@ -156,13 +172,13 @@ const validManifest: ProfessionalEditDecisionManifestClientModel = {
           ],
         },
         {
-          intentId: 'intent.private_manifest.deepseek_tool_code_agent',
+          intentId: 'intent.private_manifest.deepseek_final_fallback',
           intentKind: 'model_role',
           executionBoundary: 'backend_approved_after_snapshot',
           providerRoute: 'deepseek_v4_pro_tool_code_boundary',
           providerModel: 'deepseek-v4-pro',
           modelRoleId: 'deepseek_v4_tool_code_agent',
-          requestedModelUse: 'remotion_draft',
+          requestedModelUse: 'edit_planning',
           hiddenAdapterToolCount: 0,
           requiredApprovalGates: [
             'approved_plan_snapshot',
@@ -174,23 +190,45 @@ const validManifest: ProfessionalEditDecisionManifestClientModel = {
       ],
       modelRoleTrace: {
         source: 'reeditpro_model_role_contract',
-        contractVersion: 'reeditpro-model-role-routing-v1',
+        contractVersion: 'reeditpro-model-role-routing-v2-kimi-primary',
         ok: true,
         blocked: false,
-        checkedContractCount: 3,
-        modelRoleIntentCount: 3,
+        checkedContractCount: 4,
+        modelRoleIntentCount: 4,
         roles: [
+          {
+            modelRoleId: 'kimi_k3_main_edit_agent',
+            providerBoundary: 'kimi_k3_provider_boundary',
+            canonicalProviderModel: 'kimi-k3',
+            requestedUses: ['edit_planning'],
+            intentIds: ['intent.private_manifest.kimi_primary_edit_agent'],
+            reasoningRouteRole: 'primary',
+            reasoningRoutePriority: 1,
+            fallbackOnly: false,
+            userReasoningAllowed: true,
+            editPlanningAllowed: true,
+            creativeStrategyAllowed: true,
+            editQaReasoningAllowed: true,
+            visualUnderstandingAllowed: false,
+            toolCodeAllowed: true,
+            remotionDraftAllowed: true,
+          },
           {
             modelRoleId: 'qwen_3_7_main_edit_agent',
             providerBoundary: 'qwen_3_7_provider_boundary',
-            canonicalProviderModel: 'qwen-3.7-max',
+            canonicalProviderModel: 'qwen3.7-max-2026-06-08',
             requestedUses: ['edit_planning'],
-            intentIds: ['intent.private_manifest.qwen_main_edit_agent'],
+            intentIds: ['intent.private_manifest.qwen_first_fallback'],
+            reasoningRouteRole: 'fallback',
+            reasoningRoutePriority: 2,
+            fallbackOnly: true,
             userReasoningAllowed: true,
             editPlanningAllowed: true,
+            creativeStrategyAllowed: true,
+            editQaReasoningAllowed: true,
             visualUnderstandingAllowed: false,
-            toolCodeAllowed: false,
-            remotionDraftAllowed: false,
+            toolCodeAllowed: true,
+            remotionDraftAllowed: true,
           },
           {
             modelRoleId: 'qwen2_5_vl_visual_understanding',
@@ -198,8 +236,13 @@ const validManifest: ProfessionalEditDecisionManifestClientModel = {
             canonicalProviderModel: 'qwen2.5-vl-7b-instruct',
             requestedUses: ['visual_understanding'],
             intentIds: ['intent.private_manifest.qwen_visual_understanding'],
+            reasoningRouteRole: 'specialist',
+            reasoningRoutePriority: null,
+            fallbackOnly: false,
             userReasoningAllowed: false,
             editPlanningAllowed: false,
+            creativeStrategyAllowed: false,
+            editQaReasoningAllowed: false,
             visualUnderstandingAllowed: true,
             toolCodeAllowed: false,
             remotionDraftAllowed: false,
@@ -208,10 +251,15 @@ const validManifest: ProfessionalEditDecisionManifestClientModel = {
             modelRoleId: 'deepseek_v4_tool_code_agent',
             providerBoundary: 'deepseek_v4_pro_tool_code_boundary',
             canonicalProviderModel: 'deepseek-v4-pro',
-            requestedUses: ['remotion_draft'],
-            intentIds: ['intent.private_manifest.deepseek_tool_code_agent'],
-            userReasoningAllowed: false,
-            editPlanningAllowed: false,
+            requestedUses: ['edit_planning'],
+            intentIds: ['intent.private_manifest.deepseek_final_fallback'],
+            reasoningRouteRole: 'fallback',
+            reasoningRoutePriority: 3,
+            fallbackOnly: true,
+            userReasoningAllowed: true,
+            editPlanningAllowed: true,
+            creativeStrategyAllowed: true,
+            editQaReasoningAllowed: true,
             visualUnderstandingAllowed: false,
             toolCodeAllowed: true,
             remotionDraftAllowed: true,
@@ -418,15 +466,23 @@ if (validResult.ok) {
     2,
   )
   assert.equal(validResult.verification.approvedEditContext.professionalSkillTrace?.qaGateCount, 5)
-  assert.equal(validResult.verification.approvedEditContext.professionalSkillTrace?.backendIntentCount, 3)
+  assert.equal(validResult.verification.approvedEditContext.professionalSkillTrace?.backendIntentCount, 4)
   assert.deepEqual(validResult.verification.approvedEditContext.professionalSkillTrace?.backendIntentKinds, ['model_role'])
+  assert.ok(
+    validResult.verification.approvedEditContext.professionalSkillTrace?.backendIntents?.some((intent) =>
+      intent.providerRoute === 'kimi_k3_provider_boundary' &&
+      intent.modelRoleId === 'kimi_k3_main_edit_agent' &&
+      intent.requestedModelUse === 'edit_planning',
+    ),
+    'Private manifest verification must preserve the Kimi K3 primary edit-agent backend intent.',
+  )
   assert.ok(
     validResult.verification.approvedEditContext.professionalSkillTrace?.backendIntents?.some((intent) =>
       intent.providerRoute === 'qwen_3_7_provider_boundary' &&
       intent.modelRoleId === 'qwen_3_7_main_edit_agent' &&
       intent.requestedModelUse === 'edit_planning',
     ),
-    'Private manifest verification must preserve the main edit agent backend intent.',
+    'Private manifest verification must preserve the Qwen 3.7 first-fallback backend intent.',
   )
   assert.ok(
     validResult.verification.approvedEditContext.professionalSkillTrace?.backendIntents?.some((intent) =>
@@ -440,23 +496,47 @@ if (validResult.ok) {
     validResult.verification.approvedEditContext.professionalSkillTrace?.backendIntents?.some((intent) =>
       intent.providerRoute === 'deepseek_v4_pro_tool_code_boundary' &&
       intent.modelRoleId === 'deepseek_v4_tool_code_agent' &&
-      intent.requestedModelUse === 'remotion_draft',
+      intent.requestedModelUse === 'edit_planning',
     ),
-    'Private manifest verification must preserve the tool-code backend intent.',
+    'Private manifest verification must preserve the DeepSeek V4 Pro final-fallback backend intent.',
   )
   assert.equal(validResult.verification.approvedEditContext.professionalSkillTrace?.modelRoleTrace?.ok, true)
   assert.equal(validResult.verification.approvedEditContext.professionalSkillTrace?.modelRoleTrace?.blocked, false)
   assert.ok(
     validResult.verification.approvedEditContext.professionalSkillTrace?.modelRoleTrace?.roles.some((role) =>
-      role.modelRoleId === 'qwen_3_7_main_edit_agent' &&
-      role.providerBoundary === 'qwen_3_7_provider_boundary' &&
-      role.canonicalProviderModel === 'qwen-3.7-max' &&
+      role.modelRoleId === 'kimi_k3_main_edit_agent' &&
+      role.providerBoundary === 'kimi_k3_provider_boundary' &&
+      role.canonicalProviderModel === 'kimi-k3' &&
       role.requestedUses.includes('edit_planning') &&
+      role.reasoningRouteRole === 'primary' &&
+      role.reasoningRoutePriority === 1 &&
+      !role.fallbackOnly &&
       role.userReasoningAllowed &&
       role.editPlanningAllowed &&
-      !role.toolCodeAllowed
+      role.creativeStrategyAllowed &&
+      role.editQaReasoningAllowed &&
+      role.toolCodeAllowed &&
+      role.remotionDraftAllowed
     ),
-    'Private manifest verification must preserve Qwen 3.7 as the main edit planning role.',
+    'Private manifest verification must preserve Kimi K3 as the primary edit reasoning/planning/coding role.',
+  )
+  assert.ok(
+    validResult.verification.approvedEditContext.professionalSkillTrace?.modelRoleTrace?.roles.some((role) =>
+      role.modelRoleId === 'qwen_3_7_main_edit_agent' &&
+      role.providerBoundary === 'qwen_3_7_provider_boundary' &&
+      role.canonicalProviderModel === 'qwen3.7-max-2026-06-08' &&
+      role.requestedUses.includes('edit_planning') &&
+      role.reasoningRouteRole === 'fallback' &&
+      role.reasoningRoutePriority === 2 &&
+      role.fallbackOnly &&
+      role.userReasoningAllowed &&
+      role.editPlanningAllowed &&
+      role.creativeStrategyAllowed &&
+      role.editQaReasoningAllowed &&
+      role.toolCodeAllowed &&
+      role.remotionDraftAllowed
+    ),
+    'Private manifest verification must preserve Qwen 3.7 as the first full-capability fallback.',
   )
   assert.ok(
     validResult.verification.approvedEditContext.professionalSkillTrace?.modelRoleTrace?.roles.some((role) =>
@@ -464,9 +544,14 @@ if (validResult.ok) {
       role.providerBoundary === 'qwen2_5_vl_7b_instruct_provider_boundary' &&
       role.canonicalProviderModel === 'qwen2.5-vl-7b-instruct' &&
       role.requestedUses.includes('visual_understanding') &&
+      role.reasoningRouteRole === 'specialist' &&
+      role.reasoningRoutePriority === null &&
+      !role.fallbackOnly &&
       role.visualUnderstandingAllowed &&
       !role.userReasoningAllowed &&
-      !role.editPlanningAllowed
+      !role.editPlanningAllowed &&
+      !role.creativeStrategyAllowed &&
+      !role.editQaReasoningAllowed
     ),
     'Private manifest verification must preserve Qwen2.5-VL as visual-understanding only.',
   )
@@ -474,13 +559,18 @@ if (validResult.ok) {
     validResult.verification.approvedEditContext.professionalSkillTrace?.modelRoleTrace?.roles.some((role) =>
       role.modelRoleId === 'deepseek_v4_tool_code_agent' &&
       role.canonicalProviderModel === 'deepseek-v4-pro' &&
-      role.requestedUses.includes('remotion_draft') &&
+      role.requestedUses.includes('edit_planning') &&
+      role.reasoningRouteRole === 'fallback' &&
+      role.reasoningRoutePriority === 3 &&
+      role.fallbackOnly &&
+      role.userReasoningAllowed &&
+      role.editPlanningAllowed &&
+      role.creativeStrategyAllowed &&
+      role.editQaReasoningAllowed &&
       role.toolCodeAllowed &&
-      role.remotionDraftAllowed &&
-      !role.userReasoningAllowed &&
-      !role.editPlanningAllowed
+      role.remotionDraftAllowed
     ),
-    'Private manifest verification must preserve DeepSeek only as tool-code or Remotion draft support when present.',
+    'Private manifest verification must preserve DeepSeek V4 Pro as the final full-capability fallback.',
   )
   assert.equal(validResult.verification.approvedEditContext.professionalSkillTrace?.editBriefOptional, true)
   assert.equal(validResult.verification.approvedEditContext.professionalSkillTrace?.promptFirstPlanning, true)
@@ -613,7 +703,7 @@ const missingModelRoleTraceResult = verifyPrivateEditDecisionManifest({
 })
 assert.equal(missingModelRoleTraceResult.ok, false, 'Manifest without model-role trace evidence should fail closed.')
 
-const invalidDeepSeekRoleTraceResult = verifyPrivateEditDecisionManifest({
+const invalidDeepSeekVisualUnderstandingTraceResult = verifyPrivateEditDecisionManifest({
   manifest: {
     ...validManifest,
     approvedEditContext: {
@@ -626,8 +716,8 @@ const invalidDeepSeekRoleTraceResult = verifyPrivateEditDecisionManifest({
             role.modelRoleId === 'deepseek_v4_tool_code_agent'
               ? {
                   ...role,
-                  requestedUses: ['user_reasoning' as const],
-                  userReasoningAllowed: true,
+                  requestedUses: ['visual_understanding' as const],
+                  visualUnderstandingAllowed: true,
                 }
               : role
           ),
@@ -638,7 +728,11 @@ const invalidDeepSeekRoleTraceResult = verifyPrivateEditDecisionManifest({
   approvedPlanSnapshotId: 'approved-snapshot-001',
   sourceMediaAssets,
 })
-assert.equal(invalidDeepSeekRoleTraceResult.ok, false, 'Manifest using DeepSeek as user reasoning should fail closed.')
+assert.equal(
+  invalidDeepSeekVisualUnderstandingTraceResult.ok,
+  false,
+  'invalid_deepseek_visual_understanding_trace_rejected',
+)
 
 const invalidModelRoleTraceCanonicalModelResult = verifyPrivateEditDecisionManifest({
   manifest: {
@@ -650,7 +744,7 @@ const invalidModelRoleTraceCanonicalModelResult = verifyPrivateEditDecisionManif
         modelRoleTrace: {
           ...validModelRoleTrace,
           roles: validModelRoleTrace.roles.map((role) =>
-            role.modelRoleId === 'qwen_3_7_main_edit_agent'
+            role.modelRoleId === 'kimi_k3_main_edit_agent'
               ? {
                   ...role,
                   canonicalProviderModel: 'deepseek-v4-pro',
@@ -678,7 +772,7 @@ const invalidBackendIntentProviderModelResult = verifyPrivateEditDecisionManifes
       professionalSkillTrace: {
         ...validProfessionalSkillTrace,
         backendIntents: validBackendIntents.map((intent) =>
-          intent.intentId === 'intent.private_manifest.qwen_main_edit_agent'
+          intent.intentId === 'intent.private_manifest.kimi_primary_edit_agent'
             ? {
                 ...intent,
                 providerModel: 'deepseek-v4-pro',
@@ -863,7 +957,7 @@ console.log(JSON.stringify({
     'missing_approved_context_manifest_rejected',
     'model_role_trace_preserved',
     'missing_model_role_trace_rejected',
-    'invalid_deepseek_user_reasoning_trace_rejected',
+    'invalid_deepseek_visual_understanding_trace_rejected',
     'invalid_model_role_trace_canonical_model_rejected',
     'invalid_backend_intent_provider_model_rejected',
     'missing_backend_intent_provider_model_rejected',

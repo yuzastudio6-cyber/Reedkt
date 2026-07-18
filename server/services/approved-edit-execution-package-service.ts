@@ -11162,6 +11162,7 @@ function createApprovedProfessionalSkillTrace(
 }
 
 const allowedModelRoleIds: ReEditProModelRoleId[] = [
+  'kimi_k3_main_edit_agent',
   'qwen_3_7_main_edit_agent',
   'qwen2_5_vl_visual_understanding',
   'deepseek_v4_tool_code_agent',
@@ -11170,11 +11171,28 @@ const allowedModelRoleIds: ReEditProModelRoleId[] = [
 const allowedRequestedModelUses: ReEditProRequestedModelUse[] = [
   'user_reasoning',
   'edit_planning',
+  'creative_edit_strategy',
+  'edit_qa_reasoning',
   'visual_understanding',
   'tool_code',
   'remotion_draft',
   'provider_asset_generation',
 ]
+
+function reasoningRouteRoleFromUnknown(
+  value: unknown,
+): ProfessionalSkillModelRoleTrace['roles'][number]['reasoningRouteRole'] | undefined {
+  return value === 'primary' || value === 'fallback' || value === 'specialist'
+    ? value
+    : undefined
+}
+
+function reasoningRoutePriorityFromUnknown(value: unknown): number | null | undefined {
+  if (value === null) return null
+  return typeof value === 'number' && Number.isInteger(value) && value > 0
+    ? value
+    : undefined
+}
 
 function createApprovedProfessionalSkillModelRoleTrace(
   skillPlan: unknown,
@@ -11209,13 +11227,20 @@ function createApprovedProfessionalSkillModelRoleTrace(
           const canonicalProviderModel = sanitizePrivateReviewCopy(
             typeof roleRecord?.canonicalProviderModel === 'string' ? roleRecord.canonicalProviderModel : undefined,
           )
+          const reasoningRouteRole = reasoningRouteRoleFromUnknown(roleRecord?.reasoningRouteRole)
+          const reasoningRoutePriority = reasoningRoutePriorityFromUnknown(roleRecord?.reasoningRoutePriority)
 
           if (
             !modelRoleId ||
             !providerBoundary ||
             !canonicalProviderModel ||
+            !reasoningRouteRole ||
+            reasoningRoutePriority === undefined ||
+            typeof roleRecord?.fallbackOnly !== 'boolean' ||
             typeof roleRecord?.userReasoningAllowed !== 'boolean' ||
             typeof roleRecord.editPlanningAllowed !== 'boolean' ||
+            typeof roleRecord.creativeStrategyAllowed !== 'boolean' ||
+            typeof roleRecord.editQaReasoningAllowed !== 'boolean' ||
             typeof roleRecord.visualUnderstandingAllowed !== 'boolean' ||
             typeof roleRecord.toolCodeAllowed !== 'boolean' ||
             typeof roleRecord.remotionDraftAllowed !== 'boolean'
@@ -11234,8 +11259,13 @@ function createApprovedProfessionalSkillModelRoleTrace(
                 const sanitized = sanitizePrivateReviewCopy(intentId)
                 return sanitized ? [sanitized] : []
               }),
+            reasoningRouteRole,
+            reasoningRoutePriority,
+            fallbackOnly: roleRecord.fallbackOnly,
             userReasoningAllowed: roleRecord.userReasoningAllowed,
             editPlanningAllowed: roleRecord.editPlanningAllowed,
+            creativeStrategyAllowed: roleRecord.creativeStrategyAllowed,
+            editQaReasoningAllowed: roleRecord.editQaReasoningAllowed,
             visualUnderstandingAllowed: roleRecord.visualUnderstandingAllowed,
             toolCodeAllowed: roleRecord.toolCodeAllowed,
             remotionDraftAllowed: roleRecord.remotionDraftAllowed,

@@ -160,8 +160,13 @@ export interface ProfessionalSkillModelRoleTrace {
     canonicalProviderModel: string
     requestedUses: ReEditProRequestedModelUse[]
     intentIds: string[]
+    reasoningRouteRole?: 'primary' | 'fallback' | 'specialist'
+    reasoningRoutePriority?: number | null
+    fallbackOnly?: boolean
     userReasoningAllowed: boolean
     editPlanningAllowed: boolean
+    creativeStrategyAllowed?: boolean
+    editQaReasoningAllowed?: boolean
     visualUnderstandingAllowed: boolean
     toolCodeAllowed: boolean
     remotionDraftAllowed: boolean

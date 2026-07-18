@@ -1409,8 +1409,13 @@ function parseProfessionalSkillModelRoleTrace(
             typeof roleRecord.modelRoleId !== 'string' ||
             typeof roleRecord.providerBoundary !== 'string' ||
             typeof roleRecord.canonicalProviderModel !== 'string' ||
+            !isReasoningRouteRole(roleRecord.reasoningRouteRole) ||
+            !isReasoningRoutePriority(roleRecord.reasoningRoutePriority) ||
+            typeof roleRecord.fallbackOnly !== 'boolean' ||
             typeof roleRecord.userReasoningAllowed !== 'boolean' ||
             typeof roleRecord.editPlanningAllowed !== 'boolean' ||
+            typeof roleRecord.creativeStrategyAllowed !== 'boolean' ||
+            typeof roleRecord.editQaReasoningAllowed !== 'boolean' ||
             typeof roleRecord.visualUnderstandingAllowed !== 'boolean' ||
             typeof roleRecord.toolCodeAllowed !== 'boolean' ||
             typeof roleRecord.remotionDraftAllowed !== 'boolean'
@@ -1424,8 +1429,13 @@ function parseProfessionalSkillModelRoleTrace(
             canonicalProviderModel: roleRecord.canonicalProviderModel.trim().slice(0, 160),
             requestedUses: parseStringArray(roleRecord.requestedUses),
             intentIds: parseStringArray(roleRecord.intentIds),
+            reasoningRouteRole: roleRecord.reasoningRouteRole,
+            reasoningRoutePriority: roleRecord.reasoningRoutePriority,
+            fallbackOnly: roleRecord.fallbackOnly,
             userReasoningAllowed: roleRecord.userReasoningAllowed,
             editPlanningAllowed: roleRecord.editPlanningAllowed,
+            creativeStrategyAllowed: roleRecord.creativeStrategyAllowed,
+            editQaReasoningAllowed: roleRecord.editQaReasoningAllowed,
             visualUnderstandingAllowed: roleRecord.visualUnderstandingAllowed,
             toolCodeAllowed: roleRecord.toolCodeAllowed,
             remotionDraftAllowed: roleRecord.remotionDraftAllowed,
@@ -1435,6 +1445,14 @@ function parseProfessionalSkillModelRoleTrace(
     errors: parseStringArray(record.errors),
     mockOnly: true,
   }
+}
+
+function isReasoningRouteRole(value: unknown): value is 'primary' | 'fallback' | 'specialist' {
+  return value === 'primary' || value === 'fallback' || value === 'specialist'
+}
+
+function isReasoningRoutePriority(value: unknown): value is number | null {
+  return value === null || (typeof value === 'number' && Number.isInteger(value) && value > 0)
 }
 
 function parseProfessionalSkillSelectionEvidence(

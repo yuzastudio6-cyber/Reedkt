@@ -53,12 +53,29 @@ const approvedSnapshot = {
     selectedSkills: [],
     backendIntents: [
       {
-        intentId: 'intent.client_smoke.qwen_main_edit_agent',
+        intentId: 'intent.client_smoke.kimi_primary_edit_agent',
         intentKind: 'model_role',
         userFacingActivity: 'Build the edit plan from the uploaded source and prompt.',
         executionBoundary: 'backend_approved_after_snapshot',
+        providerRoute: 'kimi_k3_provider_boundary',
+        providerModel: 'kimi-k3',
+        modelRoleId: 'kimi_k3_main_edit_agent',
+        requestedModelUse: 'edit_planning',
+        hiddenAdapterToolNames: [],
+        requiredApprovalGates: [
+          'approved_plan_snapshot',
+          'credit_reservation',
+          'idempotency_key',
+          'private_artifact_policy',
+        ],
+      },
+      {
+        intentId: 'intent.client_smoke.qwen_first_fallback',
+        intentKind: 'model_role',
+        userFacingActivity: 'Continue approved edit planning after an allowed primary-route failure.',
+        executionBoundary: 'backend_approved_after_snapshot',
         providerRoute: 'qwen_3_7_provider_boundary',
-        providerModel: 'qwen-3.7-max',
+        providerModel: 'qwen3.7-max-2026-06-08',
         modelRoleId: 'qwen_3_7_main_edit_agent',
         requestedModelUse: 'edit_planning',
         hiddenAdapterToolNames: [],
@@ -70,14 +87,14 @@ const approvedSnapshot = {
         ],
       },
       {
-        intentId: 'intent.client_smoke.deepseek_tool_code_agent',
+        intentId: 'intent.client_smoke.deepseek_final_fallback',
         intentKind: 'model_role',
-        userFacingActivity: 'Prepare structured implementation notes for the private review build.',
+        userFacingActivity: 'Continue approved edit planning after both earlier routes fail safely.',
         executionBoundary: 'backend_approved_after_snapshot',
         providerRoute: 'deepseek_v4_pro_tool_code_boundary',
         providerModel: 'deepseek-v4-pro',
         modelRoleId: 'deepseek_v4_tool_code_agent',
-        requestedModelUse: 'remotion_draft',
+        requestedModelUse: 'edit_planning',
         hiddenAdapterToolNames: [],
         requiredApprovalGates: [
           'approved_plan_snapshot',
@@ -106,32 +123,59 @@ const approvedSnapshot = {
     ],
     modelRoleTrace: {
       source: 'reeditpro_model_role_contract',
-      contractVersion: 'reeditpro-model-role-routing-v1',
+      contractVersion: 'reeditpro-model-role-routing-v2-kimi-primary',
       ok: true,
       blocked: false,
-      checkedContractCount: 3,
-      modelRoleIntentCount: 3,
+      checkedContractCount: 4,
+      modelRoleIntentCount: 4,
       roles: [
+        {
+          modelRoleId: 'kimi_k3_main_edit_agent',
+          providerBoundary: 'kimi_k3_provider_boundary',
+          canonicalProviderModel: 'kimi-k3',
+          requestedUses: ['edit_planning'],
+          intentIds: ['intent.client_smoke.kimi_primary_edit_agent'],
+          reasoningRouteRole: 'primary',
+          reasoningRoutePriority: 1,
+          fallbackOnly: false,
+          userReasoningAllowed: true,
+          editPlanningAllowed: true,
+          creativeStrategyAllowed: true,
+          editQaReasoningAllowed: true,
+          visualUnderstandingAllowed: false,
+          toolCodeAllowed: true,
+          remotionDraftAllowed: true,
+        },
         {
           modelRoleId: 'qwen_3_7_main_edit_agent',
           providerBoundary: 'qwen_3_7_provider_boundary',
-          canonicalProviderModel: 'qwen-3.7-max',
+          canonicalProviderModel: 'qwen3.7-max-2026-06-08',
           requestedUses: ['edit_planning'],
-          intentIds: ['intent.client_smoke.qwen_main_edit_agent'],
+          intentIds: ['intent.client_smoke.qwen_first_fallback'],
+          reasoningRouteRole: 'fallback',
+          reasoningRoutePriority: 2,
+          fallbackOnly: true,
           userReasoningAllowed: true,
           editPlanningAllowed: true,
+          creativeStrategyAllowed: true,
+          editQaReasoningAllowed: true,
           visualUnderstandingAllowed: false,
-          toolCodeAllowed: false,
-          remotionDraftAllowed: false,
+          toolCodeAllowed: true,
+          remotionDraftAllowed: true,
         },
         {
           modelRoleId: 'deepseek_v4_tool_code_agent',
           providerBoundary: 'deepseek_v4_pro_tool_code_boundary',
           canonicalProviderModel: 'deepseek-v4-pro',
-          requestedUses: ['remotion_draft'],
-          intentIds: ['intent.client_smoke.deepseek_tool_code_agent'],
-          userReasoningAllowed: false,
-          editPlanningAllowed: false,
+          requestedUses: ['edit_planning'],
+          intentIds: ['intent.client_smoke.deepseek_final_fallback'],
+          reasoningRouteRole: 'fallback',
+          reasoningRoutePriority: 3,
+          fallbackOnly: true,
+          userReasoningAllowed: true,
+          editPlanningAllowed: true,
+          creativeStrategyAllowed: true,
+          editQaReasoningAllowed: true,
           visualUnderstandingAllowed: false,
           toolCodeAllowed: true,
           remotionDraftAllowed: true,
@@ -142,8 +186,13 @@ const approvedSnapshot = {
           canonicalProviderModel: 'qwen2.5-vl-7b-instruct',
           requestedUses: ['visual_understanding'],
           intentIds: ['intent.client_smoke.qwen_visual_understanding'],
+          reasoningRouteRole: 'specialist',
+          reasoningRoutePriority: null,
+          fallbackOnly: false,
           userReasoningAllowed: false,
           editPlanningAllowed: false,
+          creativeStrategyAllowed: false,
+          editQaReasoningAllowed: false,
           visualUnderstandingAllowed: true,
           toolCodeAllowed: false,
           remotionDraftAllowed: false,
@@ -298,23 +347,31 @@ assert.equal(executionPackage.professionalSkillTrace?.promptFirstPlanning, true)
 assert.equal(executionPackage.professionalSkillTrace?.noUserVisibleToolNames, true)
 assert.deepEqual(executionPackage.professionalSkillTrace?.selectedFamilies, ['audio_cleanup', 'visual_graphics'])
 assert.equal(executionPackage.professionalSkillTrace?.activityGroups[0]?.readyActivityCount, 2)
-assert.equal(executionPackage.professionalSkillTrace?.backendIntentCount, 3)
+assert.equal(executionPackage.professionalSkillTrace?.backendIntentCount, 4)
 assert.deepEqual(executionPackage.professionalSkillTrace?.backendIntentKinds, ['model_role'])
+assert.ok(
+  executionPackage.professionalSkillTrace?.backendIntents.some((intent) =>
+    intent.providerRoute === 'kimi_k3_provider_boundary' &&
+    intent.modelRoleId === 'kimi_k3_main_edit_agent' &&
+    intent.requestedModelUse === 'edit_planning',
+  ),
+  'Client package skill trace must preserve the Kimi K3 primary edit-agent backend intent.',
+)
 assert.ok(
   executionPackage.professionalSkillTrace?.backendIntents.some((intent) =>
     intent.providerRoute === 'qwen_3_7_provider_boundary' &&
     intent.modelRoleId === 'qwen_3_7_main_edit_agent' &&
     intent.requestedModelUse === 'edit_planning',
   ),
-  'Client package skill trace must preserve the main edit agent backend intent.',
+  'Client package skill trace must preserve the Qwen 3.7 first-fallback backend intent.',
 )
 assert.ok(
   executionPackage.professionalSkillTrace?.backendIntents.some((intent) =>
     intent.providerRoute === 'deepseek_v4_pro_tool_code_boundary' &&
     intent.modelRoleId === 'deepseek_v4_tool_code_agent' &&
-    intent.requestedModelUse === 'remotion_draft',
+    intent.requestedModelUse === 'edit_planning',
   ),
-  'Client package skill trace must preserve the tool-code backend intent.',
+  'Client package skill trace must preserve the DeepSeek V4 Pro final-fallback backend intent.',
 )
 assert.ok(
   executionPackage.professionalSkillTrace?.backendIntents.some((intent) =>
@@ -326,11 +383,25 @@ assert.ok(
 )
 assert.ok(
   executionPackage.professionalSkillTrace?.modelRoleTrace.roles.some((role) =>
-    role.modelRoleId === 'qwen_3_7_main_edit_agent' &&
-    role.canonicalProviderModel === 'qwen-3.7-max' &&
-    role.requestedUses.includes('edit_planning'),
+    role.modelRoleId === 'kimi_k3_main_edit_agent' &&
+    role.canonicalProviderModel === 'kimi-k3' &&
+    role.requestedUses.includes('edit_planning') &&
+    role.reasoningRouteRole === 'primary' &&
+    role.reasoningRoutePriority === 1 &&
+    role.fallbackOnly === false,
   ),
-  'Client package skill trace must preserve the canonical Qwen 3.7 model-role trace.',
+  'Client package skill trace must preserve the canonical Kimi K3 primary model-role trace.',
+)
+assert.ok(
+  executionPackage.professionalSkillTrace?.modelRoleTrace.roles.some((role) =>
+    role.modelRoleId === 'qwen_3_7_main_edit_agent' &&
+    role.canonicalProviderModel === 'qwen3.7-max-2026-06-08' &&
+    role.requestedUses.includes('edit_planning') &&
+    role.reasoningRouteRole === 'fallback' &&
+    role.reasoningRoutePriority === 2 &&
+    role.fallbackOnly === true,
+  ),
+  'Client package skill trace must preserve the canonical Qwen 3.7 fallback model-role trace.',
 )
 assert.ok(
   executionPackage.professionalSkillTrace?.modelRoleTrace.roles.some((role) =>
@@ -417,7 +488,7 @@ assert.equal(sourceTruthReview.data?.approvedEditExecutionPackage?.professionalS
 assert.equal(sourceTruthReview.data?.approvedEditExecutionPackage?.professionalSkillTrace?.promptFirstPlanning, true)
 assert.equal(sourceTruthReview.data?.approvedEditExecutionPackage?.professionalSkillTrace?.noUserVisibleToolNames, true)
 assert.deepEqual(sourceTruthReview.data?.approvedEditExecutionPackage?.professionalSkillTrace?.selectedFamilies, ['audio_cleanup', 'visual_graphics'])
-assert.equal(sourceTruthReview.data?.approvedEditExecutionPackage?.professionalSkillTrace?.backendIntentCount, 3)
+assert.equal(sourceTruthReview.data?.approvedEditExecutionPackage?.professionalSkillTrace?.backendIntentCount, 4)
 assert.equal(sourceTruthReview.data?.approvedEditExecutionPackage?.boundedAdapterExecutionReady, true)
 assert.equal(sourceTruthReview.data?.approvedEditExecutionPackage?.boundedAdapterReadyToolCount, 2)
 assert.ok(
@@ -441,7 +512,7 @@ assert.equal(boundedAdapterExecutionRun.data?.boundedAdapterExecutionRun?.profes
 assert.equal(boundedAdapterExecutionRun.data?.boundedAdapterExecutionRun?.professionalSkillTrace?.editBriefOptional, true)
 assert.equal(boundedAdapterExecutionRun.data?.boundedAdapterExecutionRun?.professionalSkillTrace?.promptFirstPlanning, true)
 assert.equal(boundedAdapterExecutionRun.data?.boundedAdapterExecutionRun?.professionalSkillTrace?.noUserVisibleToolNames, true)
-assert.equal(boundedAdapterExecutionRun.data?.boundedAdapterExecutionRun?.professionalSkillTrace?.backendIntentCount, 3)
+assert.equal(boundedAdapterExecutionRun.data?.boundedAdapterExecutionRun?.professionalSkillTrace?.backendIntentCount, 4)
 assert.equal(boundedAdapterExecutionRun.data?.boundedAdapterExecutionRun?.activityResults.length, 2)
 assert.deepEqual(
   boundedAdapterExecutionRun.data?.boundedAdapterExecutionRun?.activityResults.map((activity) => activity.canonicalToolId),

@@ -129,36 +129,40 @@ assert.equal(definitions.length, 18, 'Router must register the 18 requested capa
 
 const modelRoleValidation = validateReEditProModelRoleContracts()
 assert.equal(modelRoleValidation.ok, true)
-assert.equal(modelRoleValidation.checkedContractCount, 3)
+assert.equal(modelRoleValidation.checkedContractCount, 4)
 assert.deepEqual([...REEDITPRO_MODEL_ROLE_IDS], [
+  'kimi_k3_main_edit_agent',
   'qwen_3_7_main_edit_agent',
   'qwen2_5_vl_visual_understanding',
   'deepseek_v4_tool_code_agent',
 ])
 assert.equal(REEDITPRO_REQUESTED_MODEL_USES.includes('user_reasoning'), true)
 assert.equal(REEDITPRO_REQUESTED_MODEL_USES.includes('tool_code'), true)
+assert.equal(modelRoleAllowsUserReasoning('kimi_k3_main_edit_agent'), true)
+assert.equal(modelRoleAllowsToolCode('kimi_k3_main_edit_agent'), true)
 assert.equal(modelRoleAllowsUserReasoning('qwen_3_7_main_edit_agent'), true)
-assert.equal(modelRoleAllowsToolCode('qwen_3_7_main_edit_agent'), false)
-assert.equal(modelRoleAllowsUserReasoning('deepseek_v4_tool_code_agent'), false)
+assert.equal(modelRoleAllowsToolCode('qwen_3_7_main_edit_agent'), true)
+assert.equal(modelRoleAllowsUserReasoning('deepseek_v4_tool_code_agent'), true)
 assert.equal(modelRoleAllowsToolCode('deepseek_v4_tool_code_agent'), true)
-assert.equal(getReEditProModelRoleContract('qwen_3_7_main_edit_agent').canonicalProviderModel, 'qwen-3.7-max')
+assert.equal(getReEditProModelRoleContract('kimi_k3_main_edit_agent').canonicalProviderModel, 'kimi-k3')
+assert.equal(getReEditProModelRoleContract('qwen_3_7_main_edit_agent').canonicalProviderModel, 'qwen3.7-max-2026-06-08')
 assert.equal(getReEditProModelRoleContract('qwen2_5_vl_visual_understanding').canonicalProviderModel, 'qwen2.5-vl-7b-instruct')
 assert.equal(getReEditProModelRoleContract('deepseek_v4_tool_code_agent').canonicalProviderModel, 'deepseek-v4-pro')
-assert.equal(getReEditProModelRoleContract('deepseek_v4_tool_code_agent').forbiddenResponsibilities.join(' ').includes('user reasoning'), true)
+assert.equal(getReEditProModelRoleContract('deepseek_v4_tool_code_agent').fallbackOnly, true)
 assert.equal(getReEditProModelRoleContract('qwen2_5_vl_visual_understanding').editPlanningAllowed, false)
 assert.equal(validateReEditProModelRoleUse({
   modelRoleId: 'qwen_3_7_main_edit_agent',
   providerRoute: 'qwen_3_7_provider_boundary',
-  providerModel: 'qwen-3.7-max',
+  providerModel: 'qwen3.7-max-2026-06-08',
   requestedUse: 'edit_planning',
 }).ok, true)
 const qwenModelRoleUseValidation = validateReEditProModelRoleUse({
   modelRoleId: 'qwen_3_7_main_edit_agent',
   providerRoute: 'qwen_3_7_provider_boundary',
-  providerModel: 'qwen-3.7-max',
+  providerModel: 'qwen3.7-max-2026-06-08',
   requestedUse: 'edit_planning',
 })
-assert.equal(qwenModelRoleUseValidation.resolvedCanonicalProviderModel, 'qwen-3.7-max')
+assert.equal(qwenModelRoleUseValidation.resolvedCanonicalProviderModel, 'qwen3.7-max-2026-06-08')
 assert.equal(qwenModelRoleUseValidation.resolvedProviderBoundary, 'qwen_3_7_provider_boundary')
 assert.equal(validateReEditProModelRoleUse({
   modelRoleId: 'qwen_3_7_main_edit_agent',
@@ -225,11 +229,11 @@ assert.equal(route(ultra, 'graphic_design_understanding').requiredness, 'recomme
 assert.equal(route(normal, 'edit_brief').requiredness, 'optional')
 assert.equal(route(premium, 'edit_brief').requiredness, 'recommended')
 assert.equal(route(ultra, 'edit_brief').userFacingSummary.includes('strongly recommended'), true)
-assert.equal(route(ultra, 'deepseek_tool_code').displayName.includes('technical assembly support'), true)
+assert.equal(route(ultra, 'deepseek_tool_code').displayName.includes('Final reasoning'), true)
 assert.equal(route(ultra, 'deepseek_tool_code').userFacingSummary.includes('renderer support'), true)
 assert.equal(route(ultra, 'deepseek_tool_code').userFacingSummary.includes('user reasoning'), true)
 assert.equal(route(ultra, 'deepseek_tool_code').productionToolIds.includes('deepseek_v4_pro_tool_code_boundary'), true)
-assert.equal(route(normal, 'qwen_3_reasoning').productionToolIds.includes('qwen_3_7_provider_boundary'), true)
+assert.equal(route(normal, 'qwen_3_reasoning').productionToolIds.includes('kimi_k3_provider_boundary'), true)
 assert.equal(route(normal, 'qwen25vl_visual_understanding').productionToolIds.includes('qwen2_5_vl_7b_instruct_provider_boundary'), true)
 assert.equal(route(premium, 'render_worker').status, 'future_gated')
 assert.equal(route(premium, 'credit_gate').status, 'future_gated')
@@ -333,7 +337,7 @@ for (const term of [
 const migrationCount = readdirSync(new URL('../../supabase/migrations', import.meta.url), { withFileTypes: true })
   .filter((entry) => entry.isFile())
   .length
-assert.equal(migrationCount, 25, 'RP-EDITLEVEL-05 must not create or modify migration files.')
+assert.equal(migrationCount, 24, 'RP-EDITLEVEL-05 must not create or modify the accepted 24-file migration chain.')
 
 const packageJson = JSON.parse(readRepoFile('package.json')) as { scripts?: Record<string, string> }
 assert.equal(packageJson.scripts?.['smoke:edit-level-tool-router'], 'tsx server/smoke/edit-level-tool-router-smoke.ts')

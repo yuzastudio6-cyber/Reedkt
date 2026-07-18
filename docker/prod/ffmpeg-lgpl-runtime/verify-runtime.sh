@@ -181,5 +181,7 @@ grep -F '"format_name": "mov,mp4,m4a,3gp,3g2,mj2"' /tmp/reeditpro-finalizer-audi
   || fail 'private-finalizer MP4 mux failed'
 [ -x /usr/local/bin/reeditpro-ffmpeg-source-slice-finalizer ] \
   || fail 'source-slice finalizer entrypoint is missing'
+[ -x /usr/local/bin/reeditpro-ffmpeg-object-mezzanine-chunk ] \
+  || fail 'object-mezzanine chunk entrypoint is missing'
 
-printf '%s\n' '{"ok":true,"productReady":false,"publicFinalExportAllowed":false,"privateSourceSliceFinalizationAllowed":true,"h264Encoding":"blocked_not_compiled","aacEncoding":"private_source_slice_finalizer_only","mp4Mux":"private_source_slice_finalizer_only","runtimeUser":"65532:65532","network":"none","rootFilesystem":"read_only","componentSets":"exact_allowlists_verified","protocols":["file","pipe"],"generalIntermediateVideoEncoder":"ffv1","professionalColorIntermediateVideoEncoder":"libvpx-vp9-lossless","intermediateAudioEncoder":"pcm_s16le"}'
+printf '%s\n' '{"ok":true,"productReady":false,"publicFinalExportAllowed":false,"privateSourceSliceFinalizationAllowed":true,"privateFirstObjectMezzanineChunkAllowed":true,"h264Encoding":"blocked_not_compiled","aacEncoding":"private_source_slice_finalizer_only","mp4Mux":"private_source_slice_finalizer_and_object_chunk_only","runtimeUser":"65532:65532","network":"none","rootFilesystem":"read_only","componentSets":"exact_allowlists_verified","protocols":["file","pipe"],"generalIntermediateVideoEncoder":"ffv1","professionalColorIntermediateVideoEncoder":"libvpx-vp9-lossless","intermediateAudioEncoder":"pcm_s16le"}'

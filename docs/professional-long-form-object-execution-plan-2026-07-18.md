@@ -1,6 +1,6 @@
 # Professional Long-Form Object Execution Plan — 2026-07-18
 
-Status: `source_authority_validation_completed_private_local_remaining_execution_blocked`
+Status: `first_4k_object_chunk_and_paired_qa_completed_remaining_250_children_blocked`
 
 ## Outcome
 
@@ -22,12 +22,14 @@ also persists an immutable specialized child package and placement manifest and
 atomically publishes one exact 255-job private queue. The bounded continuation
 executes the dependency-root snapshot-validation child and then the exact
 private source-authority and structured master-timing children through separate
-authority, lease/attempt,
-private artifact, QA, reconciliation, internal cost, completion, and replay
-lifecycles. The source child validates all 512 approved ranges without reading
-or transforming media. This does not raise the existing V3 media-execution
-limit, authorize any of the remaining 252 children, silently activate a media
-worker, or claim that long media was rendered.
+authority, lease/attempt, private artifact, QA, reconciliation, internal cost,
+completion, and replay lifecycles. It then selects the first dependency-ready
+object render and paired QA on the server, stages exactly five approved source
+objects/slices, assembles one 5,226-frame (`174.2`-second) 4K H.264 Matroska
+object by fixed stream copy, persists it create-only, and reopens it with an
+independent FFprobe job. Five of 255 children are therefore complete. This
+does not authorize the remaining 250 children, a broad media-worker class, or
+a claim that the complete long-form edit has rendered.
 
 ## Bounded Professional Capacity
 
@@ -78,7 +80,7 @@ checks. The exact 30-minute fixture contains:
 - 15 balanced object chunks;
 - 37 immutable required work items; and
 - plan authority hash
-  `4705141a64853d334429b10c0fe93513078d761bb380cad8a51edfda825faa94`.
+  `9151d1511c491d6783d79e90a1f0363bc9a8019f99a64b47f025c7403dea5734`.
 
 The maximum-capacity fixture separately plans six hours at 60 fps across 512
 approved ranges, 1,296,000 frames, and 124 object chunks. That ceiling expands
@@ -95,22 +97,23 @@ chunk lineage, and self-promotion to production authority.
 checks. The six-hour fixture binds plan seed
 `de8deb17a7b255d3591abc54917c009d7078de350faffa17fb82c2eda7d9fa6b`
 to bridge authority
-`01a497445e1772b95250eee2b3eb6c8023f111130f7dd200ef842e8e39db7e94`.
+`26fe700651b93856ccdb8dcb7aed4f0a84d988bc671f5a7aa5a4de947474e313`.
 It rejects snapshot, seed, controller, blob-reference, estimate, timing,
 reservation, child-graph, and persisted-manifest substitution. A new approval
 may reuse the same content seed, but it receives distinct snapshot and plan
 authority.
 
-`npm run smoke:canonical-professional-long-form-post-approval` passes 80
+`npm run smoke:canonical-professional-long-form-post-approval` passes 88
 checks against a real canonical six-hour/512-range publication and
 approval. It persists and reopens the seed, controller, bridge, and 255-child
 blocked manifest plus the specialized package, placement, and exact 255-job
 private queue; refuses ordinary package creation, authorizes and completes the
 root snapshot-validation child and then the exact source-authority child,
-followed by the strict master-timing validation child,
-proves exact concurrent/restart replay and separate attempt-level internal-cost
-evidence, keeps all media children blocked, and rejects persisted blob,
-root/source-artifact, and queue tampering. See
+followed by the strict master-timing validation child and first 4K object
+render/QA pair. It proves exact concurrent/restart replay, separate
+attempt-level internal-cost evidence, deterministic media bytes, create-only
+private persistence, and independent FFprobe QA while rejecting persisted
+blob, source-artifact, media-byte, and queue tampering. See
 `docs/canonical-professional-long-form-post-approval-authority-2026-07-18.md`
 and
 `docs/canonical-professional-long-form-child-package-promotion-2026-07-18.md`.
@@ -122,17 +125,21 @@ The source lifecycle is documented in
 The timing continuation is documented in
 `docs/canonical-professional-long-form-master-timing-execution-2026-07-18.md`.
 
+The first media pair is documented in
+`docs/canonical-professional-long-form-first-object-chunk-execution-2026-07-18.md`.
+
 The planner source imports no Google Cloud, Supabase, Stripe, HTTP, child
 process, environment, or network-fetch activation path.
 
 ## Current Aggregate Evidence
 
-The exact-code `npm run qa:internal-pipeline` v22 aggregate passed all `37/37`
-stages with exit code `0`. It started at `2026-07-18T12:52:16.698Z`, finished
-at `2026-07-18T13:23:50.164Z`, and completed in `1,893,466 ms`. The long-form
-plan passed 27 checks in `434 ms`, the approved-snapshot bridge passed 22 checks
-in `736 ms`, and the canonical post-approval/promotion/root/source-authority/
-master-timing stage passed 80 checks in `24,569 ms`.
+The exact-code `npm run qa:internal-pipeline` v23 aggregate passed all `38/38`
+stages with exit code `0`. It started at `2026-07-18T15:34:20.145Z`, finished
+at `2026-07-18T16:14:33.676Z`, and completed in `2,413,531 ms`. The long-form
+plan passed 27 checks in `371 ms`, the approved-snapshot bridge passed 22
+checks in `789 ms`, the deterministic isolated object runner passed in
+`21,735 ms`, and the canonical post-approval lifecycle passed 88 checks in
+`85,596 ms`.
 
 The remaining stages reverified exactly 50 canonical tool lifecycles and 50
 job adapters, the crash-consistent package lifecycle, bounded three-source
@@ -150,13 +157,20 @@ internal cost, private artifact, QA, reconciliation, terminal commit, and replay
 lifecycles. The source child validated all 512 approved ranges without reading
 or transforming media. The timing child separately proved exact component,
 frame, approval, estimate, and 18-category validation plus 126 downstream
-dependency records without media execution. The remaining 252 children,
-source-media and chunk execution, object storage, live Google Cloud, external
-beta, and paid production stayed false. The v21 source-only, v20 root-only, and
-v18 promotion-only aggregates remain historical evidence.
+dependency records before media execution. The first render/QA pair then
+assembled and independently verified one 220,341-byte object from five slices
+across five source objects. It completed exactly jobs four and five, recorded
+separate measured internal costs, rejected persisted-byte tampering after
+restart, and replayed without redispatch. The remaining 250 children, complete
+long-form media execution, object storage, live Google Cloud, external beta,
+and paid production stayed false. The v22 timing-only, v21 source-only, v20
+root-only, and v18 promotion-only aggregates remain historical evidence.
 
-Those media stages exercise their existing bounded fixtures. They do not turn
-the 30-minute or six-hour planning fixtures into long-form execution evidence.
+The long-form fixture uses synthetic constant-color H.264 MP4 objects and a
+narrow 30-fps, keyframe-zero, codec-compatible stream-copy recipe. It proves
+one real object lifecycle, not representative many-angle editorial quality,
+raw-footage scale, broad professional codec support, complete long-form
+execution, cloud throughput, or a customer SLA.
 
 ## Prior Aggregate Evidence
 
@@ -174,30 +188,32 @@ That v15 run remains historical pre-approved-snapshot-bridge evidence.
 
 ## Explicit Boundary
 
-This slice did not process a 30-minute video. It performed no upload, media
-decode, render, audio mix, color transform, object-store call, database call,
-Google Cloud action, provider call, customer credit operation, billing action,
-deployment, public delivery, Motion Studio/MS-001 work, or Edit
-Preference/Edit Reference work.
+This slice did not process a 30-minute video. It did perform one bounded
+synthetic 4K H.264 stream-copy render plus independent FFprobe QA in private
+local containers. It performed no program-audio mix, cross-chunk color pass,
+finalization, object-store call, database call, Google Cloud action, provider
+call, customer credit operation, billing action, deployment, public delivery,
+Motion Studio/MS-001 work, or Edit Preference/Edit Reference work.
 
 `frameExactPlanningContractReady`,
 `approvedSnapshotBindingContractReady`, canonical seed/controller persistence,
 blocked child-manifest derivation/persistence, specialized package/placement
 persistence, atomic local/private child-queue promotion, and the root child's
 exact authority/lease/operation/cost/artifact/QA/reconciliation/replay lifecycle
-are true. The source-authority child's exact structured validation lifecycle is
-also true. The master-timing child's structured validation lifecycle is true.
-The remaining 252 child leases, source-media and chunk
-tool/cost/runner binding, object persistence, chunk runners, continuous-audio
-execution, cross-chunk color QA, finalizer execution,
+are true. The source-authority and master-timing structured validation
+lifecycles are also true. The first object's render/QA authority, fixed runner,
+source staging, private persistence, independent QA, internal cost,
+reconciliation, terminal completion, tamper refusal, and replay are true. The
+remaining 250 child leases, all other chunk tool/cost/runner bindings,
+continuous-audio execution, cross-chunk color QA, finalizer execution,
 distributed database, live Google Cloud, staging, product, and production
 readiness all remain false.
 
 ## Next Required Evidence
 
-1. Execute the next dependency-safe timing or representative chunk boundary
-   through a separately versioned exact persisted lifecycle without granting a
-   broad render class and without touching the separately owned Preference
+1. Execute the separate continuous program-audio lifecycle or a bounded
+   multi-chunk set through exact persisted lifecycles without granting a broad
+   render class and without touching the separately owned Preference
    implementation.
 2. Add the remaining object-backed chunk, QA, continuous-audio, color-continuity, and
    finalization job adapters with exact attempt-cost evidence.
@@ -208,5 +224,6 @@ readiness all remain false.
    infrastructure with service identity, object residency, observability,
    cancellation, orphan cleanup, and p50/p95 evidence.
 
-Until those gates pass, this capability is a professional-scale plan contract,
-not professional-scale media execution.
+Until those gates pass, this capability is a professional-scale plan contract
+with one bounded real object-chunk lifecycle, not complete professional-scale
+media execution.

@@ -80,7 +80,11 @@ export type OfflineFfmpegPlanningPayload =
   | OfflineFfmpegColorMatchDeliveryPlanningPayload
 
 export interface OfflineFfprobePlanningPayload {
-  inspectionProfileId: 'source_intake_v1' | 'pre_render_v1' | 'final_export_v1'
+  inspectionProfileId:
+    | 'source_intake_v1'
+    | 'pre_render_v1'
+    | 'object_mezzanine_chunk_qa_v1'
+    | 'final_export_v1'
   countFrames: boolean
   verifyDurationAndSync: true
   emitMachineJsonOnly: true
@@ -263,7 +267,12 @@ export function validateOfflineFfprobePlanningPayload(value: unknown): OfflineFf
     'inspectionProfileId', 'countFrames', 'verifyDurationAndSync', 'emitMachineJsonOnly',
   ])
   if (
-    !['source_intake_v1', 'pre_render_v1', 'final_export_v1'].includes(String(payload.inspectionProfileId)) ||
+    ![
+      'source_intake_v1',
+      'pre_render_v1',
+      'object_mezzanine_chunk_qa_v1',
+      'final_export_v1',
+    ].includes(String(payload.inspectionProfileId)) ||
     typeof payload.countFrames !== 'boolean' ||
     payload.verifyDurationAndSync !== true ||
     payload.emitMachineJsonOnly !== true

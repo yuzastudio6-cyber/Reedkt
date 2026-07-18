@@ -184,18 +184,45 @@ approved Master Timing component set, rational frame base, 512 structured
 segments, 18 timing categories, timing-priority rules, and approved estimate
 metadata through a separate QA-worker lease, one-use attempt, private artifact,
 QA, 126-dependent reconciliation, internal cost, terminal completion, and
-restart replay. All 124 renders, continuous audio, and finalization are directly
-timing-dependent and remain unauthorized. The remaining 252 children are
-capability-blocked from lease, exact tool/cost binding, and dispatch, and no
-long-form media decode/render, object storage, distributed database, or Google
-Cloud execution has occurred.
+restart replay. The server-selected first object render and its paired
+independent QA now also complete through separate persisted authorizations,
+leases, one-use dispatches, create-only private media/evidence artifacts,
+attempt-level internal costs, reconciliation, terminal completion, tamper
+refusal, and exact replay. That bounded operation assembled 5,226 frames
+(`174.2` seconds) from five approved slices across five approved 4K objects
+into one 220,341-byte video-only H.264 Matroska object; FFprobe separately
+reopened and verified it. The remaining 250 children are capability-blocked.
+They include the other 123 renders and QA pairs, continuous program audio,
+cross-chunk color, finalization, and final QA. The exercised inputs are
+synthetic constant-color H.264 MP4 fixtures with a narrow 30-fps,
+keyframe-zero, codec-compatible stream-copy profile; this does not prove
+diverse many-angle footage, arbitrary professional codecs/HDR/VFR, complete
+long-form editing, object storage, a distributed database, or Google Cloud
+execution.
 
 ## Private Pipeline Evidence
 
 `npm run qa:canonical-private-pipeline` is the authoritative bounded canonical audit command. It verifies exact source, Edit Preferences, Edit Brief, a real resumable-sized 4K private ingest/proxy lifecycle, an over-16-MiB 4K canonical source execution, 4K estimate/export policy, browser-safe publication/approval/package/preparation/review/recovery clients, real local backend authority, bounded first-source-reference multi-source voice/color execution, bounded one-source professional-color regression, one separately labeled above-16-MiB Remotion runtime/persistence/QA output proof, active named-edit Playwright states, and the versioned proven-tool identity report. The current `npm run qa:internal-pipeline` adds auth/runtime, project/edit tenancy, approved tool-manifest, private Playwright capture, and the signed-in named-edit workflow. On 2026-07-15, its exact-code v3 24-phase run completed all 24 phases in 1,029,183 ms with exit code 0. The focused backend/runtime phase produced one private 4K master from three ordered sources, three exact source-bound voice deliveries, one baseline plus two independently first-reference-bound color intermediates, and two approved hard cuts; objective continuity passed at both boundaries before final QA, download, and replay. The final browser phase created a project and named edit, uploaded and probed the maximum eight distinct private audio-bearing sources, synchronized exact Edit Preferences, created and revised the inline Edit Brief, preserved the confirmed frame, approved one 4K-ceiling estimate, requested the immutable package separately, completed the 27-work-item/27-job private work graph, loaded and downloaded the integrity-bound non-passthrough eight-second 3840x2160 MP4, confirmed all eight source-bound tones in approved order, read sanitized journey state, and persisted acceptance. The same run regenerated evidence revision `2026-07-15.30` with exactly 50 private canonical/job-adapter identities and kept provider activation, live billing/wallet mutation, remote Supabase, public delivery, deployment, external beta, and paid production false. The earlier exact-code v2 24-phase run completed in 947,417 ms with the then-current three-source signed-in path; v3 supersedes that maximum-count browser evidence. The earlier 580,973 ms canonical run proved the then-current two-source reference match, the prior 604,446 ms canonical run predates reference matching, and the 719,518 ms 22-phase full run remains a historical fail-closed baseline. A separate complete `npm run smoke:canonical-private-tool-dispatch` execution passed with exit code 0 and reverified all 50 exact private canonical/job-adapter identities, including dynamic grant-set tamper/restore preservation. Both aggregate commands stop on the first failure and emit a machine-readable step report; a zero exit code means every included assertion passed, including assertions that unavailable or production-only behavior stays blocked.
 
-The exact-code v22 full run on 2026-07-18 supersedes the older aggregate verdicts
-for the current branch. It started at `2026-07-18T12:52:16.698Z`, finished at
+The exact-code v23 full run on 2026-07-18 is the current aggregate verdict for
+this branch. It passed `38/38` stages with exit code `0`, starting at
+`2026-07-18T15:34:20.145Z`, finishing at `2026-07-18T16:14:33.676Z`, and
+completing in `2,413,531 ms`. The deterministic isolated object-chunk stage
+passed in `21,735 ms`; the 88-check canonical long-form stage passed in
+`85,596 ms` and ended with five of 255 jobs complete. Three-source composition
+passed in `806,889 ms`, professional color in `841,888 ms`, bounded UHD
+Remotion streaming in `106,825 ms`, all 11 browser tests in `18,514 ms`, and
+the signed-in maximum-eight-source 4K private review in `487,929 ms`. The
+report reverified exactly 50 canonical E2E and 50 job-adapter tool identities
+while keeping every tool's product, external-beta, and production readiness
+false. The first object chunk is the only specialized long-form media pair
+executed; the remaining 250 child leases, complete media graph, program audio,
+cross-chunk color, finalization, live Google Cloud, distributed database,
+providers, billing, remote Supabase, public delivery, external beta, and paid
+production remain false.
+
+The prior exact-code v22 full run is historical pre-first-object-chunk
+evidence. It started at `2026-07-18T12:52:16.698Z`, finished at
 `2026-07-18T13:23:50.164Z`, and passed `37/37` stages in `1,893,466 ms`.
 The 30-minute/six-hour long-form planning-contract stage passed 27 adversarial
 checks in `434 ms`, the approved-snapshot binding bridge passed 22 checks in

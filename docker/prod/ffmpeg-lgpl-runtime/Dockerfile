@@ -54,6 +54,7 @@ COPY allowed-protocols.txt /tmp/allowed-protocols.txt
 COPY allowed-bsfs.txt /tmp/allowed-bsfs.txt
 COPY verify-runtime.sh /tmp/verify-runtime.sh
 COPY source-slice-finalizer.sh /tmp/source-slice-finalizer.sh
+COPY object-mezzanine-chunk.sh /tmp/object-mezzanine-chunk.sh
 COPY source-provenance.lock /tmp/source-provenance.lock
 
 WORKDIR /tmp/ffmpeg-source
@@ -113,10 +114,15 @@ RUN printf '%s  %s\n' \
       /runtime-rootfs/usr/local/bin/reeditpro-ffmpeg-verify \
   && install -m 0555 /tmp/source-slice-finalizer.sh \
       /runtime-rootfs/usr/local/bin/reeditpro-ffmpeg-source-slice-finalizer \
+  && install -m 0555 /tmp/object-mezzanine-chunk.sh \
+      /runtime-rootfs/usr/local/bin/reeditpro-ffmpeg-object-mezzanine-chunk \
   && sha256sum /runtime-rootfs/usr/local/bin/reeditpro-ffmpeg-verify \
       | sed 's#  /runtime-rootfs/#  /#' \
       >> /runtime-rootfs/opt/reeditpro-ffmpeg/share/reeditpro/runtime-files.sha256 \
   && sha256sum /runtime-rootfs/usr/local/bin/reeditpro-ffmpeg-source-slice-finalizer \
+      | sed 's#  /runtime-rootfs/#  /#' \
+      >> /runtime-rootfs/opt/reeditpro-ffmpeg/share/reeditpro/runtime-files.sha256 \
+  && sha256sum /runtime-rootfs/usr/local/bin/reeditpro-ffmpeg-object-mezzanine-chunk \
       | sed 's#  /runtime-rootfs/#  /#' \
       >> /runtime-rootfs/opt/reeditpro-ffmpeg/share/reeditpro/runtime-files.sha256 \
   && chmod -R a+rX /runtime-rootfs/opt/reeditpro-ffmpeg \
@@ -137,7 +143,8 @@ LABEL org.opencontainers.image.title="ReEditPro minimal FFmpeg internal-worker f
       reeditpro.production-encoding-ready="false" \
       reeditpro.h264-encoding="blocked_not_compiled" \
       reeditpro.aac-encoding="private_source_slice_finalizer_only" \
-      reeditpro.mp4-mux="private_source_slice_finalizer_only" \
+      reeditpro.mp4-mux="private_source_slice_finalizer_and_object_chunk_only" \
+      reeditpro.object-mezzanine-chunk="private_first_chunk_stream_copy_only" \
       reeditpro.codec-patent-legal-review="required" \
       reeditpro.runtime-network="must_run_with_network_none" \
       reeditpro.runtime-rootfs="must_run_read_only"

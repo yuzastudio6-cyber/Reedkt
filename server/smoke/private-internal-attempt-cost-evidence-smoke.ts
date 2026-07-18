@@ -14,6 +14,10 @@ import {
   PROFESSIONAL_LONG_FORM_MASTER_TIMING_OPERATION_ID,
 } from '../edit-architecture/professional-long-form-master-timing-execution-contract'
 import {
+  PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_OPERATION_ID,
+  PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_OPERATION_ID,
+} from '../edit-architecture/professional-long-form-first-object-chunk-execution-contract'
+import {
   PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS,
   beginPrivateInternalAttemptCostEvidence,
   privateInternalAttemptCostEvidenceSchema,
@@ -184,6 +188,76 @@ try {
   assert.equal(ffmpeg.evidence.resourceUsage.gpuCount, 0)
   assertNoCommercialKeys(ffmpeg.evidence)
 
+  const objectChunkRenderInput = {
+    ...common,
+    approvedWorkItemId: 'long-form-object-chunk-1-render',
+    jobId: 'long-form-object-chunk-render-job-cost-proof',
+    executionAttemptId: 'attempt-long-form-object-chunk-render-cost-proof',
+    toolId: 'ffmpeg' as const,
+    operationId: PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_OPERATION_ID,
+    workloadProfileId:
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFourKObjectMezzanineChunk,
+  }
+  const objectChunkRenderMeter = await beginPrivateInternalAttemptCostEvidence(
+    objectChunkRenderInput,
+    clock([35_000_000_000n, 38_000_000_000n], ['2026-07-11T12:04:30.000Z']),
+  )
+  const objectChunkRender = await objectChunkRenderMeter.finalize({
+    status: 'completed',
+    failureCategory: 'none',
+    outputByteLength: 28_000_000,
+    linkedCanonicalOutcomeHash: '1'.repeat(64),
+  })
+  assert.equal(objectChunkRender.evidence.identity.toolId, 'ffmpeg')
+  assert.equal(
+    objectChunkRender.evidence.identity.workloadProfileId,
+    PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFourKObjectMezzanineChunk,
+  )
+  assert.deepEqual(
+    {
+      vcpuCount: objectChunkRender.evidence.resourceUsage.vcpuCount,
+      memoryGib: objectChunkRender.evidence.resourceUsage.memoryGib,
+      gpuCount: objectChunkRender.evidence.resourceUsage.gpuCount,
+    },
+    { vcpuCount: 2, memoryGib: 4, gpuCount: 0 },
+  )
+  assertNoCommercialKeys(objectChunkRender.evidence)
+
+  const objectChunkQaInput = {
+    ...common,
+    approvedWorkItemId: 'long-form-object-chunk-1-qa',
+    jobId: 'long-form-object-chunk-qa-job-cost-proof',
+    executionAttemptId: 'attempt-long-form-object-chunk-qa-cost-proof',
+    toolId: 'ffprobe' as const,
+    operationId: PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_OPERATION_ID,
+    workloadProfileId:
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffprobeFourKObjectMezzanineChunkQa,
+  }
+  const objectChunkQaMeter = await beginPrivateInternalAttemptCostEvidence(
+    objectChunkQaInput,
+    clock([38_000_000_000n, 38_750_000_000n], ['2026-07-11T12:04:45.000Z']),
+  )
+  const objectChunkQa = await objectChunkQaMeter.finalize({
+    status: 'completed',
+    failureCategory: 'none',
+    outputByteLength: 12_000,
+    linkedCanonicalOutcomeHash: '2'.repeat(64),
+  })
+  assert.equal(objectChunkQa.evidence.identity.toolId, 'ffprobe')
+  assert.equal(
+    objectChunkQa.evidence.identity.workloadProfileId,
+    PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffprobeFourKObjectMezzanineChunkQa,
+  )
+  assert.deepEqual(
+    {
+      vcpuCount: objectChunkQa.evidence.resourceUsage.vcpuCount,
+      memoryGib: objectChunkQa.evidence.resourceUsage.memoryGib,
+      gpuCount: objectChunkQa.evidence.resourceUsage.gpuCount,
+    },
+    { vcpuCount: 2, memoryGib: 4, gpuCount: 0 },
+  )
+  assertNoCommercialKeys(objectChunkQa.evidence)
+
   const longFormValidationInput = {
     ...common,
     approvedWorkItemId: 'long-form-validate-approved-snapshot',
@@ -318,6 +392,10 @@ try {
     failedAttemptCostMicros: failed.evidence.actualInternalCostMicros,
     remotionChunkAttemptCostMicros: remotion.evidence.actualInternalCostMicros,
     ffmpegFinalizationAttemptCostMicros: ffmpeg.evidence.actualInternalCostMicros,
+    ffmpegObjectChunkAttemptCostMicros:
+      objectChunkRender.evidence.actualInternalCostMicros,
+    ffprobeObjectChunkQaAttemptCostMicros:
+      objectChunkQa.evidence.actualInternalCostMicros,
     longFormSnapshotValidationAttemptCostMicros:
       longFormValidation.evidence.actualInternalCostMicros,
     longFormSourceAuthorityValidationAttemptCostMicros:
@@ -335,6 +413,8 @@ try {
       'executed_failure_retains_internal_cost',
       'remotion_4k_chunk_profile_is_2vcpu_4gib_cpu_only',
       'ffmpeg_4k_finalization_profile_is_2vcpu_4gib_cpu_only',
+      'ffmpeg_4k_object_chunk_profile_is_2vcpu_4gib_cpu_only',
+      'ffprobe_4k_object_chunk_qa_profile_is_2vcpu_4gib_cpu_only',
       'professional_long_form_snapshot_validation_profile_is_2vcpu_4gib_cpu_only',
       'professional_long_form_source_authority_validation_profile_is_2vcpu_4gib_cpu_only',
       'professional_long_form_master_timing_validation_profile_is_2vcpu_4gib_cpu_only',

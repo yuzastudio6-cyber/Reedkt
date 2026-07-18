@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { spawnSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -86,6 +87,9 @@ import {
 import {
   createCanonicalProfessionalLongFormMasterTimingExecutionService,
 } from '../services/canonical-professional-long-form-master-timing-execution-service'
+import {
+  createCanonicalProfessionalLongFormFirstObjectChunkExecutionService,
+} from '../services/canonical-professional-long-form-first-object-chunk-execution-service'
 import { createEditPlanningAuthorityService } from '../services/edit-planning-authority-service'
 import { createExactEditPreferenceService } from '../services/exact-edit-preference-service'
 import {
@@ -127,6 +131,15 @@ import type {
 import {
   privateInternalAttemptCostEvidenceSchema,
 } from '../tool-cost-metering/private-internal-attempt-cost-evidence'
+import {
+  PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_COST_PROFILE_ID,
+  PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_OPERATION_ID,
+  PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_COST_PROFILE_ID,
+  PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_OPERATION_ID,
+} from '../edit-architecture/professional-long-form-first-object-chunk-execution-contract'
+import {
+  activatePrivateOfflineMediaBinaryRuntime,
+} from '../tool-execution/media-binary-execution'
 
 const workspaceId = 'workspace-canonical-professional-long-form'
 const userId = 'user-canonical-professional-long-form'
@@ -2088,6 +2101,153 @@ try {
     'restored_timing_components_segments_and_estimate_metadata_replay_exactly',
   )
 
+  await activatePrivateOfflineMediaBinaryRuntime()
+  const firstObjectChunkService =
+    createCanonicalProfessionalLongFormFirstObjectChunkExecutionService(context)
+  await expectApiError(
+    () => firstObjectChunkService.execute({
+      workspaceId,
+      approvedPlanSnapshotId: String(snapshot.snapshotId),
+      callerSelectedChunkId: 'caller-must-not-select-a-chunk',
+    } as unknown as {
+      workspaceId: string
+      approvedPlanSnapshotId: string
+    }),
+    'VALIDATION_FAILED',
+    'caller_cannot_select_chunk_source_recipe_command_path_or_artifact',
+  )
+  const completedFirstObjectChunk = await firstObjectChunkService.execute({
+    workspaceId,
+    approvedPlanSnapshotId: String(snapshot.snapshotId),
+  })
+  check(
+    completedFirstObjectChunk.disposition === 'completed' &&
+      completedFirstObjectChunk.queueAggregate.summary.totalJobCount === 255 &&
+      completedFirstObjectChunk.queueAggregate.summary.completedJobCount === 5 &&
+      completedFirstObjectChunk.queueAggregate.summary.queuedJobCount === 250 &&
+      completedFirstObjectChunk.queueAggregate.summary.leasedJobCount === 0 &&
+      completedFirstObjectChunk.queueAggregate.summary.totalDeliveryAttemptCount === 5,
+    'first_real_4k_object_chunk_and_paired_qa_complete_exact_jobs_four_and_five',
+  )
+  check(
+    completedFirstObjectChunk.render.outputArtifact.contentType ===
+      'video/x-matroska' &&
+      completedFirstObjectChunk.render.outputArtifact.assetRole === 'processed' &&
+      completedFirstObjectChunk.render.outputArtifact.objectVersion === 1 &&
+      !completedFirstObjectChunk.render.outputArtifact.placeholderAllowed &&
+      completedFirstObjectChunk.render.runtimeEvidence.checks
+        .fixedHardCutStreamCopyExecuted === 'passed' &&
+      completedFirstObjectChunk.render.runtimeEvidence.checks
+        .noDecodeOrReencode === 'passed' &&
+      completedFirstObjectChunk.render.runtimeEvidence.checks.noAudioEmbedded ===
+        'passed' &&
+      completedFirstObjectChunk.render.reconciliation.qaDependency
+        .dependencySatisfiedByThisCompletion &&
+      !completedFirstObjectChunk.render.reconciliation.qaDependency
+        .executionAuthorized,
+    'render_uses_exact_private_sources_fixed_stream_copy_and_create_only_processed_artifact_lineage',
+  )
+  check(
+    completedFirstObjectChunk.qa.artifact.outcome === 'passed' &&
+      completedFirstObjectChunk.qa.artifact.observed.videoStreamCount === 1 &&
+      completedFirstObjectChunk.qa.artifact.observed.audioStreamCount === 0 &&
+      completedFirstObjectChunk.qa.artifact.observed.codecName === 'h264' &&
+      completedFirstObjectChunk.qa.artifact.observed.width === 3_840 &&
+      completedFirstObjectChunk.qa.artifact.observed.height === 2_160 &&
+      completedFirstObjectChunk.qa.artifact.observed.frameRateNumerator === 30 &&
+      completedFirstObjectChunk.qa.artifact.observed.frameRateDenominator === 1 &&
+      completedFirstObjectChunk.qa.artifact.observed.frameCount ===
+        completedFirstObjectChunk.render.authority.approvedChunk.durationFrames &&
+      completedFirstObjectChunk.qa.artifact.observed.colorSpace === 'bt709' &&
+      completedFirstObjectChunk.qa.artifact.observed.colorTransfer === 'bt709' &&
+      completedFirstObjectChunk.qa.artifact.observed.colorPrimaries === 'bt709' &&
+      completedFirstObjectChunk.qa.reconciliation.downstream.length === 2,
+    'independent_ffprobe_reopens_exact_mkv_and_verifies_frame_rate_count_duration_color_and_video_only_contract',
+  )
+  const firstObjectChunkCosts = [
+    completedFirstObjectChunk.render.costEvidence,
+    completedFirstObjectChunk.qa.costEvidence,
+  ]
+  check(
+    firstObjectChunkCosts[0]!.identity.toolId === 'ffmpeg' &&
+      firstObjectChunkCosts[0]!.identity.operationId ===
+        PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_OPERATION_ID &&
+      firstObjectChunkCosts[0]!.identity.workloadProfileId ===
+        PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_COST_PROFILE_ID &&
+      firstObjectChunkCosts[1]!.identity.toolId === 'ffprobe' &&
+      firstObjectChunkCosts[1]!.identity.operationId ===
+        PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_OPERATION_ID &&
+      firstObjectChunkCosts[1]!.identity.workloadProfileId ===
+        PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_COST_PROFILE_ID &&
+      firstObjectChunkCosts.every((cost) =>
+        cost.boundary === 'internal_production_cost_only' &&
+        cost.resourceUsage.vcpuCount === 2 &&
+        cost.resourceUsage.memoryGib === 4 && cost.resourceUsage.gpuCount === 0 &&
+        cost.outcome.status === 'completed' &&
+        cost.outcome.failureCategory === 'none' &&
+        Number.isSafeInteger(cost.actualInternalCostMicros) &&
+        cost.actualInternalCostMicros >= 0 &&
+        !/customerPrice|customerCredit|serviceFee|wallet|billingAuthority/u
+          .test(stableAuthorityStringify(cost))),
+    'ffmpeg_and_ffprobe_attempt_costs_are_versioned_actual_internal_cost_only',
+  )
+  check(
+    completedFirstObjectChunk.readiness
+      .fundedFourKEstimateReservationReused &&
+      !completedFirstObjectChunk.readiness.secondExportEstimateCreated &&
+      !completedFirstObjectChunk.readiness.secondExportChargeCreated &&
+      !completedFirstObjectChunk.readiness.providerActivationAuthorized &&
+      !completedFirstObjectChunk.readiness.customerBillingAuthorized &&
+      !completedFirstObjectChunk.readiness.walletMutationAuthorized &&
+      !completedFirstObjectChunk.readiness.liveGoogleCloudVerified &&
+      !completedFirstObjectChunk.readiness.publicDeliveryAuthorized &&
+      !completedFirstObjectChunk.readiness.productReady &&
+      !completedFirstObjectChunk.readiness.productionReady,
+    '4k_approved_estimate_is_reused_without_second_charge_and_all_external_gates_remain_closed',
+  )
+
+  const firstObjectPath = join(
+    localStorageRoot,
+    'canonical-media-binary-results',
+    'private-v1',
+    completedFirstObjectChunk.render.outputArtifact.objectIdentity.slice(0, 2),
+    `${completedFirstObjectChunk.render.outputArtifact.objectIdentity}.mkv`,
+  )
+  const originalFirstObjectBytes = await readFile(firstObjectPath)
+  const corruptedFirstObjectBytes = Buffer.from(originalFirstObjectBytes)
+  corruptedFirstObjectBytes[corruptedFirstObjectBytes.length - 1] =
+    corruptedFirstObjectBytes[corruptedFirstObjectBytes.length - 1]! ^ 0xff
+  await writeFile(firstObjectPath, corruptedFirstObjectBytes)
+  clearPrivateEditAuthorityProcessStateForSmoke()
+  clearPrivateCanonicalPackageWorkQueueProcessStateForSmoke()
+  await expectApiError(
+    () => firstObjectChunkService.execute({
+      workspaceId,
+      approvedPlanSnapshotId: String(snapshot.snapshotId),
+    }),
+    'VALIDATION_FAILED',
+    'persisted_first_object_chunk_byte_tamper_fails_closed_after_restart',
+  )
+  await writeFile(firstObjectPath, originalFirstObjectBytes)
+  clearPrivateEditAuthorityProcessStateForSmoke()
+  clearPrivateCanonicalPackageWorkQueueProcessStateForSmoke()
+  const replayedFirstObjectChunk = await firstObjectChunkService.execute({
+    workspaceId,
+    approvedPlanSnapshotId: String(snapshot.snapshotId),
+  })
+  check(
+    replayedFirstObjectChunk.disposition === 'exact_replay' &&
+      replayedFirstObjectChunk.evidenceHash ===
+        completedFirstObjectChunk.evidenceHash &&
+      replayedFirstObjectChunk.render.outputArtifact.sha256 ===
+        completedFirstObjectChunk.render.outputArtifact.sha256 &&
+      replayedFirstObjectChunk.qa.artifact.qaHash ===
+        completedFirstObjectChunk.qa.artifact.qaHash &&
+      replayedFirstObjectChunk.queueAggregate.summary.completedJobCount === 5 &&
+      replayedFirstObjectChunk.queueAggregate.summary.queuedJobCount === 250,
+    'completed_first_object_chunk_and_qa_restart_reopen_as_exact_replay_without_redispatch',
+  )
+
   await assertNoActivationImports()
 
   const childBlobPath = join(
@@ -2116,7 +2276,7 @@ try {
 
   console.log(JSON.stringify({
     ok: true,
-    schemaVersion: 'canonical-professional-long-form-post-approval-smoke-v5',
+    schemaVersion: 'canonical-professional-long-form-post-approval-smoke-v6',
     checkCount: checks.length,
     checks,
     evidence: {
@@ -2170,10 +2330,25 @@ try {
       masterTimingValidationArtifactByteLength: timingArtifactRef.byteLength,
       masterTimingAttemptInternalCostEvidenceVerified: true,
       masterTimingRunnerReadOrDecodedMedia: false,
-      completedChildCount: timingCompletedQueue.summary.completedJobCount,
-      remainingBlockedChildCount: timingCompletedQueue.summary.queuedJobCount,
-      mediaExecutionVerified: false,
-      chunkRenderExecutionVerified: false,
+      completedChildCount:
+        completedFirstObjectChunk.queueAggregate.summary.completedJobCount,
+      remainingBlockedChildCount:
+        completedFirstObjectChunk.queueAggregate.summary.queuedJobCount,
+      mediaExecutionVerified: true,
+      chunkRenderExecutionVerified: true,
+      firstObjectChunkIndependentQaVerified: true,
+      firstObjectChunkByteLength:
+        completedFirstObjectChunk.render.outputArtifact.byteLength,
+      firstObjectChunkFrameCount:
+        completedFirstObjectChunk.qa.artifact.observed.frameCount,
+      firstObjectChunkSourceCount:
+        completedFirstObjectChunk.render.runtimeEvidence.sourceSha256s.length,
+      firstObjectChunkSourceSliceCount:
+        completedFirstObjectChunk.render.authority.approvedChunk.sourceSlices.length,
+      firstObjectChunkRenderInternalCostMicros:
+        completedFirstObjectChunk.render.costEvidence.actualInternalCostMicros,
+      firstObjectChunkQaInternalCostMicros:
+        completedFirstObjectChunk.qa.costEvidence.actualInternalCostMicros,
       googleCloudDispatchAuthorized: false,
       liveGoogleCloudVerified: false,
       productReady: false,
@@ -2286,17 +2461,45 @@ async function prepareSourceMediaAuthority(
 ): Promise<SourceFixture> {
   const uploadService = createUploadService(context)
   const sourceSequence: SourceFixture['sourceSequence'] = []
+  const sourceFrames = Math.ceil(
+    totalFrames / PROFESSIONAL_LONG_FORM_MAXIMUM_SOURCE_RANGES,
+  )
+  const baseSourcePath = join(localStorageRoot, 'fixture-4k-source-base.mp4')
+  const generatedBase = spawnSync('ffmpeg', [
+    '-hide_banner', '-loglevel', 'error',
+    '-f', 'lavfi', '-i', `color=c=0x174EA6:s=3840x2160:r=${fps}`,
+    '-frames:v', String(sourceFrames),
+    '-c:v', 'libx264', '-preset', 'ultrafast', '-tune', 'zerolatency',
+    '-x264-params',
+    `keyint=${sourceFrames}:min-keyint=${sourceFrames}:scenecut=0:open-gop=0:colorprim=bt709:transfer=bt709:colormatrix=bt709`,
+    '-bf', '0', '-pix_fmt', 'yuv420p', '-color_range', 'tv',
+    '-colorspace', 'bt709', '-color_primaries', 'bt709',
+    '-color_trc', 'bt709', '-an', '-movflags', '+faststart',
+    '-threads', '1', '-y', baseSourcePath,
+  ], { encoding: 'utf8' })
+  assert.equal(generatedBase.status, 0, generatedBase.stderr)
   for (let index = 0; index < sourceCount; index += 1) {
-    const bytes = Buffer.from(
-      `reeditpro-six-hour-long-form-source-${index + 1}-immutable-bytes`,
+    const sourcePath = join(
+      localStorageRoot,
+      `reeditpro-six-hour-source-${index + 1}-${process.pid}.mp4`,
     )
+    const generated = spawnSync('ffmpeg', [
+      '-hide_banner', '-loglevel', 'error',
+      '-i', baseSourcePath, '-map', '0:v:0', '-c:v', 'copy',
+      '-metadata', `title=ReeditPro immutable source ${index + 1}`,
+      '-metadata', `comment=approved-source-${index + 1}`,
+      '-movflags', '+faststart', '-y', sourcePath,
+    ], { encoding: 'utf8' })
+    assert.equal(generated.status, 0, generated.stderr)
+    const bytes = await readFile(sourcePath)
+    await rm(sourcePath, { force: true })
     const checksumSha256 = createHash('sha256').update(bytes).digest('hex')
     const created = await uploadService.createUploadIntent({
       workspaceId,
       projectId,
       uploadPurpose: 'source_media',
-      originalFileName: `long-form-source-${index + 1}.mov`,
-      mimeType: 'video/quicktime',
+      originalFileName: `long-form-source-${index + 1}.mp4`,
+      mimeType: 'video/mp4',
       expectedSizeBytes: bytes.byteLength,
       checksumSha256,
     })
@@ -2304,7 +2507,7 @@ async function prepareSourceMediaAuthority(
       created.uploadIntent.id,
       workspaceId,
       bytes,
-      'video/quicktime',
+      'video/mp4',
       bytes.byteLength,
     )
     const finalized = await uploadService.finalizeUploadIntent({
@@ -2319,6 +2522,7 @@ async function prepareSourceMediaAuthority(
       required: true,
     })
   }
+  await rm(baseSourcePath, { force: true })
   const candidate = (await createSourceMediaAuthorityService(context)
     .buildManifestCandidate({
       workspaceId,
@@ -2720,6 +2924,9 @@ async function assertNoActivationImports(): Promise<void> {
     'server/edit-architecture/professional-long-form-master-timing-execution-contract.ts',
     'server/edit-architecture/professional-long-form-master-timing-execution.ts',
     'server/services/canonical-professional-long-form-master-timing-execution-service.ts',
+    'server/edit-architecture/professional-long-form-first-object-chunk-execution-contract.ts',
+    'server/edit-architecture/professional-long-form-first-object-chunk-execution.ts',
+    'server/services/canonical-professional-long-form-first-object-chunk-execution-service.ts',
   ].map((path) => readFile(path, 'utf8')))
   check(
     sources.every((source) =>

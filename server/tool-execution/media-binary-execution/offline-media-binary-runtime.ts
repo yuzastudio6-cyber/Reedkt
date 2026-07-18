@@ -37,8 +37,16 @@ import {
   validateOfflineMediaBinaryMezzanineFinalizationRequest,
   type OfflineMediaBinaryMezzanineFinalizationRequest,
 } from './offline-media-binary-mezzanine-finalization-protocol'
+import {
+  OFFLINE_MEDIA_BINARY_OBJECT_MEZZANINE_CHUNK_MAGIC,
+  OFFLINE_MEDIA_BINARY_OBJECT_MEZZANINE_CHUNK_MAXIMUM_OUTPUT_BYTES,
+  offlineMediaBinaryObjectMezzanineChunkRequestSha256,
+  validateOfflineMediaBinaryObjectMezzanineChunkRequest,
+  type OfflineMediaBinaryObjectMezzanineChunkRequest,
+} from './offline-media-binary-object-mezzanine-chunk-protocol'
 import type {
   OfflineFfmpegMezzanineFinalizationExecutionResult,
+  OfflineFfmpegObjectMezzanineChunkExecutionResult,
   OfflineFfmpegExecutionResult,
   OfflineFfmpegStreamingOutputExecutionResult,
   OfflineFfprobeExecutionResult,
@@ -52,16 +60,19 @@ import {
   OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_OUTPUT_BYTES,
 } from './offline-media-binary-types'
 
-const IMAGE_TAG = 'reeditpro/ffmpeg-lgpl-internal:8.1.2-color-finalizer-v2-local' as const
+const IMAGE_TAG = 'reeditpro/ffmpeg-lgpl-internal:8.1.2-object-chunk-v3-local' as const
 const FFPROBE_ENTRYPOINT = '/opt/reeditpro-ffmpeg/bin/ffprobe' as const
 const FFMPEG_ENTRYPOINT = '/opt/reeditpro-ffmpeg/bin/ffmpeg' as const
 const MEZZANINE_FINALIZER_ENTRYPOINT =
   '/usr/local/bin/reeditpro-ffmpeg-source-slice-finalizer' as const
 const MEZZANINE_FINALIZER_COMMAND = ['source-slice-finalization-v1'] as const
+const OBJECT_MEZZANINE_CHUNK_ENTRYPOINT =
+  '/usr/local/bin/reeditpro-ffmpeg-object-mezzanine-chunk' as const
+const OBJECT_MEZZANINE_CHUNK_COMMAND = ['object-mezzanine-chunk-v1'] as const
 const SOURCE_VERSION = '8.1.2' as const
 const SOURCE_SHA256 = '464beb5e7bf0c311e68b45ae2f04e9cc2af88851abb4082231742a74d97b524c' as const
-const STORAGE_ROOT = '/tmp/reeditpro-offline-media-binary-execution-finalizer-v2' as const
-const AUTHORITY_PATH = 'runtime-authority/offline-media-binary-runtime-finalizer-v2.json' as const
+const STORAGE_ROOT = '/tmp/reeditpro-offline-media-binary-execution-object-chunk-v3' as const
+const AUTHORITY_PATH = 'runtime-authority/offline-media-binary-runtime-object-chunk-v3.json' as const
 const DOCKER_CONTROL_TIMEOUT_MS = 120_000
 const MAXIMUM_STREAMING_TIMEOUT_MS = 10 * 60_000
 
@@ -86,6 +97,7 @@ export interface OfflineMediaBinaryRuntimeAuthority {
     exactStructuredPayloadOnly: true
     canonicalDispatchMayReference: true
     privateInternalMezzanineFinalizationReady: true
+    privateInternalFirstObjectMezzanineChunkReady: true
     productReady: false
     externalBetaReady: false
     productionReady: false
@@ -121,6 +133,11 @@ export interface PrivateOfflineMediaBinaryRuntime {
     },
     outputSink: OfflineMediaBinaryStreamingOutputSink,
   ): Promise<OfflineFfmpegMezzanineFinalizationExecutionResult>
+  executeObjectMezzanineChunkServerInjected(
+    request: OfflineMediaBinaryObjectMezzanineChunkRequest,
+    sources: readonly OfflineMediaBinaryServerInjectedInput[],
+    outputSink: OfflineMediaBinaryStreamingOutputSink,
+  ): Promise<OfflineFfmpegObjectMezzanineChunkExecutionResult>
 }
 
 export async function activatePrivateOfflineMediaBinaryRuntime(): Promise<PrivateOfflineMediaBinaryRuntime> {
@@ -145,6 +162,16 @@ export async function activatePrivateOfflineMediaBinaryRuntime(): Promise<Privat
     outputSink: OfflineMediaBinaryStreamingOutputSink,
   ) => executeMezzanineFinalizationServerInjected(image, request, inputs, outputSink)) as
     PrivateOfflineMediaBinaryRuntime['executeMezzanineFinalizationServerInjected']
+  const executeObjectMezzanineChunkServerInjectedBound = ((
+    request: OfflineMediaBinaryObjectMezzanineChunkRequest,
+    sources: readonly OfflineMediaBinaryServerInjectedInput[],
+    outputSink: OfflineMediaBinaryStreamingOutputSink,
+  ) => executeObjectMezzanineChunkServerInjected(
+    image,
+    request,
+    sources,
+    outputSink,
+  )) as PrivateOfflineMediaBinaryRuntime['executeObjectMezzanineChunkServerInjected']
   return Object.freeze({
     image,
     execute: executeBound,
@@ -152,6 +179,8 @@ export async function activatePrivateOfflineMediaBinaryRuntime(): Promise<Privat
     executeServerInjectedStreamingOutput: executeServerInjectedStreamingOutputBound,
     executeMezzanineFinalizationServerInjected:
       executeMezzanineFinalizationServerInjectedBound,
+    executeObjectMezzanineChunkServerInjected:
+      executeObjectMezzanineChunkServerInjectedBound,
   })
 }
 
@@ -181,6 +210,16 @@ export async function openPrivateOfflineMediaBinaryRuntime(): Promise<PrivateOff
     outputSink: OfflineMediaBinaryStreamingOutputSink,
   ) => executeMezzanineFinalizationServerInjected(image, request, inputs, outputSink)) as
     PrivateOfflineMediaBinaryRuntime['executeMezzanineFinalizationServerInjected']
+  const executeObjectMezzanineChunkServerInjectedBound = ((
+    request: OfflineMediaBinaryObjectMezzanineChunkRequest,
+    sources: readonly OfflineMediaBinaryServerInjectedInput[],
+    outputSink: OfflineMediaBinaryStreamingOutputSink,
+  ) => executeObjectMezzanineChunkServerInjected(
+    image,
+    request,
+    sources,
+    outputSink,
+  )) as PrivateOfflineMediaBinaryRuntime['executeObjectMezzanineChunkServerInjected']
   return Object.freeze({
     image,
     execute: executeBound,
@@ -188,6 +227,8 @@ export async function openPrivateOfflineMediaBinaryRuntime(): Promise<PrivateOff
     executeServerInjectedStreamingOutput: executeServerInjectedStreamingOutputBound,
     executeMezzanineFinalizationServerInjected:
       executeMezzanineFinalizationServerInjectedBound,
+    executeObjectMezzanineChunkServerInjected:
+      executeObjectMezzanineChunkServerInjectedBound,
   })
 }
 
@@ -211,6 +252,7 @@ Promise<OfflineMediaBinaryRuntimeAuthority | undefined> {
     authority.source !== 'private_local_pinned_ffmpeg_lgpl_runtime' ||
     record(authority.readiness).privateInternalExecutionReady !== true ||
     record(authority.readiness).privateInternalMezzanineFinalizationReady !== true ||
+    record(authority.readiness).privateInternalFirstObjectMezzanineChunkReady !== true ||
     record(authority.readiness).productReady !== false ||
     record(authority.readiness).finalExportReady !== false
   ) throw unavailable('Media binary runtime authority boundary is invalid.')
@@ -444,6 +486,189 @@ async function executeMezzanineFinalizationServerInjected(
         requestEnvelopeSha256,
         sourceSha256: request.inputs.source.sha256,
         chunkSha256s: request.inputs.chunks.map((chunk) => chunk.sha256),
+        resultSha256: outputSpool.sha256,
+        semanticEvidence,
+        confinement,
+        containerExitCode: 0,
+        oomKilled: false,
+        outputTransport: 'server_committed_private_stream_v1',
+      },
+      image,
+      attestation: { recordId, completedAt, attestationHash },
+      readiness: {
+        privateInternalOnly: true,
+        productReady: false,
+        externalBetaReady: false,
+        productionReady: false,
+      },
+    }
+  } finally {
+    await outputSpool?.cleanup().catch(() => undefined)
+    await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024)
+      .catch(() => undefined)
+  }
+}
+
+async function executeObjectMezzanineChunkServerInjected(
+  image: OfflineMediaBinaryImageEvidence,
+  value: unknown,
+  sources: readonly OfflineMediaBinaryServerInjectedInput[],
+  outputSink: OfflineMediaBinaryStreamingOutputSink,
+): Promise<OfflineFfmpegObjectMezzanineChunkExecutionResult> {
+  let request: OfflineMediaBinaryObjectMezzanineChunkRequest
+  try {
+    request = validateOfflineMediaBinaryObjectMezzanineChunkRequest(value)
+  } catch {
+    throw invalid('Structured object-mezzanine chunk request was rejected.')
+  }
+  assertObjectMezzanineChunkServerInjectedInputs(request, sources)
+  if (
+    !outputSink ||
+    outputSink.maximumBytes !==
+      OFFLINE_MEDIA_BINARY_OBJECT_MEZZANINE_CHUNK_MAXIMUM_OUTPUT_BYTES ||
+    typeof outputSink.persist !== 'function'
+  ) throw invalid('Object-mezzanine chunk output sink authority is invalid.')
+
+  const container = await createContainer(
+    image,
+    OBJECT_MEZZANINE_CHUNK_ENTRYPOINT,
+    [...OBJECT_MEZZANINE_CHUNK_COMMAND],
+  )
+  let outputSpool: DockerVerifiedPrivateOutputSpool | undefined
+  try {
+    const confinement = validateConfinement(
+      await inspectContainer(container.id),
+      image,
+      OBJECT_MEZZANINE_CHUNK_ENTRYPOINT,
+      [...OBJECT_MEZZANINE_CHUNK_COMMAND],
+    )
+    const combinedInputBytes = request.inputs.sources.reduce(
+      (total, source) => total + source.byteLength,
+      0,
+    )
+    outputSpool = await dockerVerifiedObjectMezzanineChunkToPrivateOutputSpool({
+      args: ['start', '--attach', '--interactive', container.id],
+      request,
+      sources,
+      maximumOutputBytes:
+        OFFLINE_MEDIA_BINARY_OBJECT_MEZZANINE_CHUNK_MAXIMUM_OUTPUT_BYTES,
+      timeoutMs: mediaExecutionTimeoutMs(
+        combinedInputBytes,
+        request.payload.durationFrames,
+        request.payload.fps,
+      ),
+    })
+    const after = await inspectContainer(container.id)
+    const state = record(after.State)
+    if (
+      outputSpool.exitCode !== 0 || outputSpool.stderr.length > 0 ||
+      outputSpool.byteLength < 1_024 || state.Status !== 'exited' ||
+      state.Running !== false || state.ExitCode !== outputSpool.exitCode ||
+      state.OOMKilled !== false
+    ) throw unavailable(
+      'Confined object-mezzanine chunk execution failed closed ' +
+      `(exit=${outputSpool.exitCode};stderrBytes=${outputSpool.stderr.length};` +
+      `stdoutBytes=${outputSpool.byteLength};state=${String(state.Status)};` +
+      `stateExit=${String(state.ExitCode)};oomKilled=${String(state.OOMKilled)};` +
+      `diagnostic=${safeFfmpegDiagnostic(outputSpool.stderr)}).`,
+    )
+    const outputProbe = await probeObjectMezzanineChunkOutput(
+      image,
+      outputSpool.source,
+      request,
+    )
+    const persisted = await outputSink.persist({
+      stream: await outputSpool.source.openStream(),
+      mimeType: 'video/x-matroska',
+      expectedByteLength: outputSpool.byteLength,
+      expectedSha256: outputSpool.sha256,
+    })
+    if (
+      persisted.byteLength !== outputSpool.byteLength ||
+      persisted.sha256 !== outputSpool.sha256
+    ) throw unavailable(
+      'Object-mezzanine output sink changed the exact artifact commitment.',
+    )
+
+    const completedAt = new Date().toISOString()
+    const requestEnvelopeSha256 =
+      offlineMediaBinaryObjectMezzanineChunkRequestSha256(request)
+    const semanticEvidence = Object.freeze({
+      fixedRecipeExecuted: true,
+      recipeProfileId: request.payload.recipeProfileId,
+      firstObjectChunkOnly: true,
+      chunkId: request.payload.chunkId,
+      chunkAuthorityHash: request.payload.chunkAuthorityHash,
+      expectedObjectIdentity: request.payload.expectedObjectIdentity,
+      immutableSourceBytesVerified: true,
+      sourceDeliveryMode: 'private_verified_stream_v1',
+      uniqueSourceCount: request.inputs.sources.length,
+      sourceSliceCount: request.payload.sourceSlices.length,
+      sourceOrderAndFrameRangesVerified: true,
+      approvedHardCutBoundariesVerified: true,
+      h264VideoStreamCopiedWithoutDecodeOrReencode: true,
+      h264Mp4SliceConcatCompatibilityVerified: true,
+      outputTimestampsNormalizedFromZeroWithinOneFrame: true,
+      outputContainer: 'matroska',
+      outputVideoCodec: 'h264_stream_copy',
+      outputAudioStreams: 0,
+      continuousProgramAudioRemainsSeparate: true,
+      callerPathsAccepted: false,
+      callerUrlsAccepted: false,
+      callerCommandsAccepted: false,
+      callerCodecSettingsAccepted: false,
+      outputProbeVerified: true,
+      outputProbe,
+      originalApprovedEditReservationUsed: true,
+      separateExportEstimateRequired: false,
+      additionalExportChargeAllowed: false,
+      publicDeliveryAuthorized: false,
+      distributedExecutionProven: false,
+    })
+    const attestationWithoutHash = {
+      domain: 'offline_media_binary_object_mezzanine_chunk_attestation_v1',
+      completedAt,
+      imageIdentityHash: image.imageIdentityHash,
+      toolId: 'ffmpeg' as const,
+      operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
+      requestEnvelopeSha256,
+      sourceSha256s: request.inputs.sources.map((source) => source.sha256),
+      resultSha256: outputSpool.sha256,
+      confinement,
+      outputProbe,
+      outputTransport: 'server_committed_private_stream_v1' as const,
+    }
+    const attestationHash = sha256AuthorityValue(attestationWithoutHash)
+    const recordId = sha256AuthorityValue({ attestationHash, completedAt })
+    await writePrivateTextFileAtomicWithinRoot({
+      rootPath: STORAGE_ROOT,
+      relativePath: `attestations/${recordId.slice(0, 2)}/${recordId}.json`,
+      content: `${stableAuthorityStringify({
+        recordVersion:
+          'offline-media-binary-object-mezzanine-chunk-attestation-record-v1',
+        source:
+          'private_local_checksum_protected_object_mezzanine_chunk_execution',
+        attestation: { ...attestationWithoutHash, recordId, attestationHash },
+        checksumSha256: sha256AuthorityValue({
+          ...attestationWithoutHash,
+          recordId,
+          attestationHash,
+        }),
+      })}\n`,
+    })
+    return {
+      resultArtifact: {
+        mimeType: 'video/x-matroska',
+        sha256: outputSpool.sha256,
+        byteLength: outputSpool.byteLength,
+        outputMode: 'server_committed_private_stream_v1',
+      },
+      evidence: {
+        toolId: 'ffmpeg',
+        operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
+        binaryVersion: SOURCE_VERSION,
+        requestEnvelopeSha256,
+        sourceSha256s: request.inputs.sources.map((source) => source.sha256),
         resultSha256: outputSpool.sha256,
         semanticEvidence,
         confinement,
@@ -1368,6 +1593,94 @@ function pcmWaveDetails(bytes: Buffer): {
   }
 }
 
+async function probeObjectMezzanineChunkOutput(
+  image: OfflineMediaBinaryImageEvidence,
+  source: OfflineMediaBinaryServerInjectedInput,
+  request: OfflineMediaBinaryObjectMezzanineChunkRequest,
+): Promise<Record<string, unknown>> {
+  const command = [
+    '-v', 'error', '-count_frames', '-show_entries',
+    'format=format_name,start_time,duration,size:stream=codec_name,codec_type,start_time,width,height,avg_frame_rate,nb_read_frames,pix_fmt,color_range,color_space,color_transfer,color_primaries,has_b_frames',
+    '-print_format', 'json', '-i', 'pipe:0',
+  ]
+  const container = await createContainer(image, FFPROBE_ENTRYPOINT, command)
+  try {
+    validateConfinement(
+      await inspectContainer(container.id),
+      image,
+      FFPROBE_ENTRYPOINT,
+      command,
+    )
+    const result = await dockerVerifiedInput(
+      ['start', '--attach', '--interactive', container.id],
+      source,
+      2 * 1024 * 1024,
+      mediaExecutionTimeoutMs(source.byteLength),
+    )
+    if (result.exitCode !== 0 || result.stderr.length > 0) {
+      throw unavailable('Object-mezzanine output verification failed closed.')
+    }
+    const parsed = record(JSON.parse(result.stdout.toString('utf8')))
+    const format = record(parsed.format)
+    const streams = Array.isArray(parsed.streams) ? parsed.streams.map(record) : []
+    const videos = streams.filter((stream) => stream.codec_type === 'video')
+    const audios = streams.filter((stream) => stream.codec_type === 'audio')
+    const video = videos[0]
+    const actualDurationSeconds = optionalNumber(format.duration)
+    const approvedDurationSeconds =
+      request.payload.durationFrames / request.payload.fps
+    const maximumDurationDriftSeconds = 1 / request.payload.fps + 0.001
+    const formatStartSeconds = optionalNumber(format.start_time)
+    const videoStartSeconds = optionalNumber(video?.start_time)
+    if (
+      videos.length !== 1 || audios.length !== 0 || !video ||
+      video.codec_name !== 'h264' ||
+      !String(format.format_name ?? '').includes('matroska') ||
+      optionalInteger(video.width) !== request.payload.width ||
+      optionalInteger(video.height) !== request.payload.height ||
+      video.pix_fmt !== 'yuv420p' || video.color_range !== 'tv' ||
+      video.color_space !== 'bt709' || video.color_transfer !== 'bt709' ||
+      video.color_primaries !== 'bt709' ||
+      rational(video.avg_frame_rate) !== request.payload.fps ||
+      optionalInteger(video.nb_read_frames) !== request.payload.durationFrames ||
+      optionalInteger(video.has_b_frames) !== 0 ||
+      formatStartSeconds === undefined || formatStartSeconds < 0 ||
+      formatStartSeconds > maximumDurationDriftSeconds ||
+      videoStartSeconds === undefined || videoStartSeconds < 0 ||
+      videoStartSeconds > maximumDurationDriftSeconds ||
+      actualDurationSeconds === undefined ||
+      Math.abs(actualDurationSeconds - approvedDurationSeconds) >
+        maximumDurationDriftSeconds
+    ) throw unavailable(
+      'Object-mezzanine output failed Matroska, H.264, frame, color, timestamp, or duration verification.',
+    )
+    return {
+      container: 'matroska',
+      videoCodec: 'h264',
+      videoCodecOperation: 'stream_copy',
+      audioStreamCount: 0,
+      width: request.payload.width,
+      height: request.payload.height,
+      frameRate: request.payload.fps,
+      frameCount: request.payload.durationFrames,
+      pixelFormat: 'yuv420p',
+      colorRange: 'tv',
+      colorSpace: 'bt709',
+      colorTransfer: 'bt709',
+      colorPrimaries: 'bt709',
+      formatStartSeconds,
+      videoStartSeconds,
+      approvedDurationSeconds: rounded(approvedDurationSeconds),
+      actualDurationSeconds,
+      maximumDurationDriftSeconds: rounded(maximumDurationDriftSeconds),
+      sizeBytes: optionalInteger(format.size),
+    }
+  } finally {
+    await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024)
+      .catch(() => undefined)
+  }
+}
+
 async function probeMezzanineFinalOutput(
   image: OfflineMediaBinaryImageEvidence,
   source: OfflineMediaBinaryServerInjectedInput,
@@ -1594,7 +1907,10 @@ async function inspectImage(): Promise<OfflineMediaBinaryImageEvidence> {
     labels['reeditpro.h264-encoding'] !== 'blocked_not_compiled' ||
     labels['reeditpro.aac-encoding'] !==
       'private_source_slice_finalizer_only' ||
-    labels['reeditpro.mp4-mux'] !== 'private_source_slice_finalizer_only'
+    labels['reeditpro.mp4-mux'] !==
+      'private_source_slice_finalizer_and_object_chunk_only' ||
+    labels['reeditpro.object-mezzanine-chunk'] !==
+      'private_first_chunk_stream_copy_only'
   ) throw unavailable('Pinned media image identity or safety labels are invalid.')
   const sourcePolicyHashes = await policyHashes()
   const imageIdentityHash = sha256AuthorityValue({
@@ -1614,7 +1930,8 @@ async function inspectImage(): Promise<OfflineMediaBinaryImageEvidence> {
     productReady: false,
     h264Encoding: 'blocked_not_compiled',
     aacEncoding: 'private_source_slice_finalizer_only',
-    mp4Mux: 'private_source_slice_finalizer_only',
+    mp4Mux: 'private_source_slice_finalizer_and_object_chunk_only',
+    objectMezzanineChunk: 'private_first_chunk_stream_copy_only',
     sourcePolicyHashes,
   }
 }
@@ -1634,6 +1951,7 @@ async function persistAuthority(image: OfflineMediaBinaryImageEvidence): Promise
       exactStructuredPayloadOnly: true as const,
       canonicalDispatchMayReference: true as const,
       privateInternalMezzanineFinalizationReady: true as const,
+      privateInternalFirstObjectMezzanineChunkReady: true as const,
       productReady: false as const,
       externalBetaReady: false as const,
       productionReady: false as const,
@@ -1643,7 +1961,9 @@ async function persistAuthority(image: OfflineMediaBinaryImageEvidence): Promise
       'Private single-host evidence is not deployed worker-fleet or production authority.',
       'The reviewed LGPL image has unresolved base-image CVEs and legal/distribution review gates.',
       'H.264 encoding, customer export, public delivery, and production activation remain unauthorized.',
-      'AAC encoding and MP4 muxing are restricted to the fixed private source-slice finalizer.',
+      'AAC encoding is restricted to the fixed private source-slice finalizer.',
+      'MP4 muxing is restricted to the fixed private source-slice finalizer and first object-chunk runner.',
+      'Object-mezzanine chunking is restricted to the first 30 fps source-led chunk with compatible H.264 keyframe-zero inputs.',
     ] as const,
   }
   const authority: OfflineMediaBinaryRuntimeAuthority = {
@@ -1669,7 +1989,7 @@ function ffprobeArguments(
     '-v', 'error',
     ...(request.payload.countFrames ? ['-count_frames'] : []),
     '-show_entries',
-    'format=format_name,duration,size:stream=index,codec_name,codec_type,width,height,avg_frame_rate,r_frame_rate,duration,pix_fmt,color_space,color_transfer,color_primaries,color_range,sample_rate,channels,nb_read_frames',
+    'format=format_name,start_time,duration,size:stream=index,codec_name,codec_type,start_time,width,height,avg_frame_rate,r_frame_rate,duration,pix_fmt,color_space,color_transfer,color_primaries,color_range,sample_rate,channels,nb_read_frames',
     '-print_format', 'json',
     '-i', 'pipe:0',
   ]
@@ -1680,12 +2000,15 @@ async function createContainer(
   entrypoint:
     | typeof FFPROBE_ENTRYPOINT
     | typeof FFMPEG_ENTRYPOINT
-    | typeof MEZZANINE_FINALIZER_ENTRYPOINT,
+    | typeof MEZZANINE_FINALIZER_ENTRYPOINT
+    | typeof OBJECT_MEZZANINE_CHUNK_ENTRYPOINT,
   command: string[],
 ) {
-  const mezzanineFinalizer = entrypoint === MEZZANINE_FINALIZER_ENTRYPOINT
-  const memory = mezzanineFinalizer ? '4g' : '2g'
-  const tmpfsSizeBytes = mezzanineFinalizer ? 1_342_177_280 : 67_108_864
+  const largeMediaEntrypoint =
+    entrypoint === MEZZANINE_FINALIZER_ENTRYPOINT ||
+    entrypoint === OBJECT_MEZZANINE_CHUNK_ENTRYPOINT
+  const memory = largeMediaEntrypoint ? '4g' : '2g'
+  const tmpfsSizeBytes = largeMediaEntrypoint ? 1_342_177_280 : 67_108_864
   const created = await dockerBuffer([
     'create', '--interactive', '--network', 'none', '--read-only',
     '--cap-drop', 'ALL', '--security-opt', 'no-new-privileges:true',
@@ -1707,16 +2030,19 @@ function validateConfinement(
   entrypoint:
     | typeof FFPROBE_ENTRYPOINT
     | typeof FFMPEG_ENTRYPOINT
-    | typeof MEZZANINE_FINALIZER_ENTRYPOINT,
+    | typeof MEZZANINE_FINALIZER_ENTRYPOINT
+    | typeof OBJECT_MEZZANINE_CHUNK_ENTRYPOINT,
   command: string[],
 ): OfflineMediaBinaryConfinementEvidence {
   const host = record(inspect.HostConfig)
   const config = record(inspect.Config)
   const tmpfs = stringRecord(host.Tmpfs)
   const security = stringArray(host.SecurityOpt)
-  const mezzanineFinalizer = entrypoint === MEZZANINE_FINALIZER_ENTRYPOINT
-  const memoryLimitBytes = mezzanineFinalizer ? 4_294_967_296 : 2_147_483_648
-  const tmpfsSizeBytes = mezzanineFinalizer ? 1_342_177_280 : 67_108_864
+  const largeMediaEntrypoint =
+    entrypoint === MEZZANINE_FINALIZER_ENTRYPOINT ||
+    entrypoint === OBJECT_MEZZANINE_CHUNK_ENTRYPOINT
+  const memoryLimitBytes = largeMediaEntrypoint ? 4_294_967_296 : 2_147_483_648
+  const tmpfsSizeBytes = largeMediaEntrypoint ? 1_342_177_280 : 67_108_864
   const tmpfsPolicy = String(tmpfs['/tmp'] ?? '')
   if (
     inspect.Image !== image.imageId || host.NetworkMode !== 'none' || host.ReadonlyRootfs !== true ||
@@ -1754,6 +2080,7 @@ function normalizeProbe(
     index: safeInteger(stream.index),
     codecName: safeText(stream.codec_name),
     codecType: safeText(stream.codec_type),
+    startTimeSeconds: optionalNumber(stream.start_time),
     width: optionalInteger(stream.width),
     height: optionalInteger(stream.height),
     fps: rational(stream.avg_frame_rate ?? stream.r_frame_rate),
@@ -1780,6 +2107,7 @@ function normalizeProbe(
   return {
     profileId: request.payload.inspectionProfileId,
     formatName: safeText(rawFormat.format_name),
+    formatStartTimeSeconds: optionalNumber(rawFormat.start_time),
     durationSeconds: rounded(durationSeconds),
     sizeBytes: optionalInteger(rawFormat.size) ?? request.payload.sourceByteLength,
     streamCount: streams.length,
@@ -1801,7 +2129,7 @@ async function policyHashes(): Promise<Record<string, string>> {
     'Dockerfile', 'source-provenance.lock', 'configure-flags.txt',
     'allowed-encoders.txt', 'allowed-decoders.txt', 'allowed-filters.txt',
     'allowed-demuxers.txt', 'allowed-muxers.txt', 'allowed-protocols.txt', 'allowed-bsfs.txt',
-    'source-slice-finalizer.sh',
+    'source-slice-finalizer.sh', 'object-mezzanine-chunk.sh',
   ]
   return Object.fromEntries(await Promise.all(names.map(async (name) => [name, sha256(await readFile(join(directory, name)))])))
 }
@@ -1935,6 +2263,255 @@ interface DockerVerifiedPrivateOutputSpool {
   signature: Buffer
   source: OfflineMediaBinaryServerInjectedInput
   cleanup(): Promise<void>
+}
+
+function assertObjectMezzanineChunkServerInjectedInputs(
+  request: OfflineMediaBinaryObjectMezzanineChunkRequest,
+  sources: readonly OfflineMediaBinaryServerInjectedInput[],
+): void {
+  if (
+    !Array.isArray(sources) ||
+    sources.length !== request.inputs.sources.length
+  ) throw invalid('Server-injected object-mezzanine source authority is incomplete.')
+  request.inputs.sources.forEach((commitment, index) => {
+    assertServerInjectedInput(
+      sources[index]!,
+      commitment.byteLength,
+      commitment.sha256,
+    )
+  })
+}
+
+function objectMezzanineChunkProtocolStream(
+  request: OfflineMediaBinaryObjectMezzanineChunkRequest,
+  sources: readonly OfflineMediaBinaryServerInjectedInput[],
+): Readable {
+  assertObjectMezzanineChunkServerInjectedInputs(request, sources)
+  const line = (values: readonly (string | number)[]) =>
+    Buffer.from(`${values.join('\t')}\n`, 'utf8')
+  const verifiedBlob = async function* (
+    input: OfflineMediaBinaryServerInjectedInput,
+    expectedByteLength: number,
+    expectedSha256: string,
+  ) {
+    const stream = await input.openStream()
+    if (!stream || typeof stream.pipe !== 'function') {
+      throw new Error('Private object-mezzanine source did not return a readable stream.')
+    }
+    let byteLength = 0
+    const checksum = createHash('sha256')
+    for await (const chunk of stream) {
+      const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)
+      byteLength += bytes.byteLength
+      if (byteLength > expectedByteLength) {
+        throw new Error('Private object-mezzanine source exceeded its commitment.')
+      }
+      checksum.update(bytes)
+      yield bytes
+    }
+    if (
+      byteLength !== expectedByteLength ||
+      checksum.digest('hex') !== expectedSha256
+    ) throw new Error(
+      'Private object-mezzanine source did not match its exact commitment.',
+    )
+  }
+  return Readable.from((async function* () {
+    yield line([OFFLINE_MEDIA_BINARY_OBJECT_MEZZANINE_CHUNK_MAGIC])
+    yield line([
+      'frame', request.payload.width, request.payload.height,
+      request.payload.fps, request.payload.durationFrames,
+      request.payload.globalStartFrame,
+      request.payload.globalEndFrameExclusive,
+      request.inputs.sources.length,
+      request.payload.sourceSlices.length,
+    ])
+    for (let index = 0; index < request.inputs.sources.length; index += 1) {
+      const commitment = request.inputs.sources[index]!
+      yield line([
+        'source', index + 1, commitment.byteLength, commitment.sha256,
+      ])
+      yield* verifiedBlob(
+        sources[index]!,
+        commitment.byteLength,
+        commitment.sha256,
+      )
+      yield Buffer.from('\n', 'utf8')
+    }
+    const sourceIndexBySequenceId = new Map(
+      request.inputs.sources.map((source, index) => [
+        source.sourceSequenceItemId,
+        index + 1,
+      ]),
+    )
+    for (const slice of request.payload.sourceSlices) {
+      const sourceIndex = sourceIndexBySequenceId.get(slice.sourceSequenceItemId)
+      if (!sourceIndex) {
+        throw new Error('Object-mezzanine slice lost its source input index.')
+      }
+      yield line([
+        'slice', slice.sliceIndex, sourceIndex,
+        slice.sourceStartFrame, slice.sourceEndFrameExclusive,
+        slice.chunkLocalStartFrame, slice.chunkLocalEndFrameExclusive,
+        slice.globalTimelineStartFrame, slice.globalTimelineEndFrameExclusive,
+        slice.boundaryBefore,
+      ])
+    }
+    yield line(['end'])
+  })())
+}
+
+async function dockerVerifiedObjectMezzanineChunkToPrivateOutputSpool(input: {
+  args: string[]
+  request: OfflineMediaBinaryObjectMezzanineChunkRequest
+  sources: readonly OfflineMediaBinaryServerInjectedInput[]
+  maximumOutputBytes: number
+  timeoutMs: number
+}): Promise<DockerVerifiedPrivateOutputSpool> {
+  if (
+    input.maximumOutputBytes !==
+    OFFLINE_MEDIA_BINARY_OBJECT_MEZZANINE_CHUNK_MAXIMUM_OUTPUT_BYTES
+  ) throw invalid('Object-mezzanine output spool bound is invalid.')
+  const spoolId = randomBytes(16).toString('hex')
+  const relativeDirectoryPath = `runtime-output-spools/${spoolId}`
+  const createdDirectory = await createPrivateDirectoryCreateOnlyWithinRoot({
+    rootPath: STORAGE_ROOT,
+    relativePath: relativeDirectoryPath,
+  })
+  const relativeArtifactPath = `${relativeDirectoryPath}/artifact.mkv`
+  const invocation = createPrivateDockerCliInvocation(input.args)
+  const child = spawn(invocation.executable, invocation.args, {
+    stdio: ['pipe', 'pipe', 'pipe'],
+    env: invocation.env,
+  })
+  const stderr: Buffer[] = []
+  let stderrBytes = 0
+  const resultPromise = new Promise<{ exitCode: number; stderr: Buffer }>(
+    (resolve, reject) => {
+      const timer = setTimeout(() => {
+        child.kill('SIGKILL')
+        reject(unavailable('Docker object-mezzanine chunk timed out.'))
+      }, input.timeoutMs)
+      child.stderr.on('data', (chunk: Buffer) => {
+        stderrBytes += chunk.byteLength
+        if (stderrBytes > 512 * 1024) child.kill('SIGKILL')
+        else stderr.push(chunk)
+      })
+      child.once('error', (error) => {
+        clearTimeout(timer)
+        reject(error)
+      })
+      child.once('close', (code) => {
+        clearTimeout(timer)
+        if (stderrBytes > 512 * 1024) {
+          reject(unavailable(
+            'Docker object-mezzanine diagnostic exceeded its fixed bound.',
+          ))
+          return
+        }
+        resolve({ exitCode: code ?? 1, stderr: Buffer.concat(stderr) })
+      })
+    },
+  )
+  const signatureChunks: Buffer[] = []
+  let signatureByteLength = 0
+  const verifiedOutput = Readable.from((async function* () {
+    for await (const chunk of child.stdout) {
+      const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)
+      if (signatureByteLength < 64) {
+        const part = bytes.subarray(
+          0,
+          Math.min(bytes.byteLength, 64 - signatureByteLength),
+        )
+        signatureChunks.push(Buffer.from(part))
+        signatureByteLength += part.byteLength
+      }
+      yield bytes
+    }
+  })())
+  const protocolStream = objectMezzanineChunkProtocolStream(
+    input.request,
+    input.sources,
+  )
+  try {
+    const persistedPromise = writePrivateStreamCreateOnlyWithinRoot({
+      rootPath: STORAGE_ROOT,
+      relativePath: relativeArtifactPath,
+      stream: verifiedOutput,
+      maximumBytes: input.maximumOutputBytes,
+    })
+    const [, result, persisted] = await Promise.all([
+      pipeline(protocolStream, child.stdin),
+      resultPromise,
+      persistedPromise,
+    ])
+    const signature = Buffer.concat(signatureChunks, signatureByteLength)
+    if (result.exitCode !== 0 || result.stderr.length > 0) {
+      throw new Error(
+        'Private object-mezzanine runner rejected the fixed request ' +
+        `(exit=${result.exitCode};diagnostic=${safeFfmpegDiagnostic(result.stderr)}).`,
+      )
+    }
+    if (
+      persisted.byteLength < 1_024 ||
+      persisted.byteLength > input.maximumOutputBytes ||
+      !isMatroska(signature)
+    ) throw new Error(
+      'Private object-mezzanine output failed its streaming MKV commitment.',
+    )
+    let cleaned = false
+    const cleanup = async () => {
+      if (cleaned) return
+      const removed = await removePrivateDirectoryTreeWithinRoot({
+        rootPath: STORAGE_ROOT,
+        relativePath: relativeDirectoryPath,
+        expectedIdentity: createdDirectory.identity,
+      })
+      if (!removed.removed) {
+        throw unavailable(
+          'Private object-mezzanine output spool disappeared before cleanup.',
+        )
+      }
+      cleaned = true
+    }
+    const source = Object.freeze({
+      inputMode: 'private_verified_stream_v1' as const,
+      byteLength: persisted.byteLength,
+      sha256: persisted.checksumSha256,
+      async openStream() {
+        return createPrivateReadStreamWithinRoot({
+          rootPath: STORAGE_ROOT,
+          relativePath: relativeArtifactPath,
+        })
+      },
+    })
+    return {
+      exitCode: result.exitCode,
+      stderr: result.stderr,
+      byteLength: persisted.byteLength,
+      sha256: persisted.checksumSha256,
+      signature,
+      source,
+      cleanup,
+    }
+  } catch (error) {
+    protocolStream.destroy()
+    child.stdout.destroy()
+    child.stdin.destroy()
+    child.kill('SIGKILL')
+    await resultPromise.catch(() => undefined)
+    await removePrivateDirectoryTreeWithinRoot({
+      rootPath: STORAGE_ROOT,
+      relativePath: relativeDirectoryPath,
+      expectedIdentity: createdDirectory.identity,
+    }).catch(() => undefined)
+    if (error instanceof ApiError && error.code === 'TOOL_NOT_READY') throw error
+    throw unavailable(
+      `Docker object-mezzanine streams failed exact private verification: ${
+        error instanceof Error ? error.message : 'unknown error'
+      }`,
+    )
+  }
 }
 
 function assertMezzanineServerInjectedInputs(

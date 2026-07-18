@@ -26,6 +26,12 @@ import {
   PROFESSIONAL_LONG_FORM_MASTER_TIMING_COST_PROFILE_ID,
   PROFESSIONAL_LONG_FORM_MASTER_TIMING_OPERATION_ID,
 } from '../edit-architecture/professional-long-form-master-timing-execution-contract'
+import {
+  PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_COST_PROFILE_ID,
+  PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_OPERATION_ID,
+  PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_COST_PROFILE_ID,
+  PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_OPERATION_ID,
+} from '../edit-architecture/professional-long-form-first-object-chunk-execution-contract'
 
 const identity = z.string().min(1).max(200).regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/)
   .refine((value) => value === value.trim() && !value.includes('..'))
@@ -50,6 +56,10 @@ export const PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS = {
   remotionFourKSourceSliceChunk: 'remotion_4k_source_slice_chunk_cpu_2vcpu_4gib_v1',
   ffmpegFourKMezzanineFinalization:
     'ffmpeg_4k_mezzanine_finalization_cpu_2vcpu_4gib_v1',
+  ffmpegFourKObjectMezzanineChunk:
+    PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_COST_PROFILE_ID,
+  ffprobeFourKObjectMezzanineChunkQa:
+    PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_COST_PROFILE_ID,
   professionalLongFormSnapshotValidation:
     PROFESSIONAL_LONG_FORM_FIRST_CHILD_COST_PROFILE_ID,
   professionalLongFormSourceAuthorityValidation:
@@ -92,6 +102,26 @@ export const privateInternalAttemptCostIdentitySchema = z.union([
     operationId: z.literal('tool.ffmpeg.execute_approved_media_recipe.v1'),
     workloadProfileId: z.literal(
       PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFourKMezzanineFinalization,
+    ),
+  }).strict(),
+  z.object({
+    ...commonAttemptIdentityFields,
+    toolId: z.literal('ffmpeg'),
+    operationId: z.literal(
+      PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_OPERATION_ID,
+    ),
+    workloadProfileId: z.literal(
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFourKObjectMezzanineChunk,
+    ),
+  }).strict(),
+  z.object({
+    ...commonAttemptIdentityFields,
+    toolId: z.literal('ffprobe'),
+    operationId: z.literal(
+      PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_OPERATION_ID,
+    ),
+    workloadProfileId: z.literal(
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffprobeFourKObjectMezzanineChunkQa,
     ),
   }).strict(),
   z.object({
@@ -233,6 +263,20 @@ export type BeginPrivateInternalAttemptCostEvidenceInput =
           typeof PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFourKMezzanineFinalization
       }
     | {
+        toolId: 'ffmpeg'
+        operationId:
+          typeof PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_OPERATION_ID
+        workloadProfileId:
+          typeof PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFourKObjectMezzanineChunk
+      }
+    | {
+        toolId: 'ffprobe'
+        operationId:
+          typeof PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_OPERATION_ID
+        workloadProfileId:
+          typeof PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffprobeFourKObjectMezzanineChunkQa
+      }
+    | {
         toolId: 'reeditpro_internal'
         operationId: typeof PROFESSIONAL_LONG_FORM_FIRST_CHILD_OPERATION_ID
         workloadProfileId:
@@ -298,6 +342,28 @@ const beginInputSchema = z.union([
     operationId: z.literal('tool.ffmpeg.execute_approved_media_recipe.v1'),
     workloadProfileId: z.literal(
       PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFourKMezzanineFinalization,
+    ),
+  }).strict(),
+  z.object({
+    localStorageRoot: z.string().min(1),
+    ...commonAttemptIdentityFields,
+    toolId: z.literal('ffmpeg'),
+    operationId: z.literal(
+      PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_OPERATION_ID,
+    ),
+    workloadProfileId: z.literal(
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFourKObjectMezzanineChunk,
+    ),
+  }).strict(),
+  z.object({
+    localStorageRoot: z.string().min(1),
+    ...commonAttemptIdentityFields,
+    toolId: z.literal('ffprobe'),
+    operationId: z.literal(
+      PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_OPERATION_ID,
+    ),
+    workloadProfileId: z.literal(
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffprobeFourKObjectMezzanineChunkQa,
     ),
   }).strict(),
   z.object({
@@ -603,7 +669,7 @@ function describeParsedAttempt(
 function fixedResourceEnvelope(
   input: Pick<PrivateInternalAttemptCostEvidence['identity'], 'toolId'> &
     Partial<Pick<Extract<PrivateInternalAttemptCostEvidence['identity'], {
-      toolId: 'remotion' | 'ffmpeg' | 'reeditpro_internal'
+      toolId: 'remotion' | 'ffmpeg' | 'ffprobe' | 'reeditpro_internal'
     }>, 'workloadProfileId'>>,
 ) {
   const profileId = resolvePrivateInternalAttemptCostProfileId(input)
@@ -629,6 +695,16 @@ export function resolvePrivateInternalAttemptCostProfileId(
     input.toolId === 'ffmpeg' &&
     input.workloadProfileId ===
       PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFourKMezzanineFinalization
+  ) return input.workloadProfileId
+  if (
+    input.toolId === 'ffmpeg' &&
+    input.workloadProfileId ===
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFourKObjectMezzanineChunk
+  ) return input.workloadProfileId
+  if (
+    input.toolId === 'ffprobe' &&
+    input.workloadProfileId ===
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffprobeFourKObjectMezzanineChunkQa
   ) return input.workloadProfileId
   if (
     input.toolId === 'reeditpro_internal' &&

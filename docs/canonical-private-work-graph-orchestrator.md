@@ -38,13 +38,16 @@ specialized package, placement manifest, parent service-only controller, and
 blocked child policy. Ordinary queues cannot carry promotion-satisfied parent
 dependencies. Specialized server services now grant separate exact authority
 to the dependency-root snapshot-validation entry and then the private
-source-authority entry, and the strict structured master-timing entry. Each
+source-authority entry, the strict structured master-timing entry, and then the
+server-selected first object render plus its paired independent QA. Each
 completes through its own lease, one-use attempt, private artifact, QA,
-reconciliation, internal cost, and replay. The timing child additionally records
-124 render, one continuous-audio, and one finalization dependency without
-authorizing them. The other 252
-long-form children remain unclaimable until their own exact
-tool/cost/runner/QA authority is added. See
+reconciliation, internal cost, terminal queue commit, and replay. The timing
+child additionally records 124 render, one continuous-audio, and one
+finalization dependency without authorizing them. The first media pair stages
+only its five exact approved objects/slices, produces one deterministic
+5,226-frame private Matroska object, and separately reprobes the persisted
+bytes. The other 250 long-form children remain unclaimable until their own
+exact tool/cost/runner/QA authority is added. See
 `docs/canonical-professional-long-form-child-package-promotion-2026-07-18.md`
 and
 `docs/canonical-professional-long-form-first-child-execution-2026-07-18.md`.
@@ -53,6 +56,9 @@ The current second-child proof is in
 
 The timing continuation is documented in
 `docs/canonical-professional-long-form-master-timing-execution-2026-07-18.md`.
+
+The bounded first-media-pair continuation is documented in
+`docs/canonical-professional-long-form-first-object-chunk-execution-2026-07-18.md`.
 
 The ordinary orchestrator then repeatedly:
 
@@ -265,6 +271,14 @@ Supabase, billing, public delivery, and production promotion remain gated.
   reconciliation/replay lifecycles, validated all 512 approved timing segments
   across 18 timing categories and 126 timing-dependent downstream jobs, and
   kept the remaining 252 children plus all long-form media/object/cloud
+  execution false
+- `npm run qa:internal-pipeline` — deterministic first-object-chunk execution
+  v23 full run passed 38/38 stages from `2026-07-18T15:34:20.145Z` through
+  `2026-07-18T16:14:33.676Z` in `2,413,531 ms`; the 88-check long-form stage
+  completed the first 5,226-frame render and paired FFprobe QA after the three
+  validation children, recorded separate internal attempt costs, reopened the
+  exact terminal result without redispatch, and kept the remaining 250
+  children plus complete long-form, cloud, commerce, product, and production
   execution false
 
 The measured duration is a local correctness-regression result. It is not a

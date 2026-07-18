@@ -1,6 +1,6 @@
 # Canonical Professional Long-Form Post-Approval Authority — 2026-07-18
 
-Status: `superseded_by_private_master_timing_validation_execution`
+Status: `superseded_by_first_private_4k_object_chunk_and_independent_qa`
 
 ## Outcome
 
@@ -32,13 +32,16 @@ exact 255-job private queue. See
 The promotion snapshot initially leaves all children capability-blocked. The
 root snapshot-validation continuation executes the first child; see
 `docs/canonical-professional-long-form-first-child-execution-2026-07-18.md`.
-The source-authority continuation now executes the second child while the
-master-timing continuation executes the third child while the remaining 252
+The source-authority continuation executes the second child and the
+master-timing continuation executes the third. The next continuation executes
+the server-selected first object render plus paired QA while the remaining 250
 stay blocked; see
 `docs/canonical-professional-long-form-source-authority-execution-2026-07-18.md`.
 The timing boundary is documented in
 `docs/canonical-professional-long-form-master-timing-execution-2026-07-18.md`.
-This remains far short of long-form media execution.
+The first bounded media pair is documented in
+`docs/canonical-professional-long-form-first-object-chunk-execution-2026-07-18.md`.
+This remains far short of complete long-form media execution.
 
 ## Honest Work-Graph Boundary
 
@@ -70,7 +73,8 @@ it does not rewrite or weaken the derivation record above.
 ## Focused Evidence
 
 The post-approval/promotion baseline passed 32 checks. The current combined
-promotion/root/source-authority/master-timing smoke passes 80 checks.
+promotion/root/source-authority/master-timing/first-object smoke passes 88
+checks.
 Its maximum-capacity local/private fixture uses:
 
 - one confirmed `3840x2160`, 30 fps frame;
@@ -87,7 +91,8 @@ Its maximum-capacity local/private fixture uses:
 - zero ordinary execution packages; and
 - one specialized 255-job private queue that begins with zero leases, attempts,
   or completions and now ends the focused continuation with exactly three
-  completed validation children and 252 blocked children.
+  completed validation children, one completed first-object render, one
+  completed paired QA, and 250 blocked children.
 
 The smoke proves exact publication replay, changed-seed idempotency conflict,
 identity and source-content substitution rejection, publication-without-jobs,
@@ -100,7 +105,11 @@ corruption refusal/recovery, dispatch self-promotion rejection, aggregate
 non-mutation, exact source-authority validation over all 512 ranges, and
 fail-closed root/source/timing content-addressed evidence corruption after
 restart, exact 18-category timing validation, and approved timing component,
-segment, estimate-metadata, and expected-output tamper refusal.
+segment, estimate-metadata, and expected-output tamper refusal. It additionally
+proves exact server selection, five-source/five-slice private staging, one
+5,226-frame deterministic 4K Matroska stream-copy object, independent persisted
+FFprobe QA, separate measured internal costs, media-byte tamper refusal, and
+exact no-redispatch replay.
 
 `npm run smoke:professional-long-form-object-plan` continues to pass 27 checks,
 `npm run smoke:professional-long-form-snapshot-bridge` passes 22 checks, and
@@ -109,12 +118,12 @@ regression after this integration.
 
 ## Aggregate Evidence
 
-The exact-code `npm run qa:internal-pipeline` v22 aggregate passed all `37/37`
-stages with exit code `0`. It started at `2026-07-18T12:52:16.698Z`, finished
-at `2026-07-18T13:23:50.164Z`, and completed in `1,893,466 ms`. The long-form
-planning stage passed 27 checks in `434 ms`, the approved-snapshot bridge passed
-22 checks in `736 ms`, and this canonical post-approval/promotion/root/source-
-authority/master-timing stage passed 80 checks in `24,569 ms`.
+The exact-code `npm run qa:internal-pipeline` v23 aggregate passed all `38/38`
+stages with exit code `0`. It started at `2026-07-18T15:34:20.145Z`, finished
+at `2026-07-18T16:14:33.676Z`, and completed in `2,413,531 ms`. The long-form
+planning stage passed 27 checks in `371 ms`, the approved-snapshot bridge passed
+22 checks in `789 ms`, the deterministic isolated object runner passed in
+`21,735 ms`, and this 88-check canonical lifecycle passed in `85,596 ms`.
 
 The aggregate reverified exactly 50 canonical E2E tool identities and 50 job
 adapters, the existing bounded private media lifecycles, all 11 named-edit
@@ -129,19 +138,20 @@ and replay true. The source child validates all 512 ranges and 125 direct
 downstream dependencies without granting media execution. The timing child
 validates the exact approved timing components, rational frame base, all 512
 segments, 18 validation categories, estimate coverage, and 126 downstream
-dependencies. Source-media, chunk-render, and object-storage execution, the
-remaining 252 children, live Google Cloud completion, external beta, and paid
-production remain false. The v21 source-only, v20 root-only, and v18 promotion-
-only aggregates are historical evidence.
+dependencies. The first render and QA separately execute, persist, reconcile,
+terminalize, and replay one 220,341-byte, 5,226-frame private object. Complete
+source-media/chunk execution, object storage, the remaining 250 children, live
+Google Cloud completion, external beta, and paid production remain false. The
+v22 timing-only, v21 source-only, v20 root-only, and v18 promotion-only
+aggregates are historical evidence.
 
 ## Cost and Commercial Boundary
 
 The approved seed requires attempt-level internal production-cost evidence.
-That requirement alone creates no attempt or cost record; the root, source, and
-timing executions now satisfy it for their three separate exact attempts. The
-other 252
-children still need separate scoped evidence. Neither the requirement nor
-either validation record
+That requirement alone creates no attempt or cost record; the root, source,
+timing, first render, and paired QA executions now satisfy it for five separate
+exact attempts. The other 250 children still need separate scoped evidence.
+Neither the requirement nor any validation/media record
 creates customer price, customer credit amount, service fee, wallet mutation,
 billing instruction, or settlement authority. The original approved 4K
 estimate and reservation remain the only commercial-adjacent authority in this
@@ -177,16 +187,22 @@ Now verified through this foundation and its root/source/timing continuations:
 - one master-timing operation/runner authorization, QA-worker lease, one-use
   start, exact component/frame/approval/estimate validation, private artifact,
   QA, 126-dependent reconciliation, attempt cost, completion, and replay;
+- one first-object FFmpeg authorization, lease, one-use start, exact approved
+  source staging, deterministic private Matroska persistence, internal attempt
+  cost, reconciliation, completion, and replay;
+- one paired FFprobe QA authorization, lease, one-use start, exact persisted
+  object verification, private QA evidence, internal attempt cost,
+  reconciliation, completion, and replay;
 - exact restart/replay behavior; and
 - fail-closed normal-package, dispatch, tamper, and self-promotion boundaries.
 
 Still false:
 
-- remaining 252 child leases and one-use dispatches;
-- source-media decode/transform and chunk tool-operation, cost-budget, runner,
-  and QA authority;
+- remaining 250 child leases and one-use dispatches;
+- broad source-media decode/transform and the other 123 chunk render/QA
+  operation, cost-budget, runner, and QA authorities;
 - object-store media persistence;
-- chunk media execution;
+- the other 123 chunk renders and paired QA executions;
 - continuous-audio and color-continuity execution;
 - final 4K assembly and QA;
 - distributed database authority;
@@ -196,9 +212,9 @@ Still false:
 
 ## Next Evidence Gate
 
-The root snapshot-validation, private source-authority, and structured master-
-timing gates are complete. The next dependency-safe slice must remain a
-separately versioned representative chunk/media operation with exact private-
-object, QA, recovery, reconciliation,
-and attempt-cost authority. It must not grant a broad class of render jobs or
-imply that long-form media has already been decoded or rendered.
+The root snapshot-validation, private source-authority, structured master-
+timing, and first render/QA gates are complete. The next dependency-safe slice
+must prove either separate continuous program audio or a bounded multi-chunk
+set with cross-chunk continuity through exact private object, QA, recovery,
+reconciliation, and attempt-cost authority. It must not grant a broad class of
+render jobs or imply that the complete long-form edit has rendered.

@@ -16,7 +16,7 @@ export const OFFLINE_MEDIA_BINARY_SERVER_INPUT_MODE =
   'server_injected_private_stream_v1' as const
 
 export interface OfflineMediaBinaryStreamSourceCommitment {
-  mimeType: 'video/mp4'
+  mimeType: 'video/mp4' | 'video/x-matroska'
   sourceByteLength: number
   sourceSha256: string
   sourceInputMode: typeof OFFLINE_MEDIA_BINARY_SERVER_INPUT_MODE
@@ -118,7 +118,7 @@ function validateSourceCommitment(
   payload: Record<string, unknown>,
 ): OfflineMediaBinaryStreamSourceCommitment {
   if (
-    payload.mimeType !== 'video/mp4' ||
+    !['video/mp4', 'video/x-matroska'].includes(String(payload.mimeType)) ||
     !Number.isSafeInteger(payload.sourceByteLength) ||
     Number(payload.sourceByteLength) < 64 ||
     Number(payload.sourceByteLength) > REEDITPRO_SOURCE_MEDIA_MAX_BYTES ||
@@ -127,7 +127,7 @@ function validateSourceCommitment(
     payload.sourceInputMode !== OFFLINE_MEDIA_BINARY_SERVER_INPUT_MODE
   ) throw invalid()
   return {
-    mimeType: 'video/mp4',
+    mimeType: payload.mimeType as OfflineMediaBinaryStreamSourceCommitment['mimeType'],
     sourceByteLength: Number(payload.sourceByteLength),
     sourceSha256: payload.sourceSha256,
     sourceInputMode: OFFLINE_MEDIA_BINARY_SERVER_INPUT_MODE,

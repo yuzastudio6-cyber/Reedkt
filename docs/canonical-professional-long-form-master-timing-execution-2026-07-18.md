@@ -1,6 +1,11 @@
 # Canonical Professional Long-Form Master-Timing Execution — 2026-07-18
 
-Status: `private_structured_master_timing_completed_remaining_252_children_blocked`
+Status: `superseded_by_first_object_chunk_execution`
+
+The master-timing milestone described below remains historical evidence. The
+current continuation also completes the first 4K object render and its paired
+independent QA, leaving 250 children blocked; see
+`docs/canonical-professional-long-form-first-object-chunk-execution-2026-07-18.md`.
 
 ## Outcome
 
@@ -143,23 +148,26 @@ The following commands pass on the exact working tree:
 - `npm run smoke:canonical-private-package-work-queue` — 11 checks;
 - `npm run smoke:private-internal-attempt-cost-evidence` — includes the new
   fixed 2-vCPU/4-GiB/CPU-only timing profile; and
-- `npm run smoke:canonical-professional-long-form-post-approval` — 80 checks.
+- `npm run smoke:canonical-professional-long-form-post-approval` — 88 checks in
+  the current continuation, including the later first render/QA pair.
 
-The exact-code `npm run qa:internal-pipeline` v22 aggregate passed all `37/37`
-stages with exit code `0`. It started at `2026-07-18T12:52:16.698Z`, finished
-at `2026-07-18T13:23:50.164Z`, and completed in `1,893,466 ms`. The object-plan
-stage passed 27 checks in `434 ms`, the approved-snapshot bridge passed 22 checks
-in `736 ms`, and the 80-check canonical post-approval/root/source-authority/
-master-timing stage passed in `24,569 ms`.
+The current exact-code `npm run qa:internal-pipeline` v23 aggregate passed all
+`38/38` stages with exit code `0`. It started at
+`2026-07-18T15:34:20.145Z`, finished at `2026-07-18T16:14:33.676Z`, and
+completed in `2,413,531 ms`. The object-plan stage passed 27 checks in `371 ms`,
+the approved-snapshot bridge passed 22 checks in `789 ms`, the isolated
+deterministic object runner passed in `21,735 ms`, and the 88-check canonical
+post-approval lifecycle passed in `85,596 ms`. The prior v22 run remains the
+exact historical aggregate for the master-timing-only milestone.
 
 The same run reverified exactly 50 private canonical tool lifecycles and 50 job
 adapters, the crash-consistent package lifecycle, bounded three-source media
 composition, professional color execution, above-16-MiB UHD Remotion streaming,
 all 11 named-edit browser tests, and the accepted maximum-eight-source private
-review. The report keeps all 252 remaining long-form children, source-media and
-chunk execution, object storage, distributed database activation, live Google
-Cloud, customer billing, public delivery, external beta, and paid production
-false.
+review. The current report keeps all 250 remaining long-form children, complete
+source-media/chunk execution, object storage, distributed database activation,
+live Google Cloud, customer billing, public delivery, external beta, and paid
+production false.
 
 ## Readiness Truth
 
@@ -181,7 +189,9 @@ Still false:
 - beat detection, caption rendering, visual-cue execution, music, SFX, or
   ducking analysis;
 - source-media decode or transformation in this child;
-- the remaining 252 child operation authorities, leases, attempts, and costs;
+- at this milestone, the remaining 252 child operation authorities, leases,
+  attempts, and costs; the later first render/QA pair reduces the current
+  blocked count to 250;
 - chunk render, continuous audio, cross-chunk color, finalization, and final QA;
 - long-form object-store media persistence;
 - distributed database authority;
@@ -192,10 +202,9 @@ Still false:
 
 ## Next Evidence Gate
 
-The next dependency-safe long-form slice is one representative object-
-mezzanine chunk operation. It must bind exact approved source slices and timing,
-tool operation and resource profile, private object identity, attempt cost,
-objective QA, reconciliation, retry/replay behavior, and downstream evidence.
-One representative chunk does not authorize all 124 chunk renders or imply
-that continuous audio, color continuity, final assembly, Google Cloud, or the
-full product pipeline is ready.
+The representative first object-mezzanine chunk operation is now complete and
+documented in the continuation linked above. The next dependency-safe slice is
+separate continuous program audio or a bounded multi-chunk continuity proof.
+The one completed chunk still does not authorize all 124 chunk renders or
+imply that continuous audio, color continuity, final assembly, Google Cloud,
+or the full product pipeline is ready.

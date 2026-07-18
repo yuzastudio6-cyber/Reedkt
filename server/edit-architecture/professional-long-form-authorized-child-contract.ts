@@ -30,12 +30,32 @@ import {
   professionalLongFormMasterTimingExecutionAttemptSchema,
   professionalLongFormMasterTimingExecutionAuthoritySchema,
 } from './professional-long-form-master-timing-execution-contract'
+import {
+  PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_ATTEMPT_VERSION,
+  PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_AUTHORITY_VERSION,
+  PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_AUTHORIZATION_VERSION,
+  PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_COMPLETION_VERSION,
+  PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_ATTEMPT_VERSION,
+  PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_AUTHORITY_VERSION,
+  PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_AUTHORIZATION_VERSION,
+  PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_COMPLETION_VERSION,
+  professionalLongFormFirstObjectChunkQaAttemptSchema,
+  professionalLongFormFirstObjectChunkQaAuthoritySchema,
+  professionalLongFormFirstObjectChunkQaAuthorizationSchema,
+  professionalLongFormFirstObjectChunkQaCompletionSchema,
+  professionalLongFormFirstObjectChunkRenderAttemptSchema,
+  professionalLongFormFirstObjectChunkRenderAuthoritySchema,
+  professionalLongFormFirstObjectChunkRenderAuthorizationSchema,
+  professionalLongFormFirstObjectChunkRenderCompletionSchema,
+} from './professional-long-form-first-object-chunk-execution-contract'
 
 export const professionalLongFormAuthorizedChildAuthorizationReceiptSchema =
   z.discriminatedUnion('schemaVersion', [
     professionalLongFormFirstChildAuthorizationReceiptSchema,
     professionalLongFormSourceAuthorityAuthorizationReceiptSchema,
     professionalLongFormMasterTimingAuthorizationReceiptSchema,
+    professionalLongFormFirstObjectChunkRenderAuthorizationSchema,
+    professionalLongFormFirstObjectChunkQaAuthorizationSchema,
   ])
 
 export const professionalLongFormAuthorizedChildExecutionAuthoritySchema =
@@ -43,6 +63,8 @@ export const professionalLongFormAuthorizedChildExecutionAuthoritySchema =
     professionalLongFormFirstChildExecutionAuthoritySchema,
     professionalLongFormSourceAuthorityExecutionAuthoritySchema,
     professionalLongFormMasterTimingExecutionAuthoritySchema,
+    professionalLongFormFirstObjectChunkRenderAuthoritySchema,
+    professionalLongFormFirstObjectChunkQaAuthoritySchema,
   ])
 
 export const professionalLongFormAuthorizedChildExecutionAttemptSchema =
@@ -50,6 +72,8 @@ export const professionalLongFormAuthorizedChildExecutionAttemptSchema =
     professionalLongFormFirstChildExecutionAttemptSchema,
     professionalLongFormSourceAuthorityExecutionAttemptSchema,
     professionalLongFormMasterTimingExecutionAttemptSchema,
+    professionalLongFormFirstObjectChunkRenderAttemptSchema,
+    professionalLongFormFirstObjectChunkQaAttemptSchema,
   ])
 
 export const professionalLongFormAuthorizedChildCompletionSchema =
@@ -57,6 +81,8 @@ export const professionalLongFormAuthorizedChildCompletionSchema =
     professionalLongFormFirstChildCompletionSchema,
     professionalLongFormSourceAuthorityCompletionSchema,
     professionalLongFormMasterTimingCompletionSchema,
+    professionalLongFormFirstObjectChunkRenderCompletionSchema,
+    professionalLongFormFirstObjectChunkQaCompletionSchema,
   ])
 
 export type ProfessionalLongFormAuthorizedChildAuthorizationReceipt = z.infer<
@@ -93,6 +119,24 @@ export function isProfessionalLongFormMasterTimingAuthorization(
     PROFESSIONAL_LONG_FORM_MASTER_TIMING_AUTHORIZATION_RECEIPT_VERSION
 }
 
+export function isProfessionalLongFormFirstObjectChunkRenderAuthorization(
+  value: ProfessionalLongFormAuthorizedChildAuthorizationReceipt,
+): value is z.infer<
+  typeof professionalLongFormFirstObjectChunkRenderAuthorizationSchema
+> {
+  return value.schemaVersion ===
+    PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_AUTHORIZATION_VERSION
+}
+
+export function isProfessionalLongFormFirstObjectChunkQaAuthorization(
+  value: ProfessionalLongFormAuthorizedChildAuthorizationReceipt,
+): value is z.infer<
+  typeof professionalLongFormFirstObjectChunkQaAuthorizationSchema
+> {
+  return value.schemaVersion ===
+    PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_AUTHORIZATION_VERSION
+}
+
 export function isProfessionalLongFormFirstChildExecutionAuthority(
   value: ProfessionalLongFormAuthorizedChildExecutionAuthority,
 ): value is z.infer<typeof professionalLongFormFirstChildExecutionAuthoritySchema> {
@@ -112,6 +156,22 @@ export function isProfessionalLongFormMasterTimingExecutionAuthority(
 ): value is z.infer<typeof professionalLongFormMasterTimingExecutionAuthoritySchema> {
   return value.schemaVersion ===
     PROFESSIONAL_LONG_FORM_MASTER_TIMING_EXECUTION_AUTHORITY_VERSION
+}
+
+export function isProfessionalLongFormFirstObjectChunkRenderAuthority(
+  value: ProfessionalLongFormAuthorizedChildExecutionAuthority,
+): value is z.infer<
+  typeof professionalLongFormFirstObjectChunkRenderAuthoritySchema
+> {
+  return value.schemaVersion ===
+    PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_AUTHORITY_VERSION
+}
+
+export function isProfessionalLongFormFirstObjectChunkQaAuthority(
+  value: ProfessionalLongFormAuthorizedChildExecutionAuthority,
+): value is z.infer<typeof professionalLongFormFirstObjectChunkQaAuthoritySchema> {
+  return value.schemaVersion ===
+    PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_AUTHORITY_VERSION
 }
 
 export function isProfessionalLongFormFirstChildExecutionAttempt(
@@ -135,6 +195,22 @@ export function isProfessionalLongFormMasterTimingExecutionAttempt(
     PROFESSIONAL_LONG_FORM_MASTER_TIMING_EXECUTION_ATTEMPT_VERSION
 }
 
+export function isProfessionalLongFormFirstObjectChunkRenderAttempt(
+  value: ProfessionalLongFormAuthorizedChildExecutionAttempt,
+): value is z.infer<
+  typeof professionalLongFormFirstObjectChunkRenderAttemptSchema
+> {
+  return value.schemaVersion ===
+    PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_ATTEMPT_VERSION
+}
+
+export function isProfessionalLongFormFirstObjectChunkQaAttempt(
+  value: ProfessionalLongFormAuthorizedChildExecutionAttempt,
+): value is z.infer<typeof professionalLongFormFirstObjectChunkQaAttemptSchema> {
+  return value.schemaVersion ===
+    PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_ATTEMPT_VERSION
+}
+
 export function isProfessionalLongFormFirstChildCompletion(
   value: ProfessionalLongFormAuthorizedChildCompletion,
 ): value is z.infer<typeof professionalLongFormFirstChildCompletionSchema> {
@@ -153,4 +229,20 @@ export function isProfessionalLongFormMasterTimingCompletion(
 ): value is z.infer<typeof professionalLongFormMasterTimingCompletionSchema> {
   return value.schemaVersion ===
     PROFESSIONAL_LONG_FORM_MASTER_TIMING_COMPLETION_VERSION
+}
+
+export function isProfessionalLongFormFirstObjectChunkRenderCompletion(
+  value: ProfessionalLongFormAuthorizedChildCompletion,
+): value is z.infer<
+  typeof professionalLongFormFirstObjectChunkRenderCompletionSchema
+> {
+  return value.schemaVersion ===
+    PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_COMPLETION_VERSION
+}
+
+export function isProfessionalLongFormFirstObjectChunkQaCompletion(
+  value: ProfessionalLongFormAuthorizedChildCompletion,
+): value is z.infer<typeof professionalLongFormFirstObjectChunkQaCompletionSchema> {
+  return value.schemaVersion ===
+    PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_COMPLETION_VERSION
 }

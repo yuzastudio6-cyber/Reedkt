@@ -42,8 +42,18 @@ import {
   PROFESSIONAL_LONG_FORM_MASTER_TIMING_WORK_ITEM_ID,
 } from '../edit-architecture/professional-long-form-master-timing-execution-contract'
 import {
+  PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_ATTEMPT_VERSION,
+  PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_ATTEMPT_VERSION,
+} from '../edit-architecture/professional-long-form-first-object-chunk-execution-contract'
+import {
   isProfessionalLongFormFirstChildAuthorization,
   isProfessionalLongFormFirstChildExecutionAuthority,
+  isProfessionalLongFormFirstObjectChunkQaAuthorization,
+  isProfessionalLongFormFirstObjectChunkQaAuthority,
+  isProfessionalLongFormFirstObjectChunkRenderAuthorization,
+  isProfessionalLongFormFirstObjectChunkRenderAuthority,
+  isProfessionalLongFormFirstObjectChunkRenderCompletion,
+  isProfessionalLongFormFirstObjectChunkQaCompletion,
   isProfessionalLongFormMasterTimingAuthorization,
   isProfessionalLongFormMasterTimingExecutionAuthority,
   isProfessionalLongFormSourceAuthorityAuthorization,
@@ -361,12 +371,20 @@ export async function beginPrivateCanonicalPackageWorkQueueExecutionAttempt(inpu
     const masterTimingAttempt =
       authorization.approvedWorkItemId ===
         PROFESSIONAL_LONG_FORM_MASTER_TIMING_WORK_ITEM_ID
+    const firstObjectChunkRenderAttempt =
+      isProfessionalLongFormFirstObjectChunkRenderAuthorization(authorization)
+    const firstObjectChunkQaAttempt =
+      isProfessionalLongFormFirstObjectChunkQaAuthorization(authorization)
     const attemptWithoutHash = {
-      schemaVersion: masterTimingAttempt
-        ? PROFESSIONAL_LONG_FORM_MASTER_TIMING_EXECUTION_ATTEMPT_VERSION
-        : sourceAuthorityAttempt
-          ? PROFESSIONAL_LONG_FORM_SOURCE_AUTHORITY_EXECUTION_ATTEMPT_VERSION
-          : PROFESSIONAL_LONG_FORM_FIRST_CHILD_EXECUTION_ATTEMPT_VERSION,
+      schemaVersion: firstObjectChunkQaAttempt
+        ? PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_ATTEMPT_VERSION
+        : firstObjectChunkRenderAttempt
+          ? PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_ATTEMPT_VERSION
+          : masterTimingAttempt
+            ? PROFESSIONAL_LONG_FORM_MASTER_TIMING_EXECUTION_ATTEMPT_VERSION
+            : sourceAuthorityAttempt
+              ? PROFESSIONAL_LONG_FORM_SOURCE_AUTHORITY_EXECUTION_ATTEMPT_VERSION
+              : PROFESSIONAL_LONG_FORM_FIRST_CHILD_EXECUTION_ATTEMPT_VERSION,
       source: 'private_canonical_package_work_queue_store' as const,
       executionAttemptId: `long-form-child-attempt-${sha256AuthorityValue({
         authorizationId: authorization.authorizationId,
@@ -1612,6 +1630,30 @@ function assertPersistedProfessionalLongFormExecutionAuthority(input: {
         input.authorization.placementHash ||
       input.executionAuthority.lineage.timingHash !==
         input.authorization.expectedOutputIdentity
+  } else if (
+    isProfessionalLongFormFirstObjectChunkRenderAuthorization(
+      input.authorization,
+    )
+  ) {
+    pairInvalid = !isProfessionalLongFormFirstObjectChunkRenderAuthority(
+      input.executionAuthority,
+    ) || input.executionAuthority.lineage.renderJobDefinitionHash !==
+      input.authorization.jobDefinitionHash ||
+      input.executionAuthority.lineage.renderPlacementHash !==
+        input.authorization.placementHash ||
+      input.executionAuthority.approvedChunk.expectedObject.objectIdentity !==
+        input.authorization.expectedOutputIdentity
+  } else if (
+    isProfessionalLongFormFirstObjectChunkQaAuthorization(input.authorization)
+  ) {
+    pairInvalid = !isProfessionalLongFormFirstObjectChunkQaAuthority(
+      input.executionAuthority,
+    ) || input.executionAuthority.lineage.qaJobDefinitionHash !==
+      input.authorization.jobDefinitionHash ||
+      input.executionAuthority.lineage.qaPlacementHash !==
+        input.authorization.placementHash ||
+      input.executionAuthority.renderArtifact.objectIdentity + ':qa' !==
+        input.authorization.expectedOutputIdentity
   }
   if (commonInvalid || pairInvalid) {
     throw new ApiError(
@@ -1689,6 +1731,45 @@ function exactProfessionalLongFormAuthorizationMatches(
       authorization.expectedOutputIdentity.length === 64 &&
       hasCompletedRootDependency()
   }
+  if (isProfessionalLongFormFirstObjectChunkRenderAuthorization(authorization)) {
+    const dependencies = entry.definition.dependencyJobIds.map((jobId) =>
+      aggregate.entries.find((candidate) => candidate.definition.jobId === jobId))
+    return entry.definition.workerType === 'render_worker' &&
+      entry.definition.resourceClassId === 'render_cpu_high_memory_v1' &&
+      entry.definition.maxAttempts === 2 &&
+      entry.definition.attemptTimeoutSeconds === 3_600 &&
+      entry.definition.canonicalOrder === 3 &&
+      entry.definition.dependencyJobIds.length === 3 &&
+      dependencies.length === 3 &&
+      dependencies.every((dependency) =>
+        dependency?.state === 'completed' &&
+        dependency.completion?.outcome.professionalLongFormExecution !==
+          undefined) &&
+      stableAuthorityStringify(dependencies.map((dependency) =>
+        dependency?.definition.canonicalOrder)) ===
+        stableAuthorityStringify([0, 1, 2]) &&
+      /^[a-f0-9]{64}$/u.test(authorization.expectedOutputIdentity)
+  }
+  if (isProfessionalLongFormFirstObjectChunkQaAuthorization(authorization)) {
+    const render = aggregate.entries.find((candidate) =>
+      candidate.definition.jobId === entry.definition.dependencyJobIds[0])
+    const renderCompletion = render?.completion?.outcome
+      .professionalLongFormExecution
+    return entry.definition.workerType === 'qa_worker' &&
+      entry.definition.resourceClassId === 'qa_cpu_standard_v1' &&
+      entry.definition.maxAttempts === 2 &&
+      entry.definition.attemptTimeoutSeconds === 900 &&
+      entry.definition.canonicalOrder === 4 &&
+      entry.definition.dependencyJobIds.length === 1 &&
+      render?.definition.canonicalOrder === 3 &&
+      render.state === 'completed' &&
+      Boolean(renderCompletion &&
+        isProfessionalLongFormFirstObjectChunkRenderCompletion(
+          renderCompletion,
+        )) &&
+      authorization.expectedOutputIdentity ===
+        `${render?.definition.expectedOutputIdentity}:qa`
+  }
   if (!isProfessionalLongFormMasterTimingAuthorization(authorization)) {
     return false
   }
@@ -1713,6 +1794,17 @@ function assertProfessionalLongFormCompletionEvidence(
   const attempt = entry.professionalLongFormExecutionAttempt
   const completion = outcome.professionalLongFormExecution
   if (!authorization && !attempt && !completion) return
+  const exactArtifactMatches = completion &&
+    isProfessionalLongFormFirstObjectChunkRenderCompletion(completion)
+    ? outcome.contentType === 'video/x-matroska' &&
+      outcome.artifactId === completion.outputArtifact.objectIdentity &&
+      outcome.sha256 === completion.outputArtifact.sha256
+    : completion && isProfessionalLongFormFirstObjectChunkQaCompletion(completion)
+      ? outcome.contentType === 'application/json' &&
+        outcome.sha256 === completion.validationArtifactRef.sha256
+      : completion && 'validationArtifactRef' in completion &&
+        outcome.contentType === 'application/json' &&
+        outcome.sha256 === completion.validationArtifactRef.sha256
   if (
     !authorization ||
     !attempt ||
@@ -1724,8 +1816,7 @@ function assertProfessionalLongFormCompletionEvidence(
     completion.operation.runnerClass !== authorization.operation.runnerClass ||
     completion.operation.attemptCostProfileId !==
       authorization.operation.attemptCostProfileId ||
-    outcome.contentType !== 'application/json' ||
-    outcome.sha256 !== completion.validationArtifactRef.sha256 ||
+    !exactArtifactMatches ||
     outcome.adapterReplayed
   ) {
     throw new ApiError(

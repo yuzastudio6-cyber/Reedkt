@@ -26,7 +26,10 @@ import {
   privateUploadMediaAuthorityValueHash,
   readPrivateUploadMediaAuthorityAggregate,
 } from './private-upload-media-authority-store'
-import { sha256AuthorityValue } from './private-edit-authority-store'
+import {
+  sha256AuthorityValue,
+  stableAuthorityStringify,
+} from './private-edit-authority-store'
 import { getRequiredAuthUserId } from './service-helpers'
 import { authorizeWorkspaceAccess } from './workspace-access-service'
 
@@ -464,6 +467,29 @@ export function createCanonicalPrivateSourceObjectReadService(context: ServiceCo
         throw invalidSource('A source-sequence media operation requires two to eight unique approved source items.')
       }
       return stageApprovedSourceSet(input, sourceIds)
+    },
+
+    async stageExactApprovedSourceSubset(
+      input: CanonicalPrivateSourceObjectReadInput,
+      sourceSequenceItemIds: readonly string[],
+    ): Promise<CanonicalPrivateStagedSourceSet> {
+      const approvedIds = input.approvedWorkItem.sourceSequenceItemIds
+      const requested = [...sourceSequenceItemIds]
+      const requestedSet = new Set(requested)
+      const exactApprovedOrder = approvedIds.filter((sourceId) =>
+        requestedSet.has(sourceId))
+      if (
+        requested.length < 2 || requested.length > 8 ||
+        requestedSet.size !== requested.length ||
+        requested.some((sourceId) => !approvedIds.includes(sourceId)) ||
+        stableAuthorityStringify(requested) !==
+          stableAuthorityStringify(exactApprovedOrder)
+      ) {
+        throw invalidSource(
+          'A staged source subset must contain two to eight unique approved sources in immutable approved order.',
+        )
+      }
+      return stageApprovedSourceSet(input, requested)
     },
   }
 }

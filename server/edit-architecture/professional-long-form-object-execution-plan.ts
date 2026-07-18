@@ -313,6 +313,10 @@ export interface ProfessionalLongFormObjectChunk {
     runtimeRegion: 'us-east1' | 'europe-west1'
     bucketPurpose: 'processed-media'
     contentType: 'video/x-matroska'
+    assetRole: 'processed'
+    objectVersion: 1
+    rendererLayerIdentity: string
+    placeholderAllowed: false
     ephemeralAccessGrantPersisted: false
     createOnlyRequired: true
   }
@@ -492,6 +496,15 @@ export function buildProfessionalLongFormObjectExecutionPlan(
         runtimeRegion: request.runtimeRegion,
         bucketPurpose: 'processed-media' as const,
         contentType: 'video/x-matroska' as const,
+        assetRole: 'processed' as const,
+        objectVersion: 1 as const,
+        rendererLayerIdentity: sha256AuthorityValue({
+          planSeedHash,
+          chunkId,
+          objectIdentity,
+          layerRole: 'source_led_object_mezzanine_chunk',
+        }),
+        placeholderAllowed: false as const,
         ephemeralAccessGrantPersisted: false as const,
         createOnlyRequired: true as const,
       },

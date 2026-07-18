@@ -43,12 +43,27 @@ contains the bounded `colorchannelmixer`, `colorlevels`, `unsharp`, and
 `setparams` filters required by the private professional source-color recipe;
 caller-authored filter strings remain forbidden.
 
-The image does **not** compile H.264, HEVC, AAC, `libx264`, `libx265`, or
-OpenH264 encoders. It does not compile an MP4/MOV muxer. Consequently it is not
-a final-delivery image and cannot satisfy the existing H.264/MP4 export plan.
-H.264/HEVC/AAC decoding remains included only for internal source analysis and
-is still blocked from a production-readiness claim pending codec patent,
-commercial-use, distribution, and legal policy review.
+The image does **not** compile H.264, HEVC, `libx264`, `libx265`, or OpenH264
+encoders. Its native AAC encoder is compiled only for the fixed private
+source-slice finalizer, and its MP4/MOV muxer is restricted to that finalizer
+and the first-object-chunk runner's temporary source-slice extraction. The
+first-object-chunk runner does not encode H.264 or AAC: it stream-copies exact,
+compatible H.264 MP4 slices into a video-only Matroska object chunk. These
+recipes are server-owned and caller-authored FFmpeg commands remain forbidden.
+Consequently the image is not a final-delivery image and cannot satisfy the
+H.264/MP4 export plan. H.264/HEVC/AAC decoding remains included only for
+internal private processing and is still blocked from a production-readiness
+claim pending codec patent, commercial-use, distribution, and legal policy
+review.
+
+The first-object-chunk recipe is deliberately narrower than general editing:
+it accepts two to eight exact MP4 source commitments and two to sixteen
+approved, contiguous, frame-zero H.264 slices at 30 fps. Sources must share
+the exact codec extradata, frame, time-base, BT.709 color, and no-B-frame
+profile. It creates only the first 4K object chunk and excludes program audio,
+which remains a separate downstream work item. This is not evidence for
+arbitrary camera codecs, HDR, VFR, non-zero source trims, or a complete
+long-form edit.
 
 FFmpeg's LGPL configure result is important evidence, but it is not legal
 approval for FFmpeg, every enabled codec, the base distribution, or commercial
@@ -56,7 +71,8 @@ delivery.
 
 ## Runtime confinement
 
-The image declares numeric user `65532:65532`. The standalone smoke runs with:
+The image declares numeric user `65532:65532`. The ordinary standalone smoke
+runs with:
 
 ```bash
 --network=none
@@ -69,6 +85,11 @@ The image declares numeric user `65532:65532`. The standalone smoke runs with:
 --cpus=2
 --tmpfs /tmp:rw,noexec,nosuid,nodev,size=64m,mode=1777
 ```
+
+The two fixed large-media entrypoints use the same confinement controls with a
+4 GiB memory limit and a 1,342,177,280-byte `/tmp` tmpfs. Those larger bounds
+are fixed by the runtime and independently attested; they are not caller
+options.
 
 Dockerfiles cannot enforce `--network=none` or `--read-only` by themselves.
 Any future worker launcher must enforce those controls plus private read-only
@@ -91,24 +112,34 @@ The build wrapper removes AppleDouble `._*` sidecars only from this isolated
 build-context directory before invoking Docker. This avoids a Docker Desktop
 xattr failure seen on backup/APFS volumes; it does not touch product sources.
 
-The smoke checks the immutable configuration, LGPL banner, exact encoder,
+The image smoke checks the immutable configuration, LGPL banner, exact encoder,
 decoder, filter, demuxer, muxer, protocol, and bitstream-filter allowlists,
 non-root identity, read-only root, network-none runtime, all runtime evidence
 hashes, synthetic FFV1+PCM intermediate creation, ffprobe JSON, frame
 extraction, the bounded BT.709 lossless-VP9 professional color chain, and deterministic
 video/audio analysis filters.
 
-It processes synthetic media only. It does not read user artifacts or unlock
-workers, routes, rendering, previews, or export.
+It processes synthetic media only. The dedicated object-chunk smoke also proves
+same-input byte-for-byte deterministic reexecution plus independent ffprobe QA:
+
+```bash
+npm run smoke:offline-media-binary-object-chunk
+```
+
+That smoke uses synthetic constant-color 4K inputs. It does not prove
+multi-camera editorial quality, representative raw-footage scale, cloud
+throughput, broad codec support, remaining chunk execution, final rendering,
+or export. Neither smoke reads user artifacts or unlocks workers, routes,
+previews, public delivery, or production export.
 
 ## SBOM and digest evidence
 
 For a locally built image:
 
 ```bash
-docker image inspect --format '{{.Id}}' reeditpro/ffmpeg-lgpl-internal:8.1.2-color-v1-local
-docker sbom --format spdx-json reeditpro/ffmpeg-lgpl-internal:8.1.2-color-v1-local > /tmp/reeditpro-ffmpeg-8.1.2-color-v1.spdx.json
-sha256sum /tmp/reeditpro-ffmpeg-8.1.2-color-v1.spdx.json
+docker image inspect --format '{{.Id}}' reeditpro/ffmpeg-lgpl-internal:8.1.2-object-chunk-v3-local
+docker sbom --format spdx-json reeditpro/ffmpeg-lgpl-internal:8.1.2-object-chunk-v3-local > /tmp/reeditpro-ffmpeg-8.1.2-object-chunk-v3.spdx.json
+sha256sum /tmp/reeditpro-ffmpeg-8.1.2-object-chunk-v3.spdx.json
 ```
 
 The builder package lock and runtime binary/config hashes are stored under

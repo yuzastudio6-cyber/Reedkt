@@ -1,5 +1,6 @@
 export * from './offline-media-binary-protocol'
 export * from './offline-media-binary-streaming-protocol'
 export * from './offline-media-binary-mezzanine-finalization-protocol'
+export * from './offline-media-binary-object-mezzanine-chunk-protocol'
 export * from './offline-media-binary-runtime'
 export * from './offline-media-binary-types'

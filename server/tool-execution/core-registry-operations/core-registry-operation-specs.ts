@@ -149,6 +149,7 @@ const mediaRecipeSettings = strictSettings({
     'audio_extract_pcm_v1',
     'approved_trim_transcode_v1',
     'approved_4k_source_slice_mezzanine_finalize_v1',
+    'approved_4k_object_mezzanine_chunk_stream_copy_v1',
     'final_export_h264_aac_v1',
   ]),
   timestampPolicy: enumConstraint(['preserve_approved_timeline', 'normalize_from_zero']),
@@ -160,7 +161,12 @@ const mediaRecipeSettings = strictSettings({
 }, ['recipeProfileId', 'timestampPolicy', 'overwriteExistingArtifact', 'allowUnreviewedCodec'])
 
 const mediaInspectionSettings = strictSettings({
-  inspectionProfileId: enumConstraint(['source_intake_v1', 'pre_render_v1', 'final_export_v1']),
+  inspectionProfileId: enumConstraint([
+    'source_intake_v1',
+    'pre_render_v1',
+    'object_mezzanine_chunk_qa_v1',
+    'final_export_v1',
+  ]),
   countFrames: booleanConstraint(),
   verifyDurationAndSync: booleanConstraint(true),
   emitMachineJsonOnly: booleanConstraint(true),

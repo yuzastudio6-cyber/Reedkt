@@ -5,7 +5,7 @@ export const OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_OUTPUT_BYTES = 192 * 1024 * 
 export const OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_AUDIO_OUTPUT_BYTES = 64 * 1024 * 1024
 
 export interface OfflineMediaBinaryImageEvidence {
-  imageTag: 'reeditpro/ffmpeg-lgpl-internal:8.1.2-color-finalizer-v2-local'
+  imageTag: 'reeditpro/ffmpeg-lgpl-internal:8.1.2-object-chunk-v3-local'
   imageId: string
   imageIdentityHash: string
   architecture: string
@@ -16,7 +16,8 @@ export interface OfflineMediaBinaryImageEvidence {
   productReady: false
   h264Encoding: 'blocked_not_compiled'
   aacEncoding: 'private_source_slice_finalizer_only'
-  mp4Mux: 'private_source_slice_finalizer_only'
+  mp4Mux: 'private_source_slice_finalizer_and_object_chunk_only'
+  objectMezzanineChunk: 'private_first_chunk_stream_copy_only'
   sourcePolicyHashes: Readonly<Record<string, string>>
 }
 
@@ -40,6 +41,7 @@ export interface OfflineMediaBinaryConfinementEvidence {
     | '/opt/reeditpro-ffmpeg/bin/ffprobe'
     | '/opt/reeditpro-ffmpeg/bin/ffmpeg'
     | '/usr/local/bin/reeditpro-ffmpeg-source-slice-finalizer'
+    | '/usr/local/bin/reeditpro-ffmpeg-object-mezzanine-chunk'
   serverDerivedArgumentsOnly: true
 }
 
@@ -131,6 +133,31 @@ export interface OfflineFfmpegMezzanineFinalizationExecutionResult {
     requestEnvelopeSha256: string
     sourceSha256: string
     chunkSha256s: readonly string[]
+    resultSha256: string
+    semanticEvidence: Readonly<Record<string, unknown>>
+    confinement: OfflineMediaBinaryConfinementEvidence
+    containerExitCode: 0
+    oomKilled: false
+    outputTransport: 'server_committed_private_stream_v1'
+  }
+  image: OfflineMediaBinaryImageEvidence
+  attestation: OfflineFfmpegExecutionResult['attestation']
+  readiness: OfflineFfmpegExecutionResult['readiness']
+}
+
+export interface OfflineFfmpegObjectMezzanineChunkExecutionResult {
+  resultArtifact: {
+    mimeType: 'video/x-matroska'
+    sha256: string
+    byteLength: number
+    outputMode: 'server_committed_private_stream_v1'
+  }
+  evidence: {
+    toolId: 'ffmpeg'
+    operationId: 'tool.ffmpeg.execute_approved_media_recipe.v1'
+    binaryVersion: '8.1.2'
+    requestEnvelopeSha256: string
+    sourceSha256s: readonly string[]
     resultSha256: string
     semanticEvidence: Readonly<Record<string, unknown>>
     confinement: OfflineMediaBinaryConfinementEvidence

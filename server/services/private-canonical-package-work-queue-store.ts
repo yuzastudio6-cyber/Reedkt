@@ -50,9 +50,16 @@ import {
   PROFESSIONAL_LONG_FORM_CONTINUOUS_PROGRAM_AUDIO_WORK_ITEM_ID,
 } from '../edit-architecture/professional-long-form-continuous-program-audio-execution-contract'
 import {
+  PROFESSIONAL_LONG_FORM_CROSS_CHUNK_COLOR_ATTEMPT_VERSION,
+  PROFESSIONAL_LONG_FORM_CROSS_CHUNK_COLOR_WORK_ITEM_ID,
+} from '../edit-architecture/professional-long-form-cross-chunk-color-continuity-execution-contract'
+import {
   isProfessionalLongFormContinuousProgramAudioAuthorization,
   isProfessionalLongFormContinuousProgramAudioAuthority,
   isProfessionalLongFormContinuousProgramAudioCompletion,
+  isProfessionalLongFormCrossChunkColorAuthorization,
+  isProfessionalLongFormCrossChunkColorAuthority,
+  isProfessionalLongFormCrossChunkColorCompletion,
   isProfessionalLongFormFirstChildAuthorization,
   isProfessionalLongFormFirstChildExecutionAuthority,
   isProfessionalLongFormFirstObjectChunkQaAuthorization,
@@ -386,8 +393,12 @@ export async function beginPrivateCanonicalPackageWorkQueueExecutionAttempt(inpu
       isProfessionalLongFormFirstObjectChunkQaAuthorization(authorization)
     const continuousProgramAudioAttempt =
       isProfessionalLongFormContinuousProgramAudioAuthorization(authorization)
+    const crossChunkColorAttempt =
+      isProfessionalLongFormCrossChunkColorAuthorization(authorization)
     const attemptWithoutHash = {
-      schemaVersion: continuousProgramAudioAttempt
+      schemaVersion: crossChunkColorAttempt
+        ? PROFESSIONAL_LONG_FORM_CROSS_CHUNK_COLOR_ATTEMPT_VERSION
+        : continuousProgramAudioAttempt
         ? PROFESSIONAL_LONG_FORM_CONTINUOUS_PROGRAM_AUDIO_ATTEMPT_VERSION
         : firstObjectChunkQaAttempt
         ? PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_ATTEMPT_VERSION
@@ -1646,6 +1657,17 @@ function assertPersistedProfessionalLongFormExecutionAuthority(input: {
       input.executionAuthority.lineage.timingHash !==
         input.authorization.expectedOutputIdentity
   } else if (
+    isProfessionalLongFormCrossChunkColorAuthorization(input.authorization)
+  ) {
+    pairInvalid = !isProfessionalLongFormCrossChunkColorAuthority(
+      input.executionAuthority,
+    ) || input.executionAuthority.lineage.colorJobDefinitionHash !==
+      input.authorization.jobDefinitionHash ||
+      input.executionAuthority.lineage.colorPlacementHash !==
+        input.authorization.placementHash ||
+      input.executionAuthority.identity.expectedOutputIdentity !==
+        input.authorization.expectedOutputIdentity
+  } else if (
     isProfessionalLongFormContinuousProgramAudioAuthorization(
       input.authorization,
     )
@@ -1763,6 +1785,29 @@ function exactProfessionalLongFormAuthorizationMatches(
       authorization.expectedOutputIdentity.length === 64 &&
       hasCompletedRootDependency()
   }
+  if (isProfessionalLongFormCrossChunkColorAuthorization(authorization)) {
+    const dependencies = entry.definition.dependencyJobIds.map((jobId) =>
+      aggregate.entries.find((candidate) => candidate.definition.jobId === jobId))
+    return entry.definition.workerType === 'qa_worker' &&
+      entry.definition.resourceClassId === 'qa_cpu_standard_v1' &&
+      entry.definition.maxAttempts === 2 &&
+      entry.definition.attemptTimeoutSeconds === 1_800 &&
+      dependencies.length >= 2 && dependencies.length <= 124 &&
+      entry.definition.canonicalOrder === dependencies.length * 2 + 4 &&
+      entry.definition.approvedWorkItemId ===
+        PROFESSIONAL_LONG_FORM_CROSS_CHUNK_COLOR_WORK_ITEM_ID &&
+      entry.definition.satisfiedPromotionDependencyJobIds?.length === 0 &&
+      dependencies.every((dependency, index) => {
+        const completion = dependency?.completion?.outcome
+          .professionalLongFormExecution
+        return dependency?.definition.canonicalOrder === index * 2 + 4 &&
+          dependency.state === 'completed' &&
+          Boolean(completion &&
+            isProfessionalLongFormFirstObjectChunkQaCompletion(completion))
+      }) &&
+      authorization.expectedOutputIdentity ===
+        `${aggregate.identity.approvedPlanSnapshotId}:color-continuity`
+  }
   if (isProfessionalLongFormContinuousProgramAudioAuthorization(authorization)) {
     const sourceDependency = aggregate.entries.find((candidate) =>
       candidate.definition.approvedWorkItemId ===
@@ -1866,7 +1911,10 @@ function assertProfessionalLongFormCompletionEvidence(
   const completion = outcome.professionalLongFormExecution
   if (!authorization && !attempt && !completion) return
   const exactArtifactMatches = completion &&
-    isProfessionalLongFormContinuousProgramAudioCompletion(completion)
+    isProfessionalLongFormCrossChunkColorCompletion(completion)
+    ? outcome.contentType === 'application/json' &&
+      outcome.sha256 === completion.validationArtifactRef.sha256
+    : completion && isProfessionalLongFormContinuousProgramAudioCompletion(completion)
     ? outcome.contentType === 'audio/flac' &&
       outcome.artifactId === completion.outputArtifact.objectIdentity &&
       outcome.sha256 === completion.outputArtifact.sha256

@@ -21,6 +21,7 @@ import {
   professionalLongFormAuthorizedChildAuthorizationReceiptSchema,
   professionalLongFormAuthorizedChildCompletionSchema,
   professionalLongFormAuthorizedChildExecutionAttemptSchema,
+  isProfessionalLongFormCrossChunkColorAuthorization,
   isProfessionalLongFormContinuousProgramAudioAuthorization,
   isProfessionalLongFormFirstObjectChunkQaAuthorization,
   isProfessionalLongFormFirstObjectChunkRenderAuthorization,
@@ -277,6 +278,7 @@ export const canonicalPrivatePackageWorkQueueEntrySchema = z.object({
         PROFESSIONAL_LONG_FORM_MASTER_TIMING_WORK_ITEM_ID &&
       !isProfessionalLongFormFirstObjectChunkRenderAuthorization(authorization) &&
       !isProfessionalLongFormFirstObjectChunkQaAuthorization(authorization) &&
+      !isProfessionalLongFormCrossChunkColorAuthorization(authorization) &&
       !isProfessionalLongFormContinuousProgramAudioAuthorization(authorization)) ||
     entry.definition.requiredGate !==
       'canonical_professional_long_form_exact_tool_cost_runner_and_qa_authority' ||

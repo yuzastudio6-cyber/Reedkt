@@ -71,6 +71,10 @@ The bounded first-media-pair continuation is documented in
 The bounded continuous-program-audio continuation is documented in
 `docs/canonical-professional-long-form-continuous-program-audio-execution-2026-07-18.md`.
 
+The bounded canonical cross-chunk color-continuity continuation is documented
+in
+`docs/canonical-professional-long-form-cross-chunk-color-continuity-2026-07-18.md`.
+
 The ordinary orchestrator then repeatedly:
 
 1. selects a stable dependency-ready wave in canonical package order;

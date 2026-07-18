@@ -58,6 +58,16 @@ import {
   professionalLongFormContinuousProgramAudioAuthorizationSchema,
   professionalLongFormContinuousProgramAudioCompletionSchema,
 } from './professional-long-form-continuous-program-audio-execution-contract'
+import {
+  PROFESSIONAL_LONG_FORM_CROSS_CHUNK_COLOR_ATTEMPT_VERSION,
+  PROFESSIONAL_LONG_FORM_CROSS_CHUNK_COLOR_AUTHORITY_VERSION,
+  PROFESSIONAL_LONG_FORM_CROSS_CHUNK_COLOR_AUTHORIZATION_VERSION,
+  PROFESSIONAL_LONG_FORM_CROSS_CHUNK_COLOR_COMPLETION_VERSION,
+  professionalLongFormCrossChunkColorAttemptSchema,
+  professionalLongFormCrossChunkColorAuthoritySchema,
+  professionalLongFormCrossChunkColorAuthorizationSchema,
+  professionalLongFormCrossChunkColorCompletionSchema,
+} from './professional-long-form-cross-chunk-color-continuity-execution-contract'
 
 export const professionalLongFormAuthorizedChildAuthorizationReceiptSchema =
   z.discriminatedUnion('schemaVersion', [
@@ -67,6 +77,7 @@ export const professionalLongFormAuthorizedChildAuthorizationReceiptSchema =
     professionalLongFormFirstObjectChunkRenderAuthorizationSchema,
     professionalLongFormFirstObjectChunkQaAuthorizationSchema,
     professionalLongFormContinuousProgramAudioAuthorizationSchema,
+    professionalLongFormCrossChunkColorAuthorizationSchema,
   ])
 
 export const professionalLongFormAuthorizedChildExecutionAuthoritySchema =
@@ -77,6 +88,7 @@ export const professionalLongFormAuthorizedChildExecutionAuthoritySchema =
     professionalLongFormFirstObjectChunkRenderAuthoritySchema,
     professionalLongFormFirstObjectChunkQaAuthoritySchema,
     professionalLongFormContinuousProgramAudioAuthoritySchema,
+    professionalLongFormCrossChunkColorAuthoritySchema,
   ])
 
 export const professionalLongFormAuthorizedChildExecutionAttemptSchema =
@@ -87,6 +99,7 @@ export const professionalLongFormAuthorizedChildExecutionAttemptSchema =
     professionalLongFormFirstObjectChunkRenderAttemptSchema,
     professionalLongFormFirstObjectChunkQaAttemptSchema,
     professionalLongFormContinuousProgramAudioAttemptSchema,
+    professionalLongFormCrossChunkColorAttemptSchema,
   ])
 
 export const professionalLongFormAuthorizedChildCompletionSchema =
@@ -97,6 +110,7 @@ export const professionalLongFormAuthorizedChildCompletionSchema =
     professionalLongFormFirstObjectChunkRenderCompletionSchema,
     professionalLongFormFirstObjectChunkQaCompletionSchema,
     professionalLongFormContinuousProgramAudioCompletionSchema,
+    professionalLongFormCrossChunkColorCompletionSchema,
   ])
 
 export type ProfessionalLongFormAuthorizedChildAuthorizationReceipt = z.infer<
@@ -160,6 +174,15 @@ export function isProfessionalLongFormContinuousProgramAudioAuthorization(
     PROFESSIONAL_LONG_FORM_CONTINUOUS_PROGRAM_AUDIO_AUTHORIZATION_VERSION
 }
 
+export function isProfessionalLongFormCrossChunkColorAuthorization(
+  value: ProfessionalLongFormAuthorizedChildAuthorizationReceipt,
+): value is z.infer<
+  typeof professionalLongFormCrossChunkColorAuthorizationSchema
+> {
+  return value.schemaVersion ===
+    PROFESSIONAL_LONG_FORM_CROSS_CHUNK_COLOR_AUTHORIZATION_VERSION
+}
+
 export function isProfessionalLongFormFirstChildExecutionAuthority(
   value: ProfessionalLongFormAuthorizedChildExecutionAuthority,
 ): value is z.infer<typeof professionalLongFormFirstChildExecutionAuthoritySchema> {
@@ -204,6 +227,13 @@ export function isProfessionalLongFormContinuousProgramAudioAuthority(
 > {
   return value.schemaVersion ===
     PROFESSIONAL_LONG_FORM_CONTINUOUS_PROGRAM_AUDIO_AUTHORITY_VERSION
+}
+
+export function isProfessionalLongFormCrossChunkColorAuthority(
+  value: ProfessionalLongFormAuthorizedChildExecutionAuthority,
+): value is z.infer<typeof professionalLongFormCrossChunkColorAuthoritySchema> {
+  return value.schemaVersion ===
+    PROFESSIONAL_LONG_FORM_CROSS_CHUNK_COLOR_AUTHORITY_VERSION
 }
 
 export function isProfessionalLongFormFirstChildExecutionAttempt(
@@ -252,6 +282,13 @@ export function isProfessionalLongFormContinuousProgramAudioAttempt(
     PROFESSIONAL_LONG_FORM_CONTINUOUS_PROGRAM_AUDIO_ATTEMPT_VERSION
 }
 
+export function isProfessionalLongFormCrossChunkColorAttempt(
+  value: ProfessionalLongFormAuthorizedChildExecutionAttempt,
+): value is z.infer<typeof professionalLongFormCrossChunkColorAttemptSchema> {
+  return value.schemaVersion ===
+    PROFESSIONAL_LONG_FORM_CROSS_CHUNK_COLOR_ATTEMPT_VERSION
+}
+
 export function isProfessionalLongFormFirstChildCompletion(
   value: ProfessionalLongFormAuthorizedChildCompletion,
 ): value is z.infer<typeof professionalLongFormFirstChildCompletionSchema> {
@@ -295,4 +332,11 @@ export function isProfessionalLongFormContinuousProgramAudioCompletion(
 > {
   return value.schemaVersion ===
     PROFESSIONAL_LONG_FORM_CONTINUOUS_PROGRAM_AUDIO_COMPLETION_VERSION
+}
+
+export function isProfessionalLongFormCrossChunkColorCompletion(
+  value: ProfessionalLongFormAuthorizedChildCompletion,
+): value is z.infer<typeof professionalLongFormCrossChunkColorCompletionSchema> {
+  return value.schemaVersion ===
+    PROFESSIONAL_LONG_FORM_CROSS_CHUNK_COLOR_COMPLETION_VERSION
 }

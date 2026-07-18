@@ -80,7 +80,9 @@ Verified local/private:
 Still false:
 
 - execution proof for the other 122 render/QA pairs;
-- cross-chunk color-continuity execution;
+- retained six-hour cross-chunk color-continuity execution (a separate bounded
+  two-chunk canonical proof now passes; see
+  `docs/canonical-professional-long-form-cross-chunk-color-continuity-2026-07-18.md`);
 - private master assembly and final-master QA;
 - production codecs, representative multi-camera editorial quality, and
   throughput/load evidence;
@@ -91,8 +93,9 @@ Still false:
 
 ## Next Gate
 
-The next unique capability is cross-chunk color continuity. It must consume
-only independently QA-passed chunk artifacts and preserve the same snapshot,
+The next unique capability is canonical private-master assembly. It must
+consume only independently QA-passed chunk artifacts, continuous program
+audio, and passed color evidence while preserving the same snapshot,
 reservation, private persistence, one-use execution, cost, reconciliation,
-and replay boundaries. Full master assembly remains blocked until every chunk
-pair and color dependency passes.
+and replay boundaries. Full assembly in the retained six-hour graph remains
+blocked until every chunk pair and color dependency passes.

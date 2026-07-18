@@ -14,6 +14,9 @@ import {
   PROFESSIONAL_LONG_FORM_MASTER_TIMING_OPERATION_ID,
 } from '../edit-architecture/professional-long-form-master-timing-execution-contract'
 import {
+  PROFESSIONAL_LONG_FORM_CROSS_CHUNK_COLOR_OPERATION_ID,
+} from '../edit-architecture/professional-long-form-cross-chunk-color-continuity-execution-contract'
+import {
   PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_OPERATION_ID,
   PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_OPERATION_ID,
 } from '../edit-architecture/professional-long-form-first-object-chunk-execution-contract'
@@ -367,6 +370,48 @@ try {
   assert.equal(longFormMasterTiming.evidence.resourceUsage.gpuCount, 0)
   assertNoCommercialKeys(longFormMasterTiming.evidence)
 
+  const longFormCrossChunkColorInput = {
+    ...common,
+    approvedWorkItemId: 'long-form-validate-cross-chunk-color-continuity',
+    jobId: 'long-form-cross-chunk-color-job-cost-proof',
+    executionAttemptId: 'attempt-long-form-cross-chunk-color-cost-proof',
+    toolId: 'ffmpeg' as const,
+    operationId: PROFESSIONAL_LONG_FORM_CROSS_CHUNK_COLOR_OPERATION_ID,
+    workloadProfileId:
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegCrossChunkColorContinuity,
+  }
+  const longFormCrossChunkColorMeter =
+    await beginPrivateInternalAttemptCostEvidence(
+      longFormCrossChunkColorInput,
+      clock([70_000_000_000n, 72_250_000_000n], [
+        '2026-07-11T12:08:00.000Z',
+      ]),
+    )
+  const longFormCrossChunkColor = await longFormCrossChunkColorMeter.finalize({
+    status: 'completed',
+    failureCategory: 'none',
+    outputByteLength: 24_576,
+    linkedCanonicalOutcomeHash: '0'.repeat(64),
+  })
+  assert.equal(longFormCrossChunkColor.evidence.identity.toolId, 'ffmpeg')
+  assert.equal(
+    longFormCrossChunkColor.evidence.identity.operationId,
+    PROFESSIONAL_LONG_FORM_CROSS_CHUNK_COLOR_OPERATION_ID,
+  )
+  assert.equal(
+    longFormCrossChunkColor.evidence.identity.workloadProfileId,
+    PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegCrossChunkColorContinuity,
+  )
+  assert.deepEqual(
+    {
+      vcpuCount: longFormCrossChunkColor.evidence.resourceUsage.vcpuCount,
+      memoryGib: longFormCrossChunkColor.evidence.resourceUsage.memoryGib,
+      gpuCount: longFormCrossChunkColor.evidence.resourceUsage.gpuCount,
+    },
+    { vcpuCount: 2, memoryGib: 4, gpuCount: 0 },
+  )
+  assertNoCommercialKeys(longFormCrossChunkColor.evidence)
+
   await expectCode(() => beginPrivateInternalAttemptCostEvidence({
     ...ffmpegInput,
     jobId: remotionInput.jobId,
@@ -402,6 +447,8 @@ try {
       longFormSourceAuthority.evidence.actualInternalCostMicros,
     longFormMasterTimingValidationAttemptCostMicros:
       longFormMasterTiming.evidence.actualInternalCostMicros,
+    longFormCrossChunkColorAttemptCostMicros:
+      longFormCrossChunkColor.evidence.actualInternalCostMicros,
     replayHash: replay.evidence.evidenceHash,
     checks: [
       'attempt_level_internal_cost_only',
@@ -418,6 +465,7 @@ try {
       'professional_long_form_snapshot_validation_profile_is_2vcpu_4gib_cpu_only',
       'professional_long_form_source_authority_validation_profile_is_2vcpu_4gib_cpu_only',
       'professional_long_form_master_timing_validation_profile_is_2vcpu_4gib_cpu_only',
+      'ffmpeg_cross_chunk_color_continuity_profile_is_2vcpu_4gib_cpu_only',
       'cross_profile_attempt_identity_conflict_fails_closed',
       'resource_profile_and_commercial_field_mutations_fail_schema_validation',
       'commercial_pricing_credit_and_wallet_fields_absent',

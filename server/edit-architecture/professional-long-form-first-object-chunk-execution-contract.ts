@@ -1,34 +1,34 @@
 import { z } from 'zod'
 
 export const PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_AUTHORITY_VERSION =
-  'professional-long-form-first-object-chunk-render-authority-v1' as const
+  'professional-long-form-object-chunk-render-authority-v2' as const
 export const PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_AUTHORIZATION_VERSION =
-  'professional-long-form-first-object-chunk-render-authorization-v1' as const
+  'professional-long-form-object-chunk-render-authorization-v2' as const
 export const PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_ATTEMPT_VERSION =
-  'professional-long-form-first-object-chunk-render-attempt-v1' as const
+  'professional-long-form-object-chunk-render-attempt-v2' as const
 export const PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_EVIDENCE_VERSION =
-  'professional-long-form-first-object-chunk-render-evidence-v1' as const
+  'professional-long-form-object-chunk-render-evidence-v2' as const
 export const PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_RECONCILIATION_VERSION =
-  'professional-long-form-first-object-chunk-render-reconciliation-v1' as const
+  'professional-long-form-object-chunk-render-reconciliation-v2' as const
 export const PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_TERMINAL_VERSION =
-  'professional-long-form-first-object-chunk-render-terminal-v1' as const
+  'professional-long-form-object-chunk-render-terminal-v2' as const
 export const PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_COMPLETION_VERSION =
-  'professional-long-form-first-object-chunk-render-completion-v1' as const
+  'professional-long-form-object-chunk-render-completion-v2' as const
 
 export const PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_AUTHORITY_VERSION =
-  'professional-long-form-first-object-chunk-qa-authority-v1' as const
+  'professional-long-form-object-chunk-qa-authority-v2' as const
 export const PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_AUTHORIZATION_VERSION =
-  'professional-long-form-first-object-chunk-qa-authorization-v1' as const
+  'professional-long-form-object-chunk-qa-authorization-v2' as const
 export const PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_ATTEMPT_VERSION =
-  'professional-long-form-first-object-chunk-qa-attempt-v1' as const
+  'professional-long-form-object-chunk-qa-attempt-v2' as const
 export const PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_ARTIFACT_VERSION =
-  'professional-long-form-first-object-chunk-qa-artifact-v1' as const
+  'professional-long-form-object-chunk-qa-artifact-v2' as const
 export const PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_RECONCILIATION_VERSION =
-  'professional-long-form-first-object-chunk-qa-reconciliation-v1' as const
+  'professional-long-form-object-chunk-qa-reconciliation-v2' as const
 export const PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_TERMINAL_VERSION =
-  'professional-long-form-first-object-chunk-qa-terminal-v1' as const
+  'professional-long-form-object-chunk-qa-terminal-v2' as const
 export const PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_COMPLETION_VERSION =
-  'professional-long-form-first-object-chunk-qa-completion-v1' as const
+  'professional-long-form-object-chunk-qa-completion-v2' as const
 
 export const PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_KIND =
   'render_object_mezzanine_chunk' as const
@@ -39,13 +39,13 @@ export const PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_OPERATION_ID =
 export const PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_OPERATION_ID =
   'tool.ffprobe.inspect_approved_media.v1' as const
 export const PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_RUNNER_CLASS =
-  'canonical_professional_long_form_first_object_chunk_ffmpeg_runner_v1' as const
+  'canonical_professional_long_form_object_chunk_ffmpeg_runner_v2' as const
 export const PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_RUNNER_CLASS =
-  'canonical_professional_long_form_first_object_chunk_ffprobe_qa_runner_v1' as const
+  'canonical_professional_long_form_object_chunk_ffprobe_qa_runner_v2' as const
 export const PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_COST_PROFILE_ID =
-  'ffmpeg_4k_object_mezzanine_chunk_cpu_2vcpu_4gib_v1' as const
+  'ffmpeg_4k_vp9_object_mezzanine_chunk_cpu_2vcpu_4gib_v2' as const
 export const PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_COST_PROFILE_ID =
-  'ffprobe_4k_object_mezzanine_chunk_qa_cpu_2vcpu_4gib_v1' as const
+  'ffprobe_4k_object_mezzanine_chunk_qa_cpu_2vcpu_4gib_v2' as const
 
 const identity = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
@@ -64,7 +64,7 @@ export const professionalLongFormFirstObjectChunkMediaArtifactRefSchema =
     objectIdentity: sha256,
     mediaFormat: z.literal('mkv'),
     contentType: z.literal('video/x-matroska'),
-    byteLength: positiveInteger.max(192 * 1024 * 1024),
+    byteLength: positiveInteger.max(512 * 1024 * 1024),
     sha256,
     objectVersion: z.literal(1),
     assetRole: z.literal('processed'),
@@ -119,26 +119,30 @@ const sourceSliceSchema = z.object({
   sourceObjectGeneration: z.string().regex(/^[1-9][0-9]{0,30}$/u),
   sourceSha256: sha256,
   sourceCleanupDecisionId: identity,
-  sourceStartFrame: z.literal(0),
-  sourceEndFrameExclusive: z.number().int().min(1).max(5_400),
-  globalTimelineStartFrame: z.number().int().min(0).max(5_399),
-  globalTimelineEndFrameExclusive: z.number().int().min(1).max(5_400),
+  sourceStartFrame: z.number().int().min(0).max(1_295_999),
+  sourceEndFrameExclusive: z.number().int().min(1).max(1_296_000),
+  globalTimelineStartFrame: z.number().int().min(0).max(1_295_999),
+  globalTimelineEndFrameExclusive: z.number().int().min(1).max(1_296_000),
   chunkLocalStartFrame: z.number().int().min(0).max(5_399),
   chunkLocalEndFrameExclusive: z.number().int().min(1).max(5_400),
-  boundaryBefore: z.enum(['timeline_start', 'approved_hard_cut']),
+  boundaryBefore: z.enum([
+    'timeline_start',
+    'approved_hard_cut',
+    'continuous_technical_split',
+  ]),
 }).strict()
 
 const approvedChunkSchema = z.object({
   chunkId: identity,
-  chunkIndex: z.literal(1),
+  chunkIndex: z.number().int().min(1).max(124),
   chunkCount: z.number().int().min(1).max(124),
-  globalStartFrame: z.literal(0),
-  globalEndFrameExclusive: z.number().int().min(1_350).max(5_400),
+  globalStartFrame: z.number().int().min(0).max(1_294_650),
+  globalEndFrameExclusive: z.number().int().min(1_350).max(1_296_000),
   durationFrames: z.number().int().min(1_350).max(5_400),
   width: z.union([z.literal(2_160), z.literal(2_880), z.literal(3_840)]),
   height: z.union([z.literal(2_160), z.literal(2_700), z.literal(3_840)]),
   fps: z.literal(30),
-  sourceSlices: z.array(sourceSliceSchema).min(2).max(16),
+  sourceSlices: z.array(sourceSliceSchema).min(1).max(16),
   expectedObject: z.object({
     objectIdentity: sha256,
     runtimeRegion: z.enum(['us-east1', 'europe-west1']),
@@ -196,7 +200,7 @@ export const professionalLongFormFirstObjectChunkRenderAuthorizationSchema =
       PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_AUTHORIZATION_VERSION,
     ),
     source: z.literal(
-      'server_persisted_professional_long_form_first_object_chunk_render_authority',
+      'server_persisted_professional_long_form_object_chunk_render_authority',
     ),
     authorizationId: identity,
     authorityRef: jsonBlobRef,
@@ -215,7 +219,7 @@ export const professionalLongFormFirstObjectChunkRenderAuthorizationSchema =
       privateLocalLease: z.literal(true),
       oneUseInternalDispatch: z.literal(true),
       approvedPrivateSourceRead: z.literal(true),
-      fixedStreamCopyRecipe: z.literal(true),
+      fixedFrameExactRecipe: z.literal(true),
       createOnlyPrivateMediaPersistence: z.literal(true),
       providerCall: z.literal(false),
       googleCloudDispatch: z.literal(false),
@@ -231,7 +235,7 @@ export const professionalLongFormFirstObjectChunkQaAuthorizationSchema =
       PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_AUTHORIZATION_VERSION,
     ),
     source: z.literal(
-      'server_persisted_professional_long_form_first_object_chunk_qa_authority',
+      'server_persisted_professional_long_form_object_chunk_qa_authority',
     ),
     authorizationId: identity,
     authorityRef: jsonBlobRef,
@@ -316,13 +320,13 @@ export const professionalLongFormFirstObjectChunkRenderAuthoritySchema =
       PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_AUTHORITY_VERSION,
     ),
     source: z.literal(
-      'server_reopened_professional_long_form_first_object_chunk_render_authority',
+      'server_reopened_professional_long_form_object_chunk_render_authority',
     ),
     purpose: z.literal(
-      'authorize_one_private_checksum_bound_first_object_chunk_stream_copy',
+      'authorize_one_private_checksum_bound_object_chunk_render',
     ),
     status: z.literal(
-      'first_object_chunk_render_authorized_independent_qa_required',
+      'object_chunk_render_authorized_independent_qa_required',
     ),
     ...commonAuthorityFields,
     approvedChunk: approvedChunkSchema,
@@ -359,8 +363,8 @@ export const professionalLongFormFirstObjectChunkRenderAuthoritySchema =
       immutableDependencyCompletionsRequired: z.literal(true),
       approvedPrivateSourceRead: z.literal(true),
       exactSourceChecksumsRequired: z.literal(true),
-      fixedHardCutStreamCopyRecipe: z.literal(true),
-      decodeOrReencodeAllowed: z.literal(false),
+      fixedFrameExactDecodeTrimRecipe: z.literal(true),
+      boundedVp9ReencodeAllowed: z.literal(true),
       privateMediaArtifactCreateOnly: z.literal(true),
       independentQaRequiredBeforeDownstream: z.literal(true),
       furtherChildExecution: z.literal(false),
@@ -375,12 +379,12 @@ export const professionalLongFormFirstObjectChunkQaAuthoritySchema = z.object({
     PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_AUTHORITY_VERSION,
   ),
   source: z.literal(
-    'server_reopened_professional_long_form_first_object_chunk_qa_authority',
+    'server_reopened_professional_long_form_object_chunk_qa_authority',
   ),
   purpose: z.literal(
-    'authorize_one_private_independent_probe_of_exact_first_object_chunk',
+    'authorize_one_private_independent_probe_of_exact_object_chunk',
   ),
-  status: z.literal('first_object_chunk_independent_qa_authorized'),
+  status: z.literal('object_chunk_independent_qa_authorized'),
   ...commonAuthorityFields,
   approvedChunk: approvedChunkSchema,
   renderArtifact: professionalLongFormFirstObjectChunkMediaArtifactRefSchema,
@@ -429,7 +433,7 @@ export const professionalLongFormFirstObjectChunkRenderEvidenceSchema = z.object
     PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_EVIDENCE_VERSION,
   ),
   source: z.literal(
-    'canonical_professional_long_form_first_object_chunk_ffmpeg_runner',
+    'canonical_professional_long_form_object_chunk_ffmpeg_runner',
   ),
   identity: z.object({
     workspaceId: identity,
@@ -444,9 +448,9 @@ export const professionalLongFormFirstObjectChunkRenderEvidenceSchema = z.object
   executionAttemptHash: sha256,
   operation: renderOperationSchema,
   requestEnvelopeSha256: sha256,
-  sourceReadEvidenceHashes: z.array(sha256).min(2).max(8),
-  sourceStagingEvidenceHashes: z.array(sha256).min(2).max(8),
-  sourceSha256s: z.array(sha256).min(2).max(8),
+  sourceReadEvidenceHashes: z.array(sha256).min(1).max(8),
+  sourceStagingEvidenceHashes: z.array(sha256).min(1).max(8),
+  sourceSha256s: z.array(sha256).min(1).max(8),
   capacityEvidenceHash: sha256,
   outputArtifact: professionalLongFormFirstObjectChunkMediaArtifactRefSchema,
   runtime: z.object({
@@ -462,8 +466,8 @@ export const professionalLongFormFirstObjectChunkRenderEvidenceSchema = z.object
     approvedDependenciesReopened: z.literal('passed'),
     immutableSourceBytesVerified: z.literal('passed'),
     sourceOrderAndFrameRangesVerified: z.literal('passed'),
-    fixedHardCutStreamCopyExecuted: z.literal('passed'),
-    noDecodeOrReencode: z.literal('passed'),
+    frameExactDecodeTrimConcatExecuted: z.literal('passed'),
+    boundedVp9MezzanineEncoded: z.literal('passed'),
     noAudioEmbedded: z.literal('passed'),
     exactPrivateCreateOnlyPersistence: z.literal('passed'),
     independentQaStillRequired: z.literal(true),
@@ -478,7 +482,7 @@ export const professionalLongFormFirstObjectChunkRenderReconciliationSchema =
       PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_RECONCILIATION_VERSION,
     ),
     source: z.literal(
-      'canonical_professional_long_form_first_object_chunk_render_reconciliation',
+      'canonical_professional_long_form_object_chunk_render_reconciliation',
     ),
     renderJobId: identity,
     renderApprovedWorkItemId: identity,
@@ -506,7 +510,7 @@ export const professionalLongFormFirstObjectChunkRenderTerminalSchema = z.object
     PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_TERMINAL_VERSION,
   ),
   source: z.literal(
-    'canonical_professional_long_form_first_object_chunk_execution_service',
+    'canonical_professional_long_form_object_chunk_execution_service',
   ),
   jobId: identity,
   approvedWorkItemId: identity,
@@ -531,7 +535,7 @@ export const professionalLongFormFirstObjectChunkQaArtifactSchema = z.object({
     PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_ARTIFACT_VERSION,
   ),
   source: z.literal(
-    'canonical_professional_long_form_first_object_chunk_ffprobe_qa',
+    'canonical_professional_long_form_object_chunk_ffprobe_qa',
   ),
   identity: z.object({
     workspaceId: identity,
@@ -554,7 +558,7 @@ export const professionalLongFormFirstObjectChunkQaArtifactSchema = z.object({
     container: z.literal('matroska'),
     videoStreamCount: z.literal(1),
     audioStreamCount: z.literal(0),
-    codecName: z.literal('h264'),
+    codecName: z.literal('vp9'),
     pixelFormat: z.literal('yuv420p'),
     width: z.union([z.literal(2_160), z.literal(2_880), z.literal(3_840)]),
     height: z.union([z.literal(2_160), z.literal(2_700), z.literal(3_840)]),
@@ -575,7 +579,7 @@ export const professionalLongFormFirstObjectChunkQaArtifactSchema = z.object({
     independentProbeExecuted: z.literal('passed'),
     exactFrameCountRateAndDuration: z.literal('passed'),
     exactOutputFrame: z.literal('passed'),
-    exactH264PixelAndColorMetadata: z.literal('passed'),
+    exactVp9PixelAndColorMetadata: z.literal('passed'),
     videoOnlyObjectChunk: z.literal('passed'),
     sourceAndTimelineLineage: z.literal('passed'),
   }).strict(),
@@ -589,7 +593,7 @@ export const professionalLongFormFirstObjectChunkQaReconciliationSchema = z.obje
     PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_RECONCILIATION_VERSION,
   ),
   source: z.literal(
-    'canonical_professional_long_form_first_object_chunk_qa_reconciliation',
+    'canonical_professional_long_form_object_chunk_qa_reconciliation',
   ),
   qaJobId: identity,
   qaApprovedWorkItemId: identity,
@@ -602,11 +606,11 @@ export const professionalLongFormFirstObjectChunkQaReconciliationSchema = z.obje
     approvedWorkItemId: identity,
     dependencyJobId: identity,
     thisDependencySatisfied: z.literal(true),
-    everyRequiredDependencySatisfied: z.literal(false),
+    everyRequiredDependencySatisfied: z.boolean(),
     executionAuthorized: z.literal(false),
   }).strict()).length(2),
   decision: z.literal(
-    'first_chunk_qa_passed_remaining_chunks_audio_color_and_finalization_blocked',
+    'object_chunk_qa_passed_remaining_graph_dependency_gated',
   ),
   reconciledAt: timestamp,
   reconciliationHash: sha256,
@@ -617,7 +621,7 @@ export const professionalLongFormFirstObjectChunkQaTerminalSchema = z.object({
     PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_TERMINAL_VERSION,
   ),
   source: z.literal(
-    'canonical_professional_long_form_first_object_chunk_execution_service',
+    'canonical_professional_long_form_object_chunk_execution_service',
   ),
   jobId: identity,
   approvedWorkItemId: identity,

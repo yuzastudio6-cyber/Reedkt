@@ -91,7 +91,10 @@ import {
 } from './private-edit-authority-store'
 
 export const CANONICAL_PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_EXECUTION_VERSION =
-  'canonical-professional-long-form-first-object-chunk-execution-v1' as const
+  'canonical-professional-long-form-first-object-chunk-execution-v2' as const
+
+export const CANONICAL_PROFESSIONAL_LONG_FORM_OBJECT_CHUNK_SERIES_EXECUTION_VERSION =
+  'canonical-professional-long-form-object-chunk-series-execution-v2' as const
 
 export interface CanonicalProfessionalLongFormFirstObjectChunkExecutionEvidence {
   schemaVersion:
@@ -132,8 +135,8 @@ export interface CanonicalProfessionalLongFormFirstObjectChunkExecutionEvidence 
     fundedFourKEstimateReservationReused: true
     renderLeaseAndOneUseDispatchVerified: true
     exactPrivateSourcesStagedAndChecksummed: true
-    fixedFfmpegHardCutStreamCopyExecuted: true
-    firstObjectChunkPrivatePersistenceVerified: true
+    frameExactDecodeTrimConcatExecuted: true
+    privateVp9ObjectMezzaninePersistenceVerified: true
     qaLeaseAndOneUseDispatchVerified: true
     exactPersistedArtifactIndependentlyProbed: true
     exactFrameRateFrameCountDurationAndColorVerified: true
@@ -148,6 +151,40 @@ export interface CanonicalProfessionalLongFormFirstObjectChunkExecutionEvidence 
     customerBillingAuthorized: false
     walletMutationAuthorized: false
     distributedDatabaseVerified: false
+    liveGoogleCloudVerified: false
+    publicDeliveryAuthorized: false
+    productReady: false
+    productionReady: false
+  }
+  evidenceHash: string
+}
+
+export interface CanonicalProfessionalLongFormObjectChunkSeriesExecutionEvidence {
+  schemaVersion:
+    typeof CANONICAL_PROFESSIONAL_LONG_FORM_OBJECT_CHUNK_SERIES_EXECUTION_VERSION
+  source: 'canonical_professional_long_form_object_chunk_series_execution_service'
+  status: 'server_selected_object_chunk_and_independent_qa_completed'
+  disposition: 'completed' | 'exact_replay'
+  selectedChunkIndex: number
+  render: Omit<CompletedRenderEvidence, 'queueAggregate'>
+  qa: Omit<CompletedQaEvidence, 'queueAggregate'>
+  queueAggregate: CanonicalPrivatePackageWorkQueueAggregate
+  readiness: {
+    serverOwnedChunkSelectionVerified: true
+    genericFrameExactExecutorApplied: true
+    nonzeroSourceFrameRangesSupported: true
+    technicalSplitBoundarySupported: true
+    privateVp9ObjectMezzaninePersistenceVerified: true
+    independentQaVerified: true
+    renderAttemptInternalCostVerified: true
+    qaAttemptInternalCostVerified: true
+    completedObjectChunkPairCount: number
+    totalObjectChunkPairCount: number
+    remainingObjectChunkPairCount: number
+    allObjectChunkPairsCompleted: boolean
+    nextUniqueCapability: 'object_chunk_pair' | 'cross_chunk_color_continuity'
+    customerBillingAuthorized: false
+    walletMutationAuthorized: false
     liveGoogleCloudVerified: false
     publicDeliveryAuthorized: false
     productReady: false
@@ -211,42 +248,51 @@ export function createCanonicalProfessionalLongFormFirstObjectChunkExecutionServ
         )
       }
       let current = await currentAuthority(context, input)
-      const initialRenderEntry = firstRenderEntry(current)
+      const initialRenderEntry = renderEntry(current, 1)
       let render: CompletedRenderEvidence
       let newlyExecuted = false
       if (initialRenderEntry.state === 'completed') {
-        render = await loadCompletedRender({ context, current, ownerUserId })
+        render = await loadCompletedRender({
+          context, current, ownerUserId, chunkIndex: 1,
+        })
       } else {
         if (initialRenderEntry.state === 'leased') {
           throw inProgress('First object-chunk render already has an active lease.')
         }
-        render = await executeRender({ context, current, ownerUserId })
+        render = await executeRender({ context, current, ownerUserId, chunkIndex: 1 })
         newlyExecuted = true
       }
 
       current = await currentAuthority(context, input)
-      const qaEntry = pairedQaEntry(current)
+      const qaEntry = qaEntryForChunk(current, 1)
       let qa: CompletedQaEvidence
       if (qaEntry.state === 'completed') {
-        qa = await loadCompletedQa({ context, current, ownerUserId })
+        qa = await loadCompletedQa({
+          context, current, ownerUserId, chunkIndex: 1,
+        })
       } else {
         if (qaEntry.state === 'leased') {
           throw inProgress('First object-chunk QA already has an active lease.')
         }
-        qa = await executeQa({ context, current, ownerUserId })
+        qa = await executeQa({ context, current, ownerUserId, chunkIndex: 1 })
         newlyExecuted = true
       }
       const aggregate = qa.queueAggregate
       if (
-        aggregate.summary.completedJobCount !== 5 ||
+        aggregate.summary.completedJobCount < 5 ||
         aggregate.summary.totalJobCount !== 255 ||
-        aggregate.summary.queuedJobCount !== 250 ||
+        aggregate.summary.queuedJobCount + aggregate.summary.completedJobCount !== 255 ||
         aggregate.summary.leasedJobCount !== 0 ||
-        aggregate.summary.totalDeliveryAttemptCount !== 5 ||
-        aggregate.entries.slice(5).some((entry) =>
-          entry.state !== 'queued' || entry.deliveryAttemptCount !== 0 ||
-          entry.professionalLongFormExecutionAuthorization ||
-          entry.professionalLongFormExecutionAttempt || entry.completion)
+        aggregate.summary.totalDeliveryAttemptCount !==
+          aggregate.summary.completedJobCount ||
+        aggregate.entries.some((entry, index) =>
+          (index < 5 && entry.state !== 'completed') ||
+          !['queued', 'completed'].includes(entry.state) ||
+          (entry.state === 'queued' && (
+            entry.deliveryAttemptCount !== 0 ||
+            entry.professionalLongFormExecutionAuthorization ||
+            entry.professionalLongFormExecutionAttempt || entry.completion)) ||
+          (entry.state === 'completed' && entry.deliveryAttemptCount !== 1))
       ) throw invalid(
         'First object-chunk completion did not preserve the remaining canonical graph.',
       )
@@ -265,8 +311,8 @@ export function createCanonicalProfessionalLongFormFirstObjectChunkExecutionServ
           fundedFourKEstimateReservationReused: true as const,
           renderLeaseAndOneUseDispatchVerified: true as const,
           exactPrivateSourcesStagedAndChecksummed: true as const,
-          fixedFfmpegHardCutStreamCopyExecuted: true as const,
-          firstObjectChunkPrivatePersistenceVerified: true as const,
+          frameExactDecodeTrimConcatExecuted: true as const,
+          privateVp9ObjectMezzaninePersistenceVerified: true as const,
           qaLeaseAndOneUseDispatchVerified: true as const,
           exactPersistedArtifactIndependentlyProbed: true as const,
           exactFrameRateFrameCountDurationAndColorVerified: true as const,
@@ -297,10 +343,127 @@ export function createCanonicalProfessionalLongFormFirstObjectChunkExecutionServ
   }
 }
 
+export function createCanonicalProfessionalLongFormObjectChunkSeriesExecutionService(
+  context: ServiceContext,
+) {
+  return {
+    async executeNext(input: {
+      workspaceId: string
+      approvedPlanSnapshotId: string
+    }): Promise<CanonicalProfessionalLongFormObjectChunkSeriesExecutionEvidence> {
+      if (
+        !input || typeof input !== 'object' ||
+        Object.keys(input).sort().join('|') !==
+          'approvedPlanSnapshotId|workspaceId'
+      ) throw invalid(
+        'Object-chunk selection is server-owned and accepts no caller chunk, source, recipe, path, command, or artifact fields.',
+      )
+      const ownerUserId = context.auth?.userId
+      if (!ownerUserId) {
+        throw new ApiError(
+          'AUTH_REQUIRED',
+          'Object-chunk execution requires authenticated authority.',
+          401,
+        )
+      }
+      let current = await currentAuthority(context, input)
+      const totalObjectChunkPairCount =
+        current.postApproval.bridge.binding.plan.chunks.length
+      const selectedChunkIndex = selectNextObjectChunkIndex(current)
+      const initialRenderEntry = renderEntry(current, selectedChunkIndex)
+      let render: CompletedRenderEvidence
+      let newlyExecuted = false
+      if (initialRenderEntry.state === 'completed') {
+        render = await loadCompletedRender({
+          context, current, ownerUserId, chunkIndex: selectedChunkIndex,
+        })
+      } else {
+        if (initialRenderEntry.state === 'leased') {
+          throw inProgress(
+            `Object-chunk ${selectedChunkIndex} render already has an active lease.`,
+          )
+        }
+        render = await executeRender({
+          context, current, ownerUserId, chunkIndex: selectedChunkIndex,
+        })
+        newlyExecuted = true
+      }
+
+      current = await currentAuthority(context, input)
+      const selectedQaEntry = qaEntryForChunk(current, selectedChunkIndex)
+      let qa: CompletedQaEvidence
+      if (selectedQaEntry.state === 'completed') {
+        qa = await loadCompletedQa({
+          context, current, ownerUserId, chunkIndex: selectedChunkIndex,
+        })
+      } else {
+        if (selectedQaEntry.state === 'leased') {
+          throw inProgress(
+            `Object-chunk ${selectedChunkIndex} QA already has an active lease.`,
+          )
+        }
+        qa = await executeQa({
+          context, current, ownerUserId, chunkIndex: selectedChunkIndex,
+        })
+        newlyExecuted = true
+      }
+      const aggregate = qa.queueAggregate
+      const completedObjectChunkPairCount = countCompletedObjectChunkPairs({
+        current: { ...current, queueAggregate: aggregate },
+        totalObjectChunkPairCount,
+      })
+      const allObjectChunkPairsCompleted =
+        completedObjectChunkPairCount === totalObjectChunkPairCount
+      const stablePayload = {
+        schemaVersion:
+          CANONICAL_PROFESSIONAL_LONG_FORM_OBJECT_CHUNK_SERIES_EXECUTION_VERSION,
+        source:
+          'canonical_professional_long_form_object_chunk_series_execution_service' as const,
+        status:
+          'server_selected_object_chunk_and_independent_qa_completed' as const,
+        selectedChunkIndex,
+        render: withoutAggregate(render),
+        qa: withoutAggregate(qa),
+        queueAggregate: aggregate,
+        readiness: {
+          serverOwnedChunkSelectionVerified: true as const,
+          genericFrameExactExecutorApplied: true as const,
+          nonzeroSourceFrameRangesSupported: true as const,
+          technicalSplitBoundarySupported: true as const,
+          privateVp9ObjectMezzaninePersistenceVerified: true as const,
+          independentQaVerified: true as const,
+          renderAttemptInternalCostVerified: true as const,
+          qaAttemptInternalCostVerified: true as const,
+          completedObjectChunkPairCount,
+          totalObjectChunkPairCount,
+          remainingObjectChunkPairCount:
+            totalObjectChunkPairCount - completedObjectChunkPairCount,
+          allObjectChunkPairsCompleted,
+          nextUniqueCapability: allObjectChunkPairsCompleted
+            ? 'cross_chunk_color_continuity' as const
+            : 'object_chunk_pair' as const,
+          customerBillingAuthorized: false as const,
+          walletMutationAuthorized: false as const,
+          liveGoogleCloudVerified: false as const,
+          publicDeliveryAuthorized: false as const,
+          productReady: false as const,
+          productionReady: false as const,
+        },
+      }
+      return {
+        ...stablePayload,
+        disposition: newlyExecuted ? 'completed' : 'exact_replay',
+        evidenceHash: sha256AuthorityValue(stablePayload),
+      }
+    },
+  }
+}
+
 async function executeRender(input: {
   context: ServiceContext
   current: CanonicalProfessionalLongFormCurrentChildPackageAuthority
   ownerUserId: string
+  chunkIndex: number
 }): Promise<CompletedRenderEvidence> {
   const authority = buildProfessionalLongFormFirstObjectChunkRenderAuthority(input)
   assertUnexpired(authority.approval.reservationExpiresAt)
@@ -312,6 +475,7 @@ async function executeRender(input: {
         value,
         ownerUserId: input.ownerUserId,
         current: input.current,
+        chunkIndex: input.chunkIndex,
       })
     },
   })
@@ -333,13 +497,13 @@ async function executeRender(input: {
     definition: input.current.queueDefinition,
     jobId: authority.identity.jobId,
     workerIdentity:
-      'canonical-professional-long-form-first-object-chunk-render-v1',
+      'canonical-professional-long-form-object-chunk-render-v2',
     workerType: 'render_worker',
     now: new Date().toISOString(),
     leaseDurationMs: authority.operation.leaseDurationMilliseconds,
   })
   if (claim.disposition !== 'claimed') {
-    throw inProgress(`First object-chunk render claim remained ${claim.disposition}.`)
+    throw inProgress(`Object-chunk render claim remained ${claim.disposition}.`)
   }
   const begun = await beginPrivateCanonicalPackageWorkQueueExecutionAttempt({
     scope: input.current.scope,
@@ -374,7 +538,14 @@ async function executeRender(input: {
       workItem.id ===
         input.current.package.identity.parentControllerApprovedWorkItemId)
     if (!parentWorkItem) throw invalid('Approved long-form controller work item is missing.')
-    const sourceIds = uniqueSourceIds(authority)
+    const requestedSourceIds = new Set(uniqueSourceIds(authority))
+    const sourceIds = parentWorkItem.sourceSequenceItemIds.filter((sourceId) =>
+      requestedSourceIds.has(sourceId))
+    if (sourceIds.length !== requestedSourceIds.size) {
+      throw invalid(
+        'Approved object-chunk source subset is outside the immutable parent source order.',
+      )
+    }
     const staged = await createCanonicalPrivateSourceObjectReadService(
       input.context,
     ).stageExactApprovedSourceSubset({
@@ -400,7 +571,7 @@ async function executeRender(input: {
             OFFLINE_MEDIA_BINARY_OBJECT_MEZZANINE_CHUNK_MAXIMUM_OUTPUT_BYTES,
           async persist(output) {
             if (output.mimeType !== 'video/x-matroska') {
-              throw invalid('First object-chunk runner returned the wrong media type.')
+              throw invalid('Object-chunk runner returned the wrong media type.')
             }
             const stored = await persistCanonicalPrivateMediaArtifactStream({
               localStorageRoot: input.context.env.localStorageRoot,
@@ -425,7 +596,7 @@ async function executeRender(input: {
         !stored || stored.mediaFormat !== 'mkv' ||
         stored.byteLength !== result.resultArtifact.byteLength ||
         stored.sha256 !== result.resultArtifact.sha256
-      ) throw invalid('First object-chunk changed after private persistence.')
+      ) throw invalid('Object-chunk changed after private persistence.')
       const outputArtifact: ProfessionalLongFormFirstObjectChunkMediaArtifactRef = {
         objectIdentity: authority.approvedChunk.expectedObject.objectIdentity,
         mediaFormat: 'mkv',
@@ -606,6 +777,7 @@ async function executeQa(input: {
   context: ServiceContext
   current: CanonicalProfessionalLongFormCurrentChildPackageAuthority
   ownerUserId: string
+  chunkIndex: number
 }): Promise<CompletedQaEvidence> {
   const authority = buildProfessionalLongFormFirstObjectChunkQaAuthority(input)
   assertUnexpired(authority.approval.reservationExpiresAt)
@@ -617,6 +789,7 @@ async function executeQa(input: {
         value,
         ownerUserId: input.ownerUserId,
         current: input.current,
+        chunkIndex: input.chunkIndex,
       })
     },
   })
@@ -637,13 +810,13 @@ async function executeQa(input: {
     definition: input.current.queueDefinition,
     jobId: authority.identity.jobId,
     workerIdentity:
-      'canonical-professional-long-form-first-object-chunk-qa-v1',
+      'canonical-professional-long-form-object-chunk-qa-v2',
     workerType: 'qa_worker',
     now: new Date().toISOString(),
     leaseDurationMs: authority.operation.leaseDurationMilliseconds,
   })
   if (claim.disposition !== 'claimed') {
-    throw inProgress(`First object-chunk QA claim remained ${claim.disposition}.`)
+    throw inProgress(`Object-chunk QA claim remained ${claim.disposition}.`)
   }
   const begun = await beginPrivateCanonicalPackageWorkQueueExecutionAttempt({
     scope: input.current.scope,
@@ -682,7 +855,7 @@ async function executeQa(input: {
       !stored || stored.mediaFormat !== 'mkv' ||
       stored.byteLength !== authority.renderArtifact.byteLength ||
       stored.sha256 !== authority.renderArtifact.sha256
-    ) throw invalid('First object-chunk QA could not reopen the exact render artifact.')
+    ) throw invalid('Object-chunk QA could not reopen the exact render artifact.')
     const runtime = await openPrivateOfflineMediaBinaryRuntime()
     const result = await runtime.executeServerInjected(
       validateOfflineFfprobeStreamingExecutionRequest({
@@ -854,17 +1027,19 @@ async function loadCompletedRender(input: {
   context: ServiceContext
   current: CanonicalProfessionalLongFormCurrentChildPackageAuthority
   ownerUserId: string
+  chunkIndex: number
 }): Promise<CompletedRenderEvidence> {
   const authority = buildProfessionalLongFormFirstObjectChunkRenderAuthority(input)
   const authorityRef = await findAndVerifyAuthorityRef({
     context: input.context,
-    entry: firstRenderEntry(input.current),
+    entry: renderEntry(input.current, input.chunkIndex),
     authority,
     verify(value) {
       return assertProfessionalLongFormFirstObjectChunkRenderAuthority({
         value,
         ownerUserId: input.ownerUserId,
         current: input.current,
+        chunkIndex: input.chunkIndex,
       })
     },
   })
@@ -873,7 +1048,7 @@ async function loadCompletedRender(input: {
       authority,
       authorityRef,
     })
-  const entry = firstRenderEntry(input.current)
+  const entry = renderEntry(input.current, input.chunkIndex)
   const attempt = professionalLongFormFirstObjectChunkRenderAttemptSchema.parse(
     entry.professionalLongFormExecutionAttempt,
   )
@@ -898,7 +1073,7 @@ async function loadCompletedRender(input: {
     output.byteLength !== completion.outputArtifact.byteLength ||
     output.sha256 !== completion.outputArtifact.sha256 ||
     entry.completion?.outcome.sha256 !== completion.outputArtifact.sha256
-  ) throw invalid('Replayed first object-chunk media artifact changed.')
+  ) throw invalid('Replayed object-chunk media artifact changed.')
   const reconciliation = await readParsedJson({
     context: input.context,
     ref: completion.reconciliationEvidenceRef,
@@ -918,7 +1093,7 @@ async function loadCompletedRender(input: {
       allowCompletedQa: true,
     })
   assertExact(reconciliation, expectedReconciliation,
-    'Replayed first object-chunk render reconciliation changed.')
+    'Replayed object-chunk render reconciliation changed.')
   const canonicalResultHash =
     professionalLongFormFirstObjectChunkRenderResultHash({
       authority,
@@ -956,11 +1131,11 @@ async function loadCompletedRender(input: {
     completedAt: terminal.completedAt,
   })
   assertExact(terminal, expectedTerminal,
-    'Replayed first object-chunk render terminal changed.')
+    'Replayed object-chunk render terminal changed.')
   if (
     completion.canonicalResultHash !== canonicalResultHash ||
     entry.deliveryAttemptCount !== 1
-  ) throw invalid('Replayed first object-chunk render queue evidence changed.')
+  ) throw invalid('Replayed object-chunk render queue evidence changed.')
   return {
     authority,
     authorityRef,
@@ -982,9 +1157,10 @@ async function loadCompletedQa(input: {
   context: ServiceContext
   current: CanonicalProfessionalLongFormCurrentChildPackageAuthority
   ownerUserId: string
+  chunkIndex: number
 }): Promise<CompletedQaEvidence> {
   const authority = buildProfessionalLongFormFirstObjectChunkQaAuthority(input)
-  const entry = pairedQaEntry(input.current)
+  const entry = qaEntryForChunk(input.current, input.chunkIndex)
   const authorityRef = await findAndVerifyAuthorityRef({
     context: input.context,
     entry,
@@ -994,6 +1170,7 @@ async function loadCompletedQa(input: {
         value,
         ownerUserId: input.ownerUserId,
         current: input.current,
+        chunkIndex: input.chunkIndex,
       })
     },
   })
@@ -1033,7 +1210,7 @@ async function loadCompletedQa(input: {
     runtimeEvidence.sourceSha256 !== authority.renderArtifact.sha256 ||
     runtimeEvidence.resultSha256 !== artifact.rawProbeResultRef.sha256 ||
     runtimeEvidence.requestEnvelopeSha256 !== artifact.requestEnvelopeSha256
-  ) throw invalid('Replayed first object-chunk QA runtime evidence changed.')
+  ) throw invalid('Replayed object-chunk QA runtime evidence changed.')
   const reconciliation = await readParsedJson({
     context: input.context,
     ref: completion.reconciliationEvidenceRef,
@@ -1049,9 +1226,10 @@ async function loadCompletedQa(input: {
       qaArtifactRef: completion.validationArtifactRef,
       reconciledAt: reconciliation.reconciledAt,
       allowCompletedQa: true,
+      allowAdvancedDownstream: true,
     })
   assertExact(reconciliation, expectedReconciliation,
-    'Replayed first object-chunk QA reconciliation changed.')
+    'Replayed object-chunk QA reconciliation changed.')
   const canonicalResultHash = professionalLongFormFirstObjectChunkQaResultHash({
     authority,
     executionAttempt: attempt,
@@ -1086,12 +1264,12 @@ async function loadCompletedQa(input: {
     completedAt: terminal.completedAt,
   })
   assertExact(terminal, expectedTerminal,
-    'Replayed first object-chunk QA terminal changed.')
+    'Replayed object-chunk QA terminal changed.')
   if (
     completion.canonicalResultHash !== canonicalResultHash ||
     entry.deliveryAttemptCount !== 1 ||
     entry.completion?.outcome.sha256 !== completion.validationArtifactRef.sha256
-  ) throw invalid('Replayed first object-chunk QA queue evidence changed.')
+  ) throw invalid('Replayed object-chunk QA queue evidence changed.')
   return {
     authority,
     authorityRef,
@@ -1121,16 +1299,17 @@ function buildRenderRequest(
     source.sourceSequenceItemId,
     { source, index },
   ]))
-  const commitments = uniqueSourceIds(authority).map((sourceId) => {
+  const commitments = sources.map((source, index) => {
+    const sourceId = source.sourceSequenceItemId
     const resolved = sourceById.get(sourceId)
     const slice = authority.approvedChunk.sourceSlices.find((candidate) =>
       candidate.sourceSequenceItemId === sourceId)
     if (!resolved || !slice || resolved.source.sha256 !== slice.sourceSha256 ||
       resolved.source.mediaAssetId !== slice.mediaAssetId) {
-      throw invalid('Staged source changed from approved first-chunk authority.')
+      throw invalid('Staged source changed from approved object-chunk authority.')
     }
     return {
-      inputId: `approved-source-${resolved.index + 1}`,
+      inputId: `approved-source-${index + 1}`,
       sourceSequenceItemId: sourceId,
       mediaAssetId: resolved.source.mediaAssetId,
       sourceObjectGeneration: slice.sourceObjectGeneration,
@@ -1146,25 +1325,27 @@ function buildRenderRequest(
       chunkAuthorityHash: authority.approvedChunk.chunkAuthorityHash,
       expectedObjectIdentity:
         authority.approvedChunk.expectedObject.objectIdentity,
-      chunkIndex: 1,
+      chunkIndex: authority.approvedChunk.chunkIndex,
       chunkCount: authority.approvedChunk.chunkCount,
       width: authority.approvedChunk.width,
       height: authority.approvedChunk.height,
       fps: 30,
       durationFrames: authority.approvedChunk.durationFrames,
-      globalStartFrame: 0,
+      globalStartFrame: authority.approvedChunk.globalStartFrame,
       globalEndFrameExclusive:
         authority.approvedChunk.globalEndFrameExclusive,
       sourceSlices: authority.approvedChunk.sourceSlices,
-      videoAssemblyPolicy: 'compatible_h264_mp4_slice_concat_stream_copy_v1',
+      videoAssemblyPolicy: 'frame_exact_decode_trim_concat_v2',
       audioPolicy: 'separate_continuous_program_audio_v1',
-      codecCompatibilityPolicy: 'exact_h264_extradata_frame_color_v1',
+      codecCompatibilityPolicy: 'bounded_h264_decode_to_vp9_mezzanine_v2',
       timestampPolicy: 'normalize_from_zero',
       outputContainer: 'matroska',
-      outputVideoCodec: 'copy_h264',
+      outputVideoCodec: 'libvpx_vp9_cq12',
       outputPixelFormat: 'yuv420p',
       outputColorSpace: 'bt709',
-      renderPurpose: 'private_4k_object_mezzanine_chunk_v1',
+      frameNormalizationPolicy: 'contain_black_letterbox_v1',
+      colorNormalizationPolicy: 'bt709_limited_v1',
+      renderPurpose: 'private_4k_object_mezzanine_chunk_v2',
       sourceQualityPolicy: 'immutable_source_master_no_proxy_v1',
       usesApprovedEditReservation: true,
       requiresSeparateExportEstimate: false,
@@ -1194,15 +1375,17 @@ function assertRenderRuntimeResult(input: {
     semantic.fixedRecipeExecuted !== true ||
     semantic.expectedObjectIdentity !==
       input.authority.approvedChunk.expectedObject.objectIdentity ||
-    semantic.h264VideoStreamCopiedWithoutDecodeOrReencode !== true ||
-    semantic.h264Mp4SliceConcatCompatibilityVerified !== true ||
+    semantic.allObjectChunksSupported !== true ||
+    semantic.frameExactH264DecodeTrimConcatExecuted !== true ||
+    semantic.vp9Cq12MezzanineEncoded !== true ||
+    semantic.outputVideoCodec !== 'vp9_cq12' ||
     semantic.outputAudioStreams !== 0 ||
     semantic.outputProbeVerified !== true ||
     semantic.originalApprovedEditReservationUsed !== true ||
     semantic.separateExportEstimateRequired !== false ||
     semantic.additionalExportChargeAllowed !== false ||
     input.result.readiness.productReady
-  ) throw invalid('First object-chunk runtime evidence failed exact verification.')
+  ) throw invalid('Object-chunk runtime evidence failed exact verification.')
 }
 
 async function currentAuthority(
@@ -1214,33 +1397,74 @@ async function currentAuthority(
   ).loadCurrent(input)
 }
 
-function firstRenderEntry(
+function renderEntry(
   current: CanonicalProfessionalLongFormCurrentChildPackageAuthority,
+  chunkIndex: number,
 ) {
-  const entry = current.queueAggregate.entries[3]
+  const canonicalOrder = chunkIndex * 2 + 1
+  const entry = current.queueAggregate.entries[canonicalOrder]
   const job = current.postApproval.childJobManifest.jobs.find((candidate) =>
     candidate.jobId === entry?.definition.jobId)
   if (
-    !entry || entry.definition.canonicalOrder !== 3 ||
+    !Number.isInteger(chunkIndex) || chunkIndex < 1 ||
+    chunkIndex > current.postApproval.bridge.binding.plan.chunks.length ||
+    !entry || entry.definition.canonicalOrder !== canonicalOrder ||
     job?.kind !== 'render_object_mezzanine_chunk'
-  ) throw invalid('Canonical queue lost the first object-chunk render identity.')
+  ) throw invalid('Canonical queue lost the object-chunk render identity.')
   return entry
 }
 
-function pairedQaEntry(
+function qaEntryForChunk(
   current: CanonicalProfessionalLongFormCurrentChildPackageAuthority,
+  chunkIndex: number,
 ) {
-  const render = firstRenderEntry(current)
-  const entry = current.queueAggregate.entries[4]
+  const render = renderEntry(current, chunkIndex)
+  const canonicalOrder = chunkIndex * 2 + 2
+  const entry = current.queueAggregate.entries[canonicalOrder]
   const job = current.postApproval.childJobManifest.jobs.find((candidate) =>
     candidate.jobId === entry?.definition.jobId)
   if (
-    !entry || entry.definition.canonicalOrder !== 4 ||
+    !entry || entry.definition.canonicalOrder !== canonicalOrder ||
     job?.kind !== 'qa_object_mezzanine_chunk' ||
     entry.definition.dependencyJobIds.length !== 1 ||
     entry.definition.dependencyJobIds[0] !== render.definition.jobId
-  ) throw invalid('Canonical queue lost the paired first object-chunk QA identity.')
+  ) throw invalid('Canonical queue lost the paired object-chunk QA identity.')
   return entry
+}
+
+function selectNextObjectChunkIndex(
+  current: CanonicalProfessionalLongFormCurrentChildPackageAuthority,
+): number {
+  const chunkCount = current.postApproval.bridge.binding.plan.chunks.length
+  for (let chunkIndex = 1; chunkIndex <= chunkCount; chunkIndex += 1) {
+    const render = renderEntry(current, chunkIndex)
+    const qa = qaEntryForChunk(current, chunkIndex)
+    if (render.state !== 'completed' || qa.state !== 'completed') {
+      return chunkIndex
+    }
+  }
+  if (chunkCount < 1) {
+    throw invalid('Approved object-chunk plan is empty.')
+  }
+  return chunkCount
+}
+
+function countCompletedObjectChunkPairs(input: {
+  current: CanonicalProfessionalLongFormCurrentChildPackageAuthority
+  totalObjectChunkPairCount: number
+}): number {
+  let completed = 0
+  for (
+    let chunkIndex = 1;
+    chunkIndex <= input.totalObjectChunkPairCount;
+    chunkIndex += 1
+  ) {
+    if (
+      renderEntry(input.current, chunkIndex).state === 'completed' &&
+      qaEntryForChunk(input.current, chunkIndex).state === 'completed'
+    ) completed += 1
+  }
+  return completed
 }
 
 function uniqueSourceIds(
@@ -1282,7 +1506,7 @@ async function persistExactJson<T extends Record<string, unknown>>(input: {
     ref,
     parse: input.parse,
   })
-  assertExact(parsed, input.value, 'Persisted first object-chunk JSON changed.')
+  assertExact(parsed, input.value, 'Persisted object-chunk JSON changed.')
   return ref
 }
 
@@ -1297,19 +1521,19 @@ async function readParsedJson<T>(input: {
   })
   const parsed = input.parse(value)
   if (input.ref.sha256 !== sha256AuthorityValue(parsed)) {
-    throw invalid('First object-chunk content-addressed JSON checksum changed.')
+    throw invalid('Object-chunk content-addressed JSON checksum changed.')
   }
   return parsed
 }
 
 async function findAndVerifyAuthorityRef<T extends Record<string, unknown>>(input: {
   context: ServiceContext
-  entry: ReturnType<typeof firstRenderEntry> | ReturnType<typeof pairedQaEntry>
+  entry: ReturnType<typeof renderEntry> | ReturnType<typeof qaEntryForChunk>
   authority: T
   verify(value: unknown): T
 }): Promise<AuthorityJsonBlobRef> {
   const ref = input.entry.professionalLongFormExecutionAuthorization?.authorityRef
-  if (!ref) throw invalid('Completed first object-chunk job lost its authority ref.')
+  if (!ref) throw invalid('Completed object-chunk job lost its authority ref.')
   const value = await readPrivateAuthorityJsonBlob({
     localStorageRoot: input.context.env.localStorageRoot,
     ref,
@@ -1320,7 +1544,7 @@ async function findAndVerifyAuthorityRef<T extends Record<string, unknown>>(inpu
 }
 
 function assertStoredAuthorization(
-  entry: ReturnType<typeof firstRenderEntry> | ReturnType<typeof pairedQaEntry>,
+  entry: ReturnType<typeof renderEntry> | ReturnType<typeof qaEntryForChunk>,
   authorization:
     | ProfessionalLongFormFirstObjectChunkRenderAuthorization
     | ProfessionalLongFormFirstObjectChunkQaAuthorization,
@@ -1329,7 +1553,7 @@ function assertStoredAuthorization(
     !entry.professionalLongFormExecutionAuthorization ||
     stableAuthorityStringify(entry.professionalLongFormExecutionAuthorization) !==
       stableAuthorityStringify(authorization)
-  ) throw invalid('Stored first object-chunk authorization changed.')
+  ) throw invalid('Stored object-chunk authorization changed.')
 }
 
 async function requiredCostEvidence(input: {
@@ -1353,7 +1577,7 @@ async function requiredCostEvidence(input: {
     executionAttemptId: input.executionAttempt.executionAttemptId,
   })
   if (!evidence || evidence.evidenceHash !== input.expectedHash) {
-    throw invalid('First object-chunk internal attempt cost evidence is missing.')
+    throw invalid('Object-chunk internal attempt cost evidence is missing.')
   }
   assertCostEvidence({ ...input, evidence })
   return evidence
@@ -1389,14 +1613,14 @@ function assertCostEvidence(input: {
     serialized.includes('customerCredit') ||
     serialized.includes('serviceFee') || serialized.includes('wallet') ||
     serialized.includes('billingAuthority')
-  ) throw invalid('First object-chunk internal cost crossed a commercial boundary.')
+  ) throw invalid('Object-chunk internal cost crossed a commercial boundary.')
 }
 
 function assertUnexpired(value: string): void {
   if (Date.parse(value) <= Date.now()) {
     throw new ApiError(
       'CREDITS_NOT_RESERVED',
-      'First object-chunk execution requires an unexpired funded reservation.',
+      'Object-chunk execution requires an unexpired funded reservation.',
       409,
     )
   }
@@ -1410,7 +1634,7 @@ function assertHashed<T extends string>(
   const expected = payload[key]
   delete payload[key]
   if (expected !== sha256AuthorityValue(payload)) {
-    throw invalid(`First object-chunk ${key} checksum changed.`)
+    throw invalid(`Object-chunk ${key} checksum changed.`)
   }
 }
 
@@ -1428,7 +1652,7 @@ function withoutAggregate<T extends { queueAggregate: unknown }>(value: T) {
 function invalid(message: string): ApiError {
   return new ApiError('VALIDATION_FAILED', message, 409, {
     requiredGate:
-      'canonical_professional_long_form_first_object_chunk_and_independent_qa',
+      'canonical_professional_long_form_object_chunk_and_independent_qa',
   })
 }
 

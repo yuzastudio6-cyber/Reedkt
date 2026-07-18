@@ -5,7 +5,7 @@ export const OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_OUTPUT_BYTES = 192 * 1024 * 
 export const OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_AUDIO_OUTPUT_BYTES = 64 * 1024 * 1024
 
 export interface OfflineMediaBinaryImageEvidence {
-  imageTag: 'reeditpro/ffmpeg-lgpl-internal:8.1.2-program-audio-v4-local'
+  imageTag: 'reeditpro/ffmpeg-lgpl-internal:8.1.2-object-chunk-v5-local'
   imageId: string
   imageIdentityHash: string
   architecture: string
@@ -16,8 +16,8 @@ export interface OfflineMediaBinaryImageEvidence {
   productReady: false
   h264Encoding: 'blocked_not_compiled'
   aacEncoding: 'private_source_slice_finalizer_only'
-  mp4Mux: 'private_source_slice_finalizer_and_object_chunk_only'
-  objectMezzanineChunk: 'private_first_chunk_stream_copy_only'
+  mp4Mux: 'private_source_slice_finalizer_only'
+  objectMezzanineChunk: 'private_all_chunk_vp9_cq12_only'
   flacEncoding: 'private_continuous_program_audio_only'
   continuousProgramAudio: 'private_30fps_48khz_source_audio_only'
   sourcePolicyHashes: Readonly<Record<string, string>>

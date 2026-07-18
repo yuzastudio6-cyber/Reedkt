@@ -462,7 +462,7 @@ assert.equal(mezzanineOutputBytes.subarray(4, 8).toString('ascii'), 'ftyp')
 assert.equal(mezzanineResult.image.aacEncoding, 'private_source_slice_finalizer_only')
 assert.equal(
   mezzanineResult.image.mp4Mux,
-  'private_source_slice_finalizer_and_object_chunk_only',
+  'private_source_slice_finalizer_only',
 )
 assert.equal(mezzanineResult.evidence.confinement.serverOwnedEntrypoint,
   '/usr/local/bin/reeditpro-ffmpeg-source-slice-finalizer')
@@ -545,7 +545,7 @@ assert.equal(authority.readiness.finalExportReady, false)
 assert.equal(authority.supportedOperations.length, 2)
 assert.equal(
   authority.image.imageTag,
-  'reeditpro/ffmpeg-lgpl-internal:8.1.2-object-chunk-v3-local',
+  'reeditpro/ffmpeg-lgpl-internal:8.1.2-object-chunk-v5-local',
 )
 assert.equal(authority.image.imageIdentityHash, runtime.image.imageIdentityHash)
 const reopened = await openPrivateOfflineMediaBinaryRuntime()

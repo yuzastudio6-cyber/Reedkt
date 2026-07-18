@@ -4,12 +4,12 @@ set -eu
 FFMPEG=/opt/reeditpro-ffmpeg/bin/ffmpeg
 FFPROBE=/opt/reeditpro-ffmpeg/bin/ffprobe
 TAB=$(printf '\t')
-MAGIC=REEDITPRO_FFMPEG_OBJECT_MEZZANINE_CHUNK_V1
+MAGIC=REEDITPRO_FFMPEG_OBJECT_MEZZANINE_CHUNK_V2
 MAX_SOURCES=8
 MAX_SLICES=16
 MAX_SOURCE_BYTES=201326592
-MAX_COMBINED_SOURCE_BYTES=805306368
-MAX_OUTPUT_BYTES=201326592
+MAX_COMBINED_SOURCE_BYTES=536870912
+MAX_OUTPUT_BYTES=536870912
 
 fail() {
   printf '%s\n' "object-mezzanine chunk failed: $*" >&2
@@ -72,18 +72,17 @@ case "${width}x${height}" in
   3840x2160|2160x3840|2160x2160|2160x2700|2880x2160) ;;
   *) fail 'unsupported 4K frame' ;;
 esac
-[ "$fps" -eq 30 ] || fail 'first-chunk profile requires 30 fps'
+[ "$fps" -eq 30 ] || fail 'object-chunk profile requires 30 fps'
 [ "$duration_frames" -ge 1350 ] && [ "$duration_frames" -le 5400 ] \
-  || fail 'duration is outside the fixed first-chunk profile'
-[ "$global_start" -eq 0 ] && [ "$global_end" -eq "$duration_frames" ] \
-  || fail 'first-chunk global range is invalid'
-[ "$source_count" -ge 2 ] && [ "$source_count" -le "$MAX_SOURCES" ] \
+  || fail 'duration is outside the fixed object-chunk profile'
+[ "$global_end" -eq $((global_start + duration_frames)) ] \
+  || fail 'object-chunk global range is invalid'
+[ "$source_count" -ge 1 ] && [ "$source_count" -le "$MAX_SOURCES" ] \
   || fail 'source count is outside the fixed profile'
-[ "$slice_count" -ge 2 ] && [ "$slice_count" -le "$MAX_SLICES" ] \
+[ "$slice_count" -ge 1 ] && [ "$slice_count" -le "$MAX_SLICES" ] \
   || fail 'slice count is outside the fixed profile'
 
 combined_source_bytes=0
-first_descriptor=
 source_index=1
 while [ "$source_index" -le "$source_count" ]; do
   IFS="$TAB" read -r kind parsed_index source_bytes source_sha extra \
@@ -113,18 +112,12 @@ while [ "$source_index" -le "$source_count" ]; do
   valid_uint "$source_frames" && [ "$source_frames" -ge 1 ] \
     || fail 'source frame count is invalid'
   printf '%s\n' "$source_frames" > "$(printf '%s/source-%02d.frames' "$work" "$source_index")"
-  first_frame=$($FFPROBE -v error -select_streams v:0 -read_intervals '%+#1' \
-    -show_entries frame=key_frame,pict_type -of csv=p=0 "$source_path" | head -n 1) \
-    || fail 'source first-frame inspection failed'
-  case "$first_frame" in 1,I*) ;; *) fail 'source does not start on an independent keyframe' ;; esac
   descriptor_path=$(printf '%s/source-%02d.descriptor' "$work" "$source_index")
   $FFPROBE -v error -show_data_hash sha256 -select_streams v:0 \
     -show_entries stream=codec_name,profile,level,width,height,pix_fmt,color_range,color_space,color_transfer,color_primaries,r_frame_rate,avg_frame_rate,time_base,codec_tag_string,extradata_size,extradata_hash,has_b_frames \
     -of default=nw=1 "$source_path" > "$descriptor_path" \
     || fail 'source compatibility descriptor failed'
   grep -Fx 'codec_name=h264' "$descriptor_path" >/dev/null \
-    && grep -Fx "width=$width" "$descriptor_path" >/dev/null \
-    && grep -Fx "height=$height" "$descriptor_path" >/dev/null \
     && grep -Fx 'pix_fmt=yuv420p' "$descriptor_path" >/dev/null \
     && grep -Fx 'color_range=tv' "$descriptor_path" >/dev/null \
     && grep -Fx 'color_space=bt709' "$descriptor_path" >/dev/null \
@@ -132,22 +125,14 @@ while [ "$source_index" -le "$source_count" ]; do
     && grep -Fx 'color_primaries=bt709' "$descriptor_path" >/dev/null \
     && grep -Fx 'r_frame_rate=30/1' "$descriptor_path" >/dev/null \
     && grep -Fx 'avg_frame_rate=30/1' "$descriptor_path" >/dev/null \
-    && grep -Fx 'has_b_frames=0' "$descriptor_path" >/dev/null \
-    && grep -Eq '^extradata_hash=SHA256:[a-f0-9]{64}$' "$descriptor_path" \
-    || fail 'source codec/frame/color compatibility is unsupported'
-  if [ -z "$first_descriptor" ]; then
-    first_descriptor=$descriptor_path
-  else
-    cmp -s "$first_descriptor" "$descriptor_path" \
-      || fail 'source codec extradata or timebase is incompatible'
-  fi
+    || fail 'source codec/frame/color authority is unsupported'
   source_index=$((source_index + 1))
 done
 
 expected_local_start=0
-expected_global_start=0
+expected_global_start=$global_start
 slice_index=1
-: > "$work/concat.txt"
+: > "$work/filter-complex.txt"
 while [ "$slice_index" -le "$slice_count" ]; do
   IFS="$TAB" read -r kind parsed_index selected_source source_start source_end local_start local_end slice_global_start slice_global_end boundary extra \
     || fail 'missing source-slice authority'
@@ -159,7 +144,6 @@ while [ "$slice_index" -le "$slice_count" ]; do
   [ "$parsed_index" -eq "$slice_index" ] \
     && [ "$selected_source" -ge 1 ] \
     && [ "$selected_source" -le "$source_count" ] \
-    && [ "$source_start" -eq 0 ] \
     && [ "$source_end" -gt "$source_start" ] \
     && [ "$local_start" -eq "$expected_local_start" ] \
     && [ "$slice_global_start" -eq "$expected_global_start" ] \
@@ -169,32 +153,27 @@ while [ "$slice_index" -le "$slice_count" ]; do
     && [ $((source_end - source_start)) -eq $((slice_global_end - slice_global_start)) ] \
     || fail 'source-slice timing is not exact and contiguous'
   if [ "$slice_index" -eq 1 ]; then
-    [ "$boundary" = 'timeline_start' ] || fail 'first slice lost timeline-start boundary'
+    if [ "$global_start" -eq 0 ]; then
+      [ "$boundary" = 'timeline_start' ] \
+        || fail 'first program slice lost timeline-start boundary'
+    else
+      [ "$boundary" = 'approved_hard_cut' ] \
+        || [ "$boundary" = 'continuous_technical_split' ] \
+        || fail 'continued chunk lost approved or technical boundary'
+    fi
   else
-    [ "$boundary" = 'approved_hard_cut' ] || fail 'slice boundary is not an approved hard cut'
+    [ "$boundary" = 'approved_hard_cut' ] \
+      || [ "$boundary" = 'continuous_technical_split' ] \
+      || fail 'slice boundary is not approved'
   fi
-  source_path=$(printf '%s/source-%02d.mp4' "$work" "$selected_source")
   source_frames=$(cat "$(printf '%s/source-%02d.frames' "$work" "$selected_source")")
   [ "$source_end" -le "$source_frames" ] \
     || fail 'source slice exceeds immutable source frame capacity'
-  slice_frames=$((source_end - source_start))
-  slice_path=$(printf '%s/slice-%02d.mp4' "$work" "$slice_index")
-  $FFMPEG -hide_banner -loglevel error -nostdin \
-    -i "$source_path" -map 0:v:0 -frames:v "$slice_frames" \
-    -an -sn -dn -c:v copy -map_metadata -1 -map_chapters -1 \
-    -fflags +bitexact -metadata creation_time=1970-01-01T00:00:00Z \
-    -movflags +faststart -f mp4 -y "$slice_path" \
-    || fail 'fixed H.264 source-slice extraction failed'
-  [ -s "$slice_path" ] || fail 'source-slice extraction produced no bytes'
-  extracted_frames=$($FFPROBE -v error -count_frames -select_streams v:0 \
-    -show_entries stream=nb_read_frames -of default=nw=1:nk=1 "$slice_path") \
-    || fail 'extracted source-slice frame count failed'
-  [ "$extracted_frames" = "$slice_frames" ] \
-    || fail 'source-slice frame count changed'
-  slice_duration_seconds=$(awk -v frames="$slice_frames" -v rate="$fps" \
-    'BEGIN { printf "%.9f", frames / rate }')
-  printf "file 'slice-%02d.mp4'\nduration %s\n" \
-    "$slice_index" "$slice_duration_seconds" >> "$work/concat.txt"
+  selected_input=$((selected_source - 1))
+  printf '[%d:v:0]trim=start_frame=%d:end_frame=%d,setpts=PTS-STARTPTS,scale=%d:%d:force_original_aspect_ratio=decrease:force_divisible_by=2,pad=%d:%d:(ow-iw)/2:(oh-ih)/2:color=black,setsar=1,fps=%d,format=yuv420p,setparams=range=limited:color_primaries=bt709:color_trc=bt709:colorspace=bt709[v%02d];\n' \
+    "$selected_input" "$source_start" "$source_end" \
+    "$width" "$height" "$width" "$height" "$fps" "$slice_index" \
+    >> "$work/filter-complex.txt"
   expected_local_start=$local_end
   expected_global_start=$slice_global_end
   slice_index=$((slice_index + 1))
@@ -205,15 +184,38 @@ done
 IFS= read -r terminator || fail 'missing protocol terminator'
 [ "$terminator" = 'end' ] || fail 'invalid protocol terminator'
 
-(
-  cd "$work"
-  $FFMPEG -hide_banner -loglevel error -nostdin \
-    -f concat -safe 1 -i concat.txt \
-    -map 0:v:0 -an -sn -dn -c:v copy -avoid_negative_ts make_zero \
-    -fflags +bitexact -map_metadata -1 -map_chapters -1 \
-    -metadata creation_time=1970-01-01T00:00:00Z \
-    -f matroska -y final.mkv
-) || fail 'fixed H.264 Matroska object-chunk assembly failed'
+if [ "$slice_count" -eq 1 ]; then
+  printf '[v01]null[vout]\n' >> "$work/filter-complex.txt"
+else
+  slice_index=1
+  while [ "$slice_index" -le "$slice_count" ]; do
+    printf '[v%02d]' "$slice_index" >> "$work/filter-complex.txt"
+    slice_index=$((slice_index + 1))
+  done
+  printf 'concat=n=%d:v=1:a=0,format=yuv420p,setparams=range=limited:color_primaries=bt709:color_trc=bt709:colorspace=bt709[vout]\n' \
+    "$slice_count" >> "$work/filter-complex.txt"
+fi
+
+set --
+source_index=1
+while [ "$source_index" -le "$source_count" ]; do
+  source_path=$(printf '%s/source-%02d.mp4' "$work" "$source_index")
+  set -- "$@" -i "$source_path"
+  source_index=$((source_index + 1))
+done
+
+$FFMPEG -hide_banner -loglevel error -nostdin "$@" \
+  -filter_complex_script "$work/filter-complex.txt" -map '[vout]' \
+  -frames:v "$duration_frames" -an -sn -dn \
+  -c:v libvpx-vp9 -b:v 0 -crf 12 -deadline good -cpu-used 4 \
+  -row-mt 1 -threads 2 -tile-columns 0 -frame-parallel 0 \
+  -g 240 -lag-in-frames 0 -auto-alt-ref 0 -pix_fmt yuv420p \
+  -color_range tv -colorspace bt709 -color_primaries bt709 -color_trc bt709 \
+  -fps_mode cfr -avoid_negative_ts make_zero -fflags +bitexact \
+  -map_metadata -1 -map_chapters -1 \
+  -metadata creation_time=1970-01-01T00:00:00Z \
+  -f matroska -y "$work/final.mkv" \
+  || fail 'frame-exact VP9 Matroska object-chunk assembly failed'
 
 output_path="$work/final.mkv"
 output_bytes=$(stat -c '%s' "$output_path")
@@ -233,7 +235,7 @@ $FFPROBE -v error -count_frames \
   -of default=nw=1 "$output_path" > "$output_probe" \
   || fail 'object-chunk output probe failed'
 grep -F 'format_name=matroska,webm' "$output_probe" >/dev/null \
-  && grep -Fx 'codec_name=h264' "$output_probe" >/dev/null \
+  && grep -Fx 'codec_name=vp9' "$output_probe" >/dev/null \
   && grep -Fx "width=$width" "$output_probe" >/dev/null \
   && grep -Fx "height=$height" "$output_probe" >/dev/null \
   && grep -Fx 'pix_fmt=yuv420p' "$output_probe" >/dev/null \
@@ -245,7 +247,7 @@ grep -F 'format_name=matroska,webm' "$output_probe" >/dev/null \
   && grep -Fx 'avg_frame_rate=30/1' "$output_probe" >/dev/null \
   && grep -Fx 'has_b_frames=0' "$output_probe" >/dev/null \
   && grep -Fx "nb_read_frames=$duration_frames" "$output_probe" >/dev/null \
-  || fail 'object chunk failed H.264/frame/color QA'
+  || fail 'object chunk failed VP9/frame/color QA'
 format_start=$($FFPROBE -v error -show_entries format=start_time \
   -of default=nw=1:nk=1 "$output_path") \
   || fail 'object-chunk format timestamp probe failed'

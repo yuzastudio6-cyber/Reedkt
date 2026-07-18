@@ -71,7 +71,7 @@ import {
   OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_OUTPUT_BYTES,
 } from './offline-media-binary-types'
 
-const IMAGE_TAG = 'reeditpro/ffmpeg-lgpl-internal:8.1.2-program-audio-v4-local' as const
+const IMAGE_TAG = 'reeditpro/ffmpeg-lgpl-internal:8.1.2-object-chunk-v5-local' as const
 const FFPROBE_ENTRYPOINT = '/opt/reeditpro-ffmpeg/bin/ffprobe' as const
 const FFMPEG_ENTRYPOINT = '/opt/reeditpro-ffmpeg/bin/ffmpeg' as const
 const MEZZANINE_FINALIZER_ENTRYPOINT =
@@ -79,7 +79,7 @@ const MEZZANINE_FINALIZER_ENTRYPOINT =
 const MEZZANINE_FINALIZER_COMMAND = ['source-slice-finalization-v1'] as const
 const OBJECT_MEZZANINE_CHUNK_ENTRYPOINT =
   '/usr/local/bin/reeditpro-ffmpeg-object-mezzanine-chunk' as const
-const OBJECT_MEZZANINE_CHUNK_COMMAND = ['object-mezzanine-chunk-v1'] as const
+const OBJECT_MEZZANINE_CHUNK_COMMAND = ['object-mezzanine-chunk-v2'] as const
 const CONTINUOUS_PROGRAM_AUDIO_ENTRYPOINT =
   '/usr/local/bin/reeditpro-ffmpeg-continuous-program-audio' as const
 const CONTINUOUS_PROGRAM_AUDIO_COMMAND = ['continuous-program-audio-v1'] as const
@@ -114,7 +114,7 @@ export interface OfflineMediaBinaryRuntimeAuthority {
     exactStructuredPayloadOnly: true
     canonicalDispatchMayReference: true
     privateInternalMezzanineFinalizationReady: true
-    privateInternalFirstObjectMezzanineChunkReady: true
+    privateInternalObjectMezzanineChunkSeriesReady: true
     privateInternalContinuousProgramAudioReady: true
     productReady: false
     externalBetaReady: false
@@ -331,7 +331,7 @@ Promise<OfflineMediaBinaryRuntimeAuthority | undefined> {
     authority.source !== 'private_local_pinned_ffmpeg_lgpl_runtime' ||
     record(authority.readiness).privateInternalExecutionReady !== true ||
     record(authority.readiness).privateInternalMezzanineFinalizationReady !== true ||
-    record(authority.readiness).privateInternalFirstObjectMezzanineChunkReady !== true ||
+    record(authority.readiness).privateInternalObjectMezzanineChunkSeriesReady !== true ||
     record(authority.readiness).privateInternalContinuousProgramAudioReady !== true ||
     record(authority.readiness).productReady !== false ||
     record(authority.readiness).finalExportReady !== false
@@ -676,7 +676,7 @@ async function executeObjectMezzanineChunkServerInjected(
     const semanticEvidence = Object.freeze({
       fixedRecipeExecuted: true,
       recipeProfileId: request.payload.recipeProfileId,
-      firstObjectChunkOnly: true,
+      allObjectChunksSupported: true,
       chunkId: request.payload.chunkId,
       chunkAuthorityHash: request.payload.chunkAuthorityHash,
       expectedObjectIdentity: request.payload.expectedObjectIdentity,
@@ -686,11 +686,11 @@ async function executeObjectMezzanineChunkServerInjected(
       sourceSliceCount: request.payload.sourceSlices.length,
       sourceOrderAndFrameRangesVerified: true,
       approvedHardCutBoundariesVerified: true,
-      h264VideoStreamCopiedWithoutDecodeOrReencode: true,
-      h264Mp4SliceConcatCompatibilityVerified: true,
+      frameExactH264DecodeTrimConcatExecuted: true,
+      vp9Cq12MezzanineEncoded: true,
       outputTimestampsNormalizedFromZeroWithinOneFrame: true,
       outputContainer: 'matroska',
-      outputVideoCodec: 'h264_stream_copy',
+      outputVideoCodec: 'vp9_cq12',
       outputAudioStreams: 0,
       continuousProgramAudioRemainsSeparate: true,
       callerPathsAccepted: false,
@@ -2014,7 +2014,7 @@ async function probeObjectMezzanineChunkOutput(
     const videoStartSeconds = optionalNumber(video?.start_time)
     if (
       videos.length !== 1 || audios.length !== 0 || !video ||
-      video.codec_name !== 'h264' ||
+      video.codec_name !== 'vp9' ||
       !String(format.format_name ?? '').includes('matroska') ||
       optionalInteger(video.width) !== request.payload.width ||
       optionalInteger(video.height) !== request.payload.height ||
@@ -2032,12 +2032,12 @@ async function probeObjectMezzanineChunkOutput(
       Math.abs(actualDurationSeconds - approvedDurationSeconds) >
         maximumDurationDriftSeconds
     ) throw unavailable(
-      'Object-mezzanine output failed Matroska, H.264, frame, color, timestamp, or duration verification.',
+      'Object-mezzanine output failed Matroska, VP9, frame, color, timestamp, or duration verification.',
     )
     return {
       container: 'matroska',
-      videoCodec: 'h264',
-      videoCodecOperation: 'stream_copy',
+      videoCodec: 'vp9',
+      videoCodecOperation: 'cq12_encode',
       audioStreamCount: 0,
       width: request.payload.width,
       height: request.payload.height,
@@ -2480,9 +2480,9 @@ async function inspectImage(): Promise<OfflineMediaBinaryImageEvidence> {
     labels['reeditpro.aac-encoding'] !==
       'private_source_slice_finalizer_only' ||
     labels['reeditpro.mp4-mux'] !==
-      'private_source_slice_finalizer_and_object_chunk_only' ||
+      'private_source_slice_finalizer_only' ||
     labels['reeditpro.object-mezzanine-chunk'] !==
-      'private_first_chunk_stream_copy_only' ||
+      'private_all_chunk_vp9_cq12_only' ||
     labels['reeditpro.flac-encoding'] !==
       'private_continuous_program_audio_only' ||
     labels['reeditpro.continuous-program-audio'] !==
@@ -2506,8 +2506,8 @@ async function inspectImage(): Promise<OfflineMediaBinaryImageEvidence> {
     productReady: false,
     h264Encoding: 'blocked_not_compiled',
     aacEncoding: 'private_source_slice_finalizer_only',
-    mp4Mux: 'private_source_slice_finalizer_and_object_chunk_only',
-    objectMezzanineChunk: 'private_first_chunk_stream_copy_only',
+    mp4Mux: 'private_source_slice_finalizer_only',
+    objectMezzanineChunk: 'private_all_chunk_vp9_cq12_only',
     flacEncoding: 'private_continuous_program_audio_only',
     continuousProgramAudio: 'private_30fps_48khz_source_audio_only',
     sourcePolicyHashes,
@@ -2529,7 +2529,7 @@ async function persistAuthority(image: OfflineMediaBinaryImageEvidence): Promise
       exactStructuredPayloadOnly: true as const,
       canonicalDispatchMayReference: true as const,
       privateInternalMezzanineFinalizationReady: true as const,
-      privateInternalFirstObjectMezzanineChunkReady: true as const,
+      privateInternalObjectMezzanineChunkSeriesReady: true as const,
       privateInternalContinuousProgramAudioReady: true as const,
       productReady: false as const,
       externalBetaReady: false as const,
@@ -2541,8 +2541,8 @@ async function persistAuthority(image: OfflineMediaBinaryImageEvidence): Promise
       'The reviewed LGPL image has unresolved base-image CVEs and legal/distribution review gates.',
       'H.264 encoding, customer export, public delivery, and production activation remain unauthorized.',
       'AAC encoding is restricted to the fixed private source-slice finalizer.',
-      'MP4 muxing is restricted to the fixed private source-slice finalizer and first object-chunk runner.',
-      'Object-mezzanine chunking is restricted to the first 30 fps source-led chunk with compatible H.264 keyframe-zero inputs.',
+      'MP4 muxing is restricted to the fixed private source-slice finalizer.',
+      'Object-mezzanine chunking is restricted to approved 30 fps private H.264 sources and VP9 CQ12 intermediates.',
       'Continuous program audio is restricted to approved 30 fps source ranges with 48 kHz mono/stereo input and lossless 48 kHz stereo FLAC output.',
     ] as const,
   }

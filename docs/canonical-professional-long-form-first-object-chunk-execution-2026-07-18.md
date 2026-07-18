@@ -1,6 +1,11 @@
 # Canonical Professional Long-Form First Object-Chunk Execution — 2026-07-18
 
-Status: `first_real_4k_object_chunk_and_independent_qa_completed_remaining_250_children_blocked`
+Status: `superseded_by_generic_object_chunk_series_executor`
+
+Current authority: see
+`docs/canonical-professional-long-form-object-chunk-series-execution-2026-07-18.md`.
+This file preserves the earlier first-chunk milestone and must not be used for
+current readiness counts or codec/runner capability claims.
 
 Supersession note: the later bounded continuous-program-audio continuation
 completed one additional queue job, leaving 249 children blocked. See

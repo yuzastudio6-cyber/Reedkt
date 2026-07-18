@@ -1583,6 +1583,8 @@ function assertPersistedProfessionalLongFormExecutionAuthority(input: {
   executionAuthority: ProfessionalLongFormAuthorizedChildExecutionAuthority
   persistedAuthority: Record<string, unknown> | unknown[]
 }): void {
+  const targetDefinition = input.definition.jobs.find((job) =>
+    job.jobId === input.authorization.jobId)
   const { authorityHash, ...authorityPayload } = input.executionAuthority
   const commonInvalid =
     authorityHash !== sha256AuthorityValue(authorityPayload) ||
@@ -1667,6 +1669,8 @@ function assertPersistedProfessionalLongFormExecutionAuthority(input: {
       input.authorization.jobDefinitionHash ||
       input.executionAuthority.lineage.renderPlacementHash !==
         input.authorization.placementHash ||
+      targetDefinition?.canonicalOrder !==
+        input.executionAuthority.approvedChunk.chunkIndex * 2 + 1 ||
       input.executionAuthority.approvedChunk.expectedObject.objectIdentity !==
         input.authorization.expectedOutputIdentity
   } else if (
@@ -1678,6 +1682,8 @@ function assertPersistedProfessionalLongFormExecutionAuthority(input: {
       input.authorization.jobDefinitionHash ||
       input.executionAuthority.lineage.qaPlacementHash !==
         input.authorization.placementHash ||
+      targetDefinition?.canonicalOrder !==
+        input.executionAuthority.approvedChunk.chunkIndex * 2 + 2 ||
       input.executionAuthority.renderArtifact.objectIdentity + ':qa' !==
         input.authorization.expectedOutputIdentity
   }
@@ -1798,7 +1804,9 @@ function exactProfessionalLongFormAuthorizationMatches(
       entry.definition.resourceClassId === 'render_cpu_high_memory_v1' &&
       entry.definition.maxAttempts === 2 &&
       entry.definition.attemptTimeoutSeconds === 3_600 &&
-      entry.definition.canonicalOrder === 3 &&
+      entry.definition.canonicalOrder >= 3 &&
+      entry.definition.canonicalOrder <= 249 &&
+      entry.definition.canonicalOrder % 2 === 1 &&
       entry.definition.dependencyJobIds.length === 3 &&
       dependencies.length === 3 &&
       dependencies.every((dependency) =>
@@ -1819,9 +1827,12 @@ function exactProfessionalLongFormAuthorizationMatches(
       entry.definition.resourceClassId === 'qa_cpu_standard_v1' &&
       entry.definition.maxAttempts === 2 &&
       entry.definition.attemptTimeoutSeconds === 900 &&
-      entry.definition.canonicalOrder === 4 &&
+      entry.definition.canonicalOrder >= 4 &&
+      entry.definition.canonicalOrder <= 250 &&
+      entry.definition.canonicalOrder % 2 === 0 &&
       entry.definition.dependencyJobIds.length === 1 &&
-      render?.definition.canonicalOrder === 3 &&
+      render?.definition.canonicalOrder ===
+        entry.definition.canonicalOrder - 1 &&
       render.state === 'completed' &&
       Boolean(renderCompletion &&
         isProfessionalLongFormFirstObjectChunkRenderCompletion(

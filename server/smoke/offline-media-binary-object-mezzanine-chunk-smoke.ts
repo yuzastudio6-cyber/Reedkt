@@ -19,6 +19,7 @@ const width = 2160 as const
 const height = 2160 as const
 const fps = 30 as const
 const sliceFrames = 675
+const sourceFrames = 900
 const durationFrames = sliceFrames * 2
 const sourcePaths = [
   join('/tmp', `reeditpro-object-chunk-source-1-${process.pid}.mp4`),
@@ -32,10 +33,10 @@ try {
       '-hide_banner', '-loglevel', 'error',
       '-f', 'lavfi', '-i',
       `color=c=${colors[index]}:s=${width}x${height}:r=${fps}`,
-      '-frames:v', String(sliceFrames),
+      '-frames:v', String(sourceFrames),
       '-c:v', 'libx264', '-preset', 'ultrafast', '-tune', 'zerolatency',
       '-x264-params',
-      `keyint=${sliceFrames}:min-keyint=${sliceFrames}:scenecut=0:open-gop=0:colorprim=bt709:transfer=bt709:colormatrix=bt709`,
+      `keyint=${sourceFrames}:min-keyint=${sourceFrames}:scenecut=0:open-gop=0:colorprim=bt709:transfer=bt709:colormatrix=bt709`,
       '-bf', '0', '-pix_fmt', 'yuv420p', '-color_range', 'tv',
       '-colorspace', 'bt709', '-color_primaries', 'bt709',
       '-color_trc', 'bt709', '-an', '-movflags', '+faststart',
@@ -90,15 +91,17 @@ try {
           ? 'timeline_start' as const
           : 'approved_hard_cut' as const,
       })),
-      videoAssemblyPolicy: 'compatible_h264_mp4_slice_concat_stream_copy_v1',
+      videoAssemblyPolicy: 'frame_exact_decode_trim_concat_v2',
       audioPolicy: 'separate_continuous_program_audio_v1',
-      codecCompatibilityPolicy: 'exact_h264_extradata_frame_color_v1',
+      codecCompatibilityPolicy: 'bounded_h264_decode_to_vp9_mezzanine_v2',
       timestampPolicy: 'normalize_from_zero',
       outputContainer: 'matroska',
-      outputVideoCodec: 'copy_h264',
+      outputVideoCodec: 'libvpx_vp9_cq12',
       outputPixelFormat: 'yuv420p',
       outputColorSpace: 'bt709',
-      renderPurpose: 'private_4k_object_mezzanine_chunk_v1',
+      frameNormalizationPolicy: 'contain_black_letterbox_v1',
+      colorNormalizationPolicy: 'bt709_limited_v1',
+      renderPurpose: 'private_4k_object_mezzanine_chunk_v2',
       sourceQualityPolicy: 'immutable_source_master_no_proxy_v1',
       usesApprovedEditReservation: true,
       requiresSeparateExportEstimate: false,
@@ -147,19 +150,21 @@ try {
   )
   assert.equal(
     result.evidence.semanticEvidence
-      .h264VideoStreamCopiedWithoutDecodeOrReencode,
+      .frameExactH264DecodeTrimConcatExecuted,
     true,
   )
   assert.equal(
     result.evidence.semanticEvidence
-      .h264Mp4SliceConcatCompatibilityVerified,
+      .vp9Cq12MezzanineEncoded,
     true,
   )
+  assert.equal(result.evidence.semanticEvidence.allObjectChunksSupported, true)
+  assert.equal(result.evidence.semanticEvidence.outputVideoCodec, 'vp9_cq12')
   assert.equal(result.evidence.semanticEvidence.outputAudioStreams, 0)
   assert.equal(result.readiness.productReady, false)
   assert.equal(
     result.image.objectMezzanineChunk,
-    'private_first_chunk_stream_copy_only',
+    'private_all_chunk_vp9_cq12_only',
   )
 
   let repeatedOutputBytes = Buffer.alloc(0)
@@ -186,6 +191,63 @@ try {
   assert.equal(repeated.resultArtifact.byteLength, result.resultArtifact.byteLength)
   assert.deepEqual(repeatedOutputBytes, outputBytes)
 
+  const laterRequest = buildOfflineMediaBinaryObjectMezzanineChunkRequest({
+    planningPayload: {
+      ...request.payload,
+      chunkId: 'long-form-object-chunk-later-fixture',
+      chunkAuthorityHash: sha256(Buffer.from('later-object-chunk-authority')),
+      expectedObjectIdentity: sha256(Buffer.from('later-object-chunk-object')),
+      chunkIndex: 2,
+      globalStartFrame: durationFrames,
+      globalEndFrameExclusive: durationFrames * 2,
+      sourceSlices: request.payload.sourceSlices.map((slice, index) => ({
+        ...slice,
+        sourceStartFrame: sourceFrames - sliceFrames,
+        sourceEndFrameExclusive: sourceFrames,
+        globalTimelineStartFrame: durationFrames + index * sliceFrames,
+        globalTimelineEndFrameExclusive:
+          durationFrames + (index + 1) * sliceFrames,
+        boundaryBefore: index === 0
+          ? 'continuous_technical_split' as const
+          : 'approved_hard_cut' as const,
+      })),
+    },
+    sources: sourceCommitments,
+  })
+  let laterOutputBytes = Buffer.alloc(0)
+  const later = await runtime.executeObjectMezzanineChunkServerInjected(
+    laterRequest,
+    privateInputs,
+    {
+      maximumBytes:
+        OFFLINE_MEDIA_BINARY_OBJECT_MEZZANINE_CHUNK_MAXIMUM_OUTPUT_BYTES,
+      async persist(input) {
+        const chunks: Buffer[] = []
+        for await (const chunk of input.stream) {
+          chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk))
+        }
+        laterOutputBytes = Buffer.concat(chunks)
+        return {
+          byteLength: laterOutputBytes.byteLength,
+          sha256: sha256(laterOutputBytes),
+        }
+      },
+    },
+  )
+  assert.equal(laterRequest.payload.chunkIndex, 2)
+  assert.equal(laterRequest.payload.globalStartFrame, durationFrames)
+  assert.equal(
+    laterRequest.payload.sourceSlices[0]?.boundaryBefore,
+    'continuous_technical_split',
+  )
+  assert.ok((laterRequest.payload.sourceSlices[0]?.sourceStartFrame ?? 0) > 0)
+  assert.equal(later.resultArtifact.sha256, sha256(laterOutputBytes))
+  assert.equal(later.evidence.semanticEvidence.allObjectChunksSupported, true)
+  assert.equal(
+    later.evidence.semanticEvidence.frameExactH264DecodeTrimConcatExecuted,
+    true,
+  )
+
   const independentQa = await runtime.executeServerInjected({
     schemaVersion: OFFLINE_MEDIA_BINARY_STREAM_PROTOCOL,
     toolId: 'ffprobe',
@@ -210,7 +272,7 @@ try {
     Array<Record<string, unknown>>
   const video = streams.find((stream) => stream.codecType === 'video')
   assert.equal(streams.length, 1)
-  assert.equal(video?.codecName, 'h264')
+  assert.equal(video?.codecName, 'vp9')
   assert.equal(video?.width, width)
   assert.equal(video?.height, height)
   assert.equal(video?.fps, fps)
@@ -237,7 +299,7 @@ try {
 
   console.log(JSON.stringify({
     ok: true,
-    schemaVersion: 'offline-media-binary-object-mezzanine-chunk-smoke-v1',
+    schemaVersion: 'offline-media-binary-object-mezzanine-chunk-smoke-v2',
     sourceCount: sourceBytes.length,
     sourceSliceCount: request.payload.sourceSlices.length,
     durationFrames,
@@ -245,6 +307,10 @@ try {
     outputSha256: sha256(outputBytes),
     independentQaSha256: independentQa.resultJson.sha256,
     deterministicByteReexecutionVerified: true,
+    laterChunkIndex: laterRequest.payload.chunkIndex,
+    nonzeroSourceStartFrame:
+      laterRequest.payload.sourceSlices[0]?.sourceStartFrame,
+    technicalSplitBoundaryVerified: true,
     productReady: false,
     productionReady: false,
   }, null, 2))

@@ -479,14 +479,14 @@ export function createCanonicalPrivateSourceObjectReadService(context: ServiceCo
       const exactApprovedOrder = approvedIds.filter((sourceId) =>
         requestedSet.has(sourceId))
       if (
-        requested.length < 2 || requested.length > 8 ||
+        requested.length < 1 || requested.length > 8 ||
         requestedSet.size !== requested.length ||
         requested.some((sourceId) => !approvedIds.includes(sourceId)) ||
         stableAuthorityStringify(requested) !==
           stableAuthorityStringify(exactApprovedOrder)
       ) {
         throw invalidSource(
-          'A staged source subset must contain two to eight unique approved sources in immutable approved order.',
+          'A staged source subset must contain one to eight unique approved sources in immutable approved order.',
         )
       }
       return stageApprovedSourceSet(input, requested)

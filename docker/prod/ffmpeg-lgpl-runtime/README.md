@@ -128,7 +128,7 @@ npm run smoke:offline-media-binary-object-chunk
 
 That smoke uses synthetic constant-color 4K inputs. It does not prove
 multi-camera editorial quality, representative raw-footage scale, cloud
-throughput, broad codec support, remaining chunk execution, final rendering,
+throughput, broad codec support, remaining chunk execution proof, final rendering,
 or export. Neither smoke reads user artifacts or unlocks workers, routes,
 previews, public delivery, or production export.
 
@@ -137,9 +137,9 @@ previews, public delivery, or production export.
 For a locally built image:
 
 ```bash
-docker image inspect --format '{{.Id}}' reeditpro/ffmpeg-lgpl-internal:8.1.2-object-chunk-v3-local
-docker sbom --format spdx-json reeditpro/ffmpeg-lgpl-internal:8.1.2-object-chunk-v3-local > /tmp/reeditpro-ffmpeg-8.1.2-object-chunk-v3.spdx.json
-sha256sum /tmp/reeditpro-ffmpeg-8.1.2-object-chunk-v3.spdx.json
+docker image inspect --format '{{.Id}}' reeditpro/ffmpeg-lgpl-internal:8.1.2-object-chunk-v5-local
+docker sbom --format spdx-json reeditpro/ffmpeg-lgpl-internal:8.1.2-object-chunk-v5-local > /tmp/reeditpro-ffmpeg-8.1.2-object-chunk-v5.spdx.json
+sha256sum /tmp/reeditpro-ffmpeg-8.1.2-object-chunk-v5.spdx.json
 ```
 
 The builder package lock and runtime binary/config hashes are stored under

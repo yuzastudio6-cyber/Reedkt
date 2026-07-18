@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-IMAGE_TAG=${REEDITPRO_FFMPEG_IMAGE_TAG:-reeditpro/ffmpeg-lgpl-internal:8.1.2-program-audio-v4-local}
+IMAGE_TAG=${REEDITPRO_FFMPEG_IMAGE_TAG:-reeditpro/ffmpeg-lgpl-internal:8.1.2-object-chunk-v5-local}
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 
 if [ "${1:-}" = '--build' ]; then
@@ -26,10 +26,10 @@ docker image inspect "$IMAGE_TAG" >/dev/null 2>&1 \
   || { printf '%s\n' 'image must keep H.264 encoding blocked' >&2; exit 1; }
 [ "$(docker image inspect --format '{{index .Config.Labels "reeditpro.aac-encoding"}}' "$IMAGE_TAG")" = 'private_source_slice_finalizer_only' ] \
   || { printf '%s\n' 'image must scope AAC encoding to the private finalizer' >&2; exit 1; }
-[ "$(docker image inspect --format '{{index .Config.Labels "reeditpro.mp4-mux"}}' "$IMAGE_TAG")" = 'private_source_slice_finalizer_and_object_chunk_only' ] \
-  || { printf '%s\n' 'image must scope MP4 muxing to the fixed private finalizer and first object-chunk runner' >&2; exit 1; }
-[ "$(docker image inspect --format '{{index .Config.Labels "reeditpro.object-mezzanine-chunk"}}' "$IMAGE_TAG")" = 'private_first_chunk_stream_copy_only' ] \
-  || { printf '%s\n' 'image must scope object chunking to the private first-chunk stream-copy runner' >&2; exit 1; }
+[ "$(docker image inspect --format '{{index .Config.Labels "reeditpro.mp4-mux"}}' "$IMAGE_TAG")" = 'private_source_slice_finalizer_only' ] \
+  || { printf '%s\n' 'image must scope MP4 muxing to the fixed private finalizer' >&2; exit 1; }
+[ "$(docker image inspect --format '{{index .Config.Labels "reeditpro.object-mezzanine-chunk"}}' "$IMAGE_TAG")" = 'private_all_chunk_vp9_cq12_only' ] \
+  || { printf '%s\n' 'image must scope object chunking to the private VP9 CQ12 runner' >&2; exit 1; }
 [ "$(docker image inspect --format '{{index .Config.Labels "reeditpro.flac-encoding"}}' "$IMAGE_TAG")" = 'private_continuous_program_audio_only' ] \
   || { printf '%s\n' 'image must scope FLAC encoding to continuous program audio' >&2; exit 1; }
 [ "$(docker image inspect --format '{{index .Config.Labels "reeditpro.continuous-program-audio"}}' "$IMAGE_TAG")" = 'private_30fps_48khz_source_audio_only' ] \

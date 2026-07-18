@@ -141,6 +141,7 @@
 --enable-filter=select
 --enable-filter=setpts
 --enable-filter=setparams
+--enable-filter=setsar
 --enable-filter=showinfo
 --enable-filter=signalstats
 --enable-filter=silencedetect

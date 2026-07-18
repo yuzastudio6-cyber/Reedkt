@@ -4,21 +4,21 @@ import { ApiError } from '../../errors/api-error'
 import { OFFLINE_MEDIA_BINARY_OPERATIONS } from './offline-media-binary-protocol'
 
 export const OFFLINE_MEDIA_BINARY_OBJECT_MEZZANINE_CHUNK_PROTOCOL =
-  'offline-media-binary-object-mezzanine-chunk-v1' as const
+  'offline-media-binary-object-mezzanine-chunk-v2' as const
 export const OFFLINE_MEDIA_BINARY_OBJECT_MEZZANINE_CHUNK_MAGIC =
-  'REEDITPRO_FFMPEG_OBJECT_MEZZANINE_CHUNK_V1' as const
+  'REEDITPRO_FFMPEG_OBJECT_MEZZANINE_CHUNK_V2' as const
 export const OFFLINE_MEDIA_BINARY_OBJECT_MEZZANINE_CHUNK_INPUT_MODE =
   'server_injected_private_multi_source_stream_v1' as const
 export const OFFLINE_MEDIA_BINARY_OBJECT_MEZZANINE_CHUNK_RECIPE =
-  'approved_4k_object_mezzanine_chunk_stream_copy_v1' as const
+  'approved_4k_object_mezzanine_chunk_vp9_cq12_v2' as const
 export const OFFLINE_MEDIA_BINARY_OBJECT_MEZZANINE_CHUNK_MAXIMUM_SOURCE_COUNT = 8
 export const OFFLINE_MEDIA_BINARY_OBJECT_MEZZANINE_CHUNK_MAXIMUM_SLICE_COUNT = 16
 export const OFFLINE_MEDIA_BINARY_OBJECT_MEZZANINE_CHUNK_MAXIMUM_SOURCE_BYTES =
   192 * 1024 * 1024
 export const OFFLINE_MEDIA_BINARY_OBJECT_MEZZANINE_CHUNK_MAXIMUM_COMBINED_SOURCE_BYTES =
-  768 * 1024 * 1024
+  512 * 1024 * 1024
 export const OFFLINE_MEDIA_BINARY_OBJECT_MEZZANINE_CHUNK_MAXIMUM_OUTPUT_BYTES =
-  192 * 1024 * 1024
+  512 * 1024 * 1024
 
 const SHA256 = /^[a-f0-9]{64}$/u
 const IDENTITY = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,239}$/u
@@ -38,13 +38,16 @@ export interface OfflineMediaBinaryObjectMezzanineChunkSourceSlice {
   sourceObjectGeneration: string
   sourceSha256: string
   sourceCleanupDecisionId: string
-  sourceStartFrame: 0
+  sourceStartFrame: number
   sourceEndFrameExclusive: number
   globalTimelineStartFrame: number
   globalTimelineEndFrameExclusive: number
   chunkLocalStartFrame: number
   chunkLocalEndFrameExclusive: number
-  boundaryBefore: 'timeline_start' | 'approved_hard_cut'
+  boundaryBefore:
+    | 'timeline_start'
+    | 'approved_hard_cut'
+    | 'continuous_technical_split'
 }
 
 export interface OfflineMediaBinaryObjectMezzanineChunkPlanningPayload {
@@ -52,24 +55,26 @@ export interface OfflineMediaBinaryObjectMezzanineChunkPlanningPayload {
   chunkId: string
   chunkAuthorityHash: string
   expectedObjectIdentity: string
-  chunkIndex: 1
+  chunkIndex: number
   chunkCount: number
   width: 2160 | 2880 | 3840
   height: 2160 | 2700 | 3840
   fps: 30
   durationFrames: number
-  globalStartFrame: 0
+  globalStartFrame: number
   globalEndFrameExclusive: number
   sourceSlices: OfflineMediaBinaryObjectMezzanineChunkSourceSlice[]
-  videoAssemblyPolicy: 'compatible_h264_mp4_slice_concat_stream_copy_v1'
+  videoAssemblyPolicy: 'frame_exact_decode_trim_concat_v2'
   audioPolicy: 'separate_continuous_program_audio_v1'
-  codecCompatibilityPolicy: 'exact_h264_extradata_frame_color_v1'
+  codecCompatibilityPolicy: 'bounded_h264_decode_to_vp9_mezzanine_v2'
   timestampPolicy: 'normalize_from_zero'
   outputContainer: 'matroska'
-  outputVideoCodec: 'copy_h264'
+  outputVideoCodec: 'libvpx_vp9_cq12'
   outputPixelFormat: 'yuv420p'
   outputColorSpace: 'bt709'
-  renderPurpose: 'private_4k_object_mezzanine_chunk_v1'
+  frameNormalizationPolicy: 'contain_black_letterbox_v1'
+  colorNormalizationPolicy: 'bt709_limited_v1'
+  renderPurpose: 'private_4k_object_mezzanine_chunk_v2'
   sourceQualityPolicy: 'immutable_source_master_no_proxy_v1'
   usesApprovedEditReservation: true
   requiresSeparateExportEstimate: false
@@ -131,7 +136,7 @@ export function validateOfflineMediaBinaryObjectMezzanineChunkRequest(
   const sources = inputs.sources.map((source, index) =>
     validateSourceCommitment(source, index))
   if (
-    sources.length < 2 ||
+    sources.length < 1 ||
     sources.length > OFFLINE_MEDIA_BINARY_OBJECT_MEZZANINE_CHUNK_MAXIMUM_SOURCE_COUNT ||
     new Set(sources.map((source) => source.inputId)).size !== sources.length ||
     new Set(sources.map((source) => source.sourceSequenceItemId)).size !== sources.length
@@ -187,6 +192,7 @@ function validatePlanningPayload(
     'sourceSlices', 'videoAssemblyPolicy', 'audioPolicy',
     'codecCompatibilityPolicy', 'timestampPolicy', 'outputContainer',
     'outputVideoCodec', 'outputPixelFormat', 'outputColorSpace',
+    'frameNormalizationPolicy', 'colorNormalizationPolicy',
     'renderPurpose', 'sourceQualityPolicy', 'usesApprovedEditReservation',
     'requiresSeparateExportEstimate', 'allowsAdditionalExportCharge',
   ], 'object-mezzanine planning payload')
@@ -196,34 +202,43 @@ function validatePlanningPayload(
     payload.expectedObjectIdentity,
     'expectedObjectIdentity',
   )
+  const chunkIndex = integer(payload.chunkIndex, 1, 124, 'chunkIndex')
   const chunkCount = integer(payload.chunkCount, 1, 124, 'chunkCount')
   const width = integer(payload.width, 2160, 3840, 'width')
   const height = integer(payload.height, 2160, 3840, 'height')
   const durationFrames = integer(payload.durationFrames, 1_350, 5_400, 'durationFrames')
+  const globalStartFrame = integer(
+    payload.globalStartFrame,
+    0,
+    1_296_000 - 1_350,
+    'globalStartFrame',
+  )
   const globalEndFrameExclusive = integer(
     payload.globalEndFrameExclusive,
     1_350,
-    5_400,
+    1_296_000,
     'globalEndFrameExclusive',
   )
   if (
     payload.recipeProfileId !==
       OFFLINE_MEDIA_BINARY_OBJECT_MEZZANINE_CHUNK_RECIPE ||
-    payload.chunkIndex !== 1 ||
+    chunkIndex > chunkCount ||
     !FOUR_K_MASTER_FRAMES.has(`${width}x${height}`) ||
     payload.fps !== 30 ||
-    payload.globalStartFrame !== 0 ||
-    globalEndFrameExclusive !== durationFrames ||
+    globalEndFrameExclusive !== globalStartFrame + durationFrames ||
     payload.videoAssemblyPolicy !==
-      'compatible_h264_mp4_slice_concat_stream_copy_v1' ||
+      'frame_exact_decode_trim_concat_v2' ||
     payload.audioPolicy !== 'separate_continuous_program_audio_v1' ||
-    payload.codecCompatibilityPolicy !== 'exact_h264_extradata_frame_color_v1' ||
+    payload.codecCompatibilityPolicy !==
+      'bounded_h264_decode_to_vp9_mezzanine_v2' ||
     payload.timestampPolicy !== 'normalize_from_zero' ||
     payload.outputContainer !== 'matroska' ||
-    payload.outputVideoCodec !== 'copy_h264' ||
+    payload.outputVideoCodec !== 'libvpx_vp9_cq12' ||
     payload.outputPixelFormat !== 'yuv420p' ||
     payload.outputColorSpace !== 'bt709' ||
-    payload.renderPurpose !== 'private_4k_object_mezzanine_chunk_v1' ||
+    payload.frameNormalizationPolicy !== 'contain_black_letterbox_v1' ||
+    payload.colorNormalizationPolicy !== 'bt709_limited_v1' ||
+    payload.renderPurpose !== 'private_4k_object_mezzanine_chunk_v2' ||
     payload.sourceQualityPolicy !== 'immutable_source_master_no_proxy_v1' ||
     payload.usesApprovedEditReservation !== true ||
     payload.requiresSeparateExportEstimate !== false ||
@@ -233,25 +248,41 @@ function validatePlanningPayload(
     throw invalid('Object-mezzanine source slices are invalid.')
   }
   const sourceSlices = payload.sourceSlices.map((slice, index) =>
-    validateSourceSlice(slice, index, durationFrames))
+    validateSourceSlice(
+      slice,
+      index,
+      durationFrames,
+      globalStartFrame,
+      globalEndFrameExclusive,
+    ))
   if (
-    sourceSlices.length < 2 ||
+    sourceSlices.length < 1 ||
     sourceSlices.length > OFFLINE_MEDIA_BINARY_OBJECT_MEZZANINE_CHUNK_MAXIMUM_SLICE_COUNT
   ) throw invalid('Object-mezzanine slice cardinality is invalid.')
   let expectedLocalStart = 0
-  let expectedGlobalStart = 0
+  let expectedGlobalStart = globalStartFrame
   sourceSlices.forEach((slice, index) => {
-    const expectedBoundary = index === 0 ? 'timeline_start' : 'approved_hard_cut'
+    const firstBoundaryValid = index !== 0 || (
+      globalStartFrame === 0
+        ? slice.boundaryBefore === 'timeline_start'
+        : slice.boundaryBefore !== 'timeline_start'
+    )
     if (
       slice.sliceIndex !== index + 1 ||
       slice.chunkLocalStartFrame !== expectedLocalStart ||
       slice.globalTimelineStartFrame !== expectedGlobalStart ||
-      slice.boundaryBefore !== expectedBoundary
-    ) throw invalid('Object-mezzanine slices are not exact, ordered hard cuts.')
+      !firstBoundaryValid ||
+      (index > 0 && slice.boundaryBefore === 'timeline_start')
+    ) throw invalid(
+      'Object-mezzanine slices are not exact, ordered approved boundaries.',
+    )
     expectedLocalStart = slice.chunkLocalEndFrameExclusive
     expectedGlobalStart = slice.globalTimelineEndFrameExclusive
   })
-  if (expectedLocalStart !== durationFrames || expectedGlobalStart !== durationFrames) {
+  if (
+    expectedLocalStart !== durationFrames ||
+    expectedGlobalStart !== globalEndFrameExclusive
+  ) {
     throw invalid('Object-mezzanine slices do not cover the complete chunk.')
   }
   return {
@@ -259,24 +290,26 @@ function validatePlanningPayload(
     chunkId,
     chunkAuthorityHash,
     expectedObjectIdentity,
-    chunkIndex: 1,
+    chunkIndex,
     chunkCount,
     width: width as OfflineMediaBinaryObjectMezzanineChunkPlanningPayload['width'],
     height: height as OfflineMediaBinaryObjectMezzanineChunkPlanningPayload['height'],
     fps: 30,
     durationFrames,
-    globalStartFrame: 0,
+    globalStartFrame,
     globalEndFrameExclusive,
     sourceSlices,
-    videoAssemblyPolicy: 'compatible_h264_mp4_slice_concat_stream_copy_v1',
+    videoAssemblyPolicy: 'frame_exact_decode_trim_concat_v2',
     audioPolicy: 'separate_continuous_program_audio_v1',
-    codecCompatibilityPolicy: 'exact_h264_extradata_frame_color_v1',
+    codecCompatibilityPolicy: 'bounded_h264_decode_to_vp9_mezzanine_v2',
     timestampPolicy: 'normalize_from_zero',
     outputContainer: 'matroska',
-    outputVideoCodec: 'copy_h264',
+    outputVideoCodec: 'libvpx_vp9_cq12',
     outputPixelFormat: 'yuv420p',
     outputColorSpace: 'bt709',
-    renderPurpose: 'private_4k_object_mezzanine_chunk_v1',
+    frameNormalizationPolicy: 'contain_black_letterbox_v1',
+    colorNormalizationPolicy: 'bt709_limited_v1',
+    renderPurpose: 'private_4k_object_mezzanine_chunk_v2',
     sourceQualityPolicy: 'immutable_source_master_no_proxy_v1',
     usesApprovedEditReservation: true,
     requiresSeparateExportEstimate: false,
@@ -288,6 +321,8 @@ function validateSourceSlice(
   value: unknown,
   index: number,
   durationFrames: number,
+  globalStartFrame: number,
+  globalEndFrameExclusive: number,
 ): OfflineMediaBinaryObjectMezzanineChunkSourceSlice {
   const slice = exactRecord(value, [
     'sliceIndex', 'segmentId', 'sourceSequenceItemId', 'mediaAssetId',
@@ -296,22 +331,28 @@ function validateSourceSlice(
     'globalTimelineStartFrame', 'globalTimelineEndFrameExclusive',
     'chunkLocalStartFrame', 'chunkLocalEndFrameExclusive', 'boundaryBefore',
   ], `object-mezzanine source slice ${index + 1}`)
+  const sourceStartFrame = integer(
+    slice.sourceStartFrame,
+    0,
+    1_296_000 - 1,
+    'sourceStartFrame',
+  )
   const sourceEndFrameExclusive = integer(
     slice.sourceEndFrameExclusive,
     1,
-    durationFrames,
+    1_296_000,
     'sourceEndFrameExclusive',
   )
   const globalTimelineStartFrame = integer(
     slice.globalTimelineStartFrame,
-    0,
-    durationFrames - 1,
+    globalStartFrame,
+    globalEndFrameExclusive - 1,
     'globalTimelineStartFrame',
   )
   const globalTimelineEndFrameExclusive = integer(
     slice.globalTimelineEndFrameExclusive,
-    1,
-    durationFrames,
+    globalStartFrame + 1,
+    globalEndFrameExclusive,
     'globalTimelineEndFrameExclusive',
   )
   const chunkLocalStartFrame = integer(
@@ -327,12 +368,16 @@ function validateSourceSlice(
     'chunkLocalEndFrameExclusive',
   )
   if (
-    slice.sourceStartFrame !== 0 ||
-    sourceEndFrameExclusive !==
+    sourceEndFrameExclusive <= sourceStartFrame ||
+    sourceEndFrameExclusive - sourceStartFrame !==
       globalTimelineEndFrameExclusive - globalTimelineStartFrame ||
-    sourceEndFrameExclusive !==
+    sourceEndFrameExclusive - sourceStartFrame !==
       chunkLocalEndFrameExclusive - chunkLocalStartFrame ||
-    !['timeline_start', 'approved_hard_cut'].includes(String(slice.boundaryBefore))
+    ![
+      'timeline_start',
+      'approved_hard_cut',
+      'continuous_technical_split',
+    ].includes(String(slice.boundaryBefore))
   ) throw invalid('Object-mezzanine slice timing is unsupported.')
   return {
     sliceIndex: integer(slice.sliceIndex, 1,
@@ -347,7 +392,7 @@ function validateSourceSlice(
       slice.sourceCleanupDecisionId,
       'sourceCleanupDecisionId',
     ),
-    sourceStartFrame: 0,
+    sourceStartFrame,
     sourceEndFrameExclusive,
     globalTimelineStartFrame,
     globalTimelineEndFrameExclusive,

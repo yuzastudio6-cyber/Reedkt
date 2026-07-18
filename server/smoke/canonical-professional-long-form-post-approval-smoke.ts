@@ -89,6 +89,7 @@ import {
 } from '../services/canonical-professional-long-form-master-timing-execution-service'
 import {
   createCanonicalProfessionalLongFormFirstObjectChunkExecutionService,
+  createCanonicalProfessionalLongFormObjectChunkSeriesExecutionService,
 } from '../services/canonical-professional-long-form-first-object-chunk-execution-service'
 import {
   createCanonicalProfessionalLongFormContinuousProgramAudioExecutionService,
@@ -2145,22 +2146,22 @@ try {
       completedFirstObjectChunk.render.outputArtifact.objectVersion === 1 &&
       !completedFirstObjectChunk.render.outputArtifact.placeholderAllowed &&
       completedFirstObjectChunk.render.runtimeEvidence.checks
-        .fixedHardCutStreamCopyExecuted === 'passed' &&
+        .frameExactDecodeTrimConcatExecuted === 'passed' &&
       completedFirstObjectChunk.render.runtimeEvidence.checks
-        .noDecodeOrReencode === 'passed' &&
+        .boundedVp9MezzanineEncoded === 'passed' &&
       completedFirstObjectChunk.render.runtimeEvidence.checks.noAudioEmbedded ===
         'passed' &&
       completedFirstObjectChunk.render.reconciliation.qaDependency
         .dependencySatisfiedByThisCompletion &&
       !completedFirstObjectChunk.render.reconciliation.qaDependency
         .executionAuthorized,
-    'render_uses_exact_private_sources_fixed_stream_copy_and_create_only_processed_artifact_lineage',
+    'render_uses_exact_private_sources_frame_exact_vp9_mezzanine_and_create_only_processed_artifact_lineage',
   )
   check(
     completedFirstObjectChunk.qa.artifact.outcome === 'passed' &&
       completedFirstObjectChunk.qa.artifact.observed.videoStreamCount === 1 &&
       completedFirstObjectChunk.qa.artifact.observed.audioStreamCount === 0 &&
-      completedFirstObjectChunk.qa.artifact.observed.codecName === 'h264' &&
+      completedFirstObjectChunk.qa.artifact.observed.codecName === 'vp9' &&
       completedFirstObjectChunk.qa.artifact.observed.width === 3_840 &&
       completedFirstObjectChunk.qa.artifact.observed.height === 2_160 &&
       completedFirstObjectChunk.qa.artifact.observed.frameRateNumerator === 30 &&
@@ -2439,6 +2440,59 @@ try {
     'completed_program_audio_and_independent_qa_restart_reopen_as_exact_replay_without_redispatch',
   )
 
+  const objectChunkSeriesService =
+    createCanonicalProfessionalLongFormObjectChunkSeriesExecutionService(context)
+  await expectApiError(
+    () => objectChunkSeriesService.executeNext({
+      workspaceId,
+      approvedPlanSnapshotId: String(snapshot.snapshotId),
+      chunkIndex: 2,
+    } as unknown as {
+      workspaceId: string
+      approvedPlanSnapshotId: string
+    }),
+    'VALIDATION_FAILED',
+    'caller_cannot_select_a_later_object_chunk_for_the_generic_executor',
+  )
+  const completedSecondObjectChunk = await objectChunkSeriesService.executeNext({
+    workspaceId,
+    approvedPlanSnapshotId: String(snapshot.snapshotId),
+  })
+  const secondChunkFirstSlice =
+    completedSecondObjectChunk.render.authority.approvedChunk.sourceSlices[0]!
+  check(
+    completedSecondObjectChunk.disposition === 'completed' &&
+      completedSecondObjectChunk.selectedChunkIndex === 2 &&
+      completedSecondObjectChunk.queueAggregate.summary.totalJobCount === 255 &&
+      completedSecondObjectChunk.queueAggregate.summary.completedJobCount === 8 &&
+      completedSecondObjectChunk.queueAggregate.summary.queuedJobCount === 247 &&
+      completedSecondObjectChunk.queueAggregate.summary.leasedJobCount === 0 &&
+      completedSecondObjectChunk.queueAggregate.summary
+        .totalDeliveryAttemptCount === 8,
+    'generic_executor_server_selects_and_completes_the_next_render_qa_pair',
+  )
+  check(
+    completedSecondObjectChunk.render.authority.approvedChunk.globalStartFrame > 0 &&
+      secondChunkFirstSlice.sourceStartFrame > 0 &&
+      secondChunkFirstSlice.boundaryBefore === 'continuous_technical_split' &&
+      completedSecondObjectChunk.qa.artifact.observed.codecName === 'vp9' &&
+      completedSecondObjectChunk.qa.artifact.observed.frameCount ===
+        completedSecondObjectChunk.render.authority.approvedChunk.durationFrames &&
+      completedSecondObjectChunk.readiness.genericFrameExactExecutorApplied &&
+      completedSecondObjectChunk.readiness.nonzeroSourceFrameRangesSupported &&
+      completedSecondObjectChunk.readiness.technicalSplitBoundarySupported &&
+      completedSecondObjectChunk.readiness.completedObjectChunkPairCount === 2 &&
+      completedSecondObjectChunk.readiness.totalObjectChunkPairCount === 124 &&
+      completedSecondObjectChunk.readiness.remainingObjectChunkPairCount === 122 &&
+      !completedSecondObjectChunk.readiness.allObjectChunkPairsCompleted &&
+      completedSecondObjectChunk.readiness.nextUniqueCapability ===
+        'object_chunk_pair' &&
+      !completedSecondObjectChunk.readiness.liveGoogleCloudVerified &&
+      !completedSecondObjectChunk.readiness.productReady &&
+      !completedSecondObjectChunk.readiness.productionReady,
+    'generic_executor_proves_nonzero_frame_technical_split_vp9_qa_and_honest_remaining_pair_count',
+  )
+
   await assertNoActivationImports()
 
   const childBlobPath = join(
@@ -2522,9 +2576,9 @@ try {
       masterTimingAttemptInternalCostEvidenceVerified: true,
       masterTimingRunnerReadOrDecodedMedia: false,
       completedChildCount:
-        completedProgramAudio.queueAggregate.summary.completedJobCount,
+        completedSecondObjectChunk.queueAggregate.summary.completedJobCount,
       remainingBlockedChildCount:
-        completedProgramAudio.queueAggregate.summary.queuedJobCount,
+        completedSecondObjectChunk.queueAggregate.summary.queuedJobCount,
       mediaExecutionVerified: true,
       chunkRenderExecutionVerified: true,
       firstObjectChunkIndependentQaVerified: true,
@@ -2540,6 +2594,17 @@ try {
         completedFirstObjectChunk.render.costEvidence.actualInternalCostMicros,
       firstObjectChunkQaInternalCostMicros:
         completedFirstObjectChunk.qa.costEvidence.actualInternalCostMicros,
+      genericObjectChunkExecutorVerified: true,
+      genericObjectChunkProofIndex:
+        completedSecondObjectChunk.selectedChunkIndex,
+      genericObjectChunkCompletedPairCount:
+        completedSecondObjectChunk.readiness.completedObjectChunkPairCount,
+      genericObjectChunkRemainingPairCount:
+        completedSecondObjectChunk.readiness.remainingObjectChunkPairCount,
+      genericObjectChunkNonzeroSourceFrameVerified:
+        secondChunkFirstSlice.sourceStartFrame > 0,
+      genericObjectChunkTechnicalSplitVerified:
+        secondChunkFirstSlice.boundaryBefore === 'continuous_technical_split',
       continuousProgramAudioExecutionVerified: true,
       continuousProgramAudioIndependentQaVerified: true,
       continuousProgramAudioByteLength:

@@ -2,6 +2,11 @@
 
 Status: `verified_local_private_bounded_six_hour_profile`
 
+Supersession note: the later generic object-chunk series milestone retains this
+audio proof and completes a second render/QA pair. Current retained evidence is
+8/255 completed, with 247 jobs remaining; see
+`docs/canonical-professional-long-form-object-chunk-series-execution-2026-07-18.md`.
+
 ## Outcome
 
 The canonical professional long-form child graph now executes its one

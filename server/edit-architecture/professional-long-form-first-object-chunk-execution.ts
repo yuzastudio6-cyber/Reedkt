@@ -107,8 +107,9 @@ const persistence = {
 export function buildProfessionalLongFormFirstObjectChunkRenderAuthority(input: {
   ownerUserId: string
   current: CanonicalProfessionalLongFormCurrentChildPackageAuthority
+  chunkIndex: number
 }): ProfessionalLongFormFirstObjectChunkRenderAuthority {
-  const selection = selectFirstChunk(input.current)
+  const selection = selectChunk(input.current, input.chunkIndex)
   const { current } = input
   const snapshot = current.authority.snapshot
   const reservation = current.authority.reservation
@@ -124,7 +125,8 @@ export function buildProfessionalLongFormFirstObjectChunkRenderAuthority(input: 
     reservation.id !== snapshot.reservationId ||
     remainingReservedCredits <= 0 ||
     !parentWorkItem ||
-    selection.queueEntry.definition.canonicalOrder !== 3 ||
+    selection.queueEntry.definition.canonicalOrder !==
+      expectedRenderCanonicalOrder(input.chunkIndex) ||
     selection.manifestJob.kind !==
       PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_KIND ||
     selection.placement.workerType !== 'render_worker' ||
@@ -140,7 +142,7 @@ export function buildProfessionalLongFormFirstObjectChunkRenderAuthority(input: 
     stableAuthorityStringify(selection.queueEntry.definition.dependencyJobIds) !==
       stableAuthorityStringify(dependencyCompletions.map((entry) => entry.jobId))
   ) throw new Error(
-    'First object-chunk render lost approved snapshot, reservation, placement, or dependency authority.',
+    'Object-chunk render lost approved snapshot, reservation, placement, or dependency authority.',
   )
 
   const authorizedAt = latestCompletionTimestamp(
@@ -151,11 +153,11 @@ export function buildProfessionalLongFormFirstObjectChunkRenderAuthority(input: 
     schemaVersion:
       PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_AUTHORITY_VERSION,
     source:
-      'server_reopened_professional_long_form_first_object_chunk_render_authority' as const,
+      'server_reopened_professional_long_form_object_chunk_render_authority' as const,
     purpose:
-      'authorize_one_private_checksum_bound_first_object_chunk_stream_copy' as const,
+      'authorize_one_private_checksum_bound_object_chunk_render' as const,
     status:
-      'first_object_chunk_render_authorized_independent_qa_required' as const,
+      'object_chunk_render_authorized_independent_qa_required' as const,
     identity: {
       ownerUserId: input.ownerUserId,
       workspaceId: snapshot.workspaceId,
@@ -217,8 +219,8 @@ export function buildProfessionalLongFormFirstObjectChunkRenderAuthority(input: 
       immutableDependencyCompletionsRequired: true as const,
       approvedPrivateSourceRead: true as const,
       exactSourceChecksumsRequired: true as const,
-      fixedHardCutStreamCopyRecipe: true as const,
-      decodeOrReencodeAllowed: false as const,
+      fixedFrameExactDecodeTrimRecipe: true as const,
+      boundedVp9ReencodeAllowed: true as const,
       privateMediaArtifactCreateOnly: true as const,
       independentQaRequiredBeforeDownstream: true as const,
       furtherChildExecution: false as const,
@@ -240,6 +242,7 @@ export function assertProfessionalLongFormFirstObjectChunkRenderAuthority(input:
   value: unknown
   ownerUserId: string
   current: CanonicalProfessionalLongFormCurrentChildPackageAuthority
+  chunkIndex: number
 }): ProfessionalLongFormFirstObjectChunkRenderAuthority {
   const parsed = professionalLongFormFirstObjectChunkRenderAuthoritySchema.parse(
     input.value,
@@ -247,7 +250,7 @@ export function assertProfessionalLongFormFirstObjectChunkRenderAuthority(input:
   assertHashedRecord(parsed, 'authorityHash')
   const expected = buildProfessionalLongFormFirstObjectChunkRenderAuthority(input)
   if (stableAuthorityStringify(parsed) !== stableAuthorityStringify(expected)) {
-    throw new Error('First object-chunk render authority failed exact replay.')
+    throw new Error('Object-chunk render authority failed exact replay.')
   }
   return expected
 }
@@ -264,7 +267,7 @@ export function buildProfessionalLongFormFirstObjectChunkRenderAuthorization(
     schemaVersion:
       PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_AUTHORIZATION_VERSION,
     source:
-      'server_persisted_professional_long_form_first_object_chunk_render_authority' as const,
+      'server_persisted_professional_long_form_object_chunk_render_authority' as const,
     authorizationId:
       `long-form-object-render-auth-${input.authority.authorityHash.slice(0, 40)}`,
     authorityRef: input.authorityRef,
@@ -283,7 +286,7 @@ export function buildProfessionalLongFormFirstObjectChunkRenderAuthorization(
       privateLocalLease: true as const,
       oneUseInternalDispatch: true as const,
       approvedPrivateSourceRead: true as const,
-      fixedStreamCopyRecipe: true as const,
+      fixedFrameExactRecipe: true as const,
       createOnlyPrivateMediaPersistence: true as const,
       providerCall: false as const,
       googleCloudDispatch: false as const,
@@ -300,8 +303,9 @@ export function buildProfessionalLongFormFirstObjectChunkRenderAuthorization(
 export function buildProfessionalLongFormFirstObjectChunkQaAuthority(input: {
   ownerUserId: string
   current: CanonicalProfessionalLongFormCurrentChildPackageAuthority
+  chunkIndex: number
 }): ProfessionalLongFormFirstObjectChunkQaAuthority {
-  const selection = selectFirstChunk(input.current)
+  const selection = selectChunk(input.current, input.chunkIndex)
   const { current } = input
   const snapshot = current.authority.snapshot
   const reservation = current.authority.reservation
@@ -317,7 +321,8 @@ export function buildProfessionalLongFormFirstObjectChunkQaAuthority(input: {
     reservation.status !== 'reserved' || remainingReservedCredits <= 0 ||
     selection.queueEntry.state !== 'completed' ||
     !selection.queueEntry.completion || !renderCompletion.success ||
-    !qaEntry || qaEntry.definition.canonicalOrder !== 4 ||
+    !qaEntry || qaEntry.definition.canonicalOrder !==
+      expectedQaCanonicalOrder(input.chunkIndex) ||
     qaEntry.definition.workerType !== 'qa_worker' ||
     qaEntry.definition.resourceClassId !== 'qa_cpu_standard_v1' ||
     qaEntry.definition.maxAttempts !== 2 ||
@@ -331,7 +336,7 @@ export function buildProfessionalLongFormFirstObjectChunkQaAuthority(input: {
     renderCompletion.data.outputArtifact.sha256 !==
       selection.queueEntry.completion.outcome.sha256
   ) throw new Error(
-    'First object-chunk QA lost exact render completion, artifact, placement, or reservation authority.',
+    'Object-chunk QA lost exact render completion, artifact, placement, or reservation authority.',
   )
   const qaPlacement = current.placementManifest.placements.find((placement) =>
     placement.childWorkItemId === selection.qaManifestJob.childWorkItemId)
@@ -343,14 +348,14 @@ export function buildProfessionalLongFormFirstObjectChunkQaAuthority(input: {
     qaQueueJob.definitionHash !== qaEntry.definition.definitionHash ||
     qaPlacement.workerType !== 'qa_worker' ||
     qaPlacement.resourceClassId !== 'qa_cpu_standard_v1'
-  ) throw new Error('First object-chunk QA placement authority changed.')
+  ) throw new Error('Object-chunk QA placement authority changed.')
   const payload = {
     schemaVersion: PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_AUTHORITY_VERSION,
     source:
-      'server_reopened_professional_long_form_first_object_chunk_qa_authority' as const,
+      'server_reopened_professional_long_form_object_chunk_qa_authority' as const,
     purpose:
-      'authorize_one_private_independent_probe_of_exact_first_object_chunk' as const,
-    status: 'first_object_chunk_independent_qa_authorized' as const,
+      'authorize_one_private_independent_probe_of_exact_object_chunk' as const,
+    status: 'object_chunk_independent_qa_authorized' as const,
     identity: {
       ownerUserId: input.ownerUserId,
       workspaceId: snapshot.workspaceId,
@@ -432,6 +437,7 @@ export function assertProfessionalLongFormFirstObjectChunkQaAuthority(input: {
   value: unknown
   ownerUserId: string
   current: CanonicalProfessionalLongFormCurrentChildPackageAuthority
+  chunkIndex: number
 }): ProfessionalLongFormFirstObjectChunkQaAuthority {
   const parsed = professionalLongFormFirstObjectChunkQaAuthoritySchema.parse(
     input.value,
@@ -439,7 +445,7 @@ export function assertProfessionalLongFormFirstObjectChunkQaAuthority(input: {
   assertHashedRecord(parsed, 'authorityHash')
   const expected = buildProfessionalLongFormFirstObjectChunkQaAuthority(input)
   if (stableAuthorityStringify(parsed) !== stableAuthorityStringify(expected)) {
-    throw new Error('First object-chunk QA authority failed exact replay.')
+    throw new Error('Object-chunk QA authority failed exact replay.')
   }
   return expected
 }
@@ -453,7 +459,7 @@ export function buildProfessionalLongFormFirstObjectChunkQaAuthorization(input: 
   const payload = {
     schemaVersion: PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_AUTHORIZATION_VERSION,
     source:
-      'server_persisted_professional_long_form_first_object_chunk_qa_authority' as const,
+      'server_persisted_professional_long_form_object_chunk_qa_authority' as const,
     authorizationId:
       `long-form-object-qa-auth-${input.authority.authorityHash.slice(0, 40)}`,
     authorityRef: input.authorityRef,
@@ -511,7 +517,7 @@ export function buildProfessionalLongFormFirstObjectChunkRenderEvidence(input: {
   const payload = {
     schemaVersion: PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_EVIDENCE_VERSION,
     source:
-      'canonical_professional_long_form_first_object_chunk_ffmpeg_runner' as const,
+      'canonical_professional_long_form_object_chunk_ffmpeg_runner' as const,
     identity: {
       workspaceId: input.authority.identity.workspaceId,
       projectId: input.authority.identity.projectId,
@@ -543,8 +549,8 @@ export function buildProfessionalLongFormFirstObjectChunkRenderEvidence(input: {
       approvedDependenciesReopened: 'passed' as const,
       immutableSourceBytesVerified: 'passed' as const,
       sourceOrderAndFrameRangesVerified: 'passed' as const,
-      fixedHardCutStreamCopyExecuted: 'passed' as const,
-      noDecodeOrReencode: 'passed' as const,
+      frameExactDecodeTrimConcatExecuted: 'passed' as const,
+      boundedVp9MezzanineEncoded: 'passed' as const,
       noAudioEmbedded: 'passed' as const,
       exactPrivateCreateOnlyPersistence: 'passed' as const,
       independentQaStillRequired: true as const,
@@ -579,24 +585,25 @@ export function buildProfessionalLongFormFirstObjectChunkRenderReconciliation(
     !render || (render.state !== 'leased' &&
       !(input.allowCompletedRender && render.state === 'completed')) ||
     downstream.length !== 1 ||
-    downstream[0]!.definition.canonicalOrder !== 4 ||
+    downstream[0]!.definition.canonicalOrder !==
+      expectedQaCanonicalOrder(input.authority.approvedChunk.chunkIndex) ||
     (downstream[0]!.state !== 'queued' &&
       !(input.allowCompletedQa && downstream[0]!.state === 'completed')) ||
     (downstream[0]!.state === 'queued' && (
       downstream[0]!.professionalLongFormExecutionAuthorization ||
       downstream[0]!.professionalLongFormExecutionAttempt ||
       downstream[0]!.completion))
-  ) throw new Error('First object-chunk render reconciliation lost paired QA state.')
+  ) throw new Error('Object-chunk render reconciliation lost paired QA state.')
   const qaManifest = input.current.postApproval.childJobManifest.jobs.find((job) =>
     job.jobId === downstream[0]!.definition.jobId)
   if (qaManifest?.kind !== PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_KIND) {
-    throw new Error('First object-chunk render reconciliation lost QA identity.')
+    throw new Error('Object-chunk render reconciliation lost QA identity.')
   }
   const payload = {
     schemaVersion:
       PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_RECONCILIATION_VERSION,
     source:
-      'canonical_professional_long_form_first_object_chunk_render_reconciliation' as const,
+      'canonical_professional_long_form_object_chunk_render_reconciliation' as const,
     renderJobId: input.authority.identity.jobId,
     renderApprovedWorkItemId: input.authority.identity.approvedWorkItemId,
     executionAttemptId: input.executionAttempt.executionAttemptId,
@@ -629,7 +636,7 @@ export function professionalLongFormFirstObjectChunkRenderResultHash(input: {
   reconciliationEvidenceRef: AuthorityJsonBlobRef
 }): string {
   return sha256AuthorityValue({
-    domain: 'reeditpro:professional-long-form-first-object-chunk-render:v1',
+    domain: 'reeditpro:professional-long-form-object-chunk-render:v2',
     authorityHash: input.authority.authorityHash,
     attemptHash: input.executionAttempt.attemptHash,
     outputArtifact: input.outputArtifact,
@@ -653,7 +660,7 @@ export function buildProfessionalLongFormFirstObjectChunkRenderTerminal(input: {
   const payload = {
     schemaVersion: PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_TERMINAL_VERSION,
     source:
-      'canonical_professional_long_form_first_object_chunk_execution_service' as const,
+      'canonical_professional_long_form_object_chunk_execution_service' as const,
     jobId: input.authority.identity.jobId,
     approvedWorkItemId: input.authority.identity.approvedWorkItemId,
     executionAttemptId: input.executionAttempt.executionAttemptId,
@@ -735,9 +742,10 @@ export function buildProfessionalLongFormFirstObjectChunkQaArtifact(input: {
     document.profileId !== 'object_mezzanine_chunk_qa_v1' ||
     !String(document.formatName).includes('matroska') ||
     videoStreams.length !== 1 || audioStreams.length !== 0 ||
-    streams.length !== 1 || !video || video.codecName !== 'h264' ||
+    streams.length !== 1 || !video || video.codecName !== 'vp9' ||
     video.pixelFormat !== 'yuv420p' ||
-    video.colorRange !== 'tv' || video.colorSpace !== 'bt709' ||
+    !['tv', 'limited'].includes(String(video.colorRange)) ||
+    video.colorSpace !== 'bt709' ||
     video.colorTransfer !== 'bt709' || video.colorPrimaries !== 'bt709' ||
     video.width !== input.authority.approvedChunk.width ||
     video.height !== input.authority.approvedChunk.height ||
@@ -753,12 +761,12 @@ export function buildProfessionalLongFormFirstObjectChunkQaArtifact(input: {
     input.result.evidence.oomKilled ||
     input.result.readiness.productReady
   ) throw new Error(
-    'First object-chunk independent QA failed frame, color, timestamp, duration, or artifact lineage.',
+    'Object-chunk independent QA failed frame, color, timestamp, duration, or artifact lineage.',
   )
   const payload = {
     schemaVersion: PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_ARTIFACT_VERSION,
     source:
-      'canonical_professional_long_form_first_object_chunk_ffprobe_qa' as const,
+      'canonical_professional_long_form_object_chunk_ffprobe_qa' as const,
     identity: {
       workspaceId: input.authority.identity.workspaceId,
       projectId: input.authority.identity.projectId,
@@ -780,7 +788,7 @@ export function buildProfessionalLongFormFirstObjectChunkQaArtifact(input: {
       container: 'matroska' as const,
       videoStreamCount: 1 as const,
       audioStreamCount: 0 as const,
-      codecName: 'h264' as const,
+      codecName: 'vp9' as const,
       pixelFormat: 'yuv420p' as const,
       width: input.authority.approvedChunk.width,
       height: input.authority.approvedChunk.height,
@@ -791,7 +799,7 @@ export function buildProfessionalLongFormFirstObjectChunkQaArtifact(input: {
       videoStartTimeSeconds: videoStart,
       durationSeconds,
       durationFrames: input.authority.approvedChunk.durationFrames,
-      colorRange: 'tv' as const,
+      colorRange: video.colorRange as 'tv' | 'limited',
       colorSpace: 'bt709' as const,
       colorTransfer: 'bt709' as const,
       colorPrimaries: 'bt709' as const,
@@ -801,7 +809,7 @@ export function buildProfessionalLongFormFirstObjectChunkQaArtifact(input: {
       independentProbeExecuted: 'passed' as const,
       exactFrameCountRateAndDuration: 'passed' as const,
       exactOutputFrame: 'passed' as const,
-      exactH264PixelAndColorMetadata: 'passed' as const,
+      exactVp9PixelAndColorMetadata: 'passed' as const,
       videoOnlyObjectChunk: 'passed' as const,
       sourceAndTimelineLineage: 'passed' as const,
     },
@@ -819,7 +827,7 @@ export function professionalLongFormFirstObjectChunkQaRuntimeReceipt(
 ) {
   return {
     schemaVersion:
-      'professional-long-form-first-object-chunk-qa-runtime-receipt-v1' as const,
+      'professional-long-form-object-chunk-qa-runtime-receipt-v2' as const,
     source: 'offline_media_binary_ffprobe_runtime' as const,
     resultSha256: result.resultJson.sha256,
     resultByteLength: result.resultJson.byteLength,
@@ -839,6 +847,7 @@ export function buildProfessionalLongFormFirstObjectChunkQaReconciliation(
     qaArtifactRef: AuthorityJsonBlobRef
     reconciledAt: string
     allowCompletedQa?: boolean
+    allowAdvancedDownstream?: boolean
   },
 ): ProfessionalLongFormFirstObjectChunkQaReconciliation {
   assertQaLineage(input)
@@ -862,28 +871,41 @@ export function buildProfessionalLongFormFirstObjectChunkQaReconciliation(
     downstreamEntries.length !== 2 ||
     downstreamEntries.some((entry) =>
       !allowedKinds.has(kindByWorkItemId.get(entry.definition.approvedWorkItemId) ?? '') ||
-      entry.state !== 'queued' || entry.professionalLongFormExecutionAuthorization ||
-      entry.professionalLongFormExecutionAttempt || entry.completion ||
+      (entry.state !== 'queued' &&
+        !(input.allowAdvancedDownstream && entry.state === 'completed')) ||
+      (entry.state === 'queued' && (
+        entry.professionalLongFormExecutionAuthorization ||
+        entry.professionalLongFormExecutionAttempt || entry.completion)))
+  ) throw new Error(
+    'Object-chunk QA reconciliation lost color or finalization state.',
+  )
+  const downstream = downstreamEntries.map((entry) => {
+    const downstreamKind = kindByWorkItemId.get(
+      entry.definition.approvedWorkItemId,
+    )
+    const everyRequiredDependencySatisfied =
+      downstreamKind === 'validate_cross_chunk_color_continuity' &&
+      input.authority.approvedChunk.chunkIndex ===
+        input.authority.approvedChunk.chunkCount &&
       entry.definition.dependencyJobIds.every((dependencyId) =>
         dependencyId === input.authority.identity.jobId ||
         input.current.queueAggregate.entries.some((candidate) =>
-          candidate.definition.jobId === dependencyId && candidate.state === 'completed')))
-  ) throw new Error(
-    'First object-chunk QA reconciliation lost blocked color or finalization state.',
-  )
-  const downstream = downstreamEntries.map((entry) => ({
-    jobId: entry.definition.jobId,
-    approvedWorkItemId: entry.definition.approvedWorkItemId,
-    dependencyJobId: input.authority.identity.jobId,
-    thisDependencySatisfied: true as const,
-    everyRequiredDependencySatisfied: false as const,
-    executionAuthorized: false as const,
-  }))
+          candidate.definition.jobId === dependencyId &&
+          candidate.state === 'completed'))
+    return {
+      jobId: entry.definition.jobId,
+      approvedWorkItemId: entry.definition.approvedWorkItemId,
+      dependencyJobId: input.authority.identity.jobId,
+      thisDependencySatisfied: true as const,
+      everyRequiredDependencySatisfied,
+      executionAuthorized: false as const,
+    }
+  })
   const payload = {
     schemaVersion:
       PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_RECONCILIATION_VERSION,
     source:
-      'canonical_professional_long_form_first_object_chunk_qa_reconciliation' as const,
+      'canonical_professional_long_form_object_chunk_qa_reconciliation' as const,
     qaJobId: input.authority.identity.jobId,
     qaApprovedWorkItemId: input.authority.identity.approvedWorkItemId,
     executionAttemptId: input.executionAttempt.executionAttemptId,
@@ -892,7 +914,7 @@ export function buildProfessionalLongFormFirstObjectChunkQaReconciliation(
     qaArtifactRef: input.qaArtifactRef,
     downstream,
     decision:
-      'first_chunk_qa_passed_remaining_chunks_audio_color_and_finalization_blocked' as const,
+      'object_chunk_qa_passed_remaining_graph_dependency_gated' as const,
     reconciledAt: input.reconciledAt,
   }
   return professionalLongFormFirstObjectChunkQaReconciliationSchema.parse({
@@ -908,7 +930,7 @@ export function professionalLongFormFirstObjectChunkQaResultHash(input: {
   reconciliationEvidenceRef: AuthorityJsonBlobRef
 }): string {
   return sha256AuthorityValue({
-    domain: 'reeditpro:professional-long-form-first-object-chunk-qa:v1',
+    domain: 'reeditpro:professional-long-form-object-chunk-qa:v2',
     authorityHash: input.authority.authorityHash,
     attemptHash: input.executionAttempt.attemptHash,
     renderArtifact: input.authority.renderArtifact,
@@ -931,7 +953,7 @@ export function buildProfessionalLongFormFirstObjectChunkQaTerminal(input: {
   const payload = {
     schemaVersion: PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_TERMINAL_VERSION,
     source:
-      'canonical_professional_long_form_first_object_chunk_execution_service' as const,
+      'canonical_professional_long_form_object_chunk_execution_service' as const,
     jobId: input.authority.identity.jobId,
     approvedWorkItemId: input.authority.identity.approvedWorkItemId,
     executionAttemptId: input.executionAttempt.executionAttemptId,
@@ -979,11 +1001,16 @@ export function buildProfessionalLongFormFirstObjectChunkQaCompletion(input: {
   })
 }
 
-function selectFirstChunk(
+function selectChunk(
   current: CanonicalProfessionalLongFormCurrentChildPackageAuthority,
+  chunkIndex: number,
 ) {
   const plan = current.postApproval.bridge.binding.plan
-  const chunk = plan.chunks[0]
+  if (!Number.isInteger(chunkIndex) || chunkIndex < 1 ||
+    chunkIndex > plan.chunks.length) {
+    throw new Error('Object-chunk index is outside the approved plan.')
+  }
+  const chunk = plan.chunks[chunkIndex - 1]
   const renderWorkItem = plan.workGraph.workItems.find((workItem) =>
     workItem.kind === PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_KIND &&
     workItem.expectedOutputIdentity === chunk?.expectedObject.objectIdentity)
@@ -1002,25 +1029,57 @@ function selectFirstChunk(
   const queueEntry = current.queueAggregate.entries.find((entry) =>
     entry.definition.approvedWorkItemId === renderWorkItem?.workItemId)
   const request = plan.request
+  const slicesAreFrameExact = Boolean(chunk) && chunk!.sourceSlices.every(
+    (slice, index, slices) => {
+      const previous = slices[index - 1]
+      const isFirstTimelineSlice = index === 0
+      const boundaryAllowed = isFirstTimelineSlice
+        ? (chunk!.globalStartFrame === 0
+          ? slice.boundaryBefore === 'timeline_start'
+          : ['approved_hard_cut', 'continuous_technical_split'].includes(
+              slice.boundaryBefore,
+            ))
+        : slice.boundaryBefore === 'approved_hard_cut'
+      return boundaryAllowed &&
+        slice.sourceEndFrameExclusive > slice.sourceStartFrame &&
+        slice.globalTimelineEndFrameExclusive >
+          slice.globalTimelineStartFrame &&
+        slice.chunkLocalEndFrameExclusive > slice.chunkLocalStartFrame &&
+        slice.sourceEndFrameExclusive - slice.sourceStartFrame ===
+          slice.chunkLocalEndFrameExclusive - slice.chunkLocalStartFrame &&
+        slice.globalTimelineStartFrame ===
+          chunk!.globalStartFrame + slice.chunkLocalStartFrame &&
+        slice.globalTimelineEndFrameExclusive ===
+          chunk!.globalStartFrame + slice.chunkLocalEndFrameExclusive &&
+        (index === 0
+          ? slice.chunkLocalStartFrame === 0
+          : previous?.chunkLocalEndFrameExclusive ===
+            slice.chunkLocalStartFrame)
+    },
+  )
   if (
-    !chunk || chunk.chunkIndex !== 1 || chunk.globalStartFrame !== 0 ||
+    !chunk || chunk.chunkIndex !== chunkIndex ||
+    chunk.chunkCount !== plan.chunks.length ||
+    chunk.globalStartFrame < 0 ||
+    chunk.globalEndFrameExclusive <= chunk.globalStartFrame ||
+    chunk.durationFrames !==
+      chunk.globalEndFrameExclusive - chunk.globalStartFrame ||
     !renderWorkItem || !qaWorkItem || !manifestJob || !qaManifestJob ||
     !placement || !queueJob || !queueEntry ||
     request.confirmedOutputFrame.frameRate.numerator !== 30 ||
     request.confirmedOutputFrame.frameRate.denominator !== 1 ||
-    chunk.sourceSlices.length < 2 || chunk.sourceSlices.length > 16 ||
-    chunk.sourceSlices.some((slice, index) =>
-      slice.sourceStartFrame !== 0 ||
-      !['timeline_start', 'approved_hard_cut'].includes(slice.boundaryBefore) ||
-      (index === 0) !== (slice.boundaryBefore === 'timeline_start'))
+    chunk.sourceSlices.length < 1 || chunk.sourceSlices.length > 16 ||
+    !slicesAreFrameExact ||
+    chunk.sourceSlices.at(-1)?.chunkLocalEndFrameExclusive !==
+      chunk.durationFrames
   ) throw new Error(
-    'Approved long-form plan does not contain the bounded first object-chunk profile.',
+    'Approved long-form plan does not contain the bounded object-chunk profile.',
   )
   const approvedChunk = {
     chunkId: chunk.chunkId,
-    chunkIndex: 1 as const,
+    chunkIndex: chunk.chunkIndex,
     chunkCount: chunk.chunkCount,
-    globalStartFrame: 0 as const,
+    globalStartFrame: chunk.globalStartFrame,
     globalEndFrameExclusive: chunk.globalEndFrameExclusive,
     durationFrames: chunk.durationFrames,
     width: request.confirmedOutputFrame.width,
@@ -1034,13 +1093,15 @@ function selectFirstChunk(
       sourceObjectGeneration: slice.sourceObjectGeneration,
       sourceSha256: slice.sourceSha256,
       sourceCleanupDecisionId: slice.sourceCleanupDecisionId,
-      sourceStartFrame: 0 as const,
+      sourceStartFrame: slice.sourceStartFrame,
       sourceEndFrameExclusive: slice.sourceEndFrameExclusive,
       globalTimelineStartFrame: slice.globalTimelineStartFrame,
       globalTimelineEndFrameExclusive: slice.globalTimelineEndFrameExclusive,
       chunkLocalStartFrame: slice.chunkLocalStartFrame,
       chunkLocalEndFrameExclusive: slice.chunkLocalEndFrameExclusive,
-      boundaryBefore: slice.boundaryBefore as 'timeline_start' | 'approved_hard_cut',
+      boundaryBefore: slice.boundaryBefore as
+        'timeline_start' | 'approved_hard_cut' |
+        'continuous_technical_split',
     })),
     expectedObject: {
       objectIdentity: chunk.expectedObject.objectIdentity,
@@ -1067,6 +1128,14 @@ function selectFirstChunk(
   }
 }
 
+function expectedRenderCanonicalOrder(chunkIndex: number): number {
+  return chunkIndex * 2 + 1
+}
+
+function expectedQaCanonicalOrder(chunkIndex: number): number {
+  return chunkIndex * 2 + 2
+}
+
 function exactRenderDependencies(
   current: CanonicalProfessionalLongFormCurrentChildPackageAuthority,
   renderEntry: CanonicalProfessionalLongFormCurrentChildPackageAuthority[
@@ -1074,13 +1143,13 @@ function exactRenderDependencies(
   ]['entries'][number],
 ) {
   if (renderEntry.definition.dependencyJobIds.length !== 3) {
-    throw new Error('First object-chunk render must have exactly three dependencies.')
+    throw new Error('Object-chunk render must have exactly three dependencies.')
   }
   return renderEntry.definition.dependencyJobIds.map((jobId) => {
     const entry = current.queueAggregate.entries.find((candidate) =>
       candidate.definition.jobId === jobId)
     if (!entry || entry.state !== 'completed' || !entry.completion) {
-      throw new Error('First object-chunk render dependency is not completed.')
+      throw new Error('Object-chunk render dependency is not completed.')
     }
     if (entry.definition.approvedWorkItemId ===
       PROFESSIONAL_LONG_FORM_FIRST_CHILD_WORK_ITEM_ID) {
@@ -1103,7 +1172,7 @@ function exactRenderDependencies(
       )
       return dependencyRecord('validate_master_timing', entry, completion)
     }
-    throw new Error('First object-chunk render has an unexpected dependency.')
+    throw new Error('Object-chunk render has an unexpected dependency.')
   })
 }
 
@@ -1119,7 +1188,7 @@ function dependencyRecord(
   },
 ) {
   if (!entry.completion) {
-    throw new Error('First object-chunk dependency completion is missing.')
+    throw new Error('Object-chunk dependency completion is missing.')
   }
   return {
     kind,
@@ -1174,7 +1243,7 @@ function assertRenderLineage(input: {
       stableAuthorityStringify(renderOperation) ||
     stableAuthorityStringify(input.executionAttempt.operation) !==
       stableAuthorityStringify(renderOperation)
-  ) throw new Error('First object-chunk render execution lineage is invalid.')
+  ) throw new Error('Object-chunk render execution lineage is invalid.')
 }
 
 function assertQaLineage(input: {
@@ -1196,12 +1265,12 @@ function assertQaLineage(input: {
       stableAuthorityStringify(qaOperation) ||
     stableAuthorityStringify(input.executionAttempt.operation) !==
       stableAuthorityStringify(qaOperation)
-  ) throw new Error('First object-chunk QA execution lineage is invalid.')
+  ) throw new Error('Object-chunk QA execution lineage is invalid.')
 }
 
 function assertBlobRef(ref: AuthorityJsonBlobRef, value: unknown): void {
   if (ref.sha256 !== sha256AuthorityValue(value) || ref.byteLength <= 0) {
-    throw new Error('First object-chunk content-addressed ref is invalid.')
+    throw new Error('Object-chunk content-addressed ref is invalid.')
   }
 }
 
@@ -1213,7 +1282,7 @@ function assertHashedRecord<T extends string>(
   const expected = payload[hashKey]
   delete payload[hashKey]
   if (expected !== sha256AuthorityValue(payload)) {
-    throw new Error(`First object-chunk ${hashKey} is invalid.`)
+    throw new Error(`Object-chunk ${hashKey} is invalid.`)
   }
 }
 

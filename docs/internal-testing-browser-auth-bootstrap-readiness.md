@@ -8,9 +8,9 @@
 
 This milestone adds a signed-in bootstrap readiness panel to `/internal-testing`. It lets an internal tester see whether the browser-safe auth bootstrap can create or reuse their profile, workspace, and membership through the Supabase anon client when RLS permits it.
 
-If RLS blocks profile or workspace setup, the panel reports `backend_required` so the backend-only manual provisioning and readback workflows can finish setup without exposing service-role keys to browser code.
+If RLS blocks profile or workspace setup, the panel reports `backend_required` so the backend-only manual provisioning and readback workflows can finish setup without exposing service-role keys to browser code. The operator sequence requires a real prior Google login; backend readback records the Google-linked identity and prior Auth sign-in as separate facts, while the owner-interactive verifier proves the live provider. The backend never creates or invites an Auth user.
 
-Browser self-sign-up is not the authoritative internal tester confirmation path. If Supabase creates a user without returning a session, `/sign-in` now treats that as `Tester provisioning required` and tells the tester to use the backend provisioning workflow instead of waiting on email confirmation delivery.
+Browser self-sign-up is not the authoritative internal tester confirmation path. The current staging sequence is Google-first: complete Google once under owner control, use the emitted email hash with the guarded same-SHA provisioning/readback workflows if workspace bootstrap is missing, then rerun the interactive verifier for authenticated gateway readback and sign-out proof.
 
 ## Readiness Surface
 
@@ -28,9 +28,9 @@ Browser self-sign-up is not the authoritative internal tester confirmation path.
 
 ## Remaining Gates
 
-Manual end-to-end testing still needs a real tester email to be provisioned/read back, followed by browser sign-in verification against the deployed app.
+Manual end-to-end testing still needs owner-authorized gateway/Pages activation, one real Google login, guarded profile/workspace provisioning and readback if RLS did not bootstrap them, and a second interactive run that passes `/v1/projects`, reload, sign-out, and post-sign-out denial.
 
-Next gate: `MANUAL_TESTER_EMAIL_PROVISIONING_AND_BROWSER_SIGN_IN`.
+Next gate: `OWNER_INTERACTIVE_GOOGLE_LOGIN_THEN_SAME_SHA_BOOTSTRAP_AND_GATEWAY_READBACK`.
 
 ## Validation
 

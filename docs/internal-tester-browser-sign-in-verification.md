@@ -41,6 +41,8 @@ After this readiness workflow passes, use the owner-local process in `docs/inter
 
 A pass requires exact callback return, `Google session` identity, expected email match, protected dashboard reload, a successful protected `/v1/projects` gateway response, sign-out, and guarded-route denial after sign-out.
 
+For a brand-new Google identity, callback/identity/reload may succeed before profile/workspace membership exists. The verifier must still fail closed at `/v1/projects`. Use its emitted email hash with the same-SHA protected profile/workspace provisioning and readback workflows, then rerun the owner-local verifier; do not weaken gateway authorization or create/invite the Auth user from the backend.
+
 ## Current State
 
 Source readiness is implemented locally on `codex/backend-workflow-pipeline-continuation`. The workflow has not been pushed or run, the Pages/gateway activation workflows have not run, and no live Google session has been attempted.
@@ -56,4 +58,4 @@ Source readiness is implemented locally on `codex/backend-workflow-pipeline-cont
 
 ## Next Gate
 
-`RUN_CREDENTIAL_FREE_READINESS_THEN_OWNER_INTERACTIVE_GOOGLE_SESSION`
+`RUN_CREDENTIAL_FREE_READINESS_THEN_OWNER_GOOGLE_SESSION_WITH_CONDITIONAL_SAME_SHA_BOOTSTRAP_RETRY`

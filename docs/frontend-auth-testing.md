@@ -100,4 +100,6 @@ npm run internal-testing:verify-interactive-google-session
 
 The verifier clicks only ReEditPro's Google action. It does not enter or read Google credentials, print tokens, export browser storage, or retain a trace, screenshot, video, or storage state. A pass requires the exact callback, expected Google identity, protected dashboard reload, an authenticated 2xx `/v1/projects` response from the exact activated gateway, sign-out, and protected-route denial afterward.
 
+For a first Google login, the Auth identity can succeed before a ReEditPro workspace exists. In that case the verifier intentionally blocks at `/v1/projects` and emits the short email hash. Run the exact-SHA **Internal Tester Google Profile Workspace Provisioning** workflow with the protected `STAGING_INTERNAL_TESTER_EMAIL` secret and that hash, pass **Internal Tester Google Auth Readback**, then rerun the owner-local verifier. Neither backend workflow accepts a password, creates/invites an Auth user, or takes the raw email as a workflow input.
+
 Current status: all four source lanes and their local fail-closed checks exist on `codex/backend-workflow-pipeline-continuation`, but no workflow has been pushed or dispatched and no live Gmail session has passed. This is source readiness, not deployed authentication evidence.

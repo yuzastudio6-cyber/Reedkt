@@ -42,6 +42,19 @@ npm run internal-testing:verify-interactive-google-session
 
 The public Supabase origin must match the reviewed staging project. The gateway origin must come from the immutable activation-evidence artifact consumed by the successful Pages run. The expected email is compared inside the browser and only a 16-character SHA-256 prefix is emitted.
 
+## First-Login Bootstrap Case
+
+For a brand-new Google tester, steps 1-5 may pass while step 6 fails because no ReEditPro profile/workspace membership exists yet. That is an expected fail-closed boundary, not a reason to automate Google credentials or weaken `/v1/projects` authorization.
+
+When the result shows the expected Google identity but blocks at gateway readback:
+
+1. keep the emitted `expectedEmailHash`;
+2. run the exact-SHA **Internal Tester Google Profile Workspace Provisioning** workflow with that hash and protected `STAGING_INTERNAL_TESTER_EMAIL` secret;
+3. pass **Internal Tester Google Auth Readback** for the same SHA/hash;
+4. rerun this owner-local verifier from a fresh browser and require all seven gates, including sign-out.
+
+The provisioning workflow cannot create or invite the Auth user. The first owner-controlled Google handoff is what establishes that prerequisite identity.
+
 ## Current State
 
 The CLI's missing-confirmation, CI-rejection, invalid-host, and confidentiality boundaries pass locally. A live Google session has not been attempted because the private gateway, hosted app, provider configuration, and callback allowlists have not yet passed their owner-authorized remote gates.
@@ -50,11 +63,10 @@ The CLI's missing-confirmation, CI-rejection, invalid-host, and confidentiality 
 
 - Owner-controlled Google UI only; no automated credential entry.
 - Fresh non-persistent browser context; no storage-state export.
-- No service-role key or Supabase admin operation.
-- No Supabase write or migration.
+- No service-role key, Supabase Admin API, Data API profile/workspace write, or migration is used by this verifier. Google OAuth necessarily creates or updates the user's Supabase Auth identity/session on the remote Auth service.
 - No upload, media processing, tool execution, provider generation, worker dispatch, render/export, credit mutation, Stripe, customer billing, public delivery, external beta, or production authority.
 - A pass proves authentication and private API transport only. The signed-in large-source edit journey remains the next gate.
 
 ## Next Gate
 
-`RUN_OWNER_INTERACTIVE_GOOGLE_SESSION_THEN_SIGNED_IN_LARGE_SOURCE_PRIVATE_EDIT_JOURNEY`
+`IF_WORKSPACE_MISSING_RUN_SAME_SHA_PROVISION_AND_READBACK_ELSE_RUN_SIGNED_IN_LARGE_SOURCE_PRIVATE_EDIT_JOURNEY`

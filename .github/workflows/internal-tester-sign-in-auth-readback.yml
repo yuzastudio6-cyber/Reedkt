@@ -1,14 +1,23 @@
-name: Internal Tester Sign-In Auth Readback
+name: Internal Tester Google Auth Readback
 
 on:
   workflow_dispatch:
     inputs:
       confirm_internal_tester_auth_readback:
-        description: "Type VERIFY_REEDITPRO_INTERNAL_TESTER_AUTH_READBACK to read staging tester auth/profile/workspace state"
+        description: "Type VERIFY_REEDITPRO_INTERNAL_TESTER_AUTH_READBACK"
         required: true
         type: string
-      tester_email:
-        description: "Internal tester email address to verify"
+      source_ref:
+        description: "Exact reviewed source branch"
+        required: true
+        default: "codex/backend-workflow-pipeline-continuation"
+        type: string
+      source_sha:
+        description: "Exact reviewed source SHA"
+        required: true
+        type: string
+      expected_email_hash:
+        description: "16-character hash emitted by the owner-interactive Google verifier"
         required: true
         type: string
 
@@ -16,37 +25,55 @@ permissions:
   contents: read
 
 concurrency:
-  group: internal-tester-sign-in-auth-readback
+  group: internal-tester-google-auth-readback
   cancel-in-progress: false
 
 jobs:
   verify-internal-tester-readback:
-    name: Verify staging tester auth/profile/workspace readback
+    name: Verify prior Google tester profile/workspace readback
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
+    environment: staging
     env:
       REEDITPRO_CONFIRM_INTERNAL_TESTER_AUTH_READBACK: ${{ inputs.confirm_internal_tester_auth_readback }}
       SUPABASE_URL: ${{ secrets.STAGING_SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.STAGING_SUPABASE_SERVICE_ROLE_KEY }}
-      INTERNAL_TESTER_EMAIL: ${{ inputs.tester_email }}
+      INTERNAL_TESTER_EMAIL: ${{ secrets.STAGING_INTERNAL_TESTER_EMAIL }}
+      INTERNAL_TESTER_EXPECTED_EMAIL_HASH: ${{ inputs.expected_email_hash }}
     steps:
-      - name: Fail closed unless staging tester readback is explicitly approved
+      - name: Fail closed unless exact Google-first staging readback is approved
         shell: bash
+        env:
+          SOURCE_REF: ${{ inputs.source_ref }}
+          SOURCE_SHA: ${{ inputs.source_sha }}
         run: |
           set -euo pipefail
           test "${REEDITPRO_CONFIRM_INTERNAL_TESTER_AUTH_READBACK}" = "VERIFY_REEDITPRO_INTERNAL_TESTER_AUTH_READBACK"
+          test "${SOURCE_REF}" = "codex/backend-workflow-pipeline-continuation"
+          [[ "${SOURCE_SHA}" =~ ^[0-9a-f]{40}$ ]]
+          test "${GITHUB_REF}" = "refs/heads/${SOURCE_REF}"
+          test "${GITHUB_SHA}" = "${SOURCE_SHA}"
+          [[ "${INTERNAL_TESTER_EXPECTED_EMAIL_HASH}" =~ ^[0-9a-f]{16}$ ]]
           test -n "${SUPABASE_URL}"
           test -n "${SUPABASE_SERVICE_ROLE_KEY}"
-          if ! [[ "${INTERNAL_TESTER_EMAIL}" =~ ^[^[:space:]@]+@[^[:space:]@]+\.[^[:space:]@]+$ ]]; then
-            echo "::error::tester_email must be an email address."
-            exit 1
-          fi
+          test -n "${INTERNAL_TESTER_EMAIL}"
+          actual_email_hash="$(printf '%s' "${INTERNAL_TESTER_EMAIL}" | tr '[:upper:]' '[:lower:]' | sha256sum | cut -c1-16)"
+          test "${actual_email_hash}" = "${INTERNAL_TESTER_EXPECTED_EMAIL_HASH}"
 
-      - name: Checkout app source
+      - name: Checkout exact reviewed source
         uses: actions/checkout@v5
         with:
-          ref: codex/reeditpro-web-ui-shell
-          fetch-depth: 0
+          ref: ${{ inputs.source_ref }}
+          fetch-depth: 1
+
+      - name: Verify immutable source tip and clean read context
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${SOURCE_SHA}"
+          test -z "$(git status --porcelain)"
 
       - name: Setup Node
         uses: actions/setup-node@v5
@@ -54,8 +81,27 @@ jobs:
           node-version: 24
           cache: npm
 
-      - name: Install dependencies for backend-only readback CLI
+      - name: Install immutable dependencies
         run: npm ci --no-audit --no-fund --progress=false
 
-      - name: Verify internal tester auth readback
+      - name: Verify Google-first readback source boundaries
+        run: |
+          set -euo pipefail
+          npm run smoke:internal-tester-sign-in-auth-readback
+          npm run check:frontend-boundary
+          npm run check:secrets
+
+      - name: Verify internal tester Google auth readback
         run: npm run internal-testing:verify-auth-readback
+
+      - name: Record the owner-interactive next gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo '# ReEditPro Google Tester Auth Readback'
+            echo ''
+            echo '- Google identity, confirmed email, prior Auth sign-in, matching profile, tester-owned workspace, and owner membership were read back for the exact reviewed SHA.'
+            echo '- No Supabase write, migration, Storage object, provider call, worker, render, credit, billing, beta, or production action ran.'
+            echo '- Rerun the owner-interactive Google session verifier and require authenticated private-gateway /v1/projects readback plus sign-out.'
+          } >> "${GITHUB_STEP_SUMMARY}"

@@ -144,6 +144,7 @@ for (const phrase of [
   'does not prove a Gmail session',
   'internal-testing:verify-interactive-google-session',
   'does not store a tester password',
+  'same-SHA protected profile/workspace provisioning and readback workflows',
 ] as const) {
   assert.match(docs, new RegExp(phrase, 'i'), `Readiness docs should mention ${phrase}`)
 }
@@ -158,5 +159,6 @@ console.log(JSON.stringify({
     'tester_password_and_service_role_absent',
     'interactive_google_session_refused_in_ci',
     'owner_local_callback_reload_gateway_and_signout_gate_documented',
+    'first_google_login_workspace_gap_requires_same_sha_bootstrap_and_retry',
   ],
 }))

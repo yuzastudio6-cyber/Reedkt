@@ -70,9 +70,9 @@ Browser code must not:
 
 ## Gaps
 
-- Full auth pages are still not implemented.
-- A guarded backend-only GitHub Actions workflow now exists for staging internal tester profile/workspace provisioning when RLS blocks frontend writes. No always-on backend service-role API exists for this path yet.
+- The Google-first sign-in page and owner-interactive verifier exist in source, but provider/callback configuration, gateway activation, Pages deployment, and a real Gmail session remain unproven.
+- A same-SHA guarded backend-only GitHub Actions workflow now exists for staging internal tester profile/workspace provisioning when RLS blocks frontend writes. It requires an existing Google-linked identity, confirmed email, and prior Auth sign-in; the separate owner-interactive verifier proves that the live browser session used Google. It cannot create or invite Auth users, accepts only the verifier's email hash as workflow input, and keeps the raw email/service-role key in protected environment secrets. No always-on backend service-role API exists for this path.
 - No auth trigger exists for automatic profile creation.
-- No remote Supabase migration has been run or verified.
+- The raw Supabase migration chain remains `blocked_by_parallel_foundations`; the compatibility bootstrap does not make that chain canonical or production-ready.
 - Storage/upload planning is partially fixed by RP-FIX-07, but real uploads and signed media delivery still require deployed storage policies and backend runtime support.
 - Production RLS behavior still needs local/staging Supabase validation.

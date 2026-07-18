@@ -1,5 +1,11 @@
-import { createHash } from 'node:crypto'
 import { createClient, type SupabaseClient, type User } from '@supabase/supabase-js'
+import {
+  inspectInternalTesterGoogleIdentity,
+  internalTesterEmailHash,
+  normalizeExpectedEmailHash,
+  normalizeStagingSupabaseUrl,
+  privateIdentifierHash,
+} from '../auth/internal-tester-google-identity'
 
 type ProvisionDecision =
   | 'internal_tester_backend_profile_workspace_provisioning_passed_ready_for_auth_readback'
@@ -7,22 +13,29 @@ type ProvisionDecision =
   | 'internal_tester_backend_profile_workspace_provisioning_blocked_missing_env'
   | 'internal_tester_backend_profile_workspace_provisioning_blocked_invalid_input'
   | 'internal_tester_backend_profile_workspace_provisioning_blocked_auth_user_missing'
+  | 'internal_tester_backend_profile_workspace_provisioning_blocked_google_session_not_observed'
   | 'internal_tester_backend_profile_workspace_provisioning_blocked_supabase_error'
 
 type ProfileIdentityColumn = 'user_id' | 'id'
 type ProfileTableName = 'profiles' | 'user_profiles'
+type WorkspaceIdentityContract = 'direct_auth_user' | 'legacy_user_profile'
 
 interface ProvisionResult {
   ok: boolean
   decision: ProvisionDecision
   message: string
   emailHash?: string
-  userId?: string
-  authUserCreatedOrInvited?: boolean
-  profileId?: string
+  userIdHash?: string
+  googleIdentityObserved?: boolean
+  authEmailConfirmed?: boolean
+  priorAuthSignInObserved?: boolean
+  readyForProfileWorkspaceProvisioning?: boolean
+  profileIdHash?: string
   profileIdentityColumn?: ProfileIdentityColumn
-  workspaceId?: string
-  membershipId?: string
+  profileTableName?: ProfileTableName
+  workspaceIdentityContract?: WorkspaceIdentityContract
+  workspaceIdHash?: string
+  membershipIdHash?: string
   warnings: string[]
   nextStep: string
 }
@@ -54,17 +67,13 @@ interface WorkspaceMemberRow {
   workspace_id?: string
   user_id?: string
   role?: string | null
-  workspaces?: WorkspaceRow | WorkspaceRow[] | null
 }
 
 const CONFIRM_VALUE = 'PROVISION_REEDITPRO_INTERNAL_TESTER'
-const SAFE_REDIRECT_ORIGINS = new Set([
-  'https://yuzastudio6-cyber.github.io',
-  'https://app.reeditpro.com',
-])
 
-function clean(value: string | undefined): string | undefined {
-  const trimmed = value?.trim()
+function clean(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined
+  const trimmed = value.trim()
   return trimmed && trimmed.length > 0 ? trimmed : undefined
 }
 
@@ -73,37 +82,22 @@ function output(result: ProvisionResult): never {
   process.exit(result.ok ? 0 : 1)
 }
 
-function sanitizeForOutput(message: string, email?: string): string {
+function sanitizeForOutput(message: string, sensitiveValues: Array<string | undefined>): string {
   let sanitized = message
 
-  if (email) {
-    sanitized = sanitized.replaceAll(email, '[internal-tester-email]')
+  for (const value of sensitiveValues) {
+    if (value) sanitized = sanitized.replaceAll(value, '[redacted-sensitive-value]')
   }
 
   return sanitized
     .replace(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g, '[redacted-jwt]')
+    .replace(/\b[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\b/gi, '[redacted-identifier]')
     .replace(/(service[_-]?role|apikey|api[_-]?key|token|secret)=\S+/gi, '$1=[redacted]')
     .replace(/(password|passwd|pwd)=\S+/gi, '$1=[redacted]')
 }
 
-function emailHash(email: string): string {
-  return createHash('sha256').update(email.toLowerCase()).digest('hex').slice(0, 16)
-}
-
 function validateEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-}
-
-function validateRedirect(url: string | undefined): string | undefined {
-  if (!url) return undefined
-  const parsed = new URL(url)
-  if (!SAFE_REDIRECT_ORIGINS.has(parsed.origin)) {
-    throw new Error('Redirect URL must target the GitHub Pages app or app.reeditpro.com.')
-  }
-  if (!parsed.pathname.endsWith('/sign-in')) {
-    throw new Error('Redirect URL must end at the sign-in route.')
-  }
-  return parsed.toString()
 }
 
 function isMissingColumnError(error: { code?: string; message?: string }, columnName: string): boolean {
@@ -148,16 +142,45 @@ function isConflictError(error: { code?: string; message?: string }): boolean {
   return error.code === '23505' || message.includes('duplicate key') || message.includes('already exists')
 }
 
+async function resolveWorkspaceIdentityContract(client: SupabaseClient): Promise<WorkspaceIdentityContract> {
+  // The legacy table can also contain a backfilled owner_id column, while its
+  // owner_user_id column remains required. Prefer that contract when present.
+  for (const candidate of [
+    { contract: 'legacy_user_profile' as const, select: 'id, owner_user_id' },
+    { contract: 'direct_auth_user' as const, select: 'id, owner_id' },
+  ]) {
+    const { error } = await client
+      .from('workspaces')
+      .select(candidate.select)
+      .limit(0)
+
+    if (!error) return candidate.contract
+    if (isSchemaFallbackError(error)) continue
+    throw error
+  }
+
+  throw new Error('No compatible staging workspace identity contract was found.')
+}
+
 function profileId(profile: ProfileRow): string | undefined {
   return clean(profile.id) ?? clean(profile.user_id)
 }
 
-function displayNameFor(email: string, explicit: string | undefined): string {
-  return explicit ?? email.split('@')[0] ?? 'Internal Tester'
+function displayNameFor(explicit: string | undefined): string {
+  return explicit ?? 'Internal Tester'
 }
 
 function workspaceNameFor(displayName: string, explicit: string | undefined): string {
   return explicit ?? `${displayName}'s ReEditPro Test Workspace`
+}
+
+function validLabel(value: string, maxLength: number): boolean {
+  return value.length > 0
+    && value.length <= maxLength
+    && [...value].every((character) => {
+      const codePoint = character.codePointAt(0) ?? 0
+      return codePoint >= 32 && codePoint !== 127
+    })
 }
 
 async function findUserByEmail(client: SupabaseClient, email: string): Promise<User | undefined> {
@@ -172,51 +195,41 @@ async function findUserByEmail(client: SupabaseClient, email: string): Promise<U
   return undefined
 }
 
-async function inviteUserIfAllowed(
+async function findProfile(
   client: SupabaseClient,
-  email: string,
-  displayName: string,
-  redirectTo: string | undefined,
-): Promise<User | undefined> {
-  const options = {
-    data: {
-      display_name: displayName,
-      provisioned_for: 'reeditpro_internal_testing',
-    },
-    redirectTo,
-  }
-
-  const { data, error } = await client.auth.admin.inviteUserByEmail(email, options)
-  if (error) throw error
-  return data.user ?? undefined
-}
-
-async function findProfile(client: SupabaseClient, userId: string): Promise<{
+  userId: string,
+  workspaceIdentityContract: WorkspaceIdentityContract,
+): Promise<{
   profile?: ProfileRow
   identityColumn?: ProfileIdentityColumn
   tableName?: ProfileTableName
 }> {
-  for (const tableName of ['profiles', 'user_profiles'] satisfies ProfileTableName[]) {
-    for (const column of ['user_id', 'id'] satisfies ProfileIdentityColumn[]) {
-      const { data, error } = await client
-        .from(tableName)
-        .select('*')
-        .eq(column, userId)
-        .maybeSingle()
+  const candidates = workspaceIdentityContract === 'direct_auth_user'
+    ? [
+      { tableName: 'profiles' as const, column: 'user_id' as const },
+      { tableName: 'profiles' as const, column: 'id' as const },
+    ]
+    : [{ tableName: 'user_profiles' as const, column: 'id' as const }]
 
-      if (!error) {
-        if (data) {
-          return {
-            profile: data as ProfileRow,
-            identityColumn: column,
-            tableName,
-          }
+  for (const { tableName, column } of candidates) {
+    const { data, error } = await client
+      .from(tableName)
+      .select(column === 'user_id' ? 'id, user_id' : 'id')
+      .eq(column, userId)
+      .maybeSingle()
+
+    if (!error) {
+      if (data) {
+        return {
+          profile: data as ProfileRow,
+          identityColumn: column,
+          tableName,
         }
-        continue
       }
-
-      if (!isSchemaFallbackError(error) && !isMissingColumnError(error, column)) throw error
+      continue
     }
+
+    if (!isSchemaFallbackError(error) && !isMissingColumnError(error, column)) throw error
   }
 
   return {}
@@ -225,11 +238,10 @@ async function findProfile(client: SupabaseClient, userId: string): Promise<{
 function profileInsertVariants(tableName: ProfileTableName, user: User, displayName: string): Array<Record<string, unknown>> {
   const base = {
     display_name: displayName,
-    avatar_url: clean(user.user_metadata?.avatar_url as string | undefined) ?? clean(user.user_metadata?.picture as string | undefined),
+    avatar_url: clean(user.user_metadata?.avatar_url) ?? clean(user.user_metadata?.picture),
   }
   const metadata = {
     bootstrap_source: 'backend_internal_testing_provisioning',
-    email_hash: emailHash(user.email ?? user.id),
   }
 
   if (tableName === 'user_profiles') {
@@ -247,12 +259,17 @@ function profileInsertVariants(tableName: ProfileTableName, user: User, displayN
   ]
 }
 
-async function ensureProfile(client: SupabaseClient, user: User, displayName: string): Promise<{
+async function ensureProfile(
+  client: SupabaseClient,
+  user: User,
+  displayName: string,
+  workspaceIdentityContract: WorkspaceIdentityContract,
+): Promise<{
   profile: ProfileRow
   identityColumn: ProfileIdentityColumn
   tableName: ProfileTableName
 }> {
-  const existing = await findProfile(client, user.id)
+  const existing = await findProfile(client, user.id, workspaceIdentityContract)
   if (existing.profile && existing.identityColumn && existing.tableName) {
     return {
       profile: existing.profile,
@@ -263,12 +280,16 @@ async function ensureProfile(client: SupabaseClient, user: User, displayName: st
 
   let lastError: { code?: string; message?: string } | undefined
 
-  for (const tableName of ['profiles', 'user_profiles'] satisfies ProfileTableName[]) {
+  const tableNames: ProfileTableName[] = workspaceIdentityContract === 'direct_auth_user'
+    ? ['profiles']
+    : ['user_profiles']
+
+  for (const tableName of tableNames) {
     for (const insert of profileInsertVariants(tableName, user, displayName)) {
       const { data, error } = await client
         .from(tableName)
         .insert(insert)
-        .select('*')
+        .select('user_id' in insert ? 'id, user_id' : 'id')
         .single()
 
       if (!error && data) {
@@ -283,7 +304,7 @@ async function ensureProfile(client: SupabaseClient, user: User, displayName: st
       if (error) {
         lastError = error
         if (isConflictError(error)) {
-          const refetched = await findProfile(client, user.id)
+          const refetched = await findProfile(client, user.id, workspaceIdentityContract)
           if (refetched.profile && refetched.identityColumn && refetched.tableName) {
             return {
               profile: refetched.profile,
@@ -292,16 +313,14 @@ async function ensureProfile(client: SupabaseClient, user: User, displayName: st
             }
           }
         }
-        if (
-          !isSchemaFallbackError(error)
-          && !isMissingColumnError(error, 'user_id')
-          && !isMissingColumnError(error, 'id')
-          && !isMissingColumnError(error, 'metadata_json')
-          && !isMissingColumnError(error, 'metadata')
-          && !isMissingColumnError(error, 'email')
-        ) {
-          continue
-        }
+        const compatibleSchemaError = isSchemaFallbackError(error)
+          || isMissingColumnError(error, 'user_id')
+          || isMissingColumnError(error, 'id')
+          || isMissingColumnError(error, 'metadata_json')
+          || isMissingColumnError(error, 'metadata')
+          || isMissingColumnError(error, 'email')
+        if (compatibleSchemaError) continue
+        throw error
       }
     }
   }
@@ -309,96 +328,82 @@ async function ensureProfile(client: SupabaseClient, user: User, displayName: st
   throw new Error(lastError?.message ?? 'Unable to create or read tester profile.')
 }
 
-async function ensureLegacyUserProfileIfPresent(
+async function findOwnedWorkspace(
   client: SupabaseClient,
-  user: User,
-  displayName: string,
-): Promise<void> {
-  const { data: existing, error: existingError } = await client
-    .from('user_profiles')
-    .select('id')
-    .eq('id', user.id)
-    .maybeSingle()
+  userId: string,
+  workspaceIdentityContract: WorkspaceIdentityContract,
+): Promise<WorkspaceRow | undefined> {
+  const ownerColumn = workspaceIdentityContract === 'direct_auth_user'
+    ? 'owner_id'
+    : 'owner_user_id'
+  const select = workspaceIdentityContract === 'direct_auth_user'
+    ? 'id, owner_id, name, plan_type, metadata_json'
+    : 'id, owner_user_id, name, workspace_type, metadata'
+  const { data, error } = await client
+    .from('workspaces')
+    .select(select)
+    .eq(ownerColumn, userId)
+    .limit(1)
 
-  if (!existingError && existing) return
-  if (existingError && isSchemaFallbackError(existingError)) return
-  if (existingError) throw existingError
-
-  for (const insert of profileInsertVariants('user_profiles', user, displayName)) {
-    const { error } = await client
-      .from('user_profiles')
-      .insert(insert)
-
-    if (!error || isConflictError(error)) return
-    if (isSchemaFallbackError(error) || isMissingColumnError(error, 'metadata') || isMissingColumnError(error, 'email')) {
-      continue
-    }
-    throw error
-  }
+  if (error) throw error
+  return (data as WorkspaceRow[] | null)?.[0]
 }
 
-function workspaceFromMember(member: WorkspaceMemberRow): WorkspaceRow | undefined {
-  return Array.isArray(member.workspaces) ? member.workspaces[0] : member.workspaces ?? undefined
-}
-
-async function findExistingWorkspace(client: SupabaseClient, userId: string): Promise<{
+async function findExistingWorkspace(
+  client: SupabaseClient,
+  userId: string,
+  workspaceIdentityContract: WorkspaceIdentityContract,
+): Promise<{
   workspace?: WorkspaceRow
   membership?: WorkspaceMemberRow
 }> {
-  const selects = [
-    'id, workspace_id, user_id, role, workspaces(id, owner_id, name, plan_type, metadata_json)',
-    'id, workspace_id, user_id, role, workspaces(id, owner_user_id, name, workspace_type, metadata)',
-    'id, workspace_id, user_id, role',
-  ]
-  let data: unknown[] | null = null
-  let error: { code?: string; message?: string } | null = null
+  const workspace = await findOwnedWorkspace(client, userId, workspaceIdentityContract)
+  if (!workspace?.id) return {}
 
-  for (const select of selects) {
-    const result = await client
-      .from('workspace_members')
-      .select(select)
-      .eq('user_id', userId)
-      .limit(1)
-
-    data = result.data as unknown[] | null
-    error = result.error
-
-    if (!error) break
-    if (isSchemaFallbackError(error)) continue
-    break
-  }
+  const { data, error } = await client
+    .from('workspace_members')
+    .select('id, workspace_id, user_id, role')
+    .eq('workspace_id', workspace.id)
+    .eq('user_id', userId)
+    .limit(1)
 
   if (error) throw error
+  const membership = (data as WorkspaceMemberRow[] | null)?.[0]
 
-  const membership = ((data ?? []) as WorkspaceMemberRow[])[0]
   return {
-    workspace: membership ? workspaceFromMember(membership) : undefined,
+    workspace,
     membership,
   }
 }
 
-function workspaceInsertVariants(ownerId: string, workspaceName: string): Array<Record<string, unknown>> {
+function workspaceInsertVariants(
+  ownerId: string,
+  workspaceName: string,
+  workspaceIdentityContract: WorkspaceIdentityContract,
+): Array<Record<string, unknown>> {
   const metadata = {
     bootstrap_source: 'backend_internal_testing_provisioning',
   }
 
-  return [
-    { owner_id: ownerId, name: workspaceName, plan_type: 'internal_testing', metadata_json: metadata },
-    { owner_id: ownerId, name: workspaceName, plan_type: 'internal_testing' },
-    { owner_id: ownerId, name: workspaceName, plan_type: 'free', metadata_json: metadata },
-    { owner_id: ownerId, name: workspaceName, plan_type: 'free' },
-    { owner_user_id: ownerId, name: workspaceName, workspace_type: 'personal', metadata },
-    { owner_user_id: ownerId, name: workspaceName, workspace_type: 'personal' },
-  ]
+  return workspaceIdentityContract === 'direct_auth_user'
+    ? [
+      { owner_id: ownerId, name: workspaceName, plan_type: 'free', metadata_json: metadata },
+      { owner_id: ownerId, name: workspaceName, plan_type: 'free' },
+    ]
+    : [
+      { owner_user_id: ownerId, name: workspaceName, workspace_type: 'personal', metadata },
+      { owner_user_id: ownerId, name: workspaceName, workspace_type: 'personal' },
+    ]
 }
 
 async function ensureWorkspace(
   client: SupabaseClient,
   userId: string,
   workspaceName: string,
+  workspaceIdentityContract: WorkspaceIdentityContract,
 ): Promise<{ workspace: WorkspaceRow; membership: WorkspaceMemberRow }> {
-  const existing = await findExistingWorkspace(client, userId)
-  if (existing.workspace && existing.membership) {
+  const existing = await findExistingWorkspace(client, userId, workspaceIdentityContract)
+  if (existing.workspace && existing.membership?.role === 'owner') {
     return {
       workspace: existing.workspace,
       membership: existing.membership,
@@ -406,34 +411,34 @@ async function ensureWorkspace(
   }
 
   const ownerId = userId
-  let workspace: WorkspaceRow | undefined
+  let workspace: WorkspaceRow | undefined = existing.workspace
   let lastError: { code?: string; message?: string } | undefined
 
-  for (const insert of workspaceInsertVariants(ownerId, workspaceName)) {
-    const select = 'owner_user_id' in insert
-      ? 'id, owner_user_id, name, workspace_type, metadata'
-      : 'id, owner_id, name, plan_type, metadata_json'
-    const { data, error } = await client
-      .from('workspaces')
-      .insert(insert)
-      .select(select)
-      .single()
+  if (!workspace) {
+    for (const insert of workspaceInsertVariants(ownerId, workspaceName, workspaceIdentityContract)) {
+      const select = 'owner_user_id' in insert
+        ? 'id, owner_user_id, name, workspace_type, metadata'
+        : 'id, owner_id, name, plan_type, metadata_json'
+      const { data, error } = await client
+        .from('workspaces')
+        .insert(insert)
+        .select(select)
+        .single()
 
-    if (!error && data) {
-      workspace = data as WorkspaceRow
-      break
-    }
+      if (!error && data) {
+        workspace = data as WorkspaceRow
+        break
+      }
 
-    if (error) {
-      lastError = error
-      if (
-        !isSchemaFallbackError(error)
-        && !isMissingColumnError(error, 'metadata_json')
-        && !isMissingColumnError(error, 'metadata')
-        && !isMissingColumnError(error, 'plan_type')
-        && !isMissingColumnError(error, 'workspace_type')
-      ) {
-        continue
+      if (error) {
+        lastError = error
+        const compatibleSchemaError = isSchemaFallbackError(error)
+          || isMissingColumnError(error, 'metadata_json')
+          || isMissingColumnError(error, 'metadata')
+          || isMissingColumnError(error, 'plan_type')
+          || isMissingColumnError(error, 'workspace_type')
+        if (compatibleSchemaError) continue
+        throw error
       }
     }
   }
@@ -468,11 +473,13 @@ async function ensureWorkspace(
 async function main() {
   const confirm = clean(process.env.REEDITPRO_CONFIRM_INTERNAL_TESTER_PROVISIONING)
   const allowWrites = clean(process.env.REEDITPRO_CONFIRM_STAGING_SUPABASE_WRITES)
-  const supabaseUrl = clean(process.env.SUPABASE_URL)
+  const rawSupabaseUrl = clean(process.env.SUPABASE_URL)
+  const supabaseUrl = normalizeStagingSupabaseUrl(rawSupabaseUrl)
   const serviceRoleKey = clean(process.env.SUPABASE_SERVICE_ROLE_KEY)
   const rawEmail = clean(process.env.INTERNAL_TESTER_EMAIL)?.toLowerCase()
-  const createAuthUserIfMissing = clean(process.env.INTERNAL_TESTER_INVITE_IF_MISSING) === 'true'
-  const displayName = rawEmail ? displayNameFor(rawEmail, clean(process.env.INTERNAL_TESTER_DISPLAY_NAME)) : undefined
+  const expectedEmailHash = normalizeExpectedEmailHash(process.env.INTERNAL_TESTER_EXPECTED_EMAIL_HASH)
+  const actualEmailHash = rawEmail ? internalTesterEmailHash(rawEmail) : undefined
+  const displayName = rawEmail ? displayNameFor(clean(process.env.INTERNAL_TESTER_DISPLAY_NAME)) : undefined
   const workspaceName = displayName ? workspaceNameFor(displayName, clean(process.env.INTERNAL_TESTER_WORKSPACE_NAME)) : undefined
 
   if (confirm !== CONFIRM_VALUE || allowWrites !== 'true') {
@@ -485,37 +492,33 @@ async function main() {
     })
   }
 
-  if (!supabaseUrl || !serviceRoleKey) {
+  if (!rawSupabaseUrl || !serviceRoleKey || !rawEmail) {
     output({
       ok: false,
       decision: 'internal_tester_backend_profile_workspace_provisioning_blocked_missing_env',
-      message: 'SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required in the backend-only workflow environment.',
+      message: 'SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, and INTERNAL_TESTER_EMAIL are required in the protected backend-only workflow environment.',
       warnings: [],
       nextStep: 'configure_staging_supabase_secrets',
     })
   }
 
-  if (!rawEmail || !validateEmail(rawEmail) || !displayName || !workspaceName) {
+  if (
+    !supabaseUrl
+    || !validateEmail(rawEmail)
+    || !expectedEmailHash
+    || actualEmailHash !== expectedEmailHash
+    || !displayName
+    || !validLabel(displayName, 80)
+    || !workspaceName
+    || !validLabel(workspaceName, 120)
+  ) {
     output({
       ok: false,
       decision: 'internal_tester_backend_profile_workspace_provisioning_blocked_invalid_input',
-      message: 'A valid INTERNAL_TESTER_EMAIL is required.',
+      message: 'Provisioning requires the exact staging Supabase origin, a valid protected tester email, its matching 16-character evidence hash, and bounded display/workspace names.',
+      emailHash: actualEmailHash,
       warnings: [],
-      nextStep: 'provide_internal_tester_email',
-    })
-  }
-
-  let redirectTo: string | undefined
-  try {
-    redirectTo = validateRedirect(clean(process.env.INTERNAL_TESTER_REDIRECT_TO))
-  } catch (error) {
-    output({
-      ok: false,
-      decision: 'internal_tester_backend_profile_workspace_provisioning_blocked_invalid_input',
-      message: error instanceof Error ? error.message : 'Invalid redirect URL.',
-      emailHash: emailHash(rawEmail),
-      warnings: [],
-      nextStep: 'use_safe_sign_in_redirect',
+      nextStep: 'fix_exact_staging_origin_email_hash_or_bounded_names',
     })
   }
 
@@ -527,51 +530,74 @@ async function main() {
   })
 
   try {
-    let user = await findUserByEmail(client, rawEmail)
-    let authUserCreatedOrInvited = false
-
-    if (!user && createAuthUserIfMissing) {
-      user = await inviteUserIfAllowed(client, rawEmail, displayName, redirectTo)
-      authUserCreatedOrInvited = Boolean(user)
-    }
+    const user = await findUserByEmail(client, rawEmail)
 
     if (!user) {
       output({
         ok: false,
         decision: 'internal_tester_backend_profile_workspace_provisioning_blocked_auth_user_missing',
-        message: 'No Supabase Auth user exists for this tester email. Create the account from the sign-in page first or rerun with invite-if-missing enabled.',
-        emailHash: emailHash(rawEmail),
+        message: 'No Supabase Auth user exists for the protected tester identity. Complete the real Google sign-in once before any profile/workspace write.',
+        emailHash: actualEmailHash,
         warnings: [],
-        nextStep: 'create_or_invite_internal_tester_auth_user',
+        nextStep: 'complete_owner_controlled_google_sign_in_then_rerun_provisioning',
       })
     }
 
-    const { profile, identityColumn } = await ensureProfile(client, user, displayName)
-    await ensureLegacyUserProfileIfPresent(client, user, displayName)
-    const { workspace, membership } = await ensureWorkspace(client, user.id, workspaceName)
+    const googleEvidence = inspectInternalTesterGoogleIdentity(user)
+    if (!googleEvidence.readyForProfileWorkspaceProvisioning) {
+      output({
+        ok: false,
+        decision: 'internal_tester_backend_profile_workspace_provisioning_blocked_google_session_not_observed',
+        message: 'The Auth user exists, but the required Google identity, confirmed email, and prior Auth sign-in evidence were not all observed. No profile/workspace write was attempted.',
+        emailHash: actualEmailHash,
+        userIdHash: privateIdentifierHash(user.id),
+        ...googleEvidence,
+        warnings: [],
+        nextStep: 'complete_owner_controlled_google_sign_in_then_rerun_provisioning',
+      })
+    }
+
+    const workspaceIdentityContract = await resolveWorkspaceIdentityContract(client)
+    const { profile, identityColumn, tableName } = await ensureProfile(
+      client,
+      user,
+      displayName,
+      workspaceIdentityContract,
+    )
+    const { workspace, membership } = await ensureWorkspace(
+      client,
+      user.id,
+      workspaceName,
+      workspaceIdentityContract,
+    )
+    const persistedProfileId = profileId(profile)
 
     output({
       ok: true,
       decision: 'internal_tester_backend_profile_workspace_provisioning_passed_ready_for_auth_readback',
-      message: 'Internal tester profile, workspace, and owner membership are ready for browser auth readback.',
-      emailHash: emailHash(rawEmail),
-      userId: user.id,
-      authUserCreatedOrInvited,
-      profileId: profileId(profile),
+      message: 'The previously signed-in Google tester now has a reusable profile, workspace, and owner membership ready for backend readback.',
+      emailHash: actualEmailHash,
+      userIdHash: privateIdentifierHash(user.id),
+      ...googleEvidence,
+      profileIdHash: persistedProfileId ? privateIdentifierHash(persistedProfileId) : undefined,
       profileIdentityColumn: identityColumn,
-      workspaceId: workspace.id,
-      membershipId: membership.id,
-      warnings: [],
-      nextStep: 'sign_in_and_verify_workspace_ready',
+      profileTableName: tableName,
+      workspaceIdentityContract,
+      workspaceIdHash: workspace.id ? privateIdentifierHash(workspace.id) : undefined,
+      membershipIdHash: membership.id ? privateIdentifierHash(membership.id) : undefined,
+      warnings: [
+        'This guarded staging compatibility bootstrap does not make the raw Supabase migration chain reproducible or production-ready.',
+      ],
+      nextStep: 'run_same_sha_google_tester_auth_readback',
     })
   } catch (error) {
     output({
       ok: false,
       decision: 'internal_tester_backend_profile_workspace_provisioning_blocked_supabase_error',
       message: error instanceof Error
-        ? sanitizeForOutput(error.message, rawEmail)
+        ? sanitizeForOutput(error.message, [rawEmail, rawSupabaseUrl, serviceRoleKey])
         : 'Supabase provisioning failed.',
-      emailHash: emailHash(rawEmail),
+      emailHash: actualEmailHash,
       warnings: ['The workflow does not print service-role secrets, passwords, or signed URLs.'],
       nextStep: 'inspect_staging_schema_or_auth_user_state',
     })

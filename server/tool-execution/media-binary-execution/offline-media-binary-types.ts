@@ -224,6 +224,50 @@ export interface OfflineContinuousProgramAudioQaExecutionResult {
   readiness: OfflineFfmpegExecutionResult['readiness']
 }
 
+export interface OfflineColorPixelAnalysis {
+  sampledFrameCount: number
+  sampledPixelCount: number
+  meanRed: number
+  meanGreen: number
+  meanBlue: number
+  meanLuma: number
+  minimumLuma: number
+  maximumLuma: number
+  blackLumaFraction: number
+  whiteLumaFraction: number
+}
+
+export interface OfflineCrossChunkColorContinuityExecutionResult {
+  resultJson: {
+    mimeType: 'application/json'
+    bytes: Buffer
+    document: Readonly<Record<string, unknown>>
+    sha256: string
+    byteLength: number
+  }
+  evidence: {
+    toolId: 'ffmpeg'
+    operationId: 'tool.ffmpeg.execute_approved_media_recipe.v1'
+    binaryVersion: '8.1.2'
+    requestEnvelopeSha256: string
+    leftChunkSha256: string
+    rightChunkSha256: string
+    resultSha256: string
+    semanticEvidence: Readonly<Record<string, unknown>>
+    confinement: Readonly<{
+      leftProbe: OfflineMediaBinaryConfinementEvidence
+      leftAnalysis: OfflineMediaBinaryConfinementEvidence
+      rightProbe: OfflineMediaBinaryConfinementEvidence
+      rightAnalysis: OfflineMediaBinaryConfinementEvidence
+    }>
+    containerExitCode: 0
+    oomKilled: false
+  }
+  image: OfflineMediaBinaryImageEvidence
+  attestation: OfflineFfmpegExecutionResult['attestation']
+  readiness: OfflineFfmpegExecutionResult['readiness']
+}
+
 export interface OfflineFfmpegStreamingOutputExecutionResult {
   resultArtifact: {
     mimeType: 'video/x-matroska' | 'audio/wav'

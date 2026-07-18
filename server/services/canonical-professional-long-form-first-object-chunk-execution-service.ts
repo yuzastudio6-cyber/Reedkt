@@ -79,8 +79,8 @@ import {
 import { createCanonicalPrivateSourceObjectReadService } from
   './canonical-private-source-object-read-service'
 import {
-  inspectCanonicalPrivateMediaArtifact,
-  persistCanonicalPrivateMediaArtifactStream,
+  inspectCanonicalPrivateObjectChunkMediaArtifact,
+  persistCanonicalPrivateObjectChunkMediaArtifactStream,
 } from './canonical-private-media-artifact-storage'
 import {
   putPrivateAuthorityJsonBlob,
@@ -573,21 +573,22 @@ async function executeRender(input: {
             if (output.mimeType !== 'video/x-matroska') {
               throw invalid('Object-chunk runner returned the wrong media type.')
             }
-            const stored = await persistCanonicalPrivateMediaArtifactStream({
-              localStorageRoot: input.context.env.localStorageRoot,
-              privateObjectIdentityHash:
-                authority.approvedChunk.expectedObject.objectIdentity,
-              mediaFormat: 'mkv',
-              stream: output.stream,
-              expectedByteLength: output.expectedByteLength,
-              expectedSha256: output.expectedSha256,
-            })
+            const stored =
+              await persistCanonicalPrivateObjectChunkMediaArtifactStream({
+                localStorageRoot: input.context.env.localStorageRoot,
+                privateObjectIdentityHash:
+                  authority.approvedChunk.expectedObject.objectIdentity,
+                mediaFormat: 'mkv',
+                stream: output.stream,
+                expectedByteLength: output.expectedByteLength,
+                expectedSha256: output.expectedSha256,
+              })
             return { byteLength: stored.byteLength, sha256: stored.sha256 }
           },
         },
       )
       assertRenderRuntimeResult({ authority, stagedSources: staged.sources, result })
-      const stored = await inspectCanonicalPrivateMediaArtifact({
+      const stored = await inspectCanonicalPrivateObjectChunkMediaArtifact({
         localStorageRoot: input.context.env.localStorageRoot,
         privateObjectIdentityHash:
           authority.approvedChunk.expectedObject.objectIdentity,
@@ -847,7 +848,7 @@ async function executeQa(input: {
   })
   let costFinalized = false
   try {
-    const stored = await inspectCanonicalPrivateMediaArtifact({
+    const stored = await inspectCanonicalPrivateObjectChunkMediaArtifact({
       localStorageRoot: input.context.env.localStorageRoot,
       privateObjectIdentityHash: authority.renderArtifact.objectIdentity,
     })
@@ -1064,7 +1065,7 @@ async function loadCompletedRender(input: {
       professionalLongFormFirstObjectChunkRenderEvidenceSchema.parse(value),
   })
   assertHashed(runtimeEvidence, 'artifactHash')
-  const output = await inspectCanonicalPrivateMediaArtifact({
+  const output = await inspectCanonicalPrivateObjectChunkMediaArtifact({
     localStorageRoot: input.context.env.localStorageRoot,
     privateObjectIdentityHash: completion.outputArtifact.objectIdentity,
   })

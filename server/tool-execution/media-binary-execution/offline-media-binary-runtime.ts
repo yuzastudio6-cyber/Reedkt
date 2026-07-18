@@ -53,8 +53,21 @@ import {
   validateOfflineMediaBinaryContinuousProgramAudioRequest,
   type OfflineMediaBinaryContinuousProgramAudioRequest,
 } from './offline-media-binary-continuous-program-audio-protocol'
+import {
+  OFFLINE_MEDIA_BINARY_CROSS_CHUNK_COLOR_CONTINUITY_POLICY,
+  OFFLINE_MEDIA_BINARY_CROSS_CHUNK_COLOR_CONTINUITY_RECIPE,
+  OFFLINE_MEDIA_BINARY_CROSS_CHUNK_COLOR_CONTINUITY_SAMPLE_WINDOW_FRAMES,
+  offlineMediaBinaryCrossChunkColorContinuityRequestSha256,
+  validateOfflineMediaBinaryCrossChunkColorContinuityRequest,
+  type OfflineMediaBinaryCrossChunkColorContinuityRequest,
+} from './offline-media-binary-cross-chunk-color-continuity-protocol'
+import {
+  evaluateOfflineMediaBinaryCrossChunkColorContinuity,
+} from './offline-media-binary-cross-chunk-color-continuity-evaluation'
 import type {
   OfflineContinuousProgramAudioQaExecutionResult,
+  OfflineCrossChunkColorContinuityExecutionResult,
+  OfflineColorPixelAnalysis,
   OfflineFfmpegContinuousProgramAudioExecutionResult,
   OfflineFfmpegMezzanineFinalizationExecutionResult,
   OfflineFfmpegObjectMezzanineChunkExecutionResult,
@@ -116,6 +129,7 @@ export interface OfflineMediaBinaryRuntimeAuthority {
     privateInternalMezzanineFinalizationReady: true
     privateInternalObjectMezzanineChunkSeriesReady: true
     privateInternalContinuousProgramAudioReady: true
+    privateInternalCrossChunkColorBoundaryReady: true
     productReady: false
     externalBetaReady: false
     productionReady: false
@@ -165,6 +179,13 @@ export interface PrivateOfflineMediaBinaryRuntime {
     request: OfflineMediaBinaryContinuousProgramAudioRequest,
     source: OfflineMediaBinaryServerInjectedInput,
   ): Promise<OfflineContinuousProgramAudioQaExecutionResult>
+  executeCrossChunkColorContinuityServerInjected(
+    request: OfflineMediaBinaryCrossChunkColorContinuityRequest,
+    inputs: {
+      left: OfflineMediaBinaryServerInjectedInput
+      right: OfflineMediaBinaryServerInjectedInput
+    },
+  ): Promise<OfflineCrossChunkColorContinuityExecutionResult>
 }
 
 export async function activatePrivateOfflineMediaBinaryRuntime(): Promise<PrivateOfflineMediaBinaryRuntime> {
@@ -221,6 +242,19 @@ export async function activatePrivateOfflineMediaBinaryRuntime(): Promise<Privat
   )) as PrivateOfflineMediaBinaryRuntime[
     'executeContinuousProgramAudioQaServerInjected'
   ]
+  const executeCrossChunkColorContinuityServerInjectedBound = ((
+    request: OfflineMediaBinaryCrossChunkColorContinuityRequest,
+    inputs: {
+      left: OfflineMediaBinaryServerInjectedInput
+      right: OfflineMediaBinaryServerInjectedInput
+    },
+  ) => executeCrossChunkColorContinuityServerInjected(
+    image,
+    request,
+    inputs,
+  )) as PrivateOfflineMediaBinaryRuntime[
+    'executeCrossChunkColorContinuityServerInjected'
+  ]
   return Object.freeze({
     image,
     execute: executeBound,
@@ -234,6 +268,8 @@ export async function activatePrivateOfflineMediaBinaryRuntime(): Promise<Privat
       executeContinuousProgramAudioServerInjectedBound,
     executeContinuousProgramAudioQaServerInjected:
       executeContinuousProgramAudioQaServerInjectedBound,
+    executeCrossChunkColorContinuityServerInjected:
+      executeCrossChunkColorContinuityServerInjectedBound,
   })
 }
 
@@ -295,6 +331,19 @@ export async function openPrivateOfflineMediaBinaryRuntime(): Promise<PrivateOff
   )) as PrivateOfflineMediaBinaryRuntime[
     'executeContinuousProgramAudioQaServerInjected'
   ]
+  const executeCrossChunkColorContinuityServerInjectedBound = ((
+    request: OfflineMediaBinaryCrossChunkColorContinuityRequest,
+    inputs: {
+      left: OfflineMediaBinaryServerInjectedInput
+      right: OfflineMediaBinaryServerInjectedInput
+    },
+  ) => executeCrossChunkColorContinuityServerInjected(
+    image,
+    request,
+    inputs,
+  )) as PrivateOfflineMediaBinaryRuntime[
+    'executeCrossChunkColorContinuityServerInjected'
+  ]
   return Object.freeze({
     image,
     execute: executeBound,
@@ -308,6 +357,8 @@ export async function openPrivateOfflineMediaBinaryRuntime(): Promise<PrivateOff
       executeContinuousProgramAudioServerInjectedBound,
     executeContinuousProgramAudioQaServerInjected:
       executeContinuousProgramAudioQaServerInjectedBound,
+    executeCrossChunkColorContinuityServerInjected:
+      executeCrossChunkColorContinuityServerInjectedBound,
   })
 }
 
@@ -333,6 +384,7 @@ Promise<OfflineMediaBinaryRuntimeAuthority | undefined> {
     record(authority.readiness).privateInternalMezzanineFinalizationReady !== true ||
     record(authority.readiness).privateInternalObjectMezzanineChunkSeriesReady !== true ||
     record(authority.readiness).privateInternalContinuousProgramAudioReady !== true ||
+    record(authority.readiness).privateInternalCrossChunkColorBoundaryReady !== true ||
     record(authority.readiness).productReady !== false ||
     record(authority.readiness).finalExportReady !== false
   ) throw unavailable('Media binary runtime authority boundary is invalid.')
@@ -1068,6 +1120,205 @@ async function executeContinuousProgramAudioQaServerInjected(
   }
 }
 
+async function executeCrossChunkColorContinuityServerInjected(
+  image: OfflineMediaBinaryImageEvidence,
+  value: unknown,
+  inputs: {
+    left: OfflineMediaBinaryServerInjectedInput
+    right: OfflineMediaBinaryServerInjectedInput
+  },
+): Promise<OfflineCrossChunkColorContinuityExecutionResult> {
+  let request: OfflineMediaBinaryCrossChunkColorContinuityRequest
+  try {
+    request = validateOfflineMediaBinaryCrossChunkColorContinuityRequest(value)
+  } catch {
+    throw invalid('Structured cross-chunk color-continuity request was rejected.')
+  }
+  if (!inputs || typeof inputs !== 'object') {
+    throw invalid('Cross-chunk color-continuity inputs are missing.')
+  }
+  assertServerInjectedInput(
+    inputs.left,
+    request.inputs.left.byteLength,
+    request.inputs.left.sha256,
+  )
+  assertServerInjectedInput(
+    inputs.right,
+    request.inputs.right.byteLength,
+    request.inputs.right.sha256,
+  )
+  const leftProbe = await probePrivateVp9ObjectChunk(image, inputs.left, {
+    width: request.payload.width,
+    height: request.payload.height,
+    fps: request.payload.fps,
+    frameCount: request.inputs.left.frameCount,
+    countFrames: false,
+  })
+  const rightProbe = await probePrivateVp9ObjectChunk(image, inputs.right, {
+    width: request.payload.width,
+    height: request.payload.height,
+    fps: request.payload.fps,
+    frameCount: request.inputs.right.frameCount,
+    countFrames: false,
+  })
+  const leftSample = await analyzeVideoColorWithConfinement({
+    image,
+    source: inputs.left,
+    startFrame: Math.max(
+      0,
+      request.inputs.left.frameCount -
+        OFFLINE_MEDIA_BINARY_CROSS_CHUNK_COLOR_CONTINUITY_SAMPLE_WINDOW_FRAMES,
+    ),
+    endFrameExclusive: request.inputs.left.frameCount,
+    frameRate: request.payload.fps,
+  })
+  const rightSample = await analyzeVideoColorWithConfinement({
+    image,
+    source: inputs.right,
+    startFrame: 0,
+    endFrameExclusive: Math.min(
+      request.inputs.right.frameCount,
+      OFFLINE_MEDIA_BINARY_CROSS_CHUNK_COLOR_CONTINUITY_SAMPLE_WINDOW_FRAMES,
+    ),
+    frameRate: request.payload.fps,
+  })
+  const evaluation = evaluateOfflineMediaBinaryCrossChunkColorContinuity({
+    boundaryBefore: request.payload.boundaryBefore,
+    left: leftSample.analysis,
+    right: rightSample.analysis,
+  })
+  const requestEnvelopeSha256 =
+    offlineMediaBinaryCrossChunkColorContinuityRequestSha256(request)
+  const completedAt = new Date().toISOString()
+  const document = Object.freeze({
+    schemaVersion: 'offline-cross-chunk-color-continuity-result-v1' as const,
+    source: 'private_adjacent_object_chunk_rgb_boundary_analysis' as const,
+    requestEnvelopeSha256,
+    colorAuthorityHash: request.payload.colorAuthorityHash,
+    expectedEvidenceIdentity: request.payload.expectedEvidenceIdentity,
+    pair: {
+      leftChunkId: request.inputs.left.chunkId,
+      leftChunkIndex: request.inputs.left.chunkIndex,
+      leftObjectIdentity: request.inputs.left.objectIdentity,
+      leftSha256: request.inputs.left.sha256,
+      rightChunkId: request.inputs.right.chunkId,
+      rightChunkIndex: request.inputs.right.chunkIndex,
+      rightObjectIdentity: request.inputs.right.objectIdentity,
+      rightSha256: request.inputs.right.sha256,
+      boundaryBefore: request.payload.boundaryBefore,
+    },
+    sampling: {
+      profileId: request.payload.continuityPolicyId,
+      windowFramesPerSide: request.payload.sampleWindowFrames,
+      sampledFramesPerSide: request.payload.sampleFramesPerSide,
+      downsampleFrame: '64x64_rgb24' as const,
+      leftProbe: leftProbe.probe,
+      rightProbe: rightProbe.probe,
+      left: leftSample.analysis,
+      right: rightSample.analysis,
+    },
+    evaluation,
+    checks: {
+      exactPrivateChunksReopened: 'passed' as const,
+      adjacentChunkIdentityVerified: 'passed' as const,
+      independentlyDecodedRgbSamples: 'passed' as const,
+      clippingSafetyEvaluated: 'passed' as const,
+      technicalSplitContinuityEvaluated: 'passed' as const,
+      editorialCutMismatchRoutedToReview: 'passed' as const,
+      mediaMutationPerformed: false as const,
+    },
+    outcome: evaluation.outcome,
+    evaluatedAt: completedAt,
+  })
+  const bytes = Buffer.from(`${stableAuthorityStringify(document)}\n`)
+  const resultSha256 = sha256(bytes)
+  const confinements = Object.freeze({
+    leftProbe: leftProbe.confinement,
+    leftAnalysis: leftSample.confinement,
+    rightProbe: rightProbe.confinement,
+    rightAnalysis: rightSample.confinement,
+  })
+  const semanticEvidence = Object.freeze({
+    fixedRecipeExecuted: true,
+    recipeProfileId:
+      OFFLINE_MEDIA_BINARY_CROSS_CHUNK_COLOR_CONTINUITY_RECIPE,
+    continuityPolicyId:
+      OFFLINE_MEDIA_BINARY_CROSS_CHUNK_COLOR_CONTINUITY_POLICY,
+    exactAdjacentPrivateChunksVerified: true,
+    independentDecodedRgbSamplingExecuted: true,
+    sampledFramesPerSide: request.payload.sampleFramesPerSide,
+    mediaMutationPerformed: false,
+    evaluation,
+    originalApprovedEditReservationUsed: true,
+    separateExportEstimateRequired: false,
+    additionalExportChargeAllowed: false,
+    publicDeliveryAuthorized: false,
+    distributedExecutionProven: false,
+  })
+  const attestationWithoutHash = {
+    domain: 'offline_cross_chunk_color_continuity_attestation_v1',
+    completedAt,
+    imageIdentityHash: image.imageIdentityHash,
+    toolId: 'ffmpeg' as const,
+    operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
+    requestEnvelopeSha256,
+    leftChunkSha256: request.inputs.left.sha256,
+    rightChunkSha256: request.inputs.right.sha256,
+    resultSha256,
+    confinements,
+    evaluation,
+  }
+  const attestationHash = sha256AuthorityValue(attestationWithoutHash)
+  const recordId = sha256AuthorityValue({ attestationHash, completedAt })
+  const attestation = {
+    ...attestationWithoutHash,
+    recordId,
+    attestationHash,
+  }
+  await writePrivateTextFileAtomicWithinRoot({
+    rootPath: STORAGE_ROOT,
+    relativePath:
+      `attestations/${recordId.slice(0, 2)}/${recordId}.json`,
+    content: `${stableAuthorityStringify({
+      recordVersion:
+        'offline-cross-chunk-color-continuity-attestation-record-v1',
+      source: 'private_local_checksum_protected_cross_chunk_color_analysis',
+      attestation,
+      checksumSha256: sha256AuthorityValue(attestation),
+    })}\n`,
+  })
+  return {
+    resultJson: {
+      mimeType: 'application/json',
+      bytes,
+      document,
+      sha256: resultSha256,
+      byteLength: bytes.byteLength,
+    },
+    evidence: {
+      toolId: 'ffmpeg',
+      operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
+      binaryVersion: SOURCE_VERSION,
+      requestEnvelopeSha256,
+      leftChunkSha256: request.inputs.left.sha256,
+      rightChunkSha256: request.inputs.right.sha256,
+      resultSha256,
+      semanticEvidence,
+      confinement: confinements,
+      containerExitCode: 0,
+      oomKilled: false,
+    },
+    image,
+    attestation: { recordId, completedAt, attestationHash },
+    readiness: {
+      privateInternalOnly: true,
+      productReady: false,
+      externalBetaReady: false,
+      productionReady: false,
+    },
+  }
+}
+
 async function executeFfprobe(
   image: OfflineMediaBinaryImageEvidence,
   value: unknown,
@@ -1565,18 +1816,7 @@ function voiceDeliveryCommand(
   ]
 }
 
-type ColorPixelAnalysis = {
-  sampledFrameCount: number
-  sampledPixelCount: number
-  meanRed: number
-  meanGreen: number
-  meanBlue: number
-  meanLuma: number
-  minimumLuma: number
-  maximumLuma: number
-  blackLumaFraction: number
-  whiteLumaFraction: number
-}
+type ColorPixelAnalysis = OfflineColorPixelAnalysis
 
 type DerivedColorCorrection = {
   redMultiplier: number
@@ -1613,6 +1853,19 @@ async function analyzeVideoColor(input: {
   endFrameExclusive: number
   frameRate: number
 }): Promise<ColorPixelAnalysis> {
+  return (await analyzeVideoColorWithConfinement(input)).analysis
+}
+
+async function analyzeVideoColorWithConfinement(input: {
+  image: OfflineMediaBinaryImageEvidence
+  source: OfflineMediaBinaryServerInjectedInput
+  startFrame: number
+  endFrameExclusive: number
+  frameRate: number
+}): Promise<{
+  analysis: ColorPixelAnalysis
+  confinement: OfflineMediaBinaryConfinementEvidence
+}> {
   const finalFrame = input.endFrameExclusive - 1
   const middleFrame = input.startFrame + Math.floor(
     (input.endFrameExclusive - input.startFrame - 1) / 2,
@@ -1628,7 +1881,7 @@ async function analyzeVideoColor(input: {
   ]
   const container = await createContainer(input.image, FFMPEG_ENTRYPOINT, command)
   try {
-    validateConfinement(
+    const confinement = validateConfinement(
       await inspectContainer(container.id),
       input.image,
       FFMPEG_ENTRYPOINT,
@@ -1649,7 +1902,10 @@ async function analyzeVideoColor(input: {
       result.exitCode !== 0 || result.stderr.length > 0 ||
       result.stdout.byteLength !== expectedBytes
     ) throw unavailable('FFmpeg source color analysis failed closed.')
-    return colorPixelAnalysis(result.stdout, selectedFrames.length)
+    return {
+      analysis: colorPixelAnalysis(result.stdout, selectedFrames.length),
+      confinement,
+    }
   } finally {
     await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024)
       .catch(() => undefined)
@@ -1978,14 +2234,39 @@ async function probeObjectMezzanineChunkOutput(
   source: OfflineMediaBinaryServerInjectedInput,
   request: OfflineMediaBinaryObjectMezzanineChunkRequest,
 ): Promise<Record<string, unknown>> {
+  return (await probePrivateVp9ObjectChunk(image, source, {
+    width: request.payload.width,
+    height: request.payload.height,
+    fps: request.payload.fps,
+    frameCount: request.payload.durationFrames,
+    countFrames: true,
+  })).probe
+}
+
+async function probePrivateVp9ObjectChunk(
+  image: OfflineMediaBinaryImageEvidence,
+  source: OfflineMediaBinaryServerInjectedInput,
+  expectation: {
+    width: number
+    height: number
+    fps: number
+    frameCount: number
+    countFrames: boolean
+  },
+): Promise<{
+  probe: Record<string, unknown>
+  confinement: OfflineMediaBinaryConfinementEvidence
+}> {
   const command = [
-    '-v', 'error', '-count_frames', '-show_entries',
+    '-v', 'error',
+    ...(expectation.countFrames ? ['-count_frames'] : []),
+    '-show_entries',
     'format=format_name,start_time,duration,size:stream=codec_name,codec_type,start_time,width,height,avg_frame_rate,nb_read_frames,pix_fmt,color_range,color_space,color_transfer,color_primaries,has_b_frames',
     '-print_format', 'json', '-i', 'pipe:0',
   ]
   const container = await createContainer(image, FFPROBE_ENTRYPOINT, command)
   try {
-    validateConfinement(
+    const confinement = validateConfinement(
       await inspectContainer(container.id),
       image,
       FFPROBE_ENTRYPOINT,
@@ -2008,21 +2289,22 @@ async function probeObjectMezzanineChunkOutput(
     const video = videos[0]
     const actualDurationSeconds = optionalNumber(format.duration)
     const approvedDurationSeconds =
-      request.payload.durationFrames / request.payload.fps
-    const maximumDurationDriftSeconds = 1 / request.payload.fps + 0.001
+      expectation.frameCount / expectation.fps
+    const maximumDurationDriftSeconds = 1 / expectation.fps + 0.001
     const formatStartSeconds = optionalNumber(format.start_time)
     const videoStartSeconds = optionalNumber(video?.start_time)
     if (
       videos.length !== 1 || audios.length !== 0 || !video ||
       video.codec_name !== 'vp9' ||
       !String(format.format_name ?? '').includes('matroska') ||
-      optionalInteger(video.width) !== request.payload.width ||
-      optionalInteger(video.height) !== request.payload.height ||
+      optionalInteger(video.width) !== expectation.width ||
+      optionalInteger(video.height) !== expectation.height ||
       video.pix_fmt !== 'yuv420p' || video.color_range !== 'tv' ||
       video.color_space !== 'bt709' || video.color_transfer !== 'bt709' ||
       video.color_primaries !== 'bt709' ||
-      rational(video.avg_frame_rate) !== request.payload.fps ||
-      optionalInteger(video.nb_read_frames) !== request.payload.durationFrames ||
+      rational(video.avg_frame_rate) !== expectation.fps ||
+      (expectation.countFrames &&
+        optionalInteger(video.nb_read_frames) !== expectation.frameCount) ||
       optionalInteger(video.has_b_frames) !== 0 ||
       formatStartSeconds === undefined || formatStartSeconds < 0 ||
       formatStartSeconds > maximumDurationDriftSeconds ||
@@ -2035,25 +2317,30 @@ async function probeObjectMezzanineChunkOutput(
       'Object-mezzanine output failed Matroska, VP9, frame, color, timestamp, or duration verification.',
     )
     return {
-      container: 'matroska',
-      videoCodec: 'vp9',
-      videoCodecOperation: 'cq12_encode',
-      audioStreamCount: 0,
-      width: request.payload.width,
-      height: request.payload.height,
-      frameRate: request.payload.fps,
-      frameCount: request.payload.durationFrames,
-      pixelFormat: 'yuv420p',
-      colorRange: 'tv',
-      colorSpace: 'bt709',
-      colorTransfer: 'bt709',
-      colorPrimaries: 'bt709',
-      formatStartSeconds,
-      videoStartSeconds,
-      approvedDurationSeconds: rounded(approvedDurationSeconds),
-      actualDurationSeconds,
-      maximumDurationDriftSeconds: rounded(maximumDurationDriftSeconds),
-      sizeBytes: optionalInteger(format.size),
+      probe: {
+        container: 'matroska',
+        videoCodec: 'vp9',
+        videoCodecOperation: 'cq12_encode',
+        audioStreamCount: 0,
+        width: expectation.width,
+        height: expectation.height,
+        frameRate: expectation.fps,
+        frameCount: expectation.frameCount,
+        exactFrameCountRecounted: expectation.countFrames,
+        priorIndependentFrameQaRequired: !expectation.countFrames,
+        pixelFormat: 'yuv420p',
+        colorRange: 'tv',
+        colorSpace: 'bt709',
+        colorTransfer: 'bt709',
+        colorPrimaries: 'bt709',
+        formatStartSeconds,
+        videoStartSeconds,
+        approvedDurationSeconds: rounded(approvedDurationSeconds),
+        actualDurationSeconds,
+        maximumDurationDriftSeconds: rounded(maximumDurationDriftSeconds),
+        sizeBytes: optionalInteger(format.size),
+      },
+      confinement,
     }
   } finally {
     await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024)
@@ -2531,6 +2818,7 @@ async function persistAuthority(image: OfflineMediaBinaryImageEvidence): Promise
       privateInternalMezzanineFinalizationReady: true as const,
       privateInternalObjectMezzanineChunkSeriesReady: true as const,
       privateInternalContinuousProgramAudioReady: true as const,
+      privateInternalCrossChunkColorBoundaryReady: true as const,
       productReady: false as const,
       externalBetaReady: false as const,
       productionReady: false as const,
@@ -2544,6 +2832,7 @@ async function persistAuthority(image: OfflineMediaBinaryImageEvidence): Promise
       'MP4 muxing is restricted to the fixed private source-slice finalizer.',
       'Object-mezzanine chunking is restricted to approved 30 fps private H.264 sources and VP9 CQ12 intermediates.',
       'Continuous program audio is restricted to approved 30 fps source ranges with 48 kHz mono/stereo input and lossless 48 kHz stereo FLAC output.',
+      'Cross-chunk color analysis is restricted to adjacent independently QA-passed private VP9 BT.709 chunks and does not mutate media.',
     ] as const,
   }
   const authority: OfflineMediaBinaryRuntimeAuthority = {

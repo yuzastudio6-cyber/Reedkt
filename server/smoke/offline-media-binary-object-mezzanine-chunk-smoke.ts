@@ -7,7 +7,11 @@ import { Readable } from 'node:stream'
 
 import {
   activatePrivateOfflineMediaBinaryRuntime,
+  buildOfflineMediaBinaryCrossChunkColorContinuityRequest,
   buildOfflineMediaBinaryObjectMezzanineChunkRequest,
+  evaluateOfflineMediaBinaryCrossChunkColorContinuity,
+  OFFLINE_MEDIA_BINARY_CROSS_CHUNK_COLOR_CONTINUITY_POLICY,
+  OFFLINE_MEDIA_BINARY_CROSS_CHUNK_COLOR_CONTINUITY_RECIPE,
   OFFLINE_MEDIA_BINARY_OBJECT_MEZZANINE_CHUNK_MAXIMUM_OUTPUT_BYTES,
   OFFLINE_MEDIA_BINARY_OBJECT_MEZZANINE_CHUNK_RECIPE,
   OFFLINE_MEDIA_BINARY_OPERATIONS,
@@ -200,10 +204,13 @@ try {
       chunkIndex: 2,
       globalStartFrame: durationFrames,
       globalEndFrameExclusive: durationFrames * 2,
-      sourceSlices: request.payload.sourceSlices.map((slice, index) => ({
-        ...slice,
+      sourceSlices: request.payload.sourceSlices.map((_slice, index) => ({
+        ...request.payload.sourceSlices[index === 0 ? 1 : 0]!,
+        sliceIndex: index + 1,
         sourceStartFrame: sourceFrames - sliceFrames,
         sourceEndFrameExclusive: sourceFrames,
+        chunkLocalStartFrame: index * sliceFrames,
+        chunkLocalEndFrameExclusive: (index + 1) * sliceFrames,
         globalTimelineStartFrame: durationFrames + index * sliceFrames,
         globalTimelineEndFrameExclusive:
           durationFrames + (index + 1) * sliceFrames,
@@ -246,6 +253,165 @@ try {
   assert.equal(
     later.evidence.semanticEvidence.frameExactH264DecodeTrimConcatExecuted,
     true,
+  )
+
+  const colorContinuityRequest =
+    buildOfflineMediaBinaryCrossChunkColorContinuityRequest({
+      planningPayload: {
+        recipeProfileId:
+          OFFLINE_MEDIA_BINARY_CROSS_CHUNK_COLOR_CONTINUITY_RECIPE,
+        continuityPolicyId:
+          OFFLINE_MEDIA_BINARY_CROSS_CHUNK_COLOR_CONTINUITY_POLICY,
+        colorAuthorityHash: sha256(Buffer.from('cross-chunk-color-authority')),
+        expectedEvidenceIdentity:
+          'approved-snapshot:color-continuity:boundary-1-2',
+        leftChunkIndex: 1,
+        rightChunkIndex: 2,
+        boundaryBefore: 'continuous_technical_split',
+        width,
+        height,
+        fps,
+        sampleWindowFrames: 30,
+        sampleFramesPerSide: 3,
+        sourcePolicy:
+          'independently_qa_passed_private_vp9_bt709_chunks_v1',
+        technicalSplitMismatchDisposition: 'block_finalization',
+        editorialCutMismatchDisposition: 'review_required',
+        mediaMutationAllowed: false,
+        usesApprovedEditReservation: true,
+        requiresSeparateExportEstimate: false,
+        allowsAdditionalExportCharge: false,
+      },
+      left: {
+        inputId: 'left-chunk',
+        chunkId: request.payload.chunkId,
+        chunkIndex: 1,
+        objectIdentity: request.payload.expectedObjectIdentity,
+        mimeType: 'video/x-matroska',
+        byteLength: outputBytes.byteLength,
+        sha256: sha256(outputBytes),
+        frameCount: durationFrames,
+      },
+      right: {
+        inputId: 'right-chunk',
+        chunkId: laterRequest.payload.chunkId,
+        chunkIndex: 2,
+        objectIdentity: laterRequest.payload.expectedObjectIdentity,
+        mimeType: 'video/x-matroska',
+        byteLength: laterOutputBytes.byteLength,
+        sha256: sha256(laterOutputBytes),
+        frameCount: durationFrames,
+      },
+    })
+  const colorContinuity =
+    await runtime.executeCrossChunkColorContinuityServerInjected(
+      colorContinuityRequest,
+      {
+        left: {
+          inputMode: 'private_verified_stream_v1',
+          byteLength: outputBytes.byteLength,
+          sha256: sha256(outputBytes),
+          async openStream() { return Readable.from([outputBytes]) },
+        },
+        right: {
+          inputMode: 'private_verified_stream_v1',
+          byteLength: laterOutputBytes.byteLength,
+          sha256: sha256(laterOutputBytes),
+          async openStream() { return Readable.from([laterOutputBytes]) },
+        },
+      },
+    )
+  const colorDocument = colorContinuity.resultJson.document
+  const colorEvaluation = colorDocument.evaluation as Record<string, unknown>
+  assert.equal(colorDocument.outcome, 'passed')
+  assert.equal(colorEvaluation.boundaryClass, 'technical_continuation')
+  assert.equal(colorEvaluation.withinContinuityTolerance, true)
+  assert.equal(
+    colorContinuity.evidence.semanticEvidence.mediaMutationPerformed,
+    false,
+  )
+  assert.equal(
+    colorContinuity.evidence.semanticEvidence.separateExportEstimateRequired,
+    false,
+  )
+  assert.equal(colorContinuity.evidence.confinement.leftProbe.networkMode, 'none')
+  assert.equal(
+    colorContinuity.evidence.confinement.rightAnalysis.serverOwnedEntrypoint,
+    '/opt/reeditpro-ffmpeg/bin/ffmpeg',
+  )
+  const syntheticLeftColor = {
+    sampledFrameCount: 3,
+    sampledPixelCount: 12_288,
+    meanRed: 180,
+    meanGreen: 70,
+    meanBlue: 50,
+    meanLuma: 95,
+    minimumLuma: 20,
+    maximumLuma: 220,
+    blackLumaFraction: 0,
+    whiteLumaFraction: 0,
+  }
+  const syntheticRightMismatch = {
+    ...syntheticLeftColor,
+    meanRed: 45,
+    meanGreen: 75,
+    meanBlue: 190,
+    meanLuma: 110,
+  }
+  assert.equal(
+    evaluateOfflineMediaBinaryCrossChunkColorContinuity({
+      boundaryBefore: 'continuous_technical_split',
+      left: syntheticLeftColor,
+      right: syntheticRightMismatch,
+    }).outcome,
+    'blocked',
+  )
+  assert.throws(() =>
+    buildOfflineMediaBinaryCrossChunkColorContinuityRequest({
+      planningPayload: {
+        ...colorContinuityRequest.payload,
+        maximumMeanLumaDelta: 255,
+      },
+      left: colorContinuityRequest.inputs.left,
+      right: colorContinuityRequest.inputs.right,
+    }))
+  await assert.rejects(() =>
+    runtime.executeCrossChunkColorContinuityServerInjected(
+      colorContinuityRequest,
+      {
+        left: {
+          inputMode: 'private_verified_stream_v1',
+          byteLength: outputBytes.byteLength,
+          sha256: 'f'.repeat(64),
+          async openStream() { return Readable.from([outputBytes]) },
+        },
+        right: {
+          inputMode: 'private_verified_stream_v1',
+          byteLength: laterOutputBytes.byteLength,
+          sha256: sha256(laterOutputBytes),
+          async openStream() { return Readable.from([laterOutputBytes]) },
+        },
+      },
+    ))
+  assert.equal(
+    evaluateOfflineMediaBinaryCrossChunkColorContinuity({
+      boundaryBefore: 'approved_hard_cut',
+      left: syntheticLeftColor,
+      right: syntheticRightMismatch,
+    }).outcome,
+    'review_required',
+  )
+  assert.equal(
+    evaluateOfflineMediaBinaryCrossChunkColorContinuity({
+      boundaryBefore: 'approved_hard_cut',
+      left: syntheticLeftColor,
+      right: {
+        ...syntheticLeftColor,
+        meanLuma: 3,
+        blackLumaFraction: 0.99,
+      },
+    }).outcome,
+    'blocked',
   )
 
   const independentQa = await runtime.executeServerInjected({
@@ -311,6 +477,9 @@ try {
     nonzeroSourceStartFrame:
       laterRequest.payload.sourceSlices[0]?.sourceStartFrame,
     technicalSplitBoundaryVerified: true,
+    crossChunkColorContinuityOutcome: colorDocument.outcome,
+    crossChunkColorContinuityEvidenceSha256:
+      colorContinuity.resultJson.sha256,
     productReady: false,
     productionReady: false,
   }, null, 2))

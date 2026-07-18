@@ -12,11 +12,16 @@ import {
   OFFLINE_MEDIA_BINARY_LEGACY_OUTPUT_BUFFER_MAXIMUM_BYTES,
   OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_OUTPUT_BYTES,
 } from '../tool-execution/media-binary-execution/offline-media-binary-types'
+import {
+  OFFLINE_MEDIA_BINARY_OBJECT_MEZZANINE_CHUNK_MAXIMUM_OUTPUT_BYTES,
+} from '../tool-execution/media-binary-execution/offline-media-binary-object-mezzanine-chunk-protocol'
 
 const LEGACY_BUFFER_MAXIMUM_BYTES =
   OFFLINE_MEDIA_BINARY_LEGACY_OUTPUT_BUFFER_MAXIMUM_BYTES
 export const CANONICAL_PRIVATE_MEDIA_STREAMING_MAXIMUM_BYTES =
   OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_OUTPUT_BYTES
+export const CANONICAL_PRIVATE_OBJECT_CHUNK_STREAMING_MAXIMUM_BYTES =
+  OFFLINE_MEDIA_BINARY_OBJECT_MEZZANINE_CHUNK_MAXIMUM_OUTPUT_BYTES
 const SHA = /^[a-f0-9]{64}$/
 
 export interface CanonicalPrivateMediaArtifactInspection {
@@ -70,26 +75,49 @@ export async function readCanonicalPrivateMediaArtifact(input: {
   return { bytes, byteLength: inspected.byteLength, sha256: inspected.sha256 }
 }
 
-export async function persistCanonicalPrivateMediaArtifactStream(input: {
+interface CanonicalPrivateMediaArtifactStreamInput {
   localStorageRoot: string
   privateObjectIdentityHash: string
   mediaFormat: 'nut' | 'mkv'
   stream: Readable
   expectedByteLength: number
   expectedSha256: string
-}): Promise<{ byteLength: number; sha256: string; replayed: boolean }> {
-  assertStreamingCommitment(input)
-  const existing = await inspectCanonicalPrivateMediaArtifact({
+}
+
+export async function persistCanonicalPrivateMediaArtifactStream(
+  input: CanonicalPrivateMediaArtifactStreamInput,
+): Promise<{ byteLength: number; sha256: string; replayed: boolean }> {
+  return persistCanonicalPrivateMediaArtifactStreamWithinCeiling(
+    input,
+    CANONICAL_PRIVATE_MEDIA_STREAMING_MAXIMUM_BYTES,
+  )
+}
+
+export async function persistCanonicalPrivateObjectChunkMediaArtifactStream(
+  input: CanonicalPrivateMediaArtifactStreamInput & { mediaFormat: 'mkv' },
+): Promise<{ byteLength: number; sha256: string; replayed: boolean }> {
+  return persistCanonicalPrivateMediaArtifactStreamWithinCeiling(
+    input,
+    CANONICAL_PRIVATE_OBJECT_CHUNK_STREAMING_MAXIMUM_BYTES,
+  )
+}
+
+async function persistCanonicalPrivateMediaArtifactStreamWithinCeiling(
+  input: CanonicalPrivateMediaArtifactStreamInput,
+  maximumBytes: number,
+): Promise<{ byteLength: number; sha256: string; replayed: boolean }> {
+  assertStreamingCommitment(input, maximumBytes)
+  const existing = await inspectCanonicalPrivateMediaArtifactWithinCeiling({
     localStorageRoot: input.localStorageRoot,
     privateObjectIdentityHash: input.privateObjectIdentityHash,
-  })
+  }, maximumBytes)
   if (existing) {
     if (
       existing.mediaFormat !== input.mediaFormat ||
       existing.byteLength !== input.expectedByteLength ||
       existing.sha256 !== input.expectedSha256
     ) throw invalid('Private media stream collides with a different immutable artifact.')
-    await verifyCommittedMediaStream(input)
+    await verifyCommittedMediaStream(input, maximumBytes)
     return { byteLength: existing.byteLength, sha256: existing.sha256, replayed: true }
   }
 
@@ -123,17 +151,17 @@ export async function persistCanonicalPrivateMediaArtifactStream(input: {
     rootPath: input.localStorageRoot,
     relativePath: relativePath(input.privateObjectIdentityHash, input.mediaFormat),
     stream: verifiedStream,
-    maximumBytes: CANONICAL_PRIVATE_MEDIA_STREAMING_MAXIMUM_BYTES,
+    maximumBytes,
   })
   if (
     written.byteLength !== input.expectedByteLength ||
     written.checksumSha256 !== input.expectedSha256 ||
     privateMediaFormat(Buffer.concat(signatureChunks, signatureByteLength)) !== input.mediaFormat
   ) throw invalid('Private media stream failed its persisted content commitment.')
-  const stored = await inspectCanonicalPrivateMediaArtifact({
+  const stored = await inspectCanonicalPrivateMediaArtifactWithinCeiling({
     localStorageRoot: input.localStorageRoot,
     privateObjectIdentityHash: input.privateObjectIdentityHash,
-  })
+  }, maximumBytes)
   if (
     !stored || stored.mediaFormat !== input.mediaFormat ||
     stored.byteLength !== input.expectedByteLength || stored.sha256 !== input.expectedSha256
@@ -145,6 +173,30 @@ export async function inspectCanonicalPrivateMediaArtifact(input: {
   localStorageRoot: string
   privateObjectIdentityHash: string
 }): Promise<CanonicalPrivateMediaArtifactInspection | undefined> {
+  return inspectCanonicalPrivateMediaArtifactWithinCeiling(
+    input,
+    CANONICAL_PRIVATE_MEDIA_STREAMING_MAXIMUM_BYTES,
+  )
+}
+
+export async function inspectCanonicalPrivateObjectChunkMediaArtifact(input: {
+  localStorageRoot: string
+  privateObjectIdentityHash: string
+}): Promise<CanonicalPrivateMediaArtifactInspection | undefined> {
+  const artifact = await inspectCanonicalPrivateMediaArtifactWithinCeiling(
+    input,
+    CANONICAL_PRIVATE_OBJECT_CHUNK_STREAMING_MAXIMUM_BYTES,
+  )
+  if (artifact && artifact.mediaFormat !== 'mkv') {
+    throw invalid('Private object-chunk identity resolved to a non-Matroska object.')
+  }
+  return artifact
+}
+
+async function inspectCanonicalPrivateMediaArtifactWithinCeiling(input: {
+  localStorageRoot: string
+  privateObjectIdentityHash: string
+}, maximumBytes: number): Promise<CanonicalPrivateMediaArtifactInspection | undefined> {
   if (!SHA.test(input.privateObjectIdentityHash)) throw invalid('Private media identity is invalid.')
   const candidates: Array<{
     mediaFormat: 'nut' | 'mkv'
@@ -170,7 +222,11 @@ export async function inspectCanonicalPrivateMediaArtifact(input: {
     throw invalid('Private media identity resolved to more than one immutable object.')
   }
   const candidate = candidates[0]!
-  const commitment = await inspectPrivateMediaStream(candidate.stream, candidate.mediaFormat)
+  const commitment = await inspectPrivateMediaStream(
+    candidate.stream,
+    candidate.mediaFormat,
+    maximumBytes,
+  )
   return {
     mediaFormat: candidate.mediaFormat,
     ...commitment,
@@ -200,11 +256,11 @@ function assertStreamingCommitment(input: {
   stream: Readable
   expectedByteLength: number
   expectedSha256: string
-}): void {
+}, maximumBytes: number): void {
   if (
     !SHA.test(input.privateObjectIdentityHash) || !SHA.test(input.expectedSha256) ||
     !Number.isSafeInteger(input.expectedByteLength) || input.expectedByteLength < 64 ||
-    input.expectedByteLength > CANONICAL_PRIVATE_MEDIA_STREAMING_MAXIMUM_BYTES ||
+    input.expectedByteLength > maximumBytes ||
     !input.stream || typeof input.stream.pipe !== 'function'
   ) throw invalid('Private media streaming commitment is invalid.')
 }
@@ -213,8 +269,12 @@ async function verifyCommittedMediaStream(input: {
   stream: Readable
   expectedByteLength: number
   expectedSha256: string
-}): Promise<void> {
-  const commitment = await inspectPrivateMediaStream(input.stream, input.mediaFormat)
+}, maximumBytes: number): Promise<void> {
+  const commitment = await inspectPrivateMediaStream(
+    input.stream,
+    input.mediaFormat,
+    maximumBytes,
+  )
   if (
     commitment.byteLength !== input.expectedByteLength ||
     commitment.sha256 !== input.expectedSha256
@@ -223,6 +283,7 @@ async function verifyCommittedMediaStream(input: {
 async function inspectPrivateMediaStream(
   stream: Readable,
   expectedFormat: 'nut' | 'mkv',
+  maximumBytes: number,
 ): Promise<{ byteLength: number; sha256: string }> {
   const checksum = createHash('sha256')
   const signatureChunks: Buffer[] = []
@@ -231,7 +292,7 @@ async function inspectPrivateMediaStream(
   for await (const chunk of stream) {
     const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)
     byteLength += bytes.byteLength
-    if (byteLength > CANONICAL_PRIVATE_MEDIA_STREAMING_MAXIMUM_BYTES) {
+    if (byteLength > maximumBytes) {
       throw invalid('Stored private media intermediate exceeds its streaming ceiling.')
     }
     checksum.update(bytes)

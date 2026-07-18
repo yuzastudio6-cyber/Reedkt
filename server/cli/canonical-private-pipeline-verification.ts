@@ -48,7 +48,7 @@ const canonicalSteps: VerificationStep[] = [
   step(
     'offline-media-binary-object-chunk',
     'smoke:offline-media-binary-object-chunk',
-    'A fixed server-owned FFmpeg recipe reopens checksum-bound synthetic 4K H.264 MP4 sources, decodes exact approved frame ranges, normalizes frame/color metadata, concatenates approved hard cuts or technical splits, encodes a private VP9 CQ12 Matroska mezzanine, proves byte-deterministic reexecution, exercises both timeline-start and later nonzero-frame chunks, and invokes FFprobe separately for frame, duration, timestamp, dimension, codec, and BT.709 QA. This isolated runner proof grants no canonical job, cloud, product, or production authority.',
+    'A fixed server-owned FFmpeg recipe reopens checksum-bound synthetic 4K H.264 MP4 sources, decodes exact approved frame ranges, normalizes frame/color metadata, concatenates approved hard cuts or technical splits, encodes a private VP9 CQ12 Matroska mezzanine, proves byte-deterministic reexecution, and exercises timeline-start plus later nonzero-frame chunks. The same pinned runtime independently re-probes two adjacent VP9 chunks and decodes boundary RGB samples for strict technical-split color continuity; deterministic policy blocks technical mismatches and routes editorial-cut mismatches to review. This remains isolated runtime proof: canonical color-job lease, all-boundary aggregation, attempt cost, reconciliation, cloud, product, and production authority are still false.',
   ),
   step(
     'professional-long-form-approved-snapshot-bridge',
@@ -346,6 +346,7 @@ function printReport(
           professionalLongFormTotalObjectChunkPairCount: 124,
           professionalLongFormNonzeroSourceFrameExecutionVerified: true,
           professionalLongFormTechnicalSplitExecutionVerified: true,
+          offlineCrossChunkColorBoundaryRuntimeVerified: true,
           professionalLongFormContinuousProgramAudioAuthorizationPersistence: true,
           professionalLongFormContinuousProgramAudioLeaseHeartbeatAndOneUseExecution: true,
           professionalLongFormContinuousProgramAudioExactSourceStaging: true,

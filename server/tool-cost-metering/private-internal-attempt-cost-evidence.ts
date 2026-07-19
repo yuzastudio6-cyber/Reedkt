@@ -60,6 +60,10 @@ import {
   PROFESSIONAL_LONG_FORM_DELIVERY_H264_QA_COST_PROFILE_ID,
   PROFESSIONAL_LONG_FORM_DELIVERY_H264_QA_OPERATION_ID,
 } from '../edit-architecture/professional-long-form-customer-delivery-h264-qa-execution-contract'
+import {
+  PROFESSIONAL_LONG_FORM_DELIVERY_MUX_COST_PROFILE_ID,
+  PROFESSIONAL_LONG_FORM_DELIVERY_MUX_OPERATION_ID,
+} from '../edit-architecture/professional-long-form-customer-delivery-mux-execution-contract'
 
 const identity = z.string().min(1).max(200).regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/)
   .refine((value) => value === value.trim() && !value.includes('..'))
@@ -114,6 +118,8 @@ export const PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS = {
     PROFESSIONAL_LONG_FORM_DELIVERY_H264_COST_PROFILE_ID,
   ffprobeFourKCustomerDeliveryH264ChunkQa:
     PROFESSIONAL_LONG_FORM_DELIVERY_H264_QA_COST_PROFILE_ID,
+  ffmpegFourKCustomerDeliveryH264AacMux:
+    PROFESSIONAL_LONG_FORM_DELIVERY_MUX_COST_PROFILE_ID,
 } as const
 
 export type PrivateInternalAttemptCostProfileId =
@@ -160,6 +166,15 @@ export const privateInternalAttemptCostIdentitySchema = z.union([
     workloadProfileId: z.literal(
       PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS
         .ffprobeFourKCustomerDeliveryH264ChunkQa,
+    ),
+  }).strict(),
+  z.object({
+    ...commonAttemptIdentityFields,
+    toolId: z.literal('ffmpeg'),
+    operationId: z.literal(PROFESSIONAL_LONG_FORM_DELIVERY_MUX_OPERATION_ID),
+    workloadProfileId: z.literal(
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS
+        .ffmpegFourKCustomerDeliveryH264AacMux,
     ),
   }).strict(),
   z.object({
@@ -411,6 +426,12 @@ export type BeginPrivateInternalAttemptCostEvidenceInput =
       }
     | {
         toolId: 'ffmpeg'
+        operationId: typeof PROFESSIONAL_LONG_FORM_DELIVERY_MUX_OPERATION_ID
+        workloadProfileId:
+          typeof PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFourKCustomerDeliveryH264AacMux
+      }
+    | {
+        toolId: 'ffmpeg'
         operationId: 'tool.ffmpeg.execute_approved_media_recipe.v1'
         workloadProfileId:
           typeof PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFourKMezzanineFinalization
@@ -557,6 +578,16 @@ const beginInputSchema = z.union([
     workloadProfileId: z.literal(
       PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS
         .ffprobeFourKCustomerDeliveryH264ChunkQa,
+    ),
+  }).strict(),
+  z.object({
+    localStorageRoot: z.string().min(1),
+    ...commonAttemptIdentityFields,
+    toolId: z.literal('ffmpeg'),
+    operationId: z.literal(PROFESSIONAL_LONG_FORM_DELIVERY_MUX_OPERATION_ID),
+    workloadProfileId: z.literal(
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS
+        .ffmpegFourKCustomerDeliveryH264AacMux,
     ),
   }).strict(),
   z.object({
@@ -989,6 +1020,10 @@ function fixedResourceEnvelope(
     profileId === PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS
       .remotionFourKCustomerDeliveryH264Chunk
   ) return { vcpuCount: 4 as const, memoryGib: 8 as const, gpuCount: 0 as const }
+  if (
+    profileId === PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS
+      .ffmpegFourKCustomerDeliveryH264AacMux
+  ) return { vcpuCount: 4 as const, memoryGib: 8 as const, gpuCount: 0 as const }
   return { vcpuCount: 2 as const, memoryGib: 4 as const, gpuCount: 0 as const }
 }
 
@@ -1016,6 +1051,12 @@ export function resolvePrivateInternalAttemptCostProfileId(
     input.workloadProfileId ===
       PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS
         .remotionFourKCustomerDeliveryH264Chunk
+  ) return input.workloadProfileId
+  if (
+    input.toolId === 'ffmpeg' &&
+    input.workloadProfileId ===
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS
+        .ffmpegFourKCustomerDeliveryH264AacMux
   ) return input.workloadProfileId
   if (
     input.toolId === 'ffmpeg' &&

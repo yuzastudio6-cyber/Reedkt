@@ -63,7 +63,7 @@ const canonicalSteps: VerificationStep[] = [
   step(
     'canonical-professional-long-form-cross-chunk-color',
     'smoke:canonical-professional-long-form-cross-chunk-color',
-    'A bounded two-chunk canonical graph reopens both independently QA-passed private 4K object chunks, blocks before every chunk QA exists, claims the exact server-owned color job once, heartbeats its lease, rechecks immutable chunk bytes, executes the fixed adjacent-boundary FFmpeg policy, persists one create-only pair checkpoint plus aggregate validation/reconciliation/terminal evidence, records internal production cost separately from commerce, completes 9/11 jobs, and proves exact restart replay. Finalization remains separately gated. This proves the generic canonical color capability on one boundary; it does not mark the retained six-hour graph or its 123 boundaries executed.',
+    'A bounded two-chunk canonical graph reopens both independently QA-passed private 4K object chunks, executes strict adjacent-boundary color policy, continuous lossless program audio, private review finalization, and objective review-master QA through all 11 jobs. A separate immutable nine-job customer-delivery package then completes its root, both 4K H.264 High encodes, both independent chunk probes, and one H.264-stream-copy plus one-time FLAC-to-AAC private MP4 mux through 6/9 jobs with attempt-level internal cost and restart-safe exact replay. Decoded video QA, decoded audio/sync QA, and private-download reconciliation remain separately queued. This retained 129-second fixture does not mark the six-hour 255-job graph, cloud, product, or production executed.',
   ),
   step(
     'professional-export-policy',

@@ -82,6 +82,39 @@ import {
   type ProfessionalLongFormDeliveryH264QaTerminal,
 } from '../edit-architecture/professional-long-form-customer-delivery-h264-qa-execution-contract'
 import {
+  assertProfessionalLongFormDeliveryMuxAuthority,
+  buildProfessionalLongFormDeliveryMuxArtifactRef,
+  buildProfessionalLongFormDeliveryMuxAuthority,
+  buildProfessionalLongFormDeliveryMuxAuthorization,
+  buildProfessionalLongFormDeliveryMuxCompletion,
+  buildProfessionalLongFormDeliveryMuxReconciliation,
+  buildProfessionalLongFormDeliveryMuxRuntimeEvidence,
+  buildProfessionalLongFormDeliveryMuxTerminal,
+  professionalLongFormDeliveryMuxResultHash,
+  type ProfessionalLongFormDeliveryMuxDependencyEvidence,
+} from '../edit-architecture/professional-long-form-customer-delivery-mux-execution'
+import {
+  PROFESSIONAL_LONG_FORM_DELIVERY_MUX_COST_PROFILE_ID,
+  PROFESSIONAL_LONG_FORM_DELIVERY_MUX_KIND,
+  PROFESSIONAL_LONG_FORM_DELIVERY_MUX_OPERATION_ID,
+  PROFESSIONAL_LONG_FORM_DELIVERY_MUX_RECIPE_ID,
+  professionalLongFormDeliveryMuxAttemptSchema,
+  professionalLongFormDeliveryMuxCompletionSchema,
+  professionalLongFormDeliveryMuxReconciliationSchema,
+  professionalLongFormDeliveryMuxRuntimeEvidenceSchema,
+  professionalLongFormDeliveryMuxTerminalSchema,
+  type ProfessionalLongFormDeliveryMuxArtifactRef,
+  type ProfessionalLongFormDeliveryMuxAttempt,
+  type ProfessionalLongFormDeliveryMuxAuthority,
+  type ProfessionalLongFormDeliveryMuxAuthorization,
+  type ProfessionalLongFormDeliveryMuxReconciliation,
+  type ProfessionalLongFormDeliveryMuxRuntimeEvidence,
+  type ProfessionalLongFormDeliveryMuxTerminal,
+} from '../edit-architecture/professional-long-form-customer-delivery-mux-execution-contract'
+import {
+  professionalLongFormContinuousProgramAudioQaArtifactSchema,
+} from '../edit-architecture/professional-long-form-continuous-program-audio-execution-contract'
+import {
   OFFLINE_REMOTION_DELIVERY_H264_CHUNK_MAXIMUM_OUTPUT_BYTES,
   OFFLINE_REMOTION_DELIVERY_H264_CHUNK_RECIPE,
   buildOfflineRemotionDeliveryH264ChunkRequest,
@@ -90,12 +123,17 @@ import {
   type OfflineRemotionRuntimeAuthority,
 } from '../tool-execution/remotion-render-execution'
 import {
+  OFFLINE_MEDIA_BINARY_CUSTOMER_DELIVERY_MUX_MAXIMUM_OUTPUT_BYTES,
+  OFFLINE_MEDIA_BINARY_CUSTOMER_DELIVERY_MUX_RECIPE,
   OFFLINE_MEDIA_BINARY_OPERATIONS,
   OFFLINE_MEDIA_BINARY_SERVER_INPUT_MODE,
   OFFLINE_MEDIA_BINARY_STREAM_PROTOCOL,
+  buildOfflineMediaBinaryCustomerDeliveryMuxRequest,
+  offlineMediaBinaryCustomerDeliveryMuxRequestSha256,
   openPrivateOfflineMediaBinaryRuntime,
   readPersistedOfflineMediaBinaryRuntimeAuthority,
   validateOfflineFfprobeStreamingExecutionRequest,
+  type OfflineFfmpegCustomerDeliveryMuxExecutionResult,
   type OfflineMediaBinaryRuntimeAuthority,
 } from '../tool-execution/media-binary-execution'
 import {
@@ -123,7 +161,16 @@ import {
 import {
   inspectCanonicalPrivateRemotionDeliveryH264ChunkArtifact,
   persistCanonicalPrivateRemotionDeliveryH264ChunkArtifactStream,
+  type CanonicalPrivateRemotionArtifactInspection,
 } from './canonical-private-remotion-artifact-storage'
+import {
+  inspectCanonicalPrivateProgramAudioArtifact,
+  type CanonicalPrivateProgramAudioArtifactInspection,
+} from './canonical-private-program-audio-artifact-storage'
+import {
+  inspectCanonicalPrivateCustomerDeliveryArtifact,
+  persistCanonicalPrivateCustomerDeliveryArtifactStream,
+} from './canonical-private-customer-delivery-artifact-storage'
 import {
   putPrivateAuthorityJsonBlob,
   readPrivateAuthorityJsonBlob,
@@ -138,6 +185,8 @@ export const CANONICAL_PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_H264_QA_EXECUTIO
   'canonical-professional-long-form-customer-delivery-h264-qa-execution-v1' as const
 export const CANONICAL_PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_H264_SERIES_EXECUTION_VERSION =
   'canonical-professional-long-form-customer-delivery-h264-series-execution-v1' as const
+export const CANONICAL_PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_MUX_EXECUTION_VERSION =
+  'canonical-professional-long-form-customer-delivery-mux-execution-v1' as const
 
 interface LoadedCustomerDeliveryAuthority extends
   CanonicalProfessionalLongFormCurrentCustomerDeliveryAuthority {
@@ -188,6 +237,22 @@ interface CompletedH264QaEvidence {
   reconciliationRef: AuthorityJsonBlobRef
   costEvidence: PrivateInternalAttemptCostEvidence
   terminal: ProfessionalLongFormDeliveryH264QaTerminal
+  terminalRef: AuthorityJsonBlobRef
+  queueAggregate: CanonicalPrivatePackageWorkQueueAggregate
+}
+
+interface CompletedDeliveryMuxEvidence {
+  authority: ProfessionalLongFormDeliveryMuxAuthority
+  authorityRef: AuthorityJsonBlobRef
+  authorization: ProfessionalLongFormDeliveryMuxAuthorization
+  executionAttempt: ProfessionalLongFormDeliveryMuxAttempt
+  outputArtifact: ProfessionalLongFormDeliveryMuxArtifactRef
+  runtimeEvidence: ProfessionalLongFormDeliveryMuxRuntimeEvidence
+  runtimeEvidenceRef: AuthorityJsonBlobRef
+  reconciliation: ProfessionalLongFormDeliveryMuxReconciliation
+  reconciliationRef: AuthorityJsonBlobRef
+  costEvidence: PrivateInternalAttemptCostEvidence
+  terminal: ProfessionalLongFormDeliveryMuxTerminal
   terminalRef: AuthorityJsonBlobRef
   queueAggregate: CanonicalPrivatePackageWorkQueueAggregate
 }
@@ -291,6 +356,50 @@ export interface CanonicalProfessionalLongFormCustomerDeliveryH264SeriesExecutio
     everyIndependentQaAttemptInternalCostVerified: true
     allMuxDependenciesSatisfied: true
     muxExecutionAuthorized: false
+    secondExportEstimateCreated: false
+    secondExportChargeCreated: false
+    customerBillingAuthorized: false
+    walletMutationAuthorized: false
+    providerActivationAuthorized: false
+    distributedDatabaseVerified: false
+    liveGoogleCloudVerified: false
+    publicDeliveryAuthorized: false
+    productReady: false
+    productionReady: false
+  }
+  evidenceHash: string
+}
+
+export interface CanonicalProfessionalLongFormCustomerDeliveryMuxExecutionEvidence {
+  schemaVersion:
+    typeof CANONICAL_PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_MUX_EXECUTION_VERSION
+  source:
+    'canonical_professional_long_form_customer_delivery_execution_service'
+  status:
+    'private_h264_aac_customer_delivery_master_completed_decoded_qa_and_download_blocked'
+  disposition: 'completed' | 'exact_replay'
+  prerequisiteSeriesDependencySetHash: string
+  mux: Omit<CompletedDeliveryMuxEvidence, 'queueAggregate'>
+  queueAggregate: CanonicalPrivatePackageWorkQueueAggregate
+  readiness: {
+    approvedSnapshotAndOriginalReservationReopened: true
+    deliveryChunkCount: number
+    everyH264AndIndependentQaCompletionReopened: true
+    muxLeaseAndOneUseDispatchVerified: true
+    muxHeartbeatAndBoundedLeaseVerified: true
+    exactPinnedFfmpegRuntimeVerified: true
+    orderedH264VideoStreamCopyVerified: true
+    completeProgramVideoReencoded: false
+    exactContinuousFlacEncodedToAacOnce: true
+    aacBitrate: 192000
+    aacSampleRate: 48000
+    aacChannels: 2
+    frontLoadedMp4InitializationVerified: true
+    exactPrivateCreateOnlyMp4Persisted: true
+    muxAttemptInternalCostVerified: true
+    decodedVideoQaVerified: false
+    decodedAudioQaVerified: false
+    privateDownloadVerified: false
     secondExportEstimateCreated: false
     secondExportChargeCreated: false
     customerBillingAuthorized: false
@@ -692,6 +801,121 @@ export function createCanonicalProfessionalLongFormCustomerDeliveryExecutionServ
       return {
         ...stablePayload,
         disposition: newlyExecuted ? 'completed' : 'exact_replay',
+        evidenceHash: sha256AuthorityValue(stablePayload),
+      }
+    },
+
+    async executePrivateH264AacMasterMux(input: {
+      workspaceId: string
+      approvedPlanSnapshotId: string
+    }): Promise<CanonicalProfessionalLongFormCustomerDeliveryMuxExecutionEvidence> {
+      assertExactInput(input)
+      const ownerUserId = requireOwner(context)
+      let current = await loadCurrent(context, input)
+      let entry = deliveryMuxEntry(current)
+      if (entry.state === 'leased') {
+        throw inProgress('Customer-delivery master mux already has an active lease.')
+      }
+      if (entry.state !== 'completed') {
+        await createCanonicalProfessionalLongFormCustomerDeliveryExecutionService(
+          context,
+        ).executeAllH264ChunksAndIndependentQa(input)
+        current = await loadCurrent(context, input)
+        entry = deliveryMuxEntry(current)
+        if (entry.state === 'leased') {
+          throw inProgress(
+            'Customer-delivery master mux already has an active lease.',
+          )
+        }
+      }
+      const replayingCompletedMux = entry.state === 'completed'
+      const runtimeAuthority = await requiredCustomerDeliveryMuxRuntimeAuthority()
+      const dependencies = await loadDeliveryMuxDependencies({
+        context,
+        current,
+      })
+      const mux = entry.state === 'completed'
+        ? await loadCompletedDeliveryMux({
+            context,
+            current,
+            ownerUserId,
+            runtimeAuthority,
+            dependencies,
+          })
+        : await executeDeliveryMux({
+            context,
+            current,
+            ownerUserId,
+            runtimeAuthority,
+            dependencies,
+          })
+      const aggregate = mux.queueAggregate
+      const chunkCount = current.package.outputContract.chunkCount
+      const expectedCompletedJobCount = chunkCount * 2 + 2
+      if (
+        aggregate.summary.completedJobCount !== expectedCompletedJobCount ||
+        aggregate.summary.queuedJobCount !== 3 ||
+        aggregate.summary.leasedJobCount !== 0 ||
+        aggregate.entries.slice(0, expectedCompletedJobCount).some((candidate) =>
+          candidate.state !== 'completed' ||
+          candidate.deliveryAttemptCount !== 1 ||
+          !candidate.professionalLongFormExecutionAuthorization ||
+          !candidate.professionalLongFormExecutionAttempt ||
+          !candidate.completion) ||
+        aggregate.entries.slice(expectedCompletedJobCount).some((candidate) =>
+          candidate.state !== 'queued' || candidate.deliveryAttemptCount !== 0 ||
+          candidate.professionalLongFormExecutionAuthorization ||
+          candidate.professionalLongFormExecutionAttempt || candidate.completion)
+      ) throw invalid(
+        'Customer-delivery mux did not leave exactly decoded video QA, decoded audio QA, and private download separately gated.',
+      )
+      const stablePayload = {
+        schemaVersion:
+          CANONICAL_PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_MUX_EXECUTION_VERSION,
+        source:
+          'canonical_professional_long_form_customer_delivery_execution_service' as const,
+        status:
+          'private_h264_aac_customer_delivery_master_completed_decoded_qa_and_download_blocked' as const,
+        prerequisiteSeriesDependencySetHash:
+          mux.authority.lineage.dependencySetHash,
+        mux: withoutAggregate(mux),
+        queueAggregate: aggregate,
+        readiness: {
+          approvedSnapshotAndOriginalReservationReopened: true as const,
+          deliveryChunkCount: chunkCount,
+          everyH264AndIndependentQaCompletionReopened: true as const,
+          muxLeaseAndOneUseDispatchVerified: true as const,
+          muxHeartbeatAndBoundedLeaseVerified: true as const,
+          exactPinnedFfmpegRuntimeVerified: true as const,
+          orderedH264VideoStreamCopyVerified: true as const,
+          completeProgramVideoReencoded: false as const,
+          exactContinuousFlacEncodedToAacOnce: true as const,
+          aacBitrate: 192_000 as const,
+          aacSampleRate: 48_000 as const,
+          aacChannels: 2 as const,
+          frontLoadedMp4InitializationVerified: true as const,
+          exactPrivateCreateOnlyMp4Persisted: true as const,
+          muxAttemptInternalCostVerified: true as const,
+          decodedVideoQaVerified: false as const,
+          decodedAudioQaVerified: false as const,
+          privateDownloadVerified: false as const,
+          secondExportEstimateCreated: false as const,
+          secondExportChargeCreated: false as const,
+          customerBillingAuthorized: false as const,
+          walletMutationAuthorized: false as const,
+          providerActivationAuthorized: false as const,
+          distributedDatabaseVerified: false as const,
+          liveGoogleCloudVerified: false as const,
+          publicDeliveryAuthorized: false as const,
+          productReady: false as const,
+          productionReady: false as const,
+        },
+      }
+      return {
+        ...stablePayload,
+        disposition: replayingCompletedMux
+          ? 'exact_replay'
+          : 'completed',
         evidenceHash: sha256AuthorityValue(stablePayload),
       }
     },
@@ -1504,6 +1728,545 @@ async function executeH264Qa(input: {
   }
 }
 
+async function executeDeliveryMux(input: {
+  context: ServiceContext
+  current: LoadedCustomerDeliveryAuthority
+  ownerUserId: string
+  runtimeAuthority: OfflineMediaBinaryRuntimeAuthority
+  dependencies: ProfessionalLongFormDeliveryMuxDependencyEvidence
+}): Promise<CompletedDeliveryMuxEvidence> {
+  const authority = buildProfessionalLongFormDeliveryMuxAuthority(input)
+  assertUnexpired(authority.approval.reservationExpiresAt)
+  const authorityRef = await persistAuthority({
+    context: input.context,
+    authority,
+    verify: (value) => assertProfessionalLongFormDeliveryMuxAuthority({
+      value,
+      ownerUserId: input.ownerUserId,
+      current: input.current,
+      dependencies: input.dependencies,
+      runtimeAuthority: input.runtimeAuthority,
+    }),
+  })
+  const authorization = buildProfessionalLongFormDeliveryMuxAuthorization({
+    authority,
+    authorityRef,
+  })
+  await authorizePrivateCanonicalPackageWorkQueueJob({
+    scope: input.current.scope,
+    definition: input.current.queueDefinition,
+    jobId: authority.identity.jobId,
+    authorization,
+    executionAuthority: authority,
+    now: new Date().toISOString(),
+  })
+  const claim = await claimPrivateCanonicalPackageWorkQueueJob({
+    scope: input.current.scope,
+    definition: input.current.queueDefinition,
+    jobId: authority.identity.jobId,
+    workerIdentity: 'canonical-professional-long-form-delivery-mux-v1',
+    workerType: 'render_worker',
+    now: new Date().toISOString(),
+    leaseDurationMs: authority.operation.leaseDurationMilliseconds,
+  })
+  if (claim.disposition !== 'claimed') {
+    throw inProgress(`Customer-delivery mux claim remained ${claim.disposition}.`)
+  }
+  const begun = await beginPrivateCanonicalPackageWorkQueueExecutionAttempt({
+    scope: input.current.scope,
+    definition: input.current.queueDefinition,
+    jobId: authority.identity.jobId,
+    claimId: claim.entry.activeClaim.claimId,
+    claimCredential: claim.claimCredential,
+    now: new Date().toISOString(),
+  })
+  const executionAttempt = professionalLongFormDeliveryMuxAttemptSchema.parse(
+    begun.executionAttempt,
+  )
+  const heartbeat = startDeliveryMuxHeartbeat({
+    current: input.current,
+    jobId: authority.identity.jobId,
+    claimId: claim.entry.activeClaim.claimId,
+    claimCredential: claim.claimCredential,
+    leaseDurationMs: authority.operation.leaseDurationMilliseconds,
+    intervalMs: authority.operation.heartbeatIntervalMilliseconds,
+  })
+  await heartbeat.tick()
+  const heartbeatCurrent = await loadCurrent(input.context, {
+    workspaceId: authority.identity.workspaceId,
+    approvedPlanSnapshotId: authority.identity.approvedPlanSnapshotId,
+  })
+  const heartbeatClaim = deliveryMuxEntry(heartbeatCurrent).activeClaim
+  if (
+    !heartbeatClaim || heartbeatClaim.claimId !== executionAttempt.claimId ||
+    heartbeatClaim.deliveryAttempt !== 1 || heartbeatClaim.heartbeatCount < 1 ||
+    heartbeatClaim.claimHash === executionAttempt.claimHash
+  ) throw invalid('Customer-delivery mux heartbeat was not durably observed.')
+  const queueLeaseEvidence = {
+    claimId: heartbeatClaim.claimId,
+    deliveryAttempt: 1 as const,
+    initialClaimHash: executionAttempt.claimHash,
+    heartbeatClaimHash: heartbeatClaim.claimHash,
+    heartbeatCount: heartbeatClaim.heartbeatCount,
+    heartbeatAt: heartbeatClaim.heartbeatAt,
+    expiresAt: heartbeatClaim.expiresAt,
+    attemptDeadlineAt: heartbeatClaim.attemptDeadlineAt,
+    boundedLeaseRenewalObserved: true as const,
+  }
+  let costMeter: Awaited<ReturnType<
+    typeof beginPrivateInternalAttemptCostEvidence
+  >> | undefined
+  let costFinalized = false
+  let heartbeatStopped = false
+  try {
+    costMeter = await beginPrivateInternalAttemptCostEvidence({
+      ...costIdentity(input.context, authority, executionAttempt),
+      toolId: 'ffmpeg',
+      operationId: PROFESSIONAL_LONG_FORM_DELIVERY_MUX_OPERATION_ID,
+      workloadProfileId: PROFESSIONAL_LONG_FORM_DELIVERY_MUX_COST_PROFILE_ID,
+    })
+    const inspected = await inspectApprovedDeliveryMuxInputs({
+      context: input.context,
+      authority,
+    })
+    const request = buildDeliveryMuxRuntimeRequest({ authority, inspected })
+    const runtime = await openPrivateOfflineMediaBinaryRuntime()
+    let sinkReplayed = false
+    const result = await runtime.executeCustomerDeliveryMuxServerInjected(
+      request,
+      {
+        chunks: authority.approvedMuxPlan.chunks.map((chunk) => {
+          const stored = inspected.chunks.get(chunk.chunkIndex)!
+          return {
+            inputMode: 'private_verified_stream_v1' as const,
+            byteLength: stored.byteLength,
+            sha256: stored.sha256,
+            openStream: stored.openStream,
+          }
+        }),
+        programAudio: {
+          inputMode: 'private_verified_stream_v1' as const,
+          byteLength: inspected.programAudio.byteLength,
+          sha256: inspected.programAudio.sha256,
+          openStream: inspected.programAudio.openStream,
+        },
+      },
+      {
+        maximumBytes:
+          OFFLINE_MEDIA_BINARY_CUSTOMER_DELIVERY_MUX_MAXIMUM_OUTPUT_BYTES,
+        async persist(value) {
+          if (value.mimeType !== 'video/mp4') {
+            throw invalid('Customer-delivery mux returned an unsupported format.')
+          }
+          const persisted =
+            await persistCanonicalPrivateCustomerDeliveryArtifactStream({
+              localStorageRoot: input.context.env.localStorageRoot,
+              privateObjectIdentityHash:
+                authority.approvedMuxPlan.privateObjectIdentityHash,
+              stream: value.stream,
+              expectedByteLength: value.expectedByteLength,
+              expectedSha256: value.expectedSha256,
+            })
+          sinkReplayed = persisted.replayed
+          return {
+            byteLength: persisted.byteLength,
+            sha256: persisted.sha256,
+          }
+        },
+      },
+    )
+    if (sinkReplayed) {
+      throw invalid(
+        'An orphan customer-delivery MP4 cannot grant execution authority.',
+      )
+    }
+    const requestHash = offlineMediaBinaryCustomerDeliveryMuxRequestSha256(
+      request,
+    )
+    assertDeliveryMuxRuntimeResult({ authority, requestHash, result })
+    const stored = await inspectCanonicalPrivateCustomerDeliveryArtifact({
+      localStorageRoot: input.context.env.localStorageRoot,
+      privateObjectIdentityHash:
+        authority.approvedMuxPlan.privateObjectIdentityHash,
+    })
+    if (
+      !stored || stored.mediaFormat !== 'mp4' ||
+      stored.byteLength !== result.resultArtifact.byteLength ||
+      stored.sha256 !== result.resultArtifact.sha256
+    ) throw invalid(
+      'Customer-delivery MP4 changed after create-only persistence.',
+    )
+    const outputArtifact = buildProfessionalLongFormDeliveryMuxArtifactRef({
+      authority,
+      byteLength: stored.byteLength,
+      sha256: stored.sha256,
+    })
+    const outputProbe = requiredRecord(
+      result.evidence.semanticEvidence.outputProbe,
+      'Customer-delivery mux output probe is missing.',
+    )
+    const outputProbeRef = await persistExactJson({
+      context: input.context,
+      value: outputProbe,
+      parse: (value) => requiredRecord(
+        value,
+        'Persisted customer-delivery mux output probe is invalid.',
+      ),
+    })
+    const frontLoadedInitialization = requiredRecord(
+      result.evidence.semanticEvidence.frontLoadedInitialization,
+      'Customer-delivery front-loaded initialization evidence is missing.',
+    )
+    const frontLoadedInitializationRef = await persistExactJson({
+      context: input.context,
+      value: frontLoadedInitialization,
+      parse: (value) => requiredRecord(
+        value,
+        'Persisted customer-delivery initialization evidence is invalid.',
+      ),
+    })
+    const runtimeEvidence = buildProfessionalLongFormDeliveryMuxRuntimeEvidence({
+      authority,
+      authorization,
+      executionAttempt,
+      queueLeaseEvidence,
+      requestEnvelopeSha256: result.evidence.requestEnvelopeSha256,
+      chunkSha256s: [...result.evidence.chunkSha256s],
+      programAudioSha256: result.evidence.programAudioSha256,
+      outputArtifact,
+      outputProbeRef,
+      outputProbeHash: sha256AuthorityValue(outputProbe),
+      frontLoadedInitializationRef,
+      frontLoadedInitializationHash:
+        sha256AuthorityValue(frontLoadedInitialization),
+      confinementEvidenceHash:
+        sha256AuthorityValue(result.evidence.confinement),
+      imageIdentityHash: result.image.imageIdentityHash,
+      attestationRecordId: result.attestation.recordId,
+      attestationHash: result.attestation.attestationHash,
+      completedAt: result.attestation.completedAt,
+    })
+    const runtimeEvidenceRef = await persistExactJson({
+      context: input.context,
+      value: runtimeEvidence,
+      parse: (value) =>
+        professionalLongFormDeliveryMuxRuntimeEvidenceSchema.parse(value),
+    })
+    const latestLeased = await loadCurrent(input.context, {
+      workspaceId: authority.identity.workspaceId,
+      approvedPlanSnapshotId: authority.identity.approvedPlanSnapshotId,
+    })
+    const reconciliation = buildProfessionalLongFormDeliveryMuxReconciliation({
+      current: latestLeased,
+      authority,
+      executionAttempt,
+      outputArtifact,
+      runtimeEvidenceRef,
+      reconciledAt: new Date().toISOString(),
+    })
+    const reconciliationRef = await persistExactJson({
+      context: input.context,
+      value: reconciliation,
+      parse: (value) =>
+        professionalLongFormDeliveryMuxReconciliationSchema.parse(value),
+    })
+    const canonicalResultHash = professionalLongFormDeliveryMuxResultHash({
+      authority,
+      executionAttempt,
+      outputArtifact,
+      runtimeEvidenceRef,
+      reconciliationEvidenceRef: reconciliationRef,
+    })
+    const finalizedCost = await costMeter.finalize({
+      status: 'completed',
+      failureCategory: 'none',
+      outputByteLength: outputArtifact.byteLength,
+      linkedCanonicalOutcomeHash: canonicalResultHash,
+    })
+    costFinalized = true
+    assertCostEvidence({
+      evidence: finalizedCost.evidence,
+      authority,
+      executionAttempt,
+      canonicalResultHash,
+      toolId: 'ffmpeg',
+      operationId: PROFESSIONAL_LONG_FORM_DELIVERY_MUX_OPERATION_ID,
+      workloadProfileId: PROFESSIONAL_LONG_FORM_DELIVERY_MUX_COST_PROFILE_ID,
+      vcpuCount: 4,
+      memoryGib: 8,
+    })
+    await heartbeat.stop()
+    heartbeatStopped = true
+    const terminal = buildProfessionalLongFormDeliveryMuxTerminal({
+      authority,
+      authorization,
+      executionAttempt,
+      outputArtifact,
+      runtimeEvidenceRef,
+      reconciliationEvidenceRef: reconciliationRef,
+      canonicalResultHash,
+      attemptInternalCostEvidenceHash: finalizedCost.evidence.evidenceHash,
+      completedAt: new Date().toISOString(),
+    })
+    const terminalRef = await persistExactJson({
+      context: input.context,
+      value: terminal,
+      parse: (value) =>
+        professionalLongFormDeliveryMuxTerminalSchema.parse(value),
+    })
+    const completion = buildProfessionalLongFormDeliveryMuxCompletion({
+      authority,
+      authorization,
+      executionAttempt,
+      outputArtifact,
+      runtimeEvidenceRef,
+      reconciliationEvidenceRef: reconciliationRef,
+      terminalEvidenceRef: terminalRef,
+      canonicalResultHash,
+      attemptInternalCostEvidenceHash: finalizedCost.evidence.evidenceHash,
+    })
+    const definition = claim.entry.definition
+    const aggregate = await completePrivateCanonicalPackageWorkQueueClaim({
+      scope: input.current.scope,
+      definition: input.current.queueDefinition,
+      jobId: authority.identity.jobId,
+      claimId: claim.entry.activeClaim.claimId,
+      claimCredential: claim.claimCredential,
+      outcome: {
+        jobId: definition.jobId,
+        approvedWorkItemId: definition.approvedWorkItemId,
+        workItemKey: definition.workItemKey,
+        required: definition.required,
+        dependencyJobIds: [...definition.dependencyJobIds],
+        status: 'completed_private_test',
+        artifactId: outputArtifact.objectIdentity,
+        contentType: outputArtifact.contentType,
+        sha256: outputArtifact.sha256,
+        adapterReplayed: false,
+        blockedDependencyJobIds: [],
+        professionalLongFormExecution: completion,
+      },
+      now: new Date().toISOString(),
+    })
+    return {
+      authority,
+      authorityRef,
+      authorization,
+      executionAttempt,
+      outputArtifact,
+      runtimeEvidence,
+      runtimeEvidenceRef,
+      reconciliation,
+      reconciliationRef,
+      costEvidence: finalizedCost.evidence,
+      terminal,
+      terminalRef,
+      queueAggregate: aggregate,
+    }
+  } catch (error) {
+    if (!heartbeatStopped) await heartbeat.stop().catch(() => undefined)
+    if (costMeter && !costFinalized) {
+      await costMeter.finalize({
+        status: 'failed',
+        failureCategory: classifyPrivateInternalAttemptCostFailure(error),
+        outputByteLength: null,
+        linkedCanonicalOutcomeHash: null,
+      }).catch(() => undefined)
+    }
+    throw error
+  }
+}
+
+async function loadCompletedDeliveryMux(input: {
+  context: ServiceContext
+  current: LoadedCustomerDeliveryAuthority
+  ownerUserId: string
+  runtimeAuthority: OfflineMediaBinaryRuntimeAuthority
+  dependencies: ProfessionalLongFormDeliveryMuxDependencyEvidence
+}): Promise<CompletedDeliveryMuxEvidence> {
+  const authority = buildProfessionalLongFormDeliveryMuxAuthority(input)
+  const entry = deliveryMuxEntry(input.current)
+  if (!entry.completion) {
+    throw invalid('Completed customer-delivery mux entry is missing.')
+  }
+  const authorityRef = requiredStoredAuthorityRef(entry, authority)
+  const persisted = await readPrivateAuthorityJsonBlob({
+    localStorageRoot: input.context.env.localStorageRoot,
+    ref: authorityRef,
+  })
+  assertProfessionalLongFormDeliveryMuxAuthority({
+    value: persisted,
+    ownerUserId: input.ownerUserId,
+    current: input.current,
+    dependencies: input.dependencies,
+    runtimeAuthority: input.runtimeAuthority,
+  })
+  const authorization = buildProfessionalLongFormDeliveryMuxAuthorization({
+    authority,
+    authorityRef,
+  })
+  assertExact(
+    entry.professionalLongFormExecutionAuthorization,
+    authorization,
+    'Stored customer-delivery mux authorization changed.',
+  )
+  const executionAttempt = professionalLongFormDeliveryMuxAttemptSchema.parse(
+    entry.professionalLongFormExecutionAttempt,
+  )
+  const completion = professionalLongFormDeliveryMuxCompletionSchema.parse(
+    entry.completion.outcome.professionalLongFormExecution,
+  )
+  const inspected = await inspectApprovedDeliveryMuxInputs({
+    context: input.context,
+    authority,
+  })
+  const stored = await inspectCanonicalPrivateCustomerDeliveryArtifact({
+    localStorageRoot: input.context.env.localStorageRoot,
+    privateObjectIdentityHash: completion.outputArtifact.objectIdentity,
+  })
+  if (
+    !stored || stored.mediaFormat !== 'mp4' ||
+    stored.byteLength !== completion.outputArtifact.byteLength ||
+    stored.sha256 !== completion.outputArtifact.sha256 ||
+    entry.completion.outcome.sha256 !== completion.outputArtifact.sha256
+  ) throw invalid('Stored customer-delivery MP4 changed.')
+  const runtimeEvidence = await readParsedJson({
+    context: input.context,
+    ref: completion.runtimeEvidenceRef,
+    parse: (value) =>
+      professionalLongFormDeliveryMuxRuntimeEvidenceSchema.parse(value),
+  })
+  assertHashed(runtimeEvidence, 'evidenceHash')
+  const outputProbe = await readParsedJson({
+    context: input.context,
+    ref: runtimeEvidence.outputProbeRef,
+    parse: (value) => requiredRecord(
+      value,
+      'Stored customer-delivery output probe is invalid.',
+    ),
+  })
+  const frontLoadedInitialization = await readParsedJson({
+    context: input.context,
+    ref: runtimeEvidence.frontLoadedInitializationRef,
+    parse: (value) => requiredRecord(
+      value,
+      'Stored customer-delivery initialization evidence is invalid.',
+    ),
+  })
+  const request = buildDeliveryMuxRuntimeRequest({ authority, inspected })
+  const expectedRuntime = buildProfessionalLongFormDeliveryMuxRuntimeEvidence({
+    authority,
+    authorization,
+    executionAttempt,
+    queueLeaseEvidence: runtimeEvidence.queueLeaseEvidence,
+    requestEnvelopeSha256:
+      offlineMediaBinaryCustomerDeliveryMuxRequestSha256(request),
+    chunkSha256s: authority.approvedMuxPlan.chunks.map((chunk) =>
+      chunk.artifact.sha256),
+    programAudioSha256: authority.approvedMuxPlan.programAudio.artifact.sha256,
+    outputArtifact: completion.outputArtifact,
+    outputProbeRef: runtimeEvidence.outputProbeRef,
+    outputProbeHash: sha256AuthorityValue(outputProbe),
+    frontLoadedInitializationRef:
+      runtimeEvidence.frontLoadedInitializationRef,
+    frontLoadedInitializationHash:
+      sha256AuthorityValue(frontLoadedInitialization),
+    confinementEvidenceHash: runtimeEvidence.confinementEvidenceHash,
+    imageIdentityHash: authority.lineage.mediaBinaryImageIdentityHash,
+    attestationRecordId: runtimeEvidence.runtime.attestationRecordId,
+    attestationHash: runtimeEvidence.runtime.attestationHash,
+    completedAt: runtimeEvidence.completedAt,
+  })
+  assertExact(
+    runtimeEvidence,
+    expectedRuntime,
+    'Stored customer-delivery mux runtime evidence changed.',
+  )
+  const reconciliation = await readParsedJson({
+    context: input.context,
+    ref: completion.reconciliationEvidenceRef,
+    parse: (value) =>
+      professionalLongFormDeliveryMuxReconciliationSchema.parse(value),
+  })
+  const expectedReconciliation =
+    buildProfessionalLongFormDeliveryMuxReconciliation({
+      current: input.current,
+      authority,
+      executionAttempt,
+      outputArtifact: completion.outputArtifact,
+      runtimeEvidenceRef: completion.runtimeEvidenceRef,
+      reconciledAt: reconciliation.reconciledAt,
+      allowCompletedMux: true,
+    })
+  assertExact(
+    reconciliation,
+    expectedReconciliation,
+    'Stored customer-delivery mux reconciliation changed.',
+  )
+  const canonicalResultHash = professionalLongFormDeliveryMuxResultHash({
+    authority,
+    executionAttempt,
+    outputArtifact: completion.outputArtifact,
+    runtimeEvidenceRef: completion.runtimeEvidenceRef,
+    reconciliationEvidenceRef: completion.reconciliationEvidenceRef,
+  })
+  const costEvidence = await requiredCostEvidence({
+    context: input.context,
+    authority,
+    executionAttempt,
+    canonicalResultHash,
+    expectedHash: completion.attemptInternalCostEvidenceHash,
+    toolId: 'ffmpeg',
+    operationId: PROFESSIONAL_LONG_FORM_DELIVERY_MUX_OPERATION_ID,
+    workloadProfileId: PROFESSIONAL_LONG_FORM_DELIVERY_MUX_COST_PROFILE_ID,
+    vcpuCount: 4,
+    memoryGib: 8,
+  })
+  const terminal = await readParsedJson({
+    context: input.context,
+    ref: completion.terminalEvidenceRef,
+    parse: (value) =>
+      professionalLongFormDeliveryMuxTerminalSchema.parse(value),
+  })
+  const expectedTerminal = buildProfessionalLongFormDeliveryMuxTerminal({
+    authority,
+    authorization,
+    executionAttempt,
+    outputArtifact: completion.outputArtifact,
+    runtimeEvidenceRef: completion.runtimeEvidenceRef,
+    reconciliationEvidenceRef: completion.reconciliationEvidenceRef,
+    canonicalResultHash,
+    attemptInternalCostEvidenceHash: costEvidence.evidenceHash,
+    completedAt: terminal.completedAt,
+  })
+  assertExact(
+    terminal,
+    expectedTerminal,
+    'Stored customer-delivery mux terminal changed.',
+  )
+  if (
+    completion.canonicalResultHash !== canonicalResultHash ||
+    entry.deliveryAttemptCount !== 1 ||
+    entry.completion.outcome.artifactId !==
+      completion.outputArtifact.objectIdentity
+  ) throw invalid('Stored customer-delivery mux queue completion changed.')
+  return {
+    authority,
+    authorityRef,
+    authorization,
+    executionAttempt,
+    outputArtifact: completion.outputArtifact,
+    runtimeEvidence,
+    runtimeEvidenceRef: completion.runtimeEvidenceRef,
+    reconciliation,
+    reconciliationRef: completion.reconciliationEvidenceRef,
+    costEvidence,
+    terminal,
+    terminalRef: completion.terminalEvidenceRef,
+    queueAggregate: input.current.queueAggregate,
+  }
+}
+
 async function loadCompletedRoot(input: {
   context: ServiceContext
   current: LoadedCustomerDeliveryAuthority
@@ -1915,6 +2678,305 @@ async function loadCompletedH264Qa(input: {
   }
 }
 
+async function loadDeliveryMuxDependencies(input: {
+  context: ServiceContext
+  current: LoadedCustomerDeliveryAuthority
+}): Promise<ProfessionalLongFormDeliveryMuxDependencyEvidence> {
+  const chunkQa: ProfessionalLongFormDeliveryMuxDependencyEvidence[
+    'chunkQa'
+  ] = []
+  const chunks = [...input.current.package.sourceReview.chunks]
+    .sort((left, right) => left.chunkIndex - right.chunkIndex)
+  for (const chunk of chunks) {
+    const entry = input.current.queueAggregate.entries.find((candidate) =>
+      candidate.definition.canonicalOrder === chunk.chunkIndex * 2)
+    if (!entry?.completion || entry.state !== 'completed') {
+      throw inProgress(
+        `Customer-delivery mux remains blocked by H.264 QA ${chunk.chunkIndex}.`,
+      )
+    }
+    const completion = professionalLongFormDeliveryH264QaCompletionSchema.parse(
+      entry.completion.outcome.professionalLongFormExecution,
+    )
+    const qaArtifact = await readParsedJson({
+      context: input.context,
+      ref: completion.validationArtifactRef,
+      parse: (value) =>
+        professionalLongFormDeliveryH264QaArtifactSchema.parse(value),
+    })
+    chunkQa.push({
+      chunkId: chunk.chunkId,
+      qaArtifactRef: completion.validationArtifactRef,
+      qaArtifact,
+    })
+  }
+  const programAudioQaArtifactRef =
+    input.current.package.sourceReview.continuousProgramAudio.sourceQaArtifactRef
+  const programAudioQaArtifact = await readParsedJson({
+    context: input.context,
+    ref: programAudioQaArtifactRef,
+    parse: (value) =>
+      professionalLongFormContinuousProgramAudioQaArtifactSchema.parse(value),
+  })
+  return {
+    chunkQa,
+    programAudioQaArtifactRef,
+    programAudioQaArtifact,
+  }
+}
+
+async function inspectApprovedDeliveryMuxInputs(input: {
+  context: ServiceContext
+  authority: ProfessionalLongFormDeliveryMuxAuthority
+}): Promise<{
+  chunks: Map<number, CanonicalPrivateRemotionArtifactInspection>
+  programAudio: CanonicalPrivateProgramAudioArtifactInspection
+}> {
+  const chunks = new Map<number, CanonicalPrivateRemotionArtifactInspection>()
+  for (const chunk of input.authority.approvedMuxPlan.chunks) {
+    const stored =
+      await inspectCanonicalPrivateRemotionDeliveryH264ChunkArtifact({
+        localStorageRoot: input.context.env.localStorageRoot,
+        privateObjectIdentityHash: chunk.artifact.objectIdentity,
+      })
+    if (
+      !stored || stored.byteLength !== chunk.artifact.byteLength ||
+      stored.sha256 !== chunk.artifact.sha256
+    ) throw invalid(
+      `Customer-delivery H.264 chunk ${chunk.chunkIndex} changed after QA.`,
+    )
+    chunks.set(chunk.chunkIndex, stored)
+  }
+  const audio = input.authority.approvedMuxPlan.programAudio.artifact
+  const programAudio = await inspectCanonicalPrivateProgramAudioArtifact({
+    localStorageRoot: input.context.env.localStorageRoot,
+    privateObjectIdentityHash: audio.objectIdentity,
+  })
+  if (
+    !programAudio || programAudio.byteLength !== audio.byteLength ||
+    programAudio.sha256 !== audio.sha256
+  ) throw invalid('Customer-delivery program audio changed after QA.')
+  return { chunks, programAudio }
+}
+
+function buildDeliveryMuxRuntimeRequest(input: {
+  authority: ProfessionalLongFormDeliveryMuxAuthority
+  inspected: {
+    chunks: Map<number, CanonicalPrivateRemotionArtifactInspection>
+    programAudio: CanonicalPrivateProgramAudioArtifactInspection
+  }
+}) {
+  const plan = input.authority.approvedMuxPlan
+  return buildOfflineMediaBinaryCustomerDeliveryMuxRequest({
+    planningPayload: {
+      recipeProfileId: OFFLINE_MEDIA_BINARY_CUSTOMER_DELIVERY_MUX_RECIPE,
+      muxAuthorityHash: plan.muxAuthorityHash,
+      expectedObjectIdentity: plan.privateObjectIdentityHash,
+      width: plan.width,
+      height: plan.height,
+      fps: 30,
+      totalFrames: plan.totalFrames,
+      chunks: plan.chunks.map((chunk) => ({
+        chunkId: chunk.chunkId,
+        chunkIndex: chunk.chunkIndex,
+        chunkCount: chunk.chunkCount,
+        globalStartFrame: chunk.globalStartFrame,
+        globalEndFrameExclusive: chunk.globalEndFrameExclusive,
+        durationFrames: chunk.durationFrames,
+        objectIdentity: chunk.artifact.objectIdentity,
+        independentQaHash: chunk.qaArtifactHash,
+      })),
+      continuousProgramAudioObjectIdentity:
+        plan.programAudio.artifact.objectIdentity,
+      continuousProgramAudioQaHash: plan.programAudio.sourceQaArtifactHash,
+      videoAssemblyPolicy:
+        'ordered_compatible_h264_chunk_stream_copy_v1',
+      audioAssemblyPolicy:
+        'encode_exact_continuous_flac_program_audio_to_aac_once_v1',
+      timestampPolicy:
+        'normalize_from_zero_preserve_frame_and_sample_time_v1',
+      compatibilityPolicy:
+        'exact_h264_high_yuv420p_bt709_4k_30fps_and_flac_48k_stereo_v1',
+      outputContainer: 'mp4',
+      outputVideoCodec: 'copy_h264',
+      outputAudioCodec: 'aac_lc',
+      outputAudioBitrate: 192_000,
+      outputAudioSampleRate: 48_000,
+      outputAudioChannels: 2,
+      frontLoadedInitializationMetadataRequired: true,
+      fullProgramVideoReencodeAllowed: false,
+      audioEncodeCount: 1,
+      usesApprovedEditReservation: true,
+      requiresSeparateExportEstimate: false,
+      allowsAdditionalExportCharge: false,
+      renderPurpose: 'private_4k_customer_delivery_master_v1',
+    },
+    chunks: plan.chunks.map((chunk) => {
+      const stored = input.inspected.chunks.get(chunk.chunkIndex)!
+      return {
+        inputId: `approved-customer-delivery-h264-${chunk.chunkIndex}`,
+        chunkId: chunk.chunkId,
+        chunkIndex: chunk.chunkIndex,
+        objectIdentity: chunk.artifact.objectIdentity,
+        mimeType: 'video/mp4' as const,
+        byteLength: stored.byteLength,
+        sha256: stored.sha256,
+      }
+    }),
+    programAudio: {
+      inputId: 'approved-customer-delivery-program-audio',
+      objectIdentity: plan.programAudio.artifact.objectIdentity,
+      mimeType: 'audio/flac',
+      byteLength: input.inspected.programAudio.byteLength,
+      sha256: input.inspected.programAudio.sha256,
+    },
+  })
+}
+
+function assertDeliveryMuxRuntimeResult(input: {
+  authority: ProfessionalLongFormDeliveryMuxAuthority
+  requestHash: string
+  result: OfflineFfmpegCustomerDeliveryMuxExecutionResult
+}): void {
+  const plan = input.authority.approvedMuxPlan
+  const result = input.result
+  const semantic = result.evidence.semanticEvidence
+  const confinement = result.evidence.confinement
+  if (
+    result.resultArtifact.mimeType !== 'video/mp4' ||
+    result.resultArtifact.outputMode !== 'server_committed_private_stream_v1' ||
+    result.evidence.toolId !== 'ffmpeg' ||
+    result.evidence.operationId !==
+      PROFESSIONAL_LONG_FORM_DELIVERY_MUX_OPERATION_ID ||
+    result.evidence.requestEnvelopeSha256 !== input.requestHash ||
+    stableAuthorityStringify(result.evidence.chunkSha256s) !==
+      stableAuthorityStringify(
+        plan.chunks.map((chunk) => chunk.artifact.sha256),
+      ) ||
+    result.evidence.programAudioSha256 !== plan.programAudio.artifact.sha256 ||
+    result.evidence.resultSha256 !== result.resultArtifact.sha256 ||
+    result.evidence.containerExitCode !== 0 || result.evidence.oomKilled ||
+    result.image.imageIdentityHash !==
+      input.authority.lineage.mediaBinaryImageIdentityHash ||
+    confinement.networkMode !== 'none' ||
+    confinement.readOnlyRootFilesystem !== true ||
+    confinement.user !== '65532:65532' || confinement.capDropAll !== true ||
+    confinement.noNewPrivileges !== true ||
+    confinement.nanoCpus !== 4_000_000_000 ||
+    confinement.memoryLimitBytes !== 8_589_934_592 ||
+    semantic.fixedRecipeExecuted !== true ||
+    semantic.recipeProfileId !==
+      PROFESSIONAL_LONG_FORM_DELIVERY_MUX_RECIPE_ID ||
+    semantic.everyPrivateInputChecksumVerified !== true ||
+    semantic.chunkCount !== plan.chunkCount ||
+    semantic.orderedCompatibleH264ChunksStreamCopied !== true ||
+    semantic.completeProgramVideoReencoded !== false ||
+    semantic.exactContinuousFlacProgramAudioEncodedOnce !== true ||
+    semantic.outputAudioCodec !== 'aac_lc' ||
+    semantic.outputAudioBitrate !== 192_000 ||
+    semantic.outputAudioSampleRate !== 48_000 ||
+    semantic.outputAudioChannels !== 2 ||
+    semantic.frontLoadedInitializationMetadataVerified !== true ||
+    semantic.outputProbeVerified !== true ||
+    semantic.originalApprovedEditReservationUsed !== true ||
+    semantic.separateExportEstimateRequired !== false ||
+    semantic.additionalExportChargeAllowed !== false ||
+    semantic.publicDeliveryAuthorized !== false ||
+    result.readiness.independentDecodedVideoQaRequired !== true ||
+    result.readiness.independentDecodedAudioQaRequired !== true ||
+    result.readiness.privateDownloadReconciliationRequired !== true ||
+    result.readiness.productReady || result.readiness.productionReady
+  ) throw invalid('Confined customer-delivery mux result failed closed.')
+}
+
+async function requiredCustomerDeliveryMuxRuntimeAuthority(): Promise<
+  OfflineMediaBinaryRuntimeAuthority
+> {
+  const authority = await readPersistedOfflineMediaBinaryRuntimeAuthority()
+  if (
+    !authority ||
+    authority.readiness.privateInternalCustomerDeliveryMuxReady !== true ||
+    authority.readiness.productReady !== false ||
+    authority.readiness.productionReady !== false ||
+    authority.image.customerDeliveryMasterMux !==
+      'private_h264_stream_copy_aac_lc_192k_front_loaded_mp4_only' ||
+    !authority.supportedOperations.some((operation) =>
+      operation.toolId === 'ffmpeg' &&
+      operation.operationId === PROFESSIONAL_LONG_FORM_DELIVERY_MUX_OPERATION_ID)
+  ) throw new ApiError(
+    'TOOL_NOT_READY',
+    'Customer-delivery mux requires the pinned private FFmpeg runtime authority.',
+    503,
+  )
+  return authority
+}
+
+function deliveryMuxEntry(current: LoadedCustomerDeliveryAuthority) {
+  const workItem = current.package.graph.workItems.find((item) =>
+    item.kind === PROFESSIONAL_LONG_FORM_DELIVERY_MUX_KIND)
+  const entry = current.queueAggregate.entries.find((candidate) =>
+    candidate.definition.jobId === workItem?.jobId)
+  if (
+    !workItem || !entry ||
+    entry.definition.approvedWorkItemId !== workItem.workItemId
+  ) throw invalid('Canonical queue lost customer-delivery mux identity.')
+  return entry
+}
+
+function startDeliveryMuxHeartbeat(input: {
+  current: LoadedCustomerDeliveryAuthority
+  jobId: string
+  claimId: string
+  claimCredential: string
+  leaseDurationMs: number
+  intervalMs: number
+}) {
+  let stopped = false
+  let failure: unknown
+  let pending = Promise.resolve()
+  const tick = async () => {
+    if (stopped || failure) return
+    pending = pending.then(async () => {
+      if (stopped || failure) return
+      await heartbeatPrivateCanonicalPackageWorkQueueClaim({
+        scope: input.current.scope,
+        definition: input.current.queueDefinition,
+        jobId: input.jobId,
+        claimId: input.claimId,
+        claimCredential: input.claimCredential,
+        now: new Date().toISOString(),
+        leaseDurationMs: input.leaseDurationMs,
+      })
+    }).catch((error: unknown) => { failure = error })
+    await pending
+    if (failure) throw failure
+  }
+  const timer = setInterval(
+    () => void tick().catch(() => undefined),
+    input.intervalMs,
+  )
+  timer.unref()
+  return {
+    tick,
+    async stop() {
+      stopped = true
+      clearInterval(timer)
+      await pending
+      if (failure) throw failure
+    },
+  }
+}
+
+function requiredRecord(
+  value: unknown,
+  message: string,
+): Readonly<Record<string, unknown>> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw invalid(message)
+  }
+  return value as Readonly<Record<string, unknown>>
+}
+
 function assertH264RuntimeResult(input: {
   authority: ProfessionalLongFormDeliveryH264Authority
   result: Awaited<ReturnType<Awaited<ReturnType<
@@ -2161,7 +3223,7 @@ interface CostEvidenceExpectation {
   }
   executionAttempt: { executionAttemptId: string }
   canonicalResultHash: string
-  toolId: 'reeditpro_internal' | 'remotion' | 'ffprobe'
+  toolId: 'reeditpro_internal' | 'remotion' | 'ffprobe' | 'ffmpeg'
   operationId: string
   workloadProfileId: string
   vcpuCount: 1 | 2 | 4

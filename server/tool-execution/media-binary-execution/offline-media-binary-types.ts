@@ -15,12 +15,15 @@ export interface OfflineMediaBinaryImageEvidence {
   sourceSha256: '464beb5e7bf0c311e68b45ae2f04e9cc2af88851abb4082231742a74d97b524c'
   productReady: false
   h264Encoding: 'blocked_not_compiled'
-  aacEncoding: 'private_source_slice_finalizer_only'
-  mp4Mux: 'private_source_slice_finalizer_only'
+  aacEncoding:
+    'private_source_slice_finalizer_and_customer_delivery_mux_only'
+  mp4Mux: 'private_source_slice_finalizer_and_customer_delivery_mux_only'
   objectMezzanineChunk: 'private_all_chunk_vp9_cq12_only'
   flacEncoding: 'private_continuous_program_audio_only'
   continuousProgramAudio: 'private_30fps_48khz_source_audio_only'
   longFormMasterAssembly: 'private_vp9_flac_matroska_stream_copy_only'
+  customerDeliveryMasterMux:
+    'private_h264_stream_copy_aac_lc_192k_front_loaded_mp4_only'
   sourcePolicyHashes: Readonly<Record<string, string>>
 }
 
@@ -31,9 +34,9 @@ export interface OfflineMediaBinaryConfinementEvidence {
   noNewPrivileges: true
   privileged: false
   pidsLimit: 128
-  memoryLimitBytes: 2147483648 | 4294967296
-  memoryAndSwapLimitBytes: 2147483648 | 4294967296
-  nanoCpus: 2000000000
+  memoryLimitBytes: 2147483648 | 4294967296 | 8589934592
+  memoryAndSwapLimitBytes: 2147483648 | 4294967296 | 8589934592
+  nanoCpus: 2000000000 | 4000000000
   tmpfsPath: '/tmp'
   tmpfsSizeBytes: 67108864 | 1342177280
   user: '65532:65532'
@@ -48,6 +51,7 @@ export interface OfflineMediaBinaryConfinementEvidence {
     | '/usr/local/bin/reeditpro-ffmpeg-continuous-program-audio'
     | '/usr/local/bin/reeditpro-ffmpeg-continuous-program-audio-probe'
     | '/usr/local/bin/reeditpro-ffmpeg-long-form-master-assembly'
+    | '/usr/local/bin/reeditpro-ffmpeg-customer-delivery-master-mux'
   serverDerivedArgumentsOnly: true
 }
 
@@ -225,6 +229,36 @@ export interface OfflineFfmpegLongFormMasterAssemblyExecutionResult {
   image: OfflineMediaBinaryImageEvidence
   attestation: OfflineFfmpegExecutionResult['attestation']
   readiness: OfflineFfmpegExecutionResult['readiness']
+}
+
+export interface OfflineFfmpegCustomerDeliveryMuxExecutionResult {
+  resultArtifact: {
+    mimeType: 'video/mp4'
+    sha256: string
+    byteLength: number
+    outputMode: 'server_committed_private_stream_v1'
+  }
+  evidence: {
+    toolId: 'ffmpeg'
+    operationId: 'tool.ffmpeg.execute_approved_media_recipe.v1'
+    binaryVersion: '8.1.2'
+    requestEnvelopeSha256: string
+    chunkSha256s: readonly string[]
+    programAudioSha256: string
+    resultSha256: string
+    semanticEvidence: Readonly<Record<string, unknown>>
+    confinement: OfflineMediaBinaryConfinementEvidence
+    containerExitCode: 0
+    oomKilled: false
+    outputTransport: 'server_committed_private_stream_v1'
+  }
+  image: OfflineMediaBinaryImageEvidence
+  attestation: OfflineFfmpegExecutionResult['attestation']
+  readiness: OfflineFfmpegExecutionResult['readiness'] & {
+    independentDecodedVideoQaRequired: true
+    independentDecodedAudioQaRequired: true
+    privateDownloadReconciliationRequired: true
+  }
 }
 
 export interface OfflineContinuousProgramAudioQaExecutionResult {

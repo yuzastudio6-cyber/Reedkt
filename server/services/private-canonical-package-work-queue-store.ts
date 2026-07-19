@@ -69,6 +69,9 @@ import {
   PROFESSIONAL_LONG_FORM_DELIVERY_H264_QA_ATTEMPT_VERSION,
 } from '../edit-architecture/professional-long-form-customer-delivery-h264-qa-execution-contract'
 import {
+  PROFESSIONAL_LONG_FORM_DELIVERY_MUX_ATTEMPT_VERSION,
+} from '../edit-architecture/professional-long-form-customer-delivery-mux-execution-contract'
+import {
   isProfessionalLongFormContinuousProgramAudioAuthorization,
   isProfessionalLongFormContinuousProgramAudioAuthority,
   isProfessionalLongFormContinuousProgramAudioCompletion,
@@ -87,6 +90,9 @@ import {
   isProfessionalLongFormDeliveryH264QaAuthorization,
   isProfessionalLongFormDeliveryH264QaAuthority,
   isProfessionalLongFormDeliveryH264QaCompletion,
+  isProfessionalLongFormDeliveryMuxAuthorization,
+  isProfessionalLongFormDeliveryMuxAuthority,
+  isProfessionalLongFormDeliveryMuxCompletion,
   isProfessionalLongFormDeliveryRootAuthorization,
   isProfessionalLongFormDeliveryRootAuthority,
   isProfessionalLongFormDeliveryRootCompletion,
@@ -435,8 +441,12 @@ export async function beginPrivateCanonicalPackageWorkQueueExecutionAttempt(inpu
       isProfessionalLongFormDeliveryH264Authorization(authorization)
     const deliveryH264QaAttempt =
       isProfessionalLongFormDeliveryH264QaAuthorization(authorization)
+    const deliveryMuxAttempt =
+      isProfessionalLongFormDeliveryMuxAuthorization(authorization)
     const attemptWithoutHash = {
-      schemaVersion: deliveryH264QaAttempt
+      schemaVersion: deliveryMuxAttempt
+        ? PROFESSIONAL_LONG_FORM_DELIVERY_MUX_ATTEMPT_VERSION
+        : deliveryH264QaAttempt
         ? PROFESSIONAL_LONG_FORM_DELIVERY_H264_QA_ATTEMPT_VERSION
         : deliveryH264Attempt
         ? PROFESSIONAL_LONG_FORM_DELIVERY_H264_ATTEMPT_VERSION
@@ -1623,7 +1633,8 @@ function assertProfessionalLongFormAuthorizationTarget(input: {
   const deliveryAuthorization =
     isProfessionalLongFormDeliveryRootAuthorization(authorization) ||
     isProfessionalLongFormDeliveryH264Authorization(authorization) ||
-    isProfessionalLongFormDeliveryH264QaAuthorization(authorization)
+    isProfessionalLongFormDeliveryH264QaAuthorization(authorization) ||
+    isProfessionalLongFormDeliveryMuxAuthorization(authorization)
   if (
     (deliveryAuthorization
       ? definition.source !==
@@ -1725,6 +1736,19 @@ function assertPersistedProfessionalLongFormExecutionAuthority(input: {
       targetDefinition?.canonicalOrder !==
         input.executionAuthority.h264Artifact.chunkIndex * 2 ||
       `${input.executionAuthority.h264Artifact.objectIdentity}:qa` !==
+        input.authorization.expectedOutputIdentity
+  } else if (
+    isProfessionalLongFormDeliveryMuxAuthorization(input.authorization)
+  ) {
+    pairInvalid = !isProfessionalLongFormDeliveryMuxAuthority(
+      input.executionAuthority,
+    ) || input.executionAuthority.lineage.muxJobDefinitionHash !==
+      input.authorization.jobDefinitionHash ||
+      input.executionAuthority.lineage.muxPlacementHash !==
+        input.authorization.placementHash ||
+      targetDefinition?.canonicalOrder !==
+        input.executionAuthority.approvedMuxPlan.chunkCount * 2 + 1 ||
+      input.executionAuthority.approvedMuxPlan.privateObjectIdentityHash !==
         input.authorization.expectedOutputIdentity
   } else if (
     isProfessionalLongFormSourceAuthorityAuthorization(input.authorization)
@@ -1927,6 +1951,30 @@ function exactProfessionalLongFormAuthorizationMatches(
         isProfessionalLongFormDeliveryH264Completion(h264Completion)) &&
       authorization.expectedOutputIdentity ===
         `${h264.definition.expectedOutputIdentity}:qa`
+  }
+  if (isProfessionalLongFormDeliveryMuxAuthorization(authorization)) {
+    const delivery =
+      aggregate.identity.professionalLongFormCustomerDeliveryAuthority
+    const dependencies = entry.definition.dependencyJobIds.map((jobId) =>
+      aggregate.entries.find((candidate) => candidate.definition.jobId === jobId))
+    return Boolean(delivery) &&
+      entry.definition.workerType === 'render_worker' &&
+      entry.definition.resourceClassId === 'render_cpu_high_memory_v1' &&
+      entry.definition.maxAttempts === 2 &&
+      entry.definition.attemptTimeoutSeconds === 21_600 &&
+      entry.definition.canonicalOrder === (delivery?.chunkCount ?? 0) * 2 + 1 &&
+      entry.definition.dependencyJobIds.length === delivery?.chunkCount &&
+      entry.definition.satisfiedPromotionDependencyJobIds?.length === 0 &&
+      dependencies.length === delivery?.chunkCount &&
+      dependencies.every((dependency, index) => {
+        const completion = dependency?.completion?.outcome
+          .professionalLongFormExecution
+        return dependency?.definition.canonicalOrder === (index + 1) * 2 &&
+          dependency.state === 'completed' &&
+          Boolean(completion &&
+            isProfessionalLongFormDeliveryH264QaCompletion(completion))
+      }) &&
+      /^[a-f0-9]{64}$/u.test(authorization.expectedOutputIdentity)
   }
   if (isProfessionalLongFormFirstChildAuthorization(authorization)) {
     return entry.definition.workerType === 'api_service' &&
@@ -2158,7 +2206,11 @@ function assertProfessionalLongFormCompletionEvidence(
   const completion = outcome.professionalLongFormExecution
   if (!authorization && !attempt && !completion) return
   const exactArtifactMatches = completion &&
-    isProfessionalLongFormDeliveryH264QaCompletion(completion)
+    isProfessionalLongFormDeliveryMuxCompletion(completion)
+    ? outcome.contentType === 'video/mp4' &&
+      outcome.artifactId === completion.outputArtifact.objectIdentity &&
+      outcome.sha256 === completion.outputArtifact.sha256
+    : completion && isProfessionalLongFormDeliveryH264QaCompletion(completion)
     ? outcome.contentType === 'application/json' &&
       outcome.sha256 === completion.validationArtifactRef.sha256
     : completion && isProfessionalLongFormDeliveryH264Completion(completion)

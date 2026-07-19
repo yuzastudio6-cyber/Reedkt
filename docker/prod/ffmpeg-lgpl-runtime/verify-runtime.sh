@@ -92,6 +92,8 @@ if ! cmp -s "$EVIDENCE_ROOT/allowed-demuxers.txt" "$actual_demuxers"; then
 fi
 grep -Fx 's24le' "$actual_demuxers" >/dev/null \
   || fail 'fixed continuous program-audio raw PCM demuxer is missing'
+grep -Fx 'h264' "$actual_demuxers" >/dev/null \
+  || fail 'fixed customer-delivery raw H.264 timestamp demuxer is missing'
 
 $FFMPEG -hide_banner -muxers 2>/dev/null \
   | awk '$1 == "E" { print $2 }' \
@@ -122,6 +124,8 @@ if ! cmp -s "$EVIDENCE_ROOT/allowed-bsfs.txt" "$actual_bsfs"; then
   diff -u "$EVIDENCE_ROOT/allowed-bsfs.txt" "$actual_bsfs" >&2 || true
   fail 'compiled bitstream-filter set differs from the reviewed allowlist'
 fi
+grep -Fx 'h264_mp4toannexb' "$actual_bsfs" >/dev/null \
+  || fail 'fixed customer-delivery H.264 bitstream normalizer is missing'
 
 sha256sum -c "$EVIDENCE_ROOT/runtime-files.sha256" >/dev/null \
   || fail 'runtime binary/configure hash evidence failed'
@@ -193,5 +197,9 @@ grep -F '"format_name": "mov,mp4,m4a,3gp,3g2,mj2"' /tmp/reeditpro-finalizer-audi
   || fail 'continuous program-audio entrypoint is missing'
 [ -x /usr/local/bin/reeditpro-ffmpeg-continuous-program-audio-probe ] \
   || fail 'continuous program-audio probe entrypoint is missing'
+[ -x /usr/local/bin/reeditpro-ffmpeg-long-form-master-assembly ] \
+  || fail 'long-form master assembly entrypoint is missing'
+[ -x /usr/local/bin/reeditpro-ffmpeg-customer-delivery-master-mux ] \
+  || fail 'customer-delivery master mux entrypoint is missing'
 
-printf '%s\n' '{"ok":true,"productReady":false,"publicFinalExportAllowed":false,"privateSourceSliceFinalizationAllowed":true,"privateObjectMezzanineChunkSeriesAllowed":true,"privateContinuousProgramAudioAllowed":true,"h264Encoding":"blocked_not_compiled","aacEncoding":"private_source_slice_finalizer_only","flacEncoding":"private_continuous_program_audio_only","mp4Mux":"private_source_slice_finalizer_only","runtimeUser":"65532:65532","network":"none","rootFilesystem":"read_only","componentSets":"exact_allowlists_verified","protocols":["file","pipe"],"generalIntermediateVideoEncoder":"ffv1","professionalColorIntermediateVideoEncoder":"libvpx-vp9-cq12","intermediateAudioEncoder":"pcm_s16le","continuousProgramAudioEncoder":"flac_s24_48khz_stereo"}'
+printf '%s\n' '{"ok":true,"productReady":false,"publicFinalExportAllowed":false,"privateSourceSliceFinalizationAllowed":true,"privateObjectMezzanineChunkSeriesAllowed":true,"privateContinuousProgramAudioAllowed":true,"privateCustomerDeliveryMasterMuxAllowed":true,"h264Encoding":"blocked_not_compiled","aacEncoding":"private_source_slice_finalizer_and_customer_delivery_mux_only","flacEncoding":"private_continuous_program_audio_only","mp4Mux":"private_source_slice_finalizer_and_customer_delivery_mux_only","runtimeUser":"65532:65532","network":"none","rootFilesystem":"read_only","componentSets":"exact_allowlists_verified","protocols":["file","pipe"],"generalIntermediateVideoEncoder":"ffv1","professionalColorIntermediateVideoEncoder":"libvpx-vp9-cq12","intermediateAudioEncoder":"pcm_s16le","continuousProgramAudioEncoder":"flac_s24_48khz_stereo","customerDeliveryAudioEncoder":"aac_lc_192k_48khz_stereo"}'

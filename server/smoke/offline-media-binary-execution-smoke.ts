@@ -459,10 +459,13 @@ assert.equal(mezzanineResult.resultArtifact.mimeType, 'video/mp4')
 assert.equal(mezzanineResult.resultArtifact.outputMode, 'server_committed_private_stream_v1')
 assert.equal(mezzanineResult.resultArtifact.sha256, hashBytes(mezzanineOutputBytes))
 assert.equal(mezzanineOutputBytes.subarray(4, 8).toString('ascii'), 'ftyp')
-assert.equal(mezzanineResult.image.aacEncoding, 'private_source_slice_finalizer_only')
+assert.equal(
+  mezzanineResult.image.aacEncoding,
+  'private_source_slice_finalizer_and_customer_delivery_mux_only',
+)
 assert.equal(
   mezzanineResult.image.mp4Mux,
-  'private_source_slice_finalizer_only',
+  'private_source_slice_finalizer_and_customer_delivery_mux_only',
 )
 assert.equal(mezzanineResult.evidence.confinement.serverOwnedEntrypoint,
   '/usr/local/bin/reeditpro-ffmpeg-source-slice-finalizer')

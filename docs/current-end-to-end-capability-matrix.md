@@ -1,6 +1,6 @@
 # Current End-to-End Capability Matrix
 
-Status date: 2026-07-18
+Status date: 2026-07-19
 Authority: reviewed APFS continuation checkout at `/Users/macuser/Developer/REeditpro-backend-pipeline`
 
 This document is the current capability truth for ReeditPro. It distinguishes UI policy and deterministic planning from code that actually executes against private test media. It does not turn internal test evidence into a public-beta or production-readiness claim.
@@ -206,6 +206,19 @@ synthetic constant-color H.264/AAC MP4 fixtures with a narrow 30-fps profile;
 this does not prove diverse many-angle footage, arbitrary professional
 codecs/HDR/VFR/surround audio, complete long-form editing, object storage, a
 distributed database, or Google Cloud execution.
+
+A separate retained 129-second/two-chunk customer-delivery graph now completes
+6 of its 9 jobs: exact passed-review promotion, two private 4K H.264 High
+encodes, two independent chunk probes, and one H.264-stream-copy/one-time
+FLAC-to-AAC private MP4 mux. Every attempt has immutable authorization, lease,
+one-use dispatch, private create-only evidence, reconciliation, internal-cost
+evidence, and restart-safe exact replay. The resulting private master SHA-256
+is `dbb8329f33fc78e208f390262b6551388deaa887d9343b32ef43608f841897e3`.
+The three remaining delivery jobs—decoded video QA, decoded audio/sync QA, and
+private-download reconciliation—remain queued and unauthorized. This 6/9
+delivery result is independent from, and must not be described as progress on,
+the six-hour 255-job review graph. It is single-host synthetic SDR evidence,
+not multi-hour throughput, distributed cloud, product, or production proof.
 
 ## Private Pipeline Evidence
 

@@ -24,10 +24,10 @@ docker image inspect "$IMAGE_TAG" >/dev/null 2>&1 \
   || { printf '%s\n' 'image must remain productReady=false' >&2; exit 1; }
 [ "$(docker image inspect --format '{{index .Config.Labels "reeditpro.h264-encoding"}}' "$IMAGE_TAG")" = 'blocked_not_compiled' ] \
   || { printf '%s\n' 'image must keep H.264 encoding blocked' >&2; exit 1; }
-[ "$(docker image inspect --format '{{index .Config.Labels "reeditpro.aac-encoding"}}' "$IMAGE_TAG")" = 'private_source_slice_finalizer_only' ] \
-  || { printf '%s\n' 'image must scope AAC encoding to the private finalizer' >&2; exit 1; }
-[ "$(docker image inspect --format '{{index .Config.Labels "reeditpro.mp4-mux"}}' "$IMAGE_TAG")" = 'private_source_slice_finalizer_only' ] \
-  || { printf '%s\n' 'image must scope MP4 muxing to the fixed private finalizer' >&2; exit 1; }
+[ "$(docker image inspect --format '{{index .Config.Labels "reeditpro.aac-encoding"}}' "$IMAGE_TAG")" = 'private_source_slice_finalizer_and_customer_delivery_mux_only' ] \
+  || { printf '%s\n' 'image must scope AAC encoding to the two fixed private recipes' >&2; exit 1; }
+[ "$(docker image inspect --format '{{index .Config.Labels "reeditpro.mp4-mux"}}' "$IMAGE_TAG")" = 'private_source_slice_finalizer_and_customer_delivery_mux_only' ] \
+  || { printf '%s\n' 'image must scope MP4 muxing to the two fixed private recipes' >&2; exit 1; }
 [ "$(docker image inspect --format '{{index .Config.Labels "reeditpro.object-mezzanine-chunk"}}' "$IMAGE_TAG")" = 'private_all_chunk_vp9_cq12_only' ] \
   || { printf '%s\n' 'image must scope object chunking to the private VP9 CQ12 runner' >&2; exit 1; }
 [ "$(docker image inspect --format '{{index .Config.Labels "reeditpro.flac-encoding"}}' "$IMAGE_TAG")" = 'private_continuous_program_audio_only' ] \
@@ -36,6 +36,8 @@ docker image inspect "$IMAGE_TAG" >/dev/null 2>&1 \
   || { printf '%s\n' 'image must scope continuous program audio to the fixed private recipe' >&2; exit 1; }
 [ "$(docker image inspect --format '{{index .Config.Labels "reeditpro.long-form-master-assembly"}}' "$IMAGE_TAG")" = 'private_vp9_flac_matroska_stream_copy_only' ] \
   || { printf '%s\n' 'image must scope long-form assembly to VP9/FLAC stream copy' >&2; exit 1; }
+[ "$(docker image inspect --format '{{index .Config.Labels "reeditpro.customer-delivery-master-mux"}}' "$IMAGE_TAG")" = 'private_h264_stream_copy_aac_lc_192k_front_loaded_mp4_only' ] \
+  || { printf '%s\n' 'image must scope customer delivery to the fixed private H.264/AAC mux' >&2; exit 1; }
 
 docker run --rm \
   --network=none \
@@ -51,5 +53,5 @@ docker run --rm \
   "$IMAGE_TAG"
 
 docker image inspect --format \
-  '{"imageId":"{{.Id}}","architecture":"{{.Architecture}}","os":"{{.Os}}","user":"{{.Config.User}}","productReady":"{{index .Config.Labels "reeditpro.product-ready"}}","h264Encoding":"{{index .Config.Labels "reeditpro.h264-encoding"}}","aacEncoding":"{{index .Config.Labels "reeditpro.aac-encoding"}}","mp4Mux":"{{index .Config.Labels "reeditpro.mp4-mux"}}","objectMezzanineChunk":"{{index .Config.Labels "reeditpro.object-mezzanine-chunk"}}","flacEncoding":"{{index .Config.Labels "reeditpro.flac-encoding"}}","continuousProgramAudio":"{{index .Config.Labels "reeditpro.continuous-program-audio"}}","longFormMasterAssembly":"{{index .Config.Labels "reeditpro.long-form-master-assembly"}}"}' \
+  '{"imageId":"{{.Id}}","architecture":"{{.Architecture}}","os":"{{.Os}}","user":"{{.Config.User}}","productReady":"{{index .Config.Labels "reeditpro.product-ready"}}","h264Encoding":"{{index .Config.Labels "reeditpro.h264-encoding"}}","aacEncoding":"{{index .Config.Labels "reeditpro.aac-encoding"}}","mp4Mux":"{{index .Config.Labels "reeditpro.mp4-mux"}}","objectMezzanineChunk":"{{index .Config.Labels "reeditpro.object-mezzanine-chunk"}}","flacEncoding":"{{index .Config.Labels "reeditpro.flac-encoding"}}","continuousProgramAudio":"{{index .Config.Labels "reeditpro.continuous-program-audio"}}","longFormMasterAssembly":"{{index .Config.Labels "reeditpro.long-form-master-assembly"}}","customerDeliveryMasterMux":"{{index .Config.Labels "reeditpro.customer-delivery-master-mux"}}"}' \
   "$IMAGE_TAG"

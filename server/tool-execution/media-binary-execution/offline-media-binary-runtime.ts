@@ -83,6 +83,13 @@ import {
   validateOfflineMediaBinaryLongFormMasterAssemblyRequest,
   type OfflineMediaBinaryLongFormMasterAssemblyRequest,
 } from './offline-media-binary-long-form-master-assembly-protocol'
+import {
+  OFFLINE_MEDIA_BINARY_CUSTOMER_DELIVERY_MUX_MAGIC,
+  OFFLINE_MEDIA_BINARY_CUSTOMER_DELIVERY_MUX_MAXIMUM_OUTPUT_BYTES,
+  offlineMediaBinaryCustomerDeliveryMuxRequestSha256,
+  validateOfflineMediaBinaryCustomerDeliveryMuxRequest,
+  type OfflineMediaBinaryCustomerDeliveryMuxRequest,
+} from './offline-media-binary-customer-delivery-mux-protocol'
 import type {
   OfflineContinuousProgramAudioQaExecutionResult,
   OfflineCrossChunkColorContinuityExecutionResult,
@@ -90,6 +97,7 @@ import type {
   OfflineFinalMasterAudioQaExecutionResult,
   OfflineFinalMasterVideoQaExecutionResult,
   OfflineFfmpegContinuousProgramAudioExecutionResult,
+  OfflineFfmpegCustomerDeliveryMuxExecutionResult,
   OfflineFfmpegMezzanineFinalizationExecutionResult,
   OfflineFfmpegLongFormMasterAssemblyExecutionResult,
   OfflineFfmpegObjectMezzanineChunkExecutionResult,
@@ -124,6 +132,10 @@ const LONG_FORM_MASTER_ASSEMBLY_ENTRYPOINT =
   '/usr/local/bin/reeditpro-ffmpeg-long-form-master-assembly' as const
 const LONG_FORM_MASTER_ASSEMBLY_COMMAND =
   ['long-form-master-assembly-v1'] as const
+const CUSTOMER_DELIVERY_MUX_ENTRYPOINT =
+  '/usr/local/bin/reeditpro-ffmpeg-customer-delivery-master-mux' as const
+const CUSTOMER_DELIVERY_MUX_COMMAND =
+  ['customer-delivery-master-mux-v1'] as const
 const SOURCE_VERSION = '8.1.2' as const
 const SOURCE_SHA256 = '464beb5e7bf0c311e68b45ae2f04e9cc2af88851abb4082231742a74d97b524c' as const
 const STORAGE_ROOT = '/tmp/reeditpro-offline-media-binary-execution-program-audio-v4' as const
@@ -132,6 +144,7 @@ const DOCKER_CONTROL_TIMEOUT_MS = 120_000
 const MAXIMUM_STREAMING_TIMEOUT_MS = 10 * 60_000
 const CONTINUOUS_PROGRAM_AUDIO_TIMEOUT_MS = 60 * 60_000
 const LONG_FORM_MASTER_ASSEMBLY_TIMEOUT_MS = 6 * 60 * 60_000
+const CUSTOMER_DELIVERY_MUX_TIMEOUT_MS = 6 * 60 * 60_000
 const PRIVATE_LONG_FORM_MASTER_QA_TIMEOUT_MS = 60 * 60_000
 
 export interface OfflineMediaBinaryServerInjectedInput {
@@ -159,6 +172,7 @@ export interface OfflineMediaBinaryRuntimeAuthority {
     privateInternalContinuousProgramAudioReady: true
     privateInternalCrossChunkColorBoundaryReady: true
     privateInternalLongFormMasterAssemblyReady: true
+    privateInternalCustomerDeliveryMuxReady: true
     privateInternalLongFormMasterQaReady: true
     privateInternalFinalMasterDecodedVideoQaReady: true
     privateInternalFinalMasterDecodedAudioQaReady: true
@@ -227,6 +241,14 @@ export interface PrivateOfflineMediaBinaryRuntime {
     },
     outputSink: OfflineMediaBinaryStreamingOutputSink,
   ): Promise<OfflineFfmpegLongFormMasterAssemblyExecutionResult>
+  executeCustomerDeliveryMuxServerInjected(
+    request: OfflineMediaBinaryCustomerDeliveryMuxRequest,
+    inputs: {
+      chunks: readonly OfflineMediaBinaryServerInjectedInput[]
+      programAudio: OfflineMediaBinaryServerInjectedInput
+    },
+    outputSink: OfflineMediaBinaryStreamingOutputSink,
+  ): Promise<OfflineFfmpegCustomerDeliveryMuxExecutionResult>
   executeFinalMasterVideoQaServerInjected(
     request: OfflineFinalMasterVideoQaRequest,
     source: OfflineMediaBinaryServerInjectedInput,
@@ -316,6 +338,18 @@ export async function activatePrivateOfflineMediaBinaryRuntime(): Promise<Privat
   )) as PrivateOfflineMediaBinaryRuntime[
     'executeLongFormMasterAssemblyServerInjected'
   ]
+  const executeCustomerDeliveryMuxServerInjectedBound = ((
+    request: OfflineMediaBinaryCustomerDeliveryMuxRequest,
+    inputs: {
+      chunks: readonly OfflineMediaBinaryServerInjectedInput[]
+      programAudio: OfflineMediaBinaryServerInjectedInput
+    },
+    outputSink: OfflineMediaBinaryStreamingOutputSink,
+  ) => executeCustomerDeliveryMuxServerInjected(
+    image, request, inputs, outputSink,
+  )) as PrivateOfflineMediaBinaryRuntime[
+    'executeCustomerDeliveryMuxServerInjected'
+  ]
   const executeFinalMasterVideoQaServerInjectedBound = ((
     request: OfflineFinalMasterVideoQaRequest,
     source: OfflineMediaBinaryServerInjectedInput,
@@ -349,6 +383,8 @@ export async function activatePrivateOfflineMediaBinaryRuntime(): Promise<Privat
       executeCrossChunkColorContinuityServerInjectedBound,
     executeLongFormMasterAssemblyServerInjected:
       executeLongFormMasterAssemblyServerInjectedBound,
+    executeCustomerDeliveryMuxServerInjected:
+      executeCustomerDeliveryMuxServerInjectedBound,
     executeFinalMasterVideoQaServerInjected:
       executeFinalMasterVideoQaServerInjectedBound,
     executeFinalMasterAudioQaServerInjected:
@@ -439,6 +475,18 @@ export async function openPrivateOfflineMediaBinaryRuntime(): Promise<PrivateOff
   )) as PrivateOfflineMediaBinaryRuntime[
     'executeLongFormMasterAssemblyServerInjected'
   ]
+  const executeCustomerDeliveryMuxServerInjectedBound = ((
+    request: OfflineMediaBinaryCustomerDeliveryMuxRequest,
+    inputs: {
+      chunks: readonly OfflineMediaBinaryServerInjectedInput[]
+      programAudio: OfflineMediaBinaryServerInjectedInput
+    },
+    outputSink: OfflineMediaBinaryStreamingOutputSink,
+  ) => executeCustomerDeliveryMuxServerInjected(
+    image, request, inputs, outputSink,
+  )) as PrivateOfflineMediaBinaryRuntime[
+    'executeCustomerDeliveryMuxServerInjected'
+  ]
   const executeFinalMasterVideoQaServerInjectedBound = ((
     request: OfflineFinalMasterVideoQaRequest,
     source: OfflineMediaBinaryServerInjectedInput,
@@ -472,6 +520,8 @@ export async function openPrivateOfflineMediaBinaryRuntime(): Promise<PrivateOff
       executeCrossChunkColorContinuityServerInjectedBound,
     executeLongFormMasterAssemblyServerInjected:
       executeLongFormMasterAssemblyServerInjectedBound,
+    executeCustomerDeliveryMuxServerInjected:
+      executeCustomerDeliveryMuxServerInjectedBound,
     executeFinalMasterVideoQaServerInjected:
       executeFinalMasterVideoQaServerInjectedBound,
     executeFinalMasterAudioQaServerInjected:
@@ -503,6 +553,7 @@ Promise<OfflineMediaBinaryRuntimeAuthority | undefined> {
     record(authority.readiness).privateInternalContinuousProgramAudioReady !== true ||
     record(authority.readiness).privateInternalCrossChunkColorBoundaryReady !== true ||
     record(authority.readiness).privateInternalLongFormMasterAssemblyReady !== true ||
+    record(authority.readiness).privateInternalCustomerDeliveryMuxReady !== true ||
     record(authority.readiness).privateInternalLongFormMasterQaReady !== true ||
     record(authority.readiness).privateInternalFinalMasterDecodedVideoQaReady !== true ||
     record(authority.readiness).privateInternalFinalMasterDecodedAudioQaReady !== true ||
@@ -1085,6 +1136,193 @@ async function executeLongFormMasterAssemblyServerInjected(
       readiness: {
         privateInternalOnly: true, productReady: false,
         externalBetaReady: false, productionReady: false,
+      },
+    }
+  } finally {
+    await outputSpool?.cleanup().catch(() => undefined)
+    await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024)
+      .catch(() => undefined)
+  }
+}
+
+async function executeCustomerDeliveryMuxServerInjected(
+  image: OfflineMediaBinaryImageEvidence,
+  value: unknown,
+  inputs: {
+    chunks: readonly OfflineMediaBinaryServerInjectedInput[]
+    programAudio: OfflineMediaBinaryServerInjectedInput
+  },
+  outputSink: OfflineMediaBinaryStreamingOutputSink,
+): Promise<OfflineFfmpegCustomerDeliveryMuxExecutionResult> {
+  let request: OfflineMediaBinaryCustomerDeliveryMuxRequest
+  try {
+    request = validateOfflineMediaBinaryCustomerDeliveryMuxRequest(value)
+  } catch {
+    throw invalid('Structured customer-delivery mux request was rejected.')
+  }
+  assertCustomerDeliveryMuxInputs(request, inputs)
+  if (
+    !outputSink ||
+    outputSink.maximumBytes !==
+      OFFLINE_MEDIA_BINARY_CUSTOMER_DELIVERY_MUX_MAXIMUM_OUTPUT_BYTES ||
+    typeof outputSink.persist !== 'function'
+  ) throw invalid('Customer-delivery mux output sink authority is invalid.')
+  const container = await createContainer(
+    image,
+    CUSTOMER_DELIVERY_MUX_ENTRYPOINT,
+    [...CUSTOMER_DELIVERY_MUX_COMMAND],
+  )
+  let outputSpool: DockerVerifiedPrivateOutputSpool | undefined
+  try {
+    const confinement = validateConfinement(
+      await inspectContainer(container.id),
+      image,
+      CUSTOMER_DELIVERY_MUX_ENTRYPOINT,
+      [...CUSTOMER_DELIVERY_MUX_COMMAND],
+    )
+    outputSpool = await dockerVerifiedCustomerDeliveryMuxToPrivateOutputSpool({
+      args: ['start', '--attach', '--interactive', container.id],
+      containerId: container.id,
+      request,
+      inputs,
+      maximumOutputBytes:
+        OFFLINE_MEDIA_BINARY_CUSTOMER_DELIVERY_MUX_MAXIMUM_OUTPUT_BYTES,
+      timeoutMs: CUSTOMER_DELIVERY_MUX_TIMEOUT_MS,
+    })
+    const state = record((await inspectContainer(container.id)).State)
+    if (
+      outputSpool.exitCode !== 0 || outputSpool.stderr.length > 0 ||
+      outputSpool.byteLength < 1_024 || state.Status !== 'exited' ||
+      state.Running !== false || state.ExitCode !== 0 ||
+      state.OOMKilled !== false
+    ) throw unavailable('Confined customer-delivery mux failed closed.')
+    const frontLoadedInitialization =
+      await inspectFrontLoadedMp4Initialization(outputSpool.source)
+    if (!frontLoadedInitialization.moovBeforeFirstMediaData) {
+      throw unavailable(
+        'Customer-delivery MP4 initialization metadata was not front-loaded.',
+      )
+    }
+    const outputProbe = await probeCustomerDeliveryMuxOutput(
+      image,
+      outputSpool.source,
+      request,
+    )
+    const persisted = await outputSink.persist({
+      stream: await outputSpool.source.openStream(),
+      mimeType: 'video/mp4',
+      expectedByteLength: outputSpool.byteLength,
+      expectedSha256: outputSpool.sha256,
+    })
+    if (
+      persisted.byteLength !== outputSpool.byteLength ||
+      persisted.sha256 !== outputSpool.sha256
+    ) throw unavailable(
+      'Customer-delivery mux sink changed its exact commitment.',
+    )
+    const completedAt = new Date().toISOString()
+    const requestEnvelopeSha256 =
+      offlineMediaBinaryCustomerDeliveryMuxRequestSha256(request)
+    const semanticEvidence = Object.freeze({
+      fixedRecipeExecuted: true,
+      recipeProfileId: request.payload.recipeProfileId,
+      everyPrivateInputChecksumVerified: true,
+      chunkCount: request.inputs.chunks.length,
+      orderedCompatibleH264ChunksStreamCopied: true,
+      serverGeneratedExactPerChunkFrameDurationsApplied: true,
+      sourceChunkContainerDurationsUsedAsCrossChunkAuthority: false,
+      exactApproved30FpsTimelinePreserved: true,
+      completeProgramVideoReencoded: false,
+      exactContinuousFlacProgramAudioEncodedOnce: true,
+      outputAudioCodec: 'aac_lc',
+      outputAudioBitrate: 192_000,
+      outputAudioSampleRate: 48_000,
+      outputAudioChannels: 2,
+      outputContainer: 'mp4',
+      frontLoadedInitializationMetadataVerified: true,
+      frontLoadedInitialization,
+      outputProbeVerified: true,
+      outputProbe,
+      callerPathsAccepted: false,
+      callerUrlsAccepted: false,
+      callerCommandsAccepted: false,
+      callerCodecSettingsAccepted: false,
+      originalApprovedEditReservationUsed: true,
+      separateExportEstimateRequired: false,
+      additionalExportChargeAllowed: false,
+      publicDeliveryAuthorized: false,
+      distributedExecutionProven: false,
+    })
+    const attestationWithoutHash = {
+      domain:
+        'offline_media_binary_customer_delivery_mux_attestation_v1',
+      completedAt,
+      imageIdentityHash: image.imageIdentityHash,
+      toolId: 'ffmpeg' as const,
+      operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
+      requestEnvelopeSha256,
+      chunkSha256s: request.inputs.chunks.map((chunk) => chunk.sha256),
+      programAudioSha256: request.inputs.programAudio.sha256,
+      resultSha256: outputSpool.sha256,
+      confinement,
+      frontLoadedInitialization,
+      outputProbe,
+      outputTransport: 'server_committed_private_stream_v1' as const,
+    }
+    const attestationHash = sha256AuthorityValue(attestationWithoutHash)
+    const recordId = sha256AuthorityValue({ attestationHash, completedAt })
+    await writePrivateTextFileAtomicWithinRoot({
+      rootPath: STORAGE_ROOT,
+      relativePath:
+        `attestations/${recordId.slice(0, 2)}/${recordId}.json`,
+      content: `${stableAuthorityStringify({
+        recordVersion:
+          'offline-media-binary-customer-delivery-mux-attestation-record-v1',
+        source:
+          'private_checksum_protected_customer_delivery_mux_execution',
+        attestation: {
+          ...attestationWithoutHash,
+          recordId,
+          attestationHash,
+        },
+        checksumSha256: sha256AuthorityValue({
+          ...attestationWithoutHash,
+          recordId,
+          attestationHash,
+        }),
+      })}\n`,
+    })
+    return {
+      resultArtifact: {
+        mimeType: 'video/mp4',
+        sha256: outputSpool.sha256,
+        byteLength: outputSpool.byteLength,
+        outputMode: 'server_committed_private_stream_v1',
+      },
+      evidence: {
+        toolId: 'ffmpeg',
+        operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
+        binaryVersion: SOURCE_VERSION,
+        requestEnvelopeSha256,
+        chunkSha256s: request.inputs.chunks.map((chunk) => chunk.sha256),
+        programAudioSha256: request.inputs.programAudio.sha256,
+        resultSha256: outputSpool.sha256,
+        semanticEvidence,
+        confinement,
+        containerExitCode: 0,
+        oomKilled: false,
+        outputTransport: 'server_committed_private_stream_v1',
+      },
+      image,
+      attestation: { recordId, completedAt, attestationHash },
+      readiness: {
+        privateInternalOnly: true,
+        productReady: false,
+        externalBetaReady: false,
+        productionReady: false,
+        independentDecodedVideoQaRequired: true,
+        independentDecodedAudioQaRequired: true,
+        privateDownloadReconciliationRequired: true,
       },
     }
   } finally {
@@ -3950,6 +4188,215 @@ async function probeLongFormMasterOutput(
   }
 }
 
+async function inspectFrontLoadedMp4Initialization(
+  source: OfflineMediaBinaryServerInjectedInput,
+): Promise<{
+  firstBox: 'ftyp'
+  initializationBox: 'moov'
+  firstMediaBox: 'moof' | 'mdat'
+  moovOffsetBytes: number
+  firstMediaOffsetBytes: number
+  moovBeforeFirstMediaData: true
+  fragmentedMp4: boolean
+}> {
+  const maximumPrefixBytes = 4 * 1024 * 1024
+  const stream = await source.openStream()
+  const chunks: Buffer[] = []
+  let observed = 0
+  try {
+    for await (const chunk of stream) {
+      const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)
+      const remaining = maximumPrefixBytes - observed
+      if (remaining <= 0) break
+      const selected = bytes.subarray(0, Math.min(bytes.byteLength, remaining))
+      chunks.push(Buffer.from(selected))
+      observed += selected.byteLength
+      if (observed >= maximumPrefixBytes) break
+    }
+  } finally {
+    stream.destroy()
+  }
+  const prefix = Buffer.concat(chunks, observed)
+  const boxes: Array<{ type: string; offset: number }> = []
+  let offset = 0
+  while (offset + 8 <= prefix.byteLength && boxes.length < 64) {
+    const size32 = prefix.readUInt32BE(offset)
+    const type = prefix.subarray(offset + 4, offset + 8).toString('ascii')
+    let headerBytes = 8
+    let size = size32
+    if (size32 === 1) {
+      if (offset + 16 > prefix.byteLength) break
+      const extended = prefix.readBigUInt64BE(offset + 8)
+      if (extended > BigInt(Number.MAX_SAFE_INTEGER)) break
+      size = Number(extended)
+      headerBytes = 16
+    } else if (size32 === 0) {
+      size = prefix.byteLength - offset
+    }
+    if (
+      !/^[\x20-\x7e]{4}$/u.test(type) || size < headerBytes ||
+      offset + size > prefix.byteLength
+    ) break
+    boxes.push({ type, offset })
+    offset += size
+  }
+  const moov = boxes.find((box) => box.type === 'moov')
+  const firstMedia = boxes.find((box) =>
+    box.type === 'moof' || box.type === 'mdat')
+  if (
+    boxes[0]?.type !== 'ftyp' || !moov || !firstMedia ||
+    moov.offset >= firstMedia.offset
+  ) throw unavailable(
+    'Customer-delivery MP4 did not expose front-loaded initialization metadata.',
+  )
+  return {
+    firstBox: 'ftyp',
+    initializationBox: 'moov',
+    firstMediaBox: firstMedia.type as 'moof' | 'mdat',
+    moovOffsetBytes: moov.offset,
+    firstMediaOffsetBytes: firstMedia.offset,
+    moovBeforeFirstMediaData: true,
+    fragmentedMp4: boxes.some((box) => box.type === 'moof'),
+  }
+}
+
+async function probeCustomerDeliveryMuxOutput(
+  image: OfflineMediaBinaryImageEvidence,
+  source: OfflineMediaBinaryServerInjectedInput,
+  request: OfflineMediaBinaryCustomerDeliveryMuxRequest,
+): Promise<Record<string, unknown>> {
+  const command = [
+    '-v', 'error', '-show_entries',
+    'format=format_name,start_time,duration,size:stream=codec_name,profile,codec_type,start_time,width,height,avg_frame_rate,r_frame_rate,pix_fmt,color_range,color_space,color_transfer,color_primaries,sample_rate,channels,channel_layout,duration,nb_read_frames',
+    '-count_frames', '-print_format', 'json', '-i', 'pipe:0',
+  ]
+  const container = await createContainer(image, FFPROBE_ENTRYPOINT, command)
+  try {
+    validateConfinement(
+      await inspectContainer(container.id), image, FFPROBE_ENTRYPOINT, command,
+    )
+    const result = await dockerVerifiedInput(
+      ['start', '--attach', '--interactive', container.id],
+      source,
+      2 * 1024 * 1024,
+      CUSTOMER_DELIVERY_MUX_TIMEOUT_MS,
+    )
+    if (result.exitCode !== 0 || result.stderr.length > 0) {
+      throw unavailable('Customer-delivery mux output probe failed closed.')
+    }
+    const parsed = record(JSON.parse(result.stdout.toString('utf8')))
+    const format = record(parsed.format)
+    const streams = Array.isArray(parsed.streams)
+      ? parsed.streams.map(record)
+      : []
+    const videos = streams.filter((stream) => stream.codec_type === 'video')
+    const audios = streams.filter((stream) => stream.codec_type === 'audio')
+    const video = videos[0]
+    const audio = audios[0]
+    const expectedDuration = request.payload.totalFrames / request.payload.fps
+    const countedFrames = optionalInteger(video?.nb_read_frames)
+    const containerDuration = optionalNumber(format.duration)
+    const videoDuration = optionalNumber(video?.duration)
+    const audioDuration = optionalNumber(audio?.duration)
+    const actualDuration = videoDuration === undefined ||
+        audioDuration === undefined
+      ? undefined
+      : Math.max(videoDuration, audioDuration)
+    const formatStart = optionalNumber(format.start_time)
+    const videoStart = optionalNumber(video?.start_time)
+    const audioStart = optionalNumber(audio?.start_time)
+    const nominalFrameRate = rational(video?.r_frame_rate)
+    const averageFrameRate = rational(video?.avg_frame_rate)
+    const tolerance = 2 / request.payload.fps + 0.001
+    if (
+      videos.length !== 1 || audios.length !== 1 || !video || !audio ||
+      video.codec_name !== 'h264' || video.profile !== 'High' ||
+      audio.codec_name !== 'aac' ||
+      !String(format.format_name ?? '').includes('mp4') ||
+      optionalInteger(video.width) !== request.payload.width ||
+      optionalInteger(video.height) !== request.payload.height ||
+      nominalFrameRate !== request.payload.fps ||
+      video.pix_fmt !== 'yuv420p' ||
+      countedFrames !== request.payload.totalFrames ||
+      video.color_range !== 'tv' || video.color_space !== 'bt709' ||
+      video.color_transfer !== 'bt709' || video.color_primaries !== 'bt709' ||
+      optionalInteger(audio.sample_rate) !== 48_000 ||
+      optionalInteger(audio.channels) !== 2 ||
+      formatStart === undefined || formatStart < 0 ||
+      formatStart > tolerance ||
+      videoStart === undefined || videoStart < 0 || videoStart > tolerance ||
+      audioStart === undefined || audioStart < 0 || audioStart > tolerance ||
+      Math.abs(videoStart - audioStart) > tolerance ||
+      videoDuration === undefined || audioDuration === undefined ||
+      Math.abs(videoDuration - expectedDuration) > tolerance ||
+      Math.abs(audioDuration - expectedDuration) > tolerance ||
+      Math.abs(videoDuration - audioDuration) > tolerance ||
+      actualDuration === undefined
+    ) throw unavailable(
+      'Customer-delivery mux failed MP4, H.264 High, AAC, frame, color, or duration verification.',
+      {
+        videoCount: videos.length,
+        audioCount: audios.length,
+        formatName: safeText(format.format_name),
+        videoCodec: safeText(video?.codec_name),
+        videoProfile: safeText(video?.profile),
+        audioCodec: safeText(audio?.codec_name),
+        audioProfile: safeText(audio?.profile),
+        width: optionalInteger(video?.width),
+        height: optionalInteger(video?.height),
+        nominalFrameRate,
+        averageFrameRate,
+        pixelFormat: safeText(video?.pix_fmt),
+        frameCount: optionalInteger(video?.nb_read_frames),
+        colorRange: safeText(video?.color_range),
+        colorSpace: safeText(video?.color_space),
+        sampleRate: optionalInteger(audio?.sample_rate),
+        channels: optionalInteger(audio?.channels),
+        formatStart,
+        videoStart,
+        audioStart,
+        containerDuration,
+        videoDuration,
+        audioDuration,
+        actualDuration,
+        expectedDuration: rounded(expectedDuration),
+        tolerance: rounded(tolerance),
+      },
+    )
+    return {
+      container: 'fragmented_mp4_front_loaded_initialization_v1',
+      videoCodec: 'h264_stream_copy',
+      videoProfile: 'high',
+      audioCodec: 'aac_lc_single_encode',
+      audioBitrate: 192_000,
+      width: request.payload.width,
+      height: request.payload.height,
+      frameRate: 30,
+      frameCount: request.payload.totalFrames,
+      pixelFormat: 'yuv420p',
+      colorRange: 'tv',
+      colorSpace: 'bt709',
+      colorTransfer: 'bt709',
+      colorPrimaries: 'bt709',
+      sampleRate: 48_000,
+      channels: 2,
+      expectedDurationSeconds: rounded(expectedDuration),
+      exactContentDurationFromCountedFramesSeconds:
+        rounded(request.payload.totalFrames / request.payload.fps),
+      actualDurationSeconds: actualDuration,
+      durationAuthority:
+        'exact_counted_frames_and_fragmented_video_audio_stream_durations_v1',
+      observedNonSeekableContainerDurationSeconds: containerDuration,
+      containerAndStreamStartOffsetsWithinTwoFrameBound: true,
+      maximumDurationDriftSeconds: rounded(tolerance),
+      sizeBytes: optionalInteger(format.size),
+    }
+  } finally {
+    await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024)
+      .catch(() => undefined)
+  }
+}
+
 async function probePrivateVp9ObjectChunk(
   image: OfflineMediaBinaryImageEvidence,
   source: OfflineMediaBinaryServerInjectedInput,
@@ -4472,9 +4919,9 @@ async function inspectImage(): Promise<OfflineMediaBinaryImageEvidence> {
     labels['reeditpro.product-ready'] !== 'false' ||
     labels['reeditpro.h264-encoding'] !== 'blocked_not_compiled' ||
     labels['reeditpro.aac-encoding'] !==
-      'private_source_slice_finalizer_only' ||
+      'private_source_slice_finalizer_and_customer_delivery_mux_only' ||
     labels['reeditpro.mp4-mux'] !==
-      'private_source_slice_finalizer_only' ||
+      'private_source_slice_finalizer_and_customer_delivery_mux_only' ||
     labels['reeditpro.object-mezzanine-chunk'] !==
       'private_all_chunk_vp9_cq12_only' ||
     labels['reeditpro.flac-encoding'] !==
@@ -4482,7 +4929,9 @@ async function inspectImage(): Promise<OfflineMediaBinaryImageEvidence> {
     labels['reeditpro.continuous-program-audio'] !==
       'private_30fps_48khz_source_audio_only' ||
     labels['reeditpro.long-form-master-assembly'] !==
-      'private_vp9_flac_matroska_stream_copy_only'
+      'private_vp9_flac_matroska_stream_copy_only' ||
+    labels['reeditpro.customer-delivery-master-mux'] !==
+      'private_h264_stream_copy_aac_lc_192k_front_loaded_mp4_only'
   ) throw unavailable('Pinned media image identity or safety labels are invalid.')
   const sourcePolicyHashes = await policyHashes()
   const imageIdentityHash = sha256AuthorityValue({
@@ -4501,13 +4950,17 @@ async function inspectImage(): Promise<OfflineMediaBinaryImageEvidence> {
     sourceSha256: SOURCE_SHA256,
     productReady: false,
     h264Encoding: 'blocked_not_compiled',
-    aacEncoding: 'private_source_slice_finalizer_only',
-    mp4Mux: 'private_source_slice_finalizer_only',
+    aacEncoding:
+      'private_source_slice_finalizer_and_customer_delivery_mux_only',
+    mp4Mux:
+      'private_source_slice_finalizer_and_customer_delivery_mux_only',
     objectMezzanineChunk: 'private_all_chunk_vp9_cq12_only',
     flacEncoding: 'private_continuous_program_audio_only',
     continuousProgramAudio: 'private_30fps_48khz_source_audio_only',
     longFormMasterAssembly:
       'private_vp9_flac_matroska_stream_copy_only',
+    customerDeliveryMasterMux:
+      'private_h264_stream_copy_aac_lc_192k_front_loaded_mp4_only',
     sourcePolicyHashes,
   }
 }
@@ -4531,6 +4984,7 @@ async function persistAuthority(image: OfflineMediaBinaryImageEvidence): Promise
       privateInternalContinuousProgramAudioReady: true as const,
       privateInternalCrossChunkColorBoundaryReady: true as const,
       privateInternalLongFormMasterAssemblyReady: true as const,
+      privateInternalCustomerDeliveryMuxReady: true as const,
       privateInternalLongFormMasterQaReady: true as const,
       privateInternalFinalMasterDecodedVideoQaReady: true as const,
       privateInternalFinalMasterDecodedAudioQaReady: true as const,
@@ -4544,12 +4998,12 @@ async function persistAuthority(image: OfflineMediaBinaryImageEvidence): Promise
       'Private single-host evidence is not deployed worker-fleet or production authority.',
       'The reviewed LGPL image has unresolved base-image CVEs and legal/distribution review gates.',
       'H.264 encoding, customer export, public delivery, and production activation remain unauthorized.',
-      'AAC encoding is restricted to the fixed private source-slice finalizer.',
-      'MP4 muxing is restricted to the fixed private source-slice finalizer.',
+      'AAC encoding and MP4 muxing are restricted to the fixed private source-slice finalizer and customer-delivery mux recipes.',
       'Object-mezzanine chunking is restricted to approved 30 fps private H.264 sources and VP9 CQ12 intermediates.',
       'Continuous program audio is restricted to approved 30 fps source ranges with 48 kHz mono/stereo input and lossless 48 kHz stereo FLAC output.',
       'Cross-chunk color analysis is restricted to adjacent independently QA-passed private VP9 BT.709 chunks and does not mutate media.',
       'Long-form master assembly is private VP9 and FLAC Matroska stream copy only; customer export codecs and delivery remain blocked.',
+      'Customer-delivery muxing is private H.264 stream copy plus one AAC-LC encode with front-loaded fragmented MP4 metadata; decoded QA, private-download reconciliation, cloud, public delivery, and production remain blocked.',
       'Private long-form master QA is restricted to one exact immutable VP9/FLAC Matroska review master and does not unlock delivery or export.',
       'Decoded final-master video and audio QA are bounded private single-process evidence; resumable long-form checkpointing, lease recovery, and worker-fleet execution remain blocked.',
     ] as const,
@@ -4592,20 +5046,28 @@ async function createContainer(
     | typeof OBJECT_MEZZANINE_CHUNK_ENTRYPOINT
     | typeof CONTINUOUS_PROGRAM_AUDIO_ENTRYPOINT
     | typeof CONTINUOUS_PROGRAM_AUDIO_PROBE_ENTRYPOINT
-    | typeof LONG_FORM_MASTER_ASSEMBLY_ENTRYPOINT,
+    | typeof LONG_FORM_MASTER_ASSEMBLY_ENTRYPOINT
+    | typeof CUSTOMER_DELIVERY_MUX_ENTRYPOINT,
   command: string[],
 ) {
+  const customerDeliveryMuxEntrypoint =
+    entrypoint === CUSTOMER_DELIVERY_MUX_ENTRYPOINT
   const largeMediaEntrypoint =
     entrypoint === MEZZANINE_FINALIZER_ENTRYPOINT ||
     entrypoint === OBJECT_MEZZANINE_CHUNK_ENTRYPOINT ||
     entrypoint === CONTINUOUS_PROGRAM_AUDIO_ENTRYPOINT ||
-    entrypoint === LONG_FORM_MASTER_ASSEMBLY_ENTRYPOINT
-  const memory = largeMediaEntrypoint ? '4g' : '2g'
+    entrypoint === LONG_FORM_MASTER_ASSEMBLY_ENTRYPOINT ||
+    customerDeliveryMuxEntrypoint
+  const memory = customerDeliveryMuxEntrypoint
+    ? '8g'
+    : largeMediaEntrypoint ? '4g' : '2g'
+  const cpus = customerDeliveryMuxEntrypoint ? '4' : '2'
   const tmpfsSizeBytes = largeMediaEntrypoint ? 1_342_177_280 : 67_108_864
   const created = await dockerBuffer([
     'create', '--interactive', '--network', 'none', '--read-only',
     '--cap-drop', 'ALL', '--security-opt', 'no-new-privileges:true',
-    '--pids-limit', '128', '--memory', memory, '--memory-swap', memory, '--cpus', '2',
+    '--pids-limit', '128', '--memory', memory, '--memory-swap', memory,
+    '--cpus', cpus,
     '--tmpfs', `/tmp:rw,noexec,nosuid,nodev,size=${tmpfsSizeBytes},mode=1777`,
     '--user', '65532:65532', '--entrypoint', entrypoint,
     image.imageId, ...command,
@@ -4627,19 +5089,28 @@ function validateConfinement(
     | typeof OBJECT_MEZZANINE_CHUNK_ENTRYPOINT
     | typeof CONTINUOUS_PROGRAM_AUDIO_ENTRYPOINT
     | typeof CONTINUOUS_PROGRAM_AUDIO_PROBE_ENTRYPOINT
-    | typeof LONG_FORM_MASTER_ASSEMBLY_ENTRYPOINT,
+    | typeof LONG_FORM_MASTER_ASSEMBLY_ENTRYPOINT
+    | typeof CUSTOMER_DELIVERY_MUX_ENTRYPOINT,
   command: string[],
 ): OfflineMediaBinaryConfinementEvidence {
   const host = record(inspect.HostConfig)
   const config = record(inspect.Config)
   const tmpfs = stringRecord(host.Tmpfs)
   const security = stringArray(host.SecurityOpt)
+  const customerDeliveryMuxEntrypoint =
+    entrypoint === CUSTOMER_DELIVERY_MUX_ENTRYPOINT
   const largeMediaEntrypoint =
     entrypoint === MEZZANINE_FINALIZER_ENTRYPOINT ||
     entrypoint === OBJECT_MEZZANINE_CHUNK_ENTRYPOINT ||
     entrypoint === CONTINUOUS_PROGRAM_AUDIO_ENTRYPOINT ||
-    entrypoint === LONG_FORM_MASTER_ASSEMBLY_ENTRYPOINT
-  const memoryLimitBytes = largeMediaEntrypoint ? 4_294_967_296 : 2_147_483_648
+    entrypoint === LONG_FORM_MASTER_ASSEMBLY_ENTRYPOINT ||
+    customerDeliveryMuxEntrypoint
+  const memoryLimitBytes = customerDeliveryMuxEntrypoint
+    ? 8_589_934_592
+    : largeMediaEntrypoint ? 4_294_967_296 : 2_147_483_648
+  const nanoCpus = customerDeliveryMuxEntrypoint
+    ? 4_000_000_000
+    : 2_000_000_000
   const tmpfsSizeBytes = largeMediaEntrypoint ? 1_342_177_280 : 67_108_864
   const tmpfsPolicy = String(tmpfs['/tmp'] ?? '')
   if (
@@ -4647,7 +5118,8 @@ function validateConfinement(
     host.Privileged !== false || stringArray(host.CapDrop).join('|') !== 'ALL' ||
     !security.some((value) => value.startsWith('no-new-privileges')) ||
     Number(host.PidsLimit) !== 128 || Number(host.Memory) !== memoryLimitBytes ||
-    Number(host.MemorySwap) !== memoryLimitBytes || Number(host.NanoCpus) !== 2_000_000_000 ||
+    Number(host.MemorySwap) !== memoryLimitBytes ||
+    Number(host.NanoCpus) !== nanoCpus ||
     config.User !== '65532:65532' || stringArray(config.Entrypoint).join('|') !== entrypoint ||
     stableAuthorityStringify(stringArray(config.Cmd)) !== stableAuthorityStringify(command) ||
     (Array.isArray(inspect.Mounts) && inspect.Mounts.length > 0) ||
@@ -4659,7 +5131,7 @@ function validateConfinement(
     networkMode: 'none', readOnlyRootFilesystem: true, capDropAll: true,
     noNewPrivileges: true, privileged: false, pidsLimit: 128,
     memoryLimitBytes, memoryAndSwapLimitBytes: memoryLimitBytes,
-    nanoCpus: 2_000_000_000, tmpfsPath: '/tmp', tmpfsSizeBytes,
+    nanoCpus, tmpfsPath: '/tmp', tmpfsSizeBytes,
     user: '65532:65532',
     callerBindsPresent: false, callerMountsPresent: false, callerEnvironmentPresent: false,
     serverOwnedEntrypoint: entrypoint, serverDerivedArgumentsOnly: true,
@@ -4747,7 +5219,7 @@ async function policyHashes(): Promise<Record<string, string>> {
     'allowed-demuxers.txt', 'allowed-muxers.txt', 'allowed-protocols.txt', 'allowed-bsfs.txt',
     'source-slice-finalizer.sh', 'object-mezzanine-chunk.sh',
     'continuous-program-audio.sh', 'continuous-program-audio-probe.sh',
-    'long-form-master-assembly.sh',
+    'long-form-master-assembly.sh', 'customer-delivery-master-mux.sh',
   ]
   return Object.fromEntries(await Promise.all(names.map(async (name) => [name, sha256(await readFile(join(directory, name)))])))
 }
@@ -5310,6 +5782,317 @@ async function waitForRunningLongFormMasterContainer(
     await new Promise<void>((resolve) => setTimeout(resolve, 25))
   }
   throw unavailable('Long-form master container did not enter its running state.')
+}
+
+function assertCustomerDeliveryMuxInputs(
+  request: OfflineMediaBinaryCustomerDeliveryMuxRequest,
+  inputs: {
+    chunks: readonly OfflineMediaBinaryServerInjectedInput[]
+    programAudio: OfflineMediaBinaryServerInjectedInput
+  },
+): void {
+  if (
+    !Array.isArray(inputs.chunks) ||
+    inputs.chunks.length !== request.inputs.chunks.length
+  ) throw invalid('Server-injected delivery-mux chunk authority is incomplete.')
+  request.inputs.chunks.forEach((commitment, index) => {
+    assertServerInjectedInput(
+      inputs.chunks[index]!, commitment.byteLength, commitment.sha256,
+    )
+  })
+  assertServerInjectedInput(
+    inputs.programAudio,
+    request.inputs.programAudio.byteLength,
+    request.inputs.programAudio.sha256,
+  )
+}
+
+function customerDeliveryMuxProtocolStream(
+  request: OfflineMediaBinaryCustomerDeliveryMuxRequest,
+  inputs: {
+    chunks: readonly OfflineMediaBinaryServerInjectedInput[]
+    programAudio: OfflineMediaBinaryServerInjectedInput
+  },
+): Readable {
+  const blockBytes = 16_384
+  assertCustomerDeliveryMuxInputs(request, inputs)
+  const line = (values: readonly (string | number)[]) =>
+    Buffer.from(`${values.join('\t')}\n`, 'utf8')
+  const blocks = async function* (
+    source: OfflineMediaBinaryServerInjectedInput,
+    expectedBytes: number,
+    expectedSha256: string,
+  ) {
+    const stream = await source.openStream()
+    let observed = 0
+    const checksum = createHash('sha256')
+    for await (const chunk of stream) {
+      const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)
+      for (let offset = 0; offset < bytes.byteLength; offset += blockBytes) {
+        const block = bytes.subarray(
+          offset,
+          Math.min(offset + blockBytes, bytes.byteLength),
+        )
+        observed += block.byteLength
+        if (observed > expectedBytes) {
+          throw new Error('Customer-delivery mux input exceeded its commitment.')
+        }
+        checksum.update(block)
+        yield block
+      }
+    }
+    if (
+      observed !== expectedBytes || checksum.digest('hex') !== expectedSha256
+    ) throw new Error(
+      'Customer-delivery mux input changed from its commitment.',
+    )
+  }
+  return Readable.from((async function* () {
+    yield line([OFFLINE_MEDIA_BINARY_CUSTOMER_DELIVERY_MUX_MAGIC])
+    yield line([
+      'timeline', request.payload.width, request.payload.height,
+      request.payload.fps, request.payload.totalFrames,
+      request.inputs.chunks.length, request.inputs.programAudio.byteLength,
+      request.inputs.programAudio.sha256,
+    ])
+    for (let index = 0; index < request.inputs.chunks.length; index += 1) {
+      const chunk = request.inputs.chunks[index]!
+      const plan = request.payload.chunks[index]!
+      yield line([
+        'chunk', chunk.chunkIndex, plan.globalStartFrame,
+        plan.globalEndFrameExclusive, plan.durationFrames,
+        chunk.byteLength, chunk.sha256,
+      ])
+    }
+    yield line(['begin'])
+    for (let index = 0; index < inputs.chunks.length; index += 1) {
+      const commitment = request.inputs.chunks[index]!
+      const iterator = blocks(
+        inputs.chunks[index]!,
+        commitment.byteLength,
+        commitment.sha256,
+      )[Symbol.asyncIterator]()
+      while (true) {
+        const value = await iterator.next()
+        if (value.done) break
+        yield line(['block', 'video', index + 1, value.value.byteLength])
+        yield value.value
+        yield Buffer.from('\n', 'utf8')
+      }
+      yield line(['close', 'video', index + 1, 0])
+    }
+    yield line(['end', 'protocol', 0, 0])
+  })())
+}
+
+async function dockerVerifiedCustomerDeliveryMuxToPrivateOutputSpool(input: {
+  args: string[]
+  containerId: string
+  request: OfflineMediaBinaryCustomerDeliveryMuxRequest
+  inputs: {
+    chunks: readonly OfflineMediaBinaryServerInjectedInput[]
+    programAudio: OfflineMediaBinaryServerInjectedInput
+  }
+  maximumOutputBytes: number
+  timeoutMs: number
+}): Promise<DockerVerifiedPrivateOutputSpool> {
+  if (
+    input.maximumOutputBytes !==
+      OFFLINE_MEDIA_BINARY_CUSTOMER_DELIVERY_MUX_MAXIMUM_OUTPUT_BYTES
+  ) throw invalid('Customer-delivery mux spool bound is invalid.')
+  const spoolId = randomBytes(16).toString('hex')
+  const directory = `runtime-output-spools/${spoolId}`
+  const created = await createPrivateDirectoryCreateOnlyWithinRoot({
+    rootPath: STORAGE_ROOT,
+    relativePath: directory,
+  })
+  const artifactPath = `${directory}/artifact.mp4`
+  const invocation = createPrivateDockerCliInvocation(input.args)
+  const child = spawn(invocation.executable, invocation.args, {
+    stdio: ['pipe', 'pipe', 'pipe'],
+    env: invocation.env,
+  })
+  const stderr: Buffer[] = []
+  let stderrBytes = 0
+  const resultPromise = new Promise<{ exitCode: number; stderr: Buffer }>(
+    (resolve, reject) => {
+      const timer = setTimeout(() => {
+        child.kill('SIGKILL')
+        reject(unavailable('Docker customer-delivery mux timed out.'))
+      }, input.timeoutMs)
+      child.stderr.on('data', (chunk: Buffer) => {
+        stderrBytes += chunk.byteLength
+        if (stderrBytes > 512 * 1024) child.kill('SIGKILL')
+        else stderr.push(chunk)
+      })
+      child.once('error', (error) => {
+        clearTimeout(timer)
+        reject(error)
+      })
+      child.once('close', (code) => {
+        clearTimeout(timer)
+        if (stderrBytes > 512 * 1024) {
+          reject(unavailable(
+            'Customer-delivery mux diagnostic exceeded its bound.',
+          ))
+        } else {
+          resolve({ exitCode: code ?? 1, stderr: Buffer.concat(stderr) })
+        }
+      })
+    },
+  )
+  const signature: Buffer[] = []
+  let signatureBytes = 0
+  const output = Readable.from((async function* () {
+    for await (const chunk of child.stdout) {
+      const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)
+      if (signatureBytes < 64) {
+        const part = bytes.subarray(
+          0,
+          Math.min(bytes.byteLength, 64 - signatureBytes),
+        )
+        signature.push(Buffer.from(part))
+        signatureBytes += part.byteLength
+      }
+      yield bytes
+    }
+  })())
+  const protocol = customerDeliveryMuxProtocolStream(input.request, input.inputs)
+  let audioResultPromise:
+    | Promise<{ exitCode: number; stdout: Buffer; stderr: Buffer }>
+    | undefined
+  try {
+    const persistedPromise = writePrivateStreamCreateOnlyWithinRoot({
+      rootPath: STORAGE_ROOT,
+      relativePath: artifactPath,
+      stream: output,
+      maximumBytes: input.maximumOutputBytes,
+    })
+    audioResultPromise = waitForRunningCustomerDeliveryMuxContainer(
+      input.containerId,
+    ).then(() => dockerVerifiedInput(
+      [
+        'exec', '--interactive', input.containerId,
+        CUSTOMER_DELIVERY_MUX_ENTRYPOINT,
+        'customer-delivery-master-audio-writer-v1',
+      ],
+      input.inputs.programAudio,
+      1_024,
+      input.timeoutMs,
+    ))
+    const [, result, persisted, audioResult] = await Promise.all([
+      pipeline(protocol, child.stdin),
+      resultPromise,
+      persistedPromise,
+      audioResultPromise,
+    ])
+    const prefix = Buffer.concat(signature, signatureBytes)
+    if (
+      result.exitCode !== 0 || result.stderr.length > 0 ||
+      audioResult.exitCode !== 0 || audioResult.stdout.length > 0 ||
+      audioResult.stderr.length > 0 || persisted.byteLength < 1_024 ||
+      !isMp4(prefix)
+    ) throw unavailable(
+      `Customer-delivery mux runner failed closed: ${
+        safeFfmpegDiagnostic(result.stderr)
+      }`,
+    )
+    let cleaned = false
+    return {
+      exitCode: result.exitCode,
+      stderr: result.stderr,
+      byteLength: persisted.byteLength,
+      sha256: persisted.checksumSha256,
+      signature: prefix,
+      source: Object.freeze({
+        inputMode: 'private_verified_stream_v1' as const,
+        byteLength: persisted.byteLength,
+        sha256: persisted.checksumSha256,
+        async openStream() {
+          return createPrivateReadStreamWithinRoot({
+            rootPath: STORAGE_ROOT,
+            relativePath: artifactPath,
+          })
+        },
+      }),
+      async cleanup() {
+        if (cleaned) return
+        const removed = await removePrivateDirectoryTreeWithinRoot({
+          rootPath: STORAGE_ROOT,
+          relativePath: directory,
+          expectedIdentity: created.identity,
+        })
+        if (!removed.removed) {
+          throw unavailable('Customer-delivery mux spool vanished.')
+        }
+        cleaned = true
+      },
+    }
+  } catch (error) {
+    const mainResultBeforeCleanup = await Promise.race([
+      resultPromise.catch(() => undefined),
+      new Promise<undefined>((resolve) => setTimeout(resolve, 250)),
+    ])
+    const inspectedBeforeCleanup = await inspectContainer(input.containerId)
+      .catch(() => undefined)
+    const stateBeforeCleanup = inspectedBeforeCleanup
+      ? record(inspectedBeforeCleanup.State)
+      : undefined
+    protocol.destroy()
+    child.stdout.destroy()
+    child.stdin.destroy()
+    child.kill('SIGKILL')
+    void audioResultPromise?.catch(() => undefined)
+    await resultPromise.catch(() => undefined)
+    await removePrivateDirectoryTreeWithinRoot({
+      rootPath: STORAGE_ROOT,
+      relativePath: directory,
+      expectedIdentity: created.identity,
+    }).catch(() => undefined)
+    throw unavailable('Customer-delivery mux streams failed closed.', {
+      originatingErrorCode: error instanceof ApiError
+        ? error.code
+        : 'non_api_error',
+      originatingErrorMessage: error instanceof Error
+        ? error.message
+        : 'unknown error',
+      originatingErrorDetails: error instanceof ApiError
+        ? error.details
+        : undefined,
+      mainAttachExitCode: mainResultBeforeCleanup?.exitCode,
+      mainDiagnostic: mainResultBeforeCleanup
+        ? safeFfmpegDiagnostic(mainResultBeforeCleanup.stderr)
+        : 'main attach still pending at cleanup boundary',
+      containerStatus: safeText(stateBeforeCleanup?.Status),
+      containerExitCode: optionalInteger(stateBeforeCleanup?.ExitCode),
+      containerOomKilled: stateBeforeCleanup?.OOMKilled,
+      containerRunning: stateBeforeCleanup?.Running,
+      containerError: safeText(stateBeforeCleanup?.Error),
+    })
+  }
+}
+
+async function waitForRunningCustomerDeliveryMuxContainer(
+  containerId: string,
+): Promise<void> {
+  if (!/^[a-f0-9]{12,64}$/u.test(containerId)) {
+    throw invalid('Customer-delivery mux container identity is invalid.')
+  }
+  for (let attempt = 0; attempt < 100; attempt += 1) {
+    const inspected = await dockerBuffer(
+      ['inspect', '--format', '{{.State.Running}}', containerId],
+      undefined,
+      64,
+    )
+    if (
+      inspected.exitCode === 0 &&
+      inspected.stdout.toString('utf8').trim() === 'true'
+    ) return
+    await new Promise<void>((resolve) => setTimeout(resolve, 25))
+  }
+  throw unavailable(
+    'Customer-delivery mux container did not enter its running state.',
+  )
 }
 
 function assertObjectMezzanineChunkServerInjectedInputs(

@@ -116,6 +116,16 @@ import {
   professionalLongFormDeliveryH264QaAuthorizationSchema,
   professionalLongFormDeliveryH264QaCompletionSchema,
 } from './professional-long-form-customer-delivery-h264-qa-execution-contract'
+import {
+  PROFESSIONAL_LONG_FORM_DELIVERY_MUX_ATTEMPT_VERSION,
+  PROFESSIONAL_LONG_FORM_DELIVERY_MUX_AUTHORITY_VERSION,
+  PROFESSIONAL_LONG_FORM_DELIVERY_MUX_AUTHORIZATION_VERSION,
+  PROFESSIONAL_LONG_FORM_DELIVERY_MUX_COMPLETION_VERSION,
+  professionalLongFormDeliveryMuxAttemptSchema,
+  professionalLongFormDeliveryMuxAuthoritySchema,
+  professionalLongFormDeliveryMuxAuthorizationSchema,
+  professionalLongFormDeliveryMuxCompletionSchema,
+} from './professional-long-form-customer-delivery-mux-execution-contract'
 
 export const professionalLongFormAuthorizedChildAuthorizationReceiptSchema =
   z.discriminatedUnion('schemaVersion', [
@@ -131,6 +141,7 @@ export const professionalLongFormAuthorizedChildAuthorizationReceiptSchema =
     professionalLongFormDeliveryRootAuthorizationSchema,
     professionalLongFormDeliveryH264AuthorizationSchema,
     professionalLongFormDeliveryH264QaAuthorizationSchema,
+    professionalLongFormDeliveryMuxAuthorizationSchema,
   ])
 
 export const professionalLongFormAuthorizedChildExecutionAuthoritySchema =
@@ -147,6 +158,7 @@ export const professionalLongFormAuthorizedChildExecutionAuthoritySchema =
     professionalLongFormDeliveryRootAuthoritySchema,
     professionalLongFormDeliveryH264AuthoritySchema,
     professionalLongFormDeliveryH264QaAuthoritySchema,
+    professionalLongFormDeliveryMuxAuthoritySchema,
   ])
 
 export const professionalLongFormAuthorizedChildExecutionAttemptSchema =
@@ -163,6 +175,7 @@ export const professionalLongFormAuthorizedChildExecutionAttemptSchema =
     professionalLongFormDeliveryRootAttemptSchema,
     professionalLongFormDeliveryH264AttemptSchema,
     professionalLongFormDeliveryH264QaAttemptSchema,
+    professionalLongFormDeliveryMuxAttemptSchema,
   ])
 
 export const professionalLongFormAuthorizedChildCompletionSchema =
@@ -179,6 +192,7 @@ export const professionalLongFormAuthorizedChildCompletionSchema =
     professionalLongFormDeliveryRootCompletionSchema,
     professionalLongFormDeliveryH264CompletionSchema,
     professionalLongFormDeliveryH264QaCompletionSchema,
+    professionalLongFormDeliveryMuxCompletionSchema,
   ])
 
 export type ProfessionalLongFormAuthorizedChildAuthorizationReceipt = z.infer<
@@ -288,6 +302,15 @@ export function isProfessionalLongFormDeliveryH264QaAuthorization(
     PROFESSIONAL_LONG_FORM_DELIVERY_H264_QA_AUTHORIZATION_VERSION
 }
 
+export function isProfessionalLongFormDeliveryMuxAuthorization(
+  value: ProfessionalLongFormAuthorizedChildAuthorizationReceipt,
+): value is z.infer<
+  typeof professionalLongFormDeliveryMuxAuthorizationSchema
+> {
+  return value.schemaVersion ===
+    PROFESSIONAL_LONG_FORM_DELIVERY_MUX_AUTHORIZATION_VERSION
+}
+
 export function isProfessionalLongFormFirstChildExecutionAuthority(
   value: ProfessionalLongFormAuthorizedChildExecutionAuthority,
 ): value is z.infer<typeof professionalLongFormFirstChildExecutionAuthoritySchema> {
@@ -376,6 +399,13 @@ export function isProfessionalLongFormDeliveryH264QaAuthority(
     PROFESSIONAL_LONG_FORM_DELIVERY_H264_QA_AUTHORITY_VERSION
 }
 
+export function isProfessionalLongFormDeliveryMuxAuthority(
+  value: ProfessionalLongFormAuthorizedChildExecutionAuthority,
+): value is z.infer<typeof professionalLongFormDeliveryMuxAuthoritySchema> {
+  return value.schemaVersion ===
+    PROFESSIONAL_LONG_FORM_DELIVERY_MUX_AUTHORITY_VERSION
+}
+
 export function isProfessionalLongFormFirstChildExecutionAttempt(
   value: ProfessionalLongFormAuthorizedChildExecutionAttempt,
 ): value is z.infer<typeof professionalLongFormFirstChildExecutionAttemptSchema> {
@@ -460,6 +490,12 @@ export function isProfessionalLongFormDeliveryH264QaAttempt(
 ): value is z.infer<typeof professionalLongFormDeliveryH264QaAttemptSchema> {
   return value.schemaVersion ===
     PROFESSIONAL_LONG_FORM_DELIVERY_H264_QA_ATTEMPT_VERSION
+}
+
+export function isProfessionalLongFormDeliveryMuxAttempt(
+  value: ProfessionalLongFormAuthorizedChildExecutionAttempt,
+): value is z.infer<typeof professionalLongFormDeliveryMuxAttemptSchema> {
+  return value.schemaVersion === PROFESSIONAL_LONG_FORM_DELIVERY_MUX_ATTEMPT_VERSION
 }
 
 export function isProfessionalLongFormFirstChildCompletion(
@@ -547,4 +583,11 @@ export function isProfessionalLongFormDeliveryH264QaCompletion(
 ): value is z.infer<typeof professionalLongFormDeliveryH264QaCompletionSchema> {
   return value.schemaVersion ===
     PROFESSIONAL_LONG_FORM_DELIVERY_H264_QA_COMPLETION_VERSION
+}
+
+export function isProfessionalLongFormDeliveryMuxCompletion(
+  value: ProfessionalLongFormAuthorizedChildCompletion,
+): value is z.infer<typeof professionalLongFormDeliveryMuxCompletionSchema> {
+  return value.schemaVersion ===
+    PROFESSIONAL_LONG_FORM_DELIVERY_MUX_COMPLETION_VERSION
 }

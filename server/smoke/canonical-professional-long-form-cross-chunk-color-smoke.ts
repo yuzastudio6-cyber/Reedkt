@@ -80,6 +80,10 @@ import {
   PROFESSIONAL_LONG_FORM_DELIVERY_H264_QA_COST_PROFILE_ID,
   PROFESSIONAL_LONG_FORM_DELIVERY_H264_QA_OPERATION_ID,
 } from '../edit-architecture/professional-long-form-customer-delivery-h264-qa-execution-contract'
+import {
+  PROFESSIONAL_LONG_FORM_DELIVERY_MUX_COST_PROFILE_ID,
+  PROFESSIONAL_LONG_FORM_DELIVERY_MUX_OPERATION_ID,
+} from '../edit-architecture/professional-long-form-customer-delivery-mux-execution-contract'
 import { createEditPlanningAuthorityService } from
   '../services/edit-planning-authority-service'
 import { createExactEditPreferenceService } from
@@ -800,6 +804,103 @@ try {
       qa.terminal.terminalHash),
   )
 
+  const deliveryMuxExecution =
+    await deliveryExecutionService.executePrivateH264AacMasterMux({
+      workspaceId,
+      approvedPlanSnapshotId: snapshotId,
+    })
+  assert.equal(deliveryMuxExecution.disposition, 'completed')
+  assert.equal(
+    deliveryMuxExecution.prerequisiteSeriesDependencySetHash,
+    deliveryMuxExecution.mux.authority.lineage.dependencySetHash,
+  )
+  assert.equal(deliveryMuxExecution.queueAggregate.summary.completedJobCount, 6)
+  assert.equal(deliveryMuxExecution.queueAggregate.summary.queuedJobCount, 3)
+  assert.equal(deliveryMuxExecution.queueAggregate.summary.leasedJobCount, 0)
+  assert.equal(deliveryMuxExecution.mux.outputArtifact.mediaFormat, 'mp4')
+  assert.equal(deliveryMuxExecution.mux.outputArtifact.videoCodec, 'h264')
+  assert.equal(deliveryMuxExecution.mux.outputArtifact.videoProfile, 'high')
+  assert.equal(
+    deliveryMuxExecution.mux.outputArtifact.videoStreamCopiedWithoutReencode,
+    true,
+  )
+  assert.equal(deliveryMuxExecution.mux.outputArtifact.audioCodec, 'aac_lc')
+  assert.equal(deliveryMuxExecution.mux.outputArtifact.audioBitrate, 192_000)
+  assert.equal(deliveryMuxExecution.mux.outputArtifact.sampleRate, 48_000)
+  assert.equal(deliveryMuxExecution.mux.outputArtifact.channels, 2)
+  assert.equal(deliveryMuxExecution.mux.outputArtifact.audioEncodeCount, 1)
+  assert.equal(
+    deliveryMuxExecution.mux.outputArtifact.frontLoadedInitializationMetadata,
+    true,
+  )
+  assert.equal(
+    deliveryMuxExecution.mux.costEvidence.identity.operationId,
+    PROFESSIONAL_LONG_FORM_DELIVERY_MUX_OPERATION_ID,
+  )
+  assert.equal(
+    deliveryMuxExecution.mux.costEvidence.identity.workloadProfileId,
+    PROFESSIONAL_LONG_FORM_DELIVERY_MUX_COST_PROFILE_ID,
+  )
+  assert.equal(deliveryMuxExecution.mux.costEvidence.resourceUsage.vcpuCount, 4)
+  assert.equal(deliveryMuxExecution.mux.costEvidence.resourceUsage.memoryGib, 8)
+  assert.equal(deliveryMuxExecution.mux.terminal.decodedVideoQaCompleted, false)
+  assert.equal(deliveryMuxExecution.mux.terminal.decodedAudioQaCompleted, false)
+  assert.equal(deliveryMuxExecution.mux.terminal.privateDownloadReconciled, false)
+  assert.equal(
+    deliveryMuxExecution.readiness.completeProgramVideoReencoded,
+    false,
+  )
+  assert.equal(deliveryMuxExecution.readiness.decodedVideoQaVerified, false)
+  assert.equal(deliveryMuxExecution.readiness.decodedAudioQaVerified, false)
+  assert.equal(deliveryMuxExecution.readiness.privateDownloadVerified, false)
+  assert.equal(deliveryMuxExecution.readiness.secondExportEstimateCreated, false)
+  assert.equal(deliveryMuxExecution.readiness.secondExportChargeCreated, false)
+  assert.equal(deliveryMuxExecution.readiness.publicDeliveryAuthorized, false)
+  assert.equal(deliveryMuxExecution.readiness.productReady, false)
+  assert.equal(deliveryMuxExecution.readiness.productionReady, false)
+  assert.doesNotMatch(
+    stableAuthorityStringify(deliveryMuxExecution.mux.costEvidence),
+    /customerPrice|customerCredit|serviceFee|wallet|billingAuthority/u,
+  )
+  assert.equal(
+    deliveryMuxExecution.queueAggregate.entries[6]?.state,
+    'queued',
+  )
+  assert.equal(
+    deliveryMuxExecution.queueAggregate.entries[7]?.state,
+    'queued',
+  )
+  assert.equal(
+    deliveryMuxExecution.queueAggregate.entries[8]?.state,
+    'queued',
+  )
+
+  clearPrivateEditAuthorityProcessStateForSmoke()
+  clearPrivateCanonicalPackageWorkQueueProcessStateForSmoke()
+  const deliveryMuxReplay =
+    await deliveryExecutionService.executePrivateH264AacMasterMux({
+      workspaceId,
+      approvedPlanSnapshotId: snapshotId,
+    })
+  assert.equal(deliveryMuxReplay.disposition, 'exact_replay')
+  assert.equal(
+    deliveryMuxReplay.prerequisiteSeriesDependencySetHash,
+    deliveryMuxExecution.prerequisiteSeriesDependencySetHash,
+  )
+  assert.equal(deliveryMuxReplay.evidenceHash, deliveryMuxExecution.evidenceHash)
+  assert.equal(
+    deliveryMuxReplay.mux.terminal.terminalHash,
+    deliveryMuxExecution.mux.terminal.terminalHash,
+  )
+  assert.equal(
+    deliveryMuxReplay.mux.costEvidence.evidenceHash,
+    deliveryMuxExecution.mux.costEvidence.evidenceHash,
+  )
+  assert.equal(
+    deliveryMuxReplay.mux.outputArtifact.sha256,
+    deliveryMuxExecution.mux.outputArtifact.sha256,
+  )
+
   console.log(JSON.stringify({
     ok: true,
     schemaVersion:
@@ -833,6 +934,9 @@ try {
     customerDeliveryEveryH264AndQaExactReplayVerified:
       deliveryH264SeriesReplay.evidenceHash ===
         deliveryH264Series.evidenceHash,
+    customerDeliveryMuxExactReplayVerified:
+      deliveryMuxReplay.mux.terminal.terminalHash ===
+        deliveryMuxExecution.mux.terminal.terminalHash,
     privateMasterQaCompleted: true,
     privateReviewGraphComplete: true,
     customerDeliveryPackageJobCount:
@@ -840,7 +944,7 @@ try {
     customerDeliveryPackageHash: delivery.package.packageHash,
     customerDeliveryWorkGraphHash: delivery.package.graph.workGraphHash,
     customerDeliveryQueueAggregateHash:
-      deliveryH264Series.queueAggregate.aggregateHash,
+      deliveryMuxExecution.queueAggregate.aggregateHash,
     customerDeliveryPackagePrepared: true,
     customerDeliveryRootCompleted: true,
     customerDeliveryFirstH264Completed: true,
@@ -862,7 +966,14 @@ try {
       deliveryH264Series.independentQa[1]?.artifact.qaHash,
     customerDeliveryAllMuxDependenciesSatisfied: true,
     customerDeliveryIndependentH264QaCompleted: true,
-    customerDeliveryMasterCreated: false,
+    customerDeliveryMasterCreated: true,
+    customerDeliveryMasterSha256:
+      deliveryMuxExecution.mux.outputArtifact.sha256,
+    customerDeliveryMuxInternalCostEvidenceHash:
+      deliveryMuxExecution.mux.costEvidence.evidenceHash,
+    customerDeliveryDecodedVideoQaCompleted: false,
+    customerDeliveryDecodedAudioQaCompleted: false,
+    customerDeliveryPrivateDownloadReconciled: false,
     exportExecutionAuthorized: false,
     productReady: false,
     productionReady: false,

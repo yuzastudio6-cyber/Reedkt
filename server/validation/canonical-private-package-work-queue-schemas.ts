@@ -30,6 +30,7 @@ import {
   isProfessionalLongFormFirstObjectChunkRenderAuthorization,
   isProfessionalLongFormDeliveryH264Authorization,
   isProfessionalLongFormDeliveryH264QaAuthorization,
+  isProfessionalLongFormDeliveryMuxAuthorization,
   isProfessionalLongFormDeliveryRootAuthorization,
 } from '../edit-architecture/professional-long-form-authorized-child-contract'
 
@@ -277,7 +278,8 @@ export const canonicalPrivatePackageWorkQueueEntrySchema = z.object({
   const deliveryAuthorization =
     isProfessionalLongFormDeliveryRootAuthorization(authorization) ||
     isProfessionalLongFormDeliveryH264Authorization(authorization) ||
-    isProfessionalLongFormDeliveryH264QaAuthorization(authorization)
+    isProfessionalLongFormDeliveryH264QaAuthorization(authorization) ||
+    isProfessionalLongFormDeliveryMuxAuthorization(authorization)
   if (
     entry.definition.privateExecutionReady ||
     (entry.definition.approvedWorkItemId !==

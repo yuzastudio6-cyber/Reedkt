@@ -935,14 +935,18 @@ function validateRuntimeImage(
       '464beb5e7bf0c311e68b45ae2f04e9cc2af88851abb4082231742a74d97b524c' ||
     image.productReady !== false ||
     image.h264Encoding !== 'blocked_not_compiled' ||
-    image.aacEncoding !== 'private_source_slice_finalizer_only' ||
-    image.mp4Mux !== 'private_source_slice_finalizer_only' ||
+    image.aacEncoding !==
+      'private_source_slice_finalizer_and_customer_delivery_mux_only' ||
+    image.mp4Mux !==
+      'private_source_slice_finalizer_and_customer_delivery_mux_only' ||
     image.objectMezzanineChunk !== 'private_all_chunk_vp9_cq12_only' ||
     image.flacEncoding !== 'private_continuous_program_audio_only' ||
     image.continuousProgramAudio !==
       'private_30fps_48khz_source_audio_only' ||
     image.longFormMasterAssembly !==
       'private_vp9_flac_matroska_stream_copy_only' ||
+    image.customerDeliveryMasterMux !==
+      'private_h264_stream_copy_aac_lc_192k_front_loaded_mp4_only' ||
     Object.keys(policyHashes).length < 1 ||
     Object.values(policyHashes).some((value) =>
       typeof value !== 'string' || !SHA256.test(value))

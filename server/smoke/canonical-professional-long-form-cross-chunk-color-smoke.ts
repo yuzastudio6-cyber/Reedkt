@@ -717,6 +717,88 @@ try {
     deliveryH264QaReplay.qa.costEvidence.evidenceHash,
     deliveryH264QaExecution.qa.costEvidence.evidenceHash,
   )
+  const deliveryH264Series =
+    await deliveryExecutionService.executeAllH264ChunksAndIndependentQa({
+      workspaceId,
+      approvedPlanSnapshotId: snapshotId,
+    })
+  assert.equal(deliveryH264Series.disposition, 'completed')
+  assert.equal(deliveryH264Series.h264Chunks.length, 2)
+  assert.equal(deliveryH264Series.independentQa.length, 2)
+  assert.equal(
+    deliveryH264Series.queueAggregate.summary.completedJobCount,
+    5,
+  )
+  assert.equal(deliveryH264Series.queueAggregate.summary.queuedJobCount, 4)
+  assert.equal(deliveryH264Series.queueAggregate.summary.leasedJobCount, 0)
+  assert.deepEqual(
+    deliveryH264Series.h264Chunks.map((chunk) =>
+      chunk.outputArtifact.chunkIndex),
+    [1, 2],
+  )
+  assert.deepEqual(
+    deliveryH264Series.independentQa.map((qa) =>
+      qa.artifact.observed.codecProfile),
+    ['High', 'High'],
+  )
+  assert.deepEqual(
+    deliveryH264Series.independentQa.map((qa) =>
+      qa.artifact.observed.frameCount),
+    deliveryH264Series.h264Chunks.map((chunk) =>
+      chunk.outputArtifact.durationFrames),
+  )
+  assert.equal(
+    new Set(deliveryH264Series.h264Chunks.map((chunk) =>
+      chunk.outputArtifact.objectIdentity)).size,
+    2,
+  )
+  const deliveryMuxEntry = deliveryH264Series.queueAggregate.entries[5]
+  assert.equal(deliveryMuxEntry?.state, 'queued')
+  assert.equal(deliveryMuxEntry?.definition.dependencyJobIds.length, 2)
+  assert.equal(deliveryMuxEntry?.professionalLongFormExecutionAuthorization,
+    undefined)
+  assert.ok(deliveryMuxEntry?.definition.dependencyJobIds.every(
+    (dependencyJobId) => deliveryH264Series.queueAggregate.entries.find(
+      (entry) => entry.definition.jobId === dependencyJobId)?.state ===
+        'completed',
+  ))
+  assert.equal(deliveryH264Series.readiness.allMuxDependenciesSatisfied, true)
+  assert.equal(deliveryH264Series.readiness.muxExecutionAuthorized, false)
+  assert.equal(deliveryH264Series.readiness.secondExportEstimateCreated, false)
+  assert.equal(deliveryH264Series.readiness.secondExportChargeCreated, false)
+  assert.equal(deliveryH264Series.readiness.publicDeliveryAuthorized, false)
+  assert.equal(deliveryH264Series.readiness.productReady, false)
+  assert.equal(deliveryH264Series.readiness.productionReady, false)
+  for (const evidence of [
+    ...deliveryH264Series.h264Chunks.map((chunk) => chunk.costEvidence),
+    ...deliveryH264Series.independentQa.map((qa) => qa.costEvidence),
+  ]) assert.doesNotMatch(
+    stableAuthorityStringify(evidence),
+    /customerPrice|customerCredit|serviceFee|wallet|billingAuthority/u,
+  )
+
+  clearPrivateEditAuthorityProcessStateForSmoke()
+  clearPrivateCanonicalPackageWorkQueueProcessStateForSmoke()
+  const deliveryH264SeriesReplay =
+    await deliveryExecutionService.executeAllH264ChunksAndIndependentQa({
+      workspaceId,
+      approvedPlanSnapshotId: snapshotId,
+    })
+  assert.equal(deliveryH264SeriesReplay.disposition, 'exact_replay')
+  assert.equal(deliveryH264SeriesReplay.evidenceHash,
+    deliveryH264Series.evidenceHash)
+  assert.deepEqual(
+    deliveryH264SeriesReplay.h264Chunks.map((chunk) =>
+      chunk.terminal.terminalHash),
+    deliveryH264Series.h264Chunks.map((chunk) =>
+      chunk.terminal.terminalHash),
+  )
+  assert.deepEqual(
+    deliveryH264SeriesReplay.independentQa.map((qa) =>
+      qa.terminal.terminalHash),
+    deliveryH264Series.independentQa.map((qa) =>
+      qa.terminal.terminalHash),
+  )
 
   console.log(JSON.stringify({
     ok: true,
@@ -748,6 +830,9 @@ try {
     customerDeliveryFirstH264QaExactReplayVerified:
       deliveryH264QaReplay.qa.terminal.terminalHash ===
         deliveryH264QaExecution.qa.terminal.terminalHash,
+    customerDeliveryEveryH264AndQaExactReplayVerified:
+      deliveryH264SeriesReplay.evidenceHash ===
+        deliveryH264Series.evidenceHash,
     privateMasterQaCompleted: true,
     privateReviewGraphComplete: true,
     customerDeliveryPackageJobCount:
@@ -755,7 +840,7 @@ try {
     customerDeliveryPackageHash: delivery.package.packageHash,
     customerDeliveryWorkGraphHash: delivery.package.graph.workGraphHash,
     customerDeliveryQueueAggregateHash:
-      deliveryH264QaExecution.queueAggregate.aggregateHash,
+      deliveryH264Series.queueAggregate.aggregateHash,
     customerDeliveryPackagePrepared: true,
     customerDeliveryRootCompleted: true,
     customerDeliveryFirstH264Completed: true,
@@ -767,6 +852,15 @@ try {
       deliveryH264QaExecution.qa.artifact.qaHash,
     customerDeliveryFirstH264QaInternalCostEvidenceHash:
       deliveryH264QaExecution.qa.costEvidence.evidenceHash,
+    customerDeliveryH264ChunkCount:
+      deliveryH264Series.h264Chunks.length,
+    customerDeliveryH264QaCount:
+      deliveryH264Series.independentQa.length,
+    customerDeliverySecondH264Sha256:
+      deliveryH264Series.h264Chunks[1]?.outputArtifact.sha256,
+    customerDeliverySecondH264QaArtifactHash:
+      deliveryH264Series.independentQa[1]?.artifact.qaHash,
+    customerDeliveryAllMuxDependenciesSatisfied: true,
     customerDeliveryIndependentH264QaCompleted: true,
     customerDeliveryMasterCreated: false,
     exportExecutionAuthorized: false,

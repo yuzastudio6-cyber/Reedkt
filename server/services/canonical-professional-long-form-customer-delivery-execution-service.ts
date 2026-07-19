@@ -136,6 +136,8 @@ export const CANONICAL_PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_EXECUTION_VERSIO
   'canonical-professional-long-form-customer-delivery-execution-v1' as const
 export const CANONICAL_PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_H264_QA_EXECUTION_VERSION =
   'canonical-professional-long-form-customer-delivery-h264-qa-execution-v1' as const
+export const CANONICAL_PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_H264_SERIES_EXECUTION_VERSION =
+  'canonical-professional-long-form-customer-delivery-h264-series-execution-v1' as const
 
 interface LoadedCustomerDeliveryAuthority extends
   CanonicalProfessionalLongFormCurrentCustomerDeliveryAuthority {
@@ -250,6 +252,44 @@ export interface CanonicalProfessionalLongFormCustomerDeliveryH264QaExecutionEvi
     firstH264IndependentQaArtifactPersisted: true
     firstH264QaAttemptInternalCostVerified: true
     firstH264MuxDependencySatisfied: true
+    muxExecutionAuthorized: false
+    secondExportEstimateCreated: false
+    secondExportChargeCreated: false
+    customerBillingAuthorized: false
+    walletMutationAuthorized: false
+    providerActivationAuthorized: false
+    distributedDatabaseVerified: false
+    liveGoogleCloudVerified: false
+    publicDeliveryAuthorized: false
+    productReady: false
+    productionReady: false
+  }
+  evidenceHash: string
+}
+
+export interface CanonicalProfessionalLongFormCustomerDeliveryH264SeriesExecutionEvidence {
+  schemaVersion:
+    typeof CANONICAL_PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_H264_SERIES_EXECUTION_VERSION
+  source:
+    'canonical_professional_long_form_customer_delivery_execution_service'
+  status:
+    'every_delivery_h264_chunk_and_independent_qa_completed_mux_authority_blocked'
+  disposition: 'completed' | 'exact_replay'
+  root: Omit<CompletedRootEvidence, 'queueAggregate'>
+  h264Chunks: Array<Omit<CompletedH264Evidence, 'queueAggregate'>>
+  independentQa: Array<Omit<CompletedH264QaEvidence, 'queueAggregate'>>
+  queueAggregate: CanonicalPrivatePackageWorkQueueAggregate
+  readiness: {
+    approvedSnapshotAndOriginalReservationReopened: true
+    passedPrivateReviewMasterQaLineageVerified: true
+    deliveryChunkCount: number
+    everyH264LeaseAndOneUseDispatchVerified: true
+    everyH264PrivateCreateOnlyArtifactVerified: true
+    everyH264AttemptInternalCostVerified: true
+    everyIndependentQaLeaseAndOneUseDispatchVerified: true
+    everyIndependentQaArtifactVerified: true
+    everyIndependentQaAttemptInternalCostVerified: true
+    allMuxDependenciesSatisfied: true
     muxExecutionAuthorized: false
     secondExportEstimateCreated: false
     secondExportChargeCreated: false
@@ -477,6 +517,165 @@ export function createCanonicalProfessionalLongFormCustomerDeliveryExecutionServ
           firstH264IndependentQaArtifactPersisted: true as const,
           firstH264QaAttemptInternalCostVerified: true as const,
           firstH264MuxDependencySatisfied: true as const,
+          muxExecutionAuthorized: false as const,
+          secondExportEstimateCreated: false as const,
+          secondExportChargeCreated: false as const,
+          customerBillingAuthorized: false as const,
+          walletMutationAuthorized: false as const,
+          providerActivationAuthorized: false as const,
+          distributedDatabaseVerified: false as const,
+          liveGoogleCloudVerified: false as const,
+          publicDeliveryAuthorized: false as const,
+          productReady: false as const,
+          productionReady: false as const,
+        },
+      }
+      return {
+        ...stablePayload,
+        disposition: newlyExecuted ? 'completed' : 'exact_replay',
+        evidenceHash: sha256AuthorityValue(stablePayload),
+      }
+    },
+
+    async executeAllH264ChunksAndIndependentQa(input: {
+      workspaceId: string
+      approvedPlanSnapshotId: string
+    }): Promise<CanonicalProfessionalLongFormCustomerDeliveryH264SeriesExecutionEvidence> {
+      assertExactInput(input)
+      const ownerUserId = requireOwner(context)
+      let current = await loadCurrent(context, input)
+      let newlyExecuted = false
+      const rootEntry = current.queueAggregate.entries[0]
+      if (!rootEntry) {
+        throw invalid('Customer-delivery root queue entry is missing.')
+      }
+      if (rootEntry.state === 'leased') {
+        throw inProgress('Customer-delivery root already has an active lease.')
+      }
+      const root = rootEntry.state === 'completed'
+        ? await loadCompletedRoot({ context, current, ownerUserId })
+        : await executeRoot({ context, current, ownerUserId })
+      if (rootEntry.state !== 'completed') newlyExecuted = true
+      const remotionRuntimeAuthority = await requiredRemotionRuntimeAuthority()
+      const mediaRuntimeAuthority = await requiredMediaBinaryRuntimeAuthority()
+      const chunkCount = current.package.outputContract.chunkCount
+      const h264Chunks: Array<Omit<CompletedH264Evidence, 'queueAggregate'>> = []
+      const independentQa: Array<
+        Omit<CompletedH264QaEvidence, 'queueAggregate'>
+      > = []
+      for (let chunkIndex = 1; chunkIndex <= chunkCount; chunkIndex += 1) {
+        current = await loadCurrent(context, input)
+        const h264Entry = current.queueAggregate.entries.find((entry) =>
+          entry.definition.canonicalOrder === chunkIndex * 2 - 1)
+        const qaEntryBeforeH264 = current.queueAggregate.entries.find((entry) =>
+          entry.definition.canonicalOrder === chunkIndex * 2)
+        if (!h264Entry || !qaEntryBeforeH264) {
+          throw invalid(
+            `Customer-delivery chunk ${chunkIndex} queue pair is missing.`,
+          )
+        }
+        if (h264Entry.state === 'leased' || qaEntryBeforeH264.state === 'leased') {
+          throw inProgress(
+            `Customer-delivery chunk ${chunkIndex} has an active H.264 or QA lease.`,
+          )
+        }
+        const h264 = h264Entry.state === 'completed'
+          ? await loadCompletedH264({
+              context,
+              current,
+              ownerUserId,
+              runtimeAuthority: remotionRuntimeAuthority,
+              chunkIndex,
+              allowCompletedQa: qaEntryBeforeH264.state === 'completed',
+            })
+          : await executeH264({
+              context,
+              current,
+              ownerUserId,
+              runtimeAuthority: remotionRuntimeAuthority,
+              chunkIndex,
+            })
+        if (h264Entry.state !== 'completed') newlyExecuted = true
+        h264Chunks.push(withoutAggregate(h264))
+
+        current = await loadCurrent(context, input)
+        const qaEntry = current.queueAggregate.entries.find((entry) =>
+          entry.definition.canonicalOrder === chunkIndex * 2)
+        if (!qaEntry) {
+          throw invalid(
+            `Customer-delivery H.264 QA ${chunkIndex} queue entry is missing.`,
+          )
+        }
+        if (qaEntry.state === 'leased') {
+          throw inProgress(
+            `Customer-delivery H.264 QA ${chunkIndex} has an active lease.`,
+          )
+        }
+        const qa = qaEntry.state === 'completed'
+          ? await loadCompletedH264Qa({
+              context,
+              current,
+              ownerUserId,
+              runtimeAuthority: mediaRuntimeAuthority,
+              chunkIndex,
+            })
+          : await executeH264Qa({
+              context,
+              current,
+              ownerUserId,
+              runtimeAuthority: mediaRuntimeAuthority,
+              chunkIndex,
+            })
+        if (qaEntry.state !== 'completed') newlyExecuted = true
+        independentQa.push(withoutAggregate(qa))
+      }
+
+      current = await loadCurrent(context, input)
+      const aggregate = current.queueAggregate
+      const expectedCompletedJobCount = chunkCount * 2 + 1
+      const muxEntry = aggregate.entries[expectedCompletedJobCount]
+      if (
+        aggregate.summary.completedJobCount !== expectedCompletedJobCount ||
+        aggregate.summary.leasedJobCount !== 0 ||
+        aggregate.summary.queuedJobCount !== 4 ||
+        aggregate.entries.slice(0, expectedCompletedJobCount).some((entry) =>
+          entry.state !== 'completed' || entry.deliveryAttemptCount !== 1 ||
+          !entry.professionalLongFormExecutionAuthorization ||
+          !entry.professionalLongFormExecutionAttempt || !entry.completion) ||
+        aggregate.entries.slice(expectedCompletedJobCount).some((entry) =>
+          entry.state !== 'queued' || entry.deliveryAttemptCount !== 0 ||
+          entry.professionalLongFormExecutionAuthorization ||
+          entry.professionalLongFormExecutionAttempt || entry.completion) ||
+        !muxEntry ||
+        muxEntry.definition.dependencyJobIds.length !== chunkCount ||
+        muxEntry.definition.dependencyJobIds.some((dependencyJobId) =>
+          aggregate.entries.find((entry) =>
+            entry.definition.jobId === dependencyJobId)?.state !== 'completed')
+      ) throw invalid(
+        'Customer-delivery H.264 series did not leave exactly every chunk QA-complete and the mux dependency-ready but unauthorized.',
+      )
+      const stablePayload = {
+        schemaVersion:
+          CANONICAL_PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_H264_SERIES_EXECUTION_VERSION,
+        source:
+          'canonical_professional_long_form_customer_delivery_execution_service' as const,
+        status:
+          'every_delivery_h264_chunk_and_independent_qa_completed_mux_authority_blocked' as const,
+        root: withoutAggregate(root),
+        h264Chunks,
+        independentQa,
+        queueAggregate: aggregate,
+        readiness: {
+          approvedSnapshotAndOriginalReservationReopened: true as const,
+          passedPrivateReviewMasterQaLineageVerified: true as const,
+          deliveryChunkCount: chunkCount,
+          everyH264LeaseAndOneUseDispatchVerified: true as const,
+          everyH264PrivateCreateOnlyArtifactVerified: true as const,
+          everyH264AttemptInternalCostVerified: true as const,
+          everyIndependentQaLeaseAndOneUseDispatchVerified: true as const,
+          everyIndependentQaArtifactVerified: true as const,
+          everyIndependentQaAttemptInternalCostVerified: true as const,
+          allMuxDependenciesSatisfied: true as const,
           muxExecutionAuthorized: false as const,
           secondExportEstimateCreated: false as const,
           secondExportChargeCreated: false as const,

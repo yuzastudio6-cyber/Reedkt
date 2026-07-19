@@ -165,6 +165,8 @@ const mediaInspectionSettings = strictSettings({
     'source_intake_v1',
     'pre_render_v1',
     'object_mezzanine_chunk_qa_v1',
+    'continuous_program_audio_qa_v1',
+    'private_long_form_master_qa_v1',
     'final_export_v1',
   ]),
   countFrames: booleanConstraint(),

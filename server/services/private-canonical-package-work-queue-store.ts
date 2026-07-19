@@ -58,6 +58,10 @@ import {
   PROFESSIONAL_LONG_FORM_MASTER_ASSEMBLY_WORK_ITEM_ID,
 } from '../edit-architecture/professional-long-form-master-assembly-execution-contract'
 import {
+  PROFESSIONAL_LONG_FORM_PRIVATE_MASTER_QA_ATTEMPT_VERSION,
+  PROFESSIONAL_LONG_FORM_PRIVATE_MASTER_QA_WORK_ITEM_ID,
+} from '../edit-architecture/professional-long-form-private-master-qa-execution-contract'
+import {
   isProfessionalLongFormContinuousProgramAudioAuthorization,
   isProfessionalLongFormContinuousProgramAudioAuthority,
   isProfessionalLongFormContinuousProgramAudioCompletion,
@@ -67,6 +71,9 @@ import {
   isProfessionalLongFormMasterAssemblyAuthorization,
   isProfessionalLongFormMasterAssemblyAuthority,
   isProfessionalLongFormMasterAssemblyCompletion,
+  isProfessionalLongFormPrivateMasterQaAuthorization,
+  isProfessionalLongFormPrivateMasterQaAuthority,
+  isProfessionalLongFormPrivateMasterQaCompletion,
   isProfessionalLongFormFirstChildAuthorization,
   isProfessionalLongFormFirstChildExecutionAuthority,
   isProfessionalLongFormFirstObjectChunkQaAuthorization,
@@ -404,8 +411,12 @@ export async function beginPrivateCanonicalPackageWorkQueueExecutionAttempt(inpu
       isProfessionalLongFormCrossChunkColorAuthorization(authorization)
     const masterAssemblyAttempt =
       isProfessionalLongFormMasterAssemblyAuthorization(authorization)
+    const privateMasterQaAttempt =
+      isProfessionalLongFormPrivateMasterQaAuthorization(authorization)
     const attemptWithoutHash = {
-      schemaVersion: masterAssemblyAttempt
+      schemaVersion: privateMasterQaAttempt
+        ? PROFESSIONAL_LONG_FORM_PRIVATE_MASTER_QA_ATTEMPT_VERSION
+        : masterAssemblyAttempt
         ? PROFESSIONAL_LONG_FORM_MASTER_ASSEMBLY_ATTEMPT_VERSION
         : crossChunkColorAttempt
         ? PROFESSIONAL_LONG_FORM_CROSS_CHUNK_COLOR_ATTEMPT_VERSION
@@ -1668,6 +1679,17 @@ function assertPersistedProfessionalLongFormExecutionAuthority(input: {
       input.executionAuthority.lineage.timingHash !==
         input.authorization.expectedOutputIdentity
   } else if (
+    isProfessionalLongFormPrivateMasterQaAuthorization(input.authorization)
+  ) {
+    pairInvalid = !isProfessionalLongFormPrivateMasterQaAuthority(
+      input.executionAuthority,
+    ) || input.executionAuthority.lineage.qaJobDefinitionHash !==
+      input.authorization.jobDefinitionHash ||
+      input.executionAuthority.lineage.qaPlacementHash !==
+        input.authorization.placementHash ||
+      input.executionAuthority.identity.expectedOutputIdentity !==
+        input.authorization.expectedOutputIdentity
+  } else if (
     isProfessionalLongFormMasterAssemblyAuthorization(input.authorization)
   ) {
     pairInvalid = !isProfessionalLongFormMasterAssemblyAuthority(
@@ -1851,6 +1873,31 @@ function exactProfessionalLongFormAuthorizationMatches(
       authorization.expectedOutputIdentity ===
         `${aggregate.identity.approvedPlanSnapshotId}:private-4k-master`
   }
+  if (isProfessionalLongFormPrivateMasterQaAuthorization(authorization)) {
+    const assembly = aggregate.entries.find((candidate) =>
+      candidate.definition.jobId === entry.definition.dependencyJobIds[0])
+    const assemblyCompletion = assembly?.completion?.outcome
+      .professionalLongFormExecution
+    const chunkCount = (entry.definition.canonicalOrder - 6) / 2
+    return entry.definition.workerType === 'qa_worker' &&
+      entry.definition.resourceClassId === 'qa_cpu_standard_v1' &&
+      entry.definition.maxAttempts === 2 &&
+      entry.definition.attemptTimeoutSeconds === 3_600 &&
+      Number.isInteger(chunkCount) && chunkCount >= 2 && chunkCount <= 124 &&
+      entry.definition.approvedWorkItemId ===
+        PROFESSIONAL_LONG_FORM_PRIVATE_MASTER_QA_WORK_ITEM_ID &&
+      entry.definition.dependencyJobIds.length === 1 &&
+      entry.definition.satisfiedPromotionDependencyJobIds?.length === 0 &&
+      assembly?.definition.canonicalOrder ===
+        entry.definition.canonicalOrder - 1 &&
+      assembly.definition.approvedWorkItemId ===
+        PROFESSIONAL_LONG_FORM_MASTER_ASSEMBLY_WORK_ITEM_ID &&
+      assembly.state === 'completed' &&
+      Boolean(assemblyCompletion &&
+        isProfessionalLongFormMasterAssemblyCompletion(assemblyCompletion)) &&
+      authorization.expectedOutputIdentity ===
+        `${aggregate.identity.approvedPlanSnapshotId}:private-4k-master-qa`
+  }
   if (isProfessionalLongFormCrossChunkColorAuthorization(authorization)) {
     const dependencies = entry.definition.dependencyJobIds.map((jobId) =>
       aggregate.entries.find((candidate) => candidate.definition.jobId === jobId))
@@ -1977,7 +2024,10 @@ function assertProfessionalLongFormCompletionEvidence(
   const completion = outcome.professionalLongFormExecution
   if (!authorization && !attempt && !completion) return
   const exactArtifactMatches = completion &&
-    isProfessionalLongFormMasterAssemblyCompletion(completion)
+    isProfessionalLongFormPrivateMasterQaCompletion(completion)
+    ? outcome.contentType === 'application/json' &&
+      outcome.sha256 === completion.validationArtifactRef.sha256
+    : completion && isProfessionalLongFormMasterAssemblyCompletion(completion)
     ? outcome.contentType === 'video/x-matroska' &&
       outcome.artifactId === completion.outputArtifact.objectIdentity &&
       outcome.sha256 === completion.outputArtifact.sha256

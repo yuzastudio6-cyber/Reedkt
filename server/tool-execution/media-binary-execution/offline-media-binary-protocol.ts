@@ -85,6 +85,7 @@ export interface OfflineFfprobePlanningPayload {
     | 'pre_render_v1'
     | 'object_mezzanine_chunk_qa_v1'
     | 'continuous_program_audio_qa_v1'
+    | 'private_long_form_master_qa_v1'
     | 'final_export_v1'
   countFrames: boolean
   verifyDurationAndSync: true
@@ -273,6 +274,7 @@ export function validateOfflineFfprobePlanningPayload(value: unknown): OfflineFf
       'pre_render_v1',
       'object_mezzanine_chunk_qa_v1',
       'continuous_program_audio_qa_v1',
+      'private_long_form_master_qa_v1',
       'final_export_v1',
     ].includes(String(payload.inspectionProfileId)) ||
     typeof payload.countFrames !== 'boolean' ||

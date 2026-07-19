@@ -78,6 +78,16 @@ import {
   professionalLongFormMasterAssemblyAuthorizationSchema,
   professionalLongFormMasterAssemblyCompletionSchema,
 } from './professional-long-form-master-assembly-execution-contract'
+import {
+  PROFESSIONAL_LONG_FORM_PRIVATE_MASTER_QA_ATTEMPT_VERSION,
+  PROFESSIONAL_LONG_FORM_PRIVATE_MASTER_QA_AUTHORITY_VERSION,
+  PROFESSIONAL_LONG_FORM_PRIVATE_MASTER_QA_AUTHORIZATION_VERSION,
+  PROFESSIONAL_LONG_FORM_PRIVATE_MASTER_QA_COMPLETION_VERSION,
+  professionalLongFormPrivateMasterQaAttemptSchema,
+  professionalLongFormPrivateMasterQaAuthoritySchema,
+  professionalLongFormPrivateMasterQaAuthorizationSchema,
+  professionalLongFormPrivateMasterQaCompletionSchema,
+} from './professional-long-form-private-master-qa-execution-contract'
 
 export const professionalLongFormAuthorizedChildAuthorizationReceiptSchema =
   z.discriminatedUnion('schemaVersion', [
@@ -89,6 +99,7 @@ export const professionalLongFormAuthorizedChildAuthorizationReceiptSchema =
     professionalLongFormContinuousProgramAudioAuthorizationSchema,
     professionalLongFormCrossChunkColorAuthorizationSchema,
     professionalLongFormMasterAssemblyAuthorizationSchema,
+    professionalLongFormPrivateMasterQaAuthorizationSchema,
   ])
 
 export const professionalLongFormAuthorizedChildExecutionAuthoritySchema =
@@ -101,6 +112,7 @@ export const professionalLongFormAuthorizedChildExecutionAuthoritySchema =
     professionalLongFormContinuousProgramAudioAuthoritySchema,
     professionalLongFormCrossChunkColorAuthoritySchema,
     professionalLongFormMasterAssemblyAuthoritySchema,
+    professionalLongFormPrivateMasterQaAuthoritySchema,
   ])
 
 export const professionalLongFormAuthorizedChildExecutionAttemptSchema =
@@ -113,6 +125,7 @@ export const professionalLongFormAuthorizedChildExecutionAttemptSchema =
     professionalLongFormContinuousProgramAudioAttemptSchema,
     professionalLongFormCrossChunkColorAttemptSchema,
     professionalLongFormMasterAssemblyAttemptSchema,
+    professionalLongFormPrivateMasterQaAttemptSchema,
   ])
 
 export const professionalLongFormAuthorizedChildCompletionSchema =
@@ -125,6 +138,7 @@ export const professionalLongFormAuthorizedChildCompletionSchema =
     professionalLongFormContinuousProgramAudioCompletionSchema,
     professionalLongFormCrossChunkColorCompletionSchema,
     professionalLongFormMasterAssemblyCompletionSchema,
+    professionalLongFormPrivateMasterQaCompletionSchema,
   ])
 
 export type ProfessionalLongFormAuthorizedChildAuthorizationReceipt = z.infer<
@@ -204,6 +218,13 @@ export function isProfessionalLongFormMasterAssemblyAuthorization(
     PROFESSIONAL_LONG_FORM_MASTER_ASSEMBLY_AUTHORIZATION_VERSION
 }
 
+export function isProfessionalLongFormPrivateMasterQaAuthorization(
+  value: ProfessionalLongFormAuthorizedChildAuthorizationReceipt,
+): value is z.infer<typeof professionalLongFormPrivateMasterQaAuthorizationSchema> {
+  return value.schemaVersion ===
+    PROFESSIONAL_LONG_FORM_PRIVATE_MASTER_QA_AUTHORIZATION_VERSION
+}
+
 export function isProfessionalLongFormFirstChildExecutionAuthority(
   value: ProfessionalLongFormAuthorizedChildExecutionAuthority,
 ): value is z.infer<typeof professionalLongFormFirstChildExecutionAuthoritySchema> {
@@ -262,6 +283,13 @@ export function isProfessionalLongFormMasterAssemblyAuthority(
 ): value is z.infer<typeof professionalLongFormMasterAssemblyAuthoritySchema> {
   return value.schemaVersion ===
     PROFESSIONAL_LONG_FORM_MASTER_ASSEMBLY_AUTHORITY_VERSION
+}
+
+export function isProfessionalLongFormPrivateMasterQaAuthority(
+  value: ProfessionalLongFormAuthorizedChildExecutionAuthority,
+): value is z.infer<typeof professionalLongFormPrivateMasterQaAuthoritySchema> {
+  return value.schemaVersion ===
+    PROFESSIONAL_LONG_FORM_PRIVATE_MASTER_QA_AUTHORITY_VERSION
 }
 
 export function isProfessionalLongFormFirstChildExecutionAttempt(
@@ -324,6 +352,13 @@ export function isProfessionalLongFormMasterAssemblyAttempt(
     PROFESSIONAL_LONG_FORM_MASTER_ASSEMBLY_ATTEMPT_VERSION
 }
 
+export function isProfessionalLongFormPrivateMasterQaAttempt(
+  value: ProfessionalLongFormAuthorizedChildExecutionAttempt,
+): value is z.infer<typeof professionalLongFormPrivateMasterQaAttemptSchema> {
+  return value.schemaVersion ===
+    PROFESSIONAL_LONG_FORM_PRIVATE_MASTER_QA_ATTEMPT_VERSION
+}
+
 export function isProfessionalLongFormFirstChildCompletion(
   value: ProfessionalLongFormAuthorizedChildCompletion,
 ): value is z.infer<typeof professionalLongFormFirstChildCompletionSchema> {
@@ -381,4 +416,11 @@ export function isProfessionalLongFormMasterAssemblyCompletion(
 ): value is z.infer<typeof professionalLongFormMasterAssemblyCompletionSchema> {
   return value.schemaVersion ===
     PROFESSIONAL_LONG_FORM_MASTER_ASSEMBLY_COMPLETION_VERSION
+}
+
+export function isProfessionalLongFormPrivateMasterQaCompletion(
+  value: ProfessionalLongFormAuthorizedChildCompletion,
+): value is z.infer<typeof professionalLongFormPrivateMasterQaCompletionSchema> {
+  return value.schemaVersion ===
+    PROFESSIONAL_LONG_FORM_PRIVATE_MASTER_QA_COMPLETION_VERSION
 }

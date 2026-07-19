@@ -46,6 +46,10 @@ import {
   PROFESSIONAL_LONG_FORM_MASTER_ASSEMBLY_COST_PROFILE_ID,
   PROFESSIONAL_LONG_FORM_MASTER_ASSEMBLY_OPERATION_ID,
 } from '../edit-architecture/professional-long-form-master-assembly-execution-contract'
+import {
+  PROFESSIONAL_LONG_FORM_PRIVATE_MASTER_QA_COST_PROFILE_ID,
+  PROFESSIONAL_LONG_FORM_PRIVATE_MASTER_QA_OPERATION_ID,
+} from '../edit-architecture/professional-long-form-private-master-qa-execution-contract'
 
 const identity = z.string().min(1).max(200).regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/)
   .refine((value) => value === value.trim() && !value.includes('..'))
@@ -92,6 +96,8 @@ export const PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS = {
     PROFESSIONAL_LONG_FORM_CROSS_CHUNK_COLOR_COST_PROFILE_ID,
   ffmpegLongFormMasterAssembly:
     PROFESSIONAL_LONG_FORM_MASTER_ASSEMBLY_COST_PROFILE_ID,
+  ffprobeLongFormPrivateMasterQa:
+    PROFESSIONAL_LONG_FORM_PRIVATE_MASTER_QA_COST_PROFILE_ID,
 } as const
 
 export type PrivateInternalAttemptCostProfileId =
@@ -200,6 +206,14 @@ export const privateInternalAttemptCostIdentitySchema = z.union([
     operationId: z.literal(PROFESSIONAL_LONG_FORM_MASTER_ASSEMBLY_OPERATION_ID),
     workloadProfileId: z.literal(
       PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegLongFormMasterAssembly,
+    ),
+  }).strict(),
+  z.object({
+    ...commonAttemptIdentityFields,
+    toolId: z.literal('ffprobe'),
+    operationId: z.literal(PROFESSIONAL_LONG_FORM_PRIVATE_MASTER_QA_OPERATION_ID),
+    workloadProfileId: z.literal(
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffprobeLongFormPrivateMasterQa,
     ),
   }).strict(),
   z.object({
@@ -393,6 +407,13 @@ export type BeginPrivateInternalAttemptCostEvidenceInput =
           typeof PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegLongFormMasterAssembly
       }
     | {
+        toolId: 'ffprobe'
+        operationId:
+          typeof PROFESSIONAL_LONG_FORM_PRIVATE_MASTER_QA_OPERATION_ID
+        workloadProfileId:
+          typeof PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffprobeLongFormPrivateMasterQa
+      }
+    | {
         toolId: 'reeditpro_internal'
         operationId: typeof PROFESSIONAL_LONG_FORM_FIRST_CHILD_OPERATION_ID
         workloadProfileId:
@@ -538,6 +559,15 @@ const beginInputSchema = z.union([
     operationId: z.literal(PROFESSIONAL_LONG_FORM_MASTER_ASSEMBLY_OPERATION_ID),
     workloadProfileId: z.literal(
       PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegLongFormMasterAssembly,
+    ),
+  }).strict(),
+  z.object({
+    localStorageRoot: z.string().min(1),
+    ...commonAttemptIdentityFields,
+    toolId: z.literal('ffprobe'),
+    operationId: z.literal(PROFESSIONAL_LONG_FORM_PRIVATE_MASTER_QA_OPERATION_ID),
+    workloadProfileId: z.literal(
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffprobeLongFormPrivateMasterQa,
     ),
   }).strict(),
   z.object({
@@ -914,6 +944,11 @@ export function resolvePrivateInternalAttemptCostProfileId(
     input.toolId === 'ffmpeg' &&
     input.workloadProfileId ===
       PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegLongFormMasterAssembly
+  ) return input.workloadProfileId
+  if (
+    input.toolId === 'ffprobe' &&
+    input.workloadProfileId ===
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffprobeLongFormPrivateMasterQa
   ) return input.workloadProfileId
   if (
     input.toolId === 'reeditpro_internal' &&

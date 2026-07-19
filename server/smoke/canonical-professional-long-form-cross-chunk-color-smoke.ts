@@ -28,6 +28,10 @@ import {
   PROFESSIONAL_LONG_FORM_MASTER_ASSEMBLY_OPERATION_ID,
 } from '../edit-architecture/professional-long-form-master-assembly-execution-contract'
 import {
+  PROFESSIONAL_LONG_FORM_PRIVATE_MASTER_QA_COST_PROFILE_ID,
+  PROFESSIONAL_LONG_FORM_PRIVATE_MASTER_QA_OPERATION_ID,
+} from '../edit-architecture/professional-long-form-private-master-qa-execution-contract'
+import {
   CANONICAL_PROFESSIONAL_LONG_FORM_SEED_DRAFT_VERSION,
 } from '../services/canonical-professional-long-form-publication-authority'
 import {
@@ -57,6 +61,9 @@ import {
 import {
   createCanonicalProfessionalLongFormMasterAssemblyExecutionService,
 } from '../services/canonical-professional-long-form-master-assembly-execution-service'
+import {
+  createCanonicalProfessionalLongFormPrivateMasterQaExecutionService,
+} from '../services/canonical-professional-long-form-private-master-qa-execution-service'
 import { createEditPlanningAuthorityService } from
   '../services/edit-planning-authority-service'
 import { createExactEditPreferenceService } from
@@ -355,21 +362,124 @@ try {
     master.assembly.costEvidence.evidenceHash,
   )
 
+  const privateMasterQaService =
+    createCanonicalProfessionalLongFormPrivateMasterQaExecutionService(context)
+  await expectApiError(
+    () => privateMasterQaService.execute({
+      workspaceId,
+      approvedPlanSnapshotId: snapshotId,
+      callerCodec: 'h264',
+    } as unknown as {
+      workspaceId: string
+      approvedPlanSnapshotId: string
+    }),
+    'VALIDATION_FAILED',
+  )
+  const privateMasterQa = await privateMasterQaService.execute({
+    workspaceId,
+    approvedPlanSnapshotId: snapshotId,
+  })
+  assert.equal(privateMasterQa.disposition, 'completed')
+  assert.equal(privateMasterQa.queueAggregate.summary.totalJobCount, 11)
+  assert.equal(privateMasterQa.queueAggregate.summary.completedJobCount, 11)
+  assert.equal(privateMasterQa.queueAggregate.summary.queuedJobCount, 0)
+  assert.equal(privateMasterQa.queueAggregate.summary.leasedJobCount, 0)
+  assert.equal(privateMasterQa.qa.artifact.outcome, 'passed')
+  assert.equal(privateMasterQa.qa.artifact.observed.container, 'matroska')
+  assert.equal(privateMasterQa.qa.artifact.observed.streamCount, 2)
+  assert.equal(privateMasterQa.qa.artifact.observed.videoCodec, 'vp9')
+  assert.equal(privateMasterQa.qa.artifact.observed.audioCodec, 'flac')
+  assert.equal(privateMasterQa.qa.artifact.observed.frameCount, totalFrames)
+  assert.equal(privateMasterQa.qa.artifact.observed.width, 3_840)
+  assert.equal(privateMasterQa.qa.artifact.observed.height, 2_160)
+  assert.equal(privateMasterQa.qa.artifact.observed.sampleRate, 48_000)
+  assert.equal(privateMasterQa.qa.artifact.observed.channels, 2)
+  assert.equal(
+    privateMasterQa.qa.artifact.masterArtifact.sha256,
+    master.assembly.runtimeEvidence.outputArtifact.sha256,
+  )
+  assert.equal(
+    privateMasterQa.qa.reconciliation.graph.privateReviewGraphComplete,
+    true,
+  )
+  assert.equal(
+    privateMasterQa.qa.reconciliation.graph.remainingIncompleteAfterThisQa,
+    0,
+  )
+  assert.equal(
+    privateMasterQa.qa.reconciliation.downstream
+      .customerDeliveryMasterExecutionAuthorized,
+    false,
+  )
+  assert.equal(privateMasterQa.qa.costEvidence.boundary,
+    'internal_production_cost_only')
+  assert.equal(privateMasterQa.qa.costEvidence.identity.toolId, 'ffprobe')
+  assert.equal(
+    privateMasterQa.qa.costEvidence.identity.operationId,
+    PROFESSIONAL_LONG_FORM_PRIVATE_MASTER_QA_OPERATION_ID,
+  )
+  assert.equal(
+    privateMasterQa.qa.costEvidence.identity.workloadProfileId,
+    PROFESSIONAL_LONG_FORM_PRIVATE_MASTER_QA_COST_PROFILE_ID,
+  )
+  assert.equal(privateMasterQa.readiness.privateReviewGraphComplete, true)
+  assert.equal(privateMasterQa.readiness.customerDeliveryMasterCreated, false)
+  assert.equal(
+    privateMasterQa.readiness.customerDeliveryMasterExecutionAuthorized,
+    false,
+  )
+  assert.equal(privateMasterQa.readiness.exportExecutionAuthorized, false)
+  assert.equal(privateMasterQa.readiness.secondExportEstimateCreated, false)
+  assert.equal(privateMasterQa.readiness.secondExportChargeCreated, false)
+  assert.equal(privateMasterQa.readiness.providerActivationAuthorized, false)
+  assert.equal(privateMasterQa.readiness.customerBillingAuthorized, false)
+  assert.equal(privateMasterQa.readiness.walletMutationAuthorized, false)
+  assert.equal(privateMasterQa.readiness.liveGoogleCloudVerified, false)
+  assert.equal(privateMasterQa.readiness.publicDeliveryAuthorized, false)
+  assert.equal(privateMasterQa.readiness.productReady, false)
+  assert.equal(privateMasterQa.readiness.productionReady, false)
+  assert.doesNotMatch(
+    stableAuthorityStringify(privateMasterQa.qa.costEvidence),
+    /customerPrice|customerCredit|serviceFee|wallet|billingAuthority/u,
+  )
+
+  clearPrivateEditAuthorityProcessStateForSmoke()
+  clearPrivateCanonicalPackageWorkQueueProcessStateForSmoke()
+  const privateMasterQaReplay = await
+    createCanonicalProfessionalLongFormPrivateMasterQaExecutionService(context)
+      .execute({ workspaceId, approvedPlanSnapshotId: snapshotId })
+  assert.equal(privateMasterQaReplay.disposition, 'exact_replay')
+  assert.equal(privateMasterQaReplay.evidenceHash, privateMasterQa.evidenceHash)
+  assert.equal(
+    privateMasterQaReplay.qa.artifact.qaHash,
+    privateMasterQa.qa.artifact.qaHash,
+  )
+  assert.equal(
+    privateMasterQaReplay.qa.costEvidence.evidenceHash,
+    privateMasterQa.qa.costEvidence.evidenceHash,
+  )
+
   console.log(JSON.stringify({
     ok: true,
     schemaVersion:
-      'canonical-professional-long-form-color-and-master-assembly-smoke-v1',
+      'canonical-professional-long-form-private-master-qa-smoke-v1',
     totalFrames,
     chunkCount: completed.color.validationArtifact.chunkCount,
     boundaryCount: completed.color.validationArtifact.boundaryCount,
-    queueCompletedJobCount: master.queueAggregate.summary.completedJobCount,
-    queueTotalJobCount: master.queueAggregate.summary.totalJobCount,
+    queueCompletedJobCount:
+      privateMasterQa.queueAggregate.summary.completedJobCount,
+    queueTotalJobCount: privateMasterQa.queueAggregate.summary.totalJobCount,
     colorInternalCostEvidenceHash: completed.color.costEvidence.evidenceHash,
     masterInternalCostEvidenceHash: master.assembly.costEvidence.evidenceHash,
+    privateMasterQaInternalCostEvidenceHash:
+      privateMasterQa.qa.costEvidence.evidenceHash,
     privateMasterSha256: master.assembly.runtimeEvidence.outputArtifact.sha256,
     colorExactReplayVerified: replayed.disposition === 'exact_replay',
     masterExactReplayVerified: masterReplay.disposition === 'exact_replay',
-    privateMasterQaExecutionAuthorized: false,
+    privateMasterQaExactReplayVerified:
+      privateMasterQaReplay.disposition === 'exact_replay',
+    privateMasterQaCompleted: true,
+    privateReviewGraphComplete: true,
     customerDeliveryMasterCreated: false,
     exportExecutionAuthorized: false,
     productReady: false,

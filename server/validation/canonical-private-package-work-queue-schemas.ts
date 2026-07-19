@@ -24,6 +24,7 @@ import {
   isProfessionalLongFormCrossChunkColorAuthorization,
   isProfessionalLongFormContinuousProgramAudioAuthorization,
   isProfessionalLongFormMasterAssemblyAuthorization,
+  isProfessionalLongFormPrivateMasterQaAuthorization,
   isProfessionalLongFormFirstObjectChunkQaAuthorization,
   isProfessionalLongFormFirstObjectChunkRenderAuthorization,
 } from '../edit-architecture/professional-long-form-authorized-child-contract'
@@ -281,7 +282,8 @@ export const canonicalPrivatePackageWorkQueueEntrySchema = z.object({
       !isProfessionalLongFormFirstObjectChunkQaAuthorization(authorization) &&
       !isProfessionalLongFormCrossChunkColorAuthorization(authorization) &&
       !isProfessionalLongFormContinuousProgramAudioAuthorization(authorization) &&
-      !isProfessionalLongFormMasterAssemblyAuthorization(authorization)) ||
+      !isProfessionalLongFormMasterAssemblyAuthorization(authorization) &&
+      !isProfessionalLongFormPrivateMasterQaAuthorization(authorization)) ||
     entry.definition.requiredGate !==
       'canonical_professional_long_form_exact_tool_cost_runner_and_qa_authority' ||
     authorization.jobId !== entry.definition.jobId ||

@@ -64,6 +64,12 @@ attempt cost, reconciliation, terminal completion, and restart replay. That
 journey advances from 9/11 to 10/11 and leaves private-master QA queued and
 unauthorized.
 
+Follow-up: the separate canonical private-master QA service now reopens this
+exact output and closes the retained journey at 11/11. See
+`docs/canonical-professional-long-form-private-master-qa-2026-07-18.md`. This
+does not alter the assembly runtime's own 10/11 historical checkpoint or
+authorize customer delivery/export.
+
 This does not mark the retained 255-job six-hour graph's finalization complete.
 Its other 122 chunk pairs and their dependencies remain unexecuted, so that
 graph remains 8/255. Google Cloud deployment, provider activation, customer

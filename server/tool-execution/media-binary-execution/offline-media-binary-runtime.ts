@@ -132,6 +132,7 @@ const DOCKER_CONTROL_TIMEOUT_MS = 120_000
 const MAXIMUM_STREAMING_TIMEOUT_MS = 10 * 60_000
 const CONTINUOUS_PROGRAM_AUDIO_TIMEOUT_MS = 60 * 60_000
 const LONG_FORM_MASTER_ASSEMBLY_TIMEOUT_MS = 6 * 60 * 60_000
+const PRIVATE_LONG_FORM_MASTER_QA_TIMEOUT_MS = 60 * 60_000
 
 export interface OfflineMediaBinaryServerInjectedInput {
   inputMode: 'private_verified_stream_v1'
@@ -158,6 +159,7 @@ export interface OfflineMediaBinaryRuntimeAuthority {
     privateInternalContinuousProgramAudioReady: true
     privateInternalCrossChunkColorBoundaryReady: true
     privateInternalLongFormMasterAssemblyReady: true
+    privateInternalLongFormMasterQaReady: true
     privateInternalFinalMasterDecodedVideoQaReady: true
     privateInternalFinalMasterDecodedAudioQaReady: true
     longFormFinalMasterQaCheckpointingReady: false
@@ -501,6 +503,7 @@ Promise<OfflineMediaBinaryRuntimeAuthority | undefined> {
     record(authority.readiness).privateInternalContinuousProgramAudioReady !== true ||
     record(authority.readiness).privateInternalCrossChunkColorBoundaryReady !== true ||
     record(authority.readiness).privateInternalLongFormMasterAssemblyReady !== true ||
+    record(authority.readiness).privateInternalLongFormMasterQaReady !== true ||
     record(authority.readiness).privateInternalFinalMasterDecodedVideoQaReady !== true ||
     record(authority.readiness).privateInternalFinalMasterDecodedAudioQaReady !== true ||
     record(authority.readiness).longFormFinalMasterQaCheckpointingReady !== false ||
@@ -2949,7 +2952,9 @@ async function executeFfprobeRequest(
       ['start', '--attach', '--interactive', container.id],
       source,
       4 * 1024 * 1024,
-      mediaExecutionTimeoutMs(source.byteLength),
+      request.payload.inspectionProfileId === 'private_long_form_master_qa_v1'
+        ? PRIVATE_LONG_FORM_MASTER_QA_TIMEOUT_MS
+        : mediaExecutionTimeoutMs(source.byteLength),
     )
     const after = await inspectContainer(container.id)
     const state = record(after.State)
@@ -4526,6 +4531,7 @@ async function persistAuthority(image: OfflineMediaBinaryImageEvidence): Promise
       privateInternalContinuousProgramAudioReady: true as const,
       privateInternalCrossChunkColorBoundaryReady: true as const,
       privateInternalLongFormMasterAssemblyReady: true as const,
+      privateInternalLongFormMasterQaReady: true as const,
       privateInternalFinalMasterDecodedVideoQaReady: true as const,
       privateInternalFinalMasterDecodedAudioQaReady: true as const,
       longFormFinalMasterQaCheckpointingReady: false as const,
@@ -4544,6 +4550,7 @@ async function persistAuthority(image: OfflineMediaBinaryImageEvidence): Promise
       'Continuous program audio is restricted to approved 30 fps source ranges with 48 kHz mono/stereo input and lossless 48 kHz stereo FLAC output.',
       'Cross-chunk color analysis is restricted to adjacent independently QA-passed private VP9 BT.709 chunks and does not mutate media.',
       'Long-form master assembly is private VP9 and FLAC Matroska stream copy only; customer export codecs and delivery remain blocked.',
+      'Private long-form master QA is restricted to one exact immutable VP9/FLAC Matroska review master and does not unlock delivery or export.',
       'Decoded final-master video and audio QA are bounded private single-process evidence; resumable long-form checkpointing, lease recovery, and worker-fleet execution remain blocked.',
     ] as const,
   }
@@ -4693,10 +4700,21 @@ function normalizeProbe(
   if (streams.length === 0 || !streams.some((stream) => stream.codecType === 'video' || stream.codecType === 'audio')) {
     throw unavailable('FFprobe found no supported media streams.')
   }
+  const streamDurations = streams
+    .map((stream) => stream.durationSeconds)
+    .filter((value): value is number => value !== undefined && value > 0)
+  const decodedVideoDurations = streams
+    .map((stream) =>
+      stream.codecType === 'video' &&
+      stream.readFrameCount !== undefined && stream.readFrameCount > 0 &&
+      stream.fps !== undefined && stream.fps > 0
+        ? stream.readFrameCount / stream.fps
+        : undefined)
+    .filter((value): value is number => value !== undefined)
+  const durationCandidates = [...streamDurations, ...decodedVideoDurations]
   const durationSeconds = optionalNumber(rawFormat.duration) ??
-    Math.max(...streams.map((stream) => stream.durationSeconds ?? 0))
+    (durationCandidates.length > 0 ? Math.max(...durationCandidates) : undefined)
   if (!durationSeconds || durationSeconds <= 0) throw unavailable('FFprobe found no positive media duration.')
-  const streamDurations = streams.map((stream) => stream.durationSeconds).filter((value): value is number => Boolean(value))
   if (streamDurations.length > 1 && Math.max(...streamDurations) - Math.min(...streamDurations) > 1) {
     throw unavailable('FFprobe detected source stream duration drift above the fixed tolerance.')
   }

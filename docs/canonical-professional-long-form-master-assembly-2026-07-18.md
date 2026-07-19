@@ -4,6 +4,12 @@ Date: 2026-07-18
 
 Status: `private_local_canonical_execution_proven_private_master_qa_blocked`
 
+Follow-up: canonical independent private-master QA is now proven for this same
+retained two-chunk journey, closing its private review graph at 11/11. See
+`docs/canonical-professional-long-form-private-master-qa-2026-07-18.md`. The
+status and evidence below remain the exact historical boundary of the earlier
+assembly-only milestone; customer delivery and export are still blocked.
+
 ## Outcome
 
 The existing `finalize_private_4k_master` job now has one canonical local/private

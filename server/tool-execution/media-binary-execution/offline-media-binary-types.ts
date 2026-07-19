@@ -296,6 +296,83 @@ export interface OfflineCrossChunkColorContinuityExecutionResult {
   readiness: OfflineFfmpegExecutionResult['readiness']
 }
 
+export interface OfflineFinalMasterVideoQaExecutionResult {
+  resultJson: {
+    mimeType: 'application/json'
+    bytes: Buffer
+    document: Readonly<Record<string, unknown>>
+    sha256: string
+    byteLength: number
+  }
+  evidence: {
+    toolId: 'ffmpeg'
+    operationId: 'tool.ffmpeg.execute_approved_media_recipe.v1'
+    binaryVersion: '8.1.2'
+    requestEnvelopeSha256: string
+    sourceSha256: string
+    resultSha256: string
+    semanticEvidence: Readonly<Record<string, unknown>>
+    confinement: Readonly<{
+      technicalProbe: OfflineMediaBinaryConfinementEvidence
+      decodedFrameIntegrity: OfflineMediaBinaryConfinementEvidence
+      visualAnomalyScan: OfflineMediaBinaryConfinementEvidence
+    }>
+    containerExitCode: 0
+    oomKilled: false
+  }
+  image: OfflineMediaBinaryImageEvidence
+  attestation: OfflineFfmpegExecutionResult['attestation']
+  readiness: OfflineFfmpegExecutionResult['readiness'] & {
+    exactPrivateArtifactDecoded: true
+    longFormCheckpointingReady: false
+    googleCloudWorkerReady: false
+    canonicalLeaseVerified: false
+    singleUseDispatchVerified: false
+    internalCostEvidenceReconciled: false
+    canonicalQaAggregationReady: false
+    publicDeliveryReady: false
+  }
+}
+
+export interface OfflineFinalMasterAudioQaExecutionResult {
+  resultJson: {
+    mimeType: 'application/json'
+    bytes: Buffer
+    document: Readonly<Record<string, unknown>>
+    sha256: string
+    byteLength: number
+  }
+  evidence: {
+    toolId: 'ffmpeg'
+    operationId: 'tool.ffmpeg.execute_approved_media_recipe.v1'
+    binaryVersion: '8.1.2'
+    requestEnvelopeSha256: string
+    sourceSha256: string
+    resultSha256: string
+    semanticEvidence: Readonly<Record<string, unknown>>
+    confinement: Readonly<{
+      technicalProbe: OfflineMediaBinaryConfinementEvidence
+      decodedAudioIntegrity: OfflineMediaBinaryConfinementEvidence
+      audioQualityScan: OfflineMediaBinaryConfinementEvidence
+    }>
+    containerExitCode: 0
+    oomKilled: false
+  }
+  image: OfflineMediaBinaryImageEvidence
+  attestation: OfflineFfmpegExecutionResult['attestation']
+  readiness: OfflineFfmpegExecutionResult['readiness'] & {
+    exactPrivateArtifactDecoded: true
+    speechClarityEvidenceReconciled: true
+    longFormCheckpointingReady: false
+    googleCloudWorkerReady: false
+    canonicalLeaseVerified: false
+    singleUseDispatchVerified: false
+    internalCostEvidenceReconciled: false
+    canonicalQaAggregationReady: false
+    publicDeliveryReady: false
+  }
+}
+
 export interface OfflineFfmpegStreamingOutputExecutionResult {
   resultArtifact: {
     mimeType: 'video/x-matroska' | 'audio/wav'

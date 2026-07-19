@@ -65,6 +65,18 @@ import {
   evaluateOfflineMediaBinaryCrossChunkColorContinuity,
 } from './offline-media-binary-cross-chunk-color-continuity-evaluation'
 import {
+  OFFLINE_MEDIA_BINARY_FINAL_MASTER_AUDIO_QA_RECIPE,
+  OFFLINE_MEDIA_BINARY_FINAL_MASTER_VIDEO_QA_RECIPE,
+  offlineFinalMasterAudioQaRequestSha256,
+  offlineFinalMasterVideoQaRequestSha256,
+  validateOfflineFinalMasterAudioQaRequest,
+  validateOfflineFinalMasterVideoQaRequest,
+  type OfflineFinalMasterAudioQaRequest,
+  type OfflineFinalMasterAudioExceptionRange,
+  type OfflineFinalMasterVideoQaRequest,
+  type OfflineFinalMasterVisualExceptionRange,
+} from './offline-media-binary-final-master-qa-protocol'
+import {
   OFFLINE_MEDIA_BINARY_LONG_FORM_MASTER_ASSEMBLY_MAGIC,
   OFFLINE_MEDIA_BINARY_LONG_FORM_MASTER_MAXIMUM_OUTPUT_BYTES,
   offlineMediaBinaryLongFormMasterAssemblyRequestSha256,
@@ -75,6 +87,8 @@ import type {
   OfflineContinuousProgramAudioQaExecutionResult,
   OfflineCrossChunkColorContinuityExecutionResult,
   OfflineColorPixelAnalysis,
+  OfflineFinalMasterAudioQaExecutionResult,
+  OfflineFinalMasterVideoQaExecutionResult,
   OfflineFfmpegContinuousProgramAudioExecutionResult,
   OfflineFfmpegMezzanineFinalizationExecutionResult,
   OfflineFfmpegLongFormMasterAssemblyExecutionResult,
@@ -144,6 +158,9 @@ export interface OfflineMediaBinaryRuntimeAuthority {
     privateInternalContinuousProgramAudioReady: true
     privateInternalCrossChunkColorBoundaryReady: true
     privateInternalLongFormMasterAssemblyReady: true
+    privateInternalFinalMasterDecodedVideoQaReady: true
+    privateInternalFinalMasterDecodedAudioQaReady: true
+    longFormFinalMasterQaCheckpointingReady: false
     productReady: false
     externalBetaReady: false
     productionReady: false
@@ -208,6 +225,14 @@ export interface PrivateOfflineMediaBinaryRuntime {
     },
     outputSink: OfflineMediaBinaryStreamingOutputSink,
   ): Promise<OfflineFfmpegLongFormMasterAssemblyExecutionResult>
+  executeFinalMasterVideoQaServerInjected(
+    request: OfflineFinalMasterVideoQaRequest,
+    source: OfflineMediaBinaryServerInjectedInput,
+  ): Promise<OfflineFinalMasterVideoQaExecutionResult>
+  executeFinalMasterAudioQaServerInjected(
+    request: OfflineFinalMasterAudioQaRequest,
+    source: OfflineMediaBinaryServerInjectedInput,
+  ): Promise<OfflineFinalMasterAudioQaExecutionResult>
 }
 
 export async function activatePrivateOfflineMediaBinaryRuntime(): Promise<PrivateOfflineMediaBinaryRuntime> {
@@ -289,6 +314,22 @@ export async function activatePrivateOfflineMediaBinaryRuntime(): Promise<Privat
   )) as PrivateOfflineMediaBinaryRuntime[
     'executeLongFormMasterAssemblyServerInjected'
   ]
+  const executeFinalMasterVideoQaServerInjectedBound = ((
+    request: OfflineFinalMasterVideoQaRequest,
+    source: OfflineMediaBinaryServerInjectedInput,
+  ) => executeFinalMasterVideoQaServerInjected(
+    image, request, source,
+  )) as PrivateOfflineMediaBinaryRuntime[
+    'executeFinalMasterVideoQaServerInjected'
+  ]
+  const executeFinalMasterAudioQaServerInjectedBound = ((
+    request: OfflineFinalMasterAudioQaRequest,
+    source: OfflineMediaBinaryServerInjectedInput,
+  ) => executeFinalMasterAudioQaServerInjected(
+    image, request, source,
+  )) as PrivateOfflineMediaBinaryRuntime[
+    'executeFinalMasterAudioQaServerInjected'
+  ]
   return Object.freeze({
     image,
     execute: executeBound,
@@ -306,6 +347,10 @@ export async function activatePrivateOfflineMediaBinaryRuntime(): Promise<Privat
       executeCrossChunkColorContinuityServerInjectedBound,
     executeLongFormMasterAssemblyServerInjected:
       executeLongFormMasterAssemblyServerInjectedBound,
+    executeFinalMasterVideoQaServerInjected:
+      executeFinalMasterVideoQaServerInjectedBound,
+    executeFinalMasterAudioQaServerInjected:
+      executeFinalMasterAudioQaServerInjectedBound,
   })
 }
 
@@ -392,6 +437,22 @@ export async function openPrivateOfflineMediaBinaryRuntime(): Promise<PrivateOff
   )) as PrivateOfflineMediaBinaryRuntime[
     'executeLongFormMasterAssemblyServerInjected'
   ]
+  const executeFinalMasterVideoQaServerInjectedBound = ((
+    request: OfflineFinalMasterVideoQaRequest,
+    source: OfflineMediaBinaryServerInjectedInput,
+  ) => executeFinalMasterVideoQaServerInjected(
+    image, request, source,
+  )) as PrivateOfflineMediaBinaryRuntime[
+    'executeFinalMasterVideoQaServerInjected'
+  ]
+  const executeFinalMasterAudioQaServerInjectedBound = ((
+    request: OfflineFinalMasterAudioQaRequest,
+    source: OfflineMediaBinaryServerInjectedInput,
+  ) => executeFinalMasterAudioQaServerInjected(
+    image, request, source,
+  )) as PrivateOfflineMediaBinaryRuntime[
+    'executeFinalMasterAudioQaServerInjected'
+  ]
   return Object.freeze({
     image,
     execute: executeBound,
@@ -409,6 +470,10 @@ export async function openPrivateOfflineMediaBinaryRuntime(): Promise<PrivateOff
       executeCrossChunkColorContinuityServerInjectedBound,
     executeLongFormMasterAssemblyServerInjected:
       executeLongFormMasterAssemblyServerInjectedBound,
+    executeFinalMasterVideoQaServerInjected:
+      executeFinalMasterVideoQaServerInjectedBound,
+    executeFinalMasterAudioQaServerInjected:
+      executeFinalMasterAudioQaServerInjectedBound,
   })
 }
 
@@ -436,6 +501,9 @@ Promise<OfflineMediaBinaryRuntimeAuthority | undefined> {
     record(authority.readiness).privateInternalContinuousProgramAudioReady !== true ||
     record(authority.readiness).privateInternalCrossChunkColorBoundaryReady !== true ||
     record(authority.readiness).privateInternalLongFormMasterAssemblyReady !== true ||
+    record(authority.readiness).privateInternalFinalMasterDecodedVideoQaReady !== true ||
+    record(authority.readiness).privateInternalFinalMasterDecodedAudioQaReady !== true ||
+    record(authority.readiness).longFormFinalMasterQaCheckpointingReady !== false ||
     record(authority.readiness).productReady !== false ||
     record(authority.readiness).finalExportReady !== false
   ) throw unavailable('Media binary runtime authority boundary is invalid.')
@@ -1516,6 +1584,1326 @@ async function executeCrossChunkColorContinuityServerInjected(
       productionReady: false,
     },
   }
+}
+
+async function executeFinalMasterVideoQaServerInjected(
+  image: OfflineMediaBinaryImageEvidence,
+  value: unknown,
+  source: OfflineMediaBinaryServerInjectedInput,
+): Promise<OfflineFinalMasterVideoQaExecutionResult> {
+  let request: OfflineFinalMasterVideoQaRequest
+  try {
+    request = validateOfflineFinalMasterVideoQaRequest(value)
+  } catch {
+    throw invalid('Structured decoded final-master video QA request was rejected.')
+  }
+  assertFinalMasterQaInput(request, source)
+  const technicalProbe = await probeFinalMasterMedia(image, request, source)
+  const decodedFrameIntegrity = await decodeFinalMasterVideoIntegrity(
+    image,
+    request,
+    source,
+  )
+  const visualAnomalyScan = await scanFinalMasterVisualAnomalies(
+    image,
+    request,
+    source,
+  )
+  const requestEnvelopeSha256 = offlineFinalMasterVideoQaRequestSha256(request)
+  const completedAt = new Date().toISOString()
+  const document = Object.freeze({
+    schemaVersion: 'offline-final-master-decoded-video-qa-result-v1' as const,
+    source: 'private_exact_mp4_full_decoded_video_objective_qa' as const,
+    requestEnvelopeSha256,
+    qaRunId: request.payload.qaRunId,
+    approvedPlanSnapshotId: request.payload.approvedPlanSnapshotId,
+    approvedPlanSnapshotHash: request.payload.approvedPlanSnapshotHash,
+    approvedExecutionPackageHash: request.payload.approvedExecutionPackageHash,
+    approvedEstimateId: request.payload.approvedEstimateId,
+    creditReservationId: request.payload.creditReservationId,
+    approvedDeliverableId: request.payload.approvedDeliverableId,
+    expectedEvidenceIdentity: request.payload.expectedEvidenceIdentity,
+    finalMaster: {
+      artifactId: request.input.artifactId,
+      objectIdentityHash: request.input.objectIdentityHash,
+      sha256: request.input.sha256,
+      byteLength: request.input.byteLength,
+      privateObject: true as const,
+      placeholder: false as const,
+      publicObject: false as const,
+    },
+    technicalProbe: technicalProbe.probe,
+    decodedFrameIntegrity: decodedFrameIntegrity.analysis,
+    visualAnomalyScan: visualAnomalyScan.analysis,
+    checks: {
+      exactPrivateArtifactReopenedForEveryPass: 'passed' as const,
+      exactSourceBytesAndShaVerifiedForEveryPass: 'passed' as const,
+      h264Yuv420pBt709ProfessionalFrameVerified: 'passed' as const,
+      everyDecodedFrameAccountedFor: 'passed' as const,
+      visualAnomaliesReconciledAgainstApprovedExceptions:
+        visualAnomalyScan.analysis.outcome,
+      originalApprovedEditReservationUsed: true as const,
+      separateExportEstimateRequired: false as const,
+      additionalExportChargeAllowed: false as const,
+      mediaMutationPerformed: false as const,
+      providerCallPerformed: false as const,
+    },
+    outcome: visualAnomalyScan.analysis.outcome,
+    evaluatedAt: completedAt,
+  })
+  const bytes = Buffer.from(`${stableAuthorityStringify(document)}\n`)
+  const resultSha256 = sha256(bytes)
+  const confinements = Object.freeze({
+    technicalProbe: technicalProbe.confinement,
+    decodedFrameIntegrity: decodedFrameIntegrity.confinement,
+    visualAnomalyScan: visualAnomalyScan.confinement,
+  })
+  const semanticEvidence = Object.freeze({
+    fixedRecipeExecuted: true,
+    recipeProfileId: OFFLINE_MEDIA_BINARY_FINAL_MASTER_VIDEO_QA_RECIPE,
+    exactPrivateFinalMasterVerified: true,
+    independentTechnicalProbeExecuted: true,
+    fullDecodedFrameStreamVerified: true,
+    decodedFrameCount: decodedFrameIntegrity.analysis.decodedFrameCount,
+    visualAnomalyPolicyExecuted: true,
+    visualAnomalyOutcome: visualAnomalyScan.analysis.outcome,
+    mediaMutationPerformed: false,
+    providerCallPerformed: false,
+    originalApprovedEditReservationUsed: true,
+    separateExportEstimateRequired: false,
+    additionalExportChargeAllowed: false,
+    longFormCheckpointingProven: false,
+    googleCloudWorkerExecutionProven: false,
+    canonicalLeaseVerified: false,
+    singleUseDispatchVerified: false,
+    internalCostEvidenceReconciled: false,
+    canonicalQaAggregationReady: false,
+    publicDeliveryAuthorized: false,
+  })
+  const attestationWithoutHash = {
+    domain: 'offline_final_master_decoded_video_qa_attestation_v1',
+    completedAt,
+    imageIdentityHash: image.imageIdentityHash,
+    toolId: 'ffmpeg' as const,
+    operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
+    requestEnvelopeSha256,
+    sourceSha256: request.input.sha256,
+    resultSha256,
+    outcome: visualAnomalyScan.analysis.outcome,
+    confinements,
+  }
+  const attestationHash = sha256AuthorityValue(attestationWithoutHash)
+  const recordId = sha256AuthorityValue({ attestationHash, completedAt })
+  const attestation = { ...attestationWithoutHash, recordId, attestationHash }
+  await persistFinalMasterQaAttestation(
+    'offline-final-master-decoded-video-qa-attestation-record-v1',
+    'private_local_checksum_protected_final_master_decoded_video_qa',
+    attestation,
+  )
+  return {
+    resultJson: {
+      mimeType: 'application/json',
+      bytes,
+      document,
+      sha256: resultSha256,
+      byteLength: bytes.byteLength,
+    },
+    evidence: {
+      toolId: 'ffmpeg',
+      operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
+      binaryVersion: SOURCE_VERSION,
+      requestEnvelopeSha256,
+      sourceSha256: request.input.sha256,
+      resultSha256,
+      semanticEvidence,
+      confinement: confinements,
+      containerExitCode: 0,
+      oomKilled: false,
+    },
+    image,
+    attestation: { recordId, completedAt, attestationHash },
+    readiness: {
+      privateInternalOnly: true,
+      exactPrivateArtifactDecoded: true,
+      longFormCheckpointingReady: false,
+      googleCloudWorkerReady: false,
+      canonicalLeaseVerified: false,
+      singleUseDispatchVerified: false,
+      internalCostEvidenceReconciled: false,
+      canonicalQaAggregationReady: false,
+      publicDeliveryReady: false,
+      productReady: false,
+      externalBetaReady: false,
+      productionReady: false,
+    },
+  }
+}
+
+async function executeFinalMasterAudioQaServerInjected(
+  image: OfflineMediaBinaryImageEvidence,
+  value: unknown,
+  source: OfflineMediaBinaryServerInjectedInput,
+): Promise<OfflineFinalMasterAudioQaExecutionResult> {
+  let request: OfflineFinalMasterAudioQaRequest
+  try {
+    request = validateOfflineFinalMasterAudioQaRequest(value)
+  } catch {
+    throw invalid('Structured decoded final-master audio QA request was rejected.')
+  }
+  assertFinalMasterQaInput(request, source)
+  const technicalProbe = await probeFinalMasterMedia(image, request, source)
+  const decodedAudioIntegrity = await decodeFinalMasterAudioIntegrity(
+    image,
+    request,
+    source,
+  )
+  const audioQualityScan = await scanFinalMasterAudioQuality(
+    image,
+    request,
+    source,
+  )
+  const findingsRequireReview =
+    decodedAudioIntegrity.analysis.avSyncOutcome !== 'passed' ||
+    audioQualityScan.analysis.outcome !== 'passed'
+  const outcome = findingsRequireReview ? 'needs_user_review' as const : 'passed' as const
+  const requestEnvelopeSha256 = offlineFinalMasterAudioQaRequestSha256(request)
+  const completedAt = new Date().toISOString()
+  const document = Object.freeze({
+    schemaVersion: 'offline-final-master-decoded-audio-qa-result-v1' as const,
+    source: 'private_exact_mp4_full_decoded_audio_objective_qa' as const,
+    requestEnvelopeSha256,
+    qaRunId: request.payload.qaRunId,
+    approvedPlanSnapshotId: request.payload.approvedPlanSnapshotId,
+    approvedPlanSnapshotHash: request.payload.approvedPlanSnapshotHash,
+    approvedExecutionPackageHash: request.payload.approvedExecutionPackageHash,
+    approvedEstimateId: request.payload.approvedEstimateId,
+    creditReservationId: request.payload.creditReservationId,
+    approvedDeliverableId: request.payload.approvedDeliverableId,
+    expectedEvidenceIdentity: request.payload.expectedEvidenceIdentity,
+    finalMaster: {
+      artifactId: request.input.artifactId,
+      objectIdentityHash: request.input.objectIdentityHash,
+      sha256: request.input.sha256,
+      byteLength: request.input.byteLength,
+      privateObject: true as const,
+      placeholder: false as const,
+      publicObject: false as const,
+    },
+    technicalProbe: technicalProbe.probe,
+    decodedAudioIntegrity: decodedAudioIntegrity.analysis,
+    audioQualityScan: audioQualityScan.analysis,
+    speechClarity: {
+      status: request.payload.speechClarityStatus,
+      evidenceHash: request.payload.speechClarityEvidenceHash,
+      source: 'separate_bound_speech_clarity_evidence' as const,
+      ffmpegClaimedSpeechUnderstanding: false as const,
+    },
+    checks: {
+      exactPrivateArtifactReopenedForEveryPass: 'passed' as const,
+      exactSourceBytesAndShaVerifiedForEveryPass: 'passed' as const,
+      aac48000HzChannelContractVerified: 'passed' as const,
+      everyDecodedAudioSampleRangeAccountedFor: 'passed' as const,
+      avSyncWithinApprovedFrameTolerance:
+        decodedAudioIntegrity.analysis.avSyncOutcome,
+      loudnessPeakRangeAndSilencePolicy:
+        audioQualityScan.analysis.outcome,
+      separateSpeechClarityEvidenceReconciled: 'passed' as const,
+      originalApprovedEditReservationUsed: true as const,
+      separateExportEstimateRequired: false as const,
+      additionalExportChargeAllowed: false as const,
+      mediaMutationPerformed: false as const,
+      providerCallPerformed: false as const,
+    },
+    outcome,
+    evaluatedAt: completedAt,
+  })
+  const bytes = Buffer.from(`${stableAuthorityStringify(document)}\n`)
+  const resultSha256 = sha256(bytes)
+  const confinements = Object.freeze({
+    technicalProbe: technicalProbe.confinement,
+    decodedAudioIntegrity: decodedAudioIntegrity.confinement,
+    audioQualityScan: audioQualityScan.confinement,
+  })
+  const semanticEvidence = Object.freeze({
+    fixedRecipeExecuted: true,
+    recipeProfileId: OFFLINE_MEDIA_BINARY_FINAL_MASTER_AUDIO_QA_RECIPE,
+    exactPrivateFinalMasterVerified: true,
+    independentTechnicalProbeExecuted: true,
+    fullDecodedAudioStreamVerified: true,
+    decodedSampleCount: decodedAudioIntegrity.analysis.decodedSampleCount,
+    avSyncDriftFrames: decodedAudioIntegrity.analysis.avSyncDriftFrames,
+    audioQualityPolicyExecuted: true,
+    audioQualityOutcome: audioQualityScan.analysis.outcome,
+    separateSpeechClarityEvidenceReconciled: true,
+    ffmpegClaimedSpeechUnderstanding: false,
+    mediaMutationPerformed: false,
+    providerCallPerformed: false,
+    originalApprovedEditReservationUsed: true,
+    separateExportEstimateRequired: false,
+    additionalExportChargeAllowed: false,
+    longFormCheckpointingProven: false,
+    googleCloudWorkerExecutionProven: false,
+    canonicalLeaseVerified: false,
+    singleUseDispatchVerified: false,
+    internalCostEvidenceReconciled: false,
+    canonicalQaAggregationReady: false,
+    publicDeliveryAuthorized: false,
+  })
+  const attestationWithoutHash = {
+    domain: 'offline_final_master_decoded_audio_qa_attestation_v1',
+    completedAt,
+    imageIdentityHash: image.imageIdentityHash,
+    toolId: 'ffmpeg' as const,
+    operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
+    requestEnvelopeSha256,
+    sourceSha256: request.input.sha256,
+    resultSha256,
+    outcome,
+    confinements,
+  }
+  const attestationHash = sha256AuthorityValue(attestationWithoutHash)
+  const recordId = sha256AuthorityValue({ attestationHash, completedAt })
+  const attestation = { ...attestationWithoutHash, recordId, attestationHash }
+  await persistFinalMasterQaAttestation(
+    'offline-final-master-decoded-audio-qa-attestation-record-v1',
+    'private_local_checksum_protected_final_master_decoded_audio_qa',
+    attestation,
+  )
+  return {
+    resultJson: {
+      mimeType: 'application/json',
+      bytes,
+      document,
+      sha256: resultSha256,
+      byteLength: bytes.byteLength,
+    },
+    evidence: {
+      toolId: 'ffmpeg',
+      operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
+      binaryVersion: SOURCE_VERSION,
+      requestEnvelopeSha256,
+      sourceSha256: request.input.sha256,
+      resultSha256,
+      semanticEvidence,
+      confinement: confinements,
+      containerExitCode: 0,
+      oomKilled: false,
+    },
+    image,
+    attestation: { recordId, completedAt, attestationHash },
+    readiness: {
+      privateInternalOnly: true,
+      exactPrivateArtifactDecoded: true,
+      speechClarityEvidenceReconciled: true,
+      longFormCheckpointingReady: false,
+      googleCloudWorkerReady: false,
+      canonicalLeaseVerified: false,
+      singleUseDispatchVerified: false,
+      internalCostEvidenceReconciled: false,
+      canonicalQaAggregationReady: false,
+      publicDeliveryReady: false,
+      productReady: false,
+      externalBetaReady: false,
+      productionReady: false,
+    },
+  }
+}
+
+type OfflineFinalMasterQaRequest =
+  | OfflineFinalMasterVideoQaRequest
+  | OfflineFinalMasterAudioQaRequest
+
+function assertFinalMasterQaInput(
+  request: OfflineFinalMasterQaRequest,
+  source: OfflineMediaBinaryServerInjectedInput,
+): void {
+  assertServerInjectedInput(
+    source,
+    request.input.byteLength,
+    request.input.sha256,
+  )
+  if (
+    request.input.artifactId !== request.payload.finalMasterArtifactId ||
+    request.input.objectIdentityHash !==
+      request.payload.finalMasterObjectIdentityHash ||
+    request.input.privateObject !== true ||
+    request.input.placeholder !== false ||
+    request.input.publicObject !== false
+  ) throw invalid('Decoded final-master QA lost exact private artifact authority.')
+}
+
+async function probeFinalMasterMedia(
+  image: OfflineMediaBinaryImageEvidence,
+  request: OfflineFinalMasterQaRequest,
+  source: OfflineMediaBinaryServerInjectedInput,
+) {
+  const command = [
+    '-v', 'error',
+    '-show_entries',
+    'format=format_name,start_time,duration,size:' +
+      'stream=index,codec_name,codec_type,start_time,duration,width,height,' +
+      'avg_frame_rate,r_frame_rate,pix_fmt,color_space,color_transfer,' +
+      'color_primaries,color_range,sample_rate,channels,channel_layout',
+    '-print_format', 'json',
+    '-i', 'pipe:0',
+  ]
+  const container = await createContainer(image, FFPROBE_ENTRYPOINT, command)
+  try {
+    const confinement = validateConfinement(
+      await inspectContainer(container.id),
+      image,
+      FFPROBE_ENTRYPOINT,
+      command,
+    )
+    const execution = await dockerVerifiedInput(
+      ['start', '--attach', '--interactive', container.id],
+      source,
+      2 * 1024 * 1024,
+      finalMasterQaTimeoutMs(request),
+    )
+    const state = record((await inspectContainer(container.id)).State)
+    if (
+      execution.exitCode !== 0 || execution.stderr.length > 0 ||
+      state.OOMKilled !== false
+    ) throw unavailable('Final-master technical probe failed closed.', {
+      containerExitCode: execution.exitCode,
+      diagnostic: safeFfmpegDiagnostic(execution.stderr),
+    })
+    let parsed: Record<string, unknown>
+    try {
+      parsed = record(JSON.parse(execution.stdout.toString('utf8')))
+    } catch {
+      throw unavailable('Final-master technical probe returned invalid JSON.')
+    }
+    const format = record(parsed.format)
+    const streams = Array.isArray(parsed.streams)
+      ? parsed.streams.map(record)
+      : []
+    const videoStreams = streams.filter((stream) => stream.codec_type === 'video')
+    const audioStreams = streams.filter((stream) => stream.codec_type === 'audio')
+    if (
+      streams.length !== 2 || videoStreams.length !== 1 ||
+      audioStreams.length !== 1
+    ) throw unavailable(
+      'Final-master technical probe requires exactly one video and one audio stream.',
+    )
+    const video = videoStreams[0]!
+    const audio = audioStreams[0]!
+    const formatName = String(format.format_name ?? '')
+    const formatDurationSeconds = finiteNumber(format.duration)
+    const formatStartTimeSeconds = finiteNumber(format.start_time)
+    const videoStartTimeSeconds = finiteNumber(video.start_time)
+    const audioStartTimeSeconds = finiteNumber(audio.start_time)
+    const videoDurationSeconds = finiteNumber(video.duration)
+    const audioDurationSeconds = finiteNumber(audio.duration)
+    const videoFps = rational(video.avg_frame_rate ?? video.r_frame_rate)
+    const expectedDurationSeconds = request.payload.totalFrames / request.payload.fps
+    const maximumAvSyncDriftFrames = 'maximumAvSyncDriftFrames' in request.payload
+      ? request.payload.maximumAvSyncDriftFrames
+      : 2
+    const durationToleranceSeconds =
+      maximumAvSyncDriftFrames / request.payload.fps
+    const audioChannels = optionalInteger(audio.channels)
+    const audioChannelLayout = String(audio.channel_layout ?? '')
+    const expectedAudioChannelLayout = audioChannels === 1 ? 'mono' : 'stereo'
+    const probedFormatSize = optionalInteger(format.size)
+    if (
+      !formatName.split(',').includes('mp4') ||
+      (probedFormatSize !== undefined && probedFormatSize !== source.byteLength) ||
+      formatStartTimeSeconds === undefined ||
+      Math.abs(formatStartTimeSeconds) > 0.001 ||
+      formatDurationSeconds === undefined ||
+      Math.abs(formatDurationSeconds - expectedDurationSeconds) >
+        durationToleranceSeconds ||
+      video.codec_name !== 'h264' ||
+      optionalInteger(video.width) !== request.payload.width ||
+      optionalInteger(video.height) !== request.payload.height ||
+      videoFps !== request.payload.fps || video.pix_fmt !== 'yuv420p' ||
+      video.color_space !== 'bt709' || video.color_transfer !== 'bt709' ||
+      video.color_primaries !== 'bt709' ||
+      video.color_range !== 'tv' ||
+      videoStartTimeSeconds === undefined ||
+      Math.abs(videoStartTimeSeconds) > 0.001 ||
+      videoDurationSeconds === undefined ||
+      Math.abs(videoDurationSeconds - expectedDurationSeconds) >
+        durationToleranceSeconds ||
+      audio.codec_name !== 'aac' || optionalInteger(audio.sample_rate) !== 48_000 ||
+      audioChannels === undefined || ![1, 2].includes(audioChannels) ||
+      audioChannelLayout !== expectedAudioChannelLayout ||
+      audioStartTimeSeconds === undefined ||
+      Math.abs(audioStartTimeSeconds) > durationToleranceSeconds ||
+      audioDurationSeconds === undefined ||
+      Math.abs(audioDurationSeconds - expectedDurationSeconds) >
+        durationToleranceSeconds ||
+      ('channels' in request.payload && audioChannels !== request.payload.channels)
+    ) throw unavailable(
+      'Final-master failed the exact MP4, H.264, AAC, frame, color, or duration contract.',
+    )
+    return {
+      probe: Object.freeze({
+        container: 'mp4' as const,
+        formatName,
+        formatStartTimeSeconds,
+        formatDurationSeconds,
+        sourceByteLength: source.byteLength,
+        streamedFormatSizeReported: probedFormatSize,
+        exactSourceSizeVerifiedByInputCommitment: true as const,
+        video: {
+          codec: 'h264' as const,
+          width: request.payload.width,
+          height: request.payload.height,
+          fps: request.payload.fps,
+          pixelFormat: 'yuv420p' as const,
+          colorSpace: 'bt709' as const,
+          colorTransfer: 'bt709' as const,
+          colorPrimaries: 'bt709' as const,
+          colorRange: 'tv' as const,
+          startTimeSeconds: videoStartTimeSeconds,
+          durationSeconds: videoDurationSeconds,
+        },
+        audio: {
+          codec: 'aac' as const,
+          sampleRate: 48_000 as const,
+          channels: audioChannels,
+          channelLayout: audioChannelLayout,
+          startTimeSeconds: audioStartTimeSeconds,
+          durationSeconds: audioDurationSeconds,
+        },
+        expectedDurationSeconds: rounded(expectedDurationSeconds),
+        durationToleranceSeconds: rounded(durationToleranceSeconds),
+      }),
+      confinement,
+    }
+  } finally {
+    await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024)
+      .catch(() => undefined)
+  }
+}
+
+async function decodeFinalMasterVideoIntegrity(
+  image: OfflineMediaBinaryImageEvidence,
+  request: OfflineFinalMasterVideoQaRequest,
+  source: OfflineMediaBinaryServerInjectedInput,
+) {
+  const command = [
+    '-v', 'error', '-xerror', '-err_detect', 'explode',
+    '-i', 'pipe:0', '-map', '0:v:0', '-an', '-sn', '-dn',
+    '-f', 'framemd5', '-hash', 'sha256', 'pipe:1',
+  ]
+  const container = await createContainer(image, FFMPEG_ENTRYPOINT, command)
+  const parser = createVideoFrameMd5Parser(request)
+  try {
+    const confinement = validateConfinement(
+      await inspectContainer(container.id),
+      image,
+      FFMPEG_ENTRYPOINT,
+      command,
+    )
+    const execution = await dockerVerifiedInputStreamingLines({
+      args: ['start', '--attach', '--interactive', container.id],
+      input: source,
+      maximumOutputBytes: 256 * 1024 * 1024,
+      timeoutMs: finalMasterQaTimeoutMs(request),
+      onLine: parser.onLine,
+    })
+    const state = record((await inspectContainer(container.id)).State)
+    if (
+      execution.exitCode !== 0 || execution.stderr.length > 0 ||
+      state.OOMKilled !== false
+    ) throw unavailable('Final-master decoded-video pass failed closed.', {
+      containerExitCode: execution.exitCode,
+      diagnostic: safeFfmpegDiagnostic(execution.stderr),
+    })
+    return {
+      analysis: Object.freeze({
+        ...parser.finish(),
+        decodedFrameChecksumStreamSha256: execution.outputSha256,
+        decodedFrameChecksumStreamByteLength: execution.outputByteLength,
+        exactSourceBytesVerified: execution.verifiedInputByteLength,
+        exactSourceSha256Verified: execution.verifiedInputSha256,
+        outcome: 'passed' as const,
+      }),
+      confinement,
+    }
+  } finally {
+    await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024)
+      .catch(() => undefined)
+  }
+}
+
+async function decodeFinalMasterAudioIntegrity(
+  image: OfflineMediaBinaryImageEvidence,
+  request: OfflineFinalMasterAudioQaRequest,
+  source: OfflineMediaBinaryServerInjectedInput,
+) {
+  const command = [
+    '-v', 'error', '-xerror', '-err_detect', 'explode',
+    '-i', 'pipe:0', '-map', '0:a:0', '-vn', '-sn', '-dn',
+    '-f', 'framemd5', '-hash', 'sha256', 'pipe:1',
+  ]
+  const container = await createContainer(image, FFMPEG_ENTRYPOINT, command)
+  const parser = createAudioFrameMd5Parser(request)
+  try {
+    const confinement = validateConfinement(
+      await inspectContainer(container.id),
+      image,
+      FFMPEG_ENTRYPOINT,
+      command,
+    )
+    const execution = await dockerVerifiedInputStreamingLines({
+      args: ['start', '--attach', '--interactive', container.id],
+      input: source,
+      maximumOutputBytes: 256 * 1024 * 1024,
+      timeoutMs: finalMasterQaTimeoutMs(request),
+      onLine: parser.onLine,
+    })
+    const state = record((await inspectContainer(container.id)).State)
+    if (
+      execution.exitCode !== 0 || execution.stderr.length > 0 ||
+      state.OOMKilled !== false
+    ) throw unavailable('Final-master decoded-audio pass failed closed.', {
+      containerExitCode: execution.exitCode,
+      diagnostic: safeFfmpegDiagnostic(execution.stderr),
+    })
+    const parsed = parser.finish()
+    const expectedSampleCount = request.payload.totalFrames *
+      (request.payload.sampleRate / request.payload.fps)
+    const avSyncDriftSamples = Math.abs(parsed.decodedSampleCount - expectedSampleCount)
+    const avSyncDriftFrames = rounded(
+      avSyncDriftSamples / (request.payload.sampleRate / request.payload.fps),
+    )
+    return {
+      analysis: Object.freeze({
+        ...parsed,
+        expectedSampleCount,
+        avSyncDriftSamples,
+        avSyncDriftFrames,
+        maximumAvSyncDriftFrames: request.payload.maximumAvSyncDriftFrames,
+        avSyncOutcome: avSyncDriftFrames <= request.payload.maximumAvSyncDriftFrames
+          ? 'passed' as const
+          : 'needs_user_review' as const,
+        decodedAudioChecksumStreamSha256: execution.outputSha256,
+        decodedAudioChecksumStreamByteLength: execution.outputByteLength,
+        exactSourceBytesVerified: execution.verifiedInputByteLength,
+        exactSourceSha256Verified: execution.verifiedInputSha256,
+      }),
+      confinement,
+    }
+  } finally {
+    await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024)
+      .catch(() => undefined)
+  }
+}
+
+async function scanFinalMasterVisualAnomalies(
+  image: OfflineMediaBinaryImageEvidence,
+  request: OfflineFinalMasterVideoQaRequest,
+  source: OfflineMediaBinaryServerInjectedInput,
+) {
+  const blackDurationSeconds = rounded(
+    request.payload.blackMinimumDurationFrames / request.payload.fps,
+  )
+  const freezeDurationSeconds = rounded(
+    request.payload.freezeMinimumDurationFrames / request.payload.fps,
+  )
+  const filter = [
+    `blackdetect=d=${blackDurationSeconds}:pix_th=0.10`,
+    `freezedetect=n=-60dB:d=${freezeDurationSeconds}`,
+    `select=gt(scene\\,${request.payload.flashSceneChangeThreshold})`,
+    'showinfo',
+  ].join(',')
+  const command = [
+    '-hide_banner', '-nostats', '-v', 'info',
+    '-xerror', '-err_detect', 'explode', '-i', 'pipe:0',
+    '-map', '0:v:0', '-an', '-sn', '-dn', '-vf', filter,
+    '-f', 'null', '-',
+  ]
+  const container = await createContainer(image, FFMPEG_ENTRYPOINT, command)
+  try {
+    const confinement = validateConfinement(
+      await inspectContainer(container.id),
+      image,
+      FFMPEG_ENTRYPOINT,
+      command,
+    )
+    const execution = await dockerVerifiedInput(
+      ['start', '--attach', '--interactive', container.id],
+      source,
+      64 * 1024,
+      finalMasterQaTimeoutMs(request),
+    )
+    const state = record((await inspectContainer(container.id)).State)
+    if (execution.exitCode !== 0 || state.OOMKilled !== false) {
+      throw unavailable('Final-master visual anomaly scan failed closed.', {
+        containerExitCode: execution.exitCode,
+        diagnostic: safeFfmpegDiagnostic(execution.stderr),
+      })
+    }
+    const findings = parseFinalMasterVisualFindings(
+      execution.stderr.toString('utf8'),
+      request,
+    )
+    const reconciled = findings.map((finding) => {
+      const approvedException = findCoveringVisualException(
+        finding,
+        request.payload.visualExceptionManifest.ranges,
+      )
+      return {
+        ...finding,
+        disposition: approvedException
+          ? 'approved_exception' as const
+          : 'needs_user_review' as const,
+        approvedExceptionId: approvedException?.exceptionId,
+        approvalEvidenceHash: approvedException?.approvalEvidenceHash,
+      }
+    })
+    const unexpected = reconciled.filter(
+      (finding) => finding.disposition === 'needs_user_review',
+    )
+    return {
+      analysis: Object.freeze({
+        policyId: request.payload.anomalyPolicyId,
+        blackMinimumDurationFrames: request.payload.blackMinimumDurationFrames,
+        freezeMinimumDurationFrames: request.payload.freezeMinimumDurationFrames,
+        flashSceneChangeThreshold: request.payload.flashSceneChangeThreshold,
+        exceptionManifestHash:
+          request.payload.visualExceptionManifest.manifestHash,
+        detectedFindingCount: reconciled.length,
+        approvedExceptionFindingCount: reconciled.length - unexpected.length,
+        unexpectedFindingCount: unexpected.length,
+        findings: reconciled,
+        diagnosticSha256: sha256(execution.stderr),
+        diagnosticByteLength: execution.stderr.byteLength,
+        outcome: unexpected.length === 0
+          ? 'passed' as const
+          : 'needs_user_review' as const,
+      }),
+      confinement,
+    }
+  } finally {
+    await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024)
+      .catch(() => undefined)
+  }
+}
+
+async function scanFinalMasterAudioQuality(
+  image: OfflineMediaBinaryImageEvidence,
+  request: OfflineFinalMasterAudioQaRequest,
+  source: OfflineMediaBinaryServerInjectedInput,
+) {
+  const silenceDurationSeconds = rounded(
+    request.payload.silenceMinimumDurationFrames / request.payload.fps,
+  )
+  const filter = [
+    'ebur128=peak=true:framelog=verbose',
+    'astats=metadata=0:reset=0',
+    `silencedetect=n=-60dB:d=${silenceDurationSeconds}`,
+  ].join(',')
+  const command = [
+    '-hide_banner', '-nostats', '-v', 'info',
+    '-xerror', '-err_detect', 'explode', '-i', 'pipe:0',
+    '-map', '0:a:0', '-vn', '-sn', '-dn', '-af', filter,
+    '-f', 'null', '-',
+  ]
+  const container = await createContainer(image, FFMPEG_ENTRYPOINT, command)
+  try {
+    const confinement = validateConfinement(
+      await inspectContainer(container.id),
+      image,
+      FFMPEG_ENTRYPOINT,
+      command,
+    )
+    const execution = await dockerVerifiedInput(
+      ['start', '--attach', '--interactive', container.id],
+      source,
+      64 * 1024,
+      finalMasterQaTimeoutMs(request),
+    )
+    const state = record((await inspectContainer(container.id)).State)
+    if (execution.exitCode !== 0 || state.OOMKilled !== false) {
+      throw unavailable('Final-master audio quality scan failed closed.', {
+        containerExitCode: execution.exitCode,
+        diagnostic: safeFfmpegDiagnostic(execution.stderr),
+      })
+    }
+    const parsed = parseFinalMasterAudioQuality(
+      execution.stderr.toString('utf8'),
+      request,
+    )
+    const integratedLufsWithinPolicy =
+      typeof parsed.integratedLufs === 'number' &&
+      Math.abs(parsed.integratedLufs - request.payload.targetIntegratedLufs) <=
+        request.payload.integratedLufsTolerance
+    const truePeakWithinPolicy =
+      typeof parsed.truePeakDbtp === 'number' &&
+      parsed.truePeakDbtp <= request.payload.maximumTruePeakDbtp
+    const loudnessRangeWithinPolicy =
+      typeof parsed.loudnessRangeLufs === 'number' &&
+      parsed.loudnessRangeLufs <= request.payload.maximumLoudnessRangeLufs
+    const decodedSignalFinite =
+      parsed.numberOfNaNs === 0 && parsed.numberOfInfs === 0
+    const reconciledSilences = parsed.silences.map((silence) => {
+      const approvedException = findCoveringAudioException(
+        silence,
+        request.payload.audioExceptionManifest.ranges,
+      )
+      return {
+        ...silence,
+        disposition: approvedException
+          ? 'approved_exception' as const
+          : 'needs_user_review' as const,
+        approvedExceptionId: approvedException?.exceptionId,
+        approvalEvidenceHash: approvedException?.approvalEvidenceHash,
+      }
+    })
+    const unexpectedSilences = reconciledSilences.filter(
+      (silence) => silence.disposition === 'needs_user_review',
+    )
+    const outcome =
+      integratedLufsWithinPolicy && truePeakWithinPolicy &&
+      loudnessRangeWithinPolicy && decodedSignalFinite &&
+      unexpectedSilences.length === 0
+        ? 'passed' as const
+        : 'needs_user_review' as const
+    return {
+      analysis: Object.freeze({
+        policyId: request.payload.audioPolicyId,
+        integratedLufs: parsed.integratedLufs,
+        targetIntegratedLufs: request.payload.targetIntegratedLufs,
+        integratedLufsTolerance: request.payload.integratedLufsTolerance,
+        integratedLufsWithinPolicy,
+        truePeakDbtp: parsed.truePeakDbtp,
+        maximumTruePeakDbtp: request.payload.maximumTruePeakDbtp,
+        truePeakWithinPolicy,
+        loudnessRangeLufs: parsed.loudnessRangeLufs,
+        maximumLoudnessRangeLufs:
+          request.payload.maximumLoudnessRangeLufs,
+        loudnessRangeWithinPolicy,
+        astatsPeakLevelDb: parsed.astatsPeakLevelDb,
+        astatsPeakCount: parsed.astatsPeakCount,
+        numberOfNaNs: parsed.numberOfNaNs,
+        numberOfInfs: parsed.numberOfInfs,
+        decodedSignalFinite,
+        silenceMinimumDurationFrames:
+          request.payload.silenceMinimumDurationFrames,
+        exceptionManifestHash:
+          request.payload.audioExceptionManifest.manifestHash,
+        detectedSilenceCount: reconciledSilences.length,
+        unexpectedSilenceCount: unexpectedSilences.length,
+        silences: reconciledSilences,
+        diagnosticSha256: sha256(execution.stderr),
+        diagnosticByteLength: execution.stderr.byteLength,
+        outcome,
+      }),
+      confinement,
+    }
+  } finally {
+    await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024)
+      .catch(() => undefined)
+  }
+}
+
+async function persistFinalMasterQaAttestation(
+  recordVersion: string,
+  source: string,
+  attestation: Readonly<Record<string, unknown>>,
+): Promise<void> {
+  const recordId = String(attestation.recordId)
+  await writePrivateTextFileAtomicWithinRoot({
+    rootPath: STORAGE_ROOT,
+    relativePath: `attestations/${recordId.slice(0, 2)}/${recordId}.json`,
+    content: `${stableAuthorityStringify({
+      recordVersion,
+      source,
+      attestation,
+      checksumSha256: sha256AuthorityValue(attestation),
+    })}\n`,
+  })
+}
+
+function createVideoFrameMd5Parser(request: OfflineFinalMasterVideoQaRequest) {
+  let timeBaseVerified = false
+  let mediaTypeVerified = false
+  let codecVerified = false
+  let dimensionsVerified = false
+  let hashAlgorithmVerified = false
+  let decodedFrameCount = 0
+  let decodedRawByteCount = 0
+  let previousHash = ''
+  const expectedRawFrameBytes =
+    request.payload.width * request.payload.height * 3 / 2
+  const onLine = (line: string) => {
+    const trimmed = line.trim()
+    if (!trimmed) return
+    if (trimmed.startsWith('#')) {
+      if (trimmed === '#hash: SHA256') hashAlgorithmVerified = true
+      if (trimmed === `#tb 0: 1/${request.payload.fps}`) {
+        timeBaseVerified = true
+      }
+      if (trimmed === '#media_type 0: video') mediaTypeVerified = true
+      if (trimmed === '#codec_id 0: rawvideo') codecVerified = true
+      if (
+        trimmed ===
+          `#dimensions 0: ${request.payload.width}x${request.payload.height}`
+      ) dimensionsVerified = true
+      return
+    }
+    const fields = trimmed.split(',').map((field) => field.trim())
+    if (fields.length !== 6 || !/^[a-f0-9]{64}$/iu.test(fields[5] ?? '')) {
+      throw unavailable('Decoded-video frame checksum line is malformed.')
+    }
+    const streamIndex = frameMd5Integer(fields[0], 'video stream index')
+    const dts = frameMd5Integer(fields[1], 'video DTS')
+    const pts = frameMd5Integer(fields[2], 'video PTS')
+    const duration = frameMd5Integer(fields[3], 'video frame duration')
+    const byteLength = frameMd5Integer(fields[4], 'video raw frame bytes')
+    if (
+      streamIndex !== 0 || dts !== decodedFrameCount ||
+      pts !== decodedFrameCount || duration !== 1 ||
+      byteLength !== expectedRawFrameBytes ||
+      decodedFrameCount >= request.payload.totalFrames
+    ) throw unavailable(
+      'Decoded-video frame checksum stream lost sequential frame integrity.',
+    )
+    decodedFrameCount += 1
+    decodedRawByteCount += byteLength
+    previousHash = String(fields[5]).toLowerCase()
+  }
+  const finish = () => {
+    if (
+      !timeBaseVerified || !mediaTypeVerified || !codecVerified ||
+      !dimensionsVerified || !hashAlgorithmVerified ||
+      decodedFrameCount !== request.payload.totalFrames || !previousHash
+    ) throw unavailable(
+      'Decoded-video frame checksum stream failed its exact header or frame-count contract.',
+    )
+    return Object.freeze({
+      checksumFormat: 'framemd5_v2_sha256' as const,
+      decodedCodec: 'rawvideo' as const,
+      decodedPixelFormat: 'yuv420p' as const,
+      frameTimeBase: `1/${request.payload.fps}`,
+      width: request.payload.width,
+      height: request.payload.height,
+      expectedRawFrameBytes,
+      decodedFrameCount,
+      expectedFrameCount: request.payload.totalFrames,
+      decodedRawByteCount,
+      finalFrameSha256: previousHash,
+      sequentialDtsPtsVerified: true as const,
+      oneFrameDurationVerified: true as const,
+      perFrameSha256Verified: true as const,
+      retainedPerFramePayloads: false as const,
+    })
+  }
+  return { onLine, finish }
+}
+
+function createAudioFrameMd5Parser(request: OfflineFinalMasterAudioQaRequest) {
+  let timeBaseVerified = false
+  let mediaTypeVerified = false
+  let codecVerified = false
+  let sampleRateVerified = false
+  let channelLayoutVerified = false
+  let hashAlgorithmVerified = false
+  let packetCount = 0
+  let decodedSampleCount = 0
+  let decodedPcmByteCount = 0
+  let previousHash = ''
+  const expectedChannelLayout = request.payload.channels === 1 ? 'mono' : 'stereo'
+  const onLine = (line: string) => {
+    const trimmed = line.trim()
+    if (!trimmed) return
+    if (trimmed.startsWith('#')) {
+      if (trimmed === '#hash: SHA256') hashAlgorithmVerified = true
+      if (trimmed === '#tb 0: 1/48000') timeBaseVerified = true
+      if (trimmed === '#media_type 0: audio') mediaTypeVerified = true
+      if (trimmed === '#codec_id 0: pcm_s16le') codecVerified = true
+      if (trimmed === '#sample_rate 0: 48000') sampleRateVerified = true
+      if (
+        trimmed === `#channel_layout_name 0: ${expectedChannelLayout}` ||
+        trimmed === `#channel_layout 0: ${expectedChannelLayout}`
+      ) channelLayoutVerified = true
+      return
+    }
+    const fields = trimmed.split(',').map((field) => field.trim())
+    if (fields.length !== 6 || !/^[a-f0-9]{64}$/iu.test(fields[5] ?? '')) {
+      throw unavailable('Decoded-audio checksum line is malformed.')
+    }
+    const streamIndex = frameMd5Integer(fields[0], 'audio stream index')
+    const dts = frameMd5Integer(fields[1], 'audio DTS')
+    const pts = frameMd5Integer(fields[2], 'audio PTS')
+    const duration = frameMd5Integer(fields[3], 'audio packet duration')
+    const byteLength = frameMd5Integer(fields[4], 'audio PCM bytes')
+    if (
+      streamIndex !== 0 || dts !== decodedSampleCount ||
+      pts !== decodedSampleCount || duration < 1 ||
+      byteLength !== duration * request.payload.channels * 2
+    ) throw unavailable(
+      'Decoded-audio checksum stream lost contiguous PCM sample integrity.',
+    )
+    const nextSampleCount = decodedSampleCount + duration
+    const maximumExpectedSamples =
+      request.payload.totalFrames *
+        (request.payload.sampleRate / request.payload.fps) +
+      request.payload.sampleRate * 10
+    if (nextSampleCount > maximumExpectedSamples) {
+      throw unavailable('Decoded-audio sample count exceeded its fixed bound.')
+    }
+    decodedSampleCount = nextSampleCount
+    decodedPcmByteCount += byteLength
+    packetCount += 1
+    previousHash = String(fields[5]).toLowerCase()
+  }
+  const finish = () => {
+    if (
+      !timeBaseVerified || !mediaTypeVerified || !codecVerified ||
+      !sampleRateVerified || !channelLayoutVerified ||
+      !hashAlgorithmVerified || packetCount < 1 ||
+      decodedSampleCount < 1 || !previousHash
+    ) throw unavailable(
+      'Decoded-audio checksum stream failed its exact header or sample contract.',
+    )
+    return Object.freeze({
+      checksumFormat: 'framemd5_v2_sha256' as const,
+      decodedCodec: 'pcm_s16le' as const,
+      sampleTimeBase: '1/48000' as const,
+      sampleRate: 48_000 as const,
+      channels: request.payload.channels,
+      channelLayout: expectedChannelLayout,
+      packetCount,
+      decodedSampleCount,
+      decodedPcmByteCount,
+      finalPacketSha256: previousHash,
+      contiguousDtsPtsVerified: true as const,
+      packetSampleDurationsVerified: true as const,
+      perPacketSha256Verified: true as const,
+      retainedPerPacketPayloads: false as const,
+    })
+  }
+  return { onLine, finish }
+}
+
+interface FinalMasterVisualFinding {
+  findingId: string
+  kind: 'black_range' | 'freeze_range' | 'scene_change'
+  startFrame: number
+  endFrameExclusive: number
+  durationFrames: number
+}
+
+function parseFinalMasterVisualFindings(
+  diagnostic: string,
+  request: OfflineFinalMasterVideoQaRequest,
+): FinalMasterVisualFinding[] {
+  const findings: FinalMasterVisualFinding[] = []
+  for (const match of diagnostic.matchAll(
+    /black_start:([0-9.]+)\s+black_end:([0-9.]+)\s+black_duration:([0-9.]+)/gu,
+  )) {
+    addVisualFinding(findings, request, 'black_range', match[1], match[2])
+  }
+  let freezeStartSeconds: number | undefined
+  for (const line of diagnostic.split(/\r?\n/u)) {
+    const start = /freeze_start:\s*([0-9.]+)/u.exec(line)
+    if (start) freezeStartSeconds = strictNonNegativeNumber(start[1], 'freeze start')
+    const end = /freeze_end:\s*([0-9.]+)/u.exec(line)
+    if (end && freezeStartSeconds !== undefined) {
+      addVisualFinding(
+        findings,
+        request,
+        'freeze_range',
+        freezeStartSeconds,
+        strictNonNegativeNumber(end[1], 'freeze end'),
+      )
+      freezeStartSeconds = undefined
+    }
+    const showInfo = /\bn:\s*[0-9]+\s+pts:\s*-?[0-9]+\s+pts_time:\s*([0-9.]+)/u
+      .exec(line)
+    if (showInfo) {
+      const frame = secondsToNearestFrame(
+        strictNonNegativeNumber(showInfo[1], 'scene-change timestamp'),
+        request.payload.fps,
+        request.payload.totalFrames,
+      )
+      findings.push(finalMasterVisualFinding(
+        'scene_change',
+        frame,
+        Math.min(request.payload.totalFrames, frame + 1),
+      ))
+    }
+  }
+  if (freezeStartSeconds !== undefined) {
+    addVisualFinding(
+      findings,
+      request,
+      'freeze_range',
+      freezeStartSeconds,
+      request.payload.totalFrames / request.payload.fps,
+    )
+  }
+  const deduplicated = new Map<string, FinalMasterVisualFinding>()
+  for (const finding of findings) {
+    const key = `${finding.kind}:${finding.startFrame}:${finding.endFrameExclusive}`
+    deduplicated.set(key, finding)
+  }
+  const normalized = [...deduplicated.values()].sort((left, right) =>
+    left.startFrame - right.startFrame ||
+    left.endFrameExclusive - right.endFrameExclusive ||
+    left.kind.localeCompare(right.kind))
+  if (normalized.length > 8_192) {
+    throw unavailable('Final-master visual anomaly findings exceeded their fixed bound.')
+  }
+  return normalized
+}
+
+function addVisualFinding(
+  findings: FinalMasterVisualFinding[],
+  request: OfflineFinalMasterVideoQaRequest,
+  kind: FinalMasterVisualFinding['kind'],
+  startValue: string | number | undefined,
+  endValue: string | number | undefined,
+): void {
+  const startSeconds = strictNonNegativeNumber(startValue, `${kind} start`)
+  const endSeconds = strictNonNegativeNumber(endValue, `${kind} end`)
+  const startFrame = secondsToNearestFrame(
+    startSeconds,
+    request.payload.fps,
+    request.payload.totalFrames,
+  )
+  const endFrameExclusive = Math.max(
+    startFrame + 1,
+    Math.min(
+      request.payload.totalFrames,
+      Math.round(endSeconds * request.payload.fps),
+    ),
+  )
+  findings.push(finalMasterVisualFinding(kind, startFrame, endFrameExclusive))
+}
+
+function finalMasterVisualFinding(
+  kind: FinalMasterVisualFinding['kind'],
+  startFrame: number,
+  endFrameExclusive: number,
+): FinalMasterVisualFinding {
+  const withoutId = {
+    kind,
+    startFrame,
+    endFrameExclusive,
+    durationFrames: endFrameExclusive - startFrame,
+  }
+  return {
+    findingId: `visual-${sha256AuthorityValue(withoutId).slice(0, 24)}`,
+    ...withoutId,
+  }
+}
+
+function findCoveringVisualException(
+  finding: FinalMasterVisualFinding,
+  ranges: readonly OfflineFinalMasterVisualExceptionRange[],
+): OfflineFinalMasterVisualExceptionRange | undefined {
+  const requiredKind = finding.kind === 'black_range'
+    ? 'approved_black_hold'
+    : finding.kind === 'freeze_range'
+      ? 'approved_freeze_hold'
+      : 'approved_flash_or_cut'
+  return ranges.find((range) =>
+    range.kind === requiredKind &&
+    range.startFrame <= finding.startFrame &&
+    range.endFrameExclusive >= finding.endFrameExclusive)
+}
+
+interface FinalMasterSilenceFinding {
+  findingId: string
+  kind: 'digital_silence_range'
+  startFrame: number
+  endFrameExclusive: number
+  durationFrames: number
+}
+
+function parseFinalMasterAudioQuality(
+  diagnostic: string,
+  request: OfflineFinalMasterAudioQaRequest,
+) {
+  const integratedLufs = lastDiagnosticMetric(
+    diagnostic,
+    /\bI:\s*(-?(?:[0-9]+(?:\.[0-9]+)?|inf))\s+LUFS/giu,
+    'integrated loudness',
+    true,
+  )
+  const loudnessRangeLufs = lastDiagnosticMetric(
+    diagnostic,
+    /\bLRA:\s*(-?(?:[0-9]+(?:\.[0-9]+)?|inf))\s+LU/giu,
+    'loudness range',
+    true,
+  )
+  const truePeakDbtp = lastDiagnosticMetric(
+    diagnostic,
+    /\bPeak:\s*(-?(?:[0-9]+(?:\.[0-9]+)?|inf))\s+dBFS/giu,
+    'true peak',
+    true,
+  )
+  const astatsPeakLevelDb = lastDiagnosticMetric(
+    diagnostic,
+    /Peak level dB:\s*(-?(?:[0-9]+(?:\.[0-9]+)?|inf))/giu,
+    'astats peak level',
+    true,
+  )
+  const astatsPeakCount = lastDiagnosticMetric(
+    diagnostic,
+    /Peak count:\s*([0-9]+(?:\.[0-9]+)?)/giu,
+    'astats peak count',
+  )
+  const numberOfNaNs = lastDiagnosticMetric(
+    diagnostic,
+    /Number of NaNs:\s*([0-9]+(?:\.[0-9]+)?)/giu,
+    'astats NaN count',
+  )
+  const numberOfInfs = lastDiagnosticMetric(
+    diagnostic,
+    /Number of Infs:\s*([0-9]+(?:\.[0-9]+)?)/giu,
+    'astats infinity count',
+  )
+  const silences: FinalMasterSilenceFinding[] = []
+  let silenceStartSeconds: number | undefined
+  for (const line of diagnostic.split(/\r?\n/u)) {
+    const start = /silence_start:\s*([0-9.]+)/u.exec(line)
+    if (start) silenceStartSeconds = strictNonNegativeNumber(start[1], 'silence start')
+    const end = /silence_end:\s*([0-9.]+)/u.exec(line)
+    if (end && silenceStartSeconds !== undefined) {
+      silences.push(finalMasterSilenceFinding(
+        request,
+        silenceStartSeconds,
+        strictNonNegativeNumber(end[1], 'silence end'),
+      ))
+      silenceStartSeconds = undefined
+    }
+  }
+  if (silenceStartSeconds !== undefined) {
+    silences.push(finalMasterSilenceFinding(
+      request,
+      silenceStartSeconds,
+      request.payload.totalFrames / request.payload.fps,
+    ))
+  }
+  if (silences.length > 8_192) {
+    throw unavailable('Final-master silence findings exceeded their fixed bound.')
+  }
+  return {
+    integratedLufs,
+    loudnessRangeLufs,
+    truePeakDbtp,
+    astatsPeakLevelDb,
+    astatsPeakCount,
+    numberOfNaNs,
+    numberOfInfs,
+    silences,
+  }
+}
+
+function finalMasterSilenceFinding(
+  request: OfflineFinalMasterAudioQaRequest,
+  startSeconds: number,
+  endSeconds: number,
+): FinalMasterSilenceFinding {
+  const startFrame = secondsToNearestFrame(
+    startSeconds,
+    request.payload.fps,
+    request.payload.totalFrames,
+  )
+  const endFrameExclusive = Math.max(
+    startFrame + 1,
+    Math.min(
+      request.payload.totalFrames,
+      Math.round(endSeconds * request.payload.fps),
+    ),
+  )
+  const withoutId = {
+    kind: 'digital_silence_range' as const,
+    startFrame,
+    endFrameExclusive,
+    durationFrames: endFrameExclusive - startFrame,
+  }
+  return {
+    findingId: `silence-${sha256AuthorityValue(withoutId).slice(0, 24)}`,
+    ...withoutId,
+  }
+}
+
+function findCoveringAudioException(
+  finding: FinalMasterSilenceFinding,
+  ranges: readonly OfflineFinalMasterAudioExceptionRange[],
+): OfflineFinalMasterAudioExceptionRange | undefined {
+  return ranges.find((range) =>
+    range.kind === 'approved_digital_silence' &&
+    range.startFrame <= finding.startFrame &&
+    range.endFrameExclusive >= finding.endFrameExclusive)
+}
+
+function lastDiagnosticMetric(
+  diagnostic: string,
+  expression: RegExp,
+  label: string,
+  allowNegativeInfinity = false,
+): number | 'negative_infinity' {
+  const matches = [...diagnostic.matchAll(expression)]
+  const value = matches.at(-1)?.[1]
+  if (!value) {
+    throw unavailable(`Final-master ${label} metric is missing.`)
+  }
+  if (/^-inf$/iu.test(value) && allowNegativeInfinity) {
+    return 'negative_infinity'
+  }
+  if (/^-?inf$/iu.test(value)) {
+    throw unavailable(`Final-master ${label} metric is unsupported.`)
+  }
+  return strictFiniteNumber(value, label)
+}
+
+function secondsToNearestFrame(
+  seconds: number,
+  fps: number,
+  totalFrames: number,
+): number {
+  return Math.min(totalFrames - 1, Math.max(0, Math.round(seconds * fps)))
+}
+
+function frameMd5Integer(value: string | undefined, label: string): number {
+  const parsed = Number(value)
+  if (!Number.isSafeInteger(parsed) || parsed < 0) {
+    throw unavailable(`Final-master ${label} is invalid.`)
+  }
+  return parsed
+}
+
+function strictNonNegativeNumber(value: unknown, label: string): number {
+  const parsed = strictFiniteNumber(value, label)
+  if (parsed < 0) throw unavailable(`Final-master ${label} is negative.`)
+  return parsed
+}
+
+function strictFiniteNumber(value: unknown, label: string): number {
+  const parsed = Number(value)
+  if (!Number.isFinite(parsed)) {
+    throw unavailable(`Final-master ${label} is invalid.`)
+  }
+  return parsed
+}
+
+function finiteNumber(value: unknown): number | undefined {
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? rounded(parsed) : undefined
+}
+
+function finalMasterQaTimeoutMs(request: OfflineFinalMasterQaRequest): number {
+  const durationSeconds = request.payload.totalFrames / request.payload.fps
+  const byteAllowance = Math.ceil(request.input.byteLength / (8 * 1024 * 1024)) * 5_000
+  const decodeAllowance = Math.ceil(durationSeconds) * 3_000
+  return Math.min(
+    6 * 60 * 60_000,
+    Math.max(
+      DOCKER_CONTROL_TIMEOUT_MS,
+      DOCKER_CONTROL_TIMEOUT_MS + byteAllowance + decodeAllowance,
+    ),
+  )
 }
 
 async function executeFfprobe(
@@ -3124,6 +4512,9 @@ async function persistAuthority(image: OfflineMediaBinaryImageEvidence): Promise
       privateInternalContinuousProgramAudioReady: true as const,
       privateInternalCrossChunkColorBoundaryReady: true as const,
       privateInternalLongFormMasterAssemblyReady: true as const,
+      privateInternalFinalMasterDecodedVideoQaReady: true as const,
+      privateInternalFinalMasterDecodedAudioQaReady: true as const,
+      longFormFinalMasterQaCheckpointingReady: false as const,
       productReady: false as const,
       externalBetaReady: false as const,
       productionReady: false as const,
@@ -3139,6 +4530,7 @@ async function persistAuthority(image: OfflineMediaBinaryImageEvidence): Promise
       'Continuous program audio is restricted to approved 30 fps source ranges with 48 kHz mono/stereo input and lossless 48 kHz stereo FLAC output.',
       'Cross-chunk color analysis is restricted to adjacent independently QA-passed private VP9 BT.709 chunks and does not mutate media.',
       'Long-form master assembly is private VP9 and FLAC Matroska stream copy only; customer export codecs and delivery remain blocked.',
+      'Decoded final-master video and audio QA are bounded private single-process evidence; resumable long-form checkpointing, lease recovery, and worker-fleet execution remain blocked.',
     ] as const,
   }
   const authority: OfflineMediaBinaryRuntimeAuthority = {
@@ -3451,6 +4843,177 @@ async function dockerVerifiedInput(
             diagnostic: safeFfmpegDiagnostic(failedResult.stderr),
           }
         : undefined,
+    )
+  }
+}
+
+async function dockerVerifiedInputStreamingLines(input: {
+  args: string[]
+  input: OfflineMediaBinaryServerInjectedInput
+  maximumOutputBytes: number
+  timeoutMs: number
+  onLine(line: string): void
+}): Promise<{
+  exitCode: number
+  stderr: Buffer
+  outputSha256: string
+  outputByteLength: number
+  verifiedInputSha256: string
+  verifiedInputByteLength: number
+}> {
+  assertServerInjectedInput(
+    input.input,
+    input.input.byteLength,
+    input.input.sha256,
+  )
+  if (
+    !Number.isSafeInteger(input.maximumOutputBytes) ||
+    input.maximumOutputBytes < 1 ||
+    typeof input.onLine !== 'function'
+  ) throw invalid('Streaming-line media execution policy is invalid.')
+  const invocation = createPrivateDockerCliInvocation(input.args)
+  const child = spawn(invocation.executable, invocation.args, {
+    stdio: ['pipe', 'pipe', 'pipe'],
+    env: invocation.env,
+  })
+  let outputByteLength = 0
+  let stderrByteLength = 0
+  let pending = Buffer.alloc(0)
+  let parserError: Error | undefined
+  const outputChecksum = createHash('sha256')
+  const stderrChunks: Buffer[] = []
+  const parseLine = (bytes: Buffer) => {
+    const lineBytes = bytes.at(-1) === 13 ? bytes.subarray(0, -1) : bytes
+    if (lineBytes.byteLength > 4 * 1024) {
+      throw unavailable('Streaming media checksum line exceeded its fixed bound.')
+    }
+    input.onLine(lineBytes.toString('utf8'))
+  }
+  const resultPromise = new Promise<{
+    exitCode: number
+    stderr: Buffer
+    outputSha256: string
+    outputByteLength: number
+  }>((resolve, reject) => {
+    const timer = setTimeout(() => {
+      child.kill('SIGKILL')
+      reject(unavailable('Docker streaming-line media operation timed out.'))
+    }, input.timeoutMs)
+    child.stdout.on('data', (chunk: Buffer) => {
+      if (parserError) return
+      const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)
+      outputByteLength += bytes.byteLength
+      if (outputByteLength > input.maximumOutputBytes) {
+        child.kill('SIGKILL')
+        return
+      }
+      outputChecksum.update(bytes)
+      const combined = pending.byteLength > 0
+        ? Buffer.concat([pending, bytes], pending.byteLength + bytes.byteLength)
+        : bytes
+      let cursor = 0
+      try {
+        for (;;) {
+          const newline = combined.indexOf(10, cursor)
+          if (newline < 0) break
+          parseLine(combined.subarray(cursor, newline))
+          cursor = newline + 1
+        }
+        pending = Buffer.from(combined.subarray(cursor))
+        if (pending.byteLength > 4 * 1024) {
+          throw unavailable('Streaming media checksum line exceeded its fixed bound.')
+        }
+      } catch (error) {
+        parserError = error instanceof Error
+          ? error
+          : new Error('Streaming media checksum parser rejected output.')
+        child.kill('SIGKILL')
+      }
+    })
+    child.stderr.on('data', (chunk: Buffer) => {
+      stderrByteLength += chunk.byteLength
+      if (stderrByteLength > 512 * 1024) child.kill('SIGKILL')
+      else stderrChunks.push(chunk)
+    })
+    child.once('error', (error) => {
+      clearTimeout(timer)
+      reject(error)
+    })
+    child.once('close', (code) => {
+      clearTimeout(timer)
+      if (!parserError && pending.byteLength > 0) {
+        try {
+          parseLine(pending)
+          pending = Buffer.alloc(0)
+        } catch (error) {
+          parserError = error instanceof Error
+            ? error
+            : new Error('Streaming media checksum parser rejected output.')
+        }
+      }
+      if (parserError) {
+        reject(parserError)
+        return
+      }
+      if (
+        outputByteLength > input.maximumOutputBytes ||
+        stderrByteLength > 512 * 1024
+      ) {
+        reject(unavailable('Docker streaming-line media output exceeded its fixed bound.'))
+        return
+      }
+      resolve({
+        exitCode: code ?? 1,
+        stderr: Buffer.concat(stderrChunks),
+        outputSha256: outputChecksum.digest('hex'),
+        outputByteLength,
+      })
+    })
+  })
+  let sourceStream: Readable | undefined
+  let verifiedInputByteLength = 0
+  const inputChecksum = createHash('sha256')
+  try {
+    sourceStream = await input.input.openStream()
+    if (!sourceStream || typeof sourceStream.pipe !== 'function') {
+      throw new Error('Private media input did not return a readable stream.')
+    }
+    const verifier = new Transform({
+      transform(chunk, _encoding, callback) {
+        const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)
+        verifiedInputByteLength += bytes.byteLength
+        if (verifiedInputByteLength > input.input.byteLength) {
+          callback(new Error('Private media input exceeded its exact byte commitment.'))
+          return
+        }
+        inputChecksum.update(bytes)
+        callback(null, bytes)
+      },
+    })
+    const [, result] = await Promise.all([
+      pipeline(sourceStream, verifier, child.stdin),
+      resultPromise,
+    ])
+    const verifiedInputSha256 = inputChecksum.digest('hex')
+    if (
+      verifiedInputByteLength !== input.input.byteLength ||
+      verifiedInputSha256 !== input.input.sha256
+    ) throw unavailable(
+      'Streaming-line media input did not match its exact commitment.',
+    )
+    return {
+      ...result,
+      verifiedInputSha256,
+      verifiedInputByteLength,
+    }
+  } catch (error) {
+    sourceStream?.destroy()
+    child.stdin.destroy()
+    child.kill('SIGKILL')
+    await resultPromise.catch(() => undefined)
+    if (error instanceof ApiError) throw error
+    throw unavailable(
+      'Docker streaming-line media execution failed exact verification.',
     )
   }
 }

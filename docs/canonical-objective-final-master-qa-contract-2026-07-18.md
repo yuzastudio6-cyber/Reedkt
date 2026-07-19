@@ -1,6 +1,6 @@
 # Canonical Objective Final-Master QA Contract
 
-Status: bounded server-only contract and synthetic smoke evidence. This increment does not read or decode media, execute FFmpeg/FFprobe, dispatch Google Cloud work, persist QA, modify the canonical queue, create a render, call a provider, run Supabase, calculate a new customer estimate, charge credits, mutate a wallet, unlock public delivery, or make ReEditPro production-ready.
+Status: bounded server-only contract plus direct private-local real-media runner evidence. The runner now independently reads and fully decodes exact server-injected test masters through the existing pinned, networkless FFmpeg/FFprobe image and writes checksum-protected local attestations. It does not prove canonical reservation/lease/one-use dispatch, attempt-cost reconciliation, private artifact persistence, long-form checkpoint/recovery, Google Cloud execution, six-gate aggregation, replay, downstream QA, public delivery, billing, or production readiness.
 
 ## Why This Layer Exists
 
@@ -68,7 +68,9 @@ Every gate binds an internal production-cost evidence-set hash. A set may cover 
 
 The top-level final-master render attempt retains its own cost hash. QA cannot hide failed compute or add a second customer charge.
 
-## Current Evidence And Current Gap
+The direct runner proof added after this contract intentionally reports `internalCostEvidenceReconciled = false`. It consumes the original approved edit reservation boundary and prohibits a second export estimate or charge, but it does not invent an attempt-cost record. Canonical package dispatch must later bind every QA attempt, including failed/review attempts, to the shared internal production-cost authority before the six-gate aggregate can pass.
+
+## Current Contract And Runner Evidence
 
 The focused smoke proves:
 
@@ -86,7 +88,28 @@ Run it with:
 ./node_modules/.bin/tsx server/smoke/objective-final-master-qa-smoke.ts
 ```
 
-The current canonical FFprobe report alone intentionally fails this six-gate contract with five missing gates. Other repository slices contain separate Master Timing, continuous-program-audio, cross-chunk-color, artifact-QA, and reconciliation evidence, but those pieces have not yet been bound into one exact final-master objective manifest for the same completed artifact. No complete real-media objective-final-master run is claimed here.
+The follow-up runtime proof adds two exact profiles under the existing canonical operation `tool.ffmpeg.execute_approved_media_recipe.v1`:
+
+- `approved_final_master_decoded_video_integrity_v1` performs an independent MP4/H.264/AAC/BT.709 limited-range probe, streams SHA-256 `framemd5` evidence for every decoded video frame without retaining frame payloads, and runs bounded black/freeze/scene-change detection reconciled only against hash-bound approved exceptions.
+- `approved_final_master_decoded_audio_quality_sync_v1` performs the same independent media probe, streams contiguous 48 kHz PCM packet/sample evidence, calculates A/V drift in frames, and runs EBU R128, `astats`, and silence detection. Speech clarity remains a separately bound evidence hash; FFmpeg never claims speech understanding.
+
+The real-media smoke creates private 1080p H.264/AAC fixtures only in `/tmp`, executes both profiles inside the pinned container, and proves:
+
+- exact full-frame and full-audio decode/accounting passes for a valid master;
+- approved intentional still/freeze evidence passes, while the same unapproved finding produces durable `needs_user_review` evidence;
+- a technically decodable silent master produces durable `needs_user_review` evidence rather than crashing or falsely passing;
+- source byte/checksum tampering and caller commands/commercial authority fail closed;
+- container network, root filesystem, user, privilege, capability, memory, CPU, mount, environment, and server-owned-entrypoint confinement remain fixed;
+- the original approved edit reservation is reused, with no second export estimate, export charge, media mutation, or provider call;
+- long-form checkpointing, Google Cloud workers, canonical lease/dispatch, internal-cost reconciliation, public delivery, product, external-beta, and production readiness remain false.
+
+Run the real-media runner smoke with:
+
+```bash
+npm run smoke:offline-final-master-objective-qa
+```
+
+The current canonical FFprobe report alone still intentionally fails the six-gate aggregate with five missing gates. The new direct runner supplies real evidence for the decoded-video and decoded-audio portions, but it has not been compiled into canonical package work or bound to a real reservation, lease, one-use dispatch, attempt-cost record, persisted final artifact, reconciliation, replay, or downstream aggregate for the same completed master. Other repository slices contain separate Master Timing, continuous-program-audio, cross-chunk-color, artifact-QA, and reconciliation evidence; those pieces are not yet one complete objective-final-master run.
 
 ## Deliberate V1 Limits
 
@@ -103,14 +126,14 @@ This objective layer also does not include:
 
 Those gates remain required for full ReEditPro product readiness. Edit Preference/Edit Reference semantics stay owned by the separate coordinated task; this backend slice does not create a competing contract.
 
-## Next Safe Runtime Integration
+## Next Safe Canonical Integration
 
-After the Motion Studio FFmpeg shared-seam handoff is frozen, the backend can reconcile exact decoded-video and decoded-audio QA recipe profiles into the canonical media-binary runtime without concurrent edits. The safe sequence is:
+Motion Studio's frozen generated-music normalization handoff uses the same canonical FFmpeg operation with the distinct `approved_generated_music_candidate_normalization_v1` profile. This slice does not copy, rename, or replace it, and does not create another operation or registry. The next safe sequence is:
 
-1. add approved, confined, zero-network decoded-video and decoded-audio QA profiles under the existing FFmpeg operation;
-2. compile server-owned objective-QA work items from the immutable approved package;
-3. execute through the canonical reservation, lease, one-use dispatch, attempt-cost, private artifact, QA, reconciliation, recovery, and replay authority;
-4. aggregate all long-form chunks and boundaries into this manifest;
+1. compile the two profiles into server-owned objective-QA work items from the immutable approved package;
+2. execute through the canonical reservation, lease, one-use dispatch, attempt-cost, private artifact, QA, reconciliation, recovery, and replay authority;
+3. replace the direct single-process long-form path with independently leased frame/sample chunks and exact checkpoint aggregation;
+4. aggregate all long-form ranges and boundaries into this manifest;
 5. consume the result through the existing private artifact QA/review assembly;
 6. integrate the externally owned semantic Preference/reference/copy-safety evidence after its verified handoff;
 7. keep public delivery, external beta, billing, and production blocked until their independent evidence gates pass.

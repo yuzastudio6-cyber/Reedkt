@@ -97,16 +97,21 @@ The focused command passed:
 npm run smoke:canonical-professional-long-form-cross-chunk-color
 ```
 
-Retained result:
+At the color checkpoint, retained result:
 
 - total frames: 3,870 (129 seconds at 30 fps);
 - chunk count: 2;
 - boundary count: 1;
 - completed queue jobs: 9/11;
 - internal-cost evidence hash:
-  `80ce993886f62264b8fff9527d0510b88cdb399388be5f20aee99cc0a27f95e8`;
+  `a0a1c74a443536b10840f6b35d8f6b68e0afa4a8efd6c63b31a2b047f581c52f`;
 - exact restart replay: passed; and
 - finalization authority: false.
+
+The same retained integration journey now continues through canonical private
+master assembly and ends at 10/11. Color completion still grants no
+finalization authority by itself; the separately constructed master authority
+reopens every dependency before execution.
 
 The server TypeScript gate also passed.
 
@@ -128,7 +133,7 @@ This slice does not prove or authorize:
 - recovery of an already-started color attempt after process loss;
 - execution of the retained six-hour graph's other 122 chunk pairs or 123
   boundaries;
-- canonical private-master assembly or final-master QA;
+- private-master QA or customer delivery-master QA;
 - distributed database-backed queue/outbox transactions;
 - live Google Cloud worker dispatch or completion;
 - canonical Supabase migration or remote Supabase access;
@@ -142,8 +147,7 @@ remain visible until lease-loss recovery and reconciliation have retained proof.
 
 ## Next dependency-safe capability
 
-The next unique long-form capability is canonical private-master assembly. It
-must consume every exact chunk artifact, continuous program audio, and passed
-cross-chunk color evidence; preserve frame/audio/color identities; reuse the
-approved 4K reservation; persist private create-only output and attempt cost;
-and leave final-master QA separately gated.
+Canonical private-master assembly is now proven for the retained two-chunk
+journey. The next unique capability is independent QA of that exact private
+VP9/FLAC Matroska review master. Customer H.264/AAC delivery-master execution
+and export remain separate later gates.

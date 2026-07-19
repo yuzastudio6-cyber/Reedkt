@@ -68,6 +68,16 @@ import {
   professionalLongFormCrossChunkColorAuthorizationSchema,
   professionalLongFormCrossChunkColorCompletionSchema,
 } from './professional-long-form-cross-chunk-color-continuity-execution-contract'
+import {
+  PROFESSIONAL_LONG_FORM_MASTER_ASSEMBLY_ATTEMPT_VERSION,
+  PROFESSIONAL_LONG_FORM_MASTER_ASSEMBLY_AUTHORITY_VERSION,
+  PROFESSIONAL_LONG_FORM_MASTER_ASSEMBLY_AUTHORIZATION_VERSION,
+  PROFESSIONAL_LONG_FORM_MASTER_ASSEMBLY_COMPLETION_VERSION,
+  professionalLongFormMasterAssemblyAttemptSchema,
+  professionalLongFormMasterAssemblyAuthoritySchema,
+  professionalLongFormMasterAssemblyAuthorizationSchema,
+  professionalLongFormMasterAssemblyCompletionSchema,
+} from './professional-long-form-master-assembly-execution-contract'
 
 export const professionalLongFormAuthorizedChildAuthorizationReceiptSchema =
   z.discriminatedUnion('schemaVersion', [
@@ -78,6 +88,7 @@ export const professionalLongFormAuthorizedChildAuthorizationReceiptSchema =
     professionalLongFormFirstObjectChunkQaAuthorizationSchema,
     professionalLongFormContinuousProgramAudioAuthorizationSchema,
     professionalLongFormCrossChunkColorAuthorizationSchema,
+    professionalLongFormMasterAssemblyAuthorizationSchema,
   ])
 
 export const professionalLongFormAuthorizedChildExecutionAuthoritySchema =
@@ -89,6 +100,7 @@ export const professionalLongFormAuthorizedChildExecutionAuthoritySchema =
     professionalLongFormFirstObjectChunkQaAuthoritySchema,
     professionalLongFormContinuousProgramAudioAuthoritySchema,
     professionalLongFormCrossChunkColorAuthoritySchema,
+    professionalLongFormMasterAssemblyAuthoritySchema,
   ])
 
 export const professionalLongFormAuthorizedChildExecutionAttemptSchema =
@@ -100,6 +112,7 @@ export const professionalLongFormAuthorizedChildExecutionAttemptSchema =
     professionalLongFormFirstObjectChunkQaAttemptSchema,
     professionalLongFormContinuousProgramAudioAttemptSchema,
     professionalLongFormCrossChunkColorAttemptSchema,
+    professionalLongFormMasterAssemblyAttemptSchema,
   ])
 
 export const professionalLongFormAuthorizedChildCompletionSchema =
@@ -111,6 +124,7 @@ export const professionalLongFormAuthorizedChildCompletionSchema =
     professionalLongFormFirstObjectChunkQaCompletionSchema,
     professionalLongFormContinuousProgramAudioCompletionSchema,
     professionalLongFormCrossChunkColorCompletionSchema,
+    professionalLongFormMasterAssemblyCompletionSchema,
   ])
 
 export type ProfessionalLongFormAuthorizedChildAuthorizationReceipt = z.infer<
@@ -183,6 +197,13 @@ export function isProfessionalLongFormCrossChunkColorAuthorization(
     PROFESSIONAL_LONG_FORM_CROSS_CHUNK_COLOR_AUTHORIZATION_VERSION
 }
 
+export function isProfessionalLongFormMasterAssemblyAuthorization(
+  value: ProfessionalLongFormAuthorizedChildAuthorizationReceipt,
+): value is z.infer<typeof professionalLongFormMasterAssemblyAuthorizationSchema> {
+  return value.schemaVersion ===
+    PROFESSIONAL_LONG_FORM_MASTER_ASSEMBLY_AUTHORIZATION_VERSION
+}
+
 export function isProfessionalLongFormFirstChildExecutionAuthority(
   value: ProfessionalLongFormAuthorizedChildExecutionAuthority,
 ): value is z.infer<typeof professionalLongFormFirstChildExecutionAuthoritySchema> {
@@ -234,6 +255,13 @@ export function isProfessionalLongFormCrossChunkColorAuthority(
 ): value is z.infer<typeof professionalLongFormCrossChunkColorAuthoritySchema> {
   return value.schemaVersion ===
     PROFESSIONAL_LONG_FORM_CROSS_CHUNK_COLOR_AUTHORITY_VERSION
+}
+
+export function isProfessionalLongFormMasterAssemblyAuthority(
+  value: ProfessionalLongFormAuthorizedChildExecutionAuthority,
+): value is z.infer<typeof professionalLongFormMasterAssemblyAuthoritySchema> {
+  return value.schemaVersion ===
+    PROFESSIONAL_LONG_FORM_MASTER_ASSEMBLY_AUTHORITY_VERSION
 }
 
 export function isProfessionalLongFormFirstChildExecutionAttempt(
@@ -289,6 +317,13 @@ export function isProfessionalLongFormCrossChunkColorAttempt(
     PROFESSIONAL_LONG_FORM_CROSS_CHUNK_COLOR_ATTEMPT_VERSION
 }
 
+export function isProfessionalLongFormMasterAssemblyAttempt(
+  value: ProfessionalLongFormAuthorizedChildExecutionAttempt,
+): value is z.infer<typeof professionalLongFormMasterAssemblyAttemptSchema> {
+  return value.schemaVersion ===
+    PROFESSIONAL_LONG_FORM_MASTER_ASSEMBLY_ATTEMPT_VERSION
+}
+
 export function isProfessionalLongFormFirstChildCompletion(
   value: ProfessionalLongFormAuthorizedChildCompletion,
 ): value is z.infer<typeof professionalLongFormFirstChildCompletionSchema> {
@@ -339,4 +374,11 @@ export function isProfessionalLongFormCrossChunkColorCompletion(
 ): value is z.infer<typeof professionalLongFormCrossChunkColorCompletionSchema> {
   return value.schemaVersion ===
     PROFESSIONAL_LONG_FORM_CROSS_CHUNK_COLOR_COMPLETION_VERSION
+}
+
+export function isProfessionalLongFormMasterAssemblyCompletion(
+  value: ProfessionalLongFormAuthorizedChildCompletion,
+): value is z.infer<typeof professionalLongFormMasterAssemblyCompletionSchema> {
+  return value.schemaVersion ===
+    PROFESSIONAL_LONG_FORM_MASTER_ASSEMBLY_COMPLETION_VERSION
 }

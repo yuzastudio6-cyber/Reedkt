@@ -24,6 +24,10 @@ import {
   PROFESSIONAL_LONG_FORM_CROSS_CHUNK_COLOR_OPERATION_ID,
 } from '../edit-architecture/professional-long-form-cross-chunk-color-continuity-execution-contract'
 import {
+  PROFESSIONAL_LONG_FORM_MASTER_ASSEMBLY_COST_PROFILE_ID,
+  PROFESSIONAL_LONG_FORM_MASTER_ASSEMBLY_OPERATION_ID,
+} from '../edit-architecture/professional-long-form-master-assembly-execution-contract'
+import {
   CANONICAL_PROFESSIONAL_LONG_FORM_SEED_DRAFT_VERSION,
 } from '../services/canonical-professional-long-form-publication-authority'
 import {
@@ -50,6 +54,9 @@ import {
 import {
   createCanonicalProfessionalLongFormCrossChunkColorExecutionService,
 } from '../services/canonical-professional-long-form-cross-chunk-color-continuity-execution-service'
+import {
+  createCanonicalProfessionalLongFormMasterAssemblyExecutionService,
+} from '../services/canonical-professional-long-form-master-assembly-execution-service'
 import { createEditPlanningAuthorityService } from
   '../services/edit-planning-authority-service'
 import { createExactEditPreferenceService } from
@@ -196,6 +203,16 @@ try {
     ).execute({ workspaceId, approvedPlanSnapshotId: snapshotId })
   assert.equal(audio.queueAggregate.summary.completedJobCount, 8)
 
+  const masterService =
+    createCanonicalProfessionalLongFormMasterAssemblyExecutionService(context)
+  await expectApiError(
+    () => masterService.execute({
+      workspaceId,
+      approvedPlanSnapshotId: snapshotId,
+    }),
+    'JOB_DEPENDENCY_NOT_READY',
+  )
+
   await expectApiError(
     () => colorService.execute({
       workspaceId,
@@ -276,17 +293,85 @@ try {
     completed.color.costEvidence.evidenceHash,
   )
 
+  const master = await masterService.execute({
+    workspaceId,
+    approvedPlanSnapshotId: snapshotId,
+  })
+  assert.equal(master.disposition, 'completed')
+  assert.equal(master.queueAggregate.summary.totalJobCount, 11)
+  assert.equal(master.queueAggregate.summary.completedJobCount, 10)
+  assert.equal(master.queueAggregate.summary.queuedJobCount, 1)
+  assert.equal(master.queueAggregate.summary.leasedJobCount, 0)
+  assert.equal(master.assembly.runtimeEvidence.outputArtifact.mediaFormat, 'mkv')
+  assert.equal(master.assembly.runtimeEvidence.outputArtifact.videoCodec, 'vp9')
+  assert.equal(master.assembly.runtimeEvidence.outputArtifact.audioCodec, 'flac')
+  assert.equal(master.assembly.runtimeEvidence.outputArtifact.frameCount, totalFrames)
+  assert.equal(
+    master.assembly.reconciliation.downstreamPrivateMasterQa
+      .everyRequiredDependencySatisfied,
+    true,
+  )
+  assert.equal(
+    master.assembly.reconciliation.downstreamPrivateMasterQa
+      .executionAuthorized,
+    false,
+  )
+  assert.equal(master.assembly.costEvidence.boundary, 'internal_production_cost_only')
+  assert.equal(master.assembly.costEvidence.identity.toolId, 'ffmpeg')
+  assert.equal(
+    master.assembly.costEvidence.identity.operationId,
+    PROFESSIONAL_LONG_FORM_MASTER_ASSEMBLY_OPERATION_ID,
+  )
+  assert.equal(
+    master.assembly.costEvidence.identity.workloadProfileId,
+    PROFESSIONAL_LONG_FORM_MASTER_ASSEMBLY_COST_PROFILE_ID,
+  )
+  assert.equal(master.readiness.privateMasterQaExecutionAuthorized, false)
+  assert.equal(master.readiness.customerDeliveryMasterCreated, false)
+  assert.equal(master.readiness.exportExecutionAuthorized, false)
+  assert.equal(master.readiness.secondExportEstimateCreated, false)
+  assert.equal(master.readiness.secondExportChargeCreated, false)
+  assert.equal(master.readiness.publicDeliveryAuthorized, false)
+  assert.equal(master.readiness.productReady, false)
+  assert.equal(master.readiness.productionReady, false)
+  assert.doesNotMatch(
+    stableAuthorityStringify(master.assembly.costEvidence),
+    /customerPrice|customerCredit|serviceFee|wallet|billingAuthority/u,
+  )
+
+  clearPrivateEditAuthorityProcessStateForSmoke()
+  clearPrivateCanonicalPackageWorkQueueProcessStateForSmoke()
+  const masterReplay = await
+    createCanonicalProfessionalLongFormMasterAssemblyExecutionService(context)
+      .execute({ workspaceId, approvedPlanSnapshotId: snapshotId })
+  assert.equal(masterReplay.disposition, 'exact_replay')
+  assert.equal(masterReplay.evidenceHash, master.evidenceHash)
+  assert.equal(
+    masterReplay.assembly.runtimeEvidence.artifactHash,
+    master.assembly.runtimeEvidence.artifactHash,
+  )
+  assert.equal(
+    masterReplay.assembly.costEvidence.evidenceHash,
+    master.assembly.costEvidence.evidenceHash,
+  )
+
   console.log(JSON.stringify({
     ok: true,
-    schemaVersion: 'canonical-professional-long-form-cross-chunk-color-smoke-v1',
+    schemaVersion:
+      'canonical-professional-long-form-color-and-master-assembly-smoke-v1',
     totalFrames,
     chunkCount: completed.color.validationArtifact.chunkCount,
     boundaryCount: completed.color.validationArtifact.boundaryCount,
-    queueCompletedJobCount: completed.queueAggregate.summary.completedJobCount,
-    queueTotalJobCount: completed.queueAggregate.summary.totalJobCount,
-    internalCostEvidenceHash: completed.color.costEvidence.evidenceHash,
-    exactReplayVerified: replayed.disposition === 'exact_replay',
-    finalizationExecutionAuthorized: false,
+    queueCompletedJobCount: master.queueAggregate.summary.completedJobCount,
+    queueTotalJobCount: master.queueAggregate.summary.totalJobCount,
+    colorInternalCostEvidenceHash: completed.color.costEvidence.evidenceHash,
+    masterInternalCostEvidenceHash: master.assembly.costEvidence.evidenceHash,
+    privateMasterSha256: master.assembly.runtimeEvidence.outputArtifact.sha256,
+    colorExactReplayVerified: replayed.disposition === 'exact_replay',
+    masterExactReplayVerified: masterReplay.disposition === 'exact_replay',
+    privateMasterQaExecutionAuthorized: false,
+    customerDeliveryMasterCreated: false,
+    exportExecutionAuthorized: false,
     productReady: false,
     productionReady: false,
   }, null, 2))

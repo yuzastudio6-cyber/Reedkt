@@ -54,13 +54,18 @@ The Dockerfile now separates the expensive pinned FFmpeg source compilation
 from runtime-policy script packaging. A bounded runner-script correction can
 therefore reuse the compile layer instead of rebuilding FFmpeg.
 
-## Honest boundary
+## Canonical consumption and honest boundary
 
-This is reusable runner proof only. It does not mark a retained finalization
-job complete in the canonical 255-job six-hour graph. Canonical authority still
-requires exact dependencies, authorization, attempt identity, lease, one-use
-dispatch, private artifact persistence, attempt-level internal production cost,
-reconciliation, replay, and downstream final-master QA. The other unexecuted
-chunk pairs also remain unexecuted. Google Cloud deployment, provider
-activation, customer pricing, customer credits, billing, wallet mutation,
-public rendering, and delivery remain blocked.
+The runner is now consumed by
+`canonical-professional-long-form-master-assembly-execution-service.ts`. The
+retained two-chunk journey proves exact dependencies, authorization, attempt
+identity, lease, one-use dispatch, private artifact persistence, internal
+attempt cost, reconciliation, terminal completion, and restart replay. That
+journey advances from 9/11 to 10/11 and leaves private-master QA queued and
+unauthorized.
+
+This does not mark the retained 255-job six-hour graph's finalization complete.
+Its other 122 chunk pairs and their dependencies remain unexecuted, so that
+graph remains 8/255. Google Cloud deployment, provider activation, customer
+pricing, customer credits, billing, wallet mutation, public rendering,
+delivery-master encoding, export, and delivery remain blocked.

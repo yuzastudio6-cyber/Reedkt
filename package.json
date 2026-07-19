@@ -54,6 +54,7 @@
     "smoke:professional-long-form-snapshot-bridge": "tsx server/smoke/professional-long-form-approved-snapshot-bridge-smoke.ts",
     "smoke:canonical-professional-long-form-post-approval": "tsx server/smoke/canonical-professional-long-form-post-approval-smoke.ts",
     "smoke:canonical-professional-long-form-cross-chunk-color": "tsx server/smoke/canonical-professional-long-form-cross-chunk-color-smoke.ts",
+    "smoke:canonical-professional-long-form-master-assembly": "tsx server/smoke/canonical-professional-long-form-cross-chunk-color-smoke.ts",
     "smoke:offline-media-binary-long-form-master-contract": "tsx server/smoke/offline-media-binary-long-form-master-assembly-contract-smoke.ts",
     "smoke:offline-media-binary-long-form-master": "tsx server/smoke/offline-media-binary-long-form-master-assembly-smoke.ts",
     "smoke:canonical-cloud-dispatch-handoff": "tsx server/smoke/canonical-cloud-worker-dispatch-handoff-smoke.ts",

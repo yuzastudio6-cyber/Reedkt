@@ -54,12 +54,19 @@ import {
   PROFESSIONAL_LONG_FORM_CROSS_CHUNK_COLOR_WORK_ITEM_ID,
 } from '../edit-architecture/professional-long-form-cross-chunk-color-continuity-execution-contract'
 import {
+  PROFESSIONAL_LONG_FORM_MASTER_ASSEMBLY_ATTEMPT_VERSION,
+  PROFESSIONAL_LONG_FORM_MASTER_ASSEMBLY_WORK_ITEM_ID,
+} from '../edit-architecture/professional-long-form-master-assembly-execution-contract'
+import {
   isProfessionalLongFormContinuousProgramAudioAuthorization,
   isProfessionalLongFormContinuousProgramAudioAuthority,
   isProfessionalLongFormContinuousProgramAudioCompletion,
   isProfessionalLongFormCrossChunkColorAuthorization,
   isProfessionalLongFormCrossChunkColorAuthority,
   isProfessionalLongFormCrossChunkColorCompletion,
+  isProfessionalLongFormMasterAssemblyAuthorization,
+  isProfessionalLongFormMasterAssemblyAuthority,
+  isProfessionalLongFormMasterAssemblyCompletion,
   isProfessionalLongFormFirstChildAuthorization,
   isProfessionalLongFormFirstChildExecutionAuthority,
   isProfessionalLongFormFirstObjectChunkQaAuthorization,
@@ -395,8 +402,12 @@ export async function beginPrivateCanonicalPackageWorkQueueExecutionAttempt(inpu
       isProfessionalLongFormContinuousProgramAudioAuthorization(authorization)
     const crossChunkColorAttempt =
       isProfessionalLongFormCrossChunkColorAuthorization(authorization)
+    const masterAssemblyAttempt =
+      isProfessionalLongFormMasterAssemblyAuthorization(authorization)
     const attemptWithoutHash = {
-      schemaVersion: crossChunkColorAttempt
+      schemaVersion: masterAssemblyAttempt
+        ? PROFESSIONAL_LONG_FORM_MASTER_ASSEMBLY_ATTEMPT_VERSION
+        : crossChunkColorAttempt
         ? PROFESSIONAL_LONG_FORM_CROSS_CHUNK_COLOR_ATTEMPT_VERSION
         : continuousProgramAudioAttempt
         ? PROFESSIONAL_LONG_FORM_CONTINUOUS_PROGRAM_AUDIO_ATTEMPT_VERSION
@@ -1657,6 +1668,17 @@ function assertPersistedProfessionalLongFormExecutionAuthority(input: {
       input.executionAuthority.lineage.timingHash !==
         input.authorization.expectedOutputIdentity
   } else if (
+    isProfessionalLongFormMasterAssemblyAuthorization(input.authorization)
+  ) {
+    pairInvalid = !isProfessionalLongFormMasterAssemblyAuthority(
+      input.executionAuthority,
+    ) || input.executionAuthority.lineage.finalizationJobDefinitionHash !==
+      input.authorization.jobDefinitionHash ||
+      input.executionAuthority.lineage.finalizationPlacementHash !==
+        input.authorization.placementHash ||
+      input.executionAuthority.identity.expectedOutputIdentity !==
+        input.authorization.expectedOutputIdentity
+  } else if (
     isProfessionalLongFormCrossChunkColorAuthorization(input.authorization)
   ) {
     pairInvalid = !isProfessionalLongFormCrossChunkColorAuthority(
@@ -1785,6 +1807,50 @@ function exactProfessionalLongFormAuthorizationMatches(
       authorization.expectedOutputIdentity.length === 64 &&
       hasCompletedRootDependency()
   }
+  if (isProfessionalLongFormMasterAssemblyAuthorization(authorization)) {
+    const dependencies = entry.definition.dependencyJobIds.map((jobId) =>
+      aggregate.entries.find((candidate) => candidate.definition.jobId === jobId))
+    const chunkQaCount = dependencies.filter((dependency) => {
+      const completion = dependency?.completion?.outcome
+        .professionalLongFormExecution
+      return completion && isProfessionalLongFormFirstObjectChunkQaCompletion(
+        completion,
+      )
+    }).length
+    return entry.definition.workerType === 'render_worker' &&
+      entry.definition.resourceClassId === 'render_cpu_high_memory_v1' &&
+      entry.definition.maxAttempts === 2 &&
+      entry.definition.attemptTimeoutSeconds === 3_600 &&
+      chunkQaCount >= 2 && chunkQaCount <= 124 &&
+      dependencies.length === chunkQaCount + 3 &&
+      entry.definition.canonicalOrder === chunkQaCount * 2 + 5 &&
+      entry.definition.approvedWorkItemId ===
+        PROFESSIONAL_LONG_FORM_MASTER_ASSEMBLY_WORK_ITEM_ID &&
+      entry.definition.satisfiedPromotionDependencyJobIds?.length === 0 &&
+      dependencies.every((dependency) =>
+        dependency?.state === 'completed' &&
+        dependency.completion?.outcome.professionalLongFormExecution !==
+          undefined) &&
+      dependencies.some((dependency) => {
+        const completion = dependency?.completion?.outcome
+          .professionalLongFormExecution
+        return completion &&
+          isProfessionalLongFormContinuousProgramAudioCompletion(completion)
+      }) &&
+      dependencies.some((dependency) => {
+        const completion = dependency?.completion?.outcome
+          .professionalLongFormExecution
+        return completion && isProfessionalLongFormCrossChunkColorCompletion(
+          completion,
+        )
+      }) &&
+      dependencies.some((dependency) =>
+        dependency?.definition.approvedWorkItemId ===
+          PROFESSIONAL_LONG_FORM_MASTER_TIMING_WORK_ITEM_ID &&
+        dependency.state === 'completed') &&
+      authorization.expectedOutputIdentity ===
+        `${aggregate.identity.approvedPlanSnapshotId}:private-4k-master`
+  }
   if (isProfessionalLongFormCrossChunkColorAuthorization(authorization)) {
     const dependencies = entry.definition.dependencyJobIds.map((jobId) =>
       aggregate.entries.find((candidate) => candidate.definition.jobId === jobId))
@@ -1911,7 +1977,11 @@ function assertProfessionalLongFormCompletionEvidence(
   const completion = outcome.professionalLongFormExecution
   if (!authorization && !attempt && !completion) return
   const exactArtifactMatches = completion &&
-    isProfessionalLongFormCrossChunkColorCompletion(completion)
+    isProfessionalLongFormMasterAssemblyCompletion(completion)
+    ? outcome.contentType === 'video/x-matroska' &&
+      outcome.artifactId === completion.outputArtifact.objectIdentity &&
+      outcome.sha256 === completion.outputArtifact.sha256
+    : completion && isProfessionalLongFormCrossChunkColorCompletion(completion)
     ? outcome.contentType === 'application/json' &&
       outcome.sha256 === completion.validationArtifactRef.sha256
     : completion && isProfessionalLongFormContinuousProgramAudioCompletion(completion)

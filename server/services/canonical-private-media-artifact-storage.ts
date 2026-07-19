@@ -15,6 +15,9 @@ import {
 import {
   OFFLINE_MEDIA_BINARY_OBJECT_MEZZANINE_CHUNK_MAXIMUM_OUTPUT_BYTES,
 } from '../tool-execution/media-binary-execution/offline-media-binary-object-mezzanine-chunk-protocol'
+import {
+  OFFLINE_MEDIA_BINARY_LONG_FORM_MASTER_MAXIMUM_OUTPUT_BYTES,
+} from '../tool-execution/media-binary-execution/offline-media-binary-long-form-master-assembly-protocol'
 
 const LEGACY_BUFFER_MAXIMUM_BYTES =
   OFFLINE_MEDIA_BINARY_LEGACY_OUTPUT_BUFFER_MAXIMUM_BYTES
@@ -22,6 +25,8 @@ export const CANONICAL_PRIVATE_MEDIA_STREAMING_MAXIMUM_BYTES =
   OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_OUTPUT_BYTES
 export const CANONICAL_PRIVATE_OBJECT_CHUNK_STREAMING_MAXIMUM_BYTES =
   OFFLINE_MEDIA_BINARY_OBJECT_MEZZANINE_CHUNK_MAXIMUM_OUTPUT_BYTES
+export const CANONICAL_PRIVATE_LONG_FORM_MASTER_MAXIMUM_BYTES =
+  OFFLINE_MEDIA_BINARY_LONG_FORM_MASTER_MAXIMUM_OUTPUT_BYTES
 const SHA = /^[a-f0-9]{64}$/
 
 export interface CanonicalPrivateMediaArtifactInspection {
@@ -99,6 +104,15 @@ export async function persistCanonicalPrivateObjectChunkMediaArtifactStream(
   return persistCanonicalPrivateMediaArtifactStreamWithinCeiling(
     input,
     CANONICAL_PRIVATE_OBJECT_CHUNK_STREAMING_MAXIMUM_BYTES,
+  )
+}
+
+export async function persistCanonicalPrivateLongFormMasterArtifactStream(
+  input: CanonicalPrivateMediaArtifactStreamInput & { mediaFormat: 'mkv' },
+): Promise<{ byteLength: number; sha256: string; replayed: boolean }> {
+  return persistCanonicalPrivateMediaArtifactStreamWithinCeiling(
+    input,
+    CANONICAL_PRIVATE_LONG_FORM_MASTER_MAXIMUM_BYTES,
   )
 }
 
@@ -189,6 +203,20 @@ export async function inspectCanonicalPrivateObjectChunkMediaArtifact(input: {
   )
   if (artifact && artifact.mediaFormat !== 'mkv') {
     throw invalid('Private object-chunk identity resolved to a non-Matroska object.')
+  }
+  return artifact
+}
+
+export async function inspectCanonicalPrivateLongFormMasterArtifact(input: {
+  localStorageRoot: string
+  privateObjectIdentityHash: string
+}): Promise<CanonicalPrivateMediaArtifactInspection | undefined> {
+  const artifact = await inspectCanonicalPrivateMediaArtifactWithinCeiling(
+    input,
+    CANONICAL_PRIVATE_LONG_FORM_MASTER_MAXIMUM_BYTES,
+  )
+  if (artifact && artifact.mediaFormat !== 'mkv') {
+    throw invalid('Private long-form master identity resolved to a non-Matroska object.')
   }
   return artifact
 }

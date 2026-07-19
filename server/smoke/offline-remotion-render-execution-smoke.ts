@@ -69,6 +69,8 @@ const streams = probeDocument.streams as Array<Record<string, unknown>>
 const video = streams.find((stream) => stream.codecType === 'video')
 assert.ok(video)
 assert.equal(video.codecName, 'h264')
+assert.equal(video.codecProfile, 'High')
+assert.equal(typeof video.codecLevel, 'number')
 assert.equal(video.width, 640); assert.equal(video.height, 360)
 assert.equal(video.fps, 24); assert.equal(video.readFrameCount, 24)
 assert.equal(video.pixelFormat, 'yuv420p'); assert.equal(video.colorSpace, 'bt709')

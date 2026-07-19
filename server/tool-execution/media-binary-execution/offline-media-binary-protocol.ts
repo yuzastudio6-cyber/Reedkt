@@ -84,6 +84,7 @@ export interface OfflineFfprobePlanningPayload {
     | 'source_intake_v1'
     | 'pre_render_v1'
     | 'object_mezzanine_chunk_qa_v1'
+    | 'customer_delivery_h264_chunk_qa_v1'
     | 'continuous_program_audio_qa_v1'
     | 'private_long_form_master_qa_v1'
     | 'final_export_v1'
@@ -273,6 +274,7 @@ export function validateOfflineFfprobePlanningPayload(value: unknown): OfflineFf
       'source_intake_v1',
       'pre_render_v1',
       'object_mezzanine_chunk_qa_v1',
+      'customer_delivery_h264_chunk_qa_v1',
       'continuous_program_audio_qa_v1',
       'private_long_form_master_qa_v1',
       'final_export_v1',

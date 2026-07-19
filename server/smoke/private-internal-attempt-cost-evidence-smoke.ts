@@ -27,6 +27,9 @@ import {
   PROFESSIONAL_LONG_FORM_DELIVERY_ROOT_OPERATION_ID,
 } from '../edit-architecture/professional-long-form-customer-delivery-execution-contract'
 import {
+  PROFESSIONAL_LONG_FORM_DELIVERY_H264_QA_OPERATION_ID,
+} from '../edit-architecture/professional-long-form-customer-delivery-h264-qa-execution-contract'
+import {
   PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_OPERATION_ID,
   PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_OPERATION_ID,
 } from '../edit-architecture/professional-long-form-first-object-chunk-execution-contract'
@@ -645,6 +648,36 @@ try {
   )
   assertNoCommercialKeys(deliveryH264.evidence)
 
+  const deliveryH264QaMeter = await beginPrivateInternalAttemptCostEvidence({
+    ...common,
+    approvedWorkItemId: 'long-form-customer-delivery-h264-qa-cost-proof',
+    jobId: 'long-form-customer-delivery-h264-qa-job-cost-proof',
+    executionAttemptId:
+      'attempt-long-form-customer-delivery-h264-qa-cost-proof',
+    toolId: 'ffprobe' as const,
+    operationId: PROFESSIONAL_LONG_FORM_DELIVERY_H264_QA_OPERATION_ID,
+    workloadProfileId:
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS
+        .ffprobeFourKCustomerDeliveryH264ChunkQa,
+  }, clock([85_000_000_000n, 86_500_000_000n], [
+    '2026-07-11T12:13:00.000Z',
+  ]))
+  const deliveryH264Qa = await deliveryH264QaMeter.finalize({
+    status: 'completed',
+    failureCategory: 'none',
+    outputByteLength: 16_000,
+    linkedCanonicalOutcomeHash: '5'.repeat(64),
+  })
+  assert.deepEqual(
+    {
+      vcpuCount: deliveryH264Qa.evidence.resourceUsage.vcpuCount,
+      memoryGib: deliveryH264Qa.evidence.resourceUsage.memoryGib,
+      gpuCount: deliveryH264Qa.evidence.resourceUsage.gpuCount,
+    },
+    { vcpuCount: 2, memoryGib: 4, gpuCount: 0 },
+  )
+  assertNoCommercialKeys(deliveryH264Qa.evidence)
+
   await expectCode(() => beginPrivateInternalAttemptCostEvidence({
     ...ffmpegInput,
     jobId: remotionInput.jobId,
@@ -694,6 +727,8 @@ try {
       deliveryRoot.evidence.actualInternalCostMicros,
     customerDeliveryH264AttemptCostMicros:
       deliveryH264.evidence.actualInternalCostMicros,
+    customerDeliveryH264QaAttemptCostMicros:
+      deliveryH264Qa.evidence.actualInternalCostMicros,
     replayHash: replay.evidence.evidenceHash,
     checks: [
       'attempt_level_internal_cost_only',
@@ -717,6 +752,7 @@ try {
       'ffprobe_long_form_private_master_qa_profile_is_2vcpu_4gib_cpu_only',
       'customer_delivery_root_profile_is_1vcpu_1gib_cpu_only',
       'customer_delivery_h264_profile_is_4vcpu_8gib_cpu_only',
+      'customer_delivery_h264_qa_profile_is_2vcpu_4gib_cpu_only',
       'cross_profile_attempt_identity_conflict_fails_closed',
       'resource_profile_and_commercial_field_mutations_fail_schema_validation',
       'commercial_pricing_credit_and_wallet_fields_absent',

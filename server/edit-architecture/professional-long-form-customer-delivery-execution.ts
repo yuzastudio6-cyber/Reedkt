@@ -764,6 +764,7 @@ export function buildProfessionalLongFormDeliveryH264Reconciliation(input: {
   outputArtifact: ProfessionalLongFormDeliveryH264ArtifactRef
   runtimeEvidenceRef: AuthorityJsonBlobRef
   reconciledAt: string
+  allowCompletedQa?: boolean
 }): ProfessionalLongFormDeliveryH264Reconciliation {
   const currentWorkItem = input.current.package.graph.workItems.find((item) =>
     item.workItemId === input.authority.identity.approvedWorkItemId)
@@ -776,9 +777,12 @@ export function buildProfessionalLongFormDeliveryH264Reconciliation(input: {
     !currentWorkItem || !qaWorkItem || !qaEntry ||
     qaEntry.definition.dependencyJobIds.length !== 1 ||
     qaEntry.definition.dependencyJobIds[0] !== currentWorkItem.jobId ||
-    qaEntry.state !== 'queued' || qaEntry.completion ||
-    qaEntry.professionalLongFormExecutionAuthorization ||
-    qaEntry.professionalLongFormExecutionAttempt
+    (qaEntry.state !== 'queued' &&
+      !(input.allowCompletedQa && qaEntry.state === 'completed')) ||
+    (!input.allowCompletedQa && (
+      qaEntry.completion ||
+      qaEntry.professionalLongFormExecutionAuthorization ||
+      qaEntry.professionalLongFormExecutionAttempt))
   ) throw new Error('Customer-delivery H.264 QA dependency changed.')
   const payload = {
     schemaVersion:

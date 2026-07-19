@@ -56,6 +56,10 @@ import {
   PROFESSIONAL_LONG_FORM_DELIVERY_ROOT_COST_PROFILE_ID,
   PROFESSIONAL_LONG_FORM_DELIVERY_ROOT_OPERATION_ID,
 } from '../edit-architecture/professional-long-form-customer-delivery-execution-contract'
+import {
+  PROFESSIONAL_LONG_FORM_DELIVERY_H264_QA_COST_PROFILE_ID,
+  PROFESSIONAL_LONG_FORM_DELIVERY_H264_QA_OPERATION_ID,
+} from '../edit-architecture/professional-long-form-customer-delivery-h264-qa-execution-contract'
 
 const identity = z.string().min(1).max(200).regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/)
   .refine((value) => value === value.trim() && !value.includes('..'))
@@ -108,6 +112,8 @@ export const PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS = {
     PROFESSIONAL_LONG_FORM_DELIVERY_ROOT_COST_PROFILE_ID,
   remotionFourKCustomerDeliveryH264Chunk:
     PROFESSIONAL_LONG_FORM_DELIVERY_H264_COST_PROFILE_ID,
+  ffprobeFourKCustomerDeliveryH264ChunkQa:
+    PROFESSIONAL_LONG_FORM_DELIVERY_H264_QA_COST_PROFILE_ID,
 } as const
 
 export type PrivateInternalAttemptCostProfileId =
@@ -145,6 +151,15 @@ export const privateInternalAttemptCostIdentitySchema = z.union([
     workloadProfileId: z.literal(
       PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS
         .remotionFourKCustomerDeliveryH264Chunk,
+    ),
+  }).strict(),
+  z.object({
+    ...commonAttemptIdentityFields,
+    toolId: z.literal('ffprobe'),
+    operationId: z.literal(PROFESSIONAL_LONG_FORM_DELIVERY_H264_QA_OPERATION_ID),
+    workloadProfileId: z.literal(
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS
+        .ffprobeFourKCustomerDeliveryH264ChunkQa,
     ),
   }).strict(),
   z.object({
@@ -388,6 +403,13 @@ export type BeginPrivateInternalAttemptCostEvidenceInput =
           typeof PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.remotionFourKCustomerDeliveryH264Chunk
       }
     | {
+        toolId: 'ffprobe'
+        operationId:
+          typeof PROFESSIONAL_LONG_FORM_DELIVERY_H264_QA_OPERATION_ID
+        workloadProfileId:
+          typeof PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffprobeFourKCustomerDeliveryH264ChunkQa
+      }
+    | {
         toolId: 'ffmpeg'
         operationId: 'tool.ffmpeg.execute_approved_media_recipe.v1'
         workloadProfileId:
@@ -525,6 +547,16 @@ const beginInputSchema = z.union([
     workloadProfileId: z.literal(
       PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS
         .remotionFourKCustomerDeliveryH264Chunk,
+    ),
+  }).strict(),
+  z.object({
+    localStorageRoot: z.string().min(1),
+    ...commonAttemptIdentityFields,
+    toolId: z.literal('ffprobe'),
+    operationId: z.literal(PROFESSIONAL_LONG_FORM_DELIVERY_H264_QA_OPERATION_ID),
+    workloadProfileId: z.literal(
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS
+        .ffprobeFourKCustomerDeliveryH264ChunkQa,
     ),
   }).strict(),
   z.object({
@@ -972,6 +1004,12 @@ export function resolvePrivateInternalAttemptCostProfileId(
     input.toolId === 'remotion' &&
     input.workloadProfileId ===
       PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.remotionFourKSourceSliceChunk
+  ) return input.workloadProfileId
+  if (
+    input.toolId === 'ffprobe' &&
+    input.workloadProfileId ===
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS
+        .ffprobeFourKCustomerDeliveryH264ChunkQa
   ) return input.workloadProfileId
   if (
     input.toolId === 'remotion' &&

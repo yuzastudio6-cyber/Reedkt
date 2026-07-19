@@ -76,6 +76,10 @@ import {
   PROFESSIONAL_LONG_FORM_DELIVERY_ROOT_COST_PROFILE_ID,
   PROFESSIONAL_LONG_FORM_DELIVERY_ROOT_OPERATION_ID,
 } from '../edit-architecture/professional-long-form-customer-delivery-execution-contract'
+import {
+  PROFESSIONAL_LONG_FORM_DELIVERY_H264_QA_COST_PROFILE_ID,
+  PROFESSIONAL_LONG_FORM_DELIVERY_H264_QA_OPERATION_ID,
+} from '../edit-architecture/professional-long-form-customer-delivery-h264-qa-execution-contract'
 import { createEditPlanningAuthorityService } from
   '../services/edit-planning-authority-service'
 import { createExactEditPreferenceService } from
@@ -633,6 +637,86 @@ try {
     deliveryH264Replay.h264.costEvidence.evidenceHash,
     deliveryH264Execution.h264.costEvidence.evidenceHash,
   )
+  const deliveryH264QaExecution =
+    await deliveryExecutionService.executeFirstH264ChunkQa({
+      workspaceId,
+      approvedPlanSnapshotId: snapshotId,
+    })
+  assert.equal(deliveryH264QaExecution.disposition, 'completed')
+  assert.equal(
+    deliveryH264QaExecution.queueAggregate.summary.completedJobCount,
+    3,
+  )
+  assert.equal(
+    deliveryH264QaExecution.queueAggregate.summary.queuedJobCount,
+    6,
+  )
+  assert.equal(
+    deliveryH264QaExecution.queueAggregate.summary.leasedJobCount,
+    0,
+  )
+  assert.equal(
+    deliveryH264QaExecution.qa.costEvidence.identity.operationId,
+    PROFESSIONAL_LONG_FORM_DELIVERY_H264_QA_OPERATION_ID,
+  )
+  assert.equal(
+    deliveryH264QaExecution.qa.costEvidence.identity.workloadProfileId,
+    PROFESSIONAL_LONG_FORM_DELIVERY_H264_QA_COST_PROFILE_ID,
+  )
+  assert.equal(
+    deliveryH264QaExecution.qa.costEvidence.resourceUsage.vcpuCount,
+    2,
+  )
+  assert.equal(
+    deliveryH264QaExecution.qa.costEvidence.resourceUsage.memoryGib,
+    4,
+  )
+  assert.equal(deliveryH264QaExecution.qa.artifact.observed.container, 'mp4')
+  assert.equal(deliveryH264QaExecution.qa.artifact.observed.codecName, 'h264')
+  assert.equal(deliveryH264QaExecution.qa.artifact.observed.codecProfile, 'High')
+  assert.equal(deliveryH264QaExecution.qa.artifact.observed.pixelFormat, 'yuv420p')
+  assert.equal(deliveryH264QaExecution.qa.artifact.observed.colorSpace, 'bt709')
+  assert.equal(deliveryH264QaExecution.qa.artifact.observed.videoStreamCount, 1)
+  assert.equal(deliveryH264QaExecution.qa.artifact.observed.audioStreamCount, 0)
+  assert.equal(
+    deliveryH264QaExecution.qa.artifact.observed.frameCount,
+    deliveryH264Execution.h264.outputArtifact.durationFrames,
+  )
+  assert.equal(deliveryH264QaExecution.qa.terminal.muxExecutionAuthorized, false)
+  assert.equal(
+    deliveryH264QaExecution.readiness
+      .exactH264HighProfileFrameColorDurationVerified,
+    true,
+  )
+  assert.equal(deliveryH264QaExecution.readiness.muxExecutionAuthorized, false)
+  assert.equal(deliveryH264QaExecution.readiness.publicDeliveryAuthorized, false)
+  assert.equal(deliveryH264QaExecution.readiness.productReady, false)
+  assert.equal(deliveryH264QaExecution.readiness.productionReady, false)
+  assert.doesNotMatch(
+    stableAuthorityStringify(deliveryH264QaExecution.qa.costEvidence),
+    /customerPrice|customerCredit|serviceFee|wallet|billingAuthority/u,
+  )
+
+  clearPrivateEditAuthorityProcessStateForSmoke()
+  clearPrivateCanonicalPackageWorkQueueProcessStateForSmoke()
+  const deliveryH264QaReplay =
+    await deliveryExecutionService.executeFirstH264ChunkQa({
+      workspaceId,
+      approvedPlanSnapshotId: snapshotId,
+    })
+  assert.equal(deliveryH264QaReplay.disposition, 'exact_replay')
+  assert.equal(
+    deliveryH264QaReplay.qa.artifact.qaHash,
+    deliveryH264QaExecution.qa.artifact.qaHash,
+  )
+  assert.equal(
+    deliveryH264QaReplay.qa.terminal.terminalHash,
+    deliveryH264QaExecution.qa.terminal.terminalHash,
+  )
+  assert.equal(
+    deliveryH264QaReplay.qa.costEvidence.evidenceHash,
+    deliveryH264QaExecution.qa.costEvidence.evidenceHash,
+  )
 
   console.log(JSON.stringify({
     ok: true,
@@ -661,6 +745,9 @@ try {
     customerDeliveryFirstH264ExactReplayVerified:
       deliveryH264Replay.h264.terminal.terminalHash ===
         deliveryH264Execution.h264.terminal.terminalHash,
+    customerDeliveryFirstH264QaExactReplayVerified:
+      deliveryH264QaReplay.qa.terminal.terminalHash ===
+        deliveryH264QaExecution.qa.terminal.terminalHash,
     privateMasterQaCompleted: true,
     privateReviewGraphComplete: true,
     customerDeliveryPackageJobCount:
@@ -668,7 +755,7 @@ try {
     customerDeliveryPackageHash: delivery.package.packageHash,
     customerDeliveryWorkGraphHash: delivery.package.graph.workGraphHash,
     customerDeliveryQueueAggregateHash:
-      deliveryH264Execution.queueAggregate.aggregateHash,
+      deliveryH264QaExecution.queueAggregate.aggregateHash,
     customerDeliveryPackagePrepared: true,
     customerDeliveryRootCompleted: true,
     customerDeliveryFirstH264Completed: true,
@@ -676,7 +763,11 @@ try {
       deliveryH264Execution.h264.outputArtifact.sha256,
     customerDeliveryFirstH264InternalCostEvidenceHash:
       deliveryH264Execution.h264.costEvidence.evidenceHash,
-    customerDeliveryIndependentH264QaCompleted: false,
+    customerDeliveryFirstH264QaArtifactHash:
+      deliveryH264QaExecution.qa.artifact.qaHash,
+    customerDeliveryFirstH264QaInternalCostEvidenceHash:
+      deliveryH264QaExecution.qa.costEvidence.evidenceHash,
+    customerDeliveryIndependentH264QaCompleted: true,
     customerDeliveryMasterCreated: false,
     exportExecutionAuthorized: false,
     productReady: false,

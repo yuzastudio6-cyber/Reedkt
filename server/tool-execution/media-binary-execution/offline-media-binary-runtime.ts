@@ -4577,7 +4577,7 @@ function ffprobeArguments(
     '-v', 'error',
     ...(request.payload.countFrames ? ['-count_frames'] : []),
     '-show_entries',
-    'format=format_name,start_time,duration,size:stream=index,codec_name,codec_type,start_time,width,height,avg_frame_rate,r_frame_rate,duration,pix_fmt,color_space,color_transfer,color_primaries,color_range,sample_rate,channels,channel_layout,sample_fmt,bits_per_raw_sample,time_base,duration_ts,nb_read_frames',
+    'format=format_name,start_time,duration,size:stream=index,codec_name,profile,level,codec_type,start_time,width,height,avg_frame_rate,r_frame_rate,duration,pix_fmt,color_space,color_transfer,color_primaries,color_range,sample_rate,channels,channel_layout,sample_fmt,bits_per_raw_sample,time_base,duration_ts,nb_read_frames',
     '-print_format', 'json',
     '-i', 'pipe:0',
   ]
@@ -4677,6 +4677,8 @@ function normalizeProbe(
   const streams = rawStreams.map((stream) => ({
     index: safeInteger(stream.index),
     codecName: safeText(stream.codec_name),
+    codecProfile: optionalText(stream.profile),
+    codecLevel: optionalInteger(stream.level),
     codecType: safeText(stream.codec_type),
     startTimeSeconds: optionalNumber(stream.start_time),
     width: optionalInteger(stream.width),

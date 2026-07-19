@@ -55,6 +55,33 @@ import {
   type ProfessionalLongFormDeliveryRootValidationArtifact,
 } from '../edit-architecture/professional-long-form-customer-delivery-execution-contract'
 import {
+  assertProfessionalLongFormDeliveryH264QaAuthority,
+  buildProfessionalLongFormDeliveryH264QaArtifact,
+  buildProfessionalLongFormDeliveryH264QaAuthority,
+  buildProfessionalLongFormDeliveryH264QaAuthorization,
+  buildProfessionalLongFormDeliveryH264QaCompletion,
+  buildProfessionalLongFormDeliveryH264QaReconciliation,
+  buildProfessionalLongFormDeliveryH264QaTerminal,
+  professionalLongFormDeliveryH264QaResultHash,
+  professionalLongFormDeliveryH264QaRuntimeReceipt,
+} from '../edit-architecture/professional-long-form-customer-delivery-h264-qa-execution'
+import {
+  PROFESSIONAL_LONG_FORM_DELIVERY_H264_QA_COST_PROFILE_ID,
+  PROFESSIONAL_LONG_FORM_DELIVERY_H264_QA_INSPECTION_PROFILE_ID,
+  PROFESSIONAL_LONG_FORM_DELIVERY_H264_QA_OPERATION_ID,
+  professionalLongFormDeliveryH264QaArtifactSchema,
+  professionalLongFormDeliveryH264QaAttemptSchema,
+  professionalLongFormDeliveryH264QaCompletionSchema,
+  professionalLongFormDeliveryH264QaReconciliationSchema,
+  professionalLongFormDeliveryH264QaTerminalSchema,
+  type ProfessionalLongFormDeliveryH264QaArtifact,
+  type ProfessionalLongFormDeliveryH264QaAttempt,
+  type ProfessionalLongFormDeliveryH264QaAuthority,
+  type ProfessionalLongFormDeliveryH264QaAuthorization,
+  type ProfessionalLongFormDeliveryH264QaReconciliation,
+  type ProfessionalLongFormDeliveryH264QaTerminal,
+} from '../edit-architecture/professional-long-form-customer-delivery-h264-qa-execution-contract'
+import {
   OFFLINE_REMOTION_DELIVERY_H264_CHUNK_MAXIMUM_OUTPUT_BYTES,
   OFFLINE_REMOTION_DELIVERY_H264_CHUNK_RECIPE,
   buildOfflineRemotionDeliveryH264ChunkRequest,
@@ -62,6 +89,15 @@ import {
   readPersistedOfflineRemotionRenderRuntimeAuthority,
   type OfflineRemotionRuntimeAuthority,
 } from '../tool-execution/remotion-render-execution'
+import {
+  OFFLINE_MEDIA_BINARY_OPERATIONS,
+  OFFLINE_MEDIA_BINARY_SERVER_INPUT_MODE,
+  OFFLINE_MEDIA_BINARY_STREAM_PROTOCOL,
+  openPrivateOfflineMediaBinaryRuntime,
+  readPersistedOfflineMediaBinaryRuntimeAuthority,
+  validateOfflineFfprobeStreamingExecutionRequest,
+  type OfflineMediaBinaryRuntimeAuthority,
+} from '../tool-execution/media-binary-execution'
 import {
   beginPrivateInternalAttemptCostEvidence,
   classifyPrivateInternalAttemptCostFailure,
@@ -98,6 +134,8 @@ import {
 
 export const CANONICAL_PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_EXECUTION_VERSION =
   'canonical-professional-long-form-customer-delivery-execution-v1' as const
+export const CANONICAL_PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_H264_QA_EXECUTION_VERSION =
+  'canonical-professional-long-form-customer-delivery-h264-qa-execution-v1' as const
 
 interface LoadedCustomerDeliveryAuthority extends
   CanonicalProfessionalLongFormCurrentCustomerDeliveryAuthority {
@@ -137,6 +175,21 @@ interface CompletedH264Evidence {
   queueAggregate: CanonicalPrivatePackageWorkQueueAggregate
 }
 
+interface CompletedH264QaEvidence {
+  authority: ProfessionalLongFormDeliveryH264QaAuthority
+  authorityRef: AuthorityJsonBlobRef
+  authorization: ProfessionalLongFormDeliveryH264QaAuthorization
+  executionAttempt: ProfessionalLongFormDeliveryH264QaAttempt
+  artifact: ProfessionalLongFormDeliveryH264QaArtifact
+  artifactRef: AuthorityJsonBlobRef
+  reconciliation: ProfessionalLongFormDeliveryH264QaReconciliation
+  reconciliationRef: AuthorityJsonBlobRef
+  costEvidence: PrivateInternalAttemptCostEvidence
+  terminal: ProfessionalLongFormDeliveryH264QaTerminal
+  terminalRef: AuthorityJsonBlobRef
+  queueAggregate: CanonicalPrivatePackageWorkQueueAggregate
+}
+
 export interface CanonicalProfessionalLongFormCustomerDeliveryExecutionEvidence {
   schemaVersion:
     typeof CANONICAL_PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_EXECUTION_VERSION
@@ -158,6 +211,46 @@ export interface CanonicalProfessionalLongFormCustomerDeliveryExecutionEvidence 
     privateH264CreateOnlyPersistenceVerified: true
     h264AttemptInternalCostVerified: true
     independentH264ChunkQaVerified: false
+    secondExportEstimateCreated: false
+    secondExportChargeCreated: false
+    customerBillingAuthorized: false
+    walletMutationAuthorized: false
+    providerActivationAuthorized: false
+    distributedDatabaseVerified: false
+    liveGoogleCloudVerified: false
+    publicDeliveryAuthorized: false
+    productReady: false
+    productionReady: false
+  }
+  evidenceHash: string
+}
+
+export interface CanonicalProfessionalLongFormCustomerDeliveryH264QaExecutionEvidence {
+  schemaVersion:
+    typeof CANONICAL_PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_H264_QA_EXECUTION_VERSION
+  source:
+    'canonical_professional_long_form_customer_delivery_execution_service'
+  status:
+    'delivery_root_first_h264_and_independent_qa_completed_mux_blocked'
+  disposition: 'completed' | 'exact_replay'
+  root: Omit<CompletedRootEvidence, 'queueAggregate'>
+  h264: Omit<CompletedH264Evidence, 'queueAggregate'>
+  qa: Omit<CompletedH264QaEvidence, 'queueAggregate'>
+  queueAggregate: CanonicalPrivatePackageWorkQueueAggregate
+  readiness: {
+    approvedSnapshotAndOriginalReservationReopened: true
+    passedPrivateReviewMasterQaLineageVerified: true
+    rootLeaseAndOneUseDispatchVerified: true
+    firstH264LeaseAndOneUseDispatchVerified: true
+    exactPinnedRemotionRunnerVerified: true
+    privateH264CreateOnlyPersistenceVerified: true
+    firstH264IndependentProbeLeaseAndOneUseDispatchVerified: true
+    exactPinnedFfprobeRuntimeVerified: true
+    exactH264HighProfileFrameColorDurationVerified: true
+    firstH264IndependentQaArtifactPersisted: true
+    firstH264QaAttemptInternalCostVerified: true
+    firstH264MuxDependencySatisfied: true
+    muxExecutionAuthorized: false
     secondExportEstimateCreated: false
     secondExportChargeCreated: false
     customerBillingAuthorized: false
@@ -270,6 +363,121 @@ export function createCanonicalProfessionalLongFormCustomerDeliveryExecutionServ
           privateH264CreateOnlyPersistenceVerified: true as const,
           h264AttemptInternalCostVerified: true as const,
           independentH264ChunkQaVerified: false as const,
+          secondExportEstimateCreated: false as const,
+          secondExportChargeCreated: false as const,
+          customerBillingAuthorized: false as const,
+          walletMutationAuthorized: false as const,
+          providerActivationAuthorized: false as const,
+          distributedDatabaseVerified: false as const,
+          liveGoogleCloudVerified: false as const,
+          publicDeliveryAuthorized: false as const,
+          productReady: false as const,
+          productionReady: false as const,
+        },
+      }
+      return {
+        ...stablePayload,
+        disposition: newlyExecuted ? 'completed' : 'exact_replay',
+        evidenceHash: sha256AuthorityValue(stablePayload),
+      }
+    },
+
+    async executeFirstH264ChunkQa(input: {
+      workspaceId: string
+      approvedPlanSnapshotId: string
+    }): Promise<CanonicalProfessionalLongFormCustomerDeliveryH264QaExecutionEvidence> {
+      assertExactInput(input)
+      const ownerUserId = requireOwner(context)
+      let current = await loadCurrent(context, input)
+      let newlyExecuted = false
+      if (current.queueAggregate.entries[1]?.state !== 'completed') {
+        const prerequisite =
+          await createCanonicalProfessionalLongFormCustomerDeliveryExecutionService(
+            context,
+          ).executeFirstH264Chunk(input)
+        newlyExecuted = prerequisite.disposition === 'completed'
+        current = await loadCurrent(context, input)
+      }
+      const firstH264Entry = current.queueAggregate.entries[1]
+      const firstQaEntry = current.queueAggregate.entries[2]
+      if (firstH264Entry?.state !== 'completed' || !firstQaEntry) {
+        throw invalid(
+          'Customer-delivery first H.264 QA requires the exact completed first H.264 chunk.',
+        )
+      }
+      if (firstQaEntry.state === 'leased') {
+        throw inProgress(
+          'Customer-delivery first H.264 independent QA has an active lease.',
+        )
+      }
+      const remotionRuntimeAuthority = await requiredRemotionRuntimeAuthority()
+      const mediaRuntimeAuthority = await requiredMediaBinaryRuntimeAuthority()
+      const root = await loadCompletedRoot({ context, current, ownerUserId })
+      const h264 = await loadCompletedH264({
+        context,
+        current,
+        ownerUserId,
+        runtimeAuthority: remotionRuntimeAuthority,
+        chunkIndex: 1,
+        allowCompletedQa: firstQaEntry.state === 'completed',
+      })
+      const qa = firstQaEntry.state === 'completed'
+        ? await loadCompletedH264Qa({
+            context,
+            current,
+            ownerUserId,
+            runtimeAuthority: mediaRuntimeAuthority,
+            chunkIndex: 1,
+          })
+        : await executeH264Qa({
+            context,
+            current,
+            ownerUserId,
+            runtimeAuthority: mediaRuntimeAuthority,
+            chunkIndex: 1,
+          })
+      if (firstQaEntry.state !== 'completed') newlyExecuted = true
+      const aggregate = qa.queueAggregate
+      if (
+        aggregate.summary.completedJobCount !== 3 ||
+        aggregate.summary.leasedJobCount !== 0 ||
+        aggregate.summary.queuedJobCount !== aggregate.summary.totalJobCount - 3 ||
+        aggregate.entries.slice(0, 3).some((entry) =>
+          entry.state !== 'completed' || entry.deliveryAttemptCount !== 1 ||
+          !entry.professionalLongFormExecutionAuthorization ||
+          !entry.professionalLongFormExecutionAttempt || !entry.completion) ||
+        aggregate.entries.slice(3).some((entry) =>
+          entry.state !== 'queued' || entry.deliveryAttemptCount !== 0 ||
+          entry.professionalLongFormExecutionAuthorization ||
+          entry.professionalLongFormExecutionAttempt || entry.completion)
+      ) throw invalid(
+        'Customer-delivery first H.264 QA completion changed the remaining blocked graph.',
+      )
+      const stablePayload = {
+        schemaVersion:
+          CANONICAL_PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_H264_QA_EXECUTION_VERSION,
+        source:
+          'canonical_professional_long_form_customer_delivery_execution_service' as const,
+        status:
+          'delivery_root_first_h264_and_independent_qa_completed_mux_blocked' as const,
+        root: withoutAggregate(root),
+        h264: withoutAggregate(h264),
+        qa: withoutAggregate(qa),
+        queueAggregate: aggregate,
+        readiness: {
+          approvedSnapshotAndOriginalReservationReopened: true as const,
+          passedPrivateReviewMasterQaLineageVerified: true as const,
+          rootLeaseAndOneUseDispatchVerified: true as const,
+          firstH264LeaseAndOneUseDispatchVerified: true as const,
+          exactPinnedRemotionRunnerVerified: true as const,
+          privateH264CreateOnlyPersistenceVerified: true as const,
+          firstH264IndependentProbeLeaseAndOneUseDispatchVerified: true as const,
+          exactPinnedFfprobeRuntimeVerified: true as const,
+          exactH264HighProfileFrameColorDurationVerified: true as const,
+          firstH264IndependentQaArtifactPersisted: true as const,
+          firstH264QaAttemptInternalCostVerified: true as const,
+          firstH264MuxDependencySatisfied: true as const,
+          muxExecutionAuthorized: false as const,
           secondExportEstimateCreated: false as const,
           secondExportChargeCreated: false as const,
           customerBillingAuthorized: false as const,
@@ -842,6 +1050,261 @@ async function executeH264(input: {
   }
 }
 
+async function executeH264Qa(input: {
+  context: ServiceContext
+  current: LoadedCustomerDeliveryAuthority
+  ownerUserId: string
+  runtimeAuthority: OfflineMediaBinaryRuntimeAuthority
+  chunkIndex: number
+}): Promise<CompletedH264QaEvidence> {
+  const authority = buildProfessionalLongFormDeliveryH264QaAuthority(input)
+  assertUnexpired(authority.approval.reservationExpiresAt)
+  const authorityRef = await persistAuthority({
+    context: input.context,
+    authority,
+    verify: (value) => assertProfessionalLongFormDeliveryH264QaAuthority({
+      value,
+      ownerUserId: input.ownerUserId,
+      current: input.current,
+      chunkIndex: input.chunkIndex,
+      runtimeAuthority: input.runtimeAuthority,
+    }),
+  })
+  const authorization = buildProfessionalLongFormDeliveryH264QaAuthorization({
+    authority,
+    authorityRef,
+  })
+  await authorizePrivateCanonicalPackageWorkQueueJob({
+    scope: input.current.scope,
+    definition: input.current.queueDefinition,
+    jobId: authority.identity.jobId,
+    authorization,
+    executionAuthority: authority,
+    now: new Date().toISOString(),
+  })
+  const claim = await claimPrivateCanonicalPackageWorkQueueJob({
+    scope: input.current.scope,
+    definition: input.current.queueDefinition,
+    jobId: authority.identity.jobId,
+    workerIdentity:
+      'canonical-professional-long-form-delivery-h264-qa-v1',
+    workerType: 'qa_worker',
+    now: new Date().toISOString(),
+    leaseDurationMs: authority.operation.leaseDurationMilliseconds,
+  })
+  if (claim.disposition !== 'claimed') {
+    throw inProgress(
+      `Customer-delivery H.264 QA claim remained ${claim.disposition}.`,
+    )
+  }
+  const begun = await beginPrivateCanonicalPackageWorkQueueExecutionAttempt({
+    scope: input.current.scope,
+    definition: input.current.queueDefinition,
+    jobId: authority.identity.jobId,
+    claimId: claim.entry.activeClaim.claimId,
+    claimCredential: claim.claimCredential,
+    now: new Date().toISOString(),
+  })
+  const executionAttempt = professionalLongFormDeliveryH264QaAttemptSchema.parse(
+    begun.executionAttempt,
+  )
+  const costMeter = await beginPrivateInternalAttemptCostEvidence({
+    ...costIdentity(input.context, authority, executionAttempt),
+    toolId: 'ffprobe',
+    operationId: PROFESSIONAL_LONG_FORM_DELIVERY_H264_QA_OPERATION_ID,
+    workloadProfileId: PROFESSIONAL_LONG_FORM_DELIVERY_H264_QA_COST_PROFILE_ID,
+  })
+  const heartbeat = startH264QaLeaseHeartbeat({
+    current: input.current,
+    authority,
+    claimId: claim.entry.activeClaim.claimId,
+    claimCredential: claim.claimCredential,
+  })
+  let costFinalized = false
+  try {
+    const stored =
+      await inspectCanonicalPrivateRemotionDeliveryH264ChunkArtifact({
+        localStorageRoot: input.context.env.localStorageRoot,
+        privateObjectIdentityHash: authority.h264Artifact.objectIdentity,
+      })
+    if (
+      !stored ||
+      stored.byteLength !== authority.h264Artifact.byteLength ||
+      stored.sha256 !== authority.h264Artifact.sha256
+    ) throw invalid(
+      'Customer-delivery H.264 QA could not reopen the exact completed H.264 artifact.',
+    )
+    const request = validateOfflineFfprobeStreamingExecutionRequest({
+      schemaVersion: OFFLINE_MEDIA_BINARY_STREAM_PROTOCOL,
+      toolId: 'ffprobe',
+      operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffprobe,
+      payload: {
+        inspectionProfileId:
+          PROFESSIONAL_LONG_FORM_DELIVERY_H264_QA_INSPECTION_PROFILE_ID,
+        countFrames: true,
+        verifyDurationAndSync: true,
+        emitMachineJsonOnly: true,
+        mimeType: 'video/mp4',
+        sourceByteLength: stored.byteLength,
+        sourceSha256: stored.sha256,
+        sourceInputMode: OFFLINE_MEDIA_BINARY_SERVER_INPUT_MODE,
+      },
+    })
+    const runtime = await openPrivateOfflineMediaBinaryRuntime()
+    const result = await runtime.executeServerInjected(request, {
+      inputMode: 'private_verified_stream_v1',
+      byteLength: stored.byteLength,
+      sha256: stored.sha256,
+      openStream: stored.openStream,
+    })
+    await heartbeat.stopAndAssertHealthy()
+    const rawProbeResultRef = await persistExactJson({
+      context: input.context,
+      value: result.resultJson.document,
+      parse: (value) => value as Readonly<Record<string, unknown>>,
+    })
+    const runtimeReceipt =
+      professionalLongFormDeliveryH264QaRuntimeReceipt(result)
+    const probeRuntimeEvidenceRef = await persistExactJson({
+      context: input.context,
+      value: runtimeReceipt,
+      parse: (value) => value as typeof runtimeReceipt,
+    })
+    const artifact = buildProfessionalLongFormDeliveryH264QaArtifact({
+      authority,
+      authorization,
+      executionAttempt,
+      rawProbeResultRef,
+      probeRuntimeEvidenceRef,
+      result,
+      evaluatedAt: new Date().toISOString(),
+    })
+    const artifactRef = await persistExactJson({
+      context: input.context,
+      value: artifact,
+      parse: (value) =>
+        professionalLongFormDeliveryH264QaArtifactSchema.parse(value),
+    })
+    const leasedCurrent = {
+      ...input.current,
+      queueAggregate: begun.aggregate,
+    }
+    const reconciliation =
+      buildProfessionalLongFormDeliveryH264QaReconciliation({
+        current: leasedCurrent,
+        authority,
+        authorization,
+        executionAttempt,
+        qaArtifactRef: artifactRef,
+        reconciledAt: new Date().toISOString(),
+      })
+    const reconciliationRef = await persistExactJson({
+      context: input.context,
+      value: reconciliation,
+      parse: (value) =>
+        professionalLongFormDeliveryH264QaReconciliationSchema.parse(value),
+    })
+    const canonicalResultHash = professionalLongFormDeliveryH264QaResultHash({
+      authority,
+      executionAttempt,
+      qaArtifactRef: artifactRef,
+      reconciliationEvidenceRef: reconciliationRef,
+    })
+    const finalizedCost = await costMeter.finalize({
+      status: 'completed',
+      failureCategory: 'none',
+      outputByteLength: artifactRef.byteLength,
+      linkedCanonicalOutcomeHash: canonicalResultHash,
+    })
+    costFinalized = true
+    assertCostEvidence({
+      evidence: finalizedCost.evidence,
+      authority,
+      executionAttempt,
+      canonicalResultHash,
+      toolId: 'ffprobe',
+      operationId: PROFESSIONAL_LONG_FORM_DELIVERY_H264_QA_OPERATION_ID,
+      workloadProfileId: PROFESSIONAL_LONG_FORM_DELIVERY_H264_QA_COST_PROFILE_ID,
+      vcpuCount: 2,
+      memoryGib: 4,
+    })
+    const terminal = buildProfessionalLongFormDeliveryH264QaTerminal({
+      authority,
+      authorization,
+      executionAttempt,
+      validationArtifactRef: artifactRef,
+      reconciliationEvidenceRef: reconciliationRef,
+      canonicalResultHash,
+      attemptInternalCostEvidenceHash: finalizedCost.evidence.evidenceHash,
+      completedAt: new Date().toISOString(),
+    })
+    const terminalRef = await persistExactJson({
+      context: input.context,
+      value: terminal,
+      parse: (value) =>
+        professionalLongFormDeliveryH264QaTerminalSchema.parse(value),
+    })
+    const completion = buildProfessionalLongFormDeliveryH264QaCompletion({
+      authority,
+      authorization,
+      executionAttempt,
+      canonicalResultHash,
+      attemptInternalCostEvidenceHash: finalizedCost.evidence.evidenceHash,
+      validationArtifactRef: artifactRef,
+      reconciliationEvidenceRef: reconciliationRef,
+      terminalEvidenceRef: terminalRef,
+    })
+    const definition = claim.entry.definition
+    const aggregate = await completePrivateCanonicalPackageWorkQueueClaim({
+      scope: input.current.scope,
+      definition: input.current.queueDefinition,
+      jobId: authority.identity.jobId,
+      claimId: claim.entry.activeClaim.claimId,
+      claimCredential: claim.claimCredential,
+      outcome: {
+        jobId: definition.jobId,
+        approvedWorkItemId: definition.approvedWorkItemId,
+        workItemKey: definition.workItemKey,
+        required: definition.required,
+        dependencyJobIds: [...definition.dependencyJobIds],
+        status: 'completed_private_test',
+        artifactId: authority.identity.expectedOutputIdentity,
+        contentType: 'application/json',
+        sha256: artifactRef.sha256,
+        adapterReplayed: false,
+        blockedDependencyJobIds: [],
+        professionalLongFormExecution: completion,
+      },
+      now: new Date().toISOString(),
+    })
+    return {
+      authority,
+      authorityRef,
+      authorization,
+      executionAttempt,
+      artifact,
+      artifactRef,
+      reconciliation,
+      reconciliationRef,
+      costEvidence: finalizedCost.evidence,
+      terminal,
+      terminalRef,
+      queueAggregate: aggregate,
+    }
+  } catch (error) {
+    await heartbeat.stopIgnoringFailure()
+    if (!costFinalized) {
+      await costMeter.finalize({
+        status: 'failed',
+        failureCategory: classifyPrivateInternalAttemptCostFailure(error),
+        outputByteLength: null,
+        linkedCanonicalOutcomeHash: null,
+      })
+    }
+    throw error
+  }
+}
+
 async function loadCompletedRoot(input: {
   context: ServiceContext
   current: LoadedCustomerDeliveryAuthority
@@ -969,6 +1432,7 @@ async function loadCompletedH264(input: {
   ownerUserId: string
   runtimeAuthority: OfflineRemotionRuntimeAuthority
   chunkIndex: number
+  allowCompletedQa?: boolean
 }): Promise<CompletedH264Evidence> {
   const authority = buildProfessionalLongFormDeliveryH264Authority(input)
   const entry = input.current.queueAggregate.entries.find((candidate) =>
@@ -1029,6 +1493,7 @@ async function loadCompletedH264(input: {
       outputArtifact: completion.outputArtifact,
       runtimeEvidenceRef: completion.runtimeEvidenceRef,
       reconciledAt: reconciliation.reconciledAt,
+      allowCompletedQa: input.allowCompletedQa,
     })
   assertExact(reconciliation, expectedReconciliation,
     'Stored delivery H.264 reconciliation changed.')
@@ -1080,6 +1545,168 @@ async function loadCompletedH264(input: {
     outputArtifact: completion.outputArtifact,
     runtimeEvidence,
     runtimeEvidenceRef: completion.runtimeEvidenceRef,
+    reconciliation,
+    reconciliationRef: completion.reconciliationEvidenceRef,
+    costEvidence,
+    terminal,
+    terminalRef: completion.terminalEvidenceRef,
+    queueAggregate: input.current.queueAggregate,
+  }
+}
+
+async function loadCompletedH264Qa(input: {
+  context: ServiceContext
+  current: LoadedCustomerDeliveryAuthority
+  ownerUserId: string
+  runtimeAuthority: OfflineMediaBinaryRuntimeAuthority
+  chunkIndex: number
+}): Promise<CompletedH264QaEvidence> {
+  const authority = buildProfessionalLongFormDeliveryH264QaAuthority(input)
+  const entry = input.current.queueAggregate.entries.find((candidate) =>
+    candidate.definition.jobId === authority.identity.jobId)
+  if (!entry?.completion) {
+    throw invalid('Completed delivery H.264 QA entry is missing.')
+  }
+  const authorityRef = requiredStoredAuthorityRef(entry, authority)
+  const persisted = await readPrivateAuthorityJsonBlob({
+    localStorageRoot: input.context.env.localStorageRoot,
+    ref: authorityRef,
+  })
+  assertProfessionalLongFormDeliveryH264QaAuthority({
+    value: persisted,
+    ownerUserId: input.ownerUserId,
+    current: input.current,
+    chunkIndex: input.chunkIndex,
+    runtimeAuthority: input.runtimeAuthority,
+  })
+  const authorization = buildProfessionalLongFormDeliveryH264QaAuthorization({
+    authority,
+    authorityRef,
+  })
+  assertExact(
+    entry.professionalLongFormExecutionAuthorization,
+    authorization,
+    'Stored delivery H.264 QA authorization changed.',
+  )
+  const executionAttempt = professionalLongFormDeliveryH264QaAttemptSchema.parse(
+    entry.professionalLongFormExecutionAttempt,
+  )
+  const completion = professionalLongFormDeliveryH264QaCompletionSchema.parse(
+    entry.completion.outcome.professionalLongFormExecution,
+  )
+  const stored =
+    await inspectCanonicalPrivateRemotionDeliveryH264ChunkArtifact({
+      localStorageRoot: input.context.env.localStorageRoot,
+      privateObjectIdentityHash: authority.h264Artifact.objectIdentity,
+    })
+  if (
+    !stored || stored.byteLength !== authority.h264Artifact.byteLength ||
+    stored.sha256 !== authority.h264Artifact.sha256
+  ) throw invalid('Stored delivery H.264 QA source artifact changed.')
+  const artifact = await readParsedJson({
+    context: input.context,
+    ref: completion.validationArtifactRef,
+    parse: (value) =>
+      professionalLongFormDeliveryH264QaArtifactSchema.parse(value),
+  })
+  assertHashed(artifact, 'qaHash')
+  if (
+    artifact.authorityHash !== authority.authorityHash ||
+    stableAuthorityStringify(artifact.h264Artifact) !==
+      stableAuthorityStringify(authority.h264Artifact)
+  ) throw invalid('Stored delivery H.264 QA artifact lineage changed.')
+  const rawProbe = await readPrivateAuthorityJsonBlob({
+    localStorageRoot: input.context.env.localStorageRoot,
+    ref: artifact.rawProbeResultRef,
+  })
+  const runtimeReceipt = await readPrivateAuthorityJsonBlob({
+    localStorageRoot: input.context.env.localStorageRoot,
+    ref: artifact.probeRuntimeEvidenceRef,
+  })
+  if (
+    typeof rawProbe !== 'object' || rawProbe === null ||
+    typeof runtimeReceipt !== 'object' || runtimeReceipt === null ||
+    !('resultSha256' in runtimeReceipt) ||
+    runtimeReceipt.resultSha256 !== artifact.rawProbeResultRef.sha256 ||
+    !('image' in runtimeReceipt) ||
+    typeof runtimeReceipt.image !== 'object' || runtimeReceipt.image === null ||
+    !('imageIdentityHash' in runtimeReceipt.image) ||
+    runtimeReceipt.image.imageIdentityHash !==
+      authority.lineage.mediaBinaryImageIdentityHash
+  ) throw invalid('Stored delivery H.264 QA probe runtime evidence changed.')
+  const reconciliation = await readParsedJson({
+    context: input.context,
+    ref: completion.reconciliationEvidenceRef,
+    parse: (value) =>
+      professionalLongFormDeliveryH264QaReconciliationSchema.parse(value),
+  })
+  const expectedReconciliation =
+    buildProfessionalLongFormDeliveryH264QaReconciliation({
+      current: input.current,
+      authority,
+      authorization,
+      executionAttempt,
+      qaArtifactRef: completion.validationArtifactRef,
+      reconciledAt: reconciliation.reconciledAt,
+      allowCompletedQa: true,
+      allowAdvancedMux: true,
+    })
+  assertExact(
+    reconciliation,
+    expectedReconciliation,
+    'Stored delivery H.264 QA reconciliation changed.',
+  )
+  const canonicalResultHash = professionalLongFormDeliveryH264QaResultHash({
+    authority,
+    executionAttempt,
+    qaArtifactRef: completion.validationArtifactRef,
+    reconciliationEvidenceRef: completion.reconciliationEvidenceRef,
+  })
+  const costEvidence = await requiredCostEvidence({
+    context: input.context,
+    authority,
+    executionAttempt,
+    canonicalResultHash,
+    expectedHash: completion.attemptInternalCostEvidenceHash,
+    toolId: 'ffprobe',
+    operationId: PROFESSIONAL_LONG_FORM_DELIVERY_H264_QA_OPERATION_ID,
+    workloadProfileId: PROFESSIONAL_LONG_FORM_DELIVERY_H264_QA_COST_PROFILE_ID,
+    vcpuCount: 2,
+    memoryGib: 4,
+  })
+  const terminal = await readParsedJson({
+    context: input.context,
+    ref: completion.terminalEvidenceRef,
+    parse: (value) =>
+      professionalLongFormDeliveryH264QaTerminalSchema.parse(value),
+  })
+  const expectedTerminal = buildProfessionalLongFormDeliveryH264QaTerminal({
+    authority,
+    authorization,
+    executionAttempt,
+    validationArtifactRef: completion.validationArtifactRef,
+    reconciliationEvidenceRef: completion.reconciliationEvidenceRef,
+    canonicalResultHash,
+    attemptInternalCostEvidenceHash: costEvidence.evidenceHash,
+    completedAt: terminal.completedAt,
+  })
+  assertExact(
+    terminal,
+    expectedTerminal,
+    'Stored delivery H.264 QA terminal changed.',
+  )
+  if (
+    completion.canonicalResultHash !== canonicalResultHash ||
+    entry.deliveryAttemptCount !== 1 ||
+    entry.completion.outcome.sha256 !== completion.validationArtifactRef.sha256
+  ) throw invalid('Stored delivery H.264 QA queue completion changed.')
+  return {
+    authority,
+    authorityRef,
+    authorization,
+    executionAttempt,
+    artifact,
+    artifactRef: completion.validationArtifactRef,
     reconciliation,
     reconciliationRef: completion.reconciliationEvidenceRef,
     costEvidence,
@@ -1144,6 +1771,26 @@ async function requiredRemotionRuntimeAuthority(): Promise<
   return authority
 }
 
+async function requiredMediaBinaryRuntimeAuthority(): Promise<
+  OfflineMediaBinaryRuntimeAuthority
+> {
+  const authority = await readPersistedOfflineMediaBinaryRuntimeAuthority()
+  if (
+    !authority ||
+    authority.readiness.privateInternalExecutionReady !== true ||
+    authority.readiness.productReady !== false ||
+    authority.readiness.productionReady !== false ||
+    !authority.supportedOperations.some((operation) =>
+      operation.toolId === 'ffprobe' &&
+      operation.operationId === OFFLINE_MEDIA_BINARY_OPERATIONS.ffprobe)
+  ) throw new ApiError(
+    'TOOL_NOT_READY',
+    'Customer-delivery H.264 QA requires the pinned private FFprobe runtime authority.',
+    503,
+  )
+  return authority
+}
+
 function startLeaseHeartbeat(input: {
   current: LoadedCustomerDeliveryAuthority
   authority: ProfessionalLongFormDeliveryH264Authority
@@ -1166,6 +1813,42 @@ function startLeaseHeartbeat(input: {
       heartbeatError = error
     })
   }, 60_000)
+  timer.unref()
+  return {
+    async stopAndAssertHealthy() {
+      clearInterval(timer)
+      await inFlight
+      if (heartbeatError) throw heartbeatError
+    },
+    async stopIgnoringFailure() {
+      clearInterval(timer)
+      await inFlight
+    },
+  }
+}
+
+function startH264QaLeaseHeartbeat(input: {
+  current: LoadedCustomerDeliveryAuthority
+  authority: ProfessionalLongFormDeliveryH264QaAuthority
+  claimId: string
+  claimCredential: string
+}) {
+  let heartbeatError: unknown
+  let inFlight: Promise<void> = Promise.resolve()
+  const timer = setInterval(() => {
+    if (heartbeatError) return
+    inFlight = heartbeatPrivateCanonicalPackageWorkQueueClaim({
+      scope: input.current.scope,
+      definition: input.current.queueDefinition,
+      jobId: input.authority.identity.jobId,
+      claimId: input.claimId,
+      claimCredential: input.claimCredential,
+      now: new Date().toISOString(),
+      leaseDurationMs: input.authority.operation.leaseDurationMilliseconds,
+    }).then(() => undefined).catch((error: unknown) => {
+      heartbeatError = error
+    })
+  }, 30_000)
   timer.unref()
   return {
     async stopAndAssertHealthy() {
@@ -1279,11 +1962,11 @@ interface CostEvidenceExpectation {
   }
   executionAttempt: { executionAttemptId: string }
   canonicalResultHash: string
-  toolId: 'reeditpro_internal' | 'remotion'
+  toolId: 'reeditpro_internal' | 'remotion' | 'ffprobe'
   operationId: string
   workloadProfileId: string
-  vcpuCount: 1 | 4
-  memoryGib: 1 | 8
+  vcpuCount: 1 | 2 | 4
+  memoryGib: 1 | 4 | 8
 }
 
 function assertCostEvidence(

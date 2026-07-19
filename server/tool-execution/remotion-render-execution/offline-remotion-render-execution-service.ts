@@ -11,7 +11,13 @@ import {
   type OfflineRemotionContainerStreamingOutputSink,
 } from './offline-remotion-render-docker-runtime'
 import { OFFLINE_REMOTION_RENDER_CONTAINER_PROTOCOL, OFFLINE_REMOTION_RENDER_OPERATION, offlineRemotionRequestSha256, validateOfflineRemotionRenderRequest } from './offline-remotion-render-execution-protocol'
-import type { OfflineRemotionImageEvidence, OfflineRemotionRenderResult, OfflineRemotionRuntimeAuthority, OfflineRemotionStreamingRenderResult } from './offline-remotion-render-execution-types'
+import type {
+  OfflineRemotionDeliveryH264ChunkStreamingResult,
+  OfflineRemotionImageEvidence,
+  OfflineRemotionRenderResult,
+  OfflineRemotionRuntimeAuthority,
+  OfflineRemotionStreamingRenderResult,
+} from './offline-remotion-render-execution-types'
 import {
   OFFLINE_REMOTION_RENDER_STREAMING_CONTAINER_PROTOCOL,
   OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_OUTPUT_BYTES,
@@ -28,6 +34,14 @@ import {
 import type {
   OfflineRemotionLongFormMergeStreamingResult,
 } from './offline-remotion-render-execution-types'
+import {
+  OFFLINE_REMOTION_DELIVERY_H264_CHUNK_CONTAINER_PROTOCOL,
+  OFFLINE_REMOTION_DELIVERY_H264_CHUNK_MAXIMUM_OUTPUT_BYTES,
+  OFFLINE_REMOTION_DELIVERY_H264_CHUNK_RESOURCE_PROFILE,
+  offlineRemotionDeliveryH264ChunkInputCommitments,
+  offlineRemotionDeliveryH264ChunkRequestSha256,
+  validateOfflineRemotionDeliveryH264ChunkRequest,
+} from './offline-remotion-delivery-h264-chunk-protocol'
 
 export const OFFLINE_REMOTION_RENDER_EXECUTION_STORAGE_ROOT =
   '/tmp/reeditpro-canonical-private-offline-remotion-render-execution' as const
@@ -40,6 +54,7 @@ const BLOCKERS = Object.freeze([
   'This runtime is private single-host evidence and is not deployed worker-fleet, service-identity, multi-architecture, scanning, observability, or recovery evidence.',
   'The bounded proof composition is not a public delivery or production final-export authority.',
   'The source-boundary profile remains limited to eight chunks/1,920 frames; the source-slice profile remains limited to sixteen chunks/3,840 frames, and distributed object/mezzanine evidence remains blocked.',
+  'The delivery H.264 chunk profile remains private single-host evidence; independent chunk QA, final H.264/AAC mux, decoded master QA, download reconciliation, cloud dispatch, and production remain blocked.',
 ] as const)
 
 export interface PrivateOfflineRemotionRenderRuntime {
@@ -55,6 +70,11 @@ export interface PrivateOfflineRemotionRenderRuntime {
     inputs: OfflineRemotionServerInjectedInput[],
     outputSink: OfflineRemotionContainerStreamingOutputSink,
   ): Promise<OfflineRemotionLongFormMergeStreamingResult>
+  executeDeliveryH264ChunkServerInjected(
+    value: unknown,
+    inputs: OfflineRemotionServerInjectedInput[],
+    outputSink: OfflineRemotionContainerStreamingOutputSink,
+  ): Promise<OfflineRemotionDeliveryH264ChunkStreamingResult>
 }
 
 export interface OfflineRemotionServerInjectedInput extends OfflineRemotionContainerStreamingInput {
@@ -93,6 +113,16 @@ function runtimeForImage(image: OfflineRemotionImageEvidence): PrivateOfflineRem
       inputs: OfflineRemotionServerInjectedInput[],
       outputSink: OfflineRemotionContainerStreamingOutputSink,
     ) => executeLongFormMergeStreamingWithImage(image, value, inputs, outputSink),
+    executeDeliveryH264ChunkServerInjected: (
+      value: unknown,
+      inputs: OfflineRemotionServerInjectedInput[],
+      outputSink: OfflineRemotionContainerStreamingOutputSink,
+    ) => executeDeliveryH264ChunkStreamingWithImage(
+      image,
+      value,
+      inputs,
+      outputSink,
+    ),
   })
 }
 
@@ -117,9 +147,167 @@ export async function readPersistedOfflineRemotionRenderRuntimeAuthority(): Prom
     record(authority.readiness).privateInternalFinalCompositionReady !== true ||
     record(authority.readiness).serverInjectedStreamingFinalCompositionReady !== true ||
     record(authority.readiness).serverInjectedStreamingLongFormMergeReady !== true ||
+    record(authority.readiness)
+      .serverInjectedStreamingDeliveryH264ChunkReady !== true ||
     record(authority.readiness).finalExportReady !== false
   ) throw runtimeFailure('Private Remotion runtime authority boundary is invalid.')
   return authority as unknown as OfflineRemotionRuntimeAuthority
+}
+
+async function executeDeliveryH264ChunkStreamingWithImage(
+  image: OfflineRemotionImageEvidence,
+  value: unknown,
+  inputs: OfflineRemotionServerInjectedInput[],
+  outputSink: OfflineRemotionContainerStreamingOutputSink,
+): Promise<OfflineRemotionDeliveryH264ChunkStreamingResult> {
+  const request = validateOfflineRemotionDeliveryH264ChunkRequest(value)
+  const expectedInputs = offlineRemotionDeliveryH264ChunkInputCommitments(
+    request,
+  )
+  if (
+    !Array.isArray(inputs) || inputs.length !== 1 ||
+    inputs.some((input, index) => {
+      const expected = expectedInputs[index]
+      return !expected || input.inputMode !== 'private_verified_stream_v1' ||
+        input.inputId !== expected.inputId ||
+        input.mimeType !== expected.mimeType ||
+        input.byteLength !== expected.byteLength ||
+        input.sha256 !== expected.sha256 ||
+        typeof input.openStream !== 'function'
+    }) ||
+    !outputSink ||
+    outputSink.maximumBytes !==
+      OFFLINE_REMOTION_DELIVERY_H264_CHUNK_MAXIMUM_OUTPUT_BYTES ||
+    typeof outputSink.persist !== 'function'
+  ) throw validationFailure(
+    'Server-injected delivery H.264 source does not match its exact commitment.',
+  )
+  const result = await runOfflineRemotionStreamingContainer({
+    image,
+    serializedManifest: JSON.stringify(request),
+    inputs,
+    outputSink,
+    resourceProfileId: OFFLINE_REMOTION_DELIVERY_H264_CHUNK_RESOURCE_PROFILE,
+  })
+  if (result.exitCode !== 0 || result.oomKilled || result.stderr.trim()) {
+    throw runtimeFailure(
+      'Private delivery H.264 chunk execution failed.',
+      new Error(result.stderr.slice(-4_000)),
+    )
+  }
+  const response = parseResponse(result.stdoutHeader)
+  const artifactRecord = record(response.artifact)
+  const semantic = record(response.semanticEvidence)
+  const readiness = record(response.readiness)
+  const byteLength = Number(artifactRecord.byteLength)
+  const artifactSha256 = string(artifactRecord.sha256)
+  if (
+    response.schemaVersion !==
+      OFFLINE_REMOTION_DELIVERY_H264_CHUNK_CONTAINER_PROTOCOL ||
+    response.ok !== true || response.toolId !== 'remotion' ||
+    response.operationId !== OFFLINE_REMOTION_RENDER_OPERATION ||
+    response.status !== 'actual_remotion_media_render_completed' ||
+    record(response.packageIdentity).packageName !==
+      'remotion+@remotion/renderer' ||
+    record(response.packageIdentity).version !== '4.0.487' ||
+    response.requestEnvelopeSha256 !==
+      offlineRemotionDeliveryH264ChunkRequestSha256(request) ||
+    artifactRecord.mimeType !== 'video/mp4' ||
+    !Number.isSafeInteger(byteLength) || byteLength < 1_024 ||
+    byteLength > OFFLINE_REMOTION_DELIVERY_H264_CHUNK_MAXIMUM_OUTPUT_BYTES ||
+    !/^[a-f0-9]{64}$/u.test(artifactSha256) ||
+    result.outputReceipt.byteLength !== byteLength ||
+    result.outputReceipt.sha256 !== artifactSha256 ||
+    artifactRecord.width !== request.payload.width ||
+    artifactRecord.height !== request.payload.height ||
+    artifactRecord.fps !== request.payload.fps ||
+    artifactRecord.durationFrames !== request.payload.durationFrames ||
+    result.confinement.memoryLimitBytes !== 8_589_934_592 ||
+    result.confinement.nanoCpus !== 4_000_000_000 ||
+    result.confinement.tmpfsSizeBytes !== 7_516_192_768 ||
+    readiness.privateInternalOnly !== true ||
+    readiness.productReady !== false ||
+    readiness.privateInternalDeliveryH264ChunkReady !== true ||
+    semantic.serverInjectedInputStreamsMaterializedAndReverified !== true ||
+    semantic.serverInjectedOutputStreamEmitted !== true ||
+    semantic.base64MediaTransportAvoided !== true ||
+    semantic.approvedDeliveryH264ChunkProfileExecuted !== true ||
+    semantic.exactPassedVp9ObjectChunkBytesVerified !== true ||
+    semantic.sourceFrameCountPreserved !== true ||
+    semantic.videoOnlyH264HighCrf18MediumApplied !== true ||
+    semantic.fixedBt709LimitedRangePolicyApplied !== true ||
+    semantic.approvedReservationReuseOnly !== true ||
+    semantic.secondEstimateOrExportChargeForbidden !== true ||
+    !Object.values(semantic).every((item) => item === true)
+  ) throw runtimeFailure(
+    'Private delivery H.264 chunk result evidence is invalid.',
+  )
+  const completedAt = new Date().toISOString()
+  const attestationWithoutHash = {
+    schemaVersion:
+      'offline-remotion-delivery-h264-chunk-stream-execution-attestation-v1' as const,
+    completedAt,
+    imageIdentityHash: image.imageIdentityHash,
+    requestEnvelopeSha256:
+      offlineRemotionDeliveryH264ChunkRequestSha256(request),
+    artifactSha256,
+    artifactByteLength: byteLength,
+    confinementHash: sha256AuthorityValue(result.confinement),
+  }
+  const attestationHash = sha256AuthorityValue(attestationWithoutHash)
+  const recordId = sha256AuthorityValue({ attestationHash, completedAt })
+  const attestation = { ...attestationWithoutHash, recordId, attestationHash }
+  await writePrivateTextFileAtomicWithinRoot({
+    rootPath: STORAGE_ROOT,
+    relativePath: `attestations/${recordId.slice(0, 2)}/${recordId}.json`,
+    content: `${stableAuthorityStringify({
+      recordVersion:
+        'offline-remotion-delivery-h264-chunk-stream-execution-attestation-record-v1',
+      source:
+        'private_local_checksum_protected_remotion_delivery_h264_chunk_execution',
+      attestation,
+      checksumSha256: sha256AuthorityValue(attestation),
+    })}\n`,
+  })
+  return {
+    schemaVersion:
+      'offline-remotion-delivery-h264-chunk-stream-execution-result-v1',
+    request,
+    artifact: {
+      mimeType: 'video/mp4',
+      byteLength,
+      sha256: artifactSha256,
+      width: Number(artifactRecord.width),
+      height: Number(artifactRecord.height),
+      fps: Number(artifactRecord.fps),
+      durationFrames: Number(artifactRecord.durationFrames),
+      durationSeconds: Number(artifactRecord.durationSeconds),
+    },
+    evidence: {
+      packageName: 'remotion+@remotion/renderer',
+      packageVersion: '4.0.487',
+      requestEnvelopeSha256: String(response.requestEnvelopeSha256),
+      image,
+      confinement: result.confinement,
+      semanticEvidence: semantic as Record<string, true>,
+      inputTransport: 'length_framed_server_injected_private_stream_v2',
+      outputTransport: 'length_committed_private_stream_v2',
+      resourceProfileId: OFFLINE_REMOTION_DELIVERY_H264_CHUNK_RESOURCE_PROFILE,
+      containerExitCode: 0,
+      oomKilled: false,
+    },
+    attestation,
+    readiness: {
+      privateInternalOnly: true,
+      productReady: false,
+      externalBetaReady: false,
+      productionReady: false,
+      privateInternalDeliveryH264ChunkReady: true,
+      independentChunkQaVerified: false,
+      serverInjectedStreamingReady: true,
+      canonicalDispatchIntegrated: false,
+    },
+  }
 }
 
 export async function executePrivateOfflineRemotionRender(value: unknown): Promise<OfflineRemotionRenderResult> {
@@ -427,7 +615,7 @@ async function persistAuthority(image: OfflineRemotionImageEvidence): Promise<vo
     source: 'private_local_offline_remotion_render_runtime_authority' as const,
     activatedAt: new Date().toISOString(), image,
     supportedOperations: [{ toolId: 'remotion' as const, operationId: OFFLINE_REMOTION_RENDER_OPERATION }] as const,
-    readiness: { privateInternalExecutionReady: true as const, exactStructuredPayloadOnly: true as const, canonicalDispatchMayReference: true as const, productReady: false as const, externalBetaReady: false as const, productionReady: false as const, privateInternalFinalCompositionReady: true as const, serverInjectedStreamingFinalCompositionReady: true as const, serverInjectedStreamingLongFormMergeReady: true as const, finalExportReady: false as const },
+    readiness: { privateInternalExecutionReady: true as const, exactStructuredPayloadOnly: true as const, canonicalDispatchMayReference: true as const, productReady: false as const, externalBetaReady: false as const, productionReady: false as const, privateInternalFinalCompositionReady: true as const, serverInjectedStreamingFinalCompositionReady: true as const, serverInjectedStreamingLongFormMergeReady: true as const, serverInjectedStreamingDeliveryH264ChunkReady: true as const, finalExportReady: false as const },
     blockers: BLOCKERS,
   }
   const authority: OfflineRemotionRuntimeAuthority = { ...withoutHash, authorityHash: sha256AuthorityValue(withoutHash) }

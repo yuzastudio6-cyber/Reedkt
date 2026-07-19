@@ -16,6 +16,10 @@ import {
   OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_MANIFEST_BYTES,
   OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_OUTPUT_BYTES,
 } from './offline-remotion-render-streaming-protocol'
+import {
+  OFFLINE_REMOTION_DELIVERY_H264_CHUNK_MAXIMUM_OUTPUT_BYTES,
+  OFFLINE_REMOTION_DELIVERY_H264_CHUNK_RESOURCE_PROFILE,
+} from './offline-remotion-delivery-h264-chunk-protocol'
 
 export const OFFLINE_REMOTION_IMAGE_TAG = 'reeditpro-offline-remotion-render-execution:canonical-private-local-v1' as const
 const BASE_DIGEST = 'sha256:53ada149d435c38b14476cb57e4a7da73c15595aba79bd6971b547ceb6d018bf' as const
@@ -24,6 +28,36 @@ const ENTRYPOINT = ['node', '/app/runner.mjs'] as const
 const SOURCE_FILES = ['Dockerfile', 'package.json', 'package-lock.json', 'entry.tsx', 'composition.tsx', 'build-bundle.mjs', 'ensure-browser.mjs', 'runner.mjs'] as const
 const BUILD_CONTEXT = '/tmp/reeditpro-canonical-private-offline-remotion-build-context-v1'
 const TIMEOUT_MS = 15 * 60_000
+
+export const OFFLINE_REMOTION_STANDARD_RESOURCE_PROFILE =
+  'standard_remotion_cpu_2vcpu_4gib_v1' as const
+export type OfflineRemotionContainerResourceProfileId =
+  | typeof OFFLINE_REMOTION_STANDARD_RESOURCE_PROFILE
+  | typeof OFFLINE_REMOTION_DELIVERY_H264_CHUNK_RESOURCE_PROFILE
+
+const RESOURCE_PROFILES = {
+  [OFFLINE_REMOTION_STANDARD_RESOURCE_PROFILE]: {
+    memoryArgument: '4g',
+    memoryLimitBytes: 4_294_967_296 as const,
+    cpuArgument: '2',
+    nanoCpus: 2_000_000_000 as const,
+    tmpfsSizeBytes: 1_073_741_824 as const,
+    shmSizeBytes: 536_870_912 as const,
+    timeoutMs: TIMEOUT_MS,
+    maximumOutputBytes: OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_OUTPUT_BYTES,
+  },
+  [OFFLINE_REMOTION_DELIVERY_H264_CHUNK_RESOURCE_PROFILE]: {
+    memoryArgument: '8g',
+    memoryLimitBytes: 8_589_934_592 as const,
+    cpuArgument: '4',
+    nanoCpus: 4_000_000_000 as const,
+    tmpfsSizeBytes: 7_516_192_768 as const,
+    shmSizeBytes: 1_073_741_824 as const,
+    timeoutMs: 6 * 60 * 60_000,
+    maximumOutputBytes:
+      OFFLINE_REMOTION_DELIVERY_H264_CHUNK_MAXIMUM_OUTPUT_BYTES,
+  },
+} as const
 
 interface HostResult { exitCode: number; stdout: string; stderr: string }
 interface Inspect { Image?: unknown; State?: unknown; HostConfig?: unknown; Mounts?: unknown; Config?: unknown; RootFS?: unknown; Id?: unknown; Os?: unknown; Architecture?: unknown }
@@ -99,9 +133,16 @@ export async function runOfflineRemotionContainer(input: { image: OfflineRemotio
   if (Buffer.byteLength(input.serializedRequest) > OFFLINE_REMOTION_RENDER_MAXIMUM_REQUEST_BYTES) {
     throw validationFailure('Remotion request exceeds stdin ceiling.')
   }
-  const id = await createRemotionContainer(input.image)
+  const id = await createRemotionContainer(
+    input.image,
+    OFFLINE_REMOTION_STANDARD_RESOURCE_PROFILE,
+  )
   try {
-    const confinement = validateConfinement(await inspectContainer(id), input.image)
+    const confinement = validateConfinement(
+      await inspectContainer(id),
+      input.image,
+      OFFLINE_REMOTION_STANDARD_RESOURCE_PROFILE,
+    )
     const started = await runDocker(['start', '--attach', '--interactive', id], { input: `${input.serializedRequest}\n`, timeoutMs: TIMEOUT_MS, maxBytes: 24 * 1024 * 1024 })
     const after = await inspectContainer(id); const state = record(after.State)
     if (state.Status !== 'exited' || state.Running !== false || state.ExitCode !== started.exitCode || typeof state.OOMKilled !== 'boolean') {
@@ -118,23 +159,32 @@ export async function runOfflineRemotionStreamingContainer(input: {
   serializedManifest: string
   inputs: OfflineRemotionContainerStreamingInput[]
   outputSink: OfflineRemotionContainerStreamingOutputSink
+  resourceProfileId?: OfflineRemotionContainerResourceProfileId
 }) {
+  const resourceProfileId = input.resourceProfileId ??
+    OFFLINE_REMOTION_STANDARD_RESOURCE_PROFILE
+  const resourceProfile = RESOURCE_PROFILES[resourceProfileId]
   const manifestBytes = Buffer.byteLength(input.serializedManifest)
   if (
     manifestBytes < 1 ||
     manifestBytes > OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_MANIFEST_BYTES ||
     !Number.isSafeInteger(input.outputSink.maximumBytes) ||
     input.outputSink.maximumBytes < 1_024 ||
-    input.outputSink.maximumBytes > OFFLINE_REMOTION_RENDER_STREAMING_MAXIMUM_OUTPUT_BYTES
+    input.outputSink.maximumBytes > resourceProfile.maximumOutputBytes
   ) throw validationFailure('Streaming Remotion transport bounds are invalid.')
-  const id = await createRemotionContainer(input.image)
+  const id = await createRemotionContainer(input.image, resourceProfileId)
   try {
-    const confinement = validateConfinement(await inspectContainer(id), input.image)
+    const confinement = validateConfinement(
+      await inspectContainer(id),
+      input.image,
+      resourceProfileId,
+    )
     const started = await runStreamingDockerStart({
       id,
       serializedManifest: input.serializedManifest,
       inputs: input.inputs,
       outputSink: input.outputSink,
+      timeoutMs: resourceProfile.timeoutMs,
     })
     const after = await inspectContainer(id)
     const state = record(after.State)
@@ -151,14 +201,22 @@ export async function runOfflineRemotionStreamingContainer(input: {
   }
 }
 
-async function createRemotionContainer(image: OfflineRemotionImageEvidence): Promise<string> {
+async function createRemotionContainer(
+  image: OfflineRemotionImageEvidence,
+  resourceProfileId: OfflineRemotionContainerResourceProfileId,
+): Promise<string> {
+  const profile = RESOURCE_PROFILES[resourceProfileId]
   const created = await runDocker([
     'create', '--interactive', '--network', 'none', '--read-only', '--cap-drop', 'ALL',
     '--security-opt', 'no-new-privileges:true', '--pids-limit', '256',
-    '--memory', '4g', '--memory-swap', '4g', '--cpus', '2',
-    '--tmpfs', '/tmp:rw,noexec,nosuid,nodev,size=1073741824',
-    '--shm-size', '536870912', '--user', '10001:10001', image.imageId,
-  ], { timeoutMs: TIMEOUT_MS, maxBytes: 64 * 1024 })
+    '--memory', profile.memoryArgument,
+    '--memory-swap', profile.memoryArgument,
+    '--cpus', profile.cpuArgument,
+    '--tmpfs',
+    `/tmp:rw,noexec,nosuid,nodev,size=${profile.tmpfsSizeBytes}`,
+    '--shm-size', String(profile.shmSizeBytes),
+    '--user', '10001:10001', image.imageId,
+  ], { timeoutMs: profile.timeoutMs, maxBytes: 64 * 1024 })
   if (created.exitCode !== 0 || created.stderr.trim()) {
     throw runtimeFailure('Confined Remotion container could not be created.')
   }
@@ -174,6 +232,7 @@ async function runStreamingDockerStart(input: {
   serializedManifest: string
   inputs: OfflineRemotionContainerStreamingInput[]
   outputSink: OfflineRemotionContainerStreamingOutputSink
+  timeoutMs: number
 }): Promise<{
   exitCode: number
   stdoutHeader: string
@@ -195,7 +254,7 @@ async function runStreamingDockerStart(input: {
         settled = true
         reject(runtimeFailure('Streaming Remotion command exceeded timeout.'))
       }
-    }, TIMEOUT_MS)
+    }, input.timeoutMs)
     child.stderr.on('data', (chunk: Buffer) => {
       stderrBytes += chunk.byteLength
       if (stderrBytes > 512 * 1024) child.kill('SIGKILL')
@@ -377,7 +436,12 @@ async function readOutputHeader(stdout: Readable): Promise<{
   }
 }
 
-function validateConfinement(inspect: Inspect, image: OfflineRemotionImageEvidence): OfflineRemotionConfinementEvidence {
+function validateConfinement(
+  inspect: Inspect,
+  image: OfflineRemotionImageEvidence,
+  resourceProfileId: OfflineRemotionContainerResourceProfileId,
+): OfflineRemotionConfinementEvidence {
+  const profile = RESOURCE_PROFILES[resourceProfileId]
   const host = record(inspect.HostConfig); const config = record(inspect.Config)
   const caps = stringArray(host.CapDrop); const security = stringArray(host.SecurityOpt); const tmpfs = stringRecord(host.Tmpfs)
   const tokens = new Set(String(tmpfs['/tmp'] ?? '').split(',')); const mounts = array(inspect.Mounts); const binds = host.Binds == null ? [] : array(host.Binds)
@@ -385,12 +449,29 @@ function validateConfinement(inspect: Inspect, image: OfflineRemotionImageEviden
   if (
     inspect.Image !== image.imageId || host.NetworkMode !== 'none' || host.ReadonlyRootfs !== true || host.Privileged !== false ||
     caps.length !== 1 || caps[0] !== 'ALL' || !security.some((v) => v.startsWith('no-new-privileges')) ||
-    Number(host.PidsLimit) !== 256 || Number(host.Memory) !== 4294967296 || Number(host.MemorySwap) !== 4294967296 || Number(host.NanoCpus) !== 2000000000 ||
-    Number(host.ShmSize) !== 536870912 || config.User !== '10001:10001' || command.length || mounts.length || binds.length ||
-    !tokens.has('rw') || !tokens.has('noexec') || !tokens.has('nosuid') || !tokens.has('nodev') || !tokens.has('size=1073741824') ||
+    Number(host.PidsLimit) !== 256 ||
+    Number(host.Memory) !== profile.memoryLimitBytes ||
+    Number(host.MemorySwap) !== profile.memoryLimitBytes ||
+    Number(host.NanoCpus) !== profile.nanoCpus ||
+    Number(host.ShmSize) !== profile.shmSizeBytes ||
+    config.User !== '10001:10001' || command.length || mounts.length || binds.length ||
+    !tokens.has('rw') || !tokens.has('noexec') || !tokens.has('nosuid') || !tokens.has('nodev') ||
+    !tokens.has(`size=${profile.tmpfsSizeBytes}`) ||
     stableAuthorityStringify(envNames) !== stableAuthorityStringify(image.imageEnvironmentNames) || secretLikeEnvironmentNames(envNames).length
   ) throw runtimeFailure('Remotion container confinement is invalid.')
-  return { networkMode: 'none', readOnlyRootFilesystem: true, capDropAll: true, noNewPrivileges: true, privileged: false, pidsLimit: 256, memoryLimitBytes: 4294967296, memoryAndSwapLimitBytes: 4294967296, nanoCpus: 2000000000, tmpfsPath: '/tmp', tmpfsSizeBytes: 1073741824, tmpfsNoExec: true, tmpfsNoSuid: true, tmpfsNoDevice: true, shmSizeBytes: 536870912, user: '10001:10001', callerCommandPresent: false, callerBindsPresent: false, callerMountsPresent: false, callerEnvironmentPresent: false, secretLikeImageEnvironmentNames: [] }
+  return {
+    networkMode: 'none', readOnlyRootFilesystem: true, capDropAll: true,
+    noNewPrivileges: true, privileged: false, pidsLimit: 256,
+    memoryLimitBytes: profile.memoryLimitBytes,
+    memoryAndSwapLimitBytes: profile.memoryLimitBytes,
+    nanoCpus: profile.nanoCpus, tmpfsPath: '/tmp',
+    tmpfsSizeBytes: profile.tmpfsSizeBytes, tmpfsNoExec: true,
+    tmpfsNoSuid: true, tmpfsNoDevice: true,
+    shmSizeBytes: profile.shmSizeBytes, user: '10001:10001',
+    callerCommandPresent: false, callerBindsPresent: false,
+    callerMountsPresent: false, callerEnvironmentPresent: false,
+    secretLikeImageEnvironmentNames: [],
+  }
 }
 
 async function inspectContainer(id: string): Promise<Inspect> {

@@ -29,6 +29,7 @@ export interface ApprovedCompositionProps {
     | 'approved_source_caption_track_final_v1'
     | 'approved_source_sequence_caption_track_final_v1'
     | 'approved_4k_composition_chunk_merge_final_v1'
+    | 'approved_long_form_delivery_h264_video_chunk_v1'
   deliveryProfileId?: 'uhd_2160'
   sourceStartFrame?: number
   sourceEndFrameExclusive?: number
@@ -113,6 +114,13 @@ export const defaultApprovedCompositionProps: ApprovedCompositionProps = {
 export const ApprovedComposition: React.FC<ApprovedCompositionProps> = (props) => {
   const frame = useCurrentFrame()
   const { fps, durationInFrames, width, height } = useVideoConfig()
+  if (
+    props.compositionProfileId ===
+      'approved_long_form_delivery_h264_video_chunk_v1' &&
+    props.sourceInternalUrl
+  ) {
+    return <ApprovedDeliveryH264ChunkComposition {...props} />
+  }
   if (
     props.compositionProfileId === 'approved_4k_composition_chunk_merge_final_v1' &&
     hasApprovedChunkMergeInput(props)
@@ -205,6 +213,21 @@ export const ApprovedComposition: React.FC<ApprovedCompositionProps> = (props) =
     </AbsoluteFill>
   )
 }
+
+const ApprovedDeliveryH264ChunkComposition:
+React.FC<ApprovedCompositionProps> = (props) => (
+  <AbsoluteFill style={{ backgroundColor: '#000000', overflow: 'hidden' }}>
+    <Html5Video
+      src={props.sourceInternalUrl!}
+      startFrom={0}
+      endAt={props.durationFrames}
+      style={{ width: '100%', height: '100%', objectFit: 'fill' }}
+      volume={0}
+      delayRenderTimeoutInMilliseconds={180_000}
+      delayRenderRetries={1}
+    />
+  </AbsoluteFill>
+)
 
 const ApprovedChunkMergeComposition: React.FC<ApprovedCompositionProps> = (props) => {
   const urlByOutputKey = new Map(

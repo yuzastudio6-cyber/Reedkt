@@ -20,15 +20,28 @@ const LONG_FORM_MERGE_COMPOSITION_PROFILE = 'approved_4k_composition_chunk_merge
 const LONG_FORM_CAPACITY_PROFILE = 'canonical_private_4k_chunk_merge_1920_frames_v1'
 const SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE =
   'canonical_private_4k_source_slice_chunk_merge_3840_frames_v2'
+const DELIVERY_H264_CHUNK_STREAMING_PROTOCOL =
+  'offline-remotion-delivery-h264-chunk-stream-execution-v1'
+const DELIVERY_H264_CHUNK_STREAMING_CONTAINER_PROTOCOL =
+  'offline-remotion-delivery-h264-chunk-stream-execution-container-v1'
+const DELIVERY_H264_CHUNK_RECIPE =
+  'approved_long_form_delivery_h264_video_chunk_v1'
+const DELIVERY_H264_CHUNK_COMPOSITION_PROFILE =
+  'approved_long_form_delivery_h264_video_chunk_v1'
+const PROFESSIONAL_LONG_FORM_OBJECT_CAPACITY_PROFILE =
+  'canonical_professional_4k_object_chunk_graph_6h_v1'
 const OPERATION = 'tool.remotion.render_approved_composition.v1'
 const MAXIMUM_REQUEST_BYTES = 48 * 1024 * 1024
 const MAXIMUM_OUTPUT_BYTES = 16 * 1024 * 1024
 const MAXIMUM_STREAMING_MANIFEST_BYTES = 256 * 1024
+const MAXIMUM_DELIVERY_H264_CHUNK_MANIFEST_BYTES = 64 * 1024
 const MAXIMUM_STREAMING_SOURCE_BYTES = 192 * 1024 * 1024
 const MAXIMUM_STREAMING_COMBINED_SOURCE_BYTES = 192 * 1024 * 1024
 const MAXIMUM_STREAMING_CAPTION_BYTES = 8 * 1024 * 1024
 const MAXIMUM_STREAMING_COMBINED_INPUT_BYTES = 272 * 1024 * 1024
 const MAXIMUM_STREAMING_OUTPUT_BYTES = 256 * 1024 * 1024
+const MAXIMUM_DELIVERY_H264_CHUNK_SOURCE_BYTES = 512 * 1024 * 1024
+const MAXIMUM_DELIVERY_H264_CHUNK_OUTPUT_BYTES = 3 * 1024 * 1024 * 1024
 const MAXIMUM_LONG_FORM_CHUNK_BYTES = 256 * 1024 * 1024
 const MAXIMUM_LONG_FORM_COMBINED_CHUNK_BYTES = 640 * 1024 * 1024
 const MAXIMUM_COMBINED_VOICE_TRACK_BYTES = 2 * 1024 * 1024
@@ -1395,6 +1408,198 @@ function validateLongFormMergeManifest(value) {
   }
 }
 
+function validateDeliveryH264ChunkManifest(value) {
+  const request = exactObject(value, [
+    'schemaVersion', 'toolId', 'operationId', 'inputMode', 'payload', 'inputs',
+  ], 'delivery H.264 chunk streaming request')
+  if (
+    request.schemaVersion !== DELIVERY_H264_CHUNK_STREAMING_PROTOCOL ||
+    request.toolId !== 'remotion' || request.operationId !== OPERATION ||
+    request.inputMode !== STREAMING_INPUT_MODE
+  ) throw new Error('delivery H.264 chunk streaming identity is unsupported')
+  const payload = exactObject(request.payload, [
+    'recipeProfileId', 'compositionProfileId', 'longFormCapacityProfileId',
+    'chunkId', 'chunkAuthorityHash', 'sourceVp9ObjectIdentity',
+    'expectedOutputIdentity', 'chunkIndex', 'chunkCount', 'width', 'height',
+    'fps', 'durationFrames', 'globalStartFrame', 'globalEndFrameExclusive',
+    'sourceVideoPolicy', 'transcodePolicy', 'outputContainer',
+    'outputVideoCodec', 'outputVideoProfile', 'outputCrf', 'outputPreset',
+    'outputPixelFormat', 'outputColorRange', 'outputColorSpace',
+    'outputColorTransfer', 'outputColorPrimaries', 'outputAudioPolicy',
+    'renderPurpose', 'deliveryProfileId', 'estimateCostBasisProfileId',
+    'sourceQualityPolicy', 'usesApprovedEditReservation',
+    'requiresSeparateExportEstimate', 'allowsAdditionalExportCharge',
+  ], 'delivery H.264 chunk planning payload')
+  const chunkId = safeIdentity(payload.chunkId, 'delivery chunkId')
+  const chunkAuthorityHash = sha256Identity(
+    payload.chunkAuthorityHash,
+    'delivery chunkAuthorityHash',
+  )
+  const sourceVp9ObjectIdentity = sha256Identity(
+    payload.sourceVp9ObjectIdentity,
+    'delivery sourceVp9ObjectIdentity',
+  )
+  const expectedOutputIdentity = sha256Identity(
+    payload.expectedOutputIdentity,
+    'delivery expectedOutputIdentity',
+  )
+  const chunkIndex = integer(payload.chunkIndex, 1, 124, 'delivery chunkIndex')
+  const chunkCount = integer(payload.chunkCount, 2, 124, 'delivery chunkCount')
+  const width = integer(payload.width, 2160, 3840, 'delivery width')
+  const height = integer(payload.height, 2160, 3840, 'delivery height')
+  const durationFrames = integer(
+    payload.durationFrames,
+    1_350,
+    5_400,
+    'delivery durationFrames',
+  )
+  const globalStartFrame = integer(
+    payload.globalStartFrame,
+    0,
+    647_999,
+    'delivery globalStartFrame',
+  )
+  const globalEndFrameExclusive = integer(
+    payload.globalEndFrameExclusive,
+    1,
+    648_000,
+    'delivery globalEndFrameExclusive',
+  )
+  const dimensions = `${width}x${height}`
+  if (
+    payload.recipeProfileId !== DELIVERY_H264_CHUNK_RECIPE ||
+    payload.compositionProfileId !==
+      DELIVERY_H264_CHUNK_COMPOSITION_PROFILE ||
+    payload.longFormCapacityProfileId !==
+      PROFESSIONAL_LONG_FORM_OBJECT_CAPACITY_PROFILE ||
+    chunkIndex > chunkCount || !FOUR_K_MASTER_FRAMES.includes(dimensions) ||
+    payload.fps !== 30 ||
+    globalEndFrameExclusive - globalStartFrame !== durationFrames ||
+    payload.sourceVideoPolicy !== 'exact_passed_vp9_object_chunk_v2' ||
+    payload.transcodePolicy !==
+      'h264_high_crf18_medium_frame_preserving_v1' ||
+    payload.outputContainer !== 'mp4' ||
+    payload.outputVideoCodec !== 'h264' ||
+    payload.outputVideoProfile !== 'high' || payload.outputCrf !== 18 ||
+    payload.outputPreset !== 'medium' ||
+    payload.outputPixelFormat !== 'yuv420p' ||
+    payload.outputColorRange !== 'tv' ||
+    payload.outputColorSpace !== 'bt709' ||
+    payload.outputColorTransfer !== 'bt709' ||
+    payload.outputColorPrimaries !== 'bt709' ||
+    payload.outputAudioPolicy !== 'video_only_no_audio' ||
+    payload.renderPurpose !==
+      'private_4k_customer_delivery_video_chunk_v1' ||
+    payload.deliveryProfileId !== 'uhd_2160' ||
+    payload.estimateCostBasisProfileId !== 'uhd_2160' ||
+    payload.sourceQualityPolicy !== 'immutable_source_master_no_proxy_v1' ||
+    payload.usesApprovedEditReservation !== true ||
+    payload.requiresSeparateExportEstimate !== false ||
+    payload.allowsAdditionalExportCharge !== false
+  ) throw new Error('delivery H.264 chunk policy is unsupported')
+  const inputs = exactObject(request.inputs, ['source'],
+    'delivery H.264 chunk inputs')
+  const source = validateStreamingInputCommitment(
+    inputs.source,
+    ['inputId', 'mimeType', 'byteLength', 'sha256'],
+    'video/x-matroska',
+    64,
+    MAXIMUM_DELIVERY_H264_CHUNK_SOURCE_BYTES,
+    'delivery H.264 chunk source',
+  )
+  return {
+    schemaVersion: DELIVERY_H264_CHUNK_STREAMING_PROTOCOL,
+    toolId: 'remotion',
+    operationId: OPERATION,
+    inputMode: STREAMING_INPUT_MODE,
+    payload: {
+      recipeProfileId: DELIVERY_H264_CHUNK_RECIPE,
+      compositionProfileId: DELIVERY_H264_CHUNK_COMPOSITION_PROFILE,
+      longFormCapacityProfileId:
+        PROFESSIONAL_LONG_FORM_OBJECT_CAPACITY_PROFILE,
+      chunkId,
+      chunkAuthorityHash,
+      sourceVp9ObjectIdentity,
+      expectedOutputIdentity,
+      chunkIndex,
+      chunkCount,
+      width,
+      height,
+      fps: 30,
+      durationFrames,
+      globalStartFrame,
+      globalEndFrameExclusive,
+      sourceVideoPolicy: 'exact_passed_vp9_object_chunk_v2',
+      transcodePolicy: 'h264_high_crf18_medium_frame_preserving_v1',
+      outputContainer: 'mp4',
+      outputVideoCodec: 'h264',
+      outputVideoProfile: 'high',
+      outputCrf: 18,
+      outputPreset: 'medium',
+      outputPixelFormat: 'yuv420p',
+      outputColorRange: 'tv',
+      outputColorSpace: 'bt709',
+      outputColorTransfer: 'bt709',
+      outputColorPrimaries: 'bt709',
+      outputAudioPolicy: 'video_only_no_audio',
+      renderPurpose: 'private_4k_customer_delivery_video_chunk_v1',
+      deliveryProfileId: 'uhd_2160',
+      estimateCostBasisProfileId: 'uhd_2160',
+      sourceQualityPolicy: 'immutable_source_master_no_proxy_v1',
+      usesApprovedEditReservation: true,
+      requiresSeparateExportEstimate: false,
+      allowsAdditionalExportCharge: false,
+    },
+    inputs: { source },
+    commitments: [source],
+  }
+}
+
+function sha256Identity(value, label) {
+  if (typeof value !== 'string' || !/^[a-f0-9]{64}$/.test(value)) {
+    throw new Error(`${label} is invalid`)
+  }
+  return value
+}
+
+async function materializeDeliveryH264ChunkRequest(
+  manifest,
+  reader,
+  requestHash,
+) {
+  const source = manifest.inputs.source
+  const path = `/tmp/reeditpro-stream-input-delivery-h264-${process.pid}-${requestHash.slice(0, 12)}.mkv`
+  try {
+    const file = await reader.readExactFile(path, source.byteLength)
+    if (
+      file.sha256 !== source.sha256 ||
+      !approvedStreamingInputSignature(file.firstBytes, 'video/x-matroska')
+    ) throw new Error(
+      'delivery H.264 source failed exact checksum or Matroska signature verification',
+    )
+    await reader.assertEnd()
+    return {
+      request: {
+        schemaVersion: DELIVERY_H264_CHUNK_STREAMING_PROTOCOL,
+        toolId: 'remotion',
+        operationId: OPERATION,
+        inputMode: STREAMING_INPUT_MODE,
+        payload: {
+          ...manifest.payload,
+          sourceMimeType: 'video/x-matroska',
+          sourceByteLength: source.byteLength,
+          sourceSha256: source.sha256,
+          sourceInternalFilePath: path,
+        },
+      },
+      materialized: [{ ...source, path }],
+    }
+  } catch (error) {
+    await rm(path, { force: true }).catch(() => undefined)
+    throw error
+  }
+}
+
 async function materializeLongFormMergeRequest(manifest, reader, requestHash) {
   const materialized = []
   try {
@@ -1548,18 +1753,23 @@ async function execute(request, options = {}) {
   }
   const longFormMerge =
     request.payload.compositionProfileId === LONG_FORM_MERGE_COMPOSITION_PROFILE
+  const deliveryH264Chunk = request.payload.compositionProfileId ===
+    DELIVERY_H264_CHUNK_COMPOSITION_PROFILE
   const finalComposition = [
     'approved_source_caption_final_v1',
     'approved_source_sequence_caption_final_v1',
     'approved_source_caption_track_final_v1',
     'approved_source_sequence_caption_track_final_v1',
     LONG_FORM_MERGE_COMPOSITION_PROFILE,
+    DELIVERY_H264_CHUNK_COMPOSITION_PROFILE,
   ].includes(request.payload.compositionProfileId)
   const captionTrack = isCaptionTrackProfile(request.payload.compositionProfileId)
   const replaceVoice = finalComposition &&
     request.payload.audioPolicy === 'replace_with_approved_voice_tracks'
-  const fourKDeliveryMaster = finalComposition &&
-    request.payload.renderPurpose === 'private_4k_delivery_master_v1'
+  const fourKDeliveryMaster = finalComposition && [
+    'private_4k_delivery_master_v1',
+    'private_4k_customer_delivery_video_chunk_v1',
+  ].includes(request.payload.renderPurpose)
   const mediaServer = finalComposition
     ? await openPrivateLoopbackMediaServer(
         longFormMerge
@@ -1590,7 +1800,7 @@ async function execute(request, options = {}) {
                 request.payload.sourceByteLength,
               ),
             }],
-        longFormMerge
+        longFormMerge || deliveryH264Chunk
           ? []
           : captionTrack
           ? request.payload.captionOverlays.map((overlay) => ({
@@ -1625,7 +1835,9 @@ async function execute(request, options = {}) {
           : [],
       )
     : null
-  const captionRenderPayload = captionTrack
+  const captionRenderPayload = deliveryH264Chunk
+    ? {}
+    : captionTrack
     ? {
         captionOverlayCues: request.payload.captionOverlayCues,
         captionOverlayInternalUrls: request.payload.captionOverlays.map((overlay, index) => ({
@@ -1645,7 +1857,17 @@ async function execute(request, options = {}) {
         })),
       }
     : {}
-  const renderPayload = longFormMerge
+  const renderPayload = deliveryH264Chunk
+    ? {
+        compositionProfileId: DELIVERY_H264_CHUNK_COMPOSITION_PROFILE,
+        deliveryProfileId: 'uhd_2160',
+        width: request.payload.width,
+        height: request.payload.height,
+        fps: request.payload.fps,
+        durationFrames: request.payload.durationFrames,
+        sourceInternalUrl: `${mediaServer.origin}/source/0.mkv`,
+      }
+    : longFormMerge
     ? {
         compositionProfileId: LONG_FORM_MERGE_COMPOSITION_PROFILE,
         deliveryProfileId: 'uhd_2160',
@@ -1731,7 +1953,7 @@ async function execute(request, options = {}) {
       pixelFormat: 'yuv420p',
       colorSpace: 'bt709',
       ffmpegOverride: enforceFixedBt709H264Vui,
-      muted: !finalComposition,
+      muted: deliveryH264Chunk || !finalComposition,
       concurrency: 1,
       disallowParallelEncoding: true,
       overwrite: false,
@@ -1744,7 +1966,7 @@ async function execute(request, options = {}) {
     if (options.streamingOutput === true) {
       const commitment = await inspectRenderedOutput(
         outputPath,
-        MAXIMUM_STREAMING_OUTPUT_BYTES,
+        options.maximumOutputBytes ?? MAXIMUM_STREAMING_OUTPUT_BYTES,
       )
       retainStreamingOutput = true
       return {
@@ -2088,7 +2310,19 @@ function semanticEvidence(request, streaming) {
           professionalHighQualityEncodeApplied: true,
         }
       : {}),
-    ...(request.payload.compositionProfileId === LONG_FORM_MERGE_COMPOSITION_PROFILE
+    ...(request.payload.compositionProfileId ===
+      DELIVERY_H264_CHUNK_COMPOSITION_PROFILE
+      ? {
+          approvedDeliveryH264ChunkProfileExecuted: true,
+          exactPassedVp9ObjectChunkBytesVerified: true,
+          sourceFrameCountPreserved: true,
+          videoOnlyH264HighCrf18MediumApplied: true,
+          fixedBt709LimitedRangePolicyApplied: true,
+          approvedReservationReuseOnly: true,
+          secondEstimateOrExportChargeForbidden: true,
+        }
+      : request.payload.compositionProfileId ===
+        LONG_FORM_MERGE_COMPOSITION_PROFILE
       ? {
           approvedCompositionChunkBytesVerified: true,
           approvedCompositionChunkOrderApplied: true,
@@ -2165,6 +2399,10 @@ function responseEnvelope(schemaVersion, requestEnvelopeSha256, artifact, reques
       ...(request.payload.compositionProfileId === LONG_FORM_MERGE_COMPOSITION_PROFILE
         ? { privateInternalLongFormMergeReady: true }
         : {}),
+      ...(request.payload.compositionProfileId ===
+        DELIVERY_H264_CHUNK_COMPOSITION_PROFILE
+        ? { privateInternalDeliveryH264ChunkReady: true }
+        : {}),
     },
   }
 }
@@ -2182,7 +2420,33 @@ let streamingOutputPath
 try {
   const rawHeader = await reader.readLine(MAXIMUM_REQUEST_BYTES)
   const parsed = JSON.parse(rawHeader.toString('utf8'))
-  if (parsed?.schemaVersion === LONG_FORM_MERGE_STREAMING_PROTOCOL) {
+  if (parsed?.schemaVersion === DELIVERY_H264_CHUNK_STREAMING_PROTOCOL) {
+    if (rawHeader.byteLength > MAXIMUM_DELIVERY_H264_CHUNK_MANIFEST_BYTES) {
+      throw new Error('delivery H.264 chunk manifest exceeded its metadata ceiling')
+    }
+    const manifest = validateDeliveryH264ChunkManifest(parsed)
+    const materialized = await materializeDeliveryH264ChunkRequest(
+      manifest,
+      reader,
+      sha256(rawHeader),
+    )
+    streamingFiles = materialized.materialized
+    const execution = await execute(materialized.request, {
+      streamingOutput: true,
+      maximumOutputBytes: MAXIMUM_DELIVERY_H264_CHUNK_OUTPUT_BYTES,
+    })
+    streamingOutputPath = execution.outputPath
+    const response = responseEnvelope(
+      DELIVERY_H264_CHUNK_STREAMING_CONTAINER_PROTOCOL,
+      sha256(rawHeader),
+      execution.artifact,
+      materialized.request,
+      true,
+    )
+    process.stdout.write(`${JSON.stringify(response)}\n`)
+    streamingHeaderWritten = true
+    await writeFileToStdout(execution.outputPath)
+  } else if (parsed?.schemaVersion === LONG_FORM_MERGE_STREAMING_PROTOCOL) {
     if (rawHeader.byteLength > MAXIMUM_STREAMING_MANIFEST_BYTES) {
       throw new Error('long-form merge manifest exceeded its metadata ceiling')
     }

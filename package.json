@@ -58,6 +58,7 @@
     "smoke:canonical-professional-long-form-private-master-qa": "tsx server/smoke/canonical-professional-long-form-cross-chunk-color-smoke.ts",
     "smoke:professional-long-form-customer-delivery-graph": "tsx server/smoke/professional-long-form-customer-delivery-graph-smoke.ts",
     "smoke:canonical-professional-long-form-customer-delivery-package": "tsx server/smoke/canonical-professional-long-form-cross-chunk-color-smoke.ts",
+    "smoke:offline-remotion-delivery-h264-chunk-contract": "tsx server/smoke/offline-remotion-delivery-h264-chunk-contract-smoke.ts",
     "smoke:offline-media-binary-long-form-master-contract": "tsx server/smoke/offline-media-binary-long-form-master-assembly-contract-smoke.ts",
     "smoke:offline-media-binary-long-form-master": "tsx server/smoke/offline-media-binary-long-form-master-assembly-smoke.ts",
     "smoke:canonical-cloud-dispatch-handoff": "tsx server/smoke/canonical-cloud-worker-dispatch-handoff-smoke.ts",

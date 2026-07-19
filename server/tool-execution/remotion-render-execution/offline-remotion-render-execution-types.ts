@@ -1,6 +1,8 @@
 import type { OfflineRemotionRenderRequest } from './offline-remotion-render-execution-protocol'
 import type { OfflineRemotionStreamingRenderRequest } from './offline-remotion-render-streaming-protocol'
 import type { OfflineRemotionLongFormMergeStreamingRequest } from './offline-remotion-long-form-merge-protocol'
+import type { OfflineRemotionDeliveryH264ChunkRequest } from
+  './offline-remotion-delivery-h264-chunk-protocol'
 
 export interface OfflineRemotionImageEvidence {
   imageTag: 'reeditpro-offline-remotion-render-execution:canonical-private-local-v1'
@@ -23,21 +25,52 @@ export interface OfflineRemotionConfinementEvidence {
   noNewPrivileges: true
   privileged: false
   pidsLimit: 256
-  memoryLimitBytes: 4294967296
-  memoryAndSwapLimitBytes: 4294967296
-  nanoCpus: 2000000000
+  memoryLimitBytes: 4294967296 | 8589934592
+  memoryAndSwapLimitBytes: 4294967296 | 8589934592
+  nanoCpus: 2000000000 | 4000000000
   tmpfsPath: '/tmp'
-  tmpfsSizeBytes: 1073741824
+  tmpfsSizeBytes: 1073741824 | 7516192768
   tmpfsNoExec: true
   tmpfsNoSuid: true
   tmpfsNoDevice: true
-  shmSizeBytes: 536870912
+  shmSizeBytes: 536870912 | 1073741824
   user: '10001:10001'
   callerCommandPresent: false
   callerBindsPresent: false
   callerMountsPresent: false
   callerEnvironmentPresent: false
   secretLikeImageEnvironmentNames: readonly []
+}
+
+export interface OfflineRemotionDeliveryH264ChunkStreamingResult {
+  schemaVersion: 'offline-remotion-delivery-h264-chunk-stream-execution-result-v1'
+  request: OfflineRemotionDeliveryH264ChunkRequest
+  artifact: OfflineRemotionStreamingRenderResult['artifact']
+  evidence: OfflineRemotionStreamingRenderResult['evidence'] & {
+    resourceProfileId: 'delivery_h264_chunk_cpu_4vcpu_8gib_v1'
+  }
+  attestation: {
+    schemaVersion:
+      'offline-remotion-delivery-h264-chunk-stream-execution-attestation-v1'
+    recordId: string
+    completedAt: string
+    imageIdentityHash: string
+    requestEnvelopeSha256: string
+    artifactSha256: string
+    artifactByteLength: number
+    confinementHash: string
+    attestationHash: string
+  }
+  readiness: {
+    privateInternalOnly: true
+    productReady: false
+    externalBetaReady: false
+    productionReady: false
+    privateInternalDeliveryH264ChunkReady: true
+    independentChunkQaVerified: false
+    serverInjectedStreamingReady: true
+    canonicalDispatchIntegrated: false
+  }
 }
 
 export interface OfflineRemotionRenderResult {
@@ -175,6 +208,7 @@ export interface OfflineRemotionRuntimeAuthority {
     privateInternalFinalCompositionReady: true
     serverInjectedStreamingFinalCompositionReady: true
     serverInjectedStreamingLongFormMergeReady: true
+    serverInjectedStreamingDeliveryH264ChunkReady: true
     finalExportReady: false
   }
   blockers: readonly string[]

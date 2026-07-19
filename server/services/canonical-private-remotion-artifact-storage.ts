@@ -8,9 +8,14 @@ import {
   writePrivateFileCreateOnlyWithinRoot,
   writePrivateStreamCreateOnlyWithinRoot,
 } from '../security/private-local-persistence'
+import {
+  OFFLINE_REMOTION_DELIVERY_H264_CHUNK_MAXIMUM_OUTPUT_BYTES,
+} from '../tool-execution/remotion-render-execution/offline-remotion-delivery-h264-chunk-protocol'
 
 const LEGACY_BUFFER_MAXIMUM_BYTES = 16 * 1024 * 1024
 export const CANONICAL_PRIVATE_REMOTION_STREAMING_MAXIMUM_BYTES = 256 * 1024 * 1024
+export const CANONICAL_PRIVATE_REMOTION_DELIVERY_H264_CHUNK_MAXIMUM_BYTES =
+  OFFLINE_REMOTION_DELIVERY_H264_CHUNK_MAXIMUM_OUTPUT_BYTES
 const SHA = /^[a-f0-9]{64}$/
 
 export interface CanonicalPrivateRemotionArtifactInspection {
@@ -61,11 +66,42 @@ export async function persistCanonicalPrivateRemotionArtifactStream(input: {
   expectedByteLength: number
   expectedSha256: string
 }): Promise<{ byteLength: number; sha256: string; replayed: boolean }> {
-  assertIdentityAndStreamingCommitment(input)
-  const existing = await inspectCanonicalPrivateRemotionArtifact({
+  return persistCanonicalPrivateRemotionArtifactStreamWithinCeiling(
+    input,
+    CANONICAL_PRIVATE_REMOTION_STREAMING_MAXIMUM_BYTES,
+  )
+}
+
+export async function persistCanonicalPrivateRemotionDeliveryH264ChunkArtifactStream(
+  input: {
+    localStorageRoot: string
+    privateObjectIdentityHash: string
+    stream: Readable
+    expectedByteLength: number
+    expectedSha256: string
+  },
+): Promise<{ byteLength: number; sha256: string; replayed: boolean }> {
+  return persistCanonicalPrivateRemotionArtifactStreamWithinCeiling(
+    input,
+    CANONICAL_PRIVATE_REMOTION_DELIVERY_H264_CHUNK_MAXIMUM_BYTES,
+  )
+}
+
+async function persistCanonicalPrivateRemotionArtifactStreamWithinCeiling(
+  input: {
+    localStorageRoot: string
+    privateObjectIdentityHash: string
+    stream: Readable
+    expectedByteLength: number
+    expectedSha256: string
+  },
+  maximumBytes: number,
+): Promise<{ byteLength: number; sha256: string; replayed: boolean }> {
+  assertIdentityAndStreamingCommitment(input, maximumBytes)
+  const existing = await inspectCanonicalPrivateRemotionArtifactWithinCeiling({
     localStorageRoot: input.localStorageRoot,
     privateObjectIdentityHash: input.privateObjectIdentityHash,
-  })
+  }, maximumBytes)
   if (existing) {
     if (
       existing.byteLength !== input.expectedByteLength ||
@@ -75,7 +111,7 @@ export async function persistCanonicalPrivateRemotionArtifactStream(input: {
       stream: input.stream,
       expectedByteLength: input.expectedByteLength,
       expectedSha256: input.expectedSha256,
-    })
+    }, maximumBytes)
     return { byteLength: existing.byteLength, sha256: existing.sha256, replayed: true }
   }
 
@@ -109,7 +145,7 @@ export async function persistCanonicalPrivateRemotionArtifactStream(input: {
     rootPath: input.localStorageRoot,
     relativePath: relativePath(input.privateObjectIdentityHash),
     stream: verifiedStream,
-    maximumBytes: CANONICAL_PRIVATE_REMOTION_STREAMING_MAXIMUM_BYTES,
+    maximumBytes,
   })
   const signature = Buffer.concat(signatureChunks, signatureByteLength)
   if (
@@ -117,10 +153,10 @@ export async function persistCanonicalPrivateRemotionArtifactStream(input: {
     written.checksumSha256 !== input.expectedSha256 ||
     signature.byteLength < 8 || signature.subarray(4, 8).toString('ascii') !== 'ftyp'
   ) throw invalid('Private Remotion stream failed its MP4 content commitment.')
-  const stored = await inspectCanonicalPrivateRemotionArtifact({
+  const stored = await inspectCanonicalPrivateRemotionArtifactWithinCeiling({
     localStorageRoot: input.localStorageRoot,
     privateObjectIdentityHash: input.privateObjectIdentityHash,
-  })
+  }, maximumBytes)
   if (
     !stored || stored.byteLength !== input.expectedByteLength ||
     stored.sha256 !== input.expectedSha256
@@ -132,6 +168,30 @@ export async function inspectCanonicalPrivateRemotionArtifact(input: {
   localStorageRoot: string
   privateObjectIdentityHash: string
 }): Promise<CanonicalPrivateRemotionArtifactInspection | undefined> {
+  return inspectCanonicalPrivateRemotionArtifactWithinCeiling(
+    input,
+    CANONICAL_PRIVATE_REMOTION_STREAMING_MAXIMUM_BYTES,
+  )
+}
+
+export async function inspectCanonicalPrivateRemotionDeliveryH264ChunkArtifact(
+  input: {
+    localStorageRoot: string
+    privateObjectIdentityHash: string
+  },
+): Promise<CanonicalPrivateRemotionArtifactInspection | undefined> {
+  return inspectCanonicalPrivateRemotionArtifactWithinCeiling(
+    input,
+    CANONICAL_PRIVATE_REMOTION_DELIVERY_H264_CHUNK_MAXIMUM_BYTES,
+  )
+}
+
+async function inspectCanonicalPrivateRemotionArtifactWithinCeiling(input: {
+  localStorageRoot: string
+  privateObjectIdentityHash: string
+}, maximumBytes: number): Promise<
+  CanonicalPrivateRemotionArtifactInspection | undefined
+> {
   if (!SHA.test(input.privateObjectIdentityHash)) {
     throw invalid('Private Remotion object identity is invalid.')
   }
@@ -145,7 +205,7 @@ export async function inspectCanonicalPrivateRemotionArtifact(input: {
     if (error instanceof ApiError && error.status === 404) return undefined
     throw error
   }
-  const commitment = await inspectMp4Stream(stream)
+  const commitment = await inspectMp4Stream(stream, maximumBytes)
   return {
     ...commitment,
     async openStream(range?: { start: number; end: number }) {
@@ -179,16 +239,19 @@ function assertIdentityAndStreamingCommitment(input: {
   expectedByteLength: number
   expectedSha256: string
   stream: Readable
-}): void {
+}, maximumBytes: number): void {
   if (
     !SHA.test(input.privateObjectIdentityHash) || !SHA.test(input.expectedSha256) ||
     !Number.isSafeInteger(input.expectedByteLength) || input.expectedByteLength < 1_024 ||
-    input.expectedByteLength > CANONICAL_PRIVATE_REMOTION_STREAMING_MAXIMUM_BYTES ||
+    input.expectedByteLength > maximumBytes ||
     !input.stream || typeof input.stream.pipe !== 'function'
   ) throw invalid('Private Remotion streaming commitment is invalid.')
 }
 
-async function inspectMp4Stream(stream: Readable): Promise<{ byteLength: number; sha256: string }> {
+async function inspectMp4Stream(
+  stream: Readable,
+  maximumBytes: number,
+): Promise<{ byteLength: number; sha256: string }> {
   const checksum = createHash('sha256')
   const signatureChunks: Buffer[] = []
   let signatureByteLength = 0
@@ -196,7 +259,7 @@ async function inspectMp4Stream(stream: Readable): Promise<{ byteLength: number;
   for await (const chunk of stream) {
     const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)
     byteLength += bytes.byteLength
-    if (byteLength > CANONICAL_PRIVATE_REMOTION_STREAMING_MAXIMUM_BYTES) {
+    if (byteLength > maximumBytes) {
       throw invalid('Stored private Remotion artifact exceeds its streaming ceiling.')
     }
     checksum.update(bytes)
@@ -218,8 +281,8 @@ async function verifyCommittedMp4Stream(input: {
   stream: Readable
   expectedByteLength: number
   expectedSha256: string
-}): Promise<void> {
-  const actual = await inspectMp4Stream(input.stream)
+}, maximumBytes: number): Promise<void> {
+  const actual = await inspectMp4Stream(input.stream, maximumBytes)
   if (
     actual.byteLength !== input.expectedByteLength ||
     actual.sha256 !== input.expectedSha256

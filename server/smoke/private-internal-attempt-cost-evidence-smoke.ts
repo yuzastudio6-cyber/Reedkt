@@ -191,6 +191,87 @@ try {
   assert.equal(ffmpeg.evidence.resourceUsage.gpuCount, 0)
   assertNoCommercialKeys(ffmpeg.evidence)
 
+  const finalMasterVideoQaInput = {
+    ...common,
+    approvedWorkItemId: 'work-item-final-master-decoded-video-qa-cost-proof',
+    jobId: 'job-final-master-decoded-video-qa-cost-proof',
+    executionAttemptId: 'attempt-final-master-decoded-video-qa-cost-proof',
+    toolId: 'ffmpeg' as const,
+    operationId: 'tool.ffmpeg.execute_approved_media_recipe.v1' as const,
+    workloadProfileId:
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFinalMasterDecodedVideoQa,
+  }
+  const finalMasterVideoQaMeter = await beginPrivateInternalAttemptCostEvidence(
+    finalMasterVideoQaInput,
+    clock([33_000_000_000n, 34_500_000_000n], ['2026-07-11T12:04:10.000Z']),
+  )
+  const finalMasterVideoQa = await finalMasterVideoQaMeter.finalize({
+    status: 'completed',
+    failureCategory: 'none',
+    outputByteLength: 16_384,
+    linkedCanonicalOutcomeHash: '3'.repeat(64),
+  })
+  assert.equal(finalMasterVideoQa.evidence.identity.toolId, 'ffmpeg')
+  assert.equal(
+    finalMasterVideoQa.evidence.identity.workloadProfileId,
+    PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFinalMasterDecodedVideoQa,
+  )
+  assert.deepEqual(
+    {
+      vcpuCount: finalMasterVideoQa.evidence.resourceUsage.vcpuCount,
+      memoryGib: finalMasterVideoQa.evidence.resourceUsage.memoryGib,
+      gpuCount: finalMasterVideoQa.evidence.resourceUsage.gpuCount,
+      networkEgressMib: finalMasterVideoQa.evidence.resourceUsage.networkEgressMib,
+    },
+    { vcpuCount: 2, memoryGib: 2, gpuCount: 0, networkEgressMib: 0 },
+  )
+  assert(finalMasterVideoQa.evidence.actualInternalCostMicros > 0)
+  assertNoCommercialKeys(finalMasterVideoQa.evidence)
+  assert.equal(privateInternalAttemptCostEvidenceSchema.safeParse({
+    ...finalMasterVideoQa.evidence,
+    resourceUsage: {
+      ...finalMasterVideoQa.evidence.resourceUsage,
+      memoryGib: 4,
+    },
+  }).success, false)
+
+  const finalMasterAudioQaInput = {
+    ...common,
+    approvedWorkItemId: 'work-item-final-master-decoded-audio-qa-cost-proof',
+    jobId: 'job-final-master-decoded-audio-qa-cost-proof',
+    executionAttemptId: 'attempt-final-master-decoded-audio-qa-cost-proof',
+    toolId: 'ffmpeg' as const,
+    operationId: 'tool.ffmpeg.execute_approved_media_recipe.v1' as const,
+    workloadProfileId:
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFinalMasterDecodedAudioQa,
+  }
+  const finalMasterAudioQaMeter = await beginPrivateInternalAttemptCostEvidence(
+    finalMasterAudioQaInput,
+    clock([34_500_000_000n, 35_500_000_000n], ['2026-07-11T12:04:20.000Z']),
+  )
+  const finalMasterAudioQa = await finalMasterAudioQaMeter.finalize({
+    status: 'completed',
+    failureCategory: 'none',
+    outputByteLength: 12_288,
+    linkedCanonicalOutcomeHash: '4'.repeat(64),
+  })
+  assert.equal(finalMasterAudioQa.evidence.identity.toolId, 'ffmpeg')
+  assert.equal(
+    finalMasterAudioQa.evidence.identity.workloadProfileId,
+    PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFinalMasterDecodedAudioQa,
+  )
+  assert.deepEqual(
+    {
+      vcpuCount: finalMasterAudioQa.evidence.resourceUsage.vcpuCount,
+      memoryGib: finalMasterAudioQa.evidence.resourceUsage.memoryGib,
+      gpuCount: finalMasterAudioQa.evidence.resourceUsage.gpuCount,
+      networkEgressMib: finalMasterAudioQa.evidence.resourceUsage.networkEgressMib,
+    },
+    { vcpuCount: 2, memoryGib: 2, gpuCount: 0, networkEgressMib: 0 },
+  )
+  assert(finalMasterAudioQa.evidence.actualInternalCostMicros > 0)
+  assertNoCommercialKeys(finalMasterAudioQa.evidence)
+
   const objectChunkRenderInput = {
     ...common,
     approvedWorkItemId: 'long-form-object-chunk-1-render',
@@ -437,6 +518,10 @@ try {
     failedAttemptCostMicros: failed.evidence.actualInternalCostMicros,
     remotionChunkAttemptCostMicros: remotion.evidence.actualInternalCostMicros,
     ffmpegFinalizationAttemptCostMicros: ffmpeg.evidence.actualInternalCostMicros,
+    finalMasterDecodedVideoQaAttemptCostMicros:
+      finalMasterVideoQa.evidence.actualInternalCostMicros,
+    finalMasterDecodedAudioQaAttemptCostMicros:
+      finalMasterAudioQa.evidence.actualInternalCostMicros,
     ffmpegObjectChunkAttemptCostMicros:
       objectChunkRender.evidence.actualInternalCostMicros,
     ffprobeObjectChunkQaAttemptCostMicros:
@@ -460,6 +545,8 @@ try {
       'executed_failure_retains_internal_cost',
       'remotion_4k_chunk_profile_is_2vcpu_4gib_cpu_only',
       'ffmpeg_4k_finalization_profile_is_2vcpu_4gib_cpu_only',
+      'ffmpeg_final_master_decoded_video_qa_profile_is_2vcpu_2gib_cpu_only',
+      'ffmpeg_final_master_decoded_audio_qa_profile_is_2vcpu_2gib_cpu_only',
       'ffmpeg_4k_object_chunk_profile_is_2vcpu_4gib_cpu_only',
       'ffprobe_4k_object_chunk_qa_profile_is_2vcpu_4gib_cpu_only',
       'professional_long_form_snapshot_validation_profile_is_2vcpu_4gib_cpu_only',

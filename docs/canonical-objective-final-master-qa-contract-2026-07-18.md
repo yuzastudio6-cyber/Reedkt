@@ -1,6 +1,6 @@
 # Canonical Objective Final-Master QA Contract
 
-Status: bounded server-only contract plus direct private-local real-media runner evidence. The runner now independently reads and fully decodes exact server-injected test masters through the existing pinned, networkless FFmpeg/FFprobe image and writes checksum-protected local attestations. It does not prove canonical reservation/lease/one-use dispatch, attempt-cost reconciliation, private artifact persistence, long-form checkpoint/recovery, Google Cloud execution, six-gate aggregation, replay, downstream QA, public delivery, billing, or production readiness.
+Status: bounded server-only contract plus direct private-local real-media runner evidence and provisional attempt-level internal production-cost evidence. The runner independently reads and fully decodes exact server-injected test masters through the existing pinned, networkless FFmpeg/FFprobe image and writes checksum-protected local attestations. Its focused smoke now meters passed, review-required, failed, and replayed attempts through the shared versioned rate-card authority. It does not prove canonical reservation/lease/one-use dispatch, canonical cost reconciliation, private artifact persistence, long-form checkpoint/recovery, Google Cloud execution, six-gate aggregation, downstream replay/QA, public delivery, billing, or production readiness.
 
 ## Why This Layer Exists
 
@@ -68,7 +68,7 @@ Every gate binds an internal production-cost evidence-set hash. A set may cover 
 
 The top-level final-master render attempt retains its own cost hash. QA cannot hide failed compute or add a second customer charge.
 
-The direct runner proof added after this contract intentionally reports `internalCostEvidenceReconciled = false`. It consumes the original approved edit reservation boundary and prohibits a second export estimate or charge, but it does not invent an attempt-cost record. Canonical package dispatch must later bind every QA attempt, including failed/review attempts, to the shared internal production-cost authority before the six-gate aggregate can pass.
+The direct runner still intentionally reports `internalCostEvidenceReconciled = false`. Its focused smoke now creates exact, create-only, checksum-protected provisional-local cost records for passed, review-required, failed, and replayed decoded-QA attempts using fixed 2-vCPU/2-GiB/zero-GPU/no-network profiles. Failed compute remains visible, while an exact replay returns the same immutable evidence instead of creating a second cost record. These records prove the shared meter can price the real bounded runners; they are not yet accepted through the canonical package, lease, one-use dispatch, artifact-QA, and reconciliation transaction. Canonical execution must bind those authorities before the six-gate aggregate can pass.
 
 ## Current Contract And Runner Evidence
 
@@ -100,8 +100,11 @@ The real-media smoke creates private 1080p H.264/AAC fixtures only in `/tmp`, ex
 - a technically decodable silent master produces durable `needs_user_review` evidence rather than crashing or falsely passing;
 - source byte/checksum tampering and caller commands/commercial authority fail closed;
 - container network, root filesystem, user, privilege, capability, memory, CPU, mount, environment, and server-owned-entrypoint confinement remain fixed;
+- decoded-video and decoded-audio attempts use distinct versioned 2-vCPU/2-GiB internal-cost profiles through the shared rate card;
+- passed and review-required executions retain their exact output-linked internal cost, failed tamper execution retains absorbed internal cost without claiming an output, and exact replay returns the same create-only record;
+- internal production cost remains structurally separate from customer price, credits, service fee, wallet, billing, settlement, or a second export charge;
 - the original approved edit reservation is reused, with no second export estimate, export charge, media mutation, or provider call;
-- long-form checkpointing, Google Cloud workers, canonical lease/dispatch, internal-cost reconciliation, public delivery, product, external-beta, and production readiness remain false.
+- long-form checkpointing, Google Cloud workers, canonical lease/dispatch, canonical internal-cost reconciliation, public delivery, product, external-beta, and production readiness remain false.
 
 Run the real-media runner smoke with:
 
@@ -109,7 +112,7 @@ Run the real-media runner smoke with:
 npm run smoke:offline-final-master-objective-qa
 ```
 
-The current canonical FFprobe report alone still intentionally fails the six-gate aggregate with five missing gates. The new direct runner supplies real evidence for the decoded-video and decoded-audio portions, but it has not been compiled into canonical package work or bound to a real reservation, lease, one-use dispatch, attempt-cost record, persisted final artifact, reconciliation, replay, or downstream aggregate for the same completed master. Other repository slices contain separate Master Timing, continuous-program-audio, cross-chunk-color, artifact-QA, and reconciliation evidence; those pieces are not yet one complete objective-final-master run.
+The current canonical FFprobe report alone still intentionally fails the six-gate aggregate with five missing gates. The direct runner supplies real evidence for the decoded-video and decoded-audio portions, and its smoke now supplies provisional local attempt-cost evidence, but neither has been compiled into canonical package work or accepted through a real reservation, lease, one-use dispatch, persisted final artifact, cost/artifact reconciliation, replay, or downstream aggregate for the same completed master. Other repository slices contain separate Master Timing, continuous-program-audio, cross-chunk-color, artifact-QA, and reconciliation evidence; those pieces are not yet one complete objective-final-master run.
 
 ## Deliberate V1 Limits
 

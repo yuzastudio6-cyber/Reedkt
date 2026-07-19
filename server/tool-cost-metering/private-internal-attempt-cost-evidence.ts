@@ -66,6 +66,10 @@ export const PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS = {
   remotionFourKSourceSliceChunk: 'remotion_4k_source_slice_chunk_cpu_2vcpu_4gib_v1',
   ffmpegFourKMezzanineFinalization:
     'ffmpeg_4k_mezzanine_finalization_cpu_2vcpu_4gib_v1',
+  ffmpegFinalMasterDecodedVideoQa:
+    'ffmpeg_final_master_decoded_video_qa_cpu_2vcpu_2gib_v1',
+  ffmpegFinalMasterDecodedAudioQa:
+    'ffmpeg_final_master_decoded_audio_qa_cpu_2vcpu_2gib_v1',
   ffmpegFourKObjectMezzanineChunk:
     PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_COST_PROFILE_ID,
   ffprobeFourKObjectMezzanineChunkQa:
@@ -118,6 +122,22 @@ export const privateInternalAttemptCostIdentitySchema = z.union([
     operationId: z.literal('tool.ffmpeg.execute_approved_media_recipe.v1'),
     workloadProfileId: z.literal(
       PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFourKMezzanineFinalization,
+    ),
+  }).strict(),
+  z.object({
+    ...commonAttemptIdentityFields,
+    toolId: z.literal('ffmpeg'),
+    operationId: z.literal('tool.ffmpeg.execute_approved_media_recipe.v1'),
+    workloadProfileId: z.literal(
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFinalMasterDecodedVideoQa,
+    ),
+  }).strict(),
+  z.object({
+    ...commonAttemptIdentityFields,
+    toolId: z.literal('ffmpeg'),
+    operationId: z.literal('tool.ffmpeg.execute_approved_media_recipe.v1'),
+    workloadProfileId: z.literal(
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFinalMasterDecodedAudioQa,
     ),
   }).strict(),
   z.object({
@@ -200,7 +220,7 @@ const resourceUsageSchema = z.object({
   wallTimeMilliseconds: positiveSafeInteger,
   billableMilliseconds: positiveSafeInteger,
   vcpuCount: z.union([z.literal(2), z.literal(4)]),
-  memoryGib: z.literal(4),
+  memoryGib: z.union([z.literal(2), z.literal(4)]),
   gpuCount: z.literal(0),
   outputByteLength: safeInteger.nullable(),
   networkEgressMib: z.literal(0),
@@ -271,7 +291,7 @@ export interface PrivateInternalAttemptCostDescriptor {
   rateCardVersion: typeof TOOL_COST_RATE_CARD_VERSION
   resourceEnvelope: {
     vcpuCount: 2 | 4
-    memoryGib: 4
+    memoryGib: 2 | 4
     gpuCount: 0
   }
 }
@@ -305,6 +325,18 @@ export type BeginPrivateInternalAttemptCostEvidenceInput =
         operationId: 'tool.ffmpeg.execute_approved_media_recipe.v1'
         workloadProfileId:
           typeof PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFourKMezzanineFinalization
+      }
+    | {
+        toolId: 'ffmpeg'
+        operationId: 'tool.ffmpeg.execute_approved_media_recipe.v1'
+        workloadProfileId:
+          typeof PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFinalMasterDecodedVideoQa
+      }
+    | {
+        toolId: 'ffmpeg'
+        operationId: 'tool.ffmpeg.execute_approved_media_recipe.v1'
+        workloadProfileId:
+          typeof PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFinalMasterDecodedAudioQa
       }
     | {
         toolId: 'ffmpeg'
@@ -406,6 +438,24 @@ const beginInputSchema = z.union([
     operationId: z.literal('tool.ffmpeg.execute_approved_media_recipe.v1'),
     workloadProfileId: z.literal(
       PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFourKMezzanineFinalization,
+    ),
+  }).strict(),
+  z.object({
+    localStorageRoot: z.string().min(1),
+    ...commonAttemptIdentityFields,
+    toolId: z.literal('ffmpeg'),
+    operationId: z.literal('tool.ffmpeg.execute_approved_media_recipe.v1'),
+    workloadProfileId: z.literal(
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFinalMasterDecodedVideoQa,
+    ),
+  }).strict(),
+  z.object({
+    localStorageRoot: z.string().min(1),
+    ...commonAttemptIdentityFields,
+    toolId: z.literal('ffmpeg'),
+    operationId: z.literal('tool.ffmpeg.execute_approved_media_recipe.v1'),
+    workloadProfileId: z.literal(
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFinalMasterDecodedAudioQa,
     ),
   }).strict(),
   z.object({
@@ -768,9 +818,14 @@ function fixedResourceEnvelope(
     }>, 'workloadProfileId'>>,
 ) {
   const profileId = resolvePrivateInternalAttemptCostProfileId(input)
-  return profileId === PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.deepFilterNetVoiceCleanup
-    ? { vcpuCount: 4 as const, memoryGib: 4 as const, gpuCount: 0 as const }
-    : { vcpuCount: 2 as const, memoryGib: 4 as const, gpuCount: 0 as const }
+  if (profileId === PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.deepFilterNetVoiceCleanup) {
+    return { vcpuCount: 4 as const, memoryGib: 4 as const, gpuCount: 0 as const }
+  }
+  if (
+    profileId === PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFinalMasterDecodedVideoQa ||
+    profileId === PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFinalMasterDecodedAudioQa
+  ) return { vcpuCount: 2 as const, memoryGib: 2 as const, gpuCount: 0 as const }
+  return { vcpuCount: 2 as const, memoryGib: 4 as const, gpuCount: 0 as const }
 }
 
 export function resolvePrivateInternalAttemptCostProfileId(
@@ -790,6 +845,16 @@ export function resolvePrivateInternalAttemptCostProfileId(
     input.toolId === 'ffmpeg' &&
     input.workloadProfileId ===
       PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFourKMezzanineFinalization
+  ) return input.workloadProfileId
+  if (
+    input.toolId === 'ffmpeg' &&
+    input.workloadProfileId ===
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFinalMasterDecodedVideoQa
+  ) return input.workloadProfileId
+  if (
+    input.toolId === 'ffmpeg' &&
+    input.workloadProfileId ===
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFinalMasterDecodedAudioQa
   ) return input.workloadProfileId
   if (
     input.toolId === 'ffmpeg' &&

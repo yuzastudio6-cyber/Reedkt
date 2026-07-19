@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
-import { readFile, rm } from 'node:fs/promises'
+import { mkdtemp, readFile, rm } from 'node:fs/promises'
 import { join } from 'node:path'
 import { Readable } from 'node:stream'
 
@@ -16,6 +16,12 @@ import {
   sealOfflineFinalMasterAudioExceptionManifest,
   sealOfflineFinalMasterVisualExceptionManifest,
 } from '../tool-execution/media-binary-execution'
+import {
+  PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS,
+  beginPrivateInternalAttemptCostEvidence,
+  readPrivateInternalAttemptCostEvidence,
+  type PrivateInternalAttemptCostEvidence,
+} from '../tool-cost-metering/private-internal-attempt-cost-evidence'
 
 const fps = 30 as const
 const width = 1_920
@@ -29,6 +35,10 @@ const silentFixturePath = join(
   '/tmp',
   `reeditpro-final-master-objective-qa-silent-${process.pid}.mp4`,
 )
+const costRoot = await mkdtemp(join(
+  '/tmp',
+  `reeditpro-final-master-objective-qa-cost-${process.pid}-`,
+))
 
 try {
   const generated = spawnSync('ffmpeg', [
@@ -106,6 +116,16 @@ try {
     mediaMutationAllowed: false as const,
     providerCallAllowed: false as const,
   }
+  const commonCostIdentity = {
+    localStorageRoot: costRoot,
+    workspaceId: 'workspace-final-master-qa-smoke-1',
+    projectId: 'project-final-master-qa-smoke-1',
+    editSessionId: 'edit-session-final-master-qa-smoke-1',
+    approvedPlanSnapshotId: common.approvedPlanSnapshotId,
+    retryAttempt: 0,
+    toolId: 'ffmpeg' as const,
+    operationId: 'tool.ffmpeg.execute_approved_media_recipe.v1' as const,
+  }
   const approvedFreezeManifest = sealOfflineFinalMasterVisualExceptionManifest([{
     exceptionId: 'approved-intentional-static-hold-smoke-1',
     kind: 'approved_freeze_hold',
@@ -176,10 +196,51 @@ try {
     typeof reopenedRuntime.executeFinalMasterAudioQaServerInjected,
     'function',
   )
+  const videoCostInput = {
+    ...commonCostIdentity,
+    approvedWorkItemId: 'work-item-final-master-decoded-video-qa-smoke-1',
+    jobId: 'job-final-master-decoded-video-qa-smoke-1',
+    executionAttemptId: 'attempt-final-master-decoded-video-qa-smoke-1',
+    workloadProfileId:
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFinalMasterDecodedVideoQa,
+  }
+  const videoCostMeter = await beginPrivateInternalAttemptCostEvidence(
+    videoCostInput,
+  )
   const videoResult = await runtime.executeFinalMasterVideoQaServerInjected(
     videoRequest,
     privateInput,
   )
+  const videoAttemptCost = await videoCostMeter.finalize({
+    status: 'completed',
+    failureCategory: 'none',
+    outputByteLength: videoResult.resultJson.byteLength,
+    linkedCanonicalOutcomeHash: videoResult.resultJson.sha256,
+  })
+  assert.equal(videoAttemptCost.idempotencyStatus, 'inserted')
+  assertInternalAttemptCost(
+    videoAttemptCost.evidence,
+    PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFinalMasterDecodedVideoQa,
+  )
+  const persistedVideoAttemptCost =
+    await readPrivateInternalAttemptCostEvidence({
+      localStorageRoot: costRoot,
+      workspaceId: commonCostIdentity.workspaceId,
+      projectId: commonCostIdentity.projectId,
+      executionAttemptId: videoCostInput.executionAttemptId,
+    })
+  assert.deepEqual(persistedVideoAttemptCost, videoAttemptCost.evidence)
+  const replayVideoCostMeter = await beginPrivateInternalAttemptCostEvidence(
+    videoCostInput,
+  )
+  const replayVideoAttemptCost = await replayVideoCostMeter.finalize({
+    status: 'completed',
+    failureCategory: 'none',
+    outputByteLength: videoResult.resultJson.byteLength,
+    linkedCanonicalOutcomeHash: videoResult.resultJson.sha256,
+  })
+  assert.equal(replayVideoAttemptCost.idempotencyStatus, 'duplicate_returned')
+  assert.deepEqual(replayVideoAttemptCost.evidence, videoAttemptCost.evidence)
   const videoDocument = videoResult.resultJson.document
   const decodedVideo = record(videoDocument.decodedFrameIntegrity)
   const anomalyScan = record(videoDocument.visualAnomalyScan)
@@ -202,9 +263,31 @@ try {
   assert.equal(videoResult.readiness.publicDeliveryReady, false)
   assert.equal(videoResult.readiness.productReady, false)
 
+  const audioCostInput = {
+    ...commonCostIdentity,
+    approvedWorkItemId: 'work-item-final-master-decoded-audio-qa-smoke-1',
+    jobId: 'job-final-master-decoded-audio-qa-smoke-1',
+    executionAttemptId: 'attempt-final-master-decoded-audio-qa-smoke-1',
+    workloadProfileId:
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFinalMasterDecodedAudioQa,
+  }
+  const audioCostMeter = await beginPrivateInternalAttemptCostEvidence(
+    audioCostInput,
+  )
   const audioResult = await runtime.executeFinalMasterAudioQaServerInjected(
     audioRequest,
     privateInput,
+  )
+  const audioAttemptCost = await audioCostMeter.finalize({
+    status: 'completed',
+    failureCategory: 'none',
+    outputByteLength: audioResult.resultJson.byteLength,
+    linkedCanonicalOutcomeHash: audioResult.resultJson.sha256,
+  })
+  assert.equal(audioAttemptCost.idempotencyStatus, 'inserted')
+  assertInternalAttemptCost(
+    audioAttemptCost.evidence,
+    PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFinalMasterDecodedAudioQa,
   )
   const audioDocument = audioResult.resultJson.document
   const decodedAudio = record(audioDocument.decodedAudioIntegrity)
@@ -257,6 +340,19 @@ try {
     },
     finalMaster: silentFinalMaster,
   })
+  const silentAudioCostInput = {
+    ...commonCostIdentity,
+    approvedWorkItemId:
+      'work-item-final-master-decoded-audio-qa-silent-smoke-1',
+    jobId: 'job-final-master-decoded-audio-qa-silent-smoke-1',
+    executionAttemptId:
+      'attempt-final-master-decoded-audio-qa-silent-smoke-1',
+    workloadProfileId:
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFinalMasterDecodedAudioQa,
+  }
+  const silentAudioCostMeter = await beginPrivateInternalAttemptCostEvidence(
+    silentAudioCostInput,
+  )
   const silentAudioResult =
     await runtime.executeFinalMasterAudioQaServerInjected(
       silentAudioRequest,
@@ -267,6 +363,17 @@ try {
         async openStream() { return Readable.from([silentBytes]) },
       }),
     )
+  const silentAudioAttemptCost = await silentAudioCostMeter.finalize({
+    status: 'completed',
+    failureCategory: 'none',
+    outputByteLength: silentAudioResult.resultJson.byteLength,
+    linkedCanonicalOutcomeHash: silentAudioResult.resultJson.sha256,
+  })
+  assert.equal(silentAudioAttemptCost.evidence.outcome.status, 'completed')
+  assertInternalAttemptCost(
+    silentAudioAttemptCost.evidence,
+    PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFinalMasterDecodedAudioQa,
+  )
   const silentAudioQuality = record(
     silentAudioResult.resultJson.document.audioQualityScan,
   )
@@ -279,6 +386,19 @@ try {
   assert.equal(silentAudioQuality.detectedSilenceCount, 1)
   assert.equal(silentAudioQuality.unexpectedSilenceCount, 0)
 
+  const reviewVideoCostInput = {
+    ...commonCostIdentity,
+    approvedWorkItemId:
+      'work-item-final-master-decoded-video-qa-review-smoke-1',
+    jobId: 'job-final-master-decoded-video-qa-review-smoke-1',
+    executionAttemptId:
+      'attempt-final-master-decoded-video-qa-review-smoke-1',
+    workloadProfileId:
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFinalMasterDecodedVideoQa,
+  }
+  const reviewVideoCostMeter = await beginPrivateInternalAttemptCostEvidence(
+    reviewVideoCostInput,
+  )
   const reviewResult = await runtime.executeFinalMasterVideoQaServerInjected(
     buildOfflineFinalMasterVideoQaRequest({
       planningPayload: {
@@ -289,6 +409,17 @@ try {
       finalMaster,
     }),
     privateInput,
+  )
+  const reviewVideoAttemptCost = await reviewVideoCostMeter.finalize({
+    status: 'completed',
+    failureCategory: 'none',
+    outputByteLength: reviewResult.resultJson.byteLength,
+    linkedCanonicalOutcomeHash: reviewResult.resultJson.sha256,
+  })
+  assert.equal(reviewVideoAttemptCost.evidence.outcome.status, 'completed')
+  assertInternalAttemptCost(
+    reviewVideoAttemptCost.evidence,
+    PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFinalMasterDecodedVideoQa,
   )
   assert.equal(reviewResult.resultJson.document.outcome, 'needs_user_review')
   assert.ok(
@@ -318,6 +449,19 @@ try {
 
   const tamperedBytes = Buffer.from(bytes)
   tamperedBytes[tamperedBytes.length - 1] ^= 1
+  const tamperedVideoCostInput = {
+    ...commonCostIdentity,
+    approvedWorkItemId:
+      'work-item-final-master-decoded-video-qa-tampered-smoke-1',
+    jobId: 'job-final-master-decoded-video-qa-tampered-smoke-1',
+    executionAttemptId:
+      'attempt-final-master-decoded-video-qa-tampered-smoke-1',
+    workloadProfileId:
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFinalMasterDecodedVideoQa,
+  }
+  const tamperedVideoCostMeter = await beginPrivateInternalAttemptCostEvidence(
+    tamperedVideoCostInput,
+  )
   await assert.rejects(() =>
     runtime.executeFinalMasterVideoQaServerInjected(
       videoRequest,
@@ -326,6 +470,21 @@ try {
         async openStream() { return Readable.from([tamperedBytes]) },
       }),
     ), /exact|checksum|commitment|verification/iu)
+  const tamperedVideoAttemptCost = await tamperedVideoCostMeter.finalize({
+    status: 'failed',
+    failureCategory: 'validation_error',
+    outputByteLength: null,
+    linkedCanonicalOutcomeHash: null,
+  })
+  assert.equal(tamperedVideoAttemptCost.evidence.outcome.status, 'failed')
+  assert.equal(
+    tamperedVideoAttemptCost.evidence.outcome.failureCategory,
+    'validation_error',
+  )
+  assertInternalAttemptCost(
+    tamperedVideoAttemptCost.evidence,
+    PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFinalMasterDecodedVideoQa,
+  )
 
   console.log(JSON.stringify({
     ok: true,
@@ -347,6 +506,22 @@ try {
     unapprovedIntentionalFreezeOutcome:
       reviewResult.resultJson.document.outcome,
     exactInputTamperRejected: true,
+    internalAttemptCostEvidence: {
+      boundary: 'internal_production_cost_only',
+      rateCardVersion: videoAttemptCost.evidence.rateCardVersion,
+      decodedVideoPassedAttemptMicros:
+        videoAttemptCost.evidence.actualInternalCostMicros,
+      decodedAudioPassedAttemptMicros:
+        audioAttemptCost.evidence.actualInternalCostMicros,
+      decodedVideoReviewAttemptMicros:
+        reviewVideoAttemptCost.evidence.actualInternalCostMicros,
+      decodedAudioReviewAttemptMicros:
+        silentAudioAttemptCost.evidence.actualInternalCostMicros,
+      decodedVideoFailedAttemptMicros:
+        tamperedVideoAttemptCost.evidence.actualInternalCostMicros,
+      exactReplayReturnedSameEvidence: true,
+      canonicalReconciliationReady: false,
+    },
     originalApprovedEditReservationUsed: true,
     separateExportEstimateRequired: false,
     additionalExportChargeAllowed: false,
@@ -362,7 +537,57 @@ try {
   await Promise.all([
     rm(fixturePath, { force: true }),
     rm(silentFixturePath, { force: true }),
+    rm(costRoot, { recursive: true, force: true }),
   ])
+}
+
+function assertInternalAttemptCost(
+  evidence: PrivateInternalAttemptCostEvidence,
+  workloadProfileId: string,
+): void {
+  assert.equal(evidence.boundary, 'internal_production_cost_only')
+  assert.equal(evidence.evidenceClassification, 'provisional_local_metered')
+  assert.ok('workloadProfileId' in evidence.identity)
+  assert.equal(evidence.identity.workloadProfileId, workloadProfileId)
+  assert.equal(evidence.resourceUsage.vcpuCount, 2)
+  assert.equal(evidence.resourceUsage.memoryGib, 2)
+  assert.equal(evidence.resourceUsage.gpuCount, 0)
+  assert.equal(evidence.resourceUsage.networkEgressMib, 0)
+  assert.ok(Number.isSafeInteger(evidence.actualInternalCostMicros))
+  assert.ok(evidence.actualInternalCostMicros > 0)
+  assert.equal(evidence.persistence.privateLocalCreateOnly, true)
+  assert.equal(evidence.persistence.databaseBacked, false)
+  assert.equal(evidence.persistence.productionDurability, false)
+  assert.equal(evidence.persistence.invoiceReconciled, false)
+  assertNoCommercialKeys(evidence)
+}
+
+function assertNoCommercialKeys(value: unknown): void {
+  const keys: string[] = []
+  visitKeys(value, keys)
+  const forbidden = keys.filter((key) => {
+    const normalized = key.replace(/[^a-z0-9]/gi, '').toLowerCase()
+    return normalized.includes('customerprice') ||
+      normalized.includes('customercredit') ||
+      normalized.includes('servicefee') ||
+      normalized.includes('markup') || normalized.includes('margin') ||
+      normalized.includes('wallet') || normalized.includes('settlement') ||
+      normalized.includes('billabletouser') ||
+      normalized.includes('toolcostcredit') || normalized === 'credits'
+  })
+  assert.deepEqual(forbidden, [])
+}
+
+function visitKeys(value: unknown, keys: string[]): void {
+  if (!value || typeof value !== 'object') return
+  if (Array.isArray(value)) {
+    value.forEach((entry) => visitKeys(entry, keys))
+    return
+  }
+  for (const [key, entry] of Object.entries(value as Record<string, unknown>)) {
+    keys.push(key)
+    visitKeys(entry, keys)
+  }
 }
 
 function record(value: unknown): Record<string, unknown> {

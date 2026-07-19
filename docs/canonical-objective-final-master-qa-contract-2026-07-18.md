@@ -1,6 +1,6 @@
 # Canonical Objective Final-Master QA Contract
 
-Status: bounded server-only contract plus direct private-local real-media runner evidence and provisional attempt-level internal production-cost evidence. The runner independently reads and fully decodes exact server-injected test masters through the existing pinned, networkless FFmpeg/FFprobe image and writes checksum-protected local attestations. Its focused smoke now meters passed, review-required, failed, and replayed attempts through the shared versioned rate-card authority. It does not prove canonical reservation/lease/one-use dispatch, canonical cost reconciliation, private artifact persistence, long-form checkpoint/recovery, Google Cloud execution, six-gate aggregation, downstream replay/QA, public delivery, billing, or production readiness.
+Status: bounded server-only contract plus direct private-local real-media runner evidence, provisional attempt-level internal production-cost evidence, and a deterministic runtime-to-objective evidence compiler. The runner independently reads and fully decodes exact server-injected test masters through the existing pinned, networkless FFmpeg/FFprobe image and writes checksum-protected local attestations. Its focused smoke meters passed, review-required, failed, and replayed attempts through the shared versioned rate-card authority, then compiles successful runner responses into hash-sealed decoded-video or decoded-audio gate candidates. It does not prove canonical reservation/lease/one-use dispatch, canonical cost reconciliation, private artifact persistence, long-form checkpoint/recovery, Google Cloud execution, six-gate aggregation, downstream replay/QA, public delivery, billing, or production readiness.
 
 ## Why This Layer Exists
 
@@ -106,6 +106,10 @@ The real-media smoke creates private 1080p H.264/AAC fixtures only in `/tmp`, ex
 - the original approved edit reservation is reused, with no second export estimate, export charge, media mutation, or provider call;
 - long-form checkpointing, Google Cloud workers, canonical lease/dispatch, canonical internal-cost reconciliation, public delivery, product, external-beta, and production readiness remain false.
 
+The follow-up evidence compiler consumes only an exact runner result plus its exact immutable attempt-cost record and server-owned authority. It verifies canonical result bytes, source/object identity, exact snapshot ID and hash, package hash, approved estimate/reservation/deliverable, expected evidence identity, exact request-envelope hash, work item/job/attempt, pinned runtime-image identity and confinement, fixed recipe, exception manifest and approval provenance, cost checksum/profile/outcome linkage, and all non-production readiness flags before it seals a gate. Its truthful runner classes are `offline_media_binary_final_master_video_qa_v1` and `offline_media_binary_final_master_audio_qa_v1`; it does not relabel direct local proof as a deployed canonical worker.
+
+Silent-audio diagnostics may represent an unavailable physical level as `negative_infinity`. That sentinel is structurally valid only for `failed` or `needs_user_review` evidence and can never satisfy a passed gate. The audio runner also derives an explicit clipped-sample count only when the decoded PCM peak reaches 0 dBFS; this remains separate from the true-peak policy. Substituted source identity, snapshot hash, request envelope, runtime image, approved-exception authority, or attempt-cost linkage fails compilation.
+
 Run the real-media runner smoke with:
 
 ```bash
@@ -133,7 +137,7 @@ Those gates remain required for full ReEditPro product readiness. Edit Preferenc
 
 Motion Studio's frozen generated-music normalization handoff uses the same canonical FFmpeg operation with the distinct `approved_generated_music_candidate_normalization_v1` profile. This slice does not copy, rename, or replace it, and does not create another operation or registry. The next safe sequence is:
 
-1. compile the two profiles into server-owned objective-QA work items from the immutable approved package;
+1. compile the two profiles into server-owned objective-QA work items from the immutable approved package and invoke the evidence compiler only with exact accepted attempt authority;
 2. execute through the canonical reservation, lease, one-use dispatch, attempt-cost, private artifact, QA, reconciliation, recovery, and replay authority;
 3. replace the direct single-process long-form path with independently leased frame/sample chunks and exact checkpoint aggregation;
 4. aggregate all long-form ranges and boundaries into this manifest;

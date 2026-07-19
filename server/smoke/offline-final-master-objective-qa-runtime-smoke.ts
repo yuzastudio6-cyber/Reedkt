@@ -6,11 +6,17 @@ import { join } from 'node:path'
 import { Readable } from 'node:stream'
 
 import {
+  compileOfflineFinalMasterAudioObjectiveEvidence,
+  compileOfflineFinalMasterVideoObjectiveEvidence,
+} from '../final-master-qa'
+import {
   activatePrivateOfflineMediaBinaryRuntime,
   buildOfflineFinalMasterAudioQaRequest,
   buildOfflineFinalMasterVideoQaRequest,
   OFFLINE_MEDIA_BINARY_FINAL_MASTER_AUDIO_QA_RECIPE,
   OFFLINE_MEDIA_BINARY_FINAL_MASTER_VIDEO_QA_RECIPE,
+  offlineFinalMasterAudioQaRequestSha256,
+  offlineFinalMasterVideoQaRequestSha256,
   openPrivateOfflineMediaBinaryRuntime,
   readPersistedOfflineMediaBinaryRuntimeAuthority,
   sealOfflineFinalMasterAudioExceptionManifest,
@@ -165,6 +171,10 @@ try {
     },
     finalMaster,
   })
+  const videoRequestEnvelopeSha256 =
+    offlineFinalMasterVideoQaRequestSha256(videoRequest)
+  const audioRequestEnvelopeSha256 =
+    offlineFinalMasterAudioQaRequestSha256(audioRequest)
   const privateInput = Object.freeze({
     inputMode: 'private_verified_stream_v1' as const,
     byteLength: bytes.byteLength,
@@ -173,6 +183,7 @@ try {
   })
 
   const runtime = await activatePrivateOfflineMediaBinaryRuntime()
+  const expectedRuntimeImageIdentityHash = runtime.image.imageIdentityHash
   const persistedAuthority =
     await readPersistedOfflineMediaBinaryRuntimeAuthority()
   assert.equal(
@@ -241,6 +252,106 @@ try {
   })
   assert.equal(replayVideoAttemptCost.idempotencyStatus, 'duplicate_returned')
   assert.deepEqual(replayVideoAttemptCost.evidence, videoAttemptCost.evidence)
+  const videoObjectiveAuthority = {
+    workspaceId: commonCostIdentity.workspaceId,
+    projectId: commonCostIdentity.projectId,
+    editSessionId: commonCostIdentity.editSessionId,
+    qaRunId: common.qaRunId,
+    approvedPlanSnapshotId: common.approvedPlanSnapshotId,
+    approvedPlanSnapshotHash: common.approvedPlanSnapshotHash,
+    approvedExecutionPackageHash: common.approvedExecutionPackageHash,
+    approvedEstimateId: common.approvedEstimateId,
+    creditReservationId: common.creditReservationId,
+    approvedDeliverableId: common.approvedDeliverableId,
+    expectedEvidenceIdentity: common.expectedEvidenceIdentity,
+    approvedWorkItemId: videoCostInput.approvedWorkItemId,
+    jobId: videoCostInput.jobId,
+    executionAttemptId: videoCostInput.executionAttemptId,
+    sourceMasterArtifactId: artifactId,
+    sourceMasterObjectIdentityHash: objectIdentityHash,
+    sourceMasterSha256: sourceSha256,
+    sourceMasterByteLength: bytes.byteLength,
+    expectedDurationFrames: totalFrames,
+    approvedExceptionManifestHash: approvedFreezeManifest.manifestHash,
+    approvedExceptionManifest: approvedFreezeManifest,
+    expectedRequestEnvelopeSha256: videoRequestEnvelopeSha256,
+    expectedRuntimeImageIdentityHash,
+  }
+  const videoObjectiveEvidence =
+    compileOfflineFinalMasterVideoObjectiveEvidence({
+      authority: videoObjectiveAuthority,
+      runnerResult: videoResult,
+      attemptCostEvidence: videoAttemptCost.evidence,
+    })
+  assert.equal(videoObjectiveEvidence.outcome, 'passed')
+  assert.equal(videoObjectiveEvidence.metrics.decodedFrameCount, totalFrames)
+  assert.equal(videoObjectiveEvidence.metrics.unexpectedFreezeFrameCount, 0)
+  assert.equal(
+    videoObjectiveEvidence.internalCostEvidenceSetHash.length,
+    64,
+  )
+  assert.throws(() => compileOfflineFinalMasterVideoObjectiveEvidence({
+    authority: videoObjectiveAuthority,
+    runnerResult: {
+      ...videoResult,
+      evidence: {
+        ...videoResult.evidence,
+        sourceSha256: sha256Text('substituted-final-master-source'),
+      },
+    },
+    attemptCostEvidence: videoAttemptCost.evidence,
+  }))
+  assert.throws(() => compileOfflineFinalMasterVideoObjectiveEvidence({
+    authority: videoObjectiveAuthority,
+    runnerResult: videoResult,
+    attemptCostEvidence: {
+      ...videoAttemptCost.evidence,
+      linkedCanonicalOutcomeHash:
+        sha256Text('substituted-final-master-cost-outcome'),
+    },
+  }))
+  assert.throws(() => compileOfflineFinalMasterVideoObjectiveEvidence({
+    authority: {
+      ...videoObjectiveAuthority,
+      approvedPlanSnapshotHash:
+        sha256Text('substituted-approved-plan-snapshot'),
+    },
+    runnerResult: videoResult,
+    attemptCostEvidence: videoAttemptCost.evidence,
+  }))
+  assert.throws(() => compileOfflineFinalMasterVideoObjectiveEvidence({
+    authority: {
+      ...videoObjectiveAuthority,
+      approvedExceptionManifest: {
+        ...approvedFreezeManifest,
+        ranges: approvedFreezeManifest.ranges.map((range) => ({
+          ...range,
+          approvalEvidenceHash:
+            sha256Text('substituted-approved-exception-evidence'),
+        })),
+      },
+    },
+    runnerResult: videoResult,
+    attemptCostEvidence: videoAttemptCost.evidence,
+  }))
+  assert.throws(() => compileOfflineFinalMasterVideoObjectiveEvidence({
+    authority: {
+      ...videoObjectiveAuthority,
+      expectedRequestEnvelopeSha256:
+        sha256Text('substituted-final-master-request'),
+    },
+    runnerResult: videoResult,
+    attemptCostEvidence: videoAttemptCost.evidence,
+  }))
+  assert.throws(() => compileOfflineFinalMasterVideoObjectiveEvidence({
+    authority: {
+      ...videoObjectiveAuthority,
+      expectedRuntimeImageIdentityHash:
+        sha256Text('substituted-final-master-runtime-image'),
+    },
+    runnerResult: videoResult,
+    attemptCostEvidence: videoAttemptCost.evidence,
+  }))
   const videoDocument = videoResult.resultJson.document
   const decodedVideo = record(videoDocument.decodedFrameIntegrity)
   const anomalyScan = record(videoDocument.visualAnomalyScan)
@@ -289,6 +400,43 @@ try {
     audioAttemptCost.evidence,
     PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFinalMasterDecodedAudioQa,
   )
+  const audioObjectiveEvidence =
+    compileOfflineFinalMasterAudioObjectiveEvidence({
+      authority: {
+        workspaceId: commonCostIdentity.workspaceId,
+        projectId: commonCostIdentity.projectId,
+        editSessionId: commonCostIdentity.editSessionId,
+        qaRunId: common.qaRunId,
+        approvedPlanSnapshotId: common.approvedPlanSnapshotId,
+        approvedPlanSnapshotHash: common.approvedPlanSnapshotHash,
+        approvedExecutionPackageHash: common.approvedExecutionPackageHash,
+        approvedEstimateId: common.approvedEstimateId,
+        creditReservationId: common.creditReservationId,
+        approvedDeliverableId: common.approvedDeliverableId,
+        expectedEvidenceIdentity: common.expectedEvidenceIdentity,
+        approvedWorkItemId: audioCostInput.approvedWorkItemId,
+        jobId: audioCostInput.jobId,
+        executionAttemptId: audioCostInput.executionAttemptId,
+        sourceMasterArtifactId: artifactId,
+        sourceMasterObjectIdentityHash: objectIdentityHash,
+        sourceMasterSha256: sourceSha256,
+        sourceMasterByteLength: bytes.byteLength,
+        expectedDurationFrames: totalFrames,
+        approvedExceptionManifestHash:
+          audioRequest.payload.audioExceptionManifest.manifestHash,
+        approvedExceptionManifest: audioRequest.payload.audioExceptionManifest,
+        expectedRequestEnvelopeSha256: audioRequestEnvelopeSha256,
+        expectedRuntimeImageIdentityHash,
+      },
+      runnerResult: audioResult,
+      attemptCostEvidence: audioAttemptCost.evidence,
+    })
+  assert.equal(audioObjectiveEvidence.outcome, 'passed')
+  assert.equal(audioObjectiveEvidence.metrics.unexpectedClippedSampleCount, 0)
+  assert.equal(
+    audioObjectiveEvidence.metrics.unexpectedDigitalSilenceFrameCount,
+    0,
+  )
   const audioDocument = audioResult.resultJson.document
   const decodedAudio = record(audioDocument.decodedAudioIntegrity)
   const audioQuality = record(audioDocument.audioQualityScan)
@@ -302,6 +450,7 @@ try {
   assert.equal(audioQuality.truePeakWithinPolicy, true)
   assert.equal(audioQuality.loudnessRangeWithinPolicy, true)
   assert.equal(audioQuality.decodedSignalFinite, true)
+  assert.equal(audioQuality.unexpectedClippedSampleCount, 0)
   assert.equal(audioQuality.unexpectedSilenceCount, 0)
   assert.equal(speechClarity.ffmpegClaimedSpeechUnderstanding, false)
   assert.equal(audioResult.readiness.speechClarityEvidenceReconciled, true)
@@ -340,6 +489,8 @@ try {
     },
     finalMaster: silentFinalMaster,
   })
+  const silentAudioRequestEnvelopeSha256 =
+    offlineFinalMasterAudioQaRequestSha256(silentAudioRequest)
   const silentAudioCostInput = {
     ...commonCostIdentity,
     approvedWorkItemId:
@@ -374,6 +525,47 @@ try {
     silentAudioAttemptCost.evidence,
     PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFinalMasterDecodedAudioQa,
   )
+  const silentAudioObjectiveEvidence =
+    compileOfflineFinalMasterAudioObjectiveEvidence({
+      authority: {
+        workspaceId: commonCostIdentity.workspaceId,
+        projectId: commonCostIdentity.projectId,
+        editSessionId: commonCostIdentity.editSessionId,
+        qaRunId: 'final-master-qa-smoke-silent-1',
+        approvedPlanSnapshotId: common.approvedPlanSnapshotId,
+        approvedPlanSnapshotHash: common.approvedPlanSnapshotHash,
+        approvedExecutionPackageHash: common.approvedExecutionPackageHash,
+        approvedEstimateId: common.approvedEstimateId,
+        creditReservationId: common.creditReservationId,
+        approvedDeliverableId: common.approvedDeliverableId,
+        expectedEvidenceIdentity:
+          'expected-final-master-evidence-smoke-silent-1',
+        approvedWorkItemId: silentAudioCostInput.approvedWorkItemId,
+        jobId: silentAudioCostInput.jobId,
+        executionAttemptId: silentAudioCostInput.executionAttemptId,
+        sourceMasterArtifactId: silentArtifactId,
+        sourceMasterObjectIdentityHash: silentObjectIdentityHash,
+        sourceMasterSha256: silentSha256,
+        sourceMasterByteLength: silentBytes.byteLength,
+        expectedDurationFrames: 60,
+        approvedExceptionManifestHash:
+          silentAudioRequest.payload.audioExceptionManifest.manifestHash,
+        approvedExceptionManifest:
+          silentAudioRequest.payload.audioExceptionManifest,
+        expectedRequestEnvelopeSha256: silentAudioRequestEnvelopeSha256,
+        expectedRuntimeImageIdentityHash,
+      },
+      runnerResult: silentAudioResult,
+      attemptCostEvidence: silentAudioAttemptCost.evidence,
+    })
+  assert.equal(silentAudioObjectiveEvidence.outcome, 'needs_user_review')
+  assert.ok(
+    [
+      silentAudioObjectiveEvidence.metrics.integratedLufs,
+      silentAudioObjectiveEvidence.metrics.truePeakDbtp,
+      silentAudioObjectiveEvidence.metrics.loudnessRangeLufs,
+    ].includes('negative_infinity'),
+  )
   const silentAudioQuality = record(
     silentAudioResult.resultJson.document.audioQualityScan,
   )
@@ -399,15 +591,19 @@ try {
   const reviewVideoCostMeter = await beginPrivateInternalAttemptCostEvidence(
     reviewVideoCostInput,
   )
+  const reviewVisualExceptionManifest =
+    sealOfflineFinalMasterVisualExceptionManifest([])
+  const reviewVideoRequest = buildOfflineFinalMasterVideoQaRequest({
+    planningPayload: {
+      ...videoRequest.payload,
+      visualExceptionManifest: reviewVisualExceptionManifest,
+    },
+    finalMaster,
+  })
+  const reviewVideoRequestEnvelopeSha256 =
+    offlineFinalMasterVideoQaRequestSha256(reviewVideoRequest)
   const reviewResult = await runtime.executeFinalMasterVideoQaServerInjected(
-    buildOfflineFinalMasterVideoQaRequest({
-      planningPayload: {
-        ...videoRequest.payload,
-        visualExceptionManifest:
-          sealOfflineFinalMasterVisualExceptionManifest([]),
-      },
-      finalMaster,
-    }),
+    reviewVideoRequest,
     privateInput,
   )
   const reviewVideoAttemptCost = await reviewVideoCostMeter.finalize({
@@ -421,6 +617,39 @@ try {
     reviewVideoAttemptCost.evidence,
     PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFinalMasterDecodedVideoQa,
   )
+  const reviewVideoObjectiveEvidence =
+    compileOfflineFinalMasterVideoObjectiveEvidence({
+      authority: {
+        workspaceId: commonCostIdentity.workspaceId,
+        projectId: commonCostIdentity.projectId,
+        editSessionId: commonCostIdentity.editSessionId,
+        qaRunId: common.qaRunId,
+        approvedPlanSnapshotId: common.approvedPlanSnapshotId,
+        approvedPlanSnapshotHash: common.approvedPlanSnapshotHash,
+        approvedExecutionPackageHash: common.approvedExecutionPackageHash,
+        approvedEstimateId: common.approvedEstimateId,
+        creditReservationId: common.creditReservationId,
+        approvedDeliverableId: common.approvedDeliverableId,
+        expectedEvidenceIdentity: common.expectedEvidenceIdentity,
+        approvedWorkItemId: reviewVideoCostInput.approvedWorkItemId,
+        jobId: reviewVideoCostInput.jobId,
+        executionAttemptId: reviewVideoCostInput.executionAttemptId,
+        sourceMasterArtifactId: artifactId,
+        sourceMasterObjectIdentityHash: objectIdentityHash,
+        sourceMasterSha256: sourceSha256,
+        sourceMasterByteLength: bytes.byteLength,
+        expectedDurationFrames: totalFrames,
+        approvedExceptionManifestHash:
+          reviewVisualExceptionManifest.manifestHash,
+        approvedExceptionManifest: reviewVisualExceptionManifest,
+        expectedRequestEnvelopeSha256: reviewVideoRequestEnvelopeSha256,
+        expectedRuntimeImageIdentityHash,
+      },
+      runnerResult: reviewResult,
+      attemptCostEvidence: reviewVideoAttemptCost.evidence,
+    })
+  assert.equal(reviewVideoObjectiveEvidence.outcome, 'needs_user_review')
+  assert.ok(reviewVideoObjectiveEvidence.metrics.unexpectedFreezeFrameCount > 0)
   assert.equal(reviewResult.resultJson.document.outcome, 'needs_user_review')
   assert.ok(
     Number(record(reviewResult.resultJson.document.visualAnomalyScan)
@@ -521,6 +750,20 @@ try {
         tamperedVideoAttemptCost.evidence.actualInternalCostMicros,
       exactReplayReturnedSameEvidence: true,
       canonicalReconciliationReady: false,
+    },
+    objectiveEvidenceCompiler: {
+      decodedVideoPassed: videoObjectiveEvidence.outcome,
+      decodedAudioPassed: audioObjectiveEvidence.outcome,
+      decodedVideoReview: reviewVideoObjectiveEvidence.outcome,
+      decodedAudioSilentReview: silentAudioObjectiveEvidence.outcome,
+      exactRunnerSourceSubstitutionRejected: true,
+      exactAttemptCostSubstitutionRejected: true,
+      exactSnapshotHashSubstitutionRejected: true,
+      exactRequestEnvelopeSubstitutionRejected: true,
+      exactRuntimeImageSubstitutionRejected: true,
+      exactApprovedExceptionSubstitutionRejected: true,
+      internalCostEvidenceBound: true,
+      canonicalPackageLeaseDispatchReconciliationReady: false,
     },
     originalApprovedEditReservationUsed: true,
     separateExportEstimateRequired: false,

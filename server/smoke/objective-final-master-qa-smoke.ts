@@ -163,7 +163,7 @@ const decodedVideo = sealObjectiveFinalMasterQaGateEvidence({
   evidenceProfileId: 'approved_final_master_full_decode_integrity_v1',
   toolId: 'ffmpeg',
   operationId: 'tool.ffmpeg.execute_approved_media_recipe.v1',
-  runnerClass: 'canonical_objective_final_master_video_qa_runner_v1',
+  runnerClass: 'offline_media_binary_final_master_video_qa_v1',
   metrics: {
     fullFrameDecodeCompleted: true,
     firstDecodedFrame: 0,
@@ -185,7 +185,7 @@ const decodedAudio = sealObjectiveFinalMasterQaGateEvidence({
   evidenceProfileId: 'approved_final_master_full_audio_quality_sync_v1',
   toolId: 'ffmpeg',
   operationId: 'tool.ffmpeg.execute_approved_media_recipe.v1',
-  runnerClass: 'canonical_objective_final_master_audio_qa_runner_v1',
+  runnerClass: 'offline_media_binary_final_master_audio_qa_v1',
   metrics: {
     fullProgramAudioDecodeCompleted: true,
     sampleRate: 48_000,
@@ -345,7 +345,7 @@ const privateGcpDecodedVideo = sealObjectiveFinalMasterQaGateEvidence({
   evidenceProfileId: 'approved_final_master_full_decode_integrity_v1',
   toolId: 'ffmpeg',
   operationId: 'tool.ffmpeg.execute_approved_media_recipe.v1',
-  runnerClass: 'canonical_objective_final_master_video_qa_runner_v1',
+  runnerClass: 'offline_media_binary_final_master_video_qa_v1',
   executionEnvironment: 'private_gcp_internal',
   cloudExecutionResourceHash: digest('private-gcp-decoded-video-execution-resource'),
   metrics: decodedVideo.metrics,
@@ -376,7 +376,7 @@ const failedDecodedVideo = sealObjectiveFinalMasterQaGateEvidence({
   evidenceProfileId: 'approved_final_master_full_decode_integrity_v1',
   toolId: 'ffmpeg',
   operationId: 'tool.ffmpeg.execute_approved_media_recipe.v1',
-  runnerClass: 'canonical_objective_final_master_video_qa_runner_v1',
+  runnerClass: 'offline_media_binary_final_master_video_qa_v1',
   outcome: 'failed',
   metrics: {
     ...decodedVideo.metrics,
@@ -402,7 +402,7 @@ const reviewAudio = sealObjectiveFinalMasterQaGateEvidence({
   evidenceProfileId: 'approved_final_master_full_audio_quality_sync_v1',
   toolId: 'ffmpeg',
   operationId: 'tool.ffmpeg.execute_approved_media_recipe.v1',
-  runnerClass: 'canonical_objective_final_master_audio_qa_runner_v1',
+  runnerClass: 'offline_media_binary_final_master_audio_qa_v1',
   outcome: 'needs_user_review',
   metrics: {
     ...decodedAudio.metrics,
@@ -419,6 +419,53 @@ const validReview = evaluateCanonicalObjectiveFinalMasterQa({
 assert.equal(validReview.contractValid, true)
 assert.equal(validReview.objectiveMediaQaPassed, false)
 assert.equal(validReview.blockers.includes('decoded_audio_quality_sync:needs_user_review'), true)
+
+const silentReviewAudio = sealObjectiveFinalMasterQaGateEvidence({
+  ...gateCommon('decoded-audio-silent-review'),
+  gateId: 'decoded_audio_quality_sync',
+  evidenceProfileId: 'approved_final_master_full_audio_quality_sync_v1',
+  toolId: 'ffmpeg',
+  operationId: 'tool.ffmpeg.execute_approved_media_recipe.v1',
+  runnerClass: 'offline_media_binary_final_master_audio_qa_v1',
+  outcome: 'needs_user_review',
+  metrics: {
+    ...decodedAudio.metrics,
+    integratedLufs: 'negative_infinity',
+    truePeakDbtp: 'negative_infinity',
+    loudnessRangeLufs: 'negative_infinity',
+    unexpectedDigitalSilenceFrameCount: 1_800,
+  },
+})
+const validSilentReview = evaluateCanonicalObjectiveFinalMasterQa({
+  ...baseInput,
+  gateEvidence: gates.map((gate) =>
+    gate.gateId === 'decoded_audio_quality_sync' ? silentReviewAudio : gate),
+})
+assert.equal(validSilentReview.contractValid, true)
+assert.equal(validSilentReview.objectiveMediaQaPassed, false)
+assert.equal(
+  validSilentReview.blockers.includes(
+    'decoded_audio_quality_sync:needs_user_review',
+  ),
+  true,
+)
+
+const invalidPassedSilentAudio = sealObjectiveFinalMasterQaGateEvidence({
+  ...gateCommon('decoded-audio-invalid-passed-silent'),
+  gateId: 'decoded_audio_quality_sync',
+  evidenceProfileId: 'approved_final_master_full_audio_quality_sync_v1',
+  toolId: 'ffmpeg',
+  operationId: 'tool.ffmpeg.execute_approved_media_recipe.v1',
+  runnerClass: 'offline_media_binary_final_master_audio_qa_v1',
+  metrics: silentReviewAudio.metrics,
+})
+assert.equal(evaluateCanonicalObjectiveFinalMasterQa({
+  ...baseInput,
+  gateEvidence: gates.map((gate) =>
+    gate.gateId === 'decoded_audio_quality_sync'
+      ? invalidPassedSilentAudio
+      : gate),
+}).contractValid, false)
 
 const wrongDimensions = sealObjectiveFinalMasterQaGateEvidence({
   ...gateCommon('technical-wrong-dimensions'),
@@ -442,7 +489,7 @@ const duplicateEvidenceId = sealObjectiveFinalMasterQaGateEvidence({
   evidenceProfileId: 'approved_final_master_full_decode_integrity_v1',
   toolId: 'ffmpeg',
   operationId: 'tool.ffmpeg.execute_approved_media_recipe.v1',
-  runnerClass: 'canonical_objective_final_master_video_qa_runner_v1',
+  runnerClass: 'offline_media_binary_final_master_video_qa_v1',
   metrics: decodedVideo.metrics,
 })
 assert.equal(evaluateCanonicalObjectiveFinalMasterQa({

@@ -4,6 +4,14 @@ export const OBJECTIVE_FINAL_MASTER_QA_CONTRACT_VERSION =
   'canonical-objective-final-master-qa-contract-v1' as const
 export const OBJECTIVE_FINAL_MASTER_QA_POLICY_VERSION =
   'canonical-objective-final-master-media-policy-v1' as const
+export const OBJECTIVE_FINAL_MASTER_DECODED_VIDEO_EVIDENCE_PROFILE_ID =
+  'approved_final_master_full_decode_integrity_v1' as const
+export const OBJECTIVE_FINAL_MASTER_DECODED_AUDIO_EVIDENCE_PROFILE_ID =
+  'approved_final_master_full_audio_quality_sync_v1' as const
+export const OBJECTIVE_FINAL_MASTER_DECODED_VIDEO_RUNNER_CLASS =
+  'offline_media_binary_final_master_video_qa_v1' as const
+export const OBJECTIVE_FINAL_MASTER_DECODED_AUDIO_RUNNER_CLASS =
+  'offline_media_binary_final_master_audio_qa_v1' as const
 
 export const OBJECTIVE_FINAL_MASTER_QA_GATE_IDS = [
   'technical_media_contract',
@@ -163,10 +171,11 @@ export interface ObjectiveTechnicalMediaContractEvidence
 export interface ObjectiveDecodedVideoIntegrityEvidence
   extends ObjectiveFinalMasterQaGateCommon {
   gateId: 'decoded_video_integrity'
-  evidenceProfileId: 'approved_final_master_full_decode_integrity_v1'
+  evidenceProfileId:
+    typeof OBJECTIVE_FINAL_MASTER_DECODED_VIDEO_EVIDENCE_PROFILE_ID
   toolId: 'ffmpeg'
   operationId: 'tool.ffmpeg.execute_approved_media_recipe.v1'
-  runnerClass: 'canonical_objective_final_master_video_qa_runner_v1'
+  runnerClass: typeof OBJECTIVE_FINAL_MASTER_DECODED_VIDEO_RUNNER_CLASS
   metrics: {
     fullFrameDecodeCompleted: boolean
     firstDecodedFrame: number
@@ -185,18 +194,19 @@ export interface ObjectiveDecodedVideoIntegrityEvidence
 export interface ObjectiveDecodedAudioQualitySyncEvidence
   extends ObjectiveFinalMasterQaGateCommon {
   gateId: 'decoded_audio_quality_sync'
-  evidenceProfileId: 'approved_final_master_full_audio_quality_sync_v1'
+  evidenceProfileId:
+    typeof OBJECTIVE_FINAL_MASTER_DECODED_AUDIO_EVIDENCE_PROFILE_ID
   toolId: 'ffmpeg'
   operationId: 'tool.ffmpeg.execute_approved_media_recipe.v1'
-  runnerClass: 'canonical_objective_final_master_audio_qa_runner_v1'
+  runnerClass: typeof OBJECTIVE_FINAL_MASTER_DECODED_AUDIO_RUNNER_CLASS
   metrics: {
     fullProgramAudioDecodeCompleted: boolean
     sampleRate: number
     channels: number
     decodedSampleFrameCount: number
-    integratedLufs: number
-    truePeakDbtp: number
-    loudnessRangeLufs: number
+    integratedLufs: number | 'negative_infinity'
+    truePeakDbtp: number | 'negative_infinity'
+    loudnessRangeLufs: number | 'negative_infinity'
     avSyncDriftFrames: number
     unexpectedClippedSampleCount: number
     unexpectedDigitalSilenceFrameCount: number

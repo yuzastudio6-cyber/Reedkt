@@ -4,6 +4,10 @@ import { isProfessionalExportFrameCovered } from '../../src/lib/professional-exp
 import { REEDITPRO_SOURCE_MEDIA_MAX_BYTES } from '../../src/types/large-media'
 import {
   OBJECTIVE_FINAL_MASTER_QA_CONTRACT_VERSION,
+  OBJECTIVE_FINAL_MASTER_DECODED_AUDIO_EVIDENCE_PROFILE_ID,
+  OBJECTIVE_FINAL_MASTER_DECODED_AUDIO_RUNNER_CLASS,
+  OBJECTIVE_FINAL_MASTER_DECODED_VIDEO_EVIDENCE_PROFILE_ID,
+  OBJECTIVE_FINAL_MASTER_DECODED_VIDEO_RUNNER_CLASS,
   OBJECTIVE_FINAL_MASTER_QA_GATE_IDS,
   OBJECTIVE_FINAL_MASTER_QA_POLICY_VERSION,
   type CanonicalObjectiveFinalMasterQaInput,
@@ -31,16 +35,16 @@ const EXPECTED_GATE_PROVENANCE: Record<ObjectiveFinalMasterQaGateId, {
     runnerClass: 'offline_media_binary_execution_v1',
   },
   decoded_video_integrity: {
-    evidenceProfileId: 'approved_final_master_full_decode_integrity_v1',
+    evidenceProfileId: OBJECTIVE_FINAL_MASTER_DECODED_VIDEO_EVIDENCE_PROFILE_ID,
     toolId: 'ffmpeg',
     operationId: 'tool.ffmpeg.execute_approved_media_recipe.v1',
-    runnerClass: 'canonical_objective_final_master_video_qa_runner_v1',
+    runnerClass: OBJECTIVE_FINAL_MASTER_DECODED_VIDEO_RUNNER_CLASS,
   },
   decoded_audio_quality_sync: {
-    evidenceProfileId: 'approved_final_master_full_audio_quality_sync_v1',
+    evidenceProfileId: OBJECTIVE_FINAL_MASTER_DECODED_AUDIO_EVIDENCE_PROFILE_ID,
     toolId: 'ffmpeg',
     operationId: 'tool.ffmpeg.execute_approved_media_recipe.v1',
-    runnerClass: 'canonical_objective_final_master_audio_qa_runner_v1',
+    runnerClass: OBJECTIVE_FINAL_MASTER_DECODED_AUDIO_RUNNER_CLASS,
   },
   master_timing_layer_reconciliation: {
     evidenceProfileId: 'approved_final_master_timing_layer_reconciliation_v1',
@@ -457,9 +461,9 @@ function validateGateMetrics(
         !boundedInteger(metrics.sampleRate, 0, 384_000) ||
         !boundedInteger(metrics.channels, 0, 32) ||
         !boundedInteger(metrics.decodedSampleFrameCount, 0, Number.MAX_SAFE_INTEGER) ||
-        !boundedFinite(metrics.integratedLufs, -100, 10) ||
-        !boundedFinite(metrics.truePeakDbtp, -100, 10) ||
-        !boundedFinite(metrics.loudnessRangeLufs, 0, 100) ||
+        !boundedAudioMetric(metrics.integratedLufs, -100, 10, evidence.outcome) ||
+        !boundedAudioMetric(metrics.truePeakDbtp, -100, 10, evidence.outcome) ||
+        !boundedAudioMetric(metrics.loudnessRangeLufs, 0, 100, evidence.outcome) ||
         !boundedFinite(metrics.avSyncDriftFrames, -100_000, 100_000) ||
         !boundedInteger(metrics.unexpectedClippedSampleCount, 0, Number.MAX_SAFE_INTEGER) ||
         !boundedInteger(metrics.unexpectedDigitalSilenceFrameCount, 0, 100_000_000) ||
@@ -470,11 +474,15 @@ function validateGateMetrics(
         ![1, 2].includes(metrics.channels) ||
         !Number.isSafeInteger(metrics.decodedSampleFrameCount) ||
         metrics.decodedSampleFrameCount < 1 ||
+        typeof metrics.integratedLufs !== 'number' ||
         !Number.isFinite(metrics.integratedLufs) || metrics.integratedLufs < lowerLufs ||
         metrics.integratedLufs > upperLufs ||
+        typeof metrics.truePeakDbtp !== 'number' ||
         !Number.isFinite(metrics.truePeakDbtp) ||
         metrics.truePeakDbtp > input.audioPolicy.maximumTruePeakDbtp ||
-        !Number.isFinite(metrics.loudnessRangeLufs) || metrics.loudnessRangeLufs < 0 ||
+        typeof metrics.loudnessRangeLufs !== 'number' ||
+        !Number.isFinite(metrics.loudnessRangeLufs) ||
+        metrics.loudnessRangeLufs < 0 ||
         metrics.loudnessRangeLufs > input.audioPolicy.maximumLoudnessRangeLufs ||
         !Number.isFinite(metrics.avSyncDriftFrames) ||
         Math.abs(metrics.avSyncDriftFrames) > input.audioPolicy.maximumAvSyncDriftFrames ||
@@ -586,6 +594,16 @@ function boundedInteger(value: number, minimum: number, maximum: number): boolea
 
 function boundedFinite(value: number, minimum: number, maximum: number): boolean {
   return Number.isFinite(value) && value >= minimum && value <= maximum
+}
+
+function boundedAudioMetric(
+  value: number | 'negative_infinity',
+  minimum: number,
+  maximum: number,
+  outcome: ObjectiveFinalMasterQaGateEvidence['outcome'],
+): boolean {
+  if (value === 'negative_infinity') return outcome !== 'passed'
+  return boundedFinite(value, minimum, maximum)
 }
 
 function boundedText(value: string): boolean {

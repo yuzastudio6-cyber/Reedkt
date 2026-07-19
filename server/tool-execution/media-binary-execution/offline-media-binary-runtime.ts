@@ -2342,6 +2342,18 @@ async function scanFinalMasterAudioQuality(
       parsed.loudnessRangeLufs <= request.payload.maximumLoudnessRangeLufs
     const decodedSignalFinite =
       parsed.numberOfNaNs === 0 && parsed.numberOfInfs === 0
+    if (
+      typeof parsed.astatsPeakCount !== 'number' ||
+      !Number.isSafeInteger(parsed.astatsPeakCount) ||
+      parsed.astatsPeakCount < 0
+    ) throw unavailable(
+      'Final-master audio peak-count metric is not a bounded sample count.',
+    )
+    const unexpectedClippedSampleCount =
+      typeof parsed.astatsPeakLevelDb === 'number' &&
+      parsed.astatsPeakLevelDb >= 0
+        ? parsed.astatsPeakCount
+        : 0
     const reconciledSilences = parsed.silences.map((silence) => {
       const approvedException = findCoveringAudioException(
         silence,
@@ -2362,6 +2374,7 @@ async function scanFinalMasterAudioQuality(
     const outcome =
       integratedLufsWithinPolicy && truePeakWithinPolicy &&
       loudnessRangeWithinPolicy && decodedSignalFinite &&
+      unexpectedClippedSampleCount === 0 &&
       unexpectedSilences.length === 0
         ? 'passed' as const
         : 'needs_user_review' as const
@@ -2381,6 +2394,7 @@ async function scanFinalMasterAudioQuality(
         loudnessRangeWithinPolicy,
         astatsPeakLevelDb: parsed.astatsPeakLevelDb,
         astatsPeakCount: parsed.astatsPeakCount,
+        unexpectedClippedSampleCount,
         numberOfNaNs: parsed.numberOfNaNs,
         numberOfInfs: parsed.numberOfInfs,
         decodedSignalFinite,

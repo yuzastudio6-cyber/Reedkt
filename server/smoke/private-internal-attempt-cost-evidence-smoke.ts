@@ -23,6 +23,10 @@ import {
   PROFESSIONAL_LONG_FORM_PRIVATE_MASTER_QA_OPERATION_ID,
 } from '../edit-architecture/professional-long-form-private-master-qa-execution-contract'
 import {
+  PROFESSIONAL_LONG_FORM_DELIVERY_H264_OPERATION_ID,
+  PROFESSIONAL_LONG_FORM_DELIVERY_ROOT_OPERATION_ID,
+} from '../edit-architecture/professional-long-form-customer-delivery-execution-contract'
+import {
   PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_OPERATION_ID,
   PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_OPERATION_ID,
 } from '../edit-architecture/professional-long-form-first-object-chunk-execution-contract'
@@ -583,6 +587,64 @@ try {
   )
   assertNoCommercialKeys(longFormPrivateMasterQa.evidence)
 
+  const deliveryRootMeter = await beginPrivateInternalAttemptCostEvidence({
+    ...common,
+    approvedWorkItemId: 'long-form-customer-delivery-root-cost-proof',
+    jobId: 'long-form-customer-delivery-root-job-cost-proof',
+    executionAttemptId: 'attempt-long-form-customer-delivery-root-cost-proof',
+    toolId: 'reeditpro_internal' as const,
+    operationId: PROFESSIONAL_LONG_FORM_DELIVERY_ROOT_OPERATION_ID,
+    workloadProfileId:
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS
+        .professionalLongFormCustomerDeliveryRoot,
+  }, clock([80_000_000_000n, 80_500_000_000n], [
+    '2026-07-11T12:11:00.000Z',
+  ]))
+  const deliveryRoot = await deliveryRootMeter.finalize({
+    status: 'completed',
+    failureCategory: 'none',
+    outputByteLength: 12_000,
+    linkedCanonicalOutcomeHash: '7'.repeat(64),
+  })
+  assert.deepEqual(
+    {
+      vcpuCount: deliveryRoot.evidence.resourceUsage.vcpuCount,
+      memoryGib: deliveryRoot.evidence.resourceUsage.memoryGib,
+      gpuCount: deliveryRoot.evidence.resourceUsage.gpuCount,
+    },
+    { vcpuCount: 1, memoryGib: 1, gpuCount: 0 },
+  )
+  assertNoCommercialKeys(deliveryRoot.evidence)
+
+  const deliveryH264Meter = await beginPrivateInternalAttemptCostEvidence({
+    ...common,
+    approvedWorkItemId: 'long-form-customer-delivery-h264-cost-proof',
+    jobId: 'long-form-customer-delivery-h264-job-cost-proof',
+    executionAttemptId: 'attempt-long-form-customer-delivery-h264-cost-proof',
+    toolId: 'remotion' as const,
+    operationId: PROFESSIONAL_LONG_FORM_DELIVERY_H264_OPERATION_ID,
+    workloadProfileId:
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS
+        .remotionFourKCustomerDeliveryH264Chunk,
+  }, clock([81_000_000_000n, 84_750_000_000n], [
+    '2026-07-11T12:12:00.000Z',
+  ]))
+  const deliveryH264 = await deliveryH264Meter.finalize({
+    status: 'completed',
+    failureCategory: 'none',
+    outputByteLength: 48_000_000,
+    linkedCanonicalOutcomeHash: '6'.repeat(64),
+  })
+  assert.deepEqual(
+    {
+      vcpuCount: deliveryH264.evidence.resourceUsage.vcpuCount,
+      memoryGib: deliveryH264.evidence.resourceUsage.memoryGib,
+      gpuCount: deliveryH264.evidence.resourceUsage.gpuCount,
+    },
+    { vcpuCount: 4, memoryGib: 8, gpuCount: 0 },
+  )
+  assertNoCommercialKeys(deliveryH264.evidence)
+
   await expectCode(() => beginPrivateInternalAttemptCostEvidence({
     ...ffmpegInput,
     jobId: remotionInput.jobId,
@@ -628,6 +690,10 @@ try {
       longFormMasterAssembly.evidence.actualInternalCostMicros,
     longFormPrivateMasterQaAttemptCostMicros:
       longFormPrivateMasterQa.evidence.actualInternalCostMicros,
+    customerDeliveryRootAttemptCostMicros:
+      deliveryRoot.evidence.actualInternalCostMicros,
+    customerDeliveryH264AttemptCostMicros:
+      deliveryH264.evidence.actualInternalCostMicros,
     replayHash: replay.evidence.evidenceHash,
     checks: [
       'attempt_level_internal_cost_only',
@@ -649,6 +715,8 @@ try {
       'ffmpeg_cross_chunk_color_continuity_profile_is_2vcpu_4gib_cpu_only',
       'ffmpeg_long_form_master_assembly_profile_is_2vcpu_4gib_cpu_only',
       'ffprobe_long_form_private_master_qa_profile_is_2vcpu_4gib_cpu_only',
+      'customer_delivery_root_profile_is_1vcpu_1gib_cpu_only',
+      'customer_delivery_h264_profile_is_4vcpu_8gib_cpu_only',
       'cross_profile_attempt_identity_conflict_fails_closed',
       'resource_profile_and_commercial_field_mutations_fail_schema_validation',
       'commercial_pricing_credit_and_wallet_fields_absent',

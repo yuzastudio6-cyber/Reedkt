@@ -99,6 +99,33 @@ export function createCanonicalProfessionalLongFormCustomerDeliveryPackageServic
   context: ServiceContext,
 ) {
   return {
+    async loadCurrent(input: {
+      workspaceId: string
+      approvedPlanSnapshotId: string
+    }) {
+      const ownerUserId = context.auth?.userId
+      if (!ownerUserId) {
+        throw new ApiError(
+          'AUTH_REQUIRED',
+          'Professional long-form customer delivery requires authenticated authority.',
+          401,
+        )
+      }
+      const loaded = await loadCurrentCustomerDeliveryAuthority({
+        context,
+        ownerUserId,
+        input,
+      })
+      return {
+        package: loaded.package,
+        packageRef: loaded.packageRef,
+        placementManifest: loaded.placementManifest,
+        placementManifestRef: loaded.placementManifestRef,
+        queueDefinition: loaded.queueDefinition,
+        queueAggregate: loaded.queueAggregate,
+        scope: loaded.scope,
+      }
+    },
     async prepare(input: {
       workspaceId: string
       approvedPlanSnapshotId: string
@@ -111,80 +138,21 @@ export function createCanonicalProfessionalLongFormCustomerDeliveryPackageServic
           401,
         )
       }
-      const current = await
-        createCanonicalProfessionalLongFormChildPackagePromotionService(context)
-          .loadCurrent(input)
-      const evidence = await loadReviewedEvidence({
-        localStorageRoot: context.env.localStorageRoot,
-        current,
-      })
-      const deliveryPackage = validationBoundary(() =>
-        buildCanonicalProfessionalLongFormCustomerDeliveryPackage({
-          ownerUserId,
-          current,
-          evidence,
-        }))
-      const packageRef = await putPrivateAuthorityJsonBlob({
-        localStorageRoot: context.env.localStorageRoot,
-        value: deliveryPackage as unknown as Record<string, unknown>,
-        maxBytes: 4 * 1024 * 1024,
-      })
-      const persistedPackage = await readPrivateAuthorityJsonBlob({
-        localStorageRoot: context.env.localStorageRoot,
-        ref: packageRef,
-      })
-      const verifiedPackage = validationBoundary(() =>
-        assertCanonicalProfessionalLongFormCustomerDeliveryPackage({
-          value: persistedPackage,
-          ownerUserId,
-          current,
-          evidence,
-        }))
-      const placementManifest = validationBoundary(() =>
-        buildCanonicalProfessionalLongFormCustomerDeliveryPlacementManifest({
-          package: verifiedPackage,
-        }))
-      const placementManifestRef = await putPrivateAuthorityJsonBlob({
-        localStorageRoot: context.env.localStorageRoot,
-        value: placementManifest as unknown as Record<string, unknown>,
-        maxBytes: 4 * 1024 * 1024,
-      })
-      const persistedPlacement = await readPrivateAuthorityJsonBlob({
-        localStorageRoot: context.env.localStorageRoot,
-        ref: placementManifestRef,
-      })
-      const verifiedPlacement = validationBoundary(() =>
-        assertCanonicalProfessionalLongFormCustomerDeliveryPlacementManifest({
-          value: persistedPlacement,
-          package: verifiedPackage,
-        }))
-      const queueDefinition = validationBoundary(() =>
-        buildCanonicalProfessionalLongFormCustomerDeliveryQueueDefinition({
-          package: verifiedPackage,
-          packageRef,
-          placementManifest: verifiedPlacement,
-          placementManifestRef,
-        }))
-      const scope: CanonicalPrivatePackageWorkQueueStoreScope = {
-        localStorageRoot: context.env.localStorageRoot,
+      const loaded = await loadCurrentCustomerDeliveryAuthority({
+        context,
         ownerUserId,
-        workspaceId: verifiedPackage.identity.workspaceId,
-        projectId: verifiedPackage.identity.projectId,
-        editSessionId: verifiedPackage.identity.editSessionId,
-        packageRecordId: verifiedPackage.identity.packageRecordId,
-        approvedPlanSnapshotId:
-          verifiedPackage.identity.approvedPlanSnapshotId,
-      }
-      const ensured = await ensurePrivateCanonicalPackageWorkQueue({
-        scope,
-        definition: queueDefinition,
+        input,
       })
-      const queueAggregate = await readPrivateCanonicalPackageWorkQueue({
-        scope,
-        definition: queueDefinition,
-      })
+      const {
+        package: verifiedPackage,
+        packageRef,
+        placementManifest: verifiedPlacement,
+        placementManifestRef,
+        queueDefinition,
+        queueAggregate,
+        ensured,
+      } = loaded
       if (
-        !queueAggregate ||
         queueAggregate.aggregateHash !== ensured.aggregate.aggregateHash ||
         queueAggregate.summary.totalJobCount !==
           verifiedPackage.graph.summary.totalJobCount ||
@@ -203,14 +171,6 @@ export function createCanonicalProfessionalLongFormCustomerDeliveryPackageServic
         'Customer-delivery queue did not reopen as one exact blocked commit.',
         409,
       )
-      validationBoundary(() =>
-        assertCanonicalProfessionalLongFormCustomerDeliveryQueueDefinition({
-          value: queueDefinition,
-          package: verifiedPackage,
-          packageRef,
-          placementManifest: verifiedPlacement,
-          placementManifestRef,
-        }))
       const stablePayload = {
         schemaVersion:
           CANONICAL_PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_PREPARATION_VERSION,
@@ -262,6 +222,113 @@ export function createCanonicalProfessionalLongFormCustomerDeliveryPackageServic
         evidenceHash: sha256AuthorityValue(stablePayload),
       }
     },
+  }
+}
+
+async function loadCurrentCustomerDeliveryAuthority(input: {
+  context: ServiceContext
+  ownerUserId: string
+  input: {
+    workspaceId: string
+    approvedPlanSnapshotId: string
+  }
+}) {
+  const current = await
+    createCanonicalProfessionalLongFormChildPackagePromotionService(input.context)
+      .loadCurrent(input.input)
+  const evidence = await loadReviewedEvidence({
+    localStorageRoot: input.context.env.localStorageRoot,
+    current,
+  })
+  const deliveryPackage = validationBoundary(() =>
+    buildCanonicalProfessionalLongFormCustomerDeliveryPackage({
+      ownerUserId: input.ownerUserId,
+      current,
+      evidence,
+    }))
+  const packageRef = await putPrivateAuthorityJsonBlob({
+    localStorageRoot: input.context.env.localStorageRoot,
+    value: deliveryPackage as unknown as Record<string, unknown>,
+    maxBytes: 4 * 1024 * 1024,
+  })
+  const persistedPackage = await readPrivateAuthorityJsonBlob({
+    localStorageRoot: input.context.env.localStorageRoot,
+    ref: packageRef,
+  })
+  const verifiedPackage = validationBoundary(() =>
+    assertCanonicalProfessionalLongFormCustomerDeliveryPackage({
+      value: persistedPackage,
+      ownerUserId: input.ownerUserId,
+      current,
+      evidence,
+    }))
+  const placementManifest = validationBoundary(() =>
+    buildCanonicalProfessionalLongFormCustomerDeliveryPlacementManifest({
+      package: verifiedPackage,
+    }))
+  const placementManifestRef = await putPrivateAuthorityJsonBlob({
+    localStorageRoot: input.context.env.localStorageRoot,
+    value: placementManifest as unknown as Record<string, unknown>,
+    maxBytes: 4 * 1024 * 1024,
+  })
+  const persistedPlacement = await readPrivateAuthorityJsonBlob({
+    localStorageRoot: input.context.env.localStorageRoot,
+    ref: placementManifestRef,
+  })
+  const verifiedPlacement = validationBoundary(() =>
+    assertCanonicalProfessionalLongFormCustomerDeliveryPlacementManifest({
+      value: persistedPlacement,
+      package: verifiedPackage,
+    }))
+  const queueDefinition = validationBoundary(() =>
+    buildCanonicalProfessionalLongFormCustomerDeliveryQueueDefinition({
+      package: verifiedPackage,
+      packageRef,
+      placementManifest: verifiedPlacement,
+      placementManifestRef,
+    }))
+  validationBoundary(() =>
+    assertCanonicalProfessionalLongFormCustomerDeliveryQueueDefinition({
+      value: queueDefinition,
+      package: verifiedPackage,
+      packageRef,
+      placementManifest: verifiedPlacement,
+      placementManifestRef,
+    }))
+  const scope: CanonicalPrivatePackageWorkQueueStoreScope = {
+    localStorageRoot: input.context.env.localStorageRoot,
+    ownerUserId: input.ownerUserId,
+    workspaceId: verifiedPackage.identity.workspaceId,
+    projectId: verifiedPackage.identity.projectId,
+    editSessionId: verifiedPackage.identity.editSessionId,
+    packageRecordId: verifiedPackage.identity.packageRecordId,
+    approvedPlanSnapshotId:
+      verifiedPackage.identity.approvedPlanSnapshotId,
+  }
+  const ensured = await ensurePrivateCanonicalPackageWorkQueue({
+    scope,
+    definition: queueDefinition,
+  })
+  const queueAggregate = await readPrivateCanonicalPackageWorkQueue({
+    scope,
+    definition: queueDefinition,
+  })
+  if (!queueAggregate) {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      'Customer-delivery queue is missing after canonical ensure.',
+      409,
+    )
+  }
+  return {
+    package: verifiedPackage,
+    packageRef,
+    placementManifest: verifiedPlacement,
+    placementManifestRef,
+    queueDefinition,
+    queueAggregate,
+    scope,
+    ensured,
   }
 }
 

@@ -50,6 +50,12 @@ import {
   PROFESSIONAL_LONG_FORM_PRIVATE_MASTER_QA_COST_PROFILE_ID,
   PROFESSIONAL_LONG_FORM_PRIVATE_MASTER_QA_OPERATION_ID,
 } from '../edit-architecture/professional-long-form-private-master-qa-execution-contract'
+import {
+  PROFESSIONAL_LONG_FORM_DELIVERY_H264_COST_PROFILE_ID,
+  PROFESSIONAL_LONG_FORM_DELIVERY_H264_OPERATION_ID,
+  PROFESSIONAL_LONG_FORM_DELIVERY_ROOT_COST_PROFILE_ID,
+  PROFESSIONAL_LONG_FORM_DELIVERY_ROOT_OPERATION_ID,
+} from '../edit-architecture/professional-long-form-customer-delivery-execution-contract'
 
 const identity = z.string().min(1).max(200).regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/)
   .refine((value) => value === value.trim() && !value.includes('..'))
@@ -98,6 +104,10 @@ export const PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS = {
     PROFESSIONAL_LONG_FORM_MASTER_ASSEMBLY_COST_PROFILE_ID,
   ffprobeLongFormPrivateMasterQa:
     PROFESSIONAL_LONG_FORM_PRIVATE_MASTER_QA_COST_PROFILE_ID,
+  professionalLongFormCustomerDeliveryRoot:
+    PROFESSIONAL_LONG_FORM_DELIVERY_ROOT_COST_PROFILE_ID,
+  remotionFourKCustomerDeliveryH264Chunk:
+    PROFESSIONAL_LONG_FORM_DELIVERY_H264_COST_PROFILE_ID,
 } as const
 
 export type PrivateInternalAttemptCostProfileId =
@@ -126,6 +136,15 @@ export const privateInternalAttemptCostIdentitySchema = z.union([
     operationId: z.literal('tool.remotion.render_approved_composition.v1'),
     workloadProfileId: z.literal(
       PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.remotionFourKSourceSliceChunk,
+    ),
+  }).strict(),
+  z.object({
+    ...commonAttemptIdentityFields,
+    toolId: z.literal('remotion'),
+    operationId: z.literal(PROFESSIONAL_LONG_FORM_DELIVERY_H264_OPERATION_ID),
+    workloadProfileId: z.literal(
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS
+        .remotionFourKCustomerDeliveryH264Chunk,
     ),
   }).strict(),
   z.object({
@@ -227,6 +246,15 @@ export const privateInternalAttemptCostIdentitySchema = z.union([
   z.object({
     ...commonAttemptIdentityFields,
     toolId: z.literal('reeditpro_internal'),
+    operationId: z.literal(PROFESSIONAL_LONG_FORM_DELIVERY_ROOT_OPERATION_ID),
+    workloadProfileId: z.literal(
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS
+        .professionalLongFormCustomerDeliveryRoot,
+    ),
+  }).strict(),
+  z.object({
+    ...commonAttemptIdentityFields,
+    toolId: z.literal('reeditpro_internal'),
     operationId: z.literal(PROFESSIONAL_LONG_FORM_SOURCE_AUTHORITY_OPERATION_ID),
     workloadProfileId: z.literal(
       PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS
@@ -247,8 +275,13 @@ export const privateInternalAttemptCostIdentitySchema = z.union([
 const resourceUsageSchema = z.object({
   wallTimeMilliseconds: positiveSafeInteger,
   billableMilliseconds: positiveSafeInteger,
-  vcpuCount: z.union([z.literal(2), z.literal(4)]),
-  memoryGib: z.union([z.literal(2), z.literal(4)]),
+  vcpuCount: z.union([z.literal(1), z.literal(2), z.literal(4)]),
+  memoryGib: z.union([
+    z.literal(1),
+    z.literal(2),
+    z.literal(4),
+    z.literal(8),
+  ]),
   gpuCount: z.literal(0),
   outputByteLength: safeInteger.nullable(),
   networkEgressMib: z.literal(0),
@@ -318,8 +351,8 @@ export interface PrivateInternalAttemptCostDescriptor {
   attemptInputHash: string
   rateCardVersion: typeof TOOL_COST_RATE_CARD_VERSION
   resourceEnvelope: {
-    vcpuCount: 2 | 4
-    memoryGib: 2 | 4
+    vcpuCount: 1 | 2 | 4
+    memoryGib: 1 | 2 | 4 | 8
     gpuCount: 0
   }
 }
@@ -347,6 +380,12 @@ export type BeginPrivateInternalAttemptCostEvidenceInput =
         operationId: 'tool.remotion.render_approved_composition.v1'
         workloadProfileId:
           typeof PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.remotionFourKSourceSliceChunk
+      }
+    | {
+        toolId: 'remotion'
+        operationId: typeof PROFESSIONAL_LONG_FORM_DELIVERY_H264_OPERATION_ID
+        workloadProfileId:
+          typeof PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.remotionFourKCustomerDeliveryH264Chunk
       }
     | {
         toolId: 'ffmpeg'
@@ -421,6 +460,12 @@ export type BeginPrivateInternalAttemptCostEvidenceInput =
       }
     | {
         toolId: 'reeditpro_internal'
+        operationId: typeof PROFESSIONAL_LONG_FORM_DELIVERY_ROOT_OPERATION_ID
+        workloadProfileId:
+          typeof PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.professionalLongFormCustomerDeliveryRoot
+      }
+    | {
+        toolId: 'reeditpro_internal'
         operationId:
           typeof PROFESSIONAL_LONG_FORM_SOURCE_AUTHORITY_OPERATION_ID
         workloadProfileId:
@@ -470,6 +515,16 @@ const beginInputSchema = z.union([
     operationId: z.literal('tool.remotion.render_approved_composition.v1'),
     workloadProfileId: z.literal(
       PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.remotionFourKSourceSliceChunk,
+    ),
+  }).strict(),
+  z.object({
+    localStorageRoot: z.string().min(1),
+    ...commonAttemptIdentityFields,
+    toolId: z.literal('remotion'),
+    operationId: z.literal(PROFESSIONAL_LONG_FORM_DELIVERY_H264_OPERATION_ID),
+    workloadProfileId: z.literal(
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS
+        .remotionFourKCustomerDeliveryH264Chunk,
     ),
   }).strict(),
   z.object({
@@ -577,6 +632,16 @@ const beginInputSchema = z.union([
     operationId: z.literal(PROFESSIONAL_LONG_FORM_FIRST_CHILD_OPERATION_ID),
     workloadProfileId: z.literal(
       PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.professionalLongFormSnapshotValidation,
+    ),
+  }).strict(),
+  z.object({
+    localStorageRoot: z.string().min(1),
+    ...commonAttemptIdentityFields,
+    toolId: z.literal('reeditpro_internal'),
+    operationId: z.literal(PROFESSIONAL_LONG_FORM_DELIVERY_ROOT_OPERATION_ID),
+    workloadProfileId: z.literal(
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS
+        .professionalLongFormCustomerDeliveryRoot,
     ),
   }).strict(),
   z.object({
@@ -884,6 +949,14 @@ function fixedResourceEnvelope(
     profileId === PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFinalMasterDecodedVideoQa ||
     profileId === PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.ffmpegFinalMasterDecodedAudioQa
   ) return { vcpuCount: 2 as const, memoryGib: 2 as const, gpuCount: 0 as const }
+  if (
+    profileId === PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS
+      .professionalLongFormCustomerDeliveryRoot
+  ) return { vcpuCount: 1 as const, memoryGib: 1 as const, gpuCount: 0 as const }
+  if (
+    profileId === PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS
+      .remotionFourKCustomerDeliveryH264Chunk
+  ) return { vcpuCount: 4 as const, memoryGib: 8 as const, gpuCount: 0 as const }
   return { vcpuCount: 2 as const, memoryGib: 4 as const, gpuCount: 0 as const }
 }
 
@@ -899,6 +972,12 @@ export function resolvePrivateInternalAttemptCostProfileId(
     input.toolId === 'remotion' &&
     input.workloadProfileId ===
       PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.remotionFourKSourceSliceChunk
+  ) return input.workloadProfileId
+  if (
+    input.toolId === 'remotion' &&
+    input.workloadProfileId ===
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS
+        .remotionFourKCustomerDeliveryH264Chunk
   ) return input.workloadProfileId
   if (
     input.toolId === 'ffmpeg' &&
@@ -954,6 +1033,12 @@ export function resolvePrivateInternalAttemptCostProfileId(
     input.toolId === 'reeditpro_internal' &&
     input.workloadProfileId ===
       PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.professionalLongFormSnapshotValidation
+  ) return input.workloadProfileId
+  if (
+    input.toolId === 'reeditpro_internal' &&
+    input.workloadProfileId ===
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS
+        .professionalLongFormCustomerDeliveryRoot
   ) return input.workloadProfileId
   if (
     input.toolId === 'reeditpro_internal' &&

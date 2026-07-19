@@ -53,6 +53,11 @@ import {
   professionalLongFormPrivateMasterQaCompletionSchema,
   type ProfessionalLongFormPrivateMasterQaArtifact,
 } from './professional-long-form-private-master-qa-execution-contract'
+import {
+  PROFESSIONAL_LONG_FORM_DELIVERY_ROOT_OPERATION_ID,
+  PROFESSIONAL_LONG_FORM_DELIVERY_ROOT_RUNNER_CLASS,
+  PROFESSIONAL_LONG_FORM_DELIVERY_ROOT_COST_PROFILE_ID,
+} from './professional-long-form-customer-delivery-execution-contract'
 
 export const CANONICAL_PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_PACKAGE_VERSION =
   'canonical-professional-long-form-customer-delivery-package-v1' as const
@@ -122,7 +127,12 @@ const sourceChunkSchema = z.object({
 }).strict()
 
 const toolPlanSchema = z.object({
-  toolId: z.enum(['remotion', 'ffmpeg', 'ffprobe']).nullable(),
+  toolId: z.enum([
+    'reeditpro_internal',
+    'remotion',
+    'ffmpeg',
+    'ffprobe',
+  ]).nullable(),
   operationId: identity.nullable(),
   runnerClass: identity,
   attemptCostProfileId: identity,
@@ -453,7 +463,12 @@ const placementSchema = z.object({
   toolOperationBindingPolicyId: z.literal(
     CANONICAL_PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_TOOL_BINDING_POLICY_ID,
   ),
-  approvedToolIds: z.array(z.enum(['remotion', 'ffmpeg', 'ffprobe'])).max(1),
+  approvedToolIds: z.array(z.enum([
+    'reeditpro_internal',
+    'remotion',
+    'ffmpeg',
+    'ffprobe',
+  ])).max(1),
   approvedToolOperationIds: z.array(identity).max(1),
   attemptCostProfileId: identity,
   fixedRecipeProfileId: identity,
@@ -1404,10 +1419,10 @@ function createGraphWorkItem(input: {
 function toolPlanFor(kind: ProfessionalLongFormCustomerDeliveryWorkItemKind) {
   const plans = {
     validate_private_review_master_qa: {
-      toolId: null,
-      operationId: null,
-      runnerClass: 'canonical_long_form_delivery_review_gate_v1',
-      attemptCostProfileId: 'long_form_delivery_review_gate_cpu_1vcpu_1gib_v1',
+      toolId: 'reeditpro_internal' as const,
+      operationId: PROFESSIONAL_LONG_FORM_DELIVERY_ROOT_OPERATION_ID,
+      runnerClass: PROFESSIONAL_LONG_FORM_DELIVERY_ROOT_RUNNER_CLASS,
+      attemptCostProfileId: PROFESSIONAL_LONG_FORM_DELIVERY_ROOT_COST_PROFILE_ID,
       fixedRecipeProfileId: 'approved_private_review_master_qa_gate_v1',
     },
     encode_customer_delivery_h264_chunk: {

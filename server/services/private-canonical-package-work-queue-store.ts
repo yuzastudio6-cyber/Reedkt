@@ -62,6 +62,10 @@ import {
   PROFESSIONAL_LONG_FORM_PRIVATE_MASTER_QA_WORK_ITEM_ID,
 } from '../edit-architecture/professional-long-form-private-master-qa-execution-contract'
 import {
+  PROFESSIONAL_LONG_FORM_DELIVERY_H264_ATTEMPT_VERSION,
+  PROFESSIONAL_LONG_FORM_DELIVERY_ROOT_ATTEMPT_VERSION,
+} from '../edit-architecture/professional-long-form-customer-delivery-execution-contract'
+import {
   isProfessionalLongFormContinuousProgramAudioAuthorization,
   isProfessionalLongFormContinuousProgramAudioAuthority,
   isProfessionalLongFormContinuousProgramAudioCompletion,
@@ -74,6 +78,12 @@ import {
   isProfessionalLongFormPrivateMasterQaAuthorization,
   isProfessionalLongFormPrivateMasterQaAuthority,
   isProfessionalLongFormPrivateMasterQaCompletion,
+  isProfessionalLongFormDeliveryH264Authorization,
+  isProfessionalLongFormDeliveryH264Authority,
+  isProfessionalLongFormDeliveryH264Completion,
+  isProfessionalLongFormDeliveryRootAuthorization,
+  isProfessionalLongFormDeliveryRootAuthority,
+  isProfessionalLongFormDeliveryRootCompletion,
   isProfessionalLongFormFirstChildAuthorization,
   isProfessionalLongFormFirstChildExecutionAuthority,
   isProfessionalLongFormFirstObjectChunkQaAuthorization,
@@ -413,8 +423,16 @@ export async function beginPrivateCanonicalPackageWorkQueueExecutionAttempt(inpu
       isProfessionalLongFormMasterAssemblyAuthorization(authorization)
     const privateMasterQaAttempt =
       isProfessionalLongFormPrivateMasterQaAuthorization(authorization)
+    const deliveryRootAttempt =
+      isProfessionalLongFormDeliveryRootAuthorization(authorization)
+    const deliveryH264Attempt =
+      isProfessionalLongFormDeliveryH264Authorization(authorization)
     const attemptWithoutHash = {
-      schemaVersion: privateMasterQaAttempt
+      schemaVersion: deliveryH264Attempt
+        ? PROFESSIONAL_LONG_FORM_DELIVERY_H264_ATTEMPT_VERSION
+        : deliveryRootAttempt
+        ? PROFESSIONAL_LONG_FORM_DELIVERY_ROOT_ATTEMPT_VERSION
+        : privateMasterQaAttempt
         ? PROFESSIONAL_LONG_FORM_PRIVATE_MASTER_QA_ATTEMPT_VERSION
         : masterAssemblyAttempt
         ? PROFESSIONAL_LONG_FORM_MASTER_ASSEMBLY_ATTEMPT_VERSION
@@ -1592,9 +1610,15 @@ function assertProfessionalLongFormAuthorizationTarget(input: {
   authorization: ProfessionalLongFormAuthorizedChildAuthorizationReceipt
 }): void {
   const { aggregate, definition, entry, authorization } = input
+  const deliveryAuthorization =
+    isProfessionalLongFormDeliveryRootAuthorization(authorization) ||
+    isProfessionalLongFormDeliveryH264Authorization(authorization)
   if (
-    definition.source !==
-      'canonical_professional_long_form_child_package_promotion' ||
+    (deliveryAuthorization
+      ? definition.source !==
+        'canonical_professional_long_form_private_master_qa_delivery_package'
+      : definition.source !==
+        'canonical_professional_long_form_child_package_promotion') ||
     aggregate.definitionHash !== definition.definitionHash ||
     !exactProfessionalLongFormAuthorizationMatches(
       aggregate,
@@ -1656,6 +1680,28 @@ function assertPersistedProfessionalLongFormExecutionAuthority(input: {
       input.authorization.jobDefinitionHash ||
       input.executionAuthority.lineage.rootPlacementHash !==
         input.authorization.placementHash
+  } else if (
+    isProfessionalLongFormDeliveryRootAuthorization(input.authorization)
+  ) {
+    pairInvalid = !isProfessionalLongFormDeliveryRootAuthority(
+      input.executionAuthority,
+    ) || input.executionAuthority.lineage.rootJobDefinitionHash !==
+      input.authorization.jobDefinitionHash ||
+      input.executionAuthority.lineage.rootPlacementHash !==
+        input.authorization.placementHash
+  } else if (
+    isProfessionalLongFormDeliveryH264Authorization(input.authorization)
+  ) {
+    pairInvalid = !isProfessionalLongFormDeliveryH264Authority(
+      input.executionAuthority,
+    ) || input.executionAuthority.lineage.h264JobDefinitionHash !==
+      input.authorization.jobDefinitionHash ||
+      input.executionAuthority.lineage.h264PlacementHash !==
+        input.authorization.placementHash ||
+      targetDefinition?.canonicalOrder !==
+        input.executionAuthority.approvedChunk.chunkIndex * 2 - 1 ||
+      input.executionAuthority.approvedChunk.expectedH264ObjectIdentity !==
+        input.authorization.expectedOutputIdentity
   } else if (
     isProfessionalLongFormSourceAuthorityAuthorization(input.authorization)
   ) {
@@ -1781,7 +1827,10 @@ function exactProfessionalLongFormAuthorizationMatches(
   authorization: ProfessionalLongFormAuthorizedChildAuthorizationReceipt,
 ): boolean {
   const { receiptHash, ...receiptPayload } = authorization
-  const commonMatches = Boolean(aggregate.identity.professionalLongFormAuthority) &&
+  const commonMatches = Boolean(
+    aggregate.identity.professionalLongFormAuthority ||
+    aggregate.identity.professionalLongFormCustomerDeliveryAuthority,
+  ) &&
     authorization.queueDefinitionHash === aggregate.definitionHash &&
     receiptHash === sha256AuthorityValue(receiptPayload) &&
     entry.definition.jobId === authorization.jobId &&
@@ -1794,6 +1843,43 @@ function exactProfessionalLongFormAuthorizationMatches(
     entry.definition.providerExecutionMode === 'none' &&
     authorization.authorityRef.sha256.length === 64
   if (!commonMatches) return false
+  if (isProfessionalLongFormDeliveryRootAuthorization(authorization)) {
+    const delivery =
+      aggregate.identity.professionalLongFormCustomerDeliveryAuthority
+    return Boolean(delivery) &&
+      entry.definition.workerType === 'api_service' &&
+      entry.definition.resourceClassId === 'control_plane_cpu_v1' &&
+      entry.definition.maxAttempts === 1 &&
+      entry.definition.attemptTimeoutSeconds === 300 &&
+      entry.definition.canonicalOrder === 0 &&
+      entry.definition.dependencyJobIds.length === 0 &&
+      entry.definition.satisfiedPromotionDependencyJobIds?.length === 1 &&
+      entry.definition.satisfiedPromotionDependencyJobIds[0] ===
+        delivery?.sourcePrivateMasterQaJobId &&
+      authorization.expectedOutputIdentity.length === 64
+  }
+  if (isProfessionalLongFormDeliveryH264Authorization(authorization)) {
+    const delivery =
+      aggregate.identity.professionalLongFormCustomerDeliveryAuthority
+    const root = aggregate.entries.find((candidate) =>
+      candidate.definition.jobId === entry.definition.dependencyJobIds[0])
+    const rootCompletion = root?.completion?.outcome
+      .professionalLongFormExecution
+    const chunkIndex = (entry.definition.canonicalOrder + 1) / 2
+    return Boolean(delivery) &&
+      entry.definition.workerType === 'render_worker' &&
+      entry.definition.resourceClassId === 'render_cpu_high_memory_v1' &&
+      entry.definition.maxAttempts === 2 &&
+      entry.definition.attemptTimeoutSeconds === 21_600 &&
+      Number.isInteger(chunkIndex) && chunkIndex >= 1 &&
+      chunkIndex <= (delivery?.chunkCount ?? 0) &&
+      entry.definition.dependencyJobIds.length === 1 &&
+      entry.definition.satisfiedPromotionDependencyJobIds?.length === 0 &&
+      root?.definition.canonicalOrder === 0 && root.state === 'completed' &&
+      Boolean(rootCompletion &&
+        isProfessionalLongFormDeliveryRootCompletion(rootCompletion)) &&
+      /^[a-f0-9]{64}$/u.test(authorization.expectedOutputIdentity)
+  }
   if (isProfessionalLongFormFirstChildAuthorization(authorization)) {
     return entry.definition.workerType === 'api_service' &&
       entry.definition.resourceClassId === 'control_plane_cpu_v1' &&
@@ -2024,7 +2110,14 @@ function assertProfessionalLongFormCompletionEvidence(
   const completion = outcome.professionalLongFormExecution
   if (!authorization && !attempt && !completion) return
   const exactArtifactMatches = completion &&
-    isProfessionalLongFormPrivateMasterQaCompletion(completion)
+    isProfessionalLongFormDeliveryH264Completion(completion)
+    ? outcome.contentType === 'video/mp4' &&
+      outcome.artifactId === completion.outputArtifact.objectIdentity &&
+      outcome.sha256 === completion.outputArtifact.sha256
+    : completion && isProfessionalLongFormDeliveryRootCompletion(completion)
+    ? outcome.contentType === 'application/json' &&
+      outcome.sha256 === completion.validationArtifactRef.sha256
+    : completion && isProfessionalLongFormPrivateMasterQaCompletion(completion)
     ? outcome.contentType === 'application/json' &&
       outcome.sha256 === completion.validationArtifactRef.sha256
     : completion && isProfessionalLongFormMasterAssemblyCompletion(completion)

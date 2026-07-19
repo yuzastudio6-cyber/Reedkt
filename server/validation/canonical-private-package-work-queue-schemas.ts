@@ -3,6 +3,7 @@ import { z } from 'zod'
 import {
   canonicalPrivatePackageWorkQueueIdentitySchema,
   canonicalPrivatePackageWorkQueueJobDefinitionSchema,
+  CANONICAL_PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_REQUIRED_GATE,
 } from
   '../edit-architecture/canonical-private-package-work-queue-authority'
 import {
@@ -27,6 +28,8 @@ import {
   isProfessionalLongFormPrivateMasterQaAuthorization,
   isProfessionalLongFormFirstObjectChunkQaAuthorization,
   isProfessionalLongFormFirstObjectChunkRenderAuthorization,
+  isProfessionalLongFormDeliveryH264Authorization,
+  isProfessionalLongFormDeliveryRootAuthorization,
 } from '../edit-architecture/professional-long-form-authorized-child-contract'
 
 export const CANONICAL_PRIVATE_PACKAGE_WORK_QUEUE_AGGREGATE_VERSION =
@@ -270,6 +273,9 @@ export const canonicalPrivatePackageWorkQueueEntrySchema = z.object({
     }
     return
   }
+  const deliveryAuthorization =
+    isProfessionalLongFormDeliveryRootAuthorization(authorization) ||
+    isProfessionalLongFormDeliveryH264Authorization(authorization)
   if (
     entry.definition.privateExecutionReady ||
     (entry.definition.approvedWorkItemId !==
@@ -283,9 +289,12 @@ export const canonicalPrivatePackageWorkQueueEntrySchema = z.object({
       !isProfessionalLongFormCrossChunkColorAuthorization(authorization) &&
       !isProfessionalLongFormContinuousProgramAudioAuthorization(authorization) &&
       !isProfessionalLongFormMasterAssemblyAuthorization(authorization) &&
-      !isProfessionalLongFormPrivateMasterQaAuthorization(authorization)) ||
+      !isProfessionalLongFormPrivateMasterQaAuthorization(authorization) &&
+      !deliveryAuthorization) ||
     entry.definition.requiredGate !==
-      'canonical_professional_long_form_exact_tool_cost_runner_and_qa_authority' ||
+      (deliveryAuthorization
+        ? CANONICAL_PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_REQUIRED_GATE
+        : 'canonical_professional_long_form_exact_tool_cost_runner_and_qa_authority') ||
     authorization.jobId !== entry.definition.jobId ||
     authorization.approvedWorkItemId !== entry.definition.approvedWorkItemId ||
     authorization.jobDefinitionHash !== entry.definition.definitionHash ||

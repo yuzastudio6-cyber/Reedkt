@@ -67,6 +67,15 @@ import {
 import {
   createCanonicalProfessionalLongFormCustomerDeliveryPackageService,
 } from '../services/canonical-professional-long-form-customer-delivery-package-service'
+import {
+  createCanonicalProfessionalLongFormCustomerDeliveryExecutionService,
+} from '../services/canonical-professional-long-form-customer-delivery-execution-service'
+import {
+  PROFESSIONAL_LONG_FORM_DELIVERY_H264_COST_PROFILE_ID,
+  PROFESSIONAL_LONG_FORM_DELIVERY_H264_OPERATION_ID,
+  PROFESSIONAL_LONG_FORM_DELIVERY_ROOT_COST_PROFILE_ID,
+  PROFESSIONAL_LONG_FORM_DELIVERY_ROOT_OPERATION_ID,
+} from '../edit-architecture/professional-long-form-customer-delivery-execution-contract'
 import { createEditPlanningAuthorityService } from
   '../services/edit-planning-authority-service'
 import { createExactEditPreferenceService } from
@@ -102,6 +111,10 @@ import type {
 import {
   activatePrivateOfflineMediaBinaryRuntime,
 } from '../tool-execution/media-binary-execution'
+import {
+  activatePrivateOfflineRemotionRenderRuntime,
+  prepareOfflineRemotionDockerRuntime,
+} from '../tool-execution/remotion-render-execution'
 import { ApiError } from '../errors/api-error'
 
 const workspaceId = 'workspace-canonical-color-two-chunk'
@@ -504,6 +517,81 @@ try {
   assert.equal(delivery.readiness.productReady, false)
   assert.equal(delivery.readiness.productionReady, false)
 
+  const deliveryPristineReplay = await deliveryService.prepare({
+    workspaceId,
+    approvedPlanSnapshotId: snapshotId,
+  })
+  assert.equal(deliveryPristineReplay.disposition, 'exact_replay')
+  assert.equal(deliveryPristineReplay.evidenceHash, delivery.evidenceHash)
+  const deliveryExecutionService =
+    createCanonicalProfessionalLongFormCustomerDeliveryExecutionService(context)
+  const deliveryRootExecution = await deliveryExecutionService.executeRoot({
+    workspaceId,
+    approvedPlanSnapshotId: snapshotId,
+  })
+  assert.equal(deliveryRootExecution.queueAggregate.summary.completedJobCount, 1)
+  assert.equal(deliveryRootExecution.queueAggregate.summary.queuedJobCount, 8)
+  assert.equal(
+    deliveryRootExecution.costEvidence.identity.operationId,
+    PROFESSIONAL_LONG_FORM_DELIVERY_ROOT_OPERATION_ID,
+  )
+  assert.equal(
+    deliveryRootExecution.costEvidence.identity.workloadProfileId,
+    PROFESSIONAL_LONG_FORM_DELIVERY_ROOT_COST_PROFILE_ID,
+  )
+  assert.equal(deliveryRootExecution.costEvidence.resourceUsage.vcpuCount, 1)
+  assert.equal(deliveryRootExecution.costEvidence.resourceUsage.memoryGib, 1)
+  assert.equal(deliveryRootExecution.terminal.h264ExecutionAuthorized, false)
+  assert.doesNotMatch(
+    stableAuthorityStringify(deliveryRootExecution.costEvidence),
+    /customerPrice|customerCredit|serviceFee|wallet|billingAuthority/u,
+  )
+  await prepareOfflineRemotionDockerRuntime()
+  await activatePrivateOfflineRemotionRenderRuntime()
+  const deliveryH264Execution =
+    await deliveryExecutionService.executeFirstH264Chunk({
+      workspaceId,
+      approvedPlanSnapshotId: snapshotId,
+    })
+  assert.equal(deliveryH264Execution.disposition, 'completed')
+  assert.equal(deliveryH264Execution.queueAggregate.summary.completedJobCount, 2)
+  assert.equal(deliveryH264Execution.queueAggregate.summary.queuedJobCount, 7)
+  assert.equal(deliveryH264Execution.queueAggregate.summary.leasedJobCount, 0)
+  assert.equal(
+    deliveryH264Execution.h264.costEvidence.identity.operationId,
+    PROFESSIONAL_LONG_FORM_DELIVERY_H264_OPERATION_ID,
+  )
+  assert.equal(
+    deliveryH264Execution.h264.costEvidence.identity.workloadProfileId,
+    PROFESSIONAL_LONG_FORM_DELIVERY_H264_COST_PROFILE_ID,
+  )
+  assert.equal(deliveryH264Execution.h264.costEvidence.resourceUsage.vcpuCount, 4)
+  assert.equal(deliveryH264Execution.h264.costEvidence.resourceUsage.memoryGib, 8)
+  assert.equal(deliveryH264Execution.h264.outputArtifact.mediaFormat, 'mp4')
+  assert.equal(deliveryH264Execution.h264.outputArtifact.videoCodec, 'h264')
+  assert.equal(deliveryH264Execution.h264.outputArtifact.videoProfile, 'high')
+  assert.equal(deliveryH264Execution.h264.outputArtifact.encoderCrf, 18)
+  assert.equal(deliveryH264Execution.h264.outputArtifact.encoderPreset, 'medium')
+  assert.equal(deliveryH264Execution.h264.outputArtifact.pixelFormat, 'yuv420p')
+  assert.equal(deliveryH264Execution.h264.outputArtifact.colorSpace, 'bt709')
+  assert.equal(deliveryH264Execution.h264.outputArtifact.audioStreamCount, 0)
+  assert.equal(deliveryH264Execution.h264.terminal.independentQaCompleted, false)
+  assert.equal(
+    deliveryH264Execution.readiness.h264HighCrf18MediumVideoOnlyExecutionVerified,
+    true,
+  )
+  assert.equal(
+    deliveryH264Execution.readiness.independentH264ChunkQaVerified,
+    false,
+  )
+  assert.equal(deliveryH264Execution.readiness.publicDeliveryAuthorized, false)
+  assert.equal(deliveryH264Execution.readiness.productReady, false)
+  assert.equal(deliveryH264Execution.readiness.productionReady, false)
+  assert.doesNotMatch(
+    stableAuthorityStringify(deliveryH264Execution.h264.costEvidence),
+    /customerPrice|customerCredit|serviceFee|wallet|billingAuthority/u,
+  )
+
   clearPrivateEditAuthorityProcessStateForSmoke()
   clearPrivateCanonicalPackageWorkQueueProcessStateForSmoke()
   const privateMasterQaReplay = await
@@ -519,16 +607,31 @@ try {
     privateMasterQaReplay.qa.costEvidence.evidenceHash,
     privateMasterQa.qa.costEvidence.evidenceHash,
   )
-  const deliveryReplay = await deliveryService.prepare({
+  const deliveryRootReplay = await deliveryExecutionService.executeRoot({
     workspaceId,
     approvedPlanSnapshotId: snapshotId,
   })
-  assert.equal(deliveryReplay.disposition, 'exact_replay')
-  assert.equal(deliveryReplay.evidenceHash, delivery.evidenceHash)
-  assert.equal(deliveryReplay.package.packageHash, delivery.package.packageHash)
   assert.equal(
-    deliveryReplay.queueAggregate.aggregateHash,
-    delivery.queueAggregate.aggregateHash,
+    deliveryRootReplay.terminal.terminalHash,
+    deliveryRootExecution.terminal.terminalHash,
+  )
+  assert.equal(
+    deliveryRootReplay.costEvidence.evidenceHash,
+    deliveryRootExecution.costEvidence.evidenceHash,
+  )
+  const deliveryH264Replay =
+    await deliveryExecutionService.executeFirstH264Chunk({
+      workspaceId,
+      approvedPlanSnapshotId: snapshotId,
+    })
+  assert.equal(deliveryH264Replay.disposition, 'exact_replay')
+  assert.equal(
+    deliveryH264Replay.h264.terminal.terminalHash,
+    deliveryH264Execution.h264.terminal.terminalHash,
+  )
+  assert.equal(
+    deliveryH264Replay.h264.costEvidence.evidenceHash,
+    deliveryH264Execution.h264.costEvidence.evidenceHash,
   )
 
   console.log(JSON.stringify({
@@ -551,7 +654,13 @@ try {
     privateMasterQaExactReplayVerified:
       privateMasterQaReplay.disposition === 'exact_replay',
     customerDeliveryPackageExactReplayVerified:
-      deliveryReplay.disposition === 'exact_replay',
+      deliveryPristineReplay.disposition === 'exact_replay',
+    customerDeliveryRootExactReplayVerified:
+      deliveryRootReplay.terminal.terminalHash ===
+        deliveryRootExecution.terminal.terminalHash,
+    customerDeliveryFirstH264ExactReplayVerified:
+      deliveryH264Replay.h264.terminal.terminalHash ===
+        deliveryH264Execution.h264.terminal.terminalHash,
     privateMasterQaCompleted: true,
     privateReviewGraphComplete: true,
     customerDeliveryPackageJobCount:
@@ -559,8 +668,15 @@ try {
     customerDeliveryPackageHash: delivery.package.packageHash,
     customerDeliveryWorkGraphHash: delivery.package.graph.workGraphHash,
     customerDeliveryQueueAggregateHash:
-      delivery.queueAggregate.aggregateHash,
+      deliveryH264Execution.queueAggregate.aggregateHash,
     customerDeliveryPackagePrepared: true,
+    customerDeliveryRootCompleted: true,
+    customerDeliveryFirstH264Completed: true,
+    customerDeliveryFirstH264Sha256:
+      deliveryH264Execution.h264.outputArtifact.sha256,
+    customerDeliveryFirstH264InternalCostEvidenceHash:
+      deliveryH264Execution.h264.costEvidence.evidenceHash,
+    customerDeliveryIndependentH264QaCompleted: false,
     customerDeliveryMasterCreated: false,
     exportExecutionAuthorized: false,
     productReady: false,

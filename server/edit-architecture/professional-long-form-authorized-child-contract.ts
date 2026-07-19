@@ -88,6 +88,24 @@ import {
   professionalLongFormPrivateMasterQaAuthorizationSchema,
   professionalLongFormPrivateMasterQaCompletionSchema,
 } from './professional-long-form-private-master-qa-execution-contract'
+import {
+  PROFESSIONAL_LONG_FORM_DELIVERY_H264_ATTEMPT_VERSION,
+  PROFESSIONAL_LONG_FORM_DELIVERY_H264_AUTHORITY_VERSION,
+  PROFESSIONAL_LONG_FORM_DELIVERY_H264_AUTHORIZATION_VERSION,
+  PROFESSIONAL_LONG_FORM_DELIVERY_H264_COMPLETION_VERSION,
+  PROFESSIONAL_LONG_FORM_DELIVERY_ROOT_ATTEMPT_VERSION,
+  PROFESSIONAL_LONG_FORM_DELIVERY_ROOT_AUTHORITY_VERSION,
+  PROFESSIONAL_LONG_FORM_DELIVERY_ROOT_AUTHORIZATION_VERSION,
+  PROFESSIONAL_LONG_FORM_DELIVERY_ROOT_COMPLETION_VERSION,
+  professionalLongFormDeliveryH264AttemptSchema,
+  professionalLongFormDeliveryH264AuthoritySchema,
+  professionalLongFormDeliveryH264AuthorizationSchema,
+  professionalLongFormDeliveryH264CompletionSchema,
+  professionalLongFormDeliveryRootAttemptSchema,
+  professionalLongFormDeliveryRootAuthoritySchema,
+  professionalLongFormDeliveryRootAuthorizationSchema,
+  professionalLongFormDeliveryRootCompletionSchema,
+} from './professional-long-form-customer-delivery-execution-contract'
 
 export const professionalLongFormAuthorizedChildAuthorizationReceiptSchema =
   z.discriminatedUnion('schemaVersion', [
@@ -100,6 +118,8 @@ export const professionalLongFormAuthorizedChildAuthorizationReceiptSchema =
     professionalLongFormCrossChunkColorAuthorizationSchema,
     professionalLongFormMasterAssemblyAuthorizationSchema,
     professionalLongFormPrivateMasterQaAuthorizationSchema,
+    professionalLongFormDeliveryRootAuthorizationSchema,
+    professionalLongFormDeliveryH264AuthorizationSchema,
   ])
 
 export const professionalLongFormAuthorizedChildExecutionAuthoritySchema =
@@ -113,6 +133,8 @@ export const professionalLongFormAuthorizedChildExecutionAuthoritySchema =
     professionalLongFormCrossChunkColorAuthoritySchema,
     professionalLongFormMasterAssemblyAuthoritySchema,
     professionalLongFormPrivateMasterQaAuthoritySchema,
+    professionalLongFormDeliveryRootAuthoritySchema,
+    professionalLongFormDeliveryH264AuthoritySchema,
   ])
 
 export const professionalLongFormAuthorizedChildExecutionAttemptSchema =
@@ -126,6 +148,8 @@ export const professionalLongFormAuthorizedChildExecutionAttemptSchema =
     professionalLongFormCrossChunkColorAttemptSchema,
     professionalLongFormMasterAssemblyAttemptSchema,
     professionalLongFormPrivateMasterQaAttemptSchema,
+    professionalLongFormDeliveryRootAttemptSchema,
+    professionalLongFormDeliveryH264AttemptSchema,
   ])
 
 export const professionalLongFormAuthorizedChildCompletionSchema =
@@ -139,6 +163,8 @@ export const professionalLongFormAuthorizedChildCompletionSchema =
     professionalLongFormCrossChunkColorCompletionSchema,
     professionalLongFormMasterAssemblyCompletionSchema,
     professionalLongFormPrivateMasterQaCompletionSchema,
+    professionalLongFormDeliveryRootCompletionSchema,
+    professionalLongFormDeliveryH264CompletionSchema,
   ])
 
 export type ProfessionalLongFormAuthorizedChildAuthorizationReceipt = z.infer<
@@ -225,6 +251,20 @@ export function isProfessionalLongFormPrivateMasterQaAuthorization(
     PROFESSIONAL_LONG_FORM_PRIVATE_MASTER_QA_AUTHORIZATION_VERSION
 }
 
+export function isProfessionalLongFormDeliveryRootAuthorization(
+  value: ProfessionalLongFormAuthorizedChildAuthorizationReceipt,
+): value is z.infer<typeof professionalLongFormDeliveryRootAuthorizationSchema> {
+  return value.schemaVersion ===
+    PROFESSIONAL_LONG_FORM_DELIVERY_ROOT_AUTHORIZATION_VERSION
+}
+
+export function isProfessionalLongFormDeliveryH264Authorization(
+  value: ProfessionalLongFormAuthorizedChildAuthorizationReceipt,
+): value is z.infer<typeof professionalLongFormDeliveryH264AuthorizationSchema> {
+  return value.schemaVersion ===
+    PROFESSIONAL_LONG_FORM_DELIVERY_H264_AUTHORIZATION_VERSION
+}
+
 export function isProfessionalLongFormFirstChildExecutionAuthority(
   value: ProfessionalLongFormAuthorizedChildExecutionAuthority,
 ): value is z.infer<typeof professionalLongFormFirstChildExecutionAuthoritySchema> {
@@ -290,6 +330,20 @@ export function isProfessionalLongFormPrivateMasterQaAuthority(
 ): value is z.infer<typeof professionalLongFormPrivateMasterQaAuthoritySchema> {
   return value.schemaVersion ===
     PROFESSIONAL_LONG_FORM_PRIVATE_MASTER_QA_AUTHORITY_VERSION
+}
+
+export function isProfessionalLongFormDeliveryRootAuthority(
+  value: ProfessionalLongFormAuthorizedChildExecutionAuthority,
+): value is z.infer<typeof professionalLongFormDeliveryRootAuthoritySchema> {
+  return value.schemaVersion ===
+    PROFESSIONAL_LONG_FORM_DELIVERY_ROOT_AUTHORITY_VERSION
+}
+
+export function isProfessionalLongFormDeliveryH264Authority(
+  value: ProfessionalLongFormAuthorizedChildExecutionAuthority,
+): value is z.infer<typeof professionalLongFormDeliveryH264AuthoritySchema> {
+  return value.schemaVersion ===
+    PROFESSIONAL_LONG_FORM_DELIVERY_H264_AUTHORITY_VERSION
 }
 
 export function isProfessionalLongFormFirstChildExecutionAttempt(
@@ -359,6 +413,18 @@ export function isProfessionalLongFormPrivateMasterQaAttempt(
     PROFESSIONAL_LONG_FORM_PRIVATE_MASTER_QA_ATTEMPT_VERSION
 }
 
+export function isProfessionalLongFormDeliveryRootAttempt(
+  value: ProfessionalLongFormAuthorizedChildExecutionAttempt,
+): value is z.infer<typeof professionalLongFormDeliveryRootAttemptSchema> {
+  return value.schemaVersion === PROFESSIONAL_LONG_FORM_DELIVERY_ROOT_ATTEMPT_VERSION
+}
+
+export function isProfessionalLongFormDeliveryH264Attempt(
+  value: ProfessionalLongFormAuthorizedChildExecutionAttempt,
+): value is z.infer<typeof professionalLongFormDeliveryH264AttemptSchema> {
+  return value.schemaVersion === PROFESSIONAL_LONG_FORM_DELIVERY_H264_ATTEMPT_VERSION
+}
+
 export function isProfessionalLongFormFirstChildCompletion(
   value: ProfessionalLongFormAuthorizedChildCompletion,
 ): value is z.infer<typeof professionalLongFormFirstChildCompletionSchema> {
@@ -423,4 +489,18 @@ export function isProfessionalLongFormPrivateMasterQaCompletion(
 ): value is z.infer<typeof professionalLongFormPrivateMasterQaCompletionSchema> {
   return value.schemaVersion ===
     PROFESSIONAL_LONG_FORM_PRIVATE_MASTER_QA_COMPLETION_VERSION
+}
+
+export function isProfessionalLongFormDeliveryRootCompletion(
+  value: ProfessionalLongFormAuthorizedChildCompletion,
+): value is z.infer<typeof professionalLongFormDeliveryRootCompletionSchema> {
+  return value.schemaVersion ===
+    PROFESSIONAL_LONG_FORM_DELIVERY_ROOT_COMPLETION_VERSION
+}
+
+export function isProfessionalLongFormDeliveryH264Completion(
+  value: ProfessionalLongFormAuthorizedChildCompletion,
+): value is z.infer<typeof professionalLongFormDeliveryH264CompletionSchema> {
+  return value.schemaVersion ===
+    PROFESSIONAL_LONG_FORM_DELIVERY_H264_COMPLETION_VERSION
 }

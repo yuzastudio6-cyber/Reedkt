@@ -71,6 +71,9 @@ import {
   createCanonicalProfessionalLongFormCustomerDeliveryExecutionService,
 } from '../services/canonical-professional-long-form-customer-delivery-execution-service'
 import {
+  createCanonicalProfessionalLongFormCustomerDeliveryDecodedQaExecutionService,
+} from '../services/canonical-professional-long-form-customer-delivery-decoded-qa-execution-service'
+import {
   PROFESSIONAL_LONG_FORM_DELIVERY_H264_COST_PROFILE_ID,
   PROFESSIONAL_LONG_FORM_DELIVERY_H264_OPERATION_ID,
   PROFESSIONAL_LONG_FORM_DELIVERY_ROOT_COST_PROFILE_ID,
@@ -84,6 +87,11 @@ import {
   PROFESSIONAL_LONG_FORM_DELIVERY_MUX_COST_PROFILE_ID,
   PROFESSIONAL_LONG_FORM_DELIVERY_MUX_OPERATION_ID,
 } from '../edit-architecture/professional-long-form-customer-delivery-mux-execution-contract'
+import {
+  PROFESSIONAL_LONG_FORM_DELIVERY_DECODED_AUDIO_QA_COST_PROFILE_ID,
+  PROFESSIONAL_LONG_FORM_DELIVERY_DECODED_QA_OPERATION_ID,
+  PROFESSIONAL_LONG_FORM_DELIVERY_DECODED_VIDEO_QA_COST_PROFILE_ID,
+} from '../edit-architecture/professional-long-form-customer-delivery-decoded-qa-execution-contract'
 import { createEditPlanningAuthorityService } from
   '../services/edit-planning-authority-service'
 import { createExactEditPreferenceService } from
@@ -901,6 +909,108 @@ try {
     deliveryMuxExecution.mux.outputArtifact.sha256,
   )
 
+  const decodedQaService =
+    createCanonicalProfessionalLongFormCustomerDeliveryDecodedQaExecutionService(
+      context,
+    )
+  const decodedVideoQa = await decodedQaService.executeDecodedVideoQa({
+    workspaceId,
+    approvedPlanSnapshotId: snapshotId,
+  })
+  assert.equal(decodedVideoQa.disposition, 'completed')
+  assert.equal(decodedVideoQa.qa.objectiveEvidence.outcome,
+    'needs_user_review')
+  assert.equal(decodedVideoQa.queueAggregate.summary.completedJobCount, 7)
+  assert.equal(decodedVideoQa.queueAggregate.summary.queuedJobCount, 2)
+  assert.equal(decodedVideoQa.queueAggregate.summary.leasedJobCount, 0)
+  assert.equal(decodedVideoQa.qa.terminal.decodedAudioQaCompleted, false)
+  assert.equal(decodedVideoQa.qa.terminal.privateDownloadReconciled, false)
+  assert.equal(
+    decodedVideoQa.qa.costEvidence.identity.operationId,
+    PROFESSIONAL_LONG_FORM_DELIVERY_DECODED_QA_OPERATION_ID,
+  )
+  assert.equal(
+    decodedVideoQa.qa.costEvidence.identity.workloadProfileId,
+    PROFESSIONAL_LONG_FORM_DELIVERY_DECODED_VIDEO_QA_COST_PROFILE_ID,
+  )
+  assert.equal(decodedVideoQa.qa.costEvidence.resourceUsage.vcpuCount, 2)
+  assert.equal(decodedVideoQa.qa.costEvidence.resourceUsage.memoryGib, 2)
+  assert.equal(decodedVideoQa.readiness.privateDownloadExecutionAuthorized, false)
+  assert.equal(decodedVideoQa.readiness.secondExportEstimateCreated, false)
+  assert.equal(decodedVideoQa.readiness.secondExportChargeCreated, false)
+  assert.equal(decodedVideoQa.readiness.productReady, false)
+  assert.equal(decodedVideoQa.readiness.productionReady, false)
+
+  const decodedAudioQa = await decodedQaService.executeDecodedAudioQa({
+    workspaceId,
+    approvedPlanSnapshotId: snapshotId,
+  })
+  assert.equal(decodedAudioQa.disposition, 'completed')
+  assert.equal(decodedAudioQa.qa.objectiveEvidence.outcome,
+    'needs_user_review')
+  assert.equal(decodedAudioQa.queueAggregate.summary.completedJobCount, 8)
+  assert.equal(decodedAudioQa.queueAggregate.summary.queuedJobCount, 1)
+  assert.equal(decodedAudioQa.queueAggregate.summary.leasedJobCount, 0)
+  assert.equal(decodedAudioQa.qa.terminal.decodedVideoQaCompleted, true)
+  assert.equal(
+    decodedAudioQa.qa.artifact.actualSpeechIntelligibilityAnalysisPerformed,
+    false,
+  )
+  assert.equal(
+    decodedAudioQa.qa.terminal.actualSpeechIntelligibilityAnalysisPerformed,
+    false,
+  )
+  assert.equal(
+    decodedAudioQa.qa.costEvidence.identity.operationId,
+    PROFESSIONAL_LONG_FORM_DELIVERY_DECODED_QA_OPERATION_ID,
+  )
+  assert.equal(
+    decodedAudioQa.qa.costEvidence.identity.workloadProfileId,
+    PROFESSIONAL_LONG_FORM_DELIVERY_DECODED_AUDIO_QA_COST_PROFILE_ID,
+  )
+  assert.equal(decodedAudioQa.qa.costEvidence.resourceUsage.vcpuCount, 2)
+  assert.equal(decodedAudioQa.qa.costEvidence.resourceUsage.memoryGib, 2)
+  assert.equal(decodedAudioQa.readiness.privateDownloadExecutionAuthorized, false)
+  assert.equal(decodedAudioQa.readiness.customerPriceOrCreditsMutated, false)
+  assert.equal(decodedAudioQa.readiness.productReady, false)
+  assert.equal(decodedAudioQa.readiness.productionReady, false)
+  const privateDownloadEntry = decodedAudioQa.queueAggregate.entries[8]
+  assert.equal(privateDownloadEntry?.state, 'queued')
+  assert.equal(privateDownloadEntry?.deliveryAttemptCount, 0)
+  assert.equal(
+    privateDownloadEntry?.professionalLongFormExecutionAuthorization,
+    undefined,
+  )
+  for (const evidence of [
+    decodedVideoQa.qa.costEvidence,
+    decodedAudioQa.qa.costEvidence,
+  ]) assert.doesNotMatch(
+    stableAuthorityStringify(evidence),
+    /customerPrice|customerCredit|serviceFee|wallet|billingAuthority/u,
+  )
+
+  clearPrivateEditAuthorityProcessStateForSmoke()
+  clearPrivateCanonicalPackageWorkQueueProcessStateForSmoke()
+  const decodedQaReplay = await decodedQaService.executeBothDecodedQa({
+    workspaceId,
+    approvedPlanSnapshotId: snapshotId,
+  })
+  assert.equal(decodedQaReplay.disposition, 'exact_replay')
+  assert.equal(decodedQaReplay.qualityDisposition, 'user_review_required')
+  assert.equal(decodedQaReplay.readiness.bothObjectiveQaGatesPassed, false)
+  assert.equal(
+    decodedQaReplay.videoQa.terminal.terminalHash,
+    decodedVideoQa.qa.terminal.terminalHash,
+  )
+  assert.equal(
+    decodedQaReplay.audioQa.terminal.terminalHash,
+    decodedAudioQa.qa.terminal.terminalHash,
+  )
+  assert.equal(
+    decodedQaReplay.queueAggregate.aggregateHash,
+    decodedAudioQa.queueAggregate.aggregateHash,
+  )
+
   console.log(JSON.stringify({
     ok: true,
     schemaVersion:
@@ -944,7 +1054,7 @@ try {
     customerDeliveryPackageHash: delivery.package.packageHash,
     customerDeliveryWorkGraphHash: delivery.package.graph.workGraphHash,
     customerDeliveryQueueAggregateHash:
-      deliveryMuxExecution.queueAggregate.aggregateHash,
+      decodedQaReplay.queueAggregate.aggregateHash,
     customerDeliveryPackagePrepared: true,
     customerDeliveryRootCompleted: true,
     customerDeliveryFirstH264Completed: true,
@@ -971,8 +1081,19 @@ try {
       deliveryMuxExecution.mux.outputArtifact.sha256,
     customerDeliveryMuxInternalCostEvidenceHash:
       deliveryMuxExecution.mux.costEvidence.evidenceHash,
-    customerDeliveryDecodedVideoQaCompleted: false,
-    customerDeliveryDecodedAudioQaCompleted: false,
+    customerDeliveryDecodedVideoQaCompleted: true,
+    customerDeliveryDecodedAudioQaCompleted: true,
+    customerDeliveryDecodedVideoQaObjectiveOutcome:
+      decodedQaReplay.videoQa.objectiveEvidence.outcome,
+    customerDeliveryDecodedAudioQaObjectiveOutcome:
+      decodedQaReplay.audioQa.objectiveEvidence.outcome,
+    customerDeliveryDecodedQaQualityDisposition:
+      decodedQaReplay.qualityDisposition,
+    customerDeliveryDecodedVideoQaInternalCostEvidenceHash:
+      decodedQaReplay.videoQa.costEvidence.evidenceHash,
+    customerDeliveryDecodedAudioQaInternalCostEvidenceHash:
+      decodedQaReplay.audioQa.costEvidence.evidenceHash,
+    customerDeliveryDecodedQaExactReplayVerified: true,
     customerDeliveryPrivateDownloadReconciled: false,
     exportExecutionAuthorized: false,
     productReady: false,

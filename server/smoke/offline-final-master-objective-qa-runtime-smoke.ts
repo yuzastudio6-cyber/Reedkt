@@ -28,6 +28,10 @@ import {
   readPrivateInternalAttemptCostEvidence,
   type PrivateInternalAttemptCostEvidence,
 } from '../tool-cost-metering/private-internal-attempt-cost-evidence'
+import {
+  sha256AuthorityValue,
+  stableAuthorityStringify,
+} from '../services/private-edit-authority-store'
 
 const fps = 30 as const
 const width = 1_920
@@ -41,6 +45,15 @@ const silentFixturePath = join(
   '/tmp',
   `reeditpro-final-master-objective-qa-silent-${process.pid}.mp4`,
 )
+const longAudioTimestampFixturePath = join(
+  '/tmp',
+  `reeditpro-final-master-objective-qa-long-audio-${process.pid}.mp4`,
+)
+const longAudioTimestampRegressionSeconds = 65
+const longAudioTimestampRegressionFrames =
+  longAudioTimestampRegressionSeconds * fps
+const longAudioTimestampRegressionWidth = 1_080
+const longAudioTimestampRegressionHeight = 1_080
 const costRoot = await mkdtemp(join(
   '/tmp',
   `reeditpro-final-master-objective-qa-cost-${process.pid}-`,
@@ -55,16 +68,21 @@ try {
     'sine=frequency=440:sample_rate=48000:duration=4',
     '-map', '0:v:0', '-map', '1:a:0',
     '-frames:v', String(totalFrames),
-    '-c:v', 'libx264', '-preset', 'ultrafast', '-tune', 'zerolatency',
+    '-c:v', 'libx264', '-preset', 'veryfast', '-profile:v', 'high',
     '-x264-params',
     `keyint=${totalFrames}:min-keyint=${totalFrames}:scenecut=0:open-gop=0:` +
       'colorprim=bt709:transfer=bt709:colormatrix=bt709:fullrange=off',
-    '-bf', '0', '-pix_fmt', 'yuv420p',
+    '-bf', '2', '-pix_fmt', 'yuv420p',
     '-colorspace', 'bt709', '-color_primaries', 'bt709',
     '-color_trc', 'bt709', '-color_range', 'tv',
     '-af', 'loudnorm=I=-14:LRA=7:TP=-1',
     '-c:a', 'aac', '-b:a', '192k', '-ar', '48000', '-ac', '2',
-    '-t', '4', '-movflags', '+faststart', '-threads', '1',
+    '-t', '4', '-avoid_negative_ts', 'make_zero',
+    '-fflags', '+bitexact', '-flags:a', '+bitexact',
+    '-map_metadata', '-1', '-map_chapters', '-1',
+    '-movflags',
+    '+frag_keyframe+empty_moov+default_base_moof+negative_cts_offsets',
+    '-threads', '1',
     '-y', fixturePath,
   ], { encoding: 'utf8' })
   assert.equal(generated.status, 0, generated.stderr)
@@ -84,6 +102,39 @@ try {
     '-y', silentFixturePath,
   ], { encoding: 'utf8' })
   assert.equal(generatedSilent.status, 0, generatedSilent.stderr)
+  const generatedLongAudioTimestampFixture = spawnSync('ffmpeg', [
+    '-hide_banner', '-loglevel', 'error',
+    '-f', 'lavfi', '-i',
+    `color=c=0x174EA6:s=${longAudioTimestampRegressionWidth}x${longAudioTimestampRegressionHeight}:r=${fps}:d=${longAudioTimestampRegressionSeconds}`,
+    '-f', 'lavfi', '-i',
+    `sine=frequency=440:sample_rate=48000:duration=${longAudioTimestampRegressionSeconds}`,
+    '-map', '0:v:0', '-map', '1:a:0',
+    '-frames:v', String(longAudioTimestampRegressionFrames),
+    '-c:v', 'libx264', '-preset', 'ultrafast', '-profile:v', 'high',
+    '-x264-params',
+    `keyint=${longAudioTimestampRegressionFrames}:min-keyint=${longAudioTimestampRegressionFrames}:scenecut=0:open-gop=0:` +
+      'colorprim=bt709:transfer=bt709:colormatrix=bt709:fullrange=off',
+    '-bf', '2', '-pix_fmt', 'yuv420p',
+    '-colorspace', 'bt709', '-color_primaries', 'bt709',
+    '-color_trc', 'bt709', '-color_range', 'tv',
+    '-af',
+    `atrim=duration=${longAudioTimestampRegressionSeconds},` +
+      'asetpts=PTS-STARTPTS,' +
+      'aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo',
+    '-c:a', 'aac', '-b:a', '192k', '-ar', '48000', '-ac', '2',
+    '-t', String(longAudioTimestampRegressionSeconds),
+    '-avoid_negative_ts', 'make_zero',
+    '-fflags', '+bitexact', '-flags:a', '+bitexact',
+    '-map_metadata', '-1', '-map_chapters', '-1',
+    '-movflags',
+    '+frag_keyframe+empty_moov+default_base_moof+negative_cts_offsets',
+    '-threads', '1', '-y', longAudioTimestampFixturePath,
+  ], { encoding: 'utf8' })
+  assert.equal(
+    generatedLongAudioTimestampFixture.status,
+    0,
+    generatedLongAudioTimestampFixture.stderr,
+  )
 
   const bytes = await readFile(fixturePath)
   const sourceSha256 = sha256(bytes)
@@ -353,12 +404,56 @@ try {
     attemptCostEvidence: videoAttemptCost.evidence,
   }))
   const videoDocument = videoResult.resultJson.document
+  const roundTrippedVideoDocument = JSON.parse(
+    stableAuthorityStringify(videoDocument),
+  ) as Record<string, unknown>
+  assert.equal(
+    sha256AuthorityValue(roundTrippedVideoDocument),
+    sha256AuthorityValue(videoDocument),
+  )
+  assert.equal(
+    sha256(Buffer.from(`${stableAuthorityStringify(videoDocument)}\n`)),
+    videoResult.resultJson.sha256,
+  )
+  assert.notEqual(
+    sha256AuthorityValue(videoDocument),
+    videoResult.resultJson.sha256,
+  )
+  assert.equal(videoResult.evidence.resultSha256, videoResult.resultJson.sha256)
+  assert.equal(
+    videoAttemptCost.evidence.linkedCanonicalOutcomeHash,
+    videoResult.resultJson.sha256,
+  )
+  assert.equal(
+    videoAttemptCost.evidence.resourceUsage.outputByteLength,
+    videoResult.resultJson.byteLength,
+  )
+  assert.equal(
+    videoObjectiveEvidence.evidenceArtifactHash,
+    videoResult.resultJson.sha256,
+  )
+  const technicalProbe = record(videoDocument.technicalProbe)
+  const technicalProbeVideo = record(technicalProbe.video)
   const decodedVideo = record(videoDocument.decodedFrameIntegrity)
   const anomalyScan = record(videoDocument.visualAnomalyScan)
   assert.equal(videoDocument.outcome, 'passed')
+  assert.equal(technicalProbeVideo.frameCount, totalFrames)
+  assert.equal(technicalProbeVideo.nominalFrameRate, fps)
   assert.equal(decodedVideo.decodedFrameCount, totalFrames)
   assert.equal(decodedVideo.expectedFrameCount, totalFrames)
   assert.equal(decodedVideo.sequentialDtsPtsVerified, true)
+  assert.equal(
+    decodedVideo.checksumTimestampNormalization,
+    'decoded_frame_ordinal_no_drop_or_duplication_v1',
+  )
+  assert.equal(
+    decodedVideo.originalTimestampAuthority,
+    'independent_exact_technical_probe_v1',
+  )
+  assert.equal(decodedVideo.firstFrameDurationTicks, 3)
+  assert.equal(decodedVideo.maximumFirstFrameDurationTicks, 3)
+  assert.equal(decodedVideo.firstFrameDurationWithinApprovedStartOffset, true)
+  assert.equal(decodedVideo.subsequentOneFrameDurationsVerified, true)
   assert.equal(decodedVideo.perFrameSha256Verified, true)
   assert.equal(decodedVideo.retainedPerFramePayloads, false)
   assert.equal(anomalyScan.unexpectedFindingCount, 0)
@@ -438,11 +533,47 @@ try {
     0,
   )
   const audioDocument = audioResult.resultJson.document
+  const roundTrippedAudioDocument = JSON.parse(
+    stableAuthorityStringify(audioDocument),
+  ) as Record<string, unknown>
+  assert.equal(
+    sha256AuthorityValue(roundTrippedAudioDocument),
+    sha256AuthorityValue(audioDocument),
+  )
+  assert.equal(
+    sha256(Buffer.from(`${stableAuthorityStringify(audioDocument)}\n`)),
+    audioResult.resultJson.sha256,
+  )
+  assert.notEqual(
+    sha256AuthorityValue(audioDocument),
+    audioResult.resultJson.sha256,
+  )
+  assert.equal(audioResult.evidence.resultSha256, audioResult.resultJson.sha256)
+  assert.equal(
+    audioAttemptCost.evidence.linkedCanonicalOutcomeHash,
+    audioResult.resultJson.sha256,
+  )
+  assert.equal(
+    audioAttemptCost.evidence.resourceUsage.outputByteLength,
+    audioResult.resultJson.byteLength,
+  )
+  assert.equal(
+    audioObjectiveEvidence.evidenceArtifactHash,
+    audioResult.resultJson.sha256,
+  )
   const decodedAudio = record(audioDocument.decodedAudioIntegrity)
   const audioQuality = record(audioDocument.audioQualityScan)
   const speechClarity = record(audioDocument.speechClarity)
   assert.equal(audioDocument.outcome, 'passed')
   assert.equal(decodedAudio.contiguousDtsPtsVerified, true)
+  assert.equal(
+    decodedAudio.checksumTimestampNormalization,
+    'decoded_sample_ordinal_no_drop_or_duplication_v1',
+  )
+  assert.equal(
+    decodedAudio.originalTimestampAuthority,
+    'independent_exact_technical_probe_v1',
+  )
   assert.equal(decodedAudio.perPacketSha256Verified, true)
   assert.equal(decodedAudio.avSyncOutcome, 'passed')
   assert.ok(Number(decodedAudio.avSyncDriftFrames) <= 2)
@@ -455,6 +586,71 @@ try {
   assert.equal(speechClarity.ffmpegClaimedSpeechUnderstanding, false)
   assert.equal(audioResult.readiness.speechClarityEvidenceReconciled, true)
   assert.equal(audioResult.readiness.productReady, false)
+
+  const longAudioBytes = await readFile(longAudioTimestampFixturePath)
+  const longAudioArtifactId =
+    'final-master-artifact-smoke-long-audio-timestamp-1'
+  const longAudioObjectIdentityHash =
+    sha256Text('private-final-master-object-smoke-long-audio-timestamp-1')
+  const longAudioFinalMaster = {
+    ...finalMaster,
+    artifactId: longAudioArtifactId,
+    objectIdentityHash: longAudioObjectIdentityHash,
+    byteLength: longAudioBytes.byteLength,
+    sha256: sha256(longAudioBytes),
+  }
+  const longAudioRequest = buildOfflineFinalMasterAudioQaRequest({
+    planningPayload: {
+      ...common,
+      qaRunId: 'final-master-qa-smoke-long-audio-timestamp-1',
+      expectedEvidenceIdentity:
+        'expected-final-master-evidence-smoke-long-audio-timestamp-1',
+      finalMasterArtifactId: longAudioArtifactId,
+      finalMasterObjectIdentityHash: longAudioObjectIdentityHash,
+      width: longAudioTimestampRegressionWidth,
+      height: longAudioTimestampRegressionHeight,
+      totalFrames: longAudioTimestampRegressionFrames,
+      recipeProfileId: OFFLINE_MEDIA_BINARY_FINAL_MASTER_AUDIO_QA_RECIPE,
+      audioPolicyId: 'approved_web_delivery_audio_policy_v1',
+      sampleRate: 48_000,
+      channels: 2,
+      targetIntegratedLufs: -14,
+      integratedLufsTolerance: 1,
+      maximumTruePeakDbtp: -1,
+      maximumLoudnessRangeLufs: 7,
+      maximumAvSyncDriftFrames: 2,
+      silenceMinimumDurationFrames: 30,
+      speechClarityEvidenceHash:
+        sha256Text('separate-speech-clarity-long-audio-timestamp-smoke-1'),
+      speechClarityStatus: 'passed',
+      audioExceptionManifest: sealOfflineFinalMasterAudioExceptionManifest([]),
+    },
+    finalMaster: longAudioFinalMaster,
+  })
+  const longAudioResult =
+    await runtime.executeFinalMasterAudioQaServerInjected(
+      longAudioRequest,
+      Object.freeze({
+        inputMode: 'private_verified_stream_v1' as const,
+        byteLength: longAudioBytes.byteLength,
+        sha256: longAudioFinalMaster.sha256,
+        async openStream() { return Readable.from([longAudioBytes]) },
+      }),
+    )
+  const longAudioDocument = longAudioResult.resultJson.document
+  const longAudioDecoded = record(longAudioDocument.decodedAudioIntegrity)
+  assert.ok(Number(longAudioDecoded.packetCount) > 3_003)
+  assert.ok(
+    Number(longAudioDecoded.decodedSampleCount) >=
+      longAudioTimestampRegressionSeconds * 48_000,
+  )
+  assert.equal(longAudioDecoded.contiguousDtsPtsVerified, true)
+  assert.equal(
+    longAudioDecoded.checksumTimestampNormalization,
+    'decoded_sample_ordinal_no_drop_or_duplication_v1',
+  )
+  assert.equal(longAudioDecoded.avSyncOutcome, 'passed')
+  assert.ok(Number(longAudioDecoded.avSyncDriftFrames) <= 2)
 
   const silentBytes = await readFile(silentFixturePath)
   const silentSha256 = sha256(silentBytes)
@@ -729,6 +925,13 @@ try {
       byteLength: bytes.byteLength,
       sha256: sourceSha256,
     },
+    longAudioTimestampRegression: {
+      durationSeconds: longAudioTimestampRegressionSeconds,
+      packetCount: longAudioDecoded.packetCount,
+      decodedSampleCount: longAudioDecoded.decodedSampleCount,
+      avSyncDriftFrames: longAudioDecoded.avSyncDriftFrames,
+      contiguousDtsPtsVerified: longAudioDecoded.contiguousDtsPtsVerified,
+    },
     videoOutcome: videoDocument.outcome,
     audioOutcome: audioDocument.outcome,
     silentMasterOutcome: silentAudioResult.resultJson.document.outcome,
@@ -780,6 +983,7 @@ try {
   await Promise.all([
     rm(fixturePath, { force: true }),
     rm(silentFixturePath, { force: true }),
+    rm(longAudioTimestampFixturePath, { force: true }),
     rm(costRoot, { recursive: true, force: true }),
   ])
 }

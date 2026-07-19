@@ -72,6 +72,10 @@ import {
   PROFESSIONAL_LONG_FORM_DELIVERY_MUX_ATTEMPT_VERSION,
 } from '../edit-architecture/professional-long-form-customer-delivery-mux-execution-contract'
 import {
+  PROFESSIONAL_LONG_FORM_DELIVERY_DECODED_AUDIO_QA_ATTEMPT_VERSION,
+  PROFESSIONAL_LONG_FORM_DELIVERY_DECODED_VIDEO_QA_ATTEMPT_VERSION,
+} from '../edit-architecture/professional-long-form-customer-delivery-decoded-qa-execution-contract'
+import {
   isProfessionalLongFormContinuousProgramAudioAuthorization,
   isProfessionalLongFormContinuousProgramAudioAuthority,
   isProfessionalLongFormContinuousProgramAudioCompletion,
@@ -90,6 +94,12 @@ import {
   isProfessionalLongFormDeliveryH264QaAuthorization,
   isProfessionalLongFormDeliveryH264QaAuthority,
   isProfessionalLongFormDeliveryH264QaCompletion,
+  isProfessionalLongFormDeliveryDecodedAudioQaAuthorization,
+  isProfessionalLongFormDeliveryDecodedAudioQaAuthority,
+  isProfessionalLongFormDeliveryDecodedAudioQaCompletion,
+  isProfessionalLongFormDeliveryDecodedVideoQaAuthorization,
+  isProfessionalLongFormDeliveryDecodedVideoQaAuthority,
+  isProfessionalLongFormDeliveryDecodedVideoQaCompletion,
   isProfessionalLongFormDeliveryMuxAuthorization,
   isProfessionalLongFormDeliveryMuxAuthority,
   isProfessionalLongFormDeliveryMuxCompletion,
@@ -443,8 +453,16 @@ export async function beginPrivateCanonicalPackageWorkQueueExecutionAttempt(inpu
       isProfessionalLongFormDeliveryH264QaAuthorization(authorization)
     const deliveryMuxAttempt =
       isProfessionalLongFormDeliveryMuxAuthorization(authorization)
+    const deliveryDecodedVideoQaAttempt =
+      isProfessionalLongFormDeliveryDecodedVideoQaAuthorization(authorization)
+    const deliveryDecodedAudioQaAttempt =
+      isProfessionalLongFormDeliveryDecodedAudioQaAuthorization(authorization)
     const attemptWithoutHash = {
-      schemaVersion: deliveryMuxAttempt
+      schemaVersion: deliveryDecodedAudioQaAttempt
+        ? PROFESSIONAL_LONG_FORM_DELIVERY_DECODED_AUDIO_QA_ATTEMPT_VERSION
+        : deliveryDecodedVideoQaAttempt
+        ? PROFESSIONAL_LONG_FORM_DELIVERY_DECODED_VIDEO_QA_ATTEMPT_VERSION
+        : deliveryMuxAttempt
         ? PROFESSIONAL_LONG_FORM_DELIVERY_MUX_ATTEMPT_VERSION
         : deliveryH264QaAttempt
         ? PROFESSIONAL_LONG_FORM_DELIVERY_H264_QA_ATTEMPT_VERSION
@@ -1634,6 +1652,8 @@ function assertProfessionalLongFormAuthorizationTarget(input: {
     isProfessionalLongFormDeliveryRootAuthorization(authorization) ||
     isProfessionalLongFormDeliveryH264Authorization(authorization) ||
     isProfessionalLongFormDeliveryH264QaAuthorization(authorization) ||
+    isProfessionalLongFormDeliveryDecodedVideoQaAuthorization(authorization) ||
+    isProfessionalLongFormDeliveryDecodedAudioQaAuthorization(authorization) ||
     isProfessionalLongFormDeliveryMuxAuthorization(authorization)
   if (
     (deliveryAuthorization
@@ -1749,6 +1769,42 @@ function assertPersistedProfessionalLongFormExecutionAuthority(input: {
       targetDefinition?.canonicalOrder !==
         input.executionAuthority.approvedMuxPlan.chunkCount * 2 + 1 ||
       input.executionAuthority.approvedMuxPlan.privateObjectIdentityHash !==
+        input.authorization.expectedOutputIdentity
+  } else if (
+    isProfessionalLongFormDeliveryDecodedVideoQaAuthorization(
+      input.authorization,
+    )
+  ) {
+    const deliveryChunkCount =
+      input.definition.identity.professionalLongFormCustomerDeliveryAuthority
+        ?.chunkCount
+    pairInvalid = !isProfessionalLongFormDeliveryDecodedVideoQaAuthority(
+      input.executionAuthority,
+    ) || input.executionAuthority.lineage.qaJobDefinitionHash !==
+      input.authorization.jobDefinitionHash ||
+      input.executionAuthority.lineage.qaPlacementHash !==
+      input.authorization.placementHash ||
+      targetDefinition?.canonicalOrder !==
+        (deliveryChunkCount ?? -1) * 2 + 2 ||
+      `${input.executionAuthority.muxArtifact.objectIdentity}:decoded-video-qa` !==
+        input.authorization.expectedOutputIdentity
+  } else if (
+    isProfessionalLongFormDeliveryDecodedAudioQaAuthorization(
+      input.authorization,
+    )
+  ) {
+    const deliveryChunkCount =
+      input.definition.identity.professionalLongFormCustomerDeliveryAuthority
+        ?.chunkCount
+    pairInvalid = !isProfessionalLongFormDeliveryDecodedAudioQaAuthority(
+      input.executionAuthority,
+    ) || input.executionAuthority.lineage.qaJobDefinitionHash !==
+      input.authorization.jobDefinitionHash ||
+      input.executionAuthority.lineage.qaPlacementHash !==
+      input.authorization.placementHash ||
+      targetDefinition?.canonicalOrder !==
+        (deliveryChunkCount ?? -1) * 2 + 3 ||
+      `${input.executionAuthority.muxArtifact.objectIdentity}:decoded-audio-qa` !==
         input.authorization.expectedOutputIdentity
   } else if (
     isProfessionalLongFormSourceAuthorityAuthorization(input.authorization)
@@ -1975,6 +2031,37 @@ function exactProfessionalLongFormAuthorizationMatches(
             isProfessionalLongFormDeliveryH264QaCompletion(completion))
       }) &&
       /^[a-f0-9]{64}$/u.test(authorization.expectedOutputIdentity)
+  }
+  if (
+    isProfessionalLongFormDeliveryDecodedVideoQaAuthorization(authorization) ||
+    isProfessionalLongFormDeliveryDecodedAudioQaAuthorization(authorization)
+  ) {
+    const delivery =
+      aggregate.identity.professionalLongFormCustomerDeliveryAuthority
+    const mux = aggregate.entries.find((candidate) =>
+      candidate.definition.jobId === entry.definition.dependencyJobIds[0])
+    const muxCompletion = mux?.completion?.outcome
+      .professionalLongFormExecution
+    const videoQa =
+      isProfessionalLongFormDeliveryDecodedVideoQaAuthorization(authorization)
+    return Boolean(delivery) &&
+      entry.definition.workerType === 'qa_worker' &&
+      entry.definition.resourceClassId === 'qa_cpu_standard_v1' &&
+      entry.definition.maxAttempts === 2 &&
+      entry.definition.attemptTimeoutSeconds === 21_600 &&
+      entry.definition.canonicalOrder ===
+        (delivery?.chunkCount ?? 0) * 2 + (videoQa ? 2 : 3) &&
+      entry.definition.dependencyJobIds.length === 1 &&
+      entry.definition.satisfiedPromotionDependencyJobIds?.length === 0 &&
+      mux?.definition.canonicalOrder === (delivery?.chunkCount ?? 0) * 2 + 1 &&
+      mux.state === 'completed' &&
+      Boolean(muxCompletion &&
+        isProfessionalLongFormDeliveryMuxCompletion(muxCompletion)) &&
+      authorization.expectedOutputIdentity ===
+        `${muxCompletion &&
+          isProfessionalLongFormDeliveryMuxCompletion(muxCompletion)
+          ? muxCompletion.outputArtifact.objectIdentity
+          : ''}:${videoQa ? 'decoded-video-qa' : 'decoded-audio-qa'}`
   }
   if (isProfessionalLongFormFirstChildAuthorization(authorization)) {
     return entry.definition.workerType === 'api_service' &&
@@ -2206,7 +2293,11 @@ function assertProfessionalLongFormCompletionEvidence(
   const completion = outcome.professionalLongFormExecution
   if (!authorization && !attempt && !completion) return
   const exactArtifactMatches = completion &&
-    isProfessionalLongFormDeliveryMuxCompletion(completion)
+    (isProfessionalLongFormDeliveryDecodedVideoQaCompletion(completion) ||
+      isProfessionalLongFormDeliveryDecodedAudioQaCompletion(completion))
+    ? outcome.contentType === 'application/json' &&
+      outcome.sha256 === completion.validationArtifactRef.sha256
+    : completion && isProfessionalLongFormDeliveryMuxCompletion(completion)
     ? outcome.contentType === 'video/mp4' &&
       outcome.artifactId === completion.outputArtifact.objectIdentity &&
       outcome.sha256 === completion.outputArtifact.sha256

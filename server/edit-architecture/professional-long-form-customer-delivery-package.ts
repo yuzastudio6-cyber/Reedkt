@@ -451,7 +451,12 @@ const placementSchema = z.object({
   preferredAccelerator: z.literal('none'),
   cpuAllowed: z.literal(true),
   vcpuCount: z.union([z.literal(1), z.literal(2), z.literal(4)]),
-  memoryGib: z.union([z.literal(1), z.literal(4), z.literal(8)]),
+  memoryGib: z.union([
+    z.literal(1),
+    z.literal(2),
+    z.literal(4),
+    z.literal(8),
+  ]),
   workerConcurrencyLimit: z.number().int().positive().max(100),
   globalConcurrencyLimit: z.literal(CANONICAL_PRIVATE_GLOBAL_MAX_CONCURRENCY),
   placementProfileId: z.literal(
@@ -1450,14 +1455,16 @@ function toolPlanFor(kind: ProfessionalLongFormCustomerDeliveryWorkItemKind) {
       toolId: 'ffmpeg' as const,
       operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
       runnerClass: 'offline_media_binary_final_master_video_qa_v1',
-      attemptCostProfileId: 'ffmpeg_4k_decoded_video_qa_cpu_2vcpu_4gib_v1',
+      attemptCostProfileId:
+        'ffmpeg_final_master_decoded_video_qa_cpu_2vcpu_2gib_v1',
       fixedRecipeProfileId: 'approved_final_master_decoded_video_integrity_v1',
     },
     qa_customer_delivery_decoded_audio: {
       toolId: 'ffmpeg' as const,
       operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
       runnerClass: 'offline_media_binary_final_master_audio_qa_v1',
-      attemptCostProfileId: 'ffmpeg_4k_decoded_audio_qa_cpu_2vcpu_4gib_v1',
+      attemptCostProfileId:
+        'ffmpeg_final_master_decoded_audio_qa_cpu_2vcpu_2gib_v1',
       fixedRecipeProfileId: 'approved_final_master_decoded_audio_quality_sync_v1',
     },
     reconcile_private_customer_delivery_download: {
@@ -1536,9 +1543,9 @@ function placementFor(kind: ProfessionalLongFormCustomerDeliveryWorkItemKind) {
     mux_customer_delivery_h264_aac_master:
       placementProfile('render_worker', 4, 8, 2, 21_600),
     qa_customer_delivery_decoded_video:
-      placementProfile('qa_worker', 2, 4, 2, 21_600),
+      placementProfile('qa_worker', 2, 2, 2, 21_600),
     qa_customer_delivery_decoded_audio:
-      placementProfile('qa_worker', 2, 4, 2, 21_600),
+      placementProfile('qa_worker', 2, 2, 2, 21_600),
     reconcile_private_customer_delivery_download:
       placementProfile('api_service', 1, 1, 1, 300),
   } satisfies Record<
@@ -1551,7 +1558,7 @@ function placementFor(kind: ProfessionalLongFormCustomerDeliveryWorkItemKind) {
 function placementProfile(
   workerType: 'api_service' | 'render_worker' | 'qa_worker',
   vcpuCount: 1 | 2 | 4,
-  memoryGib: 1 | 4 | 8,
+  memoryGib: 1 | 2 | 4 | 8,
   maxAttempts: 1 | 2,
   attemptTimeoutSeconds: number,
 ) {

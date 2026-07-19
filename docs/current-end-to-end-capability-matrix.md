@@ -208,17 +208,19 @@ codecs/HDR/VFR/surround audio, complete long-form editing, object storage, a
 distributed database, or Google Cloud execution.
 
 A separate retained 129-second/two-chunk customer-delivery graph now completes
-6 of its 9 jobs: exact passed-review promotion, two private 4K H.264 High
-encodes, two independent chunk probes, and one H.264-stream-copy/one-time
-FLAC-to-AAC private MP4 mux. Every attempt has immutable authorization, lease,
+8 of its 9 jobs: exact passed-review promotion, two private 4K H.264 High
+encodes, two independent chunk probes, one H.264-stream-copy/one-time
+FLAC-to-AAC private MP4 mux, one full decoded-video QA job, and one full
+decoded-audio/sync QA job. Every attempt has immutable authorization, lease,
 one-use dispatch, private create-only evidence, reconciliation, internal-cost
 evidence, and restart-safe exact replay. The resulting private master SHA-256
 is `dbb8329f33fc78e208f390262b6551388deaa887d9343b32ef43608f841897e3`.
-The three remaining delivery jobs—decoded video QA, decoded audio/sync QA, and
-private-download reconciliation—remain queued and unauthorized. This 6/9
-delivery result is independent from, and must not be described as progress on,
-the six-hour 255-job review graph. It is single-host synthetic SDR evidence,
-not multi-hour throughput, distributed cloud, product, or production proof.
+Both objective QA outcomes are honestly `needs_user_review`, so the final
+private-download reconciliation job remains queued, unattempted, and
+unauthorized. This 8/9 delivery result is independent from, and must not be
+described as progress on, the six-hour 255-job review graph. It is single-host
+synthetic SDR evidence, not multi-hour throughput, distributed cloud, product,
+or production proof.
 
 ## Private Pipeline Evidence
 

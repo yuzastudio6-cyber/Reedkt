@@ -1,8 +1,8 @@
-# Canonical professional long-form customer-delivery package and private mux
+# Canonical professional long-form customer-delivery package and decoded QA
 
 Date: 2026-07-19
 
-Status: `private_local_h264_aac_delivery_mux_proven_decoded_qa_and_download_blocked`
+Status: `private_local_delivery_and_decoded_qa_executed_quality_review_and_download_blocked`
 
 ## Outcome
 
@@ -16,13 +16,17 @@ root, both bounded 4K H.264 encodes, both independent per-chunk QA jobs, and one
 private H.264/AAC master mux. The mux stream-copies the ordered compatible H.264
 video, encodes the exact continuous FLAC program track to AAC-LC once, streams
 the result into create-only private persistence, independently probes the
-result with FFprobe, records attempt-level internal production cost, and
-survives a fresh process-state replay without a second execution.
+result with FFprobe, records attempt-level internal production cost, and then
+runs separately leased full decoded-video and decoded-audio/sync QA jobs against
+the exact persisted MP4. All eight completed delivery jobs survive a fresh
+process-state replay without a second execution.
 
-This is six completed jobs out of the separate nine-job delivery graph. It does
-not complete the 255-job six-hour review graph. Decoded full-master video QA,
-decoded audio/sync QA, private-download reconciliation, Google Cloud dispatch,
-public delivery, billing, and production remain blocked.
+This is eight completed jobs out of the separate nine-job delivery graph. Both
+objective QA jobs honestly returned `needs_user_review` for this synthetic
+fixture, so the ninth private-download reconciliation job remains queued and
+unattempted. This does not complete the 255-job six-hour capacity graph. Quality
+review/reconciliation, private download, Google Cloud dispatch, public delivery,
+billing, and production remain blocked.
 
 ## Why delivery is a separate package
 
@@ -93,12 +97,13 @@ The placement contract freezes these resource shapes:
 
 - control-plane validation/download reconciliation: 1 vCPU, 1 GiB;
 - H.264 chunk encode and final mux: 4 vCPU, 8 GiB;
-- chunk and decoded-media QA: 2 vCPU, 4 GiB;
+- chunk QA: 2 vCPU, 4 GiB;
+- decoded full-master video and audio/sync QA: 2 vCPU, 2 GiB;
 - render and long decoded-QA attempts: at most 21,600 seconds; and
 - no GPU or provider call.
 
 These remain private single-host runner authorities, not live Cloud Run
-configuration. Each of the six completed delivery attempts retains its own
+configuration. Each of the eight completed delivery attempts retains its own
 versioned internal infrastructure/tool-cost evidence. Failed attempts are also
 retained by that cost boundary. Customer price, credits, and ReEditPro fee or
 margin are not written into those tool-cost records.
@@ -127,13 +132,26 @@ The run rebuilt and verified the real private chain before package promotion:
 - all mux dependencies satisfied before authorization;
 - 1 private MP4 master completed through ordered H.264 stream copy plus one
   192 kbps, 48 kHz, stereo AAC-LC encode;
-- delivery queue reached 6 completed, 0 leased, and 3 still queued;
+- the independent technical probe counted all 3,870 frames and bound nominal
+  30 fps plus exact video/audio stream durations instead of trusting the
+  unreliable non-seekable fragmented-container duration alone;
+- decoded-video checksum timestamps were normalized to exact frame ordinals
+  while original timestamps remained independently probed; all 3,870 decoded
+  frames were accounted for without trim, drop, or duplication;
+- decoded-audio checksum timestamps were normalized to exact integer sample
+  ordinals under the verified 1/48,000 time base; retained AAC padding was
+  measured within the approved two-frame A/V bound rather than removed or
+  hidden;
+- delivery queue reached 8 completed, 0 leased, and 1 still queued;
 - process-state restart returned the exact immutable package, H.264/QA
-  completions, mux artifact, cost evidence, terminal evidence, and service
+  completions, mux artifact, both decoded-QA artifacts, both distinct raw-blob
+  and runtime-result identities, cost evidence, terminal evidence, and service
   evidence hash without rerunning media work;
 - customer-delivery master created: true;
-- decoded video QA completed: false;
-- decoded audio QA completed: false;
+- decoded video QA completed: true (`needs_user_review`);
+- decoded audio/sync QA completed: true (`needs_user_review`);
+- decoded-QA quality disposition: `user_review_required`;
+- decoded-QA exact restart replay: true;
 - private download reconciled: false;
 - export execution authorized: false;
 - product ready: false; and
@@ -146,19 +164,25 @@ This is local retained evidence, not a deployed object identity.
 The retained delivery identities after private mux completion were:
 
 - package hash:
-  `2b12662c817f45f915bad511b638534894b9fec2f8132e2631598bfebfc59003`;
+  `e3cd05818d8f3cf94d0c0037807009b79808339111eb785f01941aa0a5a953a8`;
 - work-graph hash:
-  `c6870be744b8216d57c1e59f9829a8bca4537749020c6a622655a009b10eca45`;
+  `b3cd84be397f48255e8ec5c9f023f08c404d29669b66c474a7a35735955e9e47`;
 - queue-aggregate hash:
-  `41f36e4f73597b17a524b410c48c7c047806a3a5fa4b71c716117cb201b387e9`;
+  `e56d4281d568d505415491e99c2a381d3b6f9ecf6be59dd4972949cd73534f28`;
   and
 - private H.264/AAC master SHA-256:
   `dbb8329f33fc78e208f390262b6551388deaa887d9343b32ef43608f841897e3`.
 
 The retained mux internal-cost evidence hash was
-`429244872cbbc25ca8d148c3957046c2e946b06fc12cea7c78e155d28d879329`.
-These hashes bind the retained local proof only. They do not grant decoded-QA,
-cloud, download, commercial, public-delivery, or production authority.
+`93e2583a9e8f49cc4719bc44a78dcffc2bdd1679aa3839205fa87f1da5b8c178`.
+The decoded-video and decoded-audio internal-cost evidence hashes were,
+respectively,
+`1f3ccb715b24406e04a98bd9af3b70336721e29cdba10235491a7f61035795eb`
+and
+`25045b68642b7c9b39fc13c30d4131ff6467ae2fe20f9c989ea5254b5c9d2855`.
+These hashes bind the retained local proof only. They do not grant quality
+acceptance, cloud, download, commercial, public-delivery, or production
+authority.
 
 The bounded capacity proof also completed with exit code 0:
 
@@ -180,7 +204,8 @@ This slice does not prove or authorize:
   runtime execution;
 - failure/retry exhaustion, lease-loss reclaim, worker termination, or
   host-loss recovery for the delivery mux;
-- decoded video/audio final-master QA execution;
+- objective quality acceptance or resolution of either retained
+  `needs_user_review` outcome;
 - private download creation or browser delivery;
 - distributed database-backed package, queue, outbox, or completion authority;
 - GCS persistence, Cloud Run dispatch, IAM/service identity, or live Google
@@ -194,8 +219,10 @@ This slice does not prove or authorize:
 
 ## Next dependency-safe capability
 
-Implement the two separately leased decoded-master QA jobs against the exact
-persisted MP4: one full decoded-video objective pass and one decoded-audio
-quality/sync pass. Only after both immutable QA completions reconcile may the
-separate private-download job be considered. Keep cloud, billing, public
-delivery, and production gates closed until their own evidence passes.
+Reconcile both immutable decoded-QA `needs_user_review` outcomes with the exact
+approved intent, upstream semantic/technical evidence, and an authenticated
+review decision. Only an accepted, immutable quality reconciliation may
+authorize the separately leased private-download job. Reuse the original
+approved 4K estimate/reservation without a second credit prompt or charge. Keep
+cloud, billing, public delivery, and production gates closed until their own
+evidence passes.

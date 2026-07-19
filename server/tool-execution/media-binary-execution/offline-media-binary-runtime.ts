@@ -2180,11 +2180,13 @@ async function probeFinalMasterMedia(
 ) {
   const command = [
     '-v', 'error',
+    '-count_frames',
     '-show_entries',
     'format=format_name,start_time,duration,size:' +
       'stream=index,codec_name,codec_type,start_time,duration,width,height,' +
       'avg_frame_rate,r_frame_rate,pix_fmt,color_space,color_transfer,' +
-      'color_primaries,color_range,sample_rate,channels,channel_layout',
+      'color_primaries,color_range,nb_read_frames,sample_rate,channels,' +
+      'channel_layout',
     '-print_format', 'json',
     '-i', 'pipe:0',
   ]
@@ -2237,13 +2239,14 @@ async function probeFinalMasterMedia(
     const audioStartTimeSeconds = finiteNumber(audio.start_time)
     const videoDurationSeconds = finiteNumber(video.duration)
     const audioDurationSeconds = finiteNumber(audio.duration)
-    const videoFps = rational(video.avg_frame_rate ?? video.r_frame_rate)
+    const nominalVideoFps = rational(video.r_frame_rate)
+    const averageVideoFps = rational(video.avg_frame_rate)
     const expectedDurationSeconds = request.payload.totalFrames / request.payload.fps
     const maximumAvSyncDriftFrames = 'maximumAvSyncDriftFrames' in request.payload
       ? request.payload.maximumAvSyncDriftFrames
       : 2
     const durationToleranceSeconds =
-      maximumAvSyncDriftFrames / request.payload.fps
+      maximumAvSyncDriftFrames / request.payload.fps + 0.001
     const audioChannels = optionalInteger(audio.channels)
     const audioChannelLayout = String(audio.channel_layout ?? '')
     const expectedAudioChannelLayout = audioChannels === 1 ? 'mono' : 'stereo'
@@ -2251,41 +2254,72 @@ async function probeFinalMasterMedia(
     if (
       !formatName.split(',').includes('mp4') ||
       (probedFormatSize !== undefined && probedFormatSize !== source.byteLength) ||
-      formatStartTimeSeconds === undefined ||
-      Math.abs(formatStartTimeSeconds) > 0.001 ||
-      formatDurationSeconds === undefined ||
-      Math.abs(formatDurationSeconds - expectedDurationSeconds) >
-        durationToleranceSeconds ||
+      formatStartTimeSeconds === undefined || formatStartTimeSeconds < 0 ||
+      formatStartTimeSeconds > durationToleranceSeconds ||
       video.codec_name !== 'h264' ||
       optionalInteger(video.width) !== request.payload.width ||
       optionalInteger(video.height) !== request.payload.height ||
-      videoFps !== request.payload.fps || video.pix_fmt !== 'yuv420p' ||
+      optionalInteger(video.nb_read_frames) !== request.payload.totalFrames ||
+      nominalVideoFps !== request.payload.fps || video.pix_fmt !== 'yuv420p' ||
       video.color_space !== 'bt709' || video.color_transfer !== 'bt709' ||
       video.color_primaries !== 'bt709' ||
       video.color_range !== 'tv' ||
-      videoStartTimeSeconds === undefined ||
-      Math.abs(videoStartTimeSeconds) > 0.001 ||
+      videoStartTimeSeconds === undefined || videoStartTimeSeconds < 0 ||
+      videoStartTimeSeconds > durationToleranceSeconds ||
       videoDurationSeconds === undefined ||
       Math.abs(videoDurationSeconds - expectedDurationSeconds) >
         durationToleranceSeconds ||
       audio.codec_name !== 'aac' || optionalInteger(audio.sample_rate) !== 48_000 ||
       audioChannels === undefined || ![1, 2].includes(audioChannels) ||
       audioChannelLayout !== expectedAudioChannelLayout ||
-      audioStartTimeSeconds === undefined ||
-      Math.abs(audioStartTimeSeconds) > durationToleranceSeconds ||
+      audioStartTimeSeconds === undefined || audioStartTimeSeconds < 0 ||
+      audioStartTimeSeconds > durationToleranceSeconds ||
+      Math.abs(videoStartTimeSeconds - audioStartTimeSeconds) >
+        durationToleranceSeconds ||
       audioDurationSeconds === undefined ||
       Math.abs(audioDurationSeconds - expectedDurationSeconds) >
         durationToleranceSeconds ||
       ('channels' in request.payload && audioChannels !== request.payload.channels)
     ) throw unavailable(
       'Final-master failed the exact MP4, H.264, AAC, frame, color, or duration contract.',
+      {
+        streamCount: streams.length,
+        videoCount: videoStreams.length,
+        audioCount: audioStreams.length,
+        formatName,
+        sourceByteLength: source.byteLength,
+        probedFormatSize,
+        formatStartTimeSeconds,
+        formatDurationSeconds,
+        videoCodec: safeText(video.codec_name),
+        videoWidth: optionalInteger(video.width),
+        videoHeight: optionalInteger(video.height),
+        videoFrameCount: optionalInteger(video.nb_read_frames),
+        nominalVideoFps,
+        averageVideoFps,
+        videoPixelFormat: safeText(video.pix_fmt),
+        videoColorRange: safeText(video.color_range),
+        videoColorSpace: safeText(video.color_space),
+        videoColorTransfer: safeText(video.color_transfer),
+        videoColorPrimaries: safeText(video.color_primaries),
+        videoStartTimeSeconds,
+        videoDurationSeconds,
+        audioCodec: safeText(audio.codec_name),
+        audioSampleRate: optionalInteger(audio.sample_rate),
+        audioChannels,
+        audioChannelLayout,
+        audioStartTimeSeconds,
+        audioDurationSeconds,
+        expectedDurationSeconds: rounded(expectedDurationSeconds),
+        durationToleranceSeconds: rounded(durationToleranceSeconds),
+      },
     )
     return {
       probe: Object.freeze({
         container: 'mp4' as const,
         formatName,
         formatStartTimeSeconds,
-        formatDurationSeconds,
+        observedNonSeekableContainerDurationSeconds: formatDurationSeconds,
         sourceByteLength: source.byteLength,
         streamedFormatSizeReported: probedFormatSize,
         exactSourceSizeVerifiedByInputCommitment: true as const,
@@ -2294,6 +2328,9 @@ async function probeFinalMasterMedia(
           width: request.payload.width,
           height: request.payload.height,
           fps: request.payload.fps,
+          nominalFrameRate: nominalVideoFps,
+          observedAverageFrameRate: averageVideoFps,
+          frameCount: request.payload.totalFrames,
           pixelFormat: 'yuv420p' as const,
           colorSpace: 'bt709' as const,
           colorTransfer: 'bt709' as const,
@@ -2312,6 +2349,8 @@ async function probeFinalMasterMedia(
         },
         expectedDurationSeconds: rounded(expectedDurationSeconds),
         durationToleranceSeconds: rounded(durationToleranceSeconds),
+        durationAuthority:
+          'exact_counted_frames_and_video_audio_stream_durations_v1' as const,
       }),
       confinement,
     }
@@ -2329,6 +2368,7 @@ async function decodeFinalMasterVideoIntegrity(
   const command = [
     '-v', 'error', '-xerror', '-err_detect', 'explode',
     '-i', 'pipe:0', '-map', '0:v:0', '-an', '-sn', '-dn',
+    '-vf', `setpts=N/(${request.payload.fps}*TB)`,
     '-f', 'framemd5', '-hash', 'sha256', 'pipe:1',
   ]
   const container = await createContainer(image, FFMPEG_ENTRYPOINT, command)
@@ -2380,6 +2420,7 @@ async function decodeFinalMasterAudioIntegrity(
   const command = [
     '-v', 'error', '-xerror', '-err_detect', 'explode',
     '-i', 'pipe:0', '-map', '0:a:0', '-vn', '-sn', '-dn',
+    '-af', 'asetpts=N',
     '-f', 'framemd5', '-hash', 'sha256', 'pipe:1',
   ]
   const container = await createContainer(image, FFMPEG_ENTRYPOINT, command)
@@ -2685,8 +2726,10 @@ function createVideoFrameMd5Parser(request: OfflineFinalMasterVideoQaRequest) {
   let decodedFrameCount = 0
   let decodedRawByteCount = 0
   let previousHash = ''
+  let firstFrameDurationTicks: number | undefined
   const expectedRawFrameBytes =
     request.payload.width * request.payload.height * 3 / 2
+  const maximumFirstFrameDurationTicks = 3 as const
   const onLine = (line: string) => {
     const trimmed = line.trim()
     if (!trimmed) return
@@ -2712,9 +2755,12 @@ function createVideoFrameMd5Parser(request: OfflineFinalMasterVideoQaRequest) {
     const pts = frameMd5Integer(fields[2], 'video PTS')
     const duration = frameMd5Integer(fields[3], 'video frame duration')
     const byteLength = frameMd5Integer(fields[4], 'video raw frame bytes')
+    const frameDurationValid = decodedFrameCount === 0
+      ? duration >= 1 && duration <= maximumFirstFrameDurationTicks
+      : duration === 1
     if (
       streamIndex !== 0 || dts !== decodedFrameCount ||
-      pts !== decodedFrameCount || duration !== 1 ||
+      pts !== decodedFrameCount || !frameDurationValid ||
       byteLength !== expectedRawFrameBytes ||
       decodedFrameCount >= request.payload.totalFrames
     ) throw unavailable(
@@ -2722,6 +2768,7 @@ function createVideoFrameMd5Parser(request: OfflineFinalMasterVideoQaRequest) {
     )
     decodedFrameCount += 1
     decodedRawByteCount += byteLength
+    firstFrameDurationTicks ??= duration
     previousHash = String(fields[5]).toLowerCase()
   }
   const finish = () => {
@@ -2729,6 +2776,7 @@ function createVideoFrameMd5Parser(request: OfflineFinalMasterVideoQaRequest) {
       !timeBaseVerified || !mediaTypeVerified || !codecVerified ||
       !dimensionsVerified || !hashAlgorithmVerified ||
       decodedFrameCount !== request.payload.totalFrames || !previousHash
+      || firstFrameDurationTicks === undefined
     ) throw unavailable(
       'Decoded-video frame checksum stream failed its exact header or frame-count contract.',
     )
@@ -2745,7 +2793,14 @@ function createVideoFrameMd5Parser(request: OfflineFinalMasterVideoQaRequest) {
       decodedRawByteCount,
       finalFrameSha256: previousHash,
       sequentialDtsPtsVerified: true as const,
-      oneFrameDurationVerified: true as const,
+      checksumTimestampNormalization:
+        'decoded_frame_ordinal_no_drop_or_duplication_v1' as const,
+      originalTimestampAuthority:
+        'independent_exact_technical_probe_v1' as const,
+      firstFrameDurationTicks,
+      maximumFirstFrameDurationTicks,
+      firstFrameDurationWithinApprovedStartOffset: true as const,
+      subsequentOneFrameDurationsVerified: true as const,
       perFrameSha256Verified: true as const,
       retainedPerFramePayloads: false as const,
     })
@@ -2830,6 +2885,10 @@ function createAudioFrameMd5Parser(request: OfflineFinalMasterAudioQaRequest) {
       decodedPcmByteCount,
       finalPacketSha256: previousHash,
       contiguousDtsPtsVerified: true as const,
+      checksumTimestampNormalization:
+        'decoded_sample_ordinal_no_drop_or_duplication_v1' as const,
+      originalTimestampAuthority:
+        'independent_exact_technical_probe_v1' as const,
       packetSampleDurationsVerified: true as const,
       perPacketSha256Verified: true as const,
       retainedPerPacketPayloads: false as const,

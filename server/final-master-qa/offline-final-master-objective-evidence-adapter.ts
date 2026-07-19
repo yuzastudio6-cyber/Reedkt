@@ -94,11 +94,24 @@ export function compileOfflineFinalMasterVideoObjectiveEvidence(input: {
     100_000_000,
     'Decoded-video expected frame count is invalid.',
   )
+  const firstFrameDurationTicks = boundedInteger(
+    decoded.firstFrameDurationTicks,
+    1,
+    3,
+    'Decoded-video first-frame duration is outside the approved start offset.',
+  )
   if (
     expectedFrameCount !== input.authority.expectedDurationFrames ||
     decodedFrameCount !== expectedFrameCount ||
     decoded.sequentialDtsPtsVerified !== true ||
-    decoded.oneFrameDurationVerified !== true ||
+    decoded.checksumTimestampNormalization !==
+      'decoded_frame_ordinal_no_drop_or_duplication_v1' ||
+    decoded.originalTimestampAuthority !==
+      'independent_exact_technical_probe_v1' ||
+    firstFrameDurationTicks > 3 ||
+    decoded.maximumFirstFrameDurationTicks !== 3 ||
+    decoded.firstFrameDurationWithinApprovedStartOffset !== true ||
+    decoded.subsequentOneFrameDurationsVerified !== true ||
     decoded.perFrameSha256Verified !== true ||
     decoded.retainedPerFramePayloads !== false ||
     decoded.exactSourceBytesVerified !== input.authority.sourceMasterByteLength ||
@@ -324,6 +337,10 @@ export function compileOfflineFinalMasterAudioObjectiveEvidence(input: {
     !Number.isSafeInteger(authorityExpectedSampleCount) ||
     expectedSampleCount !== authorityExpectedSampleCount ||
     decoded.contiguousDtsPtsVerified !== true ||
+    decoded.checksumTimestampNormalization !==
+      'decoded_sample_ordinal_no_drop_or_duplication_v1' ||
+    decoded.originalTimestampAuthority !==
+      'independent_exact_technical_probe_v1' ||
     decoded.packetSampleDurationsVerified !== true ||
     decoded.perPacketSha256Verified !== true ||
     decoded.retainedPerPacketPayloads !== false ||

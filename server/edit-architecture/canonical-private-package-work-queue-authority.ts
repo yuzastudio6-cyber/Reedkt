@@ -16,6 +16,16 @@ import {
 
 export const CANONICAL_PRIVATE_PACKAGE_WORK_QUEUE_DEFINITION_VERSION =
   'canonical-private-package-work-queue-definition-v1' as const
+export const CANONICAL_PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_QUEUE_SOURCE =
+  'canonical_professional_long_form_private_master_qa_delivery_package' as const
+export const CANONICAL_PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_REQUIRED_GATE =
+  'canonical_professional_long_form_customer_delivery_exact_runner_cost_qa_authority' as const
+export const CANONICAL_PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_PLACEMENT_PROFILE_ID =
+  'canonical-professional-long-form-customer-delivery-placement-blocked-v1' as const
+export const CANONICAL_PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_ATTEMPT_POLICY_ID =
+  'canonical-professional-long-form-customer-delivery-attempt-policy-v1' as const
+export const CANONICAL_PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_TOOL_BINDING_POLICY_ID =
+  'canonical-professional-long-form-customer-delivery-exact-tool-binding-v1' as const
 
 const identity = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
@@ -85,6 +95,46 @@ const professionalLongFormQueueAuthoritySchema = z.object({
   childExecutionAuthorized: z.literal(false),
 }).strict()
 
+const professionalLongFormCustomerDeliveryQueueAuthoritySchema = z.object({
+  capacityProfileId: z.literal(PROFESSIONAL_LONG_FORM_OBJECT_CAPACITY_PROFILE_ID),
+  sourceReviewPackageRecordId: identity,
+  sourceReviewPackageHash: sha256,
+  sourceReviewQueueDefinitionHash: sha256,
+  sourceReviewQueueAggregateHash: sha256,
+  sourcePrivateMasterQaJobId: identity,
+  sourcePrivateMasterQaApprovedWorkItemId: identity,
+  sourcePrivateMasterQaQueueCompletionHash: sha256,
+  sourcePrivateMasterQaCanonicalResultHash: sha256,
+  sourcePrivateMasterQaArtifactHash: sha256,
+  deliveryPackageVersion: z.literal(
+    'canonical-professional-long-form-customer-delivery-package-v1',
+  ),
+  deliveryPackageHash: sha256,
+  deliveryPackageRefSha256: sha256,
+  deliveryPlacementManifestHash: sha256,
+  deliveryPlacementManifestRefSha256: sha256,
+  deliveryPackagePlacementProfileId: z.literal(
+    CANONICAL_PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_PLACEMENT_PROFILE_ID,
+  ),
+  deliveryAttemptPolicyId: z.literal(
+    CANONICAL_PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_ATTEMPT_POLICY_ID,
+  ),
+  deliveryToolOperationBindingPolicyId: z.literal(
+    CANONICAL_PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_TOOL_BINDING_POLICY_ID,
+  ),
+  chunkCount: z.number().int().min(2).max(124),
+  deliveryJobCount: z.number().int().min(9).max(253),
+  rootDeliveryJobCount: z.literal(1),
+  deliveryExecutionAuthorized: z.literal(false),
+}).strict().superRefine((authority, context) => {
+  if (authority.deliveryJobCount !== authority.chunkCount * 2 + 5) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Professional long-form customer-delivery job capacity is inconsistent.',
+    })
+  }
+})
+
 export const canonicalPrivatePackageWorkQueueIdentitySchema = z.object({
   workspaceId: identity,
   projectId: identity,
@@ -98,6 +148,8 @@ export const canonicalPrivatePackageWorkQueueIdentitySchema = z.object({
   toolExecutionAuthorityHash: sha256,
   approvedResourcePlacementAuthorityHash: sha256,
   professionalLongFormAuthority: professionalLongFormQueueAuthoritySchema.optional(),
+  professionalLongFormCustomerDeliveryAuthority:
+    professionalLongFormCustomerDeliveryQueueAuthoritySchema.optional(),
 }).strict()
 
 export const canonicalPrivatePackageWorkQueueDefinitionSchema = z.object({
@@ -105,6 +157,7 @@ export const canonicalPrivatePackageWorkQueueDefinitionSchema = z.object({
   source: z.enum([
     'canonical_execution_package_and_snapshot_resource_placement',
     'canonical_professional_long_form_child_package_promotion',
+    CANONICAL_PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_QUEUE_SOURCE,
   ]),
   identity: canonicalPrivatePackageWorkQueueIdentitySchema,
   jobs: z.array(canonicalPrivatePackageWorkQueueJobDefinitionSchema).min(1).max(256),
@@ -134,12 +187,22 @@ export const canonicalPrivatePackageWorkQueueDefinitionSchema = z.object({
   definitionHash: sha256,
 }).strict().superRefine((definition, context) => {
   const professionalLongForm = definition.identity.professionalLongFormAuthority
+  const customerDelivery =
+    definition.identity.professionalLongFormCustomerDeliveryAuthority
   const professionalSource = definition.source ===
     'canonical_professional_long_form_child_package_promotion'
-  if (Boolean(professionalLongForm) !== professionalSource) {
+  const customerDeliverySource = definition.source ===
+    CANONICAL_PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_QUEUE_SOURCE
+  const ordinarySource = definition.source ===
+    'canonical_execution_package_and_snapshot_resource_placement'
+  if (
+    (ordinarySource && (professionalLongForm || customerDelivery)) ||
+    (professionalSource && (!professionalLongForm || customerDelivery)) ||
+    (customerDeliverySource && (!customerDelivery || professionalLongForm))
+  ) {
     context.addIssue({
       code: 'custom',
-      message: 'Canonical work-queue source and professional long-form authority disagree.',
+      message: 'Canonical work-queue source and specialized authority disagree.',
     })
   }
   if (
@@ -166,7 +229,7 @@ export const canonicalPrivatePackageWorkQueueDefinitionSchema = z.object({
     job.dependencyJobIds.some((dependencyJobId) => !jobIds.has(dependencyJobId)))) {
     context.addIssue({ code: 'custom', message: 'Canonical work-queue dependency identity is invalid.' })
   }
-  if (!professionalLongForm) {
+  if (ordinarySource) {
     if (definition.jobs.some((job) => job.satisfiedPromotionDependencyJobIds !== undefined)) {
       context.addIssue({
         code: 'custom',
@@ -175,6 +238,36 @@ export const canonicalPrivatePackageWorkQueueDefinitionSchema = z.object({
     }
     return
   }
+  if (customerDelivery) {
+    const promotionSatisfied = definition.jobs.filter((job) =>
+      job.satisfiedPromotionDependencyJobIds?.length === 1)
+    if (
+      definition.identity.packageHash !== customerDelivery.deliveryPackageHash ||
+      definition.identity.placementManifestHash !==
+        customerDelivery.deliveryPlacementManifestHash ||
+      definition.identity.packageRecordId ===
+        customerDelivery.sourceReviewPackageRecordId ||
+      definition.jobs.length !== customerDelivery.deliveryJobCount ||
+      promotionSatisfied.length !== customerDelivery.rootDeliveryJobCount ||
+      definition.jobs.some((job) =>
+        job.satisfiedPromotionDependencyJobIds === undefined ||
+        !job.expectedOutputIdentity ||
+        job.satisfiedPromotionDependencyJobIds.some((dependencyJobId) =>
+          dependencyJobId !== customerDelivery.sourcePrivateMasterQaJobId) ||
+        job.dependencyJobIds.includes(customerDelivery.sourcePrivateMasterQaJobId) ||
+        job.privateExecutionReady ||
+        job.providerExecutionMode !== 'none' ||
+        job.requiredGate !==
+          CANONICAL_PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_REQUIRED_GATE)
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Professional long-form customer-delivery queue lost its blocked source-QA authority.',
+      })
+    }
+    return
+  }
+  if (!professionalLongForm) return
   const promotionSatisfied = definition.jobs.filter((job) =>
     job.satisfiedPromotionDependencyJobIds?.length === 1)
   if (

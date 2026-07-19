@@ -64,6 +64,9 @@ import {
 import {
   createCanonicalProfessionalLongFormPrivateMasterQaExecutionService,
 } from '../services/canonical-professional-long-form-private-master-qa-execution-service'
+import {
+  createCanonicalProfessionalLongFormCustomerDeliveryPackageService,
+} from '../services/canonical-professional-long-form-customer-delivery-package-service'
 import { createEditPlanningAuthorityService } from
   '../services/edit-planning-authority-service'
 import { createExactEditPreferenceService } from
@@ -443,6 +446,64 @@ try {
     /customerPrice|customerCredit|serviceFee|wallet|billingAuthority/u,
   )
 
+  const deliveryService =
+    createCanonicalProfessionalLongFormCustomerDeliveryPackageService(context)
+  const delivery = await deliveryService.prepare({
+    workspaceId,
+    approvedPlanSnapshotId: snapshotId,
+  })
+  assert.equal(delivery.disposition, 'created')
+  assert.equal(delivery.package.outputContract.chunkCount, 2)
+  assert.equal(delivery.package.graph.summary.totalJobCount, 9)
+  assert.equal(delivery.queueAggregate.summary.totalJobCount, 9)
+  assert.equal(delivery.queueAggregate.summary.queuedJobCount, 9)
+  assert.equal(delivery.queueAggregate.summary.leasedJobCount, 0)
+  assert.equal(delivery.queueAggregate.summary.completedJobCount, 0)
+  assert.equal(
+    delivery.package.outputContract.mediaPolicyId,
+    'approved_h264_aac_yuv420p_bt709_web_master_v1',
+  )
+  assert.equal(delivery.package.outputContract.outputVideoCodec, 'h264')
+  assert.equal(delivery.package.outputContract.outputAudioCodec, 'aac')
+  assert.equal(delivery.package.outputContract.fastStartRequired, true)
+  assert.equal(
+    delivery.package.commercialBoundary
+      .approvedFourKEstimateAndReservationReused,
+    true,
+  )
+  assert.equal(
+    delivery.package.commercialBoundary
+      .customerDeliveryCoveredByOriginalApprovedEstimate,
+    true,
+  )
+  assert.equal(
+    delivery.package.commercialBoundary.secondExportEstimateCreated,
+    false,
+  )
+  assert.equal(
+    delivery.package.commercialBoundary.secondExportChargeCreated,
+    false,
+  )
+  const deliveryRoot = delivery.queueDefinition.jobs[0]
+  assert.deepEqual(
+    deliveryRoot?.satisfiedPromotionDependencyJobIds,
+    [delivery.package.sourceReview.privateMasterQa.sourceJobId],
+  )
+  assert.equal(deliveryRoot?.privateExecutionReady, false)
+  const deliveryMux = delivery.package.graph.workItems.find((workItem) =>
+    workItem.kind === 'mux_customer_delivery_h264_aac_master')
+  assert.equal(deliveryMux?.dependencyJobIds.length, 2)
+  assert.equal(
+    delivery.package.readiness.exactRunnerAuthorityVerified,
+    false,
+  )
+  assert.equal(delivery.readiness.customerDeliveryMediaExecutionVerified, false)
+  assert.equal(delivery.readiness.customerBillingAuthorized, false)
+  assert.equal(delivery.readiness.walletMutationAuthorized, false)
+  assert.equal(delivery.readiness.publicDeliveryAuthorized, false)
+  assert.equal(delivery.readiness.productReady, false)
+  assert.equal(delivery.readiness.productionReady, false)
+
   clearPrivateEditAuthorityProcessStateForSmoke()
   clearPrivateCanonicalPackageWorkQueueProcessStateForSmoke()
   const privateMasterQaReplay = await
@@ -457,6 +518,17 @@ try {
   assert.equal(
     privateMasterQaReplay.qa.costEvidence.evidenceHash,
     privateMasterQa.qa.costEvidence.evidenceHash,
+  )
+  const deliveryReplay = await deliveryService.prepare({
+    workspaceId,
+    approvedPlanSnapshotId: snapshotId,
+  })
+  assert.equal(deliveryReplay.disposition, 'exact_replay')
+  assert.equal(deliveryReplay.evidenceHash, delivery.evidenceHash)
+  assert.equal(deliveryReplay.package.packageHash, delivery.package.packageHash)
+  assert.equal(
+    deliveryReplay.queueAggregate.aggregateHash,
+    delivery.queueAggregate.aggregateHash,
   )
 
   console.log(JSON.stringify({
@@ -478,8 +550,17 @@ try {
     masterExactReplayVerified: masterReplay.disposition === 'exact_replay',
     privateMasterQaExactReplayVerified:
       privateMasterQaReplay.disposition === 'exact_replay',
+    customerDeliveryPackageExactReplayVerified:
+      deliveryReplay.disposition === 'exact_replay',
     privateMasterQaCompleted: true,
     privateReviewGraphComplete: true,
+    customerDeliveryPackageJobCount:
+      delivery.package.graph.summary.totalJobCount,
+    customerDeliveryPackageHash: delivery.package.packageHash,
+    customerDeliveryWorkGraphHash: delivery.package.graph.workGraphHash,
+    customerDeliveryQueueAggregateHash:
+      delivery.queueAggregate.aggregateHash,
+    customerDeliveryPackagePrepared: true,
     customerDeliveryMasterCreated: false,
     exportExecutionAuthorized: false,
     productReady: false,

@@ -1647,6 +1647,7 @@ function assertExact(left: unknown, right: unknown, message: string): void {
 
 function withoutAggregate<T extends { queueAggregate: unknown }>(value: T) {
   const { queueAggregate: _queueAggregate, ...rest } = value
+  void _queueAggregate
   return rest
 }
 

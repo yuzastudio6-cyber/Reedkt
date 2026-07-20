@@ -1,23 +1,34 @@
 import {
   PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_BROWSER_DECISION_VERSION,
   PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_BROWSER_REVIEW_VERSION,
+  PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_BROWSER_WATCH_VERSION,
   professionalLongFormCustomerDeliveryBrowserDecisionSchema,
   professionalLongFormCustomerDeliveryBrowserReviewSchema,
+  professionalLongFormCustomerDeliveryBrowserWatchSchema,
   type ProfessionalLongFormCustomerDeliveryBrowserDecision,
   type ProfessionalLongFormCustomerDeliveryBrowserDownloadDescriptor,
   type ProfessionalLongFormCustomerDeliveryBrowserReview,
+  type ProfessionalLongFormCustomerDeliveryBrowserWatch,
 } from '../../src/backend/api/professional-long-form-customer-delivery-browser-contracts'
 import type {
   ProfessionalLongFormDeliveryQualityDecision,
   ProfessionalLongFormDeliveryQualityReviewPacket,
   RecordProfessionalLongFormDeliveryQualityDecision,
 } from '../edit-architecture/professional-long-form-customer-delivery-download-execution-contract'
+import type {
+  RecordProfessionalLongFormDeliveryWatchCheckpoint,
+} from '../edit-architecture/professional-long-form-customer-delivery-watch-evidence-contract'
 import type { ServiceContext } from '../types'
 import {
   createCanonicalProfessionalLongFormCustomerDeliveryDownloadService,
   type CanonicalProfessionalLongFormDeliveryQualityDecisionEvidence,
   type CanonicalProfessionalLongFormDeliveryQualityReviewEvidence,
 } from './canonical-professional-long-form-customer-delivery-download-service'
+import {
+  buildProfessionalLongFormDeliveryWatchAuthority,
+  createCanonicalProfessionalLongFormCustomerDeliveryWatchService,
+  type CanonicalProfessionalLongFormDeliveryWatchState,
+} from './canonical-professional-long-form-customer-delivery-watch-service'
 
 type ExactPackageInput = {
   workspaceId: string
@@ -30,6 +41,8 @@ export function createCanonicalProfessionalLongFormCustomerDeliveryBrowserServic
 ) {
   const service =
     createCanonicalProfessionalLongFormCustomerDeliveryDownloadService(context)
+  const watchService =
+    createCanonicalProfessionalLongFormCustomerDeliveryWatchService(context)
 
   return {
     async inspect(input: ExactPackageInput): Promise<{
@@ -37,8 +50,12 @@ export function createCanonicalProfessionalLongFormCustomerDeliveryBrowserServic
       warnings: string[]
     }> {
       const result = await service.inspectQualityReview(input)
+      const watchState = await watchService.inspect({
+        authority:
+          buildProfessionalLongFormDeliveryWatchAuthority(result.reviewPacket),
+      })
       return {
-        receipt: presentReview(result),
+        receipt: presentReview(result, watchState),
         warnings: browserWarnings(),
       }
     },
@@ -51,8 +68,37 @@ export function createCanonicalProfessionalLongFormCustomerDeliveryBrowserServic
       warnings: string[]
     }> {
       const result = await service.recordQualityDecision(input)
+      const watchState = await watchService.inspect({
+        authority: buildProfessionalLongFormDeliveryWatchAuthority(
+          result.decisionRecord.reviewPacket,
+        ),
+      })
       return {
-        receipt: presentDecision(result),
+        receipt: presentDecision(result, watchState),
+        warnings: browserWarnings(),
+      }
+    },
+
+    async recordWatchCheckpoint(input: ExactPackageInput & {
+      idempotencyKey: string
+      checkpoint: RecordProfessionalLongFormDeliveryWatchCheckpoint
+    }): Promise<{
+      receipt: ProfessionalLongFormCustomerDeliveryBrowserWatch
+      warnings: string[]
+    }> {
+      const recorded = await service.recordQualityReviewWatchCheckpoint({
+        workspaceId: input.workspaceId,
+        approvedPlanSnapshotId: input.approvedPlanSnapshotId,
+        packageRecordId: input.packageRecordId,
+        idempotencyKey: input.idempotencyKey,
+        checkpoint: input.checkpoint,
+      })
+      return {
+        receipt: presentWatch(
+          recorded.reviewPacket,
+          recorded.state,
+          recorded.disposition,
+        ),
         warnings: browserWarnings(),
       }
     },
@@ -61,12 +107,14 @@ export function createCanonicalProfessionalLongFormCustomerDeliveryBrowserServic
 
 function presentReview(
   result: CanonicalProfessionalLongFormDeliveryQualityReviewEvidence,
+  watchState: CanonicalProfessionalLongFormDeliveryWatchState,
 ): ProfessionalLongFormCustomerDeliveryBrowserReview {
   const base = browserReviewBase({
     packet: result.reviewPacket,
     decision: result.decisionRecord?.decision ?? null,
     privateDownloadReady:
       result.readiness.authenticatedPrivateByteStreamReady,
+    watchState,
   })
   return professionalLongFormCustomerDeliveryBrowserReviewSchema.parse({
     schemaVersion:
@@ -82,11 +130,13 @@ function presentReview(
 
 function presentDecision(
   result: CanonicalProfessionalLongFormDeliveryQualityDecisionEvidence,
+  watchState: CanonicalProfessionalLongFormDeliveryWatchState,
 ): ProfessionalLongFormCustomerDeliveryBrowserDecision {
   const base = browserReviewBase({
     packet: result.decisionRecord.reviewPacket,
     decision: result.decisionRecord.decision,
     privateDownloadReady: result.download !== null,
+    watchState,
   })
   return professionalLongFormCustomerDeliveryBrowserDecisionSchema.parse({
     schemaVersion:
@@ -106,6 +156,7 @@ function browserReviewBase(input: {
   packet: ProfessionalLongFormDeliveryQualityReviewPacket
   decision: ProfessionalLongFormDeliveryQualityDecision | null
   privateDownloadReady: boolean
+  watchState: CanonicalProfessionalLongFormDeliveryWatchState
 }) {
   const revision = input.decision?.decision ===
     'request_customer_delivery_revision'
@@ -160,6 +211,7 @@ function browserReviewBase(input: {
       publicOrSignedUrlCreated: false as const,
       cachePolicy: 'private_no_store' as const,
     },
+    watch: watchSummary(input.packet, input.watchState),
     decision: input.decision ? decisionSummary(input.decision) : null,
     privateDownload: accepted
       ? downloadDescriptor(input.packet, input.decision!)
@@ -169,6 +221,8 @@ function browserReviewBase(input: {
       exactDecodedAudioQaReopened: true as const,
       qualityReviewMediaReady: true as const,
       entireProgramPlaybackRequiredBeforeAcceptance: true as const,
+      durableWholeProgramWatchEvidenceReady:
+        input.watchState.acceptanceGateSatisfied,
       actualSpeechIntelligibilityAnalysisPerformed: false as const,
       authenticatedQualityDecisionRecorded: input.decision !== null,
       revisionRequiresFreshPlanEstimateAndApproval: revision,
@@ -218,6 +272,83 @@ function browserReviewBase(input: {
   }
 }
 
+function presentWatch(
+  packet: ProfessionalLongFormDeliveryQualityReviewPacket,
+  watchState: CanonicalProfessionalLongFormDeliveryWatchState,
+  disposition: 'recorded' | 'exact_replay',
+): ProfessionalLongFormCustomerDeliveryBrowserWatch {
+  const base = browserReviewBase({
+    packet,
+    decision: null,
+    privateDownloadReady: false,
+    watchState,
+  })
+  return professionalLongFormCustomerDeliveryBrowserWatchSchema.parse({
+    schemaVersion:
+      PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_BROWSER_WATCH_VERSION,
+    source:
+      'canonical_professional_long_form_customer_delivery_browser_service',
+    purpose:
+      'record_server_validated_private_customer_delivery_watch_checkpoint',
+    disposition,
+    identity: base.identity,
+    authority: base.authority,
+    watch: base.watch,
+    boundaries: base.boundaries,
+    persistence: base.persistence,
+    testOnly: true,
+  })
+}
+
+function watchSummary(
+  packet: ProfessionalLongFormDeliveryQualityReviewPacket,
+  state: CanonicalProfessionalLongFormDeliveryWatchState,
+) {
+  const evidence = state.evidence
+  const packageRecordId = encodeURIComponent(
+    packet.identity.packageRecordId,
+  )
+  const minimumRequiredElapsedMs = evidence?.minimumRequiredElapsedMs ??
+    Math.ceil(
+      ((packet.master.frameCount - 1) * 1_000) /
+        (packet.master.frameRateNumerator * 2),
+    )
+  return {
+    status: state.status,
+    watchEvidenceHash: evidence?.evidenceHash ?? null,
+    sequence: evidence?.sequence ?? 0,
+    nextSequence: state.nextSequence,
+    previousWatchEvidenceHash:
+      evidence?.previousWatchEvidenceHash ?? null,
+    expectedPreviousWatchEvidenceHash:
+      state.expectedPreviousWatchEvidenceHash,
+    coveredFrameCount: evidence?.coveredFrameCount ?? 0,
+    coveragePermille: evidence?.coveragePermille ?? 0,
+    fullProgramPlaybackObserved:
+      evidence?.fullProgramPlaybackObserved ?? false,
+    acceptanceGateSatisfied: state.acceptanceGateSatisfied,
+    serverElapsedMs: evidence?.serverElapsedMs ?? 0,
+    minimumRequiredElapsedMs,
+    maximumPlaybackRatePermille: 2_000 as const,
+    browserReportedCompletionTrusted: false as const,
+    privateLocalDurable: true as const,
+    distributedDatabaseBacked: false as const,
+    productionDurabilityProven: false as const,
+    checkpoint: {
+      method: 'POST' as const,
+      path:
+        '/v1/edit-executions/professional-long-form/' +
+        `customer-delivery-packages/${packageRecordId}/quality-review/` +
+        'watch-checkpoints',
+      expectedReviewPacketHash: packet.packetHash,
+      expectedMasterSha256: packet.master.sha256,
+      authenticatedBearerRequired: true as const,
+      idempotencyKeyRequired: true as const,
+      browserReportedCompletionTrusted: false as const,
+    },
+  }
+}
+
 function decisionSummary(
   decision: ProfessionalLongFormDeliveryQualityDecision,
 ) {
@@ -231,6 +362,7 @@ function decisionSummary(
     revisionRequired: decision.outcome.revisionRequired,
     requiresFreshPlanEstimateAndApproval:
       decision.outcome.requiresFreshPlanEstimateAndApproval,
+    watchEvidenceHash: decision.watchEvidenceHash,
   }
 }
 

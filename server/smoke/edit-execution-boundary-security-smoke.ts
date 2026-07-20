@@ -154,6 +154,27 @@ try {
     404,
     'Production must not mount the local/private browser review-decision route.',
   )
+  const hiddenBrowserDeliveryWatchCheckpoint = await fetch(
+    `${productionBaseUrl}/v1/edit-executions/professional-long-form/customer-delivery-packages/hidden-delivery/quality-review/watch-checkpoints`,
+    {
+      method: 'POST',
+      headers: dualAuthHeaders,
+      body: JSON.stringify(deliveryWatchCheckpointBody()),
+    },
+  )
+  assert.equal(
+    hiddenBrowserDeliveryWatchCheckpoint.status,
+    503,
+    'Production may mount the delivery-watch contract but must fail closed before private persistence access.',
+  )
+  const hiddenBrowserDeliveryWatchCheckpointError =
+    await hiddenBrowserDeliveryWatchCheckpoint.json() as {
+      error?: { code?: string }
+    }
+  assert.equal(
+    hiddenBrowserDeliveryWatchCheckpointError.error?.code,
+    'TOOL_NOT_READY',
+  )
 
   const hiddenInternalRunRoute = await fetch(`${productionBaseUrl}/v1/edit-executions/private-internal-test-runs`, {
     method: 'POST',
@@ -171,7 +192,7 @@ try {
         'content-type': 'application/json',
         'idempotency-key': 'owner-review-route-remains-mounted',
       },
-      body: '{}',
+      body: JSON.stringify(deliveryWatchCheckpointBody()),
     },
   )
   assert.notEqual(userPreviewReview.status, 404, 'The authenticated user preview-review route should remain mounted.')
@@ -292,6 +313,32 @@ try {
     hiddenCloudBrowserPrivateReviewDecision.status,
     404,
     'A non-production cloud runtime must not mount the browser review-decision route.',
+  )
+  const hiddenCloudBrowserDeliveryWatchCheckpoint = await fetch(
+    `${internalTestBaseUrl}/v1/edit-executions/professional-long-form/customer-delivery-packages/hidden-delivery/quality-review/watch-checkpoints`,
+    {
+      method: 'POST',
+      headers: {
+        authorization: 'Bearer verified-user-token',
+        [INTERNAL_SERVICE_TOKEN_HEADER]: internalToken,
+        'content-type': 'application/json',
+        'idempotency-key': 'cloud-test-hidden-delivery-watch',
+      },
+      body: JSON.stringify(deliveryWatchCheckpointBody()),
+    },
+  )
+  assert.equal(
+    hiddenCloudBrowserDeliveryWatchCheckpoint.status,
+    503,
+    'A cloud runtime must fail closed before delivery-watch persistence access.',
+  )
+  const hiddenCloudBrowserDeliveryWatchCheckpointError =
+    await hiddenCloudBrowserDeliveryWatchCheckpoint.json() as {
+      error?: { code?: string }
+    }
+  assert.equal(
+    hiddenCloudBrowserDeliveryWatchCheckpointError.error?.code,
+    'TOOL_NOT_READY',
   )
   const blockedCloudDeliveryDiscovery = await fetch(
     `${internalTestBaseUrl}/v1/projects/strict-project/edit-sessions/strict-edit/professional-long-form-customer-delivery?workspaceId=strict-workspace&approvedPlanSnapshotId=strict-snapshot`,
@@ -470,6 +517,33 @@ try {
   }
   assert.equal(browserDeliveryDiscoveryError.error?.code, 'VALIDATION_FAILED')
 
+  const browserDeliveryWatchCheckpoint = await fetch(
+    `${internalTestBaseUrl}/v1/edit-executions/professional-long-form/customer-delivery-packages/strict-delivery/quality-review/watch-checkpoints`,
+    {
+      method: 'POST',
+      headers: {
+        authorization: 'Bearer verified-user-token',
+        origin: 'https://app.reeditpro.test',
+        'content-type': 'application/json',
+        'idempotency-key': 'strict-browser-delivery-watch',
+      },
+      body: '{}',
+    },
+  )
+  assert.equal(
+    browserDeliveryWatchCheckpoint.status,
+    400,
+    'The local/private delivery-watch route should require user auth, idempotency, and strict exact-review authority.',
+  )
+  const browserDeliveryWatchCheckpointError =
+    await browserDeliveryWatchCheckpoint.json() as {
+      error?: { code?: string }
+    }
+  assert.equal(
+    browserDeliveryWatchCheckpointError.error?.code,
+    'VALIDATION_FAILED',
+  )
+
   for (const [path, body] of [
     ['/v1/jobs/caller-job/claim', {
       workspaceId: 'caller-workspace',
@@ -533,11 +607,13 @@ console.log(JSON.stringify({
     'production_and_cloud_browser_package_preparation_review_media_and_decision_routes_unmounted',
     'production_user_review_and_download_routes_preserved',
     'production_and_cloud_delivery_discovery_fail_closed_before_persistence',
+    'production_and_cloud_delivery_watch_fail_closed_before_persistence',
     'private_execution_routes_require_dual_auth',
     'local_private_browser_package_request_requires_user_auth_and_strict_identity_body',
     'local_private_browser_edit_preparation_requires_user_auth_and_strict_identity_body',
     'local_private_browser_review_media_requires_user_auth_and_strict_exact_review_query',
     'local_private_browser_review_decision_requires_user_auth_and_strict_exact_review_body',
+    'local_private_browser_delivery_watch_requires_user_auth_idempotency_and_strict_exact_review_body',
     'local_private_delivery_discovery_requires_exact_query_identity',
     'canonical_identity_only_execution_package_schema',
     'caller_authored_worker_claim_and_run_routes_disabled',
@@ -559,4 +635,16 @@ function baseUrl(server: ReturnType<typeof createServer>): string {
 
 async function close(server: ReturnType<typeof createServer>): Promise<void> {
   await new Promise<void>((resolve, reject) => server.close((error) => error ? reject(error) : resolve()))
+}
+
+function deliveryWatchCheckpointBody() {
+  return {
+    workspaceId: 'strict-workspace',
+    approvedPlanSnapshotId: 'strict-snapshot',
+    expectedReviewPacketHash: 'a'.repeat(64),
+    expectedMasterSha256: 'b'.repeat(64),
+    expectedPreviousWatchEvidenceHash: null,
+    sequence: 1,
+    coveredIntervals: [{ startFrame: 0, endFrameExclusive: 1 }],
+  }
 }

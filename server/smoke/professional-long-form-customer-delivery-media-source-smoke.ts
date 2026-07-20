@@ -297,7 +297,7 @@ console.log(JSON.stringify({
 function reviewFixture() {
   return {
     schemaVersion:
-      'professional-long-form-customer-delivery-browser-review-v1' as const,
+      'professional-long-form-customer-delivery-browser-review-v2' as const,
     source:
       'canonical_professional_long_form_customer_delivery_browser_service' as const,
     purpose:
@@ -351,6 +351,35 @@ function reviewFixture() {
       publicOrSignedUrlCreated: false as const,
       cachePolicy: 'private_no_store' as const,
     },
+    watch: {
+      status: 'not_started' as const,
+      watchEvidenceHash: null,
+      sequence: 0,
+      nextSequence: 1,
+      previousWatchEvidenceHash: null,
+      expectedPreviousWatchEvidenceHash: null,
+      coveredFrameCount: 0,
+      coveragePermille: 0,
+      fullProgramPlaybackObserved: false,
+      acceptanceGateSatisfied: false,
+      serverElapsedMs: 0,
+      minimumRequiredElapsedMs: 4_984,
+      maximumPlaybackRatePermille: 2_000 as const,
+      browserReportedCompletionTrusted: false as const,
+      privateLocalDurable: true as const,
+      distributedDatabaseBacked: false as const,
+      productionDurabilityProven: false as const,
+      checkpoint: {
+        method: 'POST' as const,
+        path:
+          `/v1/edit-executions/professional-long-form/customer-delivery-packages/${identity.packageRecordId}/quality-review/watch-checkpoints`,
+        expectedReviewPacketHash: reviewPacketHash,
+        expectedMasterSha256: masterSha256,
+        authenticatedBearerRequired: true as const,
+        idempotencyKeyRequired: true as const,
+        browserReportedCompletionTrusted: false as const,
+      },
+    },
     decision: null,
     privateDownload: null,
     readiness: {
@@ -358,6 +387,7 @@ function reviewFixture() {
       exactDecodedAudioQaReopened: true as const,
       qualityReviewMediaReady: true as const,
       entireProgramPlaybackRequiredBeforeAcceptance: true as const,
+      durableWholeProgramWatchEvidenceReady: false,
       actualSpeechIntelligibilityAnalysisPerformed: false as const,
       authenticatedQualityDecisionRecorded: false,
       revisionRequiresFreshPlanEstimateAndApproval: false,

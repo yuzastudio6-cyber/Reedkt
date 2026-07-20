@@ -63,12 +63,12 @@ const canonicalSteps: VerificationStep[] = [
   step(
     'canonical-professional-long-form-cross-chunk-color',
     'smoke:canonical-professional-long-form-cross-chunk-color',
-    'A bounded two-chunk canonical graph reopens both independently QA-passed private 4K object chunks, executes strict adjacent-boundary color policy, continuous lossless program audio, private review finalization, and objective review-master QA through all 11 jobs. A separate immutable nine-job customer-delivery package completes its root, both 4K H.264 High encodes, both independent chunk probes, one H.264-stream-copy plus one-time FLAC-to-AAC private MP4 mux, separately leased full decoded-video plus decoded-audio/sync QA, and one exact private-download reconciliation through 9/9 jobs with attempt-level internal cost and restart-safe exact replay. Both synthetic-fixture objective outcomes honestly require review; an immutable authenticated synthetic attestation binds the exact master, objective evidence, known review items, approved intent, and no-speech disposition before the ninth job can run. Actual Express routes prove exact named-edit/snapshot package discovery, strict review metadata, pre-decision authenticated ranges, exact decision replay/conflict handling, accepted private-download rediscovery and ranges, and cross-user denial without returning worker or internal-cost authority. The fixture is deleted after the smoke, and this bounded proof does not mark named-edit UI mounting, MediaSource playback, the six-hour 255-job graph, cloud, product, or production executed.',
+    'A bounded two-chunk canonical graph reopens both independently QA-passed private 4K object chunks, executes strict adjacent-boundary color policy, continuous lossless program audio, private review finalization, and objective review-master QA through all 11 jobs. A separate immutable nine-job customer-delivery package completes its root, both 4K H.264 High encodes, both independent chunk probes, one H.264-stream-copy plus one-time FLAC-to-AAC private MP4 mux, separately leased full decoded-video plus decoded-audio/sync QA, and one exact private-download reconciliation through 9/9 jobs with attempt-level internal cost and restart-safe exact replay. Both synthetic-fixture objective outcomes honestly require review. Acceptance stays blocked until exact hash-chained private watch evidence starts at frame zero, spans all 3,870 frames, satisfies the server-observed 2x elapsed-time ceiling, and binds the immutable review/master; revision needs no watch authority. Actual Express routes prove exact named-edit/snapshot discovery, authenticated review ranges and watch checkpoints, instant-completion refusal, decision replay/conflict handling, accepted private-download rediscovery and ranges, and cross-user denial without returning worker or internal-cost authority. The fixture is deleted after the smoke, and this bounded proof does not mark named-edit UI mounting, the six-hour 255-job graph, distributed durability, cloud, product, or production executed.',
   ),
   step(
     'professional-long-form-customer-delivery-client',
     'smoke:professional-long-form-customer-delivery-client',
-    'The frontend-safe client discovers the hidden package identity from exact tenant/project/edit/snapshot authority, strictly validates bounded progress and review receipts, reads authenticated review and accepted-download ranges with integrity headers, records explicit accept or revision decisions with deterministic idempotency, rejects stale, foreign, or over-broad responses, and never creates a second export estimate, charge, or credit prompt.',
+    'The frontend-safe client discovers the hidden package identity from exact tenant/project/edit/snapshot authority, strictly validates bounded progress and review receipts, reads authenticated review and accepted-download ranges with integrity headers, records exact watch checkpoints and explicit accept or revision decisions with deterministic idempotency, blocks acceptance until refreshed durable watch authority is complete, rejects stale, foreign, or over-broad responses, and never creates a second export estimate, charge, or credit prompt.',
   ),
   step(
     'professional-long-form-customer-delivery-media-source',
@@ -76,9 +76,14 @@ const canonicalSteps: VerificationStep[] = [
     'A bounded MediaSource adapter consumes only exact authenticated no-store review ranges, appends at most 8 MiB at a time, applies rolling-buffer backpressure and eviction, rejects authority/codec/range discontinuity, and records seek-aware plausible client coverage without treating it as durable acceptance authority.',
   ),
   step(
+    'professional-long-form-customer-delivery-watch-evidence',
+    'smoke:professional-long-form-customer-delivery-watch-evidence',
+    'A private/local tenant-scoped watch authority starts at frame zero, hash-chains monotonic merged coverage, enforces a server-observed maximum 2x elapsed-time ceiling, rejects instant completion and stale predecessors, survives restart and an interrupted latest-pointer write, replays exact idempotency, denies cross-user disclosure, detects tampering, and is required by exact acceptance while distributed production durability remains false.',
+  ),
+  step(
     'professional-long-form-customer-delivery-media-source-browser',
     'qa:professional-long-form-customer-delivery-media-source',
-    'Actual Chromium uses the real frontend delivery client with bearer and exact workspace/snapshot/review/master authority, then decodes and plays one real fragmented H.264 High/AAC MP4 from multiple exact 64 KiB responses without a whole-file browser Blob and observes contiguous full-program client coverage; the temporary fixture is deleted and no visible named-edit UI or server watch attestation is claimed.',
+    'Actual Chromium uses the real frontend delivery client with bearer and exact workspace/snapshot/review/master authority, saves the frame-zero watch checkpoint, decodes and plays one real fragmented H.264 High/AAC MP4 at 2x from multiple exact 64 KiB responses without a whole-file browser Blob, then submits exact contiguous full-program coverage through the same frontend watch client. The temporary fixture is deleted and no visible named-edit UI or distributed server durability is claimed.',
   ),
   step(
     'professional-export-policy',
@@ -305,7 +310,7 @@ function printReport(
 ): void {
   const finishedAt = new Date()
   const report = {
-    schemaVersion: 'canonical-private-pipeline-verification-v27',
+    schemaVersion: 'canonical-private-pipeline-verification-v28',
     status,
     mode: full ? 'full_internal_regression' : 'canonical_private_pipeline',
     startedAt: runStartedAt.toISOString(),
@@ -426,6 +431,10 @@ function printReport(
           professionalLongFormCustomerDeliveryBoundedMediaSourceAdapter: true,
           professionalLongFormCustomerDeliveryActualChromiumPlayback: true,
           professionalLongFormCustomerDeliveryClientObservedFullProgramPlayback: true,
+          professionalLongFormCustomerDeliveryDurablePrivateLocalWatchEvidence: true,
+          professionalLongFormCustomerDeliveryWatchServerElapsedCeiling: true,
+          professionalLongFormCustomerDeliveryAcceptanceRequiresExactWatchEvidence: true,
+          professionalLongFormCustomerDeliveryBrowserWatchClientHandshake: true,
           professionalLongFormCustomerDeliverySecondExportEstimateCreated: false,
           professionalLongFormCustomerDeliverySecondExportChargeCreated: false,
           activeNamedEditJourneyStates: true,
@@ -460,7 +469,7 @@ function printReport(
       professionalLongFormFinalizationAndFinalQaVerified: false,
       professionalLongFormObjectStorageVerified: false,
       professionalLongFormCustomerDeliveryNamedEditUiMounted: false,
-      professionalLongFormCustomerDeliveryDurableServerWatchEvidenceVerified: false,
+      professionalLongFormCustomerDeliveryDistributedWatchEvidenceVerified: false,
       professionalLongFormCustomerDeliveryRetainedReviewMediaVerified: false,
       liveGoogleCloudWorkerCompletionVerified: false,
       externalBetaReady: false,

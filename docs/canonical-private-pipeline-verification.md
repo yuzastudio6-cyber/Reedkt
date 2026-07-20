@@ -2,7 +2,7 @@
 
 Status: `implemented_local_private_verification_entrypoint`
 
-Status date: 2026-07-18
+Status date: 2026-07-20
 
 ## Purpose
 
@@ -42,7 +42,8 @@ separate approval, the opaque
 execution-package handoff, private preparation, private review,
 revision/history recovery, exact long-form delivery discovery, bounded rolling
 MediaSource playback, actual Chromium fragmented-MP4 decode from multiple
-private ranges, the bounded three-source standalone reference-bound
+private ranges, exact private/local durable watch checkpoints and acceptance
+gating, the bounded three-source standalone reference-bound
 voice/color proof, the one-source professional-color regression proof, and the
 maximum eight-source planning-publication contract. Before media execution it
 also verifies the durable package queue, a cross-process single-host
@@ -127,8 +128,12 @@ plan fits the bounded canonical profile.
    MediaSource adapter. Then prove actual Chromium decodes and completes one
    real fragmented H.264 High/AAC MP4 through the bearer-authenticated frontend
    client from multiple exact 64 KiB ranges without a whole-file browser
-   `Blob`. Client-observed full-program coverage is not
-   durable server acceptance authority; the temporary fixture is deleted.
+   `Blob`. The browser saves frame-zero and completed merged coverage through
+   the frontend-safe watch client. A separate server proof binds those
+   checkpoints to the exact review/master, enforces a server-observed maximum
+   2x elapsed-time ceiling, survives restart and interrupted pointer writes,
+   and blocks acceptance without the exact completed evidence. The temporary
+   fixture is deleted, and distributed production durability remains false.
 6. Exercise the real local backend authority chain for upload, publication,
    approval, synthetic reservation, snapshot, jobs, package, and readiness.
 7. Verify the checksum-protected package queue, server-selected attempt,
@@ -187,7 +192,7 @@ source-bound audio identities in approved order, reads sanitized journey state,
 and records review acceptance.
 
 The runner stops on the first failed phase and prints a machine-readable
-`canonical-private-pipeline-verification-v27` report with step exit codes and
+`canonical-private-pipeline-verification-v28` report with step exit codes and
 durations. A zero exit code means every included assertion passed, including
 assertions that production-only or unavailable behavior stays blocked.
 

@@ -86,6 +86,9 @@ import {
   recordProfessionalLongFormDeliveryQualityDecisionSchema,
 } from '../edit-architecture/professional-long-form-customer-delivery-download-execution-contract'
 import {
+  recordProfessionalLongFormDeliveryWatchCheckpointSchema,
+} from '../edit-architecture/professional-long-form-customer-delivery-watch-evidence-contract'
+import {
   professionalLongFormCustomerDeliveryDiscoveryQuerySchema,
 } from '../validation/canonical-professional-long-form-customer-delivery-discovery-schemas'
 
@@ -1354,6 +1357,31 @@ function registerEditExecutionUserRoutes(router: Router): void {
         file.reviewPacketHash,
       )
       await streamPrivateMp4(request, response, file)
+    }),
+  )
+
+  router.post(
+    '/v1/edit-executions/professional-long-form/customer-delivery-packages/:packageRecordId/quality-review/watch-checkpoints',
+    requireAuth,
+    requireSensitiveIdempotencyKey,
+    asyncRoute(async (request, response) => {
+      const checkpoint = validateBody(
+        recordProfessionalLongFormDeliveryWatchCheckpointSchema,
+        request.body,
+      )
+      const result = await
+        createCanonicalProfessionalLongFormCustomerDeliveryBrowserService(
+          getServiceContext(request),
+        ).recordWatchCheckpoint({
+          workspaceId: checkpoint.workspaceId,
+          approvedPlanSnapshotId: checkpoint.approvedPlanSnapshotId,
+          packageRecordId: getRouteParam(request, 'packageRecordId'),
+          idempotencyKey: getIdempotencyKey(request),
+          checkpoint,
+        })
+      sendOk(response, {
+        professionalLongFormCustomerDeliveryWatch: result.receipt,
+      }, result.warnings, result.receipt.disposition === 'recorded' ? 201 : 200)
     }),
   )
 

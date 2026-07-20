@@ -2,7 +2,7 @@
 
 Date: 2026-07-19
 
-Status: `private_local_nine_job_delivery_actual_chromium_media_source_playback_connected_ui_mount_durable_watch_product_and_cloud_blocked`
+Status: `private_local_nine_job_delivery_actual_chromium_playback_and_durable_watch_gate_connected_ui_mount_distributed_durability_product_and_cloud_blocked`
 
 ## Outcome
 
@@ -22,9 +22,14 @@ the exact persisted MP4.
 
 Both objective QA jobs honestly return `needs_user_review` for this synthetic
 fixture. The retained smoke therefore exercises an exact immutable authenticated
-quality-decision record before it authorizes the ninth job. An accepted decision
-binds the exact private master checksum, both decoded-QA evidence hashes, the
-known review items, approved intent, and the no-speech disposition. That decision
+quality-decision record before it authorizes the ninth job. Acceptance first
+requires private/local durable watch evidence that starts at frame zero,
+hash-chains monotonic merged coverage, spans every frame, satisfies a
+server-observed maximum 2x elapsed-time ceiling, and binds the exact immutable
+review packet and master. The browser's own completion flag is explicitly not
+trusted. An accepted decision binds that evidence hash, the exact private
+master checksum, both decoded-QA evidence hashes, the known review items,
+approved intent, and the no-speech disposition. That decision
 then authorizes one separately leased, one-use private-download reconciliation
 attempt. The completed artifact can be reopened only through the authenticated
 workspace boundary and supports verified whole-file and byte-range streaming.
@@ -43,8 +48,9 @@ private-download byte ranges. A bounded MediaSource adapter now consumes those
 ranges, and actual Chromium decodes and plays a real fragmented H.264/AAC MP4
 without creating a whole-file browser `Blob`. Google Cloud dispatch, durable
 distributed persistence, visible named-edit player/decision mounting of the
-connected canonical-journey result, durable server-side whole-program watch
-attestation, public delivery, billing, and production remain blocked.
+connected canonical-journey result, backward-seek recovery beyond evicted
+buffers, retained review media, public delivery, billing, and production
+remain blocked.
 
 ## Authenticated browser review contract
 
@@ -55,11 +61,12 @@ receipt binds the exact workspace, project, edit, approved snapshot, delivery
 package, review packet hash, private MP4 checksum/byte size, decoded-video
 evidence hash, decoded-audio evidence hash, and three safe review items.
 
-Five reviewed frontend-safe route identities are registered:
+Six reviewed frontend-safe route identities are registered:
 
 - exact named-edit/snapshot customer-delivery discovery;
 - quality-review metadata;
 - authenticated pre-decision review media;
+- exact idempotent private watch checkpoints;
 - exact quality accept/revision decision; and
 - accepted private-download media.
 
@@ -73,12 +80,20 @@ decision authority header. The bounded MediaSource adapter consumes that exact
 transport without loading an arbitrarily large professional master into one
 browser `Blob`.
 
-Only the accepted exact decision opens the separate one-use download
+Acceptance is rejected until a refreshed review receipt contains exact complete
+watch evidence. Only the accepted exact decision opens the separate one-use download
 reconciliation. A revision keeps download closed and requires a fresh plan,
 estimate, approval, execution, and private review. Both receipts explicitly
 preserve the original approved 4K estimate/reservation and forbid a second
 export estimate, charge, credit prompt, wallet mutation, settlement, or billing
 action.
+
+The browser discovery/review/decision and immutable quality-decision/record
+contracts are now `v2` because watch lineage changes their shape. Existing private/local `v1`
+accepted packages are not silently upgraded or treated as watch-complete; they
+fail closed and require a fresh delivery package/review. This is an additive
+local contract transition only. It adds no SQL, Supabase migration, wallet
+mutation, provider call, or production-data rewrite.
 
 ## Bounded private MediaSource playback
 
@@ -94,15 +109,21 @@ signed media URL.
 The adapter also records exact frame intervals observed during plausible
 0.5x-2x playback. Seeks break continuity, implausible time jumps do not count,
 and full-program coverage is true only when the merged interval spans frame
-zero through the exact final frame. That record is intentionally client-local:
-it cannot authorize acceptance until a later server boundary persists and
-revalidates immutable watch checkpoints against the exact review packet and
-master.
+zero through the exact final frame. The frontend-safe watch client submits only
+those bounded merged intervals. The server requires frame zero as the first
+checkpoint, exact sequence and predecessor hashes, monotonic coverage, and
+enough server-observed elapsed time for at most 2x playback. It stores
+content-addressed evidence, create-only idempotency records, and an atomic
+latest pointer; exact replay repairs an interrupted pointer write. Acceptance
+loads the exact completed evidence hash and fails closed on stale, foreign,
+instant, incomplete, or tampered authority. This is durable private/local
+single-host evidence, not distributed database-backed production authority.
 
 Two independent checks pass:
 
 ```text
 npm run smoke:professional-long-form-customer-delivery-media-source
+npm run smoke:professional-long-form-customer-delivery-watch-evidence
 npm run qa:professional-long-form-customer-delivery-media-source
 ```
 
@@ -114,7 +135,10 @@ generates a real three-second H.264 High/AAC fragmented MP4, uses the real
 frontend client with bearer and exact workspace/snapshot/review/master
 authority to fetch multiple exact 64 KiB range fixtures, and proves actual
 Chromium decode, playback completion, zero media error, and 100% contiguous
-client-observed frame coverage. Its operating-system temporary fixture is
+client-observed frame coverage. The Chromium flow also uses the real frontend
+watch client to save frame-zero and complete coverage checkpoints with bearer,
+exact review/master authority, and deterministic idempotency. Its
+operating-system temporary fixture is
 deleted after the test; it is not a retained or user-viewable ReEditPro edit.
 
 ## Exact named-edit discovery and recovery seam
@@ -320,6 +344,12 @@ The run rebuilt and verified the real private chain before package promotion:
 - private-download exact restart replay: true;
 - browser-safe review receipt: true;
 - pre-decision authenticated range playback transport: true;
+- acceptance blocked before exact durable watch evidence: true;
+- frame-zero watch start and exact idempotent replay: true;
+- instantaneous whole-program watch claim rejected: true;
+- server-observed maximum 2x elapsed-time ceiling: true;
+- private/local restart and interrupted-pointer recovery: true;
+- browser-reported completion trusted: false;
 - browser decision plus exact replay: true;
 - browser cross-user denial: true;
 - browser private-download range: true;
@@ -328,7 +358,9 @@ The run rebuilt and verified the real private chain before package promotion:
 - bounded rolling MediaSource adapter: true;
 - actual Chromium fragmented-MP4 range playback: true;
 - contiguous full-program client-observed frame coverage: true;
-- durable server watch attestation: false;
+- actual Chromium frontend watch-client handshake: true;
+- durable private/local server watch evidence: true;
+- distributed database-backed watch evidence: false;
 - visible named-edit player mounted: false;
 - retained user-viewable edit: false;
 - no second browser estimate, charge, or credit prompt: true;
@@ -344,28 +376,28 @@ This is local retained evidence, not a deployed object identity.
 The retained delivery identities from the aggregate browser-transport rerun were:
 
 - package hash:
-  `2a98588bbbf769dea568a529f6ecefcb2662615c46a4e1b820c2ba56d6b29246`;
+  `5ad5b56579c1b2829b8f9a3568dd1a5d8f2913567532f6d069415a6f7c2bfadd`;
 - work-graph hash:
-  `45c7843e7b94088c784c65789926660cc9b6f34a09d1f639d56dcc9bb559186a`;
+  `9584e7fb799d2698f509b108bacedd9909a6a5824e588d9711610e2307aefdf9`;
 - final queue-aggregate hash:
-  `3564d564a6e5c3b5b0189bb7c755f0ffa3c8005d34b0796c4ddaff8cbbc03617`;
+  `7e2c616ddffcfd510a4fff76e2249d00e69f2aaad0bf5562f6d4ca8e88108456`;
   and
 - private H.264/AAC master SHA-256:
   `dbb8329f33fc78e208f390262b6551388deaa887d9343b32ef43608f841897e3`.
 
 The retained mux internal-cost evidence hash was
-`0fb04169e867360a177dda626c61021dfd9f043853f8dc770b0e5de9827cbb67`.
+`ce2d6fd1cb6dec78366ee733f7a2ae156513e15a2ec7d81c0e2f3bd2a54ca051`.
 The decoded-video and decoded-audio internal-cost evidence hashes were,
 respectively,
-`caf0cbfaf3d93bf72d705cd68ccafaf75909e7989ad6faab267898bd6e61f367`
+`17c5fc56892b9a86cc133a613d3428011d9e2d3915aa008e307b55b0fcd36afa`
 and
-`9ef5ab34996bcfd7881d4a3c6cde76d822bf48608a7a29fcc15bb95c9805cc64`.
+`35c91748c05fab1b7672ffca59382f0ba02315429bd3e3a8497312f8358ff171`.
 The quality-review packet, synthetic acceptance, private-download cost, and
 final delivery queue hashes were, respectively,
-`66406d4462cff3397feb5bd20cedc025c138a7ef580bc3057a2cdb9392d3ba4d`,
-`7396502489f1c26bba22e9db552758e7164c077ab1727b54483ee300e098cbbd`,
-`bf125abf65cfef950422ad35865dbd9856b989e65e5ed0cc0248d4ae79ca41a3`,
-and `3564d564a6e5c3b5b0189bb7c755f0ffa3c8005d34b0796c4ddaff8cbbc03617`.
+`38f41a8f20d95e8fc977e6e1a828c29f38a96dac12974d6cf6a9ef46278f7c83`,
+`4f20373c5abdce7437b1fa08464dc9be083a8a80f2feb50c560030ac2d653c92`,
+`17e623350c96dee4976b623ec48c827d4e2601871f81a5158b49f07ac34c2db3`,
+and `7e2c616ddffcfd510a4fff76e2249d00e69f2aaad0bf5562f6d4ca8e88108456`.
 These hashes bind the retained local proof only. They do not grant cloud,
 commercial, public-delivery, product, or production authority.
 
@@ -417,10 +449,10 @@ This slice does not prove or authorize:
 - a retained demo object or website playback; the smoke deletes its private
   fixture workspace after assertions complete;
 - visible UI/player consumption of the proven canonical-journey delivery
-  result, durable server-side whole-program watch evidence, backward-seek
-  recovery beyond the rolling buffer, or a retained viewable demo object; the
-  playback adapter and actual Chromium decode are proven, but no delivery UI or
-  second authority is mounted;
+  result, distributed database-backed watch durability, backward-seek recovery
+  beyond the rolling buffer, or a retained viewable demo object; playback,
+  frontend watch transport, and private/local durable watch gating are proven,
+  but no delivery UI or second authority is mounted;
 - distributed database-backed package, queue, outbox, or completion authority;
 - GCS persistence, Cloud Run dispatch, IAM/service identity, or live Google
   Cloud cost reconciliation;
@@ -433,14 +465,11 @@ This slice does not prove or authorize:
 
 ## Next dependency-safe capability
 
-Add one durable server-side watch-evidence boundary that accepts bounded,
-idempotent frame-coverage checkpoints for the exact review/master, revalidates
-the complete interval before acceptance, and survives refresh/restart without
-trusting caller-authored completion. Add backward-seek recovery for evicted
-ranges and a retained private acceptance fixture. The separately owned product
+Add backward-seek recovery for evicted ranges and a retained private acceptance
+fixture that can be opened for actual review. The separately owned product
 UI must mount the existing adapter from the canonical journey result without
 creating another review system. The later deployed
-journey must replace private local files
+journey must replace private local watch/files
 with tenant-scoped durable Supabase/GCS authority, distributed queue/lease
 execution, Cloud Run dispatch, and real cross-instance recovery. It must keep
 the original approved 4K estimate/reservation, never introduce a second export

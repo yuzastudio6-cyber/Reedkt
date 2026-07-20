@@ -20,6 +20,7 @@ const masterSha256 = 'b'.repeat(64)
 const videoEvidenceHash = 'c'.repeat(64)
 const audioEvidenceHash = 'd'.repeat(64)
 const decisionHash = '1'.repeat(64)
+const watchEvidenceHash = '2'.repeat(64)
 const mediaBytes = Buffer.concat([
   Buffer.from([0, 0, 0, 24]),
   Buffer.from('ftypisom'),
@@ -44,6 +45,7 @@ const originalBaseUrl = process.env.VITE_REEDITPRO_API_BASE_URL
 const originalE2E = process.env.VITE_REEDITPRO_E2E
 const originalToken = process.env.VITE_REEDITPRO_E2E_AUTH_TOKEN
 let responseMode: 'valid' | 'foreign' | 'extra_internal' = 'valid'
+let watchCompleted = false
 const requests: Array<{
   method?: string
   url?: string
@@ -106,6 +108,19 @@ const server = createServer((request, response) => {
         ok: true,
         data: {
           professionalLongFormCustomerDeliveryQualityReview: receipt,
+        },
+        warnings: [],
+      }))
+      return
+    }
+    if (request.method === 'POST' && path.endsWith('/watch-checkpoints')) {
+      watchCompleted = true
+      response.statusCode = 201
+      response.setHeader('content-type', 'application/json')
+      response.end(JSON.stringify({
+        ok: true,
+        data: {
+          professionalLongFormCustomerDeliveryWatch: watchFixture(),
         },
         warnings: [],
       }))
@@ -176,6 +191,7 @@ try {
     inspectProfessionalLongFormCustomerDeliveryQualityReview,
     readProfessionalLongFormCustomerDeliveryDownloadRange,
     readProfessionalLongFormCustomerDeliveryReviewRange,
+    recordProfessionalLongFormCustomerDeliveryWatchCheckpoint,
     recordProfessionalLongFormCustomerDeliveryQualityDecision,
   } = await import(
     '../../src/lib/professional-long-form-customer-delivery-client'
@@ -193,6 +209,10 @@ try {
     [
       'editExecution.professionalLongFormCustomerDeliveryQualityReviewMedia.read',
       '/quality-review/media',
+    ],
+    [
+      'editExecution.professionalLongFormCustomerDeliveryWatchCheckpoint.create',
+      '/quality-review/watch-checkpoints',
     ],
     [
       'editExecution.professionalLongFormCustomerDeliveryQualityDecision.create',
@@ -292,21 +312,71 @@ try {
       'manual_full_program_speech_review_accepted' as const,
     noPublicDeliveryRequested: true as const,
   }
-  const accepted =
+  const beforeIncompleteWatchAcceptance = requests.length
+  const incompleteWatchAcceptance =
     await recordProfessionalLongFormCustomerDeliveryQualityDecision({
       ...clientAuthority,
       review: reviewResult.review,
       decision: 'accept_exact_private_customer_delivery',
       attestation: acceptanceAttestation,
     })
-  assert.equal(accepted.status, 'recorded')
+  assert.equal(incompleteWatchAcceptance.status, 'blocked')
+  assert.equal(requests.length, beforeIncompleteWatchAcceptance)
+
+  const watch =
+    await recordProfessionalLongFormCustomerDeliveryWatchCheckpoint({
+      ...clientAuthority,
+      review: reviewResult.review,
+      coveredIntervals: [{ startFrame: 0, endFrameExclusive: 3_870 }],
+    })
+  assert.equal(watch.status, 'recorded')
   assert.equal(requests.length, 3)
   assert.equal(requests[2]?.method, 'POST')
   assert.match(
     requests[2]?.idempotencyKey ?? '',
-    /^professional-long-form-quality-decision:[a-f0-9]{64}$/u,
+    /^professional-long-form-watch:[a-f0-9]{64}$/u,
   )
   assert.deepEqual(requests[2]?.body, {
+    workspaceId: identity.workspaceId,
+    approvedPlanSnapshotId: identity.approvedPlanSnapshotId,
+    expectedReviewPacketHash: reviewPacketHash,
+    expectedMasterSha256: masterSha256,
+    expectedPreviousWatchEvidenceHash: null,
+    sequence: 1,
+    coveredIntervals: [{ startFrame: 0, endFrameExclusive: 3_870 }],
+  })
+  if (watch.status !== 'recorded') assert.fail('Watch must be recorded.')
+  assert.equal(watch.watch.watch.acceptanceGateSatisfied, true)
+  assert.equal(watch.watch.watch.browserReportedCompletionTrusted, false)
+
+  const refreshedReviewResult =
+    await inspectProfessionalLongFormCustomerDeliveryQualityReview(
+      clientAuthority,
+    )
+  assert.equal(refreshedReviewResult.status, 'ready')
+  if (refreshedReviewResult.status !== 'ready') {
+    assert.fail('Refreshed review must be ready.')
+  }
+  assert.equal(requests.length, 4)
+  assert.equal(
+    refreshedReviewResult.review.watch.watchEvidenceHash,
+    watchEvidenceHash,
+  )
+  const accepted =
+    await recordProfessionalLongFormCustomerDeliveryQualityDecision({
+      ...clientAuthority,
+      review: refreshedReviewResult.review,
+      decision: 'accept_exact_private_customer_delivery',
+      attestation: acceptanceAttestation,
+    })
+  assert.equal(accepted.status, 'recorded')
+  assert.equal(requests.length, 5)
+  assert.equal(requests[4]?.method, 'POST')
+  assert.match(
+    requests[4]?.idempotencyKey ?? '',
+    /^professional-long-form-quality-decision:[a-f0-9]{64}$/u,
+  )
+  assert.deepEqual(requests[4]?.body, {
     workspaceId: identity.workspaceId,
     approvedPlanSnapshotId: identity.approvedPlanSnapshotId,
     expectedReviewPacketHash: reviewPacketHash,
@@ -314,10 +384,11 @@ try {
     expectedVideoObjectiveEvidenceHash: videoEvidenceHash,
     expectedAudioObjectiveEvidenceHash: audioEvidenceHash,
     decision: 'accept_exact_private_customer_delivery',
+    expectedWatchEvidenceHash: watchEvidenceHash,
     attestation: acceptanceAttestation,
   })
   assert.doesNotMatch(
-    JSON.stringify(requests[2]?.body),
+    JSON.stringify(requests[4]?.body),
     /job|tool|lease|attempt|cost|storage|filesystem|credential|provider|price|serviceFee|wallet|billing/i,
   )
 
@@ -341,10 +412,10 @@ try {
       'private-download-long-form-client',
     )
   }
-  assert.equal(requests.length, 4)
-  assert.equal(requests[3]?.range, 'bytes=32-63')
-  assert.match(requests[3]!.url!, /expectedQualityDecisionHash=/)
-  assert.match(requests[3]!.url!, /expectedMasterSha256=/)
+  assert.equal(requests.length, 6)
+  assert.equal(requests[5]?.range, 'bytes=32-63')
+  assert.match(requests[5]!.url!, /expectedQualityDecisionHash=/)
+  assert.match(requests[5]!.url!, /expectedMasterSha256=/)
 
   const revision =
     await recordProfessionalLongFormCustomerDeliveryQualityDecision({
@@ -354,7 +425,7 @@ try {
       revisionReasonCodes: ['video_quality', 'av_sync'],
     })
   assert.equal(revision.status, 'recorded')
-  assert.deepEqual(requests[4]?.body, {
+  assert.deepEqual(requests[6]?.body, {
     workspaceId: identity.workspaceId,
     approvedPlanSnapshotId: identity.approvedPlanSnapshotId,
     expectedReviewPacketHash: reviewPacketHash,
@@ -459,6 +530,10 @@ console.log(JSON.stringify({
   strictBrowserReviewReceiptVerified: true,
   exactNamedEditDeliveryDiscoveryVerified: true,
   preDecisionAuthenticatedRangeVerified: true,
+  incompleteWatchAcceptanceBlockedBeforeRequest: true,
+  exactWatchCheckpointTransportVerified: true,
+  durableWatchEvidenceRefreshVerified: true,
+  browserReportedCompletionTrusted: false,
   explicitAcceptanceAttestationVerified: true,
   privateDownloadAuthenticatedRangeVerified: true,
   secondExportEstimateCreated: false,
@@ -472,7 +547,7 @@ console.log(JSON.stringify({
 function reviewFixture(input: { workspaceId: string }) {
   return {
     schemaVersion:
-      'professional-long-form-customer-delivery-browser-review-v1',
+      'professional-long-form-customer-delivery-browser-review-v2',
     source:
       'canonical_professional_long_form_customer_delivery_browser_service',
     purpose:
@@ -492,9 +567,10 @@ function reviewFixture(input: { workspaceId: string }) {
     },
     reviewItems: reviewItems(),
     reviewMedia: reviewMediaDescriptor(),
+    watch: watchState(watchCompleted),
     decision: null,
     privateDownload: null,
-    readiness: readiness(false, false),
+    readiness: readiness(false, false, watchCompleted),
     commercialBoundary: commercialBoundary(),
     boundaries: boundaries(),
     persistence: persistence(),
@@ -505,7 +581,7 @@ function reviewFixture(input: { workspaceId: string }) {
 function discoveryFixture(input: { workspaceId: string }) {
   return {
     schemaVersion:
-      'professional-long-form-customer-delivery-discovery-v1',
+      'professional-long-form-customer-delivery-discovery-v2',
     source:
       'canonical_professional_long_form_customer_delivery_discovery_service',
     purpose: 'discover_exact_private_customer_delivery_for_named_edit',
@@ -557,7 +633,7 @@ function decisionFixture(revision: boolean) {
   const decision = decisionSummary(revision)
   return {
     schemaVersion:
-      'professional-long-form-customer-delivery-browser-decision-v1',
+      'professional-long-form-customer-delivery-browser-decision-v2',
     source:
       'canonical_professional_long_form_customer_delivery_browser_service',
     purpose:
@@ -580,9 +656,10 @@ function decisionFixture(revision: boolean) {
     },
     reviewItems: reviewItems(),
     reviewMedia: reviewMediaDescriptor(),
+    watch: watchState(true),
     decision,
     privateDownload: revision ? null : downloadDescriptor(),
-    readiness: readiness(true, revision),
+    readiness: readiness(true, revision, true),
     commercialBoundary: commercialBoundary(),
     boundaries: boundaries(),
     persistence: persistence(),
@@ -601,6 +678,68 @@ function decisionSummary(revision: boolean) {
     privateDownloadReconciliationAuthorized: !revision,
     revisionRequired: revision,
     requiresFreshPlanEstimateAndApproval: revision,
+    watchEvidenceHash: revision ? null : watchEvidenceHash,
+  }
+}
+
+function watchFixture() {
+  return {
+    schemaVersion:
+      'professional-long-form-customer-delivery-browser-watch-v1',
+    source:
+      'canonical_professional_long_form_customer_delivery_browser_service',
+    purpose:
+      'record_server_validated_private_customer_delivery_watch_checkpoint',
+    disposition: 'recorded',
+    identity,
+    authority: {
+      reviewPacketHash,
+      masterSha256,
+      masterByteSize: mediaBytes.byteLength,
+      masterFrameCount: 3_870,
+      frameRateNumerator: 30,
+      frameRateDenominator: 1,
+      mimeType: 'video/mp4',
+      videoObjectiveEvidenceHash: videoEvidenceHash,
+      audioObjectiveEvidenceHash: audioEvidenceHash,
+    },
+    watch: watchState(true),
+    boundaries: boundaries(),
+    persistence: persistence(),
+    testOnly: true,
+  }
+}
+
+function watchState(complete: boolean) {
+  return {
+    status: complete ? 'complete' : 'not_started',
+    watchEvidenceHash: complete ? watchEvidenceHash : null,
+    sequence: complete ? 1 : 0,
+    nextSequence: complete ? 2 : 1,
+    previousWatchEvidenceHash: null,
+    expectedPreviousWatchEvidenceHash:
+      complete ? watchEvidenceHash : null,
+    coveredFrameCount: complete ? 3_870 : 0,
+    coveragePermille: complete ? 1_000 : 0,
+    fullProgramPlaybackObserved: complete,
+    acceptanceGateSatisfied: complete,
+    serverElapsedMs: complete ? 65_500 : 0,
+    minimumRequiredElapsedMs: 64_500,
+    maximumPlaybackRatePermille: 2_000,
+    browserReportedCompletionTrusted: false,
+    privateLocalDurable: true,
+    distributedDatabaseBacked: false,
+    productionDurabilityProven: false,
+    checkpoint: {
+      method: 'POST',
+      path:
+        `/v1/edit-executions/professional-long-form/customer-delivery-packages/${identity.packageRecordId}/quality-review/watch-checkpoints`,
+      expectedReviewPacketHash: reviewPacketHash,
+      expectedMasterSha256: masterSha256,
+      authenticatedBearerRequired: true,
+      idempotencyKeyRequired: true,
+      browserReportedCompletionTrusted: false,
+    },
   }
 }
 
@@ -669,12 +808,17 @@ function downloadDescriptor() {
   }
 }
 
-function readiness(decisionRecorded: boolean, revision: boolean) {
+function readiness(
+  decisionRecorded: boolean,
+  revision: boolean,
+  durableWatchReady: boolean,
+) {
   return {
     exactDecodedVideoQaReopened: true,
     exactDecodedAudioQaReopened: true,
     qualityReviewMediaReady: true,
     entireProgramPlaybackRequiredBeforeAcceptance: true,
+    durableWholeProgramWatchEvidenceReady: durableWatchReady,
     actualSpeechIntelligibilityAnalysisPerformed: false,
     authenticatedQualityDecisionRecorded: decisionRecorded,
     revisionRequiresFreshPlanEstimateAndApproval: revision,

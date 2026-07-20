@@ -3,13 +3,16 @@ import { z } from 'zod'
 import {
   professionalLongFormDeliveryMuxArtifactRefSchema,
 } from './professional-long-form-customer-delivery-mux-execution-contract'
+import {
+  professionalLongFormDeliveryWatchEvidenceSchema,
+} from './professional-long-form-customer-delivery-watch-evidence-contract'
 
 export const PROFESSIONAL_LONG_FORM_DELIVERY_QUALITY_REVIEW_PACKET_VERSION =
   'professional-long-form-customer-delivery-quality-review-packet-v1' as const
 export const PROFESSIONAL_LONG_FORM_DELIVERY_QUALITY_DECISION_VERSION =
-  'professional-long-form-customer-delivery-quality-decision-v1' as const
+  'professional-long-form-customer-delivery-quality-decision-v2' as const
 export const PROFESSIONAL_LONG_FORM_DELIVERY_QUALITY_DECISION_RECORD_VERSION =
-  'professional-long-form-customer-delivery-quality-decision-record-v1' as const
+  'professional-long-form-customer-delivery-quality-decision-record-v2' as const
 export const PROFESSIONAL_LONG_FORM_DELIVERY_DOWNLOAD_AUTHORITY_VERSION =
   'professional-long-form-customer-delivery-download-authority-v1' as const
 export const PROFESSIONAL_LONG_FORM_DELIVERY_DOWNLOAD_AUTHORIZATION_VERSION =
@@ -205,6 +208,7 @@ export const recordProfessionalLongFormDeliveryQualityDecisionSchema =
     z.object({
       ...decisionExpectationShape,
       decision: z.literal('accept_exact_private_customer_delivery'),
+      expectedWatchEvidenceHash: sha256,
       attestation: z.object({
         entirePrivateMasterPlaybackReviewed: z.literal(true),
         exactVideoQualityAccepted: z.literal(true),
@@ -262,6 +266,7 @@ export const professionalLongFormDeliveryQualityDecisionSchema = z.object({
   masterSha256: sha256,
   videoObjectiveEvidenceHash: sha256,
   audioObjectiveEvidenceHash: sha256,
+  watchEvidenceHash: sha256.nullable(),
   attestation: z.union([
     z.object({
       entirePrivateMasterPlaybackReviewed: z.literal(true),
@@ -314,7 +319,8 @@ export const professionalLongFormDeliveryQualityDecisionSchema = z.object({
     accepted === value.outcome.revisionRequired ||
     accepted === value.outcome.requiresFreshPlanEstimateAndApproval ||
     (accepted && value.revisionReasonCodes.length !== 0) ||
-    (!accepted && value.revisionReasonCodes.length === 0)
+    (!accepted && value.revisionReasonCodes.length === 0) ||
+    accepted !== Boolean(value.watchEvidenceHash)
   ) {
     context.addIssue({
       code: 'custom',
@@ -340,12 +346,43 @@ export const professionalLongFormDeliveryQualityDecisionRecordSchema =
     idempotencyKeyHash: sha256,
     decisionRequestHash: sha256,
     reviewPacket: professionalLongFormDeliveryQualityReviewPacketSchema,
+    watchEvidence: professionalLongFormDeliveryWatchEvidenceSchema.nullable(),
     decision: professionalLongFormDeliveryQualityDecisionSchema,
     privateLocalCreateOnly: z.literal(true),
     databaseBacked: z.literal(false),
     productionDurabilityProven: z.literal(false),
     recordHash: sha256,
-  }).strict()
+  }).strict().superRefine((value, context) => {
+    const accepted = value.decision.decision ===
+      'accept_exact_private_customer_delivery'
+    const watch = value.watchEvidence
+    if (
+      accepted !== Boolean(watch) ||
+      (watch && (
+        watch.identity.ownerUserId !== value.identity.ownerUserId ||
+        watch.identity.workspaceId !== value.identity.workspaceId ||
+        watch.identity.projectId !== value.reviewPacket.identity.projectId ||
+        watch.identity.editSessionId !==
+          value.reviewPacket.identity.editSessionId ||
+        watch.identity.approvedPlanSnapshotId !==
+          value.identity.approvedPlanSnapshotId ||
+        watch.identity.packageRecordId !== value.identity.packageRecordId ||
+        watch.authority.reviewPacketHash !== value.reviewPacket.packetHash ||
+        watch.authority.masterSha256 !== value.reviewPacket.master.sha256 ||
+        watch.authority.masterFrameCount !==
+          value.reviewPacket.master.frameCount ||
+        watch.evidenceHash !== value.decision.watchEvidenceHash ||
+        !watch.acceptanceGateSatisfied ||
+        !watch.fullProgramPlaybackObserved
+      ))
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message:
+          'Customer-delivery decision record lost exact watch lineage.',
+      })
+    }
+  })
 
 const authorityIdentityShape = {
   ownerUserId: identity,

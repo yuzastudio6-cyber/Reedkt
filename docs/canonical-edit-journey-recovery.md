@@ -71,8 +71,12 @@ with an optional exact customer-delivery result beside it. The next coordinated
 UI slice must consume that one result and the existing bounded private
 MediaSource adapter without creating another queue, registry, delivery
 authority, hook, player authority, or editor surface. Actual Chromium playback
-from multiple authenticated ranges now passes, but the product UI mount,
-durable server-side whole-program watch attestation, backward-seek recovery
+from multiple authenticated ranges now passes. The same frontend client also
+saves frame-zero and completed merged coverage through the canonical watch
+route. The private/local server hash-chains exact checkpoints, enforces a
+server-observed maximum 2x elapsed-time ceiling, survives restart, and refuses
+acceptance without exact complete review/master evidence. The product UI
+mount, distributed database-backed watch durability, backward-seek recovery
 beyond the rolling buffer, and retained review media remain blocked.
 
 ## Browser consumption
@@ -92,6 +96,8 @@ This recovery bridge remains read-only and never executes its returned action. S
 - `npm run smoke:edit-planning-authority`
 - `npm run smoke:canonical-private-tool-dispatch`
 - `npm run smoke:canonical-edit-journey-client`
+- `npm run smoke:professional-long-form-customer-delivery-watch-evidence`
+- `npm run qa:professional-long-form-customer-delivery-media-source`
 - `npm run smoke:canonical-private-review-client`
 - `npm run qa:canonical-journey-ui`
 - `npm run qa:editor`

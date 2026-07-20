@@ -117,7 +117,12 @@ const steps: SmokeStep[] = [
   {
     id: 'professional_long_form_customer_delivery_client',
     script: 'smoke:professional-long-form-customer-delivery-client',
-    requiredFor: 'exact named-edit delivery discovery, strict long-form review receipts, pre-decision authenticated byte ranges, explicit quality decisions, and accepted private-download ranges without a second estimate or charge',
+    requiredFor: 'exact named-edit delivery discovery, strict long-form review receipts, pre-decision authenticated byte ranges, exact watch checkpoints, watch-gated quality decisions, and accepted private-download ranges without a second estimate or charge',
+  },
+  {
+    id: 'professional_long_form_customer_delivery_watch_evidence',
+    script: 'smoke:professional-long-form-customer-delivery-watch-evidence',
+    requiredFor: 'private/local durable exact-review watch authority, frame-zero start, server-observed maximum 2x elapsed-time ceiling, monotonic hash-chained coverage, idempotency/restart/interrupted-pointer recovery, tamper and cross-user refusal, and acceptance gating without distributed production claims',
   },
   {
     id: 'professional_long_form_customer_delivery_media_source',
@@ -127,7 +132,7 @@ const steps: SmokeStep[] = [
   {
     id: 'professional_long_form_customer_delivery_media_source_browser',
     script: 'qa:professional-long-form-customer-delivery-media-source',
-    requiredFor: 'actual Chromium H.264/AAC fragmented-MP4 decode and full playback through the real bearer-authenticated frontend range client without a whole-file browser Blob',
+    requiredFor: 'actual Chromium H.264/AAC fragmented-MP4 decode and full playback through the real bearer-authenticated frontend range client without a whole-file browser Blob, plus exact frame-zero and completed-coverage watch-client requests',
   },
   {
     id: 'private_download_client',
@@ -204,7 +209,15 @@ const results: SmokeStepResult[] = []
 for (const step of steps) {
   const startedAt = performance.now()
   console.log(`\n[edit-architecture-internal-review] ${step.id}: npm run ${step.script}`)
-  await runNpmScript(step.script, step.script === 'qa:editor' ? { PLAYWRIGHT_PORT: playwrightPort } : {})
+  const stepEnvironment: Record<string, string> = step.script === 'qa:editor'
+    ? { PLAYWRIGHT_PORT: playwrightPort }
+    : step.script === 'qa:viewport'
+      ? {
+          PLAYWRIGHT_PORT: String(await findAvailablePort(5212)),
+          PLAYWRIGHT_REUSE_SERVER: 'false',
+        }
+      : {}
+  await runNpmScript(step.script, stepEnvironment)
   results.push({
     ...step,
     durationMs: Math.round(performance.now() - startedAt),
@@ -235,7 +248,7 @@ console.log(JSON.stringify({
     'The named-edit browser can integrity-check private review media, record an exact acceptance or structured revision, and reopen immutable review history without receiving artifact, job, path, credential, provider, billing, or release authority.',
     'The named-edit browser can discover its exact separate professional long-form delivery from tenant, project, edit, and approved-snapshot identity without supplying a hidden package identifier or receiving queue, worker, cost, storage, or commercial authority.',
     'The accepted named-edit recovery client preserves only the safe approved-snapshot identity and recovers the exact delivery through the existing journey hook; a missing package remains a bounded substate instead of erasing the accepted edit.',
-    'The bounded delivery MediaSource adapter and actual Chromium check prove private range decode/playback without a whole-file browser Blob while keeping client coverage separate from durable server acceptance authority.',
+    'The bounded delivery MediaSource adapter and actual Chromium check prove private range decode/playback without a whole-file browser Blob; the frontend watch client saves frame-zero and complete merged coverage, while a separate private/local server authority enforces time-bounded hash-chained evidence before acceptance.',
     'The Playwright editor flow verifies the current UI upload, planning, approval, review, and blocked failure path.',
     'Expanded and keyboard Playwright flows verify advanced planning details, composer behavior, soundflow disclosures, and hidden internal implementation names.',
     'Route viewport QA verifies the clean app shell, legacy route redirects, and the Home/Projects/Preferences-only sidebar.',

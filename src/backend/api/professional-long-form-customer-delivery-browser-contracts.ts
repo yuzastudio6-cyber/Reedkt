@@ -1,11 +1,13 @@
 import { z } from 'zod'
 
 export const PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_BROWSER_REVIEW_VERSION =
-  'professional-long-form-customer-delivery-browser-review-v1' as const
+  'professional-long-form-customer-delivery-browser-review-v2' as const
 export const PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_BROWSER_DECISION_VERSION =
-  'professional-long-form-customer-delivery-browser-decision-v1' as const
+  'professional-long-form-customer-delivery-browser-decision-v2' as const
 export const PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_DISCOVERY_VERSION =
-  'professional-long-form-customer-delivery-discovery-v1' as const
+  'professional-long-form-customer-delivery-discovery-v2' as const
+export const PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_BROWSER_WATCH_VERSION =
+  'professional-long-form-customer-delivery-browser-watch-v1' as const
 
 const identity = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
@@ -74,6 +76,67 @@ const reviewMediaDescriptorSchema = z.object({
   cachePolicy: z.literal('private_no_store'),
 }).strict()
 
+const watchCheckpointDescriptorSchema = z.object({
+  method: z.literal('POST'),
+  path: z.string().min(1).max(512).regex(
+    /^\/v1\/edit-executions\/professional-long-form\/customer-delivery-packages\/[A-Za-z0-9%._:-]+\/quality-review\/watch-checkpoints$/u,
+  ),
+  expectedReviewPacketHash: sha256,
+  expectedMasterSha256: sha256,
+  authenticatedBearerRequired: z.literal(true),
+  idempotencyKeyRequired: z.literal(true),
+  browserReportedCompletionTrusted: z.literal(false),
+}).strict()
+
+export const professionalLongFormCustomerDeliveryBrowserWatchStateSchema =
+  z.object({
+    status: z.enum(['not_started', 'in_progress', 'complete']),
+    watchEvidenceHash: sha256.nullable(),
+    sequence: z.number().int().nonnegative().max(100_000),
+    nextSequence: positiveInteger.max(100_001),
+    previousWatchEvidenceHash: sha256.nullable(),
+    expectedPreviousWatchEvidenceHash: sha256.nullable(),
+    coveredFrameCount: z.number().int().nonnegative().max(648_000),
+    coveragePermille: z.number().int().min(0).max(1_000),
+    fullProgramPlaybackObserved: z.boolean(),
+    acceptanceGateSatisfied: z.boolean(),
+    serverElapsedMs: z.number().int().nonnegative()
+      .max(Number.MAX_SAFE_INTEGER),
+    minimumRequiredElapsedMs: z.number().int().nonnegative()
+      .max(Number.MAX_SAFE_INTEGER),
+    maximumPlaybackRatePermille: z.literal(2_000),
+    browserReportedCompletionTrusted: z.literal(false),
+    privateLocalDurable: z.literal(true),
+    distributedDatabaseBacked: z.literal(false),
+    productionDurabilityProven: z.literal(false),
+    checkpoint: watchCheckpointDescriptorSchema,
+  }).strict().superRefine((value, context) => {
+    const started = value.status !== 'not_started'
+    const complete = value.status === 'complete'
+    if (
+      started !== Boolean(value.watchEvidenceHash) ||
+      started !== (value.sequence > 0) ||
+      (started && (value.sequence === 1) !==
+        (value.previousWatchEvidenceHash === null)) ||
+      (!started && value.previousWatchEvidenceHash !== null) ||
+      value.nextSequence !== value.sequence + 1 ||
+      value.expectedPreviousWatchEvidenceHash !== value.watchEvidenceHash ||
+      complete !== value.fullProgramPlaybackObserved ||
+      complete !== value.acceptanceGateSatisfied ||
+      (!started && (
+        value.coveredFrameCount !== 0 ||
+        value.coveragePermille !== 0 ||
+        value.serverElapsedMs !== 0
+      )) ||
+      (complete && value.coveragePermille !== 1_000)
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Browser customer-delivery watch state is inconsistent.',
+      })
+    }
+  })
+
 export const professionalLongFormCustomerDeliveryBrowserDownloadDescriptorSchema =
   z.object({
     method: z.literal('GET'),
@@ -108,6 +171,7 @@ const qualityDecisionSummarySchema = z.object({
   privateDownloadReconciliationAuthorized: z.boolean(),
   revisionRequired: z.boolean(),
   requiresFreshPlanEstimateAndApproval: z.boolean(),
+  watchEvidenceHash: sha256.nullable(),
 }).strict().superRefine((value, context) => {
   const accepted = value.value === 'accept_exact_private_customer_delivery'
   if (
@@ -115,7 +179,8 @@ const qualityDecisionSummarySchema = z.object({
     accepted === value.revisionRequired ||
     accepted === value.requiresFreshPlanEstimateAndApproval ||
     (accepted && value.revisionReasonCodes.length !== 0) ||
-    (!accepted && value.revisionReasonCodes.length === 0)
+    (!accepted && value.revisionReasonCodes.length === 0) ||
+    accepted !== Boolean(value.watchEvidenceHash)
   ) {
     context.addIssue({
       code: 'custom',
@@ -169,6 +234,7 @@ const browserReadinessSchema = z.object({
   exactDecodedAudioQaReopened: z.literal(true),
   qualityReviewMediaReady: z.literal(true),
   entireProgramPlaybackRequiredBeforeAcceptance: z.literal(true),
+  durableWholeProgramWatchEvidenceReady: z.boolean(),
   actualSpeechIntelligibilityAnalysisPerformed: z.literal(false),
   authenticatedQualityDecisionRecorded: z.boolean(),
   revisionRequiresFreshPlanEstimateAndApproval: z.boolean(),
@@ -188,6 +254,7 @@ const browserReviewBaseShape = {
     professionalLongFormCustomerDeliveryBrowserReviewItemSchema,
   ).length(3),
   reviewMedia: reviewMediaDescriptorSchema,
+  watch: professionalLongFormCustomerDeliveryBrowserWatchStateSchema,
   decision: qualityDecisionSummarySchema.nullable(),
   privateDownload:
     professionalLongFormCustomerDeliveryBrowserDownloadDescriptorSchema
@@ -230,6 +297,39 @@ export const professionalLongFormCustomerDeliveryBrowserDecisionSchema =
     ...browserReviewBaseShape,
     decision: qualityDecisionSummarySchema,
   }).strict().superRefine(assertBrowserReviewConsistency)
+
+export const professionalLongFormCustomerDeliveryBrowserWatchSchema =
+  z.object({
+    schemaVersion: z.literal(
+      PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_BROWSER_WATCH_VERSION,
+    ),
+    source: z.literal(
+      'canonical_professional_long_form_customer_delivery_browser_service',
+    ),
+    purpose: z.literal(
+      'record_server_validated_private_customer_delivery_watch_checkpoint',
+    ),
+    disposition: z.enum(['recorded', 'exact_replay']),
+    identity: browserIdentitySchema,
+    authority: browserAuthoritySchema,
+    watch: professionalLongFormCustomerDeliveryBrowserWatchStateSchema,
+    boundaries: browserBoundarySchema,
+    persistence: browserPersistenceSchema,
+    testOnly: z.literal(true),
+  }).strict().superRefine((value, context) => {
+    if (
+      value.watch.checkpoint.expectedReviewPacketHash !==
+        value.authority.reviewPacketHash ||
+      value.watch.checkpoint.expectedMasterSha256 !==
+        value.authority.masterSha256 ||
+      value.watch.coveredFrameCount > value.authority.masterFrameCount
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Browser watch receipt lost exact review authority.',
+      })
+    }
+  })
 
 export const professionalLongFormCustomerDeliveryDiscoverySchema = z.object({
   schemaVersion: z.literal(
@@ -343,6 +443,9 @@ export const professionalLongFormCustomerDeliveryDiscoverySchema = z.object({
 type BrowserReviewConsistencyValue = {
   authority: z.infer<typeof browserAuthoritySchema>
   reviewMedia: z.infer<typeof reviewMediaDescriptorSchema>
+  watch: z.infer<
+    typeof professionalLongFormCustomerDeliveryBrowserWatchStateSchema
+  >
   decision: z.infer<typeof qualityDecisionSummarySchema> | null
   privateDownload: z.infer<
     typeof professionalLongFormCustomerDeliveryBrowserDownloadDescriptorSchema
@@ -364,10 +467,21 @@ function assertBrowserReviewConsistency(
       value.authority.reviewPacketHash ||
     value.reviewMedia.expectedMasterSha256 !== value.authority.masterSha256 ||
     value.reviewMedia.byteSize !== value.authority.masterByteSize ||
+    value.watch.checkpoint.expectedReviewPacketHash !==
+      value.authority.reviewPacketHash ||
+    value.watch.checkpoint.expectedMasterSha256 !==
+      value.authority.masterSha256 ||
+    value.watch.coveredFrameCount > value.authority.masterFrameCount ||
+    value.readiness.durableWholeProgramWatchEvidenceReady !==
+      value.watch.acceptanceGateSatisfied ||
     value.readiness.authenticatedQualityDecisionRecorded !== decisionRecorded ||
     value.readiness.revisionRequiresFreshPlanEstimateAndApproval !== revision ||
     value.readiness.authenticatedPrivateDownloadReady !== accepted ||
     accepted !== Boolean(value.privateDownload) ||
+    (accepted && (
+      !value.watch.acceptanceGateSatisfied ||
+      value.decision?.watchEvidenceHash !== value.watch.watchEvidenceHash
+    )) ||
     (
       value.privateDownload !== null &&
       (
@@ -391,6 +505,9 @@ export type ProfessionalLongFormCustomerDeliveryBrowserReview = z.infer<
 >
 export type ProfessionalLongFormCustomerDeliveryBrowserDecision = z.infer<
   typeof professionalLongFormCustomerDeliveryBrowserDecisionSchema
+>
+export type ProfessionalLongFormCustomerDeliveryBrowserWatch = z.infer<
+  typeof professionalLongFormCustomerDeliveryBrowserWatchSchema
 >
 export type ProfessionalLongFormCustomerDeliveryDiscovery = z.infer<
   typeof professionalLongFormCustomerDeliveryDiscoverySchema

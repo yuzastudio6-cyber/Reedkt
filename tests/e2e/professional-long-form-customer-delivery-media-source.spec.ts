@@ -10,6 +10,11 @@ let fixtureRoot = ''
 let fixtureBytes = Buffer.alloc(0)
 let fixtureSha256 = ''
 const rangeRequests: Array<{ start: number; end: number }> = []
+const watchRequests: Array<{
+  authorization?: string
+  idempotencyKey?: string
+  body: Record<string, unknown>
+}> = []
 
 test.beforeAll(async () => {
   fixtureRoot = await mkdtemp(join(tmpdir(), 'reeditpro-mse-browser-'))
@@ -44,6 +49,7 @@ test('appends and decodes exact authenticated private ranges without a whole-fil
   const pageErrors: string[] = []
   page.on('pageerror', (error) => pageErrors.push(error.message))
   rangeRequests.length = 0
+  watchRequests.length = 0
   await page.route('**/v1/edit-executions/professional-long-form/customer-delivery-packages/delivery-package-media-source-browser/quality-review/media?**', async (
     route,
   ) => {
@@ -89,6 +95,31 @@ test('appends and decodes exact authenticated private ranges without a whole-fil
       body: fixtureBytes.subarray(start, end + 1),
     })
   })
+  await page.route('**/v1/edit-executions/professional-long-form/customer-delivery-packages/delivery-package-media-source-browser/quality-review/watch-checkpoints', async (
+    route,
+  ) => {
+    const request = route.request()
+    const body = request.postDataJSON() as Record<string, unknown>
+    const sequence = body.sequence
+    expect(sequence === 1 || sequence === 2).toBe(true)
+    watchRequests.push({
+      authorization: request.headers().authorization,
+      idempotencyKey: request.headers()['idempotency-key'],
+      body,
+    })
+    await route.fulfill({
+      status: 201,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        ok: true,
+        data: {
+          professionalLongFormCustomerDeliveryWatch:
+            watchReceipt(sequence as 1 | 2),
+        },
+        warnings: [],
+      }),
+    })
+  })
 
   await page.goto('/')
   await page.evaluate(({ byteSize, masterSha256 }) => {
@@ -110,6 +141,13 @@ test('appends and decodes exact authenticated private ranges without a whole-fil
     .toBeGreaterThan(1)
   const video = page.getByTestId('customer-delivery-media-source-video')
   await expect(video).toBeVisible()
+  const startedWatch = await page.evaluate(async () =>
+    window.__reeditproCustomerDeliveryMediaSourceHarness
+      ?.recordWatchStart())
+  expect(startedWatch).toEqual({
+    sequence: 1,
+    acceptanceGateSatisfied: false,
+  })
   await page.getByTestId('customer-delivery-media-source-play').click()
   await expect.poll(async () => video.evaluate((element) =>
     (element as HTMLVideoElement).ended), { timeout: 15_000 }).toBe(true)
@@ -133,6 +171,32 @@ test('appends and decodes exact authenticated private ranges without a whole-fil
   expect(result?.state.status).toBe('stream_complete')
   expect(result?.coverage.coveragePermille).toBe(1_000)
   expect(result?.coverage.fullProgramPlaybackObserved).toBe(true)
+  const completedWatch = await page.evaluate(async () =>
+    window.__reeditproCustomerDeliveryMediaSourceHarness
+      ?.recordCurrentWatchCoverage())
+  expect(completedWatch).toEqual({
+    sequence: 2,
+    acceptanceGateSatisfied: true,
+  })
+  expect(watchRequests).toHaveLength(2)
+  expect(watchRequests.map((request) => request.authorization)).toEqual([
+    'Bearer customer-delivery-media-source-playwright-token',
+    'Bearer customer-delivery-media-source-playwright-token',
+  ])
+  expect(watchRequests.every((request) =>
+    /^professional-long-form-watch:[a-f0-9]{64}$/u.test(
+      request.idempotencyKey ?? '',
+    ))).toBe(true)
+  expect(watchRequests[0]?.body).toMatchObject({
+    expectedPreviousWatchEvidenceHash: null,
+    sequence: 1,
+    coveredIntervals: [{ startFrame: 0, endFrameExclusive: 1 }],
+  })
+  expect(watchRequests[1]?.body).toMatchObject({
+    expectedPreviousWatchEvidenceHash: '1'.repeat(64),
+    sequence: 2,
+    coveredIntervals: [{ startFrame: 0, endFrameExclusive: 90 }],
+  })
   expect(rangeRequests.length).toBeGreaterThan(1)
   expect(rangeRequests[0]?.start).toBe(0)
   expect(rangeRequests.at(-1)?.end).toBe(fixtureBytes.byteLength - 1)
@@ -142,3 +206,91 @@ test('appends and decodes exact authenticated private ranges without a whole-fil
     window.__reeditproCustomerDeliveryMediaSourceHarness?.controller.dispose()
   })
 })
+
+function watchReceipt(sequence: 1 | 2) {
+  const complete = sequence === 2
+  const evidenceHash = String(sequence).repeat(64)
+  return {
+    schemaVersion:
+      'professional-long-form-customer-delivery-browser-watch-v1',
+    source:
+      'canonical_professional_long_form_customer_delivery_browser_service',
+    purpose:
+      'record_server_validated_private_customer_delivery_watch_checkpoint',
+    disposition: 'recorded',
+    identity: {
+      workspaceId: 'workspace-media-source-browser',
+      projectId: 'project-media-source-browser',
+      editSessionId: 'edit-media-source-browser',
+      approvedPlanSnapshotId: 'snapshot-media-source-browser',
+      packageRecordId: 'delivery-package-media-source-browser',
+    },
+    authority: {
+      reviewPacketHash: 'b'.repeat(64),
+      masterSha256: fixtureSha256,
+      masterByteSize: fixtureBytes.byteLength,
+      masterFrameCount: 90,
+      frameRateNumerator: 30,
+      frameRateDenominator: 1,
+      mimeType: 'video/mp4',
+      videoObjectiveEvidenceHash: 'c'.repeat(64),
+      audioObjectiveEvidenceHash: 'd'.repeat(64),
+    },
+    watch: {
+      status: complete ? 'complete' : 'in_progress',
+      watchEvidenceHash: evidenceHash,
+      sequence,
+      nextSequence: sequence + 1,
+      previousWatchEvidenceHash:
+        complete ? '1'.repeat(64) : null,
+      expectedPreviousWatchEvidenceHash: evidenceHash,
+      coveredFrameCount: complete ? 90 : 1,
+      coveragePermille: complete ? 1_000 : 11,
+      fullProgramPlaybackObserved: complete,
+      acceptanceGateSatisfied: complete,
+      serverElapsedMs: complete ? 1_600 : 0,
+      minimumRequiredElapsedMs: 1_484,
+      maximumPlaybackRatePermille: 2_000,
+      browserReportedCompletionTrusted: false,
+      privateLocalDurable: true,
+      distributedDatabaseBacked: false,
+      productionDurabilityProven: false,
+      checkpoint: {
+        method: 'POST',
+        path:
+          '/v1/edit-executions/professional-long-form/' +
+          'customer-delivery-packages/' +
+          'delivery-package-media-source-browser/quality-review/' +
+          'watch-checkpoints',
+        expectedReviewPacketHash: 'b'.repeat(64),
+        expectedMasterSha256: fixtureSha256,
+        authenticatedBearerRequired: true,
+        idempotencyKeyRequired: true,
+        browserReportedCompletionTrusted: false,
+      },
+    },
+    boundaries: {
+      rawReviewPacketReturned: false,
+      rawDecisionAuthorityReturned: false,
+      queueLeaseOrAttemptReturned: false,
+      jobOrToolDetailsReturned: false,
+      internalCostEvidenceReturned: false,
+      filesystemOrStoragePathReturned: false,
+      credentialReturned: false,
+      providerCallStarted: false,
+      additionalRenderStarted: false,
+      publicArtifactCreated: false,
+      publicDeliveryStarted: false,
+      billingStarted: false,
+      deploymentStarted: false,
+    },
+    persistence: {
+      privateLocal: true,
+      tenantScoped: true,
+      distributed: false,
+      databaseBacked: false,
+      productionAuthority: false,
+    },
+    testOnly: true,
+  }
+}

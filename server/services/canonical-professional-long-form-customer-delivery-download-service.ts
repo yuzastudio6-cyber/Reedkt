@@ -46,6 +46,10 @@ import {
   professionalLongFormDeliveryDecodedVideoQaCompletionSchema,
 } from '../edit-architecture/professional-long-form-customer-delivery-decoded-qa-execution-contract'
 import {
+  recordProfessionalLongFormDeliveryWatchCheckpointSchema,
+  type RecordProfessionalLongFormDeliveryWatchCheckpoint,
+} from '../edit-architecture/professional-long-form-customer-delivery-watch-evidence-contract'
+import {
   professionalLongFormDeliveryMuxCompletionSchema,
 } from '../edit-architecture/professional-long-form-customer-delivery-mux-execution-contract'
 import type {
@@ -78,6 +82,11 @@ import {
 import {
   createCanonicalProfessionalLongFormCustomerDeliveryPackageService,
 } from './canonical-professional-long-form-customer-delivery-package-service'
+import {
+  buildProfessionalLongFormDeliveryWatchAuthority,
+  createCanonicalProfessionalLongFormCustomerDeliveryWatchService,
+  type CanonicalProfessionalLongFormDeliveryWatchState,
+} from './canonical-professional-long-form-customer-delivery-watch-service'
 import {
   inspectCanonicalPrivateCustomerDeliveryArtifact,
   type CanonicalPrivateCustomerDeliveryArtifactInspection,
@@ -151,6 +160,12 @@ export interface CanonicalProfessionalLongFormDeliveryQualityDecisionEvidence {
   evidenceHash: string
 }
 
+export interface CanonicalProfessionalLongFormDeliveryWatchCheckpointEvidence {
+  reviewPacket: ProfessionalLongFormDeliveryQualityReviewPacket
+  disposition: 'recorded' | 'exact_replay'
+  state: CanonicalProfessionalLongFormDeliveryWatchState
+}
+
 export function createCanonicalProfessionalLongFormCustomerDeliveryDownloadService(
   context: ServiceContext,
 ) {
@@ -192,6 +207,52 @@ export function createCanonicalProfessionalLongFormCustomerDeliveryDownloadServi
       return { ...payload, evidenceHash: sha256AuthorityValue(payload) }
     },
 
+    async recordQualityReviewWatchCheckpoint(input: ExactPackageInput & {
+      idempotencyKey: string
+      checkpoint: RecordProfessionalLongFormDeliveryWatchCheckpoint
+    }): Promise<CanonicalProfessionalLongFormDeliveryWatchCheckpointEvidence> {
+      assertPrivateRuntime(context)
+      const ownerUserId = await requireWorkspaceActor(
+        context,
+        input.workspaceId,
+        'write',
+      )
+      const checkpoint =
+        recordProfessionalLongFormDeliveryWatchCheckpointSchema.parse(
+          input.checkpoint,
+        )
+      return withPrivateCooperativeFileLockWithinRoot({
+        rootPath: context.env.localStorageRoot,
+        relativePath: decisionLockPath(ownerUserId, input),
+        operation: async () => {
+          const existing = await readDecisionRecord({
+            context,
+            ownerUserId,
+            input,
+          })
+          if (existing) throw conflict(
+            'Watch evidence is frozen after the exact quality decision.',
+          )
+          const current = await loadExactCurrent(context, ownerUserId, input)
+          const reviewPacket = await buildCurrentReviewPacket(context, current)
+          const recorded = await
+            createCanonicalProfessionalLongFormCustomerDeliveryWatchService(
+              context,
+            ).record({
+              authority:
+                buildProfessionalLongFormDeliveryWatchAuthority(reviewPacket),
+              idempotencyKey: input.idempotencyKey,
+              checkpoint,
+            })
+          return {
+            reviewPacket,
+            disposition: recorded.disposition,
+            state: recorded.state,
+          }
+        },
+      })
+    },
+
     async recordQualityDecision(input: ExactPackageInput & {
       idempotencyKey: string
       decisionRequest: RecordProfessionalLongFormDeliveryQualityDecision
@@ -223,10 +284,22 @@ export function createCanonicalProfessionalLongFormCustomerDeliveryDownloadServi
             return { record: existing, disposition: 'exact_replay' as const }
           }
           const packet = await buildCurrentReviewPacket(context, current)
+          const watchEvidence = request.decision ===
+            'accept_exact_private_customer_delivery'
+            ? await createCanonicalProfessionalLongFormCustomerDeliveryWatchService(
+                context,
+              ).requireComplete({
+                authority:
+                  buildProfessionalLongFormDeliveryWatchAuthority(packet),
+                expectedWatchEvidenceHash:
+                  request.expectedWatchEvidenceHash,
+              })
+            : null
           const decision = validationBoundary(() =>
             buildProfessionalLongFormDeliveryQualityDecision({
               ownerUserId,
               packet,
+              watchEvidence,
               request,
               decidedAt: new Date().toISOString(),
             }))
@@ -244,6 +317,7 @@ export function createCanonicalProfessionalLongFormCustomerDeliveryDownloadServi
             idempotencyKeyHash,
             decisionRequestHash,
             reviewPacket: packet,
+            watchEvidence,
             decision,
             privateLocalCreateOnly: true as const,
             databaseBacked: false as const,
@@ -1100,7 +1174,26 @@ async function readDecisionRecord(input: {
     record.identity.packageRecordId !== input.input.packageRecordId ||
     record.decision.identity.ownerUserId !== input.ownerUserId ||
     record.decision.reviewPacketHash !== record.reviewPacket.packetHash ||
-    record.decision.masterSha256 !== record.reviewPacket.master.sha256
+    record.decision.masterSha256 !== record.reviewPacket.master.sha256 ||
+    (
+      record.decision.decision ===
+        'accept_exact_private_customer_delivery' &&
+      (
+        !record.watchEvidence ||
+        record.decision.watchEvidenceHash !==
+          record.watchEvidence.evidenceHash ||
+        record.watchEvidence.authority.reviewPacketHash !==
+          record.reviewPacket.packetHash ||
+        record.watchEvidence.authority.masterSha256 !==
+          record.reviewPacket.master.sha256 ||
+        !record.watchEvidence.acceptanceGateSatisfied
+      )
+    ) ||
+    (
+      record.decision.decision ===
+        'request_customer_delivery_revision' &&
+      record.watchEvidence !== null
+    )
   ) throw notReady('Stored customer-delivery quality decision lost integrity.')
   return record
 }

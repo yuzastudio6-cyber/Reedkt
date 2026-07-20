@@ -1,10 +1,12 @@
 import {
   professionalLongFormCustomerDeliveryBrowserDecisionSchema,
   professionalLongFormCustomerDeliveryBrowserReviewSchema,
+  professionalLongFormCustomerDeliveryBrowserWatchSchema,
   professionalLongFormCustomerDeliveryDiscoverySchema,
   type ProfessionalLongFormCustomerDeliveryBrowserDecision,
   type ProfessionalLongFormCustomerDeliveryBrowserDownloadDescriptor,
   type ProfessionalLongFormCustomerDeliveryBrowserReview,
+  type ProfessionalLongFormCustomerDeliveryBrowserWatch,
   type ProfessionalLongFormCustomerDeliveryDiscovery,
 } from '../backend/api/professional-long-form-customer-delivery-browser-contracts'
 import {
@@ -91,6 +93,16 @@ export type ProfessionalLongFormCustomerDeliveryDecisionClientResult =
     }
   | ClientFailure
 
+export type ProfessionalLongFormCustomerDeliveryWatchClientResult =
+  | {
+      status: 'recorded'
+      message: string
+      retryable: false
+      watch: ProfessionalLongFormCustomerDeliveryBrowserWatch
+      warnings: string[]
+    }
+  | ClientFailure
+
 export type ProfessionalLongFormCustomerDeliveryMediaRange = {
   bytes: Uint8Array
   start: number
@@ -145,6 +157,15 @@ export type ProfessionalLongFormCustomerDeliveryDecisionInput =
           ProfessionalLongFormCustomerDeliveryRevisionReasonCode[]
       }
   )
+
+export type ProfessionalLongFormCustomerDeliveryWatchCheckpointInput =
+  ProfessionalLongFormCustomerDeliveryClientInput & {
+    review: ProfessionalLongFormCustomerDeliveryBrowserReview
+    coveredIntervals: Array<{
+      startFrame: number
+      endFrameExclusive: number
+    }>
+  }
 
 export async function discoverProfessionalLongFormCustomerDelivery(
   input: ProfessionalLongFormCustomerDeliveryDiscoveryClientInput,
@@ -295,6 +316,21 @@ export async function recordProfessionalLongFormCustomerDeliveryQualityDecision(
       [],
     )
   }
+  if (
+    input.decision === 'accept_exact_private_customer_delivery' &&
+    (
+      !parsedReview.data.watch.acceptanceGateSatisfied ||
+      !parsedReview.data.watch.fullProgramPlaybackObserved ||
+      !parsedReview.data.watch.watchEvidenceHash
+    )
+  ) {
+    return failure(
+      'blocked',
+      'Finish the exact private master and save durable whole-program playback evidence before accepting delivery.',
+      false,
+      [],
+    )
+  }
   const runtime = getFrontendApiClientStatus()
   if (runtime.mockOnly || !runtime.apiBaseUrl) {
     return failure(
@@ -316,9 +352,10 @@ export async function recordProfessionalLongFormCustomerDeliveryQualityDecision(
       review.authority.audioObjectiveEvidenceHash,
   }
   const body = input.decision === 'accept_exact_private_customer_delivery'
-    ? {
+      ? {
         ...expectation,
         decision: input.decision,
+        expectedWatchEvidenceHash: review.watch.watchEvidenceHash!,
         attestation: input.attestation,
       }
     : {
@@ -355,7 +392,12 @@ export async function recordProfessionalLongFormCustomerDeliveryQualityDecision(
     parsed.data.authority.reviewPacketHash !==
       review.authority.reviewPacketHash ||
     parsed.data.authority.masterSha256 !== review.authority.masterSha256 ||
-    parsed.data.decision.value !== input.decision
+    parsed.data.decision.value !== input.decision ||
+    (
+      input.decision === 'accept_exact_private_customer_delivery' &&
+      parsed.data.decision.watchEvidenceHash !==
+        review.watch.watchEvidenceHash
+    )
   ) {
     return failure(
       'invalid_response',
@@ -372,6 +414,101 @@ export async function recordProfessionalLongFormCustomerDeliveryQualityDecision(
       : 'The exact delivery is accepted and its authenticated private download is ready without another credit prompt or charge.',
     retryable: false,
     decision: parsed.data,
+    warnings: response.warnings,
+  }
+}
+
+export async function recordProfessionalLongFormCustomerDeliveryWatchCheckpoint(
+  input: ProfessionalLongFormCustomerDeliveryWatchCheckpointInput,
+): Promise<ProfessionalLongFormCustomerDeliveryWatchClientResult> {
+  const inputError = validateInput(input)
+  if (inputError) return inputError
+  const parsedReview = professionalLongFormCustomerDeliveryBrowserReviewSchema
+    .safeParse(input.review)
+  if (
+    !parsedReview.success ||
+    !receiptMatchesInput(parsedReview.data, input) ||
+    parsedReview.data.decision !== null ||
+    !validCoverageIntervals(
+      input.coveredIntervals,
+      parsedReview.data.authority.masterFrameCount,
+    )
+  ) {
+    return failure(
+      'blocked',
+      'Refresh the exact undecided customer-delivery review before saving playback progress.',
+      false,
+      [],
+    )
+  }
+  const runtime = getFrontendApiClientStatus()
+  if (runtime.mockOnly || !runtime.apiBaseUrl) {
+    return failure(
+      'not_configured',
+      'Durable private playback progress is available when the reviewed private backend is connected.',
+      false,
+      runtime.warnings,
+    )
+  }
+  const review = parsedReview.data
+  const body = {
+    workspaceId: input.scope.workspaceId,
+    approvedPlanSnapshotId: input.approvedPlanSnapshotId,
+    expectedReviewPacketHash:
+      review.watch.checkpoint.expectedReviewPacketHash,
+    expectedMasterSha256:
+      review.watch.checkpoint.expectedMasterSha256,
+    expectedPreviousWatchEvidenceHash:
+      review.watch.expectedPreviousWatchEvidenceHash,
+    sequence: review.watch.nextSequence,
+    coveredIntervals: input.coveredIntervals,
+  }
+  const response = await callReeditProApi<typeof body, {
+    professionalLongFormCustomerDeliveryWatch?: unknown
+  }>(
+    'editExecution.professionalLongFormCustomerDeliveryWatchCheckpoint.create',
+    body,
+    {
+      params: { packageRecordId: input.packageRecordId },
+      context: clientContext(input),
+      idempotencyKey:
+        `professional-long-form-watch:${await sha256Text(
+          stableStringify({ packageRecordId: input.packageRecordId, body }),
+        )}`,
+    },
+  )
+  if (apiResponseInvalidatesProjectPersistenceScope(response)) {
+    invalidateProjectPersistenceScope(input.scope)
+  }
+  if (!response.ok) return classifyApiFailure(response)
+  const parsed = professionalLongFormCustomerDeliveryBrowserWatchSchema
+    .safeParse(
+      response.data?.professionalLongFormCustomerDeliveryWatch,
+    )
+  if (
+    !parsed.success ||
+    !receiptMatchesInput(parsed.data, input) ||
+    parsed.data.authority.reviewPacketHash !==
+      review.authority.reviewPacketHash ||
+    parsed.data.authority.masterSha256 !== review.authority.masterSha256 ||
+    parsed.data.watch.sequence !== review.watch.nextSequence ||
+    parsed.data.watch.previousWatchEvidenceHash !==
+      body.expectedPreviousWatchEvidenceHash
+  ) {
+    return failure(
+      'invalid_response',
+      'The playback checkpoint response could not be matched to this exact review and predecessor.',
+      false,
+      response.warnings,
+    )
+  }
+  return {
+    status: 'recorded',
+    message: parsed.data.watch.acceptanceGateSatisfied
+      ? 'Whole-program playback evidence is saved and ready for the explicit quality decision.'
+      : 'Private playback progress is saved and can resume after refresh.',
+    retryable: false,
+    watch: parsed.data,
     warnings: response.warnings,
   }
 }
@@ -664,6 +801,27 @@ function validRange(start: number, end: number, total: number): boolean {
     Number.isSafeInteger(total) && start >= 0 && end >= start && end < total &&
     end - start + 1 <=
       PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_MAX_RANGE_BYTES
+}
+
+function validCoverageIntervals(
+  intervals: Array<{ startFrame: number; endFrameExclusive: number }>,
+  totalFrameCount: number,
+): boolean {
+  if (
+    intervals.length < 1 ||
+    intervals.length > 256 ||
+    !Number.isSafeInteger(totalFrameCount) ||
+    totalFrameCount <= 0
+  ) return false
+  return intervals.every((interval, index) => {
+    const previous = intervals[index - 1]
+    return Number.isSafeInteger(interval.startFrame) &&
+      Number.isSafeInteger(interval.endFrameExclusive) &&
+      interval.startFrame >= 0 &&
+      interval.endFrameExclusive > interval.startFrame &&
+      interval.endFrameExclusive <= totalFrameCount &&
+      (!previous || interval.startFrame > previous.endFrameExclusive)
+  })
 }
 
 function clientContext(

@@ -8,6 +8,9 @@ import {
 import type {
   ProfessionalLongFormCustomerDeliveryClientInput,
 } from '../../../src/lib/professional-long-form-customer-delivery-client'
+import {
+  recordProfessionalLongFormCustomerDeliveryWatchCheckpoint,
+} from '../../../src/lib/professional-long-form-customer-delivery-client'
 
 declare global {
   interface Window {
@@ -18,6 +21,14 @@ declare global {
     }
     __reeditproCustomerDeliveryMediaSourceHarness?: {
       controller: ProfessionalLongFormCustomerDeliveryMediaSourceController
+      recordWatchStart: () => Promise<{
+        sequence: number
+        acceptanceGateSatisfied: boolean
+      }>
+      recordCurrentWatchCoverage: () => Promise<{
+        sequence: number
+        acceptanceGateSatisfied: boolean
+      }>
     }
   }
 }
@@ -44,7 +55,7 @@ const authority: ProfessionalLongFormCustomerDeliveryClientInput = {
   approvedPlanSnapshotId: identity.approvedPlanSnapshotId,
   packageRecordId: identity.packageRecordId,
 }
-const review = reviewFixture()
+let review = reviewFixture()
 
 const root = document.createElement('main')
 root.dataset.testid = 'customer-delivery-media-source-harness'
@@ -82,16 +93,52 @@ if (attachment.status !== 'attached') {
 }
 window.__reeditproCustomerDeliveryMediaSourceHarness = {
   controller: attachment.controller,
+  recordWatchStart: () => recordWatchCheckpoint([{
+    startFrame: 0,
+    endFrameExclusive: 1,
+  }]),
+  recordCurrentWatchCoverage: () => recordWatchCheckpoint(
+    attachment.controller.getCoverage().intervals,
+  ),
 }
 play.addEventListener('click', () => {
   video.playbackRate = 2
   void video.play()
 })
 
+async function recordWatchCheckpoint(
+  coveredIntervals: Array<{
+    startFrame: number
+    endFrameExclusive: number
+  }>,
+) {
+  const result =
+    await recordProfessionalLongFormCustomerDeliveryWatchCheckpoint({
+      ...authority,
+      review,
+      coveredIntervals,
+    })
+  if (result.status !== 'recorded') throw new Error(result.message)
+  review = {
+    ...review,
+    watch: result.watch.watch,
+    readiness: {
+      ...review.readiness,
+      durableWholeProgramWatchEvidenceReady:
+        result.watch.watch.acceptanceGateSatisfied,
+    },
+  }
+  return {
+    sequence: result.watch.watch.sequence,
+    acceptanceGateSatisfied:
+      result.watch.watch.acceptanceGateSatisfied,
+  }
+}
+
 function reviewFixture(): ProfessionalLongFormCustomerDeliveryBrowserReview {
   return {
     schemaVersion:
-      'professional-long-form-customer-delivery-browser-review-v1',
+      'professional-long-form-customer-delivery-browser-review-v2',
     source:
       'canonical_professional_long_form_customer_delivery_browser_service',
     purpose:
@@ -152,6 +199,35 @@ function reviewFixture(): ProfessionalLongFormCustomerDeliveryBrowserReview {
       publicOrSignedUrlCreated: false,
       cachePolicy: 'private_no_store',
     },
+    watch: {
+      status: 'not_started',
+      watchEvidenceHash: null,
+      sequence: 0,
+      nextSequence: 1,
+      previousWatchEvidenceHash: null,
+      expectedPreviousWatchEvidenceHash: null,
+      coveredFrameCount: 0,
+      coveragePermille: 0,
+      fullProgramPlaybackObserved: false,
+      acceptanceGateSatisfied: false,
+      serverElapsedMs: 0,
+      minimumRequiredElapsedMs: 1_484,
+      maximumPlaybackRatePermille: 2_000,
+      browserReportedCompletionTrusted: false,
+      privateLocalDurable: true,
+      distributedDatabaseBacked: false,
+      productionDurabilityProven: false,
+      checkpoint: {
+        method: 'POST',
+        path:
+          `/v1/edit-executions/professional-long-form/customer-delivery-packages/${identity.packageRecordId}/quality-review/watch-checkpoints`,
+        expectedReviewPacketHash: reviewPacketHash,
+        expectedMasterSha256: fixture!.masterSha256,
+        authenticatedBearerRequired: true,
+        idempotencyKeyRequired: true,
+        browserReportedCompletionTrusted: false,
+      },
+    },
     decision: null,
     privateDownload: null,
     readiness: {
@@ -159,6 +235,7 @@ function reviewFixture(): ProfessionalLongFormCustomerDeliveryBrowserReview {
       exactDecodedAudioQaReopened: true,
       qualityReviewMediaReady: true,
       entireProgramPlaybackRequiredBeforeAcceptance: true,
+      durableWholeProgramWatchEvidenceReady: false,
       actualSpeechIntelligibilityAnalysisPerformed: false,
       authenticatedQualityDecisionRecorded: false,
       revisionRequiresFreshPlanEstimateAndApproval: false,

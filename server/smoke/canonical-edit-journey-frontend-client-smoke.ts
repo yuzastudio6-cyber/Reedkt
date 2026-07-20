@@ -520,7 +520,7 @@ function privateHistoryDescriptor() {
 function customerDeliveryDiscoveryFixture() {
   return {
     schemaVersion:
-      'professional-long-form-customer-delivery-discovery-v1',
+      'professional-long-form-customer-delivery-discovery-v2',
     source:
       'canonical_professional_long_form_customer_delivery_discovery_service',
     purpose: 'discover_exact_private_customer_delivery_for_named_edit',

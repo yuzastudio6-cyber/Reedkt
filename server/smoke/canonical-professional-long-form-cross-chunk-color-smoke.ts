@@ -13,6 +13,7 @@ import { createReeditProApiApp } from '../app'
 import {
   professionalLongFormCustomerDeliveryBrowserDecisionSchema,
   professionalLongFormCustomerDeliveryBrowserReviewSchema,
+  professionalLongFormCustomerDeliveryBrowserWatchSchema,
   professionalLongFormCustomerDeliveryDiscoverySchema,
 } from '../../src/backend/api/professional-long-form-customer-delivery-browser-contracts'
 import { buildProfessionalExportCreditCoverage } from
@@ -84,6 +85,10 @@ import {
 import {
   createCanonicalProfessionalLongFormCustomerDeliveryDownloadService,
 } from '../services/canonical-professional-long-form-customer-delivery-download-service'
+import {
+  buildProfessionalLongFormDeliveryWatchAuthority,
+  createCanonicalProfessionalLongFormCustomerDeliveryWatchService,
+} from '../services/canonical-professional-long-form-customer-delivery-watch-service'
 import {
   PROFESSIONAL_LONG_FORM_DELIVERY_H264_COST_PROFILE_ID,
   PROFESSIONAL_LONG_FORM_DELIVERY_H264_OPERATION_ID,
@@ -1262,7 +1267,11 @@ try {
     browserReviewRange.headers.get('access-control-expose-headers') ?? '',
     /x-reeditpro-quality-review-packet-sha256/iu,
   )
-  const acceptedDecisionRequest = {
+  const qualityDecisionUrl = new URL(
+    `${qualityReviewPath}/../quality-decision`,
+    httpBaseUrl,
+  )
+  const acceptanceExpectation = {
     workspaceId,
     approvedPlanSnapshotId: snapshotId,
     expectedReviewPacketHash: qualityReview.reviewPacket.packetHash,
@@ -1283,6 +1292,166 @@ try {
       noPublicDeliveryRequested: true as const,
     },
   }
+  const decisionBeforeWatch = await postJsonResponse(
+    qualityDecisionUrl,
+    {
+      ...acceptanceExpectation,
+      expectedWatchEvidenceHash: sha256Text('unproven-watch-evidence'),
+    },
+    {
+      token: browserToken,
+      idempotencyKey: 'accept-customer-delivery-before-watch',
+    },
+  )
+  assert.equal(decisionBeforeWatch.status, 409)
+  assert.equal(
+    decisionBeforeWatch.json.error?.code,
+    'JOB_DEPENDENCY_NOT_READY',
+  )
+
+  const watchUrl = new URL(
+    browserQualityReview.watch.checkpoint.path,
+    httpBaseUrl,
+  )
+  const firstWatchRequest = {
+    workspaceId,
+    approvedPlanSnapshotId: snapshotId,
+    expectedReviewPacketHash:
+      browserQualityReview.authority.reviewPacketHash,
+    expectedMasterSha256: browserQualityReview.authority.masterSha256,
+    expectedPreviousWatchEvidenceHash: null,
+    sequence: 1,
+    coveredIntervals: [{ startFrame: 0, endFrameExclusive: 1 }],
+  }
+  const unauthenticatedWatch = await postJsonResponse(
+    watchUrl,
+    firstWatchRequest,
+    { idempotencyKey: 'customer-delivery-watch-unauthenticated' },
+  )
+  assert.equal(unauthenticatedWatch.status, 401)
+  const crossUserWatch = await postJsonResponse(
+    watchUrl,
+    firstWatchRequest,
+    {
+      token: otherUserBrowserToken,
+      idempotencyKey: 'customer-delivery-watch-cross-user',
+    },
+  )
+  assert.equal(crossUserWatch.status, 403)
+  const firstWatchResponse = await postJsonResponse(
+    watchUrl,
+    firstWatchRequest,
+    {
+      token: browserToken,
+      idempotencyKey: 'customer-delivery-watch-sequence-1',
+    },
+  )
+  assert.equal(firstWatchResponse.status, 201)
+  const firstWatch =
+    professionalLongFormCustomerDeliveryBrowserWatchSchema.parse(
+      firstWatchResponse.json.data
+        ?.professionalLongFormCustomerDeliveryWatch,
+    )
+  assert.equal(firstWatch.watch.status, 'in_progress')
+  assert.equal(firstWatch.watch.coveredFrameCount, 1)
+  assert.equal(firstWatch.watch.acceptanceGateSatisfied, false)
+  assert.equal(firstWatch.watch.browserReportedCompletionTrusted, false)
+  const firstWatchReplayResponse = await postJsonResponse(
+    watchUrl,
+    firstWatchRequest,
+    {
+      token: browserToken,
+      idempotencyKey: 'customer-delivery-watch-sequence-1',
+    },
+  )
+  assert.equal(firstWatchReplayResponse.status, 200)
+  assert.equal(
+    professionalLongFormCustomerDeliveryBrowserWatchSchema.parse(
+      firstWatchReplayResponse.json.data
+        ?.professionalLongFormCustomerDeliveryWatch,
+    ).disposition,
+    'exact_replay',
+  )
+  const instantWholeProgramWatch = await postJsonResponse(
+    watchUrl,
+    {
+      ...firstWatchRequest,
+      expectedPreviousWatchEvidenceHash:
+        firstWatch.watch.watchEvidenceHash,
+      sequence: 2,
+      coveredIntervals: [{
+        startFrame: 0,
+        endFrameExclusive: browserQualityReview.authority.masterFrameCount,
+      }],
+    },
+    {
+      token: browserToken,
+      idempotencyKey: 'customer-delivery-watch-instant-whole-program',
+    },
+  )
+  assert.equal(instantWholeProgramWatch.status, 409)
+  assert.equal(
+    instantWholeProgramWatch.json.error?.code,
+    'IDEMPOTENCY_CONFLICT',
+  )
+
+  const watchAuthority =
+    buildProfessionalLongFormDeliveryWatchAuthority(
+      qualityReview.reviewPacket,
+    )
+  const storedFirstWatch = await
+    createCanonicalProfessionalLongFormCustomerDeliveryWatchService(
+      context,
+    ).inspect({ authority: watchAuthority })
+  assert.ok(storedFirstWatch.evidence)
+  const completedWatchClock =
+    Date.parse(storedFirstWatch.evidence.startedAt) +
+    storedFirstWatch.evidence.minimumRequiredElapsedMs + 1_000
+  const completedWatch = await
+    createCanonicalProfessionalLongFormCustomerDeliveryWatchService(
+      context,
+      { now: () => completedWatchClock },
+    ).record({
+      authority: watchAuthority,
+      idempotencyKey: 'customer-delivery-watch-sequence-2-complete',
+      checkpoint: {
+        workspaceId,
+        approvedPlanSnapshotId: snapshotId,
+        expectedReviewPacketHash: watchAuthority.reviewPacketHash,
+        expectedMasterSha256: watchAuthority.masterSha256,
+        expectedPreviousWatchEvidenceHash:
+          storedFirstWatch.evidence.evidenceHash,
+        sequence: 2,
+        coveredIntervals: [{
+          startFrame: 0,
+          endFrameExclusive: watchAuthority.masterFrameCount,
+        }],
+      },
+    })
+  assert.equal(completedWatch.state.status, 'complete')
+  assert.equal(completedWatch.state.acceptanceGateSatisfied, true)
+
+  const refreshedQualityReviewResponse = await fetchJsonResponse(
+    qualityReviewUrl,
+    { token: browserToken, origin: 'http://localhost:4173' },
+  )
+  assert.equal(refreshedQualityReviewResponse.status, 200)
+  const refreshedQualityReview =
+    professionalLongFormCustomerDeliveryBrowserReviewSchema.parse(
+      refreshedQualityReviewResponse.json.data
+        ?.professionalLongFormCustomerDeliveryQualityReview,
+    )
+  assert.equal(refreshedQualityReview.watch.status, 'complete')
+  assert.equal(
+    refreshedQualityReview.readiness.durableWholeProgramWatchEvidenceReady,
+    true,
+  )
+  assert.ok(refreshedQualityReview.watch.watchEvidenceHash)
+  const acceptedDecisionRequest = {
+    ...acceptanceExpectation,
+    expectedWatchEvidenceHash:
+      refreshedQualityReview.watch.watchEvidenceHash,
+  }
   await expectApiError(
     () => deliveryDownloadService.recordQualityDecision({
       workspaceId,
@@ -1295,10 +1464,6 @@ try {
       },
     }),
     'VALIDATION_FAILED',
-  )
-  const qualityDecisionUrl = new URL(
-    `${qualityReviewPath}/../quality-decision`,
-    httpBaseUrl,
   )
   const browserDecisionResponse = await postJsonResponse(
     qualityDecisionUrl,
@@ -1725,6 +1890,14 @@ try {
     customerDeliveryAuthenticatedPrivateByteStreamVerified: true,
     customerDeliveryBrowserSafeReviewReceiptVerified: true,
     customerDeliveryPreDecisionAuthenticatedRangeVerified: true,
+    customerDeliveryAcceptanceBlockedBeforeDurableWatch: true,
+    customerDeliveryFirstFrameWatchStartVerified: true,
+    customerDeliveryInstantWholeProgramWatchRejected: true,
+    customerDeliveryWatchExactReplayVerified: true,
+    customerDeliveryServerElapsedWatchCeilingVerified: true,
+    customerDeliveryDurableWatchEvidenceHash:
+      completedWatch.state.evidence?.evidenceHash,
+    customerDeliveryBrowserReportedCompletionTrusted: false,
     customerDeliveryBrowserDecisionAndExactReplayVerified: true,
     customerDeliveryBrowserCrossUserDenialVerified: true,
     customerDeliveryBrowserPrivateDownloadRangeVerified: true,
@@ -2286,12 +2459,14 @@ async function fetchJsonResponse(
 async function postJsonResponse(
   url: URL,
   body: unknown,
-  options: { token: string; idempotencyKey: string },
+  options: { token?: string; idempotencyKey: string },
 ): Promise<{ status: number; json: HttpJsonEnvelope; headers: Headers }> {
   const response = await fetch(url, {
     method: 'POST',
     headers: {
-      authorization: `Bearer ${options.token}`,
+      ...(options.token
+        ? { authorization: `Bearer ${options.token}` }
+        : {}),
       'content-type': 'application/json',
       'idempotency-key': options.idempotencyKey,
     },

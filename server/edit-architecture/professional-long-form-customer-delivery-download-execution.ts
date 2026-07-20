@@ -56,6 +56,9 @@ import {
   type ProfessionalLongFormDeliveryQualityReviewPacket,
   type RecordProfessionalLongFormDeliveryQualityDecision,
 } from './professional-long-form-customer-delivery-download-execution-contract'
+import type {
+  ProfessionalLongFormDeliveryWatchEvidence,
+} from './professional-long-form-customer-delivery-watch-evidence-contract'
 
 const operation = {
   operationId: PROFESSIONAL_LONG_FORM_DELIVERY_DOWNLOAD_OPERATION_ID,
@@ -218,6 +221,7 @@ export function buildProfessionalLongFormDeliveryQualityReviewPacket(input: {
 export function buildProfessionalLongFormDeliveryQualityDecision(input: {
   ownerUserId: string
   packet: ProfessionalLongFormDeliveryQualityReviewPacket
+  watchEvidence: ProfessionalLongFormDeliveryWatchEvidence | null
   request: RecordProfessionalLongFormDeliveryQualityDecision
   decidedAt: string
 }): ProfessionalLongFormDeliveryQualityDecision {
@@ -239,6 +243,36 @@ export function buildProfessionalLongFormDeliveryQualityDecision(input: {
   )
   const accepted =
     input.request.decision === 'accept_exact_private_customer_delivery'
+  if (input.request.decision ===
+    'accept_exact_private_customer_delivery') {
+    if (
+      !input.watchEvidence ||
+      input.request.expectedWatchEvidenceHash !==
+        input.watchEvidence.evidenceHash ||
+      input.watchEvidence.authority.reviewPacketHash !== packet.packetHash ||
+      input.watchEvidence.authority.masterSha256 !== packet.master.sha256 ||
+      input.watchEvidence.authority.masterFrameCount !==
+        packet.master.frameCount ||
+      input.watchEvidence.identity.ownerUserId !== input.ownerUserId ||
+      input.watchEvidence.identity.workspaceId !==
+        packet.identity.workspaceId ||
+      input.watchEvidence.identity.projectId !== packet.identity.projectId ||
+      input.watchEvidence.identity.editSessionId !==
+        packet.identity.editSessionId ||
+      input.watchEvidence.identity.approvedPlanSnapshotId !==
+        packet.identity.approvedPlanSnapshotId ||
+      input.watchEvidence.identity.packageRecordId !==
+        packet.identity.packageRecordId ||
+      !input.watchEvidence.acceptanceGateSatisfied ||
+      !input.watchEvidence.fullProgramPlaybackObserved
+    ) throw new Error(
+      'Customer-delivery acceptance requires exact complete watch evidence.',
+    )
+  } else if (input.watchEvidence !== null) {
+    throw new Error(
+      'Customer-delivery revision must not receive acceptance watch authority.',
+    )
+  }
   const identitySeed = sha256AuthorityValue({
     ownerUserId: input.ownerUserId,
     packageRecordId: packet.identity.packageRecordId,
@@ -263,6 +297,7 @@ export function buildProfessionalLongFormDeliveryQualityDecision(input: {
       packet.decodedQa.video.objectiveEvidenceHash,
     audioObjectiveEvidenceHash:
       packet.decodedQa.audio.objectiveEvidenceHash,
+    watchEvidenceHash: input.watchEvidence?.evidenceHash ?? null,
     attestation:
       input.request.decision === 'accept_exact_private_customer_delivery'
         ? input.request.attestation

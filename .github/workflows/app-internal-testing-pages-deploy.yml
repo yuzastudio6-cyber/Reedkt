@@ -165,14 +165,18 @@ jobs:
               "schemaVersion", "repository", "workflowPath", "workflowRunId", "workflowRunAttempt",
               "sourceRef", "sourceSha", "projectId", "region", "cloudRunService", "cloudRunRevision",
               "apiId", "apiConfigId", "gatewayId", "gatewayOrigin", "appOrigin", "browserApiTransport",
+              "storageActivationRunId", "storageActivationRunAttempt", "storageMode",
+              "storageConfigurationEnabled", "storageExecutionEnabled", "storageExecutionVerified",
+              "largeMediaFinalizationMode", "maximumHostedUploadBytesWithoutDistributedFinalization",
+              "largeMediaDistributedFinalizationVerified",
               "strictReadinessPassed", "cloudRunIamPrivate", "gatewaySoleServiceLevelInvoker",
-              "providersEnabled", "workersEnabled", "storageExecutionEnabled", "customerBillingEnabled",
+              "providersEnabled", "workersEnabled", "customerBillingEnabled",
               "publicDeliveryEnabled", "productionEnabled",
           }
           if not isinstance(evidence, dict) or set(evidence) != expected_keys:
               raise SystemExit("Gateway activation evidence schema is invalid.")
           expected = {
-              "schemaVersion": 1,
+              "schemaVersion": 2,
               "repository": sys.argv[2],
               "workflowPath": ".github/workflows/beta-readiness-api-staging-deploy.yml",
               "workflowRunId": int(sys.argv[5]),
@@ -187,12 +191,18 @@ jobs:
               "gatewayId": "reeditpro-browser-staging",
               "appOrigin": sys.argv[7],
               "browserApiTransport": "google_api_gateway",
+              "storageMode": "gcs",
+              "storageConfigurationEnabled": True,
+              "storageExecutionEnabled": True,
+              "storageExecutionVerified": False,
+              "largeMediaFinalizationMode": "disabled",
+              "maximumHostedUploadBytesWithoutDistributedFinalization": 16777216,
+              "largeMediaDistributedFinalizationVerified": False,
               "strictReadinessPassed": True,
               "cloudRunIamPrivate": True,
               "gatewaySoleServiceLevelInvoker": True,
               "providersEnabled": False,
               "workersEnabled": False,
-              "storageExecutionEnabled": False,
               "customerBillingEnabled": False,
               "publicDeliveryEnabled": False,
               "productionEnabled": False,
@@ -200,6 +210,9 @@ jobs:
           for key, value in expected.items():
               if evidence.get(key) != value:
                   raise SystemExit(f"Gateway activation evidence mismatch: {key}")
+          for key in ("storageActivationRunId", "storageActivationRunAttempt"):
+              if not isinstance(evidence.get(key), int) or evidence[key] < 1:
+                  raise SystemExit(f"Gateway activation storage evidence is invalid: {key}")
           if not re.fullmatch(r"reeditpro-api-staging-[a-z0-9-]+", str(evidence.get("cloudRunRevision", ""))):
               raise SystemExit("Gateway activation Cloud Run revision is invalid.")
           gateway_origin = evidence.get("gatewayOrigin")

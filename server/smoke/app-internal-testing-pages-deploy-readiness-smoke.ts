@@ -86,6 +86,9 @@ assertMentions('.github/workflows/app-internal-testing-pages-deploy.yml', [
   'actions/download-artifact@v8',
   'reeditpro-private-browser-staging-activation-',
   'gatewaySoleServiceLevelInvoker',
+  'storageActivationRunId',
+  'storageConfigurationEnabled',
+  'largeMediaDistributedFinalizationVerified',
   'VERIFIED_API_GATEWAY_ORIGIN',
   '/Reedkt/',
   'STAGING_SUPABASE_URL',
@@ -161,6 +164,8 @@ try {
     'reeditpro-browser-staging',
     'https://reeditpro-browser-staging-fixture.gateway.dev',
     'https://yuzastudio6-cyber.github.io',
+    '456',
+    '1',
   ], {
     input: activationEvidencePython,
     encoding: 'utf8',
@@ -168,12 +173,20 @@ try {
   assert.equal(createResult.status, 0, createResult.stderr || 'Activation evidence producer should pass.')
 
   const evidence = JSON.parse(readFileSync(evidencePath, 'utf8')) as Record<string, unknown>
-  assert.equal(evidence.schemaVersion, 1)
+  assert.equal(evidence.schemaVersion, 2)
   assert.equal(evidence.workflowRunId, 123)
   assert.equal(evidence.workflowRunAttempt, 2)
   assert.equal(evidence.sourceSha, sourceSha)
   assert.equal(evidence.gatewayOrigin, 'https://reeditpro-browser-staging-fixture.gateway.dev')
   assert.equal(evidence.gatewaySoleServiceLevelInvoker, true)
+  assert.equal(evidence.storageActivationRunId, 456)
+  assert.equal(evidence.storageActivationRunAttempt, 1)
+  assert.equal(evidence.storageMode, 'gcs')
+  assert.equal(evidence.storageConfigurationEnabled, true)
+  assert.equal(evidence.storageExecutionEnabled, true)
+  assert.equal(evidence.storageExecutionVerified, false)
+  assert.equal(evidence.largeMediaFinalizationMode, 'disabled')
+  assert.equal(evidence.largeMediaDistributedFinalizationVerified, false)
   assert.equal(evidence.customerBillingEnabled, false)
 
   const verifyArguments = [
@@ -239,6 +252,12 @@ const doc = JSON.parse(read('docs/app-internal-testing-pages-deploy-readiness.js
   gatewayActivationRunRequired?: boolean
   gatewayActivationEvidenceArtifactRequired?: boolean
   gatewayActivationEvidenceSchemaVersion?: number
+  storageActivationRunRequired?: boolean
+  storageActivationWorkflow?: string
+  sameSourceShaAsStorageRequired?: boolean
+  hostedStorageMode?: string
+  hostedLargeMediaFinalizationMode?: string
+  maximumHostedUploadBytesWithoutDistributedFinalization?: number
   gatewayOriginDerivedFromActivationEvidence?: boolean
   sameSourceShaAsGatewayRequired?: boolean
   gatewayHealthAuthAndCorsReproofRequired?: boolean
@@ -271,7 +290,16 @@ assert.equal(doc.sourceWorkflowReady, true)
 assert.equal(doc.sourceWorkflowPushed, false)
 assert.equal(doc.gatewayActivationRunRequired, true)
 assert.equal(doc.gatewayActivationEvidenceArtifactRequired, true)
-assert.equal(doc.gatewayActivationEvidenceSchemaVersion, 1)
+assert.equal(doc.gatewayActivationEvidenceSchemaVersion, 2)
+assert.equal(doc.storageActivationRunRequired, true)
+assert.equal(
+  doc.storageActivationWorkflow,
+  '.github/workflows/signed-in-private-media-storage-staging-activation.yml',
+)
+assert.equal(doc.sameSourceShaAsStorageRequired, true)
+assert.equal(doc.hostedStorageMode, 'gcs')
+assert.equal(doc.hostedLargeMediaFinalizationMode, 'disabled')
+assert.equal(doc.maximumHostedUploadBytesWithoutDistributedFinalization, 16 * 1024 * 1024)
 assert.equal(doc.gatewayOriginDerivedFromActivationEvidence, true)
 assert.equal(doc.sameSourceShaAsGatewayRequired, true)
 assert.equal(doc.gatewayHealthAuthAndCorsReproofRequired, true)
@@ -280,7 +308,10 @@ assert.equal(doc.compiledGatewayBuildVerified, true)
 assert.equal(doc.postDeploySignInSurfaceVerificationRequired, true)
 assert.ok(doc.blockedSecrets?.includes('STAGING_SUPABASE_SERVICE_ROLE_KEY'))
 assert.ok(doc.blockedSecrets?.includes('GOOGLE_CLIENT_SECRET'))
-assert.equal(doc.nextGate, 'OWNER_AUTHORIZED_GATEWAY_ACTIVATION_AND_PAGES_DEPLOY_THEN_INTERACTIVE_GOOGLE_SESSION')
+assert.equal(
+  doc.nextGate,
+  'OWNER_AUTHORIZED_SAME_SHA_STORAGE_AND_GATEWAY_ACTIVATION_THEN_PAGES_DEPLOY_AND_INTERACTIVE_GOOGLE_SESSION',
+)
 
 for (const [scope, value] of Object.entries(doc.blockedScope ?? {})) {
   assert.equal(value, false, `${scope} should remain false`)

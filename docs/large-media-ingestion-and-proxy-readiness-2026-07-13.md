@@ -43,6 +43,13 @@ AVI, MPEG transport streams, and MXF source containers. Container acceptance
 does not guarantee codec decode support; FFprobe/FFmpeg readiness and the
 isolated media worker must still validate the exact streams after upload.
 
+The 2026-07-20 signed-in staging contract keeps these ceilings fail-closed:
+GCS is configured only for bounded source/reference transport and
+`REEDITPRO_LARGE_MEDIA_FINALIZATION_MODE=disabled`. A hosted object above
+16 MiB is rejected before a storage target or resumable credential is issued.
+The resumable behavior below is executable private/fake-provider architecture,
+not an active hosted entitlement, until distributed finalization passes.
+
 ## Large upload transport
 
 When a GCS upload is larger than 16 MiB, the backend now creates a create-only
@@ -183,6 +190,9 @@ capacity math, adaptive task budgets, and the unchanged 16 MiB local raw
 boundary. The media-foundation smoke also executes a real local SDR fixture and
 independently probes the resulting bounded Rec.709 proxy.
 It allocates only a small synthetic file and does not contact GCS.
+The 2026-07-20 regression additionally proves that cloud-run/GCS mode with a
+disabled distributed finalizer rejects a large upload intent without calling
+the storage adapter to issue any target.
 
 The 2026-07-17 capacity regression adds a deterministic shared-floor boundary:
 with 9 GiB available, sixteen 64 MiB staging reservations are admitted while a
@@ -224,6 +234,8 @@ external-beta, public-delivery, or production readiness.
 ReEditPro must not claim production large-video support until all of these pass:
 
 - live GCS CORS accepts `Content-Type` and `Content-Range` and exposes `Range`;
+- the confirmation-gated same-SHA storage activation workflow runs and its
+  immutable configuration evidence is consumed by the gateway activation;
 - deployed IAM, create-only preconditions, session cancellation, and bucket
   lifecycle rules pass real integration tests;
 - upload session state can recover safely across browser reload without storing

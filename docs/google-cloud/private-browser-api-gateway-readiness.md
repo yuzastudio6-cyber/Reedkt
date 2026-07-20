@@ -6,7 +6,7 @@ Checked: 2026-07-18
 
 ## Outcome
 
-ReEditPro now has a fail-closed source contract and a confirmation-gated staging activation workflow for a signed-in browser to reach an IAM-private Cloud Run API without placing a Google service credential in the browser and without granting `allUsers` or `allAuthenticatedUsers` Cloud Run invocation.
+ReEditPro now has a fail-closed source contract and a confirmation-gated staging activation workflow for a signed-in browser to reach an IAM-private Cloud Run API without placing a Google service credential in the browser and without granting `allUsers` or `allAuthenticatedUsers` Cloud Run invocation. The gateway workflow also requires successful, attempt-specific, same-SHA evidence from the separate signed-in private-media storage activation before it can authenticate to Google Cloud or deploy.
 
 This is not a deployment claim. The API Gateway API is currently disabled in the `reeditpro` project, no gateway exists or was queried successfully, and no Google Cloud, Supabase, IAM, provider, worker, billing, or deployment mutation was performed. The workflow exists only in the local continuation checkout and has not been pushed or dispatched.
 
@@ -30,6 +30,7 @@ The original token is request-scoped only. It is not placed in a Vite build vari
 - Direct local testing remains separate. A gateway-only user header is rejected in direct mode, and a normal `Authorization` header is not mistaken for gateway user authority in gateway mode.
 - CORS is noncredentialed and exact-origin. It allows the reviewed user-token, request-ID, idempotency, content, and range headers but does not expose authorization or internal-service headers.
 - Small uploads, resumable finalization calls, canonical JSON calls, private review media, and immutable decision-manifest downloads carry the gateway revalidation header only when they target the ReEditPro backend. The token is never added to a signed GCS upload request.
+- `STORAGE_MODE=gcs` now requires the Google project/region and all eight purpose-specific bucket names at server startup. The signed-in staging configuration deliberately sets `REEDITPRO_LARGE_MEDIA_FINALIZATION_MODE=disabled`; objects above 16 MiB fail before an upload target or resumable credential is issued until the distributed finalizer is verified.
 - The generated OpenAPI 2 contract uses `x-google-allow: configured`, exposes only public `/health`, authenticated `/v1/{path=**}`, and unauthenticated CORS `OPTIONS`, and binds the gateway backend identity audience to the exact `run.app` origin.
 
 ## Read-Only Cloud Observation
@@ -52,6 +53,8 @@ The 2026-07-18 sanitized report confirms:
 - The required sensitive runtime settings are not all backed by Cloud Run Secret Manager references.
 - The dedicated gateway service account is not an invoker, and no API, API config, gateway, or active gateway was found because API Gateway remains disabled.
 
+That retained observation predates the expanded private-storage gate. No new live probe was run in this source slice. The current deployed revision therefore remains unverified against `cloudRunPrivateMediaStorageConfigured`; a future same-SHA activation must prove exact GCS mode, region, eight bucket names, and the disabled distributed-finalization boundary before gateway readiness can pass.
+
 Therefore the service is correctly private but not ready for a signed-in browser route test. The verifier reported every mutation boundary as false.
 
 ## Guarded Activation Workflow
@@ -66,22 +69,22 @@ The workflow cannot run on push, pull request, or schedule. A staging environmen
 - positive numeric Secret Manager versions for `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, and `REEDITPRO_INTERNAL_SERVICE_TOKEN`—never `latest`;
 - keyless GitHub OIDC/Workload Identity configuration, the exact staging app origin, the public staging Supabase origin, and the exact expected legacy private invoker through the protected `staging` environment.
 
-Before mutation it proves the workflow dispatch itself and the checked-out source both use the exact reviewed branch tip SHA, runs the source security suite, checks the current Cloud Run revision/runtime identity, rejects every project-level `roles/run.invoker` binding, rejects public or unexpected service-level invokers, verifies the four pinned secret versions without reading their values, and accepts only an all-public-key ES256/RS256 Supabase JWKS. The source suite now explicitly includes the single-host package transaction, database-neutral distributed package-state contract, locked seven-function RPC adapter, all-50-tool cloud dispatch handoff, live-Google verifier adapter, and controller/worker receiver contracts. These are source/fail-closed proofs only; they do not activate SQL, a live RPC client, workers, or Google dispatch. A legacy/shared-secret Supabase signing configuration therefore fails before API enablement.
+Before mutation it proves the workflow dispatch itself and the checked-out source both use the exact reviewed branch tip SHA, runs the source security suite, and verifies a successful `Signed-In Private Media Storage Staging Activation` run from the same repository, branch, and SHA. It downloads only that run attempt's immutable sanitized artifact, validates its closed schema, and derives the eight exact bucket names from it before Google authentication. It then checks the current Cloud Run revision/runtime identity, rejects every project-level `roles/run.invoker` binding, rejects public or unexpected service-level invokers, verifies the four pinned secret versions without reading their values, and accepts only an all-public-key ES256/RS256 Supabase JWKS. The source suite now explicitly includes the single-host package transaction, database-neutral distributed package-state contract, locked seven-function RPC adapter, all-50-tool cloud dispatch handoff, live-Google verifier adapter, and controller/worker receiver contracts. These are source/fail-closed proofs only; they do not activate SQL, a live RPC client, workers, or Google dispatch. A legacy/shared-secret Supabase signing configuration therefore fails before API enablement.
 
 Only after that preflight can it:
 
 1. enable the three documented API Gateway control services;
 2. create the dedicated gateway service account without a downloaded key and grant only service-account-user plus service-level Cloud Run invocation authority;
 3. build the reviewed API image, push it under the exact source SHA, and deploy by resolved SHA-256 digest;
-4. deploy the production-startup-safe Cloud Run revision with worker/storage execution disabled, exact browser transport/CORS, pinned Secret Manager bindings, IAM invoker checks, and no unauthenticated invoker;
+4. deploy the production-startup-safe Cloud Run revision with worker execution disabled, bounded private GCS source transport configured from the same-SHA storage artifact, distributed large-media finalization disabled, exact browser transport/CORS, pinned Secret Manager bindings, IAM invoker checks, and no unauthenticated invoker;
 5. derive the API's generated managed-service hostname, render the reviewed OpenAPI contract, and create/reuse an immutable source/spec-hash-labelled API config;
 6. create or update the `us-east1` gateway and prove public health, unauthenticated direct-Cloud-Run denial, protected-route auth denial, and exact noncredentialed CORS;
 7. remove only the preflight-matched legacy private invoker after those proofs, then require the sanitized readiness verifier to pass with the gateway identity as the sole service-level invoker;
-8. create and upload an immutable, attempt-specific, sanitized activation-evidence artifact containing the exact source SHA, Cloud Run revision, API config, gateway origin, app origin, and disabled-scope flags. No token, credential, IAM member, secret value, or signed URL enters that artifact.
+8. create and upload an immutable, attempt-specific, sanitized schema-v2 activation-evidence artifact containing the exact source SHA, storage activation run/attempt, Cloud Run revision, API config, gateway origin, app origin, storage configuration boundary, and disabled-scope flags. No token, credential, IAM member, secret value, object path, or signed URL enters that artifact.
 
 Cloud Run uses `ingress=all` because API Gateway invokes the service's Google-managed `run.app` endpoint; IAM remains the access boundary and the workflow requires a direct unauthenticated request to return `403`. On any later failure, the workflow attempts to restore the previous gateway config, previous Cloud Run traffic revision, and exact prior service-level invoker set. It intentionally never deletes an API, config, gateway, service account, image, secret, or revision during rollback.
 
-The accepted cost phrase covers internal Google Cloud staging resources only. It does not approve a ReEditPro fee, customer price, customer credits, wallet mutation, billing call, provider activation, worker dispatch, GCS media execution, public rendering, external beta, or production.
+The accepted cost phrases cover only the exact internal Google Cloud staging storage and gateway resources named by their respective workflows. They do not approve a ReEditPro fee, customer price, customer credits, wallet mutation, billing call, provider activation, worker dispatch, object upload/finalization, public rendering, external beta, or production.
 
 The checked-in older staging API workflow also remains insufficient for this browser path: it deploys Cloud Run with `--no-allow-unauthenticated` but does not create a gateway bridge, configure the current browser transport, or prove the current production startup requirements. It must not be treated as a working browser deployment.
 
@@ -91,10 +94,12 @@ Remote work remains gated. When the owner authorizes the staging mutation window
 
 1. Verify Google OAuth callback/redirect configuration and the Supabase hosted sign-in session.
 2. Verify Supabase uses an asymmetric signing key whose JWKS and algorithm are accepted by the target API Gateway config; do not expose a symmetric JWT secret.
-3. Configure and review the protected staging workflow inputs, then dispatch the guarded activation workflow. Do not run equivalent ad hoc mutation commands.
-4. Preserve the successful workflow run and its immutable, attempt-specific activation-evidence artifact. The Pages deployment must download that exact artifact and derive its gateway origin from the artifact rather than accepting a separately entered endpoint.
-5. Prove expired token, wrong issuer, wrong audience, wrong subject, revoked user, cross-workspace access, and sanitized deployed logging.
-6. Point the reviewed hosted frontend at the verified gateway and run real Google sign-in, reload, sign-out, upload, plan, approval, private execution, QA, review, and export tests.
+3. Configure and review the protected staging storage inputs, then dispatch `Signed-In Private Media Storage Staging Activation` for the exact reviewed SHA. Do not run equivalent ad hoc mutation commands.
+4. Preserve the successful storage run and its immutable, attempt-specific artifact.
+5. Dispatch the guarded gateway activation for the same SHA with that exact storage run ID; the workflow must derive bucket configuration only from the verified artifact.
+6. Preserve the successful gateway run and schema-v2 artifact. The Pages deployment must download that exact artifact and derive its gateway origin rather than accepting a separately entered endpoint.
+7. Prove expired token, wrong issuer, wrong audience, wrong subject, revoked user, cross-workspace access, exact private upload behavior, and sanitized deployed logging.
+8. Point the reviewed hosted frontend at the verified gateway and run real Google sign-in, reload, sign-out, bounded upload, plan, approval, private execution, QA, review, and export tests. Objects above 16 MiB remain blocked until distributed finalization is separately accepted.
 
 Google documents that API Gateway can validate user JWTs from a configured issuer/JWKS, sends the authenticated payload in `X-Apigateway-Api-Userinfo`, and can invoke a private Cloud Run backend through a gateway service account. Supabase documents its asymmetric signing-key JWKS endpoint and recommends asymmetric keys instead of the legacy shared secret:
 
@@ -110,6 +115,9 @@ Google documents that API Gateway can validate user JWTs from a configured issue
 npm run smoke:google-api-gateway-browser-transport
 npm run smoke:google-api-gateway-readiness
 npm run smoke:google-api-gateway-staging-activation
+npm run smoke:signed-in-private-media-storage-readiness
+npm run smoke:gcs-upload-integrity-security
+npm run smoke:large-media-ingest-readiness
 npm run smoke:canonical-private-package-state-transaction
 npm run smoke:canonical-distributed-package-state-port
 npm run smoke:canonical-distributed-package-state-rpc-adapter
@@ -120,4 +128,4 @@ npm run staging:verify-google-api-gateway-readiness
 npm run typecheck:server
 ```
 
-The focused smokes prove the local trust boundary, generated OpenAPI invariants, read-only command plan, sanitized report shape, ready fixture, disabled-service fixture, public/unexpected-invoker rejection, activation confirmations, pinned inputs, mutation order, route probes, exclusivity cutover, rollback, and blocked scopes. They also execute the embedded activation-evidence producer and Pages consumer with a valid fixture and prove tampered sole-invoker evidence fails closed. The live verifier proves only current read-only Google Cloud configuration. It does not prove that the workflow ran, API enablement, IAM mutation, a deployed gateway, live Supabase signing keys, real Gmail sign-in, durable database state, GCS, workers, providers, billing, or production readiness.
+The focused smokes prove the local trust boundary, generated OpenAPI invariants, read-only command plans, sanitized report shapes, ready fixture, disabled-service fixture, public/unexpected-invoker rejection, exact same-SHA storage evidence consumption before cloud authentication, activation confirmations, pinned inputs, mutation order, route probes, exclusivity cutover, rollback, and blocked scopes. They also execute the embedded activation-evidence producer and Pages consumer with a valid fixture and prove tampered sole-invoker evidence fails closed. The live gateway verifier proves only the retained read-only Google Cloud configuration; the storage verifier has not been run against Google Cloud by this slice. None of this proves workflow dispatch, API enablement, IAM mutation, a deployed gateway, object upload, signed URL behavior, live Supabase signing keys, real Gmail sign-in, durable database state, distributed finalization, workers, providers, billing, or production readiness.

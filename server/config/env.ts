@@ -8,6 +8,7 @@ dotenv.config({
 
 export type E2ERuntimeMode = 'local' | 'mock' | 'cloud_run' | 'disabled'
 export type StorageMode = 'local' | 'gcs_disabled' | 'gcs'
+export type LargeMediaFinalizationMode = 'disabled' | 'private_local' | 'distributed'
 export type WorkerRuntimeMode = 'local' | 'mock' | 'cloud_run' | 'disabled'
 export type BrowserApiTransportMode = 'direct' | 'google_api_gateway'
 
@@ -22,6 +23,7 @@ export interface RuntimeEnv {
   allowMockWithoutSupabase: boolean
   allowInternalTestExecutionWithSupabase: boolean
   storageMode: StorageMode
+  largeMediaFinalizationMode: LargeMediaFinalizationMode
   localStorageRoot: string
   signedUrlTtlSeconds: number
   supabaseUrl?: string
@@ -70,6 +72,8 @@ const envSchema = z.object({
   API_ALLOW_MOCK_WITHOUT_SUPABASE: z.string().optional(),
   API_ALLOW_INTERNAL_TEST_EXECUTION_WITH_SUPABASE: z.string().optional(),
   STORAGE_MODE: z.enum(['local', 'gcs_disabled', 'gcs']).default('local'),
+  REEDITPRO_LARGE_MEDIA_FINALIZATION_MODE: z.enum(['disabled', 'private_local', 'distributed'])
+    .default('private_local'),
   LOCAL_STORAGE_ROOT: z.string().default('.reeditpro-local-storage'),
   SIGNED_URL_TTL_SECONDS: z.coerce.number().int().positive().max(86400).default(900),
   SUPABASE_URL: z.string().optional(),
@@ -171,6 +175,7 @@ export function loadRuntimeEnv(source: NodeJS.ProcessEnv = process.env): Runtime
     allowMockWithoutSupabase,
     allowInternalTestExecutionWithSupabase,
     storageMode: parsed.STORAGE_MODE,
+    largeMediaFinalizationMode: parsed.REEDITPRO_LARGE_MEDIA_FINALIZATION_MODE,
     localStorageRoot: parsed.LOCAL_STORAGE_ROOT,
     signedUrlTtlSeconds: parsed.SIGNED_URL_TTL_SECONDS,
     supabaseUrl,
@@ -237,6 +242,20 @@ export function assertRuntimeCanStart(env: RuntimeEnv): void {
     throw new Error('Production STORAGE_MODE must not use local storage.')
   }
 
+  if (env.nodeEnv === 'production' && env.largeMediaFinalizationMode === 'private_local') {
+    throw new Error('Production large-media finalization must not use the private single-host authority.')
+  }
+
+  if (env.largeMediaFinalizationMode === 'distributed') {
+    throw new Error(
+      'Distributed large-media finalization is not available in this source build; keep the mode disabled until its execution evidence is integrated.',
+    )
+  }
+
+  if (env.storageMode === 'gcs') {
+    assertGcsRuntimeConfigured(env)
+  }
+
   if (!env.hasSupabaseAdmin && !env.allowMockWithoutSupabase) {
     throw new Error('SUPABASE_SERVICE_ROLE_KEY is missing. Set API_ALLOW_MOCK_WITHOUT_SUPABASE=true for explicit local mock mode.')
   }
@@ -277,6 +296,7 @@ export function createSafeRuntimeSummary(env: RuntimeEnv): Record<string, unknow
     allowMockWithoutSupabase: env.allowMockWithoutSupabase,
     allowInternalTestExecutionWithSupabase: env.allowInternalTestExecutionWithSupabase,
     storageMode: env.storageMode,
+    largeMediaFinalizationMode: env.largeMediaFinalizationMode,
     localStorageRootConfigured: Boolean(env.localStorageRoot),
     signedUrlTtlSeconds: env.signedUrlTtlSeconds,
     supabaseUrlConfigured: Boolean(env.supabaseUrl),
@@ -368,6 +388,43 @@ function hasRequiredGcsBuckets(parsed: z.infer<typeof envSchema>): boolean {
     clean(parsed.GCS_QA_ARTIFACTS_BUCKET) &&
     clean(parsed.GCS_WORKER_TEMP_BUCKET),
   )
+}
+
+function assertGcsRuntimeConfigured(env: RuntimeEnv): void {
+  if (!env.googleCloudProjectId || !env.googleCloudRegion) {
+    throw new Error('STORAGE_MODE=gcs requires GOOGLE_CLOUD_PROJECT_ID and GOOGLE_CLOUD_REGION.')
+  }
+
+  const buckets = {
+    GCS_SOURCE_MEDIA_BUCKET: env.gcsSourceMediaBucket,
+    GCS_GENERATED_ASSETS_BUCKET: env.gcsGeneratedAssetsBucket,
+    GCS_PROCESSED_MEDIA_BUCKET: env.gcsProcessedMediaBucket,
+    GCS_PREVIEWS_BUCKET: env.gcsPreviewsBucket,
+    GCS_EXPORTS_BUCKET: env.gcsExportsBucket,
+    GCS_THUMBNAILS_BUCKET: env.gcsThumbnailsBucket,
+    GCS_QA_ARTIFACTS_BUCKET: env.gcsQaArtifactsBucket,
+    GCS_WORKER_TEMP_BUCKET: env.gcsWorkerTempBucket,
+  }
+  const missing = Object.entries(buckets)
+    .filter(([, value]) => !value)
+    .map(([name]) => name)
+  if (missing.length > 0) {
+    throw new Error(`STORAGE_MODE=gcs is missing required bucket configuration: ${missing.join(', ')}.`)
+  }
+
+  for (const [name, value] of Object.entries(buckets)) {
+    if (!isValidGcsBucketName(value!)) {
+      throw new Error(`${name} is not a valid private GCS bucket name.`)
+    }
+  }
+}
+
+function isValidGcsBucketName(value: string): boolean {
+  return value.length >= 3 && value.length <= 63 &&
+    /^[a-z0-9](?:[a-z0-9._-]*[a-z0-9])$/.test(value) &&
+    !value.includes('..') &&
+    !/^goog/i.test(value) &&
+    !value.includes('google')
 }
 
 function isSecureSupabaseOrigin(value: string | undefined): boolean {

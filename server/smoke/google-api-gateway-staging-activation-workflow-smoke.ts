@@ -9,7 +9,7 @@ assert.match(workflow, /^on:\n {2}workflow_dispatch:/m)
 assert.doesNotMatch(workflow, /^\s+(push|pull_request|schedule):/m)
 assert.match(workflow, /environment: staging/)
 assert.match(workflow, /cancel-in-progress: false/)
-assert.match(workflow, /permissions:\n {2}contents: read\n {2}id-token: write/)
+assert.match(workflow, /permissions:\n {2}actions: read\n {2}contents: read\n {2}id-token: write/)
 
 for (const exactBoundary of [
   'ACTIVATE_REEDITPRO_PRIVATE_BROWSER_STAGING',
@@ -52,11 +52,33 @@ for (const sourceProof of [
 const canonicalProductUiGate = between(
   workflow,
   '- name: Require canonical product UI integration before cloud activation',
-  '- name: Authenticate to Google Cloud with keyless OIDC',
+  '- name: Require successful same-SHA private media storage activation run',
 )
 assert.match(canonicalProductUiGate, /REEDITPRO_REQUIRE_CANONICAL_PRODUCT_UI_READY: "true"/)
 assert.match(canonicalProductUiGate, /npm run smoke:canonical-product-ui-integration-readiness/)
 assert.match(canonicalProductUiGate, /npm run internal-testing:verify-canonical-product-ui-integration-readiness/)
+
+const storageEvidenceGate = between(
+  workflow,
+  '- name: Require successful same-SHA private media storage activation run',
+  '- name: Authenticate to Google Cloud with keyless OIDC',
+)
+for (const storageBoundary of [
+  'Signed-In Private Media Storage Staging Activation',
+  '.github/workflows/signed-in-private-media-storage-staging-activation.yml',
+  'reeditpro-signed-in-private-media-storage-activation-',
+  'Storage activation source does not match the gateway source exactly.',
+  'signed-in-private-media-storage-readiness-v1',
+  'GCS_SOURCE_MEDIA_BUCKET',
+  'GCS_WORKER_TEMP_BUCKET',
+] as const) {
+  assert.equal(storageEvidenceGate.includes(storageBoundary), true, `Missing storage evidence boundary ${storageBoundary}`)
+}
+assert.ok(
+  workflow.indexOf('- name: Bind gateway deployment to exact storage activation evidence') <
+    workflow.indexOf('- name: Authenticate to Google Cloud with keyless OIDC'),
+  'Storage evidence must bind before cloud authentication.',
+)
 
 assert.match(workflow, /Authenticate to Google Cloud with keyless OIDC/)
 assert.match(workflow, /google-github-actions\/auth@v3/)
@@ -109,7 +131,10 @@ for (const deploymentBoundary of [
   'API_ALLOWED_CORS_ORIGINS=${STAGING_APP_ORIGIN}',
   'E2E_RUNTIME_MODE=cloud_run',
   'WORKER_RUNTIME_MODE=disabled',
-  'STORAGE_MODE=gcs_disabled',
+  'STORAGE_MODE=gcs',
+  'REEDITPRO_LARGE_MEDIA_FINALIZATION_MODE=disabled',
+  'GCS_SOURCE_MEDIA_BUCKET=${GCS_SOURCE_MEDIA_BUCKET}',
+  'GCS_WORKER_TEMP_BUCKET=${GCS_WORKER_TEMP_BUCKET}',
   'REEDITPRO_DISABLE_DOTENV=true',
 ] as const) {
   assert.equal(deployStep.includes(deploymentBoundary), true, `Missing deployment boundary ${deploymentBoundary}`)
@@ -171,7 +196,7 @@ const activationEvidenceStep = between(
   '- name: Upload immutable sanitized activation evidence',
 )
 for (const evidenceBoundary of [
-  '"schemaVersion": 1',
+  '"schemaVersion": 2',
   '"workflowRunId": int(run_id)',
   '"workflowRunAttempt": int(run_attempt)',
   '"sourceSha": source_sha',
@@ -180,12 +205,20 @@ for (const evidenceBoundary of [
   '"gatewayOrigin": gateway_origin',
   '"appOrigin": app_origin',
   '"browserApiTransport": "google_api_gateway"',
+  '"storageActivationRunId": int(storage_activation_run_id)',
+  '"storageActivationRunAttempt": int(storage_activation_run_attempt)',
+  '"storageMode": "gcs"',
+  '"storageConfigurationEnabled": True',
+  '"storageExecutionEnabled": True',
+  '"storageExecutionVerified": False',
+  '"largeMediaFinalizationMode": "disabled"',
+  '"maximumHostedUploadBytesWithoutDistributedFinalization": 16777216',
+  '"largeMediaDistributedFinalizationVerified": False',
   '"strictReadinessPassed": True',
   '"cloudRunIamPrivate": True',
   '"gatewaySoleServiceLevelInvoker": True',
   '"providersEnabled": False',
   '"workersEnabled": False',
-  '"storageExecutionEnabled": False',
   '"customerBillingEnabled": False',
   '"publicDeliveryEnabled": False',
   '"productionEnabled": False',
@@ -216,7 +249,9 @@ assert.match(rollbackStep, /GATEWAY_WAS_INVOKER/)
 assert.doesNotMatch(workflow, /\bgcloud\s+[^\n]*(?:delete|services disable)\b/)
 
 assert.match(workflow, /no customer price, credit, wallet, or billing mutation occurred/i)
-assert.match(workflow, /Providers, workers, GCS media execution, public rendering, customer billing, external beta, and production remain disabled/)
+assert.match(workflow, /Private GCS source transport is configured from same-SHA storage evidence/)
+assert.match(workflow, /Hosted uploads above 16 MiB fail before bytes until distributed large-media finalization is verified/)
+assert.match(workflow, /Providers, workers, public rendering, customer billing, external beta, and production remain disabled/)
 assert.match(workflow, /real Google user session and protected tenant route still require the separate interactive signed-in test gate/)
 
 console.log('google-api-gateway-staging-activation-workflow-smoke passed')

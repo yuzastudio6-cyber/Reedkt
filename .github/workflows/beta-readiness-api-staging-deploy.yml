@@ -40,8 +40,13 @@ on:
         description: "Pinned positive Secret Manager version for REEDITPRO_INTERNAL_SERVICE_TOKEN"
         required: true
         type: string
+      storage_activation_run_id:
+        description: "Successful same-SHA Signed-In Private Media Storage Staging Activation workflow run ID"
+        required: true
+        type: string
 
 permissions:
+  actions: read
   contents: read
   id-token: write
 
@@ -83,6 +88,7 @@ jobs:
           SUPABASE_ANON_KEY_SECRET_VERSION: ${{ inputs.supabase_anon_key_secret_version }}
           SUPABASE_SERVICE_ROLE_KEY_SECRET_VERSION: ${{ inputs.supabase_service_role_key_secret_version }}
           INTERNAL_SERVICE_TOKEN_SECRET_VERSION: ${{ inputs.internal_service_token_secret_version }}
+          STORAGE_ACTIVATION_RUN_ID: ${{ inputs.storage_activation_run_id }}
         run: |
           set -euo pipefail
           test "${CONFIRM_ACTIVATION}" = "ACTIVATE_REEDITPRO_PRIVATE_BROWSER_STAGING"
@@ -115,6 +121,7 @@ jobs:
             "${INTERNAL_SERVICE_TOKEN_SECRET_VERSION}"; do
             [[ "${version}" =~ ^[1-9][0-9]*$ ]]
           done
+          [[ "${STORAGE_ACTIVATION_RUN_ID}" =~ ^[1-9][0-9]*$ ]]
           if [ -n "${EXPECTED_LEGACY_INVOKER_MEMBER}" ]; then
             echo "::add-mask::${EXPECTED_LEGACY_INVOKER_MEMBER}"
             [[ "${EXPECTED_LEGACY_INVOKER_MEMBER}" =~ ^serviceAccount:[a-z0-9-]+@reeditpro\.iam\.gserviceaccount\.com$ ]]
@@ -174,6 +181,150 @@ jobs:
           set -euo pipefail
           npm run smoke:canonical-product-ui-integration-readiness
           npm run internal-testing:verify-canonical-product-ui-integration-readiness
+
+      - name: Require successful same-SHA private media storage activation run
+        id: storage_activation_run
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_REF: ${{ inputs.source_ref }}
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          STORAGE_ACTIVATION_RUN_ID: ${{ inputs.storage_activation_run_id }}
+        run: |
+          set -euo pipefail
+          activation_run="${RUNNER_TEMP}/storage-activation-run.json"
+          gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${STORAGE_ACTIVATION_RUN_ID}" > "${activation_run}"
+          python3 - \
+            "${activation_run}" \
+            "${GITHUB_REPOSITORY}" \
+            "${SOURCE_REF}" \
+            "${SOURCE_SHA}" \
+            "${STORAGE_ACTIVATION_RUN_ID}" \
+            "${GITHUB_OUTPUT}" <<'PY'
+          import json
+          import pathlib
+          import sys
+
+          run = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8") or "{}")
+          if (run.get("repository") or {}).get("full_name") != sys.argv[2]:
+              raise SystemExit("Storage activation belongs to another repository.")
+          if run.get("name") != "Signed-In Private Media Storage Staging Activation":
+              raise SystemExit("Storage activation has the wrong workflow name.")
+          if str(run.get("path") or "").split("@")[0] != ".github/workflows/signed-in-private-media-storage-staging-activation.yml":
+              raise SystemExit("Storage activation has the wrong workflow path.")
+          if run.get("event") != "workflow_dispatch" or run.get("status") != "completed" or run.get("conclusion") != "success":
+              raise SystemExit("Storage activation did not complete successfully.")
+          if run.get("head_branch") != sys.argv[3] or run.get("head_sha") != sys.argv[4]:
+              raise SystemExit("Storage activation source does not match the gateway source exactly.")
+          if run.get("id") != int(sys.argv[5]):
+              raise SystemExit("Storage activation run ID does not match the requested evidence.")
+          attempt = run.get("run_attempt")
+          if not isinstance(attempt, int) or attempt < 1:
+              raise SystemExit("Storage activation run attempt is missing or invalid.")
+          with pathlib.Path(sys.argv[6]).open("a", encoding="utf-8") as handle:
+              handle.write(f"run_attempt={attempt}\n")
+          PY
+
+      - name: Download exact immutable storage activation evidence
+        uses: actions/download-artifact@v8
+        with:
+          name: reeditpro-signed-in-private-media-storage-activation-${{ inputs.storage_activation_run_id }}-${{ steps.storage_activation_run.outputs.run_attempt }}
+          path: ${{ runner.temp }}/storage-activation-evidence
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ inputs.storage_activation_run_id }}
+
+      - name: Bind gateway deployment to exact storage activation evidence
+        shell: bash
+        env:
+          SOURCE_REF: ${{ inputs.source_ref }}
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          STORAGE_ACTIVATION_RUN_ID: ${{ inputs.storage_activation_run_id }}
+          STORAGE_ACTIVATION_RUN_ATTEMPT: ${{ steps.storage_activation_run.outputs.run_attempt }}
+        run: |
+          set -euo pipefail
+          evidence_file="${RUNNER_TEMP}/storage-activation-evidence/reeditpro-signed-in-private-media-storage-activation.json"
+          test -s "${evidence_file}"
+          python3 - \
+            "${evidence_file}" \
+            "${GITHUB_REPOSITORY}" \
+            "${SOURCE_REF}" \
+            "${SOURCE_SHA}" \
+            "${STORAGE_ACTIVATION_RUN_ID}" \
+            "${STORAGE_ACTIVATION_RUN_ATTEMPT}" \
+            "${GITHUB_ENV}" <<'PY'
+          import json
+          import pathlib
+          import re
+          import sys
+
+          evidence = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8") or "{}")
+          expected_keys = {
+              "schemaVersion", "repository", "workflowPath", "workflowRunId", "workflowRunAttempt",
+              "sourceRef", "sourceSha", "projectId", "region", "runtimeServiceAccount", "appOrigin",
+              "bucketNames", "readinessContractVersion", "readinessEvidenceSha256",
+              "configurationReadinessPassed", "liveCorsPreflightPassed", "storageMode",
+              "largeMediaFinalizationMode", "maximumHostedUploadBytesWithoutDistributedFinalization",
+              "objectWriteVerified", "signedUrlVerified", "resumableUploadVerified",
+              "largeMediaDistributedFinalizationVerified", "providerEnabled", "workerEnabled",
+              "customerBillingEnabled", "publicDeliveryEnabled", "productionEnabled",
+          }
+          if not isinstance(evidence, dict) or set(evidence) != expected_keys:
+              raise SystemExit("Storage activation evidence schema is invalid.")
+          expected = {
+              "schemaVersion": 1,
+              "repository": sys.argv[2],
+              "workflowPath": ".github/workflows/signed-in-private-media-storage-staging-activation.yml",
+              "workflowRunId": int(sys.argv[5]),
+              "workflowRunAttempt": int(sys.argv[6]),
+              "sourceRef": sys.argv[3],
+              "sourceSha": sys.argv[4],
+              "projectId": "reeditpro",
+              "region": "us-east1",
+              "runtimeServiceAccount": "reeditpro-api-staging@reeditpro.iam.gserviceaccount.com",
+              "appOrigin": "https://yuzastudio6-cyber.github.io",
+              "readinessContractVersion": "signed-in-private-media-storage-readiness-v1",
+              "configurationReadinessPassed": True,
+              "liveCorsPreflightPassed": True,
+              "storageMode": "gcs",
+              "largeMediaFinalizationMode": "disabled",
+              "maximumHostedUploadBytesWithoutDistributedFinalization": 16777216,
+              "objectWriteVerified": False,
+              "signedUrlVerified": False,
+              "resumableUploadVerified": False,
+              "largeMediaDistributedFinalizationVerified": False,
+              "providerEnabled": False,
+              "workerEnabled": False,
+              "customerBillingEnabled": False,
+              "publicDeliveryEnabled": False,
+              "productionEnabled": False,
+          }
+          for key, value in expected.items():
+              if evidence.get(key) != value:
+                  raise SystemExit(f"Storage activation evidence mismatch: {key}")
+          if not re.fullmatch(r"[0-9a-f]{64}", str(evidence.get("readinessEvidenceSha256", ""))):
+              raise SystemExit("Storage activation readiness digest is invalid.")
+          purposes = ["source_media", "generated_assets", "processed_media", "previews", "exports", "thumbnails", "qa_artifacts", "worker_temp"]
+          buckets = evidence.get("bucketNames")
+          if not isinstance(buckets, dict) or set(buckets) != set(purposes):
+              raise SystemExit("Storage activation bucket map is invalid.")
+          environment_names = {
+              "source_media": "GCS_SOURCE_MEDIA_BUCKET",
+              "generated_assets": "GCS_GENERATED_ASSETS_BUCKET",
+              "processed_media": "GCS_PROCESSED_MEDIA_BUCKET",
+              "previews": "GCS_PREVIEWS_BUCKET",
+              "exports": "GCS_EXPORTS_BUCKET",
+              "thumbnails": "GCS_THUMBNAILS_BUCKET",
+              "qa_artifacts": "GCS_QA_ARTIFACTS_BUCKET",
+              "worker_temp": "GCS_WORKER_TEMP_BUCKET",
+          }
+          with pathlib.Path(sys.argv[7]).open("a", encoding="utf-8") as handle:
+              for purpose in purposes:
+                  expected_bucket = f"reeditpro-staging-reeditpro-us-east1-{purpose.replace('_', '-')}"
+                  if buckets.get(purpose) != expected_bucket:
+                      raise SystemExit(f"Storage activation bucket mismatch: {purpose}")
+                  handle.write(f"{environment_names[purpose]}={expected_bucket}\n")
+          PY
 
       - name: Authenticate to Google Cloud with keyless OIDC
         uses: google-github-actions/auth@v3
@@ -397,7 +548,7 @@ jobs:
             --execution-environment=gen2 \
             --ingress=all \
             --invoker-iam-check \
-            --set-env-vars="^@^REEDITPRO_ENV=staging@E2E_RUNTIME_MODE=cloud_run@WORKER_RUNTIME_MODE=disabled@STORAGE_MODE=gcs_disabled@REEDITPRO_DISABLE_DOTENV=true@REEDITPRO_BROWSER_API_TRANSPORT=google_api_gateway@API_ALLOWED_CORS_ORIGINS=${STAGING_APP_ORIGIN}@GOOGLE_CLOUD_PROJECT_ID=${GCP_PROJECT_ID}@GOOGLE_CLOUD_REGION=${GCP_REGION}" \
+            --set-env-vars="^@^REEDITPRO_ENV=staging@E2E_RUNTIME_MODE=cloud_run@WORKER_RUNTIME_MODE=disabled@STORAGE_MODE=gcs@REEDITPRO_LARGE_MEDIA_FINALIZATION_MODE=disabled@REEDITPRO_DISABLE_DOTENV=true@REEDITPRO_BROWSER_API_TRANSPORT=google_api_gateway@API_ALLOWED_CORS_ORIGINS=${STAGING_APP_ORIGIN}@GOOGLE_CLOUD_PROJECT_ID=${GCP_PROJECT_ID}@GOOGLE_CLOUD_REGION=${GCP_REGION}@GCS_DEFAULT_REGION=${GCP_REGION}@GCS_SOURCE_MEDIA_BUCKET=${GCS_SOURCE_MEDIA_BUCKET}@GCS_GENERATED_ASSETS_BUCKET=${GCS_GENERATED_ASSETS_BUCKET}@GCS_PROCESSED_MEDIA_BUCKET=${GCS_PROCESSED_MEDIA_BUCKET}@GCS_PREVIEWS_BUCKET=${GCS_PREVIEWS_BUCKET}@GCS_EXPORTS_BUCKET=${GCS_EXPORTS_BUCKET}@GCS_THUMBNAILS_BUCKET=${GCS_THUMBNAILS_BUCKET}@GCS_QA_ARTIFACTS_BUCKET=${GCS_QA_ARTIFACTS_BUCKET}@GCS_WORKER_TEMP_BUCKET=${GCS_WORKER_TEMP_BUCKET}" \
             --set-secrets="SUPABASE_URL=SUPABASE_URL:${SUPABASE_URL_SECRET_VERSION},SUPABASE_ANON_KEY=SUPABASE_ANON_KEY:${SUPABASE_ANON_KEY_SECRET_VERSION},SUPABASE_SERVICE_ROLE_KEY=SUPABASE_SERVICE_ROLE_KEY:${SUPABASE_SERVICE_ROLE_KEY_SECRET_VERSION},REEDITPRO_INTERNAL_SERVICE_TOKEN=REEDITPRO_INTERNAL_SERVICE_TOKEN:${INTERNAL_SERVICE_TOKEN_SECRET_VERSION}" \
             --labels="lane=private-browser,source-sha=${SOURCE_SHA}" \
             --no-allow-unauthenticated \
@@ -619,6 +770,8 @@ jobs:
         env:
           SOURCE_REF: ${{ inputs.source_ref }}
           SOURCE_SHA: ${{ inputs.source_sha }}
+          STORAGE_ACTIVATION_RUN_ID: ${{ inputs.storage_activation_run_id }}
+          STORAGE_ACTIVATION_RUN_ATTEMPT: ${{ steps.storage_activation_run.outputs.run_attempt }}
         run: |
           set -euo pipefail
           evidence_file="${RUNNER_TEMP}/reeditpro-private-browser-staging-activation.json"
@@ -637,7 +790,9 @@ jobs:
             "${TARGET_API_CONFIG_ID}" \
             "${API_GATEWAY_ID}" \
             "${GATEWAY_ORIGIN}" \
-            "${STAGING_APP_ORIGIN}" <<'PY'
+            "${STAGING_APP_ORIGIN}" \
+            "${STORAGE_ACTIVATION_RUN_ID}" \
+            "${STORAGE_ACTIVATION_RUN_ATTEMPT}" <<'PY'
           import json
           import pathlib
           import re
@@ -659,6 +814,8 @@ jobs:
               gateway_id,
               gateway_origin,
               app_origin,
+              storage_activation_run_id,
+              storage_activation_run_attempt,
           ) = sys.argv[1:]
 
           if not re.fullmatch(r"[1-9][0-9]*", run_id) or not re.fullmatch(r"[1-9][0-9]*", run_attempt):
@@ -679,9 +836,11 @@ jobs:
               raise SystemExit("Activation evidence gateway origin is invalid.")
           if app_origin not in {"https://yuzastudio6-cyber.github.io", "https://app.reeditpro.com"}:
               raise SystemExit("Activation evidence app origin is invalid.")
+          if not re.fullmatch(r"[1-9][0-9]*", storage_activation_run_id) or not re.fullmatch(r"[1-9][0-9]*", storage_activation_run_attempt):
+              raise SystemExit("Storage activation run evidence is invalid.")
 
           evidence = {
-              "schemaVersion": 1,
+              "schemaVersion": 2,
               "repository": repository,
               "workflowPath": ".github/workflows/beta-readiness-api-staging-deploy.yml",
               "workflowRunId": int(run_id),
@@ -698,12 +857,20 @@ jobs:
               "gatewayOrigin": gateway_origin,
               "appOrigin": app_origin,
               "browserApiTransport": "google_api_gateway",
+              "storageActivationRunId": int(storage_activation_run_id),
+              "storageActivationRunAttempt": int(storage_activation_run_attempt),
+              "storageMode": "gcs",
+              "storageConfigurationEnabled": True,
+              "storageExecutionEnabled": True,
+              "storageExecutionVerified": False,
+              "largeMediaFinalizationMode": "disabled",
+              "maximumHostedUploadBytesWithoutDistributedFinalization": 16777216,
+              "largeMediaDistributedFinalizationVerified": False,
               "strictReadinessPassed": True,
               "cloudRunIamPrivate": True,
               "gatewaySoleServiceLevelInvoker": True,
               "providersEnabled": False,
               "workersEnabled": False,
-              "storageExecutionEnabled": False,
               "customerBillingEnabled": False,
               "publicDeliveryEnabled": False,
               "productionEnabled": False,
@@ -739,7 +906,9 @@ jobs:
             echo '- Cloud Run is IAM-private and the gateway service account is its sole service-level invoker.'
             echo '- Internal Google Cloud staging cost was explicitly accepted; no customer price, credit, wallet, or billing mutation occurred.'
             echo '- Supabase was contacted only through its public JWKS endpoint; no Supabase write or migration occurred.'
-            echo '- Providers, workers, GCS media execution, public rendering, customer billing, external beta, and production remain disabled.'
+            echo '- Private GCS source transport is configured from same-SHA storage evidence; runtime object-write and signed-URL proof remain interactive gates.'
+            echo '- Hosted uploads above 16 MiB fail before bytes until distributed large-media finalization is verified.'
+            echo '- Providers, workers, public rendering, customer billing, external beta, and production remain disabled.'
             echo '- A real Google user session and protected tenant route still require the separate interactive signed-in test gate.'
           } >> "${GITHUB_STEP_SUMMARY}"
 

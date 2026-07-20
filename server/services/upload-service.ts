@@ -11,6 +11,7 @@ import { buildCanonicalObjectPath } from '../storage/storage-paths'
 import {
   assertAllowedUpload,
   assertLocalRawUploadByteLength,
+  LOCAL_RAW_UPLOAD_MAX_BYTES,
   normalizeAllowedUploadMimeType,
 } from '../storage/storage-validation'
 import type { ObjectMetadata, StorageAdapter, UploadPurpose, UploadTarget } from '../storage/storage-types'
@@ -304,6 +305,7 @@ export function createUploadService(context: ServiceContext) {
         mimeType,
         expectedSizeBytes: input.expectedSizeBytes,
       })
+      assertLargeMediaFinalizationAvailable(context, storage, input.expectedSizeBytes)
 
       const uploadIntentId = randomUUID()
       const now = nowIso()
@@ -878,6 +880,33 @@ function assertProductionUploadUsesDirectObjectStorage(context: ServiceContext, 
       503,
     )
   }
+}
+
+function assertLargeMediaFinalizationAvailable(
+  context: ServiceContext,
+  storage: StorageAdapter,
+  expectedSizeBytes: number | undefined,
+): void {
+  if (storage.mode !== 'gcs' || !shouldUseResumableUpload(expectedSizeBytes)) return
+
+  const mode = context.env.largeMediaFinalizationMode
+  const privateLocalAllowed = mode === 'private_local' &&
+    context.env.nodeEnv !== 'production' &&
+    ['local', 'mock'].includes(context.env.mode)
+  if (privateLocalAllowed) return
+
+  throw new ApiError(
+    'SOURCE_MEDIA_NOT_READY',
+    'Large hosted source uploads are paused until distributed byte verification and media finalization are active.',
+    503,
+    {
+      blockedActionScope: 'distributed_large_media_finalization',
+      maximumHostedUploadBytesWithoutDistributedFinalization: LOCAL_RAW_UPLOAD_MAX_BYTES,
+      bytesAccepted: false,
+      uploadTargetIssued: false,
+      nextSafeAction: 'activate_distributed_large_media_finalization',
+    },
+  )
 }
 
 function assertUserInitiatedUploadPurpose(

@@ -1,3 +1,8 @@
+import {
+  REEDITPRO_SIGNED_IN_PRIVATE_MEDIA_STORAGE_TARGET,
+  signedInPrivateMediaBucketName,
+} from './signed-in-private-media-storage-readiness'
+
 export type GoogleApiGatewayReadinessProbeId =
   | 'enabled_services'
   | 'cloud_run_service'
@@ -58,6 +63,7 @@ export interface GoogleApiGatewayReadinessReport {
     cloudRunReady: boolean
     cloudRunUsesExpectedRuntimeServiceAccount: boolean
     cloudRunBrowserTransportConfigured: boolean
+    cloudRunPrivateMediaStorageConfigured: boolean
     cloudRunRequiredEnvNamesPresent: boolean
     cloudRunSensitiveEnvUsesSecretReferences: boolean
     cloudRunPublicInvokerAbsent: boolean
@@ -109,11 +115,25 @@ const REQUIRED_GOOGLE_APIS = [
 
 const REQUIRED_RUNTIME_ENV_NAMES = [
   'API_ALLOWED_CORS_ORIGINS',
+  'GCS_DEFAULT_REGION',
+  'GCS_EXPORTS_BUCKET',
+  'GCS_GENERATED_ASSETS_BUCKET',
+  'GCS_PREVIEWS_BUCKET',
+  'GCS_PROCESSED_MEDIA_BUCKET',
+  'GCS_QA_ARTIFACTS_BUCKET',
+  'GCS_SOURCE_MEDIA_BUCKET',
+  'GCS_THUMBNAILS_BUCKET',
+  'GCS_WORKER_TEMP_BUCKET',
+  'GOOGLE_CLOUD_PROJECT_ID',
+  'GOOGLE_CLOUD_REGION',
   'REEDITPRO_BROWSER_API_TRANSPORT',
   'REEDITPRO_INTERNAL_SERVICE_TOKEN',
+  'REEDITPRO_LARGE_MEDIA_FINALIZATION_MODE',
+  'STORAGE_MODE',
   'SUPABASE_ANON_KEY',
   'SUPABASE_SERVICE_ROLE_KEY',
   'SUPABASE_URL',
+  'WORKER_RUNTIME_MODE',
 ] as const
 
 const SENSITIVE_RUNTIME_ENV_NAMES = [
@@ -231,9 +251,30 @@ export function evaluateGoogleApiGatewayReadiness(
   const envEntries = arrayAt(cloudRun, ['spec', 'template', 'spec', 'containers', 0, 'env'])
     .filter(isRecord)
   const envNames = new Set(envEntries.map((entry) => typeof entry.name === 'string' ? entry.name : ''))
+  const envValues = new Map(envEntries.flatMap((entry) =>
+    typeof entry.name === 'string' && typeof entry.value === 'string'
+      ? [[entry.name, entry.value] as const]
+      : []))
   const missingRuntimeEnvNames = REQUIRED_RUNTIME_ENV_NAMES.filter((name) => !envNames.has(name))
   const browserTransportConfigured = envEntries.some((entry) =>
     entry.name === 'REEDITPRO_BROWSER_API_TRANSPORT' && entry.value === 'google_api_gateway')
+  const storageTarget = REEDITPRO_SIGNED_IN_PRIVATE_MEDIA_STORAGE_TARGET
+  const privateMediaStorageConfigured = [
+    ['STORAGE_MODE', 'gcs'],
+    ['REEDITPRO_LARGE_MEDIA_FINALIZATION_MODE', 'disabled'],
+    ['WORKER_RUNTIME_MODE', 'disabled'],
+    ['GOOGLE_CLOUD_PROJECT_ID', target.projectId],
+    ['GOOGLE_CLOUD_REGION', target.region],
+    ['GCS_DEFAULT_REGION', target.region],
+    ['GCS_SOURCE_MEDIA_BUCKET', signedInPrivateMediaBucketName(storageTarget, 'source-media')],
+    ['GCS_GENERATED_ASSETS_BUCKET', signedInPrivateMediaBucketName(storageTarget, 'generated-assets')],
+    ['GCS_PROCESSED_MEDIA_BUCKET', signedInPrivateMediaBucketName(storageTarget, 'processed-media')],
+    ['GCS_PREVIEWS_BUCKET', signedInPrivateMediaBucketName(storageTarget, 'previews')],
+    ['GCS_EXPORTS_BUCKET', signedInPrivateMediaBucketName(storageTarget, 'exports')],
+    ['GCS_THUMBNAILS_BUCKET', signedInPrivateMediaBucketName(storageTarget, 'thumbnails')],
+    ['GCS_QA_ARTIFACTS_BUCKET', signedInPrivateMediaBucketName(storageTarget, 'qa-artifacts')],
+    ['GCS_WORKER_TEMP_BUCKET', signedInPrivateMediaBucketName(storageTarget, 'worker-temp')],
+  ].every(([name, expected]) => envValues.get(name) === expected)
   const sensitiveEnvUsesSecretReferences = SENSITIVE_RUNTIME_ENV_NAMES.every((name) => {
     const entry = envEntries.find((candidate) => candidate.name === name)
     return Boolean(entry && isRecord(entry.valueFrom) && isRecord(entry.valueFrom.secretKeyRef))
@@ -271,6 +312,7 @@ export function evaluateGoogleApiGatewayReadiness(
     cloudRunReady,
     cloudRunUsesExpectedRuntimeServiceAccount: runtimeServiceAccount === target.cloudRunRuntimeServiceAccount,
     cloudRunBrowserTransportConfigured: browserTransportConfigured,
+    cloudRunPrivateMediaStorageConfigured: privateMediaStorageConfigured,
     cloudRunRequiredEnvNamesPresent: missingRuntimeEnvNames.length === 0,
     cloudRunSensitiveEnvUsesSecretReferences: sensitiveEnvUsesSecretReferences,
     cloudRunPublicInvokerAbsent: byId.get('cloud_run_iam')?.ok === true && publicInvokerMembers.length === 0,

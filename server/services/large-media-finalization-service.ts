@@ -378,6 +378,7 @@ function scopeFor(context: ServiceContext, workspaceId: string): PrivateLargeMed
 
 function assertPrivateInternalBoundary(context: ServiceContext): void {
   if (
+    context.env.largeMediaFinalizationMode !== 'private_local' ||
     context.env.nodeEnv === 'production' ||
     !['local', 'mock'].includes(context.env.mode) ||
     (!context.env.mockOnly && !context.env.allowInternalTestExecutionWithSupabase)

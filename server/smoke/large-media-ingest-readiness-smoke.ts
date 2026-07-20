@@ -42,6 +42,7 @@ const evidence = {
   user_source_upload_requires_exact_declared_size: false,
   large_gcs_target_is_create_only_resumable: false,
   upload_service_preserves_large_size_and_session_lifetime: false,
+  hosted_large_upload_fails_before_target_without_distributed_finalization: false,
   resumable_browser_upload_recovers_exact_committed_offset: false,
   resumable_offset_query_is_itself_retryable: false,
   resumable_no_progress_ack_retries_without_restarting: false,
@@ -224,6 +225,52 @@ try {
   assert.ok(expiresAtMs >= startedAtMs + GCS_RESUMABLE_SESSION_TTL_SECONDS * 1_000)
   assert.ok(expiresAtMs <= completedAtMs + GCS_RESUMABLE_SESSION_TTL_SECONDS * 1_000)
   evidence.upload_service_preserves_large_size_and_session_lifetime = true
+
+  const targetCountBeforeBlockedRequest = storageDouble.calls.length
+  const disabledFinalizationEnv = loadRuntimeEnv({
+    NODE_ENV: 'test',
+    E2E_RUNTIME_MODE: 'local',
+    API_ALLOW_MOCK_WITHOUT_SUPABASE: 'true',
+    STORAGE_MODE: 'gcs',
+    REEDITPRO_LARGE_MEDIA_FINALIZATION_MODE: 'disabled',
+    GOOGLE_CLOUD_PROJECT_ID: 'reeditpro-large-media-smoke',
+    GOOGLE_CLOUD_REGION: 'us-east1',
+    LOCAL_STORAGE_ROOT: serviceLocalRoot,
+  })
+  await assert.rejects(
+    () => createUploadService({ ...serviceContext, env: disabledFinalizationEnv }).createUploadIntent({
+      workspaceId: 'large-media-workspace',
+      projectId: project.project.id,
+      uploadPurpose: 'source_media',
+      originalFileName: 'blocked-before-bytes.mov',
+      mimeType: 'video/quicktime',
+      expectedSizeBytes,
+    }),
+    (error: unknown) => {
+      assert.equal(error instanceof Error, true)
+      assert.match((error as Error).message, /paused until distributed byte verification/i)
+      return true
+    },
+  )
+  assert.equal(storageDouble.calls.length, targetCountBeforeBlockedRequest)
+
+  const unimplementedDistributedEnv = {
+    ...disabledFinalizationEnv,
+    largeMediaFinalizationMode: 'distributed' as const,
+  }
+  await assert.rejects(
+    () => createUploadService({ ...serviceContext, env: unimplementedDistributedEnv }).createUploadIntent({
+      workspaceId: 'large-media-workspace',
+      projectId: project.project.id,
+      uploadPurpose: 'source_media',
+      originalFileName: 'blocked-unimplemented-distributed.mov',
+      mimeType: 'video/quicktime',
+      expectedSizeBytes,
+    }),
+    /paused until distributed byte verification/i,
+  )
+  assert.equal(storageDouble.calls.length, targetCountBeforeBlockedRequest)
+  evidence.hosted_large_upload_fails_before_target_without_distributed_finalization = true
 } finally {
   await rm(serviceLocalRoot, { recursive: true, force: true })
 }

@@ -24,7 +24,13 @@
   "gatewayActivationRunRequired": true,
   "gatewayActivationWorkflow": ".github/workflows/beta-readiness-api-staging-deploy.yml",
   "gatewayActivationEvidenceArtifactRequired": true,
-  "gatewayActivationEvidenceSchemaVersion": 1,
+  "gatewayActivationEvidenceSchemaVersion": 2,
+  "storageActivationRunRequired": true,
+  "storageActivationWorkflow": ".github/workflows/signed-in-private-media-storage-staging-activation.yml",
+  "sameSourceShaAsStorageRequired": true,
+  "hostedStorageMode": "gcs",
+  "hostedLargeMediaFinalizationMode": "disabled",
+  "maximumHostedUploadBytesWithoutDistributedFinalization": 16777216,
   "gatewayOriginDerivedFromActivationEvidence": true,
   "sameSourceShaAsGatewayRequired": true,
   "gatewayHealthAuthAndCorsReproofRequired": true,
@@ -68,5 +74,5 @@
     "externalBeta": false,
     "production": false
   },
-  "nextGate": "OWNER_AUTHORIZED_GATEWAY_ACTIVATION_AND_PAGES_DEPLOY_THEN_INTERACTIVE_GOOGLE_SESSION"
+  "nextGate": "OWNER_AUTHORIZED_SAME_SHA_STORAGE_AND_GATEWAY_ACTIVATION_THEN_PAGES_DEPLOY_AND_INTERACTIVE_GOOGLE_SESSION"
 }

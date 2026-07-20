@@ -2,12 +2,18 @@ import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { readFile, rm } from 'node:fs/promises'
+import { createServer, type Server } from 'node:http'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { buffer } from 'node:stream/consumers'
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 
+import { createReeditProApiApp } from '../app'
+import {
+  professionalLongFormCustomerDeliveryBrowserDecisionSchema,
+  professionalLongFormCustomerDeliveryBrowserReviewSchema,
+} from '../../src/backend/api/professional-long-form-customer-delivery-browser-contracts'
 import { buildProfessionalExportCreditCoverage } from
   '../../src/lib/professional-export-policy'
 import { loadRuntimeEnv } from '../config/env'
@@ -153,6 +159,7 @@ const localStorageRoot = join(
   tmpdir(),
   `reeditpro-canonical-color-two-chunk-${process.pid}`,
 )
+let httpServer: Server | undefined
 
 assert.equal(Number.isInteger(sourceFrames), true)
 
@@ -1055,6 +1062,146 @@ try {
     qualityReview.reviewPacket.privateDownloadExecutionAuthorized,
     false,
   )
+  httpServer = await listenServer(createServer(createReeditProApiApp(
+    context.env,
+    {
+      clients: {
+        admin: createMembershipAdminClient(),
+        public: createAuthPublicClient(),
+      },
+    },
+  )))
+  const httpBaseUrl = `http://127.0.0.1:${serverPort(httpServer)}`
+  const browserToken = 'verified-canonical-color-http-token'
+  const otherUserBrowserToken = 'verified-canonical-color-other-user-token'
+  const qualityReviewPath =
+    '/v1/edit-executions/professional-long-form/' +
+    `customer-delivery-packages/${
+      encodeURIComponent(delivery.package.identity.packageRecordId)
+    }/quality-review`
+  const qualityReviewUrl = new URL(qualityReviewPath, httpBaseUrl)
+  qualityReviewUrl.searchParams.set('workspaceId', workspaceId)
+  qualityReviewUrl.searchParams.set(
+    'approvedPlanSnapshotId',
+    snapshotId,
+  )
+  const unauthenticatedQualityReview = await fetchJsonResponse(
+    qualityReviewUrl,
+  )
+  assert.equal(unauthenticatedQualityReview.status, 401)
+  assert.equal(
+    unauthenticatedQualityReview.json.error?.code,
+    'AUTH_REQUIRED',
+  )
+  const crossUserQualityReview = await fetchJsonResponse(
+    qualityReviewUrl,
+    { token: otherUserBrowserToken },
+  )
+  assert.equal(crossUserQualityReview.status, 403)
+  assert.equal(
+    crossUserQualityReview.json.error?.code,
+    'WORKSPACE_ACCESS_DENIED',
+  )
+  const browserQualityReviewResponse = await fetchJsonResponse(
+    qualityReviewUrl,
+    { token: browserToken, origin: 'http://localhost:4173' },
+  )
+  assert.equal(browserQualityReviewResponse.status, 200)
+  const browserQualityReview =
+    professionalLongFormCustomerDeliveryBrowserReviewSchema.parse(
+      browserQualityReviewResponse.json.data
+        ?.professionalLongFormCustomerDeliveryQualityReview,
+    )
+  assert.equal(
+    browserQualityReview.identity.packageRecordId,
+    delivery.package.identity.packageRecordId,
+  )
+  assert.equal(
+    browserQualityReview.authority.reviewPacketHash,
+    qualityReview.reviewPacket.packetHash,
+  )
+  assert.equal(
+    browserQualityReview.authority.masterSha256,
+    qualityReview.reviewPacket.master.sha256,
+  )
+  assert.equal(browserQualityReview.reviewItems.length, 3)
+  assert.equal(browserQualityReview.decision, null)
+  assert.equal(browserQualityReview.privateDownload, null)
+  assert.equal(
+    browserQualityReview.readiness.qualityReviewMediaReady,
+    true,
+  )
+  assert.equal(
+    browserQualityReview.readiness
+      .entireProgramPlaybackRequiredBeforeAcceptance,
+    true,
+  )
+  assert.equal(
+    browserQualityReview.commercialBoundary.secondExportEstimateCreated,
+    false,
+  )
+  assert.equal(
+    browserQualityReview.commercialBoundary.secondExportChargeCreated,
+    false,
+  )
+  assert.equal(
+    browserQualityReview.commercialBoundary.exportTimeCreditPromptAllowed,
+    false,
+  )
+  assert.equal(
+    containsForbiddenBrowserAuthority(browserQualityReview),
+    false,
+  )
+
+  const reviewMediaUrl = new URL(
+    browserQualityReview.reviewMedia.path,
+    httpBaseUrl,
+  )
+  reviewMediaUrl.searchParams.set('workspaceId', workspaceId)
+  reviewMediaUrl.searchParams.set('approvedPlanSnapshotId', snapshotId)
+  reviewMediaUrl.searchParams.set(
+    'expectedReviewPacketHash',
+    browserQualityReview.reviewMedia.expectedReviewPacketHash,
+  )
+  reviewMediaUrl.searchParams.set(
+    'expectedMasterSha256',
+    browserQualityReview.reviewMedia.expectedMasterSha256,
+  )
+  const unauthenticatedReviewMedia = await fetchBinaryResponse(
+    reviewMediaUrl,
+    { range: 'bytes=0-31' },
+  )
+  assert.equal(unauthenticatedReviewMedia.status, 401)
+  const browserReviewRange = await fetchBinaryResponse(reviewMediaUrl, {
+    token: browserToken,
+    range: 'bytes=0-31',
+    origin: 'http://localhost:4173',
+  })
+  assert.equal(browserReviewRange.status, 206)
+  assert.equal(browserReviewRange.bytes.byteLength, 32)
+  assert.equal(browserReviewRange.headers.get('accept-ranges'), 'bytes')
+  assert.equal(
+    browserReviewRange.headers.get('content-range'),
+    `bytes 0-31/${browserQualityReview.authority.masterByteSize}`,
+  )
+  assert.equal(
+    browserReviewRange.headers.get('x-reeditpro-artifact-sha256'),
+    browserQualityReview.authority.masterSha256,
+  )
+  assert.equal(
+    browserReviewRange.headers.get(
+      'x-reeditpro-quality-review-packet-sha256',
+    ),
+    browserQualityReview.authority.reviewPacketHash,
+  )
+  assert.match(
+    browserReviewRange.headers.get('access-control-expose-headers') ?? '',
+    /content-range/iu,
+  )
+  assert.match(
+    browserReviewRange.headers.get('access-control-expose-headers') ?? '',
+    /x-reeditpro-quality-review-packet-sha256/iu,
+  )
   const acceptedDecisionRequest = {
     workspaceId,
     approvedPlanSnapshotId: snapshotId,
@@ -1089,6 +1236,80 @@ try {
     }),
     'VALIDATION_FAILED',
   )
+  const qualityDecisionUrl = new URL(
+    `${qualityReviewPath}/../quality-decision`,
+    httpBaseUrl,
+  )
+  const browserDecisionResponse = await postJsonResponse(
+    qualityDecisionUrl,
+    acceptedDecisionRequest,
+    {
+      token: browserToken,
+      idempotencyKey: 'accept-canonical-customer-delivery-quality',
+    },
+  )
+  assert.equal(browserDecisionResponse.status, 201)
+  const browserDecision =
+    professionalLongFormCustomerDeliveryBrowserDecisionSchema.parse(
+      browserDecisionResponse.json.data
+        ?.professionalLongFormCustomerDeliveryQualityDecision,
+    )
+  assert.equal(browserDecision.disposition, 'recorded')
+  assert.equal(
+    browserDecision.status,
+    'quality_accepted_private_download_reconciled',
+  )
+  assert.equal(
+    browserDecision.decision.value,
+    'accept_exact_private_customer_delivery',
+  )
+  assert.ok(browserDecision.privateDownload)
+  assert.equal(
+    browserDecision.commercialBoundary.secondExportEstimateCreated,
+    false,
+  )
+  assert.equal(
+    browserDecision.commercialBoundary.secondExportChargeCreated,
+    false,
+  )
+  assert.equal(
+    browserDecision.commercialBoundary.customerCreditsMutated,
+    false,
+  )
+  assert.equal(containsForbiddenBrowserAuthority(browserDecision), false)
+  const browserDecisionReplayResponse = await postJsonResponse(
+    qualityDecisionUrl,
+    acceptedDecisionRequest,
+    {
+      token: browserToken,
+      idempotencyKey: 'accept-canonical-customer-delivery-quality',
+    },
+  )
+  assert.equal(browserDecisionReplayResponse.status, 200)
+  const browserDecisionReplay =
+    professionalLongFormCustomerDeliveryBrowserDecisionSchema.parse(
+      browserDecisionReplayResponse.json.data
+        ?.professionalLongFormCustomerDeliveryQualityDecision,
+    )
+  assert.equal(browserDecisionReplay.disposition, 'exact_replay')
+  assert.equal(
+    browserDecisionReplay.decision.decisionHash,
+    browserDecision.decision.decisionHash,
+  )
+  const browserDecisionConflict = await postJsonResponse(
+    qualityDecisionUrl,
+    {
+      ...acceptedDecisionRequest,
+      expectedAudioObjectiveEvidenceHash:
+        sha256Text('wrong-browser-audio-evidence'),
+    },
+    {
+      token: browserToken,
+      idempotencyKey: 'accept-canonical-customer-delivery-quality',
+    },
+  )
+  assert.equal(browserDecisionConflict.status, 409)
+  assert.equal(browserDecisionConflict.json.error?.code, 'IDEMPOTENCY_CONFLICT')
   const acceptedDelivery =
     await deliveryDownloadService.recordQualityDecision({
       workspaceId,
@@ -1097,7 +1318,7 @@ try {
       idempotencyKey: 'accept-canonical-customer-delivery-quality',
       decisionRequest: acceptedDecisionRequest,
     })
-  assert.equal(acceptedDelivery.disposition, 'recorded')
+  assert.equal(acceptedDelivery.disposition, 'exact_replay')
   assert.equal(
     acceptedDelivery.status,
     'quality_accepted_private_download_reconciled',
@@ -1157,6 +1378,76 @@ try {
   )
   assert.equal(firstRangeBytes.byteLength, 32)
   assert.deepEqual(firstRangeBytes, downloadedBytes.subarray(0, 32))
+  assert.deepEqual(Buffer.from(browserReviewRange.bytes), firstRangeBytes)
+  const browserDownloadDescriptor = browserDecision.privateDownload
+  assert.ok(browserDownloadDescriptor)
+  const browserDownloadUrl = new URL(
+    browserDownloadDescriptor.path,
+    httpBaseUrl,
+  )
+  browserDownloadUrl.searchParams.set('workspaceId', workspaceId)
+  browserDownloadUrl.searchParams.set(
+    'approvedPlanSnapshotId',
+    snapshotId,
+  )
+  browserDownloadUrl.searchParams.set(
+    'expectedQualityDecisionHash',
+    browserDownloadDescriptor.expectedQualityDecisionHash,
+  )
+  browserDownloadUrl.searchParams.set(
+    'expectedMasterSha256',
+    browserDownloadDescriptor.expectedMasterSha256,
+  )
+  const browserDownloadRange = await fetchBinaryResponse(
+    browserDownloadUrl,
+    { token: browserToken, range: 'bytes=0-31' },
+  )
+  assert.equal(browserDownloadRange.status, 206)
+  assert.deepEqual(Buffer.from(browserDownloadRange.bytes), firstRangeBytes)
+  assert.equal(
+    browserDownloadRange.headers.get(
+      'x-reeditpro-quality-decision-sha256',
+    ),
+    browserDecision.decision.decisionHash,
+  )
+  assert.equal(
+    browserDownloadRange.headers.get(
+      'x-reeditpro-private-download-delivery-id',
+    ),
+    acceptedDelivery.download.artifact.identity.privateDownloadDeliveryId,
+  )
+  assert.match(
+    browserDownloadRange.headers.get('cache-control') ?? '',
+    /no-store/iu,
+  )
+  const invalidBrowserRange = await fetchBinaryResponse(
+    browserDownloadUrl,
+    {
+      token: browserToken,
+      range: `bytes=${browserDownloadDescriptor.byteSize}-` +
+        `${browserDownloadDescriptor.byteSize + 1}`,
+    },
+  )
+  assert.equal(invalidBrowserRange.status, 416)
+  assert.equal(
+    invalidBrowserRange.headers.get('content-range'),
+    `bytes */${browserDownloadDescriptor.byteSize}`,
+  )
+  const wrongDecisionDownloadUrl = new URL(browserDownloadUrl)
+  wrongDecisionDownloadUrl.searchParams.set(
+    'expectedQualityDecisionHash',
+    sha256Text('wrong-browser-quality-decision'),
+  )
+  const wrongDecisionDownload = await fetchBinaryResponse(
+    wrongDecisionDownloadUrl,
+    { token: browserToken, range: 'bytes=0-31' },
+  )
+  assert.equal(wrongDecisionDownload.status, 403)
+  const crossUserDownload = await fetchBinaryResponse(
+    browserDownloadUrl,
+    { token: otherUserBrowserToken, range: 'bytes=0-31' },
+  )
+  assert.equal(crossUserDownload.status, 403)
   assert.equal(privateDownloadFile.publicUrlCreated, false)
   assert.equal(privateDownloadFile.externalDownloadLinkCreated, false)
   assert.equal(privateDownloadFile.productReady, false)
@@ -1206,6 +1497,33 @@ try {
   assert.equal(postDecisionReview.readiness.privateDownloadExecutionAuthorized, true)
   assert.equal(postDecisionReview.readiness.privateDownloadReconciliationComplete, true)
   assert.equal(postDecisionReview.readiness.authenticatedPrivateByteStreamReady, true)
+  const browserPostDecisionReviewResponse = await fetchJsonResponse(
+    qualityReviewUrl,
+    { token: browserToken },
+  )
+  assert.equal(browserPostDecisionReviewResponse.status, 200)
+  const browserPostDecisionReview =
+    professionalLongFormCustomerDeliveryBrowserReviewSchema.parse(
+      browserPostDecisionReviewResponse.json.data
+        ?.professionalLongFormCustomerDeliveryQualityReview,
+    )
+  assert.equal(
+    browserPostDecisionReview.status,
+    'quality_decision_already_recorded',
+  )
+  assert.equal(
+    browserPostDecisionReview.decision?.decisionHash,
+    acceptedDelivery.decisionRecord.decision.decisionHash,
+  )
+  assert.ok(browserPostDecisionReview.privateDownload)
+  assert.equal(
+    browserPostDecisionReview.readiness.authenticatedPrivateDownloadReady,
+    true,
+  )
+  assert.equal(
+    containsForbiddenBrowserAuthority(browserPostDecisionReview),
+    false,
+  )
   const unauthorizedContext: ServiceContext = {
     ...context,
     auth: {
@@ -1321,6 +1639,12 @@ try {
       acceptedDelivery.download.artifact.identity.privateDownloadDeliveryId,
     customerDeliveryPrivateDownloadReconciled: true,
     customerDeliveryAuthenticatedPrivateByteStreamVerified: true,
+    customerDeliveryBrowserSafeReviewReceiptVerified: true,
+    customerDeliveryPreDecisionAuthenticatedRangeVerified: true,
+    customerDeliveryBrowserDecisionAndExactReplayVerified: true,
+    customerDeliveryBrowserCrossUserDenialVerified: true,
+    customerDeliveryBrowserPrivateDownloadRangeVerified: true,
+    customerDeliveryBrowserNoSecondEstimateChargeOrCreditPromptVerified: true,
     customerDeliveryPrivateDownloadExactReplayVerified: true,
     customerDeliveryFinalQueueCompletedJobCount:
       acceptedDelivery.download.queueAggregate.summary.completedJobCount,
@@ -1331,6 +1655,7 @@ try {
     productionReady: false,
   }, null, 2))
 } finally {
+  if (httpServer) await closeServer(httpServer)
   await rm(localStorageRoot, { recursive: true, force: true })
 }
 
@@ -1818,6 +2143,139 @@ function createMembershipAdminClient(): SupabaseClient {
       return query
     },
   } as unknown as SupabaseClient
+}
+
+function createAuthPublicClient(): SupabaseClient {
+  return {
+    auth: {
+      async getUser(token: string) {
+        const resolvedUserId = token === 'verified-canonical-color-http-token'
+          ? userId
+          : token === 'verified-canonical-color-other-user-token'
+            ? 'user-outside-canonical-customer-delivery'
+            : null
+        return resolvedUserId
+          ? {
+              data: {
+                user: {
+                  id: resolvedUserId,
+                  email: `${resolvedUserId}@example.invalid`,
+                },
+              },
+              error: null,
+            }
+          : {
+              data: { user: null },
+              error: { message: 'Invalid smoke token.' },
+            }
+      },
+    },
+  } as unknown as SupabaseClient
+}
+
+interface HttpJsonEnvelope {
+  ok?: boolean
+  data?: Record<string, unknown>
+  error?: { code?: string; message?: string }
+  warnings?: unknown[]
+}
+
+async function fetchJsonResponse(
+  url: URL,
+  options: { token?: string; origin?: string } = {},
+): Promise<{ status: number; json: HttpJsonEnvelope; headers: Headers }> {
+  const response = await fetch(url, {
+    headers: {
+      ...(options.token
+        ? { authorization: `Bearer ${options.token}` }
+        : {}),
+      ...(options.origin ? { origin: options.origin } : {}),
+    },
+  })
+  return {
+    status: response.status,
+    json: await response.json() as HttpJsonEnvelope,
+    headers: response.headers,
+  }
+}
+
+async function postJsonResponse(
+  url: URL,
+  body: unknown,
+  options: { token: string; idempotencyKey: string },
+): Promise<{ status: number; json: HttpJsonEnvelope; headers: Headers }> {
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      authorization: `Bearer ${options.token}`,
+      'content-type': 'application/json',
+      'idempotency-key': options.idempotencyKey,
+    },
+    body: JSON.stringify(body),
+  })
+  return {
+    status: response.status,
+    json: await response.json() as HttpJsonEnvelope,
+    headers: response.headers,
+  }
+}
+
+async function fetchBinaryResponse(
+  url: URL,
+  options: { token?: string; range?: string; origin?: string } = {},
+): Promise<{ status: number; bytes: Uint8Array; headers: Headers }> {
+  const response = await fetch(url, {
+    headers: {
+      ...(options.token
+        ? { authorization: `Bearer ${options.token}` }
+        : {}),
+      ...(options.range ? { range: options.range } : {}),
+      ...(options.origin ? { origin: options.origin } : {}),
+    },
+  })
+  return {
+    status: response.status,
+    bytes: new Uint8Array(await response.arrayBuffer()),
+    headers: response.headers,
+  }
+}
+
+function listenServer(server: Server): Promise<Server> {
+  return new Promise((resolve, reject) => {
+    server.once('error', reject)
+    server.listen(0, '127.0.0.1', () => resolve(server))
+  })
+}
+
+function closeServer(server: Server): Promise<void> {
+  return new Promise((resolve, reject) => {
+    server.close((error) => error ? reject(error) : resolve())
+  })
+}
+
+function serverPort(server: Server): number {
+  const address = server.address()
+  if (!address || typeof address === 'string') {
+    throw new Error('Expected long-form HTTP smoke server to have a TCP port.')
+  }
+  return address.port
+}
+
+function containsForbiddenBrowserAuthority(
+  value: unknown,
+  key = '',
+): boolean {
+  if (/^(?:ownerUserId|approvedPlanId|qualityDecisionId|jobId|approvedWorkItemId|queueCompletionHash|canonicalResultHash|attemptInternalCostEvidenceHash|validationArtifactRef|objectiveEvidenceRef|deliveryPackageRef|deliveryPackageHash|placementManifestHash|queueDefinitionHash|reviewedQueueAggregateHash|recordHash|idempotencyKeyHash|decisionRequestHash|localFilePath|storageObjectPath|privateObjectIdentityHash|authorityRef|costEvidence)$/u.test(key)) {
+    return true
+  }
+  if (Array.isArray(value)) {
+    return value.some((entry) => containsForbiddenBrowserAuthority(entry))
+  }
+  if (value && typeof value === 'object') {
+    return Object.entries(value).some(([childKey, childValue]) =>
+      containsForbiddenBrowserAuthority(childValue, childKey))
+  }
+  return false
 }
 
 async function expectApiError(

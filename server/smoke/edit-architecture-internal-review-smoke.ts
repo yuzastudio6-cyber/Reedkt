@@ -115,6 +115,11 @@ const steps: SmokeStep[] = [
     requiredFor: 'exact private review media integrity, bounded accept/revision decisions, and immutable history reopening without browser-owned artifact or job authority',
   },
   {
+    id: 'professional_long_form_customer_delivery_client',
+    script: 'smoke:professional-long-form-customer-delivery-client',
+    requiredFor: 'strict long-form review receipts, pre-decision authenticated byte ranges, explicit quality decisions, and accepted private-download ranges without a second estimate or charge',
+  },
+  {
     id: 'private_download_client',
     script: 'smoke:edit-execution-private-download-client',
     requiredFor: 'private MP4 and manifest fetch client safety',

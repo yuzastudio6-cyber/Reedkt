@@ -188,6 +188,12 @@ export const professionalLongFormDeliveryQualityReviewQuerySchema = z.object({
   approvedPlanSnapshotId: identity,
 }).strict()
 
+export const professionalLongFormDeliveryQualityReviewMediaQuerySchema =
+  professionalLongFormDeliveryQualityReviewQuerySchema.extend({
+    expectedReviewPacketHash: sha256,
+    expectedMasterSha256: sha256,
+  }).strict()
+
 export const professionalLongFormDeliveryPrivateDownloadQuerySchema =
   professionalLongFormDeliveryQualityReviewQuerySchema.extend({
     expectedQualityDecisionHash: sha256,

@@ -11,6 +11,7 @@ import { createCanonicalExecutionPackageRequestCoordinatorService } from '../ser
 import { createCanonicalExecutionReadinessService } from '../services/canonical-execution-readiness-service'
 import { createCanonicalPrivateEditPreparationCoordinatorService } from '../services/canonical-private-edit-preparation-coordinator-service'
 import { createCanonicalPrivateFinalArtifactDownloadService } from '../services/canonical-private-final-artifact-download-service'
+import { createCanonicalProfessionalLongFormCustomerDeliveryBrowserService } from '../services/canonical-professional-long-form-customer-delivery-browser-service'
 import { createCanonicalProfessionalLongFormCustomerDeliveryDownloadService } from '../services/canonical-professional-long-form-customer-delivery-download-service'
 import { createCanonicalPrivateJobExecutionAdapterService } from '../services/canonical-private-job-execution-adapter-service'
 import { createCanonicalPrivateReviewDecisionCoordinatorService } from '../services/canonical-private-review-decision-coordinator-service'
@@ -79,6 +80,7 @@ import { asyncRoute, getIdempotencyKey, getRouteParam, getServiceContext, sendOk
 import { resolveProfessionalToolAdapterContract } from '../tool-registry/professional-tool-adapter-contracts'
 import {
   professionalLongFormDeliveryPrivateDownloadQuerySchema,
+  professionalLongFormDeliveryQualityReviewMediaQuerySchema,
   professionalLongFormDeliveryQualityReviewQuerySchema,
   recordProfessionalLongFormDeliveryQualityDecisionSchema,
 } from '../edit-architecture/professional-long-form-customer-delivery-download-execution-contract'
@@ -1285,21 +1287,47 @@ function registerEditExecutionUserRoutes(router: Router): void {
         request.query,
       )
       const result = await
-        createCanonicalProfessionalLongFormCustomerDeliveryDownloadService(
+        createCanonicalProfessionalLongFormCustomerDeliveryBrowserService(
           getServiceContext(request),
-        ).inspectQualityReview({
+        ).inspect({
           ...query,
           packageRecordId: getRouteParam(request, 'packageRecordId'),
         })
       sendOk(response, {
-        professionalLongFormCustomerDeliveryQualityReview: {
-          status: result.status,
-          reviewPacket: result.reviewPacket,
-          decision: result.decisionRecord?.decision ?? null,
-          readiness: result.readiness,
-          evidenceHash: result.evidenceHash,
-        },
-      })
+        professionalLongFormCustomerDeliveryQualityReview: result.receipt,
+      }, result.warnings)
+    }),
+  )
+
+  router.get(
+    '/v1/edit-executions/professional-long-form/customer-delivery-packages/:packageRecordId/quality-review/media',
+    requireAuth,
+    asyncRoute(async (request, response) => {
+      const query = validateBody(
+        professionalLongFormDeliveryQualityReviewMediaQuerySchema,
+        request.query,
+      )
+      const file = await
+        createCanonicalProfessionalLongFormCustomerDeliveryDownloadService(
+          getServiceContext(request),
+        ).readQualityReviewMedia({
+          ...query,
+          packageRecordId: getRouteParam(request, 'packageRecordId'),
+        })
+      response.setHeader('content-type', file.mimeType)
+      response.setHeader(
+        'content-disposition',
+        `inline; filename="${file.fileName}"`,
+      )
+      response.setHeader('cache-control', 'private, no-store, max-age=0')
+      response.setHeader('x-content-type-options', 'nosniff')
+      response.setHeader('content-security-policy', "default-src 'none'; sandbox")
+      response.setHeader('x-reeditpro-artifact-sha256', file.sha256)
+      response.setHeader(
+        'x-reeditpro-quality-review-packet-sha256',
+        file.reviewPacketHash,
+      )
+      await streamPrivateMp4(request, response, file)
     }),
   )
 
@@ -1313,39 +1341,18 @@ function registerEditExecutionUserRoutes(router: Router): void {
         request.body,
       )
       const result = await
-        createCanonicalProfessionalLongFormCustomerDeliveryDownloadService(
+        createCanonicalProfessionalLongFormCustomerDeliveryBrowserService(
           getServiceContext(request),
-        ).recordQualityDecision({
+        ).record({
           workspaceId: decisionRequest.workspaceId,
           approvedPlanSnapshotId: decisionRequest.approvedPlanSnapshotId,
           packageRecordId: getRouteParam(request, 'packageRecordId'),
           idempotencyKey: getIdempotencyKey(request),
           decisionRequest,
         })
-      const download = result.download
-        ? {
-            privateDownloadDeliveryId:
-              result.download.artifact.identity.privateDownloadDeliveryId,
-            qualityDecisionHash: result.decisionRecord.decision.decisionHash,
-            masterSha256: result.download.artifact.delivery.sha256,
-            byteSize: result.download.artifact.delivery.byteSize,
-            mimeType: result.download.artifact.delivery.mimeType,
-            downloadPath:
-              `/v1/edit-executions/professional-long-form/customer-delivery-packages/${
-                encodeURIComponent(result.decisionRecord.identity.packageRecordId)
-              }/private-download/file`,
-          }
-        : null
       sendOk(response, {
-        professionalLongFormCustomerDeliveryQualityDecision: {
-          status: result.status,
-          disposition: result.disposition,
-          decision: result.decisionRecord.decision,
-          download,
-          readiness: result.readiness,
-          evidenceHash: result.evidenceHash,
-        },
-      }, [], result.disposition === 'recorded' ? 201 : 200)
+        professionalLongFormCustomerDeliveryQualityDecision: result.receipt,
+      }, result.warnings, result.receipt.disposition === 'recorded' ? 201 : 200)
     }),
   )
 

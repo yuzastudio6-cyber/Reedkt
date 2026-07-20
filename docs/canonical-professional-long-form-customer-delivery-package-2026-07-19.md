@@ -2,7 +2,7 @@
 
 Date: 2026-07-19
 
-Status: `private_local_nine_job_delivery_executed_product_and_cloud_blocked`
+Status: `private_local_nine_job_delivery_and_browser_transport_executed_named_edit_discovery_product_and_cloud_blocked`
 
 ## Outcome
 
@@ -35,8 +35,45 @@ This is 9/9 completed jobs for the separate two-chunk customer-delivery graph.
 It does not complete the 255-job six-hour capacity graph and it is not a human
 review of representative footage. The smoke-owned media workspace is deleted in
 a `finally` cleanup, so this proof intentionally leaves no viewable demo file.
-Google Cloud dispatch, durable distributed persistence, browser integration,
-public delivery, billing, and production remain blocked.
+The same retained fixture now also passes the actual Express user routes and the
+frontend-safe client contract for browser-safe review metadata, authenticated
+pre-decision byte ranges, exact quality-decision recording/replay, and accepted
+private-download byte ranges. Google Cloud dispatch, durable distributed
+persistence, named-edit journey discovery/UI consumption, public delivery,
+billing, and production remain blocked.
+
+## Authenticated browser review contract
+
+The browser can now inspect one strict, tenant-scoped receipt without receiving
+the raw review packet, jobs, tools, queue/lease/attempt data, internal cost
+evidence, filesystem/storage paths, credentials, or provider authority. The
+receipt binds the exact workspace, project, edit, approved snapshot, delivery
+package, review packet hash, private MP4 checksum/byte size, decoded-video
+evidence hash, decoded-audio evidence hash, and three safe review items.
+
+Four reviewed frontend-safe route identities are registered:
+
+- quality-review metadata;
+- authenticated pre-decision review media;
+- exact quality accept/revision decision; and
+- accepted private-download media.
+
+The pre-decision media route closes an important authority gap: a user can read
+bounded authenticated ranges from the exact immutable master before attesting
+that the whole program was reviewed. Acceptance therefore no longer requires a
+claim about media that the browser was not allowed to read. The client limits
+each request to 8 MiB and verifies the exact `206`, `Content-Range`, byte count,
+no-store policy, MP4 content type, full-artifact checksum header, and review or
+decision authority header. This is the transport foundation for a later
+MediaSource/player adapter; it never loads an arbitrarily large professional
+master into one browser `Blob`.
+
+Only the accepted exact decision opens the separate one-use download
+reconciliation. A revision keeps download closed and requires a fresh plan,
+estimate, approval, execution, and private review. Both receipts explicitly
+preserve the original approved 4K estimate/reservation and forbid a second
+export estimate, charge, credit prompt, wallet mutation, settlement, or billing
+action.
 
 ## Why delivery is a separate package
 
@@ -164,6 +201,18 @@ The run rebuilt and verified the real private chain before package promotion:
   reconciliation, and terminal record;
 - authenticated whole-file and first-32-byte range reads matched the exact
   private MP4, while another workspace user was denied;
+- the actual Express quality-review route denied missing authentication and a
+  different authenticated user, then returned a strict browser-safe receipt
+  with no raw worker or internal-cost authority;
+- the actual Express pre-decision review-media route returned the exact first
+  32 MP4 bytes as an authenticated no-store `206` range and exposed the required
+  range/integrity headers through the local CORS policy;
+- the actual Express decision route recorded the exact acceptance once,
+  returned an exact replay on the same key/request, and rejected a conflicting
+  replay;
+- the actual Express download route returned the same exact 32 bytes after
+  acceptance, rejected a wrong decision hash, denied another user, and returned
+  `416` with the exact unsatisfied byte-size commitment for an invalid range;
 - delivery queue reached 9 completed, 0 leased, and 0 queued;
 - process-state restart returned the exact immutable package, H.264/QA
   completions, mux artifact, both decoded-QA artifacts, both distinct raw-blob
@@ -178,6 +227,12 @@ The run rebuilt and verified the real private chain before package promotion:
 - private download reconciled: true;
 - authenticated private byte stream verified: true;
 - private-download exact restart replay: true;
+- browser-safe review receipt: true;
+- pre-decision authenticated range playback transport: true;
+- browser decision plus exact replay: true;
+- browser cross-user denial: true;
+- browser private-download range: true;
+- no second browser estimate, charge, or credit prompt: true;
 - final delivery queue complete: 9/9;
 - export execution authorized: false;
 - product ready: false; and
@@ -187,31 +242,31 @@ The retained private-review-master SHA-256 was
 `3e7d1707b4b9f0442ad92524f033fa7cecb20f73ba3393f31fd17d491db61e82`.
 This is local retained evidence, not a deployed object identity.
 
-The retained delivery identities after private mux completion were:
+The retained delivery identities from the aggregate browser-transport rerun were:
 
 - package hash:
-  `5eab8014c6e728df188403763910f7ae477de057b3d1f629b8ccae84c283195e`;
+  `2a98588bbbf769dea568a529f6ecefcb2662615c46a4e1b820c2ba56d6b29246`;
 - work-graph hash:
-  `c4eaa3af44bb8206dc0090405d235cd0b54edd5b50ce01e3cc29adb32db686df`;
+  `45c7843e7b94088c784c65789926660cc9b6f34a09d1f639d56dcc9bb559186a`;
 - final queue-aggregate hash:
-  `5be85b0b8e099144ae37be2ba98f565c8485c87699bf23836c0e088217f52d2d`;
+  `3564d564a6e5c3b5b0189bb7c755f0ffa3c8005d34b0796c4ddaff8cbbc03617`;
   and
 - private H.264/AAC master SHA-256:
   `dbb8329f33fc78e208f390262b6551388deaa887d9343b32ef43608f841897e3`.
 
 The retained mux internal-cost evidence hash was
-`270a9b3cd6a064fd589d3e00e1ba023401c423155a5464dcf104e97745e30627`.
+`0fb04169e867360a177dda626c61021dfd9f043853f8dc770b0e5de9827cbb67`.
 The decoded-video and decoded-audio internal-cost evidence hashes were,
 respectively,
-`b9ff00e4f065038e3bb7f3754de37b7bf59d6f01e62c07b9b5c2b9772350627e`
+`caf0cbfaf3d93bf72d705cd68ccafaf75909e7989ad6faab267898bd6e61f367`
 and
-`c092fbf37b00f8efc328bf9db40aad8321d44d0f57bc653f489668360f1f3fa4`.
+`9ef5ab34996bcfd7881d4a3c6cde76d822bf48608a7a29fcc15bb95c9805cc64`.
 The quality-review packet, synthetic acceptance, private-download cost, and
 final delivery queue hashes were, respectively,
-`2fc9f1af86eb93493ba21febc5f458cde1906790030d1c68811cad8f2afb6108`,
-`496832ee427654f2857e61786f17cbdbb3c46ee218dbb17253e2ef697001035a`,
-`8569a880d1b0b54f03262d89c4559ec262649ee72be6048c3a1982c265cd92ca`,
-and `5be85b0b8e099144ae37be2ba98f565c8485c87699bf23836c0e088217f52d2d`.
+`66406d4462cff3397feb5bd20cedc025c138a7ef580bc3057a2cdb9392d3ba4d`,
+`7396502489f1c26bba22e9db552758e7164c077ab1727b54483ee300e098cbbd`,
+`bf125abf65cfef950422ad35865dbd9856b989e65e5ed0cc0248d4ae79ca41a3`,
+and `3564d564a6e5c3b5b0189bb7c755f0ffa3c8005d34b0796c4ddaff8cbbc03617`.
 These hashes bind the retained local proof only. They do not grant cloud,
 commercial, public-delivery, product, or production authority.
 
@@ -240,8 +295,10 @@ This slice does not prove or authorize:
   not change either objective `needs_user_review` outcome;
 - a retained demo object or website playback; the smoke deletes its private
   fixture workspace after assertions complete;
-- HTTP/browser integration coverage for the new quality-review,
-  quality-decision, and authenticated range-download routes;
+- named-edit recovery/discovery of this separate customer-delivery package,
+  UI/hook consumption, MediaSource playback, full-program watch-state evidence,
+  or a retained viewable demo object; the route/client foundation is proven but
+  is not mounted as a second UI or authority;
 - distributed database-backed package, queue, outbox, or completion authority;
 - GCS persistence, Cloud Run dispatch, IAM/service identity, or live Google
   Cloud cost reconciliation;
@@ -254,9 +311,11 @@ This slice does not prove or authorize:
 
 ## Next dependency-safe capability
 
-Connect the frozen review/decision/download contract to the canonical signed-in
-browser client and prove the HTTP route boundary without changing the product
-UI owned elsewhere. The later deployed journey must replace private local files
+Expose this strict customer-delivery authority through the one canonical named-
+edit recovery journey so the separately owned product UI can consume the client
+without creating another review system. Then add one bounded MediaSource/player
+adapter with durable whole-program watch-state evidence and a retained private
+acceptance fixture. The later deployed journey must replace private local files
 with tenant-scoped durable Supabase/GCS authority, distributed queue/lease
 execution, Cloud Run dispatch, and real cross-instance recovery. It must keep
 the original approved 4K estimate/reservation, never introduce a second export

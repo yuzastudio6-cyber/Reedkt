@@ -284,6 +284,53 @@ export function createCanonicalProfessionalLongFormCustomerDeliveryDownloadServi
       return { ...payload, evidenceHash: sha256AuthorityValue(payload) }
     },
 
+    async readQualityReviewMedia(input: ExactPackageInput & {
+      expectedReviewPacketHash: string
+      expectedMasterSha256: string
+    }) {
+      assertPrivateRuntime(context)
+      const ownerUserId = await requireWorkspaceActor(
+        context,
+        input.workspaceId,
+        'read',
+      )
+      const current = await loadExactCurrent(context, ownerUserId, input)
+      const existing = await readDecisionRecord({
+        context,
+        ownerUserId,
+        input,
+      })
+      const reviewPacket = existing?.reviewPacket ??
+        await buildCurrentReviewPacket(context, current)
+      if (
+        reviewPacket.packetHash !== input.expectedReviewPacketHash ||
+        reviewPacket.master.sha256 !== input.expectedMasterSha256
+      ) throw conflict(
+        'Quality-review media expectation does not match the exact immutable review packet.',
+      )
+      const stored = await inspectExactReviewMaster(context, reviewPacket)
+      return {
+        schemaVersion:
+          'canonical-professional-long-form-quality-review-media-v1' as const,
+        source:
+          'canonical_professional_long_form_customer_delivery_download_service' as const,
+        reviewPacketHash: reviewPacket.packetHash,
+        mimeType: 'video/mp4' as const,
+        fileName: 'reeditpro-private-customer-delivery-review.mp4',
+        byteSize: stored.byteLength,
+        sha256: stored.sha256,
+        openStream: stored.openStream,
+        entireProgramPlaybackRequiredBeforeAcceptance: true as const,
+        privateDownloadExecutionAuthorized: false as const,
+        publicUrlCreated: false as const,
+        signedUrlCreated: false as const,
+        publicDeliveryAuthorized: false as const,
+        customerCreditsMutated: false as const,
+        productReady: false as const,
+        productionReady: false as const,
+      }
+    },
+
     async readPrivateDownload(input: ExactPackageInput & {
       expectedQualityDecisionHash: string
       expectedMasterSha256: string
@@ -813,6 +860,24 @@ async function inspectExactMaster(
     stored.sha256 !== authority.master.sha256
   ) throw notReady(
     'Private download could not reopen the exact immutable customer-delivery master.',
+  )
+  return stored
+}
+
+async function inspectExactReviewMaster(
+  context: ServiceContext,
+  packet: ProfessionalLongFormDeliveryQualityReviewPacket,
+): Promise<CanonicalPrivateCustomerDeliveryArtifactInspection> {
+  const stored = await inspectCanonicalPrivateCustomerDeliveryArtifact({
+    localStorageRoot: context.env.localStorageRoot,
+    privateObjectIdentityHash: packet.master.objectIdentity,
+  })
+  if (
+    !stored || stored.mediaFormat !== 'mp4' ||
+    stored.byteLength !== packet.master.byteLength ||
+    stored.sha256 !== packet.master.sha256
+  ) throw notReady(
+    'Quality review could not reopen the exact immutable customer-delivery master.',
   )
   return stored
 }

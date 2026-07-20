@@ -13,7 +13,8 @@ primary pipeline signal.
 
 The command verifies the connected path from exact source, Edit Preferences,
 and Edit Brief authority through a real resumable-sized 4K private ingest/proxy
-proof, a frame-exact professional long-form object-backed planning contract,
+proof and the fail-closed database-neutral pre-plan distributed-ingest contract,
+then a frame-exact professional long-form object-backed planning contract,
 an exact approved-snapshot binding contract for that long-form seed and bounded
 expanded child graph, and a canonical post-approval persistence proof that
 reopens the exact seed/controller and persists a deterministic blocked
@@ -100,7 +101,13 @@ plan fits the bounded canonical profile.
    interrupted chunk recovery, backend byte hash and generation/ETag authority,
    capacity admission, private probe/finalization, restart/replay, exact-source
    verification, and a checksum-bound 1920x1080 analysis proxy that cannot
-   replace the immutable render master.
+   replace the immutable render master. Separately verify the database-neutral
+   pre-plan technical-ingest contract through exact upload identity, capacity-
+   before-attempt, one active lease, monotonic byte/phase checkpoints,
+   generation-bound retry, cancellation, terminal exclusivity, restart/replay,
+   and attempt-level internal infrastructure cost without fabricating an
+   approved snapshot or reservation. Its database, cloud dispatch, live GCS,
+   hosted high-ceiling, commercial, and production gates must remain false.
 3. Verify the additive professional long-form object-backed planning profile
    against a 30-minute, 24-source fixture and the bounded six-hour,
    512-source-range capacity fixture. The plan must conserve exact frames,
@@ -218,7 +225,7 @@ source-bound audio identities in approved order, reads sanitized journey state,
 and records review acceptance.
 
 The runner stops on the first failed phase and prints a machine-readable
-`canonical-private-pipeline-verification-v29` report with step exit codes and
+`canonical-private-pipeline-verification-v30` report with step exit codes and
 durations. A zero exit code means every included assertion passed, including
 assertions that production-only or unavailable behavior stays blocked.
 
@@ -228,6 +235,18 @@ and open time. Resource isolation prevents unrelated local tasks from mutating
 that discovery channel; it does not weaken image-identity validation.
 
 ## Current Evidence Record
+
+On 2026-07-20, the exact-source bounded v30 command passed all `40/40`
+phases with exit code `0`. The new pre-plan distributed-ingest phase passed
+48 adversarial checks with evidence SHA-256
+`8ebceb3707e2604d04bfcff6c18e9205a9fdaaf3a367c8c5ba063b73557dd739`.
+It did not unlock a database adapter, cloud dispatch, live GCS traversal,
+hosted uploads above 16 MiB, or production authority. The same aggregate
+repassed the retained six-hour/255-job, two-chunk customer-delivery,
+three-source composition, professional-color, UHD Remotion, and 11-state
+named-edit browser proofs. Its final tool report was generated at
+`2026-07-20T20:47:53.266Z` and still reported exactly 50 canonical end-to-end
+tool identities and 50 canonical job adapters.
 
 On 2026-07-20, the bounded v29 command passed all `39/39` phases with exit
 code `0`; its final tool report was generated at

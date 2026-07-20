@@ -41,6 +41,11 @@ const canonicalSteps: VerificationStep[] = [
     'A real resumable-sized 4K source crosses interrupted chunk recovery, backend byte verification, generation-bound private finalization, durable replay, and immutable-master proxy lineage.',
   ),
   step(
+    'canonical-distributed-media-ingest-contract',
+    'smoke:canonical-distributed-media-ingest-state-port',
+    'The database-neutral pre-plan technical-ingest contract derives exact upload authority without fabricating a snapshot or reservation, serializes enqueue/claim/lease/checkpoint/terminal/replay semantics, retains attempt-level internal infrastructure cost, and keeps database, cloud dispatch, live GCS bytes, hosted high-ceiling admission, commerce, and production authority false.',
+  ),
+  step(
     'professional-long-form-object-plan',
     'smoke:professional-long-form-object-plan',
     'A server-owned object-backed plan conserves exact frames across a 30-minute 24-source fixture and a bounded six-hour/512-range capacity fixture, requires chunk QA, continuous program audio, color continuity, one approved 4K estimate, and keeps snapshot wiring, media execution, storage, database, cloud, staging, and production false.',
@@ -320,7 +325,7 @@ function printReport(
 ): void {
   const finishedAt = new Date()
   const report = {
-    schemaVersion: 'canonical-private-pipeline-verification-v29',
+    schemaVersion: 'canonical-private-pipeline-verification-v30',
     status,
     mode: full ? 'full_internal_regression' : 'canonical_private_pipeline',
     startedAt: runStartedAt.toISOString(),
@@ -340,6 +345,8 @@ function printReport(
       ? {
           exactSourcePreferenceBriefAuthority: true,
           resumableSized4kPrivateSourcePipeline: true,
+          databaseNeutralPrePlanDistributedMediaIngestContract: true,
+          distributedMediaIngestApprovedPackageAuthorityFabricated: false,
           professionalLongFormObjectBackedPlanningContract: true,
           professionalLongFormApprovedSnapshotBindingContract: true,
           professionalLongFormCanonicalSeedComponentPersistence: true,
@@ -473,6 +480,10 @@ function printReport(
       publicDeliveryAuthorized: false,
       deploymentAuthorized: false,
       distributedPackageQueueOutboxTransactionVerified: false,
+      distributedMediaIngestDatabaseTransactionVerified: false,
+      distributedMediaIngestCloudDispatchVerified: false,
+      distributedMediaIngestLiveGcsWorkerVerified: false,
+      hostedLargeMediaAboveInlineCeilingAllowed: false,
       canonicalPackageStateDatabaseFunctionsExecuted: false,
       canonicalPackageStateRpcLiveClientActivated: false,
       professionalLongFormRemaining247ChildLeasesVerified: false,

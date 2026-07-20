@@ -30,6 +30,11 @@
   "signedUrlVerified": false,
   "resumableUploadVerified": false,
   "largeMediaDistributedFinalizationVerified": false,
+  "largeMediaDistributedFinalizationSourceContractVersion": "canonical-distributed-media-ingest-state-port-v1",
+  "largeMediaDistributedFinalizationSourceContractVerified": true,
+  "largeMediaDistributedDatabaseTransactionVerified": false,
+  "largeMediaDistributedCloudDispatchVerified": false,
+  "largeMediaDistributedLiveGcsWorkerVerified": false,
   "blockedScope": {
     "cloudMutationPerformed": false,
     "objectRead": false,

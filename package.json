@@ -55,6 +55,7 @@
     "smoke:canonical-private-provider-work-lifecycle": "tsx server/smoke/canonical-private-provider-work-lifecycle-smoke.ts",
     "smoke:canonical-private-package-state-transaction": "tsx server/smoke/canonical-private-package-state-transaction-smoke.ts",
     "smoke:canonical-distributed-package-state-port": "tsx server/smoke/canonical-distributed-package-state-port-smoke.ts",
+    "smoke:canonical-distributed-media-ingest-state-port": "tsx server/smoke/canonical-distributed-media-ingest-state-port-smoke.ts",
     "smoke:canonical-distributed-package-state-rpc-adapter": "tsx server/smoke/canonical-distributed-package-state-rpc-adapter-smoke.ts",
     "smoke:professional-long-form-object-plan": "tsx server/smoke/professional-long-form-object-execution-plan-smoke.ts",
     "smoke:professional-long-form-snapshot-bridge": "tsx server/smoke/professional-long-form-approved-snapshot-bridge-smoke.ts",

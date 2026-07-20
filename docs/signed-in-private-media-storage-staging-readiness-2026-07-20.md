@@ -74,13 +74,14 @@ object bytes leave the browser. This is safer than accepting a huge object
 that the deployed system cannot yet finalize.
 
 The existing private single-host finalizer remains valid only for local/mock
-testing. Production startup rejects that mode. The reserved future
-`distributed` enum value also fails startup and upload admission in this source
-build, so configuration cannot silently claim the missing capability. ReEditPro must add a durable,
-tenant-isolated distributed finalization authority with dispatch, lease,
-heartbeats, restart recovery, exact-byte hashing/probing, capacity admission,
-cost evidence, and replay before the hosted high-ceiling upload contract can be
-activated.
+testing. Production startup rejects that mode. The new source-only pre-plan
+distributed-ingest contract now freezes exact upload identity, capacity-before-
+attempt, lease, checkpoint/resume, cancellation, failure/timeout, private
+completion, replay, and internal-cost semantics without fabricating an
+approved snapshot or credit reservation. Its in-memory conformance fixture is
+not a durable database adapter or deployed worker. The reserved `distributed`
+enum value therefore still fails startup and upload admission, so configuration
+cannot silently promote source-contract evidence into hosted capability.
 
 The source and reference product ceilings remain 1 TiB and 250 GiB. They are
 validation ceilings, not current hosted entitlements or throughput claims.
@@ -92,6 +93,7 @@ npm run smoke:signed-in-private-media-storage-readiness
 npm run smoke:gcs-upload-integrity-security
 npm run smoke:large-media-ingest-readiness
 npm run smoke:large-media-background-finalization
+npm run smoke:canonical-distributed-media-ingest-state-port
 npm run smoke:google-api-gateway-readiness
 npm run smoke:google-api-gateway-staging-activation
 npm run smoke:app-internal-testing-pages-deploy-readiness

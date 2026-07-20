@@ -47,8 +47,12 @@ The 2026-07-20 signed-in staging contract keeps these ceilings fail-closed:
 GCS is configured only for bounded source/reference transport and
 `REEDITPRO_LARGE_MEDIA_FINALIZATION_MODE=disabled`. A hosted object above
 16 MiB is rejected before a storage target or resumable credential is issued.
-The resumable behavior below is executable private/fake-provider architecture,
-not an active hosted entitlement, until distributed finalization passes.
+The additive database-neutral pre-plan ingest contract freezes the future
+distributed transaction, lease, checkpoint/resume, cancellation, terminal,
+and internal-cost semantics, but has no durable database adapter, cloud
+dispatch, or live GCS worker. The resumable behavior below is executable
+private/fake-provider architecture, not an active hosted entitlement, until
+those distributed runtime gates pass.
 
 ## Large upload transport
 
@@ -172,6 +176,7 @@ Run:
 ```sh
 npm run smoke:large-media-ingest-readiness
 npm run smoke:large-media-background-finalization
+npm run smoke:canonical-distributed-media-ingest-state-port
 npm run smoke:large-media-private-4k-pipeline
 npm run smoke:canonical-private-color-execution
 npm run smoke:source-upload-planning-backend
@@ -240,9 +245,11 @@ ReEditPro must not claim production large-video support until all of these pass:
   lifecycle rules pass real integration tests;
 - upload session state can recover safely across browser reload without storing
   a bearer session URI in browser persistence or canonical records;
-- an approved distributed dispatcher claims queued jobs, reclaims abandoned
-  work, and resumes safely after process/host loss without relying on a browser
-  request or one long-lived internal HTTP request;
+- the source-verified pre-plan ingest port is implemented by a reviewed durable
+  Postgres transaction adapter, and an authenticated distributed dispatcher
+  claims queued jobs, reclaims abandoned work, and resumes safely after
+  process/host loss without relying on a browser request or one long-lived
+  internal HTTP request;
 - hashing/probing gains durable byte-level progress or an approved
   generation-bound single-pass/range-aware design instead of restarting a full
   traversal after every interrupted attempt;

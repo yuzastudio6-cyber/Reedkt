@@ -8,6 +8,9 @@ import {
 import type {
   ProfessionalLongFormCustomerDeliveryClientInput,
 } from '../../src/lib/professional-long-form-customer-delivery-client'
+import {
+  createProfessionalLongFormCustomerDeliveryFragmentedMp4Fixture,
+} from './professional-long-form-customer-delivery-fragmented-mp4-fixture'
 
 class FakeMediaElement extends EventTarget {
   src = ''
@@ -30,10 +33,12 @@ class FakeSourceBuffer extends EventTarget {
     start: () => this.bufferedStart,
     end: () => this.bufferedEnd,
   }
+  onAppend?: () => void
 
   appendBuffer(bytes: ArrayBuffer): void {
     this.updating = true
     this.appended.push(new Uint8Array(bytes))
+    this.onAppend?.()
     queueMicrotask(() => {
       this.updating = false
       this.dispatchEvent(new Event('updateend'))
@@ -54,6 +59,15 @@ class FakeSourceBuffer extends EventTarget {
 class FakeMediaSource extends EventTarget {
   readyState = 'closed'
   sourceBuffer = new FakeSourceBuffer()
+
+  constructor() {
+    super()
+    this.sourceBuffer.onAppend = () => {
+      if (this.readyState !== 'ended') return
+      this.readyState = 'open'
+      this.sourceBuffer.bufferedStart = 0
+    }
+  }
 
   open(): void {
     this.readyState = 'open'
@@ -83,8 +97,12 @@ const identity = {
 }
 const masterSha256 = 'a'.repeat(64)
 const reviewPacketHash = 'b'.repeat(64)
-const mediaBytes = new Uint8Array((8 * 1024 * 1024 * 2) + 123)
-mediaBytes.fill(0x5a)
+const mediaFixture =
+  createProfessionalLongFormCustomerDeliveryFragmentedMp4Fixture({
+    fragmentCount: 10,
+    mediaPayloadBytesPerFragment: 2 * 1024 * 1024,
+  })
+const mediaBytes = mediaFixture.bytes
 const authority: ProfessionalLongFormCustomerDeliveryClientInput = {
   scope: {
     authMode: 'local_test',
@@ -156,6 +174,10 @@ assert.equal(complete.status, 'stream_complete')
 assert.equal(complete.fullyAppended, true)
 assert.equal(complete.bytesAppended, mediaBytes.byteLength)
 assert.equal(complete.rangeRequestCount, 3)
+assert.equal(complete.fragmentIndexCount, 10)
+assert.equal(complete.fragmentIndexComplete, true)
+assert.equal(complete.backwardSeekRecovery.status, 'ready')
+assert.equal(complete.backwardSeekRecovery.ready, true)
 assert.deepEqual(rangeRequests, [
   { start: 0, end: (8 * 1024 * 1024) - 1 },
   { start: 8 * 1024 * 1024, end: (16 * 1024 * 1024) - 1 },
@@ -168,7 +190,7 @@ assert.equal(
   true,
 )
 assert.deepEqual(
-  Buffer.concat(createdSource?.sourceBuffer.appended.map((chunk) =>
+  Buffer.concat(createdSource?.sourceBuffer.appended.slice(0, 3).map((chunk) =>
     Buffer.from(chunk)) ?? []),
   Buffer.from(mediaBytes),
 )
@@ -181,6 +203,31 @@ assert.deepEqual(stateHistory, [
 assert.deepEqual(createdSource?.sourceBuffer.removed, [
   { start: 0, end: 1 },
 ])
+
+mediaElement.currentTime = 0.5
+mediaElement.dispatchEvent(new Event('seeking'))
+await waitFor(() =>
+  attached.controller.getState().backwardSeekRecovery.status === 'recovered')
+mediaElement.dispatchEvent(new Event('seeked'))
+const recovered = attached.controller.getState()
+assert.equal(recovered.status, 'stream_complete')
+assert.equal(recovered.rangeRequestCount, 4)
+assert.equal(recovered.backwardSeekRecovery.recoveryCount, 1)
+assert.equal(recovered.backwardSeekRecovery.recoveredRangeRequestCount, 1)
+assert.equal(recovered.backwardSeekRecovery.lastTargetTimeSeconds, 0.5)
+assert.deepEqual(recovered.backwardSeekRecovery.lastWindow, {
+  byteStart: mediaFixture.fragmentByteRanges[0]!.byteStart,
+  byteEndExclusive: mediaFixture.fragmentByteRanges[1]!.byteEndExclusive,
+  firstFragmentOrdinal: 0,
+  lastFragmentOrdinal: 1,
+  targetFragmentOrdinal: 0,
+})
+assert.deepEqual(rangeRequests[3], {
+  start: mediaFixture.fragmentByteRanges[0]!.byteStart,
+  end: mediaFixture.fragmentByteRanges[1]!.byteEndExclusive - 1,
+})
+assert.equal(createdSource?.sourceBuffer.bufferedStart, 0)
+assert.equal(createdSource?.readyState, 'ended')
 
 mediaElement.paused = false
 mediaElement.currentTime = 0
@@ -277,11 +324,14 @@ failedRange.controller.dispose()
 console.log(JSON.stringify({
   ok: true,
   schemaVersion:
-    'professional-long-form-customer-delivery-media-source-smoke-v1',
-  authenticatedSequentialRangeCount: rangeRequests.length,
+    'professional-long-form-customer-delivery-media-source-smoke-v2',
+  authenticatedInitialSequentialRangeCount: 3,
+  authenticatedBackwardRecoveryRangeCount: 1,
   maximumRangeBytes: 8 * 1024 * 1024,
   wholeArtifactBufferCreatedByAdapter: false,
   rollingBufferEvictionConfigured: true,
+  exactBackwardSeekRecoveryVerified: true,
+  fragmentIndexRetainsMediaPayloadBytes: false,
   exactFullProgramCoverageObserved: true,
   seekGapRejectedAsFullCoverage: true,
   implausiblePlaybackJumpRejected: true,
@@ -293,6 +343,14 @@ console.log(JSON.stringify({
   publicDeliveryAuthorized: false,
   productionReady: false,
 }, null, 2))
+
+async function waitFor(predicate: () => boolean): Promise<void> {
+  for (let attempt = 0; attempt < 100; attempt += 1) {
+    if (predicate()) return
+    await new Promise((resolve) => globalThis.setTimeout(resolve, 1))
+  }
+  assert.fail('Timed out waiting for deterministic backward-seek recovery.')
+}
 
 function reviewFixture() {
   return {

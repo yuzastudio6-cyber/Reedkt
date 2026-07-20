@@ -45,11 +45,13 @@ frontend-safe client contract for exact named-edit package discovery,
 browser-safe review metadata, authenticated
 pre-decision byte ranges, exact quality-decision recording/replay, and accepted
 private-download byte ranges. A bounded MediaSource adapter now consumes those
-ranges, and actual Chromium decodes and plays a real fragmented H.264/AAC MP4
-without creating a whole-file browser `Blob`. Google Cloud dispatch, durable
+ranges, and actual Chromium decodes and plays a real fragmented H.264/AAC MP4,
+evicts its opening buffer, re-fetches one exact indexed fragment window, and
+resumes backward playback without creating a whole-file browser `Blob`. Google
+Cloud dispatch, durable
 distributed persistence, visible named-edit player/decision mounting of the
-connected canonical-journey result, backward-seek recovery beyond evicted
-buffers, retained review media, public delivery, billing, and production
+connected canonical-journey result, retained review media, public delivery,
+billing, and production
 remain blocked.
 
 ## Authenticated browser review contract
@@ -119,23 +121,30 @@ loads the exact completed evidence hash and fails closed on stale, foreign,
 instant, incomplete, or tampered authority. This is durable private/local
 single-host evidence, not distributed database-backed production authority.
 
-Two independent checks pass:
+Four focused checks pass:
 
 ```text
+npm run smoke:professional-long-form-customer-delivery-mp4-fragment-index
 npm run smoke:professional-long-form-customer-delivery-media-source
 npm run smoke:professional-long-form-customer-delivery-watch-evidence
 npm run qa:professional-long-form-customer-delivery-media-source
 ```
 
-The deterministic smoke reconstructs a 16 MiB-plus fixture from three exact
-ranges, proves no adapter-owned whole-artifact buffer, validates rolling-buffer
-configuration, and rejects foreign review authority, unsupported codec,
-range failure, seek gaps, and implausible playback jumps. The Playwright check
-generates a real three-second H.264 High/AAC fragmented MP4, uses the real
+The fragment-index smoke incrementally parses split 32-bit and 64-bit ISO-BMFF
+headers, retains only bounded `moov`/`moof` authority, binds exact video/audio
+track timescales, and resolves exact fragment byte windows without retaining
+media payload bytes. The deterministic adapter smoke reconstructs a 20
+MiB-plus fixture from three exact initial ranges, evicts its opening buffer,
+recovers time 0.5 from one exact authenticated fragment window, proves no
+adapter-owned whole-artifact buffer, and rejects foreign review authority,
+unsupported codec, range failure, seek gaps, and implausible playback jumps.
+The Playwright check generates a real 36-second H.264 High/AAC fragmented MP4,
+uses the real
 frontend client with bearer and exact workspace/snapshot/review/master
 authority to fetch multiple exact 64 KiB range fixtures, and proves actual
-Chromium decode, playback completion, zero media error, and 100% contiguous
-client-observed frame coverage. The Chromium flow also uses the real frontend
+Chromium decode, playback completion, rolling eviction, exact authenticated
+backward-seek recovery to time 1.0, resumed decode, zero media error, and 100%
+contiguous client-observed frame coverage. The Chromium flow also uses the real frontend
 watch client to save frame-zero and complete coverage checkpoints with bearer,
 exact review/master authority, and deterministic idempotency. Its
 operating-system temporary fixture is
@@ -449,8 +458,8 @@ This slice does not prove or authorize:
 - a retained demo object or website playback; the smoke deletes its private
   fixture workspace after assertions complete;
 - visible UI/player consumption of the proven canonical-journey delivery
-  result, distributed database-backed watch durability, backward-seek recovery
-  beyond the rolling buffer, or a retained viewable demo object; playback,
+  result, distributed database-backed watch durability, or a retained viewable
+  demo object; playback, exact backward-seek recovery,
   frontend watch transport, and private/local durable watch gating are proven,
   but no delivery UI or second authority is mounted;
 - distributed database-backed package, queue, outbox, or completion authority;
@@ -465,8 +474,8 @@ This slice does not prove or authorize:
 
 ## Next dependency-safe capability
 
-Add backward-seek recovery for evicted ranges and a retained private acceptance
-fixture that can be opened for actual review. The separately owned product
+Add a retained private acceptance fixture that can be opened for actual review.
+The separately owned product
 UI must mount the existing adapter from the canonical journey result without
 creating another review system. The later deployed
 journey must replace private local watch/files

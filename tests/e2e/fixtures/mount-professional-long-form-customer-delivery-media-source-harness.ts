@@ -84,6 +84,8 @@ const attachment = await attachProfessionalLongFormCustomerDeliveryMediaSource({
     status.textContent = state.status
     status.dataset.bytesAppended = String(state.bytesAppended)
     status.dataset.rangeRequestCount = String(state.rangeRequestCount)
+    status.dataset.fragmentIndexCount = String(state.fragmentIndexCount)
+    status.dataset.backwardSeekRecovery = state.backwardSeekRecovery.status
   },
 })
 if (attachment.status !== 'attached') {
@@ -211,7 +213,9 @@ function reviewFixture(): ProfessionalLongFormCustomerDeliveryBrowserReview {
       fullProgramPlaybackObserved: false,
       acceptanceGateSatisfied: false,
       serverElapsedMs: 0,
-      minimumRequiredElapsedMs: 1_484,
+      minimumRequiredElapsedMs: Math.ceil(
+        (((fixture!.frameCount - 1) / 30) / 2) * 1_000,
+      ),
       maximumPlaybackRatePermille: 2_000,
       browserReportedCompletionTrusted: false,
       privateLocalDurable: true,

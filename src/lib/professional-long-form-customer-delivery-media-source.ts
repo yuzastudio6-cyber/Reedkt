@@ -8,9 +8,14 @@ import {
   type ProfessionalLongFormCustomerDeliveryClientInput,
   type ProfessionalLongFormCustomerDeliveryMediaRangeClientResult,
 } from './professional-long-form-customer-delivery-client'
+import {
+  createProfessionalLongFormCustomerDeliveryMp4FragmentIndex,
+  type ProfessionalLongFormCustomerDeliveryMp4FragmentIndexProgress,
+  type ProfessionalLongFormCustomerDeliveryMp4RecoveryWindow,
+} from './professional-long-form-customer-delivery-mp4-fragment-index'
 
 export const PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_MEDIA_SOURCE_VERSION =
-  'professional-long-form-customer-delivery-media-source-v1' as const
+  'professional-long-form-customer-delivery-media-source-v2' as const
 export const PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_MEDIA_SOURCE_MIME =
   'video/mp4; codecs="avc1.640033, mp4a.40.2"' as const
 
@@ -37,6 +42,23 @@ export type ProfessionalLongFormCustomerDeliveryMediaSourceState = {
   totalByteSize: number
   rangeRequestCount: number
   fullyAppended: boolean
+  fragmentIndexCount: number
+  fragmentIndexComplete: boolean
+  backwardSeekRecovery: {
+    status: 'indexing' | 'ready' | 'recovering' | 'recovered' | 'failed'
+    ready: boolean
+    recoveryCount: number
+    recoveredRangeRequestCount: number
+    lastTargetTimeSeconds: number | null
+    lastWindow: {
+      byteStart: number
+      byteEndExclusive: number
+      firstFragmentOrdinal: number
+      lastFragmentOrdinal: number
+      targetFragmentOrdinal: number
+    } | null
+    failureMessage?: string
+  }
   failureMessage?: string
 }
 
@@ -114,6 +136,10 @@ type ReviewRangeReader = (input: {
   start: number
   end: number
 }) => Promise<ProfessionalLongFormCustomerDeliveryMediaRangeClientResult>
+
+type SourceBufferOperationRunner = <Result>(
+  operation: () => Promise<Result>,
+) => Promise<Result>
 
 export async function attachProfessionalLongFormCustomerDeliveryMediaSource(
   input: {
@@ -221,6 +247,7 @@ export async function attachProfessionalLongFormCustomerDeliveryMediaSource(
     frameRateDenominator: review.data.authority.frameRateDenominator,
   })
   let disposed = false
+  let rangeRequestCount = 0
   let state: ProfessionalLongFormCustomerDeliveryMediaSourceState = {
     schemaVersion:
       PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_MEDIA_SOURCE_VERSION,
@@ -229,6 +256,16 @@ export async function attachProfessionalLongFormCustomerDeliveryMediaSource(
     totalByteSize: review.data.authority.masterByteSize,
     rangeRequestCount: 0,
     fullyAppended: false,
+    fragmentIndexCount: 0,
+    fragmentIndexComplete: false,
+    backwardSeekRecovery: {
+      status: 'indexing',
+      ready: false,
+      recoveryCount: 0,
+      recoveredRangeRequestCount: 0,
+      lastTargetTimeSeconds: null,
+      lastWindow: null,
+    },
   }
   const publish = (
     patch: Partial<ProfessionalLongFormCustomerDeliveryMediaSourceState>,
@@ -243,33 +280,129 @@ export async function attachProfessionalLongFormCustomerDeliveryMediaSource(
   })
   const rangeReader = input.rangeReader ??
     readProfessionalLongFormCustomerDeliveryReviewRange
-
-  const completion = pumpAuthenticatedRanges({
-    authority: input.authority,
-    review: review.data,
+  const fragmentIndex =
+    createProfessionalLongFormCustomerDeliveryMp4FragmentIndex()
+  const sourceBufferOperations = createSerializedSourceBufferOperations()
+  const readRange = async (start: number, end: number) => {
+    const bytes = await readExactAuthenticatedRange({
+      authority: input.authority,
+      review: review.data,
+      rangeReader,
+      start,
+      end,
+    })
+    rangeRequestCount += 1
+    return bytes
+  }
+  const publishRecovery = (
+    patch: Partial<
+      ProfessionalLongFormCustomerDeliveryMediaSourceState[
+        'backwardSeekRecovery'
+      ]
+    >,
+  ) => publish({
+    rangeRequestCount,
+    backwardSeekRecovery: {
+      ...state.backwardSeekRecovery,
+      ...patch,
+    },
+  })
+  const unbindBufferLifecycle = bindPlaybackBufferLifecycle({
     mediaElement: input.mediaElement,
     mediaSource,
     sourceBuffer,
     rangeByteSize,
-    rangeReader,
+    readRange,
+    runSourceBufferOperation: sourceBufferOperations.run,
+    resolveRecoveryWindow: fragmentIndex.resolveRecoveryWindow,
     disposed: () => disposed,
-    onRangeAppended: (bytesAppended, rangeRequestCount) => publish({
-      status: 'streaming',
-      bytesAppended,
-      rangeRequestCount,
+    fullyAppended: () => state.fullyAppended,
+    recoveryReady: () => state.backwardSeekRecovery.ready,
+    onRecoveryStarted: (targetTimeSeconds, window) => publishRecovery({
+      status: 'recovering',
+      lastTargetTimeSeconds: targetTimeSeconds,
+      lastWindow: recoveryWindowState(window),
+      failureMessage: undefined,
     }),
-  }).then(() => {
-    if (disposed) return state
+    onRecoveryRangeAppended: () => publishRecovery({
+      recoveredRangeRequestCount:
+        state.backwardSeekRecovery.recoveredRangeRequestCount + 1,
+    }),
+    onRecoveryCompleted: () => publishRecovery({
+      status: 'recovered',
+      ready: true,
+      recoveryCount: state.backwardSeekRecovery.recoveryCount + 1,
+      failureMessage: undefined,
+    }),
+    onRecoveryFailed: (targetTimeSeconds, error) => publishRecovery({
+      status: 'failed',
+      lastTargetTimeSeconds: targetTimeSeconds,
+      failureMessage: error instanceof Error
+        ? error.message
+        : 'Private backward-seek recovery failed.',
+    }),
+    onMaintenanceFailed: (error) => publish({
+      status: 'failed',
+      failureMessage: error instanceof Error
+        ? error.message
+        : 'Private playback rolling-buffer maintenance failed.',
+    }),
+  })
+
+  const completion = pumpAuthenticatedRanges({
+    mediaElement: input.mediaElement,
+    mediaSource,
+    sourceBuffer,
+    rangeByteSize,
+    totalByteSize: review.data.authority.masterByteSize,
+    totalDurationSeconds:
+      (review.data.authority.masterFrameCount *
+        review.data.authority.frameRateDenominator) /
+      review.data.authority.frameRateNumerator,
+    fragmentIndex,
+    readRange,
+    runSourceBufferOperation: sourceBufferOperations.run,
+    disposed: () => disposed,
+    onRangeAppended: (bytesAppended, progress) => {
+      const recoveryReady = progress.fragmentCount > 1
+      publish({
+        status: 'streaming',
+        bytesAppended,
+        rangeRequestCount,
+        fragmentIndexCount: progress.fragmentCount,
+        backwardSeekRecovery: {
+          ...state.backwardSeekRecovery,
+          status:
+            state.backwardSeekRecovery.status === 'indexing' && recoveryReady
+              ? 'ready'
+              : state.backwardSeekRecovery.status,
+          ready: state.backwardSeekRecovery.ready || recoveryReady,
+        },
+      })
+    },
+  }).then((indexSnapshot) => {
+    if (disposed || state.status === 'failed') return state
     publish({
       status: 'stream_complete',
       bytesAppended: review.data.authority.masterByteSize,
+      rangeRequestCount,
       fullyAppended: true,
+      fragmentIndexCount: indexSnapshot.fragmentCount,
+      fragmentIndexComplete: true,
+      backwardSeekRecovery: {
+        ...state.backwardSeekRecovery,
+        status: state.backwardSeekRecovery.status === 'indexing'
+          ? 'ready'
+          : state.backwardSeekRecovery.status,
+        ready: true,
+      },
     })
     return state
   }).catch((error: unknown) => {
     if (disposed) return state
     publish({
       status: 'failed',
+      rangeRequestCount,
       failureMessage: error instanceof Error
         ? error.message
         : 'Private playback stopped unexpectedly.',
@@ -281,6 +414,7 @@ export async function attachProfessionalLongFormCustomerDeliveryMediaSource(
     if (disposed) return
     disposed = true
     unbindCoverage()
+    unbindBufferLifecycle()
     runtime.revokeObjectUrl(objectUrl)
     input.mediaElement.src = ''
     input.mediaElement.load()
@@ -411,66 +545,67 @@ export function createProfessionalLongFormCustomerDeliveryCoverageTracker(
 }
 
 async function pumpAuthenticatedRanges(input: {
-  authority: ProfessionalLongFormCustomerDeliveryClientInput
-  review: ProfessionalLongFormCustomerDeliveryBrowserReview
   mediaElement: MediaElementLike
   mediaSource: MediaSourceLike
   sourceBuffer: SourceBufferLike
   rangeByteSize: number
-  rangeReader: ReviewRangeReader
+  totalByteSize: number
+  totalDurationSeconds: number
+  fragmentIndex: ReturnType<
+    typeof createProfessionalLongFormCustomerDeliveryMp4FragmentIndex
+  >
+  readRange: (start: number, end: number) => Promise<Uint8Array>
+  runSourceBufferOperation: SourceBufferOperationRunner
   disposed: () => boolean
   onRangeAppended: (
     bytesAppended: number,
-    rangeRequestCount: number,
+    progress: ProfessionalLongFormCustomerDeliveryMp4FragmentIndexProgress,
   ) => void
-}): Promise<void> {
-  const totalByteSize = input.review.authority.masterByteSize
+}) {
+  const totalByteSize = input.totalByteSize
   let offset = 0
-  let rangeRequestCount = 0
   while (offset < totalByteSize && !input.disposed()) {
-    await evictOldBuffer(input.sourceBuffer, input.mediaElement.currentTime)
+    await input.runSourceBufferOperation(() => evictOldBuffer(
+      input.sourceBuffer,
+      input.mediaElement.currentTime,
+    ))
     await waitForBufferCapacity({
       sourceBuffer: input.sourceBuffer,
       mediaElement: input.mediaElement,
       disposed: input.disposed,
+      runSourceBufferOperation: input.runSourceBufferOperation,
     })
-    if (input.disposed()) return
+    if (input.disposed()) return input.fragmentIndex.snapshot()
     const end = Math.min(
       totalByteSize - 1,
       offset + input.rangeByteSize - 1,
     )
-    const result = await input.rangeReader({
-      authority: input.authority,
-      review: input.review,
-      start: offset,
-      end,
-    })
-    if (result.status !== 'ready') {
-      throw new Error(result.message)
-    }
-    if (
-      result.range.start !== offset ||
-      result.range.end !== end ||
-      result.range.totalByteSize !== totalByteSize ||
-      result.range.fullArtifactSha256 !==
-        input.review.authority.masterSha256
-    ) throw new Error(
-      'Private playback range lost exact artifact or byte continuity.',
-    )
-    await appendSourceBuffer(input.sourceBuffer, result.range.bytes)
+    const bytes = await input.readRange(offset, end)
+    const progress = input.fragmentIndex.push({ start: offset, bytes })
+    await input.runSourceBufferOperation(() => appendSourceBuffer(
+      input.sourceBuffer,
+      bytes,
+    ))
     offset = end + 1
-    rangeRequestCount += 1
-    input.onRangeAppended(offset, rangeRequestCount)
+    input.onRangeAppended(offset, progress)
   }
-  if (input.disposed()) return
-  await waitForSourceBufferIdle(input.sourceBuffer)
-  if (input.mediaSource.readyState === 'open') input.mediaSource.endOfStream()
+  if (input.disposed()) return input.fragmentIndex.snapshot()
+  const snapshot = input.fragmentIndex.finish({
+    totalByteSize,
+    totalDurationSeconds: input.totalDurationSeconds,
+  })
+  await input.runSourceBufferOperation(async () => {
+    await waitForSourceBufferIdle(input.sourceBuffer)
+    if (input.mediaSource.readyState === 'open') input.mediaSource.endOfStream()
+  })
+  return snapshot
 }
 
 async function waitForBufferCapacity(input: {
   sourceBuffer: SourceBufferLike
   mediaElement: MediaElementLike
   disposed: () => boolean
+  runSourceBufferOperation: SourceBufferOperationRunner
 }): Promise<void> {
   while (
     !input.disposed() &&
@@ -484,8 +619,258 @@ async function waitForBufferCapacity(input: {
       ['timeupdate', 'seeking', 'playing'],
       1_000,
     )
-    await evictOldBuffer(input.sourceBuffer, input.mediaElement.currentTime)
+    await input.runSourceBufferOperation(() => evictOldBuffer(
+      input.sourceBuffer,
+      input.mediaElement.currentTime,
+    ))
   }
+}
+
+async function readExactAuthenticatedRange(input: {
+  authority: ProfessionalLongFormCustomerDeliveryClientInput
+  review: ProfessionalLongFormCustomerDeliveryBrowserReview
+  rangeReader: ReviewRangeReader
+  start: number
+  end: number
+}): Promise<Uint8Array> {
+  const result = await input.rangeReader({
+    authority: input.authority,
+    review: input.review,
+    start: input.start,
+    end: input.end,
+  })
+  if (result.status !== 'ready') throw new Error(result.message)
+  if (
+    result.range.start !== input.start ||
+    result.range.end !== input.end ||
+    result.range.totalByteSize !== input.review.authority.masterByteSize ||
+    result.range.fullArtifactSha256 !==
+      input.review.authority.masterSha256 ||
+    result.range.mimeType !== 'video/mp4' ||
+    result.range.bytes.byteLength !== input.end - input.start + 1
+  ) throw new Error(
+    'Private playback range lost exact artifact or byte continuity.',
+  )
+  return result.range.bytes
+}
+
+function createSerializedSourceBufferOperations(): {
+  run: SourceBufferOperationRunner
+} {
+  let tail = Promise.resolve()
+  const run: SourceBufferOperationRunner = <Result>(
+    operation: () => Promise<Result>,
+  ) => {
+    const result = tail.then(operation, operation)
+    tail = result.then(() => undefined, () => undefined)
+    return result
+  }
+  return { run }
+}
+
+function bindPlaybackBufferLifecycle(input: {
+  mediaElement: MediaElementLike
+  mediaSource: MediaSourceLike
+  sourceBuffer: SourceBufferLike
+  rangeByteSize: number
+  readRange: (start: number, end: number) => Promise<Uint8Array>
+  runSourceBufferOperation: SourceBufferOperationRunner
+  resolveRecoveryWindow: (
+    targetTimeSeconds: number,
+  ) => ProfessionalLongFormCustomerDeliveryMp4RecoveryWindow | undefined
+  disposed: () => boolean
+  fullyAppended: () => boolean
+  recoveryReady: () => boolean
+  onRecoveryStarted: (
+    targetTimeSeconds: number,
+    window: ProfessionalLongFormCustomerDeliveryMp4RecoveryWindow,
+  ) => void
+  onRecoveryRangeAppended: () => void
+  onRecoveryCompleted: () => void
+  onRecoveryFailed: (targetTimeSeconds: number, error: unknown) => void
+  onMaintenanceFailed: (error: unknown) => void
+}): () => void {
+  let unbound = false
+  let maintenanceQueued = false
+  let maintenanceFailed = false
+  let recoveryRunning = false
+  let pendingRecoveryTarget: number | undefined
+  let furthestObservedTimeSeconds = validMediaTime(
+      input.mediaElement.currentTime,
+    )
+    ? input.mediaElement.currentTime
+    : 0
+
+  const observePosition = () => {
+    if (validMediaTime(input.mediaElement.currentTime)) {
+      furthestObservedTimeSeconds = Math.max(
+        furthestObservedTimeSeconds,
+        input.mediaElement.currentTime,
+      )
+    }
+  }
+  const scheduleMaintenance = () => {
+    if (
+      unbound ||
+      input.disposed() ||
+      maintenanceQueued ||
+      maintenanceFailed
+    ) return
+    maintenanceQueued = true
+    void input.runSourceBufferOperation(async () => {
+      await evictOldBuffer(
+        input.sourceBuffer,
+        input.mediaElement.currentTime,
+      )
+      if (
+        input.fullyAppended() &&
+        input.mediaSource.readyState === 'open'
+      ) input.mediaSource.endOfStream()
+    }).catch((error: unknown) => {
+      maintenanceFailed = true
+      if (!unbound && !input.disposed()) input.onMaintenanceFailed(error)
+    }).finally(() => {
+      maintenanceQueued = false
+    })
+  }
+  const progress = () => {
+    observePosition()
+    scheduleMaintenance()
+  }
+  const startRecovery = () => {
+    const targetTimeSeconds = input.mediaElement.currentTime
+    if (
+      unbound ||
+      input.disposed() ||
+      !validMediaTime(targetTimeSeconds) ||
+      targetTimeSeconds + 0.05 >= furthestObservedTimeSeconds ||
+      bufferedContainsTime(input.sourceBuffer.buffered, targetTimeSeconds)
+    ) return
+    pendingRecoveryTarget = targetTimeSeconds
+    void drainRecoveryRequests()
+  }
+  const drainRecoveryRequests = async () => {
+    if (recoveryRunning || unbound || input.disposed()) return
+    recoveryRunning = true
+    try {
+      while (
+        pendingRecoveryTarget !== undefined &&
+        !unbound &&
+        !input.disposed()
+      ) {
+        const targetTimeSeconds = pendingRecoveryTarget
+        pendingRecoveryTarget = undefined
+        if (
+          bufferedContainsTime(input.sourceBuffer.buffered, targetTimeSeconds) ||
+          !input.recoveryReady()
+        ) continue
+        const window = input.resolveRecoveryWindow(targetTimeSeconds)
+        if (!window) {
+          input.onRecoveryFailed(
+            targetTimeSeconds,
+            new Error(
+              'Private backward-seek recovery lacks an exact indexed fragment window.',
+            ),
+          )
+          continue
+        }
+        input.onRecoveryStarted(targetTimeSeconds, window)
+        try {
+          let offset = window.byteStart
+          while (offset < window.byteEndExclusive) {
+            const end = Math.min(
+              window.byteEndExclusive - 1,
+              offset + input.rangeByteSize - 1,
+            )
+            const bytes = await input.readRange(offset, end)
+            if (unbound || input.disposed()) break
+            await input.runSourceBufferOperation(() => appendSourceBuffer(
+              input.sourceBuffer,
+              bytes,
+            ))
+            input.onRecoveryRangeAppended()
+            offset = end + 1
+          }
+          if (unbound || input.disposed()) continue
+          await input.runSourceBufferOperation(async () => {
+            await waitForSourceBufferIdle(input.sourceBuffer)
+            if (
+              input.fullyAppended() &&
+              input.mediaSource.readyState === 'open'
+            ) input.mediaSource.endOfStream()
+          })
+          if (!bufferedContainsTime(
+            input.sourceBuffer.buffered,
+            targetTimeSeconds,
+          )) throw new Error(
+            'Private backward-seek recovery did not restore the exact requested media time.',
+          )
+          input.onRecoveryCompleted()
+        } catch (error: unknown) {
+          if (!unbound && !input.disposed()) {
+            input.onRecoveryFailed(targetTimeSeconds, error)
+          }
+        }
+      }
+    } finally {
+      recoveryRunning = false
+      if (
+        pendingRecoveryTarget !== undefined &&
+        !unbound &&
+        !input.disposed()
+      ) void drainRecoveryRequests()
+    }
+  }
+  const listeners: Array<[string, EventListener]> = [
+    ['playing', progress],
+    ['timeupdate', progress],
+    ['pause', progress],
+    ['seeked', progress],
+    ['ended', progress],
+    ['seeking', startRecovery],
+  ]
+  for (const [name, listener] of listeners) {
+    input.mediaElement.addEventListener(name, listener)
+  }
+  return () => {
+    unbound = true
+    pendingRecoveryTarget = undefined
+    for (const [name, listener] of listeners) {
+      input.mediaElement.removeEventListener(name, listener)
+    }
+  }
+}
+
+function recoveryWindowState(
+  window: ProfessionalLongFormCustomerDeliveryMp4RecoveryWindow,
+): ProfessionalLongFormCustomerDeliveryMediaSourceState[
+  'backwardSeekRecovery'
+]['lastWindow'] {
+  return {
+    byteStart: window.byteStart,
+    byteEndExclusive: window.byteEndExclusive,
+    firstFragmentOrdinal: window.firstFragmentOrdinal,
+    lastFragmentOrdinal: window.lastFragmentOrdinal,
+    targetFragmentOrdinal: window.targetFragmentOrdinal,
+  }
+}
+
+function bufferedContainsTime(
+  buffered: TimeRangesLike,
+  targetTimeSeconds: number,
+): boolean {
+  if (!validMediaTime(targetTimeSeconds)) return false
+  for (let index = 0; index < buffered.length; index += 1) {
+    if (
+      targetTimeSeconds >= buffered.start(index) - 0.05 &&
+      targetTimeSeconds <= buffered.end(index) + 0.05
+    ) return true
+  }
+  return false
+}
+
+function validMediaTime(value: number): boolean {
+  return Number.isFinite(value) && value >= 0
 }
 
 async function evictOldBuffer(
@@ -500,9 +885,10 @@ async function evictOldBuffer(
   const start = sourceBuffer.buffered.start(0)
   const removalEnd = currentTime - RETAIN_BUFFER_BEHIND_SECONDS
   if (removalEnd <= start) return
-  await waitForSourceBufferIdle(sourceBuffer)
-  sourceBuffer.remove(start, removalEnd)
-  await waitForSourceBufferIdle(sourceBuffer)
+  await runSourceBufferMutation(
+    sourceBuffer,
+    () => sourceBuffer.remove(start, removalEnd),
+  )
 }
 
 function bufferedAheadSeconds(
@@ -522,15 +908,48 @@ async function appendSourceBuffer(
   sourceBuffer: SourceBufferLike,
   bytes: Uint8Array,
 ): Promise<void> {
-  await waitForSourceBufferIdle(sourceBuffer)
-  const copy = bytes.slice().buffer
-  const update = waitForEvent(
+  const exactCopy = new Uint8Array(bytes.byteLength)
+  exactCopy.set(bytes)
+  await runSourceBufferMutation(
     sourceBuffer,
-    'updateend',
-    SOURCE_BUFFER_OPERATION_TIMEOUT_MS,
+    () => sourceBuffer.appendBuffer(exactCopy.buffer),
   )
-  sourceBuffer.appendBuffer(copy)
-  await update
+}
+
+async function runSourceBufferMutation(
+  sourceBuffer: SourceBufferLike,
+  mutate: () => void,
+): Promise<void> {
+  await waitForSourceBufferIdle(sourceBuffer)
+  await new Promise<void>((resolve, reject) => {
+    const timeout = globalThis.setTimeout(() => {
+      cleanup()
+      reject(new Error('Private playback source-buffer mutation timed out.'))
+    }, SOURCE_BUFFER_OPERATION_TIMEOUT_MS)
+    const success = () => {
+      cleanup()
+      resolve()
+    }
+    const failure = () => {
+      cleanup()
+      reject(new Error('Private playback source-buffer mutation failed.'))
+    }
+    const cleanup = () => {
+      globalThis.clearTimeout(timeout)
+      sourceBuffer.removeEventListener('updateend', success)
+      sourceBuffer.removeEventListener('error', failure)
+      sourceBuffer.removeEventListener('abort', failure)
+    }
+    sourceBuffer.addEventListener('updateend', success, { once: true })
+    sourceBuffer.addEventListener('error', failure, { once: true })
+    sourceBuffer.addEventListener('abort', failure, { once: true })
+    try {
+      mutate()
+    } catch (error: unknown) {
+      cleanup()
+      reject(error)
+    }
+  })
 }
 
 async function waitForSourceBufferIdle(

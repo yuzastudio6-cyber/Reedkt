@@ -23,7 +23,7 @@ test.beforeAll(async () => {
     '-hide_banner', '-loglevel', 'error', '-nostdin',
     '-f', 'lavfi', '-i', 'testsrc2=size=640x360:rate=30',
     '-f', 'lavfi', '-i', 'sine=frequency=660:sample_rate=48000',
-    '-t', '3', '-map', '0:v:0', '-map', '1:a:0',
+    '-t', '36', '-map', '0:v:0', '-map', '1:a:0',
     '-c:v', 'libx264', '-profile:v', 'high', '-level:v', '5.1',
     '-preset', 'veryfast', '-crf', '18', '-pix_fmt', 'yuv420p',
     '-g', '30', '-keyint_min', '30', '-sc_threshold', '0',
@@ -43,7 +43,7 @@ test.afterAll(async () => {
   if (fixtureRoot) await rm(fixtureRoot, { recursive: true, force: true })
 })
 
-test('appends and decodes exact authenticated private ranges without a whole-file browser blob', async ({
+test('decodes authenticated ranges and recovers an evicted backward seek without a whole-file browser blob', async ({
   page,
 }) => {
   const pageErrors: string[] = []
@@ -125,7 +125,7 @@ test('appends and decodes exact authenticated private ranges without a whole-fil
   await page.evaluate(({ byteSize, masterSha256 }) => {
     window.__reeditproCustomerDeliveryMediaSourceFixture = {
       byteSize,
-      frameCount: 90,
+      frameCount: 1_080,
       masterSha256,
     }
   }, { byteSize: fixtureBytes.byteLength, masterSha256: fixtureSha256 })
@@ -137,8 +137,11 @@ test('appends and decodes exact authenticated private ranges without a whole-fil
 
   const status = page.getByTestId('customer-delivery-media-source-status')
   await expect(status).toHaveText('stream_complete')
-  expect(Number(await status.getAttribute('data-range-request-count')))
-    .toBeGreaterThan(1)
+  const initialRangeRequestCount = Number(
+    await status.getAttribute('data-range-request-count'),
+  )
+  expect(initialRangeRequestCount).toBeGreaterThan(1)
+  const initialRangeRequests = structuredClone(rangeRequests)
   const video = page.getByTestId('customer-delivery-media-source-video')
   await expect(video).toBeVisible()
   const startedWatch = await page.evaluate(async () =>
@@ -150,7 +153,7 @@ test('appends and decodes exact authenticated private ranges without a whole-fil
   })
   await page.getByTestId('customer-delivery-media-source-play').click()
   await expect.poll(async () => video.evaluate((element) =>
-    (element as HTMLVideoElement).ended), { timeout: 15_000 }).toBe(true)
+    (element as HTMLVideoElement).ended), { timeout: 30_000 }).toBe(true)
 
   const result = await page.evaluate(() => {
     const videoElement = document.querySelector(
@@ -167,7 +170,7 @@ test('appends and decodes exact authenticated private ranges without a whole-fil
   })
   expect(result).not.toBeNull()
   expect(result?.errorCode).toBeNull()
-  expect(result?.duration).toBeCloseTo(3, 1)
+  expect(result?.duration).toBeCloseTo(36, 1)
   expect(result?.state.status).toBe('stream_complete')
   expect(result?.coverage.coveragePermille).toBe(1_000)
   expect(result?.coverage.fullProgramPlaybackObserved).toBe(true)
@@ -195,11 +198,80 @@ test('appends and decodes exact authenticated private ranges without a whole-fil
   expect(watchRequests[1]?.body).toMatchObject({
     expectedPreviousWatchEvidenceHash: '1'.repeat(64),
     sequence: 2,
-    coveredIntervals: [{ startFrame: 0, endFrameExclusive: 90 }],
+    coveredIntervals: [{ startFrame: 0, endFrameExclusive: 1_080 }],
   })
-  expect(rangeRequests.length).toBeGreaterThan(1)
-  expect(rangeRequests[0]?.start).toBe(0)
-  expect(rangeRequests.at(-1)?.end).toBe(fixtureBytes.byteLength - 1)
+  expect(initialRangeRequests.length).toBeGreaterThan(1)
+  expect(initialRangeRequests[0]?.start).toBe(0)
+  expect(initialRangeRequests.at(-1)?.end)
+    .toBe(fixtureBytes.byteLength - 1)
+
+  await expect.poll(async () => video.evaluate((element) => {
+    const media = element as HTMLVideoElement
+    return media.buffered.length > 0 ? media.buffered.start(0) : 0
+  }), { timeout: 10_000 }).toBeGreaterThan(1)
+  const rangeRequestCountBeforeRecovery = rangeRequests.length
+  await video.evaluate((element) => {
+    const media = element as HTMLVideoElement
+    media.currentTime = 1
+  })
+  await expect.poll(async () => page.evaluate(() =>
+    window.__reeditproCustomerDeliveryMediaSourceHarness?.controller
+      .getState().backwardSeekRecovery.status), {
+    timeout: 15_000,
+  }).toBe('recovered')
+
+  const recoveryResult = await page.evaluate(async () => {
+    const media = document.querySelector(
+      '[data-testid="customer-delivery-media-source-video"]',
+    ) as HTMLVideoElement | null
+    const harness = window.__reeditproCustomerDeliveryMediaSourceHarness
+    if (!media || !harness) return null
+    const bufferedRanges = Array.from(
+      { length: media.buffered.length },
+      (_, index) => ({
+        start: media.buffered.start(index),
+        end: media.buffered.end(index),
+      }),
+    )
+    media.playbackRate = 1
+    await media.play()
+    return {
+      bufferedRanges,
+      currentTime: media.currentTime,
+      state: harness.controller.getState(),
+    }
+  })
+  expect(recoveryResult).not.toBeNull()
+  expect(recoveryResult?.bufferedRanges.some((range) =>
+    range.start <= 1 && range.end >= 1)).toBe(true)
+  expect(recoveryResult?.state.status).toBe('stream_complete')
+  expect(recoveryResult?.state.fragmentIndexComplete).toBe(true)
+  expect(recoveryResult?.state.fragmentIndexCount).toBeGreaterThan(30)
+  expect(recoveryResult?.state.backwardSeekRecovery.recoveryCount).toBe(1)
+  expect(recoveryResult?.state.backwardSeekRecovery.lastTargetTimeSeconds)
+    .toBeCloseTo(1, 2)
+  const recoveryRangeRequests = rangeRequests.slice(
+    rangeRequestCountBeforeRecovery,
+  )
+  expect(recoveryRangeRequests.length).toBeGreaterThan(0)
+  expect(recoveryRangeRequests.every((range) =>
+    range.end - range.start + 1 <= 64 * 1024)).toBe(true)
+  expect(recoveryRangeRequests[0]?.start)
+    .toBe(recoveryResult?.state.backwardSeekRecovery.lastWindow?.byteStart)
+  expect(recoveryRangeRequests.at(-1)?.end)
+    .toBe(
+      (recoveryResult?.state.backwardSeekRecovery.lastWindow
+        ?.byteEndExclusive ?? 0) - 1,
+    )
+  expect(recoveryResult?.state.backwardSeekRecovery.recoveredRangeRequestCount)
+    .toBe(recoveryRangeRequests.length)
+  expect(recoveryResult?.state.rangeRequestCount)
+    .toBe(initialRangeRequestCount + recoveryRangeRequests.length)
+  await expect.poll(async () => video.evaluate((element) =>
+    (element as HTMLVideoElement).currentTime), {
+    timeout: 5_000,
+  }).toBeGreaterThan(1.25)
+  await video.evaluate((element) => (element as HTMLVideoElement).pause())
   expect(pageErrors).toEqual([])
 
   await page.evaluate(() => {
@@ -229,7 +301,7 @@ function watchReceipt(sequence: 1 | 2) {
       reviewPacketHash: 'b'.repeat(64),
       masterSha256: fixtureSha256,
       masterByteSize: fixtureBytes.byteLength,
-      masterFrameCount: 90,
+      masterFrameCount: 1_080,
       frameRateNumerator: 30,
       frameRateDenominator: 1,
       mimeType: 'video/mp4',
@@ -244,12 +316,12 @@ function watchReceipt(sequence: 1 | 2) {
       previousWatchEvidenceHash:
         complete ? '1'.repeat(64) : null,
       expectedPreviousWatchEvidenceHash: evidenceHash,
-      coveredFrameCount: complete ? 90 : 1,
-      coveragePermille: complete ? 1_000 : 11,
+      coveredFrameCount: complete ? 1_080 : 1,
+      coveragePermille: complete ? 1_000 : 0,
       fullProgramPlaybackObserved: complete,
       acceptanceGateSatisfied: complete,
-      serverElapsedMs: complete ? 1_600 : 0,
-      minimumRequiredElapsedMs: 1_484,
+      serverElapsedMs: complete ? 18_500 : 0,
+      minimumRequiredElapsedMs: 17_984,
       maximumPlaybackRatePermille: 2_000,
       browserReportedCompletionTrusted: false,
       privateLocalDurable: true,

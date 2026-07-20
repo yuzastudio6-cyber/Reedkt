@@ -71,13 +71,17 @@ with an optional exact customer-delivery result beside it. The next coordinated
 UI slice must consume that one result and the existing bounded private
 MediaSource adapter without creating another queue, registry, delivery
 authority, hook, player authority, or editor surface. Actual Chromium playback
-from multiple authenticated ranges now passes. The same frontend client also
+from multiple authenticated ranges now passes for a real 36-second H.264/AAC
+fixture. Its bounded metadata-only fragment index and serialized SourceBuffer
+authority evict the opening buffer, re-fetch the exact authenticated fragment
+window for a backward seek to time 1.0, and resume decode without a whole-file
+browser Blob. The same frontend client also
 saves frame-zero and completed merged coverage through the canonical watch
 route. The private/local server hash-chains exact checkpoints, enforces a
 server-observed maximum 2x elapsed-time ceiling, survives restart, and refuses
-acceptance without exact complete review/master evidence. The product UI
-mount, distributed database-backed watch durability, backward-seek recovery
-beyond the rolling buffer, and retained review media remain blocked.
+acceptance without exact complete review/master evidence. The product UI mount,
+distributed database-backed watch durability, and retained review media remain
+blocked.
 
 ## Browser consumption
 

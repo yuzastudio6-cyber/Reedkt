@@ -1,5 +1,7 @@
 import { createHash } from 'node:crypto'
 
+import { z } from 'zod'
+
 import { ApiError } from '../errors/api-error'
 import type { CanonicalProviderWorkAuthorization } from
   '../edit-architecture/canonical-provider-work-authority'
@@ -20,6 +22,62 @@ import {
 
 const MAX_CANDIDATE_BYTES = 128 * 1024 * 1024
 const METADATA_VERSION = 'private-canonical-provider-candidate-v1' as const
+const identity = z.string().trim().min(1).max(240)
+  .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
+  .refine((value) => !value.includes('..'))
+const sha256 = z.string().regex(/^[a-f0-9]{64}$/u)
+const timestamp = z.string().datetime({ offset: true })
+
+const privateCanonicalProviderCandidateMetadataSchema = z.object({
+  schemaVersion: z.literal(METADATA_VERSION),
+  objectIdentity: z.object({
+    domain: z.literal('reeditpro:private-provider-candidate-object:v1'),
+    workspaceId: identity,
+    projectId: identity,
+    editSessionId: identity,
+    approvedPlanSnapshotId: identity,
+    packageRecordId: identity,
+    approvedWorkItemId: identity,
+    jobId: identity,
+    claimId: identity,
+    dispatchAttemptId: identity,
+    expectedOutputId: identity,
+    contentSha256: sha256,
+    byteLength: z.number().int().positive().max(MAX_CANDIDATE_BYTES),
+    mimeType: z.literal('audio/wav'),
+    providerGenerated: z.boolean(),
+  }).strict(),
+  privateObjectIdentityHash: sha256,
+  assetId: identity,
+  assetVersionId: identity,
+  storage: z.object({
+    privateLocalCreateOnly: z.literal(true),
+    checksumReadbackRequired: z.literal(true),
+    providerUrlPersisted: z.literal(false),
+    localPathProjected: z.literal(false),
+    databaseBacked: z.literal(false),
+    productionDurability: z.literal(false),
+  }).strict(),
+  lifecycle: z.object({
+    privateReviewOnly: z.literal(true),
+    objectiveQaPending: z.literal(true),
+    humanReviewPending: z.literal(true),
+    selectionAllowed: z.literal(false),
+    timelineMutationAllowed: z.literal(false),
+    renderOrExportAllowed: z.literal(false),
+    publicDeliveryAllowed: z.literal(false),
+  }).strict(),
+  createdAt: timestamp,
+  output: canonicalPrivateProviderOutputSchema,
+  artifactEvidenceDigest: sha256,
+}).strict()
+
+export interface VerifiedPrivateCanonicalProviderCandidateReadback {
+  output: CanonicalPrivateProviderOutput
+  providerGenerated: boolean
+  storageEvidenceHash: string
+  sourceReadbackEvidenceHash: string
+}
 
 export async function persistPrivateCanonicalProviderCandidate(input: {
   localStorageRoot: string
@@ -161,6 +219,102 @@ export async function persistPrivateCanonicalProviderCandidate(input: {
       objectContentSha256: contentSha256,
       metadataContentSha256: sha256Bytes(metadataBytes),
       artifactEvidenceDigest,
+    }),
+  }
+}
+
+/**
+ * Re-reads the exact private object and metadata under the same tenant and
+ * attempt identity used at creation. It projects hashes only and never leaks a
+ * local path or provider URL.
+ */
+export async function readVerifiedPrivateCanonicalProviderCandidate(input: {
+  localStorageRoot: string
+  authorization: CanonicalProviderWorkAuthorization
+  dispatchAttempt: CanonicalPrivateProviderDispatchAttempt
+  output: CanonicalPrivateProviderOutput
+}): Promise<VerifiedPrivateCanonicalProviderCandidateReadback> {
+  const output = canonicalPrivateProviderOutputSchema.parse(input.output)
+  if (
+    input.dispatchAttempt.authorizationHash !== input.authorization.authorityHash ||
+    input.dispatchAttempt.dispatchAttemptId.length < 1 ||
+    output.outputId !== input.authorization.expectedOutputId
+  ) throw invalid('Provider candidate readback lost exact authorization lineage.')
+  const paths = candidatePaths(input.authorization, output.privateObjectIdentityHash)
+  const [bytes, metadataBytes] = await Promise.all([
+    readPrivateFileIfExistsWithinRoot({
+      rootPath: input.localStorageRoot,
+      relativePath: paths.object,
+    }),
+    readPrivateFileIfExistsWithinRoot({
+      rootPath: input.localStorageRoot,
+      relativePath: paths.metadata,
+    }),
+  ])
+  if (
+    !bytes || !metadataBytes || bytes.byteLength < 44 ||
+    bytes.byteLength > MAX_CANDIDATE_BYTES || metadataBytes.byteLength > 64 * 1024
+  ) throw invalid('Private provider candidate readback is missing or oversized.')
+  let decoded: unknown
+  try {
+    decoded = JSON.parse(metadataBytes.toString('utf8'))
+  } catch {
+    throw invalid('Private provider candidate metadata is not valid JSON.')
+  }
+  const metadata = privateCanonicalProviderCandidateMetadataSchema.parse(decoded)
+  const { output: storedOutput, artifactEvidenceDigest, ...evidenceMetadata } = metadata
+  const objectIdentity = metadata.objectIdentity
+  const contentSha256 = sha256Bytes(bytes)
+  const expectedObjectIdentityHash = sha256AuthorityValue(objectIdentity)
+  const expectedAssetId = `provider_asset_${expectedObjectIdentityHash.slice(0, 40)}`
+  const expectedAssetVersionId =
+    `provider_asset_version_${expectedObjectIdentityHash.slice(0, 40)}`
+  if (
+    contentSha256 !== output.contentSha256 ||
+    bytes.byteLength !== output.byteLength ||
+    bytes.subarray(0, 4).toString('ascii') !== 'RIFF' ||
+    bytes.subarray(8, 12).toString('ascii') !== 'WAVE' ||
+    metadata.privateObjectIdentityHash !== expectedObjectIdentityHash ||
+    metadata.privateObjectIdentityHash !== output.privateObjectIdentityHash ||
+    metadata.assetId !== expectedAssetId || metadata.assetId !== output.assetId ||
+    metadata.assetVersionId !== expectedAssetVersionId ||
+    metadata.assetVersionId !== output.assetVersionId ||
+    artifactEvidenceDigest !== sha256AuthorityValue(evidenceMetadata) ||
+    artifactEvidenceDigest !== output.artifactEvidenceDigest ||
+    stableAuthorityStringify(storedOutput) !== stableAuthorityStringify(output) ||
+    objectIdentity.workspaceId !== input.authorization.workspaceId ||
+    objectIdentity.projectId !== input.authorization.projectId ||
+    objectIdentity.editSessionId !== input.authorization.editSessionId ||
+    objectIdentity.approvedPlanSnapshotId !==
+      input.authorization.approvedPlanSnapshotId ||
+    objectIdentity.packageRecordId !== input.authorization.packageRecordId ||
+    objectIdentity.approvedWorkItemId !== input.authorization.approvedWorkItemId ||
+    objectIdentity.jobId !== input.authorization.queueJobId ||
+    objectIdentity.claimId !== input.dispatchAttempt.queueClaimId ||
+    objectIdentity.dispatchAttemptId !== input.dispatchAttempt.dispatchAttemptId ||
+    objectIdentity.expectedOutputId !== input.authorization.expectedOutputId ||
+    objectIdentity.contentSha256 !== contentSha256 ||
+    objectIdentity.byteLength !== bytes.byteLength ||
+    Date.parse(metadata.createdAt) < Date.parse(input.dispatchAttempt.consumedAt) ||
+    Date.parse(metadata.createdAt) > Date.parse(input.authorization.expiresAt) ||
+    (input.authorization.authorityClass === 'private_injected_nonprovider_test' &&
+      objectIdentity.providerGenerated)
+  ) throw invalid('Private provider candidate readback integrity changed.')
+  const storageEvidenceHash = sha256AuthorityValue({
+    objectContentSha256: contentSha256,
+    metadataContentSha256: sha256Bytes(metadataBytes),
+    artifactEvidenceDigest,
+  })
+  return {
+    output,
+    providerGenerated: objectIdentity.providerGenerated,
+    storageEvidenceHash,
+    sourceReadbackEvidenceHash: sha256AuthorityValue({
+      domain: 'reeditpro:private-provider-candidate-source-readback:v1',
+      authorizationHash: input.authorization.authorityHash,
+      dispatchAttemptHash: input.dispatchAttempt.attemptHash,
+      output,
+      storageEvidenceHash,
     }),
   }
 }

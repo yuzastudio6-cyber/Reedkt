@@ -16,6 +16,12 @@ provider operation without activating a provider:
 The proof is private, injected, and non-provider. It is not a canonical Motion
 Studio runtime receipt, product readiness, or production readiness.
 
+The source-verified consumer projection added by the follow-up increment has
+the secondary verdict
+`CANONICAL_PROVIDER_ATTEMPT_CONSUMER_RECEIPT_PRIVATE_INJECTED_ACCEPTED_RUNTIME_BLOCKED`.
+It does not promote the injected lifecycle into backend-verified runtime
+evidence.
+
 ## Canonical Contract
 
 The lifecycle is:
@@ -41,10 +47,88 @@ The lifecycle is:
 8. replay exact completed or reconciled attempts without another dispatch or
    provider request.
 
-The frozen Lyria request policy admits one provider request, zero retries, zero
-fallbacks, zero redirects, and no automatic resubmission. A failed or unknown
-attempt cannot silently create a second request. Any later request requires a
-fresh approved package/snapshot.
+## Source-Verified Consumer Receipt
+
+`server/services/canonical-private-provider-attempt-consumer-receipt-service.ts`
+is a server-only read projection. It accepts no caller-authored outcome, cost,
+request count, output, or readiness fields. Before returning one compact V2
+receipt, it reopens and verifies:
+
+- the exact approved package, work item, snapshot, queue definition, queue
+  entry, claim/lease, and provider execution fence;
+- the one-use provider-dispatch grant, consumed attempt, terminal history, and
+  unknown-outcome reconciliation state;
+- the create-only provider-attempt cost record;
+- the separately create-only worker CPU/memory/resource-cost record; and
+- successful private output bytes plus metadata, checksum, artifact lineage,
+  and create-only readback evidence.
+
+The receipt contains hashes and bounded identities only. It excludes raw
+credentials, prompts/request bodies, provider URLs, local paths, browser
+authority, and customer-commercial authority. Private injected evidence is
+always classified `non_promotable_private_injected`. Missing or mismatched
+worker-resource evidence, cost evidence, output bytes, or queue/dispatch
+lineage fails closed.
+
+The compact projection also carries the exact source-derived attempt start and
+completion times; queue-attempt and lease aliases with their explicit
+claim-is-attempt-and-lease semantics; retry/fallback counts and the sanitized
+terminal failure code; and a source-verified consumer-context digest derived
+from the exact tenant, edit, snapshot, package, work item, job, operation, and
+output. It accepts no caller-asserted Motion production identity. A Motion-owned
+production must bind its own durable identity to that exact edit and context
+digest.
+
+Provider usage evidence, provider rate-card, legacy provisional
+infrastructure rate-card, worker-resource evidence, and selected worker
+infrastructure rate-card digests remain separately visible. Successful output
+projection includes the private object identity hash and explicit
+`providerUrlPersisted = false` / `localPathProjected = false` assertions. The
+receipt also attests the already-enforced canonical boundaries that credential
+values are not logged, request bodies are not persisted in the queue, and
+callers cannot select an executable or provider route.
+
+The receipt uses a bounded private-output set plus a legacy primary-output
+alias. Current V1 source authority still admits zero or one output and reports
+`multiOutputProviderOperationAdmitted = false`; the set-shaped contract avoids
+making single-output cardinality a universal provider assumption. Motion's
+frozen ElevenLabs Speech requirement (MP3 plus alignment JSON under one
+attempt) remains a later forward-only provider-operation admission gate, not an
+authority granted by this slice.
+
+The frozen Lyria V1 request policy admits one generation submission, zero
+retries, zero fallbacks, zero redirects, and no automatic resubmission. Its
+historical `providerRequestCount` and `maximumProviderRequests` fields mean
+generation-submission count, not total lifecycle HTTP requests. The V2
+consumer receipt preserves that history and exposes a typed request breakdown.
+A failed or unknown attempt cannot silently create a second submission. Any
+later submission requires a fresh approved package/snapshot and attempt.
+
+The forward-only synchronized-Foley lifecycle identity is now frozen as:
+
+- operation: `provider.fal.generate_synchronized_foley_candidate.v1`;
+- provider boundary: `fal_ai_mmaudio_v2_provider_boundary`;
+- route: `fal_ai_mmaudio_v2`;
+- provider model family: `fal-ai/mmaudio-v2`;
+- work item: `generate_synchronized_foley_candidate`;
+- worker class: `provider_worker`;
+- private raw output: one `video/mp4` object no larger than `67,108,864` bytes;
+- separate downstream normalization:
+  `tool.ffmpeg.execute_approved_media_recipe.v1` /
+  `approved_synchronized_foley_candidate_normalization_v1`.
+
+Its exact lifecycle ceiling is one private input upload, one generation
+submission, 12 status reads, one result read, one binary download, and one
+cancellation: 17 total HTTP requests, but still only one generation
+submission. Status/result/cancel operations continue the same attempt. There
+are no retries, fallbacks, redirects, proxy/PAC use, address fallback, or
+resubmission. Unknown outcome must reconcile before a new approved attempt.
+
+Foley remains outside the executable V1 provider-operation registry. Its
+immutable provider revision and immutable provider rate/cost authority are not
+qualified, so canonical authorization issuance, dispatch, transport, and
+production readiness all remain false. This preserves Lyria V1 hashes and
+history instead of silently changing their semantics.
 
 ## Internal Cost Boundary
 
@@ -76,6 +160,19 @@ customer charge, billing settlement, or invoice authority is included.
 - an expired consumed attempt fails closed instead of being reclaimed;
 - exact replay without a second dispatch;
 - retained failed/unknown provider and infrastructure cost;
+- source-verified consumer receipts for success, failure, unknown, reconciled
+  success, and reconciled failure;
+- source-derived consumer context, attempt timing, queue/lease aliases,
+  terminal retry/fallback/safe-failure state, private-object identity, and
+  closed credential/request/executable/route assertions;
+- mandatory observed worker CPU/memory evidence and separate provider versus
+  worker-infrastructure cost components and rate-card/evidence digests without
+  double counting the older provisional infrastructure component;
+- a set-shaped output projection while current multi-output provider admission
+  stays false;
+- non-promotable injected classification and sensitive-field exclusion;
+- preserved V1 generation-submission semantics and the blocked Foley V2
+  17-request lifecycle breakdown;
 - route, model, output-cardinality, authorization, credential, and stale-rate
   tamper rejection;
 - zero provider requests, zero secret payload reads, zero cloud mutations, zero
@@ -92,6 +189,15 @@ Existing regression proof also passed:
 - `npm run smoke:private-local-persistence`
 - server TypeScript and focused ESLint checks
 
+The final exact-code `npm run qa:canonical-private-pipeline` run passed all
+`39/39` phases with exit code `0`. Its final tool report was generated at
+`2026-07-20T16:50:29.095Z`; the provider receipt phase completed in `1,382 ms`,
+all 11 mounted named-edit browser tests passed, and the report retained 72
+registered profiles, 53 confined runners, and 50 canonical private lifecycle
+plus job-adapter identities. Provider activation, verified runtime, live cloud,
+remote Supabase, billing, deployment, public delivery, external beta, and paid
+production all remained false.
+
 The canonical tool-dispatch regression continues to prove all 50 required tool
 identities through their existing tool lifecycle. This provider seam does not
 add a tool operation, duplicate registry, duplicate queue, or alternate worker.
@@ -106,7 +212,11 @@ Motion-owned queue, lease, registry, provider dispatch, storage, or cost engine:
 - `server/services/private-canonical-provider-dispatch-store.ts`
 - `server/services/private-canonical-provider-candidate-store.ts`
 - `server/services/canonical-private-provider-work-lifecycle-service.ts`
+- `server/services/canonical-private-provider-attempt-consumer-receipt-service.ts`
 - `server/tool-cost-metering/private-provider-attempt-cost-evidence.ts`
+- `server/tool-cost-metering/private-worker-resource-usage-cost-evidence.ts`
+- `server/edit-architecture/canonical-provider-lifecycle-policy.ts`
+- `server/validation/canonical-provider-attempt-consumer-receipt-schemas.ts`
 - `server/validation/canonical-private-provider-dispatch-schemas.ts`
 - `server/validation/canonical-private-package-work-queue-schemas.ts`
 
@@ -117,10 +227,22 @@ closed while provider transport is inactive. Motion must not convert the
 private injected evidence into `canonical_backend_verified_runtime` or its
 canonical receipt.
 
-The synchronized-Foley provider identity is not admitted by this slice. Its
-existing deterministic FFmpeg normalization remains separate; a final provider
-operation/profile/model identity must be frozen before it can use this same
-generic lifecycle.
+Motion can consume the compact source-verified receipt without importing the
+long-form pipeline or creating a second queue, registry, lease, provider
+dispatch, storage, or cost engine. The synchronized-Foley identity is frozen
+only in the V2 lifecycle-policy catalog. It is deliberately not admitted to
+V1 authorization or execution until immutable revision and cost qualification
+exist. Its deterministic FFmpeg normalization remains a separate canonical
+attempt.
+
+Motion's separately frozen
+`provider.elevenlabs.generate_storytelling_speech_candidate.v1` requirement is
+recorded for the next provider-operation admission slice. It needs one
+synchronous generation submission and two private create-only outputs (bounded
+MP3 audio and bounded alignment JSON) under the same attempt, followed by the
+separate canonical speech-normalization recipe. No Speech route, provider
+transport, Secret Manager payload read, or multi-output execution authority is
+activated here.
 
 ## Closed Gates
 
@@ -130,7 +252,8 @@ The following remain false or blocked:
 - provider account access, funds/quota, and generation eligibility;
 - Google Secret Manager payload read;
 - canonical Motion Studio runtime receipt;
-- observed per-attempt Cloud CPU/memory/GPU metering and invoice reconciliation;
+- deployed per-attempt Cloud CPU/memory/GPU metering and invoice reconciliation
+  (private injected observed-resource evidence is present but non-promotable);
 - distributed database transaction/durability and cross-instance recovery;
 - canonical Supabase persistence, Auth/RLS/Storage, and remote migrations;
 - provider activation, Google Cloud deployment, production rendering, public

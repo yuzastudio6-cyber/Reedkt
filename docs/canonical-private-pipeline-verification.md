@@ -65,6 +65,19 @@ proves a controller-owned bounded expired-attempt finalizer. Unmetered profiles
 fail closed. See
 `docs/canonical-private-worker-timeout-finalizer-verification-2026-07-17.md`.
 
+The aggregate also requires the server-only provider-attempt consumer
+projection. That phase reopens the exact approved package, queue/lease,
+one-use provider dispatch, terminal cost record, observed worker-resource
+record, and successful private output before issuing a compact non-promotable
+receipt. The projection binds source-derived consumer context, exact attempt
+times, queue/lease aliases, safe terminal outcome, component cost/rate-card
+digests, private-object identity, and closed credential/request/executable/route
+semantics. It uses a bounded output-set envelope while current multi-output
+provider admission remains false. It preserves Lyria V1 generation-submission
+count semantics and keeps the frozen synchronized-Foley 17-request async
+lifecycle outside executable authorization while immutable revision/rate and
+transport gates remain closed.
+
 Run the broader regression boundary with:
 
 ```sh
@@ -154,7 +167,20 @@ plan fits the bounded canonical profile.
    and locked seven-function RPC transport are checked in the same aggregate,
    but no corresponding SQL function or live Supabase/Postgres client is
    activated.
-8. Exercise the bounded ordered three-source canonical lifecycle through lease,
+8. Verify the canonical provider-attempt consumer projection through exact
+   approved package, queue/lease, one-use provider dispatch, terminal and
+   unknown-reconciliation evidence, create-only provider cost, separately
+   observed worker CPU/memory cost, and private output checksum readback.
+   Source-derived consumer context, exact attempt timing, queue/lease aliases,
+   retry/fallback/sanitized failure state, component cost/rate-card digests,
+   private object identity, and closed credential/request/executable/route
+   assertions must map without caller invention. Private injected evidence must
+   stay non-promotable. Lyria V1 request count must remain generation
+   submissions rather than total HTTP requests, and the synchronized-Foley
+   identity plus 17-request async breakdown must stay authorization- and
+   transport-blocked pending immutable qualification. The set-shaped output
+   projection must not silently admit the later two-output Speech operation.
+9. Exercise the bounded ordered three-source canonical lifecycle through lease,
    one-use dispatch, private artifacts, QA, reconciliation, replay, and private
    download evidence. The focused lifecycle includes three exact source-bound
    FFmpeg voice-delivery WAVs, a QA-passed first-source color reference, two
@@ -165,7 +191,7 @@ plan fits the bounded canonical profile.
    build context, and runtime authority root are canonical-private resources so
    a separate Motion Studio build cannot replace the image identity during this
    proof.
-9. Regression-check one exact source-bound professional-color lifecycle through the
+10. Regression-check one exact source-bound professional-color lifecycle through the
    immutable approved snapshot, synthetic private reservation, lease, one-use
    FFmpeg dispatch, three-frame RGB analysis, bounded approved correction,
    lossless VP9 BT.709/yuv420p Matroska persistence, pixel/histogram/clipping
@@ -176,9 +202,9 @@ plan fits the bounded canonical profile.
    The color-capable FFmpeg image tag and checksum-protected runtime authority
    namespace are revision-isolated so an older parallel checkout cannot replace
    this exact policy evidence.
-10. Verify active named-edit loading, failure, retry, approval, progress, review,
+11. Verify active named-edit loading, failure, retry, approval, progress, review,
    and revision states in Chromium.
-11. Regenerate the proven-tool identity report so tool readiness claims stay
+12. Regenerate the proven-tool identity report so tool readiness claims stay
    tied to exact versioned evidence.
 
 In full mode, a final browser phase also signs in through the loopback-only
@@ -192,7 +218,7 @@ source-bound audio identities in approved order, reads sanitized journey state,
 and records review acceptance.
 
 The runner stops on the first failed phase and prints a machine-readable
-`canonical-private-pipeline-verification-v28` report with step exit codes and
+`canonical-private-pipeline-verification-v29` report with step exit codes and
 durations. A zero exit code means every included assertion passed, including
 assertions that production-only or unavailable behavior stays blocked.
 
@@ -203,9 +229,9 @@ that discovery channel; it does not weaken image-identity validation.
 
 ## Current Evidence Record
 
-On 2026-07-20, the current v28 command passed all `38/38` phases with exit
+On 2026-07-20, the current v29 command passed all `39/39` phases with exit
 code `0`; its final tool report was generated at
-`2026-07-20T13:50:37.715Z`. The canonical long-form post-approval stage passed
+`2026-07-20T16:50:29.095Z`. The canonical long-form post-approval stage passed
 all 99 checks, retained the exact six-hour 1,144,083,803-byte FLAC and
 1,036,800,000 decoded stereo sample frames, completed eight of 255 exact queue
 jobs, proved two of 124 object-chunk render/QA pairs, and kept the other 247
@@ -215,12 +241,17 @@ H.264 encodes, independent chunk probes, AAC mux, full decoded video and audio/
 sync QA, authenticated range delivery, durable private watch evidence, and an
 honest `user_review_required` outcome for the synthetic fixture.
 
-The same aggregate completed the three-source composition in `769,343 ms`,
-the professional-color regression in `740,873 ms`, the 48,598,009-byte UHD
-Remotion streaming proof in `112,062 ms`, and all 11 named-edit browser tests
-in `15,134 ms`. The final report retained 72 registry profiles, 53 confined-
-runner proofs, and exactly 50 canonical private lifecycle plus job-adapter
-identities. A separate post-hardening
+The source-verified provider consumer receipt passed in `1,382 ms`, including
+exact consumer-context, attempt-time, queue/lease, terminal outcome,
+component-cost/rate-card, private-object, and closed-security projection. Its
+injected evidence remained non-promotable, verified runtime remained false,
+and multi-output provider-operation admission remained false. The same
+aggregate completed the three-source composition in `492,035 ms`, the
+professional-color regression in `597,517 ms`, the 53,269,158-byte UHD
+Remotion streaming proof in `98,328 ms`, and all 11 named-edit browser tests in
+`15,512 ms`. The final report retained 72 registry profiles, 53 confined-runner
+proofs, and exactly 50 canonical private lifecycle plus job-adapter identities.
+A separate post-hardening
 `npm run smoke:canonical-private-tool-dispatch` run then passed with all 28
 eligible Node/Python operations automatically persisting exact embedded CPU,
 memory, input/output lineage, and internal-cost evidence under their canonical

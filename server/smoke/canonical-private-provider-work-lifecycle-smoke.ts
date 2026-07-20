@@ -6,11 +6,17 @@ import { join } from 'node:path'
 import type { CanonicalApprovedEditExecutionPackage } from
   '../edit-architecture/canonical-approved-edit-execution-package'
 import {
+  CANONICAL_FAL_SYNCHRONIZED_FOLEY_OPERATION_ID,
+  createCanonicalProviderLifecyclePolicyCatalog,
+  resolveCanonicalProviderLifecyclePolicy,
+} from '../edit-architecture/canonical-provider-lifecycle-policy'
+import {
   CANONICAL_LYRIA_GENERATE_MUSIC_OPERATION_ID,
   CANONICAL_LYRIA_MODEL_ID,
   CANONICAL_LYRIA_PROVIDER_BOUNDARY_PROFILE_ID,
   assertCanonicalProviderWorkAuthorization,
   createCanonicalProviderWorkAuthorization,
+  resolveCanonicalProviderOperation,
 } from '../edit-architecture/canonical-provider-work-authority'
 import {
   CANONICAL_PRIVATE_PACKAGE_WORK_QUEUE_DEFINITION_VERSION,
@@ -23,7 +29,11 @@ import {
   executePrivateInjectedProviderWorkLifecycle,
   reconcilePrivateInjectedProviderUnknownLifecycle,
   type ExecutePrivateInjectedProviderWorkLifecycleInput,
+  type PrivateInjectedProviderWorkLifecycleResult,
 } from '../services/canonical-private-provider-work-lifecycle-service'
+import {
+  projectCanonicalPrivateProviderAttemptConsumerReceipt,
+} from '../services/canonical-private-provider-attempt-consumer-receipt-service'
 import {
   beginPrivateCanonicalPackageWorkQueueProviderAttempt,
   claimPrivateCanonicalPackageWorkQueueJob,
@@ -37,6 +47,14 @@ import {
   issuePrivateCanonicalProviderDispatchGrant,
 } from '../services/private-canonical-provider-dispatch-store'
 import { sha256AuthorityValue } from '../services/private-edit-authority-store'
+import {
+  createPrivateWorkerResourceUsageCostEvidence,
+  hashPrivateWorkerResourceArtifactManifest,
+  hashPrivateWorkerResourceObserverSnapshot,
+} from '../tool-cost-metering/private-worker-resource-usage-cost-evidence'
+import {
+  canonicalProviderAttemptConsumerReceiptSchema,
+} from '../validation/canonical-provider-attempt-consumer-receipt-schemas'
 
 const BASE_TIME_MS = Date.parse('2026-07-20T12:00:00.000Z')
 const at = (offsetMs: number) => new Date(BASE_TIME_MS + offsetMs).toISOString()
@@ -45,6 +63,21 @@ const INJECTED_DISPATCH_SECRET =
 const roots: string[] = []
 
 try {
+  const lifecyclePolicies = createCanonicalProviderLifecyclePolicyCatalog()
+  assert.equal(lifecyclePolicies.length, 2)
+  const foleyPolicy = resolveCanonicalProviderLifecyclePolicy(
+    CANONICAL_FAL_SYNCHRONIZED_FOLEY_OPERATION_ID,
+  )
+  assert.equal(foleyPolicy.requestCeilings.generationSubmissionCount, 1)
+  assert.equal(foleyPolicy.requestCeilings.totalLifecycleHttpRequestCount, 17)
+  assert.equal(foleyPolicy.qualification.canonicalAuthorizationIssuanceAllowed, false)
+  assert.equal(foleyPolicy.qualification.immutableProviderRevisionQualified, false)
+  assert.equal(foleyPolicy.qualification.providerRateAuthorityQualified, false)
+  assert.equal(foleyPolicy.immutableProviderRevision, null)
+  assert.throws(() => resolveCanonicalProviderOperation(
+    CANONICAL_FAL_SYNCHRONIZED_FOLEY_OPERATION_ID,
+  ))
+
   const success = await fixture('success')
   await ensurePrivateCanonicalPackageWorkQueue({
     scope: success.scope,
@@ -95,6 +128,94 @@ try {
   assert.equal(successResult.queueAggregate.entries[0]?.providerExecutionAttempt?.state,
     'terminal_known')
   assertZeroExternalEffects(successResult.evidence)
+  await persistProviderWorkerUsage(success, successResult)
+  const successReceipt = await projectCanonicalPrivateProviderAttemptConsumerReceipt({
+    scope: success.scope,
+    executionPackage: success.executionPackage,
+    queueDefinition: success.queueDefinition,
+    authorization: successResult.authorization,
+    projectedAt: at(6_000),
+  })
+  assert.equal(successReceipt.promotionClass, 'non_promotable_private_injected')
+  assert.equal(successReceipt.consumerContext.productionBindingIncluded, false)
+  assert.equal(successReceipt.consumerContext.callerAssertedProductionIdAccepted,
+    false)
+  assert.equal(successReceipt.consumerContext.consumerOwnedProductionBindingRequired,
+    true)
+  assert.equal(successReceipt.timing.startedAt,
+    successResult.queueAggregate.entries[0]?.providerExecutionAttempt?.startedAt)
+  assert.equal(successReceipt.timing.completedAt, successResult.terminal.completedAt)
+  assert.equal(successReceipt.queue.queueAttemptId, successReceipt.queue.claimId)
+  assert.equal(successReceipt.queue.leaseId, successReceipt.queue.claimId)
+  assert.equal(successReceipt.queue.leaseHash, successReceipt.queue.claimHash)
+  assert.equal(successReceipt.dispatch.retryCount, 0)
+  assert.equal(successReceipt.dispatch.fallbackCount, 0)
+  assert.equal(successReceipt.dispatch.sanitizedFailureCode, null)
+  assert.equal(successReceipt.privateOutput?.contentSha256,
+    successResult.privateOutput?.contentSha256)
+  assert.equal(successReceipt.privateOutput?.privateObjectIdentityHash,
+    successResult.privateOutput?.privateObjectIdentityHash)
+  assert.equal(successReceipt.privateOutput?.providerUrlPersisted, false)
+  assert.equal(successReceipt.privateOutput?.localPathProjected, false)
+  assert.equal(successReceipt.privateOutputs.length, 1)
+  assert.equal(successReceipt.outputSet.outputCount, 1)
+  assert.equal(successReceipt.outputSet.sourceAuthorityClass,
+    'canonical_v1_zero_or_one_source')
+  assert.equal(successReceipt.outputSet.multiOutputProviderOperationAdmitted, false)
+  assert.equal(successReceipt.requestAccounting.legacyV1ProviderRequestCount, 0)
+  assert.equal(successReceipt.requestAccounting.observedTransport
+    .totalLifecycleHttpRequestCount, 0)
+  assert.equal(successReceipt.internalCost.providerCostMicros, 0)
+  assert.equal(successReceipt.internalCost.providerUsageEvidenceDigest,
+    successResult.costEvidence.provider.usageEvidenceDigest)
+  assert.equal(successReceipt.internalCost.providerRateCardDigest,
+    successResult.costEvidence.provider.rateCardDigest)
+  assert.equal(successReceipt.internalCost
+    .legacyProvisionalInfrastructureRateCardDigest,
+  successResult.costEvidence.infrastructure.rateCardDigest)
+  assert.equal(successReceipt.internalCost.selectedInfrastructureRateCardDigest,
+    successReceipt.internalCost.workerInfrastructureRateCardDigest)
+  assert.ok(successReceipt.internalCost.observedWorkerInfrastructureCostMicros > 0)
+  assert.equal(successReceipt.internalCost
+    .legacyProvisionalInfrastructureAddedToSelectedTotal, false)
+  assert.equal(successReceipt.boundaries.sourceVerified, true)
+  assert.equal(successReceipt.boundaries.credentialValueLogged, false)
+  assert.equal(successReceipt.boundaries.requestBodyPersistedInQueue, false)
+  assert.equal(successReceipt.boundaries.callerSelectedExecutableAllowed, false)
+  assert.equal(successReceipt.boundaries.callerSelectedProviderRouteAllowed, false)
+  assert.equal(successReceipt.boundaries.canonicalBackendVerifiedRuntime, false)
+  assert.equal(successReceipt.boundaries.promotionAuthorized, false)
+  assert.equal(successReceipt.boundaries.productionReady, false)
+  await expectApiError(
+    () => projectCanonicalPrivateProviderAttemptConsumerReceipt({
+      scope: success.scope,
+      executionPackage: success.executionPackage,
+      queueDefinition: success.queueDefinition,
+      authorization: successResult.authorization,
+      projectedAt: at(4_000),
+    }),
+    'VALIDATION_FAILED',
+  )
+  const receiptJson = JSON.stringify(successReceipt)
+  for (const forbidden of [
+    INJECTED_DISPATCH_SECRET,
+    '"rawPrompt":',
+    '"requestBody":',
+    'localStorageRoot',
+    'https://',
+    'http://',
+    '/tmp/',
+  ]) assert.equal(receiptJson.includes(forbidden), false)
+  const tamperedReceipt = structuredClone(successReceipt)
+  tamperedReceipt.promotionClass = 'unreleased_runtime_not_production'
+  assert.equal(canonicalProviderAttemptConsumerReceiptSchema.safeParse(
+    tamperedReceipt,
+  ).success, false)
+  const tamperedReceiptLease = structuredClone(successReceipt)
+  tamperedReceiptLease.queue.leaseHash = digest('changed-receipt-lease')
+  assert.equal(canonicalProviderAttemptConsumerReceiptSchema.safeParse(
+    tamperedReceiptLease,
+  ).success, false)
 
   const successReplay = await executePrivateInjectedProviderWorkLifecycle({
     ...success.lifecycle,
@@ -165,6 +286,37 @@ try {
     'terminal_known')
   assertCommercialBoundary(failedResult.costEvidence)
   assertZeroExternalEffects(failedResult.evidence)
+  await expectApiError(
+    () => projectCanonicalPrivateProviderAttemptConsumerReceipt({
+      scope: failed.scope,
+      executionPackage: failed.executionPackage,
+      queueDefinition: failed.queueDefinition,
+      authorization: failedResult.authorization,
+      projectedAt: at(6_000),
+    }),
+    'TOOL_NOT_READY',
+  )
+  await persistProviderWorkerUsage(failed, failedResult)
+  const failedReceipt = await projectCanonicalPrivateProviderAttemptConsumerReceipt({
+    scope: failed.scope,
+    executionPackage: failed.executionPackage,
+    queueDefinition: failed.queueDefinition,
+    authorization: failedResult.authorization,
+    projectedAt: at(6_000),
+  })
+  assert.equal(failedReceipt.privateOutput, null)
+  assert.equal(failedReceipt.privateOutputs.length, 0)
+  assert.equal(failedReceipt.outputSet.outputCount, 0)
+  assert.equal(failedReceipt.queue.terminalQueueCompletion, false)
+  assert.equal(failedReceipt.dispatch.retryCount, 0)
+  assert.equal(failedReceipt.dispatch.fallbackCount, 0)
+  assert.ok(failedReceipt.dispatch.sanitizedFailureCode)
+  assert.equal(failedReceipt.requestAccounting.accountedGenerationSubmissionCount, 1)
+  assert.equal(failedReceipt.requestAccounting.injectedSimulationGenerationSubmissionCount, 1)
+  assert.equal(failedReceipt.requestAccounting.observedTransport
+    .totalLifecycleHttpRequestCount, 0)
+  assert.equal(failedReceipt.internalCost.providerCostMicros, 80_000)
+  assert.ok(failedReceipt.internalCost.selectedTotalInternalCostMicros! > 80_000)
 
   const unknownFailure = await fixture('unknown-failure')
   const unknownFailureResult = await executePrivateInjectedProviderWorkLifecycle({
@@ -186,6 +338,20 @@ try {
     'provider_unknown_outcome')
   assert.equal(unknownFailureResult.queueAggregate.entries[0]?.providerExecutionAttempt?.state,
     'terminal_unknown')
+  await persistProviderWorkerUsage(unknownFailure, unknownFailureResult)
+  const unknownReceipt = await projectCanonicalPrivateProviderAttemptConsumerReceipt({
+    scope: unknownFailure.scope,
+    executionPackage: unknownFailure.executionPackage,
+    queueDefinition: unknownFailure.queueDefinition,
+    authorization: unknownFailureResult.authorization,
+    projectedAt: at(6_000),
+  })
+  assert.equal(unknownReceipt.dispatch.terminalState,
+    'unknown_reconciliation_required')
+  assert.ok(unknownReceipt.dispatch.sanitizedFailureCode)
+  assert.equal(unknownReceipt.internalCost.providerCostMicros, null)
+  assert.equal(unknownReceipt.internalCost.selectedTotalInternalCostMicros, null)
+  assert.equal(unknownReceipt.workerResourceUsage.outcomeState, 'unknown')
   const blockedUnknownClaim = await claimPrivateCanonicalProviderPackageWorkQueueJob({
     scope: unknownFailure.scope,
     definition: unknownFailure.queueDefinition,
@@ -218,6 +384,18 @@ try {
   assert.equal(reconciledFailure.queueAggregate.entries[0]?.providerExecutionAttempt?.state,
     'unknown_reconciled_failed')
   assertZeroExternalEffects(reconciledFailure.evidence)
+  const reconciledFailureReceipt =
+    await projectCanonicalPrivateProviderAttemptConsumerReceipt({
+      scope: unknownFailure.scope,
+      executionPackage: unknownFailure.executionPackage,
+      queueDefinition: unknownFailure.queueDefinition,
+      authorization: unknownFailureResult.authorization,
+      projectedAt: at(11_000),
+    })
+  assert.equal(reconciledFailureReceipt.dispatch.terminalState,
+    'unknown_reconciled_failed')
+  assert.equal(reconciledFailureReceipt.queue.unknownOutcomeReconciled, true)
+  assert.equal(reconciledFailureReceipt.internalCost.providerCostMicros, 80_000)
   const reconciledFailureReplay = await reconcilePrivateInjectedProviderUnknownLifecycle({
     scope: unknownFailure.scope,
     queueDefinition: unknownFailure.queueDefinition,
@@ -316,6 +494,7 @@ try {
       rawInfrastructureUsageEvidenceDigest: digest('unknown-success-infrastructure'),
     },
   })
+  await persistProviderWorkerUsage(unknownSuccess, unknownSuccessResult)
   const reconciledSuccess = await reconcilePrivateInjectedProviderUnknownLifecycle({
     scope: unknownSuccess.scope,
     queueDefinition: unknownSuccess.queueDefinition,
@@ -336,6 +515,21 @@ try {
   assert.equal(reconciledSuccess.queueAggregate.entries[0]?.completion
     ?.providerUnknownReconciliation?.resolution, 'succeeded')
   assertZeroExternalEffects(reconciledSuccess.evidence)
+  const reconciledSuccessReceipt =
+    await projectCanonicalPrivateProviderAttemptConsumerReceipt({
+      scope: unknownSuccess.scope,
+      executionPackage: unknownSuccess.executionPackage,
+      queueDefinition: unknownSuccess.queueDefinition,
+      authorization: unknownSuccessResult.authorization,
+      projectedAt: at(11_000),
+    })
+  assert.equal(reconciledSuccessReceipt.dispatch.terminalState,
+    'unknown_reconciled_succeeded')
+  assert.equal(reconciledSuccessReceipt.queue.terminalQueueCompletion, true)
+  assert.equal(reconciledSuccessReceipt.queue.unknownOutcomeReconciled, true)
+  assert.equal(reconciledSuccessReceipt.privateOutput?.contentSha256,
+    reconciledSuccess.privateOutput?.contentSha256)
+  assert.equal(reconciledSuccessReceipt.workerResourceUsage.outcomeState, 'unknown')
 
   for (const item of [
     success,
@@ -367,6 +561,13 @@ try {
       'expired_consumed_attempt_fails_closed_without_duplicate_reclaim',
       'failed_unknown_and_reconciled_attempt_internal_cost_retained',
       'provider_and_infrastructure_cost_separate_from_customer_commercial_fields',
+      'source_verified_consumer_receipt_requires_queue_dispatch_cost_resource_and_output_readback',
+      'source_verified_consumer_context_attempt_timing_queue_lease_and_terminal_outcome_projection',
+      'source_verified_component_rate_cards_private_object_and_closed_security_projection',
+      'private_injected_receipt_is_non_promotable_and_contains_no_sensitive_transport_fields',
+      'output_set_projection_keeps_current_v1_cardinality_and_future_multi_output_admission_closed',
+      'legacy_v1_provider_request_count_remains_generation_submission_not_total_http_requests',
+      'synchronized_foley_identity_and_17_request_async_breakdown_frozen_but_runtime_blocked',
       'route_output_cardinality_authorization_credential_and_rate_expiry_tamper_rejected',
       'zero_provider_secret_cloud_supabase_billing_and_public_side_effects',
       'provider_transport_distributed_persistence_motion_receipt_and_production_remain_blocked',
@@ -390,6 +591,132 @@ interface Fixture {
   jobId: string
   outputId: string
   lifecycle: Omit<ExecutePrivateInjectedProviderWorkLifecycleInput, 'outcome'>
+}
+
+async function persistProviderWorkerUsage(
+  fixtureValue: Fixture,
+  result: PrivateInjectedProviderWorkLifecycleResult,
+): Promise<void> {
+  const attempt = result.dispatchEntry.attempt
+  const workItem = fixtureValue.executionPackage.approvedWorkItems.find((candidate) =>
+    candidate.id === result.authorization.approvedWorkItemId)
+  if (!workItem) throw new Error('Provider smoke work item disappeared.')
+  const runtimeExecutionIdentityDigest = digest(
+    `runtime-execution:${attempt.dispatchAttemptId}`,
+  )
+  const containerIdentityDigest = digest(`container:${attempt.dispatchAttemptId}`)
+  const measurementAgentDigest = digest(`measurement-agent:${attempt.dispatchAttemptId}`)
+  const snapshot = (input: {
+    capturedAt: string
+    cpuUsageNanoseconds: number
+    memoryCurrentBytes: number
+    memoryPeakBytes: number
+  }) => {
+    const value = {
+      schemaVersion: 'private-worker-resource-observer-snapshot-v1' as const,
+      runtimeExecutionIdentityDigest,
+      containerIdentityDigest,
+      measurementAgentDigest,
+      capturedAt: input.capturedAt,
+      cpuUsageNanoseconds: input.cpuUsageNanoseconds,
+      memoryCurrentBytes: input.memoryCurrentBytes,
+      memoryPeakBytes: input.memoryPeakBytes,
+      gpuActiveMilliseconds: null,
+    }
+    return {
+      ...value,
+      rawSnapshotDigest: hashPrivateWorkerResourceObserverSnapshot(value),
+    }
+  }
+  const inputArtifacts = [{
+    artifactId: result.authorization.sourceRequestId,
+    sha256: result.authorization.sourceRequestDigest,
+    byteLength: 1,
+  }]
+  const outputArtifacts = result.privateOutput
+    ? [{
+        artifactId: result.privateOutput.assetVersionId,
+        sha256: result.privateOutput.contentSha256,
+        byteLength: result.privateOutput.byteLength,
+      }]
+    : []
+  const terminalState = result.terminal.state
+  const outcome = terminalState === 'succeeded'
+    ? { state: 'completed' as const, failureCategory: 'none' as const }
+    : terminalState === 'failed'
+      ? { state: 'failed' as const, failureCategory: 'provider_error' as const }
+      : { state: 'unknown' as const, failureCategory: 'unknown' as const }
+  await createPrivateWorkerResourceUsageCostEvidence({
+    localStorageRoot: fixtureValue.scope.localStorageRoot,
+    evidenceClass: 'private_injected_observed_usage_test',
+    operation: {
+      kind: 'registered_provider_operation',
+      operationId: result.authorization.operationId,
+    },
+    identity: {
+      ownerUserId: result.authorization.ownerUserId,
+      workspaceId: result.authorization.workspaceId,
+      projectId: result.authorization.projectId,
+      editSessionId: result.authorization.editSessionId,
+      approvedPlanSnapshotId: result.authorization.approvedPlanSnapshotId,
+      approvedPlanSnapshotHash: result.authorization.snapshotHash,
+      packageRecordId: result.authorization.packageRecordId,
+      packageHash: result.authorization.packageHash,
+      approvedWorkItemId: result.authorization.approvedWorkItemId,
+      approvedWorkItemHash: sha256AuthorityValue(workItem),
+      jobId: result.authorization.queueJobId,
+      executionAttemptId: attempt.dispatchAttemptId,
+      attemptOrdinal: attempt.queueClaimDeliveryAttempt,
+      leaseId: attempt.queueClaimId,
+      leaseHash: attempt.queueClaimHash,
+      dispatchGrantId: result.grant.grantId,
+      dispatchGrantHash: result.grant.immutableGrantHash,
+      idempotencyKeyHash: result.authorization.idempotencyKeyHash,
+    },
+    attemptInputHash: result.authorization.providerRequestPayloadDigest,
+    runtime: {
+      workerClass: 'audio_processing_worker',
+      runtimeExecutionIdentityDigest,
+      runtimeImageDigest: digest(`runtime-image:${attempt.dispatchAttemptId}`),
+      runtimeAttestationDigest: digest(`runtime-attestation:${attempt.dispatchAttemptId}`),
+      containerIdentityDigest,
+      cloudExecutionResourceDigest: null,
+      measurementAgentVersion: 'provider-usage-smoke-v1',
+      measurementAgentDigest,
+      leaseExpiresAt: result.grant.queueClaimExpiresAt,
+    },
+    allocation: { vcpuCount: 1, memoryMib: 1_024, gpuCount: 0 },
+    startSnapshot: snapshot({
+      capturedAt: at(3_200),
+      cpuUsageNanoseconds: 1_000_000,
+      memoryCurrentBytes: 8 * 1024 * 1024,
+      memoryPeakBytes: 8 * 1024 * 1024,
+    }),
+    finishSnapshot: snapshot({
+      capturedAt: at(4_200),
+      cpuUsageNanoseconds: 3_000_000,
+      memoryCurrentBytes: 12 * 1024 * 1024,
+      memoryPeakBytes: 16 * 1024 * 1024,
+    }),
+    input: {
+      artifacts: inputArtifacts,
+      manifestHash: hashPrivateWorkerResourceArtifactManifest({
+        direction: 'input',
+        artifacts: inputArtifacts,
+      }),
+    },
+    output: {
+      disposition: result.privateOutput ? 'accepted' : 'none',
+      artifacts: outputArtifacts,
+      manifestHash: hashPrivateWorkerResourceArtifactManifest({
+        direction: 'output',
+        artifacts: outputArtifacts,
+      }),
+    },
+    networkEgressBytes: 0,
+    outcome,
+    createdAt: at(5_000),
+  })
 }
 
 async function fixture(label: string): Promise<Fixture> {

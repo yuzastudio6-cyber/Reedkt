@@ -370,6 +370,56 @@ export async function readPrivateProviderAttemptCostEvidence(input: {
   return parsed
 }
 
+export async function readPrivateProviderAttemptCostEvidenceForAttempt(input: {
+  localStorageRoot: string
+  authorization: CanonicalProviderWorkAuthorization
+  claimId: string
+  claimHash: string
+  deliveryAttempt: number
+  dispatchAttemptId: string
+  evidenceHash: string
+}): Promise<PrivateProviderAttemptCostEvidence> {
+  const attemptIdentityHash = sha256AuthorityValue({
+    domain: 'reeditpro:private-provider-attempt-cost-identity:v1',
+    authorizationHash: input.authorization.authorityHash,
+    claimId: input.claimId,
+    claimHash: input.claimHash,
+    deliveryAttempt: input.deliveryAttempt,
+    dispatchAttemptId: input.dispatchAttemptId,
+  })
+  const evidence = await readPrivateProviderAttemptCostEvidence({
+    localStorageRoot: input.localStorageRoot,
+    evidence: {
+      identity: {
+        workspaceId: input.authorization.workspaceId,
+        projectId: input.authorization.projectId,
+        editSessionId: input.authorization.editSessionId,
+        approvedPlanSnapshotId: input.authorization.approvedPlanSnapshotId,
+        packageRecordId: input.authorization.packageRecordId,
+        approvedWorkItemId: input.authorization.approvedWorkItemId,
+        jobId: input.authorization.queueJobId,
+        claimId: input.claimId,
+        deliveryAttempt: input.deliveryAttempt,
+        dispatchAttemptId: input.dispatchAttemptId,
+        providerOperationId: input.authorization.operationId,
+        providerRouteId: input.authorization.providerRouteId,
+        providerModelId: input.authorization.providerModelId,
+      },
+      evidenceId: `provider_cost_${attemptIdentityHash.slice(0, 48)}`,
+      evidenceHash: input.evidenceHash,
+    },
+  })
+  if (
+    evidence.authorityHash !== input.authorization.authorityHash ||
+    evidence.attemptIdentityHash !== attemptIdentityHash ||
+    evidence.identity.claimId !== input.claimId ||
+    evidence.identity.deliveryAttempt !== input.deliveryAttempt ||
+    evidence.identity.dispatchAttemptId !== input.dispatchAttemptId ||
+    evidence.evidenceHash !== input.evidenceHash
+  ) throw invalid('Provider-attempt cost evidence changed exact attempt lineage.')
+  return evidence
+}
+
 function evidenceRelativePath(input: Pick<
   PrivateProviderAttemptCostEvidence,
   'identity' | 'evidenceId' | 'evidenceHash'

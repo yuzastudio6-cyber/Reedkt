@@ -171,6 +171,11 @@ const canonicalSteps: VerificationStep[] = [
     'All 72 registered tool operations plus the one admitted provider operation expose exact CPU/memory resource evidence contracts, all GPU-capable operations require GPU milliseconds, and completed/failed/unknown private attempts retain create-only internal infrastructure-cost evidence while deployed observers, official cloud rates, provider calls, commerce, and production remain blocked.',
   ),
   step(
+    'canonical-provider-attempt-consumer-receipt',
+    'smoke:canonical-private-provider-work-lifecycle',
+    'The exact approved package, queue/lease, one-use provider dispatch, terminal cost, observed worker-resource evidence, and private output readback produce a compact source-verified non-promotable receipt. Exact consumer context, timing, lease aliases, safe terminal outcome, component cost/rate-card provenance, private-object identity, and closed security semantics map without caller invention. The output-set envelope remains current-V1 cardinality with multi-output admission false. Lyria V1 request-count history remains generation-submission semantics, while the synchronized-Foley identity and 17-request async breakdown stay qualification- and transport-blocked.',
+  ),
+  step(
     'canonical-multi-source-execution',
     'smoke:canonical-multi-source-final-composition',
     'Three-source execution reaches one baseline plus two directly reference-bound professional color matches, two approved hard-cut boundaries, three exact source-bound voice deliveries, lease, one-use dispatch, private artifacts, QA, reconciliation, ordered color/voice composition, objective continuity at both boundaries, and download evidence.',
@@ -315,7 +320,7 @@ function printReport(
 ): void {
   const finishedAt = new Date()
   const report = {
-    schemaVersion: 'canonical-private-pipeline-verification-v28',
+    schemaVersion: 'canonical-private-pipeline-verification-v29',
     status,
     mode: full ? 'full_internal_regression' : 'canonical_private_pipeline',
     startedAt: runStartedAt.toISOString(),
@@ -442,6 +447,14 @@ function printReport(
           professionalLongFormCustomerDeliveryBrowserWatchClientHandshake: true,
           professionalLongFormCustomerDeliverySecondExportEstimateCreated: false,
           professionalLongFormCustomerDeliverySecondExportChargeCreated: false,
+          canonicalProviderAttemptConsumerReceiptSourceVerified: true,
+          canonicalProviderAttemptConsumerReceiptPromotable: false,
+          canonicalProviderAttemptConsumerReceiptMotionMappingComplete: true,
+          canonicalProviderAttemptConsumerReceiptVerifiedRuntime: false,
+          canonicalProviderAttemptConsumerReceiptMultiOutputAdmission: false,
+          legacyProviderRequestCountMeansGenerationSubmission: true,
+          synchronizedFoleyLifecycleIdentityFrozen: true,
+          synchronizedFoleyCanonicalAuthorizationIssuanceAllowed: false,
           activeNamedEditJourneyStates: true,
           versionedToolIdentityEvidence: true,
           ...(full

@@ -2,7 +2,7 @@
 
 Date: 2026-07-19
 
-Status: `private_local_nine_job_delivery_browser_transport_and_named_edit_discovery_contract_ready_ui_mount_product_and_cloud_blocked`
+Status: `private_local_nine_job_delivery_browser_transport_and_canonical_journey_client_connected_ui_mount_product_and_cloud_blocked`
 
 ## Outcome
 
@@ -40,8 +40,9 @@ frontend-safe client contract for exact named-edit package discovery,
 browser-safe review metadata, authenticated
 pre-decision byte ranges, exact quality-decision recording/replay, and accepted
 private-download byte ranges. Google Cloud dispatch, durable distributed
-persistence, canonical-journey/UI mounting of the discovery client, public
-delivery, billing, and production remain blocked.
+persistence, visible named-edit player/decision mounting of the connected
+canonical-journey result, public delivery, billing, and production remain
+blocked.
 
 ## Authenticated browser review contract
 
@@ -112,11 +113,15 @@ it cannot prepare or run the package, execute a provider or render, mutate
 credits, create a second export estimate/charge, publish media, bill a customer,
 or deploy anything.
 
-This is the backend/client seam for the canonical named-edit product. It is not
-yet mounted into the active named-edit UI, and the older canonical-journey
-response still ends at `private_review_accepted`. A later coordinated UI/journey
-slice must consume this one route rather than create another delivery registry
-or make users supply a package identifier.
+This backend/client seam is now connected to the one canonical named-edit
+journey client. After the exact private review is accepted, that client
+preserves the approved snapshot identity, calls this discovery route, returns
+the delivery result beside the accepted journey, and continues visible-tab
+recovery while the delivery is processing. A missing package remains a scoped
+blocked delivery substate instead of invalidating or downgrading the accepted
+edit. It is not yet rendered by the active named-edit UI; a later coordinated
+UI slice must consume this one result rather than create another hook, delivery
+registry, or caller-supplied package identifier.
 
 ## Why delivery is a separate package
 
@@ -366,10 +371,10 @@ This slice does not prove or authorize:
   not change either objective `needs_user_review` outcome;
 - a retained demo object or website playback; the smoke deletes its private
   fixture workspace after assertions complete;
-- canonical-journey stage integration or UI/hook consumption of the proven
-  named-edit discovery route, MediaSource playback, full-program watch-state
-  evidence, or a retained viewable demo object; the route/client foundation is
-  proven but is not mounted as a second UI or authority;
+- visible UI/player consumption of the proven canonical-journey delivery
+  result, MediaSource playback, full-program watch-state evidence, or a
+  retained viewable demo object; the one hook/client orchestration is proven
+  but no delivery UI or second authority is mounted;
 - distributed database-backed package, queue, outbox, or completion authority;
 - GCS persistence, Cloud Run dispatch, IAM/service identity, or live Google
   Cloud cost reconciliation;
@@ -382,11 +387,11 @@ This slice does not prove or authorize:
 
 ## Next dependency-safe capability
 
-Expose this strict customer-delivery authority through the one canonical named-
-edit recovery journey so the separately owned product UI can consume the client
-without creating another review system. Then add one bounded MediaSource/player
-adapter with durable whole-program watch-state evidence and a retained private
-acceptance fixture. The later deployed journey must replace private local files
+Add one bounded MediaSource/player adapter that consumes the now-connected
+canonical named-edit result, with durable whole-program watch-state evidence
+and a retained private acceptance fixture. The separately owned product UI must
+mount that adapter without creating another review system. The later deployed
+journey must replace private local files
 with tenant-scoped durable Supabase/GCS authority, distributed queue/lease
 execution, Cloud Run dispatch, and real cross-instance recovery. It must keep
 the original approved 4K estimate/reservation, never introduce a second export

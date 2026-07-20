@@ -243,6 +243,18 @@ const requiredEvidence: RequiredEvidence[] = [
     ],
   },
   {
+    file: 'server/smoke/canonical-edit-journey-frontend-client-smoke.ts',
+    requirement: 'The accepted named-edit recovery client must preserve exact approved-snapshot identity, recover the separate professional delivery through the existing journey client, refresh only advancing delivery, and keep an absent package as a scoped substate.',
+    evidence: [
+      'approvedSnapshotIdentity',
+      'Accepted journey must recover exact customer delivery.',
+      'professionalLongFormCustomerDeliveryShouldAutoRefresh',
+      'customer_delivery_processing',
+      'The exact delivery package is not prepared yet.',
+      'The accepted canonical journey must remain recoverable.',
+    ],
+  },
+  {
     file: 'src/components/editor/PreviewReadyCard.tsx',
     requirement: 'The preview card must switch into a truthful private-review state once the private artifact exists.',
     evidence: [
@@ -273,6 +285,7 @@ const requiredEvidence: RequiredEvidence[] = [
       'canonical_execution_package_request_client',
       'canonical_private_edit_preparation_client',
       'canonical_private_review_client',
+      'professional_long_form_customer_delivery_client',
       'playwright_canonical_journey_flow',
       'legacy_execution_routes_fail_closed',
     ],
@@ -317,6 +330,7 @@ console.log(JSON.stringify({
     'canonical_named_edit_private_handoff_coverage_present',
     'canonical_named_edit_private_preparation_coverage_present',
     'canonical_named_edit_private_review_decision_and_history_coverage_present',
+    'canonical_named_edit_customer_delivery_recovery_coverage_present',
     'visible_private_review_card_coverage_present',
     'aggregate_internal_review_coverage_present',
   ],

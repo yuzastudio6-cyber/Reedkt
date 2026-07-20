@@ -108,7 +108,7 @@ const canonicalSteps: VerificationStep[] = [
   step(
     'browser-journey-recovery',
     'smoke:canonical-edit-journey-client',
-    'Every canonical journey stage is strictly parsed and recovered without private execution material.',
+    'Every canonical journey stage is strictly parsed and recovered without private execution material; accepted review recovers exact customer-delivery discovery through the same client while an absent package stays a scoped blocked substate.',
   ),
   step(
     'canonical-backend-authority',
@@ -295,7 +295,7 @@ function printReport(
 ): void {
   const finishedAt = new Date()
   const report = {
-    schemaVersion: 'canonical-private-pipeline-verification-v25',
+    schemaVersion: 'canonical-private-pipeline-verification-v26',
     status,
     mode: full ? 'full_internal_regression' : 'canonical_private_pipeline',
     startedAt: runStartedAt.toISOString(),
@@ -409,6 +409,7 @@ function printReport(
           boundedMaximumEightSourcePlanningPublicationCoverage: true,
           professionalLongFormCustomerDeliveryBrowserSafeReceipt: true,
           professionalLongFormCustomerDeliveryExactNamedEditDiscoveryTransport: true,
+          professionalLongFormCustomerDeliveryCanonicalJourneyClientRecovery: true,
           professionalLongFormCustomerDeliveryPreDecisionRangeTransport: true,
           professionalLongFormCustomerDeliveryExplicitDecisionTransport: true,
           professionalLongFormCustomerDeliveryAcceptedPrivateDownloadTransport: true,

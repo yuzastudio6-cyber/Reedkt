@@ -35,6 +35,10 @@ export type CanonicalEditJourneyProgress = {
 export type CanonicalEditJourney = {
   identity: CanonicalEditJourneyIdentity
   stage: CanonicalEditJourneyStage
+  approvedSnapshotIdentity?: {
+    snapshotId: string
+    expectedSnapshotHash: string
+  }
   approvalAuthority?: {
     planId: string
     estimateId: string
@@ -372,6 +376,12 @@ export function parseCanonicalEditJourney(
       value: {
         identity,
         stage,
+        approvedSnapshotIdentity: approval
+          ? {
+              snapshotId: approval.snapshotId,
+              expectedSnapshotHash: approval.snapshotHash,
+            }
+          : undefined,
         approvalAuthority: stage === 'plan_approval_required' && plan
           ? {
               planId: plan.planId,

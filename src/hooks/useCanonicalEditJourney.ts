@@ -5,6 +5,9 @@ import {
 } from '../lib/canonical-edit-journey-client'
 import { canonicalJourneyShouldAutoRefresh } from '../lib/canonical-edit-journey'
 import type { ProjectPersistenceScope } from '../lib/project-persistence-scope'
+import {
+  professionalLongFormCustomerDeliveryShouldAutoRefresh,
+} from '../lib/professional-long-form-customer-delivery-client'
 
 type CanonicalEditJourneyHookState = {
   identityKey: string | null
@@ -95,7 +98,12 @@ export function useCanonicalEditJourney({
       !enabled ||
       state.refreshing ||
       state.result?.status !== 'ready' ||
-      !canonicalJourneyShouldAutoRefresh(state.result.journey.stage)
+      !(
+        canonicalJourneyShouldAutoRefresh(state.result.journey.stage) ||
+        professionalLongFormCustomerDeliveryShouldAutoRefresh(
+          state.result.customerDelivery,
+        )
+      )
     ) {
       return
     }

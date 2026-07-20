@@ -55,12 +55,21 @@ quality-review or accepted-download browser receipt. It returns no raw package,
 queue, jobs, attempts, leases, internal cost, paths, credentials, execution
 grant, public URL, or commercial mutation authority.
 
-This closes the backend/client package-ID discovery gap, but it does not yet
-change the canonical journey stage union above or mount the result into the
-active named-edit UI. `private_review_accepted` therefore remains the current
-canonical-journey terminal stage. The next coordinated integration must attach
-this one discovery client to that stage without creating another queue,
-registry, delivery authority, or editor surface.
+This closes the backend/client package-ID discovery gap. The canonical journey
+browser client now preserves the approved snapshot identity and, only after a
+saved `private_review_accepted` state, uses it to recover the separate delivery
+through the same `useCanonicalEditJourney` result. A processing delivery keeps
+the existing six-second visible-tab recovery cadence; a missing package is an
+honest blocked delivery substate and does not erase the already accepted edit.
+The browser still receives no package identity until the strict discovery
+response establishes it.
+
+This additive client orchestration does not change the canonical journey stage
+union above or mount a delivery player/decision surface into the active named-
+edit UI. `private_review_accepted` therefore remains the current journey stage,
+with an optional exact customer-delivery result beside it. The next coordinated
+UI slice must consume that one result without creating another queue, registry,
+delivery authority, hook, or editor surface.
 
 ## Browser consumption
 

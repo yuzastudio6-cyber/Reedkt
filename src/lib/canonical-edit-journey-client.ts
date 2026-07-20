@@ -8,6 +8,10 @@ import {
   parseCanonicalEditJourney,
   type CanonicalEditJourney,
 } from './canonical-edit-journey'
+import {
+  discoverProfessionalLongFormCustomerDelivery,
+  type ProfessionalLongFormCustomerDeliveryDiscoveryClientResult,
+} from './professional-long-form-customer-delivery-client'
 
 type CanonicalEditJourneyResponse = {
   canonicalEditJourney?: unknown
@@ -17,6 +21,8 @@ export type CanonicalEditJourneyClientResult =
   | {
       status: 'ready'
       journey: CanonicalEditJourney
+      customerDelivery?:
+        ProfessionalLongFormCustomerDeliveryDiscoveryClientResult
       warnings: string[]
     }
   | {
@@ -149,9 +155,21 @@ async function performCanonicalEditJourneyRead(
     }
   }
 
+  const customerDelivery = parsed.value.stage === 'private_review_accepted' &&
+    parsed.value.approvedSnapshotIdentity
+    ? await discoverProfessionalLongFormCustomerDelivery({
+        scope,
+        projectId,
+        editSessionId,
+        approvedPlanSnapshotId:
+          parsed.value.approvedSnapshotIdentity.snapshotId,
+      })
+    : undefined
+
   return {
     status: 'ready',
     journey: parsed.value,
+    ...(customerDelivery ? { customerDelivery } : {}),
     warnings: response.warnings,
   }
 }

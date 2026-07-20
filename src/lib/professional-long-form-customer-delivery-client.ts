@@ -71,6 +71,15 @@ export type ProfessionalLongFormCustomerDeliveryDiscoveryClientResult =
     }
   | ClientFailure
 
+export function professionalLongFormCustomerDeliveryShouldAutoRefresh(
+  result:
+    | ProfessionalLongFormCustomerDeliveryDiscoveryClientResult
+    | undefined,
+): boolean {
+  return result?.status === 'ready' &&
+    result.discovery.stage === 'customer_delivery_processing'
+}
+
 export type ProfessionalLongFormCustomerDeliveryDecisionClientResult =
   | {
       status: 'recorded'

@@ -7,6 +7,9 @@ import {
   type CanonicalEditJourneyStage,
 } from '../../src/lib/canonical-edit-journey'
 import type { ProjectPersistenceScope } from '../../src/lib/project-persistence-scope'
+import {
+  professionalLongFormCustomerDeliveryShouldAutoRefresh,
+} from '../../src/lib/professional-long-form-customer-delivery-client'
 import { canonicalEditJourneyResponseSchema } from '../validation/canonical-edit-journey-schemas'
 
 const identity = {
@@ -28,6 +31,14 @@ for (const stage of CANONICAL_EDIT_JOURNEY_STAGES) {
   assert.equal(parsed.value.stage, stage, `${stage} should preserve its exact stage.`)
   assert.equal(parsed.value.inspectionOnly, true, `${stage} should remain inspection-only.`)
   assert.equal(parsed.value.testOnly, true, `${stage} should remain private-test-only.`)
+  if ('approval' in fixture) {
+    assert.deepEqual(parsed.value.approvedSnapshotIdentity, {
+      snapshotId: 'snapshot-ui-smoke',
+      expectedSnapshotHash: hash('3'),
+    })
+  } else {
+    assert.equal(parsed.value.approvedSnapshotIdentity, undefined)
+  }
   if (stage === 'plan_approval_required') {
     assert.deepEqual(parsed.value.approvalAuthority, {
       planId: 'plan-ui-smoke',
@@ -101,6 +112,8 @@ const originalBaseUrl = process.env.VITE_REEDITPRO_API_BASE_URL
 const originalE2E = process.env.VITE_REEDITPRO_E2E
 const originalE2EToken = process.env.VITE_REEDITPRO_E2E_AUTH_TOKEN
 let responseMode: 'valid' | 'foreign' | 'unavailable' = 'valid'
+let journeyStage: CanonicalEditJourneyStage = 'plan_approval_required'
+let deliveryResponseMode: 'ready' | 'blocked' = 'ready'
 const seenRequests: Array<{ authorization?: string; method?: string; url?: string }> = []
 
 const server = createServer((request, response) => {
@@ -120,7 +133,34 @@ const server = createServer((request, response) => {
     return
   }
 
-  const fixture = journeyFixture('plan_approval_required')
+  const requestUrl = new URL(request.url ?? '/', 'http://127.0.0.1')
+  if (requestUrl.pathname.endsWith(
+    '/professional-long-form-customer-delivery',
+  )) {
+    if (deliveryResponseMode === 'blocked') {
+      response.statusCode = 409
+      response.end(JSON.stringify({
+        ok: false,
+        error: {
+          code: 'JOB_DEPENDENCY_NOT_READY',
+          message: 'The exact delivery package is not prepared yet.',
+        },
+        warnings: [],
+      }))
+      return
+    }
+    response.end(JSON.stringify({
+      ok: true,
+      data: {
+        professionalLongFormCustomerDeliveryDiscovery:
+          customerDeliveryDiscoveryFixture(),
+      },
+      warnings: ['Canonical journey delivery-discovery smoke response.'],
+    }))
+    return
+  }
+
+  const fixture = journeyFixture(journeyStage)
   if (responseMode === 'foreign') asRecord(fixture.identity).workspaceId = 'workspace-foreign'
   response.end(JSON.stringify({
     ok: true,
@@ -179,6 +219,70 @@ try {
   const unavailable = await readCanonicalEditJourney(scope, identity.projectId, identity.editSessionId)
   assert.equal(unavailable.status, 'unavailable', 'Transport failure should remain distinct from an empty workflow.')
   assert.equal(unavailable.retryable, true)
+
+  responseMode = 'valid'
+  journeyStage = 'private_review_accepted'
+  const acceptedRequestStart = seenRequests.length
+  const accepted = await readCanonicalEditJourney(
+    scope,
+    identity.projectId,
+    identity.editSessionId,
+  )
+  assert.equal(accepted.status, 'ready')
+  if (accepted.status !== 'ready') assert.fail('Accepted journey must recover.')
+  assert.deepEqual(accepted.journey.approvedSnapshotIdentity, {
+    snapshotId: 'snapshot-ui-smoke',
+    expectedSnapshotHash: hash('3'),
+  })
+  assert.equal(accepted.customerDelivery?.status, 'ready')
+  if (accepted.customerDelivery?.status !== 'ready') {
+    assert.fail('Accepted journey must recover exact customer delivery.')
+  }
+  assert.equal(
+    accepted.customerDelivery.discovery.stage,
+    'customer_delivery_processing',
+  )
+  assert.equal(
+    accepted.customerDelivery.authority.packageRecordId,
+    'customer-delivery-package-ui-smoke',
+  )
+  assert.equal(
+    professionalLongFormCustomerDeliveryShouldAutoRefresh(
+      accepted.customerDelivery,
+    ),
+    true,
+  )
+  const acceptedRequests = seenRequests.slice(acceptedRequestStart)
+  assert.equal(acceptedRequests.length, 2)
+  assert.equal(
+    acceptedRequests[0]?.url,
+    `/v1/projects/${identity.projectId}/edit-sessions/${identity.editSessionId}/canonical-journey?workspaceId=${identity.workspaceId}`,
+  )
+  assert.equal(
+    acceptedRequests[1]?.url,
+    `/v1/projects/${identity.projectId}/edit-sessions/${identity.editSessionId}/professional-long-form-customer-delivery?workspaceId=${identity.workspaceId}&approvedPlanSnapshotId=snapshot-ui-smoke`,
+  )
+  assert.equal(
+    acceptedRequests.every((request) =>
+      request.authorization === 'Bearer canonical-journey-ui-smoke-token'),
+    true,
+  )
+
+  deliveryResponseMode = 'blocked'
+  const deliveryNotPrepared = await readCanonicalEditJourney(
+    scope,
+    identity.projectId,
+    identity.editSessionId,
+  )
+  assert.equal(deliveryNotPrepared.status, 'ready')
+  if (deliveryNotPrepared.status !== 'ready') {
+    assert.fail('The accepted canonical journey must remain recoverable.')
+  }
+  assert.equal(deliveryNotPrepared.customerDelivery?.status, 'blocked')
+  assert.equal(
+    deliveryNotPrepared.customerDelivery?.message,
+    'The exact delivery package is not prepared yet.',
+  )
 } finally {
   await new Promise<void>((resolve, reject) => {
     server.close((error) => error ? reject(error) : resolve())
@@ -410,6 +514,81 @@ function privateHistoryDescriptor() {
       expectedFinalArtifactSha256: hash('8'),
       purpose: 'download_canonical_private_review_history_artifact',
     },
+  }
+}
+
+function customerDeliveryDiscoveryFixture() {
+  return {
+    schemaVersion:
+      'professional-long-form-customer-delivery-discovery-v1',
+    source:
+      'canonical_professional_long_form_customer_delivery_discovery_service',
+    purpose: 'discover_exact_private_customer_delivery_for_named_edit',
+    stage: 'customer_delivery_processing',
+    identity: {
+      ...identity,
+      approvedPlanSnapshotId: 'snapshot-ui-smoke',
+      packageRecordId: 'customer-delivery-package-ui-smoke',
+    },
+    progress: {
+      totalJobCount: 9,
+      completedJobCount: 2,
+      activeJobCount: 1,
+      pendingJobCount: 7,
+      completionPercent: 22,
+      attentionRequired: false,
+    },
+    review: null,
+    readiness: {
+      exactPackageDiscovered: true,
+      exactSnapshotLineageVerified: true,
+      qualityReviewReady: false,
+      authenticatedQualityDecisionRecorded: false,
+      revisionRequiresFreshPlanEstimateAndApproval: false,
+      authenticatedPrivateDownloadReady: false,
+      publicDeliveryAuthorized: false,
+      productReady: false,
+      productionReady: false,
+    },
+    commercialBoundary: {
+      approvedFourKEstimateAndReservationReused: true,
+      customerDeliveryCoveredByOriginalApprovedEstimate: true,
+      secondExportEstimateCreated: false,
+      secondExportChargeCreated: false,
+      exportTimeEstimatePromptAllowed: false,
+      exportTimeCreditPromptAllowed: false,
+      customerPriceAuthorityIncluded: false,
+      customerCreditAuthorityIncluded: false,
+      serviceFeeAuthorityIncluded: false,
+      customerCreditsMutated: false,
+      walletMutationAuthorized: false,
+      settlementAuthorized: false,
+      billingAuthorized: false,
+    },
+    boundaries: {
+      discoveryInspectionOnly: true,
+      rawPackageReturned: false,
+      rawQueueReturned: false,
+      jobIdentityReturned: false,
+      leaseOrAttemptReturned: false,
+      internalCostEvidenceReturned: false,
+      filesystemOrStoragePathReturned: false,
+      credentialReturned: false,
+      providerCallStarted: false,
+      renderStarted: false,
+      customerCreditsMutated: false,
+      publicDeliveryStarted: false,
+      billingStarted: false,
+      deploymentStarted: false,
+    },
+    persistence: {
+      privateLocal: true,
+      tenantScoped: true,
+      distributed: false,
+      databaseBacked: false,
+      productionAuthority: false,
+    },
+    testOnly: true,
   }
 }
 

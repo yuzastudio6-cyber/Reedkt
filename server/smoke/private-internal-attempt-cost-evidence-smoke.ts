@@ -33,6 +33,9 @@ import {
   PROFESSIONAL_LONG_FORM_DELIVERY_MUX_OPERATION_ID,
 } from '../edit-architecture/professional-long-form-customer-delivery-mux-execution-contract'
 import {
+  PROFESSIONAL_LONG_FORM_DELIVERY_DOWNLOAD_OPERATION_ID,
+} from '../edit-architecture/professional-long-form-customer-delivery-download-execution-contract'
+import {
   PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_QA_OPERATION_ID,
   PROFESSIONAL_LONG_FORM_FIRST_OBJECT_CHUNK_RENDER_OPERATION_ID,
 } from '../edit-architecture/professional-long-form-first-object-chunk-execution-contract'
@@ -710,6 +713,40 @@ try {
   )
   assertNoCommercialKeys(deliveryMux.evidence)
 
+  const deliveryDownloadMeter = await beginPrivateInternalAttemptCostEvidence({
+    ...common,
+    approvedWorkItemId: 'long-form-customer-delivery-download-cost-proof',
+    jobId: 'long-form-customer-delivery-download-job-cost-proof',
+    executionAttemptId:
+      'attempt-long-form-customer-delivery-download-cost-proof',
+    toolId: 'reeditpro_internal' as const,
+    operationId: PROFESSIONAL_LONG_FORM_DELIVERY_DOWNLOAD_OPERATION_ID,
+    workloadProfileId:
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS
+        .professionalLongFormCustomerDeliveryDownload,
+  }, clock([92_000_000_000n, 92_750_000_000n], [
+    '2026-07-11T12:15:00.000Z',
+  ]))
+  const deliveryDownload = await deliveryDownloadMeter.finalize({
+    status: 'completed',
+    failureCategory: 'none',
+    outputByteLength: 18_000,
+    linkedCanonicalOutcomeHash: '8'.repeat(64),
+  })
+  assert.deepEqual(
+    {
+      vcpuCount: deliveryDownload.evidence.resourceUsage.vcpuCount,
+      memoryGib: deliveryDownload.evidence.resourceUsage.memoryGib,
+      gpuCount: deliveryDownload.evidence.resourceUsage.gpuCount,
+    },
+    { vcpuCount: 1, memoryGib: 1, gpuCount: 0 },
+  )
+  assert.equal(
+    deliveryDownload.evidence.boundary,
+    'internal_production_cost_only',
+  )
+  assertNoCommercialKeys(deliveryDownload.evidence)
+
   await expectCode(() => beginPrivateInternalAttemptCostEvidence({
     ...ffmpegInput,
     jobId: remotionInput.jobId,
@@ -763,6 +800,8 @@ try {
       deliveryH264Qa.evidence.actualInternalCostMicros,
     customerDeliveryMuxAttemptCostMicros:
       deliveryMux.evidence.actualInternalCostMicros,
+    customerDeliveryDownloadAttemptCostMicros:
+      deliveryDownload.evidence.actualInternalCostMicros,
     replayHash: replay.evidence.evidenceHash,
     checks: [
       'attempt_level_internal_cost_only',
@@ -788,6 +827,8 @@ try {
       'customer_delivery_h264_profile_is_4vcpu_8gib_cpu_only',
       'customer_delivery_h264_qa_profile_is_2vcpu_4gib_cpu_only',
       'customer_delivery_h264_aac_mux_profile_is_4vcpu_8gib_cpu_only',
+      'customer_delivery_download_profile_is_1vcpu_1gib_cpu_only',
+      'customer_delivery_download_cost_is_internal_only',
       'cross_profile_attempt_identity_conflict_fails_closed',
       'resource_profile_and_commercial_field_mutations_fail_schema_validation',
       'commercial_pricing_credit_and_wallet_fields_absent',

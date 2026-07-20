@@ -19,7 +19,7 @@ export interface CanonicalPrivateCustomerDeliveryArtifactInspection {
   mediaFormat: 'mp4'
   byteLength: number
   sha256: string
-  openStream(): Promise<Readable>
+  openStream(range?: { start: number; end: number }): Promise<Readable>
 }
 
 export async function persistCanonicalPrivateCustomerDeliveryArtifactStream(
@@ -138,10 +138,11 @@ export async function inspectCanonicalPrivateCustomerDeliveryArtifact(input: {
   return {
     mediaFormat: 'mp4',
     ...commitment,
-    async openStream() {
+    async openStream(range?: { start: number; end: number }) {
       return createPrivateReadStreamWithinRoot({
         rootPath: input.localStorageRoot,
         relativePath: relativePath(input.privateObjectIdentityHash),
+        ...range,
       })
     },
   }

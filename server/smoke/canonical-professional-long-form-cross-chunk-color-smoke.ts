@@ -4,6 +4,7 @@ import { createHash } from 'node:crypto'
 import { readFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { buffer } from 'node:stream/consumers'
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 
@@ -74,6 +75,9 @@ import {
   createCanonicalProfessionalLongFormCustomerDeliveryDecodedQaExecutionService,
 } from '../services/canonical-professional-long-form-customer-delivery-decoded-qa-execution-service'
 import {
+  createCanonicalProfessionalLongFormCustomerDeliveryDownloadService,
+} from '../services/canonical-professional-long-form-customer-delivery-download-service'
+import {
   PROFESSIONAL_LONG_FORM_DELIVERY_H264_COST_PROFILE_ID,
   PROFESSIONAL_LONG_FORM_DELIVERY_H264_OPERATION_ID,
   PROFESSIONAL_LONG_FORM_DELIVERY_ROOT_COST_PROFILE_ID,
@@ -92,6 +96,10 @@ import {
   PROFESSIONAL_LONG_FORM_DELIVERY_DECODED_QA_OPERATION_ID,
   PROFESSIONAL_LONG_FORM_DELIVERY_DECODED_VIDEO_QA_COST_PROFILE_ID,
 } from '../edit-architecture/professional-long-form-customer-delivery-decoded-qa-execution-contract'
+import {
+  PROFESSIONAL_LONG_FORM_DELIVERY_DOWNLOAD_COST_PROFILE_ID,
+  PROFESSIONAL_LONG_FORM_DELIVERY_DOWNLOAD_OPERATION_ID,
+} from '../edit-architecture/professional-long-form-customer-delivery-download-execution-contract'
 import { createEditPlanningAuthorityService } from
   '../services/edit-planning-authority-service'
 import { createExactEditPreferenceService } from
@@ -1011,6 +1019,215 @@ try {
     decodedAudioQa.queueAggregate.aggregateHash,
   )
 
+  const deliveryDownloadService =
+    createCanonicalProfessionalLongFormCustomerDeliveryDownloadService(context)
+  const qualityReview = await deliveryDownloadService.inspectQualityReview({
+    workspaceId,
+    approvedPlanSnapshotId: snapshotId,
+    packageRecordId: delivery.package.identity.packageRecordId,
+  })
+  assert.equal(
+    qualityReview.status,
+    'quality_review_required_private_download_blocked',
+  )
+  assert.equal(qualityReview.reviewPacket.reviewItems.length, 3)
+  assert.deepEqual(
+    qualityReview.reviewPacket.reviewItems.map((item) => item.category),
+    [
+      'decoded_video_integrity',
+      'decoded_audio_quality_sync',
+      'speech_intelligibility_attestation',
+    ],
+  )
+  assert.equal(
+    qualityReview.reviewPacket.decodedQa.video.outcome,
+    'needs_user_review',
+  )
+  assert.equal(
+    qualityReview.reviewPacket.decodedQa.audio.outcome,
+    'needs_user_review',
+  )
+  assert.equal(
+    qualityReview.reviewPacket.actualSpeechIntelligibilityAnalysisPerformed,
+    false,
+  )
+  assert.equal(
+    qualityReview.reviewPacket.privateDownloadExecutionAuthorized,
+    false,
+  )
+  const acceptedDecisionRequest = {
+    workspaceId,
+    approvedPlanSnapshotId: snapshotId,
+    expectedReviewPacketHash: qualityReview.reviewPacket.packetHash,
+    expectedMasterSha256: qualityReview.reviewPacket.master.sha256,
+    expectedVideoObjectiveEvidenceHash:
+      qualityReview.reviewPacket.decodedQa.video.objectiveEvidenceHash,
+    expectedAudioObjectiveEvidenceHash:
+      qualityReview.reviewPacket.decodedQa.audio.objectiveEvidenceHash,
+    decision: 'accept_exact_private_customer_delivery' as const,
+    attestation: {
+      entirePrivateMasterPlaybackReviewed: true as const,
+      exactVideoQualityAccepted: true as const,
+      exactAudioQualityAndSyncAccepted: true as const,
+      knownQaReviewItemsAccepted: true as const,
+      approvedIntentSatisfied: true as const,
+      speechIntelligibilityDisposition:
+        'no_speech_expected_under_approved_snapshot' as const,
+      noPublicDeliveryRequested: true as const,
+    },
+  }
+  await expectApiError(
+    () => deliveryDownloadService.recordQualityDecision({
+      workspaceId,
+      approvedPlanSnapshotId: snapshotId,
+      packageRecordId: delivery.package.identity.packageRecordId,
+      idempotencyKey: 'accept-canonical-customer-delivery-wrong-master',
+      decisionRequest: {
+        ...acceptedDecisionRequest,
+        expectedMasterSha256: sha256Text('wrong-customer-delivery-master'),
+      },
+    }),
+    'VALIDATION_FAILED',
+  )
+  const acceptedDelivery =
+    await deliveryDownloadService.recordQualityDecision({
+      workspaceId,
+      approvedPlanSnapshotId: snapshotId,
+      packageRecordId: delivery.package.identity.packageRecordId,
+      idempotencyKey: 'accept-canonical-customer-delivery-quality',
+      decisionRequest: acceptedDecisionRequest,
+    })
+  assert.equal(acceptedDelivery.disposition, 'recorded')
+  assert.equal(
+    acceptedDelivery.status,
+    'quality_accepted_private_download_reconciled',
+  )
+  assert.ok(acceptedDelivery.download)
+  assert.equal(
+    acceptedDelivery.download.queueAggregate.summary.completedJobCount,
+    9,
+  )
+  assert.equal(acceptedDelivery.download.queueAggregate.summary.queuedJobCount, 0)
+  assert.equal(acceptedDelivery.download.queueAggregate.summary.leasedJobCount, 0)
+  assert.equal(
+    acceptedDelivery.download.costEvidence.identity.operationId,
+    PROFESSIONAL_LONG_FORM_DELIVERY_DOWNLOAD_OPERATION_ID,
+  )
+  assert.equal(
+    acceptedDelivery.download.costEvidence.identity.workloadProfileId,
+    PROFESSIONAL_LONG_FORM_DELIVERY_DOWNLOAD_COST_PROFILE_ID,
+  )
+  assert.equal(acceptedDelivery.download.costEvidence.resourceUsage.vcpuCount, 1)
+  assert.equal(acceptedDelivery.download.costEvidence.resourceUsage.memoryGib, 1)
+  assert.equal(acceptedDelivery.download.costEvidence.resourceUsage.gpuCount, 0)
+  assert.equal(
+    acceptedDelivery.download.artifact.delivery.sha256,
+    deliveryMuxExecution.mux.outputArtifact.sha256,
+  )
+  assert.equal(
+    acceptedDelivery.download.artifact.commercialBoundary
+      .secondExportEstimateCreated,
+    false,
+  )
+  assert.equal(
+    acceptedDelivery.download.artifact.commercialBoundary
+      .secondExportChargeCreated,
+    false,
+  )
+  assert.doesNotMatch(
+    stableAuthorityStringify(acceptedDelivery.download.costEvidence),
+    /customerPrice|customerCredit|serviceFee|wallet|billingAuthority/u,
+  )
+  const privateDownloadFile = await deliveryDownloadService.readPrivateDownload({
+    workspaceId,
+    approvedPlanSnapshotId: snapshotId,
+    packageRecordId: delivery.package.identity.packageRecordId,
+    expectedQualityDecisionHash:
+      acceptedDelivery.decisionRecord.decision.decisionHash,
+    expectedMasterSha256: deliveryMuxExecution.mux.outputArtifact.sha256,
+  })
+  const downloadedBytes = await buffer(await privateDownloadFile.openStream())
+  assert.equal(downloadedBytes.byteLength, privateDownloadFile.byteSize)
+  assert.equal(
+    createHash('sha256').update(downloadedBytes).digest('hex'),
+    privateDownloadFile.sha256,
+  )
+  const firstRangeBytes = await buffer(
+    await privateDownloadFile.openStream({ start: 0, end: 31 }),
+  )
+  assert.equal(firstRangeBytes.byteLength, 32)
+  assert.deepEqual(firstRangeBytes, downloadedBytes.subarray(0, 32))
+  assert.equal(privateDownloadFile.publicUrlCreated, false)
+  assert.equal(privateDownloadFile.externalDownloadLinkCreated, false)
+  assert.equal(privateDownloadFile.productReady, false)
+  assert.equal(privateDownloadFile.productionReady, false)
+
+  clearPrivateEditAuthorityProcessStateForSmoke()
+  clearPrivateCanonicalPackageWorkQueueProcessStateForSmoke()
+  const acceptedDeliveryReplay =
+    await deliveryDownloadService.recordQualityDecision({
+      workspaceId,
+      approvedPlanSnapshotId: snapshotId,
+      packageRecordId: delivery.package.identity.packageRecordId,
+      idempotencyKey: 'accept-canonical-customer-delivery-quality',
+      decisionRequest: acceptedDecisionRequest,
+    })
+  assert.equal(acceptedDeliveryReplay.disposition, 'exact_replay')
+  assert.equal(
+    acceptedDeliveryReplay.decisionRecord.recordHash,
+    acceptedDelivery.decisionRecord.recordHash,
+  )
+  assert.equal(
+    acceptedDeliveryReplay.download?.terminal.terminalHash,
+    acceptedDelivery.download.terminal.terminalHash,
+  )
+  assert.equal(
+    acceptedDeliveryReplay.download?.costEvidence.evidenceHash,
+    acceptedDelivery.download.costEvidence.evidenceHash,
+  )
+  assert.equal(
+    acceptedDeliveryReplay.download?.queueAggregate.aggregateHash,
+    acceptedDelivery.download.queueAggregate.aggregateHash,
+  )
+  const postDecisionReview = await deliveryDownloadService.inspectQualityReview({
+    workspaceId,
+    approvedPlanSnapshotId: snapshotId,
+    packageRecordId: delivery.package.identity.packageRecordId,
+  })
+  assert.equal(postDecisionReview.status, 'quality_decision_already_recorded')
+  assert.equal(
+    postDecisionReview.decisionRecord?.decision.decisionHash,
+    acceptedDelivery.decisionRecord.decision.decisionHash,
+  )
+  assert.equal(
+    postDecisionReview.readiness.authenticatedQualityDecisionRecorded,
+    true,
+  )
+  assert.equal(postDecisionReview.readiness.privateDownloadExecutionAuthorized, true)
+  assert.equal(postDecisionReview.readiness.privateDownloadReconciliationComplete, true)
+  assert.equal(postDecisionReview.readiness.authenticatedPrivateByteStreamReady, true)
+  const unauthorizedContext: ServiceContext = {
+    ...context,
+    auth: {
+      userId: 'user-outside-canonical-customer-delivery',
+      accessToken: 'verified-outside-canonical-customer-delivery-token',
+      isMockUser: false,
+    },
+  }
+  await expectApiError(
+    () => createCanonicalProfessionalLongFormCustomerDeliveryDownloadService(
+      unauthorizedContext,
+    ).readPrivateDownload({
+      workspaceId,
+      approvedPlanSnapshotId: snapshotId,
+      packageRecordId: delivery.package.identity.packageRecordId,
+      expectedQualityDecisionHash:
+        acceptedDelivery.decisionRecord.decision.decisionHash,
+      expectedMasterSha256: deliveryMuxExecution.mux.outputArtifact.sha256,
+    }),
+    'WORKSPACE_ACCESS_DENIED',
+  )
+
   console.log(JSON.stringify({
     ok: true,
     schemaVersion:
@@ -1094,7 +1311,21 @@ try {
     customerDeliveryDecodedAudioQaInternalCostEvidenceHash:
       decodedQaReplay.audioQa.costEvidence.evidenceHash,
     customerDeliveryDecodedQaExactReplayVerified: true,
-    customerDeliveryPrivateDownloadReconciled: false,
+    customerDeliveryQualityReviewPacketHash:
+      qualityReview.reviewPacket.packetHash,
+    customerDeliveryQualityDecisionHash:
+      acceptedDelivery.decisionRecord.decision.decisionHash,
+    customerDeliveryPrivateDownloadInternalCostEvidenceHash:
+      acceptedDelivery.download.costEvidence.evidenceHash,
+    customerDeliveryPrivateDownloadDeliveryId:
+      acceptedDelivery.download.artifact.identity.privateDownloadDeliveryId,
+    customerDeliveryPrivateDownloadReconciled: true,
+    customerDeliveryAuthenticatedPrivateByteStreamVerified: true,
+    customerDeliveryPrivateDownloadExactReplayVerified: true,
+    customerDeliveryFinalQueueCompletedJobCount:
+      acceptedDelivery.download.queueAggregate.summary.completedJobCount,
+    customerDeliveryFinalQueueAggregateHash:
+      acceptedDelivery.download.queueAggregate.aggregateHash,
     exportExecutionAuthorized: false,
     productReady: false,
     productionReady: false,

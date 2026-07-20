@@ -11,6 +11,7 @@ import { createCanonicalExecutionPackageRequestCoordinatorService } from '../ser
 import { createCanonicalExecutionReadinessService } from '../services/canonical-execution-readiness-service'
 import { createCanonicalPrivateEditPreparationCoordinatorService } from '../services/canonical-private-edit-preparation-coordinator-service'
 import { createCanonicalPrivateFinalArtifactDownloadService } from '../services/canonical-private-final-artifact-download-service'
+import { createCanonicalProfessionalLongFormCustomerDeliveryDownloadService } from '../services/canonical-professional-long-form-customer-delivery-download-service'
 import { createCanonicalPrivateJobExecutionAdapterService } from '../services/canonical-private-job-execution-adapter-service'
 import { createCanonicalPrivateReviewDecisionCoordinatorService } from '../services/canonical-private-review-decision-coordinator-service'
 import { createCanonicalPrivateReviewAssemblyService } from '../services/canonical-private-review-assembly-service'
@@ -76,6 +77,11 @@ import {
 import { validateBody } from '../validation/common-schemas'
 import { asyncRoute, getIdempotencyKey, getRouteParam, getServiceContext, sendOk } from './route-helpers'
 import { resolveProfessionalToolAdapterContract } from '../tool-registry/professional-tool-adapter-contracts'
+import {
+  professionalLongFormDeliveryPrivateDownloadQuerySchema,
+  professionalLongFormDeliveryQualityReviewQuerySchema,
+  recordProfessionalLongFormDeliveryQualityDecisionSchema,
+} from '../edit-architecture/professional-long-form-customer-delivery-download-execution-contract'
 
 type PrivateInternalAdapterActivityGroupId =
   | 'audio_preparation'
@@ -1270,6 +1276,115 @@ export function createEditExecutionRoutes(options: EditExecutionRouteOptions = {
 }
 
 function registerEditExecutionUserRoutes(router: Router): void {
+  router.get(
+    '/v1/edit-executions/professional-long-form/customer-delivery-packages/:packageRecordId/quality-review',
+    requireAuth,
+    asyncRoute(async (request, response) => {
+      const query = validateBody(
+        professionalLongFormDeliveryQualityReviewQuerySchema,
+        request.query,
+      )
+      const result = await
+        createCanonicalProfessionalLongFormCustomerDeliveryDownloadService(
+          getServiceContext(request),
+        ).inspectQualityReview({
+          ...query,
+          packageRecordId: getRouteParam(request, 'packageRecordId'),
+        })
+      sendOk(response, {
+        professionalLongFormCustomerDeliveryQualityReview: {
+          status: result.status,
+          reviewPacket: result.reviewPacket,
+          decision: result.decisionRecord?.decision ?? null,
+          readiness: result.readiness,
+          evidenceHash: result.evidenceHash,
+        },
+      })
+    }),
+  )
+
+  router.post(
+    '/v1/edit-executions/professional-long-form/customer-delivery-packages/:packageRecordId/quality-decision',
+    requireAuth,
+    requireSensitiveIdempotencyKey,
+    asyncRoute(async (request, response) => {
+      const decisionRequest = validateBody(
+        recordProfessionalLongFormDeliveryQualityDecisionSchema,
+        request.body,
+      )
+      const result = await
+        createCanonicalProfessionalLongFormCustomerDeliveryDownloadService(
+          getServiceContext(request),
+        ).recordQualityDecision({
+          workspaceId: decisionRequest.workspaceId,
+          approvedPlanSnapshotId: decisionRequest.approvedPlanSnapshotId,
+          packageRecordId: getRouteParam(request, 'packageRecordId'),
+          idempotencyKey: getIdempotencyKey(request),
+          decisionRequest,
+        })
+      const download = result.download
+        ? {
+            privateDownloadDeliveryId:
+              result.download.artifact.identity.privateDownloadDeliveryId,
+            qualityDecisionHash: result.decisionRecord.decision.decisionHash,
+            masterSha256: result.download.artifact.delivery.sha256,
+            byteSize: result.download.artifact.delivery.byteSize,
+            mimeType: result.download.artifact.delivery.mimeType,
+            downloadPath:
+              `/v1/edit-executions/professional-long-form/customer-delivery-packages/${
+                encodeURIComponent(result.decisionRecord.identity.packageRecordId)
+              }/private-download/file`,
+          }
+        : null
+      sendOk(response, {
+        professionalLongFormCustomerDeliveryQualityDecision: {
+          status: result.status,
+          disposition: result.disposition,
+          decision: result.decisionRecord.decision,
+          download,
+          readiness: result.readiness,
+          evidenceHash: result.evidenceHash,
+        },
+      }, [], result.disposition === 'recorded' ? 201 : 200)
+    }),
+  )
+
+  router.get(
+    '/v1/edit-executions/professional-long-form/customer-delivery-packages/:packageRecordId/private-download/file',
+    requireAuth,
+    asyncRoute(async (request, response) => {
+      const query = validateBody(
+        professionalLongFormDeliveryPrivateDownloadQuerySchema,
+        request.query,
+      )
+      const file = await
+        createCanonicalProfessionalLongFormCustomerDeliveryDownloadService(
+          getServiceContext(request),
+        ).readPrivateDownload({
+          ...query,
+          packageRecordId: getRouteParam(request, 'packageRecordId'),
+        })
+      response.setHeader('content-type', file.mimeType)
+      response.setHeader(
+        'content-disposition',
+        `attachment; filename="${file.fileName}"`,
+      )
+      response.setHeader('cache-control', 'private, no-store, max-age=0')
+      response.setHeader('x-content-type-options', 'nosniff')
+      response.setHeader('content-security-policy', "default-src 'none'; sandbox")
+      response.setHeader('x-reeditpro-artifact-sha256', file.sha256)
+      response.setHeader(
+        'x-reeditpro-quality-decision-sha256',
+        file.qualityDecisionHash,
+      )
+      response.setHeader(
+        'x-reeditpro-private-download-delivery-id',
+        file.privateDownloadDeliveryId,
+      )
+      await streamPrivateMp4(request, response, file)
+    }),
+  )
+
   router.get('/v1/edit-executions/private-review-history/:reviewAssemblyId/file', requireAuth, asyncRoute(async (request, response) => {
     const query = validateBody(canonicalPrivateReviewHistoryDownloadQuerySchema, request.query)
     const file = await createCanonicalPrivateReviewHistoryService(getServiceContext(request)).read({

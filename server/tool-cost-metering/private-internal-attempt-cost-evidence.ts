@@ -64,6 +64,10 @@ import {
   PROFESSIONAL_LONG_FORM_DELIVERY_MUX_COST_PROFILE_ID,
   PROFESSIONAL_LONG_FORM_DELIVERY_MUX_OPERATION_ID,
 } from '../edit-architecture/professional-long-form-customer-delivery-mux-execution-contract'
+import {
+  PROFESSIONAL_LONG_FORM_DELIVERY_DOWNLOAD_COST_PROFILE_ID,
+  PROFESSIONAL_LONG_FORM_DELIVERY_DOWNLOAD_OPERATION_ID,
+} from '../edit-architecture/professional-long-form-customer-delivery-download-execution-contract'
 
 const identity = z.string().min(1).max(200).regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/)
   .refine((value) => value === value.trim() && !value.includes('..'))
@@ -120,6 +124,8 @@ export const PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS = {
     PROFESSIONAL_LONG_FORM_DELIVERY_H264_QA_COST_PROFILE_ID,
   ffmpegFourKCustomerDeliveryH264AacMux:
     PROFESSIONAL_LONG_FORM_DELIVERY_MUX_COST_PROFILE_ID,
+  professionalLongFormCustomerDeliveryDownload:
+    PROFESSIONAL_LONG_FORM_DELIVERY_DOWNLOAD_COST_PROFILE_ID,
 } as const
 
 export type PrivateInternalAttemptCostProfileId =
@@ -280,6 +286,15 @@ export const privateInternalAttemptCostIdentitySchema = z.union([
     workloadProfileId: z.literal(
       PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS
         .professionalLongFormCustomerDeliveryRoot,
+    ),
+  }).strict(),
+  z.object({
+    ...commonAttemptIdentityFields,
+    toolId: z.literal('reeditpro_internal'),
+    operationId: z.literal(PROFESSIONAL_LONG_FORM_DELIVERY_DOWNLOAD_OPERATION_ID),
+    workloadProfileId: z.literal(
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS
+        .professionalLongFormCustomerDeliveryDownload,
     ),
   }).strict(),
   z.object({
@@ -510,6 +525,13 @@ export type BeginPrivateInternalAttemptCostEvidenceInput =
     | {
         toolId: 'reeditpro_internal'
         operationId:
+          typeof PROFESSIONAL_LONG_FORM_DELIVERY_DOWNLOAD_OPERATION_ID
+        workloadProfileId:
+          typeof PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.professionalLongFormCustomerDeliveryDownload
+      }
+    | {
+        toolId: 'reeditpro_internal'
+        operationId:
           typeof PROFESSIONAL_LONG_FORM_SOURCE_AUTHORITY_OPERATION_ID
         workloadProfileId:
           typeof PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS.professionalLongFormSourceAuthorityValidation
@@ -705,6 +727,18 @@ const beginInputSchema = z.union([
     workloadProfileId: z.literal(
       PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS
         .professionalLongFormCustomerDeliveryRoot,
+    ),
+  }).strict(),
+  z.object({
+    localStorageRoot: z.string().min(1),
+    ...commonAttemptIdentityFields,
+    toolId: z.literal('reeditpro_internal'),
+    operationId: z.literal(
+      PROFESSIONAL_LONG_FORM_DELIVERY_DOWNLOAD_OPERATION_ID,
+    ),
+    workloadProfileId: z.literal(
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS
+        .professionalLongFormCustomerDeliveryDownload,
     ),
   }).strict(),
   z.object({
@@ -1015,6 +1049,8 @@ function fixedResourceEnvelope(
   if (
     profileId === PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS
       .professionalLongFormCustomerDeliveryRoot
+    || profileId === PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS
+      .professionalLongFormCustomerDeliveryDownload
   ) return { vcpuCount: 1 as const, memoryGib: 1 as const, gpuCount: 0 as const }
   if (
     profileId === PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS
@@ -1118,6 +1154,12 @@ export function resolvePrivateInternalAttemptCostProfileId(
     input.workloadProfileId ===
       PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS
         .professionalLongFormCustomerDeliveryRoot
+  ) return input.workloadProfileId
+  if (
+    input.toolId === 'reeditpro_internal' &&
+    input.workloadProfileId ===
+      PRIVATE_INTERNAL_ATTEMPT_COST_PROFILE_IDS
+        .professionalLongFormCustomerDeliveryDownload
   ) return input.workloadProfileId
   if (
     input.toolId === 'reeditpro_internal' &&

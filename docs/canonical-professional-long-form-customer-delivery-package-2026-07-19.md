@@ -1,8 +1,8 @@
-# Canonical professional long-form customer-delivery package and decoded QA
+# Canonical professional long-form customer-delivery review and private download
 
 Date: 2026-07-19
 
-Status: `private_local_delivery_and_decoded_qa_executed_quality_review_and_download_blocked`
+Status: `private_local_nine_job_delivery_executed_product_and_cloud_blocked`
 
 ## Outcome
 
@@ -18,15 +18,25 @@ video, encodes the exact continuous FLAC program track to AAC-LC once, streams
 the result into create-only private persistence, independently probes the
 result with FFprobe, records attempt-level internal production cost, and then
 runs separately leased full decoded-video and decoded-audio/sync QA jobs against
-the exact persisted MP4. All eight completed delivery jobs survive a fresh
-process-state replay without a second execution.
+the exact persisted MP4.
 
-This is eight completed jobs out of the separate nine-job delivery graph. Both
-objective QA jobs honestly returned `needs_user_review` for this synthetic
-fixture, so the ninth private-download reconciliation job remains queued and
-unattempted. This does not complete the 255-job six-hour capacity graph. Quality
-review/reconciliation, private download, Google Cloud dispatch, public delivery,
-billing, and production remain blocked.
+Both objective QA jobs honestly return `needs_user_review` for this synthetic
+fixture. The retained smoke therefore exercises an exact immutable authenticated
+quality-decision record before it authorizes the ninth job. An accepted decision
+binds the exact private master checksum, both decoded-QA evidence hashes, the
+known review items, approved intent, and the no-speech disposition. That decision
+then authorizes one separately leased, one-use private-download reconciliation
+attempt. The completed artifact can be reopened only through the authenticated
+workspace boundary and supports verified whole-file and byte-range streaming.
+All nine delivery jobs and their exact evidence survive a fresh process-state
+replay without a second execution.
+
+This is 9/9 completed jobs for the separate two-chunk customer-delivery graph.
+It does not complete the 255-job six-hour capacity graph and it is not a human
+review of representative footage. The smoke-owned media workspace is deleted in
+a `finally` cleanup, so this proof intentionally leaves no viewable demo file.
+Google Cloud dispatch, durable distributed persistence, browser integration,
+public delivery, billing, and production remain blocked.
 
 ## Why delivery is a separate package
 
@@ -103,7 +113,7 @@ The placement contract freezes these resource shapes:
 - no GPU or provider call.
 
 These remain private single-host runner authorities, not live Cloud Run
-configuration. Each of the eight completed delivery attempts retains its own
+configuration. Each of the nine completed delivery attempts retains its own
 versioned internal infrastructure/tool-cost evidence. Failed attempts are also
 retained by that cost boundary. Customer price, credits, and ReEditPro fee or
 margin are not written into those tool-cost records.
@@ -142,17 +152,33 @@ The run rebuilt and verified the real private chain before package promotion:
   ordinals under the verified 1/48,000 time base; retained AAC padding was
   measured within the approved two-frame A/V bound rather than removed or
   hidden;
-- delivery queue reached 8 completed, 0 leased, and 1 still queued;
+- the immutable review packet exposed decoded-video integrity,
+  decoded-audio/sync quality, and speech-intelligibility review items without
+  pretending speech analysis ran;
+- a wrong expected master checksum failed closed before decision persistence;
+- one synthetic authenticated acceptance bound the exact review packet, master,
+  decoded-video evidence, decoded-audio evidence, approved intent, and explicit
+  no-speech disposition;
+- the ninth private-download reconciliation completed through its own
+  authorization, lease, one-use attempt, internal-cost evidence, artifact,
+  reconciliation, and terminal record;
+- authenticated whole-file and first-32-byte range reads matched the exact
+  private MP4, while another workspace user was denied;
+- delivery queue reached 9 completed, 0 leased, and 0 queued;
 - process-state restart returned the exact immutable package, H.264/QA
   completions, mux artifact, both decoded-QA artifacts, both distinct raw-blob
-  and runtime-result identities, cost evidence, terminal evidence, and service
-  evidence hash without rerunning media work;
+  and runtime-result identities, quality decision, private-download artifact,
+  cost evidence, terminal evidence, and service evidence hash without rerunning
+  media work;
 - customer-delivery master created: true;
 - decoded video QA completed: true (`needs_user_review`);
 - decoded audio/sync QA completed: true (`needs_user_review`);
 - decoded-QA quality disposition: `user_review_required`;
 - decoded-QA exact restart replay: true;
-- private download reconciled: false;
+- private download reconciled: true;
+- authenticated private byte stream verified: true;
+- private-download exact restart replay: true;
+- final delivery queue complete: 9/9;
 - export execution authorized: false;
 - product ready: false; and
 - production ready: false.
@@ -164,25 +190,30 @@ This is local retained evidence, not a deployed object identity.
 The retained delivery identities after private mux completion were:
 
 - package hash:
-  `e3cd05818d8f3cf94d0c0037807009b79808339111eb785f01941aa0a5a953a8`;
+  `5eab8014c6e728df188403763910f7ae477de057b3d1f629b8ccae84c283195e`;
 - work-graph hash:
-  `b3cd84be397f48255e8ec5c9f023f08c404d29669b66c474a7a35735955e9e47`;
-- queue-aggregate hash:
-  `e56d4281d568d505415491e99c2a381d3b6f9ecf6be59dd4972949cd73534f28`;
+  `c4eaa3af44bb8206dc0090405d235cd0b54edd5b50ce01e3cc29adb32db686df`;
+- final queue-aggregate hash:
+  `5be85b0b8e099144ae37be2ba98f565c8485c87699bf23836c0e088217f52d2d`;
   and
 - private H.264/AAC master SHA-256:
   `dbb8329f33fc78e208f390262b6551388deaa887d9343b32ef43608f841897e3`.
 
 The retained mux internal-cost evidence hash was
-`93e2583a9e8f49cc4719bc44a78dcffc2bdd1679aa3839205fa87f1da5b8c178`.
+`270a9b3cd6a064fd589d3e00e1ba023401c423155a5464dcf104e97745e30627`.
 The decoded-video and decoded-audio internal-cost evidence hashes were,
 respectively,
-`1f3ccb715b24406e04a98bd9af3b70336721e29cdba10235491a7f61035795eb`
+`b9ff00e4f065038e3bb7f3754de37b7bf59d6f01e62c07b9b5c2b9772350627e`
 and
-`25045b68642b7c9b39fc13c30d4131ff6467ae2fe20f9c989ea5254b5c9d2855`.
-These hashes bind the retained local proof only. They do not grant quality
-acceptance, cloud, download, commercial, public-delivery, or production
-authority.
+`c092fbf37b00f8efc328bf9db40aad8321d44d0f57bc653f489668360f1f3fa4`.
+The quality-review packet, synthetic acceptance, private-download cost, and
+final delivery queue hashes were, respectively,
+`2fc9f1af86eb93493ba21febc5f458cde1906790030d1c68811cad8f2afb6108`,
+`496832ee427654f2857e61786f17cbdbb3c46ee218dbb17253e2ef697001035a`,
+`8569a880d1b0b54f03262d89c4559ec262649ee72be6048c3a1982c265cd92ca`,
+and `5be85b0b8e099144ae37be2ba98f565c8485c87699bf23836c0e088217f52d2d`.
+These hashes bind the retained local proof only. They do not grant cloud,
+commercial, public-delivery, product, or production authority.
 
 The bounded capacity proof also completed with exit code 0:
 
@@ -204,9 +235,13 @@ This slice does not prove or authorize:
   runtime execution;
 - failure/retry exhaustion, lease-loss reclaim, worker termination, or
   host-loss recovery for the delivery mux;
-- objective quality acceptance or resolution of either retained
-  `needs_user_review` outcome;
-- private download creation or browser delivery;
+- independent human quality judgment on representative customer footage; the
+  retained acceptance is a deterministic synthetic-test attestation and does
+  not change either objective `needs_user_review` outcome;
+- a retained demo object or website playback; the smoke deletes its private
+  fixture workspace after assertions complete;
+- HTTP/browser integration coverage for the new quality-review,
+  quality-decision, and authenticated range-download routes;
 - distributed database-backed package, queue, outbox, or completion authority;
 - GCS persistence, Cloud Run dispatch, IAM/service identity, or live Google
   Cloud cost reconciliation;
@@ -219,10 +254,11 @@ This slice does not prove or authorize:
 
 ## Next dependency-safe capability
 
-Reconcile both immutable decoded-QA `needs_user_review` outcomes with the exact
-approved intent, upstream semantic/technical evidence, and an authenticated
-review decision. Only an accepted, immutable quality reconciliation may
-authorize the separately leased private-download job. Reuse the original
-approved 4K estimate/reservation without a second credit prompt or charge. Keep
-cloud, billing, public delivery, and production gates closed until their own
-evidence passes.
+Connect the frozen review/decision/download contract to the canonical signed-in
+browser client and prove the HTTP route boundary without changing the product
+UI owned elsewhere. The later deployed journey must replace private local files
+with tenant-scoped durable Supabase/GCS authority, distributed queue/lease
+execution, Cloud Run dispatch, and real cross-instance recovery. It must keep
+the original approved 4K estimate/reservation, never introduce a second export
+credit prompt or charge, and leave public delivery, billing, and production
+closed until their separate evidence passes.

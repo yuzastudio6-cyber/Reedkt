@@ -208,19 +208,26 @@ codecs/HDR/VFR/surround audio, complete long-form editing, object storage, a
 distributed database, or Google Cloud execution.
 
 A separate retained 129-second/two-chunk customer-delivery graph now completes
-8 of its 9 jobs: exact passed-review promotion, two private 4K H.264 High
+all 9 of its jobs: exact passed-review promotion, two private 4K H.264 High
 encodes, two independent chunk probes, one H.264-stream-copy/one-time
-FLAC-to-AAC private MP4 mux, one full decoded-video QA job, and one full
-decoded-audio/sync QA job. Every attempt has immutable authorization, lease,
-one-use dispatch, private create-only evidence, reconciliation, internal-cost
-evidence, and restart-safe exact replay. The resulting private master SHA-256
-is `dbb8329f33fc78e208f390262b6551388deaa887d9343b32ef43608f841897e3`.
-Both objective QA outcomes are honestly `needs_user_review`, so the final
-private-download reconciliation job remains queued, unattempted, and
-unauthorized. This 8/9 delivery result is independent from, and must not be
-described as progress on, the six-hour 255-job review graph. It is single-host
-synthetic SDR evidence, not multi-hour throughput, distributed cloud, product,
-or production proof.
+FLAC-to-AAC private MP4 mux, one full decoded-video QA job, one full
+decoded-audio/sync QA job, and one separately authorized private-download
+reconciliation. Every attempt has immutable authorization, lease, one-use
+dispatch, private create-only evidence, reconciliation, internal-cost evidence,
+and restart-safe exact replay. The resulting private master SHA-256 is
+`dbb8329f33fc78e208f390262b6551388deaa887d9343b32ef43608f841897e3`.
+Both objective QA outcomes remain honestly `needs_user_review`; a deterministic
+synthetic authenticated attestation binds the exact review packet, master, QA
+evidence, known warnings, approved intent, and no-speech disposition before it
+can authorize the ninth job. Exact whole-file and byte-range reads pass through
+the authenticated workspace boundary, another user is denied, and process-state
+restart replays the same immutable decision/download evidence without another
+attempt. The smoke deletes its fixture workspace, and neither its direct service
+proof nor the compiled server routes establish browser or deployed persistence.
+This 9/9 delivery result is independent from, and must not be described as
+progress on, the six-hour 255-job review graph. It is single-host synthetic SDR
+evidence, not multi-hour throughput, distributed cloud, product, or production
+proof.
 
 ## Private Pipeline Evidence
 

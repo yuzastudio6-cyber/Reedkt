@@ -76,6 +76,9 @@ import {
   PROFESSIONAL_LONG_FORM_DELIVERY_DECODED_VIDEO_QA_ATTEMPT_VERSION,
 } from '../edit-architecture/professional-long-form-customer-delivery-decoded-qa-execution-contract'
 import {
+  PROFESSIONAL_LONG_FORM_DELIVERY_DOWNLOAD_ATTEMPT_VERSION,
+} from '../edit-architecture/professional-long-form-customer-delivery-download-execution-contract'
+import {
   isProfessionalLongFormContinuousProgramAudioAuthorization,
   isProfessionalLongFormContinuousProgramAudioAuthority,
   isProfessionalLongFormContinuousProgramAudioCompletion,
@@ -100,6 +103,9 @@ import {
   isProfessionalLongFormDeliveryDecodedVideoQaAuthorization,
   isProfessionalLongFormDeliveryDecodedVideoQaAuthority,
   isProfessionalLongFormDeliveryDecodedVideoQaCompletion,
+  isProfessionalLongFormDeliveryDownloadAuthorization,
+  isProfessionalLongFormDeliveryDownloadAuthority,
+  isProfessionalLongFormDeliveryDownloadCompletion,
   isProfessionalLongFormDeliveryMuxAuthorization,
   isProfessionalLongFormDeliveryMuxAuthority,
   isProfessionalLongFormDeliveryMuxCompletion,
@@ -457,8 +463,12 @@ export async function beginPrivateCanonicalPackageWorkQueueExecutionAttempt(inpu
       isProfessionalLongFormDeliveryDecodedVideoQaAuthorization(authorization)
     const deliveryDecodedAudioQaAttempt =
       isProfessionalLongFormDeliveryDecodedAudioQaAuthorization(authorization)
+    const deliveryDownloadAttempt =
+      isProfessionalLongFormDeliveryDownloadAuthorization(authorization)
     const attemptWithoutHash = {
-      schemaVersion: deliveryDecodedAudioQaAttempt
+      schemaVersion: deliveryDownloadAttempt
+        ? PROFESSIONAL_LONG_FORM_DELIVERY_DOWNLOAD_ATTEMPT_VERSION
+        : deliveryDecodedAudioQaAttempt
         ? PROFESSIONAL_LONG_FORM_DELIVERY_DECODED_AUDIO_QA_ATTEMPT_VERSION
         : deliveryDecodedVideoQaAttempt
         ? PROFESSIONAL_LONG_FORM_DELIVERY_DECODED_VIDEO_QA_ATTEMPT_VERSION
@@ -1654,6 +1664,7 @@ function assertProfessionalLongFormAuthorizationTarget(input: {
     isProfessionalLongFormDeliveryH264QaAuthorization(authorization) ||
     isProfessionalLongFormDeliveryDecodedVideoQaAuthorization(authorization) ||
     isProfessionalLongFormDeliveryDecodedAudioQaAuthorization(authorization) ||
+    isProfessionalLongFormDeliveryDownloadAuthorization(authorization) ||
     isProfessionalLongFormDeliveryMuxAuthorization(authorization)
   if (
     (deliveryAuthorization
@@ -1806,6 +1817,26 @@ function assertPersistedProfessionalLongFormExecutionAuthority(input: {
         (deliveryChunkCount ?? -1) * 2 + 3 ||
       `${input.executionAuthority.muxArtifact.objectIdentity}:decoded-audio-qa` !==
         input.authorization.expectedOutputIdentity
+  } else if (
+    isProfessionalLongFormDeliveryDownloadAuthorization(input.authorization)
+  ) {
+    const deliveryChunkCount =
+      input.definition.identity.professionalLongFormCustomerDeliveryAuthority
+        ?.chunkCount
+    pairInvalid = !isProfessionalLongFormDeliveryDownloadAuthority(
+      input.executionAuthority,
+    ) || input.executionAuthority.lineage.downloadJobDefinitionHash !==
+      input.authorization.jobDefinitionHash ||
+      input.executionAuthority.lineage.downloadPlacementHash !==
+        input.authorization.placementHash ||
+      input.executionAuthority.qualityDecision.qualityDecisionHash !==
+        input.authorization.qualityDecisionHash ||
+      targetDefinition?.canonicalOrder !==
+        (deliveryChunkCount ?? -1) * 2 + 4 ||
+      input.executionAuthority.identity.expectedOutputIdentity !==
+        input.authorization.expectedOutputIdentity ||
+      input.executionAuthority.identity.expectedOutputIdentity !==
+        `${input.executionAuthority.master.objectIdentity}:private-download`
   } else if (
     isProfessionalLongFormSourceAuthorityAuthorization(input.authorization)
   ) {
@@ -2063,6 +2094,44 @@ function exactProfessionalLongFormAuthorizationMatches(
           ? muxCompletion.outputArtifact.objectIdentity
           : ''}:${videoQa ? 'decoded-video-qa' : 'decoded-audio-qa'}`
   }
+  if (isProfessionalLongFormDeliveryDownloadAuthorization(authorization)) {
+    const delivery =
+      aggregate.identity.professionalLongFormCustomerDeliveryAuthority
+    const dependencies = entry.definition.dependencyJobIds.map((jobId) =>
+      aggregate.entries.find((candidate) => candidate.definition.jobId === jobId))
+    const videoDependency = dependencies[0]
+    const audioDependency = dependencies[1]
+    const videoAuthorization =
+      videoDependency?.professionalLongFormExecutionAuthorization
+    const audioAuthorization =
+      audioDependency?.professionalLongFormExecutionAuthorization
+    return Boolean(delivery) &&
+      entry.definition.workerType === 'api_service' &&
+      entry.definition.resourceClassId === 'control_plane_cpu_v1' &&
+      entry.definition.maxAttempts === 1 &&
+      entry.definition.attemptTimeoutSeconds === 300 &&
+      entry.definition.canonicalOrder ===
+        (delivery?.chunkCount ?? 0) * 2 + 4 &&
+      entry.definition.dependencyJobIds.length === 2 &&
+      entry.definition.satisfiedPromotionDependencyJobIds?.length === 0 &&
+      videoDependency?.definition.canonicalOrder ===
+        entry.definition.canonicalOrder - 2 &&
+      audioDependency?.definition.canonicalOrder ===
+        entry.definition.canonicalOrder - 1 &&
+      videoDependency.state === 'completed' &&
+      audioDependency.state === 'completed' &&
+      Boolean(videoDependency.completion?.outcome.professionalLongFormExecution) &&
+      Boolean(audioDependency.completion?.outcome.professionalLongFormExecution) &&
+      Boolean(videoAuthorization &&
+        isProfessionalLongFormDeliveryDecodedVideoQaAuthorization(
+          videoAuthorization,
+        )) &&
+      Boolean(audioAuthorization &&
+        isProfessionalLongFormDeliveryDecodedAudioQaAuthorization(
+          audioAuthorization,
+        )) &&
+      authorization.qualityDecisionHash.length === 64
+  }
   if (isProfessionalLongFormFirstChildAuthorization(authorization)) {
     return entry.definition.workerType === 'api_service' &&
       entry.definition.resourceClassId === 'control_plane_cpu_v1' &&
@@ -2293,6 +2362,11 @@ function assertProfessionalLongFormCompletionEvidence(
   const completion = outcome.professionalLongFormExecution
   if (!authorization && !attempt && !completion) return
   const exactArtifactMatches = completion &&
+    isProfessionalLongFormDeliveryDownloadCompletion(completion)
+    ? outcome.contentType === 'application/json' &&
+      outcome.artifactId === completion.privateDownloadDeliveryId &&
+      outcome.sha256 === completion.validationArtifactRef.sha256
+    : completion &&
     (isProfessionalLongFormDeliveryDecodedVideoQaCompletion(completion) ||
       isProfessionalLongFormDeliveryDecodedAudioQaCompletion(completion))
     ? outcome.contentType === 'application/json' &&

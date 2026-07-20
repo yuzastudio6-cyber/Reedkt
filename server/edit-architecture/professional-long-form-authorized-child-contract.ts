@@ -144,6 +144,16 @@ import {
   professionalLongFormDeliveryDecodedVideoQaAuthorizationSchema,
   professionalLongFormDeliveryDecodedVideoQaCompletionSchema,
 } from './professional-long-form-customer-delivery-decoded-qa-execution-contract'
+import {
+  PROFESSIONAL_LONG_FORM_DELIVERY_DOWNLOAD_ATTEMPT_VERSION,
+  PROFESSIONAL_LONG_FORM_DELIVERY_DOWNLOAD_AUTHORITY_VERSION,
+  PROFESSIONAL_LONG_FORM_DELIVERY_DOWNLOAD_AUTHORIZATION_VERSION,
+  PROFESSIONAL_LONG_FORM_DELIVERY_DOWNLOAD_COMPLETION_VERSION,
+  professionalLongFormDeliveryDownloadAttemptSchema,
+  professionalLongFormDeliveryDownloadAuthoritySchema,
+  professionalLongFormDeliveryDownloadAuthorizationSchema,
+  professionalLongFormDeliveryDownloadCompletionSchema,
+} from './professional-long-form-customer-delivery-download-execution-contract'
 
 export const professionalLongFormAuthorizedChildAuthorizationReceiptSchema =
   z.discriminatedUnion('schemaVersion', [
@@ -162,6 +172,7 @@ export const professionalLongFormAuthorizedChildAuthorizationReceiptSchema =
     professionalLongFormDeliveryMuxAuthorizationSchema,
     professionalLongFormDeliveryDecodedVideoQaAuthorizationSchema,
     professionalLongFormDeliveryDecodedAudioQaAuthorizationSchema,
+    professionalLongFormDeliveryDownloadAuthorizationSchema,
   ])
 
 export const professionalLongFormAuthorizedChildExecutionAuthoritySchema =
@@ -181,6 +192,7 @@ export const professionalLongFormAuthorizedChildExecutionAuthoritySchema =
     professionalLongFormDeliveryMuxAuthoritySchema,
     professionalLongFormDeliveryDecodedVideoQaAuthoritySchema,
     professionalLongFormDeliveryDecodedAudioQaAuthoritySchema,
+    professionalLongFormDeliveryDownloadAuthoritySchema,
   ])
 
 export const professionalLongFormAuthorizedChildExecutionAttemptSchema =
@@ -200,6 +212,7 @@ export const professionalLongFormAuthorizedChildExecutionAttemptSchema =
     professionalLongFormDeliveryMuxAttemptSchema,
     professionalLongFormDeliveryDecodedVideoQaAttemptSchema,
     professionalLongFormDeliveryDecodedAudioQaAttemptSchema,
+    professionalLongFormDeliveryDownloadAttemptSchema,
   ])
 
 export const professionalLongFormAuthorizedChildCompletionSchema =
@@ -219,6 +232,7 @@ export const professionalLongFormAuthorizedChildCompletionSchema =
     professionalLongFormDeliveryMuxCompletionSchema,
     professionalLongFormDeliveryDecodedVideoQaCompletionSchema,
     professionalLongFormDeliveryDecodedAudioQaCompletionSchema,
+    professionalLongFormDeliveryDownloadCompletionSchema,
   ])
 
 export type ProfessionalLongFormAuthorizedChildAuthorizationReceipt = z.infer<
@@ -355,6 +369,15 @@ export function isProfessionalLongFormDeliveryDecodedAudioQaAuthorization(
     PROFESSIONAL_LONG_FORM_DELIVERY_DECODED_AUDIO_QA_AUTHORIZATION_VERSION
 }
 
+export function isProfessionalLongFormDeliveryDownloadAuthorization(
+  value: ProfessionalLongFormAuthorizedChildAuthorizationReceipt,
+): value is z.infer<
+  typeof professionalLongFormDeliveryDownloadAuthorizationSchema
+> {
+  return value.schemaVersion ===
+    PROFESSIONAL_LONG_FORM_DELIVERY_DOWNLOAD_AUTHORIZATION_VERSION
+}
+
 export function isProfessionalLongFormFirstChildExecutionAuthority(
   value: ProfessionalLongFormAuthorizedChildExecutionAuthority,
 ): value is z.infer<typeof professionalLongFormFirstChildExecutionAuthoritySchema> {
@@ -464,6 +487,13 @@ export function isProfessionalLongFormDeliveryDecodedAudioQaAuthority(
     PROFESSIONAL_LONG_FORM_DELIVERY_DECODED_AUDIO_QA_AUTHORITY_VERSION
 }
 
+export function isProfessionalLongFormDeliveryDownloadAuthority(
+  value: ProfessionalLongFormAuthorizedChildExecutionAuthority,
+): value is z.infer<typeof professionalLongFormDeliveryDownloadAuthoritySchema> {
+  return value.schemaVersion ===
+    PROFESSIONAL_LONG_FORM_DELIVERY_DOWNLOAD_AUTHORITY_VERSION
+}
+
 export function isProfessionalLongFormFirstChildExecutionAttempt(
   value: ProfessionalLongFormAuthorizedChildExecutionAttempt,
 ): value is z.infer<typeof professionalLongFormFirstChildExecutionAttemptSchema> {
@@ -568,6 +598,13 @@ export function isProfessionalLongFormDeliveryDecodedAudioQaAttempt(
 ): value is z.infer<typeof professionalLongFormDeliveryDecodedAudioQaAttemptSchema> {
   return value.schemaVersion ===
     PROFESSIONAL_LONG_FORM_DELIVERY_DECODED_AUDIO_QA_ATTEMPT_VERSION
+}
+
+export function isProfessionalLongFormDeliveryDownloadAttempt(
+  value: ProfessionalLongFormAuthorizedChildExecutionAttempt,
+): value is z.infer<typeof professionalLongFormDeliveryDownloadAttemptSchema> {
+  return value.schemaVersion ===
+    PROFESSIONAL_LONG_FORM_DELIVERY_DOWNLOAD_ATTEMPT_VERSION
 }
 
 export function isProfessionalLongFormFirstChildCompletion(
@@ -676,4 +713,11 @@ export function isProfessionalLongFormDeliveryDecodedAudioQaCompletion(
 ): value is z.infer<typeof professionalLongFormDeliveryDecodedAudioQaCompletionSchema> {
   return value.schemaVersion ===
     PROFESSIONAL_LONG_FORM_DELIVERY_DECODED_AUDIO_QA_COMPLETION_VERSION
+}
+
+export function isProfessionalLongFormDeliveryDownloadCompletion(
+  value: ProfessionalLongFormAuthorizedChildCompletion,
+): value is z.infer<typeof professionalLongFormDeliveryDownloadCompletionSchema> {
+  return value.schemaVersion ===
+    PROFESSIONAL_LONG_FORM_DELIVERY_DOWNLOAD_COMPLETION_VERSION
 }

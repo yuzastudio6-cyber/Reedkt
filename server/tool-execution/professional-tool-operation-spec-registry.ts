@@ -294,7 +294,10 @@ function buildOperationSpec(seed: ProfessionalToolOperationSeed): ProfessionalTo
       failedRequiredGateBlocksPromotion: true,
       failedRequiredGateBlocksFinalExport: true,
     },
-    costEvidence: costEvidenceFor(seed.resourceClass),
+    costEvidence: costEvidenceFor(
+      seed.resourceClass,
+      resourceCeilings.gpuLimit > 0,
+    ),
     fallback: {
       fallbackToolIds: [...profile.fallbackToolIds],
       fallbackChainIds: fallbackChains.map((chain) => chain.chainId),
@@ -613,9 +616,10 @@ function ceilings(
 
 function costEvidenceFor(
   resourceClass: ProfessionalToolOperationResourceClass,
+  gpuAllocated: boolean,
 ): ProfessionalToolOperationCostEvidenceRequirements {
   const deterministicRenderer = resourceClass === 'render_2d' || resourceClass === 'render_3d'
-  const gpu = resourceClass === 'gpu_image' || resourceClass === 'gpu_video' || resourceClass === 'gpu_audio'
+  const gpu = gpuAllocated
   const units: ProfessionalToolOperationCostUnit[] = ['operation', 'cpu_millisecond', 'input_mebibyte']
   if (gpu) units.push('gpu_millisecond')
   if (resourceClass.includes('audio')) units.push('input_audio_second')

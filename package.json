@@ -132,6 +132,7 @@
     "smoke:offline-rembg-background-removal-execution": "tsx server/smoke/offline-rembg-background-removal-execution-smoke.ts",
     "smoke:offline-deepfilternet-voice-cleanup-execution": "tsx server/smoke/offline-deepfilternet-voice-cleanup-execution-smoke.ts",
     "smoke:private-internal-attempt-cost-evidence": "tsx server/smoke/private-internal-attempt-cost-evidence-smoke.ts",
+    "smoke:private-worker-resource-usage-cost-evidence": "tsx server/smoke/private-worker-resource-usage-cost-evidence-smoke.ts",
     "smoke:reasoning-model-routing-cost": "tsx server/smoke/reasoning-model-routing-cost-smoke.ts",
     "smoke:offline-libass-caption-execution": "tsx server/smoke/offline-libass-caption-execution-smoke.ts",
     "smoke:edit-architecture-completion-audit": "tsx server/smoke/edit-architecture-completion-audit-smoke.ts",

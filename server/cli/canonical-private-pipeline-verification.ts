@@ -166,6 +166,11 @@ const canonicalSteps: VerificationStep[] = [
     'One active package attempt persists one restart-safe opaque outbox record. Exact controller, worker, terminal completion, terminal pre-commit failure, and controller-authenticated accepted-worker timeout contracts bind the accepted principal and attempt. The three currently metered private workloads record a create-only attempt start before execution; a controller-owned package scanner selects expired attempts, finalizes bounded internal cost through immutable lease expiry, and atomically reconciles timeout without automatic retry. Missing, tampered, unsupported, mismatched, changed, and post-commit bindings fail closed without customer commercial authority. Distributed death observation, live cloud calls, and production execution remain false.',
   ),
   step(
+    'private-worker-resource-usage-cost-evidence',
+    'smoke:private-worker-resource-usage-cost-evidence',
+    'All 72 registered tool operations plus the one admitted provider operation expose exact CPU/memory resource evidence contracts, all GPU-capable operations require GPU milliseconds, and completed/failed/unknown private attempts retain create-only internal infrastructure-cost evidence while deployed observers, official cloud rates, provider calls, commerce, and production remain blocked.',
+  ),
+  step(
     'canonical-multi-source-execution',
     'smoke:canonical-multi-source-final-composition',
     'Three-source execution reaches one baseline plus two directly reference-bound professional color matches, two approved hard-cut boundaries, three exact source-bound voice deliveries, lease, one-use dispatch, private artifacts, QA, reconciliation, ordered color/voice composition, objective continuity at both boundaries, and download evidence.',

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
 import { existsSync } from 'node:fs'
-import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises'
+import { mkdtemp, readFile, rm } from 'node:fs/promises'
 import { homedir, tmpdir } from 'node:os'
 import { basename, extname, join, resolve } from 'node:path'
 import type { QualityGateResult } from '../../src/backend/contracts/quality-gate-contracts'
@@ -25,6 +25,12 @@ import {
   internalTestingWholeEditDurationSeconds,
 } from '../internal-testing/real-video-whole-edit-spec'
 import { renderPrivateCaptionOverlays } from '../internal-testing/caption-overlay-renderer'
+import {
+  createPrivateRetainedReviewOutputDirectory,
+  finalizePrivateRetainedReviewOutput,
+  hardenPrivateRetainedReviewOutputTree,
+  writePrivateRetainedReviewJsonCreateOnly,
+} from '../internal-testing/private-retained-review-output'
 import { resolveLocalStorageObjectPath } from '../media/local-media-paths'
 import { createUploadService } from '../services/upload-service'
 import type { ServiceContext } from '../types'
@@ -41,7 +47,7 @@ const sourcePath = resolve(
 )
 const outputRoot = resolve(
   process.env.REEDITPRO_INTERNAL_TESTING_WHOLE_EDIT_OUTPUT_ROOT?.trim() ||
-    join(homedir(), 'Documents/test video/ReEditPro final edits/internal-testing-reeditpro-final'),
+    defaultRetainedReviewOutputRoot(),
 )
 const localModelPath = resolve(
   process.env.REEDITPRO_INTERNAL_TESTING_FASTER_WHISPER_MODEL_PATH?.trim() ||
@@ -82,13 +88,16 @@ assert.equal(
   'Internal testing whole-edit fixture changed; source-specific trim and caption approval must be reviewed again.',
 )
 
-await rm(outputRoot, { recursive: true, force: true })
-await mkdir(outputRoot, { recursive: true })
-const localStorageRoot = await mkdtemp(join(tmpdir(), 'reeditpro-whole-edit-storage-'))
-const mediaOutputRoot = await mkdtemp(join(tmpdir(), 'reeditpro-whole-edit-media-'))
-const speechOutputRoot = await mkdtemp(join(tmpdir(), 'reeditpro-whole-edit-speech-'))
+const retainedOutput = await createPrivateRetainedReviewOutputDirectory({ outputRoot })
+let localStorageRoot = ''
+let mediaOutputRoot = ''
+let speechOutputRoot = ''
+let retainedOutputFinalized = false
 
 try {
+  localStorageRoot = await mkdtemp(join(tmpdir(), 'reeditpro-whole-edit-storage-'))
+  mediaOutputRoot = await mkdtemp(join(tmpdir(), 'reeditpro-whole-edit-media-'))
+  speechOutputRoot = await mkdtemp(join(tmpdir(), 'reeditpro-whole-edit-speech-'))
   const env = loadRuntimeEnv({
     ...process.env,
     NODE_ENV: 'test',
@@ -445,7 +454,7 @@ try {
   assert.equal(renderResult.outputProbe?.height, 1920)
   assert.ok((renderResult.outputProbe?.audioStreams.length ?? 0) > 0)
 
-  const finalStat = await stat(renderResult.outputLocalPath)
+  assert.ok(renderResult.finalExportArtifact, 'Whole-edit render must retain one final-export artifact record.')
   const planRecord = {
     decision: 'internal_testing_real_video_whole_edit_completed_ready_for_private_user_review',
     source: {
@@ -502,17 +511,39 @@ try {
     captionQa: captionExecution.qaResults.map(summarizeGate),
     renderQa: renderResult.qaResults.map(summarizeGate),
     outputProbe: renderResult.outputProbe,
-    outputSizeBytes: finalStat.size,
+    outputSizeBytes: renderResult.finalExportArtifact.sizeBytes,
     outputChecksumSha256: renderResult.finalExportArtifact?.checksum,
     userCreativeReviewRequired: true,
     productReadyClaim: false,
   }
   await Promise.all([
-    writeJson(join(outputRoot, 'approved-edit-plan.json'), planRecord),
-    writeJson(join(outputRoot, 'timeline-manifest.json'), timelineManifest),
-    writeJson(join(outputRoot, 'artifact-manifest.json'), artifactManifest),
-    writeJson(join(outputRoot, 'final-qa-report.json'), qaReport),
+    writePrivateRetainedReviewJsonCreateOnly({
+      outputRoot,
+      fileName: 'approved-edit-plan.json',
+      value: planRecord,
+    }),
+    writePrivateRetainedReviewJsonCreateOnly({
+      outputRoot,
+      fileName: 'timeline-manifest.json',
+      value: timelineManifest,
+    }),
+    writePrivateRetainedReviewJsonCreateOnly({
+      outputRoot,
+      fileName: 'artifact-manifest.json',
+      value: artifactManifest,
+    }),
+    writePrivateRetainedReviewJsonCreateOnly({
+      outputRoot,
+      fileName: 'final-qa-report.json',
+      value: qaReport,
+    }),
   ])
+  const retainedOutputInspection = await finalizePrivateRetainedReviewOutput({
+    outputRoot,
+    finalVideoFileName: INTERNAL_TESTING_REAL_VIDEO_OUTPUT_FILE,
+    expectedRootIdentity: retainedOutput.identity,
+  })
+  retainedOutputFinalized = true
 
   console.log(JSON.stringify({
     ok: true,
@@ -520,18 +551,34 @@ try {
     finalVideoPath: renderResult.outputLocalPath,
     sourceDurationSeconds: mediaFoundation.probe.durationSeconds,
     finalDurationSeconds: renderResult.outputProbe?.durationSeconds,
-    finalSizeBytes: finalStat.size,
+    finalSizeBytes: renderResult.finalExportArtifact.sizeBytes,
     finalChecksumSha256: renderResult.finalExportArtifact?.checksum,
     captionCount: captionExecution.captionSegments.length,
     captionOverlayCount: captionOverlays.length,
     qaGateStatuses: renderResult.qaResults.map(summarizeGate),
     privateInternalReviewOnly: true,
     userCreativeReviewRequired: true,
+    privateRetainedReviewStatus: retainedOutputInspection.status,
+    privateRetainedReviewEvidenceHash: retainedOutputInspection.evidenceHash,
+    canonicalProductPipelineReady: false,
+    publicDeliveryAllowed: false,
   }, null, 2))
 } finally {
-  await rm(localStorageRoot, { recursive: true, force: true })
-  await rm(mediaOutputRoot, { recursive: true, force: true })
-  await rm(speechOutputRoot, { recursive: true, force: true })
+  if (!retainedOutputFinalized) {
+    await hardenPrivateRetainedReviewOutputTree({
+      outputRoot,
+      expectedRootIdentity: retainedOutput.identity,
+    }).catch(() => {
+      console.error(JSON.stringify({
+        ok: false,
+        decision: 'retained_review_output_hardening_failed_closed',
+        privateReviewReady: false,
+      }))
+    })
+  }
+  if (localStorageRoot) await rm(localStorageRoot, { recursive: true, force: true })
+  if (mediaOutputRoot) await rm(mediaOutputRoot, { recursive: true, force: true })
+  if (speechOutputRoot) await rm(speechOutputRoot, { recursive: true, force: true })
 }
 
 function buildWorkerPayload(input: {
@@ -591,6 +638,11 @@ function summarizeGate(gate: QualityGateResult) {
   }
 }
 
-async function writeJson(filePath: string, value: unknown): Promise<void> {
-  await writeFile(filePath, `${JSON.stringify(value, null, 2)}\n`, 'utf8')
+function defaultRetainedReviewOutputRoot(): string {
+  const attemptId = `${new Date().toISOString().replace(/[:.]/gu, '-')}-${process.pid}`
+  return join(
+    homedir(),
+    'Documents/test video/ReEditPro final edits/internal-testing-reeditpro-final-runs',
+    attemptId,
+  )
 }

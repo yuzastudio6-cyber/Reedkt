@@ -133,3 +133,16 @@ not persisted. See
 This hardening is for single-host internal testing. It is not a replacement
 for private GCS generation-bound objects, canonical Supabase records, malware
 isolation, worker sandboxes, retention policy, or deployed IAM evidence.
+
+The retained real-video review CLI now also uses a bounded create-only output
+authority instead of recursively replacing one fixed directory. Future run
+directories are `0700`, retained files are `0600`, nested media output is
+no-follow hardened, and the final MP4 must reconcile by streamed SHA-256 and
+size against the artifact manifest and creative-review-only QA disposition.
+The separate read-only inspector classifies the existing real edit as
+`privacy_permissions_blocked` without changing it because its legacy modes are
+`0755`/`0644`. See
+`docs/private-retained-review-output-verification-2026-07-20.md` and run
+`npm run smoke:private-retained-review-output`. This remains single-host
+internal-testing evidence, not deployed storage, canonical product execution,
+or production readiness.

@@ -42,6 +42,7 @@
     "smoke:edit-execution-security-boundary": "tsx server/smoke/edit-execution-boundary-security-smoke.ts",
     "smoke:idempotency-boundary": "tsx server/smoke/idempotency-boundary-smoke.ts",
     "smoke:private-local-persistence": "tsx server/smoke/private-local-persistence-permissions-smoke.ts",
+    "smoke:private-retained-review-output": "tsx server/smoke/private-retained-review-output-smoke.ts",
     "smoke:frontend-api-transport": "tsx server/smoke/frontend-api-client-http-transport-smoke.ts",
     "smoke:internal-testing-deployment-readiness": "tsx server/smoke/internal-testing-deployment-readiness-smoke.ts",
     "smoke:approved-snapshot": "tsx server/smoke/approved-snapshot-smoke.ts",

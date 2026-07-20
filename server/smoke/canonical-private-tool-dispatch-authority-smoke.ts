@@ -63,11 +63,13 @@ import {
   createPrivateOfflineNodeStructuredExecutionRuntime,
   OFFLINE_NODE_STRUCTURED_EXECUTION_STORAGE_ROOT,
   OFFLINE_NODE_STRUCTURED_RUNTIME_AUTHORITY_RELATIVE_PATH,
+  readPersistedOfflineNodeStructuredRuntimeAuthority,
 } from '../tool-execution/node-runner-execution/offline-node-structured-execution-service'
 import {
   createPrivateOfflinePythonStructuredExecutionRuntime,
   OFFLINE_PYTHON_STRUCTURED_EXECUTION_STORAGE_ROOT,
   OFFLINE_PYTHON_STRUCTURED_RUNTIME_AUTHORITY_RELATIVE_PATH,
+  readPersistedOfflinePythonStructuredRuntimeAuthority,
 } from '../tool-execution/python-runner-execution'
 import { activatePrivateOfflineMediaBinaryRuntime } from '../tool-execution/media-binary-execution'
 import {
@@ -87,6 +89,7 @@ import { activatePrivateOfflineAudioFluxAnalysisRuntime, prepareOfflineAudioFlux
 import { activatePrivateOfflineRembgBackgroundRemovalRuntime, prepareOfflineRembgBackgroundRemovalDockerRuntime } from '../tool-execution/rembg-background-removal-execution'
 import { activatePrivateOfflineDeepFilterNetVoiceCleanupRuntime, prepareOfflineDeepFilterNetVoiceCleanupDockerRuntime } from '../tool-execution/deepfilternet-voice-cleanup-execution'
 import { readPrivateInternalAttemptCostEvidence } from '../tool-cost-metering/private-internal-attempt-cost-evidence'
+import { readPrivateWorkerResourceUsageCostEvidence } from '../tool-cost-metering/private-worker-resource-usage-cost-evidence'
 import type { ServiceContext } from '../types'
 import {
   PRIVATE_EDIT_AUTHORITY_SCHEMA_VERSION,
@@ -1558,7 +1561,11 @@ const atomicCompilationRun = await createCanonicalPrivateWorkGraphOrchestratorSe
 })
 assert.equal(atomicCompilationRun.status, 'blocked_required_jobs')
 assert.equal(atomicCompilationRun.summary.totalJobCount, 7)
-assert.equal(atomicCompilationRun.summary.completedJobCount, 5)
+assert.equal(
+  atomicCompilationRun.summary.completedJobCount,
+  5,
+  JSON.stringify(atomicCompilationRun.jobs),
+)
 assert.equal(atomicCompilationRun.summary.capabilityBlockedJobCount, 1)
 assert.equal(atomicCompilationRun.summary.dependencyBlockedJobCount, 1)
 assert.equal(atomicCompilationRun.summary.requiredBlockedJobCount, 2)
@@ -4268,6 +4275,95 @@ assert.equal(
   expectedDispatchGrantsHash,
 )
 
+const nodeResourceRuntimeAuthority = await readPersistedOfflineNodeStructuredRuntimeAuthority()
+const pythonResourceRuntimeAuthority = await readPersistedOfflinePythonStructuredRuntimeAuthority()
+assert.ok(nodeResourceRuntimeAuthority)
+assert.ok(pythonResourceRuntimeAuthority)
+const expectedEmbeddedResourceOperations = [
+  ...nodeResourceRuntimeAuthority.supportedOperations.filter((operation) =>
+    operation.toolId !== 'sharp'),
+  ...pythonResourceRuntimeAuthority.supportedOperations,
+]
+assert.equal(expectedEmbeddedResourceOperations.length, 28)
+const expectedEmbeddedResourceOperationIds = new Set(
+  expectedEmbeddedResourceOperations.map((operation) => operation.operationId),
+)
+const resourceLeaseAggregate = await readPrivateCanonicalWorkerLeaseAggregate({
+  localStorageRoot,
+  ownerUserId: userId,
+  workspaceId,
+})
+assert.ok(resourceLeaseAggregate)
+const embeddedResourceEvidenceByOperation = new Map<string, string>()
+for (const lease of resourceLeaseAggregate.leases) {
+  if (
+    lease.executionFence.state !== 'completed'
+    || ![
+      'offline_node_structured_execution_v1',
+      'offline_python_structured_execution_v1',
+    ].includes(lease.executionFence.runnerClass ?? '')
+    || !lease.executionFence.executionAttemptId
+  ) continue
+  const evidence = await readPrivateWorkerResourceUsageCostEvidence({
+    localStorageRoot,
+    ownerUserId: userId,
+    workspaceId,
+    projectId: snapshot.projectId,
+    executionAttemptId: lease.executionFence.executionAttemptId,
+  })
+  if (!evidence) continue
+  assert.equal(evidence.evidenceClass, 'private_embedded_observed_usage_test')
+  assert.equal(evidence.identity.approvedPlanSnapshotId, snapshot.snapshotId)
+  assert.equal(evidence.identity.jobId, lease.jobId)
+  assert.equal(evidence.identity.executionAttemptId, lease.executionFence.executionAttemptId)
+  assert.equal(evidence.identity.attemptOrdinal, lease.attemptNumber)
+  assert.equal(evidence.identity.leaseId, lease.id)
+  assert.equal(evidence.identity.leaseHash, lease.immutableLeaseHash)
+  assert.equal(evidence.operation.kind, 'registered_tool_operation')
+  assert.ok(expectedEmbeddedResourceOperationIds.has(evidence.operation.operationId))
+  assert.equal(
+    evidence.resourceUsage.measurementClass,
+    'private_embedded_observed_resource_snapshots',
+  )
+  assert.ok(evidence.resourceUsage.wallTimeMilliseconds > 0)
+  assert.equal(evidence.resourceUsage.allocatedVcpuCount, 1)
+  assert.equal(evidence.resourceUsage.allocatedMemoryMib, 768)
+  assert.equal(evidence.resourceUsage.allocatedGpuCount, 0)
+  assert.equal(evidence.resourceUsage.networkEgressBytes, 0)
+  assert.equal(evidence.runtime.cloudExecutionResourceDigest, null)
+  assert.equal(evidence.input.artifacts.length >= 1, true)
+  assert.equal(evidence.output.artifacts.length, 1)
+  assert.equal(evidence.output.disposition, 'accepted')
+  assert.equal(evidence.outcome.state, 'completed')
+  assert.equal(evidence.outcome.failedOrUnknownAttemptCostRetained, true)
+  assert.equal(evidence.infrastructureCost.providerCostIncluded, false)
+  assert.equal(evidence.infrastructureCost.officialCloudRateApproved, false)
+  assert.equal(evidence.infrastructureCost.invoiceReconciled, false)
+  assert.equal(evidence.persistence.privateLocalCreateOnly, true)
+  assert.equal(evidence.persistence.databaseBacked, false)
+  assert.equal(evidence.persistence.productionDurability, false)
+  assert.equal(evidence.readiness.observedUsageTransportQualified, false)
+  assert.equal(evidence.readiness.productionRateAuthority, false)
+  assert.equal(evidence.readiness.productionReady, false)
+  assert.equal(evidence.commercialBoundary.customerPriceIncluded, false)
+  assert.equal(evidence.commercialBoundary.customerCreditsIncluded, false)
+  assert.equal(evidence.commercialBoundary.serviceFeeIncluded, false)
+  assert.equal(evidence.commercialBoundary.walletMutationPerformed, false)
+  assert.equal(evidence.commercialBoundary.billingMutationPerformed, false)
+  const serializedEvidence = JSON.stringify(evidence)
+  assert.equal(serializedEvidence.includes(strongInternalSecret), false)
+  assert.equal(serializedEvidence.includes(localStorageRoot), false)
+  embeddedResourceEvidenceByOperation.set(
+    evidence.operation.operationId,
+    evidence.evidenceHash,
+  )
+}
+assert.deepEqual(
+  [...embeddedResourceEvidenceByOperation.keys()].sort(),
+  [...expectedEmbeddedResourceOperationIds].sort(),
+)
+assert.equal(embeddedResourceEvidenceByOperation.size, 28)
+
 await expectApiError(
   () => createCanonicalPrivateToolDispatchAuthorityService({
     ...context,
@@ -4323,6 +4419,8 @@ console.log(JSON.stringify({
     'coordinator_consumes_dispatch_and_runs_actual_confined_d3_operation_under_lease_fence',
     'actual_svg_artifact_qa_and_reconciliation_authority_committed',
     'same_idempotent_coordinator_attempt_resumes_after_completed_execution_fence',
+    'all_28_node_and_python_operations_persist_exact_embedded_cpu_memory_and_internal_cost_evidence',
+    'embedded_usage_evidence_is_create_only_replay_safe_and_commercially_separate',
     'downstream_lease_reopens_and_verifies_actual_structured_svg_bytes',
     'active_started_lease_reads_exact_selected_dependency_bytes_without_paths_or_urls',
     'sharp_consumes_only_lease_selected_qa_passed_svg_dependency_bytes',

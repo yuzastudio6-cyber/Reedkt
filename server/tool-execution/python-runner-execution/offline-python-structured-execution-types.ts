@@ -1,4 +1,5 @@
 import type { OfflinePythonStructuredToolId } from './offline-python-structured-execution-protocol'
+import type { PrivateEmbeddedProcessResourceObservation } from '../private-embedded-process-resource-observation'
 
 export const OFFLINE_PYTHON_STRUCTURED_EXECUTION_RESULT_VERSION =
   'offline-python-structured-execution-result-v1' as const
@@ -68,6 +69,7 @@ export interface OfflinePythonStructuredExecutionEvidence {
     gid: 10001
   }
   processResourceUsage: Readonly<Record<string, number>>
+  resourceObservation: PrivateEmbeddedProcessResourceObservation
   confinement: OfflinePythonStructuredConfinementEvidence
   containerExitCode: 0
   oomKilled: false

@@ -1,4 +1,5 @@
 import type { OfflineNodeRunnerSvgSemanticEvidence } from '../node-runners'
+import type { PrivateEmbeddedProcessResourceObservation } from '../private-embedded-process-resource-observation'
 import type {
   OfflineNodeStructuredExecutionRequest,
 } from './offline-node-structured-execution-protocol'
@@ -86,6 +87,7 @@ export interface OfflineNodeStructuredExecutionEvidence {
     gid: 10001
   }
   processResourceUsage: Readonly<Record<string, number>>
+  resourceObservation: PrivateEmbeddedProcessResourceObservation
   confinement: OfflineNodeStructuredExecutionConfinementEvidence
   containerExitCode: 0
   oomKilled: false

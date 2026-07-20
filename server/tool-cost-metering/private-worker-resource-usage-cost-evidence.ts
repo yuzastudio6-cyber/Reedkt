@@ -21,6 +21,10 @@ import {
 import type {
   ProfessionalToolOperationSpec,
 } from '../tool-execution/professional-tool-operation-spec-types'
+import {
+  privateEmbeddedProcessResourceObservationSchema,
+  type PrivateEmbeddedProcessResourceObservation,
+} from '../tool-execution/private-embedded-process-resource-observation'
 import { calculateInfrastructureRuntimeCostMicros } from './cost-math'
 import {
   TOOL_COST_RATE_CARD,
@@ -145,6 +149,7 @@ const observerSnapshotSchema = z.object({
 const resourceUsageSchema = z.object({
   measurementClass: z.enum([
     'private_injected_observed_resource_snapshots',
+    'private_embedded_observed_resource_snapshots',
     'canonical_backend_observed_resource_snapshots_unreleased',
   ]),
   startedAt: timestamp,
@@ -170,6 +175,7 @@ export const privateWorkerResourceUsageCostEvidenceSchema = z.object({
   boundary: z.literal('internal_production_cost_only'),
   evidenceClass: z.enum([
     'private_injected_observed_usage_test',
+    'private_embedded_observed_usage_test',
     'canonical_backend_observed_usage_unreleased',
   ]),
   evidenceId: identity,
@@ -250,15 +256,17 @@ export const privateWorkerResourceUsageCostEvidenceSchema = z.object({
       usage.allocatedMemoryMib * usage.wallTimeMilliseconds
     || usage.allocatedGpuMilliseconds !==
       usage.allocatedGpuCount * usage.wallTimeMilliseconds
-    || usage.observedCpuMicroseconds > usage.allocatedVcpuMilliseconds * 1_000
+    || usage.observedCpuMicroseconds > maximumObservedCpuMicroseconds({
+      allocatedVcpuCount: usage.allocatedVcpuCount,
+      wallTimeMilliseconds: usage.wallTimeMilliseconds,
+    })
     || usage.observedPeakMemoryBytes > usage.allocatedMemoryMib * 1024 * 1024
     || usage.observedGpuActiveMilliseconds > usage.allocatedGpuMilliseconds
     || value.runtime.workerClass !== value.operation.registryWorkerType
     || Date.parse(value.createdAt) < Date.parse(usage.finishedAt)
-    || (value.evidenceClass === 'private_injected_observed_usage_test') !==
-      (value.runtime.cloudExecutionResourceDigest === null)
-    || (value.evidenceClass === 'private_injected_observed_usage_test') !==
-      (usage.measurementClass === 'private_injected_observed_resource_snapshots')
+    || (value.evidenceClass === 'canonical_backend_observed_usage_unreleased') !==
+      (value.runtime.cloudExecutionResourceDigest !== null)
+    || usage.measurementClass !== measurementClassFor(value.evidenceClass)
   ) context.addIssue({ code: 'custom', message: 'Worker resource usage math is inconsistent.' })
   if (
     Date.parse(value.resourceUsage.finishedAt) > Date.parse(value.runtime.leaseExpiresAt)
@@ -471,9 +479,7 @@ export async function createPrivateWorkerResourceUsageCostEvidence(
     input.finishSnapshot.memoryCurrentBytes,
   )
   const resourceUsage = {
-    measurementClass: input.evidenceClass === 'private_injected_observed_usage_test'
-      ? 'private_injected_observed_resource_snapshots' as const
-      : 'canonical_backend_observed_resource_snapshots_unreleased' as const,
+    measurementClass: measurementClassFor(input.evidenceClass),
     startedAt: input.startSnapshot.capturedAt,
     finishedAt: input.finishSnapshot.capturedAt,
     wallTimeMilliseconds,
@@ -696,6 +702,48 @@ export function hashPrivateWorkerResourceObserverSnapshot(
   })
 }
 
+export function createPrivateWorkerObserverSnapshotsFromEmbeddedObservation(input: {
+  observation: PrivateEmbeddedProcessResourceObservation
+  runtimeExecutionIdentityDigest: string
+}): {
+  start: PrivateWorkerResourceObserverSnapshot
+  finish: PrivateWorkerResourceObserverSnapshot
+} {
+  const observation = parseOrInvalid(
+    privateEmbeddedProcessResourceObservationSchema,
+    input.observation,
+    'Embedded worker resource observation is invalid.',
+  )
+  parseOrInvalid(
+    sha256,
+    input.runtimeExecutionIdentityDigest,
+    'Worker runtime execution identity digest is invalid.',
+  )
+  const snapshot = (
+    point: PrivateEmbeddedProcessResourceObservation['start'],
+  ): PrivateWorkerResourceObserverSnapshot => {
+    const withoutDigest = {
+      schemaVersion: PRIVATE_WORKER_RESOURCE_OBSERVER_SNAPSHOT_VERSION,
+      runtimeExecutionIdentityDigest: input.runtimeExecutionIdentityDigest,
+      containerIdentityDigest: observation.containerIdentityDigest,
+      measurementAgentDigest: observation.measurementAgentDigest,
+      capturedAt: point.capturedAt,
+      cpuUsageNanoseconds: point.cpuUsageNanoseconds,
+      memoryCurrentBytes: point.memoryCurrentBytes,
+      memoryPeakBytes: point.memoryPeakBytes,
+      gpuActiveMilliseconds: point.gpuActiveMilliseconds,
+    }
+    return {
+      ...withoutDigest,
+      rawSnapshotDigest: hashPrivateWorkerResourceObserverSnapshot(withoutDigest),
+    }
+  }
+  return {
+    start: snapshot(observation.start),
+    finish: snapshot(observation.finish),
+  }
+}
+
 export function summarizePrivateWorkerResourceUsageCoverage() {
   const specs = listCompleteProfessionalToolOperationSpecs()
   const providerProfiles = createCanonicalProviderOperationRegistry()
@@ -818,6 +866,18 @@ function validateInput(
       hashPrivateWorkerResourceObserverSnapshot(input.finishSnapshot)
   ) throw invalid('Worker resource observer snapshot digest changed.')
   return input
+}
+
+function measurementClassFor(
+  evidenceClass: PrivateWorkerResourceUsageCostEvidence['evidenceClass'],
+): PrivateWorkerResourceUsageCostEvidence['resourceUsage']['measurementClass'] {
+  if (evidenceClass === 'private_injected_observed_usage_test') {
+    return 'private_injected_observed_resource_snapshots'
+  }
+  if (evidenceClass === 'private_embedded_observed_usage_test') {
+    return 'private_embedded_observed_resource_snapshots'
+  }
+  return 'canonical_backend_observed_resource_snapshots_unreleased'
 }
 
 function resolveOperationAuthority(
@@ -955,7 +1015,10 @@ function assertRuntimeAndSnapshots(
     (input.finishSnapshot.gpuActiveMilliseconds ?? 0)
       - (input.startSnapshot.gpuActiveMilliseconds ?? 0)
   if (
-    observedCpuMicroseconds > input.allocation.vcpuCount * elapsed * 1_000
+    observedCpuMicroseconds > maximumObservedCpuMicroseconds({
+      allocatedVcpuCount: input.allocation.vcpuCount,
+      wallTimeMilliseconds: elapsed,
+    })
     || Math.max(
       input.startSnapshot.memoryPeakBytes,
       input.finishSnapshot.memoryPeakBytes,
@@ -1048,6 +1111,18 @@ function numericBreakdown(value: Record<string, unknown>): Record<string, number
     result[key] = entry as number
   }
   return result
+}
+
+function maximumObservedCpuMicroseconds(input: {
+  allocatedVcpuCount: number
+  wallTimeMilliseconds: number
+}): number {
+  // Docker's default CFS bandwidth period is 100 ms. A short observation can
+  // straddle two quota boundaries, so cumulative process CPU can legitimately
+  // exceed vCPU × wall time by at most two periods without exceeding the
+  // container's configured quota. This allowance validates the counter only;
+  // cost remains derived from exact allocated vCPU wall time.
+  return input.allocatedVcpuCount * (input.wallTimeMilliseconds * 1_000 + 200_000)
 }
 
 function workerInfrastructureEvidenceDigest(input: {

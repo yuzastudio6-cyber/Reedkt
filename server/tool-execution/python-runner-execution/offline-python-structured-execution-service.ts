@@ -6,6 +6,7 @@ import {
   writePrivateTextFileAtomicWithinRoot,
 } from '../../security/private-local-persistence'
 import { sha256AuthorityValue, stableAuthorityStringify } from '../../services/private-edit-authority-store'
+import { normalizePrivateEmbeddedProcessResourceObservation } from '../private-embedded-process-resource-observation'
 import {
   inspectExistingOfflinePythonStructuredDockerRuntime,
   prepareOfflinePythonStructuredDockerRuntime,
@@ -181,12 +182,17 @@ async function executeWithImage(
   assertExactKeys(wire, [
     'schemaVersion', 'ok', 'toolId', 'operationId', 'status', 'actualToolPackageExecuted',
     'packageIdentity', 'requestEnvelopeSha256', 'result', 'resultCanonicalJson', 'resultSha256', 'semanticEvidence',
-    'runtimeIdentity', 'processResourceUsage', 'confinementExpectations', 'readiness',
+    'runtimeIdentity', 'processResourceUsage', 'resourceObservation', 'confinementExpectations', 'readiness',
   ])
   const packageIdentity = asRecord(wire.packageIdentity, 'Python package identity')
   const runtimeIdentity = asRecord(wire.runtimeIdentity, 'Python runtime identity')
   const semanticEvidence = asRecord(wire.semanticEvidence, 'Python semantic evidence')
   const processResourceUsage = numericRecord(wire.processResourceUsage, 'Python resource usage')
+  const resourceObservation = normalizePrivateEmbeddedProcessResourceObservation({
+    wireObservation: wire.resourceObservation,
+    measurementAgentDigest: image.runnerSha256,
+    containerIdentityDigest: container.containerIdentityDigest,
+  })
   const result = asRecord(wire.result, 'Python result')
   if (typeof wire.resultCanonicalJson !== 'string') {
     throw runtimeFailure('Structured Python result canonical JSON is unavailable.')
@@ -230,6 +236,7 @@ async function executeWithImage(
       uid: 10_001, gid: 10_001,
     },
     processResourceUsage,
+    resourceObservation,
     confinement: container.confinement,
     containerExitCode: 0,
     oomKilled: false,
@@ -293,6 +300,7 @@ async function persistAttestation(
     requestEnvelopeSha256: evidence.requestEnvelopeSha256,
     resultSha256: evidence.resultSha256,
     processResourceUsage: evidence.processResourceUsage,
+    resourceObservationHash: evidence.resourceObservation.observationHash,
   })
   const withoutHash = {
     schemaVersion: OFFLINE_PYTHON_STRUCTURED_EXECUTION_ATTESTATION_VERSION,

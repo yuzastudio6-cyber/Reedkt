@@ -67,6 +67,7 @@ export interface OfflineNodeStructuredContainerResult {
   exitCode: number
   oomKilled: boolean
   confinement: OfflineNodeStructuredExecutionConfinementEvidence
+  containerIdentityDigest: string
 }
 
 export async function prepareOfflineNodeStructuredDockerRuntime():
@@ -194,6 +195,11 @@ export async function runOfflineNodeStructuredContainer(input: {
       exitCode: startResult.exitCode,
       oomKilled: state.OOMKilled,
       confinement,
+      containerIdentityDigest: sha256AuthorityValue({
+        domain: 'offline_node_structured_container_identity_v1',
+        containerId,
+        imageIdentityHash: input.image.imageIdentityHash,
+      }),
     }
   } finally {
     await runHostCommand(['rm', '--force', containerId], {

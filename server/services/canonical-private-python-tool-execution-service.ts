@@ -33,6 +33,7 @@ import {
   readCanonicalPrivateAudioArtifact,
 } from './canonical-private-audio-artifact-storage'
 import { createCanonicalPrivateToolDispatchAuthorityService } from './canonical-private-tool-dispatch-authority-service'
+import { recordCanonicalPrivateEmbeddedWorkerResourceUsage } from './canonical-private-embedded-worker-resource-usage-recorder'
 import {
   createCanonicalPrivateSourceObjectReadService,
   type CanonicalPrivateSourceObjectReadResult,
@@ -274,6 +275,64 @@ export function createCanonicalPrivatePythonToolExecutionService(context: Servic
       )
       if (sha256AuthorityValue(authorityAfter) !== canonicalHashBefore) {
         throw invalidAuthority('Canonical planning authority changed during Python execution.')
+      }
+      const resourceUsage = await recordCanonicalPrivateEmbeddedWorkerResourceUsage({
+        localStorageRoot: context.env.localStorageRoot,
+        ownerUserId: access.userId,
+        workspaceId: body.workspaceId,
+        projectId: body.projectId,
+        editSessionId: body.editSessionId,
+        approvedPlanSnapshotId: authority.snapshot.snapshotId,
+        approvedPlanSnapshotHash: readiness.authorityHashes.snapshotHash,
+        packageRecordId: readiness.executionPackage.packageRecordId,
+        packageHash: readiness.executionPackage.packageHash,
+        approvedWorkItemId: workItem.id,
+        approvedWorkItemHash: sha256AuthorityValue(workItem),
+        jobId: body.jobId,
+        executionAttemptId,
+        attemptOrdinal: completed.lease.attemptNumber,
+        leaseId: completed.lease.id,
+        leaseHash: completed.lease.immutableLeaseHash,
+        leaseExpiresAt: completed.lease.expiresAt,
+        dispatchGrantId: body.grantId,
+        dispatchGrantHash: dispatch.grant.immutableGrantHash,
+        idempotencyKey: body.idempotencyKey,
+        canonicalToolId: request.toolId,
+        operationId: request.operationId,
+        runnerClass: RUNNER_CLASS,
+        runtimeAuthorityDigest: runtimeAuthority.authorityHash,
+        runtimeImageDigest: executionResult.attestation.image.imageIdentityHash,
+        runtimeAttestationDigest: executionResult.attestation.attestationHash,
+        observation: executionResult.evidence.resourceObservation,
+        allocation: {
+          nanoCpus: executionResult.evidence.confinement.nanoCpus,
+          memoryLimitBytes: executionResult.evidence.confinement.memoryLimitBytes,
+        },
+        attemptInputHash: executionResult.evidence.requestEnvelopeSha256,
+        inputArtifacts: [
+          {
+            artifactId: `${workItem.id}:execution_input`,
+            sha256: workItem.executionInputRef.sha256,
+            byteLength: workItem.executionInputRef.byteLength,
+          },
+          ...(sourceRead ? [{
+            artifactId: `${sourceRead.sourceSequenceItemId}:source_media`,
+            sha256: sourceRead.sha256,
+            byteLength: sourceRead.byteLength,
+          }] : []),
+        ],
+        outputArtifact: {
+          artifactId: artifactResult.artifact.artifactId,
+          sha256: artifactResult.artifact.content.sha256,
+          byteLength: artifactResult.artifact.content.byteLength,
+        },
+        createdAt: reconciliation.reconciliation.createdAt,
+      })
+      if (
+        resourceUsage.evidence.identity.executionAttemptId !== executionAttemptId
+        || resourceUsage.evidence.operation.operationId !== request.operationId
+      ) {
+        throw invalidAuthority('Python execution resource evidence lost canonical attempt authority.')
       }
 
       const verifiedRun = artifactResult.artifact.actualRunEvidence

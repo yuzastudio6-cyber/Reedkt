@@ -11,8 +11,10 @@ import platform
 import re
 import resource
 import sys
+import time
 import warnings
 import wave
+from datetime import datetime, timezone
 from typing import Any
 
 import duckdb
@@ -1194,6 +1196,12 @@ def execute(request_value: Any) -> dict[str, Any]:
     if tool_id not in OPERATIONS or request["operationId"] != OPERATIONS[tool_id]:
         raise Rejected("tool or exact operation identity is unsupported")
     normalized = canonical(request)
+    observed_started_at_ns = time.time_ns()
+    resource_before = resource.getrusage(resource.RUSAGE_SELF)
+    resource_observation_start = resource_observation_point(
+        resource_before,
+        observed_started_at_ns,
+    )
     if tool_id == "duckdb":
         result, semantic = run_duckdb(request["payload"])
     elif tool_id == "polars":
@@ -1233,6 +1241,7 @@ def execute(request_value: Any) -> dict[str, Any]:
     else:
         result, semantic = run_noisereduce(request["payload"])
     usage = resource.getrusage(resource.RUSAGE_SELF)
+    observed_finished_at_ns = max(time.time_ns(), observed_started_at_ns + 1_000_000)
     result_canonical_json = canonical(result)
     output = {
         "schemaVersion": CONTAINER_PROTOCOL,
@@ -1259,6 +1268,13 @@ def execute(request_value: Any) -> dict[str, Any]:
             "userCpuMicroseconds": int(usage.ru_utime * 1_000_000),
             "systemCpuMicroseconds": int(usage.ru_stime * 1_000_000),
         },
+        "resourceObservation": {
+            "schemaVersion": "private-embedded-process-resource-observation-wire-v1",
+            "observerKind": "python_resource_getrusage_v1",
+            "measurementAgentVersion": "embedded_python_process_resource_observer_v1",
+            "start": resource_observation_start,
+            "finish": resource_observation_point(usage, observed_finished_at_ns),
+        },
         "confinementExpectations": {
             "networkMode": "none",
             "readOnlyRootFilesystem": True,
@@ -1276,6 +1292,32 @@ def execute(request_value: Any) -> dict[str, Any]:
         },
     }
     return output
+
+
+def current_resident_set_bytes() -> int:
+    try:
+        with open("/proc/self/statm", "r", encoding="ascii") as handle:
+            fields = handle.read(256).strip().split()
+        if len(fields) < 2 or not fields[1].isdigit():
+            raise ValueError("invalid statm")
+        return int(fields[1]) * int(os.sysconf("SC_PAGE_SIZE"))
+    except (OSError, ValueError):
+        return int(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss) * 1024
+
+
+def resource_observation_point(usage: resource.struct_rusage, captured_at_ns: int) -> dict[str, Any]:
+    memory_current_bytes = current_resident_set_bytes()
+    memory_peak_bytes = max(memory_current_bytes, int(usage.ru_maxrss) * 1024)
+    return {
+        "capturedAt": datetime.fromtimestamp(
+            captured_at_ns / 1_000_000_000,
+            tz=timezone.utc,
+        ).isoformat(timespec="milliseconds").replace("+00:00", "Z"),
+        "cpuUsageNanoseconds": int((usage.ru_utime + usage.ru_stime) * 1_000_000_000),
+        "memoryCurrentBytes": memory_current_bytes,
+        "memoryPeakBytes": memory_peak_bytes,
+        "gpuActiveMilliseconds": None,
+    }
 
 
 def main() -> int:

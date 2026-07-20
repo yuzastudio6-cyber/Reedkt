@@ -13,6 +13,7 @@ import type { OfflineNodeRunnerSvgSemanticEvidence } from '../node-runners'
 import { getOfflineNodeRunnerCanonicalOperation } from '../node-runners/offline-node-runner-canonical-operations'
 import { OFFLINE_NODE_RUNNER_LIMITS } from '../node-runners/offline-node-runner-types'
 import { OFFLINE_NODE_RUNNER_TOOL_IDS } from '../node-runners/offline-node-runner-tool-ids'
+import { normalizePrivateEmbeddedProcessResourceObservation } from '../private-embedded-process-resource-observation'
 import {
   inspectExistingOfflineNodeStructuredDockerRuntime,
   prepareOfflineNodeStructuredDockerRuntime,
@@ -335,6 +336,7 @@ function verifySuccessfulContainerOutput(input: {
     'artifacts',
     'semanticEvidence',
     'processResourceUsage',
+    'resourceObservation',
     'confinementExpectations',
     'readiness',
   ])
@@ -360,6 +362,11 @@ function verifySuccessfulContainerOutput(input: {
   const runtimeIdentity = verifyRuntimeIdentity(wire.runtimeIdentity)
   const semanticEvidence = verifySemanticEvidence(wire.semanticEvidence)
   const processResourceUsage = verifyResourceUsage(wire.processResourceUsage)
+  const resourceObservation = normalizePrivateEmbeddedProcessResourceObservation({
+    wireObservation: wire.resourceObservation,
+    measurementAgentDigest: bundle.sha256,
+    containerIdentityDigest: input.container.containerIdentityDigest,
+  })
   const artifacts = arrayValue(wire.artifacts, 'Structured runner artifacts')
   if (artifacts.length !== 2) throw evidenceFailure('Structured runner must emit exactly two artifacts.')
   const svgArtifact = artifactByKind(artifacts, 'svg', 'image/svg+xml')
@@ -408,6 +415,7 @@ function verifySuccessfulContainerOutput(input: {
     semanticEvidence,
     runtimeIdentity,
     processResourceUsage,
+    resourceObservation,
     confinement: input.container.confinement,
     containerExitCode: 0,
     oomKilled: false,
@@ -444,6 +452,7 @@ async function createAndPersistAttestation(input: {
     svgSha256: input.evidence.svgSha256,
     verificationJsonSha256: input.evidence.verificationJsonSha256,
     processResourceUsage: input.evidence.processResourceUsage,
+    resourceObservationHash: input.evidence.resourceObservation.observationHash,
   })
   const withoutHash = {
     schemaVersion: OFFLINE_NODE_STRUCTURED_EXECUTION_ATTESTATION_VERSION,

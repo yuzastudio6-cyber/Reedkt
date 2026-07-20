@@ -35,6 +35,7 @@ export interface OfflinePythonStructuredContainerResult {
   exitCode: number
   oomKilled: boolean
   confinement: OfflinePythonStructuredConfinementEvidence
+  containerIdentityDigest: string
 }
 
 export async function prepareOfflinePythonStructuredDockerRuntime():
@@ -129,6 +130,11 @@ export async function runOfflinePythonStructuredContainer(input: {
       exitCode: started.exitCode,
       oomKilled: state.OOMKilled,
       confinement,
+      containerIdentityDigest: sha256AuthorityValue({
+        domain: 'offline_python_structured_container_identity_v1',
+        containerId,
+        imageIdentityHash: input.image.imageIdentityHash,
+      }),
     }
   } finally {
     await runDocker(['rm', '--force', containerId], {

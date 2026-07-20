@@ -43,6 +43,7 @@ async function main(): Promise<void> {
   }
   const satoriFont = loadImageBakedFont()
   const { request, runnerPayload } = createValidatedOfflineNodeRunnerPayload(decoded, satoriFont)
+  const observedStartedAtMs = Date.now()
   const resourceBefore = process.resourceUsage()
   const memoryBefore = process.memoryUsage()
   const wallStartedAt = process.hrtime.bigint()
@@ -54,6 +55,14 @@ async function main(): Promise<void> {
   const wallEndedAt = process.hrtime.bigint()
   const resourceAfter = process.resourceUsage()
   const memoryAfter = process.memoryUsage()
+  const observedDurationMilliseconds = Math.max(
+    1,
+    Number((wallEndedAt - wallStartedAt + 999_999n) / 1_000_000n),
+  )
+  const observedFinishedAtMs = Math.max(
+    Date.now(),
+    observedStartedAtMs + observedDurationMilliseconds,
+  )
   const output = {
     schemaVersion: OFFLINE_NODE_STRUCTURED_CONTAINER_PROTOCOL,
     ok: true as const,
@@ -99,6 +108,13 @@ async function main(): Promise<void> {
       heapUsedBytesBefore: memoryBefore.heapUsed,
       heapUsedBytesAfter: memoryAfter.heapUsed,
     },
+    resourceObservation: {
+      schemaVersion: 'private-embedded-process-resource-observation-wire-v1' as const,
+      observerKind: 'node_process_resource_usage_v1' as const,
+      measurementAgentVersion: 'embedded_node_process_resource_observer_v1' as const,
+      start: resourceObservationPoint(resourceBefore, memoryBefore, observedStartedAtMs),
+      finish: resourceObservationPoint(resourceAfter, memoryAfter, observedFinishedAtMs),
+    },
     confinementExpectations: {
       networkMode: 'none',
       readOnlyRootFilesystem: true,
@@ -117,6 +133,20 @@ async function main(): Promise<void> {
     },
   }
   process.stdout.write(`${JSON.stringify(output)}\n`)
+}
+
+function resourceObservationPoint(
+  usage: NodeJS.ResourceUsage,
+  memory: NodeJS.MemoryUsage,
+  capturedAtMs: number,
+) {
+  return {
+    capturedAt: new Date(capturedAtMs).toISOString(),
+    cpuUsageNanoseconds: (usage.userCPUTime + usage.systemCPUTime) * 1_000,
+    memoryCurrentBytes: memory.rss,
+    memoryPeakBytes: Math.max(memory.rss, usage.maxRSS * 1_024),
+    gpuActiveMilliseconds: null,
+  }
 }
 
 async function readBoundedStdin(): Promise<string> {

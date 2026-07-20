@@ -2,12 +2,15 @@
 
 ## Verdict
 
-`PRIVATE_WORKER_RESOURCE_USAGE_COST_EVIDENCE_CONTRACT_ACCEPTED_RUNTIME_ADAPTER_BLOCKED`
+`PRIVATE_WORKER_RESOURCE_USAGE_COST_EVIDENCE_EMBEDDED_CAPTURE_ACCEPTED_CLOUD_ADAPTER_BLOCKED`
 
 ReEditPro now has one provider-neutral, attempt-level contract for retaining
 observed CPU, memory, GPU, elapsed-time, network, artifact-lineage, and
-infrastructure-cost evidence. The contract is usable for private injected
-proof and is deliberately unable to authorize production execution.
+infrastructure-cost evidence. Nine canonical Node operations and 19 canonical
+Python operations now populate that contract automatically from measurements
+captured inside their exact confined private containers. The evidence remains
+private/local, uses a placeholder infrastructure rate card, and is deliberately
+unable to authorize production execution.
 
 This increment does not install a Cloud Run/GKE observer, execute a provider,
 activate Google Cloud, reconcile an invoice, charge a customer, or make all
@@ -79,6 +82,36 @@ ceiling. This closes a mismatch for the Torch/TorchVision and Transformers
 readiness operations, whose CUDA worker/resource contracts previously omitted
 `gpu_millisecond` and `gpuMilliseconds` cost evidence.
 
+## Automatic Embedded Capture
+
+The exact Node and Python container protocols now return one versioned start/
+finish observation captured inside the executing process. The server verifies
+and normalizes that wire payload against:
+
+- the exact reviewed runner bundle or Python runner digest;
+- an opaque hash of the fresh container identity and immutable image identity,
+  never the raw container ID;
+- cumulative user/system CPU, current and peak resident memory, exact start and
+  finish timestamps, and an explicit null GPU counter for these CPU runners;
+- the configured one-vCPU, 768-MiB, zero-network confinement envelope; and
+- a checksum over the normalized observation.
+
+After actual output persistence, QA, lease completion, reconciliation, and a
+fresh approved-authority readback, the canonical execution services create one
+private create-only cost record for the exact attempt. It binds approved
+snapshot, package, work item, job, lease, one-use dispatch, request, source (if
+applicable), accepted output, runtime image, attestation, resource interval,
+and internal infrastructure cost. An exact idempotent replay verifies the
+first record's identity and input/output manifests and returns it; it cannot
+overwrite the first container's retained usage with a later retry.
+
+This automatic capture currently covers all 28 operations routed through the
+canonical structured Node and Python coordinators. It does not cover Sharp,
+FFmpeg, Remotion, DeepFilterNet, native-audio, GPU, provider, or other runner
+families merely because those operations have separate private runner proof.
+It is process-level evidence from confined local containers, not qualified
+Cloud Run task/cgroup telemetry and not a cloud invoice.
+
 ## Verification
 
 Run:
@@ -109,6 +142,23 @@ The retained deterministic smoke proves:
 - production authority, commercial fields, billing, and wallet behavior remain
   blocked.
 
+The authoritative `npm run smoke:canonical-private-tool-dispatch` journey also
+passes with all 28 eligible Node/Python operation IDs producing one exact
+embedded observation and internal-cost record under their real canonical
+snapshot/package/job/lease/dispatch/artifact/QA/reconciliation lifecycle. It
+asserts create-only replay, one-vCPU/768-MiB/zero-network confinement, null
+cloud-resource identity, placeholder-rate truth, and complete separation from
+customer price, credits, service fee, wallet, and billing.
+
+The post-hardening rerun completed with exit code `0` on 2026-07-20. Its
+terminal check list includes
+`all_28_node_and_python_operations_persist_exact_embedded_cpu_memory_and_internal_cost_evidence`
+and
+`embedded_usage_evidence_is_create_only_replay_safe_and_commercially_separate`.
+The same run retained all 50 canonical private lifecycle and job-adapter
+identities. The replay path verifies the exact first input and output artifact
+manifests before returning existing evidence.
+
 The retained deterministic evidence hashes are:
 
 - completed GPU attempt:
@@ -124,18 +174,19 @@ The retained deterministic evidence hashes are:
 ### Authoritative Aggregate Regression
 
 `npm run qa:canonical-private-pipeline` passed all 38 phases with exit code 0
-on 2026-07-20. The aggregate included this resource-usage evidence smoke and
-also retained the following adjacent proof without widening this increment's
-authority:
+on 2026-07-20; its final tool report was generated at
+`2026-07-20T13:50:37.715Z`. The aggregate included this resource-usage evidence
+smoke and also retained the following adjacent proof without widening this
+increment's authority:
 
 - a three-source canonical private composition with trim, caption, voice,
   reference-bound color, lease, one-use dispatch, QA, reconciliation, replay,
   private persistence, and private download evidence;
 - interrupted resumable 4K source upload recovery, one 67,338,001-byte
-  lossless professional-color intermediate, and one 19,233,922-byte 4K H.264
+  lossless professional-color intermediate, and one 19,239,147-byte 4K H.264
   delivery master under the original approved 4K estimate;
 - one separately confined 4K Remotion streaming proof that produced a
-  54,460,136-byte H.264/AAC MP4 above the former 16 MiB output boundary;
+  48,598,009-byte H.264/AAC MP4 above the former 16 MiB output boundary;
 - 11/11 active named-edit Chromium workflow tests; and
 - the final proven-tool report with 72 registry profiles, 53 confined-runner
   proofs, and 50 canonical private end-to-end/job-adapter proofs.
@@ -149,11 +200,12 @@ enabled public delivery.
 
 Still blocked or false:
 
-- a qualified observer adapter in each canonical worker runtime (for example,
-  verified container/cgroup CPU and memory counters plus a qualified GPU
+- a qualified cloud observer adapter in each deployed worker runtime (for
+  example, verified task/cgroup CPU and memory counters plus a qualified GPU
   counter source);
-- automatic start/finish capture inside the canonical tool and provider
-  attempt lifecycle rather than injected smoke snapshots;
+- automatic lifecycle capture for the other 25 privately verified operations,
+  all provider attempts, and the 19 operations that still lack private runner
+  proof;
 - exact live package/reservation/lease/one-use-dispatch readback at evidence
   creation time and atomic distributed persistence with the terminal attempt;
 - 19 remaining operation-specific runner integrations and adversarial proofs;

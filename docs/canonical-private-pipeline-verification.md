@@ -203,6 +203,31 @@ that discovery channel; it does not weaken image-identity validation.
 
 ## Current Evidence Record
 
+On 2026-07-20, the current v28 command passed all `38/38` phases with exit
+code `0`; its final tool report was generated at
+`2026-07-20T13:50:37.715Z`. The canonical long-form post-approval stage passed
+all 99 checks, retained the exact six-hour 1,144,083,803-byte FLAC and
+1,036,800,000 decoded stereo sample frames, completed eight of 255 exact queue
+jobs, proved two of 124 object-chunk render/QA pairs, and kept the other 247
+jobs and 122 pairs blocked. The separate two-chunk delivery graph completed
+11/11 private review jobs plus 9/9 customer-delivery jobs, including both 4K
+H.264 encodes, independent chunk probes, AAC mux, full decoded video and audio/
+sync QA, authenticated range delivery, durable private watch evidence, and an
+honest `user_review_required` outcome for the synthetic fixture.
+
+The same aggregate completed the three-source composition in `769,343 ms`,
+the professional-color regression in `740,873 ms`, the 48,598,009-byte UHD
+Remotion streaming proof in `112,062 ms`, and all 11 named-edit browser tests
+in `15,134 ms`. The final report retained 72 registry profiles, 53 confined-
+runner proofs, and exactly 50 canonical private lifecycle plus job-adapter
+identities. A separate post-hardening
+`npm run smoke:canonical-private-tool-dispatch` run then passed with all 28
+eligible Node/Python operations automatically persisting exact embedded CPU,
+memory, input/output lineage, and internal-cost evidence under their canonical
+snapshot/package/job/lease/one-use-dispatch lifecycle. Both commands kept live
+Google Cloud, providers, remote Supabase, billing/wallet mutation, deployment,
+public delivery, external beta, and paid production false.
+
 On 2026-07-18, the exact-code v24 full internal command passed all `38/38`
 phases with exit code `0`. It started at `2026-07-18T19:00:39.984Z`, finished
 at `2026-07-18T19:43:20.646Z`, and completed in `2,560,662 ms`. The canonical

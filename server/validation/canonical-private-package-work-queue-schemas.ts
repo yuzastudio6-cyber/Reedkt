@@ -97,6 +97,12 @@ export const canonicalPrivatePackageWorkQueueCompletionSchema = z.object({
   claimId: identity,
   credentialSha256: sha256,
   outcome: canonicalPrivatePackageWorkQueueCompletedOutcomeSchema,
+  providerUnknownReconciliation: z.object({
+    providerDispatchTerminalHash: sha256,
+    attemptInternalCostEvidenceHash: sha256,
+    resolution: z.literal('succeeded'),
+    reconciliationHash: sha256,
+  }).strict().optional(),
   completedAt: timestamp,
   completionHash: sha256,
 }).strict()
@@ -191,9 +197,17 @@ export const canonicalPrivatePackageWorkQueueReleaseSchema = z.object({
     'unexpected_execution_failure',
     'orchestrator_shutdown',
     'expired_claim_recovered',
+    'provider_unknown_outcome',
+    'provider_unknown_reconciled_failed',
   ]),
   dispatchFailure: canonicalPrivatePackageWorkQueueDispatchFailureSchema.optional(),
   dispatchTimeout: canonicalPrivatePackageWorkQueueDispatchTimeoutSchema.optional(),
+  providerUnknownReconciliation: z.object({
+    providerDispatchTerminalHash: sha256,
+    attemptInternalCostEvidenceHash: sha256,
+    resolution: z.literal('failed'),
+    reconciliationHash: sha256,
+  }).strict().optional(),
   releasedAt: timestamp,
   releaseHash: sha256,
 }).strict().superRefine((release, context) => {
@@ -221,6 +235,17 @@ export const canonicalPrivatePackageWorkQueueReleaseSchema = z.object({
       message: 'Canonical dispatch timeout release reason is inconsistent.',
     })
   }
+  if (
+    (release.reason === 'provider_unknown_reconciled_failed') !==
+      (release.providerUnknownReconciliation !== undefined) ||
+    (release.reason === 'provider_unknown_outcome' &&
+      release.providerUnknownReconciliation !== undefined)
+  ) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Provider unknown-outcome release reconciliation is inconsistent.',
+    })
+  }
 })
 
 export const canonicalPrivatePackageWorkQueueEntrySchema = z.object({
@@ -232,6 +257,35 @@ export const canonicalPrivatePackageWorkQueueEntrySchema = z.object({
     professionalLongFormAuthorizedChildAuthorizationReceiptSchema.optional(),
   professionalLongFormExecutionAttempt:
     professionalLongFormAuthorizedChildExecutionAttemptSchema.optional(),
+  providerExecutionAttempt: z.object({
+    authorizationHash: sha256,
+    providerDispatchGrantId: identity,
+    providerDispatchGrantHash: sha256,
+    dispatchAttemptId: identity,
+    dispatchAttemptHash: sha256,
+    claimId: identity,
+    claimHash: sha256,
+    deliveryAttempt: z.number().int().positive().max(10),
+    state: z.enum([
+      'consumed_before_provider_request',
+      'terminal_known',
+      'terminal_unknown',
+      'unknown_reconciled_succeeded',
+      'unknown_reconciled_failed',
+    ]),
+    terminalHash: sha256.optional(),
+    attemptInternalCostEvidenceHash: sha256.optional(),
+    providerTerminalState: z.enum([
+      'succeeded',
+      'failed',
+      'unknown_reconciliation_required',
+      'unknown_reconciled_succeeded',
+      'unknown_reconciled_failed',
+    ]).optional(),
+    startedAt: timestamp,
+    terminalAt: timestamp.optional(),
+    fenceHash: sha256,
+  }).strict().optional(),
   activeClaim: canonicalPrivatePackageWorkQueueClaimSchema.optional(),
   completion: canonicalPrivatePackageWorkQueueCompletionSchema.optional(),
   lastRelease: canonicalPrivatePackageWorkQueueReleaseSchema.optional(),
@@ -264,6 +318,59 @@ export const canonicalPrivatePackageWorkQueueEntrySchema = z.object({
       JSON.stringify(outcome.dependencyJobIds) !== JSON.stringify(entry.definition.dependencyJobIds)
     ) {
       context.addIssue({ code: 'custom', message: 'Canonical work-queue completion identity is inconsistent.' })
+    }
+  }
+  const providerAttempt = entry.providerExecutionAttempt
+  if (providerAttempt) {
+    const terminal = providerAttempt.state !== 'consumed_before_provider_request'
+    const liveClaim = entry.activeClaim
+    const terminalClaimId = entry.completion?.claimId ?? entry.lastRelease?.claimId ??
+      entry.activeClaim?.claimId
+    if (
+      entry.definition.providerExecutionMode === 'none' ||
+      providerAttempt.deliveryAttempt !== entry.deliveryAttemptCount ||
+      (providerAttempt.state === 'consumed_before_provider_request' && (
+        entry.state !== 'leased' || !liveClaim ||
+        providerAttempt.claimId !== liveClaim.claimId ||
+        providerAttempt.claimHash !== liveClaim.claimHash
+      )) ||
+      (terminal && (
+        !providerAttempt.terminalHash ||
+        !providerAttempt.attemptInternalCostEvidenceHash ||
+        !providerAttempt.providerTerminalState ||
+        !providerAttempt.terminalAt ||
+        providerAttempt.claimId !== terminalClaimId
+      )) ||
+      (!terminal && providerAttempt.providerTerminalState !== undefined) ||
+      (providerAttempt.state === 'terminal_known' &&
+        !['succeeded', 'failed'].includes(
+          providerAttempt.providerTerminalState ?? '')) ||
+      (providerAttempt.state === 'terminal_unknown' &&
+        providerAttempt.providerTerminalState !==
+          'unknown_reconciliation_required') ||
+      (providerAttempt.state === 'unknown_reconciled_succeeded' &&
+        providerAttempt.providerTerminalState !==
+          'unknown_reconciled_succeeded') ||
+      (providerAttempt.state === 'unknown_reconciled_failed' &&
+        providerAttempt.providerTerminalState !==
+          'unknown_reconciled_failed') ||
+      (providerAttempt.state === 'terminal_unknown' && !(
+        (entry.state === 'leased' && entry.activeClaim?.claimId ===
+          providerAttempt.claimId) ||
+        (entry.state === 'queued' && entry.lastRelease?.reason ===
+          'provider_unknown_outcome')
+      )) ||
+      (providerAttempt.state === 'unknown_reconciled_succeeded' &&
+        entry.state !== 'completed') ||
+      (providerAttempt.state === 'unknown_reconciled_failed' && (
+        entry.state !== 'queued' ||
+        entry.lastRelease?.reason !== 'provider_unknown_reconciled_failed'
+      ))
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Canonical provider execution fence is inconsistent.',
+      })
     }
   }
   const authorization = entry.professionalLongFormExecutionAuthorization
@@ -361,8 +468,11 @@ export const canonicalPrivatePackageWorkQueueEventSchema = z.object({
     'job_execution_authorized',
     'job_claimed',
     'job_execution_started',
+    'provider_execution_started',
+    'provider_execution_terminal',
     'expired_claim_recovered',
     'claim_released',
+    'provider_unknown_reconciled',
     'job_completed',
   ]),
   jobId: identity.optional(),

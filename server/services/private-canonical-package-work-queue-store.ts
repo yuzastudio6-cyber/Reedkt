@@ -6,6 +6,10 @@ import type {
   CanonicalPrivatePackageWorkQueueJobDefinition,
 } from '../edit-architecture/canonical-private-package-work-queue-authority'
 import {
+  assertCanonicalProviderWorkAuthorization,
+  type CanonicalProviderWorkAuthorization,
+} from '../edit-architecture/canonical-provider-work-authority'
+import {
   readPrivateTextFileIfExistsWithinRoot,
   writePrivateTextFileAtomicWithinRoot,
 } from '../security/private-local-persistence'
@@ -265,6 +269,285 @@ export async function claimPrivateCanonicalPackageWorkQueueJob(input: {
   assertLeaseDuration(input.leaseDurationMs)
   return mutateQueue(input.scope, input.definition, now, (aggregate) =>
     applyQueueClaimMutation(aggregate, { ...input, now }))
+}
+
+/**
+ * Claims one exact provider-backed package job without weakening ordinary
+ * queue admission. The immutable provider authorization is derived from the
+ * approved package and is consumed later by the sibling provider-dispatch
+ * authority; this function never calls a provider or reads a credential.
+ */
+export async function claimPrivateCanonicalProviderPackageWorkQueueJob(input: {
+  scope: CanonicalPrivatePackageWorkQueueStoreScope
+  definition: CanonicalPrivatePackageWorkQueueDefinition
+  jobId: string
+  workerIdentity: string
+  workerType: CanonicalPrivatePackageWorkQueueJobDefinition['workerType']
+  providerAuthorization: CanonicalProviderWorkAuthorization
+  now: string
+  leaseDurationMs: number
+}): Promise<CanonicalPrivatePackageWorkQueueClaimResult> {
+  const now = validTimestamp(input.now, 'provider queue claim')
+  assertWorkerIdentity(input.workerIdentity)
+  assertLeaseDuration(input.leaseDurationMs)
+  const providerAuthorization = assertCanonicalProviderWorkAuthorization({
+    value: input.providerAuthorization,
+    queueDefinition: input.definition,
+    now,
+  })
+  if (
+    providerAuthorization.queueJobId !== input.jobId ||
+    providerAuthorization.ownerUserId !== input.scope.ownerUserId ||
+    providerAuthorization.workspaceId !== input.scope.workspaceId ||
+    providerAuthorization.projectId !== input.scope.projectId ||
+    providerAuthorization.editSessionId !== input.scope.editSessionId ||
+    providerAuthorization.packageRecordId !== input.scope.packageRecordId ||
+    providerAuthorization.approvedPlanSnapshotId !==
+      input.scope.approvedPlanSnapshotId
+  ) {
+    throw new ApiError(
+      'WORKSPACE_ACCESS_DENIED',
+      'Canonical provider-work authorization does not own this package queue.',
+      403,
+    )
+  }
+  return mutateQueue(input.scope, input.definition, now, (aggregate) =>
+    applyQueueClaimMutation(aggregate, {
+      ...input,
+      providerAuthorization,
+      now,
+    }))
+}
+
+export async function beginPrivateCanonicalPackageWorkQueueProviderAttempt(input: {
+  scope: CanonicalPrivatePackageWorkQueueStoreScope
+  definition: CanonicalPrivatePackageWorkQueueDefinition
+  jobId: string
+  claimId: string
+  claimCredential: string
+  providerAuthorization: CanonicalProviderWorkAuthorization
+  providerDispatchGrantId: string
+  providerDispatchGrantHash: string
+  dispatchAttemptId: string
+  dispatchAttemptHash: string
+  now: string
+}): Promise<{
+  disposition: 'started' | 'exact_replay'
+  aggregate: CanonicalPrivatePackageWorkQueueAggregate
+  entry: CanonicalPrivatePackageWorkQueueEntry & {
+    providerExecutionAttempt: NonNullable<
+      CanonicalPrivatePackageWorkQueueEntry['providerExecutionAttempt']
+    >
+  }
+}> {
+  const now = validTimestamp(input.now, 'provider execution fence start')
+  const providerAuthorization = assertCanonicalProviderWorkAuthorization({
+    value: input.providerAuthorization,
+    queueDefinition: input.definition,
+    now,
+  })
+  for (const [label, value] of [
+    ['provider dispatch grant hash', input.providerDispatchGrantHash],
+    ['provider dispatch attempt hash', input.dispatchAttemptHash],
+  ] as const) {
+    if (!/^[a-f0-9]{64}$/u.test(value)) throw invalidQueue(`${label} is invalid.`)
+  }
+  return mutateQueue(input.scope, input.definition, now, (aggregate) => {
+    const entry = requiredEntry(aggregate, input.jobId)
+    if (entry.definition.providerExecutionMode === 'none') {
+      throw new ApiError('PROVIDER_ROUTE_BLOCKED', 'Queue job is not provider-backed.', 409)
+    }
+    if (!exactProviderAuthorizationMatches({
+      aggregate,
+      entry,
+      authorization: providerAuthorization,
+    })) {
+      throw new ApiError(
+        'PROVIDER_ROUTE_BLOCKED',
+        'Provider execution fence does not match the exact authorized queue job.',
+        409,
+      )
+    }
+    const claim = requireActiveClaim(
+      entry,
+      input.claimId,
+      input.claimCredential,
+      now,
+    )
+    const existing = entry.providerExecutionAttempt
+    const withoutHash = {
+      authorizationHash: providerAuthorization.authorityHash,
+      providerDispatchGrantId: safeQueueIdentity(
+        input.providerDispatchGrantId,
+        'provider dispatch grant',
+      ),
+      providerDispatchGrantHash: input.providerDispatchGrantHash,
+      dispatchAttemptId: safeQueueIdentity(
+        input.dispatchAttemptId,
+        'provider dispatch attempt',
+      ),
+      dispatchAttemptHash: input.dispatchAttemptHash,
+      claimId: claim.claimId,
+      claimHash: claim.claimHash,
+      deliveryAttempt: claim.deliveryAttempt,
+      state: 'consumed_before_provider_request' as const,
+      startedAt: now,
+    }
+    const providerExecutionAttempt = {
+      ...withoutHash,
+      fenceHash: sha256AuthorityValue(withoutHash),
+    }
+    if (existing) {
+      if (
+        existing.authorizationHash !== providerExecutionAttempt.authorizationHash ||
+        existing.providerDispatchGrantId !==
+          providerExecutionAttempt.providerDispatchGrantId ||
+        existing.providerDispatchGrantHash !==
+          providerExecutionAttempt.providerDispatchGrantHash ||
+        existing.dispatchAttemptId !== providerExecutionAttempt.dispatchAttemptId ||
+        existing.dispatchAttemptHash !== providerExecutionAttempt.dispatchAttemptHash ||
+        existing.claimId !== providerExecutionAttempt.claimId ||
+        existing.claimHash !== providerExecutionAttempt.claimHash ||
+        existing.deliveryAttempt !== providerExecutionAttempt.deliveryAttempt
+      ) {
+        throw new ApiError(
+          'IDEMPOTENCY_CONFLICT',
+          'Provider execution fence conflicts with an existing queue attempt.',
+          409,
+        )
+      }
+      return {
+        disposition: 'exact_replay' as const,
+        entry: entry as CanonicalPrivatePackageWorkQueueEntry & {
+          providerExecutionAttempt: NonNullable<
+            CanonicalPrivatePackageWorkQueueEntry['providerExecutionAttempt']
+          >
+        },
+      }
+    }
+    entry.providerExecutionAttempt = providerExecutionAttempt
+    touchEntry(entry, now)
+    appendEvent(aggregate, {
+      eventType: 'provider_execution_started',
+      jobId: entry.definition.jobId,
+      claimId: claim.claimId,
+      at: now,
+    })
+    return {
+      disposition: 'started' as const,
+      entry: entry as CanonicalPrivatePackageWorkQueueEntry & {
+        providerExecutionAttempt: NonNullable<
+          CanonicalPrivatePackageWorkQueueEntry['providerExecutionAttempt']
+        >
+      },
+    }
+  })
+}
+
+export async function finalizePrivateCanonicalPackageWorkQueueProviderAttempt(input: {
+  scope: CanonicalPrivatePackageWorkQueueStoreScope
+  definition: CanonicalPrivatePackageWorkQueueDefinition
+  jobId: string
+  claimId: string
+  claimCredential: string
+  providerDispatchTerminalHash: string
+  attemptInternalCostEvidenceHash: string
+  providerTerminalState: 'succeeded' | 'failed' |
+    'unknown_reconciliation_required'
+  now: string
+}): Promise<{
+  disposition: 'terminal_recorded' | 'exact_replay'
+  aggregate: CanonicalPrivatePackageWorkQueueAggregate
+  entry: CanonicalPrivatePackageWorkQueueEntry & {
+    providerExecutionAttempt: NonNullable<
+      CanonicalPrivatePackageWorkQueueEntry['providerExecutionAttempt']
+    >
+  }
+}> {
+  const now = validTimestamp(input.now, 'provider execution fence terminal')
+  if (
+    !/^[a-f0-9]{64}$/u.test(input.providerDispatchTerminalHash) ||
+    !/^[a-f0-9]{64}$/u.test(input.attemptInternalCostEvidenceHash)
+  ) throw invalidQueue('Provider execution terminal evidence hash is invalid.')
+  return mutateQueue(input.scope, input.definition, now, (aggregate) => {
+    const entry = requiredEntry(aggregate, input.jobId)
+    const claim = requireActiveClaim(
+      entry,
+      input.claimId,
+      input.claimCredential,
+      now,
+    )
+    const existing = entry.providerExecutionAttempt
+    if (!existing || existing.claimId !== claim.claimId ||
+        existing.claimHash !== claim.claimHash) {
+      throw new ApiError(
+        'IDEMPOTENCY_ATOMICITY_REQUIRED',
+        'Provider terminal evidence lacks the exact queue execution fence.',
+        503,
+      )
+    }
+    const withoutHash = {
+      authorizationHash: existing.authorizationHash,
+      providerDispatchGrantId: existing.providerDispatchGrantId,
+      providerDispatchGrantHash: existing.providerDispatchGrantHash,
+      dispatchAttemptId: existing.dispatchAttemptId,
+      dispatchAttemptHash: existing.dispatchAttemptHash,
+      claimId: existing.claimId,
+      claimHash: existing.claimHash,
+      deliveryAttempt: existing.deliveryAttempt,
+      state: input.providerTerminalState === 'unknown_reconciliation_required'
+        ? 'terminal_unknown' as const
+        : 'terminal_known' as const,
+      terminalHash: input.providerDispatchTerminalHash,
+      attemptInternalCostEvidenceHash: input.attemptInternalCostEvidenceHash,
+      providerTerminalState: input.providerTerminalState,
+      startedAt: existing.startedAt,
+      terminalAt: now,
+    }
+    const terminalFence = {
+      ...withoutHash,
+      fenceHash: sha256AuthorityValue(withoutHash),
+    }
+    if (existing.state !== 'consumed_before_provider_request') {
+      if (
+        existing.state !== terminalFence.state ||
+        existing.providerTerminalState !== terminalFence.providerTerminalState ||
+        existing.terminalHash !== terminalFence.terminalHash ||
+        existing.attemptInternalCostEvidenceHash !==
+          terminalFence.attemptInternalCostEvidenceHash
+      ) {
+        throw new ApiError(
+          'IDEMPOTENCY_CONFLICT',
+          'Provider queue terminal fence conflicts with existing evidence.',
+          409,
+        )
+      }
+      return {
+        disposition: 'exact_replay' as const,
+        entry: entry as CanonicalPrivatePackageWorkQueueEntry & {
+          providerExecutionAttempt: NonNullable<
+            CanonicalPrivatePackageWorkQueueEntry['providerExecutionAttempt']
+          >
+        },
+      }
+    }
+    entry.providerExecutionAttempt = terminalFence
+    touchEntry(entry, now)
+    appendEvent(aggregate, {
+      eventType: 'provider_execution_terminal',
+      jobId: entry.definition.jobId,
+      claimId: claim.claimId,
+      at: now,
+    })
+    return {
+      disposition: 'terminal_recorded' as const,
+      entry: entry as CanonicalPrivatePackageWorkQueueEntry & {
+        providerExecutionAttempt: NonNullable<
+          CanonicalPrivatePackageWorkQueueEntry['providerExecutionAttempt']
+        >
+      },
+    }
+  })
 }
 
 export async function authorizePrivateCanonicalPackageWorkQueueJob(input: {
@@ -1003,6 +1286,23 @@ export async function completePrivateCanonicalPackageWorkQueueClaim(input: {
       return { disposition: 'completed_replay' as const }
     }
     requireActiveClaim(entry, input.claimId, input.claimCredential, now)
+    if (entry.definition.providerExecutionMode !== 'none') {
+      const providerAttempt = entry.providerExecutionAttempt
+      if (
+        !providerAttempt ||
+        providerAttempt.claimId !== input.claimId ||
+        providerAttempt.state !== 'terminal_known' ||
+        providerAttempt.providerTerminalState !== 'succeeded' ||
+        !providerAttempt.terminalHash ||
+        !providerAttempt.attemptInternalCostEvidenceHash
+      ) {
+        throw new ApiError(
+          'IDEMPOTENCY_ATOMICITY_REQUIRED',
+          'Provider-backed queue completion requires the exact terminal execution fence and internal-cost evidence.',
+          503,
+        )
+      }
+    }
     assertOutcomeMatchesDefinition(outcome, entry.definition)
     assertProfessionalLongFormCompletionEvidence(entry, outcome)
     const completionWithoutHash = {
@@ -1061,6 +1361,38 @@ export async function releasePrivateCanonicalPackageWorkQueueClaim(input: {
         503,
       )
     }
+    const providerAttempt = entry.providerExecutionAttempt
+    if (providerAttempt) {
+      const unknown = input.reason === 'provider_unknown_outcome'
+      const expectedTerminalState = unknown
+        ? 'terminal_unknown'
+        : 'terminal_known'
+      if (
+        providerAttempt.claimId !== input.claimId ||
+        providerAttempt.state !== expectedTerminalState ||
+        providerAttempt.providerTerminalState !== (unknown
+          ? 'unknown_reconciliation_required'
+          : 'failed') ||
+        !providerAttempt.terminalHash ||
+        !providerAttempt.attemptInternalCostEvidenceHash
+      ) {
+        throw new ApiError(
+          'IDEMPOTENCY_ATOMICITY_REQUIRED',
+          'A consumed provider attempt cannot be released without its exact known or unknown terminal fence.',
+          503,
+        )
+      }
+    } else if (
+      entry.definition.providerExecutionMode !== 'none' &&
+      ['approved_attempt_failure', 'unexpected_execution_failure',
+        'provider_unknown_outcome'].includes(input.reason)
+    ) {
+      throw new ApiError(
+        'IDEMPOTENCY_ATOMICITY_REQUIRED',
+        'Provider execution failure cannot be released before one-use dispatch and terminal evidence are fenced.',
+        503,
+      )
+    }
     releaseEntry(entry, input.claimId, sha256Text(input.claimCredential), input.reason, now)
     appendEvent(aggregate, {
       eventType: 'claim_released',
@@ -1115,6 +1447,210 @@ async function mutateQueue<T extends { disposition: string }>(
   })
 }
 
+/**
+ * Resolves a provider attempt that was deliberately fenced as unknown. No
+ * retry is possible while the unknown marker is present. A verified success
+ * may complete the original claim without recovering its plaintext
+ * credential. This frozen one-request Lyria profile leaves a verified failure
+ * terminal; any later request requires a fresh approved package/snapshot.
+ */
+export async function reconcilePrivateCanonicalPackageWorkQueueProviderUnknown(
+  input: {
+    scope: CanonicalPrivatePackageWorkQueueStoreScope
+    definition: CanonicalPrivatePackageWorkQueueDefinition
+    jobId: string
+    claimId: string
+    providerDispatchTerminalHash: string
+    attemptInternalCostEvidenceHash: string
+    resolution: 'succeeded' | 'failed'
+    outcome?: CanonicalPrivatePackageWorkQueueCompletedOutcome
+    now: string
+  },
+): Promise<{
+  disposition: 'reconciled' | 'exact_replay'
+  aggregate: CanonicalPrivatePackageWorkQueueAggregate
+  entry: CanonicalPrivatePackageWorkQueueEntry
+}> {
+  const now = validTimestamp(input.now, 'provider unknown-outcome reconciliation')
+  if (
+    !/^[a-f0-9]{64}$/u.test(input.providerDispatchTerminalHash) ||
+    !/^[a-f0-9]{64}$/u.test(input.attemptInternalCostEvidenceHash)
+  ) throw invalidQueue('Provider unknown-outcome evidence hash is invalid.')
+  return mutateQueue(input.scope, input.definition, now, (aggregate) => {
+    const entry = requiredEntry(aggregate, input.jobId)
+    const reconciliationWithoutHash = {
+      providerDispatchTerminalHash: input.providerDispatchTerminalHash,
+      attemptInternalCostEvidenceHash: input.attemptInternalCostEvidenceHash,
+      resolution: input.resolution,
+    }
+    const reconciliation = {
+      ...reconciliationWithoutHash,
+      reconciliationHash: sha256AuthorityValue({
+        domain: 'reeditpro:canonical-provider-unknown-queue-reconciliation:v1',
+        queueDefinitionHash: input.definition.definitionHash,
+        jobDefinitionHash: entry.definition.definitionHash,
+        claimId: input.claimId,
+        ...reconciliationWithoutHash,
+      }),
+    }
+    if (entry.state === 'completed') {
+      const existing = entry.completion?.providerUnknownReconciliation
+      const providerAttempt = entry.providerExecutionAttempt
+      if (
+        input.resolution !== 'succeeded' || !existing ||
+        providerAttempt?.state !== 'unknown_reconciled_succeeded' ||
+        providerAttempt.claimId !== input.claimId ||
+        providerAttempt.terminalHash !== input.providerDispatchTerminalHash ||
+        providerAttempt.attemptInternalCostEvidenceHash !==
+          input.attemptInternalCostEvidenceHash ||
+        stableAuthorityStringify(existing) !== stableAuthorityStringify(reconciliation)
+      ) throw new ApiError(
+        'IDEMPOTENCY_CONFLICT',
+        'Provider unknown-outcome completion conflicts with existing queue state.',
+        409,
+      )
+      return { disposition: 'exact_replay' as const, entry }
+    }
+    if (
+      entry.state === 'queued' &&
+      entry.lastRelease?.reason === 'provider_unknown_reconciled_failed'
+    ) {
+      const existing = entry.lastRelease.providerUnknownReconciliation
+      const providerAttempt = entry.providerExecutionAttempt
+      if (
+        input.resolution !== 'failed' || !existing ||
+        providerAttempt?.state !== 'unknown_reconciled_failed' ||
+        providerAttempt.claimId !== input.claimId ||
+        providerAttempt.terminalHash !== input.providerDispatchTerminalHash ||
+        providerAttempt.attemptInternalCostEvidenceHash !==
+          input.attemptInternalCostEvidenceHash ||
+        stableAuthorityStringify(existing) !== stableAuthorityStringify(reconciliation)
+      ) throw new ApiError(
+        'IDEMPOTENCY_CONFLICT',
+        'Provider unknown-outcome failure conflicts with existing queue state.',
+        409,
+      )
+      return { disposition: 'exact_replay' as const, entry }
+    }
+    const release = entry.lastRelease
+    const providerAttempt = entry.providerExecutionAttempt
+    if (
+      entry.state !== 'queued' || !release ||
+      release.reason !== 'provider_unknown_outcome' ||
+      release.claimId !== input.claimId ||
+      !providerAttempt ||
+      providerAttempt.claimId !== input.claimId ||
+      providerAttempt.state !== 'terminal_unknown' ||
+      providerAttempt.providerTerminalState !==
+        'unknown_reconciliation_required'
+    ) throw new ApiError(
+      'IDEMPOTENCY_ATOMICITY_REQUIRED',
+      'Provider unknown-outcome reconciliation requires the exact fenced queue attempt.',
+      503,
+    )
+    const reconciledFenceWithoutHash = {
+      authorizationHash: providerAttempt.authorizationHash,
+      providerDispatchGrantId: providerAttempt.providerDispatchGrantId,
+      providerDispatchGrantHash: providerAttempt.providerDispatchGrantHash,
+      dispatchAttemptId: providerAttempt.dispatchAttemptId,
+      dispatchAttemptHash: providerAttempt.dispatchAttemptHash,
+      claimId: providerAttempt.claimId,
+      claimHash: providerAttempt.claimHash,
+      deliveryAttempt: providerAttempt.deliveryAttempt,
+      state: input.resolution === 'succeeded'
+        ? 'unknown_reconciled_succeeded' as const
+        : 'unknown_reconciled_failed' as const,
+      terminalHash: input.providerDispatchTerminalHash,
+      attemptInternalCostEvidenceHash: input.attemptInternalCostEvidenceHash,
+      providerTerminalState: input.resolution === 'succeeded'
+        ? 'unknown_reconciled_succeeded' as const
+        : 'unknown_reconciled_failed' as const,
+      startedAt: providerAttempt.startedAt,
+      terminalAt: now,
+    }
+    entry.providerExecutionAttempt = {
+      ...reconciledFenceWithoutHash,
+      fenceHash: sha256AuthorityValue(reconciledFenceWithoutHash),
+    }
+    if (input.resolution === 'succeeded') {
+      if (!input.outcome) {
+        throw invalidQueue('Provider success reconciliation requires one completed outcome.')
+      }
+      const outcome = canonicalPrivatePackageWorkQueueCompletedOutcomeSchema.parse(
+        input.outcome,
+      )
+      if (
+        outcome.jobId !== entry.definition.jobId ||
+        outcome.approvedWorkItemId !== entry.definition.approvedWorkItemId ||
+        outcome.workItemKey !== entry.definition.workItemKey ||
+        outcome.required !== entry.definition.required ||
+        stableAuthorityStringify(outcome.dependencyJobIds) !==
+          stableAuthorityStringify(entry.definition.dependencyJobIds)
+      ) throw invalidQueue('Provider success reconciliation changed queue outcome identity.')
+      const completionWithoutHash = {
+        claimId: release.claimId,
+        credentialSha256: release.credentialSha256,
+        outcome,
+        providerUnknownReconciliation: reconciliation as {
+          providerDispatchTerminalHash: string
+          attemptInternalCostEvidenceHash: string
+          resolution: 'succeeded'
+          reconciliationHash: string
+        },
+        completedAt: now,
+      }
+      entry.state = 'completed'
+      entry.activeClaim = undefined
+      entry.lastRelease = undefined
+      entry.completion = {
+        ...completionWithoutHash,
+        completionHash: sha256AuthorityValue(completionWithoutHash),
+      }
+      touchEntry(entry, now)
+      appendEvent(aggregate, {
+        eventType: 'provider_unknown_reconciled',
+        jobId: entry.definition.jobId,
+        claimId: release.claimId,
+        at: now,
+      })
+      appendEvent(aggregate, {
+        eventType: 'job_completed',
+        jobId: entry.definition.jobId,
+        claimId: release.claimId,
+        at: now,
+      })
+      return { disposition: 'reconciled' as const, entry }
+    }
+    if (input.outcome !== undefined) {
+      throw invalidQueue('Provider failure reconciliation cannot carry a completed outcome.')
+    }
+    const releaseWithoutHash = {
+      claimId: release.claimId,
+      credentialSha256: release.credentialSha256,
+      reason: 'provider_unknown_reconciled_failed' as const,
+      providerUnknownReconciliation: reconciliation as {
+        providerDispatchTerminalHash: string
+        attemptInternalCostEvidenceHash: string
+        resolution: 'failed'
+        reconciliationHash: string
+      },
+      releasedAt: now,
+    }
+    entry.lastRelease = {
+      ...releaseWithoutHash,
+      releaseHash: sha256AuthorityValue(releaseWithoutHash),
+    }
+    touchEntry(entry, now)
+    appendEvent(aggregate, {
+      eventType: 'provider_unknown_reconciled',
+      jobId: entry.definition.jobId,
+      claimId: release.claimId,
+      at: now,
+    })
+    return { disposition: 'reconciled' as const, entry }
+  })
+}
+
 function applyQueueClaimMutation(
   aggregate: CanonicalPrivatePackageWorkQueueAggregate,
   input: {
@@ -1123,6 +1659,7 @@ function applyQueueClaimMutation(
     workerType: CanonicalPrivatePackageWorkQueueJobDefinition['workerType']
     now: string
     leaseDurationMs: number
+    providerAuthorization?: CanonicalProviderWorkAuthorization
   },
 ) {
   expireClaims(aggregate, input.now)
@@ -1147,6 +1684,9 @@ function applyQueueClaimMutation(
   if (entry.lastRelease?.dispatchFailure?.queueDisposition === 'user_review_required') {
     return { disposition: 'user_review_required' as const, entry }
   }
+  if (entry.lastRelease?.reason === 'provider_unknown_outcome') {
+    return { disposition: 'user_review_required' as const, entry }
+  }
   if (entry.deliveryAttemptCount >= entry.definition.maxAttempts) {
     return { disposition: 'attempts_exhausted' as const, entry }
   }
@@ -1154,12 +1694,24 @@ function applyQueueClaimMutation(
     entry.professionalLongFormExecutionAuthorization
   const exactProfessionalLongFormChild =
     isExactProfessionalLongFormAuthorizedChild(aggregate, entry)
+  const exactProviderAuthorization = input.providerAuthorization !== undefined &&
+    exactProviderAuthorizationMatches({
+      aggregate,
+      entry,
+      authorization: input.providerAuthorization,
+    })
+  if (input.providerAuthorization && !exactProviderAuthorization) {
+    throw new ApiError(
+      'PROVIDER_ROUTE_BLOCKED',
+      'Provider queue claim does not match the exact blocked provider job.',
+      409,
+    )
+  }
   if (
     !entry.definition.privateExecutionReady &&
-    (!exactProfessionalLongFormChild ||
-      !professionalLongFormAuthorization ||
-      Date.parse(professionalLongFormAuthorization.reservationExpiresAt) <=
-        Date.parse(input.now))
+    !exactProviderAuthorization &&
+    (!exactProfessionalLongFormChild || !professionalLongFormAuthorization ||
+      Date.parse(professionalLongFormAuthorization.reservationExpiresAt) <= Date.parse(input.now))
   ) {
     return { disposition: 'capability_blocked' as const, entry }
   }
@@ -1224,6 +1776,32 @@ function applyQueueClaimMutation(
     },
     claimCredential,
   }
+}
+
+function exactProviderAuthorizationMatches(input: {
+  aggregate: CanonicalPrivatePackageWorkQueueAggregate
+  entry: CanonicalPrivatePackageWorkQueueEntry
+  authorization: CanonicalProviderWorkAuthorization
+}): boolean {
+  const { aggregate, entry, authorization } = input
+  return entry.definition.privateExecutionReady === false &&
+    entry.definition.providerExecutionMode !== 'none' &&
+    entry.definition.requiredGate === 'provider_activation_and_approved_route' &&
+    authorization.queueDefinitionHash === aggregate.definitionHash &&
+    authorization.queueJobId === entry.definition.jobId &&
+    authorization.queueJobDefinitionHash === entry.definition.definitionHash &&
+    authorization.placementHash === entry.definition.placementHash &&
+    authorization.approvedWorkItemId === entry.definition.approvedWorkItemId &&
+    authorization.workItemKey === entry.definition.workItemKey &&
+    authorization.providerExecutionMode === entry.definition.providerExecutionMode &&
+    authorization.workspaceId === aggregate.identity.workspaceId &&
+    authorization.projectId === aggregate.identity.projectId &&
+    authorization.editSessionId === aggregate.identity.editSessionId &&
+    authorization.packageRecordId === aggregate.identity.packageRecordId &&
+    authorization.approvedPlanSnapshotId === aggregate.identity.approvedPlanSnapshotId &&
+    authorization.packageHash === aggregate.identity.packageHash &&
+    authorization.snapshotHash === aggregate.identity.snapshotHash &&
+    authorization.workGraphHash === aggregate.identity.workGraphHash
 }
 
 export async function readPrivateCanonicalPackageWorkQueueForPackageStateTransaction(
@@ -1371,6 +1949,16 @@ function expireClaims(aggregate: CanonicalPrivatePackageWorkQueueAggregate, now:
         {
           requiredGate:
             'canonical_professional_long_form_started_attempt_timeout_reconciliation',
+        },
+      )
+    }
+    if (entry.providerExecutionAttempt) {
+      throw new ApiError(
+        'IDEMPOTENCY_ATOMICITY_REQUIRED',
+        'Expired provider execution requires exact terminal or unknown-outcome reconciliation before another claim.',
+        503,
+        {
+          requiredGate: 'canonical_provider_started_attempt_terminal_reconciliation',
         },
       )
     }
@@ -1608,6 +2196,10 @@ function nestedHashesValid(entry: CanonicalPrivatePackageWorkQueueEntry): boolea
   if (entry.professionalLongFormExecutionAttempt) {
     const { attemptHash, ...payload } = entry.professionalLongFormExecutionAttempt
     if (attemptHash !== sha256AuthorityValue(payload)) return false
+  }
+  if (entry.providerExecutionAttempt) {
+    const { fenceHash, ...payload } = entry.providerExecutionAttempt
+    if (fenceHash !== sha256AuthorityValue(payload)) return false
   }
   if (entry.completion) {
     const { completionHash, ...payload } = entry.completion
@@ -2481,6 +3073,17 @@ function validTimestamp(value: string, label: string): string {
 function safeIdentity(value: string): boolean {
   return value.length > 0 && value.length <= 240 &&
     /^[A-Za-z0-9][A-Za-z0-9._:-]*$/u.test(value) && !value.includes('..')
+}
+
+function safeQueueIdentity(value: string, label: string): string {
+  if (!safeIdentity(value)) {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      `Canonical ${label} identity is invalid.`,
+      400,
+    )
+  }
+  return value
 }
 
 function sha256Text(value: string): string {

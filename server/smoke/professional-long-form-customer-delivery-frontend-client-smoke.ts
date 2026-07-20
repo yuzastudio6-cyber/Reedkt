@@ -32,6 +32,12 @@ const clientAuthority = {
   approvedPlanSnapshotId: identity.approvedPlanSnapshotId,
   packageRecordId: identity.packageRecordId,
 }
+const discoveryAuthority = {
+  scope,
+  projectId: identity.projectId,
+  editSessionId: identity.editSessionId,
+  approvedPlanSnapshotId: identity.approvedPlanSnapshotId,
+}
 
 const originalMode = process.env.VITE_REEDITPRO_API_MODE
 const originalBaseUrl = process.env.VITE_REEDITPRO_API_BASE_URL
@@ -66,6 +72,27 @@ const server = createServer((request, response) => {
       body,
     })
     const path = new URL(request.url ?? '/', 'http://127.0.0.1').pathname
+    if (
+      request.method === 'GET' &&
+      path.endsWith('/professional-long-form-customer-delivery')
+    ) {
+      const receipt = discoveryFixture({
+        workspaceId: responseMode === 'foreign'
+          ? 'workspace-foreign'
+          : identity.workspaceId,
+      }) as Record<string, unknown>
+      if (responseMode === 'extra_internal') receipt.queue = ['hidden-job']
+      response.statusCode = 200
+      response.setHeader('content-type', 'application/json')
+      response.end(JSON.stringify({
+        ok: true,
+        data: {
+          professionalLongFormCustomerDeliveryDiscovery: receipt,
+        },
+        warnings: [],
+      }))
+      return
+    }
     if (request.method === 'GET' && path.endsWith('/quality-review')) {
       const receipt = reviewFixture({
         workspaceId: responseMode === 'foreign'
@@ -145,6 +172,7 @@ try {
     '../../src/backend/api/api-route-registry'
   )
   const {
+    discoverProfessionalLongFormCustomerDelivery,
     inspectProfessionalLongFormCustomerDeliveryQualityReview,
     readProfessionalLongFormCustomerDeliveryDownloadRange,
     readProfessionalLongFormCustomerDeliveryReviewRange,
@@ -154,6 +182,10 @@ try {
   )
 
   const routes = [
+    [
+      'editExecution.professionalLongFormCustomerDeliveryDiscovery.read',
+      '/professional-long-form-customer-delivery',
+    ],
     [
       'editExecution.professionalLongFormCustomerDeliveryQualityReview.read',
       '/quality-review',
@@ -366,6 +398,51 @@ try {
       clientAuthority,
     )
   assert.equal(extraInternal.status, 'invalid_response')
+
+  responseMode = 'valid'
+  const discovered = await discoverProfessionalLongFormCustomerDelivery(
+    discoveryAuthority,
+  )
+  assert.equal(discovered.status, 'ready')
+  if (discovered.status !== 'ready') assert.fail('Discovery must be ready.')
+  assert.equal(
+    discovered.authority.packageRecordId,
+    identity.packageRecordId,
+  )
+  assert.equal(
+    discovered.discovery.stage,
+    'customer_delivery_quality_review_ready',
+  )
+  assert.equal(discovered.discovery.review?.authority.masterSha256,
+    masterSha256)
+  const discoveryRequest = requests.at(-1)
+  assert.equal(discoveryRequest?.method, 'GET')
+  const discoveryUrl = new URL(
+    discoveryRequest!.url!,
+    'http://127.0.0.1',
+  )
+  assert.equal(
+    discoveryUrl.pathname,
+    `/v1/projects/${identity.projectId}/edit-sessions/${identity.editSessionId}/professional-long-form-customer-delivery`,
+  )
+  assert.deepEqual(Object.fromEntries(discoveryUrl.searchParams), {
+    workspaceId: identity.workspaceId,
+    approvedPlanSnapshotId: identity.approvedPlanSnapshotId,
+  })
+  assert.doesNotMatch(
+    JSON.stringify(discovered.discovery),
+    /"(?:queueAggregate|queueDefinition|entries|events|jobId|workItemId|claimId|credentialSha256|attemptInternalCostEvidenceHash|localFilePath|storageObjectKey)"\s*:/u,
+  )
+
+  responseMode = 'foreign'
+  const foreignDiscovery =
+    await discoverProfessionalLongFormCustomerDelivery(discoveryAuthority)
+  assert.equal(foreignDiscovery.status, 'invalid_response')
+
+  responseMode = 'extra_internal'
+  const extraInternalDiscovery =
+    await discoverProfessionalLongFormCustomerDelivery(discoveryAuthority)
+  assert.equal(extraInternalDiscovery.status, 'invalid_response')
 } finally {
   await new Promise<void>((resolve, reject) =>
     server.close((error) => error ? reject(error) : resolve()))
@@ -380,6 +457,7 @@ console.log(JSON.stringify({
   schemaVersion:
     'professional-long-form-customer-delivery-frontend-client-smoke-v1',
   strictBrowserReviewReceiptVerified: true,
+  exactNamedEditDeliveryDiscoveryVerified: true,
   preDecisionAuthenticatedRangeVerified: true,
   explicitAcceptanceAttestationVerified: true,
   privateDownloadAuthenticatedRangeVerified: true,
@@ -416,6 +494,57 @@ function reviewFixture(input: { workspaceId: string }) {
     readiness: readiness(false, false),
     commercialBoundary: commercialBoundary(),
     boundaries: boundaries(),
+    persistence: persistence(),
+    testOnly: true,
+  }
+}
+
+function discoveryFixture(input: { workspaceId: string }) {
+  return {
+    schemaVersion:
+      'professional-long-form-customer-delivery-discovery-v1',
+    source:
+      'canonical_professional_long_form_customer_delivery_discovery_service',
+    purpose: 'discover_exact_private_customer_delivery_for_named_edit',
+    stage: 'customer_delivery_quality_review_ready',
+    identity: { ...identity, workspaceId: input.workspaceId },
+    progress: {
+      totalJobCount: 9,
+      completedJobCount: 8,
+      activeJobCount: 0,
+      pendingJobCount: 1,
+      completionPercent: 88,
+      attentionRequired: false,
+    },
+    review: reviewFixture(input),
+    readiness: {
+      exactPackageDiscovered: true,
+      exactSnapshotLineageVerified: true,
+      qualityReviewReady: true,
+      authenticatedQualityDecisionRecorded: false,
+      revisionRequiresFreshPlanEstimateAndApproval: false,
+      authenticatedPrivateDownloadReady: false,
+      publicDeliveryAuthorized: false,
+      productReady: false,
+      productionReady: false,
+    },
+    commercialBoundary: commercialBoundary(),
+    boundaries: {
+      discoveryInspectionOnly: true,
+      rawPackageReturned: false,
+      rawQueueReturned: false,
+      jobIdentityReturned: false,
+      leaseOrAttemptReturned: false,
+      internalCostEvidenceReturned: false,
+      filesystemOrStoragePathReturned: false,
+      credentialReturned: false,
+      providerCallStarted: false,
+      renderStarted: false,
+      customerCreditsMutated: false,
+      publicDeliveryStarted: false,
+      billingStarted: false,
+      deploymentStarted: false,
+    },
     persistence: persistence(),
     testOnly: true,
   }

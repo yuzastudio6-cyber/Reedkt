@@ -43,6 +43,9 @@ import {
   createCanonicalProfessionalLongFormChildPackagePromotionService,
   type CanonicalProfessionalLongFormCurrentChildPackageAuthority,
 } from './canonical-professional-long-form-child-package-promotion-service'
+import {
+  publishPrivateProfessionalLongFormCustomerDeliveryDiscovery,
+} from './private-professional-long-form-customer-delivery-discovery-store'
 
 export const CANONICAL_PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_PREPARATION_VERSION =
   'canonical-professional-long-form-customer-delivery-preparation-v1' as const
@@ -60,12 +63,14 @@ export interface CanonicalProfessionalLongFormCustomerDeliveryPreparation {
   placementManifestRef: AuthorityJsonBlobRef
   queueDefinition: CanonicalPrivatePackageWorkQueueDefinition
   queueAggregate: CanonicalPrivatePackageWorkQueueAggregate
+  discoveryRecordHash: string
   commit: {
     sourceReviewAuthorityReadBackVerified: true
     immutablePackagePrepared: true
     immutablePlacementPrepared: true
     atomicQueueAggregatePublished: true
     queueIdentityBindsPreparedAuthorityRefs: true
+    exactEditDiscoveryPublished: true
     exactReplayRequired: true
     orphanPreparedBlobsGrantExecutionAuthority: false
   }
@@ -75,6 +80,7 @@ export interface CanonicalProfessionalLongFormCustomerDeliveryPreparation {
     packagePersistenceVerified: true
     placementPersistenceVerified: true
     queuePersistenceVerified: true
+    exactEditDiscoveryVerified: true
     originalFourKEstimateAndReservationReused: true
     secondExportEstimateCreated: false
     secondExportChargeCreated: false
@@ -123,6 +129,7 @@ export function createCanonicalProfessionalLongFormCustomerDeliveryPackageServic
         placementManifestRef: loaded.placementManifestRef,
         queueDefinition: loaded.queueDefinition,
         queueAggregate: loaded.queueAggregate,
+        discoveryRecordHash: loaded.discovery.record.recordHash,
         scope: loaded.scope,
       }
     },
@@ -150,6 +157,7 @@ export function createCanonicalProfessionalLongFormCustomerDeliveryPackageServic
         placementManifestRef,
         queueDefinition,
         queueAggregate,
+        discovery,
         ensured,
       } = loaded
       if (
@@ -183,12 +191,14 @@ export function createCanonicalProfessionalLongFormCustomerDeliveryPackageServic
         placementManifestRef,
         queueDefinition,
         queueAggregate,
+        discoveryRecordHash: discovery.record.recordHash,
         commit: {
           sourceReviewAuthorityReadBackVerified: true as const,
           immutablePackagePrepared: true as const,
           immutablePlacementPrepared: true as const,
           atomicQueueAggregatePublished: true as const,
           queueIdentityBindsPreparedAuthorityRefs: true as const,
+          exactEditDiscoveryPublished: true as const,
           exactReplayRequired: true as const,
           orphanPreparedBlobsGrantExecutionAuthority: false as const,
         },
@@ -198,6 +208,7 @@ export function createCanonicalProfessionalLongFormCustomerDeliveryPackageServic
           packagePersistenceVerified: true as const,
           placementPersistenceVerified: true as const,
           queuePersistenceVerified: true as const,
+          exactEditDiscoveryVerified: true as const,
           originalFourKEstimateAndReservationReused: true as const,
           secondExportEstimateCreated: false as const,
           secondExportChargeCreated: false as const,
@@ -320,6 +331,24 @@ async function loadCurrentCustomerDeliveryAuthority(input: {
       409,
     )
   }
+  const discovery =
+    await publishPrivateProfessionalLongFormCustomerDeliveryDiscovery({
+      scope: {
+        localStorageRoot: input.context.env.localStorageRoot,
+        ownerUserId: input.ownerUserId,
+        workspaceId: verifiedPackage.identity.workspaceId,
+        projectId: verifiedPackage.identity.projectId,
+        editSessionId: verifiedPackage.identity.editSessionId,
+        approvedPlanSnapshotId:
+          verifiedPackage.identity.approvedPlanSnapshotId,
+      },
+      package: verifiedPackage,
+      packageRef,
+      placementManifest: verifiedPlacement,
+      placementManifestRef,
+      queueDefinition,
+      queueAggregate,
+    })
   return {
     package: verifiedPackage,
     packageRef,
@@ -327,6 +356,7 @@ async function loadCurrentCustomerDeliveryAuthority(input: {
     placementManifestRef,
     queueDefinition,
     queueAggregate,
+    discovery,
     scope,
     ensured,
   }

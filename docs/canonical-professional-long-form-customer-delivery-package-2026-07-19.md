@@ -2,7 +2,7 @@
 
 Date: 2026-07-19
 
-Status: `private_local_nine_job_delivery_and_browser_transport_executed_named_edit_discovery_product_and_cloud_blocked`
+Status: `private_local_nine_job_delivery_browser_transport_and_named_edit_discovery_contract_ready_ui_mount_product_and_cloud_blocked`
 
 ## Outcome
 
@@ -36,11 +36,12 @@ It does not complete the 255-job six-hour capacity graph and it is not a human
 review of representative footage. The smoke-owned media workspace is deleted in
 a `finally` cleanup, so this proof intentionally leaves no viewable demo file.
 The same retained fixture now also passes the actual Express user routes and the
-frontend-safe client contract for browser-safe review metadata, authenticated
+frontend-safe client contract for exact named-edit package discovery,
+browser-safe review metadata, authenticated
 pre-decision byte ranges, exact quality-decision recording/replay, and accepted
 private-download byte ranges. Google Cloud dispatch, durable distributed
-persistence, named-edit journey discovery/UI consumption, public delivery,
-billing, and production remain blocked.
+persistence, canonical-journey/UI mounting of the discovery client, public
+delivery, billing, and production remain blocked.
 
 ## Authenticated browser review contract
 
@@ -51,8 +52,9 @@ receipt binds the exact workspace, project, edit, approved snapshot, delivery
 package, review packet hash, private MP4 checksum/byte size, decoded-video
 evidence hash, decoded-audio evidence hash, and three safe review items.
 
-Four reviewed frontend-safe route identities are registered:
+Five reviewed frontend-safe route identities are registered:
 
+- exact named-edit/snapshot customer-delivery discovery;
 - quality-review metadata;
 - authenticated pre-decision review media;
 - exact quality accept/revision decision; and
@@ -74,6 +76,47 @@ estimate, approval, execution, and private review. Both receipts explicitly
 preserve the original approved 4K estimate/reservation and forbid a second
 export estimate, charge, credit prompt, wallet mutation, settlement, or billing
 action.
+
+## Exact named-edit discovery and recovery seam
+
+The delivery package service now publishes one create-only discovery record
+only after the exact content-addressed package and placement manifest plus the
+package-scoped queue all reopen successfully. The record is tenant, workspace,
+project, edit, and approved-snapshot scoped; its filesystem path is derived from
+cryptographic scope hashes and does not contain those raw identities. An orphan
+package blob, placement blob, or queue therefore does not become browser
+discovery authority.
+
+The authenticated read-only route is:
+
+```text
+GET /v1/projects/:projectId/edit-sessions/:editSessionId/professional-long-form-customer-delivery?workspaceId=:workspaceId&approvedPlanSnapshotId=:snapshotId
+```
+
+The browser no longer needs a hidden `packageRecordId` to find the exact
+delivery for a named edit. The backend resolves it from the immutable pointer,
+reopens and validates the content-addressed package/placement and checksum-
+protected queue, and returns only total/completed/active/pending counts. Once
+every job except the separately gated private-download reconciliation is
+complete, the response embeds the existing strict
+quality-review receipt; after acceptance and one-use reconciliation it embeds
+the accepted private-download descriptor. Exhausted or user-review-required
+attempt evidence becomes an honest `customer_delivery_attention_required`
+stage without exposing a job, claim, lease, attempt, failure payload, internal
+cost record, path, or credential.
+
+The frontend-safe client validates exact workspace/project/edit/snapshot
+identity, rejects foreign or extra internal fields, and derives the package-
+bound review authority from the returned receipt. Discovery is inspection-only:
+it cannot prepare or run the package, execute a provider or render, mutate
+credits, create a second export estimate/charge, publish media, bill a customer,
+or deploy anything.
+
+This is the backend/client seam for the canonical named-edit product. It is not
+yet mounted into the active named-edit UI, and the older canonical-journey
+response still ends at `private_review_accepted`. A later coordinated UI/journey
+slice must consume this one route rather than create another delivery registry
+or make users supply a package identifier.
 
 ## Why delivery is a separate package
 
@@ -204,6 +247,10 @@ The run rebuilt and verified the real private chain before package promotion:
 - the actual Express quality-review route denied missing authentication and a
   different authenticated user, then returned a strict browser-safe receipt
   with no raw worker or internal-cost authority;
+- the actual Express named-edit discovery route denied missing authentication
+  and another user, resolved the hidden package identity from exact
+  workspace/project/edit/snapshot authority, and reported 8/9 completed with
+  the strict review receipt before the decision;
 - the actual Express pre-decision review-media route returned the exact first
   32 MP4 bytes as an authenticated no-store `206` range and exposed the required
   range/integrity headers through the local CORS policy;
@@ -232,6 +279,8 @@ The run rebuilt and verified the real private chain before package promotion:
 - browser decision plus exact replay: true;
 - browser cross-user denial: true;
 - browser private-download range: true;
+- exact named-edit customer-delivery discovery at 8/9: true;
+- accepted named-edit customer-delivery rediscovery at 9/9: true;
 - no second browser estimate, charge, or credit prompt: true;
 - final delivery queue complete: 9/9;
 - export execution authorized: false;
@@ -270,6 +319,28 @@ and `3564d564a6e5c3b5b0189bb7c755f0ffa3c8005d34b0796c4ddaff8cbbc03617`.
 These hashes bind the retained local proof only. They do not grant cloud,
 commercial, public-delivery, product, or production authority.
 
+The focused named-edit discovery rerun retained these in-process evidence
+identities before its mandatory cleanup:
+
+- package hash:
+  `9b4446a6cd01cf14a46650221c8a99a95f38788eb0a89c267fccad82c93de295`;
+- work-graph hash:
+  `9178980149fdd543e2177fb95aad5b3c9db31930d06f20d567465bbf3f085480`;
+- private H.264/AAC master SHA-256:
+  `971deedd0f57732eb3d9a0de2f5db57fab25a880e6a2d1e48c39d9fa5c51569d`;
+- quality-review packet hash:
+  `52f0c36bfd31e51e4a226a5be2b5e180c0e85300cd51a63f9fc4415cd53b92a0`;
+- exact acceptance hash:
+  `d3d5efed19d61fa9f16a3abea4176f73f9d745196bbf860a3de6f608c1368b93`;
+- private-download internal-cost evidence hash:
+  `13e3b581f5694e642f754bbdfc27dcc3486b9a9c560675bbbb3060a6451909b5`;
+  and
+- final queue-aggregate hash:
+  `752fa05f9b4747696093fe6d4dc9a1ac2d93d7a43855bd2f1b5ff0e435c3fd04`.
+
+The fixture and its private artifacts were deleted after the passing run; these
+are evidence identities, not a viewable or deployed media link.
+
 The bounded capacity proof also completed with exit code 0:
 
 ```text
@@ -295,10 +366,10 @@ This slice does not prove or authorize:
   not change either objective `needs_user_review` outcome;
 - a retained demo object or website playback; the smoke deletes its private
   fixture workspace after assertions complete;
-- named-edit recovery/discovery of this separate customer-delivery package,
-  UI/hook consumption, MediaSource playback, full-program watch-state evidence,
-  or a retained viewable demo object; the route/client foundation is proven but
-  is not mounted as a second UI or authority;
+- canonical-journey stage integration or UI/hook consumption of the proven
+  named-edit discovery route, MediaSource playback, full-program watch-state
+  evidence, or a retained viewable demo object; the route/client foundation is
+  proven but is not mounted as a second UI or authority;
 - distributed database-backed package, queue, outbox, or completion authority;
 - GCS persistence, Cloud Run dispatch, IAM/service identity, or live Google
   Cloud cost reconciliation;

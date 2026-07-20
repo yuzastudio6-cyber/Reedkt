@@ -1,9 +1,11 @@
 import {
   professionalLongFormCustomerDeliveryBrowserDecisionSchema,
   professionalLongFormCustomerDeliveryBrowserReviewSchema,
+  professionalLongFormCustomerDeliveryDiscoverySchema,
   type ProfessionalLongFormCustomerDeliveryBrowserDecision,
   type ProfessionalLongFormCustomerDeliveryBrowserDownloadDescriptor,
   type ProfessionalLongFormCustomerDeliveryBrowserReview,
+  type ProfessionalLongFormCustomerDeliveryDiscovery,
 } from '../backend/api/professional-long-form-customer-delivery-browser-contracts'
 import {
   applyReeditProApiAuthorizationHeaders,
@@ -29,6 +31,11 @@ export type ProfessionalLongFormCustomerDeliveryClientInput = {
   packageRecordId: string
 }
 
+export type ProfessionalLongFormCustomerDeliveryDiscoveryClientInput = Omit<
+  ProfessionalLongFormCustomerDeliveryClientInput,
+  'packageRecordId'
+>
+
 type ClientFailureStatus =
   | 'blocked'
   | 'not_configured'
@@ -49,6 +56,17 @@ export type ProfessionalLongFormCustomerDeliveryReviewClientResult =
       message: string
       retryable: false
       review: ProfessionalLongFormCustomerDeliveryBrowserReview
+      warnings: string[]
+    }
+  | ClientFailure
+
+export type ProfessionalLongFormCustomerDeliveryDiscoveryClientResult =
+  | {
+      status: 'ready'
+      message: string
+      retryable: false
+      discovery: ProfessionalLongFormCustomerDeliveryDiscovery
+      authority: ProfessionalLongFormCustomerDeliveryClientInput
       warnings: string[]
     }
   | ClientFailure
@@ -117,6 +135,74 @@ export type ProfessionalLongFormCustomerDeliveryDecisionInput =
           ProfessionalLongFormCustomerDeliveryRevisionReasonCode[]
       }
   )
+
+export async function discoverProfessionalLongFormCustomerDelivery(
+  input: ProfessionalLongFormCustomerDeliveryDiscoveryClientInput,
+): Promise<ProfessionalLongFormCustomerDeliveryDiscoveryClientResult> {
+  const inputError = validateDiscoveryInput(input)
+  if (inputError) return inputError
+  const runtime = getFrontendApiClientStatus()
+  if (runtime.mockOnly || !runtime.apiBaseUrl) {
+    return failure(
+      'not_configured',
+      'Long-form customer-delivery discovery is available when the reviewed private backend is connected.',
+      false,
+      runtime.warnings,
+    )
+  }
+  const response = await callReeditProApi<undefined, {
+    professionalLongFormCustomerDeliveryDiscovery?: unknown
+  }>(
+    'editExecution.professionalLongFormCustomerDeliveryDiscovery.read',
+    undefined,
+    {
+      params: {
+        projectId: input.projectId,
+        editSessionId: input.editSessionId,
+      },
+      query: {
+        workspaceId: input.scope.workspaceId,
+        approvedPlanSnapshotId: input.approvedPlanSnapshotId,
+      },
+      context: clientContext(input),
+    },
+  )
+  if (apiResponseInvalidatesProjectPersistenceScope(response)) {
+    invalidateProjectPersistenceScope(input.scope)
+  }
+  if (!response.ok) return classifyApiFailure(response)
+  const parsed = professionalLongFormCustomerDeliveryDiscoverySchema
+    .safeParse(
+      response.data?.professionalLongFormCustomerDeliveryDiscovery,
+    )
+  if (
+    !parsed.success ||
+    parsed.data.identity.workspaceId !== input.scope.workspaceId ||
+    parsed.data.identity.projectId !== input.projectId ||
+    parsed.data.identity.editSessionId !== input.editSessionId ||
+    parsed.data.identity.approvedPlanSnapshotId !==
+      input.approvedPlanSnapshotId
+  ) {
+    return failure(
+      'invalid_response',
+      'The discovered delivery could not be matched to this exact signed-in edit and approved snapshot.',
+      false,
+      response.warnings,
+    )
+  }
+  const authority: ProfessionalLongFormCustomerDeliveryClientInput = {
+    ...input,
+    packageRecordId: parsed.data.identity.packageRecordId,
+  }
+  return {
+    status: 'ready',
+    message: discoveryMessage(parsed.data.stage),
+    retryable: false,
+    discovery: parsed.data,
+    authority,
+    warnings: response.warnings,
+  }
+}
 
 export async function inspectProfessionalLongFormCustomerDeliveryQualityReview(
   input: ProfessionalLongFormCustomerDeliveryClientInput,
@@ -512,15 +598,29 @@ async function readAuthenticatedRange(input: {
 function validateInput(
   input: ProfessionalLongFormCustomerDeliveryClientInput,
 ): ClientFailure | null {
+  return validateDiscoveryInput(input) ?? (
+    !isSafeId(input.packageRecordId)
+      ? failure(
+        'blocked',
+        'The signed-in edit does not have a valid exact customer-delivery authority.',
+        false,
+        [],
+      )
+      : null
+  )
+}
+
+function validateDiscoveryInput(
+  input: ProfessionalLongFormCustomerDeliveryDiscoveryClientInput,
+): ClientFailure | null {
   if (
     !isSafeId(input.scope.workspaceId) ||
     !isSafeId(input.projectId) ||
     !isSafeId(input.editSessionId) ||
-    !isSafeId(input.approvedPlanSnapshotId) ||
-    !isSafeId(input.packageRecordId)
+    !isSafeId(input.approvedPlanSnapshotId)
   ) return failure(
     'blocked',
-    'The signed-in edit does not have a valid exact customer-delivery authority.',
+    'The signed-in edit does not have a valid delivery-discovery authority.',
     false,
     [],
   )
@@ -555,11 +655,30 @@ function validRange(start: number, end: number, total: number): boolean {
     end - start + 1 <= MAX_AUTHENTICATED_RANGE_BYTES
 }
 
-function clientContext(input: ProfessionalLongFormCustomerDeliveryClientInput) {
+function clientContext(
+  input: ProfessionalLongFormCustomerDeliveryDiscoveryClientInput,
+) {
   return {
     workspaceId: input.scope.workspaceId,
     projectId: input.projectId,
     userId: input.scope.backendUserId ?? input.scope.userId,
+  }
+}
+
+function discoveryMessage(
+  stage: ProfessionalLongFormCustomerDeliveryDiscovery['stage'],
+): string {
+  switch (stage) {
+    case 'customer_delivery_processing':
+      return 'The exact private customer delivery is still processing. Saved progress can be recovered after refresh.'
+    case 'customer_delivery_attention_required':
+      return 'The exact private customer delivery needs recovery or review before processing can continue.'
+    case 'customer_delivery_quality_review_ready':
+      return 'The exact private customer-delivery master is ready for authenticated playback and quality review.'
+    case 'customer_delivery_revision_requested':
+      return 'The saved delivery revision request requires a fresh plan, estimate, approval, and private review.'
+    case 'customer_delivery_accepted':
+      return 'The exact accepted private customer delivery and authenticated download authority were recovered.'
   }
 }
 

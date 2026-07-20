@@ -41,6 +41,27 @@ Plan-to-snapshot recovery verifies there is at most one immutable snapshot per c
 
 The endpoint requires authenticated workspace/project ownership and is private local/internal evidence. Cross-user reads are hidden. Production, Supabase, providers, customer billing, deployment, public delivery, and production rendering remain unchanged and gated.
 
+## Professional customer-delivery discovery seam
+
+The separate professional long-form customer-delivery pipeline now exposes one
+read-only exact-edit discovery route:
+
+`GET /v1/projects/:projectId/edit-sessions/:editSessionId/professional-long-form-customer-delivery?workspaceId=:workspaceId&approvedPlanSnapshotId=:snapshotId`
+
+It resolves the hidden delivery-package identity from a tenant- and exact-
+snapshot-scoped create-only pointer published only after package, placement,
+and queue readback. It returns bounded progress and, when available, the strict
+quality-review or accepted-download browser receipt. It returns no raw package,
+queue, jobs, attempts, leases, internal cost, paths, credentials, execution
+grant, public URL, or commercial mutation authority.
+
+This closes the backend/client package-ID discovery gap, but it does not yet
+change the canonical journey stage union above or mount the result into the
+active named-edit UI. `private_review_accepted` therefore remains the current
+canonical-journey terminal stage. The next coordinated integration must attach
+this one discovery client to that stage without creating another queue,
+registry, delivery authority, or editor surface.
+
 ## Browser consumption
 
 The named-edit chat route now consumes this endpoint through a frontend-safe, read-only recovery bridge. The bridge is enabled only for `/projects/:projectId/edits/:editSessionId`; the compatibility `/editor` surface does not issue canonical recovery reads.

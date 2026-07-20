@@ -4,6 +4,8 @@ export const PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_BROWSER_REVIEW_VERSION =
   'professional-long-form-customer-delivery-browser-review-v1' as const
 export const PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_BROWSER_DECISION_VERSION =
   'professional-long-form-customer-delivery-browser-decision-v1' as const
+export const PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_DISCOVERY_VERSION =
+  'professional-long-form-customer-delivery-discovery-v1' as const
 
 const identity = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
@@ -226,6 +228,115 @@ export const professionalLongFormCustomerDeliveryBrowserDecisionSchema =
     decision: qualityDecisionSummarySchema,
   }).strict().superRefine(assertBrowserReviewConsistency)
 
+export const professionalLongFormCustomerDeliveryDiscoverySchema = z.object({
+  schemaVersion: z.literal(
+    PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_DISCOVERY_VERSION,
+  ),
+  source: z.literal(
+    'canonical_professional_long_form_customer_delivery_discovery_service',
+  ),
+  purpose: z.literal(
+    'discover_exact_private_customer_delivery_for_named_edit',
+  ),
+  stage: z.enum([
+    'customer_delivery_processing',
+    'customer_delivery_attention_required',
+    'customer_delivery_quality_review_ready',
+    'customer_delivery_revision_requested',
+    'customer_delivery_accepted',
+  ]),
+  identity: browserIdentitySchema,
+  progress: z.object({
+    totalJobCount: z.number().int().min(9).max(253),
+    completedJobCount: z.number().int().nonnegative().max(253),
+    activeJobCount: z.number().int().nonnegative().max(253),
+    pendingJobCount: z.number().int().nonnegative().max(253),
+    completionPercent: z.number().int().min(0).max(100),
+    attentionRequired: z.boolean(),
+  }).strict(),
+  review: professionalLongFormCustomerDeliveryBrowserReviewSchema.nullable(),
+  readiness: z.object({
+    exactPackageDiscovered: z.literal(true),
+    exactSnapshotLineageVerified: z.literal(true),
+    qualityReviewReady: z.boolean(),
+    authenticatedQualityDecisionRecorded: z.boolean(),
+    revisionRequiresFreshPlanEstimateAndApproval: z.boolean(),
+    authenticatedPrivateDownloadReady: z.boolean(),
+    publicDeliveryAuthorized: z.literal(false),
+    productReady: z.literal(false),
+    productionReady: z.literal(false),
+  }).strict(),
+  commercialBoundary: commercialBoundarySchema,
+  boundaries: z.object({
+    discoveryInspectionOnly: z.literal(true),
+    rawPackageReturned: z.literal(false),
+    rawQueueReturned: z.literal(false),
+    jobIdentityReturned: z.literal(false),
+    leaseOrAttemptReturned: z.literal(false),
+    internalCostEvidenceReturned: z.literal(false),
+    filesystemOrStoragePathReturned: z.literal(false),
+    credentialReturned: z.literal(false),
+    providerCallStarted: z.literal(false),
+    renderStarted: z.literal(false),
+    customerCreditsMutated: z.literal(false),
+    publicDeliveryStarted: z.literal(false),
+    billingStarted: z.literal(false),
+    deploymentStarted: z.literal(false),
+  }).strict(),
+  persistence: browserPersistenceSchema,
+  testOnly: z.literal(true),
+}).strict().superRefine((value, context) => {
+  const { progress, review, readiness } = value
+  const reviewReady = review !== null
+  const decisionRecorded = review?.decision !== null && review !== null
+  const revision = review?.decision?.value ===
+    'request_customer_delivery_revision'
+  const accepted = review?.decision?.value ===
+    'accept_exact_private_customer_delivery' &&
+    review.privateDownload !== null
+  const expectedCompletionPercent = Math.floor(
+    (progress.completedJobCount * 100) / progress.totalJobCount,
+  )
+  const expectedStage = progress.attentionRequired
+    ? 'customer_delivery_attention_required'
+    : !reviewReady
+      ? 'customer_delivery_processing'
+      : revision
+        ? 'customer_delivery_revision_requested'
+        : accepted
+          ? 'customer_delivery_accepted'
+          : 'customer_delivery_quality_review_ready'
+  if (
+    progress.completedJobCount + progress.pendingJobCount !==
+      progress.totalJobCount ||
+    progress.activeJobCount > progress.pendingJobCount ||
+    progress.completionPercent !== expectedCompletionPercent ||
+    value.stage !== expectedStage ||
+    readiness.qualityReviewReady !== reviewReady ||
+    readiness.authenticatedQualityDecisionRecorded !== decisionRecorded ||
+    readiness.revisionRequiresFreshPlanEstimateAndApproval !== revision ||
+    readiness.authenticatedPrivateDownloadReady !== accepted ||
+    (review && JSON.stringify(review.identity) !==
+      JSON.stringify(value.identity)) ||
+    (
+      value.stage === 'customer_delivery_accepted' &&
+      progress.completedJobCount !== progress.totalJobCount
+    ) ||
+    (
+      [
+        'customer_delivery_quality_review_ready',
+        'customer_delivery_revision_requested',
+      ].includes(value.stage) &&
+      progress.completedJobCount !== progress.totalJobCount - 1
+    )
+  ) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Customer-delivery discovery state is inconsistent.',
+    })
+  }
+})
+
 type BrowserReviewConsistencyValue = {
   authority: z.infer<typeof browserAuthoritySchema>
   reviewMedia: z.infer<typeof reviewMediaDescriptorSchema>
@@ -277,6 +388,9 @@ export type ProfessionalLongFormCustomerDeliveryBrowserReview = z.infer<
 >
 export type ProfessionalLongFormCustomerDeliveryBrowserDecision = z.infer<
   typeof professionalLongFormCustomerDeliveryBrowserDecisionSchema
+>
+export type ProfessionalLongFormCustomerDeliveryDiscovery = z.infer<
+  typeof professionalLongFormCustomerDeliveryDiscoverySchema
 >
 export type ProfessionalLongFormCustomerDeliveryBrowserDownloadDescriptor =
   z.infer<

@@ -12,6 +12,7 @@ import { createCanonicalExecutionReadinessService } from '../services/canonical-
 import { createCanonicalPrivateEditPreparationCoordinatorService } from '../services/canonical-private-edit-preparation-coordinator-service'
 import { createCanonicalPrivateFinalArtifactDownloadService } from '../services/canonical-private-final-artifact-download-service'
 import { createCanonicalProfessionalLongFormCustomerDeliveryBrowserService } from '../services/canonical-professional-long-form-customer-delivery-browser-service'
+import { createCanonicalProfessionalLongFormCustomerDeliveryDiscoveryService } from '../services/canonical-professional-long-form-customer-delivery-discovery-service'
 import { createCanonicalProfessionalLongFormCustomerDeliveryDownloadService } from '../services/canonical-professional-long-form-customer-delivery-download-service'
 import { createCanonicalPrivateJobExecutionAdapterService } from '../services/canonical-private-job-execution-adapter-service'
 import { createCanonicalPrivateReviewDecisionCoordinatorService } from '../services/canonical-private-review-decision-coordinator-service'
@@ -84,6 +85,9 @@ import {
   professionalLongFormDeliveryQualityReviewQuerySchema,
   recordProfessionalLongFormDeliveryQualityDecisionSchema,
 } from '../edit-architecture/professional-long-form-customer-delivery-download-execution-contract'
+import {
+  professionalLongFormCustomerDeliveryDiscoveryQuerySchema,
+} from '../validation/canonical-professional-long-form-customer-delivery-discovery-schemas'
 
 type PrivateInternalAdapterActivityGroupId =
   | 'audio_preparation'
@@ -1278,6 +1282,28 @@ export function createEditExecutionRoutes(options: EditExecutionRouteOptions = {
 }
 
 function registerEditExecutionUserRoutes(router: Router): void {
+  router.get(
+    '/v1/projects/:projectId/edit-sessions/:editSessionId/professional-long-form-customer-delivery',
+    requireAuth,
+    asyncRoute(async (request, response) => {
+      const query = validateBody(
+        professionalLongFormCustomerDeliveryDiscoveryQuerySchema,
+        request.query,
+      )
+      const result = await
+        createCanonicalProfessionalLongFormCustomerDeliveryDiscoveryService(
+          getServiceContext(request),
+        ).discover({
+          ...query,
+          projectId: getRouteParam(request, 'projectId'),
+          editSessionId: getRouteParam(request, 'editSessionId'),
+        })
+      sendOk(response, {
+        professionalLongFormCustomerDeliveryDiscovery: result.receipt,
+      }, result.warnings)
+    }),
+  )
+
   router.get(
     '/v1/edit-executions/professional-long-form/customer-delivery-packages/:packageRecordId/quality-review',
     requireAuth,

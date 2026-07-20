@@ -63,12 +63,12 @@ const canonicalSteps: VerificationStep[] = [
   step(
     'canonical-professional-long-form-cross-chunk-color',
     'smoke:canonical-professional-long-form-cross-chunk-color',
-    'A bounded two-chunk canonical graph reopens both independently QA-passed private 4K object chunks, executes strict adjacent-boundary color policy, continuous lossless program audio, private review finalization, and objective review-master QA through all 11 jobs. A separate immutable nine-job customer-delivery package completes its root, both 4K H.264 High encodes, both independent chunk probes, one H.264-stream-copy plus one-time FLAC-to-AAC private MP4 mux, separately leased full decoded-video plus decoded-audio/sync QA, and one exact private-download reconciliation through 9/9 jobs with attempt-level internal cost and restart-safe exact replay. Both synthetic-fixture objective outcomes honestly require review; an immutable authenticated synthetic attestation binds the exact master, objective evidence, known review items, approved intent, and no-speech disposition before the ninth job can run. Actual Express routes prove strict review metadata, pre-decision authenticated ranges, exact decision replay/conflict handling, accepted private-download ranges, and cross-user denial without returning worker or internal-cost authority. The fixture is deleted after the smoke, and this bounded proof does not mark named-edit UI discovery, MediaSource playback, the six-hour 255-job graph, cloud, product, or production executed.',
+    'A bounded two-chunk canonical graph reopens both independently QA-passed private 4K object chunks, executes strict adjacent-boundary color policy, continuous lossless program audio, private review finalization, and objective review-master QA through all 11 jobs. A separate immutable nine-job customer-delivery package completes its root, both 4K H.264 High encodes, both independent chunk probes, one H.264-stream-copy plus one-time FLAC-to-AAC private MP4 mux, separately leased full decoded-video plus decoded-audio/sync QA, and one exact private-download reconciliation through 9/9 jobs with attempt-level internal cost and restart-safe exact replay. Both synthetic-fixture objective outcomes honestly require review; an immutable authenticated synthetic attestation binds the exact master, objective evidence, known review items, approved intent, and no-speech disposition before the ninth job can run. Actual Express routes prove exact named-edit/snapshot package discovery, strict review metadata, pre-decision authenticated ranges, exact decision replay/conflict handling, accepted private-download rediscovery and ranges, and cross-user denial without returning worker or internal-cost authority. The fixture is deleted after the smoke, and this bounded proof does not mark named-edit UI mounting, MediaSource playback, the six-hour 255-job graph, cloud, product, or production executed.',
   ),
   step(
     'professional-long-form-customer-delivery-client',
     'smoke:professional-long-form-customer-delivery-client',
-    'The frontend-safe client strictly validates exact tenant/edit/snapshot/package receipts, reads bounded authenticated review and accepted-download ranges with integrity headers, records explicit accept or revision decisions with deterministic idempotency, rejects stale or over-broad responses, and never creates a second export estimate, charge, or credit prompt.',
+    'The frontend-safe client discovers the hidden package identity from exact tenant/project/edit/snapshot authority, strictly validates bounded progress and review receipts, reads authenticated review and accepted-download ranges with integrity headers, records explicit accept or revision decisions with deterministic idempotency, rejects stale, foreign, or over-broad responses, and never creates a second export estimate, charge, or credit prompt.',
   ),
   step(
     'professional-export-policy',
@@ -295,7 +295,7 @@ function printReport(
 ): void {
   const finishedAt = new Date()
   const report = {
-    schemaVersion: 'canonical-private-pipeline-verification-v24',
+    schemaVersion: 'canonical-private-pipeline-verification-v25',
     status,
     mode: full ? 'full_internal_regression' : 'canonical_private_pipeline',
     startedAt: runStartedAt.toISOString(),
@@ -408,6 +408,7 @@ function printReport(
           boundedThreeSourcePrivateCompositionExecution: true,
           boundedMaximumEightSourcePlanningPublicationCoverage: true,
           professionalLongFormCustomerDeliveryBrowserSafeReceipt: true,
+          professionalLongFormCustomerDeliveryExactNamedEditDiscoveryTransport: true,
           professionalLongFormCustomerDeliveryPreDecisionRangeTransport: true,
           professionalLongFormCustomerDeliveryExplicitDecisionTransport: true,
           professionalLongFormCustomerDeliveryAcceptedPrivateDownloadTransport: true,
@@ -444,6 +445,8 @@ function printReport(
       professionalLongFormRetainedSixHourCrossChunkColorContinuityVerified: false,
       professionalLongFormFinalizationAndFinalQaVerified: false,
       professionalLongFormObjectStorageVerified: false,
+      professionalLongFormCustomerDeliveryNamedEditUiMounted: false,
+      professionalLongFormCustomerDeliveryRetainedReviewMediaVerified: false,
       liveGoogleCloudWorkerCompletionVerified: false,
       externalBetaReady: false,
       paidProductionReady: false,

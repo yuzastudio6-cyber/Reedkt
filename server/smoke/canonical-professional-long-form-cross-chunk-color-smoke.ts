@@ -13,6 +13,7 @@ import { createReeditProApiApp } from '../app'
 import {
   professionalLongFormCustomerDeliveryBrowserDecisionSchema,
   professionalLongFormCustomerDeliveryBrowserReviewSchema,
+  professionalLongFormCustomerDeliveryDiscoverySchema,
 } from '../../src/backend/api/professional-long-form-customer-delivery-browser-contracts'
 import { buildProfessionalExportCreditCoverage } from
   '../../src/lib/professional-export-policy'
@@ -503,6 +504,9 @@ try {
   assert.equal(delivery.queueAggregate.summary.queuedJobCount, 9)
   assert.equal(delivery.queueAggregate.summary.leasedJobCount, 0)
   assert.equal(delivery.queueAggregate.summary.completedJobCount, 0)
+  assert.match(delivery.discoveryRecordHash, /^[a-f0-9]{64}$/u)
+  assert.equal(delivery.commit.exactEditDiscoveryPublished, true)
+  assert.equal(delivery.readiness.exactEditDiscoveryVerified, true)
   assert.equal(
     delivery.package.outputContract.mediaPolicyId,
     'approved_h264_aac_yuv420p_bt709_web_master_v1',
@@ -1074,6 +1078,62 @@ try {
   const httpBaseUrl = `http://127.0.0.1:${serverPort(httpServer)}`
   const browserToken = 'verified-canonical-color-http-token'
   const otherUserBrowserToken = 'verified-canonical-color-other-user-token'
+  const discoveryPath =
+    `/v1/projects/${encodeURIComponent(project.id)}/edit-sessions/` +
+    `${encodeURIComponent(editSessionId)}/` +
+    'professional-long-form-customer-delivery'
+  const discoveryUrl = new URL(discoveryPath, httpBaseUrl)
+  discoveryUrl.searchParams.set('workspaceId', workspaceId)
+  discoveryUrl.searchParams.set(
+    'approvedPlanSnapshotId',
+    snapshotId,
+  )
+  const unauthenticatedDiscovery = await fetchJsonResponse(discoveryUrl)
+  assert.equal(unauthenticatedDiscovery.status, 401)
+  assert.equal(unauthenticatedDiscovery.json.error?.code, 'AUTH_REQUIRED')
+  const crossUserDiscovery = await fetchJsonResponse(
+    discoveryUrl,
+    { token: otherUserBrowserToken },
+  )
+  assert.equal(crossUserDiscovery.status, 403)
+  assert.equal(
+    crossUserDiscovery.json.error?.code,
+    'WORKSPACE_ACCESS_DENIED',
+  )
+  const browserDiscoveryResponse = await fetchJsonResponse(
+    discoveryUrl,
+    { token: browserToken, origin: 'http://localhost:4173' },
+  )
+  assert.equal(browserDiscoveryResponse.status, 200)
+  const browserDiscovery =
+    professionalLongFormCustomerDeliveryDiscoverySchema.parse(
+      browserDiscoveryResponse.json.data
+        ?.professionalLongFormCustomerDeliveryDiscovery,
+    )
+  assert.equal(
+    browserDiscovery.stage,
+    'customer_delivery_quality_review_ready',
+  )
+  assert.equal(
+    browserDiscovery.identity.packageRecordId,
+    delivery.package.identity.packageRecordId,
+  )
+  assert.equal(browserDiscovery.progress.totalJobCount, 9)
+  assert.equal(browserDiscovery.progress.completedJobCount, 8)
+  assert.equal(browserDiscovery.progress.pendingJobCount, 1)
+  assert.equal(browserDiscovery.review?.authority.masterSha256,
+    qualityReview.reviewPacket.master.sha256)
+  assert.equal(browserDiscovery.boundaries.rawPackageReturned, false)
+  assert.equal(browserDiscovery.boundaries.rawQueueReturned, false)
+  assert.equal(browserDiscovery.boundaries.internalCostEvidenceReturned, false)
+  assert.equal(
+    browserDiscovery.commercialBoundary.secondExportEstimateCreated,
+    false,
+  )
+  assert.equal(
+    browserDiscovery.commercialBoundary.secondExportChargeCreated,
+    false,
+  )
   const qualityReviewPath =
     '/v1/edit-executions/professional-long-form/' +
     `customer-delivery-packages/${
@@ -1524,6 +1584,28 @@ try {
     containsForbiddenBrowserAuthority(browserPostDecisionReview),
     false,
   )
+  const acceptedDiscoveryResponse = await fetchJsonResponse(
+    discoveryUrl,
+    { token: browserToken },
+  )
+  assert.equal(acceptedDiscoveryResponse.status, 200)
+  const acceptedDiscovery =
+    professionalLongFormCustomerDeliveryDiscoverySchema.parse(
+      acceptedDiscoveryResponse.json.data
+        ?.professionalLongFormCustomerDeliveryDiscovery,
+    )
+  assert.equal(acceptedDiscovery.stage, 'customer_delivery_accepted')
+  assert.equal(acceptedDiscovery.progress.completedJobCount, 9)
+  assert.equal(acceptedDiscovery.progress.pendingJobCount, 0)
+  assert.equal(
+    acceptedDiscovery.review?.privateDownload
+      ?.expectedQualityDecisionHash,
+    acceptedDelivery.decisionRecord.decision.decisionHash,
+  )
+  assert.equal(
+    acceptedDiscovery.readiness.authenticatedPrivateDownloadReady,
+    true,
+  )
   const unauthorizedContext: ServiceContext = {
     ...context,
     auth: {
@@ -1591,6 +1673,8 @@ try {
     customerDeliveryQueueAggregateHash:
       decodedQaReplay.queueAggregate.aggregateHash,
     customerDeliveryPackagePrepared: true,
+    exactNamedEditCustomerDeliveryDiscoveryVerified: true,
+    acceptedCustomerDeliveryDiscoveryVerified: true,
     customerDeliveryRootCompleted: true,
     customerDeliveryFirstH264Completed: true,
     customerDeliveryFirstH264Sha256:

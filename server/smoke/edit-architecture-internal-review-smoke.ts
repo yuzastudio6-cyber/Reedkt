@@ -117,7 +117,7 @@ const steps: SmokeStep[] = [
   {
     id: 'professional_long_form_customer_delivery_client',
     script: 'smoke:professional-long-form-customer-delivery-client',
-    requiredFor: 'strict long-form review receipts, pre-decision authenticated byte ranges, explicit quality decisions, and accepted private-download ranges without a second estimate or charge',
+    requiredFor: 'exact named-edit delivery discovery, strict long-form review receipts, pre-decision authenticated byte ranges, explicit quality decisions, and accepted private-download ranges without a second estimate or charge',
   },
   {
     id: 'private_download_client',
@@ -223,6 +223,7 @@ console.log(JSON.stringify({
     'The named-edit browser can request one exact private execution handoff without receiving raw package, job, tool, path, or credential authority and without starting execution.',
     'The named-edit browser can request backend-owned private preparation from that exact handoff without supplying or receiving jobs, tools, commands, paths, credentials, providers, or prices.',
     'The named-edit browser can integrity-check private review media, record an exact acceptance or structured revision, and reopen immutable review history without receiving artifact, job, path, credential, provider, billing, or release authority.',
+    'The named-edit browser can discover its exact separate professional long-form delivery from tenant, project, edit, and approved-snapshot identity without supplying a hidden package identifier or receiving queue, worker, cost, storage, or commercial authority.',
     'The Playwright editor flow verifies the current UI upload, planning, approval, review, and blocked failure path.',
     'Expanded and keyboard Playwright flows verify advanced planning details, composer behavior, soundflow disclosures, and hidden internal implementation names.',
     'Route viewport QA verifies the clean app shell, legacy route redirects, and the Home/Projects/Preferences-only sidebar.',

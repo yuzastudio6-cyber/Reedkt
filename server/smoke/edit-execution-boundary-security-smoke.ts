@@ -181,6 +181,24 @@ try {
     { headers: { authorization: 'Bearer verified-user-token' } },
   )
   assert.equal(privateDownload.status, 404, 'The owner-authorized download route should remain mounted and fail closed for unknown records.')
+
+  const blockedProductionDeliveryDiscovery = await fetch(
+    `${productionBaseUrl}/v1/projects/strict-project/edit-sessions/strict-edit/professional-long-form-customer-delivery?workspaceId=strict-workspace&approvedPlanSnapshotId=strict-snapshot`,
+    { headers: { authorization: 'Bearer verified-user-token' } },
+  )
+  assert.equal(
+    blockedProductionDeliveryDiscovery.status,
+    503,
+    'Production may mount the authenticated delivery-discovery contract but must fail closed before persistence access.',
+  )
+  const blockedProductionDeliveryDiscoveryError =
+    await blockedProductionDeliveryDiscovery.json() as {
+      error?: { code?: string }
+    }
+  assert.equal(
+    blockedProductionDeliveryDiscoveryError.error?.code,
+    'TOOL_NOT_READY',
+  )
 } finally {
   await close(productionServer)
 }
@@ -275,6 +293,20 @@ try {
     404,
     'A non-production cloud runtime must not mount the browser review-decision route.',
   )
+  const blockedCloudDeliveryDiscovery = await fetch(
+    `${internalTestBaseUrl}/v1/projects/strict-project/edit-sessions/strict-edit/professional-long-form-customer-delivery?workspaceId=strict-workspace&approvedPlanSnapshotId=strict-snapshot`,
+    { headers: { authorization: 'Bearer verified-user-token' } },
+  )
+  assert.equal(
+    blockedCloudDeliveryDiscovery.status,
+    503,
+    'A cloud runtime must fail closed before delivery-discovery persistence access.',
+  )
+  const blockedCloudDeliveryDiscoveryError =
+    await blockedCloudDeliveryDiscovery.json() as {
+      error?: { code?: string }
+    }
+  assert.equal(blockedCloudDeliveryDiscoveryError.error?.code, 'TOOL_NOT_READY')
 } finally {
   await close(internalTestServer)
 }
@@ -419,6 +451,25 @@ try {
   }
   assert.equal(browserPrivateReviewDecisionError.error?.code, 'VALIDATION_FAILED')
 
+  const browserDeliveryDiscovery = await fetch(
+    `${internalTestBaseUrl}/v1/projects/strict-project/edit-sessions/strict-edit/professional-long-form-customer-delivery`,
+    {
+      headers: {
+        authorization: 'Bearer verified-user-token',
+        origin: 'https://app.reeditpro.test',
+      },
+    },
+  )
+  assert.equal(
+    browserDeliveryDiscovery.status,
+    400,
+    'The local/private delivery-discovery route should require exact workspace and approved-snapshot query identity.',
+  )
+  const browserDeliveryDiscoveryError = await browserDeliveryDiscovery.json() as {
+    error?: { code?: string }
+  }
+  assert.equal(browserDeliveryDiscoveryError.error?.code, 'VALIDATION_FAILED')
+
   for (const [path, body] of [
     ['/v1/jobs/caller-job/claim', {
       workspaceId: 'caller-workspace',
@@ -481,11 +532,13 @@ console.log(JSON.stringify({
     'production_internal_execution_routes_unmounted',
     'production_and_cloud_browser_package_preparation_review_media_and_decision_routes_unmounted',
     'production_user_review_and_download_routes_preserved',
+    'production_and_cloud_delivery_discovery_fail_closed_before_persistence',
     'private_execution_routes_require_dual_auth',
     'local_private_browser_package_request_requires_user_auth_and_strict_identity_body',
     'local_private_browser_edit_preparation_requires_user_auth_and_strict_identity_body',
     'local_private_browser_review_media_requires_user_auth_and_strict_exact_review_query',
     'local_private_browser_review_decision_requires_user_auth_and_strict_exact_review_body',
+    'local_private_delivery_discovery_requires_exact_query_identity',
     'canonical_identity_only_execution_package_schema',
     'caller_authored_worker_claim_and_run_routes_disabled',
     'caller_authored_tool_runtime_evidence_write_disabled',

@@ -95,6 +95,9 @@ assertMentions('.github/workflows/app-internal-testing-pages-deploy.yml', [
   'VITE_REEDITPRO_API_TRANSPORT: google_api_gateway',
   'VITE_REEDITPRO_API_BASE_URL',
   'smoke:google-api-gateway-browser-transport',
+  'smoke:canonical-product-ui-integration-readiness',
+  'internal-testing:verify-canonical-product-ui-integration-readiness',
+  'REEDITPRO_REQUIRE_CANONICAL_PRODUCT_UI_READY: "true"',
   'internal-testing:verify-hosted-sign-in-route',
   'npm run build -- --base=',
   '--strictPort',
@@ -116,6 +119,15 @@ assert.match(workflow, /export VITE_REEDITPRO_API_BASE_URL="\$\{VERIFIED_API_GAT
 assert.match(workflow, /test "\$\{auth_status\}" = "401"/)
 assert.match(workflow, /test "\$\{cors_status\}" = "204"/)
 assert.match(workflow, /access-control-allow-credentials: true/)
+
+const canonicalProductUiGate = between(
+  workflow,
+  '- name: Require canonical product UI integration before signed-in app build',
+  '- name: Build signed-in static app against verified gateway',
+)
+assert.match(canonicalProductUiGate, /REEDITPRO_REQUIRE_CANONICAL_PRODUCT_UI_READY: "true"/)
+assert.match(canonicalProductUiGate, /npm run smoke:canonical-product-ui-integration-readiness/)
+assert.match(canonicalProductUiGate, /npm run internal-testing:verify-canonical-product-ui-integration-readiness/)
 
 const activationEvidencePython = extractPythonHereDoc(between(
   activationWorkflow,

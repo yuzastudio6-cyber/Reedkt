@@ -49,6 +49,15 @@ for (const sourceProof of [
   assert.equal(workflow.includes(`npm run ${sourceProof}`), true, `Missing source proof ${sourceProof}`)
 }
 
+const canonicalProductUiGate = between(
+  workflow,
+  '- name: Require canonical product UI integration before cloud activation',
+  '- name: Authenticate to Google Cloud with keyless OIDC',
+)
+assert.match(canonicalProductUiGate, /REEDITPRO_REQUIRE_CANONICAL_PRODUCT_UI_READY: "true"/)
+assert.match(canonicalProductUiGate, /npm run smoke:canonical-product-ui-integration-readiness/)
+assert.match(canonicalProductUiGate, /npm run internal-testing:verify-canonical-product-ui-integration-readiness/)
+
 assert.match(workflow, /Authenticate to Google Cloud with keyless OIDC/)
 assert.match(workflow, /google-github-actions\/auth@v3/)
 assert.match(workflow, /cleanup_credentials: true/)

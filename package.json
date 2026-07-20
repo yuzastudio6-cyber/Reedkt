@@ -28,6 +28,8 @@
     "staging:verify-google-api-gateway-readiness": "tsx server/cli/verify-google-api-gateway-readiness.ts",
     "smoke:hosted-sign-in-route-readiness": "tsx server/smoke/hosted-sign-in-route-readiness-smoke.ts",
     "smoke:app-internal-testing-pages-deploy-readiness": "tsx server/smoke/app-internal-testing-pages-deploy-readiness-smoke.ts",
+    "smoke:canonical-product-ui-integration-readiness": "tsx server/smoke/canonical-product-ui-integration-readiness-smoke.ts",
+    "internal-testing:verify-canonical-product-ui-integration-readiness": "tsx server/cli/verify-canonical-product-ui-integration-readiness.ts",
     "internal-testing:verify-hosted-sign-in-route": "tsx server/cli/verify-hosted-sign-in-route-readiness.ts",
     "internal-testing:verify-interactive-google-session": "tsx server/cli/verify-interactive-google-session.ts",
     "smoke:internal-tester-interactive-google-session": "tsx server/smoke/internal-tester-interactive-google-session-smoke.ts",

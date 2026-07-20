@@ -167,6 +167,14 @@ jobs:
           npm run check:frontend-boundary
           npm run check:secrets
 
+      - name: Require canonical product UI integration before cloud activation
+        env:
+          REEDITPRO_REQUIRE_CANONICAL_PRODUCT_UI_READY: "true"
+        run: |
+          set -euo pipefail
+          npm run smoke:canonical-product-ui-integration-readiness
+          npm run internal-testing:verify-canonical-product-ui-integration-readiness
+
       - name: Authenticate to Google Cloud with keyless OIDC
         uses: google-github-actions/auth@v3
         with:

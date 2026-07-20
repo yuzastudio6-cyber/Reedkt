@@ -68,8 +68,12 @@ This additive client orchestration does not change the canonical journey stage
 union above or mount a delivery player/decision surface into the active named-
 edit UI. `private_review_accepted` therefore remains the current journey stage,
 with an optional exact customer-delivery result beside it. The next coordinated
-UI slice must consume that one result without creating another queue, registry,
-delivery authority, hook, or editor surface.
+UI slice must consume that one result and the existing bounded private
+MediaSource adapter without creating another queue, registry, delivery
+authority, hook, player authority, or editor surface. Actual Chromium playback
+from multiple authenticated ranges now passes, but the product UI mount,
+durable server-side whole-program watch attestation, backward-seek recovery
+beyond the rolling buffer, and retained review media remain blocked.
 
 ## Browser consumption
 

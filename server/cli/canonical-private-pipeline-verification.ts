@@ -71,6 +71,16 @@ const canonicalSteps: VerificationStep[] = [
     'The frontend-safe client discovers the hidden package identity from exact tenant/project/edit/snapshot authority, strictly validates bounded progress and review receipts, reads authenticated review and accepted-download ranges with integrity headers, records explicit accept or revision decisions with deterministic idempotency, rejects stale, foreign, or over-broad responses, and never creates a second export estimate, charge, or credit prompt.',
   ),
   step(
+    'professional-long-form-customer-delivery-media-source',
+    'smoke:professional-long-form-customer-delivery-media-source',
+    'A bounded MediaSource adapter consumes only exact authenticated no-store review ranges, appends at most 8 MiB at a time, applies rolling-buffer backpressure and eviction, rejects authority/codec/range discontinuity, and records seek-aware plausible client coverage without treating it as durable acceptance authority.',
+  ),
+  step(
+    'professional-long-form-customer-delivery-media-source-browser',
+    'qa:professional-long-form-customer-delivery-media-source',
+    'Actual Chromium uses the real frontend delivery client with bearer and exact workspace/snapshot/review/master authority, then decodes and plays one real fragmented H.264 High/AAC MP4 from multiple exact 64 KiB responses without a whole-file browser Blob and observes contiguous full-program client coverage; the temporary fixture is deleted and no visible named-edit UI or server watch attestation is claimed.',
+  ),
+  step(
     'professional-export-policy',
     'smoke:professional-export',
     'One approved 4K UHD delivery ceiling covers 1080p, 2K, and 4K exports without a second estimate.',
@@ -295,7 +305,7 @@ function printReport(
 ): void {
   const finishedAt = new Date()
   const report = {
-    schemaVersion: 'canonical-private-pipeline-verification-v26',
+    schemaVersion: 'canonical-private-pipeline-verification-v27',
     status,
     mode: full ? 'full_internal_regression' : 'canonical_private_pipeline',
     startedAt: runStartedAt.toISOString(),
@@ -413,6 +423,9 @@ function printReport(
           professionalLongFormCustomerDeliveryPreDecisionRangeTransport: true,
           professionalLongFormCustomerDeliveryExplicitDecisionTransport: true,
           professionalLongFormCustomerDeliveryAcceptedPrivateDownloadTransport: true,
+          professionalLongFormCustomerDeliveryBoundedMediaSourceAdapter: true,
+          professionalLongFormCustomerDeliveryActualChromiumPlayback: true,
+          professionalLongFormCustomerDeliveryClientObservedFullProgramPlayback: true,
           professionalLongFormCustomerDeliverySecondExportEstimateCreated: false,
           professionalLongFormCustomerDeliverySecondExportChargeCreated: false,
           activeNamedEditJourneyStates: true,
@@ -447,6 +460,7 @@ function printReport(
       professionalLongFormFinalizationAndFinalQaVerified: false,
       professionalLongFormObjectStorageVerified: false,
       professionalLongFormCustomerDeliveryNamedEditUiMounted: false,
+      professionalLongFormCustomerDeliveryDurableServerWatchEvidenceVerified: false,
       professionalLongFormCustomerDeliveryRetainedReviewMediaVerified: false,
       liveGoogleCloudWorkerCompletionVerified: false,
       externalBetaReady: false,

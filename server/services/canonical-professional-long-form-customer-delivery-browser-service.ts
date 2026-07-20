@@ -130,6 +130,9 @@ function browserReviewBase(input: {
       reviewPacketHash: input.packet.packetHash,
       masterSha256: input.packet.master.sha256,
       masterByteSize: input.packet.master.byteLength,
+      masterFrameCount: input.packet.master.frameCount,
+      frameRateNumerator: input.packet.master.frameRateNumerator,
+      frameRateDenominator: input.packet.master.frameRateDenominator,
       mimeType: 'video/mp4' as const,
       videoObjectiveEvidenceHash:
         input.packet.decodedQa.video.objectiveEvidenceHash,

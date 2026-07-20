@@ -255,6 +255,31 @@ const requiredEvidence: RequiredEvidence[] = [
     ],
   },
   {
+    file: 'server/smoke/professional-long-form-customer-delivery-media-source-smoke.ts',
+    requirement: 'Private long-form review playback must consume exact authenticated ranges through bounded rolling MediaSource appends and keep client coverage distinct from durable acceptance authority.',
+    evidence: [
+      'authenticatedSequentialRangeCount',
+      'wholeArtifactBufferCreatedByAdapter',
+      'rollingBufferEvictionConfigured',
+      'seekGapRejectedAsFullCoverage',
+      'implausiblePlaybackJumpRejected',
+      'durableServerWatchEvidenceVerified: false',
+    ],
+  },
+  {
+    file: 'tests/e2e/professional-long-form-customer-delivery-media-source.spec.ts',
+    requirement: 'An actual browser must use the bearer-authenticated frontend client to decode and play a real fragmented H.264/AAC MP4 from multiple exact bounded ranges without a whole-file browser Blob.',
+    evidence: [
+      'appends and decodes exact authenticated private ranges without a whole-file browser blob',
+      'rangeRequests.length',
+      'coverage.coveragePermille',
+      'coverage.fullProgramPlaybackObserved',
+      'videoElement.error?.code',
+      'request.headers().authorization',
+      'rm(fixtureRoot, { recursive: true, force: true })',
+    ],
+  },
+  {
     file: 'src/components/editor/PreviewReadyCard.tsx',
     requirement: 'The preview card must switch into a truthful private-review state once the private artifact exists.',
     evidence: [
@@ -286,6 +311,8 @@ const requiredEvidence: RequiredEvidence[] = [
       'canonical_private_edit_preparation_client',
       'canonical_private_review_client',
       'professional_long_form_customer_delivery_client',
+      'professional_long_form_customer_delivery_media_source',
+      'professional_long_form_customer_delivery_media_source_browser',
       'playwright_canonical_journey_flow',
       'legacy_execution_routes_fail_closed',
     ],
@@ -331,6 +358,7 @@ console.log(JSON.stringify({
     'canonical_named_edit_private_preparation_coverage_present',
     'canonical_named_edit_private_review_decision_and_history_coverage_present',
     'canonical_named_edit_customer_delivery_recovery_coverage_present',
+    'bounded_customer_delivery_media_source_and_actual_browser_playback_coverage_present',
     'visible_private_review_card_coverage_present',
     'aggregate_internal_review_coverage_present',
   ],

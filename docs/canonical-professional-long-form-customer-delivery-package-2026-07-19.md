@@ -2,7 +2,7 @@
 
 Date: 2026-07-19
 
-Status: `private_local_nine_job_delivery_browser_transport_and_canonical_journey_client_connected_ui_mount_product_and_cloud_blocked`
+Status: `private_local_nine_job_delivery_actual_chromium_media_source_playback_connected_ui_mount_durable_watch_product_and_cloud_blocked`
 
 ## Outcome
 
@@ -39,10 +39,12 @@ The same retained fixture now also passes the actual Express user routes and the
 frontend-safe client contract for exact named-edit package discovery,
 browser-safe review metadata, authenticated
 pre-decision byte ranges, exact quality-decision recording/replay, and accepted
-private-download byte ranges. Google Cloud dispatch, durable distributed
-persistence, visible named-edit player/decision mounting of the connected
-canonical-journey result, public delivery, billing, and production remain
-blocked.
+private-download byte ranges. A bounded MediaSource adapter now consumes those
+ranges, and actual Chromium decodes and plays a real fragmented H.264/AAC MP4
+without creating a whole-file browser `Blob`. Google Cloud dispatch, durable
+distributed persistence, visible named-edit player/decision mounting of the
+connected canonical-journey result, durable server-side whole-program watch
+attestation, public delivery, billing, and production remain blocked.
 
 ## Authenticated browser review contract
 
@@ -67,9 +69,9 @@ that the whole program was reviewed. Acceptance therefore no longer requires a
 claim about media that the browser was not allowed to read. The client limits
 each request to 8 MiB and verifies the exact `206`, `Content-Range`, byte count,
 no-store policy, MP4 content type, full-artifact checksum header, and review or
-decision authority header. This is the transport foundation for a later
-MediaSource/player adapter; it never loads an arbitrarily large professional
-master into one browser `Blob`.
+decision authority header. The bounded MediaSource adapter consumes that exact
+transport without loading an arbitrarily large professional master into one
+browser `Blob`.
 
 Only the accepted exact decision opens the separate one-use download
 reconciliation. A revision keeps download closed and requires a fresh plan,
@@ -77,6 +79,43 @@ estimate, approval, execution, and private review. Both receipts explicitly
 preserve the original approved 4K estimate/reservation and forbid a second
 export estimate, charge, credit prompt, wallet mutation, settlement, or billing
 action.
+
+## Bounded private MediaSource playback
+
+The frontend-safe playback adapter accepts only the exact review receipt and
+tenant/project/edit/snapshot/package authority already returned by discovery.
+It supports the reviewed H.264 High/AAC fragmented-MP4 profile, requests one
+bounded authenticated no-store range at a time, appends at most 8 MiB to a
+`SourceBuffer`, applies a 120-second buffer-ahead backpressure ceiling, and
+removes decoded buffer more than 30 seconds behind the playhead. It creates
+only the browser-local `MediaSource` object URL; it does not create a public or
+signed media URL.
+
+The adapter also records exact frame intervals observed during plausible
+0.5x-2x playback. Seeks break continuity, implausible time jumps do not count,
+and full-program coverage is true only when the merged interval spans frame
+zero through the exact final frame. That record is intentionally client-local:
+it cannot authorize acceptance until a later server boundary persists and
+revalidates immutable watch checkpoints against the exact review packet and
+master.
+
+Two independent checks pass:
+
+```text
+npm run smoke:professional-long-form-customer-delivery-media-source
+npm run qa:professional-long-form-customer-delivery-media-source
+```
+
+The deterministic smoke reconstructs a 16 MiB-plus fixture from three exact
+ranges, proves no adapter-owned whole-artifact buffer, validates rolling-buffer
+configuration, and rejects foreign review authority, unsupported codec,
+range failure, seek gaps, and implausible playback jumps. The Playwright check
+generates a real three-second H.264 High/AAC fragmented MP4, uses the real
+frontend client with bearer and exact workspace/snapshot/review/master
+authority to fetch multiple exact 64 KiB range fixtures, and proves actual
+Chromium decode, playback completion, zero media error, and 100% contiguous
+client-observed frame coverage. Its operating-system temporary fixture is
+deleted after the test; it is not a retained or user-viewable ReEditPro edit.
 
 ## Exact named-edit discovery and recovery seam
 
@@ -286,6 +325,12 @@ The run rebuilt and verified the real private chain before package promotion:
 - browser private-download range: true;
 - exact named-edit customer-delivery discovery at 8/9: true;
 - accepted named-edit customer-delivery rediscovery at 9/9: true;
+- bounded rolling MediaSource adapter: true;
+- actual Chromium fragmented-MP4 range playback: true;
+- contiguous full-program client-observed frame coverage: true;
+- durable server watch attestation: false;
+- visible named-edit player mounted: false;
+- retained user-viewable edit: false;
 - no second browser estimate, charge, or credit prompt: true;
 - final delivery queue complete: 9/9;
 - export execution authorized: false;
@@ -372,9 +417,10 @@ This slice does not prove or authorize:
 - a retained demo object or website playback; the smoke deletes its private
   fixture workspace after assertions complete;
 - visible UI/player consumption of the proven canonical-journey delivery
-  result, MediaSource playback, full-program watch-state evidence, or a
-  retained viewable demo object; the one hook/client orchestration is proven
-  but no delivery UI or second authority is mounted;
+  result, durable server-side whole-program watch evidence, backward-seek
+  recovery beyond the rolling buffer, or a retained viewable demo object; the
+  playback adapter and actual Chromium decode are proven, but no delivery UI or
+  second authority is mounted;
 - distributed database-backed package, queue, outbox, or completion authority;
 - GCS persistence, Cloud Run dispatch, IAM/service identity, or live Google
   Cloud cost reconciliation;
@@ -387,10 +433,13 @@ This slice does not prove or authorize:
 
 ## Next dependency-safe capability
 
-Add one bounded MediaSource/player adapter that consumes the now-connected
-canonical named-edit result, with durable whole-program watch-state evidence
-and a retained private acceptance fixture. The separately owned product UI must
-mount that adapter without creating another review system. The later deployed
+Add one durable server-side watch-evidence boundary that accepts bounded,
+idempotent frame-coverage checkpoints for the exact review/master, revalidates
+the complete interval before acceptance, and survives refresh/restart without
+trusting caller-authored completion. Add backward-seek recovery for evicted
+ranges and a retained private acceptance fixture. The separately owned product
+UI must mount the existing adapter from the canonical journey result without
+creating another review system. The later deployed
 journey must replace private local files
 with tenant-scoped durable Supabase/GCS authority, distributed queue/lease
 execution, Cloud Run dispatch, and real cross-instance recovery. It must keep

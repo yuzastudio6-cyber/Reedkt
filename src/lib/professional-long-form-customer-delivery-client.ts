@@ -20,7 +20,8 @@ import {
 } from './project-persistence-scope'
 
 const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]*$/u
-const MAX_AUTHENTICATED_RANGE_BYTES = 8 * 1024 * 1024
+export const PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_MAX_RANGE_BYTES =
+  8 * 1024 * 1024
 const PRIVATE_MEDIA_RANGE_TIMEOUT_MS = 30_000
 
 export type ProfessionalLongFormCustomerDeliveryClientInput = {
@@ -449,7 +450,7 @@ async function readAuthenticatedRange(input: {
   if (!validRange(input.start, input.end, input.descriptor.byteSize)) {
     return failure(
       'blocked',
-      `Request one valid media range of at most ${MAX_AUTHENTICATED_RANGE_BYTES} bytes.`,
+      `Request one valid media range of at most ${PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_MAX_RANGE_BYTES} bytes.`,
       false,
       [],
     )
@@ -661,7 +662,8 @@ function validRevisionReasons(
 function validRange(start: number, end: number, total: number): boolean {
   return Number.isSafeInteger(start) && Number.isSafeInteger(end) &&
     Number.isSafeInteger(total) && start >= 0 && end >= start && end < total &&
-    end - start + 1 <= MAX_AUTHENTICATED_RANGE_BYTES
+    end - start + 1 <=
+      PROFESSIONAL_LONG_FORM_CUSTOMER_DELIVERY_MAX_RANGE_BYTES
 }
 
 function clientContext(

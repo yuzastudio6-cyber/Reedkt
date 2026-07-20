@@ -71,6 +71,8 @@
     "smoke:canonical-private-edit-preparation-client": "tsx server/smoke/canonical-private-edit-preparation-frontend-client-smoke.ts",
     "smoke:canonical-private-review-client": "tsx server/smoke/canonical-private-review-frontend-client-smoke.ts",
     "smoke:professional-long-form-customer-delivery-client": "tsx server/smoke/professional-long-form-customer-delivery-frontend-client-smoke.ts",
+    "smoke:professional-long-form-customer-delivery-media-source": "tsx server/smoke/professional-long-form-customer-delivery-media-source-smoke.ts",
+    "qa:professional-long-form-customer-delivery-media-source": "playwright test --config=playwright.customer-delivery-media-source.config.ts",
     "smoke:canonical-planning-publication-client": "tsx server/smoke/canonical-planning-publication-frontend-client-smoke.ts",
     "smoke:canonical-private-color-execution": "tsx server/smoke/canonical-private-color-execution-smoke.ts",
     "smoke:backend-local-journey-authority": "tsx server/smoke/backend-local-journey-authority-smoke.ts",

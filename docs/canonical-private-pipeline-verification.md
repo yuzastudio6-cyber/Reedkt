@@ -40,7 +40,9 @@ rejects persisted-byte tampering, and replays without redispatch. The remaining
 intent restraint, canonical plan presentation, the 4K estimate ceiling,
 separate approval, the opaque
 execution-package handoff, private preparation, private review,
-revision/history recovery, the bounded three-source standalone reference-bound
+revision/history recovery, exact long-form delivery discovery, bounded rolling
+MediaSource playback, actual Chromium fragmented-MP4 decode from multiple
+private ranges, the bounded three-source standalone reference-bound
 voice/color proof, the one-source professional-color regression proof, and the
 maximum eight-source planning-publication contract. Before media execution it
 also verifies the durable package queue, a cross-process single-host
@@ -120,7 +122,13 @@ plan fits the bounded canonical profile.
    and that 1080p, 2K/1440p, and 4K exports stay within the same approved
    deliverable rather than prompting for a second estimate.
 5. Verify frontend-safe planning publication, approval, execution-package,
-   private-preparation, private-review, and journey-recovery clients.
+   private-preparation, private-review, journey-recovery, exact customer-
+   delivery discovery, authenticated bounded ranges, and the rolling
+   MediaSource adapter. Then prove actual Chromium decodes and completes one
+   real fragmented H.264 High/AAC MP4 through the bearer-authenticated frontend
+   client from multiple exact 64 KiB ranges without a whole-file browser
+   `Blob`. Client-observed full-program coverage is not
+   durable server acceptance authority; the temporary fixture is deleted.
 6. Exercise the real local backend authority chain for upload, publication,
    approval, synthetic reservation, snapshot, jobs, package, and readiness.
 7. Verify the checksum-protected package queue, server-selected attempt,
@@ -179,7 +187,7 @@ source-bound audio identities in approved order, reads sanitized journey state,
 and records review acceptance.
 
 The runner stops on the first failed phase and prints a machine-readable
-`canonical-private-pipeline-verification-v24` report with step exit codes and
+`canonical-private-pipeline-verification-v27` report with step exit codes and
 durations. A zero exit code means every included assertion passed, including
 assertions that production-only or unavailable behavior stays blocked.
 

@@ -120,6 +120,16 @@ const steps: SmokeStep[] = [
     requiredFor: 'exact named-edit delivery discovery, strict long-form review receipts, pre-decision authenticated byte ranges, explicit quality decisions, and accepted private-download ranges without a second estimate or charge',
   },
   {
+    id: 'professional_long_form_customer_delivery_media_source',
+    script: 'smoke:professional-long-form-customer-delivery-media-source',
+    requiredFor: 'bounded authenticated range appends, rolling MediaSource buffering, fail-closed review identity and codec checks, and seek-aware client playback coverage without durable-server authority',
+  },
+  {
+    id: 'professional_long_form_customer_delivery_media_source_browser',
+    script: 'qa:professional-long-form-customer-delivery-media-source',
+    requiredFor: 'actual Chromium H.264/AAC fragmented-MP4 decode and full playback through the real bearer-authenticated frontend range client without a whole-file browser Blob',
+  },
+  {
     id: 'private_download_client',
     script: 'smoke:edit-execution-private-download-client',
     requiredFor: 'private MP4 and manifest fetch client safety',
@@ -225,6 +235,7 @@ console.log(JSON.stringify({
     'The named-edit browser can integrity-check private review media, record an exact acceptance or structured revision, and reopen immutable review history without receiving artifact, job, path, credential, provider, billing, or release authority.',
     'The named-edit browser can discover its exact separate professional long-form delivery from tenant, project, edit, and approved-snapshot identity without supplying a hidden package identifier or receiving queue, worker, cost, storage, or commercial authority.',
     'The accepted named-edit recovery client preserves only the safe approved-snapshot identity and recovers the exact delivery through the existing journey hook; a missing package remains a bounded substate instead of erasing the accepted edit.',
+    'The bounded delivery MediaSource adapter and actual Chromium check prove private range decode/playback without a whole-file browser Blob while keeping client coverage separate from durable server acceptance authority.',
     'The Playwright editor flow verifies the current UI upload, planning, approval, review, and blocked failure path.',
     'Expanded and keyboard Playwright flows verify advanced planning details, composer behavior, soundflow disclosures, and hidden internal implementation names.',
     'Route viewport QA verifies the clean app shell, legacy route redirects, and the Home/Projects/Preferences-only sidebar.',

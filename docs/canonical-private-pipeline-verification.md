@@ -36,7 +36,7 @@ retains its lease with durable heartbeat evidence, writes one create-only six-
 hour lossless FLAC, independently verifies metadata and 1,036,800,000 decoded
 stereo sample frames, records separate FFmpeg and FFprobe internal costs,
 rejects persisted-byte tampering, and replays without redispatch. The remaining
-249 children stay capability-blocked. The command continues with source-only
+247 children stay capability-blocked. The command continues with source-only
 intent restraint, canonical plan presentation, the 4K estimate ceiling,
 separate approval, the opaque
 execution-package handoff, private preparation, private review,
@@ -128,7 +128,7 @@ plan fits the bounded canonical profile.
    lifecycles, followed by the continuous-program-audio job and its independent
    QA attempt through exact source staging, heartbeat, fixed lossless FLAC
    execution, create-only persistence, two internal-cost records, tamper
-   refusal, reconciliation, and replay. The remaining 249 child leases, other
+   refusal, reconciliation, and replay. The remaining 247 child leases, other
    chunk tool-cost-runner authority, complete long-form media
    execution, object storage, database, cloud, staging, and production
    authority remain false.
@@ -229,7 +229,7 @@ that discovery channel; it does not weaken image-identity validation.
 
 ## Current Evidence Record
 
-On 2026-07-20, the current v29 command passed all `39/39` phases with exit
+On 2026-07-20, the bounded v29 command passed all `39/39` phases with exit
 code `0`; its final tool report was generated at
 `2026-07-20T16:50:29.095Z`. The canonical long-form post-approval stage passed
 all 99 checks, retained the exact six-hour 1,144,083,803-byte FLAC and
@@ -258,6 +258,26 @@ memory, input/output lineage, and internal-cost evidence under their canonical
 snapshot/package/job/lease/one-use-dispatch lifecycle. Both commands kept live
 Google Cloud, providers, remote Supabase, billing/wallet mutation, deployment,
 public delivery, external beta, and paid production false.
+
+Later on 2026-07-20, `npm run qa:internal-pipeline` passed the complete v29
+`full_internal_regression` with `45/45` phases and exit code `0`. It ran from
+`2026-07-20T17:00:28.803Z` through `2026-07-20T18:04:39.038Z` in
+`3,850,235 ms`. This run repeated the entire bounded canonical pipeline and
+also passed auth/runtime fail-closed behavior, project and named-edit tenancy,
+the approved tool-work manifest, private Playwright capture, and the final
+signed-in browser journey. The final journey created a project and named edit,
+uploaded and backend-probed the maximum eight distinct private sources,
+compiled exact Edit Preferences and Edit Brief context, invalidated plan v1,
+approved plan v2 and one 4K-ceiling estimate, completed the server-derived
+`27/27` work-item/job graph, loaded a `3840x2160` sixteen-second private review
+MP4, verified all eight source-bound audio tones in approved order, and
+persisted review acceptance. Its review artifact was `1,086,192` bytes with
+SHA-256 `584cdd265fc32d81ca70f5f08420bf65ebfac998a1d4db38fb94efe5aa847505`.
+The final tool report was generated at `2026-07-20T17:58:36.099Z` and again
+reported 72 registry profiles, 53 confined runners, 50 canonical end-to-end
+tool identities, and 50 canonical job adapters. The full run made no provider,
+Google Cloud, remote Supabase, billing, deployment, public-delivery, external-
+beta, or paid-production claim.
 
 On 2026-07-18, the exact-code v24 full internal command passed all `38/38`
 phases with exit code `0`. It started at `2026-07-18T19:00:39.984Z`, finished

@@ -1,0 +1,73 @@
+# ReEditPro canonical V3 local-only Supabase project.
+# This project is deliberately isolated from the historical root Supabase chain.
+# It is never linked to a remote project and contains no remote credentials.
+
+project_id = "reeditpro-canonical-v3-local"
+
+[api]
+enabled = true
+port = 57431
+schemas = ["public", "storage", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 57432
+shadow_port = 57430
+major_version = 15
+
+[db.pooler]
+enabled = false
+port = 57439
+pool_mode = "transaction"
+default_pool_size = 20
+max_client_conn = 100
+
+[db.seed]
+enabled = false
+
+[realtime]
+enabled = false
+ip_version = "IPv4"
+
+[studio]
+enabled = false
+port = 57433
+api_url = "http://127.0.0.1:57431"
+
+[inbucket]
+enabled = false
+port = 57434
+smtp_port = 57435
+pop3_port = 57436
+
+[storage]
+enabled = false
+file_size_limit = "50MiB"
+
+[auth]
+enabled = true
+site_url = "http://127.0.0.1:3000"
+additional_redirect_urls = ["http://127.0.0.1:3000"]
+jwt_expiry = 3600
+enable_signup = false
+enable_anonymous_sign_ins = false
+
+[auth.email]
+enable_signup = false
+double_confirm_changes = true
+enable_confirmations = false
+secure_password_change = false
+max_frequency = "1m"
+otp_length = 6
+otp_expiry = 3600
+
+[edge_runtime]
+enabled = false
+policy = "oneshot"
+inspector_port = 57438
+
+[analytics]
+enabled = false
+port = 57437
+backend = "postgres"

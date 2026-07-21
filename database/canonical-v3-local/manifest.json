@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "reeditpro-canonical-v3-local-manifest-v1",
+  "executionScope": "local_only",
+  "rawMigrationBaselineStatus": "blocked_by_parallel_foundations",
+  "remoteMutationAllowed": false,
+  "productionAuthority": false,
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "610286806faa7dfa71b607ec0d1397dc36f49e2036022c8fcd5375769c4f778e"
+    },
+    {
+      "path": "run-local-verification.sh",
+      "sha256": "3df02e6d2772695eef90cdd25589e9eb015b21d6f61fe320f157489c94c203a2"
+    },
+    {
+      "path": "verify.mjs",
+      "sha256": "b3856b6ac197927017c09c895285aafeef55b604b1989655ca2b31266de52e0b"
+    },
+    {
+      "path": "supabase/.gitignore",
+      "sha256": "7937a595bb8dc6940abd9268ad2e8941f3dc02ca722977b06015de4b329976fa"
+    },
+    {
+      "path": "supabase/config.toml",
+      "sha256": "9b50b56c610d3f7a07c11bdd2eb3777bd9ce201d3b431414327f06263f0ae0bb"
+    },
+    {
+      "path": "supabase/migrations/202607210001_identity_and_exact_edit_authority.sql",
+      "sha256": "b16d43cc5b3e47bc83583ad3e86ab15529a6d9dafd06844b5c403d34ffe77867"
+    },
+    {
+      "path": "supabase/migrations/202607210002_edit_reference_v6_schema.sql",
+      "sha256": "35618686aab6111003d2cda59c1e10a5f51472125275aac467de6faabd5b7445"
+    },
+    {
+      "path": "supabase/migrations/202607210003_edit_reference_v6_security_and_rpcs.sql",
+      "sha256": "97adf4a7e85d9419818e37f0ca73fdab7d52649b7ba68f1bc01f6f14b80e6523"
+    },
+    {
+      "path": "tests/_fixture.sql",
+      "sha256": "cc3d78c436eade21a6345d5417ccd47165cbfcfc65deca1eb914da6d3644896b"
+    },
+    {
+      "path": "tests/001_two_user_two_workspace_rls.sql",
+      "sha256": "4229abef3613004a7ce75467e6e030bfe6c1baa5237d7a55a7d8580d6822a816"
+    },
+    {
+      "path": "tests/002_edit_reference_v6_lifecycle_rpc.sql",
+      "sha256": "d72c9641a8d93be0e06783798675da1a64ae2d6a71f909cf0e3b0b4d72d66fbb"
+    },
+    {
+      "path": "tests/003_edit_reference_v6_recovery_and_cost.sql",
+      "sha256": "f9f8a55f8571aeca6dfe421bc43067c589726ceb6a6e5fa73a00a231a2e1896f"
+    },
+    {
+      "path": "tests/004_schema_security_invariants.sql",
+      "sha256": "a6ecf665a21f1c8bdc9e053e6cf7f1d8e00b76f3961348e3eb1de82a7d58d9f1"
+    }
+  ],
+  "repositoryFiles": [
+    {
+      "path": "server/edit-references/edit-reference-local-supabase-rpc-adapter.ts",
+      "sha256": "b6953e27ea8a20ad1bccf9f4a2e8e664803871e2c7d55043988edf1b80a4d384"
+    },
+    {
+      "path": "server/smoke/edit-reference-local-supabase-rpc-adapter-smoke.ts",
+      "sha256": "7c1751394c76f8e4f65bf0f16f4e25cf8acd9b5d7f841cfcae1e320794d1b56d"
+    }
+  ]
+}

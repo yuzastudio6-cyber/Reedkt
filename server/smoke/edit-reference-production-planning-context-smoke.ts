@@ -22,6 +22,7 @@ import {
 } from '../edit-references/edit-reference-production-planning-authority'
 import {
   createEditReferenceProductionPlannerBindingAdapterReceipt,
+  createEditReferenceProductionPlannerPreferenceApplicationBinding,
   validateEditReferenceProductionPlannerBindingAdapterReceipt,
 } from '../edit-references/edit-reference-production-planner-binding-adapter'
 
@@ -351,7 +352,8 @@ const authorityScope = {
 const authorityRead = {
   schemaVersion: EDIT_REFERENCE_PRODUCTION_PLANNING_AUTHORITY_READ_VERSION,
   repositoryAuthority: 'supabase_rls_transactional' as const,
-  candidateCount: 1,
+  currentState: 'connected' as const,
+  stateRecordCount: 1,
   tenantIsolation: {
     authenticatedUserVerified: true as const,
     workspaceMembershipVerified: true as const,
@@ -367,7 +369,7 @@ const authorityRead = {
   lifecycleReceipt: receipt,
 }
 const authorityResolution = await resolveEditReferenceProductionPlanningAuthority({
-  reader: { readExactConnectedApplication: () => Promise.resolve(authorityRead) },
+  reader: { readExactApplicationState: () => Promise.resolve(authorityRead) },
   scope: authorityScope,
   selection: {
     applicationId: application.id,
@@ -376,12 +378,16 @@ const authorityResolution = await resolveEditReferenceProductionPlanningAuthorit
     expectedLifecycleReceiptDigestSha256: receipt.receiptDigestSha256,
   },
 })
-assert(authorityResolution)
+if (authorityResolution.status !== 'applied') throw new Error('Expected one applied production authority.')
 assert.equal(authorityResolution.sourceAuthority, 'canonical_edit_reference_production_repository')
 assert.equal(authorityResolution.planningContext.contextDigestSha256, planningContext.contextDigestSha256)
 
 const plannerBindingReceipt = createEditReferenceProductionPlannerBindingAdapterReceipt(authorityResolution)
 validateEditReferenceProductionPlannerBindingAdapterReceipt(plannerBindingReceipt)
+assert.deepEqual(
+  createEditReferenceProductionPlannerPreferenceApplicationBinding(authorityResolution),
+  plannerBindingReceipt.preferenceApplication,
+)
 assert.equal(plannerBindingReceipt.noLegacyPreferenceIntelligenceStoreRead, true)
 assert.equal(plannerBindingReceipt.sharedPlannerMutationMade, false)
 assert.equal(plannerBindingReceipt.preferenceApplication.status, 'applied')
@@ -418,17 +424,23 @@ assert.throws(() => validateEditReferenceProductionPlannerBindingAdapterReceipt(
 const noApplicationRead = {
   schemaVersion: EDIT_REFERENCE_PRODUCTION_PLANNING_AUTHORITY_READ_VERSION,
   repositoryAuthority: 'supabase_rls_transactional' as const,
-  candidateCount: 0,
+  currentState: 'not_selected' as const,
+  stateRecordCount: 0,
   tenantIsolation: authorityRead.tenantIsolation,
   readRevision: 13,
   readAt: '2026-07-21T02:00:05.000Z',
 }
-assert.equal(await resolveEditReferenceProductionPlanningAuthority({
-  reader: { readExactConnectedApplication: () => Promise.resolve(noApplicationRead) },
+const notSelectedResolution = await resolveEditReferenceProductionPlanningAuthority({
+  reader: { readExactApplicationState: () => Promise.resolve(noApplicationRead) },
   scope: authorityScope,
-}), undefined)
+})
+assert.equal(notSelectedResolution.status, 'not_selected')
+assert.equal(
+  createEditReferenceProductionPlannerPreferenceApplicationBinding(notSelectedResolution).status,
+  'not_selected',
+)
 await assert.rejects(() => resolveEditReferenceProductionPlanningAuthority({
-  reader: { readExactConnectedApplication: () => Promise.resolve(noApplicationRead) },
+  reader: { readExactApplicationState: () => Promise.resolve(noApplicationRead) },
   scope: authorityScope,
   selection: {
     applicationId: application.id,
@@ -439,17 +451,78 @@ await assert.rejects(() => resolveEditReferenceProductionPlanningAuthority({
 }), /production Edit Reference planning authority/i)
 await assert.rejects(() => resolveEditReferenceProductionPlanningAuthority({
   reader: {
-    readExactConnectedApplication: () => Promise.resolve({ ...authorityRead, candidateCount: 2 }),
+    readExactApplicationState: () => Promise.resolve({ ...authorityRead, stateRecordCount: 2 }),
   },
   scope: authorityScope,
 }), /production Edit Reference planning authority/i)
 await assert.rejects(() => resolveEditReferenceProductionPlanningAuthority({
-  reader: { readExactConnectedApplication: () => Promise.resolve(authorityRead) },
+  reader: { readExactApplicationState: () => Promise.resolve(authorityRead) },
   scope: authorityScope,
   selection: {
     applicationId: application.id,
     expectedApplicationContentDigestSha256: application.contentDigest,
     expectedApplicationContextHashSha256: hash('b'),
+    expectedLifecycleReceiptDigestSha256: receipt.receiptDigestSha256,
+  },
+}), /production Edit Reference planning authority/i)
+await assert.rejects(() => resolveEditReferenceProductionPlanningAuthority({
+  reader: { readExactApplicationState: () => Promise.resolve(authorityRead) },
+  scope: { ...authorityScope, actorUserId: 'different-user' },
+}), /production Edit Reference planning authority/i)
+
+const removeRequest = createEditReferenceProductionApplicationLifecycleRequest({
+  ...requestInput,
+  mutation: 'remove',
+  expectedCurrentApplicationId: application.id,
+  targetUnderstandingPackageDigestSha256: null,
+  outputFrameConfirmation: null,
+})
+const removeReceipt = createEditReferenceProductionApplicationLifecycleReceipt({
+  transactionId: 'application-transaction-remove-a',
+  request: removeRequest,
+  committedReferenceRevision: removeRequest.expectedReferenceRevision + 1,
+  committedPlanningInputRevision: removeRequest.expectedPlanningInputRevision + 1,
+  applicationStatusAfter: 'cleared',
+  preferenceContextStatusAfter: 'invalidated',
+  priorDraftPlanDisposition: 'invalidated',
+  priorDraftEstimateDisposition: 'invalidated',
+  approvalStatusAfter: 'reset_after_revision',
+  executionAuthorizationDisposition: 'revoked',
+  freshPlanAndEstimateRequired: true,
+  approvedSnapshotPreserved: true,
+  historicalPrivatePreviewPreserved: true,
+  applicationPlanInvalidationReceiptId: 'plan-invalidation-remove-a',
+  auditEventIds: ['audit-remove-a'],
+  idempotencyReceiptId: 'idempotency-receipt-remove-a',
+  idempotencyResponseDigestSha256: hash('d'),
+  committedAt: '2026-07-21T02:00:06.000Z',
+})
+const clearedRead = {
+  ...noApplicationRead,
+  currentState: 'cleared' as const,
+  stateRecordCount: 1,
+  readRevision: 14,
+  readAt: '2026-07-21T02:00:07.000Z',
+  lifecycleRequest: removeRequest,
+  lifecycleReceipt: removeReceipt,
+}
+const clearedResolution = await resolveEditReferenceProductionPlanningAuthority({
+  reader: { readExactApplicationState: () => Promise.resolve(clearedRead) },
+  scope: authorityScope,
+})
+assert.equal(clearedResolution.status, 'cleared')
+const clearedBinding = createEditReferenceProductionPlannerPreferenceApplicationBinding(clearedResolution)
+assert.equal(clearedBinding.status, 'cleared')
+if (clearedBinding.status !== 'cleared') throw new Error('Expected one cleared planner binding.')
+assert.equal(clearedBinding.applicationId, application.id)
+assert.equal(clearedBinding.applicationHash, removeReceipt.receiptDigestSha256)
+await assert.rejects(() => resolveEditReferenceProductionPlanningAuthority({
+  reader: { readExactApplicationState: () => Promise.resolve(clearedRead) },
+  scope: authorityScope,
+  selection: {
+    applicationId: application.id,
+    expectedApplicationContentDigestSha256: application.contentDigest,
+    expectedApplicationContextHashSha256: planningContext.applicationContextHashSha256,
     expectedLifecycleReceiptDigestSha256: receipt.receiptDigestSha256,
   },
 }), /production Edit Reference planning authority/i)

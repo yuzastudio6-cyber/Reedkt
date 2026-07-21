@@ -1,7 +1,7 @@
 import { ApiError } from '../errors/api-error'
 
 export const EDIT_REFERENCE_PRODUCTION_PERSISTENCE_CONTRACT_VERSION =
-  'edit-reference-production-persistence-contract-v3' as const
+  'edit-reference-production-persistence-contract-v4' as const
 
 export const EDIT_REFERENCE_PRODUCTION_APPLICATION_LIFECYCLE_RPC_NAME =
   'mutate_edit_reference_application_lifecycle_v3' as const
@@ -122,6 +122,21 @@ export interface EditReferenceExecutionAuthorityReadContract {
   }
 }
 
+export interface EditReferencePlanningAuthorityReadContract {
+  readonly name: 'read_exact_edit_reference_application_state_v2'
+  readonly serverOnly: true
+  readonly authenticatedUserRequired: true
+  readonly serviceRoleBrowserUseAllowed: false
+  readonly oneTransactionalSnapshotRequired: true
+  readonly maximumCurrentStateRows: 1
+  readonly states: readonly ['not_selected', 'connected', 'cleared']
+  readonly connectedStateRequires: readonly string[]
+  readonly clearedStateRequires: readonly string[]
+  readonly neverSelectedStateRequires: readonly string[]
+  readonly rawReferenceMediaReturned: false
+  readonly rawProviderPayloadReturned: false
+}
+
 export interface EditReferenceProductionPersistenceContract {
   readonly version: typeof EDIT_REFERENCE_PRODUCTION_PERSISTENCE_CONTRACT_VERSION
   readonly status: 'review_only_blocked_by_parallel_foundations'
@@ -138,6 +153,7 @@ export interface EditReferenceProductionPersistenceContract {
   }
   readonly tables: readonly EditReferenceProductionTableContract[]
   readonly applicationLifecycleTransaction: EditReferenceApplicationLifecycleTransactionContract
+  readonly planningAuthorityRead: EditReferencePlanningAuthorityReadContract
   readonly executionAuthorityRead: EditReferenceExecutionAuthorityReadContract
   readonly recovery: {
     readonly pointInTimeRecoveryRequired: true
@@ -479,6 +495,34 @@ export const editReferenceProductionPersistenceContract: EditReferenceProduction
       'include_reeditpro_service_fee',
     ],
   },
+  planningAuthorityRead: {
+    name: 'read_exact_edit_reference_application_state_v2',
+    serverOnly: true,
+    authenticatedUserRequired: true,
+    serviceRoleBrowserUseAllowed: false,
+    oneTransactionalSnapshotRequired: true,
+    maximumCurrentStateRows: 1,
+    states: ['not_selected', 'connected', 'cleared'],
+    connectedStateRequires: [
+      'one_current_connected_application',
+      'approved_dna_and_qa_lineage',
+      'target_understanding_package_digest',
+      'output_frame_confirmation_digest',
+      'latest_application_lifecycle_request_and_receipt',
+    ],
+    clearedStateRequires: [
+      'latest_remove_lifecycle_request_and_receipt',
+      'committed_reference_revision',
+      'committed_planning_input_revision',
+      'execution_authorization_revoked',
+    ],
+    neverSelectedStateRequires: [
+      'no_application_lifecycle_for_exact_edit',
+      'transactional_zero_row_cardinality',
+    ],
+    rawReferenceMediaReturned: false,
+    rawProviderPayloadReturned: false,
+  },
   executionAuthorityRead: {
     name: 'assert_preference_application_plan_current_v1',
     requiredBeforeStages: [
@@ -545,6 +589,7 @@ export interface EditReferenceProductionPersistenceContractSummary {
   privateStorageTableCount: number
   immutableOrAppendOnlyTableCount: number
   atomicLifecycleEffectCount: number
+  planningAuthorityStateCount: number
   requiredExecutionReadStageCount: number
   migrationExecutable: false
   remoteMutationAllowed: false
@@ -624,6 +669,17 @@ export function validateEditReferenceProductionPersistenceContract(
   if (!contract.applicationLifecycleTransaction.idempotency.mutationAndReceiptShareTransaction) {
     invalid('idempotency_not_atomic_with_domain_mutation')
   }
+  if (
+    contract.planningAuthorityRead.name !== 'read_exact_edit_reference_application_state_v2'
+    || contract.planningAuthorityRead.serverOnly !== true
+    || contract.planningAuthorityRead.authenticatedUserRequired !== true
+    || contract.planningAuthorityRead.serviceRoleBrowserUseAllowed !== false
+    || contract.planningAuthorityRead.oneTransactionalSnapshotRequired !== true
+    || contract.planningAuthorityRead.maximumCurrentStateRows !== 1
+    || contract.planningAuthorityRead.states.join('|') !== 'not_selected|connected|cleared'
+    || contract.planningAuthorityRead.rawReferenceMediaReturned !== false
+    || contract.planningAuthorityRead.rawProviderPayloadReturned !== false
+  ) invalid('planning_authority_read_contract_invalid')
   if (!contract.executionAuthorityRead.requiredBeforeStages.includes('worker_claim')) {
     invalid('worker_claim_missing_current_application_gate')
   }
@@ -656,6 +712,7 @@ export function validateEditReferenceProductionPersistenceContract(
     privateStorageTableCount: contract.tables.filter((candidate) => candidate.privateStorageIdentityRequired).length,
     immutableOrAppendOnlyTableCount: contract.tables.filter((candidate) => candidate.immutableAfterCommit || candidate.appendOnly).length,
     atomicLifecycleEffectCount: contract.applicationLifecycleTransaction.atomicEffects.length,
+    planningAuthorityStateCount: contract.planningAuthorityRead.states.length,
     requiredExecutionReadStageCount: contract.executionAuthorityRead.requiredBeforeStages.length,
     migrationExecutable: false,
     remoteMutationAllowed: false,

@@ -100,6 +100,7 @@ export const EDIT_REFERENCE_PRODUCTION_GATE_DEFINITIONS = [
       'exact_edit_preferences_and_edit_brief_binding_verified',
       'approved_dna_qa_application_lineage_binding_verified',
       'legacy_preference_intelligence_authority_excluded_verified',
+      'explicit_clear_vs_never_selected_planning_state_verified',
       'output_frame_and_target_study_binding_verified',
       'fresh_plan_and_one_estimate_verified',
       'raw_reference_media_excluded_from_planner_context_verified',

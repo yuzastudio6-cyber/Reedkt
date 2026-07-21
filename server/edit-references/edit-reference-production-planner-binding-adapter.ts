@@ -1,7 +1,10 @@
 import { createHash } from 'node:crypto'
 import type { ResolvedPlanningInputAuthorityBinding } from '../validation/planning-input-authority-binding-schemas'
 import { ApiError } from '../errors/api-error'
-import type { EditReferenceProductionPlanningAuthorityResolution } from './edit-reference-production-planning-authority'
+import type {
+  EditReferenceProductionPlanningAuthorityAppliedResolution,
+  EditReferenceProductionPlanningAuthorityResolution,
+} from './edit-reference-production-planning-authority'
 import {
   EDIT_REFERENCE_PRODUCTION_PLANNING_CONTEXT_VERSION,
   type EditReferenceProductionPlanningContext,
@@ -24,6 +27,9 @@ type AppliedPreferenceApplicationBinding = Extract<
   ResolvedPlanningInputAuthorityBinding['preferenceApplication'],
   { status: 'applied' }
 >
+
+export type EditReferenceProductionPlannerPreferenceApplicationBinding =
+  ResolvedPlanningInputAuthorityBinding['preferenceApplication']
 
 export interface EditReferenceProductionPlannerBindingAdapterReceipt {
   readonly schemaVersion: typeof EDIT_REFERENCE_PRODUCTION_PLANNER_BINDING_ADAPTER_VERSION
@@ -81,7 +87,7 @@ const MAX_RULE_LENGTH = 1_000
  * the shared planner, publish a plan, approve an estimate, or start execution.
  */
 export function createEditReferenceProductionPlannerBindingAdapterReceipt(
-  resolution: EditReferenceProductionPlanningAuthorityResolution,
+  resolution: EditReferenceProductionPlanningAuthorityAppliedResolution,
 ): EditReferenceProductionPlannerBindingAdapterReceipt {
   validateResolution(resolution)
   const context = resolution.planningContext
@@ -167,6 +173,29 @@ export function createEditReferenceProductionPlannerBindingAdapterReceipt(
   }
 }
 
+export function createEditReferenceProductionPlannerPreferenceApplicationBinding(
+  resolution: EditReferenceProductionPlanningAuthorityResolution,
+): EditReferenceProductionPlannerPreferenceApplicationBinding {
+  if (resolution.status === 'not_selected') {
+    validateNonAppliedResolution(resolution)
+    return {
+      status: 'not_selected',
+      applicationVersion: 0,
+      applicationHash: resolution.applicationHash,
+    }
+  }
+  if (resolution.status === 'cleared') {
+    validateNonAppliedResolution(resolution)
+    return {
+      status: 'cleared',
+      applicationId: resolution.applicationId,
+      applicationVersion: resolution.applicationVersion,
+      applicationHash: resolution.applicationHash,
+    }
+  }
+  return createEditReferenceProductionPlannerBindingAdapterReceipt(resolution).preferenceApplication
+}
+
 export function validateEditReferenceProductionPlannerBindingAdapterReceipt(
   receipt: EditReferenceProductionPlannerBindingAdapterReceipt,
 ): void {
@@ -225,7 +254,7 @@ export function validateEditReferenceProductionPlannerBindingAdapterReceipt(
   ) invalid('planner_binding_adapter_lineage_invalid')
 }
 
-function validateResolution(resolution: EditReferenceProductionPlanningAuthorityResolution): void {
+function validateResolution(resolution: EditReferenceProductionPlanningAuthorityAppliedResolution): void {
   const context = resolution.planningContext
   const { contextDigestSha256, ...contextWithoutDigest } = context
   if (
@@ -286,6 +315,37 @@ function validateResolution(resolution: EditReferenceProductionPlanningAuthority
     || context.guidance.length < 1
   ) invalid('planner_binding_adapter_lineage_value_invalid')
   assertRuleCollection(context.doNotCopyRules, MAX_BOUNDARY_ITEMS, 'do_not_copy_rules')
+}
+
+function validateNonAppliedResolution(
+  resolution: Exclude<EditReferenceProductionPlanningAuthorityResolution, { status: 'applied' }>,
+): void {
+  if (
+    resolution.sourceAuthority !== 'canonical_edit_reference_production_repository'
+    || !Number.isInteger(resolution.readRevision)
+    || resolution.readRevision < 0
+    || !ID_PATTERN.test(resolution.rlsPolicyVersion)
+    || !ID_PATTERN.test(resolution.accessCheckReceiptId)
+    || resolution.rawReferenceMediaIncluded !== false
+    || resolution.rawProviderPayloadIncluded !== false
+    || !SHA256_PATTERN.test(resolution.applicationHash)
+  ) invalid('planner_binding_adapter_non_applied_resolution_invalid')
+  if (resolution.status === 'not_selected') {
+    if (resolution.applicationVersion !== 0) {
+      invalid('planner_binding_adapter_not_selected_version_invalid')
+    }
+    return
+  }
+  if (
+    !ID_PATTERN.test(resolution.applicationId)
+    || !ID_PATTERN.test(resolution.lifecycleTransactionId)
+    || !SHA256_PATTERN.test(resolution.lifecycleReceiptDigestSha256)
+    || resolution.applicationHash !== resolution.lifecycleReceiptDigestSha256
+    || !Number.isInteger(resolution.applicationVersion)
+    || resolution.applicationVersion < 1
+    || !Number.isInteger(resolution.committedPlanningInputRevision)
+    || resolution.committedPlanningInputRevision < 1
+  ) invalid('planner_binding_adapter_cleared_resolution_invalid')
 }
 
 function buildRelevantRules(context: EditReferenceProductionPlanningContext): Record<string, string[]> {

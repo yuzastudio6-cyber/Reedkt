@@ -83,7 +83,8 @@ validateEditReferenceProductionApplicationLifecycleReceipt({
 })
 
 const persistenceSummary = validateEditReferenceProductionPersistenceContract()
-assert.equal(persistenceSummary.version, 'edit-reference-production-persistence-contract-v3')
+assert.equal(persistenceSummary.version, 'edit-reference-production-persistence-contract-v4')
+assert.equal(persistenceSummary.planningAuthorityStateCount, 3)
 assert.deepEqual(
   editReferenceProductionPersistenceContract.applicationLifecycleTransaction.supportedMutations,
   ['apply', 'replace', 'remove'],

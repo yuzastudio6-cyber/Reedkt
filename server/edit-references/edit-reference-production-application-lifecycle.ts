@@ -36,6 +36,7 @@ export interface EditReferenceProductionApplicationLifecycleRequestInput {
   readonly applicationContextHashSha256: string
   readonly targetUnderstandingPackageDigestSha256: string | null
   readonly outputFrameConfirmationId: string | null
+  readonly outputFrameConfirmationDigestSha256: string | null
   readonly idempotencyKeyHashSha256: string
   readonly requestedAt: string
 }
@@ -105,7 +106,8 @@ const REQUEST_INPUT_KEYS = [
   'expectedCurrentApplicationId', 'expectedReferenceRevision',
   'expectedPlanningInputRevision', 'applicationContentDigestSha256',
   'applicationContextHashSha256', 'targetUnderstandingPackageDigestSha256',
-  'outputFrameConfirmationId', 'idempotencyKeyHashSha256', 'requestedAt',
+  'outputFrameConfirmationId', 'outputFrameConfirmationDigestSha256',
+  'idempotencyKeyHashSha256', 'requestedAt',
 ] as const
 const RECEIPT_INPUT_KEYS = [
   'transactionId', 'request', 'committedReferenceRevision',
@@ -302,7 +304,11 @@ function validateRequestInput(input: EditReferenceProductionApplicationLifecycle
     if (!SHA256_PATTERN.test(value)) invalid(`application_lifecycle_${field}_invalid`)
   }
   if (input.mutation === 'remove') {
-    if (input.targetUnderstandingPackageDigestSha256 !== null || input.outputFrameConfirmationId !== null) {
+    if (
+      input.targetUnderstandingPackageDigestSha256 !== null
+      || input.outputFrameConfirmationId !== null
+      || input.outputFrameConfirmationDigestSha256 !== null
+    ) {
       invalid('application_lifecycle_remove_cannot_replace_target_authority')
     }
   } else {
@@ -312,6 +318,10 @@ function validateRequestInput(input: EditReferenceProductionApplicationLifecycle
     if (!input.outputFrameConfirmationId || !ID_PATTERN.test(input.outputFrameConfirmationId)) {
       invalid('application_lifecycle_output_frame_confirmation_invalid')
     }
+    if (
+      !input.outputFrameConfirmationDigestSha256
+      || !SHA256_PATTERN.test(input.outputFrameConfirmationDigestSha256)
+    ) invalid('application_lifecycle_output_frame_confirmation_digest_invalid')
   }
   if (!Number.isFinite(Date.parse(input.requestedAt))) {
     invalid('application_lifecycle_requested_at_invalid')

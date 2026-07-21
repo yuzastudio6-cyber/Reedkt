@@ -29,6 +29,7 @@ const applyInput = {
   applicationContextHashSha256: hash('b'),
   targetUnderstandingPackageDigestSha256: hash('c'),
   outputFrameConfirmationId: 'frame-confirmation-a',
+  outputFrameConfirmationDigestSha256: hash('4'),
   idempotencyKeyHashSha256: hash('d'),
   requestedAt: '2026-07-21T01:00:00.000Z',
 } as const
@@ -105,6 +106,11 @@ assert.throws(() => createEditReferenceProductionApplicationLifecycleRequest({
   ...applyInput,
   unexpectedAuthority: true,
 } as typeof applyInput), /production Preference Application lifecycle authority/i)
+
+assert.throws(() => createEditReferenceProductionApplicationLifecycleRequest({
+  ...applyInput,
+  outputFrameConfirmationDigestSha256: null,
+}), /production Preference Application lifecycle authority/i)
 
 assert.throws(() => createEditReferenceProductionApplicationLifecycleReceipt({
   transactionId: 'bad-revision-transaction',
@@ -195,6 +201,7 @@ const removeRequest = createEditReferenceProductionApplicationLifecycleRequest({
   expectedCurrentApplicationId: 'application-a-v1',
   targetUnderstandingPackageDigestSha256: null,
   outputFrameConfirmationId: null,
+  outputFrameConfirmationDigestSha256: null,
 })
 const removeReceipt = createEditReferenceProductionApplicationLifecycleReceipt({
   transactionId: 'application-transaction-remove-a',

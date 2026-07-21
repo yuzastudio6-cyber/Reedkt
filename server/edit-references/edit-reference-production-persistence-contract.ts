@@ -74,6 +74,7 @@ export interface EditReferenceApplicationLifecycleTransactionContract {
     readonly applyOrReplaceApprovedPreferenceDnaRequired: true
     readonly applyOrReplaceTargetVideoUnderstandingRequired: true
     readonly applyOrReplaceOutputFrameConfirmedRequired: true
+    readonly applyOrReplaceOutputFrameConfirmationDigestRequired: true
     readonly currentPlanLineageReadRequired: true
   }
   readonly compareAndSwap: {
@@ -417,6 +418,7 @@ export const editReferenceProductionPersistenceContract: EditReferenceProduction
       applyOrReplaceApprovedPreferenceDnaRequired: true,
       applyOrReplaceTargetVideoUnderstandingRequired: true,
       applyOrReplaceOutputFrameConfirmedRequired: true,
+      applyOrReplaceOutputFrameConfirmationDigestRequired: true,
       currentPlanLineageReadRequired: true,
     },
     compareAndSwap: {

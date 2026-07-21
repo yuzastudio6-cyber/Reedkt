@@ -96,7 +96,35 @@ try {
     201,
     'Denied upload-intent authorization must not reserve an idempotency key.',
   )
-  requiredString(authorizedWithSameKey.json.data?.uploadIntent?.id, 'Upload intent id is required.')
+  const authorizedUploadIntentId = requiredString(
+    authorizedWithSameKey.json.data?.uploadIntent?.id,
+    'Upload intent id is required.',
+  )
+  assert.equal(authorizedWithSameKey.headers.get('idempotency-replayed'), null)
+
+  const domainReplay = await requestJson(`${routeBaseUrl}/v1/projects/${projectId}/upload-intents`, {
+    method: 'POST',
+    token: 'token-upload-security',
+    idempotencyKey: 'upload-auth-before-idempotency',
+    body: uploadBody,
+  })
+  assert.equal(domainReplay.status, 201, JSON.stringify(domainReplay.json))
+  assert.equal(domainReplay.json.data?.uploadIntent?.id, authorizedUploadIntentId)
+  assert.equal(
+    domainReplay.headers.get('idempotency-replayed'),
+    null,
+    'Temporary upload target material must not be returned from the generic response replay cache.',
+  )
+
+  const domainConflict = await requestJson(`${routeBaseUrl}/v1/projects/${projectId}/upload-intents`, {
+    method: 'POST',
+    token: 'token-upload-security',
+    idempotencyKey: 'upload-auth-before-idempotency',
+    body: { ...uploadBody, originalFileName: 'different-source.mp4' },
+  })
+  assert.equal(domainConflict.status, 409)
+  assert.equal(domainConflict.json.error?.code, 'IDEMPOTENCY_CONFLICT')
+
   const localUploadPath = requiredString(
     authorizedWithSameKey.json.data?.uploadTarget?.uploadUrl,
     'Local upload target is required.',
@@ -227,6 +255,9 @@ console.log(JSON.stringify({
   ok: true,
   checks: [
     'upload_authorization_precedes_idempotency_side_effect',
+    'project_upload_intent_replays_through_domain_authority',
+    'project_upload_intent_changed_request_conflicts',
+    'temporary_upload_target_not_cached_by_generic_idempotency',
     'local_raw_upload_requires_content_length',
     'local_raw_upload_rejects_oversized_header_before_body_parse',
     'local_raw_upload_accepts_small_authorized_test_body',
@@ -341,7 +372,7 @@ async function requestJson(url: string, input: {
   token: string
   idempotencyKey?: string
   body?: Record<string, unknown>
-}): Promise<{ status: number; json: ApiResponse }> {
+}): Promise<{ status: number; json: ApiResponse; headers: Headers }> {
   const response = await fetch(url, {
     method: input.method ?? 'GET',
     headers: {
@@ -351,7 +382,11 @@ async function requestJson(url: string, input: {
     },
     ...(input.body ? { body: JSON.stringify(input.body) } : {}),
   })
-  return { status: response.status, json: await response.json() as ApiResponse }
+  return {
+    status: response.status,
+    json: await response.json() as ApiResponse,
+    headers: response.headers,
+  }
 }
 
 function requestWithoutBody(input: {

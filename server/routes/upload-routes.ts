@@ -5,6 +5,7 @@ import { requireInternalServiceAuth } from '../middleware/internal-service-auth'
 import { createSourceMediaAuthorityService } from '../services/source-media-authority-service'
 import { createLargeMediaFinalizationService } from '../services/large-media-finalization-service'
 import { createUploadService } from '../services/upload-service'
+import { authorizeWorkspaceAccess } from '../services/workspace-access-service'
 import { LOCAL_RAW_UPLOAD_MAX_BYTES, assertLocalRawUploadByteLength } from '../storage/storage-validation'
 import type { RuntimeRequest } from '../types'
 import {
@@ -65,7 +66,7 @@ const parseBoundedLocalRawUpload = raw({
 export function createUploadRoutes(): Router {
   const router = Router()
 
-  router.post('/v1/projects/:projectId/upload-intents', requireAuth, requireBoundedUploadMetadataWrite, requireUploadIntentCreateAccess, requireIdempotency, asyncRoute(async (request, response) => {
+  router.post('/v1/projects/:projectId/upload-intents', requireAuth, requireBoundedUploadMetadataWrite, requireUploadIntentCreateAccess, requireSensitiveIdempotencyKey, asyncRoute(async (request, response) => {
     const body = validateBody(createUploadIntentSchema, request.body)
     const result = await createUploadService(getServiceContext(request)).createUploadIntent({
       ...body,
@@ -235,6 +236,7 @@ async function requireUploadIntentCreateAccess(
 ): Promise<void> {
   try {
     const body = validateBody(createUploadIntentSchema, request.body)
+    await authorizeWorkspaceAccess(getServiceContext(request), body.workspaceId, 'write')
     await createUploadService(getServiceContext(request)).authorizeCreateUploadIntent({
       ...body,
       projectId: getRouteParam(request, 'projectId'),

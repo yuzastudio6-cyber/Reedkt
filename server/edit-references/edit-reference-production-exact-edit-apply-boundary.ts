@@ -1,11 +1,15 @@
 import { createHash } from 'node:crypto'
 import type { PreferenceApplicationRecord } from '../../src/types/edit-reference'
 import {
+  EDIT_REFERENCE_PRODUCTION_EXACT_EDIT_APPLY_AUTHORITY_READ_VERSION,
   EDIT_REFERENCE_PRODUCTION_EXACT_EDIT_APPLY_COMMAND_VERSION,
+  EDIT_REFERENCE_PRODUCTION_PREPARED_APPLICATION_AUTHORITY_VERSION,
   type EditReferenceProductionExactEditApplyCommand,
+  type EditReferenceProductionExactEditApplyAuthorityRead,
   type EditReferenceProductionExactEditApplyApiReceipt,
   type EditReferenceProductionExactEditPreferencePatch,
   type EditReferenceProductionExactEditPreferenceValues,
+  type EditReferenceProductionPreparedApplicationAuthority,
 } from '../../src/types/edit-reference-production-exact-edit-apply-api'
 import { ApiError } from '../errors/api-error'
 import {
@@ -24,8 +28,9 @@ import {
   validateEditReferenceProductionAuthenticatedHttpAuthority,
   type EditReferenceProductionAuthenticatedHttpAuthority,
 } from './edit-reference-production-http-lifecycle-boundary'
-import type {
-  EditReferenceProductionOutputFrameAuthority,
+import {
+  validateEditReferenceProductionOutputFrameAuthority,
+  type EditReferenceProductionOutputFrameAuthority,
 } from './edit-reference-production-output-frame-authority'
 
 export const EDIT_REFERENCE_PRODUCTION_EXACT_EDIT_APPLY_BOUNDARY_VERSION =
@@ -33,6 +38,17 @@ export const EDIT_REFERENCE_PRODUCTION_EXACT_EDIT_APPLY_BOUNDARY_VERSION =
 
 export const EDIT_REFERENCE_PRODUCTION_EXACT_EDIT_APPLY_RPC =
   'apply_exact_edit_preferences_and_reference_v1' as const
+
+export const EDIT_REFERENCE_PRODUCTION_EXACT_EDIT_APPLY_AUTHORITY_READ_RPC =
+  'read_exact_edit_apply_authority_v1' as const
+
+export interface EditReferenceProductionExactEditApplyAuthorityReadScope {
+  readonly actorUserId: string
+  readonly workspaceId: string
+  readonly projectId: string
+  readonly editSessionId: string
+  readonly selectedApplicationId: string | null
+}
 
 export type EditReferenceProductionCurrentApplicationState =
   | 'not_selected'
@@ -153,8 +169,161 @@ const RECEIPT_KEYS = [
   'customerPriceCalculated', 'customerCreditsMutated', 'serviceFeeIncluded',
   'providerOrWorkerExecutionStarted',
 ] as const
+const AUTHORITY_READ_KEYS = [
+  'schemaVersion', 'sourceAuthority', 'runtimeSource',
+  'authorityReadReceiptId', 'workspaceId', 'projectId', 'editSessionId',
+  'recordRevision', 'preferenceRevision', 'planningInputRevision',
+  'preferenceFingerprintSha256', 'values', 'lifecyclePhase', 'locked',
+  'currentApplicationState', 'currentApplicationId', 'outputFrameAuthority',
+  'selectedApplicationAuthority', 'readAt', 'browserMutationAuthorityGranted',
+  'productionReleaseReadinessEvaluatedSeparately',
+] as const
+const PREPARED_APPLICATION_AUTHORITY_KEYS = [
+  'schemaVersion', 'sourceAuthority', 'runtimeSource',
+  'authorityReadReceiptId', 'workspaceId', 'projectId', 'editSessionId',
+  'editReferenceId', 'studySessionId', 'dnaVersionId', 'dnaQaResultId',
+  'applicationId', 'applicationVersionNumber',
+  'applicationContentDigestSha256', 'applicationContextHashSha256',
+  'targetUnderstandingPackageDigestSha256', 'expectedReferenceRevision',
+  'status', 'connectionState',
+] as const
+const AUTHORITY_READ_SCOPE_KEYS = [
+  'actorUserId', 'workspaceId', 'projectId', 'editSessionId',
+  'selectedApplicationId',
+] as const
 const ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,239}$/
 const SHA256_PATTERN = /^[a-f0-9]{64}$/
+const LIFECYCLE_PHASES = new Set<
+  EditReferenceProductionExactEditApplyAuthorityRead['lifecyclePhase']
+>([
+  'planning', 'approved_snapshot', 'credit_reserved', 'executing',
+  'private_review', 'completed_internal', 'revision_handoff',
+])
+
+export function validateEditReferenceProductionExactEditApplyAuthorityReadScope(
+  scope: EditReferenceProductionExactEditApplyAuthorityReadScope,
+): void {
+  assertExactKeys(
+    scope,
+    AUTHORITY_READ_SCOPE_KEYS,
+    'exact_edit_apply_authority_read_scope_shape_invalid',
+  )
+  if (
+    !isSafeId(scope.actorUserId)
+    || !isSafeId(scope.workspaceId)
+    || !isSafeId(scope.projectId)
+    || !isSafeId(scope.editSessionId)
+    || (scope.selectedApplicationId !== null && !isSafeId(scope.selectedApplicationId))
+  ) invalid('exact_edit_apply_authority_read_scope_invalid', 400)
+}
+
+export function validateEditReferenceProductionExactEditApplyAuthorityRead(
+  authority: EditReferenceProductionExactEditApplyAuthorityRead,
+): void {
+  assertExactKeys(
+    authority,
+    AUTHORITY_READ_KEYS,
+    'exact_edit_apply_authority_read_shape_invalid',
+  )
+  if (
+    authority.schemaVersion
+      !== EDIT_REFERENCE_PRODUCTION_EXACT_EDIT_APPLY_AUTHORITY_READ_VERSION
+    || authority.sourceAuthority !== 'canonical_exact_edit_preference_repository'
+    || authority.runtimeSource !== 'verified_live'
+    || !isSafeId(authority.authorityReadReceiptId)
+    || !isSafeId(authority.workspaceId)
+    || !isSafeId(authority.projectId)
+    || !isSafeId(authority.editSessionId)
+    || !Number.isInteger(authority.recordRevision)
+    || authority.recordRevision < 0
+    || !Number.isInteger(authority.preferenceRevision)
+    || authority.preferenceRevision < 0
+    || !Number.isInteger(authority.planningInputRevision)
+    || authority.planningInputRevision < 0
+    || !SHA256_PATTERN.test(authority.preferenceFingerprintSha256)
+    || !LIFECYCLE_PHASES.has(authority.lifecyclePhase)
+    || typeof authority.locked !== 'boolean'
+    || !Number.isFinite(Date.parse(authority.readAt))
+    || authority.browserMutationAuthorityGranted !== false
+    || authority.productionReleaseReadinessEvaluatedSeparately !== true
+  ) invalid('exact_edit_apply_authority_read_integrity_invalid', 503)
+
+  const values = exactEditPreferenceValuesSchema.safeParse(authority.values)
+  if (
+    !values.success
+    || authority.preferenceFingerprintSha256 !== sha256(values.data)
+  ) invalid('exact_edit_apply_authority_read_preferences_invalid', 503)
+
+  const currentApplicationShapeValid = authority.currentApplicationState === 'connected'
+    ? authority.currentApplicationId !== null && isSafeId(authority.currentApplicationId)
+    : authority.currentApplicationId === null
+  if (!currentApplicationShapeValid) {
+    invalid('exact_edit_apply_authority_read_application_state_invalid', 503)
+  }
+
+  if (authority.outputFrameAuthority) {
+    validateEditReferenceProductionOutputFrameAuthority(authority.outputFrameAuthority)
+    if (
+      authority.outputFrameAuthority.workspaceId !== authority.workspaceId
+      || authority.outputFrameAuthority.projectId !== authority.projectId
+      || authority.outputFrameAuthority.editSessionId !== authority.editSessionId
+      || authority.outputFrameAuthority.exactEditPreferenceRecordRevision
+        !== authority.recordRevision
+      || authority.outputFrameAuthority.planningInputRevision
+        !== authority.planningInputRevision
+    ) invalid('exact_edit_apply_authority_read_frame_scope_invalid', 503)
+  }
+
+  if (authority.selectedApplicationAuthority) {
+    validateEditReferenceProductionPreparedApplicationAuthority(
+      authority.selectedApplicationAuthority,
+    )
+    const selected = authority.selectedApplicationAuthority
+    if (
+      selected.workspaceId !== authority.workspaceId
+      || selected.projectId !== authority.projectId
+      || selected.editSessionId !== authority.editSessionId
+      || (
+        selected.connectionState === 'connected'
+        && selected.applicationId !== authority.currentApplicationId
+      )
+    ) invalid('exact_edit_apply_authority_read_selected_application_invalid', 503)
+  }
+}
+
+export function validateEditReferenceProductionPreparedApplicationAuthority(
+  authority: EditReferenceProductionPreparedApplicationAuthority,
+): void {
+  assertExactKeys(
+    authority,
+    PREPARED_APPLICATION_AUTHORITY_KEYS,
+    'exact_edit_apply_prepared_application_authority_shape_invalid',
+  )
+  if (
+    authority.schemaVersion
+      !== EDIT_REFERENCE_PRODUCTION_PREPARED_APPLICATION_AUTHORITY_VERSION
+    || authority.sourceAuthority !== 'canonical_preference_application_repository'
+    || authority.runtimeSource !== 'verified_live'
+    || !isSafeId(authority.authorityReadReceiptId)
+    || !isSafeId(authority.workspaceId)
+    || !isSafeId(authority.projectId)
+    || !isSafeId(authority.editSessionId)
+    || !isSafeId(authority.editReferenceId)
+    || !isSafeId(authority.studySessionId)
+    || !isSafeId(authority.dnaVersionId)
+    || !isSafeId(authority.dnaQaResultId)
+    || !isSafeId(authority.applicationId)
+    || !Number.isInteger(authority.applicationVersionNumber)
+    || authority.applicationVersionNumber < 1
+    || !SHA256_PATTERN.test(authority.applicationContentDigestSha256)
+    || !SHA256_PATTERN.test(authority.applicationContextHashSha256)
+    || !SHA256_PATTERN.test(authority.targetUnderstandingPackageDigestSha256)
+    || !Number.isInteger(authority.expectedReferenceRevision)
+    || authority.expectedReferenceRevision < 1
+    || authority.status !== 'prepared'
+    || !['not_connected', 'connected'].includes(authority.connectionState)
+  ) invalid('exact_edit_apply_prepared_application_authority_invalid', 503)
+}
 
 /**
  * Prepares, but never executes, the one future exact-edit Apply transaction.

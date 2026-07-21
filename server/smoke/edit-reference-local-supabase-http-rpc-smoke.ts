@@ -24,10 +24,6 @@ import {
 import {
   EDIT_REFERENCE_PRODUCTION_PERSISTENCE_CONTRACT_VERSION,
 } from '../edit-references/edit-reference-production-persistence-contract'
-import {
-  exactEditPreferenceFingerprint,
-} from '../services/private-exact-edit-preference-store'
-
 const endpointOrigin = requiredEnvironment('REEDITPRO_CANONICAL_V3_API_URL')
 const anonKey = requiredEnvironment('REEDITPRO_CANONICAL_V3_ANON_KEY')
 const jwtSecret = requiredEnvironment('REEDITPRO_CANONICAL_V3_JWT_SECRET')
@@ -68,37 +64,6 @@ const adapterB = createEditReferenceLocalSupabaseRpcAdapter({
   capability: capabilityB,
 })
 
-const frame = createEditReferenceProductionOutputFrameAuthority({
-  repositoryAuthority: 'supabase_rls_transactional',
-  workspaceId: workspaceA,
-  projectId: projectA,
-  editSessionId: editA,
-  exactEditPreferenceRecordRevision: 0,
-  planningInputRevision: 0,
-  confirmationId: 'aaaaaaaa-8000-4000-8000-000000000001',
-  aspectRatio: '16:9',
-  confirmedAt: '2026-07-21T12:00:00.000Z',
-})
-const lifecycleRequest = createEditReferenceProductionApplicationLifecycleRequest({
-  mutation: 'apply',
-  actorUserId: ownerA,
-  workspaceId: workspaceA,
-  projectId: projectA,
-  editSessionId: editA,
-  editReferenceId: 'aaaaaaaa-3000-4000-8000-000000000001',
-  studySessionId: 'aaaaaaaa-4000-4000-8000-000000000001',
-  dnaVersionId: 'aaaaaaaa-5000-4000-8000-000000000001',
-  applicationId: 'aaaaaaaa-7000-4000-8000-000000000001',
-  expectedCurrentApplicationId: null,
-  expectedReferenceRevision: 1,
-  expectedPlanningInputRevision: 0,
-  applicationContentDigestSha256: '7'.repeat(64),
-  applicationContextHashSha256: '8'.repeat(64),
-  targetUnderstandingPackageDigestSha256: '9'.repeat(64),
-  outputFrameConfirmation: frame,
-  idempotencyKeyHashSha256: '3'.repeat(64),
-  requestedAt: '2026-07-21T13:20:00.000Z',
-})
 const preferenceValues: EditReferenceProductionExactEditPreferenceValues = {
   editLevel: 'pro',
   workflowType: 'testimonial_case_study',
@@ -108,6 +73,53 @@ const preferenceValues: EditReferenceProductionExactEditPreferenceValues = {
   creditPreference: 'balanced',
   targetPlatform: 'youtube',
 }
+const applyAuthority = await adapterA.readExactEditApplyAuthority({
+  actorUserId: ownerA,
+  workspaceId: workspaceA,
+  projectId: projectA,
+  editSessionId: editA,
+  selectedApplicationId: 'aaaaaaaa-7000-4000-8000-000000000001',
+})
+assert.deepEqual(applyAuthority.values, preferenceValues)
+assert.equal(applyAuthority.recordRevision, 0)
+assert.equal(applyAuthority.preferenceRevision, 0)
+assert.equal(applyAuthority.planningInputRevision, 0)
+assert.ok(applyAuthority.outputFrameAuthority)
+assert.ok(applyAuthority.selectedApplicationAuthority)
+const frame = applyAuthority.outputFrameAuthority
+const selectedApplication = applyAuthority.selectedApplicationAuthority
+assert.equal(frame.authorityDigestSha256, createEditReferenceProductionOutputFrameAuthority({
+  repositoryAuthority: 'supabase_rls_transactional',
+  workspaceId: workspaceA,
+  projectId: projectA,
+  editSessionId: editA,
+  exactEditPreferenceRecordRevision: 0,
+  planningInputRevision: 0,
+  confirmationId: 'aaaaaaaa-8000-4000-8000-000000000001',
+  aspectRatio: '16:9',
+  confirmedAt: '2026-07-21T12:00:00.000Z',
+}).authorityDigestSha256)
+const lifecycleRequest = createEditReferenceProductionApplicationLifecycleRequest({
+  mutation: 'apply',
+  actorUserId: ownerA,
+  workspaceId: workspaceA,
+  projectId: projectA,
+  editSessionId: editA,
+  editReferenceId: selectedApplication.editReferenceId,
+  studySessionId: selectedApplication.studySessionId,
+  dnaVersionId: selectedApplication.dnaVersionId,
+  applicationId: selectedApplication.applicationId,
+  expectedCurrentApplicationId: null,
+  expectedReferenceRevision: selectedApplication.expectedReferenceRevision,
+  expectedPlanningInputRevision: applyAuthority.planningInputRevision,
+  applicationContentDigestSha256: selectedApplication.applicationContentDigestSha256,
+  applicationContextHashSha256: selectedApplication.applicationContextHashSha256,
+  targetUnderstandingPackageDigestSha256:
+    selectedApplication.targetUnderstandingPackageDigestSha256,
+  outputFrameConfirmation: frame,
+  idempotencyKeyHashSha256: '3'.repeat(64),
+  requestedAt: '2026-07-21T13:20:00.000Z',
+})
 const requestWithoutDigest = {
   schemaVersion: 'edit-reference-production-exact-edit-apply-boundary-v1' as const,
   rpcName: 'apply_exact_edit_preferences_and_reference_v1' as const,
@@ -116,11 +128,11 @@ const requestWithoutDigest = {
   projectId: projectA,
   editSessionId: editA,
   accessCheckReceiptId: 'local-http-access-check-a',
-  exactEditPreferenceAuthorityReadReceiptId: 'local-http-preference-read-a',
-  expectedPreferenceRecordRevision: 0,
-  expectedPreferenceRevision: 0,
-  expectedPlanningInputRevision: 0,
-  expectedPreferenceFingerprintSha256: exactEditPreferenceFingerprint(preferenceValues),
+  exactEditPreferenceAuthorityReadReceiptId: applyAuthority.authorityReadReceiptId,
+  expectedPreferenceRecordRevision: applyAuthority.recordRevision,
+  expectedPreferenceRevision: applyAuthority.preferenceRevision,
+  expectedPlanningInputRevision: applyAuthority.planningInputRevision,
+  expectedPreferenceFingerprintSha256: applyAuthority.preferenceFingerprintSha256,
   preferencePatch: { visualPreference: 'keep_visuals_minimal' as const },
   changedPreferenceFields: ['visualPreference'] as const,
   referenceLifecycleRequest: lifecycleRequest,
@@ -167,6 +179,22 @@ assert.equal(read.currentState, 'connected')
 assert.equal(read.application?.id, 'aaaaaaaa-7000-4000-8000-000000000001')
 assert.equal(read.lifecycleReceipt?.committedPlanningInputRevision, 1)
 
+const committedApplyAuthority = await adapterA.readExactEditApplyAuthority({
+  actorUserId: ownerA,
+  workspaceId: workspaceA,
+  projectId: projectA,
+  editSessionId: editA,
+  selectedApplicationId: selectedApplication.applicationId,
+})
+assert.equal(committedApplyAuthority.recordRevision, 1)
+assert.equal(committedApplyAuthority.preferenceRevision, 1)
+assert.equal(committedApplyAuthority.planningInputRevision, 1)
+assert.equal(committedApplyAuthority.currentApplicationState, 'connected')
+assert.equal(committedApplyAuthority.currentApplicationId, selectedApplication.applicationId)
+assert.equal(committedApplyAuthority.outputFrameAuthority?.exactEditPreferenceRecordRevision, 1)
+assert.equal(committedApplyAuthority.outputFrameAuthority?.planningInputRevision, 1)
+assert.equal(committedApplyAuthority.selectedApplicationAuthority?.connectionState, 'connected')
+
 const deniedMutation = await clientB.rpc(
   'apply_exact_edit_preferences_and_reference_v1',
   {
@@ -176,6 +204,16 @@ const deniedMutation = await clientB.rpc(
 )
 assert.equal(deniedMutation.data, null)
 assert.deepEqual(deniedMutation.error, { code: '42501', status: 403 })
+
+await assert.rejects(
+  adapterB.readExactEditApplyAuthority({
+    actorUserId: ownerB,
+    workspaceId: workspaceA,
+    projectId: projectA,
+    editSessionId: editA,
+    selectedApplicationId: selectedApplication.applicationId,
+  }),
+)
 
 await assert.rejects(
   adapterB.planningAuthorityReader.readExactApplicationState({
@@ -223,7 +261,9 @@ console.log(JSON.stringify({
   schemaVersion: clientA.schemaVersion,
   transport: clientA.transport,
   exactApplyRpc: 'apply_exact_edit_preferences_and_reference_v1',
+  exactApplyAuthorityReadRpc: 'read_exact_edit_apply_authority_v1',
   exactReplayStable: true,
+  outputFrameAuthorityResealedAfterRevision: true,
   nestedLifecycleConnected: true,
   ownerVisibleApplyEvents: 1,
   crossWorkspaceVisibleApplyEvents: 0,

@@ -18,12 +18,14 @@ assert(Array.isArray(manifest.files) && manifest.files.length >= 9, 'manifest_fi
 assert(Array.isArray(manifest.repositoryFiles), 'repository_manifest_file_set_invalid')
 
 const expectedRepositoryFiles = [
+  'docs/canonical-v3-local-exact-edit-apply-authority-read-verification-2026-07-21.md',
   'docs/canonical-v3-local-exact-edit-atomic-apply-verification-2026-07-21.md',
   'server/edit-references/edit-reference-local-supabase-http-rpc-client.ts',
   'server/edit-references/edit-reference-local-supabase-rpc-adapter.ts',
   'server/edit-references/edit-reference-production-exact-edit-apply-boundary.ts',
   'server/smoke/edit-reference-local-supabase-http-rpc-smoke.ts',
   'server/smoke/edit-reference-local-supabase-rpc-adapter-smoke.ts',
+  'src/types/edit-reference-production-exact-edit-apply-api.ts',
 ]
 const actualRepositoryFiles = manifest.repositoryFiles
   .map((entry) => entry.path)
@@ -35,6 +37,7 @@ const expectedMigrations = [
   '202607210002_edit_reference_v6_schema.sql',
   '202607210003_edit_reference_v6_security_and_rpcs.sql',
   '202607210004_exact_edit_atomic_apply.sql',
+  '202607210005_exact_edit_apply_authority_read.sql',
 ]
 const actualMigrations = readdirSync(join(directory, 'supabase', 'migrations'))
   .filter((name) => name.endsWith('.sql'))
@@ -68,6 +71,7 @@ for (const requiredToken of [
   'force row level security',
   'mutate_edit_reference_application_lifecycle_v3',
   'apply_exact_edit_preferences_and_reference_v1',
+  'read_exact_edit_apply_authority_v1',
   'read_exact_edit_reference_application_state_v2',
   'assert_preference_application_plan_current_v1',
   'reserve_edit_reference_study_chat_run_v1',

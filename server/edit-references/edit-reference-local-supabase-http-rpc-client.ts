@@ -1,5 +1,6 @@
 import { ApiError } from '../errors/api-error'
 import {
+  EDIT_REFERENCE_PRODUCTION_EXACT_EDIT_APPLY_AUTHORITY_READ_RPC,
   EDIT_REFERENCE_PRODUCTION_EXACT_EDIT_APPLY_RPC,
 } from './edit-reference-production-exact-edit-apply-boundary'
 import {
@@ -17,6 +18,7 @@ export const EDIT_REFERENCE_LOCAL_SUPABASE_HTTP_RPC_CLIENT_VERSION =
   'edit-reference-local-supabase-http-rpc-client-v1' as const
 
 const ALLOWED_RPC_FUNCTIONS = new Set<string>([
+  EDIT_REFERENCE_PRODUCTION_EXACT_EDIT_APPLY_AUTHORITY_READ_RPC,
   EDIT_REFERENCE_PRODUCTION_EXACT_EDIT_APPLY_RPC,
   EDIT_REFERENCE_PRODUCTION_APPLICATION_LIFECYCLE_RPC,
   editReferenceProductionPersistenceContract.planningAuthorityRead.name,

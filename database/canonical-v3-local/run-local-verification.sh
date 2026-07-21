@@ -40,7 +40,8 @@ for test_file in \
   "${SCRIPT_DIR}/tests/002_edit_reference_v6_lifecycle_rpc.sql" \
   "${SCRIPT_DIR}/tests/003_edit_reference_v6_recovery_and_cost.sql" \
   "${SCRIPT_DIR}/tests/004_schema_security_invariants.sql" \
-  "${SCRIPT_DIR}/tests/005_exact_edit_atomic_apply.sql"
+  "${SCRIPT_DIR}/tests/005_exact_edit_atomic_apply.sql" \
+  "${SCRIPT_DIR}/tests/006_exact_edit_apply_authority_read.sql"
 do
   "${PSQL_BIN}" "${DATABASE_URL}" -X -q -v ON_ERROR_STOP=1 -f "${test_file}"
 done

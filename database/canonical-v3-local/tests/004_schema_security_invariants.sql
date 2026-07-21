@@ -72,7 +72,8 @@ begin
     raise exception 'SCHEMA_DIRECT_WRITE_RLS_POLICY_PRESENT';
   end if;
 
-  if has_function_privilege('anon', 'public.apply_exact_edit_preferences_and_reference_v1(text,jsonb)', 'EXECUTE')
+  if has_function_privilege('anon', 'public.read_exact_edit_apply_authority_v1(text,text,jsonb)', 'EXECUTE')
+    or has_function_privilege('anon', 'public.apply_exact_edit_preferences_and_reference_v1(text,jsonb)', 'EXECUTE')
     or has_function_privilege('anon', 'public.mutate_edit_reference_application_lifecycle_v3(text,jsonb)', 'EXECUTE')
     or has_function_privilege('anon', 'public.reserve_edit_reference_study_chat_run_v1(jsonb)', 'EXECUTE')
     or has_function_privilege('authenticated', 'public.enqueue_edit_reference_long_form_study_v1(jsonb)', 'EXECUTE')
@@ -80,7 +81,8 @@ begin
     raise exception 'SCHEMA_RPC_ROLE_BOUNDARY_TOO_BROAD';
   end if;
 
-  if not has_function_privilege('authenticated', 'public.apply_exact_edit_preferences_and_reference_v1(text,jsonb)', 'EXECUTE')
+  if not has_function_privilege('authenticated', 'public.read_exact_edit_apply_authority_v1(text,text,jsonb)', 'EXECUTE')
+    or not has_function_privilege('authenticated', 'public.apply_exact_edit_preferences_and_reference_v1(text,jsonb)', 'EXECUTE')
     or not has_function_privilege('authenticated', 'public.mutate_edit_reference_application_lifecycle_v3(text,jsonb)', 'EXECUTE')
     or not has_function_privilege('authenticated', 'public.read_exact_edit_reference_application_state_v2(text,text,jsonb)', 'EXECUTE')
     or not has_function_privilege('authenticated', 'public.assert_preference_application_plan_current_v1(text,jsonb,uuid,text,text,uuid,text)', 'EXECUTE')
@@ -96,7 +98,7 @@ begin
     join pg_namespace namespace on namespace.oid = procedure.pronamespace
     where namespace.nspname = 'public'
       and procedure.prosecdef
-      and procedure.proname like '%edit_reference%'
+      and (procedure.proname like '%edit_reference%' or procedure.proname like '%exact_edit%')
       and not exists (
         select 1 from unnest(coalesce(procedure.proconfig, '{}'::text[])) setting
         where setting like 'search_path=%'

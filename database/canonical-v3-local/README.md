@@ -18,6 +18,9 @@ The chain provides:
 - `apply_exact_edit_preferences_and_reference_v1` as the one outer exact-edit
   Apply transaction for generic preference changes and the optional nested
   Edit Reference lifecycle command;
+- `read_exact_edit_apply_authority_v1` as the sanitized, tenant-bound
+  optimistic-concurrency read that supplies record, planning, frame, and
+  selected-application digests before the outer transaction re-reads them;
 - `read_exact_edit_reference_application_state_v2` planning authority;
 - `assert_preference_application_plan_current_v1` execution-currentness check;
 - durable Kimi K3 -> Qwen 3.7 -> DeepSeek V4 Pro Study Chat attempts, provider
@@ -30,7 +33,8 @@ The chain provides:
 - process-branded, loopback-only TypeScript adapters that run SQL receipts and
   planning reads through the frozen V6 backend validators;
 - a real local PostgREST HTTP proof using authenticated, locally signed JWTs,
-  with no service-role credential used for the Apply operation;
+  with no service-role credential used for either the authority read or Apply
+  operation;
 - local two-user/two-workspace isolation and adversarial lifecycle, atomic
   Apply, replay, recovery, direct-table-denial, and internal-cost tests.
 

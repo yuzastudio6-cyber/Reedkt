@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto'
 import type {
+  EditReferenceProductionExactEditApplyAuthorityRead,
   EditReferenceProductionExactEditApplyApiReceipt,
 } from '../../src/types/edit-reference-production-exact-edit-apply-api'
 import { ApiError } from '../errors/api-error'
@@ -9,9 +10,13 @@ import type {
 } from './edit-reference-production-application-lifecycle'
 import { EDIT_REFERENCE_PRODUCTION_PERSISTENCE_CONTRACT_VERSION } from './edit-reference-production-persistence-contract'
 import {
+  EDIT_REFERENCE_PRODUCTION_EXACT_EDIT_APPLY_AUTHORITY_READ_RPC,
   EDIT_REFERENCE_PRODUCTION_EXACT_EDIT_APPLY_RPC,
+  validateEditReferenceProductionExactEditApplyAuthorityRead,
+  validateEditReferenceProductionExactEditApplyAuthorityReadScope,
   validateEditReferenceProductionExactEditApplyReceipt,
   validateEditReferenceProductionExactEditApplyRequest,
+  type EditReferenceProductionExactEditApplyAuthorityReadScope,
   type EditReferenceProductionExactEditApplyRequest,
 } from './edit-reference-production-exact-edit-apply-boundary'
 import type {
@@ -51,6 +56,9 @@ export interface EditReferenceLocalSupabaseRpcAdapter {
   applyExactEditPreferencesAndReference(
     request: EditReferenceProductionExactEditApplyRequest,
   ): Promise<EditReferenceProductionExactEditApplyApiReceipt>
+  readExactEditApplyAuthority(
+    scope: EditReferenceProductionExactEditApplyAuthorityReadScope,
+  ): Promise<EditReferenceProductionExactEditApplyAuthorityRead>
   readonly loopbackOnly: true
   readonly remoteDatabaseMutationAllowed: false
   readonly productionAuthority: false
@@ -109,10 +117,50 @@ export function createEditReferenceLocalSupabaseRpcAdapter(input: {
     applyExactEditPreferencesAndReference: (
       request: EditReferenceProductionExactEditApplyRequest,
     ) => invokeExactEditApply(input.client, request),
+    readExactEditApplyAuthority: (
+      scope: EditReferenceProductionExactEditApplyAuthorityReadScope,
+    ) => invokeExactEditApplyAuthorityRead(input.client, scope),
     loopbackOnly: true as const,
     remoteDatabaseMutationAllowed: false as const,
     productionAuthority: false as const,
   })
+}
+
+async function invokeExactEditApplyAuthorityRead(
+  client: EditReferenceProductionRpcClient,
+  scope: EditReferenceProductionExactEditApplyAuthorityReadScope,
+): Promise<EditReferenceProductionExactEditApplyAuthorityRead> {
+  validateEditReferenceProductionExactEditApplyAuthorityReadScope(scope)
+  let result: Awaited<ReturnType<EditReferenceProductionRpcClient['rpc']>>
+  try {
+    result = await client.rpc(
+      EDIT_REFERENCE_PRODUCTION_EXACT_EDIT_APPLY_AUTHORITY_READ_RPC,
+      {
+        p_contract_version: EDIT_REFERENCE_PRODUCTION_PERSISTENCE_CONTRACT_VERSION,
+        p_read_version:
+          'edit-reference-production-exact-edit-apply-authority-read-v1',
+        p_scope: scope,
+      },
+    )
+  } catch {
+    invalid('local_exact_edit_apply_authority_read_rpc_failed')
+  }
+  if (!result || typeof result !== 'object' || result.error) {
+    invalid('local_exact_edit_apply_authority_read_rpc_failed')
+  }
+  if (!Array.isArray(result.data) || result.data.length !== 1) {
+    invalid('local_exact_edit_apply_authority_read_response_shape_invalid')
+  }
+  const authority = result.data[0] as EditReferenceProductionExactEditApplyAuthorityRead
+  validateEditReferenceProductionExactEditApplyAuthorityRead(authority)
+  if (
+    authority.workspaceId !== scope.workspaceId
+    || authority.projectId !== scope.projectId
+    || authority.editSessionId !== scope.editSessionId
+    || authority.selectedApplicationAuthority?.applicationId
+      !== (scope.selectedApplicationId ?? undefined)
+  ) invalid('local_exact_edit_apply_authority_read_scope_mismatch')
+  return structuredClone(authority)
 }
 
 async function invokeExactEditApply(

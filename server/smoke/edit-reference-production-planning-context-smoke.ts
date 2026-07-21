@@ -20,6 +20,10 @@ import {
   EDIT_REFERENCE_PRODUCTION_PLANNING_AUTHORITY_READ_VERSION,
   resolveEditReferenceProductionPlanningAuthority,
 } from '../edit-references/edit-reference-production-planning-authority'
+import {
+  createEditReferenceProductionPlannerBindingAdapterReceipt,
+  validateEditReferenceProductionPlannerBindingAdapterReceipt,
+} from '../edit-references/edit-reference-production-planner-binding-adapter'
 
 const hash = (character: string): string => character.repeat(64)
 const precedence = [
@@ -239,6 +243,11 @@ const planningContext = createEditReferenceProductionPlanningContext({ applicati
 validateEditReferenceProductionPlanningContext({ application, request, receipt, planningContext })
 assert.equal(planningContext.guidance.length, 1)
 assert.equal(planningContext.heldBack.length, 1)
+assert.equal(planningContext.editReferenceName, application.editReferenceName)
+assert.equal(planningContext.applicationVersionNumber, application.version)
+assert.equal(planningContext.dnaApprovalId, application.dnaApprovalId)
+assert.equal(planningContext.dnaQaResultId, application.dnaQaResultId)
+assert.equal(planningContext.targetUnderstandingConfidence, targetUnderstanding.confidence)
 assert.equal(planningContext.committedPlanningInputRevision, 5)
 assert.equal(
   planningContext.outputFrameConfirmationDigestSha256,
@@ -371,6 +380,41 @@ assert(authorityResolution)
 assert.equal(authorityResolution.sourceAuthority, 'canonical_edit_reference_production_repository')
 assert.equal(authorityResolution.planningContext.contextDigestSha256, planningContext.contextDigestSha256)
 
+const plannerBindingReceipt = createEditReferenceProductionPlannerBindingAdapterReceipt(authorityResolution)
+validateEditReferenceProductionPlannerBindingAdapterReceipt(plannerBindingReceipt)
+assert.equal(plannerBindingReceipt.noLegacyPreferenceIntelligenceStoreRead, true)
+assert.equal(plannerBindingReceipt.sharedPlannerMutationMade, false)
+assert.equal(plannerBindingReceipt.preferenceApplication.status, 'applied')
+assert.equal(plannerBindingReceipt.preferenceApplication.preferenceId, application.editReferenceId)
+assert.equal(plannerBindingReceipt.preferenceApplication.applicationVersion, application.version)
+assert.equal(plannerBindingReceipt.preferenceApplication.applicationHash, planningContext.contextDigestSha256)
+assert.equal(plannerBindingReceipt.preferenceApplication.plannerContext.preferenceName, application.editReferenceName)
+assert.equal(plannerBindingReceipt.preferenceApplication.plannerContext.qaStatus, 'passed')
+assert.equal(plannerBindingReceipt.preferenceApplication.plannerContext.confidence, 0.91)
+assert.deepEqual(
+  plannerBindingReceipt.preferenceApplication.plannerContext.relevantRules.pacing_timing,
+  ['Use measured pacing and hold verified evidence long enough to read.'],
+)
+assert.deepEqual(
+  plannerBindingReceipt.preferenceApplication.plannerContext.relevantRules.approved_constraints,
+  targetContext.approvedConstraints,
+)
+assert.deepEqual(
+  plannerBindingReceipt.preferenceApplication.plannerContext.nonTransferableElements,
+  ['Do not transfer the reference music treatment.'],
+)
+assert.deepEqual(
+  plannerBindingReceipt.preferenceApplication.plannerContext.qaWarnings,
+  ['Reference-specific music is not transferable.'],
+)
+assert.throws(() => validateEditReferenceProductionPlannerBindingAdapterReceipt({
+  ...plannerBindingReceipt,
+  preferenceApplication: {
+    ...plannerBindingReceipt.preferenceApplication,
+    applicationHash: hash('f'),
+  },
+}), /cannot be bound safely to the canonical planner/i)
+
 const noApplicationRead = {
   schemaVersion: EDIT_REFERENCE_PRODUCTION_PLANNING_AUTHORITY_READ_VERSION,
   repositoryAuthority: 'supabase_rls_transactional' as const,
@@ -419,6 +463,8 @@ console.log(JSON.stringify({
   heldBackCount: planningContext.heldBack.length,
   contextDigestSha256: planningContext.contextDigestSha256,
   productionRepositoryAuthorityResolved: true,
+  canonicalPlannerBindingAdapted: true,
+  legacyPreferenceIntelligenceStoreRead: false,
   remoteMutationAttempted: false,
   productionReady: false,
 }, null, 2))

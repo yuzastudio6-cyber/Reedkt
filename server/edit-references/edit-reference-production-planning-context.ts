@@ -14,7 +14,7 @@ import {
 } from './edit-reference-production-application-lifecycle'
 
 export const EDIT_REFERENCE_PRODUCTION_PLANNING_CONTEXT_VERSION =
-  'edit-reference-production-planning-context-v1' as const
+  'edit-reference-production-planning-context-v2' as const
 
 export interface EditReferenceProductionPlanningGuidanceItem {
   readonly decisionId: string
@@ -32,6 +32,7 @@ export interface EditReferenceProductionPlanningHeldBackItem {
   readonly sourceRuleId: string
   readonly layerId: PreferenceDNALayerId
   readonly decision: 'ignored' | 'blocked'
+  readonly instruction: string
   readonly reason: string
   readonly heldBackReason: string
   readonly confidence: number
@@ -46,15 +47,20 @@ export interface EditReferenceProductionPlanningContext {
   readonly projectId: string
   readonly editSessionId: string
   readonly editReferenceId: string
+  readonly editReferenceName: string
   readonly studySessionId: string
   readonly dnaVersionId: string
   readonly dnaVersionNumber: number
   readonly dnaContentDigestSha256: string
+  readonly dnaApprovalId: string
+  readonly dnaQaResultId: string
   readonly applicationId: string
+  readonly applicationVersionNumber: number
   readonly applicationContentDigestSha256: string
   readonly applicationContextHashSha256: string
   readonly targetContextDigestSha256: string
   readonly targetUnderstandingPackageDigestSha256: string
+  readonly targetUnderstandingConfidence: number
   readonly outputFrameConfirmationId: string
   readonly outputFrameConfirmationDigestSha256: string
   readonly committedReferenceRevision: number
@@ -83,6 +89,7 @@ export interface EditReferenceProductionPlanningContext {
 type PlanningContextWithoutDigest = Omit<EditReferenceProductionPlanningContext, 'contextDigestSha256'>
 
 const SHA256_PATTERN = /^[a-f0-9]{64}$/
+const ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,239}$/
 const ALLOWED_DECISIONS = new Set(['applied', 'adapted', 'ignored', 'blocked'])
 const EXPECTED_PRECEDENCE: PreferenceApplicationRecord['precedencePolicy'] = [
   'safety_platform_tier_frame_credit_or_approved_constraint',
@@ -176,6 +183,16 @@ function validateApplicationContentAuthority(application: PreferenceApplicationR
     application.applicationVersion !== 'edit-reference-target-application-v2'
     || application.runtimeSource !== 'verified_live'
     || application.status !== 'prepared'
+    || !ID_PATTERN.test(application.editReferenceId)
+    || !application.editReferenceName.trim()
+    || application.editReferenceName.length > 120
+    || !ID_PATTERN.test(application.studySessionId)
+    || !ID_PATTERN.test(application.dnaVersionId)
+    || !ID_PATTERN.test(application.dnaApprovalId)
+    || !ID_PATTERN.test(application.dnaQaResultId)
+    || !ID_PATTERN.test(application.id)
+    || !Number.isInteger(application.version)
+    || application.version < 1
     || application.targetIdentityStatus !== 'verified_target_video_understanding'
     || application.approvedPlanMutationMade !== false
     || application.targetContext.outputFrameConfirmed !== true
@@ -261,15 +278,20 @@ function createUnsignedPlanningContext(input: {
     projectId: application.projectId,
     editSessionId: application.editSessionId,
     editReferenceId: application.editReferenceId,
+    editReferenceName: application.editReferenceName,
     studySessionId: application.studySessionId,
     dnaVersionId: application.dnaVersionId,
     dnaVersionNumber: application.dnaVersionNumber,
     dnaContentDigestSha256: application.dnaContentDigest,
+    dnaApprovalId: application.dnaApprovalId,
+    dnaQaResultId: application.dnaQaResultId,
     applicationId: application.id,
+    applicationVersionNumber: application.version,
     applicationContentDigestSha256: application.contentDigest,
     applicationContextHashSha256: request.applicationContextHashSha256,
     targetContextDigestSha256: application.targetContextDigest,
     targetUnderstandingPackageDigestSha256: target.packageDigestSha256,
+    targetUnderstandingConfidence: target.confidence,
     outputFrameConfirmationId: outputFrameConfirmation.confirmationId,
     outputFrameConfirmationDigestSha256: outputFrameConfirmation.authorityDigestSha256,
     committedReferenceRevision: receipt.committedReferenceRevision,
@@ -295,6 +317,7 @@ function createUnsignedPlanningContext(input: {
         sourceRuleId: decision.sourceRuleId,
         layerId: decision.layerId,
         decision: decision.decision as 'ignored' | 'blocked',
+        instruction: decision.targetInstruction,
         reason: decision.reason,
         heldBackReason: decision.heldBackReason ?? decision.reason,
         confidence: decision.confidence,
@@ -323,14 +346,19 @@ function applicationContextCore(application: PreferenceApplicationRecord): unkno
     projectId: application.projectId,
     editSessionId: application.editSessionId,
     editReferenceId: application.editReferenceId,
+    editReferenceName: application.editReferenceName,
     studySessionId: application.studySessionId,
     dnaVersionId: application.dnaVersionId,
     dnaVersionNumber: application.dnaVersionNumber,
     dnaContentDigestSha256: application.dnaContentDigest,
+    dnaApprovalId: application.dnaApprovalId,
+    dnaQaResultId: application.dnaQaResultId,
     applicationId: application.id,
+    applicationVersionNumber: application.version,
     applicationContentDigestSha256: application.contentDigest,
     targetContextDigestSha256: application.targetContextDigest,
     targetUnderstandingPackageDigestSha256: application.targetUnderstanding?.packageDigestSha256,
+    targetUnderstandingConfidence: application.targetUnderstanding?.confidence,
     currentUserInstruction: application.targetContext.currentUserInstruction,
     approvedConstraints: application.targetContext.approvedConstraints,
     decisions: application.decisions,

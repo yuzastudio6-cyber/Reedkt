@@ -69,6 +69,7 @@ export interface CanonicalPrivateToolReadinessEvidence {
   privateInternalRunnerReady: boolean
   privateInternalEndToEndReady: boolean
   privateInternalJobAdapterReady: boolean
+  privateInternalBoundaryContractReady: boolean
   productReady: false
   externalBetaReady: false
   productionReady: false
@@ -122,6 +123,7 @@ export interface ProductionReadinessEvidenceTierSummary {
     runnerVerifiedToolIds: ProductionToolId[]
     canonicalEndToEndVerifiedToolIds: ProductionToolId[]
     canonicalJobAdapterVerifiedToolIds: ProductionToolId[]
+    canonicalBoundaryContractVerifiedToolIds: ProductionToolId[]
     productReady: false
     externalBetaReady: false
     productionReady: false
@@ -254,6 +256,7 @@ export interface ProductionReadinessActionStage {
   canonicalPrivateRunnerVerifiedToolIds: ProductionToolId[]
   canonicalPrivateEndToEndVerifiedToolIds: ProductionToolId[]
   canonicalPrivateJobAdapterVerifiedToolIds: ProductionToolId[]
+  canonicalPrivateBoundaryContractVerifiedToolIds: ProductionToolId[]
   blockerCount: number
   requiredEvidence: string[]
   nextActions: string[]

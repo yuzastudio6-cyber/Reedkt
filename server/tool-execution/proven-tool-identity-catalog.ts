@@ -18,12 +18,14 @@ import { OFFLINE_VAPOURSYNTH_FRAME_PIPELINE_PACKAGE_IDENTITIES } from './vapours
 import { OFFLINE_AUDIOFLUX_ANALYSIS_PACKAGE_IDENTITIES } from './audioflux-analysis-execution/offline-audioflux-analysis-protocol'
 import { OFFLINE_REMBG_BACKGROUND_REMOVAL_PACKAGE_IDENTITIES } from './rembg-background-removal-execution/offline-rembg-background-removal-protocol'
 import { OFFLINE_DEEPFILTERNET_VOICE_CLEANUP_PACKAGE_IDENTITY } from './deepfilternet-voice-cleanup-execution/offline-deepfilternet-voice-cleanup-protocol'
+import { CANONICAL_HYPERFRAME_PREVIEW_HANDOFF_EVIDENCE_KEY } from '../workers/timeline/canonical-hyperframe-preview-handoff-boundary'
 
-export const PROVEN_TOOL_IDENTITY_CATALOG_VERSION = 'proven-tool-identity-catalog-v1' as const
-export const PROVEN_TOOL_EVIDENCE_REVISION = '2026-07-15.30' as const
+export const PROVEN_TOOL_IDENTITY_CATALOG_VERSION = 'proven-tool-identity-catalog-v2' as const
+export const PROVEN_TOOL_EVIDENCE_REVISION = '2026-07-21.31' as const
 
 export type ToolVerificationState =
   | 'canonical_e2e_verified'
+  | 'canonical_boundary_contract_verified'
   | 'confined_runner_verified'
   | 'declared_not_runner_verified'
   | 'intentionally_non_executable'
@@ -60,6 +62,17 @@ export interface ProvenToolGateEvidence {
   downstreamLeaseVerificationPassed: boolean
 }
 
+export interface ProvenToolBoundaryEvidence {
+  exactOperationIdentityVerified: boolean
+  approvedSnapshotPackageFrameAndTimingDigestsBound: boolean
+  privateTimelineArtifactAndQaDigestsBound: boolean
+  deterministicReadOnlyHandoffVerified: boolean
+  browserSafeProjectionVerified: boolean
+  externalRuntimeNotInvoked: boolean
+  sourceMediaNotProcessed: boolean
+  customerCommercialAuthorityExcluded: boolean
+}
+
 export interface ProvenToolIdentityRecord {
   schemaVersion: typeof PROVEN_TOOL_IDENTITY_CATALOG_VERSION
   evidenceRevision: typeof PROVEN_TOOL_EVIDENCE_REVISION
@@ -88,12 +101,16 @@ export interface ProvenToolIdentityRecord {
     canonicalEvidenceKey: string | null
     canonicalJobAdapterSmokeCommand: string | null
     canonicalJobAdapterEvidenceKey: string | null
+    canonicalBoundarySmokeCommand: string | null
+    canonicalBoundaryEvidenceKey: string | null
     gates: ProvenToolGateEvidence
+    boundaryEvidence: ProvenToolBoundaryEvidence | null
   }
   readiness: {
     privateInternalRunnerReady: boolean
     privateInternalEndToEndReady: boolean
     privateInternalJobAdapterReady: boolean
+    privateInternalBoundaryContractReady: boolean
     productReady: false
     externalBetaReady: false
     productionReady: false
@@ -101,6 +118,10 @@ export interface ProvenToolIdentityRecord {
   blockers: readonly string[]
   identityHash: string
   proofHash: string
+}
+
+const CANONICAL_BOUNDARY_EVIDENCE_KEYS: Partial<Record<ProductionToolId, string>> = {
+  hyperframe: CANONICAL_HYPERFRAME_PREVIEW_HANDOFF_EVIDENCE_KEY,
 }
 
 const CANONICAL_E2E_EVIDENCE_KEYS: Partial<Record<ProductionToolId, string>> = {
@@ -238,16 +259,24 @@ const records = specs.map((spec): ProvenToolIdentityRecord => {
   const canonicalEvidenceKey = CANONICAL_E2E_EVIDENCE_KEYS[spec.canonicalToolId] ?? null
   const canonicalJobAdapterEvidenceKey =
     CANONICAL_JOB_ADAPTER_EVIDENCE_KEYS[spec.canonicalToolId] ?? null
-  const callable = spec.policyBlocks.length === 0
+  const canonicalBoundaryEvidenceKey =
+    CANONICAL_BOUNDARY_EVIDENCE_KEYS[spec.canonicalToolId] ?? null
+  const callable = spec.policyBlocks.length === 0 &&
+    spec.workerRuntime.runtimeClass !== 'not_assignable_policy_blocked'
   const endToEnd = Boolean(canonicalEvidenceKey)
-  const verificationState: ToolVerificationState = !callable
+  const boundaryContract = Boolean(canonicalBoundaryEvidenceKey)
+  const verificationState: ToolVerificationState = boundaryContract
+    ? 'canonical_boundary_contract_verified'
+    : !callable
     ? 'intentionally_non_executable'
     : endToEnd
       ? 'canonical_e2e_verified'
       : runtime
         ? 'confined_runner_verified'
         : 'declared_not_runner_verified'
-  const verifiedOutputContentTypes = runtime
+  const verifiedOutputContentTypes = boundaryContract
+    ? ['application/vnd.reeditpro.hyperframe-preview-handoff+json']
+    : runtime
     ? [...(OUTPUT_CONTENT_TYPES[spec.canonicalToolId] ?? ['application/json'])]
     : []
   const identityCore = {
@@ -258,13 +287,16 @@ const records = specs.map((spec): ProvenToolIdentityRecord => {
     operationSpecHash: sha256AuthorityValue(spec),
   }
   const gates = gateEvidence(Boolean(runtime), endToEnd)
+  const boundaryEvidence = boundaryContract ? canonicalBoundaryEvidence() : null
   const proofCore = {
     ...identityCore,
     verificationState,
     runtime: runtime ?? null,
     canonicalEvidenceKey,
     canonicalJobAdapterEvidenceKey,
+    canonicalBoundaryEvidenceKey,
     gates,
+    boundaryEvidence,
     verifiedOutputContentTypes,
   }
   return deepFreeze({
@@ -290,12 +322,18 @@ const records = specs.map((spec): ProvenToolIdentityRecord => {
         ? 'npm run smoke:canonical-private-tool-dispatch'
         : null,
       canonicalJobAdapterEvidenceKey,
+      canonicalBoundarySmokeCommand: boundaryContract
+        ? 'npm run smoke:canonical-hyperframe-preview-handoff-boundary'
+        : null,
+      canonicalBoundaryEvidenceKey,
       gates,
+      boundaryEvidence,
     },
     readiness: {
       privateInternalRunnerReady: Boolean(runtime),
       privateInternalEndToEndReady: endToEnd,
       privateInternalJobAdapterReady: Boolean(canonicalJobAdapterEvidenceKey),
+      privateInternalBoundaryContractReady: boundaryContract,
       productReady: false, externalBetaReady: false, productionReady: false,
     },
     blockers: blockers(spec.canonicalToolId, verificationState, spec.policyBlockReasons),
@@ -325,6 +363,13 @@ export function getProvenEndToEndToolIdentity(
   return record?.readiness.privateInternalEndToEndReady ? record : undefined
 }
 
+export function getProvenBoundaryToolIdentity(
+  toolId: ProductionToolId,
+): ProvenToolIdentityRecord | undefined {
+  const record = PROVEN_TOOL_IDENTITY_CATALOG.find((candidate) => candidate.canonicalToolId === toolId)
+  return record?.readiness.privateInternalBoundaryContractReady ? record : undefined
+}
+
 export function summarizeProvenToolIdentityCatalog() {
   return deepFreeze({
     schemaVersion: PROVEN_TOOL_IDENTITY_CATALOG_VERSION,
@@ -341,6 +386,11 @@ export function summarizeProvenToolIdentityCatalog() {
       .filter((record) => record.readiness.privateInternalJobAdapterReady).length,
     canonicalJobAdapterVerifiedToolIds: records
       .filter((record) => record.readiness.privateInternalJobAdapterReady)
+      .map((record) => record.canonicalToolId),
+    canonicalBoundaryContractVerifiedCount: records
+      .filter((record) => record.readiness.privateInternalBoundaryContractReady).length,
+    canonicalBoundaryContractVerifiedToolIds: records
+      .filter((record) => record.readiness.privateInternalBoundaryContractReady)
       .map((record) => record.canonicalToolId),
   })
 }
@@ -543,11 +593,31 @@ function gateEvidence(runtime: boolean, endToEnd: boolean): ProvenToolGateEviden
   })
 }
 
+function canonicalBoundaryEvidence(): ProvenToolBoundaryEvidence {
+  return deepFreeze({
+    exactOperationIdentityVerified: true,
+    approvedSnapshotPackageFrameAndTimingDigestsBound: true,
+    privateTimelineArtifactAndQaDigestsBound: true,
+    deterministicReadOnlyHandoffVerified: true,
+    browserSafeProjectionVerified: true,
+    externalRuntimeNotInvoked: true,
+    sourceMediaNotProcessed: true,
+    customerCommercialAuthorityExcluded: true,
+  })
+}
+
 function blockers(
   toolId: ProductionToolId,
   state: ToolVerificationState,
   policyReasons: readonly string[],
 ): readonly string[] {
+  if (state === 'canonical_boundary_contract_verified') {
+    return [
+      'live_approved_snapshot_repository_readback_not_verified',
+      'mounted_browser_preview_consumer_not_verified',
+      'production_image_and_deployed_release_not_verified',
+    ]
+  }
   if (state === 'intentionally_non_executable') return [...policyReasons]
   const promotion = [
     'distributed_worker_and_service_identity_not_verified',
@@ -595,7 +665,7 @@ function unverifiedToolSpecificBlockers(toolId: ProductionToolId): readonly stri
 
 function validateCatalog(catalog: readonly ProvenToolIdentityRecord[]): void {
   if (catalog.length !== 72) throw new Error('Proven tool identity catalog must cover all 72 profiles.')
-  if (catalog.filter((record) => record.callability === 'callable_candidate').length !== 61) {
+  if (catalog.filter((record) => record.callability === 'callable_candidate').length !== 60) {
     throw new Error('Proven tool identity catalog callable partition changed unexpectedly.')
   }
   for (const key of ['stableToolIdentity', 'identityHash', 'proofHash'] as const) {
@@ -615,6 +685,27 @@ function validateCatalog(catalog: readonly ProvenToolIdentityRecord[]): void {
     }
     if (record.readiness.privateInternalEndToEndReady && !record.readiness.privateInternalRunnerReady) {
       throw new Error(`Canonical E2E tool lacks runner proof: ${record.canonicalToolId}.`)
+    }
+    if (record.readiness.privateInternalBoundaryContractReady) {
+      if (
+        record.callability !== 'intentionally_non_executable' ||
+        record.verificationState !== 'canonical_boundary_contract_verified' ||
+        record.readiness.privateInternalRunnerReady ||
+        record.readiness.privateInternalEndToEndReady ||
+        record.readiness.privateInternalJobAdapterReady ||
+        !record.evidence.canonicalBoundarySmokeCommand ||
+        !record.evidence.canonicalBoundaryEvidenceKey ||
+        !record.evidence.boundaryEvidence ||
+        !Object.values(record.evidence.boundaryEvidence).every(Boolean)
+      ) {
+        throw new Error(`Canonical boundary proof is inconsistent for ${record.canonicalToolId}.`)
+      }
+    } else if (
+      record.evidence.canonicalBoundarySmokeCommand ||
+      record.evidence.canonicalBoundaryEvidenceKey ||
+      record.evidence.boundaryEvidence
+    ) {
+      throw new Error(`Non-boundary tool exposes boundary evidence: ${record.canonicalToolId}.`)
     }
     if (
       record.readiness.privateInternalJobAdapterReady &&

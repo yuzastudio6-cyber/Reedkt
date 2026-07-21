@@ -33,6 +33,7 @@ export function getCanonicalPrivateToolReadinessEvidence(
     privateInternalRunnerReady: record.readiness.privateInternalRunnerReady,
     privateInternalEndToEndReady: record.readiness.privateInternalEndToEndReady,
     privateInternalJobAdapterReady: record.readiness.privateInternalJobAdapterReady,
+    privateInternalBoundaryContractReady: record.readiness.privateInternalBoundaryContractReady,
     productReady: false as const,
     externalBetaReady: false as const,
     productionReady: false as const,
@@ -87,6 +88,9 @@ export function summarizeCanonicalToolReadinessEvidence(
       .map((record) => record.canonicalToolId),
     canonicalJobAdapterVerifiedToolIds: records
       .filter((record) => record.readiness.privateInternalJobAdapterReady)
+      .map((record) => record.canonicalToolId),
+    canonicalBoundaryContractVerifiedToolIds: records
+      .filter((record) => record.readiness.privateInternalBoundaryContractReady)
       .map((record) => record.canonicalToolId),
     productReady: false as const,
     externalBetaReady: false as const,

@@ -4,6 +4,7 @@ import { resolve } from 'node:path'
 
 import { sha256AuthorityValue } from '../services/private-edit-authority-store'
 import {
+  getProvenBoundaryToolIdentity,
   getProvenEndToEndToolIdentity,
   getToolIdentityRecord,
   listProvenToolIdentityCatalog,
@@ -18,11 +19,13 @@ const summary = summarizeProvenToolIdentityCatalog()
 const specs = listCompleteProfessionalToolOperationSpecs()
 assert.equal(catalog.length, 72)
 assert.equal(summary.totalRegistryProfiles, 72)
-assert.equal(summary.callableCandidateCount, 61)
-assert.equal(summary.intentionallyNonExecutableCount, 11)
+assert.equal(summary.callableCandidateCount, 60)
+assert.equal(summary.intentionallyNonExecutableCount, 12)
 assert.equal(summary.confinedRunnerVerifiedCount, 53)
 assert.equal(summary.canonicalEndToEndVerifiedCount, 50)
 assert.equal(summary.canonicalJobAdapterVerifiedCount, 50)
+assert.equal(summary.canonicalBoundaryContractVerifiedCount, 1)
+assert.deepEqual(summary.canonicalBoundaryContractVerifiedToolIds, ['hyperframe'])
 assert.equal(new Set(catalog.map((record) => record.stableToolIdentity)).size, 72)
 assert.equal(new Set(catalog.map((record) => record.identityHash)).size, 72)
 assert.equal(new Set(catalog.map((record) => record.proofHash)).size, 72)
@@ -89,6 +92,26 @@ for (const record of catalog) {
     assert.equal(record.evidence.canonicalJobAdapterEvidenceKey, null)
   }
 
+  if (record.readiness.privateInternalBoundaryContractReady) {
+    assert.equal(getProvenBoundaryToolIdentity(record.canonicalToolId)?.proofHash, record.proofHash)
+    assert.equal(record.callability, 'intentionally_non_executable')
+    assert.equal(record.verificationState, 'canonical_boundary_contract_verified')
+    assert.equal(record.readiness.privateInternalRunnerReady, false)
+    assert.equal(record.readiness.privateInternalEndToEndReady, false)
+    assert.equal(record.readiness.privateInternalJobAdapterReady, false)
+    assert.equal(record.evidence.canonicalBoundarySmokeCommand, 'npm run smoke:canonical-hyperframe-preview-handoff-boundary')
+    assert.equal(record.evidence.canonicalBoundaryEvidenceKey, 'hyperframe_approved_timeline_handoff_boundary_contract_verified_without_runtime_execution')
+    assert.ok(record.evidence.boundaryEvidence)
+    assert.ok(Object.values(record.evidence.boundaryEvidence).every(Boolean))
+    const scriptName = record.evidence.canonicalBoundarySmokeCommand.replace(/^npm run /, '')
+    assert.ok(packageJson.scripts[scriptName])
+  } else {
+    assert.equal(getProvenBoundaryToolIdentity(record.canonicalToolId), undefined)
+    assert.equal(record.evidence.canonicalBoundarySmokeCommand, null)
+    assert.equal(record.evidence.canonicalBoundaryEvidenceKey, null)
+    assert.equal(record.evidence.boundaryEvidence, null)
+  }
+
   const tamperedIdentity = {
     schemaVersion: record.schemaVersion,
     evidenceRevision: record.evidenceRevision,
@@ -142,17 +165,27 @@ assert.equal(getToolIdentityRecord('deepfilternet').evidence.canonicalEvidenceKe
 assert.equal(getToolIdentityRecord('deepfilternet').readiness.privateInternalRunnerReady, true)
 assert.equal(getToolIdentityRecord('deepfilternet').readiness.privateInternalEndToEndReady, true)
 assert.equal(getToolIdentityRecord('deepfilternet').readiness.productReady, false)
+assert.equal(getToolIdentityRecord('hyperframe').verificationState, 'canonical_boundary_contract_verified')
+assert.equal(getToolIdentityRecord('hyperframe').callability, 'intentionally_non_executable')
+assert.equal(getToolIdentityRecord('hyperframe').readiness.privateInternalBoundaryContractReady, true)
+assert.equal(getToolIdentityRecord('hyperframe').readiness.privateInternalRunnerReady, false)
+assert.equal(getToolIdentityRecord('hyperframe').readiness.privateInternalEndToEndReady, false)
+assert.equal(getToolIdentityRecord('hyperframe').readiness.privateInternalJobAdapterReady, false)
+assert.deepEqual(getToolIdentityRecord('hyperframe').artifactContract.verifiedOutputContentTypes, [
+  'application/vnd.reeditpro.hyperframe-preview-handoff+json',
+])
 
 console.log(JSON.stringify({
   ok: true,
   summary,
   checks: [
     'all_72_registry_profiles_have_stable_canonical_identities',
-    '61_callable_and_11_intentionally_non_executable_partition_locked',
+    '60_callable_and_12_intentionally_non_executable_partition_locked',
     'runner_proof_and_canonical_e2e_proof_are_distinct_states',
     'exact_operation_spec_package_version_runner_and_artifact_contract_recorded',
     'canonical_evidence_keys_exist_in_executed_lifecycle_smoke',
     'job_adapter_evidence_is_a_distinct_per_tool_proof_dimension',
+    'hyperframe_non_executable_boundary_contract_is_distinct_from_runner_and_job_proof',
     'all_end_to_end_records_require_every_proof_gate',
     'identity_and_proof_hashes_fail_on_tampering',
     'no_product_beta_or_production_promotion_inferred',

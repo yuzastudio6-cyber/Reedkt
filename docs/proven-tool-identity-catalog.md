@@ -120,21 +120,35 @@ The runner class is `offline_deepfilternet_voice_cleanup_execution_v1`; its evid
 
 ## Current evidence snapshot
 
-Evidence revision `2026-07-15.30` records:
+Evidence revision `2026-07-21.31` and catalog schema
+`proven-tool-identity-catalog-v2` record:
 
 - 72 total registry profiles with stable identities.
-- 61 callable candidates.
-- 11 intentionally non-executable profiles.
+- 60 callable candidates.
+- 12 intentionally non-executable profiles.
 - 53 confined-runner verified tools.
 - 50 exact canonical end-to-end verified tools.
 - 50 exact tool identities verified through the server-derived canonical job adapter.
-- 8 callable candidates that remain declared but do not yet have confined-runner proof.
+- 1 exact non-executable integration-boundary contract: `hyperframe`.
+- 7 callable candidates that remain declared but do not yet have confined-runner proof.
 - 0 product-, external-beta-, or production-ready tools; those promotions require separate deployment evidence.
 
-This revision adds `video/x-matroska` to FFmpeg's verified private artifact
-contract and binds the color-capable build to the revision-isolated
+Revision `.31` preserves all 50 executable identities from revision
+`2026-07-15.30` and adds no runner or job-adapter claim. It corrects Hyperframe's
+classification from callable to intentionally non-executable and records a
+separate source-verified boundary contract for the exact operation
+`tool.hyperframe.handoff_approved_preview_timeline.v1`. The contract verifies a
+server-derived, content-addressed handoff of an already-approved private
+timeline to a browser-safe preview descriptor. It does not invoke an external
+Hyperframes runtime, process source media, render or export video, or create
+browser execution authority. Its runner, canonical E2E, job-adapter,
+production-image, deployed-release, external-beta, and production-readiness
+flags all remain false.
+
+Historical revision `.30` added `video/x-matroska` to FFmpeg's verified private
+artifact contract and bound the color-capable build to the revision-isolated
 `8.1.2-color-v1-local` image tag and authority namespace. An older checkout
-cannot replace this runtime evidence by activating its narrower FFmpeg policy.
+cannot replace that runtime evidence by activating its narrower FFmpeg policy.
 `npm run smoke:offline-media-binary-execution` proves the exact
 lossless VP9 BT.709/yuv420p color intermediate, and
 `npm run smoke:canonical-private-color-execution` proves its separate
@@ -144,7 +158,7 @@ private download. The complete 50-tool matrix continues to use its honest
 trim/voice FFmpeg adapter evidence key; the color slice does not increase the
 tool count or imply product, beta, or production readiness.
 
-The remaining 11 callable candidates that have not reached canonical E2E stay visible in the same report. Their blocker lists identify the exact missing proof class per tool, including reviewed model/checkpoint manifests and offline caches for model-backed tools and exact fixture/artifact QA for other package-backed tools. A candidate is never promoted from declaration or import availability alone.
+The remaining 10 callable candidates that have not reached canonical E2E stay visible in the same report. Their blocker lists identify the exact missing proof class per tool, including reviewed model/checkpoint manifests and offline caches for model-backed tools and exact fixture/artifact QA for other package-backed tools. A candidate is never promoted from declaration or import availability alone. Hyperframe is not part of that callable remainder: its non-executable contract is intentionally measured in a separate evidence class.
 
 The 50 exact canonical end-to-end identities are:
 
@@ -174,6 +188,6 @@ sharp, duckdb, polars, opencv, signalsmith_stretch, vapoursynth
 
 ## Promotion rule
 
-A tool may move to `canonical_e2e_verified` only when all twelve proof gates are true and its named canonical evidence key exists in `smoke:canonical-private-tool-dispatch`. It may additionally set `privateInternalJobAdapterReady` only when that exact identity has a separate named adapter evidence key in the same executed smoke. Adding a package, declaring an operation, passing an import probe, sharing a coordinator, or merely appearing in the adapter dispatch table is not sufficient.
+A tool may move to `canonical_e2e_verified` only when all twelve proof gates are true and its named canonical evidence key exists in `smoke:canonical-private-tool-dispatch`. It may additionally set `privateInternalJobAdapterReady` only when that exact identity has a separate named adapter evidence key in the same executed smoke. A deliberately non-executable integration boundary may instead set `privateInternalBoundaryContractReady` only when its exact deterministic contract smoke and named boundary evidence key pass while all executable and release flags remain false. Boundary proof never counts as runner, E2E, job-adapter, image, or deployed-release proof. Adding a package, declaring an operation, passing an import probe, sharing a coordinator, or merely appearing in the adapter dispatch table is not sufficient.
 
 The catalog remains private-internal evidence. Distributed workers, deployed service identities, production object storage, observability, incident response, external beta, public delivery, and production promotion remain separate gates.

@@ -60,6 +60,17 @@ fenced until an accepted-worker timeout is reconciled. It also runs the active n
 Playwright journey
 and the versioned proven-tool identity report.
 
+The current source revision also carries one separately classified,
+non-executable Hyperframe preview-handoff contract. Its focused command is
+`npm run smoke:canonical-hyperframe-preview-handoff-boundary`. It binds an
+already-approved private timeline, exact snapshot/package/frame/timing
+authority, and private timeline QA receipt to one deterministic browser-safe
+descriptor. It does not add a 51st executable tool, invoke an external
+Hyperframes runtime, process source media, render/export video, or satisfy any
+runner, job-adapter, production-image, deployed-release, billing, or public
+delivery gate. The 50 executable canonical/job-adapter identities remain
+unchanged.
+
 The receiver phase now additionally requires a create-only durable runtime-cost
 start for the three metered DeepFilterNet, Remotion, and FFmpeg profiles and
 proves a controller-owned bounded expired-attempt finalizer. Unmetered profiles

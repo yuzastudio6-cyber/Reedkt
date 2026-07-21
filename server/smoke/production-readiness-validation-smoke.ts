@@ -43,6 +43,8 @@ const requiredFiles = [
   'server/workers/readiness-validation/production-container-qualification-contract.ts',
   'server/workers/readiness-validation/production-container-qualification-live-probe.ts',
   'server/workers/readiness-validation/index.ts',
+  'server/workers/timeline/canonical-hyperframe-preview-handoff-boundary.ts',
+  'server/smoke/canonical-hyperframe-preview-handoff-boundary-smoke.ts',
   'server/cli/production-readiness-summary.ts',
   'server/cli/production-readiness-action-plan.ts',
   'server/cli/production-readiness-command-plan.ts',
@@ -63,6 +65,11 @@ check(staticReport.imageSummaries.length === 6, 'Readiness report must contain a
 check(staticReport.toolSummaries.length > 0, 'Readiness report must contain tool summaries.')
 check(staticReport.evidenceTiers.registryToolCount === staticReport.toolSummaries.length, 'Readiness report must cover every tool in all three evidence tiers.')
 check(staticReport.evidenceTiers.privateInternal.canonicalEndToEndVerifiedToolIds.length === 50, 'Readiness report must retain the 50 canonical private end-to-end proofs.')
+check(
+  staticReport.evidenceTiers.privateInternal.canonicalBoundaryContractVerifiedToolIds.length === 1 &&
+    staticReport.evidenceTiers.privateInternal.canonicalBoundaryContractVerifiedToolIds[0] === 'hyperframe',
+  'Readiness report must classify Hyperframe as the one non-executable canonical boundary contract without adding runner or job proof.',
+)
 check(staticReport.evidenceTiers.productionImageQualification.qualifiedToolIds.length === 0, 'Static readiness must not fabricate production-image qualification.')
 check(staticReport.evidenceTiers.deployedReleaseQualification.qualifiedToolIds.length === 0, 'Static readiness must not fabricate deployed-release qualification.')
 check(staticReport.actionPlan.status === 'blocked_by_evidence_gates', 'Static readiness must expose blocked evidence-gate action plan status.')
@@ -94,6 +101,17 @@ check(
 
 const launchCoreStage = staticReport.actionPlan.stages.find((stage) => stage.id === 'launch_core_container_readiness')
 check(Boolean(launchCoreStage), 'Action plan must include launch-core container readiness stage.')
+check(
+  Boolean(
+    launchCoreStage?.canonicalPrivateEndToEndVerifiedToolIds.length === 23 &&
+      launchCoreStage?.canonicalPrivateJobAdapterVerifiedToolIds.length === 23 &&
+      launchCoreStage?.canonicalPrivateBoundaryContractVerifiedToolIds.length === 1 &&
+      launchCoreStage.canonicalPrivateBoundaryContractVerifiedToolIds[0] === 'hyperframe' &&
+      launchCoreStage.transitionSummary.includes('23/23 executable tool(s) have canonical private end-to-end proof') &&
+      launchCoreStage.transitionSummary.includes('1/1 non-executable integration boundary has a canonical contract proof'),
+  ),
+  'Launch-core readiness must keep its 23 executable proofs separate from the one non-executable Hyperframe boundary proof.',
+)
 check(
   Boolean(
     launchCoreStage?.adapterContractToolIds.includes('librosa') &&
@@ -260,6 +278,10 @@ check(
 check(
   classifyProductionReadinessBlocker({ kind: 'required_launch_core_missing', toolId: 'ffmpeg' }).severity === 'hard_blocker',
   'Blocker policy must flag missing launch-core production-image qualification evidence.',
+)
+check(
+  classifyProductionReadinessBlocker({ kind: 'required_launch_core_boundary_release_missing', toolId: 'hyperframe' }).severity === 'hard_blocker',
+  'Blocker policy must keep a non-executable launch-core boundary blocked on deployed integration evidence without inventing a worker image.',
 )
 check(
   classifyProductionReadinessBlocker({ kind: 'future_only_tool_not_installed', toolId: 'vapoursynth' }).severity === 'warning',

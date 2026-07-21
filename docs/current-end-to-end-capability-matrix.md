@@ -79,7 +79,7 @@ Current gaps:
 - 72 of 72 production profiles have structural cost-metering coverage.
 - 0 of 72 production profiles are currently marked product-ready.
 
-### 2026-07-12 executable-evidence audit
+### 2026-07-21 executable and boundary-evidence audit
 
 | Evidence | Current count | What it proves |
 | --- | ---: | --- |
@@ -88,10 +88,11 @@ Current gaps:
 | Hidden adapter names | 55 | Skill/planner references. |
 | Bounded adapter contracts | 50 | Fixed backend contract exists. |
 | Registered runner definitions | 50 / 50 | A bounded runner definition exists. |
-| Callable candidates | 61 / 72 | Operation contract has no policy-blocking disposition. |
-| Intentionally non-executable | 11 / 72 | Planning, future, evaluation, or policy-only lane; no call is permitted. |
+| Callable candidates | 60 / 72 | Operation contract is executable in principle and is not assigned a non-executable worker-runtime disposition. |
+| Intentionally non-executable | 12 / 72 | Planning, future, evaluation, policy-only, or explicit integration-boundary lane; no tool call is permitted. |
 | Confined runner verified | 53 | Exact bounded operation ran in its approved offline runtime profile. |
 | Canonical private E2E identities | 50 | Exact approved snapshot/work item, funded reservation, lease, one-use dispatch, private persistence, QA, reconciliation, replay, and downstream verification passed. |
+| Canonical non-executable boundary contracts | 1 / 72 (`hyperframe`) | Exact approved-timeline handoff and browser-safe projection are deterministic and tamper-evident. This is not runner, job, render, export, external-runtime, or release evidence. |
 | Canonical plan tool-identity authority | 50 / 50 in the complete fixture | All required full-fixture tools are declared by strategy, bound to exact operations, frozen with stable identity/operation/proof hashes before approval, and revalidated before execution packaging. |
 | Approved work-item resource placement authority | 50 / 50 tool identities have exact catalog placement; each approved graph freezes only its exact work items | CPU/GPU/render/control-plane class, accelerator, worker cap, global cap, tool identity/proof, and blocked-provider disposition are content-addressed before approval and hash-bound through readiness, lease, dispatch, and scheduling. This is private/local authority, not deployed cloud capacity. |
 | Canonical pre-approval payload authority | 50 unique tools across 19 runner families in the complete fixture | Exact structured payload, source/cleanup/dependency binding, output role/content type, and offline policy are validated before plan approval, frozen in content-addressed lineage, revalidated before packaging, and reused at dispatch. |
@@ -101,7 +102,7 @@ Current gaps:
 | Product-ready | 0 / 72 | No registry tool meets production evidence gates. |
 | Frontend-executable in practice | 0 | Tool execution stays off the browser. |
 
-The authoritative identity source is `server/tool-execution/proven-tool-identity-catalog.ts`, evidence revision `2026-07-15.30`. Every one of its 50 `canonical_e2e_verified` identities performs an exact confined operation, passes the complete private canonical lifecycle, and has exact server-derived job-adapter proof. Canonical publication now derives `canonical-tool-execution-authority-v2` from that catalog and the compiled work graph; it embeds the exact approved work-item resource-placement authority before approval, and required tools without both proof dimensions fail before approval. The revision records FFmpeg's additional verified `video/x-matroska` artifact contract plus its revision-isolated `8.1.2-color-v1-local` runtime identity without increasing the 50-tool count or promoting product readiness. This is private single-host evidence, not distributed-worker, external-beta, or production evidence.
+The authoritative identity source is `server/tool-execution/proven-tool-identity-catalog.ts`, evidence revision `2026-07-21.31`, schema `proven-tool-identity-catalog-v2`. Every one of its 50 `canonical_e2e_verified` identities performs an exact confined operation, passes the complete private canonical lifecycle, and has exact server-derived job-adapter proof. Canonical publication now derives `canonical-tool-execution-authority-v2` from that catalog and the compiled work graph; it embeds the exact approved work-item resource-placement authority before approval, and required executable tools without both proof dimensions fail before approval. Hyperframe is the one separately measured `canonical_boundary_contract_verified` identity: it hands off an already-approved private timeline through `tool.hyperframe.handoff_approved_preview_timeline.v1` without invoking an external Hyperframes runtime, processing source media, or claiming a runner/job/release. Historical revision `.30` recorded FFmpeg's additional verified `video/x-matroska` artifact contract plus its revision-isolated `8.1.2-color-v1-local` runtime identity. Neither revision increases the 50-tool executable count or promotes product readiness. This is private single-host/source-contract evidence, not distributed-worker, external-beta, or production evidence.
 
 ### Actual execution coverage
 

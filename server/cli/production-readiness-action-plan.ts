@@ -29,6 +29,7 @@ if (output === 'json') {
     console.log(`canonicalPrivateRunnerVerified=${stage.canonicalPrivateRunnerVerifiedToolIds.length}`)
     console.log(`canonicalPrivateEndToEndVerified=${stage.canonicalPrivateEndToEndVerifiedToolIds.length}`)
     console.log(`canonicalPrivateJobAdapterVerified=${stage.canonicalPrivateJobAdapterVerifiedToolIds.length}`)
+    console.log(`canonicalPrivateBoundaryContractVerified=${stage.canonicalPrivateBoundaryContractVerifiedToolIds.length}`)
     console.log(`productionImageOrReleaseMissing=${stage.productionReadinessMissingToolIds.length}`)
     console.log(`blockers=${stage.blockerCount}`)
     if (stage.sourceDeclarationMissingToolIds.length > 0) {

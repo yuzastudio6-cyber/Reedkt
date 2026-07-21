@@ -127,13 +127,18 @@ function dedupeBlockers(blockers: ProductionReadinessBlockerSummary[]): Producti
 
 function buildToolBlockers(toolId: ProductionToolId, status: ReadinessValidationStatus): ProductionReadinessBlockerSummary[] {
   const profile = getProductionToolProfile(toolId)
+  const privateEvidence = getCanonicalPrivateToolReadinessEvidence(toolId)
   const candidates: ProductionReadinessBlockerCandidate[] = []
 
   if (profile?.launchCore && (status === 'missing' || status === 'not_checked')) {
     candidates.push({
-      kind: 'required_launch_core_missing',
+      kind: privateEvidence.privateInternalBoundaryContractReady
+        ? 'required_launch_core_boundary_release_missing'
+        : 'required_launch_core_missing',
       toolId,
-      detail: `${profile.displayName} requires a same-source production-image readiness receipt; any retained private lifecycle proof does not satisfy this gate.`,
+      detail: privateEvidence.privateInternalBoundaryContractReady
+        ? `${profile.displayName} requires a same-source deployed integration receipt; its source-verified boundary contract does not satisfy that release gate and must never be promoted through a worker image.`
+        : `${profile.displayName} requires a same-source production-image readiness receipt; any retained private lifecycle proof does not satisfy this gate.`,
     })
   }
 
@@ -561,16 +566,27 @@ function transitionSummary(toolIds: ProductionToolId[], toolSummaries: Readiness
     .filter((tool) => toolIds.includes(tool.toolId))
     .filter((tool) => tool.canonicalPrivateEvidence.privateInternalEndToEndReady)
     .map((tool) => tool.toolId)
+  const canonicalBoundaryToolIds = toolSummaries
+    .filter((tool) => toolIds.includes(tool.toolId))
+    .filter((tool) => tool.canonicalPrivateEvidence.privateInternalBoundaryContractReady)
+    .map((tool) => tool.toolId)
+  const executableToolCount = toolIds.length - canonicalBoundaryToolIds.length
+  const privateProofSummary = canonicalBoundaryToolIds.length > 0
+    ? `${canonicalPrivateToolIds.length}/${executableToolCount} executable tool(s) have canonical private end-to-end proof and ${canonicalBoundaryToolIds.length}/${canonicalBoundaryToolIds.length} non-executable integration boundary has a canonical contract proof`
+    : `${canonicalPrivateToolIds.length} tool(s) have canonical private end-to-end proof`
   if (adapterToolIds.length === 0) {
-    return `${canonicalPrivateToolIds.length} tool(s) have canonical private end-to-end proof and ${declaredToolIds.length} have static source declarations, but ${missingToolIds.length} still need production image/release evidence; none are currently represented by backend bounded adapter contracts.`
+    return `${privateProofSummary}; ${declaredToolIds.length} have static source declarations, but ${missingToolIds.length} still need production image/release evidence; none are currently represented by backend bounded adapter contracts.`
   }
-  return `${canonicalPrivateToolIds.length} tool(s) have canonical private end-to-end proof, ${adapterToolIds.length} have backend bounded adapter contracts, and ${declaredToolIds.length} have static source declarations, but ${missingToolIds.length} still need same-source production image and deployed-release evidence before external beta or production.`
+  const releaseEvidenceSummary = canonicalBoundaryToolIds.length > 0
+    ? 'same-source production-image evidence for executable tools or deployed-integration evidence for the non-executable boundary'
+    : 'same-source production image and deployed-release evidence'
+  return `${privateProofSummary}; ${adapterToolIds.length} have backend bounded adapter contracts, and ${declaredToolIds.length} have static source declarations, but ${missingToolIds.length} still need ${releaseEvidenceSummary} before external beta or production.`
 }
 
 function privateEvidenceToolIds(
   toolIds: ProductionToolId[],
   toolSummaries: ReadinessToolSummary[],
-  key: 'privateInternalRunnerReady' | 'privateInternalEndToEndReady' | 'privateInternalJobAdapterReady',
+  key: 'privateInternalRunnerReady' | 'privateInternalEndToEndReady' | 'privateInternalJobAdapterReady' | 'privateInternalBoundaryContractReady',
 ): ProductionToolId[] {
   return uniqueToolIds(toolSummaries
     .filter((tool) => toolIds.includes(tool.toolId) && tool.canonicalPrivateEvidence[key])
@@ -584,7 +600,8 @@ function privateEvidenceFields(
   ProductionReadinessActionStage,
   'canonicalPrivateRunnerVerifiedToolIds' |
   'canonicalPrivateEndToEndVerifiedToolIds' |
-  'canonicalPrivateJobAdapterVerifiedToolIds'
+  'canonicalPrivateJobAdapterVerifiedToolIds' |
+  'canonicalPrivateBoundaryContractVerifiedToolIds'
 > {
   return {
     canonicalPrivateRunnerVerifiedToolIds: privateEvidenceToolIds(
@@ -601,6 +618,11 @@ function privateEvidenceFields(
       toolIds,
       toolSummaries,
       'privateInternalJobAdapterReady',
+    ),
+    canonicalPrivateBoundaryContractVerifiedToolIds: privateEvidenceToolIds(
+      toolIds,
+      toolSummaries,
+      'privateInternalBoundaryContractReady',
     ),
   }
 }
@@ -646,7 +668,7 @@ function buildActionPlan(
       status: stageStatus(launchCoreTools, launchCoreBlockerCount),
       title: 'Launch-core container readiness',
       summary: launchCoreTools.length > 0
-        ? `${launchCoreTools.length} launch-core tools still need production container readiness evidence.`
+        ? `${launchCoreTools.length} launch-core identities still need production-image or non-executable boundary release evidence.`
         : 'Launch-core tools have production readiness evidence.',
       toolIds: launchCoreTools,
       adapterContractToolIds: adapterContractToolIds(launchCoreTools),
@@ -661,6 +683,7 @@ function buildActionPlan(
         'Bounded container runtime candidate receipt for required and forbidden tools with no media processing.',
         'Independent same-source/image verification of the candidate receipt.',
         'Manual license review where the package has production licensing obligations.',
+        'For a non-executable integration boundary, same-source browser/server integration and deployed-release proof replace worker-image evidence without granting execution authority.',
       ],
       nextActions: [
         ...(launchCoreSourceMissing.length > 0
@@ -668,6 +691,7 @@ function buildActionPlan(
           : []),
         'Run the approved candidate-receipt command plan for all six immutable production images.',
         'Independently verify exact package evidence, image digests, source identity, and license notes before promoting any worker.',
+        'Qualify Hyperframe only through the non-executable deployed-integration lane; do not build, assign, or dispatch it as a worker tool.',
       ],
       safetyBoundary: 'Does not authorize provider calls, user media processing, public delivery, billing, beta, or production traffic.',
       transitionSummary: transitionSummary(launchCoreTools, toolSummaries),

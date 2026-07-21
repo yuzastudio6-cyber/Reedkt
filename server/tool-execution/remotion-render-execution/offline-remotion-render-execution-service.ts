@@ -4,6 +4,7 @@ import { ApiError } from '../../errors/api-error'
 import { readPrivateTextFileIfExistsWithinRoot, writePrivateTextFileAtomicWithinRoot } from '../../security/private-local-persistence'
 import { sha256AuthorityValue, stableAuthorityStringify } from '../../services/private-edit-authority-store'
 import {
+  OFFLINE_REMOTION_LOCAL_RUNTIME_NAMESPACE,
   inspectExistingOfflineRemotionDockerRuntime,
   runOfflineRemotionContainer,
   runOfflineRemotionStreamingContainer,
@@ -44,9 +45,9 @@ import {
 } from './offline-remotion-delivery-h264-chunk-protocol'
 
 export const OFFLINE_REMOTION_RENDER_EXECUTION_STORAGE_ROOT =
-  '/tmp/reeditpro-canonical-private-offline-remotion-render-execution' as const
+  `/tmp/reeditpro-canonical-private-offline-remotion-render-execution-${OFFLINE_REMOTION_LOCAL_RUNTIME_NAMESPACE}` as const
 export const OFFLINE_REMOTION_RENDER_RUNTIME_AUTHORITY_RELATIVE_PATH =
-  'runtime-authority/offline-remotion-render-runtime-v1.json' as const
+  'runtime-authority/offline-remotion-render-runtime-v2.json' as const
 const STORAGE_ROOT = OFFLINE_REMOTION_RENDER_EXECUTION_STORAGE_ROOT
 const AUTHORITY_PATH = OFFLINE_REMOTION_RENDER_RUNTIME_AUTHORITY_RELATIVE_PATH
 const BLOCKERS = Object.freeze([

@@ -28,10 +28,14 @@ const wireSchema = z.object({
   observerKind: z.enum([
     'node_process_resource_usage_v1',
     'python_resource_getrusage_v1',
+    'media_container_cgroup_v2_v1',
+    'media_container_cgroup_v2_attempt_aggregate_v1',
   ]),
   measurementAgentVersion: z.enum([
     'embedded_node_process_resource_observer_v1',
     'embedded_python_process_resource_observer_v1',
+    'embedded_media_cgroup_v2_observer_v1',
+    'embedded_media_cgroup_v2_attempt_aggregate_v1',
   ]),
   start: observationPointSchema,
   finish: observationPointSchema,
@@ -52,7 +56,11 @@ export const privateEmbeddedProcessResourceObservationSchema = z.object({
   const payload = withoutObservationHash(value)
   if (
     finishedAt <= startedAt
-    || finishedAt - startedAt > 4 * 60 * 60 * 1_000
+    || finishedAt - startedAt > (
+      value.observerKind.startsWith('media_container_cgroup_v2_')
+        ? 7 * 60 * 60 * 1_000
+        : 4 * 60 * 60 * 1_000
+    )
     || value.start.memoryPeakBytes < value.start.memoryCurrentBytes
     || value.finish.memoryPeakBytes < value.finish.memoryCurrentBytes
     || value.finish.memoryPeakBytes < value.start.memoryPeakBytes

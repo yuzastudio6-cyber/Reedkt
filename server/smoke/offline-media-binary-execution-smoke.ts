@@ -19,6 +19,13 @@ import {
   openPrivateOfflineMediaBinaryRuntime,
   readPersistedOfflineMediaBinaryRuntimeAuthority,
 } from '../tool-execution/media-binary-execution'
+import {
+  PRIVATE_MEDIA_CGROUP_RESOURCE_OBSERVATION_MAGIC,
+  normalizePrivateMediaCgroupResourceObservation,
+} from '../tool-execution/media-binary-execution/private-media-cgroup-resource-observation'
+import type {
+  PrivateEmbeddedProcessResourceObservation,
+} from '../tool-execution/private-embedded-process-resource-observation'
 
 const fixturePath = join('/tmp', `reeditpro-offline-ffprobe-${process.pid}.mp4`)
 const generated = spawnSync('ffmpeg', [
@@ -82,6 +89,15 @@ assert.equal(result.evidence.confinement.networkMode, 'none')
 assert.equal(result.evidence.confinement.readOnlyRootFilesystem, true)
 assert.equal(result.evidence.confinement.callerMountsPresent, false)
 assert.equal(result.evidence.confinement.serverDerivedArgumentsOnly, true)
+assert.equal(
+  result.evidence.confinement.resourceObserverEntrypoint,
+  '/usr/local/bin/reeditpro-media-cgroup-resource-observer',
+)
+assert.equal(result.evidence.confinement.cgroupV2ResourceObservationRequired, true)
+assertMediaAttemptResourceObservation(
+  result.evidence.resourceObservation,
+  result.evidence.confinement.memoryLimitBytes,
+)
 assert.equal(result.readiness.productReady, false)
 assert.equal(result.image.productReady, false)
 assert.equal(result.image.h264Encoding, 'blocked_not_compiled')
@@ -118,6 +134,10 @@ assert.equal(ffmpegResult.evidence.semanticEvidence.outputVideoCodec, 'ffv1')
 assert.equal(ffmpegResult.evidence.semanticEvidence.outputProbeVerified, true)
 assert.equal(ffmpegResult.evidence.confinement.serverOwnedEntrypoint,
   '/opt/reeditpro-ffmpeg/bin/ffmpeg')
+assertMediaAttemptResourceObservation(
+  ffmpegResult.evidence.resourceObservation,
+  ffmpegResult.evidence.confinement.memoryLimitBytes,
+)
 const ffmpegReplay = await runtime.execute(ffmpegRequest)
 assert.equal(ffmpegReplay.resultArtifact.sha256, ffmpegResult.resultArtifact.sha256)
 
@@ -544,11 +564,12 @@ await assertRejects(() => runtime.executeMezzanineFinalizationServerInjected(
 const authority = await readPersistedOfflineMediaBinaryRuntimeAuthority()
 assert(authority)
 assert.equal(authority.readiness.privateInternalExecutionReady, true)
+assert.equal(authority.readiness.privateGenericMediaResourceObservationReady, true)
 assert.equal(authority.readiness.finalExportReady, false)
 assert.equal(authority.supportedOperations.length, 2)
 assert.equal(
   authority.image.imageTag,
-  'reeditpro/ffmpeg-lgpl-internal:8.1.2-object-chunk-v6-local',
+  'reeditpro/ffmpeg-lgpl-internal:8.1.2-object-chunk-v7-local',
 )
 assert.equal(authority.image.imageIdentityHash, runtime.image.imageIdentityHash)
 const reopened = await openPrivateOfflineMediaBinaryRuntime()
@@ -604,6 +625,43 @@ await assertRejects(() => runtime.execute({
   operationId: 'tool.ffprobe.unapproved.v1',
 }))
 
+const observerNonce = 'a'.repeat(48)
+const observerMarker = [
+  PRIVATE_MEDIA_CGROUP_RESOURCE_OBSERVATION_MAGIC,
+  observerNonce,
+  '1784592000000000000',
+  '1784592000100000000',
+  '1000',
+  '9000',
+  '1048576',
+  '2097152',
+  '1572864',
+  '3145728',
+].join('\t')
+const normalizedObserver = normalizePrivateMediaCgroupResourceObservation({
+  stderr: Buffer.from(`${observerMarker}\n`, 'ascii'),
+  nonce: observerNonce,
+  containerId: 'b'.repeat(64),
+  imageId: `sha256:${'c'.repeat(64)}`,
+  measurementAgentDigest: 'd'.repeat(64),
+})
+assert.equal(normalizedObserver.sanitizedStderr.byteLength, 0)
+assert.equal(normalizedObserver.observation.observerKind, 'media_container_cgroup_v2_v1')
+assert.throws(() => normalizePrivateMediaCgroupResourceObservation({
+  stderr: Buffer.from(`${observerMarker}\n${observerMarker}\n`, 'ascii'),
+  nonce: observerNonce,
+  containerId: 'b'.repeat(64),
+  imageId: `sha256:${'c'.repeat(64)}`,
+  measurementAgentDigest: 'd'.repeat(64),
+}))
+assert.throws(() => normalizePrivateMediaCgroupResourceObservation({
+  stderr: Buffer.from(`${observerMarker.replace('\t9000\t', '\t999\t')}\n`, 'ascii'),
+  nonce: observerNonce,
+  containerId: 'b'.repeat(64),
+  imageId: `sha256:${'c'.repeat(64)}`,
+  measurementAgentDigest: 'd'.repeat(64),
+}))
+
 console.log(JSON.stringify({
   ok: true,
   checks: [
@@ -629,6 +687,9 @@ console.log(JSON.stringify({
     'server_injected_source_checksum_and_byte_length',
     'machine_json_duration_stream_and_frame_count_normalization',
     'networkless_readonly_nonroot_no_mount_confinement',
+    'exact_cgroup_v2_cpu_memory_observation_for_generic_ffmpeg_and_ffprobe',
+    'multi_container_media_attempt_resource_aggregation_is_source_bound',
+    'missing_duplicate_and_nonmonotonic_observer_markers_fail_closed',
     'server_owned_entrypoint_and_fixed_argument_derivation',
     'color_capable_image_tag_and_runtime_authority_namespace_are_revision_isolated',
     'exact_source_slice_mezzanine_finalizer_stream_copies_h264_video',
@@ -649,4 +710,29 @@ async function assertRejects(action: () => Promise<unknown>): Promise<void> {
   let rejected = false
   try { await action() } catch { rejected = true }
   assert.equal(rejected, true)
+}
+
+function assertMediaAttemptResourceObservation(
+  observation: PrivateEmbeddedProcessResourceObservation,
+  memoryLimitBytes: number,
+): void {
+  assert.equal(
+    observation.observerKind,
+    'media_container_cgroup_v2_attempt_aggregate_v1',
+  )
+  assert.equal(
+    observation.measurementAgentVersion,
+    'embedded_media_cgroup_v2_attempt_aggregate_v1',
+  )
+  assert.equal(observation.start.cpuUsageNanoseconds, 0)
+  assert.ok(observation.finish.cpuUsageNanoseconds > 0)
+  assert.ok(
+    Date.parse(observation.finish.capturedAt)
+    > Date.parse(observation.start.capturedAt),
+  )
+  assert.ok(observation.finish.memoryPeakBytes > 0)
+  assert.ok(observation.finish.memoryPeakBytes <= memoryLimitBytes)
+  assert.match(observation.containerIdentityDigest, /^[a-f0-9]{64}$/u)
+  assert.match(observation.measurementAgentDigest, /^[a-f0-9]{64}$/u)
+  assert.match(observation.observationHash, /^[a-f0-9]{64}$/u)
 }

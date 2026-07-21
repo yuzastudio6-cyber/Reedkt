@@ -91,6 +91,17 @@ The two fixed large-media entrypoints use the same confinement controls with a
 are fixed by the runtime and independently attested; they are not caller
 options.
 
+The generic FFmpeg/FFprobe path may replace the logical binary entrypoint with
+the fixed
+`/usr/local/bin/reeditpro-media-cgroup-resource-observer` wrapper. The wrapper
+accepts only a server-generated nonce, one allowlisted in-image entrypoint, and
+server-derived arguments. It preserves streamed stdin, records cgroup-v2 CPU
+and memory counters before and after the child, forwards termination, preserves
+the child exit code, and emits one nonce-bound terminal marker. The server
+requires and strips that marker before applying the ordinary zero-diagnostic
+success policy. Specialized long-form entrypoints are allowlisted for future
+shared integration but are not automatically observed by the current runtime.
+
 Dockerfiles cannot enforce `--network=none` or `--read-only` by themselves.
 Any future worker launcher must enforce those controls plus private read-only
 input mounts, an isolated bounded output mount, approved snapshot/work-item/
@@ -154,9 +165,9 @@ readiness.
 For a locally built image:
 
 ```bash
-docker image inspect --format '{{.Id}}' reeditpro/ffmpeg-lgpl-internal:8.1.2-object-chunk-v6-local
-docker sbom --format spdx-json reeditpro/ffmpeg-lgpl-internal:8.1.2-object-chunk-v6-local > /tmp/reeditpro-ffmpeg-8.1.2-object-chunk-v6.spdx.json
-sha256sum /tmp/reeditpro-ffmpeg-8.1.2-object-chunk-v6.spdx.json
+docker image inspect --format '{{.Id}}' reeditpro/ffmpeg-lgpl-internal:8.1.2-object-chunk-v7-local
+docker sbom --format spdx-json reeditpro/ffmpeg-lgpl-internal:8.1.2-object-chunk-v7-local > /tmp/reeditpro-ffmpeg-8.1.2-object-chunk-v7.spdx.json
+sha256sum /tmp/reeditpro-ffmpeg-8.1.2-object-chunk-v7.spdx.json
 ```
 
 The builder package lock and runtime binary/config hashes are stored under

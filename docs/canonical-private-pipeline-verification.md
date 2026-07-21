@@ -66,6 +66,18 @@ proves a controller-owned bounded expired-attempt finalizer. Unmetered profiles
 fail closed. See
 `docs/canonical-private-worker-timeout-finalizer-verification-2026-07-17.md`.
 
+The aggregate now also runs the fixed generic media-binary cgroup observer and
+the complete canonical embedded-resource lifecycle. Generic FFmpeg and FFprobe
+containers emit one nonce-bound terminal cgroup-v2 CPU/memory observation;
+multi-container FFmpeg attempts aggregate their exact sequential components.
+After private persistence, QA, lease completion, reconciliation, and fresh
+authority readback, the canonical attempt retains one create-only internal
+infrastructure-cost record. Together with the existing structured Node/Python
+runners, 30 operations now prove automatic embedded observation under their
+real private lifecycle. Specialized long-form entrypoints, Remotion resource
+observation, deployed cloud telemetry, official cloud rates, and commercial
+authority remain false.
+
 The aggregate also requires the server-only provider-attempt consumer
 projection. That phase reopens the exact approved package, queue/lease,
 one-use provider dispatch, terminal cost record, observed worker-resource
@@ -225,7 +237,7 @@ source-bound audio identities in approved order, reads sanitized journey state,
 and records review acceptance.
 
 The runner stops on the first failed phase and prints a machine-readable
-`canonical-private-pipeline-verification-v30` report with step exit codes and
+`canonical-private-pipeline-verification-v31` report with step exit codes and
 durations. A zero exit code means every included assertion passed, including
 assertions that production-only or unavailable behavior stays blocked.
 
@@ -235,6 +247,40 @@ and open time. Resource isolation prevents unrelated local tasks from mutating
 that discovery channel; it does not weaken image-identity validation.
 
 ## Current Evidence Record
+
+On 2026-07-20/21 UTC, the exact-source bounded v31 command passed all `42/42`
+phases with exit code `0`. It started at `2026-07-20T23:21:29.970Z`, finished
+at `2026-07-21T00:35:25.784Z`, and completed in `4,435,814 ms`. The new real
+media observer phase passed in `13,620 ms`; the complete 50-tool canonical
+lifecycle phase passed in `727,760 ms` and proved automatic attempt-bound
+CPU/memory plus internal-cost evidence for 30 operations: 28 structured
+Node/Python operations and generic FFmpeg/FFprobe. The report asserted
+`genericMediaBinaryCgroupV2ResourceObservation = true`,
+`canonicalEmbeddedResourceUsageOperationCount = 30`, and
+`canonicalFfmpegFfprobeAttemptInternalResourceCostEvidence = true` while
+keeping specialized long-form observation, Remotion cgroup observation, and
+deployed cloud-worker observation false.
+
+The same authoritative run retained the eight-of-255 six-hour graph result,
+two of 124 object-chunk pair proofs, the complete independent customer-delivery
+graph, a three-source canonical composition in `529,046 ms`, a
+`67,338,001`-byte lossless color artifact plus `19,141,508`-byte 4K H.264
+master in the professional-color phase, a separate `51,969,263`-byte UHD
+Remotion streaming artifact, all 11 named-edit browser tests, and exactly 50
+canonical E2E plus 50 job-adapter tool identities. Its final tool report was
+generated at `2026-07-21T00:35:25.763Z`.
+
+An earlier v31 attempt exposed a real local test-infrastructure collision: two
+independent worktrees shared the same Remotion image tag, build directory, and
+runtime-authority root. The corrected runtime derives a non-secret 16-hex
+namespace from the checkout identity and uses it for all three local resources;
+the focused multi-source proof and the complete aggregate then passed. This
+isolates parallel local verification only. It does not provide Remotion cgroup
+metering, deployed-worker isolation, or production authority.
+The post-aggregate focused Remotion smoke also passed with exit code `0` in
+`25,068 ms`, producing and independently checking one 28,208-byte test MP4
+with SHA-256
+`2dfd3312919a521c3692c65ea199941d6248cce8fe290b710592e7fe5065ea0b`.
 
 On 2026-07-20, the exact-source bounded v30 command passed all `40/40`
 phases with exit code `0`. The new pre-plan distributed-ingest phase passed

@@ -21,12 +21,19 @@ import {
   OFFLINE_REMOTION_DELIVERY_H264_CHUNK_RESOURCE_PROFILE,
 } from './offline-remotion-delivery-h264-chunk-protocol'
 
-export const OFFLINE_REMOTION_IMAGE_TAG = 'reeditpro-offline-remotion-render-execution:canonical-private-local-v1' as const
+const REPOSITORY_ROOT = repositoryRoot()
+export const OFFLINE_REMOTION_LOCAL_RUNTIME_NAMESPACE = createHash('sha256')
+  .update(REPOSITORY_ROOT)
+  .digest('hex')
+  .slice(0, 16)
+export const OFFLINE_REMOTION_IMAGE_TAG =
+  `reeditpro-offline-remotion-render-execution:canonical-private-local-v1-${OFFLINE_REMOTION_LOCAL_RUNTIME_NAMESPACE}` as const
 const BASE_DIGEST = 'sha256:53ada149d435c38b14476cb57e4a7da73c15595aba79bd6971b547ceb6d018bf' as const
 const PINNED_BASE = `node:22-bookworm-slim@${BASE_DIGEST}` as const
 const ENTRYPOINT = ['node', '/app/runner.mjs'] as const
 const SOURCE_FILES = ['Dockerfile', 'package.json', 'package-lock.json', 'entry.tsx', 'composition.tsx', 'build-bundle.mjs', 'ensure-browser.mjs', 'runner.mjs'] as const
-const BUILD_CONTEXT = '/tmp/reeditpro-canonical-private-offline-remotion-build-context-v1'
+const BUILD_CONTEXT =
+  `/tmp/reeditpro-canonical-private-offline-remotion-build-context-v1-${OFFLINE_REMOTION_LOCAL_RUNTIME_NAMESPACE}-${process.pid}`
 const TIMEOUT_MS = 15 * 60_000
 
 export const OFFLINE_REMOTION_STANDARD_RESOURCE_PROFILE =
@@ -518,7 +525,7 @@ async function readBoundedBuffer(path: string, max: number) {
   const handle = await open(path, constants.O_RDONLY | constants.O_NOFOLLOW)
   try { const stat = await handle.stat(); if (!stat.isFile() || stat.size < 1 || stat.size > max) throw runtimeFailure('Remotion source file is invalid.'); return await handle.readFile() } finally { await handle.close() }
 }
-function sourceDirectory() { return join(repositoryRoot(), 'docker/prod/offline-remotion-render-execution') }
+function sourceDirectory() { return join(REPOSITORY_ROOT, 'docker/prod/offline-remotion-render-execution') }
 function repositoryRoot() { return fileURLToPath(new URL('../../../', import.meta.url)).replace(/[\\/]$/, '') }
 function runDocker(args: string[], options: { cwd?: string; input?: string; timeoutMs: number; maxBytes: number }): Promise<HostResult> {
   return new Promise((resolvePromise, reject) => {

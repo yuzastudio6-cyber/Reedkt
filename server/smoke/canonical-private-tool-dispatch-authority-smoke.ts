@@ -4279,15 +4279,16 @@ const nodeResourceRuntimeAuthority = await readPersistedOfflineNodeStructuredRun
 const pythonResourceRuntimeAuthority = await readPersistedOfflinePythonStructuredRuntimeAuthority()
 assert.ok(nodeResourceRuntimeAuthority)
 assert.ok(pythonResourceRuntimeAuthority)
-const expectedEmbeddedResourceOperations = [
-  ...nodeResourceRuntimeAuthority.supportedOperations.filter((operation) =>
-    operation.toolId !== 'sharp'),
-  ...pythonResourceRuntimeAuthority.supportedOperations,
-]
-assert.equal(expectedEmbeddedResourceOperations.length, 28)
-const expectedEmbeddedResourceOperationIds = new Set(
-  expectedEmbeddedResourceOperations.map((operation) => operation.operationId),
-)
+const expectedEmbeddedResourceOperationIds = new Set([
+  ...nodeResourceRuntimeAuthority.supportedOperations
+    .filter((operation) => operation.toolId !== 'sharp')
+    .map((operation) => operation.operationId),
+  ...pythonResourceRuntimeAuthority.supportedOperations
+    .map((operation) => operation.operationId),
+  ffprobeOperationId,
+  ffmpegOperationId,
+])
+assert.equal(expectedEmbeddedResourceOperationIds.size, 30)
 const resourceLeaseAggregate = await readPrivateCanonicalWorkerLeaseAggregate({
   localStorageRoot,
   ownerUserId: userId,
@@ -4301,8 +4302,15 @@ for (const lease of resourceLeaseAggregate.leases) {
     || ![
       'offline_node_structured_execution_v1',
       'offline_python_structured_execution_v1',
+      'offline_media_binary_execution_v1',
     ].includes(lease.executionFence.runnerClass ?? '')
     || !lease.executionFence.executionAttemptId
+  ) continue
+  const mediaBinaryEvidence =
+    lease.executionFence.runnerClass === 'offline_media_binary_execution_v1'
+  if (
+    mediaBinaryEvidence
+    && ![probeJob.id, trimJob.id].includes(lease.jobId)
   ) continue
   const evidence = await readPrivateWorkerResourceUsageCostEvidence({
     localStorageRoot,
@@ -4326,10 +4334,22 @@ for (const lease of resourceLeaseAggregate.leases) {
     'private_embedded_observed_resource_snapshots',
   )
   assert.ok(evidence.resourceUsage.wallTimeMilliseconds > 0)
-  assert.equal(evidence.resourceUsage.allocatedVcpuCount, 1)
-  assert.equal(evidence.resourceUsage.allocatedMemoryMib, 768)
+  assert.equal(evidence.resourceUsage.allocatedVcpuCount, mediaBinaryEvidence ? 2 : 1)
+  assert.equal(evidence.resourceUsage.allocatedMemoryMib, mediaBinaryEvidence ? 2_048 : 768)
   assert.equal(evidence.resourceUsage.allocatedGpuCount, 0)
   assert.equal(evidence.resourceUsage.networkEgressBytes, 0)
+  if (mediaBinaryEvidence) {
+    assert.equal(
+      evidence.runtime.measurementAgentVersion,
+      'embedded_media_cgroup_v2_attempt_aggregate_v1',
+    )
+    assert.ok([ffprobeOperationId, ffmpegOperationId].includes(
+      evidence.operation.operationId,
+    ))
+    assert.ok(evidence.resourceUsage.observedCpuMicroseconds > 0)
+    assert.ok(evidence.resourceUsage.observedPeakMemoryBytes > 0)
+    assert.ok(evidence.resourceUsage.observedPeakMemoryBytes <= 2_048 * 1024 * 1024)
+  }
   assert.equal(evidence.runtime.cloudExecutionResourceDigest, null)
   assert.equal(evidence.input.artifacts.length >= 1, true)
   assert.equal(evidence.output.artifacts.length, 1)
@@ -4353,6 +4373,14 @@ for (const lease of resourceLeaseAggregate.leases) {
   const serializedEvidence = JSON.stringify(evidence)
   assert.equal(serializedEvidence.includes(strongInternalSecret), false)
   assert.equal(serializedEvidence.includes(localStorageRoot), false)
+  const replayedEvidence = await readPrivateWorkerResourceUsageCostEvidence({
+    localStorageRoot,
+    ownerUserId: userId,
+    workspaceId,
+    projectId: snapshot.projectId,
+    executionAttemptId: lease.executionFence.executionAttemptId,
+  })
+  assert.equal(replayedEvidence?.evidenceHash, evidence.evidenceHash)
   embeddedResourceEvidenceByOperation.set(
     evidence.operation.operationId,
     evidence.evidenceHash,
@@ -4362,7 +4390,7 @@ assert.deepEqual(
   [...embeddedResourceEvidenceByOperation.keys()].sort(),
   [...expectedEmbeddedResourceOperationIds].sort(),
 )
-assert.equal(embeddedResourceEvidenceByOperation.size, 28)
+assert.equal(embeddedResourceEvidenceByOperation.size, 30)
 
 await expectApiError(
   () => createCanonicalPrivateToolDispatchAuthorityService({
@@ -4420,6 +4448,8 @@ console.log(JSON.stringify({
     'actual_svg_artifact_qa_and_reconciliation_authority_committed',
     'same_idempotent_coordinator_attempt_resumes_after_completed_execution_fence',
     'all_28_node_and_python_operations_persist_exact_embedded_cpu_memory_and_internal_cost_evidence',
+    'canonical_ffmpeg_and_ffprobe_attempts_persist_exact_cgroup_v2_cpu_memory_and_internal_cost_evidence',
+    'media_binary_resource_evidence_binds_job_attempt_lease_dispatch_input_output_and_replay',
     'embedded_usage_evidence_is_create_only_replay_safe_and_commercially_separate',
     'downstream_lease_reopens_and_verifies_actual_structured_svg_bytes',
     'active_started_lease_reads_exact_selected_dependency_bytes_without_paths_or_urls',

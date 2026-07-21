@@ -18,6 +18,15 @@ import {
 import { sha256AuthorityValue, stableAuthorityStringify } from '../../services/private-edit-authority-store'
 import { createPrivateDockerCliInvocation } from '../private-docker-cli'
 import {
+  PRIVATE_MEDIA_CGROUP_RESOURCE_OBSERVER_ENTRYPOINT,
+  aggregatePrivateMediaCgroupResourceObservations,
+  createPrivateMediaCgroupResourceObserverInvocation,
+  normalizePrivateMediaCgroupResourceObservation,
+} from './private-media-cgroup-resource-observation'
+import type {
+  PrivateEmbeddedProcessResourceObservation,
+} from '../private-embedded-process-resource-observation'
+import {
   OFFLINE_MEDIA_BINARY_OPERATIONS,
   validateOfflineFfmpegExecutionRequest,
   validateOfflineFfprobeExecutionRequest,
@@ -114,7 +123,7 @@ import {
   OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_OUTPUT_BYTES,
 } from './offline-media-binary-types'
 
-const IMAGE_TAG = 'reeditpro/ffmpeg-lgpl-internal:8.1.2-object-chunk-v6-local' as const
+const IMAGE_TAG = 'reeditpro/ffmpeg-lgpl-internal:8.1.2-object-chunk-v7-local' as const
 const FFPROBE_ENTRYPOINT = '/opt/reeditpro-ffmpeg/bin/ffprobe' as const
 const FFMPEG_ENTRYPOINT = '/opt/reeditpro-ffmpeg/bin/ffmpeg' as const
 const MEZZANINE_FINALIZER_ENTRYPOINT =
@@ -138,8 +147,8 @@ const CUSTOMER_DELIVERY_MUX_COMMAND =
   ['customer-delivery-master-mux-v1'] as const
 const SOURCE_VERSION = '8.1.2' as const
 const SOURCE_SHA256 = '464beb5e7bf0c311e68b45ae2f04e9cc2af88851abb4082231742a74d97b524c' as const
-const STORAGE_ROOT = '/tmp/reeditpro-offline-media-binary-execution-program-audio-v4' as const
-const AUTHORITY_PATH = 'runtime-authority/offline-media-binary-runtime-program-audio-v4.json' as const
+const STORAGE_ROOT = '/tmp/reeditpro-offline-media-binary-execution-resource-observer-v5' as const
+const AUTHORITY_PATH = 'runtime-authority/offline-media-binary-runtime-resource-observer-v5.json' as const
 const DOCKER_CONTROL_TIMEOUT_MS = 120_000
 const MAXIMUM_STREAMING_TIMEOUT_MS = 10 * 60_000
 const CONTINUOUS_PROGRAM_AUDIO_TIMEOUT_MS = 60 * 60_000
@@ -167,6 +176,7 @@ export interface OfflineMediaBinaryRuntimeAuthority {
     privateInternalExecutionReady: true
     exactStructuredPayloadOnly: true
     canonicalDispatchMayReference: true
+    privateGenericMediaResourceObservationReady: true
     privateInternalMezzanineFinalizationReady: true
     privateInternalObjectMezzanineChunkSeriesReady: true
     privateInternalContinuousProgramAudioReady: true
@@ -548,6 +558,7 @@ Promise<OfflineMediaBinaryRuntimeAuthority | undefined> {
     authority.schemaVersion !== 'offline-media-binary-runtime-authority-v1' ||
     authority.source !== 'private_local_pinned_ffmpeg_lgpl_runtime' ||
     record(authority.readiness).privateInternalExecutionReady !== true ||
+    record(authority.readiness).privateGenericMediaResourceObservationReady !== true ||
     record(authority.readiness).privateInternalMezzanineFinalizationReady !== true ||
     record(authority.readiness).privateInternalObjectMezzanineChunkSeriesReady !== true ||
     record(authority.readiness).privateInternalContinuousProgramAudioReady !== true ||
@@ -3241,10 +3252,18 @@ async function executeFfprobeRequest(
   source: OfflineMediaBinaryServerInjectedInput,
 ): Promise<OfflineFfprobeExecutionResult> {
   const command = ffprobeArguments(request)
-  const container = await createContainer(image, FFPROBE_ENTRYPOINT, command)
+  const container = await createContainer(image, FFPROBE_ENTRYPOINT, command, {
+    observeCgroupResources: true,
+  })
   try {
     const before = await inspectContainer(container.id)
-    const confinement = validateConfinement(before, image, FFPROBE_ENTRYPOINT, command)
+    const confinement = validateConfinement(
+      before,
+      image,
+      FFPROBE_ENTRYPOINT,
+      command,
+      container,
+    )
     const started = await dockerVerifiedInput(
       ['start', '--attach', '--interactive', container.id],
       source,
@@ -3253,10 +3272,19 @@ async function executeFfprobeRequest(
         ? PRIVATE_LONG_FORM_MASTER_QA_TIMEOUT_MS
         : mediaExecutionTimeoutMs(source.byteLength),
     )
+    const observedExecution = normalizeObservedMediaContainerExecution({
+      container,
+      image,
+      stderr: started.stderr,
+    })
+    const resourceObservation = aggregateObservedMediaAttempt(
+      image,
+      [observedExecution.observation],
+    )
     const after = await inspectContainer(container.id)
     const state = record(after.State)
     if (
-      started.exitCode !== 0 || started.stderr.length > 0 ||
+      started.exitCode !== 0 || observedExecution.sanitizedStderr.length > 0 ||
       state.Status !== 'exited' || state.Running !== false ||
       state.ExitCode !== started.exitCode || state.OOMKilled !== false
     ) throw unavailable('Confined FFprobe operation failed closed.')
@@ -3274,6 +3302,7 @@ async function executeFfprobeRequest(
       sourceSha256: request.payload.sourceSha256,
       resultSha256,
       confinement,
+      resourceObservationHash: resourceObservation.observationHash,
     }
     const attestationHash = sha256AuthorityValue(attestationWithoutHash)
     const recordId = sha256AuthorityValue({ attestationHash, completedAt })
@@ -3307,6 +3336,7 @@ async function executeFfprobeRequest(
           frameCountsRequested: request.payload.countFrames,
         },
         confinement,
+        resourceObservation,
         containerExitCode: 0,
         oomKilled: false,
       },
@@ -3354,6 +3384,7 @@ async function executeFfmpegRequest(
   source: OfflineMediaBinaryServerInjectedInput,
   outputSink?: OfflineMediaBinaryStreamingOutputSink,
 ): Promise<OfflineFfmpegExecutionResult | OfflineFfmpegStreamingOutputExecutionResult> {
+  const resourceObservations: PrivateEmbeddedProcessResourceObservation[] = []
   const voiceDelivery = request.payload.recipeProfileId === 'approved_voice_delivery_wav_v1'
   const colorMatchDeliveryPayload = request.payload.recipeProfileId ===
     'approved_source_color_match_delivery_matroska_v1'
@@ -3382,6 +3413,7 @@ async function executeFfmpegRequest(
         startFrame: request.payload.trimStartFrame,
         endFrameExclusive: request.payload.trimEndFrameExclusive,
         frameRate: request.payload.frameRate,
+        resourceObservations,
       })
     : undefined
   const referenceColorAnalysis = colorMatchDelivery
@@ -3391,6 +3423,7 @@ async function executeFfmpegRequest(
         startFrame: 0,
         endFrameExclusive: colorMatchDeliveryPayload!.referenceDurationFrames,
         frameRate: request.payload.frameRate,
+        resourceObservations,
       })
     : undefined
   const colorCorrection = sourceColorAnalysis && colorDeliveryPayload
@@ -3414,11 +3447,19 @@ async function executeFfmpegRequest(
         '-vf', `trim=start_frame=${request.payload.trimStartFrame}:end_frame=${request.payload.trimEndFrameExclusive},setpts=PTS-STARTPTS`,
         '-an', '-threads', '1', '-c:v', 'ffv1', '-level', '3', '-f', 'nut', 'pipe:1',
   ]
-  const container = await createContainer(image, FFMPEG_ENTRYPOINT, command)
+  const container = await createContainer(image, FFMPEG_ENTRYPOINT, command, {
+    observeCgroupResources: true,
+  })
   let streamedOutputSpool: DockerVerifiedPrivateOutputSpool | undefined
   try {
     const before = await inspectContainer(container.id)
-    const confinement = validateConfinement(before, image, FFMPEG_ENTRYPOINT, command)
+    const confinement = validateConfinement(
+      before,
+      image,
+      FFMPEG_ENTRYPOINT,
+      command,
+      container,
+    )
     const calculatedTimeoutMs = mediaExecutionTimeoutMs(
       source.byteLength,
       trimDurationFrames,
@@ -3452,7 +3493,13 @@ async function executeFfmpegRequest(
       resultSha256,
     )
     const exitCode = streamedOutputSpool?.exitCode ?? bufferedOutput!.exitCode
-    const stderr = streamedOutputSpool?.stderr ?? bufferedOutput!.stderr
+    const observedExecution = normalizeObservedMediaContainerExecution({
+      container,
+      image,
+      stderr: streamedOutputSpool?.stderr ?? bufferedOutput!.stderr,
+    })
+    resourceObservations.push(observedExecution.observation)
+    const stderr = observedExecution.sanitizedStderr
     const after = await inspectContainer(container.id)
     const state = record(after.State)
     if (
@@ -3486,6 +3533,7 @@ async function executeFfmpegRequest(
           outputInput,
           wave!,
           trimDurationFrames / request.payload.frameRate,
+          resourceObservations,
         )
       : await probeFfmpegOutput(
           image,
@@ -3493,6 +3541,7 @@ async function executeFfmpegRequest(
           trimDurationFrames,
           request.payload.frameRate,
           colorDelivery,
+          resourceObservations,
         )
     const outputColorAnalysis = colorDelivery
       ? await analyzeVideoColor({
@@ -3501,6 +3550,7 @@ async function executeFfmpegRequest(
           startFrame: 0,
           endFrameExclusive: trimDurationFrames,
           frameRate: request.payload.frameRate,
+          resourceObservations,
         })
       : undefined
     const colorMatchQa = colorMatchDelivery && sourceColorAnalysis &&
@@ -3539,6 +3589,10 @@ async function executeFfmpegRequest(
         persisted.byteLength !== outputByteLength || persisted.sha256 !== resultSha256
       ) throw unavailable('Streaming FFmpeg output sink changed the exact artifact commitment.')
     }
+    const resourceObservation = aggregateObservedMediaAttempt(
+      image,
+      resourceObservations,
+    )
     const completedAt = new Date().toISOString()
     const attestationWithoutHash = {
       domain: 'offline_media_binary_execution_attestation_v1',
@@ -3550,6 +3604,7 @@ async function executeFfmpegRequest(
         ? { referenceSourceSha256: colorMatchDeliveryPayload!.referenceSourceSha256 }
         : {}),
       resultSha256, confinement, outputProbe,
+      resourceObservationHash: resourceObservation.observationHash,
       outputTransport: outputSink
         ? 'server_committed_private_stream_v1' as const
         : 'bounded_legacy_buffer_v1' as const,
@@ -3647,7 +3702,10 @@ async function executeFfmpegRequest(
               }),
           outputProbeVerified: true,
         },
-        confinement, containerExitCode: 0, oomKilled: false,
+        confinement,
+        resourceObservation,
+        containerExitCode: 0,
+        oomKilled: false,
     }
     const common = {
       image,
@@ -3755,6 +3813,7 @@ async function analyzeVideoColor(input: {
   startFrame: number
   endFrameExclusive: number
   frameRate: number
+  resourceObservations?: PrivateEmbeddedProcessResourceObservation[]
 }): Promise<ColorPixelAnalysis> {
   return (await analyzeVideoColorWithConfinement(input)).analysis
 }
@@ -3765,6 +3824,7 @@ async function analyzeVideoColorWithConfinement(input: {
   startFrame: number
   endFrameExclusive: number
   frameRate: number
+  resourceObservations?: PrivateEmbeddedProcessResourceObservation[]
 }): Promise<{
   analysis: ColorPixelAnalysis
   confinement: OfflineMediaBinaryConfinementEvidence
@@ -3782,13 +3842,19 @@ async function analyzeVideoColorWithConfinement(input: {
     '-fps_mode', 'passthrough', '-frames:v', String(selectedFrames.length),
     '-threads', '1', '-f', 'rawvideo', 'pipe:1',
   ]
-  const container = await createContainer(input.image, FFMPEG_ENTRYPOINT, command)
+  const container = await createContainer(
+    input.image,
+    FFMPEG_ENTRYPOINT,
+    command,
+    input.resourceObservations ? { observeCgroupResources: true } : undefined,
+  )
   try {
     const confinement = validateConfinement(
       await inspectContainer(container.id),
       input.image,
       FFMPEG_ENTRYPOINT,
       command,
+      container,
     )
     const result = await dockerVerifiedInput(
       ['start', '--attach', '--interactive', container.id],
@@ -3800,9 +3866,17 @@ async function analyzeVideoColorWithConfinement(input: {
         input.frameRate,
       ),
     )
+    const stderr = input.resourceObservations
+      ? normalizeObservedMediaContainerExecution({
+          container,
+          image: input.image,
+          stderr: result.stderr,
+        })
+      : { sanitizedStderr: result.stderr, observation: undefined }
+    if (stderr.observation) input.resourceObservations?.push(stderr.observation)
     const expectedBytes = selectedFrames.length * 64 * 64 * 3
     if (
-      result.exitCode !== 0 || result.stderr.length > 0 ||
+      result.exitCode !== 0 || stderr.sanitizedStderr.length > 0 ||
       result.stdout.byteLength !== expectedBytes
     ) throw unavailable('FFmpeg source color analysis failed closed.')
     return {
@@ -4854,22 +4928,42 @@ async function probeFfmpegOutput(
   expectedFrameCount: number,
   expectedFrameRate: number,
   expectProfessionalColor = false,
+  resourceObservations?: PrivateEmbeddedProcessResourceObservation[],
 ): Promise<Record<string, unknown>> {
   const command = [
     '-v', 'error', '-count_frames', '-show_entries',
     'format=format_name,duration,size:stream=codec_name,codec_type,width,height,avg_frame_rate,nb_read_frames,pix_fmt,color_space,color_transfer,color_primaries,color_range',
     '-print_format', 'json', '-i', 'pipe:0',
   ]
-  const container = await createContainer(image, FFPROBE_ENTRYPOINT, command)
+  const container = await createContainer(
+    image,
+    FFPROBE_ENTRYPOINT,
+    command,
+    resourceObservations ? { observeCgroupResources: true } : undefined,
+  )
   try {
-    validateConfinement(await inspectContainer(container.id), image, FFPROBE_ENTRYPOINT, command)
+    validateConfinement(
+      await inspectContainer(container.id),
+      image,
+      FFPROBE_ENTRYPOINT,
+      command,
+      container,
+    )
     const result = await dockerVerifiedInput(
       ['start', '--attach', '--interactive', container.id],
       source,
       2 * 1024 * 1024,
       mediaExecutionTimeoutMs(source.byteLength),
     )
-    if (result.exitCode !== 0 || result.stderr.length > 0) throw unavailable('FFmpeg output verification failed closed.')
+    const observedExecution = resourceObservations
+      ? normalizeObservedMediaContainerExecution({ container, image, stderr: result.stderr })
+      : { sanitizedStderr: result.stderr, observation: undefined }
+    if (observedExecution.observation) {
+      resourceObservations?.push(observedExecution.observation)
+    }
+    if (result.exitCode !== 0 || observedExecution.sanitizedStderr.length > 0) {
+      throw unavailable('FFmpeg output verification failed closed.')
+    }
     const parsed = record(JSON.parse(result.stdout.toString('utf8')))
     const format = record(parsed.format)
     const streams = Array.isArray(parsed.streams) ? parsed.streams.map(record) : []
@@ -4921,22 +5015,40 @@ async function probeFfmpegVoiceDeliveryOutput(
     durationSeconds: number
   },
   expectedDurationSeconds: number,
+  resourceObservations?: PrivateEmbeddedProcessResourceObservation[],
 ): Promise<Record<string, unknown>> {
   const command = [
     '-v', 'error', '-show_entries',
     'format=format_name,duration,size:stream=codec_name,codec_type,sample_rate,channels,channel_layout,duration',
     '-print_format', 'json', '-i', 'pipe:0',
   ]
-  const container = await createContainer(image, FFPROBE_ENTRYPOINT, command)
+  const container = await createContainer(
+    image,
+    FFPROBE_ENTRYPOINT,
+    command,
+    resourceObservations ? { observeCgroupResources: true } : undefined,
+  )
   try {
-    validateConfinement(await inspectContainer(container.id), image, FFPROBE_ENTRYPOINT, command)
+    validateConfinement(
+      await inspectContainer(container.id),
+      image,
+      FFPROBE_ENTRYPOINT,
+      command,
+      container,
+    )
     const result = await dockerVerifiedInput(
       ['start', '--attach', '--interactive', container.id],
       source,
       2 * 1024 * 1024,
       mediaExecutionTimeoutMs(source.byteLength),
     )
-    if (result.exitCode !== 0 || result.stderr.length > 0) {
+    const observedExecution = resourceObservations
+      ? normalizeObservedMediaContainerExecution({ container, image, stderr: result.stderr })
+      : { sanitizedStderr: result.stderr, observation: undefined }
+    if (observedExecution.observation) {
+      resourceObservations?.push(observedExecution.observation)
+    }
+    if (result.exitCode !== 0 || observedExecution.sanitizedStderr.length > 0) {
       throw unavailable('FFmpeg voice-delivery output verification failed closed.')
     }
     const parsed = record(JSON.parse(result.stdout.toString('utf8')))
@@ -5038,6 +5150,7 @@ async function persistAuthority(image: OfflineMediaBinaryImageEvidence): Promise
       privateInternalExecutionReady: true as const,
       exactStructuredPayloadOnly: true as const,
       canonicalDispatchMayReference: true as const,
+      privateGenericMediaResourceObservationReady: true as const,
       privateInternalMezzanineFinalizationReady: true as const,
       privateInternalObjectMezzanineChunkSeriesReady: true as const,
       privateInternalContinuousProgramAudioReady: true as const,
@@ -5065,6 +5178,7 @@ async function persistAuthority(image: OfflineMediaBinaryImageEvidence): Promise
       'Customer-delivery muxing is private H.264 stream copy plus one AAC-LC encode with front-loaded fragmented MP4 metadata; decoded QA, private-download reconciliation, cloud, public delivery, and production remain blocked.',
       'Private long-form master QA is restricted to one exact immutable VP9/FLAC Matroska review master and does not unlock delivery or export.',
       'Decoded final-master video and audio QA are bounded private single-process evidence; resumable long-form checkpointing, lease recovery, and worker-fleet execution remain blocked.',
+      'Generic FFmpeg and FFprobe attempts retain private cgroup-v2 CPU/memory evidence; specialized long-form runner families and deployed cloud telemetry remain separate gates.',
     ] as const,
   }
   const authority: OfflineMediaBinaryRuntimeAuthority = {
@@ -5096,19 +5210,29 @@ function ffprobeArguments(
   ]
 }
 
+type OfflineMediaBinaryEntrypoint =
+  | typeof FFPROBE_ENTRYPOINT
+  | typeof FFMPEG_ENTRYPOINT
+  | typeof MEZZANINE_FINALIZER_ENTRYPOINT
+  | typeof OBJECT_MEZZANINE_CHUNK_ENTRYPOINT
+  | typeof CONTINUOUS_PROGRAM_AUDIO_ENTRYPOINT
+  | typeof CONTINUOUS_PROGRAM_AUDIO_PROBE_ENTRYPOINT
+  | typeof LONG_FORM_MASTER_ASSEMBLY_ENTRYPOINT
+  | typeof CUSTOMER_DELIVERY_MUX_ENTRYPOINT
+
+interface OfflineMediaBinaryContainerHandle {
+  id: string
+  resourceObserver?: {
+    nonce: string
+  }
+}
+
 async function createContainer(
   image: OfflineMediaBinaryImageEvidence,
-  entrypoint:
-    | typeof FFPROBE_ENTRYPOINT
-    | typeof FFMPEG_ENTRYPOINT
-    | typeof MEZZANINE_FINALIZER_ENTRYPOINT
-    | typeof OBJECT_MEZZANINE_CHUNK_ENTRYPOINT
-    | typeof CONTINUOUS_PROGRAM_AUDIO_ENTRYPOINT
-    | typeof CONTINUOUS_PROGRAM_AUDIO_PROBE_ENTRYPOINT
-    | typeof LONG_FORM_MASTER_ASSEMBLY_ENTRYPOINT
-    | typeof CUSTOMER_DELIVERY_MUX_ENTRYPOINT,
+  entrypoint: OfflineMediaBinaryEntrypoint,
   command: string[],
-) {
+  options?: { observeCgroupResources: true },
+): Promise<OfflineMediaBinaryContainerHandle> {
   const customerDeliveryMuxEntrypoint =
     entrypoint === CUSTOMER_DELIVERY_MUX_ENTRYPOINT
   const largeMediaEntrypoint =
@@ -5122,35 +5246,43 @@ async function createContainer(
     : largeMediaEntrypoint ? '4g' : '2g'
   const cpus = customerDeliveryMuxEntrypoint ? '4' : '2'
   const tmpfsSizeBytes = largeMediaEntrypoint ? 1_342_177_280 : 67_108_864
+  const resourceObserver = options?.observeCgroupResources
+    ? createPrivateMediaCgroupResourceObserverInvocation({
+        innerEntrypoint: entrypoint,
+        innerCommand: command,
+      })
+    : undefined
+  const configuredEntrypoint = resourceObserver
+    ? PRIVATE_MEDIA_CGROUP_RESOURCE_OBSERVER_ENTRYPOINT
+    : entrypoint
+  const configuredCommand = resourceObserver?.command ?? command
   const created = await dockerBuffer([
     'create', '--interactive', '--network', 'none', '--read-only',
     '--cap-drop', 'ALL', '--security-opt', 'no-new-privileges:true',
     '--pids-limit', '128', '--memory', memory, '--memory-swap', memory,
     '--cpus', cpus,
     '--tmpfs', `/tmp:rw,noexec,nosuid,nodev,size=${tmpfsSizeBytes},mode=1777`,
-    '--user', '65532:65532', '--entrypoint', entrypoint,
-    image.imageId, ...command,
+    '--user', '65532:65532', '--entrypoint', configuredEntrypoint,
+    image.imageId, ...configuredCommand,
   ], undefined, 64 * 1024)
   const id = created.stdout.toString('utf8').trim()
   if (created.exitCode !== 0 || created.stderr.length > 0 || !/^[a-f0-9]{64}$/.test(id)) {
     throw unavailable('Confined media container could not be created.')
   }
-  return { id }
+  return {
+    id,
+    ...(resourceObserver
+      ? { resourceObserver: { nonce: resourceObserver.nonce } }
+      : {}),
+  }
 }
 
 function validateConfinement(
   inspect: Record<string, unknown>,
   image: OfflineMediaBinaryImageEvidence,
-  entrypoint:
-    | typeof FFPROBE_ENTRYPOINT
-    | typeof FFMPEG_ENTRYPOINT
-    | typeof MEZZANINE_FINALIZER_ENTRYPOINT
-    | typeof OBJECT_MEZZANINE_CHUNK_ENTRYPOINT
-    | typeof CONTINUOUS_PROGRAM_AUDIO_ENTRYPOINT
-    | typeof CONTINUOUS_PROGRAM_AUDIO_PROBE_ENTRYPOINT
-    | typeof LONG_FORM_MASTER_ASSEMBLY_ENTRYPOINT
-    | typeof CUSTOMER_DELIVERY_MUX_ENTRYPOINT,
+  entrypoint: OfflineMediaBinaryEntrypoint,
   command: string[],
+  container?: OfflineMediaBinaryContainerHandle,
 ): OfflineMediaBinaryConfinementEvidence {
   const host = record(inspect.HostConfig)
   const config = record(inspect.Config)
@@ -5172,6 +5304,12 @@ function validateConfinement(
     : 2_000_000_000
   const tmpfsSizeBytes = largeMediaEntrypoint ? 1_342_177_280 : 67_108_864
   const tmpfsPolicy = String(tmpfs['/tmp'] ?? '')
+  const configuredEntrypoint = container?.resourceObserver
+    ? PRIVATE_MEDIA_CGROUP_RESOURCE_OBSERVER_ENTRYPOINT
+    : entrypoint
+  const configuredCommand = container?.resourceObserver
+    ? [container.resourceObserver.nonce, entrypoint, ...command]
+    : command
   if (
     inspect.Image !== image.imageId || host.NetworkMode !== 'none' || host.ReadonlyRootfs !== true ||
     host.Privileged !== false || stringArray(host.CapDrop).join('|') !== 'ALL' ||
@@ -5179,8 +5317,10 @@ function validateConfinement(
     Number(host.PidsLimit) !== 128 || Number(host.Memory) !== memoryLimitBytes ||
     Number(host.MemorySwap) !== memoryLimitBytes ||
     Number(host.NanoCpus) !== nanoCpus ||
-    config.User !== '65532:65532' || stringArray(config.Entrypoint).join('|') !== entrypoint ||
-    stableAuthorityStringify(stringArray(config.Cmd)) !== stableAuthorityStringify(command) ||
+    config.User !== '65532:65532' ||
+    stringArray(config.Entrypoint).join('|') !== configuredEntrypoint ||
+    stableAuthorityStringify(stringArray(config.Cmd)) !==
+      stableAuthorityStringify(configuredCommand) ||
     (Array.isArray(inspect.Mounts) && inspect.Mounts.length > 0) ||
     (Array.isArray(host.Binds) && host.Binds.length > 0) ||
     !tmpfsPolicy.includes('noexec') ||
@@ -5194,7 +5334,51 @@ function validateConfinement(
     user: '65532:65532',
     callerBindsPresent: false, callerMountsPresent: false, callerEnvironmentPresent: false,
     serverOwnedEntrypoint: entrypoint, serverDerivedArgumentsOnly: true,
+    ...(container?.resourceObserver
+      ? {
+          resourceObserverEntrypoint:
+            PRIVATE_MEDIA_CGROUP_RESOURCE_OBSERVER_ENTRYPOINT,
+          cgroupV2ResourceObservationRequired: true as const,
+        }
+      : {}),
   }
+}
+
+function normalizeObservedMediaContainerExecution(input: {
+  container: OfflineMediaBinaryContainerHandle
+  image: OfflineMediaBinaryImageEvidence
+  stderr: Buffer
+}) {
+  if (!input.container.resourceObserver) {
+    throw unavailable('Media container resource observer authority is missing.')
+  }
+  const measurementAgentDigest =
+    input.image.sourcePolicyHashes['media-cgroup-resource-observer.sh']
+  if (!measurementAgentDigest) {
+    throw unavailable('Media container resource observer digest is missing.')
+  }
+  return normalizePrivateMediaCgroupResourceObservation({
+    stderr: input.stderr,
+    nonce: input.container.resourceObserver.nonce,
+    containerId: input.container.id,
+    imageId: input.image.imageId,
+    measurementAgentDigest,
+  })
+}
+
+function aggregateObservedMediaAttempt(
+  image: OfflineMediaBinaryImageEvidence,
+  observations: readonly PrivateEmbeddedProcessResourceObservation[],
+): PrivateEmbeddedProcessResourceObservation {
+  const measurementAgentDigest =
+    image.sourcePolicyHashes['media-cgroup-resource-observer.sh']
+  if (!measurementAgentDigest) {
+    throw unavailable('Media cgroup attempt observer digest is missing.')
+  }
+  return aggregatePrivateMediaCgroupResourceObservations({
+    observations,
+    measurementAgentDigest,
+  })
 }
 
 function normalizeProbe(
@@ -5279,6 +5463,7 @@ async function policyHashes(): Promise<Record<string, string>> {
     'source-slice-finalizer.sh', 'object-mezzanine-chunk.sh',
     'continuous-program-audio.sh', 'continuous-program-audio-probe.sh',
     'long-form-master-assembly.sh', 'customer-delivery-master-mux.sh',
+    'media-cgroup-resource-observer.sh',
   ]
   return Object.fromEntries(await Promise.all(names.map(async (name) => [name, sha256(await readFile(join(directory, name)))])))
 }

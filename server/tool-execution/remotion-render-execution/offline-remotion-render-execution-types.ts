@@ -5,7 +5,7 @@ import type { OfflineRemotionDeliveryH264ChunkRequest } from
   './offline-remotion-delivery-h264-chunk-protocol'
 
 export interface OfflineRemotionImageEvidence {
-  imageTag: 'reeditpro-offline-remotion-render-execution:canonical-private-local-v1'
+  imageTag: `reeditpro-offline-remotion-render-execution:canonical-private-local-v1-${string}`
   imageId: string
   imageIdentityHash: string
   pinnedBaseImage: 'node:22-bookworm-slim@sha256:53ada149d435c38b14476cb57e4a7da73c15595aba79bd6971b547ceb6d018bf'

@@ -18,6 +18,7 @@ public.preference_application_preparation_events
 public.preference_applications
 public.preference_assets
 public.preference_audit_segments
+public.preference_dna_lifecycle_events
 public.preference_dna_qa_results
 public.preference_dna_versions
 public.preference_evidence

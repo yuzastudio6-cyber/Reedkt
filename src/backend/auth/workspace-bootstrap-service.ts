@@ -169,6 +169,8 @@ export async function getUserWorkspaces(user?: User | null): Promise<UserWorkspa
     'id, workspace_id, user_id, role, workspaces(id, owner_id, name, plan_type, metadata_json)',
     'id, workspace_id, user_id, role, workspaces(id, owner_user_id, name, workspace_type, metadata)',
     'id, workspace_id, user_id, role',
+    'workspace_id, user_id, role, workspaces(id, owner_user_id, name)',
+    'workspace_id, user_id, role',
   ]
   let data: unknown[] | null = null
   let error: { code?: string; message?: string } | null = null

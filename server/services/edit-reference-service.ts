@@ -54,6 +54,7 @@ import {
 import { EDIT_REFERENCE_SAFETY_FLAGS } from '../../src/types/edit-reference'
 import type {
   EditReferenceAggregate,
+  EditReferenceMutationResult,
   EditReferenceMutationReplayContext,
   EditReferenceRepository,
   EditReferenceRepositoryScope,
@@ -298,6 +299,10 @@ import {
 } from './edit-reference-domain-repository-runtime-port'
 import {
   EDIT_REFERENCE_DOMAIN_COMMAND_CONTRACT_VERSION,
+  type EditReferencePreparedDnaApprovalCommandResult,
+  type EditReferencePreparedDnaQaCommandResult,
+  type EditReferencePreparedDnaSynthesisCommandResult,
+  type EditReferencePreparedEvidenceStudyCommandResult,
 } from '../edit-references/edit-reference-domain-command-contract'
 
 export interface EditReferenceServiceResult<T> {
@@ -4188,6 +4193,116 @@ export function createEditReferenceService(
       const operation = 'preference_study.evidence.run'
       const key = requireIdempotencyKey(idempotencyKey)
       const requestHash = hashEditReferenceRequest({ studyId, ...normalized })
+      if (repository.persistence === 'canonical_supabase_transactional') {
+        const requestedScope = scope(normalized.workspaceId)
+        const committed = await lookupCanonicalDomainMutation(
+          repository,
+          requestedScope,
+          operation,
+          key,
+          requestHash,
+        )
+        if (committed) return result(committed.data, true)
+        if (normalized.retryBlockedSkills === true) {
+          throw new ApiError(
+            'EDIT_REFERENCE_PERSISTENCE_BLOCKED',
+            'Retrying a blocked media or model study requires the canonical pre-plan runtime result-commit adapter. No study work was restarted.',
+            503,
+            {
+              requiredGate: 'canonical_pre_plan_study_result_commit_adapter',
+              preparedWorkStarted: false,
+              providerCallMade: false,
+              mediaProcessingStarted: false,
+              remoteMutationAttempted: false,
+              productionReady: false,
+            },
+          )
+        }
+        const aggregate = await repository.read(requestedScope)
+        if (!aggregate) throw studyNotFound(studyId)
+        const study = requireStudy(aggregate, studyId)
+        const reference = requireReference(aggregate, study.editReferenceId)
+        assertActiveStudy(reference, study)
+        assertRevision(study.revision, normalized.expectedStudyRevision, 'Preference Study')
+        if (study.status !== 'ready_to_study') {
+          throw new ApiError('VALIDATION_FAILED', 'The saved evidence has already been reviewed. Add or correct evidence before running the study again.', 409)
+        }
+        const studyEvidence = aggregate.evidence.filter((record) => record.studySessionId === study.id)
+        const activeSourceEvidence = activePreferenceSourceEvidence(studyEvidence)
+        if (activeSourceEvidence.length < 1) {
+          throw new ApiError('PREFERENCE_EVIDENCE_REQUIRED', 'Add evidence before asking ReEditPro to study it.', 409)
+        }
+        if (
+          activeSourceEvidence.some((record) => record.sourceType !== 'manual_user_evidence')
+          || aggregate.assets.some((record) => record.studySessionId === study.id)
+        ) {
+          throw new ApiError(
+            'EDIT_REFERENCE_PERSISTENCE_BLOCKED',
+            'Reference media and approved-edit evidence must finish through the durable pre-plan study runtime before their results can enter canonical Preference DNA.',
+            503,
+            {
+              requiredGate: 'canonical_pre_plan_study_result_commit_adapter',
+              manualDeterministicStudyAllowed: true,
+              providerCallMade: false,
+              mediaProcessingStarted: false,
+              remoteMutationAttempted: false,
+              productionReady: false,
+            },
+          )
+        }
+        const now = new Date().toISOString()
+        const orchestration = orchestratePreferenceEvidenceStudy({
+          orchestrationId: `preference-evidence-study-${randomUUID()}`,
+          workspaceId: reference.workspaceId,
+          editReferenceId: reference.id,
+          study,
+          evidence: studyEvidence,
+          now,
+        })
+        const canonicalized = canonicalizePreparedEvidenceStudy(orchestration)
+        const preparedEvidenceStatus = orchestration.evidenceStatus === 'evidence_ready'
+          ? 'evidence_ready' as const
+          : orchestration.evidenceStatus === 'needs_clarification'
+            ? 'needs_clarification' as const
+            : canonicalEvidenceStudyStatusInvalid()
+        const prepared: EditReferencePreparedEvidenceStudyCommandResult = {
+          referenceId: reference.id,
+          orchestrationId: orchestration.orchestrationId,
+          studyStatus: orchestration.studyStatus,
+          evidenceStatus: preparedEvidenceStatus,
+          derivedEvidence: canonicalized.derivedEvidence,
+          skillRuns: canonicalized.skillRuns,
+          assistantMessage: canonicalizeTopLevelRecordId(studyResultMessage(
+            reference,
+            study,
+            orchestration.assistantMessage,
+            now,
+            nextSequence(aggregate, study.id),
+          )),
+          usageLog: canonicalizeTopLevelRecordId(usageLog(reference, 'evidence_study_completed', now)),
+          preparationClass: 'manual_deterministic_no_media_no_provider',
+          providerCallMade: false,
+          modelCallMade: false,
+          fileBytesRead: false,
+          mediaProcessingStarted: false,
+          workerJobCreated: false,
+          remoteMutationMade: false,
+        }
+        const mutation = await repository.mutate({
+          scope: requestedScope,
+          operation,
+          idempotencyKey: key,
+          requestHash,
+          command: {
+            schemaVersion: EDIT_REFERENCE_DOMAIN_COMMAND_CONTRACT_VERSION,
+            operation,
+            request: { studyId, input: normalized, prepared },
+          },
+          replay: replayDetailData,
+          mutate: canonicalDomainMutationClosureMustNotRun,
+        })
+        return result(mutation.data, mutation.replayed)
+      }
       const mutation = await repository.mutate({
         scope: scope(normalized.workspaceId),
         operation,
@@ -4329,6 +4444,60 @@ export function createEditReferenceService(
 
     async synthesizePreferenceDNA(studyId, input, idempotencyKey) {
       const normalized = normalizeSynthesizePreferenceDNA(input)
+      if (repository.persistence === 'canonical_supabase_transactional') {
+        const requestedScope = scope(normalized.workspaceId)
+        const key = requireIdempotencyKey(idempotencyKey)
+        const requestHash = hashEditReferenceRequest({ studyId, ...normalized })
+        const committed = await lookupCanonicalDomainMutation(
+          repository,
+          requestedScope,
+          'preference_study.dna.synthesize',
+          key,
+          requestHash,
+        )
+        if (committed) return result(committed.data, true)
+        const aggregate = await repository.read(requestedScope)
+        if (!aggregate) throw studyNotFound(studyId)
+        const study = requireStudy(aggregate, studyId)
+        const reference = requireReference(aggregate, study.editReferenceId)
+        assertActiveStudy(reference, study)
+        assertRevision(study.revision, normalized.expectedStudyRevision, 'Preference Study')
+        const now = new Date().toISOString()
+        const dnaVersion = canonicalizeTopLevelRecordId(synthesizeEditReferencePreferenceDNA({
+          reference,
+          study,
+          evidence: aggregate.evidence.filter((record) => record.studySessionId === study.id),
+          skillRuns: aggregate.skillRuns.filter((record) => record.studySessionId === study.id),
+          existingVersions: aggregate.dnaVersions.filter((record) => record.studySessionId === study.id),
+          now,
+        }))
+        const prepared: EditReferencePreparedDnaSynthesisCommandResult = {
+          referenceId: reference.id,
+          dnaVersion,
+          assistantMessage: canonicalizeTopLevelRecordId(dnaSynthesisMessage(
+            reference,
+            study,
+            dnaVersion,
+            now,
+            nextSequence(aggregate, study.id),
+          )),
+          usageLog: canonicalizeTopLevelRecordId(usageLog(reference, 'dna_version_created', now)),
+        }
+        const mutation = await repository.mutate({
+          scope: requestedScope,
+          operation: 'preference_study.dna.synthesize',
+          idempotencyKey: key,
+          requestHash,
+          command: {
+            schemaVersion: EDIT_REFERENCE_DOMAIN_COMMAND_CONTRACT_VERSION,
+            operation: 'preference_study.dna.synthesize',
+            request: { studyId, input: normalized, prepared },
+          },
+          replay: replayDetailData,
+          mutate: canonicalDomainMutationClosureMustNotRun,
+        })
+        return result(mutation.data, mutation.replayed)
+      }
       const mutation = await repository.mutate({
         scope: scope(normalized.workspaceId),
         operation: 'preference_study.dna.synthesize',
@@ -4376,6 +4545,67 @@ export function createEditReferenceService(
 
     async runPreferenceDNAQA(studyId, dnaVersionId, input, idempotencyKey) {
       const normalized = normalizeRunPreferenceDNAQA(input)
+      if (repository.persistence === 'canonical_supabase_transactional') {
+        const requestedScope = scope(normalized.workspaceId)
+        const key = requireIdempotencyKey(idempotencyKey)
+        const requestHash = hashEditReferenceRequest({ studyId, dnaVersionId, ...normalized })
+        const committed = await lookupCanonicalDomainMutation(
+          repository,
+          requestedScope,
+          'preference_study.dna.qa.run',
+          key,
+          requestHash,
+        )
+        if (committed) return result(committed.data, true)
+        const aggregate = await repository.read(requestedScope)
+        if (!aggregate) throw studyNotFound(studyId)
+        const study = requireStudy(aggregate, studyId)
+        const reference = requireReference(aggregate, study.editReferenceId)
+        assertActiveStudy(reference, study)
+        assertRevision(study.revision, normalized.expectedStudyRevision, 'Preference Study')
+        const dnaVersion = requireDNAVersion(aggregate, dnaVersionId, study)
+        assertDNAContentDigest(dnaVersion.contentDigest, normalized.expectedDNAContentDigest)
+        if (dnaVersion.status !== 'review_required' || dnaVersion.qaStatus !== 'not_run') {
+          throw new ApiError('VALIDATION_FAILED', 'Quality review already ran or this DNA version is no longer the active review candidate.', 409)
+        }
+        if (aggregate.dnaQaResults.some((record) => record.dnaVersionId === dnaVersion.id)) {
+          throw new ApiError('VERSION_CONFLICT', 'This exact DNA version already has a quality-review result.', 409)
+        }
+        const now = new Date().toISOString()
+        const qaResult = canonicalizeTopLevelRecordId(runEditReferenceDNAQA({
+          reference,
+          study,
+          dnaVersion,
+          evidence: aggregate.evidence.filter((record) => record.studySessionId === study.id),
+          now,
+        }))
+        const prepared: EditReferencePreparedDnaQaCommandResult = {
+          referenceId: reference.id,
+          qaResult,
+          assistantMessage: canonicalizeTopLevelRecordId(dnaQAMessage(
+            reference,
+            study,
+            qaResult,
+            now,
+            nextSequence(aggregate, study.id),
+          )),
+          usageLog: canonicalizeTopLevelRecordId(usageLog(reference, 'dna_qa_completed', now)),
+        }
+        const mutation = await repository.mutate({
+          scope: requestedScope,
+          operation: 'preference_study.dna.qa.run',
+          idempotencyKey: key,
+          requestHash,
+          command: {
+            schemaVersion: EDIT_REFERENCE_DOMAIN_COMMAND_CONTRACT_VERSION,
+            operation: 'preference_study.dna.qa.run',
+            request: { studyId, dnaVersionId, input: normalized, prepared },
+          },
+          replay: replayDetailData,
+          mutate: canonicalDomainMutationClosureMustNotRun,
+        })
+        return result(mutation.data, mutation.replayed)
+      }
       const mutation = await repository.mutate({
         scope: scope(normalized.workspaceId),
         operation: 'preference_study.dna.qa.run',
@@ -4428,6 +4658,85 @@ export function createEditReferenceService(
 
     async approvePreferenceDNA(studyId, dnaVersionId, input, idempotencyKey) {
       const normalized = normalizeApprovePreferenceDNA(input)
+      if (repository.persistence === 'canonical_supabase_transactional') {
+        const requestedScope = scope(normalized.workspaceId)
+        const key = requireIdempotencyKey(idempotencyKey)
+        const requestHash = hashEditReferenceRequest({ studyId, dnaVersionId, ...normalized })
+        const committed = await lookupCanonicalDomainMutation(
+          repository,
+          requestedScope,
+          'preference_study.dna.approve',
+          key,
+          requestHash,
+        )
+        if (committed) return result(committed.data, true)
+        const aggregate = await repository.read(requestedScope)
+        if (!aggregate) throw studyNotFound(studyId)
+        const study = requireStudy(aggregate, studyId)
+        const reference = requireReference(aggregate, study.editReferenceId)
+        assertActiveStudy(reference, study)
+        assertRevision(study.revision, normalized.expectedStudyRevision, 'Preference Study')
+        const dnaVersion = requireDNAVersion(aggregate, dnaVersionId, study)
+        assertDNAContentDigest(dnaVersion.contentDigest, normalized.expectedDNAContentDigest)
+        const qaResult = requireDNAQAResult(aggregate, normalized.qaResultId, dnaVersion)
+        if (dnaVersion.status !== 'review_required' || dnaVersion.qaResultId !== qaResult.id) {
+          throw new ApiError('VALIDATION_FAILED', 'Only the active quality-reviewed DNA version can be approved.', 409)
+        }
+        if (qaResult.status === 'blocked' || qaResult.blockingCheckIds.length > 0) {
+          throw new ApiError('VALIDATION_FAILED', 'Blocking DNA quality findings must be corrected before approval.', 409)
+        }
+        if (qaResult.status === 'requires_user_review' && normalized.acknowledgeQAReview !== true) {
+          throw new ApiError('VALIDATION_FAILED', 'Review the quality warnings and acknowledge them before approval.', 409)
+        }
+        if (dnaVersion.reasoningProvenance || normalized.reasoningReviewAcknowledgement) {
+          throw new ApiError(
+            'EDIT_REFERENCE_PERSISTENCE_BLOCKED',
+            'AI-assisted Preference DNA approval requires the canonical reasoning-attempt projection before it can be committed through this domain command.',
+            503,
+            {
+              requiredGate: 'canonical_preference_dna_reasoning_projection',
+              deterministicDnaApprovalAllowed: true,
+              remoteMutationAttempted: false,
+              productionReady: false,
+            },
+          )
+        }
+        const now = new Date().toISOString()
+        const approval = {
+          id: randomUUID(),
+          qaResultId: qaResult.id,
+          acknowledgedAdaptNotCopy: true,
+          acknowledgedQAReview: normalized.acknowledgeQAReview,
+          approvedBy: 'authenticated_user',
+          approvedAt: now,
+        } as const
+        const prepared: EditReferencePreparedDnaApprovalCommandResult = {
+          referenceId: reference.id,
+          approval,
+          assistantMessage: canonicalizeTopLevelRecordId(dnaApprovalMessage(
+            reference,
+            study,
+            { ...dnaVersion, status: 'approved', approval },
+            now,
+            nextSequence(aggregate, study.id),
+          )),
+          usageLog: canonicalizeTopLevelRecordId(usageLog(reference, 'dna_version_approved', now)),
+        }
+        const mutation = await repository.mutate({
+          scope: requestedScope,
+          operation: 'preference_study.dna.approve',
+          idempotencyKey: key,
+          requestHash,
+          command: {
+            schemaVersion: EDIT_REFERENCE_DOMAIN_COMMAND_CONTRACT_VERSION,
+            operation: 'preference_study.dna.approve',
+            request: { studyId, dnaVersionId, input: normalized, prepared },
+          },
+          replay: replayDetailData,
+          mutate: canonicalDomainMutationClosureMustNotRun,
+        })
+        return result(mutation.data, mutation.replayed)
+      }
       const mutation = await repository.mutate({
         scope: scope(normalized.workspaceId),
         operation: 'preference_study.dna.approve',
@@ -6226,6 +6535,100 @@ function normalizeMediaMetadata(input: Extract<CreatePreferenceEvidenceRequest, 
 
 function nextSequence(aggregate: EditReferenceAggregate, studyId: string): number {
   return aggregate.messages.reduce((maximum, message) => message.studySessionId === studyId ? Math.max(maximum, message.sequence) : maximum, 0) + 1
+}
+
+function activePreferenceSourceEvidence(
+  evidence: readonly PreferenceEvidenceRecord[],
+): PreferenceEvidenceRecord[] {
+  const sourceEvidence = evidence.filter((record) => record.sourceType !== 'derived_skill_evidence')
+  const supersededIds = new Set(sourceEvidence
+    .map((record) => record.supersedesEvidenceId)
+    .filter((value): value is string => Boolean(value)))
+  return sourceEvidence.filter((record) => !supersededIds.has(record.id))
+}
+
+function canonicalizePreparedEvidenceStudy(
+  orchestration: ReturnType<typeof orchestratePreferenceEvidenceStudy>,
+): {
+  derivedEvidence: PreferenceEvidenceRecord[]
+  skillRuns: EditReferenceDetail['skillRuns']
+} {
+  const evidenceIdMap = new Map(orchestration.derivedEvidence.map((record) => [record.id, randomUUID()]))
+  const skillRunIdMap = new Map(orchestration.skillRuns.map((record) => [record.id, randomUUID()]))
+  const replaceEvidenceId = (id: string): string => evidenceIdMap.get(id) ?? id
+  const replaceSkillRunId = (id: string): string => skillRunIdMap.get(id) ?? id
+  const derivedEvidence = orchestration.derivedEvidence.map((record) => ({
+    ...structuredClone(record),
+    id: replaceEvidenceId(record.id),
+    provenance: {
+      ...structuredClone(record.provenance),
+      sourceEvidenceIds: record.provenance.sourceEvidenceIds.map(replaceEvidenceId),
+      ...(record.provenance.skillRunId
+        ? { skillRunId: replaceSkillRunId(record.provenance.skillRunId) }
+        : {}),
+    },
+  }))
+  const skillRuns = orchestration.skillRuns.map((record) => ({
+    ...structuredClone(record),
+    id: replaceSkillRunId(record.id),
+    inputEvidenceIds: record.inputEvidenceIds.map(replaceEvidenceId),
+    outputEvidenceIds: record.outputEvidenceIds.map(replaceEvidenceId),
+  }))
+  return { derivedEvidence, skillRuns }
+}
+
+function canonicalizeTopLevelRecordId<T extends { id: string }>(record: T): T {
+  return { ...structuredClone(record), id: randomUUID() }
+}
+
+async function lookupCanonicalDomainMutation(
+  repository: EditReferenceRepository,
+  requestedScope: EditReferenceRepositoryScope,
+  operation: string,
+  idempotencyKey: string,
+  requestHash: string,
+): Promise<EditReferenceMutationResult | undefined> {
+  if (!repository.lookupCommittedMutation) {
+    throw new ApiError(
+      'EDIT_REFERENCE_PERSISTENCE_BLOCKED',
+      'The canonical Edit Reference repository cannot safely check a prepared command replay.',
+      503,
+      {
+        requiredGate: 'canonical_domain_idempotency_lookup',
+        preparedWorkStarted: false,
+        remoteMutationAttempted: false,
+        productionReady: false,
+      },
+    )
+  }
+  return repository.lookupCommittedMutation({
+    scope: requestedScope,
+    operation,
+    idempotencyKey,
+    requestHash,
+    replay: replayDetailData,
+  })
+}
+
+function canonicalDomainMutationClosureMustNotRun(): never {
+  throw new ApiError(
+    'EDIT_REFERENCE_PERSISTENCE_BLOCKED',
+    'The canonical Edit Reference repository must execute the bounded domain command, never an aggregate mutation callback.',
+    503,
+    {
+      browserSuppliedAggregateAccepted: false,
+      remoteMutationAttempted: false,
+      productionReady: false,
+    },
+  )
+}
+
+function canonicalEvidenceStudyStatusInvalid(): never {
+  throw new ApiError(
+    'INTERNAL_ERROR',
+    'The deterministic evidence study produced an invalid canonical status.',
+    500,
+  )
 }
 
 function usageLog(

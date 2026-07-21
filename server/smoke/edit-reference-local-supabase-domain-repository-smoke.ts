@@ -99,6 +99,112 @@ const replayed = await service.appendMessage(studyId, {
 assert.equal(replayed.replayed, true)
 assert.deepEqual(replayed.data.appendedMessageIds, appended.data.appendedMessageIds)
 
+const evidenceStudy = await service.runEvidenceStudy(studyId, {
+  workspaceId,
+  expectedStudyRevision: 2,
+}, `evidence-study-domain-${runId}`)
+assert.equal(evidenceStudy.replayed, false)
+assert.equal(evidenceStudy.data.detail.study.revision, 3)
+assert.equal(evidenceStudy.data.detail.study.status, 'evidence_ready')
+assert.equal(evidenceStudy.data.detail.study.evidenceStatus, 'evidence_ready')
+assert.ok(evidenceStudy.data.detail.evidence.length > appended.data.detail.evidence.length)
+assert.ok(evidenceStudy.data.detail.skillRuns.length > 0)
+assert.ok(evidenceStudy.data.detail.skillRuns.every((record) => (
+  record.providerCallMade === false
+  && record.modelCallMade === false
+  && record.fileBytesRead === false
+  && record.mediaProcessingStarted === false
+  && record.workerJobCreated === false
+)))
+
+await assert.rejects(
+  service.runEvidenceStudy(studyId, {
+    workspaceId,
+    expectedStudyRevision: 3,
+    retryBlockedSkills: true,
+  }, `evidence-study-retry-domain-${runId}`),
+  (error: unknown) => error instanceof ApiError
+    && error.code === 'EDIT_REFERENCE_PERSISTENCE_BLOCKED'
+    && (error.details as { requiredGate?: string } | undefined)?.requiredGate
+      === 'canonical_pre_plan_study_result_commit_adapter',
+)
+const afterBlockedRetry = await service.getStudy(workspaceId, studyId)
+assert.equal(afterBlockedRetry.data.study.revision, 3)
+
+const synthesized = await service.synthesizePreferenceDNA(studyId, {
+  workspaceId,
+  expectedStudyRevision: 3,
+}, `dna-domain-${runId}`)
+assert.equal(synthesized.replayed, false)
+assert.equal(synthesized.data.detail.study.revision, 4)
+assert.equal(synthesized.data.detail.study.status, 'dna_ready')
+assert.equal(synthesized.data.detail.dnaVersions.length, 1)
+const dnaVersion = synthesized.data.detail.dnaVersions[0]
+assert.ok(dnaVersion)
+assert.equal(dnaVersion.status, 'review_required')
+assert.equal(dnaVersion.qaStatus, 'not_run')
+
+const qaReviewed = await service.runPreferenceDNAQA(studyId, dnaVersion.id, {
+  workspaceId,
+  expectedStudyRevision: 4,
+  expectedDNAContentDigest: dnaVersion.contentDigest,
+}, `dna-qa-domain-${runId}`)
+assert.equal(qaReviewed.replayed, false)
+assert.equal(qaReviewed.data.detail.study.revision, 5)
+assert.equal(qaReviewed.data.detail.dnaQaResults.length, 1)
+const qaResult = qaReviewed.data.detail.dnaQaResults[0]
+const reviewedDnaVersion = qaReviewed.data.detail.dnaVersions[0]
+assert.ok(qaResult)
+assert.ok(reviewedDnaVersion)
+assert.notEqual(qaResult.status, 'blocked')
+assert.equal(reviewedDnaVersion.qaResultId, qaResult.id)
+assert.equal(reviewedDnaVersion.qaStatus, qaResult.status)
+
+const approved = await service.approvePreferenceDNA(studyId, dnaVersion.id, {
+  workspaceId,
+  expectedStudyRevision: 5,
+  expectedDNAContentDigest: dnaVersion.contentDigest,
+  qaResultId: qaResult.id,
+  acknowledgeAdaptNotCopy: true,
+  acknowledgeQAReview: true,
+}, `dna-approve-domain-${runId}`)
+assert.equal(approved.replayed, false)
+assert.equal(approved.data.detail.study.revision, 6)
+assert.equal(approved.data.detail.study.status, 'approved')
+assert.equal(approved.data.detail.dnaVersions[0]?.status, 'approved')
+assert.equal(approved.data.detail.dnaVersions[0]?.approval?.qaResultId, qaResult.id)
+assert.equal(approved.data.detail.applications.length, 0)
+
+const committedIdentity = {
+  evidenceIds: approved.data.detail.evidence.map((record) => record.id),
+  skillRunIds: approved.data.detail.skillRuns.map((record) => record.id),
+  dnaIds: approved.data.detail.dnaVersions.map((record) => record.id),
+  qaIds: approved.data.detail.dnaQaResults.map((record) => record.id),
+}
+const evidenceStudyReplay = await service.runEvidenceStudy(studyId, {
+  workspaceId,
+  expectedStudyRevision: 2,
+}, `evidence-study-domain-${runId}`)
+assert.equal(evidenceStudyReplay.replayed, true)
+assert.deepEqual({
+  evidenceIds: evidenceStudyReplay.data.detail.evidence.map((record) => record.id),
+  skillRunIds: evidenceStudyReplay.data.detail.skillRuns.map((record) => record.id),
+  dnaIds: evidenceStudyReplay.data.detail.dnaVersions.map((record) => record.id),
+  qaIds: evidenceStudyReplay.data.detail.dnaQaResults.map((record) => record.id),
+}, committedIdentity)
+
+const correctedDirection = await service.appendMessage(studyId, {
+  workspaceId,
+  expectedStudyRevision: 6,
+  clientMessageId: `client-correction-${runId}`,
+  content: 'Revise the preference: captions should be quieter and appear only when speech clarity needs support.',
+}, `append-correction-domain-${runId}`)
+assert.equal(correctedDirection.replayed, false)
+assert.equal(correctedDirection.data.detail.study.revision, 7)
+assert.equal(correctedDirection.data.detail.study.status, 'ready_to_study')
+assert.equal(correctedDirection.data.detail.dnaVersions[0]?.status, 'superseded')
+assert.equal(correctedDirection.data.detail.reference.dnaStatus, 'not_generated')
+
 await assert.rejects(
   service.appendMessage(studyId, {
     workspaceId,
@@ -123,8 +229,8 @@ const listedReference = listed.data.references.find(
   (item) => item.reference.id === referenceId,
 )
 assert.ok(listedReference)
-assert.equal(listedReference.currentStudy.revision, 2)
-assert.equal(listedReference.messageCount, 4)
+assert.equal(listedReference.currentStudy.revision, 7)
+assert.equal(listedReference.messageCount, 10)
 assert.equal(listed.data.persistence, 'canonical_supabase_transactional')
 
 const restartedClient = createEditReferenceLocalSupabaseDomainHttpRpcClient({
@@ -152,7 +258,7 @@ assert.equal(recovered.data.detail.reference.id, referenceId)
 assert.equal(recovered.data.detail.study.id, studyId)
 assert.deepEqual(
   recovered.data.detail.messages.map((message) => message.id),
-  appended.data.detail.messages.map((message) => message.id),
+  correctedDirection.data.detail.messages.map((message) => message.id),
 )
 
 const auditEvents = await restartedRepository.readAuditEvents({
@@ -163,11 +269,16 @@ const auditEvents = await restartedRepository.readAuditEvents({
 const currentReferenceAuditEvents = auditEvents.filter(
   (event) => event.editReferenceId === referenceId,
 )
-assert.equal(currentReferenceAuditEvents.length, 3)
+assert.equal(currentReferenceAuditEvents.length, 8)
 assert.deepEqual(
   currentReferenceAuditEvents.map((event) => event.eventType),
   [
     'edit_reference_created',
+    'preference_study_message_appended',
+    'preference_evidence_study_completed',
+    'preference_dna_version_created',
+    'preference_dna_qa_completed',
+    'preference_dna_version_approved',
     'preference_study_message_appended',
     'edit_reference_updated',
   ],
@@ -213,6 +324,126 @@ try {
     mountedCreated.json.data.detail.reference.runtimeSource,
     'canonical_supabase_transactional',
   )
+  const mountedReferenceId = mountedCreated.json.data.detail.reference.id
+  const mountedStudyId = mountedCreated.json.data.detail.study.id
+
+  const mountedDirection = await requestJson(
+    `${baseUrl}/v1/edit-reference-studies/${mountedStudyId}/messages`,
+    {
+      method: 'POST',
+      token: 'local-domain-token-a',
+      idempotencyKey: `mounted-direction-${runId}`,
+      body: {
+        workspaceId,
+        expectedStudyRevision: 1,
+        clientMessageId: `mounted-direction-message-${runId}`,
+        content: 'Keep the pacing measured, protect testimony, and use restrained captions.',
+      },
+    },
+  )
+  assert.equal(mountedDirection.status, 201)
+  assert.equal(mountedDirection.json.data.detail.study.revision, 2)
+
+  const mountedEvidenceStudy = await requestJson(
+    `${baseUrl}/v1/edit-reference-studies/${mountedStudyId}/evidence-study`,
+    {
+      method: 'POST',
+      token: 'local-domain-token-a',
+      idempotencyKey: `mounted-evidence-study-${runId}`,
+      body: { workspaceId, expectedStudyRevision: 2 },
+    },
+  )
+  assert.equal(mountedEvidenceStudy.status, 201)
+  assert.equal(mountedEvidenceStudy.json.data.detail.study.status, 'evidence_ready')
+  assert.equal(mountedEvidenceStudy.json.data.detail.study.revision, 3)
+
+  const mountedDna = await requestJson(
+    `${baseUrl}/v1/edit-reference-studies/${mountedStudyId}/preference-dna`,
+    {
+      method: 'POST',
+      token: 'local-domain-token-a',
+      idempotencyKey: `mounted-dna-${runId}`,
+      body: { workspaceId, expectedStudyRevision: 3 },
+    },
+  )
+  assert.equal(mountedDna.status, 201)
+  assert.equal(mountedDna.json.data.detail.study.status, 'dna_ready')
+  const mountedDnaVersion = mountedDna.json.data.detail.dnaVersions[0]
+  assert.ok(mountedDnaVersion)
+
+  const mountedQa = await requestJson(
+    `${baseUrl}/v1/edit-reference-studies/${mountedStudyId}/preference-dna/${mountedDnaVersion.id}/qa`,
+    {
+      method: 'POST',
+      token: 'local-domain-token-a',
+      idempotencyKey: `mounted-dna-qa-${runId}`,
+      body: {
+        workspaceId,
+        expectedStudyRevision: 4,
+        expectedDNAContentDigest: mountedDnaVersion.contentDigest,
+      },
+    },
+  )
+  assert.equal(mountedQa.status, 201)
+  const mountedQaResult = mountedQa.json.data.detail.dnaQaResults[0]
+  assert.ok(mountedQaResult)
+  assert.notEqual(mountedQaResult.status, 'blocked')
+
+  const mountedApproved = await requestJson(
+    `${baseUrl}/v1/edit-reference-studies/${mountedStudyId}/preference-dna/${mountedDnaVersion.id}/approve`,
+    {
+      method: 'POST',
+      token: 'local-domain-token-a',
+      idempotencyKey: `mounted-dna-approve-${runId}`,
+      body: {
+        workspaceId,
+        expectedStudyRevision: 5,
+        expectedDNAContentDigest: mountedDnaVersion.contentDigest,
+        qaResultId: mountedQaResult.id,
+        acknowledgeAdaptNotCopy: true,
+        acknowledgeQAReview: true,
+      },
+    },
+  )
+  assert.equal(mountedApproved.status, 201)
+  assert.equal(mountedApproved.json.data.detail.study.status, 'approved')
+  assert.equal(mountedApproved.json.data.detail.dnaVersions[0]?.status, 'approved')
+  assert.equal(mountedApproved.json.data.detail.reference.id, mountedReferenceId)
+
+  const mountedEvidenceReplay = await requestJson(
+    `${baseUrl}/v1/edit-reference-studies/${mountedStudyId}/evidence-study`,
+    {
+      method: 'POST',
+      token: 'local-domain-token-a',
+      idempotencyKey: `mounted-evidence-study-${runId}`,
+      body: { workspaceId, expectedStudyRevision: 2 },
+    },
+  )
+  assert.equal(mountedEvidenceReplay.status, 201)
+  assert.equal(mountedEvidenceReplay.idempotencyReplayed, true)
+  assert.equal(mountedEvidenceReplay.json.data.detail.study.revision, 6)
+  assert.deepEqual(
+    mountedEvidenceReplay.json.data.detail.dnaVersions,
+    mountedApproved.json.data.detail.dnaVersions,
+  )
+
+  const mountedCorrection = await requestJson(
+    `${baseUrl}/v1/edit-reference-studies/${mountedStudyId}/messages`,
+    {
+      method: 'POST',
+      token: 'local-domain-token-a',
+      idempotencyKey: `mounted-correction-${runId}`,
+      body: {
+        workspaceId,
+        expectedStudyRevision: 6,
+        clientMessageId: `mounted-correction-message-${runId}`,
+        content: 'Revise this preference so captions stay quiet and secondary to testimony.',
+      },
+    },
+  )
+  assert.equal(mountedCorrection.status, 201)
+  assert.equal(mountedCorrection.json.data.detail.study.revision, 7)
+  assert.equal(mountedCorrection.json.data.detail.dnaVersions[0]?.status, 'superseded')
 
   const crossWorkspace = await requestJson(
     `${baseUrl}/v1/edit-references?workspaceId=${workspaceId}`,
@@ -220,6 +451,18 @@ try {
   )
   assert.equal(crossWorkspace.status, 403)
   assert.equal(crossWorkspace.json.error?.code, 'WORKSPACE_ACCESS_DENIED')
+
+  const crossWorkspaceMutation = await requestJson(
+    `${baseUrl}/v1/edit-reference-studies/${mountedStudyId}/evidence-study`,
+    {
+      method: 'POST',
+      token: 'local-domain-token-b',
+      idempotencyKey: `mounted-cross-workspace-${runId}`,
+      body: { workspaceId, expectedStudyRevision: 7 },
+    },
+  )
+  assert.equal(crossWorkspaceMutation.status, 403)
+  assert.equal(crossWorkspaceMutation.json.error?.code, 'WORKSPACE_ACCESS_DENIED')
 } finally {
   await close(server)
 }
@@ -275,9 +518,11 @@ console.log(JSON.stringify({
   ok: true,
   schemaVersion: EDIT_REFERENCE_LOCAL_SUPABASE_DOMAIN_REPOSITORY_VERSION,
   repositoryPersistence: repository.persistence,
-  commandRpc: 'mutate_edit_reference_domain_command_v1',
-  readRpc: 'read_edit_reference_domain_aggregate_v1',
-  explicitCommandsVerified: 3,
+  commandRpc: 'mutate_edit_reference_domain_command_v2',
+  readRpc: 'read_edit_reference_domain_aggregate_v2',
+  idempotencyLookupRpc: 'read_edit_reference_domain_idempotency_v1',
+  explicitCommandsVerified: 10,
+  libraryToApprovalLifecycleVerified: true,
   exactReplayStable: true,
   idempotencyConflictRejected: true,
   staleBrowserAggregateAccepted: false,
@@ -285,6 +530,8 @@ console.log(JSON.stringify({
   crossWorkspaceReadDenied: true,
   restartReadbackVerifiedLocally: true,
   mountedHttpLibraryCreateAndReadVerified: true,
+  mountedHttpLibraryToApprovalLifecycleVerified: true,
+  mountedHttpCommittedResponseReplayVerified: true,
   mountedHttpCrossWorkspaceDenied: true,
   auditSequenceVerified: true,
   serviceRoleCredentialExposed: false,
@@ -303,7 +550,24 @@ type EditReferenceApiEnvelope = {
   readonly data: {
     readonly references: Array<{ readonly reference: { readonly id: string } }>
     readonly detail: {
-      readonly reference: { readonly runtimeSource: string }
+      readonly reference: {
+        readonly id: string
+        readonly runtimeSource: string
+      }
+      readonly study: {
+        readonly id: string
+        readonly revision: number
+        readonly status: string
+      }
+      readonly dnaVersions: Array<{
+        readonly id: string
+        readonly contentDigest: string
+        readonly status: string
+      }>
+      readonly dnaQaResults: Array<{
+        readonly id: string
+        readonly status: string
+      }>
     }
   }
   readonly error?: { readonly code?: string }
@@ -374,7 +638,11 @@ async function requestJson(url: string, input: {
   readonly token: string
   readonly idempotencyKey?: string
   readonly body?: unknown
-}): Promise<{ readonly status: number; readonly json: EditReferenceApiEnvelope }> {
+}): Promise<{
+  readonly status: number
+  readonly idempotencyReplayed: boolean
+  readonly json: EditReferenceApiEnvelope
+}> {
   const method = input.method ?? 'GET'
   const headers = new Headers({
     accept: 'application/json',
@@ -389,6 +657,7 @@ async function requestJson(url: string, input: {
   })
   return {
     status: response.status,
+    idempotencyReplayed: response.headers.get('idempotency-replayed') === 'true',
     json: await response.json() as EditReferenceApiEnvelope,
   }
 }

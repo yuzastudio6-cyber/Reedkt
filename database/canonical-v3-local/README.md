@@ -32,14 +32,17 @@ The chain provides:
   idempotent preparation transaction that re-reads approved reference, DNA,
   QA, and exact-target study authority before creating one unconnected
   application; authenticated browser credentials cannot execute it directly;
-- `mutate_edit_reference_domain_command_v1` as the service-role-only,
-  operation-safe library and study mutation transaction. It accepts explicit
-  create, update, message, and evidence commands and never accepts a
-  browser-shaped replacement aggregate;
-- `read_edit_reference_domain_aggregate_v1` as the paired service-role-only,
-  tenant-bound library and study read. The loopback server adapter keeps the
-  service credential inside the backend closure and exposes only the existing
-  authenticated ReEditPro HTTP contract;
+- `mutate_edit_reference_domain_command_v2` as the service-role-only,
+  operation-safe library and study mutation transaction. It preserves the six
+  V1 create/update/message/evidence commands and adds bounded, server-prepared
+  manual evidence study, Preference DNA synthesis, DNA QA, and DNA approval
+  commands without accepting a browser-shaped replacement aggregate;
+- `read_edit_reference_domain_aggregate_v2` as the paired service-role-only,
+  tenant-bound library and study read, plus
+  `read_edit_reference_domain_idempotency_v1` for exact committed-receipt
+  recovery before server-side preparation is recomputed. The loopback server
+  adapter keeps the service credential inside the backend closure and exposes
+  only the existing authenticated ReEditPro HTTP contract;
 - `read_exact_edit_reference_application_state_v2` planning authority;
 - `assert_preference_application_plan_current_v1` execution-currentness check;
 - durable Kimi K3 -> Qwen 3.7 -> DeepSeek V4 Pro Study Chat attempts, provider
@@ -55,11 +58,18 @@ The chain provides:
   for exact-edit authority reads and Apply, plus a server-owned loopback
   service-role transport for the explicit library/study command and read RPCs.
   No service-role credential reaches browser code, logs, or response data;
+- a mounted signed-in Chromium proof against that same isolated reset. It
+  recovers the workspace through authenticated RLS, creates a library
+  preference, persists Study Chat direction, studies evidence, synthesizes
+  immutable DNA, runs QA, recovers a committed approval after response loss,
+  supersedes it through a correction, approves the replacement, and restores
+  the exact state after reload;
 - local two-user/two-workspace isolation and adversarial lifecycle,
   server-owned application preparation/replay/conflict, atomic Apply,
   planning-authority read/evidence/replay, immutable-baseline, cleanup
-  invalidation, recovery, direct-RPC/table denial, and internal-cost tests.
-- a destructive local backup/reset/restore rehearsal covering all 45 reviewed
+  invalidation, evidence/DNA/QA/approval replay, recovery, direct-RPC/table
+  denial, and internal-cost tests.
+- a destructive local backup/reset/restore rehearsal covering all 46 reviewed
   canonical data tables, an exact logical-state digest, immutable approved and
   audit history, exact Apply replay/conflict recovery, and restored tenant RLS.
 
@@ -81,8 +91,9 @@ database/canonical-v3-local/run-local-verification.sh
 
 The runner starts the isolated local stack if needed, performs a clean local
 reset, executes all SQL tests with `ON_ERROR_STOP`, verifies the local adapter,
-installs the controlled fixture, exercises the actual loopback PostgREST RPC
-and RLS path, performs a private data-only backup/reset/restore rehearsal with
+provisions two local Auth users, installs the controlled fixture, exercises the
+actual loopback PostgREST RPC and RLS path, runs the mounted signed-in Chromium
+journey, and performs a private data-only backup/reset/restore rehearsal with
 the PostgreSQL 15 tools from the matching local database container, verifies
 the source manifest, and performs a final clean reset. SQL tests run inside
 transactions and roll back their fixtures. Recovery archives stay under the

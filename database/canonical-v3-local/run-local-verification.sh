@@ -20,6 +20,8 @@ fi
 unset SUPABASE_ACCESS_TOKEN
 export REEDITPRO_CANONICAL_V3_DATABASE_URL="${DATABASE_URL}"
 export PSQL_BIN
+BROWSER_STORAGE_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/reeditpro-canonical-v3-browser.XXXXXX")"
+chmod 700 "${BROWSER_STORAGE_ROOT}"
 
 if ! "${SUPABASE_BIN}" --workdir "${SCRIPT_DIR}" status >/dev/null 2>&1; then
   "${SUPABASE_BIN}" --workdir "${SCRIPT_DIR}" start >/dev/null
@@ -28,6 +30,7 @@ fi
 cleanup() {
   unset REEDITPRO_CANONICAL_V3_API_URL REEDITPRO_CANONICAL_V3_ANON_KEY \
     REEDITPRO_CANONICAL_V3_JWT_SECRET REEDITPRO_CANONICAL_V3_SERVICE_ROLE_KEY
+  rm -rf -- "${BROWSER_STORAGE_ROOT}"
   "${SUPABASE_BIN}" --workdir "${SCRIPT_DIR}" db reset --local --no-seed \
     >/dev/null 2>&1 || true
 }
@@ -44,7 +47,8 @@ for test_file in \
   "${SCRIPT_DIR}/tests/006_exact_edit_apply_authority_read.sql" \
   "${SCRIPT_DIR}/tests/007_canonical_exact_edit_planning_authority.sql" \
   "${SCRIPT_DIR}/tests/008_edit_reference_application_preparation.sql" \
-  "${SCRIPT_DIR}/tests/010_edit_reference_domain_library_study_rpcs.sql"
+  "${SCRIPT_DIR}/tests/010_edit_reference_domain_library_study_rpcs.sql" \
+  "${SCRIPT_DIR}/tests/011_edit_reference_domain_v2_receipt_and_security.sql"
 do
   "${PSQL_BIN}" "${DATABASE_URL}" -X -q -v ON_ERROR_STOP=1 -f "${test_file}"
 done
@@ -68,6 +72,7 @@ if [[ "${REEDITPRO_CANONICAL_V3_API_URL}" != 'http://127.0.0.1:57431' ]]; then
   echo "Refusing non-canonical local PostgREST origin." >&2
   exit 64
 fi
+npx --no-install tsx "${SCRIPT_DIR}/setup-local-auth-users.ts"
 "${PSQL_BIN}" "${DATABASE_URL}" -X -q -v ON_ERROR_STOP=1 \
   -f "${SCRIPT_DIR}/tests/_fixture.sql"
 npx --no-install tsx \
@@ -75,6 +80,11 @@ npx --no-install tsx \
 npx --no-install tsx "${REPOSITORY_ROOT}/server/smoke/edit-reference-local-supabase-http-rpc-smoke.ts"
 npx --no-install tsx \
   "${REPOSITORY_ROOT}/server/smoke/edit-reference-local-supabase-domain-repository-smoke.ts"
+PLAYWRIGHT_EDIT_REFERENCE_V3_STORAGE_ROOT="${BROWSER_STORAGE_ROOT}" \
+  npx --no-install playwright test --config \
+  "${REPOSITORY_ROOT}/tests/e2e/playwright.edit-reference-canonical-v3-local.config.ts"
+"${PSQL_BIN}" "${DATABASE_URL}" -X -q -v ON_ERROR_STOP=1 \
+  -f "${SCRIPT_DIR}/tests/012_edit_reference_domain_lifecycle_postconditions.sql"
 
 "${SCRIPT_DIR}/run-local-recovery-verification.sh"
 

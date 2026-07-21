@@ -23,6 +23,7 @@ const expectedRepositoryFiles = [
   'docs/canonical-edit-reference-mounted-long-form-runtime-port-verification-2026-07-21.md',
   'docs/canonical-exact-edit-planning-authority-verification-2026-07-21.md',
   'docs/canonical-v3-local-edit-reference-domain-library-study-verification-2026-07-21.md',
+  'docs/canonical-v3-local-edit-reference-evidence-dna-approval-verification-2026-07-21.md',
   'docs/canonical-v3-local-edit-reference-recovery-verification-2026-07-21.md',
   'docs/canonical-v3-local-exact-edit-apply-authority-read-verification-2026-07-21.md',
   'docs/canonical-v3-local-exact-edit-atomic-apply-verification-2026-07-21.md',
@@ -73,6 +74,7 @@ const expectedRepositoryFiles = [
   'server/validation/edit-reference-application-preparation-schemas.ts',
   'server/validation/planning-input-authority-binding-schemas.ts',
   'src/backend/api/routes/edit-planning-api-routes.ts',
+  'src/backend/auth/workspace-bootstrap-service.ts',
   'src/components/editor/ChatNativeEditor.tsx',
   'src/components/editor/CurrentEditPreferencesWorkspace.tsx',
   'src/lib/canonical-planning-draft.ts',
@@ -88,8 +90,10 @@ const expectedRepositoryFiles = [
   'tests/e2e/edit-preferences-atomic-api-server.ts',
   'tests/e2e/edit-preferences-current-edit.spec.ts',
   'tests/e2e/edit-reference-canonical-real-file-flow.spec.ts',
+  'tests/e2e/edit-reference-canonical-v3-local-browser.spec.ts',
   'tests/e2e/playwright.current-edit-preferences-atomic.config.ts',
   'tests/e2e/playwright.edit-reference-canonical-real-file.config.ts',
+  'tests/e2e/playwright.edit-reference-canonical-v3-local.config.ts',
 ]
 const actualRepositoryFiles = manifest.repositoryFiles
   .map((entry) => entry.path)
@@ -105,6 +109,7 @@ const expectedMigrations = [
   '202607210006_canonical_exact_edit_planning_authority.sql',
   '202607210007_edit_reference_application_preparation.sql',
   '202607210008_edit_reference_domain_library_study_rpcs.sql',
+  '202607210009_edit_reference_domain_evidence_dna_approval_rpcs.sql',
 ]
 const actualMigrations = readdirSync(join(directory, 'supabase', 'migrations'))
   .filter((name) => name.endsWith('.sql'))
@@ -115,7 +120,7 @@ const expectedRecoveryDataTables = readFileSync(
   join(directory, 'expected-recovery-data-tables.txt'),
   'utf8',
 ).trim().split('\n')
-assert(expectedRecoveryDataTables.length === 45, 'recovery_table_count_invalid')
+assert(expectedRecoveryDataTables.length === 46, 'recovery_table_count_invalid')
 assert(
   equalArrays(expectedRecoveryDataTables, [...expectedRecoveryDataTables].sort()),
   'recovery_table_order_invalid',
@@ -178,6 +183,10 @@ for (const requiredToken of [
   'prepare_edit_reference_application_v1',
   'mutate_edit_reference_domain_command_v1',
   'read_edit_reference_domain_aggregate_v1',
+  'mutate_edit_reference_domain_command_v2',
+  'read_edit_reference_domain_aggregate_v2',
+  'read_edit_reference_domain_idempotency_v1',
+  'preference_dna_lifecycle_events',
   'edit_reference_domain_states',
   'edit_reference_domain_audit_events',
   'edit_reference_domain_idempotency_receipts',

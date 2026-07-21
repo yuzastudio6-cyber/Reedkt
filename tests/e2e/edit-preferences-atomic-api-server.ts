@@ -29,6 +29,17 @@ import {
 import {
   createEditReferenceProductionOutputFrameAuthority,
 } from '../../server/edit-references/edit-reference-production-output-frame-authority'
+import {
+  createEditReferenceLocalSupabaseDomainCapability,
+  createEditReferenceLocalSupabaseDomainRepository,
+} from '../../server/edit-references/edit-reference-local-supabase-domain-repository'
+import {
+  createEditReferenceLocalSupabaseDomainHttpRpcClient,
+} from '../../server/edit-references/edit-reference-local-supabase-domain-http-rpc-client'
+import {
+  createCanonicalV3LocalEditReferenceDomainRepositoryRuntimePort,
+  type EditReferenceDomainRepositoryRuntimePort,
+} from '../../server/services/edit-reference-domain-repository-runtime-port'
 
 type ExactEditState = {
   values: EditReferenceProductionExactEditPreferenceValues
@@ -291,10 +302,15 @@ const env = loadRuntimeEnv({
   PROVIDER_EXECUTION_ENABLED: 'false',
   WORKER_RUNTIME_MODE: 'mock',
 })
+const editReferenceDomainRepositoryRuntimePort =
+  createOptionalCanonicalV3LocalDomainRepositoryRuntimePort()
 const server = createReeditProApiApp(env, {
   editReferenceExactEditApplyRuntimePort: runtimePort,
   editReferenceApplicationPreparationRuntimePort: applicationPreparation.port,
   planningExactEditPreferenceAuthorityPort: planningPort,
+  ...(editReferenceDomainRepositoryRuntimePort
+    ? { editReferenceDomainRepositoryRuntimePort }
+    : {}),
 }).listen(env.apiPort, '127.0.0.1', () => {
   console.log(JSON.stringify({ event: 'atomic_preferences_test_api_listening', port: env.apiPort }))
 })
@@ -310,6 +326,29 @@ function close(signal: NodeJS.Signals) {
 }
 process.once('SIGINT', () => close('SIGINT'))
 process.once('SIGTERM', () => close('SIGTERM'))
+
+function createOptionalCanonicalV3LocalDomainRepositoryRuntimePort():
+  EditReferenceDomainRepositoryRuntimePort | undefined {
+  const endpointOrigin = process.env.REEDITPRO_CANONICAL_V3_API_URL?.trim()
+  const serviceRoleKey = process.env.REEDITPRO_CANONICAL_V3_SERVICE_ROLE_KEY?.trim()
+  if (!endpointOrigin && !serviceRoleKey) return undefined
+  if (!endpointOrigin || !serviceRoleKey) {
+    throw new Error('The canonical V3 browser proof requires both local RPC variables.')
+  }
+  const client = createEditReferenceLocalSupabaseDomainHttpRpcClient({
+    endpointOrigin,
+    serviceRoleKey,
+  })
+  const capability = createEditReferenceLocalSupabaseDomainCapability({
+    client,
+    endpointOrigin,
+  })
+  const repository = createEditReferenceLocalSupabaseDomainRepository({
+    client,
+    capability,
+  })
+  return createCanonicalV3LocalEditReferenceDomainRepositoryRuntimePort({ repository })
+}
 
 function stateKey(workspaceId: string, projectId: string, editSessionId: string): string {
   return `${workspaceId}\n${projectId}\n${editSessionId}`

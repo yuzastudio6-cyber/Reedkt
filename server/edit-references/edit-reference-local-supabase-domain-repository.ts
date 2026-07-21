@@ -6,6 +6,7 @@ import {
   EDIT_REFERENCE_DOMAIN_AGGREGATE_READ_RPC,
   EDIT_REFERENCE_DOMAIN_COMMAND_CONTRACT_VERSION,
   EDIT_REFERENCE_DOMAIN_COMMAND_RPC,
+  EDIT_REFERENCE_DOMAIN_IDEMPOTENCY_LOOKUP_RPC,
   assertEditReferenceDomainCommand,
   editReferenceDomainCommandRequestHash,
   editReferenceDomainCommandWorkspaceId,
@@ -14,6 +15,7 @@ import type { EditReferenceProductionRpcClient } from './edit-reference-producti
 import type {
   EditReferenceAggregate,
   EditReferenceAuditEvent,
+  EditReferenceCommittedMutationLookupInput,
   EditReferenceIdempotencyReceipt,
   EditReferenceMutationInput,
   EditReferenceMutationResult,
@@ -97,6 +99,9 @@ export function createEditReferenceLocalSupabaseDomainRepository(input: {
       if (!read) return []
       return validateReadResponse(read, scope).auditEvents
     },
+    lookupCommittedMutation: (lookup: EditReferenceCommittedMutationLookupInput) => (
+      lookupCommittedMutation(input.client, lookup)
+    ),
     mutate: (mutation: EditReferenceMutationInput) => mutateDomain(
       input.client,
       mutation,
@@ -104,6 +109,51 @@ export function createEditReferenceLocalSupabaseDomainRepository(input: {
   })
   repositoryBrands.add(repository)
   return repository
+}
+
+async function lookupCommittedMutation(
+  client: EditReferenceProductionRpcClient,
+  input: EditReferenceCommittedMutationLookupInput,
+): Promise<EditReferenceMutationResult | undefined> {
+  validateScope(input.scope)
+  if (
+    typeof input.operation !== 'string'
+    || input.operation.length < 1
+    || input.operation.length > 240
+    || typeof input.idempotencyKey !== 'string'
+    || input.idempotencyKey.length < 8
+    || input.idempotencyKey.length > 512
+    || !SHA256_PATTERN.test(input.requestHash)
+  ) invalid('local_domain_idempotency_lookup_input_invalid')
+  const idempotencyKeyHashSha256 = sha256(input.idempotencyKey)
+  const result = await invokeExactlyOnce(client, EDIT_REFERENCE_DOMAIN_IDEMPOTENCY_LOOKUP_RPC, {
+    p_actor_user_id: input.scope.ownerUserId,
+    p_workspace_id: input.scope.workspaceId,
+    p_operation: input.operation,
+    p_idempotency_key_hash_sha256: idempotencyKeyHashSha256,
+    p_request_hash_sha256: input.requestHash,
+  })
+  if (!Array.isArray(result.data) || result.data.length > 1) {
+    invalid('local_domain_idempotency_lookup_cardinality_invalid')
+  }
+  if (result.data.length === 0) return undefined
+  const response = result.data[0]
+  if (!isExactRecord(response, ['aggregate', 'auditEvents', 'receipt', 'replayed'])) {
+    invalid('local_domain_idempotency_lookup_shape_invalid')
+  }
+  const typedResponse = response as unknown as EditReferenceDomainMutationResponse
+  if (typedResponse.replayed !== true) invalid('local_domain_idempotency_lookup_replay_invalid')
+  const { aggregate } = validateReadResponse(typedResponse, input.scope)
+  const receipt = structuredClone(typedResponse.receipt) as EditReferenceIdempotencyReceipt
+  if (
+    receipt.operation !== input.operation
+    || receipt.idempotencyKeyHashSha256 !== idempotencyKeyHashSha256
+    || receipt.requestHashSha256 !== input.requestHash
+    || receipt.committedRevision > aggregate.revision
+  ) invalid('local_domain_idempotency_lookup_binding_invalid')
+  const data = input.replay({ aggregate, receipt })
+  validateEditReferenceRepositoryReplay(data, receipt)
+  return { data: structuredClone(data), replayed: true }
 }
 
 export function assertEditReferenceLocalSupabaseDomainRepository(

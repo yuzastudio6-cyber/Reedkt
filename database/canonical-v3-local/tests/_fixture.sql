@@ -19,7 +19,8 @@ insert into auth.users (
     'authenticated', 'authenticated', 'owner-b@example.test', '', clock_timestamp(),
     '{"provider":"email","providers":["email"]}'::jsonb, '{}'::jsonb,
     clock_timestamp(), clock_timestamp()
-  );
+  )
+on conflict (id) do nothing;
 
 insert into public.profiles (id, display_name) values
   ('11111111-1111-4111-8111-111111111111', 'Owner A'),

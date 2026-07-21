@@ -148,9 +148,25 @@ export interface EditReferenceMutationResult {
   replayed: boolean
 }
 
+export interface EditReferenceCommittedMutationLookupInput {
+  scope: EditReferenceRepositoryScope
+  operation: string
+  idempotencyKey: string
+  requestHash: string
+  replay: (context: EditReferenceMutationReplayContext) => EditReferenceDetailData & { appendedMessageIds?: string[] }
+}
+
 export interface EditReferenceRepository {
   readonly persistence: 'backend_local_private' | 'canonical_supabase_transactional' | 'supabase_blocked'
   read(scope: EditReferenceRepositoryScope): Promise<EditReferenceAggregate | undefined>
   readAuditEvents(scope: EditReferenceRepositoryScope): Promise<EditReferenceAuditEvent[]>
+  /**
+   * Server-only replay preflight for prepared commands. It prevents a lost
+   * response retry from recomputing bounded analysis before the transactional
+   * idempotency receipt is checked. Callback repositories need not expose it.
+   */
+  lookupCommittedMutation?(
+    input: EditReferenceCommittedMutationLookupInput,
+  ): Promise<EditReferenceMutationResult | undefined>
   mutate(input: EditReferenceMutationInput): Promise<EditReferenceMutationResult>
 }

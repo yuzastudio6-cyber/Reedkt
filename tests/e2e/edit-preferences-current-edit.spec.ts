@@ -123,10 +123,38 @@ test.describe('saved and current Edit Preferences', () => {
     await expect(page).toHaveURL(/view=preferences/)
     await expect(page.getByTestId('current-edit-preference-mood')).toHaveValue('premium')
 
+    await page.evaluate(() => window.history.back())
+    await expect(historyGuard).toBeVisible()
+    await clickWhenReady(historyGuard.getByRole('button', { name: /^Discard and leave$/i }))
+    await expect(page).not.toHaveURL(/view=preferences/)
+    await expect(page.getByTestId('editor-chat-canvas')).toBeVisible()
+
+    await clickWhenReady(page.getByTestId('current-edit-preferences-trigger'))
+    await openAdvancedPreferences(page)
+    await expect(page.getByTestId('current-edit-preference-mood')).toHaveValue(baseline.moodStyle)
+    await expect(page.getByTestId('current-edit-preference-cleanup')).toHaveValue(baseline.cleanupPreference)
+
+    await page.getByTestId('current-edit-preference-mood').selectOption('premium')
+    await page.getByTestId('current-edit-preference-cleanup').selectOption('light_cleanup')
     await clickWhenReady(page.getByTestId('edit-workspace-view-chat'))
     await expect(page.getByTestId('current-edit-preferences-leave-guard')).toBeVisible()
     await clickWhenReady(page.getByRole('button', { name: /^Keep editing$/i }))
     await expect(page).toHaveURL(/view=preferences/)
+
+    await clickWhenReady(page.getByTestId('edit-workspace-view-chat'))
+    await expect(page.getByTestId('current-edit-preferences-leave-guard')).toBeVisible()
+    await clickWhenReady(page.getByRole('button', { name: /^Discard and leave$/i }))
+    await expect(page).not.toHaveURL(/view=preferences/)
+    await expect(page.getByTestId('editor-chat-canvas')).toBeVisible()
+
+    await clickWhenReady(page.getByTestId('current-edit-preferences-trigger'))
+    await openAdvancedPreferences(page)
+    await expect(page.getByTestId('current-edit-preference-mood')).toHaveValue(baseline.moodStyle)
+    await expect(page.getByTestId('current-edit-preference-cleanup')).toHaveValue(baseline.cleanupPreference)
+    await expect(page.getByRole('button', { name: /^Apply to this edit$/i })).toHaveCount(0)
+
+    await page.getByTestId('current-edit-preference-mood').selectOption('premium')
+    await page.getByTestId('current-edit-preference-cleanup').selectOption('light_cleanup')
 
     await clickWhenReady(page.getByRole('button', { name: /^Apply to this edit$/i }))
     await expectCurrentEditPreferencesApplied(page)

@@ -122,6 +122,7 @@ export function CurrentEditPreferencesWorkspace({
   const [selectedReferenceId, setSelectedReferenceId] = useState<string>()
   const [targetStudy, setTargetStudy] = useState<TargetVideoUnderstandingPackage>()
   const [applyState, setApplyState] = useState<{ status: 'idle' | 'saving' | 'error'; message?: string }>({ status: 'idle' })
+  const discardLeaveTimerRef = useRef<number | null>(null)
   const leaveGuardRef = useRef<HTMLElement | null>(null)
   const referenceSelectionTouchedRef = useRef(false)
   const editReferenceApi = useMemo(() => createEditReferenceApiClient(), [])
@@ -342,6 +343,12 @@ export function CurrentEditPreferencesWorkspace({
     return () => window.clearTimeout(focusTimer)
   }, [leaveRequested, navigationBlocker.state])
 
+  useEffect(() => () => {
+    if (discardLeaveTimerRef.current !== null) {
+      window.clearTimeout(discardLeaveTimerRef.current)
+    }
+  }, [])
+
   function handleLeaveGuardKeyDown(event: KeyboardEvent<HTMLElement>) {
     if (event.key !== 'Escape') return
     event.preventDefault()
@@ -377,6 +384,26 @@ export function CurrentEditPreferencesWorkspace({
     setApplyState({ status: 'idle' })
     setTargetStudy(undefined)
     setSelectedReferenceId(originalReferenceId)
+  }
+
+  function discardDraftAndLeave() {
+    if (discardLeaveTimerRef.current !== null) return
+    const blockedNavigation = !leaveRequested && navigationBlocker.state === 'blocked'
+    referenceSelectionTouchedRef.current = false
+    setDraft(current)
+    setSelectedReferenceId(originalReferenceId)
+    setTargetStudy(undefined)
+    setApplyState({ status: 'idle' })
+    discardLeaveTimerRef.current = window.setTimeout(() => {
+      discardLeaveTimerRef.current = null
+      onDirtyChange(false)
+      if (blockedNavigation && navigationBlocker.state === 'blocked') {
+        navigationBlocker.proceed()
+        return
+      }
+      if (navigationBlocker.state === 'blocked') navigationBlocker.reset()
+      onDiscardAndLeave()
+    }, 0)
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -668,14 +695,7 @@ export function CurrentEditPreferencesWorkspace({
             </Button>
             {!pendingApplyRecovery ? (
               <Button
-                onClick={() => {
-                  if (navigationBlocker.state === 'blocked') {
-                    onDirtyChange(false)
-                    navigationBlocker.proceed()
-                    return
-                  }
-                  onDiscardAndLeave()
-                }}
+                onClick={discardDraftAndLeave}
                 variant="secondary"
               >
                 Discard and leave

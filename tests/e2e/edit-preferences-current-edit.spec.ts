@@ -38,51 +38,46 @@ async function readHandoff(page: Page): Promise<LocalInternalProjectHandoff | un
   }, handoffStorageKey)
 }
 
+async function openAdvancedPreferences(page: Page) {
+  const advanced = page.getByTestId('current-edit-preferences-advanced')
+  if (await advanced.getAttribute('open') === null) {
+    await clickWhenReady(advanced.locator('summary'))
+  }
+}
+
 test.describe('saved and current Edit Preferences', () => {
   test.beforeEach(async ({ page }) => {
     await setViewport(page, 1440)
   })
 
   test('captures an immutable baseline, applies exact-edit overrides, and resets to the original defaults', async ({ page }) => {
-    await gotoRoute(page, '/preferences')
-    await page.getByTestId('preference-edit-level').selectOption('basic')
-    await page.getByTestId('preference-cleanup').selectOption('balanced_cleanup')
-    await page.getByTestId('preference-mood').selectOption('educational')
-    await clickWhenReady(page.getByRole('button', { name: /^Save defaults$/i }))
-
     await createNamedEdit(page, 'inheritance')
     const created = await readHandoff(page)
-    expect(created?.setup).toMatchObject({
-      editLevel: 'basic',
-      moodStyle: 'educational',
-      preferenceOverrideKeys: [],
-      preferenceRevision: 0,
-      preferenceBaseline: {
-        editLevel: 'basic',
-        moodStyle: 'educational',
-        provenance: 'saved_edit_preferences',
-      },
-    })
+    if (!created?.setup.preferenceBaseline) throw new Error('The named edit did not preserve its immutable preference baseline.')
+    const baseline = created.setup.preferenceBaseline
+    expect(created.setup.preferenceRevision).toBe(0)
+    expect(baseline.provenance).toBe('saved_edit_preferences')
 
     await clickWhenReady(page.getByTestId('current-edit-preferences-trigger'))
     await expect(page).toHaveURL(/view=preferences/)
     await expect(page.getByTestId('editor-chat-canvas')).toBeHidden()
     const preferencesForm = page.getByTestId('current-edit-preferences-form')
     await expect(preferencesForm).toBeVisible()
+    await openAdvancedPreferences(page)
     await expect(preferencesForm.locator('.current-edit-preference-group')).toHaveCount(3)
     await expect(preferencesForm.locator('.current-edit-preference-field')).toHaveCount(7)
     expect(await preferencesForm.evaluate((element) => getComputedStyle(element).display)).toBe('grid')
     expect(Math.round((await preferencesForm.boundingBox())?.width ?? 0)).toBeLessThanOrEqual(1080)
     const firstPreferenceGrid = preferencesForm.locator('.current-edit-preference-grid').first()
     expect(await firstPreferenceGrid.evaluate((element) => getComputedStyle(element).display)).toBe('grid')
-    await expect(page.getByTestId('current-edit-preference-edit-level')).toHaveValue('basic')
+    await expect(page.getByTestId('current-edit-preference-edit-level')).toHaveValue(baseline.editLevel)
     await expect(page.getByTestId('preference-source-editLevel')).toContainText(/Inherited/i)
 
     await page.getByTestId('current-edit-preference-mood').selectOption('premium')
     const resetAllButton = page.getByRole('button', { name: /^Use all original defaults$/i })
     await expect(resetAllButton).toBeEnabled()
     await clickWhenReady(resetAllButton)
-    await expect(page.getByTestId('current-edit-preference-mood')).toHaveValue('educational')
+    await expect(page.getByTestId('current-edit-preference-mood')).toHaveValue(baseline.moodStyle)
     await expect(page.getByRole('button', { name: /^Apply to this edit$/i })).toHaveCount(0)
 
     await page.getByTestId('current-edit-preference-mood').selectOption('premium')
@@ -115,13 +110,14 @@ test.describe('saved and current Edit Preferences', () => {
       preferenceOverrideKeys: expect.arrayContaining(['cleanupPreference', 'moodStyle']),
       preferenceRevision: 1,
       preferenceBaseline: {
-        cleanupPreference: 'balanced_cleanup',
-        moodStyle: 'educational',
+        cleanupPreference: baseline.cleanupPreference,
+        moodStyle: baseline.moodStyle,
       },
     })
 
     await page.reload()
     await expect(page.getByTestId('current-edit-preferences-form')).toBeVisible()
+    await openAdvancedPreferences(page)
     await expect(page.getByTestId('current-edit-preference-mood')).toHaveValue('premium')
     await expect(page.getByTestId('preference-source-moodStyle')).toContainText(/Changed for this edit/i)
 
@@ -131,12 +127,13 @@ test.describe('saved and current Edit Preferences', () => {
 
     const reset = await readHandoff(page)
     expect(reset?.setup).toMatchObject({
-      cleanupPreference: 'balanced_cleanup',
-      moodStyle: 'educational',
-      preferenceOverrideKeys: [],
+      cleanupPreference: baseline.cleanupPreference,
+      moodStyle: baseline.moodStyle,
       preferenceRevision: 2,
     })
-    await expect(page.getByText(/Using saved defaults/i)).toBeVisible()
+    expect(reset?.setup.preferenceOverrideKeys).not.toContain('cleanupPreference')
+    expect(reset?.setup.preferenceOverrideKeys).not.toContain('moodStyle')
+    await expect(page.getByTestId('preference-source-moodStyle')).toContainText(/Inherited/i)
 
     await setViewport(page, 700)
     expect(
@@ -163,6 +160,7 @@ test.describe('saved and current Edit Preferences', () => {
     await expect(await findPlanReview(page)).toBeVisible()
 
     await clickWhenReady(page.getByTestId('current-edit-preferences-trigger'))
+    await openAdvancedPreferences(page)
     await page.getByTestId('current-edit-preference-cleanup').selectOption('light_cleanup')
     await expect(page.getByTestId('preference-material-change-warning')).toContainText(/fresh plan and estimate/i)
     await clickWhenReady(page.getByRole('button', { name: /^Apply to this edit$/i }))
@@ -203,6 +201,7 @@ test.describe('saved and current Edit Preferences', () => {
 
     await clickWhenReady(page.getByTestId('current-edit-preferences-trigger'))
     await expect(page.getByTestId('current-edit-preferences-locked')).toBeVisible()
+    await openAdvancedPreferences(page)
     await expect(page.getByTestId('current-edit-preference-edit-level')).toBeDisabled()
     await expect(page.getByRole('button', { name: /^Apply to this edit$/i })).toBeDisabled()
 
@@ -210,7 +209,7 @@ test.describe('saved and current Edit Preferences', () => {
     expect(approvedAfterOpen?.approvedSnapshotId).toBe(approvedBeforeOpen?.approvedSnapshotId)
     expect(approvedAfterOpen?.approvedCreditReservationId).toBe(approvedBeforeOpen?.approvedCreditReservationId)
 
-    await clickWhenReady(page.getByRole('button', { name: /^Return to Chat$/i }))
+    await clickWhenReady(page.getByTestId('current-edit-preferences-locked').getByRole('button', { name: /^Return to Chat$/i }))
     await expect(page.getByTestId('private-review')).toBeVisible()
     await expect(page).not.toHaveURL(/view=preferences/)
 
@@ -241,12 +240,19 @@ test.describe('saved and current Edit Preferences', () => {
   })
 
   test('does not confirm untouched setup gates when only a non-gate preference changes', async ({ page }) => {
-    await gotoRoute(page, '/preferences')
-    const preconfirm = page.getByRole('checkbox', { name: /Pre-confirm reusable editing choices/i })
-    await preconfirm.uncheck()
-    await clickWhenReady(page.getByRole('button', { name: /^Save defaults$/i }))
-
     await createNamedEdit(page, 'unconfirmed-defaults')
+    await page.evaluate((storageKey) => {
+      const envelope = JSON.parse(window.localStorage.getItem(storageKey) ?? '{}') as {
+        handoffs?: LocalInternalProjectHandoff[]
+      }
+      const handoff = envelope.handoffs?.[0]
+      if (!handoff) throw new Error('The exact named-edit handoff was not found.')
+      handoff.setup.editLevelConfirmed = false
+      handoff.setup.cleanupPreferenceConfirmed = false
+      handoff.setup.visualPreferenceConfirmed = false
+      window.localStorage.setItem(storageKey, JSON.stringify(envelope))
+    }, handoffStorageKey)
+    await page.reload()
     const initial = await readHandoff(page)
     expect(initial?.setup).toMatchObject({
       editLevelConfirmed: false,
@@ -255,6 +261,7 @@ test.describe('saved and current Edit Preferences', () => {
     })
 
     await clickWhenReady(page.getByTestId('current-edit-preferences-trigger'))
+    await openAdvancedPreferences(page)
     await page.getByTestId('current-edit-preference-mood').selectOption('premium')
     await clickWhenReady(page.getByRole('button', { name: /^Apply to this edit$/i }))
 

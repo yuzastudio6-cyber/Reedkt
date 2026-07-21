@@ -1,4 +1,4 @@
-import { RotateCcw, SlidersHorizontal } from 'lucide-react'
+import { ChevronDown, RotateCcw, SlidersHorizontal } from 'lucide-react'
 import { type FormEvent, type KeyboardEvent, type ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import {
   cleanupPreferenceOptions,
@@ -21,7 +21,42 @@ import type {
 } from '../../lib/local-project-handoff'
 import type { EditPreferenceFieldKey } from '../../types/reeditpro'
 import { useUnsavedNavigationGuard } from '../../hooks/useUnsavedNavigationGuard'
+import { createEditReferenceApiClient } from '../../lib/edit-reference-api-client'
+import {
+  loadApprovedEditReferenceOptions,
+  type ApprovedEditReferenceOption,
+} from '../../lib/edit-reference-approved-options'
+import { createCurrentEditReferenceSupplementOptions } from '../../lib/current-edit-reference-study-mount-adapter'
+import type {
+  CurrentEditReferenceSupplementBlockReason,
+  CurrentEditReferenceSupplementResource,
+} from '../../lib/current-edit-reference-study-supplement'
+import {
+  resolveCurrentEditReferenceDraftDecision,
+  type CurrentEditReferenceAtomicDraftDecision,
+  type CurrentEditReferenceOriginalDecision,
+} from '../../lib/current-edit-reference-draft-decision'
+import { createPreferenceApplicationTargetContext } from '../../lib/project-edit-session-edit-reference-integration'
+import type { TargetVideoUnderstandingPackage } from '../../types/edit-reference-target-video-understanding'
+import type { PreferenceApplicationRecord } from '../../types/edit-reference'
+import type { CurrentEditReferenceApplicationResource } from '../../lib/current-edit-reference-application-ui'
 import { Button } from '../Button'
+import {
+  CurrentEditReferenceStudySupplement,
+  type CurrentEditReferenceTargetAuthority,
+} from './edit-reference/CurrentEditReferenceStudySupplement'
+import '../../styles/current-edit-preferences.css'
+
+export interface CurrentEditPreferencesApplyRequest {
+  values: LocalInternalEditPreferenceValues
+  referenceDecision: CurrentEditReferenceAtomicDraftDecision
+  targetStudy?: TargetVideoUnderstandingPackage
+}
+
+export interface CurrentEditPreferencesApplyResult {
+  ok: boolean
+  message: string
+}
 
 type CurrentEditPreferencesWorkspaceProps = {
   baseline: LocalInternalEditPreferenceBaseline
@@ -29,11 +64,16 @@ type CurrentEditPreferencesWorkspaceProps = {
   draftPlanExists: boolean
   locked: boolean
   leaveRequested: boolean
-  onApply: (values: LocalInternalEditPreferenceValues) => void
+  onApply: (request: CurrentEditPreferencesApplyRequest) => Promise<CurrentEditPreferencesApplyResult>
   onCancelLeave: () => void
   onDirtyChange: (dirty: boolean) => void
   onDiscardAndLeave: () => void
   onReturnToChat: () => void
+  editSessionId: string
+  projectId: string
+  targetAuthority?: CurrentEditReferenceTargetAuthority
+  targetAuthorityBlockReason?: CurrentEditReferenceSupplementBlockReason
+  workspaceId: string
 }
 
 const fieldTestIds: Record<EditPreferenceFieldKey, string> = {
@@ -57,9 +97,24 @@ export function CurrentEditPreferencesWorkspace({
   onDirtyChange,
   onDiscardAndLeave,
   onReturnToChat,
+  editSessionId,
+  projectId,
+  targetAuthority,
+  targetAuthorityBlockReason,
+  workspaceId,
 }: CurrentEditPreferencesWorkspaceProps) {
   const [draft, setDraft] = useState(current)
+  const [approvedReferences, setApprovedReferences] = useState<ApprovedEditReferenceOption[]>([])
+  const [referenceResource, setReferenceResource] = useState<CurrentEditReferenceSupplementResource>({ state: 'loading' })
+  const [referenceRefresh, setReferenceRefresh] = useState(0)
+  const [originalReference, setOriginalReference] = useState<CurrentEditReferenceOriginalDecision>({ kind: 'none' })
+  const [connectedReferenceApplication, setConnectedReferenceApplication] = useState<PreferenceApplicationRecord>()
+  const [selectedReferenceId, setSelectedReferenceId] = useState<string>()
+  const [targetStudy, setTargetStudy] = useState<TargetVideoUnderstandingPackage>()
+  const [applyState, setApplyState] = useState<{ status: 'idle' | 'saving' | 'error'; message?: string }>({ status: 'idle' })
   const leaveGuardRef = useRef<HTMLElement | null>(null)
+  const referenceSelectionTouchedRef = useRef(false)
+  const editReferenceApi = useMemo(() => createEditReferenceApiClient(), [])
 
   const change = useMemo(
     () => resolveCurrentEditPreferenceChange(current, draft, baseline),
@@ -73,7 +128,177 @@ export function CurrentEditPreferencesWorkspace({
     () => getCurrentEditPreferenceOverrideKeys(draft, baseline),
     [baseline, draft],
   )
-  const dirty = change.changedFields.length > 0
+  const originalReferenceId = originalReference.kind === 'connected' ? originalReference.referenceId : undefined
+  const referenceOptions = useMemo(
+    () => createCurrentEditReferenceSupplementOptions(approvedReferences),
+    [approvedReferences],
+  )
+  const effectiveReferenceResource = useMemo<CurrentEditReferenceSupplementResource>(() => {
+    if (
+      referenceResource.state === 'ready'
+      && selectedReferenceId
+      && selectedReferenceId !== originalReferenceId
+      && !targetAuthority
+    ) {
+      return {
+        state: 'blocking_validation',
+        blockReason: targetAuthorityBlockReason ?? 'source_or_brief_missing',
+      }
+    }
+    return referenceResource
+  }, [originalReferenceId, referenceResource, selectedReferenceId, targetAuthority, targetAuthorityBlockReason])
+  const decisionTargetAuthority = useMemo(() => {
+    if (!targetAuthority) return undefined
+    return {
+      workspaceId: targetAuthority.workspaceId ?? workspaceId,
+      sourceStorageObjectRecordId: targetAuthority.editBrief.sourceStorageObjectRecordId ?? '',
+      sourceMediaAssetId: targetAuthority.editBrief.sourceMediaAssetId ?? '',
+      editBriefId: targetAuthority.editBrief.id,
+      editBriefRevision: targetAuthority.editBrief.revisionNumber,
+      editBriefDigestSha256: targetAuthority.editBrief.contentDigestSha256,
+      targetContext: createPreferenceApplicationTargetContext({
+        bundle: targetAuthority.bundle,
+        currentUserInstruction: targetAuthority.currentUserInstruction,
+        outputFrameConfirmed: true,
+      }),
+    }
+  }, [targetAuthority, workspaceId])
+  const referenceResolution = useMemo(() => resolveCurrentEditReferenceDraftDecision({
+    approvedReferences,
+    draftReferenceId: selectedReferenceId,
+    locked,
+    original: originalReference,
+    resource: effectiveReferenceResource,
+    targetAuthority: decisionTargetAuthority,
+    targetStudy,
+  }), [
+    approvedReferences,
+    decisionTargetAuthority,
+    effectiveReferenceResource,
+    locked,
+    originalReference,
+    selectedReferenceId,
+    targetStudy,
+  ])
+  const referenceDirty = referenceResolution.dirtyContribution
+  const referenceContextDraftChanged = change.changedFields.some((field) => (
+    field === 'editLevel' || field === 'targetPlatform'
+  ))
+  const referenceContextRequiresRefresh = referenceContextDraftChanged
+    && referenceResolution.operation !== 'remove'
+    && Boolean(selectedReferenceId || originalReference.kind === 'connected')
+  const canJoinPageApply = referenceResolution.canJoinAtomicApply && !referenceContextRequiresRefresh
+  const dirty = change.changedFields.length > 0 || referenceDirty
+  const referenceApplicationResource = useMemo<CurrentEditReferenceApplicationResource | undefined>(() => {
+    const selectedOption = referenceOptions.find((option) => option.id === selectedReferenceId)
+    if (!selectedOption) return undefined
+
+    if (referenceDirty && applyState.status === 'saving') {
+      return { state: 'applying', selectedOption }
+    }
+    if (referenceDirty && applyState.status === 'error') {
+      return { state: 'needs_retry', selectedOption }
+    }
+    if (
+      !referenceDirty
+      && connectedReferenceApplication?.editReferenceId === selectedOption.id
+    ) {
+      return connectedReferenceApplication.downstreamContext
+        ? {
+            state: connectedReferenceApplication.targetIntegrationStatus === 'connected' ? 'applied' : 'invalidated',
+            selectedOption,
+            context: connectedReferenceApplication.downstreamContext,
+          }
+        : {
+            state: 'review_required',
+            selectedOption,
+          }
+    }
+    if (
+      referenceDirty
+      && referenceResolution.operation !== 'remove'
+      && canJoinPageApply
+    ) {
+      return { state: 'ready_to_apply', selectedOption }
+    }
+    return undefined
+  }, [
+    applyState.status,
+    canJoinPageApply,
+    connectedReferenceApplication,
+    referenceDirty,
+    referenceOptions,
+    referenceResolution.operation,
+    selectedReferenceId,
+  ])
+
+  useEffect(() => {
+    let active = true
+
+    if (!editReferenceApi.available) {
+      const unavailableTimer = window.setTimeout(() => {
+        if (!active) return
+        setApprovedReferences([])
+        setConnectedReferenceApplication(undefined)
+        setReferenceResource({ state: 'unavailable' })
+      }, 0)
+      return () => {
+        active = false
+        window.clearTimeout(unavailableTimer)
+      }
+    }
+
+    void Promise.all([
+      loadApprovedEditReferenceOptions({ api: editReferenceApi, workspaceId }),
+      editReferenceApi.listApplications(workspaceId),
+    ])
+      .then(([result, applicationsResult]) => {
+        if (!active) return
+        if (!result.ok) {
+          setApprovedReferences([])
+          setConnectedReferenceApplication(undefined)
+          setReferenceResource({ state: 'needs_retry' })
+          return
+        }
+        setApprovedReferences(result.options)
+        if (!applicationsResult.ok) {
+          setConnectedReferenceApplication(undefined)
+          setReferenceResource({ state: 'needs_retry' })
+          return
+        }
+        const connected = applicationsResult.data.applications
+          .filter((application) => (
+            application.projectId === projectId
+            && application.editSessionId === editSessionId
+            && application.status === 'prepared'
+            && application.targetIntegrationStatus === 'connected'
+          ))
+          .sort((left, right) => right.version - left.version)[0]
+        setConnectedReferenceApplication(connected)
+        const nextOriginal: CurrentEditReferenceOriginalDecision = connected
+          ? {
+              kind: 'connected',
+              referenceId: connected.editReferenceId,
+              referenceRevision: result.options.find((option) => option.id === connected.editReferenceId)?.referenceRevision ?? 0,
+              applicationId: connected.id,
+              applicationContentDigest: connected.contentDigest,
+            }
+          : { kind: 'none' }
+        setOriginalReference(nextOriginal)
+        if (!referenceSelectionTouchedRef.current) setSelectedReferenceId(connected?.editReferenceId)
+        setReferenceResource({ state: 'ready' })
+      })
+      .catch(() => {
+        if (!active) return
+        setApprovedReferences([])
+        setConnectedReferenceApplication(undefined)
+        setReferenceResource({ state: 'needs_retry' })
+      })
+
+    return () => {
+      active = false
+    }
+  }, [editReferenceApi, editSessionId, projectId, referenceRefresh, workspaceId])
 
   const navigationBlocker = useUnsavedNavigationGuard({
     confirmBlockedNavigation: false,
@@ -120,12 +345,37 @@ export function CurrentEditPreferencesWorkspace({
       creditPreference: baseline.creditPreference,
       targetPlatform: baseline.targetPlatform,
     })
+    referenceSelectionTouchedRef.current = true
+    setApplyState({ status: 'idle' })
+    setTargetStudy(undefined)
+    setSelectedReferenceId(originalReferenceId)
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!dirty || locked) return
-    onApply(draft)
+    if (
+      !dirty
+      || locked
+      || applyState.status === 'saving'
+      || !canJoinPageApply
+      || !referenceResolution.decision
+    ) return
+    setApplyState({ status: 'saving' })
+    try {
+      const result = await onApply({
+        values: draft,
+        referenceDecision: referenceResolution.decision,
+        targetStudy,
+      })
+      setApplyState(result.ok
+        ? { status: 'idle' }
+        : { status: 'error', message: result.message })
+    } catch (error) {
+      setApplyState({
+        status: 'error',
+        message: error instanceof Error ? error.message : 'These Edit Preferences could not be applied safely.',
+      })
+    }
   }
 
   const baselineCopy = baseline.provenance === 'saved_edit_preferences'
@@ -140,9 +390,9 @@ export function CurrentEditPreferencesWorkspace({
     >
       <header className="current-edit-preferences-heading">
         <div>
-          <span className="section-eyebrow">Current edit</span>
-          <h2>How should ReeditPro edit this video?</h2>
-          <p>These choices belong to this edit only. Your saved defaults for future edits stay unchanged.</p>
+          <span className="section-eyebrow">Editing style</span>
+          <h2>Edit Preference for this video</h2>
+          <p>Choose one approved preference. ReEditPro studies this video before adapting the guidance.</p>
         </div>
         <div className="current-edit-preferences-summary" aria-label="Current Edit Preferences source">
           <span className={`current-edit-preferences-scope ${overrideKeys.length > 0 ? 'is-changed' : ''}`.trim()}>
@@ -169,96 +419,160 @@ export function CurrentEditPreferencesWorkspace({
         </section>
       ) : null}
 
-      <PreferenceGroup description="Set the planning depth, workflow context, and cleanup behavior." title="Editing approach">
-        <CurrentPreferenceSelect
-          baseline={baseline}
-          disabled={locked}
-          field="editLevel"
-          onChange={updatePreference}
-          onReset={resetField}
-          options={editLevelPreferenceOptions}
-          testId={fieldTestIds.editLevel}
-          value={draft.editLevel}
-        />
-        <CurrentPreferenceSelect
-          baseline={baseline}
-          disabled={locked}
-          field="workflowType"
-          onChange={updatePreference}
-          onReset={resetField}
-          options={workflowPreferenceOptions}
-          testId={fieldTestIds.workflowType}
-          value={draft.workflowType}
-        />
-        <CurrentPreferenceSelect
-          baseline={baseline}
-          disabled={locked}
-          field="cleanupPreference"
-          onChange={updatePreference}
-          onReset={resetField}
-          options={cleanupPreferenceOptions}
-          testId={fieldTestIds.cleanupPreference}
-          value={draft.cleanupPreference}
-        />
-      </PreferenceGroup>
+      <CurrentEditReferenceStudySupplement
+        application={referenceApplicationResource}
+        locked={locked}
+        onRetryResource={() => {
+          setReferenceResource({ state: 'loading' })
+          setReferenceRefresh((value) => value + 1)
+        }}
+        onReturnToChat={onReturnToChat}
+        onSelectionChange={(editReferenceId) => {
+          referenceSelectionTouchedRef.current = true
+          setApplyState({ status: 'idle' })
+          setTargetStudy(undefined)
+          setSelectedReferenceId(editReferenceId)
+        }}
+        onUseOriginal={() => {
+          referenceSelectionTouchedRef.current = true
+          setApplyState({ status: 'idle' })
+          setTargetStudy(undefined)
+          setSelectedReferenceId(originalReferenceId)
+        }}
+        onPackageChange={setTargetStudy}
+        options={referenceOptions}
+        originalReferenceId={originalReferenceId}
+        resource={effectiveReferenceResource}
+        selectedReferenceId={selectedReferenceId}
+        targetAuthority={targetAuthority}
+      />
 
-      <PreferenceGroup description="Guide the visual tone without forcing effects into every segment." title="Creative direction">
-        <CurrentPreferenceSelect
-          baseline={baseline}
-          disabled={locked}
-          field="visualPreference"
-          onChange={updatePreference}
-          onReset={resetField}
-          options={visualPreferenceOptions}
-          testId={fieldTestIds.visualPreference}
-          value={draft.visualPreference}
-        />
-        <CurrentPreferenceSelect
-          baseline={baseline}
-          disabled={locked}
-          field="moodStyle"
-          onChange={updatePreference}
-          onReset={resetField}
-          options={moodPreferenceOptions}
-          testId={fieldTestIds.moodStyle}
-          value={draft.moodStyle}
-        />
-      </PreferenceGroup>
+      <details className="current-edit-preferences-advanced" data-testid="current-edit-preferences-advanced">
+        <summary>
+          <span>
+            <strong>Fine-tune this edit</strong>
+            <small>Planning, cleanup, visual, delivery, and cost controls</small>
+          </span>
+          <ChevronDown aria-hidden="true" size={18} />
+        </summary>
+        <div className="current-edit-preferences-advanced__content">
+          <PreferenceGroup description="Set the planning depth, workflow context, and cleanup behavior." title="Editing approach">
+            <CurrentPreferenceSelect
+              baseline={baseline}
+              disabled={locked}
+              field="editLevel"
+              onChange={updatePreference}
+              onReset={resetField}
+              options={editLevelPreferenceOptions}
+              testId={fieldTestIds.editLevel}
+              value={draft.editLevel}
+            />
+            <CurrentPreferenceSelect
+              baseline={baseline}
+              disabled={locked}
+              field="workflowType"
+              onChange={updatePreference}
+              onReset={resetField}
+              options={workflowPreferenceOptions}
+              testId={fieldTestIds.workflowType}
+              value={draft.workflowType}
+            />
+            <CurrentPreferenceSelect
+              baseline={baseline}
+              disabled={locked}
+              field="cleanupPreference"
+              onChange={updatePreference}
+              onReset={resetField}
+              options={cleanupPreferenceOptions}
+              testId={fieldTestIds.cleanupPreference}
+              value={draft.cleanupPreference}
+            />
+          </PreferenceGroup>
 
-      <PreferenceGroup description="Set the cost posture and the destination ReeditPro should plan around." title="Delivery and cost">
-        <CurrentPreferenceSelect
-          baseline={baseline}
-          disabled={locked}
-          field="creditPreference"
-          onChange={updatePreference}
-          onReset={resetField}
-          options={creditPreferenceOptions}
-          testId={fieldTestIds.creditPreference}
-          value={draft.creditPreference}
-        />
-        <CurrentPreferenceSelect
-          baseline={baseline}
-          disabled={locked}
-          field="targetPlatform"
-          onChange={updatePreference}
-          onReset={resetField}
-          options={targetPlatformPreferenceOptions}
-          testId={fieldTestIds.targetPlatform}
-          value={draft.targetPlatform}
-        />
-      </PreferenceGroup>
+          <PreferenceGroup description="Guide the visual tone without forcing effects into every segment." title="Creative direction">
+            <CurrentPreferenceSelect
+              baseline={baseline}
+              disabled={locked}
+              field="visualPreference"
+              onChange={updatePreference}
+              onReset={resetField}
+              options={visualPreferenceOptions}
+              testId={fieldTestIds.visualPreference}
+              value={draft.visualPreference}
+            />
+            <CurrentPreferenceSelect
+              baseline={baseline}
+              disabled={locked}
+              field="moodStyle"
+              onChange={updatePreference}
+              onReset={resetField}
+              options={moodPreferenceOptions}
+              testId={fieldTestIds.moodStyle}
+              value={draft.moodStyle}
+            />
+          </PreferenceGroup>
+
+          <PreferenceGroup description="Set the cost posture and the destination ReeditPro should plan around." title="Delivery and cost">
+            <CurrentPreferenceSelect
+              baseline={baseline}
+              disabled={locked}
+              field="creditPreference"
+              onChange={updatePreference}
+              onReset={resetField}
+              options={creditPreferenceOptions}
+              testId={fieldTestIds.creditPreference}
+              value={draft.creditPreference}
+            />
+            <CurrentPreferenceSelect
+              baseline={baseline}
+              disabled={locked}
+              field="targetPlatform"
+              onChange={updatePreference}
+              onReset={resetField}
+              options={targetPlatformPreferenceOptions}
+              testId={fieldTestIds.targetPlatform}
+              value={draft.targetPlatform}
+            />
+          </PreferenceGroup>
+        </div>
+      </details>
 
       {!locked && dirty ? (
         <section className="current-edit-preferences-impact" data-testid="preference-material-change-warning" role="note">
-          <strong>{draftPlanExists ? 'A fresh plan and estimate will be required.' : 'These choices will shape the next plan.'}</strong>
+          <strong>
+            {referenceDirty
+              ? referenceResolution.operation === 'remove'
+                ? 'Apply to remove this preference from the edit.'
+                : 'Study this video before applying the selected preference.'
+              : draftPlanExists
+                ? 'A fresh plan and estimate will be required.'
+                : 'These choices will shape the next plan.'}
+          </strong>
           <p>
-            {draftPlanExists
-              ? 'Applying these changes clears the current draft plan. No generation or additional credit action starts.'
-              : 'Applying saves them to this edit only. No generation or credit action starts.'}
+            {referenceDirty
+              ? referenceResolution.operation === 'remove'
+                ? 'The preference remains connected until you apply this removal. Its approved DNA and application history stay available.'
+                : 'The selected preference remains a draft until the exact source, Edit Brief, output frame, and whole-video study are verified. Nothing is applied automatically.'
+              : draftPlanExists
+                ? 'Applying these changes clears the current draft plan. No generation or additional credit action starts.'
+                : 'Applying saves them to this edit only. No generation or credit action starts.'}
             {change.rerunFootagePrep ? ' Source preparation will need to run again for the new cleanup direction.' : ''}
             {change.reconfirmOutputFrame ? ' Confirm the output frame again after changing the destination.' : ''}
           </p>
+          {!canJoinPageApply && (referenceDirty || referenceContextRequiresRefresh) ? (
+            <p data-testid="current-edit-reference-apply-blocker">
+              {referenceContextRequiresRefresh
+                ? 'Edit level and destination change the target-study context. Remove the connected preference first, apply the context change, reconfirm the output frame when required, then study and reconnect the preference.'
+                : referenceResolution.message}
+            </p>
+          ) : null}
         </section>
+      ) : null}
+
+      {applyState.status === 'error' ? (
+        <p className="current-edit-preferences-apply-error" data-testid="current-edit-preferences-apply-error" role="alert">
+          {applyState.message} Your draft remains here so you can retry.
+        </p>
       ) : null}
 
       {leaveRequested || navigationBlocker.state === 'blocked' ? (
@@ -306,15 +620,28 @@ export function CurrentEditPreferencesWorkspace({
       {dirty || draftOverrideKeys.length > 0 || locked ? (
         <footer className="current-edit-preferences-actions">
           <div>
-            <strong>{dirty ? `${change.changedFields.length} unapplied change${change.changedFields.length === 1 ? '' : 's'}` : 'Current edit is up to date'}</strong>
+            <strong>
+              {dirty
+                ? `${change.changedFields.length + (referenceDirty ? 1 : 0)} unapplied change${change.changedFields.length + (referenceDirty ? 1 : 0) === 1 ? '' : 's'}`
+                : 'Current edit is up to date'}
+            </strong>
             <small>Only Apply to this edit writes these choices.</small>
           </div>
           <div>
-            <Button disabled={locked || draftOverrideKeys.length === 0} icon={RotateCcw} onClick={resetAll} variant="ghost">
+            <Button
+              disabled={locked || (draftOverrideKeys.length === 0 && !referenceDirty)}
+              icon={RotateCcw}
+              onClick={resetAll}
+              variant="ghost"
+            >
               Use all original defaults
             </Button>
-            <Button disabled={locked || !dirty} type="submit" variant="primary">
-              Apply to this edit
+            <Button
+              disabled={locked || !dirty || !canJoinPageApply || applyState.status === 'saving'}
+              type="submit"
+              variant="primary"
+            >
+              {applyState.status === 'saving' ? 'Applying…' : 'Apply to this edit'}
             </Button>
           </div>
         </footer>

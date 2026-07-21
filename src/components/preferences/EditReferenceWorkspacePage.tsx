@@ -23,6 +23,7 @@ import {
 import { useSearchParams } from 'react-router-dom'
 import type {
   ApproveEditReferenceDNAVersionRequest,
+  AppendPreferenceStudyMessageRequest,
   CreatePreferenceEvidenceRequest,
   EditReferenceDetail,
   EditReferenceLongFormStudyControlAction,
@@ -33,6 +34,9 @@ import type {
   PreferenceEvidenceRecord,
   PreferenceEvidenceTransferability,
   PreferenceLongFormStudySummary,
+  RunEditReferenceDNAQARequest,
+  RunPreferenceEvidenceStudyRequest,
+  SynthesizePreferenceDNARequest,
 } from '../../types/edit-reference'
 import { EDIT_REFERENCE_MANUAL_EVIDENCE_CATEGORIES, EDIT_REFERENCE_STUDY_GOALS } from '../../types/edit-reference'
 import type {
@@ -40,7 +44,7 @@ import type {
   EditReferenceLongFormStudyReviewData,
 } from '../../types/edit-reference-long-form-review'
 import { createEditReferenceApiClient } from '../../lib/edit-reference-api-client'
-import { createEditReferenceDeterministicHash } from '../../lib/edit-reference-deterministic-hash'
+import { createEditReferenceDeterministicHash, stableEditReferenceJson } from '../../lib/edit-reference-deterministic-hash'
 import { uploadEditReferenceMedia } from '../../lib/edit-reference-media-upload-client'
 import {
   clearEditReferenceMediaUploadRecovery,
@@ -494,6 +498,7 @@ function CreateReferenceDialog({ busy, onCancel, onCreated, setBusy, setError }:
   const [name, setName] = useState('')
   const [confirmDiscard, setConfirmDiscard] = useState(false)
   const dialogRef = useRef<HTMLDivElement>(null)
+  const createIdempotencyKeyRef = useRef(`edit-reference-create-${crypto.randomUUID()}`)
   const dirty = Boolean(name.trim())
 
   useEffect(() => {
@@ -535,12 +540,13 @@ function CreateReferenceDialog({ busy, onCancel, onCreated, setBusy, setError }:
     event.preventDefault()
     setBusy(true)
     setError(undefined)
-    const response = await api.create({
+    const createRequest = {
       workspaceId,
       name,
       description: '',
       initialGoals: [...EDIT_REFERENCE_STUDY_GOALS],
-    })
+    }
+    const response = await api.create(createRequest, createIdempotencyKeyRef.current)
     if (response.ok) await onCreated(response.data.detail)
     else setError(response.message)
     setBusy(false)
@@ -678,6 +684,157 @@ function StudyPathRow({ label, state, value }: {
   )
 }
 
+async function readEditReferenceAfterUncertainMutation(
+  workspaceId: string,
+  editReferenceId: string,
+): Promise<EditReferenceDetail | undefined> {
+  const readback = await api.get(workspaceId, editReferenceId)
+  return readback.ok ? readback.data.detail : undefined
+}
+
+function exactStudyMessageCommitted(
+  before: EditReferenceDetail,
+  after: EditReferenceDetail,
+  request: AppendPreferenceStudyMessageRequest,
+): boolean {
+  if (
+    after.reference.id !== before.reference.id
+    || after.study.id !== before.study.id
+    || after.study.revision <= request.expectedStudyRevision
+  ) return false
+  const matchingMessages = after.messages.filter((record) => (
+    record.studySessionId === before.study.id
+    && record.role === 'user'
+    && record.clientMessageId === request.clientMessageId
+    && record.content === request.content
+  ))
+  if (matchingMessages.length !== 1) return false
+  const savedMessage = matchingMessages[0]
+  if (!after.messages.some((record) => (
+    record.studySessionId === before.study.id
+    && record.role === 'assistant'
+    && record.sequence === savedMessage.sequence + 1
+  ))) return false
+  const previousEvidenceIds = new Set(before.evidence.map((record) => record.id))
+  return after.evidence.some((record) => (
+    !previousEvidenceIds.has(record.id)
+    && record.studySessionId === before.study.id
+    && record.sourceType === 'manual_user_evidence'
+    && record.summary === request.content
+    && (request.findingCorrectionEvidenceId
+      ? record.supersedesEvidenceId === request.findingCorrectionEvidenceId
+      : !record.supersedesEvidenceId)
+  ))
+}
+
+function exactEvidenceStudyCommitted(before: EditReferenceDetail, after: EditReferenceDetail): boolean {
+  if (
+    after.reference.id !== before.reference.id
+    || after.study.id !== before.study.id
+    || after.study.revision <= before.study.revision
+    || after.study.status === 'ready_to_study'
+    || after.reference.evidenceStatus !== after.study.evidenceStatus
+  ) return false
+  const previousRunIds = new Set(before.skillRuns.map((record) => record.id))
+  const newRuns = after.skillRuns.filter((record) => (
+    record.studySessionId === before.study.id && !previousRunIds.has(record.id)
+  ))
+  const newOrchestrationIds = new Set(newRuns.map((record) => record.orchestrationId))
+  const previousEvidenceIds = new Set(before.evidence.map((record) => record.id))
+  const hasNewDerivedEvidence = after.evidence.some((record) => (
+    !previousEvidenceIds.has(record.id)
+    && record.studySessionId === before.study.id
+    && record.sourceType === 'derived_skill_evidence'
+    && Boolean(record.orchestrationId && newOrchestrationIds.has(record.orchestrationId))
+  ))
+  const previousMessageIds = new Set(before.messages.map((record) => record.id))
+  const hasNewAssistantResult = after.messages.some((record) => (
+    record.studySessionId === before.study.id
+    && record.role === 'assistant'
+    && !previousMessageIds.has(record.id)
+  ))
+  return newRuns.length > 0
+    && newOrchestrationIds.size === 1
+    && hasNewDerivedEvidence
+    && hasNewAssistantResult
+}
+
+function exactDNASynthesisCommitted(before: EditReferenceDetail, after: EditReferenceDetail): boolean {
+  if (
+    after.reference.id !== before.reference.id
+    || after.study.id !== before.study.id
+    || after.study.revision <= before.study.revision
+    || after.reference.dnaStatus !== 'review_required'
+    || after.study.dnaStatus !== 'review_required'
+  ) return false
+  const previousVersionIds = new Set(before.dnaVersions.map((record) => record.id))
+  const expectedVersion = before.dnaVersions.reduce((maximum, record) => Math.max(maximum, record.version), 0) + 1
+  return after.dnaVersions.some((record) => (
+    !previousVersionIds.has(record.id)
+    && record.studySessionId === before.study.id
+    && record.version === expectedVersion
+    && record.status === 'review_required'
+    && record.qaStatus === 'not_run'
+    && record.adaptedNotCopied === true
+    && record.inputEvidenceRevisions.length > 0
+    && new Set(record.inputEvidenceRevisions.map((binding) => binding.evidenceId)).size === record.inputEvidenceRevisions.length
+    && record.inputEvidenceRevisions.every((binding) => after.evidence.some((evidence) => (
+      evidence.id === binding.evidenceId && evidence.revision === binding.revision
+    )))
+    && /^[a-f0-9]{64}$/.test(record.inputEvidenceDigest)
+    && /^[a-f0-9]{64}$/.test(record.contentDigest)
+  ))
+}
+
+function exactDNAQACommitted(
+  before: EditReferenceDetail,
+  after: EditReferenceDetail,
+  dnaVersionId: string,
+  request: RunEditReferenceDNAQARequest,
+): boolean {
+  if (
+    after.reference.id !== before.reference.id
+    || after.study.id !== before.study.id
+    || after.study.revision <= request.expectedStudyRevision
+  ) return false
+  const version = after.dnaVersions.find((record) => (
+    record.id === dnaVersionId
+    && record.studySessionId === before.study.id
+    && record.contentDigest === request.expectedDNAContentDigest
+    && record.qaStatus !== 'not_run'
+    && Boolean(record.qaResultId)
+  ))
+  if (!version?.qaResultId) return false
+  const previousQAResultIds = new Set(before.dnaQaResults.map((record) => record.id))
+  return after.dnaQaResults.some((record) => (
+    record.id === version.qaResultId
+    && !previousQAResultIds.has(record.id)
+    && record.studySessionId === before.study.id
+    && record.dnaVersionId === version.id
+    && record.dnaContentDigest === request.expectedDNAContentDigest
+    && record.status === version.qaStatus
+  ))
+}
+
+function exactLongFormReviewCommitted(
+  before: EditReferenceLongFormStudyReviewData,
+  after: EditReferenceLongFormStudyReviewData,
+  request: ApplyEditReferenceLongFormStudyReviewRequest,
+): boolean {
+  const exactDecisions = (decisions: ApplyEditReferenceLongFormStudyReviewRequest['decisions']) => (
+    stableEditReferenceJson([...decisions].sort((left, right) => left.findingId.localeCompare(right.findingId)))
+  )
+  return after.editReferenceId === before.editReferenceId
+    && after.studySessionId === before.studySessionId
+    && after.referenceAssetId === before.referenceAssetId
+    && after.reviewPackageId === before.reviewPackageId
+    && after.reviewPackageDigestSha256 === request.expectedReviewPackageDigestSha256
+    && after.studyRevision > request.expectedStudyRevision
+    && after.selection.status === 'selected'
+    && Boolean(after.selection.selectionReceiptId?.trim())
+    && exactDecisions(after.selection.decisions) === exactDecisions(request.decisions)
+}
+
 function StudyChat({ detail, disabled, onChanged, setBusy, setError }: {
   detail: EditReferenceDetail
   disabled: boolean
@@ -747,46 +904,92 @@ function StudyChat({ detail, disabled, onChanged, setBusy, setError }: {
 
   const send = async (event: FormEvent) => {
     event.preventDefault()
-    if (!message.trim()) return
+    const content = message.trim()
+    if (!content) return
     setBusy(true)
     setError(undefined)
-    const response = await api.appendMessage(detail.study.id, {
+    const clientMessageId = `study-chat-${createEditReferenceDeterministicHash({
+      studyId: detail.study.id,
+      expectedStudyRevision: detail.study.revision,
+      content,
+      findingCorrectionEvidenceId: findingCorrectionEvidenceId || null,
+    })}`
+    const appendRequest: AppendPreferenceStudyMessageRequest = {
       workspaceId,
       expectedStudyRevision: detail.study.revision,
-      clientMessageId: `study-chat-${crypto.randomUUID()}`,
-      content: message,
+      clientMessageId,
+      content,
       ...(findingCorrectionEvidenceId ? { findingCorrectionEvidenceId } : {}),
-    })
-    if (response.ok) {
+    }
+    const response = await api.appendMessage(
+      detail.study.id,
+      appendRequest,
+      `edit-reference-message-${clientMessageId}`,
+    )
+    const appendFailureMessage = response.ok
+      ? 'The Study Chat message could not be verified. It remains here so you can retry safely.'
+      : response.message
+    let savedDetail = response.ok ? response.data.detail : undefined
+    if (!savedDetail) {
+      const readback = await readEditReferenceAfterUncertainMutation(workspaceId, detail.reference.id)
+      if (readback && exactStudyMessageCommitted(detail, readback, appendRequest)) savedDetail = readback
+    }
+    if (savedDetail) {
       setMessage('')
       setFindingCorrectionEvidenceId('')
-      await onChanged(response.data.detail)
-    } else setError(response.message)
+      await onChanged(savedDetail)
+    } else setError(appendFailureMessage)
     setBusy(false)
   }
 
   const runEvidenceStudy = async (retryBlockedSkills = false) => {
     setBusy(true)
     setError(undefined)
-    const response = await api.runEvidenceStudy(detail.study.id, {
+    const studyRequest: RunPreferenceEvidenceStudyRequest = {
       workspaceId,
       expectedStudyRevision: detail.study.revision,
       ...(retryBlockedSkills ? { retryBlockedSkills: true as const } : {}),
-    })
-    if (response.ok) await onChanged(response.data.detail)
-    else setError(response.message)
+    }
+    const studyIdempotencyKey = `edit-reference-study-${createEditReferenceDeterministicHash({
+      studyId: detail.study.id,
+      ...studyRequest,
+    })}`
+    const response = await api.runEvidenceStudy(detail.study.id, studyRequest, studyIdempotencyKey)
+    const studyFailureMessage = response.ok
+      ? 'The evidence study result could not be verified. Check the saved study state before retrying.'
+      : response.message
+    let studiedDetail = response.ok ? response.data.detail : undefined
+    if (!studiedDetail) {
+      const readback = await readEditReferenceAfterUncertainMutation(workspaceId, detail.reference.id)
+      if (readback && exactEvidenceStudyCommitted(detail, readback)) studiedDetail = readback
+    }
+    if (studiedDetail) await onChanged(studiedDetail)
+    else setError(studyFailureMessage)
     setBusy(false)
   }
 
   const synthesizePreferenceDNA = async () => {
     setBusy(true)
     setError(undefined)
-    const response = await api.synthesizePreferenceDNA(detail.study.id, {
+    const synthesisRequest: SynthesizePreferenceDNARequest = {
       workspaceId,
       expectedStudyRevision: detail.study.revision,
-    })
-    if (response.ok) await onChanged(response.data.detail)
-    else setError(response.message)
+    }
+    const synthesisIdempotencyKey = `edit-reference-dna-${createEditReferenceDeterministicHash({
+      studyId: detail.study.id,
+      ...synthesisRequest,
+    })}`
+    const response = await api.synthesizePreferenceDNA(detail.study.id, synthesisRequest, synthesisIdempotencyKey)
+    const synthesisFailureMessage = response.ok
+      ? 'The new guidance version could not be verified. Check the saved study state before retrying.'
+      : response.message
+    let synthesizedDetail = response.ok ? response.data.detail : undefined
+    if (!synthesizedDetail) {
+      const readback = await readEditReferenceAfterUncertainMutation(workspaceId, detail.reference.id)
+      if (readback && exactDNASynthesisCommitted(detail, readback)) synthesizedDetail = readback
+    }
+    if (synthesizedDetail) await onChanged(synthesizedDetail)
+    else setError(synthesisFailureMessage)
     setBusy(false)
   }
 
@@ -794,13 +997,35 @@ function StudyChat({ detail, disabled, onChanged, setBusy, setError }: {
     if (!currentDNAVersion) return
     setBusy(true)
     setError(undefined)
-    const response = await api.runPreferenceDNAQA(detail.study.id, currentDNAVersion.id, {
+    const qaRequest: RunEditReferenceDNAQARequest = {
       workspaceId,
       expectedStudyRevision: detail.study.revision,
       expectedDNAContentDigest: currentDNAVersion.contentDigest,
-    })
-    if (response.ok) await onChanged(response.data.detail)
-    else setError(response.message)
+    }
+    const qaIdempotencyKey = `edit-reference-dna-qa-${createEditReferenceDeterministicHash({
+      studyId: detail.study.id,
+      dnaVersionId: currentDNAVersion.id,
+      ...qaRequest,
+    })}`
+    const response = await api.runPreferenceDNAQA(
+      detail.study.id,
+      currentDNAVersion.id,
+      qaRequest,
+      qaIdempotencyKey,
+    )
+    const qaFailureMessage = response.ok
+      ? 'The quality-review result could not be verified. Check the saved study state before retrying.'
+      : response.message
+    let reviewedDetail = response.ok ? response.data.detail : undefined
+    if (!reviewedDetail) {
+      const readback = await readEditReferenceAfterUncertainMutation(workspaceId, detail.reference.id)
+      if (
+        readback
+        && exactDNAQACommitted(detail, readback, currentDNAVersion.id, qaRequest)
+      ) reviewedDetail = readback
+    }
+    if (reviewedDetail) await onChanged(reviewedDetail)
+    else setError(qaFailureMessage)
     setBusy(false)
   }
 
@@ -1287,15 +1512,37 @@ function LongFormVideoStudyCard({ asset, detail, disabled, onChanged, setBusy }:
     if (!review) return { ok: false, message: 'The saved study review is no longer available. Close it and open the review again.' }
     setBusy(true)
     try {
-      const response = await api.applyLongFormStudyReview(detail.study.id, asset.id, {
+      const reviewRequest: ApplyEditReferenceLongFormStudyReviewRequest = {
         workspaceId,
         expectedStudyRevision: review.studyRevision,
         expectedReviewPackageDigestSha256: review.reviewPackageDigestSha256,
         ...input,
-      }, `long-form-review-${crypto.randomUUID()}`)
-      if (!response.ok) return { ok: false, message: response.message }
-      setReview(response.data.review)
-      await onChanged(response.data.detail.detail)
+      }
+      const reviewIdempotencyKey = `long-form-review-${createEditReferenceDeterministicHash({
+        studyId: detail.study.id,
+        referenceAssetId: asset.id,
+        ...reviewRequest,
+      })}`
+      const response = await api.applyLongFormStudyReview(
+        detail.study.id,
+        asset.id,
+        reviewRequest,
+        reviewIdempotencyKey,
+      )
+      let savedReview = response.ok ? response.data.review : undefined
+      let savedDetail = response.ok ? response.data.detail.detail : undefined
+      if (!savedReview) {
+        const readback = await api.getLongFormStudyReview(workspaceId, detail.study.id, asset.id)
+        if (readback.ok && exactLongFormReviewCommitted(review, readback.data, reviewRequest)) {
+          savedReview = readback.data
+          const detailReadback = await readEditReferenceAfterUncertainMutation(workspaceId, detail.reference.id)
+          if (detailReadback) savedDetail = detailReadback
+          else setStatusError('Your study choices were saved, but this page could not refresh the new guidance yet. Refresh safely to continue.')
+        }
+      }
+      if (!savedReview) return { ok: false, message: response.ok ? 'The saved review could not be verified.' : response.message }
+      setReview(savedReview)
+      if (savedDetail) await onChanged(savedDetail)
       return { ok: true }
     } catch {
       return { ok: false, message: 'The review could not be saved. Your choices remain available in this page.' }

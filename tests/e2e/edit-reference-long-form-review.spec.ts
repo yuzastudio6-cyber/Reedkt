@@ -9,7 +9,6 @@ import type {
   EditReferenceLongFormReviewSpecialistId,
   EditReferenceLongFormStudyReviewData,
   EditReferenceLongFormStudyReviewDecision,
-  EditReferenceLongFormStudyReviewSelectionData,
 } from '../../src/types/edit-reference-long-form-review'
 import { EDIT_REFERENCE_LONG_FORM_STUDY_REVIEW_DECISION_VERSION } from '../../src/types/edit-reference-long-form-review'
 import { expectNoHorizontalOverflow, setViewport } from './helpers/layout'
@@ -44,7 +43,7 @@ test.describe('Edit Reference long-form review', () => {
     await expect(unavailable).toBeVisible()
   })
 
-  test('reviews every studied area progressively, preserves a retry draft, and never silently creates or applies guidance', async ({ page }) => {
+  test('reviews every studied area progressively, preserves a retry draft, and reconciles a lost save response', async ({ page }) => {
     test.setTimeout(90_000)
     page.setDefaultTimeout(12_000)
     await page.emulateMedia({ reducedMotion: 'reduce' })
@@ -77,6 +76,7 @@ test.describe('Edit Reference long-form review', () => {
         status: 'selected',
         decisions: selectedDecisions,
         selectedAt: '2026-07-20T21:00:00.000Z',
+        selectionReceiptId: 'long-form-study-selection-receipt-ui',
         adaptedFindingCount: 2,
         contextOnlyFindingCount: 5,
         avoidedFindingCount: 0,
@@ -129,11 +129,7 @@ test.describe('Edit Reference long-form review', () => {
         return
       }
       selected = true
-      const response: EditReferenceLongFormStudyReviewSelectionData = {
-        review: selectedReview,
-        detail: selectedDetail,
-      }
-      await fulfillOk(route, response)
+      await route.abort('failed')
     })
 
     await gotoRoute(page, `/preferences?reference=${completedDetail.detail.reference.id}`)
@@ -175,6 +171,7 @@ test.describe('Edit Reference long-form review', () => {
     await save.click()
 
     await expect(review).toContainText('Review saved')
+    expect(saveAttemptCount).toBe(2)
     await expect(review).toContainText('2 adapted · 5 context only')
     await expect(review.getByTestId('save-edit-reference-long-form-review')).toHaveCount(0)
     await expect(page.getByTestId('edit-reference-dna-action')).toContainText('Your editing guidance is ready')

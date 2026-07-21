@@ -47,6 +47,43 @@ test.describe('canonical Edit Preference real-file flow', () => {
     fixturePath = fixture.videoPath
   })
 
+  test('reuses one create request after a committed response is lost', async ({ page }) => {
+    test.setTimeout(120_000)
+    page.setDefaultTimeout(15_000)
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await setViewport(page, 1280, 900)
+
+    let loseCreateResponse = true
+    const createIdempotencyKeys: string[] = []
+    await page.route(/\/v1\/edit-references$/, async (route) => {
+      if (route.request().method() !== 'POST') return route.continue()
+      createIdempotencyKeys.push(route.request().headers()['idempotency-key'] ?? '')
+      if (loseCreateResponse) {
+        loseCreateResponse = false
+        const committed = await route.fetch()
+        expect(committed.ok()).toBe(true)
+        await route.abort('failed')
+        return
+      }
+      await route.continue()
+    })
+
+    const preferenceName = `Create recovery ${Date.now()}`
+    await gotoRoute(page, '/preferences')
+    await page.getByTestId('new-edit-reference').click()
+    await page.getByTestId('edit-reference-name').fill(preferenceName)
+    await page.getByTestId('save-edit-reference').click()
+    await expect(page.getByTestId('edit-reference-create-dialog')).toBeVisible()
+    await page.getByTestId('save-edit-reference').click()
+
+    await expect(page.getByTestId('edit-reference-create-dialog')).toHaveCount(0)
+    await expect(page.getByRole('heading', { name: preferenceName })).toBeVisible()
+    expect(createIdempotencyKeys).toHaveLength(2)
+    expect(new Set(createIdempotencyKeys).size).toBe(1)
+    expect(createIdempotencyKeys[0]).toMatch(/^edit-reference-create-/)
+    await expectNoHorizontalOverflow(page)
+  })
+
   test('creates a preference, studies a real private video, and resumes from a saved checkpoint', async ({ page }) => {
     test.setTimeout(120_000)
     page.setDefaultTimeout(15_000)
@@ -239,6 +276,72 @@ test.describe('canonical Edit Preference real-file flow', () => {
       (_, index) => sessionStorage.key(index) ?? '',
     ).filter((key) => key.startsWith('reeditpro.editReferenceUploadRecovery.v1.')))
     expect(recoveryKeys).toEqual([])
+    await expectNoHorizontalOverflow(page)
+  })
+
+  test('reconciles committed Study Chat, evidence study, DNA synthesis, and quality review responses', async ({ page }) => {
+    test.setTimeout(120_000)
+    page.setDefaultTimeout(15_000)
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await setViewport(page, 1280, 900)
+
+    const mutationRequests = {
+      message: 0,
+      study: 0,
+      synthesis: 0,
+      quality: 0,
+    }
+    const loseCommittedResponse = async (route: import('@playwright/test').Route) => {
+      const committed = await route.fetch()
+      expect(committed.ok()).toBe(true)
+      await route.abort('failed')
+    }
+    await page.route(/\/v1\/edit-reference-studies\/[^/]+\/messages$/, async (route) => {
+      if (route.request().method() !== 'POST') return route.continue()
+      mutationRequests.message += 1
+      await loseCommittedResponse(route)
+    })
+    await page.route(/\/v1\/edit-reference-studies\/[^/]+\/evidence-study$/, async (route) => {
+      if (route.request().method() !== 'POST') return route.continue()
+      mutationRequests.study += 1
+      await loseCommittedResponse(route)
+    })
+    await page.route(/\/v1\/edit-reference-studies\/[^/]+\/preference-dna$/, async (route) => {
+      if (route.request().method() !== 'POST') return route.continue()
+      mutationRequests.synthesis += 1
+      await loseCommittedResponse(route)
+    })
+    await page.route(/\/v1\/edit-reference-studies\/[^/]+\/preference-dna\/[^/]+\/qa$/, async (route) => {
+      if (route.request().method() !== 'POST') return route.continue()
+      mutationRequests.quality += 1
+      await loseCommittedResponse(route)
+    })
+
+    await gotoRoute(page, '/preferences')
+    await page.getByTestId('new-edit-reference').click()
+    await page.getByTestId('edit-reference-name').fill(`Study mutation recovery ${Date.now()}`)
+    await page.getByTestId('save-edit-reference').click()
+
+    const direction = 'Use meaning-led pacing, restrained visual hierarchy, readable target-authored captions, target-derived color, purposeful target B-roll, speech-safe audio, and original evidence graphics. Never copy exact footage, timing, layouts, people, identity, music, sound effects, captions, or marks.'
+    await page.getByTestId('edit-reference-study-message').fill(direction)
+    await page.getByTestId('send-edit-reference-study-message').click()
+    await expect(page.getByTestId('edit-reference-study-message')).toHaveValue('')
+    await expect(page.getByTestId('edit-reference-study-chat')).toContainText('Nothing will be applied until you review and approve the finished preference.')
+    expect(mutationRequests.message).toBe(1)
+
+    await page.getByTestId('run-edit-reference-evidence-study').click()
+    await expect(page.getByTestId('edit-reference-dna-action')).toBeVisible()
+    await expect(page.getByTestId('edit-reference-study-findings')).toBeVisible()
+    expect(mutationRequests.study).toBe(1)
+
+    await page.getByTestId('generate-edit-reference-dna').click()
+    await expect(page.getByTestId('edit-reference-dna-review')).toContainText('Ready for quality review')
+    expect(mutationRequests.synthesis).toBe(1)
+
+    await page.getByTestId('run-edit-reference-dna-qa').click()
+    await expect(page.getByTestId('edit-reference-dna-qa-review')).toBeVisible()
+    await expect(page.getByTestId('run-edit-reference-dna-qa')).toHaveCount(0)
+    expect(mutationRequests.quality).toBe(1)
     await expectNoHorizontalOverflow(page)
   })
 

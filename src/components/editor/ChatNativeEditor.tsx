@@ -73,6 +73,27 @@ import {
   resolveCurrentEditPreferenceBaseline,
   resolveCurrentEditPreferenceChange,
 } from '../../lib/current-edit-preferences'
+import {
+  createCurrentEditReferenceBackendBriefText,
+  resolveCurrentEditReferenceActiveEditorAuthority,
+  resolveCurrentEditReferenceTargetSource,
+} from '../../lib/current-edit-reference-active-editor-authority'
+import { createEditReferenceApiClient } from '../../lib/edit-reference-api-client'
+import {
+  connectPreferenceApplicationToProjectEditSession,
+  loadProjectEditSessionEditReferenceIntegration,
+  preparePreferenceApplicationForProjectEditSession,
+  recoverConnectedPreferenceApplicationForProjectEditSession,
+  removePreferenceApplicationFromProjectEditSession,
+  replacePreferenceApplicationForProjectEditSession,
+} from '../../lib/project-edit-session-edit-reference-integration'
+import {
+  createProjectEditBriefBackendLocalConfig,
+  readProjectEditBriefBackendLocal,
+  saveProjectEditBriefBackendLocal,
+  type ProjectEditBriefBackendLocalRecord,
+} from '../../lib/project-edit-brief-backend-local'
+import { createDefaultMockProjectEditSessionApiClient } from '../../lib/project-edit-session-api-client'
 import type { MockFootagePrepInput } from '../../lib/footage-prep'
 import {
   createExecutionSourceMediaAssetsFromClips,
@@ -101,6 +122,8 @@ import { useCanonicalPrivateEditPreparation } from '../../hooks/useCanonicalPriv
 import { useCanonicalPrivateReview } from '../../hooks/useCanonicalPrivateReview'
 import type { ContextAwareMockEditPlanResult, EditBriefState, EditBriefStatus, MediaKind, ReeditProChatMessage } from '../../types'
 import type { ApprovedPlanSnapshot } from '../../types/edit-planning-db'
+import type { PreferenceApplicationRecord } from '../../types/edit-reference'
+import type { ProjectEditSessionRecord } from '../../types/project-edit-session'
 import type {
   AspectRatio,
   AspectRatioSource,
@@ -136,7 +159,11 @@ import {
   VisualSetup,
 } from './CleanEditSetupSurface'
 import { CleanPlanningPrepSurface } from './CleanPlanningPrepSurface'
-import { CurrentEditPreferencesWorkspace } from './CurrentEditPreferencesWorkspace'
+import {
+  CurrentEditPreferencesWorkspace,
+  type CurrentEditPreferencesApplyRequest,
+  type CurrentEditPreferencesApplyResult,
+} from './CurrentEditPreferencesWorkspace'
 import {
   EditWorkspaceProgressCard,
   type EditWorkspaceCompletedStep,
@@ -465,6 +492,46 @@ function targetPlatformForAspectRatio(aspectRatio: AspectRatio): TargetPlatform 
   if (aspectRatio === '9:16') return 'tiktok_reels_shorts'
   if (aspectRatio === '16:9') return 'youtube'
   return 'custom'
+}
+
+function createRemovalSessionFromPreferenceApplication(
+  application: PreferenceApplicationRecord,
+  ownerUserId: string,
+): ProjectEditSessionRecord {
+  const sourceMediaAssetId = application.targetUnderstanding?.sourceMediaAssetId
+  return {
+    id: application.editSessionId,
+    projectId: application.projectId,
+    workspaceId: application.workspaceId,
+    ownerUserId,
+    name: application.targetContext.editName,
+    description: application.targetContext.currentUserInstruction,
+    status: 'setup_ready',
+    aspectRatio: application.targetContext.aspectRatio,
+    platformTarget: application.targetContext.platformTarget,
+    sourceMediaAssetIds: sourceMediaAssetId ? [sourceMediaAssetId] : [],
+    selectedEditLevel: application.targetContext.selectedEditLevel,
+    selectedEditPreferenceId: application.editReferenceId,
+    selectedPreferenceVersionId: application.dnaVersionId,
+    preferenceDNAApplicationId: application.id,
+    dnaStatusLabel: 'Approved DNA',
+    dnaQAStatusLabel: 'QA passed',
+    doNotCopyRulesActive: true,
+    messageCount: 0,
+    revisionCount: 0,
+    versionCount: 0,
+    previewCount: 0,
+    approvalStatus: 'not_requested',
+    createdAt: application.createdAt,
+    updatedAt: application.updatedAt,
+    mockOnly: true,
+    metadata: {
+      recoveredFromExactPreferenceApplication: application.id,
+      removalOnlyRecovery: true,
+      providerExecutionAuthorized: false,
+      creditMutationAuthorized: false,
+    },
+  }
 }
 
 function AdvancedCardFallback({ label = 'Loading advanced details...' }: { label?: string }) {
@@ -1103,12 +1170,85 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
         ? []
       : createExecutionSourceMediaAssetsFromClips(initialScenario.clips, editorProjectId),
   )
+  const [activeEditBriefState, setActiveEditBriefState] = useState<EditBriefState | undefined>(
+    () => localProjectHandoff?.editBriefState,
+  )
+  const [backendLocalEditBrief, setBackendLocalEditBrief] = useState<ProjectEditBriefBackendLocalRecord>()
+  const editBriefAuthorityEpochRef = useRef(0)
+  const latestEditBriefStateRef = useRef<EditBriefState | undefined>(localProjectHandoff?.editBriefState)
+  const editBriefBackendConfig = useMemo(
+    () => createProjectEditBriefBackendLocalConfig(import.meta.env as Record<string, string | undefined>),
+    [],
+  )
+  const editReferenceApi = useMemo(() => createEditReferenceApiClient(), [])
+  const projectEditSessionClient = useMemo(() => createDefaultMockProjectEditSessionApiClient({
+    projectId: editorProjectId,
+    userId: editorOperationUserId,
+    workspaceId: projectPersistenceScope.workspaceId,
+  }), [editorOperationUserId, editorProjectId, projectPersistenceScope.workspaceId])
+  const [editAuthorityCreatedAt] = useState(() => localProjectHandoff?.createdAt ?? new Date().toISOString())
   const [privateInternalTestRun, setPrivateInternalTestRun] = useState<PrivateInternalTestRunState | null>(() =>
     restoredPrivateInternalTestRun,
   )
   const [activeRevisionPlanContext, setActiveRevisionPlanContext] = useState<LocalInternalProjectHandoff['revisionPlanContext']>(
     () => localProjectHandoff?.revisionPlanContext,
   )
+  useEffect(() => {
+    if (latestEditBriefStateRef.current || !localProjectHandoff?.editBriefState) return
+    latestEditBriefStateRef.current = localProjectHandoff.editBriefState
+    const restoreTimer = window.setTimeout(() => {
+      setActiveEditBriefState(localProjectHandoff.editBriefState)
+    }, 0)
+    return () => window.clearTimeout(restoreTimer)
+  }, [localProjectHandoff?.editBriefState])
+
+  useEffect(() => {
+    const state = activeEditBriefState
+    const sourceResolution = resolveCurrentEditReferenceTargetSource(sourceMediaAssets)
+    if (
+      !isProjectWorkspace
+      || !editBriefBackendConfig.available
+      || !editBriefBackendConfig.apiBaseUrl
+      || state?.editBrief.status !== 'ready'
+      || !sourceResolution.ok
+    ) {
+      const clearTimer = window.setTimeout(() => setBackendLocalEditBrief(undefined), 0)
+      return () => window.clearTimeout(clearTimer)
+    }
+
+    let cancelled = false
+    void readProjectEditBriefBackendLocal({
+      apiBaseUrl: editBriefBackendConfig.apiBaseUrl,
+      editSessionId: editorEditSessionId,
+      projectId: editorProjectId,
+      workspaceId: projectPersistenceScope.workspaceId,
+    })
+      .then(({ editBrief }) => {
+        if (cancelled) return
+        const expectedText = createCurrentEditReferenceBackendBriefText(state)
+        const exactReadback = editBrief.readbackVerified === true
+          && editBrief.briefText === expectedText
+          && editBrief.sourceStorageObjectRecordId === sourceResolution.source.storageObjectRecordId
+          && editBrief.sourceMediaAssetId === sourceResolution.source.mediaAssetId
+        setBackendLocalEditBrief(exactReadback ? editBrief : undefined)
+      })
+      .catch(() => {
+        if (!cancelled) setBackendLocalEditBrief(undefined)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [
+    activeEditBriefState,
+    editBriefBackendConfig.apiBaseUrl,
+    editBriefBackendConfig.available,
+    editorEditSessionId,
+    editorProjectId,
+    isProjectWorkspace,
+    projectPersistenceScope.workspaceId,
+    sourceMediaAssets,
+  ])
   useEffect(() => {
     if (!activeRevisionPlanContext?.sourceSetFingerprint) return
     const currentSourceSetFingerprint = createLocalSourceSetFingerprint(durableUploadedPrivateSourceAssets(sourceMediaAssets))
@@ -1319,6 +1459,43 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     (localProjectHandoff && currentEditPreferenceLockedStages.has(localProjectHandoff.stage)),
   )
   const currentEditDraftPlanExists = Boolean(contextAwarePlanResult)
+  const currentEditReferenceAuthorityResolution = useMemo(
+    () => resolveCurrentEditReferenceActiveEditorAuthority({
+      aspectRatio,
+      aspectRatioConfirmed,
+      backendBrief: backendLocalEditBrief,
+      createdAt: editAuthorityCreatedAt,
+      currentUserInstruction: customInstructions,
+      editBriefState: activeEditBriefState,
+      editLevel,
+      editName: editorEditName,
+      editSessionId: editorEditSessionId,
+      ownerUserId: editorOperationUserId,
+      projectId: editorProjectId,
+      projectName: editorProjectName,
+      sourceMediaAssets,
+      targetPlatform,
+      updatedAt: activeEditBriefState?.updatedAt ?? localProjectHandoff?.updatedAt ?? editAuthorityCreatedAt,
+      workspaceId: projectPersistenceScope.workspaceId,
+    }), [
+      activeEditBriefState,
+      aspectRatio,
+      aspectRatioConfirmed,
+      backendLocalEditBrief,
+      customInstructions,
+      editAuthorityCreatedAt,
+      editLevel,
+      editorEditName,
+      editorEditSessionId,
+      editorOperationUserId,
+      editorProjectId,
+      editorProjectName,
+      localProjectHandoff?.updatedAt,
+      projectPersistenceScope.workspaceId,
+      sourceMediaAssets,
+      targetPlatform,
+    ],
+  )
 
   useEffect(() => {
     if (searchParams.get('view') !== 'brief' || !footagePrepResult) return
@@ -2016,12 +2193,90 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     )
   }, [])
 
+  const synchronizeReadyEditBriefAuthority = useCallback(async (state: EditBriefState) => {
+    const epoch = ++editBriefAuthorityEpochRef.current
+    setBackendLocalEditBrief(undefined)
+
+    if (!editBriefBackendConfig.available || !editBriefBackendConfig.apiBaseUrl) {
+      showRevisionMessage('The Edit Brief is ready locally, but exact-video study remains unavailable until the private backend can verify it.')
+      return
+    }
+    const sourceResolution = resolveCurrentEditReferenceTargetSource(sourceMediaAssets)
+    if (!sourceResolution.ok) {
+      showRevisionMessage(`${sourceResolution.message} The Brief remains saved locally, and no study or editing started.`)
+      return
+    }
+
+    try {
+      const exactEditHandoff = getLocalInternalEditHandoff(editorProjectId, editorEditSessionId)
+      if (!exactEditHandoff) {
+        throw new Error('The exact named edit could not be matched before Brief verification.')
+      }
+      const persistedEditState = await persistLocalInternalProjectHandoffToBackend(exactEditHandoff)
+      if (!persistedEditState.ok || !persistedEditState.persisted) {
+        throw new Error(
+          persistedEditState.errorMessage
+          ?? 'The exact named edit could not be verified by the private backend.',
+        )
+      }
+      if (epoch !== editBriefAuthorityEpochRef.current) return
+
+      const result = await saveProjectEditBriefBackendLocal({
+        apiBaseUrl: editBriefBackendConfig.apiBaseUrl,
+        briefText: createCurrentEditReferenceBackendBriefText(state),
+        editSessionId: editorEditSessionId,
+        projectId: editorProjectId,
+        sourceMediaAssetId: sourceResolution.source.mediaAssetId,
+        sourceStorageObjectRecordId: sourceResolution.source.storageObjectRecordId,
+        workspaceId: projectPersistenceScope.workspaceId,
+      })
+      const latestEditBriefState = latestEditBriefStateRef.current
+      if (
+        epoch !== editBriefAuthorityEpochRef.current
+        || !latestEditBriefState
+        || latestEditBriefState.updatedAt !== state.updatedAt
+        || latestEditBriefState.editBrief.status !== 'ready'
+      ) return
+      setBackendLocalEditBrief(result.readback)
+      showRevisionMessage('Edit Brief verified for this exact uploaded video. An approved Edit Reference can now study this video before Apply.')
+    } catch (error) {
+      if (epoch !== editBriefAuthorityEpochRef.current) return
+      setBackendLocalEditBrief(undefined)
+      showRevisionMessage(`${error instanceof Error ? error.message : 'The Edit Brief could not be verified.'} Your Brief remains saved locally; no study, credits, or editing started.`)
+    }
+  }, [
+    editBriefBackendConfig.apiBaseUrl,
+    editBriefBackendConfig.available,
+    editorEditSessionId,
+    editorProjectId,
+    getLocalInternalEditHandoff,
+    persistLocalInternalProjectHandoffToBackend,
+    projectPersistenceScope.workspaceId,
+    showRevisionMessage,
+    sourceMediaAssets,
+  ])
+
   const handleEditBriefStateChange = useCallback((state: EditBriefState) => {
     if (!isProjectWorkspace) return
+    latestEditBriefStateRef.current = state
+    setActiveEditBriefState(state)
+    if (state.editBrief.status !== 'ready') {
+      editBriefAuthorityEpochRef.current += 1
+      setBackendLocalEditBrief(undefined)
+    }
     updateLocalInternalEditHandoff(editorProjectId, editorEditSessionId, {
       editBriefState: state,
     })
-  }, [editorEditSessionId, editorProjectId, isProjectWorkspace, updateLocalInternalEditHandoff])
+    if (state.editBrief.status === 'ready') {
+      void synchronizeReadyEditBriefAuthority(state)
+    }
+  }, [
+    editorEditSessionId,
+    editorProjectId,
+    isProjectWorkspace,
+    synchronizeReadyEditBriefAuthority,
+    updateLocalInternalEditHandoff,
+  ])
 
   function scrollToEditorTarget(selectors: string[]) {
     const target = selectors
@@ -2031,6 +2286,8 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
   }
 
   function resetAfterSourceChange() {
+    editBriefAuthorityEpochRef.current += 1
+    setBackendLocalEditBrief(undefined)
     setSourceOrderConfirmed(false)
     setCleanupPreferenceConfirmed(false)
     setEditBriefGate({ ready: false, status: null })
@@ -2122,14 +2379,201 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     }
   }
 
-  function handleApplyCurrentEditPreferences(next: LocalInternalEditPreferenceValues) {
-    if (currentEditPreferencesLocked || approvalCheckingRef.current) return
+  async function handleApplyCurrentEditPreferences(
+    request: CurrentEditPreferencesApplyRequest,
+  ): Promise<CurrentEditPreferencesApplyResult> {
+    if (currentEditPreferencesLocked || approvalCheckingRef.current) {
+      return {
+        ok: false,
+        message: 'This edit is read only. Request the change through Chat and a fresh plan.',
+      }
+    }
+    const next = request.values
     const change = resolveCurrentEditPreferenceChange(
       currentEditPreferenceValues,
       next,
       currentEditPreferenceBaseline,
     )
-    if (change.changedFields.length === 0) return
+    const referenceChanged = request.referenceDecision.operation !== 'keep'
+    if (change.changedFields.length === 0 && !referenceChanged) {
+      return { ok: false, message: 'There are no unapplied Edit Preference changes.' }
+    }
+
+    if (referenceChanged) {
+      const original = request.referenceDecision.original
+      const authority = currentEditReferenceAuthorityResolution.ready
+        ? currentEditReferenceAuthorityResolution.authority
+        : undefined
+      if (request.referenceDecision.operation !== 'remove' && !authority) {
+        return {
+          ok: false,
+          message: currentEditReferenceAuthorityResolution.ready
+            ? 'The exact target-study authority is no longer available.'
+            : currentEditReferenceAuthorityResolution.message,
+        }
+      }
+      if (
+        request.referenceDecision.operation !== 'remove'
+        && !request.targetStudy
+      ) {
+        return {
+          ok: false,
+          message: 'Complete and verify the exact whole-video study before applying this Edit Reference.',
+        }
+      }
+
+      let session = authority?.bundle.session
+      if (!session && request.referenceDecision.operation === 'remove' && original.kind === 'connected') {
+        const applicationsResult = await editReferenceApi.listApplications(projectPersistenceScope.workspaceId)
+        if (!applicationsResult.ok) return { ok: false, message: applicationsResult.message }
+        const exactApplication = applicationsResult.data.applications.find((application) => (
+          application.id === original.applicationId
+          && application.contentDigest === original.applicationContentDigest
+          && application.status === 'prepared'
+          && application.targetIntegrationStatus === 'connected'
+        ))
+        if (!exactApplication) {
+          return { ok: false, message: 'The connected Edit Reference could not be verified for removal.' }
+        }
+        session = createRemovalSessionFromPreferenceApplication(exactApplication, editorOperationUserId)
+      }
+      if (!session) {
+        return { ok: false, message: 'The exact edit session authority could not be reconstructed safely.' }
+      }
+
+      const sessionRead = await projectEditSessionClient.sessions.get<{ session: ProjectEditSessionRecord }>(
+        session.id,
+      )
+      if (!sessionRead.ok) {
+        const created = await projectEditSessionClient.sessions.create<{ session: ProjectEditSessionRecord }>({
+          ...session,
+        })
+        if (!created.ok) {
+          return {
+            ok: false,
+            message: created.error?.message ?? 'The exact edit session authority could not be prepared safely.',
+          }
+        }
+      } else {
+        const refreshed = await projectEditSessionClient.sessions.update({
+          editSessionId: session.id,
+          patch: {
+            name: session.name,
+            description: session.description,
+            aspectRatio: session.aspectRatio,
+            platformTarget: session.platformTarget,
+            sourceMediaAssetIds: session.sourceMediaAssetIds,
+            selectedEditLevel: session.selectedEditLevel,
+          },
+        })
+        if (!refreshed.ok) {
+          return {
+            ok: false,
+            message: refreshed.error?.message ?? 'The exact edit session context could not be refreshed safely.',
+          }
+        }
+      }
+
+      if (original.kind === 'connected') {
+        const recovered = await recoverConnectedPreferenceApplicationForProjectEditSession({
+          editReferenceClient: editReferenceApi,
+          projectEditSessionClient,
+          session,
+          workspaceId: projectPersistenceScope.workspaceId,
+        })
+        if (!recovered.recovered && recovered.message) {
+          return { ok: false, message: recovered.message }
+        }
+      }
+
+      const integration = await loadProjectEditSessionEditReferenceIntegration({
+        editReferenceClient: editReferenceApi,
+        session,
+        workspaceId: projectPersistenceScope.workspaceId,
+      })
+      const activeApplication = integration.activeApplication
+      if (original.kind === 'connected' && (
+        !activeApplication
+        || activeApplication.id !== original.applicationId
+        || activeApplication.contentDigest !== original.applicationContentDigest
+      )) {
+        return {
+          ok: false,
+          message: 'The connected Edit Reference changed after this draft opened. Refresh before applying.',
+        }
+      }
+      if (original.kind === 'none' && activeApplication) {
+        return {
+          ok: false,
+          message: 'Another Edit Reference is already connected to this edit. Refresh before applying.',
+        }
+      }
+
+      if (request.referenceDecision.operation !== 'remove' && !authority) {
+        return { ok: false, message: 'The exact target-study authority is no longer available.' }
+      }
+
+      if (request.referenceDecision.operation === 'select') {
+        if (!authority) {
+          return { ok: false, message: 'The exact target-study authority is no longer available.' }
+        }
+        const prepared = await preparePreferenceApplicationForProjectEditSession({
+          applicationSource: 'session_panel',
+          bundle: authority.bundle,
+          currentUserInstruction: authority.currentUserInstruction,
+          editReferenceClient: editReferenceApi,
+          editReferenceId: request.referenceDecision.draftReferenceId ?? '',
+          outputFrameConfirmed: true,
+          targetUnderstandingPackage: request.targetStudy,
+          workspaceId: projectPersistenceScope.workspaceId,
+        })
+        if (!prepared.ok) return { ok: false, message: prepared.message }
+        const connected = await connectPreferenceApplicationToProjectEditSession({
+          application: prepared.application,
+          editReferenceClient: editReferenceApi,
+          outputFrameConfirmed: true,
+          projectEditSessionClient,
+          referenceRevision: prepared.detail.reference.revision,
+          workspaceId: projectPersistenceScope.workspaceId,
+        })
+        if (!connected.ok) return { ok: false, message: connected.message }
+      }
+
+      if (request.referenceDecision.operation === 'replace') {
+        if (!authority) {
+          return { ok: false, message: 'The exact target-study authority is no longer available.' }
+        }
+        if (!activeApplication) {
+          return { ok: false, message: 'The connected Edit Reference could not be verified for replacement.' }
+        }
+        const replaced = await replacePreferenceApplicationForProjectEditSession({
+          applicationSource: 'session_panel',
+          bundle: authority.bundle,
+          currentApplication: activeApplication,
+          currentUserInstruction: authority.currentUserInstruction,
+          editReferenceClient: editReferenceApi,
+          nextEditReferenceId: request.referenceDecision.draftReferenceId ?? '',
+          outputFrameConfirmed: true,
+          projectEditSessionClient,
+          targetUnderstandingPackage: request.targetStudy,
+          workspaceId: projectPersistenceScope.workspaceId,
+        })
+        if (!replaced.ok) return { ok: false, message: replaced.message }
+      }
+
+      if (request.referenceDecision.operation === 'remove') {
+        if (!activeApplication) {
+          return { ok: false, message: 'The connected Edit Reference could not be verified for removal.' }
+        }
+        const removed = await removePreferenceApplicationFromProjectEditSession({
+          application: activeApplication,
+          editReferenceClient: editReferenceApi,
+          projectEditSessionClient,
+          workspaceId: projectPersistenceScope.workspaceId,
+        })
+        if (!removed.ok) return { ok: false, message: removed.message }
+      }
+    }
 
     const nextRevision = currentEditPreferenceRevision + 1
     const nextUpdatedAt = new Date().toISOString()
@@ -2179,9 +2623,13 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
 
     showRevisionMessage(
       currentEditDraftPlanExists
-        ? 'Edit Preferences updated for this edit. The previous draft plan and estimate were cleared; create a fresh plan before approval. No credits or generation started.'
-        : 'Edit Preferences updated for this edit. They will shape the next plan; no credits or generation started.',
+        ? 'Edit Preferences updated for this edit. The reference decision and exact-video study are attached when selected. The previous draft plan and estimate were cleared; create a fresh plan before approval. No credits or generation started.'
+        : 'Edit Preferences updated for this edit. The reference decision and exact-video study are attached when selected. They will shape the next plan; no credits or generation started.',
     )
+    return {
+      ok: true,
+      message: 'Edit Preferences were applied to this exact edit.',
+    }
   }
 
   function handleAddEditCuesAfterFootagePrep() {
@@ -5267,7 +5715,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
                     editBriefOpenRequestId={editBriefOpenRequestId}
                     editBriefLocked={currentEditPreferencesLocked}
                     editBriefPlanImpactNotice={Boolean(contextAwarePlanResult || approved || approvedSnapshot)}
-                    initialEditBriefState={localProjectHandoff?.editBriefState}
+                    initialEditBriefState={activeEditBriefState}
                     isRunning={footagePrepRunning}
                     onContextAwarePlanCreated={handleContextAwarePlanCreated}
                     onContextAwarePlanInvalidated={handleContextAwarePlanInvalidated}
@@ -5349,6 +5797,15 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
           onDirtyChange={setCurrentEditPreferenceDraftDirty}
           onDiscardAndLeave={handleDiscardCurrentEditPreferenceDraftAndLeave}
           onReturnToChat={handleOpenChatWorkspace}
+          editSessionId={editorEditSessionId}
+          projectId={editorProjectId}
+          targetAuthority={currentEditReferenceAuthorityResolution.ready
+            ? currentEditReferenceAuthorityResolution.authority
+            : undefined}
+          targetAuthorityBlockReason={currentEditReferenceAuthorityResolution.ready
+            ? undefined
+            : currentEditReferenceAuthorityResolution.blockReason}
+          workspaceId={projectPersistenceScope.workspaceId}
         />
       ) : null}
     </section>

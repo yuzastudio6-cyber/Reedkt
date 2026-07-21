@@ -1437,6 +1437,7 @@ export interface ApprovedEditExecutionWorkflowRehearsalClientResult {
 
 export interface ApprovedEditExecutionUploadedMediaSourceAssetClientInput {
   mediaAssetId: string
+  storageObjectRecordId?: string
   sourceSequenceItemId?: string
   uploadedClipId?: string
   uploadedOrder: number

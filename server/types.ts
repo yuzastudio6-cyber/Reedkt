@@ -19,10 +19,26 @@ export interface IdempotencyContext {
   replayed: boolean
 }
 
+export type ProjectAccessRole = 'viewer' | 'editor' | 'admin' | 'owner'
+
+export interface ProjectAccessContext {
+  workspaceId: string
+  projectId: string
+  editSessionId?: string
+  briefId?: string
+  markerId?: string
+  role: ProjectAccessRole
+  canRead: boolean
+  canWrite: boolean
+  canAdmin: boolean
+  isMockAccess: boolean
+}
+
 export interface RequestContext {
   requestId: string
   auth?: AuthContext
   idempotency?: IdempotencyContext
+  projectAccess?: ProjectAccessContext
 }
 
 export interface RuntimeClients {

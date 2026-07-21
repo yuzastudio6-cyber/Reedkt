@@ -2050,6 +2050,7 @@ function parseSourceMediaAsset(value: unknown): ApprovedEditExecutionUploadedMed
 
   return {
     mediaAssetId: record.mediaAssetId.trim(),
+    storageObjectRecordId: optionalBoundedString(record.storageObjectRecordId, 200),
     sourceSequenceItemId: typeof record.sourceSequenceItemId === 'string' ? record.sourceSequenceItemId : undefined,
     uploadedClipId: record.uploadedClipId.trim(),
     uploadedOrder: Math.max(1, Math.floor(record.uploadedOrder)),

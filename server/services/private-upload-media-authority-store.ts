@@ -181,6 +181,7 @@ export async function createPrivateUploadIntentAuthority(input: {
         actorUserId: input.scope.ownerUserId,
         workspaceId: input.scope.workspaceId,
         projectId: uploadIntent.projectId,
+        editReferenceId: uploadIntent.editReferenceId,
         uploadIntentId: uploadIntent.id,
         recordRevision: committedRevision,
         createdAt: input.now,
@@ -248,6 +249,7 @@ export async function transitionPrivateUploadIntentAuthority(input: {
         actorUserId: input.scope.ownerUserId,
         workspaceId: input.scope.workspaceId,
         projectId: updated.projectId,
+        editReferenceId: updated.editReferenceId,
         uploadIntentId: updated.id,
         recordRevision: committedRevision,
         createdAt: input.now,
@@ -342,6 +344,7 @@ export async function commitPrivateFinalizedUploadAuthority(input: {
         actorUserId: input.scope.ownerUserId,
         workspaceId: input.scope.workspaceId,
         projectId: finalizedIntent.projectId,
+        editReferenceId: finalizedIntent.editReferenceId,
         uploadIntentId: finalizedIntent.id,
         mediaAssetId: mediaAsset.id,
         storageObjectRecordId: storageObject.id,
@@ -547,6 +550,25 @@ function assertPrivateUploadMediaAuthorityAggregate(
 }
 
 function assertCanonicalIntentPath(intent: PrivateUploadIntentAuthorityRecord): void {
+  if (intent.editReferenceId) {
+    const expectedEditReferencePrefix = [
+      'workspaces',
+      intent.workspaceId,
+      'edit-references',
+      intent.editReferenceId,
+      'reference-media',
+      intent.id,
+      '',
+    ].join('/')
+    if (
+      intent.uploadPurpose !== 'reference_media'
+      || intent.projectId !== intent.editReferenceId
+      || !intent.targetPath.startsWith(expectedEditReferencePrefix)
+    ) {
+      throw invalidStoredAuthority('Private Edit Reference upload intent target path does not match its exact owner identity.')
+    }
+    return
+  }
   const purposeSegment = intent.uploadPurpose === 'source_media' ? 'source-media' : 'reference-media'
   const expectedPrefix = [
     'workspaces',

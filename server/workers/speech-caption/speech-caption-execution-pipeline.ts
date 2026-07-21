@@ -52,6 +52,7 @@ export async function runSpeechCaptionExecutionPipeline(
       outputDirectory: input.outputDirectory,
       modelWeightManifestId: input.modelWeightManifestId,
       modelName: input.modelName,
+      modelVersion: input.modelVersion,
       localModelPath: input.localModelPath,
       language: input.language,
       device: input.device ?? 'auto',

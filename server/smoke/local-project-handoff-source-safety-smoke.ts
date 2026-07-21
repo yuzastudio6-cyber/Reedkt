@@ -45,6 +45,7 @@ const {
 
 const validSourceAsset: ApprovedEditExecutionUploadedMediaSourceAssetClientInput = {
   mediaAssetId: 'media-asset-valid-001',
+  storageObjectRecordId: 'storage-object-valid-001',
   sourceSequenceItemId: 'source-sequence-valid-001',
   uploadedClipId: 'uploaded-clip-valid-001',
   uploadedOrder: 1,
@@ -218,6 +219,7 @@ saveLocalInternalProjectHandoff(projectScope, {
 const restoredValidHandoff = getLocalInternalProjectHandoff(projectScope, validHandoff.projectId)
 assert.equal(restoredValidHandoff?.stage, 'internal_edit_complete')
 assert.equal(restoredValidHandoff?.sourceMediaAssets?.length, 1)
+assert.equal(restoredValidHandoff?.sourceMediaAssets?.[0]?.storageObjectRecordId, 'storage-object-valid-001')
 assert.equal(restoredValidHandoff?.sourceMediaAssets?.[0]?.storageBucket, 'source-media')
 assert.equal(restoredValidHandoff?.privateReview?.manifestVerified, true)
 assert.equal(restoredValidHandoff?.privateReview?.editDecisionManifestVerification?.approvedEditContextReady, true)

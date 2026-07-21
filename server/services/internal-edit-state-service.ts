@@ -19,7 +19,7 @@ interface SaveInternalEditStateInput {
   idempotencyKey: string
 }
 
-interface InternalEditStateRecord {
+export interface InternalEditStateRecord {
   recordVersion: 'private-internal-edit-state-v2'
   source: 'frontend_scoped_internal_project_handoff'
   workspaceId: string
@@ -59,25 +59,20 @@ export function createInternalEditStateService(context: ServiceContext) {
 
       assertInternalEditStateHandoffSafe(input)
       await assertInternalEditStateProjectOwnedByCurrentUser(context, input.projectId, access.workspaceId)
-      const exactEditPreferenceService = createExactEditPreferenceService(context)
-      const currentExactEditPreferences = await exactEditPreferenceService.getCurrent(
-        access.workspaceId,
-        input.projectId,
-        input.editSessionId,
-      )
-      const exactEditPreferenceInitialization = currentExactEditPreferences.preferenceRecord
-        ? { created: false }
-        : await exactEditPreferenceService.initialize({
-            workspaceId: access.workspaceId,
-            projectId: input.projectId,
-            editSessionId: input.editSessionId,
-            idempotencyKey: exactEditPreferenceInitializationKey({
-              ownerUserId: userId,
-              workspaceId: access.workspaceId,
-              projectId: input.projectId,
-              editSessionId: input.editSessionId,
-            }),
-          })
+      // This registry is explicitly private/mock-only. A local-test identity may
+      // persist source and Brief lineage without pretending the separately
+      // gated transactional Exact Edit Preference authority is available.
+      // Verified bearer-authenticated runtimes still require that authority and
+      // therefore fail closed if initialization cannot complete.
+      const exactEditPreferenceInitialization = context.auth?.isMockUser
+        ? { created: false, deferred: true }
+        : await initializeExactEditPreferences(
+            context,
+            access.workspaceId,
+            input.projectId,
+            input.editSessionId,
+            userId,
+          )
       const stateKey = internalEditStateMemoryKey(userId, access.workspaceId, input.projectId, input.editSessionId)
       return withInternalEditStateWriteLock(stateKey, async () => {
         const existing = internalEditStateRecordsByKey.get(stateKey) ??
@@ -130,6 +125,9 @@ export function createInternalEditStateService(context: ServiceContext) {
             mockWarning('Internal edit state save'),
             ...(exactEditPreferenceInitialization.created
               ? ['Exact Edit Preferences were initialized server-side from saved workspace defaults for this edit.']
+              : []),
+            ...(exactEditPreferenceInitialization.deferred
+              ? ['Exact Edit Preference database initialization remains gated; this private local edit-state record does not claim transactional preference persistence.']
               : []),
             'Internal edit state was persisted for signed-in internal testing only. Public delivery, external beta, production, and billing require approved release evidence gates.',
           ],
@@ -207,6 +205,31 @@ export function createInternalEditStateService(context: ServiceContext) {
       }
     },
   }
+}
+
+async function initializeExactEditPreferences(
+  context: ServiceContext,
+  workspaceId: string,
+  projectId: string,
+  editSessionId: string,
+  ownerUserId: string,
+): Promise<{ created: boolean; deferred: false }> {
+  const exactEditPreferenceService = createExactEditPreferenceService(context)
+  const current = await exactEditPreferenceService.getCurrent(workspaceId, projectId, editSessionId)
+  if (current.preferenceRecord) return { created: false, deferred: false }
+
+  const initialized = await exactEditPreferenceService.initialize({
+    workspaceId,
+    projectId,
+    editSessionId,
+    idempotencyKey: exactEditPreferenceInitializationKey({
+      ownerUserId,
+      workspaceId,
+      projectId,
+      editSessionId,
+    }),
+  })
+  return { created: initialized.created, deferred: false }
 }
 
 function exactEditPreferenceInitializationKey(input: {

@@ -119,7 +119,7 @@ export function evaluateCanonicalProductUiIntegrationReadiness(
       hasAll(preferencesPage, [
         'EditReferenceWorkspacePage',
         "../components/preferences/EditReferenceWorkspacePage",
-        '<EditReferenceWorkspacePage />',
+        '<EditReferenceWorkspacePage',
       ])
         && hasNone(preferencesPage, [
           'createEditPreferenceRepository',

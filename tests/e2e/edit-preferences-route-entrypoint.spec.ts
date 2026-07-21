@@ -3,7 +3,7 @@ import { expectNoHorizontalOverflow, setViewport } from './helpers/layout'
 import { gotoRoute } from './helpers/routes'
 
 test.describe('Edit Preferences route entrypoint', () => {
-  test('opens the workspace-scoped Saved Edit Preferences page safely', async ({ page }) => {
+  test('opens the canonical library-first Edit Preferences workspace safely', async ({ page }) => {
     await setViewport(page, 1440)
     await gotoRoute(page, '/preferences')
 
@@ -15,20 +15,14 @@ test.describe('Edit Preferences route entrypoint', () => {
     await expect(sidebarNav).not.toContainText(/AI Editor|Media Library|Templates|Team|Analytics|Exports|Brand Kit|Settings/i)
     await expect(page.locator('.sidebar')).not.toContainText(/credits available|storage used|Creator workspace|Tommy/i)
     await expect(page.getByRole('button', { name: /open wallet/i })).toHaveCount(0)
-    const preferences = page.getByTestId('edit-preferences-form')
+    const preferences = page.getByTestId('edit-preferences-page')
     await expect(preferences).toBeVisible()
     await expect(page.getByRole('heading', { level: 1, name: 'Edit Preferences' })).toBeVisible()
-    await expect(preferences).toContainText('Defaults for new edits')
-    await expect(preferences.getByRole('group')).toHaveCount(3)
-    await expect(page.getByTestId('preference-edit-level')).toBeVisible()
-    await expect(page.getByTestId('preference-workflow')).toBeVisible()
-    await expect(page.getByTestId('preference-cleanup')).toBeVisible()
-    await expect(page.getByTestId('preference-visual-direction')).toBeVisible()
-    await expect(page.getByTestId('preference-mood')).toBeVisible()
-    await expect(page.getByTestId('preference-credit-posture')).toBeVisible()
-    await expect(page.getByTestId('preference-preferred-destination')).toBeVisible()
-    await expect(page.getByRole('checkbox', { name: /Pre-confirm reusable editing choices/i })).toBeChecked()
-    await expect(page.getByTestId('preference-persistence-status')).toContainText(/signed-in test workspace/i)
+    await expect(preferences.getByRole('tab', { name: 'Library' })).toHaveAttribute('aria-selected', 'true')
+    await expect(page.getByTestId('edit-reference-library-unavailable')).toBeVisible()
+    await expect(page.getByTestId('edit-reference-empty-state')).toHaveCount(0)
+    await expect(page.getByTestId('preference-edit-level')).toHaveCount(0)
+    await expect(page.getByRole('button', { name: /^Save defaults$/i })).toHaveCount(0)
     await expect(page.getByTestId('internal-testing-details')).toHaveCount(0)
     await expect(page.getByText(/provider call made|worker created|render started|credit reserved|upload started/i)).toHaveCount(0)
     await expectNoHorizontalOverflow(page)
@@ -39,7 +33,7 @@ test.describe('Edit Preferences route entrypoint', () => {
 
     await gotoRoute(page, '/wallet')
     await expect(page).toHaveURL(/\/preferences$/)
-    await expect(page.getByTestId('edit-preferences-form')).toBeVisible()
+    await expect(page.getByTestId('edit-preferences-page')).toBeVisible()
     await expect(page.getByRole('navigation', { name: /desktop app navigation/i }).getByRole('link')).toHaveCount(3)
 
     await gotoRoute(page, '/brand-kit')
@@ -56,7 +50,7 @@ test.describe('Edit Preferences route entrypoint', () => {
     await gotoRoute(page, '/edit-preferences')
 
     await expect(page).toHaveURL(/\/preferences$/)
-    await expect(page.getByTestId('edit-preferences-form')).toBeVisible()
+    await expect(page.getByTestId('edit-preferences-page')).toBeVisible()
     await expectNoHorizontalOverflow(page)
   })
 })

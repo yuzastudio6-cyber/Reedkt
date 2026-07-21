@@ -97,14 +97,17 @@ test.describe('editor mocked browser flow', () => {
     await expect(page.getByRole('heading', { level: 1, name: /Projects/i })).toBeVisible()
   })
 
-  test('shows the seven-field Saved Edit Preferences surface for the local session', async ({ page }) => {
+  test('shows the canonical library-first Edit Preferences surface for the local session', async ({ page }) => {
     await gotoRoute(page, '/preferences')
 
-    const preferences = page.getByTestId('edit-preferences-form')
+    const preferences = page.getByTestId('edit-preferences-page')
     await expect(preferences).toBeVisible()
-    await expect(preferences).toContainText(/Defaults for new edits/i)
-    await expect(preferences.locator('.preference-select-field')).toHaveCount(7)
-    await expect(page.getByRole('checkbox', { name: /Pre-confirm reusable editing choices/i })).toBeChecked()
+    await expect(page.getByRole('heading', { level: 1, name: 'Edit Preferences' })).toBeVisible()
+    await expect(preferences.getByRole('tab', { name: 'Library' })).toHaveAttribute('aria-selected', 'true')
+    await expect(page.getByTestId('edit-reference-library-unavailable')).toBeVisible()
+    await expect(page.getByTestId('edit-reference-empty-state')).toHaveCount(0)
+    await expect(page.getByTestId('preference-edit-level')).toHaveCount(0)
+    await expect(page.getByRole('button', { name: /^Save defaults$/i })).toHaveCount(0)
     await expect(preferences).not.toContainText(/service[-_ ]?role|signed URL|production ready|VITE_|SUPABASE_/i)
     await expectNoHorizontalOverflow(page)
   })
@@ -215,21 +218,17 @@ test.describe('editor mocked browser flow', () => {
     await expectNoHorizontalOverflow(page)
   })
 
-  test('saves and reloads workspace-scoped edit defaults', async ({ page }) => {
+  test('keeps the canonical preference library mounted across route reloads', async ({ page }) => {
     await gotoRoute(page, '/preferences')
-    await page.getByTestId('preference-workflow').selectOption('vlog_lifestyle')
-    await page.getByTestId('preference-visual-direction').selectOption('keep_visuals_minimal')
-    await page.getByTestId('preference-preferred-destination').selectOption('youtube')
-    await clickWhenReady(page.getByRole('button', { name: /^Save defaults$/i }))
-    await expect(page.getByTestId('preference-persistence-status')).toContainText(
-      /Edit Preferences saved for this signed-in test workspace/i,
-    )
+    await expect(page.getByTestId('edit-preferences-page')).toBeVisible()
+    await expect(page.getByTestId('edit-reference-library-unavailable')).toBeVisible()
 
     await gotoRoute(page, '/projects')
     await gotoRoute(page, '/preferences')
-    await expect(page.getByTestId('preference-workflow')).toHaveValue('vlog_lifestyle')
-    await expect(page.getByTestId('preference-visual-direction')).toHaveValue('keep_visuals_minimal')
-    await expect(page.getByTestId('preference-preferred-destination')).toHaveValue('youtube')
+    await expect(page.getByTestId('edit-preferences-page')).toBeVisible()
+    await expect(page.getByRole('tab', { name: 'Library' })).toHaveAttribute('aria-selected', 'true')
+    await expect(page.getByTestId('edit-reference-library-unavailable')).toBeVisible()
+    await expect(page.getByTestId('preference-edit-level')).toHaveCount(0)
     await expectNoHorizontalOverflow(page)
   })
 

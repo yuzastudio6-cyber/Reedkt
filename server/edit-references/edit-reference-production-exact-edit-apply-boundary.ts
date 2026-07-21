@@ -3,10 +3,12 @@ import type { PreferenceApplicationRecord } from '../../src/types/edit-reference
 import {
   EDIT_REFERENCE_PRODUCTION_EXACT_EDIT_APPLY_AUTHORITY_READ_VERSION,
   EDIT_REFERENCE_PRODUCTION_EXACT_EDIT_APPLY_COMMAND_VERSION,
+  EDIT_REFERENCE_PRODUCTION_EXACT_EDIT_APPLY_OPERATION_VERSION,
   EDIT_REFERENCE_PRODUCTION_PREPARED_APPLICATION_AUTHORITY_VERSION,
   type EditReferenceProductionExactEditApplyCommand,
   type EditReferenceProductionExactEditApplyAuthorityRead,
   type EditReferenceProductionExactEditApplyApiReceipt,
+  type EditReferenceProductionExactEditApplyOperation,
   type EditReferenceProductionExactEditPreferencePatch,
   type EditReferenceProductionExactEditPreferenceValues,
   type EditReferenceProductionPreparedApplicationAuthority,
@@ -21,6 +23,7 @@ import type {
   EditReferenceProductionApplicationLifecycleRequest,
 } from './edit-reference-production-application-lifecycle'
 import {
+  createEditReferenceProductionApplicationLifecycleRequest,
   validateEditReferenceProductionApplicationLifecycleRequest,
 } from './edit-reference-production-application-lifecycle'
 import {
@@ -191,6 +194,9 @@ const AUTHORITY_READ_SCOPE_KEYS = [
   'actorUserId', 'workspaceId', 'projectId', 'editSessionId',
   'selectedApplicationId',
 ] as const
+const APPLY_OPERATION_KEYS = [
+  'schemaVersion', 'authority', 'preferencePatch', 'referenceMutation',
+] as const
 const ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,239}$/
 const SHA256_PATTERN = /^[a-f0-9]{64}$/
 const LIFECYCLE_PHASES = new Set<
@@ -323,6 +329,125 @@ export function validateEditReferenceProductionPreparedApplicationAuthority(
     || authority.status !== 'prepared'
     || !['not_connected', 'connected'].includes(authority.connectionState)
   ) invalid('exact_edit_apply_prepared_application_authority_invalid', 503)
+}
+
+export function validateEditReferenceProductionExactEditApplyOperation(
+  operation: EditReferenceProductionExactEditApplyOperation,
+): void {
+  assertExactKeys(
+    operation,
+    APPLY_OPERATION_KEYS,
+    'exact_edit_apply_operation_shape_invalid',
+  )
+  if (
+    operation.schemaVersion
+      !== EDIT_REFERENCE_PRODUCTION_EXACT_EDIT_APPLY_OPERATION_VERSION
+    || !['apply', 'replace', 'remove', null].includes(operation.referenceMutation)
+  ) invalid('exact_edit_apply_operation_version_or_mutation_invalid', 400)
+  validateEditReferenceProductionExactEditApplyAuthorityRead(operation.authority)
+  validatePreferencePatch(operation.preferencePatch)
+}
+
+/**
+ * Produces one replay-stable internal request from a server-issued sanitized
+ * authority snapshot. The snapshot is only an optimistic expectation: the
+ * outer SQL RPC and nested lifecycle RPC both re-read canonical rows under
+ * transaction locks before any mutation.
+ */
+export function prepareEditReferenceProductionExactEditApplyFromAuthoritySnapshot(input: {
+  readonly operation: EditReferenceProductionExactEditApplyOperation
+  readonly authenticated: EditReferenceProductionAuthenticatedHttpAuthority
+  readonly accessCheckReceiptId: string
+  readonly idempotencyKeyHashSha256: string
+  readonly serverReceivedAt: string
+}): EditReferenceProductionPreparedExactEditApply {
+  validateEditReferenceProductionExactEditApplyOperation(input.operation)
+  const authority = input.operation.authority
+  validateEditReferenceProductionAuthenticatedHttpAuthority(
+    input.authenticated,
+    authority,
+  )
+  validateServerInputs(input.idempotencyKeyHashSha256, input.serverReceivedAt)
+  if (!isSafeId(input.accessCheckReceiptId)) {
+    invalid('exact_edit_apply_access_receipt_invalid', 500)
+  }
+  if (Date.parse(authority.readAt) > Date.parse(input.serverReceivedAt) + 60_000) {
+    invalid('exact_edit_apply_authority_read_time_invalid', 400)
+  }
+  if (authority.locked || authority.lifecyclePhase !== 'planning') {
+    invalid('exact_edit_apply_preferences_locked_use_chat_revision', 409)
+  }
+
+  const patch = validatePreferencePatch(input.operation.preferencePatch)
+  const nextValues = exactEditPreferenceValuesSchema.parse({
+    ...authority.values,
+    ...patch,
+  }) as EditReferenceProductionExactEditPreferenceValues
+  const changedPreferenceFields = exactEditPreferenceFieldKeys.filter(
+    (field) => authority.values[field] !== nextValues[field],
+  )
+  const referenceLifecycleRequest = prepareNestedReferenceLifecycleFromAuthoritySnapshot({
+    authority,
+    mutation: input.operation.referenceMutation,
+    authenticated: input.authenticated,
+    idempotencyKeyHashSha256: input.idempotencyKeyHashSha256,
+    changedPreferenceFields,
+  })
+  if (changedPreferenceFields.length === 0 && !referenceLifecycleRequest) {
+    invalid('exact_edit_apply_has_no_effect', 409)
+  }
+
+  const sourcePreparationDisposition = changedPreferenceFields.includes('cleanupPreference')
+    ? 'requires_repreparation' as const
+    : 'unchanged' as const
+  const outputFrameDisposition = changedPreferenceFields.includes('targetPlatform')
+    ? 'requires_reconfirmation' as const
+    : 'unchanged' as const
+  const requestWithoutDigest = {
+    schemaVersion: EDIT_REFERENCE_PRODUCTION_EXACT_EDIT_APPLY_BOUNDARY_VERSION,
+    rpcName: EDIT_REFERENCE_PRODUCTION_EXACT_EDIT_APPLY_RPC,
+    actorUserId: input.authenticated.actorUserId,
+    workspaceId: authority.workspaceId,
+    projectId: authority.projectId,
+    editSessionId: authority.editSessionId,
+    accessCheckReceiptId: input.accessCheckReceiptId,
+    exactEditPreferenceAuthorityReadReceiptId: authority.authorityReadReceiptId,
+    expectedPreferenceRecordRevision: authority.recordRevision,
+    expectedPreferenceRevision: authority.preferenceRevision,
+    expectedPlanningInputRevision: authority.planningInputRevision,
+    expectedPreferenceFingerprintSha256: authority.preferenceFingerprintSha256,
+    preferencePatch: patch,
+    changedPreferenceFields,
+    referenceLifecycleRequest,
+    referenceLifecycleExecutionPolicy:
+      'nested_same_transaction_never_called_separately' as const,
+    planningInputRevisionIncrement: 1 as const,
+    sourcePreparationDisposition,
+    outputFrameDisposition,
+    freshPlanAndEstimateRequired: true as const,
+    approvedSnapshotPreserved: true as const,
+    historicalPrivatePreviewPreserved: true as const,
+    idempotencyKeyHashSha256: input.idempotencyKeyHashSha256,
+    requestedAt: authority.readAt,
+    customerPriceCalculated: false as const,
+    customerCreditsMutated: false as const,
+    serviceFeeIncluded: false as const,
+    providerOrWorkerExecutionStarted: false as const,
+  }
+  const request: EditReferenceProductionExactEditApplyRequest = Object.freeze({
+    ...requestWithoutDigest,
+    requestDigestSha256: sha256(requestWithoutDigest),
+  })
+  return Object.freeze({
+    request,
+    browserCommandDigestSha256: sha256(input.operation),
+    authenticatedScopeReboundServerSide: true as const,
+    exactEditPreferencesReReadServerSide: true as const,
+    referenceLifecycleNestedOnly: true as const,
+    idempotencyKeyAcceptedInBody: false as const,
+    remoteMutationMade: false as const,
+    productionReady: false as const,
+  })
 }
 
 /**
@@ -664,6 +789,79 @@ function prepareNestedReferenceLifecycle(input: {
     idempotencyKeyHashSha256: input.idempotencyKeyHashSha256,
     serverRequestedAt: input.serverRequestedAt,
   }).request
+}
+
+function prepareNestedReferenceLifecycleFromAuthoritySnapshot(input: {
+  readonly authority: EditReferenceProductionExactEditApplyAuthorityRead
+  readonly mutation: EditReferenceProductionExactEditApplyOperation['referenceMutation']
+  readonly authenticated: EditReferenceProductionAuthenticatedHttpAuthority
+  readonly idempotencyKeyHashSha256: string
+  readonly changedPreferenceFields: readonly ExactEditPreferenceFieldKey[]
+}): EditReferenceProductionApplicationLifecycleRequest | null {
+  const selected = input.authority.selectedApplicationAuthority
+  if (!input.mutation) {
+    if (selected) invalid('exact_edit_apply_hidden_selected_application_forbidden', 400)
+    if (
+      input.authority.currentApplicationState === 'connected'
+      && changesReferenceStudyContext(input.changedPreferenceFields)
+    ) invalid('exact_edit_apply_connected_reference_context_change_requires_remove', 409)
+    return null
+  }
+  if (!selected) invalid('exact_edit_apply_reference_application_missing', 409)
+
+  const currentApplicationId = input.authority.currentApplicationId
+  if (
+    (input.mutation === 'apply' && (
+      input.authority.currentApplicationState === 'connected'
+      || currentApplicationId !== null
+      || selected.connectionState !== 'not_connected'
+    ))
+    || (input.mutation === 'replace' && (
+      input.authority.currentApplicationState !== 'connected'
+      || currentApplicationId === null
+      || currentApplicationId === selected.applicationId
+      || selected.connectionState !== 'not_connected'
+    ))
+    || (input.mutation === 'remove' && (
+      input.authority.currentApplicationState !== 'connected'
+      || currentApplicationId !== selected.applicationId
+      || selected.connectionState !== 'connected'
+    ))
+  ) invalid('exact_edit_apply_reference_compare_and_swap_changed', 409)
+
+  if (
+    input.mutation !== 'remove'
+    && changesReferenceStudyContext(input.changedPreferenceFields)
+  ) invalid('exact_edit_apply_reference_study_context_changed', 409)
+  if (input.mutation !== 'remove' && !input.authority.outputFrameAuthority) {
+    invalid('exact_edit_apply_output_frame_authority_missing', 409)
+  }
+
+  return createEditReferenceProductionApplicationLifecycleRequest({
+    mutation: input.mutation,
+    actorUserId: input.authenticated.actorUserId,
+    workspaceId: input.authority.workspaceId,
+    projectId: input.authority.projectId,
+    editSessionId: input.authority.editSessionId,
+    editReferenceId: selected.editReferenceId,
+    studySessionId: selected.studySessionId,
+    dnaVersionId: selected.dnaVersionId,
+    applicationId: selected.applicationId,
+    expectedCurrentApplicationId:
+      input.mutation === 'apply' ? null : currentApplicationId,
+    expectedReferenceRevision: selected.expectedReferenceRevision,
+    expectedPlanningInputRevision: input.authority.planningInputRevision,
+    applicationContentDigestSha256: selected.applicationContentDigestSha256,
+    applicationContextHashSha256: selected.applicationContextHashSha256,
+    targetUnderstandingPackageDigestSha256: input.mutation === 'remove'
+      ? null
+      : selected.targetUnderstandingPackageDigestSha256,
+    outputFrameConfirmation: input.mutation === 'remove'
+      ? null
+      : input.authority.outputFrameAuthority,
+    idempotencyKeyHashSha256: input.idempotencyKeyHashSha256,
+    requestedAt: input.authority.readAt,
+  })
 }
 
 function changesReferenceStudyContext(

@@ -3,6 +3,7 @@ import type { Request } from 'express'
 import type { RuntimeEnv } from './config/env'
 import type { StorageAdapter } from './storage/storage-types'
 import type { EditReferenceStudyChatRuntimePort } from './services/edit-reference-study-chat-runtime-port'
+import type { EditReferenceExactEditApplyRuntimePort } from './services/edit-reference-exact-edit-apply-runtime-port'
 import type { PlanningPreferenceApplicationAuthorityPort } from './services/planning-preference-application-authority-port'
 import type { CanonicalMotionStudioStorytellingProductionAuthorityReaderPort } from './services/canonical-motion-studio-storytelling-production-authority-service'
 import type {
@@ -62,6 +63,7 @@ export interface RuntimeState {
   editReferenceStudyChatRuntimePort?: EditReferenceStudyChatRuntimePort
   canonicalMotionStudioStorytellingProductionAuthorityReaderPort?:
     CanonicalMotionStudioStorytellingProductionAuthorityReaderPort
+  editReferenceExactEditApplyRuntimePort?: EditReferenceExactEditApplyRuntimePort
 }
 
 export type RuntimeRequest = Request & {
@@ -88,4 +90,5 @@ export interface ServiceContext {
   editReferenceStudyChatRuntimePort?: EditReferenceStudyChatRuntimePort
   canonicalMotionStudioStorytellingProductionAuthorityReaderPort?:
     CanonicalMotionStudioStorytellingProductionAuthorityReaderPort
+  editReferenceExactEditApplyRuntimePort?: EditReferenceExactEditApplyRuntimePort
 }

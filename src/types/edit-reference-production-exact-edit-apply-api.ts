@@ -23,6 +23,9 @@ export const EDIT_REFERENCE_PRODUCTION_EXACT_EDIT_APPLY_AUTHORITY_READ_VERSION =
 export const EDIT_REFERENCE_PRODUCTION_PREPARED_APPLICATION_AUTHORITY_VERSION =
   'edit-reference-production-prepared-application-authority-v1' as const
 
+export const EDIT_REFERENCE_PRODUCTION_EXACT_EDIT_APPLY_OPERATION_VERSION =
+  'edit-reference-production-exact-edit-apply-operation-v1' as const
+
 export interface EditReferenceProductionExactEditPreferenceValues {
   readonly editLevel: EditLevel
   readonly workflowType: VideoWorkflowType
@@ -115,6 +118,20 @@ export interface EditReferenceProductionExactEditApplyAuthorityRead {
   readonly readAt: string
   readonly browserMutationAuthorityGranted: false
   readonly productionReleaseReadinessEvaluatedSeparately: true
+}
+
+/**
+ * Browser-safe, replay-stable Apply operation. The authority is an echoed
+ * optimistic-concurrency snapshot returned by the server; it grants no
+ * mutation authority. The database transaction re-reads and locks canonical
+ * rows before committing, and exact replay uses this unchanged operation with
+ * the unchanged Idempotency-Key.
+ */
+export interface EditReferenceProductionExactEditApplyOperation {
+  readonly schemaVersion: typeof EDIT_REFERENCE_PRODUCTION_EXACT_EDIT_APPLY_OPERATION_VERSION
+  readonly authority: EditReferenceProductionExactEditApplyAuthorityRead
+  readonly preferencePatch: EditReferenceProductionExactEditPreferencePatch
+  readonly referenceMutation: 'apply' | 'replace' | 'remove' | null
 }
 
 /**

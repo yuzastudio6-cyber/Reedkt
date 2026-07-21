@@ -1,6 +1,9 @@
 import { Router } from 'express'
+import { z } from 'zod'
 import { requireAuth } from '../middleware/auth'
+import { requireSensitiveIdempotencyKey } from '../middleware/idempotency'
 import { requireInternalServiceAuth } from '../middleware/internal-service-auth'
+import { createEditReferenceExactEditApplyService } from '../services/edit-reference-exact-edit-apply-service'
 import { createExactEditPreferenceService } from '../services/exact-edit-preference-service'
 import { validateBody } from '../validation/common-schemas'
 import {
@@ -19,6 +22,11 @@ import {
   sendOk,
 } from './route-helpers'
 
+const exactEditApplyAuthorityQuerySchema = z.object({
+  workspaceId: z.string().min(1).max(160),
+  selectedApplicationId: z.string().min(1).max(240).optional(),
+}).strict()
+
 export function createExactEditPreferenceRoutes(): Router {
   const router = Router()
 
@@ -33,6 +41,48 @@ export function createExactEditPreferenceRoutes(): Router {
         getRouteParam(request, 'editSessionId'),
       )
       sendOk(response, { preferenceRecord: result.preferenceRecord }, result.warnings)
+    }),
+  )
+
+  router.get(
+    '/v1/projects/:projectId/edit-sessions/:editSessionId/edit-preferences/apply-authority',
+    requireAuth,
+    asyncRoute(async (request, response) => {
+      const query = validateBody(exactEditApplyAuthorityQuerySchema, request.query)
+      const authority = await createEditReferenceExactEditApplyService(
+        getServiceContext(request),
+      ).readAuthority({
+        workspaceId: query.workspaceId,
+        projectId: getRouteParam(request, 'projectId'),
+        editSessionId: getRouteParam(request, 'editSessionId'),
+        selectedApplicationId: query.selectedApplicationId ?? null,
+      })
+      sendOk(response, { authority })
+    }),
+  )
+
+  router.post(
+    '/v1/projects/:projectId/edit-sessions/:editSessionId/edit-preferences/apply',
+    requireAuth,
+    requireSensitiveIdempotencyKey,
+    asyncRoute(async (request, response) => {
+      const operation = request.body
+      const authority = operation && typeof operation === 'object'
+        ? (operation as { authority?: { workspaceId?: unknown } }).authority
+        : undefined
+      const workspaceId = typeof authority?.workspaceId === 'string'
+        ? authority.workspaceId
+        : ''
+      const result = await createEditReferenceExactEditApplyService(
+        getServiceContext(request),
+      ).apply({
+        workspaceId,
+        projectId: getRouteParam(request, 'projectId'),
+        editSessionId: getRouteParam(request, 'editSessionId'),
+        operation,
+        idempotencyKey: getIdempotencyKey(request),
+      })
+      sendOk(response, result)
     }),
   )
 

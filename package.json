@@ -97,6 +97,7 @@
     "smoke:edit-preference-persistence": "tsx server/smoke/edit-preference-persistence-smoke.ts",
     "smoke:edit-preference-backend-route": "tsx server/smoke/edit-preference-backend-route-smoke.ts",
     "smoke:exact-edit-preference-authority": "tsx server/smoke/exact-edit-preference-authority-smoke.ts",
+    "smoke:edit-reference-exact-edit-apply-runtime": "tsx server/smoke/edit-reference-exact-edit-apply-runtime-port-smoke.ts",
     "smoke:edit-reference-long-form-semantic-reasoning-route": "tsx server/smoke/edit-reference-long-form-semantic-reasoning-route-smoke.ts",
     "smoke:edit-reference-multi-hour-source-admission": "tsx server/smoke/edit-reference-multi-hour-source-admission-smoke.ts",
     "smoke:edit-reference-mounted-study-chat-runtime": "tsx server/smoke/edit-reference-mounted-study-chat-runtime-port-smoke.ts",

@@ -34,6 +34,7 @@ import { createUploadRoutes } from './routes/upload-routes'
 import { createWorkerRoutes } from './routes/worker-routes'
 import type { EditReferenceStudyChatRuntimePort } from './services/edit-reference-study-chat-runtime-port'
 import type { CanonicalMotionStudioStorytellingProductionAuthorityReaderPort } from './services/canonical-motion-studio-storytelling-production-authority-service'
+import type { EditReferenceExactEditApplyRuntimePort } from './services/edit-reference-exact-edit-apply-runtime-port'
 import type { StorageAdapter } from './storage/storage-types'
 import type { RuntimeClients, RuntimeRequest, RuntimeState } from './types'
 
@@ -46,6 +47,7 @@ export interface ReeditProApiAppOptions {
   editReferenceStudyChatRuntimePort?: EditReferenceStudyChatRuntimePort
   canonicalMotionStudioStorytellingProductionAuthorityReaderPort?:
     CanonicalMotionStudioStorytellingProductionAuthorityReaderPort
+  editReferenceExactEditApplyRuntimePort?: EditReferenceExactEditApplyRuntimePort
 }
 
 export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppOptions = {}): Express {
@@ -69,6 +71,9 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
           canonicalMotionStudioStorytellingProductionAuthorityReaderPort:
             options.canonicalMotionStudioStorytellingProductionAuthorityReaderPort,
         }
+      : {}),
+    ...(options.editReferenceExactEditApplyRuntimePort
+      ? { editReferenceExactEditApplyRuntimePort: options.editReferenceExactEditApplyRuntimePort }
       : {}),
     clients: options.clients ?? {
       admin: createSupabaseAdminClient(env),

@@ -111,6 +111,7 @@ export function createExecutionSourceMediaAssetsFromPlannedUploads(
 
     return {
       mediaAssetId: uploadPlan.finalizedMediaAssetId ?? mediaAsset?.id ?? `${uploadPlan.id}-media-record`,
+      storageObjectRecordId: uploadPlan.storageObjectRecordId,
       sourceSequenceItemId: sourceSequenceItem?.id ?? uploadPlan.id,
       uploadedClipId: uploadPlan.id,
       uploadedOrder: sourceSequenceItem?.uploadedOrder ?? uploadPlan.uploadedOrder ?? 1,
@@ -516,6 +517,7 @@ function uploadPlanFromBackendFinalizedUpload(
   return {
     id: finalized.mediaAsset.id,
     finalizedMediaAssetId: finalized.mediaAsset.id,
+    storageObjectRecordId: finalized.storageObjectRecord.id,
     workspaceId: input.workspaceId,
     projectId: input.projectId,
     purpose: 'source_media',

@@ -23,7 +23,7 @@ function buildBody(profile: QwenRuntimeTransportProfile, request: QwenProviderTr
         system: request.systemPrompt,
         user: request.userPrompt,
       },
-      outputSchema: 'QwenMarkerChatStructuredResponse',
+      outputSchema: request.outputSchemaName ?? 'QwenMarkerChatStructuredResponse',
     }
   }
   return {

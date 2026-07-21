@@ -40,6 +40,7 @@ export interface SpeechExecutionInput {
   outputDirectory?: string
   modelWeightManifestId?: string
   modelName?: string
+  modelVersion?: string
   localModelPath?: string
   language?: string
   device: 'cpu' | 'cuda' | 'auto'
@@ -125,6 +126,7 @@ export interface SpeechCaptionExecutionPipelineInput {
   outputDirectory?: string
   modelWeightManifestId?: string
   modelName?: string
+  modelVersion?: string
   localModelPath?: string
   language?: string
   device?: 'cpu' | 'cuda' | 'auto'

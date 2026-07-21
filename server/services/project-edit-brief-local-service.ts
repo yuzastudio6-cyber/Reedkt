@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import { ApiError } from '../errors/api-error'
 import type { ServiceContext } from '../types'
 import type { SaveProjectEditBriefLocalRequest } from '../validation/project-edit-brief-local-schemas'
@@ -22,6 +23,7 @@ export interface BackendLocalProjectEditBriefRecord {
   savedByUserId: string
   createdAt: string
   updatedAt: string
+  contentDigestSha256: string
   backendLocalBriefStored: true
   readbackVerified?: true
   providerCallMade: false
@@ -73,9 +75,9 @@ export function createProjectEditBriefLocalService(context: ServiceContext) {
       const existing = existingRecordKey ? mockBriefsById.get(existingRecordKey) : undefined
       const now = nowIso()
       const briefText = sanitizeBriefText(input.briefText)
-      const record: BackendLocalProjectEditBriefRecord = existing
+      const unsignedRecord: Omit<BackendLocalProjectEditBriefRecord, 'contentDigestSha256'> = existing
         ? {
-            ...existing,
+            ...withoutBriefDigest(existing),
             briefText,
             sourceStorageObjectRecordId: input.sourceStorageObjectRecordId,
             sourceMediaAssetId: input.sourceMediaAssetId,
@@ -107,6 +109,10 @@ export function createProjectEditBriefLocalService(context: ServiceContext) {
             productReady: false,
             mockOnly: true,
           }
+      const record: BackendLocalProjectEditBriefRecord = {
+        ...unsignedRecord,
+        contentDigestSha256: calculateProjectEditBriefLocalDigest(unsignedRecord),
+      }
 
       const recordKey = briefRecordKey(userId, access.workspaceId, record.id)
       mockBriefsById.set(recordKey, record)
@@ -153,6 +159,50 @@ export function createProjectEditBriefLocalService(context: ServiceContext) {
       }
     },
   }
+}
+
+export function calculateProjectEditBriefLocalDigest(
+  brief: Pick<
+    BackendLocalProjectEditBriefRecord,
+    | 'id'
+    | 'workspaceId'
+    | 'projectId'
+    | 'editSessionId'
+    | 'briefText'
+    | 'sourceStorageObjectRecordId'
+    | 'sourceMediaAssetId'
+    | 'revisionNumber'
+    | 'savedByUserId'
+    | 'updatedAt'
+  >,
+): string {
+  return createHash('sha256').update(stableStringify({
+    editBriefId: brief.id,
+    workspaceId: brief.workspaceId,
+    projectId: brief.projectId,
+    editSessionId: brief.editSessionId,
+    briefText: brief.briefText,
+    sourceStorageObjectRecordId: brief.sourceStorageObjectRecordId ?? null,
+    sourceMediaAssetId: brief.sourceMediaAssetId ?? null,
+    revisionNumber: brief.revisionNumber,
+    savedByUserId: brief.savedByUserId,
+    updatedAt: brief.updatedAt,
+  })).digest('hex')
+}
+
+function withoutBriefDigest(
+  record: BackendLocalProjectEditBriefRecord,
+): Omit<BackendLocalProjectEditBriefRecord, 'contentDigestSha256'> {
+  const clone = structuredClone(record) as Partial<BackendLocalProjectEditBriefRecord>
+  delete clone.contentDigestSha256
+  return clone as Omit<BackendLocalProjectEditBriefRecord, 'contentDigestSha256'>
+}
+
+function stableStringify(value: unknown): string {
+  if (value === null || typeof value !== 'object') return JSON.stringify(value)
+  if (Array.isArray(value)) return `[${value.map(stableStringify).join(',')}]`
+  const record = value as Record<string, unknown>
+  return `{${Object.keys(record).sort().map((key) => `${JSON.stringify(key)}:${stableStringify(record[key])}`).join(',')}}`
 }
 
 function sessionBriefKey(

@@ -16,6 +16,8 @@ import { createEditExecutionRoutes } from './routes/edit-execution-routes'
 import { createEditBriefAuthorityRoutes } from './routes/edit-brief-authority-routes'
 import { createEditPlanningAuthorityRoutes } from './routes/edit-planning-authority-routes'
 import { createEditPreferenceRoutes } from './routes/edit-preference-routes'
+import { createEditReferenceRoutes } from './routes/edit-reference-routes'
+import { createEditReferenceTargetVideoUnderstandingRoutes } from './routes/edit-reference-target-video-understanding-routes'
 import { createExactEditPreferenceRoutes } from './routes/exact-edit-preference-routes'
 import { createHealthRoutes } from './routes/health-routes'
 import { createInternalEditStateRoutes } from './routes/internal-edit-state-routes'
@@ -106,6 +108,8 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
   }
   app.use(createEditPreferenceRoutes())
   app.use(createExactEditPreferenceRoutes())
+  app.use(createEditReferenceRoutes())
+  app.use(createEditReferenceTargetVideoUnderstandingRoutes())
   app.use(createPreferenceIntelligenceRoutes())
   app.use(createEditBriefAuthorityRoutes())
   app.use(createInternalEditStateRoutes())

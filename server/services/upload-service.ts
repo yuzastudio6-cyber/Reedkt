@@ -7,7 +7,7 @@ import {
   stagePrivateSourceForProbe,
 } from '../media/private-source-probe-staging'
 import { createStorageAdapter, resolveBucketName } from '../storage/storage-adapter'
-import { buildCanonicalObjectPath } from '../storage/storage-paths'
+import { buildCanonicalObjectPath, buildEditReferenceObjectPath } from '../storage/storage-paths'
 import {
   assertAllowedUpload,
   assertLocalRawUploadByteLength,
@@ -39,9 +39,8 @@ import {
 import { createProjectService } from './project-service'
 import { getRequiredAuthUserId, mockWarning, nowIso, throwOnSupabaseError } from './service-helpers'
 
-interface CreateUploadIntentInput {
+interface CreateUploadIntentBase {
   workspaceId: string
-  projectId: string
   chatSessionId?: string
   uploadPurpose: UploadPurpose
   originalFileName: string
@@ -50,6 +49,11 @@ interface CreateUploadIntentInput {
   checksumSha256?: string
   idempotencyKey?: string
 }
+
+type CreateUploadIntentInput = CreateUploadIntentBase & (
+  | { projectId: string; editReferenceId?: never }
+  | { projectId?: never; editReferenceId: string }
+)
 
 interface FinalizeUploadIntentInput {
   workspaceId: string
@@ -79,6 +83,7 @@ export interface UploadFinalizationCandidate {
 interface SignedUrlEventInput {
   workspaceId: string
   projectId?: string
+  editReferenceId?: string
   storageObjectRecordId?: string
   uploadIntentId?: string
   urlPurpose: string
@@ -90,6 +95,7 @@ interface UploadIntentView {
   id: string
   workspaceId: string
   projectId: string
+  editReferenceId?: string
   chatSessionId?: string
   requestedByUserId: string
   uploadPurpose: UploadPurpose
@@ -112,6 +118,7 @@ interface StorageObjectView {
   id: string
   workspaceId: string
   projectId?: string
+  editReferenceId?: string
   mediaAssetId?: string
   uploadIntentId?: string
   uploadPurpose?: 'source_media' | 'reference_media'
@@ -138,6 +145,7 @@ interface MediaAssetView {
   id: string
   workspaceId: string
   projectId: string
+  editReferenceId?: string
   uploadIntentId?: string
   storageObjectRecordId?: string
   uploadPurpose?: 'source_media' | 'reference_media'
@@ -160,6 +168,10 @@ interface MediaAssetView {
   updatedAt: string
   mockOnly?: boolean
 }
+
+type ExternalUploadIntentView = Omit<UploadIntentView, 'projectId'> & { projectId?: string }
+type ExternalStorageObjectView = Omit<StorageObjectView, 'projectId'> & { projectId?: string }
+type ExternalMediaAssetView = Omit<MediaAssetView, 'projectId'> & { projectId?: string }
 
 interface SourceMediaMetadataView {
   probeStatus: 'probed' | 'unavailable'
@@ -211,6 +223,7 @@ export function registerBackendLocalStorageObjectRecord(input: {
   id: string
   workspaceId: string
   projectId?: string
+  editReferenceId?: string
   bucketName: string
   objectPath: string
   objectPurpose: string
@@ -223,6 +236,7 @@ export function registerBackendLocalStorageObjectRecord(input: {
     id: input.id,
     workspaceId: input.workspaceId,
     projectId: input.projectId,
+    editReferenceId: input.editReferenceId,
     bucketName: input.bucketName,
     objectPath: input.objectPath,
     objectPurpose: input.objectPurpose,
@@ -246,7 +260,10 @@ export function createUploadService(context: ServiceContext) {
 
   return {
     async authorizeCreateUploadIntent(input: CreateUploadIntentInput) {
-      await assertUploadProjectOwnedByCurrentUser(context, input.projectId, input.workspaceId)
+      const uploadOwner = await resolveUploadOwner(context, input)
+      if (uploadOwner.kind === 'project') {
+        await assertUploadProjectOwnedByCurrentUser(context, uploadOwner.projectId, input.workspaceId)
+      }
       assertProductionUploadUsesDirectObjectStorage(context, storage)
       assertUserInitiatedUploadPurpose(input.uploadPurpose)
       assertAllowedUpload({
@@ -297,7 +314,10 @@ export function createUploadService(context: ServiceContext) {
     async createUploadIntent(input: CreateUploadIntentInput) {
       const userId = getRequiredAuthUserId(context)
       const mimeType = normalizeAllowedUploadMimeType(input.mimeType)
-      await assertUploadProjectOwnedByCurrentUser(context, input.projectId, input.workspaceId)
+      const uploadOwner = await resolveUploadOwner(context, input)
+      if (uploadOwner.kind === 'project') {
+        await assertUploadProjectOwnedByCurrentUser(context, uploadOwner.projectId, input.workspaceId)
+      }
       assertProductionUploadUsesDirectObjectStorage(context, storage)
       assertUserInitiatedUploadPurpose(input.uploadPurpose)
       assertAllowedUpload({
@@ -315,18 +335,25 @@ export function createUploadService(context: ServiceContext) {
         : context.env.signedUrlTtlSeconds
       const expiresAt = new Date(Date.now() + uploadTargetTtlSeconds * 1000).toISOString()
       const targetBucket = resolveBucketName(context.env, input.uploadPurpose)
-      const targetPath = buildCanonicalObjectPath({
-        workspaceId: input.workspaceId,
-        projectId: input.projectId,
-        purpose: input.uploadPurpose,
-        ownerId: uploadIntentId,
-        fileName: input.originalFileName,
-      })
+      const targetPath = uploadOwner.kind === 'edit_reference'
+        ? buildEditReferenceObjectPath({
+            workspaceId: input.workspaceId,
+            editReferenceId: uploadOwner.editReferenceId,
+            ownerId: uploadIntentId,
+            fileName: input.originalFileName,
+          })
+        : buildCanonicalObjectPath({
+            workspaceId: input.workspaceId,
+            projectId: uploadOwner.projectId,
+            purpose: input.uploadPurpose,
+            ownerId: uploadIntentId,
+            fileName: input.originalFileName,
+          })
 
       let uploadTarget = await storage.createUploadTarget({
         uploadIntentId,
         workspaceId: input.workspaceId,
-        projectId: input.projectId,
+        projectId: uploadOwner.projectIdForAuthority,
         bucketName: targetBucket,
         objectPath: targetPath,
         mimeType,
@@ -339,7 +366,10 @@ export function createUploadService(context: ServiceContext) {
         const uploadIntent: UploadIntentView = {
           id: uploadIntentId,
           workspaceId: input.workspaceId,
-          projectId: input.projectId,
+          projectId: uploadOwner.projectIdForAuthority,
+          ...(uploadOwner.kind === 'edit_reference'
+            ? { editReferenceId: uploadOwner.editReferenceId }
+            : {}),
           chatSessionId: input.chatSessionId,
           requestedByUserId: userId,
           uploadPurpose: input.uploadPurpose,
@@ -363,7 +393,10 @@ export function createUploadService(context: ServiceContext) {
             ? privateUploadMediaAuthorityValueHash({
                 operation: 'create_upload_intent',
                 workspaceId: input.workspaceId,
-                projectId: input.projectId,
+                projectId: uploadOwner.projectIdForAuthority,
+                editReferenceId: uploadOwner.kind === 'edit_reference'
+                  ? uploadOwner.editReferenceId
+                  : null,
                 chatSessionId: input.chatSessionId,
                 uploadPurpose: input.uploadPurpose,
                 originalFileName: input.originalFileName,
@@ -389,7 +422,10 @@ export function createUploadService(context: ServiceContext) {
         }
         const signedUrlEvent = await recordSignedUrlEvent(context, {
           workspaceId: input.workspaceId,
-          projectId: input.projectId,
+          projectId: uploadOwner.projectIdForAuthority,
+          editReferenceId: uploadOwner.kind === 'edit_reference'
+            ? uploadOwner.editReferenceId
+            : undefined,
           uploadIntentId: persistedUploadIntent.id,
           urlPurpose: 'upload',
           expiresAt,
@@ -397,7 +433,7 @@ export function createUploadService(context: ServiceContext) {
         })
 
         return {
-          uploadIntent: persistedUploadIntent,
+          uploadIntent: toExternalUploadIntentView(persistedUploadIntent),
           uploadTarget,
           signedUrlEvent: signedUrlEvent.signedUrlEvent,
           warnings: [
@@ -408,12 +444,19 @@ export function createUploadService(context: ServiceContext) {
       }
 
       const adminClient = getRequiredUploadAdminClient(context)
+      if (uploadOwner.kind !== 'project') {
+        throw new ApiError(
+          'EDIT_REFERENCE_PERSISTENCE_BLOCKED',
+          'Production Edit Reference upload persistence is not enabled.',
+          503,
+        )
+      }
       const { data, error } = await adminClient
         .from('upload_intents')
         .insert({
           id: uploadIntentId,
           workspace_id: input.workspaceId,
-          project_id: input.projectId,
+          project_id: uploadOwner.projectId,
           chat_session_id: input.chatSessionId ?? null,
           requested_by_user_id: userId,
           upload_purpose: toDatabaseUploadPurpose(input.uploadPurpose),
@@ -432,7 +475,7 @@ export function createUploadService(context: ServiceContext) {
       throwOnSupabaseError(error)
       const signedUrlEvent = await recordSignedUrlEvent(context, {
         workspaceId: input.workspaceId,
-        projectId: input.projectId,
+        projectId: uploadOwner.projectId,
         uploadIntentId,
         urlPurpose: 'upload',
         expiresAt,
@@ -691,9 +734,9 @@ export function createUploadService(context: ServiceContext) {
           now: finalizedAt,
         })
         return {
-          uploadIntent: finalized.uploadIntent,
-          storageObjectRecord: finalized.storageObject,
-          mediaAsset: finalized.mediaAsset,
+          uploadIntent: toExternalUploadIntentView(finalized.uploadIntent),
+          storageObjectRecord: toExternalStorageObjectView(finalized.storageObject),
+          mediaAsset: toExternalMediaAssetView(finalized.mediaAsset),
           warnings: ['Upload finalized into restart-safe private source-media authority; no signed URL was stored.'],
         }
       }
@@ -725,7 +768,7 @@ export function createUploadService(context: ServiceContext) {
       await assertStorageObjectAccessibleByCurrentUser(context, storageObjectRecord, 'metadata')
 
       return {
-        storageObjectRecord,
+        storageObjectRecord: toExternalStorageObjectView(storageObjectRecord),
         canonicalOnly: true,
         warnings: ['Canonical storage metadata does not include temporary URLs.'],
       }
@@ -750,6 +793,7 @@ export function createUploadService(context: ServiceContext) {
       const signedUrlEvent = await recordSignedUrlEvent(context, {
         workspaceId,
         projectId: storageObjectRecord.projectId,
+        editReferenceId: storageObjectRecord.editReferenceId,
         storageObjectRecordId,
         urlPurpose,
         expiresAt,
@@ -977,6 +1021,57 @@ function assertUploadIntentOwnedByCurrentUser(context: ServiceContext, uploadInt
   }
 }
 
+type UploadOwner =
+  | { kind: 'project'; projectId: string; projectIdForAuthority: string }
+  | { kind: 'edit_reference'; editReferenceId: string; projectIdForAuthority: string }
+
+async function resolveUploadOwner(
+  context: ServiceContext,
+  input: CreateUploadIntentInput,
+): Promise<UploadOwner> {
+  if ('editReferenceId' in input && input.editReferenceId) {
+    if (input.uploadPurpose !== 'reference_media') {
+      throw new ApiError(
+        'VALIDATION_FAILED',
+        'An Edit Reference upload intent may contain reference media only.',
+        400,
+      )
+    }
+    assertEditReferenceUploadPersistenceAvailable(context)
+    return {
+      kind: 'edit_reference',
+      editReferenceId: input.editReferenceId,
+      projectIdForAuthority: input.editReferenceId,
+    }
+  }
+  if (!('projectId' in input) || !input.projectId) {
+    throw new ApiError('VALIDATION_FAILED', 'Upload ownership is required.', 400)
+  }
+  return {
+    kind: 'project',
+    projectId: input.projectId,
+    projectIdForAuthority: input.projectId,
+  }
+}
+
+export function assertEditReferenceUploadPersistenceAvailable(context: ServiceContext): void {
+  const locallyAuthorized = context.auth?.isMockUser === true
+    && context.env.allowMockWithoutSupabase
+    && (context.env.mode === 'local' || context.env.mode === 'mock')
+    && context.env.storageMode === 'local'
+  if (locallyAuthorized) return
+  throw new ApiError(
+    'EDIT_REFERENCE_PERSISTENCE_BLOCKED',
+    'Production Edit Reference media persistence remains blocked until its canonical database and distributed finalization authority are approved.',
+    503,
+    {
+      migrationBaseline: 'blocked_by_parallel_foundations',
+      distributedFinalizationReady: false,
+      remoteMutationAttempted: false,
+    },
+  )
+}
+
 async function assertUploadIntentAccessibleByCurrentUser(
   context: ServiceContext,
   uploadIntent: UploadIntentView,
@@ -986,6 +1081,7 @@ async function assertUploadIntentAccessibleByCurrentUser(
   if (uploadIntent.workspaceId !== workspaceId) {
     throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Upload intent does not belong to the requested workspace.', 403)
   }
+  if (uploadIntent.editReferenceId) return
   await assertUploadProjectOwnedByCurrentUser(context, uploadIntent.projectId, uploadIntent.workspaceId)
 }
 
@@ -997,6 +1093,7 @@ async function assertStorageObjectAccessibleByCurrentUser(
   assertUserDeliveryBoundary(context, storageObjectRecord, accessPurpose)
 
   let effectiveProjectId = storageObjectRecord.projectId
+  let effectiveEditReferenceId = storageObjectRecord.editReferenceId
   if (storageObjectRecord.uploadIntentId) {
     const uploadIntent = await loadUploadIntent(
       context,
@@ -1004,11 +1101,20 @@ async function assertStorageObjectAccessibleByCurrentUser(
       storageObjectRecord.workspaceId,
     )
     await assertUploadIntentAccessibleByCurrentUser(context, uploadIntent, storageObjectRecord.workspaceId)
+    if (
+      effectiveEditReferenceId
+      && effectiveEditReferenceId !== uploadIntent.editReferenceId
+    ) {
+      throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Storage object Edit Reference scope does not match its upload intent.', 403)
+    }
+    effectiveEditReferenceId = effectiveEditReferenceId ?? uploadIntent.editReferenceId
     if (effectiveProjectId && effectiveProjectId !== uploadIntent.projectId) {
       throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Storage object project scope does not match its upload intent.', 403)
     }
     effectiveProjectId = effectiveProjectId ?? uploadIntent.projectId
   }
+
+  if (effectiveEditReferenceId) return
 
   if (!effectiveProjectId) {
     throw new ApiError(
@@ -1104,6 +1210,9 @@ async function assertSignedUrlEventAccess(context: ServiceContext, input: Signed
     if (input.projectId && input.projectId !== uploadIntent.projectId) {
       throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Signed URL event project does not match its upload intent.', 403)
     }
+    if (input.editReferenceId && input.editReferenceId !== uploadIntent.editReferenceId) {
+      throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Signed URL event Edit Reference does not match its upload intent.', 403)
+    }
   }
 
   if (input.storageObjectRecordId) {
@@ -1117,6 +1226,9 @@ async function assertSignedUrlEventAccess(context: ServiceContext, input: Signed
     await assertStorageObjectAccessibleByCurrentUser(context, storageObjectRecord, accessPurpose)
     if (input.projectId && input.projectId !== storageObjectRecord.projectId) {
       throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Signed URL event project does not match its storage object.', 403)
+    }
+    if (input.editReferenceId && input.editReferenceId !== storageObjectRecord.editReferenceId) {
+      throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Signed URL event Edit Reference does not match its storage object.', 403)
     }
   }
 
@@ -1178,6 +1290,7 @@ async function recordSignedUrlEvent(context: ServiceContext, input: SignedUrlEve
         id: randomUUID(),
         workspaceId: input.workspaceId,
         projectId: input.projectId,
+        editReferenceId: input.editReferenceId,
         storageObjectRecordId: input.storageObjectRecordId,
         uploadIntentId: input.uploadIntentId,
         requestedByUserId: context.auth?.userId,
@@ -1390,6 +1503,7 @@ async function createMediaAsset(
     id: mediaAssetId,
     workspaceId: uploadIntent.workspaceId,
     projectId: uploadIntent.projectId,
+    editReferenceId: uploadIntent.editReferenceId,
     uploadIntentId: uploadIntent.id,
     uploadPurpose: uploadIntent.uploadPurpose === 'reference_media' ? 'reference_media' : 'source_media',
     assetType: mediaAssetTypeForUpload(uploadIntent),
@@ -1466,6 +1580,7 @@ async function createStorageObjectRecord(
     id: randomUUID(),
     workspaceId: uploadIntent.workspaceId,
     projectId: uploadIntent.projectId,
+    editReferenceId: uploadIntent.editReferenceId,
     mediaAssetId,
     uploadIntentId: uploadIntent.id,
     uploadPurpose: uploadIntent.uploadPurpose === 'reference_media' ? 'reference_media' : 'source_media',
@@ -1876,6 +1991,7 @@ function toPrivateUploadIntentAuthorityRecord(
     id: uploadIntent.id,
     workspaceId: uploadIntent.workspaceId,
     projectId: uploadIntent.projectId,
+    editReferenceId: uploadIntent.editReferenceId,
     chatSessionId: uploadIntent.chatSessionId,
     requestedByUserId: uploadIntent.requestedByUserId,
     uploadPurpose: uploadIntent.uploadPurpose,
@@ -1895,6 +2011,33 @@ function toPrivateUploadIntentAuthorityRecord(
   }
 }
 
+function toExternalUploadIntentView(
+  uploadIntent: UploadIntentView | PrivateUploadIntentAuthorityRecord,
+): ExternalUploadIntentView {
+  if (!uploadIntent.editReferenceId) return uploadIntent
+  const external: ExternalUploadIntentView = { ...uploadIntent }
+  delete external.projectId
+  return external
+}
+
+function toExternalStorageObjectView(
+  storageObject: StorageObjectView | PrivateStorageObjectAuthorityRecord,
+): ExternalStorageObjectView {
+  if (!storageObject.editReferenceId) return storageObject
+  const external: ExternalStorageObjectView = { ...storageObject }
+  delete external.projectId
+  return external
+}
+
+function toExternalMediaAssetView(
+  mediaAsset: MediaAssetView | PrivateMediaAssetAuthorityRecord,
+): ExternalMediaAssetView {
+  if (!mediaAsset.editReferenceId) return mediaAsset
+  const external: ExternalMediaAssetView = { ...mediaAsset }
+  delete external.projectId
+  return external
+}
+
 function toPrivateMediaAssetAuthorityRecord(
   mediaAsset: MediaAssetView,
   uploadIntent: UploadIntentView,
@@ -1909,6 +2052,7 @@ function toPrivateMediaAssetAuthorityRecord(
     id: mediaAsset.id,
     workspaceId: uploadIntent.workspaceId,
     projectId: uploadIntent.projectId,
+    editReferenceId: uploadIntent.editReferenceId,
     uploadIntentId: uploadIntent.id,
     storageObjectRecordId: storageObject.id,
     uploadPurpose: uploadIntent.uploadPurpose === 'reference_media' ? 'reference_media' : 'source_media',
@@ -1944,6 +2088,7 @@ function toPrivateStorageObjectAuthorityRecord(
     id: storageObject.id,
     workspaceId: uploadIntent.workspaceId,
     projectId: uploadIntent.projectId,
+    editReferenceId: uploadIntent.editReferenceId,
     mediaAssetId: mediaAsset.id,
     uploadIntentId: uploadIntent.id,
     uploadPurpose: uploadIntent.uploadPurpose === 'reference_media' ? 'reference_media' : 'source_media',

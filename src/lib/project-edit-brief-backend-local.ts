@@ -32,6 +32,7 @@ export interface ProjectEditBriefBackendLocalRecord {
   savedByUserId?: string
   createdAt?: string
   updatedAt?: string
+  contentDigestSha256: string
   backendLocalBriefStored?: true
   readbackVerified?: true
   providerCallMade?: false
@@ -192,7 +193,9 @@ export async function saveProjectEditBriefBackendLocal(
   if (
     readback.editBrief.id !== editBrief.id ||
     readback.editBrief.editSessionId !== input.editSessionId ||
-    readback.editBrief.briefText !== briefText
+    readback.editBrief.briefText !== briefText ||
+    readback.editBrief.contentDigestSha256 !== editBrief.contentDigestSha256 ||
+    !/^[a-f0-9]{64}$/.test(readback.editBrief.contentDigestSha256)
   ) {
     throw new Error('Edit brief readback did not match the saved brief.')
   }

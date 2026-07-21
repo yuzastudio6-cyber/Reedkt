@@ -75,6 +75,7 @@ export interface UploadValidationResult {
 export interface UploadPlan {
   id: string
   finalizedMediaAssetId?: string
+  storageObjectRecordId?: string
   workspaceId: string
   projectId?: string
   purpose: UploadPurpose

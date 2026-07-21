@@ -8,6 +8,7 @@ import { createReeditProApiApp } from '../app'
 import { loadRuntimeEnv } from '../config/env'
 import { ApiError } from '../errors/api-error'
 import { createEditReferenceService } from '../services/edit-reference-service'
+import { createEditReferenceTargetVideoUnderstandingService } from '../services/edit-reference-target-video-understanding-service'
 import {
   createBackendLocalEditReferenceLongFormStudyRuntimePort,
   type EditReferenceLongFormStudyRuntimePort,
@@ -78,6 +79,20 @@ try {
       && (error.details as { reason?: string } | undefined)?.reason
         === 'multiple_long_form_runtime_authorities_configured',
   )
+  assert.throws(
+    () => createEditReferenceTargetVideoUnderstandingService({
+      env,
+      clients: { admin: null, public: null },
+      requestId: 'mounted-target-long-form-conflict',
+      auth: { userId: 'mock-user-runtime', isMockUser: true },
+      editReferenceLongFormStudyRuntimePort: localPort,
+    }, {
+      longFormStudyRuntimePort: competingPort,
+    }),
+    (error: unknown) => error instanceof ApiError
+      && (error.details as { reason?: string } | undefined)?.reason
+        === 'multiple_long_form_runtime_authorities_configured',
+  )
   const server = createReeditProApiApp(env, {
     editReferenceLongFormStudyRuntimePort: invalidInjectedPort,
   }).listen(0, '127.0.0.1')
@@ -91,6 +106,15 @@ try {
   console.error = () => undefined
 
   try {
+    const targetStudyQuery = new URLSearchParams({
+      workspaceId: 'workspace-mounted-runtime',
+      editReferenceId: 'reference-mounted-runtime',
+      studySessionId: 'study-mounted-runtime',
+      sourceStorageObjectRecordId: 'storage-mounted-runtime',
+      sourceMediaAssetId: 'media-mounted-runtime',
+      expectedEditBriefRevision: '1',
+      expectedEditBriefDigestSha256: 'a'.repeat(64),
+    })
     const cases = [
       {
         name: 'status',
@@ -116,6 +140,10 @@ try {
           expectedRunRevision: 1,
           action: 'pause',
         }),
+      },
+      {
+        name: 'exact-target-study',
+        url: `/v1/projects/project-mounted-runtime/edit-sessions/edit-mounted-runtime/edit-reference-target-understanding?${targetStudyQuery}`,
       },
     ] as const
 
@@ -157,10 +185,11 @@ try {
 
   console.log(JSON.stringify({
     status: 'passed',
-    mountedRoutesChecked: 4,
+    mountedRoutesChecked: 5,
     appOptionPropagatedThroughRuntimeState: true,
     runtimeStatePropagatedThroughServiceContext: true,
     serviceSelectedInjectedServerAuthority: true,
+    exactTargetStudySelectedSameServerAuthority: true,
     competingServerAuthoritiesRejected: true,
     invalidAuthorityRejectedBeforeRepositoryOrRuntimeMethod: true,
     browserSelectedRuntimeAccepted: false,

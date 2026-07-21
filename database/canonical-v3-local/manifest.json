@@ -111,7 +111,7 @@
     },
     {
       "path": "verify.mjs",
-      "sha256": "0ff2d510ba571740c24029b2bb8e24fb655869b95a2267dacd4702b8e0e3e6e5"
+      "sha256": "d74f9f2b9f26883a66b5b51ca3635d1367175aaf371602f1d36a4f53ce6759b7"
     }
   ],
   "repositoryFiles": [
@@ -125,7 +125,7 @@
     },
     {
       "path": "docs/canonical-edit-reference-mounted-long-form-runtime-port-verification-2026-07-21.md",
-      "sha256": "571661ac78560cb822bb7605b30a5431f2d04fa136d44074518b71923edcde76"
+      "sha256": "2316746617242f4ecb6372e0898620188c6e1c799f73628244f83d918d60d058"
     },
     {
       "path": "docs/canonical-v3-local-edit-reference-recovery-verification-2026-07-21.md",
@@ -212,6 +212,10 @@
       "sha256": "6ee05b546c8603264589542fd86626fc4458be96a2d3302c951038f84a0156b0"
     },
     {
+      "path": "server/services/edit-reference-target-video-understanding-service.ts",
+      "sha256": "6cf81d4ef6e897a1962f5f0bf27a811f56c77ce12c74351676474f52dd667e8e"
+    },
+    {
       "path": "server/services/planning-exact-edit-preference-authority-port.ts",
       "sha256": "8b321aaf6415ceb397a1f118339fd15cb327a704ee338c9627d7eafbfa1682fd"
     },
@@ -257,7 +261,7 @@
     },
     {
       "path": "server/smoke/edit-reference-mounted-long-form-runtime-port-smoke.ts",
-      "sha256": "c1649ca0e56671e01084dd17e8229cd24241411d989a6edc8e1bfa918c21a130"
+      "sha256": "099dbc90b17565556e699115b20d498f39b33212f62db0ad2b9d4b13aab7ade2"
     },
     {
       "path": "server/smoke/edit-reference-production-readiness-smoke.ts",

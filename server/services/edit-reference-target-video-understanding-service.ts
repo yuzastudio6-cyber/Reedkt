@@ -14,7 +14,6 @@ import {
   type EditReferenceLongFormStorageObject,
 } from '../edit-references/edit-reference-long-form-source-inspector'
 import {
-  scheduleEditReferenceLongFormStudy,
   type EditReferenceLongFormStudyScheduleResult,
   type EditReferenceLongFormStudyScheduler,
 } from '../edit-references/edit-reference-long-form-study-scheduler'
@@ -44,12 +43,17 @@ import {
 } from './internal-edit-state-service'
 import { createProjectService } from './project-service'
 import { createUploadService } from './upload-service'
+import {
+  resolveEditReferenceLongFormStudyRuntimePort,
+  type EditReferenceLongFormStudyRuntimePort,
+} from './edit-reference-production-long-form-runtime-port'
 
 const BACKEND_LOCAL_WARNING =
   'Target-video understanding is stored in private backend-local versioned records. Production Supabase and distributed worker authority remain fail-closed.'
 
 export interface EditReferenceTargetVideoUnderstandingRuntimeOptions {
   readonly editReferenceRepository?: EditReferenceRepository
+  readonly longFormStudyRuntimePort?: EditReferenceLongFormStudyRuntimePort
   readonly longFormStudyRepository?: PrivateEditReferenceLongFormStudyRepository
   readonly packageRepository?: PrivateTargetVideoUnderstandingRepository
   readonly sourceInspector?: EditReferenceLongFormSourceInspector
@@ -90,11 +94,33 @@ export function createEditReferenceTargetVideoUnderstandingService(
     )
   }
 
+  if (
+    runtimeOptions.longFormStudyRuntimePort
+    && context.editReferenceLongFormStudyRuntimePort
+    && runtimeOptions.longFormStudyRuntimePort !== context.editReferenceLongFormStudyRuntimePort
+  ) {
+    throw new ApiError(
+      'JOB_DEPENDENCY_NOT_READY',
+      'Target-video study received conflicting long-form runtime authorities.',
+      503,
+      {
+        reason: 'multiple_long_form_runtime_authorities_configured',
+        requiredGate: 'durable_long_form_study',
+        productionReady: false,
+      },
+    )
+  }
+
   const editReferenceRepository = runtimeOptions.editReferenceRepository ?? new PrivateEditReferenceRepository()
-  const longFormStudyRepository = runtimeOptions.longFormStudyRepository ?? new PrivateEditReferenceLongFormStudyRepository()
+  const longFormStudyRuntime = resolveEditReferenceLongFormStudyRuntimePort({
+    env: context.env,
+    runtimePort: runtimeOptions.longFormStudyRuntimePort
+      ?? context.editReferenceLongFormStudyRuntimePort,
+    localRepository: runtimeOptions.longFormStudyRepository,
+    localScheduler: runtimeOptions.studyScheduler,
+  })
   const packageRepository = runtimeOptions.packageRepository ?? new PrivateTargetVideoUnderstandingRepository()
   const sourceInspector = runtimeOptions.sourceInspector ?? inspectEditReferenceLongFormSource
-  const studyScheduler = runtimeOptions.studyScheduler ?? scheduleEditReferenceLongFormStudy
 
   const scope = (workspaceId: string): EditReferenceRepositoryScope => ({
     localStorageRoot: context.env.localStorageRoot,
@@ -115,7 +141,7 @@ export function createEditReferenceTargetVideoUnderstandingService(
         storageObjectRecordId: authority.storageObject.id,
         mediaChecksumSha256: authority.storageObject.checksumSha256 as string,
       })
-      let persisted = await longFormStudyRepository.read({ scope: authority.scope, runId })
+      let persisted = await longFormStudyRuntime.read({ scope: authority.scope, runId })
       let replayed = Boolean(persisted)
       if (!persisted) {
         const inspected = await sourceInspector({
@@ -144,7 +170,7 @@ export function createEditReferenceTargetVideoUnderstandingService(
           now: createdAt,
         })
         try {
-          const created = await longFormStudyRepository.create({
+          const created = await longFormStudyRuntime.create({
             scope: authority.scope,
             plan,
             run: preparedRun,
@@ -152,7 +178,7 @@ export function createEditReferenceTargetVideoUnderstandingService(
           persisted = { plan: created.plan, run: created.run }
           replayed = created.disposition !== 'created'
         } catch (error) {
-          const concurrent = await longFormStudyRepository.read({ scope: authority.scope, runId })
+          const concurrent = await longFormStudyRuntime.read({ scope: authority.scope, runId })
           if (!concurrent) throw error
           persisted = concurrent
           replayed = true
@@ -161,20 +187,19 @@ export function createEditReferenceTargetVideoUnderstandingService(
       validateTargetStudyCheckpoint(authority, persisted.plan, persisted.run)
       const packageRecord = await materializePackage({
         packageRepository,
-        longFormStudyRepository,
+        longFormStudyRuntime,
         authority,
         plan: persisted.plan,
         run: persisted.run,
         declaredContext: declaredContextFromStart(authority, input),
         createdAt: persisted.run.createdAt,
       })
-      const schedule = studyScheduler({
+      const schedule = longFormStudyRuntime.schedule({
         env: context.env,
         scope: authority.scope,
         runId,
         storageObject: authority.storageObject,
         requiredObjectPurpose: 'source_media',
-        repository: longFormStudyRepository,
       })
       return serviceResult(packageRecord, schedule, replayed)
     },
@@ -197,7 +222,7 @@ export function createEditReferenceTargetVideoUnderstandingService(
           404,
         )
       }
-      const persisted = await longFormStudyRepository.read({
+      const persisted = await longFormStudyRuntime.read({
         scope: authority.scope,
         runId: latest.study.runId,
       })
@@ -211,20 +236,19 @@ export function createEditReferenceTargetVideoUnderstandingService(
       validateTargetStudyCheckpoint(authority, persisted.plan, persisted.run)
       const packageRecord = await materializePackage({
         packageRepository,
-        longFormStudyRepository,
+        longFormStudyRuntime,
         authority,
         plan: persisted.plan,
         run: persisted.run,
         declaredContext: withoutContextDigest(latest.declaredContext),
         createdAt: latest.createdAt,
       })
-      const schedule = studyScheduler({
+      const schedule = longFormStudyRuntime.schedule({
         env: context.env,
         scope: authority.scope,
         runId: latest.study.runId,
         storageObject: authority.storageObject,
         requiredObjectPurpose: 'source_media',
-        repository: longFormStudyRepository,
       })
       return serviceResult(packageRecord, schedule, packageRecord.packageId === latest.packageId)
     },
@@ -530,7 +554,7 @@ function withoutContextDigest(
 
 async function materializePackage(input: {
   readonly packageRepository: PrivateTargetVideoUnderstandingRepository
-  readonly longFormStudyRepository: PrivateEditReferenceLongFormStudyRepository
+  readonly longFormStudyRuntime: EditReferenceLongFormStudyRuntimePort
   readonly authority: TargetAuthority
   readonly plan: Parameters<typeof createTargetVideoUnderstandingPackage>[0]['plan']
   readonly run: Parameters<typeof createTargetVideoUnderstandingPackage>[0]['run']
@@ -544,7 +568,7 @@ async function materializePackage(input: {
       || !workItem.outputDigestSha256
       || ['ingest_integrity', 'media_probe'].includes(workItem.stageId)
     ) continue
-    const output = await input.longFormStudyRepository.readWorkOutput({
+    const output = await input.longFormStudyRuntime.readWorkOutput({
       scope: input.authority.scope,
       runId: input.run.runId,
       workItemId: workItem.workItemId,

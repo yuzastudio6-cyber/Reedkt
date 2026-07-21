@@ -42,6 +42,7 @@ const expectedRepositoryFiles = [
   'server/services/edit-reference-application-preparation-service.ts',
   'server/services/edit-reference-production-long-form-runtime-port.ts',
   'server/services/edit-reference-service.ts',
+  'server/services/edit-reference-target-video-understanding-service.ts',
   'server/services/planning-exact-edit-preference-authority-port.ts',
   'server/services/planning-exact-edit-preference-authority-service.ts',
   'server/services/planning-input-authority-binding-service.ts',

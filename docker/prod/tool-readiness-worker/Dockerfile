@@ -75,6 +75,8 @@ COPY --chown=node:node package*.json ./
 RUN npm ci --omit=dev
 
 COPY --chown=node:node dist-server ./dist-server
+RUN test -f dist-server/server.js \
+  && test -f dist-server/container-readiness-receipt.js
 
 # The readiness worker never needs root at runtime. Writable work/output
 # locations must be explicitly mounted and scoped by the worker launcher.

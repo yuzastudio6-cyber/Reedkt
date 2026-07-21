@@ -36,6 +36,8 @@ Every tool summary now carries:
 
 The static builder accepts no caller-authored production receipt and has no insertion path that can promote either production tier. A later reviewed adapter must verify a same-source commit, immutable image digest, exact image role, required and forbidden tool checks, and license/model gates. Deployment must then prove the same image digest plus service identity, private storage, observability, and release approval.
 
+The bounded human-run probe and non-promotable candidate format are defined in `docs/production-container-qualification-candidate-contract-2026-07-21.md`.
+
 Static source declarations, local binaries, old Docker images, private lifecycle proof, adapter contracts, and copied JSON are insufficient.
 
 ## Safety boundary

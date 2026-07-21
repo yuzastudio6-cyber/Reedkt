@@ -1,15 +1,37 @@
 import assert from 'node:assert/strict'
-import { spawn, type ChildProcess } from 'node:child_process'
+import { spawn, spawnSync, type ChildProcess } from 'node:child_process'
 import { access } from 'node:fs/promises'
 import { createServer } from 'node:net'
 import { resolve } from 'node:path'
 
 const repoRoot = process.cwd()
 const serverArtifactPath = resolve(repoRoot, 'dist-server/server.js')
+const containerReadinessArtifactPath = resolve(
+  repoRoot,
+  'dist-server/container-readiness-receipt.js',
+)
 const allowedOrigin = 'https://app.reeditpro.test'
 const internalToken = 'production-artifact-smoke-internal-token'
 
 await access(serverArtifactPath)
+await access(containerReadinessArtifactPath)
+
+const unconfirmedContainerProbe = spawnSync(
+  process.execPath,
+  [containerReadinessArtifactPath],
+  {
+    cwd: repoRoot,
+    env: { PATH: process.env.PATH, TZ: 'UTC' },
+    encoding: 'utf8',
+    timeout: 5_000,
+  },
+)
+assert.notEqual(unconfirmedContainerProbe.status, 0)
+assert.equal(unconfirmedContainerProbe.signal, null)
+assert.doesNotMatch(
+  `${unconfirmedContainerProbe.stdout}${unconfirmedContainerProbe.stderr}`,
+  /container_runtime_self_attested_candidate_unreleased/,
+)
 
 const apiPort = await findAvailablePort()
 const apiEnv = createProductionEnv(apiPort)
@@ -131,6 +153,8 @@ console.log(JSON.stringify({
     'missing_supabase_admin_fails_startup',
     'missing_supabase_public_auth_fails_startup',
     'missing_production_cors_allowlist_fails_startup',
+    'bounded_container_readiness_receipt_entrypoint_shipped_separately',
+    'unconfirmed_container_probe_fails_before_candidate_or_runtime_checks',
   ],
 }))
 
@@ -141,6 +165,7 @@ function createProductionEnv(port: number): NodeJS.ProcessEnv {
     E2E_RUNTIME_MODE: 'cloud_run',
     STORAGE_MODE: 'gcs_disabled',
     WORKER_RUNTIME_MODE: 'disabled',
+    REEDITPRO_LARGE_MEDIA_FINALIZATION_MODE: 'disabled',
     API_ALLOWED_CORS_ORIGINS: allowedOrigin,
     SUPABASE_URL: 'https://artifact-smoke.supabase.co',
     SUPABASE_ANON_KEY: 'artifact-smoke-anon-key',

@@ -37,5 +37,7 @@ COPY package*.json ./
 RUN npm ci --omit=dev
 
 COPY dist-server ./dist-server
+RUN test -f dist-server/server.js \
+  && test -f dist-server/container-readiness-receipt.js
 
 CMD ["node", "dist-server/server.js"]

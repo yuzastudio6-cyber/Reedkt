@@ -25,3 +25,9 @@ manual review under `docker/prod/ffmpeg-lgpl-build-policy.md`.
 GPU model/checkpoint weights are never included in these images by default.
 Every GPU model tool requires a reviewed model-weight manifest before paid
 production execution.
+
+Every image requires the separately built `dist-server/container-readiness-receipt.js`
+artifact. Human-run readiness examples invoke it under an immutable image digest
+and strict confinement. Its output is a non-promotable candidate and never
+replaces independent source/image verification, manual license/model approval,
+or deployed-release evidence.

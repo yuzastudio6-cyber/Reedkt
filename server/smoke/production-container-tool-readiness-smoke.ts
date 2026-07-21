@@ -56,6 +56,10 @@ const requiredDockerFiles = [
 
 for (const path of requiredDockerFiles) {
   check(repoFileExists(path), `Missing Docker template file: ${path}`)
+  if (path.endsWith('/Dockerfile')) {
+    const source = readRepoFile(path)
+    check(source.includes('dist-server/container-readiness-receipt.js'), `${path} must require the built bounded container receipt entrypoint.`)
+  }
 }
 
 const requiredBuildScripts = [

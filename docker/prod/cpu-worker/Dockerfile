@@ -79,6 +79,8 @@ COPY --chown=node:node package*.json ./
 RUN npm ci --omit=dev
 
 COPY --chown=node:node dist-server ./dist-server
+RUN test -f dist-server/server.js \
+  && test -f dist-server/container-readiness-receipt.js
 
 # Tool processes run without root. Canonical job sandboxes and output roots
 # are supplied as explicitly scoped writable mounts by the worker launcher.

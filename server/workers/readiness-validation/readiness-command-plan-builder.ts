@@ -24,10 +24,12 @@ export function buildStaticReadinessCommandPlan(): ReadinessCommandPlan {
 
 export function buildReadinessCommandPlans(): ReadinessCommandPlan[] {
   const imageRoles: ProductionContainerImageRole[] = [
+    'api',
     'cpu_worker',
     'render_worker',
     'qa_worker',
     'gpu_worker',
+    'tool_readiness_worker',
   ]
 
   return [

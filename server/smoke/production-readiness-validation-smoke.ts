@@ -40,6 +40,8 @@ const requiredFiles = [
   'server/workers/readiness-validation/readiness-command-plan-builder.ts',
   'server/workers/readiness-validation/container-readiness-command-builder.ts',
   'server/workers/readiness-validation/canonical-tool-readiness-evidence.ts',
+  'server/workers/readiness-validation/production-container-qualification-contract.ts',
+  'server/workers/readiness-validation/production-container-qualification-live-probe.ts',
   'server/workers/readiness-validation/index.ts',
   'server/cli/production-readiness-summary.ts',
   'server/cli/production-readiness-action-plan.ts',
@@ -270,10 +272,12 @@ check(staticReport.licenseSummaries.some((summary) => summary.id === 'libass_sub
 const plans = buildReadinessCommandPlans()
 for (const id of [
   'static_readiness',
+  'container_readiness_api',
   'container_readiness_cpu_worker',
   'container_readiness_render_worker',
   'container_readiness_qa_worker',
   'container_readiness_gpu_worker',
+  'container_readiness_tool_readiness_worker',
 ]) {
   check(plans.some((plan) => plan.id === id), `Missing command plan ${id}.`)
 }
@@ -281,6 +285,14 @@ check(plans.every((plan) => plan.doesNotRun.includes('no media processing')), 'C
 check(plans.every((plan) => plan.doesNotRun.includes('no model downloads')), 'Command plans must say they do not download models.')
 check(plans.every((plan) => plan.doesNotRun.includes('no providers')), 'Command plans must say they do not call providers.')
 check(plans.every((plan) => plan.doesNotRun.includes('no deployment')), 'Command plans must say they do not deploy.')
+check(
+  plans.filter((plan) => plan.mode === 'container_command_plan').every((plan) =>
+    !plan.command.includes('--mode=static_only') &&
+    (plan.id === 'container_readiness_all'
+      ? plan.command.includes('13-run-all-container-readiness.example.sh')
+      : plan.command.includes('container-readiness-receipt.js'))),
+  'Container command plans must invoke the bounded runtime receipt entrypoint rather than static-only reporting.',
+)
 
 const scripts = [
   'scripts/docker/prod/08-run-static-readiness.example.sh',
@@ -299,6 +311,14 @@ for (const script of scripts) {
   }
   check(!/\bgcloud\s+run\b|\bgcloud\s+deploy\b|\bgcloud\s+beta\s+run\b/i.test(text), `${script} must not deploy Cloud Run.`)
   check(!/huggingface-cli|snapshot_download|from_pretrained|wget\s|curl\s/i.test(text), `${script} must not download models.`)
+  if (!script.includes('08-run-static')) {
+    check(text.includes('name@sha256:digest'), `${script} must require immutable image digests.`)
+    check(text.includes('REEDITPRO_SOURCE_COMMIT_SHA'), `${script} must require exact source commit identity.`)
+    check(text.includes('REEDITPRO_SOURCE_TREE_HASH'), `${script} must require exact source tree identity.`)
+    check(text.includes('container-readiness-receipt.js'), `${script} must run the bounded receipt entrypoint.`)
+    check(!text.includes('--mode=static_only'), `${script} must not mistake static reporting for a container probe.`)
+    check(!/\beval\b/.test(text), `${script} must not execute a string-built Docker command through eval.`)
+  }
   check(!/sk-[A-Za-z0-9]|AIza[A-Za-z0-9_-]+|ghp_[A-Za-z0-9]+|-----BEGIN/.test(text), `${script} must not contain real secrets.`)
 }
 
@@ -307,6 +327,7 @@ check(packageJson.includes('smoke:prod-readiness-validation'), 'package.json mus
 check(packageJson.includes('prod:readiness:summary'), 'package.json must expose prod:readiness:summary.')
 check(packageJson.includes('prod:readiness:action-plan'), 'package.json must expose prod:readiness:action-plan.')
 check(packageJson.includes('prod:readiness:command-plan'), 'package.json must expose prod:readiness:command-plan.')
+check(packageJson.includes('prod:readiness:container-receipt'), 'package.json must expose the built container receipt entrypoint.')
 check(!/"[^"]*":\s*"[^"]*scripts\/docker\/prod\/0[1-7][^"]*"/.test(packageJson), 'npm scripts must not auto-build or auto-push production images.')
 check(!/"[^"]*":\s*"[^"]*docker build[^"]*docker\/prod[^"]*"/.test(packageJson), 'npm scripts must not auto-build production Docker images.')
 

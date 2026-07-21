@@ -657,16 +657,17 @@ function buildActionPlan(
       ...privateEvidenceFields(launchCoreTools, toolSummaries),
       blockerCount: launchCoreBlockerCount,
       requiredEvidence: [
-        'Production image build for each affected worker image.',
-        'Container readiness checks for required binaries/packages with no media processing.',
+        'Immutable production image digest bound to the exact source commit and tree.',
+        'Bounded container runtime candidate receipt for required and forbidden tools with no media processing.',
+        'Independent same-source/image verification of the candidate receipt.',
         'Manual license review where the package has production licensing obligations.',
       ],
       nextActions: [
         ...(launchCoreSourceMissing.length > 0
           ? [`Resolve approved source declarations before runtime proof for: ${launchCoreSourceMissing.join(', ')}.`]
           : []),
-        'Run the approved container readiness command plan for CPU, render, QA, GPU, and tool-readiness images.',
-        'Record exact package versions, image tags, and license notes before promoting any worker.',
+        'Run the approved candidate-receipt command plan for all six immutable production images.',
+        'Independently verify exact package evidence, image digests, source identity, and license notes before promoting any worker.',
       ],
       safetyBoundary: 'Does not authorize provider calls, user media processing, public delivery, billing, beta, or production traffic.',
       transitionSummary: transitionSummary(launchCoreTools, toolSummaries),
@@ -820,7 +821,7 @@ export function buildProductionReadinessReport(
     nextActions: [
       'Review hard blockers before enabling production execution.',
       'Run static readiness before any human-built container readiness checks.',
-      'Build production images manually in a later approved step; M12 does not build or push images.',
+      'Build production images only in a separately approved human-run step; this source workflow does not build or push images.',
       'Complete FFmpeg LGPL, libass, source-install, and model-weight license reviews before production-ready execution.',
     ],
   }

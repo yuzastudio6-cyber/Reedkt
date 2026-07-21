@@ -26,6 +26,8 @@ ENV WORKER_RUNTIME_MODE=disabled
 ENV REEDITPRO_DISABLE_DOTENV=true
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=build /app/dist-server ./dist-server
+RUN test -f dist-server/server.js \
+  && test -f dist-server/container-readiness-receipt.js
 COPY package*.json ./
 EXPOSE 8080
 USER node

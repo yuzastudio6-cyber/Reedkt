@@ -478,7 +478,7 @@ export function createEditExecutionRoutes(options: EditExecutionRouteOptions = {
     ], 201)
   }))
 
-  router.use('/v1/edit-executions', asyncRoute(async () => {
+  router.use('/v1/edit-executions', requireAuth, asyncRoute(async () => {
     throw new ApiError(
       'TOOL_NOT_READY',
       'Legacy execution stages remain disabled. The authenticated backend now prepares exact canonical planning authority from finalized uploads and current planning inputs; the browser must consume that handoff instead of reviving this legacy route.',

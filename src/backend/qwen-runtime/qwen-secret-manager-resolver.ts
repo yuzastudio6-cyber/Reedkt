@@ -54,7 +54,7 @@ async function createSecretManagerClient(): Promise<SecretManagerClientLike> {
   // identifier preserves the backend-only runtime boundary without making an
   // unavailable production SDK a compile-time or browser dependency.
   const moduleName = '@google-cloud/secret-manager'
-  const mod = await import(moduleName) as {
+  const mod = await import(/* @vite-ignore */ moduleName) as {
     SecretManagerServiceClient: new () => SecretManagerClientLike
   }
   return new mod.SecretManagerServiceClient()

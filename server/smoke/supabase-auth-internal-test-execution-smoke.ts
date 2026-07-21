@@ -160,6 +160,17 @@ const server = await listen(createServer(app))
 
 try {
   const baseUrl = `http://127.0.0.1:${addressPort(server)}`
+  const unauthenticatedResponse = await fetch(
+    `${baseUrl}/v1/edit-executions/private-internal-test-runs`,
+    {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: '{}',
+    },
+  )
+  assert.equal(unauthenticatedResponse.status, 401, 'The legacy catch-all must authenticate before returning its closed-gate status.')
+  assert.equal(authVerificationCount, 0, 'A request without a bearer token must fail before Supabase token verification.')
+
   const response = await postJson(
     `${baseUrl}/v1/edit-executions/private-internal-test-runs`,
     {
@@ -198,52 +209,31 @@ try {
     'signed-in-private-internal-test-run',
     verifiedToken,
   )
-  assert.equal(response.status, 201, `Signed-in internal test run should succeed: ${JSON.stringify(response.json)}`)
-  assert.equal(authVerificationCount, 1, 'Route should verify the bearer token through the Supabase auth client.')
-  assert.equal(adminPersistenceAttemptCount, 0, 'Internal-test execution flag should not write to Supabase persistence tables.')
-
-  const internalTestRun = response.json.data?.internalTestRun
-  assert.ok(internalTestRun, 'Signed-in route should return a private internal test run.')
-  assert.equal(internalTestRun?.status, 'private_internal_test_run_completed_ready_for_download')
-  assert.equal(internalTestRun?.sourceMediaAssetCount, 1)
-  assert.equal(internalTestRun?.privateInternalDownloadDelivery?.privateInternalDownloadReady, true)
-  assert.equal(internalTestRun?.publicDeliveryReady, false)
-  assert.equal(internalTestRun?.externalBetaReady, false)
-  assert.equal(internalTestRun?.productionReady, false)
-  assert.equal(internalTestRun?.finalRenderArtifact?.editDecisionManifest?.approvedEditContext?.approvedBy, 'supabase-user-internal-test')
-  assert.ok(
-    internalTestRun.finalRenderArtifact.editDecisionManifest.decisions.every((decision) =>
-      decision.sourceMediaAssetId === 'signed-in-local-media-asset-001' &&
-      decision.sourceChecksumSha256 === sourceChecksumSha256 &&
-      decision.processedArtifact?.storageProvider === 'local_private' &&
-      decision.processedArtifact?.privateArtifact === true &&
-      decision.processedArtifact?.publicArtifact === false &&
-      decision.processedArtifact?.signedUrl === null
-    ),
-    'Signed-in route final manifest should preserve private processed artifact proof.',
+  assert.equal(
+    response.status,
+    503,
+    `Legacy caller-authored execution must stay disabled for signed-in Supabase users: ${JSON.stringify(response.json)}`,
   )
-
-  const privateDownload = await fetchBinary(`${baseUrl}${internalTestRun.privateInternalDownloadPath}`, verifiedToken)
-  assert.equal(privateDownload.status, 200, 'Signed-in private internal download should stream MP4 bytes.')
-  assert.match(privateDownload.headers.get('content-type') ?? '', /^video\/mp4\b/i)
-  assert.equal(privateDownload.bytes.byteLength, internalTestRun.finalRenderArtifact.byteSize)
-  const privateManifest = await fetchBinary(`${baseUrl}${internalTestRun.privateInternalManifestPath}`, verifiedToken)
-  assert.equal(privateManifest.status, 200, 'Signed-in private internal manifest should stream JSON bytes.')
-  assert.match(privateManifest.headers.get('content-type') ?? '', /^application\/json\b/i)
-  assert.equal(authVerificationCount, 3, 'Private file and manifest downloads should also require Supabase auth.')
+  assert.equal(response.json.error?.code, 'TOOL_NOT_READY')
+  assert.deepEqual(response.json.error?.details, {
+    requiredGate: 'canonical_browser_consumption_of_planning_handoff',
+  })
+  assert.equal(authVerificationCount, 1, 'The fail-closed route must still verify the bearer token through Supabase auth.')
+  assert.equal(adminPersistenceAttemptCount, 0, 'The disabled legacy route must not write to Supabase persistence tables.')
+  assert.equal(response.json.data?.internalTestRun, undefined, 'The disabled route must not create an internal test run.')
 
   console.log(JSON.stringify({
     ok: true,
+    status: 'blocked_by_canonical_browser_consumption_of_planning_handoff',
     checks: [
-      'supabase_bearer_auth_used_for_private_internal_test_run',
+      'unauthenticated_legacy_route_request_rejected',
+      'supabase_bearer_auth_verified_before_legacy_route_rejection',
       'supabase_configured_runtime_not_globally_mock_only',
-      'explicit_internal_test_execution_flag_uses_local_in_memory_edit_execution_persistence',
-      'no_supabase_admin_write_public_artifact_signed_url_external_beta_or_production_scope',
+      'legacy_caller_authored_execution_route_fails_closed',
+      'no_supabase_admin_write_execution_artifact_or_delivery_side_effect',
     ],
     authVerificationCount,
-    privateDownloadByteCount: privateDownload.bytes.byteLength,
-    privateManifestByteCount: privateManifest.bytes.byteLength,
-    nextRequiredGate: internalTestRun.nextRequiredGate,
+    nextRequiredGate: 'canonical_browser_consumption_of_planning_handoff',
   }))
 } finally {
   await new Promise<void>((resolve, reject) => {
@@ -283,18 +273,5 @@ async function postJson(
   return {
     status: response.status,
     json: await response.json() as PrivateInternalTestRunJsonResponse,
-  }
-}
-
-async function fetchBinary(url: string, token: string): Promise<{ status: number; bytes: Uint8Array; headers: Headers }> {
-  const response = await fetch(url, {
-    headers: {
-      authorization: `Bearer ${token}`,
-    },
-  })
-  return {
-    status: response.status,
-    bytes: new Uint8Array(await response.arrayBuffer()),
-    headers: response.headers,
   }
 }

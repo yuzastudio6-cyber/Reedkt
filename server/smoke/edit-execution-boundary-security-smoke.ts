@@ -12,6 +12,7 @@ const productionBase = {
   NODE_ENV: 'production',
   E2E_RUNTIME_MODE: 'cloud_run',
   STORAGE_MODE: 'gcs_disabled',
+  REEDITPRO_LARGE_MEDIA_FINALIZATION_MODE: 'disabled',
   WORKER_RUNTIME_MODE: 'disabled',
   API_ALLOWED_CORS_ORIGINS: 'https://app.reeditpro.test',
   SUPABASE_URL: 'https://example.supabase.co',

@@ -106,6 +106,8 @@ const modelWeightNames: Partial<Record<ProductionToolId, string[]>> = {
   birefnet: ['BiRefNet checkpoint'],
   sam2: ['SAM 2 checkpoint'],
   transparent_background: ['transparent-background checkpoint'],
+  torch_torchvision: ['TorchVision/downstream approved checkpoint'],
+  transformers: ['Transformers model repository/checkpoint/tokenizer'],
   rembg: ['rembg ONNX model'],
   deepfilternet: ['DeepFilterNet model'],
   demucs: ['Demucs model'],

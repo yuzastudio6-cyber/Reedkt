@@ -19,6 +19,12 @@ import {
 import { listContainerImageReadinessManifest } from './container-image-readiness-manifest'
 import { buildReadinessCommandPlans } from './readiness-command-plan-builder'
 import {
+  buildMissingDeployedToolReleaseQualificationEvidence,
+  buildMissingProductionImageQualificationEvidence,
+  getCanonicalPrivateToolReadinessEvidence,
+  summarizeCanonicalToolReadinessEvidence,
+} from './canonical-tool-readiness-evidence'
+import {
   classifyProductionReadinessBlocker,
   type ProductionReadinessBlockerCandidate,
 } from './production-readiness-blocker-policy'
@@ -124,7 +130,11 @@ function buildToolBlockers(toolId: ProductionToolId, status: ReadinessValidation
   const candidates: ProductionReadinessBlockerCandidate[] = []
 
   if (profile?.launchCore && (status === 'missing' || status === 'not_checked')) {
-    candidates.push({ kind: 'required_launch_core_missing', toolId, detail: `${profile.displayName} requires a passing readiness check.` })
+    candidates.push({
+      kind: 'required_launch_core_missing',
+      toolId,
+      detail: `${profile.displayName} requires a same-source production-image readiness receipt; any retained private lifecycle proof does not satisfy this gate.`,
+    })
   }
 
   if (profile?.modelWeightsRequired) {
@@ -162,7 +172,11 @@ function buildToolSummaries(): ReadinessToolSummary[] {
     return {
       toolId: profile.toolId,
       displayName: profile.displayName,
+      statusScope: 'production_image_and_release_qualification' as const,
       status,
+      canonicalPrivateEvidence: getCanonicalPrivateToolReadinessEvidence(profile.toolId),
+      productionImageQualification: buildMissingProductionImageQualificationEvidence(),
+      deployedReleaseQualification: buildMissingDeployedToolReleaseQualificationEvidence(),
       expectedWorkerTypes: spec?.expectedWorkerTypes ?? [profile.workerType],
       imageRoles: spec?.imageRoles ?? [],
       requiredForProduction: Boolean(spec?.productionRequired || profile.launchCore),
@@ -171,7 +185,7 @@ function buildToolSummaries(): ReadinessToolSummary[] {
       evaluationOnly: profile.productionStatus === 'evaluation_only',
       warnings: [
         ...(result?.warnings ?? []),
-        ...(statusIsWarning(status) ? [`${profile.displayName} is ${status} in static readiness.`] : []),
+        ...(statusIsWarning(status) ? [`${profile.displayName} production qualification is ${status} in static readiness.`] : []),
       ],
       blockers,
     }
@@ -543,10 +557,52 @@ function transitionSummary(toolIds: ProductionToolId[], toolSummaries: Readiness
   const adapterToolIds = adapterContractToolIds(toolIds)
   const missingToolIds = missingProductionToolIds(toolIds, toolSummaries)
   const declaredToolIds = declaredSourceToolIds(toolIds)
+  const canonicalPrivateToolIds = toolSummaries
+    .filter((tool) => toolIds.includes(tool.toolId))
+    .filter((tool) => tool.canonicalPrivateEvidence.privateInternalEndToEndReady)
+    .map((tool) => tool.toolId)
   if (adapterToolIds.length === 0) {
-    return `${declaredToolIds.length} tool(s) in this lane have static source declarations, ${missingToolIds.length} need production evidence, and none are currently represented by backend bounded adapter contracts.`
+    return `${canonicalPrivateToolIds.length} tool(s) have canonical private end-to-end proof and ${declaredToolIds.length} have static source declarations, but ${missingToolIds.length} still need production image/release evidence; none are currently represented by backend bounded adapter contracts.`
   }
-  return `${adapterToolIds.length} tool(s) in this lane already have backend bounded adapter contracts and ${declaredToolIds.length} have static source declarations, but ${missingToolIds.length} still need runtime/container readiness evidence before external beta or production.`
+  return `${canonicalPrivateToolIds.length} tool(s) have canonical private end-to-end proof, ${adapterToolIds.length} have backend bounded adapter contracts, and ${declaredToolIds.length} have static source declarations, but ${missingToolIds.length} still need same-source production image and deployed-release evidence before external beta or production.`
+}
+
+function privateEvidenceToolIds(
+  toolIds: ProductionToolId[],
+  toolSummaries: ReadinessToolSummary[],
+  key: 'privateInternalRunnerReady' | 'privateInternalEndToEndReady' | 'privateInternalJobAdapterReady',
+): ProductionToolId[] {
+  return uniqueToolIds(toolSummaries
+    .filter((tool) => toolIds.includes(tool.toolId) && tool.canonicalPrivateEvidence[key])
+    .map((tool) => tool.toolId))
+}
+
+function privateEvidenceFields(
+  toolIds: ProductionToolId[],
+  toolSummaries: ReadinessToolSummary[],
+): Pick<
+  ProductionReadinessActionStage,
+  'canonicalPrivateRunnerVerifiedToolIds' |
+  'canonicalPrivateEndToEndVerifiedToolIds' |
+  'canonicalPrivateJobAdapterVerifiedToolIds'
+> {
+  return {
+    canonicalPrivateRunnerVerifiedToolIds: privateEvidenceToolIds(
+      toolIds,
+      toolSummaries,
+      'privateInternalRunnerReady',
+    ),
+    canonicalPrivateEndToEndVerifiedToolIds: privateEvidenceToolIds(
+      toolIds,
+      toolSummaries,
+      'privateInternalEndToEndReady',
+    ),
+    canonicalPrivateJobAdapterVerifiedToolIds: privateEvidenceToolIds(
+      toolIds,
+      toolSummaries,
+      'privateInternalJobAdapterReady',
+    ),
+  }
 }
 
 function buildActionPlan(
@@ -598,6 +654,7 @@ function buildActionPlan(
       sourceDeclarationToolIds: declaredSourceToolIds(launchCoreTools),
       sourceDeclarationMissingToolIds: launchCoreSourceMissing,
       sourceDeclarationEvidence: buildSourceDeclarationEvidence(launchCoreTools),
+      ...privateEvidenceFields(launchCoreTools, toolSummaries),
       blockerCount: launchCoreBlockerCount,
       requiredEvidence: [
         'Production image build for each affected worker image.',
@@ -627,6 +684,7 @@ function buildActionPlan(
       sourceDeclarationToolIds: declaredSourceToolIds(modelWeightTools),
       sourceDeclarationMissingToolIds: missingSourceDeclarationToolIds(modelWeightTools),
       sourceDeclarationEvidence: buildSourceDeclarationEvidence(modelWeightTools),
+      ...privateEvidenceFields(modelWeightTools, toolSummaries),
       blockerCount: modelWeightBlockerCount,
       requiredEvidence: [
         'Approved commercial-use model-weight manifest.',
@@ -653,6 +711,7 @@ function buildActionPlan(
       sourceDeclarationToolIds: declaredSourceToolIds(optionalAdapterTools),
       sourceDeclarationMissingToolIds: missingSourceDeclarationToolIds(optionalAdapterTools),
       sourceDeclarationEvidence: buildSourceDeclarationEvidence(optionalAdapterTools),
+      ...privateEvidenceFields(optionalAdapterTools, toolSummaries),
       blockerCount: optionalAdapterBlockerCount,
       requiredEvidence: [
         'Adapter package/runtime proof in the intended worker image.',
@@ -679,6 +738,7 @@ function buildActionPlan(
       sourceDeclarationToolIds: declaredSourceToolIds(evaluationFutureTools),
       sourceDeclarationMissingToolIds: missingSourceDeclarationToolIds(evaluationFutureTools),
       sourceDeclarationEvidence: buildSourceDeclarationEvidence(evaluationFutureTools),
+      ...privateEvidenceFields(evaluationFutureTools, toolSummaries),
       blockerCount: evaluationFutureBlockerCount,
       requiredEvidence: [
         'Owner decision to keep excluded, replace, or promote through a separate approval lane.',
@@ -704,6 +764,7 @@ function buildActionPlan(
       sourceDeclarationToolIds: [],
       sourceDeclarationMissingToolIds: [],
       sourceDeclarationEvidence: [],
+      ...privateEvidenceFields([], toolSummaries),
       blockerCount: reportStatus === 'passed' ? 0 : blockerSummaries.filter((blocker) => blocker.severity === 'hard_blocker').length,
       requiredEvidence: [
         'Deployment approval and environment readback.',
@@ -746,6 +807,7 @@ export function buildProductionReadinessReport(
     createdAt: new Date().toISOString(),
     mode,
     overallStatus: reportStatus,
+    evidenceTiers: summarizeCanonicalToolReadinessEvidence(),
     workerSummaries,
     toolSummaries,
     imageSummaries,

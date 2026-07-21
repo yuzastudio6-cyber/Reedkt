@@ -195,6 +195,7 @@
     "smoke:prod-core-tool-install": "tsx server/smoke/production-core-tool-install-smoke.ts",
     "smoke:prod-gpu-ai-install": "tsx server/smoke/production-gpu-ai-install-smoke.ts",
     "smoke:prod-readiness-validation": "tsx server/smoke/production-readiness-validation-smoke.ts",
+    "smoke:prod-readiness-evidence-tiers": "tsx server/smoke/production-readiness-evidence-tiers-smoke.ts",
     "smoke:prod-real-speech-caption": "tsx server/smoke/production-real-speech-caption-execution-smoke.ts",
     "smoke:prod-real-smart-cut-timeline": "tsx server/smoke/production-real-smart-cut-timeline-execution-smoke.ts",
     "smoke:prod-real-audio": "tsx server/smoke/production-real-audio-execution-smoke.ts",

@@ -39,6 +39,7 @@ const requiredFiles = [
   'server/workers/readiness-validation/production-readiness-summary.ts',
   'server/workers/readiness-validation/readiness-command-plan-builder.ts',
   'server/workers/readiness-validation/container-readiness-command-builder.ts',
+  'server/workers/readiness-validation/canonical-tool-readiness-evidence.ts',
   'server/workers/readiness-validation/index.ts',
   'server/cli/production-readiness-summary.ts',
   'server/cli/production-readiness-action-plan.ts',
@@ -58,12 +59,23 @@ check(dryRunReport.mode === 'dry_run', 'Dry-run readiness report must use dry_ru
 check(staticReport.workerSummaries.length === 6, 'Readiness report must contain all six worker summaries.')
 check(staticReport.imageSummaries.length === 6, 'Readiness report must contain all six image summaries.')
 check(staticReport.toolSummaries.length > 0, 'Readiness report must contain tool summaries.')
+check(staticReport.evidenceTiers.registryToolCount === staticReport.toolSummaries.length, 'Readiness report must cover every tool in all three evidence tiers.')
+check(staticReport.evidenceTiers.privateInternal.canonicalEndToEndVerifiedToolIds.length === 50, 'Readiness report must retain the 50 canonical private end-to-end proofs.')
+check(staticReport.evidenceTiers.productionImageQualification.qualifiedToolIds.length === 0, 'Static readiness must not fabricate production-image qualification.')
+check(staticReport.evidenceTiers.deployedReleaseQualification.qualifiedToolIds.length === 0, 'Static readiness must not fabricate deployed-release qualification.')
 check(staticReport.actionPlan.status === 'blocked_by_evidence_gates', 'Static readiness must expose blocked evidence-gate action plan status.')
 check(staticReport.actionPlan.currentSafeStage === 'internal_testing', 'Static readiness must keep current safe stage at internal_testing.')
 check(staticReport.actionPlan.stages.length === 5, 'Static readiness action plan must expose the five release evidence lanes.')
 check(
   staticReport.actionPlan.stages.some((stage) => stage.id === 'launch_core_container_readiness' && stage.toolIds.length > 0 && stage.status === 'blocked'),
   'Action plan must identify launch-core container readiness as the first blocked production lane.',
+)
+check(
+  staticReport.toolSummaries.every((tool) =>
+    tool.statusScope === 'production_image_and_release_qualification' &&
+    tool.productionImageQualification.qualified === false &&
+    tool.deployedReleaseQualification.qualified === false),
+  'Static tool status must be scoped to production image/release qualification and must keep both gates closed.',
 )
 check(
   staticReport.actionPlan.stages.some((stage) => stage.id === 'model_weight_license_mount_approval' && stage.toolIds.length > 0 && stage.status === 'blocked'),
@@ -245,7 +257,7 @@ check(
 )
 check(
   classifyProductionReadinessBlocker({ kind: 'required_launch_core_missing', toolId: 'ffmpeg' }).severity === 'hard_blocker',
-  'Blocker policy must flag missing launch-core tools.',
+  'Blocker policy must flag missing launch-core production-image qualification evidence.',
 )
 check(
   classifyProductionReadinessBlocker({ kind: 'future_only_tool_not_installed', toolId: 'vapoursynth' }).severity === 'warning',

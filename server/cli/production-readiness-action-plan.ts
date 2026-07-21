@@ -26,13 +26,16 @@ if (output === 'json') {
     console.log(`tools=${stage.toolIds.length}`)
     console.log(`sourceDeclared=${stage.sourceDeclarationToolIds.length}`)
     console.log(`adapterContracts=${stage.adapterContractToolIds.length}`)
-    console.log(`productionMissing=${stage.productionReadinessMissingToolIds.length}`)
+    console.log(`canonicalPrivateRunnerVerified=${stage.canonicalPrivateRunnerVerifiedToolIds.length}`)
+    console.log(`canonicalPrivateEndToEndVerified=${stage.canonicalPrivateEndToEndVerifiedToolIds.length}`)
+    console.log(`canonicalPrivateJobAdapterVerified=${stage.canonicalPrivateJobAdapterVerifiedToolIds.length}`)
+    console.log(`productionImageOrReleaseMissing=${stage.productionReadinessMissingToolIds.length}`)
     console.log(`blockers=${stage.blockerCount}`)
     if (stage.sourceDeclarationMissingToolIds.length > 0) {
       console.log(`sourceMissing=${stage.sourceDeclarationMissingToolIds.join(', ')}`)
     }
     if (stage.productionReadinessMissingToolIds.length > 0) {
-      console.log(`productionMissingTools=${stage.productionReadinessMissingToolIds.join(', ')}`)
+      console.log(`productionImageOrReleaseMissingTools=${stage.productionReadinessMissingToolIds.join(', ')}`)
     }
     console.log(stage.summary)
     console.log(stage.transitionSummary)

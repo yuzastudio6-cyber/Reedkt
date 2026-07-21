@@ -34,8 +34,9 @@ export function summarizeProductionReadinessReport(report: ProductionReadinessRe
     .slice(0, 12)
     .map((blocker) => `- [${blocker.severity}] ${blocker.message}`)
   const actionPlanLines = report.actionPlan.stages.map((stage) => (
-    `- ${stage.title}: ${stage.status}, tools=${stage.toolIds.length}, sourceDeclared=${stage.sourceDeclarationToolIds.length}, adapterContracts=${stage.adapterContractToolIds.length}, productionMissing=${stage.productionReadinessMissingToolIds.length}, blockers=${stage.blockerCount}`
+    `- ${stage.title}: ${stage.status}, tools=${stage.toolIds.length}, privateE2E=${stage.canonicalPrivateEndToEndVerifiedToolIds.length}, privateJobAdapters=${stage.canonicalPrivateJobAdapterVerifiedToolIds.length}, sourceDeclared=${stage.sourceDeclarationToolIds.length}, adapterContracts=${stage.adapterContractToolIds.length}, productionImageOrReleaseMissing=${stage.productionReadinessMissingToolIds.length}, blockers=${stage.blockerCount}`
   ))
+  const evidence = report.evidenceTiers
 
   return [
     `Production readiness report: ${report.id}`,
@@ -50,7 +51,14 @@ export function summarizeProductionReadinessReport(report: ProductionReadinessRe
     `Hard blockers: ${report.blockerSummaries.filter((blocker) => blocker.severity === 'hard_blocker').length}`,
     `Warnings: ${report.warnings.length}`,
     '',
-    'Tool statuses:',
+    'Evidence tiers:',
+    `- canonical private runner proof: ${evidence.privateInternal.runnerVerifiedToolIds.length}/${evidence.registryToolCount}`,
+    `- canonical private end-to-end proof: ${evidence.privateInternal.canonicalEndToEndVerifiedToolIds.length}/${evidence.registryToolCount}`,
+    `- canonical private job-adapter proof: ${evidence.privateInternal.canonicalJobAdapterVerifiedToolIds.length}/${evidence.registryToolCount}`,
+    `- same-source production-image qualification: ${evidence.productionImageQualification.qualifiedToolIds.length}/${evidence.registryToolCount}`,
+    `- deployed-release qualification: ${evidence.deployedReleaseQualification.qualifiedToolIds.length}/${evidence.registryToolCount}`,
+    '',
+    'Production image/release qualification statuses:',
     ...statusOrder
       .filter((status) => toolStatusCounts[status] > 0)
       .map((status) => `- ${status}: ${toolStatusCounts[status]}`),

@@ -20,9 +20,24 @@ const sha = z.string().regex(/^[a-f0-9]{64}$/)
 export const createCanonicalPlanningHandoffSchema = z.object({
   workspaceId: identity,
   purpose: z.literal('prepare_canonical_planning_handoff'),
-  orderedSourceItems: z.array(sourceSequenceAuthorityItemSchema).min(1).max(1_000),
+  orderedSourceItems: z.array(sourceSequenceAuthorityItemSchema).max(1_000),
   canonicalPlanComponents: canonicalPlanComponentsSchema,
 }).strict().superRefine((value, context) => {
+  const ideaFirst = value.canonicalPlanComponents.motionStudioStorytellingProductionAuthority
+  if (ideaFirst && value.orderedSourceItems.length !== 0) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['orderedSourceItems'],
+      message: 'Idea-first Storytelling must not fabricate or attach uploaded-source records.',
+    })
+  }
+  if (!ideaFirst && value.orderedSourceItems.length === 0) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['orderedSourceItems'],
+      message: 'Ordinary canonical planning requires at least one finalized uploaded source.',
+    })
+  }
   const sequenceIds = new Set<string>()
   const mediaAssetIds = new Set<string>()
   value.orderedSourceItems.forEach((item, index) => {
@@ -58,14 +73,38 @@ export const canonicalPlanningHandoffResponseSchema = z.object({
   sourceMediaAuthority: sourceMediaAuthorityExpectationSchema,
   planningInputAuthority: planningInputAuthorityExpectationSchema,
   resolvedPlanningInputAuthority: resolvedPlanningInputAuthorityBindingSchema,
-  readiness: z.object({
-    finalizedSourceMediaVerified: z.literal(true),
-    exactEditPreferencesVerified: z.literal(true),
-    preferenceApplicationVerified: z.literal(true),
-    editBriefVerified: z.literal(true),
-    outputFrameAndCleanupVerified: z.literal(true),
-    readyForCanonicalPlanPublication: z.literal(true),
-  }).strict(),
+  readiness: z.union([
+    z.object({
+      finalizedSourceMediaVerified: z.literal(true),
+      exactEditPreferencesVerified: z.literal(true),
+      preferenceApplicationVerified: z.literal(true),
+      editBriefVerified: z.literal(true),
+      outputFrameAndCleanupVerified: z.literal(true),
+      readyForCanonicalPlanPublication: z.literal(true),
+    }).strict(),
+    z.object({
+      sourceAuthorityMode: z.literal('finalized_uploaded_media'),
+      finalizedSourceMediaVerified: z.literal(true),
+      ideaFirstStorytellingAuthorityVerified: z.literal(false),
+      exactEditPreferencesVerified: z.literal(true),
+      preferenceApplicationVerified: z.literal(true),
+      editBriefVerified: z.literal(true),
+      outputFrameAndCleanupVerified: z.literal(true),
+      readyForCanonicalPlanPublication: z.literal(true),
+    }).strict(),
+    z.object({
+      sourceAuthorityMode: z.literal('idea_first_no_uploaded_media'),
+      finalizedSourceMediaVerified: z.literal(false),
+      ideaFirstStorytellingAuthorityVerified: z.literal(true),
+      noUploadedMediaExpected: z.literal(true),
+      fabricatedUploadRecordCount: z.literal(0),
+      exactEditPreferencesVerified: z.literal(true),
+      preferenceApplicationVerified: z.literal(true),
+      editBriefVerified: z.literal(true),
+      outputFrameAndCleanupVerified: z.literal(true),
+      readyForCanonicalPlanPublication: z.literal(true),
+    }).strict(),
+  ]),
   handoffHash: sha,
   handoffId: identity,
   persistence: z.object({

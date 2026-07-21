@@ -105,6 +105,14 @@ export function createCanonicalPrivateSourceObjectReadService(context: ServiceCo
     const access = await authorizeWorkspaceAccess(context, input.workspaceId, 'write')
     if (access.userId !== actorUserId) throw invalidSource('Authenticated source reader is outside the workspace.')
     if (
+      input.approvedSourceManifest.schemaVersion !==
+      'private-approved-source-binding-manifest-v1'
+    ) {
+      throw invalidSource(
+        'Idea-first Storytelling authority contains no uploaded source object to read.',
+      )
+    }
+    if (
       input.approvedSourceManifest.workspaceId !== access.workspaceId ||
       input.approvedSourceManifest.projectId !== input.projectId ||
       input.approvedSourceManifest.snapshotId !== input.snapshotId ||

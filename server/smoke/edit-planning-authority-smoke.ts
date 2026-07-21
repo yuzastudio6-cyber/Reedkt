@@ -10,6 +10,13 @@ import {
   CANONICAL_ATOMIC_EXECUTION_DESCRIPTOR_VERSION,
   compileCanonicalWorkItems,
 } from '../edit-architecture/canonical-work-item-compiler'
+import {
+  CANONICAL_MOTION_STUDIO_REMOTION_PREVIEW_BINDING_VERSION,
+  CANONICAL_MOTION_STUDIO_REMOTION_PREVIEW_OPERATION,
+  assertCanonicalMotionStudioRemotionDependencyArtifact,
+  canonicalMotionStudioRemotionPreviewBindingSchema,
+  canonicalMotionStudioTimingAuthorityDigest,
+} from '../edit-architecture/canonical-motion-studio-remotion-preview-authority'
 import { ApiError } from '../errors/api-error'
 import { loadRuntimeEnv } from '../config/env'
 import { createEditPlanningAuthorityService } from '../services/edit-planning-authority-service'
@@ -22,6 +29,9 @@ import {
 } from '../services/edit-brief-authority-service'
 import { createPreferenceIntelligenceService } from '../services/preference-intelligence-service'
 import { createSourceMediaAuthorityService } from '../services/source-media-authority-service'
+import {
+  buildCanonicalIdeaFirstSourceBindingManifestCandidate,
+} from '../services/canonical-motion-studio-storytelling-production-authority-service'
 import { buildCurrentPlanningInputAuthorityExpectation } from '../services/planning-input-authority-binding-service'
 import { createUploadService } from '../services/upload-service'
 import { createCanonicalEditExecutionPackageService } from '../services/canonical-edit-execution-package-service'
@@ -49,6 +59,7 @@ import {
 } from '../services/private-exact-edit-preference-store'
 import { preferenceIntelligenceHash } from '../services/private-preference-intelligence-store'
 import { readPrivateEditBriefAuthorityAggregate } from '../services/private-edit-brief-authority-store'
+import { readPrivateUploadMediaAuthorityAggregate } from '../services/private-upload-media-authority-store'
 import { clearLocalProjectMemoryForSmoke, createProjectService } from '../services/project-service'
 import type { ServiceContext } from '../types'
 import {
@@ -57,6 +68,11 @@ import {
 } from '../validation/edit-planning-authority-schemas'
 import type { PlanningInputAuthorityExpectation } from '../validation/planning-input-authority-binding-schemas'
 import type { SourceMediaAuthorityExpectation } from '../validation/source-media-authority-schemas'
+import {
+  CANONICAL_MOTION_STUDIO_STORYTELLING_PRODUCTION_AUTHORITY_READER_VERSION,
+  canonicalMotionStudioStorytellingProductionAuthoritySchema,
+  type CanonicalMotionStudioStorytellingProductionAuthority,
+} from '../validation/canonical-motion-studio-storytelling-production-authority-schemas'
 import { buildProfessionalExportCreditCoverage } from '../../src/lib/professional-export-policy'
 import {
   projectCanonicalStorytellingStyleAuthority,
@@ -881,6 +897,7 @@ try {
 await provePreferenceAndBriefCanonicalBinding(context)
 await proveAtomicWorkItemCompilation(context)
 await proveCanonicalStorytellingStyleAuthority(context)
+await proveCanonicalIdeaFirstStorytellingProductionAuthority(context)
 
 const otherUserService = createEditPlanningAuthorityService({
   ...context,
@@ -3954,6 +3971,12 @@ console.log(JSON.stringify({
     'approved_storytelling_style_requires_explicit_revision_and_preserves_history',
     'storytelling_style_internal_cost_stays_outside_customer_commercial_authority',
     'storytelling_style_scope_fails_closed_at_handoff_and_publication',
+    'idea_first_storytelling_requires_source_verified_production_authority',
+    'idea_first_storytelling_zero_source_handoff_plan_estimate_approval_and_snapshot',
+    'idea_first_storytelling_approved_source_manifest_has_zero_fabricated_uploads',
+    'idea_first_storytelling_animatic_binds_script_scenes_narration_frame_style_and_cost',
+    'ordinary_edits_still_require_finalized_uploaded_source_and_cleanup_authority',
+    'idea_first_storytelling_private_preview_does_not_authorize_final_delivery_provider_or_commercial_effects',
     'exact_publish_idempotency_replay',
     'changed_publish_idempotency_conflict',
     'server_owned_preference_binding_at_publication',
@@ -5552,6 +5575,812 @@ async function proveCanonicalStorytellingStyleAuthority(
     'IDEMPOTENCY_CONFLICT',
     'Cross-project Storytelling style authority must fail before persistence.',
   )
+}
+
+async function proveCanonicalIdeaFirstStorytellingProductionAuthority(
+  serviceContext: ServiceContext,
+): Promise<void> {
+  const targetWorkspaceId = 'workspace-storytelling-style-authority'
+  const editSessionId = 'edit-session-idea-first-storytelling-authority'
+  const project = (await createProjectService(serviceContext).createProject({
+    workspaceId: targetWorkspaceId,
+    name: 'Idea-first Storytelling production authority',
+  })).project
+  const planningInputAuthority = await prepareExactPlanningAuthority(
+    serviceContext,
+    project.id,
+    editSessionId,
+    targetWorkspaceId,
+  )
+  const style = projectCanonicalStorytellingStyleAuthority(
+    createStorytellingStylePlanReviewSource({
+      workspaceId: targetWorkspaceId,
+      projectId: project.id,
+      editSessionId,
+      productionId: 'production-idea-first-storytelling-authority',
+      revision: 1,
+    }),
+  )
+  const body = createCanonicalPlanBody(
+    'planning-idea-first-storytelling-authority-v1',
+    planningInputAuthority,
+    inMemoryPlanBuilderSourcePlaceholder(),
+  )
+  body.workspaceId = targetWorkspaceId
+  body.canonicalPlan.components.compiledIntent = {
+    goal: 'Create one private idea-first Storytelling animatic from approved Motion artifacts.',
+    sourceMode: 'idea_first_no_uploaded_media',
+  }
+  body.canonicalPlan.components.professionalEditingDirective = {
+    pacing: 'approved_prepared_script_timing',
+    mustFollowRules: [
+      'Do not fabricate uploaded footage.',
+      'Do not authorize provider execution or final delivery.',
+    ],
+  }
+  body.canonicalPlan.components.sourceSequence = []
+  body.canonicalPlan.components.sourceCleanupSummary = {
+    status: 'not_applicable',
+    cleanupPreference: 'balanced_cleanup',
+    trimValidationStatus: 'not_applicable',
+    meaningValidationStatus: 'not_applicable',
+    userReviewRequired: false,
+    reason: 'idea_first_storytelling_has_no_uploaded_media_source',
+  }
+  body.canonicalPlan.components.sourceCleanupPlan = {
+    status: 'not_applicable',
+    decisions: [],
+    reason: 'idea_first_storytelling_has_no_uploaded_media_source',
+  }
+  body.canonicalPlan.components.segments = [{
+    segmentId: 'segment-1',
+    startFrame: 0,
+    endFrameExclusive: body.canonicalPlan.components.timingSummary.totalFrames,
+    operationIds: [
+      'bind-approved-narration',
+      'render-approved-storytelling-animatic',
+      'validate-private-storytelling-animatic',
+    ],
+  }]
+  body.canonicalPlan.components.visualAssetPlan = {
+    assets: [],
+    ideaFirstStorytelling: true,
+    fabricatedUploadedMediaAllowed: false,
+  }
+  body.canonicalPlan.components.rendererPlan = {
+    renderer: 'remotion',
+    compositionProfileId: 'motion_studio_prepared_script_animatic_v1',
+    privatePreviewOnly: true,
+    finalDeliveryAuthorized: false,
+  }
+  body.canonicalPlan.components.toolStrategyPlan = {
+    toolIds: ['remotion'],
+    exactOperationIds: ['tool.remotion.render_approved_composition.v1'],
+    providerExecutionAuthorized: false,
+  }
+  body.canonicalPlan.components.qaPlan = {
+    status: 'passed',
+    checks: ['artifact_lineage', 'timing', 'frame', 'private_preview_only'],
+  }
+  body.canonicalPlan.components.providerPolicy = {
+    veoPolicy: 'forbidden',
+    approvedRoutes: [],
+  }
+  body.canonicalPlan.components.fallbackPolicy = {
+    unapprovedFallbackAllowed: false,
+    providerFallbackAuthorized: false,
+  }
+  body.canonicalPlan.components.motionStudioStorytellingStyleAuthority = style
+
+  const productionAuthority = createIdeaFirstStorytellingProductionAuthority({
+    style,
+    components: body.canonicalPlan.components,
+  })
+  body.canonicalPlan.components.motionStudioStorytellingProductionAuthority =
+    productionAuthority
+  const sourceCandidate = buildCanonicalIdeaFirstSourceBindingManifestCandidate(
+    productionAuthority,
+  )
+  body.sourceMediaAuthority = {
+    authorityKind: 'idea_first_storytelling_v1',
+    authorityRevision: sourceCandidate.authorityRevision,
+    authorityChecksumSha256: sourceCandidate.authorityChecksumSha256,
+    sourceSequenceHash: sourceCandidate.sourceSequenceHash,
+    candidateHash: sourceCandidate.candidateHash,
+    productionAuthorityHash: sourceCandidate.productionAuthorityHash,
+    sourceProposalDigest: sourceCandidate.sourceProposalDigest,
+    sourceArtifactApprovalSnapshotId:
+      sourceCandidate.sourceArtifactApprovalSnapshotId,
+  }
+  body.canonicalPlan.workItems = createIdeaFirstStorytellingWorkItems({
+    components: body.canonicalPlan.components,
+    productionAuthority,
+  })
+  const animaticWorkItem = body.canonicalPlan.workItems.find((workItem) =>
+    workItem.workItemKey === 'idea-first-storytelling-animatic-preview')
+  assert.ok(animaticWorkItem)
+  assertCanonicalMotionStudioRemotionDependencyArtifact({
+    workItem: animaticWorkItem,
+    dependency: {
+      contentType: 'audio/wav',
+      byteLength: productionAuthority.narrationPolicy.mode ===
+        'verified_uploaded_narration'
+        ? productionAuthority.narrationPolicy.byteLength
+        : 0,
+      sha256: productionAuthority.narrationPolicy.mode ===
+        'verified_uploaded_narration'
+        ? productionAuthority.narrationPolicy.checksumSha256
+        : sha256ForSmoke('unreachable-generated-narration'),
+    },
+  })
+  assert.throws(
+    () => assertCanonicalMotionStudioRemotionDependencyArtifact({
+      workItem: animaticWorkItem,
+      dependency: {
+        contentType: 'audio/wav',
+        byteLength: productionAuthority.narrationPolicy.mode ===
+          'verified_uploaded_narration'
+          ? productionAuthority.narrationPolicy.byteLength
+          : 0,
+        sha256: sha256ForSmoke('substituted-storytelling-narration'),
+      },
+    }),
+    (error) => error instanceof ApiError && error.code === 'TOOL_NOT_READY',
+  )
+  const generatedAuthorityWithoutHash = structuredClone(productionAuthority) as Omit<
+    CanonicalMotionStudioStorytellingProductionAuthority,
+    'authorityHash'
+  > & { authorityHash?: string }
+  delete generatedAuthorityWithoutHash.authorityHash
+  generatedAuthorityWithoutHash.narrationPolicy = {
+    mode: 'generated_speech_required',
+    requiredByPreviewProfile: true,
+    voiceBibleVersion: productionAuthority.narrationPolicy.voiceBibleVersion,
+    voiceProfileReference: 'voice-profile-storytelling-approved-v1',
+    segmentRequirements: [{
+      preparedScriptSegmentId: 'prepared-script-segment-storytelling-1',
+      sceneId: productionAuthority.orderedScenes[0]!.sceneId,
+      startFrame: 0,
+      endFrame: productionAuthority.timingAuthority.durationFrames,
+      spokenTextDigest: sha256ForSmoke('prepared-script-spoken-text-storytelling-1'),
+    }],
+    expectedProviderOperationId:
+      'provider.elevenlabs.generate_storytelling_speech_candidate.v1',
+    normalizedNarrationRequiredBeforePreview: true,
+    providerExecutionAuthorized: false,
+  }
+  const generatedAuthority =
+    canonicalMotionStudioStorytellingProductionAuthoritySchema.parse({
+      ...generatedAuthorityWithoutHash,
+      authorityHash: sha256AuthorityValue(generatedAuthorityWithoutHash),
+    })
+  assert.equal(generatedAuthority.narrationPolicy.providerExecutionAuthorized, false)
+
+  const handoffService = createCanonicalPlanningHandoffService(serviceContext)
+  const previousReader =
+    serviceContext.canonicalMotionStudioStorytellingProductionAuthorityReaderPort
+  delete serviceContext.canonicalMotionStudioStorytellingProductionAuthorityReaderPort
+  try {
+    await expectApiError(
+      () => handoffService.prepare({
+        workspaceId: targetWorkspaceId,
+        projectId: project.id,
+        editSessionId,
+        purpose: 'prepare_canonical_planning_handoff',
+        orderedSourceItems: [],
+        canonicalPlanComponents: body.canonicalPlan.components,
+      }),
+      'TOOL_NOT_READY',
+      'Idea-first Storytelling must fail before mutation when its exact server reader is absent.',
+    )
+
+    const ordinaryZeroSource = structuredClone(body.canonicalPlan.components)
+    delete ordinaryZeroSource.motionStudioStorytellingProductionAuthority
+    await expectApiError(
+      () => handoffService.prepare({
+        workspaceId: targetWorkspaceId,
+        projectId: project.id,
+        editSessionId,
+        purpose: 'prepare_canonical_planning_handoff',
+        orderedSourceItems: [],
+        canonicalPlanComponents: ordinaryZeroSource,
+      }),
+      'VALIDATION_FAILED',
+      'Ordinary canonical edits must retain exact finalized uploaded-source and cleanup authority.',
+    )
+
+    const fabricatedSourceComponents = structuredClone(body.canonicalPlan.components)
+    fabricatedSourceComponents.sourceSequence = [{
+      sourceSequenceItemId: 'fabricated-idea-first-source',
+      mediaAssetId: 'fabricated-idea-first-media',
+      uploadedOrder: 1,
+      checksumSha256: sha256ForSmoke('fabricated-idea-first-source'),
+      required: true,
+    }]
+    await expectApiError(
+      () => handoffService.prepare({
+        workspaceId: targetWorkspaceId,
+        projectId: project.id,
+        editSessionId,
+        purpose: 'prepare_canonical_planning_handoff',
+        orderedSourceItems: fabricatedSourceComponents.sourceSequence.map((item) => ({
+          ...item,
+          checksumSha256: String(item.checksumSha256),
+        })),
+        canonicalPlanComponents: fabricatedSourceComponents,
+      }),
+      'VALIDATION_FAILED',
+      'Idea-first Storytelling must reject fabricated uploaded-source records.',
+    )
+
+    let sourceVerifiedAuthority: CanonicalMotionStudioStorytellingProductionAuthority =
+      productionAuthority
+    let readerCallCount = 0
+    serviceContext.canonicalMotionStudioStorytellingProductionAuthorityReaderPort = {
+      schemaVersion:
+        CANONICAL_MOTION_STUDIO_STORYTELLING_PRODUCTION_AUTHORITY_READER_VERSION,
+      sourceAuthority: 'motion_studio_storytelling_artifact_repository',
+      evidenceClass: 'controlled_local_source_verified_non_promotable',
+      productionReady: false,
+      async readAndVerifyAuthority(input) {
+        readerCallCount += 1
+        assert.equal(input.workspaceId, targetWorkspaceId)
+        assert.equal(input.projectId, project.id)
+        assert.equal(input.editSessionId, editSessionId)
+        assert.equal(input.productionId, productionAuthority.productionId)
+        assert.equal(
+          input.expectedComponentProposalDigest,
+          productionAuthority.sourceProposal.componentProposalDigest,
+        )
+        assert.equal(input.expectedAuthorityHash, productionAuthority.authorityHash)
+        return structuredClone(sourceVerifiedAuthority)
+      },
+    }
+
+    const handoff = await handoffService.prepare({
+      workspaceId: targetWorkspaceId,
+      projectId: project.id,
+      editSessionId,
+      purpose: 'prepare_canonical_planning_handoff',
+      orderedSourceItems: [],
+      canonicalPlanComponents: body.canonicalPlan.components,
+    })
+    assert.equal(handoff.sourceBindingManifestCandidate.bindings.length, 0)
+    assert.equal(handoff.sourceBindingManifestCandidate.requiredBindingCount, 0)
+    assert.equal(
+      handoff.sourceBindingManifestCandidate.schemaVersion,
+      'private-idea-first-source-authority-candidate-v1',
+    )
+    assert.equal(
+      'sourceAuthorityMode' in handoff.readiness &&
+        handoff.readiness.sourceAuthorityMode,
+      'idea_first_no_uploaded_media',
+    )
+    assert.equal(handoff.readiness.finalizedSourceMediaVerified, false)
+    assert.equal(
+      'ideaFirstStorytellingAuthorityVerified' in handoff.readiness &&
+        handoff.readiness.ideaFirstStorytellingAuthorityVerified,
+      true,
+    )
+    assert.equal(handoff.noPlanPublished, true)
+    assert.equal(handoff.noSnapshotCreated, true)
+    assert.equal(handoff.noCreditReservation, true)
+    assert.equal(handoff.noToolExecution, true)
+    assert.equal(handoff.noProviderCall, true)
+    assert.equal(handoff.noRender, true)
+
+    const staleAuthorityWithoutHash = structuredClone(productionAuthority) as Omit<
+      CanonicalMotionStudioStorytellingProductionAuthority,
+      'authorityHash'
+    > & { authorityHash?: string }
+    delete staleAuthorityWithoutHash.authorityHash
+    staleAuthorityWithoutHash.sourceVerification.sourceRepositoryRevision += 1
+    sourceVerifiedAuthority = canonicalMotionStudioStorytellingProductionAuthoritySchema.parse({
+      ...staleAuthorityWithoutHash,
+      authorityHash: sha256AuthorityValue(staleAuthorityWithoutHash),
+    })
+    await expectApiError(
+      () => handoffService.publishFromPersistedHandoff({
+        workspaceId: targetWorkspaceId,
+        projectId: project.id,
+        editSessionId,
+        handoffId: handoff.handoffId,
+        planningRequestId: body.planningRequestId,
+        canonicalPlan: body.canonicalPlan,
+        expectedHandoffHash: handoff.handoffHash,
+        idempotencyKey: 'publish-idea-first-storytelling-stale-reader',
+      }),
+      'IDEMPOTENCY_CONFLICT',
+      'Changed Motion source authority must fail before canonical publication.',
+    )
+    sourceVerifiedAuthority = productionAuthority
+
+    const published = await handoffService.publishFromPersistedHandoff({
+      workspaceId: targetWorkspaceId,
+      projectId: project.id,
+      editSessionId,
+      handoffId: handoff.handoffId,
+      planningRequestId: body.planningRequestId,
+      canonicalPlan: body.canonicalPlan,
+      expectedHandoffHash: handoff.handoffHash,
+      idempotencyKey: 'publish-idea-first-storytelling-authority-v1',
+    })
+    const publishedAuthority = asRecord(published.authority)
+    const publishedPlan = asRecord(publishedAuthority.plan)
+    const publishedEstimate = asRecord(publishedAuthority.estimate)
+    assert.equal(publishedPlan.status, 'presented')
+    assert.equal(publishedEstimate.status, 'presented')
+    assert.ok(
+      asRecord(publishedPlan.componentRefs)
+        .motionStudioStorytellingProductionAuthority,
+    )
+    assert.equal(
+      body.canonicalPlan.estimate.lineItems.some((line) =>
+        line.label === '4K UHD render and export ceiling' && !line.removable),
+      true,
+    )
+
+    const planningService = createEditPlanningAuthorityService(serviceContext)
+    const approved = await planningService.approveAndFundCanonicalPlan({
+      workspaceId: targetWorkspaceId,
+      editPlanId: String(publishedPlan.id),
+      expectedAuthorityRevision: Number(publishedAuthority.authorityRevision),
+      expectedPlanHash: String(publishedPlan.planHash),
+      expectedEstimateHash: String(publishedEstimate.estimateHash),
+      idempotencyKey: 'approve-idea-first-storytelling-authority-v1',
+    })
+    const snapshot = asRecord(asRecord(approved.authority).snapshot)
+    const loaded = await planningService.loadApprovedExecutionAuthority(
+      String(snapshot.snapshotId),
+      targetWorkspaceId,
+    )
+    assert.deepEqual(
+      loaded.components.motionStudioStorytellingProductionAuthority,
+      productionAuthority,
+    )
+    assert.equal(
+      loaded.sourceAssetManifest.schemaVersion,
+      'private-approved-idea-first-source-authority-manifest-v1',
+    )
+    assert.equal(loaded.sourceAssetManifest.bindings.length, 0)
+    assert.equal(loaded.sourceAssetManifest.requiredBindingCount, 0)
+    if (
+      loaded.sourceAssetManifest.schemaVersion ===
+      'private-approved-idea-first-source-authority-manifest-v1'
+    ) {
+      assert.equal(loaded.sourceAssetManifest.fabricatedUploadRecordCount, 0)
+      assert.equal(loaded.sourceAssetManifest.productionAuthorityHash, productionAuthority.authorityHash)
+      assert.equal(loaded.sourceAssetManifest.editSessionId, editSessionId)
+      assert.equal(loaded.sourceAssetManifest.productionId, productionAuthority.productionId)
+    }
+    assert.equal(loaded.jobs.length, body.canonicalPlan.workItems.length)
+    assert.equal(
+      loaded.jobs.some((job) => job.jobType === 'render_final_export'),
+      false,
+    )
+    assert.equal(
+      loaded.workItems.some((workItem) =>
+        workItem.workItemType === 'render_final_export' ||
+        workItem.workItemType === 'run_final_qa'),
+      false,
+    )
+    assert.equal(
+      loaded.workItems.every((workItem) => !workItem.approvedProviderRoute),
+      true,
+    )
+    assert.equal(
+      loaded.components.motionStudioStorytellingProductionAuthority
+        ?.internalCostAuthority.customerPriceIncluded,
+      false,
+    )
+    assert.equal(
+      loaded.components.motionStudioStorytellingProductionAuthority
+        ?.internalCostAuthority.customerCreditsIncluded,
+      false,
+    )
+    assert.equal(
+      loaded.components.motionStudioStorytellingProductionAuthority
+        ?.internalCostAuthority.serviceFeeIncluded,
+      false,
+    )
+    const uploadAuthority = await readPrivateUploadMediaAuthorityAggregate({
+      localStorageRoot: serviceContext.env.localStorageRoot,
+      ownerUserId: userId,
+      workspaceId: targetWorkspaceId,
+    })
+    assert.equal(
+      uploadAuthority?.uploadIntents.some((record) => record.projectId === project.id) ?? false,
+      false,
+    )
+    assert.equal(
+      uploadAuthority?.mediaAssets.some((record) => record.projectId === project.id) ?? false,
+      false,
+    )
+
+    sourceVerifiedAuthority = canonicalMotionStudioStorytellingProductionAuthoritySchema.parse({
+      ...staleAuthorityWithoutHash,
+      authorityHash: sha256AuthorityValue(staleAuthorityWithoutHash),
+    })
+    await expectApiError(
+      () => planningService.loadApprovedExecutionAuthority(
+        String(snapshot.snapshotId),
+        targetWorkspaceId,
+      ),
+      'IDEMPOTENCY_CONFLICT',
+      'A stale Motion repository read must not silently reinterpret an immutable historical snapshot.',
+    )
+    sourceVerifiedAuthority = productionAuthority
+    const historical = await planningService.loadApprovedExecutionAuthority(
+      String(snapshot.snapshotId),
+      targetWorkspaceId,
+    )
+    assert.equal(historical.snapshot.snapshotHash, snapshot.snapshotHash)
+    assert.deepEqual(
+      historical.components.motionStudioStorytellingProductionAuthority,
+      productionAuthority,
+    )
+    assert.ok(readerCallCount >= 7)
+  } finally {
+    if (previousReader) {
+      serviceContext.canonicalMotionStudioStorytellingProductionAuthorityReaderPort =
+        previousReader
+    } else {
+      delete serviceContext.canonicalMotionStudioStorytellingProductionAuthorityReaderPort
+    }
+  }
+}
+
+function inMemoryPlanBuilderSourcePlaceholder(): SourceMediaFixture {
+  return {
+    expectation: {
+      authorityRevision: 1,
+      authorityChecksumSha256: sha256ForSmoke('in-memory-plan-builder-source-authority'),
+      sourceSequenceHash: sha256ForSmoke('in-memory-plan-builder-source-sequence'),
+      candidateHash: sha256ForSmoke('in-memory-plan-builder-source-candidate'),
+    },
+    sourceSequence: [{
+      sourceSequenceItemId: 'in-memory-plan-builder-source',
+      mediaAssetId: 'in-memory-plan-builder-media',
+      uploadedOrder: 1,
+      checksumSha256: sha256ForSmoke('in-memory-plan-builder-source-bytes'),
+      required: true,
+    }],
+  }
+}
+
+function createIdeaFirstStorytellingProductionAuthority(input: {
+  style: ReturnType<typeof projectCanonicalStorytellingStyleAuthority>
+  components: PublishCanonicalEditPlanBody['canonicalPlan']['components']
+}): CanonicalMotionStudioStorytellingProductionAuthority {
+  const totalFrames = input.components.timingSummary.totalFrames
+  const fps = input.components.timingSummary.fps === 24 ? 24 : 30
+  const timingAuthorityDigest = sha256ForSmoke('idea-first-motion-source-timing-authority')
+  const preparedScriptVersion = {
+    artifactId: 'prepared-script-idea-first-storytelling',
+    versionId: 'prepared-script-idea-first-storytelling-v1',
+    versionNumber: 1,
+    contentDigest: sha256ForSmoke('prepared-script-idea-first-storytelling-v1'),
+    state: 'locked' as const,
+  }
+  const sceneVersion = {
+    artifactId: 'scene-document-idea-first-storytelling',
+    versionId: 'scene-document-idea-first-storytelling-v1',
+    versionNumber: 1,
+    contentDigest: sha256ForSmoke('scene-document-idea-first-storytelling-v1'),
+    state: 'approved' as const,
+  }
+  const voiceBibleVersion = {
+    artifactId: 'voice-bible-idea-first-storytelling',
+    versionId: 'voice-bible-idea-first-storytelling-v1',
+    versionNumber: 1,
+    contentDigest: sha256ForSmoke('voice-bible-idea-first-storytelling-v1'),
+    state: 'locked' as const,
+  }
+  const authorityWithoutHash = {
+    schemaVersion: 'canonical-motion-studio-storytelling-production-authority-v1' as const,
+    componentKey: 'motionStudioStorytellingProductionAuthority' as const,
+    sourceProposal: {
+      schemaVersion: 'motion-studio.storytelling-production-authority-proposal.v1' as const,
+      componentProposalDigest: sha256ForSmoke('accepted-motion-storytelling-production-proposal'),
+      evidenceClass: 'motion_feature_owned_proposal_backend_admission_pending' as const,
+      canonicalBackendAdmissionAuthorized: false as const,
+    },
+    sourceVerification: {
+      readerVersion:
+        CANONICAL_MOTION_STUDIO_STORYTELLING_PRODUCTION_AUTHORITY_READER_VERSION,
+      sourceAuthority: 'motion_studio_storytelling_artifact_repository' as const,
+      evidenceClass: 'controlled_local_source_verified_non_promotable' as const,
+      sourceRepositoryRevision: 1,
+      sourceRepositoryReadDigest: sha256ForSmoke('motion-storytelling-source-repository-read'),
+      sourcePayloadDigestsReverified: true as const,
+      exactScopeReverified: true as const,
+      exactApprovalStatesReverified: true as const,
+    },
+    workspaceId: input.style.workspaceId,
+    projectId: input.style.projectId,
+    editSessionId: input.style.editSessionId,
+    productionId: input.style.productionId,
+    sourceMode: 'idea_first_no_uploaded_media' as const,
+    preparedScript: {
+      version: preparedScriptVersion,
+      scriptId: 'script-idea-first-storytelling',
+      userLockedText: true as const,
+      narrationSegmentCount: 1,
+    },
+    sourceArtifactApprovalSnapshotId: 'motion-source-artifact-approval-snapshot-v1',
+    orderedScenes: [{
+      order: 0,
+      sceneId: 'scene-idea-first-storytelling-1',
+      chapterId: 'chapter-idea-first-storytelling-1',
+      title: 'Approved opening Storytelling scene',
+      semanticPurpose: 'Introduce the approved idea with exact narration and timing.',
+      productionMode: 'native_graphics_first' as const,
+      version: sceneVersion,
+      startTimingAnchorId: 'timing-anchor-storytelling-start',
+      endTimingAnchorId: 'timing-anchor-storytelling-end',
+      startFrame: 0,
+      endFrame: totalFrames,
+    }],
+    narrationPolicy: {
+      mode: 'verified_uploaded_narration' as const,
+      requiredByPreviewProfile: true as const,
+      voiceBibleVersion,
+      uploadedNarrationAuthorityDigest: sha256ForSmoke('verified-uploaded-narration-authority'),
+      mediaAssetId: 'motion-narration-media-asset-v1',
+      storageObjectRecordId: 'motion-narration-storage-object-v1',
+      checksumSha256: sha256ForSmoke('verified-uploaded-narration-bytes'),
+      mimeType: 'audio/wav' as const,
+      byteLength: 48_044,
+      durationMilliseconds: Math.ceil((totalFrames / fps) * 1_000),
+      normalizedNarrationRequiredBeforePreview: false as const,
+      providerExecutionAuthorized: false as const,
+    },
+    timingAuthority: {
+      masterTimingPlanVersionId: 'master-timing-plan-idea-first-storytelling-v1',
+      confirmedFrameId: 'confirmed-frame-idea-first-storytelling-v1',
+      timingAuthorityDigest,
+      frameRate: fps,
+      width: input.components.confirmedSettings.outputFrame.width,
+      height: input.components.confirmedSettings.outputFrame.height,
+      aspectRatio: input.components.confirmedSettings.aspectRatio,
+      durationFrames: totalFrames,
+      timebase: `${fps}/1`,
+    },
+    confirmedOutputFrame: {
+      confirmedFrameId: 'confirmed-frame-idea-first-storytelling-v1',
+      width: input.components.confirmedSettings.outputFrame.width,
+      height: input.components.confirmedSettings.outputFrame.height,
+      aspectRatio: input.components.confirmedSettings.aspectRatio,
+      frameRate: fps,
+      durationFrames: totalFrames,
+      timingAuthorityDigest,
+    },
+    storytellingStyleAuthority: {
+      componentKey: 'motionStudioStorytellingStyleAuthority' as const,
+      componentDigest: sha256AuthorityValue(input.style),
+      selectionDigest: input.style.styleSelection.selectionDigest,
+      styleProfileId: input.style.styleSelection.styleProfile.styleProfileId,
+      motionLanguageDigest: input.style.styleSelection.motionLanguage.motionLanguageDigest,
+    },
+    sourceCleanup: {
+      applicability: 'not_applicable' as const,
+      reason: 'idea_first_storytelling_has_no_uploaded_media_source' as const,
+      decisionCount: 0 as const,
+      fabricatedSourceRecordAllowed: false as const,
+    },
+    internalCostAuthority: {
+      estimateId: input.style.internalCostEnvelope.estimateId,
+      estimateDigest: input.style.internalCostEnvelope.estimateDigest,
+      maximumAuthorizedInternalProductionCostMicros:
+        input.style.internalCostEnvelope.maximumEstimatedInternalProductionCostMicros,
+      internalProductionCostOnly: true as const,
+      customerPriceIncluded: false as const,
+      customerCreditsIncluded: false as const,
+      serviceFeeIncluded: false as const,
+    },
+    changedScriptSceneNarrationStyleFrameOrTimingRequiresFreshPlanAndEstimate: true as const,
+    historicalApprovedSnapshotRemainsImmutable: true as const,
+    sourceRepositoryReverified: true as const,
+    noUploadedSourceExpected: true as const,
+    fabricatedUploadRecordCount: 0 as const,
+    privateInternalControlledPlanningOnly: true as const,
+    runtimeExecutionAuthorized: false as const,
+    providerExecutionAuthorized: false as const,
+    customerCommercialAuthorityGranted: false as const,
+    productionReady: false as const,
+    immutable: true as const,
+  }
+  return canonicalMotionStudioStorytellingProductionAuthoritySchema.parse({
+    ...authorityWithoutHash,
+    authorityHash: sha256AuthorityValue(authorityWithoutHash),
+  })
+}
+
+function createIdeaFirstStorytellingWorkItems(input: {
+  components: PublishCanonicalEditPlanBody['canonicalPlan']['components']
+  productionAuthority: CanonicalMotionStudioStorytellingProductionAuthority
+}): PublishCanonicalEditPlanBody['canonicalPlan']['workItems'] {
+  const style = input.components.motionStudioStorytellingStyleAuthority
+  if (!style) throw new Error('Idea-first Storytelling smoke requires exact style authority.')
+  const previewFrame = { width: 360 as const, height: 640 as const, fps: 30 as const }
+  const bindingWithoutHash = {
+    schemaVersion: CANONICAL_MOTION_STUDIO_REMOTION_PREVIEW_BINDING_VERSION,
+    sourceAuthority: 'motion_studio_storytelling_compiler' as const,
+    evidenceClass: 'controlled_local_content_addressed_non_promotable' as const,
+    workspaceId: style.workspaceId,
+    projectId: style.projectId,
+    editSessionId: style.editSessionId,
+    productionId: style.productionId,
+    storytellingProductionAuthorityHash: input.productionAuthority.authorityHash,
+    compositionProfileId: 'motion_studio_prepared_script_animatic_v1' as const,
+    canonicalStyleComponentDigest: sha256AuthorityValue(style),
+    styleSelectionDigest: style.styleSelection.selectionDigest,
+    motionDna: { ...style.styleSelection.motionDnaVersion },
+    referenceContracts: style.styleSelection.referenceContractVersions.map((item) => ({ ...item })),
+    sourceAuditDigests: [...style.styleSelection.sourceAuditDigests],
+    calibrationPlan: {
+      id: style.calibrationPlan.id,
+      digest: style.calibrationPlan.planDigest,
+    },
+    internalCostEnvelope: {
+      estimateId: style.internalCostEnvelope.estimateId,
+      digest: style.internalCostEnvelope.estimateDigest,
+    },
+    preparedScript: { ...input.productionAuthority.preparedScript.version },
+    sceneDocuments: input.productionAuthority.orderedScenes.map((scene) => ({ ...scene.version })),
+    narrationAuthorityDigest: sha256AuthorityValue(input.productionAuthority.narrationPolicy),
+    narrationDependencyAuthority: {
+      mode: 'verified_uploaded_narration' as const,
+      narrationPolicyDigest: sha256AuthorityValue(input.productionAuthority.narrationPolicy),
+      mediaAssetId: input.productionAuthority.narrationPolicy.mode ===
+        'verified_uploaded_narration'
+        ? input.productionAuthority.narrationPolicy.mediaAssetId
+        : 'unreachable-generated-narration-media',
+      storageObjectRecordId: input.productionAuthority.narrationPolicy.mode ===
+        'verified_uploaded_narration'
+        ? input.productionAuthority.narrationPolicy.storageObjectRecordId
+        : 'unreachable-generated-narration-storage',
+      checksumSha256: input.productionAuthority.narrationPolicy.mode ===
+        'verified_uploaded_narration'
+        ? input.productionAuthority.narrationPolicy.checksumSha256
+        : sha256ForSmoke('unreachable-generated-narration'),
+      mimeType: 'audio/wav' as const,
+      byteLength: input.productionAuthority.narrationPolicy.mode ===
+        'verified_uploaded_narration'
+        ? input.productionAuthority.narrationPolicy.byteLength
+        : 44,
+      currentPrivateArtifactPresent: true as const,
+      providerExecutionAuthorized: false as const,
+    },
+    timingAuthorityDigest: canonicalMotionStudioTimingAuthorityDigest(input.components),
+    confirmedOutputFrame: { ...input.components.confirmedSettings.outputFrame },
+    previewFrame,
+    sourceRepositoryReverified: false as const,
+    privateInternalControlledExecutionOnly: true as const,
+    providerExecutionAuthorized: false as const,
+    customerPriceIncluded: false as const,
+    customerCreditsIncluded: false as const,
+    serviceFeeIncluded: false as const,
+    productionReady: false as const,
+  }
+  const binding = canonicalMotionStudioRemotionPreviewBindingSchema.parse({
+    ...bindingWithoutHash,
+    bindingHash: sha256AuthorityValue(bindingWithoutHash),
+  })
+  const common = {
+    sourceSequenceItemIds: [] as string[],
+    sourceCleanupDecisionIds: [] as string[],
+    providerExecutionMode: 'none' as const,
+    fallbackPolicy: {},
+    maxAttempts: 1,
+    scheduledDelaySeconds: 0,
+    required: true as const,
+  }
+  return [{
+    workItemKey: 'idea-first-snapshot-validation',
+    workItemType: 'validate_approved_snapshot',
+    workerClass: 'authority_worker',
+    executionInput: { operation: 'validate_snapshot_manifest' },
+    ...common,
+    expectedOutputs: [{
+      outputKey: 'idea-first-snapshot-validation-evidence',
+      artifactType: 'authority_validation_evidence',
+      assetRole: 'qa',
+      required: true,
+      previewPlaceholderAllowed: false,
+      contentType: 'application/json',
+      segmentIds: [],
+      timingIds: [],
+      rendererLayerIds: [],
+    }],
+    dependencyKeys: [],
+    approvedToolIds: [],
+    attemptTimeoutSeconds: 60,
+    maximumCreditBudget: 1,
+  }, {
+    workItemKey: 'idea-first-approved-narration-authority',
+    workItemType: 'custom',
+    workerClass: 'media_processing_worker',
+    executionInput: { operation: 'bind_verified_uploaded_storytelling_narration' },
+    ...common,
+    expectedOutputs: [{
+      outputKey: 'idea-first-approved-narration-wav',
+      artifactType: 'verified_uploaded_storytelling_narration_wav',
+      assetRole: 'processed',
+      required: true,
+      previewPlaceholderAllowed: false,
+      contentType: 'audio/wav',
+      segmentIds: ['segment-1'],
+      timingIds: ['master-timing-plan'],
+      rendererLayerIds: [],
+    }],
+    dependencyKeys: ['idea-first-snapshot-validation'],
+    approvedToolIds: [],
+    attemptTimeoutSeconds: 120,
+    maximumCreditBudget: 1,
+  }, {
+    workItemKey: 'idea-first-storytelling-animatic-preview',
+    workItemType: 'render_remotion_preview',
+    workerClass: 'render_worker',
+    executionInput: {
+      operation: CANONICAL_MOTION_STUDIO_REMOTION_PREVIEW_OPERATION,
+      approvedToolOperationIds: ['tool.remotion.render_approved_composition.v1'],
+      expectedOutputKeys: ['idea-first-storytelling-animatic-mp4'],
+      motionStudioStorytellingAuthority: binding,
+      structuredPayload: {
+        compositionProfileId: 'motion_studio_prepared_script_animatic_v1',
+        ...previewFrame,
+        durationFrames: input.productionAuthority.timingAuthority.durationFrames,
+        scenes: input.productionAuthority.orderedScenes.map((scene) => ({
+          order: scene.order,
+          sceneId: scene.sceneId,
+          startFrame: scene.startFrame,
+          endFrame: scene.endFrame,
+          title: scene.title,
+          visualDescription: scene.semanticPurpose,
+        })),
+        panelBackground: '#0F172A',
+        accentColor: '#FF4D8D',
+      },
+    },
+    ...common,
+    expectedOutputs: [{
+      outputKey: 'idea-first-storytelling-animatic-mp4',
+      artifactType: 'motion_studio_prepared_script_animatic_private_preview_mp4',
+      assetRole: 'preview',
+      required: true,
+      previewPlaceholderAllowed: false,
+      contentType: 'video/mp4',
+      segmentIds: ['segment-1'],
+      timingIds: ['master-timing-plan'],
+      rendererLayerIds: ['motion-studio-storytelling-animatic-layer'],
+    }],
+    dependencyKeys: ['idea-first-approved-narration-authority'],
+    approvedToolIds: ['remotion'],
+    attemptTimeoutSeconds: 300,
+    maximumCreditBudget: 3,
+  }, {
+    workItemKey: 'idea-first-storytelling-animatic-qa',
+    workItemType: 'run_asset_qa',
+    workerClass: 'qa_worker',
+    executionInput: { operation: 'validate_private_storytelling_animatic' },
+    ...common,
+    expectedOutputs: [{
+      outputKey: 'idea-first-storytelling-animatic-qa-report',
+      artifactType: 'motion_studio_storytelling_animatic_qa_report',
+      assetRole: 'qa',
+      required: true,
+      previewPlaceholderAllowed: false,
+      contentType: 'application/json',
+      segmentIds: ['segment-1'],
+      timingIds: ['master-timing-plan'],
+      rendererLayerIds: [],
+    }],
+    dependencyKeys: ['idea-first-storytelling-animatic-preview'],
+    approvedToolIds: [],
+    attemptTimeoutSeconds: 120,
+    maximumCreditBudget: 1,
+  }]
 }
 
 function createStorytellingStylePlanReviewSource(input: {

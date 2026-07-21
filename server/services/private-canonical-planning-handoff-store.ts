@@ -256,12 +256,29 @@ function assertCanonicalPlanningHandoff(
     throw invalidStoredHandoff('Canonical planning handoff content identity is invalid.')
   }
   const candidate = handoff.sourceBindingManifestCandidate
-  if (stableAuthorityStringify(handoff.sourceMediaAuthority) !== stableAuthorityStringify({
-    authorityRevision: candidate.authorityRevision,
-    authorityChecksumSha256: candidate.authorityChecksumSha256,
-    sourceSequenceHash: candidate.sourceSequenceHash,
-    candidateHash: candidate.candidateHash,
-  })) {
+  const expectedSourceAuthority = candidate.schemaVersion ===
+    'private-idea-first-source-authority-candidate-v1'
+    ? {
+        authorityKind: 'idea_first_storytelling_v1' as const,
+        authorityRevision: candidate.authorityRevision,
+        authorityChecksumSha256: candidate.authorityChecksumSha256,
+        sourceSequenceHash: candidate.sourceSequenceHash,
+        candidateHash: candidate.candidateHash,
+        productionAuthorityHash: candidate.productionAuthorityHash,
+        sourceProposalDigest: candidate.sourceProposalDigest,
+        sourceArtifactApprovalSnapshotId:
+          candidate.sourceArtifactApprovalSnapshotId,
+      }
+    : {
+        authorityRevision: candidate.authorityRevision,
+        authorityChecksumSha256: candidate.authorityChecksumSha256,
+        sourceSequenceHash: candidate.sourceSequenceHash,
+        candidateHash: candidate.candidateHash,
+      }
+  if (
+    stableAuthorityStringify(handoff.sourceMediaAuthority) !==
+    stableAuthorityStringify(expectedSourceAuthority)
+  ) {
     throw invalidStoredHandoff('Canonical planning handoff source authority is inconsistent.')
   }
   if (

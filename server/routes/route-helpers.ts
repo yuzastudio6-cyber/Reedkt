@@ -32,6 +32,8 @@ export function getServiceContext(request: Request): ServiceContext {
       runtimeRequest.runtime.canonicalUploadTargetCredentialEscrow,
     editReferenceStudyChatRuntimePort:
       runtimeRequest.runtime.editReferenceStudyChatRuntimePort,
+    canonicalMotionStudioStorytellingProductionAuthorityReaderPort:
+      runtimeRequest.runtime.canonicalMotionStudioStorytellingProductionAuthorityReaderPort,
   }
 }
 

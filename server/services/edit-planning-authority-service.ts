@@ -37,6 +37,10 @@ import {
   canonicalStorytellingStyleAuthorityMatchesScope,
 } from '../validation/canonical-storytelling-style-authority-schemas'
 import {
+  CANONICAL_MOTION_STUDIO_STORYTELLING_PRODUCTION_AUTHORITY_COMPONENT_KEY,
+  type CanonicalMotionStudioStorytellingProductionAuthority,
+} from '../validation/canonical-motion-studio-storytelling-production-authority-schemas'
+import {
   resolvedPlanningInputAuthorityBindingSchema,
   type ResolvedPlanningInputAuthorityBinding,
 } from '../validation/planning-input-authority-binding-schemas'
@@ -77,6 +81,10 @@ import {
 } from './private-edit-authority-store'
 import { authorizeWorkspaceAccess } from './workspace-access-service'
 import { createSourceMediaAuthorityService } from './source-media-authority-service'
+import {
+  buildCanonicalIdeaFirstSourceBindingManifestCandidate,
+  revalidateCanonicalMotionStudioStorytellingProductionAuthority,
+} from './canonical-motion-studio-storytelling-production-authority-service'
 import {
   CANONICAL_PROFESSIONAL_LONG_FORM_CONTROLLER_WORK_ITEM_KEY,
   loadCanonicalProfessionalLongFormPublicationAuthority,
@@ -139,6 +147,7 @@ const PLAN_COMPONENT_NAMES = [
 
 const OPTIONAL_PLAN_COMPONENT_NAMES = [
   CANONICAL_STORYTELLING_STYLE_AUTHORITY_COMPONENT_KEY,
+  CANONICAL_MOTION_STUDIO_STORYTELLING_PRODUCTION_AUTHORITY_COMPONENT_KEY,
 ] as const satisfies readonly (keyof CanonicalPlanComponentsInput)[]
 
 const SNAPSHOT_COMPONENT_NAMES = [...PLAN_COMPONENT_NAMES, 'planningInputAuthority', 'sourceMediaAuthority'] as const
@@ -221,6 +230,17 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
           editSessionId: input.editSessionId,
         },
       )
+      const storytellingProductionAuthority =
+        await revalidateCanonicalMotionStudioStorytellingProductionAuthority({
+          context,
+          authority:
+            body.canonicalPlan.components.motionStudioStorytellingProductionAuthority,
+          expectedScope: {
+            workspaceId: access.workspaceId,
+            projectId: input.projectId,
+            editSessionId: input.editSessionId,
+          },
+        })
       const idempotencyKey = requireIdempotencyKey(input.idempotencyKey)
       const planningInputAuthority = await resolvePlanningInputAuthorityBinding({
         context,
@@ -240,6 +260,7 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         projectId: input.projectId,
         sourceSequence: body.canonicalPlan.components.sourceSequence,
         expectation: body.sourceMediaAuthority,
+        storytellingProductionAuthority,
       })
       const professionalLongFormPublication = input.professionalLongFormSeedDraft === undefined
         ? undefined
@@ -445,12 +466,23 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
             persistedBinding: planningInputAuthority,
             components: canonicalPlan.components,
           })
+          const lockedStorytellingProductionAuthority =
+            await revalidateCanonicalMotionStudioStorytellingProductionAuthority({
+              context,
+              authority: storytellingProductionAuthority,
+              expectedScope: {
+                workspaceId: access.workspaceId,
+                projectId: input.projectId,
+                editSessionId: input.editSessionId,
+              },
+            })
           await buildAndVerifySourceMediaAuthority({
             context,
             workspaceId: access.workspaceId,
             projectId: input.projectId,
             sourceSequence: canonicalPlan.components.sourceSequence,
             expectation: sourceExpectationFromCandidate(sourceMediaAuthority),
+            storytellingProductionAuthority: lockedStorytellingProductionAuthority,
           })
 
           const duplicatePlanningRequest = aggregate.plans.find((plan) => plan.planningRequestId === body.planningRequestId)
@@ -657,6 +689,17 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
           editSessionId: targetPlan.editSessionId,
         },
       )
+      const approvalStorytellingProductionAuthority =
+        await revalidateCanonicalMotionStudioStorytellingProductionAuthority({
+          context,
+          authority:
+            approvalComponents.motionStudioStorytellingProductionAuthority,
+          expectedScope: {
+            workspaceId: access.workspaceId,
+            projectId: targetPlan.projectId,
+            editSessionId: targetPlan.editSessionId,
+          },
+        })
       const approvalPlanWorkItems = targetPlan.workItemIds.map((workItemId) =>
         requirePlanWorkItem(aggregateBefore!, workItemId, targetPlan.id))
       const approvalToolWorkItems = await loadPlanToolAuthorityWorkItems(
@@ -718,6 +761,7 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         projectId: targetPlan.projectId,
         sourceSequence: approvalComponents.sourceSequence,
         expectation: sourceExpectationFromCandidate(approvalSourceMediaAuthority),
+        storytellingProductionAuthority: approvalStorytellingProductionAuthority,
       })
 
       const requestHash = sha256AuthorityValue({
@@ -752,12 +796,23 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
             persistedBinding: approvalPlanningInputAuthority,
             components: approvalComponents,
           })
+          const lockedStorytellingProductionAuthority =
+            await revalidateCanonicalMotionStudioStorytellingProductionAuthority({
+              context,
+              authority: approvalStorytellingProductionAuthority,
+              expectedScope: {
+                workspaceId: access.workspaceId,
+                projectId: plan.projectId,
+                editSessionId: plan.editSessionId,
+              },
+            })
           await buildAndVerifySourceMediaAuthority({
             context,
             workspaceId: access.workspaceId,
             projectId: plan.projectId,
             sourceSequence: approvalComponents.sourceSequence,
             expectation: sourceExpectationFromCandidate(approvalSourceMediaAuthority),
+            storytellingProductionAuthority: lockedStorytellingProductionAuthority,
           })
           if (plan.status !== 'presented') throw new ApiError('PLAN_NOT_APPROVED', 'Only the current presented plan can be approved.', 409)
           if (estimate.status !== 'presented') throw new ApiError('CREDIT_ESTIMATE_NOT_APPROVED', 'Only the current presented estimate can be approved.', 409)
@@ -1292,6 +1347,17 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
           editSessionId: snapshot.editSessionId,
         },
       )
+      const approvedStorytellingProductionAuthority =
+        await revalidateCanonicalMotionStudioStorytellingProductionAuthority({
+          context,
+          authority:
+            approvedComponents.motionStudioStorytellingProductionAuthority,
+          expectedScope: {
+            workspaceId: access.workspaceId,
+            projectId: snapshot.projectId,
+            editSessionId: snapshot.editSessionId,
+          },
+        })
       const planningInputAuthority = await loadPlanningInputAuthorityBinding(context, snapshot.componentRefs)
       const sourceMediaAuthority = await loadSourceMediaAuthorityCandidate(context, snapshot.componentRefs)
       const planningHandoffAuthority = await loadOptionalPlanningHandoffAuthority({
@@ -1313,6 +1379,7 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         projectId: snapshot.projectId,
         sourceSequence: approvedComponents.sourceSequence,
         expectation: sourceExpectationFromCandidate(sourceMediaAuthority),
+        storytellingProductionAuthority: approvedStorytellingProductionAuthority,
       })
       const sourceAssetManifestValue = await readPrivateAuthorityJsonBlob({
         localStorageRoot: context.env.localStorageRoot,
@@ -2034,7 +2101,45 @@ async function buildAndVerifySourceMediaAuthority(input: {
   projectId: string
   sourceSequence: CanonicalPlanComponentsInput['sourceSequence']
   expectation: SourceMediaAuthorityExpectation
+  storytellingProductionAuthority?: CanonicalMotionStudioStorytellingProductionAuthority
 }): Promise<SourceBindingManifestCandidate> {
+  if (input.storytellingProductionAuthority) {
+    if (
+      input.storytellingProductionAuthority.workspaceId !== input.workspaceId ||
+      input.storytellingProductionAuthority.projectId !== input.projectId ||
+      input.sourceSequence.length !== 0 ||
+      !('authorityKind' in input.expectation) ||
+      input.expectation.authorityKind !== 'idea_first_storytelling_v1'
+    ) {
+      throw new ApiError(
+        'UPLOAD_SOURCE_MISMATCH',
+        'Idea-first Storytelling source authority must contain no uploaded media and must use its exact production-authority expectation.',
+        409,
+      )
+    }
+    const candidate = buildCanonicalIdeaFirstSourceBindingManifestCandidate(
+      input.storytellingProductionAuthority,
+    )
+    if (
+      stableAuthorityStringify(sourceExpectationFromCandidate(candidate)) !==
+      stableAuthorityStringify(input.expectation)
+    ) {
+      throw new ApiError(
+        'UPLOAD_SOURCE_MISMATCH',
+        'Idea-first Storytelling source authority changed after the planner loaded it.',
+        409,
+        { requiredFlow: 'reload_storytelling_production_authority_and_replan' },
+      )
+    }
+    return candidate
+  }
+  if (input.sourceSequence.length === 0 || 'authorityKind' in input.expectation) {
+    throw new ApiError(
+      'UPLOAD_SOURCE_MISMATCH',
+      'Ordinary canonical edits require exact finalized uploaded-source authority.',
+      409,
+    )
+  }
   if (input.sourceSequence.some((item) => !item.checksumSha256)) {
     throw new ApiError('UPLOAD_SOURCE_MISMATCH', 'Every canonical source item requires the finalized server-computed SHA-256.', 409)
   }
@@ -2087,6 +2192,18 @@ async function loadSourceMediaAuthorityCandidate(
 }
 
 function sourceExpectationFromCandidate(candidate: SourceBindingManifestCandidate): SourceMediaAuthorityExpectation {
+  if (candidate.schemaVersion === 'private-idea-first-source-authority-candidate-v1') {
+    return {
+      authorityKind: 'idea_first_storytelling_v1',
+      authorityRevision: candidate.authorityRevision,
+      authorityChecksumSha256: candidate.authorityChecksumSha256,
+      sourceSequenceHash: candidate.sourceSequenceHash,
+      candidateHash: candidate.candidateHash,
+      productionAuthorityHash: candidate.productionAuthorityHash,
+      sourceProposalDigest: candidate.sourceProposalDigest,
+      sourceArtifactApprovalSnapshotId: candidate.sourceArtifactApprovalSnapshotId,
+    }
+  }
   return {
     authorityRevision: candidate.authorityRevision,
     authorityChecksumSha256: candidate.authorityChecksumSha256,
@@ -2100,6 +2217,33 @@ function createApprovedSourceAssetManifest(input: {
   sourceCandidate: SourceBindingManifestCandidate
   approvedAt: string
 }): ApprovedSourceBindingManifest {
+  if (input.sourceCandidate.schemaVersion === 'private-idea-first-source-authority-candidate-v1') {
+    const manifestWithoutHash = {
+      schemaVersion: 'private-approved-idea-first-source-authority-manifest-v1' as const,
+      snapshotId: input.snapshotId,
+      workspaceId: input.sourceCandidate.workspaceId,
+      projectId: input.sourceCandidate.projectId,
+      editSessionId: input.sourceCandidate.editSessionId,
+      productionId: input.sourceCandidate.productionId,
+      sourceMode: input.sourceCandidate.sourceMode,
+      authorityRevision: input.sourceCandidate.authorityRevision,
+      authorityChecksumSha256: input.sourceCandidate.authorityChecksumSha256,
+      sourceSequenceHash: input.sourceCandidate.sourceSequenceHash,
+      sourceCandidateHash: input.sourceCandidate.candidateHash,
+      productionAuthorityHash: input.sourceCandidate.productionAuthorityHash,
+      sourceProposalDigest: input.sourceCandidate.sourceProposalDigest,
+      sourceArtifactApprovalSnapshotId:
+        input.sourceCandidate.sourceArtifactApprovalSnapshotId,
+      bindings: [] as [],
+      requiredBindingCount: 0 as const,
+      fabricatedUploadRecordCount: 0 as const,
+      approvedAt: input.approvedAt,
+    }
+    return approvedSourceBindingManifestSchema.parse({
+      ...manifestWithoutHash,
+      manifestHash: sha256AuthorityValue(manifestWithoutHash),
+    })
+  }
   const manifestWithoutHash = {
     schemaVersion: 'private-approved-source-binding-manifest-v1' as const,
     snapshotId: input.snapshotId,
@@ -2125,19 +2269,18 @@ function assertApprovedSourceAssetManifestMatchesAuthority(
   snapshot: AuthorityApprovedSnapshotManifest,
   candidate: SourceBindingManifestCandidate,
 ): void {
-  const { manifestHash, ...manifestWithoutHash } = manifest
+  const expectedManifest = createApprovedSourceAssetManifest({
+    snapshotId: snapshot.snapshotId,
+    sourceCandidate: candidate,
+    approvedAt: manifest.approvedAt,
+  })
   if (
     manifest.snapshotId !== snapshot.snapshotId ||
     manifest.workspaceId !== snapshot.workspaceId ||
     manifest.projectId !== snapshot.projectId ||
     manifest.sourceCandidateHash !== candidate.candidateHash ||
-    manifest.authorityRevision !== candidate.authorityRevision ||
-    manifest.authorityChecksumSha256 !== candidate.authorityChecksumSha256 ||
-    manifest.sourceSequenceHash !== candidate.sourceSequenceHash ||
-    stableAuthorityStringify(manifest.bindings) !== stableAuthorityStringify(candidate.bindings) ||
-    manifest.requiredBindingCount !== candidate.requiredBindingCount ||
-    manifestHash !== snapshot.approvedSourceAssetManifestHash ||
-    manifestHash !== sha256AuthorityValue(manifestWithoutHash) ||
+    stableAuthorityStringify(manifest) !== stableAuthorityStringify(expectedManifest) ||
+    manifest.manifestHash !== snapshot.approvedSourceAssetManifestHash ||
     snapshot.approvedSourceAssetManifestRef.sha256 !== sha256AuthorityValue(manifest)
   ) {
     throw new ApiError('APPROVED_SNAPSHOT_REQUIRED', 'Approved source-asset manifest lineage or hash is invalid.', 409)
@@ -2212,6 +2355,16 @@ function validateCanonicalPlanDraft(
     professionalLongFormControllerRequired: boolean
   },
 ): void {
+  const ideaFirstStorytelling = Boolean(
+    components.motionStudioStorytellingProductionAuthority,
+  )
+  if (ideaFirstStorytelling && options.professionalLongFormControllerRequired) {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      'Idea-first Storytelling preview authority cannot be combined with the uploaded-source professional long-form controller.',
+      400,
+    )
+  }
   const uploadedOrders = components.sourceSequence.map((item) => item.uploadedOrder)
   const expectedOrders = components.sourceSequence.map((_, index) => index + 1)
   if (
@@ -2340,6 +2493,36 @@ function validateCanonicalPlanDraft(
         { workItemKey: workItem.workItemKey },
       )
     }
+    if (
+      ideaFirstStorytelling &&
+      [
+        'prepare_source_trim',
+        'select_retake',
+        'validate_meaning_preservation',
+        'process_video_asset',
+        'render_final_export',
+        'run_final_qa',
+      ].includes(workItem.workItemType)
+    ) {
+      throw new ApiError(
+        'VALIDATION_FAILED',
+        'Idea-first Storytelling authority admits only its bounded private preview graph and cannot fabricate source-cleanup or final-delivery work.',
+        400,
+        { workItemKey: workItem.workItemKey, workItemType: workItem.workItemType },
+      )
+    }
+    if (
+      ideaFirstStorytelling &&
+      (workItem.approvedProviderRoute !== undefined ||
+        workItem.providerExecutionMode !== 'none')
+    ) {
+      throw new ApiError(
+        'PROVIDER_ROUTE_BLOCKED',
+        'The accepted idea-first Storytelling preview authority does not authorize provider dispatch.',
+        409,
+        { workItemKey: workItem.workItemKey },
+      )
+    }
     const outputKeys = new Set(workItem.expectedOutputs.map((output) => output.outputKey))
     if (outputKeys.size !== workItem.expectedOutputs.length) {
       throw new ApiError('VALIDATION_FAILED', 'Canonical expected-output keys must be unique within a work item.', 400, {
@@ -2384,10 +2567,43 @@ function validateCanonicalPlanDraft(
     }
   }
   assertCanonicalMotionStudioRemotionPlanAuthority({ components, workItems })
+  if (
+    ideaFirstStorytelling &&
+    components.motionStudioStorytellingProductionAuthority?.narrationPolicy.mode ===
+      'generated_speech_required'
+  ) {
+    throw new ApiError(
+      'TOOL_NOT_READY',
+      'Generated Storytelling narration requires the canonical ElevenLabs speech lifecycle to produce one exact normalized private artifact before this animatic plan can be approved.',
+      409,
+      {
+        requiredGate: 'canonical_storytelling_speech_artifact_authority',
+        expectedProviderOperationId:
+          components.motionStudioStorytellingProductionAuthority.narrationPolicy
+            .expectedProviderOperationId,
+      },
+    )
+  }
+  if (
+    ideaFirstStorytelling &&
+    components.motionStudioStorytellingProductionAuthority?.narrationPolicy.mode ===
+      'verified_uploaded_narration' &&
+    components.motionStudioStorytellingProductionAuthority.narrationPolicy.mimeType !==
+      'audio/wav'
+  ) {
+    throw new ApiError(
+      'TOOL_NOT_READY',
+      'The current canonical animatic profile requires exact normalized audio/wav narration bytes.',
+      409,
+      { requiredGate: 'canonical_storytelling_narration_normalization' },
+    )
+  }
   assertAcyclicWorkGraph(workItems)
   const requiredTypes = options.professionalLongFormControllerRequired
     ? ['validate_approved_snapshot'] as const
-    : ['validate_approved_snapshot', 'run_final_qa', 'render_final_export'] as const
+    : ideaFirstStorytelling
+      ? ['validate_approved_snapshot', 'render_remotion_preview', 'run_asset_qa'] as const
+      : ['validate_approved_snapshot', 'run_final_qa', 'render_final_export'] as const
   for (const requiredType of requiredTypes) {
     if (!workItems.some((item) => item.workItemType === requiredType && item.required)) {
       throw new ApiError('VALIDATION_FAILED', `Canonical work graph is missing required ${requiredType} authority.`, 400)
@@ -2408,6 +2624,18 @@ function validateCanonicalPlanDraft(
       throw new ApiError(
         'VALIDATION_FAILED',
         'Professional long-form publication requires one controller and forbids competing pre-expansion final-export or final-QA authority.',
+        400,
+      )
+    }
+  } else if (ideaFirstStorytelling) {
+    if (
+      finalExportItems.length > 0 ||
+      workItems.some((item) =>
+        item.expectedOutputs.some((output) => output.assetRole === 'final'))
+    ) {
+      throw new ApiError(
+        'VALIDATION_FAILED',
+        'Idea-first Storytelling planning may authorize a private preview only; final delivery remains a separate closed gate.',
         400,
       )
     }

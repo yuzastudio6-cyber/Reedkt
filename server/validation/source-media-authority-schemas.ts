@@ -46,7 +46,7 @@ export const buildSourceBindingManifestCandidateSchema = z.object({
   }
 })
 
-const sourceBindingCandidateItemSchema = z.object({
+export const sourceBindingCandidateItemSchema = z.object({
   sourceSequenceItemId: privateUploadMediaSafeIdSchema,
   mediaAssetId: privateUploadMediaSafeIdSchema,
   uploadedOrder: z.number().int().positive().max(10_000),
@@ -63,7 +63,7 @@ const sourceBindingCandidateItemSchema = z.object({
   bindingHash: sha256Schema,
 }).strict()
 
-export const sourceBindingManifestCandidateSchema = z.object({
+export const uploadedSourceBindingManifestCandidateSchema = z.object({
   schemaVersion: z.literal('private-source-binding-manifest-candidate-v1'),
   authorityStatus: z.literal('unapproved_manifest_candidate'),
   executionAuthorized: z.literal(false),
@@ -80,14 +80,58 @@ export const sourceBindingManifestCandidateSchema = z.object({
   candidateHash: sha256Schema,
 }).strict()
 
-export const sourceMediaAuthorityExpectationSchema = z.object({
+export const ideaFirstSourceBindingManifestCandidateSchema = z.object({
+  schemaVersion: z.literal('private-idea-first-source-authority-candidate-v1'),
+  authorityStatus: z.literal('unapproved_idea_first_storytelling_candidate'),
+  executionAuthorized: z.literal(false),
+  approvedSnapshotMutated: z.literal(false),
+  noRuntimeSideEffects: z.literal(true),
+  workspaceId: privateUploadMediaSafeIdSchema,
+  projectId: privateUploadMediaSafeIdSchema,
+  editSessionId: privateUploadMediaSafeIdSchema,
+  productionId: privateUploadMediaSafeIdSchema,
+  sourceMode: z.literal('idea_first_no_uploaded_media'),
+  authorityRevision: z.number().int().positive(),
+  authorityChecksumSha256: sha256Schema,
+  sourceSequenceHash: sha256Schema,
+  productionAuthorityHash: sha256Schema,
+  sourceProposalDigest: sha256Schema,
+  sourceArtifactApprovalSnapshotId: privateUploadMediaSafeIdSchema,
+  bindings: z.tuple([]),
+  requiredBindingCount: z.literal(0),
+  fabricatedUploadRecordCount: z.literal(0),
+  candidateHash: sha256Schema,
+}).strict()
+
+export const sourceBindingManifestCandidateSchema = z.union([
+  uploadedSourceBindingManifestCandidateSchema,
+  ideaFirstSourceBindingManifestCandidateSchema,
+])
+
+export const uploadedSourceMediaAuthorityExpectationSchema = z.object({
   authorityRevision: z.number().int().positive(),
   authorityChecksumSha256: sha256Schema,
   sourceSequenceHash: sha256Schema,
   candidateHash: sha256Schema,
 }).strict()
 
-export const approvedSourceBindingManifestSchema = z.object({
+export const ideaFirstSourceMediaAuthorityExpectationSchema = z.object({
+  authorityKind: z.literal('idea_first_storytelling_v1'),
+  authorityRevision: z.number().int().positive(),
+  authorityChecksumSha256: sha256Schema,
+  sourceSequenceHash: sha256Schema,
+  candidateHash: sha256Schema,
+  productionAuthorityHash: sha256Schema,
+  sourceProposalDigest: sha256Schema,
+  sourceArtifactApprovalSnapshotId: privateUploadMediaSafeIdSchema,
+}).strict()
+
+export const sourceMediaAuthorityExpectationSchema = z.union([
+  uploadedSourceMediaAuthorityExpectationSchema,
+  ideaFirstSourceMediaAuthorityExpectationSchema,
+])
+
+export const uploadedApprovedSourceBindingManifestSchema = z.object({
   schemaVersion: z.literal('private-approved-source-binding-manifest-v1'),
   snapshotId: privateUploadMediaSafeIdSchema,
   workspaceId: privateUploadMediaSafeIdSchema,
@@ -103,7 +147,40 @@ export const approvedSourceBindingManifestSchema = z.object({
   manifestHash: sha256Schema,
 }).strict()
 
+export const ideaFirstApprovedSourceAuthorityManifestSchema = z.object({
+  schemaVersion: z.literal('private-approved-idea-first-source-authority-manifest-v1'),
+  snapshotId: privateUploadMediaSafeIdSchema,
+  workspaceId: privateUploadMediaSafeIdSchema,
+  projectId: privateUploadMediaSafeIdSchema,
+  editSessionId: privateUploadMediaSafeIdSchema,
+  productionId: privateUploadMediaSafeIdSchema,
+  sourceMode: z.literal('idea_first_no_uploaded_media'),
+  authorityRevision: z.number().int().positive(),
+  authorityChecksumSha256: sha256Schema,
+  sourceSequenceHash: sha256Schema,
+  sourceCandidateHash: sha256Schema,
+  productionAuthorityHash: sha256Schema,
+  sourceProposalDigest: sha256Schema,
+  sourceArtifactApprovalSnapshotId: privateUploadMediaSafeIdSchema,
+  bindings: z.tuple([]),
+  requiredBindingCount: z.literal(0),
+  fabricatedUploadRecordCount: z.literal(0),
+  approvedAt: z.string().datetime({ offset: true }),
+  manifestHash: sha256Schema,
+}).strict()
+
+export const approvedSourceBindingManifestSchema = z.union([
+  uploadedApprovedSourceBindingManifestSchema,
+  ideaFirstApprovedSourceAuthorityManifestSchema,
+])
+
 export type BuildSourceBindingManifestCandidateBody = z.infer<typeof buildSourceBindingManifestCandidateSchema>
 export type SourceBindingManifestCandidate = z.infer<typeof sourceBindingManifestCandidateSchema>
+export type UploadedSourceBindingManifestCandidate = z.infer<
+  typeof uploadedSourceBindingManifestCandidateSchema
+>
+export type IdeaFirstSourceBindingManifestCandidate = z.infer<
+  typeof ideaFirstSourceBindingManifestCandidateSchema
+>
 export type SourceMediaAuthorityExpectation = z.infer<typeof sourceMediaAuthorityExpectationSchema>
 export type ApprovedSourceBindingManifest = z.infer<typeof approvedSourceBindingManifestSchema>

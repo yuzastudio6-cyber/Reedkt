@@ -4,6 +4,7 @@ import type { RuntimeEnv } from './config/env'
 import type { StorageAdapter } from './storage/storage-types'
 import type { EditReferenceStudyChatRuntimePort } from './services/edit-reference-study-chat-runtime-port'
 import type { PlanningPreferenceApplicationAuthorityPort } from './services/planning-preference-application-authority-port'
+import type { CanonicalMotionStudioStorytellingProductionAuthorityReaderPort } from './services/canonical-motion-studio-storytelling-production-authority-service'
 import type {
   CanonicalDurableUploadTargetTransactionAdapter,
   CanonicalUploadTargetCredentialEscrow,
@@ -59,6 +60,8 @@ export interface RuntimeState {
   canonicalDurableUploadTargetStatePort?: CanonicalDurableUploadTargetTransactionAdapter
   canonicalUploadTargetCredentialEscrow?: CanonicalUploadTargetCredentialEscrow
   editReferenceStudyChatRuntimePort?: EditReferenceStudyChatRuntimePort
+  canonicalMotionStudioStorytellingProductionAuthorityReaderPort?:
+    CanonicalMotionStudioStorytellingProductionAuthorityReaderPort
 }
 
 export type RuntimeRequest = Request & {
@@ -83,4 +86,6 @@ export interface ServiceContext {
   canonicalDurableUploadTargetStatePort?: CanonicalDurableUploadTargetTransactionAdapter
   canonicalUploadTargetCredentialEscrow?: CanonicalUploadTargetCredentialEscrow
   editReferenceStudyChatRuntimePort?: EditReferenceStudyChatRuntimePort
+  canonicalMotionStudioStorytellingProductionAuthorityReaderPort?:
+    CanonicalMotionStudioStorytellingProductionAuthorityReaderPort
 }

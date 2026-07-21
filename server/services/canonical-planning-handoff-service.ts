@@ -10,7 +10,15 @@ import {
   type PublishCanonicalEditPlanFromHandoffBody,
 } from '../validation/canonical-planning-handoff-schemas'
 import { confirmedOutputAspectRatioSchema } from '../validation/exact-edit-preference-schemas'
+import type {
+  SourceBindingManifestCandidate,
+  SourceMediaAuthorityExpectation,
+} from '../validation/source-media-authority-schemas'
 import { canonicalStorytellingStyleAuthorityMatchesScope } from '../validation/canonical-storytelling-style-authority-schemas'
+import {
+  buildCanonicalIdeaFirstSourceBindingManifestCandidate,
+  revalidateCanonicalMotionStudioStorytellingProductionAuthority,
+} from './canonical-motion-studio-storytelling-production-authority-service'
 import {
   canonicalPlanningHandoffIdempotencyKeyHash,
   canonicalPlanningHandoffPublicationRequestHash,
@@ -79,6 +87,17 @@ export function createCanonicalPlanningHandoffService(context: ServiceContext) {
           409,
         )
       }
+      const storytellingProductionAuthority =
+        await revalidateCanonicalMotionStudioStorytellingProductionAuthority({
+          context,
+          authority:
+            body.canonicalPlanComponents.motionStudioStorytellingProductionAuthority,
+          expectedScope: {
+            workspaceId: access.workspaceId,
+            projectId,
+            editSessionId,
+          },
+        })
       const expectedSequence = body.orderedSourceItems.map((item) => ({
         sourceSequenceItemId: item.sourceSequenceItemId,
         mediaAssetId: item.mediaAssetId,
@@ -103,19 +122,27 @@ export function createCanonicalPlanningHandoffService(context: ServiceContext) {
         editSessionId,
       }
       return withPreparationLock(scope, async () => {
-        const sourceResult = await createSourceMediaAuthorityService(context).buildManifestCandidate({
-          workspaceId: access.workspaceId,
-          projectId,
-          uploadPurpose: 'source_media',
-          orderedItems: body.orderedSourceItems,
-        })
-        const sourceCandidate = sourceResult.sourceBindingManifestCandidate
-        const sourceMediaAuthority = {
-          authorityRevision: sourceCandidate.authorityRevision,
-          authorityChecksumSha256: sourceCandidate.authorityChecksumSha256,
-          sourceSequenceHash: sourceCandidate.sourceSequenceHash,
-          candidateHash: sourceCandidate.candidateHash,
-        }
+        const lockedStorytellingProductionAuthority =
+          await revalidateCanonicalMotionStudioStorytellingProductionAuthority({
+            context,
+            authority: storytellingProductionAuthority,
+            expectedScope: {
+              workspaceId: access.workspaceId,
+              projectId,
+              editSessionId,
+            },
+          })
+        const sourceCandidate = lockedStorytellingProductionAuthority
+          ? buildCanonicalIdeaFirstSourceBindingManifestCandidate(
+              lockedStorytellingProductionAuthority,
+            )
+          : (await createSourceMediaAuthorityService(context).buildManifestCandidate({
+              workspaceId: access.workspaceId,
+              projectId,
+              uploadPurpose: 'source_media',
+              orderedItems: body.orderedSourceItems,
+            })).sourceBindingManifestCandidate
+        const sourceMediaAuthority = sourceExpectationFromCandidate(sourceCandidate)
         await recordVerifiedPlanningEvidence({
           context,
           scope,
@@ -144,14 +171,29 @@ export function createCanonicalPlanningHandoffService(context: ServiceContext) {
           sourceMediaAuthority,
           planningInputAuthority,
           resolvedPlanningInputAuthority,
-          readiness: {
-            finalizedSourceMediaVerified: true as const,
-            exactEditPreferencesVerified: true as const,
-            preferenceApplicationVerified: true as const,
-            editBriefVerified: true as const,
-            outputFrameAndCleanupVerified: true as const,
-            readyForCanonicalPlanPublication: true as const,
-          },
+          readiness: lockedStorytellingProductionAuthority
+            ? {
+                sourceAuthorityMode: 'idea_first_no_uploaded_media' as const,
+                finalizedSourceMediaVerified: false as const,
+                ideaFirstStorytellingAuthorityVerified: true as const,
+                noUploadedMediaExpected: true as const,
+                fabricatedUploadRecordCount: 0 as const,
+                exactEditPreferencesVerified: true as const,
+                preferenceApplicationVerified: true as const,
+                editBriefVerified: true as const,
+                outputFrameAndCleanupVerified: true as const,
+                readyForCanonicalPlanPublication: true as const,
+              }
+            : {
+                sourceAuthorityMode: 'finalized_uploaded_media' as const,
+                finalizedSourceMediaVerified: true as const,
+                ideaFirstStorytellingAuthorityVerified: false as const,
+                exactEditPreferencesVerified: true as const,
+                preferenceApplicationVerified: true as const,
+                editBriefVerified: true as const,
+                outputFrameAndCleanupVerified: true as const,
+                readyForCanonicalPlanPublication: true as const,
+              },
           noPlanPublished: true as const,
           noSnapshotCreated: true as const,
           noCreditReservation: true as const,
@@ -571,6 +613,29 @@ async function recordVerifiedPlanningEvidence(input: {
 
 function safeIdentity(value: string): boolean {
   return /^[A-Za-z0-9][A-Za-z0-9._:-]{0,199}$/.test(value) && !value.includes('..')
+}
+
+function sourceExpectationFromCandidate(
+  candidate: SourceBindingManifestCandidate,
+): SourceMediaAuthorityExpectation {
+  if (candidate.schemaVersion === 'private-idea-first-source-authority-candidate-v1') {
+    return {
+      authorityKind: 'idea_first_storytelling_v1',
+      authorityRevision: candidate.authorityRevision,
+      authorityChecksumSha256: candidate.authorityChecksumSha256,
+      sourceSequenceHash: candidate.sourceSequenceHash,
+      candidateHash: candidate.candidateHash,
+      productionAuthorityHash: candidate.productionAuthorityHash,
+      sourceProposalDigest: candidate.sourceProposalDigest,
+      sourceArtifactApprovalSnapshotId: candidate.sourceArtifactApprovalSnapshotId,
+    }
+  }
+  return {
+    authorityRevision: candidate.authorityRevision,
+    authorityChecksumSha256: candidate.authorityChecksumSha256,
+    sourceSequenceHash: candidate.sourceSequenceHash,
+    candidateHash: candidate.candidateHash,
+  }
 }
 
 function assertPrivatePlanningHandoffRuntime(context: ServiceContext): void {

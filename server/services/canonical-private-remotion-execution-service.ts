@@ -2,6 +2,7 @@ import type { ZodType } from 'zod'
 
 import {
   assertCanonicalMotionStudioRemotionWorkItem,
+  assertCanonicalMotionStudioRemotionDependencyArtifact,
   buildCanonicalMotionStudioRemotionExecutionRequest,
   resolveCanonicalMotionStudioRemotionProfile,
   type CanonicalMotionStudioRemotionProfileId,
@@ -163,6 +164,12 @@ export function createCanonicalPrivateRemotionExecutionService(context: ServiceC
               maximumBytes: motionStudioProfile.maximumDependencyBytes!,
             })
         : undefined
+      if (motionStudioProfile && dependency) {
+        assertCanonicalMotionStudioRemotionDependencyArtifact({
+          workItem,
+          dependency,
+        })
+      }
       const request = motionStudioProfile
         ? buildCanonicalMotionStudioRemotionExecutionRequest({
             planningPayload: workItem.executionInput.structuredPayload,

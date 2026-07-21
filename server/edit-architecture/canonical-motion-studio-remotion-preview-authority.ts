@@ -19,6 +19,7 @@ import type {
   CanonicalWorkItemInput,
 } from '../validation/edit-planning-authority-schemas'
 import type { CanonicalStorytellingStyleAuthority } from '../validation/canonical-storytelling-style-authority-schemas'
+import type { CanonicalMotionStudioStorytellingProductionAuthority } from '../validation/canonical-motion-studio-storytelling-production-authority-schemas'
 import { sha256AuthorityValue, stableAuthorityStringify } from '../services/private-edit-authority-store'
 
 export const CANONICAL_MOTION_STUDIO_REMOTION_PREVIEW_BINDING_VERSION =
@@ -48,6 +49,30 @@ const versionReferenceSchema = z.object({
   state: z.enum(['approved', 'locked']),
 }).strict()
 
+const narrationDependencyAuthoritySchema = z.discriminatedUnion('mode', [
+  z.object({
+    mode: z.literal('generated_speech_required'),
+    narrationPolicyDigest: sha256,
+    expectedProviderOperationId: z.literal(
+      'provider.elevenlabs.generate_storytelling_speech_candidate.v1',
+    ),
+    expectedArtifactRole: z.literal('normalized_storytelling_narration'),
+    currentPrivateArtifactPresent: z.literal(false),
+    providerExecutionAuthorized: z.literal(false),
+  }).strict(),
+  z.object({
+    mode: z.literal('verified_uploaded_narration'),
+    narrationPolicyDigest: sha256,
+    mediaAssetId: safeIdentity,
+    storageObjectRecordId: safeIdentity,
+    checksumSha256: sha256,
+    mimeType: z.enum(['audio/wav', 'audio/mpeg', 'audio/mp3']),
+    byteLength: z.number().int().positive().max(16 * 1024 * 1024),
+    currentPrivateArtifactPresent: z.literal(true),
+    providerExecutionAuthorized: z.literal(false),
+  }).strict(),
+])
+
 export const canonicalMotionStudioRemotionPreviewBindingSchema = z.object({
   schemaVersion: z.literal(CANONICAL_MOTION_STUDIO_REMOTION_PREVIEW_BINDING_VERSION),
   sourceAuthority: z.literal('motion_studio_storytelling_compiler'),
@@ -56,6 +81,7 @@ export const canonicalMotionStudioRemotionPreviewBindingSchema = z.object({
   projectId: safeIdentity,
   editSessionId: safeIdentity,
   productionId: safeIdentity,
+  storytellingProductionAuthorityHash: sha256.optional(),
   compositionProfileId: z.enum(CANONICAL_MOTION_STUDIO_REMOTION_PROFILE_IDS),
   canonicalStyleComponentDigest: sha256,
   styleSelectionDigest: sha256,
@@ -73,6 +99,7 @@ export const canonicalMotionStudioRemotionPreviewBindingSchema = z.object({
   preparedScript: versionReferenceSchema,
   sceneDocuments: z.array(versionReferenceSchema).min(1).max(8),
   narrationAuthorityDigest: sha256.optional(),
+  narrationDependencyAuthority: narrationDependencyAuthoritySchema.optional(),
   timingAuthorityDigest: sha256,
   confirmedOutputFrame: z.object({
     width: z.number().int().positive().max(16_384),
@@ -119,9 +146,41 @@ export const canonicalMotionStudioRemotionPreviewBindingSchema = z.object({
   }
   if (
     binding.compositionProfileId !== 'motion_studio_prepared_script_animatic_v1' &&
-    binding.narrationAuthorityDigest !== undefined
+    (binding.narrationAuthorityDigest !== undefined ||
+      binding.narrationDependencyAuthority !== undefined)
   ) {
     context.addIssue({ code: 'custom', path: ['narrationAuthorityDigest'], message: 'Only the animatic profile may bind narration.' })
+  }
+  if (
+    binding.storytellingProductionAuthorityHash !== undefined &&
+    binding.narrationDependencyAuthority === undefined
+  ) {
+    context.addIssue({
+      code: 'custom',
+      path: ['narrationDependencyAuthority'],
+      message: 'Idea-first Storytelling animatic requires exact narration dependency authority.',
+    })
+  }
+  if (
+    binding.storytellingProductionAuthorityHash === undefined &&
+    binding.narrationDependencyAuthority !== undefined
+  ) {
+    context.addIssue({
+      code: 'custom',
+      path: ['narrationDependencyAuthority'],
+      message: 'Narration dependency authority requires the exact Storytelling production component.',
+    })
+  }
+  if (
+    binding.narrationDependencyAuthority &&
+    binding.narrationDependencyAuthority.narrationPolicyDigest !==
+      binding.narrationAuthorityDigest
+  ) {
+    context.addIssue({
+      code: 'custom',
+      path: ['narrationDependencyAuthority', 'narrationPolicyDigest'],
+      message: 'Narration dependency authority must bind the exact narration policy digest.',
+    })
   }
   if (
     binding.previewFrame.width * binding.confirmedOutputFrame.height !==
@@ -145,6 +204,12 @@ export interface CanonicalMotionStudioRemotionProfileAuthority {
   fps: 24 | 30
   durationFrames: number
   planningPayloadHash: string
+}
+
+export interface CanonicalMotionStudioRemotionDependencyArtifact {
+  contentType: string
+  byteLength: number
+  sha256: string
 }
 
 interface MotionStudioWorkItemShape {
@@ -265,7 +330,16 @@ export function assertCanonicalMotionStudioRemotionPlanAuthority(input: {
     const profile = assertCanonicalMotionStudioRemotionWorkItem(workItem)
     return profile ? [{ workItem, profile }] : []
   })
-  if (motionItems.length === 0) return
+  const productionAuthority =
+    input.components.motionStudioStorytellingProductionAuthority
+  if (motionItems.length === 0) {
+    if (productionAuthority) {
+      throw invalid(
+        'Idea-first Storytelling production authority requires one exact private animatic preview.',
+      )
+    }
+    return
+  }
   const style = input.components.motionStudioStorytellingStyleAuthority
   if (!style) throw invalid('Motion Studio Remotion work requires the canonical Storytelling style component.')
   const timingAuthorityDigest = canonicalMotionStudioTimingAuthorityDigest(input.components)
@@ -283,6 +357,24 @@ export function assertCanonicalMotionStudioRemotionPlanAuthority(input: {
         workItemKey: workItem.workItemKey,
       })
     }
+    if (productionAuthority) {
+      assertBindingMatchesProductionAuthority({
+        binding,
+        productionAuthority,
+        profile,
+      })
+    } else if (binding.storytellingProductionAuthorityHash !== undefined) {
+      throw invalid(
+        'A Motion Studio preview cannot claim idea-first production authority when that immutable planning component is absent.',
+        { workItemKey: workItem.workItemKey },
+      )
+    }
+  }
+  if (productionAuthority && motionItems.length !== 1) {
+    throw invalid(
+      'Idea-first Storytelling production authority admits exactly one private animatic preview per plan cycle.',
+      { motionPreviewCount: motionItems.length },
+    )
   }
 }
 
@@ -307,6 +399,40 @@ export function assertCanonicalMotionStudioRemotionDependencyBindings(
         requiredContentType: profile.dependencyContentType,
       })
     }
+  }
+}
+
+export function assertCanonicalMotionStudioRemotionDependencyArtifact(input: {
+  workItem: MotionStudioWorkItemShape
+  dependency: CanonicalMotionStudioRemotionDependencyArtifact
+}): void {
+  const profile = assertCanonicalMotionStudioRemotionWorkItem(input.workItem)
+  if (profile?.profileId !== 'motion_studio_prepared_script_animatic_v1') return
+  const binding = parseBinding(
+    input.workItem.executionInput.motionStudioStorytellingAuthority,
+  )
+  const authority = binding.narrationDependencyAuthority
+  if (!binding.storytellingProductionAuthorityHash) return
+  if (!authority) {
+    throw invalid('Idea-first Storytelling narration dependency authority is missing.')
+  }
+  if (authority.mode === 'generated_speech_required') {
+    throw invalid(
+      'Generated Storytelling narration remains blocked until the canonical speech lifecycle supplies one exact normalized private artifact.',
+      {
+        requiredGate: 'canonical_storytelling_speech_artifact_authority',
+        expectedProviderOperationId: authority.expectedProviderOperationId,
+      },
+    )
+  }
+  if (
+    input.dependency.contentType !== authority.mimeType ||
+    input.dependency.byteLength !== authority.byteLength ||
+    input.dependency.sha256 !== authority.checksumSha256
+  ) {
+    throw invalid(
+      'Storytelling narration dependency bytes do not match the exact source-verified uploaded narration authority.',
+    )
   }
 }
 
@@ -397,6 +523,77 @@ function assertBindingMatchesStyle(input: {
     binding.internalCostEnvelope.digest !== style.internalCostEnvelope.estimateDigest ||
     binding.timingAuthorityDigest !== input.timingAuthorityDigest
   ) throw invalid('Motion Studio preview binding does not match the canonical Storytelling style, timing, or cost authority.')
+}
+
+function assertBindingMatchesProductionAuthority(input: {
+  binding: CanonicalMotionStudioRemotionPreviewBinding
+  productionAuthority: CanonicalMotionStudioStorytellingProductionAuthority
+  profile: CanonicalMotionStudioRemotionProfileAuthority
+}): void {
+  const { binding, productionAuthority, profile } = input
+  const expectedSceneDocuments = productionAuthority.orderedScenes.map(
+    (scene) => scene.version,
+  )
+  const narrationPolicyDigest = sha256AuthorityValue(
+    productionAuthority.narrationPolicy,
+  )
+  const expectedNarrationDependencyAuthority =
+    productionAuthority.narrationPolicy.mode === 'generated_speech_required'
+      ? {
+          mode: 'generated_speech_required' as const,
+          narrationPolicyDigest,
+          expectedProviderOperationId:
+            productionAuthority.narrationPolicy.expectedProviderOperationId,
+          expectedArtifactRole: 'normalized_storytelling_narration' as const,
+          currentPrivateArtifactPresent: false as const,
+          providerExecutionAuthorized: false as const,
+        }
+      : {
+          mode: 'verified_uploaded_narration' as const,
+          narrationPolicyDigest,
+          mediaAssetId: productionAuthority.narrationPolicy.mediaAssetId,
+          storageObjectRecordId:
+            productionAuthority.narrationPolicy.storageObjectRecordId,
+          checksumSha256: productionAuthority.narrationPolicy.checksumSha256,
+          mimeType: productionAuthority.narrationPolicy.mimeType,
+          byteLength: productionAuthority.narrationPolicy.byteLength,
+          currentPrivateArtifactPresent: true as const,
+          providerExecutionAuthorized: false as const,
+        }
+  if (
+    profile.profileId !== 'motion_studio_prepared_script_animatic_v1' ||
+    binding.compositionProfileId !==
+      'motion_studio_prepared_script_animatic_v1' ||
+    binding.storytellingProductionAuthorityHash !==
+      productionAuthority.authorityHash ||
+    binding.workspaceId !== productionAuthority.workspaceId ||
+    binding.projectId !== productionAuthority.projectId ||
+    binding.editSessionId !== productionAuthority.editSessionId ||
+    binding.productionId !== productionAuthority.productionId ||
+    stableAuthorityStringify(binding.preparedScript) !==
+      stableAuthorityStringify(productionAuthority.preparedScript.version) ||
+    stableAuthorityStringify(binding.sceneDocuments) !==
+      stableAuthorityStringify(expectedSceneDocuments) ||
+    binding.narrationAuthorityDigest !==
+      narrationPolicyDigest ||
+    stableAuthorityStringify(binding.narrationDependencyAuthority) !==
+      stableAuthorityStringify(expectedNarrationDependencyAuthority) ||
+    binding.internalCostEnvelope.estimateId !==
+      productionAuthority.internalCostAuthority.estimateId ||
+    binding.internalCostEnvelope.digest !==
+      productionAuthority.internalCostAuthority.estimateDigest ||
+    binding.confirmedOutputFrame.width !==
+      productionAuthority.confirmedOutputFrame.width ||
+    binding.confirmedOutputFrame.height !==
+      productionAuthority.confirmedOutputFrame.height ||
+    binding.confirmedOutputFrame.fps !==
+      productionAuthority.confirmedOutputFrame.frameRate
+  ) {
+    throw invalid(
+      'Motion Studio animatic preview does not match the exact source-verified Prepared Script, SceneDocuments, narration, frame, or internal-cost authority.',
+      { compositionProfileId: profile.profileId },
+    )
+  }
 }
 
 function invalid(message: string, details?: Record<string, unknown>): ApiError {

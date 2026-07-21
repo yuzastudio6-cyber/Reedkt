@@ -3,6 +3,8 @@ import { idSchema } from './common-schemas'
 import { planningInputAuthorityExpectationSchema } from './planning-input-authority-binding-schemas'
 import { sourceMediaAuthorityExpectationSchema } from './source-media-authority-schemas'
 import { canonicalStorytellingStyleAuthoritySchema } from './canonical-storytelling-style-authority-schemas'
+import { canonicalMotionStudioStorytellingProductionAuthoritySchema } from './canonical-motion-studio-storytelling-production-authority-schemas'
+import { sha256AuthorityValue } from '../services/private-edit-authority-store'
 import {
   PROFESSIONAL_EXPORT_ASPECT_RATIOS,
   PROFESSIONAL_EXPORT_COST_MODEL_VERSION,
@@ -83,13 +85,27 @@ const confirmedSettingsSchema = z.object({
   preferenceRevision: z.number().int().nonnegative().optional(),
 }).strict()
 
-const sourceCleanupSummarySchema = z.object({
+const confirmedSourceCleanupSummarySchema = z.object({
   status: z.literal('confirmed'),
   cleanupPreference: z.string().trim().min(1).max(80),
   trimValidationStatus: z.enum(['passed', 'warning']),
   meaningValidationStatus: z.enum(['passed', 'warning']),
   userReviewRequired: z.literal(false),
 }).strict()
+
+const ideaFirstSourceCleanupSummarySchema = z.object({
+  status: z.literal('not_applicable'),
+  cleanupPreference: z.string().trim().min(1).max(80),
+  trimValidationStatus: z.literal('not_applicable'),
+  meaningValidationStatus: z.literal('not_applicable'),
+  userReviewRequired: z.literal(false),
+  reason: z.literal('idea_first_storytelling_has_no_uploaded_media_source'),
+}).strict()
+
+const sourceCleanupSummarySchema = z.union([
+  confirmedSourceCleanupSummarySchema,
+  ideaFirstSourceCleanupSummarySchema,
+])
 
 export const canonicalSourceCleanupDecisionSchema = z.object({
   decisionId: safeKeySchema,
@@ -119,10 +135,21 @@ export const canonicalSourceCleanupDecisionSchema = z.object({
   }
 })
 
-export const canonicalSourceCleanupPlanSchema = z.object({
+const confirmedCanonicalSourceCleanupPlanSchema = z.object({
   status: z.literal('confirmed'),
   decisions: z.array(canonicalSourceCleanupDecisionSchema).min(1).max(10_000),
 }).strict()
+
+const ideaFirstCanonicalSourceCleanupPlanSchema = z.object({
+  status: z.literal('not_applicable'),
+  decisions: z.array(canonicalSourceCleanupDecisionSchema).max(0),
+  reason: z.literal('idea_first_storytelling_has_no_uploaded_media_source'),
+}).strict()
+
+export const canonicalSourceCleanupPlanSchema = z.union([
+  confirmedCanonicalSourceCleanupPlanSchema,
+  ideaFirstCanonicalSourceCleanupPlanSchema,
+])
 
 const timingSummarySchema = z.object({
   validationStatus: z.enum(['passed', 'warning']),
@@ -152,7 +179,7 @@ export const canonicalPlanComponentsSchema = z.object({
   compiledIntent: jsonObjectSchema,
   professionalEditingDirective: jsonObjectSchema,
   confirmedSettings: confirmedSettingsSchema,
-  sourceSequence: z.array(sourceSequenceItemSchema).min(1).max(1_000),
+  sourceSequence: z.array(sourceSequenceItemSchema).max(1_000),
   sourceCleanupSummary: sourceCleanupSummarySchema,
   sourceCleanupPlan: canonicalSourceCleanupPlanSchema,
   masterTimingPlan: jsonObjectSchema,
@@ -170,7 +197,78 @@ export const canonicalPlanComponentsSchema = z.object({
   providerPolicy: providerPolicySchema,
   fallbackPolicy: jsonObjectSchema,
   motionStudioStorytellingStyleAuthority: canonicalStorytellingStyleAuthoritySchema.optional(),
-}).strict()
+  motionStudioStorytellingProductionAuthority:
+    canonicalMotionStudioStorytellingProductionAuthoritySchema.optional(),
+}).strict().superRefine((components, context) => {
+  const productionAuthority = components.motionStudioStorytellingProductionAuthority
+  if (!productionAuthority) {
+    if (components.sourceSequence.length === 0) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['sourceSequence'],
+        message: 'Ordinary canonical edits require at least one exact uploaded source item.',
+      })
+    }
+    if (
+      components.sourceCleanupSummary.status !== 'confirmed' ||
+      components.sourceCleanupPlan.status !== 'confirmed'
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['sourceCleanupPlan'],
+        message: 'Ordinary canonical edits require one confirmed source-cleanup plan.',
+      })
+    }
+    return
+  }
+  if (
+    components.sourceSequence.length !== 0 ||
+    components.sourceCleanupSummary.status !== 'not_applicable' ||
+    components.sourceCleanupPlan.status !== 'not_applicable' ||
+    components.sourceCleanupPlan.decisions.length !== 0
+  ) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['sourceSequence'],
+      message: 'Idea-first Storytelling forbids uploaded-source and cleanup-decision authority.',
+    })
+  }
+  const style = components.motionStudioStorytellingStyleAuthority
+  if (
+    !style ||
+    productionAuthority.storytellingStyleAuthority.componentDigest !== sha256AuthorityValue(style) ||
+    productionAuthority.storytellingStyleAuthority.selectionDigest !==
+      style.styleSelection.selectionDigest ||
+    productionAuthority.storytellingStyleAuthority.styleProfileId !==
+      style.styleSelection.styleProfile.styleProfileId ||
+    productionAuthority.storytellingStyleAuthority.motionLanguageDigest !==
+      style.styleSelection.motionLanguage.motionLanguageDigest ||
+    productionAuthority.workspaceId !== style.workspaceId ||
+    productionAuthority.projectId !== style.projectId ||
+    productionAuthority.editSessionId !== style.editSessionId ||
+    productionAuthority.productionId !== style.productionId
+  ) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['motionStudioStorytellingProductionAuthority', 'storytellingStyleAuthority'],
+      message: 'Idea-first Storytelling production and style authority must match exactly.',
+    })
+  }
+  if (
+    productionAuthority.confirmedOutputFrame.width !== components.confirmedSettings.outputFrame.width ||
+    productionAuthority.confirmedOutputFrame.height !== components.confirmedSettings.outputFrame.height ||
+    productionAuthority.confirmedOutputFrame.frameRate !== components.confirmedSettings.outputFrame.fps ||
+    productionAuthority.confirmedOutputFrame.aspectRatio !== components.confirmedSettings.aspectRatio ||
+    productionAuthority.timingAuthority.durationFrames !== components.timingSummary.totalFrames ||
+    productionAuthority.timingAuthority.frameRate !== components.timingSummary.fps
+  ) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['motionStudioStorytellingProductionAuthority', 'confirmedOutputFrame'],
+      message: 'Idea-first Storytelling production authority must match the exact confirmed frame and timing summary.',
+    })
+  }
+})
 
 const estimateLineItemSchema = z.object({
   lineKey: safeKeySchema,

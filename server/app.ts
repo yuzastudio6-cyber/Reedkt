@@ -33,6 +33,7 @@ import { createToolCostRoutes } from './routes/tool-cost-routes'
 import { createUploadRoutes } from './routes/upload-routes'
 import { createWorkerRoutes } from './routes/worker-routes'
 import type { EditReferenceStudyChatRuntimePort } from './services/edit-reference-study-chat-runtime-port'
+import type { CanonicalMotionStudioStorytellingProductionAuthorityReaderPort } from './services/canonical-motion-studio-storytelling-production-authority-service'
 import type { StorageAdapter } from './storage/storage-types'
 import type { RuntimeClients, RuntimeRequest, RuntimeState } from './types'
 
@@ -43,6 +44,8 @@ export interface ReeditProApiAppOptions {
   canonicalDurableUploadTargetStatePort?: RuntimeState['canonicalDurableUploadTargetStatePort']
   canonicalUploadTargetCredentialEscrow?: RuntimeState['canonicalUploadTargetCredentialEscrow']
   editReferenceStudyChatRuntimePort?: EditReferenceStudyChatRuntimePort
+  canonicalMotionStudioStorytellingProductionAuthorityReaderPort?:
+    CanonicalMotionStudioStorytellingProductionAuthorityReaderPort
 }
 
 export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppOptions = {}): Express {
@@ -60,6 +63,12 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
       : {}),
     ...(options.editReferenceStudyChatRuntimePort
       ? { editReferenceStudyChatRuntimePort: options.editReferenceStudyChatRuntimePort }
+      : {}),
+    ...(options.canonicalMotionStudioStorytellingProductionAuthorityReaderPort
+      ? {
+          canonicalMotionStudioStorytellingProductionAuthorityReaderPort:
+            options.canonicalMotionStudioStorytellingProductionAuthorityReaderPort,
+        }
       : {}),
     clients: options.clients ?? {
       admin: createSupabaseAdminClient(env),

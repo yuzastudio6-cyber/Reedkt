@@ -4,9 +4,9 @@ import type { ObjectMetadata } from '../storage/storage-types'
 import type { ServiceContext } from '../types'
 import {
   buildSourceBindingManifestCandidateSchema,
-  sourceBindingManifestCandidateSchema,
+  uploadedSourceBindingManifestCandidateSchema,
   type BuildSourceBindingManifestCandidateBody,
-  type SourceBindingManifestCandidate,
+  type UploadedSourceBindingManifestCandidate,
 } from '../validation/source-media-authority-schemas'
 import {
   privateProjectUploadMediaAuthority,
@@ -20,7 +20,7 @@ export function createSourceMediaAuthorityService(context: ServiceContext) {
   return {
     async buildManifestCandidate(
       input: BuildSourceBindingManifestCandidateBody,
-    ): Promise<{ sourceBindingManifestCandidate: SourceBindingManifestCandidate; warnings: string[] }> {
+    ): Promise<{ sourceBindingManifestCandidate: UploadedSourceBindingManifestCandidate; warnings: string[] }> {
       const parsed = buildSourceBindingManifestCandidateSchema.safeParse(input)
       if (!parsed.success) {
         throw new ApiError(
@@ -43,7 +43,7 @@ export function createSourceMediaAuthorityService(context: ServiceContext) {
         throw new ApiError('UPLOAD_NOT_FINALIZED', 'Private source-media authority was not found.', 409)
       }
       const storage = context.storageAdapter ?? createStorageAdapter(context.env)
-      const bindings: SourceBindingManifestCandidate['bindings'] = []
+      const bindings: UploadedSourceBindingManifestCandidate['bindings'] = []
 
       for (const item of body.orderedItems) {
         const mediaAsset = aggregate.mediaAssets.find((record) => record.id === item.mediaAssetId)
@@ -158,7 +158,7 @@ export function createSourceMediaAuthorityService(context: ServiceContext) {
         bindings,
         requiredBindingCount: bindings.filter((binding) => binding.required).length,
       }
-      const candidate = sourceBindingManifestCandidateSchema.parse({
+      const candidate = uploadedSourceBindingManifestCandidateSchema.parse({
         ...candidateWithoutHash,
         candidateHash: privateUploadMediaAuthorityValueHash(candidateWithoutHash),
       })

@@ -264,6 +264,38 @@ export function editReferenceScopeHash(ownerUserId: string, workspaceId: string)
   return sha256(`${ownerUserId}\u0000${workspaceId}`)
 }
 
+/**
+ * Shared validation boundary for a canonical repository projection. This does
+ * not grant persistence authority; it applies the same aggregate invariants
+ * used by the private journal before a mounted adapter may return data to the
+ * service layer.
+ */
+export function validateEditReferenceRepositoryAggregate(
+  value: unknown,
+  scope: EditReferenceRepositoryScope,
+): EditReferenceAggregate {
+  const aggregate = structuredClone(value) as EditReferenceAggregate
+  assertAggregate(aggregate, scope)
+  return aggregate
+}
+
+export function validateEditReferenceRepositoryAuditEvents(
+  value: unknown,
+): EditReferenceAuditEvent[] {
+  if (!Array.isArray(value)) throw invalidAggregate('audit_event_projection_invalid')
+  const events = structuredClone(value) as EditReferenceAuditEvent[]
+  for (const event of events) assertAuditEvent(event)
+  return events
+}
+
+export function validateEditReferenceRepositoryReplay(
+  data: EditReferenceDetailData & { appendedMessageIds?: string[] },
+  receipt: EditReferenceIdempotencyReceipt,
+): void {
+  assertIdempotencyReceipt(receipt)
+  assertReplayResult(data, receipt)
+}
+
 export function clearEditReferenceRepositoryProcessStateForSmoke(): void {
   scopeLocks.clear()
 }

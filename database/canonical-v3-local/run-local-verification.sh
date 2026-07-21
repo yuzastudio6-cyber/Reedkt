@@ -43,7 +43,8 @@ for test_file in \
   "${SCRIPT_DIR}/tests/005_exact_edit_atomic_apply.sql" \
   "${SCRIPT_DIR}/tests/006_exact_edit_apply_authority_read.sql" \
   "${SCRIPT_DIR}/tests/007_canonical_exact_edit_planning_authority.sql" \
-  "${SCRIPT_DIR}/tests/008_edit_reference_application_preparation.sql"
+  "${SCRIPT_DIR}/tests/008_edit_reference_application_preparation.sql" \
+  "${SCRIPT_DIR}/tests/010_edit_reference_domain_library_study_rpcs.sql"
 do
   "${PSQL_BIN}" "${DATABASE_URL}" -X -q -v ON_ERROR_STOP=1 -f "${test_file}"
 done
@@ -72,6 +73,8 @@ fi
 npx --no-install tsx \
   "${REPOSITORY_ROOT}/server/smoke/edit-reference-local-supabase-application-preparation-smoke.ts"
 npx --no-install tsx "${REPOSITORY_ROOT}/server/smoke/edit-reference-local-supabase-http-rpc-smoke.ts"
+npx --no-install tsx \
+  "${REPOSITORY_ROOT}/server/smoke/edit-reference-local-supabase-domain-repository-smoke.ts"
 
 "${SCRIPT_DIR}/run-local-recovery-verification.sh"
 

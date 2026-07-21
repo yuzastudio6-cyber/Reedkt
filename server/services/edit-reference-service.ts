@@ -296,6 +296,9 @@ import {
   resolveEditReferenceDomainRepositoryRuntimePort,
   type EditReferenceDomainRepositoryRuntimePort,
 } from './edit-reference-domain-repository-runtime-port'
+import {
+  EDIT_REFERENCE_DOMAIN_COMMAND_CONTRACT_VERSION,
+} from '../edit-references/edit-reference-domain-command-contract'
 
 export interface EditReferenceServiceResult<T> {
   data: T
@@ -3620,6 +3623,11 @@ export function createEditReferenceService(
         operation: 'edit_reference.create',
         idempotencyKey: requireIdempotencyKey(idempotencyKey),
         requestHash: hashEditReferenceRequest(normalized),
+        command: {
+          schemaVersion: EDIT_REFERENCE_DOMAIN_COMMAND_CONTRACT_VERSION,
+          operation: 'edit_reference.create',
+          request: normalized,
+        },
         replay: replayDetailData,
         mutate: ({ aggregate, now, addAuditEvent }) => {
           const referenceId = `edit-reference-${randomUUID()}`
@@ -3663,6 +3671,11 @@ export function createEditReferenceService(
         operation: 'edit_reference.update',
         idempotencyKey: requireIdempotencyKey(idempotencyKey),
         requestHash: hashEditReferenceRequest({ referenceId, ...normalized }),
+        command: {
+          schemaVersion: EDIT_REFERENCE_DOMAIN_COMMAND_CONTRACT_VERSION,
+          operation: 'edit_reference.update',
+          request: { referenceId, input: normalized },
+        },
         replay: replayDetailData,
         mutate: ({ aggregate, now, addAuditEvent }) => {
           const reference = requireReference(aggregate, referenceId)
@@ -3696,6 +3709,11 @@ export function createEditReferenceService(
         operation: 'preference_study.create',
         idempotencyKey: requireIdempotencyKey(idempotencyKey),
         requestHash: hashEditReferenceRequest({ referenceId, ...normalized }),
+        command: {
+          schemaVersion: EDIT_REFERENCE_DOMAIN_COMMAND_CONTRACT_VERSION,
+          operation: 'preference_study.create',
+          request: { referenceId, input: normalized },
+        },
         replay: replayDetailData,
         mutate: ({ aggregate, now, addAuditEvent }) => {
           const reference = requireReference(aggregate, referenceId)
@@ -3725,6 +3743,11 @@ export function createEditReferenceService(
         operation: 'preference_study.update',
         idempotencyKey: requireIdempotencyKey(idempotencyKey),
         requestHash: hashEditReferenceRequest({ studyId, ...normalized }),
+        command: {
+          schemaVersion: EDIT_REFERENCE_DOMAIN_COMMAND_CONTRACT_VERSION,
+          operation: 'preference_study.update',
+          request: { studyId, input: normalized },
+        },
         replay: replayDetailData,
         mutate: ({ aggregate, now, addAuditEvent }) => {
           const study = requireStudy(aggregate, studyId)
@@ -3752,6 +3775,11 @@ export function createEditReferenceService(
         operation: 'preference_study.message.append',
         idempotencyKey: requireIdempotencyKey(idempotencyKey),
         requestHash: hashEditReferenceRequest({ studyId, ...normalized }),
+        command: {
+          schemaVersion: EDIT_REFERENCE_DOMAIN_COMMAND_CONTRACT_VERSION,
+          operation: 'preference_study.message.append',
+          request: { studyId, input: normalized },
+        },
         replay: replayDetailData,
         mutate: ({ aggregate, now, addAuditEvent }) => {
           const study = requireStudy(aggregate, studyId)
@@ -3890,6 +3918,17 @@ export function createEditReferenceService(
         operation: 'preference_study.evidence.add',
         idempotencyKey: requireIdempotencyKey(idempotencyKey),
         requestHash: hashEditReferenceRequest({ studyId, ...normalized }),
+        command: {
+          schemaVersion: EDIT_REFERENCE_DOMAIN_COMMAND_CONTRACT_VERSION,
+          operation: 'preference_study.evidence.add',
+          request: {
+            studyId,
+            input: normalized,
+            privateMediaAuthorityChecked: privateStorageObject !== undefined
+              || normalized.sourceType !== 'reference_video_metadata'
+              || !normalized.storageObjectRecordId,
+          },
+        },
         replay: replayDetailData,
         mutate: ({ aggregate, now, addAuditEvent }) => {
           const study = requireStudy(aggregate, studyId)

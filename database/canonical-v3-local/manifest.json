@@ -11,11 +11,11 @@
     },
     {
       "path": "README.md",
-      "sha256": "dc6510663ea740e3ea752933939c4547320bc3262dffcc6043cb82857da37ce2"
+      "sha256": "fbc8d358a2d3ea9ab1bb2fa4b1b01021c4218cd0a122be0d721541a7c1551d62"
     },
     {
       "path": "expected-recovery-data-tables.txt",
-      "sha256": "e584bbc44cf26edd50bdd4c9ac708d893c3945218e3c901b56cf8df54b4add99"
+      "sha256": "76eb11a58a8dfcbba1d8db7771bd28a8d196278f710be6f6376ab7270140fd14"
     },
     {
       "path": "run-local-recovery-verification.sh",
@@ -23,7 +23,7 @@
     },
     {
       "path": "run-local-verification.sh",
-      "sha256": "3b2fc8c2e9af0b64a76d4de7cbc8f745443d1aba787e29b4c022db3bb6202500"
+      "sha256": "89f8f6630c88823fd3be2796e58477b76ab11bfa0d550aabfe4feca90bb9901c"
     },
     {
       "path": "supabase/.gitignore",
@@ -62,6 +62,10 @@
       "sha256": "c2f9195fd92e72f8dd2e00016e9a91741234b56bbc6d58f553a5cd0887070e00"
     },
     {
+      "path": "supabase/migrations/202607210008_edit_reference_domain_library_study_rpcs.sql",
+      "sha256": "0accb2ecf83eff54f9ad141a5348d4aa378a00e84ccc32d7fc152ef4518d18f1"
+    },
+    {
       "path": "tests/001_two_user_two_workspace_rls.sql",
       "sha256": "4229abef3613004a7ce75467e6e030bfe6c1baa5237d7a55a7d8580d6822a816"
     },
@@ -75,7 +79,7 @@
     },
     {
       "path": "tests/004_schema_security_invariants.sql",
-      "sha256": "b5097336b49f34bd714b44ab00d699a577b7477f8d612ec542cb5210964a6508"
+      "sha256": "e40a73b478db59d5c98d05311c9ab44b4dd0b4f2943f1e89773f0bbec882f65c"
     },
     {
       "path": "tests/005_exact_edit_atomic_apply.sql",
@@ -95,7 +99,11 @@
     },
     {
       "path": "tests/009_recovery_restore_assertions.sql",
-      "sha256": "a6c038229c51abc7b3415b057c574200e05838f350b076a8491cea884a16a347"
+      "sha256": "89de433713663f3485044ae83c451f9c44c1f45bffbd5bf6c714476aa6a4e9e5"
+    },
+    {
+      "path": "tests/010_edit_reference_domain_library_study_rpcs.sql",
+      "sha256": "098a2f3775b5048dbae633b2a3262715989c6ba8b11b5113d31de681837aacee"
     },
     {
       "path": "tests/_fixture.sql",
@@ -103,7 +111,7 @@
     },
     {
       "path": "tests/_recovery_seed.sql",
-      "sha256": "79ea66de657639993f2e3310341650de212d0edfbe07219d6a7ba610f4cdb8dd"
+      "sha256": "3508bce16b11ee2873afaaf0edf424abebe92b84f9dec762881ed0bbd2f25534"
     },
     {
       "path": "tests/_recovery_state_digest.sql",
@@ -111,7 +119,7 @@
     },
     {
       "path": "verify.mjs",
-      "sha256": "1baabdbb33b7c58a98c2ce9f951e99f5e40ec2a7d26609f71b49465360ae1b0d"
+      "sha256": "8be4b15aa11b3033399bf02ecf4f0090ca00081ba79c4b2ed7ddaec9533f9b90"
     }
   ],
   "repositoryFiles": [
@@ -124,16 +132,20 @@
       "sha256": "700d058e581188ca3e3cc785a3e5e90cd0a35395bff2d32ab47e575fc1a89b5b"
     },
     {
-      "path": "docs/canonical-exact-edit-planning-authority-verification-2026-07-21.md",
-      "sha256": "1f382a8457d02f468a706ce7cd29f91b23727f1f247de2298e38154f4c3f5827"
-    },
-    {
       "path": "docs/canonical-edit-reference-mounted-long-form-runtime-port-verification-2026-07-21.md",
       "sha256": "2316746617242f4ecb6372e0898620188c6e1c799f73628244f83d918d60d058"
     },
     {
+      "path": "docs/canonical-exact-edit-planning-authority-verification-2026-07-21.md",
+      "sha256": "1f382a8457d02f468a706ce7cd29f91b23727f1f247de2298e38154f4c3f5827"
+    },
+    {
+      "path": "docs/canonical-v3-local-edit-reference-domain-library-study-verification-2026-07-21.md",
+      "sha256": "02a9fbca047e85b8236ebfafd4a47d3e6f4b5f6599fe369404b853396cdb91c4"
+    },
+    {
       "path": "docs/canonical-v3-local-edit-reference-recovery-verification-2026-07-21.md",
-      "sha256": "eb1901ca781240aa30e6833cd06e66920a17547aa78c808c2a8f72af05376810"
+      "sha256": "13eb4a4c720caff95910eedfd11941b0d28593a04acb5d63e4c6cc7de3102b01"
     },
     {
       "path": "docs/canonical-v3-local-exact-edit-apply-authority-read-verification-2026-07-21.md",
@@ -149,7 +161,7 @@
     },
     {
       "path": "package.json",
-      "sha256": "99ad3962ea147e1f8c0523c80050a8ca019c563ada9bcd0b04c8fd24dd5adacb"
+      "sha256": "5e68e17188e6b53d8d48b15d9395822ee7ff2f1894ddec20b7ca89cb085449db"
     },
     {
       "path": "server/app.ts",
@@ -164,8 +176,20 @@
       "sha256": "60243c2742d369277e009c8d6146ce28d460c2a86bc9985baa452e1c4b829d80"
     },
     {
+      "path": "server/edit-references/edit-reference-domain-command-contract.ts",
+      "sha256": "9c27d22e0d73a1e730ced15bb590aa50cc79b99c7695e6579e8eec5c46cae816"
+    },
+    {
       "path": "server/edit-references/edit-reference-local-supabase-application-preparation-port.ts",
       "sha256": "40ab2e74213b1bbb7dc0ceca62aadc79d78049993b7369620bbdaf2d2621b2fd"
+    },
+    {
+      "path": "server/edit-references/edit-reference-local-supabase-domain-http-rpc-client.ts",
+      "sha256": "48982f5f50f4d2968f840eb897253213cbad7653b81ef1cb2afa06f5c649cb60"
+    },
+    {
+      "path": "server/edit-references/edit-reference-local-supabase-domain-repository.ts",
+      "sha256": "268601feb7e63b3331169f505c723f8a35f7dbaae52f72a1e0df99e589f8fd71"
     },
     {
       "path": "server/edit-references/edit-reference-local-supabase-http-rpc-client.ts",
@@ -189,7 +213,11 @@
     },
     {
       "path": "server/edit-references/edit-reference-repository.ts",
-      "sha256": "18fc157216e2fd0d5e52d0c52adc062960a57dfc5a3aab207ed0db131aaac622"
+      "sha256": "a1df860ee80a7d29a3ee82de05d01f442bdad01f639538742bb33537e944287f"
+    },
+    {
+      "path": "server/edit-references/private-edit-reference-repository.ts",
+      "sha256": "60df652fdbb42d4255676dc9dd9d2198f1412b31d574dd43a71af39a10cf1a22"
     },
     {
       "path": "server/routes/exact-edit-preference-routes.ts",
@@ -213,7 +241,7 @@
     },
     {
       "path": "server/services/edit-reference-domain-repository-runtime-port.ts",
-      "sha256": "366d52fa039a9d5e3423ca21b0a80ca4542089b6e3b15d2541155e539ac648de"
+      "sha256": "f11911f9d182b1667bc64f1ac250dd2ec3a1f1d6ef52758994f605fc41629704"
     },
     {
       "path": "server/services/edit-reference-production-long-form-runtime-port.ts",
@@ -221,7 +249,7 @@
     },
     {
       "path": "server/services/edit-reference-service.ts",
-      "sha256": "8ef0a378b3a2f7b8cdef4da667f16d1429f21d6f66d237e115c78e2e7d8d7725"
+      "sha256": "9dff0219ec7252aefa3a2eb7d1395819e94babe4d52dd3e753b878da25ae31c8"
     },
     {
       "path": "server/services/edit-reference-target-video-understanding-service.ts",
@@ -262,6 +290,10 @@
     {
       "path": "server/smoke/edit-reference-local-supabase-application-preparation-smoke.ts",
       "sha256": "3335104b1f5fbb9a1bd74ae169944a6036445e7eec5a0c9cd5c263bd16f8397c"
+    },
+    {
+      "path": "server/smoke/edit-reference-local-supabase-domain-repository-smoke.ts",
+      "sha256": "7dbe117c585f316a7a2e9b886c234b165d5eadb8dd9a85bd40b96af26df9deea"
     },
     {
       "path": "server/smoke/edit-reference-local-supabase-http-rpc-smoke.ts",
@@ -353,7 +385,7 @@
     },
     {
       "path": "src/types/edit-reference.ts",
-      "sha256": "e071e39958907010317cd55a6e66e466fa6377509595f4ba20220df47fa3a688"
+      "sha256": "f7f9bc1b8104027c229dc42a4d2e44c4b9bf444c47979735c4436b1ef51f961b"
     },
     {
       "path": "src/types/reeditpro.ts",

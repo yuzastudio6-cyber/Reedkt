@@ -3,6 +3,9 @@ public.approved_plan_snapshots
 public.edit_credit_estimates
 public.edit_execution_authorizations
 public.edit_plan_versions
+public.edit_reference_domain_audit_events
+public.edit_reference_domain_idempotency_receipts
+public.edit_reference_domain_states
 public.edit_reference_idempotency_receipts
 public.edit_reference_target_understanding_packages
 public.edit_references
@@ -18,6 +21,7 @@ public.preference_audit_segments
 public.preference_dna_qa_results
 public.preference_dna_versions
 public.preference_evidence
+public.preference_evidence_assets
 public.preference_long_form_study_attempts
 public.preference_long_form_study_checkpoint_authority
 public.preference_long_form_study_checkpoints

@@ -11,7 +11,10 @@ immutable approved snapshot, execution authorization, plan invalidation,
 usage event, audit segment, lifecycle event, and exact Apply idempotency
 history survive the reset with an identical logical-state digest.
 
-The first completed rehearsal restored all 41 reviewed data tables and passed:
+The current rehearsal restores all 45 reviewed data tables, including the
+operation-safe Edit Reference library/study domain state, immutable domain
+audit history, durable command receipts, and private evidence-asset metadata.
+It passes:
 
 - exact pre-backup versus post-restore logical-state SHA-256 equality;
 - exact Apply replay returning the original transaction and receipt digest;
@@ -34,7 +37,7 @@ The first completed rehearsal restored all 41 reviewed data tables and passed:
   that container, avoiding cross-major restore statements;
 - writes the temporary mode-077 archive only under the authorized
   external-drive checkout;
-- compares the archive table-of-contents with the fixed 41-table contract;
+- compares the archive table-of-contents with the fixed 45-table contract;
 - restores data only, in one transaction, onto a freshly migrated schema;
 - compares a canonical digest over every public row and `auth.users` row;
 - removes the private archive and resets the local database on success or

@@ -17,6 +17,7 @@ import type { EditReferenceStudyChatProviderCheckbackRecord } from './edit-refer
 import type { EditReferenceStudyChatInternalCostAuthorityRecord } from './edit-reference-study-chat-internal-cost-authority-contract'
 import type { EditReferenceStudyChatProviderWorkflowRecord } from './edit-reference-study-chat-provider-workflow-contract'
 import type { EditReferencePreferenceDnaReasoningAttemptRecord } from './edit-reference-preference-dna-reasoning-attempt-contract'
+import type { EditReferenceDomainCommand } from './edit-reference-domain-command-contract'
 
 export const EDIT_REFERENCE_AGGREGATE_VERSION = 'edit-reference-private-v2' as const
 export const EDIT_REFERENCE_IDEMPOTENCY_RECEIPT_VERSION = 'edit-reference-idempotency-receipt-v2' as const
@@ -129,6 +130,13 @@ export interface EditReferenceMutationInput {
   operation: string
   idempotencyKey: string
   requestHash: string
+  /**
+   * Explicit server-owned command for transactional repositories. The local
+   * private repository continues to execute the bounded mutation closure.
+   * Canonical RPC repositories must reject mutations that omit this command
+   * instead of serializing or trusting an arbitrary aggregate replacement.
+   */
+  command?: EditReferenceDomainCommand
   mutate: (
     context: EditReferenceMutationContext,
   ) => EditReferenceDetailData & { appendedMessageIds?: string[] } | Promise<EditReferenceDetailData & { appendedMessageIds?: string[] }>

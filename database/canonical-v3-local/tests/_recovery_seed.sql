@@ -132,6 +132,67 @@ reset role;
 select set_config('request.jwt.claims', '{}', false);
 \o
 
+set role service_role;
+select set_config('request.jwt.claims', '{"role":"service_role"}', false);
+
+do $$
+declare
+  created jsonb;
+  appended jsonb;
+  study_id uuid;
+begin
+  select * into created
+  from public.mutate_edit_reference_domain_command_v1(
+    'edit-reference-domain-command-v1',
+    '11111111-1111-4111-8111-111111111111',
+    jsonb_build_object(
+      'schemaVersion', 'edit-reference-domain-command-v1',
+      'operation', 'edit_reference.create',
+      'request', jsonb_build_object(
+        'workspaceId', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+        'name', 'Recovery domain preference',
+        'description', 'Durable library and Study Chat recovery proof.',
+        'initialGoals', jsonb_build_array('story_and_pacing', 'audio_and_sfx')
+      )
+    ),
+    repeat('d', 64),
+    repeat('e', 64)
+  );
+  study_id := (created->'receipt'->'result'->>'studySessionId')::uuid;
+
+  select * into appended
+  from public.mutate_edit_reference_domain_command_v1(
+    'edit-reference-domain-command-v1',
+    '11111111-1111-4111-8111-111111111111',
+    jsonb_build_object(
+      'schemaVersion', 'edit-reference-domain-command-v1',
+      'operation', 'preference_study.message.append',
+      'request', jsonb_build_object(
+        'studyId', study_id::text,
+        'input', jsonb_build_object(
+          'workspaceId', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+          'expectedStudyRevision', 1,
+          'clientMessageId', 'recovery-domain-message-1',
+          'content', 'Preserve the quiet pause before the central testimony.'
+        )
+      )
+    ),
+    repeat('f', 64),
+    repeat('0', 64)
+  );
+  if created->>'replayed' <> 'false'
+    or appended->>'replayed' <> 'false'
+    or appended->'aggregate'->>'revision' <> '2'
+    or jsonb_array_length(appended->'aggregate'->'evidence') <> 1
+  then raise exception 'RECOVERY_DOMAIN_SEED_INVALID_%_%', created, appended; end if;
+end;
+$$;
+
+reset role;
+\o /dev/null
+select set_config('request.jwt.claims', '{}', false);
+\o
+
 insert into public.edit_plan_versions (
   id, workspace_id, project_id, edit_session_id, version, status,
   plan_digest_sha256, preference_application_id

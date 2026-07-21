@@ -8,7 +8,10 @@ declare
     'exact_edit_preference_states', 'edit_plan_versions', 'edit_credit_estimates',
     'approved_plan_snapshots', 'edit_execution_authorizations',
     'edit_references', 'preference_study_sessions', 'preference_study_messages',
-    'preference_evidence', 'preference_assets', 'preference_study_reasoning_runs',
+    'preference_evidence', 'preference_assets', 'preference_evidence_assets',
+    'edit_reference_domain_states', 'edit_reference_domain_audit_events',
+    'edit_reference_domain_idempotency_receipts',
+    'preference_study_reasoning_runs',
     'preference_study_reasoning_route_attempts',
     'preference_study_reasoning_provider_requests',
     'preference_study_reasoning_provider_observations',
@@ -76,6 +79,10 @@ begin
     or has_function_privilege('anon', 'public.apply_exact_edit_preferences_and_reference_v1(text,jsonb)', 'EXECUTE')
     or has_function_privilege('anon', 'public.mutate_edit_reference_application_lifecycle_v3(text,jsonb)', 'EXECUTE')
     or has_function_privilege('anon', 'public.reserve_edit_reference_study_chat_run_v1(jsonb)', 'EXECUTE')
+    or has_function_privilege('anon', 'public.read_edit_reference_domain_aggregate_v1(text,jsonb)', 'EXECUTE')
+    or has_function_privilege('anon', 'public.mutate_edit_reference_domain_command_v1(text,uuid,jsonb,text,text)', 'EXECUTE')
+    or has_function_privilege('authenticated', 'public.read_edit_reference_domain_aggregate_v1(text,jsonb)', 'EXECUTE')
+    or has_function_privilege('authenticated', 'public.mutate_edit_reference_domain_command_v1(text,uuid,jsonb,text,text)', 'EXECUTE')
     or has_function_privilege('authenticated', 'public.enqueue_edit_reference_long_form_study_v1(jsonb)', 'EXECUTE')
     or has_function_privilege('authenticated', 'public.authorize_edit_reference_study_chat_route_attempt_v1(jsonb)', 'EXECUTE') then
     raise exception 'SCHEMA_RPC_ROLE_BOUNDARY_TOO_BROAD';
@@ -87,6 +94,8 @@ begin
     or not has_function_privilege('authenticated', 'public.read_exact_edit_reference_application_state_v2(text,text,jsonb)', 'EXECUTE')
     or not has_function_privilege('authenticated', 'public.assert_preference_application_plan_current_v1(text,jsonb,uuid,text,text,uuid,text)', 'EXECUTE')
     or not has_function_privilege('authenticated', 'public.reserve_edit_reference_study_chat_run_v1(jsonb)', 'EXECUTE')
+    or not has_function_privilege('service_role', 'public.read_edit_reference_domain_aggregate_v1(text,jsonb)', 'EXECUTE')
+    or not has_function_privilege('service_role', 'public.mutate_edit_reference_domain_command_v1(text,uuid,jsonb,text,text)', 'EXECUTE')
     or not has_function_privilege('service_role', 'public.enqueue_edit_reference_long_form_study_v1(jsonb)', 'EXECUTE')
     or not has_function_privilege('service_role', 'public.authorize_edit_reference_study_chat_route_attempt_v1(jsonb)', 'EXECUTE') then
     raise exception 'SCHEMA_REQUIRED_RPC_GRANT_MISSING';

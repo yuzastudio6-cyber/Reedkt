@@ -32,6 +32,14 @@ The chain provides:
   idempotent preparation transaction that re-reads approved reference, DNA,
   QA, and exact-target study authority before creating one unconnected
   application; authenticated browser credentials cannot execute it directly;
+- `mutate_edit_reference_domain_command_v1` as the service-role-only,
+  operation-safe library and study mutation transaction. It accepts explicit
+  create, update, message, and evidence commands and never accepts a
+  browser-shaped replacement aggregate;
+- `read_edit_reference_domain_aggregate_v1` as the paired service-role-only,
+  tenant-bound library and study read. The loopback server adapter keeps the
+  service credential inside the backend closure and exposes only the existing
+  authenticated ReEditPro HTTP contract;
 - `read_exact_edit_reference_application_state_v2` planning authority;
 - `assert_preference_application_plan_current_v1` execution-currentness check;
 - durable Kimi K3 -> Qwen 3.7 -> DeepSeek V4 Pro Study Chat attempts, provider
@@ -43,14 +51,15 @@ The chain provides:
 - forced RLS with authenticated read scopes and RPC-only mutation;
 - process-branded, loopback-only TypeScript adapters that run SQL receipts and
   planning reads through the frozen V6 backend validators;
-- a real local PostgREST HTTP proof using authenticated, locally signed JWTs,
-  with no service-role credential used for either the authority read or Apply
-  operation;
+- a real local PostgREST HTTP proof using authenticated, locally signed JWTs
+  for exact-edit authority reads and Apply, plus a server-owned loopback
+  service-role transport for the explicit library/study command and read RPCs.
+  No service-role credential reaches browser code, logs, or response data;
 - local two-user/two-workspace isolation and adversarial lifecycle,
   server-owned application preparation/replay/conflict, atomic Apply,
   planning-authority read/evidence/replay, immutable-baseline, cleanup
   invalidation, recovery, direct-RPC/table denial, and internal-cost tests.
-- a destructive local backup/reset/restore rehearsal covering all 41 reviewed
+- a destructive local backup/reset/restore rehearsal covering all 45 reviewed
   canonical data tables, an exact logical-state digest, immutable approved and
   audit history, exact Apply replay/conflict recovery, and restored tenant RLS.
 

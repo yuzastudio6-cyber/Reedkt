@@ -29,10 +29,26 @@ begin
   if (select count(*) from public.exact_edit_preference_apply_events) <> 1
     or (select count(*) from public.preference_application_lifecycle_events) <> 1
     or (select count(*) from public.preference_application_plan_invalidations) <> 1
-    or (select count(*) from public.preference_usage_events) <> 1
+    or (select count(*) from public.preference_usage_events) <> 4
     or (select count(*) from public.preference_audit_segments) <> 1
     or (select count(*) from public.edit_reference_idempotency_receipts) <> 2 then
     raise exception 'RECOVERY_AUDIT_OR_IDEMPOTENCY_HISTORY_MISSING';
+  end if;
+  if (select count(*) from public.edit_reference_domain_states) <> 1
+    or (select count(*) from public.edit_reference_domain_audit_events) <> 2
+    or (select count(*) from public.edit_reference_domain_idempotency_receipts) <> 2
+    or (select count(*) from public.preference_evidence_assets) <> 0
+    or not exists (
+      select 1 from public.edit_references
+      where name = 'Recovery domain preference'
+        and record_json->>'runtimeSource' = 'canonical_supabase_transactional'
+    )
+    or not exists (
+      select 1 from public.preference_evidence
+      where evidence_json->>'summary'
+        = 'Preserve the quiet pause before the central testimony.'
+    ) then
+    raise exception 'RECOVERY_EDIT_REFERENCE_DOMAIN_HISTORY_MISSING';
   end if;
   if not exists (
     select 1 from public.approved_plan_snapshots
@@ -99,7 +115,7 @@ declare
   state_read jsonb;
 begin
   if (select count(*) from public.workspaces) <> 1
-    or (select count(*) from public.edit_references) <> 1
+    or (select count(*) from public.edit_references) <> 2
     or exists (
       select 1 from public.edit_references
       where workspace_id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'

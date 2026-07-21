@@ -4,6 +4,7 @@ import { DisabledSupabaseEditReferenceRepository } from '../edit-references/disa
 import {
   type EditReferenceRepository,
 } from '../edit-references/edit-reference-repository'
+import { assertEditReferenceLocalSupabaseDomainRepository } from '../edit-references/edit-reference-local-supabase-domain-repository'
 import { PrivateEditReferenceRepository } from '../edit-references/private-edit-reference-repository'
 
 export const EDIT_REFERENCE_DOMAIN_REPOSITORY_RUNTIME_PORT_VERSION =
@@ -11,11 +12,13 @@ export const EDIT_REFERENCE_DOMAIN_REPOSITORY_RUNTIME_PORT_VERSION =
 
 export type EditReferenceDomainRepositorySourceAuthority =
   | 'backend_local_private_repository'
+  | 'canonical_v3_local_repository'
   | 'canonical_edit_reference_v6_repository'
   | 'unavailable'
 
 export type EditReferenceDomainRepositoryEvidenceClass =
   | 'backend_local_private_only'
+  | 'canonical_v3_local_only'
   | 'canonical_backend_verified_runtime'
   | 'blocked_missing_canonical_repository'
 
@@ -42,12 +45,23 @@ export interface ResolveEditReferenceDomainRepositoryRuntimePortInput {
 }
 
 const qualifiedProductionRepositoryPorts = new WeakSet<EditReferenceDomainRepositoryRuntimePort>()
+const qualifiedLocalCanonicalRepositoryPorts = new WeakSet<EditReferenceDomainRepositoryRuntimePort>()
 
 export function resolveEditReferenceDomainRepositoryRuntimePort(
   input: ResolveEditReferenceDomainRepositoryRuntimePortInput,
 ): EditReferenceDomainRepositoryRuntimePort {
   if (input.runtimePort && input.localRepository) {
     throw invalidRepositoryRuntime('runtime_port_and_local_repository_mixed')
+  }
+
+  if (
+    input.runtimePort
+    && qualifiedLocalCanonicalRepositoryPorts.has(input.runtimePort)
+    && isExplicitCanonicalV3LocalRepositoryRuntime(input.context)
+  ) {
+    assertPortShape(input.runtimePort)
+    assertQualifiedLocalCanonicalRepositoryPort(input.runtimePort)
+    return input.runtimePort
   }
 
   if (isExplicitBackendLocalRepositoryRuntime(input.context)) {
@@ -80,6 +94,30 @@ export function resolveEditReferenceDomainRepositoryRuntimePort(
   assertPortShape(input.runtimePort)
   assertQualifiedProductionRepositoryPort(input.runtimePort)
   return input.runtimePort
+}
+
+export function createCanonicalV3LocalEditReferenceDomainRepositoryRuntimePort(input: {
+  readonly repository: EditReferenceRepository
+}): EditReferenceDomainRepositoryRuntimePort {
+  assertEditReferenceLocalSupabaseDomainRepository(input.repository)
+  const port: EditReferenceDomainRepositoryRuntimePort = Object.freeze({
+    schemaVersion: EDIT_REFERENCE_DOMAIN_REPOSITORY_RUNTIME_PORT_VERSION,
+    authorityClass: 'canonical_edit_reference_domain_repository',
+    sourceAuthority: 'canonical_v3_local_repository',
+    evidenceClass: 'canonical_v3_local_only',
+    repository: input.repository,
+    productionAuthority: false,
+    browserSelectable: false,
+    privateFallbackAllowedInHostedRuntime: false,
+    databaseTransactionAdapterVerified: true,
+    authenticatedTenantRlsVerified: true,
+    durableIdempotencyAndCasVerified: true,
+    crossDeviceReadbackVerified: true,
+    sameReleaseEvidenceVerified: false,
+  })
+  qualifiedLocalCanonicalRepositoryPorts.add(port)
+  assertPortShape(port)
+  return port
 }
 
 export function createBackendLocalEditReferenceDomainRepositoryRuntimePort(input: {
@@ -117,6 +155,12 @@ export function editReferenceDomainRepositoryRuntimeWarnings(
   if (port.sourceAuthority === 'backend_local_private_repository') {
     return [
       'Stored in the private backend-local Edit Reference repository. Production Supabase persistence remains blocked.',
+      executionBoundary,
+    ]
+  }
+  if (port.sourceAuthority === 'canonical_v3_local_repository') {
+    return [
+      'Verified against the isolated canonical V3 local Supabase reset. Remote and production persistence remain blocked.',
       executionBoundary,
     ]
   }
@@ -178,6 +222,25 @@ function assertQualifiedProductionRepositoryPort(
   ) throw invalidRepositoryRuntime('canonical_domain_repository_not_release_qualified')
 }
 
+function assertQualifiedLocalCanonicalRepositoryPort(
+  port: EditReferenceDomainRepositoryRuntimePort,
+): void {
+  if (
+    port.sourceAuthority !== 'canonical_v3_local_repository'
+    || port.evidenceClass !== 'canonical_v3_local_only'
+    || port.repository.persistence !== 'canonical_supabase_transactional'
+    || port.productionAuthority
+    || !port.databaseTransactionAdapterVerified
+    || !port.authenticatedTenantRlsVerified
+    || !port.durableIdempotencyAndCasVerified
+    || !port.crossDeviceReadbackVerified
+    || port.sameReleaseEvidenceVerified
+    || qualifiedProductionRepositoryPorts.has(port)
+    || !qualifiedLocalCanonicalRepositoryPorts.has(port)
+  ) throw invalidRepositoryRuntime('local_canonical_domain_repository_port_authority_invalid')
+  assertEditReferenceLocalSupabaseDomainRepository(port.repository)
+}
+
 function assertPortShape(port: EditReferenceDomainRepositoryRuntimePort): void {
   if (
     port.schemaVersion !== EDIT_REFERENCE_DOMAIN_REPOSITORY_RUNTIME_PORT_VERSION
@@ -202,6 +265,13 @@ function assertPortShape(port: EditReferenceDomainRepositoryRuntimePort): void {
 function isExplicitBackendLocalRepositoryRuntime(context: ServiceContext): boolean {
   return context.auth?.isMockUser === true
     && context.env.allowMockWithoutSupabase
+    && context.env.nodeEnv !== 'production'
+    && (context.env.mode === 'local' || context.env.mode === 'mock')
+    && context.env.storageMode === 'local'
+}
+
+function isExplicitCanonicalV3LocalRepositoryRuntime(context: ServiceContext): boolean {
+  return context.env.allowMockWithoutSupabase
     && context.env.nodeEnv !== 'production'
     && (context.env.mode === 'local' || context.env.mode === 'mock')
     && context.env.storageMode === 'local'

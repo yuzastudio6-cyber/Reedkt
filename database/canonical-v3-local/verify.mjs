@@ -22,6 +22,7 @@ const expectedRepositoryFiles = [
   'docs/canonical-edit-reference-mounted-domain-repository-runtime-port-verification-2026-07-21.md',
   'docs/canonical-edit-reference-mounted-long-form-runtime-port-verification-2026-07-21.md',
   'docs/canonical-exact-edit-planning-authority-verification-2026-07-21.md',
+  'docs/canonical-v3-local-edit-reference-domain-library-study-verification-2026-07-21.md',
   'docs/canonical-v3-local-edit-reference-recovery-verification-2026-07-21.md',
   'docs/canonical-v3-local-exact-edit-apply-authority-read-verification-2026-07-21.md',
   'docs/canonical-v3-local-exact-edit-atomic-apply-verification-2026-07-21.md',
@@ -30,13 +31,17 @@ const expectedRepositoryFiles = [
   'server/app.ts',
   'server/edit-references/canonical-exact-edit-planning-authority-boundary.ts',
   'server/edit-references/controlled-local-edit-reference-application-preparation-fixture.ts',
+  'server/edit-references/edit-reference-domain-command-contract.ts',
   'server/edit-references/edit-reference-local-supabase-application-preparation-port.ts',
+  'server/edit-references/edit-reference-local-supabase-domain-http-rpc-client.ts',
+  'server/edit-references/edit-reference-local-supabase-domain-repository.ts',
   'server/edit-references/edit-reference-local-supabase-http-rpc-client.ts',
   'server/edit-references/edit-reference-local-supabase-rpc-adapter.ts',
   'server/edit-references/edit-reference-production-application-preparation-boundary.ts',
   'server/edit-references/edit-reference-production-exact-edit-apply-boundary.ts',
   'server/edit-references/edit-reference-production-readiness.ts',
   'server/edit-references/edit-reference-repository.ts',
+  'server/edit-references/private-edit-reference-repository.ts',
   'server/routes/exact-edit-preference-routes.ts',
   'server/routes/route-helpers.ts',
   'server/services/canonical-planning-handoff-service.ts',
@@ -55,6 +60,7 @@ const expectedRepositoryFiles = [
   'server/smoke/canonical-professional-long-form-post-approval-smoke.ts',
   'server/smoke/edit-planning-authority-smoke.ts',
   'server/smoke/edit-reference-local-supabase-application-preparation-smoke.ts',
+  'server/smoke/edit-reference-local-supabase-domain-repository-smoke.ts',
   'server/smoke/edit-reference-local-supabase-http-rpc-smoke.ts',
   'server/smoke/edit-reference-local-supabase-rpc-adapter-smoke.ts',
   'server/smoke/edit-reference-mounted-domain-repository-runtime-port-smoke.ts',
@@ -98,6 +104,7 @@ const expectedMigrations = [
   '202607210005_exact_edit_apply_authority_read.sql',
   '202607210006_canonical_exact_edit_planning_authority.sql',
   '202607210007_edit_reference_application_preparation.sql',
+  '202607210008_edit_reference_domain_library_study_rpcs.sql',
 ]
 const actualMigrations = readdirSync(join(directory, 'supabase', 'migrations'))
   .filter((name) => name.endsWith('.sql'))
@@ -108,7 +115,7 @@ const expectedRecoveryDataTables = readFileSync(
   join(directory, 'expected-recovery-data-tables.txt'),
   'utf8',
 ).trim().split('\n')
-assert(expectedRecoveryDataTables.length === 41, 'recovery_table_count_invalid')
+assert(expectedRecoveryDataTables.length === 45, 'recovery_table_count_invalid')
 assert(
   equalArrays(expectedRecoveryDataTables, [...expectedRecoveryDataTables].sort()),
   'recovery_table_order_invalid',
@@ -169,6 +176,12 @@ for (const requiredToken of [
   'read_exact_edit_planning_authority_v1',
   'record_exact_edit_planning_evidence_v1',
   'prepare_edit_reference_application_v1',
+  'mutate_edit_reference_domain_command_v1',
+  'read_edit_reference_domain_aggregate_v1',
+  'edit_reference_domain_states',
+  'edit_reference_domain_audit_events',
+  'edit_reference_domain_idempotency_receipts',
+  'preference_evidence_assets',
   'read_exact_edit_reference_application_state_v2',
   'assert_preference_application_plan_current_v1',
   'reserve_edit_reference_study_chat_run_v1',

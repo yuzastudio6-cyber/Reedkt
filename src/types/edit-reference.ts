@@ -167,7 +167,7 @@ export interface EditReferenceRecord {
   revision: number
   createdAt: string
   updatedAt: string
-  runtimeSource: 'backend_local_private'
+  runtimeSource: 'backend_local_private' | 'canonical_supabase_transactional'
   evidenceStatus: PreferenceEvidenceStatus
   dnaStatus: EditReferenceDNAStatus
   qaStatus: EditReferenceDNAQAStatus
@@ -183,7 +183,7 @@ export interface PreferenceStudySessionRecord {
   revision: number
   createdAt: string
   updatedAt: string
-  runtimeSource: 'backend_local_private'
+  runtimeSource: 'backend_local_private' | 'canonical_supabase_transactional'
   evidenceStatus: PreferenceEvidenceStatus
   dnaStatus: EditReferenceDNAStatus
   qaStatus: EditReferenceDNAQAStatus

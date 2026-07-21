@@ -11,6 +11,7 @@ export const EDIT_REFERENCE_PRODUCTION_GATE_DEFINITIONS = [
       'canonical_migration_chain_verified',
       'application_lifecycle_rpc_v3_verified',
       'server_only_application_and_planning_read_rpc_adapters_verified',
+      'browser_command_server_authority_binding_verified',
       'durable_idempotency_and_cas_verified',
       'cross_device_readback_verified',
       'private_local_fallback_disabled_in_production',
@@ -87,6 +88,8 @@ export const EDIT_REFERENCE_PRODUCTION_GATE_DEFINITIONS = [
     evidenceClass: 'live_atomic_preference_application',
     assertions: [
       'apply_replace_remove_atomicity_verified',
+      'exact_edit_preference_and_reference_apply_transaction_verified',
+      'replacement_preparation_preserves_current_application_until_atomic_commit_verified',
       'exact_output_frame_transactional_reread_verified',
       'draft_plan_estimate_invalidation_verified',
       'approved_snapshot_and_history_preservation_verified',

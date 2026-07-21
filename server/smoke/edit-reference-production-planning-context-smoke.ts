@@ -1,5 +1,10 @@
 import assert from 'node:assert/strict'
 import type { PreferenceApplicationRecord } from '../../src/types/edit-reference'
+import {
+  EDIT_REFERENCE_PRODUCTION_LIFECYCLE_COMMAND_VERSION,
+  EDIT_REFERENCE_PRODUCTION_LIFECYCLE_SUBCOMMAND_KEY,
+  type EditReferenceProductionLifecycleCommand,
+} from '../../src/types/edit-reference-production-lifecycle-api'
 import { ApiError } from '../errors/api-error'
 import {
   calculatePreferenceApplicationContentDigest,
@@ -34,6 +39,10 @@ import {
   createEditReferenceProductionRpcContractFixtureCapability,
   type EditReferenceProductionRpcClient,
 } from '../edit-references/edit-reference-production-rpc-adapter'
+import {
+  EDIT_REFERENCE_PRODUCTION_HTTP_LIFECYCLE_BOUNDARY_VERSION,
+  prepareEditReferenceProductionLifecycleRequest,
+} from '../edit-references/edit-reference-production-http-lifecycle-boundary'
 
 const hash = (character: string): string => character.repeat(64)
 const precedence = [
@@ -663,6 +672,147 @@ await assert.rejects(
 )
 assert.equal(failedRpcCallCount, 1)
 
+const authenticatedHttpAuthority = {
+  actorUserId: request.actorUserId,
+  workspaceId: request.workspaceId,
+  projectId: request.projectId,
+  editSessionId: request.editSessionId,
+  authenticatedUserVerified: true as const,
+  workspaceMembershipVerified: true as const,
+  workspaceProjectCompositeBindingVerified: true as const,
+  projectEditSessionCompositeBindingVerified: true as const,
+  accessCheckReceiptId: 'http-access-check-a',
+}
+const applyHttpCommand: EditReferenceProductionLifecycleCommand = {
+  schemaVersion: EDIT_REFERENCE_PRODUCTION_LIFECYCLE_COMMAND_VERSION,
+  mutation: 'apply',
+  workspaceId: preparedApplication.workspaceId,
+  projectId: preparedApplication.projectId,
+  editSessionId: preparedApplication.editSessionId,
+  applicationId: preparedApplication.id,
+  expectedCurrentApplicationId: null,
+  expectedReferenceRevision: request.expectedReferenceRevision,
+  expectedPlanningInputRevision: request.expectedPlanningInputRevision,
+  expectedApplicationContentDigestSha256: preparedApplication.contentDigest,
+  expectedApplicationContextHashSha256:
+    calculateEditReferenceProductionApplicationContextHash(preparedApplication),
+  expectedTargetUnderstandingPackageDigestSha256: targetUnderstanding.packageDigestSha256,
+  expectedOutputFrameAuthorityDigestSha256:
+    outputFrameConfirmation.authorityDigestSha256,
+}
+const preparedHttpRequest = prepareEditReferenceProductionLifecycleRequest({
+  command: applyHttpCommand,
+  authenticated: authenticatedHttpAuthority,
+  preparedApplication,
+  outputFrameAuthority: outputFrameConfirmation,
+  idempotencyKeyHashSha256: request.idempotencyKeyHashSha256,
+  serverRequestedAt: request.requestedAt,
+})
+assert.equal(
+  preparedHttpRequest.schemaVersion,
+  EDIT_REFERENCE_PRODUCTION_HTTP_LIFECYCLE_BOUNDARY_VERSION,
+)
+assert.equal(
+  preparedHttpRequest.subcommandKey,
+  EDIT_REFERENCE_PRODUCTION_LIFECYCLE_SUBCOMMAND_KEY,
+)
+assert.equal(preparedHttpRequest.mountPolicy, 'exact_edit_apply_transaction_only')
+assert.deepEqual(preparedHttpRequest.request, request)
+assert.equal(preparedHttpRequest.actorDerivedFromAuthenticatedServerContext, true)
+assert.equal(preparedHttpRequest.exactEditScopeDerivedFromAuthenticatedServerContext, true)
+assert.equal(
+  preparedHttpRequest.accessCheckReceiptId,
+  authenticatedHttpAuthority.accessCheckReceiptId,
+)
+assert.equal(preparedHttpRequest.applicationReReadServerSide, true)
+assert.equal(preparedHttpRequest.outputFrameAuthorityAcceptedFromBrowser, false)
+assert.equal(preparedHttpRequest.idempotencyKeyAcceptedInBody, false)
+assert.equal(preparedHttpRequest.remoteMutationMade, false)
+assert.equal(preparedHttpRequest.productionReady, false)
+
+assert.throws(() => prepareEditReferenceProductionLifecycleRequest({
+  command: {
+    ...applyHttpCommand,
+    actorUserId: 'browser-forged-user',
+  } as EditReferenceProductionLifecycleCommand,
+  authenticated: authenticatedHttpAuthority,
+  preparedApplication,
+  outputFrameAuthority: outputFrameConfirmation,
+  idempotencyKeyHashSha256: request.idempotencyKeyHashSha256,
+  serverRequestedAt: request.requestedAt,
+}), /could not be bound to verified server authority/i)
+assert.throws(() => prepareEditReferenceProductionLifecycleRequest({
+  command: applyHttpCommand,
+  authenticated: { ...authenticatedHttpAuthority, editSessionId: 'different-edit' },
+  preparedApplication,
+  outputFrameAuthority: outputFrameConfirmation,
+  idempotencyKeyHashSha256: request.idempotencyKeyHashSha256,
+  serverRequestedAt: request.requestedAt,
+}), /could not be bound to verified server authority/i)
+assert.throws(() => prepareEditReferenceProductionLifecycleRequest({
+  command: applyHttpCommand,
+  authenticated: authenticatedHttpAuthority,
+  preparedApplication: { ...preparedApplication, runtimeSource: 'verified_local' },
+  outputFrameAuthority: outputFrameConfirmation,
+  idempotencyKeyHashSha256: request.idempotencyKeyHashSha256,
+  serverRequestedAt: request.requestedAt,
+}), /could not be bound to verified server authority/i)
+assert.throws(() => prepareEditReferenceProductionLifecycleRequest({
+  command: { ...applyHttpCommand, expectedPlanningInputRevision: 5 },
+  authenticated: authenticatedHttpAuthority,
+  preparedApplication,
+  outputFrameAuthority: outputFrameConfirmation,
+  idempotencyKeyHashSha256: request.idempotencyKeyHashSha256,
+  serverRequestedAt: request.requestedAt,
+}), /could not be bound to verified server authority/i)
+
+const replacementApplication: PreferenceApplicationRecord = {
+  ...preparedApplication,
+  id: 'application-b-v1',
+  replacesApplicationId: application.id,
+}
+const replaceHttpCommand: EditReferenceProductionLifecycleCommand = {
+  ...applyHttpCommand,
+  mutation: 'replace',
+  applicationId: replacementApplication.id,
+  expectedCurrentApplicationId: application.id,
+  expectedApplicationContextHashSha256:
+    calculateEditReferenceProductionApplicationContextHash(replacementApplication),
+}
+const preparedReplaceRequest = prepareEditReferenceProductionLifecycleRequest({
+  command: replaceHttpCommand,
+  authenticated: authenticatedHttpAuthority,
+  preparedApplication: replacementApplication,
+  outputFrameAuthority: outputFrameConfirmation,
+  idempotencyKeyHashSha256: hash('e'),
+  serverRequestedAt: '2026-07-21T02:00:08.000Z',
+})
+assert.equal(preparedReplaceRequest.request.mutation, 'replace')
+assert.equal(preparedReplaceRequest.request.applicationId, replacementApplication.id)
+assert.equal(preparedReplaceRequest.request.expectedCurrentApplicationId, application.id)
+
+const removeHttpCommand: EditReferenceProductionLifecycleCommand = {
+  ...applyHttpCommand,
+  mutation: 'remove',
+  applicationId: application.id,
+  expectedCurrentApplicationId: application.id,
+  expectedApplicationContextHashSha256:
+    calculateEditReferenceProductionApplicationContextHash(application),
+  expectedTargetUnderstandingPackageDigestSha256: null,
+  expectedOutputFrameAuthorityDigestSha256: null,
+}
+const preparedRemoveRequest = prepareEditReferenceProductionLifecycleRequest({
+  command: removeHttpCommand,
+  authenticated: authenticatedHttpAuthority,
+  preparedApplication: application,
+  outputFrameAuthority: null,
+  idempotencyKeyHashSha256: hash('f'),
+  serverRequestedAt: '2026-07-21T02:00:09.000Z',
+})
+assert.equal(preparedRemoveRequest.request.mutation, 'remove')
+assert.equal(preparedRemoveRequest.request.outputFrameConfirmation, null)
+assert.equal(preparedRemoveRequest.request.targetUnderstandingPackageDigestSha256, null)
+
 console.log(JSON.stringify({
   status: 'passed',
   planningContextVersion: planningContext.schemaVersion,
@@ -675,6 +825,8 @@ console.log(JSON.stringify({
   canonicalPlannerBindingAdapted: true,
   rpcContractFixtureAdapterVerified: true,
   rpcAutomaticRetryStarted: false,
+  browserLifecycleCommandBoundaryVerified: true,
+  browserSuppliedActorOrFrameAuthorityAccepted: false,
   legacyPreferenceIntelligenceStoreRead: false,
   remoteMutationAttempted: false,
   productionReady: false,

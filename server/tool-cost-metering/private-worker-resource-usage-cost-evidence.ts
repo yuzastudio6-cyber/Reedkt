@@ -5,8 +5,10 @@ import { z } from 'zod'
 import {
   createCanonicalProviderOperationRegistry,
   createCanonicalProviderOperationRegistryV2,
+  createCanonicalProviderOperationRegistryV3,
   resolveCanonicalProviderOperation,
   resolveCanonicalProviderOperationV2,
+  resolveCanonicalProviderOperationV3,
 } from '../edit-architecture/canonical-provider-work-authority'
 import { ApiError } from '../errors/api-error'
 import {
@@ -114,6 +116,7 @@ const operationAuthoritySchema = z.discriminatedUnion('kind', [
     registryVersion: z.enum([
       'canonical-provider-operation-registry-v1',
       'canonical-provider-operation-registry-v2',
+      'canonical-provider-operation-registry-v3',
     ]),
     canonicalToolId: z.null(),
     operationId: identity,
@@ -755,6 +758,7 @@ export function summarizePrivateWorkerResourceUsageCoverage() {
   const providerProfiles = [
     ...createCanonicalProviderOperationRegistry(),
     ...createCanonicalProviderOperationRegistryV2(),
+    ...createCanonicalProviderOperationRegistryV3(),
   ]
   const required = [
     'startedAt',
@@ -784,6 +788,8 @@ export function summarizePrivateWorkerResourceUsageCoverage() {
     registeredCanonicalToolIdentityCount: canonicalToolIds.size,
     registeredToolOperationIdCount: toolOperationIds.length,
     registeredProviderOperationCount: providerProfiles.length,
+    registeredProviderOperationIds: providerProfiles.map((profile) =>
+      profile.operationId),
     totalOperationContractCount: toolOperationIds.length + providerProfiles.length,
     toolOperationContractsWithRequiredCpuMemoryMeasurements:
       toolOperationIds.length - missingMeasurementOperationIds.length,
@@ -900,13 +906,18 @@ function resolveOperationAuthority(
     let profile:
       | ReturnType<typeof resolveCanonicalProviderOperation>
       | ReturnType<typeof resolveCanonicalProviderOperationV2>
+      | ReturnType<typeof resolveCanonicalProviderOperationV3>
     try {
       profile = resolveCanonicalProviderOperation(operation.operationId)
     } catch {
       try {
         profile = resolveCanonicalProviderOperationV2(operation.operationId)
       } catch {
-        throw invalid('Provider operation lacks one exact registered metering authority.')
+        try {
+          profile = resolveCanonicalProviderOperationV3(operation.operationId)
+        } catch {
+          throw invalid('Provider operation lacks one exact registered metering authority.')
+        }
       }
     }
     const measurementContract = {
@@ -933,6 +944,10 @@ function resolveOperationAuthority(
         0,
       )
       maximumOutputArtifacts = profile.expectedOutputs.length
+      maximumAuthorizedInfrastructureCostMicros = null
+    } else if (profile.schemaVersion === 'canonical-provider-operation-registry-v3') {
+      maximumOutputBytes = profile.expectedOutput.maximumByteLength
+      maximumOutputArtifacts = 1
       maximumAuthorizedInfrastructureCostMicros = null
     } else {
       maximumOutputBytes = profile.expectedOutput.maximumByteLength

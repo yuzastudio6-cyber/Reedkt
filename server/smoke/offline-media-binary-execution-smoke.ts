@@ -15,6 +15,9 @@ import {
 import {
   activatePrivateOfflineMediaBinaryRuntime,
   buildOfflineMediaBinaryMezzanineFinalizationRequest,
+  deriveOfflineMediaBinaryRuntimeStorageScope,
+  OFFLINE_MEDIA_BINARY_RUNTIME_STORAGE_ROOT,
+  OFFLINE_MEDIA_BINARY_RUNTIME_STORAGE_SCOPE_HASH,
   OFFLINE_MEDIA_BINARY_MEZZANINE_FINALIZATION_MAXIMUM_OUTPUT_BYTES,
   OFFLINE_MEDIA_BINARY_MEZZANINE_FINALIZATION_RECIPE,
   OFFLINE_MEDIA_BINARY_OPERATIONS,
@@ -84,6 +87,23 @@ const matchSourceAuthority = {
 assert.notEqual(matchSourceAuthority.sourceSha256, sourceAuthority.sourceSha256)
 
 const runtime = await activatePrivateOfflineMediaBinaryRuntime()
+const foreignCheckoutScope = deriveOfflineMediaBinaryRuntimeStorageScope(
+  'file:///Volumes/REeditproWork/foreign-checkout/server/tool-execution/media-binary-execution/offline-media-binary-runtime.ts',
+)
+assert.notEqual(
+  foreignCheckoutScope.scopeHash,
+  OFFLINE_MEDIA_BINARY_RUNTIME_STORAGE_SCOPE_HASH,
+)
+assert.notEqual(
+  foreignCheckoutScope.storageRoot,
+  OFFLINE_MEDIA_BINARY_RUNTIME_STORAGE_ROOT,
+)
+assert.equal(
+  OFFLINE_MEDIA_BINARY_RUNTIME_STORAGE_ROOT.endsWith(
+    OFFLINE_MEDIA_BINARY_RUNTIME_STORAGE_SCOPE_HASH.slice(0, 24),
+  ),
+  true,
+)
 const request = {
   schemaVersion: OFFLINE_MEDIA_BINARY_PROTOCOL,
   toolId: 'ffprobe' as const,
@@ -662,6 +682,10 @@ await assertRejects(() => runtime.executeMezzanineFinalizationServerInjected(
 
 const authority = await readPersistedOfflineMediaBinaryRuntimeAuthority()
 assert(authority)
+assert.equal(
+  authority.storageScopeHash,
+  OFFLINE_MEDIA_BINARY_RUNTIME_STORAGE_SCOPE_HASH,
+)
 assert.equal(authority.readiness.privateInternalExecutionReady, true)
 assert.equal(authority.readiness.privateGenericMediaResourceObservationReady, true)
 assert.equal(
@@ -813,6 +837,8 @@ console.log(JSON.stringify({
     'missing_duplicate_and_nonmonotonic_observer_markers_fail_closed',
     'server_owned_entrypoint_and_fixed_argument_derivation',
     'color_capable_image_tag_and_runtime_authority_namespace_are_revision_isolated',
+    'checkout_scoped_runtime_authority_prevents_parallel_branch_overwrite',
+    'output_sink_file_handles_close_on_success_rejection_and_early_return',
     'exact_source_slice_mezzanine_finalizer_stream_copies_h264_video',
     'exact_source_slice_mezzanine_finalizer_encodes_continuous_source_audio_once',
     'frame_derived_concat_duration_prevents_chunk_container_timing_gaps',

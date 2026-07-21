@@ -2,23 +2,25 @@ import { z } from 'zod'
 
 import {
   CANONICAL_ELEVENLABS_STORYTELLING_SPEECH_OPERATION_ID,
+  CANONICAL_FAL_SYNCHRONIZED_FOLEY_BOUNDARY_PROFILE_ID,
+  CANONICAL_FAL_SYNCHRONIZED_FOLEY_MODEL_ID,
+  CANONICAL_FAL_SYNCHRONIZED_FOLEY_OPERATION_ID,
+  CANONICAL_FAL_SYNCHRONIZED_FOLEY_ROUTE_ID,
   CANONICAL_LYRIA_GENERATE_MUSIC_OPERATION_ID,
   CANONICAL_PROVIDER_WORK_AUTHORIZATION_VERSION,
   resolveCanonicalProviderOperation,
   resolveCanonicalProviderOperationV2,
 } from './canonical-provider-work-authority'
+export {
+  CANONICAL_FAL_SYNCHRONIZED_FOLEY_BOUNDARY_PROFILE_ID,
+  CANONICAL_FAL_SYNCHRONIZED_FOLEY_MODEL_ID,
+  CANONICAL_FAL_SYNCHRONIZED_FOLEY_OPERATION_ID,
+  CANONICAL_FAL_SYNCHRONIZED_FOLEY_ROUTE_ID,
+} from './canonical-provider-work-authority'
 import { sha256AuthorityValue } from '../services/private-edit-authority-store'
 
 export const CANONICAL_PROVIDER_LIFECYCLE_POLICY_VERSION =
   'canonical-provider-lifecycle-policy-v2' as const
-export const CANONICAL_FAL_SYNCHRONIZED_FOLEY_OPERATION_ID =
-  'provider.fal.generate_synchronized_foley_candidate.v1' as const
-export const CANONICAL_FAL_SYNCHRONIZED_FOLEY_BOUNDARY_PROFILE_ID =
-  'fal_ai_mmaudio_v2_provider_boundary' as const
-export const CANONICAL_FAL_SYNCHRONIZED_FOLEY_ROUTE_ID =
-  'fal_ai_mmaudio_v2' as const
-export const CANONICAL_FAL_SYNCHRONIZED_FOLEY_MODEL_ID =
-  'fal-ai/mmaudio-v2' as const
 export const CANONICAL_FAL_SYNCHRONIZED_FOLEY_NORMALIZATION_OPERATION_ID =
   'tool.ffmpeg.execute_approved_media_recipe.v1' as const
 export const CANONICAL_FAL_SYNCHRONIZED_FOLEY_NORMALIZATION_PROFILE_ID =
@@ -246,7 +248,7 @@ export function createCanonicalProviderLifecyclePolicyCatalog(): readonly [
       blockingGates: [
         'immutable_provider_revision_qualification',
         'immutable_provider_rate_authority',
-        'canonical_provider_authorization_v2',
+        'canonical_provider_authorization_v3_production_qualification',
         'provider_transport_qualification',
       ],
     },

@@ -179,6 +179,7 @@ export const canonicalProviderAttemptConsumerReceiptSchema = z.object({
     schemaVersion: z.literal(CANONICAL_PROVIDER_PRIVATE_OUTPUT_SET_VERSION),
     sourceAuthorityClass: z.enum([
       'canonical_v1_zero_or_one_source',
+      'forward_single_output_same_attempt_source',
       'forward_multi_output_same_attempt_source',
     ]),
     outputCount: z.number().int().nonnegative().max(8),
@@ -265,8 +266,10 @@ export const canonicalProviderAttemptConsumerReceiptSchema = z.object({
   const projectedPrimaryOutput = value.privateOutputs[0] ?? null
   const outputProjectionMatches =
     JSON.stringify(value.privateOutput) === JSON.stringify(projectedPrimaryOutput)
-  const legacyOutputAuthority =
-    value.outputSet.sourceAuthorityClass === 'canonical_v1_zero_or_one_source'
+  const singleOutputAuthority =
+    value.outputSet.sourceAuthorityClass === 'canonical_v1_zero_or_one_source' ||
+    value.outputSet.sourceAuthorityClass ===
+      'forward_single_output_same_attempt_source'
   const outputIds = value.privateOutputs.map((output) => output.outputId)
   const privateObjectIdentityHashes = value.privateOutputs.map((output) =>
     output.privateObjectIdentityHash)
@@ -302,11 +305,11 @@ export const canonicalProviderAttemptConsumerReceiptSchema = z.object({
     new Set(privateObjectIdentityHashes).size !==
       privateObjectIdentityHashes.length ||
     !speechOutputOrderValid ||
-    (legacyOutputAuthority && (
+    (singleOutputAuthority && (
       value.privateOutputs.length > 1 ||
       value.outputSet.multiOutputProviderOperationAdmitted
     )) ||
-    (!legacyOutputAuthority &&
+    (!singleOutputAuthority &&
       !value.outputSet.multiOutputProviderOperationAdmitted) ||
     Date.parse(value.timing.completedAt) < Date.parse(value.timing.startedAt) ||
     Date.parse(value.projectedAt) < Date.parse(value.timing.completedAt) ||

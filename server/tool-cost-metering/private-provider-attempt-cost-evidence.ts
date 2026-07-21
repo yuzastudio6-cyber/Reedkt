@@ -5,9 +5,14 @@ import { z } from 'zod'
 import type { CanonicalProviderWorkAuthorization } from
   '../edit-architecture/canonical-provider-work-authority'
 import {
+  CANONICAL_FAL_SYNCHRONIZED_FOLEY_MODEL_ID,
+  CANONICAL_FAL_SYNCHRONIZED_FOLEY_OPERATION_ID,
+  CANONICAL_FAL_SYNCHRONIZED_FOLEY_ROUTE_ID,
   resolveCanonicalProviderOperation,
   resolveCanonicalProviderOperationV2,
+  resolveCanonicalProviderOperationV3,
   type CanonicalProviderWorkAuthorizationV2,
+  type CanonicalProviderWorkAuthorizationV3,
 } from '../edit-architecture/canonical-provider-work-authority'
 import { ApiError } from '../errors/api-error'
 import {
@@ -24,6 +29,8 @@ export const PRIVATE_PROVIDER_ATTEMPT_COST_EVIDENCE_VERSION =
   'private-provider-attempt-cost-evidence-v1' as const
 export const PRIVATE_PROVIDER_ATTEMPT_COST_EVIDENCE_V2_VERSION =
   'private-provider-attempt-cost-evidence-v2' as const
+export const PRIVATE_PROVIDER_ATTEMPT_COST_EVIDENCE_V3_VERSION =
+  'private-provider-attempt-cost-evidence-v3' as const
 
 const identity = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
@@ -282,9 +289,136 @@ export const privateProviderAttemptCostEvidenceV2Schema = z.object({
 export type PrivateProviderAttemptCostEvidenceV2 = z.infer<
   typeof privateProviderAttemptCostEvidenceV2Schema
 >
+
+export const privateProviderAttemptCostEvidenceV3Schema = z.object({
+  schemaVersion: z.literal(PRIVATE_PROVIDER_ATTEMPT_COST_EVIDENCE_V3_VERSION),
+  boundary: z.literal('internal_production_cost_only'),
+  evidenceClass: z.literal('private_injected_nonprovider_test'),
+  evidenceId: identity,
+  identity: z.object({
+    workspaceId: identity,
+    projectId: identity,
+    editSessionId: identity,
+    approvedPlanSnapshotId: identity,
+    packageRecordId: identity,
+    approvedWorkItemId: identity,
+    jobId: identity,
+    claimId: identity,
+    deliveryAttempt: z.number().int().positive().max(10),
+    dispatchAttemptId: identity,
+    providerOperationId: z.literal(
+      CANONICAL_FAL_SYNCHRONIZED_FOLEY_OPERATION_ID,
+    ),
+    providerRouteId: z.literal(CANONICAL_FAL_SYNCHRONIZED_FOLEY_ROUTE_ID),
+    providerModelId: z.literal(CANONICAL_FAL_SYNCHRONIZED_FOLEY_MODEL_ID),
+  }).strict(),
+  authorityHash: sha256,
+  attemptIdentityHash: sha256,
+  attemptInputHash: sha256,
+  priorUnknownCostEvidenceHash: sha256.nullable(),
+  canonicalSharedRateCardCompatibilityVersion: z.literal(TOOL_COST_RATE_CARD_VERSION),
+  provider: z.object({
+    requestCount: z.union([z.literal(0), z.literal(1)]),
+    usageEvidenceDigest: sha256.nullable(),
+    rateCardSnapshotId: identity,
+    rateCardDigest: sha256,
+    rateEvidenceClass: z.literal('private_local_fixture'),
+    unit: z.literal('generation_submission'),
+    billedUsageMicrocredits: z.literal(0).nullable(),
+    actualInternalCostMicros: z.literal(0).nullable(),
+    costReconciled: z.boolean(),
+  }).strict(),
+  infrastructure: z.object({
+    measurementClass: z.literal('allocated_wall_time_provisional'),
+    allocatedVcpuCount: z.literal(1),
+    allocatedMemoryGib: z.literal(1),
+    wallTimeMicroseconds: z.number().int().positive().max(900_000_000),
+    rawUsageEvidenceDigest: sha256,
+    rateCardDigest: sha256,
+    unit: z.literal('cpu_second'),
+    unitPriceMicros: z.literal(1_000),
+    minimumChargeMicros: z.literal(1_000),
+    billableCpuSeconds: z.number().int().positive().max(900),
+    actualInternalCostMicros: safeMicros,
+    invoiceReconciled: z.literal(false),
+  }).strict(),
+  outcome: z.object({
+    state: z.enum([
+      'succeeded',
+      'failed',
+      'unknown_reconciliation_required',
+      'unknown_reconciled_succeeded',
+      'unknown_reconciled_failed',
+    ]),
+    failedOrUnknownAttemptCostRetained: z.literal(true),
+  }).strict(),
+  reconciliation: z.object({
+    state: z.enum(['complete', 'reconciliation_required']),
+    providerCostMicros: z.literal(0).nullable(),
+    infrastructureCostMicros: safeMicros,
+    totalInternalProductionCostMicros: safeMicros.nullable(),
+  }).strict(),
+  commercialBoundary: z.object({
+    customerPriceIncluded: z.literal(false),
+    customerCreditsIncluded: z.literal(false),
+    serviceFeeIncluded: z.literal(false),
+    walletMutationPerformed: z.literal(false),
+    billingMutationPerformed: z.literal(false),
+  }).strict(),
+  persistence: z.object({
+    privateLocalCreateOnly: z.literal(true),
+    databaseBacked: z.literal(false),
+    productionDurability: z.literal(false),
+  }).strict(),
+  createdAt: timestamp,
+  evidenceHash: sha256,
+}).strict().superRefine((value, context) => {
+  const unknown = value.outcome.state === 'unknown_reconciliation_required'
+  const reconciled = value.outcome.state.startsWith('unknown_reconciled_')
+  if (
+    value.infrastructure.actualInternalCostMicros !== Math.max(
+      value.infrastructure.minimumChargeMicros,
+      value.infrastructure.billableCpuSeconds *
+        value.infrastructure.unitPriceMicros,
+    ) ||
+    value.reconciliation.infrastructureCostMicros !==
+      value.infrastructure.actualInternalCostMicros ||
+    unknown !== (value.reconciliation.state === 'reconciliation_required') ||
+    (unknown && (
+      value.provider.costReconciled ||
+      value.provider.billedUsageMicrocredits !== null ||
+      value.provider.actualInternalCostMicros !== null ||
+      value.reconciliation.providerCostMicros !== null ||
+      value.reconciliation.totalInternalProductionCostMicros !== null
+    )) ||
+    (!unknown && (
+      !value.provider.costReconciled ||
+      value.provider.billedUsageMicrocredits !== 0 ||
+      value.provider.actualInternalCostMicros !== 0 ||
+      value.reconciliation.providerCostMicros !== 0 ||
+      value.reconciliation.totalInternalProductionCostMicros !==
+        value.infrastructure.actualInternalCostMicros
+    )) ||
+    reconciled !== (value.priorUnknownCostEvidenceHash !== null) ||
+    (reconciled && (
+      value.provider.requestCount !== 1 ||
+      value.provider.usageEvidenceDigest === null
+    ))
+  ) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Provider-attempt V3 cost reconciliation is inconsistent.',
+    })
+  }
+})
+
+export type PrivateProviderAttemptCostEvidenceV3 = z.infer<
+  typeof privateProviderAttemptCostEvidenceV3Schema
+>
 export type PrivateProviderAttemptCostEvidenceAny =
   | PrivateProviderAttemptCostEvidence
   | PrivateProviderAttemptCostEvidenceV2
+  | PrivateProviderAttemptCostEvidenceV3
 
 export interface CreatePrivateProviderAttemptCostEvidenceInput {
   localStorageRoot: string
@@ -330,6 +464,244 @@ export interface CreatePrivateProviderAttemptCostEvidenceV2Input {
   }
   priorUnknownCostEvidenceHash?: string
   createdAt: string
+}
+
+export interface CreatePrivateProviderAttemptCostEvidenceV3Input {
+  localStorageRoot: string
+  authorization: CanonicalProviderWorkAuthorizationV3
+  claim: {
+    claimId: string
+    claimHash: string
+    deliveryAttempt: number
+  }
+  dispatchAttemptId: string
+  attemptInputHash: string
+  outcomeState: PrivateProviderAttemptCostEvidenceV3['outcome']['state']
+  providerRequestCount: 0 | 1
+  providerUsageEvidenceDigest: string | null
+  infrastructure: {
+    wallTimeMicroseconds: number
+    rawUsageEvidenceDigest: string
+  }
+  priorUnknownCostEvidenceHash?: string
+  createdAt: string
+}
+
+export async function createPrivateProviderAttemptCostEvidenceV3(
+  input: CreatePrivateProviderAttemptCostEvidenceV3Input,
+): Promise<{
+  evidence: PrivateProviderAttemptCostEvidenceV3
+  idempotencyStatus: 'inserted' | 'duplicate_returned'
+}> {
+  const authorization = input.authorization
+  const profile = resolveCanonicalProviderOperationV3(authorization.operationId)
+  if (
+    authorization.operationProfileHash !== profile.profileHash ||
+    input.claim.deliveryAttempt < 1 || input.claim.deliveryAttempt > 10 ||
+    !/^[a-f0-9]{64}$/u.test(input.claim.claimHash) ||
+    !/^[a-f0-9]{64}$/u.test(input.attemptInputHash) ||
+    (input.providerUsageEvidenceDigest !== null &&
+      !/^[a-f0-9]{64}$/u.test(input.providerUsageEvidenceDigest)) ||
+    (input.priorUnknownCostEvidenceHash !== undefined &&
+      !/^[a-f0-9]{64}$/u.test(input.priorUnknownCostEvidenceHash)) ||
+    !/^[a-f0-9]{64}$/u.test(input.infrastructure.rawUsageEvidenceDigest) ||
+    Date.parse(input.createdAt) < Date.parse(authorization.authorizedAt) ||
+    Date.parse(input.createdAt) > Date.parse(authorization.expiresAt) ||
+    !Number.isSafeInteger(input.infrastructure.wallTimeMicroseconds) ||
+    input.infrastructure.wallTimeMicroseconds <= 0 ||
+    input.infrastructure.wallTimeMicroseconds >
+      profile.requestPolicy.maximumElapsedMilliseconds * 1_000
+  ) throw invalid('Provider-attempt V3 cost authority is invalid or stale.')
+  const billableCpuSeconds = Math.ceil(
+    input.infrastructure.wallTimeMicroseconds / 1_000_000,
+  )
+  const infrastructureCostMicros = Math.max(1_000, billableCpuSeconds * 1_000)
+  if (
+    infrastructureCostMicros >
+      authorization.maximumAuthorizedInfrastructureCostMicros ||
+    infrastructureCostMicros > authorization.maximumAuthorizedTotalInternalCostMicros
+  ) throw invalid('Provider-attempt V3 infrastructure cost exceeds authority.')
+  const attemptIdentityHash = sha256AuthorityValue({
+    domain: 'reeditpro:private-provider-attempt-cost-identity:v3',
+    authorizationHash: authorization.authorityHash,
+    claimId: input.claim.claimId,
+    claimHash: input.claim.claimHash,
+    deliveryAttempt: input.claim.deliveryAttempt,
+    dispatchAttemptId: input.dispatchAttemptId,
+  })
+  const evidenceId = `provider_cost_v3_${attemptIdentityHash.slice(0, 45)}`
+  const reconciliationRequired =
+    input.outcomeState === 'unknown_reconciliation_required'
+  const reconciled = input.outcomeState.startsWith('unknown_reconciled_')
+  if (
+    reconciled !== (input.priorUnknownCostEvidenceHash !== undefined) ||
+    (reconciled && (
+      input.providerRequestCount !== 1 ||
+      input.providerUsageEvidenceDigest === null
+    ))
+  ) throw invalid('Provider-attempt V3 unknown reconciliation lineage is invalid.')
+  const infrastructureRateCard = {
+    source: 'private_local_placeholder_not_cloud_invoice' as const,
+    unit: 'cpu_second' as const,
+    unitPriceMicros: 1_000 as const,
+    minimumChargeMicros: 1_000 as const,
+  }
+  const payload = {
+    schemaVersion: PRIVATE_PROVIDER_ATTEMPT_COST_EVIDENCE_V3_VERSION,
+    boundary: 'internal_production_cost_only' as const,
+    evidenceClass: 'private_injected_nonprovider_test' as const,
+    evidenceId,
+    identity: {
+      workspaceId: authorization.workspaceId,
+      projectId: authorization.projectId,
+      editSessionId: authorization.editSessionId,
+      approvedPlanSnapshotId: authorization.approvedPlanSnapshotId,
+      packageRecordId: authorization.packageRecordId,
+      approvedWorkItemId: authorization.approvedWorkItemId,
+      jobId: authorization.queueJobId,
+      claimId: input.claim.claimId,
+      deliveryAttempt: input.claim.deliveryAttempt,
+      dispatchAttemptId: input.dispatchAttemptId,
+      providerOperationId: authorization.operationId,
+      providerRouteId: authorization.providerRouteId,
+      providerModelId: authorization.providerModelId,
+    },
+    authorityHash: authorization.authorityHash,
+    attemptIdentityHash,
+    attemptInputHash: input.attemptInputHash,
+    priorUnknownCostEvidenceHash: input.priorUnknownCostEvidenceHash ?? null,
+    canonicalSharedRateCardCompatibilityVersion: TOOL_COST_RATE_CARD_VERSION,
+    provider: {
+      requestCount: input.providerRequestCount,
+      usageEvidenceDigest: input.providerUsageEvidenceDigest,
+      rateCardSnapshotId: authorization.providerRateAuthority.snapshotId,
+      rateCardDigest: authorization.providerRateAuthority.snapshotDigest,
+      rateEvidenceClass: 'private_local_fixture' as const,
+      unit: 'generation_submission' as const,
+      billedUsageMicrocredits: reconciliationRequired ? null : 0 as const,
+      actualInternalCostMicros: reconciliationRequired ? null : 0 as const,
+      costReconciled: !reconciliationRequired,
+    },
+    infrastructure: {
+      measurementClass: 'allocated_wall_time_provisional' as const,
+      allocatedVcpuCount: 1 as const,
+      allocatedMemoryGib: 1 as const,
+      wallTimeMicroseconds: input.infrastructure.wallTimeMicroseconds,
+      rawUsageEvidenceDigest: input.infrastructure.rawUsageEvidenceDigest,
+      rateCardDigest: sha256AuthorityValue(infrastructureRateCard),
+      unit: 'cpu_second' as const,
+      unitPriceMicros: 1_000 as const,
+      minimumChargeMicros: 1_000 as const,
+      billableCpuSeconds,
+      actualInternalCostMicros: infrastructureCostMicros,
+      invoiceReconciled: false as const,
+    },
+    outcome: {
+      state: input.outcomeState,
+      failedOrUnknownAttemptCostRetained: true as const,
+    },
+    reconciliation: {
+      state: reconciliationRequired
+        ? 'reconciliation_required' as const
+        : 'complete' as const,
+      providerCostMicros: reconciliationRequired ? null : 0 as const,
+      infrastructureCostMicros,
+      totalInternalProductionCostMicros: reconciliationRequired
+        ? null
+        : infrastructureCostMicros,
+    },
+    commercialBoundary: {
+      customerPriceIncluded: false as const,
+      customerCreditsIncluded: false as const,
+      serviceFeeIncluded: false as const,
+      walletMutationPerformed: false as const,
+      billingMutationPerformed: false as const,
+    },
+    persistence: {
+      privateLocalCreateOnly: true as const,
+      databaseBacked: false as const,
+      productionDurability: false as const,
+    },
+    createdAt: input.createdAt,
+  }
+  const evidence = privateProviderAttemptCostEvidenceV3Schema.parse({
+    ...payload,
+    evidenceHash: sha256AuthorityValue(payload),
+  })
+  assertNoCommercialFields(evidence)
+  const relativePath = evidenceRelativePathV3(evidence)
+  const bytes = Buffer.from(`${stableAuthorityStringify(evidence)}\n`, 'utf8')
+  const result = await writePrivateFileCreateOnlyWithinRoot({
+    rootPath: input.localStorageRoot,
+    relativePath,
+    content: bytes,
+  })
+  const persisted = await readPrivateFileIfExistsWithinRoot({
+    rootPath: input.localStorageRoot,
+    relativePath,
+  })
+  if (!persisted || !persisted.equals(bytes)) {
+    throw invalid('Provider-attempt V3 cost evidence failed create-only readback.')
+  }
+  return {
+    evidence,
+    idempotencyStatus: result.created ? 'inserted' : 'duplicate_returned',
+  }
+}
+
+export async function readPrivateProviderAttemptCostEvidenceV3ForAttempt(input: {
+  localStorageRoot: string
+  authorization: CanonicalProviderWorkAuthorizationV3
+  claimId: string
+  claimHash: string
+  deliveryAttempt: number
+  dispatchAttemptId: string
+  evidenceHash: string
+}): Promise<PrivateProviderAttemptCostEvidenceV3> {
+  const attemptIdentityHash = sha256AuthorityValue({
+    domain: 'reeditpro:private-provider-attempt-cost-identity:v3',
+    authorizationHash: input.authorization.authorityHash,
+    claimId: input.claimId,
+    claimHash: input.claimHash,
+    deliveryAttempt: input.deliveryAttempt,
+    dispatchAttemptId: input.dispatchAttemptId,
+  })
+  const evidenceId = `provider_cost_v3_${attemptIdentityHash.slice(0, 45)}`
+  const bytes = await readPrivateFileIfExistsWithinRoot({
+    rootPath: input.localStorageRoot,
+    relativePath: evidenceRelativePathV3({
+      identity: {
+        workspaceId: input.authorization.workspaceId,
+        projectId: input.authorization.projectId,
+        editSessionId: input.authorization.editSessionId,
+      },
+      evidenceId,
+      evidenceHash: input.evidenceHash,
+    }),
+  })
+  if (!bytes || bytes.byteLength > 64 * 1024) {
+    throw invalid('Provider-attempt V3 cost evidence is missing or oversized.')
+  }
+  let decoded: unknown
+  try {
+    decoded = JSON.parse(bytes.toString('utf8'))
+  } catch {
+    throw invalid('Provider-attempt V3 cost evidence is not valid JSON.')
+  }
+  const evidence = privateProviderAttemptCostEvidenceV3Schema.parse(decoded)
+  const { evidenceHash, ...payload } = evidence
+  if (
+    evidenceHash !== sha256AuthorityValue(payload) ||
+    evidenceHash !== input.evidenceHash ||
+    evidence.evidenceId !== evidenceId ||
+    evidence.authorityHash !== input.authorization.authorityHash ||
+    evidence.attemptIdentityHash !== attemptIdentityHash ||
+    evidence.identity.claimId !== input.claimId ||
+    evidence.identity.deliveryAttempt !== input.deliveryAttempt ||
+    evidence.identity.dispatchAttemptId !== input.dispatchAttemptId
+  ) throw invalid('Provider-attempt V3 cost evidence changed exact attempt lineage.')
+  assertNoCommercialFields(evidence)
+  return evidence
 }
 
 export async function createPrivateProviderAttemptCostEvidenceV2(
@@ -809,6 +1181,18 @@ function evidenceRelativePathV2(input: {
     `${input.identity.workspaceId}\u0000${input.identity.projectId}\u0000${input.identity.editSessionId}`,
   ).slice(0, 32)
   return `private-internal/provider-attempt-cost/v2/${tenantHash}/${input.evidenceId}-${input.evidenceHash}.json`
+}
+
+function evidenceRelativePathV3(input: {
+  identity: Pick<PrivateProviderAttemptCostEvidenceV3['identity'],
+    'workspaceId' | 'projectId' | 'editSessionId'>
+  evidenceId: string
+  evidenceHash: string
+}): string {
+  const tenantHash = sha256Text(
+    `${input.identity.workspaceId}\u0000${input.identity.projectId}\u0000${input.identity.editSessionId}`,
+  ).slice(0, 32)
+  return `private-internal/provider-attempt-cost/v3/${tenantHash}/${input.evidenceId}-${input.evidenceHash}.json`
 }
 
 function assertNoCommercialFields(value: unknown): void {

@@ -4,11 +4,14 @@ import { ApiError } from '../errors/api-error'
 import {
   canonicalProviderWorkAuthorizationRequestHash,
   canonicalProviderWorkAuthorizationRequestHashV2,
+  canonicalProviderWorkAuthorizationRequestHashV3,
   resolveCanonicalProviderOperation,
   resolveCanonicalProviderOperationV2,
+  resolveCanonicalProviderOperationV3,
   type CanonicalProviderWorkAuthorization,
   type CanonicalProviderWorkAuthorizationAny,
   type CanonicalProviderWorkAuthorizationV2,
+  type CanonicalProviderWorkAuthorizationV3,
 } from '../edit-architecture/canonical-provider-work-authority'
 import {
   readPrivateTextFileIfExistsWithinRoot,
@@ -18,6 +21,8 @@ import type { PrivateProviderAttemptCostEvidence } from
   '../tool-cost-metering/private-provider-attempt-cost-evidence'
 import type { PrivateProviderAttemptCostEvidenceV2 } from
   '../tool-cost-metering/private-provider-attempt-cost-evidence'
+import type { PrivateProviderAttemptCostEvidenceV3 } from
+  '../tool-cost-metering/private-provider-attempt-cost-evidence'
 import {
   CANONICAL_PRIVATE_PROVIDER_DISPATCH_AGGREGATE_VERSION,
   CANONICAL_PRIVATE_PROVIDER_DISPATCH_EVENT_VERSION,
@@ -25,23 +30,30 @@ import {
   CANONICAL_PRIVATE_PROVIDER_DISPATCH_TERMINAL_VERSION,
   CANONICAL_PRIVATE_PROVIDER_DISPATCH_GRANT_V2_VERSION,
   CANONICAL_PRIVATE_PROVIDER_DISPATCH_TERMINAL_V2_VERSION,
+  CANONICAL_PRIVATE_PROVIDER_DISPATCH_GRANT_V3_VERSION,
+  CANONICAL_PRIVATE_PROVIDER_DISPATCH_TERMINAL_V3_VERSION,
   canonicalPrivateProviderDispatchAggregateSchema,
   canonicalPrivateProviderDispatchAttemptSchema,
   canonicalPrivateProviderDispatchEntrySchema,
   canonicalPrivateProviderDispatchGrantSchema,
   canonicalPrivateProviderDispatchGrantV2Schema,
+  canonicalPrivateProviderDispatchGrantV3Schema,
   canonicalPrivateProviderDispatchTerminalSchema,
   canonicalPrivateProviderDispatchTerminalV2Schema,
+  canonicalPrivateProviderDispatchTerminalV3Schema,
   type CanonicalPrivateProviderDispatchAggregate,
   type CanonicalPrivateProviderDispatchEntry,
   type CanonicalPrivateProviderDispatchEvent,
   type CanonicalPrivateProviderDispatchGrant,
   type CanonicalPrivateProviderDispatchGrantAny,
   type CanonicalPrivateProviderDispatchGrantV2,
+  type CanonicalPrivateProviderDispatchGrantV3,
   type CanonicalPrivateProviderDispatchTerminal,
   type CanonicalPrivateProviderDispatchTerminalV2,
+  type CanonicalPrivateProviderDispatchTerminalV3,
   type CanonicalPrivateProviderOutput,
   type CanonicalPrivateProviderOutputV2,
+  type CanonicalPrivateProviderOutputV3,
 } from '../validation/canonical-private-provider-dispatch-schemas'
 import type { CanonicalPrivatePackageWorkQueueClaim } from
   '../validation/canonical-private-package-work-queue-schemas'
@@ -435,6 +447,194 @@ export async function issuePrivateCanonicalProviderDispatchGrantV2(
   })
 }
 
+export interface IssuePrivateCanonicalProviderDispatchGrantV3Input {
+  scope: CanonicalPrivatePackageWorkQueueStoreScope
+  authorization: CanonicalProviderWorkAuthorizationV3
+  claim: CanonicalPrivatePackageWorkQueueClaim
+  secretReferenceName?: string
+  credentialSecret: string
+  now: string
+}
+
+/**
+ * Issues the shared one-use dispatch primitive for the async synchronized-Foley
+ * authority. This V3 path is private-injected only: it accepts no secret
+ * reference and cannot start a provider request.
+ */
+export async function issuePrivateCanonicalProviderDispatchGrantV3(
+  input: IssuePrivateCanonicalProviderDispatchGrantV3Input,
+): Promise<{
+  disposition: 'issued' | 'exact_replay'
+  grant: CanonicalPrivateProviderDispatchGrantV3
+  dispatchCredential: string
+  aggregate: CanonicalPrivateProviderDispatchAggregate
+}> {
+  const now = validTimestamp(input.now, 'provider dispatch V3 issuance')
+  assertCredentialSecret(input.credentialSecret)
+  assertAuthorizationScope(input.scope, input.authorization)
+  assertClaimBinding(input.authorization, input.claim, now)
+  const profile = resolveCanonicalProviderOperationV3(
+    input.authorization.operationId,
+  )
+  if (normalizeSecretReference(input.secretReferenceName) !== null) {
+    throw new ApiError(
+      'REAL_PROVIDER_CALLS_DISABLED',
+      'Private injected synchronized-Foley dispatch cannot bind a provider secret.',
+      403,
+    )
+  }
+  const authorizationRequestHash =
+    canonicalProviderWorkAuthorizationRequestHashV3(input.authorization)
+  const grantId = `provider_dispatch_v3_${sha256AuthorityValue({
+    authorizationHash: input.authorization.authorityHash,
+    queueClaimHash: input.claim.claimHash,
+    authorizationRequestHash,
+  }).slice(0, 45)}`
+  const expiresAt = new Date(Math.min(
+    Date.parse(input.authorization.expiresAt),
+    Date.parse(input.claim.expiresAt),
+  )).toISOString()
+  const credential = deriveDispatchCredential({
+    credentialSecret: input.credentialSecret,
+    grantId,
+    authorizationHash: input.authorization.authorityHash,
+    claimHash: input.claim.claimHash,
+    expiresAt,
+  })
+  const withoutHash = {
+    schemaVersion: CANONICAL_PRIVATE_PROVIDER_DISPATCH_GRANT_V3_VERSION,
+    grantId,
+    authorizationVersion: input.authorization.schemaVersion,
+    authorizationHash: input.authorization.authorityHash,
+    authorizationRequestHash,
+    ownerUserId: input.authorization.ownerUserId,
+    workspaceId: input.authorization.workspaceId,
+    projectId: input.authorization.projectId,
+    editSessionId: input.authorization.editSessionId,
+    approvedPlanSnapshotId: input.authorization.approvedPlanSnapshotId,
+    packageRecordId: input.authorization.packageRecordId,
+    packageHash: input.authorization.packageHash,
+    queueDefinitionHash: input.authorization.queueDefinitionHash,
+    queueJobId: input.authorization.queueJobId,
+    queueJobDefinitionHash: input.authorization.queueJobDefinitionHash,
+    approvedWorkItemId: input.authorization.approvedWorkItemId,
+    expectedOutputId: input.authorization.expectedOutputId,
+    expectedOutputIds: input.authorization.expectedOutputIds,
+    expectedOutputSetHash: input.authorization.expectedOutputSetHash,
+    queueClaimId: input.claim.claimId,
+    queueClaimHash: input.claim.claimHash,
+    queueClaimDeliveryAttempt: input.claim.deliveryAttempt,
+    queueClaimExpiresAt: input.claim.expiresAt,
+    operationId: input.authorization.operationId,
+    providerBoundaryProfileId: input.authorization.providerBoundaryProfileId,
+    providerRouteId: input.authorization.providerRouteId,
+    providerModelId: input.authorization.providerModelId,
+    sourceRequestId: input.authorization.sourceRequestId,
+    sourceRequestDigest: input.authorization.sourceRequestDigest,
+    providerRequestPayloadDigest:
+      input.authorization.providerRequestPayloadDigest,
+    projectDataPolicyDigest: input.authorization.projectDataPolicyDigest,
+    providerAccountPolicyDigest: input.authorization.providerAccountPolicyDigest,
+    idempotencyKeyHash: input.authorization.idempotencyKeyHash,
+    credentialSha256: sha256Text(credential),
+    secretLocator: {
+      configurationKey: profile.secretLocator.configurationKey,
+      referenceName: null,
+      referencePresent: false as const,
+      payloadReadCount: 0 as const,
+      payloadPersisted: false as const,
+      payloadLogged: false as const,
+    },
+    executionClass: 'private_injected_nonprovider_test' as const,
+    providerCallAuthorized: false as const,
+    maximumProviderRequests: 1 as const,
+    maximumLifecycleHttpRequests: 17 as const,
+    maximumRetries: 0 as const,
+    maximumFallbacks: 0 as const,
+    maximumAuthorizedProviderCostMicros:
+      input.authorization.maximumAuthorizedProviderCostMicros,
+    maximumAuthorizedInfrastructureCostMicros:
+      input.authorization.maximumAuthorizedInfrastructureCostMicros,
+    maximumAuthorizedTotalInternalCostMicros:
+      input.authorization.maximumAuthorizedTotalInternalCostMicros,
+    providerRateCardSnapshotId:
+      input.authorization.providerRateAuthority.snapshotId,
+    providerRateCardSnapshotDigest:
+      input.authorization.providerRateAuthority.snapshotDigest,
+    providerRateEvidenceClass:
+      input.authorization.providerRateAuthority.evidenceClass,
+    issuedAt: now,
+    expiresAt,
+  }
+  const grant = canonicalPrivateProviderDispatchGrantV3Schema.parse({
+    ...withoutHash,
+    immutableGrantHash: sha256AuthorityValue(withoutHash),
+  })
+  return withCanonicalPrivatePackageStateLock({
+    scope: input.scope,
+    operation: async (lockAuthority) => {
+      const current = await readAggregate(lockAuthority, input.scope)
+      const aggregate = current ?? emptyAggregate(
+        input.scope,
+        input.authorization,
+        now,
+      )
+      if (
+        aggregate.identity.packageHash !== input.authorization.packageHash ||
+        aggregate.identity.queueDefinitionHash !==
+          input.authorization.queueDefinitionHash
+      ) {
+        throw conflict(
+          'Provider dispatch aggregate does not match the exact V3 package authority.',
+        )
+      }
+      const existing = aggregate.entries.find((entry) =>
+        entry.grant.grantId === grant.grantId ||
+        entry.grant.idempotencyKeyHash === grant.idempotencyKeyHash)
+      if (existing) {
+        if (
+          existing.grant.schemaVersion !==
+            CANONICAL_PRIVATE_PROVIDER_DISPATCH_GRANT_V3_VERSION ||
+          stableAuthorityStringify(existing.grant) !==
+            stableAuthorityStringify(grant)
+        ) throw conflict('Provider dispatch V3 idempotency key conflicts.')
+        return {
+          disposition: 'exact_replay' as const,
+          grant: existing.grant,
+          dispatchCredential: credential,
+          aggregate,
+        }
+      }
+      if (aggregate.entries.length >= 10) {
+        throw new ApiError(
+          'IDEMPOTENCY_CAPACITY_EXCEEDED',
+          'Canonical provider dispatch attempt capacity was reached.',
+          503,
+        )
+      }
+      aggregate.entries.push(finalizeEntry({
+        grant,
+        state: 'issued',
+        terminalHistory: [],
+        updatedAt: now,
+      }))
+      appendEvent(aggregate, {
+        eventType: 'grant_issued',
+        grantId: grant.grantId,
+        at: now,
+      })
+      const finalized = finalizeAggregate(aggregate, now)
+      await persistAggregate(input.scope, finalized)
+      return {
+        disposition: 'issued' as const,
+        grant,
+        dispatchCredential: credential,
+        aggregate: finalized,
+      }
+    },
+  })
+}
+
 export async function consumePrivateCanonicalProviderDispatchGrant(input: {
   scope: CanonicalPrivatePackageWorkQueueStoreScope
   grantId: string
@@ -786,6 +986,147 @@ export async function recordPrivateCanonicalProviderDispatchTerminalV2(input: {
   })
 }
 
+export async function recordPrivateCanonicalProviderDispatchTerminalV3(input: {
+  scope: CanonicalPrivatePackageWorkQueueStoreScope
+  grantId: string
+  state: CanonicalPrivateProviderDispatchTerminalV3['state']
+  providerRequestCount: 0 | 1
+  providerResponseUsageDigest: string | null
+  sanitizedFailureCode: string | null
+  privateOutputs: readonly CanonicalPrivateProviderOutputV3[]
+  outputSetDigest: string
+  costEvidence: PrivateProviderAttemptCostEvidenceV3
+  now: string
+}): Promise<{
+  disposition: 'recorded' | 'exact_replay'
+  terminal: CanonicalPrivateProviderDispatchTerminalV3
+  entry: CanonicalPrivateProviderDispatchEntry
+  aggregate: CanonicalPrivateProviderDispatchAggregate
+}> {
+  const now = validTimestamp(input.now, 'provider dispatch V3 terminal')
+  return withCanonicalPrivatePackageStateLock({
+    scope: input.scope,
+    operation: async (lockAuthority) => {
+      const aggregate = await requiredAggregate(lockAuthority, input.scope)
+      const entry = requiredEntry(aggregate, input.grantId)
+      if (
+        entry.grant.schemaVersion !==
+          CANONICAL_PRIVATE_PROVIDER_DISPATCH_GRANT_V3_VERSION
+      ) throw conflict('Provider dispatch V3 terminal requires a V3 grant.')
+      const attempt = entry.attempt
+      if (!attempt) throw conflict('Provider dispatch V3 terminal requires one consumed grant.')
+      if (!/^[a-f0-9]{64}$/u.test(input.outputSetDigest)) {
+        throw conflict('Provider dispatch V3 terminal output-set digest is invalid.')
+      }
+      assertCostEvidenceBindingV3(entry, input.costEvidence)
+      if (
+        input.costEvidence.outcome.state !== input.state ||
+        input.costEvidence.provider.requestCount !== input.providerRequestCount ||
+        input.costEvidence.provider.usageEvidenceDigest !==
+          input.providerResponseUsageDigest
+      ) throw conflict('Provider dispatch V3 terminal changed attempt cost semantics.')
+      const prior = entry.terminalHistory.at(-1)
+      const reconciling = input.state.startsWith('unknown_reconciled_')
+      if (
+        (reconciling && (
+          prior?.schemaVersion !==
+            CANONICAL_PRIVATE_PROVIDER_DISPATCH_TERMINAL_V3_VERSION ||
+          prior.state !== 'unknown_reconciliation_required'
+        )) ||
+        (!reconciling && prior !== undefined)
+      ) {
+        const exact = entry.terminalHistory.find((terminal) =>
+          terminal.schemaVersion ===
+            CANONICAL_PRIVATE_PROVIDER_DISPATCH_TERMINAL_V3_VERSION &&
+          terminal.state === input.state &&
+          terminal.costEvidenceHash === input.costEvidence.evidenceHash &&
+          terminal.outputSetDigest === input.outputSetDigest &&
+          terminal.providerRequestCount === input.providerRequestCount &&
+          terminal.providerResponseUsageDigest ===
+            input.providerResponseUsageDigest &&
+          terminal.sanitizedFailureCode === input.sanitizedFailureCode &&
+          stableAuthorityStringify(terminal.privateOutputs) ===
+            stableAuthorityStringify(input.privateOutputs))
+        if (
+          !exact || exact.schemaVersion !==
+            CANONICAL_PRIVATE_PROVIDER_DISPATCH_TERMINAL_V3_VERSION
+        ) {
+          throw conflict('Provider dispatch V3 terminal conflicts with existing outcome.')
+        }
+        return {
+          disposition: 'exact_replay' as const,
+          terminal: exact,
+          entry,
+          aggregate,
+        }
+      }
+      if (
+        reconciling && input.costEvidence.priorUnknownCostEvidenceHash !==
+          prior?.costEvidenceHash
+      ) throw conflict('Provider V3 unknown cost reconciliation lost prior evidence.')
+      const privateOutputs = [...input.privateOutputs]
+      const privateOutput = privateOutputs[0] ?? null
+      const terminalWithoutHash = {
+        schemaVersion: CANONICAL_PRIVATE_PROVIDER_DISPATCH_TERMINAL_V3_VERSION,
+        sequence: reconciling ? 2 as const : 1 as const,
+        terminalId: `provider_terminal_v3_${sha256AuthorityValue({
+          attemptHash: attempt.attemptHash,
+          state: input.state,
+          costEvidenceHash: input.costEvidence.evidenceHash,
+          outputSetDigest: input.outputSetDigest,
+        }).slice(0, 45)}`,
+        dispatchAttemptId: attempt.dispatchAttemptId,
+        state: input.state,
+        providerRequestCount: input.providerRequestCount,
+        retryCount: 0 as const,
+        fallbackCount: 0 as const,
+        dispatchConsumptionCount: 1 as const,
+        unknownOutcomeReconciled:
+          input.state !== 'unknown_reconciliation_required',
+        providerResponseUsageDigest: input.providerResponseUsageDigest,
+        sanitizedFailureCode: input.sanitizedFailureCode,
+        privateOutput,
+        privateOutputs,
+        outputSetDigest: input.outputSetDigest,
+        costEvidenceHash: input.costEvidence.evidenceHash,
+        providerCostMicros:
+          input.costEvidence.reconciliation.providerCostMicros,
+        infrastructureCostMicros:
+          input.costEvidence.reconciliation.infrastructureCostMicros,
+        totalInternalProductionCostMicros:
+          input.costEvidence.reconciliation.totalInternalProductionCostMicros,
+        priorTerminalHash: reconciling ? prior!.terminalHash : null,
+        completedAt: now,
+      }
+      const terminal = canonicalPrivateProviderDispatchTerminalV3Schema.parse({
+        ...terminalWithoutHash,
+        terminalHash: sha256AuthorityValue(terminalWithoutHash),
+      })
+      entry.terminalHistory.push(terminal)
+      entry.state = terminal.state
+      entry.updatedAt = now
+      replaceEntryHash(entry)
+      appendEvent(aggregate, {
+        eventType: reconciling
+          ? 'unknown_outcome_reconciled'
+          : 'attempt_terminal',
+        grantId: entry.grant.grantId,
+        dispatchAttemptId: attempt.dispatchAttemptId,
+        terminalId: terminal.terminalId,
+        at: now,
+      })
+      const finalized = finalizeAggregate(aggregate, now)
+      await persistAggregate(input.scope, finalized)
+      return {
+        disposition: 'recorded' as const,
+        terminal,
+        entry: requiredEntry(finalized, input.grantId),
+        aggregate: finalized,
+      }
+    },
+  })
+}
+
 export async function readPrivateCanonicalProviderDispatchAggregate(input: {
   scope: CanonicalPrivatePackageWorkQueueStoreScope
 }): Promise<CanonicalPrivateProviderDispatchAggregate | undefined> {
@@ -1092,6 +1433,37 @@ function assertCostEvidenceBindingV2(
       entry.grant.providerRateCardSnapshotDigest ||
     evidence.provider.requestCount > entry.grant.maximumProviderRequests
   ) throw conflict('Provider attempt V2 cost evidence changed dispatch lineage.')
+}
+
+function assertCostEvidenceBindingV3(
+  entry: CanonicalPrivateProviderDispatchEntry,
+  evidence: PrivateProviderAttemptCostEvidenceV3,
+): void {
+  const attempt = entry.attempt
+  if (
+    entry.grant.schemaVersion !==
+      CANONICAL_PRIVATE_PROVIDER_DISPATCH_GRANT_V3_VERSION ||
+    !attempt || evidence.authorityHash !== entry.grant.authorizationHash ||
+    evidence.identity.workspaceId !== entry.grant.workspaceId ||
+    evidence.identity.projectId !== entry.grant.projectId ||
+    evidence.identity.editSessionId !== entry.grant.editSessionId ||
+    evidence.identity.approvedPlanSnapshotId !==
+      entry.grant.approvedPlanSnapshotId ||
+    evidence.identity.packageRecordId !== entry.grant.packageRecordId ||
+    evidence.identity.approvedWorkItemId !== entry.grant.approvedWorkItemId ||
+    evidence.identity.jobId !== entry.grant.queueJobId ||
+    evidence.identity.claimId !== entry.grant.queueClaimId ||
+    evidence.identity.deliveryAttempt !== entry.grant.queueClaimDeliveryAttempt ||
+    evidence.identity.dispatchAttemptId !== attempt.dispatchAttemptId ||
+    evidence.identity.providerOperationId !== entry.grant.operationId ||
+    evidence.identity.providerRouteId !== entry.grant.providerRouteId ||
+    evidence.identity.providerModelId !== entry.grant.providerModelId ||
+    evidence.provider.rateCardSnapshotId !==
+      entry.grant.providerRateCardSnapshotId ||
+    evidence.provider.rateCardDigest !==
+      entry.grant.providerRateCardSnapshotDigest ||
+    evidence.provider.requestCount > entry.grant.maximumProviderRequests
+  ) throw conflict('Provider attempt V3 cost evidence changed dispatch lineage.')
 }
 
 function deriveDispatchCredential(input: {

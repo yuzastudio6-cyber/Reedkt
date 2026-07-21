@@ -3,7 +3,7 @@ import { createHash, randomBytes } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { Readable, Transform } from 'node:stream'
-import { pipeline } from 'node:stream/promises'
+import { finished, pipeline } from 'node:stream/promises'
 
 import { ApiError } from '../../errors/api-error'
 import { inspectPcmWavePrefix, PCM_WAVE_MAXIMUM_HEADER_BYTES } from '../../media/pcm-wave'
@@ -147,8 +147,38 @@ const CUSTOMER_DELIVERY_MUX_COMMAND =
   ['customer-delivery-master-mux-v1'] as const
 const SOURCE_VERSION = '8.1.2' as const
 const SOURCE_SHA256 = '464beb5e7bf0c311e68b45ae2f04e9cc2af88851abb4082231742a74d97b524c' as const
-const STORAGE_ROOT = '/tmp/reeditpro-offline-media-binary-execution-resource-observer-v5' as const
-const AUTHORITY_PATH = 'runtime-authority/offline-media-binary-runtime-resource-observer-v5.json' as const
+export const OFFLINE_MEDIA_BINARY_RUNTIME_STORAGE_SCOPE_VERSION =
+  'offline-media-binary-runtime-storage-scope-v1' as const
+
+export function deriveOfflineMediaBinaryRuntimeStorageScope(
+  sourceModuleUrl: string,
+): { scopeHash: string; storageRoot: string } {
+  if (!sourceModuleUrl.startsWith('file:')) {
+    throw new TypeError('Media binary runtime storage scope requires a file URL.')
+  }
+  const scopeHash = sha256AuthorityValue({
+    schemaVersion: OFFLINE_MEDIA_BINARY_RUNTIME_STORAGE_SCOPE_VERSION,
+    sourceModuleUrl,
+  })
+  return Object.freeze({
+    scopeHash,
+    storageRoot: join(
+      '/tmp',
+      `reeditpro-offline-media-binary-execution-resource-observer-v6-${scopeHash.slice(0, 24)}`,
+    ),
+  })
+}
+
+const RUNTIME_STORAGE_SCOPE =
+  deriveOfflineMediaBinaryRuntimeStorageScope(import.meta.url)
+export const OFFLINE_MEDIA_BINARY_RUNTIME_STORAGE_SCOPE_HASH =
+  RUNTIME_STORAGE_SCOPE.scopeHash
+export const OFFLINE_MEDIA_BINARY_RUNTIME_STORAGE_ROOT =
+  RUNTIME_STORAGE_SCOPE.storageRoot
+export const OFFLINE_MEDIA_BINARY_RUNTIME_AUTHORITY_PATH =
+  'runtime-authority/offline-media-binary-runtime-resource-observer-v6.json' as const
+const STORAGE_ROOT = OFFLINE_MEDIA_BINARY_RUNTIME_STORAGE_ROOT
+const AUTHORITY_PATH = OFFLINE_MEDIA_BINARY_RUNTIME_AUTHORITY_PATH
 const DOCKER_CONTROL_TIMEOUT_MS = 120_000
 const MAXIMUM_STREAMING_TIMEOUT_MS = 10 * 60_000
 const CONTINUOUS_PROGRAM_AUDIO_TIMEOUT_MS = 60 * 60_000
@@ -164,8 +194,9 @@ export interface OfflineMediaBinaryServerInjectedInput {
 }
 
 export interface OfflineMediaBinaryRuntimeAuthority {
-  schemaVersion: 'offline-media-binary-runtime-authority-v1'
+  schemaVersion: 'offline-media-binary-runtime-authority-v2'
   source: 'private_local_pinned_ffmpeg_lgpl_runtime'
+  storageScopeHash: string
   activatedAt: string
   image: OfflineMediaBinaryImageEvidence
   supportedOperations: readonly [
@@ -549,15 +580,16 @@ Promise<OfflineMediaBinaryRuntimeAuthority | undefined> {
   const envelope = record(parsed)
   const authority = record(envelope.authority)
   if (
-    envelope.recordVersion !== 'offline-media-binary-runtime-authority-record-v1' ||
+    envelope.recordVersion !== 'offline-media-binary-runtime-authority-record-v2' ||
     envelope.source !== 'private_local_checksum_protected_media_binary_runtime' ||
     envelope.checksumSha256 !== sha256AuthorityValue(authority)
   ) throw unavailable('Media binary runtime authority checksum is invalid.')
   const { authorityHash, ...withoutHash } = authority
   if (
     authorityHash !== sha256AuthorityValue(withoutHash) ||
-    authority.schemaVersion !== 'offline-media-binary-runtime-authority-v1' ||
+    authority.schemaVersion !== 'offline-media-binary-runtime-authority-v2' ||
     authority.source !== 'private_local_pinned_ffmpeg_lgpl_runtime' ||
+    authority.storageScopeHash !== OFFLINE_MEDIA_BINARY_RUNTIME_STORAGE_SCOPE_HASH ||
     record(authority.readiness).privateInternalExecutionReady !== true ||
     record(authority.readiness).privateGenericMediaResourceObservationReady !== true ||
     record(authority.readiness).privateInternalStorytellingSpeechNormalizationReady !== true ||
@@ -709,8 +741,9 @@ async function executeMezzanineFinalizationServerInjected(
       outputSpool.source,
       request,
     )
-    const persisted = await outputSink.persist({
-      stream: await outputSpool.source.openStream(),
+    const persisted = await persistPrivateOutputThroughSink({
+      outputSink,
+      source: outputSpool.source,
       mimeType: 'video/mp4',
       expectedByteLength: outputSpool.byteLength,
       expectedSha256: outputSpool.sha256,
@@ -897,8 +930,9 @@ async function executeObjectMezzanineChunkServerInjected(
       outputSpool.source,
       request,
     )
-    const persisted = await outputSink.persist({
-      stream: await outputSpool.source.openStream(),
+    const persisted = await persistPrivateOutputThroughSink({
+      outputSink,
+      source: outputSpool.source,
       mimeType: 'video/x-matroska',
       expectedByteLength: outputSpool.byteLength,
       expectedSha256: outputSpool.sha256,
@@ -1065,8 +1099,9 @@ async function executeLongFormMasterAssemblyServerInjected(
     const outputProbe = await probeLongFormMasterOutput(
       image, outputSpool.source, request,
     )
-    const persisted = await outputSink.persist({
-      stream: await outputSpool.source.openStream(),
+    const persisted = await persistPrivateOutputThroughSink({
+      outputSink,
+      source: outputSpool.source,
       mimeType: 'video/x-matroska',
       expectedByteLength: outputSpool.byteLength,
       expectedSha256: outputSpool.sha256,
@@ -1223,8 +1258,9 @@ async function executeCustomerDeliveryMuxServerInjected(
       outputSpool.source,
       request,
     )
-    const persisted = await outputSink.persist({
-      stream: await outputSpool.source.openStream(),
+    const persisted = await persistPrivateOutputThroughSink({
+      outputSink,
+      source: outputSpool.source,
       mimeType: 'video/mp4',
       expectedByteLength: outputSpool.byteLength,
       expectedSha256: outputSpool.sha256,
@@ -1407,8 +1443,9 @@ async function executeContinuousProgramAudioServerInjected(
       outputSpool.source,
       request,
     )
-    const persisted = await outputSink.persist({
-      stream: await outputSpool.source.openStream(),
+    const persisted = await persistPrivateOutputThroughSink({
+      outputSink,
+      source: outputSpool.source,
       mimeType: 'audio/flac',
       expectedByteLength: outputSpool.byteLength,
       expectedSha256: outputSpool.sha256,
@@ -3606,8 +3643,9 @@ async function executeFfmpegRequest(
       `match=${JSON.stringify(colorMatchQa)}).`,
     )
     if (outputSink) {
-      const persisted = await outputSink.persist({
-        stream: await outputInput.openStream(),
+      const persisted = await persistPrivateOutputThroughSink({
+        outputSink,
+        source: outputInput,
         mimeType: voiceDelivery || storytellingSpeechNormalization
           ? 'audio/wav'
           : 'video/x-matroska',
@@ -5305,8 +5343,9 @@ async function inspectImage(): Promise<OfflineMediaBinaryImageEvidence> {
 
 async function persistAuthority(image: OfflineMediaBinaryImageEvidence): Promise<void> {
   const withoutHash = {
-    schemaVersion: 'offline-media-binary-runtime-authority-v1' as const,
+    schemaVersion: 'offline-media-binary-runtime-authority-v2' as const,
     source: 'private_local_pinned_ffmpeg_lgpl_runtime' as const,
+    storageScopeHash: OFFLINE_MEDIA_BINARY_RUNTIME_STORAGE_SCOPE_HASH,
     activatedAt: new Date().toISOString(),
     image,
     supportedOperations: [
@@ -5358,7 +5397,7 @@ async function persistAuthority(image: OfflineMediaBinaryImageEvidence): Promise
     rootPath: STORAGE_ROOT,
     relativePath: AUTHORITY_PATH,
     content: `${stableAuthorityStringify({
-      recordVersion: 'offline-media-binary-runtime-authority-record-v1',
+      recordVersion: 'offline-media-binary-runtime-authority-record-v2',
       source: 'private_local_checksum_protected_media_binary_runtime',
       authority,
       checksumSha256: sha256AuthorityValue(authority),
@@ -7437,6 +7476,27 @@ function verifiedBufferInput(
       return Readable.from([bytes])
     },
   })
+}
+
+async function persistPrivateOutputThroughSink(input: {
+  outputSink: OfflineMediaBinaryStreamingOutputSink
+  source: OfflineMediaBinaryServerInjectedInput
+  mimeType: 'video/x-matroska' | 'audio/wav' | 'audio/flac' | 'video/mp4'
+  expectedByteLength: number
+  expectedSha256: string
+}): Promise<{ byteLength: number; sha256: string }> {
+  const stream = await input.source.openStream()
+  try {
+    return await input.outputSink.persist({
+      stream,
+      mimeType: input.mimeType,
+      expectedByteLength: input.expectedByteLength,
+      expectedSha256: input.expectedSha256,
+    })
+  } finally {
+    if (!stream.destroyed) stream.destroy()
+    if (!stream.closed) await finished(stream).catch(() => undefined)
+  }
 }
 
 function assertStreamingOutputSink(

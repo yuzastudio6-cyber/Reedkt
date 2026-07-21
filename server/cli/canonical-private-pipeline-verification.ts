@@ -58,7 +58,7 @@ const canonicalSteps: VerificationStep[] = [
   step(
     'offline-media-binary-resource-observation',
     'smoke:offline-media-binary-execution',
-    'The pinned networkless FFmpeg/FFprobe image captures exact cgroup-v2 CPU and memory counters for each generic media container, strips one nonce-bound terminal marker, aggregates sequential subcontainers into one attempt observation, and fails closed on missing, duplicate, malformed, or non-monotonic evidence. Specialized long-form entrypoints, deployed cloud telemetry, provider cost, customer price, credits, billing, and production remain separate gates.',
+    'The pinned networkless FFmpeg/FFprobe image captures exact cgroup-v2 CPU and memory counters for each generic media container, strips one nonce-bound terminal marker, aggregates sequential subcontainers into one attempt observation, isolates persisted runtime authority by checkout/release, explicitly closes every private output stream, and fails closed on missing, duplicate, malformed, or non-monotonic evidence. Specialized long-form entrypoints, deployed cloud telemetry, provider cost, customer price, credits, billing, and production remain separate gates.',
   ),
   step(
     'professional-long-form-approved-snapshot-bridge',
@@ -178,7 +178,7 @@ const canonicalSteps: VerificationStep[] = [
   step(
     'private-worker-resource-usage-cost-evidence',
     'smoke:private-worker-resource-usage-cost-evidence',
-    'All 72 registered tool operations plus the two admitted provider operations expose exact CPU/memory resource evidence contracts, all GPU-capable operations require GPU milliseconds, and completed/failed/unknown private attempts retain create-only internal infrastructure-cost evidence while deployed observers, official cloud rates, provider calls, commerce, and production remain blocked.',
+    'All 72 registered tool operations plus the three admitted provider operations expose exact CPU/memory resource evidence contracts, all GPU-capable operations require GPU milliseconds, and completed/failed/unknown private attempts retain create-only internal infrastructure-cost evidence while deployed observers, official cloud rates, provider calls, commerce, and production remain blocked.',
   ),
   step(
     'canonical-embedded-worker-resource-lifecycle',
@@ -188,12 +188,17 @@ const canonicalSteps: VerificationStep[] = [
   step(
     'canonical-provider-attempt-consumer-receipt',
     'smoke:canonical-private-provider-work-lifecycle',
-    'The exact approved package, queue/lease, one-use provider dispatch, terminal cost, observed worker-resource evidence, and private output readback produce a compact source-verified non-promotable receipt. Exact consumer context, timing, lease aliases, safe terminal outcome, component cost/rate-card provenance, private-object identity, and closed security semantics map without caller invention. The output-set envelope remains current-V1 cardinality with multi-output admission false. Lyria V1 request-count history remains generation-submission semantics, while the synchronized-Foley identity and 17-request async breakdown stay qualification- and transport-blocked.',
+    'The exact approved package, queue/lease, one-use provider dispatch, terminal cost, observed worker-resource evidence, and private output readback produce a compact source-verified non-promotable receipt. Exact consumer context, timing, lease aliases, safe terminal outcome, component cost/rate-card provenance, private-object identity, and closed security semantics map without caller invention. The output-set envelope remains current-V1 cardinality with multi-output admission false, and Lyria V1 request-count history remains generation-submission semantics. Provider qualification and transport remain blocked.',
   ),
   step(
     'canonical-multi-output-provider-attempt-consumer-receipt',
     'smoke:canonical-private-multi-output-provider-work-lifecycle',
     'The exact Storytelling Speech operation reuses the canonical approved-package queue, claim/lease, one-use provider dispatch, private candidate store, internal-cost stores, and compact receipt. One injected non-provider attempt retains ordered MP3 and private alignment JSON outputs with checksum readback, exact replay, observed worker-resource cost, failed-attempt cost, and closed credential/request-body/provider/commercial boundaries. Provider transport, immutable provider revision, production rate authority, zero-retention entitlement, cloud persistence, billing, and production promotion remain blocked.',
+  ),
+  step(
+    'canonical-synchronized-foley-provider-attempt-consumer-receipt',
+    'smoke:canonical-private-synchronized-foley-provider-lifecycle',
+    'The exact synchronized-Foley provider operation reuses the canonical approved-package queue, claim/lease, one-use provider dispatch, private candidate store, component internal-cost stores, and compact receipt. One injected non-provider attempt retains a create-only private MP4 with checksum readback, exact replay, observed worker-resource cost, failed-attempt cost, unknown-outcome reconciliation, and the typed 17-request asynchronous lifecycle ceiling while distinguishing one paid generation submission from continuation requests. Provider transport, secret reads, immutable provider revision, production rate authority, cloud persistence, billing, downstream normalization execution, and production promotion remain blocked.',
   ),
   step(
     'canonical-multi-source-execution',
@@ -340,7 +345,7 @@ function printReport(
 ): void {
   const finishedAt = new Date()
   const report = {
-    schemaVersion: 'canonical-private-pipeline-verification-v32',
+    schemaVersion: 'canonical-private-pipeline-verification-v33',
     status,
     mode: full ? 'full_internal_regression' : 'canonical_private_pipeline',
     startedAt: runStartedAt.toISOString(),
@@ -479,6 +484,11 @@ function printReport(
           canonicalProviderAttemptConsumerReceiptMultiOutputAdmission: false,
           legacyProviderRequestCountMeansGenerationSubmission: true,
           synchronizedFoleyLifecycleIdentityFrozen: true,
+          synchronizedFoleyPrivateInjectedProviderLifecycleVerified: true,
+          synchronizedFoleyPrivateMp4CreateOnlyPersistenceVerified: true,
+          synchronizedFoleyFailedAttemptInternalCostRetained: true,
+          synchronizedFoleyUnknownOutcomeReconciliationVerified: true,
+          synchronizedFoleyTypedLifecycleHttpRequestCeiling: 17,
           synchronizedFoleyCanonicalAuthorizationIssuanceAllowed: false,
           activeNamedEditJourneyStates: true,
           versionedToolIdentityEvidence: true,

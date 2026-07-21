@@ -36,11 +36,16 @@ try {
   assert.equal(coverage.registeredToolOperationSpecCount, 72)
   assert.equal(coverage.registeredCanonicalToolIdentityCount, 72)
   assert.equal(coverage.registeredToolOperationIdCount, 72)
-  assert.equal(coverage.registeredProviderOperationCount, 2)
-  assert.equal(coverage.totalOperationContractCount, 74)
+  assert.equal(coverage.registeredProviderOperationCount, 3)
+  assert.deepEqual(coverage.registeredProviderOperationIds, [
+    'provider.lyria.generate_music_candidate.v1',
+    'provider.elevenlabs.generate_storytelling_speech_candidate.v1',
+    'provider.fal.generate_synchronized_foley_candidate.v1',
+  ])
+  assert.equal(coverage.totalOperationContractCount, 75)
   assert.equal(coverage.toolOperationContractsWithRequiredCpuMemoryMeasurements, 72)
-  assert.equal(coverage.providerOperationContractsWithRequiredCpuMemoryMeasurements, 2)
-  assert.equal(coverage.totalOperationContractsWithRequiredCpuMemoryMeasurements, 74)
+  assert.equal(coverage.providerOperationContractsWithRequiredCpuMemoryMeasurements, 3)
+  assert.equal(coverage.totalOperationContractsWithRequiredCpuMemoryMeasurements, 75)
   assert.equal(coverage.registeredGpuToolOperationCount, 13)
   assert.equal(coverage.gpuToolOperationContractsWithRequiredGpuMeasurements, 13)
   assert.equal(coverage.privateInternalRunnerVerifiedToolOperationCount, 53)

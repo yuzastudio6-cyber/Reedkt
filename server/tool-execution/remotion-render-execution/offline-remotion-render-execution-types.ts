@@ -3,6 +3,8 @@ import type { OfflineRemotionStreamingRenderRequest } from './offline-remotion-r
 import type { OfflineRemotionLongFormMergeStreamingRequest } from './offline-remotion-long-form-merge-protocol'
 import type { OfflineRemotionDeliveryH264ChunkRequest } from
   './offline-remotion-delivery-h264-chunk-protocol'
+import type { PrivateEmbeddedProcessResourceObservation } from
+  '../private-embedded-process-resource-observation'
 
 export interface OfflineRemotionImageEvidence {
   imageTag: `reeditpro-offline-remotion-render-execution:canonical-private-local-v1-${string}`
@@ -40,6 +42,9 @@ export interface OfflineRemotionConfinementEvidence {
   callerMountsPresent: false
   callerEnvironmentPresent: false
   secretLikeImageEnvironmentNames: readonly []
+  resourceObserverEntrypoint?:
+    '/usr/local/bin/reeditpro-remotion-cgroup-resource-observer'
+  cgroupV2ResourceObservationRequired?: true
 }
 
 export interface OfflineRemotionDeliveryH264ChunkStreamingResult {
@@ -74,7 +79,7 @@ export interface OfflineRemotionDeliveryH264ChunkStreamingResult {
 }
 
 export interface OfflineRemotionRenderResult {
-  schemaVersion: 'offline-remotion-render-execution-result-v1'
+  schemaVersion: 'offline-remotion-render-execution-result-v2'
   request: OfflineRemotionRenderRequest
   artifact: {
     mimeType: 'video/mp4'
@@ -101,11 +106,12 @@ export interface OfflineRemotionRenderResult {
     image: OfflineRemotionImageEvidence
     confinement: OfflineRemotionConfinementEvidence
     semanticEvidence: Readonly<Record<string, true>>
+    resourceObservation: PrivateEmbeddedProcessResourceObservation
     containerExitCode: 0
     oomKilled: false
   }
   attestation: {
-    schemaVersion: 'offline-remotion-render-execution-attestation-v1'
+    schemaVersion: 'offline-remotion-render-execution-attestation-v2'
     recordId: string
     completedAt: string
     imageIdentityHash: string
@@ -113,6 +119,7 @@ export interface OfflineRemotionRenderResult {
     artifactSha256: string
     frameArtifactDigests: readonly { frame: number; sha256: string }[]
     confinementHash: string
+    resourceObservationHash: string
     attestationHash: string
   }
   readiness: {

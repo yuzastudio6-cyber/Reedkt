@@ -45,5 +45,6 @@ COPY --from=build --chown=10001:10001 /app/node_modules /app/node_modules
 COPY --from=build --chown=10001:10001 /app/browser-path.txt /app/browser-path.txt
 COPY --from=build --chown=10001:10001 /opt/remotion-bundle /opt/remotion-bundle
 COPY --chown=10001:10001 docker/prod/offline-remotion-render-execution/runner.mjs /app/runner.mjs
+COPY --chmod=0555 docker/prod/offline-remotion-render-execution/remotion-cgroup-resource-observer.sh /usr/local/bin/reeditpro-remotion-cgroup-resource-observer
 USER 10001:10001
 ENTRYPOINT ["node", "/app/runner.mjs"]

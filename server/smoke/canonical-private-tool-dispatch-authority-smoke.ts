@@ -2559,6 +2559,21 @@ assert.equal(coordinatedRemotion.result.contentType, 'video/mp4')
 assert.equal(coordinatedRemotion.result.qaOutcome, 'passed')
 assert.equal(coordinatedRemotion.result.finalRenderAuthorized, false)
 assert.equal(coordinatedRemotion.result.finalExportAuthorized, false)
+assert.equal(
+  coordinatedRemotion.resourceUsage.measurementAgentVersion,
+  'embedded_remotion_cgroup_v2_observer_v1',
+)
+assert.equal(
+  coordinatedRemotion.resourceUsage.measurementClass,
+  'private_embedded_observed_resource_snapshots',
+)
+assert.ok(coordinatedRemotion.resourceUsage.observedCpuMicroseconds > 0)
+assert.ok(coordinatedRemotion.resourceUsage.observedPeakMemoryBytes > 0)
+assert.equal(coordinatedRemotion.resourceUsage.providerCostIncluded, false)
+assert.equal(coordinatedRemotion.resourceUsage.customerPriceIncluded, false)
+assert.equal(coordinatedRemotion.resourceUsage.customerCreditsIncluded, false)
+assert.equal(coordinatedRemotion.resourceUsage.serviceFeeIncluded, false)
+assert.equal(coordinatedRemotion.resourceUsage.productionReady, false)
 const coordinatedRemotionReplay = await createCanonicalPrivateRemotionExecutionService(context).execute(
   remotionExecutionInput, remotionExecutionAuthority,
 )
@@ -2570,6 +2585,10 @@ assert.equal(coordinatedRemotionReplay.replay.executionFenceCompleteReplayed, tr
 assert.equal(coordinatedRemotionReplay.replay.artifactRecordReplayed, true)
 assert.equal(coordinatedRemotionReplay.replay.qaRecordReplayed, true)
 assert.equal(coordinatedRemotionReplay.replay.reconciliationReplayed, true)
+assert.equal(
+  coordinatedRemotionReplay.resourceUsage.evidenceHash,
+  coordinatedRemotion.resourceUsage.evidenceHash,
+)
 const remotionProofClaim = (await leaseService.claim({
   workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
   jobId: remotionProofJob.id, purpose: 'private_internal_canonical_lease_claim',
@@ -4537,8 +4556,9 @@ const expectedEmbeddedResourceOperationIds = new Set([
     .map((operation) => operation.operationId),
   ffprobeOperationId,
   ffmpegOperationId,
+  remotionOperationId,
 ])
-assert.equal(expectedEmbeddedResourceOperationIds.size, 30)
+assert.equal(expectedEmbeddedResourceOperationIds.size, 31)
 const resourceLeaseAggregate = await readPrivateCanonicalWorkerLeaseAggregate({
   localStorageRoot,
   ownerUserId: userId,
@@ -4553,11 +4573,14 @@ for (const lease of resourceLeaseAggregate.leases) {
       'offline_node_structured_execution_v1',
       'offline_python_structured_execution_v1',
       'offline_media_binary_execution_v1',
+      'offline_remotion_render_execution_v1',
     ].includes(lease.executionFence.runnerClass ?? '')
     || !lease.executionFence.executionAttemptId
   ) continue
   const mediaBinaryEvidence =
     lease.executionFence.runnerClass === 'offline_media_binary_execution_v1'
+  const remotionEvidence =
+    lease.executionFence.runnerClass === 'offline_remotion_render_execution_v1'
   if (
     mediaBinaryEvidence
     && ![probeJob.id, trimJob.id].includes(lease.jobId)
@@ -4584,8 +4607,14 @@ for (const lease of resourceLeaseAggregate.leases) {
     'private_embedded_observed_resource_snapshots',
   )
   assert.ok(evidence.resourceUsage.wallTimeMilliseconds > 0)
-  assert.equal(evidence.resourceUsage.allocatedVcpuCount, mediaBinaryEvidence ? 2 : 1)
-  assert.equal(evidence.resourceUsage.allocatedMemoryMib, mediaBinaryEvidence ? 2_048 : 768)
+  assert.equal(
+    evidence.resourceUsage.allocatedVcpuCount,
+    mediaBinaryEvidence || remotionEvidence ? 2 : 1,
+  )
+  assert.equal(
+    evidence.resourceUsage.allocatedMemoryMib,
+    mediaBinaryEvidence ? 2_048 : remotionEvidence ? 4_096 : 768,
+  )
   assert.equal(evidence.resourceUsage.allocatedGpuCount, 0)
   assert.equal(evidence.resourceUsage.networkEgressBytes, 0)
   if (mediaBinaryEvidence) {
@@ -4599,6 +4628,16 @@ for (const lease of resourceLeaseAggregate.leases) {
     assert.ok(evidence.resourceUsage.observedCpuMicroseconds > 0)
     assert.ok(evidence.resourceUsage.observedPeakMemoryBytes > 0)
     assert.ok(evidence.resourceUsage.observedPeakMemoryBytes <= 2_048 * 1024 * 1024)
+  }
+  if (remotionEvidence) {
+    assert.equal(
+      evidence.runtime.measurementAgentVersion,
+      'embedded_remotion_cgroup_v2_observer_v1',
+    )
+    assert.equal(evidence.operation.operationId, remotionOperationId)
+    assert.ok(evidence.resourceUsage.observedCpuMicroseconds > 0)
+    assert.ok(evidence.resourceUsage.observedPeakMemoryBytes > 0)
+    assert.ok(evidence.resourceUsage.observedPeakMemoryBytes <= 4_096 * 1024 * 1024)
   }
   assert.equal(evidence.runtime.cloudExecutionResourceDigest, null)
   assert.equal(evidence.input.artifacts.length >= 1, true)
@@ -4640,7 +4679,7 @@ assert.deepEqual(
   [...embeddedResourceEvidenceByOperation.keys()].sort(),
   [...expectedEmbeddedResourceOperationIds].sort(),
 )
-assert.equal(embeddedResourceEvidenceByOperation.size, 30)
+assert.equal(embeddedResourceEvidenceByOperation.size, 31)
 
 await expectApiError(
   () => createCanonicalPrivateToolDispatchAuthorityService({
@@ -4699,6 +4738,7 @@ console.log(JSON.stringify({
     'same_idempotent_coordinator_attempt_resumes_after_completed_execution_fence',
     'all_28_node_and_python_operations_persist_exact_embedded_cpu_memory_and_internal_cost_evidence',
     'canonical_ffmpeg_and_ffprobe_attempts_persist_exact_cgroup_v2_cpu_memory_and_internal_cost_evidence',
+    'canonical_remotion_attempts_persist_exact_cgroup_v2_cpu_memory_and_internal_cost_evidence',
     'media_binary_resource_evidence_binds_job_attempt_lease_dispatch_input_output_and_replay',
     'embedded_usage_evidence_is_create_only_replay_safe_and_commercially_separate',
     'downstream_lease_reopens_and_verifies_actual_structured_svg_bytes',

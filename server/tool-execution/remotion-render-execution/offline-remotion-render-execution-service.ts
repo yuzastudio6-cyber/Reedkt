@@ -371,13 +371,14 @@ async function executeWithImage(image: OfflineRemotionImageEvidence, value: unkn
   ) throw runtimeFailure('Private Remotion result evidence is invalid.')
   const completedAt = new Date().toISOString()
   const attestationWithoutHash = {
-    schemaVersion: 'offline-remotion-render-execution-attestation-v1' as const,
+    schemaVersion: 'offline-remotion-render-execution-attestation-v2' as const,
     completedAt,
     imageIdentityHash: image.imageIdentityHash,
     requestEnvelopeSha256: offlineRemotionRequestSha256(request),
     artifactSha256: sha256,
     frameArtifactDigests: frameArtifacts.map(({ frame, sha256: frameSha256 }) => ({ frame, sha256: frameSha256 })),
     confinementHash: sha256AuthorityValue(result.confinement),
+    resourceObservationHash: result.resourceObservation.observationHash,
   }
   const attestationHash = sha256AuthorityValue(attestationWithoutHash)
   const recordId = sha256AuthorityValue({ attestationHash, completedAt })
@@ -386,17 +387,17 @@ async function executeWithImage(image: OfflineRemotionImageEvidence, value: unkn
     rootPath: STORAGE_ROOT,
     relativePath: `attestations/${recordId.slice(0, 2)}/${recordId}.json`,
     content: `${stableAuthorityStringify({
-      recordVersion: 'offline-remotion-render-execution-attestation-record-v1',
+      recordVersion: 'offline-remotion-render-execution-attestation-record-v2',
       source: 'private_local_checksum_protected_remotion_execution',
       attestation,
       checksumSha256: sha256AuthorityValue(attestation),
     })}\n`,
   })
   return {
-    schemaVersion: 'offline-remotion-render-execution-result-v1', request,
+    schemaVersion: 'offline-remotion-render-execution-result-v2', request,
     artifact: { mimeType: 'video/mp4', bytes, byteLength: bytes.length, sha256, width: Number(artifactRecord.width), height: Number(artifactRecord.height), fps: Number(artifactRecord.fps), durationFrames: Number(artifactRecord.durationFrames), durationSeconds: Number(artifactRecord.durationSeconds) },
     frameArtifacts,
-    evidence: { packageName: 'remotion+@remotion/renderer', packageVersion: '4.0.487', requestEnvelopeSha256: String(response.requestEnvelopeSha256), image, confinement: result.confinement, semanticEvidence: record(response.semanticEvidence) as Record<string, true>, containerExitCode: 0, oomKilled: false },
+    evidence: { packageName: 'remotion+@remotion/renderer', packageVersion: '4.0.487', requestEnvelopeSha256: String(response.requestEnvelopeSha256), image, confinement: result.confinement, semanticEvidence: record(response.semanticEvidence) as Record<string, true>, resourceObservation: result.resourceObservation, containerExitCode: 0, oomKilled: false },
     attestation,
     readiness: { privateInternalOnly: true, productReady: false, externalBetaReady: false, productionReady: false, privateInternalFinalCompositionReady: true, canonicalDispatchIntegrated: false },
   }

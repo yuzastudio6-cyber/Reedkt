@@ -38,6 +38,7 @@ import {
   createCanonicalPrivateDependencyArtifactReadService,
   type CanonicalPrivateDependencyArtifactReadResult,
 } from './canonical-private-dependency-artifact-read-service'
+import { recordCanonicalPrivateEmbeddedWorkerResourceUsage } from './canonical-private-embedded-worker-resource-usage-recorder'
 import { persistCanonicalPrivateRemotionArtifact, readCanonicalPrivateRemotionArtifact } from './canonical-private-remotion-artifact-storage'
 import { createCanonicalPrivateToolDispatchAuthorityService } from './canonical-private-tool-dispatch-authority-service'
 import { createCanonicalWorkerLeaseAuthorityService } from './canonical-worker-lease-authority-service'
@@ -271,8 +272,70 @@ export function createCanonicalPrivateRemotionExecutionService(context: ServiceC
         authority.snapshot.snapshotId, access.workspaceId,
       )) !== beforeHash) throw denied('Canonical authority changed during Remotion execution.')
 
+      const resourceUsage = await recordCanonicalPrivateEmbeddedWorkerResourceUsage({
+        localStorageRoot: context.env.localStorageRoot,
+        ownerUserId: access.userId,
+        workspaceId: body.workspaceId,
+        projectId: body.projectId,
+        editSessionId: body.editSessionId,
+        approvedPlanSnapshotId: authority.snapshot.snapshotId,
+        approvedPlanSnapshotHash: readiness.authorityHashes.snapshotHash,
+        packageRecordId: readiness.executionPackage.packageRecordId,
+        packageHash: readiness.executionPackage.packageHash,
+        approvedWorkItemId: workItem.id,
+        approvedWorkItemHash: sha256AuthorityValue(workItem),
+        jobId: body.jobId,
+        executionAttemptId,
+        attemptOrdinal: completed.lease.attemptNumber,
+        leaseId: completed.lease.id,
+        leaseHash: completed.lease.immutableLeaseHash,
+        leaseExpiresAt: completed.lease.expiresAt,
+        dispatchGrantId: body.grantId,
+        dispatchGrantHash: dispatch.grant.immutableGrantHash,
+        idempotencyKey: body.idempotencyKey,
+        canonicalToolId: 'remotion',
+        operationId: binding.operationId,
+        runnerClass: RUNNER_CLASS,
+        runtimeAuthorityDigest: runtimeAuthority.authorityHash,
+        runtimeImageDigest: runtime.image.imageIdentityHash,
+        runtimeAttestationDigest: result.attestation.attestationHash,
+        observation: result.evidence.resourceObservation,
+        allocation: {
+          nanoCpus: result.evidence.confinement.nanoCpus,
+          memoryLimitBytes: result.evidence.confinement.memoryLimitBytes,
+        },
+        attemptInputHash: result.evidence.requestEnvelopeSha256,
+        inputArtifacts: [{
+          artifactId: `${workItem.id}:approved_remotion_request`,
+          sha256: result.evidence.requestEnvelopeSha256,
+          byteLength: Buffer.byteLength(stableArtifactQaStringify(request), 'utf8'),
+        }, ...(dependency
+          ? [{
+              artifactId: dependency.artifactId,
+              sha256: dependency.sha256,
+              byteLength: dependency.byteLength,
+            }]
+          : [])],
+        outputArtifact: {
+          artifactId: artifactResult.artifact.artifactId,
+          sha256: artifactResult.artifact.content.sha256,
+          byteLength: artifactResult.artifact.content.byteLength,
+        },
+        createdAt: reconciliation.reconciliation.createdAt,
+      })
+      if (
+        resourceUsage.evidence.identity.executionAttemptId !== executionAttemptId
+        || resourceUsage.evidence.identity.jobId !== body.jobId
+        || resourceUsage.evidence.operation.kind !== 'registered_tool_operation'
+        || resourceUsage.evidence.operation.operationId !== binding.operationId
+        || resourceUsage.evidence.output.artifacts[0]?.sha256 !==
+          artifactResult.artifact.content.sha256
+      ) {
+        throw denied('Remotion resource evidence lost canonical attempt or output authority.')
+      }
+
       const responseWithoutHash = {
-        schemaVersion: 'canonical-private-remotion-execution-response-v1' as const,
+        schemaVersion: 'canonical-private-remotion-execution-response-v2' as const,
         source: 'canonical_private_remotion_execution_coordinator' as const,
         purpose: body.purpose,
         identity: { ...identity, approvedWorkItemId: workItem.id, dispatchGrantId: body.grantId },
@@ -330,6 +393,47 @@ export function createCanonicalPrivateRemotionExecutionService(context: ServiceC
           qaOutcome: 'passed' as const, reconciliationDecision: 'test_merged_not_live_authorized' as const,
           privateTestDependencySatisfied: true as const, liveRuntimeDependencySatisfied: false as const,
           finalRenderAuthorized: false as const, finalExportAuthorized: false as const,
+        },
+        resourceUsage: {
+          evidenceClass: resourceUsage.evidence.evidenceClass,
+          evidenceId: resourceUsage.evidence.evidenceId,
+          evidenceHash: resourceUsage.evidence.evidenceHash,
+          attemptIdentityHash: resourceUsage.evidence.attemptIdentityHash,
+          attemptInputHash: resourceUsage.evidence.attemptInputHash,
+          operationProfileId: resourceUsage.evidence.operation.operationProfileId,
+          operationProfileHash: resourceUsage.evidence.operation.operationProfileHash,
+          runtimeExecutionIdentityDigest:
+            resourceUsage.evidence.runtime.runtimeExecutionIdentityDigest,
+          containerIdentityDigest: resourceUsage.evidence.runtime.containerIdentityDigest,
+          measurementAgentVersion: resourceUsage.evidence.runtime.measurementAgentVersion,
+          measurementAgentDigest: resourceUsage.evidence.runtime.measurementAgentDigest,
+          inputManifestHash: resourceUsage.evidence.input.manifestHash,
+          outputManifestHash: resourceUsage.evidence.output.manifestHash,
+          measurementClass: resourceUsage.evidence.resourceUsage.measurementClass,
+          startedAt: resourceUsage.evidence.resourceUsage.startedAt,
+          finishedAt: resourceUsage.evidence.resourceUsage.finishedAt,
+          wallTimeMilliseconds: resourceUsage.evidence.resourceUsage.wallTimeMilliseconds,
+          observedCpuMicroseconds:
+            resourceUsage.evidence.resourceUsage.observedCpuMicroseconds,
+          observedPeakMemoryBytes:
+            resourceUsage.evidence.resourceUsage.observedPeakMemoryBytes,
+          infrastructureEvidenceDigest:
+            resourceUsage.evidence.resourceUsage.infrastructureEvidenceDigest,
+          rateCardVersion: resourceUsage.evidence.infrastructureCost.rateCardVersion,
+          rateCardDigest: resourceUsage.evidence.infrastructureCost.rateCardDigest,
+          actualInternalCostMicros:
+            resourceUsage.evidence.infrastructureCost.actualInternalCostMicros,
+          rateAuthorityClass:
+            resourceUsage.evidence.infrastructureCost.rateAuthorityClass,
+          providerCostIncluded: false as const,
+          customerPriceIncluded: false as const,
+          customerCreditsIncluded: false as const,
+          serviceFeeIncluded: false as const,
+          walletMutationPerformed: false as const,
+          billingMutationPerformed: false as const,
+          observedUsageTransportQualified: false as const,
+          productionRateAuthority: false as const,
+          productionReady: false as const,
         },
         replay: {
           dispatchConsumptionReplayed: dispatch.consumptionReplayed,
@@ -478,10 +582,17 @@ function normalizeProbe(document: Readonly<Record<string, unknown>>, request: Re
 }
 function assertRemotionResult(result: OfflineRemotionRenderResult, request: ReturnType<typeof validateOfflineRemotionRenderRequest>, runtimeAuthorityHash: string): void {
   if (
+    result.schemaVersion !== 'offline-remotion-render-execution-result-v2' ||
     result.request.operationId !== request.operationId || result.artifact.mimeType !== CONTENT_TYPE ||
     result.artifact.width !== request.payload.width || result.artifact.height !== request.payload.height ||
     result.artifact.fps !== request.payload.fps || result.artifact.durationFrames !== request.payload.durationFrames ||
     result.evidence.containerExitCode !== 0 || result.evidence.oomKilled || result.readiness.productReady ||
+    result.evidence.resourceObservation.observerKind !== 'remotion_container_cgroup_v2_v1' ||
+    result.evidence.resourceObservation.measurementAgentVersion !==
+      'embedded_remotion_cgroup_v2_observer_v1' ||
+    result.attestation.resourceObservationHash !==
+      result.evidence.resourceObservation.observationHash ||
+    result.evidence.confinement.cgroupV2ResourceObservationRequired !== true ||
     result.readiness.canonicalDispatchIntegrated || !/^[a-f0-9]{64}$/.test(runtimeAuthorityHash)
   ) throw denied('Remotion runtime result failed exact operation and output verification.')
 }

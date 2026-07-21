@@ -7,6 +7,7 @@ const identity = z.string().min(1).max(200).regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$
   .refine((value) => value === value.trim() && !value.includes('..'))
 const sha = z.string().regex(/^[a-f0-9]{64}$/)
 const timestamp = z.string().datetime({ offset: true })
+const safeInteger = z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER)
 
 export const runCanonicalPrivateRemotionSchema = z.object({
   workspaceId: identity, projectId: identity, editSessionId: identity,
@@ -22,7 +23,7 @@ export const canonicalPrivateRemotionAuthoritySchema = z.object({
 }).strict()
 
 export const canonicalPrivateRemotionResponseSchema = z.object({
-  schemaVersion: z.literal('canonical-private-remotion-execution-response-v1'),
+  schemaVersion: z.literal('canonical-private-remotion-execution-response-v2'),
   source: z.literal('canonical_private_remotion_execution_coordinator'),
   purpose: z.literal('execute_canonical_private_remotion_tool'),
   identity: z.object({
@@ -107,6 +108,41 @@ export const canonicalPrivateRemotionResponseSchema = z.object({
     privateTestDependencySatisfied: z.literal(true), liveRuntimeDependencySatisfied: z.literal(false),
     finalRenderAuthorized: z.literal(false), finalExportAuthorized: z.literal(false),
   }).strict(),
+  resourceUsage: z.object({
+    evidenceClass: z.literal('private_embedded_observed_usage_test'),
+    evidenceId: identity,
+    evidenceHash: sha,
+    attemptIdentityHash: sha,
+    attemptInputHash: sha,
+    operationProfileId: identity,
+    operationProfileHash: sha,
+    runtimeExecutionIdentityDigest: sha,
+    containerIdentityDigest: sha,
+    measurementAgentVersion: z.literal('embedded_remotion_cgroup_v2_observer_v1'),
+    measurementAgentDigest: sha,
+    inputManifestHash: sha,
+    outputManifestHash: sha,
+    measurementClass: z.literal('private_embedded_observed_resource_snapshots'),
+    startedAt: timestamp,
+    finishedAt: timestamp,
+    wallTimeMilliseconds: z.number().int().positive().max(15 * 60 * 1_000),
+    observedCpuMicroseconds: z.number().int().positive().max(Number.MAX_SAFE_INTEGER),
+    observedPeakMemoryBytes: z.number().int().positive().max(4_294_967_296),
+    infrastructureEvidenceDigest: sha,
+    rateCardVersion: z.literal('rp-ratecard-01-mock-safe'),
+    rateCardDigest: sha,
+    actualInternalCostMicros: safeInteger,
+    rateAuthorityClass: z.literal('mock_safe_placeholder_not_cloud_invoice'),
+    providerCostIncluded: z.literal(false),
+    customerPriceIncluded: z.literal(false),
+    customerCreditsIncluded: z.literal(false),
+    serviceFeeIncluded: z.literal(false),
+    walletMutationPerformed: z.literal(false),
+    billingMutationPerformed: z.literal(false),
+    observedUsageTransportQualified: z.literal(false),
+    productionRateAuthority: z.literal(false),
+    productionReady: z.literal(false),
+  }).strict(),
   replay: z.object({
     dispatchConsumptionReplayed: z.boolean(), executionFenceBeginReplayed: z.boolean(),
     executionFenceCompleteReplayed: z.boolean(), artifactRecordReplayed: z.boolean(),
@@ -137,6 +173,18 @@ export const canonicalPrivateRemotionResponseSchema = z.object({
     context.addIssue({
       code: 'custom',
       message: 'Motion Studio profile and exact frame-golden evidence are inconsistent.',
+    })
+  }
+  if (
+    response.resourceUsage.attemptInputHash !== response.runtime.requestEnvelopeSha256
+    || Date.parse(response.resourceUsage.startedAt) >=
+      Date.parse(response.resourceUsage.finishedAt)
+    || Date.parse(response.resourceUsage.finishedAt) >
+      Date.parse(response.lease.executionCompletedAt)
+  ) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Remotion resource usage lost exact runtime or lease timing authority.',
     })
   }
 })

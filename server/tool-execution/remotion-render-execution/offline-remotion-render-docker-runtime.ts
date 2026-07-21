@@ -20,6 +20,13 @@ import {
   OFFLINE_REMOTION_DELIVERY_H264_CHUNK_MAXIMUM_OUTPUT_BYTES,
   OFFLINE_REMOTION_DELIVERY_H264_CHUNK_RESOURCE_PROFILE,
 } from './offline-remotion-delivery-h264-chunk-protocol'
+import {
+  createPrivateRemotionCgroupResourceObserverInvocation,
+  normalizePrivateRemotionCgroupResourceObservation,
+  PRIVATE_REMOTION_CGROUP_RESOURCE_OBSERVER_ENTRYPOINT,
+  PRIVATE_REMOTION_NODE_ENTRYPOINT,
+  PRIVATE_REMOTION_RUNNER_PATH,
+} from './private-remotion-cgroup-resource-observation'
 
 const REPOSITORY_ROOT = repositoryRoot()
 export const OFFLINE_REMOTION_LOCAL_RUNTIME_NAMESPACE = createHash('sha256')
@@ -31,7 +38,7 @@ export const OFFLINE_REMOTION_IMAGE_TAG =
 const BASE_DIGEST = 'sha256:53ada149d435c38b14476cb57e4a7da73c15595aba79bd6971b547ceb6d018bf' as const
 const PINNED_BASE = `node:22-bookworm-slim@${BASE_DIGEST}` as const
 const ENTRYPOINT = ['node', '/app/runner.mjs'] as const
-const SOURCE_FILES = ['Dockerfile', 'package.json', 'package-lock.json', 'entry.tsx', 'composition.tsx', 'build-bundle.mjs', 'ensure-browser.mjs', 'runner.mjs'] as const
+const SOURCE_FILES = ['Dockerfile', 'package.json', 'package-lock.json', 'entry.tsx', 'composition.tsx', 'build-bundle.mjs', 'ensure-browser.mjs', 'runner.mjs', 'remotion-cgroup-resource-observer.sh'] as const
 const BUILD_CONTEXT =
   `/tmp/reeditpro-canonical-private-offline-remotion-build-context-v1-${OFFLINE_REMOTION_LOCAL_RUNTIME_NAMESPACE}-${process.pid}`
 const TIMEOUT_MS = 15 * 60_000
@@ -68,6 +75,10 @@ const RESOURCE_PROFILES = {
 
 interface HostResult { exitCode: number; stdout: string; stderr: string }
 interface Inspect { Image?: unknown; State?: unknown; HostConfig?: unknown; Mounts?: unknown; Config?: unknown; RootFS?: unknown; Id?: unknown; Os?: unknown; Architecture?: unknown }
+interface OfflineRemotionContainerHandle {
+  id: string
+  resourceObserver?: { nonce: string }
+}
 
 export interface OfflineRemotionContainerStreamingInput {
   inputId: string
@@ -140,24 +151,44 @@ export async function runOfflineRemotionContainer(input: { image: OfflineRemotio
   if (Buffer.byteLength(input.serializedRequest) > OFFLINE_REMOTION_RENDER_MAXIMUM_REQUEST_BYTES) {
     throw validationFailure('Remotion request exceeds stdin ceiling.')
   }
-  const id = await createRemotionContainer(
+  const container = await createRemotionContainer(
     input.image,
     OFFLINE_REMOTION_STANDARD_RESOURCE_PROFILE,
+    { observeCgroupResources: true },
   )
   try {
     const confinement = validateConfinement(
-      await inspectContainer(id),
+      await inspectContainer(container.id),
       input.image,
       OFFLINE_REMOTION_STANDARD_RESOURCE_PROFILE,
+      container,
     )
-    const started = await runDocker(['start', '--attach', '--interactive', id], { input: `${input.serializedRequest}\n`, timeoutMs: TIMEOUT_MS, maxBytes: 24 * 1024 * 1024 })
-    const after = await inspectContainer(id); const state = record(after.State)
+    const started = await runDocker(['start', '--attach', '--interactive', container.id], { input: `${input.serializedRequest}\n`, timeoutMs: TIMEOUT_MS, maxBytes: 24 * 1024 * 1024 })
+    const after = await inspectContainer(container.id); const state = record(after.State)
     if (state.Status !== 'exited' || state.Running !== false || state.ExitCode !== started.exitCode || typeof state.OOMKilled !== 'boolean') {
       throw runtimeFailure('Remotion container exit state is inconsistent.')
     }
-    return { ...started, oomKilled: state.OOMKilled, confinement }
+    const measurementAgentDigest =
+      input.image.sourceHashes['remotion-cgroup-resource-observer.sh']
+    if (!container.resourceObserver || !measurementAgentDigest) {
+      throw runtimeFailure('Remotion cgroup resource observer authority is missing.')
+    }
+    const observed = normalizePrivateRemotionCgroupResourceObservation({
+      stderr: Buffer.from(started.stderr, 'utf8'),
+      nonce: container.resourceObserver.nonce,
+      containerId: container.id,
+      imageId: input.image.imageId,
+      measurementAgentDigest,
+    })
+    return {
+      ...started,
+      stderr: observed.sanitizedStderr.toString('utf8'),
+      oomKilled: state.OOMKilled,
+      confinement,
+      resourceObservation: observed.observation,
+    }
   } finally {
-    await runDocker(['rm', '--force', id], { timeoutMs: TIMEOUT_MS, maxBytes: 64 * 1024 }).catch(() => undefined)
+    await runDocker(['rm', '--force', container.id], { timeoutMs: TIMEOUT_MS, maxBytes: 64 * 1024 }).catch(() => undefined)
   }
 }
 
@@ -179,21 +210,22 @@ export async function runOfflineRemotionStreamingContainer(input: {
     input.outputSink.maximumBytes < 1_024 ||
     input.outputSink.maximumBytes > resourceProfile.maximumOutputBytes
   ) throw validationFailure('Streaming Remotion transport bounds are invalid.')
-  const id = await createRemotionContainer(input.image, resourceProfileId)
+  const container = await createRemotionContainer(input.image, resourceProfileId)
   try {
     const confinement = validateConfinement(
-      await inspectContainer(id),
+      await inspectContainer(container.id),
       input.image,
       resourceProfileId,
+      container,
     )
     const started = await runStreamingDockerStart({
-      id,
+      id: container.id,
       serializedManifest: input.serializedManifest,
       inputs: input.inputs,
       outputSink: input.outputSink,
       timeoutMs: resourceProfile.timeoutMs,
     })
-    const after = await inspectContainer(id)
+    const after = await inspectContainer(container.id)
     const state = record(after.State)
     if (
       state.Status !== 'exited' || state.Running !== false ||
@@ -201,7 +233,7 @@ export async function runOfflineRemotionStreamingContainer(input: {
     ) throw runtimeFailure('Streaming Remotion container exit state is inconsistent.')
     return { ...started, oomKilled: state.OOMKilled, confinement }
   } finally {
-    await runDocker(['rm', '--force', id], {
+    await runDocker(['rm', '--force', container.id], {
       timeoutMs: TIMEOUT_MS,
       maxBytes: 64 * 1024,
     }).catch(() => undefined)
@@ -211,8 +243,12 @@ export async function runOfflineRemotionStreamingContainer(input: {
 async function createRemotionContainer(
   image: OfflineRemotionImageEvidence,
   resourceProfileId: OfflineRemotionContainerResourceProfileId,
-): Promise<string> {
+  options?: { observeCgroupResources: true },
+): Promise<OfflineRemotionContainerHandle> {
   const profile = RESOURCE_PROFILES[resourceProfileId]
+  const resourceObserver = options?.observeCgroupResources
+    ? createPrivateRemotionCgroupResourceObserverInvocation()
+    : undefined
   const created = await runDocker([
     'create', '--interactive', '--network', 'none', '--read-only', '--cap-drop', 'ALL',
     '--security-opt', 'no-new-privileges:true', '--pids-limit', '256',
@@ -222,7 +258,12 @@ async function createRemotionContainer(
     '--tmpfs',
     `/tmp:rw,noexec,nosuid,nodev,size=${profile.tmpfsSizeBytes}`,
     '--shm-size', String(profile.shmSizeBytes),
-    '--user', '10001:10001', image.imageId,
+    '--user', '10001:10001',
+    ...(resourceObserver
+      ? ['--entrypoint', PRIVATE_REMOTION_CGROUP_RESOURCE_OBSERVER_ENTRYPOINT]
+      : []),
+    image.imageId,
+    ...(resourceObserver ? resourceObserver.command : []),
   ], { timeoutMs: profile.timeoutMs, maxBytes: 64 * 1024 })
   if (created.exitCode !== 0 || created.stderr.trim()) {
     throw runtimeFailure('Confined Remotion container could not be created.')
@@ -231,7 +272,10 @@ async function createRemotionContainer(
   if (!/^[a-f0-9]{64}$/u.test(id)) {
     throw runtimeFailure('Docker returned an invalid Remotion container identity.')
   }
-  return id
+  return {
+    id,
+    ...(resourceObserver ? { resourceObserver: { nonce: resourceObserver.nonce } } : {}),
+  }
 }
 
 async function runStreamingDockerStart(input: {
@@ -447,12 +491,21 @@ function validateConfinement(
   inspect: Inspect,
   image: OfflineRemotionImageEvidence,
   resourceProfileId: OfflineRemotionContainerResourceProfileId,
+  container: OfflineRemotionContainerHandle,
 ): OfflineRemotionConfinementEvidence {
   const profile = RESOURCE_PROFILES[resourceProfileId]
   const host = record(inspect.HostConfig); const config = record(inspect.Config)
   const caps = stringArray(host.CapDrop); const security = stringArray(host.SecurityOpt); const tmpfs = stringRecord(host.Tmpfs)
   const tokens = new Set(String(tmpfs['/tmp'] ?? '').split(',')); const mounts = array(inspect.Mounts); const binds = host.Binds == null ? [] : array(host.Binds)
-  const command = config.Cmd == null ? [] : array(config.Cmd); const envNames = environmentNames(stringArray(config.Env))
+  const command = config.Cmd == null ? [] : stringArray(config.Cmd)
+  const entrypoint = stringArray(config.Entrypoint)
+  const expectedEntrypoint = container.resourceObserver
+    ? [PRIVATE_REMOTION_CGROUP_RESOURCE_OBSERVER_ENTRYPOINT]
+    : [...image.imageEntrypoint]
+  const expectedCommand = container.resourceObserver
+    ? createObservedRemotionCommand(container.resourceObserver.nonce)
+    : []
+  const envNames = environmentNames(stringArray(config.Env))
   if (
     inspect.Image !== image.imageId || host.NetworkMode !== 'none' || host.ReadonlyRootfs !== true || host.Privileged !== false ||
     caps.length !== 1 || caps[0] !== 'ALL' || !security.some((v) => v.startsWith('no-new-privileges')) ||
@@ -461,7 +514,10 @@ function validateConfinement(
     Number(host.MemorySwap) !== profile.memoryLimitBytes ||
     Number(host.NanoCpus) !== profile.nanoCpus ||
     Number(host.ShmSize) !== profile.shmSizeBytes ||
-    config.User !== '10001:10001' || command.length || mounts.length || binds.length ||
+    config.User !== '10001:10001' ||
+    stableAuthorityStringify(entrypoint) !== stableAuthorityStringify(expectedEntrypoint) ||
+    stableAuthorityStringify(command) !== stableAuthorityStringify(expectedCommand) ||
+    mounts.length || binds.length ||
     !tokens.has('rw') || !tokens.has('noexec') || !tokens.has('nosuid') || !tokens.has('nodev') ||
     !tokens.has(`size=${profile.tmpfsSizeBytes}`) ||
     stableAuthorityStringify(envNames) !== stableAuthorityStringify(image.imageEnvironmentNames) || secretLikeEnvironmentNames(envNames).length
@@ -478,7 +534,18 @@ function validateConfinement(
     callerCommandPresent: false, callerBindsPresent: false,
     callerMountsPresent: false, callerEnvironmentPresent: false,
     secretLikeImageEnvironmentNames: [],
+    ...(container.resourceObserver
+      ? {
+          resourceObserverEntrypoint:
+            PRIVATE_REMOTION_CGROUP_RESOURCE_OBSERVER_ENTRYPOINT,
+          cgroupV2ResourceObservationRequired: true as const,
+        }
+      : {}),
   }
+}
+
+function createObservedRemotionCommand(nonce: string): string[] {
+  return [nonce, PRIVATE_REMOTION_NODE_ENTRYPOINT, PRIVATE_REMOTION_RUNNER_PATH]
 }
 
 async function inspectContainer(id: string): Promise<Inspect> {
@@ -501,6 +568,7 @@ async function assertPinnedDockerfile(path: string) {
     !text.includes('ARG REEDITPRO_SOURCE_TREE_SHA256') ||
     !text.includes('com.reeditpro.runner.source-tree.sha256="${REEDITPRO_SOURCE_TREE_SHA256}"') ||
     !text.includes('npm ci --no-audit --no-fund') ||
+    !text.includes('remotion-cgroup-resource-observer.sh /usr/local/bin/reeditpro-remotion-cgroup-resource-observer') ||
     !text.includes('USER 10001:10001') ||
     !text.includes('ENTRYPOINT ["node", "/app/runner.mjs"]')
   ) throw runtimeFailure('Remotion Dockerfile pinning policy failed.')

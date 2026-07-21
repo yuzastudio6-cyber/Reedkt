@@ -56,6 +56,10 @@ assert.equal(
   activated.image.labels['com.reeditpro.runner.source-tree.sha256'],
   activated.image.sourceTreeSha256,
 )
+assert.match(
+  activated.image.sourceHashes['remotion-cgroup-resource-observer.sh'] ?? '',
+  /^[a-f0-9]{64}$/u,
+)
 const authority = await readPersistedOfflineRemotionRenderRuntimeAuthority()
 assert.ok(authority)
 assert.equal(authority.readiness.canonicalDispatchMayReference, true)
@@ -72,6 +76,32 @@ assert.equal(result.evidence.confinement.readOnlyRootFilesystem, true)
 assert.equal(result.evidence.confinement.capDropAll, true)
 assert.equal(result.evidence.confinement.noNewPrivileges, true)
 assert.equal(result.evidence.confinement.user, '10001:10001')
+assert.equal(
+  result.evidence.confinement.resourceObserverEntrypoint,
+  '/usr/local/bin/reeditpro-remotion-cgroup-resource-observer',
+)
+assert.equal(result.evidence.confinement.cgroupV2ResourceObservationRequired, true)
+assert.equal(
+  result.evidence.resourceObservation.observerKind,
+  'remotion_container_cgroup_v2_v1',
+)
+assert.equal(
+  result.evidence.resourceObservation.measurementAgentVersion,
+  'embedded_remotion_cgroup_v2_observer_v1',
+)
+assert.equal(
+  result.evidence.resourceObservation.measurementAgentDigest,
+  activated.image.sourceHashes['remotion-cgroup-resource-observer.sh'],
+)
+assert.ok(
+  result.evidence.resourceObservation.finish.cpuUsageNanoseconds >
+    result.evidence.resourceObservation.start.cpuUsageNanoseconds,
+)
+assert.ok(result.evidence.resourceObservation.finish.memoryPeakBytes > 0)
+assert.equal(
+  result.attestation.resourceObservationHash,
+  result.evidence.resourceObservation.observationHash,
+)
 assert.equal(result.readiness.productReady, false)
 
 const motionStudioSceneRequest = validateOfflineRemotionRenderRequest({
@@ -197,6 +227,14 @@ assert.equal(
 )
 assert.equal(motionStudioRouteResult.evidence.semanticEvidence.approvedKeyframeBytesVerified, true)
 assert.equal(motionStudioRouteResult.evidence.semanticEvidence.providerVideoNotRequired, true)
+assert.equal(
+  motionStudioRouteResult.evidence.resourceObservation.observerKind,
+  'remotion_container_cgroup_v2_v1',
+)
+assert.ok(
+  motionStudioRouteResult.evidence.resourceObservation.finish.cpuUsageNanoseconds >
+    motionStudioRouteResult.evidence.resourceObservation.start.cpuUsageNanoseconds,
+)
 
 const mediaRuntime = await activatePrivateOfflineMediaBinaryRuntime()
 const probe = await mediaRuntime.execute({
@@ -694,7 +732,7 @@ try {
 
 console.log(JSON.stringify({
   smoke: 'offline_remotion_render_execution', status: 'passed',
-  proofs: ['exact_operation_payload_validated', 'caller_paths_urls_commands_and_extra_fields_rejected', 'checkout_derived_runtime_image_and_authority_namespace_isolated_from_parallel_worktrees', 'checksum_protected_runtime_authority_persisted_and_reopened', 'pinned_image_identity_verified', 'network_none_read_only_non_root_cap_drop_confinement_verified', 'actual_remotion_select_and_render_media_executed', 'motion_studio_scene_preview_and_three_frame_goldens_rendered', 'motion_studio_layered_preview_reads_exact_rgba_subject_and_preserves_four_plane_depth', 'motion_studio_prepared_script_animatic_reads_exact_wav_narration_and_renders_three_frame_goldens', 'motion_studio_deterministic_route_reads_exact_opaque_keyframe_and_renders_five_frame_goldens', 'mp4_hash_frame_timing_and_header_verified', 'independent_pinned_ffprobe_h264_frame_count_pixel_format_complete_bt709_vui_and_duration_qa_passed', 'server_injected_source_mp4_libass_png_and_pcm_wav_hash_commitments_verified', 'approved_nonzero_source_trim_frames_applied', 'actual_source_plus_caption_final_composition_rendered', 'ordered_two_source_sequence_and_timed_caption_track_final_composition_rendered', 'approved_hard_cut_authority_and_exact_source_boundary_applied', 'distinct_caption_track_frames_decoded_and_verified', 'source_sequence_frame_ranges_and_audio_preserved', 'approved_source_bound_professional_voice_tracks_replaced_source_audio', 'approved_lossless_vp9_matroska_professional_color_intermediate_composed_with_replacement_voice', 'professional_color_intermediate_policy_and_mime_tampering_rejected', 'professional_color_final_composition_replay_is_deterministic', 'voice_track_order_duration_hash_and_pcm_format_tampering_rejected', 'voice_replacement_replay_is_deterministic', 'final_aac_audio_decoded_and_independently_verified', 'final_composition_paths_urls_commands_and_tampered_bytes_rejected', 'product_beta_production_readiness_remains_false'],
+  proofs: ['exact_operation_payload_validated', 'caller_paths_urls_commands_and_extra_fields_rejected', 'checkout_derived_runtime_image_and_authority_namespace_isolated_from_parallel_worktrees', 'checksum_protected_runtime_authority_persisted_and_reopened', 'pinned_image_identity_verified', 'network_none_read_only_non_root_cap_drop_confinement_verified', 'embedded_cgroup_v2_cpu_and_peak_memory_observation_verified_before_container_cleanup', 'resource_observation_bound_to_pinned_measurement_agent_and_execution_attestation', 'actual_remotion_select_and_render_media_executed', 'motion_studio_scene_preview_and_three_frame_goldens_rendered', 'motion_studio_layered_preview_reads_exact_rgba_subject_and_preserves_four_plane_depth', 'motion_studio_prepared_script_animatic_reads_exact_wav_narration_and_renders_three_frame_goldens', 'motion_studio_deterministic_route_reads_exact_opaque_keyframe_and_renders_five_frame_goldens_with_observed_resources', 'mp4_hash_frame_timing_and_header_verified', 'independent_pinned_ffprobe_h264_frame_count_pixel_format_complete_bt709_vui_and_duration_qa_passed', 'server_injected_source_mp4_libass_png_and_pcm_wav_hash_commitments_verified', 'approved_nonzero_source_trim_frames_applied', 'actual_source_plus_caption_final_composition_rendered', 'ordered_two_source_sequence_and_timed_caption_track_final_composition_rendered', 'approved_hard_cut_authority_and_exact_source_boundary_applied', 'distinct_caption_track_frames_decoded_and_verified', 'source_sequence_frame_ranges_and_audio_preserved', 'approved_source_bound_professional_voice_tracks_replaced_source_audio', 'approved_lossless_vp9_matroska_professional_color_intermediate_composed_with_replacement_voice', 'professional_color_intermediate_policy_and_mime_tampering_rejected', 'professional_color_final_composition_replay_is_deterministic', 'voice_track_order_duration_hash_and_pcm_format_tampering_rejected', 'voice_replacement_replay_is_deterministic', 'final_aac_audio_decoded_and_independently_verified', 'final_composition_paths_urls_commands_and_tampered_bytes_rejected', 'product_beta_production_readiness_remains_false'],
   artifact: { sha256: result.artifact.sha256, byteLength: result.artifact.byteLength, width: result.artifact.width, height: result.artifact.height, fps: result.artifact.fps, durationFrames: result.artifact.durationFrames },
 }, null, 2))
 

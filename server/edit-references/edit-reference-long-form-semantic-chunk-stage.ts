@@ -28,15 +28,20 @@ import {
   type EditReferenceLongFormSemanticWindowCheckpoint,
 } from './edit-reference-long-form-semantic-window-checkpoint'
 import {
-  QWEN_LONG_FORM_SEMANTIC_CHUNK_ADAPTER_ID,
-  QWEN_LONG_FORM_SEMANTIC_CHUNK_ADAPTER_VERSION,
-  QWEN_LONG_FORM_SEMANTIC_CHUNK_MODEL_ROUTING_POLICY_VERSION,
-  QWEN_LONG_FORM_SEMANTIC_CHUNK_PROVIDER_ID,
   QWEN_LONG_FORM_SEMANTIC_CHUNK_CONTEXT_VERSION,
   categoryForLongFormSemanticSpecialist,
   type QwenLongFormSemanticChunkContext,
   type QwenLongFormSemanticChunkProvider,
 } from '../services/qwen-long-form-semantic-chunk-provider'
+import {
+  resolveEditReferenceLongFormSemanticReasoningRoute,
+  type EditReferenceLongFormSemanticReasoningProviderResult,
+  type ResolveEditReferenceLongFormSemanticReasoningProvider,
+} from './edit-reference-long-form-semantic-reasoning-route'
+import type {
+  EditReferenceReasoningRouteAuthorization,
+  EditReferenceReasoningRouteId,
+} from './edit-reference-reasoning-route-authorization'
 
 export type EditReferenceLongFormSemanticSpecialistAuthority =
   | {
@@ -57,18 +62,15 @@ export type EditReferenceLongFormSemanticChunkStageAuthority =
   | {
       readonly executionScope: 'production'
       readonly usage: EditReferenceLongFormStudyUsageEvidence
-      readonly approvedAdapterId: typeof QWEN_LONG_FORM_SEMANTIC_CHUNK_ADAPTER_ID
-      readonly approvedAdapterVersion: typeof QWEN_LONG_FORM_SEMANTIC_CHUNK_ADAPTER_VERSION
-      readonly approvedProviderId: typeof QWEN_LONG_FORM_SEMANTIC_CHUNK_PROVIDER_ID
-      readonly approvedModelRoutingPolicyVersion:
-        typeof QWEN_LONG_FORM_SEMANTIC_CHUNK_MODEL_ROUTING_POLICY_VERSION
+      readonly reasoningRouteAuthorization: EditReferenceReasoningRouteAuthorization
     }
 
 export interface ExecuteEditReferenceLongFormSemanticChunkStageOptions {
   readonly specialistAuthorities: readonly EditReferenceLongFormSemanticSpecialistAuthority[]
   readonly semanticWindowPlan: EditReferenceLongFormSemanticWindowPlan
   readonly semanticWindowCheckpoints?: readonly EditReferenceLongFormSemanticWindowCheckpoint[]
-  readonly provider?: QwenLongFormSemanticChunkProvider
+  readonly providerResolver?: ResolveEditReferenceLongFormSemanticReasoningProvider
+  readonly qwenFallbackProvider?: QwenLongFormSemanticChunkProvider
   readonly authority: EditReferenceLongFormSemanticChunkStageAuthority
 }
 
@@ -107,9 +109,13 @@ export async function executeEditReferenceLongFormSemanticChunkStage(
     specialistAuthorities,
     options.semanticWindowPlan,
   )
-  const providerResult = production
+  const providerAttempt = production
     ? await runProductionProvider(context, options)
     : undefined
+  if (production && !providerAttempt) {
+    throw new Error('Production long-form semantic synthesis did not resolve a provider attempt.')
+  }
+  const providerResult = providerAttempt?.result
   const observedWallClockMs = Math.max(1, Number((process.hrtime.bigint() - started) / 1_000_000n))
   const usage = production
     ? options.authority.usage
@@ -144,6 +150,10 @@ export async function executeEditReferenceLongFormSemanticChunkStage(
         modelRoutingPolicyVersion: providerResult.runtimeProvenance.modelRoutingPolicyVersion,
         synthesisInstructionDigestSha256:
           providerResult.runtimeProvenance.synthesisInstructionDigestSha256,
+        reasoningRouteId: providerAttempt!.authorization.routeId,
+        reasoningAttemptId: providerAttempt!.authorization.attemptId,
+        reasoningRouteAuthorizationDigestSha256:
+          providerAttempt!.authorization.authorizationDigestSha256,
         providerCallMade: true,
         modelCallMade: true,
       }
@@ -173,7 +183,9 @@ export async function executeEditReferenceLongFormSemanticChunkStage(
     mediaChecksumSha256: input.plan.source.mediaChecksumSha256,
     sourceCoverageStartSeconds: input.workItem.sourceCoverageStartSeconds,
     sourceCoverageEndSeconds: input.workItem.sourceCoverageEndSeconds,
-    toolIds: production ? ['qwen_3_7'] : ['controlled_specialist_fixture'],
+    toolIds: production
+      ? [toolIdForReasoningRoute(providerAttempt!.authorization.routeId)]
+      : ['controlled_specialist_fixture'],
     artifacts: [],
     result,
     runtimeSource: production ? 'verified_live' : 'verified_mock',
@@ -280,36 +292,53 @@ function validateSemanticWindowAuthority(
 async function runProductionProvider(
   context: QwenLongFormSemanticChunkContext,
   options: ExecuteEditReferenceLongFormSemanticChunkStageOptions,
-) {
-  if (options.authority.executionScope !== 'production' || !options.provider) {
-    throw new Error('Production long-form semantic synthesis requires the reviewed Qwen provider.')
+): Promise<{
+  readonly result: EditReferenceLongFormSemanticReasoningProviderResult
+  readonly authorization: EditReferenceReasoningRouteAuthorization
+}> {
+  if (options.authority.executionScope !== 'production') {
+    throw new Error('Production long-form semantic synthesis requires shared route authority.')
   }
-  if (
-    options.provider.executionMode !== 'live_provider'
-    || options.authority.approvedAdapterId !== QWEN_LONG_FORM_SEMANTIC_CHUNK_ADAPTER_ID
-    || options.authority.approvedAdapterVersion !== QWEN_LONG_FORM_SEMANTIC_CHUNK_ADAPTER_VERSION
-    || options.authority.approvedProviderId !== QWEN_LONG_FORM_SEMANTIC_CHUNK_PROVIDER_ID
-    || options.authority.approvedModelRoutingPolicyVersion
-      !== QWEN_LONG_FORM_SEMANTIC_CHUNK_MODEL_ROUTING_POLICY_VERSION
-  ) throw new Error('Production long-form semantic provider authority is invalid.')
-  const result = await options.provider.analyze(context)
+  const resolution = await resolveEditReferenceLongFormSemanticReasoningRoute({
+    context,
+    usage: options.authority.usage,
+    authorization: options.authority.reasoningRouteAuthorization,
+    providerResolver: options.providerResolver,
+    qwenFallbackProvider: options.qwenFallbackProvider,
+  })
+  const result = await resolution.provider.analyze(context)
   if (
     result.status !== 'completed'
     || !result.chunkSummary
     || result.findings.length < 1
     || !result.runtimeProvenance
-    || result.runtimeProvenance.adapterId !== options.authority.approvedAdapterId
-    || result.runtimeProvenance.adapterVersion !== options.authority.approvedAdapterVersion
-    || result.runtimeProvenance.providerId !== options.authority.approvedProviderId
-    || result.runtimeProvenance.modelRoutingPolicyVersion
-      !== options.authority.approvedModelRoutingPolicyVersion
+    || result.runtimeProvenance.runtimeSource !== 'verified_live'
+    || result.runtimeProvenance.modelId !== resolution.authorization.exactProviderModelId
+    || !isSafeRuntimeId(result.runtimeProvenance.adapterId)
+    || !isSafeRuntimeId(result.runtimeProvenance.adapterVersion)
+    || !isSafeRuntimeId(result.runtimeProvenance.providerId)
+    || !isSafeRuntimeId(result.runtimeProvenance.modelRevision)
+    || !isSafeRuntimeId(result.runtimeProvenance.modelRoutingPolicyVersion)
+    || !/^[a-f0-9]{64}$/.test(result.runtimeProvenance.modelAggregateSha256)
+    || !/^[a-f0-9]{64}$/.test(result.runtimeProvenance.synthesisInstructionDigestSha256)
     || result.execution.structuredEvidenceRead !== true
     || result.execution.providerCallMade !== true
     || result.execution.modelCallMade !== true
+    || result.execution.workerJobCreated !== false
     || result.execution.remoteMutationMade !== false
     || result.blockers.length > 0
   ) throw new Error(`Production long-form semantic provider did not return authoritative synthesis: ${result.blockers.join(',') || 'invalid_authority'}.`)
-  return result
+  return { result, authorization: resolution.authorization }
+}
+
+function toolIdForReasoningRoute(routeId: EditReferenceReasoningRouteId) {
+  if (routeId === 'kimi_k3_primary') return 'kimi_k3' as const
+  if (routeId === 'qwen_3_7_fallback') return 'qwen_3_7' as const
+  return 'deepseek_v4_pro' as const
+}
+
+function isSafeRuntimeId(value: string): boolean {
+  return /^[A-Za-z0-9][A-Za-z0-9._:-]{0,239}$/.test(value)
 }
 
 interface NormalizedSpecialistAuthority {
@@ -507,7 +536,7 @@ function createControlledAggregate(specialists: readonly NormalizedSpecialistAut
       targetAdaptationRequired: true as const,
       exactCopyInstructionCreated: false as const,
     })),
-    chunkSummary: 'Controlled specialist reconciliation verifies exact evidence lineage, safety, and durable section authority only; it is not a live Qwen semantic result.',
+    chunkSummary: 'Controlled specialist reconciliation verifies exact evidence lineage, safety, and durable section authority only; it is not a live semantic reasoning result.',
     runtime: {
       runtimeSource: 'verified_mock' as const,
       adapterId: 'controlled_long_form_semantic_fixture',
@@ -518,6 +547,9 @@ function createControlledAggregate(specialists: readonly NormalizedSpecialistAut
       modelAggregateSha256: sha256('controlled-long-form-semantic-fixture-v1'),
       modelRoutingPolicyVersion: 'controlled_test_only',
       synthesisInstructionDigestSha256: aggregateDigest,
+      reasoningRouteId: null,
+      reasoningAttemptId: null,
+      reasoningRouteAuthorizationDigestSha256: null,
       providerCallMade: false,
       modelCallMade: false,
     },
@@ -549,7 +581,7 @@ function validateStageUsage(input: {
     || [...specialistCostIds].some((id) => !input.usage.internalCostRecordIds.includes(id))
     || input.usage.usageEventIds.length <= specialistUsageIds.size
     || input.usage.internalCostRecordIds.length <= specialistCostIds.size
-  ) throw new Error('Production long-form semantic synthesis lacks complete specialist and Qwen cost lineage.')
+  ) throw new Error('Production long-form semantic synthesis lacks complete specialist and routed-reasoning cost lineage.')
 }
 
 function assertSemanticWorkItem(input: ExecuteEditReferenceLongFormChunkMediaStageInput): void {

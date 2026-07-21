@@ -11,6 +11,7 @@ export const EDIT_REFERENCE_REASONING_LANES = [
   'preference_dna',
   'story_editorial',
   'speech_pacing',
+  'long_form_semantic_synthesis',
 ] as const
 
 export type EditReferenceReasoningLane = typeof EDIT_REFERENCE_REASONING_LANES[number]

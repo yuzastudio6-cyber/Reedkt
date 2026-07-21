@@ -1,4 +1,5 @@
 import type { EditReferenceLongFormStudyPlan } from './edit-reference-long-form-study-contract'
+import type { EditReferenceReasoningRouteId } from './edit-reference-reasoning-route-authorization'
 
 export const EDIT_REFERENCE_LONG_FORM_SPECIALIST_STAGE_IDS = [
   'speech_transcript',
@@ -103,6 +104,9 @@ export interface EditReferenceLongFormSemanticSynthesisRuntime {
   readonly modelAggregateSha256: string
   readonly modelRoutingPolicyVersion: string
   readonly synthesisInstructionDigestSha256: string
+  readonly reasoningRouteId: EditReferenceReasoningRouteId | null
+  readonly reasoningAttemptId: string | null
+  readonly reasoningRouteAuthorizationDigestSha256: string | null
   readonly providerCallMade: boolean
   readonly modelCallMade: boolean
 }
@@ -420,7 +424,7 @@ function validateSemanticChunk(result: EditReferenceLongFormSemanticChunkSynthes
 function validateSemanticSynthesisRuntime(
   runtime: EditReferenceLongFormSemanticSynthesisRuntime,
 ): void {
-  assertExactKeys(runtime, [
+  const legacyKeys = [
     'runtimeSource',
     'adapterId',
     'adapterVersion',
@@ -432,7 +436,19 @@ function validateSemanticSynthesisRuntime(
     'synthesisInstructionDigestSha256',
     'providerCallMade',
     'modelCallMade',
-  ], 'semantic synthesis runtime')
+  ] as const
+  const routedKeys = [
+    ...legacyKeys,
+    'reasoningRouteId',
+    'reasoningAttemptId',
+    'reasoningRouteAuthorizationDigestSha256',
+  ] as const
+  const actualKeys = Object.keys(runtime).sort()
+  const hasLegacyShape = stableJson(actualKeys) === stableJson([...legacyKeys].sort())
+  const hasRoutedShape = stableJson(actualKeys) === stableJson([...routedKeys].sort())
+  if (!hasLegacyShape && !hasRoutedShape) {
+    throw new Error('Long-form semantic synthesis runtime fields are invalid.')
+  }
   for (const [label, value] of [
     ['semantic adapter id', runtime.adapterId],
     ['semantic adapter version', runtime.adapterVersion],
@@ -447,13 +463,22 @@ function validateSemanticSynthesisRuntime(
     || typeof runtime.providerCallMade !== 'boolean'
     || typeof runtime.modelCallMade !== 'boolean'
     || (runtime.runtimeSource === 'verified_live' && (
-      !runtime.providerId
+      !hasRoutedShape
+      || !runtime.providerId
       || !ID_PATTERN.test(runtime.providerId)
+      || !['kimi_k3_primary', 'qwen_3_7_fallback', 'deepseek_v4_pro_fallback'].includes(runtime.reasoningRouteId ?? '')
+      || !runtime.reasoningAttemptId
+      || !ID_PATTERN.test(runtime.reasoningAttemptId)
+      || !runtime.reasoningRouteAuthorizationDigestSha256
+      || !SHA256_PATTERN.test(runtime.reasoningRouteAuthorizationDigestSha256)
       || runtime.providerCallMade !== true
       || runtime.modelCallMade !== true
     ))
     || (runtime.runtimeSource !== 'verified_live' && (
       runtime.providerId !== null
+      || (hasRoutedShape && runtime.reasoningRouteId !== null)
+      || (hasRoutedShape && runtime.reasoningAttemptId !== null)
+      || (hasRoutedShape && runtime.reasoningRouteAuthorizationDigestSha256 !== null)
       || runtime.providerCallMade !== false
     ))
     || (runtime.runtimeSource === 'verified_mock' && runtime.modelCallMade !== false)

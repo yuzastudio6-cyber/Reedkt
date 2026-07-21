@@ -6,6 +6,7 @@ import {
   executeEditReferenceLongFormSemanticChunkStage,
   type EditReferenceLongFormSemanticChunkStageAuthority,
 } from './edit-reference-long-form-semantic-chunk-stage'
+import type { ResolveEditReferenceLongFormSemanticReasoningProvider } from './edit-reference-long-form-semantic-reasoning-route'
 import {
   createEditReferenceLongFormSemanticWindowPlan,
   type EditReferenceLongFormSemanticWindowPlan,
@@ -36,7 +37,8 @@ export interface ExecuteEditReferenceLongFormSemanticWindowStageOptions {
     request: Omit<EditReferenceLongFormSemanticWindowSpecialistRequest, 'attemptNumber' | 'submissionIdempotencyKey'>,
   ) => Promise<number>
   readonly semanticChunkAuthority: EditReferenceLongFormSemanticChunkStageAuthority
-  readonly semanticChunkProvider?: QwenLongFormSemanticChunkProvider
+  readonly semanticChunkProviderResolver?: ResolveEditReferenceLongFormSemanticReasoningProvider
+  readonly semanticChunkQwenFallbackProvider?: QwenLongFormSemanticChunkProvider
   readonly onProgress?: (
     progress: EditReferenceLongFormSemanticWindowDispatchProgress,
   ) => Promise<void> | void
@@ -105,7 +107,8 @@ export async function executeEditReferenceLongFormSemanticWindowStage(
     specialistAuthorities: dispatch.specialistAuthorities,
     semanticWindowPlan,
     semanticWindowCheckpoints: dispatch.checkpoints,
-    provider: options.semanticChunkProvider,
+    providerResolver: options.semanticChunkProviderResolver,
+    qwenFallbackProvider: options.semanticChunkQwenFallbackProvider,
     authority: options.semanticChunkAuthority,
   })
   return {

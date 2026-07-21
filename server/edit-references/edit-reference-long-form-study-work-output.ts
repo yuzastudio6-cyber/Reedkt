@@ -29,7 +29,9 @@ export type EditReferenceLongFormStudyToolId =
   | 'faster_whisper'
   | 'paddleocr'
   | 'tesseract'
+  | 'kimi_k3'
   | 'qwen_3_7'
+  | 'deepseek_v4_pro'
   | 'deterministic_reconciler'
   | 'deterministic_coverage_qa'
   | 'controlled_specialist_fixture'
@@ -185,7 +187,9 @@ export function validateEditReferenceLongFormStudyWorkOutput(
       'faster_whisper',
       'paddleocr',
       'tesseract',
+      'kimi_k3',
       'qwen_3_7',
+      'deepseek_v4_pro',
       'deterministic_reconciler',
       'deterministic_coverage_qa',
       'controlled_specialist_fixture',
@@ -419,7 +423,11 @@ function expectedToolIds(output: EditReferenceLongFormStudyWorkOutput): readonly
       : [result.ocrToolId]
   }
   if (result.kind === 'semantic_chunk_synthesis') {
-    return output.runtimeSource === 'verified_live' ? ['qwen_3_7'] : ['controlled_specialist_fixture']
+    if (output.runtimeSource !== 'verified_live') return ['controlled_specialist_fixture']
+    if (result.synthesisRuntime.reasoningRouteId === 'kimi_k3_primary') return ['kimi_k3']
+    if (result.synthesisRuntime.reasoningRouteId === 'qwen_3_7_fallback') return ['qwen_3_7']
+    if (result.synthesisRuntime.reasoningRouteId === 'deepseek_v4_pro_fallback') return ['deepseek_v4_pro']
+    return []
   }
   if (result.kind === 'global_reconciliation') return ['deterministic_reconciler']
   return ['deterministic_coverage_qa']

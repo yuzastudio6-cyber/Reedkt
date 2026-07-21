@@ -40,6 +40,8 @@ export function getServiceContext(request: Request): ServiceContext {
       runtimeRequest.runtime.editReferenceExactEditApplyRuntimePort,
     editReferenceApplicationPreparationRuntimePort:
       runtimeRequest.runtime.editReferenceApplicationPreparationRuntimePort,
+    editReferenceLongFormStudyRuntimePort:
+      runtimeRequest.runtime.editReferenceLongFormStudyRuntimePort,
   }
 }
 

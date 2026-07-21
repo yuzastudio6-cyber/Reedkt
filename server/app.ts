@@ -51,6 +51,7 @@ export interface ReeditProApiAppOptions {
     CanonicalMotionStudioStorytellingProductionAuthorityReaderPort
   editReferenceExactEditApplyRuntimePort?: EditReferenceExactEditApplyRuntimePort
   editReferenceApplicationPreparationRuntimePort?: EditReferenceApplicationPreparationRuntimePort
+  editReferenceLongFormStudyRuntimePort?: RuntimeState['editReferenceLongFormStudyRuntimePort']
 }
 
 export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppOptions = {}): Express {
@@ -83,6 +84,9 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
       : {}),
     ...(options.editReferenceApplicationPreparationRuntimePort
       ? { editReferenceApplicationPreparationRuntimePort: options.editReferenceApplicationPreparationRuntimePort }
+      : {}),
+    ...(options.editReferenceLongFormStudyRuntimePort
+      ? { editReferenceLongFormStudyRuntimePort: options.editReferenceLongFormStudyRuntimePort }
       : {}),
     clients: options.clients ?? {
       admin: createSupabaseAdminClient(env),

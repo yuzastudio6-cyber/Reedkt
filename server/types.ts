@@ -5,6 +5,7 @@ import type { StorageAdapter } from './storage/storage-types'
 import type { EditReferenceStudyChatRuntimePort } from './services/edit-reference-study-chat-runtime-port'
 import type { EditReferenceExactEditApplyRuntimePort } from './services/edit-reference-exact-edit-apply-runtime-port'
 import type { EditReferenceApplicationPreparationRuntimePort } from './services/edit-reference-application-preparation-runtime-port'
+import type { EditReferenceLongFormStudyRuntimePort } from './services/edit-reference-production-long-form-runtime-port'
 import type { PlanningPreferenceApplicationAuthorityPort } from './services/planning-preference-application-authority-port'
 import type { CanonicalMotionStudioStorytellingProductionAuthorityReaderPort } from './services/canonical-motion-studio-storytelling-production-authority-service'
 import type { PlanningExactEditPreferenceAuthorityPort } from './services/planning-exact-edit-preference-authority-port'
@@ -68,6 +69,7 @@ export interface RuntimeState {
     CanonicalMotionStudioStorytellingProductionAuthorityReaderPort
   editReferenceExactEditApplyRuntimePort?: EditReferenceExactEditApplyRuntimePort
   editReferenceApplicationPreparationRuntimePort?: EditReferenceApplicationPreparationRuntimePort
+  editReferenceLongFormStudyRuntimePort?: EditReferenceLongFormStudyRuntimePort
 }
 
 export type RuntimeRequest = Request & {
@@ -97,4 +99,5 @@ export interface ServiceContext {
     CanonicalMotionStudioStorytellingProductionAuthorityReaderPort
   editReferenceExactEditApplyRuntimePort?: EditReferenceExactEditApplyRuntimePort
   editReferenceApplicationPreparationRuntimePort?: EditReferenceApplicationPreparationRuntimePort
+  editReferenceLongFormStudyRuntimePort?: EditReferenceLongFormStudyRuntimePort
 }

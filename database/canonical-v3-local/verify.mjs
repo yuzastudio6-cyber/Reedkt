@@ -19,6 +19,7 @@ assert(Array.isArray(manifest.repositoryFiles), 'repository_manifest_file_set_in
 
 const expectedRepositoryFiles = [
   'docs/canonical-edit-reference-application-preparation-verification-2026-07-21.md',
+  'docs/canonical-edit-reference-mounted-long-form-runtime-port-verification-2026-07-21.md',
   'docs/canonical-exact-edit-planning-authority-verification-2026-07-21.md',
   'docs/canonical-v3-local-edit-reference-recovery-verification-2026-07-21.md',
   'docs/canonical-v3-local-exact-edit-apply-authority-read-verification-2026-07-21.md',
@@ -39,6 +40,8 @@ const expectedRepositoryFiles = [
   'server/services/canonical-planning-handoff-service.ts',
   'server/services/edit-reference-application-preparation-runtime-port.ts',
   'server/services/edit-reference-application-preparation-service.ts',
+  'server/services/edit-reference-production-long-form-runtime-port.ts',
+  'server/services/edit-reference-service.ts',
   'server/services/planning-exact-edit-preference-authority-port.ts',
   'server/services/planning-exact-edit-preference-authority-service.ts',
   'server/services/planning-input-authority-binding-service.ts',
@@ -50,6 +53,7 @@ const expectedRepositoryFiles = [
   'server/smoke/edit-reference-local-supabase-application-preparation-smoke.ts',
   'server/smoke/edit-reference-local-supabase-http-rpc-smoke.ts',
   'server/smoke/edit-reference-local-supabase-rpc-adapter-smoke.ts',
+  'server/smoke/edit-reference-mounted-long-form-runtime-port-smoke.ts',
   'server/smoke/edit-reference-production-readiness-smoke.ts',
   'server/smoke/planning-exact-edit-preference-authority-port-smoke.ts',
   'server/types.ts',

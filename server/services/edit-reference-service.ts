@@ -479,9 +479,26 @@ export function createEditReferenceService(
     reader: runtimeOptions.previousApprovedEditHistoryReader
       ?? createUnavailableEditReferenceApprovedHistoryReader(),
   })
+  if (
+    runtimeOptions.longFormStudyRuntimePort
+    && context.editReferenceLongFormStudyRuntimePort
+    && runtimeOptions.longFormStudyRuntimePort !== context.editReferenceLongFormStudyRuntimePort
+  ) {
+    throw new ApiError(
+      'JOB_DEPENDENCY_NOT_READY',
+      'The Edit Reference long-form runtime has conflicting server authorities.',
+      503,
+      {
+        reason: 'multiple_long_form_runtime_authorities_configured',
+        requiredGate: 'durable_long_form_study',
+        productionReady: false,
+      },
+    )
+  }
   const longFormStudyRuntime = resolveEditReferenceLongFormStudyRuntimePort({
     env: context.env,
-    runtimePort: runtimeOptions.longFormStudyRuntimePort,
+    runtimePort: runtimeOptions.longFormStudyRuntimePort
+      ?? context.editReferenceLongFormStudyRuntimePort,
     localRepository: runtimeOptions.longFormStudyRepository,
     localScheduler: runtimeOptions.longFormStudyScheduler,
   })

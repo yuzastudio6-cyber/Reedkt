@@ -111,7 +111,7 @@
     },
     {
       "path": "verify.mjs",
-      "sha256": "937abc62591b76dc7e9077af0f616881e3ae3e348829e8f5ea449d601ae501f3"
+      "sha256": "0ff2d510ba571740c24029b2bb8e24fb655869b95a2267dacd4702b8e0e3e6e5"
     }
   ],
   "repositoryFiles": [
@@ -122,6 +122,10 @@
     {
       "path": "docs/canonical-exact-edit-planning-authority-verification-2026-07-21.md",
       "sha256": "1f382a8457d02f468a706ce7cd29f91b23727f1f247de2298e38154f4c3f5827"
+    },
+    {
+      "path": "docs/canonical-edit-reference-mounted-long-form-runtime-port-verification-2026-07-21.md",
+      "sha256": "571661ac78560cb822bb7605b30a5431f2d04fa136d44074518b71923edcde76"
     },
     {
       "path": "docs/canonical-v3-local-edit-reference-recovery-verification-2026-07-21.md",
@@ -141,11 +145,11 @@
     },
     {
       "path": "package.json",
-      "sha256": "57635a4f4755d8f6cbb923ac36afb07c41f9e74c91929bb41d90aa44a28b01e0"
+      "sha256": "59d7f1e264b9eef06b3cb34987b7a185bcad8fc02ab206fac2dfc18c88e3c6df"
     },
     {
       "path": "server/app.ts",
-      "sha256": "eae23d91be317a86757e757295562c5a4208971bd4d503317b6a3d232513413d"
+      "sha256": "424dad8950ed0cd1cf385e59b1ed66f18f92baebd14ba20d2f42db3fb40b2576"
     },
     {
       "path": "server/edit-references/canonical-exact-edit-planning-authority-boundary.ts",
@@ -185,7 +189,7 @@
     },
     {
       "path": "server/routes/route-helpers.ts",
-      "sha256": "7ed86be6f1403742619e18b9bb821e9aa34308d5f3f3a743b1df8758224e5b4f"
+      "sha256": "20d43dde03280f1f43981c34e8ddacf0f4ccc421b97dd8b3b62f95821708e3bb"
     },
     {
       "path": "server/services/canonical-planning-handoff-service.ts",
@@ -198,6 +202,14 @@
     {
       "path": "server/services/edit-reference-application-preparation-service.ts",
       "sha256": "2ef1af03c070eae4fb2d444695e99ee24e5f526a303ef2415f598aa3b9eb79ec"
+    },
+    {
+      "path": "server/services/edit-reference-production-long-form-runtime-port.ts",
+      "sha256": "6cab8aa9082e62d2167787f5daed5a1b1d074c6ccce9d592eff4486b95927202"
+    },
+    {
+      "path": "server/services/edit-reference-service.ts",
+      "sha256": "6ee05b546c8603264589542fd86626fc4458be96a2d3302c951038f84a0156b0"
     },
     {
       "path": "server/services/planning-exact-edit-preference-authority-port.ts",
@@ -244,6 +256,10 @@
       "sha256": "c38ae19538d8bb4561788a2bf2879e6fa4c645a33f551da9d64f60230e702abc"
     },
     {
+      "path": "server/smoke/edit-reference-mounted-long-form-runtime-port-smoke.ts",
+      "sha256": "c1649ca0e56671e01084dd17e8229cd24241411d989a6edc8e1bfa918c21a130"
+    },
+    {
       "path": "server/smoke/edit-reference-production-readiness-smoke.ts",
       "sha256": "33cdd7278c2a78fe1358047368e6357af0aa575b33f25bb7198404322e75d1a8"
     },
@@ -253,7 +269,7 @@
     },
     {
       "path": "server/types.ts",
-      "sha256": "6779e49496c740e3dcec00119daba82abec6ec7ccd2923b62d2743f6596eaba6"
+      "sha256": "fa1935af85da265d3b30dbd691f8622af6af3d2370097cc630ff4ba791e1d618"
     },
     {
       "path": "server/validation/canonical-exact-edit-planning-authority-schemas.ts",

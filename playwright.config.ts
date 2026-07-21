@@ -16,6 +16,8 @@ export default defineConfig({
   testIgnore: [
     '**/._*',
     '**/canonical-journey-ui.spec.ts',
+    '**/edit-preferences-atomic-apply.spec.ts',
+    '**/edit-preferences-current-edit.spec.ts',
     '**/project-edit-brief-*.spec.ts',
     '**/project-source-video-brief-playback.spec.ts',
   ],

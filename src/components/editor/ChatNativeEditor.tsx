@@ -80,20 +80,26 @@ import {
 } from '../../lib/current-edit-reference-active-editor-authority'
 import { createEditReferenceApiClient } from '../../lib/edit-reference-api-client'
 import {
-  connectPreferenceApplicationToProjectEditSession,
-  loadProjectEditSessionEditReferenceIntegration,
   preparePreferenceApplicationForProjectEditSession,
-  recoverConnectedPreferenceApplicationForProjectEditSession,
-  removePreferenceApplicationFromProjectEditSession,
-  replacePreferenceApplicationForProjectEditSession,
 } from '../../lib/project-edit-session-edit-reference-integration'
+import {
+  applyExactEditPreferencesAndReference,
+  createExactEditPreferenceApplyIdempotencyKey,
+  createExactEditPreferenceApplyOperation,
+  readExactEditPreferenceApplyAuthority,
+} from '../../lib/exact-edit-preference-apply-client'
+import {
+  clearExactEditPreferencePendingApply,
+  readExactEditPreferencePendingApply,
+  saveExactEditPreferencePendingApply,
+  type ExactEditPreferencePendingApply,
+} from '../../lib/exact-edit-preference-apply-pending'
 import {
   createProjectEditBriefBackendLocalConfig,
   readProjectEditBriefBackendLocal,
   saveProjectEditBriefBackendLocal,
   type ProjectEditBriefBackendLocalRecord,
 } from '../../lib/project-edit-brief-backend-local'
-import { createDefaultMockProjectEditSessionApiClient } from '../../lib/project-edit-session-api-client'
 import type { MockFootagePrepInput } from '../../lib/footage-prep'
 import {
   createExecutionSourceMediaAssetsFromClips,
@@ -122,8 +128,10 @@ import { useCanonicalPrivateEditPreparation } from '../../hooks/useCanonicalPriv
 import { useCanonicalPrivateReview } from '../../hooks/useCanonicalPrivateReview'
 import type { ContextAwareMockEditPlanResult, EditBriefState, EditBriefStatus, MediaKind, ReeditProChatMessage } from '../../types'
 import type { ApprovedPlanSnapshot } from '../../types/edit-planning-db'
-import type { PreferenceApplicationRecord } from '../../types/edit-reference'
-import type { ProjectEditSessionRecord } from '../../types/project-edit-session'
+import type {
+  EditReferenceProductionExactEditApplyApiReceipt,
+  EditReferenceProductionExactEditApplyOperation,
+} from '../../types/edit-reference-production-exact-edit-apply-api'
 import type {
   AspectRatio,
   AspectRatioSource,
@@ -492,46 +500,6 @@ function targetPlatformForAspectRatio(aspectRatio: AspectRatio): TargetPlatform 
   if (aspectRatio === '9:16') return 'tiktok_reels_shorts'
   if (aspectRatio === '16:9') return 'youtube'
   return 'custom'
-}
-
-function createRemovalSessionFromPreferenceApplication(
-  application: PreferenceApplicationRecord,
-  ownerUserId: string,
-): ProjectEditSessionRecord {
-  const sourceMediaAssetId = application.targetUnderstanding?.sourceMediaAssetId
-  return {
-    id: application.editSessionId,
-    projectId: application.projectId,
-    workspaceId: application.workspaceId,
-    ownerUserId,
-    name: application.targetContext.editName,
-    description: application.targetContext.currentUserInstruction,
-    status: 'setup_ready',
-    aspectRatio: application.targetContext.aspectRatio,
-    platformTarget: application.targetContext.platformTarget,
-    sourceMediaAssetIds: sourceMediaAssetId ? [sourceMediaAssetId] : [],
-    selectedEditLevel: application.targetContext.selectedEditLevel,
-    selectedEditPreferenceId: application.editReferenceId,
-    selectedPreferenceVersionId: application.dnaVersionId,
-    preferenceDNAApplicationId: application.id,
-    dnaStatusLabel: 'Approved DNA',
-    dnaQAStatusLabel: 'QA passed',
-    doNotCopyRulesActive: true,
-    messageCount: 0,
-    revisionCount: 0,
-    versionCount: 0,
-    previewCount: 0,
-    approvalStatus: 'not_requested',
-    createdAt: application.createdAt,
-    updatedAt: application.updatedAt,
-    mockOnly: true,
-    metadata: {
-      recoveredFromExactPreferenceApplication: application.id,
-      removalOnlyRecovery: true,
-      providerExecutionAuthorized: false,
-      creditMutationAuthorized: false,
-    },
-  }
 }
 
 function AdvancedCardFallback({ label = 'Loading advanced details...' }: { label?: string }) {
@@ -1137,6 +1105,16 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
   const [currentEditPreferenceUpdatedAt, setCurrentEditPreferenceUpdatedAt] = useState(restoredSetup?.preferenceUpdatedAt)
   const [currentEditPreferenceDraftDirty, setCurrentEditPreferenceDraftDirty] = useState(false)
   const [pendingPreferenceDestination, setPendingPreferenceDestination] = useState<PendingPreferenceDestination>(null)
+  const [currentEditPreferenceApplyEpoch, setCurrentEditPreferenceApplyEpoch] = useState(0)
+  const [pendingExactEditPreferenceApply, setPendingExactEditPreferenceApply] = useState<
+    ExactEditPreferencePendingApply | undefined
+  >(() => hasProjectEditRoute
+    ? readExactEditPreferencePendingApply({
+        scope: projectPersistenceScope,
+        projectId: editorProjectId,
+        editSessionId: editorEditSessionId,
+      })
+    : undefined)
   const currentEditPreferenceValues = useMemo<LocalInternalEditPreferenceValues>(() => ({
     editLevel,
     workflowType,
@@ -1159,6 +1137,18 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     () => getCurrentEditPreferenceOverrideKeys(currentEditPreferenceValues, currentEditPreferenceBaseline),
     [currentEditPreferenceBaseline, currentEditPreferenceValues],
   )
+  useEffect(() => {
+    const restoreTimer = window.setTimeout(() => {
+      setPendingExactEditPreferenceApply(hasProjectEditRoute
+        ? readExactEditPreferencePendingApply({
+            scope: projectPersistenceScope,
+            projectId: editorProjectId,
+            editSessionId: editorEditSessionId,
+          })
+        : undefined)
+    }, 0)
+    return () => window.clearTimeout(restoreTimer)
+  }, [editorEditSessionId, editorProjectId, hasProjectEditRoute, projectPersistenceScope])
   const [intentApproved, setIntentApproved] = useState(false)
   const [approved, setApproved] = useState(false)
   const [approvedSnapshot, setApprovedSnapshot] = useState<ApprovedPlanSnapshot | null>(null)
@@ -1181,11 +1171,6 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     [],
   )
   const editReferenceApi = useMemo(() => createEditReferenceApiClient(), [])
-  const projectEditSessionClient = useMemo(() => createDefaultMockProjectEditSessionApiClient({
-    projectId: editorProjectId,
-    userId: editorOperationUserId,
-    workspaceId: projectPersistenceScope.workspaceId,
-  }), [editorOperationUserId, editorProjectId, projectPersistenceScope.workspaceId])
   const [editAuthorityCreatedAt] = useState(() => localProjectHandoff?.createdAt ?? new Date().toISOString())
   const [privateInternalTestRun, setPrivateInternalTestRun] = useState<PrivateInternalTestRunState | null>(() =>
     restoredPrivateInternalTestRun,
@@ -2165,7 +2150,10 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
 
   function persistCurrentEditSetupAfterPlanInvalidation(
     overrides: Partial<LocalInternalEditSetupSnapshot> = {},
-    options: { revisionPlanContext?: LocalInternalProjectHandoff['revisionPlanContext'] } = {},
+    options: {
+      revisionPlanContext?: LocalInternalProjectHandoff['revisionPlanContext']
+      syncBackend?: boolean
+    } = {},
   ) {
     resetPlanProgress()
     const durableSourceMediaAssets = durableUploadedPrivateSourceAssets(sourceMediaAssets)
@@ -2175,7 +2163,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
       setup: createCurrentEditSetupSnapshot(overrides),
       sourceMediaAssets: durableSourceMediaAssets,
       revisionPlanContext: options.revisionPlanContext,
-    })
+    }, { syncBackend: options.syncBackend })
     if (options.revisionPlanContext) {
       setActiveRevisionPlanContext(options.revisionPlanContext)
     }
@@ -2379,213 +2367,40 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     }
   }
 
-  async function handleApplyCurrentEditPreferences(
-    request: CurrentEditPreferencesApplyRequest,
-  ): Promise<CurrentEditPreferencesApplyResult> {
-    if (currentEditPreferencesLocked || approvalCheckingRef.current) {
-      return {
-        ok: false,
-        message: 'This edit is read only. Request the change through Chat and a fresh plan.',
-      }
-    }
-    const next = request.values
-    const change = resolveCurrentEditPreferenceChange(
-      currentEditPreferenceValues,
-      next,
-      currentEditPreferenceBaseline,
-    )
-    const referenceChanged = request.referenceDecision.operation !== 'keep'
-    if (change.changedFields.length === 0 && !referenceChanged) {
-      return { ok: false, message: 'There are no unapplied Edit Preference changes.' }
-    }
-
-    if (referenceChanged) {
-      const original = request.referenceDecision.original
-      const authority = currentEditReferenceAuthorityResolution.ready
-        ? currentEditReferenceAuthorityResolution.authority
-        : undefined
-      if (request.referenceDecision.operation !== 'remove' && !authority) {
-        return {
-          ok: false,
-          message: currentEditReferenceAuthorityResolution.ready
-            ? 'The exact target-study authority is no longer available.'
-            : currentEditReferenceAuthorityResolution.message,
-        }
-      }
-      if (
-        request.referenceDecision.operation !== 'remove'
-        && !request.targetStudy
-      ) {
-        return {
-          ok: false,
-          message: 'Complete and verify the exact whole-video study before applying this Edit Reference.',
-        }
-      }
-
-      let session = authority?.bundle.session
-      if (!session && request.referenceDecision.operation === 'remove' && original.kind === 'connected') {
-        const applicationsResult = await editReferenceApi.listApplications(projectPersistenceScope.workspaceId)
-        if (!applicationsResult.ok) return { ok: false, message: applicationsResult.message }
-        const exactApplication = applicationsResult.data.applications.find((application) => (
-          application.id === original.applicationId
-          && application.contentDigest === original.applicationContentDigest
-          && application.status === 'prepared'
-          && application.targetIntegrationStatus === 'connected'
-        ))
-        if (!exactApplication) {
-          return { ok: false, message: 'The connected Edit Reference could not be verified for removal.' }
-        }
-        session = createRemovalSessionFromPreferenceApplication(exactApplication, editorOperationUserId)
-      }
-      if (!session) {
-        return { ok: false, message: 'The exact edit session authority could not be reconstructed safely.' }
-      }
-
-      const sessionRead = await projectEditSessionClient.sessions.get<{ session: ProjectEditSessionRecord }>(
-        session.id,
-      )
-      if (!sessionRead.ok) {
-        const created = await projectEditSessionClient.sessions.create<{ session: ProjectEditSessionRecord }>({
-          ...session,
-        })
-        if (!created.ok) {
-          return {
-            ok: false,
-            message: created.error?.message ?? 'The exact edit session authority could not be prepared safely.',
-          }
-        }
-      } else {
-        const refreshed = await projectEditSessionClient.sessions.update({
-          editSessionId: session.id,
-          patch: {
-            name: session.name,
-            description: session.description,
-            aspectRatio: session.aspectRatio,
-            platformTarget: session.platformTarget,
-            sourceMediaAssetIds: session.sourceMediaAssetIds,
-            selectedEditLevel: session.selectedEditLevel,
-          },
-        })
-        if (!refreshed.ok) {
-          return {
-            ok: false,
-            message: refreshed.error?.message ?? 'The exact edit session context could not be refreshed safely.',
-          }
-        }
-      }
-
-      if (original.kind === 'connected') {
-        const recovered = await recoverConnectedPreferenceApplicationForProjectEditSession({
-          editReferenceClient: editReferenceApi,
-          projectEditSessionClient,
-          session,
-          workspaceId: projectPersistenceScope.workspaceId,
-        })
-        if (!recovered.recovered && recovered.message) {
-          return { ok: false, message: recovered.message }
-        }
-      }
-
-      const integration = await loadProjectEditSessionEditReferenceIntegration({
-        editReferenceClient: editReferenceApi,
-        session,
-        workspaceId: projectPersistenceScope.workspaceId,
-      })
-      const activeApplication = integration.activeApplication
-      if (original.kind === 'connected' && (
-        !activeApplication
-        || activeApplication.id !== original.applicationId
-        || activeApplication.contentDigest !== original.applicationContentDigest
-      )) {
-        return {
-          ok: false,
-          message: 'The connected Edit Reference changed after this draft opened. Refresh before applying.',
-        }
-      }
-      if (original.kind === 'none' && activeApplication) {
-        return {
-          ok: false,
-          message: 'Another Edit Reference is already connected to this edit. Refresh before applying.',
-        }
-      }
-
-      if (request.referenceDecision.operation !== 'remove' && !authority) {
-        return { ok: false, message: 'The exact target-study authority is no longer available.' }
-      }
-
-      if (request.referenceDecision.operation === 'select') {
-        if (!authority) {
-          return { ok: false, message: 'The exact target-study authority is no longer available.' }
-        }
-        const prepared = await preparePreferenceApplicationForProjectEditSession({
-          applicationSource: 'session_panel',
-          bundle: authority.bundle,
-          currentUserInstruction: authority.currentUserInstruction,
-          editReferenceClient: editReferenceApi,
-          editReferenceId: request.referenceDecision.draftReferenceId ?? '',
-          outputFrameConfirmed: true,
-          targetUnderstandingPackage: request.targetStudy,
-          workspaceId: projectPersistenceScope.workspaceId,
-        })
-        if (!prepared.ok) return { ok: false, message: prepared.message }
-        const connected = await connectPreferenceApplicationToProjectEditSession({
-          application: prepared.application,
-          editReferenceClient: editReferenceApi,
-          outputFrameConfirmed: true,
-          projectEditSessionClient,
-          referenceRevision: prepared.detail.reference.revision,
-          workspaceId: projectPersistenceScope.workspaceId,
-        })
-        if (!connected.ok) return { ok: false, message: connected.message }
-      }
-
-      if (request.referenceDecision.operation === 'replace') {
-        if (!authority) {
-          return { ok: false, message: 'The exact target-study authority is no longer available.' }
-        }
-        if (!activeApplication) {
-          return { ok: false, message: 'The connected Edit Reference could not be verified for replacement.' }
-        }
-        const replaced = await replacePreferenceApplicationForProjectEditSession({
-          applicationSource: 'session_panel',
-          bundle: authority.bundle,
-          currentApplication: activeApplication,
-          currentUserInstruction: authority.currentUserInstruction,
-          editReferenceClient: editReferenceApi,
-          nextEditReferenceId: request.referenceDecision.draftReferenceId ?? '',
-          outputFrameConfirmed: true,
-          projectEditSessionClient,
-          targetUnderstandingPackage: request.targetStudy,
-          workspaceId: projectPersistenceScope.workspaceId,
-        })
-        if (!replaced.ok) return { ok: false, message: replaced.message }
-      }
-
-      if (request.referenceDecision.operation === 'remove') {
-        if (!activeApplication) {
-          return { ok: false, message: 'The connected Edit Reference could not be verified for removal.' }
-        }
-        const removed = await removePreferenceApplicationFromProjectEditSession({
-          application: activeApplication,
-          editReferenceClient: editReferenceApi,
-          projectEditSessionClient,
-          workspaceId: projectPersistenceScope.workspaceId,
-        })
-        if (!removed.ok) return { ok: false, message: removed.message }
-      }
-    }
-
-    const nextRevision = currentEditPreferenceRevision + 1
-    const nextUpdatedAt = new Date().toISOString()
-    const nextEditLevelConfirmed = change.changedFields.includes('editLevel')
+  function finalizeExactEditPreferenceApply(
+    operation: EditReferenceProductionExactEditApplyOperation,
+    receipt: EditReferenceProductionExactEditApplyApiReceipt,
+  ): void {
+    const next = {
+      ...operation.authority.values,
+      ...operation.preferencePatch,
+    } as LocalInternalEditPreferenceValues
+    const changedFields = receipt.changedPreferenceFields
+    const nextEditLevelConfirmed = changedFields.includes('editLevel')
       ? true
       : editLevelConfirmed
-    const nextCleanupPreferenceConfirmed = change.changedFields.includes('cleanupPreference')
+    const nextCleanupPreferenceConfirmed = changedFields.includes('cleanupPreference')
       ? true
       : cleanupPreferenceConfirmed
-    const nextVisualPreferenceConfirmed = change.changedFields.includes('visualPreference')
+    const nextVisualPreferenceConfirmed = changedFields.includes('visualPreference')
       ? true
       : visualPreferenceConfirmed
+    const requiresSourcePreparation = receipt.sourcePreparationDisposition === 'requires_repreparation'
+    const requiresFrameConfirmation = receipt.outputFrameDisposition === 'requires_reconfirmation'
+    const hadDraftPlan = currentEditDraftPlanExists
+
+    persistCurrentEditSetupAfterPlanInvalidation({
+      ...next,
+      editLevelConfirmed: nextEditLevelConfirmed,
+      cleanupPreferenceConfirmed: nextCleanupPreferenceConfirmed,
+      visualPreferenceConfirmed: nextVisualPreferenceConfirmed,
+      aspectRatioConfirmed: requiresFrameConfirmation ? false : aspectRatioConfirmed,
+      aspectRatioSource: requiresFrameConfirmation ? 'unknown' : aspectRatioSource,
+      preferenceBaseline: currentEditPreferenceBaseline,
+      preferenceOverrideKeys: getCurrentEditPreferenceOverrideKeys(next, currentEditPreferenceBaseline),
+      preferenceRevision: receipt.committedPreferenceRevision,
+      preferenceUpdatedAt: receipt.committedAt,
+    }, { syncBackend: false })
 
     setEditLevel(next.editLevel)
     setEditLevelConfirmed(nextEditLevelConfirmed)
@@ -2597,39 +2412,259 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     setMoodStyle(next.moodStyle)
     setCreditPreference(next.creditPreference)
     setTargetPlatform(next.targetPlatform)
-    setCurrentEditPreferenceRevision(nextRevision)
-    setCurrentEditPreferenceUpdatedAt(nextUpdatedAt)
+    setCurrentEditPreferenceRevision(receipt.committedPreferenceRevision)
+    setCurrentEditPreferenceUpdatedAt(receipt.committedAt)
+    setCurrentEditPreferenceDraftDirty(false)
+    setCurrentEditPreferenceApplyEpoch((value) => value + 1)
 
-    if (change.rerunFootagePrep) {
-      resetFootagePrep()
-    }
-    if (change.reconfirmOutputFrame) {
+    if (requiresSourcePreparation) resetFootagePrep()
+    if (requiresFrameConfirmation) {
       setAspectRatioConfirmed(false)
       setAspectRatioSource('unknown')
     }
 
-    persistCurrentEditSetupAfterPlanInvalidation({
-      ...next,
-      editLevelConfirmed: nextEditLevelConfirmed,
-      cleanupPreferenceConfirmed: nextCleanupPreferenceConfirmed,
-      visualPreferenceConfirmed: nextVisualPreferenceConfirmed,
-      aspectRatioConfirmed: change.reconfirmOutputFrame ? false : aspectRatioConfirmed,
-      aspectRatioSource: change.reconfirmOutputFrame ? 'unknown' : aspectRatioSource,
-      preferenceBaseline: currentEditPreferenceBaseline,
-      preferenceOverrideKeys: change.overrideKeys,
-      preferenceRevision: nextRevision,
-      preferenceUpdatedAt: nextUpdatedAt,
-    })
-
     showRevisionMessage(
-      currentEditDraftPlanExists
-        ? 'Edit Preferences updated for this edit. The reference decision and exact-video study are attached when selected. The previous draft plan and estimate were cleared; create a fresh plan before approval. No credits or generation started.'
-        : 'Edit Preferences updated for this edit. The reference decision and exact-video study are attached when selected. They will shape the next plan; no credits or generation started.',
+      hadDraftPlan
+        ? 'Edit Preferences were committed together for this edit. The previous draft plan and estimate were cleared; create a fresh plan before approval. No credits or generation started.'
+        : 'Edit Preferences were committed together for this edit. They will shape the next plan; no credits or generation started.',
     )
+  }
+
+  async function commitPendingExactEditPreferenceApply(
+    pending: ExactEditPreferencePendingApply,
+  ): Promise<CurrentEditPreferencesApplyResult> {
+    const result = await applyExactEditPreferencesAndReference({
+      scope: projectPersistenceScope,
+      projectId: editorProjectId,
+      editSessionId: editorEditSessionId,
+      operation: pending.operation,
+      idempotencyKey: pending.idempotencyKey,
+    })
+    if (!result.ok) {
+      if (!result.retryable) {
+        const cleared = clearExactEditPreferencePendingApply({
+          scope: projectPersistenceScope,
+          projectId: editorProjectId,
+          editSessionId: editorEditSessionId,
+          expectedIdempotencyKey: pending.idempotencyKey,
+        })
+        if (cleared) setPendingExactEditPreferenceApply(undefined)
+      }
+      return {
+        ok: false,
+        message: result.message,
+      }
+    }
+
+    finalizeExactEditPreferenceApply(pending.operation, result.receipt)
+    const cleared = clearExactEditPreferencePendingApply({
+      scope: projectPersistenceScope,
+      projectId: editorProjectId,
+      editSessionId: editorEditSessionId,
+      expectedIdempotencyKey: pending.idempotencyKey,
+    })
+    if (!cleared) {
+      setPendingExactEditPreferenceApply(pending)
+      return {
+        ok: false,
+        message: 'The change was committed, but its local confirmation could not be sealed. Retry the exact saved Apply before making another change.',
+      }
+    }
+
+    setPendingExactEditPreferenceApply(undefined)
     return {
       ok: true,
-      message: 'Edit Preferences were applied to this exact edit.',
+      message: 'Edit Preferences were applied to this exact edit in one transaction.',
     }
+  }
+
+  async function handleRetryPendingExactEditPreferences(): Promise<CurrentEditPreferencesApplyResult> {
+    const pending = pendingExactEditPreferenceApply ?? readExactEditPreferencePendingApply({
+      scope: projectPersistenceScope,
+      projectId: editorProjectId,
+      editSessionId: editorEditSessionId,
+    })
+    if (!pending) {
+      setPendingExactEditPreferenceApply(undefined)
+      return {
+        ok: false,
+        message: 'There is no saved Apply operation to retry. Refresh the current Edit Preferences before changing them.',
+      }
+    }
+    setPendingExactEditPreferenceApply(pending)
+    return commitPendingExactEditPreferenceApply(pending)
+  }
+
+  async function handleApplyCurrentEditPreferences(
+    request: CurrentEditPreferencesApplyRequest,
+  ): Promise<CurrentEditPreferencesApplyResult> {
+    const savedPending = pendingExactEditPreferenceApply ?? readExactEditPreferencePendingApply({
+      scope: projectPersistenceScope,
+      projectId: editorProjectId,
+      editSessionId: editorEditSessionId,
+    })
+    if (savedPending) {
+      setPendingExactEditPreferenceApply(savedPending)
+      return commitPendingExactEditPreferenceApply(savedPending)
+    }
+    if (currentEditPreferencesLocked || approvalCheckingRef.current) {
+      return {
+        ok: false,
+        message: 'This edit is read only. Request the change through Chat and a fresh plan.',
+      }
+    }
+    if (!hasProjectEditRoute || !canonicalPlanningBackendConnected) {
+      return {
+        ok: false,
+        message: 'Current Edit Preferences require the reviewed private backend for this exact named edit.',
+      }
+    }
+
+    const next = request.values
+    const change = resolveCurrentEditPreferenceChange(
+      currentEditPreferenceValues,
+      next,
+      currentEditPreferenceBaseline,
+    )
+    const referenceOperation = request.referenceDecision.operation
+    const referenceChanged = referenceOperation !== 'keep'
+    if (change.changedFields.length === 0 && !referenceChanged) {
+      return { ok: false, message: 'There are no unapplied Edit Preference changes.' }
+    }
+
+    let selectedApplicationId: string | null = null
+    let expectedPreparedApplication: { id: string; contentDigest: string } | undefined
+    if (referenceOperation === 'remove') {
+      if (request.referenceDecision.original.kind !== 'connected') {
+        return { ok: false, message: 'The connected Edit Reference could not be verified for removal.' }
+      }
+      selectedApplicationId = request.referenceDecision.original.applicationId
+    }
+    if (referenceOperation === 'select' || referenceOperation === 'replace') {
+      const authority = currentEditReferenceAuthorityResolution.ready
+        ? currentEditReferenceAuthorityResolution.authority
+        : undefined
+      if (!authority) {
+        return {
+          ok: false,
+          message: currentEditReferenceAuthorityResolution.ready
+            ? 'The exact target-study authority is no longer available.'
+            : currentEditReferenceAuthorityResolution.message,
+        }
+      }
+      if (!request.targetStudy || !request.referenceDecision.draftReferenceId) {
+        return {
+          ok: false,
+          message: 'Complete and verify the exact whole-video study before applying this Edit Reference.',
+        }
+      }
+      const prepared = await preparePreferenceApplicationForProjectEditSession({
+        applicationSource: 'session_panel',
+        bundle: authority.bundle,
+        currentUserInstruction: authority.currentUserInstruction,
+        editReferenceClient: editReferenceApi,
+        editReferenceId: request.referenceDecision.draftReferenceId,
+        outputFrameConfirmed: true,
+        targetUnderstandingPackage: request.targetStudy,
+        workspaceId: projectPersistenceScope.workspaceId,
+      })
+      if (!prepared.ok) return { ok: false, message: prepared.message }
+      if (
+        prepared.application.projectId !== editorProjectId
+        || prepared.application.editSessionId !== editorEditSessionId
+        || prepared.application.editReferenceId !== request.referenceDecision.draftReferenceId
+        || prepared.application.status !== 'prepared'
+        || prepared.application.targetIntegrationStatus !== 'not_connected'
+      ) {
+        return {
+          ok: false,
+          message: 'The prepared Edit Reference no longer matches this exact edit and cannot be applied.',
+        }
+      }
+      selectedApplicationId = prepared.application.id
+      expectedPreparedApplication = {
+        id: prepared.application.id,
+        contentDigest: prepared.application.contentDigest,
+      }
+    }
+
+    const authorityResult = await readExactEditPreferenceApplyAuthority({
+      scope: projectPersistenceScope,
+      projectId: editorProjectId,
+      editSessionId: editorEditSessionId,
+      selectedApplicationId,
+    })
+    if (!authorityResult.ok) return { ok: false, message: authorityResult.message }
+    const authority = authorityResult.authority
+    const authorityValueChange = resolveCurrentEditPreferenceChange(
+      currentEditPreferenceValues,
+      authority.values,
+      currentEditPreferenceBaseline,
+    )
+    if (
+      authority.preferenceRevision !== currentEditPreferenceRevision
+      || authorityValueChange.changedFields.length > 0
+    ) {
+      return {
+        ok: false,
+        message: 'Saved Edit Preferences changed after this draft opened. Refresh this edit before applying.',
+      }
+    }
+
+    const original = request.referenceDecision.original
+    if (
+      (original.kind === 'connected' && authority.currentApplicationId !== original.applicationId)
+      || (original.kind === 'none' && authority.currentApplicationId !== null)
+    ) {
+      return {
+        ok: false,
+        message: 'The connected Edit Reference changed after this draft opened. Refresh before applying.',
+      }
+    }
+    if (expectedPreparedApplication && (
+      authority.selectedApplicationAuthority?.applicationId !== expectedPreparedApplication.id
+      || authority.selectedApplicationAuthority.applicationContentDigestSha256
+        !== expectedPreparedApplication.contentDigest
+      || authority.selectedApplicationAuthority.connectionState !== 'not_connected'
+    )) {
+      return {
+        ok: false,
+        message: 'The prepared Edit Reference could not be matched to canonical exact-edit authority.',
+      }
+    }
+    if (referenceOperation === 'remove' && (
+      original.kind !== 'connected'
+      || authority.selectedApplicationAuthority?.applicationId !== original.applicationId
+      || authority.selectedApplicationAuthority.applicationContentDigestSha256
+        !== original.applicationContentDigest
+      || authority.selectedApplicationAuthority.connectionState !== 'connected'
+    )) {
+      return {
+        ok: false,
+        message: 'The connected Edit Reference could not be matched safely for removal.',
+      }
+    }
+
+    const referenceMutation = referenceOperation === 'keep'
+      ? null
+      : referenceOperation === 'select'
+        ? 'apply' as const
+        : referenceOperation
+    const operation = createExactEditPreferenceApplyOperation({
+      authority,
+      values: next,
+      referenceMutation,
+    })
+    const saved = saveExactEditPreferencePendingApply({
+      scope: projectPersistenceScope,
+      projectId: editorProjectId,
+      editSessionId: editorEditSessionId,
+      operation,
+      idempotencyKey: createExactEditPreferenceApplyIdempotencyKey(),
+    })
+    if (!saved.ok) return { ok: false, message: saved.message }
+    setPendingExactEditPreferenceApply(saved.pending)
+    return commitPendingExactEditPreferenceApply(saved.pending)
   }
 
   function handleAddEditCuesAfterFootagePrep() {
@@ -5789,14 +5824,16 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
           baseline={currentEditPreferenceBaseline}
           current={currentEditPreferenceValues}
           draftPlanExists={currentEditDraftPlanExists}
-          key={`${currentEditPreferenceBaseline.snapshotId}:${currentEditPreferenceRevision}:${currentEditPreferencesLocked ? 'locked' : 'editable'}`}
+          key={`${currentEditPreferenceBaseline.snapshotId}:${currentEditPreferenceRevision}:${currentEditPreferenceApplyEpoch}:${currentEditPreferencesLocked ? 'locked' : 'editable'}`}
           locked={currentEditPreferencesLocked}
           leaveRequested={pendingPreferenceDestination !== null}
           onApply={handleApplyCurrentEditPreferences}
           onCancelLeave={handleCancelCurrentEditPreferenceLeave}
           onDirtyChange={setCurrentEditPreferenceDraftDirty}
           onDiscardAndLeave={handleDiscardCurrentEditPreferenceDraftAndLeave}
+          onRetryPendingApply={handleRetryPendingExactEditPreferences}
           onReturnToChat={handleOpenChatWorkspace}
+          pendingApplyRecovery={Boolean(pendingExactEditPreferenceApply)}
           editSessionId={editorEditSessionId}
           projectId={editorProjectId}
           targetAuthority={currentEditReferenceAuthorityResolution.ready

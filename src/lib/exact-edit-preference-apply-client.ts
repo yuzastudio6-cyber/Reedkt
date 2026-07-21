@@ -131,7 +131,7 @@ export async function applyExactEditPreferencesAndReference(input: {
     )
   }
   if (
-    !isExactEditApplyOperation(input.operation)
+    !isExactEditPreferenceApplyOperation(input.operation)
     || input.operation.authority.workspaceId !== input.scope.workspaceId
     || input.operation.authority.projectId !== input.projectId
     || input.operation.authority.editSessionId !== input.editSessionId
@@ -296,7 +296,7 @@ function invalidateScopeIfRequired(
   }
 }
 
-function isExactEditApplyOperation(
+export function isExactEditPreferenceApplyOperation(
   value: unknown,
 ): value is EditReferenceProductionExactEditApplyOperation {
   if (!isRecord(value) || !hasExactKeys(value, [

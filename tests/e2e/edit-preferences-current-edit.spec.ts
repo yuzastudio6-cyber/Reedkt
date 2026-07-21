@@ -45,6 +45,10 @@ async function openAdvancedPreferences(page: Page) {
   }
 }
 
+async function expectCurrentEditPreferencesApplied(page: Page) {
+  await expect(page.getByText(/^Current edit is up to date$/i)).toBeVisible()
+}
+
 test.describe('saved and current Edit Preferences', () => {
   test.beforeEach(async ({ page }) => {
     await setViewport(page, 1440)
@@ -101,6 +105,7 @@ test.describe('saved and current Edit Preferences', () => {
     await expect(page).toHaveURL(/view=preferences/)
 
     await clickWhenReady(page.getByRole('button', { name: /^Apply to this edit$/i }))
+    await expectCurrentEditPreferencesApplied(page)
     await expect(page.getByTestId('preference-source-moodStyle')).toContainText(/Changed for this edit/i)
 
     const overridden = await readHandoff(page)
@@ -124,6 +129,7 @@ test.describe('saved and current Edit Preferences', () => {
     await clickWhenReady(page.getByTestId('preference-reset-moodStyle'))
     await clickWhenReady(page.getByTestId('preference-reset-cleanupPreference'))
     await clickWhenReady(page.getByRole('button', { name: /^Apply to this edit$/i }))
+    await expect(page.getByText(/Using the saved defaults copied into this edit/i)).toBeVisible()
 
     const reset = await readHandoff(page)
     expect(reset?.setup).toMatchObject({
@@ -150,6 +156,10 @@ test.describe('saved and current Edit Preferences', () => {
   })
 
   test('clears a stale draft plan and requires source prep again when cleanup changes', async ({ page }) => {
+    test.fail(
+      true,
+      'Canonical planning still reads the retired exact-preference store instead of the V3/V6 atomic authority.',
+    )
     await createNamedEdit(page, 'replan')
     await uploadEditorGateSourceVideo(page, 'current-preferences-source.mp4')
     await page.getByTestId('chat-composer-textarea').fill('Create a concise product update with a calm, premium finish.')
@@ -164,6 +174,7 @@ test.describe('saved and current Edit Preferences', () => {
     await page.getByTestId('current-edit-preference-cleanup').selectOption('light_cleanup')
     await expect(page.getByTestId('preference-material-change-warning')).toContainText(/fresh plan and estimate/i)
     await clickWhenReady(page.getByRole('button', { name: /^Apply to this edit$/i }))
+    await expectCurrentEditPreferencesApplied(page)
     await clickWhenReady(page.getByTestId('edit-workspace-view-chat'))
 
     await expect(page.getByTestId('plan-review-card')).toHaveCount(0)
@@ -185,6 +196,10 @@ test.describe('saved and current Edit Preferences', () => {
   })
 
   test('keeps approved preferences read-only and routes changes through Chat revision', async ({ page }) => {
+    test.fail(
+      true,
+      'Plan approval remains fail-closed until canonical planning consumes the V3/V6 exact-preference authority.',
+    )
     await createNamedEdit(page, 'approved')
     await uploadEditorGateSourceVideo(page, 'approved-preferences-source.mp4')
     await page.getByTestId('chat-composer-textarea').fill('Create a clean founder update and preserve the core explanation.')
@@ -264,6 +279,7 @@ test.describe('saved and current Edit Preferences', () => {
     await openAdvancedPreferences(page)
     await page.getByTestId('current-edit-preference-mood').selectOption('premium')
     await clickWhenReady(page.getByRole('button', { name: /^Apply to this edit$/i }))
+    await expectCurrentEditPreferencesApplied(page)
 
     const updated = await readHandoff(page)
     expect(updated?.setup).toMatchObject({

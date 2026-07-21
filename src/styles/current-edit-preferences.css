@@ -141,6 +141,28 @@
   padding: var(--rp-space-3) var(--rp-space-4);
 }
 
+.current-edit-preferences-pending-boundary {
+  border: 0;
+  margin: 0;
+  min-width: 0;
+  padding: 0;
+}
+
+.current-edit-preferences-pending-boundary:disabled {
+  opacity: 0.72;
+}
+
+.current-edit-preferences-pending-apply {
+  background: color-mix(in srgb, var(--rp-warning) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--rp-warning) 30%, transparent);
+  border-radius: var(--rp-radius-sm);
+  color: var(--rp-text-secondary);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  margin: 0;
+  padding: var(--rp-space-3) var(--rp-space-4);
+}
+
 .current-edit-preferences-advanced {
   border-bottom: 1px solid var(--rp-border-subtle);
   border-top: 1px solid var(--rp-border-subtle);

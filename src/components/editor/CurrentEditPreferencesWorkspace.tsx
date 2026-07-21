@@ -65,10 +65,12 @@ type CurrentEditPreferencesWorkspaceProps = {
   locked: boolean
   leaveRequested: boolean
   onApply: (request: CurrentEditPreferencesApplyRequest) => Promise<CurrentEditPreferencesApplyResult>
+  onRetryPendingApply: () => Promise<CurrentEditPreferencesApplyResult>
   onCancelLeave: () => void
   onDirtyChange: (dirty: boolean) => void
   onDiscardAndLeave: () => void
   onReturnToChat: () => void
+  pendingApplyRecovery: boolean
   editSessionId: string
   projectId: string
   targetAuthority?: CurrentEditReferenceTargetAuthority
@@ -93,10 +95,12 @@ export function CurrentEditPreferencesWorkspace({
   locked,
   leaveRequested,
   onApply,
+  onRetryPendingApply,
   onCancelLeave,
   onDirtyChange,
   onDiscardAndLeave,
   onReturnToChat,
+  pendingApplyRecovery,
   editSessionId,
   projectId,
   targetAuthority,
@@ -189,6 +193,7 @@ export function CurrentEditPreferencesWorkspace({
     && Boolean(selectedReferenceId || originalReference.kind === 'connected')
   const canJoinPageApply = referenceResolution.canJoinAtomicApply && !referenceContextRequiresRefresh
   const dirty = change.changedFields.length > 0 || referenceDirty
+  const editingDisabled = locked || pendingApplyRecovery
   const referenceApplicationResource = useMemo<CurrentEditReferenceApplicationResource | undefined>(() => {
     const selectedOption = referenceOptions.find((option) => option.id === selectedReferenceId)
     if (!selectedOption) return undefined
@@ -303,13 +308,13 @@ export function CurrentEditPreferencesWorkspace({
   const navigationBlocker = useUnsavedNavigationGuard({
     confirmBlockedNavigation: false,
     message: 'Discard unapplied Current Edit Preferences?',
-    when: dirty,
+    when: dirty || pendingApplyRecovery,
   })
 
   useEffect(() => {
-    onDirtyChange(dirty)
+    onDirtyChange(dirty || pendingApplyRecovery)
     return () => onDirtyChange(false)
-  }, [dirty, onDirtyChange])
+  }, [dirty, onDirtyChange, pendingApplyRecovery])
 
   useEffect(() => {
     if (!leaveRequested && navigationBlocker.state !== 'blocked') return
@@ -328,14 +333,17 @@ export function CurrentEditPreferencesWorkspace({
     key: K,
     value: LocalInternalEditPreferenceValues[K],
   ) {
+    if (editingDisabled) return
     setDraft((currentDraft) => ({ ...currentDraft, [key]: value }))
   }
 
   function resetField(key: EditPreferenceFieldKey) {
+    if (editingDisabled) return
     setDraft((currentDraft) => ({ ...currentDraft, [key]: baseline[key] }))
   }
 
   function resetAll() {
+    if (editingDisabled) return
     setDraft({
       editLevel: baseline.editLevel,
       workflowType: baseline.workflowType,
@@ -353,6 +361,22 @@ export function CurrentEditPreferencesWorkspace({
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (pendingApplyRecovery) {
+      if (applyState.status === 'saving') return
+      setApplyState({ status: 'saving' })
+      try {
+        const result = await onRetryPendingApply()
+        setApplyState(result.ok
+          ? { status: 'idle' }
+          : { status: 'error', message: result.message })
+      } catch (error) {
+        setApplyState({
+          status: 'error',
+          message: error instanceof Error ? error.message : 'The pending Apply could not be confirmed safely.',
+        })
+      }
+      return
+    }
     if (
       !dirty
       || locked
@@ -419,33 +443,39 @@ export function CurrentEditPreferencesWorkspace({
         </section>
       ) : null}
 
-      <CurrentEditReferenceStudySupplement
-        application={referenceApplicationResource}
-        locked={locked}
-        onRetryResource={() => {
-          setReferenceResource({ state: 'loading' })
-          setReferenceRefresh((value) => value + 1)
-        }}
-        onReturnToChat={onReturnToChat}
-        onSelectionChange={(editReferenceId) => {
-          referenceSelectionTouchedRef.current = true
-          setApplyState({ status: 'idle' })
-          setTargetStudy(undefined)
-          setSelectedReferenceId(editReferenceId)
-        }}
-        onUseOriginal={() => {
-          referenceSelectionTouchedRef.current = true
-          setApplyState({ status: 'idle' })
-          setTargetStudy(undefined)
-          setSelectedReferenceId(originalReferenceId)
-        }}
-        onPackageChange={setTargetStudy}
-        options={referenceOptions}
-        originalReferenceId={originalReferenceId}
-        resource={effectiveReferenceResource}
-        selectedReferenceId={selectedReferenceId}
-        targetAuthority={targetAuthority}
-      />
+      <fieldset
+        className="current-edit-preferences-pending-boundary"
+        disabled={pendingApplyRecovery}
+      >
+        <legend className="sr-only">Edit Reference selection</legend>
+        <CurrentEditReferenceStudySupplement
+          application={referenceApplicationResource}
+          locked={locked}
+          onRetryResource={() => {
+            setReferenceResource({ state: 'loading' })
+            setReferenceRefresh((value) => value + 1)
+          }}
+          onReturnToChat={onReturnToChat}
+          onSelectionChange={(editReferenceId) => {
+            referenceSelectionTouchedRef.current = true
+            setApplyState({ status: 'idle' })
+            setTargetStudy(undefined)
+            setSelectedReferenceId(editReferenceId)
+          }}
+          onUseOriginal={() => {
+            referenceSelectionTouchedRef.current = true
+            setApplyState({ status: 'idle' })
+            setTargetStudy(undefined)
+            setSelectedReferenceId(originalReferenceId)
+          }}
+          onPackageChange={setTargetStudy}
+          options={referenceOptions}
+          originalReferenceId={originalReferenceId}
+          resource={effectiveReferenceResource}
+          selectedReferenceId={selectedReferenceId}
+          targetAuthority={targetAuthority}
+        />
+      </fieldset>
 
       <details className="current-edit-preferences-advanced" data-testid="current-edit-preferences-advanced">
         <summary>
@@ -459,7 +489,7 @@ export function CurrentEditPreferencesWorkspace({
           <PreferenceGroup description="Set the planning depth, workflow context, and cleanup behavior." title="Editing approach">
             <CurrentPreferenceSelect
               baseline={baseline}
-              disabled={locked}
+              disabled={editingDisabled}
               field="editLevel"
               onChange={updatePreference}
               onReset={resetField}
@@ -469,7 +499,7 @@ export function CurrentEditPreferencesWorkspace({
             />
             <CurrentPreferenceSelect
               baseline={baseline}
-              disabled={locked}
+              disabled={editingDisabled}
               field="workflowType"
               onChange={updatePreference}
               onReset={resetField}
@@ -479,7 +509,7 @@ export function CurrentEditPreferencesWorkspace({
             />
             <CurrentPreferenceSelect
               baseline={baseline}
-              disabled={locked}
+              disabled={editingDisabled}
               field="cleanupPreference"
               onChange={updatePreference}
               onReset={resetField}
@@ -492,7 +522,7 @@ export function CurrentEditPreferencesWorkspace({
           <PreferenceGroup description="Guide the visual tone without forcing effects into every segment." title="Creative direction">
             <CurrentPreferenceSelect
               baseline={baseline}
-              disabled={locked}
+              disabled={editingDisabled}
               field="visualPreference"
               onChange={updatePreference}
               onReset={resetField}
@@ -502,7 +532,7 @@ export function CurrentEditPreferencesWorkspace({
             />
             <CurrentPreferenceSelect
               baseline={baseline}
-              disabled={locked}
+              disabled={editingDisabled}
               field="moodStyle"
               onChange={updatePreference}
               onReset={resetField}
@@ -515,7 +545,7 @@ export function CurrentEditPreferencesWorkspace({
           <PreferenceGroup description="Set the cost posture and the destination ReeditPro should plan around." title="Delivery and cost">
             <CurrentPreferenceSelect
               baseline={baseline}
-              disabled={locked}
+              disabled={editingDisabled}
               field="creditPreference"
               onChange={updatePreference}
               onReset={resetField}
@@ -525,7 +555,7 @@ export function CurrentEditPreferencesWorkspace({
             />
             <CurrentPreferenceSelect
               baseline={baseline}
-              disabled={locked}
+              disabled={editingDisabled}
               field="targetPlatform"
               onChange={updatePreference}
               onReset={resetField}
@@ -575,6 +605,16 @@ export function CurrentEditPreferencesWorkspace({
         </p>
       ) : null}
 
+      {pendingApplyRecovery ? (
+        <p
+          className="current-edit-preferences-pending-apply"
+          data-testid="current-edit-preferences-pending-apply"
+          role="status"
+        >
+          A previous Apply may already be committed. ReEditPro will retry its exact saved operation before allowing another change.
+        </p>
+      ) : null}
+
       {leaveRequested || navigationBlocker.state === 'blocked' ? (
         <section
           aria-labelledby="current-edit-preferences-leave-title"
@@ -587,8 +627,14 @@ export function CurrentEditPreferencesWorkspace({
           tabIndex={-1}
         >
           <div>
-            <strong id="current-edit-preferences-leave-title">Discard unapplied changes?</strong>
-            <p>Apply these choices to this edit, or discard the draft before leaving.</p>
+            <strong id="current-edit-preferences-leave-title">
+              {pendingApplyRecovery ? 'Finish the pending Apply before leaving' : 'Discard unapplied changes?'}
+            </strong>
+            <p>
+              {pendingApplyRecovery
+                ? 'Retry the saved operation so ReEditPro can confirm whether it committed.'
+                : 'Apply these choices to this edit, or discard the draft before leaving.'}
+            </p>
           </div>
           <div>
             <Button
@@ -600,36 +646,44 @@ export function CurrentEditPreferencesWorkspace({
             >
               Keep editing
             </Button>
-            <Button
-              onClick={() => {
-                if (navigationBlocker.state === 'blocked') {
-                  onDirtyChange(false)
-                  navigationBlocker.proceed()
-                  return
-                }
-                onDiscardAndLeave()
-              }}
-              variant="secondary"
-            >
-              Discard and leave
-            </Button>
+            {!pendingApplyRecovery ? (
+              <Button
+                onClick={() => {
+                  if (navigationBlocker.state === 'blocked') {
+                    onDirtyChange(false)
+                    navigationBlocker.proceed()
+                    return
+                  }
+                  onDiscardAndLeave()
+                }}
+                variant="secondary"
+              >
+                Discard and leave
+              </Button>
+            ) : null}
           </div>
         </section>
       ) : null}
 
-      {dirty || draftOverrideKeys.length > 0 || locked ? (
+      {dirty || draftOverrideKeys.length > 0 || locked || pendingApplyRecovery ? (
         <footer className="current-edit-preferences-actions">
           <div>
             <strong>
-              {dirty
+              {pendingApplyRecovery
+                ? 'Apply confirmation required'
+                : dirty
                 ? `${change.changedFields.length + (referenceDirty ? 1 : 0)} unapplied change${change.changedFields.length + (referenceDirty ? 1 : 0) === 1 ? '' : 's'}`
                 : 'Current edit is up to date'}
             </strong>
-            <small>Only Apply to this edit writes these choices.</small>
+            <small>
+              {pendingApplyRecovery
+                ? 'Retry uses the same saved operation and does not create a second change.'
+                : 'Only Apply to this edit writes these choices.'}
+            </small>
           </div>
           <div>
             <Button
-              disabled={locked || (draftOverrideKeys.length === 0 && !referenceDirty)}
+              disabled={editingDisabled || (draftOverrideKeys.length === 0 && !referenceDirty)}
               icon={RotateCcw}
               onClick={resetAll}
               variant="ghost"
@@ -637,11 +691,15 @@ export function CurrentEditPreferencesWorkspace({
               Use all original defaults
             </Button>
             <Button
-              disabled={locked || !dirty || !canJoinPageApply || applyState.status === 'saving'}
+              disabled={(locked && !pendingApplyRecovery) || (!pendingApplyRecovery && (!dirty || !canJoinPageApply)) || applyState.status === 'saving'}
               type="submit"
               variant="primary"
             >
-              {applyState.status === 'saving' ? 'Applying…' : 'Apply to this edit'}
+              {applyState.status === 'saving'
+                ? 'Applying…'
+                : pendingApplyRecovery
+                  ? 'Retry Apply'
+                  : 'Apply to this edit'}
             </Button>
           </div>
         </footer>

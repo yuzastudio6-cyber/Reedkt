@@ -8,7 +8,11 @@ const safeIdSchema = exactEditPreferenceScopeIdSchema
 export const exactEditPreferenceAuthorityExpectationSchema = z.object({
   recordRevision: z.number().int().nonnegative(),
   preferenceRevision: z.number().int().nonnegative(),
+  planningInputRevision: z.number().int().nonnegative(),
   preferenceFingerprintSha256: sha256Schema,
+  sourcePreparationEvidenceHash: sha256Schema,
+  sourceCandidateHash: sha256Schema.nullable(),
+  frameConfirmationId: safeIdSchema,
 }).strict()
 
 export const preferenceApplicationAuthorityExpectationSchema = z.discriminatedUnion('status', [
@@ -51,6 +55,7 @@ export const planningInputAuthorityExpectationSchema = z.object({
 const exactEditPlanningBindingSchema = z.object({
   recordRevision: z.number().int().nonnegative(),
   preferenceRevision: z.number().int().nonnegative(),
+  planningInputRevision: z.number().int().nonnegative(),
   preferenceFingerprintSha256: sha256Schema,
   values: exactEditPreferenceValuesSchema,
   baseline: z.object({
@@ -59,8 +64,14 @@ const exactEditPlanningBindingSchema = z.object({
     provenance: z.enum(['server_default_preferences', 'saved_edit_preferences']),
   }).strict(),
   sourcePreparationEvidenceHash: sha256Schema,
+  sourceCandidateHash: sha256Schema.nullable(),
   frameConfirmationId: safeIdSchema,
   confirmedAspectRatio: z.enum(['9:16', '16:9', '1:1', '4:5', '4:3']),
+  lifecyclePhase: z.enum([
+    'planning', 'approved_snapshot', 'credit_reserved', 'executing',
+    'private_review', 'completed_internal', 'revision_handoff',
+  ]),
+  locked: z.boolean(),
 }).strict()
 
 const preferenceContextBindingSchema = z.object({

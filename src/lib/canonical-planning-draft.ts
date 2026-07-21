@@ -257,6 +257,8 @@ export type CanonicalPlanComponentsDraft = {
     targetPlatform: string
     preferenceSnapshotId?: string
     preferenceRevision?: number
+    preferencePlanningInputRevision?: number
+    preferenceFingerprintSha256?: string
   }
   sourceSequence: CanonicalSourceAuthorityItem[]
   sourceCleanupSummary: {
@@ -593,6 +595,16 @@ export function buildCanonicalPlanningDraft(input: {
     Number(plannerInput.currentEditPreferenceRevision) >= 0
     ? Number(plannerInput.currentEditPreferenceRevision)
     : undefined
+  const preferencePlanningInputRevision =
+    Number.isInteger(plannerInput.currentEditPreferencePlanningInputRevision) &&
+    Number(plannerInput.currentEditPreferencePlanningInputRevision) >= 0
+      ? Number(plannerInput.currentEditPreferencePlanningInputRevision)
+      : undefined
+  const preferenceFingerprintSha256 = /^[a-f0-9]{64}$/.test(
+    plannerInput.currentEditPreferenceFingerprintSha256 ?? '',
+  )
+    ? plannerInput.currentEditPreferenceFingerprintSha256
+    : undefined
   const sourceSliceMezzanineFinalizationRequired =
     orderedSourceItems.length === 1 &&
     totalFrames > CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES
@@ -631,6 +643,10 @@ export function buildCanonicalPlanningDraft(input: {
       targetPlatform: plannerInput.targetPlatform,
       ...(preferenceSnapshotId ? { preferenceSnapshotId } : {}),
       ...(preferenceRevision !== undefined ? { preferenceRevision } : {}),
+      ...(preferencePlanningInputRevision !== undefined
+        ? { preferencePlanningInputRevision }
+        : {}),
+      ...(preferenceFingerprintSha256 ? { preferenceFingerprintSha256 } : {}),
     },
     sourceSequence: orderedSourceItems.map((item) => ({ ...item })),
     sourceCleanupSummary: {
@@ -701,6 +717,16 @@ export function buildCanonicalPlanningDraft(input: {
     approvedColorDeliverySources,
     approvedHardCutTransitions,
   })
+  if (
+    !preferenceSnapshotId
+    || preferenceRevision === undefined
+    || preferencePlanningInputRevision === undefined
+    || !preferenceFingerprintSha256
+  ) {
+    publicationBlockers.push(
+      'Refresh the canonical exact-edit preference authority before publishing this plan.',
+    )
+  }
   const canonicalEstimate = buildEstimate(plan)
   if (!canonicalEstimate.ok) publicationBlockers.push(canonicalEstimate.blocker)
   const publication = publicationBlockers.length === 0 && canonicalEstimate.ok

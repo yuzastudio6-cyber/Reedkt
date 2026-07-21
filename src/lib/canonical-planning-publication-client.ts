@@ -31,11 +31,8 @@ type CanonicalRevisionPlanPresentationApiResponse = {
   canonicalRevisionPlanPresentation?: unknown
 }
 
-type ExactEditPreferenceApiResponse = {
-  preferenceRecord?: unknown
-  changedFields?: unknown
-  invalidation?: unknown
-  replayed?: unknown
+type ExactEditPlanningAuthorityApiResponse = {
+  authority?: unknown
 }
 
 type ExactEditPreferenceValues = {
@@ -51,8 +48,13 @@ type ExactEditPreferenceValues = {
 type ExactEditPreferenceAuthority = {
   recordRevision: number
   preferenceRevision: number
+  planningInputRevision: number
+  preferenceFingerprintSha256: string
   preferenceSnapshotId: string
   values: ExactEditPreferenceValues
+  locked: boolean
+  frameConfirmationStatus: 'not_confirmed' | 'confirmed'
+  confirmedAspectRatio?: PlannerInput['aspectRatio']
 }
 
 type HandoffReceipt = {
@@ -240,6 +242,10 @@ async function performCanonicalPlanningSave(
       ...input.plannerInput,
       preferenceSnapshotId: preferenceAuthority.authority.preferenceSnapshotId,
       currentEditPreferenceRevision: preferenceAuthority.authority.preferenceRevision,
+      currentEditPreferencePlanningInputRevision:
+        preferenceAuthority.authority.planningInputRevision,
+      currentEditPreferenceFingerprintSha256:
+        preferenceAuthority.authority.preferenceFingerprintSha256,
     },
     sourceMediaAssets: input.sourceMediaAssets,
     motionStudioStorytellingStylePlan: input.motionStudioStorytellingStylePlan,
@@ -556,8 +562,11 @@ async function synchronizeExactEditPreferenceAuthority(
     }
   }
 
-  const readResponse = await callReeditProApi<undefined, ExactEditPreferenceApiResponse>(
-    'planning.exactEditPreferences.get',
+  const readResponse = await callReeditProApi<
+    undefined,
+    ExactEditPlanningAuthorityApiResponse
+  >(
+    'planning.exactEditPreferences.readPlanningAuthority',
     undefined,
     {
       params: { projectId: input.projectId, editSessionId: input.editSessionId },
@@ -569,9 +578,9 @@ async function synchronizeExactEditPreferenceAuthority(
   }
   const readFailure = classifyApiFailure(readResponse, false)
   if (readFailure) return { ok: false, failure: readFailure }
-  const readData = exactRecord(readResponse.data, ['preferenceRecord'])
+  const readData = exactRecord(readResponse.data, ['authority'])
   const current = parseExactEditPreferenceAuthority(
-    readData?.preferenceRecord,
+    readData?.authority,
     input.scope.workspaceId,
     input.projectId,
     input.editSessionId,
@@ -587,85 +596,43 @@ async function synchronizeExactEditPreferenceAuthority(
       ),
     }
   }
-  const patch = exactEditPreferencePatch(current.values, desiredValues)
-  if (current.locked && (!allowLockedExactReuse || Object.keys(patch).length > 0)) {
+  if (!exactPreferenceValuesEqual(current.values, desiredValues)) {
     return {
       ok: false,
       failure: preferenceSynchronizationFailure(
         'blocked',
-        allowLockedExactReuse
-          ? 'This revision changes locked Edit Preferences. Keep the approved values for this bounded revision, or start a separately authorized structural replan.'
-          : 'This edit already has locked approved preference authority. Request a revision before changing it.',
+        'Current Edit Preferences changed after Chat loaded this edit. Refresh the exact edit before creating a plan.',
         false,
         readResponse.warnings,
       ),
     }
   }
-  if (current.locked) {
-    return { ok: true, authority: current }
-  }
-  if (Object.keys(patch).length === 0) {
-    return { ok: true, authority: current }
-  }
-
-  const patchIdentity = JSON.stringify({
-    workspaceId: input.scope.workspaceId,
-    projectId: input.projectId,
-    editSessionId: input.editSessionId,
-    expectedRevision: current.recordRevision,
-    patch,
-  })
-  const updateResponse = await callReeditProApi<
-    { workspaceId: string; expectedRevision: number; patch: Partial<ExactEditPreferenceValues> },
-    ExactEditPreferenceApiResponse
-  >(
-    'planning.exactEditPreferences.update',
-    {
-      workspaceId: input.scope.workspaceId,
-      expectedRevision: current.recordRevision,
-      patch,
-    },
-    {
-      params: { projectId: input.projectId, editSessionId: input.editSessionId },
-      context: {
-        workspaceId: input.scope.workspaceId,
-        projectId: input.projectId,
-        userId: input.scope.backendUserId ?? input.scope.userId,
-      },
-      idempotencyKey: `exact-edit-preferences:${stableClientDigest(patchIdentity)}`,
-    },
-  )
-  if (apiResponseInvalidatesProjectPersistenceScope(updateResponse)) {
-    invalidateProjectPersistenceScope(input.scope)
-  }
-  const updateFailure = classifyApiFailure(updateResponse, false)
-  if (updateFailure) return { ok: false, failure: updateFailure }
-  const updateData = recordWithAllowedKeys(
-    updateResponse.data,
-    ['preferenceRecord', 'changedFields', 'replayed'],
-    ['invalidation'],
-  )
-  const changedFields = updateData?.changedFields
-  const updated = parseExactEditPreferenceAuthority(
-    updateData?.preferenceRecord,
-    input.scope.workspaceId,
-    input.projectId,
-    input.editSessionId,
-  )
-  if (!updated || updateData?.replayed !== false && updateData?.replayed !== true ||
-      !Array.isArray(changedFields) || changedFields.some((field) => !EXACT_EDIT_PREFERENCE_KEYS.includes(String(field) as keyof ExactEditPreferenceValues)) ||
-      !exactPreferenceValuesEqual(updated.values, desiredValues)) {
+  if (
+    current.frameConfirmationStatus !== 'confirmed'
+    || current.confirmedAspectRatio !== input.plannerInput.aspectRatio
+  ) {
     return {
       ok: false,
       failure: preferenceSynchronizationFailure(
-        'invalid_response',
-        'The updated exact preferences could not be safely verified.',
+        'blocked',
+        'Confirm this edit’s output frame before creating the canonical plan.',
         false,
-        updateResponse.warnings,
+        readResponse.warnings,
       ),
     }
   }
-  return { ok: true, authority: updated }
+  if (current.locked && !allowLockedExactReuse) {
+    return {
+      ok: false,
+      failure: preferenceSynchronizationFailure(
+        'blocked',
+        'This edit already has locked approved preference authority. Request a revision before creating another plan.',
+        false,
+        readResponse.warnings,
+      ),
+    }
+  }
+  return { ok: true, authority: current }
 }
 
 function desiredExactEditPreferenceValues(plannerInput: PlannerInput): ExactEditPreferenceValues | null {
@@ -681,55 +648,93 @@ function desiredExactEditPreferenceValues(plannerInput: PlannerInput): ExactEdit
   }
 }
 
-function exactEditPreferencePatch(
-  current: ExactEditPreferenceValues,
-  desired: ExactEditPreferenceValues,
-): Partial<ExactEditPreferenceValues> {
-  const patch: Partial<ExactEditPreferenceValues> = {}
-  for (const key of EXACT_EDIT_PREFERENCE_KEYS) {
-    if (current[key] !== desired[key]) {
-      Object.assign(patch, { [key]: desired[key] })
-    }
-  }
-  return patch
-}
-
 function parseExactEditPreferenceAuthority(
   value: unknown,
   workspaceId: string,
   projectId: string,
   editSessionId: string,
-): (ExactEditPreferenceAuthority & { locked: boolean }) | null {
+): ExactEditPreferenceAuthority | null {
   const record = exactRecord(value, [
-    'schemaVersion', 'workspaceId', 'projectId', 'editSessionId', 'baseline', 'values',
-    'overrideKeys', 'recordRevision', 'preferenceRevision', 'preferenceUpdatedAt', 'planning',
-    'lifecycle', 'auditSummary', 'createdAt', 'updatedAt', 'privateInternalOnly',
+    'schemaVersion', 'sourceAuthority', 'runtimeSource', 'authorityReadReceiptId',
+    'workspaceId', 'projectId', 'editSessionId', 'recordRevision',
+    'preferenceRevision', 'planningInputRevision', 'preferenceFingerprintSha256',
+    'values', 'baseline', 'sourcePreparation', 'frameConfirmation',
+    'lifecyclePhase', 'locked', 'currentApplicationState', 'currentApplicationId',
+    'readAt', 'browserMutationAuthorityGranted',
+    'productionReleaseReadinessEvaluatedSeparately',
   ])
-  if (!record || record.schemaVersion !== 'private-exact-edit-preferences-v1' ||
-      record.workspaceId !== workspaceId || record.projectId !== projectId || record.editSessionId !== editSessionId ||
-      record.privateInternalOnly !== true || containsForbiddenPrivateMaterial(record)) return null
+  if (
+    !record
+    || record.schemaVersion !== 'canonical-exact-edit-planning-authority-read-v1'
+    || ![
+      'canonical_exact_edit_preference_repository',
+      'private_exact_edit_preference_compatibility',
+    ].includes(String(record.sourceAuthority))
+    || !['verified_live', 'private_internal'].includes(String(record.runtimeSource))
+    || record.workspaceId !== workspaceId
+    || record.projectId !== projectId
+    || record.editSessionId !== editSessionId
+    || record.browserMutationAuthorityGranted !== false
+    || record.productionReleaseReadinessEvaluatedSeparately !== true
+    || containsForbiddenPrivateMaterial(record)
+  ) return null
   const baseline = exactRecord(record.baseline, [
-    'values', 'preferenceSnapshotId', 'capturedAt', 'persistenceSource', 'provenance',
+    'preferenceSnapshotId', 'values', 'preferenceFingerprintSha256', 'capturedAt',
+    'persistenceSource', 'provenance',
+  ])
+  const sourcePreparation = exactRecord(record.sourcePreparation, [
+    'status', 'sourceCandidateHashSha256', 'evidenceHashSha256', 'confirmedAt',
+  ])
+  const frameConfirmation = exactRecord(record.frameConfirmation, [
+    'status', 'confirmationId', 'aspectRatio', 'confirmedAt',
+    'authorityDigestSha256',
   ])
   const values = parseExactEditPreferenceValues(record.values)
-  const lifecycle = recordWithAllowedKeys(record.lifecycle, ['phase', 'locked'], ['authorityReferenceId', 'lockedAt'])
-  const planning = recordWithAllowedKeys(
-    record.planning,
-    ['planningInputRevision', 'preferenceFingerprintSha256', 'replanRequired', 'reestimateRequired', 'sourcePreparation', 'frameConfirmation'],
-    ['draftPlan', 'draftEstimate', 'lastInvalidation'],
-  )
-  const auditSummary = exactRecord(record.auditSummary, ['eventCount', 'latestEventAt'])
-  if (!baseline || !parseExactEditPreferenceValues(baseline.values) || !isSafeId(baseline.preferenceSnapshotId) ||
-      !values || !lifecycle || typeof lifecycle.locked !== 'boolean' || !isSafeId(lifecycle.phase) || !planning || !auditSummary ||
-      !Number.isInteger(record.recordRevision) || Number(record.recordRevision) < 0 ||
-      !Number.isInteger(record.preferenceRevision) || Number(record.preferenceRevision) < 0 ||
-      !Array.isArray(record.overrideKeys) || record.overrideKeys.some((key) => !EXACT_EDIT_PREFERENCE_KEYS.includes(String(key) as keyof ExactEditPreferenceValues))) return null
+  if (
+    !baseline
+    || !parseExactEditPreferenceValues(baseline.values)
+    || !isSafeId(baseline.preferenceSnapshotId)
+    || !isSha(baseline.preferenceFingerprintSha256)
+    || !isSha(record.preferenceFingerprintSha256)
+    || !values
+    || !sourcePreparation
+    || !['not_ready', 'requires_repreparation', 'ready']
+      .includes(String(sourcePreparation.status))
+    || !frameConfirmation
+    || !['not_confirmed', 'confirmed'].includes(String(frameConfirmation.status))
+    || typeof record.locked !== 'boolean'
+    || !isSafeId(record.lifecyclePhase)
+    || !Number.isInteger(record.recordRevision)
+    || Number(record.recordRevision) < 0
+    || !Number.isInteger(record.preferenceRevision)
+    || Number(record.preferenceRevision) < 0
+    || !Number.isInteger(record.planningInputRevision)
+    || Number(record.planningInputRevision) < 0
+  ) return null
+  const frameConfirmed = frameConfirmation.status === 'confirmed'
+  if (
+    frameConfirmed
+      ? !isSafeId(frameConfirmation.confirmationId)
+        || !['9:16', '16:9', '1:1', '4:5', '4:3']
+          .includes(String(frameConfirmation.aspectRatio))
+        || !isSha(frameConfirmation.authorityDigestSha256)
+      : frameConfirmation.confirmationId !== null
+        || frameConfirmation.aspectRatio !== null
+        || frameConfirmation.confirmedAt !== null
+        || frameConfirmation.authorityDigestSha256 !== null
+  ) return null
   return {
     recordRevision: Number(record.recordRevision),
     preferenceRevision: Number(record.preferenceRevision),
+    planningInputRevision: Number(record.planningInputRevision),
+    preferenceFingerprintSha256: record.preferenceFingerprintSha256,
     preferenceSnapshotId: baseline.preferenceSnapshotId,
     values,
-    locked: lifecycle.locked,
+    locked: record.locked,
+    frameConfirmationStatus: frameConfirmed ? 'confirmed' : 'not_confirmed',
+    ...(frameConfirmed
+      ? { confirmedAspectRatio: frameConfirmation.aspectRatio as PlannerInput['aspectRatio'] }
+      : {}),
   }
 }
 
@@ -1051,19 +1056,6 @@ function exactRecord(value: unknown, keys: string[]): Record<string, unknown> | 
   const actual = Object.keys(value).sort()
   const expected = [...keys].sort()
   return actual.length === expected.length && actual.every((key, index) => key === expected[index]) ? value : null
-}
-
-function recordWithAllowedKeys(
-  value: unknown,
-  requiredKeys: string[],
-  optionalKeys: string[],
-): Record<string, unknown> | null {
-  if (!isRecord(value)) return null
-  const actual = Object.keys(value)
-  const allowed = new Set([...requiredKeys, ...optionalKeys])
-  return requiredKeys.every((key) => actual.includes(key)) && actual.every((key) => allowed.has(key))
-    ? value
-    : null
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

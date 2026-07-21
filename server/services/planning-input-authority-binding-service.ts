@@ -14,17 +14,19 @@ import {
   type PrivateEditBriefAuthorityAggregate,
 } from './private-edit-brief-authority-store'
 import {
-  exactEditPreferenceFingerprint,
-  readPrivateExactEditPreferenceRecord,
-  type ExactEditPreferenceStoreScope,
-  type PrivateExactEditPreferenceRecord,
-} from './private-exact-edit-preference-store'
-import {
   assertPlanningPreferenceApplicationExpectation,
   PLANNING_PREFERENCE_INSTRUCTION_PRIORITY,
   planningPreferenceApplicationExpectationFromResolution,
   readPlanningPreferenceApplicationAuthority,
+  type PlanningPreferenceApplicationAuthorityResolution,
 } from './planning-preference-application-authority-port'
+import {
+  readPlanningExactEditPreferenceAuthority,
+  type PlanningExactEditPreferenceAuthorityResolution,
+} from './planning-exact-edit-preference-authority-port'
+import type {
+  CanonicalExactEditPlanningAuthorityRead,
+} from '../../src/types/canonical-exact-edit-planning-authority'
 import { sha256AuthorityValue, stableAuthorityStringify } from './private-edit-authority-store'
 
 export interface PlanningInputAuthorityScope {
@@ -42,13 +44,23 @@ export async function resolvePlanningInputAuthorityBinding(input: {
   components: CanonicalPlanComponentsInput
 }): Promise<ResolvedPlanningInputAuthorityBinding> {
   const expectation = planningInputAuthorityExpectationSchema.parse(input.expectation)
-  const exactRecord = await requireExactEditPreference(input.scope)
-  const exactEditPreference = resolveExactEditPreferenceBinding(exactRecord, expectation, input.components)
-  const preferenceApplicationAuthority =
-    await readPlanningPreferenceApplicationAuthority({
-      context: input.context,
-      scope: input.scope,
-    })
+  const exactPreferenceAuthority = await readPlanningExactEditPreferenceAuthority({
+    context: input.context,
+    scope: input.scope,
+  })
+  const preferenceApplicationAuthority = await readPlanningPreferenceApplicationAuthority({
+    context: input.context,
+    scope: input.scope,
+  })
+  assertCanonicalPlanningRevisionSynchronization(
+    exactPreferenceAuthority,
+    preferenceApplicationAuthority,
+  )
+  const exactEditPreference = resolveExactEditPreferenceBinding(
+    exactPreferenceAuthority.authority,
+    expectation,
+    input.components,
+  )
   const preferenceApplication = assertPlanningPreferenceApplicationExpectation({
     resolution: preferenceApplicationAuthority,
     expectation: expectation.preferenceApplication,
@@ -104,11 +116,19 @@ export async function buildCurrentPlanningInputAuthorityExpectation(
   },
 ): Promise<PlanningInputAuthorityExpectation> {
   const { context, scope } = input
-  const exactRecord = await requireExactEditPreference(scope)
-  const preferenceApplication =
-    planningPreferenceApplicationExpectationFromResolution(
-      await readPlanningPreferenceApplicationAuthority({ context, scope }),
-    )
+  const exactPreferenceAuthority = await readPlanningExactEditPreferenceAuthority({
+    context,
+    scope,
+  })
+  const preferenceApplicationAuthority =
+    await readPlanningPreferenceApplicationAuthority({ context, scope })
+  assertCanonicalPlanningRevisionSynchronization(
+    exactPreferenceAuthority,
+    preferenceApplicationAuthority,
+  )
+  const preferenceApplication = planningPreferenceApplicationExpectationFromResolution(
+    preferenceApplicationAuthority,
+  )
   const editBriefAggregate = await readPrivateEditBriefAuthorityAggregate(editBriefScope(scope))
   const editBrief: PlanningInputAuthorityExpectation['editBrief'] = editBriefAggregate
     ? (() => {
@@ -122,9 +142,24 @@ export async function buildCurrentPlanningInputAuthorityExpectation(
     : { status: 'not_used' }
   return planningInputAuthorityExpectationSchema.parse({
     exactEditPreference: {
-      recordRevision: exactRecord.recordRevision,
-      preferenceRevision: exactRecord.preferenceRevision,
-      preferenceFingerprintSha256: exactEditPreferenceFingerprint(exactRecord.values),
+      recordRevision: exactPreferenceAuthority.authority.recordRevision,
+      preferenceRevision: exactPreferenceAuthority.authority.preferenceRevision,
+      planningInputRevision:
+        exactPreferenceAuthority.authority.planningInputRevision,
+      preferenceFingerprintSha256:
+        exactPreferenceAuthority.authority.preferenceFingerprintSha256,
+      sourcePreparationEvidenceHash:
+        exactPreferenceAuthority.authority.sourcePreparation.status === 'ready'
+          ? exactPreferenceAuthority.authority.sourcePreparation.evidenceHashSha256
+          : missingPlanningEvidence('source preparation'),
+      sourceCandidateHash:
+        exactPreferenceAuthority.authority.sourcePreparation.status === 'ready'
+          ? exactPreferenceAuthority.authority.sourcePreparation.sourceCandidateHashSha256
+          : null,
+      frameConfirmationId:
+        exactPreferenceAuthority.authority.frameConfirmation.status === 'confirmed'
+          ? exactPreferenceAuthority.authority.frameConfirmation.confirmationId
+          : missingPlanningEvidence('output frame'),
     },
     preferenceApplication,
     editBrief,
@@ -132,33 +167,42 @@ export async function buildCurrentPlanningInputAuthorityExpectation(
 }
 
 function resolveExactEditPreferenceBinding(
-  record: PrivateExactEditPreferenceRecord,
+  authority: CanonicalExactEditPlanningAuthorityRead,
   expectation: PlanningInputAuthorityExpectation,
   components: CanonicalPlanComponentsInput,
 ) {
   const expected = expectation.exactEditPreference
-  const currentFingerprint = exactEditPreferenceFingerprint(record.values)
   if (
-    record.recordRevision !== expected.recordRevision ||
-    record.preferenceRevision !== expected.preferenceRevision ||
-    currentFingerprint !== expected.preferenceFingerprintSha256
+    authority.recordRevision !== expected.recordRevision ||
+    authority.preferenceRevision !== expected.preferenceRevision ||
+    authority.planningInputRevision !== expected.planningInputRevision ||
+    authority.preferenceFingerprintSha256 !== expected.preferenceFingerprintSha256 ||
+    authority.sourcePreparation.status !== 'ready' ||
+    authority.sourcePreparation.evidenceHashSha256
+      !== expected.sourcePreparationEvidenceHash ||
+    authority.sourcePreparation.sourceCandidateHashSha256
+      !== expected.sourceCandidateHash ||
+    authority.frameConfirmation.status !== 'confirmed' ||
+    authority.frameConfirmation.confirmationId !== expected.frameConfirmationId
   ) throw stalePlanningAuthority('Exact-edit preferences changed after the planner loaded them.')
-  if (record.lifecycle.locked) {
-    throw new ApiError('PLAN_NOT_APPROVED', 'Exact-edit preference authority is already locked to another approved lifecycle.', 409)
-  }
-  if (record.planning.sourcePreparation.status !== 'ready') {
+  if (authority.sourcePreparation.status !== 'ready') {
     throw new ApiError('JOB_DEPENDENCY_NOT_READY', 'Confirmed source-preparation evidence is required before canonical plan publication.', 409)
   }
-  if (record.planning.frameConfirmation.status !== 'confirmed') {
+  if (authority.frameConfirmation.status !== 'confirmed') {
     throw new ApiError('PLAN_NOT_APPROVED', 'Confirmed output-frame evidence is required before canonical plan publication.', 409)
   }
   if (
-    components.confirmedSettings.editLevel !== record.values.editLevel ||
-    components.confirmedSettings.targetPlatform !== record.values.targetPlatform ||
-    components.sourceCleanupSummary.cleanupPreference !== record.values.cleanupPreference ||
-    components.confirmedSettings.aspectRatio !== record.planning.frameConfirmation.aspectRatio ||
-    components.confirmedSettings.preferenceSnapshotId !== record.baseline.preferenceSnapshotId ||
-    components.confirmedSettings.preferenceRevision !== record.preferenceRevision
+    components.confirmedSettings.editLevel !== authority.values.editLevel ||
+    components.confirmedSettings.targetPlatform !== authority.values.targetPlatform ||
+    components.sourceCleanupSummary.cleanupPreference !== authority.values.cleanupPreference ||
+    components.confirmedSettings.aspectRatio !== authority.frameConfirmation.aspectRatio ||
+    components.confirmedSettings.preferenceSnapshotId
+      !== authority.baseline.preferenceSnapshotId ||
+    components.confirmedSettings.preferenceRevision !== authority.preferenceRevision ||
+    components.confirmedSettings.preferencePlanningInputRevision
+      !== authority.planningInputRevision ||
+    components.confirmedSettings.preferenceFingerprintSha256
+      !== authority.preferenceFingerprintSha256
   ) {
     throw new ApiError(
       'IDEMPOTENCY_CONFLICT',
@@ -167,18 +211,22 @@ function resolveExactEditPreferenceBinding(
     )
   }
   return {
-    recordRevision: record.recordRevision,
-    preferenceRevision: record.preferenceRevision,
-    preferenceFingerprintSha256: currentFingerprint,
-    values: structuredClone(record.values),
+    recordRevision: authority.recordRevision,
+    preferenceRevision: authority.preferenceRevision,
+    planningInputRevision: authority.planningInputRevision,
+    preferenceFingerprintSha256: authority.preferenceFingerprintSha256,
+    values: structuredClone(authority.values),
     baseline: {
-      preferenceSnapshotId: record.baseline.preferenceSnapshotId,
-      persistenceSource: record.baseline.persistenceSource,
-      provenance: record.baseline.provenance,
+      preferenceSnapshotId: authority.baseline.preferenceSnapshotId,
+      persistenceSource: authority.baseline.persistenceSource,
+      provenance: authority.baseline.provenance,
     },
-    sourcePreparationEvidenceHash: record.planning.sourcePreparation.evidenceHash,
-    frameConfirmationId: record.planning.frameConfirmation.confirmationId,
-    confirmedAspectRatio: record.planning.frameConfirmation.aspectRatio,
+    sourcePreparationEvidenceHash: authority.sourcePreparation.evidenceHashSha256,
+    sourceCandidateHash: authority.sourcePreparation.sourceCandidateHashSha256,
+    frameConfirmationId: authority.frameConfirmation.confirmationId,
+    confirmedAspectRatio: authority.frameConfirmation.aspectRatio,
+    lifecyclePhase: authority.lifecyclePhase,
+    locked: authority.locked,
   }
 }
 
@@ -301,7 +349,12 @@ export function planningInputAuthorityExpectationFromResolvedBinding(
     exactEditPreference: {
       recordRevision: binding.exactEditPreference.recordRevision,
       preferenceRevision: binding.exactEditPreference.preferenceRevision,
+      planningInputRevision: binding.exactEditPreference.planningInputRevision,
       preferenceFingerprintSha256: binding.exactEditPreference.preferenceFingerprintSha256,
+      sourcePreparationEvidenceHash:
+        binding.exactEditPreference.sourcePreparationEvidenceHash,
+      sourceCandidateHash: binding.exactEditPreference.sourceCandidateHash,
+      frameConfirmationId: binding.exactEditPreference.frameConfirmationId,
     },
     preferenceApplication,
     editBrief: binding.editBrief.status === 'not_used'
@@ -314,18 +367,23 @@ export function planningInputAuthorityExpectationFromResolvedBinding(
   }
 }
 
-async function requireExactEditPreference(
-  scope: PlanningInputAuthorityScope,
-): Promise<PrivateExactEditPreferenceRecord> {
-  const record = await readPrivateExactEditPreferenceRecord(exactPreferenceScope(scope))
-  if (!record) {
-    throw new ApiError('JOB_DEPENDENCY_NOT_READY', 'Exact-edit preferences must be initialized before canonical planning.', 409)
+function assertCanonicalPlanningRevisionSynchronization(
+  exactPreference: PlanningExactEditPreferenceAuthorityResolution,
+  preferenceApplication: PlanningPreferenceApplicationAuthorityResolution,
+): void {
+  const bothCanonical = exactPreference.sourceAuthority
+    === 'canonical_exact_edit_preference_repository'
+    && preferenceApplication.sourceAuthority
+      === 'canonical_edit_reference_production_repository'
+  if (
+    bothCanonical
+    && preferenceApplication.readRevision
+      !== exactPreference.authority.planningInputRevision
+  ) {
+    throw stalePlanningAuthority(
+      'Exact-edit preferences and the selected Preference application were read from different planning revisions.',
+    )
   }
-  return record
-}
-
-function exactPreferenceScope(scope: PlanningInputAuthorityScope): ExactEditPreferenceStoreScope {
-  return { ...scope }
 }
 
 function editBriefScope(scope: PlanningInputAuthorityScope): EditBriefAuthorityScope {
@@ -336,4 +394,12 @@ function stalePlanningAuthority(message: string): ApiError {
   return new ApiError('IDEMPOTENCY_CONFLICT', message, 409, {
     requiredFlow: 'replan_reestimate_and_present_new_canonical_plan',
   })
+}
+
+function missingPlanningEvidence(kind: string): never {
+  throw new ApiError(
+    'JOB_DEPENDENCY_NOT_READY',
+    `Confirmed ${kind} evidence is required before canonical planning.`,
+    409,
+  )
 }

@@ -4157,6 +4157,10 @@ function createCanonicalPlanBody(
           targetPlatform: 'tiktok_reels_shorts',
           preferenceSnapshotId: 'server-default-exact-edit-preferences-v1',
           preferenceRevision: 1,
+          preferencePlanningInputRevision:
+            planningInputAuthority.exactEditPreference.planningInputRevision,
+          preferenceFingerprintSha256:
+            planningInputAuthority.exactEditPreference.preferenceFingerprintSha256,
         },
         sourceSequence: sourceMediaFixture.sourceSequence.map((item) => ({ ...item })),
         sourceCleanupSummary: {
@@ -4989,7 +4993,13 @@ async function prepareExactPlanningAuthority(
     exactEditPreference: {
       recordRevision: evidence.preferenceRecord.recordRevision,
       preferenceRevision: evidence.preferenceRecord.preferenceRevision,
+      planningInputRevision: evidence.preferenceRecord.planning.planningInputRevision,
       preferenceFingerprintSha256: exactEditPreferenceFingerprint(evidence.preferenceRecord.values),
+      sourcePreparationEvidenceHash: sha256ForSmoke(
+        `source-preparation:${targetWorkspaceId}:${projectId}:${editSessionId}`,
+      ),
+      sourceCandidateHash: null,
+      frameConfirmationId: `frame-confirmation-${editSessionId}`,
     },
     preferenceApplication: { status: 'not_selected', applicationVersion: 0 },
     editBrief: { status: 'not_used' },

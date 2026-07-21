@@ -8,17 +8,34 @@ import {
   type EditReferenceExactEditApplyRuntimePort,
 } from '../../server/services/edit-reference-exact-edit-apply-runtime-port'
 import {
+  PLANNING_EXACT_EDIT_PREFERENCE_AUTHORITY_PORT_VERSION,
+  type PlanningExactEditPreferenceAuthorityPort,
+  type PlanningExactEditPreferenceAuthorityResolution,
+} from '../../server/services/planning-exact-edit-preference-authority-port'
+import {
   EDIT_REFERENCE_PRODUCTION_EXACT_EDIT_APPLY_AUTHORITY_READ_VERSION,
   EDIT_REFERENCE_PRODUCTION_EXACT_EDIT_APPLY_RECEIPT_VERSION,
   type EditReferenceProductionExactEditApplyApiReceipt,
   type EditReferenceProductionExactEditPreferenceValues,
 } from '../../src/types/edit-reference-production-exact-edit-apply-api'
+import {
+  CANONICAL_EXACT_EDIT_PLANNING_AUTHORITY_READ_VERSION,
+  CANONICAL_EXACT_EDIT_PLANNING_EVIDENCE_REQUEST_VERSION,
+  type CanonicalExactEditPlanningAuthorityRead,
+} from '../../src/types/canonical-exact-edit-planning-authority'
 
 type ExactEditState = {
   values: EditReferenceProductionExactEditPreferenceValues
   recordRevision: number
   preferenceRevision: number
   planningInputRevision: number
+  sourcePreparation: {
+    status: 'not_ready' | 'requires_repreparation' | 'ready'
+    sourceCandidateHashSha256: string | null
+    evidenceHashSha256: string | null
+    confirmedAt: string | null
+  }
+  frameConfirmed: boolean
 }
 
 const defaultValues: EditReferenceProductionExactEditPreferenceValues = {
@@ -35,6 +52,55 @@ const committedByIdempotencyHash = new Map<string, {
   requestDigestSha256: string
   receipt: EditReferenceProductionExactEditApplyApiReceipt
 }>()
+
+const planningPort: PlanningExactEditPreferenceAuthorityPort = Object.freeze({
+  async readExactPreferenceState(scope) {
+    const state = getOrCreateState(
+      stateKey(scope.workspaceId, scope.projectId, scope.editSessionId),
+    )
+    return planningResolution(scope, state)
+  },
+
+  async recordVerifiedPlanningEvidence({ scope, request }) {
+    if (
+      request.schemaVersion
+        !== CANONICAL_EXACT_EDIT_PLANNING_EVIDENCE_REQUEST_VERSION
+      || request.actorUserId !== scope.ownerUserId
+      || request.workspaceId !== scope.workspaceId
+      || request.projectId !== scope.projectId
+      || request.editSessionId !== scope.editSessionId
+    ) throw new ApiError('IDEMPOTENCY_CONFLICT', 'Planning evidence scope changed.', 409)
+    const key = stateKey(scope.workspaceId, scope.projectId, scope.editSessionId)
+    const state = getOrCreateState(key)
+    if (
+      state.preferenceRevision !== request.expectedPreferenceRevision
+      || state.planningInputRevision !== request.expectedPlanningInputRevision
+      || sha256(state.values) !== request.expectedPreferenceFingerprintSha256
+      || request.expectedBaselinePreferenceSnapshotId !== baselineSnapshotId(key)
+    ) throw new ApiError('IDEMPOTENCY_CONFLICT', 'Planning authority changed.', 409)
+    if (!state.frameConfirmed || request.confirmedAspectRatio !== '9:16') {
+      throw new ApiError('PLAN_NOT_APPROVED', 'Confirm the exact output frame.', 409)
+    }
+    const exactReplay = state.sourcePreparation.status === 'ready'
+      && state.sourcePreparation.sourceCandidateHashSha256
+        === request.sourceCandidateHashSha256
+      && state.sourcePreparation.evidenceHashSha256
+        === request.sourcePreparationEvidenceHashSha256
+    if (!exactReplay) {
+      states.set(key, {
+        ...state,
+        recordRevision: state.recordRevision + 1,
+        sourcePreparation: {
+          status: 'ready',
+          sourceCandidateHashSha256: request.sourceCandidateHashSha256,
+          evidenceHashSha256: request.sourcePreparationEvidenceHashSha256,
+          confirmedAt: new Date().toISOString(),
+        },
+      })
+    }
+    return planningResolution(scope, getOrCreateState(key))
+  },
+})
 
 const runtimePort: EditReferenceExactEditApplyRuntimePort = Object.freeze({
   schemaVersion: EDIT_REFERENCE_EXACT_EDIT_APPLY_RUNTIME_PORT_VERSION,
@@ -65,13 +131,7 @@ const runtimePort: EditReferenceExactEditApplyRuntimePort = Object.freeze({
       )
     }
     const key = stateKey(scope.workspaceId, scope.projectId, scope.editSessionId)
-    const state = states.get(key) ?? {
-      values: structuredClone(defaultValues),
-      recordRevision: 0,
-      preferenceRevision: 0,
-      planningInputRevision: 0,
-    }
-    states.set(key, state)
+    const state = getOrCreateState(key)
     const readAt = new Date().toISOString()
     return {
       schemaVersion: EDIT_REFERENCE_PRODUCTION_EXACT_EDIT_APPLY_AUTHORITY_READ_VERSION,
@@ -130,6 +190,18 @@ const runtimePort: EditReferenceExactEditApplyRuntimePort = Object.freeze({
       preferenceRevision: state.preferenceRevision
         + (request.changedPreferenceFields.length > 0 ? 1 : 0),
       planningInputRevision: state.planningInputRevision + 1,
+      sourcePreparation: request.sourcePreparationDisposition
+          === 'requires_repreparation'
+        ? {
+            status: 'requires_repreparation',
+            sourceCandidateHashSha256: null,
+            evidenceHashSha256: null,
+            confirmedAt: null,
+          }
+        : state.sourcePreparation,
+      frameConfirmed: request.outputFrameDisposition === 'requires_reconfirmation'
+        ? false
+        : state.frameConfirmed,
     }
     const receiptWithoutDigest = {
       schemaVersion: EDIT_REFERENCE_PRODUCTION_EXACT_EDIT_APPLY_RECEIPT_VERSION,
@@ -179,6 +251,7 @@ const env = loadRuntimeEnv({
 })
 const server = createReeditProApiApp(env, {
   editReferenceExactEditApplyRuntimePort: runtimePort,
+  planningExactEditPreferenceAuthorityPort: planningPort,
 }).listen(env.apiPort, '127.0.0.1', () => {
   console.log(JSON.stringify({ event: 'atomic_preferences_test_api_listening', port: env.apiPort }))
 })
@@ -197,6 +270,112 @@ process.once('SIGTERM', () => close('SIGTERM'))
 
 function stateKey(workspaceId: string, projectId: string, editSessionId: string): string {
   return `${workspaceId}\n${projectId}\n${editSessionId}`
+}
+
+function getOrCreateState(key: string): ExactEditState {
+  const existing = states.get(key)
+  if (existing) return existing
+  const created: ExactEditState = {
+    values: structuredClone(defaultValues),
+    recordRevision: 0,
+    preferenceRevision: 0,
+    planningInputRevision: 0,
+    sourcePreparation: {
+      status: 'not_ready',
+      sourceCandidateHashSha256: null,
+      evidenceHashSha256: null,
+      confirmedAt: null,
+    },
+    frameConfirmed: true,
+  }
+  states.set(key, created)
+  return created
+}
+
+function baselineSnapshotId(key: string): string {
+  return `atomic-ui-baseline-${sha256(key).slice(0, 40)}`
+}
+
+function planningResolution(
+  scope: Parameters<PlanningExactEditPreferenceAuthorityPort['readExactPreferenceState']>[0],
+  state: ExactEditState,
+): PlanningExactEditPreferenceAuthorityResolution {
+  const key = stateKey(scope.workspaceId, scope.projectId, scope.editSessionId)
+  const readAt = new Date().toISOString()
+  const authority: CanonicalExactEditPlanningAuthorityRead = {
+    schemaVersion: CANONICAL_EXACT_EDIT_PLANNING_AUTHORITY_READ_VERSION,
+    sourceAuthority: 'canonical_exact_edit_preference_repository',
+    runtimeSource: 'verified_live',
+    authorityReadReceiptId: `atomic-ui-planning-read-${sha256(`${key}\n${readAt}`).slice(0, 40)}`,
+    workspaceId: scope.workspaceId,
+    projectId: scope.projectId,
+    editSessionId: scope.editSessionId,
+    recordRevision: state.recordRevision,
+    preferenceRevision: state.preferenceRevision,
+    planningInputRevision: state.planningInputRevision,
+    preferenceFingerprintSha256: sha256(state.values),
+    values: structuredClone(state.values),
+    baseline: {
+      preferenceSnapshotId: baselineSnapshotId(key),
+      values: structuredClone(defaultValues),
+      preferenceFingerprintSha256: sha256(defaultValues),
+      capturedAt: '2026-07-21T00:00:00.000Z',
+      persistenceSource: 'authenticated_private_internal_backend',
+      provenance: 'saved_edit_preferences',
+    },
+    sourcePreparation: state.sourcePreparation.status === 'ready'
+      ? {
+          status: 'ready',
+          sourceCandidateHashSha256:
+            state.sourcePreparation.sourceCandidateHashSha256,
+          evidenceHashSha256: state.sourcePreparation.evidenceHashSha256!,
+          confirmedAt: state.sourcePreparation.confirmedAt!,
+        }
+      : {
+          status: state.sourcePreparation.status,
+          sourceCandidateHashSha256: null,
+          evidenceHashSha256: null,
+          confirmedAt: null,
+        },
+    frameConfirmation: state.frameConfirmed
+      ? {
+          status: 'confirmed',
+          confirmationId: `atomic-ui-frame-${sha256(key).slice(0, 40)}`,
+          aspectRatio: '9:16',
+          confirmedAt: '2026-07-21T00:00:00.000Z',
+          authorityDigestSha256: sha256({ key, aspectRatio: '9:16' }),
+        }
+      : {
+          status: 'not_confirmed',
+          confirmationId: null,
+          aspectRatio: null,
+          confirmedAt: null,
+          authorityDigestSha256: null,
+        },
+    lifecyclePhase: 'planning',
+    locked: false,
+    currentApplicationState: 'not_selected',
+    currentApplicationId: null,
+    readAt,
+    browserMutationAuthorityGranted: false,
+    productionReleaseReadinessEvaluatedSeparately: true,
+  }
+  const unsigned = {
+    schemaVersion: PLANNING_EXACT_EDIT_PREFERENCE_AUTHORITY_PORT_VERSION,
+    sourceAuthority: 'canonical_exact_edit_preference_repository' as const,
+    evidenceClass: 'canonical_contract_fixture_unreleased' as const,
+    tenantIsolationVerified: true,
+    rlsPolicyVersion: 'canonical-v3-local-rls-v1',
+    noLegacyExactPreferenceStoreRead: true,
+    noFallbackAfterAuthorityRead: true as const,
+    browserMutationAuthorityAccepted: false as const,
+    productionAuthority: false,
+    authority,
+  }
+  return {
+    ...unsigned,
+    authorityReceiptHash: sha256(unsigned),
+  }
 }
 
 function sha256(value: unknown): string {

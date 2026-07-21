@@ -26,6 +26,8 @@ export function getServiceContext(request: Request): ServiceContext {
     storageAdapter: runtimeRequest.runtime.storageAdapter,
     planningPreferenceApplicationAuthorityPort:
       runtimeRequest.runtime.planningPreferenceApplicationAuthorityPort,
+    planningExactEditPreferenceAuthorityPort:
+      runtimeRequest.runtime.planningExactEditPreferenceAuthorityPort,
     canonicalDurableUploadTargetStatePort:
       runtimeRequest.runtime.canonicalDurableUploadTargetStatePort,
     canonicalUploadTargetCredentialEscrow:

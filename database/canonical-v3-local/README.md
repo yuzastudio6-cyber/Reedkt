@@ -21,6 +21,13 @@ The chain provides:
 - `read_exact_edit_apply_authority_v1` as the sanitized, tenant-bound
   optimistic-concurrency read that supplies record, planning, frame, and
   selected-application digests before the outer transaction re-reads them;
+- `read_exact_edit_planning_authority_v1` as the one read-only, exact-edit
+  preference authority for canonical planning, including the immutable
+  creation baseline, current seven-field values, planning revision, confirmed
+  frame, and source-preparation state;
+- `record_exact_edit_planning_evidence_v1` as the server-planning handoff that
+  binds verified source-candidate and cleanup evidence without changing the
+  user's preferences, the planning revision, or any approved snapshot;
 - `read_exact_edit_reference_application_state_v2` planning authority;
 - `assert_preference_application_plan_current_v1` execution-currentness check;
 - durable Kimi K3 -> Qwen 3.7 -> DeepSeek V4 Pro Study Chat attempts, provider
@@ -36,7 +43,8 @@ The chain provides:
   with no service-role credential used for either the authority read or Apply
   operation;
 - local two-user/two-workspace isolation and adversarial lifecycle, atomic
-  Apply, replay, recovery, direct-table-denial, and internal-cost tests.
+  Apply, planning-authority read/evidence/replay, immutable-baseline, cleanup
+  invalidation, recovery, direct-table-denial, and internal-cost tests.
 
 Qwen2.5-VL remains visual-only and is not represented as a Study Chat
 reasoning route. Internal provider and infrastructure costs are persisted

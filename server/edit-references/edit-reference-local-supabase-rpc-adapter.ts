@@ -3,6 +3,10 @@ import type {
   EditReferenceProductionExactEditApplyAuthorityRead,
   EditReferenceProductionExactEditApplyApiReceipt,
 } from '../../src/types/edit-reference-production-exact-edit-apply-api'
+import type {
+  CanonicalExactEditPlanningAuthorityRead,
+  CanonicalExactEditPlanningEvidenceRequest,
+} from '../../src/types/canonical-exact-edit-planning-authority'
 import { ApiError } from '../errors/api-error'
 import type {
   EditReferenceProductionApplicationLifecycleReceipt,
@@ -22,6 +26,15 @@ import {
 import type {
   EditReferenceProductionPlanningAuthorityReader,
 } from './edit-reference-production-planning-authority'
+import {
+  CANONICAL_EXACT_EDIT_PLANNING_AUTHORITY_READ_CONTRACT,
+  CANONICAL_EXACT_EDIT_PLANNING_AUTHORITY_READ_RPC,
+  CANONICAL_EXACT_EDIT_PLANNING_EVIDENCE_RPC,
+  validateCanonicalExactEditPlanningAuthorityRead,
+  validateCanonicalExactEditPlanningAuthorityReadScope,
+  validateCanonicalExactEditPlanningEvidenceRequest,
+  type CanonicalExactEditPlanningAuthorityReadScope,
+} from './canonical-exact-edit-planning-authority-boundary'
 import {
   createEditReferenceProductionRpcContractFixtureAdapter,
   createEditReferenceProductionRpcContractFixtureCapability,
@@ -59,6 +72,12 @@ export interface EditReferenceLocalSupabaseRpcAdapter {
   readExactEditApplyAuthority(
     scope: EditReferenceProductionExactEditApplyAuthorityReadScope,
   ): Promise<EditReferenceProductionExactEditApplyAuthorityRead>
+  readExactEditPlanningAuthority(
+    scope: CanonicalExactEditPlanningAuthorityReadScope,
+  ): Promise<CanonicalExactEditPlanningAuthorityRead>
+  recordExactEditPlanningEvidence(
+    request: CanonicalExactEditPlanningEvidenceRequest,
+  ): Promise<CanonicalExactEditPlanningAuthorityRead>
   readonly loopbackOnly: true
   readonly remoteDatabaseMutationAllowed: false
   readonly productionAuthority: false
@@ -120,10 +139,91 @@ export function createEditReferenceLocalSupabaseRpcAdapter(input: {
     readExactEditApplyAuthority: (
       scope: EditReferenceProductionExactEditApplyAuthorityReadScope,
     ) => invokeExactEditApplyAuthorityRead(input.client, scope),
+    readExactEditPlanningAuthority: (
+      scope: CanonicalExactEditPlanningAuthorityReadScope,
+    ) => invokeExactEditPlanningAuthorityRead(input.client, scope),
+    recordExactEditPlanningEvidence: (
+      request: CanonicalExactEditPlanningEvidenceRequest,
+    ) => invokeExactEditPlanningEvidence(input.client, request),
     loopbackOnly: true as const,
     remoteDatabaseMutationAllowed: false as const,
     productionAuthority: false as const,
   })
+}
+
+async function invokeExactEditPlanningAuthorityRead(
+  client: EditReferenceProductionRpcClient,
+  scope: CanonicalExactEditPlanningAuthorityReadScope,
+): Promise<CanonicalExactEditPlanningAuthorityRead> {
+  validateCanonicalExactEditPlanningAuthorityReadScope(scope)
+  const authority = await invokePlanningAuthorityRpc(
+    client,
+    CANONICAL_EXACT_EDIT_PLANNING_AUTHORITY_READ_RPC,
+    {
+      p_read_version: CANONICAL_EXACT_EDIT_PLANNING_AUTHORITY_READ_CONTRACT,
+      p_scope: scope,
+    },
+    'local_exact_edit_planning_authority_read_rpc_failed',
+  )
+  validateCanonicalExactEditPlanningAuthorityRead(authority)
+  if (
+    authority.workspaceId !== scope.workspaceId
+    || authority.projectId !== scope.projectId
+    || authority.editSessionId !== scope.editSessionId
+  ) invalid('local_exact_edit_planning_authority_read_scope_mismatch')
+  return structuredClone(authority)
+}
+
+async function invokeExactEditPlanningEvidence(
+  client: EditReferenceProductionRpcClient,
+  request: CanonicalExactEditPlanningEvidenceRequest,
+): Promise<CanonicalExactEditPlanningAuthorityRead> {
+  validateCanonicalExactEditPlanningEvidenceRequest(request)
+  const authority = await invokePlanningAuthorityRpc(
+    client,
+    CANONICAL_EXACT_EDIT_PLANNING_EVIDENCE_RPC,
+    { p_request: request },
+    'local_exact_edit_planning_evidence_rpc_failed',
+  )
+  validateCanonicalExactEditPlanningAuthorityRead(authority)
+  if (
+    authority.workspaceId !== request.workspaceId
+    || authority.projectId !== request.projectId
+    || authority.editSessionId !== request.editSessionId
+    || authority.preferenceRevision !== request.expectedPreferenceRevision
+    || authority.planningInputRevision !== request.expectedPlanningInputRevision
+    || authority.preferenceFingerprintSha256
+      !== request.expectedPreferenceFingerprintSha256
+    || authority.baseline.preferenceSnapshotId
+      !== request.expectedBaselinePreferenceSnapshotId
+    || authority.sourcePreparation.status !== 'ready'
+    || authority.sourcePreparation.sourceCandidateHashSha256
+      !== request.sourceCandidateHashSha256
+    || authority.sourcePreparation.evidenceHashSha256
+      !== request.sourcePreparationEvidenceHashSha256
+    || authority.frameConfirmation.status !== 'confirmed'
+    || authority.frameConfirmation.aspectRatio !== request.confirmedAspectRatio
+  ) invalid('local_exact_edit_planning_evidence_scope_mismatch')
+  return structuredClone(authority)
+}
+
+async function invokePlanningAuthorityRpc(
+  client: EditReferenceProductionRpcClient,
+  functionName: string,
+  args: Record<string, unknown>,
+  failureReason: string,
+): Promise<CanonicalExactEditPlanningAuthorityRead> {
+  let result: Awaited<ReturnType<EditReferenceProductionRpcClient['rpc']>>
+  try {
+    result = await client.rpc(functionName, args)
+  } catch {
+    invalid(failureReason)
+  }
+  if (!result || typeof result !== 'object' || result.error) invalid(failureReason)
+  if (!Array.isArray(result.data) || result.data.length !== 1) {
+    invalid(`${failureReason}_response_shape_invalid`)
+  }
+  return result.data[0] as CanonicalExactEditPlanningAuthorityRead
 }
 
 async function invokeExactEditApplyAuthorityRead(

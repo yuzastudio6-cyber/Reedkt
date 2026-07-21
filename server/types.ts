@@ -6,6 +6,7 @@ import type { EditReferenceStudyChatRuntimePort } from './services/edit-referenc
 import type { EditReferenceExactEditApplyRuntimePort } from './services/edit-reference-exact-edit-apply-runtime-port'
 import type { PlanningPreferenceApplicationAuthorityPort } from './services/planning-preference-application-authority-port'
 import type { CanonicalMotionStudioStorytellingProductionAuthorityReaderPort } from './services/canonical-motion-studio-storytelling-production-authority-service'
+import type { PlanningExactEditPreferenceAuthorityPort } from './services/planning-exact-edit-preference-authority-port'
 import type {
   CanonicalDurableUploadTargetTransactionAdapter,
   CanonicalUploadTargetCredentialEscrow,
@@ -58,6 +59,7 @@ export interface RuntimeState {
   clients: RuntimeClients
   storageAdapter?: StorageAdapter
   planningPreferenceApplicationAuthorityPort?: PlanningPreferenceApplicationAuthorityPort
+  planningExactEditPreferenceAuthorityPort?: PlanningExactEditPreferenceAuthorityPort
   canonicalDurableUploadTargetStatePort?: CanonicalDurableUploadTargetTransactionAdapter
   canonicalUploadTargetCredentialEscrow?: CanonicalUploadTargetCredentialEscrow
   editReferenceStudyChatRuntimePort?: EditReferenceStudyChatRuntimePort
@@ -85,6 +87,7 @@ export interface ServiceContext {
   auth?: AuthContext
   storageAdapter?: StorageAdapter
   planningPreferenceApplicationAuthorityPort?: PlanningPreferenceApplicationAuthorityPort
+  planningExactEditPreferenceAuthorityPort?: PlanningExactEditPreferenceAuthorityPort
   canonicalDurableUploadTargetStatePort?: CanonicalDurableUploadTargetTransactionAdapter
   canonicalUploadTargetCredentialEscrow?: CanonicalUploadTargetCredentialEscrow
   editReferenceStudyChatRuntimePort?: EditReferenceStudyChatRuntimePort

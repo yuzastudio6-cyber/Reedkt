@@ -71,6 +71,8 @@ const baseInput: PlannerInput = {
   preferenceDefaultsApplied: true,
   preferenceSnapshotId: 'canonical-save-preference-snapshot',
   currentEditPreferenceRevision: 3,
+  currentEditPreferencePlanningInputRevision: 3,
+  currentEditPreferenceFingerprintSha256: sha('7'),
 }
 const sourceMediaAssets = [{
   mediaAssetId: 'canonical-save-media-1',
@@ -1414,11 +1416,11 @@ const requests: Array<{
   url?: string
 }> = []
 let responseIdentity = { ...identity }
-let exactPreferenceAuthority = exactPreferenceFixture({
-  ...exactPreferenceValues(baseInput),
-  workflowType: 'custom_let_ai_decide',
-  targetPlatform: 'custom',
-}, 4, 2)
+let exactPreferenceAuthority = exactPreferenceFixture(
+  exactPreferenceValues(baseInput),
+  4,
+  3,
+)
 
 const server = createServer((request, response) => {
   const chunks: Buffer[] = []
@@ -1437,43 +1439,11 @@ const server = createServer((request, response) => {
     assert.doesNotMatch(serialized, /storagePath|path-must-never-cross|signedUrl|publicUrl|sourceBytes|bytesBase64/)
     response.setHeader('content-type', 'application/json')
     if (request.url?.includes('/edit-preferences')) {
-      if (request.method === 'GET') {
-        response.end(JSON.stringify({
-          ok: true,
-          data: { preferenceRecord: exactPreferenceAuthority },
-          warnings: [],
-        }))
-        return
-      }
-      assert.equal(request.method, 'PATCH')
-      assert.equal(body.workspaceId, identity.workspaceId)
-      assert.equal(body.expectedRevision, exactPreferenceAuthority.recordRevision)
-      const patch = body.patch as Record<string, unknown>
-      assert.deepEqual(patch, {
-        workflowType: baseInput.workflowType,
-        targetPlatform: baseInput.targetPlatform,
-      })
-      exactPreferenceAuthority = exactPreferenceFixture(
-        { ...exactPreferenceAuthority.values, ...patch } as ReturnType<typeof exactPreferenceValues>,
-        exactPreferenceAuthority.recordRevision + 1,
-        exactPreferenceAuthority.preferenceRevision + 1,
-      )
+      assert.equal(request.method, 'GET')
+      assert.match(request.url ?? '', /\/edit-preferences\/planning-authority\?workspaceId=/)
       response.end(JSON.stringify({
         ok: true,
-        data: {
-          preferenceRecord: exactPreferenceAuthority,
-          changedFields: Object.keys(patch),
-          invalidation: {
-            cause: 'preference_change',
-            changedInputs: Object.keys(patch),
-            draftPlanCleared: true,
-            draftEstimateCleared: true,
-            sourcePreparationReset: false,
-            frameConfirmationReset: true,
-            invalidatedAt: '2026-07-13T12:00:00.000Z',
-          },
-          replayed: false,
-        },
+        data: { authority: exactPreferenceAuthority },
         warnings: [],
       }))
       return
@@ -1526,8 +1496,7 @@ try {
   const { getApiRouteById } = await import('../../src/backend/api/api-route-registry')
   const { saveCanonicalPlanningForNamedEdit } = await import('../../src/lib/canonical-planning-publication-client')
   for (const routeId of [
-    'planning.exactEditPreferences.get',
-    'planning.exactEditPreferences.update',
+    'planning.exactEditPreferences.readPlanningAuthority',
     'planning.canonicalHandoff.create',
     'planning.canonicalPublicationRequest.create',
     'planning.canonicalPlanPresentation.create',
@@ -1552,8 +1521,8 @@ try {
   assert.equal(richResult.status, 'handoff_saved_waiting_for_compiler')
   assert.equal(richResult.handoffSaved, true)
   assert.equal(richResult.candidateSaved, false)
-  assert.equal(requests.length, 3, 'The first save must synchronize exact preferences, then stop after the rich-plan handoff.')
-  assert.deepEqual(requests.slice(0, 3).map((request) => request.method), ['GET', 'PATCH', 'POST'])
+  assert.equal(requests.length, 2, 'The first save must read exact preference authority without mutating it, then stop after the rich-plan handoff.')
+  assert.deepEqual(requests.slice(0, 2).map((request) => request.method), ['GET', 'POST'])
 
   const firstExactSave = saveCanonicalPlanningForNamedEdit({
     scope,
@@ -1581,14 +1550,16 @@ try {
     planVersion: 1,
     planHash: sha('9'),
   })
-  assert.equal(requests.length, 6, 'Exact save should read exact preferences, then issue one handoff and one presentation request.')
+  assert.equal(requests.length, 5, 'Exact save should read exact preferences, then issue one handoff and one presentation request.')
   assert.equal(requests.every((request) => request.authorization === 'Bearer canonical-save-smoke-token'), true)
-  assert.match(requests[5]?.url ?? '', /canonical-planning-handoffs\/canonical-save-handoff\/plan-presentations$/)
-  const exactHandoffBody = requests[4]?.body as {
+  assert.match(requests[4]?.url ?? '', /canonical-planning-handoffs\/canonical-save-handoff\/plan-presentations$/)
+  const exactHandoffBody = requests[3]?.body as {
     canonicalPlanComponents?: {
       confirmedSettings?: {
         preferenceSnapshotId?: string
         preferenceRevision?: number
+        preferencePlanningInputRevision?: number
+        preferenceFingerprintSha256?: string
         professionalExportCoverage?: unknown
       }
     }
@@ -1605,6 +1576,8 @@ try {
     targetPlatform: 'youtube',
     preferenceSnapshotId: 'server-authority-preference-snapshot',
     preferenceRevision: 3,
+    preferencePlanningInputRevision: 3,
+    preferenceFingerprintSha256: sha('7'),
   }, 'Canonical components must use the exact server-owned baseline, preference revision, and approved 4K delivery ceiling.')
   assert.deepEqual(
     exactHandoffBody.canonicalPlanComponents?.confirmedSettings?.professionalExportCoverage,
@@ -1616,10 +1589,8 @@ try {
 
   exactPreferenceAuthority = {
     ...exactPreferenceAuthority,
-    lifecycle: {
-      phase: 'revision_requested',
-      locked: true,
-    },
+    lifecyclePhase: 'revision_handoff',
+    locked: true,
   }
   const revisionJourney = {
     identity: { ...identity },
@@ -1703,7 +1674,7 @@ try {
     revisionJourney,
   })
   assert.equal(changedLockedPreference.status, 'blocked')
-  assert.match(changedLockedPreference.message, /structural replan/i)
+  assert.match(changedLockedPreference.message, /Current Edit Preferences changed/i)
   assert.equal(
     requests.length,
     changedLockedPreferenceStart + 1,
@@ -1713,7 +1684,8 @@ try {
 
   exactPreferenceAuthority = {
     ...exactPreferenceAuthority,
-    lifecycle: { phase: 'planning', locked: false },
+    lifecyclePhase: 'planning',
+    locked: false,
   }
   responseIdentity = { ...identity, workspaceId: 'workspace-foreign' }
   const foreign = await saveCanonicalPlanningForNamedEdit({
@@ -1756,36 +1728,46 @@ function exactPreferenceFixture(
 ) {
   const baselineValues = exactPreferenceValues(baseInput)
   return {
-    schemaVersion: 'private-exact-edit-preferences-v1',
+    schemaVersion: 'canonical-exact-edit-planning-authority-read-v1',
+    sourceAuthority: 'canonical_exact_edit_preference_repository',
+    runtimeSource: 'verified_live',
+    authorityReadReceiptId: `canonical-exact-edit-read-${recordRevision}`,
     workspaceId: identity.workspaceId,
     projectId: identity.projectId,
     editSessionId: identity.editSessionId,
+    recordRevision,
+    preferenceRevision,
+    planningInputRevision: preferenceRevision,
+    preferenceFingerprintSha256: sha('7'),
+    values,
     baseline: {
       values: baselineValues,
       preferenceSnapshotId: 'server-authority-preference-snapshot',
+      preferenceFingerprintSha256: sha('8'),
       capturedAt: '2026-07-13T12:00:00.000Z',
       persistenceSource: 'authenticated_private_internal_backend',
       provenance: 'saved_edit_preferences',
     },
-    values,
-    overrideKeys: Object.keys(values).filter((key) =>
-      values[key as keyof typeof values] !== baselineValues[key as keyof typeof baselineValues]),
-    recordRevision,
-    preferenceRevision,
-    preferenceUpdatedAt: '2026-07-13T12:00:00.000Z',
-    planning: {
-      planningInputRevision: preferenceRevision,
-      preferenceFingerprintSha256: sha('7'),
-      replanRequired: true,
-      reestimateRequired: true,
-      sourcePreparation: { status: 'not_started', updatedAt: '2026-07-13T12:00:00.000Z' },
-      frameConfirmation: { status: 'unconfirmed', updatedAt: '2026-07-13T12:00:00.000Z' },
+    sourcePreparation: {
+      status: 'not_ready',
+      sourceCandidateHashSha256: null,
+      evidenceHashSha256: null,
+      confirmedAt: null,
     },
-    lifecycle: { phase: 'planning', locked: false },
-    auditSummary: { eventCount: recordRevision + 1, latestEventAt: '2026-07-13T12:00:00.000Z' },
-    createdAt: '2026-07-13T12:00:00.000Z',
-    updatedAt: '2026-07-13T12:00:00.000Z',
-    privateInternalOnly: true,
+    frameConfirmation: {
+      status: 'confirmed',
+      confirmationId: 'server-authority-frame-confirmation',
+      aspectRatio: '16:9',
+      confirmedAt: '2026-07-13T12:00:00.000Z',
+      authorityDigestSha256: sha('6'),
+    },
+    lifecyclePhase: 'planning',
+    locked: false,
+    currentApplicationState: 'not_selected',
+    currentApplicationId: null,
+    readAt: '2026-07-13T12:00:00.000Z',
+    browserMutationAuthorityGranted: false,
+    productionReleaseReadinessEvaluatedSeparately: true,
   }
 }
 

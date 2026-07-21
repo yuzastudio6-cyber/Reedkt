@@ -59,30 +59,26 @@ runtime port. With one deterministic Chromium worker it proves:
 7. immutable new-edit baseline, explicit reset, and untouched setup-gate
    behavior.
 
-The focused run completed with exit code `0` and five executed cases. Two of
-those cases are deliberately marked as expected failures—not skipped—because
-they reach the remaining planning-authority blocker described below. Their
-exact `TOOL_NOT_READY` response remains visible in the test output.
+The focused run now completes with exit code `0` and five ordinary passing
+cases. Cleanup invalidation/repreparation and approved-preference locking with
+Chat-led revision are no longer expected failures.
 
-## Remaining planning-authority blocker
+## Planning-authority resolution
 
-`src/lib/canonical-planning-publication-client.ts` still synchronizes exact
-preferences through the retired generic `GET/PATCH .../edit-preferences`
-boundary before plan publication. That authority is not the V3/V6 atomic
-preference/application repository used by this Apply flow. Consequently:
+The follow-up canonical planning-authority slice removes the retired generic
+preference `PATCH` from plan publication. It now:
 
-- cleanup-change replanning cannot yet complete through one canonical
-  preference read;
-- plan approval/read-only locking cannot yet prove the exact committed V3/V6
-  preference revision; and
-- Chat setup choices can diverge unless they are compiled as explicit
-  instruction overrides over the canonical preference snapshot.
+- reads one tenant-bound exact-edit preference authority;
+- binds the immutable baseline, preference revision, planning-input revision,
+  value fingerprint, confirmed output frame, and source-preparation evidence;
+- keeps Preference DNA/Application on its separate canonical authority while
+  requiring the two canonical revisions to agree; and
+- projects only server-issued approval snapshot/reservation identities into
+  exact-edit recovery before routing later changes through Chat and a fresh
+  plan.
 
-The two browser cases for cleanup invalidation and approved preference locking
-therefore execute and expected-fail at this named gate. Replacing the planning
-client and planner authority port is required before these cases may be
-converted to ordinary passing assertions. A mock route or test shim must not
-hide this split authority.
+The exact contract and local RLS/RPC evidence are recorded in
+`docs/canonical-exact-edit-planning-authority-verification-2026-07-21.md`.
 
 ## Edit Reference limitation
 
@@ -113,5 +109,5 @@ This is **mounted local/private integration evidence**, not deployed production
 authority. Remote Supabase, hosted Auth/RLS/storage, cloud workers, providers,
 billing, deployment, public delivery, and production promotion remain disabled.
 The slice must not be described as end-to-end production ready until the
-planning authority, canonical reference preparation repository, live hosted
-adapters, and same-release deployed acceptance gates pass.
+canonical reference preparation repository, live hosted adapters, and
+same-release deployed acceptance gates pass.

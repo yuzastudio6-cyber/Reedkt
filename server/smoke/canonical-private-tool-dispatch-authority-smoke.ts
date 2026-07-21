@@ -4973,7 +4973,13 @@ async function prepareExactPlanningAuthority(projectId: string, targetEditSessio
     exactEditPreference: {
       recordRevision: evidence.preferenceRecord.recordRevision,
       preferenceRevision: evidence.preferenceRecord.preferenceRevision,
+      planningInputRevision: evidence.preferenceRecord.planning.planningInputRevision,
       preferenceFingerprintSha256: exactEditPreferenceFingerprint(evidence.preferenceRecord.values),
+      sourcePreparationEvidenceHash: sha256Text(
+        `dispatch-source-preparation:${workspaceId}:${projectId}:${targetEditSessionId}`,
+      ),
+      sourceCandidateHash: null,
+      frameConfirmationId: `dispatch-frame-confirmation:${targetEditSessionId}`,
     },
     preferenceApplication: { status: 'not_selected' as const, applicationVersion: 0 as const },
     editBrief: { status: 'not_used' as const },
@@ -5066,6 +5072,10 @@ function createDispatchPlanBody(input: {
   matrixOperationIds: Record<MatrixToolId, string>
 }): PublishCanonicalEditPlanBody {
   const components = structuredClone(input.seedAuthority.components)
+  components.confirmedSettings.preferencePlanningInputRevision =
+    input.planningInputAuthority.exactEditPreference.planningInputRevision
+  components.confirmedSettings.preferenceFingerprintSha256 =
+    input.planningInputAuthority.exactEditPreference.preferenceFingerprintSha256
   components.sourceSequence.push(
     input.mediaSourceItem,
     input.secondaryMediaSourceItem,

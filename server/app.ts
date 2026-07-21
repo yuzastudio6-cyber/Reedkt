@@ -42,6 +42,7 @@ export interface ReeditProApiAppOptions {
   storageAdapter?: StorageAdapter
   clients?: RuntimeClients
   planningPreferenceApplicationAuthorityPort?: RuntimeState['planningPreferenceApplicationAuthorityPort']
+  planningExactEditPreferenceAuthorityPort?: RuntimeState['planningExactEditPreferenceAuthorityPort']
   canonicalDurableUploadTargetStatePort?: RuntimeState['canonicalDurableUploadTargetStatePort']
   canonicalUploadTargetCredentialEscrow?: RuntimeState['canonicalUploadTargetCredentialEscrow']
   editReferenceStudyChatRuntimePort?: EditReferenceStudyChatRuntimePort
@@ -56,6 +57,9 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
     ...(options.storageAdapter ? { storageAdapter: options.storageAdapter } : {}),
     ...(options.planningPreferenceApplicationAuthorityPort
       ? { planningPreferenceApplicationAuthorityPort: options.planningPreferenceApplicationAuthorityPort }
+      : {}),
+    ...(options.planningExactEditPreferenceAuthorityPort
+      ? { planningExactEditPreferenceAuthorityPort: options.planningExactEditPreferenceAuthorityPort }
       : {}),
     ...(options.canonicalDurableUploadTargetStatePort
       ? { canonicalDurableUploadTargetStatePort: options.canonicalDurableUploadTargetStatePort }

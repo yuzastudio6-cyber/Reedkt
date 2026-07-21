@@ -7,15 +7,15 @@
   "files": [
     {
       "path": "README.md",
-      "sha256": "7d7e8d0472bde55d9cac89e745e81f9d8dfb534b552e8a47406690a92c6e843a"
+      "sha256": "3011134cec9683bebda09ced11651a0810a97aca554f6d1c810d14e224bd22f9"
     },
     {
       "path": "run-local-verification.sh",
-      "sha256": "6cbbbbd7d805f7a491627d58742a05fd71391890580b33f84adc68132300bbcc"
+      "sha256": "f392ba1b3e8a7fe8961394b57cc838774151e028bde5988f980e9ba17a2b2bd7"
     },
     {
       "path": "verify.mjs",
-      "sha256": "c9519b88e05f6b806209b1aaabfdb54c1494321c1b37bc3967817a3e4ae1560f"
+      "sha256": "181a36a91d26cb86072e7b82fc53d78c708a267567ae9a148ce9c40a1941b804"
     },
     {
       "path": "supabase/.gitignore",
@@ -46,8 +46,8 @@
       "sha256": "e73e265e32e8eafa201107bbf80e2663ce33b8906c20834a9e1030b93d1af11e"
     },
     {
-      "path": "tests/_fixture.sql",
-      "sha256": "e30b72a712cee0a32208da780b69a731d1495d664a819042f5569a041e9613f6"
+      "path": "supabase/migrations/202607210006_canonical_exact_edit_planning_authority.sql",
+      "sha256": "74c535e58cd26351de6e99b315376639aecb7330786825f8751a686ad7645923"
     },
     {
       "path": "tests/001_two_user_two_workspace_rls.sql",
@@ -72,40 +72,164 @@
     {
       "path": "tests/006_exact_edit_apply_authority_read.sql",
       "sha256": "554eb02d74192ab71ae85614fa2223dfd0538ebe08ea655da96a1a809cda5b1b"
+    },
+    {
+      "path": "tests/007_canonical_exact_edit_planning_authority.sql",
+      "sha256": "e3c6f69bf66e039a1486aab00f2de4d1ce5cba214c42cb6e68fb85595f920639"
+    },
+    {
+      "path": "tests/_fixture.sql",
+      "sha256": "e30b72a712cee0a32208da780b69a731d1495d664a819042f5569a041e9613f6"
     }
   ],
   "repositoryFiles": [
     {
-      "path": "docs/canonical-v3-local-exact-edit-atomic-apply-verification-2026-07-21.md",
-      "sha256": "84fc1424c531ceff2c50b060cb00ff633d4d38ea6062d1915568998288cca11d"
+      "path": "docs/canonical-exact-edit-planning-authority-verification-2026-07-21.md",
+      "sha256": "1f382a8457d02f468a706ce7cd29f91b23727f1f247de2298e38154f4c3f5827"
     },
     {
       "path": "docs/canonical-v3-local-exact-edit-apply-authority-read-verification-2026-07-21.md",
       "sha256": "119115ee058850d3f0197d52a4efa73cd43761b49c24852c349712ef823af9ac"
     },
     {
+      "path": "docs/canonical-v3-local-exact-edit-atomic-apply-verification-2026-07-21.md",
+      "sha256": "84fc1424c531ceff2c50b060cb00ff633d4d38ea6062d1915568998288cca11d"
+    },
+    {
+      "path": "docs/edit-preferences-mounted-atomic-apply-recovery-2026-07-21.md",
+      "sha256": "cfddcfdd5d2c0a9074df9eae7bcb89a0b4edaeffcb71bf3033543c479f1703b1"
+    },
+    {
+      "path": "package.json",
+      "sha256": "1fd9549fa3879416b28fb26cc09ecb3a309650d1bdeccd95d4dedfd250798088"
+    },
+    {
+      "path": "server/app.ts",
+      "sha256": "4f7dfc892aa604e050442fe1f7671147fd1e4bda87fb16494f36c7b7773c56f7"
+    },
+    {
+      "path": "server/edit-references/canonical-exact-edit-planning-authority-boundary.ts",
+      "sha256": "54a253f0be8434d2bd696ea10efecb1392a3364fe4a1cb8829036849c4a58f01"
+    },
+    {
       "path": "server/edit-references/edit-reference-local-supabase-http-rpc-client.ts",
-      "sha256": "021bd87b9cf7c98ffaa0df8839287289dba2f82db328bf07c7cd5f437db2341a"
+      "sha256": "d1e2b3830c4d4cf78ab430f04baa9834fe4698c3bd9c5882c8a85f0648beae5b"
     },
     {
       "path": "server/edit-references/edit-reference-local-supabase-rpc-adapter.ts",
-      "sha256": "f13b488fba2315e00d3695fe3c15b38d7c8e6671da5b0907e9b849cca0589e9e"
+      "sha256": "773f7ea7a5a58a465a831f393b357c92d257d8bf6d314df2b98ccc1cf1e31d14"
     },
     {
       "path": "server/edit-references/edit-reference-production-exact-edit-apply-boundary.ts",
-      "sha256": "d848e64694734f50ea40e514e1799b085ccd49450cb16be481b7920d3404a356"
+      "sha256": "3def6d5e6f58c7349d910098954b997c1f0f84776d6d5dac088a287157847321"
+    },
+    {
+      "path": "server/routes/exact-edit-preference-routes.ts",
+      "sha256": "3b1b3b74365f37ca1172f2003baa5a1e07d85218ce2b5884e84aad4347c54873"
+    },
+    {
+      "path": "server/routes/route-helpers.ts",
+      "sha256": "00e9e68fa46fb85bb92e1aa54312ae1bf3a255ec33b2d3b79df56b3f8a996ddf"
+    },
+    {
+      "path": "server/services/canonical-planning-handoff-service.ts",
+      "sha256": "8b4d4d214af6f1e26cc6c884265e00088e5ced22ee54e98353e05acde7878a5c"
+    },
+    {
+      "path": "server/services/planning-exact-edit-preference-authority-port.ts",
+      "sha256": "8b321aaf6415ceb397a1f118339fd15cb327a704ee338c9627d7eafbfa1682fd"
+    },
+    {
+      "path": "server/services/planning-exact-edit-preference-authority-service.ts",
+      "sha256": "742dc27bb3bb08a040d169dda5af5cc124829a667fbdc40afafb1c84302ebd62"
+    },
+    {
+      "path": "server/services/planning-input-authority-binding-service.ts",
+      "sha256": "dfaf76bee23587280f45859f1fc9500c82240ab2b71eeace53b9f012572554cb"
+    },
+    {
+      "path": "server/smoke/canonical-planning-publication-frontend-client-smoke.ts",
+      "sha256": "bed96ddc5779b696bbae1a620f041fb9e5eee5fc0dca62fe387254b40a1d710f"
+    },
+    {
+      "path": "server/smoke/canonical-private-tool-dispatch-authority-smoke.ts",
+      "sha256": "4d6b7782f1a0736040358359731340cb52c371a468b2e809ae835605cd1dad49"
+    },
+    {
+      "path": "server/smoke/canonical-professional-long-form-cross-chunk-color-smoke.ts",
+      "sha256": "c791b73362778a8b2cac1c07fe4ab4e9476183758ba6f963a679d8e458f0fb14"
+    },
+    {
+      "path": "server/smoke/canonical-professional-long-form-post-approval-smoke.ts",
+      "sha256": "5ec1091e98335117be274e24c5a7d5238f946f0f96b864d71f701fe21b06c4ec"
+    },
+    {
+      "path": "server/smoke/edit-planning-authority-smoke.ts",
+      "sha256": "3059bdcff085034db8fc488af83684f62cc93c26b934d68feb9e33ab5e679f1e"
     },
     {
       "path": "server/smoke/edit-reference-local-supabase-http-rpc-smoke.ts",
-      "sha256": "4b5d877646126fe0217eae77e4c008d32ddd9272a181f14a4dab77a635d6bb66"
+      "sha256": "4dc989627af7664c5c24c4088fc8311dfa9c7e168a57b36ec4c9f7f799896110"
     },
     {
       "path": "server/smoke/edit-reference-local-supabase-rpc-adapter-smoke.ts",
-      "sha256": "7c1751394c76f8e4f65bf0f16f4e25cf8acd9b5d7f841cfcae1e320794d1b56d"
+      "sha256": "c38ae19538d8bb4561788a2bf2879e6fa4c645a33f551da9d64f60230e702abc"
+    },
+    {
+      "path": "server/smoke/planning-exact-edit-preference-authority-port-smoke.ts",
+      "sha256": "40f63a921fc7c794e98e9baf745ee2b5f44652b38179d977bd7ff283d7e5dfb5"
+    },
+    {
+      "path": "server/types.ts",
+      "sha256": "233630dc82146fba3a539fb1acf562dc65b873567a5a3dde4373222f19202d9a"
+    },
+    {
+      "path": "server/validation/canonical-exact-edit-planning-authority-schemas.ts",
+      "sha256": "9055d5395d2550c83a0dfaded2eeb656074de99c97eec62134f00c66d6a0c4a7"
+    },
+    {
+      "path": "server/validation/edit-planning-authority-schemas.ts",
+      "sha256": "dec9118d22a5e4c25d1156c375704b24ce894be79febaf77589d045715519a02"
+    },
+    {
+      "path": "server/validation/planning-input-authority-binding-schemas.ts",
+      "sha256": "4d3ce8bb0822bfd3d9f9e24b13f033af433dc0218760240c7cf5e604e9622fca"
+    },
+    {
+      "path": "src/backend/api/routes/edit-planning-api-routes.ts",
+      "sha256": "538364e8e2fd5d9ffbd842b939e853d554619b6c892daa54ac7d9477be71ef7f"
+    },
+    {
+      "path": "src/components/editor/ChatNativeEditor.tsx",
+      "sha256": "94982ffa58d91dfeb0a7c40289f9a8bde5d863685f9b34ce2db3ed7b9d84e13b"
+    },
+    {
+      "path": "src/lib/canonical-planning-draft.ts",
+      "sha256": "39ac9f0f6fef2180960f6b0644d4f91ba4cac8c5a72e3528b2fef76397791d53"
+    },
+    {
+      "path": "src/lib/canonical-planning-publication-client.ts",
+      "sha256": "7428f2dbaa4583ff22c3e9ac42e388a4787f18f762943cdd5c5e5b0ffdb71376"
+    },
+    {
+      "path": "src/types/canonical-exact-edit-planning-authority.ts",
+      "sha256": "c15c42d3976172bfd7102588f311c470e06982132337194a8eb12979708bb6b9"
     },
     {
       "path": "src/types/edit-reference-production-exact-edit-apply-api.ts",
-      "sha256": "4ef2ec39cf35278145b1524bc41a5ebf270312c9f926405ea76645d6e8388ea5"
+      "sha256": "adbeea8ec86d9f8a8a1c582eae04706756bcebcbcaad403131fe7d87cc44e45f"
+    },
+    {
+      "path": "src/types/reeditpro.ts",
+      "sha256": "6ccfadc587028f89405b18c0bf47858231e22d20584d87ac0317e2b6c0cfbf4a"
+    },
+    {
+      "path": "tests/e2e/edit-preferences-atomic-api-server.ts",
+      "sha256": "e40cacd89bf710655ed55a798ad1dbd4f693423fc8302aab1f0628811ddc12a0"
+    },
+    {
+      "path": "tests/e2e/edit-preferences-current-edit.spec.ts",
+      "sha256": "cf44e0695633657b6e8e5afc45306a8811193d04b2966dccd37b76fc21933a87"
     }
   ]
 }

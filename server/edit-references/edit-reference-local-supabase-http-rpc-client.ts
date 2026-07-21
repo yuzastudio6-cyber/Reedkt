@@ -7,6 +7,10 @@ import {
   EDIT_REFERENCE_PRODUCTION_APPLICATION_LIFECYCLE_RPC,
 } from './edit-reference-production-application-lifecycle'
 import {
+  CANONICAL_EXACT_EDIT_PLANNING_AUTHORITY_READ_RPC,
+  CANONICAL_EXACT_EDIT_PLANNING_EVIDENCE_RPC,
+} from './canonical-exact-edit-planning-authority-boundary'
+import {
   editReferenceProductionPersistenceContract,
 } from './edit-reference-production-persistence-contract'
 import type {
@@ -22,6 +26,8 @@ const ALLOWED_RPC_FUNCTIONS = new Set<string>([
   EDIT_REFERENCE_PRODUCTION_EXACT_EDIT_APPLY_RPC,
   EDIT_REFERENCE_PRODUCTION_APPLICATION_LIFECYCLE_RPC,
   editReferenceProductionPersistenceContract.planningAuthorityRead.name,
+  CANONICAL_EXACT_EDIT_PLANNING_AUTHORITY_READ_RPC,
+  CANONICAL_EXACT_EDIT_PLANNING_EVIDENCE_RPC,
 ])
 const MAX_RESPONSE_BYTES = 2 * 1024 * 1024
 

@@ -1,4 +1,9 @@
 import { expect, test, type Page } from '@playwright/test'
+import path from 'node:path'
+import {
+  EDIT_REFERENCE_CONTROLLED_MEDIA_FIXTURE_DEFINITIONS,
+  materializeEditReferenceControlledMediaFixture,
+} from '../../server/edit-references/edit-reference-controlled-media-fixtures'
 import {
   buildLocalProjectHandoffStorageKey,
   type LocalInternalProjectHandoff,
@@ -18,6 +23,7 @@ const projectScope = {
   workspaceId: 'workspace-internal-testing',
 }
 const handoffStorageKey = buildLocalProjectHandoffStorageKey(projectScope)
+let approvedPreferenceSourceFixturePath = ''
 
 async function createNamedEdit(page: Page, label: string) {
   await gotoRoute(page, '/projects/new')
@@ -50,6 +56,24 @@ async function expectCurrentEditPreferencesApplied(page: Page) {
 }
 
 test.describe('saved and current Edit Preferences', () => {
+  test.beforeAll(async ({ browserName }, testInfo) => {
+    if (browserName !== 'chromium') return
+    const fixtureDefinition = EDIT_REFERENCE_CONTROLLED_MEDIA_FIXTURE_DEFINITIONS.find(
+      (definition) => definition.fixtureId === 'target_b_travel_talking_head',
+    )
+    if (!fixtureDefinition) throw new Error('The controlled exact-edit preference source fixture is unavailable.')
+    const fixture = await materializeEditReferenceControlledMediaFixture({
+      outputRoot: path.join(
+        testInfo.project.outputDir,
+        'controlled-source-fixtures',
+        String(process.pid),
+      ),
+      definition: fixtureDefinition,
+      timeoutMs: 60_000,
+    })
+    approvedPreferenceSourceFixturePath = fixture.videoPath
+  })
+
   test.beforeEach(async ({ page }) => {
     await setViewport(page, 1440)
   })
@@ -156,10 +180,6 @@ test.describe('saved and current Edit Preferences', () => {
   })
 
   test('clears a stale draft plan and requires source prep again when cleanup changes', async ({ page }) => {
-    test.fail(
-      true,
-      'Canonical planning still reads the retired exact-preference store instead of the V3/V6 atomic authority.',
-    )
     await createNamedEdit(page, 'replan')
     await uploadEditorGateSourceVideo(page, 'current-preferences-source.mp4')
     await page.getByTestId('chat-composer-textarea').fill('Create a concise product update with a calm, premium finish.')
@@ -196,20 +216,40 @@ test.describe('saved and current Edit Preferences', () => {
   })
 
   test('keeps approved preferences read-only and routes changes through Chat revision', async ({ page }) => {
-    test.fail(
-      true,
-      'Plan approval remains fail-closed until canonical planning consumes the V3/V6 exact-preference authority.',
-    )
     await createNamedEdit(page, 'approved')
-    await uploadEditorGateSourceVideo(page, 'approved-preferences-source.mp4')
-    await page.getByTestId('chat-composer-textarea').fill('Create a clean founder update and preserve the core explanation.')
+    await clickWhenReady(page.getByTestId('current-edit-preferences-trigger'))
+    await openAdvancedPreferences(page)
+    await page.getByTestId('current-edit-preference-workflow').selectOption('simple_clean_edit')
+    await page.getByTestId('current-edit-preference-visual-direction').selectOption('no_extra_visuals')
+    await page.getByTestId('current-edit-preference-cleanup').selectOption('preserve_natural')
+    await clickWhenReady(page.getByRole('button', { name: /^Apply to this edit$/i }))
+    await expectCurrentEditPreferencesApplied(page)
+    await clickWhenReady(page.getByTestId('edit-workspace-view-chat'))
+
+    const uploadGate = page.getByTestId('edit-upload-gate')
+    await expect(uploadGate).toBeVisible()
+    await page.getByTestId('edit-upload-gate-input').setInputFiles(approvedPreferenceSourceFixturePath)
+    await expect(page.getByTestId('source-summary')).toContainText('fixture.mp4')
+    await page.getByTestId('chat-composer-textarea').fill(
+      'Use the source only in its original order with one readable caption. Do not add music, sound effects, transitions, generated visuals, or extra scenes.',
+    )
     await clickWhenReady(page.getByTestId('chat-composer-send'))
     await completeRequiredEditorSetupBeforeFootagePrep(page)
+    expect((await readHandoff(page))?.setup).toMatchObject({
+      sourceSequenceMode: 'single_complete_video',
+      sourceOrderConfirmed: true,
+      cleanupPreference: 'preserve_natural',
+      cleanupPreferenceConfirmed: true,
+      visualPreference: 'no_extra_visuals',
+      workflowType: 'simple_clean_edit',
+    })
     await clickWhenReady(page.getByRole('button', { name: /^Prepare source$/i }))
     await clickWhenReady(page.getByRole('button', { name: /^Create edit plan$/i }))
     await expect(await findPlanReview(page)).toBeVisible()
     await clickWhenReady(page.getByTestId('plan-review-approve'))
-    await expect(page.getByTestId('private-review')).toBeVisible({ timeout: 10_000 })
+    await expect(page.getByText(/Approval is safely recorded/i)).toBeVisible()
+    await expect(page.getByRole('button', { name: /^Prepare private handoff$/i })).toBeVisible()
+    await expect(page.getByTestId('private-review')).toHaveCount(0)
 
     const approvedBeforeOpen = await readHandoff(page)
     expect(approvedBeforeOpen?.approvedSnapshotId).toBeTruthy()
@@ -225,7 +265,7 @@ test.describe('saved and current Edit Preferences', () => {
     expect(approvedAfterOpen?.approvedCreditReservationId).toBe(approvedBeforeOpen?.approvedCreditReservationId)
 
     await clickWhenReady(page.getByTestId('current-edit-preferences-locked').getByRole('button', { name: /^Return to Chat$/i }))
-    await expect(page.getByTestId('private-review')).toBeVisible()
+    await expect(page.getByText(/Approval is safely recorded/i)).toBeVisible()
     await expect(page).not.toHaveURL(/view=preferences/)
 
     await page.getByTestId('chat-composer-textarea').fill('Use the product demo workflow, light cleanup, premium mood, and save credits.')

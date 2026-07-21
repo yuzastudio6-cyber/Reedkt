@@ -496,12 +496,6 @@ function normalizeEditorProjectName(value: string | null, fallback: string) {
   return cleaned.slice(0, 80)
 }
 
-function targetPlatformForAspectRatio(aspectRatio: AspectRatio): TargetPlatform {
-  if (aspectRatio === '9:16') return 'tiktok_reels_shorts'
-  if (aspectRatio === '16:9') return 'youtube'
-  return 'custom'
-}
-
 function AdvancedCardFallback({ label = 'Loading advanced details...' }: { label?: string }) {
   return (
     <div aria-live="polite" className="advanced-card-fallback" role="status">
@@ -1374,6 +1368,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     const recoveredHandoff = localProjectHandoff?.projectId === editorProjectId ? localProjectHandoff : undefined
     const recoveredSnapshotId = recoveredHandoff?.approvedSnapshotId
     if (!recoveredSnapshotId || approvedSnapshot?.id === recoveredSnapshotId) return
+    if (canonicalPlanningBackendConnected) return
     if (approvedSnapshotRecoveryAttemptedIdRef.current === recoveredSnapshotId) return
 
     let cancelled = false
@@ -1416,6 +1411,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     }
   }, [
     approvedSnapshot?.id,
+    canonicalPlanningBackendConnected,
     editorOperationUserId,
     editorProjectId,
     localProjectHandoff,
@@ -3136,9 +3132,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
   }
 
   function handleAspectRatioSelect(ratio: AspectRatio) {
-    const nextTargetPlatform = targetPlatformForAspectRatio(ratio)
     const nextFrameTemplateType = getDefaultFrameTemplateForAspectRatio(ratio).templateType
-    setTargetPlatform(nextTargetPlatform)
     setAspectRatio(ratio)
     setFrameTemplateType(nextFrameTemplateType)
     setAspectRatioConfirmed(false)
@@ -3149,7 +3143,6 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     setVisualPreferenceConfirmed(false)
     persistCurrentEditSetupAfterPlanInvalidation({
       aspectRatio: ratio,
-      targetPlatform: nextTargetPlatform,
       frameTemplateType: nextFrameTemplateType,
       aspectRatioConfirmed: false,
       cleanupPreferenceConfirmed: false,
@@ -3165,12 +3158,10 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
       ? recommendedAspectRatio
       : aspectRatio
     const nextFrameTemplateType = getDefaultFrameTemplateForAspectRatio(nextAspectRatio).templateType
-    const nextTargetPlatform = targetPlatformForAspectRatio(nextAspectRatio)
 
     if (aspectRatio === 'let_ai_decide' && recommendedAspectRatio && recommendedAspectRatio !== 'let_ai_decide') {
       setAspectRatio(recommendedAspectRatio)
       setFrameTemplateType(nextFrameTemplateType)
-      setTargetPlatform(nextTargetPlatform)
     }
 
     setAspectRatioConfirmed(true)
@@ -3179,7 +3170,6 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     persistCurrentEditSetupAfterPlanInvalidation({
       aspectRatio: nextAspectRatio,
       frameTemplateType: nextFrameTemplateType,
-      targetPlatform: nextTargetPlatform,
       aspectRatioConfirmed: true,
       aspectRatioSource: 'user_selected',
       cleanupPreferenceConfirmed: false,
@@ -3350,6 +3340,13 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
 
       const canonicalResult = await canonicalPlanApproval.approve(canonicalJourneyValue)
       if (canonicalResult.status === 'approved') {
+        updateLocalInternalEditHandoff(editorProjectId, editorEditSessionId, {
+          stage: 'plan_approved',
+          approvedSnapshotId: canonicalResult.receipt.approval.snapshotId,
+          approvedCreditReservationId: canonicalResult.receipt.approval.reservationId,
+          sourceFileCount: sourceMediaAssets.length > 0 ? sourceMediaAssets.length : clips.length,
+          setup: createCurrentEditSetupSnapshot(),
+        })
         showRevisionMessage(canonicalResult.message)
       } else {
         blockApproval(

@@ -18,14 +18,43 @@ assert(Array.isArray(manifest.files) && manifest.files.length >= 9, 'manifest_fi
 assert(Array.isArray(manifest.repositoryFiles), 'repository_manifest_file_set_invalid')
 
 const expectedRepositoryFiles = [
+  'docs/canonical-exact-edit-planning-authority-verification-2026-07-21.md',
   'docs/canonical-v3-local-exact-edit-apply-authority-read-verification-2026-07-21.md',
   'docs/canonical-v3-local-exact-edit-atomic-apply-verification-2026-07-21.md',
+  'docs/edit-preferences-mounted-atomic-apply-recovery-2026-07-21.md',
+  'package.json',
+  'server/app.ts',
+  'server/edit-references/canonical-exact-edit-planning-authority-boundary.ts',
   'server/edit-references/edit-reference-local-supabase-http-rpc-client.ts',
   'server/edit-references/edit-reference-local-supabase-rpc-adapter.ts',
   'server/edit-references/edit-reference-production-exact-edit-apply-boundary.ts',
+  'server/routes/exact-edit-preference-routes.ts',
+  'server/routes/route-helpers.ts',
+  'server/services/canonical-planning-handoff-service.ts',
+  'server/services/planning-exact-edit-preference-authority-port.ts',
+  'server/services/planning-exact-edit-preference-authority-service.ts',
+  'server/services/planning-input-authority-binding-service.ts',
+  'server/smoke/canonical-planning-publication-frontend-client-smoke.ts',
+  'server/smoke/canonical-private-tool-dispatch-authority-smoke.ts',
+  'server/smoke/canonical-professional-long-form-cross-chunk-color-smoke.ts',
+  'server/smoke/canonical-professional-long-form-post-approval-smoke.ts',
+  'server/smoke/edit-planning-authority-smoke.ts',
   'server/smoke/edit-reference-local-supabase-http-rpc-smoke.ts',
   'server/smoke/edit-reference-local-supabase-rpc-adapter-smoke.ts',
+  'server/smoke/planning-exact-edit-preference-authority-port-smoke.ts',
+  'server/types.ts',
+  'server/validation/canonical-exact-edit-planning-authority-schemas.ts',
+  'server/validation/edit-planning-authority-schemas.ts',
+  'server/validation/planning-input-authority-binding-schemas.ts',
+  'src/backend/api/routes/edit-planning-api-routes.ts',
+  'src/components/editor/ChatNativeEditor.tsx',
+  'src/lib/canonical-planning-draft.ts',
+  'src/lib/canonical-planning-publication-client.ts',
+  'src/types/canonical-exact-edit-planning-authority.ts',
   'src/types/edit-reference-production-exact-edit-apply-api.ts',
+  'src/types/reeditpro.ts',
+  'tests/e2e/edit-preferences-atomic-api-server.ts',
+  'tests/e2e/edit-preferences-current-edit.spec.ts',
 ]
 const actualRepositoryFiles = manifest.repositoryFiles
   .map((entry) => entry.path)
@@ -38,6 +67,7 @@ const expectedMigrations = [
   '202607210003_edit_reference_v6_security_and_rpcs.sql',
   '202607210004_exact_edit_atomic_apply.sql',
   '202607210005_exact_edit_apply_authority_read.sql',
+  '202607210006_canonical_exact_edit_planning_authority.sql',
 ]
 const actualMigrations = readdirSync(join(directory, 'supabase', 'migrations'))
   .filter((name) => name.endsWith('.sql'))
@@ -72,6 +102,8 @@ for (const requiredToken of [
   'mutate_edit_reference_application_lifecycle_v3',
   'apply_exact_edit_preferences_and_reference_v1',
   'read_exact_edit_apply_authority_v1',
+  'read_exact_edit_planning_authority_v1',
+  'record_exact_edit_planning_evidence_v1',
   'read_exact_edit_reference_application_state_v2',
   'assert_preference_application_plan_current_v1',
   'reserve_edit_reference_study_chat_run_v1',

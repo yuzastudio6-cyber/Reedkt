@@ -5,6 +5,7 @@ import { requireSensitiveIdempotencyKey } from '../middleware/idempotency'
 import { requireInternalServiceAuth } from '../middleware/internal-service-auth'
 import { createEditReferenceExactEditApplyService } from '../services/edit-reference-exact-edit-apply-service'
 import { createExactEditPreferenceService } from '../services/exact-edit-preference-service'
+import { createPlanningExactEditPreferenceAuthorityService } from '../services/planning-exact-edit-preference-authority-service'
 import { validateBody } from '../validation/common-schemas'
 import {
   exactEditPreferenceWorkspaceSchema,
@@ -56,6 +57,22 @@ export function createExactEditPreferenceRoutes(): Router {
         projectId: getRouteParam(request, 'projectId'),
         editSessionId: getRouteParam(request, 'editSessionId'),
         selectedApplicationId: query.selectedApplicationId ?? null,
+      })
+      sendOk(response, { authority })
+    }),
+  )
+
+  router.get(
+    '/v1/projects/:projectId/edit-sessions/:editSessionId/edit-preferences/planning-authority',
+    requireAuth,
+    asyncRoute(async (request, response) => {
+      const query = validateBody(exactEditPreferenceWorkspaceSchema, request.query)
+      const authority = await createPlanningExactEditPreferenceAuthorityService(
+        getServiceContext(request),
+      ).read({
+        workspaceId: query.workspaceId,
+        projectId: getRouteParam(request, 'projectId'),
+        editSessionId: getRouteParam(request, 'editSessionId'),
       })
       sendOk(response, { authority })
     }),

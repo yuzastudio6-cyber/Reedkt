@@ -4539,6 +4539,8 @@ export interface PlannerInput {
   preferencePersistenceSource?: EditPreferencePersistenceSource
   currentEditPreferenceOverrideKeys?: EditPreferenceFieldKey[]
   currentEditPreferenceRevision?: number
+  currentEditPreferencePlanningInputRevision?: number
+  currentEditPreferenceFingerprintSha256?: string
   creditPreference: CreditPreference
   clips: ClipSource[]
   sourceSequenceMode?: SourceSequenceMode

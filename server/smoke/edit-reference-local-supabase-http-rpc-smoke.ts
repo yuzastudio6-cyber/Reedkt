@@ -195,6 +195,50 @@ assert.equal(committedApplyAuthority.outputFrameAuthority?.exactEditPreferenceRe
 assert.equal(committedApplyAuthority.outputFrameAuthority?.planningInputRevision, 1)
 assert.equal(committedApplyAuthority.selectedApplicationAuthority?.connectionState, 'connected')
 
+const planningBefore = await adapterA.readExactEditPlanningAuthority({
+  actorUserId: ownerA,
+  workspaceId: workspaceA,
+  projectId: projectA,
+  editSessionId: editA,
+})
+assert.equal(planningBefore.recordRevision, 1)
+assert.equal(planningBefore.preferenceRevision, 1)
+assert.equal(planningBefore.planningInputRevision, 1)
+assert.deepEqual(planningBefore.values, {
+  ...preferenceValues,
+  visualPreference: 'keep_visuals_minimal',
+})
+assert.equal(planningBefore.sourcePreparation.status, 'not_ready')
+assert.equal(planningBefore.frameConfirmation.status, 'confirmed')
+
+const planningAfter = await adapterA.recordExactEditPlanningEvidence({
+  schemaVersion: 'canonical-exact-edit-planning-evidence-request-v1',
+  actorUserId: ownerA,
+  workspaceId: workspaceA,
+  projectId: projectA,
+  editSessionId: editA,
+  expectedPreferenceRevision: planningBefore.preferenceRevision,
+  expectedPlanningInputRevision: planningBefore.planningInputRevision,
+  expectedPreferenceFingerprintSha256:
+    planningBefore.preferenceFingerprintSha256,
+  expectedBaselinePreferenceSnapshotId:
+    planningBefore.baseline.preferenceSnapshotId,
+  sourceCandidateHashSha256: '4'.repeat(64),
+  sourcePreparationEvidenceHashSha256: '5'.repeat(64),
+  confirmedAspectRatio: '16:9',
+})
+assert.equal(planningAfter.recordRevision, 2)
+assert.equal(planningAfter.preferenceRevision, 1)
+assert.equal(planningAfter.planningInputRevision, 1)
+assert.equal(planningAfter.sourcePreparation.status, 'ready')
+if (planningAfter.sourcePreparation.status !== 'ready') {
+  throw new Error('Canonical planning evidence was not committed.')
+}
+assert.equal(
+  planningAfter.sourcePreparation.sourceCandidateHashSha256,
+  '4'.repeat(64),
+)
+
 const deniedMutation = await clientB.rpc(
   'apply_exact_edit_preferences_and_reference_v1',
   {
@@ -217,6 +261,15 @@ await assert.rejects(
 
 await assert.rejects(
   adapterB.planningAuthorityReader.readExactApplicationState({
+    actorUserId: ownerB,
+    workspaceId: workspaceA,
+    projectId: projectA,
+    editSessionId: editA,
+  }),
+)
+
+await assert.rejects(
+  adapterB.readExactEditPlanningAuthority({
     actorUserId: ownerB,
     workspaceId: workspaceA,
     projectId: projectA,
@@ -265,6 +318,9 @@ console.log(JSON.stringify({
   exactReplayStable: true,
   outputFrameAuthorityResealedAfterRevision: true,
   nestedLifecycleConnected: true,
+  exactEditPlanningAuthorityReadVerified: true,
+  sourcePreparationEvidenceCommittedWithoutPreferenceRevision: true,
+  crossWorkspacePlanningAuthorityDenied: true,
   ownerVisibleApplyEvents: 1,
   crossWorkspaceVisibleApplyEvents: 0,
   crossWorkspaceMutationDenied: true,

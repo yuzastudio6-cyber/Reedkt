@@ -83,6 +83,8 @@ const confirmedSettingsSchema = z.object({
   targetPlatform: z.string().trim().min(1).max(80),
   preferenceSnapshotId: safeKeySchema.optional(),
   preferenceRevision: z.number().int().nonnegative().optional(),
+  preferencePlanningInputRevision: z.number().int().nonnegative(),
+  preferenceFingerprintSha256: sha256Schema,
 }).strict()
 
 const confirmedSourceCleanupSummarySchema = z.object({

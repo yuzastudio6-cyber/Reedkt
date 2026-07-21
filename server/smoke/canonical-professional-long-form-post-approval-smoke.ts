@@ -2715,9 +2715,15 @@ async function preparePlanningInputAuthority(
     exactEditPreference: {
       recordRevision: evidence.preferenceRecord.recordRevision,
       preferenceRevision: evidence.preferenceRecord.preferenceRevision,
+      planningInputRevision: evidence.preferenceRecord.planning.planningInputRevision,
       preferenceFingerprintSha256: exactEditPreferenceFingerprint(
         evidence.preferenceRecord.values,
       ),
+      sourcePreparationEvidenceHash: sha256Text(
+        'six-hour-long-form-source-preparation-ready',
+      ),
+      sourceCandidateHash: null,
+      frameConfirmationId: 'six-hour-long-form-frame-confirmation',
     },
     preferenceApplication: {
       status: 'not_selected' as const,
@@ -2901,6 +2907,10 @@ function createCanonicalPlanBody(input: {
       targetPlatform: 'youtube',
       preferenceSnapshotId: 'server-default-exact-edit-preferences-v1',
       preferenceRevision: 1,
+      preferencePlanningInputRevision:
+        input.planningInputAuthority.exactEditPreference.planningInputRevision,
+      preferenceFingerprintSha256:
+        input.planningInputAuthority.exactEditPreference.preferenceFingerprintSha256,
     },
     sourceSequence: input.sourceFixture.sourceSequence.map((source) => ({
       ...source,

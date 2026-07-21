@@ -1,7 +1,10 @@
 import { ApiError } from '../errors/api-error'
 
 export const EDIT_REFERENCE_PRODUCTION_PERSISTENCE_CONTRACT_VERSION =
-  'edit-reference-production-persistence-contract-v1' as const
+  'edit-reference-production-persistence-contract-v4' as const
+
+export const EDIT_REFERENCE_PRODUCTION_APPLICATION_LIFECYCLE_RPC_NAME =
+  'mutate_edit_reference_application_lifecycle_v3' as const
 
 export const EDIT_REFERENCE_REQUIRED_PRODUCTION_TABLES = [
   'edit_references',
@@ -63,20 +66,28 @@ export interface EditReferenceProductionTableContract {
 }
 
 export interface EditReferenceApplicationLifecycleTransactionContract {
-  readonly rpcName: 'mutate_edit_reference_application_lifecycle_v1'
-  readonly supportedMutations: readonly ['replace', 'remove']
+  readonly rpcName: typeof EDIT_REFERENCE_PRODUCTION_APPLICATION_LIFECYCLE_RPC_NAME
+  readonly supportedMutations: readonly ['apply', 'replace', 'remove']
   readonly authorization: {
     readonly authenticatedUserRequired: true
     readonly workspaceEditorOrOwnerRequired: true
     readonly serviceRoleBrowserUseAllowed: false
     readonly workspaceProjectCompositeBindingRequired: true
     readonly projectEditSessionCompositeBindingRequired: true
+    readonly applyOrReplaceApprovedPreferenceDnaRequired: true
+    readonly applyOrReplaceTargetVideoUnderstandingRequired: true
+    readonly applyOrReplaceOutputFrameConfirmedRequired: true
+    readonly applyOrReplaceOutputFrameConfirmationDigestRequired: true
+    readonly exactEditFrameAuthorityTransactionallyReReadRequired: true
+    readonly callerSuppliedFrameAuthorityTrusted: false
+    readonly currentPlanLineageReadRequired: true
   }
   readonly compareAndSwap: {
     readonly expectedReferenceRevisionRequired: true
     readonly applicationContentDigestRequired: true
     readonly applicationContextHashRequired: true
-    readonly currentApplicationStatusRequired: true
+    readonly currentApplicationExpectationRequired: true
+    readonly exactEditPlanningInputRevisionRequired: true
   }
   readonly idempotency: {
     readonly keyHashRequired: true
@@ -85,6 +96,14 @@ export interface EditReferenceApplicationLifecycleTransactionContract {
     readonly changedRequestConflictRequired: true
     readonly durableResponseDigestRequired: true
     readonly mutationAndReceiptShareTransaction: true
+  }
+  readonly planningInvalidation: {
+    readonly firstApplyInvalidatesExistingDraftPlanAndEstimate: true
+    readonly replacementInvalidatesExistingDraftPlanAndEstimate: true
+    readonly removalInvalidatesExistingDraftPlanAndEstimate: true
+    readonly approvedPlanSnapshotPreserved: true
+    readonly activeExecutionAuthorizationRevoked: true
+    readonly freshPlanAndEstimateRequiredAfterMutation: true
   }
   readonly atomicEffects: readonly string[]
   readonly preservedEvidence: readonly string[]
@@ -103,6 +122,21 @@ export interface EditReferenceExecutionAuthorityReadContract {
   }
 }
 
+export interface EditReferencePlanningAuthorityReadContract {
+  readonly name: 'read_exact_edit_reference_application_state_v2'
+  readonly serverOnly: true
+  readonly authenticatedUserRequired: true
+  readonly serviceRoleBrowserUseAllowed: false
+  readonly oneTransactionalSnapshotRequired: true
+  readonly maximumCurrentStateRows: 1
+  readonly states: readonly ['not_selected', 'connected', 'cleared']
+  readonly connectedStateRequires: readonly string[]
+  readonly clearedStateRequires: readonly string[]
+  readonly neverSelectedStateRequires: readonly string[]
+  readonly rawReferenceMediaReturned: false
+  readonly rawProviderPayloadReturned: false
+}
+
 export interface EditReferenceProductionPersistenceContract {
   readonly version: typeof EDIT_REFERENCE_PRODUCTION_PERSISTENCE_CONTRACT_VERSION
   readonly status: 'review_only_blocked_by_parallel_foundations'
@@ -119,6 +153,7 @@ export interface EditReferenceProductionPersistenceContract {
   }
   readonly tables: readonly EditReferenceProductionTableContract[]
   readonly applicationLifecycleTransaction: EditReferenceApplicationLifecycleTransactionContract
+  readonly planningAuthorityRead: EditReferencePlanningAuthorityReadContract
   readonly executionAuthorityRead: EditReferenceExecutionAuthorityReadContract
   readonly recovery: {
     readonly pointInTimeRecoveryRequired: true
@@ -136,6 +171,7 @@ export interface EditReferenceProductionPersistenceContract {
     readonly stagingCatalogVerificationRequired: true
     readonly storageIamVerificationRequired: true
     readonly remoteSecurityAdvisorReviewRequired: true
+    readonly sameSourceBrowserBackendAcceptanceRequired: true
   }
   readonly financialAndExecutionBoundaries: {
     readonly providerCallAllowed: false
@@ -392,20 +428,28 @@ export const editReferenceProductionPersistenceContract: EditReferenceProduction
     }),
   ],
   applicationLifecycleTransaction: {
-    rpcName: 'mutate_edit_reference_application_lifecycle_v1',
-    supportedMutations: ['replace', 'remove'],
+    rpcName: EDIT_REFERENCE_PRODUCTION_APPLICATION_LIFECYCLE_RPC_NAME,
+    supportedMutations: ['apply', 'replace', 'remove'],
     authorization: {
       authenticatedUserRequired: true,
       workspaceEditorOrOwnerRequired: true,
       serviceRoleBrowserUseAllowed: false,
       workspaceProjectCompositeBindingRequired: true,
       projectEditSessionCompositeBindingRequired: true,
+      applyOrReplaceApprovedPreferenceDnaRequired: true,
+      applyOrReplaceTargetVideoUnderstandingRequired: true,
+      applyOrReplaceOutputFrameConfirmedRequired: true,
+      applyOrReplaceOutputFrameConfirmationDigestRequired: true,
+      exactEditFrameAuthorityTransactionallyReReadRequired: true,
+      callerSuppliedFrameAuthorityTrusted: false,
+      currentPlanLineageReadRequired: true,
     },
     compareAndSwap: {
       expectedReferenceRevisionRequired: true,
       applicationContentDigestRequired: true,
       applicationContextHashRequired: true,
-      currentApplicationStatusRequired: true,
+      currentApplicationExpectationRequired: true,
+      exactEditPlanningInputRevisionRequired: true,
     },
     idempotency: {
       keyHashRequired: true,
@@ -415,10 +459,18 @@ export const editReferenceProductionPersistenceContract: EditReferenceProduction
       durableResponseDigestRequired: true,
       mutationAndReceiptShareTransaction: true,
     },
+    planningInvalidation: {
+      firstApplyInvalidatesExistingDraftPlanAndEstimate: true,
+      replacementInvalidatesExistingDraftPlanAndEstimate: true,
+      removalInvalidatesExistingDraftPlanAndEstimate: true,
+      approvedPlanSnapshotPreserved: true,
+      activeExecutionAuthorizationRevoked: true,
+      freshPlanAndEstimateRequiredAfterMutation: true,
+    },
     atomicEffects: [
       'lock_exact_workspace_project_edit_application_and_current_plan',
       'validate_current_application_and_compare_and_swap_revision',
-      'replace_or_clear_preference_application_lifecycle',
+      'apply_replace_or_clear_preference_application_lifecycle',
       'invalidate_exact_project_edit_session_preference_context',
       'invalidate_exact_edit_brief_preference_context',
       'mark_affected_edit_plan_version_stale',
@@ -442,6 +494,34 @@ export const editReferenceProductionPersistenceContract: EditReferenceProduction
       'mutate_customer_credits',
       'include_reeditpro_service_fee',
     ],
+  },
+  planningAuthorityRead: {
+    name: 'read_exact_edit_reference_application_state_v2',
+    serverOnly: true,
+    authenticatedUserRequired: true,
+    serviceRoleBrowserUseAllowed: false,
+    oneTransactionalSnapshotRequired: true,
+    maximumCurrentStateRows: 1,
+    states: ['not_selected', 'connected', 'cleared'],
+    connectedStateRequires: [
+      'one_current_connected_application',
+      'approved_dna_and_qa_lineage',
+      'target_understanding_package_digest',
+      'output_frame_confirmation_digest',
+      'latest_application_lifecycle_request_and_receipt',
+    ],
+    clearedStateRequires: [
+      'latest_remove_lifecycle_request_and_receipt',
+      'committed_reference_revision',
+      'committed_planning_input_revision',
+      'execution_authorization_revoked',
+    ],
+    neverSelectedStateRequires: [
+      'no_application_lifecycle_for_exact_edit',
+      'transactional_zero_row_cardinality',
+    ],
+    rawReferenceMediaReturned: false,
+    rawProviderPayloadReturned: false,
   },
   executionAuthorityRead: {
     name: 'assert_preference_application_plan_current_v1',
@@ -487,6 +567,7 @@ export const editReferenceProductionPersistenceContract: EditReferenceProduction
     stagingCatalogVerificationRequired: true,
     storageIamVerificationRequired: true,
     remoteSecurityAdvisorReviewRequired: true,
+    sameSourceBrowserBackendAcceptanceRequired: true,
   },
   financialAndExecutionBoundaries: {
     providerCallAllowed: false,
@@ -508,6 +589,7 @@ export interface EditReferenceProductionPersistenceContractSummary {
   privateStorageTableCount: number
   immutableOrAppendOnlyTableCount: number
   atomicLifecycleEffectCount: number
+  planningAuthorityStateCount: number
   requiredExecutionReadStageCount: number
   migrationExecutable: false
   remoteMutationAllowed: false
@@ -517,6 +599,9 @@ export interface EditReferenceProductionPersistenceContractSummary {
 export function validateEditReferenceProductionPersistenceContract(
   contract: EditReferenceProductionPersistenceContract = editReferenceProductionPersistenceContract,
 ): EditReferenceProductionPersistenceContractSummary {
+  if (contract.version !== EDIT_REFERENCE_PRODUCTION_PERSISTENCE_CONTRACT_VERSION) {
+    invalid('production_persistence_contract_version_invalid')
+  }
   const names = contract.tables.map((candidate) => candidate.name)
   if (new Set(names).size !== names.length) invalid('duplicate_table_name')
   for (const required of [
@@ -549,7 +634,7 @@ export function validateEditReferenceProductionPersistenceContract(
     if (!application.requiredColumns.includes(requiredColumn)) invalid(`application_missing_column:${requiredColumn}`)
   }
   const requiredEffects = [
-    'replace_or_clear_preference_application_lifecycle',
+    'apply_replace_or_clear_preference_application_lifecycle',
     'invalidate_exact_project_edit_session_preference_context',
     'mark_affected_edit_plan_version_stale',
     'revoke_affected_execution_authorization',
@@ -561,9 +646,40 @@ export function validateEditReferenceProductionPersistenceContract(
       invalid(`missing_atomic_effect:${effect}`)
     }
   }
+  if (JSON.stringify(contract.applicationLifecycleTransaction.supportedMutations) !== JSON.stringify([
+    'apply',
+    'replace',
+    'remove',
+  ])) invalid('application_lifecycle_mutation_set_incomplete')
+  if (
+    contract.applicationLifecycleTransaction.rpcName !== EDIT_REFERENCE_PRODUCTION_APPLICATION_LIFECYCLE_RPC_NAME
+    || !contract.applicationLifecycleTransaction.authorization.applyOrReplaceOutputFrameConfirmedRequired
+    || !contract.applicationLifecycleTransaction.authorization.applyOrReplaceOutputFrameConfirmationDigestRequired
+    || !contract.applicationLifecycleTransaction.authorization.exactEditFrameAuthorityTransactionallyReReadRequired
+    || contract.applicationLifecycleTransaction.authorization.callerSuppliedFrameAuthorityTrusted !== false
+  ) invalid('application_lifecycle_output_frame_authority_incomplete')
+  if (
+    !contract.applicationLifecycleTransaction.planningInvalidation.firstApplyInvalidatesExistingDraftPlanAndEstimate
+    || !contract.applicationLifecycleTransaction.planningInvalidation.replacementInvalidatesExistingDraftPlanAndEstimate
+    || !contract.applicationLifecycleTransaction.planningInvalidation.removalInvalidatesExistingDraftPlanAndEstimate
+    || !contract.applicationLifecycleTransaction.planningInvalidation.approvedPlanSnapshotPreserved
+    || !contract.applicationLifecycleTransaction.planningInvalidation.activeExecutionAuthorizationRevoked
+    || !contract.applicationLifecycleTransaction.planningInvalidation.freshPlanAndEstimateRequiredAfterMutation
+  ) invalid('application_lifecycle_planning_invalidation_incomplete')
   if (!contract.applicationLifecycleTransaction.idempotency.mutationAndReceiptShareTransaction) {
     invalid('idempotency_not_atomic_with_domain_mutation')
   }
+  if (
+    contract.planningAuthorityRead.name !== 'read_exact_edit_reference_application_state_v2'
+    || contract.planningAuthorityRead.serverOnly !== true
+    || contract.planningAuthorityRead.authenticatedUserRequired !== true
+    || contract.planningAuthorityRead.serviceRoleBrowserUseAllowed !== false
+    || contract.planningAuthorityRead.oneTransactionalSnapshotRequired !== true
+    || contract.planningAuthorityRead.maximumCurrentStateRows !== 1
+    || contract.planningAuthorityRead.states.join('|') !== 'not_selected|connected|cleared'
+    || contract.planningAuthorityRead.rawReferenceMediaReturned !== false
+    || contract.planningAuthorityRead.rawProviderPayloadReturned !== false
+  ) invalid('planning_authority_read_contract_invalid')
   if (!contract.executionAuthorityRead.requiredBeforeStages.includes('worker_claim')) {
     invalid('worker_claim_missing_current_application_gate')
   }
@@ -596,6 +712,7 @@ export function validateEditReferenceProductionPersistenceContract(
     privateStorageTableCount: contract.tables.filter((candidate) => candidate.privateStorageIdentityRequired).length,
     immutableOrAppendOnlyTableCount: contract.tables.filter((candidate) => candidate.immutableAfterCommit || candidate.appendOnly).length,
     atomicLifecycleEffectCount: contract.applicationLifecycleTransaction.atomicEffects.length,
+    planningAuthorityStateCount: contract.planningAuthorityRead.states.length,
     requiredExecutionReadStageCount: contract.executionAuthorityRead.requiredBeforeStages.length,
     migrationExecutable: false,
     remoteMutationAllowed: false,

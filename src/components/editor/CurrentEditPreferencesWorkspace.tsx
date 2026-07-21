@@ -38,8 +38,12 @@ import {
 } from '../../lib/current-edit-reference-draft-decision'
 import { createPreferenceApplicationTargetContext } from '../../lib/project-edit-session-edit-reference-integration'
 import type { TargetVideoUnderstandingPackage } from '../../types/edit-reference-target-video-understanding'
-import type { PreferenceApplicationRecord } from '../../types/edit-reference'
 import type { CurrentEditReferenceApplicationResource } from '../../lib/current-edit-reference-application-ui'
+import type {
+  EditReferenceProductionPreparedApplicationAuthority,
+} from '../../types/edit-reference-production-exact-edit-apply-api'
+import type { ProjectPersistenceScope } from '../../lib/project-persistence-scope'
+import { readExactEditPreferenceApplyAuthority } from '../../lib/exact-edit-preference-apply-client'
 import { Button } from '../Button'
 import {
   CurrentEditReferenceStudySupplement,
@@ -76,6 +80,7 @@ type CurrentEditPreferencesWorkspaceProps = {
   targetAuthority?: CurrentEditReferenceTargetAuthority
   targetAuthorityBlockReason?: CurrentEditReferenceSupplementBlockReason
   workspaceId: string
+  projectPersistenceScope: ProjectPersistenceScope
 }
 
 const fieldTestIds: Record<EditPreferenceFieldKey, string> = {
@@ -106,13 +111,14 @@ export function CurrentEditPreferencesWorkspace({
   targetAuthority,
   targetAuthorityBlockReason,
   workspaceId,
+  projectPersistenceScope,
 }: CurrentEditPreferencesWorkspaceProps) {
   const [draft, setDraft] = useState(current)
   const [approvedReferences, setApprovedReferences] = useState<ApprovedEditReferenceOption[]>([])
   const [referenceResource, setReferenceResource] = useState<CurrentEditReferenceSupplementResource>({ state: 'loading' })
   const [referenceRefresh, setReferenceRefresh] = useState(0)
   const [originalReference, setOriginalReference] = useState<CurrentEditReferenceOriginalDecision>({ kind: 'none' })
-  const [connectedReferenceApplication, setConnectedReferenceApplication] = useState<PreferenceApplicationRecord>()
+  const [connectedReferenceApplication, setConnectedReferenceApplication] = useState<EditReferenceProductionPreparedApplicationAuthority>()
   const [selectedReferenceId, setSelectedReferenceId] = useState<string>()
   const [targetStudy, setTargetStudy] = useState<TargetVideoUnderstandingPackage>()
   const [applyState, setApplyState] = useState<{ status: 'idle' | 'saving' | 'error'; message?: string }>({ status: 'idle' })
@@ -208,16 +214,13 @@ export function CurrentEditPreferencesWorkspace({
       !referenceDirty
       && connectedReferenceApplication?.editReferenceId === selectedOption.id
     ) {
-      return connectedReferenceApplication.downstreamContext
-        ? {
-            state: connectedReferenceApplication.targetIntegrationStatus === 'connected' ? 'applied' : 'invalidated',
-            selectedOption,
-            context: connectedReferenceApplication.downstreamContext,
-          }
-        : {
-            state: 'review_required',
-            selectedOption,
-          }
+      return {
+        state: connectedReferenceApplication.connectionState === 'connected'
+          ? 'applied'
+          : 'invalidated',
+        selectedOption,
+        canonicalAuthority: connectedReferenceApplication,
+      }
     }
     if (
       referenceDirty
@@ -255,9 +258,14 @@ export function CurrentEditPreferencesWorkspace({
 
     void Promise.all([
       loadApprovedEditReferenceOptions({ api: editReferenceApi, workspaceId }),
-      editReferenceApi.listApplications(workspaceId),
+      readExactEditPreferenceApplyAuthority({
+        scope: projectPersistenceScope,
+        projectId,
+        editSessionId,
+        selectedApplicationId: null,
+      }),
     ])
-      .then(([result, applicationsResult]) => {
+      .then(async ([result, exactAuthorityResult]) => {
         if (!active) return
         if (!result.ok) {
           setApprovedReferences([])
@@ -266,27 +274,39 @@ export function CurrentEditPreferencesWorkspace({
           return
         }
         setApprovedReferences(result.options)
-        if (!applicationsResult.ok) {
+        if (!exactAuthorityResult.ok) {
           setConnectedReferenceApplication(undefined)
           setReferenceResource({ state: 'needs_retry' })
           return
         }
-        const connected = applicationsResult.data.applications
-          .filter((application) => (
-            application.projectId === projectId
-            && application.editSessionId === editSessionId
-            && application.status === 'prepared'
-            && application.targetIntegrationStatus === 'connected'
-          ))
-          .sort((left, right) => right.version - left.version)[0]
+        const currentApplicationId = exactAuthorityResult.authority.currentApplicationId
+        const selectedAuthorityResult = currentApplicationId
+          ? await readExactEditPreferenceApplyAuthority({
+              scope: projectPersistenceScope,
+              projectId,
+              editSessionId,
+              selectedApplicationId: currentApplicationId,
+            })
+          : undefined
+        if (!active) return
+        if (currentApplicationId && (!selectedAuthorityResult?.ok
+          || selectedAuthorityResult.authority.selectedApplicationAuthority?.connectionState
+            !== 'connected')) {
+          setConnectedReferenceApplication(undefined)
+          setReferenceResource({ state: 'needs_retry' })
+          return
+        }
+        const connected = selectedAuthorityResult?.ok
+          ? selectedAuthorityResult.authority.selectedApplicationAuthority ?? undefined
+          : undefined
         setConnectedReferenceApplication(connected)
         const nextOriginal: CurrentEditReferenceOriginalDecision = connected
           ? {
               kind: 'connected',
               referenceId: connected.editReferenceId,
               referenceRevision: result.options.find((option) => option.id === connected.editReferenceId)?.referenceRevision ?? 0,
-              applicationId: connected.id,
-              applicationContentDigest: connected.contentDigest,
+              applicationId: connected.applicationId,
+              applicationContentDigest: connected.applicationContentDigestSha256,
             }
           : { kind: 'none' }
         setOriginalReference(nextOriginal)
@@ -303,7 +323,7 @@ export function CurrentEditPreferencesWorkspace({
     return () => {
       active = false
     }
-  }, [editReferenceApi, editSessionId, projectId, referenceRefresh, workspaceId])
+  }, [editReferenceApi, editSessionId, projectId, projectPersistenceScope, referenceRefresh, workspaceId])
 
   const navigationBlocker = useUnsavedNavigationGuard({
     confirmBlockedNavigation: false,

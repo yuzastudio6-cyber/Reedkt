@@ -38,6 +38,8 @@ export function getServiceContext(request: Request): ServiceContext {
       runtimeRequest.runtime.canonicalMotionStudioStorytellingProductionAuthorityReaderPort,
     editReferenceExactEditApplyRuntimePort:
       runtimeRequest.runtime.editReferenceExactEditApplyRuntimePort,
+    editReferenceApplicationPreparationRuntimePort:
+      runtimeRequest.runtime.editReferenceApplicationPreparationRuntimePort,
   }
 }
 

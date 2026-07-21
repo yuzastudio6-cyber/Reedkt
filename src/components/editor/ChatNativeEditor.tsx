@@ -2561,26 +2561,26 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
         editReferenceClient: editReferenceApi,
         editReferenceId: request.referenceDecision.draftReferenceId,
         outputFrameConfirmed: true,
+        projectPersistenceScope,
         targetUnderstandingPackage: request.targetStudy,
         workspaceId: projectPersistenceScope.workspaceId,
       })
       if (!prepared.ok) return { ok: false, message: prepared.message }
       if (
-        prepared.application.projectId !== editorProjectId
-        || prepared.application.editSessionId !== editorEditSessionId
-        || prepared.application.editReferenceId !== request.referenceDecision.draftReferenceId
-        || prepared.application.status !== 'prepared'
-        || prepared.application.targetIntegrationStatus !== 'not_connected'
+        prepared.applicationAuthority.projectId !== editorProjectId
+        || prepared.applicationAuthority.editSessionId !== editorEditSessionId
+        || prepared.applicationAuthority.editReferenceId !== request.referenceDecision.draftReferenceId
+        || prepared.applicationAuthority.connectionState !== 'not_connected'
       ) {
         return {
           ok: false,
           message: 'The prepared Edit Reference no longer matches this exact edit and cannot be applied.',
         }
       }
-      selectedApplicationId = prepared.application.id
+      selectedApplicationId = prepared.applicationAuthority.applicationId
       expectedPreparedApplication = {
-        id: prepared.application.id,
-        contentDigest: prepared.application.contentDigest,
+        id: prepared.applicationAuthority.applicationId,
+        contentDigest: prepared.applicationAuthority.applicationContentDigestSha256,
       }
     }
 
@@ -5833,6 +5833,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
           pendingApplyRecovery={Boolean(pendingExactEditPreferenceApply)}
           editSessionId={editorEditSessionId}
           projectId={editorProjectId}
+          projectPersistenceScope={projectPersistenceScope}
           targetAuthority={currentEditReferenceAuthorityResolution.ready
             ? currentEditReferenceAuthorityResolution.authority
             : undefined}

@@ -39,13 +39,13 @@ export default defineConfig({
   }],
   webServer: [
     {
-      command: 'npx tsx ../../server/index.ts',
+      command: 'npx tsx edit-preferences-atomic-api-server.ts',
       env: {
         NODE_ENV: 'test',
         API_PORT: String(apiPort),
         API_ALLOWED_CORS_ORIGINS: baseURL,
         API_ALLOW_MOCK_WITHOUT_SUPABASE: 'true',
-        E2E_RUNTIME_MODE: 'mock',
+        E2E_RUNTIME_MODE: 'local',
         STORAGE_MODE: 'local',
         REEDITPRO_LARGE_MEDIA_FINALIZATION_MODE: 'private_local',
         LOCAL_STORAGE_ROOT: storageRoot,

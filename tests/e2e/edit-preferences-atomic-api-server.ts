@@ -23,6 +23,12 @@ import {
   CANONICAL_EXACT_EDIT_PLANNING_EVIDENCE_REQUEST_VERSION,
   type CanonicalExactEditPlanningAuthorityRead,
 } from '../../src/types/canonical-exact-edit-planning-authority'
+import {
+  createControlledLocalEditReferenceApplicationPreparationFixture,
+} from '../../server/edit-references/controlled-local-edit-reference-application-preparation-fixture'
+import {
+  createEditReferenceProductionOutputFrameAuthority,
+} from '../../server/edit-references/edit-reference-production-output-frame-authority'
 
 type ExactEditState = {
   values: EditReferenceProductionExactEditPreferenceValues
@@ -36,6 +42,7 @@ type ExactEditState = {
     confirmedAt: string | null
   }
   frameConfirmed: boolean
+  currentApplicationId: string | null
 }
 
 const defaultValues: EditReferenceProductionExactEditPreferenceValues = {
@@ -52,6 +59,8 @@ const committedByIdempotencyHash = new Map<string, {
   requestDigestSha256: string
   receipt: EditReferenceProductionExactEditApplyApiReceipt
 }>()
+const applicationPreparation =
+  createControlledLocalEditReferenceApplicationPreparationFixture()
 
 const planningPort: PlanningExactEditPreferenceAuthorityPort = Object.freeze({
   async readExactPreferenceState(scope) {
@@ -123,16 +132,24 @@ const runtimePort: EditReferenceExactEditApplyRuntimePort = Object.freeze({
   productionAuthority: false,
 
   async readAuthority({ scope }) {
-    if (scope.selectedApplicationId !== null) {
-      throw new ApiError(
-        'JOB_DEPENDENCY_NOT_READY',
-        'This focused browser fixture proves generic preference Apply only.',
-        503,
-      )
-    }
     const key = stateKey(scope.workspaceId, scope.projectId, scope.editSessionId)
     const state = getOrCreateState(key)
     const readAt = new Date().toISOString()
+    const selectedApplicationAuthority = scope.selectedApplicationId
+      ? applicationPreparation.readApplicationAuthority({
+          workspaceId: scope.workspaceId,
+          projectId: scope.projectId,
+          editSessionId: scope.editSessionId,
+          applicationId: scope.selectedApplicationId,
+        })
+      : null
+    if (scope.selectedApplicationId && !selectedApplicationAuthority) {
+      throw new ApiError(
+        'VERSION_CONFLICT',
+        'The selected prepared application is no longer available.',
+        409,
+      )
+    }
     return {
       schemaVersion: EDIT_REFERENCE_PRODUCTION_EXACT_EDIT_APPLY_AUTHORITY_READ_VERSION,
       sourceAuthority: 'canonical_exact_edit_preference_repository',
@@ -148,10 +165,22 @@ const runtimePort: EditReferenceExactEditApplyRuntimePort = Object.freeze({
       values: structuredClone(state.values),
       lifecyclePhase: 'planning',
       locked: false,
-      currentApplicationState: 'not_selected',
-      currentApplicationId: null,
-      outputFrameAuthority: null,
-      selectedApplicationAuthority: null,
+      currentApplicationState: state.currentApplicationId ? 'connected' : 'not_selected',
+      currentApplicationId: state.currentApplicationId,
+      outputFrameAuthority: state.frameConfirmed
+        ? createEditReferenceProductionOutputFrameAuthority({
+            repositoryAuthority: 'supabase_rls_transactional',
+            workspaceId: scope.workspaceId,
+            projectId: scope.projectId,
+            editSessionId: scope.editSessionId,
+            exactEditPreferenceRecordRevision: state.recordRevision,
+            planningInputRevision: state.planningInputRevision,
+            confirmationId: `atomic-ui-frame-${sha256(key).slice(0, 40)}`,
+            aspectRatio: '9:16',
+            confirmedAt: '2026-07-21T00:00:00.000Z',
+          })
+        : null,
+      selectedApplicationAuthority,
       readAt,
       browserMutationAuthorityGranted: false,
       productionReleaseReadinessEvaluatedSeparately: true,
@@ -202,6 +231,9 @@ const runtimePort: EditReferenceExactEditApplyRuntimePort = Object.freeze({
       frameConfirmed: request.outputFrameDisposition === 'requires_reconfirmation'
         ? false
         : state.frameConfirmed,
+      currentApplicationId: request.referenceLifecycleRequest?.mutation === 'remove'
+        ? null
+        : request.referenceLifecycleRequest?.applicationId ?? state.currentApplicationId,
     }
     const receiptWithoutDigest = {
       schemaVersion: EDIT_REFERENCE_PRODUCTION_EXACT_EDIT_APPLY_RECEIPT_VERSION,
@@ -230,6 +262,16 @@ const runtimePort: EditReferenceExactEditApplyRuntimePort = Object.freeze({
       transactionReceiptDigestSha256: sha256(receiptWithoutDigest),
     }
     states.set(key, nextState)
+    if (request.referenceLifecycleRequest) {
+      applicationPreparation.markLifecycle({
+        workspaceId: request.workspaceId,
+        projectId: request.projectId,
+        editSessionId: request.editSessionId,
+        applicationId: request.referenceLifecycleRequest.applicationId,
+        mutation: request.referenceLifecycleRequest.mutation,
+        previousApplicationId: request.referenceLifecycleRequest.expectedCurrentApplicationId,
+      })
+    }
     committedByIdempotencyHash.set(request.idempotencyKeyHashSha256, {
       requestDigestSha256: request.requestDigestSha256,
       receipt,
@@ -251,6 +293,7 @@ const env = loadRuntimeEnv({
 })
 const server = createReeditProApiApp(env, {
   editReferenceExactEditApplyRuntimePort: runtimePort,
+  editReferenceApplicationPreparationRuntimePort: applicationPreparation.port,
   planningExactEditPreferenceAuthorityPort: planningPort,
 }).listen(env.apiPort, '127.0.0.1', () => {
   console.log(JSON.stringify({ event: 'atomic_preferences_test_api_listening', port: env.apiPort }))
@@ -287,6 +330,7 @@ function getOrCreateState(key: string): ExactEditState {
       confirmedAt: null,
     },
     frameConfirmed: true,
+    currentApplicationId: null,
   }
   states.set(key, created)
   return created

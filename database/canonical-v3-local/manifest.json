@@ -7,15 +7,15 @@
   "files": [
     {
       "path": "README.md",
-      "sha256": "3011134cec9683bebda09ced11651a0810a97aca554f6d1c810d14e224bd22f9"
+      "sha256": "871fc353eac1440c08d50c1263295005402d65884fce873fa16f30dae7b40a5e"
     },
     {
       "path": "run-local-verification.sh",
-      "sha256": "f392ba1b3e8a7fe8961394b57cc838774151e028bde5988f980e9ba17a2b2bd7"
+      "sha256": "1ef38622cafa01e65a6be540a8d4e9b63af25951c6262bf89d6a51a46e87529a"
     },
     {
       "path": "verify.mjs",
-      "sha256": "181a36a91d26cb86072e7b82fc53d78c708a267567ae9a148ce9c40a1941b804"
+      "sha256": "121b2affd8d0cc9bde0a015317af46f80798a7c1bf74bb8b96acbfca404cdd89"
     },
     {
       "path": "supabase/.gitignore",
@@ -50,6 +50,10 @@
       "sha256": "74c535e58cd26351de6e99b315376639aecb7330786825f8751a686ad7645923"
     },
     {
+      "path": "supabase/migrations/202607210007_edit_reference_application_preparation.sql",
+      "sha256": "c2f9195fd92e72f8dd2e00016e9a91741234b56bbc6d58f553a5cd0887070e00"
+    },
+    {
       "path": "tests/001_two_user_two_workspace_rls.sql",
       "sha256": "4229abef3613004a7ce75467e6e030bfe6c1baa5237d7a55a7d8580d6822a816"
     },
@@ -78,11 +82,19 @@
       "sha256": "e3c6f69bf66e039a1486aab00f2de4d1ce5cba214c42cb6e68fb85595f920639"
     },
     {
+      "path": "tests/008_edit_reference_application_preparation.sql",
+      "sha256": "f25eee419b48eadf8270abeb63cf63f650265fd023ac64123e44aeacaa401ec4"
+    },
+    {
       "path": "tests/_fixture.sql",
-      "sha256": "e30b72a712cee0a32208da780b69a731d1495d664a819042f5569a041e9613f6"
+      "sha256": "2abefb85d17d0b077be1db5571c900dc9377223b81bf2825563eb31f8525c2cb"
     }
   ],
   "repositoryFiles": [
+    {
+      "path": "docs/canonical-edit-reference-application-preparation-verification-2026-07-21.md",
+      "sha256": "2cae9bbd0cf2196a684f2e7c5a773ea6e9a116e673e0af27571a5155e6f93090"
+    },
     {
       "path": "docs/canonical-exact-edit-planning-authority-verification-2026-07-21.md",
       "sha256": "1f382a8457d02f468a706ce7cd29f91b23727f1f247de2298e38154f4c3f5827"
@@ -105,11 +117,19 @@
     },
     {
       "path": "server/app.ts",
-      "sha256": "4f7dfc892aa604e050442fe1f7671147fd1e4bda87fb16494f36c7b7773c56f7"
+      "sha256": "1a31b81026f55171567af053302d9b3be93247247d1b0a37671a25708bd2e9ef"
     },
     {
       "path": "server/edit-references/canonical-exact-edit-planning-authority-boundary.ts",
       "sha256": "54a253f0be8434d2bd696ea10efecb1392a3364fe4a1cb8829036849c4a58f01"
+    },
+    {
+      "path": "server/edit-references/controlled-local-edit-reference-application-preparation-fixture.ts",
+      "sha256": "60243c2742d369277e009c8d6146ce28d460c2a86bc9985baa452e1c4b829d80"
+    },
+    {
+      "path": "server/edit-references/edit-reference-local-supabase-application-preparation-port.ts",
+      "sha256": "40ab2e74213b1bbb7dc0ceca62aadc79d78049993b7369620bbdaf2d2621b2fd"
     },
     {
       "path": "server/edit-references/edit-reference-local-supabase-http-rpc-client.ts",
@@ -120,20 +140,32 @@
       "sha256": "773f7ea7a5a58a465a831f393b357c92d257d8bf6d314df2b98ccc1cf1e31d14"
     },
     {
+      "path": "server/edit-references/edit-reference-production-application-preparation-boundary.ts",
+      "sha256": "97b984f77d89f031fb8bf38f955d54e1edbd7e13f8bf1a199a36a2425f317261"
+    },
+    {
       "path": "server/edit-references/edit-reference-production-exact-edit-apply-boundary.ts",
       "sha256": "3def6d5e6f58c7349d910098954b997c1f0f84776d6d5dac088a287157847321"
     },
     {
       "path": "server/routes/exact-edit-preference-routes.ts",
-      "sha256": "3b1b3b74365f37ca1172f2003baa5a1e07d85218ce2b5884e84aad4347c54873"
+      "sha256": "0a7f668a8df0f728a9206a4f95e74ea3049364c9bf5af0deb5e6260f82376970"
     },
     {
       "path": "server/routes/route-helpers.ts",
-      "sha256": "00e9e68fa46fb85bb92e1aa54312ae1bf3a255ec33b2d3b79df56b3f8a996ddf"
+      "sha256": "c29bb7441d4b84df47a4d35891081267210231501cbcf4f05d5f2edba48c0a9e"
     },
     {
       "path": "server/services/canonical-planning-handoff-service.ts",
       "sha256": "8b4d4d214af6f1e26cc6c884265e00088e5ced22ee54e98353e05acde7878a5c"
+    },
+    {
+      "path": "server/services/edit-reference-application-preparation-runtime-port.ts",
+      "sha256": "ce89a95330a574d5a6bf591449a0a63c09e333410fae8903c213d07c34e46d99"
+    },
+    {
+      "path": "server/services/edit-reference-application-preparation-service.ts",
+      "sha256": "2ef1af03c070eae4fb2d444695e99ee24e5f526a303ef2415f598aa3b9eb79ec"
     },
     {
       "path": "server/services/planning-exact-edit-preference-authority-port.ts",
@@ -168,6 +200,10 @@
       "sha256": "3059bdcff085034db8fc488af83684f62cc93c26b934d68feb9e33ab5e679f1e"
     },
     {
+      "path": "server/smoke/edit-reference-local-supabase-application-preparation-smoke.ts",
+      "sha256": "3335104b1f5fbb9a1bd74ae169944a6036445e7eec5a0c9cd5c263bd16f8397c"
+    },
+    {
       "path": "server/smoke/edit-reference-local-supabase-http-rpc-smoke.ts",
       "sha256": "4dc989627af7664c5c24c4088fc8311dfa9c7e168a57b36ec4c9f7f799896110"
     },
@@ -181,11 +217,15 @@
     },
     {
       "path": "server/types.ts",
-      "sha256": "233630dc82146fba3a539fb1acf562dc65b873567a5a3dde4373222f19202d9a"
+      "sha256": "05dc6bcd6de0015321b6be662c82a0f5426810c3453db3ac68050824e2a67c5b"
     },
     {
       "path": "server/validation/canonical-exact-edit-planning-authority-schemas.ts",
       "sha256": "9055d5395d2550c83a0dfaded2eeb656074de99c97eec62134f00c66d6a0c4a7"
+    },
+    {
+      "path": "server/validation/edit-reference-application-preparation-schemas.ts",
+      "sha256": "39e1e69b0d7971c9e77daeafb7c0f7560e2014ae9a0dbccd9630742a416b1f27"
     },
     {
       "path": "server/validation/edit-planning-authority-schemas.ts",
@@ -197,11 +237,15 @@
     },
     {
       "path": "src/backend/api/routes/edit-planning-api-routes.ts",
-      "sha256": "538364e8e2fd5d9ffbd842b939e853d554619b6c892daa54ac7d9477be71ef7f"
+      "sha256": "ae92ebda16662b8296f8a7791e12ce5c08079165869da4789b2584fdb4802b92"
     },
     {
       "path": "src/components/editor/ChatNativeEditor.tsx",
-      "sha256": "94982ffa58d91dfeb0a7c40289f9a8bde5d863685f9b34ce2db3ed7b9d84e13b"
+      "sha256": "efe433b82ef9302d53562a46efd1f49e1065146518bac08b54130688fde40927"
+    },
+    {
+      "path": "src/components/editor/CurrentEditPreferencesWorkspace.tsx",
+      "sha256": "ce6ef91d3586e2894c984e8de075abecf50ab56a44c2f6b91abe8a7c79a6dd6e"
     },
     {
       "path": "src/lib/canonical-planning-draft.ts",
@@ -212,8 +256,24 @@
       "sha256": "7428f2dbaa4583ff22c3e9ac42e388a4787f18f762943cdd5c5e5b0ffdb71376"
     },
     {
+      "path": "src/lib/current-edit-reference-application-ui.ts",
+      "sha256": "f92ddf733350fcfbb570a4a2f5200c60eac9657ff451ff2ec3d4231819a7b74f"
+    },
+    {
+      "path": "src/lib/edit-reference-application-preparation-client.ts",
+      "sha256": "14e281be7415ab90848ba10e8ca53de0fd18e6bc011ddf156d13963362d66c75"
+    },
+    {
+      "path": "src/lib/project-edit-session-edit-reference-integration.ts",
+      "sha256": "736c7d6e176ca423c50262a49d8a00f2bcd9b86d06fff0ca182e73c4127ff12b"
+    },
+    {
       "path": "src/types/canonical-exact-edit-planning-authority.ts",
       "sha256": "c15c42d3976172bfd7102588f311c470e06982132337194a8eb12979708bb6b9"
+    },
+    {
+      "path": "src/types/edit-reference-production-application-preparation-api.ts",
+      "sha256": "d00ec14e92336bc1ec96632cbc3fe694cfcafce40349a13abf11775593d05064"
     },
     {
       "path": "src/types/edit-reference-production-exact-edit-apply-api.ts",
@@ -225,11 +285,23 @@
     },
     {
       "path": "tests/e2e/edit-preferences-atomic-api-server.ts",
-      "sha256": "e40cacd89bf710655ed55a798ad1dbd4f693423fc8302aab1f0628811ddc12a0"
+      "sha256": "4632590a1b1f0f726b840126cb525366522f7166e8852b6e9fc2b03696e5d768"
     },
     {
       "path": "tests/e2e/edit-preferences-current-edit.spec.ts",
       "sha256": "cf44e0695633657b6e8e5afc45306a8811193d04b2966dccd37b76fc21933a87"
+    },
+    {
+      "path": "tests/e2e/edit-reference-canonical-real-file-flow.spec.ts",
+      "sha256": "ba95b123b100b2782e1893192d028a42b3df53b4648f19bb419576fc5a929adc"
+    },
+    {
+      "path": "tests/e2e/playwright.current-edit-preferences-atomic.config.ts",
+      "sha256": "c306f582b59555ec393da2b13c3326ac19d351939ac8bd8f30c5fd7f7224e016"
+    },
+    {
+      "path": "tests/e2e/playwright.edit-reference-canonical-real-file.config.ts",
+      "sha256": "2907ca83025e999aec869babcdd68252238598b56bf55d64e87d776008ef558e"
     }
   ]
 }

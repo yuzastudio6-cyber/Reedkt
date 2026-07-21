@@ -28,6 +28,10 @@ The chain provides:
 - `record_exact_edit_planning_evidence_v1` as the server-planning handoff that
   binds verified source-candidate and cleanup evidence without changing the
   user's preferences, the planning revision, or any approved snapshot;
+- `prepare_edit_reference_application_v1` as the service-role-only,
+  idempotent preparation transaction that re-reads approved reference, DNA,
+  QA, and exact-target study authority before creating one unconnected
+  application; authenticated browser credentials cannot execute it directly;
 - `read_exact_edit_reference_application_state_v2` planning authority;
 - `assert_preference_application_plan_current_v1` execution-currentness check;
 - durable Kimi K3 -> Qwen 3.7 -> DeepSeek V4 Pro Study Chat attempts, provider
@@ -42,9 +46,10 @@ The chain provides:
 - a real local PostgREST HTTP proof using authenticated, locally signed JWTs,
   with no service-role credential used for either the authority read or Apply
   operation;
-- local two-user/two-workspace isolation and adversarial lifecycle, atomic
-  Apply, planning-authority read/evidence/replay, immutable-baseline, cleanup
-  invalidation, recovery, direct-table-denial, and internal-cost tests.
+- local two-user/two-workspace isolation and adversarial lifecycle,
+  server-owned application preparation/replay/conflict, atomic Apply,
+  planning-authority read/evidence/replay, immutable-baseline, cleanup
+  invalidation, recovery, direct-RPC/table denial, and internal-cost tests.
 
 Qwen2.5-VL remains visual-only and is not represented as a Study Chat
 reasoning route. Internal provider and infrastructure costs are persisted

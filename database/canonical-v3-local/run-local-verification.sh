@@ -27,7 +27,7 @@ fi
 
 cleanup() {
   unset REEDITPRO_CANONICAL_V3_API_URL REEDITPRO_CANONICAL_V3_ANON_KEY \
-    REEDITPRO_CANONICAL_V3_JWT_SECRET
+    REEDITPRO_CANONICAL_V3_JWT_SECRET REEDITPRO_CANONICAL_V3_SERVICE_ROLE_KEY
   "${SUPABASE_BIN}" --workdir "${SCRIPT_DIR}" db reset --local --no-seed \
     >/dev/null 2>&1 || true
 }
@@ -42,7 +42,8 @@ for test_file in \
   "${SCRIPT_DIR}/tests/004_schema_security_invariants.sql" \
   "${SCRIPT_DIR}/tests/005_exact_edit_atomic_apply.sql" \
   "${SCRIPT_DIR}/tests/006_exact_edit_apply_authority_read.sql" \
-  "${SCRIPT_DIR}/tests/007_canonical_exact_edit_planning_authority.sql"
+  "${SCRIPT_DIR}/tests/007_canonical_exact_edit_planning_authority.sql" \
+  "${SCRIPT_DIR}/tests/008_edit_reference_application_preparation.sql"
 do
   "${PSQL_BIN}" "${DATABASE_URL}" -X -q -v ON_ERROR_STOP=1 -f "${test_file}"
 done
@@ -59,12 +60,17 @@ export REEDITPRO_CANONICAL_V3_ANON_KEY="$(
 export REEDITPRO_CANONICAL_V3_JWT_SECRET="$(
   printf '%s' "${LOCAL_STATUS_JSON}" | "${JQ_BIN}" -er '.JWT_SECRET'
 )"
+export REEDITPRO_CANONICAL_V3_SERVICE_ROLE_KEY="$(
+  printf '%s' "${LOCAL_STATUS_JSON}" | "${JQ_BIN}" -er '.SERVICE_ROLE_KEY'
+)"
 if [[ "${REEDITPRO_CANONICAL_V3_API_URL}" != 'http://127.0.0.1:57431' ]]; then
   echo "Refusing non-canonical local PostgREST origin." >&2
   exit 64
 fi
 "${PSQL_BIN}" "${DATABASE_URL}" -X -q -v ON_ERROR_STOP=1 \
   -f "${SCRIPT_DIR}/tests/_fixture.sql"
+npx --no-install tsx \
+  "${REPOSITORY_ROOT}/server/smoke/edit-reference-local-supabase-application-preparation-smoke.ts"
 npx --no-install tsx "${REPOSITORY_ROOT}/server/smoke/edit-reference-local-supabase-http-rpc-smoke.ts"
 
 node "${SCRIPT_DIR}/verify.mjs"

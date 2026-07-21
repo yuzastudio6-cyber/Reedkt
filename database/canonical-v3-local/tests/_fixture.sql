@@ -192,6 +192,77 @@ insert into public.preference_dna_qa_results (
     repeat('6', 64), 'passed', repeat('b', 64), '{"scope":"tenant-b"}'::jsonb
   );
 
+insert into public.edit_reference_target_understanding_packages (
+  id, workspace_id, project_id, edit_session_id, edit_reference_id,
+  study_session_id, source_storage_object_record_id, source_media_asset_id,
+  edit_brief_digest_sha256, package_digest_sha256, context_digest_sha256,
+  status, ready_for_preference_application, runtime_source, record_json
+) values
+  (
+    'aaaaaaaa-6500-4000-8000-000000000001',
+    'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    'aaaaaaaa-1000-4000-8000-000000000001',
+    'aaaaaaaa-2000-4000-8000-000000000001',
+    'aaaaaaaa-3000-4000-8000-000000000001',
+    'aaaaaaaa-4000-4000-8000-000000000001',
+    'aaaaaaaa-6100-4000-8000-000000000001',
+    'aaaaaaaa-6200-4000-8000-000000000001',
+    repeat('c', 64), repeat('d', 64), repeat('e', 64),
+    'ready', true, 'verified_live',
+    jsonb_build_object(
+      'schemaVersion', 'edit-reference-target-understanding-package-v1',
+      'scope', 'tenant-a',
+      'targetContext', jsonb_build_object(
+        'projectName', 'Project A', 'editName', 'Edit A',
+        'sourceMode', 'source_reading_mode', 'contentType', 'documentary',
+        'sourceSummary', 'Tenant A target source',
+        'currentUserInstruction', 'Preserve evidence and restrained pacing.',
+        'selectedEditLevel', 'pro', 'aspectRatio', '16:9',
+        'outputFrameConfirmed', true, 'platformTarget', 'youtube',
+        'storyRole', 'primary', 'budgetPreference', 'balanced',
+        'directives', '[]'::jsonb, 'approvedConstraints', '[]'::jsonb
+      ),
+      'guidance', jsonb_build_array(jsonb_build_object(
+        'id', 'guidance-a-1', 'title', 'Restrained pacing',
+        'instruction', 'Adapt pacing to preserve documentary meaning.'
+      )),
+      'heldBack', '[]'::jsonb,
+      'doNotCopyRules', jsonb_build_array('Do not copy factual claims from the reference.')
+    )
+  ),
+  (
+    'bbbbbbbb-6500-4000-8000-000000000001',
+    'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+    'bbbbbbbb-1000-4000-8000-000000000001',
+    'bbbbbbbb-2000-4000-8000-000000000001',
+    'bbbbbbbb-3000-4000-8000-000000000001',
+    'bbbbbbbb-4000-4000-8000-000000000001',
+    'bbbbbbbb-6100-4000-8000-000000000001',
+    'bbbbbbbb-6200-4000-8000-000000000001',
+    repeat('f', 64), repeat('1', 64), repeat('2', 64),
+    'ready', true, 'verified_live',
+    jsonb_build_object(
+      'schemaVersion', 'edit-reference-target-understanding-package-v1',
+      'scope', 'tenant-b',
+      'targetContext', jsonb_build_object(
+        'projectName', 'Project B', 'editName', 'Edit B',
+        'sourceMode', 'source_reading_mode', 'contentType', 'documentary',
+        'sourceSummary', 'Tenant B target source',
+        'currentUserInstruction', 'Preserve evidence and restrained pacing.',
+        'selectedEditLevel', 'pro', 'aspectRatio', '16:9',
+        'outputFrameConfirmed', true, 'platformTarget', 'youtube',
+        'storyRole', 'primary', 'budgetPreference', 'balanced',
+        'directives', '[]'::jsonb, 'approvedConstraints', '[]'::jsonb
+      ),
+      'guidance', jsonb_build_array(jsonb_build_object(
+        'id', 'guidance-b-1', 'title', 'Restrained pacing',
+        'instruction', 'Adapt pacing to preserve documentary meaning.'
+      )),
+      'heldBack', '[]'::jsonb,
+      'doNotCopyRules', jsonb_build_array('Do not copy factual claims from the reference.')
+    )
+  );
+
 insert into public.preference_applications (
   id, workspace_id, edit_reference_id, study_session_id, dna_version_id,
   dna_qa_result_id, project_id, edit_session_id, version, content_digest,

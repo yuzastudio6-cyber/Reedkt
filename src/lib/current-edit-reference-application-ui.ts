@@ -1,4 +1,7 @@
 import type { PreferenceApplicationDownstreamContext } from '../types/edit-reference-integration'
+import type {
+  EditReferenceProductionPreparedApplicationAuthority,
+} from '../types/edit-reference-production-exact-edit-apply-api'
 import type { CurrentEditReferenceSupplementOption } from './current-edit-reference-study-supplement'
 
 export type CurrentEditReferenceApplicationUiState =
@@ -22,7 +25,8 @@ export type CurrentEditReferenceApplicationResource =
   | {
       state: 'applied' | 'invalidated'
       selectedOption: CurrentEditReferenceSupplementOption
-      context: PreferenceApplicationDownstreamContext
+      context?: PreferenceApplicationDownstreamContext
+      canonicalAuthority?: EditReferenceProductionPreparedApplicationAuthority
     }
 
 export interface CurrentEditReferenceApplicationMappingItem {
@@ -108,6 +112,9 @@ export function createCurrentEditReferenceApplicationView(
   }
 
   const context = 'context' in resource ? resource.context : undefined
+  const canonicalAuthority = 'canonicalAuthority' in resource
+    ? resource.canonicalAuthority
+    : undefined
 
   if (context && context.editReferenceId !== resource.selectedOption.id) {
     return baseView({
@@ -122,7 +129,11 @@ export function createCurrentEditReferenceApplicationView(
     })
   }
 
-  if (resource.state === 'applied' && context?.integrationStatus !== 'connected_mock') {
+  if (
+    resource.state === 'applied'
+    && !canonicalAuthority
+    && context?.integrationStatus !== 'connected_mock'
+  ) {
     return invalidContextView()
   }
 
@@ -131,7 +142,13 @@ export function createCurrentEditReferenceApplicationView(
   }
 
   const mapping = context ? mappingFrom(context) : emptyMapping()
-  const facts = mappingFacts(mapping)
+  const facts = canonicalAuthority
+    ? [
+        'Exact edit authority verified',
+        `Preference DNA version ${canonicalAuthority.applicationVersionNumber}`,
+        'A fresh plan and estimate are required',
+      ]
+    : mappingFacts(mapping)
 
   if (resource.state === 'review_required') {
     return {

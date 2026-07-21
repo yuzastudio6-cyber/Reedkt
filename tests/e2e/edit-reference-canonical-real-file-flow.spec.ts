@@ -17,8 +17,10 @@ import type { ProjectEditBriefBackendLocalRecord } from '../../src/lib/project-e
 import type {
   EditReferenceDetailData,
   EditReferenceMessageData,
-  PreferenceApplicationListData,
 } from '../../src/types/edit-reference'
+import type {
+  EditReferenceProductionExactEditApplyAuthorityRead,
+} from '../../src/types/edit-reference-production-exact-edit-apply-api'
 import { expectNoHorizontalOverflow, setViewport } from './helpers/layout'
 import {
   clickWhenReady,
@@ -607,14 +609,13 @@ test.describe('canonical Edit Preference real-file flow', () => {
       `canonical-replacement-${stamp}`,
       replacementPreferenceName,
     )
-    const lifecycleMutationRequests = { prepare: 0, connect: 0, clear: 0 }
-    let prepareResponsesToLose = 2
-    let connectResponsesToLose = 2
-    let loseClearResponse = true
-    await page.route('**/v1/edit-reference-studies/*/preference-dna/*/applications', async (route) => {
+    const lifecycleMutationRequests = { prepare: 0, apply: 0 }
+    const lostPreparationKeys = new Set<string>()
+    await page.route(/\/v1\/projects\/[^/]+\/edit-sessions\/[^/]+\/edit-preferences\/reference-application\/prepare$/, async (route) => {
       if (route.request().method() === 'POST') lifecycleMutationRequests.prepare += 1
-      if (route.request().method() === 'POST' && prepareResponsesToLose > 0) {
-        prepareResponsesToLose -= 1
+      const key = route.request().headers()['idempotency-key'] ?? ''
+      if (route.request().method() === 'POST' && key && !lostPreparationKeys.has(key)) {
+        lostPreparationKeys.add(key)
         const committed = await route.fetch()
         expect(committed.ok()).toBe(true)
         await route.abort('failed')
@@ -622,26 +623,8 @@ test.describe('canonical Edit Preference real-file flow', () => {
       }
       await route.continue()
     })
-    await page.route('**/v1/edit-reference-applications/*/connect', async (route) => {
-      if (route.request().method() === 'POST') lifecycleMutationRequests.connect += 1
-      if (route.request().method() === 'POST' && connectResponsesToLose > 0) {
-        connectResponsesToLose -= 1
-        const committed = await route.fetch()
-        expect(committed.ok()).toBe(true)
-        await route.abort('failed')
-        return
-      }
-      await route.continue()
-    })
-    await page.route('**/v1/edit-reference-applications/*/clear', async (route) => {
-      if (route.request().method() === 'POST') lifecycleMutationRequests.clear += 1
-      if (route.request().method() === 'POST' && loseClearResponse) {
-        loseClearResponse = false
-        const committed = await route.fetch()
-        expect(committed.ok()).toBe(true)
-        await route.abort('failed')
-        return
-      }
+    await page.route(/\/v1\/projects\/[^/]+\/edit-sessions\/[^/]+\/edit-preferences\/apply$/, async (route) => {
+      if (route.request().method() === 'POST') lifecycleMutationRequests.apply += 1
       await route.continue()
     })
 
@@ -801,22 +784,40 @@ test.describe('canonical Edit Preference real-file flow', () => {
     const application = page.getByTestId('current-edit-reference-application')
     await expect(application).toHaveAttribute('data-state', 'ready_to_apply')
     await expect(application).toContainText('Ready for Apply')
-    expect((await listApplications(workspaceId)).applications.filter((record) => record.targetIntegrationStatus === 'connected')).toHaveLength(0)
+    expect((await readExactApplyAuthority({
+      workspaceId,
+      projectId: handoff.projectId,
+      editSessionId: handoff.editSessionId,
+    })).currentApplicationId).toBeNull()
 
     await clickWhenReady(page.getByRole('button', { name: /^Apply to this edit$/i }))
     await expect(referenceSelect).toHaveValue(approved.detail.reference.id)
     await expect(page.getByTestId('current-edit-reference-application')).toHaveAttribute('data-state', 'applied')
     await expect(page.getByTestId('current-edit-reference-application')).toContainText('Guidance is saved to this edit')
-    const connected = (await listApplications(workspaceId)).applications.filter((record) => record.targetIntegrationStatus === 'connected')
-    expect(connected).toHaveLength(1)
-    expect(connected[0]).toMatchObject({
+    const connectedAuthority = await readExactApplyAuthority({
+      workspaceId,
+      projectId: handoff.projectId,
+      editSessionId: handoff.editSessionId,
+    })
+    expect(connectedAuthority.currentApplicationId).toBeTruthy()
+    const connectedApplicationId = connectedAuthority.currentApplicationId
+    if (!connectedApplicationId) throw new Error('Canonical application identity was not connected.')
+    const connectedApplicationAuthority = await readExactApplyAuthority({
+      workspaceId,
+      projectId: handoff.projectId,
+      editSessionId: handoff.editSessionId,
+      selectedApplicationId: connectedApplicationId,
+    })
+    expect(connectedApplicationAuthority.selectedApplicationAuthority).toMatchObject({
+      applicationId: connectedApplicationId,
       editReferenceId: approved.detail.reference.id,
       projectId: handoff.projectId,
       editSessionId: handoff.editSessionId,
       status: 'prepared',
+      connectionState: 'connected',
     })
-    expect(lifecycleMutationRequests.prepare).toBe(1)
-    expect(lifecycleMutationRequests.connect).toBe(1)
+    expect(lifecycleMutationRequests.prepare).toBe(2)
+    expect(lifecycleMutationRequests.apply).toBe(1)
 
     await page.reload()
     await expect(page.getByTestId('current-edit-reference-select')).toHaveValue(approved.detail.reference.id)
@@ -827,19 +828,25 @@ test.describe('canonical Edit Preference real-file flow', () => {
     await clickWhenReady(page.getByRole('button', { name: /^Apply to this edit$/i }))
     await expect(page.getByTestId('current-edit-reference-select')).toHaveValue(replacementApproved.detail.reference.id)
     await expect(page.getByTestId('current-edit-reference-application')).toHaveAttribute('data-state', 'applied')
-    const afterReplacement = (await listApplications(workspaceId)).applications
-    expect(afterReplacement.filter((record) => record.targetIntegrationStatus === 'connected')).toMatchObject([{
-      editReferenceId: replacementApproved.detail.reference.id,
+    const replacementAuthority = await readExactApplyAuthority({
+      workspaceId,
       projectId: handoff.projectId,
       editSessionId: handoff.editSessionId,
-      status: 'prepared',
-    }])
-    expect(afterReplacement.find((record) => record.id === connected[0]?.id)).toMatchObject({
-      status: 'replaced',
-      targetIntegrationStatus: 'invalidated',
     })
-    expect(lifecycleMutationRequests.prepare).toBe(2)
-    expect(lifecycleMutationRequests.connect).toBe(2)
+    expect(replacementAuthority.currentApplicationId).not.toBe(connectedApplicationId)
+    if (!replacementAuthority.currentApplicationId) throw new Error('Replacement application was not connected.')
+    const replacementApplicationAuthority = await readExactApplyAuthority({
+      workspaceId,
+      projectId: handoff.projectId,
+      editSessionId: handoff.editSessionId,
+      selectedApplicationId: replacementAuthority.currentApplicationId,
+    })
+    expect(replacementApplicationAuthority.selectedApplicationAuthority).toMatchObject({
+      editReferenceId: replacementApproved.detail.reference.id,
+      connectionState: 'connected',
+    })
+    expect(lifecycleMutationRequests.prepare).toBe(4)
+    expect(lifecycleMutationRequests.apply).toBe(2)
 
     await page.reload()
     await expect(page.getByTestId('current-edit-reference-select')).toHaveValue(replacementApproved.detail.reference.id)
@@ -851,11 +858,13 @@ test.describe('canonical Edit Preference real-file flow', () => {
     await expect(page.getByTestId('current-edit-preferences-apply-error')).toHaveCount(0)
     await expect(page.getByTestId('preference-material-change-warning')).toHaveCount(0)
     await expect.poll(async () => (
-      (await listApplications(workspaceId)).applications
-        .filter((record) => record.targetIntegrationStatus === 'connected')
-        .length
-    )).toBe(0)
-    expect(lifecycleMutationRequests.clear).toBe(1)
+      (await readExactApplyAuthority({
+        workspaceId,
+        projectId: handoff.projectId,
+        editSessionId: handoff.editSessionId,
+      })).currentApplicationId
+    )).toBeNull()
+    expect(lifecycleMutationRequests.apply).toBe(3)
 
     await setViewport(page, 375, 812)
     await expectNoHorizontalOverflow(page)
@@ -979,12 +988,25 @@ async function createReviewableReference(
   return quality
 }
 
-async function listApplications(workspaceId: string): Promise<PreferenceApplicationListData> {
-  const response = await fetch(`${apiBaseUrl}/v1/edit-reference-applications?workspaceId=${encodeURIComponent(workspaceId)}`)
-  const payload = await response.json() as { ok?: boolean; data?: PreferenceApplicationListData; error?: { message?: string } }
+async function readExactApplyAuthority(input: {
+  workspaceId: string
+  projectId: string
+  editSessionId: string
+  selectedApplicationId?: string
+}): Promise<EditReferenceProductionExactEditApplyAuthorityRead> {
+  const query = new URLSearchParams({ workspaceId: input.workspaceId })
+  if (input.selectedApplicationId) query.set('selectedApplicationId', input.selectedApplicationId)
+  const response = await fetch(`${apiBaseUrl}/v1/projects/${encodeURIComponent(input.projectId)}/edit-sessions/${encodeURIComponent(input.editSessionId)}/edit-preferences/apply-authority?${query}`)
+  const payload = await response.json() as {
+    ok?: boolean
+    data?: { authority?: EditReferenceProductionExactEditApplyAuthorityRead }
+    error?: { message?: string }
+  }
   expect(response.ok, JSON.stringify(payload)).toBe(true)
-  if (!payload.ok || !payload.data) throw new Error(payload.error?.message ?? 'Preference Applications could not be read.')
-  return payload.data
+  if (!payload.ok || !payload.data?.authority) {
+    throw new Error(payload.error?.message ?? 'Exact Edit Reference authority could not be read.')
+  }
+  return payload.data.authority
 }
 
 async function post<T>(path: string, key: string, body: unknown): Promise<T> {

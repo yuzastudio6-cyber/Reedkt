@@ -1,5 +1,4 @@
 import type {
-  EditReferenceDetail,
   EditReferenceListItem,
   PreferenceApplicationRecord,
   PreferenceApplicationSource,
@@ -28,6 +27,16 @@ import {
   stableEditReferenceJson,
 } from './edit-reference-deterministic-hash'
 import type { ProjectEditBriefBackendLocalRecord } from './project-edit-brief-backend-local'
+import type { ProjectPersistenceScope } from './project-persistence-scope'
+import {
+  prepareCanonicalEditReferenceApplication,
+} from './edit-reference-application-preparation-client'
+import {
+  EDIT_REFERENCE_APPLICATION_PREPARATION_INTENT_VERSION,
+} from '../types/edit-reference-production-application-preparation-api'
+import type {
+  EditReferenceProductionPreparedApplicationAuthority,
+} from '../types/edit-reference-production-exact-edit-apply-api'
 
 export const EDIT_REFERENCE_WORKSPACE_ID =
   (import.meta.env?.VITE_REEDITPRO_EDIT_REFERENCE_WORKSPACE_ID as string | undefined)?.trim()
@@ -192,9 +201,17 @@ export async function preparePreferenceApplicationForProjectEditSession(input: {
   editReferenceId: string
   editReferenceClient?: EditReferenceApiClient
   outputFrameConfirmed: true
+  projectPersistenceScope: ProjectPersistenceScope
   targetUnderstandingPackage?: TargetVideoUnderstandingPackage
   workspaceId?: string
-}): Promise<{ ok: true; application: PreferenceApplicationRecord; detail: EditReferenceDetail } | { ok: false; message: string }> {
+}): Promise<
+  | {
+      ok: true
+      applicationAuthority: EditReferenceProductionPreparedApplicationAuthority
+      editReferenceName: string
+    }
+  | { ok: false; message: string }
+> {
   const api = input.editReferenceClient ?? createEditReferenceApiClient()
   const workspaceId = input.workspaceId ?? EDIT_REFERENCE_WORKSPACE_ID
   const detailResult = await api.get(workspaceId, input.editReferenceId)
@@ -224,36 +241,7 @@ export async function preparePreferenceApplicationForProjectEditSession(input: {
     workspaceId,
   })
   if (targetValidationMessage) return { ok: false, message: targetValidationMessage }
-  const existing = detail.applications.find((application) => (
-    application.projectId === input.bundle.session.projectId
-    && application.editSessionId === input.bundle.session.id
-    && application.status === 'prepared'
-  ))
-  if (existing) {
-    const exactExistingApplication = matchesPreparedPreferenceApplication(existing, {
-      applicationSource: input.applicationSource ?? 'session_panel',
-      dnaContentDigest: approvedDNA.contentDigest,
-      dnaVersionId: approvedDNA.id,
-      editReferenceId: detail.reference.id,
-      replacesApplicationId: undefined,
-      targetContext,
-      targetUnderstanding,
-    })
-    if (exactExistingApplication) return { ok: true, application: existing, detail }
-    return {
-      ok: false,
-      message: 'Existing prepared guidance does not match the current verified target study. Replace or remove that guidance before preparing another application.',
-    }
-  }
-  const created = await api.createPreferenceApplication(detail.study.id, approvedDNA.id, {
-    workspaceId,
-    expectedReferenceRevision: detail.reference.revision,
-    expectedDNAContentDigest: approvedDNA.contentDigest,
-    acknowledgeAdaptNotCopy: true,
-    applicationSource: input.applicationSource ?? 'session_panel',
-    targetContext,
-    ...targetUnderstandingRequestBinding(targetUnderstanding),
-  }, stableLifecycleKey(
+  const idempotencyKey = stableLifecycleKey(
     'prepare',
     `${input.bundle.session.id}-${detail.reference.id}`,
     createEditReferenceDeterministicHash({
@@ -263,37 +251,34 @@ export async function preparePreferenceApplicationForProjectEditSession(input: {
       targetUnderstandingPackageId: targetUnderstanding.packageId,
       targetUnderstandingPackageDigestSha256: targetUnderstanding.packageDigestSha256,
     }),
-  ))
-  const createFailureMessage = created.ok ? 'The target application was saved but could not be verified.' : created.message
-  const createdDetail = created.ok ? created.data.detail : undefined
-  if (!createdDetail) {
-    const readback = await api.get(workspaceId, detail.reference.id)
-    const recoveredApplication = readback.ok
-      ? readback.data.detail.applications.find((candidate) => matchesPreparedPreferenceApplication(candidate, {
-          applicationSource: input.applicationSource ?? 'session_panel',
-          dnaContentDigest: approvedDNA.contentDigest,
-          dnaVersionId: approvedDNA.id,
-          editReferenceId: detail.reference.id,
-          replacesApplicationId: undefined,
-          targetContext,
-          targetUnderstanding,
-        }))
-      : undefined
-    if (!readback.ok || !recoveredApplication) return { ok: false, message: createFailureMessage }
-    return { ok: true, application: recoveredApplication, detail: readback.data.detail }
+  )
+  const prepared = await prepareCanonicalEditReferenceApplication({
+    scope: input.projectPersistenceScope,
+    projectId: input.bundle.session.projectId,
+    editSessionId: input.bundle.session.id,
+    intent: {
+      schemaVersion: EDIT_REFERENCE_APPLICATION_PREPARATION_INTENT_VERSION,
+      workspaceId,
+      editReferenceId: detail.reference.id,
+      studySessionId: detail.study.id,
+      dnaVersionId: approvedDNA.id,
+      expectedReferenceRevision: detail.reference.revision,
+      expectedDNAContentDigestSha256: approvedDNA.contentDigest,
+      applicationSource: input.applicationSource ?? 'session_panel',
+      targetUnderstandingPackageId: targetUnderstanding.packageId,
+      targetUnderstandingPackageDigestSha256: targetUnderstanding.packageDigestSha256,
+      targetUnderstandingSourceStorageObjectRecordId: targetUnderstanding.source.storageObjectRecordId,
+      targetUnderstandingSourceMediaAssetId: targetUnderstanding.source.mediaAssetId,
+      targetUnderstandingEditBriefDigestSha256: targetUnderstanding.declaredContext.editBriefDigestSha256,
+    },
+    idempotencyKey,
+  })
+  if (!prepared.ok) return { ok: false, message: prepared.message }
+  return {
+    ok: true,
+    applicationAuthority: prepared.receipt.applicationAuthority,
+    editReferenceName: prepared.receipt.editReferenceName,
   }
-  const application = createdDetail.applications.find((candidate) => matchesPreparedPreferenceApplication(candidate, {
-    applicationSource: input.applicationSource ?? 'session_panel',
-    dnaContentDigest: approvedDNA.contentDigest,
-    dnaVersionId: approvedDNA.id,
-    editReferenceId: detail.reference.id,
-    replacesApplicationId: undefined,
-    targetContext,
-    targetUnderstanding,
-  }))
-  return application
-    ? { ok: true, application, detail: createdDetail }
-    : { ok: false, message: 'The target application was saved but could not be read back.' }
 }
 
 export async function startTargetVideoUnderstandingForProjectEditSession(input: {

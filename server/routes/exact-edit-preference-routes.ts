@@ -4,6 +4,7 @@ import { requireAuth } from '../middleware/auth'
 import { requireSensitiveIdempotencyKey } from '../middleware/idempotency'
 import { requireInternalServiceAuth } from '../middleware/internal-service-auth'
 import { createEditReferenceExactEditApplyService } from '../services/edit-reference-exact-edit-apply-service'
+import { createEditReferenceApplicationPreparationService } from '../services/edit-reference-application-preparation-service'
 import { createExactEditPreferenceService } from '../services/exact-edit-preference-service'
 import { createPlanningExactEditPreferenceAuthorityService } from '../services/planning-exact-edit-preference-authority-service'
 import { validateBody } from '../validation/common-schemas'
@@ -15,6 +16,9 @@ import {
   setExactEditPlanningEvidenceSchema,
   updateExactEditPreferencesSchema,
 } from '../validation/exact-edit-preference-schemas'
+import {
+  editReferenceApplicationPreparationIntentSchema,
+} from '../validation/edit-reference-application-preparation-schemas'
 import {
   asyncRoute,
   getIdempotencyKey,
@@ -75,6 +79,27 @@ export function createExactEditPreferenceRoutes(): Router {
         editSessionId: getRouteParam(request, 'editSessionId'),
       })
       sendOk(response, { authority })
+    }),
+  )
+
+  router.post(
+    '/v1/projects/:projectId/edit-sessions/:editSessionId/edit-preferences/reference-application/prepare',
+    requireAuth,
+    requireSensitiveIdempotencyKey,
+    asyncRoute(async (request, response) => {
+      const intent = validateBody(
+        editReferenceApplicationPreparationIntentSchema,
+        request.body,
+      )
+      const result = await createEditReferenceApplicationPreparationService(
+        getServiceContext(request),
+      ).prepare({
+        projectId: getRouteParam(request, 'projectId'),
+        editSessionId: getRouteParam(request, 'editSessionId'),
+        intent,
+        idempotencyKey: getIdempotencyKey(request),
+      })
+      sendOk(response, result, [], result.receipt.replayed ? 200 : 201)
     }),
   )
 

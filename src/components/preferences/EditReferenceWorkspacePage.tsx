@@ -40,6 +40,11 @@ import type {
 import { createEditReferenceApiClient } from '../../lib/edit-reference-api-client'
 import { uploadEditReferenceMedia } from '../../lib/edit-reference-media-upload-client'
 import {
+  clearEditReferenceMediaUploadRecovery,
+  readPendingEditReferenceMediaUploadRecovery,
+  type EditReferenceMediaUploadRecoverySummary,
+} from '../../lib/edit-reference-media-upload-recovery'
+import {
   preferenceSkillRunBlockerMessage,
   preferenceSkillRunCanRetry,
   preferenceSkillRunDisplaySummary,
@@ -1463,7 +1468,7 @@ function formatStudyEtaRange(lowerSeconds: number, upperSeconds: number): string
 }
 
 type EvidenceFormMode = 'manual_user_evidence' | 'reference_video_metadata' | 'previous_approved_edit_snapshot'
-type EvidenceUploadStage = 'preparing' | 'uploading' | 'finalizing'
+type EvidenceUploadStage = 'preparing' | 'uploading' | 'finalizing' | 'paused'
 
 interface EvidenceUploadStatus {
   stage: EvidenceUploadStage
@@ -1494,17 +1499,33 @@ function EvidenceForm({ detail, disabled, initialMode = 'manual_user_evidence', 
   const [rightsBasis, setRightsBasis] = useState<'user_owned' | 'licensed_or_authorized' | 'reference_only'>('reference_only')
   const [referenceFile, setReferenceFile] = useState<File>()
   const [uploadStatus, setUploadStatus] = useState<EvidenceUploadStatus>()
+  const [pendingUploadRecovery, setPendingUploadRecovery] = useState<EditReferenceMediaUploadRecoverySummary>()
   const [projectId, setProjectId] = useState('')
   const [editSessionId, setEditSessionId] = useState('')
   const [approvedSnapshotId, setApprovedSnapshotId] = useState('')
   const correctedIds = new Set(detail.evidence.map((record) => record.supersedesEvidenceId).filter(Boolean))
   const correctableEvidence = detail.evidence.filter((record) => record.sourceType === 'manual_user_evidence' && !correctedIds.has(record.id))
 
+  useEffect(() => {
+    let cancelled = false
+    void readPendingEditReferenceMediaUploadRecovery({
+      workspaceId,
+      editReferenceId: detail.reference.id,
+      studySessionId: detail.study.id,
+    }).then((recovery) => {
+      if (!cancelled) setPendingUploadRecovery(recovery)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [detail.reference.id, detail.study.id, workspaceId])
+
   const submit = async (event: FormEvent) => {
     event.preventDefault()
     setBusy(true)
     setError(undefined)
     let input: CreatePreferenceEvidenceRequest
+    let completedUploadRecovery: EditReferenceMediaUploadRecoverySummary | undefined
     if (mode === 'manual_user_evidence') {
       input = {
         workspaceId,
@@ -1550,10 +1571,28 @@ function EvidenceForm({ detail, disabled, initialMode = 'manual_user_evidence', 
         })
         if (!privateUpload.ok || !privateUpload.storageObjectRecordId || !privateUpload.mediaAssetId) {
           setError(privateUpload.message)
-          setUploadStatus(undefined)
+          if (privateUpload.recovery?.available) {
+            setPendingUploadRecovery(privateUpload.recovery)
+            setUploadStatus({
+              stage: 'paused',
+              progressPercent: privateUpload.recovery.totalBytes > 0
+                ? Number(((privateUpload.recovery.acceptedBytes / privateUpload.recovery.totalBytes) * 100).toFixed(2))
+                : 0,
+              acceptedBytes: privateUpload.recovery.acceptedBytes,
+              totalBytes: privateUpload.recovery.totalBytes,
+              resumed: privateUpload.recovery.recovered || privateUpload.recovery.acceptedBytes > 0,
+              recoveryState: 'waiting_for_storage',
+              message: privateUpload.recovery.persistedInSession
+                ? 'Your recovery record is safe in this tab. Choose Resume upload to recheck the server checkpoint.'
+                : 'This browser could not retain the recovery record. Keep this page open and try again.',
+            })
+          } else {
+            setUploadStatus(undefined)
+          }
           setBusy(false)
           return
         }
+        completedUploadRecovery = privateUpload.recovery
       }
       input = {
         workspaceId,
@@ -1581,12 +1620,25 @@ function EvidenceForm({ detail, disabled, initialMode = 'manual_user_evidence', 
       }
     }
     const response = await api.addEvidence(detail.study.id, input)
-    if (response.ok) await onAdded(response.data.detail)
-    else setError(response.message)
+    if (response.ok) {
+      if (mode === 'reference_video_metadata') {
+        await clearEditReferenceMediaUploadRecovery({
+          workspaceId,
+          editReferenceId: detail.reference.id,
+          studySessionId: detail.study.id,
+        }).catch(() => undefined)
+        setPendingUploadRecovery(undefined)
+      }
+      await onAdded(response.data.detail)
+    } else {
+      setError(response.message)
+      if (completedUploadRecovery) setPendingUploadRecovery(completedUploadRecovery)
+    }
     setUploadStatus(undefined)
     setBusy(false)
   }
 
+  const uploadInProgress = Boolean(uploadStatus && uploadStatus.stage !== 'paused')
   const submitDisabled = disabled || !title.trim()
     || (mode === 'manual_user_evidence' && !summary.trim())
     || (mode === 'reference_video_metadata' && (!sourceLabel.trim() || !referenceFile))
@@ -1642,7 +1694,18 @@ function EvidenceForm({ detail, disabled, initialMode = 'manual_user_evidence', 
       )}
       {mode === 'reference_video_metadata' && (
         <>
-          <div className="edit-reference-form-boundary"><LockKeyhole aria-hidden="true" size={16} /><span>Large and multi-hour videos upload safely in resumable parts. ReEditPro prepares a smaller study copy and keeps the original unchanged.</span></div>
+          <div className="edit-reference-form-boundary"><LockKeyhole aria-hidden="true" size={16} /><span>When secure storage confirms resumable transfer, ReEditPro uploads large videos in verified parts, keeps the original unchanged, and prepares a smaller copy only for study.</span></div>
+          {pendingUploadRecovery && !uploadStatus ? (
+            <div className="edit-reference-upload-progress is-paused" aria-live="polite" data-testid="edit-reference-video-upload-recovery">
+              <div>
+                <strong>{pendingUploadRecovery.stage === 'finalized' ? 'Verified upload waiting to attach' : 'Unfinished upload found'}</strong>
+                <span>{pendingUploadRecovery.stage === 'finalized'
+                  ? 'Choose the same file to attach the verified private upload without sending it again.'
+                  : 'Choose the same file to request recovery from the last server-verified checkpoint.'}</span>
+              </div>
+              <progress aria-label="Recovered private reference video upload" max="100" value={pendingUploadRecovery.totalBytes > 0 ? (pendingUploadRecovery.acceptedBytes / pendingUploadRecovery.totalBytes) * 100 : 0} />
+            </div>
+          ) : null}
           <label>
             <span>Reference video</span>
             <input
@@ -1660,10 +1723,10 @@ function EvidenceForm({ detail, disabled, initialMode = 'manual_user_evidence', 
               required
               type="file"
             />
-            <small>{referenceFile ? `${referenceFile.name} is ready to upload.` : 'MP4, MOV, or WebM. File size alone will not stop a valid study.'}</small>
+            <small>{referenceFile ? `${referenceFile.name} is ready to upload.` : 'MP4, MOV, or WebM. ReEditPro checks secure resumable capacity before sending a large file.'}</small>
           </label>
           {uploadStatus && (
-            <div className="edit-reference-upload-progress" aria-live="polite" data-testid="edit-reference-video-upload-progress">
+            <div className={`edit-reference-upload-progress${uploadStatus.stage === 'paused' ? ' is-paused' : ''}`} aria-live="polite" data-testid="edit-reference-video-upload-progress">
               <div>
                 <strong>{uploadStatus.stage === 'preparing'
                   ? 'Preparing secure upload'
@@ -1706,9 +1769,11 @@ function EvidenceForm({ detail, disabled, initialMode = 'manual_user_evidence', 
         </>
       )}
       <div className="edit-reference-form-actions">
-        <Button data-testid="save-edit-reference-evidence" disabled={submitDisabled || Boolean(uploadStatus)} icon={Plus} type="submit" variant="primary">
+        <Button data-testid="save-edit-reference-evidence" disabled={submitDisabled || uploadInProgress} icon={uploadStatus?.stage === 'paused' ? RotateCcw : Plus} type="submit" variant="primary">
           {uploadStatus
-            ? uploadStatus.stage === 'finalizing'
+            ? uploadStatus.stage === 'paused'
+              ? 'Resume upload'
+              : uploadStatus.stage === 'finalizing'
               ? 'Verifying…'
               : uploadStatus.recoveryState === 'waiting_for_storage'
                 ? 'Waiting safely…'

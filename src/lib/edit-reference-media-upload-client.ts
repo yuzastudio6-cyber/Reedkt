@@ -2,6 +2,11 @@ import {
   uploadFileToTemporaryTarget,
   type BrowserTemporaryUploadProgress,
 } from './resumable-file-upload'
+import {
+  openEditReferenceMediaUploadRecovery,
+  type EditReferenceMediaUploadRecoveryStorage,
+  type EditReferenceMediaUploadRecoverySummary,
+} from './edit-reference-media-upload-recovery'
 import { getSupabaseClient } from '../backend/supabase/supabase-client'
 
 interface ApiSuccess<T> {
@@ -49,6 +54,7 @@ export interface EditReferenceMediaUploadResult {
   mimeType?: string
   sizeBytes?: number
   checksumSha256?: string
+  recovery?: EditReferenceMediaUploadRecoverySummary
   warnings: string[]
   message: string
 }
@@ -61,6 +67,7 @@ export async function uploadEditReferenceMedia(input: {
   configuredBaseUrl?: string
   fetchImpl?: typeof fetch
   getAccessToken?: () => Promise<string | undefined>
+  recoveryStorage?: EditReferenceMediaUploadRecoveryStorage
   onProgress?: (progress: BrowserTemporaryUploadProgress) => void
   onStageChange?: (stage: 'preparing' | 'uploading' | 'finalizing') => void
 }): Promise<EditReferenceMediaUploadResult> {
@@ -78,11 +85,38 @@ export async function uploadEditReferenceMedia(input: {
   const authorization = accessToken ? `Bearer ${accessToken}` : undefined
 
   input.onStageChange?.('preparing')
+  const recovery = await openEditReferenceMediaUploadRecovery({
+    workspaceId: input.workspaceId,
+    editReferenceId: input.editReferenceId,
+    studySessionId: input.studySessionId,
+    file: input.file,
+    ...(input.recoveryStorage ? { storage: input.recoveryStorage } : {}),
+  }).catch(() => undefined)
+  if (!recovery) {
+    return failure('ReEditPro could not prepare a safe upload recovery record. Choose the file and try again.')
+  }
+  if (
+    recovery.descriptor.stage === 'finalized'
+    && recovery.descriptor.storageObjectRecordId
+    && recovery.descriptor.mediaAssetId
+  ) {
+    return {
+      ok: true,
+      storageObjectRecordId: recovery.descriptor.storageObjectRecordId,
+      mediaAssetId: recovery.descriptor.mediaAssetId,
+      fileName: input.file.name,
+      mimeType,
+      sizeBytes: input.file.size,
+      recovery: recovery.summary(),
+      warnings: [],
+      message: 'Recovered the verified private upload. ReEditPro will finish attaching it to this study.',
+    }
+  }
   const create = await jsonRequest<UploadIntentData>(
     `${baseUrl}/v1/edit-references/${encodeURIComponent(input.editReferenceId)}/upload-intents`,
     {
       method: 'POST',
-      headers: mutationHeaders(`reference-upload-intent-${crypto.randomUUID()}`, authorization),
+      headers: mutationHeaders(recovery.descriptor.idempotencyKey, authorization),
       body: JSON.stringify({
         workspaceId: input.workspaceId,
         chatSessionId: input.studySessionId,
@@ -94,11 +128,16 @@ export async function uploadEditReferenceMedia(input: {
     },
     fetchImpl,
   )
-  if (!create.ok) return failure(create.message)
+  if (!create.ok) return failure(create.message, recovery.summary())
+  recovery.update({
+    stage: 'intent_created',
+    uploadIntentId: create.data.uploadIntent.id,
+  })
   const uploadUrl = create.data.uploadTarget.uploadUrl
-  if (!uploadUrl) return failure('The private upload target did not return a usable destination.')
+  if (!uploadUrl) return failure('The private upload target did not return a usable destination.', recovery.summary())
   try {
     input.onStageChange?.('uploading')
+    recovery.update({ stage: 'uploading' })
     await uploadFileToTemporaryTarget({
       file: input.file,
       target: {
@@ -108,13 +147,20 @@ export async function uploadEditReferenceMedia(input: {
       baseUrl,
       authorization,
       fetchImpl,
-      onProgress: input.onProgress,
+      onProgress: (progress) => {
+        recovery.update({ stage: 'uploading', acceptedBytes: progress.acceptedBytes })
+        input.onProgress?.(progress)
+      },
     })
   } catch (error) {
-    return failure(error instanceof Error ? error.message : 'The reference video could not be stored privately.')
+    return failure(
+      error instanceof Error ? error.message : 'The reference video could not be stored privately.',
+      recovery.summary(),
+    )
   }
 
   input.onStageChange?.('finalizing')
+  recovery.update({ stage: 'finalizing', acceptedBytes: input.file.size })
   const finalized = await jsonRequest<FinalizeUploadData>(
     `${baseUrl}/v1/upload-intents/${encodeURIComponent(create.data.uploadIntent.id)}/finalize`,
     {
@@ -124,7 +170,14 @@ export async function uploadEditReferenceMedia(input: {
     },
     fetchImpl,
   )
-  if (!finalized.ok) return failure(finalized.message)
+  if (!finalized.ok) return failure(finalized.message, recovery.summary())
+
+  recovery.update({
+    stage: 'finalized',
+    acceptedBytes: input.file.size,
+    storageObjectRecordId: finalized.data.storageObjectRecord.id,
+    mediaAssetId: finalized.data.mediaAsset.id,
+  })
 
   return {
     ok: true,
@@ -134,6 +187,7 @@ export async function uploadEditReferenceMedia(input: {
     mimeType: finalized.data.mediaAsset.mimeType,
     sizeBytes: finalized.data.storageObjectRecord.sizeBytes,
     checksumSha256: finalized.data.storageObjectRecord.checksumSha256,
+    recovery: recovery.summary(),
     warnings: [...(create.warnings ?? []), ...(finalized.warnings ?? [])],
     message: 'Reference video stored privately and ready for analysis.',
   }
@@ -186,6 +240,9 @@ function resolveReferenceVideoMimeType(file: File): string | undefined {
   return undefined
 }
 
-function failure(message: string): EditReferenceMediaUploadResult {
-  return { ok: false, warnings: [], message }
+function failure(
+  message: string,
+  recovery?: EditReferenceMediaUploadRecoverySummary,
+): EditReferenceMediaUploadResult {
+  return { ok: false, warnings: [], message, ...(recovery ? { recovery } : {}) }
 }

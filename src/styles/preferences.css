@@ -759,6 +759,15 @@
   padding: var(--rp-space-3);
 }
 
+.edit-reference-upload-progress.is-paused {
+  background: color-mix(in srgb, var(--rp-warning) 7%, transparent);
+  border-color: var(--rp-border-warning);
+}
+
+.edit-reference-upload-progress.is-paused strong {
+  color: var(--rp-warning);
+}
+
 .edit-reference-upload-progress > div {
   display: grid;
   gap: 3px;

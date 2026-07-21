@@ -123,6 +123,78 @@ test.describe('canonical Edit Preference real-file flow', () => {
     expect(sourceAfter).toBe(sourceBefore)
   })
 
+  test('recovers a verified upload after reload without sending the private video twice', async ({ page }) => {
+    test.setTimeout(120_000)
+    page.setDefaultTimeout(15_000)
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await setViewport(page, 1280, 900)
+
+    const preferenceName = `Upload recovery ${Date.now()}`
+    let failNextEvidenceMutation = true
+    let uploadIntentRequests = 0
+    let uploadBodyRequests = 0
+    let finalizeRequests = 0
+    page.on('request', (request) => {
+      const url = request.url()
+      if (request.method() === 'POST' && /\/v1\/edit-references\/[^/]+\/upload-intents$/.test(url)) uploadIntentRequests += 1
+      if (request.method() === 'PUT' && /\/v1\/upload-intents\/[^/]+\/local-object(?:\?.*)?$/.test(url)) uploadBodyRequests += 1
+      if (request.method() === 'POST' && /\/v1\/upload-intents\/[^/]+\/finalize$/.test(url)) finalizeRequests += 1
+    })
+    await page.route('**/v1/edit-reference-studies/*/evidence', async (route) => {
+      if (route.request().method() === 'POST' && failNextEvidenceMutation) {
+        failNextEvidenceMutation = false
+        await route.abort('failed')
+        return
+      }
+      await route.continue()
+    })
+
+    await gotoRoute(page, '/preferences')
+    await page.getByTestId('new-edit-reference').click()
+    await page.getByTestId('edit-reference-name').fill(preferenceName)
+    await page.getByTestId('save-edit-reference').click()
+    await page.getByRole('button', { name: 'Upload video' }).click()
+    await page.getByTestId('edit-reference-video-file').setInputFiles(fixturePath)
+    await page.getByTestId('save-edit-reference-evidence').click()
+
+    await expect(page.getByTestId('edit-reference-video-upload-recovery')).toContainText('Verified upload waiting to attach')
+    const callsAfterInterruptedEvidence = {
+      uploadIntentRequests,
+      uploadBodyRequests,
+      finalizeRequests,
+    }
+    expect(callsAfterInterruptedEvidence.uploadIntentRequests).toBe(1)
+    expect(callsAfterInterruptedEvidence.uploadBodyRequests).toBeGreaterThan(0)
+    expect(callsAfterInterruptedEvidence.finalizeRequests).toBe(1)
+    const storedRecovery = await page.evaluate(() => Array.from(
+      { length: sessionStorage.length },
+      (_, index) => {
+        const key = sessionStorage.key(index) ?? ''
+        return [key, sessionStorage.getItem(key)] as const
+      },
+    ).find(([key]) => key.startsWith('reeditpro.editReferenceUploadRecovery.v1.')))
+    expect(storedRecovery).toBeTruthy()
+    expect(JSON.stringify(storedRecovery)).not.toContain('target-documentary.mp4')
+
+    await page.reload()
+    await expect(page.getByRole('heading', { name: preferenceName })).toBeVisible()
+    await page.getByRole('button', { name: 'Upload video' }).click()
+    await expect(page.getByTestId('edit-reference-video-upload-recovery')).toContainText('Verified upload waiting to attach')
+    await page.getByTestId('edit-reference-video-file').setInputFiles(fixturePath)
+    await page.getByTestId('save-edit-reference-evidence').click()
+
+    await expect(page.locator('[data-testid^="edit-reference-long-form-study-"]').first()).toBeVisible()
+    expect(uploadIntentRequests).toBe(callsAfterInterruptedEvidence.uploadIntentRequests)
+    expect(uploadBodyRequests).toBe(callsAfterInterruptedEvidence.uploadBodyRequests)
+    expect(finalizeRequests).toBe(callsAfterInterruptedEvidence.finalizeRequests)
+    const recoveryKeysAfterAttach = await page.evaluate(() => Array.from(
+      { length: sessionStorage.length },
+      (_, index) => sessionStorage.key(index) ?? '',
+    ).filter((key) => key.startsWith('reeditpro.editReferenceUploadRecovery.v1.')))
+    expect(recoveryKeysAfterAttach).toEqual([])
+    await expectNoHorizontalOverflow(page)
+  })
+
   test('selects approved guidance, verifies the exact target, applies explicitly, reloads, and removes safely', async ({ page }, testInfo) => {
     test.setTimeout(180_000)
     page.setDefaultTimeout(15_000)

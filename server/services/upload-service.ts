@@ -21,6 +21,17 @@ import {
 } from '../../src/types/large-media'
 import { deriveMediaTaskTimeoutMs } from '../workers/media/media-task-policy'
 import type { ServiceContext } from '../types'
+import {
+  assertCanonicalDurableUploadTargetProductionAuthority,
+  assertCanonicalDurableUploadTargetStatePort,
+  assertCanonicalUploadTargetCredentialEscrow,
+  canonicalDurableUploadIntentRequestHash,
+  createCanonicalDurableUploadIntentCandidate,
+  hashCanonicalUploadTargetValue,
+  resolveCanonicalUploadIntentAndTarget,
+  type CanonicalDurableUploadIntentRecord,
+  type ResolvedCanonicalUploadTarget,
+} from '../upload-target-authority/canonical-durable-upload-target-authority'
 import type {
   PrivateMediaAssetAuthorityRecord,
   PrivateStorageObjectAuthorityRecord,
@@ -38,6 +49,7 @@ import {
 } from './private-upload-media-authority-store'
 import { createProjectService } from './project-service'
 import { getRequiredAuthUserId, mockWarning, nowIso, throwOnSupabaseError } from './service-helpers'
+import { authorizeWorkspaceAccess } from './workspace-access-service'
 
 interface CreateUploadIntentBase {
   workspaceId: string
@@ -263,6 +275,8 @@ export function createUploadService(context: ServiceContext) {
       const uploadOwner = await resolveUploadOwner(context, input)
       if (uploadOwner.kind === 'project') {
         await assertUploadProjectOwnedByCurrentUser(context, uploadOwner.projectId, input.workspaceId)
+      } else {
+        await authorizeWorkspaceAccess(context, input.workspaceId, 'write')
       }
       assertCreateUploadIntentDomainIdempotencyAvailable(context, input.idempotencyKey)
       assertProductionUploadUsesDirectObjectStorage(context, storage)
@@ -318,6 +332,8 @@ export function createUploadService(context: ServiceContext) {
       const uploadOwner = await resolveUploadOwner(context, input)
       if (uploadOwner.kind === 'project') {
         await assertUploadProjectOwnedByCurrentUser(context, uploadOwner.projectId, input.workspaceId)
+      } else {
+        await authorizeWorkspaceAccess(context, input.workspaceId, 'write')
       }
       assertCreateUploadIntentDomainIdempotencyAvailable(context, input.idempotencyKey)
       assertProductionUploadUsesDirectObjectStorage(context, storage)
@@ -329,15 +345,15 @@ export function createUploadService(context: ServiceContext) {
       })
       assertLargeMediaFinalizationAvailable(context, storage, input.expectedSizeBytes)
 
-      const uploadIntentId = randomUUID()
+      let uploadIntentId: string = randomUUID()
       const now = nowIso()
       const usesResumableCloudSession = storage.mode === 'gcs' && shouldUseResumableUpload(input.expectedSizeBytes)
       const uploadTargetTtlSeconds = usesResumableCloudSession
         ? GCS_RESUMABLE_SESSION_TTL_SECONDS
         : context.env.signedUrlTtlSeconds
-      const expiresAt = new Date(Date.now() + uploadTargetTtlSeconds * 1000).toISOString()
-      const targetBucket = resolveBucketName(context.env, input.uploadPurpose)
-      const targetPath = uploadOwner.kind === 'edit_reference'
+      let expiresAt = new Date(Date.now() + uploadTargetTtlSeconds * 1000).toISOString()
+      let targetBucket = resolveBucketName(context.env, input.uploadPurpose)
+      let targetPath = uploadOwner.kind === 'edit_reference'
         ? buildEditReferenceObjectPath({
             workspaceId: input.workspaceId,
             editReferenceId: uploadOwner.editReferenceId,
@@ -351,18 +367,39 @@ export function createUploadService(context: ServiceContext) {
             ownerId: uploadIntentId,
             fileName: input.originalFileName,
           })
-
-      let uploadTarget = await storage.createUploadTarget({
+      const canonicalTargetResolution = await resolveCanonicalTargetForUploadIntent({
+        context,
+        storage,
+        input,
+        uploadOwner,
         uploadIntentId,
-        workspaceId: input.workspaceId,
-        projectId: uploadOwner.projectIdForAuthority,
-        bucketName: targetBucket,
-        objectPath: targetPath,
+        targetBucket,
+        targetPath,
         mimeType,
-        expectedSizeBytes: input.expectedSizeBytes,
-        checksumSha256: normalizeChecksumSha256(input.checksumSha256),
         expiresAt,
+        now,
+        expectedProtocol: usesResumableCloudSession ? 'gcs_resumable' : 'single_put',
       })
+      let uploadTarget = canonicalTargetResolution?.target
+      if (!uploadTarget) {
+        uploadTarget = await storage.createUploadTarget({
+          uploadIntentId,
+          workspaceId: input.workspaceId,
+          projectId: uploadOwner.projectIdForAuthority,
+          bucketName: targetBucket,
+          objectPath: targetPath,
+          mimeType,
+          expectedSizeBytes: input.expectedSizeBytes,
+          checksumSha256: normalizeChecksumSha256(input.checksumSha256),
+          expiresAt,
+        })
+      }
+      if (canonicalTargetResolution) {
+        uploadIntentId = canonicalTargetResolution.intent.uploadIntentId
+        targetBucket = canonicalTargetResolution.intent.targetBucket
+        targetPath = canonicalTargetResolution.intent.targetPath
+        expiresAt = canonicalTargetResolution.intent.expiresAt
+      }
 
       if (usesLocalUploadPersistence(context)) {
         const uploadIntent: UploadIntentView = {
@@ -380,11 +417,11 @@ export function createUploadService(context: ServiceContext) {
           originalFileName: input.originalFileName,
           mimeType,
           expectedSizeBytes: input.expectedSizeBytes,
-          checksumSha256: input.checksumSha256,
+          checksumSha256: normalizeChecksumSha256(input.checksumSha256),
           status: 'signed',
           expiresAt,
-          createdAt: now,
-          updatedAt: now,
+          createdAt: canonicalTargetResolution?.intent.createdAt ?? now,
+          updatedAt: canonicalTargetResolution?.intent.updatedAt ?? now,
           mockOnly: true,
         }
         const persistedUploadIntent = await createPrivateUploadIntentAuthority({
@@ -409,6 +446,17 @@ export function createUploadService(context: ServiceContext) {
             : undefined,
           now,
         })
+        if (persistedUploadIntent.id !== uploadIntentId && canonicalTargetResolution) {
+          throw new ApiError(
+            'IDEMPOTENCY_ATOMICITY_REQUIRED',
+            'The canonical upload-target authority and private upload lifecycle projection diverged.',
+            503,
+            {
+              requiredGate: 'canonical_durable_upload_target_lifecycle_projection',
+              targetSideEffectRetried: false,
+            },
+          )
+        }
         if (persistedUploadIntent.id !== uploadIntentId) {
           uploadTarget = await storage.createUploadTarget({
             uploadIntentId: persistedUploadIntent.id,
@@ -440,7 +488,39 @@ export function createUploadService(context: ServiceContext) {
           signedUrlEvent: signedUrlEvent.signedUrlEvent,
           warnings: [
             mockWarning('Upload intent creation'),
+            ...(canonicalTargetResolution
+              ? [`Canonical durable target disposition: ${canonicalTargetResolution.disposition}.`]
+              : []),
             'Upload target is temporary; canonical storage truth is bucketName + objectPath only.',
+          ],
+        }
+      }
+
+      if (canonicalTargetResolution) {
+        const canonicalUploadIntent = mapCanonicalDurableUploadIntent(
+          canonicalTargetResolution.intent,
+        )
+        const signedUrlEvent = await recordSignedUrlEvent(context, {
+          workspaceId: canonicalUploadIntent.workspaceId,
+          projectId: canonicalUploadIntent.projectId,
+          editReferenceId: canonicalUploadIntent.editReferenceId,
+          uploadIntentId: canonicalUploadIntent.id,
+          urlPurpose: 'upload',
+          expiresAt: canonicalUploadIntent.expiresAt,
+          metadataJson: uploadTargetMetadata(
+            storage.mode,
+            uploadTarget,
+            canonicalUploadIntent.targetBucket,
+            canonicalUploadIntent.targetPath,
+          ),
+        })
+        return {
+          uploadIntent: toExternalUploadIntentView(canonicalUploadIntent),
+          uploadTarget,
+          signedUrlEvent: signedUrlEvent.signedUrlEvent,
+          warnings: [
+            `Canonical durable target disposition: ${canonicalTargetResolution.disposition}.`,
+            'Temporary target issuance was committed before its external side effect and no credential was stored in canonical persistence.',
           ],
         }
       }
@@ -900,6 +980,136 @@ function uploadTargetMetadata(
   }
 }
 
+async function resolveCanonicalTargetForUploadIntent(input: {
+  context: ServiceContext
+  storage: StorageAdapter
+  input: CreateUploadIntentInput
+  uploadOwner: UploadOwner
+  uploadIntentId: string
+  targetBucket: string
+  targetPath: string
+  mimeType: string
+  expiresAt: string
+  now: string
+  expectedProtocol: 'single_put' | 'gcs_resumable'
+}): Promise<ResolvedCanonicalUploadTarget | undefined> {
+  const port = input.context.canonicalDurableUploadTargetStatePort
+  const escrow = input.context.canonicalUploadTargetCredentialEscrow
+  if (!port && !escrow) return undefined
+  if (!port || !escrow) {
+    throw new ApiError(
+      'IDEMPOTENCY_ATOMICITY_REQUIRED',
+      'Durable upload-target state and credential escrow must be injected together.',
+      503,
+      { requiredGate: 'canonical_durable_upload_target_authority_pair' },
+    )
+  }
+  assertCanonicalDurableUploadTargetStatePort(port)
+  assertCanonicalUploadTargetCredentialEscrow(
+    escrow,
+    input.context.env.nodeEnv === 'production',
+  )
+  const idempotencyKey = input.input.idempotencyKey?.trim()
+  if (!idempotencyKey) {
+    throw new ApiError(
+      'IDEMPOTENCY_KEY_REQUIRED',
+      'Canonical upload-target issuance requires a durable Idempotency-Key.',
+      400,
+    )
+  }
+  if (!input.input.expectedSizeBytes || !Number.isSafeInteger(input.input.expectedSizeBytes)) {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      'Canonical upload-target issuance requires the exact positive source byte length.',
+      400,
+      { requiredField: 'expectedSizeBytes' },
+    )
+  }
+  const ownerUserId = getRequiredAuthUserId(input.context)
+  assertUserInitiatedUploadPurpose(input.input.uploadPurpose)
+  const checksumSha256 = normalizeChecksumSha256(input.input.checksumSha256)
+  const domainInput = {
+    ownerUserId,
+    workspaceId: input.input.workspaceId,
+    projectId: input.uploadOwner.projectIdForAuthority,
+    ...(input.uploadOwner.kind === 'edit_reference'
+      ? { editReferenceId: input.uploadOwner.editReferenceId }
+      : {}),
+    ...(input.input.chatSessionId ? { chatSessionId: input.input.chatSessionId } : {}),
+    uploadPurpose: input.input.uploadPurpose,
+    targetBucket: input.targetBucket,
+    originalFileName: input.input.originalFileName,
+    mimeType: input.mimeType,
+    expectedSizeBytes: input.input.expectedSizeBytes,
+    ...(checksumSha256 ? { checksumSha256 } : {}),
+  }
+  const requestHash = canonicalDurableUploadIntentRequestHash(domainInput)
+  const candidate = createCanonicalDurableUploadIntentCandidate({
+    ...domainInput,
+    uploadIntentId: input.uploadIntentId,
+    targetPath: input.targetPath,
+    requestHash,
+    createdAt: input.now,
+    expiresAt: input.expiresAt,
+  })
+  const authorizationEvidenceHash = hashCanonicalUploadTargetValue({
+    schemaVersion: 'canonical-upload-target-server-authorization-evidence-v1',
+    ownerUserId,
+    workspaceId: input.input.workspaceId,
+    ownerKind: input.uploadOwner.kind,
+    projectId: input.uploadOwner.projectIdForAuthority,
+    editReferenceId: input.uploadOwner.kind === 'edit_reference'
+      ? input.uploadOwner.editReferenceId
+      : null,
+    access: 'write',
+    serverAuthorizationRechecked: true,
+  })
+  return resolveCanonicalUploadIntentAndTarget({
+    port,
+    escrow,
+    candidate,
+    idempotencyKey,
+    authorizationEvidenceHash,
+    expectedProtocol: input.expectedProtocol,
+    now: input.now,
+    createTarget: (committedIntent) => input.storage.createUploadTarget({
+      uploadIntentId: committedIntent.uploadIntentId,
+      workspaceId: committedIntent.workspaceId,
+      projectId: committedIntent.projectId,
+      bucketName: committedIntent.targetBucket,
+      objectPath: committedIntent.targetPath,
+      mimeType: committedIntent.mimeType,
+      expectedSizeBytes: committedIntent.expectedSizeBytes,
+      checksumSha256: committedIntent.checksumSha256 ?? undefined,
+      expiresAt: committedIntent.expiresAt,
+    }),
+  })
+}
+
+function mapCanonicalDurableUploadIntent(
+  record: CanonicalDurableUploadIntentRecord,
+): UploadIntentView {
+  return {
+    id: record.uploadIntentId,
+    workspaceId: record.workspaceId,
+    projectId: record.projectId,
+    ...(record.editReferenceId ? { editReferenceId: record.editReferenceId } : {}),
+    ...(record.chatSessionId ? { chatSessionId: record.chatSessionId } : {}),
+    requestedByUserId: record.ownerUserId,
+    uploadPurpose: record.uploadPurpose,
+    targetBucket: record.targetBucket,
+    targetPath: record.targetPath,
+    originalFileName: record.originalFileName,
+    mimeType: record.mimeType,
+    expectedSizeBytes: record.expectedSizeBytes,
+    ...(record.checksumSha256 ? { checksumSha256: record.checksumSha256 } : {}),
+    status: 'signed',
+    expiresAt: record.expiresAt,
+    createdAt: record.createdAt,
+    updatedAt: record.updatedAt,
+  }
+}
+
 function normalizeChecksumSha256(value: string | undefined): string | undefined {
   if (typeof value !== 'string') return undefined
   const normalized = value.trim().toLowerCase()
@@ -1247,14 +1457,35 @@ function assertCreateUploadIntentDomainIdempotencyAvailable(
   context: ServiceContext,
   idempotencyKey: string | undefined,
 ): void {
+  const port = context.canonicalDurableUploadTargetStatePort
+  const escrow = context.canonicalUploadTargetCredentialEscrow
+  if (Boolean(port) !== Boolean(escrow)) {
+    throw new ApiError(
+      'IDEMPOTENCY_ATOMICITY_REQUIRED',
+      'Durable upload-target state and credential escrow must be injected together.',
+      503,
+      { requiredGate: 'canonical_durable_upload_target_authority_pair' },
+    )
+  }
+  if (port && escrow) {
+    assertCanonicalDurableUploadTargetStatePort(port)
+    assertCanonicalUploadTargetCredentialEscrow(escrow, context.env.nodeEnv === 'production')
+  }
   if (usesLocalUploadPersistence(context)) return
+  if (port && escrow && idempotencyKey?.trim()) {
+    assertCanonicalDurableUploadTargetProductionAuthority(port)
+    return
+  }
   throw new ApiError(
     'IDEMPOTENCY_ATOMICITY_REQUIRED',
-    'Production upload-intent creation is unavailable until its durable intent and idempotency response commit atomically.',
+    'Production upload-intent creation is unavailable until its durable intent, one-use target claim, credential escrow, and lifecycle projection are production-qualified.',
     503,
     {
       requiredGate: 'create_upload_intent_atomic_idempotency_rpc',
+      requiredAuthority: 'canonical_durable_upload_target_authority',
       idempotencyKeyPresent: Boolean(idempotencyKey?.trim()),
+      durableStatePortPresent: Boolean(port),
+      credentialEscrowPresent: Boolean(escrow),
       temporaryCredentialReplayCacheAllowed: false,
       retryable: false,
     },

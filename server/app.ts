@@ -39,6 +39,8 @@ export interface ReeditProApiAppOptions {
   storageAdapter?: StorageAdapter
   clients?: RuntimeClients
   planningPreferenceApplicationAuthorityPort?: RuntimeState['planningPreferenceApplicationAuthorityPort']
+  canonicalDurableUploadTargetStatePort?: RuntimeState['canonicalDurableUploadTargetStatePort']
+  canonicalUploadTargetCredentialEscrow?: RuntimeState['canonicalUploadTargetCredentialEscrow']
 }
 
 export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppOptions = {}): Express {
@@ -47,6 +49,12 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
     ...(options.storageAdapter ? { storageAdapter: options.storageAdapter } : {}),
     ...(options.planningPreferenceApplicationAuthorityPort
       ? { planningPreferenceApplicationAuthorityPort: options.planningPreferenceApplicationAuthorityPort }
+      : {}),
+    ...(options.canonicalDurableUploadTargetStatePort
+      ? { canonicalDurableUploadTargetStatePort: options.canonicalDurableUploadTargetStatePort }
+      : {}),
+    ...(options.canonicalUploadTargetCredentialEscrow
+      ? { canonicalUploadTargetCredentialEscrow: options.canonicalUploadTargetCredentialEscrow }
       : {}),
     clients: options.clients ?? {
       admin: createSupabaseAdminClient(env),

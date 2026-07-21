@@ -3,6 +3,10 @@ import type { Request } from 'express'
 import type { RuntimeEnv } from './config/env'
 import type { StorageAdapter } from './storage/storage-types'
 import type { PlanningPreferenceApplicationAuthorityPort } from './services/planning-preference-application-authority-port'
+import type {
+  CanonicalDurableUploadTargetTransactionAdapter,
+  CanonicalUploadTargetCredentialEscrow,
+} from './upload-target-authority/canonical-durable-upload-target-authority'
 
 export interface AuthContext {
   userId: string
@@ -51,6 +55,8 @@ export interface RuntimeState {
   clients: RuntimeClients
   storageAdapter?: StorageAdapter
   planningPreferenceApplicationAuthorityPort?: PlanningPreferenceApplicationAuthorityPort
+  canonicalDurableUploadTargetStatePort?: CanonicalDurableUploadTargetTransactionAdapter
+  canonicalUploadTargetCredentialEscrow?: CanonicalUploadTargetCredentialEscrow
 }
 
 export type RuntimeRequest = Request & {
@@ -72,4 +78,6 @@ export interface ServiceContext {
   auth?: AuthContext
   storageAdapter?: StorageAdapter
   planningPreferenceApplicationAuthorityPort?: PlanningPreferenceApplicationAuthorityPort
+  canonicalDurableUploadTargetStatePort?: CanonicalDurableUploadTargetTransactionAdapter
+  canonicalUploadTargetCredentialEscrow?: CanonicalUploadTargetCredentialEscrow
 }

@@ -787,16 +787,12 @@ function parseHandoffReceipt(
   if (!record || record.schemaVersion !== 'canonical-planning-handoff-response-v1' ||
       record.source !== 'canonical_planning_handoff_service' || containsForbiddenPrivateMaterial(record)) return null
   const identity = exactRecord(record.identity, ['workspaceId', 'projectId', 'editSessionId'])
-  const readiness = exactRecord(record.readiness, [
-    'finalizedSourceMediaVerified', 'exactEditPreferencesVerified', 'preferenceApplicationVerified',
-    'editBriefVerified', 'outputFrameAndCleanupVerified', 'readyForCanonicalPlanPublication',
-  ])
   const persistence = exactRecord(record.persistence, [
     'privateLocal', 'tenantScoped', 'createOnly', 'checksumProtected', 'contentAddressed',
     'distributed', 'productionAuthority',
   ])
   if (!identity || identity.workspaceId !== workspaceId || identity.projectId !== projectId || identity.editSessionId !== editSessionId ||
-      !allLiteral(readiness, true) || !persistence || persistence.privateLocal !== true || persistence.tenantScoped !== true ||
+      !validHandoffReadiness(record.readiness) || !persistence || persistence.privateLocal !== true || persistence.tenantScoped !== true ||
       persistence.createOnly !== true || persistence.checksumProtected !== true || persistence.contentAddressed !== true ||
       persistence.distributed !== false || persistence.productionAuthority !== false ||
       record.noPlanPublished !== true || record.noSnapshotCreated !== true || record.noCreditReservation !== true ||
@@ -809,6 +805,56 @@ function parseHandoffReceipt(
     handoffHash: record.handoffHash,
     canonicalPlanComponentsHash: record.canonicalPlanComponentsHash,
   }
+}
+
+function validHandoffReadiness(value: unknown): boolean {
+  const sharedKeys = [
+    'finalizedSourceMediaVerified',
+    'exactEditPreferencesVerified',
+    'preferenceApplicationVerified',
+    'editBriefVerified',
+    'outputFrameAndCleanupVerified',
+    'readyForCanonicalPlanPublication',
+  ] as const
+  const legacyUploaded = exactRecord(value, [...sharedKeys])
+  if (legacyUploaded) return allLiteral(legacyUploaded, true)
+
+  const uploaded = exactRecord(value, [
+    'sourceAuthorityMode',
+    ...sharedKeys,
+    'ideaFirstStorytellingAuthorityVerified',
+  ])
+  if (uploaded) {
+    return uploaded.sourceAuthorityMode === 'finalized_uploaded_media' &&
+      uploaded.finalizedSourceMediaVerified === true &&
+      uploaded.ideaFirstStorytellingAuthorityVerified === false &&
+      uploaded.exactEditPreferencesVerified === true &&
+      uploaded.preferenceApplicationVerified === true &&
+      uploaded.editBriefVerified === true &&
+      uploaded.outputFrameAndCleanupVerified === true &&
+      uploaded.readyForCanonicalPlanPublication === true
+  }
+
+  const ideaFirst = exactRecord(value, [
+    'sourceAuthorityMode',
+    ...sharedKeys,
+    'ideaFirstStorytellingAuthorityVerified',
+    'noUploadedMediaExpected',
+    'fabricatedUploadRecordCount',
+  ])
+  return Boolean(
+    ideaFirst &&
+    ideaFirst.sourceAuthorityMode === 'idea_first_no_uploaded_media' &&
+    ideaFirst.finalizedSourceMediaVerified === false &&
+    ideaFirst.ideaFirstStorytellingAuthorityVerified === true &&
+    ideaFirst.noUploadedMediaExpected === true &&
+    ideaFirst.fabricatedUploadRecordCount === 0 &&
+    ideaFirst.exactEditPreferencesVerified === true &&
+    ideaFirst.preferenceApplicationVerified === true &&
+    ideaFirst.editBriefVerified === true &&
+    ideaFirst.outputFrameAndCleanupVerified === true &&
+    ideaFirst.readyForCanonicalPlanPublication === true
+  )
 }
 
 function parsePublicationReceipt(

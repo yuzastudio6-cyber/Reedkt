@@ -226,7 +226,6 @@ import {
 } from '../edit-references/edit-reference-long-form-review-package'
 import { PrivateTargetVideoUnderstandingRepository } from '../edit-references/private-target-video-understanding-repository'
 import {
-  scheduleEditReferenceLongFormStudy,
   type EditReferenceLongFormStudyScheduler,
 } from '../edit-references/edit-reference-long-form-study-scheduler'
 import {
@@ -249,6 +248,10 @@ import { createPreferenceApplicationDownstreamContext } from '../../src/lib/edit
 import { createUploadService } from './upload-service'
 import { buildEditReferenceStudyChatStructuredContext } from './edit-reference-study-chat-reasoning-service'
 import { buildEditReferencePreferenceDnaStructuredContext } from './edit-reference-preference-dna-reasoning-service'
+import {
+  resolveEditReferenceLongFormStudyRuntimePort,
+  type EditReferenceLongFormStudyRuntimePort,
+} from './edit-reference-production-long-form-runtime-port'
 import { instrumentEditReferenceService } from './edit-reference-observability-service'
 import type { EditReferenceObservabilitySink } from '../edit-references/edit-reference-observability-contract'
 import {
@@ -317,6 +320,7 @@ export interface EditReferenceServiceRuntimeOptions {
   readonly audioSoundDesignProductionAuthority?: EditReferenceAudioSoundDesignProductionAuthority
   readonly reviewedLocalAudioSoundDesignRuntime?: EditReferenceReviewedLocalAudioSoundDesignRuntimeOptions
   readonly previousApprovedEditHistoryReader?: EditReferenceApprovedHistoryReader
+  readonly longFormStudyRuntimePort?: EditReferenceLongFormStudyRuntimePort
   readonly longFormStudyRepository?: PrivateEditReferenceLongFormStudyRepository
   readonly longFormSourceInspector?: EditReferenceLongFormSourceInspector
   readonly longFormStudyScheduler?: EditReferenceLongFormStudyScheduler
@@ -468,12 +472,14 @@ export function createEditReferenceService(
     reader: runtimeOptions.previousApprovedEditHistoryReader
       ?? createUnavailableEditReferenceApprovedHistoryReader(),
   })
-  const longFormStudyRepository = runtimeOptions.longFormStudyRepository
-    ?? new PrivateEditReferenceLongFormStudyRepository()
+  const longFormStudyRuntime = resolveEditReferenceLongFormStudyRuntimePort({
+    env: context.env,
+    runtimePort: runtimeOptions.longFormStudyRuntimePort,
+    localRepository: runtimeOptions.longFormStudyRepository,
+    localScheduler: runtimeOptions.longFormStudyScheduler,
+  })
   const longFormSourceInspector = runtimeOptions.longFormSourceInspector
     ?? inspectEditReferenceLongFormSource
-  const longFormStudyScheduler = runtimeOptions.longFormStudyScheduler
-    ?? scheduleEditReferenceLongFormStudy
   const targetVideoUnderstandingRepository = runtimeOptions.targetVideoUnderstandingRepository
     ?? new PrivateTargetVideoUnderstandingRepository()
   const scope = (workspaceId: string): EditReferenceRepositoryScope => ({
@@ -546,7 +552,7 @@ export function createEditReferenceService(
       if (!asset.longFormStudy) {
         throw new ApiError('LONG_FORM_STUDY_NOT_FOUND', 'This reference video does not have a durable study in progress.', 404)
       }
-      const persisted = await longFormStudyRepository.read({
+      const persisted = await longFormStudyRuntime.read({
         scope: scope(workspaceId),
         runId: asset.longFormStudy.runId,
       })
@@ -563,12 +569,11 @@ export function createEditReferenceService(
         asset.storageObjectRecordId as string,
         workspaceId,
       )).storageObjectRecord
-      longFormStudyScheduler({
+      longFormStudyRuntime.schedule({
         env: context.env,
         scope: scope(workspaceId),
         runId: summary.runId,
         storageObject: storage,
-        repository: longFormStudyRepository,
       })
       return result(longFormStudyStatusData(reference, study, asset, summary))
     },
@@ -582,7 +587,7 @@ export function createEditReferenceService(
         studyId,
         referenceAssetId,
         scope: requestedScope,
-        repository: longFormStudyRepository,
+        runtime: longFormStudyRuntime,
       })
       return result(longFormStudyReviewData(authority))
     },
@@ -598,7 +603,7 @@ export function createEditReferenceService(
         studyId,
         referenceAssetId,
         scope: requestedScope,
-        repository: longFormStudyRepository,
+        runtime: longFormStudyRuntime,
       })
       assertLongFormStudyReviewPackageDigest(
         currentAuthority.reviewPackage.packageDigestSha256,
@@ -634,7 +639,7 @@ export function createEditReferenceService(
             studyId,
             referenceAssetId,
             scope: requestedScope,
-            repository: longFormStudyRepository,
+            runtime: longFormStudyRuntime,
           })
           assertActiveStudy(authority.reference, authority.study)
           assertRevision(authority.study.revision, normalized.expectedStudyRevision, 'Preference Study')
@@ -708,7 +713,7 @@ export function createEditReferenceService(
         studyId,
         referenceAssetId,
         scope: requestedScope,
-        repository: longFormStudyRepository,
+        runtime: longFormStudyRuntime,
       })
       return result({
         review: longFormStudyReviewData(storedAuthority),
@@ -729,9 +734,9 @@ export function createEditReferenceService(
         throw new ApiError('LONG_FORM_STUDY_NOT_FOUND', 'This reference video does not have a durable study to control.', 404)
       }
       const requestedScope = scope(normalized.workspaceId)
-      let controlled: Awaited<ReturnType<PrivateEditReferenceLongFormStudyRepository['applyControlCommand']>>
+      let controlled: Awaited<ReturnType<EditReferenceLongFormStudyRuntimePort['applyControlCommand']>>
       try {
-        controlled = await longFormStudyRepository.applyControlCommand({
+        controlled = await longFormStudyRuntime.applyControlCommand({
           scope: requestedScope,
           runId: currentAsset.longFormStudy.runId,
           expectedRunRevision: normalized.expectedRunRevision,
@@ -805,12 +810,11 @@ export function createEditReferenceService(
           currentAsset.storageObjectRecordId as string,
           normalized.workspaceId,
         )).storageObjectRecord
-        longFormStudyScheduler({
+        longFormStudyRuntime.schedule({
           env: context.env,
           scope: requestedScope,
           runId: summary.runId,
           storageObject: storage,
-          repository: longFormStudyRepository,
         })
       }
       const latestAsset = aggregateMutation.data.detail.assets.find((asset) => asset.id === referenceAssetId)
@@ -3829,7 +3833,7 @@ export function createEditReferenceService(
         storageObjectRecordId: storage.id,
         mediaChecksumSha256: storage.checksumSha256 as string,
       })
-      const existingCheckpoint = await longFormStudyRepository.read({
+      const existingCheckpoint = await longFormStudyRuntime.read({
         scope: scope(normalized.workspaceId),
         runId,
       })
@@ -3853,12 +3857,11 @@ export function createEditReferenceService(
           plan: existingCheckpoint.plan,
           run: existingCheckpoint.run,
         })
-        longFormStudyScheduler({
+        longFormStudyRuntime.schedule({
           env: context.env,
           scope: scope(normalized.workspaceId),
           runId: summary.runId,
           storageObject: storage,
-          repository: longFormStudyRepository,
         })
         return {
           ...result(longFormStudyStatusData(currentReference, currentStudy, currentAsset, summary)),
@@ -3888,7 +3891,7 @@ export function createEditReferenceService(
           mediaProbeObservedWallClockMs: inspected.mediaProbeObservedWallClockMs,
           now: createdAt,
         })
-        const created = await longFormStudyRepository.create({
+        const created = await longFormStudyRuntime.create({
           scope: scope(normalized.workspaceId),
           plan,
           run: preparedRun,
@@ -3974,12 +3977,11 @@ export function createEditReferenceService(
       if (!storedAsset?.longFormStudy) {
         throw new ApiError('INTERNAL_ERROR', 'The durable study binding was not reconstructable after commit.', 500)
       }
-      longFormStudyScheduler({
+      longFormStudyRuntime.schedule({
         env: context.env,
         scope: scope(normalized.workspaceId),
         runId: storedAsset.longFormStudy.runId,
         storageObject: storage,
-        repository: longFormStudyRepository,
       })
       return {
         ...result(longFormStudyStatusData(
@@ -5079,7 +5081,7 @@ async function loadLongFormStudyReviewAuthority(input: {
   readonly studyId: string
   readonly referenceAssetId: string
   readonly scope: EditReferenceRepositoryScope
-  readonly repository: PrivateEditReferenceLongFormStudyRepository
+  readonly runtime: EditReferenceLongFormStudyRuntimePort
 }): Promise<LoadedLongFormStudyReviewAuthority> {
   const study = requireStudy(input.aggregate, input.studyId)
   const reference = requireReference(input.aggregate, study.editReferenceId)
@@ -5091,7 +5093,7 @@ async function loadLongFormStudyReviewAuthority(input: {
       404,
     )
   }
-  const persisted = await input.repository.read({
+  const persisted = await input.runtime.read({
     scope: input.scope,
     runId: asset.longFormStudy.runId,
   })
@@ -5131,18 +5133,18 @@ async function loadLongFormStudyReviewAuthority(input: {
         workItem.chunkId === semanticWorkItem.chunkId && workItem.stageId === 'speech_transcript'
       ))
       const [visualSamplingOutput, sceneBoundaryOutput, speechTranscriptOutput] = await Promise.all([
-        input.repository.readWorkOutput({
+        input.runtime.readWorkOutput({
           scope: input.scope,
           runId: persisted.run.runId,
           workItemId: visualWorkItem.workItemId,
         }),
-        input.repository.readWorkOutput({
+        input.runtime.readWorkOutput({
           scope: input.scope,
           runId: persisted.run.runId,
           workItemId: sceneWorkItem.workItemId,
         }),
         speechWorkItem
-          ? input.repository.readWorkOutput({
+          ? input.runtime.readWorkOutput({
             scope: input.scope,
             runId: persisted.run.runId,
             workItemId: speechWorkItem.workItemId,
@@ -5160,7 +5162,7 @@ async function loadLongFormStudyReviewAuthority(input: {
         ...(speechTranscriptOutput ? { speechTranscriptOutput } : {}),
       })
       const checkpoints = await Promise.all(semanticWindowPlan.windows.flatMap((window) => (
-        EDIT_REFERENCE_SEMANTIC_SPECIALISTS.map((specialist) => input.repository.readSemanticWindowCheckpoint({
+        EDIT_REFERENCE_SEMANTIC_SPECIALISTS.map((specialist) => input.runtime.readSemanticWindowCheckpoint({
           scope: input.scope,
           runId: persisted.run.runId,
           workItemId: semanticWorkItem.workItemId,

@@ -52,6 +52,11 @@ assert.equal(complete.schemaVersion, 'edit-reference-production-readiness-v2')
 assert.equal(complete.productionReady, true)
 assert.equal(complete.decision, 'ready_for_production_release')
 assert.equal(complete.blockers.length, 0)
+assert.ok(
+  EDIT_REFERENCE_PRODUCTION_GATE_DEFINITIONS[0]?.assertions.includes(
+    'study_chat_reasoning_run_tables_and_atomic_settlement_verified',
+  ),
+)
 
 const incompleteAssertions = completeEvidence.map((evidence, index) => index === 3
   ? { ...evidence, assertions: evidence.assertions.slice(1) }

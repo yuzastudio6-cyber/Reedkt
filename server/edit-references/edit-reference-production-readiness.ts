@@ -15,6 +15,7 @@ export const EDIT_REFERENCE_PRODUCTION_GATE_DEFINITIONS = [
       'durable_idempotency_and_cas_verified',
       'cross_device_readback_verified',
       'long_form_study_tables_and_composite_rls_verified',
+      'study_chat_reasoning_run_tables_and_atomic_settlement_verified',
       'private_local_fallback_disabled_in_production',
     ],
   },

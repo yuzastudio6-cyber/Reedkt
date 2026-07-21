@@ -83,7 +83,7 @@ validateEditReferenceProductionApplicationLifecycleReceipt({
 })
 
 const persistenceSummary = validateEditReferenceProductionPersistenceContract()
-assert.equal(persistenceSummary.version, 'edit-reference-production-persistence-contract-v5')
+assert.equal(persistenceSummary.version, 'edit-reference-production-persistence-contract-v6')
 assert.equal(persistenceSummary.planningAuthorityStateCount, 3)
 assert.equal(persistenceSummary.longFormStudyTableCount, 6)
 assert.equal(persistenceSummary.longFormStudyOperationCount, 9)

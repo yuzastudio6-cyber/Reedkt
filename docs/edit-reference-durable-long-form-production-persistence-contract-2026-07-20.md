@@ -2,7 +2,7 @@
 
 Date: 2026-07-20
 Status: source contract verified; runtime activation blocked
-Contract: `edit-reference-production-persistence-contract-v5`
+Contract: `edit-reference-production-persistence-contract-v6`
 
 ## Outcome
 

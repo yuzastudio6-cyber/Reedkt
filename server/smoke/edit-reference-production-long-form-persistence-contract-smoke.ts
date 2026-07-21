@@ -9,7 +9,7 @@ import {
 const summary = validateEditReferenceProductionPersistenceContract()
 const contract = editReferenceProductionPersistenceContract
 
-assert.equal(summary.version, 'edit-reference-production-persistence-contract-v5')
+assert.equal(summary.version, 'edit-reference-production-persistence-contract-v6')
 assert.equal(summary.longFormStudyTableCount, EDIT_REFERENCE_LONG_FORM_STUDY_TABLES.length)
 assert.equal(summary.longFormStudyTableCount, 6)
 assert.equal(summary.longFormStudyOperationCount, 9)

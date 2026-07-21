@@ -99,6 +99,7 @@
     "smoke:edit-reference-multi-hour-source-admission": "tsx server/smoke/edit-reference-multi-hour-source-admission-smoke.ts",
     "smoke:edit-reference-mounted-study-chat-runtime": "tsx server/smoke/edit-reference-mounted-study-chat-runtime-port-smoke.ts",
     "smoke:edit-reference-study-chat-reasoning-run": "tsx server/smoke/edit-reference-study-chat-reasoning-run-receipt-smoke.ts",
+    "smoke:edit-reference-study-chat-production-persistence": "tsx server/smoke/edit-reference-study-chat-production-persistence-contract-smoke.ts",
     "smoke:preference-intelligence-authority": "tsx server/smoke/preference-intelligence-authority-smoke.ts",
     "smoke:edit-brief-authority": "tsx server/smoke/edit-brief-authority-smoke.ts",
     "smoke:private-source-media-authority": "tsx server/smoke/private-source-media-authority-smoke.ts",

@@ -17,7 +17,7 @@ queue, lease system, scheduler, or cost engine.
 The port is fixed to:
 
 - schema `edit-reference-production-long-form-runtime-port-v1`;
-- persistence contract `edit-reference-production-persistence-contract-v5`;
+- persistence contract `edit-reference-production-persistence-contract-v6`;
 - authority class `pre_plan_edit_reference_long_form_study`;
 - no fabricated approved edit plan, snapshot, or credit reservation;
 - no browser claim or browser-session completion dependency;

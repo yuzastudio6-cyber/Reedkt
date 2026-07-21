@@ -1,7 +1,13 @@
 import { ApiError } from '../errors/api-error'
+import {
+  EDIT_REFERENCE_STUDY_CHAT_REASONING_TABLES,
+  editReferenceStudyChatProductionPersistenceContract,
+  validateEditReferenceStudyChatProductionPersistenceContract,
+  type EditReferenceStudyChatProductionPersistenceContract,
+} from './edit-reference-study-chat-production-persistence-contract'
 
 export const EDIT_REFERENCE_PRODUCTION_PERSISTENCE_CONTRACT_VERSION =
-  'edit-reference-production-persistence-contract-v5' as const
+  'edit-reference-production-persistence-contract-v6' as const
 
 export const EDIT_REFERENCE_PRODUCTION_APPLICATION_LIFECYCLE_RPC_NAME =
   'mutate_edit_reference_application_lifecycle_v3' as const
@@ -19,6 +25,7 @@ export const EDIT_REFERENCE_REQUIRED_PRODUCTION_TABLES = [
   'edit_references',
   'preference_study_sessions',
   'preference_study_messages',
+  ...EDIT_REFERENCE_STUDY_CHAT_REASONING_TABLES,
   'preference_evidence',
   'preference_assets',
   ...EDIT_REFERENCE_LONG_FORM_STUDY_TABLES,
@@ -238,6 +245,7 @@ export interface EditReferenceProductionPersistenceContract {
     readonly callerSelectedWorkspaceAcceptedWithoutMembershipProof: false
   }
   readonly tables: readonly EditReferenceProductionTableContract[]
+  readonly studyChatReasoning: EditReferenceStudyChatProductionPersistenceContract
   readonly longFormStudy: EditReferenceLongFormStudyPersistenceContract
   readonly applicationLifecycleTransaction: EditReferenceApplicationLifecycleTransactionContract
   readonly planningAuthorityRead: EditReferencePlanningAuthorityReadContract
@@ -275,6 +283,23 @@ EditReferenceCompositeForeignKeyContract => ({
   columns: [childColumn, 'workspace_id'],
   referencesTable: table,
   referencesColumns: ['id', 'workspace_id'],
+  onDelete: 'restrict',
+})
+
+const childOfStudySession = (): EditReferenceCompositeForeignKeyContract => ({
+  columns: ['study_session_id', 'edit_reference_id', 'workspace_id'],
+  referencesTable: 'preference_study_sessions',
+  referencesColumns: ['id', 'edit_reference_id', 'workspace_id'],
+  onDelete: 'restrict',
+})
+
+const childOfStudyScopedRecord = (
+  table: string,
+  childColumn: string,
+): EditReferenceCompositeForeignKeyContract => ({
+  columns: [childColumn, 'study_session_id', 'edit_reference_id', 'workspace_id'],
+  referencesTable: table,
+  referencesColumns: ['id', 'study_session_id', 'edit_reference_id', 'workspace_id'],
   onDelete: 'restrict',
 })
 
@@ -351,6 +376,226 @@ export const editReferenceProductionPersistenceContract: EditReferenceProduction
       appendOnly: true,
       privateStorageIdentityRequired: false,
       retentionClass: 'workspace_content',
+    }),
+    table({
+      name: 'preference_study_reasoning_runs',
+      purpose: 'Tenant-bound pre-plan Study Chat request, route, usage-approval, rate-card, budget, and aggregate lifecycle authority.',
+      requiredColumns: [
+        'id',
+        'workspace_id',
+        'actor_user_id',
+        'edit_reference_id',
+        'study_session_id',
+        'study_revision',
+        'user_message_id',
+        'saved_direction_evidence_id',
+        'client_message_digest',
+        'structured_context_digest',
+        'route_contract_version',
+        'approved_usage_estimate_id',
+        'internal_cost_budget_id',
+        'rate_card_snapshot_id',
+        'maximum_authorized_internal_cost_micros',
+        'reservation_idempotency_key_digest',
+        'canonical_request_hash',
+        'durable_response_digest',
+        'revision',
+        'status',
+        'created_at',
+        'updated_at',
+      ],
+      compositeForeignKeys: [
+        childOfReference('edit_references'),
+        childOfStudySession(),
+        childOfStudyScopedRecord('preference_study_messages', 'user_message_id'),
+        childOfStudyScopedRecord('preference_evidence', 'saved_direction_evidence_id'),
+        {
+          columns: ['workspace_id', 'actor_user_id'],
+          referencesTable: 'workspace_members',
+          referencesColumns: ['workspace_id', 'user_id'],
+          onDelete: 'restrict',
+        },
+      ],
+      authenticatedWorkspaceMemberRead: false,
+      immutableAfterCommit: false,
+      appendOnly: false,
+      privateStorageIdentityRequired: false,
+      retentionClass: 'workspace_content',
+    }),
+    table({
+      name: 'preference_study_reasoning_route_attempts',
+      purpose: 'Versioned Kimi, Qwen, or DeepSeek route authorization and one-use lifecycle that becomes immutable with terminal outcome, usage, FX, and internal-cost evidence.',
+      requiredColumns: [
+        'id',
+        'workspace_id',
+        'edit_reference_id',
+        'study_session_id',
+        'reasoning_run_id',
+        'attempt_ordinal',
+        'revision',
+        'status',
+        'route_id',
+        'route_authorization_digest',
+        'request_digest',
+        'entry_fallback_trigger',
+        'terminal_outcome',
+        'terminal_fallback_trigger',
+        'usage_digest',
+        'provider_cost_digest',
+        'infrastructure_cost_digest',
+        'fx_snapshot_digest',
+        'internal_cost_micros',
+        'failure_code',
+        'started_at',
+        'terminal_at',
+        'created_at',
+      ],
+      compositeForeignKeys: [
+        childOfReference('edit_references'),
+        childOfStudySession(),
+        childOfStudyScopedRecord('preference_study_reasoning_runs', 'reasoning_run_id'),
+      ],
+      authenticatedWorkspaceMemberRead: false,
+      immutableAfterCommit: false,
+      appendOnly: false,
+      privateStorageIdentityRequired: false,
+      retentionClass: 'append_only_audit',
+    }),
+    table({
+      name: 'preference_study_reasoning_provider_requests',
+      purpose: 'Compare-and-swap one-use provider submission and provider-request reconciliation authority without raw payloads.',
+      requiredColumns: [
+        'id',
+        'workspace_id',
+        'edit_reference_id',
+        'study_session_id',
+        'reasoning_run_id',
+        'route_attempt_id',
+        'provider_boundary',
+        'provider_model_id',
+        'provider_model_revision',
+        'provider_request_id_digest',
+        'submission_idempotency_key_digest',
+        'one_use_submission_authority_digest',
+        'revision',
+        'status',
+        'provider_call_may_have_occurred',
+        'created_at',
+        'updated_at',
+      ],
+      compositeForeignKeys: [
+        childOfReference('edit_references'),
+        childOfStudySession(),
+        childOfStudyScopedRecord('preference_study_reasoning_runs', 'reasoning_run_id'),
+        childOfStudyScopedRecord('preference_study_reasoning_route_attempts', 'route_attempt_id'),
+      ],
+      authenticatedWorkspaceMemberRead: false,
+      immutableAfterCommit: false,
+      appendOnly: false,
+      privateStorageIdentityRequired: false,
+      retentionClass: 'workspace_content',
+    }),
+    table({
+      name: 'preference_study_reasoning_provider_observations',
+      purpose: 'Append-only provider truth observations and usage evidence that cannot authorize resubmission.',
+      requiredColumns: [
+        'id',
+        'workspace_id',
+        'edit_reference_id',
+        'study_session_id',
+        'reasoning_run_id',
+        'route_attempt_id',
+        'provider_request_id',
+        'observation_id_digest',
+        'observation_digest',
+        'status',
+        'provider_usage_digest',
+        'result_digest',
+        'observed_at',
+        'created_at',
+      ],
+      compositeForeignKeys: [
+        childOfReference('edit_references'),
+        childOfStudySession(),
+        childOfStudyScopedRecord('preference_study_reasoning_runs', 'reasoning_run_id'),
+        childOfStudyScopedRecord('preference_study_reasoning_route_attempts', 'route_attempt_id'),
+        childOfStudyScopedRecord('preference_study_reasoning_provider_requests', 'provider_request_id'),
+      ],
+      authenticatedWorkspaceMemberRead: false,
+      immutableAfterCommit: true,
+      appendOnly: true,
+      privateStorageIdentityRequired: false,
+      retentionClass: 'append_only_audit',
+    }),
+    table({
+      name: 'preference_study_reasoning_checkbacks',
+      purpose: 'Durable provider checkback workflow, digest-only lease, deadline, and unknown-outcome recovery state.',
+      requiredColumns: [
+        'id',
+        'workspace_id',
+        'edit_reference_id',
+        'study_session_id',
+        'reasoning_run_id',
+        'route_attempt_id',
+        'provider_request_id',
+        'workflow_id',
+        'revision',
+        'status',
+        'lookup_attempt_count',
+        'lease_owner_digest',
+        'lease_token_digest',
+        'lease_expires_at',
+        'next_check_at',
+        'deadline_at',
+        'created_at',
+        'updated_at',
+      ],
+      compositeForeignKeys: [
+        childOfReference('edit_references'),
+        childOfStudySession(),
+        childOfStudyScopedRecord('preference_study_reasoning_runs', 'reasoning_run_id'),
+        childOfStudyScopedRecord('preference_study_reasoning_route_attempts', 'route_attempt_id'),
+        childOfStudyScopedRecord('preference_study_reasoning_provider_requests', 'provider_request_id'),
+      ],
+      authenticatedWorkspaceMemberRead: false,
+      immutableAfterCommit: false,
+      appendOnly: false,
+      privateStorageIdentityRequired: false,
+      retentionClass: 'workspace_content',
+    }),
+    table({
+      name: 'preference_study_reasoning_run_receipts',
+      purpose: 'Immutable terminal multi-attempt receipt binding route lifecycle, failed-attempt cost, final result, assistant message, and aggregate settlement.',
+      requiredColumns: [
+        'id',
+        'workspace_id',
+        'edit_reference_id',
+        'study_session_id',
+        'reasoning_run_id',
+        'assistant_message_id',
+        'request_digest',
+        'route_attempt_set_digest',
+        'cost_aggregate_digest',
+        'failed_attempt_count',
+        'normalized_internal_cost_micros',
+        'maximum_unverified_exposure_micros',
+        'terminal_state',
+        'final_result_digest',
+        'receipt_digest',
+        'settled_at',
+        'created_at',
+      ],
+      compositeForeignKeys: [
+        childOfReference('edit_references'),
+        childOfStudySession(),
+        childOfStudyScopedRecord('preference_study_reasoning_runs', 'reasoning_run_id'),
+        childOfStudyScopedRecord('preference_study_messages', 'assistant_message_id'),
+      ],
+      authenticatedWorkspaceMemberRead: false,
+      immutableAfterCommit: true,
+      appendOnly: true,
+      privateStorageIdentityRequired: false,
+      retentionClass: 'immutable_approval_history',
     }),
     table({
       name: 'preference_evidence',
@@ -707,6 +952,7 @@ export const editReferenceProductionPersistenceContract: EditReferenceProduction
       retentionClass: 'bounded_idempotency',
     }),
   ],
+  studyChatReasoning: editReferenceStudyChatProductionPersistenceContract,
   longFormStudy: {
     authorityClass: 'pre_plan_edit_reference_long_form_study',
     approvedEditPlanSnapshotRequired: false,
@@ -943,6 +1189,9 @@ export interface EditReferenceProductionPersistenceContractSummary {
   directAuthenticatedMutationTableCount: number
   privateStorageTableCount: number
   immutableOrAppendOnlyTableCount: number
+  studyChatReasoningTableCount: number
+  studyChatReasoningOperationCount: number
+  studyChatReasoningRuntimeEnabled: false
   longFormStudyTableCount: number
   longFormStudyOperationCount: number
   longFormStudyRuntimeEnabled: false
@@ -985,6 +1234,203 @@ export function validateEditReferenceProductionPersistenceContract(
         invalid(`unsafe_composite_foreign_key:${candidate.name}`)
       }
     }
+  }
+  const studyChatReasoningTableRequiredColumns: Readonly<Record<
+    typeof EDIT_REFERENCE_STUDY_CHAT_REASONING_TABLES[number],
+    readonly string[]
+  >> = {
+    preference_study_reasoning_runs: [
+      'actor_user_id',
+      'study_session_id',
+      'study_revision',
+      'user_message_id',
+      'saved_direction_evidence_id',
+      'client_message_digest',
+      'structured_context_digest',
+      'route_contract_version',
+      'approved_usage_estimate_id',
+      'internal_cost_budget_id',
+      'rate_card_snapshot_id',
+      'maximum_authorized_internal_cost_micros',
+      'reservation_idempotency_key_digest',
+      'canonical_request_hash',
+      'durable_response_digest',
+      'revision',
+      'status',
+    ],
+    preference_study_reasoning_route_attempts: [
+      'reasoning_run_id',
+      'attempt_ordinal',
+      'revision',
+      'status',
+      'route_id',
+      'route_authorization_digest',
+      'request_digest',
+      'terminal_outcome',
+      'provider_cost_digest',
+      'infrastructure_cost_digest',
+      'fx_snapshot_digest',
+      'internal_cost_micros',
+    ],
+    preference_study_reasoning_provider_requests: [
+      'reasoning_run_id',
+      'route_attempt_id',
+      'provider_boundary',
+      'provider_model_id',
+      'provider_request_id_digest',
+      'submission_idempotency_key_digest',
+      'one_use_submission_authority_digest',
+      'revision',
+      'status',
+    ],
+    preference_study_reasoning_provider_observations: [
+      'reasoning_run_id',
+      'route_attempt_id',
+      'provider_request_id',
+      'observation_id_digest',
+      'observation_digest',
+      'provider_usage_digest',
+      'result_digest',
+      'observed_at',
+    ],
+    preference_study_reasoning_checkbacks: [
+      'reasoning_run_id',
+      'route_attempt_id',
+      'provider_request_id',
+      'workflow_id',
+      'revision',
+      'lookup_attempt_count',
+      'lease_token_digest',
+      'lease_expires_at',
+      'next_check_at',
+      'deadline_at',
+    ],
+    preference_study_reasoning_run_receipts: [
+      'reasoning_run_id',
+      'assistant_message_id',
+      'request_digest',
+      'route_attempt_set_digest',
+      'cost_aggregate_digest',
+      'failed_attempt_count',
+      'normalized_internal_cost_micros',
+      'maximum_unverified_exposure_micros',
+      'terminal_state',
+      'final_result_digest',
+      'receipt_digest',
+      'settled_at',
+    ],
+  }
+  for (const tableName of EDIT_REFERENCE_STUDY_CHAT_REASONING_TABLES) {
+    const candidate = contract.tables.find((entry) => entry.name === tableName)
+    if (!candidate) invalid(`missing_study_chat_reasoning_table:${tableName}`)
+    for (const requiredColumn of studyChatReasoningTableRequiredColumns[tableName]) {
+      if (!candidate.requiredColumns.includes(requiredColumn)) {
+        invalid(`study_chat_reasoning_table_missing_column:${tableName}:${requiredColumn}`)
+      }
+    }
+  }
+  const reasoningRun = contract.tables.find((candidate) => (
+    candidate.name === 'preference_study_reasoning_runs'
+  ))
+  const reasoningAttempt = contract.tables.find((candidate) => (
+    candidate.name === 'preference_study_reasoning_route_attempts'
+  ))
+  const reasoningProviderRequest = contract.tables.find((candidate) => (
+    candidate.name === 'preference_study_reasoning_provider_requests'
+  ))
+  const reasoningObservation = contract.tables.find((candidate) => (
+    candidate.name === 'preference_study_reasoning_provider_observations'
+  ))
+  const reasoningCheckback = contract.tables.find((candidate) => (
+    candidate.name === 'preference_study_reasoning_checkbacks'
+  ))
+  const reasoningReceipt = contract.tables.find((candidate) => (
+    candidate.name === 'preference_study_reasoning_run_receipts'
+  ))
+  const hasCompositeForeignKey = (
+    tableContract: EditReferenceProductionTableContract | undefined,
+    columns: readonly string[],
+    referencesTable: string,
+    referencesColumns: readonly string[],
+  ): boolean => Boolean(tableContract?.compositeForeignKeys.some((key) => (
+    key.referencesTable === referencesTable
+    && key.columns.join('|') === columns.join('|')
+    && key.referencesColumns.join('|') === referencesColumns.join('|')
+  )))
+  if (
+    !hasCompositeForeignKey(
+      reasoningRun,
+      ['workspace_id', 'actor_user_id'],
+      'workspace_members',
+      ['workspace_id', 'user_id'],
+    )
+    || !hasCompositeForeignKey(
+      reasoningRun,
+      ['user_message_id', 'study_session_id', 'edit_reference_id', 'workspace_id'],
+      'preference_study_messages',
+      ['id', 'study_session_id', 'edit_reference_id', 'workspace_id'],
+    )
+    || !hasCompositeForeignKey(
+      reasoningRun,
+      ['saved_direction_evidence_id', 'study_session_id', 'edit_reference_id', 'workspace_id'],
+      'preference_evidence',
+      ['id', 'study_session_id', 'edit_reference_id', 'workspace_id'],
+    )
+    || !hasCompositeForeignKey(
+      reasoningAttempt,
+      ['reasoning_run_id', 'study_session_id', 'edit_reference_id', 'workspace_id'],
+      'preference_study_reasoning_runs',
+      ['id', 'study_session_id', 'edit_reference_id', 'workspace_id'],
+    )
+    || !hasCompositeForeignKey(
+      reasoningProviderRequest,
+      ['route_attempt_id', 'study_session_id', 'edit_reference_id', 'workspace_id'],
+      'preference_study_reasoning_route_attempts',
+      ['id', 'study_session_id', 'edit_reference_id', 'workspace_id'],
+    )
+    || !hasCompositeForeignKey(
+      reasoningObservation,
+      ['provider_request_id', 'study_session_id', 'edit_reference_id', 'workspace_id'],
+      'preference_study_reasoning_provider_requests',
+      ['id', 'study_session_id', 'edit_reference_id', 'workspace_id'],
+    )
+    || !hasCompositeForeignKey(
+      reasoningCheckback,
+      ['provider_request_id', 'study_session_id', 'edit_reference_id', 'workspace_id'],
+      'preference_study_reasoning_provider_requests',
+      ['id', 'study_session_id', 'edit_reference_id', 'workspace_id'],
+    )
+    || !hasCompositeForeignKey(
+      reasoningReceipt,
+      ['assistant_message_id', 'study_session_id', 'edit_reference_id', 'workspace_id'],
+      'preference_study_messages',
+      ['id', 'study_session_id', 'edit_reference_id', 'workspace_id'],
+    )
+    || !hasCompositeForeignKey(
+      reasoningReceipt,
+      ['reasoning_run_id', 'study_session_id', 'edit_reference_id', 'workspace_id'],
+      'preference_study_reasoning_runs',
+      ['id', 'study_session_id', 'edit_reference_id', 'workspace_id'],
+    )
+  ) invalid('study_chat_reasoning_composite_authority_binding_invalid')
+  if (
+    reasoningRun?.immutableAfterCommit
+    || reasoningRun?.appendOnly
+    || reasoningAttempt?.immutableAfterCommit
+    || reasoningAttempt?.appendOnly
+    || reasoningProviderRequest?.immutableAfterCommit
+    || reasoningProviderRequest?.appendOnly
+    || !reasoningObservation?.immutableAfterCommit
+    || !reasoningObservation.appendOnly
+    || reasoningCheckback?.immutableAfterCommit
+    || reasoningCheckback?.appendOnly
+    || !reasoningReceipt?.immutableAfterCommit
+    || !reasoningReceipt.appendOnly
+  ) invalid('study_chat_reasoning_table_mutability_invalid')
+  try {
+    validateEditReferenceStudyChatProductionPersistenceContract(contract.studyChatReasoning)
+  } catch {
+    invalid('study_chat_reasoning_persistence_contract_invalid')
   }
   const longFormTableRequiredColumns: Readonly<Record<
     typeof EDIT_REFERENCE_LONG_FORM_STUDY_TABLES[number],
@@ -1241,6 +1687,13 @@ export function validateEditReferenceProductionPersistenceContract(
     )).length,
     privateStorageTableCount: contract.tables.filter((candidate) => candidate.privateStorageIdentityRequired).length,
     immutableOrAppendOnlyTableCount: contract.tables.filter((candidate) => candidate.immutableAfterCommit || candidate.appendOnly).length,
+    studyChatReasoningTableCount: contract.tables.filter((candidate) => (
+      EDIT_REFERENCE_STUDY_CHAT_REASONING_TABLES.includes(
+        candidate.name as typeof EDIT_REFERENCE_STUDY_CHAT_REASONING_TABLES[number],
+      )
+    )).length,
+    studyChatReasoningOperationCount: contract.studyChatReasoning.operations.length,
+    studyChatReasoningRuntimeEnabled: false,
     longFormStudyTableCount: contract.tables.filter((candidate) => (
       EDIT_REFERENCE_LONG_FORM_STUDY_TABLES.includes(
         candidate.name as typeof EDIT_REFERENCE_LONG_FORM_STUDY_TABLES[number],

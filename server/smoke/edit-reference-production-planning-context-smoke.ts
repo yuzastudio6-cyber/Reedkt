@@ -595,7 +595,7 @@ assert.deepEqual(
 )
 assert.equal(
   rpcCalls[0]?.parameters.p_contract_version,
-  'edit-reference-production-persistence-contract-v5',
+  'edit-reference-production-persistence-contract-v6',
 )
 assert.deepEqual(rpcCalls[0]?.parameters.p_request, request)
 assert.equal(

@@ -281,7 +281,7 @@
     },
     {
       "path": "src/components/editor/CurrentEditPreferencesWorkspace.tsx",
-      "sha256": "ce6ef91d3586e2894c984e8de075abecf50ab56a44c2f6b91abe8a7c79a6dd6e"
+      "sha256": "6f1ae521a4ffa4f5cb2cf0e6c319eb84ae3109080946dc4e75714b4c3a095b86"
     },
     {
       "path": "src/lib/canonical-planning-draft.ts",
@@ -325,7 +325,7 @@
     },
     {
       "path": "tests/e2e/edit-preferences-current-edit.spec.ts",
-      "sha256": "cf44e0695633657b6e8e5afc45306a8811193d04b2966dccd37b76fc21933a87"
+      "sha256": "891be4792bcc757053ead13556d236c352a3fc538b8f3634e911eaba73329b9f"
     },
     {
       "path": "tests/e2e/edit-reference-canonical-real-file-flow.spec.ts",

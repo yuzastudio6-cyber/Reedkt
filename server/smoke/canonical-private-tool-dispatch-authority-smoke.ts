@@ -396,13 +396,43 @@ assert.equal(planningHandoff.noCreditReservation, true)
 assert.equal(planningHandoff.noToolExecution, true)
 assert.equal(planningHandoff.noProviderCall, true)
 assert.equal(planningHandoff.noRender, true)
+const canonicalSourcePreparationEvidenceHash = sha256AuthorityValue({
+  sourceCandidateHash: planningHandoff.sourceBindingManifestCandidate.candidateHash,
+  sourceCleanupSummary: planBody.canonicalPlan.components.sourceCleanupSummary,
+  sourceCleanupPlan: planBody.canonicalPlan.components.sourceCleanupPlan,
+})
+const canonicalFrameConfirmationId = `canonical-frame-${sha256AuthorityValue({
+  workspaceId,
+  projectId: seedSnapshot.projectId,
+  editSessionId,
+  aspectRatio: planBody.canonicalPlan.components.confirmedSettings.aspectRatio,
+})}`
 assert.deepEqual(planningHandoff.planningInputAuthority, {
   ...planningInputAuthority,
   exactEditPreference: {
     ...planningInputAuthority.exactEditPreference,
     recordRevision: planningInputAuthority.exactEditPreference.recordRevision + 1,
+    sourcePreparationEvidenceHash: canonicalSourcePreparationEvidenceHash,
+    frameConfirmationId: canonicalFrameConfirmationId,
   },
 })
+assert.equal(
+  planningHandoff.resolvedPlanningInputAuthority.exactEditPreference
+    .sourcePreparationEvidenceHash,
+  canonicalSourcePreparationEvidenceHash,
+)
+assert.equal(
+  planningHandoff.resolvedPlanningInputAuthority.exactEditPreference.frameConfirmationId,
+  canonicalFrameConfirmationId,
+)
+assert.notEqual(
+  canonicalSourcePreparationEvidenceHash,
+  planningInputAuthority.exactEditPreference.sourcePreparationEvidenceHash,
+)
+assert.notEqual(
+  canonicalFrameConfirmationId,
+  planningInputAuthority.exactEditPreference.frameConfirmationId,
+)
 assert.deepEqual(planningHandoff.sourceMediaAuthority, sourceMediaAuthority)
 assert.equal(
   sha256AuthorityValue(await requireEditAuthority(workspaceId)),

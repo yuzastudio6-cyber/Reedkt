@@ -5,6 +5,9 @@ import {
   assertCanonicalMotionStudioRemotionWorkItem,
   resolveCanonicalMotionStudioRemotionProfile,
 } from '../edit-architecture/canonical-motion-studio-remotion-preview-authority'
+import {
+  assertCanonicalStorytellingSpeechNormalizationWorkItem,
+} from '../edit-architecture/canonical-storytelling-speech-normalization-authority'
 import { ApiError } from '../errors/api-error'
 import { isExplicitLocalInternalTestRuntime } from '../middleware/canonical-worker-runtime'
 import {
@@ -740,6 +743,29 @@ function resolveAndVerifyCanonicalDispatchBinding(input: {
   )
   if (motionStudioRemotionProfile) {
     assertCanonicalMotionStudioRemotionWorkItem(workItem, motionStudioRemotionProfile)
+  }
+  const storytellingSpeechNormalization =
+    (workItem.executionInput.structuredPayload as Record<string, unknown> | undefined)
+      ?.recipeProfileId ===
+        'approved_storytelling_speech_take_normalization_v1'
+  if (storytellingSpeechNormalization) {
+    assertCanonicalStorytellingSpeechNormalizationWorkItem(workItem)
+    if (
+      body.operationId !==
+        'tool.ffmpeg.execute_approved_media_recipe.v1' ||
+      lease.dependencyAuthority.state !==
+        'private_test_dependencies_verified' ||
+      lease.dependencyAuthority.selectedArtifacts.length !== 2 ||
+      new Set(lease.dependencyAuthority.selectedArtifacts.map((selection) =>
+        selection.dependencyJobId)).size !== 1 ||
+      !readiness.job.dependencyJobIds.includes(
+        lease.dependencyAuthority.selectedArtifacts[0]!.dependencyJobId,
+      )
+    ) throw new ApiError(
+      'JOB_DEPENDENCY_NOT_READY',
+      'Storytelling Speech normalization requires the exact two-output provider dependency set.',
+      409,
+    )
   }
   const exactPrivateRemotionPreview =
     workItem.workerClass === 'render_worker' &&

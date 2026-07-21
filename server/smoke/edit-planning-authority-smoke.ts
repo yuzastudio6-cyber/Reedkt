@@ -2549,7 +2549,7 @@ try {
   assert.deepEqual(routeToolSummary.authorityExternalBetaReadyTools, [])
   const provenToolIdentitySummary = asRecord(toolEvidenceEnvelope.data?.provenToolIdentitySummary)
   assert.equal(provenToolIdentitySummary.totalRegistryProfiles, 72)
-  assert.equal(provenToolIdentitySummary.callableCandidateCount, 61)
+  assert.equal(provenToolIdentitySummary.callableCandidateCount, 60)
   assert.equal(provenToolIdentitySummary.canonicalEndToEndVerifiedCount, 50)
   assert.equal(toolEvidenceEnvelope.data?.provenToolIdentityCatalog?.length, 72)
 

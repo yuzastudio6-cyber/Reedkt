@@ -44,6 +44,8 @@ import { verifyCanonicalPrivateRemotionArtifact } from './canonical-private-remo
 import { verifyCanonicalPrivateImageArtifact } from './canonical-private-image-artifact-verifier'
 import { verifyCanonicalPrivateAudioArtifact } from './canonical-private-audio-artifact-verifier'
 import { verifyCanonicalPrivateFinalCompositionArtifact } from './canonical-private-final-artifact-verifier'
+import { verifyCanonicalPrivateProviderOutputArtifact } from
+  './canonical-private-provider-output-artifact-verifier'
 import { createPrivateArtifactQaAuthorityService } from './private-artifact-qa-authority-service'
 import {
   MAX_CANONICAL_WORKER_LEASE_AUDIT_EVENTS,
@@ -1000,6 +1002,18 @@ async function verifySelectedDependencyArtifacts(input: {
             localStorageRoot: input.context.env.localStorageRoot,
             artifact: authority.artifact,
           })
+        : authority.artifact.actualRunEvidence.state ===
+              'actual_provider_attempt_receipt_verified_v1' &&
+            authority.artifact.actualRunEvidence.runnerClass ===
+              'canonical_private_provider_attempt_receipt_v2' &&
+            ['audio/mpeg', 'application/json'].includes(
+              authority.artifact.content.contentType,
+            )
+          ? await verifyCanonicalPrivateProviderOutputArtifact({
+              localStorageRoot: input.context.env.localStorageRoot,
+              ownerUserId: getRequiredAuthUserId(input.context),
+              artifact: authority.artifact,
+            })
         : authority.artifact.content.contentType === 'image/svg+xml'
           ? await verifyCanonicalStructuredSvgArtifact({
               localStorageRoot: input.context.env.localStorageRoot,
@@ -1106,8 +1120,37 @@ async function verifyCompletedArtifactExecutionFence(input: {
     leaseId?: string
     immutableLeaseHash?: string
     leaseAttemptNumber?: number
+    providerQueueClaimId?: string
+    providerQueueClaimHash?: string
+    providerQueueDeliveryAttempt?: number
   }
 }): Promise<{ immutableLeaseHash: string; attemptNumber: number }> {
+  if (
+    input.artifact.actualRunEvidence.state ===
+      'actual_provider_attempt_receipt_verified_v1'
+  ) {
+    if (
+      input.verifiedArtifact.runnerClass !==
+        'canonical_private_provider_attempt_receipt_v2' ||
+      input.verifiedArtifact.providerQueueClaimId !==
+        input.artifact.actualRunEvidence.providerQueueClaimId ||
+      input.verifiedArtifact.providerQueueClaimHash !==
+        input.artifact.actualRunEvidence.providerQueueClaimHash ||
+      !Number.isSafeInteger(
+        input.verifiedArtifact.providerQueueDeliveryAttempt,
+      ) ||
+      Number(input.verifiedArtifact.providerQueueDeliveryAttempt) < 1
+    ) throw new ApiError(
+      'JOB_DEPENDENCY_NOT_READY',
+      'Private provider dependency is not bound to its exact completed queue claim.',
+      409,
+      { requiredGate: 'completed_source_provider_queue_fence' },
+    )
+    return {
+      immutableLeaseHash: input.verifiedArtifact.providerQueueClaimHash,
+      attemptNumber: input.verifiedArtifact.providerQueueDeliveryAttempt!,
+    }
+  }
   const ownerUserId = getRequiredAuthUserId(input.context)
   const aggregate = await readPrivateCanonicalWorkerLeaseAggregate({
     localStorageRoot: input.context.env.localStorageRoot,

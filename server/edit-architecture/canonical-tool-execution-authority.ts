@@ -66,6 +66,7 @@ const toolAuthorityEntrySchema = z.object({
     privateInternalRunnerReady: z.boolean(),
     privateInternalEndToEndReady: z.boolean(),
     privateInternalJobAdapterReady: z.boolean(),
+    privateInternalBoundaryContractReady: z.boolean(),
     productReady: z.literal(false),
     externalBetaReady: z.literal(false),
     productionReady: z.literal(false),

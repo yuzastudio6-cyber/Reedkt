@@ -3,6 +3,9 @@ import type { ZodType } from 'zod'
 import { ApiError } from '../errors/api-error'
 import { resolveProfessionalExportFrame } from '../../src/lib/professional-export-policy'
 import {
+  assertCanonicalStorytellingSpeechNormalizationWorkItem,
+} from '../edit-architecture/canonical-storytelling-speech-normalization-authority'
+import {
   CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_CAPACITY_PROFILE_ID,
 } from '../../src/types/canonical-private-composition-capacity'
 import {
@@ -22,6 +25,7 @@ import {
   type OfflineFfmpegExecutionResult,
   type OfflineFfmpegStreamingOutputExecutionResult,
   type OfflineFfmpegColorMatchDeliveryPlanningPayload,
+  type OfflineFfmpegStorytellingSpeechTakeNormalizationPlanningPayload,
   type OfflineFfmpegMezzanineFinalizationExecutionResult,
   type OfflineFfprobeExecutionResult,
 } from '../tool-execution/media-binary-execution'
@@ -60,6 +64,7 @@ import {
   createCanonicalPrivateDependencyArtifactReadService,
   type CanonicalPrivateDependencyArtifactReadResult,
   type CanonicalPrivateDependencyArtifactStreamReadResult,
+  type CanonicalPrivateDependencyProviderOutputEvidence,
 } from './canonical-private-dependency-artifact-read-service'
 import { createCanonicalPrivateSourceObjectReadService } from './canonical-private-source-object-read-service'
 import type {
@@ -811,8 +816,14 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
       const ffmpegPlanningPayload = toolId === 'ffmpeg'
         ? validateOfflineFfmpegPlanningPayload(workItem.executionInput.structuredPayload)
         : undefined
+      const storytellingSpeechPayload = ffmpegPlanningPayload?.recipeProfileId ===
+        'approved_storytelling_speech_take_normalization_v1'
+        ? assertCanonicalStorytellingSpeechNormalizationWorkItem(workItem)
+        : undefined
+      const storytellingSpeechNormalization = Boolean(storytellingSpeechPayload)
       const contentType = toolId === 'ffmpeg'
-        ? ffmpegPlanningPayload?.recipeProfileId === 'approved_voice_delivery_wav_v1'
+        ? ffmpegPlanningPayload?.recipeProfileId === 'approved_voice_delivery_wav_v1' ||
+          storytellingSpeechNormalization
           ? 'audio/wav' as const
           : [
               'approved_source_color_delivery_matroska_v1',
@@ -838,7 +849,14 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
           workItem.sourceSequenceItemIds.length !== 0 || workItem.sourceCleanupDecisionIds.length !== 0 ||
           workItem.dependencyKeys.length !== 1
         )) ||
-        (!dependencyFinalQa && (
+        (storytellingSpeechNormalization && (
+          workItem.sourceSequenceItemIds.length !== 0 ||
+          workItem.sourceCleanupDecisionIds.length !== 0 ||
+          workItem.dependencyKeys.length !== 1 ||
+          binding.expectedOutput.assetRole !== 'processed' ||
+          binding.expectedOutput.contentType !== 'audio/wav'
+        )) ||
+        (!dependencyFinalQa && !storytellingSpeechNormalization && (
           workItem.sourceSequenceItemIds.length !== 1 ||
           workItem.sourceCleanupDecisionIds.length !== 1 ||
           workItem.dependencyKeys.length !== (referenceColorMatch ? 1 : 0)
@@ -860,6 +878,8 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
       const runtimeAuthority = await readPersistedOfflineMediaBinaryRuntimeAuthority()
       if (
         !runtimeAuthority || !runtimeAuthority.readiness.privateInternalExecutionReady ||
+        (storytellingSpeechNormalization &&
+          !runtimeAuthority.readiness.privateInternalStorytellingSpeechNormalizationReady) ||
         runtimeAuthority.readiness.productReady || runtimeAuthority.readiness.finalExportReady ||
         !runtimeAuthority.supportedOperations.some((candidate) =>
           candidate.toolId === toolId && candidate.operationId === binding.operationId)
@@ -878,6 +898,7 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
       })
       const executionAttemptId = begun.executionFence.executionAttemptId
       let dependencyRead: CanonicalPrivateDependencyArtifactStreamReadResult | undefined
+      let alignmentDependencyRead: CanonicalPrivateDependencyArtifactReadResult | undefined
       let referenceDependencyRead: CanonicalPrivateDependencyArtifactReadResult | undefined
       let sourceRead: CanonicalPrivateStagedSourceReadResult | undefined
       let stagedSourceSet: CanonicalPrivateStagedSourceSet | undefined
@@ -939,6 +960,47 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
           } else {
             throw denied('Final QA dependency has an unsupported final-composition operation.')
           }
+        } else if (storytellingSpeechNormalization) {
+          const dependencyReader =
+            createCanonicalPrivateDependencyArtifactReadService(context)
+          dependencyRead = await dependencyReader.readSingleSelectedArtifactStream({
+            workspaceId: body.workspaceId,
+            projectId: body.projectId,
+            editSessionId: body.editSessionId,
+            snapshotId: authority.snapshot.snapshotId,
+            currentJobId: body.jobId,
+            currentApprovedWorkItemId: workItem.id,
+            leaseId: injected.leaseId,
+            leaseCredential: injected.leaseCredential,
+            executionAttemptId,
+            dispatchGrantId: body.grantId,
+            dependencyAuthority: begun.lease.dependencyAuthority,
+            allowedContentTypes: ['audio/mpeg'],
+            maximumBytes: 16 * 1024 * 1024,
+            selectedArtifactIndex: 0,
+          })
+          alignmentDependencyRead =
+            await dependencyReader.readSingleSelectedArtifact({
+              workspaceId: body.workspaceId,
+              projectId: body.projectId,
+              editSessionId: body.editSessionId,
+              snapshotId: authority.snapshot.snapshotId,
+              currentJobId: body.jobId,
+              currentApprovedWorkItemId: workItem.id,
+              leaseId: injected.leaseId,
+              leaseCredential: injected.leaseCredential,
+              executionAttemptId,
+              dispatchGrantId: body.grantId,
+              dependencyAuthority: begun.lease.dependencyAuthority,
+              allowedContentTypes: ['application/json'],
+              maximumBytes: 1024 * 1024,
+              selectedArtifactIndex: 1,
+            })
+          assertStorytellingSpeechProviderOutputSet({
+            audio: dependencyRead,
+            alignment: alignmentDependencyRead,
+            payload: storytellingSpeechPayload!,
+          })
         } else {
           stagedSourceSet = await createCanonicalPrivateSourceObjectReadService(context)
             .stageExactApprovedSource({
@@ -975,7 +1037,22 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
         }
         inputByteLength = dependencyRead?.byteLength ?? sourceRead!.byteLength
         inputSha256 = dependencyRead?.sha256 ?? sourceRead!.sha256
-        inputReadEvidenceHash = referenceDependencyRead
+        inputReadEvidenceHash = alignmentDependencyRead
+          ? sha256ArtifactQaValue({
+              domain:
+                'canonical_storytelling_speech_provider_output_set_read_v1',
+              audioReadEvidenceHash:
+                dependencyRead!.dependencyReadEvidenceHash,
+              alignmentReadEvidenceHash:
+                alignmentDependencyRead.dependencyReadEvidenceHash,
+              providerReceiptHash:
+                dependencyRead!.providerOutputEvidence!.providerReceiptHash,
+              providerOutputSetDigest:
+                dependencyRead!.providerOutputEvidence!.providerOutputSetDigest,
+              sourceAuthorityDigest:
+                storytellingSpeechPayload!.sourceAuthorityDigest,
+            })
+          : referenceDependencyRead
           ? sha256ArtifactQaValue({
               sourceReadEvidenceHash: sourceRead!.sourceReadEvidenceHash,
               referenceDependencyReadEvidenceHash:
@@ -987,7 +1064,9 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
           workspaceId: body.workspaceId, snapshotId: authority.snapshot.snapshotId,
           jobId: body.jobId, expectedAssetId: expectedAsset.id,
           dispatchGrantId: body.grantId, executionAttemptId,
-          inputKind: dependencyFinalQa
+          inputKind: storytellingSpeechNormalization
+            ? 'verified_storytelling_speech_provider_output_set'
+            : dependencyFinalQa
             ? 'qa_passed_dependency_artifact'
             : referenceDependencyRead
               ? 'approved_source_and_reference_artifact'
@@ -1006,7 +1085,9 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
             }
           : {}
         const sourcePayload = {
-          mimeType: 'video/mp4' as const,
+          mimeType: storytellingSpeechNormalization
+            ? 'audio/mpeg' as const
+            : 'video/mp4' as const,
           sourceByteLength: inputByteLength,
           sourceSha256: inputSha256,
           sourceInputMode: OFFLINE_MEDIA_BINARY_SERVER_INPUT_MODE,
@@ -1093,7 +1174,9 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
         workspaceId: body.workspaceId, snapshotId: authority.snapshot.snapshotId,
         jobId: body.jobId, expectedAssetId: expectedAsset.id,
         dispatchGrantId: body.grantId, executionAttemptId,
-        inputKind: dependencyFinalQa
+        inputKind: storytellingSpeechNormalization
+          ? 'verified_storytelling_speech_provider_output_set'
+          : dependencyFinalQa
           ? 'qa_passed_dependency_artifact'
           : referenceDependencyRead
             ? 'approved_source_and_reference_artifact'
@@ -1194,7 +1277,20 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
         authority.snapshot.snapshotId, access.workspaceId,
       )) !== authorityHashBefore) throw denied('Canonical planning authority changed during media binary execution.')
 
-      const resourceInputArtifacts = dependencyFinalQa
+      const resourceInputArtifacts = storytellingSpeechNormalization
+        ? [
+            {
+              artifactId: dependencyRead!.artifactId,
+              sha256: dependencyRead!.sha256,
+              byteLength: dependencyRead!.byteLength,
+            },
+            {
+              artifactId: alignmentDependencyRead!.artifactId,
+              sha256: alignmentDependencyRead!.sha256,
+              byteLength: alignmentDependencyRead!.byteLength,
+            },
+          ]
+        : dependencyFinalQa
         ? [{
             artifactId: dependencyRead!.artifactId,
             sha256: inputSha256,
@@ -1263,7 +1359,48 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
         source: 'canonical_private_media_binary_execution_coordinator' as const,
         purpose: body.purpose,
         identity: { ...identity, approvedWorkItemId: workItem.id, dispatchGrantId: body.grantId },
-        tool: dependencyFinalQa ? {
+        tool: storytellingSpeechNormalization ? {
+          canonicalToolId: toolId,
+          operationId: binding.operationId,
+          actualBinaryOperationCompleted: true as const,
+          providerCallMade: false as const,
+          inputKind:
+            'verified_storytelling_speech_provider_output_set' as const,
+          sourceObjectRead: false as const,
+          dependencyArtifactRead: true as const,
+          dependencyInputMode:
+            'server_injected_private_stream_v1' as const,
+          dependencyArtifactStreamed: true as const,
+          inputReadEvidenceHash,
+          inputArtifactSha256: inputSha256,
+          inputArtifactByteLength: inputByteLength,
+          providerDependencyJobId: dependencyRead!.dependencyJobId,
+          providerAudioArtifactId: dependencyRead!.artifactId,
+          providerAlignmentArtifactId: alignmentDependencyRead!.artifactId,
+          providerReceiptHash:
+            dependencyRead!.providerOutputEvidence!.providerReceiptHash,
+          providerOutputSetDigest:
+            dependencyRead!.providerOutputEvidence!.providerOutputSetDigest,
+          providerQueueClaimHash:
+            dependencyRead!.providerOutputEvidence!.providerQueueClaimHash,
+          sourceAuthorityDigest:
+            dependencyRead!.providerOutputEvidence!.sourceAuthorityDigest,
+          alignmentArtifactSha256: alignmentDependencyRead!.sha256,
+          alignmentArtifactByteLength: alignmentDependencyRead!.byteLength,
+          alignmentReadEvidenceHash:
+            alignmentDependencyRead!.dependencyReadEvidenceHash,
+          normalizationInfrastructureEvidenceHash:
+            resourceUsage.evidence.resourceUsage.infrastructureEvidenceDigest,
+          normalizationInfrastructureRateCardDigest:
+            resourceUsage.evidence.infrastructureCost.rateCardDigest,
+          normalizationInfrastructureCostMicros:
+            resourceUsage.evidence.infrastructureCost.actualInternalCostMicros,
+          customerPriceIncluded: false as const,
+          customerCreditsIncluded: false as const,
+          serviceFeeIncluded: false as const,
+          renderExecuted: false as const,
+          finalExportExecuted: false as const,
+        } : dependencyFinalQa ? {
           canonicalToolId: toolId, operationId: binding.operationId,
           actualBinaryOperationCompleted: true as const, providerCallMade: false as const,
           inputKind: 'qa_passed_dependency_artifact' as const,
@@ -1374,6 +1511,65 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
       })
     },
   }
+}
+
+function assertStorytellingSpeechProviderOutputSet(input: {
+  audio: CanonicalPrivateDependencyArtifactStreamReadResult
+  alignment: CanonicalPrivateDependencyArtifactReadResult
+  payload: OfflineFfmpegStorytellingSpeechTakeNormalizationPlanningPayload
+}): void {
+  const audio = input.audio.providerOutputEvidence
+  const alignment = input.alignment.providerOutputEvidence
+  const payload = input.payload
+  const sameProviderAttemptFields: Array<keyof CanonicalPrivateDependencyProviderOutputEvidence> = [
+    'executionAttemptId',
+    'providerQueueClaimId',
+    'providerQueueClaimHash',
+    'providerQueueDeliveryAttempt',
+    'providerReceiptHash',
+    'providerOutputSetDigest',
+    'productionId',
+    'productionAuthorityHash',
+    'preparedScriptSegmentId',
+    'sceneId',
+    'voiceBibleVersionId',
+    'voiceBibleContentDigest',
+    'spokenTextDigest',
+    'timingAuthorityDigest',
+    'startFrame',
+    'endFrameExclusive',
+    'frameRate',
+    'sourceAuthorityDigest',
+  ]
+  if (
+    !audio || !alignment ||
+    input.audio.contentType !== 'audio/mpeg' ||
+    input.alignment.contentType !== 'application/json' ||
+    audio.role !== 'provider_storytelling_speech_audio_mp3' ||
+    alignment.role !== 'provider_storytelling_speech_alignment_json' ||
+    input.audio.dependencyJobId !== input.alignment.dependencyJobId ||
+    input.audio.sourceExecutionAttemptId !==
+      input.alignment.sourceExecutionAttemptId ||
+    input.audio.sourceLeaseImmutableHash !== audio.providerQueueClaimHash ||
+    input.alignment.sourceLeaseImmutableHash !==
+      alignment.providerQueueClaimHash ||
+    sameProviderAttemptFields.some((field) => audio[field] !== alignment[field]) ||
+    audio.productionId !== payload.productionId ||
+    audio.productionAuthorityHash !== payload.productionAuthorityHash ||
+    audio.preparedScriptSegmentId !== payload.preparedScriptSegmentId ||
+    audio.sceneId !== payload.sceneId ||
+    audio.voiceBibleVersionId !== payload.voiceBibleVersionId ||
+    audio.voiceBibleContentDigest !== payload.voiceBibleContentDigest ||
+    audio.spokenTextDigest !== payload.spokenTextDigest ||
+    audio.timingAuthorityDigest !== payload.timingAuthorityDigest ||
+    audio.startFrame !== payload.startFrame ||
+    audio.endFrameExclusive !== payload.endFrameExclusive ||
+    audio.frameRate !== payload.frameRate ||
+    audio.sourceAuthorityDigest !== payload.sourceAuthorityDigest ||
+    input.alignment.byteLength > 1024 * 1024
+  ) throw denied(
+    'Storytelling Speech dependency outputs are not one exact provider attempt, segment, Voice Bible, text, and timing authority.',
+  )
 }
 
 interface MediaAdapterInput {

@@ -114,9 +114,41 @@ const actualRunEvidenceVerifiedSchema = z.object({
   executionAttestationHash: artifactQaSha256Schema,
 }).strict()
 
+const actualProviderAttemptEvidenceVerifiedSchema = z.object({
+  state: z.literal('actual_provider_attempt_receipt_verified_v1'),
+  executionAttemptId: artifactQaSafeIdentitySchema,
+  runnerClass: z.literal('canonical_private_provider_attempt_receipt_v2'),
+  runnerEvidenceHash: artifactQaSha256Schema,
+  startedAt: z.string().datetime({ offset: true }),
+  finishedAt: z.string().datetime({ offset: true }),
+  exitCode: z.literal(0),
+  toolIds: z.array(artifactQaSafeIdentitySchema).length(0),
+  providerOperationId: z.literal(
+    'provider.elevenlabs.generate_storytelling_speech_candidate.v1',
+  ),
+  providerRoute: z.literal('elevenlabs_eleven_v3_storytelling_speech'),
+  providerOutputRole: z.enum([
+    'provider_storytelling_speech_audio_mp3',
+    'provider_storytelling_speech_alignment_json',
+  ]),
+  providerAuthorizationHash: artifactQaSha256Schema,
+  providerTerminalHash: artifactQaSha256Schema,
+  providerOutputSetDigest: artifactQaSha256Schema,
+  providerReceiptHash: artifactQaSha256Schema,
+  providerQueueClaimId: artifactQaSafeIdentitySchema,
+  providerQueueClaimHash: artifactQaSha256Schema,
+  providerCandidateReadbackEvidenceHash: artifactQaSha256Schema,
+  providerCandidatePrivateObjectIdentityHash: artifactQaSha256Schema,
+  productionAuthorityHash: artifactQaSha256Schema,
+  sourceAuthorityDigest: artifactQaSha256Schema,
+  dispatchGrantId: artifactQaSafeIdentitySchema,
+  actualRunVerified: z.literal(true),
+}).strict()
+
 const actualRunEvidenceSchema = z.union([
   actualRunEvidencePlaceholderSchema,
   actualRunEvidenceVerifiedSchema,
+  actualProviderAttemptEvidenceVerifiedSchema,
 ])
 
 const artifactAttemptKindSchema = z.enum([
@@ -274,6 +306,7 @@ export const internalArtifactQaEvidenceSchema = z.object({
     'actual_audio_tool_qa_verified_v1',
     'actual_remotion_mp4_ffprobe_qa_verified_v1',
     'actual_caption_render_qa_verified_v1',
+    'actual_provider_output_integrity_qa_verified_v1',
   ]),
   actualQaVerified: z.boolean(),
 }).strict().superRefine((evidence, context) => {
@@ -299,6 +332,7 @@ export const internalArtifactQaEvidenceSchema = z.object({
         'actual_audio_tool_qa_verified_v1',
         'actual_remotion_mp4_ffprobe_qa_verified_v1',
         'actual_caption_render_qa_verified_v1',
+        'actual_provider_output_integrity_qa_verified_v1',
       ]
         .includes(evidence.actualQaEvidenceState)
   ) {

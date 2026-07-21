@@ -32,6 +32,9 @@ import {
   resolveCanonicalMotionStudioRemotionProfile,
 } from './canonical-motion-studio-remotion-preview-authority'
 import {
+  assertCanonicalStorytellingSpeechNormalizationWorkItem,
+} from './canonical-storytelling-speech-normalization-authority'
+import {
   validateOfflineRemotionLongFormMergePlanningPayload,
 } from '../tool-execution/remotion-render-execution/offline-remotion-long-form-merge-protocol'
 import {
@@ -370,6 +373,14 @@ function validateByRunnerFamily(
     return 'sharp'
   }
   if (toolId === 'ffmpeg') {
+    if (
+      workItem.executionInput.operation ===
+        'normalize_approved_storytelling_speech_take'
+    ) {
+      assertCanonicalStorytellingSpeechNormalizationWorkItem(workItem)
+      requireBinding(workItem, { source: 0, cleanup: 0, dependencies: 1 })
+      return 'media_ffmpeg'
+    }
     if (
       workItem.workItemType === 'render_final_export' &&
       workItem.workerClass === 'render_worker' &&

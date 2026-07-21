@@ -1267,6 +1267,10 @@ function orderColorDependencies(input: {
       cleanupDecision.sourceSequenceItemId !== sourceSequenceItemId
     ) throw denied('Color dependency lineage is not an exact source-bound FFmpeg color artifact.')
     const payload = validateOfflineFfmpegPlanningPayload(workItem.executionInput.structuredPayload)
+    if (
+      payload.recipeProfileId ===
+        'approved_storytelling_speech_take_normalization_v1'
+    ) throw denied('Final composition color dependencies cannot use Storytelling Speech normalization.')
     const referenceWorkItem = globalIndex > 0
       ? input.authority.workItems.find((candidate) =>
           candidate.workItemKey === workItem.dependencyKeys[0])

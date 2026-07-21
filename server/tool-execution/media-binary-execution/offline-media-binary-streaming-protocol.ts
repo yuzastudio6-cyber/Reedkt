@@ -16,7 +16,7 @@ export const OFFLINE_MEDIA_BINARY_SERVER_INPUT_MODE =
   'server_injected_private_stream_v1' as const
 
 export interface OfflineMediaBinaryStreamSourceCommitment {
-  mimeType: 'video/mp4' | 'video/x-matroska' | 'audio/flac'
+  mimeType: 'video/mp4' | 'video/x-matroska' | 'audio/flac' | 'audio/mpeg'
   sourceByteLength: number
   sourceSha256: string
   sourceInputMode: typeof OFFLINE_MEDIA_BINARY_SERVER_INPUT_MODE
@@ -94,7 +94,7 @@ export function validateOfflineFfmpegStreamingExecutionRequest(
     payload,
     colorMatch ? [...sourceKeys, ...referenceKeys] : sourceKeys,
   ))
-  const source = validateSourceCommitment(payload)
+  const source = validateSourceCommitment(payload, planning.recipeProfileId)
   if (planning.recipeProfileId === 'approved_source_color_match_delivery_matroska_v1') {
     const reference = validateReferenceCommitment(payload)
     assertExactKeys(payload, [...Object.keys(planning), ...sourceKeys, ...referenceKeys])
@@ -116,14 +116,22 @@ export function validateOfflineFfmpegStreamingExecutionRequest(
 
 function validateSourceCommitment(
   payload: Record<string, unknown>,
+  recipeProfileId?: OfflineFfmpegPlanningPayload['recipeProfileId'],
 ): OfflineMediaBinaryStreamSourceCommitment {
+  const storytellingSpeech = recipeProfileId ===
+    'approved_storytelling_speech_take_normalization_v1'
+  const maximumBytes = storytellingSpeech
+    ? 16 * 1024 * 1024
+    : REEDITPRO_SOURCE_MEDIA_MAX_BYTES
   if (
-    !['video/mp4', 'video/x-matroska', 'audio/flac'].includes(
-      String(payload.mimeType),
-    ) ||
+    (storytellingSpeech
+      ? payload.mimeType !== 'audio/mpeg'
+      : !['video/mp4', 'video/x-matroska', 'audio/flac'].includes(
+          String(payload.mimeType),
+        )) ||
     !Number.isSafeInteger(payload.sourceByteLength) ||
     Number(payload.sourceByteLength) < 64 ||
-    Number(payload.sourceByteLength) > REEDITPRO_SOURCE_MEDIA_MAX_BYTES ||
+    Number(payload.sourceByteLength) > maximumBytes ||
     typeof payload.sourceSha256 !== 'string' ||
     !/^[a-f0-9]{64}$/u.test(payload.sourceSha256) ||
     payload.sourceInputMode !== OFFLINE_MEDIA_BINARY_SERVER_INPUT_MODE

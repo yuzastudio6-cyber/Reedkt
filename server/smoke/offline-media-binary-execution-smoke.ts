@@ -10,14 +10,21 @@ import {
 } from '../../src/types/canonical-private-composition-capacity'
 
 import {
+  deriveCanonicalStorytellingSpeechSourceAuthorityDigest,
+} from '../edit-architecture/canonical-storytelling-speech-normalization-authority'
+import {
   activatePrivateOfflineMediaBinaryRuntime,
   buildOfflineMediaBinaryMezzanineFinalizationRequest,
   OFFLINE_MEDIA_BINARY_MEZZANINE_FINALIZATION_MAXIMUM_OUTPUT_BYTES,
   OFFLINE_MEDIA_BINARY_MEZZANINE_FINALIZATION_RECIPE,
   OFFLINE_MEDIA_BINARY_OPERATIONS,
   OFFLINE_MEDIA_BINARY_PROTOCOL,
+  OFFLINE_MEDIA_BINARY_SERVER_INPUT_MODE,
+  OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_AUDIO_OUTPUT_BYTES,
+  OFFLINE_MEDIA_BINARY_STREAM_PROTOCOL,
   openPrivateOfflineMediaBinaryRuntime,
   readPersistedOfflineMediaBinaryRuntimeAuthority,
+  type OfflineMediaBinaryStreamingOutputSink,
 } from '../tool-execution/media-binary-execution'
 import {
   PRIVATE_MEDIA_CGROUP_RESOURCE_OBSERVATION_MAGIC,
@@ -26,6 +33,16 @@ import {
 import type {
   PrivateEmbeddedProcessResourceObservation,
 } from '../tool-execution/private-embedded-process-resource-observation'
+
+const hashBytes = (bytes: Buffer) =>
+  createHash('sha256').update(bytes).digest('hex')
+const hashText = (value: string) => hashBytes(Buffer.from(value, 'utf8'))
+const privateStreamInput = (bytes: Buffer) => Object.freeze({
+  inputMode: 'private_verified_stream_v1' as const,
+  byteLength: bytes.byteLength,
+  sha256: hashBytes(bytes),
+  async openStream() { return Readable.from([bytes]) },
+})
 
 const fixturePath = join('/tmp', `reeditpro-offline-ffprobe-${process.pid}.mp4`)
 const generated = spawnSync('ffmpeg', [
@@ -178,6 +195,95 @@ assert.equal(voiceDeliveryResult.evidence.semanticEvidence.truePeakLimiterApplie
 assert.equal(voiceDeliveryResult.evidence.semanticEvidence.outputProbeVerified, true)
 const voiceDeliveryReplay = await runtime.execute(voiceDeliveryRequest)
 assert.equal(voiceDeliveryReplay.resultArtifact.sha256, voiceDeliveryResult.resultArtifact.sha256)
+
+const speechMp3Path = join('/tmp', `reeditpro-storytelling-speech-${process.pid}.mp3`)
+const generatedSpeechMp3 = spawnSync('ffmpeg', [
+  '-hide_banner', '-loglevel', 'error',
+  '-f', 'lavfi', '-i', 'sine=frequency=330:sample_rate=48000:duration=1',
+  '-map', '0:a:0', '-vn', '-ar', '48000', '-ac', '1',
+  '-c:a', 'libmp3lame', '-b:a', '96k', '-threads', '1', '-y', speechMp3Path,
+], { encoding: 'utf8' })
+assert.equal(generatedSpeechMp3.status, 0, generatedSpeechMp3.stderr)
+const speechMp3Bytes = await readFile(speechMp3Path)
+await rm(speechMp3Path, { force: true })
+const speechAuthorityBase = {
+  recipeProfileId: 'approved_storytelling_speech_take_normalization_v1' as const,
+  timestampPolicy: 'normalize_from_zero' as const,
+  overwriteExistingArtifact: false as const,
+  allowUnreviewedCodec: false as const,
+  sampleRate: 48_000 as const,
+  channelMode: 'mono' as const,
+  sampleFormat: 'pcm_s16le' as const,
+  metadataPolicy: 'strip_all' as const,
+  maximumDurationSeconds: 30 as const,
+  productionId: 'storytelling-production-fixture',
+  productionAuthorityHash: hashText('storytelling-production-authority'),
+  preparedScriptSegmentId: 'prepared-script-segment-fixture',
+  sceneId: 'storytelling-scene-fixture',
+  voiceBibleVersionId: 'voice-bible-version-fixture',
+  voiceBibleContentDigest: hashText('voice-bible-content'),
+  spokenTextDigest: hashText('spoken-text'),
+  timingAuthorityDigest: hashText('speech-timing-authority'),
+  startFrame: 0,
+  endFrameExclusive: 24,
+  frameRate: 24 as const,
+  sourceProviderOperationId:
+    'provider.elevenlabs.generate_storytelling_speech_candidate.v1' as const,
+  sourceAudioRole: 'provider_storytelling_speech_audio_mp3' as const,
+  sourceAlignmentRole: 'provider_storytelling_speech_alignment_json' as const,
+  alignmentBoundToExactSourceAudio: true as const,
+}
+const speechPlanningPayload = {
+  ...speechAuthorityBase,
+  sourceAuthorityDigest:
+    deriveCanonicalStorytellingSpeechSourceAuthorityDigest(speechAuthorityBase),
+}
+const speechMp3Sha256 = hashBytes(speechMp3Bytes)
+const speechNormalizationRequest = {
+  schemaVersion: OFFLINE_MEDIA_BINARY_STREAM_PROTOCOL,
+  toolId: 'ffmpeg' as const,
+  operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
+  payload: {
+    ...speechPlanningPayload,
+    mimeType: 'audio/mpeg' as const,
+    sourceByteLength: speechMp3Bytes.byteLength,
+    sourceSha256: speechMp3Sha256,
+    sourceInputMode: OFFLINE_MEDIA_BINARY_SERVER_INPUT_MODE,
+  },
+}
+let normalizedSpeechBytes = Buffer.alloc(0)
+const speechNormalizationResult = await runtime.executeServerInjectedStreamingOutput(
+  speechNormalizationRequest,
+  privateStreamInput(speechMp3Bytes), {
+  maximumBytes: OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_AUDIO_OUTPUT_BYTES,
+  async persist(output) {
+    const chunks: Buffer[] = []
+    for await (const chunk of output.stream) chunks.push(Buffer.from(chunk))
+    normalizedSpeechBytes = Buffer.concat(chunks)
+    assert.equal(normalizedSpeechBytes.byteLength, output.expectedByteLength)
+    assert.equal(hashBytes(normalizedSpeechBytes), output.expectedSha256)
+    assert.equal(output.mimeType, 'audio/wav')
+    return {
+      byteLength: normalizedSpeechBytes.byteLength,
+      sha256: hashBytes(normalizedSpeechBytes),
+    }
+  },
+  },
+)
+assert.equal(speechNormalizationResult.resultArtifact.mimeType, 'audio/wav')
+assert.equal(normalizedSpeechBytes.subarray(0, 4).toString('ascii'), 'RIFF')
+assert.equal(speechNormalizationResult.evidence.semanticEvidence.outputChannels, 1)
+assert.equal(speechNormalizationResult.evidence.semanticEvidence.outputSampleRate, 48_000)
+assert.equal(speechNormalizationResult.evidence.semanticEvidence.metadataStripped, true)
+assert.equal(speechNormalizationResult.evidence.semanticEvidence.timeStretchApplied, false)
+assert.equal(
+  speechNormalizationResult.evidence.semanticEvidence.sourceAuthorityDigest,
+  speechPlanningPayload.sourceAuthorityDigest,
+)
+assertMediaAttemptResourceObservation(
+  speechNormalizationResult.evidence.resourceObservation,
+  speechNormalizationResult.evidence.confinement.memoryLimitBytes,
+)
 
 const colorDeliveryRequest = {
   schemaVersion: OFFLINE_MEDIA_BINARY_PROTOCOL,
@@ -368,7 +474,6 @@ const generatedMezzanineSource = spawnSync('ffmpeg', [
 assert.equal(generatedMezzanineSource.status, 0, generatedMezzanineSource.stderr)
 const mezzanineSourceBytes = await readFile(mezzanineSourcePath)
 await rm(mezzanineSourcePath, { force: true })
-const hashBytes = (bytes: Buffer) => createHash('sha256').update(bytes).digest('hex')
 const mezzaninePlanningPayload = {
   recipeProfileId: OFFLINE_MEDIA_BINARY_MEZZANINE_FINALIZATION_RECIPE,
   capacityProfileId: CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_CAPACITY_PROFILE_ID,
@@ -434,16 +539,10 @@ const mezzanineRequest = buildOfflineMediaBinaryMezzanineFinalizationRequest({
   source: {
     inputId: 'mezzanine-source-input',
     sourceSequenceItemId: 'mezzanine-source-fixture',
-    mimeType: 'video/mp4',
+    mimeType: 'video/mp4' as const,
     byteLength: mezzanineSourceBytes.byteLength,
     sha256: hashBytes(mezzanineSourceBytes),
   },
-})
-const privateStreamInput = (bytes: Buffer) => Object.freeze({
-  inputMode: 'private_verified_stream_v1' as const,
-  byteLength: bytes.byteLength,
-  sha256: hashBytes(bytes),
-  async openStream() { return Readable.from([bytes]) },
 })
 const mezzanineInputs = {
   chunks: mezzanineChunkBytes.map(privateStreamInput),
@@ -565,6 +664,10 @@ const authority = await readPersistedOfflineMediaBinaryRuntimeAuthority()
 assert(authority)
 assert.equal(authority.readiness.privateInternalExecutionReady, true)
 assert.equal(authority.readiness.privateGenericMediaResourceObservationReady, true)
+assert.equal(
+  authority.readiness.privateInternalStorytellingSpeechNormalizationReady,
+  true,
+)
 assert.equal(authority.readiness.finalExportReady, false)
 assert.equal(authority.supportedOperations.length, 2)
 assert.equal(
@@ -581,6 +684,20 @@ await assertRejects(() => runtime.execute({
   ...request,
   payload: { ...request.payload, sourceSha256: 'f'.repeat(64) },
 }))
+await assertRejects(() => runtime.executeServerInjectedStreamingOutput({
+  ...speechNormalizationRequest,
+  payload: {
+    ...speechNormalizationRequest.payload,
+    sourceAuthorityDigest: 'f'.repeat(64),
+  },
+}, privateStreamInput(speechMp3Bytes), rejectStreamingSink()))
+await assertRejects(() => runtime.executeServerInjectedStreamingOutput({
+  ...speechNormalizationRequest,
+  payload: {
+    ...speechNormalizationRequest.payload,
+    mimeType: 'video/mp4',
+  },
+}, privateStreamInput(speechMp3Bytes), rejectStreamingSink()))
 await assertRejects(() => runtime.execute({
   ...colorMatchRequest,
   payload: {
@@ -669,6 +786,10 @@ console.log(JSON.stringify({
     'actual_ffprobe_approved_source_inspection',
     'actual_ffmpeg_approved_frame_trim_to_ffv1_nut_intermediate',
     'actual_ffmpeg_approved_voice_delivery_pcm_wav',
+    'actual_storytelling_speech_mp3_to_pcm_s16le_48khz_mono_wav',
+    'storytelling_speech_exact_provider_and_alignment_authority_bound',
+    'storytelling_speech_cgroup_v2_resource_observation',
+    'storytelling_speech_mime_and_authority_tamper_rejected',
     'actual_ffmpeg_approved_source_color_delivery_lossless_vp9_matroska',
     'actual_three_frame_rgb_pixel_analysis_before_and_after_color_processing',
     'bounded_professional_exposure_white_balance_contrast_saturation_and_clarity_chain',
@@ -710,6 +831,15 @@ async function assertRejects(action: () => Promise<unknown>): Promise<void> {
   let rejected = false
   try { await action() } catch { rejected = true }
   assert.equal(rejected, true)
+}
+
+function rejectStreamingSink(): OfflineMediaBinaryStreamingOutputSink {
+  return {
+    maximumBytes: OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_AUDIO_OUTPUT_BYTES,
+    async persist() {
+      throw new Error('Invalid Speech request unexpectedly reached output persistence.')
+    },
+  }
 }
 
 function assertMediaAttemptResourceObservation(

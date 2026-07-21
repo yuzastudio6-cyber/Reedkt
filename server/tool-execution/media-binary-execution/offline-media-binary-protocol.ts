@@ -30,6 +30,39 @@ export interface OfflineFfmpegVoiceDeliveryPlanningPayload extends OfflineFfmpeg
   compressorPreset: 'gentle_voice_v1'
 }
 
+export const APPROVED_STORYTELLING_SPEECH_TAKE_NORMALIZATION_PROFILE_ID =
+  'approved_storytelling_speech_take_normalization_v1' as const
+
+export interface OfflineFfmpegStorytellingSpeechTakeNormalizationPlanningPayload {
+  recipeProfileId:
+    typeof APPROVED_STORYTELLING_SPEECH_TAKE_NORMALIZATION_PROFILE_ID
+  timestampPolicy: 'normalize_from_zero'
+  overwriteExistingArtifact: false
+  allowUnreviewedCodec: false
+  sampleRate: 48_000
+  channelMode: 'mono'
+  sampleFormat: 'pcm_s16le'
+  metadataPolicy: 'strip_all'
+  maximumDurationSeconds: 30
+  productionId: string
+  productionAuthorityHash: string
+  preparedScriptSegmentId: string
+  sceneId: string
+  voiceBibleVersionId: string
+  voiceBibleContentDigest: string
+  spokenTextDigest: string
+  timingAuthorityDigest: string
+  startFrame: number
+  endFrameExclusive: number
+  frameRate: 24 | 30
+  sourceProviderOperationId:
+    'provider.elevenlabs.generate_storytelling_speech_candidate.v1'
+  sourceAudioRole: 'provider_storytelling_speech_audio_mp3'
+  sourceAlignmentRole: 'provider_storytelling_speech_alignment_json'
+  sourceAuthorityDigest: string
+  alignmentBoundToExactSourceAudio: true
+}
+
 export type OfflineFfmpegColorGradeStyle = 'clean_natural' | 'premium_clean'
 export type OfflineFfmpegColorIntensity = 'subtle' | 'balanced'
 export type OfflineFfmpegColorOperationKind =
@@ -76,6 +109,7 @@ export interface OfflineFfmpegColorMatchDeliveryPlanningPayload extends OfflineF
 export type OfflineFfmpegPlanningPayload =
   | OfflineFfmpegTrimPlanningPayload
   | OfflineFfmpegVoiceDeliveryPlanningPayload
+  | OfflineFfmpegStorytellingSpeechTakeNormalizationPlanningPayload
   | OfflineFfmpegColorDeliveryPlanningPayload
   | OfflineFfmpegColorMatchDeliveryPlanningPayload
 
@@ -125,7 +159,11 @@ export type OfflineFfmpegExecutionRequest = {
   operationId: typeof OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg
 } & {
   payload:
-    | (Exclude<OfflineFfmpegPlanningPayload, OfflineFfmpegColorMatchDeliveryPlanningPayload> &
+    | (Exclude<
+        OfflineFfmpegPlanningPayload,
+        | OfflineFfmpegColorMatchDeliveryPlanningPayload
+        | OfflineFfmpegStorytellingSpeechTakeNormalizationPlanningPayload
+      > &
         OfflineFfmpegSourceCommitment)
     | (OfflineFfmpegColorMatchDeliveryPlanningPayload & OfflineFfmpegSourceCommitment &
         OfflineFfmpegReferenceCommitment)
@@ -139,6 +177,81 @@ export function validateOfflineFfmpegPlanningPayload(value: unknown): OfflineFfm
   const colorDelivery = candidate?.recipeProfileId === 'approved_source_color_delivery_matroska_v1'
   const colorMatchDelivery = candidate?.recipeProfileId ===
     'approved_source_color_match_delivery_matroska_v1'
+  const storytellingSpeechNormalization = candidate?.recipeProfileId ===
+    APPROVED_STORYTELLING_SPEECH_TAKE_NORMALIZATION_PROFILE_ID
+  if (storytellingSpeechNormalization) {
+    const keys = [
+      'recipeProfileId', 'timestampPolicy', 'overwriteExistingArtifact',
+      'allowUnreviewedCodec', 'sampleRate', 'channelMode', 'sampleFormat',
+      'metadataPolicy', 'maximumDurationSeconds', 'productionId',
+      'productionAuthorityHash', 'preparedScriptSegmentId', 'sceneId',
+      'voiceBibleVersionId', 'voiceBibleContentDigest', 'spokenTextDigest',
+      'timingAuthorityDigest', 'startFrame', 'endFrameExclusive', 'frameRate',
+      'sourceProviderOperationId', 'sourceAudioRole', 'sourceAlignmentRole',
+      'sourceAuthorityDigest', 'alignmentBoundToExactSourceAudio',
+    ] as const
+    const speech = exactObject(value, keys)
+    const frameRate = Number(speech.frameRate)
+    const startFrame = Number(speech.startFrame)
+    const endFrameExclusive = Number(speech.endFrameExclusive)
+    if (
+      speech.recipeProfileId !==
+        APPROVED_STORYTELLING_SPEECH_TAKE_NORMALIZATION_PROFILE_ID ||
+      speech.timestampPolicy !== 'normalize_from_zero' ||
+      speech.overwriteExistingArtifact !== false ||
+      speech.allowUnreviewedCodec !== false ||
+      speech.sampleRate !== 48_000 || speech.channelMode !== 'mono' ||
+      speech.sampleFormat !== 'pcm_s16le' ||
+      speech.metadataPolicy !== 'strip_all' ||
+      speech.maximumDurationSeconds !== 30 ||
+      !safeKey(speech.productionId) || !sha256Value(speech.productionAuthorityHash) ||
+      !safeKey(speech.preparedScriptSegmentId) || !safeKey(speech.sceneId) ||
+      !safeKey(speech.voiceBibleVersionId) ||
+      !sha256Value(speech.voiceBibleContentDigest) ||
+      !sha256Value(speech.spokenTextDigest) ||
+      !sha256Value(speech.timingAuthorityDigest) ||
+      !Number.isSafeInteger(startFrame) || startFrame < 0 ||
+      !Number.isSafeInteger(endFrameExclusive) || endFrameExclusive <= startFrame ||
+      ![24, 30].includes(frameRate) ||
+      endFrameExclusive - startFrame > 30 * frameRate ||
+      speech.sourceProviderOperationId !==
+        'provider.elevenlabs.generate_storytelling_speech_candidate.v1' ||
+      speech.sourceAudioRole !== 'provider_storytelling_speech_audio_mp3' ||
+      speech.sourceAlignmentRole !==
+        'provider_storytelling_speech_alignment_json' ||
+      !sha256Value(speech.sourceAuthorityDigest) ||
+      speech.alignmentBoundToExactSourceAudio !== true
+    ) throw invalid()
+    return {
+      recipeProfileId:
+        APPROVED_STORYTELLING_SPEECH_TAKE_NORMALIZATION_PROFILE_ID,
+      timestampPolicy: 'normalize_from_zero',
+      overwriteExistingArtifact: false,
+      allowUnreviewedCodec: false,
+      sampleRate: 48_000,
+      channelMode: 'mono',
+      sampleFormat: 'pcm_s16le',
+      metadataPolicy: 'strip_all',
+      maximumDurationSeconds: 30,
+      productionId: String(speech.productionId),
+      productionAuthorityHash: String(speech.productionAuthorityHash),
+      preparedScriptSegmentId: String(speech.preparedScriptSegmentId),
+      sceneId: String(speech.sceneId),
+      voiceBibleVersionId: String(speech.voiceBibleVersionId),
+      voiceBibleContentDigest: String(speech.voiceBibleContentDigest),
+      spokenTextDigest: String(speech.spokenTextDigest),
+      timingAuthorityDigest: String(speech.timingAuthorityDigest),
+      startFrame,
+      endFrameExclusive,
+      frameRate: frameRate as 24 | 30,
+      sourceProviderOperationId:
+        'provider.elevenlabs.generate_storytelling_speech_candidate.v1',
+      sourceAudioRole: 'provider_storytelling_speech_audio_mp3',
+      sourceAlignmentRole: 'provider_storytelling_speech_alignment_json',
+      sourceAuthorityDigest: String(speech.sourceAuthorityDigest),
+      alignmentBoundToExactSourceAudio: true,
+    }
+  }
   const payload = exactObject(value, [
     'recipeProfileId', 'timestampPolicy', 'overwriteExistingArtifact', 'allowUnreviewedCodec',
     'trimStartFrame', 'trimEndFrameExclusive', 'frameRate',
@@ -427,6 +540,10 @@ export function validateOfflineFfmpegExecutionRequest(value: unknown): OfflineFf
         }
       : {}),
   })
+  if (
+    planning.recipeProfileId ===
+      APPROVED_STORYTELLING_SPEECH_TAKE_NORMALIZATION_PROFILE_ID
+  ) throw invalid()
   const source = validateSource(payload)
   if (planning.recipeProfileId === 'approved_source_color_match_delivery_matroska_v1') {
     const reference = validateReferenceSource(payload)
@@ -540,6 +657,10 @@ function safeKey(value: unknown): value is string {
   return typeof value === 'string' && value.length <= 200 &&
     /^[A-Za-z0-9][A-Za-z0-9._:-]*$/.test(value) && !value.includes('..') &&
     value === value.trim()
+}
+
+function sha256Value(value: unknown): value is string {
+  return typeof value === 'string' && /^[a-f0-9]{64}$/u.test(value)
 }
 
 function colorGradeStyleValue(value: unknown): OfflineFfmpegColorGradeStyle {

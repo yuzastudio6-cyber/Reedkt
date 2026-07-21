@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto'
-import type { Readable } from 'node:stream'
+import { Readable } from 'node:stream'
 
 import { ApiError } from '../errors/api-error'
 import { readPrivateFileIfExistsWithinRoot } from '../security/private-local-persistence'
@@ -33,6 +33,15 @@ import {
   canonicalInternalAuthorityArtifactRelativePath,
   verifyCanonicalInternalAuthorityArtifact,
 } from './canonical-internal-authority-artifact-verifier'
+import {
+  verifyCanonicalPrivateProviderOutputArtifact,
+  type VerifiedCanonicalPrivateProviderOutputArtifact,
+} from './canonical-private-provider-output-artifact-verifier'
+
+export type CanonicalPrivateDependencyProviderOutputEvidence = Omit<
+  VerifiedCanonicalPrivateProviderOutputArtifact,
+  'bytes'
+>
 
 export interface CanonicalPrivateDependencyArtifactReadResult {
   bytes: Buffer
@@ -45,6 +54,7 @@ export interface CanonicalPrivateDependencyArtifactReadResult {
     | 'video/mp4'
     | 'video/x-nut'
     | 'video/x-matroska'
+    | 'audio/mpeg'
     | 'audio/wav'
   sha256: string
   byteLength: number
@@ -55,11 +65,12 @@ export interface CanonicalPrivateDependencyArtifactReadResult {
   sourceExecutionAttemptId: string
   sourceLeaseImmutableHash: string
   dependencyReadEvidenceHash: string
+  providerOutputEvidence?: CanonicalPrivateDependencyProviderOutputEvidence
 }
 
 export interface CanonicalPrivateDependencyArtifactStreamReadResult {
   inputMode: 'private_verified_stream_v1'
-  contentType: 'video/mp4' | 'video/x-nut' | 'video/x-matroska' | 'audio/wav'
+  contentType: 'video/mp4' | 'video/x-nut' | 'video/x-matroska' | 'audio/mpeg' | 'audio/wav'
   sha256: string
   byteLength: number
   dependencyJobId: string
@@ -69,6 +80,7 @@ export interface CanonicalPrivateDependencyArtifactStreamReadResult {
   sourceExecutionAttemptId: string
   sourceLeaseImmutableHash: string
   dependencyReadEvidenceHash: string
+  providerOutputEvidence?: CanonicalPrivateDependencyProviderOutputEvidence
   openStream(): Promise<Readable>
 }
 
@@ -100,8 +112,68 @@ export function createCanonicalPrivateDependencyArtifactReadService(context: Ser
     async readSingleSelectedArtifact(
       input: CanonicalPrivateDependencyArtifactReadInput,
     ): Promise<CanonicalPrivateDependencyArtifactReadResult> {
-      const { selectedArtifactIndex, selected, authority, internalAuthorityArtifact, contentType } =
+      const {
+        selectedArtifactIndex,
+        selected,
+        authority,
+        internalAuthorityArtifact,
+        providerOutputArtifact,
+        contentType,
+      } =
         await authorizeSingleSelectedArtifact(context, input, 16 * 1024 * 1024)
+      if (providerOutputArtifact) {
+        const verified = await verifyCanonicalPrivateProviderOutputArtifact({
+          localStorageRoot: context.env.localStorageRoot,
+          ownerUserId: getRequiredAuthUserId(context),
+          artifact: authority.artifact,
+        })
+        if (
+          verified.executionAttemptId !== selected.executionAttemptId ||
+          verified.sha256 !== selected.contentSha256 ||
+          verified.byteLength !== authority.artifact.content.byteLength ||
+          verified.byteLength > input.maximumBytes ||
+          verified.contentType !== contentType
+        ) throw invalid('Selected provider dependency failed exact private object verification.')
+        const providerOutputEvidence = withoutProviderBytes(verified)
+        const evidence = {
+          domain: 'canonical_private_provider_dependency_artifact_read_v1',
+          workspaceId: input.workspaceId,
+          projectId: input.projectId,
+          editSessionId: input.editSessionId,
+          snapshotId: input.snapshotId,
+          currentJobId: input.currentJobId,
+          currentApprovedWorkItemId: input.currentApprovedWorkItemId,
+          leaseId: input.leaseId,
+          executionAttemptId: input.executionAttemptId,
+          dispatchGrantId: input.dispatchGrantId,
+          dependencyAuthorityHash: input.dependencyAuthority.authorityHash,
+          selectedArtifactIndex,
+          selectedArtifactCount: input.dependencyAuthority.selectedArtifacts.length,
+          selection: selected,
+          contentType,
+          sha256: verified.sha256,
+          byteLength: verified.byteLength,
+          sourceLeaseImmutableHash: selected.sourceLeaseImmutableHash,
+          providerOutputEvidence,
+        }
+        return {
+          bytes: verified.bytes,
+          contentType,
+          sha256: verified.sha256,
+          byteLength: verified.byteLength,
+          dependencyJobId: selected.dependencyJobId,
+          expectedAssetId: selected.expectedAssetId,
+          artifactId: selected.artifactId,
+          artifactVersion: selected.artifactVersion,
+          sourceExecutionAttemptId: selected.executionAttemptId,
+          sourceLeaseImmutableHash: selected.sourceLeaseImmutableHash,
+          dependencyReadEvidenceHash: sha256AuthorityValue(evidence),
+          providerOutputEvidence,
+        }
+      }
+      if (contentType === 'audio/mpeg') {
+        throw invalid('MPEG audio is admitted only as an exact provider-output dependency.')
+      }
       const verified = contentType === 'image/svg+xml'
         ? await verifyCanonicalStructuredSvgArtifact({
             localStorageRoot: context.env.localStorageRoot,
@@ -210,14 +282,74 @@ export function createCanonicalPrivateDependencyArtifactReadService(context: Ser
     async readSingleSelectedArtifactStream(
       input: CanonicalPrivateDependencyArtifactReadInput,
     ): Promise<CanonicalPrivateDependencyArtifactStreamReadResult> {
-      const { selectedArtifactIndex, selected, authority, contentType } =
+      const {
+        selectedArtifactIndex,
+        selected,
+        authority,
+        providerOutputArtifact,
+        contentType,
+      } =
         await authorizeSingleSelectedArtifact(
           context,
           input,
           CANONICAL_PRIVATE_REMOTION_STREAMING_MAXIMUM_BYTES,
         )
-      if (!['video/mp4', 'video/x-nut', 'video/x-matroska', 'audio/wav'].includes(contentType)) {
+      if (!['video/mp4', 'video/x-nut', 'video/x-matroska', 'audio/mpeg', 'audio/wav'].includes(contentType)) {
         throw invalid('Streaming dependency reads are restricted to exact private media or audio artifacts.')
+      }
+      if (providerOutputArtifact) {
+        const verified = await verifyCanonicalPrivateProviderOutputArtifact({
+          localStorageRoot: context.env.localStorageRoot,
+          ownerUserId: getRequiredAuthUserId(context),
+          artifact: authority.artifact,
+        })
+        if (
+          verified.contentType !== 'audio/mpeg' ||
+          verified.executionAttemptId !== selected.executionAttemptId ||
+          verified.sha256 !== selected.contentSha256 ||
+          verified.byteLength !== authority.artifact.content.byteLength ||
+          verified.byteLength > input.maximumBytes ||
+          verified.byteLength > 16 * 1024 * 1024
+        ) throw invalid('Selected provider audio dependency failed exact private object verification.')
+        const providerOutputEvidence = withoutProviderBytes(verified)
+        const evidence = {
+          domain: 'canonical_private_provider_dependency_artifact_stream_read_v1',
+          workspaceId: input.workspaceId,
+          projectId: input.projectId,
+          editSessionId: input.editSessionId,
+          snapshotId: input.snapshotId,
+          currentJobId: input.currentJobId,
+          currentApprovedWorkItemId: input.currentApprovedWorkItemId,
+          leaseId: input.leaseId,
+          executionAttemptId: input.executionAttemptId,
+          dispatchGrantId: input.dispatchGrantId,
+          dependencyAuthorityHash: input.dependencyAuthority.authorityHash,
+          selectedArtifactIndex,
+          selectedArtifactCount: input.dependencyAuthority.selectedArtifacts.length,
+          selection: selected,
+          contentType,
+          sha256: verified.sha256,
+          byteLength: verified.byteLength,
+          sourceLeaseImmutableHash: selected.sourceLeaseImmutableHash,
+          inputMode: 'private_verified_stream_v1' as const,
+          maximumBytes: input.maximumBytes,
+          providerOutputEvidence,
+        }
+        return {
+          inputMode: 'private_verified_stream_v1',
+          contentType: 'audio/mpeg',
+          sha256: verified.sha256,
+          byteLength: verified.byteLength,
+          dependencyJobId: selected.dependencyJobId,
+          expectedAssetId: selected.expectedAssetId,
+          artifactId: selected.artifactId,
+          artifactVersion: selected.artifactVersion,
+          sourceExecutionAttemptId: selected.executionAttemptId,
+          sourceLeaseImmutableHash: selected.sourceLeaseImmutableHash,
+          dependencyReadEvidenceHash: sha256AuthorityValue(evidence),
+          providerOutputEvidence,
+          openStream: async () => Readable.from(verified.bytes),
+        }
       }
       const verified = contentType === 'video/mp4'
         ? await verifyCanonicalPrivateMp4DependencyArtifact({
@@ -301,7 +433,7 @@ async function authorizeSingleSelectedArtifact(
     selectedArtifactIndex >= input.dependencyAuthority.selectedArtifacts.length ||
     !Number.isSafeInteger(input.maximumBytes) || input.maximumBytes < 1 ||
     input.maximumBytes > maximumAllowedBytes ||
-    input.allowedContentTypes.length < 1 || input.allowedContentTypes.length > 9 ||
+    input.allowedContentTypes.length < 1 || input.allowedContentTypes.length > 10 ||
     new Set(input.allowedContentTypes).size !== input.allowedContentTypes.length
   ) throw invalid('Bounded dependency execution requires an exact server-selected private artifact.')
   const verifiedLease = (await createCanonicalWorkerLeaseAuthorityService(context).verifyActive({
@@ -345,6 +477,9 @@ async function authorizeSingleSelectedArtifact(
     'source_trim_validation_evidence',
   ].includes(authority.artifact.lineage.artifactType)
   const contentType = authority.artifact.content.contentType as CanonicalPrivateDependencyContentType
+  const providerOutputArtifact =
+    authority.artifact.actualRunEvidence.state ===
+      'actual_provider_attempt_receipt_verified_v1'
   if (
     authority.artifact.artifactId !== selected.artifactId ||
     authority.artifact.artifactVersion !== selected.artifactVersion ||
@@ -355,14 +490,57 @@ async function authorizeSingleSelectedArtifact(
     authority.reconciliation.decision !== 'test_merged_not_live_authorized' ||
     !authority.reconciliation.privateTestDependencySatisfied ||
     (!internalAuthorityArtifact &&
+      !providerOutputArtifact &&
       authority.artifact.actualRunEvidence.state !== 'actual_run_evidence_verified_v2') ||
     (internalAuthorityArtifact &&
       authority.artifact.actualRunEvidence.state !== 'actual_run_evidence_placeholder') ||
+    (providerOutputArtifact &&
+      !['audio/mpeg', 'application/json'].includes(contentType)) ||
     authority.artifact.actualRunEvidence.executionAttemptId !== selected.executionAttemptId ||
     authority.liveRuntimeEligible !== false ||
     !input.allowedContentTypes.includes(contentType)
   ) throw invalid('Selected dependency no longer matches immutable artifact, QA, or reconciliation authority.')
-  return { selectedArtifactIndex, selected, authority, internalAuthorityArtifact, contentType }
+  return {
+    selectedArtifactIndex,
+    selected,
+    authority,
+    internalAuthorityArtifact,
+    providerOutputArtifact,
+    contentType,
+  }
+}
+
+function withoutProviderBytes(
+  verified: VerifiedCanonicalPrivateProviderOutputArtifact,
+): CanonicalPrivateDependencyProviderOutputEvidence {
+  return {
+    role: verified.role,
+    contentType: verified.contentType,
+    sha256: verified.sha256,
+    byteLength: verified.byteLength,
+    privateObjectIdentityHash: verified.privateObjectIdentityHash,
+    executionAttemptId: verified.executionAttemptId,
+    runnerClass: verified.runnerClass,
+    providerQueueClaimId: verified.providerQueueClaimId,
+    providerQueueClaimHash: verified.providerQueueClaimHash,
+    providerQueueDeliveryAttempt: verified.providerQueueDeliveryAttempt,
+    providerReceiptHash: verified.providerReceiptHash,
+    providerOutputSetDigest: verified.providerOutputSetDigest,
+    providerCandidateReadbackEvidenceHash:
+      verified.providerCandidateReadbackEvidenceHash,
+    productionId: verified.productionId,
+    productionAuthorityHash: verified.productionAuthorityHash,
+    preparedScriptSegmentId: verified.preparedScriptSegmentId,
+    sceneId: verified.sceneId,
+    voiceBibleVersionId: verified.voiceBibleVersionId,
+    voiceBibleContentDigest: verified.voiceBibleContentDigest,
+    spokenTextDigest: verified.spokenTextDigest,
+    timingAuthorityDigest: verified.timingAuthorityDigest,
+    startFrame: verified.startFrame,
+    endFrameExclusive: verified.endFrameExclusive,
+    frameRate: verified.frameRate,
+    sourceAuthorityDigest: verified.sourceAuthorityDigest,
+  }
 }
 
 async function readInternalAuthorityArtifact(input: {

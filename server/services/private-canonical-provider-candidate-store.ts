@@ -157,6 +157,11 @@ export interface VerifiedPrivateCanonicalProviderCandidateReadbackV2 {
   sourceReadbackEvidenceHash: string
 }
 
+export interface VerifiedPrivateCanonicalProviderCandidateProcessingReadV2 {
+  readback: VerifiedPrivateCanonicalProviderCandidateReadbackV2
+  bytes: Buffer
+}
+
 export async function persistPrivateCanonicalProviderCandidate(input: {
   localStorageRoot: string
   authorization: CanonicalProviderWorkAuthorization
@@ -752,6 +757,47 @@ export async function readVerifiedPrivateCanonicalProviderCandidateSetV2(input: 
     })
   }
   return [verified[0]!, verified[1]!]
+}
+
+/**
+ * Server-only bounded processing read. It first runs the complete immutable
+ * output-set/readback verification above, then reopens the exact content-
+ * addressed objects and verifies their commitments again. This API is never
+ * mounted in a route and must not be projected to a browser.
+ */
+export async function readVerifiedPrivateCanonicalProviderCandidateSetForProcessingV2(
+  input: Parameters<typeof readVerifiedPrivateCanonicalProviderCandidateSetV2>[0],
+): Promise<readonly [
+  VerifiedPrivateCanonicalProviderCandidateProcessingReadV2,
+  VerifiedPrivateCanonicalProviderCandidateProcessingReadV2,
+]> {
+  const readbacks = await readVerifiedPrivateCanonicalProviderCandidateSetV2(input)
+  const processed: VerifiedPrivateCanonicalProviderCandidateProcessingReadV2[] = []
+  for (const readback of readbacks) {
+    const paths = candidatePathsV2(
+      input.authorization,
+      readback.output.privateObjectIdentityHash,
+    )
+    const bytes = await readPrivateFileIfExistsWithinRoot({
+      rootPath: input.localStorageRoot,
+      relativePath: paths.object,
+    })
+    if (
+      !bytes || bytes.byteLength !== readback.output.byteLength ||
+      sha256Bytes(bytes) !== readback.output.contentSha256
+    ) throw invalid('Provider Speech processing bytes changed after verified readback.')
+    validateV2OutputBytes({
+      role: readback.output.role,
+      mimeType: readback.output.mimeType,
+      bytes,
+      maximumByteLength: readback.output.role ===
+        'provider_storytelling_speech_audio_mp3'
+        ? 16_777_216
+        : 1_048_576,
+    })
+    processed.push({ readback, bytes })
+  }
+  return [processed[0]!, processed[1]!]
 }
 
 function candidatePaths(

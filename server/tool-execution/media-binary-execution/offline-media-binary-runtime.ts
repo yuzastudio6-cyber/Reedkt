@@ -177,6 +177,7 @@ export interface OfflineMediaBinaryRuntimeAuthority {
     exactStructuredPayloadOnly: true
     canonicalDispatchMayReference: true
     privateGenericMediaResourceObservationReady: true
+    privateInternalStorytellingSpeechNormalizationReady: true
     privateInternalMezzanineFinalizationReady: true
     privateInternalObjectMezzanineChunkSeriesReady: true
     privateInternalContinuousProgramAudioReady: true
@@ -559,6 +560,7 @@ Promise<OfflineMediaBinaryRuntimeAuthority | undefined> {
     authority.source !== 'private_local_pinned_ffmpeg_lgpl_runtime' ||
     record(authority.readiness).privateInternalExecutionReady !== true ||
     record(authority.readiness).privateGenericMediaResourceObservationReady !== true ||
+    record(authority.readiness).privateInternalStorytellingSpeechNormalizationReady !== true ||
     record(authority.readiness).privateInternalMezzanineFinalizationReady !== true ||
     record(authority.readiness).privateInternalObjectMezzanineChunkSeriesReady !== true ||
     record(authority.readiness).privateInternalContinuousProgramAudioReady !== true ||
@@ -624,8 +626,10 @@ async function executeServerInjectedStreamingOutput(
   if (
     request.payload.recipeProfileId !== 'approved_source_color_delivery_matroska_v1' &&
     request.payload.recipeProfileId !== 'approved_source_color_match_delivery_matroska_v1' &&
-    request.payload.recipeProfileId !== 'approved_voice_delivery_wav_v1'
-  ) throw invalid('Streaming FFmpeg output is restricted to approved professional-color or voice-delivery recipes.')
+    request.payload.recipeProfileId !== 'approved_voice_delivery_wav_v1' &&
+    request.payload.recipeProfileId !==
+      'approved_storytelling_speech_take_normalization_v1'
+  ) throw invalid('Streaming FFmpeg output is restricted to exact approved professional media recipes.')
   assertServerInjectedInput(source, request.payload.sourceByteLength, request.payload.sourceSha256)
   assertStreamingOutputSink(outputSink, request.payload.recipeProfileId)
   const result = await executeFfmpegRequest(image, request, source, outputSink)
@@ -3386,6 +3390,11 @@ async function executeFfmpegRequest(
 ): Promise<OfflineFfmpegExecutionResult | OfflineFfmpegStreamingOutputExecutionResult> {
   const resourceObservations: PrivateEmbeddedProcessResourceObservation[] = []
   const voiceDelivery = request.payload.recipeProfileId === 'approved_voice_delivery_wav_v1'
+  const storytellingSpeechPayload = request.payload.recipeProfileId ===
+    'approved_storytelling_speech_take_normalization_v1'
+    ? request.payload
+    : undefined
+  const storytellingSpeechNormalization = Boolean(storytellingSpeechPayload)
   const colorMatchDeliveryPayload = request.payload.recipeProfileId ===
     'approved_source_color_match_delivery_matroska_v1'
     ? request.payload
@@ -3399,7 +3408,13 @@ async function executeFfmpegRequest(
   const voiceDeliveryPayload = request.payload.recipeProfileId === 'approved_voice_delivery_wav_v1'
     ? request.payload
     : undefined
-  const trimDurationFrames = request.payload.trimEndFrameExclusive - request.payload.trimStartFrame
+  const trimStartFrame = storytellingSpeechPayload?.startFrame ??
+    ('trimStartFrame' in request.payload ? request.payload.trimStartFrame : 0)
+  const trimEndFrameExclusive = storytellingSpeechPayload?.endFrameExclusive ??
+    ('trimEndFrameExclusive' in request.payload
+      ? request.payload.trimEndFrameExclusive
+      : 0)
+  const trimDurationFrames = trimEndFrameExclusive - trimStartFrame
   const referenceInput = colorMatchDelivery
     ? verifiedBufferInput(
         Buffer.from(colorMatchDeliveryPayload!.referenceSourceBytesBase64, 'base64'),
@@ -3410,8 +3425,8 @@ async function executeFfmpegRequest(
     ? await analyzeVideoColor({
         image,
         source,
-        startFrame: request.payload.trimStartFrame,
-        endFrameExclusive: request.payload.trimEndFrameExclusive,
+        startFrame: trimStartFrame,
+        endFrameExclusive: trimEndFrameExclusive,
         frameRate: request.payload.frameRate,
         resourceObservations,
       })
@@ -3426,6 +3441,15 @@ async function executeFfmpegRequest(
         resourceObservations,
       })
     : undefined
+  const storytellingSpeechSourceProbe = storytellingSpeechPayload
+    ? await probeStorytellingSpeechSource(
+        image,
+        source,
+        trimDurationFrames / storytellingSpeechPayload.frameRate,
+        1 / storytellingSpeechPayload.frameRate,
+        resourceObservations,
+      )
+    : undefined
   const colorCorrection = sourceColorAnalysis && colorDeliveryPayload
     ? referenceColorAnalysis
       ? deriveReferenceMatchedColorCorrection(
@@ -3437,14 +3461,16 @@ async function executeFfmpegRequest(
       : deriveColorCorrection(sourceColorAnalysis, colorDeliveryPayload.colorGradeStyle,
           colorDeliveryPayload.intensity)
     : undefined
-  const command = voiceDelivery
+  const command = storytellingSpeechNormalization
+    ? storytellingSpeechNormalizationCommand(request)
+    : voiceDelivery
     ? voiceDeliveryCommand(request)
     : colorDelivery && colorCorrection
       ? colorDeliveryCommand(request, colorCorrection)
       : [
         '-hide_banner', '-loglevel', 'error', '-nostdin',
         '-i', 'pipe:0', '-map', '0:v:0',
-        '-vf', `trim=start_frame=${request.payload.trimStartFrame}:end_frame=${request.payload.trimEndFrameExclusive},setpts=PTS-STARTPTS`,
+        '-vf', `trim=start_frame=${trimStartFrame}:end_frame=${trimEndFrameExclusive},setpts=PTS-STARTPTS`,
         '-an', '-threads', '1', '-c:v', 'ffv1', '-level', '3', '-f', 'nut', 'pipe:1',
   ]
   const container = await createContainer(image, FFMPEG_ENTRYPOINT, command, {
@@ -3481,7 +3507,7 @@ async function executeFfmpegRequest(
         args: ['start', '--attach', '--interactive', container.id],
         input: source,
         maximumOutputBytes: outputSink.maximumBytes,
-        expectedFormat: voiceDelivery ? 'wav' : 'mkv',
+        expectedFormat: voiceDelivery || storytellingSpeechNormalization ? 'wav' : 'mkv',
         timeoutMs,
       })
     }
@@ -3513,27 +3539,28 @@ async function executeFfmpegRequest(
       `stateExit=${String(state.ExitCode)};oomKilled=${String(state.OOMKilled)};` +
       `diagnostic=${safeFfmpegDiagnostic(stderr)}).`,
     )
-    const wave = voiceDelivery
+    const wave = voiceDelivery || storytellingSpeechNormalization
       ? streamedOutputSpool
         ? inspectPcmWavePrefix(streamedOutputSpool.signature, outputByteLength)
         : pcmWaveDetails(bufferedOutput!.stdout)
       : undefined
-    if (voiceDelivery ? !wave : colorDelivery
+    if (voiceDelivery || storytellingSpeechNormalization ? !wave : colorDelivery
       ? !isMatroska(outputSignature)
       : !outputSignature.toString('ascii').includes('nut/multimedia')) {
-      throw unavailable(voiceDelivery
-        ? 'FFmpeg voice-delivery output is not the fixed PCM WAV artifact.'
+      throw unavailable(voiceDelivery || storytellingSpeechNormalization
+        ? 'FFmpeg approved audio output is not the fixed PCM WAV artifact.'
         : colorDelivery
           ? 'FFmpeg professional color output is not the fixed Matroska intermediate container.'
           : 'FFmpeg output is not the fixed NUT intermediate container.')
     }
-    const outputProbe = voiceDelivery
+    const outputProbe = voiceDelivery || storytellingSpeechNormalization
       ? await probeFfmpegVoiceDeliveryOutput(
           image,
           outputInput,
           wave!,
           trimDurationFrames / request.payload.frameRate,
           resourceObservations,
+          storytellingSpeechNormalization ? 1 : 2,
         )
       : await probeFfmpegOutput(
           image,
@@ -3581,7 +3608,9 @@ async function executeFfmpegRequest(
     if (outputSink) {
       const persisted = await outputSink.persist({
         stream: await outputInput.openStream(),
-        mimeType: voiceDelivery ? 'audio/wav' : 'video/x-matroska',
+        mimeType: voiceDelivery || storytellingSpeechNormalization
+          ? 'audio/wav'
+          : 'video/x-matroska',
         expectedByteLength: outputByteLength,
         expectedSha256: resultSha256,
       })
@@ -3636,9 +3665,37 @@ async function executeFfmpegRequest(
           sourceDeliveryMode: source.inputMode,
           fixedRecipeExecuted: true,
           recipeProfileId: request.payload.recipeProfileId,
-          trimStartFrame: request.payload.trimStartFrame,
-          trimEndFrameExclusive: request.payload.trimEndFrameExclusive,
-          ...(voiceDelivery
+          trimStartFrame,
+          trimEndFrameExclusive,
+          ...(storytellingSpeechNormalization
+            ? {
+                outputContainer: 'wav',
+                outputAudioCodec: 'pcm_s16le',
+                outputSampleRate: 48_000,
+                outputChannels: 1,
+                sourceProviderOperationId:
+                  storytellingSpeechPayload!.sourceProviderOperationId,
+                sourceAudioRole: storytellingSpeechPayload!.sourceAudioRole,
+                sourceAlignmentRole:
+                  storytellingSpeechPayload!.sourceAlignmentRole,
+                sourceAuthorityDigest:
+                  storytellingSpeechPayload!.sourceAuthorityDigest,
+                productionAuthorityHash:
+                  storytellingSpeechPayload!.productionAuthorityHash,
+                timingAuthorityDigest:
+                  storytellingSpeechPayload!.timingAuthorityDigest,
+                metadataStripped: true,
+                sourceVideoRemoved: true,
+                loudnessNormalizationApplied: false,
+                timeStretchApplied: false,
+                codecDelayTrimOnly: true,
+                sourceDurationProbe: storytellingSpeechSourceProbe,
+                outputDeliveryMode: outputSink
+                  ? 'server_committed_private_stream_v1'
+                  : 'bounded_legacy_buffer_v1',
+                outputWholeBufferAvoided: Boolean(outputSink),
+              }
+            : voiceDelivery
             ? {
                 outputContainer: 'wav', outputAudioCodec: 'pcm_s16le',
                 outputSampleRate: 48_000, outputChannels: 2,
@@ -3720,7 +3777,9 @@ async function executeFfmpegRequest(
     if (outputSink) {
       return {
         resultArtifact: {
-          mimeType: voiceDelivery ? 'audio/wav' : 'video/x-matroska',
+          mimeType: voiceDelivery || storytellingSpeechNormalization
+            ? 'audio/wav'
+            : 'video/x-matroska',
           sha256: resultSha256,
           byteLength: outputByteLength,
           outputMode: 'server_committed_private_stream_v1',
@@ -3734,7 +3793,7 @@ async function executeFfmpegRequest(
     }
     return {
       resultArtifact: {
-        mimeType: voiceDelivery
+        mimeType: voiceDelivery || storytellingSpeechNormalization
           ? 'audio/wav'
           : colorDelivery
             ? 'video/x-matroska'
@@ -3773,6 +3832,28 @@ function voiceDeliveryCommand(
     '-hide_banner', '-loglevel', 'error', '-nostdin',
     '-i', 'pipe:0', '-map', '0:a:0', '-vn', '-af', filters,
     '-ar', '48000', '-ac', '2', '-threads', '1',
+    '-c:a', 'pcm_s16le', '-f', 'wav', 'pipe:1',
+  ]
+}
+
+function storytellingSpeechNormalizationCommand(
+  request: OfflineFfmpegExecutionRequest | OfflineFfmpegStreamingExecutionRequest,
+): string[] {
+  if (
+    request.payload.recipeProfileId !==
+      'approved_storytelling_speech_take_normalization_v1'
+  ) throw invalid('Storytelling Speech normalization requires its exact approved recipe.')
+  const expectedDurationSeconds = (
+    (request.payload.endFrameExclusive - request.payload.startFrame) /
+      request.payload.frameRate
+  ).toFixed(9)
+  return [
+    '-hide_banner', '-loglevel', 'error', '-nostdin',
+    '-i', 'pipe:0',
+    '-map', '0:a:0', '-vn', '-sn', '-dn',
+    '-map_metadata', '-1', '-map_chapters', '-1',
+    '-af', `atrim=start=0:end=${expectedDurationSeconds},asetpts=PTS-STARTPTS,aformat=sample_fmts=s16:sample_rates=48000:channel_layouts=mono`,
+    '-ar', '48000', '-ac', '1', '-threads', '1',
     '-c:a', 'pcm_s16le', '-f', 'wav', 'pipe:1',
   ]
 }
@@ -5016,6 +5097,7 @@ async function probeFfmpegVoiceDeliveryOutput(
   },
   expectedDurationSeconds: number,
   resourceObservations?: PrivateEmbeddedProcessResourceObservation[],
+  expectedChannels: 1 | 2 = 2,
 ): Promise<Record<string, unknown>> {
   const command = [
     '-v', 'error', '-show_entries',
@@ -5060,18 +5142,103 @@ async function probeFfmpegVoiceDeliveryOutput(
     if (
       streams.length !== 1 || !audio || audio.codec_name !== 'pcm_s16le' ||
       !String(format.format_name ?? '').includes('wav') ||
-      optionalInteger(audio.sample_rate) !== 48_000 || optionalInteger(audio.channels) !== 2 ||
-      wave.sampleRate !== 48_000 || wave.channels !== 2 || wave.bitsPerSample !== 16 ||
+      optionalInteger(audio.sample_rate) !== 48_000 ||
+      optionalInteger(audio.channels) !== expectedChannels ||
+      wave.sampleRate !== 48_000 || wave.channels !== expectedChannels ||
+      wave.bitsPerSample !== 16 ||
       Math.abs(durationSeconds - expectedDurationSeconds) > durationToleranceSeconds
-    ) throw unavailable('FFmpeg voice-delivery output failed WAV, PCM, channel, rate, or duration verification.')
+    ) throw unavailable(
+      'FFmpeg approved audio output failed WAV, PCM, channel, rate, or duration verification ' +
+      `(codec=${String(audio?.codec_name)};rate=${String(audio?.sample_rate)};` +
+      `channels=${String(audio?.channels)};waveRate=${wave.sampleRate};` +
+      `waveChannels=${wave.channels};bits=${wave.bitsPerSample};` +
+      `duration=${durationSeconds};expected=${expectedDurationSeconds};` +
+      `tolerance=${durationToleranceSeconds}).`,
+    )
     return {
       container: 'wav', audioCodec: 'pcm_s16le', sampleRate: 48_000,
-      channels: 2, channelLayout: String(audio.channel_layout ?? 'stereo'),
+      channels: expectedChannels,
+      channelLayout: String(audio.channel_layout ??
+        (expectedChannels === 1 ? 'mono' : 'stereo')),
       sampleFrameCount: wave.sampleFrameCount, durationSeconds, expectedDurationSeconds,
       durationToleranceSeconds, sizeBytes: optionalInteger(format.size),
     }
   } finally {
     await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024).catch(() => undefined)
+  }
+}
+
+async function probeStorytellingSpeechSource(
+  image: OfflineMediaBinaryImageEvidence,
+  source: OfflineMediaBinaryServerInjectedInput,
+  expectedDurationSeconds: number,
+  maximumCodecDelaySeconds: number,
+  resourceObservations: PrivateEmbeddedProcessResourceObservation[],
+): Promise<Record<string, unknown>> {
+  const command = [
+    '-hide_banner', '-loglevel', 'error', '-nostdin',
+    '-f', 'mp3', '-i', 'pipe:0',
+    '-map', '0:a:0', '-vn', '-sn', '-dn',
+    '-progress', 'pipe:1', '-nostats', '-f', 'null', '-',
+  ]
+  const container = await createContainer(image, FFMPEG_ENTRYPOINT, command, {
+    observeCgroupResources: true,
+  })
+  try {
+    validateConfinement(
+      await inspectContainer(container.id),
+      image,
+      FFMPEG_ENTRYPOINT,
+      command,
+      container,
+    )
+    const result = await dockerVerifiedInput(
+      ['start', '--attach', '--interactive', container.id],
+      source,
+      2 * 1024 * 1024,
+      mediaExecutionTimeoutMs(source.byteLength),
+    )
+    const observedExecution = normalizeObservedMediaContainerExecution({
+      container,
+      image,
+      stderr: result.stderr,
+    })
+    resourceObservations.push(observedExecution.observation)
+    if (result.exitCode !== 0 || observedExecution.sanitizedStderr.length > 0) {
+      throw unavailable('Storytelling Speech provider MP3 probe failed closed.')
+    }
+    const progress = Object.fromEntries(result.stdout.toString('utf8')
+      .trim().split(/\r?\n/u)
+      .map((line) => line.split('=', 2))
+      .filter((entry): entry is [string, string] => entry.length === 2))
+    const outTimeMicroseconds = Number(progress.out_time_us)
+    const durationSeconds = Number.isSafeInteger(outTimeMicroseconds) &&
+      outTimeMicroseconds > 0
+      ? outTimeMicroseconds / 1_000_000
+      : undefined
+    if (
+      progress.progress !== 'end' || durationSeconds === undefined ||
+      durationSeconds <= 0 ||
+      Math.abs(durationSeconds - expectedDurationSeconds) >
+        maximumCodecDelaySeconds
+    ) throw unavailable(
+      'Storytelling Speech provider MP3 is not within one approved timing frame ' +
+      `(duration=${String(durationSeconds)};expected=${expectedDurationSeconds};` +
+      `maximumCodecDelay=${maximumCodecDelaySeconds}).`,
+    )
+    return {
+      container: 'mp3',
+      audioCodec: 'mp3',
+      sourceDecodeCompleted: true,
+      durationSeconds,
+      expectedDurationSeconds,
+      maximumCodecDelaySeconds,
+      timingWithinOneFrame: true,
+      sizeBytes: source.byteLength,
+    }
+  } finally {
+    await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024)
+      .catch(() => undefined)
   }
 }
 
@@ -5151,6 +5318,7 @@ async function persistAuthority(image: OfflineMediaBinaryImageEvidence): Promise
       exactStructuredPayloadOnly: true as const,
       canonicalDispatchMayReference: true as const,
       privateGenericMediaResourceObservationReady: true as const,
+      privateInternalStorytellingSpeechNormalizationReady: true as const,
       privateInternalMezzanineFinalizationReady: true as const,
       privateInternalObjectMezzanineChunkSeriesReady: true as const,
       privateInternalContinuousProgramAudioReady: true as const,
@@ -5179,6 +5347,7 @@ async function persistAuthority(image: OfflineMediaBinaryImageEvidence): Promise
       'Private long-form master QA is restricted to one exact immutable VP9/FLAC Matroska review master and does not unlock delivery or export.',
       'Decoded final-master video and audio QA are bounded private single-process evidence; resumable long-form checkpointing, lease recovery, and worker-fleet execution remain blocked.',
       'Generic FFmpeg and FFprobe attempts retain private cgroup-v2 CPU/memory evidence; specialized long-form runner families and deployed cloud telemetry remain separate gates.',
+      'Storytelling Speech normalization accepts only the exact verified private provider MP3/alignment dependency set and does not authorize provider transport, selection, mixing, or delivery.',
     ] as const,
   }
   const authority: OfflineMediaBinaryRuntimeAuthority = {
@@ -7274,7 +7443,8 @@ function assertStreamingOutputSink(
   outputSink: OfflineMediaBinaryStreamingOutputSink,
   recipeProfileId: OfflineFfmpegStreamingExecutionRequest['payload']['recipeProfileId'],
 ): void {
-  const expectedMaximum = recipeProfileId === 'approved_voice_delivery_wav_v1'
+  const expectedMaximum = recipeProfileId === 'approved_voice_delivery_wav_v1' ||
+    recipeProfileId === 'approved_storytelling_speech_take_normalization_v1'
     ? OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_AUDIO_OUTPUT_BYTES
     : OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_OUTPUT_BYTES
   if (

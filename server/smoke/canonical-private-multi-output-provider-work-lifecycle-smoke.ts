@@ -20,10 +20,19 @@ import {
   canonicalPrivatePackageWorkQueueJobDefinitionSchema,
   type CanonicalPrivatePackageWorkQueueDefinition,
 } from '../edit-architecture/canonical-private-package-work-queue-authority'
+import {
+  deriveCanonicalStorytellingSpeechSourceAuthorityDigest,
+} from '../edit-architecture/canonical-storytelling-speech-normalization-authority'
 import { ApiError } from '../errors/api-error'
 import {
   projectCanonicalPrivateProviderAttemptConsumerReceiptV2,
 } from '../services/canonical-private-provider-attempt-consumer-receipt-service'
+import {
+  persistCanonicalPrivateProviderOutputArtifactBridgeRecord,
+} from '../services/canonical-private-provider-output-artifact-store'
+import {
+  verifyCanonicalPrivateProviderOutputArtifact,
+} from '../services/canonical-private-provider-output-artifact-verifier'
 import {
   executePrivateInjectedMultiOutputProviderWorkLifecycle,
   reconcilePrivateInjectedMultiOutputProviderUnknownLifecycle,
@@ -34,6 +43,9 @@ import {
   clearPrivateCanonicalPackageWorkQueueProcessStateForSmoke,
   type CanonicalPrivatePackageWorkQueueStoreScope,
 } from '../services/private-canonical-package-work-queue-store'
+import {
+  readVerifiedPrivateCanonicalProviderCandidateSetForProcessingV2,
+} from '../services/private-canonical-provider-candidate-store'
 import { sha256AuthorityValue } from '../services/private-edit-authority-store'
 import {
   createPrivateWorkerResourceUsageCostEvidence,
@@ -43,6 +55,8 @@ import {
 import {
   canonicalProviderAttemptConsumerReceiptSchema,
 } from '../validation/canonical-provider-attempt-consumer-receipt-schemas'
+import type { PersistedArtifactResult } from
+  '../validation/private-artifact-qa-authority-schemas'
 
 const BASE_TIME_MS = Date.parse('2026-07-21T12:00:00.000Z')
 const at = (offsetMs: number) => new Date(BASE_TIME_MS + offsetMs).toISOString()
@@ -174,6 +188,84 @@ try {
     assert.equal(output.localPathProjected, false)
     assert.equal(output.createOnly, true)
     assert.equal(output.checksumReadbackVerified, true)
+  }
+  const processingOutputs =
+    await readVerifiedPrivateCanonicalProviderCandidateSetForProcessingV2({
+      localStorageRoot: success.scope.localStorageRoot,
+      authorization: successResult.authorization,
+      dispatchAttempt: successResult.dispatchEntry.attempt,
+      outputs: [
+        successResult.privateOutputs[0]!,
+        successResult.privateOutputs[1]!,
+      ],
+      outputSetDigest: successResult.terminal.outputSetDigest,
+    })
+  const normalizationAuthority = speechNormalizationAuthority('success')
+  let verifiedProviderOutputBridgeCount = 0
+  for (const ordinal of [0, 1] as const) {
+    const processing = processingOutputs[ordinal]
+    const output = processing.readback.output
+    assert.equal(
+      output.role,
+      ordinal === 0
+        ? 'provider_storytelling_speech_audio_mp3'
+        : 'provider_storytelling_speech_alignment_json',
+    )
+    const bridge =
+      await persistCanonicalPrivateProviderOutputArtifactBridgeRecord({
+        localStorageRoot: success.scope.localStorageRoot,
+        ownerUserId: success.scope.ownerUserId,
+        workspaceId: success.scope.workspaceId,
+        executionPackage: success.executionPackage,
+        queueDefinition: success.queueDefinition,
+        authorization: successResult.authorization,
+        receipt: successReceipt,
+        normalizationAuthority,
+        outputOrdinal: ordinal,
+        outputId: output.outputId,
+        outputRole: output.role as
+          | 'provider_storytelling_speech_audio_mp3'
+          | 'provider_storytelling_speech_alignment_json',
+        outputContentSha256: output.contentSha256,
+        outputByteLength: output.byteLength,
+        outputPrivateObjectIdentityHash: output.privateObjectIdentityHash,
+        outputReadbackEvidenceHash:
+          processing.readback.sourceReadbackEvidenceHash,
+        createdAt: successReceipt.projectedAt,
+      })
+    const artifact = providerOutputArtifactFixture({
+      success,
+      successResult,
+      successReceipt,
+      normalizationAuthority,
+      bridgeRecordHash: bridge.recordHash,
+      ordinal,
+      output,
+      outputReadbackEvidenceHash:
+        processing.readback.sourceReadbackEvidenceHash,
+    })
+    const verified = await verifyCanonicalPrivateProviderOutputArtifact({
+      localStorageRoot: success.scope.localStorageRoot,
+      ownerUserId: success.scope.ownerUserId,
+      artifact,
+    })
+    assert.equal(verified.role, output.role)
+    assert.equal(verified.sha256, output.contentSha256)
+    assert.equal(verified.providerReceiptHash, successReceipt.receiptHash)
+    assert.equal(
+      verified.sourceAuthorityDigest,
+      normalizationAuthority.sourceAuthorityDigest,
+    )
+    assert.equal(verified.bytes.equals(processing.bytes), true)
+    verifiedProviderOutputBridgeCount += 1
+    await assert.rejects(() => verifyCanonicalPrivateProviderOutputArtifact({
+      localStorageRoot: success.scope.localStorageRoot,
+      ownerUserId: success.scope.ownerUserId,
+      artifact: {
+        ...artifact,
+        content: { ...artifact.content, sha256: 'f'.repeat(64) },
+      },
+    }))
   }
   const receiptJson = JSON.stringify(successReceipt)
   for (const forbidden of [
@@ -458,6 +550,7 @@ try {
     outputRoles: successReceipt.privateOutputs.map((output) => output.role),
     receiptHash: successReceipt.receiptHash,
     sourceOutputSetDigest: successReceipt.outputSet.outputSetDigest,
+    verifiedProviderOutputBridgeCount,
     providerRateCardDigest: successReceipt.internalCost.providerRateCardDigest,
     workerResourceEvidenceHash:
       successReceipt.internalCost.workerResourceEvidenceHash,
@@ -612,7 +705,8 @@ async function fixture(
       jobId,
       expectedOutputIds: outputIds,
       sourceRequestId: `source-request-${label}`,
-      sourceRequestDigest: digest(`source-request:${label}`),
+      sourceRequestDigest:
+        speechNormalizationAuthority(label).sourceAuthorityDigest,
       providerRequestPayloadDigest: digest(`provider-payload:${label}`),
       projectDataPolicyDigest: digest(`data-policy:${label}`),
       providerAccountPolicyDigest: digest(`account-policy:${label}`),
@@ -919,6 +1013,145 @@ function alignmentFixture(): Buffer {
     text: PRIVATE_ALIGNMENT_SENTINEL,
     characters: [{ character: 'A', start: 0, end: 0.1 }],
   }), 'utf8')
+}
+
+function speechNormalizationAuthority(label: string) {
+  const base = {
+    recipeProfileId:
+      'approved_storytelling_speech_take_normalization_v1' as const,
+    timestampPolicy: 'normalize_from_zero' as const,
+    overwriteExistingArtifact: false as const,
+    allowUnreviewedCodec: false as const,
+    sampleRate: 48_000 as const,
+    channelMode: 'mono' as const,
+    sampleFormat: 'pcm_s16le' as const,
+    metadataPolicy: 'strip_all' as const,
+    maximumDurationSeconds: 30 as const,
+    productionId: `storytelling-production-${label}`,
+    productionAuthorityHash: digest(`production-authority:${label}`),
+    preparedScriptSegmentId: `prepared-script-segment-${label}`,
+    sceneId: `storytelling-scene-${label}`,
+    voiceBibleVersionId: `voice-bible-version-${label}`,
+    voiceBibleContentDigest: digest(`voice-bible:${label}`),
+    spokenTextDigest: digest(`spoken-text:${label}`),
+    timingAuthorityDigest: digest(`timing:${label}`),
+    startFrame: 0,
+    endFrameExclusive: 24,
+    frameRate: 24 as const,
+    sourceProviderOperationId:
+      CANONICAL_ELEVENLABS_STORYTELLING_SPEECH_OPERATION_ID,
+    sourceAudioRole: 'provider_storytelling_speech_audio_mp3' as const,
+    sourceAlignmentRole:
+      'provider_storytelling_speech_alignment_json' as const,
+    alignmentBoundToExactSourceAudio: true as const,
+  }
+  return {
+    ...base,
+    sourceAuthorityDigest:
+      deriveCanonicalStorytellingSpeechSourceAuthorityDigest(base),
+  }
+}
+
+function providerOutputArtifactFixture(input: {
+  success: Fixture
+  successResult: PrivateInjectedMultiOutputProviderWorkLifecycleResult
+  successReceipt: Awaited<ReturnType<
+    typeof projectCanonicalPrivateProviderAttemptConsumerReceiptV2
+  >>
+  normalizationAuthority: ReturnType<typeof speechNormalizationAuthority>
+  bridgeRecordHash: string
+  ordinal: 0 | 1
+  output: Awaited<ReturnType<
+    typeof readVerifiedPrivateCanonicalProviderCandidateSetForProcessingV2
+  >>[number]['readback']['output']
+  outputReadbackEvidenceHash: string
+}): PersistedArtifactResult {
+  const output = input.output
+  const resultEvidenceHash = digest(
+    `provider-output-artifact-result:${input.ordinal}`,
+  )
+  return {
+    artifactId: `provider-output-artifact-${input.ordinal}`,
+    identity: {
+      workspaceId: input.success.scope.workspaceId,
+      projectId: input.success.scope.projectId,
+      editSessionId: input.success.scope.editSessionId,
+      snapshotId: input.success.scope.approvedPlanSnapshotId,
+      jobId: input.success.jobId,
+      expectedAssetId: input.success.outputIds[input.ordinal],
+    },
+    lineage: {
+      assetId: input.success.outputIds[input.ordinal],
+      outputKey: output.outputId,
+      artifactType: output.role,
+      assetRole: 'generated',
+      required: true,
+      previewPlaceholderAllowed: false,
+      contentType: output.mimeType,
+      segmentIds: [input.normalizationAuthority.preparedScriptSegmentId],
+      timingIds: [input.normalizationAuthority.timingAuthorityDigest],
+      rendererLayerIds: [],
+      approvedWorkItemId: input.successResult.authorization.approvedWorkItemId,
+      workItemKey: `storytelling-speech-${input.ordinal}`,
+      jobType: 'generate_storytelling_speech_candidate',
+      jobAuthorityHash: digest(`job-authority:${input.ordinal}`),
+      snapshotHash: input.successResult.authorization.snapshotHash,
+      approvedAssetManifestHash: digest('asset-manifest:success'),
+    },
+    artifactVersion: 1,
+    attemptKind: 'initial',
+    content: {
+      sha256: output.contentSha256,
+      byteLength: output.byteLength,
+      contentType: output.mimeType,
+    },
+    storageIdentity: {
+      storageKind: 'private_local_test',
+      opaqueObjectIdentityHash: input.bridgeRecordHash,
+      providerGeneration: 'private_injected_nonprovider_test',
+    },
+    placeholder: { isPlaceholder: false, scope: 'none' },
+    actualRunEvidence: {
+      state: 'actual_provider_attempt_receipt_verified_v1',
+      executionAttemptId:
+        input.successReceipt.dispatch.dispatchAttemptId,
+      runnerClass: 'canonical_private_provider_attempt_receipt_v2',
+      runnerEvidenceHash: input.successReceipt.receiptHash,
+      startedAt: input.successReceipt.timing.startedAt,
+      finishedAt: input.successReceipt.timing.completedAt,
+      exitCode: 0,
+      toolIds: [],
+      providerOperationId: input.successReceipt.provider.operationId,
+      providerRoute: input.successReceipt.provider.providerRouteId,
+      providerOutputRole: output.role,
+      providerAuthorizationHash:
+        input.successReceipt.identity.authorizationHash,
+      providerTerminalHash: input.successReceipt.dispatch.terminalHash,
+      providerOutputSetDigest:
+        input.successReceipt.outputSet.outputSetDigest,
+      providerReceiptHash: input.successReceipt.receiptHash,
+      providerQueueClaimId: input.successReceipt.queue.claimId,
+      providerQueueClaimHash: input.successReceipt.queue.claimHash,
+      providerCandidateReadbackEvidenceHash:
+        input.outputReadbackEvidenceHash,
+      providerCandidatePrivateObjectIdentityHash:
+        output.privateObjectIdentityHash,
+      productionAuthorityHash:
+        input.normalizationAuthority.productionAuthorityHash,
+      sourceAuthorityDigest:
+        input.normalizationAuthority.sourceAuthorityDigest,
+      dispatchGrantId: input.successReceipt.dispatch.grantId,
+      actualRunVerified: true,
+    },
+    resultEvidenceRef: {
+      sha256: resultEvidenceHash,
+      byteLength: 1,
+    },
+    resultEvidenceHash,
+    evidenceClass: 'private_internal_test_attested',
+    liveRuntimeEligible: false,
+    createdAt: input.successReceipt.timing.completedAt,
+  } as PersistedArtifactResult
 }
 
 function digest(label: string): string {

@@ -10,6 +10,7 @@ export const EDIT_REFERENCE_PRODUCTION_GATE_DEFINITIONS = [
     assertions: [
       'canonical_migration_chain_verified',
       'application_lifecycle_rpc_v3_verified',
+      'server_only_application_and_planning_read_rpc_adapters_verified',
       'durable_idempotency_and_cas_verified',
       'cross_device_readback_verified',
       'private_local_fallback_disabled_in_production',

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import type { PreferenceApplicationRecord } from '../../src/types/edit-reference'
+import { ApiError } from '../errors/api-error'
 import {
   calculatePreferenceApplicationContentDigest,
   calculatePreferenceApplicationTargetContextDigest,
@@ -25,6 +26,14 @@ import {
   createEditReferenceProductionPlannerPreferenceApplicationBinding,
   validateEditReferenceProductionPlannerBindingAdapterReceipt,
 } from '../edit-references/edit-reference-production-planner-binding-adapter'
+import {
+  EDIT_REFERENCE_PRODUCTION_RPC_ADAPTER_VERSION,
+  EDIT_REFERENCE_PRODUCTION_RPC_REGISTRY,
+  assertEditReferenceProductionRpcAdapterIsNotProduction,
+  createEditReferenceProductionRpcContractFixtureAdapter,
+  createEditReferenceProductionRpcContractFixtureCapability,
+  type EditReferenceProductionRpcClient,
+} from '../edit-references/edit-reference-production-rpc-adapter'
 
 const hash = (character: string): string => character.repeat(64)
 const precedence = [
@@ -527,6 +536,133 @@ await assert.rejects(() => resolveEditReferenceProductionPlanningAuthority({
   },
 }), /production Edit Reference planning authority/i)
 
+const rpcCalls: Array<{
+  readonly functionName: string
+  readonly parameters: Readonly<Record<string, unknown>>
+}> = []
+const rpcClient: EditReferenceProductionRpcClient = {
+  rpc: (functionName, parameters) => {
+    rpcCalls.push({ functionName, parameters })
+    if (functionName === EDIT_REFERENCE_PRODUCTION_RPC_REGISTRY.functions.mutateApplicationLifecycle) {
+      return Promise.resolve({ data: [receipt], error: null })
+    }
+    if (functionName === EDIT_REFERENCE_PRODUCTION_RPC_REGISTRY.functions.readExactApplicationState) {
+      return Promise.resolve({ data: [authorityRead], error: null })
+    }
+    return Promise.resolve({ data: null, error: { code: 'RPC_NOT_ALLOWED' } })
+  },
+}
+const rpcCapability = createEditReferenceProductionRpcContractFixtureCapability(rpcClient)
+const rpcAdapter = createEditReferenceProductionRpcContractFixtureAdapter({
+  client: rpcClient,
+  capability: rpcCapability,
+})
+assert.equal(rpcAdapter.schemaVersion, EDIT_REFERENCE_PRODUCTION_RPC_ADAPTER_VERSION)
+assert.equal(rpcAdapter.liveSupabaseOrPostgresCallAllowed, false)
+assert.equal(rpcAdapter.remoteDatabaseMutationAllowed, false)
+assert.equal(rpcAdapter.productionAuthority, false)
+assert.equal(EDIT_REFERENCE_PRODUCTION_RPC_REGISTRY.oneRpcCallPerOperation, true)
+assert.equal(EDIT_REFERENCE_PRODUCTION_RPC_REGISTRY.responseShape, 'single_row_array')
+assert.equal(EDIT_REFERENCE_PRODUCTION_RPC_REGISTRY.automaticTransportRetryAllowed, false)
+assert.deepEqual(await rpcAdapter.mutateApplicationLifecycle(request), receipt)
+const rpcAuthorityResolution = await resolveEditReferenceProductionPlanningAuthority({
+  reader: rpcAdapter.planningAuthorityReader,
+  scope: authorityScope,
+  selection: {
+    applicationId: application.id,
+    expectedApplicationContentDigestSha256: application.contentDigest,
+    expectedApplicationContextHashSha256: planningContext.applicationContextHashSha256,
+    expectedLifecycleReceiptDigestSha256: receipt.receiptDigestSha256,
+  },
+})
+assert.equal(rpcAuthorityResolution.status, 'applied')
+assert.equal(rpcCalls.length, 2)
+assert.deepEqual(
+  rpcCalls.map((call) => call.functionName),
+  [
+    EDIT_REFERENCE_PRODUCTION_RPC_REGISTRY.functions.mutateApplicationLifecycle,
+    EDIT_REFERENCE_PRODUCTION_RPC_REGISTRY.functions.readExactApplicationState,
+  ],
+)
+assert.equal(
+  rpcCalls[0]?.parameters.p_contract_version,
+  'edit-reference-production-persistence-contract-v4',
+)
+assert.deepEqual(rpcCalls[0]?.parameters.p_request, request)
+assert.equal(
+  rpcCalls[1]?.parameters.p_read_version,
+  EDIT_REFERENCE_PRODUCTION_PLANNING_AUTHORITY_READ_VERSION,
+)
+assert.deepEqual(rpcCalls[1]?.parameters.p_scope, authorityScope)
+assert.throws(
+  () => assertEditReferenceProductionRpcAdapterIsNotProduction(rpcAdapter),
+  /cannot authorize production persistence/i,
+)
+
+assert.throws(() => createEditReferenceProductionRpcContractFixtureAdapter({
+  client: rpcClient,
+  capability: structuredClone(rpcCapability),
+}), /production RPC boundary is unavailable or unsafe/i)
+const differentRpcClient: EditReferenceProductionRpcClient = {
+  rpc: rpcClient.rpc.bind(rpcClient),
+}
+assert.throws(() => createEditReferenceProductionRpcContractFixtureAdapter({
+  client: differentRpcClient,
+  capability: rpcCapability,
+}), /production RPC boundary is unavailable or unsafe/i)
+
+for (const invalidData of [authorityRead, [], [authorityRead, authorityRead]]) {
+  let cardinalityCallCount = 0
+  const cardinalityClient: EditReferenceProductionRpcClient = {
+    rpc: () => {
+      cardinalityCallCount += 1
+      return Promise.resolve({ data: invalidData, error: null })
+    },
+  }
+  const cardinalityAdapter = createEditReferenceProductionRpcContractFixtureAdapter({
+    client: cardinalityClient,
+    capability: createEditReferenceProductionRpcContractFixtureCapability(cardinalityClient),
+  })
+  await assert.rejects(
+    () => cardinalityAdapter.planningAuthorityReader.readExactApplicationState(authorityScope),
+    /production RPC boundary is unavailable or unsafe/i,
+  )
+  assert.equal(cardinalityCallCount, 1)
+}
+
+const secret = 'database-password-must-never-leak'
+let failedRpcCallCount = 0
+const failingRpcClient: EditReferenceProductionRpcClient = {
+  rpc: () => {
+    failedRpcCallCount += 1
+    return Promise.reject({
+      code: 'DATABASE_DENIED',
+      status: 503,
+      message: secret,
+      details: { connectionString: secret },
+    })
+  },
+}
+const failingRpcAdapter = createEditReferenceProductionRpcContractFixtureAdapter({
+  client: failingRpcClient,
+  capability: createEditReferenceProductionRpcContractFixtureCapability(failingRpcClient),
+})
+await assert.rejects(
+  () => failingRpcAdapter.planningAuthorityReader.readExactApplicationState(authorityScope),
+  (error: unknown) => {
+    assert.ok(error instanceof ApiError)
+    assert.equal(error.code, 'EDIT_REFERENCE_PERSISTENCE_BLOCKED')
+    assert.equal(error.status, 503)
+    assert.equal(JSON.stringify({ message: error.message, details: error.details }).includes(secret), false)
+    assert.equal(
+      (error.details as { automaticRetryStarted?: unknown }).automaticRetryStarted,
+      false,
+    )
+    return true
+  },
+)
+assert.equal(failedRpcCallCount, 1)
+
 console.log(JSON.stringify({
   status: 'passed',
   planningContextVersion: planningContext.schemaVersion,
@@ -537,6 +673,8 @@ console.log(JSON.stringify({
   contextDigestSha256: planningContext.contextDigestSha256,
   productionRepositoryAuthorityResolved: true,
   canonicalPlannerBindingAdapted: true,
+  rpcContractFixtureAdapterVerified: true,
+  rpcAutomaticRetryStarted: false,
   legacyPreferenceIntelligenceStoreRead: false,
   remoteMutationAttempted: false,
   productionReady: false,

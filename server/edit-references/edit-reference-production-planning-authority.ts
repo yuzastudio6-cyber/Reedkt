@@ -188,6 +188,12 @@ function validateSelection(selection: EditReferenceProductionPlanningAuthoritySe
   ) invalid('production_planning_authority_selection_invalid', 400)
 }
 
+export function validateEditReferenceProductionPlanningAuthorityReadResult(
+  read: EditReferenceProductionPlanningAuthorityReadResult,
+): void {
+  validateReadEnvelope(read)
+}
+
 function validateReadEnvelope(read: EditReferenceProductionPlanningAuthorityReadResult): void {
   if (!read || typeof read !== 'object' || !read.tenantIsolation) {
     invalid('production_planning_authority_repository_evidence_invalid')

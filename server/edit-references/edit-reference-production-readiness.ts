@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import { ApiError } from '../errors/api-error'
 
 export const EDIT_REFERENCE_PRODUCTION_READINESS_VERSION =
@@ -205,6 +206,7 @@ export interface EditReferenceProductionEvidenceAdmission {
   readonly deploymentArtifactDigestSha256: string
   readonly environmentId: string
   readonly admittedEvidenceIds: readonly string[]
+  readonly evidenceSetDigestSha256: string
   readonly liveEvidenceRepositoryReadVerified: true
   readonly sameReleaseLineageVerified: true
   readonly localOrSyntheticEvidenceAccepted: false
@@ -243,6 +245,31 @@ const COMMIT_PATTERN = /^(?!0{40}$)[a-f0-9]{40}$/
 // live evidence-repository adapter must be introduced in this module before a
 // production admission can enter this set.
 const qualifiedEvidenceAdmissions = new WeakSet<EditReferenceProductionEvidenceAdmission>()
+
+export function createEditReferenceProductionEvidenceSetDigest(
+  evidence: readonly EditReferenceProductionGateEvidence[],
+): string {
+  const canonicalEvidence = evidence
+    .map((item) => ({
+      gateId: item.gateId,
+      status: item.status,
+      evidenceClass: item.evidenceClass,
+      evidenceId: item.evidenceId,
+      evidenceDigestSha256: item.evidenceDigestSha256,
+      releaseCandidateId: item.releaseCandidateId,
+      sourceCommitSha: item.sourceCommitSha,
+      deploymentArtifactDigestSha256: item.deploymentArtifactDigestSha256,
+      environmentId: item.environmentId,
+      observedAt: item.observedAt,
+      assertions: [...item.assertions].sort(),
+      localOrSyntheticEvidenceAccepted: item.localOrSyntheticEvidenceAccepted,
+    }))
+    .sort((left, right) => (
+      left.gateId.localeCompare(right.gateId)
+      || left.evidenceId.localeCompare(right.evidenceId)
+    ))
+  return createHash('sha256').update(JSON.stringify(canonicalEvidence)).digest('hex')
+}
 
 export function evaluateEditReferenceProductionReadiness(
   input: EditReferenceProductionReadinessInput,
@@ -319,9 +346,6 @@ function validateEvidenceAdmission(
   evidence: readonly EditReferenceProductionGateEvidence[],
 ): string | undefined {
   if (!admission) return 'trusted_live_evidence_admission_missing'
-  if (!qualifiedEvidenceAdmissions.has(admission)) {
-    return 'trusted_live_evidence_admission_unqualified'
-  }
   const evidenceIds = evidence.map((item) => item.evidenceId).sort()
   const admittedEvidenceIds = [...admission.admittedEvidenceIds].sort()
   if (
@@ -332,12 +356,18 @@ function validateEvidenceAdmission(
     || admission.sourceCommitSha !== release.sourceCommitSha
     || admission.deploymentArtifactDigestSha256 !== release.deploymentArtifactDigestSha256
     || admission.environmentId !== release.environmentId
+    || !SHA256_PATTERN.test(admission.evidenceSetDigestSha256)
+    || admission.evidenceSetDigestSha256
+      !== createEditReferenceProductionEvidenceSetDigest(evidence)
     || admission.liveEvidenceRepositoryReadVerified !== true
     || admission.sameReleaseLineageVerified !== true
     || admission.localOrSyntheticEvidenceAccepted !== false
     || admission.productionAuthority !== true
     || JSON.stringify(admittedEvidenceIds) !== JSON.stringify(evidenceIds)
   ) return 'trusted_live_evidence_admission_invalid'
+  if (!qualifiedEvidenceAdmissions.has(admission)) {
+    return 'trusted_live_evidence_admission_unqualified'
+  }
   return undefined
 }
 

@@ -8,6 +8,9 @@ The Edit Reference production-readiness contract is now V3. It cannot report
 production-ready from structurally valid caller-created evidence objects.
 Every gate remains blocked until one reviewed, same-release server evidence
 repository admits the complete evidence set through a module-private authority.
+The admission also carries a canonical SHA-256 digest over every release-bound
+evidence record, its artifact digest, assertions, timestamps, and lineage. An
+evidence record cannot be replaced after admission while retaining authority.
 
 There is intentionally no public qualification function. A later production
 adapter must be introduced inside the readiness module after deployed
@@ -41,6 +44,8 @@ apply/replace/remove lifecycle. They do not activate the production runtime.
 - evidence missing any new preparation assertion remains blocked;
 - a structurally complete caller-created evidence set remains blocked;
 - a forged admission containing all production flags remains blocked;
+- a forged admission digest and an evidence swap after admission remain
+  blocked;
 - deployment-lineage mismatch, evidence reuse, incomplete assertions, and an
   invalid release identity remain blocked;
 - local or synthetic evidence is never accepted as live production evidence.

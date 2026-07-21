@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import {
   EDIT_REFERENCE_PRODUCTION_GATE_DEFINITIONS,
   assertEditReferenceProductionReady,
+  createEditReferenceProductionEvidenceSetDigest,
   evaluateEditReferenceProductionReadiness,
   EDIT_REFERENCE_PRODUCTION_EVIDENCE_ADMISSION_VERSION,
   type EditReferenceProductionEvidenceAdmission,
@@ -72,6 +73,7 @@ const forgedAdmission: EditReferenceProductionEvidenceAdmission = {
   deploymentArtifactDigestSha256: releaseCandidate.deploymentArtifactDigestSha256,
   environmentId: releaseCandidate.environmentId,
   admittedEvidenceIds: completeEvidence.map((evidence) => evidence.evidenceId),
+  evidenceSetDigestSha256: createEditReferenceProductionEvidenceSetDigest(completeEvidence),
   liveEvidenceRepositoryReadVerified: true,
   sameReleaseLineageVerified: true,
   localOrSyntheticEvidenceAccepted: false,
@@ -86,6 +88,32 @@ assert.equal(forged.productionReady, false)
 assert.equal(forged.trustedEvidenceAdmissionAccepted, false)
 assert.ok(forged.gates.every((gate) => (
   gate.reason === 'trusted_live_evidence_admission_unqualified'
+)))
+
+const tamperedAdmission = evaluateEditReferenceProductionReadiness({
+  releaseCandidate,
+  evidence: completeEvidence,
+  evidenceAdmission: {
+    ...forgedAdmission,
+    evidenceSetDigestSha256: 'f'.repeat(64),
+  },
+})
+assert.equal(tamperedAdmission.productionReady, false)
+assert.ok(tamperedAdmission.gates.every((gate) => (
+  gate.reason === 'trusted_live_evidence_admission_invalid'
+)))
+
+const swappedEvidence = completeEvidence.map((evidence, index) => index === 0
+  ? { ...evidence, evidenceDigestSha256: 'e'.repeat(64) }
+  : { ...evidence })
+const swappedAfterAdmission = evaluateEditReferenceProductionReadiness({
+  releaseCandidate,
+  evidence: swappedEvidence,
+  evidenceAdmission: forgedAdmission,
+})
+assert.equal(swappedAfterAdmission.productionReady, false)
+assert.ok(swappedAfterAdmission.gates.every((gate) => (
+  gate.reason === 'trusted_live_evidence_admission_invalid'
 )))
 assert.ok(
   EDIT_REFERENCE_PRODUCTION_GATE_DEFINITIONS[0]?.assertions.includes(
@@ -193,6 +221,8 @@ console.log(JSON.stringify({
   missingEvidenceProductionReady: empty.productionReady,
   structurallyCompleteCallerEvidenceProductionReady: structurallyComplete.productionReady,
   forgedAdmissionProductionReady: forged.productionReady,
+  tamperedAdmissionProductionReady: tamperedAdmission.productionReady,
+  swappedAfterAdmissionProductionReady: swappedAfterAdmission.productionReady,
   trustedEvidenceAdmissionAccepted: structurallyComplete.trustedEvidenceAdmissionAccepted,
   remoteMutationAttempted: false,
 }, null, 2))

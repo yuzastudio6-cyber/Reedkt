@@ -837,6 +837,41 @@ export function createCanonicalDistributedPrePlanStudyFixtureDescriptor(
   })
 }
 
+/**
+ * Describes a server-only database adapter whose transport contract has been
+ * validated but whose live Postgres, multi-replica, worker, and private-object
+ * evidence has not been admitted. This descriptor can never authorize a
+ * production runtime because every live-evidence flag remains false and the
+ * V1 state port itself has no promotion path.
+ */
+export function createCanonicalDistributedPrePlanStudyUnverifiedDatabaseAdapterDescriptor(
+  adapterId = 'canonical_pre_plan_study_database_adapter_contract_v1',
+): CanonicalDistributedPrePlanStudyPortDescriptor {
+  return descriptorWithHash({
+    schemaVersion: CANONICAL_DISTRIBUTED_PRE_PLAN_STUDY_PORT_VERSION,
+    adapterId,
+    implementationClass: 'database_transaction_adapter',
+    serviceOnly: true,
+    exactInputAndOutputSchemasEnforced: true,
+    prePlanStudyAuthority: true,
+    approvedEditAuthorityReusedOrFabricated: false,
+    serializableTransactionSemanticsExercised: false,
+    durableResponseReplaySemanticsExercised: false,
+    digestOnlyLeaseSemanticsExercised: false,
+    monotonicCheckpointSemanticsExercised: false,
+    terminalUsageAtomicitySemanticsExercised: false,
+    expiredLeaseRecoverySemanticsExercised: false,
+    databaseBackend: 'none',
+    distributedDatabaseTransactionVerified: false,
+    multiReplicaDurabilityVerified: false,
+    authenticatedWorkerDispatchVerified: false,
+    livePrivateObjectReadVerified: false,
+    liveSupabaseOrPostgresCallPerformed: false,
+    cloudCallPerformed: false,
+    productionAuthority: false,
+  })
+}
+
 export function canonicalDistributedPrePlanStudyPersistenceBoundaries() {
   return {
     serviceOnly: true as const,

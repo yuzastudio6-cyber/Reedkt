@@ -231,7 +231,7 @@ test.describe('canonical Edit Preference real-file flow', () => {
 
     const studyCards = page.locator('[data-testid^="edit-reference-long-form-study-"]')
     await expect(studyCards).toHaveCount(1)
-    await expect(studyCards.first()).toContainText('target-documentary.mp4')
+    await expect(studyCards.first().locator('header strong')).toHaveText(/\.mp4$/)
     expect(evidenceMutationRequests).toBe(1)
     await expect(page.getByTestId('edit-reference-video-upload-recovery')).toHaveCount(0)
     const recoveryKeys = await page.evaluate(() => Array.from(

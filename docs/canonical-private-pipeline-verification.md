@@ -2,7 +2,7 @@
 
 Status: `implemented_local_private_verification_entrypoint`
 
-Status date: 2026-07-20
+Status date: 2026-07-21
 
 ## Purpose
 
@@ -85,10 +85,13 @@ record, and successful private output before issuing a compact non-promotable
 receipt. The projection binds source-derived consumer context, exact attempt
 times, queue/lease aliases, safe terminal outcome, component cost/rate-card
 digests, private-object identity, and closed credential/request/executable/route
-semantics. It uses a bounded output-set envelope while current multi-output
-provider admission remains false. It preserves Lyria V1 generation-submission
-count semantics and keeps the frozen synchronized-Foley 17-request async
-lifecycle outside executable authorization while immutable revision/rate and
+semantics. Historical Lyria V1 retains its zero-or-one-output and
+generation-submission-count semantics. A separate forward-only Speech V2 phase
+admits the exact ordered MP3 plus private alignment JSON set through the same
+queue/lease/dispatch/storage/cost/receipt authority and proves both
+unknown-outcome reconciliation branches. Both phases remain private injected
+and non-promotable. The frozen synchronized-Foley 17-request async lifecycle
+stays outside executable authorization while immutable revision/rate and
 transport gates remain closed.
 
 Run the broader regression boundary with:
@@ -197,8 +200,11 @@ plan fits the bounded canonical profile.
    stay non-promotable. Lyria V1 request count must remain generation
    submissions rather than total HTTP requests, and the synchronized-Foley
    identity plus 17-request async breakdown must stay authorization- and
-   transport-blocked pending immutable qualification. The set-shaped output
-   projection must not silently admit the later two-output Speech operation.
+   transport-blocked pending immutable qualification. The forward-only Speech
+   phase must verify exactly two ordered private outputs, missing-resource
+   refusal, source-derived output-set/terminal lineage, success/failure/unknown
+   outcomes, both exact reconciliation branches, and a non-promotable compact
+   receipt without changing historical V1 evidence.
 9. Exercise the bounded ordered three-source canonical lifecycle through lease,
    one-use dispatch, private artifacts, QA, reconciliation, replay, and private
    download evidence. The focused lifecycle includes three exact source-bound
@@ -237,7 +243,7 @@ source-bound audio identities in approved order, reads sanitized journey state,
 and records review acceptance.
 
 The runner stops on the first failed phase and prints a machine-readable
-`canonical-private-pipeline-verification-v31` report with step exit codes and
+`canonical-private-pipeline-verification-v32` report with step exit codes and
 durations. A zero exit code means every included assertion passed, including
 assertions that production-only or unavailable behavior stays blocked.
 
@@ -247,6 +253,35 @@ and open time. Resource isolation prevents unrelated local tasks from mutating
 that discovery channel; it does not weaken image-identity validation.
 
 ## Current Evidence Record
+
+On 2026-07-21 UTC, the bounded v32 command passed all `43/43` phases with exit
+code `0`. Its final proven-tool report was generated at
+`2026-07-21T03:00:20.253Z`. The added Storytelling Speech V2 phase passed in
+`1,507 ms` and proved one exact two-output MP3/alignment attempt through the
+canonical package, queue/lease, one-use provider dispatch, private create-only
+storage, terminal/replay/unknown reconciliation, provider-cost,
+worker-resource-cost, and compact-receipt authorities. It made zero provider
+requests and retained private-injected, non-promotable evidence.
+
+The same run reverified the complete 50-tool canonical lifecycle in
+`911,426 ms`, the three-source composition in `566,487 ms`, the professional
+4K color path in `636,305 ms`, the separate UHD streaming proof in
+`104,699 ms`, all 11 named-edit browser tests in `14,003 ms`, and the 74
+tool/provider resource contracts. It retained exactly 50 canonical E2E and 50
+job-adapter tool identities. The six-hour graph remains honestly at eight of
+255 jobs and two of 124 object-chunk pairs; distributed/cloud execution,
+providers, remote Supabase, billing, public delivery, external beta, and paid
+production remain false.
+
+A post-aggregate source review found that the compact receipt selected observed
+worker infrastructure cost without explicitly comparing that selected value to
+the immutable authorization ceiling. The final bounded delta now rejects an
+observed infrastructure component above either the authorized infrastructure
+ceiling or authorized total-internal-cost ceiling, and rejects resource
+evidence ending after the canonical provider terminal. The adversarial Speech
+smoke, historical Lyria smoke, and server typecheck pass after that stricter
+guard. This small fail-closed delta is focused post-aggregate evidence; it is
+not represented as a second full `43/43` execution.
 
 On 2026-07-20/21 UTC, the exact-source bounded v31 command passed all `42/42`
 phases with exit code `0`. It started at `2026-07-20T23:21:29.970Z`, finished

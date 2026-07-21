@@ -1,6 +1,6 @@
 # Current End-to-End Capability Matrix
 
-Status date: 2026-07-20
+Status date: 2026-07-21
 Authority: reviewed APFS continuation checkout at `/Users/macuser/Developer/REeditpro-backend-pipeline`
 
 This document is the current capability truth for ReeditPro. It distinguishes UI policy and deterministic planning from code that actually executes against private test media. It does not turn internal test evidence into a public-beta or production-readiness claim.
@@ -96,6 +96,7 @@ Current gaps:
 | Canonical pre-approval payload authority | 50 unique tools across 19 runner families in the complete fixture | Exact structured payload, source/cleanup/dependency binding, output role/content type, and offline policy are validated before plan approval, frozen in content-addressed lineage, revalidated before packaging, and reused at dispatch. |
 | Job-only canonical adapter | 15 runner classes implemented; 52 complete-matrix adapter paths plus 1 dedicated professional-color path executed; 50 exact tool identities recorded | Snapshot authority, dependency-bound source trim, and every canonical private E2E tool identity now prove server-derived adapter execution. The proof includes D3 plus dependency-bound Sharp, DuckDB, source-bound PyAV, DeepFilterNet with attempt-cost evidence, controlled libass, exact source-bound FFmpeg trim, voice-delivery, and professional-color recipes, exact Remotion final composition with approved voice replacement and selected color bytes, and dependency-bound final ffprobe QA. The additional color path reuses the already-counted FFmpeg identity; it is not a 51st tool. |
 | Automatic observed CPU/memory cost lifecycle | 30 / 50 canonical identities | All 28 structured Node/Python operations plus generic FFmpeg and FFprobe retain exact embedded/cgroup observations and create-only internal infrastructure-cost evidence under the same snapshot/package/job/lease/dispatch/artifact/QA/reconciliation lifecycle. The other 20 canonical identities still have lifecycle proof but not this automatic observation class. Specialized long-form, Remotion, deployed cloud, official-rate, provider, and commercial metering remain separate gates. |
+| Canonical provider lifecycle contracts | Lyria V1 plus Storytelling Speech V2 are private-injected executable; synchronized Foley is identity/policy only | Lyria retains its historical one-WAV lifecycle. Forward-only Speech V2 reuses the same funded package queue, claim/lease, one-use provider dispatch, private create-only storage, terminal/replay/unknown-reconciliation, provider-cost, observed worker-resource-cost, and compact consumer receipt for one ordered MP3 plus private alignment JSON set. Both are non-promotable and perform zero provider requests. Immutable Speech revision, production rate/account/zero-retention qualification, Secret Manager payload access, provider transport, cloud persistence, and production promotion remain closed. Foley retains its exact 17-request async ceiling but has no executable authorization. |
 | Product-ready | 0 / 72 | No registry tool meets production evidence gates. |
 | Frontend-executable in practice | 0 | Tool execution stays off the browser. |
 
@@ -246,20 +247,25 @@ proof.
 
 `npm run qa:canonical-private-pipeline` is the authoritative bounded canonical audit command. It verifies exact source, Edit Preferences, Edit Brief, a real resumable-sized 4K private ingest/proxy lifecycle, an over-16-MiB 4K canonical source execution, 4K estimate/export policy, browser-safe publication/approval/package/preparation/review/recovery clients, real local backend authority, bounded first-source-reference multi-source voice/color execution, bounded one-source professional-color regression, one separately labeled above-16-MiB Remotion runtime/persistence/QA output proof, active named-edit Playwright states, and the versioned proven-tool identity report. The current `npm run qa:internal-pipeline` adds auth/runtime, project/edit tenancy, approved tool-manifest, private Playwright capture, and the signed-in named-edit workflow. On 2026-07-15, its exact-code v3 24-phase run completed all 24 phases in 1,029,183 ms with exit code 0. The focused backend/runtime phase produced one private 4K master from three ordered sources, three exact source-bound voice deliveries, one baseline plus two independently first-reference-bound color intermediates, and two approved hard cuts; objective continuity passed at both boundaries before final QA, download, and replay. The final browser phase created a project and named edit, uploaded and probed the maximum eight distinct private audio-bearing sources, synchronized exact Edit Preferences, created and revised the inline Edit Brief, preserved the confirmed frame, approved one 4K-ceiling estimate, requested the immutable package separately, completed the 27-work-item/27-job private work graph, loaded and downloaded the integrity-bound non-passthrough eight-second 3840x2160 MP4, confirmed all eight source-bound tones in approved order, read sanitized journey state, and persisted acceptance. The same run regenerated evidence revision `2026-07-15.30` with exactly 50 private canonical/job-adapter identities and kept provider activation, live billing/wallet mutation, remote Supabase, public delivery, deployment, external beta, and paid production false. The earlier exact-code v2 24-phase run completed in 947,417 ms with the then-current three-source signed-in path; v3 supersedes that maximum-count browser evidence. The earlier 580,973 ms canonical run proved the then-current two-source reference match, the prior 604,446 ms canonical run predates reference matching, and the 719,518 ms 22-phase full run remains a historical fail-closed baseline. A separate complete `npm run smoke:canonical-private-tool-dispatch` execution passed with exit code 0 and reverified all 50 exact private canonical/job-adapter identities, including dynamic grant-set tamper/restore preservation. Both aggregate commands stop on the first failure and emit a machine-readable step report; a zero exit code means every included assertion passed, including assertions that unavailable or production-only behavior stays blocked.
 
-The exact-code v31 run on 2026-07-20/21 UTC is the current aggregate verdict
-for this branch. It passed `42/42` stages with exit code `0`, starting at
-`2026-07-20T23:21:29.970Z`, finishing at `2026-07-21T00:35:25.784Z`, and
-completing in `4,435,814 ms`. It proved automatic attempt-bound CPU/memory and
-internal-cost evidence for 30 operations while retaining exactly 50 canonical
-E2E and 50 job-adapter tool identities. The six-hour graph remains honestly at
-eight of 255 jobs and two of 124 object-chunk pairs. The separate customer-
-delivery graph, three-source composition, professional-color path, UHD
-Remotion streaming proof, and all 11 named-edit browser tests passed. Every
-tool's product/external-beta/production readiness, specialized long-form and
-Remotion resource observation, deployed Google Cloud, distributed database,
-providers, billing, remote Supabase, public delivery, external beta, and paid
-production remain false. The earlier v30, v29, and v24 runs remain historical
-evidence and are superseded by v31 for the current bounded aggregate verdict.
+The v32 run on 2026-07-21 UTC is the current bounded aggregate verdict for this
+branch. It passed `43/43` stages with exit code `0`; its final tool report was
+generated at `2026-07-21T03:00:20.253Z`. It added the exact two-output
+Storytelling Speech private-injected lifecycle in `1,507 ms`, reverified the
+complete 50-tool canonical lifecycle in `911,426 ms`, covered 74 tool/provider
+resource contracts, and retained exactly 50 canonical E2E plus 50 job-adapter
+tool identities. The six-hour graph remains honestly at eight of 255 jobs and
+two of 124 object-chunk pairs. The separate customer-delivery graph,
+three-source composition, professional-color path, UHD Remotion streaming
+proof, and all 11 named-edit browser tests passed. A final focused
+post-aggregate guard now also refuses observed provider-worker infrastructure
+cost above the immutable attempt ceiling or resource evidence ending after the
+terminal; the Speech adversarial smoke, historical Lyria smoke, and server
+typecheck passed afterward. Every tool's product/external-beta/production
+readiness, specialized long-form and Remotion resource observation, deployed
+Google Cloud, distributed database, providers, billing, remote Supabase,
+public delivery, external beta, and paid production remain false. Earlier v31,
+v30, v29, and v24 runs remain historical evidence and are superseded by v32
+for the bounded aggregate verdict.
 
 The prior exact-code v22 full run is historical pre-first-object-chunk
 evidence. It started at `2026-07-18T12:52:16.698Z`, finished at

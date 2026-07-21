@@ -1,11 +1,17 @@
 import { z } from 'zod'
 
 import {
+  CANONICAL_ELEVENLABS_SECRET_REFERENCE_ENV_KEY,
+  CANONICAL_ELEVENLABS_STORYTELLING_SPEECH_BOUNDARY_PROFILE_ID,
+  CANONICAL_ELEVENLABS_STORYTELLING_SPEECH_MODEL_ID,
+  CANONICAL_ELEVENLABS_STORYTELLING_SPEECH_OPERATION_ID,
+  CANONICAL_ELEVENLABS_STORYTELLING_SPEECH_ROUTE_ID,
   CANONICAL_LYRIA_GENERATE_MUSIC_OPERATION_ID,
   CANONICAL_LYRIA_MODEL_ID,
   CANONICAL_LYRIA_PROVIDER_BOUNDARY_PROFILE_ID,
   CANONICAL_LYRIA_SECRET_REFERENCE_ENV_KEY,
   CANONICAL_PROVIDER_WORK_AUTHORIZATION_VERSION,
+  CANONICAL_PROVIDER_WORK_AUTHORIZATION_V2_VERSION,
 } from '../edit-architecture/canonical-provider-work-authority'
 
 export const CANONICAL_PRIVATE_PROVIDER_DISPATCH_AGGREGATE_VERSION =
@@ -16,6 +22,10 @@ export const CANONICAL_PRIVATE_PROVIDER_DISPATCH_TERMINAL_VERSION =
   'canonical-private-provider-dispatch-terminal-v1' as const
 export const CANONICAL_PRIVATE_PROVIDER_DISPATCH_EVENT_VERSION =
   'canonical-private-provider-dispatch-event-v1' as const
+export const CANONICAL_PRIVATE_PROVIDER_DISPATCH_GRANT_V2_VERSION =
+  'canonical-private-provider-dispatch-grant-v2' as const
+export const CANONICAL_PRIVATE_PROVIDER_DISPATCH_TERMINAL_V2_VERSION =
+  'canonical-private-provider-dispatch-terminal-v2' as const
 
 const identity = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
@@ -39,6 +49,37 @@ export const canonicalPrivateProviderOutputSchema = z.object({
   localPathProjected: z.literal(false),
   artifactEvidenceDigest: sha256,
 }).strict()
+
+export const canonicalPrivateProviderOutputV2Schema = z.object({
+  outputId: identity,
+  role: z.enum([
+    'provider_storytelling_speech_audio_mp3',
+    'provider_storytelling_speech_alignment_json',
+  ]),
+  assetId: identity,
+  assetVersionId: identity,
+  privateObjectIdentityHash: sha256,
+  contentSha256: sha256,
+  byteLength: z.number().int().positive().max(16_777_216),
+  mimeType: z.enum(['audio/mpeg', 'application/json']),
+  createOnly: z.literal(true),
+  checksumReadbackVerified: z.literal(true),
+  providerUrlPersisted: z.literal(false),
+  localPathProjected: z.literal(false),
+  browserReadable: z.literal(false),
+  artifactEvidenceDigest: sha256,
+}).strict().superRefine((value, context) => {
+  const audio = value.role === 'provider_storytelling_speech_audio_mp3'
+  if (
+    (audio && (value.mimeType !== 'audio/mpeg' || value.byteLength > 16_777_216)) ||
+    (!audio && (value.mimeType !== 'application/json' || value.byteLength > 1_048_576))
+  ) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Provider Speech private output role, MIME, and size disagree.',
+    })
+  }
+})
 
 export const canonicalPrivateProviderDispatchGrantSchema = z.object({
   schemaVersion: z.literal(CANONICAL_PRIVATE_PROVIDER_DISPATCH_GRANT_VERSION),
@@ -113,6 +154,96 @@ export const canonicalPrivateProviderDispatchGrantSchema = z.object({
   }
 })
 
+export const canonicalPrivateProviderDispatchGrantV2Schema = z.object({
+  schemaVersion: z.literal(CANONICAL_PRIVATE_PROVIDER_DISPATCH_GRANT_V2_VERSION),
+  grantId: identity,
+  authorizationVersion: z.literal(
+    CANONICAL_PROVIDER_WORK_AUTHORIZATION_V2_VERSION,
+  ),
+  authorizationHash: sha256,
+  authorizationRequestHash: sha256,
+  ownerUserId: identity,
+  workspaceId: identity,
+  projectId: identity,
+  editSessionId: identity,
+  approvedPlanSnapshotId: identity,
+  packageRecordId: identity,
+  packageHash: sha256,
+  queueDefinitionHash: sha256,
+  queueJobId: identity,
+  queueJobDefinitionHash: sha256,
+  approvedWorkItemId: identity,
+  expectedOutputId: identity,
+  expectedOutputIds: z.tuple([identity, identity]),
+  expectedOutputSetHash: sha256,
+  queueClaimId: identity,
+  queueClaimHash: sha256,
+  queueClaimDeliveryAttempt: z.number().int().positive().max(10),
+  queueClaimExpiresAt: timestamp,
+  operationId: z.literal(
+    CANONICAL_ELEVENLABS_STORYTELLING_SPEECH_OPERATION_ID,
+  ),
+  providerBoundaryProfileId: z.literal(
+    CANONICAL_ELEVENLABS_STORYTELLING_SPEECH_BOUNDARY_PROFILE_ID,
+  ),
+  providerRouteId: z.literal(
+    CANONICAL_ELEVENLABS_STORYTELLING_SPEECH_ROUTE_ID,
+  ),
+  providerModelId: z.literal(
+    CANONICAL_ELEVENLABS_STORYTELLING_SPEECH_MODEL_ID,
+  ),
+  sourceRequestId: identity,
+  sourceRequestDigest: sha256,
+  providerRequestPayloadDigest: sha256,
+  projectDataPolicyDigest: sha256,
+  providerAccountPolicyDigest: sha256,
+  idempotencyKeyHash: sha256,
+  credentialSha256: sha256,
+  secretLocator: z.object({
+    configurationKey: z.literal(CANONICAL_ELEVENLABS_SECRET_REFERENCE_ENV_KEY),
+    referenceName: identity.nullable(),
+    referencePresent: z.boolean(),
+    payloadReadCount: z.literal(0),
+    payloadPersisted: z.literal(false),
+    payloadLogged: z.literal(false),
+  }).strict(),
+  executionClass: z.literal('private_injected_nonprovider_test'),
+  providerCallAuthorized: z.literal(false),
+  maximumProviderRequests: z.literal(1),
+  maximumRetries: z.literal(0),
+  maximumFallbacks: z.literal(0),
+  maximumAuthorizedProviderCostMicros: safeMicros,
+  maximumAuthorizedInfrastructureCostMicros: safeMicros,
+  maximumAuthorizedTotalInternalCostMicros: safeMicros,
+  providerRateCardSnapshotId: identity,
+  providerRateCardSnapshotDigest: sha256,
+  providerRateEvidenceClass: z.literal('private_local_fixture'),
+  issuedAt: timestamp,
+  expiresAt: timestamp,
+  immutableGrantHash: sha256,
+}).strict().superRefine((value, context) => {
+  if (
+    value.expectedOutputId !== value.expectedOutputIds[0] ||
+    value.secretLocator.referencePresent !==
+      (value.secretLocator.referenceName !== null) ||
+    value.maximumAuthorizedTotalInternalCostMicros !==
+      value.maximumAuthorizedProviderCostMicros +
+        value.maximumAuthorizedInfrastructureCostMicros ||
+    Date.parse(value.expiresAt) <= Date.parse(value.issuedAt) ||
+    Date.parse(value.expiresAt) > Date.parse(value.queueClaimExpiresAt)
+  ) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Canonical provider dispatch V2 grant policy is inconsistent.',
+    })
+  }
+})
+
+export const canonicalPrivateProviderDispatchGrantAnySchema = z.union([
+  canonicalPrivateProviderDispatchGrantSchema,
+  canonicalPrivateProviderDispatchGrantV2Schema,
+])
+
 export const canonicalPrivateProviderDispatchAttemptSchema = z.object({
   dispatchAttemptId: identity,
   grantId: identity,
@@ -167,6 +298,8 @@ export const canonicalPrivateProviderDispatchTerminalSchema = z.object({
     unknown !== !value.unknownOutcomeReconciled ||
     reconciled !== (value.sequence === 2 && value.priorTerminalHash !== null) ||
     (!reconciled && (value.sequence !== 1 || value.priorTerminalHash !== null)) ||
+    ((unknown || reconciled) && value.providerRequestCount !== 1) ||
+    (reconciled && value.providerResponseUsageDigest === null) ||
     (unknown && (
       value.providerCostMicros !== null ||
       value.totalInternalProductionCostMicros !== null
@@ -183,6 +316,81 @@ export const canonicalPrivateProviderDispatchTerminalSchema = z.object({
     })
   }
 })
+
+export const canonicalPrivateProviderDispatchTerminalV2Schema = z.object({
+  schemaVersion: z.literal(
+    CANONICAL_PRIVATE_PROVIDER_DISPATCH_TERMINAL_V2_VERSION,
+  ),
+  sequence: z.union([z.literal(1), z.literal(2)]),
+  terminalId: identity,
+  dispatchAttemptId: identity,
+  state: z.enum([
+    'succeeded',
+    'failed',
+    'unknown_reconciliation_required',
+    'unknown_reconciled_succeeded',
+    'unknown_reconciled_failed',
+  ]),
+  providerRequestCount: z.union([z.literal(0), z.literal(1)]),
+  retryCount: z.literal(0),
+  fallbackCount: z.literal(0),
+  dispatchConsumptionCount: z.literal(1),
+  unknownOutcomeReconciled: z.boolean(),
+  providerResponseUsageDigest: sha256.nullable(),
+  sanitizedFailureCode: identity.nullable(),
+  privateOutput: canonicalPrivateProviderOutputV2Schema.nullable(),
+  privateOutputs: z.array(canonicalPrivateProviderOutputV2Schema).max(2),
+  outputSetDigest: sha256,
+  costEvidenceHash: sha256,
+  providerCostMicros: safeMicros.nullable(),
+  infrastructureCostMicros: safeMicros,
+  totalInternalProductionCostMicros: safeMicros.nullable(),
+  priorTerminalHash: sha256.nullable(),
+  completedAt: timestamp,
+  terminalHash: sha256,
+}).strict().superRefine((value, context) => {
+  const succeeded = value.state === 'succeeded' ||
+    value.state === 'unknown_reconciled_succeeded'
+  const unknown = value.state === 'unknown_reconciliation_required'
+  const reconciled = value.state.startsWith('unknown_reconciled_')
+  const outputRoles = value.privateOutputs.map((output) => output.role)
+  if (
+    (succeeded !== (value.privateOutput !== null)) ||
+    (succeeded !== (value.privateOutputs.length === 2)) ||
+    (succeeded && (
+      value.privateOutput?.outputId !== value.privateOutputs[0]?.outputId ||
+      outputRoles[0] !== 'provider_storytelling_speech_audio_mp3' ||
+      outputRoles[1] !== 'provider_storytelling_speech_alignment_json'
+    )) ||
+    (!succeeded && value.privateOutputs.length !== 0) ||
+    (succeeded && value.sanitizedFailureCode !== null) ||
+    (!succeeded && value.sanitizedFailureCode === null) ||
+    unknown !== !value.unknownOutcomeReconciled ||
+    reconciled !== (value.sequence === 2 && value.priorTerminalHash !== null) ||
+    (!reconciled && (value.sequence !== 1 || value.priorTerminalHash !== null)) ||
+    ((unknown || reconciled) && value.providerRequestCount !== 1) ||
+    (reconciled && value.providerResponseUsageDigest === null) ||
+    (unknown && (
+      value.providerCostMicros !== null ||
+      value.totalInternalProductionCostMicros !== null
+    )) ||
+    (!unknown && (
+      value.providerCostMicros === null ||
+      value.totalInternalProductionCostMicros !==
+        value.providerCostMicros + value.infrastructureCostMicros
+    ))
+  ) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Canonical provider dispatch V2 terminal state is inconsistent.',
+    })
+  }
+})
+
+export const canonicalPrivateProviderDispatchTerminalAnySchema = z.union([
+  canonicalPrivateProviderDispatchTerminalSchema,
+  canonicalPrivateProviderDispatchTerminalV2Schema,
+])
 
 export const canonicalPrivateProviderDispatchEventSchema = z.object({
   schemaVersion: z.literal(CANONICAL_PRIVATE_PROVIDER_DISPATCH_EVENT_VERSION),
@@ -202,7 +410,7 @@ export const canonicalPrivateProviderDispatchEventSchema = z.object({
 }).strict()
 
 export const canonicalPrivateProviderDispatchEntrySchema = z.object({
-  grant: canonicalPrivateProviderDispatchGrantSchema,
+  grant: canonicalPrivateProviderDispatchGrantAnySchema,
   state: z.enum([
     'issued',
     'consumed',
@@ -213,19 +421,30 @@ export const canonicalPrivateProviderDispatchEntrySchema = z.object({
     'unknown_reconciled_failed',
   ]),
   attempt: canonicalPrivateProviderDispatchAttemptSchema.optional(),
-  terminalHistory: z.array(canonicalPrivateProviderDispatchTerminalSchema).max(2),
+  terminalHistory: z.array(canonicalPrivateProviderDispatchTerminalAnySchema).max(2),
   updatedAt: timestamp,
   entryHash: sha256,
 }).strict().superRefine((value, context) => {
   const hasAttempt = value.attempt !== undefined
   const latestTerminal = value.terminalHistory.at(-1)
+  const firstTerminal = value.terminalHistory[0]
+  const secondTerminal = value.terminalHistory[1]
+  const expectedTerminalSchemaVersion = value.grant.schemaVersion ===
+    CANONICAL_PRIVATE_PROVIDER_DISPATCH_GRANT_V2_VERSION
+    ? CANONICAL_PRIVATE_PROVIDER_DISPATCH_TERMINAL_V2_VERSION
+    : CANONICAL_PRIVATE_PROVIDER_DISPATCH_TERMINAL_VERSION
   if (
     (value.state === 'issued' && (hasAttempt || value.terminalHistory.length !== 0)) ||
     (value.state === 'consumed' && (!hasAttempt || value.terminalHistory.length !== 0)) ||
     (!['issued', 'consumed'].includes(value.state) &&
       (!hasAttempt || !latestTerminal || latestTerminal.state !== value.state)) ||
-    (value.terminalHistory.length === 2 &&
-      value.terminalHistory[0]?.state !== 'unknown_reconciliation_required')
+    value.terminalHistory.some((terminal) =>
+      terminal.schemaVersion !== expectedTerminalSchemaVersion) ||
+    (value.terminalHistory.length === 2 && (
+      firstTerminal?.state !== 'unknown_reconciliation_required' ||
+      secondTerminal?.priorTerminalHash !== firstTerminal.terminalHash ||
+      secondTerminal.dispatchAttemptId !== firstTerminal.dispatchAttemptId
+    ))
   ) {
     context.addIssue({
       code: 'custom',
@@ -287,6 +506,9 @@ export const canonicalPrivateProviderDispatchAggregateSchema = z.object({
 export type CanonicalPrivateProviderOutput = z.infer<
   typeof canonicalPrivateProviderOutputSchema
 >
+export type CanonicalPrivateProviderOutputV2 = z.infer<
+  typeof canonicalPrivateProviderOutputV2Schema
+>
 export type CanonicalPrivateProviderDispatchGrant = z.infer<
   typeof canonicalPrivateProviderDispatchGrantSchema
 >
@@ -295,6 +517,18 @@ export type CanonicalPrivateProviderDispatchAttempt = z.infer<
 >
 export type CanonicalPrivateProviderDispatchTerminal = z.infer<
   typeof canonicalPrivateProviderDispatchTerminalSchema
+>
+export type CanonicalPrivateProviderDispatchGrantV2 = z.infer<
+  typeof canonicalPrivateProviderDispatchGrantV2Schema
+>
+export type CanonicalPrivateProviderDispatchGrantAny = z.infer<
+  typeof canonicalPrivateProviderDispatchGrantAnySchema
+>
+export type CanonicalPrivateProviderDispatchTerminalV2 = z.infer<
+  typeof canonicalPrivateProviderDispatchTerminalV2Schema
+>
+export type CanonicalPrivateProviderDispatchTerminalAny = z.infer<
+  typeof canonicalPrivateProviderDispatchTerminalAnySchema
 >
 export type CanonicalPrivateProviderDispatchEvent = z.infer<
   typeof canonicalPrivateProviderDispatchEventSchema

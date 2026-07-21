@@ -92,9 +92,10 @@ export const canonicalProviderAttemptConsumerReceiptSchema = z.object({
     ),
     consumerContextId: identity,
     consumerContextDigest: sha256,
-    derivation: z.literal(
+    derivation: z.enum([
       'owner_workspace_project_edit_snapshot_package_work_item_job_operation_output',
-    ),
+      'owner_workspace_project_edit_snapshot_package_work_item_job_operation_output_set',
+    ]),
     productionBindingIncluded: z.literal(false),
     callerAssertedProductionIdAccepted: z.literal(false),
     consumerOwnedProductionBindingRequired: z.literal(true),
@@ -266,6 +267,19 @@ export const canonicalProviderAttemptConsumerReceiptSchema = z.object({
     JSON.stringify(value.privateOutput) === JSON.stringify(projectedPrimaryOutput)
   const legacyOutputAuthority =
     value.outputSet.sourceAuthorityClass === 'canonical_v1_zero_or_one_source'
+  const outputIds = value.privateOutputs.map((output) => output.outputId)
+  const privateObjectIdentityHashes = value.privateOutputs.map((output) =>
+    output.privateObjectIdentityHash)
+  const speechOutputOrderValid = value.provider.operationId !==
+    'provider.elevenlabs.generate_storytelling_speech_candidate.v1' || !success || (
+    value.privateOutputs.length === 2 &&
+    value.privateOutputs[0]?.role ===
+      'provider_storytelling_speech_audio_mp3' &&
+    value.privateOutputs[0]?.mimeType === 'audio/mpeg' &&
+    value.privateOutputs[1]?.role ===
+      'provider_storytelling_speech_alignment_json' &&
+    value.privateOutputs[1]?.mimeType === 'application/json'
+  )
   if (
     value.requestAccounting.accountedGenerationSubmissionCount !==
       value.requestAccounting.legacyV1ProviderRequestCount ||
@@ -284,6 +298,10 @@ export const canonicalProviderAttemptConsumerReceiptSchema = z.object({
     success !== (value.privateOutputs.length > 0) ||
     !outputProjectionMatches ||
     value.outputSet.outputCount !== value.privateOutputs.length ||
+    new Set(outputIds).size !== outputIds.length ||
+    new Set(privateObjectIdentityHashes).size !==
+      privateObjectIdentityHashes.length ||
+    !speechOutputOrderValid ||
     (legacyOutputAuthority && (
       value.privateOutputs.length > 1 ||
       value.outputSet.multiOutputProviderOperationAdmitted

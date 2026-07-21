@@ -178,7 +178,7 @@ const canonicalSteps: VerificationStep[] = [
   step(
     'private-worker-resource-usage-cost-evidence',
     'smoke:private-worker-resource-usage-cost-evidence',
-    'All 72 registered tool operations plus the one admitted provider operation expose exact CPU/memory resource evidence contracts, all GPU-capable operations require GPU milliseconds, and completed/failed/unknown private attempts retain create-only internal infrastructure-cost evidence while deployed observers, official cloud rates, provider calls, commerce, and production remain blocked.',
+    'All 72 registered tool operations plus the two admitted provider operations expose exact CPU/memory resource evidence contracts, all GPU-capable operations require GPU milliseconds, and completed/failed/unknown private attempts retain create-only internal infrastructure-cost evidence while deployed observers, official cloud rates, provider calls, commerce, and production remain blocked.',
   ),
   step(
     'canonical-embedded-worker-resource-lifecycle',
@@ -189,6 +189,11 @@ const canonicalSteps: VerificationStep[] = [
     'canonical-provider-attempt-consumer-receipt',
     'smoke:canonical-private-provider-work-lifecycle',
     'The exact approved package, queue/lease, one-use provider dispatch, terminal cost, observed worker-resource evidence, and private output readback produce a compact source-verified non-promotable receipt. Exact consumer context, timing, lease aliases, safe terminal outcome, component cost/rate-card provenance, private-object identity, and closed security semantics map without caller invention. The output-set envelope remains current-V1 cardinality with multi-output admission false. Lyria V1 request-count history remains generation-submission semantics, while the synchronized-Foley identity and 17-request async breakdown stay qualification- and transport-blocked.',
+  ),
+  step(
+    'canonical-multi-output-provider-attempt-consumer-receipt',
+    'smoke:canonical-private-multi-output-provider-work-lifecycle',
+    'The exact Storytelling Speech operation reuses the canonical approved-package queue, claim/lease, one-use provider dispatch, private candidate store, internal-cost stores, and compact receipt. One injected non-provider attempt retains ordered MP3 and private alignment JSON outputs with checksum readback, exact replay, observed worker-resource cost, failed-attempt cost, and closed credential/request-body/provider/commercial boundaries. Provider transport, immutable provider revision, production rate authority, zero-retention entitlement, cloud persistence, billing, and production promotion remain blocked.',
   ),
   step(
     'canonical-multi-source-execution',
@@ -335,7 +340,7 @@ function printReport(
 ): void {
   const finishedAt = new Date()
   const report = {
-    schemaVersion: 'canonical-private-pipeline-verification-v31',
+    schemaVersion: 'canonical-private-pipeline-verification-v32',
     status,
     mode: full ? 'full_internal_regression' : 'canonical_private_pipeline',
     startedAt: runStartedAt.toISOString(),

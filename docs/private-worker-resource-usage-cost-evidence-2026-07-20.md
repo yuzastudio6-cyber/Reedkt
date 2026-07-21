@@ -26,11 +26,13 @@ The current complete server registry contains:
 - 19 operations that remain planned, unverified, or policy-blocked;
 - 13 GPU-capable operation contracts, all of which now require
   `gpuMilliseconds`; and
-- one separately registered provider operation,
-  `provider.lyria.generate_music_candidate.v1`, admitted only through private
-  injected evidence while provider transport remains blocked.
+- two separately registered provider operations,
+  `provider.lyria.generate_music_candidate.v1` and
+  `provider.elevenlabs.generate_storytelling_speech_candidate.v1`, admitted
+  only through private injected evidence while both provider transports remain
+  blocked.
 
-That is 73 metering contracts in this bounded proof. It is not a claim of 73
+That is 74 metering contracts in this bounded proof. It is not a claim of 74
 production-ready tools. The older 50 count refers to the bounded operation
 catalog surfaced by `smoke:professional-tool-operation-specs`; the complete
 registry has since grown to 72 tool-operation identities.
@@ -145,12 +147,13 @@ The retained deterministic smoke proves:
 
 - 72/72 tool-operation contracts have CPU/memory measurements;
 - 13/13 GPU-capable contracts have GPU measurements;
-- all 73 current tool/provider contracts appear in the coverage evidence;
+- all 74 current tool/provider contracts appear in the coverage evidence;
 - one completed DeepFilterNet GPU attempt has exact snapshot, artifact,
   operation, runtime, cost, create-only readback, and replay proof;
 - failed and unknown attempts retain nonzero internal infrastructure cost;
-- one Lyria provider attempt accepts injected observed-resource evidence with
-  zero provider requests and zero cloud mutation;
+- Lyria and two-output Storytelling Speech provider operations accept only
+  injected observed-resource evidence with zero provider requests and zero
+  cloud mutation;
 - unregistered providers, non-injected provider claims, unverified/policy-
   blocked tools, operation/tool mismatch, and worker-class mismatch fail
   closed;
@@ -197,12 +200,11 @@ The retained deterministic evidence hashes are:
 
 ### Authoritative Aggregate Regression
 
-`npm run qa:canonical-private-pipeline` passed all 42 v31 phases with exit code
-`0`. It ran from `2026-07-20T23:21:29.970Z` through
-`2026-07-21T00:35:25.784Z` in `4,435,814 ms`; its final tool report was
-generated at `2026-07-21T00:35:25.763Z`. The aggregate included both the
-resource-contract smoke and the complete canonical embedded-resource lifecycle
-and retained the following adjacent proof without widening this increment's
+`npm run qa:canonical-private-pipeline` passed all 43 v32 phases with exit code
+`0` on 2026-07-21 UTC; its final tool report was generated at
+`2026-07-21T03:00:20.253Z`. The aggregate included both the 74-contract
+resource smoke and the complete canonical embedded-resource lifecycle and
+retained the following adjacent proof without widening this increment's
 authority:
 
 - automatic attempt-bound CPU/memory and internal infrastructure-cost evidence
@@ -219,6 +221,15 @@ authority:
 - 11/11 active named-edit Chromium workflow tests; and
 - the final proven-tool report with 72 registry profiles, 53 confined-runner
   proofs, and 50 canonical private end-to-end/job-adapter proofs.
+- one exact private-injected Storytelling Speech provider attempt with two
+  ordered outputs, observed CPU/memory cost evidence, failed/unknown cost
+  retention, exact reconciliation, and zero provider requests.
+
+The final focused post-aggregate receipt guard also rejects an observed worker
+infrastructure cost above the immutable authorization ceiling and rejects a
+resource interval ending after its provider terminal. The Speech adversarial
+smoke, historical Lyria smoke, and server typecheck passed after that stricter
+guard; this focused delta is not described as a second full aggregate run.
 
 The report explicitly kept specialized long-form media observation, Remotion
 cgroup observation, deployed cloud-worker observation, `externalBetaReady`,

@@ -6,6 +6,10 @@ import { ApiError } from '../errors/api-error'
 import type { CanonicalProviderWorkAuthorization } from
   '../edit-architecture/canonical-provider-work-authority'
 import {
+  resolveCanonicalProviderOperationV2,
+  type CanonicalProviderWorkAuthorizationV2,
+} from '../edit-architecture/canonical-provider-work-authority'
+import {
   readPrivateFileIfExistsWithinRoot,
   writePrivateFileCreateOnlyWithinRoot,
 } from '../security/private-local-persistence'
@@ -13,7 +17,9 @@ import type { CanonicalPrivateProviderDispatchAttempt } from
   '../validation/canonical-private-provider-dispatch-schemas'
 import {
   canonicalPrivateProviderOutputSchema,
+  canonicalPrivateProviderOutputV2Schema,
   type CanonicalPrivateProviderOutput,
+  type CanonicalPrivateProviderOutputV2,
 } from '../validation/canonical-private-provider-dispatch-schemas'
 import {
   sha256AuthorityValue,
@@ -22,6 +28,9 @@ import {
 
 const MAX_CANDIDATE_BYTES = 128 * 1024 * 1024
 const METADATA_VERSION = 'private-canonical-provider-candidate-v1' as const
+const METADATA_V2_VERSION = 'private-canonical-provider-candidate-v2' as const
+const OUTPUT_SET_V2_VERSION =
+  'private-canonical-provider-candidate-output-set-v2' as const
 const identity = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
   .refine((value) => !value.includes('..'))
@@ -72,9 +81,78 @@ const privateCanonicalProviderCandidateMetadataSchema = z.object({
   artifactEvidenceDigest: sha256,
 }).strict()
 
+const privateCanonicalProviderCandidateMetadataV2Schema = z.object({
+  schemaVersion: z.literal(METADATA_V2_VERSION),
+  objectIdentity: z.object({
+    domain: z.literal('reeditpro:private-provider-candidate-object:v2'),
+    workspaceId: identity,
+    projectId: identity,
+    editSessionId: identity,
+    approvedPlanSnapshotId: identity,
+    packageRecordId: identity,
+    approvedWorkItemId: identity,
+    jobId: identity,
+    claimId: identity,
+    dispatchAttemptId: identity,
+    expectedOutputId: identity,
+    outputOrdinal: z.union([z.literal(0), z.literal(1)]),
+    role: z.enum([
+      'provider_storytelling_speech_audio_mp3',
+      'provider_storytelling_speech_alignment_json',
+    ]),
+    contentSha256: sha256,
+    byteLength: z.number().int().positive().max(16_777_216),
+    mimeType: z.enum(['audio/mpeg', 'application/json']),
+    providerGenerated: z.literal(false),
+  }).strict(),
+  privateObjectIdentityHash: sha256,
+  assetId: identity,
+  assetVersionId: identity,
+  storage: z.object({
+    privateLocalCreateOnly: z.literal(true),
+    checksumReadbackRequired: z.literal(true),
+    providerUrlPersisted: z.literal(false),
+    localPathProjected: z.literal(false),
+    databaseBacked: z.literal(false),
+    productionDurability: z.literal(false),
+  }).strict(),
+  lifecycle: z.object({
+    privateReviewOnly: z.literal(true),
+    objectiveQaPending: z.literal(true),
+    humanReviewPending: z.literal(true),
+    selectionAllowed: z.literal(false),
+    timelineMutationAllowed: z.literal(false),
+    renderOrExportAllowed: z.literal(false),
+    publicDeliveryAllowed: z.literal(false),
+    rawAlignmentBrowserReadable: z.literal(false),
+  }).strict(),
+  createdAt: timestamp,
+  output: canonicalPrivateProviderOutputV2Schema,
+  artifactEvidenceDigest: sha256,
+}).strict()
+
+const privateCanonicalProviderCandidateOutputSetV2Schema = z.object({
+  schemaVersion: z.literal(OUTPUT_SET_V2_VERSION),
+  authorizationHash: sha256,
+  dispatchAttemptHash: sha256,
+  expectedOutputSetHash: sha256,
+  outputIds: z.tuple([identity, identity]),
+  outputIdentityHashes: z.tuple([sha256, sha256]),
+  outputContentHashes: z.tuple([sha256, sha256]),
+  outputSetDigest: sha256,
+  createdAt: timestamp,
+}).strict()
+
 export interface VerifiedPrivateCanonicalProviderCandidateReadback {
   output: CanonicalPrivateProviderOutput
   providerGenerated: boolean
+  storageEvidenceHash: string
+  sourceReadbackEvidenceHash: string
+}
+
+export interface VerifiedPrivateCanonicalProviderCandidateReadbackV2 {
+  output: CanonicalPrivateProviderOutputV2
+  providerGenerated: false
   storageEvidenceHash: string
   sourceReadbackEvidenceHash: string
 }
@@ -319,6 +397,363 @@ export async function readVerifiedPrivateCanonicalProviderCandidate(input: {
   }
 }
 
+export async function persistPrivateCanonicalProviderCandidateSetV2(input: {
+  localStorageRoot: string
+  authorization: CanonicalProviderWorkAuthorizationV2
+  dispatchAttempt: CanonicalPrivateProviderDispatchAttempt
+  outputs: readonly [
+    {
+      outputId: string
+      role: 'provider_storytelling_speech_audio_mp3'
+      mimeType: 'audio/mpeg'
+      bytes: Buffer | Uint8Array
+    },
+    {
+      outputId: string
+      role: 'provider_storytelling_speech_alignment_json'
+      mimeType: 'application/json'
+      bytes: Buffer | Uint8Array
+    },
+  ]
+  providerGenerated: false
+  createdAt: string
+}): Promise<{
+  outputs: readonly [
+    CanonicalPrivateProviderOutputV2,
+    CanonicalPrivateProviderOutputV2,
+  ]
+  outputSetDigest: string
+  idempotencyStatus:
+    | 'inserted'
+    | 'duplicate_returned'
+    | 'recovered_partial_exact_replay'
+}> {
+  const createdAt = canonicalTimestamp(input.createdAt)
+  const profile = resolveCanonicalProviderOperationV2(
+    input.authorization.operationId,
+  )
+  if (
+    input.dispatchAttempt.authorizationHash !== input.authorization.authorityHash ||
+    Date.parse(createdAt) < Date.parse(input.dispatchAttempt.consumedAt) ||
+    Date.parse(createdAt) > Date.parse(input.authorization.expiresAt) ||
+    input.providerGenerated !== false ||
+    input.outputs.some((output, index) =>
+      output.outputId !== input.authorization.expectedOutputIds[index] ||
+      output.role !== profile.expectedOutputs[index]?.role ||
+      output.mimeType !== profile.expectedOutputs[index]?.contentType)
+  ) throw invalid('Provider Speech candidate set lost exact V2 attempt authority.')
+
+  const prepared = input.outputs.map((rawOutput, outputOrdinal) => {
+    const bytes = Buffer.from(rawOutput.bytes)
+    validateV2OutputBytes({
+      role: rawOutput.role,
+      mimeType: rawOutput.mimeType,
+      bytes,
+      maximumByteLength:
+        profile.expectedOutputs[outputOrdinal]!.maximumByteLength,
+    })
+    const contentSha256 = sha256Bytes(bytes)
+    const objectIdentity = {
+      domain: 'reeditpro:private-provider-candidate-object:v2' as const,
+      workspaceId: input.authorization.workspaceId,
+      projectId: input.authorization.projectId,
+      editSessionId: input.authorization.editSessionId,
+      approvedPlanSnapshotId: input.authorization.approvedPlanSnapshotId,
+      packageRecordId: input.authorization.packageRecordId,
+      approvedWorkItemId: input.authorization.approvedWorkItemId,
+      jobId: input.authorization.queueJobId,
+      claimId: input.dispatchAttempt.queueClaimId,
+      dispatchAttemptId: input.dispatchAttempt.dispatchAttemptId,
+      expectedOutputId: rawOutput.outputId,
+      outputOrdinal: outputOrdinal as 0 | 1,
+      role: rawOutput.role,
+      contentSha256,
+      byteLength: bytes.byteLength,
+      mimeType: rawOutput.mimeType,
+      providerGenerated: false as const,
+    }
+    const privateObjectIdentityHash = sha256AuthorityValue(objectIdentity)
+    const assetId = `provider_asset_v2_${privateObjectIdentityHash.slice(0, 37)}`
+    const assetVersionId =
+      `provider_asset_version_v2_${privateObjectIdentityHash.slice(0, 29)}`
+    const metadata = {
+      schemaVersion: METADATA_V2_VERSION,
+      objectIdentity,
+      privateObjectIdentityHash,
+      assetId,
+      assetVersionId,
+      storage: {
+        privateLocalCreateOnly: true as const,
+        checksumReadbackRequired: true as const,
+        providerUrlPersisted: false as const,
+        localPathProjected: false as const,
+        databaseBacked: false as const,
+        productionDurability: false as const,
+      },
+      lifecycle: {
+        privateReviewOnly: true as const,
+        objectiveQaPending: true as const,
+        humanReviewPending: true as const,
+        selectionAllowed: false as const,
+        timelineMutationAllowed: false as const,
+        renderOrExportAllowed: false as const,
+        publicDeliveryAllowed: false as const,
+        rawAlignmentBrowserReadable: false as const,
+      },
+      createdAt,
+    }
+    const artifactEvidenceDigest = sha256AuthorityValue(metadata)
+    const output = canonicalPrivateProviderOutputV2Schema.parse({
+      outputId: rawOutput.outputId,
+      role: rawOutput.role,
+      assetId,
+      assetVersionId,
+      privateObjectIdentityHash,
+      contentSha256,
+      byteLength: bytes.byteLength,
+      mimeType: rawOutput.mimeType,
+      createOnly: true,
+      checksumReadbackVerified: true,
+      providerUrlPersisted: false,
+      localPathProjected: false,
+      browserReadable: false,
+      artifactEvidenceDigest,
+    })
+    const metadataBytes = Buffer.from(`${stableAuthorityStringify({
+      ...metadata,
+      output,
+      artifactEvidenceDigest,
+    })}\n`, 'utf8')
+    return { bytes, metadataBytes, output }
+  }) as [
+    {
+      bytes: Buffer
+      metadataBytes: Buffer
+      output: CanonicalPrivateProviderOutputV2
+    },
+    {
+      bytes: Buffer
+      metadataBytes: Buffer
+      output: CanonicalPrivateProviderOutputV2
+    },
+  ]
+  const outputSetPayload = {
+    schemaVersion: OUTPUT_SET_V2_VERSION,
+    authorizationHash: input.authorization.authorityHash,
+    dispatchAttemptHash: input.dispatchAttempt.attemptHash,
+    expectedOutputSetHash: input.authorization.expectedOutputSetHash,
+    outputIds: prepared.map((item) => item.output.outputId) as [string, string],
+    outputIdentityHashes: prepared.map((item) =>
+      item.output.privateObjectIdentityHash) as [string, string],
+    outputContentHashes: prepared.map((item) =>
+      item.output.contentSha256) as [string, string],
+    createdAt,
+  }
+  const outputSetDigest = sha256AuthorityValue(outputSetPayload)
+  const outputSet = privateCanonicalProviderCandidateOutputSetV2Schema.parse({
+    ...outputSetPayload,
+    outputSetDigest,
+  })
+  const createStates: boolean[] = []
+  for (const item of prepared) {
+    const paths = candidatePathsV2(
+      input.authorization,
+      item.output.privateObjectIdentityHash,
+    )
+    const objectWrite = await writePrivateFileCreateOnlyWithinRoot({
+      rootPath: input.localStorageRoot,
+      relativePath: paths.object,
+      content: item.bytes,
+    })
+    const metadataWrite = await writePrivateFileCreateOnlyWithinRoot({
+      rootPath: input.localStorageRoot,
+      relativePath: paths.metadata,
+      content: item.metadataBytes,
+    })
+    createStates.push(objectWrite.created, metadataWrite.created)
+    if (objectWrite.created !== metadataWrite.created) {
+      // An exact retry may safely finish a crash-interrupted pair; the full
+      // readback below is the authority and rejects every non-identical file.
+      createStates.push(false, true)
+    }
+  }
+  const setBytes = Buffer.from(`${stableAuthorityStringify(outputSet)}\n`, 'utf8')
+  const setWrite = await writePrivateFileCreateOnlyWithinRoot({
+    rootPath: input.localStorageRoot,
+    relativePath: candidateOutputSetPathV2(
+      input.authorization,
+      input.dispatchAttempt.attemptHash,
+    ),
+    content: setBytes,
+  })
+  createStates.push(setWrite.created)
+  const verified = await readVerifiedPrivateCanonicalProviderCandidateSetV2({
+    localStorageRoot: input.localStorageRoot,
+    authorization: input.authorization,
+    dispatchAttempt: input.dispatchAttempt,
+    outputs: prepared.map((item) => item.output) as [
+      CanonicalPrivateProviderOutputV2,
+      CanonicalPrivateProviderOutputV2,
+    ],
+    outputSetDigest,
+  })
+  const allCreated = createStates.every(Boolean)
+  const noneCreated = createStates.every((value) => !value)
+  return {
+    outputs: [verified[0].output, verified[1].output],
+    outputSetDigest,
+    idempotencyStatus: allCreated
+      ? 'inserted'
+      : noneCreated
+        ? 'duplicate_returned'
+        : 'recovered_partial_exact_replay',
+  }
+}
+
+export async function readVerifiedPrivateCanonicalProviderCandidateSetV2(input: {
+  localStorageRoot: string
+  authorization: CanonicalProviderWorkAuthorizationV2
+  dispatchAttempt: CanonicalPrivateProviderDispatchAttempt
+  outputs: readonly [
+    CanonicalPrivateProviderOutputV2,
+    CanonicalPrivateProviderOutputV2,
+  ]
+  outputSetDigest: string
+}): Promise<readonly [
+  VerifiedPrivateCanonicalProviderCandidateReadbackV2,
+  VerifiedPrivateCanonicalProviderCandidateReadbackV2,
+]> {
+  if (
+    input.dispatchAttempt.authorizationHash !== input.authorization.authorityHash ||
+    input.outputs.some((output, index) =>
+      output.outputId !== input.authorization.expectedOutputIds[index])
+  ) throw invalid('Provider Speech candidate readback lost exact V2 lineage.')
+  const setBytes = await readPrivateFileIfExistsWithinRoot({
+    rootPath: input.localStorageRoot,
+    relativePath: candidateOutputSetPathV2(
+      input.authorization,
+      input.dispatchAttempt.attemptHash,
+    ),
+  })
+  if (!setBytes || setBytes.byteLength > 64 * 1024) {
+    throw invalid('Private provider candidate V2 output-set manifest is missing.')
+  }
+  let decodedSet: unknown
+  try {
+    decodedSet = JSON.parse(setBytes.toString('utf8'))
+  } catch {
+    throw invalid('Private provider candidate V2 output-set manifest is invalid JSON.')
+  }
+  const outputSet = privateCanonicalProviderCandidateOutputSetV2Schema.parse(
+    decodedSet,
+  )
+  const { outputSetDigest, ...outputSetPayload } = outputSet
+  if (
+    outputSetDigest !== sha256AuthorityValue(outputSetPayload) ||
+    outputSetDigest !== input.outputSetDigest ||
+    outputSet.authorizationHash !== input.authorization.authorityHash ||
+    outputSet.dispatchAttemptHash !== input.dispatchAttempt.attemptHash ||
+    outputSet.expectedOutputSetHash !== input.authorization.expectedOutputSetHash
+  ) throw invalid('Private provider candidate V2 output-set integrity changed.')
+
+  const verified: VerifiedPrivateCanonicalProviderCandidateReadbackV2[] = []
+  for (const [index, rawOutput] of input.outputs.entries()) {
+    const output = canonicalPrivateProviderOutputV2Schema.parse(rawOutput)
+    const paths = candidatePathsV2(
+      input.authorization,
+      output.privateObjectIdentityHash,
+    )
+    const [bytes, metadataBytes] = await Promise.all([
+      readPrivateFileIfExistsWithinRoot({
+        rootPath: input.localStorageRoot,
+        relativePath: paths.object,
+      }),
+      readPrivateFileIfExistsWithinRoot({
+        rootPath: input.localStorageRoot,
+        relativePath: paths.metadata,
+      }),
+    ])
+    if (!bytes || !metadataBytes || metadataBytes.byteLength > 64 * 1024) {
+      throw invalid('Private provider candidate V2 readback is missing or oversized.')
+    }
+    validateV2OutputBytes({
+      role: output.role,
+      mimeType: output.mimeType,
+      bytes,
+      maximumByteLength: output.role ===
+        'provider_storytelling_speech_audio_mp3'
+        ? 16_777_216
+        : 1_048_576,
+    })
+    let decodedMetadata: unknown
+    try {
+      decodedMetadata = JSON.parse(metadataBytes.toString('utf8'))
+    } catch {
+      throw invalid('Private provider candidate V2 metadata is invalid JSON.')
+    }
+    const metadata = privateCanonicalProviderCandidateMetadataV2Schema.parse(
+      decodedMetadata,
+    )
+    const { output: storedOutput, artifactEvidenceDigest, ...evidenceMetadata } =
+      metadata
+    const expectedObjectHash = sha256AuthorityValue(metadata.objectIdentity)
+    const contentSha256 = sha256Bytes(bytes)
+    if (
+      stableAuthorityStringify(storedOutput) !== stableAuthorityStringify(output) ||
+      artifactEvidenceDigest !== sha256AuthorityValue(evidenceMetadata) ||
+      artifactEvidenceDigest !== output.artifactEvidenceDigest ||
+      expectedObjectHash !== output.privateObjectIdentityHash ||
+      metadata.privateObjectIdentityHash !== output.privateObjectIdentityHash ||
+      metadata.assetId !== output.assetId ||
+      metadata.assetVersionId !== output.assetVersionId ||
+      metadata.objectIdentity.workspaceId !== input.authorization.workspaceId ||
+      metadata.objectIdentity.projectId !== input.authorization.projectId ||
+      metadata.objectIdentity.editSessionId !== input.authorization.editSessionId ||
+      metadata.objectIdentity.approvedPlanSnapshotId !==
+        input.authorization.approvedPlanSnapshotId ||
+      metadata.objectIdentity.packageRecordId !==
+        input.authorization.packageRecordId ||
+      metadata.objectIdentity.approvedWorkItemId !==
+        input.authorization.approvedWorkItemId ||
+      metadata.objectIdentity.jobId !== input.authorization.queueJobId ||
+      metadata.objectIdentity.claimId !== input.dispatchAttempt.queueClaimId ||
+      metadata.objectIdentity.dispatchAttemptId !==
+        input.dispatchAttempt.dispatchAttemptId ||
+      metadata.objectIdentity.expectedOutputId !==
+        input.authorization.expectedOutputIds[index] ||
+      metadata.objectIdentity.outputOrdinal !== index ||
+      metadata.objectIdentity.contentSha256 !== contentSha256 ||
+      contentSha256 !== output.contentSha256 ||
+      bytes.byteLength !== output.byteLength ||
+      outputSet.outputIds[index] !== output.outputId ||
+      outputSet.outputIdentityHashes[index] !== output.privateObjectIdentityHash ||
+      outputSet.outputContentHashes[index] !== output.contentSha256 ||
+      Date.parse(metadata.createdAt) < Date.parse(input.dispatchAttempt.consumedAt) ||
+      Date.parse(metadata.createdAt) > Date.parse(input.authorization.expiresAt)
+    ) throw invalid('Private provider candidate V2 readback integrity changed.')
+    const storageEvidenceHash = sha256AuthorityValue({
+      objectContentSha256: contentSha256,
+      metadataContentSha256: sha256Bytes(metadataBytes),
+      artifactEvidenceDigest,
+      outputSetDigest,
+    })
+    verified.push({
+      output,
+      providerGenerated: false,
+      storageEvidenceHash,
+      sourceReadbackEvidenceHash: sha256AuthorityValue({
+        domain: 'reeditpro:private-provider-candidate-source-readback:v2',
+        authorizationHash: input.authorization.authorityHash,
+        dispatchAttemptHash: input.dispatchAttempt.attemptHash,
+        output,
+        storageEvidenceHash,
+        outputSetDigest,
+      }),
+    })
+  }
+  return [verified[0]!, verified[1]!]
+}
+
 function candidatePaths(
   authorization: CanonicalProviderWorkAuthorization,
   privateObjectIdentityHash: string,
@@ -330,6 +765,63 @@ function candidatePaths(
   return {
     object: `${prefix}/${privateObjectIdentityHash}.wav`,
     metadata: `${prefix}/${privateObjectIdentityHash}.json`,
+  }
+}
+
+function candidatePathsV2(
+  authorization: CanonicalProviderWorkAuthorizationV2,
+  privateObjectIdentityHash: string,
+): { object: string; metadata: string } {
+  const tenantHash = sha256Text(
+    `${authorization.ownerUserId}\u0000${authorization.workspaceId}`,
+  ).slice(0, 32)
+  const prefix = `private-internal/provider-candidates/v2/${tenantHash}/${authorization.projectId}/${authorization.editSessionId}`
+  return {
+    object: `${prefix}/${privateObjectIdentityHash}.bin`,
+    metadata: `${prefix}/${privateObjectIdentityHash}.json`,
+  }
+}
+
+function candidateOutputSetPathV2(
+  authorization: CanonicalProviderWorkAuthorizationV2,
+  dispatchAttemptHash: string,
+): string {
+  const tenantHash = sha256Text(
+    `${authorization.ownerUserId}\u0000${authorization.workspaceId}`,
+  ).slice(0, 32)
+  return `private-internal/provider-candidates/v2/${tenantHash}/${authorization.projectId}/${authorization.editSessionId}/set-${dispatchAttemptHash}.json`
+}
+
+function validateV2OutputBytes(input: {
+  role: CanonicalPrivateProviderOutputV2['role']
+  mimeType: CanonicalPrivateProviderOutputV2['mimeType']
+  bytes: Buffer
+  maximumByteLength: number
+}): void {
+  if (
+    input.bytes.byteLength < 2 ||
+    input.bytes.byteLength > input.maximumByteLength
+  ) throw invalid('Provider Speech output exceeds its immutable byte boundary.')
+  if (input.role === 'provider_storytelling_speech_audio_mp3') {
+    const id3 = input.bytes.byteLength >= 3 &&
+      input.bytes.subarray(0, 3).toString('ascii') === 'ID3'
+    const frameSync = input.bytes[0] === 0xff &&
+      ((input.bytes[1] ?? 0) & 0xe0) === 0xe0
+    if (input.mimeType !== 'audio/mpeg' || (!id3 && !frameSync)) {
+      throw invalid('Provider Speech audio is not a bounded MP3 object.')
+    }
+    return
+  }
+  if (input.mimeType !== 'application/json') {
+    throw invalid('Provider Speech alignment must be private JSON.')
+  }
+  try {
+    const decoded = JSON.parse(input.bytes.toString('utf8'))
+    if (!decoded || typeof decoded !== 'object') {
+      throw new Error('alignment is not an object')
+    }
+  } catch {
+    throw invalid('Provider Speech alignment is not valid bounded JSON.')
   }
 }
 

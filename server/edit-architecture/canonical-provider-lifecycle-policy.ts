@@ -1,9 +1,11 @@
 import { z } from 'zod'
 
 import {
+  CANONICAL_ELEVENLABS_STORYTELLING_SPEECH_OPERATION_ID,
   CANONICAL_LYRIA_GENERATE_MUSIC_OPERATION_ID,
   CANONICAL_PROVIDER_WORK_AUTHORIZATION_VERSION,
   resolveCanonicalProviderOperation,
+  resolveCanonicalProviderOperationV2,
 } from './canonical-provider-work-authority'
 import { sha256AuthorityValue } from '../services/private-edit-authority-store'
 
@@ -51,7 +53,11 @@ export const canonicalProviderLifecycleRequestCountsSchema = z.object({
 export const canonicalProviderLifecyclePolicySchema = z.object({
   schemaVersion: z.literal(CANONICAL_PROVIDER_LIFECYCLE_POLICY_VERSION),
   operationId: identity,
-  intent: z.enum(['generated_music_candidate', 'synchronized_foley_candidate']),
+  intent: z.enum([
+    'generated_music_candidate',
+    'synchronized_foley_candidate',
+    'storytelling_speech_candidate',
+  ]),
   providerBoundaryProfileId: identity,
   providerRouteId: identity,
   providerModelId: identity,
@@ -61,11 +67,29 @@ export const canonicalProviderLifecyclePolicySchema = z.object({
   expectedOutput: z.object({
     role: identity,
     artifactType: identity,
-    contentType: z.enum(['audio/wav', 'video/mp4']),
+    contentType: z.enum([
+      'audio/wav',
+      'video/mp4',
+      'audio/mpeg',
+      'application/json',
+    ]),
     maximumByteLength: z.number().int().positive().max(256 * 1024 * 1024),
     privateCreateOnlyRequired: z.literal(true),
     checksumReadbackRequired: z.literal(true),
   }).strict(),
+  expectedOutputs: z.array(z.object({
+    role: identity,
+    artifactType: identity,
+    contentType: z.enum([
+      'audio/wav',
+      'video/mp4',
+      'audio/mpeg',
+      'application/json',
+    ]),
+    maximumByteLength: z.number().int().positive().max(256 * 1024 * 1024),
+    privateCreateOnlyRequired: z.literal(true),
+    checksumReadbackRequired: z.literal(true),
+  }).strict()).min(1).max(8).optional(),
   requestCeilings: canonicalProviderLifecycleRequestCountsSchema,
   requestRules: z.object({
     legacyMaximumProviderRequestsSemantic: z.literal(
@@ -128,6 +152,7 @@ export type CanonicalProviderLifecyclePolicy = z.infer<
 >
 
 export function createCanonicalProviderLifecyclePolicyCatalog(): readonly [
+  CanonicalProviderLifecyclePolicy,
   CanonicalProviderLifecyclePolicy,
   CanonicalProviderLifecyclePolicy,
 ] {
@@ -226,7 +251,64 @@ export function createCanonicalProviderLifecyclePolicyCatalog(): readonly [
       ],
     },
   })
-  return Object.freeze([Object.freeze(lyria), Object.freeze(foley)])
+  const speechProfile = resolveCanonicalProviderOperationV2(
+    CANONICAL_ELEVENLABS_STORYTELLING_SPEECH_OPERATION_ID,
+  )
+  const speech = finalizePolicy({
+    schemaVersion: CANONICAL_PROVIDER_LIFECYCLE_POLICY_VERSION,
+    operationId: speechProfile.operationId,
+    intent: speechProfile.intent,
+    providerBoundaryProfileId: speechProfile.providerBoundaryProfileId,
+    providerRouteId: speechProfile.providerRouteId,
+    providerModelId: speechProfile.providerModelId,
+    immutableProviderRevision: speechProfile.immutableProviderRevision,
+    expectedWorkItemType: speechProfile.expectedWorkItemType,
+    expectedWorkerClass: speechProfile.expectedWorkerClass,
+    expectedOutput: {
+      role: speechProfile.expectedOutputs[0].role,
+      artifactType: speechProfile.expectedOutputs[0].artifactType,
+      contentType: speechProfile.expectedOutputs[0].contentType,
+      maximumByteLength: speechProfile.expectedOutputs[0].maximumByteLength,
+      privateCreateOnlyRequired: true as const,
+      checksumReadbackRequired: true as const,
+    },
+    expectedOutputs: speechProfile.expectedOutputs.map((output) => ({
+      role: output.role,
+      artifactType: output.artifactType,
+      contentType: output.contentType,
+      maximumByteLength: output.maximumByteLength,
+      privateCreateOnlyRequired: true as const,
+      checksumReadbackRequired: true as const,
+    })),
+    requestCeilings: requestCounts({ generationSubmissionCount: 1 }),
+    requestRules: requestRules(),
+    legacyCompatibility: {
+      legacyAuthorizationVersion: null,
+      legacyProfileHash: null,
+      legacyHistoryPreserved: true as const,
+    },
+    downstreamNormalization: speechProfile.downstreamNormalization,
+    qualification: {
+      operationIdentityFrozen: true as const,
+      immutableProviderRevisionQualified: false,
+      providerRateAuthorityQualified: false,
+      canonicalAuthorizationIssuanceAllowed: false,
+      providerTransportActivated: false as const,
+      productionReady: false as const,
+      blockingGates: [
+        'immutable_provider_revision_qualification',
+        'exact_account_rate_authority',
+        'production_zero_retention_entitlement',
+        'canonical_backend_runtime_release',
+        'provider_transport_qualification',
+      ],
+    },
+  })
+  return Object.freeze([
+    Object.freeze(lyria),
+    Object.freeze(foley),
+    Object.freeze(speech),
+  ])
 }
 
 export function resolveCanonicalProviderLifecyclePolicy(

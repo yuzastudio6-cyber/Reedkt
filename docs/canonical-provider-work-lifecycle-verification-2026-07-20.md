@@ -16,6 +16,20 @@ provider operation without activating a provider:
 The proof is private, injected, and non-provider. It is not a canonical Motion
 Studio runtime receipt, product readiness, or production readiness.
 
+### Forward-only Speech V2 addendum — 2026-07-21
+
+The historical Lyria V1 authority and hashes remain unchanged. A forward-only
+V2 profile now admits the exact bounded Storytelling Speech operation
+`provider.elevenlabs.generate_storytelling_speech_candidate.v1` to the same
+canonical package queue, claim/lease, sibling one-use provider-dispatch,
+private candidate, internal-cost, worker-resource, and compact-receipt
+authorities. One private injected attempt owns exactly two ordered outputs:
+bounded `audio/mpeg` and bounded private `application/json` alignment. The
+verdict is
+`CANONICAL_STORYTELLING_SPEECH_MULTI_OUTPUT_PRIVATE_INJECTED_ACCEPTED_TRANSPORT_BLOCKED`.
+No ElevenLabs request, secret payload read, cloud mutation, production rate
+claim, customer-commercial mutation, or production promotion is enabled.
+
 The source-verified consumer projection added by the follow-up increment has
 the secondary verdict
 `CANONICAL_PROVIDER_ATTEMPT_CONSUMER_RECEIPT_PRIVATE_INJECTED_ACCEPTED_RUNTIME_BLOCKED`.
@@ -89,12 +103,12 @@ values are not logged, request bodies are not persisted in the queue, and
 callers cannot select an executable or provider route.
 
 The receipt uses a bounded private-output set plus a legacy primary-output
-alias. Current V1 source authority still admits zero or one output and reports
-`multiOutputProviderOperationAdmitted = false`; the set-shaped contract avoids
-making single-output cardinality a universal provider assumption. Motion's
-frozen ElevenLabs Speech requirement (MP3 plus alignment JSON under one
-attempt) remains a later forward-only provider-operation admission gate, not an
-authority granted by this slice.
+alias. Historical V1 source authority still admits zero or one output and
+reports `multiOutputProviderOperationAdmitted = false`. The forward-only V2
+Speech projection reads and verifies the exact ordered MP3 plus alignment JSON
+set and reports `multiOutputProviderOperationAdmitted = true`. Both evidence
+classes remain private injected and non-promotable; V2 does not reinterpret a
+V1 record or authorize provider transport.
 
 The frozen Lyria V1 request policy admits one generation submission, zero
 retries, zero fallbacks, zero redirects, and no automatic resubmission. Its
@@ -237,18 +251,21 @@ attempt.
 
 Motion's separately frozen
 `provider.elevenlabs.generate_storytelling_speech_candidate.v1` requirement is
-recorded for the next provider-operation admission slice. It needs one
-synchronous generation submission and two private create-only outputs (bounded
-MP3 audio and bounded alignment JSON) under the same attempt, followed by the
-separate canonical speech-normalization recipe. No Speech route, provider
-transport, Secret Manager payload read, or multi-output execution authority is
-activated here.
+now admitted only to the private injected V2 lifecycle and source-verified
+compact receipt. It preserves one synchronous generation-submission ceiling,
+two private create-only outputs under one attempt, and the separate canonical
+`approved_storytelling_speech_take_normalization_v1` FFmpeg attempt. The
+Speech route cannot execute a real request: immutable provider revision,
+production rate authority, zero-retention/account qualification, canonical
+runtime release, Secret Manager payload access, and transport all remain
+blocked.
 
 ## Closed Gates
 
 The following remain false or blocked:
 
 - real Lyria transport and provider request;
+- real ElevenLabs Speech transport and provider request;
 - provider account access, funds/quota, and generation eligibility;
 - Google Secret Manager payload read;
 - canonical Motion Studio runtime receipt;

@@ -6,8 +6,8 @@ import type {
   CanonicalPrivatePackageWorkQueueJobDefinition,
 } from '../edit-architecture/canonical-private-package-work-queue-authority'
 import {
-  assertCanonicalProviderWorkAuthorization,
-  type CanonicalProviderWorkAuthorization,
+  assertCanonicalProviderWorkAuthorizationAny,
+  type CanonicalProviderWorkAuthorizationAny,
 } from '../edit-architecture/canonical-provider-work-authority'
 import {
   readPrivateTextFileIfExistsWithinRoot,
@@ -283,14 +283,14 @@ export async function claimPrivateCanonicalProviderPackageWorkQueueJob(input: {
   jobId: string
   workerIdentity: string
   workerType: CanonicalPrivatePackageWorkQueueJobDefinition['workerType']
-  providerAuthorization: CanonicalProviderWorkAuthorization
+  providerAuthorization: CanonicalProviderWorkAuthorizationAny
   now: string
   leaseDurationMs: number
 }): Promise<CanonicalPrivatePackageWorkQueueClaimResult> {
   const now = validTimestamp(input.now, 'provider queue claim')
   assertWorkerIdentity(input.workerIdentity)
   assertLeaseDuration(input.leaseDurationMs)
-  const providerAuthorization = assertCanonicalProviderWorkAuthorization({
+  const providerAuthorization = assertCanonicalProviderWorkAuthorizationAny({
     value: input.providerAuthorization,
     queueDefinition: input.definition,
     now,
@@ -325,7 +325,7 @@ export async function beginPrivateCanonicalPackageWorkQueueProviderAttempt(input
   jobId: string
   claimId: string
   claimCredential: string
-  providerAuthorization: CanonicalProviderWorkAuthorization
+  providerAuthorization: CanonicalProviderWorkAuthorizationAny
   providerDispatchGrantId: string
   providerDispatchGrantHash: string
   dispatchAttemptId: string
@@ -341,7 +341,7 @@ export async function beginPrivateCanonicalPackageWorkQueueProviderAttempt(input
   }
 }> {
   const now = validTimestamp(input.now, 'provider execution fence start')
-  const providerAuthorization = assertCanonicalProviderWorkAuthorization({
+  const providerAuthorization = assertCanonicalProviderWorkAuthorizationAny({
     value: input.providerAuthorization,
     queueDefinition: input.definition,
     now,
@@ -1659,7 +1659,7 @@ function applyQueueClaimMutation(
     workerType: CanonicalPrivatePackageWorkQueueJobDefinition['workerType']
     now: string
     leaseDurationMs: number
-    providerAuthorization?: CanonicalProviderWorkAuthorization
+    providerAuthorization?: CanonicalProviderWorkAuthorizationAny
   },
 ) {
   expireClaims(aggregate, input.now)
@@ -1781,7 +1781,7 @@ function applyQueueClaimMutation(
 function exactProviderAuthorizationMatches(input: {
   aggregate: CanonicalPrivatePackageWorkQueueAggregate
   entry: CanonicalPrivatePackageWorkQueueEntry
-  authorization: CanonicalProviderWorkAuthorization
+  authorization: CanonicalProviderWorkAuthorizationAny
 }): boolean {
   const { aggregate, entry, authorization } = input
   return entry.definition.privateExecutionReady === false &&

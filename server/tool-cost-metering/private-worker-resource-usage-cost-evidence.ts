@@ -4,7 +4,9 @@ import { z } from 'zod'
 
 import {
   createCanonicalProviderOperationRegistry,
+  createCanonicalProviderOperationRegistryV2,
   resolveCanonicalProviderOperation,
+  resolveCanonicalProviderOperationV2,
 } from '../edit-architecture/canonical-provider-work-authority'
 import { ApiError } from '../errors/api-error'
 import {
@@ -109,7 +111,10 @@ const operationAuthoritySchema = z.discriminatedUnion('kind', [
   }).strict(),
   z.object({
     kind: z.literal('registered_provider_operation'),
-    registryVersion: z.literal('canonical-provider-operation-registry-v1'),
+    registryVersion: z.enum([
+      'canonical-provider-operation-registry-v1',
+      'canonical-provider-operation-registry-v2',
+    ]),
     canonicalToolId: z.null(),
     operationId: identity,
     operationProfileId: identity,
@@ -125,9 +130,9 @@ const operationAuthoritySchema = z.discriminatedUnion('kind', [
     maximumGpuCount: z.literal(0),
     maximumInputBytes: positiveSafeInteger,
     maximumOutputBytes: positiveSafeInteger,
-    maximumOutputArtifacts: z.literal(1),
+    maximumOutputArtifacts: z.number().int().positive().max(8),
     maximumNetworkEgressBytes: positiveSafeInteger,
-    maximumAuthorizedInfrastructureCostMicros: safeInteger,
+    maximumAuthorizedInfrastructureCostMicros: safeInteger.nullable(),
     privateInternalRunnerVerified: z.literal(false),
     productReady: z.literal(false),
   }).strict(),
@@ -407,7 +412,8 @@ export const privateWorkerResourceUsageCostEvidenceSchema = z.object({
     || (value.output.disposition === 'none' && value.output.artifacts.length !== 0)
     || (value.outcome.state === 'completed'
       && value.operation.kind === 'registered_provider_operation'
-      && (value.output.artifacts.length !== 1 || outputBytes === 0))
+      && (value.output.artifacts.length !==
+        value.operation.maximumOutputArtifacts || outputBytes === 0))
   ) context.addIssue({ code: 'custom', message: 'Worker outcome and output disposition are inconsistent.' })
 })
 
@@ -746,7 +752,10 @@ export function createPrivateWorkerObserverSnapshotsFromEmbeddedObservation(inpu
 
 export function summarizePrivateWorkerResourceUsageCoverage() {
   const specs = listCompleteProfessionalToolOperationSpecs()
-  const providerProfiles = createCanonicalProviderOperationRegistry()
+  const providerProfiles = [
+    ...createCanonicalProviderOperationRegistry(),
+    ...createCanonicalProviderOperationRegistryV2(),
+  ]
   const required = [
     'startedAt',
     'completedAt',
@@ -888,11 +897,17 @@ function resolveOperationAuthority(
     if (evidenceClass !== 'private_injected_observed_usage_test') {
       throw invalid('Provider resource usage is injected-only while transport remains blocked.')
     }
-    let profile: ReturnType<typeof resolveCanonicalProviderOperation>
+    let profile:
+      | ReturnType<typeof resolveCanonicalProviderOperation>
+      | ReturnType<typeof resolveCanonicalProviderOperationV2>
     try {
       profile = resolveCanonicalProviderOperation(operation.operationId)
     } catch {
-      throw invalid('Provider operation lacks one exact registered metering authority.')
+      try {
+        profile = resolveCanonicalProviderOperationV2(operation.operationId)
+      } catch {
+        throw invalid('Provider operation lacks one exact registered metering authority.')
+      }
     }
     const measurementContract = {
       required: [
@@ -908,6 +923,22 @@ function resolveOperationAuthority(
       ],
       internalProductionCostOnly: true,
       failedAndUnknownCostRetained: true,
+    }
+    let maximumOutputBytes: number
+    let maximumOutputArtifacts: number
+    let maximumAuthorizedInfrastructureCostMicros: number | null
+    if (profile.schemaVersion === 'canonical-provider-operation-registry-v2') {
+      maximumOutputBytes = profile.expectedOutputs.reduce(
+        (total: number, output) => total + output.maximumByteLength,
+        0,
+      )
+      maximumOutputArtifacts = profile.expectedOutputs.length
+      maximumAuthorizedInfrastructureCostMicros = null
+    } else {
+      maximumOutputBytes = profile.expectedOutput.maximumByteLength
+      maximumOutputArtifacts = 1
+      maximumAuthorizedInfrastructureCostMicros =
+        profile.costPolicy.maximumAuthorizedInfrastructureCostMicros
     }
     return parseOrInvalid(operationAuthoritySchema, {
       kind: 'registered_provider_operation',
@@ -926,12 +957,11 @@ function resolveOperationAuthority(
       maximumMemoryMib: 1_024,
       maximumGpuCount: 0,
       maximumInputBytes: profile.requestPolicy.maximumRequestBodyBytes,
-      maximumOutputBytes: profile.expectedOutput.maximumByteLength,
-      maximumOutputArtifacts: 1,
+      maximumOutputBytes,
+      maximumOutputArtifacts,
       maximumNetworkEgressBytes:
         profile.requestPolicy.maximumCapturedResponseBytes,
-      maximumAuthorizedInfrastructureCostMicros:
-        profile.costPolicy.maximumAuthorizedInfrastructureCostMicros,
+      maximumAuthorizedInfrastructureCostMicros,
       privateInternalRunnerVerified: false,
       productReady: false,
     }, 'Provider operation metering authority is invalid.')
@@ -1095,7 +1125,7 @@ function assertOutcome(
   if (
     completed
     && (
-      input.output.artifacts.length !== 1
+      input.output.artifacts.length !== operation.maximumOutputArtifacts
       || input.output.artifacts[0]?.byteLength === 0
     )
     && operation.kind === 'registered_provider_operation'

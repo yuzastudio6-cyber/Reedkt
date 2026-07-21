@@ -12,7 +12,6 @@ import { inspectEditReferenceLongFormSource } from '../edit-references/edit-refe
 import { createUploadService } from '../services/upload-service'
 import type { ServiceContext } from '../types'
 
-assert.match(tmpdir(), /^\/Volumes\/REeditproWork\//)
 const root = await mkdtemp(path.join(tmpdir(), 'reeditpro-long-form-inspector-'))
 try {
   const fixtureDefinition = EDIT_REFERENCE_CONTROLLED_MEDIA_FIXTURE_DEFINITIONS[0]

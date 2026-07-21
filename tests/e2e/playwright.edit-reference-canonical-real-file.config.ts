@@ -1,3 +1,5 @@
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { defineConfig, devices } from '@playwright/test'
 
 const uiPort = Number(process.env.PLAYWRIGHT_EDIT_REFERENCE_CANONICAL_UI_PORT ?? 5413)
@@ -9,7 +11,7 @@ const workspaceId = 'workspace-internal-testing'
 const baseURL = `http://127.0.0.1:${uiPort}`
 const apiBaseURL = `http://127.0.0.1:${apiPort}`
 const storageRoot = process.env.PLAYWRIGHT_EDIT_REFERENCE_CANONICAL_STORAGE_ROOT
-  ?? `/Volumes/REeditproWork/reeditpro-e2e-runtime/edit-reference-canonical-${process.pid}`
+  ?? join(tmpdir(), `reeditpro-edit-reference-canonical-${process.pid}`)
 
 export default defineConfig({
   metadata: {

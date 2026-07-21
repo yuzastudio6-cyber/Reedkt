@@ -31,7 +31,6 @@ interface EditReferenceUploadIntentRouteData {
 const ownerUserId = 'mock-user-runtime'
 const workspaceId = 'workspace-long-form-route-smoke'
 
-assert.match(tmpdir(), /^\/Volumes\/REeditproWork\//)
 const root = await mkdtemp(path.join(tmpdir(), 'reeditpro-long-form-route-'))
 try {
   const fixtureDefinition = EDIT_REFERENCE_CONTROLLED_MEDIA_FIXTURE_DEFINITIONS[0]

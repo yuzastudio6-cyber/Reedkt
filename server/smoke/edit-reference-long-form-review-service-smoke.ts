@@ -54,7 +54,6 @@ import type { ServiceContext } from '../types'
 
 const createdAt = '2026-07-20T20:00:00.000Z'
 
-assert.match(tmpdir(), /^\/Volumes\/REeditproWork\//)
 const localStorageRoot = await mkdtemp(path.join(tmpdir(), 'reeditpro-long-form-review-service-'))
 try {
   const fixture = createServiceFixture()

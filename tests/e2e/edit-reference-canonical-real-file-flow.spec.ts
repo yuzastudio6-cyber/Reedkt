@@ -1,6 +1,11 @@
 import { createHash } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
+import path from 'node:path'
 import { expect, test } from '@playwright/test'
+import {
+  EDIT_REFERENCE_CONTROLLED_MEDIA_FIXTURE_DEFINITIONS,
+  materializeEditReferenceControlledMediaFixture,
+} from '../../server/edit-references/edit-reference-controlled-media-fixtures'
 import { persistReadyTargetVideoUnderstandingFixture } from '../../server/smoke/fixtures/ready-target-video-understanding-fixture'
 import { resolveCurrentEditReferenceActiveEditorAuthority } from '../../src/lib/current-edit-reference-active-editor-authority'
 import { createPreferenceApplicationTargetContext } from '../../src/lib/project-edit-session-edit-reference-integration'
@@ -17,11 +22,31 @@ import {
   gotoRoute,
 } from './helpers/routes'
 
-const fixturePath = '/Volumes/REeditproWork/reeditpro-e2e-fixtures/target-documentary.mp4'
 const apiPort = Number(process.env.PLAYWRIGHT_EDIT_REFERENCE_CANONICAL_API_PORT ?? 9005)
 const apiBaseUrl = `http://127.0.0.1:${apiPort}`
+let fixturePath = ''
 
 test.describe('canonical Edit Preference real-file flow', () => {
+  test.beforeAll(async ({ browserName }, testInfo) => {
+    if (browserName !== 'chromium') {
+      throw new Error('The canonical Edit Preference browser proof is qualified for Chromium only.')
+    }
+    const storageRoot = String(testInfo.config.metadata.editReferenceCanonicalStorageRoot ?? '')
+    if (!path.isAbsolute(storageRoot)) {
+      throw new Error('The canonical Edit Preference browser storage root must be absolute.')
+    }
+    const fixtureDefinition = EDIT_REFERENCE_CONTROLLED_MEDIA_FIXTURE_DEFINITIONS.find(
+      (definition) => definition.fixtureId === 'target_a_educational_product_demo',
+    )
+    if (!fixtureDefinition) throw new Error('The canonical Edit Preference media fixture is unavailable.')
+    const fixture = await materializeEditReferenceControlledMediaFixture({
+      outputRoot: path.join(storageRoot, 'controlled-browser-fixtures'),
+      definition: fixtureDefinition,
+      timeoutMs: 60_000,
+    })
+    fixturePath = fixture.videoPath
+  })
+
   test('creates a preference, studies a real private video, and resumes from a saved checkpoint', async ({ page }) => {
     test.setTimeout(120_000)
     page.setDefaultTimeout(15_000)
@@ -62,7 +87,7 @@ test.describe('canonical Edit Preference real-file flow', () => {
 
     const studyCard = page.locator('[data-testid^="edit-reference-long-form-study-"]').first()
     await expect(studyCard).toBeVisible()
-    await expect(studyCard).toContainText('target-documentary.mp4')
+    await expect(studyCard).toContainText('fixture.mp4')
     await expect(studyCard).toContainText('Large file size changes the transfer and analysis route—it does not reduce study coverage.')
     await studyCard.getByRole('button', { name: 'Start whole-video study' }).click()
 
@@ -188,7 +213,7 @@ test.describe('canonical Edit Preference real-file flow', () => {
       outputFrameConfirmed: true,
     })
     const storageRoot = String(testInfo.config.metadata.editReferenceCanonicalStorageRoot ?? '')
-    expect(storageRoot.startsWith('/Volumes/REeditproWork/')).toBe(true)
+    expect(path.isAbsolute(storageRoot)).toBe(true)
     const targetPackage = await persistReadyTargetVideoUnderstandingFixture({
       localStorageRoot: storageRoot,
       ownerUserId: 'mock-user-runtime',

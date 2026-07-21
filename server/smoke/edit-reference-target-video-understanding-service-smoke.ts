@@ -41,7 +41,6 @@ import { executeControlledLongFormChunkSpecialistStage } from './fixtures/contro
 const ownerUserId = 'mock-user-runtime'
 const workspaceId = 'workspace-target-understanding-smoke'
 
-assert.match(tmpdir(), /^\/Volumes\/REeditproWork\//)
 const root = await mkdtemp(path.join(tmpdir(), 'reeditpro-target-understanding-'))
 try {
   const fixtureDefinition = EDIT_REFERENCE_CONTROLLED_MEDIA_FIXTURE_DEFINITIONS[0]

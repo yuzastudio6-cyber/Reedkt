@@ -3,6 +3,13 @@ import type {
   EditReferenceStudyChatReasoningRequest,
   EditReferenceStudyChatReasoningResult,
 } from './edit-reference-study-chat-reasoning-contract'
+import type {
+  EditReferenceDNAQAStatus,
+  EditReferenceDNAStatus,
+  EditReferenceStatus,
+  EditReferenceStudyLifecycleStatus,
+  PreferenceEvidenceStatus,
+} from '../../src/types/edit-reference'
 
 export const EDIT_REFERENCE_STUDY_CHAT_REASONING_ATTEMPT_VERSION =
   'edit-reference-study-chat-reasoning-attempt-v1' as const
@@ -38,6 +45,14 @@ export type EditReferenceStudyChatReasoningAttemptTerminalReason =
   | 'study_revision_advanced'
   | 'cancelled_before_execution'
 
+export interface EditReferenceStudyChatContextStateSnapshot {
+  referenceStatus: EditReferenceStatus
+  studyStatus: EditReferenceStudyLifecycleStatus
+  evidenceStatus: PreferenceEvidenceStatus
+  dnaStatus: EditReferenceDNAStatus
+  qaStatus: EditReferenceDNAQAStatus
+}
+
 /**
  * Private control-plane record. It deliberately stores the bounded request and
  * sanitized result, never the provider payload, hidden reasoning, raw media,
@@ -57,6 +72,13 @@ export interface EditReferenceStudyChatReasoningAttemptRecord {
   clientMessageDigestSha256: string
   userMessageId: string
   userMessageContentDigestSha256: string
+  /**
+   * Present on attempts reserved by the mounted Study Chat flow. These fields
+   * let execution reconstruct the exact pre-mutation reasoning context after
+   * the user's direction has already been saved durably as evidence.
+   */
+  savedDirectionEvidenceId?: string
+  contextStateAtReservation?: EditReferenceStudyChatContextStateSnapshot
   studyRevisionAtReservation: number
   studyRevisionAfterReservation: number
   reservationIdempotencyKeyHashSha256: string
@@ -85,6 +107,7 @@ export interface ReserveEditReferenceStudyChatReasoningAttemptInput {
   request: EditReferenceStudyChatReasoningRequest
   clientMessageId: string
   userMessage: string
+  findingCorrectionEvidenceId?: string
 }
 
 export interface StartEditReferenceStudyChatReasoningAttemptInput {

@@ -419,6 +419,7 @@ function seedDetailData(
       reference,
       study,
       messages: [],
+      studyChatReasoning: [],
       evidence: [fixture.sourceEvidence],
       assets: [fixture.asset],
       skillRuns: [],

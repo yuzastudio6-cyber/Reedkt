@@ -2,6 +2,7 @@ import type { SupabaseClient, User } from '@supabase/supabase-js'
 import type { Request } from 'express'
 import type { RuntimeEnv } from './config/env'
 import type { StorageAdapter } from './storage/storage-types'
+import type { EditReferenceStudyChatRuntimePort } from './services/edit-reference-study-chat-runtime-port'
 import type { PlanningPreferenceApplicationAuthorityPort } from './services/planning-preference-application-authority-port'
 import type {
   CanonicalDurableUploadTargetTransactionAdapter,
@@ -57,6 +58,7 @@ export interface RuntimeState {
   planningPreferenceApplicationAuthorityPort?: PlanningPreferenceApplicationAuthorityPort
   canonicalDurableUploadTargetStatePort?: CanonicalDurableUploadTargetTransactionAdapter
   canonicalUploadTargetCredentialEscrow?: CanonicalUploadTargetCredentialEscrow
+  editReferenceStudyChatRuntimePort?: EditReferenceStudyChatRuntimePort
 }
 
 export type RuntimeRequest = Request & {
@@ -80,4 +82,5 @@ export interface ServiceContext {
   planningPreferenceApplicationAuthorityPort?: PlanningPreferenceApplicationAuthorityPort
   canonicalDurableUploadTargetStatePort?: CanonicalDurableUploadTargetTransactionAdapter
   canonicalUploadTargetCredentialEscrow?: CanonicalUploadTargetCredentialEscrow
+  editReferenceStudyChatRuntimePort?: EditReferenceStudyChatRuntimePort
 }

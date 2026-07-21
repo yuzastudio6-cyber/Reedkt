@@ -14,7 +14,11 @@ import {
   type LocalInternalProjectHandoff,
 } from '../../src/lib/local-project-handoff'
 import type { ProjectEditBriefBackendLocalRecord } from '../../src/lib/project-edit-brief-backend-local'
-import type { EditReferenceDetailData, PreferenceApplicationListData } from '../../src/types/edit-reference'
+import type {
+  EditReferenceDetailData,
+  EditReferenceMessageData,
+  PreferenceApplicationListData,
+} from '../../src/types/edit-reference'
 import { expectNoHorizontalOverflow, setViewport } from './helpers/layout'
 import {
   clickWhenReady,
@@ -145,6 +149,62 @@ test.describe('canonical Edit Preference real-file flow', () => {
     await expect(page.getByTestId('edit-reference-evidence-list')).toContainText('Speech-safe pacing')
     await expect(page.getByTestId('edit-reference-study-chat')).toContainText('2 study inputs saved')
     expect(evidenceMutationRequests).toBe(1)
+    await expectNoHorizontalOverflow(page)
+  })
+
+  test('renders the durable reasoning status under the exact saved Study Chat message', async ({ page }) => {
+    test.setTimeout(120_000)
+    page.setDefaultTimeout(15_000)
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await setViewport(page, 1280, 900)
+
+    let projectedReasoningStatus = false
+    await page.route(/\/v1\/edit-reference-studies\/[^/]+\/messages$/, async (route) => {
+      if (route.request().method() !== 'POST' || projectedReasoningStatus) return route.continue()
+      projectedReasoningStatus = true
+      const committed = await route.fetch()
+      expect(committed.ok()).toBe(true)
+      const payload = await committed.json() as {
+        ok: true
+        data: EditReferenceMessageData
+        warnings: string[]
+      }
+      const appendedIds = new Set(payload.data.appendedMessageIds)
+      const savedUserMessage = payload.data.detail.messages.find((message) => (
+        appendedIds.has(message.id) && message.role === 'user'
+      ))
+      expect(savedUserMessage).toBeTruthy()
+      const assistantIds = payload.data.appendedMessageIds.filter((id) => id !== savedUserMessage?.id)
+      payload.data.appendedMessageIds = [savedUserMessage!.id]
+      payload.data.detail.messages = payload.data.detail.messages.filter(
+        (message) => !assistantIds.includes(message.id),
+      )
+      payload.data.detail.studyChatReasoning = [{
+        attemptId: 'controlled-mounted-browser-attempt',
+        userMessageId: savedUserMessage!.id,
+        state: 'failed',
+        statusText: 'Your direction is saved. ReEditPro could not complete the response.',
+        retryAvailable: true,
+        providerCallMayHaveOccurred: false,
+        createdAt: savedUserMessage!.createdAt,
+        updatedAt: savedUserMessage!.createdAt,
+      }]
+      await route.fulfill({ response: committed, json: payload })
+    })
+
+    await gotoRoute(page, '/preferences')
+    await page.getByTestId('new-edit-reference').click()
+    await page.getByTestId('edit-reference-name').fill(`Reasoning status ${Date.now()}`)
+    await page.getByTestId('save-edit-reference').click()
+    await page.getByTestId('edit-reference-study-message').fill(
+      'Keep the pacing restrained and preserve every claim long enough to read.',
+    )
+    await page.getByTestId('send-edit-reference-study-message').click()
+
+    const status = page.locator('.edit-reference-reasoning-status')
+    await expect(status).toHaveAttribute('data-state', 'failed')
+    await expect(status).toContainText('Your direction is saved')
+    await expect(page.getByTestId('edit-reference-study-chat')).toContainText('1 study input saved')
     await expectNoHorizontalOverflow(page)
   })
 

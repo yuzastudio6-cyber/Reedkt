@@ -32,6 +32,7 @@ import { createRenderRoutes } from './routes/render-routes'
 import { createToolCostRoutes } from './routes/tool-cost-routes'
 import { createUploadRoutes } from './routes/upload-routes'
 import { createWorkerRoutes } from './routes/worker-routes'
+import type { EditReferenceStudyChatRuntimePort } from './services/edit-reference-study-chat-runtime-port'
 import type { StorageAdapter } from './storage/storage-types'
 import type { RuntimeClients, RuntimeRequest, RuntimeState } from './types'
 
@@ -41,6 +42,7 @@ export interface ReeditProApiAppOptions {
   planningPreferenceApplicationAuthorityPort?: RuntimeState['planningPreferenceApplicationAuthorityPort']
   canonicalDurableUploadTargetStatePort?: RuntimeState['canonicalDurableUploadTargetStatePort']
   canonicalUploadTargetCredentialEscrow?: RuntimeState['canonicalUploadTargetCredentialEscrow']
+  editReferenceStudyChatRuntimePort?: EditReferenceStudyChatRuntimePort
 }
 
 export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppOptions = {}): Express {
@@ -55,6 +57,9 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
       : {}),
     ...(options.canonicalUploadTargetCredentialEscrow
       ? { canonicalUploadTargetCredentialEscrow: options.canonicalUploadTargetCredentialEscrow }
+      : {}),
+    ...(options.editReferenceStudyChatRuntimePort
+      ? { editReferenceStudyChatRuntimePort: options.editReferenceStudyChatRuntimePort }
       : {}),
     clients: options.clients ?? {
       admin: createSupabaseAdminClient(env),

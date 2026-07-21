@@ -15,6 +15,7 @@ import type {
   EditReferenceListData,
   EditReferenceListItem,
   EditReferenceRecord,
+  EditReferenceStudyChatReasoningStatus,
   PreferenceApplicationListData,
   PreferenceApplicationTargetContextSnapshot,
   PreferenceAssetRecord,
@@ -246,7 +247,12 @@ import { createEditReferenceTargetApplication } from '../edit-references/edit-re
 import { recordPreferenceApplicationPlanInvalidation } from '../edit-references/edit-reference-plan-invalidation-registry'
 import { createPreferenceApplicationDownstreamContext } from '../../src/lib/edit-reference-downstream-context'
 import { createUploadService } from './upload-service'
-import { buildEditReferenceStudyChatStructuredContext } from './edit-reference-study-chat-reasoning-service'
+import {
+  buildEditReferenceStudyChatStructuredContext,
+  prepareEditReferenceStudyChatReasoning,
+  type EditReferenceStudyChatReasoningServiceInput,
+  type PreparedEditReferenceStudyChatReasoning,
+} from './edit-reference-study-chat-reasoning-service'
 import { buildEditReferencePreferenceDnaStructuredContext } from './edit-reference-preference-dna-reasoning-service'
 import {
   resolveEditReferenceLongFormStudyRuntimePort,
@@ -355,6 +361,7 @@ export interface EditReferenceService {
   getReference(workspaceId: string, referenceId: string): Promise<EditReferenceServiceResult<EditReferenceDetailData>>
   getStudy(workspaceId: string, studyId: string): Promise<EditReferenceServiceResult<PreferenceStudyData>>
   listStudyMessages(workspaceId: string, studyId: string): Promise<EditReferenceServiceResult<PreferenceStudyMessageListData>>
+  prepareStudyChatReasoning(workspaceId: string, input: EditReferenceStudyChatReasoningServiceInput): Promise<PreparedEditReferenceStudyChatReasoning>
   getStudyChatReasoningAttempt(workspaceId: string, attemptId: string): Promise<EditReferenceServiceResult<EditReferenceStudyChatReasoningAttemptRecord>>
   listStudyChatReasoningAttempts(workspaceId: string, studyId: string): Promise<EditReferenceServiceResult<EditReferenceStudyChatReasoningAttemptRecord[]>>
   getPreferenceDnaReasoningAttempt(workspaceId: string, attemptId: string): Promise<EditReferenceServiceResult<EditReferencePreferenceDnaReasoningAttemptRecord>>
@@ -842,6 +849,16 @@ export function createEditReferenceService(
       if (!aggregate) throw studyNotFound(studyId)
       requireStudy(aggregate, studyId)
       return result({ studyId, messages: studyMessages(aggregate, studyId), safety: EDIT_REFERENCE_SAFETY_FLAGS })
+    },
+
+    async prepareStudyChatReasoning(workspaceId, input) {
+      const requestedScope = scope(workspaceId)
+      const aggregate = await repository.read(requestedScope)
+      return prepareEditReferenceStudyChatReasoning({
+        aggregate,
+        scope: requestedScope,
+        input,
+      })
     },
 
     async getStudyChatReasoningAttempt(workspaceId, attemptId) {
@@ -1362,6 +1379,44 @@ export function createEditReferenceService(
           if (aggregate.messages.some((message) => message.clientMessageId === normalized.clientMessageId)) {
             throw new ApiError('IDEMPOTENCY_CONFLICT', 'The Study Chat client message ID was already used outside a reasoning attempt.', 409)
           }
+          let correctionEvidence: PreferenceEvidenceRecord | undefined
+          if (normalized.findingCorrectionEvidenceId) {
+            assertActiveStudy(reference, study)
+            const superseded = aggregate.evidence.find(
+              (record) => record.id === normalized.findingCorrectionEvidenceId,
+            )
+            if (!superseded || superseded.studySessionId !== study.id || superseded.sourceType !== 'manual_user_evidence') {
+              throw new ApiError(
+                'VALIDATION_FAILED',
+                'A Study Chat correction must replace saved creative evidence in this study.',
+                409,
+              )
+            }
+            if (aggregate.evidence.some((record) => record.supersedesEvidenceId === superseded.id)) {
+              throw new ApiError('VERSION_CONFLICT', 'That evidence already has a newer correction. Reload before saving.', 409)
+            }
+            correctionEvidence = createEvidenceRecords(reference, study, {
+              workspaceId: normalized.request.workspaceId,
+              expectedStudyRevision: normalized.request.expectedStudyRevision,
+              sourceType: 'manual_user_evidence',
+              title: `${superseded.title} — Study Chat correction`.slice(0, 160),
+              category: requireManualEvidenceCategory(superseded.category),
+              summary: normalized.userMessage,
+              intendedUse: requireCorrectionTransferability(superseded.transferability),
+              supersedesEvidenceId: superseded.id,
+            }, now).evidence
+          }
+          const savedDirectionEvidence = correctionEvidence ?? createEvidenceRecords(reference, study, {
+            workspaceId: normalized.request.workspaceId,
+            expectedStudyRevision: normalized.request.expectedStudyRevision,
+            sourceType: 'manual_user_evidence',
+            title: `Study Chat direction ${aggregate.evidence.filter((record) => (
+              record.studySessionId === study.id && record.sourceType === 'manual_user_evidence'
+            )).length + 1}`,
+            category: 'all_goals',
+            summary: normalized.userMessage,
+            intendedUse: 'transferable',
+          }, now).evidence
           const userMessage: PreferenceStudyMessageRecord = {
             id: `preference-study-message-${randomUUID()}`,
             workspaceId: reference.workspaceId,
@@ -1388,6 +1443,14 @@ export function createEditReferenceService(
             clientMessageDigestSha256: normalized.request.clientMessageDigestSha256,
             userMessageId: userMessage.id,
             userMessageContentDigestSha256,
+            savedDirectionEvidenceId: savedDirectionEvidence.id,
+            contextStateAtReservation: {
+              referenceStatus: reference.status,
+              studyStatus: study.status,
+              evidenceStatus: study.evidenceStatus,
+              dnaStatus: study.dnaStatus,
+              qaStatus: study.qaStatus,
+            },
             studyRevisionAtReservation: study.revision,
             studyRevisionAfterReservation: study.revision + 1,
             reservationIdempotencyKeyHashSha256,
@@ -1406,11 +1469,42 @@ export function createEditReferenceService(
             privateInternalOnly: true,
           }
           aggregate.messages.push(userMessage)
+          aggregate.evidence.push(savedDirectionEvidence)
+          let invalidatedDNACandidate = false
+          for (const dnaVersion of aggregate.dnaVersions.filter((record) => (
+            record.studySessionId === study.id
+            && record.status !== 'approved'
+            && record.status !== 'superseded'
+          ))) {
+            dnaVersion.status = 'superseded'
+            dnaVersion.supersededAt = now
+            invalidatedDNACandidate = true
+          }
           aggregate.reasoningAttempts.push(attempt)
+          study.status = 'ready_to_study'
+          study.evidenceStatus = 'ready_to_study'
+          study.dnaStatus = 'not_generated'
+          study.qaStatus = 'not_run'
           study.revision += 1
           study.updatedAt = now
+          reference.evidenceStatus = 'ready_to_study'
+          reference.dnaStatus = 'not_generated'
+          reference.qaStatus = 'not_run'
           reference.updatedAt = now
+          aggregate.usageLogs.push(usageLog(reference, 'evidence_added', now))
           aggregate.usageLogs.push(usageLog(reference, 'message_appended', now))
+          if (invalidatedDNACandidate) {
+            addAuditEvent({
+              eventType: 'preference_dna_candidate_invalidated',
+              editReferenceId: reference.id,
+              studySessionId: study.id,
+            })
+          }
+          addAuditEvent({
+            eventType: 'preference_evidence_added',
+            editReferenceId: reference.id,
+            studySessionId: study.id,
+          })
           addAuditEvent({
             eventType: 'preference_study_reasoning_attempt_reserved',
             editReferenceId: reference.id,
@@ -1482,6 +1576,12 @@ export function createEditReferenceService(
               studyId: study.id,
               userMessage: userMessage.content,
               excludedMessageIds: [userMessage.id],
+              excludedEvidenceIds: attempt.savedDirectionEvidenceId
+                ? [attempt.savedDirectionEvidenceId]
+                : [],
+              ...(attempt.contextStateAtReservation
+                ? { currentStateOverride: attempt.contextStateAtReservation }
+                : {}),
             })
             if (
               hashEditReferenceStudyChatStructuredContext(reconstructedContext)
@@ -5516,6 +5616,10 @@ function detailData(aggregate: EditReferenceAggregate, reference: EditReferenceR
     reference,
     study,
     messages: studyMessages(aggregate, study.id),
+    studyChatReasoning: reasoningAttempts
+      .slice()
+      .sort((left, right) => left.createdAt.localeCompare(right.createdAt) || left.id.localeCompare(right.id))
+      .map((attempt) => studyChatReasoningStatus(aggregate, attempt)),
     evidence: aggregate.evidence.filter((record) => record.studySessionId === study.id),
     assets: aggregate.assets.filter((record) => record.studySessionId === study.id),
     skillRuns,
@@ -5547,6 +5651,81 @@ function detailData(aggregate: EditReferenceAggregate, reference: EditReferenceR
     },
   }
   return { detail, replayed: false }
+}
+
+function studyChatReasoningStatus(
+  aggregate: EditReferenceAggregate,
+  attempt: EditReferenceStudyChatReasoningAttemptRecord,
+): EditReferenceStudyChatReasoningStatus {
+  const providerRequest = aggregate.reasoningProviderRequests.find(
+    (record) => record.reasoningAttemptId === attempt.id,
+  )
+  const checkback = providerRequest
+    ? aggregate.reasoningProviderCheckbacks.find(
+        (record) => record.reasoningProviderRequestId === providerRequest.id,
+      )
+    : undefined
+  const workflow = checkback
+    ? aggregate.reasoningProviderWorkflows.find(
+        (record) => record.reasoningProviderCheckbackId === checkback.id,
+      )
+    : undefined
+  const needsReview = providerRequest?.operatorReviewRequired === true
+    || checkback?.operatorReviewRequired === true
+    || workflow?.operatorReviewRequired === true
+    || attempt.state === 'cost_unverified'
+  const state: EditReferenceStudyChatReasoningStatus['state'] = attempt.state === 'completed'
+    ? 'answered'
+    : attempt.state === 'reserved'
+      ? 'queued'
+      : attempt.state === 'running'
+        ? needsReview
+          ? 'needs_review'
+          : providerRequest && ['submission_unknown', 'submitted'].includes(providerRequest.state)
+            ? 'waiting'
+            : 'thinking'
+        : attempt.state === 'cancelled'
+          ? 'cancelled'
+          : needsReview
+            ? 'needs_review'
+            : 'failed'
+  const statusText = state === 'answered'
+    ? 'Response ready.'
+    : state === 'queued'
+      ? 'Saved. ReEditPro is preparing a response.'
+      : state === 'thinking'
+        ? 'ReEditPro is studying this direction.'
+        : state === 'waiting'
+          ? 'Your direction is saved. ReEditPro is waiting for the reasoning result.'
+          : state === 'needs_review'
+            ? 'Your direction is saved, but the response needs review before it can continue.'
+            : state === 'cancelled'
+              ? 'Your direction is saved. The response was cancelled.'
+              : 'Your direction is saved. ReEditPro could not complete the response.'
+  const retryAvailable = attempt.result?.status === 'blocked'
+    ? attempt.result.retryAvailable
+    : needsReview
+  const providerCallMayHaveOccurred = providerRequest?.providerCallMayHaveOccurred === true
+    || ['called_no_cost', 'called_metered', 'called_cost_unverified'].includes(attempt.providerExecutionState)
+  const updatedAt = [
+    attempt.settledAt,
+    workflow?.updatedAt,
+    checkback?.updatedAt,
+    providerRequest?.updatedAt,
+    attempt.startedAt,
+    attempt.reservedAt,
+  ].filter((value): value is string => Boolean(value)).sort().at(-1) ?? attempt.createdAt
+  return {
+    attemptId: attempt.id,
+    userMessageId: attempt.userMessageId,
+    ...(attempt.assistantMessageId ? { assistantMessageId: attempt.assistantMessageId } : {}),
+    state,
+    statusText,
+    retryAvailable,
+    providerCallMayHaveOccurred,
+    createdAt: attempt.createdAt,
+    updatedAt,
+  }
 }
 
 function toPublicPreferenceDnaVersion(
@@ -6301,7 +6480,10 @@ function normalizeReasoningAttemptReservation(
     throw new ApiError('VALIDATION_FAILED', 'The Study Chat reasoning reservation request is invalid.', 400)
   }
   const clientMessageId = requireText(input.clientMessageId, 'clientMessageId', 160)
-  const userMessage = requireText(input.userMessage, 'userMessage', 4_000)
+  const userMessage = requireText(input.userMessage, 'userMessage', 8_000)
+  const findingCorrectionEvidenceId = input.findingCorrectionEvidenceId
+    ? requireText(input.findingCorrectionEvidenceId, 'findingCorrectionEvidenceId', 200)
+    : undefined
   if (input.request.actorUserId !== ownerUserId) {
     throw new ApiError('WORKSPACE_ACCESS_DENIED', 'The reasoning request actor does not match the authenticated user.', 403)
   }
@@ -6315,6 +6497,7 @@ function normalizeReasoningAttemptReservation(
     request: structuredClone(input.request),
     clientMessageId,
     userMessage,
+    ...(findingCorrectionEvidenceId ? { findingCorrectionEvidenceId } : {}),
   }
 }
 
@@ -6940,7 +7123,7 @@ function settleStudyChatReasoningAttemptInAggregate(input: {
         content: input.reasoningResult.answer.assistantMessage,
         sequence: nextSequence(input.aggregate, study.id),
         reasoningAttemptId: input.attempt.id,
-        runtimeSource: 'qwen_reasoning',
+        runtimeSource: 'model_reasoning',
         createdAt: input.now,
       }
       input.aggregate.messages.push(assistantMessage)

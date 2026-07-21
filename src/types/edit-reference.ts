@@ -93,7 +93,34 @@ export type PreferenceStudyMessageRuntimeSource =
   | 'deterministic_dna_qa'
   | 'deterministic_dna_approval'
   | 'deterministic_dna_application'
+  | 'model_reasoning'
   | 'qwen_reasoning'
+
+export type EditReferenceStudyChatReasoningPublicState =
+  | 'queued'
+  | 'thinking'
+  | 'waiting'
+  | 'answered'
+  | 'needs_review'
+  | 'failed'
+  | 'cancelled'
+
+/**
+ * Browser-safe projection of one private Study Chat reasoning attempt. It
+ * deliberately excludes provider request identifiers, route/model details,
+ * prompts, cost values, credentials, lease tokens, and raw provider payloads.
+ */
+export interface EditReferenceStudyChatReasoningStatus {
+  attemptId: string
+  userMessageId: string
+  assistantMessageId?: string
+  state: EditReferenceStudyChatReasoningPublicState
+  statusText: string
+  retryAvailable: boolean
+  providerCallMayHaveOccurred: boolean
+  createdAt: string
+  updatedAt: string
+}
 
 export interface EditReferenceSafetyFlags {
   providerCallMade: boolean
@@ -1119,6 +1146,7 @@ export interface EditReferenceDetail {
   reference: EditReferenceRecord
   study: PreferenceStudySessionRecord
   messages: PreferenceStudyMessageRecord[]
+  studyChatReasoning: EditReferenceStudyChatReasoningStatus[]
   evidence: PreferenceEvidenceRecord[]
   assets: PreferenceAssetRecord[]
   skillRuns: PreferenceSkillRunRecord[]

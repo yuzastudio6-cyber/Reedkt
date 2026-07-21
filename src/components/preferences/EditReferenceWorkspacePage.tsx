@@ -730,11 +730,16 @@ function exactStudyMessageCommitted(
   ))
   if (matchingMessages.length !== 1) return false
   const savedMessage = matchingMessages[0]
-  if (!after.messages.some((record) => (
+  const hasAssistantResponse = after.messages.some((record) => (
     record.studySessionId === before.study.id
     && record.role === 'assistant'
     && record.sequence === savedMessage.sequence + 1
-  ))) return false
+  ))
+  const hasDurableReasoningStatus = (after.studyChatReasoning ?? []).some((record) => (
+    record.userMessageId === savedMessage.id
+    && ['queued', 'thinking', 'waiting', 'answered', 'needs_review', 'failed', 'cancelled'].includes(record.state)
+  ))
+  if (!hasAssistantResponse && !hasDurableReasoningStatus) return false
   const previousEvidenceIds = new Set(before.evidence.map((record) => record.id))
   return after.evidence.some((record) => (
     !previousEvidenceIds.has(record.id)
@@ -914,6 +919,18 @@ function StudyChat({ detail, disabled, onChanged, setBusy, setError }: {
   const [acknowledgedReasoningReviewKey, setAcknowledgedReasoningReviewKey] = useState('')
   const orderedMessages = useMemo(() => detail.messages.slice().sort((left, right) => left.sequence - right.sequence), [detail.messages])
   const visibleMessages = useMemo(() => orderedMessages.filter((item) => item.role !== 'system'), [orderedMessages])
+  const studyChatReasoning = useMemo(
+    () => detail.studyChatReasoning ?? [],
+    [detail.studyChatReasoning],
+  )
+  const reasoningByUserMessageId = useMemo(() => new Map(
+    studyChatReasoning.map((status) => [status.userMessageId, status] as const),
+  ), [studyChatReasoning])
+  const activeReasoningKey = useMemo(() => createEditReferenceDeterministicHash(
+    studyChatReasoning
+      .filter((status) => ['queued', 'thinking', 'waiting'].includes(status.state))
+      .map((status) => ({ attemptId: status.attemptId, state: status.state, updatedAt: status.updatedAt })),
+  ), [studyChatReasoning])
   const sourceEvidence = useMemo(() => detail.evidence.filter((record) => record.sourceType !== 'derived_skill_evidence'), [detail.evidence])
   const supersededSourceIds = useMemo(() => new Set(sourceEvidence.map((record) => record.supersedesEvidenceId).filter(Boolean)), [sourceEvidence])
   const activeSourceEvidence = useMemo(() => sourceEvidence.filter((record) => !supersededSourceIds.has(record.id)), [sourceEvidence, supersededSourceIds])
@@ -938,6 +955,38 @@ function StudyChat({ detail, disabled, onChanged, setBusy, setError }: {
   const reasoningReviewKey = currentDNAVersion?.reasoningReview && approvalKey
     ? `${approvalKey}:${currentDNAVersion.reasoningReview.approvalBindingDigestSha256}`
     : ''
+
+  useEffect(() => {
+    const hasActiveReasoning = studyChatReasoning.some(
+      (status) => ['queued', 'thinking', 'waiting'].includes(status.state),
+    )
+    if (!hasActiveReasoning) return undefined
+    let cancelled = false
+    let reading = false
+    const timer = window.setInterval(() => {
+      if (cancelled || reading) return
+      reading = true
+      void api.get(workspaceId, detail.reference.id).then(async (response) => {
+        if (!cancelled && response.ok) {
+          const nextKey = createEditReferenceDeterministicHash({
+            messages: response.data.detail.messages.map((record) => record.id),
+            reasoning: response.data.detail.studyChatReasoning ?? [],
+          })
+          const currentKey = createEditReferenceDeterministicHash({
+            messages: detail.messages.map((record) => record.id),
+            reasoning: studyChatReasoning,
+          })
+          if (nextKey !== currentKey) await onChanged(response.data.detail)
+        }
+      }).finally(() => {
+        reading = false
+      })
+    }, 3_000)
+    return () => {
+      cancelled = true
+      window.clearInterval(timer)
+    }
+  }, [activeReasoningKey, detail.messages, detail.reference.id, onChanged, studyChatReasoning, workspaceId])
   const reasoningReviewAcknowledged = !reasoningReviewKey || acknowledgedReasoningReviewKey === reasoningReviewKey
   const findings = useMemo(() => detail.evidence.filter((record) => (
     record.sourceType === 'derived_skill_evidence'
@@ -1149,6 +1198,15 @@ function StudyChat({ detail, disabled, onChanged, setBusy, setError }: {
             <article className={`edit-reference-message ${item.role}`} data-testid={`study-message-${item.role}`} key={item.id}>
               <span>{item.role === 'assistant' ? 'ReEditPro' : 'You'}</span>
               <p>{item.content}</p>
+              {item.role === 'user' && reasoningByUserMessageId.get(item.id)?.state !== 'answered' ? (
+                <small
+                  className="edit-reference-reasoning-status"
+                  data-state={reasoningByUserMessageId.get(item.id)?.state}
+                  role="status"
+                >
+                  {reasoningByUserMessageId.get(item.id)?.statusText}
+                </small>
+              ) : null}
             </article>
           ))}
         </div>

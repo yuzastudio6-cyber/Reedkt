@@ -652,7 +652,7 @@ function assertAggregate(aggregate: EditReferenceAggregate, scope: EditReference
       || ![
         'user_input', 'deterministic_setup', 'deterministic_evidence', 'deterministic_dna',
         'deterministic_dna_qa', 'deterministic_dna_approval', 'deterministic_dna_application',
-        'qwen_reasoning',
+        'model_reasoning', 'qwen_reasoning',
       ].includes(message.runtimeSource)
       || !message.content
       || message.content.length > 8_000
@@ -670,7 +670,7 @@ function assertAggregate(aggregate: EditReferenceAggregate, scope: EditReference
     if (!referenceIds.has(message.editReferenceId) || !studyIds.has(message.studySessionId)) {
       throw invalidAggregate('message_link_is_invalid')
     }
-    if (message.runtimeSource === 'qwen_reasoning') {
+    if (['model_reasoning', 'qwen_reasoning'].includes(message.runtimeSource)) {
       if (
         message.role !== 'assistant'
         || typeof message.reasoningAttemptId !== 'string'
@@ -745,7 +745,10 @@ function assertAggregate(aggregate: EditReferenceAggregate, scope: EditReference
     preferenceDnaReasoningRequestKeys.add(requestKey)
   }
   for (const message of aggregate.messages) {
-    if (message.runtimeSource === 'qwen_reasoning' && !reasoningAssistantMessageIds.has(message.id)) {
+    if (
+      ['model_reasoning', 'qwen_reasoning'].includes(message.runtimeSource)
+      && !reasoningAssistantMessageIds.has(message.id)
+    ) {
       throw invalidAggregate('orphan_reasoning_assistant_message')
     }
   }
@@ -851,6 +854,10 @@ function assertReasoningAttempt(
   const reference = aggregate.references.find((record) => record.id === attempt.editReferenceId)
   const study = aggregate.studies.find((record) => record.id === attempt.studySessionId)
   const userMessage = messagesById.get(attempt.userMessageId)
+  const savedDirectionEvidence = attempt.savedDirectionEvidenceId
+    ? aggregate.evidence.find((record) => record.id === attempt.savedDirectionEvidenceId)
+    : undefined
+  const contextState = attempt.contextStateAtReservation
   if (
     !reference
     || !study
@@ -863,6 +870,26 @@ function assertReasoningAttempt(
     || typeof userMessage.clientMessageId !== 'string'
     || sha256(userMessage.clientMessageId) !== attempt.clientMessageDigestSha256
     || sha256(userMessage.content) !== attempt.userMessageContentDigestSha256
+    || ((attempt.savedDirectionEvidenceId === undefined) !== (contextState === undefined))
+    || (attempt.savedDirectionEvidenceId !== undefined && (
+      !savedDirectionEvidence
+      || savedDirectionEvidence.editReferenceId !== reference.id
+      || savedDirectionEvidence.studySessionId !== study.id
+      || savedDirectionEvidence.sourceType !== 'manual_user_evidence'
+      || sha256(savedDirectionEvidence.summary) !== attempt.userMessageContentDigestSha256
+    ))
+    || (contextState !== undefined && (
+      !isRecord(contextState)
+      || !['active', 'archived'].includes(contextState.referenceStatus)
+      || ![
+        'draft', 'collecting_evidence', 'ready_to_study', 'studying',
+        'needs_clarification', 'evidence_ready', 'dna_ready', 'qa_blocked',
+        'needs_user_review', 'approved', 'applied', 'archived', 'failed',
+      ].includes(contextState.studyStatus)
+      || !['not_complete', 'ready_to_study', 'evidence_ready', 'needs_clarification'].includes(contextState.evidenceStatus)
+      || !['not_generated', 'review_required', 'approved'].includes(contextState.dnaStatus)
+      || !['not_run', 'passed', 'blocked', 'requires_user_review'].includes(contextState.qaStatus)
+    ))
   ) throw invalidAggregate('reasoning_attempt_user_message_link_invalid')
 
   try {
@@ -1007,7 +1034,7 @@ function assertReasoningAttempt(
         attempt.terminalReason !== undefined
         || !assistantMessage
         || assistantMessage.role !== 'assistant'
-        || assistantMessage.runtimeSource !== 'qwen_reasoning'
+        || !['model_reasoning', 'qwen_reasoning'].includes(assistantMessage.runtimeSource)
         || assistantMessage.reasoningAttemptId !== attempt.id
         || assistantMessage.editReferenceId !== attempt.editReferenceId
         || assistantMessage.studySessionId !== attempt.studySessionId

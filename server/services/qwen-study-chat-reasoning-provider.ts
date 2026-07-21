@@ -39,6 +39,7 @@ const messageRuntimeSources = [
   'deterministic_dna_qa',
   'deterministic_dna_approval',
   'deterministic_dna_application',
+  'model_reasoning',
   'qwen_reasoning',
 ] as const
 
@@ -61,7 +62,7 @@ const recentMessageSchema = z.object({
 
 export const qwenStudyChatStructuredContextSchema = z.object({
   schemaVersion: z.literal(QWEN_STUDY_CHAT_STRUCTURED_CONTEXT_VERSION),
-  userMessage: z.string().trim().min(1).max(4_000),
+  userMessage: z.string().trim().min(1).max(8_000),
   initialGoals: z.array(z.enum(EDIT_REFERENCE_STUDY_GOALS)).min(1).max(EDIT_REFERENCE_STUDY_GOALS.length),
   currentState: z.object({
     referenceStatus: z.enum(['active', 'archived']),

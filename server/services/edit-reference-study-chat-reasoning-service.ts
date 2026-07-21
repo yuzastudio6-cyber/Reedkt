@@ -191,6 +191,8 @@ export function buildEditReferenceStudyChatStructuredContext(input: {
   readonly studyId: string
   readonly userMessage: string
   readonly excludedMessageIds?: readonly string[]
+  readonly excludedEvidenceIds?: readonly string[]
+  readonly currentStateOverride?: QwenStudyChatStructuredContext['currentState']
 }): QwenStudyChatStructuredContext {
   const study = input.aggregate.studies.find((record) => record.id === input.studyId)
   const reference = input.aggregate.references.find((record) => record.id === input.referenceId)
@@ -204,10 +206,13 @@ export function buildEditReferenceStudyChatStructuredContext(input: {
   const safeMessages = studyMessages.filter((record) => isSafeEditReferenceStudyChatReasoningText(record.content, 8_000))
   const selectedMessages = safeMessages.slice(-MAX_RECENT_MESSAGES)
 
-  const supersededEvidenceIds = new Set(input.aggregate.evidence
+  const excludedEvidenceIds = new Set(input.excludedEvidenceIds ?? [])
+  const contextEvidence = input.aggregate.evidence
+    .filter((record) => !excludedEvidenceIds.has(record.id))
+  const supersededEvidenceIds = new Set(contextEvidence
     .filter((record) => record.studySessionId === study.id && record.supersedesEvidenceId)
     .map((record) => record.supersedesEvidenceId as string))
-  const activeEvidence = input.aggregate.evidence
+  const activeEvidence = contextEvidence
     .filter((record) => record.studySessionId === study.id && !supersededEvidenceIds.has(record.id))
     .sort((left, right) => right.revision - left.revision || right.updatedAt.localeCompare(left.updatedAt) || left.id.localeCompare(right.id))
   const unsafeEvidence = activeEvidence.filter((record) => !isSafeEditReferenceStudyChatReasoningText(record.summary, MAX_EVIDENCE_SUMMARY_CHARACTERS))
@@ -218,7 +223,7 @@ export function buildEditReferenceStudyChatStructuredContext(input: {
     schemaVersion: QWEN_STUDY_CHAT_STRUCTURED_CONTEXT_VERSION,
     userMessage: input.userMessage.trim(),
     initialGoals: [...study.initialGoals],
-    currentState: {
+    currentState: input.currentStateOverride ?? {
       referenceStatus: reference.status,
       studyStatus: study.status,
       evidenceStatus: study.evidenceStatus,
@@ -284,7 +289,7 @@ export function validateEditReferenceStudyChatReasoningServiceInput(
     || input.clientMessageId.length > 160
     || !Number.isSafeInteger(input.expectedStudyRevision)
     || input.expectedStudyRevision < 1
-    || !isSafeEditReferenceStudyChatReasoningText(input.userMessage, 4_000)
+    || !isSafeEditReferenceStudyChatReasoningText(input.userMessage, 8_000)
   ) throw new StudyChatReasoningServiceError('The bounded Study Chat reasoning input is invalid or unsafe.')
 }
 

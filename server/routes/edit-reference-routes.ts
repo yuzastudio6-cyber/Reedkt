@@ -4,6 +4,7 @@ import { ApiError } from '../errors/api-error'
 import { requireAuth } from '../middleware/auth'
 import { requireSensitiveIdempotencyKey } from '../middleware/idempotency'
 import { createEditReferenceService, type EditReferenceServiceResult } from '../services/edit-reference-service'
+import { appendMountedEditReferenceStudyChatMessage } from '../services/edit-reference-study-chat-runtime-port'
 import {
   assertEditReferenceUploadPersistenceAvailable,
   createUploadService,
@@ -382,11 +383,15 @@ export function createEditReferenceRoutes(): Router {
 
   router.post('/v1/edit-reference-studies/:studyId/messages', requireAuth, asyncRoute(async (request, response) => {
     const body = validateBody(appendMessageSchema, request.body)
-    const result = await createEditReferenceService(getServiceContext(request)).appendMessage(
-      getRouteParam(request, 'studyId'),
-      body,
-      getDurableIdempotencyKey(request),
-    )
+    const context = getServiceContext(request)
+    const result = await appendMountedEditReferenceStudyChatMessage({
+      env: context.env,
+      port: context.editReferenceStudyChatRuntimePort,
+      authority: createEditReferenceService(context),
+      studyId: getRouteParam(request, 'studyId'),
+      request: body,
+      idempotencyKey: getDurableIdempotencyKey(request),
+    })
     sendMutation(response, result, 201)
   }))
 

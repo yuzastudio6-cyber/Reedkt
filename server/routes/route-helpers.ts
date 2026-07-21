@@ -30,6 +30,8 @@ export function getServiceContext(request: Request): ServiceContext {
       runtimeRequest.runtime.canonicalDurableUploadTargetStatePort,
     canonicalUploadTargetCredentialEscrow:
       runtimeRequest.runtime.canonicalUploadTargetCredentialEscrow,
+    editReferenceStudyChatRuntimePort:
+      runtimeRequest.runtime.editReferenceStudyChatRuntimePort,
   }
 }
 

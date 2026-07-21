@@ -24,6 +24,7 @@ import { useSearchParams } from 'react-router-dom'
 import type {
   CreatePreferenceEvidenceRequest,
   EditReferenceDetail,
+  EditReferenceLongFormStudyControlAction,
   EditReferenceListItem,
   PreferenceAssetRecord,
   PreferenceApplicationRecord,
@@ -1135,13 +1136,29 @@ function LongFormVideoStudyCard({ asset, detail, disabled, onChanged, setBusy }:
       workspaceId,
       expectedStudyRevision: detail.study.revision,
     })
-    if (!response.ok) {
-      setStatusError(response.message)
+    let confirmedSummary = response.ok ? response.data.study : undefined
+    let recoveredLostResponse = false
+    if (!confirmedSummary) {
+      const readback = await api.getLongFormStudy(workspaceId, detail.study.id, asset.id)
+      if (readback.ok) {
+        confirmedSummary = readback.data.study
+        recoveredLostResponse = true
+      }
+    }
+    if (!confirmedSummary) {
+      if (response.ok) {
+        setStatusError('The study start could not be read back safely. Check progress before trying again.')
+      } else {
+        setStatusError(response.message)
+      }
       setRefreshing(false)
       setBusy(false)
       return
     }
-    setSummary(response.data.study)
+    setSummary(confirmedSummary)
+    if (recoveredLostResponse) {
+      setControlNotice('Study start confirmed after the connection interrupted. No second study run was created.')
+    }
     const refreshedDetail = await api.get(workspaceId, detail.reference.id)
     if (refreshedDetail.ok) await onChanged(refreshedDetail.data.detail)
     else setStatusError('The study started, but the page could not refresh its saved reference details. Check progress again safely.')
@@ -1159,54 +1176,56 @@ function LongFormVideoStudyCard({ asset, detail, disabled, onChanged, setBusy }:
     setRefreshing(false)
   }
 
-  const controlStudy = async (action: 'pause' | 'resume' | 'cancel' | 'recover') => {
+  const controlStudy = async (action: EditReferenceLongFormStudyControlAction) => {
     if (!summary) return
     setBusy(true)
     setRefreshing(true)
     setStatusError(undefined)
     setControlNotice(undefined)
+    const priorSummary = summary
     let response = await api.controlLongFormStudy(detail.study.id, asset.id, {
       workspaceId,
       expectedRunRevision: summary.runRevision,
       action,
-    })
-    if (!response.ok && response.code === 'VERSION_CONFLICT') {
+    }, `long-form-control-${action}-${crypto.randomUUID()}`)
+    let confirmedReadback: PreferenceLongFormStudySummary | undefined
+    if (!response.ok) {
       const current = await api.getLongFormStudy(workspaceId, detail.study.id, asset.id)
       if (current.ok) {
         setSummary(current.data.study)
-        const stillAllowed = action === 'pause'
-          ? current.data.study.controls.canPause
-          : action === 'resume'
-            ? current.data.study.controls.canResume
-            : action === 'recover'
-              ? current.data.study.controls.canRecover
-              : current.data.study.controls.canCancel
-        if (stillAllowed) {
+        if (longFormStudyControlWasApplied(priorSummary, current.data.study, action)) {
+          confirmedReadback = current.data.study
+        } else if (response.code === 'VERSION_CONFLICT' && longFormStudyControlIsAllowed(current.data.study, action)) {
           response = await api.controlLongFormStudy(detail.study.id, asset.id, {
             workspaceId,
             expectedRunRevision: current.data.study.runRevision,
             action,
-          })
+          }, `long-form-control-${action}-${crypto.randomUUID()}`)
         }
       }
     }
-    if (!response.ok) {
+    if (confirmedReadback) {
+      setSummary(confirmedReadback)
+      setConfirmCancel(false)
+      setControlNotice(longFormStudyLostResponseNotice(action))
+    } else if (!response.ok) {
       setStatusError(response.message)
       setRefreshing(false)
       setBusy(false)
       return
+    } else {
+      setSummary(response.data.study)
+      setConfirmCancel(false)
+      setControlNotice(action === 'pause'
+        ? response.data.control.activeWorkFinishesBeforePause
+          ? 'Pause saved. The active bounded step will finish, then the study will remain paused.'
+          : 'Study paused. Completed checkpoints are safe.'
+        : action === 'resume'
+          ? 'Study resumed from the last verified checkpoint.'
+          : action === 'recover'
+            ? `${response.data.control.recoveredWorkItemCount} blocked study step${response.data.control.recoveredWorkItemCount === 1 ? '' : 's'} authorized for a bounded retry.`
+            : 'Study cancelled. No new step will start.')
     }
-    setSummary(response.data.study)
-    setConfirmCancel(false)
-    setControlNotice(action === 'pause'
-      ? response.data.control.activeWorkFinishesBeforePause
-        ? 'Pause saved. The active bounded step will finish, then the study will remain paused.'
-        : 'Study paused. Completed checkpoints are safe.'
-      : action === 'resume'
-        ? 'Study resumed from the last verified checkpoint.'
-        : action === 'recover'
-          ? `${response.data.control.recoveredWorkItemCount} blocked study step${response.data.control.recoveredWorkItemCount === 1 ? '' : 's'} authorized for a bounded retry.`
-          : 'Study cancelled. No new step will start.')
     const refreshedDetail = await api.get(workspaceId, detail.reference.id)
     if (refreshedDetail.ok) await onChanged(refreshedDetail.data.detail)
     else setStatusError('The study action was saved, but the page could not refresh its reference details. Check progress again safely.')
@@ -1420,6 +1439,39 @@ function LongFormVideoStudyCard({ asset, detail, disabled, onChanged, setBusy }:
       )}
     </article>
   )
+}
+
+function longFormStudyControlIsAllowed(
+  summary: PreferenceLongFormStudySummary,
+  action: EditReferenceLongFormStudyControlAction,
+): boolean {
+  if (action === 'pause') return summary.controls.canPause
+  if (action === 'resume') return summary.controls.canResume
+  if (action === 'recover') return summary.controls.canRecover
+  return summary.controls.canCancel
+}
+
+function longFormStudyControlWasApplied(
+  before: PreferenceLongFormStudySummary,
+  after: PreferenceLongFormStudySummary,
+  action: EditReferenceLongFormStudyControlAction,
+): boolean {
+  if (after.runId !== before.runId || after.runRevision <= before.runRevision) return false
+  if (action === 'pause') return after.state === 'paused'
+  if (action === 'resume') return after.state === 'running' || after.state === 'completed'
+  if (action === 'recover') {
+    return (after.state === 'running' || after.state === 'completed')
+      && !after.operatorReviewRequired
+      && after.blockedWorkItemCount < before.blockedWorkItemCount
+  }
+  return after.state === 'cancelled'
+}
+
+function longFormStudyLostResponseNotice(action: EditReferenceLongFormStudyControlAction): string {
+  if (action === 'pause') return 'Pause confirmed after the connection interrupted. Completed checkpoints remain safe.'
+  if (action === 'resume') return 'Resume confirmed after the connection interrupted. The study continues from its saved checkpoint.'
+  if (action === 'recover') return 'Recovery confirmed after the connection interrupted. Only the authorized blocked steps will retry.'
+  return 'Cancellation confirmed after the connection interrupted. No new study step will start.'
 }
 
 function longFormStudyStateLabel(summary: PreferenceLongFormStudySummary): string {

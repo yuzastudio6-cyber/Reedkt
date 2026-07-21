@@ -242,6 +242,79 @@ test.describe('canonical Edit Preference real-file flow', () => {
     await expectNoHorizontalOverflow(page)
   })
 
+  test('reconciles committed whole-video study commands when their responses are lost', async ({ page }) => {
+    test.setTimeout(120_000)
+    page.setDefaultTimeout(15_000)
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await setViewport(page, 1280, 900)
+
+    const preferenceName = `Study command readback ${Date.now()}`
+    let loseStartResponse = true
+    const lostControlResponses = new Set<string>()
+    let startMutationRequests = 0
+    let controlMutationRequests = 0
+    page.on('request', (request) => {
+      const url = request.url()
+      if (request.method() === 'POST' && /\/long-form-study$/.test(url)) startMutationRequests += 1
+      if (request.method() === 'POST' && /\/long-form-study\/control$/.test(url)) controlMutationRequests += 1
+    })
+    await page.route('**/long-form-study', async (route) => {
+      if (route.request().method() === 'POST' && loseStartResponse) {
+        loseStartResponse = false
+        const committed = await route.fetch()
+        expect(committed.ok()).toBe(true)
+        await route.abort('failed')
+        return
+      }
+      await route.continue()
+    })
+    await page.route('**/long-form-study/control', async (route) => {
+      const body = JSON.parse(route.request().postData() ?? '{}') as { action?: string }
+      if (
+        route.request().method() === 'POST'
+        && body.action
+        && ['pause', 'resume', 'cancel'].includes(body.action)
+        && !lostControlResponses.has(body.action)
+      ) {
+        lostControlResponses.add(body.action)
+        const committed = await route.fetch()
+        expect(committed.ok()).toBe(true)
+        await route.abort('failed')
+        return
+      }
+      await route.continue()
+    })
+
+    await gotoRoute(page, '/preferences')
+    await page.getByTestId('new-edit-reference').click()
+    await page.getByTestId('edit-reference-name').fill(preferenceName)
+    await page.getByTestId('save-edit-reference').click()
+    await page.getByRole('button', { name: 'Upload video' }).click()
+    await page.getByTestId('edit-reference-video-file').setInputFiles(fixturePath)
+    await page.getByTestId('save-edit-reference-evidence').click()
+
+    const studyCard = page.locator('[data-testid^="edit-reference-long-form-study-"]').first()
+    await studyCard.getByRole('button', { name: 'Start whole-video study' }).click()
+    await expect(studyCard).toContainText('Study start confirmed after the connection interrupted')
+    expect(startMutationRequests).toBe(1)
+
+    await studyCard.getByRole('button', { name: 'Pause safely' }).click()
+    await expect(studyCard.getByRole('button', { name: 'Resume study' })).toBeVisible()
+    await expect(studyCard).toContainText('Pause confirmed after the connection interrupted')
+
+    await studyCard.getByRole('button', { name: 'Resume study' }).click()
+    await expect(studyCard.getByRole('button', { name: 'Pause safely' })).toBeVisible()
+    await expect(studyCard).toContainText('Resume confirmed after the connection interrupted')
+
+    await studyCard.getByRole('button', { name: 'Cancel' }).click()
+    await studyCard.getByRole('button', { name: 'Cancel study' }).click()
+    await expect(studyCard).toContainText('Cancellation confirmed after the connection interrupted')
+    await expect(studyCard).toContainText('Cancelled')
+    expect(controlMutationRequests).toBe(3)
+    expect([...lostControlResponses].sort()).toEqual(['cancel', 'pause', 'resume'])
+    await expectNoHorizontalOverflow(page)
+  })
+
   test('selects approved guidance, verifies the exact target, applies explicitly, reloads, and removes safely', async ({ page }, testInfo) => {
     test.setTimeout(180_000)
     page.setDefaultTimeout(15_000)

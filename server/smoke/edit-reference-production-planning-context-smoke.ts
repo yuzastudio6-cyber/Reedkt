@@ -13,6 +13,10 @@ import {
   createEditReferenceProductionPlanningContext,
   validateEditReferenceProductionPlanningContext,
 } from '../edit-references/edit-reference-production-planning-context'
+import {
+  EDIT_REFERENCE_PRODUCTION_PLANNING_AUTHORITY_READ_VERSION,
+  resolveEditReferenceProductionPlanningAuthority,
+} from '../edit-references/edit-reference-production-planning-authority'
 
 const hash = (character: string): string => character.repeat(64)
 const precedence = [
@@ -272,6 +276,83 @@ assert.throws(() => validateEditReferenceProductionPlanningContext({
   },
 }), /production Edit Reference planning context/i)
 
+const authorityScope = {
+  actorUserId: request.actorUserId,
+  workspaceId: application.workspaceId,
+  projectId: application.projectId,
+  editSessionId: application.editSessionId,
+}
+const authorityRead = {
+  schemaVersion: EDIT_REFERENCE_PRODUCTION_PLANNING_AUTHORITY_READ_VERSION,
+  repositoryAuthority: 'supabase_rls_transactional' as const,
+  candidateCount: 1,
+  tenantIsolation: {
+    authenticatedUserVerified: true as const,
+    workspaceMembershipVerified: true as const,
+    workspaceProjectCompositeBindingVerified: true as const,
+    projectEditSessionCompositeBindingVerified: true as const,
+    rlsPolicyVersion: 'edit-reference-rls-v1',
+    accessCheckReceiptId: 'access-check-a',
+  },
+  readRevision: 12,
+  readAt: '2026-07-21T02:00:04.000Z',
+  application,
+  lifecycleRequest: request,
+  lifecycleReceipt: receipt,
+}
+const authorityResolution = await resolveEditReferenceProductionPlanningAuthority({
+  reader: { readExactConnectedApplication: () => Promise.resolve(authorityRead) },
+  scope: authorityScope,
+  selection: {
+    applicationId: application.id,
+    expectedApplicationContentDigestSha256: application.contentDigest,
+    expectedApplicationContextHashSha256: planningContext.applicationContextHashSha256,
+    expectedLifecycleReceiptDigestSha256: receipt.receiptDigestSha256,
+  },
+})
+assert(authorityResolution)
+assert.equal(authorityResolution.sourceAuthority, 'canonical_edit_reference_production_repository')
+assert.equal(authorityResolution.planningContext.contextDigestSha256, planningContext.contextDigestSha256)
+
+const noApplicationRead = {
+  schemaVersion: EDIT_REFERENCE_PRODUCTION_PLANNING_AUTHORITY_READ_VERSION,
+  repositoryAuthority: 'supabase_rls_transactional' as const,
+  candidateCount: 0,
+  tenantIsolation: authorityRead.tenantIsolation,
+  readRevision: 13,
+  readAt: '2026-07-21T02:00:05.000Z',
+}
+assert.equal(await resolveEditReferenceProductionPlanningAuthority({
+  reader: { readExactConnectedApplication: () => Promise.resolve(noApplicationRead) },
+  scope: authorityScope,
+}), undefined)
+await assert.rejects(() => resolveEditReferenceProductionPlanningAuthority({
+  reader: { readExactConnectedApplication: () => Promise.resolve(noApplicationRead) },
+  scope: authorityScope,
+  selection: {
+    applicationId: application.id,
+    expectedApplicationContentDigestSha256: application.contentDigest,
+    expectedApplicationContextHashSha256: planningContext.applicationContextHashSha256,
+    expectedLifecycleReceiptDigestSha256: receipt.receiptDigestSha256,
+  },
+}), /production Edit Reference planning authority/i)
+await assert.rejects(() => resolveEditReferenceProductionPlanningAuthority({
+  reader: {
+    readExactConnectedApplication: () => Promise.resolve({ ...authorityRead, candidateCount: 2 }),
+  },
+  scope: authorityScope,
+}), /production Edit Reference planning authority/i)
+await assert.rejects(() => resolveEditReferenceProductionPlanningAuthority({
+  reader: { readExactConnectedApplication: () => Promise.resolve(authorityRead) },
+  scope: authorityScope,
+  selection: {
+    applicationId: application.id,
+    expectedApplicationContentDigestSha256: application.contentDigest,
+    expectedApplicationContextHashSha256: hash('b'),
+    expectedLifecycleReceiptDigestSha256: receipt.receiptDigestSha256,
+  },
+}), /production Edit Reference planning authority/i)
+
 console.log(JSON.stringify({
   status: 'passed',
   planningContextVersion: planningContext.schemaVersion,
@@ -280,6 +361,7 @@ console.log(JSON.stringify({
   guidanceCount: planningContext.guidance.length,
   heldBackCount: planningContext.heldBack.length,
   contextDigestSha256: planningContext.contextDigestSha256,
+  productionRepositoryAuthorityResolved: true,
   remoteMutationAttempted: false,
   productionReady: false,
 }, null, 2))

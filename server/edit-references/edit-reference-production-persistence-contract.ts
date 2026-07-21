@@ -1,7 +1,7 @@
 import { ApiError } from '../errors/api-error'
 
 export const EDIT_REFERENCE_PRODUCTION_PERSISTENCE_CONTRACT_VERSION =
-  'edit-reference-production-persistence-contract-v1' as const
+  'edit-reference-production-persistence-contract-v2' as const
 
 export const EDIT_REFERENCE_REQUIRED_PRODUCTION_TABLES = [
   'edit_references',
@@ -63,20 +63,25 @@ export interface EditReferenceProductionTableContract {
 }
 
 export interface EditReferenceApplicationLifecycleTransactionContract {
-  readonly rpcName: 'mutate_edit_reference_application_lifecycle_v1'
-  readonly supportedMutations: readonly ['replace', 'remove']
+  readonly rpcName: 'mutate_edit_reference_application_lifecycle_v2'
+  readonly supportedMutations: readonly ['apply', 'replace', 'remove']
   readonly authorization: {
     readonly authenticatedUserRequired: true
     readonly workspaceEditorOrOwnerRequired: true
     readonly serviceRoleBrowserUseAllowed: false
     readonly workspaceProjectCompositeBindingRequired: true
     readonly projectEditSessionCompositeBindingRequired: true
+    readonly applyOrReplaceApprovedPreferenceDnaRequired: true
+    readonly applyOrReplaceTargetVideoUnderstandingRequired: true
+    readonly applyOrReplaceOutputFrameConfirmedRequired: true
+    readonly currentPlanLineageReadRequired: true
   }
   readonly compareAndSwap: {
     readonly expectedReferenceRevisionRequired: true
     readonly applicationContentDigestRequired: true
     readonly applicationContextHashRequired: true
-    readonly currentApplicationStatusRequired: true
+    readonly currentApplicationExpectationRequired: true
+    readonly exactEditPlanningInputRevisionRequired: true
   }
   readonly idempotency: {
     readonly keyHashRequired: true
@@ -85,6 +90,14 @@ export interface EditReferenceApplicationLifecycleTransactionContract {
     readonly changedRequestConflictRequired: true
     readonly durableResponseDigestRequired: true
     readonly mutationAndReceiptShareTransaction: true
+  }
+  readonly planningInvalidation: {
+    readonly firstApplyInvalidatesExistingDraftPlanAndEstimate: true
+    readonly replacementInvalidatesExistingDraftPlanAndEstimate: true
+    readonly removalInvalidatesExistingDraftPlanAndEstimate: true
+    readonly approvedPlanSnapshotPreserved: true
+    readonly activeExecutionAuthorizationRevoked: true
+    readonly freshPlanAndEstimateRequiredAfterMutation: true
   }
   readonly atomicEffects: readonly string[]
   readonly preservedEvidence: readonly string[]
@@ -136,6 +149,7 @@ export interface EditReferenceProductionPersistenceContract {
     readonly stagingCatalogVerificationRequired: true
     readonly storageIamVerificationRequired: true
     readonly remoteSecurityAdvisorReviewRequired: true
+    readonly sameSourceBrowserBackendAcceptanceRequired: true
   }
   readonly financialAndExecutionBoundaries: {
     readonly providerCallAllowed: false
@@ -392,20 +406,25 @@ export const editReferenceProductionPersistenceContract: EditReferenceProduction
     }),
   ],
   applicationLifecycleTransaction: {
-    rpcName: 'mutate_edit_reference_application_lifecycle_v1',
-    supportedMutations: ['replace', 'remove'],
+    rpcName: 'mutate_edit_reference_application_lifecycle_v2',
+    supportedMutations: ['apply', 'replace', 'remove'],
     authorization: {
       authenticatedUserRequired: true,
       workspaceEditorOrOwnerRequired: true,
       serviceRoleBrowserUseAllowed: false,
       workspaceProjectCompositeBindingRequired: true,
       projectEditSessionCompositeBindingRequired: true,
+      applyOrReplaceApprovedPreferenceDnaRequired: true,
+      applyOrReplaceTargetVideoUnderstandingRequired: true,
+      applyOrReplaceOutputFrameConfirmedRequired: true,
+      currentPlanLineageReadRequired: true,
     },
     compareAndSwap: {
       expectedReferenceRevisionRequired: true,
       applicationContentDigestRequired: true,
       applicationContextHashRequired: true,
-      currentApplicationStatusRequired: true,
+      currentApplicationExpectationRequired: true,
+      exactEditPlanningInputRevisionRequired: true,
     },
     idempotency: {
       keyHashRequired: true,
@@ -415,10 +434,18 @@ export const editReferenceProductionPersistenceContract: EditReferenceProduction
       durableResponseDigestRequired: true,
       mutationAndReceiptShareTransaction: true,
     },
+    planningInvalidation: {
+      firstApplyInvalidatesExistingDraftPlanAndEstimate: true,
+      replacementInvalidatesExistingDraftPlanAndEstimate: true,
+      removalInvalidatesExistingDraftPlanAndEstimate: true,
+      approvedPlanSnapshotPreserved: true,
+      activeExecutionAuthorizationRevoked: true,
+      freshPlanAndEstimateRequiredAfterMutation: true,
+    },
     atomicEffects: [
       'lock_exact_workspace_project_edit_application_and_current_plan',
       'validate_current_application_and_compare_and_swap_revision',
-      'replace_or_clear_preference_application_lifecycle',
+      'apply_replace_or_clear_preference_application_lifecycle',
       'invalidate_exact_project_edit_session_preference_context',
       'invalidate_exact_edit_brief_preference_context',
       'mark_affected_edit_plan_version_stale',
@@ -487,6 +514,7 @@ export const editReferenceProductionPersistenceContract: EditReferenceProduction
     stagingCatalogVerificationRequired: true,
     storageIamVerificationRequired: true,
     remoteSecurityAdvisorReviewRequired: true,
+    sameSourceBrowserBackendAcceptanceRequired: true,
   },
   financialAndExecutionBoundaries: {
     providerCallAllowed: false,
@@ -549,7 +577,7 @@ export function validateEditReferenceProductionPersistenceContract(
     if (!application.requiredColumns.includes(requiredColumn)) invalid(`application_missing_column:${requiredColumn}`)
   }
   const requiredEffects = [
-    'replace_or_clear_preference_application_lifecycle',
+    'apply_replace_or_clear_preference_application_lifecycle',
     'invalidate_exact_project_edit_session_preference_context',
     'mark_affected_edit_plan_version_stale',
     'revoke_affected_execution_authorization',
@@ -561,6 +589,19 @@ export function validateEditReferenceProductionPersistenceContract(
       invalid(`missing_atomic_effect:${effect}`)
     }
   }
+  if (JSON.stringify(contract.applicationLifecycleTransaction.supportedMutations) !== JSON.stringify([
+    'apply',
+    'replace',
+    'remove',
+  ])) invalid('application_lifecycle_mutation_set_incomplete')
+  if (
+    !contract.applicationLifecycleTransaction.planningInvalidation.firstApplyInvalidatesExistingDraftPlanAndEstimate
+    || !contract.applicationLifecycleTransaction.planningInvalidation.replacementInvalidatesExistingDraftPlanAndEstimate
+    || !contract.applicationLifecycleTransaction.planningInvalidation.removalInvalidatesExistingDraftPlanAndEstimate
+    || !contract.applicationLifecycleTransaction.planningInvalidation.approvedPlanSnapshotPreserved
+    || !contract.applicationLifecycleTransaction.planningInvalidation.activeExecutionAuthorizationRevoked
+    || !contract.applicationLifecycleTransaction.planningInvalidation.freshPlanAndEstimateRequiredAfterMutation
+  ) invalid('application_lifecycle_planning_invalidation_incomplete')
   if (!contract.applicationLifecycleTransaction.idempotency.mutationAndReceiptShareTransaction) {
     invalid('idempotency_not_atomic_with_domain_mutation')
   }

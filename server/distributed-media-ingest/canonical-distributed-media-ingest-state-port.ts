@@ -661,6 +661,31 @@ export function createCanonicalDistributedMediaIngestFixtureDescriptor(
   })
 }
 
+export function createCanonicalDistributedMediaIngestUnverifiedDatabaseAdapterDescriptor(
+  adapterId = 'canonical_media_ingest_database_adapter_contract_v1',
+): CanonicalDistributedMediaIngestPortDescriptor {
+  return descriptorWithHash({
+    schemaVersion: CANONICAL_DISTRIBUTED_MEDIA_INGEST_PORT_VERSION,
+    adapterId,
+    implementationClass: 'database_transaction_adapter',
+    serviceOnly: true,
+    exactInputAndOutputSchemasEnforced: true,
+    prePlanTechnicalIngestAuthority: true,
+    approvedPackageAuthorityReusedOrFabricated: false,
+    serializableTransactionSemanticsExercised: false,
+    durableResponseReplaySemanticsExercised: false,
+    progressCheckpointResumeSemanticsExercised: false,
+    terminalExclusivitySemanticsExercised: false,
+    databaseBackend: 'none',
+    distributedDatabaseTransactionVerified: false,
+    multiReplicaDurabilityVerified: false,
+    liveSupabaseOrPostgresCallPerformed: false,
+    cloudDispatchVerified: false,
+    liveGcsObjectBytesRead: false,
+    productionAuthority: false,
+  })
+}
+
 export function canonicalDistributedMediaIngestPersistenceBoundaries() {
   return {
     serviceOnly: true as const,
@@ -801,13 +826,21 @@ async function invoke<TRequest extends z.ZodType, TResponse extends z.ZodType>(
     throw new ApiError('VALIDATION_FAILED', 'Distributed media-ingest request is invalid.', 400, parsed.error.flatten())
   }
   const request = parsed.data
+  const requestIdentity = request as {
+    jobId: string
+    idempotencyKey: string
+    requestHash: string
+  }
   const expectedHash = canonicalDistributedMediaIngestRequestHash(
     operation,
     request as Record<string, unknown>,
   )
-  if ((request as { requestHash: string }).requestHash !== expectedHash) {
+  if (requestIdentity.requestHash !== expectedHash) {
     throw new ApiError('IDEMPOTENCY_CONFLICT', 'Distributed media-ingest request hash is invalid.', 409)
   }
+  const expectedIdempotencyKeyHash = canonicalDistributedMediaIngestIdempotencyKeyHash(
+    requestIdentity.idempotencyKey,
+  )
   const result = await adapterMethod(request)
   const parsedResult = z.object({
     idempotencyStatus: z.enum(['inserted', 'exact_replay']),
@@ -821,11 +854,23 @@ async function invoke<TRequest extends z.ZodType, TResponse extends z.ZodType>(
     throw atomicityError('Distributed media-ingest adapter returned an invalid response payload.')
   }
   if (operation === 'finalize_expired_attempt') {
-    assertCanonicalDistributedMediaIngestTimeoutIntegrity(parsedResponse.data)
+    const response = assertCanonicalDistributedMediaIngestTimeoutIntegrity(parsedResponse.data)
+    if (
+      response.jobId !== requestIdentity.jobId ||
+      response.requestHash !== requestIdentity.requestHash ||
+      response.idempotencyKeyHash !== expectedIdempotencyKeyHash
+    ) {
+      throw atomicityError('Distributed media-ingest timeout response changed request lineage.')
+    }
   } else {
     const response = assertCanonicalDistributedMediaIngestMutationIntegrity(parsedResponse.data)
-    if (response.operation !== operation) {
-      throw atomicityError('Distributed media-ingest adapter changed operation lineage.')
+    if (
+      response.operation !== operation ||
+      response.job.jobId !== requestIdentity.jobId ||
+      response.transaction.requestHash !== requestIdentity.requestHash ||
+      response.transaction.idempotencyKeyHash !== expectedIdempotencyKeyHash
+    ) {
+      throw atomicityError('Distributed media-ingest adapter changed request lineage.')
     }
   }
   return {

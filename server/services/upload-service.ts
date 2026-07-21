@@ -264,6 +264,7 @@ export function createUploadService(context: ServiceContext) {
       if (uploadOwner.kind === 'project') {
         await assertUploadProjectOwnedByCurrentUser(context, uploadOwner.projectId, input.workspaceId)
       }
+      assertCreateUploadIntentDomainIdempotencyAvailable(context, input.idempotencyKey)
       assertProductionUploadUsesDirectObjectStorage(context, storage)
       assertUserInitiatedUploadPurpose(input.uploadPurpose)
       assertAllowedUpload({
@@ -318,6 +319,7 @@ export function createUploadService(context: ServiceContext) {
       if (uploadOwner.kind === 'project') {
         await assertUploadProjectOwnedByCurrentUser(context, uploadOwner.projectId, input.workspaceId)
       }
+      assertCreateUploadIntentDomainIdempotencyAvailable(context, input.idempotencyKey)
       assertProductionUploadUsesDirectObjectStorage(context, storage)
       assertUserInitiatedUploadPurpose(input.uploadPurpose)
       assertAllowedUpload({
@@ -1239,6 +1241,24 @@ async function assertSignedUrlEventAccess(context: ServiceContext, input: Signed
 
 function usesLocalUploadPersistence(context: ServiceContext): boolean {
   return !context.clients.admin || context.env.mockOnly || context.env.allowInternalTestExecutionWithSupabase
+}
+
+function assertCreateUploadIntentDomainIdempotencyAvailable(
+  context: ServiceContext,
+  idempotencyKey: string | undefined,
+): void {
+  if (usesLocalUploadPersistence(context)) return
+  throw new ApiError(
+    'IDEMPOTENCY_ATOMICITY_REQUIRED',
+    'Production upload-intent creation is unavailable until its durable intent and idempotency response commit atomically.',
+    503,
+    {
+      requiredGate: 'create_upload_intent_atomic_idempotency_rpc',
+      idempotencyKeyPresent: Boolean(idempotencyKey?.trim()),
+      temporaryCredentialReplayCacheAllowed: false,
+      retryable: false,
+    },
+  )
 }
 
 function getRequiredUploadAdminClient(context: ServiceContext): NonNullable<ServiceContext['clients']['admin']> {

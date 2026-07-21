@@ -240,6 +240,7 @@ async function requireUploadIntentCreateAccess(
     await createUploadService(getServiceContext(request)).authorizeCreateUploadIntent({
       ...body,
       projectId: getRouteParam(request, 'projectId'),
+      idempotencyKey: getIdempotencyKey(request),
     })
     next()
   } catch (error) {

@@ -4,6 +4,7 @@ import { rm } from 'node:fs/promises'
 import type { SupabaseClient, User } from '@supabase/supabase-js'
 import { createReeditProApiApp } from '../app'
 import { loadRuntimeEnv } from '../config/env'
+import { ApiError } from '../errors/api-error'
 import { clearLocalProjectMemoryForSmoke } from '../services/project-service'
 import { createUploadService } from '../services/upload-service'
 import { LocalStorageAdapter } from '../storage/local-storage-adapter'
@@ -226,6 +227,33 @@ const storageContext: ServiceContext = {
   storageAdapter: new LocalStorageAdapter(localStorageRoot),
 }
 const storageService = createUploadService(storageContext)
+const productionUploadIntentService = createUploadService({
+  ...storageContext,
+  env: loadRuntimeEnv({
+    NODE_ENV: 'production',
+    E2E_RUNTIME_MODE: 'cloud_run',
+    STORAGE_MODE: 'gcs_disabled',
+    SUPABASE_URL: 'https://upload-intent-production.reeditpro.local',
+    SUPABASE_ANON_KEY: 'test-anon-key',
+    SUPABASE_SERVICE_ROLE_KEY: 'test-service-role-key',
+    REEDITPRO_INTERNAL_SERVICE_TOKEN: 'test-internal-token',
+  }),
+})
+await assert.rejects(
+  () => productionUploadIntentService.createUploadIntent({
+    workspaceId: 'workspace-storage-owner',
+    projectId: 'project-storage-owner',
+    uploadPurpose: 'source_media',
+    originalFileName: 'production-source.mp4',
+    mimeType: 'video/mp4',
+    expectedSizeBytes: 4,
+    idempotencyKey: 'production-upload-intent-key',
+  }),
+  (error: unknown) => hasRequiredGate(
+    error,
+    'create_upload_intent_atomic_idempotency_rpc',
+  ),
+)
 await storageService.authorizeStorageObjectRead('source-no-intent', 'workspace-storage-owner', 'metadata')
 await storageService.authorizeStorageObjectRead('processed-no-intent', 'workspace-storage-owner', 'preview_review')
 await storageService.authorizeStorageObjectRead('qa-no-intent', 'workspace-storage-owner', 'qa_review')
@@ -258,6 +286,7 @@ console.log(JSON.stringify({
     'project_upload_intent_replays_through_domain_authority',
     'project_upload_intent_changed_request_conflicts',
     'temporary_upload_target_not_cached_by_generic_idempotency',
+    'production_upload_intent_requires_atomic_domain_idempotency_rpc',
     'local_raw_upload_requires_content_length',
     'local_raw_upload_rejects_oversized_header_before_body_parse',
     'local_raw_upload_accepts_small_authorized_test_body',
@@ -442,6 +471,17 @@ async function assertRejects(action: () => Promise<unknown>, message: string): P
     rejected = true
   }
   assert.equal(rejected, true, message)
+}
+
+function hasRequiredGate(error: unknown, requiredGate: string): boolean {
+  if (
+    !(error instanceof ApiError)
+    || error.code !== 'IDEMPOTENCY_ATOMICITY_REQUIRED'
+    || !error.details
+    || typeof error.details !== 'object'
+    || Array.isArray(error.details)
+  ) return false
+  return (error.details as Record<string, unknown>).requiredGate === requiredGate
 }
 
 function listen(server: Server): Promise<Server> {

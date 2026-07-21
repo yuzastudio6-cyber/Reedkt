@@ -49,6 +49,141 @@ const FORBIDDEN_OUTBOUND_KEY = /^(?:secret|credential|accessToken|refreshToken|s
 
 type JsonRecord = Record<string, unknown>
 
+export type CanonicalStorytellingStylePlanReviewSource = {
+  schemaVersion: 'motion-studio.storytelling-style-plan-review-input.v1'
+  workspaceId: string
+  projectId: string
+  editSessionId: string
+  productionId: string
+  styleSelection: {
+    schemaVersion: 'motion-studio.storytelling-style-selection.v1'
+    id: string
+    state: 'draft' | 'in_review' | 'selected_for_plan' | 'approved_snapshot_bound' | 'stale'
+    selectionDigest: string
+    styleProfile: {
+      styleProfileId:
+        | 'storytelling_style.editorial_collage'
+        | 'storytelling_style.cinematic_realist_documentary'
+        | 'storytelling_style.paper_diorama_documentary'
+        | 'storytelling_style.technical_blueprint'
+      styleProfileVersion: string
+      styleProfileDigest: string
+    }
+    motionLanguage: {
+      motionLanguageId: string
+      motionLanguageVersion: string
+      motionLanguageDigest: string
+    }
+    motionDnaVersion: CanonicalStorytellingStyleVersionReference
+    referenceContractVersions: readonly CanonicalStorytellingStyleVersionReference[]
+    sourceAuditDigests: readonly string[]
+  }
+  calibrationPlan: {
+    schemaVersion: 'motion-studio.style-calibration-plan.v1'
+    id: string
+    planDigest: string
+    styleSelectionDigest: string
+    routePolicy: {
+      policyId:
+        | 'motion_studio_generation_route_policy_v1'
+        | 'motion_studio_generation_route_policy_v2'
+    }
+    scenarios: ReadonlyArray<{
+      id: string
+      kind:
+        | 'style_led_motion'
+        | 'character_continuity'
+        | 'strict_first_last_frame'
+        | 'reference_heavy'
+        | 'exact_text_data'
+    }>
+    estimatedInternalCostRangeMicros: {
+      minimum: number
+      maximum: number
+    }
+    approvalAuthority: { state: 'planning_only' | 'approved_bounded_execution' }
+    automaticFallbackAllowed: false
+    fallbackRequiresNewApproval: true
+    bulkGenerationAllowed: false
+  }
+  internalCostEstimateId: string
+  internalCostEstimateDigest: string
+  internalCostEnvelopeIncludedInPlanReview: true
+  customerPricingCalculatedHere: false
+  customerCreditsMutated: false
+  decisionAuthority: 'existing_plan_review'
+  runtimeExecutionAuthorized: false
+  immutable: true
+}
+
+export type CanonicalStorytellingStyleVersionReference = {
+  artifactId: string
+  versionId: string
+  versionNumber: number
+  contentDigest: string
+}
+
+export type CanonicalStorytellingStyleAuthorityDraft = {
+  schemaVersion: 'canonical-storytelling-style-authority-v1'
+  sourceSchemaVersion: 'motion-studio.storytelling-style-plan-review-input.v1'
+  sourceAuthority: 'motion_studio_storytelling_style_planning_service'
+  evidenceClass: 'controlled_local_browser_relayed_server_prepared_content_addressed'
+  sourceRepositoryReverified: false
+  workspaceId: string
+  projectId: string
+  editSessionId: string
+  productionId: string
+  styleSelection: {
+    schemaVersion: 'motion-studio.storytelling-style-selection.v1'
+    id: string
+    state: 'selected_for_plan'
+    selectionDigest: string
+    styleProfile: CanonicalStorytellingStylePlanReviewSource['styleSelection']['styleProfile']
+    motionLanguage: CanonicalStorytellingStylePlanReviewSource['styleSelection']['motionLanguage']
+    motionDnaVersion: CanonicalStorytellingStyleVersionReference
+    referenceContractVersions: CanonicalStorytellingStyleVersionReference[]
+    sourceAuditDigests: string[]
+  }
+  calibrationPlan: {
+    schemaVersion: 'motion-studio.style-calibration-plan.v1'
+    id: string
+    planDigest: string
+    styleSelectionDigest: string
+    routePolicyId:
+      | 'motion_studio_generation_route_policy_v1'
+      | 'motion_studio_generation_route_policy_v2'
+    scenarioIds: string[]
+    scenarioKinds: Array<CanonicalStorytellingStylePlanReviewSource['calibrationPlan']['scenarios'][number]['kind']>
+    estimatedInternalCostRangeMicros: { minimum: number; maximum: number }
+    approvalState: 'planning_only'
+    automaticFallbackAllowed: false
+    fallbackRequiresNewApproval: true
+    bulkGenerationAllowed: false
+  }
+  internalCostEnvelope: {
+    schemaVersion: 'motion-studio-storytelling-style-internal-cost-envelope-v1'
+    estimateId: string
+    estimateDigest: string
+    unit: 'usd_micros'
+    minimumEstimatedInternalProductionCostMicros: number
+    maximumEstimatedInternalProductionCostMicros: number
+    approvalState: 'estimate_only_pending_plan_approval'
+    internalProductionCostOnly: true
+    customerPriceIncluded: false
+    customerCreditsIncluded: false
+    serviceFeeIncluded: false
+  }
+  decisionAuthority: 'existing_plan_review'
+  planReviewIsSoleApprovalAuthority: true
+  changedStyleRequiresFreshPlanAndEstimate: true
+  historicalApprovedSnapshotRemainsImmutable: true
+  runtimeExecutionAuthorized: false
+  providerExecutionAuthorized: false
+  customerCommercialAuthorityGranted: false
+  productionReady: false
+  immutable: true
+}
+
 type ApprovedVoiceDeliverySource = {
   sourceSequenceItemId: string
   cleanupDecisionId: string
@@ -162,6 +297,7 @@ export type CanonicalPlanComponentsDraft = {
     approvedRoutes: string[]
   }
   fallbackPolicy: JsonRecord
+  motionStudioStorytellingStyleAuthority?: CanonicalStorytellingStyleAuthorityDraft
 }
 
 export type CanonicalSourceCleanupDecisionDraft = {
@@ -241,13 +377,105 @@ export type CanonicalPlanningDraftResult =
   | { ok: true; draft: CanonicalPlanningDraft }
   | { ok: false; errors: string[] }
 
+export function projectCanonicalStorytellingStyleAuthority(
+  source: CanonicalStorytellingStylePlanReviewSource,
+): CanonicalStorytellingStyleAuthorityDraft {
+  if (
+    source.styleSelection.state !== 'selected_for_plan' ||
+    source.calibrationPlan.approvalAuthority.state !== 'planning_only' ||
+    source.calibrationPlan.styleSelectionDigest !== source.styleSelection.selectionDigest ||
+    source.internalCostEnvelopeIncludedInPlanReview !== true ||
+    source.customerPricingCalculatedHere !== false ||
+    source.customerCreditsMutated !== false ||
+    source.decisionAuthority !== 'existing_plan_review' ||
+    source.runtimeExecutionAuthorized !== false ||
+    source.immutable !== true
+  ) {
+    throw new Error(
+      'Storytelling style authority must be one exact immutable planning-only Plan Review input.',
+    )
+  }
+  const range = source.calibrationPlan.estimatedInternalCostRangeMicros
+  return {
+    schemaVersion: 'canonical-storytelling-style-authority-v1',
+    sourceSchemaVersion: source.schemaVersion,
+    sourceAuthority: 'motion_studio_storytelling_style_planning_service',
+    evidenceClass: 'controlled_local_browser_relayed_server_prepared_content_addressed',
+    sourceRepositoryReverified: false,
+    workspaceId: source.workspaceId,
+    projectId: source.projectId,
+    editSessionId: source.editSessionId,
+    productionId: source.productionId,
+    styleSelection: {
+      schemaVersion: source.styleSelection.schemaVersion,
+      id: source.styleSelection.id,
+      state: 'selected_for_plan',
+      selectionDigest: source.styleSelection.selectionDigest,
+      styleProfile: { ...source.styleSelection.styleProfile },
+      motionLanguage: { ...source.styleSelection.motionLanguage },
+      motionDnaVersion: { ...source.styleSelection.motionDnaVersion },
+      referenceContractVersions: source.styleSelection.referenceContractVersions.map((reference) => ({
+        ...reference,
+      })),
+      sourceAuditDigests: [...source.styleSelection.sourceAuditDigests],
+    },
+    calibrationPlan: {
+      schemaVersion: source.calibrationPlan.schemaVersion,
+      id: source.calibrationPlan.id,
+      planDigest: source.calibrationPlan.planDigest,
+      styleSelectionDigest: source.calibrationPlan.styleSelectionDigest,
+      routePolicyId: source.calibrationPlan.routePolicy.policyId,
+      scenarioIds: source.calibrationPlan.scenarios.map((scenario) => scenario.id),
+      scenarioKinds: source.calibrationPlan.scenarios.map((scenario) => scenario.kind),
+      estimatedInternalCostRangeMicros: { ...range },
+      approvalState: 'planning_only',
+      automaticFallbackAllowed: source.calibrationPlan.automaticFallbackAllowed,
+      fallbackRequiresNewApproval: source.calibrationPlan.fallbackRequiresNewApproval,
+      bulkGenerationAllowed: source.calibrationPlan.bulkGenerationAllowed,
+    },
+    internalCostEnvelope: {
+      schemaVersion: 'motion-studio-storytelling-style-internal-cost-envelope-v1',
+      estimateId: source.internalCostEstimateId,
+      estimateDigest: source.internalCostEstimateDigest,
+      unit: 'usd_micros',
+      minimumEstimatedInternalProductionCostMicros: range.minimum,
+      maximumEstimatedInternalProductionCostMicros: range.maximum,
+      approvalState: 'estimate_only_pending_plan_approval',
+      internalProductionCostOnly: true,
+      customerPriceIncluded: false,
+      customerCreditsIncluded: false,
+      serviceFeeIncluded: false,
+    },
+    decisionAuthority: source.decisionAuthority,
+    planReviewIsSoleApprovalAuthority: true,
+    changedStyleRequiresFreshPlanAndEstimate: true,
+    historicalApprovedSnapshotRemainsImmutable: true,
+    runtimeExecutionAuthorized: source.runtimeExecutionAuthorized,
+    providerExecutionAuthorized: false,
+    customerCommercialAuthorityGranted: false,
+    productionReady: false,
+    immutable: source.immutable,
+  }
+}
+
 export function buildCanonicalPlanningDraft(input: {
   plan: EditPlan
   plannerInput: PlannerInput
   sourceMediaAssets: ApprovedEditExecutionUploadedMediaSourceAssetClientInput[]
+  motionStudioStorytellingStylePlan?: CanonicalStorytellingStylePlanReviewSource
 }): CanonicalPlanningDraftResult {
   const errors: string[] = []
   const { plan, plannerInput } = input
+  let motionStudioStorytellingStyleAuthority: CanonicalStorytellingStyleAuthorityDraft | undefined
+  if (input.motionStudioStorytellingStylePlan) {
+    try {
+      motionStudioStorytellingStyleAuthority = projectCanonicalStorytellingStyleAuthority(
+        input.motionStudioStorytellingStylePlan,
+      )
+    } catch {
+      errors.push('Refresh the exact Storytelling style direction before canonical planning can continue.')
+    }
+  }
   const orderedSourceItems = buildSourceItems(input.sourceMediaAssets, plannerInput, errors)
 
   if (!plannerInput.aspectRatioConfirmed || plannerInput.aspectRatio === 'let_ai_decide') {
@@ -446,6 +674,11 @@ export function buildCanonicalPlanningDraft(input: {
       unapprovedFallbackAllowed: false,
       policy: toJsonValue(plan.agentQAFallbackPlan ?? {}),
     },
+    ...(motionStudioStorytellingStyleAuthority
+      ? {
+          motionStudioStorytellingStyleAuthority,
+        }
+      : {}),
   }
   if (containsForbiddenOutboundMaterial(components)) {
     return {

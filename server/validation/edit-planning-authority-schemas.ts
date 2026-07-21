@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { idSchema } from './common-schemas'
 import { planningInputAuthorityExpectationSchema } from './planning-input-authority-binding-schemas'
 import { sourceMediaAuthorityExpectationSchema } from './source-media-authority-schemas'
+import { canonicalStorytellingStyleAuthoritySchema } from './canonical-storytelling-style-authority-schemas'
 import {
   PROFESSIONAL_EXPORT_ASPECT_RATIOS,
   PROFESSIONAL_EXPORT_COST_MODEL_VERSION,
@@ -168,6 +169,7 @@ export const canonicalPlanComponentsSchema = z.object({
   qaSummary: qaSummarySchema,
   providerPolicy: providerPolicySchema,
   fallbackPolicy: jsonObjectSchema,
+  motionStudioStorytellingStyleAuthority: canonicalStorytellingStyleAuthoritySchema.optional(),
 }).strict()
 
 const estimateLineItemSchema = z.object({

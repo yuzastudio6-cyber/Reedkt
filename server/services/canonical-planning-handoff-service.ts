@@ -10,6 +10,7 @@ import {
   type PublishCanonicalEditPlanFromHandoffBody,
 } from '../validation/canonical-planning-handoff-schemas'
 import { confirmedOutputAspectRatioSchema } from '../validation/exact-edit-preference-schemas'
+import { canonicalStorytellingStyleAuthorityMatchesScope } from '../validation/canonical-storytelling-style-authority-schemas'
 import {
   canonicalPlanningHandoffIdempotencyKeyHash,
   canonicalPlanningHandoffPublicationRequestHash,
@@ -64,6 +65,20 @@ export function createCanonicalPlanningHandoffService(context: ServiceContext) {
         throw new ApiError('AUTH_REQUIRED', 'Canonical planning handoff is outside this workspace.', 403)
       }
       await createProjectService(context).getProject(projectId, access.workspaceId)
+      if (!canonicalStorytellingStyleAuthorityMatchesScope(
+        body.canonicalPlanComponents.motionStudioStorytellingStyleAuthority,
+        {
+          workspaceId: access.workspaceId,
+          projectId,
+          editSessionId,
+        },
+      )) {
+        throw new ApiError(
+          'IDEMPOTENCY_CONFLICT',
+          'Storytelling style authority does not match the exact planning handoff scope.',
+          409,
+        )
+      }
       const expectedSequence = body.orderedSourceItems.map((item) => ({
         sourceSequenceItemId: item.sourceSequenceItemId,
         mediaAssetId: item.mediaAssetId,

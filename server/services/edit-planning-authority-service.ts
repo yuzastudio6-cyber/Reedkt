@@ -32,6 +32,10 @@ import {
   type CanonicalPlanningHandoffPublicationBinding,
 } from '../validation/canonical-planning-handoff-schemas'
 import {
+  CANONICAL_STORYTELLING_STYLE_AUTHORITY_COMPONENT_KEY,
+  canonicalStorytellingStyleAuthorityMatchesScope,
+} from '../validation/canonical-storytelling-style-authority-schemas'
+import {
   resolvedPlanningInputAuthorityBindingSchema,
   type ResolvedPlanningInputAuthorityBinding,
 } from '../validation/planning-input-authority-binding-schemas'
@@ -132,6 +136,10 @@ const PLAN_COMPONENT_NAMES = [
   'fallbackPolicy',
 ] as const satisfies readonly (keyof CanonicalPlanComponentsInput)[]
 
+const OPTIONAL_PLAN_COMPONENT_NAMES = [
+  CANONICAL_STORYTELLING_STYLE_AUTHORITY_COMPONENT_KEY,
+] as const satisfies readonly (keyof CanonicalPlanComponentsInput)[]
+
 const SNAPSHOT_COMPONENT_NAMES = [...PLAN_COMPONENT_NAMES, 'planningInputAuthority', 'sourceMediaAuthority'] as const
 
 export interface PublishCanonicalEditPlanInput extends PublishCanonicalEditPlanBody {
@@ -204,6 +212,14 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
       const body = validatedBody.data
       const access = await authorizeWorkspaceAccess(context, body.workspaceId, 'write')
       await createProjectService(context).getProject(input.projectId, access.workspaceId)
+      assertCanonicalStorytellingStyleAuthorityScope(
+        body.canonicalPlan.components,
+        {
+          workspaceId: access.workspaceId,
+          projectId: input.projectId,
+          editSessionId: input.editSessionId,
+        },
+      )
       const idempotencyKey = requireIdempotencyKey(input.idempotencyKey)
       const planningInputAuthority = await resolvePlanningInputAuthorityBinding({
         context,
@@ -632,6 +648,14 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
       if (!targetPlan) throw new ApiError('PLAN_NOT_APPROVED', 'Canonical edit plan was not found.', 404)
       await createProjectService(context).getProject(targetPlan.projectId, access.workspaceId)
       const approvalComponents = await loadCanonicalPlanComponents(context, targetPlan.componentRefs)
+      assertCanonicalStorytellingStyleAuthorityScope(
+        approvalComponents,
+        {
+          workspaceId: access.workspaceId,
+          projectId: targetPlan.projectId,
+          editSessionId: targetPlan.editSessionId,
+        },
+      )
       const approvalPlanWorkItems = targetPlan.workItemIds.map((workItemId) =>
         requirePlanWorkItem(aggregateBefore!, workItemId, targetPlan.id))
       const approvalToolWorkItems = await loadPlanToolAuthorityWorkItems(
@@ -1258,28 +1282,21 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
       await createProjectService(context).getProject(snapshot.projectId, access.workspaceId)
 
       const lineage = requireApprovedExecutionLineage(aggregate, snapshot)
-      const componentEntries = await Promise.all(PLAN_COMPONENT_NAMES.map(async (name) => [
-        name,
-        await readPrivateAuthorityJsonBlob({
-          localStorageRoot: context.env.localStorageRoot,
-          ref: snapshot.componentRefs[name]!,
-        }),
-      ] as const))
-      const parsedComponents = canonicalPlanComponentsSchema.safeParse(Object.fromEntries(componentEntries))
-      if (!parsedComponents.success) {
-        throw new ApiError(
-          'VALIDATION_FAILED',
-          'Canonical approved snapshot components no longer satisfy the execution authority contract.',
-          409,
-          parsedComponents.error.flatten(),
-        )
-      }
+      const approvedComponents = await loadCanonicalPlanComponents(context, snapshot.componentRefs)
+      assertCanonicalStorytellingStyleAuthorityScope(
+        approvedComponents,
+        {
+          workspaceId: access.workspaceId,
+          projectId: snapshot.projectId,
+          editSessionId: snapshot.editSessionId,
+        },
+      )
       const planningInputAuthority = await loadPlanningInputAuthorityBinding(context, snapshot.componentRefs)
       const sourceMediaAuthority = await loadSourceMediaAuthorityCandidate(context, snapshot.componentRefs)
       const planningHandoffAuthority = await loadOptionalPlanningHandoffAuthority({
         context,
         componentRefs: snapshot.componentRefs,
-        components: parsedComponents.data,
+        components: approvedComponents,
         planningInputAuthority,
         sourceMediaAuthority,
       })
@@ -1287,13 +1304,13 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         context,
         scope: planningAuthorityScope(context, access.userId, access.workspaceId, lineage.plan),
         persistedBinding: planningInputAuthority,
-        components: parsedComponents.data,
+        components: approvedComponents,
       })
       await buildAndVerifySourceMediaAuthority({
         context,
         workspaceId: access.workspaceId,
         projectId: snapshot.projectId,
-        sourceSequence: parsedComponents.data.sourceSequence,
+        sourceSequence: approvedComponents.sourceSequence,
         expectation: sourceExpectationFromCandidate(sourceMediaAuthority),
       })
       const sourceAssetManifestValue = await readPrivateAuthorityJsonBlob({
@@ -1351,7 +1368,7 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
       const toolExecutionAuthority = await loadCanonicalToolExecutionAuthority({
         context,
         componentRefs: snapshot.componentRefs,
-        toolStrategyPlan: parsedComponents.data.toolStrategyPlan,
+        toolStrategyPlan: approvedComponents.toolStrategyPlan,
         workItems,
       })
       const toolPayloadAuthority = await loadCanonicalToolPayloadAuthority({
@@ -1369,7 +1386,7 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         sourceMediaAuthority: sourceExpectationFromCandidate(sourceMediaAuthority),
         canonicalPlan: {
           schemaVersion: PRIVATE_EDIT_AUTHORITY_SCHEMA_VERSION,
-          components: parsedComponents.data,
+          components: approvedComponents,
           estimate: {
             lineItems: lineage.estimate.lineItems.map((item) => ({
               lineKey: item.lineKey,
@@ -1445,7 +1462,7 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         estimate: lineage.estimate,
         reservation: lineage.reservation,
         approval: lineage.approval,
-        components: parsedComponents.data,
+        components: approvedComponents,
         assetManifest,
         planningInputAuthority,
         planningHandoffAuthority,
@@ -1778,25 +1795,54 @@ function requireIdempotencyKey(value: string | undefined): string {
   return normalized
 }
 
+function assertCanonicalStorytellingStyleAuthorityScope(
+  components: CanonicalPlanComponentsInput,
+  expected: {
+    workspaceId: string
+    projectId: string
+    editSessionId: string
+  },
+): void {
+  if (!canonicalStorytellingStyleAuthorityMatchesScope(
+    components.motionStudioStorytellingStyleAuthority,
+    expected,
+  )) {
+    throw new ApiError(
+      'IDEMPOTENCY_CONFLICT',
+      'Storytelling style authority does not match the exact workspace, project, and named edit.',
+      409,
+    )
+  }
+}
+
 async function persistPlanComponents(
   context: ServiceContext,
   components: CanonicalPlanComponentsInput,
 ): Promise<Record<string, AuthorityJsonBlobRef>> {
-  const entries = await Promise.all(PLAN_COMPONENT_NAMES.map(async (name) => [
+  const requiredEntries = await Promise.all(PLAN_COMPONENT_NAMES.map(async (name) => [
     name,
     await putPrivateAuthorityJsonBlob({
       localStorageRoot: context.env.localStorageRoot,
       value: components[name] as Record<string, unknown> | unknown[],
     }),
   ] as const))
-  return Object.fromEntries(entries)
+  const optionalEntries: Array<readonly [string, AuthorityJsonBlobRef]> = []
+  for (const name of OPTIONAL_PLAN_COMPONENT_NAMES) {
+    const component = components[name]
+    if (component === undefined) continue
+    optionalEntries.push([name, await putPrivateAuthorityJsonBlob({
+      localStorageRoot: context.env.localStorageRoot,
+      value: component as Record<string, unknown>,
+    })])
+  }
+  return Object.fromEntries([...requiredEntries, ...optionalEntries])
 }
 
 async function loadCanonicalPlanComponents(
   context: ServiceContext,
   componentRefs: Record<string, AuthorityJsonBlobRef>,
 ): Promise<CanonicalPlanComponentsInput> {
-  const entries = await Promise.all(PLAN_COMPONENT_NAMES.map(async (name) => {
+  const requiredEntries = await Promise.all(PLAN_COMPONENT_NAMES.map(async (name) => {
     const ref = componentRefs[name]
     if (!ref) throw new ApiError('VALIDATION_FAILED', `Canonical ${name} component reference is missing.`, 409)
     return [name, await readPrivateAuthorityJsonBlob({
@@ -1804,7 +1850,18 @@ async function loadCanonicalPlanComponents(
       ref,
     })] as const
   }))
-  const parsed = canonicalPlanComponentsSchema.safeParse(Object.fromEntries(entries))
+  const optionalEntries: Array<readonly [string, unknown]> = []
+  for (const name of OPTIONAL_PLAN_COMPONENT_NAMES) {
+    const ref = componentRefs[name]
+    if (!ref) continue
+    optionalEntries.push([name, await readPrivateAuthorityJsonBlob({
+      localStorageRoot: context.env.localStorageRoot,
+      ref,
+    })])
+  }
+  const parsed = canonicalPlanComponentsSchema.safeParse(
+    Object.fromEntries([...requiredEntries, ...optionalEntries]),
+  )
   if (!parsed.success) {
     throw new ApiError('VALIDATION_FAILED', 'Canonical plan components no longer satisfy their authority contract.', 409, parsed.error.flatten())
   }

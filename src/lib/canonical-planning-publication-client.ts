@@ -5,6 +5,7 @@ import type { CanonicalEditJourney } from './canonical-edit-journey'
 import {
   buildCanonicalPlanningDraft,
   type CanonicalPlanningDraft,
+  type CanonicalStorytellingStylePlanReviewSource,
 } from './canonical-planning-draft'
 import {
   apiResponseInvalidatesProjectPersistenceScope,
@@ -100,6 +101,7 @@ export type SaveCanonicalPlanningInput = {
   plannerInput: PlannerInput
   sourceMediaAssets: ApprovedEditExecutionUploadedMediaSourceAssetClientInput[]
   revisionJourney?: CanonicalEditJourney
+  motionStudioStorytellingStylePlan?: CanonicalStorytellingStylePlanReviewSource
 }
 
 const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]*$/
@@ -133,10 +135,26 @@ const inFlightCanonicalPlanningSaves = new Map<string, Promise<CanonicalPlanning
 export function saveCanonicalPlanningForNamedEdit(
   input: SaveCanonicalPlanningInput,
 ): Promise<CanonicalPlanningPublicationResult> {
+  if (input.motionStudioStorytellingStylePlan && (
+    input.motionStudioStorytellingStylePlan.workspaceId !== input.scope.workspaceId ||
+    input.motionStudioStorytellingStylePlan.projectId !== input.projectId ||
+    input.motionStudioStorytellingStylePlan.editSessionId !== input.editSessionId
+  )) {
+    return Promise.resolve({
+      status: 'blocked',
+      message: 'Storytelling style direction changed scope. Refresh the exact named edit before planning.',
+      retryable: false,
+      handoffSaved: false,
+      candidateSaved: false,
+      publicationBlockers: ['Storytelling style authority does not match this exact workspace, project, and named edit.'],
+      warnings: [],
+    })
+  }
   const compiled = buildCanonicalPlanningDraft({
     plan: input.plan,
     plannerInput: input.plannerInput,
     sourceMediaAssets: input.sourceMediaAssets,
+    motionStudioStorytellingStylePlan: input.motionStudioStorytellingStylePlan,
   })
   if (!compiled.ok) {
     return Promise.resolve({
@@ -224,6 +242,7 @@ async function performCanonicalPlanningSave(
       currentEditPreferenceRevision: preferenceAuthority.authority.preferenceRevision,
     },
     sourceMediaAssets: input.sourceMediaAssets,
+    motionStudioStorytellingStylePlan: input.motionStudioStorytellingStylePlan,
   })
   if (!authorityCompiled.ok) {
     return {

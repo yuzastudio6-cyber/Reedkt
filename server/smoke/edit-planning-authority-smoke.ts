@@ -22,6 +22,7 @@ import {
 } from '../services/edit-brief-authority-service'
 import { createPreferenceIntelligenceService } from '../services/preference-intelligence-service'
 import { createSourceMediaAuthorityService } from '../services/source-media-authority-service'
+import { buildCurrentPlanningInputAuthorityExpectation } from '../services/planning-input-authority-binding-service'
 import { createUploadService } from '../services/upload-service'
 import { createCanonicalEditExecutionPackageService } from '../services/canonical-edit-execution-package-service'
 import { withCanonicalExecutionDomainLock } from '../services/canonical-execution-domain-lock'
@@ -58,6 +59,10 @@ import type { PlanningInputAuthorityExpectation } from '../validation/planning-i
 import type { SourceMediaAuthorityExpectation } from '../validation/source-media-authority-schemas'
 import { buildProfessionalExportCreditCoverage } from '../../src/lib/professional-export-policy'
 import {
+  projectCanonicalStorytellingStyleAuthority,
+  type CanonicalStorytellingStylePlanReviewSource,
+} from '../../src/lib/canonical-planning-draft'
+import {
   CANONICAL_PRIVATE_TOOL_DISPATCH_RECORD_VERSION,
   type CanonicalPrivateToolDispatchRecord,
 } from '../validation/canonical-private-tool-dispatch-schemas'
@@ -83,6 +88,7 @@ const memberships = [
   { workspaceId: 'workspace-authority-route-smoke', userId: 'other-authority-user', role: 'editor' },
   { workspaceId: cancellationWorkspaceId, userId, role: 'owner' },
   { workspaceId: 'workspace-planning-binding-integration', userId, role: 'owner' },
+  { workspaceId: 'workspace-storytelling-style-authority', userId, role: 'owner' },
 ]
 const admin = createMembershipAdminClient(memberships)
 
@@ -874,6 +880,7 @@ try {
 
 await provePreferenceAndBriefCanonicalBinding(context)
 await proveAtomicWorkItemCompilation(context)
+await proveCanonicalStorytellingStyleAuthority(context)
 
 const otherUserService = createEditPlanningAuthorityService({
   ...context,
@@ -3942,6 +3949,11 @@ console.log(JSON.stringify({
   checks: [
     'server_sha256_plan_estimate_work_graph_authority',
     'content_addressed_component_blob_manifest',
+    'storytelling_style_authority_content_addressed_through_handoff_plan_snapshot_and_execution',
+    'storytelling_style_change_supersedes_presented_plan_and_estimate',
+    'approved_storytelling_style_requires_explicit_revision_and_preserves_history',
+    'storytelling_style_internal_cost_stays_outside_customer_commercial_authority',
+    'storytelling_style_scope_fails_closed_at_handoff_and_publication',
     'exact_publish_idempotency_replay',
     'changed_publish_idempotency_conflict',
     'server_owned_preference_binding_at_publication',
@@ -5289,6 +5301,337 @@ async function proveAtomicWorkItemCompilation(serviceContext: ServiceContext): P
   assert.equal(executionPackage.approvedToolIds.includes('echarts'), true)
   assert.equal(executionPackage.jobs.every((job) =>
     job.approvedToolOperationIds.length <= 1), true)
+}
+
+async function proveCanonicalStorytellingStyleAuthority(
+  serviceContext: ServiceContext,
+): Promise<void> {
+  const targetWorkspaceId = 'workspace-storytelling-style-authority'
+  const editSessionId = 'edit-session-storytelling-style-authority'
+  const project = (await createProjectService(serviceContext).createProject({
+    workspaceId: targetWorkspaceId,
+    name: 'Storytelling style authority integration',
+  })).project
+  const planningInputAuthority = await prepareExactPlanningAuthority(
+    serviceContext,
+    project.id,
+    editSessionId,
+    targetWorkspaceId,
+  )
+  const sourceMediaFixture = await prepareSourceMediaAuthority(
+    serviceContext,
+    targetWorkspaceId,
+    project.id,
+    'storytelling-style-authority',
+  )
+  const styleSource = createStorytellingStylePlanReviewSource({
+    workspaceId: targetWorkspaceId,
+    projectId: project.id,
+    editSessionId,
+    productionId: 'production-storytelling-style-authority',
+    revision: 1,
+  })
+  const firstStyle = projectCanonicalStorytellingStyleAuthority(styleSource)
+  const firstBody = createCanonicalPlanBody(
+    'planning-storytelling-style-authority-v1',
+    planningInputAuthority,
+    sourceMediaFixture,
+  )
+  firstBody.workspaceId = targetWorkspaceId
+  firstBody.canonicalPlan.components.motionStudioStorytellingStyleAuthority = firstStyle
+
+  const handoffService = createCanonicalPlanningHandoffService(serviceContext)
+  const orderedSourceItems = sourceMediaFixture.sourceSequence.map((item) => ({
+    ...item,
+    checksumSha256: String(item.checksumSha256),
+  }))
+  const firstHandoff = await handoffService.prepare({
+    workspaceId: targetWorkspaceId,
+    projectId: project.id,
+    editSessionId,
+    purpose: 'prepare_canonical_planning_handoff',
+    orderedSourceItems,
+    canonicalPlanComponents: firstBody.canonicalPlan.components,
+  })
+  assert.match(firstHandoff.canonicalPlanComponentsHash, /^[a-f0-9]{64}$/)
+  const crossScopeHandoffComponents = structuredClone(firstBody.canonicalPlan.components)
+  crossScopeHandoffComponents.motionStudioStorytellingStyleAuthority!.projectId =
+    'project-substituted-style-handoff'
+  await expectApiError(
+    () => handoffService.prepare({
+      workspaceId: targetWorkspaceId,
+      projectId: project.id,
+      editSessionId,
+      purpose: 'prepare_canonical_planning_handoff',
+      orderedSourceItems,
+      canonicalPlanComponents: crossScopeHandoffComponents,
+    }),
+    'IDEMPOTENCY_CONFLICT',
+    'Cross-project Storytelling style authority must fail before handoff persistence.',
+  )
+  firstBody.planningInputAuthority = firstHandoff.planningInputAuthority
+
+  const service = createEditPlanningAuthorityService(serviceContext)
+  const firstPublished = await service.publishCanonicalPlan({
+    ...firstBody,
+    projectId: project.id,
+    editSessionId,
+    idempotencyKey: 'publish-storytelling-style-authority-v1',
+  })
+  const firstAuthority = asRecord(firstPublished.authority)
+  const firstPlan = asRecord(firstAuthority.plan)
+  const firstEstimate = asRecord(firstAuthority.estimate)
+  const firstStyleRef = asRecord(asRecord(firstPlan.componentRefs)
+    .motionStudioStorytellingStyleAuthority)
+  assert.match(String(firstStyleRef.sha256), /^[a-f0-9]{64}$/)
+  const persistedFirstStyle = await readPrivateAuthorityJsonBlob({
+    localStorageRoot: serviceContext.env.localStorageRoot,
+    ref: {
+      sha256: String(firstStyleRef.sha256),
+      byteLength: Number(firstStyleRef.byteLength),
+    },
+  })
+  assert.deepEqual(persistedFirstStyle, firstStyle)
+
+  const changedSource = createStorytellingStylePlanReviewSource({
+    workspaceId: targetWorkspaceId,
+    projectId: project.id,
+    editSessionId,
+    productionId: styleSource.productionId,
+    revision: 2,
+  })
+  const changedStyle = projectCanonicalStorytellingStyleAuthority(changedSource)
+  const changedBody = createCanonicalPlanBody(
+    'planning-storytelling-style-authority-v2',
+    planningInputAuthority,
+    sourceMediaFixture,
+  )
+  changedBody.workspaceId = targetWorkspaceId
+  changedBody.canonicalPlan.components.motionStudioStorytellingStyleAuthority = changedStyle
+  const changedHandoff = await handoffService.prepare({
+    workspaceId: targetWorkspaceId,
+    projectId: project.id,
+    editSessionId,
+    purpose: 'prepare_canonical_planning_handoff',
+    orderedSourceItems,
+    canonicalPlanComponents: changedBody.canonicalPlan.components,
+  })
+  assert.notEqual(
+    changedHandoff.canonicalPlanComponentsHash,
+    firstHandoff.canonicalPlanComponentsHash,
+    'Changed style authority must create a fresh planning handoff identity.',
+  )
+  changedBody.planningInputAuthority = changedHandoff.planningInputAuthority
+  const changedPublished = await service.publishCanonicalPlan({
+    ...changedBody,
+    projectId: project.id,
+    editSessionId,
+    idempotencyKey: 'publish-storytelling-style-authority-v2',
+  })
+  const changedAuthority = asRecord(changedPublished.authority)
+  const changedPlan = asRecord(changedAuthority.plan)
+  const changedEstimate = asRecord(changedAuthority.estimate)
+  const changedStyleRef = asRecord(asRecord(changedPlan.componentRefs)
+    .motionStudioStorytellingStyleAuthority)
+  assert.notEqual(changedStyleRef.sha256, firstStyleRef.sha256)
+  assert.notEqual(changedPlan.planHash, firstPlan.planHash)
+
+  const aggregateAfterChange = await readPrivateEditAuthorityAggregate({
+    localStorageRoot: serviceContext.env.localStorageRoot,
+    ownerUserId: userId,
+    workspaceId: targetWorkspaceId,
+  })
+  assert.ok(aggregateAfterChange)
+  assert.equal(
+    aggregateAfterChange.plans.find((plan) => plan.id === firstPlan.id)?.status,
+    'superseded',
+  )
+  assert.equal(
+    aggregateAfterChange.estimates.find((estimate) => estimate.id === firstEstimate.id)?.status,
+    'superseded',
+  )
+
+  const approved = await service.approveAndFundCanonicalPlan({
+    workspaceId: targetWorkspaceId,
+    editPlanId: String(changedPlan.id),
+    expectedAuthorityRevision: Number(changedAuthority.authorityRevision),
+    expectedPlanHash: String(changedPlan.planHash),
+    expectedEstimateHash: String(changedEstimate.estimateHash),
+    idempotencyKey: 'approve-storytelling-style-authority-v2',
+  })
+  const snapshot = asRecord(asRecord(approved.authority).snapshot)
+  const snapshotStyleRef = asRecord(asRecord(snapshot.componentRefs)
+    .motionStudioStorytellingStyleAuthority)
+  assert.deepEqual(snapshotStyleRef, changedStyleRef)
+  const loaded = await service.loadApprovedExecutionAuthority(
+    String(snapshot.snapshotId),
+    targetWorkspaceId,
+  )
+  assert.deepEqual(loaded.components.motionStudioStorytellingStyleAuthority, changedStyle)
+  assert.equal(
+    loaded.components.motionStudioStorytellingStyleAuthority?.internalCostEnvelope
+      .customerPriceIncluded,
+    false,
+  )
+  assert.equal(
+    loaded.components.motionStudioStorytellingStyleAuthority?.internalCostEnvelope
+      .customerCreditsIncluded,
+    false,
+  )
+  assert.equal(
+    loaded.components.motionStudioStorytellingStyleAuthority?.internalCostEnvelope
+      .serviceFeeIncluded,
+    false,
+  )
+  assert.equal(
+    loaded.components.motionStudioStorytellingStyleAuthority?.internalCostEnvelope.unit,
+    'usd_micros',
+  )
+  assert.equal(
+    loaded.components.motionStudioStorytellingStyleAuthority?.customerCommercialAuthorityGranted,
+    false,
+  )
+  assert.equal(
+    loaded.components.motionStudioStorytellingStyleAuthority?.sourceRepositoryReverified,
+    false,
+  )
+
+  const postApprovalStyleSource = createStorytellingStylePlanReviewSource({
+    workspaceId: targetWorkspaceId,
+    projectId: project.id,
+    editSessionId,
+    productionId: styleSource.productionId,
+    revision: 3,
+  })
+  const postApprovalBody = createCanonicalPlanBody(
+    'planning-storytelling-style-authority-v3',
+    planningInputAuthority,
+    sourceMediaFixture,
+  )
+  postApprovalBody.workspaceId = targetWorkspaceId
+  postApprovalBody.planningInputAuthority = await buildCurrentPlanningInputAuthorityExpectation({
+    context: serviceContext,
+    scope: {
+      localStorageRoot: serviceContext.env.localStorageRoot,
+      ownerUserId: userId,
+      workspaceId: targetWorkspaceId,
+      projectId: project.id,
+      editSessionId,
+    },
+  })
+  postApprovalBody.canonicalPlan.components.motionStudioStorytellingStyleAuthority =
+    projectCanonicalStorytellingStyleAuthority(postApprovalStyleSource)
+  await expectApiError(
+    () => service.publishCanonicalPlan({
+      ...postApprovalBody,
+      projectId: project.id,
+      editSessionId,
+      idempotencyKey: 'publish-storytelling-style-authority-v3-without-revision',
+    }),
+    'PLAN_NOT_APPROVED',
+    'Changed approved style must require the existing explicit revision flow and a new immutable snapshot cycle.',
+  )
+  const historical = await service.loadApprovedExecutionAuthority(
+    String(snapshot.snapshotId),
+    targetWorkspaceId,
+  )
+  assert.equal(historical.snapshot.snapshotHash, snapshot.snapshotHash)
+  assert.deepEqual(historical.components.motionStudioStorytellingStyleAuthority, changedStyle)
+
+  const crossScopeBody = structuredClone(changedBody)
+  crossScopeBody.canonicalPlan.components.motionStudioStorytellingStyleAuthority!.projectId =
+    'project-substituted-style-authority'
+  await expectApiError(
+    () => service.publishCanonicalPlan({
+      ...crossScopeBody,
+      planningRequestId: 'planning-storytelling-style-cross-scope',
+      projectId: project.id,
+      editSessionId,
+      idempotencyKey: 'publish-storytelling-style-cross-scope',
+    }),
+    'IDEMPOTENCY_CONFLICT',
+    'Cross-project Storytelling style authority must fail before persistence.',
+  )
+}
+
+function createStorytellingStylePlanReviewSource(input: {
+  workspaceId: string
+  projectId: string
+  editSessionId: string
+  productionId: string
+  revision: number
+}): CanonicalStorytellingStylePlanReviewSource {
+  const selectionDigest = sha256ForSmoke(`storytelling-style-selection-${input.revision}`)
+  return {
+    schemaVersion: 'motion-studio.storytelling-style-plan-review-input.v1',
+    workspaceId: input.workspaceId,
+    projectId: input.projectId,
+    editSessionId: input.editSessionId,
+    productionId: input.productionId,
+    styleSelection: {
+      schemaVersion: 'motion-studio.storytelling-style-selection.v1',
+      id: `storytelling-style-selection-${input.revision}`,
+      state: 'selected_for_plan',
+      selectionDigest,
+      styleProfile: {
+        styleProfileId: input.revision === 1
+          ? 'storytelling_style.editorial_collage'
+          : 'storytelling_style.technical_blueprint',
+        styleProfileVersion: `1.0.${input.revision}`,
+        styleProfileDigest: sha256ForSmoke(`storytelling-style-profile-${input.revision}`),
+      },
+      motionLanguage: {
+        motionLanguageId: `storytelling-motion-language-${input.revision}`,
+        motionLanguageVersion: `1.0.${input.revision}`,
+        motionLanguageDigest: sha256ForSmoke(`storytelling-motion-language-${input.revision}`),
+      },
+      motionDnaVersion: {
+        artifactId: 'storytelling-motion-dna',
+        versionId: `storytelling-motion-dna-v${input.revision}`,
+        versionNumber: input.revision,
+        contentDigest: sha256ForSmoke(`storytelling-motion-dna-${input.revision}`),
+      },
+      referenceContractVersions: [{
+        artifactId: 'storytelling-reference-contract',
+        versionId: `storytelling-reference-contract-v${input.revision}`,
+        versionNumber: input.revision,
+        contentDigest: sha256ForSmoke(`storytelling-reference-contract-${input.revision}`),
+      }],
+      sourceAuditDigests: input.revision === 1
+        ? [sha256ForSmoke(`storytelling-source-audit-${input.revision}`)]
+        : [],
+    },
+    calibrationPlan: {
+      schemaVersion: 'motion-studio.style-calibration-plan.v1',
+      id: `storytelling-style-calibration-${input.revision}`,
+      planDigest: sha256ForSmoke(`storytelling-style-calibration-${input.revision}`),
+      styleSelectionDigest: selectionDigest,
+      routePolicy: { policyId: 'motion_studio_generation_route_policy_v2' },
+      scenarios: [
+        { id: `style-led-motion-${input.revision}`, kind: 'style_led_motion' },
+        { id: `character-continuity-${input.revision}`, kind: 'character_continuity' },
+        { id: `first-last-frame-${input.revision}`, kind: 'strict_first_last_frame' },
+        { id: `reference-heavy-${input.revision}`, kind: 'reference_heavy' },
+        { id: `exact-text-data-${input.revision}`, kind: 'exact_text_data' },
+      ],
+      estimatedInternalCostRangeMicros: {
+        minimum: 100_000 * input.revision,
+        maximum: 500_000 * input.revision,
+      },
+      approvalAuthority: { state: 'planning_only' },
+      automaticFallbackAllowed: false,
+      fallbackRequiresNewApproval: true,
+      bulkGenerationAllowed: false,
+    },
+    internalCostEstimateId: `storytelling-style-internal-cost-${input.revision}`,
+    internalCostEstimateDigest: sha256ForSmoke(`storytelling-style-internal-cost-${input.revision}`),
+    internalCostEnvelopeIncludedInPlanReview: true,
+    customerPricingCalculatedHere: false,
+    customerCreditsMutated: false,
+    decisionAuthority: 'existing_plan_review',
+    runtimeExecutionAuthorized: false,
+    immutable: true,
+  }
 }
 
 async function provePreferenceAndBriefCanonicalBinding(serviceContext: ServiceContext): Promise<void> {

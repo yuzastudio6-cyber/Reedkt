@@ -51,6 +51,7 @@
     "smoke:internal-testing-deployment-readiness": "tsx server/smoke/internal-testing-deployment-readiness-smoke.ts",
     "smoke:approved-snapshot": "tsx server/smoke/approved-snapshot-smoke.ts",
     "smoke:edit-planning-authority": "tsx server/smoke/edit-planning-authority-smoke.ts",
+    "smoke:canonical-storytelling-style-authority": "tsx server/smoke/canonical-storytelling-style-authority-smoke.ts",
     "smoke:canonical-private-package-work-queue": "tsx server/smoke/canonical-private-package-work-queue-smoke.ts",
     "smoke:canonical-private-provider-work-lifecycle": "tsx server/smoke/canonical-private-provider-work-lifecycle-smoke.ts",
     "smoke:canonical-private-multi-output-provider-work-lifecycle": "tsx server/smoke/canonical-private-multi-output-provider-work-lifecycle-smoke.ts",

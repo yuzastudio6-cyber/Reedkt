@@ -8,7 +8,8 @@ import type { ProjectPersistenceScope } from '../lib/project-persistence-scope'
 
 type SubmissionInput = Pick<
   SaveCanonicalPlanningInput,
-  'plan' | 'plannerInput' | 'sourceMediaAssets' | 'revisionJourney'
+  'plan' | 'plannerInput' | 'sourceMediaAssets' | 'revisionJourney' |
+  'motionStudioStorytellingStylePlan'
 >
 
 export type CanonicalPlanningPublicationHookResult = {

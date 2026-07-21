@@ -4,6 +4,14 @@
 # Milestone 10 adds safe command/import readiness declarations only.
 # Codex must not build this image or run production readiness jobs.
 
+FROM node:24-bookworm AS server_build
+WORKDIR /app
+ENV NODE_ENV=development
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build:server
+
 FROM node:24-bookworm AS certificate_source
 
 FROM node:24-bookworm-slim AS signalsmith_stretch_builder
@@ -43,6 +51,18 @@ RUN git clone --recurse-submodules https://github.com/Signalsmith-Audio/signalsm
 FROM node:24-bookworm-slim AS base
 WORKDIR /app
 
+ARG REEDITPRO_SOURCE_COMMIT_SHA
+ARG REEDITPRO_SOURCE_TREE_HASH
+ARG REEDITPRO_SOURCE_CLEAN
+RUN printf '%s' "${REEDITPRO_SOURCE_COMMIT_SHA}" | grep -Eq '^[a-f0-9]{40}$' \
+  && printf '%s' "${REEDITPRO_SOURCE_TREE_HASH}" | grep -Eq '^[a-f0-9]{40}$' \
+  && test "${REEDITPRO_SOURCE_CLEAN}" = "true"
+LABEL org.opencontainers.image.revision="${REEDITPRO_SOURCE_COMMIT_SHA}" \
+  io.reeditpro.source.tree="${REEDITPRO_SOURCE_TREE_HASH}" \
+  io.reeditpro.image.role="tool_readiness_worker" \
+  io.reeditpro.build.source.clean="${REEDITPRO_SOURCE_CLEAN}" \
+  io.reeditpro.container.qualification.candidate.version="production-container-qualification-candidate-v1"
+
 ENV NODE_ENV=production
 ENV REEDITPRO_RUNTIME_ROLE=tool_readiness_worker
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1
@@ -74,7 +94,7 @@ COPY --from=signalsmith_stretch_builder /usr/local/bin/signalsmith-stretch /usr/
 COPY --chown=node:node package*.json ./
 RUN npm ci --omit=dev
 
-COPY --chown=node:node dist-server ./dist-server
+COPY --from=server_build --chown=node:node /app/dist-server ./dist-server
 RUN test -f dist-server/server.js \
   && test -f dist-server/container-readiness-receipt.js
 

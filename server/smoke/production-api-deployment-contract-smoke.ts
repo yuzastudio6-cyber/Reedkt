@@ -3,7 +3,9 @@ import { readFileSync } from 'node:fs'
 
 const viteServerConfig = read('vite.server.config.ts')
 const legacyServerSource = 'src/server/server.ts'
-assert.match(viteServerConfig, /ssr:\s*['"]server\/index\.ts['"]/)
+assert.match(viteServerConfig, /ssr:\s*true/)
+assert.match(viteServerConfig, /server:\s*['"]server\/index\.ts['"]/)
+assert.match(viteServerConfig, /['"]container-readiness-receipt['"]:\s*\n?\s*['"]server\/cli\/production-container-qualification-receipt\.ts['"]/)
 assert.equal(viteServerConfig.includes(legacyServerSource), true, 'The legacy source should be named only in the safety comment.')
 assert.equal(viteServerConfig.includes(`ssr: '${legacyServerSource}'`), false)
 assert.equal(viteServerConfig.includes('noExternal: true'), false)
@@ -32,10 +34,17 @@ assert.match(dockerIgnore, /^\*\*\/\._\*$/m)
 const cloudBuildConfig = read('scripts/gcp/prod/cloudbuild-image.yaml')
 assert.match(cloudBuildConfig, /\$\{_DOCKERFILE\}/)
 assert.match(cloudBuildConfig, /\$\{_IMAGE\}/)
+assert.match(cloudBuildConfig, /REEDITPRO_SOURCE_COMMIT_SHA=\$\{_SOURCE_COMMIT_SHA\}/)
+assert.match(cloudBuildConfig, /REEDITPRO_SOURCE_TREE_HASH=\$\{_SOURCE_TREE_HASH\}/)
+assert.match(cloudBuildConfig, /REEDITPRO_SOURCE_CLEAN=\$\{_SOURCE_CLEAN\}/)
 
 const buildCommands = read('scripts/gcp/prod/07-build-image-commands.sh')
 assert.match(buildCommands, /--config="scripts\/gcp\/prod\/cloudbuild-image\.yaml"/)
 assert.match(buildCommands, /_DOCKERFILE=docker\/prod\/api\/Dockerfile/)
+assert.match(buildCommands, /require_clean_source_identity/)
+assert.match(buildCommands, /_SOURCE_COMMIT_SHA=\$\{REEDITPRO_SOURCE_COMMIT_SHA\}/)
+assert.match(buildCommands, /_SOURCE_TREE_HASH=\$\{REEDITPRO_SOURCE_TREE_HASH\}/)
+assert.match(buildCommands, /_SOURCE_CLEAN=\$\{REEDITPRO_SOURCE_CLEAN\}/)
 assert.equal(buildCommands.includes('gcloud builds submit --project="${GCP_PROJECT_ID}" --tag='), false)
 assert.equal(buildCommands.includes('reeditpro-cpu-worker)" .'), false)
 

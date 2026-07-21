@@ -19,8 +19,6 @@ temp
 
 dist
 dist-*
-!dist-server
-!dist-remotion-worker
 !dist-staging-fixture-worker
 !dist-staging-real-video-export-worker
 

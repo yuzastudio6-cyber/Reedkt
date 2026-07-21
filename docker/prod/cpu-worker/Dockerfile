@@ -8,6 +8,14 @@
 # declaration. Final commercial LGPL-safe FFmpeg build verification remains
 # pending manual legal/build review.
 
+FROM node:24-bookworm AS server_build
+WORKDIR /app
+ENV NODE_ENV=development
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build:server
+
 FROM node:24-bookworm AS signalsmith_stretch_builder
 
 ARG SIGNALSMITH_STRETCH_COMMIT=57b93f4e9206a089a45387eaa39bdc9f310d3308
@@ -44,6 +52,18 @@ RUN git clone --recurse-submodules https://github.com/Signalsmith-Audio/signalsm
 FROM node:24-bookworm AS base
 WORKDIR /app
 
+ARG REEDITPRO_SOURCE_COMMIT_SHA
+ARG REEDITPRO_SOURCE_TREE_HASH
+ARG REEDITPRO_SOURCE_CLEAN
+RUN printf '%s' "${REEDITPRO_SOURCE_COMMIT_SHA}" | grep -Eq '^[a-f0-9]{40}$' \
+  && printf '%s' "${REEDITPRO_SOURCE_TREE_HASH}" | grep -Eq '^[a-f0-9]{40}$' \
+  && test "${REEDITPRO_SOURCE_CLEAN}" = "true"
+LABEL org.opencontainers.image.revision="${REEDITPRO_SOURCE_COMMIT_SHA}" \
+  io.reeditpro.source.tree="${REEDITPRO_SOURCE_TREE_HASH}" \
+  io.reeditpro.image.role="cpu_worker" \
+  io.reeditpro.build.source.clean="${REEDITPRO_SOURCE_CLEAN}" \
+  io.reeditpro.container.qualification.candidate.version="production-container-qualification-candidate-v1"
+
 ENV NODE_ENV=production
 ENV REEDITPRO_RUNTIME_ROLE=cpu_analysis_worker
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1
@@ -78,7 +98,7 @@ COPY --from=signalsmith_stretch_builder /usr/local/bin/signalsmith-stretch /usr/
 COPY --chown=node:node package*.json ./
 RUN npm ci --omit=dev
 
-COPY --chown=node:node dist-server ./dist-server
+COPY --from=server_build --chown=node:node /app/dist-server ./dist-server
 RUN test -f dist-server/server.js \
   && test -f dist-server/container-readiness-receipt.js
 

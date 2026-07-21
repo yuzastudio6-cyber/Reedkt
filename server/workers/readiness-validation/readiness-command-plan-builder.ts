@@ -22,6 +22,31 @@ export function buildStaticReadinessCommandPlan(): ReadinessCommandPlan {
   }
 }
 
+export function buildContainerHostVerificationCommandPlan(): ReadinessCommandPlan {
+  return {
+    id: 'container_readiness_host_verification',
+    label: 'Independent local container source/image verification',
+    mode: 'host_optional',
+    command: 'scripts/docker/prod/14-verify-container-readiness-candidate.example.sh',
+    requiredEnvVars: [
+      'REEDITPRO_CONTAINER_READINESS_CANDIDATE_FILE',
+      'REEDITPRO_CONFIRM_CONTAINER_HOST_VERIFICATION=true',
+    ],
+    safetyNotes: [
+      'Human-run only after a non-promotable runtime candidate has been retained outside the checkout.',
+      'Reads exact clean Git identity and performs local Docker context/image inspection only.',
+      'The emitted host receipt remains non-promotable; manual license/model and deployed-release gates stay closed.',
+    ],
+    expectedOutputSummary: 'Non-promotable local host receipt binding one candidate to an exact clean commit/tree and immutable image digest.',
+    doesNotRun: [
+      ...READINESS_DOES_NOT_RUN,
+      'no Docker pull or run',
+      'no cloud or database mutation',
+      'no customer price, credits, service fee, wallet, or billing',
+    ],
+  }
+}
+
 export function buildReadinessCommandPlans(): ReadinessCommandPlan[] {
   const imageRoles: ProductionContainerImageRole[] = [
     'api',
@@ -36,6 +61,7 @@ export function buildReadinessCommandPlans(): ReadinessCommandPlan[] {
     buildStaticReadinessCommandPlan(),
     ...imageRoles.map(buildContainerReadinessCommandPlan),
     buildAllContainerReadinessCommandPlan(),
+    buildContainerHostVerificationCommandPlan(),
   ]
 }
 

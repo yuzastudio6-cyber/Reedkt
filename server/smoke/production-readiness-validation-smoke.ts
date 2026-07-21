@@ -278,6 +278,7 @@ for (const id of [
   'container_readiness_qa_worker',
   'container_readiness_gpu_worker',
   'container_readiness_tool_readiness_worker',
+  'container_readiness_host_verification',
 ]) {
   check(plans.some((plan) => plan.id === id), `Missing command plan ${id}.`)
 }
@@ -293,6 +294,10 @@ check(
       : plan.command.includes('container-readiness-receipt.js'))),
   'Container command plans must invoke the bounded runtime receipt entrypoint rather than static-only reporting.',
 )
+const hostVerificationPlan = plans.find((plan) => plan.id === 'container_readiness_host_verification')
+check(hostVerificationPlan?.mode === 'host_optional', 'Host verification must remain an explicit host-optional command plan.')
+check(hostVerificationPlan?.command.includes('14-verify-container-readiness-candidate.example.sh') === true, 'Host verification plan must use the bounded human script.')
+check(hostVerificationPlan?.doesNotRun.includes('no Docker pull or run') === true, 'Host verification plan must prohibit image pull and run.')
 
 const scripts = [
   'scripts/docker/prod/08-run-static-readiness.example.sh',

@@ -6,6 +6,12 @@ steps:
       - ${_DOCKERFILE}
       - --tag
       - ${_IMAGE}
+      - --build-arg
+      - REEDITPRO_SOURCE_COMMIT_SHA=${_SOURCE_COMMIT_SHA}
+      - --build-arg
+      - REEDITPRO_SOURCE_TREE_HASH=${_SOURCE_TREE_HASH}
+      - --build-arg
+      - REEDITPRO_SOURCE_CLEAN=${_SOURCE_CLEAN}
       - .
 images:
   - ${_IMAGE}

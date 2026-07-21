@@ -7,8 +7,28 @@
 # First Cloud Run GPU target: NVIDIA L4 (`nvidia-l4`), one GPU per instance, at least
 # 4 CPU and 16Gi memory, with --no-gpu-zonal-redundancy.
 
+FROM node:24-bookworm AS server_build
+WORKDIR /app
+ENV NODE_ENV=development
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build:server
+
 FROM nvidia/cuda:12.4.1-runtime-ubuntu22.04 AS base
 WORKDIR /app
+
+ARG REEDITPRO_SOURCE_COMMIT_SHA
+ARG REEDITPRO_SOURCE_TREE_HASH
+ARG REEDITPRO_SOURCE_CLEAN
+RUN printf '%s' "${REEDITPRO_SOURCE_COMMIT_SHA}" | grep -Eq '^[a-f0-9]{40}$' \
+  && printf '%s' "${REEDITPRO_SOURCE_TREE_HASH}" | grep -Eq '^[a-f0-9]{40}$' \
+  && test "${REEDITPRO_SOURCE_CLEAN}" = "true"
+LABEL org.opencontainers.image.revision="${REEDITPRO_SOURCE_COMMIT_SHA}" \
+  io.reeditpro.source.tree="${REEDITPRO_SOURCE_TREE_HASH}" \
+  io.reeditpro.image.role="gpu_worker" \
+  io.reeditpro.build.source.clean="${REEDITPRO_SOURCE_CLEAN}" \
+  io.reeditpro.container.qualification.candidate.version="production-container-qualification-candidate-v1"
 
 ENV NODE_ENV=production
 ENV REEDITPRO_RUNTIME_ROLE=gpu_ai_worker
@@ -54,7 +74,7 @@ RUN mkdir -p \
 COPY package*.json ./
 RUN npm ci --omit=dev
 
-COPY dist-server ./dist-server
+COPY --from=server_build /app/dist-server ./dist-server
 RUN test -f dist-server/server.js \
   && test -f dist-server/container-readiness-receipt.js
 

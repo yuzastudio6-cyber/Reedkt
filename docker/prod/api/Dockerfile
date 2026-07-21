@@ -17,6 +17,17 @@ COPY . .
 RUN npm run build:server
 
 FROM base AS runtime
+ARG REEDITPRO_SOURCE_COMMIT_SHA
+ARG REEDITPRO_SOURCE_TREE_HASH
+ARG REEDITPRO_SOURCE_CLEAN
+RUN printf '%s' "${REEDITPRO_SOURCE_COMMIT_SHA}" | grep -Eq '^[a-f0-9]{40}$' \
+  && printf '%s' "${REEDITPRO_SOURCE_TREE_HASH}" | grep -Eq '^[a-f0-9]{40}$' \
+  && test "${REEDITPRO_SOURCE_CLEAN}" = "true"
+LABEL org.opencontainers.image.revision="${REEDITPRO_SOURCE_COMMIT_SHA}" \
+  io.reeditpro.source.tree="${REEDITPRO_SOURCE_TREE_HASH}" \
+  io.reeditpro.image.role="api" \
+  io.reeditpro.build.source.clean="${REEDITPRO_SOURCE_CLEAN}" \
+  io.reeditpro.container.qualification.candidate.version="production-container-qualification-candidate-v1"
 ENV NODE_ENV=production
 ENV REEDITPRO_RUNTIME_ROLE=api_service
 ENV PORT=8080

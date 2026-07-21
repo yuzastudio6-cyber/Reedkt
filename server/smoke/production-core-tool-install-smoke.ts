@@ -75,9 +75,11 @@ for (const forbidden of forbiddenCoreImagePackages) {
 check(!/\brevideo\b/i.test(coreDockerText), 'M10 core Dockerfiles must not include Revideo as a core dependency.')
 
 const cpuRequirements = requireRead('docker/prod/cpu-worker/requirements.cpu.txt')
-for (const expected of ['av', 'scenedetect', 'opencv-python-headless', 'duckdb', 'polars', 'opentimelineio']) {
+for (const expected of ['av', 'opencv-python-headless', 'duckdb', 'polars', 'opentimelineio']) {
   check(cpuRequirements.includes(expected), `CPU requirements must include ${expected}.`)
 }
+const cpuDocker = requireRead('docker/prod/cpu-worker/Dockerfile')
+check(/scenedetect==0\.7/.test(cpuDocker), 'CPU Dockerfile must install the reviewed standalone PySceneDetect version.')
 const audioAdapterPythonPackages = [
   'librosa',
   'audioread',
@@ -85,7 +87,6 @@ const audioAdapterPythonPackages = [
   'scipy',
   'resampy',
   'pyloudnorm',
-  'audioflux',
   'music21',
   'pretty_midi',
   'mido',
@@ -96,11 +97,13 @@ const audioAdapterPythonPackages = [
 for (const expected of audioAdapterPythonPackages) {
   check(cpuRequirements.includes(expected), `CPU requirements must include Track B audio adapter package ${expected}.`)
 }
+check(/AudioFlux is intentionally excluded/i.test(cpuRequirements), 'CPU requirements must retain the reviewed AudioFlux exclusion boundary.')
 
 const readinessRequirements = requireRead('docker/prod/tool-readiness-worker/requirements.readiness.txt')
 for (const expected of audioAdapterPythonPackages) {
   check(readinessRequirements.includes(expected), `Readiness requirements must include Track B audio adapter package ${expected}.`)
 }
+check(/AudioFlux is intentionally excluded/i.test(readinessRequirements), 'Readiness requirements must retain the reviewed AudioFlux exclusion boundary.')
 
 const qaRequirements = requireRead('docker/prod/qa-worker/requirements.qa.txt')
 for (const expected of ['opencv-python-headless', 'duckdb', 'polars', 'opentimelineio']) {

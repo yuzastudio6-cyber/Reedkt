@@ -1,7 +1,7 @@
 import { ApiError } from '../errors/api-error'
 
 export const EDIT_REFERENCE_PRODUCTION_READINESS_VERSION =
-  'edit-reference-production-readiness-v1' as const
+  'edit-reference-production-readiness-v2' as const
 
 export const EDIT_REFERENCE_PRODUCTION_GATE_DEFINITIONS = [
   {
@@ -14,6 +14,7 @@ export const EDIT_REFERENCE_PRODUCTION_GATE_DEFINITIONS = [
       'browser_command_server_authority_binding_verified',
       'durable_idempotency_and_cas_verified',
       'cross_device_readback_verified',
+      'long_form_study_tables_and_composite_rls_verified',
       'private_local_fallback_disabled_in_production',
     ],
   },
@@ -43,11 +44,16 @@ export const EDIT_REFERENCE_PRODUCTION_GATE_DEFINITIONS = [
     id: 'durable_long_form_study',
     evidenceClass: 'live_durable_long_form_study',
     assertions: [
-      'durable_queue_lease_and_checkpoint_verified',
+      'pre_plan_study_authority_and_no_edit_authority_fabrication_verified',
+      'durable_plan_run_work_item_attempt_checkpoint_output_transactions_verified',
+      'study_usage_approval_and_maximum_internal_cost_verified',
+      'serializable_claim_one_active_lease_and_digest_only_credential_verified',
+      'heartbeat_checkpoint_and_terminal_usage_atomicity_verified',
+      'lost_response_expired_lease_and_process_restart_recovery_verified',
       'browser_independent_minutes_or_hours_execution_verified',
-      'multi_hour_restart_resume_verified',
-      'whole_source_temporal_and_required_stage_coverage_verified',
+      'multi_hour_whole_source_temporal_and_required_stage_coverage_verified',
       'no_fixed_whole_study_timeout_verified',
+      'raw_media_signed_url_and_provider_credentials_excluded_verified',
     ],
   },
   {

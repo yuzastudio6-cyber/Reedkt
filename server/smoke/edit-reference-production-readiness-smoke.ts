@@ -48,6 +48,7 @@ const complete = assertEditReferenceProductionReady({
   releaseCandidate,
   evidence: completeEvidence,
 })
+assert.equal(complete.schemaVersion, 'edit-reference-production-readiness-v2')
 assert.equal(complete.productionReady, true)
 assert.equal(complete.decision, 'ready_for_production_release')
 assert.equal(complete.blockers.length, 0)
@@ -61,6 +62,21 @@ const incomplete = evaluateEditReferenceProductionReadiness({
 })
 assert.equal(incomplete.productionReady, false)
 assert.equal(incomplete.gates[3]?.reason, 'required_assertions_incomplete')
+assert.deepEqual(
+  EDIT_REFERENCE_PRODUCTION_GATE_DEFINITIONS[3]?.assertions,
+  [
+    'pre_plan_study_authority_and_no_edit_authority_fabrication_verified',
+    'durable_plan_run_work_item_attempt_checkpoint_output_transactions_verified',
+    'study_usage_approval_and_maximum_internal_cost_verified',
+    'serializable_claim_one_active_lease_and_digest_only_credential_verified',
+    'heartbeat_checkpoint_and_terminal_usage_atomicity_verified',
+    'lost_response_expired_lease_and_process_restart_recovery_verified',
+    'browser_independent_minutes_or_hours_execution_verified',
+    'multi_hour_whole_source_temporal_and_required_stage_coverage_verified',
+    'no_fixed_whole_study_timeout_verified',
+    'raw_media_signed_url_and_provider_credentials_excluded_verified',
+  ],
+)
 
 const wrongDeployment = completeEvidence.map((evidence, index) => index === 0
   ? { ...evidence, deploymentArtifactDigestSha256: 'f'.repeat(64) }

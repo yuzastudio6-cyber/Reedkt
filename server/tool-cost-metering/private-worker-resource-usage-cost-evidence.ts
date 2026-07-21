@@ -6,9 +6,11 @@ import {
   createCanonicalProviderOperationRegistry,
   createCanonicalProviderOperationRegistryV2,
   createCanonicalProviderOperationRegistryV3,
+  createCanonicalProviderOperationRegistryV4,
   resolveCanonicalProviderOperation,
   resolveCanonicalProviderOperationV2,
   resolveCanonicalProviderOperationV3,
+  resolveCanonicalProviderOperationV4,
 } from '../edit-architecture/canonical-provider-work-authority'
 import { ApiError } from '../errors/api-error'
 import {
@@ -117,6 +119,7 @@ const operationAuthoritySchema = z.discriminatedUnion('kind', [
       'canonical-provider-operation-registry-v1',
       'canonical-provider-operation-registry-v2',
       'canonical-provider-operation-registry-v3',
+      'canonical-provider-operation-registry-v4',
     ]),
     canonicalToolId: z.null(),
     operationId: identity,
@@ -759,6 +762,7 @@ export function summarizePrivateWorkerResourceUsageCoverage() {
     ...createCanonicalProviderOperationRegistry(),
     ...createCanonicalProviderOperationRegistryV2(),
     ...createCanonicalProviderOperationRegistryV3(),
+    ...createCanonicalProviderOperationRegistryV4(),
   ]
   const required = [
     'startedAt',
@@ -907,6 +911,7 @@ function resolveOperationAuthority(
       | ReturnType<typeof resolveCanonicalProviderOperation>
       | ReturnType<typeof resolveCanonicalProviderOperationV2>
       | ReturnType<typeof resolveCanonicalProviderOperationV3>
+      | ReturnType<typeof resolveCanonicalProviderOperationV4>
     try {
       profile = resolveCanonicalProviderOperation(operation.operationId)
     } catch {
@@ -916,7 +921,11 @@ function resolveOperationAuthority(
         try {
           profile = resolveCanonicalProviderOperationV3(operation.operationId)
         } catch {
-          throw invalid('Provider operation lacks one exact registered metering authority.')
+          try {
+            profile = resolveCanonicalProviderOperationV4(operation.operationId)
+          } catch {
+            throw invalid('Provider operation lacks one exact registered metering authority.')
+          }
         }
       }
     }
@@ -945,7 +954,10 @@ function resolveOperationAuthority(
       )
       maximumOutputArtifacts = profile.expectedOutputs.length
       maximumAuthorizedInfrastructureCostMicros = null
-    } else if (profile.schemaVersion === 'canonical-provider-operation-registry-v3') {
+    } else if (
+      profile.schemaVersion === 'canonical-provider-operation-registry-v3' ||
+      profile.schemaVersion === 'canonical-provider-operation-registry-v4'
+    ) {
       maximumOutputBytes = profile.expectedOutput.maximumByteLength
       maximumOutputArtifacts = 1
       maximumAuthorizedInfrastructureCostMicros = null

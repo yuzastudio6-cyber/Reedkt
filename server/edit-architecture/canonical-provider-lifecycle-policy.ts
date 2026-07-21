@@ -6,16 +6,25 @@ import {
   CANONICAL_FAL_SYNCHRONIZED_FOLEY_MODEL_ID,
   CANONICAL_FAL_SYNCHRONIZED_FOLEY_OPERATION_ID,
   CANONICAL_FAL_SYNCHRONIZED_FOLEY_ROUTE_ID,
+  CANONICAL_GOOGLE_VISUAL_CALIBRATION_BOUNDARY_PROFILE_ID,
+  CANONICAL_GOOGLE_VISUAL_CALIBRATION_MODEL_ID,
+  CANONICAL_GOOGLE_VISUAL_CALIBRATION_OPERATION_ID,
+  CANONICAL_GOOGLE_VISUAL_CALIBRATION_ROUTE_ID,
   CANONICAL_LYRIA_GENERATE_MUSIC_OPERATION_ID,
   CANONICAL_PROVIDER_WORK_AUTHORIZATION_VERSION,
   resolveCanonicalProviderOperation,
   resolveCanonicalProviderOperationV2,
+  resolveCanonicalProviderOperationV4,
 } from './canonical-provider-work-authority'
 export {
   CANONICAL_FAL_SYNCHRONIZED_FOLEY_BOUNDARY_PROFILE_ID,
   CANONICAL_FAL_SYNCHRONIZED_FOLEY_MODEL_ID,
   CANONICAL_FAL_SYNCHRONIZED_FOLEY_OPERATION_ID,
   CANONICAL_FAL_SYNCHRONIZED_FOLEY_ROUTE_ID,
+  CANONICAL_GOOGLE_VISUAL_CALIBRATION_BOUNDARY_PROFILE_ID,
+  CANONICAL_GOOGLE_VISUAL_CALIBRATION_MODEL_ID,
+  CANONICAL_GOOGLE_VISUAL_CALIBRATION_OPERATION_ID,
+  CANONICAL_GOOGLE_VISUAL_CALIBRATION_ROUTE_ID,
 } from './canonical-provider-work-authority'
 import { sha256AuthorityValue } from '../services/private-edit-authority-store'
 
@@ -59,6 +68,7 @@ export const canonicalProviderLifecyclePolicySchema = z.object({
     'generated_music_candidate',
     'synchronized_foley_candidate',
     'storytelling_speech_candidate',
+    'visual_calibration_candidate',
   ]),
   providerBoundaryProfileId: identity,
   providerRouteId: identity,
@@ -131,11 +141,13 @@ export const canonicalProviderLifecyclePolicySchema = z.object({
   policyHash: sha256,
 }).strict().superRefine((value, context) => {
   const foley = value.operationId === CANONICAL_FAL_SYNCHRONIZED_FOLEY_OPERATION_ID
+  const visualCalibration = value.operationId ===
+    CANONICAL_GOOGLE_VISUAL_CALIBRATION_OPERATION_ID
   if (
     (value.qualification.canonicalAuthorizationIssuanceAllowed &&
       (!value.qualification.immutableProviderRevisionQualified ||
         !value.qualification.providerRateAuthorityQualified)) ||
-    (foley && (
+    ((foley || visualCalibration) && (
       value.immutableProviderRevision !== null ||
       value.qualification.immutableProviderRevisionQualified ||
       value.qualification.providerRateAuthorityQualified ||
@@ -154,6 +166,7 @@ export type CanonicalProviderLifecyclePolicy = z.infer<
 >
 
 export function createCanonicalProviderLifecyclePolicyCatalog(): readonly [
+  CanonicalProviderLifecyclePolicy,
   CanonicalProviderLifecyclePolicy,
   CanonicalProviderLifecyclePolicy,
   CanonicalProviderLifecyclePolicy,
@@ -306,10 +319,61 @@ export function createCanonicalProviderLifecyclePolicyCatalog(): readonly [
       ],
     },
   })
+  const visualProfile = resolveCanonicalProviderOperationV4(
+    CANONICAL_GOOGLE_VISUAL_CALIBRATION_OPERATION_ID,
+  )
+  const visualCalibration = finalizePolicy({
+    schemaVersion: CANONICAL_PROVIDER_LIFECYCLE_POLICY_VERSION,
+    operationId: visualProfile.operationId,
+    intent: visualProfile.intent,
+    providerBoundaryProfileId:
+      CANONICAL_GOOGLE_VISUAL_CALIBRATION_BOUNDARY_PROFILE_ID,
+    providerRouteId: CANONICAL_GOOGLE_VISUAL_CALIBRATION_ROUTE_ID,
+    providerModelId: CANONICAL_GOOGLE_VISUAL_CALIBRATION_MODEL_ID,
+    immutableProviderRevision: null,
+    expectedWorkItemType: visualProfile.expectedWorkItemType,
+    expectedWorkerClass: visualProfile.expectedWorkerClass,
+    expectedOutput: {
+      role: visualProfile.expectedOutput.role,
+      artifactType: visualProfile.expectedOutput.artifactType,
+      contentType: visualProfile.expectedOutput.contentType,
+      maximumByteLength: visualProfile.expectedOutput.maximumByteLength,
+      privateCreateOnlyRequired: true as const,
+      checksumReadbackRequired: true as const,
+    },
+    requestCeilings: requestCounts({
+      generationSubmissionCount: 1,
+      statusReadCount: 12,
+      resultReadCount: 1,
+      binaryDownloadCount: 1,
+    }),
+    requestRules: requestRules(),
+    legacyCompatibility: {
+      legacyAuthorizationVersion: null,
+      legacyProfileHash: null,
+      legacyHistoryPreserved: true as const,
+    },
+    downstreamNormalization: null,
+    qualification: {
+      operationIdentityFrozen: true as const,
+      immutableProviderRevisionQualified: false,
+      providerRateAuthorityQualified: false,
+      canonicalAuthorizationIssuanceAllowed: false,
+      providerTransportActivated: false as const,
+      productionReady: false as const,
+      blockingGates: [
+        'immutable_provider_revision_qualification',
+        'expiring_rate_snapshot_requalification',
+        'canonical_provider_authorization_v4_production_qualification',
+        'visual_calibration_provider_transport_qualification',
+      ],
+    },
+  })
   return Object.freeze([
     Object.freeze(lyria),
     Object.freeze(foley),
     Object.freeze(speech),
+    Object.freeze(visualCalibration),
   ])
 }
 

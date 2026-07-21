@@ -11,6 +11,11 @@ import {
   CANONICAL_FAL_SYNCHRONIZED_FOLEY_MODEL_ID,
   CANONICAL_FAL_SYNCHRONIZED_FOLEY_OPERATION_ID,
   CANONICAL_FAL_SYNCHRONIZED_FOLEY_ROUTE_ID,
+  CANONICAL_GOOGLE_GEMINI_SECRET_REFERENCE_ENV_KEY,
+  CANONICAL_GOOGLE_VISUAL_CALIBRATION_BOUNDARY_PROFILE_ID,
+  CANONICAL_GOOGLE_VISUAL_CALIBRATION_MODEL_ID,
+  CANONICAL_GOOGLE_VISUAL_CALIBRATION_OPERATION_ID,
+  CANONICAL_GOOGLE_VISUAL_CALIBRATION_ROUTE_ID,
   CANONICAL_LYRIA_GENERATE_MUSIC_OPERATION_ID,
   CANONICAL_LYRIA_MODEL_ID,
   CANONICAL_LYRIA_PROVIDER_BOUNDARY_PROFILE_ID,
@@ -18,6 +23,7 @@ import {
   CANONICAL_PROVIDER_WORK_AUTHORIZATION_VERSION,
   CANONICAL_PROVIDER_WORK_AUTHORIZATION_V2_VERSION,
   CANONICAL_PROVIDER_WORK_AUTHORIZATION_V3_VERSION,
+  CANONICAL_PROVIDER_WORK_AUTHORIZATION_V4_VERSION,
 } from '../edit-architecture/canonical-provider-work-authority'
 
 export const CANONICAL_PRIVATE_PROVIDER_DISPATCH_AGGREGATE_VERSION =
@@ -36,6 +42,10 @@ export const CANONICAL_PRIVATE_PROVIDER_DISPATCH_GRANT_V3_VERSION =
   'canonical-private-provider-dispatch-grant-v3' as const
 export const CANONICAL_PRIVATE_PROVIDER_DISPATCH_TERMINAL_V3_VERSION =
   'canonical-private-provider-dispatch-terminal-v3' as const
+export const CANONICAL_PRIVATE_PROVIDER_DISPATCH_GRANT_V4_VERSION =
+  'canonical-private-provider-dispatch-grant-v4' as const
+export const CANONICAL_PRIVATE_PROVIDER_DISPATCH_TERMINAL_V4_VERSION =
+  'canonical-private-provider-dispatch-terminal-v4' as const
 
 const identity = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
@@ -94,6 +104,23 @@ export const canonicalPrivateProviderOutputV2Schema = z.object({
 export const canonicalPrivateProviderOutputV3Schema = z.object({
   outputId: identity,
   role: z.literal('provider_synchronized_audio_mp4'),
+  assetId: identity,
+  assetVersionId: identity,
+  privateObjectIdentityHash: sha256,
+  contentSha256: sha256,
+  byteLength: z.number().int().positive().max(67_108_864),
+  mimeType: z.literal('video/mp4'),
+  createOnly: z.literal(true),
+  checksumReadbackVerified: z.literal(true),
+  providerUrlPersisted: z.literal(false),
+  localPathProjected: z.literal(false),
+  browserReadable: z.literal(false),
+  artifactEvidenceDigest: sha256,
+}).strict()
+
+export const canonicalPrivateProviderOutputV4Schema = z.object({
+  outputId: identity,
+  role: z.literal('provider_visual_calibration_video_mp4'),
   assetId: identity,
   assetVersionId: identity,
   privateObjectIdentityHash: sha256,
@@ -344,10 +371,94 @@ export const canonicalPrivateProviderDispatchGrantV3Schema = z.object({
   }
 })
 
+export const canonicalPrivateProviderDispatchGrantV4Schema = z.object({
+  schemaVersion: z.literal(CANONICAL_PRIVATE_PROVIDER_DISPATCH_GRANT_V4_VERSION),
+  grantId: identity,
+  authorizationVersion: z.literal(
+    CANONICAL_PROVIDER_WORK_AUTHORIZATION_V4_VERSION,
+  ),
+  authorizationHash: sha256,
+  authorizationRequestHash: sha256,
+  ownerUserId: identity,
+  workspaceId: identity,
+  projectId: identity,
+  editSessionId: identity,
+  approvedPlanSnapshotId: identity,
+  packageRecordId: identity,
+  packageHash: sha256,
+  queueDefinitionHash: sha256,
+  queueJobId: identity,
+  queueJobDefinitionHash: sha256,
+  approvedWorkItemId: identity,
+  expectedOutputId: identity,
+  expectedOutputIds: z.tuple([identity]),
+  expectedOutputSetHash: sha256,
+  queueClaimId: identity,
+  queueClaimHash: sha256,
+  queueClaimDeliveryAttempt: z.number().int().positive().max(10),
+  queueClaimExpiresAt: timestamp,
+  operationId: z.literal(CANONICAL_GOOGLE_VISUAL_CALIBRATION_OPERATION_ID),
+  providerBoundaryProfileId: z.literal(
+    CANONICAL_GOOGLE_VISUAL_CALIBRATION_BOUNDARY_PROFILE_ID,
+  ),
+  providerRouteId: z.literal(CANONICAL_GOOGLE_VISUAL_CALIBRATION_ROUTE_ID),
+  providerModelId: z.literal(CANONICAL_GOOGLE_VISUAL_CALIBRATION_MODEL_ID),
+  visualCalibrationContextDigest: sha256,
+  sourceRequestId: identity,
+  sourceRequestDigest: sha256,
+  providerRequestPayloadDigest: sha256,
+  projectDataPolicyDigest: sha256,
+  providerAccountPolicyDigest: sha256,
+  idempotencyKeyHash: sha256,
+  credentialSha256: sha256,
+  secretLocator: z.object({
+    configurationKey: z.literal(
+      CANONICAL_GOOGLE_GEMINI_SECRET_REFERENCE_ENV_KEY,
+    ),
+    referenceName: z.null(),
+    referencePresent: z.literal(false),
+    payloadReadCount: z.literal(0),
+    payloadPersisted: z.literal(false),
+    payloadLogged: z.literal(false),
+  }).strict(),
+  executionClass: z.literal('private_injected_nonprovider_test'),
+  providerCallAuthorized: z.literal(false),
+  maximumProviderRequests: z.literal(1),
+  maximumLifecycleHttpRequests: z.literal(15),
+  maximumRetries: z.literal(0),
+  maximumFallbacks: z.literal(0),
+  maximumAuthorizedProviderCostMicros: safeMicros,
+  maximumAuthorizedInfrastructureCostMicros: safeMicros,
+  maximumAuthorizedTotalInternalCostMicros: safeMicros,
+  providerRateCardSnapshotId: identity,
+  providerRateCardSnapshotDigest: sha256,
+  providerRateEvidenceClass: z.literal(
+    'official_public_pricing_snapshot_unreleased',
+  ),
+  issuedAt: timestamp,
+  expiresAt: timestamp,
+  immutableGrantHash: sha256,
+}).strict().superRefine((value, context) => {
+  if (
+    value.expectedOutputId !== value.expectedOutputIds[0] ||
+    value.maximumAuthorizedTotalInternalCostMicros !==
+      value.maximumAuthorizedProviderCostMicros +
+        value.maximumAuthorizedInfrastructureCostMicros ||
+    Date.parse(value.expiresAt) <= Date.parse(value.issuedAt) ||
+    Date.parse(value.expiresAt) > Date.parse(value.queueClaimExpiresAt)
+  ) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Canonical provider dispatch V4 grant policy is inconsistent.',
+    })
+  }
+})
+
 export const canonicalPrivateProviderDispatchGrantAnySchema = z.union([
   canonicalPrivateProviderDispatchGrantSchema,
   canonicalPrivateProviderDispatchGrantV2Schema,
   canonicalPrivateProviderDispatchGrantV3Schema,
+  canonicalPrivateProviderDispatchGrantV4Schema,
 ])
 
 export const canonicalPrivateProviderDispatchAttemptSchema = z.object({
@@ -562,10 +673,81 @@ export const canonicalPrivateProviderDispatchTerminalV3Schema = z.object({
   }
 })
 
+export const canonicalPrivateProviderDispatchTerminalV4Schema = z.object({
+  schemaVersion: z.literal(
+    CANONICAL_PRIVATE_PROVIDER_DISPATCH_TERMINAL_V4_VERSION,
+  ),
+  sequence: z.union([z.literal(1), z.literal(2)]),
+  terminalId: identity,
+  dispatchAttemptId: identity,
+  state: z.enum([
+    'succeeded',
+    'failed',
+    'unknown_reconciliation_required',
+    'unknown_reconciled_succeeded',
+    'unknown_reconciled_failed',
+  ]),
+  providerRequestCount: z.union([z.literal(0), z.literal(1)]),
+  retryCount: z.literal(0),
+  fallbackCount: z.literal(0),
+  dispatchConsumptionCount: z.literal(1),
+  unknownOutcomeReconciled: z.boolean(),
+  providerResponseUsageDigest: sha256.nullable(),
+  sanitizedFailureCode: identity.nullable(),
+  privateOutput: canonicalPrivateProviderOutputV4Schema.nullable(),
+  privateOutputs: z.array(canonicalPrivateProviderOutputV4Schema).max(1),
+  outputSetDigest: sha256,
+  costEvidenceHash: sha256,
+  providerCostMicros: safeMicros.nullable(),
+  infrastructureCostMicros: safeMicros,
+  totalInternalProductionCostMicros: safeMicros.nullable(),
+  priorTerminalHash: sha256.nullable(),
+  completedAt: timestamp,
+  terminalHash: sha256,
+}).strict().superRefine((value, context) => {
+  const succeeded = value.state === 'succeeded' ||
+    value.state === 'unknown_reconciled_succeeded'
+  const unknown = value.state === 'unknown_reconciliation_required'
+  const reconciled = value.state.startsWith('unknown_reconciled_')
+  if (
+    (succeeded !== (value.privateOutput !== null)) ||
+    (succeeded !== (value.privateOutputs.length === 1)) ||
+    (succeeded && (
+      value.privateOutput?.outputId !== value.privateOutputs[0]?.outputId ||
+      value.privateOutputs[0]?.role !==
+        'provider_visual_calibration_video_mp4' ||
+      value.privateOutputs[0]?.mimeType !== 'video/mp4'
+    )) ||
+    (!succeeded && value.privateOutputs.length !== 0) ||
+    (succeeded && value.sanitizedFailureCode !== null) ||
+    (!succeeded && value.sanitizedFailureCode === null) ||
+    unknown !== !value.unknownOutcomeReconciled ||
+    reconciled !== (value.sequence === 2 && value.priorTerminalHash !== null) ||
+    (!reconciled && (value.sequence !== 1 || value.priorTerminalHash !== null)) ||
+    ((unknown || reconciled) && value.providerRequestCount !== 1) ||
+    (reconciled && value.providerResponseUsageDigest === null) ||
+    (unknown && (
+      value.providerCostMicros !== null ||
+      value.totalInternalProductionCostMicros !== null
+    )) ||
+    (!unknown && (
+      value.providerCostMicros === null ||
+      value.totalInternalProductionCostMicros !==
+        value.providerCostMicros + value.infrastructureCostMicros
+    ))
+  ) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Canonical provider dispatch V4 terminal state is inconsistent.',
+    })
+  }
+})
+
 export const canonicalPrivateProviderDispatchTerminalAnySchema = z.union([
   canonicalPrivateProviderDispatchTerminalSchema,
   canonicalPrivateProviderDispatchTerminalV2Schema,
   canonicalPrivateProviderDispatchTerminalV3Schema,
+  canonicalPrivateProviderDispatchTerminalV4Schema,
 ])
 
 export const canonicalPrivateProviderDispatchEventSchema = z.object({
@@ -606,9 +788,11 @@ export const canonicalPrivateProviderDispatchEntrySchema = z.object({
   const firstTerminal = value.terminalHistory[0]
   const secondTerminal = value.terminalHistory[1]
   const expectedTerminalSchemaVersion = value.grant.schemaVersion ===
-    CANONICAL_PRIVATE_PROVIDER_DISPATCH_GRANT_V3_VERSION
-    ? CANONICAL_PRIVATE_PROVIDER_DISPATCH_TERMINAL_V3_VERSION
-    : value.grant.schemaVersion === CANONICAL_PRIVATE_PROVIDER_DISPATCH_GRANT_V2_VERSION
+    CANONICAL_PRIVATE_PROVIDER_DISPATCH_GRANT_V4_VERSION
+    ? CANONICAL_PRIVATE_PROVIDER_DISPATCH_TERMINAL_V4_VERSION
+    : value.grant.schemaVersion === CANONICAL_PRIVATE_PROVIDER_DISPATCH_GRANT_V3_VERSION
+      ? CANONICAL_PRIVATE_PROVIDER_DISPATCH_TERMINAL_V3_VERSION
+      : value.grant.schemaVersion === CANONICAL_PRIVATE_PROVIDER_DISPATCH_GRANT_V2_VERSION
       ? CANONICAL_PRIVATE_PROVIDER_DISPATCH_TERMINAL_V2_VERSION
       : CANONICAL_PRIVATE_PROVIDER_DISPATCH_TERMINAL_VERSION
   if (
@@ -690,6 +874,9 @@ export type CanonicalPrivateProviderOutputV2 = z.infer<
 export type CanonicalPrivateProviderOutputV3 = z.infer<
   typeof canonicalPrivateProviderOutputV3Schema
 >
+export type CanonicalPrivateProviderOutputV4 = z.infer<
+  typeof canonicalPrivateProviderOutputV4Schema
+>
 export type CanonicalPrivateProviderDispatchGrant = z.infer<
   typeof canonicalPrivateProviderDispatchGrantSchema
 >
@@ -713,6 +900,12 @@ export type CanonicalPrivateProviderDispatchGrantV3 = z.infer<
 >
 export type CanonicalPrivateProviderDispatchTerminalV3 = z.infer<
   typeof canonicalPrivateProviderDispatchTerminalV3Schema
+>
+export type CanonicalPrivateProviderDispatchGrantV4 = z.infer<
+  typeof canonicalPrivateProviderDispatchGrantV4Schema
+>
+export type CanonicalPrivateProviderDispatchTerminalV4 = z.infer<
+  typeof canonicalPrivateProviderDispatchTerminalV4Schema
 >
 export type CanonicalPrivateProviderDispatchTerminalAny = z.infer<
   typeof canonicalPrivateProviderDispatchTerminalAnySchema

@@ -64,7 +64,7 @@ const roots: string[] = []
 
 try {
   const lifecyclePolicies = createCanonicalProviderLifecyclePolicyCatalog()
-  assert.equal(lifecyclePolicies.length, 3)
+  assert.equal(lifecyclePolicies.length, 4)
   const foleyPolicy = resolveCanonicalProviderLifecyclePolicy(
     CANONICAL_FAL_SYNCHRONIZED_FOLEY_OPERATION_ID,
   )

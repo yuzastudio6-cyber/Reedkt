@@ -178,7 +178,7 @@ const canonicalSteps: VerificationStep[] = [
   step(
     'private-worker-resource-usage-cost-evidence',
     'smoke:private-worker-resource-usage-cost-evidence',
-    'All 72 registered tool operations plus the three admitted provider operations expose exact CPU/memory resource evidence contracts, all GPU-capable operations require GPU milliseconds, and completed/failed/unknown private attempts retain create-only internal infrastructure-cost evidence while deployed observers, official cloud rates, provider calls, commerce, and production remain blocked.',
+    'All 72 registered tool operations plus the four admitted provider operations expose exact CPU/memory resource evidence contracts, all GPU-capable operations require GPU milliseconds, and completed/failed/unknown private attempts retain create-only internal infrastructure-cost evidence while deployed observers, official cloud rates, provider calls, commerce, and production remain blocked.',
   ),
   step(
     'canonical-embedded-worker-resource-lifecycle',
@@ -199,6 +199,11 @@ const canonicalSteps: VerificationStep[] = [
     'canonical-synchronized-foley-provider-attempt-consumer-receipt',
     'smoke:canonical-private-synchronized-foley-provider-lifecycle',
     'The exact synchronized-Foley provider operation reuses the canonical approved-package queue, claim/lease, one-use provider dispatch, private candidate store, component internal-cost stores, and compact receipt. One injected non-provider attempt retains a create-only private MP4 with checksum readback, exact replay, observed worker-resource cost, failed-attempt cost, unknown-outcome reconciliation, and the typed 17-request asynchronous lifecycle ceiling while distinguishing one paid generation submission from continuation requests. Provider transport, secret reads, immutable provider revision, production rate authority, cloud persistence, billing, downstream normalization execution, and production promotion remain blocked.',
+  ),
+  step(
+    'canonical-visual-calibration-provider-attempt-consumer-receipt',
+    'smoke:canonical-private-visual-calibration-provider-lifecycle',
+    'One exact Gemini Omni Flash visual-calibration operation reuses the canonical approved-package queue, claim/lease, one-use provider dispatch, private candidate store, provider and worker internal-cost stores, and compact source-verified receipt. The injected non-provider proof binds the exact Motion production, style, calibration plan/scenario, reference, first/last frame, and continuity authority to one create-only private MP4, exact replay, failed-attempt cost, unknown-outcome reconciliation, and a typed 15-request primary-only lifecycle. Preview-model immutability, provider account/rate/transport qualification, secret reads, cloud persistence, selection, billing, and production promotion remain blocked.',
   ),
   step(
     'canonical-multi-source-execution',
@@ -345,7 +350,7 @@ function printReport(
 ): void {
   const finishedAt = new Date()
   const report = {
-    schemaVersion: 'canonical-private-pipeline-verification-v33',
+    schemaVersion: 'canonical-private-pipeline-verification-v34',
     status,
     mode: full ? 'full_internal_regression' : 'canonical_private_pipeline',
     startedAt: runStartedAt.toISOString(),
@@ -450,7 +455,7 @@ function printReport(
           cryptographicServiceIdentityVerifierCore: true,
           durablePrivateCloudDispatchOutboxReceiverContract: true,
           genericMediaBinaryCgroupV2ResourceObservation: true,
-          canonicalEmbeddedResourceUsageOperationCount: 30,
+          canonicalEmbeddedResourceUsageOperationCount: 31,
           canonicalFfmpegFfprobeAttemptInternalResourceCostEvidence: true,
           boundedPrivateMultiSourceExecution: true,
           boundedApprovedHardCutTransitions: true,
@@ -490,6 +495,17 @@ function printReport(
           synchronizedFoleyUnknownOutcomeReconciliationVerified: true,
           synchronizedFoleyTypedLifecycleHttpRequestCeiling: 17,
           synchronizedFoleyCanonicalAuthorizationIssuanceAllowed: false,
+          canonicalProviderOperationContractCount: 4,
+          visualCalibrationLifecycleIdentityFrozen: true,
+          visualCalibrationPrivateInjectedProviderLifecycleVerified: true,
+          visualCalibrationPrivateMp4CreateOnlyPersistenceVerified: true,
+          visualCalibrationFailedAttemptInternalCostRetained: true,
+          visualCalibrationUnknownOutcomeReconciliationVerified: true,
+          visualCalibrationTypedLifecycleHttpRequestCeiling: 15,
+          visualCalibrationPrimaryRouteOnly: true,
+          visualCalibrationExactMotionStyleScenarioFrameContinuityBound: true,
+          visualCalibrationOfficialPublicRateSnapshotProductionQualified: false,
+          visualCalibrationCanonicalAuthorizationIssuanceAllowed: false,
           activeNamedEditJourneyStates: true,
           versionedToolIdentityEvidence: true,
           ...(full
@@ -515,7 +531,7 @@ function printReport(
       canonicalPackageStateDatabaseFunctionsExecuted: false,
       canonicalPackageStateRpcLiveClientActivated: false,
       specializedLongFormMediaCgroupResourceObservationVerified: false,
-      remotionCgroupResourceObservationVerified: false,
+      remotionCgroupResourceObservationVerified: true,
       deployedCloudWorkerResourceObservationVerified: false,
       professionalLongFormRemaining247ChildLeasesVerified: false,
       professionalLongFormAll124ChunkPairsCompleted: false,

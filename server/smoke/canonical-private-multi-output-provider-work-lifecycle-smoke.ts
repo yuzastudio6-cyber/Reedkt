@@ -76,7 +76,7 @@ try {
   assert.equal(profiles[0].readiness.productionReady, false)
 
   const policies = createCanonicalProviderLifecyclePolicyCatalog()
-  assert.equal(policies.length, 3)
+  assert.equal(policies.length, 4)
   const speechPolicy = resolveCanonicalProviderLifecyclePolicy(
     CANONICAL_ELEVENLABS_STORYTELLING_SPEECH_OPERATION_ID,
   )

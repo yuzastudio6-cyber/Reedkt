@@ -8,8 +8,10 @@ import type { CanonicalProviderWorkAuthorization } from
 import {
   resolveCanonicalProviderOperationV2,
   resolveCanonicalProviderOperationV3,
+  resolveCanonicalProviderOperationV4,
   type CanonicalProviderWorkAuthorizationV2,
   type CanonicalProviderWorkAuthorizationV3,
+  type CanonicalProviderWorkAuthorizationV4,
 } from '../edit-architecture/canonical-provider-work-authority'
 import {
   readPrivateFileIfExistsWithinRoot,
@@ -21,9 +23,11 @@ import {
   canonicalPrivateProviderOutputSchema,
   canonicalPrivateProviderOutputV2Schema,
   canonicalPrivateProviderOutputV3Schema,
+  canonicalPrivateProviderOutputV4Schema,
   type CanonicalPrivateProviderOutput,
   type CanonicalPrivateProviderOutputV2,
   type CanonicalPrivateProviderOutputV3,
+  type CanonicalPrivateProviderOutputV4,
 } from '../validation/canonical-private-provider-dispatch-schemas'
 import {
   sha256AuthorityValue,
@@ -38,6 +42,9 @@ const OUTPUT_SET_V2_VERSION =
 const METADATA_V3_VERSION = 'private-canonical-provider-candidate-v3' as const
 const OUTPUT_SET_V3_VERSION =
   'private-canonical-provider-candidate-output-set-v3' as const
+const METADATA_V4_VERSION = 'private-canonical-provider-candidate-v4' as const
+const OUTPUT_SET_V4_VERSION =
+  'private-canonical-provider-candidate-output-set-v4' as const
 const identity = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
   .refine((value) => !value.includes('..'))
@@ -209,6 +216,68 @@ const privateCanonicalProviderCandidateOutputSetV3Schema = z.object({
   createdAt: timestamp,
 }).strict()
 
+const privateCanonicalProviderCandidateMetadataV4Schema = z.object({
+  schemaVersion: z.literal(METADATA_V4_VERSION),
+  objectIdentity: z.object({
+    domain: z.literal('reeditpro:private-provider-candidate-object:v4'),
+    workspaceId: identity,
+    projectId: identity,
+    editSessionId: identity,
+    approvedPlanSnapshotId: identity,
+    packageRecordId: identity,
+    approvedWorkItemId: identity,
+    jobId: identity,
+    claimId: identity,
+    dispatchAttemptId: identity,
+    expectedOutputId: identity,
+    outputOrdinal: z.literal(0),
+    role: z.literal('provider_visual_calibration_video_mp4'),
+    visualCalibrationContextDigest: sha256,
+    contentSha256: sha256,
+    byteLength: z.number().int().positive().max(67_108_864),
+    mimeType: z.literal('video/mp4'),
+    providerGenerated: z.literal(false),
+  }).strict(),
+  privateObjectIdentityHash: sha256,
+  assetId: identity,
+  assetVersionId: identity,
+  storage: z.object({
+    privateLocalCreateOnly: z.literal(true),
+    checksumReadbackRequired: z.literal(true),
+    providerUrlPersisted: z.literal(false),
+    localPathProjected: z.literal(false),
+    databaseBacked: z.literal(false),
+    productionDurability: z.literal(false),
+  }).strict(),
+  lifecycle: z.object({
+    privateReviewOnly: z.literal(true),
+    objectiveQaPending: z.literal(true),
+    humanReviewPending: z.literal(true),
+    calibrationDecisionPending: z.literal(true),
+    automaticSelectionAllowed: z.literal(false),
+    fallbackAllowed: z.literal(false),
+    timelineMutationAllowed: z.literal(false),
+    renderOrExportAllowed: z.literal(false),
+    publicDeliveryAllowed: z.literal(false),
+  }).strict(),
+  createdAt: timestamp,
+  output: canonicalPrivateProviderOutputV4Schema,
+  artifactEvidenceDigest: sha256,
+}).strict()
+
+const privateCanonicalProviderCandidateOutputSetV4Schema = z.object({
+  schemaVersion: z.literal(OUTPUT_SET_V4_VERSION),
+  authorizationHash: sha256,
+  dispatchAttemptHash: sha256,
+  expectedOutputSetHash: sha256,
+  visualCalibrationContextDigest: sha256,
+  outputIds: z.tuple([identity]),
+  outputIdentityHashes: z.tuple([sha256]),
+  outputContentHashes: z.tuple([sha256]),
+  outputSetDigest: sha256,
+  createdAt: timestamp,
+}).strict()
+
 export interface VerifiedPrivateCanonicalProviderCandidateReadback {
   output: CanonicalPrivateProviderOutput
   providerGenerated: boolean
@@ -237,6 +306,18 @@ export interface VerifiedPrivateCanonicalProviderCandidateReadbackV3 {
 
 export interface VerifiedPrivateCanonicalProviderCandidateProcessingReadV3 {
   readback: VerifiedPrivateCanonicalProviderCandidateReadbackV3
+  bytes: Buffer
+}
+
+export interface VerifiedPrivateCanonicalProviderCandidateReadbackV4 {
+  output: CanonicalPrivateProviderOutputV4
+  providerGenerated: false
+  storageEvidenceHash: string
+  sourceReadbackEvidenceHash: string
+}
+
+export interface VerifiedPrivateCanonicalProviderCandidateProcessingReadV4 {
+  readback: VerifiedPrivateCanonicalProviderCandidateReadbackV4
   bytes: Buffer
 }
 
@@ -1184,6 +1265,323 @@ export async function readVerifiedPrivateCanonicalProviderCandidateForProcessing
   return { readback, bytes }
 }
 
+export async function persistPrivateCanonicalProviderCandidateV4(input: {
+  localStorageRoot: string
+  authorization: CanonicalProviderWorkAuthorizationV4
+  dispatchAttempt: CanonicalPrivateProviderDispatchAttempt
+  output: {
+    outputId: string
+    role: 'provider_visual_calibration_video_mp4'
+    mimeType: 'video/mp4'
+    bytes: Buffer | Uint8Array
+  }
+  providerGenerated: false
+  createdAt: string
+}): Promise<{
+  output: CanonicalPrivateProviderOutputV4
+  outputSetDigest: string
+  idempotencyStatus:
+    | 'inserted'
+    | 'duplicate_returned'
+    | 'recovered_partial_exact_replay'
+}> {
+  const createdAt = canonicalTimestamp(input.createdAt)
+  const profile = resolveCanonicalProviderOperationV4(
+    input.authorization.operationId,
+  )
+  const bytes = Buffer.from(input.output.bytes)
+  validateV4OutputBytes(bytes, profile.expectedOutput.maximumByteLength)
+  if (
+    input.dispatchAttempt.authorizationHash !== input.authorization.authorityHash ||
+    Date.parse(createdAt) < Date.parse(input.dispatchAttempt.consumedAt) ||
+    Date.parse(createdAt) > Date.parse(input.authorization.expiresAt) ||
+    input.providerGenerated !== false ||
+    input.output.outputId !== input.authorization.expectedOutputId ||
+    input.output.role !== profile.expectedOutput.role ||
+    input.output.mimeType !== profile.expectedOutput.contentType
+  ) throw invalid('Visual-calibration candidate lost exact V4 attempt authority.')
+  const contentSha256 = sha256Bytes(bytes)
+  const objectIdentity = {
+    domain: 'reeditpro:private-provider-candidate-object:v4' as const,
+    workspaceId: input.authorization.workspaceId,
+    projectId: input.authorization.projectId,
+    editSessionId: input.authorization.editSessionId,
+    approvedPlanSnapshotId: input.authorization.approvedPlanSnapshotId,
+    packageRecordId: input.authorization.packageRecordId,
+    approvedWorkItemId: input.authorization.approvedWorkItemId,
+    jobId: input.authorization.queueJobId,
+    claimId: input.dispatchAttempt.queueClaimId,
+    dispatchAttemptId: input.dispatchAttempt.dispatchAttemptId,
+    expectedOutputId: input.output.outputId,
+    outputOrdinal: 0 as const,
+    role: input.output.role,
+    visualCalibrationContextDigest:
+      input.authorization.visualCalibrationContextDigest,
+    contentSha256,
+    byteLength: bytes.byteLength,
+    mimeType: input.output.mimeType,
+    providerGenerated: false as const,
+  }
+  const privateObjectIdentityHash = sha256AuthorityValue(objectIdentity)
+  const assetId = `provider_asset_v4_${privateObjectIdentityHash.slice(0, 37)}`
+  const assetVersionId =
+    `provider_asset_version_v4_${privateObjectIdentityHash.slice(0, 29)}`
+  const metadata = {
+    schemaVersion: METADATA_V4_VERSION,
+    objectIdentity,
+    privateObjectIdentityHash,
+    assetId,
+    assetVersionId,
+    storage: {
+      privateLocalCreateOnly: true as const,
+      checksumReadbackRequired: true as const,
+      providerUrlPersisted: false as const,
+      localPathProjected: false as const,
+      databaseBacked: false as const,
+      productionDurability: false as const,
+    },
+    lifecycle: {
+      privateReviewOnly: true as const,
+      objectiveQaPending: true as const,
+      humanReviewPending: true as const,
+      calibrationDecisionPending: true as const,
+      automaticSelectionAllowed: false as const,
+      fallbackAllowed: false as const,
+      timelineMutationAllowed: false as const,
+      renderOrExportAllowed: false as const,
+      publicDeliveryAllowed: false as const,
+    },
+    createdAt,
+  }
+  const artifactEvidenceDigest = sha256AuthorityValue(metadata)
+  const output = canonicalPrivateProviderOutputV4Schema.parse({
+    outputId: input.output.outputId,
+    role: input.output.role,
+    assetId,
+    assetVersionId,
+    privateObjectIdentityHash,
+    contentSha256,
+    byteLength: bytes.byteLength,
+    mimeType: input.output.mimeType,
+    createOnly: true,
+    checksumReadbackVerified: true,
+    providerUrlPersisted: false,
+    localPathProjected: false,
+    browserReadable: false,
+    artifactEvidenceDigest,
+  })
+  const metadataBytes = Buffer.from(`${stableAuthorityStringify({
+    ...metadata,
+    output,
+    artifactEvidenceDigest,
+  })}\n`, 'utf8')
+  const outputSetPayload = {
+    schemaVersion: OUTPUT_SET_V4_VERSION,
+    authorizationHash: input.authorization.authorityHash,
+    dispatchAttemptHash: input.dispatchAttempt.attemptHash,
+    expectedOutputSetHash: input.authorization.expectedOutputSetHash,
+    visualCalibrationContextDigest:
+      input.authorization.visualCalibrationContextDigest,
+    outputIds: [output.outputId] as [string],
+    outputIdentityHashes: [output.privateObjectIdentityHash] as [string],
+    outputContentHashes: [output.contentSha256] as [string],
+    createdAt,
+  }
+  const outputSetDigest = sha256AuthorityValue(outputSetPayload)
+  const outputSet = privateCanonicalProviderCandidateOutputSetV4Schema.parse({
+    ...outputSetPayload,
+    outputSetDigest,
+  })
+  const paths = candidatePathsV4(
+    input.authorization,
+    output.privateObjectIdentityHash,
+  )
+  const [objectWrite, metadataWrite, setWrite] = await Promise.all([
+    writePrivateFileCreateOnlyWithinRoot({
+      rootPath: input.localStorageRoot,
+      relativePath: paths.object,
+      content: bytes,
+    }),
+    writePrivateFileCreateOnlyWithinRoot({
+      rootPath: input.localStorageRoot,
+      relativePath: paths.metadata,
+      content: metadataBytes,
+    }),
+    writePrivateFileCreateOnlyWithinRoot({
+      rootPath: input.localStorageRoot,
+      relativePath: candidateOutputSetPathV4(
+        input.authorization,
+        input.dispatchAttempt.attemptHash,
+      ),
+      content: Buffer.from(`${stableAuthorityStringify(outputSet)}\n`, 'utf8'),
+    }),
+  ])
+  const verified = await readVerifiedPrivateCanonicalProviderCandidateV4({
+    localStorageRoot: input.localStorageRoot,
+    authorization: input.authorization,
+    dispatchAttempt: input.dispatchAttempt,
+    output,
+    outputSetDigest,
+  })
+  const createStates = [objectWrite.created, metadataWrite.created, setWrite.created]
+  return {
+    output: verified.output,
+    outputSetDigest,
+    idempotencyStatus: createStates.every(Boolean)
+      ? 'inserted'
+      : createStates.every((value) => !value)
+        ? 'duplicate_returned'
+        : 'recovered_partial_exact_replay',
+  }
+}
+
+export async function readVerifiedPrivateCanonicalProviderCandidateV4(input: {
+  localStorageRoot: string
+  authorization: CanonicalProviderWorkAuthorizationV4
+  dispatchAttempt: CanonicalPrivateProviderDispatchAttempt
+  output: CanonicalPrivateProviderOutputV4
+  outputSetDigest: string
+}): Promise<VerifiedPrivateCanonicalProviderCandidateReadbackV4> {
+  const output = canonicalPrivateProviderOutputV4Schema.parse(input.output)
+  if (
+    input.dispatchAttempt.authorizationHash !== input.authorization.authorityHash ||
+    output.outputId !== input.authorization.expectedOutputId
+  ) throw invalid('Visual-calibration readback lost exact V4 lineage.')
+  const setBytes = await readPrivateFileIfExistsWithinRoot({
+    rootPath: input.localStorageRoot,
+    relativePath: candidateOutputSetPathV4(
+      input.authorization,
+      input.dispatchAttempt.attemptHash,
+    ),
+  })
+  if (!setBytes || setBytes.byteLength > 64 * 1024) {
+    throw invalid('Visual-calibration output-set manifest is missing.')
+  }
+  let decodedSet: unknown
+  try {
+    decodedSet = JSON.parse(setBytes.toString('utf8'))
+  } catch {
+    throw invalid('Visual-calibration output-set manifest is invalid JSON.')
+  }
+  const outputSet = privateCanonicalProviderCandidateOutputSetV4Schema.parse(
+    decodedSet,
+  )
+  const { outputSetDigest, ...outputSetPayload } = outputSet
+  if (
+    outputSetDigest !== sha256AuthorityValue(outputSetPayload) ||
+    outputSetDigest !== input.outputSetDigest ||
+    outputSet.authorizationHash !== input.authorization.authorityHash ||
+    outputSet.dispatchAttemptHash !== input.dispatchAttempt.attemptHash ||
+    outputSet.expectedOutputSetHash !== input.authorization.expectedOutputSetHash ||
+    outputSet.visualCalibrationContextDigest !==
+      input.authorization.visualCalibrationContextDigest ||
+    outputSet.outputIds[0] !== output.outputId ||
+    outputSet.outputIdentityHashes[0] !== output.privateObjectIdentityHash ||
+    outputSet.outputContentHashes[0] !== output.contentSha256
+  ) throw invalid('Visual-calibration output-set integrity changed.')
+  const paths = candidatePathsV4(
+    input.authorization,
+    output.privateObjectIdentityHash,
+  )
+  const [bytes, metadataBytes] = await Promise.all([
+    readPrivateFileIfExistsWithinRoot({
+      rootPath: input.localStorageRoot,
+      relativePath: paths.object,
+    }),
+    readPrivateFileIfExistsWithinRoot({
+      rootPath: input.localStorageRoot,
+      relativePath: paths.metadata,
+    }),
+  ])
+  if (!bytes || !metadataBytes || metadataBytes.byteLength > 64 * 1024) {
+    throw invalid('Visual-calibration private output readback is missing or oversized.')
+  }
+  validateV4OutputBytes(bytes, 67_108_864)
+  let decodedMetadata: unknown
+  try {
+    decodedMetadata = JSON.parse(metadataBytes.toString('utf8'))
+  } catch {
+    throw invalid('Visual-calibration private metadata is invalid JSON.')
+  }
+  const metadata = privateCanonicalProviderCandidateMetadataV4Schema.parse(
+    decodedMetadata,
+  )
+  const { output: storedOutput, artifactEvidenceDigest, ...evidenceMetadata } =
+    metadata
+  const contentSha256 = sha256Bytes(bytes)
+  if (
+    stableAuthorityStringify(storedOutput) !== stableAuthorityStringify(output) ||
+    artifactEvidenceDigest !== sha256AuthorityValue(evidenceMetadata) ||
+    artifactEvidenceDigest !== output.artifactEvidenceDigest ||
+    sha256AuthorityValue(metadata.objectIdentity) !==
+      output.privateObjectIdentityHash ||
+    metadata.privateObjectIdentityHash !== output.privateObjectIdentityHash ||
+    metadata.assetId !== output.assetId ||
+    metadata.assetVersionId !== output.assetVersionId ||
+    metadata.objectIdentity.workspaceId !== input.authorization.workspaceId ||
+    metadata.objectIdentity.projectId !== input.authorization.projectId ||
+    metadata.objectIdentity.editSessionId !== input.authorization.editSessionId ||
+    metadata.objectIdentity.approvedPlanSnapshotId !==
+      input.authorization.approvedPlanSnapshotId ||
+    metadata.objectIdentity.packageRecordId !== input.authorization.packageRecordId ||
+    metadata.objectIdentity.approvedWorkItemId !==
+      input.authorization.approvedWorkItemId ||
+    metadata.objectIdentity.jobId !== input.authorization.queueJobId ||
+    metadata.objectIdentity.claimId !== input.dispatchAttempt.queueClaimId ||
+    metadata.objectIdentity.dispatchAttemptId !==
+      input.dispatchAttempt.dispatchAttemptId ||
+    metadata.objectIdentity.expectedOutputId !==
+      input.authorization.expectedOutputId ||
+    metadata.objectIdentity.visualCalibrationContextDigest !==
+      input.authorization.visualCalibrationContextDigest ||
+    metadata.objectIdentity.contentSha256 !== contentSha256 ||
+    contentSha256 !== output.contentSha256 ||
+    bytes.byteLength !== output.byteLength ||
+    Date.parse(metadata.createdAt) < Date.parse(input.dispatchAttempt.consumedAt) ||
+    Date.parse(metadata.createdAt) > Date.parse(input.authorization.expiresAt)
+  ) throw invalid('Visual-calibration private output readback integrity changed.')
+  const storageEvidenceHash = sha256AuthorityValue({
+    objectContentSha256: contentSha256,
+    metadataContentSha256: sha256Bytes(metadataBytes),
+    artifactEvidenceDigest,
+    outputSetDigest,
+  })
+  return {
+    output,
+    providerGenerated: false,
+    storageEvidenceHash,
+    sourceReadbackEvidenceHash: sha256AuthorityValue({
+      domain: 'reeditpro:private-provider-candidate-source-readback:v4',
+      authorizationHash: input.authorization.authorityHash,
+      visualCalibrationContextDigest:
+        input.authorization.visualCalibrationContextDigest,
+      dispatchAttemptHash: input.dispatchAttempt.attemptHash,
+      output,
+      storageEvidenceHash,
+      outputSetDigest,
+    }),
+  }
+}
+
+export async function readVerifiedPrivateCanonicalProviderCandidateForProcessingV4(
+  input: Parameters<typeof readVerifiedPrivateCanonicalProviderCandidateV4>[0],
+): Promise<VerifiedPrivateCanonicalProviderCandidateProcessingReadV4> {
+  const readback = await readVerifiedPrivateCanonicalProviderCandidateV4(input)
+  const bytes = await readPrivateFileIfExistsWithinRoot({
+    rootPath: input.localStorageRoot,
+    relativePath: candidatePathsV4(
+      input.authorization,
+      readback.output.privateObjectIdentityHash,
+    ).object,
+  })
+  if (
+    !bytes || bytes.byteLength !== readback.output.byteLength ||
+    sha256Bytes(bytes) !== readback.output.contentSha256
+  ) throw invalid('Visual-calibration processing bytes changed after readback.')
+  validateV4OutputBytes(bytes, 67_108_864)
+  return { readback, bytes }
+}
+
 function candidatePaths(
   authorization: CanonicalProviderWorkAuthorization,
   privateObjectIdentityHash: string,
@@ -1246,6 +1644,30 @@ function candidateOutputSetPathV3(
   return `private-internal/provider-candidates/v3/${tenantHash}/${authorization.projectId}/${authorization.editSessionId}/set-${dispatchAttemptHash}.json`
 }
 
+function candidatePathsV4(
+  authorization: CanonicalProviderWorkAuthorizationV4,
+  privateObjectIdentityHash: string,
+): { object: string; metadata: string } {
+  const tenantHash = sha256Text(
+    `${authorization.ownerUserId}\u0000${authorization.workspaceId}`,
+  ).slice(0, 32)
+  const prefix = `private-internal/provider-candidates/v4/${tenantHash}/${authorization.projectId}/${authorization.editSessionId}`
+  return {
+    object: `${prefix}/${privateObjectIdentityHash}.mp4`,
+    metadata: `${prefix}/${privateObjectIdentityHash}.json`,
+  }
+}
+
+function candidateOutputSetPathV4(
+  authorization: CanonicalProviderWorkAuthorizationV4,
+  dispatchAttemptHash: string,
+): string {
+  const tenantHash = sha256Text(
+    `${authorization.ownerUserId}\u0000${authorization.workspaceId}`,
+  ).slice(0, 32)
+  return `private-internal/provider-candidates/v4/${tenantHash}/${authorization.projectId}/${authorization.editSessionId}/set-${dispatchAttemptHash}.json`
+}
+
 function validateV2OutputBytes(input: {
   role: CanonicalPrivateProviderOutputV2['role']
   mimeType: CanonicalPrivateProviderOutputV2['mimeType']
@@ -1287,6 +1709,17 @@ function validateV3OutputBytes(bytes: Buffer, maximumByteLength: number): void {
   const declaredFirstBoxSize = bytes.readUInt32BE(0)
   if (declaredFirstBoxSize < 8 || declaredFirstBoxSize > bytes.byteLength) {
     throw invalid('Synchronized-Foley MP4 first-box boundary is invalid.')
+  }
+}
+
+function validateV4OutputBytes(bytes: Buffer, maximumByteLength: number): void {
+  if (
+    bytes.byteLength < 12 || bytes.byteLength > maximumByteLength ||
+    bytes.subarray(4, 8).toString('ascii') !== 'ftyp'
+  ) throw invalid('Visual-calibration output is not a bounded MP4 object.')
+  const declaredFirstBoxSize = bytes.readUInt32BE(0)
+  if (declaredFirstBoxSize < 8 || declaredFirstBoxSize > bytes.byteLength) {
+    throw invalid('Visual-calibration MP4 first-box boundary is invalid.')
   }
 }
 

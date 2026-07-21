@@ -86,7 +86,7 @@ test.describe('canonical journey named-edit UI bridge', () => {
 
     const requestBody = JSON.stringify(handoffRequests[0])
     expect(preferenceRequests.readCount).toBe(1)
-    expect(preferenceRequests.updateCount).toBe(1)
+    expect(preferenceRequests.updateCount).toBe(0)
     expect(requestBody).not.toMatch(/storagePath|private\/source|signedUrl|publicUrl|sourceBytes|bytesBase64/)
     expect(requestBody).toContain(`server-preference-${fixture.edit.editSessionId}`)
     expect(requestBody).toContain(fixture.edit.sourceMediaAssets![0]!.sourceSequenceItemId!)
@@ -820,7 +820,7 @@ test.describe('canonical journey named-edit UI bridge', () => {
         }),
       })
     })
-    await page.route('**/v1/projects/*/edit-sessions/*/edit-preferences*', async (route) => {
+    await page.route('**/v1/projects/*/edit-sessions/*/edit-preferences/planning-authority?*', async (route) => {
       expect(route.request().method()).toBe('GET')
       await route.fulfill({
         contentType: 'application/json',
@@ -828,7 +828,7 @@ test.describe('canonical journey named-edit UI bridge', () => {
         body: JSON.stringify({
           ok: true,
           data: {
-            preferenceRecord: exactRevisionPreferenceAuthorityFixture(
+            authority: exactRevisionPreferenceAuthorityFixture(
               identity.projectId,
               identity.editSessionId,
             ),
@@ -1265,15 +1265,22 @@ async function installExactEditPreferenceAuthority(
     fixture.edit.editSessionId,
     exactEditPreferenceAuthorityFixture(fixture.project.id, fixture.edit.editSessionId),
   ]))
-  const requestCounts = { readCount: 0, updateCount: 0 }
+  const requestCounts = { readCount: 0 }
 
-  await page.route('**/v1/projects/*/edit-sessions/*/edit-preferences*', async (route) => {
+  await page.route('**/v1/projects/*/edit-sessions/*/edit-preferences/planning-authority?*', async (route) => {
     const url = new URL(route.request().url())
-    const match = url.pathname.match(/^\/v1\/projects\/([^/]+)\/edit-sessions\/([^/]+)\/edit-preferences$/)
+    const match = url.pathname.match(
+      /^\/v1\/projects\/([^/]+)\/edit-sessions\/([^/]+)\/edit-preferences\/planning-authority$/,
+    )
     const projectId = match?.[1] ? decodeURIComponent(match[1]) : ''
     const editSessionId = match?.[2] ? decodeURIComponent(match[2]) : ''
     const authority = authorities.get(editSessionId)
-    if (!authority || authority.projectId !== projectId) {
+    if (
+      route.request().method() !== 'GET'
+      || url.searchParams.get('workspaceId') !== scope.workspaceId
+      || !authority
+      || authority.projectId !== projectId
+    ) {
       await route.fulfill({
         contentType: 'application/json',
         status: 404,
@@ -1286,65 +1293,13 @@ async function installExactEditPreferenceAuthority(
       return
     }
 
-    if (route.request().method() === 'GET') {
-      requestCounts.readCount += 1
-      await route.fulfill({
-        contentType: 'application/json',
-        status: 200,
-        body: JSON.stringify({ ok: true, data: { preferenceRecord: authority }, warnings: [] }),
-      })
-      return
-    }
-
-    const body = route.request().postDataJSON() as {
-      expectedRevision?: number
-      patch?: Partial<typeof authority.values>
-      workspaceId?: string
-    }
-    if (route.request().method() !== 'PATCH' ||
-        body.workspaceId !== scope.workspaceId ||
-        body.expectedRevision !== authority.recordRevision ||
-        !body.patch) {
-      await route.fulfill({
-        contentType: 'application/json',
-        status: 409,
-        body: JSON.stringify({
-          ok: false,
-          error: { code: 'IDEMPOTENCY_CONFLICT', message: 'Exact preference authority changed.' },
-          warnings: [],
-        }),
-      })
-      return
-    }
-
-    requestCounts.updateCount += 1
-    const values = { ...authority.values, ...body.patch }
-    const changedFields = Object.keys(body.patch)
-    const updated = {
-      ...authority,
-      values,
-      overrideKeys: Object.keys(values).filter((key) => {
-        const valueKey = key as keyof typeof values
-        return values[valueKey] !== authority.baseline.values[valueKey]
-      }),
-      recordRevision: authority.recordRevision + 1,
-      preferenceRevision: authority.preferenceRevision + 1,
-      planning: {
-        ...authority.planning,
-        planningInputRevision: authority.preferenceRevision + 1,
-      },
-    }
-    authorities.set(editSessionId, updated)
+    requestCounts.readCount += 1
     await route.fulfill({
       contentType: 'application/json',
       status: 200,
       body: JSON.stringify({
         ok: true,
-        data: {
-          preferenceRecord: updated,
-          changedFields,
-          replayed: false,
-        },
+        data: { authority },
         warnings: [],
       }),
     })
@@ -1355,7 +1310,7 @@ async function installExactEditPreferenceAuthority(
       return requestCounts.readCount
     },
     get updateCount() {
-      return requestCounts.updateCount
+      return 0
     },
   }
 }
@@ -1372,35 +1327,46 @@ function exactEditPreferenceAuthorityFixture(projectId: string, editSessionId: s
   }
   const now = '2026-07-13T12:00:00.000Z'
   return {
-    schemaVersion: 'private-exact-edit-preferences-v1',
+    schemaVersion: 'canonical-exact-edit-planning-authority-read-v1',
+    sourceAuthority: 'private_exact_edit_preference_compatibility',
+    runtimeSource: 'private_internal',
+    authorityReadReceiptId: `canonical-exact-edit-read-${editSessionId}`,
     workspaceId: scope.workspaceId,
     projectId,
     editSessionId,
+    recordRevision: 1,
+    preferenceRevision: 0,
+    planningInputRevision: 0,
+    preferenceFingerprintSha256: '7'.repeat(64),
+    values,
     baseline: {
       values,
       preferenceSnapshotId: `server-preference-${editSessionId}`,
+      preferenceFingerprintSha256: '8'.repeat(64),
       capturedAt: now,
       persistenceSource: 'authenticated_private_internal_backend',
       provenance: 'saved_edit_preferences',
     },
-    values,
-    overrideKeys: [] as string[],
-    recordRevision: 1,
-    preferenceRevision: 0,
-    preferenceUpdatedAt: now,
-    planning: {
-      planningInputRevision: 0,
-      preferenceFingerprintSha256: '7'.repeat(64),
-      replanRequired: false,
-      reestimateRequired: false,
-      sourcePreparation: { status: 'not_started', updatedAt: now },
-      frameConfirmation: { status: 'unconfirmed', updatedAt: now },
+    sourcePreparation: {
+      status: 'ready',
+      sourceCandidateHashSha256: 'a'.repeat(64),
+      evidenceHashSha256: 'b'.repeat(64),
+      confirmedAt: now,
     },
-    lifecycle: { phase: 'planning', locked: false },
-    auditSummary: { eventCount: 1, latestEventAt: now },
-    createdAt: now,
-    updatedAt: now,
-    privateInternalOnly: true,
+    frameConfirmation: {
+      status: 'confirmed',
+      confirmationId: `canonical-frame-${editSessionId}`,
+      aspectRatio: '9:16',
+      confirmedAt: now,
+      authorityDigestSha256: '6'.repeat(64),
+    },
+    lifecyclePhase: 'planning',
+    locked: false,
+    currentApplicationState: 'not_selected',
+    currentApplicationId: null,
+    readAt: now,
+    browserMutationAuthorityGranted: false,
+    productionReleaseReadinessEvaluatedSeparately: true,
   }
 }
 
@@ -1419,49 +1385,46 @@ function exactRevisionPreferenceAuthorityFixture(
   }
   const now = '2026-07-13T12:00:00.000Z'
   return {
-    schemaVersion: 'private-exact-edit-preferences-v1',
+    schemaVersion: 'canonical-exact-edit-planning-authority-read-v1',
+    sourceAuthority: 'private_exact_edit_preference_compatibility',
+    runtimeSource: 'private_internal',
+    authorityReadReceiptId: 'canonical-exact-edit-read-revision-v2',
     workspaceId: scope.workspaceId,
     projectId,
     editSessionId,
+    recordRevision: 7,
+    preferenceRevision: 0,
+    planningInputRevision: 0,
+    preferenceFingerprintSha256: '7'.repeat(64),
+    values,
     baseline: {
       values,
       preferenceSnapshotId: 'server-revision-preference-snapshot',
+      preferenceFingerprintSha256: '8'.repeat(64),
       capturedAt: now,
       persistenceSource: 'authenticated_private_internal_backend',
       provenance: 'saved_edit_preferences',
     },
-    values,
-    overrideKeys: [] as string[],
-    recordRevision: 7,
-    preferenceRevision: 0,
-    preferenceUpdatedAt: now,
-    planning: {
-      planningInputRevision: 0,
-      preferenceFingerprintSha256: '7'.repeat(64),
-      replanRequired: true,
-      reestimateRequired: true,
-      sourcePreparation: {
-        status: 'ready',
-        evidenceHash: 'b'.repeat(64),
-        updatedAt: now,
-      },
-      frameConfirmation: {
-        status: 'confirmed',
-        aspectRatio: '16:9',
-        confirmationId: 'canonical-revision-frame',
-        updatedAt: now,
-      },
+    sourcePreparation: {
+      status: 'ready',
+      sourceCandidateHashSha256: 'a'.repeat(64),
+      evidenceHashSha256: 'b'.repeat(64),
+      confirmedAt: now,
     },
-    lifecycle: {
-      phase: 'revision_requested',
-      locked: true,
-      authorityReferenceId: 'snapshot-canonical-revision-prior',
-      lockedAt: now,
+    frameConfirmation: {
+      status: 'confirmed',
+      aspectRatio: '16:9',
+      confirmationId: 'canonical-revision-frame',
+      confirmedAt: now,
+      authorityDigestSha256: '6'.repeat(64),
     },
-    auditSummary: { eventCount: 8, latestEventAt: now },
-    createdAt: now,
-    updatedAt: now,
-    privateInternalOnly: true,
+    lifecyclePhase: 'revision_requested',
+    locked: true,
+    currentApplicationState: 'not_selected',
+    currentApplicationId: null,
+    readAt: now,
+    browserMutationAuthorityGranted: false,
+    productionReleaseReadinessEvaluatedSeparately: true,
   }
 }
 

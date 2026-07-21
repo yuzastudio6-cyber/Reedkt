@@ -188,6 +188,10 @@ const plannerInput: PlannerInput = {
   preferenceDefaultsApplied: true,
   preferenceSnapshotId: planningPreference.preferenceRecord.baseline.preferenceSnapshotId,
   currentEditPreferenceRevision: planningPreference.preferenceRecord.preferenceRevision,
+  currentEditPreferencePlanningInputRevision:
+    planningPreference.preferenceRecord.planning.planningInputRevision,
+  currentEditPreferenceFingerprintSha256:
+    planningPreference.preferenceRecord.planning.preferenceFingerprintSha256,
 }
 const sourceStorageProvider = uploadedSource.mediaAsset.storageProvider
 if (!isClientSourceStorageProvider(sourceStorageProvider) || uploadedSource.mediaAsset.sizeBytes === undefined) {

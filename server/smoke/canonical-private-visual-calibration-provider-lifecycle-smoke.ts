@@ -10,9 +10,9 @@ import {
   resolveCanonicalProviderLifecyclePolicy,
 } from '../edit-architecture/canonical-provider-lifecycle-policy'
 import {
-  CANONICAL_FAL_SYNCHRONIZED_FOLEY_OPERATION_ID,
-  CANONICAL_FAL_SYNCHRONIZED_FOLEY_ROUTE_ID,
-  createCanonicalProviderOperationRegistryV3,
+  CANONICAL_GOOGLE_VISUAL_CALIBRATION_OPERATION_ID,
+  CANONICAL_GOOGLE_VISUAL_CALIBRATION_ROUTE_ID,
+  createCanonicalProviderOperationRegistryV4,
 } from '../edit-architecture/canonical-provider-work-authority'
 import {
   CANONICAL_PRIVATE_PACKAGE_WORK_QUEUE_DEFINITION_VERSION,
@@ -22,19 +22,23 @@ import {
 } from '../edit-architecture/canonical-private-package-work-queue-authority'
 import { ApiError } from '../errors/api-error'
 import {
-  projectCanonicalSynchronizedFoleyConsumerReceipt,
-} from '../services/canonical-private-synchronized-foley-consumer-receipt-service'
+  projectCanonicalVisualCalibrationConsumerReceipt,
+} from '../services/canonical-private-visual-calibration-consumer-receipt-service'
 import {
-  executePrivateInjectedSynchronizedFoleyLifecycle,
-  reconcilePrivateInjectedSynchronizedFoleyUnknown,
-  type ExecutePrivateInjectedSynchronizedFoleyLifecycleInput,
-  type PrivateInjectedSynchronizedFoleyLifecycleResult,
-} from '../services/canonical-private-synchronized-foley-provider-lifecycle-service'
+  executePrivateInjectedVisualCalibrationLifecycle,
+  reconcilePrivateInjectedVisualCalibrationUnknown,
+  type ExecutePrivateInjectedVisualCalibrationLifecycleInput,
+  type PrivateInjectedVisualCalibrationLifecycleResult,
+} from '../services/canonical-private-visual-calibration-provider-lifecycle-service'
 import {
   clearPrivateCanonicalPackageWorkQueueProcessStateForSmoke,
   type CanonicalPrivatePackageWorkQueueStoreScope,
 } from '../services/private-canonical-package-work-queue-store'
 import { sha256AuthorityValue } from '../services/private-edit-authority-store'
+import {
+  calculateGeminiOmniVisualCalibrationProviderCostMicros,
+  privateProviderAttemptCostEvidenceV4Schema,
+} from '../tool-cost-metering/private-provider-attempt-cost-evidence'
 import {
   createPrivateWorkerResourceUsageCostEvidence,
   hashPrivateWorkerResourceArtifactManifest,
@@ -44,79 +48,87 @@ import {
   canonicalProviderAttemptConsumerReceiptSchema,
 } from '../validation/canonical-provider-attempt-consumer-receipt-schemas'
 
-const BASE_TIME_MS = Date.parse('2026-07-21T18:00:00.000Z')
+const BASE_TIME_MS = Date.parse('2026-07-21T20:00:00.000Z')
 const at = (offsetMs: number) => new Date(BASE_TIME_MS + offsetMs).toISOString()
 const INJECTED_DISPATCH_SECRET =
-  'private-injected-fal-dispatch-secret-for-smoke-only-20260721'
+  'private-injected-gemini-dispatch-secret-for-smoke-only-20260721'
 const roots: string[] = []
 
 try {
-  const profiles = createCanonicalProviderOperationRegistryV3()
+  const profiles = createCanonicalProviderOperationRegistryV4()
   assert.equal(profiles.length, 1)
-  assert.equal(
-    profiles[0].operationId,
-    CANONICAL_FAL_SYNCHRONIZED_FOLEY_OPERATION_ID,
-  )
+  assert.equal(profiles[0].operationId,
+    CANONICAL_GOOGLE_VISUAL_CALIBRATION_OPERATION_ID)
   assert.equal(profiles[0].providerRouteId,
-    CANONICAL_FAL_SYNCHRONIZED_FOLEY_ROUTE_ID)
-  assert.equal(profiles[0].expectedOutput.maximumByteLength, 67_108_864)
-  assert.equal(profiles[0].requestPolicy.maximumNetworkRequests, 17)
-  assert.equal(profiles[0].readiness.privateInjectedAuthorizationAllowed, true)
+    CANONICAL_GOOGLE_VISUAL_CALIBRATION_ROUTE_ID)
+  assert.equal(profiles[0].requestPolicy.maximumNetworkRequests, 15)
+  assert.equal(profiles[0].readiness.primaryRouteOnly, true)
   assert.equal(profiles[0].readiness.providerTransportActivated, false)
   assert.equal(profiles[0].readiness.productionReady, false)
 
   const policies = createCanonicalProviderLifecyclePolicyCatalog()
   assert.equal(policies.length, 4)
   const policy = resolveCanonicalProviderLifecyclePolicy(
-    CANONICAL_FAL_SYNCHRONIZED_FOLEY_OPERATION_ID,
+    CANONICAL_GOOGLE_VISUAL_CALIBRATION_OPERATION_ID,
   )
   assert.deepEqual(policy.requestCeilings, {
-    privateInputUploadCount: 1,
+    privateInputUploadCount: 0,
     generationSubmissionCount: 1,
     statusReadCount: 12,
     resultReadCount: 1,
     binaryDownloadCount: 1,
-    cancellationCount: 1,
-    totalLifecycleHttpRequestCount: 17,
+    cancellationCount: 0,
+    totalLifecycleHttpRequestCount: 15,
   })
   assert.equal(policy.qualification.canonicalAuthorizationIssuanceAllowed, false)
-  assert.equal(policy.qualification.providerTransportActivated, false)
+
+  const rateMath = calculateGeminiOmniVisualCalibrationProviderCostMicros({
+    inputTokenCount: 1_000,
+    videoOutputSeconds: 5,
+  })
+  assert.deepEqual({
+    inputCostMicros: rateMath.inputCostMicros,
+    videoOutputTokenCount: rateMath.videoOutputTokenCount,
+    videoOutputCostMicros: rateMath.videoOutputCostMicros,
+    totalCostMicros: rateMath.totalCostMicros,
+  }, {
+    inputCostMicros: 1_500,
+    videoOutputTokenCount: 28_960,
+    videoOutputCostMicros: 506_800,
+    totalCostMicros: 508_300,
+  })
 
   const success = await fixture('success')
-  const successResult = await executePrivateInjectedSynchronizedFoleyLifecycle({
+  const successResult = await executePrivateInjectedVisualCalibrationLifecycle({
     ...success.lifecycle,
     outcome: {
       state: 'succeeded',
-      output: foleyOutput(success.outputId, mp4Fixture(17)),
+      output: visualOutput(success.outputId, mp4Fixture(17)),
       wallTimeMicroseconds: 900_000,
       rawInfrastructureUsageEvidenceDigest: digest('success-infrastructure'),
     },
   })
   assert.equal(successResult.disposition, 'executed')
   assert.equal(successResult.authorization.operationId,
-    CANONICAL_FAL_SYNCHRONIZED_FOLEY_OPERATION_ID)
-  assert.equal(successResult.authorization.providerRouteId,
-    CANONICAL_FAL_SYNCHRONIZED_FOLEY_ROUTE_ID)
-  assert.equal(successResult.authorization.boundaries.providerCallAuthorized, false)
-  assert.equal(successResult.authorization.boundaries.cloudMutationAuthorized, false)
+    CANONICAL_GOOGLE_VISUAL_CALIBRATION_OPERATION_ID)
+  assert.equal(successResult.authorization.providerExecutionMode, 'primary')
+  assert.equal(successResult.authorization.boundaries.automaticFallbackAllowed,
+    false)
   assert.equal(successResult.grant.secretLocator.payloadReadCount, 0)
   assert.equal(successResult.grant.providerCallAuthorized, false)
-  assert.equal(successResult.grant.maximumLifecycleHttpRequests, 17)
+  assert.equal(successResult.grant.maximumLifecycleHttpRequests, 15)
   assert.equal(successResult.dispatchEntry.attempt.providerRequestStarted, false)
   assert.equal(successResult.terminal.providerRequestCount, 0)
-  assert.equal(successResult.terminal.privateOutputs.length, 1)
   assert.equal(successResult.privateOutput?.role,
-    'provider_synchronized_audio_mp4')
-  assert.equal(successResult.privateOutput?.mimeType, 'video/mp4')
+    'provider_visual_calibration_video_mp4')
   assert.equal(successResult.privateOutput?.providerUrlPersisted, false)
-  assert.equal(successResult.privateOutput?.localPathProjected, false)
   assert.equal(successResult.costEvidence.provider.actualInternalCostMicros, 0)
   assert.ok(successResult.costEvidence.infrastructure.actualInternalCostMicros > 0)
   assertCommercialBoundary(successResult.costEvidence)
   assertZeroExternalEffects(successResult.evidence)
 
   await expectApiError(
-    () => projectCanonicalSynchronizedFoleyConsumerReceipt({
+    () => projectCanonicalVisualCalibrationConsumerReceipt({
       scope: success.scope,
       executionPackage: success.executionPackage,
       queueDefinition: success.queueDefinition,
@@ -127,7 +139,7 @@ try {
   )
   await persistProviderWorkerUsage(success, successResult)
   const successReceipt = canonicalProviderAttemptConsumerReceiptSchema.parse(
-    await projectCanonicalSynchronizedFoleyConsumerReceipt({
+    await projectCanonicalVisualCalibrationConsumerReceipt({
       scope: success.scope,
       executionPackage: success.executionPackage,
       queueDefinition: success.queueDefinition,
@@ -135,46 +147,30 @@ try {
       projectedAt: at(6_000),
     }),
   )
-  assert.equal(successReceipt.evidenceClass, 'private_injected_nonprovider_test')
-  assert.equal(successReceipt.promotionClass, 'non_promotable_private_injected')
-  assert.equal(successReceipt.privateOutputs.length, 1)
+  assert.equal(successReceipt.evidenceClass,
+    'private_injected_nonprovider_test')
+  assert.equal(successReceipt.promotionClass,
+    'non_promotable_private_injected')
   assert.equal(successReceipt.privateOutput?.outputId, success.outputId)
   assert.equal(successReceipt.outputSet.sourceAuthorityClass,
     'forward_single_output_same_attempt_source')
-  assert.equal(successReceipt.outputSet.multiOutputProviderOperationAdmitted, false)
-  assert.equal(successReceipt.outputSet.outputSetDigest,
-    successResult.terminal.outputSetDigest)
-  assert.equal(successReceipt.requestAccounting.legacyV1MaximumProviderRequests, 1)
   assert.equal(successReceipt.requestAccounting.ceilings
-    .totalLifecycleHttpRequestCount, 17)
-  assert.equal(successReceipt.requestAccounting.ceilings.statusReadCount, 12)
+    .totalLifecycleHttpRequestCount, 15)
   assert.equal(successReceipt.requestAccounting.observedTransport
     .totalLifecycleHttpRequestCount, 0)
-  assert.equal(successReceipt.requestAccounting
-    .continuationRequestsBelongToSameAttempt, true)
-  assert.equal(successReceipt.requestAccounting
-    .unknownOutcomeBlocksNewSubmission, true)
-  assert.equal(successReceipt.queue.queueAttemptId, successReceipt.queue.claimId)
-  assert.equal(successReceipt.queue.leaseId, successReceipt.queue.claimId)
   assert.equal(successReceipt.dispatch.retryCount, 0)
   assert.equal(successReceipt.dispatch.fallbackCount, 0)
-  assert.equal(successReceipt.dispatch.sanitizedFailureCode, null)
   assert.equal(successReceipt.internalCost.providerCostMicros, 0)
   assert.ok(successReceipt.internalCost.selectedInfrastructureCostMicros > 0)
-  assert.equal(successReceipt.internalCost.providerCostIncludedInWorkerEvidence,
+  assert.equal(successReceipt.boundaries.callerSelectedProviderRouteAllowed,
     false)
-  assert.equal(successReceipt.boundaries.credentialValueLogged, false)
-  assert.equal(successReceipt.boundaries.requestBodyPersistedInQueue, false)
-  assert.equal(successReceipt.boundaries.callerSelectedExecutableAllowed, false)
-  assert.equal(successReceipt.boundaries.callerSelectedProviderRouteAllowed, false)
   assert.equal(successReceipt.boundaries.providerTransportActivated, false)
-  assert.equal(successReceipt.boundaries.productionReady, false)
 
-  const replay = await executePrivateInjectedSynchronizedFoleyLifecycle({
+  const replay = await executePrivateInjectedVisualCalibrationLifecycle({
     ...success.lifecycle,
     outcome: {
       state: 'succeeded',
-      output: foleyOutput(success.outputId, mp4Fixture(99)),
+      output: visualOutput(success.outputId, mp4Fixture(99)),
       wallTimeMicroseconds: 900_000,
       rawInfrastructureUsageEvidenceDigest: digest('success-infrastructure'),
     },
@@ -185,7 +181,7 @@ try {
     successResult.privateOutput?.contentSha256)
 
   const failed = await fixture('failed')
-  const failedResult = await executePrivateInjectedSynchronizedFoleyLifecycle({
+  const failedResult = await executePrivateInjectedVisualCalibrationLifecycle({
     ...failed.lifecycle,
     outcome: {
       state: 'failed',
@@ -195,7 +191,7 @@ try {
     },
   })
   await persistProviderWorkerUsage(failed, failedResult)
-  const failedReceipt = await projectCanonicalSynchronizedFoleyConsumerReceipt({
+  const failedReceipt = await projectCanonicalVisualCalibrationConsumerReceipt({
     scope: failed.scope,
     executionPackage: failed.executionPackage,
     queueDefinition: failed.queueDefinition,
@@ -206,21 +202,21 @@ try {
   assert.equal(failedReceipt.dispatch.sanitizedFailureCode,
     'provider_generation_failed')
   assert.equal(failedReceipt.privateOutputs.length, 0)
-  assert.equal(failedReceipt.queue.terminalQueueCompletion, false)
-  assert.equal(failedReceipt.internalCost.failedOrUnknownAttemptCostRetained, true)
+  assert.equal(failedReceipt.internalCost.failedOrUnknownAttemptCostRetained,
+    true)
 
   const unknown = await fixture('unknown')
-  const unknownResult = await executePrivateInjectedSynchronizedFoleyLifecycle({
+  const unknownResult = await executePrivateInjectedVisualCalibrationLifecycle({
     ...unknown.lifecycle,
     outcome: {
       state: 'unknown_reconciliation_required',
-      providerResponseUsageDigest: digest('unknown-provider-usage'),
+      providerResponseUsageDigest: digest('unknown-provider-observation'),
       wallTimeMicroseconds: 800_000,
       rawInfrastructureUsageEvidenceDigest: digest('unknown-infrastructure'),
     },
   })
   await persistProviderWorkerUsage(unknown, unknownResult)
-  const unknownReceipt = await projectCanonicalSynchronizedFoleyConsumerReceipt({
+  const unknownReceipt = await projectCanonicalVisualCalibrationConsumerReceipt({
     scope: unknown.scope,
     executionPackage: unknown.executionPackage,
     queueDefinition: unknown.queueDefinition,
@@ -229,47 +225,50 @@ try {
   })
   assert.equal(unknownReceipt.dispatch.terminalState,
     'unknown_reconciliation_required')
-  assert.equal(unknownReceipt.requestAccounting
-    .injectedSimulationGenerationSubmissionCount, 1)
-  assert.equal(unknownReceipt.requestAccounting.observedTransport
-    .generationSubmissionCount, 0)
+  assert.equal(unknownReceipt.internalCost.providerCostMicros, null)
   assert.equal(unknownReceipt.queue.terminalQueueCompletion, false)
-  const reconciled = await reconcilePrivateInjectedSynchronizedFoleyUnknown({
+  const reconciled = await reconcilePrivateInjectedVisualCalibrationUnknown({
     scope: unknown.scope,
     queueDefinition: unknown.queueDefinition,
     authorization: unknownResult.authorization,
     grantId: unknownResult.grant.grantId,
     resolution: 'succeeded',
-    output: foleyOutput(unknown.outputId, mp4Fixture(31)),
+    output: visualOutput(unknown.outputId, mp4Fixture(31)),
     providerResponseUsageDigest: digest('reconciled-provider-usage'),
+    providerUsage: { inputTokenCount: 1_000, videoOutputSeconds: 5 },
     wallTimeMicroseconds: 1_100_000,
     rawInfrastructureUsageEvidenceDigest: digest('reconciled-infrastructure'),
     completedAt: at(7_000),
   })
   assert.equal(reconciled.terminal.state, 'unknown_reconciled_succeeded')
-  assert.equal(reconciled.terminal.sequence, 2)
-  assert.equal(reconciled.terminal.providerRequestCount, 1)
-  assert.equal(reconciled.privateOutput?.outputId, unknown.outputId)
-  const reconciledReceipt = await projectCanonicalSynchronizedFoleyConsumerReceipt({
-    scope: unknown.scope,
-    executionPackage: unknown.executionPackage,
-    queueDefinition: unknown.queueDefinition,
-    authorization: unknownResult.authorization,
-    projectedAt: at(8_000),
-  })
+  assert.equal(reconciled.costEvidence.provider.actualInternalCostMicros,
+    508_300)
+  assert.throws(() => privateProviderAttemptCostEvidenceV4Schema.parse({
+    ...reconciled.costEvidence,
+    provider: {
+      ...reconciled.costEvidence.provider,
+      calculationDigest: digest('forged-provider-cost-calculation'),
+    },
+  }))
+  const reconciledReceipt =
+    await projectCanonicalVisualCalibrationConsumerReceipt({
+      scope: unknown.scope,
+      executionPackage: unknown.executionPackage,
+      queueDefinition: unknown.queueDefinition,
+      authorization: unknownResult.authorization,
+      projectedAt: at(8_000),
+    })
   assert.equal(reconciledReceipt.queue.unknownOutcomeReconciled, true)
   assert.equal(reconciledReceipt.queue.terminalQueueCompletion, true)
-  assert.equal(reconciledReceipt.privateOutput?.outputId, unknown.outputId)
-  assert.equal(reconciledReceipt.internalCost.failedOrUnknownAttemptCostRetained,
-    true)
+  assert.equal(reconciledReceipt.internalCost.providerCostMicros, 508_300)
 
   const malformed = await fixture('malformed')
   await expectApiError(
-    () => executePrivateInjectedSynchronizedFoleyLifecycle({
+    () => executePrivateInjectedVisualCalibrationLifecycle({
       ...malformed.lifecycle,
       outcome: {
         state: 'succeeded',
-        output: foleyOutput(
+        output: visualOutput(
           malformed.outputId,
           Buffer.from('not-an-mp4', 'utf8'),
         ),
@@ -280,37 +279,40 @@ try {
     'VALIDATION_FAILED',
   )
 
-  const tamperedAuthorization = {
+  const tampered = {
     ...successResult.authorization,
-    providerRouteId: 'caller-selected-provider-route',
+    visualCalibrationContext: {
+      ...successResult.authorization.visualCalibrationContext,
+      calibrationScenarioId: 'caller-substituted-scenario',
+    },
   }
   await expectApiError(
-    () => projectCanonicalSynchronizedFoleyConsumerReceipt({
+    () => projectCanonicalVisualCalibrationConsumerReceipt({
       scope: success.scope,
       executionPackage: success.executionPackage,
       queueDefinition: success.queueDefinition,
-      authorization: tamperedAuthorization as typeof successResult.authorization,
+      authorization: tampered as typeof successResult.authorization,
       projectedAt: at(6_000),
     }),
     'VALIDATION_FAILED',
   )
 
   console.log(JSON.stringify({
-    smoke: 'canonical-private-synchronized-foley-provider-lifecycle',
+    smoke: 'canonical-private-visual-calibration-provider-lifecycle',
     operationId: successResult.authorization.operationId,
     providerRouteId: successResult.authorization.providerRouteId,
-    outputRole: successReceipt.privateOutput?.role,
+    providerModelId: successResult.authorization.providerModelId,
+    visualCalibrationContextDigest:
+      successResult.authorization.visualCalibrationContextDigest,
     receiptHash: successReceipt.receiptHash,
     providerRateCardDigest: successReceipt.internalCost.providerRateCardDigest,
     workerResourceEvidenceHash:
       successReceipt.internalCost.workerResourceEvidenceHash,
     maximumLifecycleHttpRequests:
       successReceipt.requestAccounting.ceilings.totalLifecycleHttpRequestCount,
-    failedAttemptCostRetained:
-      failedReceipt.internalCost.failedOrUnknownAttemptCostRetained,
-    unknownOutcomeReconciled:
-      reconciledReceipt.queue.unknownOutcomeReconciled,
-    providerRequestCount: successResult.evidence.providerRequestCount,
+    reconciledProviderInternalCostMicros:
+      reconciledReceipt.internalCost.providerCostMicros,
+    providerRequestCount: successResult.evidence.observedProviderRequestCount,
     secretPayloadReadCount: successResult.evidence.secretPayloadReadCount,
     providerTransportActivated: successResult.evidence.providerTransportActivated,
     productionReady: successResult.evidence.productionReady,
@@ -327,13 +329,13 @@ interface Fixture {
   jobId: string
   outputId: string
   lifecycle: Omit<
-    ExecutePrivateInjectedSynchronizedFoleyLifecycleInput,
+    ExecutePrivateInjectedVisualCalibrationLifecycleInput,
     'outcome'
   >
 }
 
 async function fixture(label: string): Promise<Fixture> {
-  const root = await mkdtemp(join(tmpdir(), `reeditpro-provider-foley-${label}-`))
+  const root = await mkdtemp(join(tmpdir(), `reeditpro-provider-visual-${label}-`))
   roots.push(root)
   const scope: CanonicalPrivatePackageWorkQueueStoreScope = {
     localStorageRoot: root,
@@ -346,11 +348,13 @@ async function fixture(label: string): Promise<Fixture> {
   }
   const jobId = `job-${label}`
   const workItemId = `work-item-${label}`
-  const workItemKey = `synchronized-foley-${label}`
-  const outputId = `synchronized-foley-mp4-${label}`
+  const workItemKey = `visual-calibration-${label}`
+  const outputId = `visual-calibration-mp4-${label}`
   const packageHash = digest(`package:${label}`)
   const snapshotHash = digest(`snapshot:${label}`)
   const workGraphHash = digest(`work-graph:${label}`)
+  const styleAuthorityRefDigest = digest(`style-authority-ref:${label}`)
+  const productionAuthorityRefDigest = digest(`production-authority-ref:${label}`)
   const executionPackage = createExecutionPackage({
     scope,
     label,
@@ -361,6 +365,8 @@ async function fixture(label: string): Promise<Fixture> {
     packageHash,
     snapshotHash,
     workGraphHash,
+    styleAuthorityRefDigest,
+    productionAuthorityRefDigest,
   })
   const jobPayload = {
     canonicalOrder: 0,
@@ -443,21 +449,48 @@ async function fixture(label: string): Promise<Fixture> {
       queueDefinition,
       jobId,
       expectedOutputId: outputId,
+      visualCalibrationContext: {
+        motionStudioProductionId: `production-${label}`,
+        storytellingStyleAuthorityRefDigest: styleAuthorityRefDigest,
+        storytellingProductionAuthorityRefDigest:
+          productionAuthorityRefDigest,
+        styleCalibrationPlanId: `calibration-plan-${label}`,
+        styleCalibrationPlanVersion: 1,
+        styleCalibrationPlanDigest: digest(`calibration-plan:${label}`),
+        calibrationScenarioId: `calibration-scenario-${label}`,
+        calibrationScenarioDigest: digest(`calibration-scenario:${label}`),
+        referenceContractId: `reference-contract-${label}`,
+        referenceContractVersion: 1,
+        referenceContractDigest: digest(`reference-contract:${label}`),
+        firstFrameAssetId: `first-frame-${label}`,
+        firstFrameSha256: digest(`first-frame:${label}`),
+        lastFrameAssetId: `last-frame-${label}`,
+        lastFrameSha256: digest(`last-frame:${label}`),
+        continuityContractId: `continuity-${label}`,
+        continuityContractVersion: 1,
+        continuityContractDigest: digest(`continuity:${label}`),
+      },
       sourceRequestId: `source-request-${label}`,
       sourceRequestDigest: digest(`source-request:${label}`),
       providerRequestPayloadDigest: digest(`provider-payload:${label}`),
       projectDataPolicyDigest: digest(`data-policy:${label}`),
       providerAccountPolicyDigest: digest(`account-policy:${label}`),
-      idempotencyKey: `provider-foley-idempotency-${label}-v3`,
+      idempotencyKey: `provider-visual-idempotency-${label}-v4`,
       providerRateAuthority: {
-        evidenceClass: 'private_local_fixture',
-        snapshotId: `fal-mmaudio-rate-fixture-${label}-v1`,
+        evidenceClass: 'official_public_pricing_snapshot_unreleased',
+        snapshotId: `gemini-omni-rate-${label}-v1`,
         snapshotDigest: digest(`provider-rate:${label}`),
-        billingUnit: 'generation_submission',
+        sourceCode: 'google_gemini_api_pricing_2026_07_21',
+        billingUnit: 'input_and_video_output_tokens',
+        inputMicrosPerMillionTokens: 1_500_000,
+        videoOutputMicrosPerMillionTokens: 17_500_000,
+        videoOutputTokensPerSecond: 5_792,
+        capturedAt: at(-24 * 60 * 60 * 1_000),
+        expiresAt: at(7 * 24 * 60 * 60 * 1_000),
         productionQualified: false,
       },
-      maximumAuthorizedProviderCostMicros: 100_000,
-      maximumAuthorizedInfrastructureCostMicros: 50_000,
+      maximumAuthorizedProviderCostMicros: 2_000_000,
+      maximumAuthorizedInfrastructureCostMicros: 100_000,
       workerIdentity: `private-provider-worker-${label}`,
       credentialSecret: INJECTED_DISPATCH_SECRET,
       leaseDurationMs: 60_000,
@@ -483,6 +516,8 @@ function createExecutionPackage(input: {
   packageHash: string
   snapshotHash: string
   workGraphHash: string
+  styleAuthorityRefDigest: string
+  productionAuthorityRefDigest: string
 }): CanonicalApprovedEditExecutionPackage {
   const ref = (name: string) => ({
     sha256: digest(`${name}:${input.label}`),
@@ -517,14 +552,23 @@ function createExecutionPackage(input: {
     approvedSourceAssetManifestHash: digest(`source-asset-manifest:${input.label}`),
     sourceBindingCount: 0,
     requiredSourceBindingCount: 0,
-    componentRefs: {},
+    componentRefs: {
+      motionStudioStorytellingStyleAuthority: {
+        sha256: input.styleAuthorityRefDigest,
+        byteLength: 1,
+      },
+      motionStudioStorytellingProductionAuthority: {
+        sha256: input.productionAuthorityRefDigest,
+        byteLength: 1,
+      },
+    },
     approvedMaximumCredits: 100,
     reservationStatus: 'reserved',
     remainingReservedCredits: 100,
     approvedWorkItems: [{
       id: input.workItemId,
       workItemKey: input.workItemKey,
-      workItemType: 'generate_synchronized_foley_candidate',
+      workItemType: 'generate_visual_calibration_candidate',
       workerClass: 'provider_worker',
       executionInputRef: ref('execution-input'),
       executionInputHash: digest(`execution-input:${input.label}`),
@@ -532,7 +576,7 @@ function createExecutionPackage(input: {
       sourceCleanupDecisionIds: [],
       expectedOutputs: [{
         outputKey: input.outputId,
-        artifactType: 'provider_synchronized_audio_mp4',
+        artifactType: 'provider_visual_calibration_video_mp4',
         assetRole: 'generated',
         required: true,
         previewPlaceholderAllowed: false,
@@ -545,7 +589,7 @@ function createExecutionPackage(input: {
       approvedToolIds: [],
       approvedToolOperationIds: [],
       toolOperationBindingsHash: toolBindingsHash,
-      approvedProviderRoute: CANONICAL_FAL_SYNCHRONIZED_FOLEY_ROUTE_ID,
+      approvedProviderRoute: CANONICAL_GOOGLE_VISUAL_CALIBRATION_ROUTE_ID,
       providerExecutionMode: 'primary',
       fallbackPolicyRef: ref('fallback-policy'),
       maxAttempts: 1,
@@ -558,7 +602,7 @@ function createExecutionPackage(input: {
       id: input.jobId,
       approvedWorkItemId: input.workItemId,
       workItemKey: input.workItemKey,
-      jobType: 'generate_synchronized_foley_candidate',
+      jobType: 'generate_visual_calibration_candidate',
       workerClass: 'provider_worker',
       executionInputRef: ref('execution-input'),
       sourceSequenceItemIds: [],
@@ -579,7 +623,7 @@ function createExecutionPackage(input: {
     toolOperationBindingCount: 0,
     toolOperationBindingsHash: toolBindingsHash,
     toolCapabilityManifestHash: digest(`tool-manifest:${input.label}`),
-    approvedProviderRoutes: [CANONICAL_FAL_SYNCHRONIZED_FOLEY_ROUTE_ID],
+    approvedProviderRoutes: [CANONICAL_GOOGLE_VISUAL_CALIBRATION_ROUTE_ID],
     status: 'canonical_authority_packaged_runtime_blocked',
     authorityHandoffReady: true,
     workerDispatchReady: false,
@@ -587,7 +631,7 @@ function createExecutionPackage(input: {
     liveExecutionReady: false,
     blockers: ['provider_transport_not_activated'],
     noRuntimeSideEffects: [
-      'No provider request, credential payload read, customer charge, or public delivery.',
+      'No provider request, secret payload read, customer charge, or delivery.',
     ],
     createdByUserId: input.scope.ownerUserId,
     createdAt: at(0),
@@ -597,12 +641,13 @@ function createExecutionPackage(input: {
 
 async function persistProviderWorkerUsage(
   fixtureValue: Fixture,
-  result: PrivateInjectedSynchronizedFoleyLifecycleResult,
+  result: PrivateInjectedVisualCalibrationLifecycleResult,
 ): Promise<void> {
   const attempt = result.dispatchEntry.attempt
-  const workItem = fixtureValue.executionPackage.approvedWorkItems.find((candidate) =>
-    candidate.id === result.authorization.approvedWorkItemId)
-  if (!workItem) throw new Error('Foley provider smoke work item disappeared.')
+  const workItem = fixtureValue.executionPackage.approvedWorkItems.find(
+    (candidate) => candidate.id === result.authorization.approvedWorkItemId,
+  )
+  if (!workItem) throw new Error('Visual provider work item disappeared.')
   const runtimeExecutionIdentityDigest = digest(
     `runtime-execution:${attempt.dispatchAttemptId}`,
   )
@@ -683,7 +728,7 @@ async function persistProviderWorkerUsage(
       ),
       containerIdentityDigest,
       cloudExecutionResourceDigest: null,
-      measurementAgentVersion: 'provider-foley-usage-smoke-v1',
+      measurementAgentVersion: 'provider-visual-usage-smoke-v1',
       measurementAgentDigest,
       leaseExpiresAt: result.grant.queueClaimExpiresAt,
     },
@@ -725,10 +770,10 @@ async function persistProviderWorkerUsage(
   })
 }
 
-function foleyOutput(outputId: string, bytes: Buffer) {
+function visualOutput(outputId: string, bytes: Buffer) {
   return {
     outputId,
-    role: 'provider_synchronized_audio_mp4' as const,
+    role: 'provider_visual_calibration_video_mp4' as const,
     mimeType: 'video/mp4' as const,
     bytes,
   }
@@ -765,7 +810,7 @@ function assertCommercialBoundary(evidence: {
 
 function assertZeroExternalEffects(evidence: {
   secretPayloadReadCount: number
-  providerRequestCount: number
+  observedProviderRequestCount: number
   providerCandidateCount: number
   cloudMutationCount: number
   supabaseMutationCount: number
@@ -774,7 +819,7 @@ function assertZeroExternalEffects(evidence: {
   productionReady: boolean
 }): void {
   assert.equal(evidence.secretPayloadReadCount, 0)
-  assert.equal(evidence.providerRequestCount, 0)
+  assert.equal(evidence.observedProviderRequestCount, 0)
   assert.equal(evidence.providerCandidateCount, 0)
   assert.equal(evidence.cloudMutationCount, 0)
   assert.equal(evidence.supabaseMutationCount, 0)

@@ -20,13 +20,11 @@ import {
   type PrivateExactEditPreferenceRecord,
 } from './private-exact-edit-preference-store'
 import {
-  PREFERENCE_INSTRUCTION_PRIORITY,
-  preferenceIntelligenceHash,
-  readPrivatePreferenceIntelligenceAggregate,
-  type PreferenceDnaApplicationRecord,
-  type PreferenceIntelligenceScope,
-  type PrivatePreferenceIntelligenceAggregate,
-} from './private-preference-intelligence-store'
+  assertPlanningPreferenceApplicationExpectation,
+  PLANNING_PREFERENCE_INSTRUCTION_PRIORITY,
+  planningPreferenceApplicationExpectationFromResolution,
+  readPlanningPreferenceApplicationAuthority,
+} from './planning-preference-application-authority-port'
 import { sha256AuthorityValue, stableAuthorityStringify } from './private-edit-authority-store'
 
 export interface PlanningInputAuthorityScope {
@@ -46,12 +44,15 @@ export async function resolvePlanningInputAuthorityBinding(input: {
   const expectation = planningInputAuthorityExpectationSchema.parse(input.expectation)
   const exactRecord = await requireExactEditPreference(input.scope)
   const exactEditPreference = resolveExactEditPreferenceBinding(exactRecord, expectation, input.components)
-  const preferenceAggregate = await readPrivatePreferenceIntelligenceAggregate(preferenceScope(input.scope))
-  const preferenceApplication = resolvePreferenceApplicationBinding(
-    preferenceAggregate,
-    input.scope,
-    expectation.preferenceApplication,
-  )
+  const preferenceApplicationAuthority =
+    await readPlanningPreferenceApplicationAuthority({
+      context: input.context,
+      scope: input.scope,
+    })
+  const preferenceApplication = assertPlanningPreferenceApplicationExpectation({
+    resolution: preferenceApplicationAuthority,
+    expectation: expectation.preferenceApplication,
+  })
   const editBriefAggregate = await readPrivateEditBriefAuthorityAggregate(editBriefScope(input.scope))
   const editBrief = resolveEditBriefBinding(
     editBriefAggregate,
@@ -68,7 +69,7 @@ export async function resolvePlanningInputAuthorityBinding(input: {
     exactEditPreference,
     preferenceApplication,
     editBrief,
-    instructionPriority: [...PREFERENCE_INSTRUCTION_PRIORITY],
+    instructionPriority: [...PLANNING_PREFERENCE_INSTRUCTION_PRIORITY],
     noRuntimeSideEffects: true as const,
   }
   return resolvedPlanningInputAuthorityBindingSchema.parse({
@@ -97,36 +98,17 @@ export async function revalidatePlanningInputAuthorityBinding(input: {
 }
 
 export async function buildCurrentPlanningInputAuthorityExpectation(
-  scope: PlanningInputAuthorityScope,
+  input: {
+    context: ServiceContext
+    scope: PlanningInputAuthorityScope
+  },
 ): Promise<PlanningInputAuthorityExpectation> {
+  const { context, scope } = input
   const exactRecord = await requireExactEditPreference(scope)
-  const preferenceAggregate = await readPrivatePreferenceIntelligenceAggregate(preferenceScope(scope))
-  const application = preferenceAggregate?.applications.find((candidate) =>
-    candidate.projectId === scope.projectId && candidate.editSessionId === scope.editSessionId)
-  let preferenceApplication: PlanningInputAuthorityExpectation['preferenceApplication']
-  if (!application) {
-    preferenceApplication = { status: 'not_selected', applicationVersion: 0 }
-  } else if (application.status === 'cleared') {
-    preferenceApplication = {
-      status: 'cleared',
-      applicationId: application.id,
-      applicationVersion: application.applicationVersion,
-      applicationHash: preferenceIntelligenceHash(application),
-    }
-  } else {
-    assertApprovedApplicationLineage(preferenceAggregate!, application)
-    const dna = preferenceAggregate!.dnaVersions.find((candidate) =>
-      candidate.id === application.selectedPreferenceDNAId)!
-    preferenceApplication = {
-      status: 'applied',
-      applicationId: application.id,
-      applicationVersion: application.applicationVersion,
-      preferenceId: application.selectedEditPreferenceId!,
-      dnaVersionId: dna.id,
-      dnaVersion: dna.version,
-      applicationHash: preferenceIntelligenceHash(application),
-    }
-  }
+  const preferenceApplication =
+    planningPreferenceApplicationExpectationFromResolution(
+      await readPlanningPreferenceApplicationAuthority({ context, scope }),
+    )
   const editBriefAggregate = await readPrivateEditBriefAuthorityAggregate(editBriefScope(scope))
   const editBrief: PlanningInputAuthorityExpectation['editBrief'] = editBriefAggregate
     ? (() => {
@@ -197,70 +179,6 @@ function resolveExactEditPreferenceBinding(
     sourcePreparationEvidenceHash: record.planning.sourcePreparation.evidenceHash,
     frameConfirmationId: record.planning.frameConfirmation.confirmationId,
     confirmedAspectRatio: record.planning.frameConfirmation.aspectRatio,
-  }
-}
-
-function resolvePreferenceApplicationBinding(
-  aggregate: PrivatePreferenceIntelligenceAggregate | undefined,
-  scope: PlanningInputAuthorityScope,
-  expectation: PlanningInputAuthorityExpectation['preferenceApplication'],
-) {
-  const application = aggregate?.applications.find((candidate) =>
-    candidate.projectId === scope.projectId && candidate.editSessionId === scope.editSessionId
-  )
-  if (!application) {
-    if (expectation.status !== 'not_selected' || expectation.applicationVersion !== 0) {
-      throw stalePlanningAuthority('Expected reusable Preference application does not exist.')
-    }
-    const resolved = {
-      status: 'not_selected' as const,
-      applicationVersion: 0 as const,
-      applicationHash: preferenceIntelligenceHash({
-        workspaceId: scope.workspaceId,
-        projectId: scope.projectId,
-        editSessionId: scope.editSessionId,
-        status: 'not_selected',
-        applicationVersion: 0,
-      }),
-    }
-    return resolved
-  }
-  const applicationHash = preferenceIntelligenceHash(application)
-  if (
-    application.status !== expectation.status ||
-    application.id !== ('applicationId' in expectation ? expectation.applicationId : undefined) ||
-    application.applicationVersion !== expectation.applicationVersion ||
-    applicationHash !== ('applicationHash' in expectation ? expectation.applicationHash : undefined)
-  ) throw stalePlanningAuthority('Reusable Preference application identity or version changed.')
-  if (application.status === 'cleared') {
-    return {
-      status: 'cleared' as const,
-      applicationId: application.id,
-      applicationVersion: application.applicationVersion,
-      applicationHash,
-    }
-  }
-  assertApprovedApplicationLineage(aggregate!, application)
-  const dna = aggregate!.dnaVersions.find((candidate) => candidate.id === application.selectedPreferenceDNAId)!
-  if (
-    expectation.status !== 'applied' ||
-    expectation.preferenceId !== application.selectedEditPreferenceId ||
-    expectation.dnaVersionId !== dna.id ||
-    expectation.dnaVersion !== dna.version ||
-    !application.preferenceSummaryForPlanner
-  ) throw stalePlanningAuthority('Applied Preference DNA lineage changed after selection.')
-  return {
-    status: 'applied' as const,
-    applicationId: application.id,
-    applicationVersion: application.applicationVersion,
-    preferenceId: application.selectedEditPreferenceId!,
-    dnaVersionId: dna.id,
-    dnaVersion: dna.version,
-    applicationHash,
-    plannerContext: {
-      ...structuredClone(application.preferenceSummaryForPlanner),
-      instructionPriority: [...application.preferenceSummaryForPlanner.instructionPriority],
-    },
   }
 }
 
@@ -339,30 +257,6 @@ function resolveEditBriefBinding(
   }
 }
 
-function assertApprovedApplicationLineage(
-  aggregate: PrivatePreferenceIntelligenceAggregate,
-  application: PreferenceDnaApplicationRecord,
-): void {
-  const preference = aggregate.preferences.find((candidate) => candidate.id === application.selectedEditPreferenceId)
-  const dna = aggregate.dnaVersions.find((candidate) => candidate.id === application.selectedPreferenceDNAId)
-  const approval = aggregate.approvals.find((candidate) => candidate.dnaVersionId === dna?.id)
-  const qa = aggregate.qaResults.find((candidate) => candidate.id === approval?.qaResultId)
-  if (
-    application.status !== 'applied' ||
-    !preference || preference.status !== 'active' ||
-    preference.currentApprovedDnaVersionId !== dna?.id ||
-    !dna || dna.status !== 'approved' || !dna.approvedForApplication ||
-    !approval || approval.preferenceId !== preference.id ||
-    !qa || !qa.approvedForApplication ||
-    !application.preferenceSummaryForPlanner ||
-    application.preferenceSummaryForPlanner.preferenceDNAId !== dna.id ||
-    application.preferenceSummaryForPlanner.preferenceDNAVersion !== dna.version ||
-    stableAuthorityStringify(application.doNotCopyRules) !== stableAuthorityStringify(dna.doNotCopyRules)
-  ) {
-    throw new ApiError('PLAN_NOT_APPROVED', 'Applied Preference DNA does not have complete approved QA/application lineage.', 409)
-  }
-}
-
 function assertEditBriefFrameMatchesCanonical(
   aggregate: PrivateEditBriefAuthorityAggregate,
   components: CanonicalPlanComponentsInput,
@@ -432,14 +326,6 @@ async function requireExactEditPreference(
 
 function exactPreferenceScope(scope: PlanningInputAuthorityScope): ExactEditPreferenceStoreScope {
   return { ...scope }
-}
-
-function preferenceScope(scope: PlanningInputAuthorityScope): PreferenceIntelligenceScope {
-  return {
-    localStorageRoot: scope.localStorageRoot,
-    ownerUserId: scope.ownerUserId,
-    workspaceId: scope.workspaceId,
-  }
 }
 
 function editBriefScope(scope: PlanningInputAuthorityScope): EditBriefAuthorityScope {

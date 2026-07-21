@@ -2,6 +2,7 @@ import type { SupabaseClient, User } from '@supabase/supabase-js'
 import type { Request } from 'express'
 import type { RuntimeEnv } from './config/env'
 import type { StorageAdapter } from './storage/storage-types'
+import type { PlanningPreferenceApplicationAuthorityPort } from './services/planning-preference-application-authority-port'
 
 export interface AuthContext {
   userId: string
@@ -33,6 +34,7 @@ export interface RuntimeState {
   env: RuntimeEnv
   clients: RuntimeClients
   storageAdapter?: StorageAdapter
+  planningPreferenceApplicationAuthorityPort?: PlanningPreferenceApplicationAuthorityPort
 }
 
 export type RuntimeRequest = Request & {
@@ -53,4 +55,5 @@ export interface ServiceContext {
   requestId: string
   auth?: AuthContext
   storageAdapter?: StorageAdapter
+  planningPreferenceApplicationAuthorityPort?: PlanningPreferenceApplicationAuthorityPort
 }

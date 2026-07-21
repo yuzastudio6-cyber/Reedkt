@@ -107,7 +107,8 @@ export function createCanonicalPlanningHandoffService(context: ServiceContext) {
           sourceCandidateHash: sourceCandidate.candidateHash,
           components: body.canonicalPlanComponents,
         })
-        const planningInputAuthority = await buildCurrentPlanningInputAuthorityExpectation(scope)
+        const planningInputAuthority =
+          await buildCurrentPlanningInputAuthorityExpectation({ context, scope })
         const resolvedPlanningInputAuthority = await resolvePlanningInputAuthorityBinding({
           context,
           scope,

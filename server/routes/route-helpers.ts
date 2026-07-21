@@ -24,6 +24,8 @@ export function getServiceContext(request: Request): ServiceContext {
     requestId: runtimeRequest.context?.requestId ?? 'request-unknown',
     auth: runtimeRequest.context?.auth,
     storageAdapter: runtimeRequest.runtime.storageAdapter,
+    planningPreferenceApplicationAuthorityPort:
+      runtimeRequest.runtime.planningPreferenceApplicationAuthorityPort,
   }
 }
 

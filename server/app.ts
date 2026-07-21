@@ -36,12 +36,16 @@ import type { RuntimeClients, RuntimeRequest, RuntimeState } from './types'
 export interface ReeditProApiAppOptions {
   storageAdapter?: StorageAdapter
   clients?: RuntimeClients
+  planningPreferenceApplicationAuthorityPort?: RuntimeState['planningPreferenceApplicationAuthorityPort']
 }
 
 export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppOptions = {}): Express {
   const runtime: RuntimeState = {
     env,
     ...(options.storageAdapter ? { storageAdapter: options.storageAdapter } : {}),
+    ...(options.planningPreferenceApplicationAuthorityPort
+      ? { planningPreferenceApplicationAuthorityPort: options.planningPreferenceApplicationAuthorityPort }
+      : {}),
     clients: options.clients ?? {
       admin: createSupabaseAdminClient(env),
       public: createSupabasePublicClient(env),

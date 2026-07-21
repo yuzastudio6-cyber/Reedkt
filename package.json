@@ -54,6 +54,7 @@
     "smoke:canonical-private-package-work-queue": "tsx server/smoke/canonical-private-package-work-queue-smoke.ts",
     "smoke:canonical-private-provider-work-lifecycle": "tsx server/smoke/canonical-private-provider-work-lifecycle-smoke.ts",
     "smoke:canonical-private-multi-output-provider-work-lifecycle": "tsx server/smoke/canonical-private-multi-output-provider-work-lifecycle-smoke.ts",
+    "smoke:planning-preference-application-authority-port": "tsx server/smoke/planning-preference-application-authority-port-smoke.ts",
     "smoke:canonical-private-package-state-transaction": "tsx server/smoke/canonical-private-package-state-transaction-smoke.ts",
     "smoke:canonical-distributed-package-state-port": "tsx server/smoke/canonical-distributed-package-state-port-smoke.ts",
     "smoke:canonical-distributed-media-ingest-state-port": "tsx server/smoke/canonical-distributed-media-ingest-state-port-smoke.ts",

@@ -3,6 +3,14 @@ import { rm } from 'node:fs/promises'
 
 import { loadRuntimeEnv } from '../config/env'
 import {
+  EDIT_REFERENCE_PRODUCTION_PLANNING_AUTHORITY_PORT_ADAPTER_VERSION,
+  createUnreleasedEditReferenceProductionPlanningAuthorityPort,
+} from '../services/edit-reference-production-planning-authority-port-adapter'
+import {
+  EDIT_REFERENCE_PRODUCTION_PLANNING_AUTHORITY_READ_VERSION,
+  type EditReferenceProductionPlanningAuthorityReader,
+} from '../edit-references/edit-reference-production-planning-authority'
+import {
   assertPlanningPreferenceApplicationExpectation,
   PLANNING_PREFERENCE_APPLICATION_AUTHORITY_PORT_VERSION,
   PLANNING_PREFERENCE_INSTRUCTION_PRIORITY,
@@ -336,6 +344,92 @@ const verifiedProductionRead = await readPlanningPreferenceApplicationAuthority(
 })
 assert.equal(verifiedProductionRead.productionAuthority, true)
 
+let productionReaderCount = 0
+const productionReader: EditReferenceProductionPlanningAuthorityReader = {
+  async readExactApplicationState(readScope) {
+    productionReaderCount += 1
+    assert.deepEqual(readScope, {
+      actorUserId: scope.ownerUserId,
+      workspaceId: scope.workspaceId,
+      projectId: scope.projectId,
+      editSessionId: scope.editSessionId,
+    })
+    return {
+      schemaVersion: EDIT_REFERENCE_PRODUCTION_PLANNING_AUTHORITY_READ_VERSION,
+      repositoryAuthority: 'supabase_rls_transactional',
+      currentState: 'not_selected',
+      stateRecordCount: 0,
+      tenantIsolation: {
+        authenticatedUserVerified: true,
+        workspaceMembershipVerified: true,
+        workspaceProjectCompositeBindingVerified: true,
+        projectEditSessionCompositeBindingVerified: true,
+        rlsPolicyVersion: 'edit-reference-rls-policy-v2',
+        accessCheckReceiptId: 'edit-reference-access-check-port-adapter-1',
+      },
+      readRevision: 23,
+      readAt: '2026-07-20T22:00:00.000Z',
+    }
+  },
+}
+const unreleasedProductionPort =
+  createUnreleasedEditReferenceProductionPlanningAuthorityPort({
+    reader: productionReader,
+  })
+const unreleasedProductionRead = await readPlanningPreferenceApplicationAuthority({
+  context: contextWith(unreleasedProductionPort),
+  scope,
+})
+assert.equal(productionReaderCount, 1)
+assert.equal(
+  unreleasedProductionRead.sourceAuthority,
+  'canonical_edit_reference_production_repository',
+)
+assert.equal(
+  unreleasedProductionRead.evidenceClass,
+  'canonical_contract_fixture_unreleased',
+)
+assert.equal(unreleasedProductionRead.currentState, 'not_selected')
+assert.equal(unreleasedProductionRead.noLegacyPreferenceIntelligenceStoreRead, true)
+assert.equal(unreleasedProductionRead.noFallbackAfterAuthorityRead, true)
+assert.equal(unreleasedProductionRead.productionAuthority, false)
+assert.equal(unreleasedProductionRead.canonicalLineage?.state, 'not_selected')
+
+await assert.rejects(
+  () => readPlanningPreferenceApplicationAuthority({
+    context: {
+      ...productionContext,
+      planningPreferenceApplicationAuthorityPort: unreleasedProductionPort,
+    },
+    scope,
+  }),
+  (error: unknown) => hasRequiredGate(
+    error,
+    'server_only_application_and_planning_read_rpc_adapters_verified',
+  ),
+)
+assert.equal(productionReaderCount, 2)
+
+const injectedReaderFailure = new Error('canonical production reader failed')
+let injectedReaderFailureCount = 0
+await assert.rejects(
+  () => readPlanningPreferenceApplicationAuthority({
+    context: contextWith(
+      createUnreleasedEditReferenceProductionPlanningAuthorityPort({
+        reader: {
+          async readExactApplicationState() {
+            injectedReaderFailureCount += 1
+            throw injectedReaderFailure
+          },
+        },
+      }),
+    ),
+    scope,
+  }),
+  (error: unknown) => error === injectedReaderFailure,
+)
+assert.equal(injectedReaderFailureCount, 1)
+
 await rm(localStorageRoot, { force: true, recursive: true })
 
 console.log(JSON.stringify({
@@ -349,6 +443,11 @@ console.log(JSON.stringify({
   productionRequiresCanonicalVerifiedRuntime: true,
   hostedRuntimeRejectsLocalCompatibility: true,
   localCompatibilityNonPromotable: true,
+  editReferenceProductionPortAdapterVersion:
+    EDIT_REFERENCE_PRODUCTION_PLANNING_AUTHORITY_PORT_ADAPTER_VERSION,
+  editReferenceProductionReaderProjectedWithoutLegacyFallback: true,
+  editReferenceProductionReaderEvidenceClass:
+    'canonical_contract_fixture_unreleased',
   liveRpcAdapterMounted: false,
   remoteMutationAttempted: false,
   productionReady: false,

@@ -15,12 +15,26 @@ assert(manifest.rawMigrationBaselineStatus === 'blocked_by_parallel_foundations'
 assert(manifest.remoteMutationAllowed === false, 'remote_mutation_must_be_false')
 assert(manifest.productionAuthority === false, 'production_authority_must_be_false')
 assert(Array.isArray(manifest.files) && manifest.files.length >= 9, 'manifest_file_set_invalid')
-assert(Array.isArray(manifest.repositoryFiles) && manifest.repositoryFiles.length === 2, 'repository_manifest_file_set_invalid')
+assert(Array.isArray(manifest.repositoryFiles), 'repository_manifest_file_set_invalid')
+
+const expectedRepositoryFiles = [
+  'docs/canonical-v3-local-exact-edit-atomic-apply-verification-2026-07-21.md',
+  'server/edit-references/edit-reference-local-supabase-http-rpc-client.ts',
+  'server/edit-references/edit-reference-local-supabase-rpc-adapter.ts',
+  'server/edit-references/edit-reference-production-exact-edit-apply-boundary.ts',
+  'server/smoke/edit-reference-local-supabase-http-rpc-smoke.ts',
+  'server/smoke/edit-reference-local-supabase-rpc-adapter-smoke.ts',
+]
+const actualRepositoryFiles = manifest.repositoryFiles
+  .map((entry) => entry.path)
+  .sort()
+assert(equalArrays(actualRepositoryFiles, expectedRepositoryFiles), 'repository_manifest_file_set_invalid')
 
 const expectedMigrations = [
   '202607210001_identity_and_exact_edit_authority.sql',
   '202607210002_edit_reference_v6_schema.sql',
   '202607210003_edit_reference_v6_security_and_rpcs.sql',
+  '202607210004_exact_edit_atomic_apply.sql',
 ]
 const actualMigrations = readdirSync(join(directory, 'supabase', 'migrations'))
   .filter((name) => name.endsWith('.sql'))
@@ -53,6 +67,7 @@ const migrationSource = expectedMigrations
 for (const requiredToken of [
   'force row level security',
   'mutate_edit_reference_application_lifecycle_v3',
+  'apply_exact_edit_preferences_and_reference_v1',
   'read_exact_edit_reference_application_state_v2',
   'assert_preference_application_plan_current_v1',
   'reserve_edit_reference_study_chat_run_v1',

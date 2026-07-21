@@ -59,7 +59,17 @@ insert into public.edit_sessions (id, project_id, workspace_id) values
     'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
   );
 
-with frame_authority as (
+with preference_values as (
+  select jsonb_build_object(
+    'editLevel', 'pro',
+    'workflowType', 'testimonial_case_study',
+    'cleanupPreference', 'balanced_cleanup',
+    'visualPreference', 'balanced_visual_mix',
+    'moodStyle', 'clean',
+    'creditPreference', 'balanced',
+    'targetPlatform', 'youtube'
+  ) as value
+), frame_authority as (
   select * from (values
     (
       'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'::uuid,
@@ -97,16 +107,18 @@ with frame_authority as (
   from frame_authority
 )
 insert into public.exact_edit_preference_states (
-  workspace_id, project_id, edit_session_id, preference_fingerprint_sha256,
+  workspace_id, project_id, edit_session_id, preference_values,
+  preference_fingerprint_sha256,
   output_frame_confirmed, output_frame_confirmation_id,
   output_frame_aspect_ratio, output_frame_confirmed_at,
   output_frame_authority_digest_sha256
 )
 select
-  workspace_id, project_id, edit_session_id, repeat('0', 64), true,
+  workspace_id, project_id, edit_session_id, preference_values.value,
+  public.reeditpro_sha256_json(preference_values.value), true,
   confirmation_id, aspect_ratio, confirmed_at::timestamptz,
   public.reeditpro_sha256_json(authority)
-from frame_json;
+from frame_json cross join preference_values;
 
 insert into public.edit_references (
   id, workspace_id, owner_user_id, name, description, record_json

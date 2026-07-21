@@ -7,15 +7,15 @@
   "files": [
     {
       "path": "README.md",
-      "sha256": "610286806faa7dfa71b607ec0d1397dc36f49e2036022c8fcd5375769c4f778e"
+      "sha256": "363fdeeb603d5f53cd978e3c93024a912dc8d37e52d170a0f33efecd302ce3af"
     },
     {
       "path": "run-local-verification.sh",
-      "sha256": "3df02e6d2772695eef90cdd25589e9eb015b21d6f61fe320f157489c94c203a2"
+      "sha256": "de2cb810fe164e7d395a400d72d2126d1610f648f194a57c9f5bab73f35be86a"
     },
     {
       "path": "verify.mjs",
-      "sha256": "b3856b6ac197927017c09c895285aafeef55b604b1989655ca2b31266de52e0b"
+      "sha256": "e7ae6ed67529147d642ea1dae83c2e52447480a02952a7ae91ca26e1a668c076"
     },
     {
       "path": "supabase/.gitignore",
@@ -38,8 +38,12 @@
       "sha256": "97adf4a7e85d9419818e37f0ca73fdab7d52649b7ba68f1bc01f6f14b80e6523"
     },
     {
+      "path": "supabase/migrations/202607210004_exact_edit_atomic_apply.sql",
+      "sha256": "bdcea968594b9181f03998470aaabd47659d4c60fdba4a3772be166a91ddbda3"
+    },
+    {
       "path": "tests/_fixture.sql",
-      "sha256": "cc3d78c436eade21a6345d5417ccd47165cbfcfc65deca1eb914da6d3644896b"
+      "sha256": "e30b72a712cee0a32208da780b69a731d1495d664a819042f5569a041e9613f6"
     },
     {
       "path": "tests/001_two_user_two_workspace_rls.sql",
@@ -55,13 +59,33 @@
     },
     {
       "path": "tests/004_schema_security_invariants.sql",
-      "sha256": "a6ecf665a21f1c8bdc9e053e6cf7f1d8e00b76f3961348e3eb1de82a7d58d9f1"
+      "sha256": "24ad3eafea086893ab06735693a6d6c79fcf0b2dd53f293c3cdb13408aa033d7"
+    },
+    {
+      "path": "tests/005_exact_edit_atomic_apply.sql",
+      "sha256": "722ce282de0b207564f3d3bb49c1b392c2b73c74296b8fe126167b70a086e104"
     }
   ],
   "repositoryFiles": [
     {
+      "path": "docs/canonical-v3-local-exact-edit-atomic-apply-verification-2026-07-21.md",
+      "sha256": "84fc1424c531ceff2c50b060cb00ff633d4d38ea6062d1915568998288cca11d"
+    },
+    {
+      "path": "server/edit-references/edit-reference-local-supabase-http-rpc-client.ts",
+      "sha256": "69481caaaf837bad3147e0b22be44b529d1f0b7ec5c4d1cdb87dec282ee46820"
+    },
+    {
       "path": "server/edit-references/edit-reference-local-supabase-rpc-adapter.ts",
-      "sha256": "b6953e27ea8a20ad1bccf9f4a2e8e664803871e2c7d55043988edf1b80a4d384"
+      "sha256": "0adab1635143a0afd024af08fa86529669bdc5b92afd1fb865777daf4d55523c"
+    },
+    {
+      "path": "server/edit-references/edit-reference-production-exact-edit-apply-boundary.ts",
+      "sha256": "a46e5fb90be0007fc0c78b4eb513f784c7ae7dc804f292828485ac64fbd89e7d"
+    },
+    {
+      "path": "server/smoke/edit-reference-local-supabase-http-rpc-smoke.ts",
+      "sha256": "a528d10094447af1183d027b10fb7c736293b0ba107fccc1a5351f852e5e2f1b"
     },
     {
       "path": "server/smoke/edit-reference-local-supabase-rpc-adapter-smoke.ts",

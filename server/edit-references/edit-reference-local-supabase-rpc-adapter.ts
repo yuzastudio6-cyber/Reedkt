@@ -1,10 +1,19 @@
 import { createHash } from 'node:crypto'
+import type {
+  EditReferenceProductionExactEditApplyApiReceipt,
+} from '../../src/types/edit-reference-production-exact-edit-apply-api'
 import { ApiError } from '../errors/api-error'
 import type {
   EditReferenceProductionApplicationLifecycleReceipt,
   EditReferenceProductionApplicationLifecycleRequest,
 } from './edit-reference-production-application-lifecycle'
 import { EDIT_REFERENCE_PRODUCTION_PERSISTENCE_CONTRACT_VERSION } from './edit-reference-production-persistence-contract'
+import {
+  EDIT_REFERENCE_PRODUCTION_EXACT_EDIT_APPLY_RPC,
+  validateEditReferenceProductionExactEditApplyReceipt,
+  validateEditReferenceProductionExactEditApplyRequest,
+  type EditReferenceProductionExactEditApplyRequest,
+} from './edit-reference-production-exact-edit-apply-boundary'
 import type {
   EditReferenceProductionPlanningAuthorityReader,
 } from './edit-reference-production-planning-authority'
@@ -39,6 +48,9 @@ export interface EditReferenceLocalSupabaseRpcAdapter {
   mutateApplicationLifecycle(
     request: EditReferenceProductionApplicationLifecycleRequest,
   ): Promise<EditReferenceProductionApplicationLifecycleReceipt>
+  applyExactEditPreferencesAndReference(
+    request: EditReferenceProductionExactEditApplyRequest,
+  ): Promise<EditReferenceProductionExactEditApplyApiReceipt>
   readonly loopbackOnly: true
   readonly remoteDatabaseMutationAllowed: false
   readonly productionAuthority: false
@@ -94,10 +106,38 @@ export function createEditReferenceLocalSupabaseRpcAdapter(input: {
     mutateApplicationLifecycle: (
       request: EditReferenceProductionApplicationLifecycleRequest,
     ) => validatedDelegate.mutateApplicationLifecycle(request),
+    applyExactEditPreferencesAndReference: (
+      request: EditReferenceProductionExactEditApplyRequest,
+    ) => invokeExactEditApply(input.client, request),
     loopbackOnly: true as const,
     remoteDatabaseMutationAllowed: false as const,
     productionAuthority: false as const,
   })
+}
+
+async function invokeExactEditApply(
+  client: EditReferenceProductionRpcClient,
+  request: EditReferenceProductionExactEditApplyRequest,
+): Promise<EditReferenceProductionExactEditApplyApiReceipt> {
+  validateEditReferenceProductionExactEditApplyRequest(request)
+  let result: Awaited<ReturnType<EditReferenceProductionRpcClient['rpc']>>
+  try {
+    result = await client.rpc(EDIT_REFERENCE_PRODUCTION_EXACT_EDIT_APPLY_RPC, {
+      p_contract_version: EDIT_REFERENCE_PRODUCTION_PERSISTENCE_CONTRACT_VERSION,
+      p_request: request,
+    })
+  } catch {
+    invalid('local_exact_edit_apply_rpc_failed')
+  }
+  if (!result || typeof result !== 'object' || result.error) {
+    invalid('local_exact_edit_apply_rpc_failed')
+  }
+  if (!Array.isArray(result.data) || result.data.length !== 1) {
+    invalid('local_exact_edit_apply_rpc_response_shape_invalid')
+  }
+  const receipt = result.data[0] as EditReferenceProductionExactEditApplyApiReceipt
+  validateEditReferenceProductionExactEditApplyReceipt({ request, receipt })
+  return structuredClone(receipt)
 }
 
 export function assertEditReferenceLocalSupabaseRpcAdapterIsNotProduction(

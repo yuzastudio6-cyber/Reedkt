@@ -15,6 +15,9 @@ The chain provides:
 - Edit Reference library, study, evidence, asset, DNA, QA, application, audit,
   lifecycle, Study Chat, and long-form study persistence;
 - `mutate_edit_reference_application_lifecycle_v3` apply/replace/remove CAS;
+- `apply_exact_edit_preferences_and_reference_v1` as the one outer exact-edit
+  Apply transaction for generic preference changes and the optional nested
+  Edit Reference lifecycle command;
 - `read_exact_edit_reference_application_state_v2` planning authority;
 - `assert_preference_application_plan_current_v1` execution-currentness check;
 - durable Kimi K3 -> Qwen 3.7 -> DeepSeek V4 Pro Study Chat attempts, provider
@@ -24,10 +27,12 @@ The chain provides:
   recovery without fabricating an approved edit snapshot or credit
   reservation;
 - forced RLS with authenticated read scopes and RPC-only mutation;
-- a process-branded, loopback-only TypeScript adapter that runs the returned
-  SQL receipt and planning read through the frozen V6 backend validators;
-- local two-user/two-workspace isolation and adversarial lifecycle/recovery
-  tests.
+- process-branded, loopback-only TypeScript adapters that run SQL receipts and
+  planning reads through the frozen V6 backend validators;
+- a real local PostgREST HTTP proof using authenticated, locally signed JWTs,
+  with no service-role credential used for the Apply operation;
+- local two-user/two-workspace isolation and adversarial lifecycle, atomic
+  Apply, replay, recovery, direct-table-denial, and internal-cost tests.
 
 Qwen2.5-VL remains visual-only and is not represented as a Study Chat
 reasoning route. Internal provider and infrastructure costs are persisted
@@ -46,8 +51,11 @@ database/canonical-v3-local/run-local-verification.sh
 ```
 
 The runner starts the isolated local stack if needed, performs a clean local
-reset, executes all SQL tests with `ON_ERROR_STOP`, and verifies the source
-manifest. Tests run inside transactions and roll back their fixtures.
+reset, executes all SQL tests with `ON_ERROR_STOP`, verifies the local adapter,
+installs the controlled fixture, exercises the actual loopback PostgREST RPC
+and RLS path, verifies the source manifest, and performs a final clean reset.
+SQL tests run inside transactions and roll back their fixtures; the HTTP proof
+is also removed by the final reset.
 
 ## Explicitly not authorized or proven
 

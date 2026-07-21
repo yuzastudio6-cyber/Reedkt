@@ -3,6 +3,7 @@ import type { PreferenceApplicationRecord } from '../../src/types/edit-reference
 import {
   EDIT_REFERENCE_PRODUCTION_EXACT_EDIT_APPLY_COMMAND_VERSION,
   type EditReferenceProductionExactEditApplyCommand,
+  type EditReferenceProductionExactEditApplyApiReceipt,
   type EditReferenceProductionExactEditPreferencePatch,
   type EditReferenceProductionExactEditPreferenceValues,
 } from '../../src/types/edit-reference-production-exact-edit-apply-api'
@@ -14,6 +15,9 @@ import {
 } from '../validation/exact-edit-preference-schemas'
 import type {
   EditReferenceProductionApplicationLifecycleRequest,
+} from './edit-reference-production-application-lifecycle'
+import {
+  validateEditReferenceProductionApplicationLifecycleRequest,
 } from './edit-reference-production-application-lifecycle'
 import {
   prepareEditReferenceProductionLifecycleRequest,
@@ -122,6 +126,33 @@ const COMMAND_KEYS = [
   'preferencePatch',
   'editReferenceLifecycle',
 ] as const
+const REQUEST_KEYS = [
+  'schemaVersion', 'rpcName', 'actorUserId', 'workspaceId', 'projectId',
+  'editSessionId', 'accessCheckReceiptId',
+  'exactEditPreferenceAuthorityReadReceiptId',
+  'expectedPreferenceRecordRevision', 'expectedPreferenceRevision',
+  'expectedPlanningInputRevision', 'expectedPreferenceFingerprintSha256',
+  'preferencePatch', 'changedPreferenceFields', 'referenceLifecycleRequest',
+  'referenceLifecycleExecutionPolicy', 'planningInputRevisionIncrement',
+  'sourcePreparationDisposition', 'outputFrameDisposition',
+  'freshPlanAndEstimateRequired', 'approvedSnapshotPreserved',
+  'historicalPrivatePreviewPreserved', 'idempotencyKeyHashSha256',
+  'requestedAt', 'customerPriceCalculated', 'customerCreditsMutated',
+  'serviceFeeIncluded', 'providerOrWorkerExecutionStarted',
+  'requestDigestSha256',
+] as const
+const RECEIPT_KEYS = [
+  'schemaVersion', 'sourceAuthority', 'canonicalReceiptValidatedServerSide',
+  'transactionId', 'changedPreferenceFields', 'referenceMutation',
+  'committedPreferenceRecordRevision', 'committedPreferenceRevision',
+  'committedPlanningInputRevision', 'sourcePreparationDisposition',
+  'outputFrameDisposition', 'freshPlanAndEstimateRequired',
+  'approvedSnapshotPreserved', 'historicalPrivatePreviewPreserved',
+  'transactionReceiptDigestSha256', 'committedAt',
+  'productionReleaseReadinessEvaluatedSeparately',
+  'customerPriceCalculated', 'customerCreditsMutated', 'serviceFeeIncluded',
+  'providerOrWorkerExecutionStarted',
+] as const
 const ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,239}$/
 const SHA256_PATTERN = /^[a-f0-9]{64}$/
 
@@ -215,6 +246,128 @@ export function prepareEditReferenceProductionExactEditApply(input: {
     remoteMutationMade: false as const,
     productionReady: false as const,
   })
+}
+
+export function validateEditReferenceProductionExactEditApplyRequest(
+  request: EditReferenceProductionExactEditApplyRequest,
+): void {
+  assertExactKeys(request, REQUEST_KEYS, 'exact_edit_apply_request_shape_invalid')
+  const { requestDigestSha256, ...requestWithoutDigest } = request
+  if (
+    request.schemaVersion !== EDIT_REFERENCE_PRODUCTION_EXACT_EDIT_APPLY_BOUNDARY_VERSION
+    || request.rpcName !== EDIT_REFERENCE_PRODUCTION_EXACT_EDIT_APPLY_RPC
+    || !SHA256_PATTERN.test(requestDigestSha256)
+    || requestDigestSha256 !== sha256(requestWithoutDigest)
+    || !isSafeId(request.actorUserId)
+    || !isSafeId(request.workspaceId)
+    || !isSafeId(request.projectId)
+    || !isSafeId(request.editSessionId)
+    || !isSafeId(request.accessCheckReceiptId)
+    || !isSafeId(request.exactEditPreferenceAuthorityReadReceiptId)
+    || !Number.isInteger(request.expectedPreferenceRecordRevision)
+    || request.expectedPreferenceRecordRevision < 0
+    || !Number.isInteger(request.expectedPreferenceRevision)
+    || request.expectedPreferenceRevision < 0
+    || !Number.isInteger(request.expectedPlanningInputRevision)
+    || request.expectedPlanningInputRevision < 0
+    || !SHA256_PATTERN.test(request.expectedPreferenceFingerprintSha256)
+    || !SHA256_PATTERN.test(request.idempotencyKeyHashSha256)
+    || !Number.isFinite(Date.parse(request.requestedAt))
+  ) invalid('exact_edit_apply_request_integrity_invalid', 503)
+
+  const patch = validatePreferencePatch(request.preferencePatch)
+  if (
+    !Array.isArray(request.changedPreferenceFields)
+    || request.changedPreferenceFields.some((field) => (
+      !exactEditPreferenceFieldKeys.includes(field)
+      || !Object.prototype.hasOwnProperty.call(patch, field)
+    ))
+    || new Set(request.changedPreferenceFields).size !== request.changedPreferenceFields.length
+  ) invalid('exact_edit_apply_changed_fields_invalid', 503)
+
+  const changedFields = request.changedPreferenceFields
+  if (
+    request.referenceLifecycleExecutionPolicy
+      !== 'nested_same_transaction_never_called_separately'
+    || request.planningInputRevisionIncrement !== 1
+    || request.sourcePreparationDisposition
+      !== (changedFields.includes('cleanupPreference') ? 'requires_repreparation' : 'unchanged')
+    || request.outputFrameDisposition
+      !== (changedFields.includes('targetPlatform') ? 'requires_reconfirmation' : 'unchanged')
+    || request.freshPlanAndEstimateRequired !== true
+    || request.approvedSnapshotPreserved !== true
+    || request.historicalPrivatePreviewPreserved !== true
+    || request.customerPriceCalculated !== false
+    || request.customerCreditsMutated !== false
+    || request.serviceFeeIncluded !== false
+    || request.providerOrWorkerExecutionStarted !== false
+  ) invalid('exact_edit_apply_request_policy_invalid', 503)
+
+  if (request.referenceLifecycleRequest) {
+    validateEditReferenceProductionApplicationLifecycleRequest(
+      request.referenceLifecycleRequest,
+    )
+    if (
+      request.referenceLifecycleRequest.actorUserId !== request.actorUserId
+      || request.referenceLifecycleRequest.workspaceId !== request.workspaceId
+      || request.referenceLifecycleRequest.projectId !== request.projectId
+      || request.referenceLifecycleRequest.editSessionId !== request.editSessionId
+      || request.referenceLifecycleRequest.expectedPlanningInputRevision
+        !== request.expectedPlanningInputRevision
+      || request.referenceLifecycleRequest.idempotencyKeyHashSha256
+        !== request.idempotencyKeyHashSha256
+      || (
+        request.referenceLifecycleRequest.mutation !== 'remove'
+        && changesReferenceStudyContext(changedFields)
+      )
+    ) invalid('exact_edit_apply_nested_reference_request_invalid', 503)
+  } else if (changedFields.length === 0) {
+    invalid('exact_edit_apply_request_has_no_effect', 409)
+  }
+}
+
+export function validateEditReferenceProductionExactEditApplyReceipt(input: {
+  readonly request: EditReferenceProductionExactEditApplyRequest
+  readonly receipt: EditReferenceProductionExactEditApplyApiReceipt
+}): void {
+  validateEditReferenceProductionExactEditApplyRequest(input.request)
+  assertExactKeys(input.receipt, RECEIPT_KEYS, 'exact_edit_apply_receipt_shape_invalid')
+  const {
+    transactionReceiptDigestSha256: expectedDigest,
+    ...receiptWithoutDigest
+  } = input.receipt
+  const expectedReferenceMutation = input.request.referenceLifecycleRequest?.mutation ?? null
+  if (
+    input.receipt.schemaVersion !== 'edit-reference-production-exact-edit-apply-receipt-v1'
+    || input.receipt.sourceAuthority !== 'canonical_exact_edit_apply_rpc'
+    || input.receipt.canonicalReceiptValidatedServerSide !== true
+    || !isSafeId(input.receipt.transactionId)
+    || !SHA256_PATTERN.test(expectedDigest)
+    || expectedDigest !== sha256(receiptWithoutDigest)
+    || JSON.stringify(input.receipt.changedPreferenceFields)
+      !== JSON.stringify(input.request.changedPreferenceFields)
+    || input.receipt.referenceMutation !== expectedReferenceMutation
+    || input.receipt.committedPreferenceRecordRevision
+      !== input.request.expectedPreferenceRecordRevision + 1
+    || input.receipt.committedPreferenceRevision
+      !== input.request.expectedPreferenceRevision
+        + (input.request.changedPreferenceFields.length > 0 ? 1 : 0)
+    || input.receipt.committedPlanningInputRevision
+      !== input.request.expectedPlanningInputRevision + 1
+    || input.receipt.sourcePreparationDisposition
+      !== input.request.sourcePreparationDisposition
+    || input.receipt.outputFrameDisposition !== input.request.outputFrameDisposition
+    || input.receipt.freshPlanAndEstimateRequired !== true
+    || input.receipt.approvedSnapshotPreserved !== true
+    || input.receipt.historicalPrivatePreviewPreserved !== true
+    || input.receipt.productionReleaseReadinessEvaluatedSeparately !== true
+    || input.receipt.customerPriceCalculated !== false
+    || input.receipt.customerCreditsMutated !== false
+    || input.receipt.serviceFeeIncluded !== false
+    || input.receipt.providerOrWorkerExecutionStarted !== false
+    || !Number.isFinite(Date.parse(input.receipt.committedAt))
+    || Date.parse(input.receipt.committedAt) < Date.parse(input.request.requestedAt)
+  ) invalid('exact_edit_apply_receipt_integrity_invalid', 503)
 }
 
 function validateExactEditPreferenceAuthority(

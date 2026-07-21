@@ -1526,6 +1526,10 @@ function EvidenceForm({ detail, disabled, initialMode = 'manual_user_evidence', 
     setError(undefined)
     let input: CreatePreferenceEvidenceRequest
     let completedUploadRecovery: EditReferenceMediaUploadRecoverySummary | undefined
+    let completedUploadIdentity: {
+      storageObjectRecordId: string
+      mediaAssetId: string
+    } | undefined
     if (mode === 'manual_user_evidence') {
       input = {
         workspaceId,
@@ -1593,6 +1597,10 @@ function EvidenceForm({ detail, disabled, initialMode = 'manual_user_evidence', 
           return
         }
         completedUploadRecovery = privateUpload.recovery
+        completedUploadIdentity = {
+          storageObjectRecordId: privateUpload.storageObjectRecordId,
+          mediaAssetId: privateUpload.mediaAssetId,
+        }
       }
       input = {
         workspaceId,
@@ -1620,7 +1628,20 @@ function EvidenceForm({ detail, disabled, initialMode = 'manual_user_evidence', 
       }
     }
     const response = await api.addEvidence(detail.study.id, input)
-    if (response.ok) {
+    let savedDetail = response.ok ? response.data.detail : undefined
+    if (!savedDetail && mode === 'reference_video_metadata' && completedUploadIdentity) {
+      const readback = await api.get(workspaceId, detail.reference.id)
+      if (
+        readback.ok
+        && readback.data.detail.assets.some((asset) => (
+          asset.storageObjectRecordId === completedUploadIdentity?.storageObjectRecordId
+          && asset.mediaAssetId === completedUploadIdentity?.mediaAssetId
+        ))
+      ) {
+        savedDetail = readback.data.detail
+      }
+    }
+    if (savedDetail) {
       if (mode === 'reference_video_metadata') {
         await clearEditReferenceMediaUploadRecovery({
           workspaceId,
@@ -1629,9 +1650,9 @@ function EvidenceForm({ detail, disabled, initialMode = 'manual_user_evidence', 
         }).catch(() => undefined)
         setPendingUploadRecovery(undefined)
       }
-      await onAdded(response.data.detail)
+      await onAdded(savedDetail)
     } else {
-      setError(response.message)
+      setError(response.ok ? 'The saved evidence could not be read back.' : response.message)
       if (completedUploadRecovery) setPendingUploadRecovery(completedUploadRecovery)
     }
     setUploadStatus(undefined)

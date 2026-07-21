@@ -195,6 +195,53 @@ test.describe('canonical Edit Preference real-file flow', () => {
     await expectNoHorizontalOverflow(page)
   })
 
+  test('reconciles a committed video attachment when its response is lost', async ({ page }) => {
+    test.setTimeout(120_000)
+    page.setDefaultTimeout(15_000)
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await setViewport(page, 1280, 900)
+
+    const preferenceName = `Evidence readback ${Date.now()}`
+    let loseCommittedResponse = true
+    let evidenceMutationRequests = 0
+    page.on('request', (request) => {
+      if (
+        request.method() === 'POST'
+        && /\/v1\/edit-reference-studies\/[^/]+\/evidence$/.test(request.url())
+      ) evidenceMutationRequests += 1
+    })
+    await page.route('**/v1/edit-reference-studies/*/evidence', async (route) => {
+      if (route.request().method() === 'POST' && loseCommittedResponse) {
+        loseCommittedResponse = false
+        const committed = await route.fetch()
+        expect(committed.ok()).toBe(true)
+        await route.abort('failed')
+        return
+      }
+      await route.continue()
+    })
+
+    await gotoRoute(page, '/preferences')
+    await page.getByTestId('new-edit-reference').click()
+    await page.getByTestId('edit-reference-name').fill(preferenceName)
+    await page.getByTestId('save-edit-reference').click()
+    await page.getByRole('button', { name: 'Upload video' }).click()
+    await page.getByTestId('edit-reference-video-file').setInputFiles(fixturePath)
+    await page.getByTestId('save-edit-reference-evidence').click()
+
+    const studyCards = page.locator('[data-testid^="edit-reference-long-form-study-"]')
+    await expect(studyCards).toHaveCount(1)
+    await expect(studyCards.first()).toContainText('target-documentary.mp4')
+    expect(evidenceMutationRequests).toBe(1)
+    await expect(page.getByTestId('edit-reference-video-upload-recovery')).toHaveCount(0)
+    const recoveryKeys = await page.evaluate(() => Array.from(
+      { length: sessionStorage.length },
+      (_, index) => sessionStorage.key(index) ?? '',
+    ).filter((key) => key.startsWith('reeditpro.editReferenceUploadRecovery.v1.')))
+    expect(recoveryKeys).toEqual([])
+    await expectNoHorizontalOverflow(page)
+  })
+
   test('selects approved guidance, verifies the exact target, applies explicitly, reloads, and removes safely', async ({ page }, testInfo) => {
     test.setTimeout(180_000)
     page.setDefaultTimeout(15_000)

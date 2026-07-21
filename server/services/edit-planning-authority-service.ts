@@ -12,6 +12,7 @@ import {
   type CanonicalToolPayloadWorkItem,
 } from '../edit-architecture/canonical-tool-payload-authority'
 import { compileCanonicalWorkItems } from '../edit-architecture/canonical-work-item-compiler'
+import { assertCanonicalMotionStudioRemotionPlanAuthority } from '../edit-architecture/canonical-motion-studio-remotion-preview-authority'
 import { ApiError } from '../errors/api-error'
 import { isExplicitLocalInternalTestRuntime } from '../middleware/canonical-worker-runtime'
 import {
@@ -2382,6 +2383,7 @@ function validateCanonicalPlanDraft(
       throw new ApiError('PLAN_NOT_APPROVED', 'Canonical work graph cannot be approved while user review remains unresolved.', 409)
     }
   }
+  assertCanonicalMotionStudioRemotionPlanAuthority({ components, workItems })
   assertAcyclicWorkGraph(workItems)
   const requiredTypes = options.professionalLongFormControllerRequired
     ? ['validate_approved_snapshot'] as const

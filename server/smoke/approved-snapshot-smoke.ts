@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { loadRuntimeEnv } from '../config/env'
 import { ApiError } from '../errors/api-error'
 import { createApprovedSnapshotService } from '../services/approved-snapshot-service'
+import { findApprovedSnapshotSecretLikePaths } from '../services/approved-snapshot-validation'
 import { createCreditGateService } from '../services/credit-gate-service'
 import { createJobService } from '../services/job-service'
 import type { ServiceContext } from '../types'
@@ -19,6 +20,23 @@ const context: ServiceContext = {
   requestId: 'legacy-authority-cutover-smoke',
   auth: { userId: 'legacy-authority-user', isMockUser: true },
 }
+
+assert.deepEqual(findApprovedSnapshotSecretLikePaths({
+  planes: [
+    { motionToken: 'ambient_drift' },
+    { motionToken: 'headline_reveal' },
+    { motionToken: 'subject_parallax' },
+    { motionToken: 'caption_hold' },
+  ],
+}), [])
+assert.deepEqual(
+  findApprovedSnapshotSecretLikePaths({ motionToken: 'caller-selected-token-value' }),
+  ['$.motionToken'],
+)
+assert.deepEqual(
+  findApprovedSnapshotSecretLikePaths({ accessToken: 'not-a-real-secret' }),
+  ['$.accessToken'],
+)
 
 await expectToolNotReady(
   () => createApprovedSnapshotService(context).createApprovedSnapshot({
@@ -79,6 +97,8 @@ console.log(JSON.stringify({
     'standalone_credit_reservation_service_disabled',
     'free_form_job_service_disabled',
     'canonical_authority_is_only_mutation_path',
+    'enumerated_motion_tokens_are_not_credentials',
+    'caller_selected_or_auth_tokens_remain_rejected',
   ],
 }))
 

@@ -27,6 +27,11 @@ import {
   validateOfflineRemotionRenderPlanningPayload,
 } from '../tool-execution/remotion-render-execution/offline-remotion-render-execution-protocol'
 import {
+  assertCanonicalMotionStudioRemotionDependencyBindings,
+  assertCanonicalMotionStudioRemotionWorkItem,
+  resolveCanonicalMotionStudioRemotionProfile,
+} from './canonical-motion-studio-remotion-preview-authority'
+import {
   validateOfflineRemotionLongFormMergePlanningPayload,
 } from '../tool-execution/remotion-render-execution/offline-remotion-long-form-merge-protocol'
 import {
@@ -120,6 +125,7 @@ const validationEntrySchema = z.object({
     'media_ffmpeg',
     'media_ffprobe',
     'remotion_preview',
+    'remotion_motion_studio_preview',
     'remotion_final_composition',
     'libass_caption',
     'browser_graphics',
@@ -225,6 +231,7 @@ export function createCanonicalToolPayloadAuthority(input: {
     }
     validatedWorkItems.push(validateCanonicalToolWorkItemPayload({ spec, workItem }))
   }
+  assertCanonicalMotionStudioRemotionDependencyBindings(input.workItems)
   validatedWorkItems.sort((left, right) => left.workItemKey.localeCompare(right.workItemKey))
   optionalUnprovenWorkItemKeys.sort()
   const payload = {
@@ -420,6 +427,11 @@ function validateByRunnerFamily(
     return 'media_ffprobe'
   }
   if (toolId === 'remotion') {
+    const motionStudioProfile = resolveCanonicalMotionStudioRemotionProfile(structuredPayload)
+    if (motionStudioProfile) {
+      assertCanonicalMotionStudioRemotionWorkItem(workItem, motionStudioProfile)
+      return 'remotion_motion_studio_preview'
+    }
     if (
       workItem.workItemType === 'render_final_export' &&
       workItem.executionInput.operation === 'merge_approved_4k_composition_chunks'

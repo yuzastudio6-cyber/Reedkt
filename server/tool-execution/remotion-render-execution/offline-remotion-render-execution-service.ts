@@ -11,7 +11,16 @@ import {
   type OfflineRemotionContainerStreamingInput,
   type OfflineRemotionContainerStreamingOutputSink,
 } from './offline-remotion-render-docker-runtime'
-import { OFFLINE_REMOTION_RENDER_CONTAINER_PROTOCOL, OFFLINE_REMOTION_RENDER_OPERATION, offlineRemotionRequestSha256, validateOfflineRemotionRenderRequest } from './offline-remotion-render-execution-protocol'
+import {
+  isMotionStudioAnimaticPayload,
+  isMotionStudioLayeredPayload,
+  isMotionStudioRouteDrawPayload,
+  isMotionStudioScenePreviewPayload,
+  OFFLINE_REMOTION_RENDER_CONTAINER_PROTOCOL,
+  OFFLINE_REMOTION_RENDER_OPERATION,
+  offlineRemotionRequestSha256,
+  validateOfflineRemotionRenderRequest,
+} from './offline-remotion-render-execution-protocol'
 import type {
   OfflineRemotionDeliveryH264ChunkStreamingResult,
   OfflineRemotionImageEvidence,
@@ -324,12 +333,37 @@ async function executeWithImage(image: OfflineRemotionImageEvidence, value: unkn
   const artifactRecord = record(response.artifact)
   const bytes = Buffer.from(string(artifactRecord.bytesBase64), 'base64')
   const sha256 = createHash('sha256').update(bytes).digest('hex')
+  const expectedFrames = isMotionStudioRouteDrawPayload(request.payload)
+    ? [0, 45, 90, 135, 179]
+    : isMotionStudioScenePreviewPayload(request.payload) ||
+      isMotionStudioLayeredPayload(request.payload) || isMotionStudioAnimaticPayload(request.payload)
+      ? [...new Set([0, Math.floor((request.payload.durationFrames - 1) / 2), request.payload.durationFrames - 1])]
+      : []
+  if (expectedFrames.length > 0 && !Array.isArray(artifactRecord.frameArtifacts)) {
+    throw runtimeFailure('Private Motion Studio Remotion result omitted frame-golden evidence.')
+  }
+  const frameArtifacts = (Array.isArray(artifactRecord.frameArtifacts) ? artifactRecord.frameArtifacts : []).map((value) => {
+    const frameRecord = record(value)
+    const frameBytes = Buffer.from(string(frameRecord.bytesBase64), 'base64')
+    const frameSha256 = createHash('sha256').update(frameBytes).digest('hex')
+    if (
+      !Number.isSafeInteger(frameRecord.frame) || Number(frameRecord.frame) < 0 ||
+      frameRecord.mimeType !== 'image/png' || frameRecord.byteLength !== frameBytes.byteLength ||
+      frameRecord.sha256 !== frameSha256 || frameBytes.byteLength < 1024 || frameBytes.byteLength > 8 * 1024 * 1024 ||
+      frameBytes.subarray(0, 8).toString('hex') !== '89504e470d0a1a0a'
+    ) throw runtimeFailure('Private Remotion frame-golden evidence is invalid.')
+    return { frame: Number(frameRecord.frame), mimeType: 'image/png' as const, bytes: frameBytes, byteLength: frameBytes.byteLength, sha256: frameSha256 }
+  })
+  if (
+    frameArtifacts.length !== expectedFrames.length ||
+    frameArtifacts.some((artifact, index) => artifact.frame !== expectedFrames[index])
+  ) throw runtimeFailure('Private Remotion frame-golden selection diverged from exact timing authority.')
   if (
     response.schemaVersion !== OFFLINE_REMOTION_RENDER_CONTAINER_PROTOCOL || response.ok !== true || response.toolId !== 'remotion' ||
     response.operationId !== OFFLINE_REMOTION_RENDER_OPERATION || response.status !== 'actual_remotion_media_render_completed' ||
     record(response.packageIdentity).packageName !== 'remotion+@remotion/renderer' || record(response.packageIdentity).version !== '4.0.487' ||
     response.requestEnvelopeSha256 !== offlineRemotionRequestSha256(request) || artifactRecord.mimeType !== 'video/mp4' ||
-    artifactRecord.byteLength !== bytes.byteLength || artifactRecord.sha256 !== sha256 || bytes.length < 1024 || bytes.length > 16 * 1024 * 1024 ||
+    artifactRecord.byteLength !== bytes.byteLength || artifactRecord.sha256 !== sha256 || bytes.length < 1024 || bytes.length > 32 * 1024 * 1024 ||
     bytes.subarray(4, 8).toString('ascii') !== 'ftyp' || artifactRecord.width !== request.payload.width || artifactRecord.height !== request.payload.height ||
     artifactRecord.fps !== request.payload.fps || artifactRecord.durationFrames !== request.payload.durationFrames ||
     record(response.readiness).privateInternalOnly !== true || record(response.readiness).productReady !== false ||
@@ -342,6 +376,7 @@ async function executeWithImage(image: OfflineRemotionImageEvidence, value: unkn
     imageIdentityHash: image.imageIdentityHash,
     requestEnvelopeSha256: offlineRemotionRequestSha256(request),
     artifactSha256: sha256,
+    frameArtifactDigests: frameArtifacts.map(({ frame, sha256: frameSha256 }) => ({ frame, sha256: frameSha256 })),
     confinementHash: sha256AuthorityValue(result.confinement),
   }
   const attestationHash = sha256AuthorityValue(attestationWithoutHash)
@@ -360,6 +395,7 @@ async function executeWithImage(image: OfflineRemotionImageEvidence, value: unkn
   return {
     schemaVersion: 'offline-remotion-render-execution-result-v1', request,
     artifact: { mimeType: 'video/mp4', bytes, byteLength: bytes.length, sha256, width: Number(artifactRecord.width), height: Number(artifactRecord.height), fps: Number(artifactRecord.fps), durationFrames: Number(artifactRecord.durationFrames), durationSeconds: Number(artifactRecord.durationSeconds) },
+    frameArtifacts,
     evidence: { packageName: 'remotion+@remotion/renderer', packageVersion: '4.0.487', requestEnvelopeSha256: String(response.requestEnvelopeSha256), image, confinement: result.confinement, semanticEvidence: record(response.semanticEvidence) as Record<string, true>, containerExitCode: 0, oomKilled: false },
     attestation,
     readiness: { privateInternalOnly: true, productReady: false, externalBetaReady: false, productionReady: false, privateInternalFinalCompositionReady: true, canonicalDispatchIntegrated: false },

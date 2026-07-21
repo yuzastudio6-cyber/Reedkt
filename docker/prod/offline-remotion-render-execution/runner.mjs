@@ -1,13 +1,16 @@
 import { createHash } from 'node:crypto'
+import { execFile } from 'node:child_process'
 import { once } from 'node:events'
 import { constants, createReadStream } from 'node:fs'
 import { createServer } from 'node:http'
-import { open, readFile, rm } from 'node:fs/promises'
+import { open, readFile, rename, rm } from 'node:fs/promises'
 import { createRequire } from 'node:module'
+import { promisify } from 'node:util'
 
-import { renderMedia, selectComposition } from '@remotion/renderer'
+import { renderMedia, renderStill, selectComposition } from '@remotion/renderer'
 
 const require = createRequire(import.meta.url)
+const { RenderInternals } = require('@remotion/renderer')
 const remotionVersion = require('remotion/package.json').version
 const rendererVersion = require('@remotion/renderer/package.json').version
 const PROTOCOL = 'offline-remotion-render-execution-v1'
@@ -77,6 +80,7 @@ const DELIVERY_MASTER_AUTHORITY_KEYS = [
 ]
 const FIXED_BT709_X264_VUI_PARAMETERS =
   'colorprim=bt709:transfer=bt709:colormatrix=bt709:fullrange=off'
+const execFileAsync = promisify(execFile)
 
 const canonical = (value) => JSON.stringify(value, Object.keys(value).sort())
 const sha256 = (value) => createHash('sha256').update(value).digest('hex')
@@ -489,12 +493,309 @@ function committedBase64(payload, prefix, mimeType, minimumBytes, maximumBytes) 
   return bytes
 }
 
+function validateAudioSignature(bytes, mimeType) {
+  if (mimeType === 'audio/wav') {
+    if (
+      bytes.subarray(0, 4).toString('ascii') !== 'RIFF' ||
+      bytes.subarray(8, 12).toString('ascii') !== 'WAVE'
+    ) throw new Error('narration WAV signature is invalid')
+    return
+  }
+  const id3 = bytes.subarray(0, 3).toString('ascii') === 'ID3'
+  const sync = bytes.byteLength >= 2 && bytes[0] === 0xff && (bytes[1] & 0xe0) === 0xe0
+  if (!id3 && !sync) throw new Error('narration MPEG signature is invalid')
+}
+
+function validateMotionStudioPayload(rawPayload) {
+  if (!rawPayload || typeof rawPayload !== 'object' || Array.isArray(rawPayload)) return undefined
+
+  if (rawPayload.compositionProfileId === 'motion_studio_deterministic_route_draw_v1') {
+    const payload = exactObject(rawPayload, [
+      'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
+      'sceneId', 'sceneStartFrame', 'sceneEndFrame', 'semanticPurpose',
+      'routePresetId', 'routeRevealStartFrame', 'routeRevealEndFrame',
+      'waypointFrames', 'routeCoverColor', 'routeColor', 'routeGlowColor',
+      'keyframeMimeType', 'keyframeByteLength', 'keyframeSha256', 'keyframeBytesBase64',
+    ], 'Motion Studio deterministic route-draw payload')
+    if (
+      payload.width !== 1280 || payload.height !== 720 || payload.fps !== 30 ||
+      payload.durationFrames !== 180 || payload.sceneStartFrame !== 0 ||
+      payload.sceneEndFrame !== 180 ||
+      payload.routePresetId !== 'abstract_three_district_route_v1' ||
+      payload.routeRevealStartFrame !== 18 || payload.routeRevealEndFrame !== 140 ||
+      JSON.stringify(payload.waypointFrames) !== JSON.stringify([18, 82, 140]) ||
+      payload.routeCoverColor !== '#081426' || payload.routeColor !== '#FFB23D' ||
+      payload.routeGlowColor !== '#FF7A1A'
+    ) throw new Error('Motion Studio deterministic route-draw profile is unsupported')
+    const keyframe = committedBase64(
+      payload,
+      'keyframe',
+      'image/png',
+      1_024,
+      8 * 1024 * 1024,
+    )
+    if (
+      keyframe.subarray(0, 8).toString('hex') !== '89504e470d0a1a0a' ||
+      keyframe.toString('ascii', 12, 16) !== 'IHDR' ||
+      keyframe.readUInt32BE(16) !== 1280 || keyframe.readUInt32BE(20) !== 720 ||
+      keyframe[24] !== 8 || keyframe[25] !== 2
+    ) throw new Error('Motion Studio route-draw keyframe signature is invalid')
+    return {
+      compositionProfileId: 'motion_studio_deterministic_route_draw_v1',
+      width: 1280,
+      height: 720,
+      fps: 30,
+      durationFrames: 180,
+      sceneId: safeIdentity(payload.sceneId, 'sceneId'),
+      sceneStartFrame: 0,
+      sceneEndFrame: 180,
+      semanticPurpose: safeText(payload.semanticPurpose, 180, 'semanticPurpose'),
+      routePresetId: 'abstract_three_district_route_v1',
+      routeRevealStartFrame: 18,
+      routeRevealEndFrame: 140,
+      waypointFrames: [18, 82, 140],
+      routeCoverColor: '#081426',
+      routeColor: '#FFB23D',
+      routeGlowColor: '#FF7A1A',
+      keyframeMimeType: 'image/png',
+      keyframeByteLength: keyframe.byteLength,
+      keyframeSha256: payload.keyframeSha256,
+      keyframeBytesBase64: keyframe.toString('base64'),
+    }
+  }
+
+  if (rawPayload.compositionProfileId === 'motion_studio_native_layered_scene_v1') {
+    const payload = exactObject(rawPayload, [
+      'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
+      'sceneId', 'sceneStartFrame', 'sceneEndFrame', 'semanticPurpose',
+      'headline', 'caption', 'layerManifestDigest', 'depthModel', 'planes',
+      'panelBackground', 'panelHighlight', 'headlineColor', 'accentColor',
+      'captionColor', 'horizontalSafePercent', 'verticalSafePercent',
+      'captionBottomPercent', 'captionAboveMask', 'contactObjectPresent', 'maskRisk',
+      'subjectMimeType', 'subjectByteLength', 'subjectSha256', 'subjectBytesBase64',
+    ], 'Motion Studio layered payload')
+    const dimensions = `${payload.width}x${payload.height}`
+    oneOf(dimensions, PRIVATE_REVIEW_FRAMES, 'approved layered frame')
+    const durationFrames = integer(payload.durationFrames, 24, 450, 'durationFrames')
+    const sceneStartFrame = integer(payload.sceneStartFrame, 0, 10_000_000, 'sceneStartFrame')
+    const sceneEndFrame = integer(payload.sceneEndFrame, 1, 10_000_000, 'sceneEndFrame')
+    if (sceneEndFrame - sceneStartFrame !== durationFrames) {
+      throw new Error('Motion Studio layered scene range must exactly match durationFrames')
+    }
+    const semanticPurpose = safeText(payload.semanticPurpose, 120, 'semanticPurpose')
+    const headline = safeText(payload.headline, 120, 'headline')
+    const caption = safeText(payload.caption, 160, 'caption')
+    if (headline !== semanticPurpose || caption !== `Review · ${semanticPurpose}`) {
+      throw new Error('Motion Studio layered copy diverges from scene authority')
+    }
+    if (
+      typeof payload.layerManifestDigest !== 'string' ||
+      !/^[a-f0-9]{64}$/.test(payload.layerManifestDigest)
+    ) throw new Error('Motion Studio layered manifest digest is invalid')
+    const expectedPlanes = [
+      ['background-plane', 'background', 0, 'remotion_native', 'ambient_drift'],
+      ['headline-plane', 'headline', 10, 'remotion_native', 'headline_reveal'],
+      ['subject-plane', 'subject', 20, 'approved_cutout_slot', 'subject_parallax'],
+      ['caption-plane', 'caption', 30, 'remotion_native', 'caption_hold'],
+    ]
+    if (!Array.isArray(payload.planes) || payload.planes.length !== expectedPlanes.length) {
+      throw new Error('Motion Studio layered profile requires four exact semantic planes')
+    }
+    const planes = payload.planes.map((rawPlane, index) => {
+      const plane = exactObject(
+        rawPlane,
+        ['planeId', 'role', 'zIndex', 'sourceKind', 'motionToken'],
+        'Motion Studio layered plane',
+      )
+      const expected = expectedPlanes[index]
+      if (
+        plane.planeId !== expected[0] || plane.role !== expected[1] ||
+        plane.zIndex !== expected[2] || plane.sourceKind !== expected[3] ||
+        plane.motionToken !== expected[4]
+      ) throw new Error('Motion Studio layered plane identity or z order is unsupported')
+      return {
+        planeId: expected[0],
+        role: expected[1],
+        zIndex: expected[2],
+        sourceKind: expected[3],
+        motionToken: expected[4],
+      }
+    })
+    if (
+      payload.depthModel !== 'semantic_planes_v1' || payload.panelBackground !== '#0F172A' ||
+      payload.panelHighlight !== '#16213E' || payload.headlineColor !== '#E0F2FE' ||
+      payload.accentColor !== '#FF4D8D' || payload.captionColor !== '#F8FAFC' ||
+      payload.horizontalSafePercent !== 8 || payload.verticalSafePercent !== 8 ||
+      payload.captionBottomPercent !== 9 || payload.captionAboveMask !== true ||
+      payload.contactObjectPresent !== false || payload.maskRisk !== 'low_fixture_only'
+    ) throw new Error('Motion Studio layered design, safety, or mask policy is unsupported')
+    const subject = committedBase64(payload, 'subject', 'image/png', 100, 1024 * 1024)
+    if (
+      subject.subarray(0, 8).toString('hex') !== '89504e470d0a1a0a' ||
+      subject.toString('ascii', 12, 16) !== 'IHDR' ||
+      subject.readUInt32BE(16) !== 128 || subject.readUInt32BE(20) !== 128 ||
+      subject[24] !== 8 || subject[25] !== 6
+    ) throw new Error('Motion Studio layered subject is not the approved 128x128 RGBA PNG class')
+    return {
+      width: integer(payload.width, 360, 640, 'width'),
+      height: integer(payload.height, 360, 640, 'height'),
+      fps: oneOf(payload.fps, [24, 30], 'fps'),
+      durationFrames,
+      compositionProfileId: 'motion_studio_native_layered_scene_v1',
+      sceneId: safeIdentity(payload.sceneId, 'sceneId'),
+      sceneStartFrame,
+      sceneEndFrame,
+      semanticPurpose,
+      headline,
+      caption,
+      layerManifestDigest: payload.layerManifestDigest,
+      depthModel: 'semantic_planes_v1',
+      planes,
+      panelBackground: '#0F172A',
+      panelHighlight: '#16213E',
+      headlineColor: '#E0F2FE',
+      accentColor: '#FF4D8D',
+      captionColor: '#F8FAFC',
+      horizontalSafePercent: 8,
+      verticalSafePercent: 8,
+      captionBottomPercent: 9,
+      captionAboveMask: true,
+      contactObjectPresent: false,
+      maskRisk: 'low_fixture_only',
+      subjectMimeType: 'image/png',
+      subjectByteLength: subject.byteLength,
+      subjectSha256: payload.subjectSha256,
+      subjectBytesBase64: subject.toString('base64'),
+    }
+  }
+
+  if (rawPayload.compositionProfileId === 'motion_studio_scene_preview_v1') {
+    const payload = exactObject(rawPayload, [
+      'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
+      'sceneId', 'sceneStartFrame', 'sceneEndFrame', 'semanticPurpose',
+      'productionMode', 'layerType', 'panelBackground', 'accentColor',
+    ], 'Motion Studio scene preview payload')
+    const dimensions = `${payload.width}x${payload.height}`
+    oneOf(dimensions, [...PRIVATE_REVIEW_FRAMES, '720x405', '405x720'], 'approved frame')
+    const durationFrames = integer(payload.durationFrames, 24, 450, 'durationFrames')
+    const sceneStartFrame = integer(payload.sceneStartFrame, 0, 10_000_000, 'sceneStartFrame')
+    const sceneEndFrame = integer(payload.sceneEndFrame, 1, 10_000_000, 'sceneEndFrame')
+    if (sceneEndFrame - sceneStartFrame !== durationFrames) {
+      throw new Error('Motion Studio scene range must exactly match durationFrames')
+    }
+    return {
+      compositionProfileId: 'motion_studio_scene_preview_v1',
+      width: integer(payload.width, 360, 720, 'width'),
+      height: integer(payload.height, 360, 720, 'height'),
+      fps: oneOf(payload.fps, [24, 30], 'fps'),
+      durationFrames,
+      sceneId: safeIdentity(payload.sceneId, 'sceneId'),
+      sceneStartFrame,
+      sceneEndFrame,
+      semanticPurpose: safeText(payload.semanticPurpose, 240, 'semanticPurpose'),
+      productionMode: oneOf(
+        payload.productionMode,
+        ['generative_first', 'layered_first', 'native_graphics_first', 'footage_first', 'hybrid_directed'],
+        'productionMode',
+      ),
+      layerType: oneOf(
+        payload.layerType,
+        ['image', 'source_footage', 'generated_video', 'text', 'caption', 'map', 'chart', 'mask', 'audio', 'effect'],
+        'layerType',
+      ),
+      panelBackground: normalizedColor(payload.panelBackground, 'panelBackground'),
+      accentColor: normalizedColor(payload.accentColor, 'accentColor'),
+    }
+  }
+
+  if (rawPayload.compositionProfileId === 'motion_studio_prepared_script_animatic_v1') {
+    const payload = exactObject(rawPayload, [
+      'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
+      'scenes', 'panelBackground', 'accentColor', 'narrationMimeType',
+      'narrationByteLength', 'narrationSha256', 'narrationBytesBase64',
+    ], 'Motion Studio animatic payload')
+    const dimensions = `${payload.width}x${payload.height}`
+    oneOf(dimensions, PRIVATE_REVIEW_FRAMES, 'approved animatic frame')
+    const durationFrames = integer(payload.durationFrames, 24, 900, 'durationFrames')
+    if (!Array.isArray(payload.scenes) || payload.scenes.length < 1 || payload.scenes.length > 8) {
+      throw new Error('Motion Studio animatic requires one to eight scenes')
+    }
+    let nextFrame = 0
+    const seenSceneIds = new Set()
+    const scenes = payload.scenes.map((rawScene, order) => {
+      const scene = exactObject(
+        rawScene,
+        ['order', 'sceneId', 'startFrame', 'endFrame', 'title', 'visualDescription'],
+        'Motion Studio animatic scene',
+      )
+      const sceneId = safeIdentity(scene.sceneId, 'sceneId')
+      const startFrame = integer(scene.startFrame, 0, 899, 'startFrame')
+      const endFrame = integer(scene.endFrame, 1, 900, 'endFrame')
+      if (
+        scene.order !== order || startFrame !== nextFrame || endFrame <= startFrame ||
+        endFrame > durationFrames || seenSceneIds.has(sceneId)
+      ) throw new Error('Motion Studio animatic scene order and coverage are invalid')
+      nextFrame = endFrame
+      seenSceneIds.add(sceneId)
+      return {
+        order,
+        sceneId,
+        startFrame,
+        endFrame,
+        title: safeText(scene.title, 120, 'title'),
+        visualDescription: safeText(scene.visualDescription, 240, 'visualDescription'),
+      }
+    })
+    if (nextFrame !== durationFrames) {
+      throw new Error('Motion Studio animatic scenes must cover the exact duration')
+    }
+    const narrationMimeType = oneOf(
+      payload.narrationMimeType,
+      ['audio/wav', 'audio/mpeg', 'audio/mp3'],
+      'narrationMimeType',
+    )
+    const narration = committedBase64(
+      payload,
+      'narration',
+      narrationMimeType,
+      44,
+      16 * 1024 * 1024,
+    )
+    validateAudioSignature(narration, narrationMimeType)
+    return {
+      compositionProfileId: 'motion_studio_prepared_script_animatic_v1',
+      width: integer(payload.width, 360, 640, 'width'),
+      height: integer(payload.height, 360, 640, 'height'),
+      fps: oneOf(payload.fps, [24, 30], 'fps'),
+      durationFrames,
+      scenes,
+      panelBackground: normalizedColor(payload.panelBackground, 'panelBackground'),
+      accentColor: normalizedColor(payload.accentColor, 'accentColor'),
+      narrationMimeType,
+      narrationByteLength: narration.byteLength,
+      narrationSha256: payload.narrationSha256,
+      narrationBytesBase64: narration.toString('base64'),
+    }
+  }
+
+  return undefined
+}
+
 function validateRequest(value) {
   const request = exactObject(value, ['schemaVersion', 'toolId', 'operationId', 'payload'], 'request')
   if (request.schemaVersion !== PROTOCOL || request.toolId !== 'remotion' || request.operationId !== OPERATION) {
     throw new Error('request identity is unsupported')
   }
   const rawPayload = request.payload
+  const motionStudioPayload = validateMotionStudioPayload(rawPayload)
+  if (motionStudioPayload) {
+    return {
+      schemaVersion: PROTOCOL,
+      toolId: 'remotion',
+      operationId: OPERATION,
+      payload: motionStudioPayload,
+    }
+  }
   if (rawPayload && typeof rawPayload === 'object' && isSourceSequenceProfile(rawPayload.compositionProfileId)) {
     const captionTrack = rawPayload.compositionProfileId === 'approved_source_sequence_caption_track_final_v1'
     const replaceVoice = rawPayload.audioPolicy === 'replace_with_approved_voice_tracks'
@@ -1747,6 +2048,25 @@ async function execute(request, options = {}) {
   if (remotionVersion !== '4.0.487' || rendererVersion !== '4.0.487') throw new Error('Remotion package identity mismatch')
   const requestJson = JSON.stringify(request)
   const outputPath = `/tmp/reeditpro-remotion-${sha256(requestJson).slice(0, 24)}.mp4`
+  const durationConstrainedOutputPath = `${outputPath}.duration-constrained.mp4`
+  const scenePreview = request.payload.compositionProfileId === 'motion_studio_scene_preview_v1'
+  const layered = request.payload.compositionProfileId === 'motion_studio_native_layered_scene_v1'
+  const animatic = request.payload.compositionProfileId === 'motion_studio_prepared_script_animatic_v1'
+  const routeDraw = request.payload.compositionProfileId === 'motion_studio_deterministic_route_draw_v1'
+  const motionStudioComposition = scenePreview || layered || animatic || routeDraw
+  const goldenFrames = routeDraw
+    ? [0, 45, 90, 135, 179]
+    : motionStudioComposition
+      ? [...new Set([
+          0,
+          Math.floor((request.payload.durationFrames - 1) / 2),
+          request.payload.durationFrames - 1,
+        ])]
+      : []
+  const goldenPaths = goldenFrames.map((frame) => ({
+    frame,
+    path: `/tmp/reeditpro-remotion-${sha256(requestJson).slice(0, 24)}-frame-${frame}.png`,
+  }))
   const browserExecutable = (await readFile('/app/browser-path.txt', 'utf8')).trim()
   if (!browserExecutable.startsWith('/app/node_modules/.remotion/chrome-headless-shell/')) {
     throw new Error('Prepared Remotion browser identity is invalid')
@@ -1834,6 +2154,36 @@ async function execute(request, options = {}) {
             }))
           : [],
       )
+    : layered || animatic || routeDraw
+      ? await openPrivateLoopbackMediaServer([], [], [], {
+          ...(layered
+            ? {
+                subject: {
+                  bytes: Buffer.from(request.payload.subjectBytesBase64, 'base64'),
+                  byteLength: request.payload.subjectByteLength,
+                  contentType: 'image/png',
+                },
+              }
+            : {}),
+          ...(animatic
+            ? {
+                narration: {
+                  bytes: Buffer.from(request.payload.narrationBytesBase64, 'base64'),
+                  byteLength: request.payload.narrationByteLength,
+                  contentType: request.payload.narrationMimeType,
+                },
+              }
+            : {}),
+          ...(routeDraw
+            ? {
+                keyframe: {
+                  bytes: Buffer.from(request.payload.keyframeBytesBase64, 'base64'),
+                  byteLength: request.payload.keyframeByteLength,
+                  contentType: 'image/png',
+                },
+              }
+            : {}),
+        })
     : null
   const captionRenderPayload = deliveryH264Chunk
     ? {}
@@ -1857,7 +2207,72 @@ async function execute(request, options = {}) {
         })),
       }
     : {}
-  const renderPayload = deliveryH264Chunk
+  const renderPayload = scenePreview
+    ? request.payload
+    : layered
+    ? {
+        compositionProfileId: request.payload.compositionProfileId,
+        width: request.payload.width,
+        height: request.payload.height,
+        fps: request.payload.fps,
+        durationFrames: request.payload.durationFrames,
+        sceneId: request.payload.sceneId,
+        sceneStartFrame: request.payload.sceneStartFrame,
+        sceneEndFrame: request.payload.sceneEndFrame,
+        semanticPurpose: request.payload.semanticPurpose,
+        headline: request.payload.headline,
+        caption: request.payload.caption,
+        layerManifestDigest: request.payload.layerManifestDigest,
+        depthModel: request.payload.depthModel,
+        planes: request.payload.planes,
+        panelBackground: request.payload.panelBackground,
+        panelHighlight: request.payload.panelHighlight,
+        headlineColor: request.payload.headlineColor,
+        accentColor: request.payload.accentColor,
+        captionColor: request.payload.captionColor,
+        horizontalSafePercent: request.payload.horizontalSafePercent,
+        verticalSafePercent: request.payload.verticalSafePercent,
+        captionBottomPercent: request.payload.captionBottomPercent,
+        captionAboveMask: request.payload.captionAboveMask,
+        contactObjectPresent: request.payload.contactObjectPresent,
+        maskRisk: request.payload.maskRisk,
+        subjectSha256: request.payload.subjectSha256,
+        subjectInternalUrl: `${mediaServer.origin}/motion/subject.png`,
+      }
+    : animatic
+    ? {
+        compositionProfileId: request.payload.compositionProfileId,
+        width: request.payload.width,
+        height: request.payload.height,
+        fps: request.payload.fps,
+        durationFrames: request.payload.durationFrames,
+        scenes: request.payload.scenes,
+        panelBackground: request.payload.panelBackground,
+        accentColor: request.payload.accentColor,
+        narrationInternalUrl: `${mediaServer.origin}/motion/narration`,
+      }
+    : routeDraw
+    ? {
+        compositionProfileId: request.payload.compositionProfileId,
+        width: request.payload.width,
+        height: request.payload.height,
+        fps: request.payload.fps,
+        durationFrames: request.payload.durationFrames,
+        sceneId: request.payload.sceneId,
+        sceneStartFrame: request.payload.sceneStartFrame,
+        sceneEndFrame: request.payload.sceneEndFrame,
+        semanticPurpose: request.payload.semanticPurpose,
+        routePresetId: request.payload.routePresetId,
+        routeRevealStartFrame: request.payload.routeRevealStartFrame,
+        routeRevealEndFrame: request.payload.routeRevealEndFrame,
+        waypointFrames: request.payload.waypointFrames,
+        routeCoverColor: request.payload.routeCoverColor,
+        routeColor: request.payload.routeColor,
+        routeGlowColor: request.payload.routeGlowColor,
+        keyframeSha256: request.payload.keyframeSha256,
+        keyframeInternalUrl: `${mediaServer.origin}/motion/keyframe.png`,
+      }
+    : deliveryH264Chunk
     ? {
         compositionProfileId: DELIVERY_H264_CHUNK_COMPOSITION_PROFILE,
         deliveryProfileId: 'uhd_2160',
@@ -1937,6 +2352,7 @@ async function execute(request, options = {}) {
       composition.width !== request.payload.width || composition.height !== request.payload.height ||
       composition.fps !== request.payload.fps || composition.durationInFrames !== request.payload.durationFrames
     ) throw new Error('Selected composition metadata diverged from approved frame timing')
+    const exactDurationSeconds = (composition.durationInFrames / composition.fps).toFixed(6)
     await renderMedia({
       serveUrl: '/opt/remotion-bundle',
       composition,
@@ -1953,7 +2369,8 @@ async function execute(request, options = {}) {
       pixelFormat: 'yuv420p',
       colorSpace: 'bt709',
       ffmpegOverride: enforceFixedBt709H264Vui,
-      muted: deliveryH264Chunk || !finalComposition,
+      muted: deliveryH264Chunk || !(finalComposition || animatic),
+      ...(animatic ? { audioCodec: 'aac', sampleRate: 48_000 } : {}),
       concurrency: 1,
       disallowParallelEncoding: true,
       overwrite: false,
@@ -1963,6 +2380,29 @@ async function execute(request, options = {}) {
       offthreadVideoCacheSizeInBytes: fourKDeliveryMaster ? 256 * 1024 * 1024 : 32 * 1024 * 1024,
       offthreadVideoThreads: 1,
     })
+    if (animatic) {
+      await constrainAnimaticDuration(
+        outputPath,
+        durationConstrainedOutputPath,
+        exactDurationSeconds,
+      )
+    }
+    for (const golden of goldenPaths) {
+      await renderStill({
+        serveUrl: '/opt/remotion-bundle',
+        composition,
+        inputProps: renderPayload,
+        frame: golden.frame,
+        output: golden.path,
+        imageFormat: 'png',
+        browserExecutable,
+        chromeMode: 'headless-shell',
+        chromiumOptions: { enableMultiProcessOnLinux: true },
+        overwrite: false,
+        logLevel: 'error',
+        timeoutInMilliseconds: 30_000,
+      })
+    }
     if (options.streamingOutput === true) {
       const commitment = await inspectRenderedOutput(
         outputPath,
@@ -1987,17 +2427,54 @@ async function execute(request, options = {}) {
     if (bytes.byteLength < 1_024 || bytes.byteLength > MAXIMUM_OUTPUT_BYTES || bytes.subarray(4, 8).toString('ascii') !== 'ftyp') {
       throw new Error('Rendered MP4 artifact is invalid or outside bounds')
     }
+    const frameArtifacts = []
+    for (const golden of goldenPaths) {
+      const imageBytes = await readFile(golden.path)
+      if (
+        imageBytes.byteLength < 1_024 || imageBytes.byteLength > 8 * 1024 * 1024 ||
+        imageBytes.subarray(0, 8).toString('hex') !== '89504e470d0a1a0a'
+      ) throw new Error('Rendered frame-golden PNG is invalid or outside bounds')
+      frameArtifacts.push({
+        frame: golden.frame,
+        mimeType: 'image/png',
+        bytesBase64: imageBytes.toString('base64'),
+        byteLength: imageBytes.byteLength,
+        sha256: sha256(imageBytes),
+      })
+    }
     return {
       mimeType: 'video/mp4', bytesBase64: bytes.toString('base64'),
       byteLength: bytes.byteLength, sha256: sha256(bytes),
       width: composition.width, height: composition.height,
       fps: composition.fps, durationFrames: composition.durationInFrames,
       durationSeconds: Number((composition.durationInFrames / composition.fps).toFixed(6)),
+      ...(motionStudioComposition ? { frameArtifacts } : {}),
     }
   } finally {
     if (!retainStreamingOutput) await rm(outputPath, { force: true }).catch(() => undefined)
+    await rm(durationConstrainedOutputPath, { force: true }).catch(() => undefined)
+    await Promise.all(
+      goldenPaths.map((golden) => rm(golden.path, { force: true }).catch(() => undefined)),
+    )
     await mediaServer?.close()
   }
+}
+
+async function constrainAnimaticDuration(inputPath, outputPath, exactDurationSeconds) {
+  const ffmpeg = RenderInternals.getExecutablePath({
+    type: 'ffmpeg',
+    indent: false,
+    logLevel: 'error',
+    binariesDirectory: null,
+  })
+  await rm(outputPath, { force: true })
+  await execFileAsync(ffmpeg, [
+    '-hide_banner', '-loglevel', 'error', '-i', inputPath,
+    '-map', '0:v:0', '-map', '0:a:0', '-t', exactDurationSeconds,
+    '-c', 'copy', '-map_metadata', '-1', '-movflags', 'faststart', '-y', outputPath,
+  ], { timeout: 30_000, maxBuffer: 1024 * 1024 })
+  await rm(inputPath, { force: true })
+  await rename(outputPath, inputPath)
 }
 
 function committedMediaLocation(value, base64Key, pathKey, expectedByteLength) {
@@ -2039,7 +2516,7 @@ async function inspectRenderedOutput(path, maximumBytes) {
   return { byteLength, sha256: checksum.digest('hex') }
 }
 
-async function openPrivateLoopbackMediaServer(sources, overlays, voiceTracks) {
+async function openPrivateLoopbackMediaServer(sources, overlays, voiceTracks, motionAssets = {}) {
   const server = createServer((request, response) => {
     if (!request.url || !['GET', 'HEAD'].includes(request.method ?? '')) {
       response.writeHead(405).end()
@@ -2074,6 +2551,33 @@ async function openPrivateLoopbackMediaServer(sources, overlays, voiceTracks) {
         return
       }
       serveCommittedMedia(request, response, voiceTrack, 'audio/wav')
+      return
+    }
+    if (request.url === '/motion/subject.png' && motionAssets.subject) {
+      serveCommittedMedia(
+        request,
+        response,
+        motionAssets.subject,
+        motionAssets.subject.contentType,
+      )
+      return
+    }
+    if (request.url === '/motion/narration' && motionAssets.narration) {
+      serveCommittedMedia(
+        request,
+        response,
+        motionAssets.narration,
+        motionAssets.narration.contentType,
+      )
+      return
+    }
+    if (request.url === '/motion/keyframe.png' && motionAssets.keyframe) {
+      serveCommittedMedia(
+        request,
+        response,
+        motionAssets.keyframe,
+        motionAssets.keyframe.contentType,
+      )
       return
     }
     response.writeHead(404).end()
@@ -2375,6 +2879,47 @@ function semanticEvidence(request, streaming) {
               ? { approvedCaptionTrackTimingApplied: true }
               : {}),
           }
+        : request.payload.compositionProfileId === 'motion_studio_scene_preview_v1'
+          ? {
+              motionStudioScenePreviewCompositionExecuted: true,
+              remotionRenderStillExecuted: true,
+              frameGoldenArtifactsProduced: true,
+            }
+        : request.payload.compositionProfileId === 'motion_studio_native_layered_scene_v1'
+          ? {
+              motionStudioNativeLayeredCompositionExecuted: true,
+              approvedSubjectCutoutBytesVerified: true,
+              semanticFourPlaneDepthOrderPreserved: true,
+              nativeBackgroundAndHeadlineRendered: true,
+              subjectParallaxRendered: true,
+              captionAboveMaskRendered: true,
+              contactObjectPolicyPreserved: true,
+              remotionRenderStillExecuted: true,
+              frameGoldenArtifactsProduced: true,
+            }
+        : request.payload.compositionProfileId === 'motion_studio_deterministic_route_draw_v1'
+          ? {
+              motionStudioDeterministicRouteDrawCompositionExecuted: true,
+              approvedKeyframeBytesVerified: true,
+              exactRoutePresetPreserved: true,
+              exactRouteRevealTimingPreserved: true,
+              deterministicWaypointTimingPreserved: true,
+              routeDrawOwnedByRemotion: true,
+              providerVideoNotRequired: true,
+              remotionRenderStillExecuted: true,
+              frameGoldenArtifactsProduced: true,
+            }
+        : request.payload.compositionProfileId === 'motion_studio_prepared_script_animatic_v1'
+          ? {
+              motionStudioPreparedAnimaticCompositionExecuted: true,
+              approvedNarrationBytesVerified: true,
+              narrationAudioCompositionRequested: true,
+              oneFrameDurationTailConstrained: true,
+              deterministicSceneCoveragePreserved: true,
+              reviewOnlyPlaceholderDisclosureRendered: true,
+              remotionRenderStillExecuted: true,
+              frameGoldenArtifactsProduced: true,
+            }
         : { boundedPreviewCompositionProfileExecuted: true }),
   }
 }

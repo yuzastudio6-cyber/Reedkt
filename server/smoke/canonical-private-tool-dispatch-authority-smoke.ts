@@ -9,6 +9,12 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { loadRuntimeEnv } from '../config/env'
 import { ApiError } from '../errors/api-error'
 import {
+  CANONICAL_MOTION_STUDIO_REMOTION_PREVIEW_BINDING_VERSION,
+  CANONICAL_MOTION_STUDIO_REMOTION_PREVIEW_OPERATION,
+  canonicalMotionStudioRemotionPreviewBindingSchema,
+  canonicalMotionStudioTimingAuthorityDigest,
+} from '../edit-architecture/canonical-motion-studio-remotion-preview-authority'
+import {
   canonicalInternalAuthorityArtifactRelativePath,
 } from '../services/canonical-internal-authority-artifact-verifier'
 import { createCanonicalInternalAuthorityRunnerService } from '../services/canonical-internal-authority-runner-service'
@@ -320,6 +326,7 @@ const sourceMediaAuthority = {
 
 const dispatchPlanInput = {
   seedAuthority,
+  targetEditSessionId: editSessionId,
   planningInputAuthority,
   sourceMediaAuthority,
   d3OperationId,
@@ -727,7 +734,7 @@ assert.equal(authority.toolPayloadAuthority.summary.validationRunsBeforeApproval
 assert.equal(new Set(authority.toolPayloadAuthority.validatedWorkItems.map((entry) =>
   entry.canonicalToolId)).size, 50)
 assert.equal(new Set(authority.toolPayloadAuthority.validatedWorkItems.map((entry) =>
-  entry.validatorFamily)).size, 19)
+  entry.validatorFamily)).size, 20)
 assert.ok(authority.toolPayloadAuthority.validatedWorkItems.every((entry) =>
   /^[a-f0-9]{64}$/.test(entry.structuredPayloadHash) &&
   /^[a-f0-9]{64}$/.test(entry.bindingHash) &&
@@ -872,6 +879,48 @@ assert.ok(remotionProofJob)
 assert.ok(remotionAsset)
 assert.deepEqual(remotionJob.dependencyJobIds, [])
 assert.deepEqual(remotionProofJob.dependencyJobIds, [remotionJob.id])
+
+const motionStudioSceneWorkItem = aggregateBeforeDispatch.approvedWorkItems.find((candidate) =>
+  candidate.snapshotId === snapshot.snapshotId && candidate.workItemKey === 'motion-studio-scene-preview-root')
+const motionStudioSceneProofWorkItem = aggregateBeforeDispatch.approvedWorkItems.find((candidate) =>
+  candidate.snapshotId === snapshot.snapshotId && candidate.workItemKey === 'motion-studio-scene-preview-proof')
+assert.ok(motionStudioSceneWorkItem)
+assert.ok(motionStudioSceneProofWorkItem)
+const motionStudioSceneJob = aggregateBeforeDispatch.jobs.find((candidate) =>
+  candidate.snapshotId === snapshot.snapshotId && candidate.approvedWorkItemId === motionStudioSceneWorkItem.id)
+const motionStudioSceneProofJob = aggregateBeforeDispatch.jobs.find((candidate) =>
+  candidate.snapshotId === snapshot.snapshotId && candidate.approvedWorkItemId === motionStudioSceneProofWorkItem.id)
+const motionStudioSceneAsset = authority.assetManifest.entries.find((candidate) =>
+  candidate.approvedWorkItemId === motionStudioSceneWorkItem.id)
+assert.ok(motionStudioSceneJob)
+assert.ok(motionStudioSceneProofJob)
+assert.ok(motionStudioSceneAsset)
+assert.deepEqual(motionStudioSceneJob.dependencyJobIds, [])
+assert.deepEqual(motionStudioSceneProofJob.dependencyJobIds, [motionStudioSceneJob.id])
+
+const motionStudioLayeredWorkItem = aggregateBeforeDispatch.approvedWorkItems.find((candidate) =>
+  candidate.snapshotId === snapshot.snapshotId && candidate.workItemKey === 'motion-studio-layered-preview-root')
+const motionStudioLayeredProofWorkItem = aggregateBeforeDispatch.approvedWorkItems.find((candidate) =>
+  candidate.snapshotId === snapshot.snapshotId && candidate.workItemKey === 'motion-studio-layered-preview-proof')
+const motionStudioLayeredDependencyWorkItem = aggregateBeforeDispatch.approvedWorkItems.find((candidate) =>
+  candidate.snapshotId === snapshot.snapshotId && candidate.workItemKey === 'matrix-rembg-root')
+assert.ok(motionStudioLayeredWorkItem)
+assert.ok(motionStudioLayeredProofWorkItem)
+assert.ok(motionStudioLayeredDependencyWorkItem)
+const motionStudioLayeredJob = aggregateBeforeDispatch.jobs.find((candidate) =>
+  candidate.snapshotId === snapshot.snapshotId && candidate.approvedWorkItemId === motionStudioLayeredWorkItem.id)
+const motionStudioLayeredProofJob = aggregateBeforeDispatch.jobs.find((candidate) =>
+  candidate.snapshotId === snapshot.snapshotId && candidate.approvedWorkItemId === motionStudioLayeredProofWorkItem.id)
+const motionStudioLayeredDependencyJob = aggregateBeforeDispatch.jobs.find((candidate) =>
+  candidate.snapshotId === snapshot.snapshotId && candidate.approvedWorkItemId === motionStudioLayeredDependencyWorkItem.id)
+const motionStudioLayeredAsset = authority.assetManifest.entries.find((candidate) =>
+  candidate.approvedWorkItemId === motionStudioLayeredWorkItem.id)
+assert.ok(motionStudioLayeredJob)
+assert.ok(motionStudioLayeredProofJob)
+assert.ok(motionStudioLayeredDependencyJob)
+assert.ok(motionStudioLayeredAsset)
+assert.deepEqual(motionStudioLayeredJob.dependencyJobIds, [motionStudioLayeredDependencyJob.id])
+assert.deepEqual(motionStudioLayeredProofJob.dependencyJobIds, [motionStudioLayeredJob.id])
 
 const libassWorkItem = aggregateBeforeDispatch.approvedWorkItems.find((candidate) =>
   candidate.snapshotId === snapshot.snapshotId && candidate.workItemKey === 'libass-caption-overlay-root')
@@ -2512,6 +2561,175 @@ await leaseService.release({
   idempotencyKey: 'release-remotion-private-preview-root',
 })
 
+const motionStudioSceneClaim = (await leaseService.claim({
+  workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
+  jobId: motionStudioSceneJob.id, purpose: 'private_internal_canonical_lease_claim',
+  idempotencyKey: 'claim-motion-studio-scene-preview-root',
+})).workerLeaseClaim
+assert.equal(motionStudioSceneClaim.lease.dependencyAuthority.state, 'not_required_for_root_job')
+assert.equal(motionStudioSceneClaim.lease.dependencyAuthority.selectedArtifacts.length, 0)
+const motionStudioSceneLeaseAuthority = {
+  leaseId: motionStudioSceneClaim.lease.leaseId,
+  leaseCredential: motionStudioSceneClaim.leaseCredential,
+}
+const motionStudioSceneGrant = (await dispatchService.authorize({
+  workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
+  jobId: motionStudioSceneJob.id, approvedWorkItemId: motionStudioSceneWorkItem.id,
+  expectedAssetId: motionStudioSceneAsset.id, requestedToolName: 'remotion',
+  operationId: remotionOperationId,
+  purpose: 'private_internal_canonical_tool_dispatch_authorization',
+  idempotencyKey: 'authorize-motion-studio-scene-preview-root',
+}, motionStudioSceneLeaseAuthority)).toolDispatchGrant
+assert.equal(motionStudioSceneGrant.grant.status, 'authorized')
+assert.equal(motionStudioSceneGrant.grant.binding.leaseDependencyAuthority.selectedArtifactCount, 0)
+assert.ok(motionStudioSceneGrant.dispatchCredential)
+const motionStudioSceneExecutionInput = {
+  workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
+  jobId: motionStudioSceneJob.id, grantId: motionStudioSceneGrant.grant.grantId,
+  purpose: 'execute_canonical_private_remotion_tool' as const,
+  idempotencyKey: 'consume-motion-studio-scene-preview-root',
+}
+const motionStudioSceneExecutionAuthority = {
+  ...motionStudioSceneLeaseAuthority,
+  dispatchCredential: motionStudioSceneGrant.dispatchCredential,
+}
+const coordinatedMotionStudioScene = await createCanonicalPrivateRemotionExecutionService(context).execute(
+  motionStudioSceneExecutionInput,
+  motionStudioSceneExecutionAuthority,
+)
+assert.equal(
+  coordinatedMotionStudioScene.tool.motionStudioCompositionProfileId,
+  'motion_studio_scene_preview_v1',
+)
+assert.equal(coordinatedMotionStudioScene.tool.dependencyArtifactRead, false)
+assert.equal(coordinatedMotionStudioScene.tool.dependencyReadEvidenceHash, undefined)
+assert.equal(coordinatedMotionStudioScene.qa.motionStudioFrameGoldenCount, 3)
+assert.match(coordinatedMotionStudioScene.qa.motionStudioFrameGoldenEvidenceHash ?? '', /^[a-f0-9]{64}$/)
+assert.equal(coordinatedMotionStudioScene.result.contentType, 'video/mp4')
+assert.equal(coordinatedMotionStudioScene.result.qaOutcome, 'passed')
+assert.equal(coordinatedMotionStudioScene.result.finalRenderAuthorized, false)
+const motionStudioSceneReplay = await createCanonicalPrivateRemotionExecutionService(context).execute(
+  motionStudioSceneExecutionInput,
+  motionStudioSceneExecutionAuthority,
+)
+assert.equal(motionStudioSceneReplay.result.artifactId, coordinatedMotionStudioScene.result.artifactId)
+assert.equal(motionStudioSceneReplay.result.sha256, coordinatedMotionStudioScene.result.sha256)
+assert.equal(motionStudioSceneReplay.replay.dispatchConsumptionReplayed, true)
+const motionStudioSceneProofClaim = (await leaseService.claim({
+  workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
+  jobId: motionStudioSceneProofJob.id, purpose: 'private_internal_canonical_lease_claim',
+  idempotencyKey: 'claim-motion-studio-scene-preview-proof',
+})).workerLeaseClaim
+assert.equal(motionStudioSceneProofClaim.lease.dependencyAuthority.state, 'private_test_dependencies_verified')
+assert.equal(motionStudioSceneProofClaim.lease.dependencyAuthority.selectedArtifacts.length, 1)
+assert.equal(
+  motionStudioSceneProofClaim.lease.dependencyAuthority.selectedArtifacts[0]?.artifactId,
+  coordinatedMotionStudioScene.result.artifactId,
+)
+await leaseService.release({
+  workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
+  jobId: motionStudioSceneProofJob.id, leaseId: motionStudioSceneProofClaim.lease.leaseId,
+  leaseCredential: motionStudioSceneProofClaim.leaseCredential,
+  purpose: 'private_internal_canonical_lease_release',
+  idempotencyKey: 'release-motion-studio-scene-preview-proof',
+})
+await leaseService.release({
+  workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
+  jobId: motionStudioSceneJob.id, leaseId: motionStudioSceneClaim.lease.leaseId,
+  leaseCredential: motionStudioSceneClaim.leaseCredential,
+  purpose: 'private_internal_canonical_lease_release',
+  idempotencyKey: 'release-motion-studio-scene-preview-root',
+})
+
+const motionStudioLayeredClaim = (await leaseService.claim({
+  workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
+  jobId: motionStudioLayeredJob.id, purpose: 'private_internal_canonical_lease_claim',
+  idempotencyKey: 'claim-motion-studio-layered-preview-root',
+})).workerLeaseClaim
+assert.equal(motionStudioLayeredClaim.lease.dependencyAuthority.state, 'private_test_dependencies_verified')
+assert.equal(motionStudioLayeredClaim.lease.dependencyAuthority.selectedArtifacts.length, 1)
+const motionStudioLayeredSelectedArtifact =
+  motionStudioLayeredClaim.lease.dependencyAuthority.selectedArtifacts[0]
+assert.ok(motionStudioLayeredSelectedArtifact)
+const motionStudioLayeredLeaseAuthority = {
+  leaseId: motionStudioLayeredClaim.lease.leaseId,
+  leaseCredential: motionStudioLayeredClaim.leaseCredential,
+}
+const motionStudioLayeredGrant = (await dispatchService.authorize({
+  workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
+  jobId: motionStudioLayeredJob.id, approvedWorkItemId: motionStudioLayeredWorkItem.id,
+  expectedAssetId: motionStudioLayeredAsset.id, requestedToolName: 'remotion',
+  operationId: remotionOperationId,
+  purpose: 'private_internal_canonical_tool_dispatch_authorization',
+  idempotencyKey: 'authorize-motion-studio-layered-preview-root',
+}, motionStudioLayeredLeaseAuthority)).toolDispatchGrant
+assert.equal(motionStudioLayeredGrant.grant.status, 'authorized')
+assert.equal(motionStudioLayeredGrant.grant.binding.leaseDependencyAuthority.selectedArtifactCount, 1)
+assert.ok(motionStudioLayeredGrant.dispatchCredential)
+const motionStudioLayeredExecutionInput = {
+  workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
+  jobId: motionStudioLayeredJob.id, grantId: motionStudioLayeredGrant.grant.grantId,
+  purpose: 'execute_canonical_private_remotion_tool' as const,
+  idempotencyKey: 'consume-motion-studio-layered-preview-root',
+}
+const motionStudioLayeredExecutionAuthority = {
+  ...motionStudioLayeredLeaseAuthority,
+  dispatchCredential: motionStudioLayeredGrant.dispatchCredential,
+}
+const coordinatedMotionStudioLayered = await createCanonicalPrivateRemotionExecutionService(context).execute(
+  motionStudioLayeredExecutionInput,
+  motionStudioLayeredExecutionAuthority,
+)
+assert.equal(
+  coordinatedMotionStudioLayered.tool.motionStudioCompositionProfileId,
+  'motion_studio_native_layered_scene_v1',
+)
+assert.equal(coordinatedMotionStudioLayered.tool.dependencyArtifactRead, true)
+assert.equal(coordinatedMotionStudioLayered.tool.sourceArtifactContentType, 'image/png')
+assert.equal(coordinatedMotionStudioLayered.tool.sourceArtifactId, motionStudioLayeredSelectedArtifact.artifactId)
+assert.equal(
+  coordinatedMotionStudioLayered.tool.sourceArtifactSha256,
+  motionStudioLayeredSelectedArtifact.contentSha256,
+)
+assert.match(coordinatedMotionStudioLayered.tool.dependencyReadEvidenceHash ?? '', /^[a-f0-9]{64}$/)
+assert.equal(coordinatedMotionStudioLayered.qa.motionStudioFrameGoldenCount, 3)
+assert.match(coordinatedMotionStudioLayered.qa.motionStudioFrameGoldenEvidenceHash ?? '', /^[a-f0-9]{64}$/)
+assert.equal(coordinatedMotionStudioLayered.result.contentType, 'video/mp4')
+assert.equal(coordinatedMotionStudioLayered.result.qaOutcome, 'passed')
+assert.equal(coordinatedMotionStudioLayered.result.finalRenderAuthorized, false)
+const motionStudioLayeredReplay = await createCanonicalPrivateRemotionExecutionService(context).execute(
+  motionStudioLayeredExecutionInput,
+  motionStudioLayeredExecutionAuthority,
+)
+assert.equal(motionStudioLayeredReplay.result.artifactId, coordinatedMotionStudioLayered.result.artifactId)
+assert.equal(motionStudioLayeredReplay.result.sha256, coordinatedMotionStudioLayered.result.sha256)
+assert.equal(motionStudioLayeredReplay.replay.dispatchConsumptionReplayed, true)
+const motionStudioLayeredProofClaim = (await leaseService.claim({
+  workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
+  jobId: motionStudioLayeredProofJob.id, purpose: 'private_internal_canonical_lease_claim',
+  idempotencyKey: 'claim-motion-studio-layered-preview-proof',
+})).workerLeaseClaim
+assert.equal(motionStudioLayeredProofClaim.lease.dependencyAuthority.state, 'private_test_dependencies_verified')
+assert.equal(motionStudioLayeredProofClaim.lease.dependencyAuthority.selectedArtifacts.length, 1)
+assert.equal(
+  motionStudioLayeredProofClaim.lease.dependencyAuthority.selectedArtifacts[0]?.artifactId,
+  coordinatedMotionStudioLayered.result.artifactId,
+)
+await leaseService.release({
+  workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
+  jobId: motionStudioLayeredProofJob.id, leaseId: motionStudioLayeredProofClaim.lease.leaseId,
+  leaseCredential: motionStudioLayeredProofClaim.leaseCredential,
+  purpose: 'private_internal_canonical_lease_release',
+  idempotencyKey: 'release-motion-studio-layered-preview-proof',
+})
+await leaseService.release({
+  workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
+  jobId: motionStudioLayeredJob.id, leaseId: motionStudioLayeredClaim.lease.leaseId,
+  leaseCredential: motionStudioLayeredClaim.leaseCredential,
+  purpose: 'private_internal_canonical_lease_release',
+  idempotencyKey: 'release-motion-studio-layered-preview-root',
+})
+
 await activatePrivateOfflineLibassCaptionRuntime()
 const libassAdapterInput = {
   workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
@@ -2970,6 +3188,7 @@ const terminalReviewPlanningInput = await prepareExactPlanningAuthority(
 )
 const terminalReviewPlanBody = createDispatchPlanBody({
   ...dispatchPlanInput,
+  targetEditSessionId: terminalReviewEditSessionId,
   planningInputAuthority: terminalReviewPlanningInput,
 })
 terminalReviewPlanBody.planningRequestId = 'planning-terminal-private-review'
@@ -3602,6 +3821,7 @@ const jobsBeforeReplacementPlan = authorityBeforeReplacementPlan.jobs.length
 const packagesBeforeReplacementPlan = authorityBeforeReplacementPlan.executionPackages.length
 const replacementPlanBody = createDispatchPlanBody({
   ...dispatchPlanInput,
+  targetEditSessionId: terminalReviewEditSessionId,
   planningInputAuthority: terminalReviewPlanningInput,
 })
 replacementPlanBody.planningRequestId = 'planning-terminal-private-review-revision-v2'
@@ -4477,7 +4697,7 @@ console.log(JSON.stringify({
     'canonical_job_only_adapter_derives_tool_operation_output_lease_dispatch_qa_and_replay_server_side',
     'all_50_required_tool_identities_frozen_from_server_proof_catalog_before_approval',
     'all_50_tool_identity_operation_and_proof_hashes_revalidated_before_execution_packaging',
-    'all_50_tool_payloads_validated_by_19_exact_runner_families_before_approval',
+    'all_50_tool_payloads_validated_by_20_exact_runner_families_before_approval',
     'all_50_tool_payload_bindings_and_artifact_contracts_revalidated_before_execution_packaging',
     'grouped_planner_tool_node_compiles_and_executes_as_two_atomic_canonical_jobs',
     'atomic_compiled_jobs_preserve_dependency_progress_artifact_qa_and_reconciliation_lifecycle',
@@ -4797,6 +5017,7 @@ function planningHandoffPublicationBody(
 
 function createDispatchPlanBody(input: {
   seedAuthority: Awaited<ReturnType<ReturnType<typeof createEditPlanningAuthorityService>['loadApprovedExecutionAuthority']>>
+  targetEditSessionId: string
   planningInputAuthority: Awaited<ReturnType<typeof prepareExactPlanningAuthority>>
   sourceMediaAuthority: {
     authorityRevision: number
@@ -4935,6 +5156,12 @@ function createDispatchPlanBody(input: {
       'tool.sharp.prepare_approved_image_asset.v1',
     ],
   }
+  components.motionStudioStorytellingStyleAuthority =
+    createMotionStudioStorytellingStyleAuthority({
+      workspaceId,
+      projectId: input.seedAuthority.snapshot.projectId,
+      editSessionId: input.targetEditSessionId,
+    })
   return {
     workspaceId,
     planningRequestId: 'planning-canonical-tool-dispatch',
@@ -5048,6 +5275,16 @@ function createDispatchPlanBody(input: {
             label: 'Controlled Remotion private preview authorization',
             category: 'controlled_tool', estimatedCredits: 2, removable: false,
             metadata: { canonicalToolId: 'remotion', operationId: input.remotionOperationId },
+          },
+          {
+            lineKey: 'motion-studio-private-preview-authority',
+            label: 'Controlled Motion Studio scene and layered preview authorization',
+            category: 'controlled_tool', estimatedCredits: 4, removable: false,
+            metadata: {
+              canonicalToolId: 'remotion',
+              operationId: input.remotionOperationId,
+              internalProductionCostIncluded: false,
+            },
           },
           {
             lineKey: 'libass-caption-overlay-authority',
@@ -5810,7 +6047,7 @@ function createDispatchPlanBody(input: {
           scheduledDelaySeconds: 0, maximumCreditBudget: 1, required: true,
         },
         ...createMatrixWorkItems(input),
-        ...createRemotionWorkItems(input),
+        ...createRemotionWorkItems(input, components),
         ...createLibassWorkItems(input),
         {
           workItemKey: 'probe-root',
@@ -6481,7 +6718,68 @@ type CanonicalSmokeWorkItem = PublishCanonicalEditPlanBody['canonicalPlan']['wor
 
 function createRemotionWorkItems(
   input: Parameters<typeof createDispatchPlanBody>[0],
+  components: PublishCanonicalEditPlanBody['canonicalPlan']['components'],
 ): CanonicalSmokeWorkItem[] {
+  const style = components.motionStudioStorytellingStyleAuthority
+  if (!style) throw new Error('Canonical Motion Studio smoke requires one style authority component.')
+  const previewFrame = motionStudioPreviewFrame(components.confirmedSettings.outputFrame)
+  const createMotionStudioBinding = (
+    compositionProfileId: 'motion_studio_scene_preview_v1' | 'motion_studio_native_layered_scene_v1',
+  ) => {
+    const bindingWithoutHash = {
+      schemaVersion: CANONICAL_MOTION_STUDIO_REMOTION_PREVIEW_BINDING_VERSION,
+      sourceAuthority: 'motion_studio_storytelling_compiler' as const,
+      evidenceClass: 'controlled_local_content_addressed_non_promotable' as const,
+      workspaceId: style.workspaceId,
+      projectId: style.projectId,
+      editSessionId: style.editSessionId,
+      productionId: style.productionId,
+      compositionProfileId,
+      canonicalStyleComponentDigest: sha256AuthorityValue(style),
+      styleSelectionDigest: style.styleSelection.selectionDigest,
+      motionDna: { ...style.styleSelection.motionDnaVersion },
+      referenceContracts: style.styleSelection.referenceContractVersions.map((reference) => ({ ...reference })),
+      sourceAuditDigests: [...style.styleSelection.sourceAuditDigests],
+      calibrationPlan: {
+        id: style.calibrationPlan.id,
+        digest: style.calibrationPlan.planDigest,
+      },
+      internalCostEnvelope: {
+        estimateId: style.internalCostEnvelope.estimateId,
+        digest: style.internalCostEnvelope.estimateDigest,
+      },
+      preparedScript: {
+        artifactId: 'prepared-script-storytelling-canonical',
+        versionId: 'prepared-script-version-1',
+        versionNumber: 1,
+        contentDigest: '7'.repeat(64),
+        state: 'approved' as const,
+      },
+      sceneDocuments: [{
+        artifactId: 'scene-document-storytelling-canonical',
+        versionId: 'scene-document-version-1',
+        versionNumber: 1,
+        contentDigest: '8'.repeat(64),
+        state: 'locked' as const,
+      }],
+      timingAuthorityDigest: canonicalMotionStudioTimingAuthorityDigest(components),
+      confirmedOutputFrame: { ...components.confirmedSettings.outputFrame },
+      previewFrame,
+      sourceRepositoryReverified: false as const,
+      privateInternalControlledExecutionOnly: true as const,
+      providerExecutionAuthorized: false as const,
+      customerPriceIncluded: false as const,
+      customerCreditsIncluded: false as const,
+      serviceFeeIncluded: false as const,
+      productionReady: false as const,
+    }
+    return canonicalMotionStudioRemotionPreviewBindingSchema.parse({
+      ...bindingWithoutHash,
+      bindingHash: sha256AuthorityValue(bindingWithoutHash),
+    })
+  }
+  const motionStudioSceneBinding = createMotionStudioBinding('motion_studio_scene_preview_v1')
+  const motionStudioLayeredBinding = createMotionStudioBinding('motion_studio_native_layered_scene_v1')
   return [{
     workItemKey: 'remotion-private-preview-root',
     workItemType: 'render_remotion_preview',
@@ -6525,7 +6823,234 @@ function createRemotionWorkItems(
     dependencyKeys: ['remotion-private-preview-root'], approvedToolIds: [], providerExecutionMode: 'none',
     fallbackPolicy: {}, maxAttempts: 1, attemptTimeoutSeconds: 120,
     scheduledDelaySeconds: 0, maximumCreditBudget: 1, required: true,
+  }, {
+    workItemKey: 'motion-studio-scene-preview-root',
+    workItemType: 'render_remotion_preview',
+    workerClass: 'render_worker',
+    executionInput: {
+      operation: CANONICAL_MOTION_STUDIO_REMOTION_PREVIEW_OPERATION,
+      approvedToolOperationIds: [input.remotionOperationId],
+      expectedOutputKeys: ['motion-studio-scene-preview-mp4'],
+      motionStudioStorytellingAuthority: motionStudioSceneBinding,
+      structuredPayload: {
+        compositionProfileId: 'motion_studio_scene_preview_v1',
+        ...previewFrame,
+        durationFrames: 24,
+        sceneId: 'scene-storytelling-canonical-1',
+        sceneStartFrame: 0,
+        sceneEndFrame: 24,
+        semanticPurpose: 'Show the exact approved Storytelling scene as a private timing preview.',
+        productionMode: 'native_graphics_first',
+        layerType: 'text',
+        panelBackground: '#0F172A',
+        accentColor: '#FF4D8D',
+      },
+    },
+    sourceSequenceItemIds: [], sourceCleanupDecisionIds: [],
+    expectedOutputs: [{
+      outputKey: 'motion-studio-scene-preview-mp4',
+      artifactType: 'motion_studio_scene_private_preview_mp4',
+      assetRole: 'preview', required: true, previewPlaceholderAllowed: false,
+      contentType: 'video/mp4', segmentIds: ['segment-1'],
+      timingIds: ['master-timing-plan'], rendererLayerIds: ['motion-studio-scene-preview-layer'],
+    }],
+    dependencyKeys: [], approvedToolIds: ['remotion'], providerExecutionMode: 'none',
+    fallbackPolicy: {}, maxAttempts: 2, attemptTimeoutSeconds: 300,
+    scheduledDelaySeconds: 0, maximumCreditBudget: 1, required: true,
+  }, {
+    workItemKey: 'motion-studio-scene-preview-proof',
+    workItemType: 'run_asset_qa', workerClass: 'qa_worker',
+    executionInput: { operation: 'validate_motion_studio_scene_preview_artifact' },
+    sourceSequenceItemIds: [], sourceCleanupDecisionIds: [],
+    expectedOutputs: [{
+      outputKey: 'motion-studio-scene-preview-proof-report',
+      artifactType: 'motion_studio_scene_preview_dependency_report',
+      assetRole: 'qa', required: true, previewPlaceholderAllowed: false,
+      contentType: 'application/json', segmentIds: ['segment-1'],
+      timingIds: ['master-timing-plan'], rendererLayerIds: [],
+    }],
+    dependencyKeys: ['motion-studio-scene-preview-root'], approvedToolIds: [],
+    providerExecutionMode: 'none', fallbackPolicy: {}, maxAttempts: 1,
+    attemptTimeoutSeconds: 120, scheduledDelaySeconds: 0,
+    maximumCreditBudget: 1, required: true,
+  }, {
+    workItemKey: 'motion-studio-layered-preview-root',
+    workItemType: 'render_remotion_preview',
+    workerClass: 'render_worker',
+    executionInput: {
+      operation: CANONICAL_MOTION_STUDIO_REMOTION_PREVIEW_OPERATION,
+      approvedToolOperationIds: [input.remotionOperationId],
+      expectedOutputKeys: ['motion-studio-layered-preview-mp4'],
+      motionStudioStorytellingAuthority: motionStudioLayeredBinding,
+      structuredPayload: {
+        compositionProfileId: 'motion_studio_native_layered_scene_v1',
+        ...previewFrame,
+        durationFrames: 120,
+        sceneId: 'scene-storytelling-canonical-layered-1',
+        sceneStartFrame: 0,
+        sceneEndFrame: 120,
+        semanticPurpose: 'Show approved layered Storytelling depth without changing the source authority.',
+        headline: 'Show approved layered Storytelling depth without changing the source authority.',
+        caption: 'Review · Show approved layered Storytelling depth without changing the source authority.',
+        layerManifestDigest: '9'.repeat(64),
+        depthModel: 'semantic_planes_v1',
+        planes: [
+          { planeId: 'background-plane', role: 'background', zIndex: 0, sourceKind: 'remotion_native', motionToken: 'ambient_drift' },
+          { planeId: 'headline-plane', role: 'headline', zIndex: 10, sourceKind: 'remotion_native', motionToken: 'headline_reveal' },
+          { planeId: 'subject-plane', role: 'subject', zIndex: 20, sourceKind: 'approved_cutout_slot', motionToken: 'subject_parallax' },
+          { planeId: 'caption-plane', role: 'caption', zIndex: 30, sourceKind: 'remotion_native', motionToken: 'caption_hold' },
+        ],
+        panelBackground: '#0F172A',
+        panelHighlight: '#16213E',
+        headlineColor: '#E0F2FE',
+        accentColor: '#FF4D8D',
+        captionColor: '#F8FAFC',
+        horizontalSafePercent: 8,
+        verticalSafePercent: 8,
+        captionBottomPercent: 9,
+        captionAboveMask: true,
+        contactObjectPresent: false,
+        maskRisk: 'low_fixture_only',
+      },
+    },
+    sourceSequenceItemIds: [], sourceCleanupDecisionIds: [],
+    expectedOutputs: [{
+      outputKey: 'motion-studio-layered-preview-mp4',
+      artifactType: 'motion_studio_layered_private_preview_mp4',
+      assetRole: 'preview', required: true, previewPlaceholderAllowed: false,
+      contentType: 'video/mp4', segmentIds: ['segment-1'],
+      timingIds: ['master-timing-plan'], rendererLayerIds: ['motion-studio-layered-preview-layer'],
+    }],
+    dependencyKeys: ['matrix-rembg-root'], approvedToolIds: ['remotion'], providerExecutionMode: 'none',
+    fallbackPolicy: {}, maxAttempts: 2, attemptTimeoutSeconds: 300,
+    scheduledDelaySeconds: 0, maximumCreditBudget: 1, required: true,
+  }, {
+    workItemKey: 'motion-studio-layered-preview-proof',
+    workItemType: 'run_asset_qa', workerClass: 'qa_worker',
+    executionInput: { operation: 'validate_motion_studio_layered_preview_artifact' },
+    sourceSequenceItemIds: [], sourceCleanupDecisionIds: [],
+    expectedOutputs: [{
+      outputKey: 'motion-studio-layered-preview-proof-report',
+      artifactType: 'motion_studio_layered_preview_dependency_report',
+      assetRole: 'qa', required: true, previewPlaceholderAllowed: false,
+      contentType: 'application/json', segmentIds: ['segment-1'],
+      timingIds: ['master-timing-plan'], rendererLayerIds: [],
+    }],
+    dependencyKeys: ['motion-studio-layered-preview-root'], approvedToolIds: [],
+    providerExecutionMode: 'none', fallbackPolicy: {}, maxAttempts: 1,
+    attemptTimeoutSeconds: 120, scheduledDelaySeconds: 0,
+    maximumCreditBudget: 1, required: true,
   }]
+}
+
+function motionStudioPreviewFrame(
+  frame: { width: number; height: number; fps: number },
+): { width: 360 | 480 | 640; height: 360 | 480 | 600 | 640; fps: 24 | 30 } {
+  const fps = frame.fps === 24 ? 24 : 30
+  if (frame.width * 16 === frame.height * 9) return { width: 360, height: 640, fps }
+  if (frame.width * 9 === frame.height * 16) return { width: 640, height: 360, fps }
+  if (frame.width === frame.height) return { width: 480, height: 480, fps }
+  if (frame.width * 5 === frame.height * 4) return { width: 480, height: 600, fps }
+  throw new Error('Canonical Motion Studio smoke fixture needs a registered private-review aspect ratio.')
+}
+
+function createMotionStudioStorytellingStyleAuthority(input: {
+  workspaceId: string
+  projectId: string
+  editSessionId: string
+}) {
+  return {
+    schemaVersion: 'canonical-storytelling-style-authority-v1' as const,
+    sourceSchemaVersion: 'motion-studio.storytelling-style-plan-review-input.v1' as const,
+    sourceAuthority: 'motion_studio_storytelling_style_planning_service' as const,
+    evidenceClass: 'controlled_local_browser_relayed_server_prepared_content_addressed' as const,
+    sourceRepositoryReverified: false as const,
+    ...input,
+    productionId: 'production-storytelling-canonical-dispatch',
+    styleSelection: {
+      schemaVersion: 'motion-studio.storytelling-style-selection.v1' as const,
+      id: 'style-selection-storytelling-canonical',
+      state: 'selected_for_plan' as const,
+      selectionDigest: '1'.repeat(64),
+      styleProfile: {
+        styleProfileId: 'storytelling_style.editorial_collage' as const,
+        styleProfileVersion: 'editorial-collage-v1',
+        styleProfileDigest: '2'.repeat(64),
+      },
+      motionLanguage: {
+        motionLanguageId: 'motion-language-editorial-collage',
+        motionLanguageVersion: 'motion-language-v1',
+        motionLanguageDigest: '3'.repeat(64),
+      },
+      motionDnaVersion: {
+        artifactId: 'motion-dna-storytelling-canonical',
+        versionId: 'motion-dna-version-1',
+        versionNumber: 1,
+        contentDigest: '4'.repeat(64),
+      },
+      referenceContractVersions: [{
+        artifactId: 'reference-contract-storytelling-canonical',
+        versionId: 'reference-contract-version-1',
+        versionNumber: 1,
+        contentDigest: '5'.repeat(64),
+      }],
+      sourceAuditDigests: ['6'.repeat(64)],
+    },
+    calibrationPlan: {
+      schemaVersion: 'motion-studio.style-calibration-plan.v1' as const,
+      id: 'style-calibration-storytelling-canonical',
+      planDigest: '9'.repeat(64),
+      styleSelectionDigest: '1'.repeat(64),
+      routePolicyId: 'motion_studio_generation_route_policy_v2' as const,
+      scenarioIds: [
+        'calibration-style-led-motion',
+        'calibration-character-continuity',
+        'calibration-first-last-frame',
+        'calibration-reference-heavy',
+        'calibration-exact-text-data',
+      ],
+      scenarioKinds: [
+        'style_led_motion',
+        'character_continuity',
+        'strict_first_last_frame',
+        'reference_heavy',
+        'exact_text_data',
+      ] as Array<
+        | 'style_led_motion'
+        | 'character_continuity'
+        | 'strict_first_last_frame'
+        | 'reference_heavy'
+        | 'exact_text_data'
+      >,
+      estimatedInternalCostRangeMicros: { minimum: 10_000, maximum: 50_000 },
+      approvalState: 'planning_only' as const,
+      automaticFallbackAllowed: false as const,
+      fallbackRequiresNewApproval: true as const,
+      bulkGenerationAllowed: false as const,
+    },
+    internalCostEnvelope: {
+      schemaVersion: 'motion-studio-storytelling-style-internal-cost-envelope-v1' as const,
+      estimateId: 'style-cost-envelope-storytelling-canonical',
+      estimateDigest: 'a'.repeat(64),
+      unit: 'usd_micros' as const,
+      minimumEstimatedInternalProductionCostMicros: 10_000,
+      maximumEstimatedInternalProductionCostMicros: 50_000,
+      approvalState: 'estimate_only_pending_plan_approval' as const,
+      internalProductionCostOnly: true as const,
+      customerPriceIncluded: false as const,
+      customerCreditsIncluded: false as const,
+      serviceFeeIncluded: false as const,
+    },
+    decisionAuthority: 'existing_plan_review' as const,
+    planReviewIsSoleApprovalAuthority: true as const,
+    changedStyleRequiresFreshPlanAndEstimate: true as const,
+    historicalApprovedSnapshotRemainsImmutable: true as const,
+    runtimeExecutionAuthorized: false as const,
+    providerExecutionAuthorized: false as const,
+    customerCommercialAuthorityGranted: false as const,
+    productionReady: false as const,
+    immutable: true as const,
+  }
 }
 
 function createLibassWorkItems(

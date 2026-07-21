@@ -1,6 +1,10 @@
 import { createHash, createHmac, randomUUID, timingSafeEqual } from 'node:crypto'
 
 import { validateCanonicalToolWorkItemPayload } from '../edit-architecture/canonical-tool-payload-authority'
+import {
+  assertCanonicalMotionStudioRemotionWorkItem,
+  resolveCanonicalMotionStudioRemotionProfile,
+} from '../edit-architecture/canonical-motion-studio-remotion-preview-authority'
 import { ApiError } from '../errors/api-error'
 import { isExplicitLocalInternalTestRuntime } from '../middleware/canonical-worker-runtime'
 import {
@@ -731,6 +735,12 @@ function resolveAndVerifyCanonicalDispatchBinding(input: {
       409,
     )
   }
+  const motionStudioRemotionProfile = resolveCanonicalMotionStudioRemotionProfile(
+    workItem.executionInput.structuredPayload,
+  )
+  if (motionStudioRemotionProfile) {
+    assertCanonicalMotionStudioRemotionWorkItem(workItem, motionStudioRemotionProfile)
+  }
   const exactPrivateRemotionPreview =
     workItem.workerClass === 'render_worker' &&
     workItem.workItemType === 'render_remotion_preview' &&
@@ -738,7 +748,18 @@ function resolveAndVerifyCanonicalDispatchBinding(input: {
     expectedAsset.contentType === 'video/mp4' &&
     workItem.approvedToolIds.length === 1 && workItem.approvedToolIds[0] === 'remotion' &&
     body.operationId === 'tool.remotion.render_approved_composition.v1' &&
-    workItem.dependencyKeys.length === 0 && workItem.sourceSequenceItemIds.length === 0
+    workItem.sourceSequenceItemIds.length === 0 &&
+    workItem.sourceCleanupDecisionIds.length === 0 &&
+    (motionStudioRemotionProfile
+      ? workItem.dependencyKeys.length === motionStudioRemotionProfile.dependencyCount &&
+        lease.dependencyAuthority.selectedArtifacts.length ===
+          motionStudioRemotionProfile.dependencyCount &&
+        lease.dependencyAuthority.state === (motionStudioRemotionProfile.dependencyCount === 0
+          ? 'not_required_for_root_job'
+          : 'private_test_dependencies_verified')
+      : workItem.dependencyKeys.length === 0 &&
+        lease.dependencyAuthority.selectedArtifacts.length === 0 &&
+        lease.dependencyAuthority.state === 'not_required_for_root_job')
   const exactPrivateLibassCaptionOverlay =
     workItem.workerClass === 'render_worker' && workItem.workItemType === 'custom' &&
     expectedAsset.assetRole === 'processed' && expectedAsset.contentType === 'image/png' &&

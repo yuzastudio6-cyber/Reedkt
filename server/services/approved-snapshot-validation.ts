@@ -18,6 +18,13 @@ const APPROVED_SNAPSHOT_SECRET_KEY_PATTERNS = [
   /webhook[_-]?secret/i,
 ]
 
+const APPROVED_SNAPSHOT_SAFE_MOTION_TOKENS = new Set([
+  'ambient_drift',
+  'headline_reveal',
+  'subject_parallax',
+  'caption_hold',
+])
+
 export interface ApprovedSnapshotValidationResult {
   ok: boolean
   missingSections: string[]
@@ -52,7 +59,10 @@ export function findApprovedSnapshotSecretLikePaths(value: unknown, prefix = '$'
 
   return Object.entries(value).flatMap(([key, nested]) => {
     const path = `${prefix}.${key}`
-    const current = looksLikeApprovedSnapshotSecretKey(key) ? [path] : []
+    const current = looksLikeApprovedSnapshotSecretKey(key) &&
+      !isApprovedSnapshotSafeSemanticToken(key, nested)
+      ? [path]
+      : []
     return [...current, ...findApprovedSnapshotSecretLikePaths(nested, path)]
   })
 }
@@ -63,4 +73,10 @@ export function cloneApprovedSnapshotJson(snapshotJson: Record<string, unknown>)
 
 function looksLikeApprovedSnapshotSecretKey(key: string): boolean {
   return APPROVED_SNAPSHOT_SECRET_KEY_PATTERNS.some((pattern) => pattern.test(key))
+}
+
+function isApprovedSnapshotSafeSemanticToken(key: string, value: unknown): boolean {
+  return key === 'motionToken' &&
+    typeof value === 'string' &&
+    APPROVED_SNAPSHOT_SAFE_MOTION_TOKENS.has(value)
 }

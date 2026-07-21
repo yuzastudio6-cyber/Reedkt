@@ -17,7 +17,14 @@ import {
   openPrivateOfflineRemotionRenderRuntime,
   readPersistedOfflineRemotionRenderRuntimeAuthority,
 } from '../tool-execution/remotion-render-execution/offline-remotion-render-execution-service'
-import { buildOfflineRemotionFinalCompositionRequest, isFinalCompositionPayload, validateOfflineRemotionRenderRequest } from '../tool-execution/remotion-render-execution/offline-remotion-render-execution-protocol'
+import {
+  buildOfflineRemotionFinalCompositionRequest,
+  buildOfflineRemotionMotionStudioAnimaticRequest,
+  buildOfflineRemotionMotionStudioLayeredRequest,
+  buildOfflineRemotionMotionStudioRouteDrawRequest,
+  isFinalCompositionPayload,
+  validateOfflineRemotionRenderRequest,
+} from '../tool-execution/remotion-render-execution/offline-remotion-render-execution-protocol'
 
 const request = {
   schemaVersion: 'offline-remotion-render-execution-v1', toolId: 'remotion',
@@ -66,6 +73,130 @@ assert.equal(result.evidence.confinement.capDropAll, true)
 assert.equal(result.evidence.confinement.noNewPrivileges, true)
 assert.equal(result.evidence.confinement.user, '10001:10001')
 assert.equal(result.readiness.productReady, false)
+
+const motionStudioSceneRequest = validateOfflineRemotionRenderRequest({
+  schemaVersion: 'offline-remotion-render-execution-v1',
+  toolId: 'remotion',
+  operationId: 'tool.remotion.render_approved_composition.v1',
+  payload: {
+    compositionProfileId: 'motion_studio_scene_preview_v1',
+    width: 640, height: 360, fps: 24, durationFrames: 24,
+    sceneId: 'motion-studio-scene-runtime-proof',
+    sceneStartFrame: 0, sceneEndFrame: 24,
+    semanticPurpose: 'Prove one exact private Storytelling scene preview.',
+    productionMode: 'native_graphics_first', layerType: 'text',
+    panelBackground: '#0F172A', accentColor: '#FF4D8D',
+  },
+})
+const motionStudioSceneResult = await reopened.execute(motionStudioSceneRequest)
+assert.equal(motionStudioSceneResult.frameArtifacts.length, 3)
+assert.equal(
+  motionStudioSceneResult.evidence.semanticEvidence.motionStudioScenePreviewCompositionExecuted,
+  true,
+)
+assert.equal(motionStudioSceneResult.evidence.semanticEvidence.frameGoldenArtifactsProduced, true)
+
+const layeredSubjectBytes = createPngFixture({
+  width: 128,
+  height: 128,
+  color: '0xE8528A',
+  pixelFormat: 'rgba',
+})
+const layeredPurpose = 'Prove exact private layered Storytelling depth and safe caption order.'
+const motionStudioLayeredRequest = buildOfflineRemotionMotionStudioLayeredRequest({
+  planningPayload: {
+    compositionProfileId: 'motion_studio_native_layered_scene_v1',
+    width: 640, height: 360, fps: 24, durationFrames: 24,
+    sceneId: 'motion-studio-layered-runtime-proof',
+    sceneStartFrame: 0, sceneEndFrame: 24,
+    semanticPurpose: layeredPurpose,
+    headline: layeredPurpose,
+    caption: `Review · ${layeredPurpose}`,
+    layerManifestDigest: '9'.repeat(64),
+    depthModel: 'semantic_planes_v1',
+    planes: [
+      { planeId: 'background-plane', role: 'background', zIndex: 0, sourceKind: 'remotion_native', motionToken: 'ambient_drift' },
+      { planeId: 'headline-plane', role: 'headline', zIndex: 10, sourceKind: 'remotion_native', motionToken: 'headline_reveal' },
+      { planeId: 'subject-plane', role: 'subject', zIndex: 20, sourceKind: 'approved_cutout_slot', motionToken: 'subject_parallax' },
+      { planeId: 'caption-plane', role: 'caption', zIndex: 30, sourceKind: 'remotion_native', motionToken: 'caption_hold' },
+    ],
+    panelBackground: '#0F172A', panelHighlight: '#16213E',
+    headlineColor: '#E0F2FE', accentColor: '#FF4D8D', captionColor: '#F8FAFC',
+    horizontalSafePercent: 8, verticalSafePercent: 8, captionBottomPercent: 9,
+    captionAboveMask: true, contactObjectPresent: false, maskRisk: 'low_fixture_only',
+  },
+  subject: {
+    mimeType: 'image/png', bytes: layeredSubjectBytes,
+    sha256: createHash('sha256').update(layeredSubjectBytes).digest('hex'),
+  },
+})
+const motionStudioLayeredResult = await reopened.execute(motionStudioLayeredRequest)
+assert.equal(motionStudioLayeredResult.frameArtifacts.length, 3)
+assert.equal(
+  motionStudioLayeredResult.evidence.semanticEvidence.motionStudioNativeLayeredCompositionExecuted,
+  true,
+)
+assert.equal(motionStudioLayeredResult.evidence.semanticEvidence.approvedSubjectCutoutBytesVerified, true)
+
+const narrationBytes = createPcmWavSilence({ durationFrames: 24, fps: 24 })
+const motionStudioAnimaticRequest = buildOfflineRemotionMotionStudioAnimaticRequest({
+  planningPayload: {
+    compositionProfileId: 'motion_studio_prepared_script_animatic_v1',
+    width: 640, height: 360, fps: 24, durationFrames: 24,
+    scenes: [{
+      order: 0,
+      sceneId: 'motion-studio-animatic-runtime-proof',
+      startFrame: 0,
+      endFrame: 24,
+      title: 'Approved prepared-script scene',
+      visualDescription: 'A private review-only animatic scene bound to the exact narration artifact.',
+    }],
+    panelBackground: '#0F172A', accentColor: '#FF4D8D',
+  },
+  narration: {
+    mimeType: 'audio/wav', bytes: narrationBytes,
+    sha256: createHash('sha256').update(narrationBytes).digest('hex'),
+  },
+})
+const motionStudioAnimaticResult = await reopened.execute(motionStudioAnimaticRequest)
+assert.equal(motionStudioAnimaticResult.frameArtifacts.length, 3)
+assert.equal(
+  motionStudioAnimaticResult.evidence.semanticEvidence.motionStudioPreparedAnimaticCompositionExecuted,
+  true,
+)
+assert.equal(motionStudioAnimaticResult.evidence.semanticEvidence.approvedNarrationBytesVerified, true)
+
+const routeKeyframeBytes = createPngFixture({
+  width: 1280,
+  height: 720,
+  color: '0x081426',
+  pixelFormat: 'rgb24',
+})
+const motionStudioRouteRequest = buildOfflineRemotionMotionStudioRouteDrawRequest({
+  planningPayload: {
+    compositionProfileId: 'motion_studio_deterministic_route_draw_v1',
+    width: 1280, height: 720, fps: 30, durationFrames: 180,
+    sceneId: 'motion-studio-route-runtime-proof',
+    sceneStartFrame: 0, sceneEndFrame: 180,
+    semanticPurpose: 'Reveal one approved abstract route across three exact waypoints.',
+    routePresetId: 'abstract_three_district_route_v1',
+    routeRevealStartFrame: 18, routeRevealEndFrame: 140,
+    waypointFrames: [18, 82, 140],
+    routeCoverColor: '#081426', routeColor: '#FFB23D', routeGlowColor: '#FF7A1A',
+  },
+  keyframe: {
+    mimeType: 'image/png', bytes: routeKeyframeBytes,
+    sha256: createHash('sha256').update(routeKeyframeBytes).digest('hex'),
+  },
+})
+const motionStudioRouteResult = await reopened.execute(motionStudioRouteRequest)
+assert.equal(motionStudioRouteResult.frameArtifacts.length, 5)
+assert.equal(
+  motionStudioRouteResult.evidence.semanticEvidence.motionStudioDeterministicRouteDrawCompositionExecuted,
+  true,
+)
+assert.equal(motionStudioRouteResult.evidence.semanticEvidence.approvedKeyframeBytesVerified, true)
+assert.equal(motionStudioRouteResult.evidence.semanticEvidence.providerVideoNotRequired, true)
 
 const mediaRuntime = await activatePrivateOfflineMediaBinaryRuntime()
 const probe = await mediaRuntime.execute({
@@ -563,6 +694,46 @@ try {
 
 console.log(JSON.stringify({
   smoke: 'offline_remotion_render_execution', status: 'passed',
-  proofs: ['exact_operation_payload_validated', 'caller_paths_urls_commands_and_extra_fields_rejected', 'checkout_derived_runtime_image_and_authority_namespace_isolated_from_parallel_worktrees', 'checksum_protected_runtime_authority_persisted_and_reopened', 'pinned_image_identity_verified', 'network_none_read_only_non_root_cap_drop_confinement_verified', 'actual_remotion_select_and_render_media_executed', 'mp4_hash_frame_timing_and_header_verified', 'independent_pinned_ffprobe_h264_frame_count_pixel_format_complete_bt709_vui_and_duration_qa_passed', 'server_injected_source_mp4_libass_png_and_pcm_wav_hash_commitments_verified', 'approved_nonzero_source_trim_frames_applied', 'actual_source_plus_caption_final_composition_rendered', 'ordered_two_source_sequence_and_timed_caption_track_final_composition_rendered', 'approved_hard_cut_authority_and_exact_source_boundary_applied', 'distinct_caption_track_frames_decoded_and_verified', 'source_sequence_frame_ranges_and_audio_preserved', 'approved_source_bound_professional_voice_tracks_replaced_source_audio', 'approved_lossless_vp9_matroska_professional_color_intermediate_composed_with_replacement_voice', 'professional_color_intermediate_policy_and_mime_tampering_rejected', 'professional_color_final_composition_replay_is_deterministic', 'voice_track_order_duration_hash_and_pcm_format_tampering_rejected', 'voice_replacement_replay_is_deterministic', 'final_aac_audio_decoded_and_independently_verified', 'final_composition_paths_urls_commands_and_tampered_bytes_rejected', 'product_beta_production_readiness_remains_false'],
+  proofs: ['exact_operation_payload_validated', 'caller_paths_urls_commands_and_extra_fields_rejected', 'checkout_derived_runtime_image_and_authority_namespace_isolated_from_parallel_worktrees', 'checksum_protected_runtime_authority_persisted_and_reopened', 'pinned_image_identity_verified', 'network_none_read_only_non_root_cap_drop_confinement_verified', 'actual_remotion_select_and_render_media_executed', 'motion_studio_scene_preview_and_three_frame_goldens_rendered', 'motion_studio_layered_preview_reads_exact_rgba_subject_and_preserves_four_plane_depth', 'motion_studio_prepared_script_animatic_reads_exact_wav_narration_and_renders_three_frame_goldens', 'motion_studio_deterministic_route_reads_exact_opaque_keyframe_and_renders_five_frame_goldens', 'mp4_hash_frame_timing_and_header_verified', 'independent_pinned_ffprobe_h264_frame_count_pixel_format_complete_bt709_vui_and_duration_qa_passed', 'server_injected_source_mp4_libass_png_and_pcm_wav_hash_commitments_verified', 'approved_nonzero_source_trim_frames_applied', 'actual_source_plus_caption_final_composition_rendered', 'ordered_two_source_sequence_and_timed_caption_track_final_composition_rendered', 'approved_hard_cut_authority_and_exact_source_boundary_applied', 'distinct_caption_track_frames_decoded_and_verified', 'source_sequence_frame_ranges_and_audio_preserved', 'approved_source_bound_professional_voice_tracks_replaced_source_audio', 'approved_lossless_vp9_matroska_professional_color_intermediate_composed_with_replacement_voice', 'professional_color_intermediate_policy_and_mime_tampering_rejected', 'professional_color_final_composition_replay_is_deterministic', 'voice_track_order_duration_hash_and_pcm_format_tampering_rejected', 'voice_replacement_replay_is_deterministic', 'final_aac_audio_decoded_and_independently_verified', 'final_composition_paths_urls_commands_and_tampered_bytes_rejected', 'product_beta_production_readiness_remains_false'],
   artifact: { sha256: result.artifact.sha256, byteLength: result.artifact.byteLength, width: result.artifact.width, height: result.artifact.height, fps: result.artifact.fps, durationFrames: result.artifact.durationFrames },
 }, null, 2))
+
+function createPcmWavSilence(input: { durationFrames: number; fps: number }): Buffer {
+  const sampleRate = 48_000
+  const channels = 2
+  const bytesPerSample = 2
+  const sampleCount = Math.round((input.durationFrames / input.fps) * sampleRate)
+  const dataByteLength = sampleCount * channels * bytesPerSample
+  const wav = Buffer.alloc(44 + dataByteLength)
+  wav.write('RIFF', 0, 'ascii')
+  wav.writeUInt32LE(36 + dataByteLength, 4)
+  wav.write('WAVE', 8, 'ascii')
+  wav.write('fmt ', 12, 'ascii')
+  wav.writeUInt32LE(16, 16)
+  wav.writeUInt16LE(1, 20)
+  wav.writeUInt16LE(channels, 22)
+  wav.writeUInt32LE(sampleRate, 24)
+  wav.writeUInt32LE(sampleRate * channels * bytesPerSample, 28)
+  wav.writeUInt16LE(channels * bytesPerSample, 32)
+  wav.writeUInt16LE(bytesPerSample * 8, 34)
+  wav.write('data', 36, 'ascii')
+  wav.writeUInt32LE(dataByteLength, 40)
+  return wav
+}
+
+function createPngFixture(input: {
+  width: number
+  height: number
+  color: string
+  pixelFormat: 'rgba' | 'rgb24'
+}): Buffer {
+  const generated = spawnSync('ffmpeg', [
+    '-hide_banner', '-loglevel', 'error',
+    '-f', 'lavfi', '-i', `color=c=${input.color}:s=${input.width}x${input.height}`,
+    '-frames:v', '1', '-pix_fmt', input.pixelFormat,
+    '-f', 'image2pipe', '-vcodec', 'png', 'pipe:1',
+  ], { maxBuffer: 16 * 1024 * 1024 })
+  assert.equal(generated.status, 0, generated.stderr.toString())
+  assert.ok(generated.stdout instanceof Buffer)
+  return generated.stdout
+}

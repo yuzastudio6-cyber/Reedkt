@@ -87,6 +87,13 @@ export interface OfflineRemotionRenderResult {
     durationFrames: number
     durationSeconds: number
   }
+  frameArtifacts: readonly {
+    frame: number
+    mimeType: 'image/png'
+    bytes: Buffer
+    byteLength: number
+    sha256: string
+  }[]
   evidence: {
     packageName: 'remotion+@remotion/renderer'
     packageVersion: '4.0.487'
@@ -104,6 +111,7 @@ export interface OfflineRemotionRenderResult {
     imageIdentityHash: string
     requestEnvelopeSha256: string
     artifactSha256: string
+    frameArtifactDigests: readonly { frame: number; sha256: string }[]
     confinementHash: string
     attestationHash: string
   }

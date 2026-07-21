@@ -1,5 +1,11 @@
 import type { ZodType } from 'zod'
 
+import {
+  assertCanonicalMotionStudioRemotionWorkItem,
+  buildCanonicalMotionStudioRemotionExecutionRequest,
+  resolveCanonicalMotionStudioRemotionProfile,
+  type CanonicalMotionStudioRemotionProfileId,
+} from '../edit-architecture/canonical-motion-studio-remotion-preview-authority'
 import { ApiError } from '../errors/api-error'
 import {
   OFFLINE_MEDIA_BINARY_OPERATIONS,
@@ -27,6 +33,10 @@ import {
 } from '../validation/canonical-private-remotion-execution-schemas'
 import type { CanonicalExpectedArtifactLineage, PersistedArtifactResult } from '../validation/private-artifact-qa-authority-schemas'
 import { createCanonicalExecutionReadinessService } from './canonical-execution-readiness-service'
+import {
+  createCanonicalPrivateDependencyArtifactReadService,
+  type CanonicalPrivateDependencyArtifactReadResult,
+} from './canonical-private-dependency-artifact-read-service'
 import { persistCanonicalPrivateRemotionArtifact, readCanonicalPrivateRemotionArtifact } from './canonical-private-remotion-artifact-storage'
 import { createCanonicalPrivateToolDispatchAuthorityService } from './canonical-private-tool-dispatch-authority-service'
 import { createCanonicalWorkerLeaseAuthorityService } from './canonical-worker-lease-authority-service'
@@ -84,19 +94,31 @@ export function createCanonicalPrivateRemotionExecutionService(context: ServiceC
       const expectedAsset = authority.assetManifest.entries.find((candidate) =>
         candidate.id === binding.expectedAssetId && candidate.approvedWorkItemId === workItem?.id)
       if (!workItem || !expectedAsset) throw denied('Remotion work-item or output lineage is missing.')
+      const motionStudioProfile = resolveCanonicalMotionStudioRemotionProfile(
+        workItem.executionInput.structuredPayload,
+      )
+      if (motionStudioProfile) {
+        assertCanonicalMotionStudioRemotionWorkItem(workItem, motionStudioProfile)
+      }
       if (
         workItem.workItemType !== 'render_remotion_preview' ||
-        workItem.sourceSequenceItemIds.length !== 0 || workItem.dependencyKeys.length !== 0 ||
+        workItem.sourceSequenceItemIds.length !== 0 ||
+        workItem.sourceCleanupDecisionIds.length !== 0 ||
+        workItem.dependencyKeys.length !== (motionStudioProfile?.dependencyCount ?? 0) ||
+        dispatch.grant.binding.leaseDependencyAuthority.selectedArtifactCount !==
+          (motionStudioProfile?.dependencyCount ?? 0) ||
         expectedAsset.contentType !== CONTENT_TYPE || binding.expectedOutput.contentType !== CONTENT_TYPE ||
         expectedAsset.assetRole !== 'preview' || expectedAsset.previewPlaceholderAllowed ||
         binding.expectedOutput.outputKey !== expectedAsset.outputKey ||
         readiness.job.approvedWorkItemId !== workItem.id || binding.approvedPlanSnapshotId !== authority.snapshot.snapshotId
-      ) throw denied('Remotion execution is limited to the exact approved dependency-free private preview MP4.')
-      const request = validateOfflineRemotionRenderRequest({
-        schemaVersion: OFFLINE_REMOTION_RENDER_REQUEST_PROTOCOL,
-        toolId: 'remotion', operationId: OFFLINE_REMOTION_RENDER_OPERATION,
-        payload: workItem.executionInput.structuredPayload,
-      })
+      ) throw denied('Remotion execution is limited to an exact approved private preview MP4 and its frozen dependency authority.')
+      const genericRequest = motionStudioProfile
+        ? undefined
+        : validateOfflineRemotionRenderRequest({
+            schemaVersion: OFFLINE_REMOTION_RENDER_REQUEST_PROTOCOL,
+            toolId: 'remotion', operationId: OFFLINE_REMOTION_RENDER_OPERATION,
+            payload: workItem.executionInput.structuredPayload,
+          })
 
       const runtimeAuthority = await readPersistedOfflineRemotionRenderRuntimeAuthority()
       if (
@@ -123,6 +145,38 @@ export function createCanonicalPrivateRemotionExecutionService(context: ServiceC
         runnerClass: RUNNER_CLASS,
       })
       const executionAttemptId = begun.executionFence.executionAttemptId
+      const dependency = motionStudioProfile?.dependencyCount === 1
+        ? await createCanonicalPrivateDependencyArtifactReadService(context)
+            .readSingleSelectedArtifact({
+              workspaceId: body.workspaceId,
+              projectId: body.projectId,
+              editSessionId: body.editSessionId,
+              snapshotId: authority.snapshot.snapshotId,
+              currentJobId: body.jobId,
+              currentApprovedWorkItemId: workItem.id,
+              leaseId: injected.leaseId,
+              leaseCredential: injected.leaseCredential,
+              executionAttemptId,
+              dispatchGrantId: body.grantId,
+              dependencyAuthority: begun.lease.dependencyAuthority,
+              allowedContentTypes: [motionStudioProfile.dependencyContentType!],
+              maximumBytes: motionStudioProfile.maximumDependencyBytes!,
+            })
+        : undefined
+      const request = motionStudioProfile
+        ? buildCanonicalMotionStudioRemotionExecutionRequest({
+            planningPayload: workItem.executionInput.structuredPayload,
+            ...(dependency
+              ? {
+                  dependency: {
+                    contentType: dependency.contentType as 'image/png' | 'audio/wav',
+                    bytes: dependency.bytes,
+                    sha256: dependency.sha256,
+                  },
+                }
+              : {}),
+          })
+        : genericRequest!
       const result = await runtime.execute(request)
       assertRemotionResult(result, request, runtimeAuthority.authorityHash)
       const probe = await mediaRuntime.execute(validateOfflineFfprobeExecutionRequest({
@@ -137,12 +191,18 @@ export function createCanonicalPrivateRemotionExecutionService(context: ServiceC
       }))
       if (!('resultJson' in probe)) throw denied('Independent FFprobe returned the wrong artifact class.')
       const qa = normalizeProbe(probe.resultJson.document, request)
+      const motionStudioFrameGoldenEvidenceHash = motionStudioProfile
+        ? sha256AuthorityValue(result.attestation.frameArtifactDigests)
+        : undefined
 
       const privateObjectIdentityHash = sha256ArtifactQaValue({
         domain: 'canonical_private_remotion_mp4_v1', workspaceId: body.workspaceId,
         snapshotId: authority.snapshot.snapshotId, jobId: body.jobId,
         expectedAssetId: expectedAsset.id, dispatchGrantId: body.grantId,
         executionAttemptId, contentSha256: result.artifact.sha256,
+        motionStudioCompositionProfileId: motionStudioProfile?.profileId,
+        dependencyReadEvidenceHash: dependency?.dependencyReadEvidenceHash,
+        motionStudioFrameGoldenEvidenceHash,
       })
       await persistCanonicalPrivateRemotionArtifact({
         localStorageRoot: context.env.localStorageRoot, privateObjectIdentityHash,
@@ -169,6 +229,9 @@ export function createCanonicalPrivateRemotionExecutionService(context: ServiceC
         privateObjectIdentityHash, executionAttemptId, dispatchGrantId: body.grantId,
         runtimeAuthorityHash: runtimeAuthority.authorityHash,
         executionStartedAt: begun.executionFence.startedAt, result, qa,
+        motionStudioCompositionProfileId: motionStudioProfile?.profileId,
+        dependency,
+        motionStudioFrameGoldenEvidenceHash,
       }
       const artifactAuthority = createPrivateArtifactQaAuthorityService(context, adapters(adapterInput))
       const keyHash = sha256ArtifactQaValue({ domain: 'canonical_remotion_idempotency_v1', body, executionAttemptId })
@@ -211,6 +274,18 @@ export function createCanonicalPrivateRemotionExecutionService(context: ServiceC
           actualRemotionOperationCompleted: true as const, providerCallMade: false as const,
           sourceObjectRead: false as const, privatePreviewRenderExecuted: true as const,
           finalExportExecuted: false as const,
+          ...(motionStudioProfile
+            ? { motionStudioCompositionProfileId: motionStudioProfile.profileId }
+            : {}),
+          dependencyArtifactRead: dependency !== undefined,
+          ...(dependency
+            ? {
+                dependencyReadEvidenceHash: dependency.dependencyReadEvidenceHash,
+                sourceArtifactId: dependency.artifactId,
+                sourceArtifactSha256: dependency.sha256,
+                sourceArtifactContentType: dependency.contentType as 'image/png' | 'audio/wav',
+              }
+            : {}),
         },
         lease: {
           leaseId: begun.lease.id, attemptNumber: begun.lease.attemptNumber,
@@ -228,7 +303,17 @@ export function createCanonicalPrivateRemotionExecutionService(context: ServiceC
           privateInternalOnly: true as const, productReady: false as const,
           externalBetaReady: false as const, productionReady: false as const, finalExportReady: false as const,
         },
-        qa: { ...qa, independentFfprobeExecuted: true as const, binaryVersion: '8.1.2' as const },
+        qa: {
+          ...qa,
+          independentFfprobeExecuted: true as const,
+          binaryVersion: '8.1.2' as const,
+          ...(motionStudioProfile
+            ? {
+                motionStudioFrameGoldenCount: result.attestation.frameArtifactDigests.length,
+                motionStudioFrameGoldenEvidenceHash: motionStudioFrameGoldenEvidenceHash!,
+              }
+            : {}),
+        },
         result: {
           artifactId: artifactResult.artifact.artifactId, qaEvaluationId: qaResult.qaEvaluation.qaEvaluationId,
           reconciliationId: reconciliation.reconciliation.reconciliationId,
@@ -279,6 +364,9 @@ interface RemotionAdapterInput {
   executionStartedAt: string
   result: OfflineRemotionRenderResult
   qa: RemotionQa
+  motionStudioCompositionProfileId?: CanonicalMotionStudioRemotionProfileId
+  dependency?: CanonicalPrivateDependencyArtifactReadResult
+  motionStudioFrameGoldenEvidenceHash?: string
 }
 
 function adapters(input: RemotionAdapterInput): { producedArtifact: ServerInjectedArtifactResultAdapter; artifactQa: ServerInjectedArtifactQaAdapter } {
@@ -299,7 +387,12 @@ function adapters(input: RemotionAdapterInput): { producedArtifact: ServerInject
           actualRunEvidence: {
             state: 'actual_run_evidence_verified_v2' as const,
             executionAttemptId: input.executionAttemptId, runnerClass: RUNNER_CLASS,
-            runnerEvidenceHash: sha256ArtifactQaValue(input.result.evidence),
+            runnerEvidenceHash: sha256ArtifactQaValue({
+              runtimeEvidence: input.result.evidence,
+              motionStudioCompositionProfileId: input.motionStudioCompositionProfileId,
+              dependencyReadEvidenceHash: input.dependency?.dependencyReadEvidenceHash,
+              motionStudioFrameGoldenEvidenceHash: input.motionStudioFrameGoldenEvidenceHash,
+            }),
             startedAt: input.executionStartedAt, finishedAt: input.result.attestation.completedAt,
             exitCode: 0 as const, toolIds: ['remotion'], actualRunVerified: true as const,
             dispatchGrantId: input.dispatchGrantId, runtimeAuthorityHash: input.runtimeAuthorityHash,
@@ -323,13 +416,24 @@ function adapters(input: RemotionAdapterInput): { producedArtifact: ServerInject
           gateResults: [{
             gateId: 'asset_received_gate' as const, category: 'asset_integrity' as const,
             status: 'passed' as const, failureScope: 'none' as const,
-            evidenceHash: sha256ArtifactQaValue({ content: adapterInput.artifact.content, storageIdentity: adapterInput.artifact.storageIdentity }),
+            evidenceHash: sha256ArtifactQaValue({
+              content: adapterInput.artifact.content,
+              storageIdentity: adapterInput.artifact.storageIdentity,
+              motionStudioCompositionProfileId: input.motionStudioCompositionProfileId,
+              dependencyReadEvidenceHash: input.dependency?.dependencyReadEvidenceHash,
+              motionStudioFrameGoldenEvidenceHash: input.motionStudioFrameGoldenEvidenceHash,
+            }),
             notesCode: 'remotion_mp4_hash_size_private_storage_match',
           }, {
             gateId: 'asset_quality_gate' as const, category: 'visual_assets' as const,
             status: 'passed' as const, failureScope: 'none' as const,
-            evidenceHash: input.qa.reportSha256,
-            notesCode: 'independent_ffprobe_h264_frame_timing_pixel_format_color_qa_passed',
+            evidenceHash: sha256ArtifactQaValue({
+              ffprobeReportSha256: input.qa.reportSha256,
+              motionStudioFrameGoldenEvidenceHash: input.motionStudioFrameGoldenEvidenceHash,
+            }),
+            notesCode: input.motionStudioCompositionProfileId
+              ? 'independent_ffprobe_and_motion_studio_frame_golden_qa_passed'
+              : 'independent_ffprobe_h264_frame_timing_pixel_format_color_qa_passed',
           }],
           recovery: { state: 'none' as const, action: 'none' as const, approvedWithinSnapshot: true, reasonCode: 'remotion_preview_pass_no_recovery' },
           evaluatedAt: new Date().toISOString(),

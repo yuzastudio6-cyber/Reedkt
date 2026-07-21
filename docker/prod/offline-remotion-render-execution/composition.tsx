@@ -30,6 +30,10 @@ export interface ApprovedCompositionProps {
     | 'approved_source_sequence_caption_track_final_v1'
     | 'approved_4k_composition_chunk_merge_final_v1'
     | 'approved_long_form_delivery_h264_video_chunk_v1'
+    | 'motion_studio_scene_preview_v1'
+    | 'motion_studio_native_layered_scene_v1'
+    | 'motion_studio_prepared_script_animatic_v1'
+    | 'motion_studio_deterministic_route_draw_v1'
   deliveryProfileId?: 'uhd_2160'
   sourceStartFrame?: number
   sourceEndFrameExclusive?: number
@@ -96,6 +100,70 @@ export interface ApprovedCompositionProps {
     chunkIndex: number
     chunkInternalUrl: string
   }>
+  sceneId?: string
+  sceneStartFrame?: number
+  sceneEndFrame?: number
+  semanticPurpose?: string
+  productionMode?:
+    | 'generative_first'
+    | 'layered_first'
+    | 'native_graphics_first'
+    | 'footage_first'
+    | 'hybrid_directed'
+  layerType?:
+    | 'image'
+    | 'source_footage'
+    | 'generated_video'
+    | 'text'
+    | 'caption'
+    | 'map'
+    | 'chart'
+    | 'mask'
+    | 'audio'
+    | 'effect'
+  layerManifestDigest?: string
+  depthModel?: 'semantic_planes_v1'
+  planes?: readonly {
+    planeId: 'background-plane' | 'headline-plane' | 'subject-plane' | 'caption-plane'
+    role: 'background' | 'headline' | 'subject' | 'caption'
+    zIndex: 0 | 10 | 20 | 30
+    sourceKind: 'remotion_native' | 'approved_cutout_slot'
+    motionToken: 'ambient_drift' | 'headline_reveal' | 'subject_parallax' | 'caption_hold'
+  }[]
+  headline?: string
+  panelHighlight?: string
+  headlineColor?: string
+  captionColor?: string
+  horizontalSafePercent?: 8
+  verticalSafePercent?: 8
+  captionBottomPercent?: 9
+  captionAboveMask?: true
+  contactObjectPresent?: false
+  maskRisk?: 'low_fixture_only'
+  subjectSha256?: string
+  subjectInternalUrl?: string
+  scenes?: readonly {
+    order: number
+    sceneId: string
+    startFrame: number
+    endFrame: number
+    title: string
+    visualDescription: string
+  }[]
+  narrationMimeType?: 'audio/wav' | 'audio/mpeg' | 'audio/mp3'
+  narrationByteLength?: number
+  narrationSha256?: string
+  narrationBytesBase64?: string
+  narrationInternalUrl?: string
+  keyframeSha256?: string
+  keyframeInternalUrl?: string
+  routePresetId?: 'abstract_three_district_route_v1'
+  routeRevealStartFrame?: 18
+  routeRevealEndFrame?: 140
+  waypointFrames?: readonly [18, 82, 140]
+  routeCoverColor?: '#081426'
+  routeColor?: '#FFB23D'
+  routeGlowColor?: '#FF7A1A'
 }
 
 export const defaultApprovedCompositionProps: ApprovedCompositionProps = {
@@ -142,6 +210,24 @@ export const ApprovedComposition: React.FC<ApprovedCompositionProps> = (props) =
     hasApprovedHardCutInput(props)
   ) {
     return <ApprovedSourceSequenceCaptionComposition {...props} />
+  }
+  if (props.compositionProfileId === 'motion_studio_scene_preview_v1') {
+    return <MotionStudioScenePreviewComposition {...props} />
+  }
+  if (
+    props.compositionProfileId === 'motion_studio_native_layered_scene_v1' &&
+    props.subjectInternalUrl
+  ) {
+    return <MotionStudioNativeLayeredComposition {...props} />
+  }
+  if (props.compositionProfileId === 'motion_studio_prepared_script_animatic_v1') {
+    return <MotionStudioPreparedAnimaticComposition {...props} />
+  }
+  if (
+    props.compositionProfileId === 'motion_studio_deterministic_route_draw_v1' &&
+    props.keyframeInternalUrl
+  ) {
+    return <MotionStudioDeterministicRouteDrawComposition {...props} />
   }
   const entrance = spring({ frame, fps, config: { damping: 18, stiffness: 140, mass: 0.8 } })
   const exit = interpolate(
@@ -209,6 +295,346 @@ export const ApprovedComposition: React.FC<ApprovedCompositionProps> = (props) =
         }}
       >
         {props.caption}
+      </div>
+    </AbsoluteFill>
+  )
+}
+
+const MotionStudioDeterministicRouteDrawComposition: React.FC<ApprovedCompositionProps> = (props) => {
+  const frame = useCurrentFrame()
+  const { durationInFrames, width, height } = useVideoConfig()
+  const revealStart = props.routeRevealStartFrame ?? 18
+  const revealEnd = props.routeRevealEndFrame ?? 140
+  const rawReveal = interpolate(frame, [revealStart, revealEnd], [0, 1], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+  })
+  const reveal = rawReveal * rawReveal * (3 - 2 * rawReveal)
+  const projectProgress = frame / Math.max(1, durationInFrames - 1)
+  const cameraScale = interpolate(projectProgress, [0, 1], [1.006, 1.026])
+  const cameraX = interpolate(projectProgress, [0, 1], [-4, 2])
+  const cameraY = interpolate(projectProgress, [0, 1], [2, -2])
+  const waypointFrames = props.waypointFrames ?? [18, 82, 140]
+  const routePath = 'M 286 318 C 338 318 386 332 420 352 C 447 380 458 400 490 405 C 535 411 570 394 600 411 C 626 425 642 443 668 432 C 704 449 738 433 760 408 C 778 385 786 367 805 364 C 836 351 858 356 880 370 C 920 392 960 391 1027 380'
+  const waypointCoordinates = [
+    { x: 286, y: 316 },
+    { x: 668, y: 432 },
+    { x: 1027, y: 380 },
+  ] as const
+  const coverColor = props.routeCoverColor ?? '#081426'
+  const routeColor = props.routeColor ?? '#FFB23D'
+  const glowColor = props.routeGlowColor ?? '#FF7A1A'
+
+  return (
+    <AbsoluteFill style={{ backgroundColor: '#081426', overflow: 'hidden' }}>
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          transform: `translate(${cameraX}px, ${cameraY}px) scale(${cameraScale})`,
+          transformOrigin: 'center center',
+        }}
+      >
+        <Img
+          src={props.keyframeInternalUrl!}
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            filter: `brightness(${0.72 + reveal * 0.22}) saturate(${0.65 + reveal * 0.3})`,
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background: '#030B19',
+            opacity: interpolate(reveal, [0, 1], [0.34, 0.06], {
+              extrapolateLeft: 'clamp',
+              extrapolateRight: 'clamp',
+            }),
+          }}
+        />
+        <svg
+          viewBox="0 0 1280 720"
+          width={width}
+          height={height}
+          style={{ position: 'absolute', inset: 0, overflow: 'visible' }}
+        >
+          <defs>
+            <filter id="route-cover-soft" x="-30%" y="-30%" width="160%" height="160%">
+              <feGaussianBlur stdDeviation="3.5" />
+            </filter>
+            <filter id="route-glow" x="-40%" y="-40%" width="180%" height="180%">
+              <feGaussianBlur stdDeviation="7" result="blur" />
+              <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+            </filter>
+          </defs>
+          <path
+            d={routePath}
+            fill="none"
+            stroke={coverColor}
+            strokeWidth={28}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            opacity={0.28}
+            filter="url(#route-cover-soft)"
+          />
+          <path
+            d={routePath}
+            fill="none"
+            stroke={coverColor}
+            strokeWidth={19}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            opacity={0.96}
+          />
+          {waypointCoordinates.map((point, index) => (
+            <circle
+              key={`cover-${index}`}
+              cx={point.x}
+              cy={point.y}
+              r={index === 2 ? 23 : 20}
+              fill={coverColor}
+              opacity={0.92}
+            />
+          ))}
+          <path
+            d={routePath}
+            pathLength={1}
+            fill="none"
+            stroke={glowColor}
+            strokeWidth={17}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeDasharray={1}
+            strokeDashoffset={1 - reveal}
+            opacity={0.48}
+            filter="url(#route-glow)"
+          />
+          <path
+            d={routePath}
+            pathLength={1}
+            fill="none"
+            stroke={routeColor}
+            strokeWidth={6}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeDasharray={1}
+            strokeDashoffset={1 - reveal}
+          />
+          {waypointCoordinates.map((point, index) => {
+            const markerProgress = interpolate(
+              frame,
+              [waypointFrames[index]!, waypointFrames[index]! + 10],
+              [0, 1],
+              { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' },
+            )
+            const pulse = index === 2 && frame >= waypointFrames[index]!
+              ? 1 + Math.sin((frame - waypointFrames[index]!) * 0.18) * 0.05
+              : 1
+            return (
+              <g
+                key={`waypoint-${index}`}
+                opacity={markerProgress}
+                transform={`translate(${point.x} ${point.y}) scale(${markerProgress * pulse}) translate(${-point.x} ${-point.y})`}
+              >
+                <circle cx={point.x} cy={point.y} r={index === 2 ? 17 : 14} fill={coverColor} stroke={routeColor} strokeWidth={4} />
+                <circle cx={point.x} cy={point.y} r={index === 2 ? 6 : 4} fill="#FFF2C7" />
+              </g>
+            )
+          })}
+        </svg>
+      </div>
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'radial-gradient(circle at 52% 48%, transparent 48%, rgba(1, 8, 20, 0.25) 100%)',
+          pointerEvents: 'none',
+        }}
+      />
+    </AbsoluteFill>
+  )
+}
+
+const MotionStudioNativeLayeredComposition: React.FC<ApprovedCompositionProps> = (props) => {
+  const frame = useCurrentFrame()
+  const { durationInFrames, width, height } = useVideoConfig()
+  const progress = durationInFrames <= 1 ? 1 : frame / (durationInFrames - 1)
+  const enter = interpolate(frame, [0, Math.min(14, durationInFrames - 1)], [0, 1], {
+    extrapolateLeft: 'clamp', extrapolateRight: 'clamp',
+  })
+  const headlineEnter = interpolate(frame, [2, Math.min(18, durationInFrames - 1)], [0, 1], {
+    extrapolateLeft: 'clamp', extrapolateRight: 'clamp',
+  })
+  const captionEnter = interpolate(
+    frame,
+    [Math.min(8, durationInFrames - 1), Math.min(20, durationInFrames - 1)],
+    [0, 1],
+    { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' },
+  )
+  const unit = Math.min(width, height)
+  const compact = width < height
+  const zIndex = (role: 'background' | 'headline' | 'subject' | 'caption', fallback: number) =>
+    props.planes?.find((plane) => plane.role === role)?.zIndex ?? fallback
+  const safeX = Math.round(width * ((props.horizontalSafePercent ?? 8) / 100))
+  const safeY = Math.round(height * ((props.verticalSafePercent ?? 8) / 100))
+  const subjectWidth = compact ? width * 0.9 : width * 0.59
+  const subjectHeight = compact ? height * 0.61 : height * 0.88
+  const subjectX = interpolate(
+    progress,
+    [0, 1],
+    [compact ? width * 0.04 : width * 0.42, compact ? width * 0.07 : width * 0.38],
+  )
+  const subjectY = interpolate(
+    progress,
+    [0, 1],
+    [compact ? height * 0.27 : height * 0.08, compact ? height * 0.24 : height * 0.04],
+  )
+  const accentX = interpolate(progress, [0, 1], [width * 0.67, width * 0.55])
+
+  return (
+    <AbsoluteFill
+      style={{
+        backgroundColor: props.panelBackground,
+        color: props.captionColor,
+        fontFamily: 'Arial, Helvetica, sans-serif',
+        overflow: 'hidden',
+      }}
+    >
+      <div style={{ position: 'absolute', inset: 0, zIndex: zIndex('background', 0), background: `radial-gradient(circle at ${28 + progress * 18}% 24%, ${props.panelHighlight} 0%, transparent 43%), linear-gradient(142deg, ${props.panelBackground} 0%, ${props.panelHighlight} 100%)` }} />
+      <div style={{ position: 'absolute', zIndex: zIndex('background', 0) + 1, left: accentX, top: height * 0.08, width: unit * 0.45, height: unit * 0.45, borderRadius: '50%', border: `${Math.max(2, Math.round(unit * 0.009))}px solid ${props.accentColor}88`, opacity: 0.42, transform: `scale(${0.86 + progress * 0.14})` }} />
+      <div style={{ position: 'absolute', zIndex: zIndex('background', 0) + 2, left: safeX, right: safeX, top: safeY, bottom: safeY, border: '1px solid rgba(224,242,254,0.16)', borderRadius: Math.round(unit * 0.035) }} />
+
+      <div style={{ position: 'absolute', zIndex: zIndex('headline', 10), left: safeX, right: compact ? safeX : width * 0.32, top: compact ? height * 0.12 : height * 0.19, opacity: headlineEnter, transform: `translateY(${(1 - headlineEnter) * 24}px)` }}>
+        <div style={{ width: Math.round(unit * 0.12), height: Math.max(5, Math.round(unit * 0.014)), borderRadius: 999, backgroundColor: props.accentColor, marginBottom: Math.round(unit * 0.055) }} />
+        <div style={{ color: props.headlineColor, fontSize: Math.max(28, Math.round(unit * (compact ? 0.083 : 0.094))), fontWeight: 800, letterSpacing: '-0.055em', lineHeight: 0.95, maxWidth: compact ? '100%' : '83%' }}>
+          {props.headline}
+        </div>
+        <div style={{ color: 'rgba(224,242,254,0.58)', fontSize: Math.max(9, Math.round(unit * 0.021)), letterSpacing: '0.13em', marginTop: Math.round(unit * 0.04), textTransform: 'uppercase' }}>
+          Native planes · exact approved scene
+        </div>
+      </div>
+
+      <div style={{ position: 'absolute', zIndex: zIndex('subject', 20), left: subjectX, top: subjectY, width: subjectWidth, height: subjectHeight, opacity: enter, transform: `translateY(${(1 - enter) * 20}px) scale(${0.96 + enter * 0.04})`, filter: 'drop-shadow(0 22px 30px rgba(0,0,0,0.36))' }}>
+        <Img src={props.subjectInternalUrl!} style={{ width: '100%', height: '100%', objectFit: 'contain', imageRendering: 'auto' }} />
+      </div>
+
+      <div style={{ position: 'absolute', zIndex: zIndex('caption', 30), left: safeX, right: safeX, bottom: `${props.captionBottomPercent ?? 9}%`, opacity: captionEnter, display: 'flex', justifyContent: compact ? 'center' : 'flex-start' }}>
+        <div style={{ maxWidth: compact ? '100%' : '72%', background: 'rgba(2,6,23,0.88)', border: '1px solid rgba(248,250,252,0.18)', borderLeft: `4px solid ${props.accentColor}`, borderRadius: Math.round(unit * 0.025), boxShadow: '0 16px 38px rgba(0,0,0,0.28)', color: props.captionColor, fontSize: Math.max(13, Math.round(unit * 0.03)), fontWeight: 700, lineHeight: 1.3, padding: `${Math.round(unit * 0.032)}px ${Math.round(unit * 0.045)}px` }}>
+          {props.caption}
+        </div>
+      </div>
+
+      <div style={{ position: 'absolute', zIndex: zIndex('caption', 30) + 1, right: safeX, top: safeY, color: 'rgba(248,250,252,0.5)', fontSize: Math.max(8, Math.round(unit * 0.018)), letterSpacing: '0.09em', textTransform: 'uppercase' }}>
+        mask verified · {props.layerManifestDigest?.slice(0, 10)}
+      </div>
+    </AbsoluteFill>
+  )
+}
+
+const MotionStudioPreparedAnimaticComposition: React.FC<ApprovedCompositionProps> = (props) => {
+  const frame = useCurrentFrame()
+  const { durationInFrames, width, height } = useVideoConfig()
+  const scenes = props.scenes ?? []
+  const scene = scenes.find((candidate) => frame >= candidate.startFrame && frame < candidate.endFrame) ?? scenes.at(-1)
+  const sceneFrame = scene ? frame - scene.startFrame : 0
+  const sceneDuration = scene ? scene.endFrame - scene.startFrame : 1
+  const sceneProgress = Math.max(0, Math.min(1, sceneFrame / Math.max(1, sceneDuration - 1)))
+  const projectProgress = Math.max(0, Math.min(1, frame / Math.max(1, durationInFrames - 1)))
+  const compact = width < height
+  const unit = Math.min(width, height)
+  const enter = interpolate(
+    sceneFrame,
+    [0, Math.min(10, Math.max(1, sceneDuration - 1))],
+    [0, 1],
+    { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' },
+  )
+  const exit = interpolate(
+    sceneFrame,
+    [Math.max(0, sceneDuration - 9), Math.max(1, sceneDuration - 1)],
+    [1, 0.72],
+    { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' },
+  )
+  const barCount = compact ? 18 : 28
+  const bars = Array.from({ length: barCount }, (_, index) => {
+    const wave = 0.28 + Math.abs(Math.sin(index * 1.73 + frame * 0.075)) * 0.72
+    return {
+      index,
+      height: Math.round((12 + wave * unit * 0.075) * (index / barCount <= projectProgress ? 1 : 0.45)),
+    }
+  })
+
+  return (
+    <AbsoluteFill style={{ backgroundColor: props.panelBackground, color: '#F8FAFC', fontFamily: 'Arial, Helvetica, sans-serif', overflow: 'hidden' }}>
+      {props.narrationInternalUrl ? <Audio src={props.narrationInternalUrl} volume={1} /> : null}
+      <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(circle at ${20 + sceneProgress * 56}% 26%, ${props.accentColor}46 0%, transparent 37%), linear-gradient(145deg, #0B0C10 0%, #171920 55%, #0D0F14 100%)` }} />
+      <div style={{ position: 'absolute', inset: Math.round(unit * 0.045), border: '1px solid rgba(255,255,255,0.12)', borderRadius: Math.round(unit * 0.035) }} />
+      <div style={{ position: 'absolute', left: Math.round(unit * 0.08), right: Math.round(unit * 0.08), top: Math.round(unit * 0.075), display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#A7AAB3', fontSize: Math.max(10, Math.round(unit * 0.024)), letterSpacing: '0.11em', textTransform: 'uppercase' }}>
+        <span>Motion Studio · Animatic</span>
+        <span style={{ color: '#F4B740' }}>Timing review · Placeholder</span>
+      </div>
+      <div style={{ position: 'absolute', left: Math.round(unit * 0.08), right: Math.round(unit * 0.08), top: compact ? Math.round(height * 0.23) : Math.round(height * 0.25), opacity: enter * exit, transform: `translateY(${(1 - enter) * 24}px)` }}>
+        <div style={{ color: '#A7AAB3', fontSize: Math.max(11, Math.round(unit * 0.025)), letterSpacing: '0.09em', textTransform: 'uppercase', marginBottom: Math.round(unit * 0.035) }}>
+          Scene {(scene?.order ?? 0) + 1} of {Math.max(1, scenes.length)} · {scene?.startFrame ?? 0}–{scene?.endFrame ?? durationInFrames}f
+        </div>
+        <div style={{ maxWidth: compact ? '100%' : '74%', fontSize: Math.max(28, Math.round(unit * (compact ? 0.074 : 0.082))), lineHeight: 1.02, fontWeight: 760, letterSpacing: '-0.045em' }}>
+          {scene?.title ?? 'Prepared animatic'}
+        </div>
+        <div style={{ maxWidth: compact ? '100%' : '72%', marginTop: Math.round(unit * 0.045), color: '#C9CBD2', fontSize: Math.max(14, Math.round(unit * 0.032)), lineHeight: 1.4 }}>
+          {scene?.visualDescription ?? 'Approved narration timing with deterministic review panels.'}
+        </div>
+      </div>
+      <div style={{ position: 'absolute', left: Math.round(unit * 0.08), right: Math.round(unit * 0.08), bottom: Math.round(unit * 0.085) }}>
+        <div style={{ height: Math.round(unit * 0.13), display: 'flex', gap: Math.max(3, Math.round(unit * 0.008)), alignItems: 'center', opacity: 0.92 }}>
+          {bars.map((bar) => <div key={bar.index} style={{ flex: 1, height: bar.height, minHeight: 4, borderRadius: 999, backgroundColor: bar.index / bars.length <= projectProgress ? props.accentColor : 'rgba(255,255,255,0.17)' }} />)}
+        </div>
+        <div style={{ height: Math.max(3, Math.round(unit * 0.008)), borderRadius: 999, background: 'rgba(255,255,255,0.13)', overflow: 'hidden' }}>
+          <div style={{ height: '100%', width: `${Math.max(1.5, projectProgress * 100)}%`, background: props.accentColor }} />
+        </div>
+        <div style={{ marginTop: Math.round(unit * 0.022), display: 'flex', justifyContent: 'space-between', color: '#8A8D97', fontSize: Math.max(10, Math.round(unit * 0.022)) }}>
+          <span>{scene?.sceneId ?? 'prepared-animatic'}</span><span>{frame + 1}/{durationInFrames} frames</span>
+        </div>
+      </div>
+    </AbsoluteFill>
+  )
+}
+
+const MotionStudioScenePreviewComposition: React.FC<ApprovedCompositionProps> = (props) => {
+  const frame = useCurrentFrame()
+  const { durationInFrames, fps, width, height } = useVideoConfig()
+  const enter = spring({ frame, fps, config: { damping: 22, stiffness: 130, mass: 0.9 } })
+  const progress = durationInFrames <= 1 ? 1 : frame / (durationInFrames - 1)
+  const layerLabel = (props.layerType ?? 'image').replaceAll('_', ' ')
+  const routeLabel = (props.productionMode ?? 'hybrid_directed').replaceAll('_', ' ')
+  const compact = width < height
+  const unit = Math.min(width, height)
+
+  return (
+    <AbsoluteFill style={{ backgroundColor: props.panelBackground, color: '#F7F7F8', fontFamily: 'Arial, Helvetica, sans-serif', overflow: 'hidden' }}>
+      <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(circle at ${22 + progress * 34}% 28%, ${props.accentColor}38 0, transparent 38%), linear-gradient(145deg, #111216 0%, #181A20 62%, #0D0E12 100%)` }} />
+      <div style={{ position: 'absolute', inset: Math.round(unit * 0.055), border: '1px solid rgba(255,255,255,0.11)', borderRadius: Math.round(unit * 0.035) }} />
+      <div style={{ position: 'absolute', left: Math.round(unit * 0.09), right: Math.round(unit * 0.09), top: Math.round(unit * 0.095), display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: Math.max(11, Math.round(unit * 0.026)), letterSpacing: '0.12em', textTransform: 'uppercase', color: '#A9ABB3' }}>
+        <span>Motion Studio · private preview</span>
+        <span>{props.sceneStartFrame}–{props.sceneEndFrame}f</span>
+      </div>
+      <div style={{ position: 'absolute', left: Math.round(unit * 0.09), right: Math.round(unit * 0.09), top: compact ? Math.round(height * 0.25) : Math.round(height * 0.28), opacity: enter, transform: `translateY(${(1 - enter) * 28}px)` }}>
+        <div style={{ width: Math.round(unit * 0.12), height: Math.max(4, Math.round(unit * 0.012)), borderRadius: 999, backgroundColor: props.accentColor, marginBottom: Math.round(unit * 0.055) }} />
+        <div style={{ maxWidth: compact ? '100%' : '78%', fontSize: Math.max(25, Math.round(unit * (compact ? 0.068 : 0.075))), lineHeight: 1.08, fontWeight: 720, letterSpacing: '-0.035em' }}>
+          {props.semanticPurpose}
+        </div>
+        <div style={{ marginTop: Math.round(unit * 0.07), display: 'flex', gap: Math.round(unit * 0.025), flexWrap: 'wrap' }}>
+          {[routeLabel, layerLabel].map((label) => <span key={label} style={{ padding: `${Math.round(unit * 0.018)}px ${Math.round(unit * 0.034)}px`, borderRadius: 999, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.13)', fontSize: Math.max(12, Math.round(unit * 0.029)), textTransform: 'capitalize', color: '#D8D9DE' }}>{label}</span>)}
+        </div>
+      </div>
+      <div style={{ position: 'absolute', left: Math.round(unit * 0.09), right: Math.round(unit * 0.09), bottom: Math.round(unit * 0.09) }}>
+        <div style={{ height: Math.max(3, Math.round(unit * 0.008)), borderRadius: 999, background: 'rgba(255,255,255,0.12)', overflow: 'hidden' }}>
+          <div style={{ height: '100%', width: `${Math.max(2, progress * 100)}%`, background: props.accentColor }} />
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: Math.round(unit * 0.026), color: '#858891', fontSize: Math.max(10, Math.round(unit * 0.023)) }}>
+          <span>{props.sceneId}</span><span>{frame + 1}/{durationInFrames}</span>
+        </div>
       </div>
     </AbsoluteFill>
   )

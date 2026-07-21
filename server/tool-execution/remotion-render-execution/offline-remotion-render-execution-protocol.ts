@@ -22,6 +22,7 @@ const SAFE_TEXT = /^(?!.*(?:https?:\/\/|ftp:\/\/|file:|data:|javascript:|\.\.\/|
 const COLORS = /^#[A-F0-9]{6}$/
 const SHA256 = /^[a-f0-9]{64}$/
 const PRIVATE_REVIEW_FRAMES = ['360x640', '640x360', '480x480', '480x600'] as const
+const MOTION_STUDIO_PREVIEW_FRAMES = PRIVATE_REVIEW_FRAMES
 const FOUR_K_MASTER_FRAMES = [
   '3840x2160',
   '2160x3840',
@@ -66,6 +67,106 @@ export interface OfflineRemotionPreviewPlanningPayload extends CommonComposition
   title: string
   subtitle: string
   caption: string
+}
+
+export interface OfflineRemotionMotionStudioScenePreviewPayload extends CommonCompositionPayload {
+  compositionProfileId: 'motion_studio_scene_preview_v1'
+  sceneId: string
+  sceneStartFrame: number
+  sceneEndFrame: number
+  semanticPurpose: string
+  productionMode: 'generative_first' | 'layered_first' | 'native_graphics_first' | 'footage_first' | 'hybrid_directed'
+  layerType: 'image' | 'source_footage' | 'generated_video' | 'text' | 'caption' | 'map' | 'chart' | 'mask' | 'audio' | 'effect'
+  panelBackground: string
+  accentColor: string
+}
+
+export interface OfflineRemotionMotionStudioLayeredPlane {
+  planeId: 'background-plane' | 'headline-plane' | 'subject-plane' | 'caption-plane'
+  role: 'background' | 'headline' | 'subject' | 'caption'
+  zIndex: 0 | 10 | 20 | 30
+  sourceKind: 'remotion_native' | 'approved_cutout_slot'
+  motionToken: 'ambient_drift' | 'headline_reveal' | 'subject_parallax' | 'caption_hold'
+}
+
+export interface OfflineRemotionMotionStudioLayeredPlanningPayload extends CommonCompositionPayload {
+  compositionProfileId: 'motion_studio_native_layered_scene_v1'
+  sceneId: string
+  sceneStartFrame: number
+  sceneEndFrame: number
+  semanticPurpose: string
+  headline: string
+  caption: string
+  layerManifestDigest: string
+  depthModel: 'semantic_planes_v1'
+  planes: readonly OfflineRemotionMotionStudioLayeredPlane[]
+  panelBackground: '#0F172A'
+  panelHighlight: '#16213E'
+  headlineColor: '#E0F2FE'
+  accentColor: '#FF4D8D'
+  captionColor: '#F8FAFC'
+  horizontalSafePercent: 8
+  verticalSafePercent: 8
+  captionBottomPercent: 9
+  captionAboveMask: true
+  contactObjectPresent: false
+  maskRisk: 'low_fixture_only'
+}
+
+export interface OfflineRemotionMotionStudioLayeredPayload extends OfflineRemotionMotionStudioLayeredPlanningPayload {
+  subjectMimeType: 'image/png'
+  subjectByteLength: number
+  subjectSha256: string
+  subjectBytesBase64: string
+}
+
+export interface OfflineRemotionMotionStudioAnimaticScene {
+  order: number
+  sceneId: string
+  startFrame: number
+  endFrame: number
+  title: string
+  visualDescription: string
+}
+
+export interface OfflineRemotionMotionStudioAnimaticPlanningPayload extends CommonCompositionPayload {
+  compositionProfileId: 'motion_studio_prepared_script_animatic_v1'
+  scenes: readonly OfflineRemotionMotionStudioAnimaticScene[]
+  panelBackground: string
+  accentColor: string
+}
+
+export interface OfflineRemotionMotionStudioAnimaticPayload extends OfflineRemotionMotionStudioAnimaticPlanningPayload {
+  narrationMimeType: 'audio/wav' | 'audio/mpeg' | 'audio/mp3'
+  narrationByteLength: number
+  narrationSha256: string
+  narrationBytesBase64: string
+}
+
+export interface OfflineRemotionMotionStudioRouteDrawPlanningPayload {
+  compositionProfileId: 'motion_studio_deterministic_route_draw_v1'
+  width: 1280
+  height: 720
+  fps: 30
+  durationFrames: 180
+  sceneId: string
+  sceneStartFrame: 0
+  sceneEndFrame: 180
+  semanticPurpose: string
+  routePresetId: 'abstract_three_district_route_v1'
+  routeRevealStartFrame: 18
+  routeRevealEndFrame: 140
+  waypointFrames: readonly [18, 82, 140]
+  routeCoverColor: '#081426'
+  routeColor: '#FFB23D'
+  routeGlowColor: '#FF7A1A'
+}
+
+export interface OfflineRemotionMotionStudioRouteDrawPayload extends OfflineRemotionMotionStudioRouteDrawPlanningPayload {
+  keyframeMimeType: 'image/png'
+  keyframeByteLength: number
+  keyframeSha256: string
+  keyframeBytesBase64: string
 }
 
 export interface OfflineRemotionSingleSourceFinalCompositionPlanningPayload extends CommonCompositionPayload, OfflineRemotionFourKDeliveryMasterAuthority {
@@ -240,7 +341,14 @@ export type OfflineRemotionRenderRequest = {
   schemaVersion: typeof OFFLINE_REMOTION_RENDER_REQUEST_PROTOCOL
   toolId: 'remotion'
   operationId: typeof OFFLINE_REMOTION_RENDER_OPERATION
-} & ({ payload: OfflineRemotionPreviewPlanningPayload } | { payload: OfflineRemotionFinalCompositionPayload })
+} & (
+  { payload: OfflineRemotionPreviewPlanningPayload }
+  | { payload: OfflineRemotionFinalCompositionPayload }
+  | { payload: OfflineRemotionMotionStudioScenePreviewPayload }
+  | { payload: OfflineRemotionMotionStudioLayeredPayload }
+  | { payload: OfflineRemotionMotionStudioAnimaticPayload }
+  | { payload: OfflineRemotionMotionStudioRouteDrawPayload }
+)
 
 export type OfflineRemotionRenderPlanningPayload = OfflineRemotionPreviewPlanningPayload
 
@@ -251,10 +359,281 @@ export function validateOfflineRemotionRenderPlanningPayload(value: unknown): Of
     operationId: OFFLINE_REMOTION_RENDER_OPERATION,
     payload: value,
   })
-  if (isFinalCompositionPayload(request.payload)) {
+  if (
+    isFinalCompositionPayload(request.payload) ||
+    isMotionStudioScenePreviewPayload(request.payload) ||
+    isMotionStudioLayeredPayload(request.payload) ||
+    isMotionStudioAnimaticPayload(request.payload) ||
+    isMotionStudioRouteDrawPayload(request.payload)
+  ) {
     throw validationFailure('Preview planning cannot contain final-composition source bytes.')
   }
   return request.payload
+}
+
+export function validateOfflineRemotionMotionStudioLayeredPlanningPayload(
+  value: unknown,
+): OfflineRemotionMotionStudioLayeredPlanningPayload {
+  const payload = exactRecord(value, [
+    'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
+    'sceneId', 'sceneStartFrame', 'sceneEndFrame', 'semanticPurpose',
+    'headline', 'caption', 'layerManifestDigest', 'depthModel', 'planes',
+    'panelBackground', 'panelHighlight', 'headlineColor', 'accentColor',
+    'captionColor', 'horizontalSafePercent', 'verticalSafePercent',
+    'captionBottomPercent', 'captionAboveMask', 'contactObjectPresent', 'maskRisk',
+  ], 'Motion Studio layered planning payload')
+  const common = commonPayload(payload, 24, 450)
+  if (
+    payload.compositionProfileId !== 'motion_studio_native_layered_scene_v1' ||
+    !(MOTION_STUDIO_PREVIEW_FRAMES as readonly string[]).includes(`${common.width}x${common.height}`)
+  ) throw validationFailure('Motion Studio layered profile or frame is unsupported.')
+  const sceneStartFrame = integer(payload.sceneStartFrame, 0, 10_000_000, 'sceneStartFrame')
+  const sceneEndFrame = integer(payload.sceneEndFrame, 1, 10_000_000, 'sceneEndFrame')
+  if (sceneEndFrame - sceneStartFrame !== common.durationFrames) {
+    throw validationFailure('Motion Studio layered scene range must exactly match durationFrames.')
+  }
+  if (!Array.isArray(payload.planes) || payload.planes.length !== 4) {
+    throw validationFailure('Motion Studio layered profile requires four exact semantic planes.')
+  }
+  const expected = [
+    ['background-plane', 'background', 0, 'remotion_native', 'ambient_drift'],
+    ['headline-plane', 'headline', 10, 'remotion_native', 'headline_reveal'],
+    ['subject-plane', 'subject', 20, 'approved_cutout_slot', 'subject_parallax'],
+    ['caption-plane', 'caption', 30, 'remotion_native', 'caption_hold'],
+  ] as const
+  const planes = payload.planes.map((value, index) => {
+    const plane = exactRecord(value, ['planeId', 'role', 'zIndex', 'sourceKind', 'motionToken'], 'Motion Studio layered plane')
+    const identity = expected[index]!
+    if (
+      plane.planeId !== identity[0] || plane.role !== identity[1] || plane.zIndex !== identity[2] ||
+      plane.sourceKind !== identity[3] || plane.motionToken !== identity[4]
+    ) throw validationFailure('Motion Studio layered plane identity or depth order is unsupported.')
+    return {
+      planeId: identity[0], role: identity[1], zIndex: identity[2],
+      sourceKind: identity[3], motionToken: identity[4],
+    }
+  })
+  const semanticPurpose = safeText(payload.semanticPurpose, 120, 'semanticPurpose')
+  const headline = safeText(payload.headline, 120, 'headline')
+  const caption = safeText(payload.caption, 160, 'caption')
+  if (headline !== semanticPurpose || caption !== `Review · ${semanticPurpose}`) {
+    throw validationFailure('Motion Studio layered copy diverges from exact scene authority.')
+  }
+  if (
+    payload.depthModel !== 'semantic_planes_v1' || payload.panelBackground !== '#0F172A' ||
+    payload.panelHighlight !== '#16213E' || payload.headlineColor !== '#E0F2FE' ||
+    payload.accentColor !== '#FF4D8D' || payload.captionColor !== '#F8FAFC' ||
+    payload.horizontalSafePercent !== 8 || payload.verticalSafePercent !== 8 ||
+    payload.captionBottomPercent !== 9 || payload.captionAboveMask !== true ||
+    payload.contactObjectPresent !== false || payload.maskRisk !== 'low_fixture_only'
+  ) throw validationFailure('Motion Studio layered design, safety, or mask policy is unsupported.')
+  if (typeof payload.layerManifestDigest !== 'string' || !SHA256.test(payload.layerManifestDigest)) {
+    throw validationFailure('Motion Studio layered manifest digest is invalid.')
+  }
+  return {
+    ...common,
+    compositionProfileId: 'motion_studio_native_layered_scene_v1',
+    sceneId: stableId(payload.sceneId, 'sceneId'),
+    sceneStartFrame,
+    sceneEndFrame,
+    semanticPurpose,
+    headline,
+    caption,
+    layerManifestDigest: payload.layerManifestDigest,
+    depthModel: 'semantic_planes_v1',
+    planes,
+    panelBackground: '#0F172A',
+    panelHighlight: '#16213E',
+    headlineColor: '#E0F2FE',
+    accentColor: '#FF4D8D',
+    captionColor: '#F8FAFC',
+    horizontalSafePercent: 8,
+    verticalSafePercent: 8,
+    captionBottomPercent: 9,
+    captionAboveMask: true,
+    contactObjectPresent: false,
+    maskRisk: 'low_fixture_only',
+  }
+}
+
+export function buildOfflineRemotionMotionStudioLayeredRequest(input: {
+  planningPayload: unknown
+  subject: { mimeType: 'image/png'; bytes: Buffer; sha256: string }
+}): OfflineRemotionRenderRequest & { payload: OfflineRemotionMotionStudioLayeredPayload } {
+  const planning = validateOfflineRemotionMotionStudioLayeredPlanningPayload(input.planningPayload)
+  const subject = committedBytes(input.subject, 'image/png', 100, 1024 * 1024, 'layered subject')
+  if (
+    subject.bytes.subarray(0, 8).toString('hex') !== '89504e470d0a1a0a' ||
+    subject.bytes.toString('ascii', 12, 16) !== 'IHDR' || subject.bytes.readUInt32BE(16) !== 128 ||
+    subject.bytes.readUInt32BE(20) !== 128 || subject.bytes[24] !== 8 || subject.bytes[25] !== 6
+  ) throw validationFailure('Motion Studio layered subject is not the approved 128x128 RGBA PNG class.')
+  const request = validateOfflineRemotionRenderRequest({
+    schemaVersion: OFFLINE_REMOTION_RENDER_REQUEST_PROTOCOL,
+    toolId: 'remotion',
+    operationId: OFFLINE_REMOTION_RENDER_OPERATION,
+    payload: {
+      ...planning,
+      subjectMimeType: 'image/png',
+      subjectByteLength: subject.bytes.byteLength,
+      subjectSha256: subject.sha256,
+      subjectBytesBase64: subject.bytes.toString('base64'),
+    },
+  })
+  if (!isMotionStudioLayeredPayload(request.payload)) {
+    throw validationFailure('Motion Studio layered request did not retain its registered profile.')
+  }
+  return request as OfflineRemotionRenderRequest & { payload: OfflineRemotionMotionStudioLayeredPayload }
+}
+
+export function validateOfflineRemotionMotionStudioAnimaticPlanningPayload(
+  value: unknown,
+): OfflineRemotionMotionStudioAnimaticPlanningPayload {
+  const payload = exactRecord(value, [
+    'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
+    'scenes', 'panelBackground', 'accentColor',
+  ], 'Motion Studio animatic planning payload')
+  const common = commonPayload(payload, 24, 900)
+  if (
+    payload.compositionProfileId !== 'motion_studio_prepared_script_animatic_v1' ||
+    !(MOTION_STUDIO_PREVIEW_FRAMES as readonly string[]).includes(`${common.width}x${common.height}`)
+  ) throw validationFailure('Motion Studio animatic profile or frame is unsupported.')
+  if (!Array.isArray(payload.scenes) || payload.scenes.length < 1 || payload.scenes.length > 8) {
+    throw validationFailure('Motion Studio animatic requires one to eight scenes.')
+  }
+  const scenes = payload.scenes.map((value, order) => {
+    const scene = exactRecord(value, [
+      'order', 'sceneId', 'startFrame', 'endFrame', 'title', 'visualDescription',
+    ], 'Motion Studio animatic scene')
+    const startFrame = integer(scene.startFrame, 0, 899, 'startFrame')
+    const endFrame = integer(scene.endFrame, 1, 900, 'endFrame')
+    if (scene.order !== order || startFrame !== (order === 0 ? 0 : scenesEnd(payload.scenes as unknown[], order - 1))) {
+      throw validationFailure('Motion Studio animatic scene order and ranges must be exact and contiguous.')
+    }
+    if (endFrame <= startFrame || endFrame > common.durationFrames) {
+      throw validationFailure('Motion Studio animatic scene range is invalid.')
+    }
+    return {
+      order,
+      sceneId: stableId(scene.sceneId, 'sceneId'),
+      startFrame,
+      endFrame,
+      title: safeText(scene.title, 120, 'title'),
+      visualDescription: safeText(scene.visualDescription, 240, 'visualDescription'),
+    }
+  })
+  if (scenes.at(-1)?.endFrame !== common.durationFrames || new Set(scenes.map((scene) => scene.sceneId)).size !== scenes.length) {
+    throw validationFailure('Motion Studio animatic scenes must uniquely cover the exact duration.')
+  }
+  return {
+    ...common,
+    compositionProfileId: 'motion_studio_prepared_script_animatic_v1',
+    scenes,
+    panelBackground: color(payload.panelBackground, 'panelBackground'),
+    accentColor: color(payload.accentColor, 'accentColor'),
+  }
+}
+
+export function buildOfflineRemotionMotionStudioAnimaticRequest(input: {
+  planningPayload: unknown
+  narration: {
+    mimeType: 'audio/wav' | 'audio/mpeg' | 'audio/mp3'
+    bytes: Buffer
+    sha256: string
+  }
+}): OfflineRemotionRenderRequest & { payload: OfflineRemotionMotionStudioAnimaticPayload } {
+  const planning = validateOfflineRemotionMotionStudioAnimaticPlanningPayload(input.planningPayload)
+  const narration = committedBytes(input.narration, input.narration.mimeType, 44, 16 * 1024 * 1024, 'narration')
+  assertAudioSignature(narration.bytes, input.narration.mimeType)
+  const request = validateOfflineRemotionRenderRequest({
+    schemaVersion: OFFLINE_REMOTION_RENDER_REQUEST_PROTOCOL,
+    toolId: 'remotion',
+    operationId: OFFLINE_REMOTION_RENDER_OPERATION,
+    payload: {
+      ...planning,
+      narrationMimeType: input.narration.mimeType,
+      narrationByteLength: narration.bytes.byteLength,
+      narrationSha256: narration.sha256,
+      narrationBytesBase64: narration.bytes.toString('base64'),
+    },
+  })
+  if (!isMotionStudioAnimaticPayload(request.payload)) {
+    throw validationFailure('Motion Studio animatic request did not retain its registered profile.')
+  }
+  return request as OfflineRemotionRenderRequest & { payload: OfflineRemotionMotionStudioAnimaticPayload }
+}
+
+export function validateOfflineRemotionMotionStudioRouteDrawPlanningPayload(
+  value: unknown,
+): OfflineRemotionMotionStudioRouteDrawPlanningPayload {
+  const payload = exactRecord(value, [
+    'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
+    'sceneId', 'sceneStartFrame', 'sceneEndFrame', 'semanticPurpose',
+    'routePresetId', 'routeRevealStartFrame', 'routeRevealEndFrame',
+    'waypointFrames', 'routeCoverColor', 'routeColor', 'routeGlowColor',
+  ], 'Motion Studio deterministic route-draw planning payload')
+  if (
+    payload.compositionProfileId !== 'motion_studio_deterministic_route_draw_v1' ||
+    payload.width !== 1280 || payload.height !== 720 || payload.fps !== 30 ||
+    payload.durationFrames !== 180 || payload.sceneStartFrame !== 0 ||
+    payload.sceneEndFrame !== 180 ||
+    payload.routePresetId !== 'abstract_three_district_route_v1' ||
+    payload.routeRevealStartFrame !== 18 || payload.routeRevealEndFrame !== 140 ||
+    payload.routeCoverColor !== '#081426' || payload.routeColor !== '#FFB23D' ||
+    payload.routeGlowColor !== '#FF7A1A'
+  ) throw validationFailure('Motion Studio deterministic route-draw profile is unsupported.')
+  if (
+    !Array.isArray(payload.waypointFrames) || payload.waypointFrames.length !== 3 ||
+    payload.waypointFrames[0] !== 18 || payload.waypointFrames[1] !== 82 ||
+    payload.waypointFrames[2] !== 140
+  ) throw validationFailure('Motion Studio deterministic waypoint timing is unsupported.')
+  return {
+    compositionProfileId: 'motion_studio_deterministic_route_draw_v1',
+    width: 1280,
+    height: 720,
+    fps: 30,
+    durationFrames: 180,
+    sceneId: stableId(payload.sceneId, 'sceneId'),
+    sceneStartFrame: 0,
+    sceneEndFrame: 180,
+    semanticPurpose: safeText(payload.semanticPurpose, 180, 'semanticPurpose'),
+    routePresetId: 'abstract_three_district_route_v1',
+    routeRevealStartFrame: 18,
+    routeRevealEndFrame: 140,
+    waypointFrames: [18, 82, 140],
+    routeCoverColor: '#081426',
+    routeColor: '#FFB23D',
+    routeGlowColor: '#FF7A1A',
+  }
+}
+
+export function buildOfflineRemotionMotionStudioRouteDrawRequest(input: {
+  planningPayload: unknown
+  keyframe: { mimeType: 'image/png'; bytes: Buffer; sha256: string }
+}): OfflineRemotionRenderRequest & { payload: OfflineRemotionMotionStudioRouteDrawPayload } {
+  const planning = validateOfflineRemotionMotionStudioRouteDrawPlanningPayload(input.planningPayload)
+  const keyframe = committedBytes(input.keyframe, 'image/png', 1_024, 8 * 1024 * 1024, 'route-draw keyframe')
+  if (
+    keyframe.bytes.subarray(0, 8).toString('hex') !== '89504e470d0a1a0a' ||
+    keyframe.bytes.toString('ascii', 12, 16) !== 'IHDR' ||
+    keyframe.bytes.readUInt32BE(16) !== 1280 || keyframe.bytes.readUInt32BE(20) !== 720 ||
+    keyframe.bytes[24] !== 8 || keyframe.bytes[25] !== 2
+  ) throw validationFailure('Motion Studio route-draw keyframe is not an exact opaque 1280x720 PNG.')
+  const request = validateOfflineRemotionRenderRequest({
+    schemaVersion: OFFLINE_REMOTION_RENDER_REQUEST_PROTOCOL,
+    toolId: 'remotion',
+    operationId: OFFLINE_REMOTION_RENDER_OPERATION,
+    payload: {
+      ...planning,
+      keyframeMimeType: 'image/png',
+      keyframeByteLength: keyframe.bytes.byteLength,
+      keyframeSha256: keyframe.sha256,
+      keyframeBytesBase64: keyframe.bytes.toString('base64'),
+    },
+  })
+  if (!isMotionStudioRouteDrawPayload(request.payload)) {
+    throw validationFailure('Motion Studio route-draw request did not retain its registered profile.')
+  }
+  return request as OfflineRemotionRenderRequest & { payload: OfflineRemotionMotionStudioRouteDrawPayload }
 }
 
 export function validateOfflineRemotionFinalCompositionPlanningPayload(
@@ -557,6 +936,186 @@ export function validateOfflineRemotionRenderRequest(value: unknown): OfflineRem
     request.operationId !== OFFLINE_REMOTION_RENDER_OPERATION
   ) throw validationFailure('Remotion request identity is unsupported.')
   const payloadRecord = record(request.payload, 'payload')
+  if (payloadRecord.compositionProfileId === 'motion_studio_deterministic_route_draw_v1') {
+    const payload = exactRecord(payloadRecord, [
+      'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
+      'sceneId', 'sceneStartFrame', 'sceneEndFrame', 'semanticPurpose',
+      'routePresetId', 'routeRevealStartFrame', 'routeRevealEndFrame',
+      'waypointFrames', 'routeCoverColor', 'routeColor', 'routeGlowColor',
+      'keyframeMimeType', 'keyframeByteLength', 'keyframeSha256', 'keyframeBytesBase64',
+    ], 'Motion Studio deterministic route-draw payload')
+    const planning = validateOfflineRemotionMotionStudioRouteDrawPlanningPayload({
+      compositionProfileId: payload.compositionProfileId,
+      width: payload.width,
+      height: payload.height,
+      fps: payload.fps,
+      durationFrames: payload.durationFrames,
+      sceneId: payload.sceneId,
+      sceneStartFrame: payload.sceneStartFrame,
+      sceneEndFrame: payload.sceneEndFrame,
+      semanticPurpose: payload.semanticPurpose,
+      routePresetId: payload.routePresetId,
+      routeRevealStartFrame: payload.routeRevealStartFrame,
+      routeRevealEndFrame: payload.routeRevealEndFrame,
+      waypointFrames: payload.waypointFrames,
+      routeCoverColor: payload.routeCoverColor,
+      routeColor: payload.routeColor,
+      routeGlowColor: payload.routeGlowColor,
+    })
+    const keyframe = decodeCommittedBase64(payload, 'keyframe', 'image/png', 1_024, 8 * 1024 * 1024)
+    if (
+      keyframe.subarray(0, 8).toString('hex') !== '89504e470d0a1a0a' ||
+      keyframe.toString('ascii', 12, 16) !== 'IHDR' || keyframe.readUInt32BE(16) !== 1280 ||
+      keyframe.readUInt32BE(20) !== 720 || keyframe[24] !== 8 || keyframe[25] !== 2
+    ) throw validationFailure('Motion Studio route-draw keyframe signature is invalid.')
+    return {
+      schemaVersion: OFFLINE_REMOTION_RENDER_REQUEST_PROTOCOL,
+      toolId: 'remotion',
+      operationId: OFFLINE_REMOTION_RENDER_OPERATION,
+      payload: {
+        ...planning,
+        keyframeMimeType: 'image/png',
+        keyframeByteLength: keyframe.byteLength,
+        keyframeSha256: String(payload.keyframeSha256),
+        keyframeBytesBase64: keyframe.toString('base64'),
+      },
+    }
+  }
+  if (payloadRecord.compositionProfileId === 'motion_studio_native_layered_scene_v1') {
+    const payload = exactRecord(payloadRecord, [
+      'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
+      'sceneId', 'sceneStartFrame', 'sceneEndFrame', 'semanticPurpose',
+      'headline', 'caption', 'layerManifestDigest', 'depthModel', 'planes',
+      'panelBackground', 'panelHighlight', 'headlineColor', 'accentColor',
+      'captionColor', 'horizontalSafePercent', 'verticalSafePercent',
+      'captionBottomPercent', 'captionAboveMask', 'contactObjectPresent', 'maskRisk',
+      'subjectMimeType', 'subjectByteLength', 'subjectSha256', 'subjectBytesBase64',
+    ], 'Motion Studio layered payload')
+    const planning = validateOfflineRemotionMotionStudioLayeredPlanningPayload({
+      compositionProfileId: payload.compositionProfileId,
+      width: payload.width,
+      height: payload.height,
+      fps: payload.fps,
+      durationFrames: payload.durationFrames,
+      sceneId: payload.sceneId,
+      sceneStartFrame: payload.sceneStartFrame,
+      sceneEndFrame: payload.sceneEndFrame,
+      semanticPurpose: payload.semanticPurpose,
+      headline: payload.headline,
+      caption: payload.caption,
+      layerManifestDigest: payload.layerManifestDigest,
+      depthModel: payload.depthModel,
+      planes: payload.planes,
+      panelBackground: payload.panelBackground,
+      panelHighlight: payload.panelHighlight,
+      headlineColor: payload.headlineColor,
+      accentColor: payload.accentColor,
+      captionColor: payload.captionColor,
+      horizontalSafePercent: payload.horizontalSafePercent,
+      verticalSafePercent: payload.verticalSafePercent,
+      captionBottomPercent: payload.captionBottomPercent,
+      captionAboveMask: payload.captionAboveMask,
+      contactObjectPresent: payload.contactObjectPresent,
+      maskRisk: payload.maskRisk,
+    })
+    const subject = decodeCommittedBase64(payload, 'subject', 'image/png', 100, 1024 * 1024)
+    if (
+      subject.subarray(0, 8).toString('hex') !== '89504e470d0a1a0a' ||
+      subject.toString('ascii', 12, 16) !== 'IHDR' || subject.readUInt32BE(16) !== 128 ||
+      subject.readUInt32BE(20) !== 128 || subject[24] !== 8 || subject[25] !== 6
+    ) throw validationFailure('Motion Studio layered subject signature or RGBA authority is invalid.')
+    return {
+      schemaVersion: OFFLINE_REMOTION_RENDER_REQUEST_PROTOCOL,
+      toolId: 'remotion',
+      operationId: OFFLINE_REMOTION_RENDER_OPERATION,
+      payload: {
+        ...planning,
+        subjectMimeType: 'image/png',
+        subjectByteLength: subject.byteLength,
+        subjectSha256: String(payload.subjectSha256),
+        subjectBytesBase64: subject.toString('base64'),
+      },
+    }
+  }
+  if (payloadRecord.compositionProfileId === 'motion_studio_scene_preview_v1') {
+    const payload = exactRecord(payloadRecord, [
+      'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
+      'sceneId', 'sceneStartFrame', 'sceneEndFrame', 'semanticPurpose',
+      'productionMode', 'layerType', 'panelBackground', 'accentColor',
+    ], 'Motion Studio scene preview payload')
+    const common = commonPayload(payload, 24, 450)
+    if (!(MOTION_STUDIO_PREVIEW_FRAMES as readonly string[]).includes(`${common.width}x${common.height}`)) {
+      throw validationFailure('Motion Studio preview frame is invalid; use an exact even-dimension profile.')
+    }
+    const sceneStartFrame = integer(payload.sceneStartFrame, 0, 10_000_000, 'sceneStartFrame')
+    const sceneEndFrame = integer(payload.sceneEndFrame, 1, 10_000_000, 'sceneEndFrame')
+    if (sceneEndFrame - sceneStartFrame !== common.durationFrames) {
+      throw validationFailure('Motion Studio scene range must exactly match durationFrames.')
+    }
+    return {
+      schemaVersion: OFFLINE_REMOTION_RENDER_REQUEST_PROTOCOL,
+      toolId: 'remotion', operationId: OFFLINE_REMOTION_RENDER_OPERATION,
+      payload: {
+        compositionProfileId: 'motion_studio_scene_preview_v1',
+        width: common.width,
+        height: common.height,
+        fps: common.fps,
+        durationFrames: common.durationFrames,
+        sceneId: stableId(payload.sceneId, 'sceneId'),
+        sceneStartFrame,
+        sceneEndFrame,
+        semanticPurpose: safeText(payload.semanticPurpose, 240, 'semanticPurpose'),
+        productionMode: oneOf(payload.productionMode, [
+          'generative_first', 'layered_first', 'native_graphics_first', 'footage_first', 'hybrid_directed',
+        ], 'productionMode'),
+        layerType: oneOf(payload.layerType, [
+          'image', 'source_footage', 'generated_video', 'text', 'caption', 'map', 'chart', 'mask', 'audio', 'effect',
+        ], 'layerType'),
+        panelBackground: color(payload.panelBackground, 'panelBackground'),
+        accentColor: color(payload.accentColor, 'accentColor'),
+      },
+    }
+  }
+  if (payloadRecord.compositionProfileId === 'motion_studio_prepared_script_animatic_v1') {
+    const payload = exactRecord(payloadRecord, [
+      'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
+      'scenes', 'panelBackground', 'accentColor', 'narrationMimeType',
+      'narrationByteLength', 'narrationSha256', 'narrationBytesBase64',
+    ], 'Motion Studio animatic payload')
+    const planning = validateOfflineRemotionMotionStudioAnimaticPlanningPayload({
+      compositionProfileId: payload.compositionProfileId,
+      width: payload.width,
+      height: payload.height,
+      fps: payload.fps,
+      durationFrames: payload.durationFrames,
+      scenes: payload.scenes,
+      panelBackground: payload.panelBackground,
+      accentColor: payload.accentColor,
+    })
+    const narrationMimeType = oneOf(payload.narrationMimeType, ['audio/wav', 'audio/mpeg', 'audio/mp3'], 'narrationMimeType')
+    const narration = decodeCommittedBase64(payload, 'narration', narrationMimeType, 44, 16 * 1024 * 1024)
+    assertAudioSignature(narration, narrationMimeType)
+    return {
+      schemaVersion: OFFLINE_REMOTION_RENDER_REQUEST_PROTOCOL,
+      toolId: 'remotion',
+      operationId: OFFLINE_REMOTION_RENDER_OPERATION,
+      payload: {
+        compositionProfileId: 'motion_studio_prepared_script_animatic_v1',
+        width: planning.width,
+        height: planning.height,
+        fps: planning.fps,
+        durationFrames: planning.durationFrames,
+        scenes: planning.scenes,
+        panelBackground: planning.panelBackground,
+        accentColor: planning.accentColor,
+        narrationMimeType,
+        narrationByteLength: narration.byteLength,
+        narrationSha256: String(payload.narrationSha256),
+        narrationBytesBase64: narration.toString('base64'),
+      },
+    }
+  }
+
   if (Object.hasOwn(payloadRecord, 'compositionProfileId')) {
     if (isSourceSequenceCompositionProfile(payloadRecord.compositionProfileId)) {
       const captionTrack = payloadRecord.compositionProfileId ===
@@ -765,7 +1324,36 @@ export function validateOfflineRemotionRenderRequest(value: unknown): OfflineRem
 export function isFinalCompositionPayload(
   payload: OfflineRemotionRenderRequest['payload'],
 ): payload is OfflineRemotionFinalCompositionPayload {
-  return 'compositionProfileId' in payload
+  return 'compositionProfileId' in payload && (
+    payload.compositionProfileId === 'approved_source_caption_final_v1' ||
+    payload.compositionProfileId === 'approved_source_caption_track_final_v1' ||
+    payload.compositionProfileId === 'approved_source_sequence_caption_final_v1' ||
+    payload.compositionProfileId === 'approved_source_sequence_caption_track_final_v1'
+  )
+}
+
+export function isMotionStudioScenePreviewPayload(
+  payload: OfflineRemotionRenderRequest['payload'],
+): payload is OfflineRemotionMotionStudioScenePreviewPayload {
+  return 'compositionProfileId' in payload && payload.compositionProfileId === 'motion_studio_scene_preview_v1'
+}
+
+export function isMotionStudioLayeredPayload(
+  payload: OfflineRemotionRenderRequest['payload'],
+): payload is OfflineRemotionMotionStudioLayeredPayload {
+  return 'compositionProfileId' in payload && payload.compositionProfileId === 'motion_studio_native_layered_scene_v1'
+}
+
+export function isMotionStudioAnimaticPayload(
+  payload: OfflineRemotionRenderRequest['payload'],
+): payload is OfflineRemotionMotionStudioAnimaticPayload {
+  return 'compositionProfileId' in payload && payload.compositionProfileId === 'motion_studio_prepared_script_animatic_v1'
+}
+
+export function isMotionStudioRouteDrawPayload(
+  payload: OfflineRemotionRenderRequest['payload'],
+): payload is OfflineRemotionMotionStudioRouteDrawPayload {
+  return 'compositionProfileId' in payload && payload.compositionProfileId === 'motion_studio_deterministic_route_draw_v1'
 }
 
 export function offlineRemotionRequestSha256(request: OfflineRemotionRenderRequest): string {
@@ -884,7 +1472,8 @@ function validateSequenceSourceSignature(
   ) throw validationFailure('Source-sequence Matroska dependency has an invalid signature.')
 }
 
-function committedBytes<T extends 'video/mp4' | 'video/x-matroska' | 'image/png' | 'audio/wav'>(
+function committedBytes<T extends
+  'video/mp4' | 'video/x-matroska' | 'image/png' | 'audio/wav' | 'audio/mpeg' | 'audio/mp3'>(
   input: { mimeType: T; bytes: Buffer; sha256: string },
   expectedMimeType: T,
   minimumBytes: number,
@@ -901,8 +1490,9 @@ function committedBytes<T extends 'video/mp4' | 'video/x-matroska' | 'image/png'
 
 function decodeCommittedBase64(
   payload: Record<string, unknown>,
-  prefix: 'source' | 'captionOverlay',
-  mimeType: 'video/mp4' | 'video/x-matroska' | 'image/png',
+  prefix: 'source' | 'captionOverlay' | 'subject' | 'keyframe' | 'narration',
+  mimeType:
+    'video/mp4' | 'video/x-matroska' | 'image/png' | 'audio/wav' | 'audio/mpeg' | 'audio/mp3',
   minimumBytes: number,
   maximumBytes: number,
 ): Buffer {
@@ -1457,5 +2047,33 @@ function safeText(value: unknown, max: number, label: string): string {
     throw validationFailure(`${label} is unsafe or outside bounds.`)
   }
   return value
+}
+function stableId(value: unknown, label: string): string {
+  if (
+    typeof value !== 'string' || value.length < 1 || value.length > 200 ||
+    !/^[A-Za-z0-9][A-Za-z0-9._:-]*$/.test(value) || value.includes('..')
+  ) throw validationFailure(`${label} is invalid.`)
+  return value
+}
+
+function scenesEnd(scenes: readonly unknown[], index: number): number {
+  const scene = record(scenes[index], 'Motion Studio animatic scene')
+  return integer(scene.endFrame, 1, 900, 'endFrame')
+}
+
+function assertAudioSignature(
+  bytes: Buffer,
+  mimeType: 'audio/wav' | 'audio/mpeg' | 'audio/mp3',
+): void {
+  if (mimeType === 'audio/wav') {
+    if (
+      bytes.subarray(0, 4).toString('ascii') !== 'RIFF' ||
+      bytes.subarray(8, 12).toString('ascii') !== 'WAVE'
+    ) throw validationFailure('Narration bytes are not an approved WAV stream.')
+    return
+  }
+  const id3 = bytes.subarray(0, 3).toString('ascii') === 'ID3'
+  const sync = bytes.byteLength >= 2 && bytes[0] === 0xff && (bytes[1]! & 0xe0) === 0xe0
+  if (!id3 && !sync) throw validationFailure('Narration bytes are not an approved MPEG audio stream.')
 }
 function validationFailure(message: string): ApiError { return new ApiError('VALIDATION_FAILED', message, 400) }

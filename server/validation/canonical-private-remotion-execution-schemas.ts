@@ -35,7 +35,42 @@ export const canonicalPrivateRemotionResponseSchema = z.object({
     actualRemotionOperationCompleted: z.literal(true),
     providerCallMade: z.literal(false), sourceObjectRead: z.literal(false),
     privatePreviewRenderExecuted: z.literal(true), finalExportExecuted: z.literal(false),
-  }).strict(),
+    motionStudioCompositionProfileId: z.enum([
+      'motion_studio_scene_preview_v1',
+      'motion_studio_native_layered_scene_v1',
+      'motion_studio_prepared_script_animatic_v1',
+      'motion_studio_deterministic_route_draw_v1',
+    ]).optional(),
+    dependencyArtifactRead: z.boolean().default(false),
+    dependencyReadEvidenceHash: sha.optional(),
+    sourceArtifactId: identity.optional(),
+    sourceArtifactSha256: sha.optional(),
+    sourceArtifactContentType: z.enum(['image/png', 'audio/wav']).optional(),
+  }).strict().superRefine((tool, context) => {
+    const dependencyFields = [
+      tool.dependencyReadEvidenceHash,
+      tool.sourceArtifactId,
+      tool.sourceArtifactSha256,
+      tool.sourceArtifactContentType,
+    ]
+    if (
+      (tool.dependencyArtifactRead && dependencyFields.some((value) => value === undefined)) ||
+      (!tool.dependencyArtifactRead && dependencyFields.some((value) => value !== undefined)) ||
+      (tool.dependencyArtifactRead && tool.motionStudioCompositionProfileId === undefined) ||
+      (tool.motionStudioCompositionProfileId === 'motion_studio_scene_preview_v1' &&
+        tool.dependencyArtifactRead) ||
+      (tool.motionStudioCompositionProfileId !== undefined &&
+        tool.motionStudioCompositionProfileId !== 'motion_studio_scene_preview_v1' &&
+        !tool.dependencyArtifactRead) ||
+      (tool.dependencyArtifactRead && tool.sourceArtifactContentType !== (
+        tool.motionStudioCompositionProfileId === 'motion_studio_prepared_script_animatic_v1'
+          ? 'audio/wav'
+          : 'image/png'
+      ))
+    ) {
+      context.addIssue({ code: 'custom', message: 'Remotion dependency and Motion Studio profile evidence are inconsistent.' })
+    }
+  }),
   lease: z.object({
     leaseId: identity, attemptNumber: z.number().int().positive().max(10), immutableLeaseHash: sha,
     executionAttemptId: identity, runnerClass: z.literal('offline_remotion_render_execution_v1'),
@@ -55,7 +90,14 @@ export const canonicalPrivateRemotionResponseSchema = z.object({
     width: z.number().int().positive(), height: z.number().int().positive(),
     fps: z.number().positive(), frameCount: z.number().int().positive(), durationSeconds: z.number().positive(),
     reportSha256: sha,
-  }).strict(),
+    motionStudioFrameGoldenCount: z.number().int().min(3).max(5).optional(),
+    motionStudioFrameGoldenEvidenceHash: sha.optional(),
+  }).strict().superRefine((qa, context) => {
+    if ((qa.motionStudioFrameGoldenCount === undefined) !==
+        (qa.motionStudioFrameGoldenEvidenceHash === undefined)) {
+      context.addIssue({ code: 'custom', message: 'Motion Studio frame-golden count and digest must be projected together.' })
+    }
+  }),
   result: z.object({
     artifactId: identity, qaEvaluationId: identity, reconciliationId: identity,
     artifactVersion: z.number().int().positive(), contentType: z.literal('video/mp4'),
@@ -81,7 +123,23 @@ export const canonicalPrivateRemotionResponseSchema = z.object({
     checksumProtectedAuthority: z.literal(true), distributedAuthority: z.literal(false), productionAuthority: z.literal(false),
   }).strict(),
   completedAt: timestamp, responseHash: sha, testOnly: z.literal(true),
-}).strict()
+}).strict().superRefine((response, context) => {
+  const profileId = response.tool.motionStudioCompositionProfileId
+  const goldenCount = response.qa.motionStudioFrameGoldenCount
+  const goldenHash = response.qa.motionStudioFrameGoldenEvidenceHash
+  if (
+    (profileId === undefined && (goldenCount !== undefined || goldenHash !== undefined)) ||
+    (profileId !== undefined && (goldenCount === undefined || goldenHash === undefined)) ||
+    (profileId !== undefined && goldenCount !== (
+      profileId === 'motion_studio_deterministic_route_draw_v1' ? 5 : 3
+    ))
+  ) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Motion Studio profile and exact frame-golden evidence are inconsistent.',
+    })
+  }
+})
 
 export type RunCanonicalPrivateRemotionInput = z.infer<typeof runCanonicalPrivateRemotionSchema>
 export type CanonicalPrivateRemotionAuthority = z.infer<typeof canonicalPrivateRemotionAuthoritySchema>

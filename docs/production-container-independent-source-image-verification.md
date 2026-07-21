@@ -15,6 +15,7 @@ This boundary closes one specific evidence gap: a retained in-container readines
    - `io.reeditpro.build.source.clean=true`
    - `io.reeditpro.container.qualification.candidate.version=production-container-qualification-candidate-v1`
 6. A successful check emits `production-container-qualification-host-verification-v1` with evidence class `local_host_source_image_verification_unreleased`.
+7. Script 15 may turn that receipt into one exact manual qualification review package. Package preparation does not accept the review or promote the image.
 
 ## Deliberately closed gates
 
@@ -27,6 +28,8 @@ The host receipt always records all of the following as false:
 - production ready.
 
 It is not consumed by the static production-readiness report. It lists the runtime-observed tools still requiring the later reviewed manual qualification step. Model weights, source-install review, FFmpeg/libass distribution review, deployment, service identity, private storage, observability, and release approval remain separate evidence.
+
+The next source-owned artifact is documented in `production-container-manual-qualification-review-package.md`.
 
 ## Human-run commands
 

@@ -2,13 +2,19 @@ import { defineConfig } from 'vite'
 
 export default defineConfig({
   build: {
-    ssr: 'server/cli/verify-production-container-qualification-candidate.ts',
+    ssr: true,
     outDir: 'dist-release-tools',
     emptyOutDir: true,
     target: 'node22',
     rollupOptions: {
+      input: {
+        'container-readiness-host-verifier':
+          'server/cli/verify-production-container-qualification-candidate.ts',
+        'container-manual-review-package':
+          'server/cli/prepare-production-container-manual-qualification-review.ts',
+      },
       output: {
-        entryFileNames: 'container-readiness-host-verifier.js',
+        entryFileNames: '[name].js',
         format: 'es',
       },
     },

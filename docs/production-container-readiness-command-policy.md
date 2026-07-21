@@ -30,3 +30,5 @@ The independent host verifier must:
 - never build, pull, run, push, deploy, process media, load models, call providers, read secrets, mutate cloud/database/billing state, or promote production readiness.
 
 Its `local_host_source_image_verification_unreleased` receipt remains outside the static production readiness authority until manual license/model review and a later reviewed release adapter are implemented.
+
+Manual review package preparation must likewise require explicit confirmation, one bounded retained host receipt, and the exact clean source. It may project source-owned package/license/model/source-install metadata and hashes only. It must never accept a reviewer decision, edit the tool registry, mark a model approved, qualify an image/release, call Docker or cloud services, or affect customer price/credits/service fee/billing.

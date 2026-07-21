@@ -47,6 +47,31 @@ export function buildContainerHostVerificationCommandPlan(): ReadinessCommandPla
   }
 }
 
+export function buildContainerManualReviewPreparationCommandPlan(): ReadinessCommandPlan {
+  return {
+    id: 'container_manual_qualification_review_package',
+    label: 'Prepare image-bound manual qualification review package',
+    mode: 'host_optional',
+    command: 'scripts/docker/prod/15-prepare-container-manual-review-package.example.sh',
+    requiredEnvVars: [
+      'REEDITPRO_CONTAINER_HOST_VERIFICATION_FILE',
+      'REEDITPRO_CONFIRM_CONTAINER_MANUAL_REVIEW_PREPARATION=true',
+    ],
+    safetyNotes: [
+      'Consumes one retained host-verification receipt from the exact clean source checkout.',
+      'Builds review input for package licenses, model checkpoints, and source-install reproducibility.',
+      'Cannot record a reviewer decision, qualify an image, qualify a release, or enable production.',
+    ],
+    expectedOutputSummary: 'Immutable non-promotable review package for every runtime-observed tool in one verified image.',
+    doesNotRun: [
+      ...READINESS_DOES_NOT_RUN,
+      'no Docker inspection, pull, or run',
+      'no license or model approval',
+      'no cloud, database, provider, or billing mutation',
+    ],
+  }
+}
+
 export function buildReadinessCommandPlans(): ReadinessCommandPlan[] {
   const imageRoles: ProductionContainerImageRole[] = [
     'api',
@@ -62,6 +87,7 @@ export function buildReadinessCommandPlans(): ReadinessCommandPlan[] {
     ...imageRoles.map(buildContainerReadinessCommandPlan),
     buildAllContainerReadinessCommandPlan(),
     buildContainerHostVerificationCommandPlan(),
+    buildContainerManualReviewPreparationCommandPlan(),
   ]
 }
 

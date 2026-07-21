@@ -268,7 +268,9 @@ export function verifyProductionContainerQualificationWithHostAdapter(input: {
 
   const now = input.now ?? (() => new Date())
   const startedAt = validNow(now).toISOString()
-  const source = assertSourceObservationIntegrity(input.adapter.inspectSource())
+  const source = assertProductionContainerQualificationSourceObservationIntegrity(
+    input.adapter.inspectSource(),
+  )
   if (!source.worktreeClean || source.statusEntryCount !== 0) {
     throw new Error('Independent source verification requires an exactly clean worktree.')
   }
@@ -283,7 +285,9 @@ export function verifyProductionContainerQualificationWithHostAdapter(input: {
     imageReference: candidate.imageReference,
   }))
   assertImageMatchesCandidate(image, candidate)
-  const sourceRevalidation = assertSourceObservationIntegrity(input.adapter.inspectSource())
+  const sourceRevalidation = assertProductionContainerQualificationSourceObservationIntegrity(
+    input.adapter.inspectSource(),
+  )
   if (
     !sourceRevalidation.worktreeClean ||
     sourceRevalidation.statusEntryCount !== 0 ||
@@ -395,7 +399,7 @@ export function assertHostVerificationIntegrity(
   return deepFreeze(receipt)
 }
 
-function assertSourceObservationIntegrity(
+export function assertProductionContainerQualificationSourceObservationIntegrity(
   rawObservation: unknown,
 ): ProductionContainerQualificationSourceObservation {
   const observation = sourceObservationSchema.parse(rawObservation)

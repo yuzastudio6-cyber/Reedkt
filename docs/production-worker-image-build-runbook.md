@@ -12,7 +12,8 @@ Milestone 5 provides human-run image build templates only. Codex does not build,
 6. Run future local or Cloud Run tool-readiness checks after images exist.
 7. Push images with `scripts/docker/prod/07-push-images.example.sh` only after review.
 8. Resolve and retain an immutable repository digest, run the confined candidate probe, then run the independent local host verifier described in `production-container-independent-source-image-verification.md`.
-9. Deploy Cloud Run services/jobs only in a later deployment milestone.
+9. Prepare the exact image-bound manual review package described in `production-container-manual-qualification-review-package.md`; do not treat package generation as reviewer approval.
+10. Deploy Cloud Run services/jobs only in a later deployment milestone.
 
 ## Required Safety Checks
 

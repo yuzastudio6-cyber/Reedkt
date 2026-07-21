@@ -279,6 +279,7 @@ for (const id of [
   'container_readiness_gpu_worker',
   'container_readiness_tool_readiness_worker',
   'container_readiness_host_verification',
+  'container_manual_qualification_review_package',
 ]) {
   check(plans.some((plan) => plan.id === id), `Missing command plan ${id}.`)
 }
@@ -298,6 +299,10 @@ const hostVerificationPlan = plans.find((plan) => plan.id === 'container_readine
 check(hostVerificationPlan?.mode === 'host_optional', 'Host verification must remain an explicit host-optional command plan.')
 check(hostVerificationPlan?.command.includes('14-verify-container-readiness-candidate.example.sh') === true, 'Host verification plan must use the bounded human script.')
 check(hostVerificationPlan?.doesNotRun.includes('no Docker pull or run') === true, 'Host verification plan must prohibit image pull and run.')
+const manualReviewPlan = plans.find((plan) => plan.id === 'container_manual_qualification_review_package')
+check(manualReviewPlan?.mode === 'host_optional', 'Manual review package preparation must remain host optional.')
+check(manualReviewPlan?.command.includes('15-prepare-container-manual-review-package.example.sh') === true, 'Manual review package plan must use the bounded human script.')
+check(manualReviewPlan?.doesNotRun.includes('no license or model approval') === true, 'Review package preparation must not approve licenses or models.')
 
 const scripts = [
   'scripts/docker/prod/08-run-static-readiness.example.sh',

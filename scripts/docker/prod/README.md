@@ -28,3 +28,5 @@ The output is a non-promotable container-runtime candidate receipt. It does not 
 ## Independent Host Verification Example
 
 After retaining a candidate outside the repository, build the separate verifier and run script 14 with explicit confirmation. It checks the clean Git commit/tree and uses read-only local `docker image inspect` to match the candidate digest and OCI labels. It does not build, pull, run, push, deploy, or promote an image. The resulting host receipt remains unreleased and non-promotable until separate manual license/model and release evidence exists.
+
+Script 15 consumes that retained host receipt and prepares one exact, image-bound manual qualification review package. It reads Git state but does not call Docker or accept any review decision. The package remains non-promotable and lists the package-license, model-weight, and source-install evidence that a later authorized reviewer must supply.

@@ -11,7 +11,8 @@ Human-run order for M12 readiness:
 7. Retain the emitted candidate receipt without treating it as production authority.
 8. Build the separate host verifier with `npm run build:container-readiness-host-verifier`, keep the candidate outside the checkout, and run `14-verify-container-readiness-candidate.example.sh` with explicit confirmation.
 9. Retain the resulting local host receipt. It proves clean source/image binding only and is still not a production qualification.
-10. Review missing tools, source-install review items, FFmpeg/libass manual checks, and model-weight/license blockers.
-11. Proceed to real execution milestones only after the canonical qualification and later deployed-release gates are cleared.
+10. Run `15-prepare-container-manual-review-package.example.sh` from that same clean source to create exact non-promotable review input for every observed tool.
+11. Review missing tools, source-install review items, FFmpeg/libass manual checks, and model-weight/license blockers through a later approved reviewer authority. Package generation itself is not approval.
+12. Proceed to real execution milestones only after the canonical qualification and later deployed-release gates are cleared.
 
-No deployment happens in this workflow. The scripts under `scripts/docker/prod/08-14-*.example.sh` are examples only. Scripts 09-13 emit non-promotable runtime candidates; script 14 performs only bounded local Git and Docker image inspection and emits a non-promotable host verification receipt.
+No deployment happens in this workflow. The scripts under `scripts/docker/prod/08-15-*.example.sh` are examples only. Scripts 09-13 emit non-promotable runtime candidates; script 14 performs bounded local Git and Docker image inspection; script 15 performs local Git reads and prepares non-promotable human review input.

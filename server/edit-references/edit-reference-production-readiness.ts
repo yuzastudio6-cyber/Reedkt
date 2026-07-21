@@ -1,7 +1,10 @@
 import { ApiError } from '../errors/api-error'
 
 export const EDIT_REFERENCE_PRODUCTION_READINESS_VERSION =
-  'edit-reference-production-readiness-v2' as const
+  'edit-reference-production-readiness-v3' as const
+
+export const EDIT_REFERENCE_PRODUCTION_EVIDENCE_ADMISSION_VERSION =
+  'edit-reference-production-evidence-admission-v1' as const
 
 export const EDIT_REFERENCE_PRODUCTION_GATE_DEFINITIONS = [
   {
@@ -10,7 +13,10 @@ export const EDIT_REFERENCE_PRODUCTION_GATE_DEFINITIONS = [
     assertions: [
       'canonical_migration_chain_verified',
       'application_lifecycle_rpc_v3_verified',
+      'server_owned_application_preparation_rpc_v1_verified',
       'server_only_application_and_planning_read_rpc_adapters_verified',
+      'preparation_reference_dna_qa_and_target_authority_reread_verified',
+      'browser_application_record_authority_rejected_verified',
       'browser_command_server_authority_binding_verified',
       'durable_idempotency_and_cas_verified',
       'cross_device_readback_verified',
@@ -96,6 +102,9 @@ export const EDIT_REFERENCE_PRODUCTION_GATE_DEFINITIONS = [
     assertions: [
       'apply_replace_remove_atomicity_verified',
       'exact_edit_preference_and_reference_apply_transaction_verified',
+      'preparation_creates_unconnected_application_without_plan_invalidation_verified',
+      'preparation_lost_response_exact_idempotent_recovery_verified',
+      'prepared_application_authority_revalidated_during_atomic_apply_verified',
       'replacement_preparation_preserves_current_application_until_atomic_commit_verified',
       'exact_output_frame_transactional_reread_verified',
       'draft_plan_estimate_invalidation_verified',
@@ -182,9 +191,30 @@ export interface EditReferenceProductionGateEvidence {
   readonly localOrSyntheticEvidenceAccepted: false
 }
 
+/**
+ * Server-only admission created only after a reviewed same-release evidence
+ * repository verifies every live receipt. Structural evidence objects and
+ * caller-asserted booleans never qualify an admission.
+ */
+export interface EditReferenceProductionEvidenceAdmission {
+  readonly schemaVersion: typeof EDIT_REFERENCE_PRODUCTION_EVIDENCE_ADMISSION_VERSION
+  readonly authorityClass: 'canonical_same_release_edit_reference_evidence'
+  readonly sourceAuthority: 'canonical_production_release_evidence_repository'
+  readonly releaseCandidateId: string
+  readonly sourceCommitSha: string
+  readonly deploymentArtifactDigestSha256: string
+  readonly environmentId: string
+  readonly admittedEvidenceIds: readonly string[]
+  readonly liveEvidenceRepositoryReadVerified: true
+  readonly sameReleaseLineageVerified: true
+  readonly localOrSyntheticEvidenceAccepted: false
+  readonly productionAuthority: true
+}
+
 export interface EditReferenceProductionReadinessInput {
   readonly releaseCandidate: EditReferenceProductionReleaseCandidate
   readonly evidence: readonly EditReferenceProductionGateEvidence[]
+  readonly evidenceAdmission?: EditReferenceProductionEvidenceAdmission
 }
 
 export interface EditReferenceProductionGateResult {
@@ -201,6 +231,7 @@ export interface EditReferenceProductionReadinessReport {
   readonly decision: 'ready_for_production_release' | 'blocked'
   readonly gates: readonly EditReferenceProductionGateResult[]
   readonly blockers: readonly EditReferenceProductionGateId[]
+  readonly trustedEvidenceAdmissionAccepted: boolean
   readonly localOrSyntheticEvidenceAccepted: false
 }
 
@@ -208,11 +239,19 @@ const ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,239}$/
 const SHA256_PATTERN = /^[a-f0-9]{64}$/
 const COMMIT_PATTERN = /^(?!0{40}$)[a-f0-9]{40}$/
 
+// There is intentionally no public qualification function. A future reviewed
+// live evidence-repository adapter must be introduced in this module before a
+// production admission can enter this set.
+const qualifiedEvidenceAdmissions = new WeakSet<EditReferenceProductionEvidenceAdmission>()
+
 export function evaluateEditReferenceProductionReadiness(
   input: EditReferenceProductionReadinessInput,
 ): EditReferenceProductionReadinessReport {
   const release = input.releaseCandidate
   const releaseValid = validateReleaseCandidate(release)
+  const evidenceAdmissionReason = releaseValid
+    ? validateEvidenceAdmission(input.evidenceAdmission, release, input.evidence)
+    : 'release_candidate_identity_invalid'
   const evidenceIds = new Set<string>()
   const evidenceByGate = new Map<EditReferenceProductionGateId, EditReferenceProductionGateEvidence>()
   for (const evidence of input.evidence) {
@@ -227,6 +266,7 @@ export function evaluateEditReferenceProductionReadiness(
     if (evidenceIds.has(evidence.evidenceId)) return blocked(definition.id, 'evidence_id_reused')
     evidenceIds.add(evidence.evidenceId)
     const reason = validateEvidence(definition, evidence, release)
+      ?? evidenceAdmissionReason
     return reason
       ? blocked(definition.id, reason)
       : {
@@ -237,7 +277,10 @@ export function evaluateEditReferenceProductionReadiness(
         }
   })
   const blockers = gates.filter((gate) => !gate.ready).map((gate) => gate.gateId)
-  const productionReady = blockers.length === 0 && input.evidence.length === gates.length
+  const trustedEvidenceAdmissionAccepted = !evidenceAdmissionReason
+  const productionReady = blockers.length === 0
+    && input.evidence.length === gates.length
+    && trustedEvidenceAdmissionAccepted
   return {
     schemaVersion: EDIT_REFERENCE_PRODUCTION_READINESS_VERSION,
     releaseCandidate: { ...release },
@@ -245,6 +288,7 @@ export function evaluateEditReferenceProductionReadiness(
     decision: productionReady ? 'ready_for_production_release' : 'blocked',
     gates,
     blockers,
+    trustedEvidenceAdmissionAccepted,
     localOrSyntheticEvidenceAccepted: false,
   }
 }
@@ -260,12 +304,41 @@ export function assertEditReferenceProductionReady(
       503,
       {
         blockers: report.blockers,
+        trustedEvidenceAdmissionAccepted: report.trustedEvidenceAdmissionAccepted,
         localOrSyntheticEvidenceAccepted: false,
         remoteMutationAttempted: false,
       },
     )
   }
   return report
+}
+
+function validateEvidenceAdmission(
+  admission: EditReferenceProductionEvidenceAdmission | undefined,
+  release: EditReferenceProductionReleaseCandidate,
+  evidence: readonly EditReferenceProductionGateEvidence[],
+): string | undefined {
+  if (!admission) return 'trusted_live_evidence_admission_missing'
+  if (!qualifiedEvidenceAdmissions.has(admission)) {
+    return 'trusted_live_evidence_admission_unqualified'
+  }
+  const evidenceIds = evidence.map((item) => item.evidenceId).sort()
+  const admittedEvidenceIds = [...admission.admittedEvidenceIds].sort()
+  if (
+    admission.schemaVersion !== EDIT_REFERENCE_PRODUCTION_EVIDENCE_ADMISSION_VERSION
+    || admission.authorityClass !== 'canonical_same_release_edit_reference_evidence'
+    || admission.sourceAuthority !== 'canonical_production_release_evidence_repository'
+    || admission.releaseCandidateId !== release.releaseCandidateId
+    || admission.sourceCommitSha !== release.sourceCommitSha
+    || admission.deploymentArtifactDigestSha256 !== release.deploymentArtifactDigestSha256
+    || admission.environmentId !== release.environmentId
+    || admission.liveEvidenceRepositoryReadVerified !== true
+    || admission.sameReleaseLineageVerified !== true
+    || admission.localOrSyntheticEvidenceAccepted !== false
+    || admission.productionAuthority !== true
+    || JSON.stringify(admittedEvidenceIds) !== JSON.stringify(evidenceIds)
+  ) return 'trusted_live_evidence_admission_invalid'
+  return undefined
 }
 
 function validateReleaseCandidate(release: EditReferenceProductionReleaseCandidate): boolean {

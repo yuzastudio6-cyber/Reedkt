@@ -3,6 +3,8 @@ import {
   EDIT_REFERENCE_PRODUCTION_GATE_DEFINITIONS,
   assertEditReferenceProductionReady,
   evaluateEditReferenceProductionReadiness,
+  EDIT_REFERENCE_PRODUCTION_EVIDENCE_ADMISSION_VERSION,
+  type EditReferenceProductionEvidenceAdmission,
   type EditReferenceProductionGateEvidence,
   type EditReferenceProductionReleaseCandidate,
 } from '../edit-references/edit-reference-production-readiness'
@@ -44,18 +46,94 @@ const completeEvidence: EditReferenceProductionGateEvidence[] =
     localOrSyntheticEvidenceAccepted: false,
   }))
 
-const complete = assertEditReferenceProductionReady({
+const structurallyComplete = evaluateEditReferenceProductionReadiness({
   releaseCandidate,
   evidence: completeEvidence,
 })
-assert.equal(complete.schemaVersion, 'edit-reference-production-readiness-v2')
-assert.equal(complete.productionReady, true)
-assert.equal(complete.decision, 'ready_for_production_release')
-assert.equal(complete.blockers.length, 0)
+assert.equal(structurallyComplete.schemaVersion, 'edit-reference-production-readiness-v3')
+assert.equal(structurallyComplete.productionReady, false)
+assert.equal(structurallyComplete.decision, 'blocked')
+assert.equal(structurallyComplete.blockers.length, EDIT_REFERENCE_PRODUCTION_GATE_DEFINITIONS.length)
+assert.equal(structurallyComplete.trustedEvidenceAdmissionAccepted, false)
+assert.ok(structurallyComplete.gates.every((gate) => (
+  gate.reason === 'trusted_live_evidence_admission_missing'
+)))
+assert.throws(() => assertEditReferenceProductionReady({
+  releaseCandidate,
+  evidence: completeEvidence,
+}), /not ready for production release/i)
+
+const forgedAdmission: EditReferenceProductionEvidenceAdmission = {
+  schemaVersion: EDIT_REFERENCE_PRODUCTION_EVIDENCE_ADMISSION_VERSION,
+  authorityClass: 'canonical_same_release_edit_reference_evidence',
+  sourceAuthority: 'canonical_production_release_evidence_repository',
+  releaseCandidateId: releaseCandidate.releaseCandidateId,
+  sourceCommitSha: releaseCandidate.sourceCommitSha,
+  deploymentArtifactDigestSha256: releaseCandidate.deploymentArtifactDigestSha256,
+  environmentId: releaseCandidate.environmentId,
+  admittedEvidenceIds: completeEvidence.map((evidence) => evidence.evidenceId),
+  liveEvidenceRepositoryReadVerified: true,
+  sameReleaseLineageVerified: true,
+  localOrSyntheticEvidenceAccepted: false,
+  productionAuthority: true,
+}
+const forged = evaluateEditReferenceProductionReadiness({
+  releaseCandidate,
+  evidence: completeEvidence,
+  evidenceAdmission: forgedAdmission,
+})
+assert.equal(forged.productionReady, false)
+assert.equal(forged.trustedEvidenceAdmissionAccepted, false)
+assert.ok(forged.gates.every((gate) => (
+  gate.reason === 'trusted_live_evidence_admission_unqualified'
+)))
 assert.ok(
   EDIT_REFERENCE_PRODUCTION_GATE_DEFINITIONS[0]?.assertions.includes(
     'study_chat_reasoning_run_tables_and_atomic_settlement_verified',
   ),
+)
+assert.ok(
+  EDIT_REFERENCE_PRODUCTION_GATE_DEFINITIONS[0]?.assertions.includes(
+    'server_owned_application_preparation_rpc_v1_verified',
+  ),
+)
+assert.ok(
+  EDIT_REFERENCE_PRODUCTION_GATE_DEFINITIONS[7]?.assertions.includes(
+    'preparation_lost_response_exact_idempotent_recovery_verified',
+  ),
+)
+
+const prePreparationEvidence = completeEvidence.map((evidence) => {
+  if (evidence.gateId === 'canonical_persistence') {
+    return {
+      ...evidence,
+      assertions: evidence.assertions.filter((assertion) => (
+        assertion !== 'server_owned_application_preparation_rpc_v1_verified'
+      )),
+    }
+  }
+  if (evidence.gateId === 'atomic_application_lifecycle') {
+    return {
+      ...evidence,
+      assertions: evidence.assertions.filter((assertion) => (
+        assertion !== 'preparation_lost_response_exact_idempotent_recovery_verified'
+      )),
+    }
+  }
+  return { ...evidence }
+})
+const prePreparation = evaluateEditReferenceProductionReadiness({
+  releaseCandidate,
+  evidence: prePreparationEvidence,
+})
+assert.equal(prePreparation.productionReady, false)
+assert.equal(
+  prePreparation.gates.find((gate) => gate.gateId === 'canonical_persistence')?.reason,
+  'required_assertions_incomplete',
+)
+assert.equal(
+  prePreparation.gates.find((gate) => gate.gateId === 'atomic_application_lifecycle')?.reason,
+  'required_assertions_incomplete',
 )
 
 const incompleteAssertions = completeEvidence.map((evidence, index) => index === 3
@@ -109,10 +187,12 @@ assert.equal(evaluateEditReferenceProductionReadiness({
 
 console.log(JSON.stringify({
   status: 'passed',
-  contractVersion: complete.schemaVersion,
+  contractVersion: structurallyComplete.schemaVersion,
   requiredProductionGateCount: EDIT_REFERENCE_PRODUCTION_GATE_DEFINITIONS.length,
-  localOrSyntheticEvidenceAccepted: complete.localOrSyntheticEvidenceAccepted,
+  localOrSyntheticEvidenceAccepted: structurallyComplete.localOrSyntheticEvidenceAccepted,
   missingEvidenceProductionReady: empty.productionReady,
-  fullyVerifiedFixtureProductionReady: complete.productionReady,
+  structurallyCompleteCallerEvidenceProductionReady: structurallyComplete.productionReady,
+  forgedAdmissionProductionReady: forged.productionReady,
+  trustedEvidenceAdmissionAccepted: structurallyComplete.trustedEvidenceAdmissionAccepted,
   remoteMutationAttempted: false,
 }, null, 2))

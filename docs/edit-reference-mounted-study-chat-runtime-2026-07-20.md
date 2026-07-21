@@ -64,8 +64,13 @@ non-promotable and cannot claim production authority.
 Hosted mode fails before message/evidence mutation when the source-verified
 runtime is absent. A mounted runtime must identify itself as
 `canonical_backend_verified_runtime`, retain the canonical repository and cost
-authorities, and attest the exact Kimi-first route contract. Caller-provided
-browser fields cannot enable it.
+authorities, use persistence contract
+`edit-reference-production-persistence-contract-v6`, and attest the exact
+Kimi-first route contract. The V2 runtime seam additionally requires the live
+repository/RPC, durable multi-attempt run, multi-replica checkback, provider
+dispatch, usage/cost settlement, and same-release evidence gates. A private
+qualification set has no source-contract insertion path, so caller-asserted
+booleans or browser fields cannot self-promote this version.
 
 ## Browser projection
 
@@ -96,6 +101,8 @@ The focused mounted-route smoke proves:
 - private aggregate output excludes credential/raw-provider fields;
 - hosted mode without a verified port fails before authority access;
 - a controlled fixture cannot self-promote;
+- a forged canonical port with every live boolean set still cannot enter the
+  private production qualification set;
 - no provider, customer price, customer credit, or service-fee action occurs.
 
 Surrounding regression coverage also proves the existing Study Session

@@ -93,6 +93,13 @@ The production readiness contract now also requires
 `study_chat_reasoning_run_tables_and_atomic_settlement_verified` under the
 live canonical-persistence gate. Source fixtures cannot satisfy that assertion.
 
+The mounted Study Chat runtime port is now
+`edit-reference-study-chat-runtime-port-v2`. Hosted execution additionally
+requires same-release live repository/RPC, multi-attempt persistence,
+multi-replica checkback, provider dispatch, and usage/cost settlement evidence.
+This source version has no insertion path into its private production
+qualification set, so a port cannot promote itself by setting those flags.
+
 ## Verification
 
 Run:

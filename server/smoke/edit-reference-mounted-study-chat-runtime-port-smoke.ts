@@ -16,6 +16,7 @@ import type { EditReferenceStudyChatReasoningAttemptRecord } from '../edit-refer
 import {
   EDIT_REFERENCE_STUDY_CHAT_RUNTIME_PORT_VERSION,
   appendMountedEditReferenceStudyChatMessage,
+  assertEditReferenceStudyChatRuntimePortIsNotProduction,
   type EditReferenceStudyChatRuntimePort,
   type EditReferenceStudyChatRuntimePortInput,
 } from '../services/edit-reference-study-chat-runtime-port'
@@ -32,6 +33,7 @@ const ownerUserId = 'mock-user-runtime'
 
 try {
   const port = controlledBlockedRuntimePort()
+  assert.doesNotThrow(() => assertEditReferenceStudyChatRuntimePortIsNotProduction(port))
   const runtime = await startRuntime(root, port)
   let referenceId = ''
   let studyId = ''
@@ -177,6 +179,38 @@ try {
   )
   assert.equal(authorityCalled, false)
 
+  const forgedProductionPort: EditReferenceStudyChatRuntimePort = {
+    ...port,
+    runtimeClass: 'canonical_backend_verified_runtime',
+    evidenceClass: 'canonical_same_release_live_runtime',
+    canonicalRepositoryRpcVerified: true,
+    durableMultiAttemptReasoningRunVerified: true,
+    multiReplicaCheckbackRecoveryVerified: true,
+    liveProviderDispatchVerified: true,
+    liveUsageAndCostSettlementVerified: true,
+    sameReleaseReadinessEvidenceVerified: true,
+    productionAuthority: true,
+  }
+  await assert.rejects(
+    appendMountedEditReferenceStudyChatMessage({
+      env: hostedEnv,
+      port: forgedProductionPort,
+      authority: unavailableAuthority,
+      studyId: 'study-hosted-forged-production-block',
+      request: {
+        workspaceId,
+        expectedStudyRevision: 1,
+        clientMessageId: 'hosted-forged-production-message',
+        content: 'Caller-asserted live flags must not qualify a production runtime.',
+      },
+      idempotencyKey: 'hosted-forged-production-request',
+    }),
+    (error: unknown) => error instanceof ApiError
+      && (error.details as { reason?: string } | undefined)?.reason
+        === 'canonical_study_chat_runtime_not_release_qualified',
+  )
+  assert.equal(authorityCalled, false)
+
   console.log(JSON.stringify({
     status: 'passed',
     mountedRoute: '/v1/edit-reference-studies/:studyId/messages',
@@ -185,6 +219,7 @@ try {
     restartSafe: true,
     hostedAbsentPortFailsBeforeMutation: true,
     controlledPortCannotSelfPromote: true,
+    callerAssertedLiveFlagsCannotSelfPromote: true,
     providerCallMade: false,
     customerPriceCalculated: false,
     customerCreditsMutated: false,
@@ -198,8 +233,10 @@ try {
 function controlledBlockedRuntimePort(): EditReferenceStudyChatRuntimePort {
   return {
     schemaVersion: EDIT_REFERENCE_STUDY_CHAT_RUNTIME_PORT_VERSION,
+    persistenceContractVersion: 'edit-reference-production-persistence-contract-v6',
     authorityClass: 'canonical_edit_reference_study_chat_reasoning',
     runtimeClass: 'controlled_private_fixture',
+    evidenceClass: 'controlled_contract_fixture_unreleased',
     sourceAuthority: 'canonical_edit_reference_repository',
     publicRouteAvailable: true,
     canonicalAttemptAuthority: true,
@@ -212,6 +249,12 @@ function controlledBlockedRuntimePort(): EditReferenceStudyChatRuntimePort {
     savedUserDirectionSurvivesProviderFailure: true,
     noSecondMessageOrEvidenceStore: true,
     noBrowserProviderAuthority: true,
+    canonicalRepositoryRpcVerified: false,
+    durableMultiAttemptReasoningRunVerified: false,
+    multiReplicaCheckbackRecoveryVerified: false,
+    liveProviderDispatchVerified: false,
+    liveUsageAndCostSettlementVerified: false,
+    sameReleaseReadinessEvidenceVerified: false,
     customerPriceCalculated: false,
     customerCreditsMutated: false,
     serviceFeeIncluded: false,

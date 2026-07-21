@@ -4,6 +4,7 @@ import { mkdtemp, readFile, rm } from 'node:fs/promises'
 import type { AddressInfo } from 'node:net'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
+import type { SupabaseClient, User } from '@supabase/supabase-js'
 import type {
   EditReferenceApiSuccess,
   EditReferenceDetailData,
@@ -17,7 +18,7 @@ import {
   materializeEditReferenceControlledMediaFixture,
 } from '../edit-references/edit-reference-controlled-media-fixtures'
 import { createUploadService } from '../services/upload-service'
-import type { ServiceContext } from '../types'
+import type { RuntimeClients, ServiceContext } from '../types'
 
 interface EditReferenceUploadIntentRouteData {
   uploadIntent: {
@@ -26,6 +27,12 @@ interface EditReferenceUploadIntentRouteData {
     projectId?: string
     targetPath: string
   }
+}
+
+interface Membership {
+  workspaceId: string
+  userId: string
+  role: string
 }
 
 const ownerUserId = 'mock-user-runtime'
@@ -82,11 +89,7 @@ try {
     )
     assert.equal(wrongPurposeUpload.status, 400)
     assert.equal(wrongPurposeUpload.code, 'VALIDATION_FAILED')
-    const uploadRoute = await mutation<EditReferenceUploadIntentRouteData>(
-      runtime.baseUrl,
-      uploadRoutePath,
-      'long-form-route-upload-intent',
-      {
+    const uploadRequest = {
       workspaceId,
       chatSessionId: created.body.data.detail.study.id,
       uploadPurpose: 'reference_media',
@@ -94,13 +97,36 @@ try {
       mimeType: 'video/mp4',
       expectedSizeBytes: bytes.length,
       checksumSha256,
-      },
+    } as const
+    const uploadRoute = await mutation<EditReferenceUploadIntentRouteData>(
+      runtime.baseUrl,
+      uploadRoutePath,
+      'long-form-route-upload-intent',
+      uploadRequest,
     )
     const uploadIntent = uploadRoute.body.data.uploadIntent
+    assert.equal(uploadRoute.replayed, null)
     assert.equal(uploadIntent.editReferenceId, created.body.data.detail.reference.id)
     assert.equal(uploadIntent.projectId, undefined)
     assert.match(uploadIntent.targetPath, new RegExp(`/edit-references/${created.body.data.detail.reference.id}/reference-media/`))
     assert.doesNotMatch(uploadIntent.targetPath, /\/projects\//)
+    const uploadRouteReplay = await mutation<EditReferenceUploadIntentRouteData>(
+      runtime.baseUrl,
+      uploadRoutePath,
+      'long-form-route-upload-intent',
+      uploadRequest,
+    )
+    assert.equal(uploadRouteReplay.replayed, null)
+    assert.equal(uploadRouteReplay.body.data.uploadIntent.id, uploadIntent.id)
+    assert.equal(uploadRouteReplay.body.data.uploadIntent.targetPath, uploadIntent.targetPath)
+    const conflictingUploadReplay = await mutationError(
+      runtime.baseUrl,
+      uploadRoutePath,
+      'long-form-route-upload-intent',
+      { ...uploadRequest, originalFileName: 'changed-after-idempotency.mp4' },
+    )
+    assert.equal(conflictingUploadReplay.status, 409)
+    assert.equal(conflictingUploadReplay.code, 'IDEMPOTENCY_CONFLICT')
     const uploadService = createUploadService(serviceContext(env))
     await uploadService.uploadLocalObject(uploadIntent.id, workspaceId, bytes, 'video/mp4')
     const finalized = await uploadService.finalizeUploadIntent({
@@ -221,6 +247,49 @@ try {
     assert.equal(foreign.status, 404)
     assert.equal(foreign.code, 'PREFERENCE_STUDY_NOT_FOUND')
 
+    const accessUserId = 'edit-reference-upload-access-user'
+    const accessToken = 'edit-reference-upload-access-token'
+    const accessWorkspaceId = 'workspace-edit-reference-upload-access'
+    const memberships: Membership[] = [{
+      workspaceId: accessWorkspaceId,
+      userId: accessUserId,
+      role: 'viewer',
+    }]
+    const accessRuntime = await startRuntime(env, createRouteClients(accessToken, accessUserId, memberships))
+    try {
+      const accessUploadPath = '/v1/edit-references/edit-reference-access-proof/upload-intents'
+      const accessUploadRequest = {
+        workspaceId: accessWorkspaceId,
+        chatSessionId: 'edit-reference-study-access-proof',
+        uploadPurpose: 'reference_media',
+        originalFileName: 'access-proof.mp4',
+        mimeType: 'video/mp4',
+        expectedSizeBytes: 4,
+      }
+      const viewerDenied = await authenticatedMutationError(
+        accessRuntime.baseUrl,
+        accessUploadPath,
+        accessToken,
+        'edit-reference-upload-access-key',
+        accessUploadRequest,
+      )
+      assert.equal(viewerDenied.status, 403)
+      assert.equal(viewerDenied.code, 'WORKSPACE_ACCESS_DENIED')
+
+      memberships[0]!.role = 'editor'
+      const editorReachedPersistenceGate = await authenticatedMutationError(
+        accessRuntime.baseUrl,
+        accessUploadPath,
+        accessToken,
+        'edit-reference-upload-access-key',
+        accessUploadRequest,
+      )
+      assert.equal(editorReachedPersistenceGate.status, 503)
+      assert.equal(editorReachedPersistenceGate.code, 'EDIT_REFERENCE_PERSISTENCE_BLOCKED')
+    } finally {
+      await accessRuntime.close()
+    }
+
     const payload = JSON.stringify(status.body.data)
     for (const forbidden of [root, checksumSha256, finalized.storageObjectRecord.objectPath, 'signedUrl', 'leaseToken']) {
       assert.equal(payload.includes(forbidden), false, `route payload leaked ${forbidden}`)
@@ -231,6 +300,11 @@ try {
       authenticatedPostStatus: started.status,
       durableGetStatus: status.status,
       idempotentReplay: true,
+      uploadIntentDomainReplay: true,
+      genericCredentialResponseCacheUsed: false,
+      changedUploadRequestRejected: true,
+      viewerUploadDeniedBeforeSensitiveIdempotency: true,
+      editorAdvancedToFailClosedPersistenceGate: true,
       revisionCheckedOwnerControls: true,
       pauseResumeCancelWired: true,
       completedCheckpointsPreservedOnControl: true,
@@ -271,8 +345,8 @@ function serviceContext(env: ReturnType<typeof runtimeEnv>): ServiceContext {
   }
 }
 
-async function startRuntime(env: ReturnType<typeof runtimeEnv>) {
-  const server = createReeditProApiApp(env).listen(0, '127.0.0.1')
+async function startRuntime(env: ReturnType<typeof runtimeEnv>, clients?: RuntimeClients) {
+  const server = createReeditProApiApp(env, clients ? { clients } : {}).listen(0, '127.0.0.1')
   await new Promise<void>((resolvePromise, reject) => {
     server.once('listening', resolvePromise)
     server.once('error', reject)
@@ -317,4 +391,75 @@ async function mutationError(baseUrl: string, route: string, key: string, body: 
   })
   const payload = await response.json() as { error: { code: string } }
   return { status: response.status, code: payload.error.code }
+}
+
+async function authenticatedMutationError(
+  baseUrl: string,
+  route: string,
+  token: string,
+  key: string,
+  body: unknown,
+) {
+  const response = await fetch(`${baseUrl}${route}`, {
+    method: 'POST',
+    headers: {
+      authorization: `Bearer ${token}`,
+      'content-type': 'application/json',
+      'idempotency-key': key,
+    },
+    body: JSON.stringify(body),
+  })
+  const payload = await response.json() as { error: { code: string } }
+  return { status: response.status, code: payload.error.code }
+}
+
+function createRouteClients(
+  token: string,
+  userId: string,
+  memberships: Membership[],
+): RuntimeClients {
+  const publicClient = {
+    auth: {
+      getUser: async (providedToken: string) => ({
+        data: { user: providedToken === token ? fakeUser(userId) : null },
+        error: null,
+      }),
+    },
+  } as unknown as SupabaseClient
+  const adminClient = {
+    from(table: string) {
+      const filters = new Map<string, unknown>()
+      const builder = {
+        select() { return builder },
+        eq(column: string, value: unknown) { filters.set(column, value); return builder },
+        async maybeSingle() {
+          if (table !== 'workspace_members') return { data: null, error: null }
+          const membership = memberships.find((entry) => (
+            entry.workspaceId === filters.get('workspace_id')
+            && entry.userId === filters.get('user_id')
+          ))
+          return {
+            data: membership ? {
+              workspace_id: membership.workspaceId,
+              user_id: membership.userId,
+              role: membership.role,
+            } : null,
+            error: null,
+          }
+        },
+      }
+      return builder
+    },
+  } as unknown as SupabaseClient
+  return { public: publicClient, admin: adminClient }
+}
+
+function fakeUser(id: string): User {
+  return {
+    id,
+    app_metadata: {},
+    user_metadata: {},
+    aud: 'authenticated',
+    created_at: new Date(0).toISOString(),
+  } as User
 }

@@ -2,12 +2,13 @@ import { Router, type NextFunction, type Request, type Response } from 'express'
 import { z } from 'zod'
 import { ApiError } from '../errors/api-error'
 import { requireAuth } from '../middleware/auth'
-import { requireIdempotency } from '../middleware/idempotency'
+import { requireSensitiveIdempotencyKey } from '../middleware/idempotency'
 import { createEditReferenceService, type EditReferenceServiceResult } from '../services/edit-reference-service'
 import {
   assertEditReferenceUploadPersistenceAvailable,
   createUploadService,
 } from '../services/upload-service'
+import { authorizeWorkspaceAccess } from '../services/workspace-access-service'
 import {
   EDIT_REFERENCE_MANUAL_EVIDENCE_CATEGORIES,
   EDIT_REFERENCE_MEDIA_RIGHTS_BASES,
@@ -275,8 +276,9 @@ export function createEditReferenceRoutes(): Router {
   router.post(
     '/v1/edit-references/:referenceId/upload-intents',
     requireAuth,
+    requireEditReferenceUploadWriteAccess,
     requireEditReferenceUploadPersistence,
-    requireIdempotency,
+    requireSensitiveIdempotencyKey,
     asyncRoute(async (request, response) => {
       const body = validateBody(createUploadIntentSchema, request.body)
       if (body.uploadPurpose !== 'reference_media') {
@@ -295,6 +297,7 @@ export function createEditReferenceRoutes(): Router {
       const result = await createUploadService(context).createUploadIntent({
         ...body,
         editReferenceId: reference.data.detail.reference.id,
+        idempotencyKey: getDurableIdempotencyKey(request),
       })
       sendOk(response, {
         uploadIntent: result.uploadIntent,
@@ -520,6 +523,20 @@ function requireEditReferenceUploadPersistence(
 ): void {
   try {
     assertEditReferenceUploadPersistenceAvailable(getServiceContext(request))
+    next()
+  } catch (error) {
+    next(error)
+  }
+}
+
+async function requireEditReferenceUploadWriteAccess(
+  request: Request,
+  _response: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const body = validateBody(createUploadIntentSchema, request.body)
+    await authorizeWorkspaceAccess(getServiceContext(request), body.workspaceId, 'write')
     next()
   } catch (error) {
     next(error)

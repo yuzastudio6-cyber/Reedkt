@@ -1,10 +1,19 @@
 import { ApiError } from '../errors/api-error'
 
 export const EDIT_REFERENCE_PRODUCTION_PERSISTENCE_CONTRACT_VERSION =
-  'edit-reference-production-persistence-contract-v4' as const
+  'edit-reference-production-persistence-contract-v5' as const
 
 export const EDIT_REFERENCE_PRODUCTION_APPLICATION_LIFECYCLE_RPC_NAME =
   'mutate_edit_reference_application_lifecycle_v3' as const
+
+export const EDIT_REFERENCE_LONG_FORM_STUDY_TABLES = [
+  'preference_long_form_study_plans',
+  'preference_long_form_study_runs',
+  'preference_long_form_study_work_items',
+  'preference_long_form_study_attempts',
+  'preference_long_form_study_checkpoints',
+  'preference_long_form_study_work_outputs',
+] as const
 
 export const EDIT_REFERENCE_REQUIRED_PRODUCTION_TABLES = [
   'edit_references',
@@ -12,6 +21,7 @@ export const EDIT_REFERENCE_REQUIRED_PRODUCTION_TABLES = [
   'preference_study_messages',
   'preference_evidence',
   'preference_assets',
+  ...EDIT_REFERENCE_LONG_FORM_STUDY_TABLES,
   'preference_skill_runs',
   'preference_dna_versions',
   'preference_dna_qa_results',
@@ -122,6 +132,82 @@ export interface EditReferenceExecutionAuthorityReadContract {
   }
 }
 
+export interface EditReferenceLongFormStudyPersistenceContract {
+  readonly authorityClass: 'pre_plan_edit_reference_long_form_study'
+  readonly approvedEditPlanSnapshotRequired: false
+  readonly approvedEditCreditReservationRequired: false
+  readonly approvedEditAuthorityFabricated: false
+  readonly paidStudyUsageApprovalRequiredBeforeExecution: true
+  readonly operations: readonly [
+    'enqueue',
+    'claim',
+    'heartbeat_and_checkpoint',
+    'complete',
+    'fail',
+    'pause',
+    'resume',
+    'cancel',
+    'recover_expired_lease',
+  ]
+  readonly identity: {
+    readonly authenticatedUserRequired: true
+    readonly workspaceMembershipRequired: true
+    readonly exactReferenceStudySourceBindingRequired: true
+    readonly immutablePlanDigestRequired: true
+    readonly immutableSourceChecksumRequired: true
+    readonly callerSelectedWorkerOrAttemptAllowed: false
+  }
+  readonly transaction: {
+    readonly serializableClaimRequired: true
+    readonly oneActiveLeasePerWorkItem: true
+    readonly leaseCredentialDigestOnly: true
+    readonly monotonicCheckpointRequired: true
+    readonly checkpointAndHeartbeatShareTransaction: true
+    readonly terminalOutcomeAndUsageShareTransaction: true
+    readonly idempotentResponseAssociationRequired: true
+    readonly lostResponseReplayRequired: true
+    readonly expiredLeaseRecoveryRequired: true
+    readonly completedOutputImmutable: true
+  }
+  readonly execution: {
+    readonly browserClaimAllowed: false
+    readonly browserSessionRequiredForCompletion: false
+    readonly boundedWorkItemTimeoutRequired: true
+    readonly fixedWholeStudyTimeoutAllowed: false
+    readonly restartResumeRequired: true
+    readonly independentReadyWorkMayContinue: true
+    readonly requiredDependencyFailureBlocksAffectedWorkOnly: true
+  }
+  readonly cost: {
+    readonly immutableRateCardSnapshotRequired: true
+    readonly maximumAuthorizedInternalCostRequired: true
+    readonly attemptLevelProviderAndInfrastructureUsageRequired: true
+    readonly failedAttemptCostRetained: true
+    readonly cancellationReleasesUnusedInternalBudget: true
+    readonly customerPriceCalculated: false
+    readonly customerCreditsMutated: false
+    readonly serviceFeeIncluded: false
+  }
+  readonly persistence: {
+    readonly plansImmutable: true
+    readonly runsCompareAndSwapVersioned: true
+    readonly workItemsServerDerived: true
+    readonly attemptsAppendOnly: true
+    readonly checkpointsAppendOnly: true
+    readonly outputsImmutable: true
+    readonly rawMediaBytesPersistedInDatabase: false
+    readonly signedUrlsPersisted: false
+    readonly providerCredentialsPersisted: false
+  }
+  readonly runtimeActivation: {
+    readonly databaseTransactionAdapterVerified: false
+    readonly multiReplicaLeaseRecoveryVerified: false
+    readonly authenticatedWorkerDispatchVerified: false
+    readonly livePrivateObjectReadVerified: false
+    readonly productionEnabled: false
+  }
+}
+
 export interface EditReferencePlanningAuthorityReadContract {
   readonly name: 'read_exact_edit_reference_application_state_v2'
   readonly serverOnly: true
@@ -152,6 +238,7 @@ export interface EditReferenceProductionPersistenceContract {
     readonly callerSelectedWorkspaceAcceptedWithoutMembershipProof: false
   }
   readonly tables: readonly EditReferenceProductionTableContract[]
+  readonly longFormStudy: EditReferenceLongFormStudyPersistenceContract
   readonly applicationLifecycleTransaction: EditReferenceApplicationLifecycleTransactionContract
   readonly planningAuthorityRead: EditReferencePlanningAuthorityReadContract
   readonly executionAuthorityRead: EditReferenceExecutionAuthorityReadContract
@@ -294,6 +381,199 @@ export const editReferenceProductionPersistenceContract: EditReferenceProduction
       retentionClass: 'private_media_metadata',
     }),
     table({
+      name: 'preference_long_form_study_plans',
+      purpose: 'Immutable source-bound long-form study graph, cost ceiling, and user-approved study-usage authority.',
+      requiredColumns: [
+        'id',
+        'workspace_id',
+        'edit_reference_id',
+        'study_session_id',
+        'source_asset_id',
+        'plan_version',
+        'plan_digest',
+        'source_checksum_sha256',
+        'rate_card_snapshot_digest',
+        'maximum_authorized_internal_cost_micros',
+        'currency',
+        'study_usage_approval_status',
+        'created_at',
+      ],
+      compositeForeignKeys: [
+        childOfReference('edit_references'),
+        childOfReference('preference_study_sessions', 'study_session_id'),
+        childOfReference('preference_assets', 'source_asset_id'),
+      ],
+      authenticatedWorkspaceMemberRead: true,
+      immutableAfterCommit: true,
+      appendOnly: true,
+      privateStorageIdentityRequired: false,
+      retentionClass: 'immutable_approval_history',
+    }),
+    table({
+      name: 'preference_long_form_study_runs',
+      purpose: 'Compare-and-swap long-form study run state, pause/cancel intent, and recovery generation.',
+      requiredColumns: [
+        'id',
+        'workspace_id',
+        'edit_reference_id',
+        'study_session_id',
+        'study_plan_id',
+        'revision',
+        'status',
+        'recovery_generation',
+        'pause_requested_at',
+        'cancel_requested_at',
+        'created_at',
+        'updated_at',
+      ],
+      compositeForeignKeys: [
+        childOfReference('edit_references'),
+        childOfReference('preference_study_sessions', 'study_session_id'),
+        childOfReference('preference_long_form_study_plans', 'study_plan_id'),
+      ],
+      authenticatedWorkspaceMemberRead: true,
+      immutableAfterCommit: false,
+      appendOnly: false,
+      privateStorageIdentityRequired: false,
+      retentionClass: 'workspace_content',
+    }),
+    table({
+      name: 'preference_long_form_study_work_items',
+      purpose: 'Server-derived dependency work with one durable lease, bounded retry policy, and internal-cost ceiling.',
+      requiredColumns: [
+        'id',
+        'workspace_id',
+        'edit_reference_id',
+        'study_session_id',
+        'study_plan_id',
+        'study_run_id',
+        'sequence',
+        'work_type',
+        'dependency_digest',
+        'idempotency_key_hash',
+        'status',
+        'attempt_count',
+        'lease_owner_digest',
+        'lease_token_digest',
+        'lease_expires_at',
+        'checkpoint_sequence',
+        'maximum_authorized_internal_cost_micros',
+        'created_at',
+        'updated_at',
+      ],
+      compositeForeignKeys: [
+        childOfReference('edit_references'),
+        childOfReference('preference_study_sessions', 'study_session_id'),
+        childOfReference('preference_long_form_study_plans', 'study_plan_id'),
+        childOfReference('preference_long_form_study_runs', 'study_run_id'),
+      ],
+      authenticatedWorkspaceMemberRead: false,
+      immutableAfterCommit: false,
+      appendOnly: false,
+      privateStorageIdentityRequired: false,
+      retentionClass: 'workspace_content',
+    }),
+    table({
+      name: 'preference_long_form_study_attempts',
+      purpose: 'Append-only attempt outcome, failure, provider/infrastructure usage, and internal-cost evidence.',
+      requiredColumns: [
+        'id',
+        'workspace_id',
+        'edit_reference_id',
+        'study_session_id',
+        'study_plan_id',
+        'study_run_id',
+        'study_work_item_id',
+        'attempt_number',
+        'status',
+        'usage_digest',
+        'internal_cost_micros',
+        'currency',
+        'failure_class',
+        'started_at',
+        'finished_at',
+        'created_at',
+      ],
+      compositeForeignKeys: [
+        childOfReference('edit_references'),
+        childOfReference('preference_study_sessions', 'study_session_id'),
+        childOfReference('preference_long_form_study_plans', 'study_plan_id'),
+        childOfReference('preference_long_form_study_runs', 'study_run_id'),
+        childOfReference('preference_long_form_study_work_items', 'study_work_item_id'),
+      ],
+      authenticatedWorkspaceMemberRead: false,
+      immutableAfterCommit: true,
+      appendOnly: true,
+      privateStorageIdentityRequired: false,
+      retentionClass: 'append_only_audit',
+    }),
+    table({
+      name: 'preference_long_form_study_checkpoints',
+      purpose: 'Append-only monotonic progress checkpoints that atomically renew a work-item lease.',
+      requiredColumns: [
+        'id',
+        'workspace_id',
+        'edit_reference_id',
+        'study_session_id',
+        'study_plan_id',
+        'study_run_id',
+        'study_work_item_id',
+        'study_attempt_id',
+        'sequence',
+        'checkpoint_digest',
+        'completed_unit_count',
+        'heartbeat_at',
+        'created_at',
+      ],
+      compositeForeignKeys: [
+        childOfReference('edit_references'),
+        childOfReference('preference_study_sessions', 'study_session_id'),
+        childOfReference('preference_long_form_study_plans', 'study_plan_id'),
+        childOfReference('preference_long_form_study_runs', 'study_run_id'),
+        childOfReference('preference_long_form_study_work_items', 'study_work_item_id'),
+        childOfReference('preference_long_form_study_attempts', 'study_attempt_id'),
+      ],
+      authenticatedWorkspaceMemberRead: false,
+      immutableAfterCommit: true,
+      appendOnly: true,
+      privateStorageIdentityRequired: false,
+      retentionClass: 'append_only_audit',
+    }),
+    table({
+      name: 'preference_long_form_study_work_outputs',
+      purpose: 'Immutable private output identity and digest for one completed long-form study work item.',
+      requiredColumns: [
+        'id',
+        'workspace_id',
+        'edit_reference_id',
+        'study_session_id',
+        'study_plan_id',
+        'study_run_id',
+        'study_work_item_id',
+        'study_attempt_id',
+        'output_type',
+        'output_digest',
+        'storage_object_id',
+        'storage_generation',
+        'storage_etag',
+        'checksum_sha256',
+        'created_at',
+      ],
+      compositeForeignKeys: [
+        childOfReference('edit_references'),
+        childOfReference('preference_study_sessions', 'study_session_id'),
+        childOfReference('preference_long_form_study_plans', 'study_plan_id'),
+        childOfReference('preference_long_form_study_runs', 'study_run_id'),
+        childOfReference('preference_long_form_study_work_items', 'study_work_item_id'),
+        childOfReference('preference_long_form_study_attempts', 'study_attempt_id'),
+      ],
+      authenticatedWorkspaceMemberRead: false,
+      immutableAfterCommit: true,
+      appendOnly: true,
+      privateStorageIdentityRequired: true,
+      retentionClass: 'private_media_metadata',
+    }),
+    table({
       name: 'preference_skill_runs',
       purpose: 'Attempt-level skill execution, provenance, result, and internal-cost lineage.',
       requiredColumns: ['id', 'workspace_id', 'edit_reference_id', 'study_session_id', 'skill_id', 'attempt', 'status', 'result_digest', 'created_at'],
@@ -427,6 +707,81 @@ export const editReferenceProductionPersistenceContract: EditReferenceProduction
       retentionClass: 'bounded_idempotency',
     }),
   ],
+  longFormStudy: {
+    authorityClass: 'pre_plan_edit_reference_long_form_study',
+    approvedEditPlanSnapshotRequired: false,
+    approvedEditCreditReservationRequired: false,
+    approvedEditAuthorityFabricated: false,
+    paidStudyUsageApprovalRequiredBeforeExecution: true,
+    operations: [
+      'enqueue',
+      'claim',
+      'heartbeat_and_checkpoint',
+      'complete',
+      'fail',
+      'pause',
+      'resume',
+      'cancel',
+      'recover_expired_lease',
+    ],
+    identity: {
+      authenticatedUserRequired: true,
+      workspaceMembershipRequired: true,
+      exactReferenceStudySourceBindingRequired: true,
+      immutablePlanDigestRequired: true,
+      immutableSourceChecksumRequired: true,
+      callerSelectedWorkerOrAttemptAllowed: false,
+    },
+    transaction: {
+      serializableClaimRequired: true,
+      oneActiveLeasePerWorkItem: true,
+      leaseCredentialDigestOnly: true,
+      monotonicCheckpointRequired: true,
+      checkpointAndHeartbeatShareTransaction: true,
+      terminalOutcomeAndUsageShareTransaction: true,
+      idempotentResponseAssociationRequired: true,
+      lostResponseReplayRequired: true,
+      expiredLeaseRecoveryRequired: true,
+      completedOutputImmutable: true,
+    },
+    execution: {
+      browserClaimAllowed: false,
+      browserSessionRequiredForCompletion: false,
+      boundedWorkItemTimeoutRequired: true,
+      fixedWholeStudyTimeoutAllowed: false,
+      restartResumeRequired: true,
+      independentReadyWorkMayContinue: true,
+      requiredDependencyFailureBlocksAffectedWorkOnly: true,
+    },
+    cost: {
+      immutableRateCardSnapshotRequired: true,
+      maximumAuthorizedInternalCostRequired: true,
+      attemptLevelProviderAndInfrastructureUsageRequired: true,
+      failedAttemptCostRetained: true,
+      cancellationReleasesUnusedInternalBudget: true,
+      customerPriceCalculated: false,
+      customerCreditsMutated: false,
+      serviceFeeIncluded: false,
+    },
+    persistence: {
+      plansImmutable: true,
+      runsCompareAndSwapVersioned: true,
+      workItemsServerDerived: true,
+      attemptsAppendOnly: true,
+      checkpointsAppendOnly: true,
+      outputsImmutable: true,
+      rawMediaBytesPersistedInDatabase: false,
+      signedUrlsPersisted: false,
+      providerCredentialsPersisted: false,
+    },
+    runtimeActivation: {
+      databaseTransactionAdapterVerified: false,
+      multiReplicaLeaseRecoveryVerified: false,
+      authenticatedWorkerDispatchVerified: false,
+      livePrivateObjectReadVerified: false,
+      productionEnabled: false,
+    },
+  },
   applicationLifecycleTransaction: {
     rpcName: EDIT_REFERENCE_PRODUCTION_APPLICATION_LIFECYCLE_RPC_NAME,
     supportedMutations: ['apply', 'replace', 'remove'],
@@ -588,6 +943,9 @@ export interface EditReferenceProductionPersistenceContractSummary {
   directAuthenticatedMutationTableCount: number
   privateStorageTableCount: number
   immutableOrAppendOnlyTableCount: number
+  longFormStudyTableCount: number
+  longFormStudyOperationCount: number
+  longFormStudyRuntimeEnabled: false
   atomicLifecycleEffectCount: number
   planningAuthorityStateCount: number
   requiredExecutionReadStageCount: number
@@ -628,6 +986,178 @@ export function validateEditReferenceProductionPersistenceContract(
       }
     }
   }
+  const longFormTableRequiredColumns: Readonly<Record<
+    typeof EDIT_REFERENCE_LONG_FORM_STUDY_TABLES[number],
+    readonly string[]
+  >> = {
+    preference_long_form_study_plans: [
+      'study_session_id',
+      'source_asset_id',
+      'plan_digest',
+      'source_checksum_sha256',
+      'rate_card_snapshot_digest',
+      'maximum_authorized_internal_cost_micros',
+      'study_usage_approval_status',
+    ],
+    preference_long_form_study_runs: [
+      'study_plan_id',
+      'revision',
+      'status',
+      'recovery_generation',
+    ],
+    preference_long_form_study_work_items: [
+      'study_plan_id',
+      'study_run_id',
+      'dependency_digest',
+      'idempotency_key_hash',
+      'lease_token_digest',
+      'lease_expires_at',
+      'checkpoint_sequence',
+      'maximum_authorized_internal_cost_micros',
+    ],
+    preference_long_form_study_attempts: [
+      'study_plan_id',
+      'study_run_id',
+      'study_work_item_id',
+      'attempt_number',
+      'usage_digest',
+      'internal_cost_micros',
+      'failure_class',
+    ],
+    preference_long_form_study_checkpoints: [
+      'study_run_id',
+      'study_work_item_id',
+      'study_attempt_id',
+      'sequence',
+      'checkpoint_digest',
+      'heartbeat_at',
+    ],
+    preference_long_form_study_work_outputs: [
+      'study_run_id',
+      'study_work_item_id',
+      'study_attempt_id',
+      'output_digest',
+      'storage_object_id',
+      'storage_generation',
+      'storage_etag',
+      'checksum_sha256',
+    ],
+  }
+  for (const tableName of EDIT_REFERENCE_LONG_FORM_STUDY_TABLES) {
+    const candidate = contract.tables.find((entry) => entry.name === tableName)
+    if (!candidate) invalid(`missing_long_form_study_table:${tableName}`)
+    for (const requiredColumn of longFormTableRequiredColumns[tableName]) {
+      if (!candidate.requiredColumns.includes(requiredColumn)) {
+        invalid(`long_form_study_table_missing_column:${tableName}:${requiredColumn}`)
+      }
+    }
+  }
+  const longFormPlan = contract.tables.find((candidate) => (
+    candidate.name === 'preference_long_form_study_plans'
+  ))
+  const longFormRun = contract.tables.find((candidate) => (
+    candidate.name === 'preference_long_form_study_runs'
+  ))
+  const longFormWorkItem = contract.tables.find((candidate) => (
+    candidate.name === 'preference_long_form_study_work_items'
+  ))
+  const longFormAttempt = contract.tables.find((candidate) => (
+    candidate.name === 'preference_long_form_study_attempts'
+  ))
+  const longFormCheckpoint = contract.tables.find((candidate) => (
+    candidate.name === 'preference_long_form_study_checkpoints'
+  ))
+  const longFormOutput = contract.tables.find((candidate) => (
+    candidate.name === 'preference_long_form_study_work_outputs'
+  ))
+  if (
+    !longFormPlan?.immutableAfterCommit
+    || !longFormPlan.appendOnly
+    || longFormRun?.immutableAfterCommit
+    || longFormRun?.appendOnly
+    || longFormWorkItem?.immutableAfterCommit
+    || longFormWorkItem?.appendOnly
+    || !longFormAttempt?.immutableAfterCommit
+    || !longFormAttempt.appendOnly
+    || !longFormCheckpoint?.immutableAfterCommit
+    || !longFormCheckpoint.appendOnly
+    || !longFormOutput?.immutableAfterCommit
+    || !longFormOutput.appendOnly
+    || !longFormOutput.privateStorageIdentityRequired
+  ) invalid('long_form_study_table_mutability_invalid')
+  if (JSON.stringify(contract.longFormStudy.operations) !== JSON.stringify([
+    'enqueue',
+    'claim',
+    'heartbeat_and_checkpoint',
+    'complete',
+    'fail',
+    'pause',
+    'resume',
+    'cancel',
+    'recover_expired_lease',
+  ])) invalid('long_form_study_operation_set_incomplete')
+  if (
+    contract.longFormStudy.authorityClass !== 'pre_plan_edit_reference_long_form_study'
+    || contract.longFormStudy.approvedEditPlanSnapshotRequired !== false
+    || contract.longFormStudy.approvedEditCreditReservationRequired !== false
+    || contract.longFormStudy.approvedEditAuthorityFabricated !== false
+    || !contract.longFormStudy.paidStudyUsageApprovalRequiredBeforeExecution
+    || !contract.longFormStudy.identity.authenticatedUserRequired
+    || !contract.longFormStudy.identity.workspaceMembershipRequired
+    || !contract.longFormStudy.identity.exactReferenceStudySourceBindingRequired
+    || !contract.longFormStudy.identity.immutablePlanDigestRequired
+    || !contract.longFormStudy.identity.immutableSourceChecksumRequired
+    || contract.longFormStudy.identity.callerSelectedWorkerOrAttemptAllowed !== false
+  ) invalid('long_form_study_authority_or_identity_invalid')
+  if (
+    !contract.longFormStudy.transaction.serializableClaimRequired
+    || !contract.longFormStudy.transaction.oneActiveLeasePerWorkItem
+    || !contract.longFormStudy.transaction.leaseCredentialDigestOnly
+    || !contract.longFormStudy.transaction.monotonicCheckpointRequired
+    || !contract.longFormStudy.transaction.checkpointAndHeartbeatShareTransaction
+    || !contract.longFormStudy.transaction.terminalOutcomeAndUsageShareTransaction
+    || !contract.longFormStudy.transaction.idempotentResponseAssociationRequired
+    || !contract.longFormStudy.transaction.lostResponseReplayRequired
+    || !contract.longFormStudy.transaction.expiredLeaseRecoveryRequired
+    || !contract.longFormStudy.transaction.completedOutputImmutable
+  ) invalid('long_form_study_transaction_incomplete')
+  if (
+    contract.longFormStudy.execution.browserClaimAllowed
+    || contract.longFormStudy.execution.browserSessionRequiredForCompletion
+    || !contract.longFormStudy.execution.boundedWorkItemTimeoutRequired
+    || contract.longFormStudy.execution.fixedWholeStudyTimeoutAllowed
+    || !contract.longFormStudy.execution.restartResumeRequired
+    || !contract.longFormStudy.execution.independentReadyWorkMayContinue
+    || !contract.longFormStudy.execution.requiredDependencyFailureBlocksAffectedWorkOnly
+  ) invalid('long_form_study_execution_recovery_incomplete')
+  if (
+    !contract.longFormStudy.cost.immutableRateCardSnapshotRequired
+    || !contract.longFormStudy.cost.maximumAuthorizedInternalCostRequired
+    || !contract.longFormStudy.cost.attemptLevelProviderAndInfrastructureUsageRequired
+    || !contract.longFormStudy.cost.failedAttemptCostRetained
+    || !contract.longFormStudy.cost.cancellationReleasesUnusedInternalBudget
+    || contract.longFormStudy.cost.customerPriceCalculated
+    || contract.longFormStudy.cost.customerCreditsMutated
+    || contract.longFormStudy.cost.serviceFeeIncluded
+  ) invalid('long_form_study_cost_boundary_invalid')
+  if (
+    !contract.longFormStudy.persistence.plansImmutable
+    || !contract.longFormStudy.persistence.runsCompareAndSwapVersioned
+    || !contract.longFormStudy.persistence.workItemsServerDerived
+    || !contract.longFormStudy.persistence.attemptsAppendOnly
+    || !contract.longFormStudy.persistence.checkpointsAppendOnly
+    || !contract.longFormStudy.persistence.outputsImmutable
+    || contract.longFormStudy.persistence.rawMediaBytesPersistedInDatabase
+    || contract.longFormStudy.persistence.signedUrlsPersisted
+    || contract.longFormStudy.persistence.providerCredentialsPersisted
+  ) invalid('long_form_study_persistence_boundary_invalid')
+  if (
+    contract.longFormStudy.runtimeActivation.databaseTransactionAdapterVerified
+    || contract.longFormStudy.runtimeActivation.multiReplicaLeaseRecoveryVerified
+    || contract.longFormStudy.runtimeActivation.authenticatedWorkerDispatchVerified
+    || contract.longFormStudy.runtimeActivation.livePrivateObjectReadVerified
+    || contract.longFormStudy.runtimeActivation.productionEnabled
+  ) invalid('long_form_study_unverified_runtime_activated')
   const application = contract.tables.find((candidate) => candidate.name === 'preference_applications')
   if (!application) invalid('missing_preference_applications')
   for (const requiredColumn of ['project_id', 'edit_session_id', 'content_digest', 'context_hash']) {
@@ -711,6 +1241,13 @@ export function validateEditReferenceProductionPersistenceContract(
     )).length,
     privateStorageTableCount: contract.tables.filter((candidate) => candidate.privateStorageIdentityRequired).length,
     immutableOrAppendOnlyTableCount: contract.tables.filter((candidate) => candidate.immutableAfterCommit || candidate.appendOnly).length,
+    longFormStudyTableCount: contract.tables.filter((candidate) => (
+      EDIT_REFERENCE_LONG_FORM_STUDY_TABLES.includes(
+        candidate.name as typeof EDIT_REFERENCE_LONG_FORM_STUDY_TABLES[number],
+      )
+    )).length,
+    longFormStudyOperationCount: contract.longFormStudy.operations.length,
+    longFormStudyRuntimeEnabled: false,
     atomicLifecycleEffectCount: contract.applicationLifecycleTransaction.atomicEffects.length,
     planningAuthorityStateCount: contract.planningAuthorityRead.states.length,
     requiredExecutionReadStageCount: contract.executionAuthorityRead.requiredBeforeStages.length,

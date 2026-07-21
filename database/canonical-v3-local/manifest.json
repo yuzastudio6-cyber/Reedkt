@@ -111,13 +111,17 @@
     },
     {
       "path": "verify.mjs",
-      "sha256": "d74f9f2b9f26883a66b5b51ca3635d1367175aaf371602f1d36a4f53ce6759b7"
+      "sha256": "1baabdbb33b7c58a98c2ce9f951e99f5e40ec2a7d26609f71b49465360ae1b0d"
     }
   ],
   "repositoryFiles": [
     {
       "path": "docs/canonical-edit-reference-application-preparation-verification-2026-07-21.md",
       "sha256": "2cae9bbd0cf2196a684f2e7c5a773ea6e9a116e673e0af27571a5155e6f93090"
+    },
+    {
+      "path": "docs/canonical-edit-reference-mounted-domain-repository-runtime-port-verification-2026-07-21.md",
+      "sha256": "700d058e581188ca3e3cc785a3e5e90cd0a35395bff2d32ab47e575fc1a89b5b"
     },
     {
       "path": "docs/canonical-exact-edit-planning-authority-verification-2026-07-21.md",
@@ -145,11 +149,11 @@
     },
     {
       "path": "package.json",
-      "sha256": "59d7f1e264b9eef06b3cb34987b7a185bcad8fc02ab206fac2dfc18c88e3c6df"
+      "sha256": "99ad3962ea147e1f8c0523c80050a8ca019c563ada9bcd0b04c8fd24dd5adacb"
     },
     {
       "path": "server/app.ts",
-      "sha256": "424dad8950ed0cd1cf385e59b1ed66f18f92baebd14ba20d2f42db3fb40b2576"
+      "sha256": "043a6f69fe9fe1c43481935756aa9fb5c4a68962c154219e53a4f4cc87c6f774"
     },
     {
       "path": "server/edit-references/canonical-exact-edit-planning-authority-boundary.ts",
@@ -184,12 +188,16 @@
       "sha256": "0c425d18a6ea8c55b8d152a3c214d0063888ebb407d48b80a1e6ddc2ad75c6bf"
     },
     {
+      "path": "server/edit-references/edit-reference-repository.ts",
+      "sha256": "18fc157216e2fd0d5e52d0c52adc062960a57dfc5a3aab207ed0db131aaac622"
+    },
+    {
       "path": "server/routes/exact-edit-preference-routes.ts",
       "sha256": "0a7f668a8df0f728a9206a4f95e74ea3049364c9bf5af0deb5e6260f82376970"
     },
     {
       "path": "server/routes/route-helpers.ts",
-      "sha256": "20d43dde03280f1f43981c34e8ddacf0f4ccc421b97dd8b3b62f95821708e3bb"
+      "sha256": "2f3c53b4ecd0d39b51e68e38bb538dd1572ba72524ab61b85a1f7669ac67f319"
     },
     {
       "path": "server/services/canonical-planning-handoff-service.ts",
@@ -204,16 +212,20 @@
       "sha256": "2ef1af03c070eae4fb2d444695e99ee24e5f526a303ef2415f598aa3b9eb79ec"
     },
     {
+      "path": "server/services/edit-reference-domain-repository-runtime-port.ts",
+      "sha256": "366d52fa039a9d5e3423ca21b0a80ca4542089b6e3b15d2541155e539ac648de"
+    },
+    {
       "path": "server/services/edit-reference-production-long-form-runtime-port.ts",
       "sha256": "6cab8aa9082e62d2167787f5daed5a1b1d074c6ccce9d592eff4486b95927202"
     },
     {
       "path": "server/services/edit-reference-service.ts",
-      "sha256": "6ee05b546c8603264589542fd86626fc4458be96a2d3302c951038f84a0156b0"
+      "sha256": "8ef0a378b3a2f7b8cdef4da667f16d1429f21d6f66d237e115c78e2e7d8d7725"
     },
     {
       "path": "server/services/edit-reference-target-video-understanding-service.ts",
-      "sha256": "6cf81d4ef6e897a1962f5f0bf27a811f56c77ce12c74351676474f52dd667e8e"
+      "sha256": "8005af86c545bef8a35d8d25c3ae81a28b6a87f93f67c6c78c5209d904bfeaa2"
     },
     {
       "path": "server/services/planning-exact-edit-preference-authority-port.ts",
@@ -260,6 +272,10 @@
       "sha256": "c38ae19538d8bb4561788a2bf2879e6fa4c645a33f551da9d64f60230e702abc"
     },
     {
+      "path": "server/smoke/edit-reference-mounted-domain-repository-runtime-port-smoke.ts",
+      "sha256": "f74017f99ce7c5a0c1ee5c08396d5b5c7280684594f7ec7efdad67bc67773de4"
+    },
+    {
       "path": "server/smoke/edit-reference-mounted-long-form-runtime-port-smoke.ts",
       "sha256": "099dbc90b17565556e699115b20d498f39b33212f62db0ad2b9d4b13aab7ade2"
     },
@@ -273,7 +289,7 @@
     },
     {
       "path": "server/types.ts",
-      "sha256": "fa1935af85da265d3b30dbd691f8622af6af3d2370097cc630ff4ba791e1d618"
+      "sha256": "7f2cd56acbad47db6cfc4e5c8a0dadb94d325387e8750099fd70bed53585e9b2"
     },
     {
       "path": "server/validation/canonical-exact-edit-planning-authority-schemas.ts",
@@ -334,6 +350,10 @@
     {
       "path": "src/types/edit-reference-production-exact-edit-apply-api.ts",
       "sha256": "adbeea8ec86d9f8a8a1c582eae04706756bcebcbcaad403131fe7d87cc44e45f"
+    },
+    {
+      "path": "src/types/edit-reference.ts",
+      "sha256": "e071e39958907010317cd55a6e66e466fa6377509595f4ba20220df47fa3a688"
     },
     {
       "path": "src/types/reeditpro.ts",

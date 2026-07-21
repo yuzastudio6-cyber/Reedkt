@@ -102,6 +102,7 @@
     "smoke:exact-edit-preference-authority": "tsx server/smoke/exact-edit-preference-authority-smoke.ts",
     "smoke:edit-reference-exact-edit-apply-runtime": "tsx server/smoke/edit-reference-exact-edit-apply-runtime-port-smoke.ts",
     "smoke:edit-reference-mounted-long-form-runtime": "tsx server/smoke/edit-reference-mounted-long-form-runtime-port-smoke.ts",
+    "smoke:edit-reference-mounted-domain-repository-runtime": "tsx server/smoke/edit-reference-mounted-domain-repository-runtime-port-smoke.ts",
     "smoke:edit-reference-long-form-semantic-reasoning-route": "tsx server/smoke/edit-reference-long-form-semantic-reasoning-route-smoke.ts",
     "smoke:edit-reference-multi-hour-source-admission": "tsx server/smoke/edit-reference-multi-hour-source-admission-smoke.ts",
     "smoke:edit-reference-mounted-study-chat-runtime": "tsx server/smoke/edit-reference-mounted-study-chat-runtime-port-smoke.ts",

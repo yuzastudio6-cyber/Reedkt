@@ -18,7 +18,6 @@ import {
   type EditReferenceLongFormStudyScheduler,
 } from '../edit-references/edit-reference-long-form-study-scheduler'
 import { PrivateEditReferenceLongFormStudyRepository } from '../edit-references/private-edit-reference-long-form-study-repository'
-import { PrivateEditReferenceRepository } from '../edit-references/private-edit-reference-repository'
 import type {
   EditReferenceAggregate,
   EditReferenceRepository,
@@ -44,6 +43,10 @@ import {
 import { createProjectService } from './project-service'
 import { createUploadService } from './upload-service'
 import {
+  resolveEditReferenceDomainRepositoryRuntimePort,
+  type EditReferenceDomainRepositoryRuntimePort,
+} from './edit-reference-domain-repository-runtime-port'
+import {
   resolveEditReferenceLongFormStudyRuntimePort,
   type EditReferenceLongFormStudyRuntimePort,
 } from './edit-reference-production-long-form-runtime-port'
@@ -52,6 +55,7 @@ const BACKEND_LOCAL_WARNING =
   'Target-video understanding is stored in private backend-local versioned records. Production Supabase and distributed worker authority remain fail-closed.'
 
 export interface EditReferenceTargetVideoUnderstandingRuntimeOptions {
+  readonly domainRepositoryRuntimePort?: EditReferenceDomainRepositoryRuntimePort
   readonly editReferenceRepository?: EditReferenceRepository
   readonly longFormStudyRuntimePort?: EditReferenceLongFormStudyRuntimePort
   readonly longFormStudyRepository?: PrivateEditReferenceLongFormStudyRepository
@@ -95,6 +99,23 @@ export function createEditReferenceTargetVideoUnderstandingService(
   }
 
   if (
+    runtimeOptions.domainRepositoryRuntimePort
+    && context.editReferenceDomainRepositoryRuntimePort
+    && runtimeOptions.domainRepositoryRuntimePort !== context.editReferenceDomainRepositoryRuntimePort
+  ) {
+    throw new ApiError(
+      'EDIT_REFERENCE_PERSISTENCE_BLOCKED',
+      'Target-video study received conflicting domain repository authorities.',
+      503,
+      {
+        reason: 'multiple_domain_repository_authorities_configured',
+        requiredGate: 'canonical_persistence',
+        productionReady: false,
+      },
+    )
+  }
+
+  if (
     runtimeOptions.longFormStudyRuntimePort
     && context.editReferenceLongFormStudyRuntimePort
     && runtimeOptions.longFormStudyRuntimePort !== context.editReferenceLongFormStudyRuntimePort
@@ -111,7 +132,13 @@ export function createEditReferenceTargetVideoUnderstandingService(
     )
   }
 
-  const editReferenceRepository = runtimeOptions.editReferenceRepository ?? new PrivateEditReferenceRepository()
+  const domainRepositoryRuntime = resolveEditReferenceDomainRepositoryRuntimePort({
+    context,
+    runtimePort: runtimeOptions.domainRepositoryRuntimePort
+      ?? context.editReferenceDomainRepositoryRuntimePort,
+    localRepository: runtimeOptions.editReferenceRepository,
+  })
+  const editReferenceRepository = domainRepositoryRuntime.repository
   const longFormStudyRuntime = resolveEditReferenceLongFormStudyRuntimePort({
     env: context.env,
     runtimePort: runtimeOptions.longFormStudyRuntimePort

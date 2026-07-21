@@ -1173,15 +1173,15 @@ export interface EditReferenceDetail {
 
 export interface EditReferenceListData {
   references: EditReferenceListItem[]
-  persistence: 'backend_local_private'
-  productionPersistence: 'blocked_by_migration_baseline'
+  persistence: 'backend_local_private' | 'canonical_supabase_transactional'
+  productionPersistence: 'blocked_by_migration_baseline' | 'canonical_transactional'
   safety: EditReferenceSafetyFlags
 }
 
 export interface PreferenceApplicationListData {
   applications: PreferenceApplicationRecord[]
-  persistence: 'backend_local_private'
-  productionPersistence: 'blocked_by_migration_baseline'
+  persistence: 'backend_local_private' | 'canonical_supabase_transactional'
+  productionPersistence: 'blocked_by_migration_baseline' | 'canonical_transactional'
   safety: EditReferenceSafetyFlags
 }
 

@@ -176,11 +176,7 @@ import {
   validateEditReferencePreferenceDnaReasoningResult,
 } from '../edit-references/edit-reference-preference-dna-reasoning-contract'
 import { hashEditReferencePreferenceDnaStructuredContext } from '../edit-references/edit-reference-qwen-preference-dna-adapter'
-import { DisabledSupabaseEditReferenceRepository } from '../edit-references/disabled-supabase-edit-reference-repository'
-import {
-  hashEditReferenceRequest,
-  PrivateEditReferenceRepository,
-} from '../edit-references/private-edit-reference-repository'
+import { hashEditReferenceRequest } from '../edit-references/private-edit-reference-repository'
 import { orchestratePreferenceEvidenceStudy } from '../edit-references/edit-reference-evidence-orchestrator'
 import {
   createBlockedEditReferenceMediaStudy,
@@ -295,9 +291,11 @@ import {
   type PreferenceApplicationDownstreamInvalidationReceipt,
   type PreferenceApplicationInvalidationReason,
 } from '../../src/types/edit-reference-integration'
-
-const LOCAL_WARNING = 'Stored in the private backend-local Edit Reference repository. Production Supabase persistence remains blocked.'
-const FUTURE_RUNTIME_WARNING = 'No generation, render, customer-credit mutation, remote Supabase operation, deployment, or public delivery ran. Any private provider/model or local media execution is reported per skill run with exact provenance and internal-cost evidence.'
+import {
+  editReferenceDomainRepositoryRuntimeWarnings,
+  resolveEditReferenceDomainRepositoryRuntimePort,
+  type EditReferenceDomainRepositoryRuntimePort,
+} from './edit-reference-domain-repository-runtime-port'
 
 export interface EditReferenceServiceResult<T> {
   data: T
@@ -326,6 +324,7 @@ export interface EditReferenceServiceRuntimeOptions {
   readonly audioSoundDesignProductionAuthority?: EditReferenceAudioSoundDesignProductionAuthority
   readonly reviewedLocalAudioSoundDesignRuntime?: EditReferenceReviewedLocalAudioSoundDesignRuntimeOptions
   readonly previousApprovedEditHistoryReader?: EditReferenceApprovedHistoryReader
+  readonly domainRepositoryRuntimePort?: EditReferenceDomainRepositoryRuntimePort
   readonly longFormStudyRuntimePort?: EditReferenceLongFormStudyRuntimePort
   readonly longFormStudyRepository?: PrivateEditReferenceLongFormStudyRepository
   readonly longFormSourceInspector?: EditReferenceLongFormSourceInspector
@@ -466,7 +465,34 @@ export function createEditReferenceService(
     )
   }
 
-  const repository = repositoryOverride ?? selectRepository(context)
+  if (
+    runtimeOptions.domainRepositoryRuntimePort
+    && context.editReferenceDomainRepositoryRuntimePort
+    && runtimeOptions.domainRepositoryRuntimePort !== context.editReferenceDomainRepositoryRuntimePort
+  ) {
+    throw new ApiError(
+      'EDIT_REFERENCE_PERSISTENCE_BLOCKED',
+      'Edit Reference received conflicting domain repository authorities.',
+      503,
+      {
+        reason: 'multiple_domain_repository_authorities_configured',
+        requiredGate: 'canonical_persistence',
+        productionReady: false,
+      },
+    )
+  }
+  const domainRepositoryRuntime = resolveEditReferenceDomainRepositoryRuntimePort({
+    context,
+    runtimePort: runtimeOptions.domainRepositoryRuntimePort
+      ?? context.editReferenceDomainRepositoryRuntimePort,
+    localRepository: repositoryOverride,
+  })
+  const repository = domainRepositoryRuntime.repository
+  const result = <T>(data: T, replayed?: boolean): EditReferenceServiceResult<T> => ({
+    data,
+    warnings: editReferenceDomainRepositoryRuntimeWarnings(domainRepositoryRuntime),
+    ...(replayed === undefined ? {} : { replayed }),
+  })
   const visualLanguageProvider = runtimeOptions.visualLanguageProvider
     ?? createQwenVisualUnderstandingProvider()
   const storyEditorialProvider = runtimeOptions.storyEditorialProvider
@@ -531,8 +557,12 @@ export function createEditReferenceService(
         : []
       return result({
         references,
-        persistence: 'backend_local_private',
-        productionPersistence: 'blocked_by_migration_baseline',
+        persistence: repository.persistence === 'canonical_supabase_transactional'
+          ? 'canonical_supabase_transactional'
+          : 'backend_local_private',
+        productionPersistence: repository.persistence === 'canonical_supabase_transactional'
+          ? 'canonical_transactional'
+          : 'blocked_by_migration_baseline',
         safety: EDIT_REFERENCE_SAFETY_FLAGS,
       })
     },
@@ -543,8 +573,12 @@ export function createEditReferenceService(
         applications: aggregate
           ? aggregate.applications.slice().sort((left, right) => right.createdAt.localeCompare(left.createdAt))
           : [],
-        persistence: 'backend_local_private',
-        productionPersistence: 'blocked_by_migration_baseline',
+        persistence: repository.persistence === 'canonical_supabase_transactional'
+          ? 'canonical_supabase_transactional'
+          : 'backend_local_private',
+        productionPersistence: repository.persistence === 'canonical_supabase_transactional'
+          ? 'canonical_transactional'
+          : 'blocked_by_migration_baseline',
         safety: EDIT_REFERENCE_SAFETY_FLAGS,
       })
     },
@@ -4705,14 +4739,6 @@ export function createEditReferenceService(
     : service
 }
 
-function selectRepository(context: ServiceContext): EditReferenceRepository {
-  const localAuthorized = context.auth?.isMockUser === true
-    && context.env.allowMockWithoutSupabase
-    && (context.env.mode === 'local' || context.env.mode === 'mock')
-    && context.env.storageMode === 'local'
-  return localAuthorized ? new PrivateEditReferenceRepository() : new DisabledSupabaseEditReferenceRepository()
-}
-
 async function preparePreviousApprovedEditStudies(input: {
   readonly aggregate: EditReferenceAggregate
   readonly studyId: string
@@ -7875,8 +7901,4 @@ function requireText(value: string, field: string, maximum: number): string {
     throw new ApiError('VALIDATION_FAILED', `${field} must contain between 1 and ${maximum} characters.`, 400)
   }
   return normalized
-}
-
-function result<T>(data: T, replayed?: boolean): EditReferenceServiceResult<T> {
-  return { data, warnings: [LOCAL_WARNING, FUTURE_RUNTIME_WARNING], ...(replayed === undefined ? {} : { replayed }) }
 }

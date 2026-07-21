@@ -141,7 +141,7 @@ export interface EditReferenceMutationResult {
 }
 
 export interface EditReferenceRepository {
-  readonly persistence: 'backend_local_private' | 'supabase_blocked'
+  readonly persistence: 'backend_local_private' | 'canonical_supabase_transactional' | 'supabase_blocked'
   read(scope: EditReferenceRepositoryScope): Promise<EditReferenceAggregate | undefined>
   readAuditEvents(scope: EditReferenceRepositoryScope): Promise<EditReferenceAuditEvent[]>
   mutate(input: EditReferenceMutationInput): Promise<EditReferenceMutationResult>

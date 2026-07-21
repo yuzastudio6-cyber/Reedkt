@@ -34,6 +34,12 @@ export interface EditReferenceProductionAuthenticatedHttpAuthority {
   readonly accessCheckReceiptId: string
 }
 
+export interface EditReferenceProductionExactEditScope {
+  readonly workspaceId: string
+  readonly projectId: string
+  readonly editSessionId: string
+}
+
 export interface EditReferenceProductionPreparedLifecycleRequest {
   readonly schemaVersion: typeof EDIT_REFERENCE_PRODUCTION_HTTP_LIFECYCLE_BOUNDARY_VERSION
   readonly subcommandKey: typeof EDIT_REFERENCE_PRODUCTION_LIFECYCLE_SUBCOMMAND_KEY
@@ -86,7 +92,10 @@ export function prepareEditReferenceProductionLifecycleRequest(input: {
   readonly serverRequestedAt: string
 }): EditReferenceProductionPreparedLifecycleRequest {
   validateCommand(input.command)
-  validateAuthenticatedAuthority(input.authenticated, input.command)
+  validateEditReferenceProductionAuthenticatedHttpAuthority(
+    input.authenticated,
+    input.command,
+  )
   validateServerInputs(input.idempotencyKeyHashSha256, input.serverRequestedAt)
   validatePreparedApplication(input.command, input.preparedApplication)
   validateFrameAuthority(input.command, input.preparedApplication, input.outputFrameAuthority)
@@ -148,11 +157,11 @@ function validateCommand(command: EditReferenceProductionLifecycleCommand): void
     command.editSessionId,
     command.applicationId,
   ]) {
-    if (!ID_PATTERN.test(value)) invalid('http_lifecycle_command_identity_invalid', 400)
+    if (!isSafeId(value)) invalid('http_lifecycle_command_identity_invalid', 400)
   }
   if (
     command.expectedCurrentApplicationId !== null
-    && !ID_PATTERN.test(command.expectedCurrentApplicationId)
+    && !isSafeId(command.expectedCurrentApplicationId)
   ) invalid('http_lifecycle_expected_current_application_invalid', 400)
   if (
     !Number.isInteger(command.expectedReferenceRevision)
@@ -190,28 +199,25 @@ function validateCommand(command: EditReferenceProductionLifecycleCommand): void
   ) invalid('http_lifecycle_expected_application_transition_invalid', 400)
 }
 
-function validateAuthenticatedAuthority(
+export function validateEditReferenceProductionAuthenticatedHttpAuthority(
   authority: EditReferenceProductionAuthenticatedHttpAuthority,
-  command?: EditReferenceProductionLifecycleCommand,
+  scope: EditReferenceProductionExactEditScope,
 ): void {
   if (
-    !ID_PATTERN.test(authority.actorUserId)
-    || !ID_PATTERN.test(authority.workspaceId)
-    || !ID_PATTERN.test(authority.projectId)
-    || !ID_PATTERN.test(authority.editSessionId)
-    || !ID_PATTERN.test(authority.accessCheckReceiptId)
+    !isSafeId(authority.actorUserId)
+    || !isSafeId(authority.workspaceId)
+    || !isSafeId(authority.projectId)
+    || !isSafeId(authority.editSessionId)
+    || !isSafeId(authority.accessCheckReceiptId)
     || authority.authenticatedUserVerified !== true
     || authority.workspaceMembershipVerified !== true
     || authority.workspaceProjectCompositeBindingVerified !== true
     || authority.projectEditSessionCompositeBindingVerified !== true
   ) invalid('http_lifecycle_authenticated_authority_invalid', 403)
   if (
-    command
-    && (
-      authority.workspaceId !== command.workspaceId
-      || authority.projectId !== command.projectId
-      || authority.editSessionId !== command.editSessionId
-    )
+    authority.workspaceId !== scope.workspaceId
+    || authority.projectId !== scope.projectId
+    || authority.editSessionId !== scope.editSessionId
   ) invalid('http_lifecycle_authenticated_scope_mismatch', 403)
 }
 
@@ -305,11 +311,16 @@ function assertExactKeys(
   expected: readonly string[],
   reason: string,
 ): void {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) invalid(reason, 400)
   const actual = Object.keys(value).sort()
   const wanted = [...expected].sort()
   if (actual.length !== wanted.length || actual.some((key, index) => key !== wanted[index])) {
     invalid(reason, 400)
   }
+}
+
+function isSafeId(value: string): boolean {
+  return ID_PATTERN.test(value) && !value.includes('..')
 }
 
 function sha256(value: unknown): string {

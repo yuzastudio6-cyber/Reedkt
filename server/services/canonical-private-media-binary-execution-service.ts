@@ -67,6 +67,7 @@ import type {
   CanonicalPrivateStagedSourceSet,
 } from './canonical-private-source-object-read-service'
 import { createCanonicalPrivateToolDispatchAuthorityService } from './canonical-private-tool-dispatch-authority-service'
+import { recordCanonicalPrivateEmbeddedWorkerResourceUsage } from './canonical-private-embedded-worker-resource-usage-recorder'
 import {
   CANONICAL_PRIVATE_MEDIA_STREAMING_MAXIMUM_BYTES,
   inspectCanonicalPrivateMediaArtifact,
@@ -1192,6 +1193,70 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
       if (sha256AuthorityValue(await planning.loadApprovedExecutionAuthority(
         authority.snapshot.snapshotId, access.workspaceId,
       )) !== authorityHashBefore) throw denied('Canonical planning authority changed during media binary execution.')
+
+      const resourceInputArtifacts = dependencyFinalQa
+        ? [{
+            artifactId: dependencyRead!.artifactId,
+            sha256: inputSha256,
+            byteLength: inputByteLength,
+          }]
+        : [{
+            artifactId: `${sourceRead!.sourceSequenceItemId}:source_media`,
+            sha256: inputSha256,
+            byteLength: inputByteLength,
+          }, ...(referenceDependencyRead ? [{
+            artifactId: referenceDependencyRead.artifactId,
+            sha256: referenceDependencyRead.sha256,
+            byteLength: referenceDependencyRead.byteLength,
+          }] : [])]
+      const resourceUsage = await recordCanonicalPrivateEmbeddedWorkerResourceUsage({
+        localStorageRoot: context.env.localStorageRoot,
+        ownerUserId: access.userId,
+        workspaceId: body.workspaceId,
+        projectId: body.projectId,
+        editSessionId: body.editSessionId,
+        approvedPlanSnapshotId: authority.snapshot.snapshotId,
+        approvedPlanSnapshotHash: readiness.authorityHashes.snapshotHash,
+        packageRecordId: readiness.executionPackage.packageRecordId,
+        packageHash: readiness.executionPackage.packageHash,
+        approvedWorkItemId: workItem.id,
+        approvedWorkItemHash: sha256AuthorityValue(workItem),
+        jobId: body.jobId,
+        executionAttemptId,
+        attemptOrdinal: completed.lease.attemptNumber,
+        leaseId: completed.lease.id,
+        leaseHash: completed.lease.immutableLeaseHash,
+        leaseExpiresAt: completed.lease.expiresAt,
+        dispatchGrantId: body.grantId,
+        dispatchGrantHash: dispatch.grant.immutableGrantHash,
+        idempotencyKey: body.idempotencyKey,
+        canonicalToolId: toolId,
+        operationId: binding.operationId,
+        runnerClass: RUNNER_CLASS,
+        runtimeAuthorityDigest: runtimeAuthority.authorityHash,
+        runtimeImageDigest: runtime.image.imageIdentityHash,
+        runtimeAttestationDigest: executionResult.attestation.attestationHash,
+        observation: executionResult.evidence.resourceObservation,
+        allocation: {
+          nanoCpus: executionResult.evidence.confinement.nanoCpus,
+          memoryLimitBytes:
+            executionResult.evidence.confinement.memoryLimitBytes,
+        },
+        attemptInputHash: executionResult.evidence.requestEnvelopeSha256,
+        inputArtifacts: resourceInputArtifacts,
+        outputArtifact: {
+          artifactId: artifactResult.artifact.artifactId,
+          sha256: artifactResult.artifact.content.sha256,
+          byteLength: artifactResult.artifact.content.byteLength,
+        },
+        createdAt: reconciliation.reconciliation.createdAt,
+      })
+      if (
+        resourceUsage.evidence.identity.executionAttemptId !== executionAttemptId
+        || resourceUsage.evidence.operation.operationId !== binding.operationId
+      ) {
+        throw denied('Media execution resource evidence lost canonical attempt authority.')
+      }
 
       const responseWithoutHash = {
         schemaVersion: 'canonical-private-media-binary-execution-response-v4' as const,

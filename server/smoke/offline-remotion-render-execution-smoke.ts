@@ -7,8 +7,16 @@ import { join } from 'node:path'
 
 import { activatePrivateOfflineMediaBinaryRuntime } from '../tool-execution/media-binary-execution/offline-media-binary-runtime'
 import { activatePrivateOfflineLibassCaptionRuntime } from '../tool-execution/libass-caption-execution'
-import { prepareOfflineRemotionDockerRuntime } from '../tool-execution/remotion-render-execution/offline-remotion-render-docker-runtime'
-import { activatePrivateOfflineRemotionRenderRuntime, openPrivateOfflineRemotionRenderRuntime, readPersistedOfflineRemotionRenderRuntimeAuthority } from '../tool-execution/remotion-render-execution/offline-remotion-render-execution-service'
+import {
+  OFFLINE_REMOTION_LOCAL_RUNTIME_NAMESPACE,
+  prepareOfflineRemotionDockerRuntime,
+} from '../tool-execution/remotion-render-execution/offline-remotion-render-docker-runtime'
+import {
+  OFFLINE_REMOTION_RENDER_EXECUTION_STORAGE_ROOT,
+  activatePrivateOfflineRemotionRenderRuntime,
+  openPrivateOfflineRemotionRenderRuntime,
+  readPersistedOfflineRemotionRenderRuntimeAuthority,
+} from '../tool-execution/remotion-render-execution/offline-remotion-render-execution-service'
 import { buildOfflineRemotionFinalCompositionRequest, isFinalCompositionPayload, validateOfflineRemotionRenderRequest } from '../tool-execution/remotion-render-execution/offline-remotion-render-execution-protocol'
 
 const request = {
@@ -26,6 +34,15 @@ for (const invalid of [
 ]) assert.throws(() => validateOfflineRemotionRenderRequest(invalid), /unsupported|unsafe|approved|bounds/)
 
 const prepared = await prepareOfflineRemotionDockerRuntime()
+assert.match(OFFLINE_REMOTION_LOCAL_RUNTIME_NAMESPACE, /^[a-f0-9]{16}$/u)
+assert.equal(
+  prepared.imageTag,
+  `reeditpro-offline-remotion-render-execution:canonical-private-local-v1-${OFFLINE_REMOTION_LOCAL_RUNTIME_NAMESPACE}`,
+)
+assert.equal(
+  OFFLINE_REMOTION_RENDER_EXECUTION_STORAGE_ROOT,
+  `/tmp/reeditpro-canonical-private-offline-remotion-render-execution-${OFFLINE_REMOTION_LOCAL_RUNTIME_NAMESPACE}`,
+)
 const activated = await activatePrivateOfflineRemotionRenderRuntime()
 assert.equal(activated.image.imageId, prepared.imageId)
 assert.equal(
@@ -546,6 +563,6 @@ try {
 
 console.log(JSON.stringify({
   smoke: 'offline_remotion_render_execution', status: 'passed',
-  proofs: ['exact_operation_payload_validated', 'caller_paths_urls_commands_and_extra_fields_rejected', 'checksum_protected_runtime_authority_persisted_and_reopened', 'pinned_image_identity_verified', 'network_none_read_only_non_root_cap_drop_confinement_verified', 'actual_remotion_select_and_render_media_executed', 'mp4_hash_frame_timing_and_header_verified', 'independent_pinned_ffprobe_h264_frame_count_pixel_format_complete_bt709_vui_and_duration_qa_passed', 'server_injected_source_mp4_libass_png_and_pcm_wav_hash_commitments_verified', 'approved_nonzero_source_trim_frames_applied', 'actual_source_plus_caption_final_composition_rendered', 'ordered_two_source_sequence_and_timed_caption_track_final_composition_rendered', 'approved_hard_cut_authority_and_exact_source_boundary_applied', 'distinct_caption_track_frames_decoded_and_verified', 'source_sequence_frame_ranges_and_audio_preserved', 'approved_source_bound_professional_voice_tracks_replaced_source_audio', 'approved_lossless_vp9_matroska_professional_color_intermediate_composed_with_replacement_voice', 'professional_color_intermediate_policy_and_mime_tampering_rejected', 'professional_color_final_composition_replay_is_deterministic', 'voice_track_order_duration_hash_and_pcm_format_tampering_rejected', 'voice_replacement_replay_is_deterministic', 'final_aac_audio_decoded_and_independently_verified', 'final_composition_paths_urls_commands_and_tampered_bytes_rejected', 'product_beta_production_readiness_remains_false'],
+  proofs: ['exact_operation_payload_validated', 'caller_paths_urls_commands_and_extra_fields_rejected', 'checkout_derived_runtime_image_and_authority_namespace_isolated_from_parallel_worktrees', 'checksum_protected_runtime_authority_persisted_and_reopened', 'pinned_image_identity_verified', 'network_none_read_only_non_root_cap_drop_confinement_verified', 'actual_remotion_select_and_render_media_executed', 'mp4_hash_frame_timing_and_header_verified', 'independent_pinned_ffprobe_h264_frame_count_pixel_format_complete_bt709_vui_and_duration_qa_passed', 'server_injected_source_mp4_libass_png_and_pcm_wav_hash_commitments_verified', 'approved_nonzero_source_trim_frames_applied', 'actual_source_plus_caption_final_composition_rendered', 'ordered_two_source_sequence_and_timed_caption_track_final_composition_rendered', 'approved_hard_cut_authority_and_exact_source_boundary_applied', 'distinct_caption_track_frames_decoded_and_verified', 'source_sequence_frame_ranges_and_audio_preserved', 'approved_source_bound_professional_voice_tracks_replaced_source_audio', 'approved_lossless_vp9_matroska_professional_color_intermediate_composed_with_replacement_voice', 'professional_color_intermediate_policy_and_mime_tampering_rejected', 'professional_color_final_composition_replay_is_deterministic', 'voice_track_order_duration_hash_and_pcm_format_tampering_rejected', 'voice_replacement_replay_is_deterministic', 'final_aac_audio_decoded_and_independently_verified', 'final_composition_paths_urls_commands_and_tampered_bytes_rejected', 'product_beta_production_readiness_remains_false'],
   artifact: { sha256: result.artifact.sha256, byteLength: result.artifact.byteLength, width: result.artifact.width, height: result.artifact.height, fps: result.artifact.fps, durationFrames: result.artifact.durationFrames },
 }, null, 2))

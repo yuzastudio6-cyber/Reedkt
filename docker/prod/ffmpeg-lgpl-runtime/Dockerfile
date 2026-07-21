@@ -100,6 +100,7 @@ COPY continuous-program-audio.sh /tmp/continuous-program-audio.sh
 COPY continuous-program-audio-probe.sh /tmp/continuous-program-audio-probe.sh
 COPY long-form-master-assembly.sh /tmp/long-form-master-assembly.sh
 COPY customer-delivery-master-mux.sh /tmp/customer-delivery-master-mux.sh
+COPY media-cgroup-resource-observer.sh /tmp/media-cgroup-resource-observer.sh
 COPY source-provenance.lock /tmp/source-provenance.lock
 
 RUN find \
@@ -133,6 +134,8 @@ RUN find \
       /runtime-rootfs/usr/local/bin/reeditpro-ffmpeg-long-form-master-assembly \
   && install -m 0555 /tmp/customer-delivery-master-mux.sh \
       /runtime-rootfs/usr/local/bin/reeditpro-ffmpeg-customer-delivery-master-mux \
+  && install -m 0555 /tmp/media-cgroup-resource-observer.sh \
+      /runtime-rootfs/usr/local/bin/reeditpro-media-cgroup-resource-observer \
   && sha256sum /runtime-rootfs/usr/local/bin/reeditpro-ffmpeg-verify \
       | sed 's#  /runtime-rootfs/#  /#' \
       >> /runtime-rootfs/opt/reeditpro-ffmpeg/share/reeditpro/runtime-files.sha256 \
@@ -152,6 +155,9 @@ RUN find \
       | sed 's#  /runtime-rootfs/#  /#' \
       >> /runtime-rootfs/opt/reeditpro-ffmpeg/share/reeditpro/runtime-files.sha256 \
   && sha256sum /runtime-rootfs/usr/local/bin/reeditpro-ffmpeg-customer-delivery-master-mux \
+      | sed 's#  /runtime-rootfs/#  /#' \
+      >> /runtime-rootfs/opt/reeditpro-ffmpeg/share/reeditpro/runtime-files.sha256 \
+  && sha256sum /runtime-rootfs/usr/local/bin/reeditpro-media-cgroup-resource-observer \
       | sed 's#  /runtime-rootfs/#  /#' \
       >> /runtime-rootfs/opt/reeditpro-ffmpeg/share/reeditpro/runtime-files.sha256 \
   && chmod -R a+rX /runtime-rootfs/opt/reeditpro-ffmpeg \

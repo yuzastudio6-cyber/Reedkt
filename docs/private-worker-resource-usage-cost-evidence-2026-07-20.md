@@ -6,11 +6,12 @@
 
 ReEditPro now has one provider-neutral, attempt-level contract for retaining
 observed CPU, memory, GPU, elapsed-time, network, artifact-lineage, and
-infrastructure-cost evidence. Nine canonical Node operations and 19 canonical
-Python operations now populate that contract automatically from measurements
-captured inside their exact confined private containers. The evidence remains
-private/local, uses a placeholder infrastructure rate card, and is deliberately
-unable to authorize production execution.
+infrastructure-cost evidence. Nine canonical Node operations, 19 canonical
+Python operations, and the two generic FFmpeg/FFprobe operations now populate
+that contract automatically from measurements captured inside their exact
+confined private containers. The evidence remains private/local, uses a
+placeholder infrastructure rate card, and is deliberately unable to authorize
+production execution.
 
 This increment does not install a Cloud Run/GKE observer, execute a provider,
 activate Google Cloud, reconcile an invoice, charge a customer, or make all
@@ -106,11 +107,29 @@ first record's identity and input/output manifests and returns it; it cannot
 overwrite the first container's retained usage with a later retry.
 
 This automatic capture currently covers all 28 operations routed through the
-canonical structured Node and Python coordinators. It does not cover Sharp,
-FFmpeg, Remotion, DeepFilterNet, native-audio, GPU, provider, or other runner
-families merely because those operations have separate private runner proof.
-It is process-level evidence from confined local containers, not qualified
-Cloud Run task/cgroup telemetry and not a cloud invoice.
+canonical structured Node and Python coordinators.
+
+The generic canonical FFmpeg and FFprobe paths now add two more operations.
+Their fixed image entrypoint reads cgroup-v2 `cpu.stat`, `memory.current`, and
+`memory.peak` before and after each allowlisted container command. A fresh
+nonce and the exact image/container identity bind one terminal marker to the
+server-side execution. The runtime rejects a missing, duplicate, malformed,
+non-terminal, non-monotonic, or identity-mismatched marker and never exposes
+the raw container ID. A generic FFmpeg attempt may use several sequential
+containers for source/reference analysis, the approved recipe, and independent
+output probing; the server sums exact CPU deltas, takes the maximum cgroup
+memory peak, and conservatively measures wall time from the first component's
+start through the last component's finish.
+
+After accepted private persistence, QA, lease completion, reconciliation, and
+fresh authority readback, the same canonical lifecycle persists one existing
+worker-resource cost record for the aggregate media attempt. The record binds
+the exact source/dependency/reference inputs and accepted output. It does not
+cover the specialized long-form FFmpeg entrypoints, Sharp, Remotion,
+DeepFilterNet, native-audio, GPU, provider, or other runner families merely
+because those operations have separate private runner proof. It is cgroup and
+process evidence from confined local containers, not qualified Cloud Run task
+telemetry and not a cloud invoice.
 
 ## Verification
 
@@ -143,18 +162,23 @@ The retained deterministic smoke proves:
   blocked.
 
 The authoritative `npm run smoke:canonical-private-tool-dispatch` journey also
-passes with all 28 eligible Node/Python operation IDs producing one exact
-embedded observation and internal-cost record under their real canonical
-snapshot/package/job/lease/dispatch/artifact/QA/reconciliation lifecycle. It
-asserts create-only replay, one-vCPU/768-MiB/zero-network confinement, null
-cloud-resource identity, placeholder-rate truth, and complete separation from
-customer price, credits, service fee, wallet, and billing.
+passes with all 28 eligible Node/Python operation IDs plus generic FFmpeg and
+FFprobe producing one exact embedded observation and internal-cost record under
+their real canonical snapshot/package/job/lease/dispatch/artifact/QA/
+reconciliation lifecycle. It asserts create-only replay, the exact one-vCPU/
+768-MiB structured-runner and two-vCPU/2-GiB media confinement envelopes, zero
+network egress, null cloud-resource identity, placeholder-rate truth, and
+complete separation from customer price, credits, service fee, wallet, and
+billing.
 
 The post-hardening rerun completed with exit code `0` on 2026-07-20. Its
-terminal check list includes
-`all_28_node_and_python_operations_persist_exact_embedded_cpu_memory_and_internal_cost_evidence`
-and
-`embedded_usage_evidence_is_create_only_replay_safe_and_commercially_separate`.
+terminal check list includes:
+
+- `all_28_node_and_python_operations_persist_exact_embedded_cpu_memory_and_internal_cost_evidence`;
+- `canonical_ffmpeg_and_ffprobe_attempts_persist_exact_cgroup_v2_cpu_memory_and_internal_cost_evidence`;
+- `media_binary_resource_evidence_binds_job_attempt_lease_dispatch_input_output_and_replay`; and
+- `embedded_usage_evidence_is_create_only_replay_safe_and_commercially_separate`.
+
 The same run retained all 50 canonical private lifecycle and job-adapter
 identities. The replay path verifies the exact first input and output artifact
 manifests before returning existing evidence.
@@ -173,26 +197,32 @@ The retained deterministic evidence hashes are:
 
 ### Authoritative Aggregate Regression
 
-`npm run qa:canonical-private-pipeline` passed all 38 phases with exit code 0
-on 2026-07-20; its final tool report was generated at
-`2026-07-20T13:50:37.715Z`. The aggregate included this resource-usage evidence
-smoke and also retained the following adjacent proof without widening this
-increment's authority:
+`npm run qa:canonical-private-pipeline` passed all 42 v31 phases with exit code
+`0`. It ran from `2026-07-20T23:21:29.970Z` through
+`2026-07-21T00:35:25.784Z` in `4,435,814 ms`; its final tool report was
+generated at `2026-07-21T00:35:25.763Z`. The aggregate included both the
+resource-contract smoke and the complete canonical embedded-resource lifecycle
+and retained the following adjacent proof without widening this increment's
+authority:
 
+- automatic attempt-bound CPU/memory and internal infrastructure-cost evidence
+  for 30 operations: 28 structured Node/Python operations plus generic FFmpeg
+  and FFprobe;
 - a three-source canonical private composition with trim, caption, voice,
   reference-bound color, lease, one-use dispatch, QA, reconciliation, replay,
   private persistence, and private download evidence;
 - interrupted resumable 4K source upload recovery, one 67,338,001-byte
-  lossless professional-color intermediate, and one 19,239,147-byte 4K H.264
+  lossless professional-color intermediate, and one 19,141,508-byte 4K H.264
   delivery master under the original approved 4K estimate;
 - one separately confined 4K Remotion streaming proof that produced a
-  48,598,009-byte H.264/AAC MP4 above the former 16 MiB output boundary;
+  51,969,263-byte H.264/AAC MP4 above the former 16 MiB output boundary;
 - 11/11 active named-edit Chromium workflow tests; and
 - the final proven-tool report with 72 registry profiles, 53 confined-runner
   proofs, and 50 canonical private end-to-end/job-adapter proofs.
 
-The aggregate continued to report `productReady`, `externalBetaReady`, and
-`productionReady` as false. No aggregate phase called a provider, mutated
+The report explicitly kept specialized long-form media observation, Remotion
+cgroup observation, deployed cloud-worker observation, `externalBetaReady`,
+and `paidProductionReady` false. No aggregate phase called a provider, mutated
 Google Cloud or remote Supabase, charged a customer, deployed the product, or
 enabled public delivery.
 
@@ -203,7 +233,7 @@ Still blocked or false:
 - a qualified cloud observer adapter in each deployed worker runtime (for
   example, verified task/cgroup CPU and memory counters plus a qualified GPU
   counter source);
-- automatic lifecycle capture for the other 25 privately verified operations,
+- automatic lifecycle capture for the other 23 privately verified operations,
   all provider attempts, and the 19 operations that still lack private runner
   proof;
 - exact live package/reservation/lease/one-use-dispatch readback at evidence

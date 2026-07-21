@@ -1,11 +1,15 @@
 import type { Readable } from 'node:stream'
 
+import type {
+  PrivateEmbeddedProcessResourceObservation,
+} from '../private-embedded-process-resource-observation'
+
 export const OFFLINE_MEDIA_BINARY_LEGACY_OUTPUT_BUFFER_MAXIMUM_BYTES = 32 * 1024 * 1024
 export const OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_OUTPUT_BYTES = 192 * 1024 * 1024
 export const OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_AUDIO_OUTPUT_BYTES = 64 * 1024 * 1024
 
 export interface OfflineMediaBinaryImageEvidence {
-  imageTag: 'reeditpro/ffmpeg-lgpl-internal:8.1.2-object-chunk-v6-local'
+  imageTag: 'reeditpro/ffmpeg-lgpl-internal:8.1.2-object-chunk-v7-local'
   imageId: string
   imageIdentityHash: string
   architecture: string
@@ -53,6 +57,9 @@ export interface OfflineMediaBinaryConfinementEvidence {
     | '/usr/local/bin/reeditpro-ffmpeg-long-form-master-assembly'
     | '/usr/local/bin/reeditpro-ffmpeg-customer-delivery-master-mux'
   serverDerivedArgumentsOnly: true
+  resourceObserverEntrypoint?:
+    '/usr/local/bin/reeditpro-media-cgroup-resource-observer'
+  cgroupV2ResourceObservationRequired?: true
 }
 
 export interface OfflineFfprobeExecutionResult {
@@ -72,6 +79,7 @@ export interface OfflineFfprobeExecutionResult {
     resultSha256: string
     semanticEvidence: Readonly<Record<string, unknown>>
     confinement: OfflineMediaBinaryConfinementEvidence
+    resourceObservation: PrivateEmbeddedProcessResourceObservation
     containerExitCode: 0
     oomKilled: false
   }
@@ -106,6 +114,7 @@ export interface OfflineFfmpegExecutionResult {
     resultSha256: string
     semanticEvidence: Readonly<Record<string, unknown>>
     confinement: OfflineMediaBinaryConfinementEvidence
+    resourceObservation: PrivateEmbeddedProcessResourceObservation
     containerExitCode: 0
     oomKilled: false
   }

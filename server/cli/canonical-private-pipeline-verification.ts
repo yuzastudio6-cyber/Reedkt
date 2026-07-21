@@ -56,6 +56,11 @@ const canonicalSteps: VerificationStep[] = [
     'A fixed server-owned FFmpeg recipe reopens checksum-bound synthetic 4K H.264 MP4 sources, decodes exact approved frame ranges, normalizes frame/color metadata, concatenates approved hard cuts or technical splits, encodes a private VP9 CQ12 Matroska mezzanine, proves byte-deterministic reexecution, and exercises timeline-start plus later nonzero-frame chunks. The same pinned runtime independently re-probes two adjacent VP9 chunks and decodes boundary RGB samples for strict technical-split color continuity; deterministic policy blocks technical mismatches and routes editorial-cut mismatches to review. This remains isolated runtime proof: canonical color-job lease, all-boundary aggregation, attempt cost, reconciliation, cloud, product, and production authority are still false.',
   ),
   step(
+    'offline-media-binary-resource-observation',
+    'smoke:offline-media-binary-execution',
+    'The pinned networkless FFmpeg/FFprobe image captures exact cgroup-v2 CPU and memory counters for each generic media container, strips one nonce-bound terminal marker, aggregates sequential subcontainers into one attempt observation, and fails closed on missing, duplicate, malformed, or non-monotonic evidence. Specialized long-form entrypoints, deployed cloud telemetry, provider cost, customer price, credits, billing, and production remain separate gates.',
+  ),
+  step(
     'professional-long-form-approved-snapshot-bridge',
     'smoke:professional-long-form-snapshot-bridge',
     'The exact long-form seed, plan, estimate, timing, reservation, controller, and bounded 255-item child graph bind to one approved snapshot while canonical seed/controller persistence, child-job derivation, object storage, media execution, database, cloud, product, and production readiness remain false.',
@@ -174,6 +179,11 @@ const canonicalSteps: VerificationStep[] = [
     'private-worker-resource-usage-cost-evidence',
     'smoke:private-worker-resource-usage-cost-evidence',
     'All 72 registered tool operations plus the one admitted provider operation expose exact CPU/memory resource evidence contracts, all GPU-capable operations require GPU milliseconds, and completed/failed/unknown private attempts retain create-only internal infrastructure-cost evidence while deployed observers, official cloud rates, provider calls, commerce, and production remain blocked.',
+  ),
+  step(
+    'canonical-embedded-worker-resource-lifecycle',
+    'smoke:canonical-private-tool-dispatch',
+    'All 50 retained canonical tool/job-adapter identities revalidate under immutable snapshot, package, queue, lease, one-use dispatch, private artifact, QA, reconciliation, and replay authority. The 28 structured Node/Python operations plus generic FFmpeg and FFprobe persist exact embedded CPU/memory and internal infrastructure-cost evidence for the same attempt; specialized runners, deployed observers, official cloud rates, providers, commerce, and production remain blocked.',
   ),
   step(
     'canonical-provider-attempt-consumer-receipt',
@@ -325,7 +335,7 @@ function printReport(
 ): void {
   const finishedAt = new Date()
   const report = {
-    schemaVersion: 'canonical-private-pipeline-verification-v30',
+    schemaVersion: 'canonical-private-pipeline-verification-v31',
     status,
     mode: full ? 'full_internal_regression' : 'canonical_private_pipeline',
     startedAt: runStartedAt.toISOString(),
@@ -429,6 +439,9 @@ function printReport(
           canonicalCloudDispatchHandoffContract: true,
           cryptographicServiceIdentityVerifierCore: true,
           durablePrivateCloudDispatchOutboxReceiverContract: true,
+          genericMediaBinaryCgroupV2ResourceObservation: true,
+          canonicalEmbeddedResourceUsageOperationCount: 30,
+          canonicalFfmpegFfprobeAttemptInternalResourceCostEvidence: true,
           boundedPrivateMultiSourceExecution: true,
           boundedApprovedHardCutTransitions: true,
           boundedProfessionalVoiceDelivery: true,
@@ -486,6 +499,9 @@ function printReport(
       hostedLargeMediaAboveInlineCeilingAllowed: false,
       canonicalPackageStateDatabaseFunctionsExecuted: false,
       canonicalPackageStateRpcLiveClientActivated: false,
+      specializedLongFormMediaCgroupResourceObservationVerified: false,
+      remotionCgroupResourceObservationVerified: false,
+      deployedCloudWorkerResourceObservationVerified: false,
       professionalLongFormRemaining247ChildLeasesVerified: false,
       professionalLongFormAll124ChunkPairsCompleted: false,
       professionalLongFormRemaining122ChunkPairProofsVerified: false,

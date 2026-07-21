@@ -50,6 +50,9 @@ The chain provides:
   server-owned application preparation/replay/conflict, atomic Apply,
   planning-authority read/evidence/replay, immutable-baseline, cleanup
   invalidation, recovery, direct-RPC/table denial, and internal-cost tests.
+- a destructive local backup/reset/restore rehearsal covering all 41 reviewed
+  canonical data tables, an exact logical-state digest, immutable approved and
+  audit history, exact Apply replay/conflict recovery, and restored tenant RLS.
 
 Qwen2.5-VL remains visual-only and is not represented as a Study Chat
 reasoning route. Internal provider and infrastructure costs are persisted
@@ -70,9 +73,14 @@ database/canonical-v3-local/run-local-verification.sh
 The runner starts the isolated local stack if needed, performs a clean local
 reset, executes all SQL tests with `ON_ERROR_STOP`, verifies the local adapter,
 installs the controlled fixture, exercises the actual loopback PostgREST RPC
-and RLS path, verifies the source manifest, and performs a final clean reset.
-SQL tests run inside transactions and roll back their fixtures; the HTTP proof
-is also removed by the final reset.
+and RLS path, performs a private data-only backup/reset/restore rehearsal with
+the PostgreSQL 15 tools from the matching local database container, verifies
+the source manifest, and performs a final clean reset. SQL tests run inside
+transactions and roll back their fixtures. Recovery archives stay under the
+external-drive checkout with mode-077 process defaults and are deleted by the
+runner; the HTTP proof and restored fixture are also removed by the final
+reset. A failed final reset or private runtime-directory cleanup makes the
+rehearsal fail closed.
 
 ## Explicitly not authorized or proven
 
@@ -86,3 +94,5 @@ is also removed by the final reset.
 Any staging use requires a separate owner authorization, a reviewed forward
 adapter from this isolated chain, same-source migration hashes, controlled
 backup/rollback evidence, and independent two-user/two-workspace RLS proof.
+The local recovery rehearsal is necessary evidence, but it is not Supabase
+PITR, remote backup, staging restore, disaster-recovery, or production proof.

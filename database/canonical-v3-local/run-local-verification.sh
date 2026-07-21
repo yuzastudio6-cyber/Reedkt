@@ -73,6 +73,8 @@ npx --no-install tsx \
   "${REPOSITORY_ROOT}/server/smoke/edit-reference-local-supabase-application-preparation-smoke.ts"
 npx --no-install tsx "${REPOSITORY_ROOT}/server/smoke/edit-reference-local-supabase-http-rpc-smoke.ts"
 
+"${SCRIPT_DIR}/run-local-recovery-verification.sh"
+
 node "${SCRIPT_DIR}/verify.mjs"
 
 echo "PASS canonical-v3-local verification"

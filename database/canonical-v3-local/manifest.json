@@ -6,16 +6,24 @@
   "productionAuthority": false,
   "files": [
     {
+      "path": ".gitignore",
+      "sha256": "3639da80892fc947abab68c699addd960cd542f9f93bf87fdfa3b33329c7a139"
+    },
+    {
       "path": "README.md",
-      "sha256": "871fc353eac1440c08d50c1263295005402d65884fce873fa16f30dae7b40a5e"
+      "sha256": "dc6510663ea740e3ea752933939c4547320bc3262dffcc6043cb82857da37ce2"
+    },
+    {
+      "path": "expected-recovery-data-tables.txt",
+      "sha256": "e584bbc44cf26edd50bdd4c9ac708d893c3945218e3c901b56cf8df54b4add99"
+    },
+    {
+      "path": "run-local-recovery-verification.sh",
+      "sha256": "8bdcb3ee57e3a604cd31af0a20b5f50529e6e8a692c3ee3644fe2a063bf1630c"
     },
     {
       "path": "run-local-verification.sh",
-      "sha256": "1ef38622cafa01e65a6be540a8d4e9b63af25951c6262bf89d6a51a46e87529a"
-    },
-    {
-      "path": "verify.mjs",
-      "sha256": "121b2affd8d0cc9bde0a015317af46f80798a7c1bf74bb8b96acbfca404cdd89"
+      "sha256": "3b2fc8c2e9af0b64a76d4de7cbc8f745443d1aba787e29b4c022db3bb6202500"
     },
     {
       "path": "supabase/.gitignore",
@@ -86,8 +94,24 @@
       "sha256": "f25eee419b48eadf8270abeb63cf63f650265fd023ac64123e44aeacaa401ec4"
     },
     {
+      "path": "tests/009_recovery_restore_assertions.sql",
+      "sha256": "a6c038229c51abc7b3415b057c574200e05838f350b076a8491cea884a16a347"
+    },
+    {
       "path": "tests/_fixture.sql",
       "sha256": "2abefb85d17d0b077be1db5571c900dc9377223b81bf2825563eb31f8525c2cb"
+    },
+    {
+      "path": "tests/_recovery_seed.sql",
+      "sha256": "79ea66de657639993f2e3310341650de212d0edfbe07219d6a7ba610f4cdb8dd"
+    },
+    {
+      "path": "tests/_recovery_state_digest.sql",
+      "sha256": "82587a063c223487802953889786c42f492f8108da2192cb3a951db4e9f39a60"
+    },
+    {
+      "path": "verify.mjs",
+      "sha256": "937abc62591b76dc7e9077af0f616881e3ae3e348829e8f5ea449d601ae501f3"
     }
   ],
   "repositoryFiles": [
@@ -98,6 +122,10 @@
     {
       "path": "docs/canonical-exact-edit-planning-authority-verification-2026-07-21.md",
       "sha256": "1f382a8457d02f468a706ce7cd29f91b23727f1f247de2298e38154f4c3f5827"
+    },
+    {
+      "path": "docs/canonical-v3-local-edit-reference-recovery-verification-2026-07-21.md",
+      "sha256": "eb1901ca781240aa30e6833cd06e66920a17547aa78c808c2a8f72af05376810"
     },
     {
       "path": "docs/canonical-v3-local-exact-edit-apply-authority-read-verification-2026-07-21.md",
@@ -146,6 +174,10 @@
     {
       "path": "server/edit-references/edit-reference-production-exact-edit-apply-boundary.ts",
       "sha256": "3def6d5e6f58c7349d910098954b997c1f0f84776d6d5dac088a287157847321"
+    },
+    {
+      "path": "server/edit-references/edit-reference-production-readiness.ts",
+      "sha256": "0c425d18a6ea8c55b8d152a3c214d0063888ebb407d48b80a1e6ddc2ad75c6bf"
     },
     {
       "path": "server/routes/exact-edit-preference-routes.ts",
@@ -212,6 +244,10 @@
       "sha256": "c38ae19538d8bb4561788a2bf2879e6fa4c645a33f551da9d64f60230e702abc"
     },
     {
+      "path": "server/smoke/edit-reference-production-readiness-smoke.ts",
+      "sha256": "33cdd7278c2a78fe1358047368e6357af0aa575b33f25bb7198404322e75d1a8"
+    },
+    {
       "path": "server/smoke/planning-exact-edit-preference-authority-port-smoke.ts",
       "sha256": "40f63a921fc7c794e98e9baf745ee2b5f44652b38179d977bd7ff283d7e5dfb5"
     },
@@ -224,12 +260,12 @@
       "sha256": "9055d5395d2550c83a0dfaded2eeb656074de99c97eec62134f00c66d6a0c4a7"
     },
     {
-      "path": "server/validation/edit-reference-application-preparation-schemas.ts",
-      "sha256": "39e1e69b0d7971c9e77daeafb7c0f7560e2014ae9a0dbccd9630742a416b1f27"
-    },
-    {
       "path": "server/validation/edit-planning-authority-schemas.ts",
       "sha256": "6a769b32467f96fbc735972cccdcf1bb3a16b97514ef65f8129999a4c648a832"
+    },
+    {
+      "path": "server/validation/edit-reference-application-preparation-schemas.ts",
+      "sha256": "39e1e69b0d7971c9e77daeafb7c0f7560e2014ae9a0dbccd9630742a416b1f27"
     },
     {
       "path": "server/validation/planning-input-authority-binding-schemas.ts",

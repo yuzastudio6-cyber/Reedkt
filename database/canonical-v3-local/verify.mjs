@@ -20,6 +20,7 @@ assert(Array.isArray(manifest.repositoryFiles), 'repository_manifest_file_set_in
 const expectedRepositoryFiles = [
   'docs/canonical-edit-reference-application-preparation-verification-2026-07-21.md',
   'docs/canonical-exact-edit-planning-authority-verification-2026-07-21.md',
+  'docs/canonical-v3-local-edit-reference-recovery-verification-2026-07-21.md',
   'docs/canonical-v3-local-exact-edit-apply-authority-read-verification-2026-07-21.md',
   'docs/canonical-v3-local-exact-edit-atomic-apply-verification-2026-07-21.md',
   'docs/edit-preferences-mounted-atomic-apply-recovery-2026-07-21.md',
@@ -32,6 +33,7 @@ const expectedRepositoryFiles = [
   'server/edit-references/edit-reference-local-supabase-rpc-adapter.ts',
   'server/edit-references/edit-reference-production-application-preparation-boundary.ts',
   'server/edit-references/edit-reference-production-exact-edit-apply-boundary.ts',
+  'server/edit-references/edit-reference-production-readiness.ts',
   'server/routes/exact-edit-preference-routes.ts',
   'server/routes/route-helpers.ts',
   'server/services/canonical-planning-handoff-service.ts',
@@ -48,6 +50,7 @@ const expectedRepositoryFiles = [
   'server/smoke/edit-reference-local-supabase-application-preparation-smoke.ts',
   'server/smoke/edit-reference-local-supabase-http-rpc-smoke.ts',
   'server/smoke/edit-reference-local-supabase-rpc-adapter-smoke.ts',
+  'server/smoke/edit-reference-production-readiness-smoke.ts',
   'server/smoke/planning-exact-edit-preference-authority-port-smoke.ts',
   'server/types.ts',
   'server/validation/canonical-exact-edit-planning-authority-schemas.ts',
@@ -91,6 +94,21 @@ const actualMigrations = readdirSync(join(directory, 'supabase', 'migrations'))
   .sort()
 assert(equalArrays(actualMigrations, expectedMigrations), 'migration_chain_changed')
 
+const expectedRecoveryDataTables = readFileSync(
+  join(directory, 'expected-recovery-data-tables.txt'),
+  'utf8',
+).trim().split('\n')
+assert(expectedRecoveryDataTables.length === 41, 'recovery_table_count_invalid')
+assert(
+  equalArrays(expectedRecoveryDataTables, [...expectedRecoveryDataTables].sort()),
+  'recovery_table_order_invalid',
+)
+assert(
+  new Set(expectedRecoveryDataTables).size === expectedRecoveryDataTables.length,
+  'recovery_table_duplicate',
+)
+assert(expectedRecoveryDataTables[0] === 'auth.users', 'recovery_auth_users_missing')
+
 for (const entry of manifest.files) {
   assert(typeof entry.path === 'string' && !entry.path.startsWith('/') && !entry.path.includes('..'), 'manifest_path_invalid')
   assert(/^[a-f0-9]{64}$/.test(entry.sha256), `manifest_digest_invalid:${entry.path}`)
@@ -110,6 +128,25 @@ const config = readFileSync(join(directory, 'supabase', 'config.toml'), 'utf8')
 assert(config.includes('project_id = "reeditpro-canonical-v3-local"'), 'local_project_id_invalid')
 assert(config.includes('port = 57432'), 'local_database_port_invalid')
 assert(!/supabase\.co|project_ref|access_token/i.test(config), 'remote_config_material_forbidden')
+
+const recoveryRunner = readFileSync(
+  join(directory, 'run-local-recovery-verification.sh'),
+  'utf8',
+)
+for (const requiredToken of [
+  'unset SUPABASE_ACCESS_TOKEN',
+  'Refusing non-local canonical V3 recovery database URL.',
+  'pg_dump',
+  'pg_restore',
+  'single-transaction',
+  'remoteMutationAllowed',
+  'productionAuthority',
+]) assert(recoveryRunner.includes(requiredToken), `recovery_runner_contract_missing:${requiredToken}`)
+for (const forbiddenPattern of [
+  /supabase\s+link/i,
+  /supabase\s+db\s+push/i,
+  /https:\/\/[^\s'";]+\.supabase\.co/i,
+]) assert(!forbiddenPattern.test(recoveryRunner), `recovery_runner_remote_action_forbidden:${forbiddenPattern}`)
 
 const migrationSource = expectedMigrations
   .map((name) => readFileSync(join(directory, 'supabase', 'migrations', name), 'utf8'))

@@ -130,6 +130,13 @@ assert.ok(
     'preparation_lost_response_exact_idempotent_recovery_verified',
   ),
 )
+assert.ok(
+  EDIT_REFERENCE_PRODUCTION_GATE_DEFINITIONS.find((gate) => (
+    gate.id === 'recovery_and_observability'
+  ))?.assertions.includes(
+    'same_release_backup_restore_and_rollback_rehearsal_verified',
+  ),
+)
 
 const prePreparationEvidence = completeEvidence.map((evidence) => {
   if (evidence.gateId === 'canonical_persistence') {

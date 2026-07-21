@@ -135,6 +135,7 @@ export const EDIT_REFERENCE_PRODUCTION_GATE_DEFINITIONS = [
       'job_retry_cancel_and_resume_verified',
       'append_only_audit_and_restore_verified',
       'point_in_time_recovery_verified',
+      'same_release_backup_restore_and_rollback_rehearsal_verified',
       'no_duplicate_execution_or_charge_verified',
     ],
   },

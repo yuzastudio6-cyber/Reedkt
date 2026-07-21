@@ -210,6 +210,7 @@ export async function preparePreferenceApplicationForProjectEditSession(input: {
   if (!input.targetUnderstandingPackage) {
     return { ok: false, message: 'Complete the target-video understanding study before adapting this Edit Reference. The application cannot rely on a caller-written source summary.' }
   }
+  const targetUnderstanding = input.targetUnderstandingPackage
   const targetContext = createPreferenceApplicationTargetContext({
     bundle: input.bundle,
     currentUserInstruction: input.currentUserInstruction,
@@ -219,7 +220,7 @@ export async function preparePreferenceApplicationForProjectEditSession(input: {
     bundle: input.bundle,
     editReferenceId: input.editReferenceId,
     targetContext,
-    targetUnderstanding: input.targetUnderstandingPackage,
+    targetUnderstanding,
     workspaceId,
   })
   if (targetValidationMessage) return { ok: false, message: targetValidationMessage }
@@ -229,14 +230,15 @@ export async function preparePreferenceApplicationForProjectEditSession(input: {
     && application.status === 'prepared'
   ))
   if (existing) {
-    const binding = existing.targetUnderstanding
-    const exactExistingApplication = existing.applicationVersion === 'edit-reference-target-application-v2'
-      && binding?.packageId === input.targetUnderstandingPackage.packageId
-      && binding.packageDigestSha256 === input.targetUnderstandingPackage.packageDigestSha256
-      && binding.sourceStorageObjectRecordId === input.targetUnderstandingPackage.source.storageObjectRecordId
-      && binding.sourceMediaAssetId === input.targetUnderstandingPackage.source.mediaAssetId
-      && binding.editBriefDigestSha256 === input.targetUnderstandingPackage.declaredContext.editBriefDigestSha256
-      && stableEditReferenceJson(existing.targetContext) === stableEditReferenceJson(targetContext)
+    const exactExistingApplication = matchesPreparedPreferenceApplication(existing, {
+      applicationSource: input.applicationSource ?? 'session_panel',
+      dnaContentDigest: approvedDNA.contentDigest,
+      dnaVersionId: approvedDNA.id,
+      editReferenceId: detail.reference.id,
+      replacesApplicationId: undefined,
+      targetContext,
+      targetUnderstanding,
+    })
     if (exactExistingApplication) return { ok: true, application: existing, detail }
     return {
       ok: false,
@@ -250,7 +252,7 @@ export async function preparePreferenceApplicationForProjectEditSession(input: {
     acknowledgeAdaptNotCopy: true,
     applicationSource: input.applicationSource ?? 'session_panel',
     targetContext,
-    ...targetUnderstandingRequestBinding(input.targetUnderstandingPackage),
+    ...targetUnderstandingRequestBinding(targetUnderstanding),
   }, stableLifecycleKey(
     'prepare',
     `${input.bundle.session.id}-${detail.reference.id}`,
@@ -258,18 +260,39 @@ export async function preparePreferenceApplicationForProjectEditSession(input: {
       approvedDNAContentDigest: approvedDNA.contentDigest,
       applicationSource: input.applicationSource ?? 'session_panel',
       targetContext,
-      targetUnderstandingPackageId: input.targetUnderstandingPackage.packageId,
-      targetUnderstandingPackageDigestSha256: input.targetUnderstandingPackage.packageDigestSha256,
+      targetUnderstandingPackageId: targetUnderstanding.packageId,
+      targetUnderstandingPackageDigestSha256: targetUnderstanding.packageDigestSha256,
     }),
   ))
-  if (!created.ok) return { ok: false, message: created.message }
-  const application = created.data.detail.applications.find((candidate) => (
-    candidate.projectId === input.bundle.session.projectId
-    && candidate.editSessionId === input.bundle.session.id
-    && candidate.status === 'prepared'
-  ))
+  const createFailureMessage = created.ok ? 'The target application was saved but could not be verified.' : created.message
+  const createdDetail = created.ok ? created.data.detail : undefined
+  if (!createdDetail) {
+    const readback = await api.get(workspaceId, detail.reference.id)
+    const recoveredApplication = readback.ok
+      ? readback.data.detail.applications.find((candidate) => matchesPreparedPreferenceApplication(candidate, {
+          applicationSource: input.applicationSource ?? 'session_panel',
+          dnaContentDigest: approvedDNA.contentDigest,
+          dnaVersionId: approvedDNA.id,
+          editReferenceId: detail.reference.id,
+          replacesApplicationId: undefined,
+          targetContext,
+          targetUnderstanding,
+        }))
+      : undefined
+    if (!readback.ok || !recoveredApplication) return { ok: false, message: createFailureMessage }
+    return { ok: true, application: recoveredApplication, detail: readback.data.detail }
+  }
+  const application = createdDetail.applications.find((candidate) => matchesPreparedPreferenceApplication(candidate, {
+    applicationSource: input.applicationSource ?? 'session_panel',
+    dnaContentDigest: approvedDNA.contentDigest,
+    dnaVersionId: approvedDNA.id,
+    editReferenceId: detail.reference.id,
+    replacesApplicationId: undefined,
+    targetContext,
+    targetUnderstanding,
+  }))
   return application
-    ? { ok: true, application, detail: created.data.detail }
+    ? { ok: true, application, detail: createdDetail }
     : { ok: false, message: 'The target application was saved but could not be read back.' }
 }
 
@@ -462,15 +485,32 @@ export async function connectPreferenceApplicationToProjectEditSession(input: {
       targetSessionReceipt: receipt,
     }, stableLifecycleKey('connect', application.id, application.contentDigest))
     if (!connected.ok) {
-      return {
-        ok: false,
-        context,
-        message: `${connected.message} The staged context remains inactive and can be retried safely.`,
+      const readback = await api.get(
+        input.workspaceId ?? EDIT_REFERENCE_WORKSPACE_ID,
+        application.editReferenceId,
+      )
+      const recoveredApplication = readback.ok
+        ? readback.data.detail.applications.find((candidate) => (
+            candidate.id === application.id
+            && candidate.status === 'prepared'
+            && candidate.targetIntegrationStatus === 'connected'
+            && candidate.downstreamContext?.applicationId === application.id
+            && stableEditReferenceJson(candidate.targetSessionReceipt) === stableEditReferenceJson(receipt)
+          ))
+        : undefined
+      if (!recoveredApplication) {
+        return {
+          ok: false,
+          context,
+          message: `${connected.message} The staged context remains inactive and can be retried safely.`,
+        }
       }
+      application = recoveredApplication
+    } else {
+      const connectedApplication = connected.data.detail.applications.find((candidate) => candidate.id === application.id)
+      if (!connectedApplication) return { ok: false, context, message: 'The backend-local connection completed but could not be read back.' }
+      application = connectedApplication
     }
-    const connectedApplication = connected.data.detail.applications.find((candidate) => candidate.id === application.id)
-    if (!connectedApplication) return { ok: false, context, message: 'The backend-local connection completed but could not be read back.' }
-    application = connectedApplication
   }
 
   const activated = await input.projectEditSessionClient.preference.activateApplication({
@@ -555,10 +595,29 @@ export async function removePreferenceApplicationFromProjectEditSession(input: {
     expectedApplicationContentDigest: exactApplication.contentDigest,
     invalidationReceipt: invalidated.invalidationReceipt,
   }, stableLifecycleKey('remove', exactApplication.id, invalidated.invalidationReceipt.invalidatedAt))
-  if (!cleared.ok) {
+  let application = cleared.ok
+    ? cleared.data.detail.applications.find((candidate) => candidate.id === exactApplication.id)
+    : undefined
+  if (!application) {
+    const readback = await api.get(
+      input.workspaceId ?? EDIT_REFERENCE_WORKSPACE_ID,
+      exactApplication.editReferenceId,
+    )
+    application = readback.ok
+      ? readback.data.detail.applications.find((candidate) => (
+          candidate.id === exactApplication.id
+          && candidate.status === 'cleared'
+          && candidate.targetIntegrationStatus === 'invalidated'
+          && candidate.downstreamInvalidationStatus === 'completed'
+          && candidate.invalidationReason === 'remove'
+          && stableEditReferenceJson(candidate.downstreamInvalidationReceipt)
+            === stableEditReferenceJson(invalidated.invalidationReceipt)
+        ))
+      : undefined
+  }
+  if (!application && !cleared.ok) {
     return { ok: false, message: `${cleared.message} The prior guidance remains inactive and removal can be retried safely.` }
   }
-  const application = cleared.data.detail.applications.find((candidate) => candidate.id === exactApplication.id)
   return {
     ok: Boolean(application?.status === 'cleared'),
     application,
@@ -598,6 +657,7 @@ export async function replacePreferenceApplicationForProjectEditSession(input: {
   if (!input.targetUnderstandingPackage) {
     return { ok: false, message: 'Complete the target-video understanding study before replacing this Edit Reference. The current guidance was not invalidated.' }
   }
+  const targetUnderstanding = input.targetUnderstandingPackage
 
   const targetContext = createPreferenceApplicationTargetContext({
     bundle: input.bundle,
@@ -608,7 +668,7 @@ export async function replacePreferenceApplicationForProjectEditSession(input: {
     bundle: input.bundle,
     editReferenceId: input.nextEditReferenceId,
     targetContext,
-    targetUnderstanding: input.targetUnderstandingPackage,
+    targetUnderstanding,
     workspaceId,
   })
   if (targetValidationMessage) return { ok: false, message: `${targetValidationMessage} The current guidance was not invalidated.` }
@@ -626,7 +686,7 @@ export async function replacePreferenceApplicationForProjectEditSession(input: {
     acknowledgeAdaptNotCopy: true,
     applicationSource: input.applicationSource ?? 'session_panel',
     targetContext,
-    ...targetUnderstandingRequestBinding(input.targetUnderstandingPackage),
+    ...targetUnderstandingRequestBinding(targetUnderstanding),
     replacesApplicationId: currentApplication.id,
     expectedReplacedReferenceRevision: currentDetailResult.data.detail.reference.revision,
     invalidationReceipt: invalidated.invalidationReceipt,
@@ -634,20 +694,45 @@ export async function replacePreferenceApplicationForProjectEditSession(input: {
     approvedDNAContentDigest: approvedDNA.contentDigest,
     applicationSource: input.applicationSource ?? 'session_panel',
     targetContext,
-    targetUnderstandingPackageId: input.targetUnderstandingPackage.packageId,
-    targetUnderstandingPackageDigestSha256: input.targetUnderstandingPackage.packageDigestSha256,
+    targetUnderstandingPackageId: targetUnderstanding.packageId,
+    targetUnderstandingPackageDigestSha256: targetUnderstanding.packageDigestSha256,
   })))
-  if (!created.ok) {
-    return { ok: false, message: `${created.message} The previous guidance remains inactive and replacement can be retried safely.` }
+  let createdDetail = created.ok ? created.data.detail : undefined
+  let replacement = createdDetail?.applications.find((candidate) => matchesPreparedPreferenceApplication(candidate, {
+    applicationSource: input.applicationSource ?? 'session_panel',
+    dnaContentDigest: approvedDNA.contentDigest,
+    dnaVersionId: approvedDNA.id,
+    editReferenceId: nextDetail.reference.id,
+    replacesApplicationId: currentApplication.id,
+    targetContext,
+    targetUnderstanding,
+  }))
+  if (!replacement) {
+    const readback = await api.get(workspaceId, nextDetail.reference.id)
+    const recoveredApplication = readback.ok
+      ? readback.data.detail.applications.find((candidate) => matchesPreparedPreferenceApplication(candidate, {
+          applicationSource: input.applicationSource ?? 'session_panel',
+          dnaContentDigest: approvedDNA.contentDigest,
+          dnaVersionId: approvedDNA.id,
+          editReferenceId: nextDetail.reference.id,
+          replacesApplicationId: currentApplication.id,
+          targetContext,
+          targetUnderstanding,
+        }))
+      : undefined
+    if (!readback.ok || !recoveredApplication) {
+      return { ok: false, message: `${created.ok ? 'The replacement was prepared but could not be verified.' : created.message} The previous guidance remains inactive and replacement can be retried safely.` }
+    }
+    createdDetail = readback.data.detail
+    replacement = recoveredApplication
   }
-  const replacement = created.data.detail.applications.find((candidate) => candidate.replacesApplicationId === currentApplication.id)
   if (!replacement) return { ok: false, message: 'The replacement was prepared but could not be read back.' }
   const connected = await connectPreferenceApplicationToProjectEditSession({
     application: replacement,
     editReferenceClient: api,
     outputFrameConfirmed: true,
     projectEditSessionClient: input.projectEditSessionClient,
-    referenceRevision: created.data.detail.reference.revision,
+    referenceRevision: createdDetail?.reference.revision ?? nextDetail.reference.revision,
     workspaceId,
   })
   return {
@@ -769,6 +854,36 @@ export function createPreferenceApplicationTargetContext(input: {
 
 function titleCaseId(value: string): string {
   return value.replace(/^mock-/, '').replaceAll('-', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase()).slice(0, 160)
+}
+
+function matchesPreparedPreferenceApplication(
+  application: PreferenceApplicationRecord,
+  expected: {
+    applicationSource: PreferenceApplicationSource
+    dnaContentDigest: string
+    dnaVersionId: string
+    editReferenceId: string
+    replacesApplicationId: string | undefined
+    targetContext: PreferenceApplicationTargetContextSnapshot
+    targetUnderstanding: TargetVideoUnderstandingPackage
+  },
+): boolean {
+  const binding = application.targetUnderstanding
+  return application.status === 'prepared'
+    && application.editReferenceId === expected.editReferenceId
+    && application.dnaVersionId === expected.dnaVersionId
+    && application.dnaContentDigest === expected.dnaContentDigest
+    && application.applicationSource === expected.applicationSource
+    && application.applicationVersion === 'edit-reference-target-application-v2'
+    && application.replacesApplicationId === expected.replacesApplicationId
+    && application.projectId === expected.targetContext.projectId
+    && application.editSessionId === expected.targetContext.editSessionId
+    && binding?.packageId === expected.targetUnderstanding.packageId
+    && binding.packageDigestSha256 === expected.targetUnderstanding.packageDigestSha256
+    && binding.sourceStorageObjectRecordId === expected.targetUnderstanding.source.storageObjectRecordId
+    && binding.sourceMediaAssetId === expected.targetUnderstanding.source.mediaAssetId
+    && binding.editBriefDigestSha256 === expected.targetUnderstanding.declaredContext.editBriefDigestSha256
+    && stableEditReferenceJson(application.targetContext) === stableEditReferenceJson(expected.targetContext)
 }
 
 function stableLifecycleKey(action: string, applicationId: string, versionToken: string): string {

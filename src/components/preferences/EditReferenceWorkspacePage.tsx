@@ -22,6 +22,7 @@ import {
 } from 'lucide-react'
 import { useSearchParams } from 'react-router-dom'
 import type {
+  ApproveEditReferenceDNAVersionRequest,
   CreatePreferenceEvidenceRequest,
   EditReferenceDetail,
   EditReferenceLongFormStudyControlAction,
@@ -39,6 +40,7 @@ import type {
   EditReferenceLongFormStudyReviewData,
 } from '../../types/edit-reference-long-form-review'
 import { createEditReferenceApiClient } from '../../lib/edit-reference-api-client'
+import { createEditReferenceDeterministicHash } from '../../lib/edit-reference-deterministic-hash'
 import { uploadEditReferenceMedia } from '../../lib/edit-reference-media-upload-client'
 import {
   clearEditReferenceMediaUploadRecovery,
@@ -806,7 +808,7 @@ function StudyChat({ detail, disabled, onChanged, setBusy, setError }: {
     if (!currentDNAVersion || !currentQAResult || !approvalAcknowledged || !reasoningReviewAcknowledged) return
     setBusy(true)
     setError(undefined)
-    const response = await api.approvePreferenceDNA(detail.study.id, currentDNAVersion.id, {
+    const approvalRequest: ApproveEditReferenceDNAVersionRequest = {
       workspaceId,
       expectedStudyRevision: detail.study.revision,
       expectedDNAContentDigest: currentDNAVersion.contentDigest,
@@ -821,9 +823,34 @@ function StudyChat({ detail, disabled, onChanged, setBusy, setError }: {
           acknowledgeConfidenceAndLimitations: true as const,
         },
       } : {}),
-    })
-    if (response.ok) await onChanged(response.data.detail)
-    else setError(response.message)
+    }
+    const approvalIdempotencyKey = `edit-reference-approve-${currentDNAVersion.id}-${createEditReferenceDeterministicHash(approvalRequest)}`.slice(0, 200)
+    const response = await api.approvePreferenceDNA(
+      detail.study.id,
+      currentDNAVersion.id,
+      approvalRequest,
+      approvalIdempotencyKey,
+    )
+    if (response.ok) {
+      await onChanged(response.data.detail)
+    } else {
+      const readback = await api.get(workspaceId, detail.reference.id)
+      const committedVersion = readback.ok
+        ? readback.data.detail.dnaVersions.find((version) => (
+            version.id === currentDNAVersion.id
+            && version.status === 'approved'
+            && version.contentDigest === currentDNAVersion.contentDigest
+            && version.approval?.qaResultId === currentQAResult.id
+            && (
+              !currentDNAVersion.reasoningReview
+              || version.approval?.reasoningReview?.approvalBindingDigestSha256
+                === currentDNAVersion.reasoningReview.approvalBindingDigestSha256
+            )
+          ))
+        : undefined
+      if (readback.ok && committedVersion) await onChanged(readback.data.detail)
+      else setError(response.message)
+    }
     setBusy(false)
   }
 

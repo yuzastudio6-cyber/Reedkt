@@ -315,7 +315,51 @@ test.describe('canonical Edit Preference real-file flow', () => {
     await expectNoHorizontalOverflow(page)
   })
 
-  test('selects approved guidance, verifies the exact target, applies explicitly, reloads, and removes safely', async ({ page }, testInfo) => {
+  test('reconciles a committed Preference DNA approval when its response is lost', async ({ page }) => {
+    test.setTimeout(120_000)
+    page.setDefaultTimeout(15_000)
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await setViewport(page, 1280, 900)
+
+    await gotoRoute(page, '/preferences')
+    const workspaceId = await page.getByTestId('edit-preferences-page').getAttribute('data-workspace-id')
+    expect(workspaceId).toBeTruthy()
+    if (!workspaceId) throw new Error('The Edit Preference workspace identity is missing.')
+
+    const stamp = Date.now()
+    const reviewable = await createReviewableReference(
+      workspaceId,
+      `canonical-approval-readback-${stamp}`,
+      `Approval recovery ${stamp}`,
+    )
+    let approvalMutationRequests = 0
+    let loseCommittedApprovalResponse = true
+    await page.route('**/v1/edit-reference-studies/*/preference-dna/*/approve', async (route) => {
+      if (route.request().method() === 'POST') approvalMutationRequests += 1
+      if (route.request().method() === 'POST' && loseCommittedApprovalResponse) {
+        loseCommittedApprovalResponse = false
+        const committed = await route.fetch()
+        expect(committed.ok()).toBe(true)
+        await route.abort('failed')
+        return
+      }
+      await route.continue()
+    })
+
+    await gotoRoute(page, `/preferences?reference=${encodeURIComponent(reviewable.detail.reference.id)}`)
+    await expect(page.getByTestId('edit-reference-dna-approval')).toBeVisible()
+    await page.getByTestId('acknowledge-edit-reference-dna-approval').check()
+    const reasoningAcknowledgement = page.getByTestId('acknowledge-edit-reference-dna-reasoning-review')
+    if (await reasoningAcknowledgement.count()) await reasoningAcknowledgement.check()
+    await page.getByTestId('approve-edit-reference-dna').click()
+
+    await expect(page.getByTestId('edit-reference-target-ready')).toBeVisible()
+    await expect(page.getByTestId('edit-reference-dna-review')).toContainText('Approved reusable guidance')
+    expect(approvalMutationRequests).toBe(1)
+    await expectNoHorizontalOverflow(page)
+  })
+
+  test('applies, replaces, reloads, and removes exact-target guidance despite lost responses', async ({ page }, testInfo) => {
     test.setTimeout(180_000)
     page.setDefaultTimeout(15_000)
     await page.emulateMedia({ reducedMotion: 'reduce' })
@@ -330,6 +374,49 @@ test.describe('canonical Edit Preference real-file flow', () => {
     const stamp = Date.now()
     const preferenceName = `Exact target documentary ${stamp}`
     const approved = await createApprovedReference(workspaceId, `canonical-target-${stamp}`, preferenceName)
+    const replacementPreferenceName = `Exact target editorial ${stamp}`
+    const replacementApproved = await createApprovedReference(
+      workspaceId,
+      `canonical-replacement-${stamp}`,
+      replacementPreferenceName,
+    )
+    const lifecycleMutationRequests = { prepare: 0, connect: 0, clear: 0 }
+    let prepareResponsesToLose = 2
+    let connectResponsesToLose = 2
+    let loseClearResponse = true
+    await page.route('**/v1/edit-reference-studies/*/preference-dna/*/applications', async (route) => {
+      if (route.request().method() === 'POST') lifecycleMutationRequests.prepare += 1
+      if (route.request().method() === 'POST' && prepareResponsesToLose > 0) {
+        prepareResponsesToLose -= 1
+        const committed = await route.fetch()
+        expect(committed.ok()).toBe(true)
+        await route.abort('failed')
+        return
+      }
+      await route.continue()
+    })
+    await page.route('**/v1/edit-reference-applications/*/connect', async (route) => {
+      if (route.request().method() === 'POST') lifecycleMutationRequests.connect += 1
+      if (route.request().method() === 'POST' && connectResponsesToLose > 0) {
+        connectResponsesToLose -= 1
+        const committed = await route.fetch()
+        expect(committed.ok()).toBe(true)
+        await route.abort('failed')
+        return
+      }
+      await route.continue()
+    })
+    await page.route('**/v1/edit-reference-applications/*/clear', async (route) => {
+      if (route.request().method() === 'POST') lifecycleMutationRequests.clear += 1
+      if (route.request().method() === 'POST' && loseClearResponse) {
+        loseClearResponse = false
+        const committed = await route.fetch()
+        expect(committed.ok()).toBe(true)
+        await route.abort('failed')
+        return
+      }
+      await route.continue()
+    })
 
     await gotoRoute(page, '/projects/new')
     const projectName = `Target adaptation project ${stamp}`
@@ -428,15 +515,43 @@ test.describe('canonical Edit Preference real-file flow', () => {
         digestSha256: backendBrief.contentDigestSha256,
       },
     })
+    const replacementTargetPackage = await persistReadyTargetVideoUnderstandingFixture({
+      localStorageRoot: storageRoot,
+      ownerUserId: 'mock-user-runtime',
+      workspaceId,
+      editReferenceId: replacementApproved.detail.reference.id,
+      studySessionId: replacementApproved.detail.study.id,
+      targetContext,
+      fixtureKey: `canonical-replacement-${stamp}`,
+      durationSeconds: source.sourceMetadata?.durationSeconds ?? 3,
+      sourceBinding: {
+        storageObjectRecordId: source.storageObjectRecordId,
+        mediaAssetId: source.mediaAssetId,
+        checksumSha256: source.checksumSha256,
+        sizeBytes: source.byteSize,
+        mimeType: source.mimeType,
+      },
+      editBriefBinding: {
+        id: backendBrief.id,
+        revision: backendBrief.revisionNumber,
+        digestSha256: backendBrief.contentDigestSha256,
+      },
+    })
 
     await page.route(/\/v1\/projects\/[^/]+\/edit-sessions\/[^/]+\/edit-reference-target-understanding(?:\?|$)/, async (route) => {
+      const requestUrl = new URL(route.request().url())
+      const requestBody = route.request().postDataJSON() as { editReferenceId?: string } | null
+      const requestedReferenceId = requestUrl.searchParams.get('editReferenceId') ?? requestBody?.editReferenceId
+      const selectedTargetPackage = requestedReferenceId === replacementApproved.detail.reference.id
+        ? replacementTargetPackage
+        : targetPackage
       await route.fulfill({
         contentType: 'application/json',
         status: 200,
         body: JSON.stringify({
           ok: true,
           data: {
-            targetVideoUnderstandingPackage: targetPackage,
+            targetVideoUnderstandingPackage: selectedTargetPackage,
             schedule: { scheduled: false, alreadyActive: false, runtime: 'blocked', reason: 'controlled_test_readback' },
             persistence: 'backend_local_private_versioned',
             replayed: true,
@@ -473,9 +588,34 @@ test.describe('canonical Edit Preference real-file flow', () => {
       editSessionId: handoff.editSessionId,
       status: 'prepared',
     })
+    expect(lifecycleMutationRequests.prepare).toBe(1)
+    expect(lifecycleMutationRequests.connect).toBe(1)
 
     await page.reload()
     await expect(page.getByTestId('current-edit-reference-select')).toHaveValue(approved.detail.reference.id)
+    await expect(page.getByTestId('current-edit-reference-application')).toHaveAttribute('data-state', 'applied')
+    await page.getByTestId('current-edit-reference-select').selectOption(replacementApproved.detail.reference.id)
+    await expect(page.getByTestId('edit-reference-target-study')).toHaveAttribute('data-state', 'ready')
+    await expect(page.getByTestId('current-edit-reference-application')).toHaveAttribute('data-state', 'ready_to_apply')
+    await clickWhenReady(page.getByRole('button', { name: /^Apply to this edit$/i }))
+    await expect(page.getByTestId('current-edit-reference-select')).toHaveValue(replacementApproved.detail.reference.id)
+    await expect(page.getByTestId('current-edit-reference-application')).toHaveAttribute('data-state', 'applied')
+    const afterReplacement = (await listApplications(workspaceId)).applications
+    expect(afterReplacement.filter((record) => record.targetIntegrationStatus === 'connected')).toMatchObject([{
+      editReferenceId: replacementApproved.detail.reference.id,
+      projectId: handoff.projectId,
+      editSessionId: handoff.editSessionId,
+      status: 'prepared',
+    }])
+    expect(afterReplacement.find((record) => record.id === connected[0]?.id)).toMatchObject({
+      status: 'replaced',
+      targetIntegrationStatus: 'invalidated',
+    })
+    expect(lifecycleMutationRequests.prepare).toBe(2)
+    expect(lifecycleMutationRequests.connect).toBe(2)
+
+    await page.reload()
+    await expect(page.getByTestId('current-edit-reference-select')).toHaveValue(replacementApproved.detail.reference.id)
     await expect(page.getByTestId('current-edit-reference-application')).toHaveAttribute('data-state', 'applied')
     await page.getByTestId('current-edit-reference-select').selectOption('')
     await expect(page.getByTestId('preference-material-change-warning')).toContainText('remove this preference')
@@ -488,6 +628,7 @@ test.describe('canonical Edit Preference real-file flow', () => {
         .filter((record) => record.targetIntegrationStatus === 'connected')
         .length
     )).toBe(0)
+    expect(lifecycleMutationRequests.clear).toBe(1)
 
     await setViewport(page, 375, 812)
     await expectNoHorizontalOverflow(page)
@@ -554,6 +695,27 @@ async function createApprovedReference(
   keyPrefix: string,
   name: string,
 ): Promise<EditReferenceDetailData> {
+  const quality = await createReviewableReference(workspaceId, keyPrefix, name)
+  const studyId = quality.detail.study.id
+  const dna = quality.detail.dnaVersions[0]
+  if (!dna) throw new Error('The approved-reference fixture did not create Preference DNA.')
+  const qa = quality.detail.dnaQaResults[0]
+  if (!qa) throw new Error('The approved-reference fixture did not create a quality result.')
+  return post<EditReferenceDetailData>(`/v1/edit-reference-studies/${studyId}/preference-dna/${dna.id}/approve`, `${keyPrefix}-approve`, {
+    workspaceId,
+    expectedStudyRevision: quality.detail.study.revision,
+    expectedDNAContentDigest: dna.contentDigest,
+    qaResultId: qa.id,
+    acknowledgeAdaptNotCopy: true,
+    acknowledgeQAReview: qa.status === 'requires_user_review',
+  })
+}
+
+async function createReviewableReference(
+  workspaceId: string,
+  keyPrefix: string,
+  name: string,
+): Promise<EditReferenceDetailData> {
   const created = await post<EditReferenceDetailData>('/v1/edit-references', `${keyPrefix}-create`, {
     workspaceId,
     name,
@@ -587,14 +749,7 @@ async function createApprovedReference(
   })
   const qa = quality.detail.dnaQaResults[0]
   if (!qa) throw new Error('The approved-reference fixture did not create a quality result.')
-  return post<EditReferenceDetailData>(`/v1/edit-reference-studies/${studyId}/preference-dna/${dna.id}/approve`, `${keyPrefix}-approve`, {
-    workspaceId,
-    expectedStudyRevision: quality.detail.study.revision,
-    expectedDNAContentDigest: dna.contentDigest,
-    qaResultId: qa.id,
-    acknowledgeAdaptNotCopy: true,
-    acknowledgeQAReview: qa.status === 'requires_user_review',
-  })
+  return quality
 }
 
 async function listApplications(workspaceId: string): Promise<PreferenceApplicationListData> {

@@ -154,9 +154,11 @@ function validateProductionPlanningInputs(input: {
   if (
     request.applicationContextHashSha256 !== calculateEditReferenceProductionApplicationContextHash(application)
     || request.targetUnderstandingPackageDigestSha256 !== application.targetUnderstanding?.packageDigestSha256
-    || request.outputFrameConfirmationId === null
-    || request.outputFrameConfirmationDigestSha256 === null
+    || request.outputFrameConfirmation === null
   ) invalid('production_planning_application_authority_digest_invalid')
+  if (request.outputFrameConfirmation.aspectRatio !== application.targetContext.aspectRatio) {
+    invalid('production_planning_output_frame_target_mismatch')
+  }
 }
 
 function validateApplicationCommittedAuthority(application: PreferenceApplicationRecord): void {
@@ -249,8 +251,7 @@ function createUnsignedPlanningContext(input: {
 }): PlanningContextWithoutDigest {
   const { application, request, receipt } = input
   const target = application.targetUnderstanding!
-  const outputFrameConfirmationId = request.outputFrameConfirmationId!
-  const outputFrameConfirmationDigestSha256 = request.outputFrameConfirmationDigestSha256!
+  const outputFrameConfirmation = request.outputFrameConfirmation!
   return {
     schemaVersion: EDIT_REFERENCE_PRODUCTION_PLANNING_CONTEXT_VERSION,
     sourceAuthority: 'canonical_application_lifecycle_rpc',
@@ -269,8 +270,8 @@ function createUnsignedPlanningContext(input: {
     applicationContextHashSha256: request.applicationContextHashSha256,
     targetContextDigestSha256: application.targetContextDigest,
     targetUnderstandingPackageDigestSha256: target.packageDigestSha256,
-    outputFrameConfirmationId,
-    outputFrameConfirmationDigestSha256,
+    outputFrameConfirmationId: outputFrameConfirmation.confirmationId,
+    outputFrameConfirmationDigestSha256: outputFrameConfirmation.authorityDigestSha256,
     committedReferenceRevision: receipt.committedReferenceRevision,
     committedPlanningInputRevision: receipt.committedPlanningInputRevision,
     currentUserInstruction: application.targetContext.currentUserInstruction,

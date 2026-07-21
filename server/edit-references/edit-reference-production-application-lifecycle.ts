@@ -1,14 +1,19 @@
 import { createHash } from 'node:crypto'
 import { ApiError } from '../errors/api-error'
+import {
+  validateEditReferenceProductionOutputFrameAuthority,
+  type EditReferenceProductionOutputFrameAuthority,
+} from './edit-reference-production-output-frame-authority'
+import { EDIT_REFERENCE_PRODUCTION_APPLICATION_LIFECYCLE_RPC_NAME } from './edit-reference-production-persistence-contract'
 
 export const EDIT_REFERENCE_PRODUCTION_APPLICATION_LIFECYCLE_REQUEST_VERSION =
-  'edit-reference-production-application-lifecycle-request-v1' as const
+  'edit-reference-production-application-lifecycle-request-v2' as const
 
 export const EDIT_REFERENCE_PRODUCTION_APPLICATION_LIFECYCLE_RECEIPT_VERSION =
-  'edit-reference-production-application-lifecycle-receipt-v1' as const
+  'edit-reference-production-application-lifecycle-receipt-v2' as const
 
 export const EDIT_REFERENCE_PRODUCTION_APPLICATION_LIFECYCLE_RPC =
-  'mutate_edit_reference_application_lifecycle_v2' as const
+  EDIT_REFERENCE_PRODUCTION_APPLICATION_LIFECYCLE_RPC_NAME
 
 export const EDIT_REFERENCE_PRODUCTION_APPLICATION_LIFECYCLE_MUTATIONS = [
   'apply',
@@ -35,8 +40,7 @@ export interface EditReferenceProductionApplicationLifecycleRequestInput {
   readonly applicationContentDigestSha256: string
   readonly applicationContextHashSha256: string
   readonly targetUnderstandingPackageDigestSha256: string | null
-  readonly outputFrameConfirmationId: string | null
-  readonly outputFrameConfirmationDigestSha256: string | null
+  readonly outputFrameConfirmation: EditReferenceProductionOutputFrameAuthority | null
   readonly idempotencyKeyHashSha256: string
   readonly requestedAt: string
 }
@@ -106,7 +110,7 @@ const REQUEST_INPUT_KEYS = [
   'expectedCurrentApplicationId', 'expectedReferenceRevision',
   'expectedPlanningInputRevision', 'applicationContentDigestSha256',
   'applicationContextHashSha256', 'targetUnderstandingPackageDigestSha256',
-  'outputFrameConfirmationId', 'outputFrameConfirmationDigestSha256',
+  'outputFrameConfirmation',
   'idempotencyKeyHashSha256', 'requestedAt',
 ] as const
 const RECEIPT_INPUT_KEYS = [
@@ -306,8 +310,7 @@ function validateRequestInput(input: EditReferenceProductionApplicationLifecycle
   if (input.mutation === 'remove') {
     if (
       input.targetUnderstandingPackageDigestSha256 !== null
-      || input.outputFrameConfirmationId !== null
-      || input.outputFrameConfirmationDigestSha256 !== null
+      || input.outputFrameConfirmation !== null
     ) {
       invalid('application_lifecycle_remove_cannot_replace_target_authority')
     }
@@ -315,13 +318,14 @@ function validateRequestInput(input: EditReferenceProductionApplicationLifecycle
     if (!input.targetUnderstandingPackageDigestSha256 || !SHA256_PATTERN.test(input.targetUnderstandingPackageDigestSha256)) {
       invalid('application_lifecycle_target_understanding_digest_invalid')
     }
-    if (!input.outputFrameConfirmationId || !ID_PATTERN.test(input.outputFrameConfirmationId)) {
-      invalid('application_lifecycle_output_frame_confirmation_invalid')
-    }
+    if (!input.outputFrameConfirmation) invalid('application_lifecycle_output_frame_confirmation_invalid')
+    validateEditReferenceProductionOutputFrameAuthority(input.outputFrameConfirmation)
     if (
-      !input.outputFrameConfirmationDigestSha256
-      || !SHA256_PATTERN.test(input.outputFrameConfirmationDigestSha256)
-    ) invalid('application_lifecycle_output_frame_confirmation_digest_invalid')
+      input.outputFrameConfirmation.workspaceId !== input.workspaceId
+      || input.outputFrameConfirmation.projectId !== input.projectId
+      || input.outputFrameConfirmation.editSessionId !== input.editSessionId
+      || input.outputFrameConfirmation.planningInputRevision !== input.expectedPlanningInputRevision
+    ) invalid('application_lifecycle_output_frame_authority_binding_invalid')
   }
   if (!Number.isFinite(Date.parse(input.requestedAt))) {
     invalid('application_lifecycle_requested_at_invalid')

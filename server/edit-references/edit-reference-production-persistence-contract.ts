@@ -1,7 +1,10 @@
 import { ApiError } from '../errors/api-error'
 
 export const EDIT_REFERENCE_PRODUCTION_PERSISTENCE_CONTRACT_VERSION =
-  'edit-reference-production-persistence-contract-v2' as const
+  'edit-reference-production-persistence-contract-v3' as const
+
+export const EDIT_REFERENCE_PRODUCTION_APPLICATION_LIFECYCLE_RPC_NAME =
+  'mutate_edit_reference_application_lifecycle_v3' as const
 
 export const EDIT_REFERENCE_REQUIRED_PRODUCTION_TABLES = [
   'edit_references',
@@ -63,7 +66,7 @@ export interface EditReferenceProductionTableContract {
 }
 
 export interface EditReferenceApplicationLifecycleTransactionContract {
-  readonly rpcName: 'mutate_edit_reference_application_lifecycle_v2'
+  readonly rpcName: typeof EDIT_REFERENCE_PRODUCTION_APPLICATION_LIFECYCLE_RPC_NAME
   readonly supportedMutations: readonly ['apply', 'replace', 'remove']
   readonly authorization: {
     readonly authenticatedUserRequired: true
@@ -75,6 +78,8 @@ export interface EditReferenceApplicationLifecycleTransactionContract {
     readonly applyOrReplaceTargetVideoUnderstandingRequired: true
     readonly applyOrReplaceOutputFrameConfirmedRequired: true
     readonly applyOrReplaceOutputFrameConfirmationDigestRequired: true
+    readonly exactEditFrameAuthorityTransactionallyReReadRequired: true
+    readonly callerSuppliedFrameAuthorityTrusted: false
     readonly currentPlanLineageReadRequired: true
   }
   readonly compareAndSwap: {
@@ -407,7 +412,7 @@ export const editReferenceProductionPersistenceContract: EditReferenceProduction
     }),
   ],
   applicationLifecycleTransaction: {
-    rpcName: 'mutate_edit_reference_application_lifecycle_v2',
+    rpcName: EDIT_REFERENCE_PRODUCTION_APPLICATION_LIFECYCLE_RPC_NAME,
     supportedMutations: ['apply', 'replace', 'remove'],
     authorization: {
       authenticatedUserRequired: true,
@@ -419,6 +424,8 @@ export const editReferenceProductionPersistenceContract: EditReferenceProduction
       applyOrReplaceTargetVideoUnderstandingRequired: true,
       applyOrReplaceOutputFrameConfirmedRequired: true,
       applyOrReplaceOutputFrameConfirmationDigestRequired: true,
+      exactEditFrameAuthorityTransactionallyReReadRequired: true,
+      callerSuppliedFrameAuthorityTrusted: false,
       currentPlanLineageReadRequired: true,
     },
     compareAndSwap: {
@@ -547,6 +554,9 @@ export interface EditReferenceProductionPersistenceContractSummary {
 export function validateEditReferenceProductionPersistenceContract(
   contract: EditReferenceProductionPersistenceContract = editReferenceProductionPersistenceContract,
 ): EditReferenceProductionPersistenceContractSummary {
+  if (contract.version !== EDIT_REFERENCE_PRODUCTION_PERSISTENCE_CONTRACT_VERSION) {
+    invalid('production_persistence_contract_version_invalid')
+  }
   const names = contract.tables.map((candidate) => candidate.name)
   if (new Set(names).size !== names.length) invalid('duplicate_table_name')
   for (const required of [
@@ -596,6 +606,13 @@ export function validateEditReferenceProductionPersistenceContract(
     'replace',
     'remove',
   ])) invalid('application_lifecycle_mutation_set_incomplete')
+  if (
+    contract.applicationLifecycleTransaction.rpcName !== EDIT_REFERENCE_PRODUCTION_APPLICATION_LIFECYCLE_RPC_NAME
+    || !contract.applicationLifecycleTransaction.authorization.applyOrReplaceOutputFrameConfirmedRequired
+    || !contract.applicationLifecycleTransaction.authorization.applyOrReplaceOutputFrameConfirmationDigestRequired
+    || !contract.applicationLifecycleTransaction.authorization.exactEditFrameAuthorityTransactionallyReReadRequired
+    || contract.applicationLifecycleTransaction.authorization.callerSuppliedFrameAuthorityTrusted !== false
+  ) invalid('application_lifecycle_output_frame_authority_incomplete')
   if (
     !contract.applicationLifecycleTransaction.planningInvalidation.firstApplyInvalidatesExistingDraftPlanAndEstimate
     || !contract.applicationLifecycleTransaction.planningInvalidation.replacementInvalidatesExistingDraftPlanAndEstimate

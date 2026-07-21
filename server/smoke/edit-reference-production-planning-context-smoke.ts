@@ -9,6 +9,9 @@ import {
   createEditReferenceProductionApplicationLifecycleRequest,
 } from '../edit-references/edit-reference-production-application-lifecycle'
 import {
+  createEditReferenceProductionOutputFrameAuthority,
+} from '../edit-references/edit-reference-production-output-frame-authority'
+import {
   calculateEditReferenceProductionApplicationContextHash,
   createEditReferenceProductionPlanningContext,
   validateEditReferenceProductionPlanningContext,
@@ -177,6 +180,18 @@ const application: PreferenceApplicationRecord = {
   downstreamContextWritten: true,
 }
 
+const outputFrameConfirmation = createEditReferenceProductionOutputFrameAuthority({
+  repositoryAuthority: 'supabase_rls_transactional',
+  workspaceId: preparedApplication.workspaceId,
+  projectId: preparedApplication.projectId,
+  editSessionId: preparedApplication.editSessionId,
+  exactEditPreferenceRecordRevision: 9,
+  planningInputRevision: 4,
+  confirmationId: 'frame-confirmation-a',
+  aspectRatio: '16:9',
+  confirmedAt: '2026-07-21T01:59:00.000Z',
+})
+
 const requestInput = {
   mutation: 'apply',
   actorUserId: 'user-owner-a',
@@ -193,8 +208,7 @@ const requestInput = {
   applicationContentDigestSha256: preparedApplication.contentDigest,
   applicationContextHashSha256: calculateEditReferenceProductionApplicationContextHash(preparedApplication),
   targetUnderstandingPackageDigestSha256: targetUnderstanding.packageDigestSha256,
-  outputFrameConfirmationId: 'frame-confirmation-a',
-  outputFrameConfirmationDigestSha256: hash('6'),
+  outputFrameConfirmation,
   idempotencyKeyHashSha256: hash('7'),
   requestedAt: '2026-07-21T02:00:02.000Z',
 } as const
@@ -226,7 +240,10 @@ validateEditReferenceProductionPlanningContext({ application, request, receipt, 
 assert.equal(planningContext.guidance.length, 1)
 assert.equal(planningContext.heldBack.length, 1)
 assert.equal(planningContext.committedPlanningInputRevision, 5)
-assert.equal(planningContext.outputFrameConfirmationDigestSha256, hash('6'))
+assert.equal(
+  planningContext.outputFrameConfirmationDigestSha256,
+  outputFrameConfirmation.authorityDigestSha256,
+)
 assert.equal(planningContext.rawReferenceMediaIncluded, false)
 assert.equal(planningContext.customerCreditsMutated, false)
 
@@ -234,6 +251,46 @@ assert.throws(() => createEditReferenceProductionPlanningContext({
   application: { ...application, runtimeSource: 'verified_local' },
   request,
   receipt,
+}), /production Edit Reference planning context/i)
+
+const wrongFrameRequest = createEditReferenceProductionApplicationLifecycleRequest({
+  ...requestInput,
+  outputFrameConfirmation: createEditReferenceProductionOutputFrameAuthority({
+    repositoryAuthority: outputFrameConfirmation.repositoryAuthority,
+    workspaceId: outputFrameConfirmation.workspaceId,
+    projectId: outputFrameConfirmation.projectId,
+    editSessionId: outputFrameConfirmation.editSessionId,
+    exactEditPreferenceRecordRevision: outputFrameConfirmation.exactEditPreferenceRecordRevision,
+    planningInputRevision: outputFrameConfirmation.planningInputRevision,
+    confirmationId: outputFrameConfirmation.confirmationId,
+    aspectRatio: '9:16',
+    confirmedAt: outputFrameConfirmation.confirmedAt,
+  }),
+})
+const wrongFrameReceipt = createEditReferenceProductionApplicationLifecycleReceipt({
+  transactionId: 'application-transaction-wrong-frame',
+  request: wrongFrameRequest,
+  committedReferenceRevision: wrongFrameRequest.expectedReferenceRevision + 1,
+  committedPlanningInputRevision: wrongFrameRequest.expectedPlanningInputRevision + 1,
+  applicationStatusAfter: 'connected',
+  preferenceContextStatusAfter: 'connected',
+  priorDraftPlanDisposition: 'invalidated',
+  priorDraftEstimateDisposition: 'invalidated',
+  approvalStatusAfter: 'reset_after_revision',
+  executionAuthorizationDisposition: 'revoked',
+  freshPlanAndEstimateRequired: true,
+  approvedSnapshotPreserved: true,
+  historicalPrivatePreviewPreserved: true,
+  applicationPlanInvalidationReceiptId: 'plan-invalidation-wrong-frame',
+  auditEventIds: ['audit-wrong-frame'],
+  idempotencyReceiptId: 'idempotency-receipt-wrong-frame',
+  idempotencyResponseDigestSha256: hash('6'),
+  committedAt: '2026-07-21T02:00:04.000Z',
+})
+assert.throws(() => createEditReferenceProductionPlanningContext({
+  application,
+  request: wrongFrameRequest,
+  receipt: wrongFrameReceipt,
 }), /production Edit Reference planning context/i)
 
 const wrongContextRequest = createEditReferenceProductionApplicationLifecycleRequest({

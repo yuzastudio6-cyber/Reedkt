@@ -6,11 +6,28 @@ import {
   type EditReferenceProductionApplicationLifecycleReceipt,
 } from '../edit-references/edit-reference-production-application-lifecycle'
 import {
+  createEditReferenceProductionOutputFrameAuthority,
+  validateEditReferenceProductionOutputFrameAuthority,
+} from '../edit-references/edit-reference-production-output-frame-authority'
+import {
   editReferenceProductionPersistenceContract,
   validateEditReferenceProductionPersistenceContract,
 } from '../edit-references/edit-reference-production-persistence-contract'
 
 const hash = (character: string): string => character.repeat(64)
+
+const outputFrameConfirmation = createEditReferenceProductionOutputFrameAuthority({
+  repositoryAuthority: 'supabase_rls_transactional',
+  workspaceId: 'workspace-a',
+  projectId: 'project-a',
+  editSessionId: 'edit-a',
+  exactEditPreferenceRecordRevision: 9,
+  planningInputRevision: 4,
+  confirmationId: 'frame-confirmation-a',
+  aspectRatio: '16:9',
+  confirmedAt: '2026-07-21T00:59:00.000Z',
+})
+validateEditReferenceProductionOutputFrameAuthority(outputFrameConfirmation)
 
 const applyInput = {
   mutation: 'apply',
@@ -28,8 +45,7 @@ const applyInput = {
   applicationContentDigestSha256: hash('a'),
   applicationContextHashSha256: hash('b'),
   targetUnderstandingPackageDigestSha256: hash('c'),
-  outputFrameConfirmationId: 'frame-confirmation-a',
-  outputFrameConfirmationDigestSha256: hash('4'),
+  outputFrameConfirmation,
   idempotencyKeyHashSha256: hash('d'),
   requestedAt: '2026-07-21T01:00:00.000Z',
 } as const
@@ -67,7 +83,7 @@ validateEditReferenceProductionApplicationLifecycleReceipt({
 })
 
 const persistenceSummary = validateEditReferenceProductionPersistenceContract()
-assert.equal(persistenceSummary.version, 'edit-reference-production-persistence-contract-v2')
+assert.equal(persistenceSummary.version, 'edit-reference-production-persistence-contract-v3')
 assert.deepEqual(
   editReferenceProductionPersistenceContract.applicationLifecycleTransaction.supportedMutations,
   ['apply', 'replace', 'remove'],
@@ -109,8 +125,16 @@ assert.throws(() => createEditReferenceProductionApplicationLifecycleRequest({
 
 assert.throws(() => createEditReferenceProductionApplicationLifecycleRequest({
   ...applyInput,
-  outputFrameConfirmationDigestSha256: null,
+  outputFrameConfirmation: null,
 }), /production Preference Application lifecycle authority/i)
+
+assert.throws(() => createEditReferenceProductionApplicationLifecycleRequest({
+  ...applyInput,
+  outputFrameConfirmation: {
+    ...outputFrameConfirmation,
+    planningInputRevision: outputFrameConfirmation.planningInputRevision + 1,
+  },
+}), /production (Preference Application lifecycle|output-frame) authority/i)
 
 assert.throws(() => createEditReferenceProductionApplicationLifecycleReceipt({
   transactionId: 'bad-revision-transaction',
@@ -200,8 +224,7 @@ const removeRequest = createEditReferenceProductionApplicationLifecycleRequest({
   applicationId: 'application-a-v1',
   expectedCurrentApplicationId: 'application-a-v1',
   targetUnderstandingPackageDigestSha256: null,
-  outputFrameConfirmationId: null,
-  outputFrameConfirmationDigestSha256: null,
+  outputFrameConfirmation: null,
 })
 const removeReceipt = createEditReferenceProductionApplicationLifecycleReceipt({
   transactionId: 'application-transaction-remove-a',

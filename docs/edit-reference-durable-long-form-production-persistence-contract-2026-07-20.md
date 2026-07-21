@@ -75,9 +75,12 @@ The focused verification is:
 
 ```text
 npx tsx server/smoke/edit-reference-production-long-form-persistence-contract-smoke.ts
+npx tsx server/smoke/edit-reference-production-readiness-smoke.ts
 npx tsx server/smoke/edit-reference-production-application-lifecycle-smoke.ts
 npx tsx server/smoke/edit-reference-production-planning-context-smoke.ts
 ```
+
+Production readiness contract V2 also requires same-release live evidence for the six-table transaction shape, pre-plan authority isolation, study-usage approval and cost ceiling, serializable single-lease claims, atomic checkpoint/terminal usage, expired-lease and process-restart recovery, multi-hour full coverage, and exclusion of raw media or credentials from database state. Older generic queue evidence can no longer satisfy the long-form production gate.
 
 The adversarial cases prove that validation rejects:
 

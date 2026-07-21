@@ -37,6 +37,7 @@ import type {
   RunEditReferenceDNAQARequest,
   RunPreferenceEvidenceStudyRequest,
   SynthesizePreferenceDNARequest,
+  UpdateEditReferenceRequest,
 } from '../../types/edit-reference'
 import { EDIT_REFERENCE_MANUAL_EVIDENCE_CATEGORIES, EDIT_REFERENCE_STUDY_GOALS } from '../../types/edit-reference'
 import type {
@@ -286,16 +287,35 @@ function EditReferencesTab({
   const archiveSelected = async () => {
     if (!detail || detail.reference.status === 'archived') return
     setBusy(true)
-    const response = await api.update(detail.reference.id, {
+    setError(undefined)
+    const archiveRequest: UpdateEditReferenceRequest = {
       workspaceId,
       expectedReferenceRevision: detail.reference.revision,
       status: 'archived',
-    })
-    if (response.ok) {
-      setDetail(response.data.detail)
+    }
+    const archiveIdempotencyKey = `edit-reference-archive-${createEditReferenceDeterministicHash({
+      editReferenceId: detail.reference.id,
+      ...archiveRequest,
+    })}`
+    const response = await api.update(detail.reference.id, archiveRequest, archiveIdempotencyKey)
+    const archiveFailureMessage = response.ok
+      ? 'The archived preference could not be verified. Check its saved state before retrying.'
+      : response.message
+    let archivedDetail = response.ok ? response.data.detail : undefined
+    if (!archivedDetail) {
+      const readback = await readEditReferenceAfterUncertainMutation(workspaceId, detail.reference.id)
+      if (
+        readback?.reference.id === detail.reference.id
+        && readback.reference.workspaceId === workspaceId
+        && readback.reference.status === 'archived'
+        && readback.reference.revision > archiveRequest.expectedReferenceRevision
+      ) archivedDetail = readback
+    }
+    if (archivedDetail) {
+      setDetail(archivedDetail)
       setNotice('Preference archived. Its private history remains available.')
-      await loadList(response.data.detail.reference.id)
-    } else setError(response.message)
+      await loadList(archivedDetail.reference.id)
+    } else setError(archiveFailureMessage)
     setBusy(false)
   }
 
@@ -725,6 +745,48 @@ function exactStudyMessageCommitted(
       ? record.supersedesEvidenceId === request.findingCorrectionEvidenceId
       : !record.supersedesEvidenceId)
   ))
+}
+
+function exactEvidenceCommitted(
+  before: EditReferenceDetail,
+  after: EditReferenceDetail,
+  request: CreatePreferenceEvidenceRequest,
+): boolean {
+  if (
+    after.reference.id !== before.reference.id
+    || after.study.id !== before.study.id
+    || after.study.revision <= request.expectedStudyRevision
+  ) return false
+  const previousEvidenceIds = new Set(before.evidence.map((record) => record.id))
+  return after.evidence.some((record) => {
+    if (
+      previousEvidenceIds.has(record.id)
+      || record.workspaceId !== request.workspaceId
+      || record.studySessionId !== before.study.id
+      || record.sourceType !== request.sourceType
+      || record.title !== request.title.trim()
+    ) return false
+    if (request.sourceType === 'manual_user_evidence') {
+      return record.category === request.category
+        && record.summary === request.summary.trim()
+        && record.transferability === request.intendedUse
+        && (record.supersedesEvidenceId ?? '') === (request.supersedesEvidenceId ?? '')
+    }
+    if (request.sourceType === 'previous_approved_edit_snapshot') {
+      return record.provenance.projectId === request.projectId
+        && record.provenance.editSessionId === request.editSessionId
+        && record.provenance.approvedSnapshotId === request.approvedSnapshotId
+        && record.provenance.rightsBasis === request.rightsBasis
+        && (!request.summary?.trim() || record.summary === request.summary.trim())
+    }
+    const linkedAsset = record.provenance.privateAssetId
+      ? after.assets.find((asset) => asset.privateAssetId === record.provenance.privateAssetId)
+      : undefined
+    return record.provenance.sourceLabel === request.sourceLabel.trim()
+      && record.provenance.rightsBasis === request.rightsBasis
+      && (!request.storageObjectRecordId || linkedAsset?.storageObjectRecordId === request.storageObjectRecordId)
+      && (!request.mediaAssetId || linkedAsset?.mediaAssetId === request.mediaAssetId)
+  })
 }
 
 function exactEvidenceStudyCommitted(before: EditReferenceDetail, after: EditReferenceDetail): boolean {
@@ -1852,10 +1914,6 @@ function EvidenceForm({ detail, disabled, initialMode = 'manual_user_evidence', 
     setError(undefined)
     let input: CreatePreferenceEvidenceRequest
     let completedUploadRecovery: EditReferenceMediaUploadRecoverySummary | undefined
-    let completedUploadIdentity: {
-      storageObjectRecordId: string
-      mediaAssetId: string
-    } | undefined
     if (mode === 'manual_user_evidence') {
       input = {
         workspaceId,
@@ -1923,10 +1981,6 @@ function EvidenceForm({ detail, disabled, initialMode = 'manual_user_evidence', 
           return
         }
         completedUploadRecovery = privateUpload.recovery
-        completedUploadIdentity = {
-          storageObjectRecordId: privateUpload.storageObjectRecordId,
-          mediaAssetId: privateUpload.mediaAssetId,
-        }
       }
       input = {
         workspaceId,
@@ -1953,17 +2007,15 @@ function EvidenceForm({ detail, disabled, initialMode = 'manual_user_evidence', 
         rightsBasis: 'workspace_approved_edit',
       }
     }
-    const response = await api.addEvidence(detail.study.id, input)
+    const evidenceIdempotencyKey = `edit-reference-evidence-${createEditReferenceDeterministicHash({
+      studyId: detail.study.id,
+      ...input,
+    })}`
+    const response = await api.addEvidence(detail.study.id, input, evidenceIdempotencyKey)
     let savedDetail = response.ok ? response.data.detail : undefined
-    if (!savedDetail && mode === 'reference_video_metadata' && completedUploadIdentity) {
+    if (!savedDetail) {
       const readback = await api.get(workspaceId, detail.reference.id)
-      if (
-        readback.ok
-        && readback.data.detail.assets.some((asset) => (
-          asset.storageObjectRecordId === completedUploadIdentity?.storageObjectRecordId
-          && asset.mediaAssetId === completedUploadIdentity?.mediaAssetId
-        ))
-      ) {
+      if (readback.ok && exactEvidenceCommitted(detail, readback.data.detail, input)) {
         savedDetail = readback.data.detail
       }
     }

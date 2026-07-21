@@ -84,6 +84,70 @@ test.describe('canonical Edit Preference real-file flow', () => {
     await expectNoHorizontalOverflow(page)
   })
 
+  test('reconciles a committed archive response without archiving twice', async ({ page }) => {
+    test.setTimeout(120_000)
+    page.setDefaultTimeout(15_000)
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await setViewport(page, 1280, 900)
+
+    let archiveMutationRequests = 0
+    await page.route(/\/v1\/edit-references\/[^/]+$/, async (route) => {
+      if (route.request().method() !== 'PATCH') return route.continue()
+      archiveMutationRequests += 1
+      const committed = await route.fetch()
+      expect(committed.ok()).toBe(true)
+      await route.abort('failed')
+    })
+
+    const preferenceName = `Archive recovery ${Date.now()}`
+    await gotoRoute(page, '/preferences')
+    await page.getByTestId('new-edit-reference').click()
+    await page.getByTestId('edit-reference-name').fill(preferenceName)
+    await page.getByTestId('save-edit-reference').click()
+    await page.locator('summary').filter({ hasText: 'Study progress' }).click()
+    await page.getByRole('button', { name: 'Archive reference' }).click()
+
+    await expect(page.getByRole('button', { name: 'Archive reference' })).toBeDisabled()
+    await expect(page.getByText('Preference archived. Its private history remains available.')).toBeVisible()
+    expect(archiveMutationRequests).toBe(1)
+    await expectNoHorizontalOverflow(page)
+  })
+
+  test('reconciles a committed creative-evidence response without duplicating the note', async ({ page }) => {
+    test.setTimeout(120_000)
+    page.setDefaultTimeout(15_000)
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await setViewport(page, 1280, 900)
+
+    let evidenceMutationRequests = 0
+    await page.route(/\/v1\/edit-reference-studies\/[^/]+\/evidence$/, async (route) => {
+      if (route.request().method() !== 'POST') return route.continue()
+      evidenceMutationRequests += 1
+      const committed = await route.fetch()
+      expect(committed.ok()).toBe(true)
+      await route.abort('failed')
+    })
+
+    await gotoRoute(page, '/preferences')
+    await page.getByTestId('new-edit-reference').click()
+    await page.getByTestId('edit-reference-name').fill(`Evidence recovery ${Date.now()}`)
+    await page.getByTestId('save-edit-reference').click()
+    await page.getByTestId('edit-reference-study-message').fill('Preserve meaning and keep the visual hierarchy restrained.')
+    await page.getByTestId('send-edit-reference-study-message').click()
+
+    await page.getByTestId('add-edit-reference-source').click()
+    await page.getByRole('button', { name: 'Creative note' }).click()
+    await page.getByTestId('edit-reference-evidence-title').fill('Speech-safe pacing')
+    await page.getByTestId('edit-reference-evidence-summary').fill('Keep important spoken context intact and let visual changes support, not interrupt, the meaning.')
+    await page.getByTestId('save-edit-reference-evidence').click()
+
+    await expect(page.getByTestId('edit-reference-evidence-form')).toHaveCount(0)
+    await expect(page.getByTestId('edit-reference-evidence-list')).toContainText('Speech-safe pacing')
+    await expect(page.getByTestId('edit-reference-study-chat')).toContainText('2 study inputs saved')
+    expect(evidenceMutationRequests).toBe(1)
+    await expectNoHorizontalOverflow(page)
+  })
+
   test('creates a preference, studies a real private video, and resumes from a saved checkpoint', async ({ page }) => {
     test.setTimeout(120_000)
     page.setDefaultTimeout(15_000)

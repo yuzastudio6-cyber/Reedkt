@@ -8,6 +8,8 @@ Status: mounted local/private evidence; hosted production authority remains gate
 The canonical Edit Preference Study workspace now keeps one stable request identity across uncertain browser outcomes for:
 
 - creating a named Edit Preference;
+- archiving a named Edit Preference;
+- attaching creative notes, approved-edit evidence, or private reference-video evidence;
 - saving Study Chat direction or a correction;
 - running the evidence study;
 - synthesizing a Preference DNA candidate;
@@ -30,15 +32,19 @@ Whole-video review requires the same review package and digest, exact decision s
 
 The create dialog retains one request identity for its lifetime. A retry in that same dialog therefore reuses the same domain request instead of creating a second named preference after an unknown response, while a deliberately opened new dialog still receives a new identity.
 
+Archive reconciliation requires the exact named Edit Preference, workspace, archived state, and a later reference revision. It never treats a missing response as success from list state alone.
+
+Evidence attachment requires one new evidence record with the exact Study, source kind, title, source-specific identity, and transferability or rights fields. Creative notes compare their normalized guidance, approved edits compare immutable project/edit/snapshot lineage, and private videos compare the verified private-asset storage and media identities. A failed response therefore cannot create a second evidence record when the first write already committed.
+
 ## Mounted proof
 
-The canonical Chromium browser journey deliberately lets the local/private server commit and then drops each HTTP response for Study Chat, evidence study, DNA synthesis, and DNA quality review. The mounted `/preferences` workspace reads back each exact result, advances through the real state machine, and issues one mutation per action.
+The canonical Chromium browser journey deliberately lets the local/private server commit and then drops HTTP responses for create, archive, evidence attachment, Study Chat, evidence study, DNA synthesis, DNA quality review, whole-video study commands, DNA approval, and exact-target application lifecycle changes. The mounted `/preferences` workspace reads back each exact result, advances through the real state machine, and issues one mutation per action.
 
 The long-form review browser journey first proves a normal retryable failure keeps every in-page choice, then simulates a committed save with a lost response. Exact review readback moves the same mounted panel to **Review saved** without issuing another mutation, creating Preference DNA, or applying guidance.
 
 Focused evidence:
 
-- canonical mounted browser/backend suite: 8/8 passed, including create, upload, Study, DNA, approval, and exact-edit application response-loss recovery;
+- canonical mounted browser/backend suite: 10/10 passed, including create, archive, evidence attachment, upload, Study, DNA, approval, and exact-edit application response-loss recovery;
 - long-form review browser suite: 2/2 passed;
 - long-form review service smoke: passed with durable selection recovery and tenant isolation;
 - strict canonical product-UI source gate: 11/11 passed;

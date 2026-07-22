@@ -207,10 +207,10 @@ export function ProjectsPage() {
 
   return (
     <AppShell
-      description="Organize projects and continue the edit that needs you."
+      description="Open your edit library, then continue or start a named edit."
       eyebrow="Workspace"
       primaryAction="New project"
-      title="Projects"
+      title="Edit Videos"
     >
       <div className="projects-page">
         {projectItems.length > 0 && (

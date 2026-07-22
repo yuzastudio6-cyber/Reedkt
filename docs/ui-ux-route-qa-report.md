@@ -1,6 +1,6 @@
 # Prompt 3 Route-By-Route UI/UX QA Report
 
-> Current route source of truth: the active app flow is Project -> Edit with sidebar links limited to Home, Projects, and Preferences. This report contains historical prompt QA for retired routes; current `qa:viewport` treats `/wallet`, `/pricing`, `/brand-kit`, `/exports`, `/upload`, `/edit-preferences`, `/settings`, and `/app` as compatibility redirects only.
+> Current route source of truth: the active app flow is Project -> Edit with required core sidebar links Home, Edit Videos, and Edit Preferences. `Edit Videos` routes to the existing `/projects` hierarchy. These are not an exact-three-link ceiling; combined-source integration also retains Motion Studio. This report contains historical prompt QA for retired routes; current `qa:viewport` treats `/wallet`, `/pricing`, `/brand-kit`, `/exports`, `/upload`, `/edit-preferences`, `/settings`, and `/app` as compatibility redirects only.
 
 ## Scope
 

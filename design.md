@@ -185,8 +185,12 @@ Primary website navigation:
 Current internal-testing desktop sidebar:
 
 1. Home
-2. Project
-3. Preferences
+2. Edit Videos
+3. Edit Preferences
+
+`Edit Videos` routes to the existing `/projects` project and named-edit library. It does not create a second editor, media library, or preference authority.
+
+These are the backend line's required core links, not an exact-three-link ceiling. The canonical combined product retains the existing Motion Studio destination, yielding Home, Edit Videos, Motion Studio, and Edit Preferences after source reconciliation.
 
 The old broad sidebar list is retired for the current app shell. AI Editor, Media Library, Templates, Team, Analytics, Exports, Brand Kit, Settings, Wallet, and Upload must not appear as persistent primary sidebar options. Those surfaces can stay available through contextual project/home actions or direct guarded routes when a feature needs them.
 

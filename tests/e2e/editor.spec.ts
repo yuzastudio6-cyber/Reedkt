@@ -63,18 +63,17 @@ test.describe('editor mocked browser flow', () => {
     await setViewport(page, 1440)
   })
 
-  test('shows the clean app shell with only home, projects, and preferences', async ({ page }) => {
+  test('shows the required home, edit videos, and preferences navigation', async ({ page }) => {
     await gotoRoute(page, '/dashboard')
 
     await expect(page.getByTestId('testing-home-hero')).toBeVisible()
     await expect(page.getByRole('heading', { name: /Create your first project/i })).toBeVisible()
     await expect(page.getByText(/exact plan and credit estimate before any editing begins/i)).toBeVisible()
 
-    const sidebarLinks = page.getByTestId('app-sidebar').getByRole('link')
-    await expect(sidebarLinks).toHaveCount(3)
-    await expect(sidebarLinks.nth(0)).toContainText('Home')
-    await expect(sidebarLinks.nth(1)).toContainText('Projects')
-    await expect(sidebarLinks.nth(2)).toHaveText('Edit Preferences')
+    const sidebar = page.getByTestId('app-sidebar')
+    await expect(sidebar.getByRole('link', { name: /^Home$/ })).toHaveAttribute('href', '/dashboard')
+    await expect(sidebar.getByRole('link', { name: /^Edit Videos$/ })).toHaveAttribute('href', '/projects')
+    await expect(sidebar.getByRole('link', { name: /^Edit Preferences$/ })).toHaveAttribute('href', '/preferences')
 
     await expect(page.getByText(/Export queue/i)).toHaveCount(0)
     await expect(page.getByText(/Credit wallet preview/i)).toHaveCount(0)
@@ -94,7 +93,7 @@ test.describe('editor mocked browser flow', () => {
 
     await gotoRoute(page, '/pricing')
     await expect(page).toHaveURL(/\/projects$/)
-    await expect(page.getByRole('heading', { level: 1, name: /Projects/i })).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: /Edit Videos/i })).toBeVisible()
   })
 
   test('shows the canonical library-first Edit Preferences surface for the local session', async ({ page }) => {
@@ -540,7 +539,7 @@ test.describe('editor mocked browser flow', () => {
 
   test('creates a project, opens its edit, uploads video, and reaches private review', async ({ page }) => {
     await gotoRoute(page, '/projects')
-    await expect(page.getByRole('heading', { level: 1, name: /Projects/i })).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: /Edit Videos/i })).toBeVisible()
     await clickWhenReady(page.getByRole('link', { name: /Create project/i }).first())
 
     const projectName = `E2E private review ${Date.now()}`

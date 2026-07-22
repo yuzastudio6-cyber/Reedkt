@@ -18,7 +18,7 @@ test.describe('Project start to edit workspace flow', () => {
     await gotoRoute(page, '/projects')
     await expect(page.locator('a[href="/editor"]')).toHaveCount(0)
     await expect(page.getByRole('link', { name: /Open AI chat editor/i })).toHaveCount(0)
-    await expect(page.getByRole('heading', { level: 1, name: 'Projects' })).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: 'Edit Videos' })).toBeVisible()
     await expect(page.getByRole('link', { name: /New project/i }).first()).toBeVisible()
     await expect(page.getByText('Source video test')).toHaveCount(0)
     await expect(page.getByRole('link', { name: /Open sample project/i })).toHaveCount(0)

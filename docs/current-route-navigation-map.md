@@ -9,7 +9,7 @@ Status date: 2026-07-10
 | --- | --- | --- | --- |
 | `/` | `LandingPage` | Marketing entry | Public product entry |
 | `/dashboard` | `DashboardPage` | Sidebar: Home | Start/continue the private project-edit flow after exact scoped recovery is resolved |
-| `/projects` | `ProjectsPage` | Sidebar: Projects | List projects with explicit loading/local-only/unavailable/denied/invalid recovery states |
+| `/projects` | `ProjectsPage` | Sidebar: Edit Videos | Open the one project/named-edit library with explicit loading/local-only/unavailable/denied/invalid recovery states |
 | `/projects/new` | `CreateProjectPage` | CTA-driven | Create a duplicate-safe project shell from a unique create intent |
 | `/projects/:projectId` | `ProjectDetailPage` | Entered from Projects | Recover the exact project, list/create named edits, and expose an accessible New Edit dialog |
 | `/projects/:projectId/edits/:editSessionId` | `EditorPage` | Entered from project edit list | Resolve exact scoped edit state before opening the primary focused workspace; `?view=preferences` addresses that edit's Current Edit Preferences workspace |
@@ -32,13 +32,13 @@ Status date: 2026-07-10
 
 ## Sidebar Truth
 
-The active sidebar contains only:
+The backend line currently renders these required core entries:
 
 1. Home
-2. Projects
+2. Edit Videos
 3. Edit Preferences (route/code names may remain `preferences`)
 
-Historical `design.md` navigation for AI Editor, Media Library, Templates, Team, Analytics, Exports, Brand Kit, and Settings is not current product navigation.
+These entries are required, not an exact-three-items invariant. The canonical combined-source target also retains the existing Motion Studio destination between Edit Videos and Edit Preferences: Home, Edit Videos, Motion Studio, Edit Preferences. Integration must not delete or replace Motion Studio. Historical `design.md` navigation for AI Editor, Media Library, Templates, Team, Analytics, Exports, Brand Kit, and Settings is not current product navigation.
 
 `Preferences` is not a separate product from `Edit Preferences`. `/preferences` is the technical route for the one Edit Preferences system.
 
@@ -47,7 +47,7 @@ Historical `design.md` navigation for AI Editor, Media Library, Templates, Team,
 Current implemented hierarchy:
 
 ```text
-Projects
+Edit Videos (`/projects`, the canonical project and named-edit library)
 └── Project
     └── Named Edit
         ├── Chat (default)

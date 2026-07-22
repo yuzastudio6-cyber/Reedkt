@@ -63,7 +63,7 @@ npm run qa:zoom
 ## Coverage
 
 - `qa:viewport` checks active routes `/`, `/dashboard`, `/projects`, `/projects/new`, `/preferences`, and `/editor` at `1024`, `1280`, `1440`, `1728`, and `1920`.
-- `qa:viewport` also checks retired app routes `/wallet`, `/pricing`, `/brand-kit`, `/exports`, `/upload`, `/edit-preferences`, `/settings`, and `/app` as compatibility redirects only, with sidebar navigation limited to Home, Projects, and Preferences.
+- `qa:viewport` also checks retired app routes `/wallet`, `/pricing`, `/brand-kit`, `/exports`, `/upload`, `/edit-preferences`, `/settings`, and `/app` as compatibility redirects only. It requires Home, Edit Videos, and Edit Preferences without imposing a three-link maximum, so combined-source Motion Studio remains compatible.
 - `qa:editor` checks editor shell, composer send, setup confirmations, plan approval, progress, preview, source sequence, reference controls, and timeline open/close.
 - `qa:expanded` checks utility expansion plus SFX and Music/SoundSync descriptor flows.
 - `qa:screenshots` writes review artifacts to `docs/ui-ux-screenshots/prompt-12-e2e/`.

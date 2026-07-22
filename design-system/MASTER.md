@@ -132,7 +132,8 @@ Avoid more than two visible nested surface levels in Guided mode.
 - Landing: explain the chat-first product with an authentic editor preview and one clear entry path.
 - Sign In: establish trusted access with one clear action and no developer-oriented authentication noise.
 - Home: resume, attention, start.
-- Projects: scan and organize project containers.
+- Edit Videos (`/projects`): scan project containers and continue or start named edits through the one canonical edit library.
+- Motion Studio (`/motion-studio`): retain the existing specialized storytelling workspace when the Motion source is reconciled; do not duplicate it inside Edit Videos.
 - New Project: create the project shell with only a name and broad editing context.
 - Project Home: manage named edits in one project.
 - Named Edit: do the editing work through Chat, Brief, planning, approval, review, and contextual advanced tools.

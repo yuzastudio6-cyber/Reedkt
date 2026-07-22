@@ -1,4 +1,4 @@
-# Projects Page Override
+# Edit Videos / Projects Page Override
 
 Status: `implemented_scan_and_filter_v1`
 
@@ -6,7 +6,7 @@ Status date: 2026-07-10
 
 ## Job
 
-Projects helps a signed-in user find a project, understand its latest edit state, and continue without turning the page into a file table or analytics dashboard.
+The `Edit Videos` sidebar entry opens this canonical project and named-edit library. It helps a signed-in user find a project, understand its latest edit state, and continue without creating a second editor, file table, or analytics dashboard.
 
 ## Hierarchy
 

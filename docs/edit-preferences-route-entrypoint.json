@@ -49,7 +49,7 @@
       "/brand-kit": "/preferences",
       "/exports": "/projects"
     },
-    "context": "Project and named-edit actions remain contextual; the persistent app sidebar stays Home, Projects, and Edit Preferences."
+    "context": "Project and named-edit actions remain contextual. Required core links are Home, Edit Videos, and Edit Preferences; Edit Videos routes to the canonical /projects hierarchy. Combined-source integration also retains Motion Studio and must not enforce an exact-three-link ceiling."
   },
   "blockedScope": {
     "upload": false,

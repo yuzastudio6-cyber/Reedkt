@@ -28,13 +28,14 @@ Public entry
 
 Authenticated app
 ├── Home
-├── Projects
+├── Edit Videos (`/projects`)
 │   ├── Create project
 │   └── Project
 │       └── Named edit workspace
 │           ├── Chat (default)
 │           ├── Edit Brief (single inline workspace)
 │           └── Edit Preferences (`?view=preferences`)
+├── Motion Studio (`/motion-studio`, retained during combined-source integration)
 └── Edit Preferences (saved defaults)
 ```
 
@@ -176,9 +177,9 @@ User goal: continue the latest work or start a project.
 - Replace testing-instruction tone with concise product guidance while preserving private/internal truth.
 - Avoid analytics, wallet, export, or status-card walls.
 
-### Projects `/projects`
+### Edit Videos / Projects `/projects`
 
-User goal: find or create a project.
+User goal: enter the edit library, then find or create the project that owns the named edit.
 
 - Distinguish loading, empty, ready, unavailable, access denied, and malformed-response states.
 - Never turn a backend failure into a false empty state.
@@ -297,7 +298,7 @@ New values belong in tokens before route CSS. Avoid one-off glow, radius, shadow
 - Visible source-upload failure and retry: complete.
 - Named-edit pre-mount recovery and exact setup hydration: complete.
 - Workspace unavailable retry/sign-out: complete.
-- Home, Projects, and project detail discriminated recovery/error states: complete.
+- Home, Edit Videos (`/projects`), and project detail discriminated recovery/error states: complete.
 - Duplicate-safe project creation and accessible New Edit dialog: complete.
 - Exact named-edit persistence status and retained retryable writes: complete.
 
@@ -335,7 +336,7 @@ New values belong in tokens before route CSS. Avoid one-off glow, radius, shadow
 
 ### 5. Whole-Product Visual Consistency — In Progress
 
-- Home, Projects, and Project Home now use the shared bounded hierarchy, surface levels, and semantic status treatment.
+- Home, Edit Videos (`/projects`), and Project Home now use the shared bounded hierarchy, surface levels, and semantic status treatment.
 - Saved and Current Edit Preferences now use the canonical seven-field system with explicit persistence/recovery truth, inherited/overridden state, responsive hierarchy, guarded drafts, and visually reviewed action states. Landing, Sign In, Create Project, shared project/edit recovery, the active named-edit upload gate, responsive conversation/preview composition, planning-input status, Edit Brief, Plan Review, progress framing, Private Review, and normal revision replanning now follow the same system. Gated revised-review continuation and founder-level whole-product signoff remain separate evidence steps.
 - Preserve route-specific identity as work continues: marketing is expressive, app routes operational, editor open and conversational.
 

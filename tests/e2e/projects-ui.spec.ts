@@ -8,7 +8,7 @@ test.describe('Projects and Project Home UI', () => {
     const fixture = await installActiveProductRouteFixture(page, 'projects-ui')
     await gotoRoute(page, '/projects')
 
-    await expect(page.getByRole('heading', { level: 1, name: 'Projects' })).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: 'Edit Videos' })).toBeVisible()
     const projectCard = page.locator('.projects-card').filter({ hasText: fixture.project.name })
     await expect(projectCard).toBeVisible()
     await expect(projectCard.getByText('Ready for upload')).toBeVisible()

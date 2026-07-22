@@ -32,7 +32,7 @@ The active routes consistently use:
 - compact route headers;
 - clear focus on the next action.
 
-The current product does not need the retired dashboard surfaces restored. The active three-item navigation—Home, Projects, Preferences—matches the current implementation better than the historical Brand Kit, Wallet, Team, Analytics, or Media Library navigation.
+The current product does not need the retired dashboard surfaces restored. The required core navigation—Home, Edit Videos, Edit Preferences—matches the current backend line better than the historical Brand Kit, Wallet, Team, Analytics, or Media Library navigation. Edit Videos keeps the existing `/projects` project/named-edit hierarchy, and the tests do not impose a three-item maximum because combined-source integration retains Motion Studio.
 
 ## Targeted Corrections From This Review
 
@@ -50,7 +50,7 @@ The current product does not need the retired dashboard surfaces restored. The a
 12. Initial source-upload and source-validation failures now render inside the still-locked upload gate as an assertive alert. The copy identifies supported formats, gives a direct retry path, confirms that no plan, credit, edit, or generation action started, and clears when a new attempt begins or a valid source succeeds.
 13. Named edit routes now keep `ChatNativeEditor` unmounted until the exact user/workspace/project/edit handoff resolves. Backend-recovered state is validated and saved locally before the editor's first mount so complete setup seeds first-render state; loading, not-found, access-denied, invalid-response, and retryable backend-failure states remain outside the editor. `/editor` remains the explicit internal/demo exception.
 14. Workspace resolution failure now provides explicit retry and sign-out actions instead of trapping the signed-in user.
-15. Home, Projects, and project detail preserve trusted local work during transient recovery failure while refusing foreign, malformed, or duplicate backend identities.
+15. Home, Edit Videos (`/projects`), and project detail preserve trusted local work during transient recovery failure while refusing foreign, malformed, or duplicate backend identities.
 16. Same-name projects use distinct create intents and identities instead of colliding through display-name-derived keys.
 17. Edit Preferences preserves the draft on failed load/save/conflict/network operations and provides deliberate retry, refresh, and discard actions.
 18. The editor header reports estimate state instead of a fabricated wallet balance; the exact estimate remains in Plan Review.

@@ -57,6 +57,7 @@ export interface ReeditProApiAppOptions {
   editReferenceLongFormStudyRuntimePortFactory?: RuntimeState['editReferenceLongFormStudyRuntimePortFactory']
   editReferenceDomainRepositoryRuntimePort?: RuntimeState['editReferenceDomainRepositoryRuntimePort']
   editReferenceSignedInPrivateMediaRuntimePort?: RuntimeState['editReferenceSignedInPrivateMediaRuntimePort']
+  editReferenceExactEditBriefRuntimePortFactory?: RuntimeState['editReferenceExactEditBriefRuntimePortFactory']
 }
 
 export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppOptions = {}): Express {
@@ -112,6 +113,12 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
       ? {
           editReferenceSignedInPrivateMediaRuntimePort:
             options.editReferenceSignedInPrivateMediaRuntimePort,
+        }
+      : {}),
+    ...(options.editReferenceExactEditBriefRuntimePortFactory
+      ? {
+          editReferenceExactEditBriefRuntimePortFactory:
+            options.editReferenceExactEditBriefRuntimePortFactory,
         }
       : {}),
     clients: options.clients ?? {

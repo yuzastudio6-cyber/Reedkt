@@ -95,7 +95,7 @@ export function createEditReferenceCanonicalV3LocalLongFormRuntimePort(input: {
     async create(createInput) {
       validateRunAgainstPlan(createInput.run, createInput.plan)
       assertScope(createInput.scope, createInput.plan)
-      const sourceBinding = requirePreferenceAssetSourceBinding(
+      const sourceBinding = requireRegisteredSourceBinding(
         createInput.sourceBinding,
         createInput.plan,
       )
@@ -822,13 +822,13 @@ function workProfile(stageId: EditReferenceLongFormStudyStageId): {
   }
 }
 
-function requirePreferenceAssetSourceBinding(
+function requireRegisteredSourceBinding(
   binding: EditReferenceLongFormStudySourceBinding | undefined,
   plan: EditReferenceLongFormStudyPlan,
 ): EditReferenceLongFormStudySourceBinding {
   if (
     !binding
-    || binding.sourceAuthority !== 'preference_asset'
+    || !['preference_asset', 'target_source_media'].includes(binding.sourceAuthority)
     || !binding.sourceAssetId
     || !binding.sourceStorageObjectRecordId
     || !binding.sourceMediaAssetId
@@ -836,7 +836,15 @@ function requirePreferenceAssetSourceBinding(
     || !binding.sourceStorageGeneration
     || !binding.sourceStorageEtag
     || plan.source.privateMediaArtifactId.length < 1
-  ) throw blocked('canonical_v3_local_preference_asset_source_binding_required')
+    || (binding.sourceAuthority === 'target_source_media' && (
+      !binding.targetProjectId
+      || !binding.targetEditSessionId
+      || !binding.targetEditBriefId
+      || !Number.isSafeInteger(binding.targetEditBriefRevision)
+      || binding.targetEditBriefRevision < 1
+      || !/^[a-f0-9]{64}$/u.test(binding.targetEditBriefDigestSha256)
+    ))
+  ) throw blocked('canonical_v3_local_registered_source_binding_required')
   return binding
 }
 

@@ -21,6 +21,9 @@ const allowedFunctions = new Set<string>(
     ...Object.values(CANONICAL_DISTRIBUTED_PRE_PLAN_STUDY_RPC_REGISTRY.functions),
     CANONICAL_DISTRIBUTED_PRE_PLAN_STUDY_READ_PROJECTION_FUNCTION,
     'reeditpro_register_pre_plan_source_v1',
+    'reeditpro_register_target_pre_plan_source_v1',
+    'reeditpro_save_exact_edit_brief_v1',
+    'reeditpro_read_exact_edit_brief_v1',
   ],
 )
 const MAX_RESPONSE_BYTES = 4 * 1024 * 1024

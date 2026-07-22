@@ -34,15 +34,18 @@ export interface ProjectEditBriefBackendLocalRecord {
   updatedAt?: string
   contentDigestSha256: string
   backendLocalBriefStored?: true
+  persistenceAuthority?: 'canonical_v3_local_supabase_rls'
+  runtimeSource?: 'verified_live'
   readbackVerified?: true
   providerCallMade?: false
   workerJobCreated?: false
   renderJobCreated?: false
   creditReservedOrSpent?: false
-  supabaseWriteMade?: false
+  supabaseWriteMade?: boolean
   gcsWriteMade?: false
   productReady?: false
-  mockOnly?: true
+  remoteMutationMade?: false
+  mockOnly?: boolean
 }
 
 interface ProjectEditBriefBackendLocalData {
@@ -212,7 +215,9 @@ export async function saveProjectEditBriefBackendLocal(
     warnings: [
       ...(createEnvelope.warnings ?? []),
       ...readback.warnings,
-      'Backend-local edit brief was saved and read back before plan approval; no tools, render, credits, Supabase, GCS, beta, or production work started.',
+      editBrief.persistenceAuthority === 'canonical_v3_local_supabase_rls'
+        ? 'Exact Edit Brief was saved and read back through isolated local RLS authority before plan approval; no tools, render, credits, remote Supabase, GCS, beta, or production work started.'
+        : 'Backend-local edit brief was saved and read back before plan approval; no tools, render, credits, Supabase, GCS, beta, or production work started.',
     ],
   }
 }

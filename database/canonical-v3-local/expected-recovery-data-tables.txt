@@ -10,6 +10,7 @@ public.edit_reference_idempotency_receipts
 public.edit_reference_target_understanding_packages
 public.edit_references
 public.edit_sessions
+public.exact_edit_brief_versions
 public.exact_edit_preference_apply_events
 public.exact_edit_preference_states
 public.preference_application_lifecycle_events

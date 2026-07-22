@@ -227,9 +227,18 @@ await assert.rejects(
       plan,
       createdAt,
     }),
-    sourceBinding: { ...sourceBinding, sourceAuthority: 'target_source_media' },
+    sourceBinding: {
+      ...sourceBinding,
+      sourceAuthority: 'target_source_media',
+      sourceAssetId: randomUUID(),
+      targetProjectId: 'aaaaaaaa-1000-4000-8000-000000000001',
+      targetEditSessionId: 'aaaaaaaa-2000-4000-8000-000000000001',
+      targetEditBriefId: randomUUID(),
+      targetEditBriefRevision: 1,
+      targetEditBriefDigestSha256: 'f'.repeat(64),
+    },
   }),
-  isDependencyBlock,
+  isAtomicityError,
 )
 
 console.log(JSON.stringify({
@@ -331,8 +340,4 @@ function plus(value: string, milliseconds: number): string {
 
 function isAtomicityError(error: unknown): boolean {
   return error instanceof ApiError && error.code === 'IDEMPOTENCY_ATOMICITY_REQUIRED'
-}
-
-function isDependencyBlock(error: unknown): boolean {
-  return error instanceof ApiError && error.code === 'JOB_DEPENDENCY_NOT_READY'
 }

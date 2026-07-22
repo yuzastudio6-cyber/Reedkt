@@ -66,6 +66,15 @@ The chain provides:
   plus an append-only long-form domain event projection for start/control
   state. The immutable evidence asset is never rewritten, and the paired
   service-role domain RPC revalidates exact plan/run/source/work-count lineage;
+- append-only exact-edit Brief versions plus authenticated, server-signed
+  save/read RPCs. Each version is bound to the exact workspace, project,
+  named edit, finalized source identities, author, revision, and content
+  digest; opening or reading a Brief never mutates it;
+- `reeditpro_register_target_pre_plan_source_v1` as the matching target-video
+  registration path. It binds the exact current Brief revision/digest and
+  named-edit identity to a distinct target source ID, then uses the same
+  distributed pre-plan queue and lease authority as library study rather than
+  introducing a second target-study scheduler;
 - forced RLS with authenticated read scopes and RPC-only mutation;
 - process-branded, loopback-only TypeScript adapters that run SQL receipts and
   planning reads through the frozen V6 backend validators;
@@ -88,7 +97,7 @@ The chain provides:
   planning-authority read/evidence/replay, immutable-baseline, cleanup
   invalidation, evidence/DNA/QA/approval replay, recovery, direct-RPC/table
   denial, and internal-cost tests.
-- a destructive local backup/reset/restore rehearsal covering all 50 reviewed
+- a destructive local backup/reset/restore rehearsal covering all 51 reviewed
   canonical data tables, an exact logical-state digest, immutable approved and
   audit history, exact Apply replay/conflict recovery, and restored tenant RLS.
 

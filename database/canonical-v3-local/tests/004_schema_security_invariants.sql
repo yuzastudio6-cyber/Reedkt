@@ -5,7 +5,8 @@ do $$
 declare
   expected_tables text[] := array[
     'profiles', 'workspaces', 'workspace_members', 'projects', 'edit_sessions',
-    'exact_edit_preference_states', 'edit_plan_versions', 'edit_credit_estimates',
+    'exact_edit_brief_versions', 'exact_edit_preference_states',
+    'edit_plan_versions', 'edit_credit_estimates',
     'approved_plan_snapshots', 'edit_execution_authorizations',
     'edit_references', 'preference_study_sessions', 'preference_study_messages',
     'preference_evidence', 'preference_assets', 'preference_evidence_assets',
@@ -91,6 +92,9 @@ begin
     or has_function_privilege('anon', 'public.mutate_edit_reference_domain_command_v2(text,uuid,jsonb,text,text)', 'EXECUTE')
     or has_function_privilege('anon', 'public.mutate_edit_reference_long_form_domain_command_v1(text,uuid,jsonb,text,text)', 'EXECUTE')
     or has_function_privilege('anon', 'public.reeditpro_register_pre_plan_source_v1(text,jsonb)', 'EXECUTE')
+    or has_function_privilege('anon', 'public.reeditpro_register_target_pre_plan_source_v1(text,jsonb)', 'EXECUTE')
+    or has_function_privilege('anon', 'public.reeditpro_save_exact_edit_brief_v1(text,jsonb)', 'EXECUTE')
+    or has_function_privilege('anon', 'public.reeditpro_read_exact_edit_brief_v1(text,jsonb)', 'EXECUTE')
     or has_function_privilege('authenticated', 'public.read_edit_reference_domain_aggregate_v1(text,jsonb)', 'EXECUTE')
     or has_function_privilege('authenticated', 'public.mutate_edit_reference_domain_command_v1(text,uuid,jsonb,text,text)', 'EXECUTE')
     or has_function_privilege('authenticated', 'public.read_edit_reference_domain_aggregate_v2(text,jsonb)', 'EXECUTE')
@@ -116,6 +120,12 @@ begin
     or not has_function_privilege('service_role', 'public.mutate_edit_reference_long_form_domain_command_v1(text,uuid,jsonb,text,text)', 'EXECUTE')
     or not has_function_privilege('authenticated', 'public.reeditpro_register_pre_plan_source_v1(text,jsonb)', 'EXECUTE')
     or has_function_privilege('service_role', 'public.reeditpro_register_pre_plan_source_v1(text,jsonb)', 'EXECUTE')
+    or not has_function_privilege('authenticated', 'public.reeditpro_register_target_pre_plan_source_v1(text,jsonb)', 'EXECUTE')
+    or has_function_privilege('service_role', 'public.reeditpro_register_target_pre_plan_source_v1(text,jsonb)', 'EXECUTE')
+    or not has_function_privilege('authenticated', 'public.reeditpro_save_exact_edit_brief_v1(text,jsonb)', 'EXECUTE')
+    or has_function_privilege('service_role', 'public.reeditpro_save_exact_edit_brief_v1(text,jsonb)', 'EXECUTE')
+    or not has_function_privilege('authenticated', 'public.reeditpro_read_exact_edit_brief_v1(text,jsonb)', 'EXECUTE')
+    or has_function_privilege('service_role', 'public.reeditpro_read_exact_edit_brief_v1(text,jsonb)', 'EXECUTE')
     or not has_function_privilege('service_role', 'public.enqueue_edit_reference_long_form_study_v1(jsonb)', 'EXECUTE')
     or not has_function_privilege('service_role', 'public.authorize_edit_reference_study_chat_route_attempt_v1(jsonb)', 'EXECUTE') then
     raise exception 'SCHEMA_REQUIRED_RPC_GRANT_MISSING';

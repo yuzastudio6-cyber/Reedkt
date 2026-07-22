@@ -4,6 +4,10 @@ import type { ServiceContext } from '../types'
 import type { SaveProjectEditBriefLocalRequest } from '../validation/project-edit-brief-local-schemas'
 import { createMockId, mockWarning, nowIso, sanitizeJson } from './service-helpers'
 import { authorizeWorkspaceAccess } from './workspace-access-service'
+import {
+  resolveEditReferenceExactEditBriefRuntimePort,
+  type EditReferenceExactEditBriefAuthorityRecord,
+} from './edit-reference-exact-edit-brief-runtime-port'
 
 type SaveProjectEditBriefLocalInput = SaveProjectEditBriefLocalRequest & {
   editSessionId: string
@@ -41,11 +45,42 @@ const mockBriefIdBySession = new Map<string, string>()
 const mockBriefIdempotency = new Map<string, string>()
 
 export function createProjectEditBriefLocalService(context: ServiceContext) {
+  const canonicalRuntime = resolveEditReferenceExactEditBriefRuntimePort({
+    env: context.env,
+    auth: context.auth,
+    factory: context.editReferenceExactEditBriefRuntimePortFactory,
+  })
   return {
     async saveProjectEditBrief(input: SaveProjectEditBriefLocalInput) {
       const access = await authorizeWorkspaceAccess(context, input.workspaceId, 'write')
       const userId = access.userId
       assertSafeBriefInput(input)
+
+      if (canonicalRuntime) {
+        if (!input.sourceStorageObjectRecordId || !input.sourceMediaAssetId) {
+          throw new ApiError(
+            'VALIDATION_FAILED',
+            'The exact uploaded video must be finalized before its Edit Brief can be committed.',
+            400,
+          )
+        }
+        const result = await canonicalRuntime.save({
+          workspaceId: access.workspaceId,
+          projectId: input.projectId,
+          editSessionId: input.editSessionId,
+          briefText: sanitizeBriefText(input.briefText),
+          sourceStorageObjectRecordId: input.sourceStorageObjectRecordId,
+          sourceMediaAssetId: input.sourceMediaAssetId,
+          idempotencyKey: input.idempotencyKey,
+        })
+        return {
+          editBrief: result.record,
+          warnings: [
+            'Exact Edit Brief committed to the isolated canonical V3 local RLS authority.',
+            'No study worker, provider, render, credit, billing, remote Supabase, cloud, or production action started.',
+          ],
+        }
+      }
 
       if (context.clients.admin && !context.env.mockOnly) {
         throw new ApiError(
@@ -134,6 +169,26 @@ export function createProjectEditBriefLocalService(context: ServiceContext) {
       editSessionId: string
     }) {
       const access = await authorizeWorkspaceAccess(context, input.workspaceId, 'read')
+      if (canonicalRuntime) {
+        const editBrief = await canonicalRuntime.read({
+          workspaceId: access.workspaceId,
+          projectId: input.projectId,
+          editSessionId: input.editSessionId,
+        })
+        if (!editBrief) {
+          throw new ApiError(
+            'PROJECT_NOT_FOUND',
+            'An exact Edit Brief was not found for this named edit.',
+            404,
+          )
+        }
+        return {
+          editBrief,
+          warnings: [
+            'Exact Edit Brief read from isolated canonical V3 local RLS authority.',
+          ],
+        }
+      }
       if (context.clients.admin && !context.env.mockOnly) {
         throw new ApiError(
           'MOCK_ONLY',
@@ -163,7 +218,7 @@ export function createProjectEditBriefLocalService(context: ServiceContext) {
 
 export function calculateProjectEditBriefLocalDigest(
   brief: Pick<
-    BackendLocalProjectEditBriefRecord,
+    BackendLocalProjectEditBriefRecord | EditReferenceExactEditBriefAuthorityRecord,
     | 'id'
     | 'workspaceId'
     | 'projectId'

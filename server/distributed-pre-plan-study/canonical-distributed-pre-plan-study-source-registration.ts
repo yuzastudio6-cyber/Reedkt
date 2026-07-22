@@ -14,6 +14,8 @@ import {
 
 export const CANONICAL_PRE_PLAN_SOURCE_REGISTRATION_RPC_FUNCTION =
   'reeditpro_register_pre_plan_source_v1' as const
+export const CANONICAL_TARGET_PRE_PLAN_SOURCE_REGISTRATION_RPC_FUNCTION =
+  'reeditpro_register_target_pre_plan_source_v1' as const
 export const CANONICAL_PRE_PLAN_SOURCE_REGISTRATION_RECEIPT_VERSION =
   'canonical-v3-local-preference-asset-source-registration-receipt-v1' as const
 
@@ -41,9 +43,33 @@ const sourceRegistrationReceiptSchema = z.object({
   }).strict(),
 }).strict()
 
-export type CanonicalPrePlanSourceRegistrationReceipt = z.infer<
-  typeof sourceRegistrationReceiptSchema
->
+const targetSourceRegistrationReceiptSchema = z.object({
+  schemaVersion: z.literal(
+    'canonical-v3-local-target-source-registration-receipt-v1',
+  ),
+  sourceAssetId: identity,
+  status: z.literal('registered'),
+  disposition: z.enum(['inserted', 'idempotent_replay']),
+  transaction: z.object({
+    transactionId: z.string().uuid(),
+    committedAt: z.string().datetime({ offset: true }),
+    authenticatedRlsVerified: z.literal(true),
+    databaseTransactionVerified: z.literal(true),
+    exactEditBriefLineageVerified: z.literal(true),
+  }).strict(),
+  boundaries: z.object({
+    localLoopbackOnly: z.literal(true),
+    privateEvidenceIdentityVerified: z.literal(true),
+    browserSuppliedStorageAuthorityAccepted: z.literal(false),
+    rawMediaPathSignedUrlOrCredentialReturned: z.literal(false),
+    remoteMutationAllowed: z.literal(false),
+    productionAuthority: z.literal(false),
+  }).strict(),
+}).strict()
+
+export type CanonicalPrePlanSourceRegistrationReceipt =
+  | z.infer<typeof sourceRegistrationReceiptSchema>
+  | z.infer<typeof targetSourceRegistrationReceiptSchema>
 
 /**
  * Registers the exact, already-finalized and independently inspected source
@@ -58,6 +84,12 @@ export async function registerCanonicalPrePlanStudySource(input: {
 }): Promise<CanonicalPrePlanSourceRegistrationReceipt> {
   const binding = input.sourceBinding
   const plan = input.plan
+  if (binding.sourceAuthority === 'target_source_media') {
+    return registerCanonicalTargetPrePlanStudySource({
+      ...input,
+      sourceBinding: binding,
+    })
+  }
   if (
     binding.sourceAuthority !== 'preference_asset'
     || !binding.sourceAssetId
@@ -114,7 +146,91 @@ export async function registerCanonicalPrePlanStudySource(input: {
   return parsed.data
 }
 
-function sanitizedRpcError(error: unknown): ApiError {
+async function registerCanonicalTargetPrePlanStudySource(input: {
+  readonly client: CanonicalDistributedPrePlanStudyLocalHttpClient
+  readonly ownerUserId: string
+  readonly plan: EditReferenceLongFormStudyPlan
+  readonly sourceBinding: Extract<
+    EditReferenceLongFormStudySourceBinding,
+    { readonly sourceAuthority: 'target_source_media' }
+  >
+}): Promise<CanonicalPrePlanSourceRegistrationReceipt> {
+  const binding = input.sourceBinding
+  const plan = input.plan
+  if (
+    !binding.sourceAssetId
+    || !binding.sourceStorageObjectRecordId
+    || !binding.sourceMediaAssetId
+    || !binding.sourceStorageObjectId
+    || !binding.sourceStorageGeneration
+    || !binding.sourceStorageEtag
+    || !binding.targetProjectId
+    || !binding.targetEditSessionId
+    || !binding.targetEditBriefId
+    || !Number.isSafeInteger(binding.targetEditBriefRevision)
+    || binding.targetEditBriefRevision < 1
+    || !/^[a-f0-9]{64}$/u.test(binding.targetEditBriefDigestSha256)
+    || !input.ownerUserId
+    || plan.source.privateMediaArtifactId !== binding.sourceStorageObjectRecordId
+  ) throw atomicityError('canonical_target_pre_plan_source_registration_binding_invalid')
+
+  const requestWithoutHash = {
+    ownerUserId: input.ownerUserId,
+    workspaceId: plan.workspaceId,
+    editReferenceId: plan.editReferenceId,
+    studySessionId: plan.studySessionId,
+    projectId: binding.targetProjectId,
+    editSessionId: binding.targetEditSessionId,
+    editBriefId: binding.targetEditBriefId,
+    editBriefRevision: binding.targetEditBriefRevision,
+    editBriefDigestSha256: binding.targetEditBriefDigestSha256,
+    sourceAssetId: binding.sourceAssetId,
+    sourcePrivateMediaArtifactId: plan.source.privateMediaArtifactId,
+    sourceStorageObjectRecordId: binding.sourceStorageObjectRecordId,
+    sourceMediaAssetId: binding.sourceMediaAssetId,
+    sourceStorageObjectId: binding.sourceStorageObjectId,
+    sourceStorageGeneration: binding.sourceStorageGeneration,
+    sourceStorageEtag: binding.sourceStorageEtag,
+    sourceChecksumSha256: plan.source.mediaChecksumSha256,
+    sourceSizeBytes: plan.source.sizeBytes,
+    sourceDurationMilliseconds: Math.round(plan.source.durationSeconds * 1_000),
+    sourceMimeType: plan.source.mimeType,
+    sourceHasAudio: plan.source.hasAudio,
+    idempotencyKey: `register-target-source:${plan.workspaceId}:${binding.sourceAssetId}`,
+    requestedAt: plan.createdAt,
+  }
+  const request = {
+    ...requestWithoutHash,
+    requestHash: canonicalDistributedPrePlanStudyRequestHash(
+      'register_target_source',
+      requestWithoutHash,
+    ),
+  }
+  const result = await input.client.rpc(
+    CANONICAL_TARGET_PRE_PLAN_SOURCE_REGISTRATION_RPC_FUNCTION,
+    {
+      p_contract_version: CANONICAL_DISTRIBUTED_PRE_PLAN_STUDY_PORT_VERSION,
+      p_request: request,
+    },
+  )
+  if (result.error) throw sanitizedRpcError(
+    result.error,
+    CANONICAL_TARGET_PRE_PLAN_SOURCE_REGISTRATION_RPC_FUNCTION,
+  )
+  const parsed = targetSourceRegistrationReceiptSchema.safeParse(result.data)
+  if (!parsed.success || parsed.data.sourceAssetId !== binding.sourceAssetId) {
+    throw atomicityError('canonical_target_pre_plan_source_registration_receipt_invalid')
+  }
+  return parsed.data
+}
+
+function sanitizedRpcError(
+  error: unknown,
+  rpcFunctionId:
+    | typeof CANONICAL_PRE_PLAN_SOURCE_REGISTRATION_RPC_FUNCTION
+    | typeof CANONICAL_TARGET_PRE_PLAN_SOURCE_REGISTRATION_RPC_FUNCTION =
+      CANONICAL_PRE_PLAN_SOURCE_REGISTRATION_RPC_FUNCTION,
+): ApiError {
   const safe = error && typeof error === 'object' && !Array.isArray(error)
     ? {
         code: cleanScalar((error as Record<string, unknown>).code),
@@ -126,7 +242,7 @@ function sanitizedRpcError(error: unknown): ApiError {
     'The finalized reference source was not registered with validated atomic evidence.',
     503,
     {
-      rpcFunctionId: CANONICAL_PRE_PLAN_SOURCE_REGISTRATION_RPC_FUNCTION,
+      rpcFunctionId,
       errorEvidenceHash: sha256AuthorityValue({
         domain: 'canonical_pre_plan_source_registration_rpc_error_v1',
         ...safe,

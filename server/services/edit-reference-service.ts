@@ -5518,7 +5518,7 @@ function validateLongFormStorageBinding(input: {
 }
 
 function longFormStudySourceBinding(input: {
-  readonly sourceAuthority: EditReferenceLongFormStudySourceBinding['sourceAuthority']
+  readonly sourceAuthority: 'preference_asset'
   readonly sourceAssetId: string
   readonly storage: EditReferenceLongFormStorageObject
   readonly storageMode: ServiceContext['env']['storageMode']

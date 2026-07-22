@@ -30,6 +30,7 @@ const expectedRepositoryFiles = [
   'docs/canonical-v3-local-edit-reference-request-scoped-long-form-verification-2026-07-21.md',
   'docs/canonical-v3-local-exact-edit-apply-authority-read-verification-2026-07-21.md',
   'docs/canonical-v3-local-exact-edit-atomic-apply-verification-2026-07-21.md',
+  'docs/canonical-v3-local-exact-edit-brief-target-source-verification-2026-07-21.md',
   'docs/edit-preferences-mounted-atomic-apply-recovery-2026-07-21.md',
   'package.json',
   'server/app.ts',
@@ -64,9 +65,11 @@ const expectedRepositoryFiles = [
   'server/services/canonical-planning-handoff-service.ts',
   'server/services/edit-reference-application-preparation-runtime-port.ts',
   'server/services/edit-reference-application-preparation-service.ts',
+  'server/services/edit-reference-canonical-v3-local-exact-edit-brief-runtime-port-factory.ts',
   'server/services/edit-reference-canonical-v3-local-long-form-runtime-port-factory.ts',
   'server/services/edit-reference-canonical-v3-local-long-form-runtime-port.ts',
   'server/services/edit-reference-domain-repository-runtime-port.ts',
+  'server/services/edit-reference-exact-edit-brief-runtime-port.ts',
   'server/services/edit-reference-production-long-form-runtime-port.ts',
   'server/services/edit-reference-service.ts',
   'server/services/edit-reference-signed-in-private-media-runtime-port.ts',
@@ -75,6 +78,7 @@ const expectedRepositoryFiles = [
   'server/services/planning-exact-edit-preference-authority-port.ts',
   'server/services/planning-exact-edit-preference-authority-service.ts',
   'server/services/planning-input-authority-binding-service.ts',
+  'server/services/project-edit-brief-local-service.ts',
   'server/services/upload-service.ts',
   'server/services/workspace-access-service.ts',
   'server/smoke/canonical-distributed-pre-plan-study-local-postgres-smoke.ts',
@@ -84,6 +88,7 @@ const expectedRepositoryFiles = [
   'server/smoke/canonical-professional-long-form-cross-chunk-color-smoke.ts',
   'server/smoke/canonical-professional-long-form-post-approval-smoke.ts',
   'server/smoke/edit-planning-authority-smoke.ts',
+  'server/smoke/edit-reference-canonical-v3-exact-edit-target-source-smoke.ts',
   'server/smoke/edit-reference-canonical-v3-local-long-form-runtime-port-smoke.ts',
   'server/smoke/edit-reference-local-supabase-application-preparation-smoke.ts',
   'server/smoke/edit-reference-local-supabase-domain-repository-smoke.ts',
@@ -109,6 +114,7 @@ const expectedRepositoryFiles = [
   'src/lib/canonical-planning-publication-client.ts',
   'src/lib/current-edit-reference-application-ui.ts',
   'src/lib/edit-reference-application-preparation-client.ts',
+  'src/lib/project-edit-brief-backend-local.ts',
   'src/lib/project-edit-session-edit-reference-integration.ts',
   'src/types/canonical-exact-edit-planning-authority.ts',
   'src/types/edit-reference-production-application-preparation-api.ts',
@@ -141,6 +147,7 @@ const expectedMigrations = [
   '202607210010_canonical_distributed_pre_plan_study_rpc.sql',
   '202607210011_canonical_pre_plan_study_read_projection.sql',
   '202607210012_canonical_pre_plan_source_registration.sql',
+  '202607210013_exact_edit_brief_and_target_source.sql',
 ]
 const actualMigrations = readdirSync(join(directory, 'supabase', 'migrations'))
   .filter((name) => name.endsWith('.sql'))
@@ -151,7 +158,7 @@ const expectedRecoveryDataTables = readFileSync(
   join(directory, 'expected-recovery-data-tables.txt'),
   'utf8',
 ).trim().split('\n')
-assert(expectedRecoveryDataTables.length === 50, 'recovery_table_count_invalid')
+assert(expectedRecoveryDataTables.length === 51, 'recovery_table_count_invalid')
 assert(
   equalArrays(expectedRecoveryDataTables, [...expectedRecoveryDataTables].sort()),
   'recovery_table_order_invalid',
@@ -246,6 +253,10 @@ for (const requiredToken of [
   'reeditpro_recover_expired_pre_plan_study_lease_v1',
   'reeditpro_read_pre_plan_study_projection_v1',
   'reeditpro_register_pre_plan_source_v1',
+  'exact_edit_brief_versions',
+  'reeditpro_save_exact_edit_brief_v1',
+  'reeditpro_read_exact_edit_brief_v1',
+  'reeditpro_register_target_pre_plan_source_v1',
   'customerCreditsMutated',
   'serviceFeeIncluded',
 ]) {

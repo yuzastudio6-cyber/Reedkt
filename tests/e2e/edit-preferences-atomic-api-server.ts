@@ -49,6 +49,12 @@ import type {
 import {
   createEditReferenceSignedInPrivateMediaRuntimePort,
 } from '../../server/services/edit-reference-signed-in-private-media-runtime-port'
+import {
+  createEditReferenceCanonicalV3LocalExactEditBriefRuntimePortFactory,
+} from '../../server/services/edit-reference-canonical-v3-local-exact-edit-brief-runtime-port-factory'
+import type {
+  EditReferenceExactEditBriefRuntimePortFactory,
+} from '../../server/services/edit-reference-exact-edit-brief-runtime-port'
 
 type ExactEditState = {
   values: EditReferenceProductionExactEditPreferenceValues
@@ -322,6 +328,8 @@ const editReferenceSignedInPrivateMediaRuntimePort =
         endpointOrigin: process.env.REEDITPRO_CANONICAL_V3_API_URL ?? '',
       })
     : undefined
+const editReferenceExactEditBriefRuntimePortFactory =
+  createOptionalCanonicalV3LocalExactEditBriefRuntimePortFactory()
 const server = createReeditProApiApp(env, {
   editReferenceExactEditApplyRuntimePort: runtimePort,
   editReferenceApplicationPreparationRuntimePort: applicationPreparation.port,
@@ -334,6 +342,9 @@ const server = createReeditProApiApp(env, {
     : {}),
   ...(editReferenceSignedInPrivateMediaRuntimePort
     ? { editReferenceSignedInPrivateMediaRuntimePort }
+    : {}),
+  ...(editReferenceExactEditBriefRuntimePortFactory
+    ? { editReferenceExactEditBriefRuntimePortFactory }
     : {}),
 }).listen(env.apiPort, '127.0.0.1', () => {
   console.log(JSON.stringify({ event: 'atomic_preferences_test_api_listening', port: env.apiPort }))
@@ -387,6 +398,25 @@ function createOptionalCanonicalV3LocalLongFormRuntimePortFactory():
     )
   }
   return createEditReferenceCanonicalV3LocalLongFormRuntimePortFactory({
+    endpointOrigin,
+    anonKey,
+    localInternalSigningSecret,
+  })
+}
+
+function createOptionalCanonicalV3LocalExactEditBriefRuntimePortFactory():
+  EditReferenceExactEditBriefRuntimePortFactory | undefined {
+  const endpointOrigin = process.env.REEDITPRO_CANONICAL_V3_API_URL?.trim()
+  const anonKey = process.env.REEDITPRO_CANONICAL_V3_ANON_KEY?.trim()
+  const localInternalSigningSecret =
+    process.env.REEDITPRO_CANONICAL_V3_LOCAL_PRE_PLAN_SIGNING_SECRET?.trim()
+  if (!endpointOrigin && !anonKey && !localInternalSigningSecret) return undefined
+  if (!endpointOrigin || !anonKey || !localInternalSigningSecret) {
+    throw new Error(
+      'The canonical V3 exact Edit Brief proof requires loopback URL, anon key, and local signing secret.',
+    )
+  }
+  return createEditReferenceCanonicalV3LocalExactEditBriefRuntimePortFactory({
     endpointOrigin,
     anonKey,
     localInternalSigningSecret,

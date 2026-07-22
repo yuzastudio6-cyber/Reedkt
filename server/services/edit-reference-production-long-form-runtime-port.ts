@@ -47,8 +47,7 @@ export type EditReferenceLongFormRuntimeSourceAuthority =
   | 'canonical_edit_reference_production_repository'
   | 'unavailable'
 
-export interface EditReferenceLongFormStudySourceBinding {
-  readonly sourceAuthority: 'preference_asset' | 'target_source_media'
+interface EditReferenceLongFormStudyCommonSourceBinding {
   readonly sourceAssetId: string
   readonly sourceStorageObjectRecordId: string
   readonly sourceMediaAssetId: string
@@ -56,6 +55,19 @@ export interface EditReferenceLongFormStudySourceBinding {
   readonly sourceStorageGeneration: string
   readonly sourceStorageEtag: string
 }
+
+export type EditReferenceLongFormStudySourceBinding =
+  | (EditReferenceLongFormStudyCommonSourceBinding & {
+      readonly sourceAuthority: 'preference_asset'
+    })
+  | (EditReferenceLongFormStudyCommonSourceBinding & {
+      readonly sourceAuthority: 'target_source_media'
+      readonly targetProjectId: string
+      readonly targetEditSessionId: string
+      readonly targetEditBriefId: string
+      readonly targetEditBriefRevision: number
+      readonly targetEditBriefDigestSha256: string
+    })
 
 export interface EditReferenceLongFormStudyRuntimePort {
   readonly schemaVersion: typeof EDIT_REFERENCE_PRODUCTION_LONG_FORM_RUNTIME_PORT_VERSION

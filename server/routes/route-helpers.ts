@@ -50,6 +50,8 @@ export function getServiceContext(request: Request): ServiceContext {
       runtimeRequest.runtime.editReferenceDomainRepositoryRuntimePort,
     editReferenceSignedInPrivateMediaRuntimePort:
       runtimeRequest.runtime.editReferenceSignedInPrivateMediaRuntimePort,
+    editReferenceExactEditBriefRuntimePortFactory:
+      runtimeRequest.runtime.editReferenceExactEditBriefRuntimePortFactory,
   }
 }
 

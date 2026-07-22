@@ -289,6 +289,8 @@ export function createEditReferenceTargetVideoUnderstandingService(
 interface TargetAuthority {
   readonly scope: EditReferenceRepositoryScope
   readonly aggregate: EditReferenceAggregate
+  readonly editReferenceId: string
+  readonly studySessionId: string
   readonly session: TargetSessionAuthority
   readonly brief: TargetBriefAuthority
   readonly projectName: string
@@ -397,6 +399,8 @@ async function resolveTargetAuthority(
   return {
     scope: requestedScope,
     aggregate,
+    editReferenceId: reference.id,
+    studySessionId: study.id,
     session,
     brief,
     projectName: typeof project.name === 'string' && project.name.trim() ? project.name.trim() : 'ReEditPro Project',
@@ -701,13 +705,35 @@ function createTargetLongFormStudySourceBinding(
   if (!storage.mediaAssetId || !storage.generation || !storage.etag) return undefined
   return {
     sourceAuthority: 'target_source_media',
-    sourceAssetId: storage.mediaAssetId,
+    sourceAssetId: targetStudySourceAssetId(authority),
     sourceStorageObjectRecordId: storage.id,
     sourceMediaAssetId: storage.mediaAssetId,
     sourceStorageObjectId: storage.objectPath,
     sourceStorageGeneration: storage.generation,
     sourceStorageEtag: storage.etag,
+    targetProjectId: authority.session.projectId,
+    targetEditSessionId: authority.session.id,
+    targetEditBriefId: authority.brief.id,
+    targetEditBriefRevision: authority.brief.revisionNumber,
+    targetEditBriefDigestSha256: calculateTargetVideoEditBriefDigest(authority.brief),
   }
+}
+
+function targetStudySourceAssetId(authority: TargetAuthority): string {
+  const hex = sha256(stableStringify({
+    domain: 'canonical_target_pre_plan_source_asset_v1',
+    workspaceId: authority.scope.workspaceId,
+    projectId: authority.session.projectId,
+    editSessionId: authority.session.id,
+    editReferenceId: authority.editReferenceId,
+    studySessionId: authority.studySessionId,
+    storageObjectRecordId: authority.storageObject.id,
+    mediaAssetId: authority.storageObject.mediaAssetId,
+    editBriefId: authority.brief.id,
+    editBriefRevision: authority.brief.revisionNumber,
+    editBriefDigestSha256: calculateTargetVideoEditBriefDigest(authority.brief),
+  }))
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-4${hex.slice(13, 16)}-a${hex.slice(17, 20)}-${hex.slice(20, 32)}`
 }
 
 function requireIdempotencyKey(value: string): void {

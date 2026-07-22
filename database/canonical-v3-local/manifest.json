@@ -10,12 +10,12 @@
       "sha256": "3639da80892fc947abab68c699addd960cd542f9f93bf87fdfa3b33329c7a139"
     },
     {
-      "path": "expected-recovery-data-tables.txt",
-      "sha256": "61e9a5ceab62f49bc0810c7b95043ce741f858d16a7c33638e3d9ba854ec6f54"
+      "path": "README.md",
+      "sha256": "834e202825763f9e2e853570d04106ff6392779b680518b338ae819972c8a339"
     },
     {
-      "path": "README.md",
-      "sha256": "bd3031defca7f842c2494201fe0d6547ede1ddff19ee687369a6aa234b14392c"
+      "path": "expected-recovery-data-tables.txt",
+      "sha256": "16e0aab758a663842891fbdbbc03655759f6eb889416e4b96bebe662f00319f5"
     },
     {
       "path": "run-local-recovery-verification.sh",
@@ -23,7 +23,7 @@
     },
     {
       "path": "run-local-verification.sh",
-      "sha256": "b2e115ab962ecefd00b0dd84d12c3d512c3e6d692cead55b55cf8742a353ca25"
+      "sha256": "11c92db866d22b27465bf533705c44d126f541c2a1263aad6eec11011d2c1643"
     },
     {
       "path": "setup-local-auth-users.ts",
@@ -86,16 +86,8 @@
       "sha256": "4123ca0b88cb41afda7ee58fecf4d28f895d0ebc44bf0243ccee1843e092abc7"
     },
     {
-      "path": "tests/_fixture.sql",
-      "sha256": "293b582bf3f5539fed0f0673fe48c70e464e4570f58cdd34d6ad29fd14e24816"
-    },
-    {
-      "path": "tests/_recovery_seed.sql",
-      "sha256": "3508bce16b11ee2873afaaf0edf424abebe92b84f9dec762881ed0bbd2f25534"
-    },
-    {
-      "path": "tests/_recovery_state_digest.sql",
-      "sha256": "82587a063c223487802953889786c42f492f8108da2192cb3a951db4e9f39a60"
+      "path": "supabase/migrations/202607210013_exact_edit_brief_and_target_source.sql",
+      "sha256": "5f65ec59f378f573f9df4e6e36dae1faedd880bcae99c5b90bb7b062db110787"
     },
     {
       "path": "tests/001_two_user_two_workspace_rls.sql",
@@ -111,7 +103,7 @@
     },
     {
       "path": "tests/004_schema_security_invariants.sql",
-      "sha256": "2526c074bf8d6c4b85e43a291f37153b30646aff026027a9fd8a7793cf3b6a1e"
+      "sha256": "d75d40d4b5dbd6547a08e6a4690f9dcfd97517e53407a789a7a4dbf84630b39e"
     },
     {
       "path": "tests/005_exact_edit_atomic_apply.sql",
@@ -150,8 +142,20 @@
       "sha256": "d131efb3ecaf1ece2ed3f33e11cf63e79594944056473da4c5699e727de53717"
     },
     {
+      "path": "tests/_fixture.sql",
+      "sha256": "293b582bf3f5539fed0f0673fe48c70e464e4570f58cdd34d6ad29fd14e24816"
+    },
+    {
+      "path": "tests/_recovery_seed.sql",
+      "sha256": "3508bce16b11ee2873afaaf0edf424abebe92b84f9dec762881ed0bbd2f25534"
+    },
+    {
+      "path": "tests/_recovery_state_digest.sql",
+      "sha256": "82587a063c223487802953889786c42f492f8108da2192cb3a951db4e9f39a60"
+    },
+    {
       "path": "verify.mjs",
-      "sha256": "591eb29ca93aa1bbafa668b1bb5e940ad7bbea05cc9b638f87bb3b82602b3e13"
+      "sha256": "b8c592a4e7825993abaaa52aa5dc4b1348687d47f943b224061ac0dd63b640a9"
     }
   ],
   "repositoryFiles": [
@@ -204,6 +208,10 @@
       "sha256": "84fc1424c531ceff2c50b060cb00ff633d4d38ea6062d1915568998288cca11d"
     },
     {
+      "path": "docs/canonical-v3-local-exact-edit-brief-target-source-verification-2026-07-21.md",
+      "sha256": "f5a74ca711873d1ea3435c436f4323622d9c511538b6c353fa51b1ad3e7eb41b"
+    },
+    {
       "path": "docs/edit-preferences-mounted-atomic-apply-recovery-2026-07-21.md",
       "sha256": "cfddcfdd5d2c0a9074df9eae7bcb89a0b4edaeffcb71bf3033543c479f1703b1"
     },
@@ -213,11 +221,11 @@
     },
     {
       "path": "server/app.ts",
-      "sha256": "f056da96ab6005c017a7302ef9ff30c7a23fa600d9166fb252d3510caeddf6b4"
+      "sha256": "3a4f93beca2a92bcf51e6d8617158750427be6d2107206f879272feda963e6d6"
     },
     {
       "path": "server/distributed-pre-plan-study/canonical-distributed-pre-plan-study-local-supabase-http-rpc-client.ts",
-      "sha256": "d5e7fdb9e50d6e9691475412d7e5f05f6e0efeeb20c1701103ab8a3a3725ee8d"
+      "sha256": "8448de68f031cd45cdda967b3f4046f75ca43216c89b51114a9ecb4005f1214d"
     },
     {
       "path": "server/distributed-pre-plan-study/canonical-distributed-pre-plan-study-read-projection.ts",
@@ -225,7 +233,7 @@
     },
     {
       "path": "server/distributed-pre-plan-study/canonical-distributed-pre-plan-study-source-registration.ts",
-      "sha256": "8a8513eab50484a5282b900ad859a0872588ca99c3339c849601f7834a661246"
+      "sha256": "d6fe59b0145aa1ed6a9abe893092c7d290b36e6d87a5ccd56626573892a4399f"
     },
     {
       "path": "server/distributed-pre-plan-study/canonical-distributed-pre-plan-study-state-conformance.ts",
@@ -325,7 +333,7 @@
     },
     {
       "path": "server/routes/route-helpers.ts",
-      "sha256": "6a0352377ba2224a6a77c63b6513adeee6ace8278619b2caa7f492520407da1f"
+      "sha256": "0b25c35ecea700bc152ec5248702572a102676eea1f4f34a4af1f708e1f7e673"
     },
     {
       "path": "server/services/canonical-planning-handoff-service.ts",
@@ -340,24 +348,32 @@
       "sha256": "2ef1af03c070eae4fb2d444695e99ee24e5f526a303ef2415f598aa3b9eb79ec"
     },
     {
+      "path": "server/services/edit-reference-canonical-v3-local-exact-edit-brief-runtime-port-factory.ts",
+      "sha256": "726f3f222ca53b8b8e691f0840568392bc233d9e163012abfc14883c80f1ac22"
+    },
+    {
       "path": "server/services/edit-reference-canonical-v3-local-long-form-runtime-port-factory.ts",
       "sha256": "8605674f5e657b023a11ece6eb660469cd86b79608af8f6e979fc583aa3c2e30"
     },
     {
       "path": "server/services/edit-reference-canonical-v3-local-long-form-runtime-port.ts",
-      "sha256": "697bdd49e94c7f132b0fc4c663600e2995c9dcba950d3749ab77eff0ead9dc6a"
+      "sha256": "ac69c7f0e1dcdeb001350c18cd8fa8e097d3434c3814d035e8d61d9300c6ba39"
     },
     {
       "path": "server/services/edit-reference-domain-repository-runtime-port.ts",
       "sha256": "f11911f9d182b1667bc64f1ac250dd2ec3a1f1d6ef52758994f605fc41629704"
     },
     {
+      "path": "server/services/edit-reference-exact-edit-brief-runtime-port.ts",
+      "sha256": "bcd447a2d734af6a2b14a302ff4f9f7b0b67afce17f569df6e712ca743fcf058"
+    },
+    {
       "path": "server/services/edit-reference-production-long-form-runtime-port.ts",
-      "sha256": "c80c7651325f1a4393296f0990bca6931da41bc9157034e37897f59347801d53"
+      "sha256": "bbb96675c07a377ff45b464ab4e48ecde6da02ca86bbf7528cf57d8b07d7ecf4"
     },
     {
       "path": "server/services/edit-reference-service.ts",
-      "sha256": "c3cd42f29ab0d4e1125293ca5e70249abcb575f0e0bb0439160c7228e9181e41"
+      "sha256": "237548bd8a27f2dd4fd3ecb30c514ac9672da77206ebced3d157b3a56cf1dae2"
     },
     {
       "path": "server/services/edit-reference-signed-in-private-media-runtime-port.ts",
@@ -365,7 +381,7 @@
     },
     {
       "path": "server/services/edit-reference-target-video-understanding-service.ts",
-      "sha256": "edfceffc78fc74045965c61a230d52d398a5dd942f6a41b4cf82a3a5b0c831bf"
+      "sha256": "ba053df9e24b7c4b877ee47119f6a1d07ce397baa5b38e0ecbefc6e2df63c263"
     },
     {
       "path": "server/services/idempotency-service.ts",
@@ -382,6 +398,10 @@
     {
       "path": "server/services/planning-input-authority-binding-service.ts",
       "sha256": "dfaf76bee23587280f45859f1fc9500c82240ab2b71eeace53b9f012572554cb"
+    },
+    {
+      "path": "server/services/project-edit-brief-local-service.ts",
+      "sha256": "3b64f7ba6ce17eefbdc0094e966e22ebfd4fa35c623e233d69ef7175460d0949"
     },
     {
       "path": "server/services/upload-service.ts",
@@ -420,8 +440,12 @@
       "sha256": "c65be420f393ed17b7233fede732696a5d477620d215d414832441de7ac7f5e9"
     },
     {
+      "path": "server/smoke/edit-reference-canonical-v3-exact-edit-target-source-smoke.ts",
+      "sha256": "e1f124e6a899cb39a1959c8e5734d95b0eb4bb3563c371b35e370c193f8a2052"
+    },
+    {
       "path": "server/smoke/edit-reference-canonical-v3-local-long-form-runtime-port-smoke.ts",
-      "sha256": "8ad4168e914b5f0d21cbb3d023d87b08df5132b775b359f50fcff69b78c0fb9b"
+      "sha256": "d55c6ce18752a6e7cd769aa73db4ffa7ab72a7d4f494340204aab11dd531b3c5"
     },
     {
       "path": "server/smoke/edit-reference-local-supabase-application-preparation-smoke.ts",
@@ -469,7 +493,7 @@
     },
     {
       "path": "server/types.ts",
-      "sha256": "037b7181156e6fe51f1a3d091751687213e4bdd67097609a2a7fb8f60e806067"
+      "sha256": "005c99b9df134b2e5049f3c41af7b02d5fca45806747d65162fc75c6c47a7bca"
     },
     {
       "path": "server/validation/canonical-exact-edit-planning-authority-schemas.ts",
@@ -520,6 +544,10 @@
       "sha256": "14e281be7415ab90848ba10e8ca53de0fd18e6bc011ddf156d13963362d66c75"
     },
     {
+      "path": "src/lib/project-edit-brief-backend-local.ts",
+      "sha256": "9a1d5f6f2a8895f4d3c9cb13850bd985ab809f2877678295ca2fefe4aca4d950"
+    },
+    {
       "path": "src/lib/project-edit-session-edit-reference-integration.ts",
       "sha256": "736c7d6e176ca423c50262a49d8a00f2bcd9b86d06fff0ca182e73c4127ff12b"
     },
@@ -545,7 +573,7 @@
     },
     {
       "path": "tests/e2e/edit-preferences-atomic-api-server.ts",
-      "sha256": "698593b42bf06e6995eb25491d8db18f3a1070e23ec7be1e13e7ee1d61a9afbb"
+      "sha256": "6e2dd7555ff2d22339bdd3dfbd89f00af37904d3e3395ed6245be50c986db035"
     },
     {
       "path": "tests/e2e/edit-preferences-current-edit.spec.ts",

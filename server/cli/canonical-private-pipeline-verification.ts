@@ -31,6 +31,51 @@ const canonicalSteps: VerificationStep[] = [
     'Exact-edit brief persistence, planning binding, approval locking, and revision-safe authority.',
   ),
   step(
+    'canonical-edit-reference-ui-integration',
+    'smoke:canonical-product-ui-integration-readiness',
+    'The one mounted Edit Preference library, Study Chat workspace, and exact-edit preference surface remain connected to the canonical EditorPage and ChatNativeEditor product shell without a duplicate editor, route, or silent application path. This is source-verified protected-internal UI evidence only; deployment and production readiness remain false.',
+  ),
+  step(
+    'canonical-edit-reference-atomic-apply',
+    'smoke:edit-reference-exact-edit-apply-runtime',
+    'The exact seven preference fields and optional reference apply, replace, or remove command share one server-bound atomic operation, deterministic replay, stale-authority refusal, and one plan/estimate invalidation boundary without provider, worker, credit, or billing authority.',
+  ),
+  step(
+    'canonical-exact-edit-preference-planning-authority',
+    'smoke:planning-exact-edit-preference-authority-port',
+    'Canonical planning reads one immutable exact-edit preference baseline, current seven-field authority, revisions, fingerprint, source preparation, and confirmed frame through one server-only port; browser mutation and legacy-store fallback stay blocked.',
+  ),
+  step(
+    'canonical-preference-application-planning-authority',
+    'smoke:planning-preference-application-authority-port',
+    'Canonical not-selected, connected, and explicitly cleared PreferenceApplication states remain distinct through exactly one server-only authority read, with no fallback after a canonical result or error and no live RPC or production promotion claim.',
+  ),
+  step(
+    'canonical-edit-reference-domain-repository-runtime',
+    'smoke:edit-reference-mounted-domain-repository-runtime',
+    'The library/study routes and exact-target understanding select the same server-injected domain repository authority; browser selection, competing authorities, and hosted private-local fallback fail closed before repository access.',
+  ),
+  step(
+    'canonical-edit-reference-study-chat-runtime',
+    'smoke:edit-reference-mounted-study-chat-runtime',
+    'The one mounted Study Chat message route preserves saved user direction, deterministic replay, restart readback, and truthful blocked reasoning while hosted absence and caller-forged live authority fail before provider execution.',
+  ),
+  step(
+    'canonical-edit-reference-long-form-runtime',
+    'smoke:edit-reference-mounted-long-form-runtime',
+    'The mounted long-form start, status, control, review, and exact-target paths select one server-injected runtime authority; competing or forged authorities fail before repository, scheduler, or runtime effects.',
+  ),
+  step(
+    'canonical-distributed-pre-plan-study-contract',
+    'smoke:canonical-distributed-pre-plan-study-state-port',
+    'The database-neutral pre-plan Edit Reference study contract proves server-derived dependency work, one active digest-only lease, monotonic checkpoints, pause/resume/cancel, bounded recovery, terminal private output plus separate internal cost, and exact replay without fabricating an approved edit snapshot or customer commercial authority.',
+  ),
+  step(
+    'canonical-distributed-pre-plan-study-rpc-transport',
+    'smoke:canonical-distributed-pre-plan-study-rpc-adapter',
+    'The fixed seven-operation server-only pre-plan study RPC transport uses one validated request per method, claim-only transient lease material, exact replay, response-lineage validation, and sanitized errors while live database, worker, private-object, cloud, and production authority remain false.',
+  ),
+  step(
     'private-source-authority',
     'smoke:private-source-media-authority',
     'Finalized source identity, checksum, source order, project scope, and immutable source authority.',
@@ -355,7 +400,7 @@ function printReport(
 ): void {
   const finishedAt = new Date()
   const report = {
-    schemaVersion: 'canonical-private-pipeline-verification-v38',
+    schemaVersion: 'canonical-private-pipeline-verification-v39',
     status,
     mode: full ? 'full_internal_regression' : 'canonical_private_pipeline',
     startedAt: runStartedAt.toISOString(),
@@ -374,6 +419,15 @@ function printReport(
     verifiedClaims: status === 'passed'
       ? {
           exactSourcePreferenceBriefAuthority: true,
+          canonicalEditReferenceUiIntegrationSourceVerified: true,
+          canonicalEditReferenceExactEditAtomicApplyContract: true,
+          canonicalExactEditPreferencePlanningAuthorityContract: true,
+          canonicalPreferenceApplicationPlanningAuthorityContract: true,
+          canonicalEditReferenceDomainRepositoryRuntimeSelectionContract: true,
+          canonicalEditReferenceStudyChatMountedRuntimeContract: true,
+          canonicalEditReferenceLongFormMountedRuntimeContract: true,
+          canonicalEditReferenceDistributedPrePlanStateContract: true,
+          canonicalEditReferenceDistributedPrePlanRpcTransportContract: true,
           resumableSized4kPrivateSourcePipeline: true,
           databaseNeutralPrePlanDistributedMediaIngestContract: true,
           distributedMediaIngestApprovedPackageAuthorityFabricated: false,
@@ -567,6 +621,12 @@ function printReport(
       distributedMediaIngestDatabaseTransactionVerified: false,
       distributedMediaIngestCloudDispatchVerified: false,
       distributedMediaIngestLiveGcsWorkerVerified: false,
+      editReferenceLiveDomainRepositoryVerified: false,
+      editReferenceLiveStudyChatReasoningRuntimeVerified: false,
+      editReferenceLiveLongFormRuntimeVerified: false,
+      editReferenceDistributedPrePlanDatabaseVerified: false,
+      editReferenceDistributedPrePlanWorkerDispatchVerified: false,
+      editReferenceProductionReady: false,
       hostedLargeMediaAboveInlineCeilingAllowed: false,
       canonicalPackageStateDatabaseFunctionsExecuted: false,
       canonicalPackageStateRpcLiveClientActivated: false,

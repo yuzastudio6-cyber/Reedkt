@@ -2,7 +2,7 @@
 
 Status: `implemented_local_private_verification_entrypoint`
 
-Status date: 2026-07-21
+Status date: 2026-07-22
 
 ## Purpose
 
@@ -10,6 +10,34 @@ Status date: 2026-07-21
 verifying ReeditPro's current signed-in named-edit pipeline. It replaces the
 misleading use of the retired caller-authored private-execution route as the
 primary pipeline signal.
+
+### Current v39 scope
+
+The routine verifier now checks nine fast Edit Reference/Edit Preference gates
+before private media work: the single mounted product UI, atomic exact-edit
+Apply, exact-preference planning authority, PreferenceApplication planning
+authority, shared domain repository selection, mounted Study Chat, mounted
+long-form study, the database-neutral distributed pre-plan state contract, and
+its fixed server-only RPC transport. These checks make the canonical product
+journey part of the authoritative aggregate instead of relying on separate
+feature evidence. They do not promote the local fixtures: live repository,
+reasoning, long-form worker, database, private-object, provider, and production
+authority remain explicitly false.
+
+Routine long-form break/fix verification uses `routine_two_hour`: 7,200
+seconds, 200 source ranges, a 127-child graph, eight completed representative
+jobs, and two of 60 object-chunk pairs. The retained `release_six_hour` profile
+still proves the professional capacity contract at 21,600 seconds, 512 source
+ranges, 255 jobs, and 124 chunk pairs, but the routine command does not execute
+that expensive stress profile. This preserves the six-hour design ceiling while
+making everyday end-to-end implementation and regression work substantially
+faster.
+
+### Retained six-hour evidence history
+
+The detailed narrative below describes how the earlier six-hour capacity proof
+was established. It is retained for audit history and must not be read as the
+routine v39 execution profile.
 
 The command verifies the connected path from exact source, Edit Preferences,
 and Edit Brief authority through a real resumable-sized 4K private ingest/proxy
@@ -84,10 +112,11 @@ multi-container FFmpeg attempts aggregate their exact sequential components.
 After private persistence, QA, lease completion, reconciliation, and fresh
 authority readback, the canonical attempt retains one create-only internal
 infrastructure-cost record. Together with the existing structured Node/Python
-runners, 30 operations now prove automatic embedded observation under their
-real private lifecycle. Specialized long-form entrypoints, Remotion resource
-observation, deployed cloud telemetry, official cloud rates, and commercial
-authority remain false.
+runners, 31 operations now prove automatic embedded observation under their
+real private lifecycle. Remotion resource observation is now covered by its
+canonical private attempt lifecycle; specialized long-form entrypoints,
+deployed cloud telemetry, official cloud rates, and commercial authority remain
+false.
 
 The aggregate also requires the server-only provider-attempt consumer
 projection. That phase reopens the exact approved package, queue/lease,
@@ -122,7 +151,11 @@ plan fits the bounded canonical profile.
 1. Preserve structured planning input, exact Edit Preferences, Edit Brief,
    source identity, source order, and checksums. Explicit source-only intent
    must suppress unapproved b-roll, music, SFX, beat timing, and generated
-   media without weakening the professional voice baseline.
+   media without weakening the professional voice baseline. Verify the one
+   mounted Edit Preference UI, atomic exact-edit Apply, exact-preference and
+   PreferenceApplication planning ports, shared domain repository, Study Chat,
+   long-form runtime, and distributed pre-plan state/RPC boundaries. Every live
+   persistence, provider, worker, and production gate remains fail-closed.
 2. Execute a real 3840x2160 source above the resumable threshold through
    interrupted chunk recovery, backend byte hash and generation/ETag authority,
    capacity admission, private probe/finalization, restart/replay, exact-source
@@ -135,36 +168,22 @@ plan fits the bounded canonical profile.
    approved snapshot or reservation. Its database, cloud dispatch, live GCS,
    hosted high-ceiling, commercial, and production gates must remain false.
 3. Verify the additive professional long-form object-backed planning profile
-   against a 30-minute, 24-source fixture and the bounded six-hour,
-   512-source-range capacity fixture. The plan must conserve exact frames,
-   distinguish approved hard cuts from continuous technical splits, require
-   per-chunk QA, continuous program audio, cross-chunk color QA, and reuse of
-   the one approved 4K estimate. Then bind the exact plan seed, plan, estimate,
-   timing, reservation, server-loaded controller input, and 255-item maximum
-   expanded graph to one approved snapshot. Then publish and approve a real
-   local/private maximum-capacity seed, reopen the exact seed/controller after
-   restart, persist the deterministic 255-child manifest and specialized
-   package/placement authority, and atomically publish one exact private queue.
-   Ordinary package creation remains refused. Then authorize exactly the root
-   snapshot-validation child, consume one lease and one-use attempt, persist and
-   reopen its private artifact/QA/reconciliation/internal-cost/terminal
-   evidence, complete it atomically, and prove exact replay. Then authorize and
-   complete the private source-authority child through its own lease, attempt,
-   artifact, QA, 125-dependent reconciliation, internal cost, terminal commit,
-   and replay. All 512 approved ranges must match exact source identity,
-   checksum, size, generation, cleanup containment, segment timing, and
-   gap-free timeline coverage. Then authorize and complete the master-timing
-   child through its separate QA-worker lease, one-use attempt, exact component
-   hash and frame validation, artifact, QA, 126-dependent reconciliation,
-   internal cost, terminal commit, and replay. Then complete the first object-
-   chunk render and paired independent QA through separate one-use queue
-   lifecycles, followed by the continuous-program-audio job and its independent
-   QA attempt through exact source staging, heartbeat, fixed lossless FLAC
-   execution, create-only persistence, two internal-cost records, tamper
-   refusal, reconciliation, and replay. The remaining 247 child leases, other
-   chunk tool-cost-runner authority, complete long-form media
-   execution, object storage, database, cloud, staging, and production
-   authority remain false.
+   against a 30-minute, 24-source fixture and retain the separately versioned
+   six-hour/512-range capacity contract. Routine post-approval execution uses
+   the two-hour/200-range profile: it binds one approved snapshot and 4K
+   estimate to a deterministic 127-child package, placement, and queue; reopens
+   exact seed/controller authority after restart; and completes eight
+   representative jobs through leases, one-use attempts, private artifacts,
+   independent QA, attempt-level internal cost, reconciliation, and exact
+   replay. The proof includes snapshot, source, and Master Timing authorities,
+   continuous lossless program audio, the first and one server-selected later
+   object chunk plus their QA, nonzero source-frame trimming, a technical split,
+   failed-attempt cost retention, and completion-proposal recovery without a
+   second execution or cost. It honestly leaves 119 jobs and 58 of 60 chunk
+   pairs unexecuted. The six-hour 255-job/124-pair release profile remains
+   immutable retained evidence and is run only through its explicit release
+   command. Distributed recovery, complete long-form execution, live object
+   storage, cloud, staging, and production authority remain false.
 4. Prove that every approved edit estimate carries the 4K UHD delivery ceiling
    and that 1080p, 2K/1440p, and 4K exports stay within the same approved
    deliverable rather than prompting for a second estimate.
@@ -254,7 +273,7 @@ source-bound audio identities in approved order, reads sanitized journey state,
 and records review acceptance.
 
 The runner stops on the first failed phase and prints a machine-readable
-`canonical-private-pipeline-verification-v32` report with step exit codes and
+`canonical-private-pipeline-verification-v39` report with step exit codes and
 durations. A zero exit code means every included assertion passed, including
 assertions that production-only or unavailable behavior stays blocked.
 
@@ -264,6 +283,15 @@ and open time. Resource isolation prevents unrelated local tasks from mutating
 that discovery channel; it does not weaken image-identity validation.
 
 ## Current Evidence Record
+
+On 2026-07-22, the nine new v39 Edit Reference/Edit Preference aggregate steps
+passed individually on the exact backend tree. The source-coverage smoke also
+proved that every step is present exactly once, resolves to its reviewed package
+entrypoint, retains the two-hour routine profile, and does not invoke the
+six-hour release script. This bounded update did not rerun the multi-hour full
+aggregate and therefore does not claim a new all-phase execution receipt. Live
+Supabase, provider reasoning, distributed workers, Google Cloud execution,
+billing, deployment, public delivery, and production readiness remain false.
 
 On 2026-07-21 UTC, the bounded v32 command passed all `43/43` phases with exit
 code `0`. Its final proven-tool report was generated at

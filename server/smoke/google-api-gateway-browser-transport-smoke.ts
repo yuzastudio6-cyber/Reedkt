@@ -37,6 +37,7 @@ const gatewayEnv = loadRuntimeEnv({
   NODE_ENV: 'production',
   E2E_RUNTIME_MODE: 'cloud_run',
   REEDITPRO_BROWSER_API_TRANSPORT: 'google_api_gateway',
+  REEDITPRO_LARGE_MEDIA_FINALIZATION_MODE: 'disabled',
   STORAGE_MODE: 'gcs_disabled',
   WORKER_RUNTIME_MODE: 'disabled',
   API_ALLOWED_CORS_ORIGINS: 'https://app.reeditpro.test',
@@ -45,6 +46,7 @@ const gatewayEnv = loadRuntimeEnv({
   SUPABASE_SERVICE_ROLE_KEY: 'fixture-server-service-role-key',
   REEDITPRO_INTERNAL_SERVICE_TOKEN: internalToken,
 })
+assert.equal(gatewayEnv.largeMediaFinalizationMode, 'disabled')
 assert.doesNotThrow(() => assertRuntimeCanStart(gatewayEnv))
 
 const missingSupabaseEnv = loadRuntimeEnv({

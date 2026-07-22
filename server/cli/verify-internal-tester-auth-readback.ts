@@ -6,6 +6,12 @@ import {
   normalizeStagingSupabaseUrl,
   privateIdentifierHash,
 } from '../auth/internal-tester-google-identity'
+import {
+  INTERNAL_TESTER_WORKSPACE_MEMBERSHIP_SELECTS,
+  resolveInternalTesterWorkspaceMembership,
+  type InternalTesterWorkspaceMembershipRow,
+  type ResolvedInternalTesterWorkspaceMembership,
+} from '../auth/internal-tester-workspace-membership'
 
 type ReadbackDecision =
   | 'internal_tester_sign_in_auth_readback_passed_ready_for_browser_sign_in_test'
@@ -38,6 +44,10 @@ interface ReadbackResult {
   workspaceIdentityContract?: WorkspaceIdentityContract
   workspaceIdHash?: string
   membershipIdHash?: string
+  membershipIdentityHash?: string
+  membershipIdentityContract?:
+    | 'surrogate_id'
+    | 'workspace_user_composite'
   membershipRole?: string | null
   warnings: string[]
   nextStep: string
@@ -59,13 +69,6 @@ interface WorkspaceRow {
   name?: string | null
   plan_type?: string | null
   workspace_type?: string | null
-}
-
-interface WorkspaceMemberRow {
-  id?: string
-  workspace_id?: string
-  user_id?: string
-  role?: string | null
 }
 
 const CONFIRM_VALUE = 'VERIFY_REEDITPRO_INTERNAL_TESTER_AUTH_READBACK'
@@ -219,7 +222,7 @@ async function findOwnedWorkspaceMembership(
   workspaceIdentityContract: WorkspaceIdentityContract,
 ): Promise<{
   workspace?: WorkspaceRow
-  membership?: WorkspaceMemberRow
+  membership?: ResolvedInternalTesterWorkspaceMembership
 }> {
   const ownerColumn = workspaceIdentityContract === 'direct_auth_user'
     ? 'owner_id'
@@ -237,16 +240,31 @@ async function findOwnedWorkspaceMembership(
   const workspace = (workspaceRows as WorkspaceRow[] | null)?.[0]
   if (!workspace?.id) return {}
 
-  const { data: membershipRows, error: membershipError } = await client
-    .from('workspace_members')
-    .select('id, workspace_id, user_id, role')
-    .eq('workspace_id', workspace.id)
-    .eq('user_id', userId)
-    .eq('role', 'owner')
-    .limit(1)
+  let membershipRows: InternalTesterWorkspaceMembershipRow[] | null = null
+  for (const select of INTERNAL_TESTER_WORKSPACE_MEMBERSHIP_SELECTS) {
+    const result = await client
+      .from('workspace_members')
+      .select(select)
+      .eq('workspace_id', workspace.id)
+      .eq('user_id', userId)
+      .eq('role', 'owner')
+      .limit(1)
 
-  if (membershipError) throw membershipError
-  const membership = (membershipRows as WorkspaceMemberRow[] | null)?.[0]
+    if (!result.error) {
+      membershipRows = result.data as InternalTesterWorkspaceMembershipRow[] | null
+      break
+    }
+    if (select.startsWith('id,') && isMissingColumnError(result.error, 'id')) {
+      continue
+    }
+    throw result.error
+  }
+
+  const membership = resolveInternalTesterWorkspaceMembership({
+    row: membershipRows?.[0],
+    expectedWorkspaceId: workspace.id,
+    expectedUserId: userId,
+  })
   return {
     workspace,
     membership,
@@ -361,7 +379,7 @@ async function main() {
       workspaceIdentityContract,
     )
 
-    if (!workspace?.id || !membership?.id) {
+    if (!workspace?.id || !membership) {
       output({
         ok: false,
         decision: 'internal_tester_sign_in_auth_readback_blocked_workspace_membership_missing',
@@ -390,8 +408,10 @@ async function main() {
       profileTableName: tableName,
       workspaceIdentityContract,
       workspaceIdHash: privateIdentifierHash(workspace.id),
-      membershipIdHash: privateIdentifierHash(membership.id),
-      membershipRole: membership.role ?? null,
+      membershipIdHash: membership.surrogateIdHash,
+      membershipIdentityHash: membership.identityHash,
+      membershipIdentityContract: membership.identityContract,
+      membershipRole: membership.row.role ?? null,
       warnings: [
         'This readback proves only the guarded staging identity/workspace seam; it does not certify the raw migration chain or production RLS.',
       ],

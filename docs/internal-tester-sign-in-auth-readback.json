@@ -41,6 +41,11 @@
   ],
   "ownedWorkspaceRequired": true,
   "ownerMembershipRequired": true,
+  "workspaceMembershipIdentityContracts": [
+    "surrogate_id",
+    "workspace_user_composite"
+  ],
+  "compositeMembershipIdentitySupported": true,
   "rawEmailAcceptedAsWorkflowInput": false,
   "outputIdentifiersHashed": true,
   "rawMigrationBaselineStatus": "blocked_by_parallel_foundations",

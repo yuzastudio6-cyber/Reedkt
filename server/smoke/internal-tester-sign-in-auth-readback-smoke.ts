@@ -3,6 +3,10 @@ import { spawnSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { internalTesterEmailHash } from '../auth/internal-tester-google-identity'
+import {
+  INTERNAL_TESTER_WORKSPACE_MEMBERSHIP_SELECTS,
+  resolveInternalTesterWorkspaceMembership,
+} from '../auth/internal-tester-workspace-membership'
 
 const root = process.cwd()
 
@@ -16,6 +20,7 @@ function read(path: string): string {
 
 for (const path of [
   'server/auth/internal-tester-google-identity.ts',
+  'server/auth/internal-tester-workspace-membership.ts',
   'server/cli/verify-internal-tester-auth-readback.ts',
   '.github/workflows/internal-tester-sign-in-auth-readback.yml',
   'docs/internal-tester-sign-in-auth-readback.md',
@@ -51,6 +56,8 @@ for (const phrase of [
   'profileIdHash',
   'workspaceIdHash',
   'membershipIdHash',
+  'membershipIdentityHash',
+  'membershipIdentityContract',
   'profiles',
   'workspaces',
   'workspace_members',
@@ -59,6 +66,7 @@ for (const phrase of [
 ] as const) assert.equal(cli.includes(phrase), true, `Readback CLI should include ${phrase}`)
 assert.match(cli, /\.eq\(ownerColumn, userId\)/)
 assert.match(cli, /\.eq\('workspace_id', workspace\.id\)[\s\S]*\.eq\('user_id', userId\)[\s\S]*\.eq\('role', 'owner'\)/)
+assert.doesNotMatch(cli, /!membership\?\.id/)
 assert.doesNotMatch(cli, /\n\s*\.(insert|upsert|update|delete|rpc)\s*\(/)
 assert.doesNotMatch(cli, /inviteUserByEmail|createUser|INTERNAL_TESTER_PASSWORD|PASSWORD_INPUT|console\.log/i)
 assert.doesNotMatch(cli, /VITE_SUPABASE|import\.meta\.env|createSignedUrl|stripe|runWorker|dispatchWorker|renderExport/i)
@@ -66,6 +74,54 @@ assert.doesNotMatch(cli, /\buserId\?:|\bprofileId\?:|\bworkspaceId\?:|\bmembersh
 assert.doesNotMatch(cli, /\.select\(['"]\*['"]\)/)
 assert.ok(cli.includes('process.stdout.write(`${JSON.stringify(result, null, 2)}\\n`)'))
 assert.match(cli, /redacted-jwt/)
+
+assert.deepEqual(INTERNAL_TESTER_WORKSPACE_MEMBERSHIP_SELECTS, [
+  'id, workspace_id, user_id, role',
+  'workspace_id, user_id, role',
+])
+const surrogateMembership = resolveInternalTesterWorkspaceMembership({
+  row: {
+    id: 'membership-owner-a',
+    workspace_id: 'workspace-a',
+    user_id: 'user-a',
+    role: 'owner',
+  },
+  expectedWorkspaceId: 'workspace-a',
+  expectedUserId: 'user-a',
+})
+assert.equal(surrogateMembership?.identityContract, 'surrogate_id')
+assert.equal(surrogateMembership?.identityHash, surrogateMembership?.surrogateIdHash)
+
+const compositeMembership = resolveInternalTesterWorkspaceMembership({
+  row: {
+    workspace_id: 'workspace-a',
+    user_id: 'user-a',
+    role: 'owner',
+  },
+  expectedWorkspaceId: 'workspace-a',
+  expectedUserId: 'user-a',
+})
+assert.equal(compositeMembership?.identityContract, 'workspace_user_composite')
+assert.match(compositeMembership?.identityHash ?? '', /^[a-f0-9]{16}$/)
+assert.equal(compositeMembership?.surrogateIdHash, undefined)
+assert.equal(resolveInternalTesterWorkspaceMembership({
+  row: {
+    workspace_id: 'workspace-b',
+    user_id: 'user-a',
+    role: 'owner',
+  },
+  expectedWorkspaceId: 'workspace-a',
+  expectedUserId: 'user-a',
+}), undefined)
+assert.equal(resolveInternalTesterWorkspaceMembership({
+  row: {
+    workspace_id: 'workspace-a',
+    user_id: 'user-a',
+    role: 'editor',
+  },
+  expectedWorkspaceId: 'workspace-a',
+  expectedUserId: 'user-a',
+}), undefined)
 
 const workflow = read('.github/workflows/internal-tester-sign-in-auth-readback.yml')
 for (const phrase of [
@@ -160,6 +216,8 @@ const doc = JSON.parse(read('docs/internal-tester-sign-in-auth-readback.json')) 
   ownerMembershipRequired?: boolean
   rawEmailAcceptedAsWorkflowInput?: boolean
   outputIdentifiersHashed?: boolean
+  workspaceMembershipIdentityContracts?: string[]
+  compositeMembershipIdentitySupported?: boolean
   blockedScope?: Record<string, boolean>
   nextGate?: string
 }
@@ -182,6 +240,11 @@ assert.equal(doc.ownedWorkspaceRequired, true)
 assert.equal(doc.ownerMembershipRequired, true)
 assert.equal(doc.rawEmailAcceptedAsWorkflowInput, false)
 assert.equal(doc.outputIdentifiersHashed, true)
+assert.deepEqual(doc.workspaceMembershipIdentityContracts, [
+  'surrogate_id',
+  'workspace_user_composite',
+])
+assert.equal(doc.compositeMembershipIdentitySupported, true)
 assert.equal(doc.nextGate, 'OWNER_INTERACTIVE_GOOGLE_SESSION_WITH_PRIVATE_GATEWAY_PROJECTS_READBACK')
 for (const [scope, value] of Object.entries(doc.blockedScope ?? {})) {
   assert.equal(value, false, `${scope} should remain false`)
@@ -206,6 +269,7 @@ console.log(JSON.stringify({
     'profile_reads_use_minimal_projection',
     'profile_identity_contract_matches_deployed_workspace_ownership',
     'legacy_required_owner_column_takes_precedence_over_backfilled_owner_id',
+    'legacy_surrogate_and_canonical_composite_membership_identity_supported',
     'tester_owned_workspace_and_owner_membership_required',
     'untrusted_supabase_origin_rejected_before_network',
     'mismatched_interactive_email_hash_rejected_before_network',

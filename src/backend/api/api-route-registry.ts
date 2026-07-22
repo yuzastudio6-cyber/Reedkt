@@ -92,7 +92,8 @@ export function getFrontendSafeRoutes(): ApiRouteDefinition[] {
     !route.requiresServiceRole &&
     !route.requiresProviderSecret &&
     !route.requiresStripeSecret &&
-    (route.runtimeMode === 'frontend_safe' || route.status === 'frontend_safe_ready'),
+    route.runtimeMode === 'frontend_safe' &&
+    route.status === 'frontend_safe_ready',
   )
 }
 

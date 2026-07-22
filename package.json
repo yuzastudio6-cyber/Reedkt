@@ -50,6 +50,7 @@
     "smoke:private-retained-review-output": "tsx server/smoke/private-retained-review-output-smoke.ts",
     "smoke:frontend-api-transport": "tsx server/smoke/frontend-api-client-http-transport-smoke.ts",
     "smoke:internal-testing-deployment-readiness": "tsx server/smoke/internal-testing-deployment-readiness-smoke.ts",
+    "smoke:canonical-browser-execution-route-selection": "tsx server/smoke/canonical-browser-execution-route-selection-smoke.ts",
     "smoke:approved-snapshot": "tsx server/smoke/approved-snapshot-smoke.ts",
     "smoke:edit-planning-authority": "tsx server/smoke/edit-planning-authority-smoke.ts",
     "smoke:canonical-storytelling-style-authority": "tsx server/smoke/canonical-storytelling-style-authority-smoke.ts",

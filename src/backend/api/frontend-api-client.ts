@@ -96,7 +96,8 @@ export async function callReeditProApi<TBody = unknown, TData = unknown>(
     route.requiresProviderSecret ||
     route.requiresStripeSecret ||
     route.status === 'disabled' ||
-    route.status === 'backend_required'
+    route.status !== 'frontend_safe_ready' ||
+    route.runtimeMode !== 'frontend_safe'
   ) {
     return createApiBackendRequiredResponse(routeId, route.notes) as ApiResponseEnvelope<TData>
   }

@@ -22,7 +22,9 @@ Frontend or local caller
 -> existing deterministic mock services
 ```
 
-`VITE_REEDITPRO_API_MODE` defaults to `mock`. For internal testing against a deployed backend, set `VITE_REEDITPRO_API_MODE=frontend_safe` and `VITE_REEDITPRO_API_BASE_URL` to the reviewed API origin. In that mode the frontend-safe client may call reviewed `/v1` routes for projects, private upload intents, approved snapshots, credit approval/reservation metadata, internal edit state, and private internal review/download records. Backend-required routes still fail closed.
+`VITE_REEDITPRO_API_MODE` defaults to `mock`. For internal testing against a deployed backend, set `VITE_REEDITPRO_API_MODE=frontend_safe` and `VITE_REEDITPRO_API_BASE_URL` to the reviewed API origin. In that mode the frontend-safe client may call reviewed `/v1` routes for projects, private upload intents, approved snapshots, credit approval/reservation metadata, internal edit state, and the canonical package-request, private-preparation, private-review media, and canonical-decision surfaces. Backend-required routes still fail closed.
+
+The older staged `editExecution.*` package/adapter/runner/final-render chain remains available only to deterministic mock fixtures. It is protected by internal-service authority or intercepted by the legacy execution gate in the real server and is not eligible for deployed browser transport. Frontend-safe mode requires both `runtimeMode = frontend_safe` and `status = frontend_safe_ready`; a `/v1` path alone never makes a route browser-callable.
 
 ## Frontend-Safe Operations
 

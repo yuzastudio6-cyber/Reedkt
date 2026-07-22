@@ -10,7 +10,7 @@ type SeenRequest = {
 }
 
 type PackageSmokeResponseData = {
-  approvedEditExecutionPackage?: {
+  canonicalExecutionPackageRequest?: {
     packageRecordId?: string
   }
 }
@@ -62,12 +62,15 @@ const server = createServer(async (request, response) => {
     body,
   })
 
-  if (request.method === 'POST' && request.url === '/v1/edit-executions/packages') {
+  if (
+    request.method === 'POST' &&
+    request.url === '/v1/approved-snapshots/snapshot-http-smoke/canonical-execution-package'
+  ) {
     response.setHeader('content-type', 'application/json')
     response.end(JSON.stringify({
       ok: true,
       data: {
-        approvedEditExecutionPackage: {
+        canonicalExecutionPackageRequest: {
           packageRecordId: 'http-package-smoke',
           approvedPlanSnapshotId: body?.approvedPlanSnapshotId,
           status: 'ready_for_mock_preview_review',
@@ -178,20 +181,10 @@ try {
   const { getApiRouteById } = await import('../../src/backend/api/api-route-registry')
 
   for (const routeId of [
-    'editExecution.package.create',
-    'editExecution.package.get',
-    'editExecution.boundedAdapterSourceTruthReview.create',
-    'editExecution.boundedAdapterExecutionRun.create',
-    'editExecution.registeredAdapterRunnerProbe.create',
-    'editExecution.registeredAdapterPrivateMediaRunner.create',
-    'editExecution.registeredAdapterPrivateMediaRunnerQa.review',
-    'editExecution.adapterWorkerArtifactIntegration.create',
-    'editExecution.privateInternalTestRun.create',
-    'editExecution.localMediaProcessingExecution.create',
-    'editExecution.finalRenderExecution.create',
-    'editExecution.privateInternalDownloadDelivery.create',
-    'editExecution.privateInternalDownload.file.get',
-    'editExecution.privateInternalDownload.manifest.get',
+    'editExecution.canonicalPackageRequest.create',
+    'editExecution.canonicalPrivateEditPreparation.create',
+    'editExecution.canonicalPrivateReviewMedia.read',
+    'editExecution.canonicalPrivateReviewDecision.create',
     'planning.approvedSnapshot.create',
     'planning.approvedSnapshot.get',
     'credits.estimate.approve',
@@ -200,25 +193,21 @@ try {
     const route = getApiRouteById(routeId)
     assert.equal(route?.runtimeMode, 'frontend_safe', `${routeId} should be registered as a reviewed backend HTTP route.`)
     assert.equal(route?.status, 'frontend_safe_ready', `${routeId} should be ready for signed-in internal testing.`)
-    assert.equal(route?.requiresSupabase, true, `${routeId} should require signed-in backend auth context.`)
     assert.equal(route?.requiresServiceRole, false, `${routeId} must not expose service-role access to the frontend.`)
     assert.equal(route?.requiresProviderSecret, false, `${routeId} must not expose provider secrets to the frontend.`)
     assert.equal(route?.requiresStripeSecret, false, `${routeId} must not expose Stripe secrets to the frontend.`)
   }
 
   const packageResponse = await callReeditProApi<unknown, PackageSmokeResponseData>(
-    'editExecution.package.create',
+    'editExecution.canonicalPackageRequest.create',
     {
       workspaceId: 'workspace-http-smoke',
       projectId: 'project-http-smoke',
-      approvedPlanSnapshotId: 'snapshot-http-smoke',
-      approvedSnapshot: { id: 'snapshot-http-smoke' },
-      creditReservationId: 'credit-reservation-http-smoke',
-      requestedAdapterToolNames: [],
-      packageReadyToolIds: [],
-      modelWeightApprovedToolIds: [],
+      editSessionId: 'edit-session-http-smoke',
+      approvedSnapshotHash: 'a'.repeat(64),
     },
     {
+      params: { snapshotId: 'snapshot-http-smoke' },
       context: {
         workspaceId: 'workspace-http-smoke',
         projectId: 'project-http-smoke',
@@ -231,12 +220,20 @@ try {
   assert.equal(packageResponse.ok, true, 'Configured /v1 route should call backend HTTP transport.')
   assert.equal(packageResponse.mockOnly, false, 'HTTP transport response should not be marked mock-only.')
   assert.equal(
-    packageResponse.data?.approvedEditExecutionPackage?.packageRecordId,
+    packageResponse.data?.canonicalExecutionPackageRequest?.packageRecordId,
     'http-package-smoke',
     'HTTP transport should return backend response data.',
   )
   assert.equal(seenRequests.length, 1, 'Only the /v1 package route should have hit the smoke server so far.')
   assert.equal(seenRequests[0]?.idempotencyKey, 'frontend-api-http-transport-smoke', 'HTTP writes should send idempotency evidence.')
+
+  const retiredExecutionResponse = await callReeditProApi(
+    'editExecution.privateInternalTestRun.create',
+    {},
+  )
+  assert.equal(retiredExecutionResponse.ok, false)
+  assert.equal(retiredExecutionResponse.error?.code, 'backend_runtime_required')
+  assert.equal(seenRequests.length, 1, 'Retired execution stages must fail before HTTP transport.')
 
   const approvedSnapshotResponse = await persistApprovedPlanSnapshotToBackend({
     snapshot: executionApprovedSnapshotForHttpSmoke as unknown as ApprovedPlanSnapshot,
@@ -377,7 +374,8 @@ try {
       'credit_gate_http_transport_sends_idempotency_keys',
       'metadata_api_routes_stay_mock_only',
       'backend_required_routes_fail_closed_without_network',
-      'edit_execution_routes_registered_frontend_safe_without_secrets',
+      'canonical_edit_execution_routes_registered_frontend_safe_without_secrets',
+      'retired_edit_execution_routes_fail_before_http_transport',
     ],
     requestCount: seenRequests.length,
   }))

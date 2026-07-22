@@ -19,7 +19,10 @@ try {
   process.env.VITE_REEDITPRO_API_BASE_URL = ''
 
   const { getBackendRuntimeStatus } = await import('../../src/backend/api/backend-runtime-config')
-  const { getFrontendApiClientStatus } = await import('../../src/backend/api/frontend-api-client')
+  const {
+    callReeditProApi,
+    getFrontendApiClientStatus,
+  } = await import('../../src/backend/api/frontend-api-client')
   const { getApiRouteById } = await import('../../src/backend/api/api-route-registry')
 
   const mockStatus = getBackendRuntimeStatus()
@@ -102,17 +105,10 @@ try {
     'planning.approvedSnapshot.get',
     'credits.estimate.approve',
     'credits.reserve',
-    'editExecution.package.create',
-    'editExecution.package.get',
-    'editExecution.boundedAdapterSourceTruthReview.create',
-    'editExecution.boundedAdapterExecutionRun.create',
-    'editExecution.registeredAdapterRunnerProbe.create',
-    'editExecution.registeredAdapterPrivateMediaRunner.create',
-    'editExecution.registeredAdapterPrivateMediaRunnerQa.review',
-    'editExecution.adapterWorkerArtifactIntegration.create',
-    'editExecution.privateInternalTestRun.create',
-    'editExecution.privateInternalDownload.file.get',
-    'editExecution.privateInternalDownload.manifest.get',
+    'editExecution.canonicalPackageRequest.create',
+    'editExecution.canonicalPrivateEditPreparation.create',
+    'editExecution.canonicalPrivateReviewMedia.read',
+    'editExecution.canonicalPrivateReviewDecision.create',
   ]
 
   for (const routeId of reviewedInternalTestingRouteIds) {
@@ -138,6 +134,41 @@ try {
     assert.notEqual(route?.status, 'frontend_safe_ready', `${routeId} must not become a direct frontend execution route.`)
   }
 
+  const retiredBrowserExecutionRouteIds = [
+    'editExecution.package.create',
+    'editExecution.boundedAdapterSourceTruthReview.create',
+    'editExecution.boundedAdapterExecutionRun.create',
+    'editExecution.registeredAdapterRunnerProbe.create',
+    'editExecution.registeredAdapterPrivateMediaRunner.create',
+    'editExecution.registeredAdapterPrivateMediaRunnerQa.review',
+    'editExecution.adapterWorkerArtifactIntegration.create',
+    'editExecution.privateInternalTestRun.create',
+  ]
+  for (const routeId of retiredBrowserExecutionRouteIds) {
+    const route = getApiRouteById(routeId)
+    assert.ok(route, `${routeId} must remain readable for historical mock fixtures.`)
+    assert.equal(route?.runtimeMode, 'mock', `${routeId} must not use deployed browser transport.`)
+    assert.equal(route?.status, 'mock_ready', `${routeId} must remain available only in mock mode.`)
+  }
+  for (const routeId of [
+    'editExecution.package.get',
+    'editExecution.privateInternalDownload.file.get',
+    'editExecution.privateInternalDownload.manifest.get',
+  ]) {
+    const route = getApiRouteById(routeId)
+    assert.ok(route, `${routeId} must remain represented as historical metadata.`)
+    assert.equal(route?.runtimeMode, 'backend_required')
+    assert.equal(route?.status, 'backend_required')
+  }
+
+  const retiredRouteResponse = await callReeditProApi(
+    'editExecution.privateInternalTestRun.create',
+    {},
+  )
+  assert.equal(retiredRouteResponse.ok, false)
+  assert.equal(retiredRouteResponse.statusCode, 424)
+  assert.equal(retiredRouteResponse.error?.code, 'backend_runtime_required')
+
   const docsToCheck = [
     'docs/backend-api-mock-runtime.md',
     'docs/backend-api-runtime-boundary.md',
@@ -158,7 +189,8 @@ try {
       'mock_mode_stays_available',
       'frontend_safe_api_base_url_enables_reviewed_http_transport',
       'frontend_api_client_reports_http_transport',
-      'project_edit_upload_snapshot_credit_and_private_review_routes_frontend_safe_ready',
+      'project_edit_upload_snapshot_credit_and_canonical_private_review_routes_frontend_safe_ready',
+      'retired_execution_stage_routes_remain_mock_only_in_frontend_safe_mode',
       'backend_required_worker_routes_remain_gated',
       'runtime_docs_do_not_use_stale_future_only_transport_wording',
       'preferences_readiness_report_passes_with_supabase_api_and_reviewed_routes',

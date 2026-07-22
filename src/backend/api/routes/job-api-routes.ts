@@ -1,6 +1,6 @@
 import type { ApiRouteDefinition } from '../api-runtime-contracts'
 
-export const JOB_API_ROUTES: ApiRouteDefinition[] = [
+const RAW_JOB_API_ROUTES: ApiRouteDefinition[] = [
   {
     id: 'jobs.batch.create',
     domain: 'jobs',
@@ -1164,3 +1164,66 @@ export const JOB_API_ROUTES: ApiRouteDefinition[] = [
     notes: ['Registry is metadata only; it does not start workers.'],
   },
 ]
+
+const LEGACY_MOCK_ONLY_EDIT_EXECUTION_ROUTE_IDS = new Set([
+  'editExecution.package.create',
+  'editExecution.boundedAdapterExecutionGate.get',
+  'editExecution.boundedAdapterSourceTruthReview.create',
+  'editExecution.boundedAdapterExecutionRun.create',
+  'editExecution.registeredAdapterRunnerProbe.create',
+  'editExecution.registeredAdapterPrivateMediaRunner.create',
+  'editExecution.registeredAdapterPrivateMediaRunnerQa.review',
+  'editExecution.adapterWorkerArtifactIntegration.create',
+  'editExecution.privateInternalTestRun.create',
+  'editExecution.jobBatchPlan.create',
+  'editExecution.mockQueue.create',
+  'editExecution.dispatchReadiness.check',
+  'editExecution.mockWorkerClaims.create',
+  'editExecution.handlerDryRun.create',
+  'editExecution.resultReconciliation.create',
+  'editExecution.localWorkerOutput.persist',
+  'editExecution.localWorkerOutputQa.review',
+  'editExecution.workflowRehearsal.run',
+  'editExecution.uploadedMediaWorkerExecution.create',
+  'editExecution.privateWorkerArtifactQa.review',
+  'editExecution.localMediaProcessingExecution.create',
+  'editExecution.privateMediaArtifactQa.review',
+  'editExecution.renderPreviewAssembly.create',
+  'editExecution.userPreviewReview.create',
+  'editExecution.finalRenderReadinessReview.create',
+  'editExecution.finalRenderExecution.create',
+  'editExecution.finalDeliveryQa.review',
+  'editExecution.privateInternalDownloadDelivery.create',
+])
+
+const LEGACY_BACKEND_REQUIRED_EDIT_EXECUTION_READ_ROUTE_IDS = new Set([
+  'editExecution.package.get',
+  'editExecution.privateInternalDownload.file.get',
+  'editExecution.privateInternalDownload.manifest.get',
+])
+
+export const JOB_API_ROUTES: ApiRouteDefinition[] = RAW_JOB_API_ROUTES.map((route) => {
+  if (LEGACY_BACKEND_REQUIRED_EDIT_EXECUTION_READ_ROUTE_IDS.has(route.id)) {
+    return {
+      ...route,
+      runtimeMode: 'backend_required',
+      status: 'backend_required',
+      notes: [
+        ...route.notes,
+        'This historical read contract has no deterministic mock handler and is not a deployed browser route. Use the canonical browser-safe private review surfaces.',
+      ],
+    }
+  }
+
+  return LEGACY_MOCK_ONLY_EDIT_EXECUTION_ROUTE_IDS.has(route.id)
+    ? {
+        ...route,
+        runtimeMode: 'mock',
+        status: 'mock_ready',
+        notes: [
+          ...route.notes,
+          'This historical execution-stage contract is mock-only. A deployed browser must use the canonical package-request, private-preparation, private-review media, and canonical-decision routes.',
+        ],
+      }
+    : route
+})

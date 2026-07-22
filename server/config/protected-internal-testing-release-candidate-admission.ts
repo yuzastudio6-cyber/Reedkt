@@ -550,6 +550,9 @@ function workflowHasAdmissionBeforeEffect(
   path: typeof ACTIVATION_WORKFLOWS[number],
 ): boolean {
   const installIndex = workflow.indexOf('npm ci --no-audit --no-fund --progress=false')
+  const smokeIndex = workflow.indexOf(
+    'npm run smoke:protected-internal-testing-release-candidate-admission',
+  )
   const admissionIndex = workflow.indexOf('npm run internal-testing:verify-protected-release-candidate')
   const expectedEnv = [
     'REEDITPRO_INTERNAL_TESTING_SOURCE_REF: ${{ inputs.source_ref }}',
@@ -560,7 +563,8 @@ function workflowHasAdmissionBeforeEffect(
     : '- name: Authenticate to Google Cloud with keyless OIDC'
   const effectIndex = workflow.indexOf(effectMarker)
   return installIndex >= 0
-    && admissionIndex > installIndex
+    && smokeIndex > installIndex
+    && admissionIndex > smokeIndex
     && effectIndex > admissionIndex
     && expectedEnv
 }

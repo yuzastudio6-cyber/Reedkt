@@ -297,7 +297,10 @@ jobs:
         env:
           REEDITPRO_INTERNAL_TESTING_SOURCE_REF: ${{ inputs.source_ref }}
           REEDITPRO_INTERNAL_TESTING_SOURCE_SHA: ${{ inputs.source_sha }}
-        run: npm run internal-testing:verify-protected-release-candidate
+        run: |
+          set -euo pipefail
+          npm run smoke:protected-internal-testing-release-candidate-admission
+          npm run internal-testing:verify-protected-release-candidate
 
       - name: Build signed-in static app against verified gateway
         env:

@@ -199,8 +199,8 @@ export function createCanonicalProfessionalLongFormMasterAssemblyExecutionServic
           'long-form-qa-private-4k-master')
       if (
         completedEntry.state !== 'completed' ||
-        completedEntry.deliveryAttemptCount !== 1 ||
-        completedEntry.expiredClaimRecoveryCount !== 0 ||
+        completedEntry.professionalLongFormExecutionAttempt?.deliveryAttempt !==
+          completedEntry.deliveryAttemptCount ||
         aggregate.summary.leasedJobCount !== 0 ||
         aggregate.summary.completedJobCount !== aggregate.summary.totalJobCount - 1 ||
         aggregate.summary.queuedJobCount !== 1 ||
@@ -333,12 +333,13 @@ async function executeNew(input: {
   const heartbeatClaim = assemblyEntry(heartbeatCurrent).activeClaim
   if (
     !heartbeatClaim || heartbeatClaim.claimId !== executionAttempt.claimId ||
-    heartbeatClaim.deliveryAttempt !== 1 || heartbeatClaim.heartbeatCount < 1 ||
+    heartbeatClaim.deliveryAttempt !== executionAttempt.deliveryAttempt ||
+    heartbeatClaim.heartbeatCount < 1 ||
     heartbeatClaim.claimHash === executionAttempt.claimHash
   ) throw invalid('Private master assembly heartbeat was not durably observed.')
   const queueLeaseEvidence = {
     claimId: heartbeatClaim.claimId,
-    deliveryAttempt: 1 as const,
+    deliveryAttempt: executionAttempt.deliveryAttempt,
     initialClaimHash: executionAttempt.claimHash,
     heartbeatClaimHash: heartbeatClaim.claimHash,
     heartbeatCount: heartbeatClaim.heartbeatCount,
@@ -731,7 +732,7 @@ async function loadCompleted(input: {
     completion.canonicalResultHash !== canonicalResultHash ||
     entry.completion?.outcome.artifactId !== completion.outputArtifact.objectIdentity ||
     entry.completion.outcome.sha256 !== completion.outputArtifact.sha256 ||
-    entry.deliveryAttemptCount !== 1
+    entry.deliveryAttemptCount !== executionAttempt.deliveryAttempt
   ) throw invalid('Replayed private master queue evidence changed.')
   return {
     authority,

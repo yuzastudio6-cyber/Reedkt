@@ -1559,10 +1559,14 @@ function assertGraphAfterDecodedQa(
       expectedCompleted ||
     aggregate.summary.leasedJobCount !== 0 ||
     aggregate.entries.slice(0, completedThroughMux).some((entry) =>
-      entry.state !== 'completed' || entry.deliveryAttemptCount !== 1 ||
+      entry.state !== 'completed' ||
+      entry.deliveryAttemptCount !==
+        entry.professionalLongFormExecutionAttempt?.deliveryAttempt ||
       !entry.professionalLongFormExecutionAuthorization ||
       !entry.professionalLongFormExecutionAttempt || !entry.completion) ||
-    target?.state !== 'completed' || target.deliveryAttemptCount !== 1 ||
+    target?.state !== 'completed' ||
+    target.deliveryAttemptCount !==
+      target.professionalLongFormExecutionAttempt?.deliveryAttempt ||
     !target.professionalLongFormExecutionAuthorization ||
     !target.professionalLongFormExecutionAttempt || !target.completion ||
     !sibling || !['queued', 'completed'].includes(sibling.state) ||
@@ -1596,7 +1600,9 @@ function assertBothDecodedQaGraph(
     aggregate.summary.queuedJobCount !== 1 ||
     aggregate.summary.leasedJobCount !== 0 ||
     aggregate.entries.slice(0, downloadOrder).some((entry) =>
-      entry.state !== 'completed' || entry.deliveryAttemptCount !== 1 ||
+      entry.state !== 'completed' ||
+      entry.deliveryAttemptCount !==
+        entry.professionalLongFormExecutionAttempt?.deliveryAttempt ||
       !entry.professionalLongFormExecutionAuthorization ||
       !entry.professionalLongFormExecutionAttempt || !entry.completion) ||
     !download || download.state !== 'queued' ||
@@ -1667,7 +1673,8 @@ function assertDurableHeartbeat(input: {
   if (
     entry.state !== 'leased' || !claim ||
     claim.claimId !== input.executionAttempt.claimId ||
-    claim.deliveryAttempt !== 1 || claim.heartbeatCount < 1 ||
+    claim.deliveryAttempt !== input.executionAttempt.deliveryAttempt ||
+    claim.heartbeatCount < 1 ||
     claim.claimHash === input.executionAttempt.claimHash ||
     Date.parse(claim.expiresAt) <= Date.parse(claim.heartbeatAt) ||
     Date.parse(claim.attemptDeadlineAt) < Date.parse(claim.expiresAt)
@@ -2048,7 +2055,9 @@ function assertStoredQueueCompletion(
 ): void {
   const outcome = entry.completion?.outcome
   if (
-    entry.state !== 'completed' || entry.deliveryAttemptCount !== 1 ||
+    entry.state !== 'completed' ||
+    entry.deliveryAttemptCount !==
+      entry.professionalLongFormExecutionAttempt?.deliveryAttempt ||
     !outcome || outcome.contentType !== 'application/json' ||
     outcome.artifactId !== entry.definition.expectedOutputIdentity ||
     outcome.sha256 !== artifactRef.sha256 || outcome.adapterReplayed ||

@@ -68,7 +68,7 @@ const canonicalSteps: VerificationStep[] = [
   step(
     'canonical-professional-long-form-post-approval',
     'smoke:canonical-professional-long-form-post-approval',
-    'A six-hour/512-range 4K seed persists through canonical publication and approval; restart-safe server derivation reopens exact authority, persists a content-addressed 255-child package/placement/queue, and completes eight exact queue jobs: three prerequisite authorities, chunk 1 render/QA, continuous lossless program audio, and a server-selected later chunk 2 render/QA. One generic fail-closed executor maps every one of the 124 immutable chunk pairs to its exact queue order while callers cannot select chunks. Retained execution proves two representative pairs, including nonzero source-frame trim and a technical split; it does not claim the other 122 pairs completed. The remaining 247 jobs, cross-chunk color, finalization, final QA, live cloud, commerce, product, and production stay blocked.',
+    'A six-hour/512-range 4K seed persists through canonical publication and approval; restart-safe server derivation reopens exact authority, persists a content-addressed 255-child package/placement/queue, and completes eight exact queue jobs: three prerequisite authorities, chunk 1 render/QA, continuous lossless program audio, and a server-selected later chunk 2 render/QA. Before chunk 2 succeeds, one expired started render attempt is selected only by the server, assigned immutable failed internal cost, terminally fenced, retained across restart, replayed exactly after a lost reconciliation response, and retried only under a fresh claim as approved delivery attempt 2. One generic fail-closed executor maps every one of the 124 immutable chunk pairs to its exact queue order while callers cannot select chunks. Retained execution proves two representative pairs, including nonzero source-frame trim and a technical split; it does not claim the other 122 pairs completed. The remaining 247 jobs, cross-chunk color, finalization, final QA, distributed worker-death recovery, live cloud, commerce, product, and production stay blocked.',
   ),
   step(
     'canonical-professional-long-form-cross-chunk-color',
@@ -350,7 +350,7 @@ function printReport(
 ): void {
   const finishedAt = new Date()
   const report = {
-    schemaVersion: 'canonical-private-pipeline-verification-v34',
+    schemaVersion: 'canonical-private-pipeline-verification-v35',
     status,
     mode: full ? 'full_internal_regression' : 'canonical_private_pipeline',
     startedAt: runStartedAt.toISOString(),
@@ -413,6 +413,13 @@ function printReport(
           professionalLongFormTotalObjectChunkPairCount: 124,
           professionalLongFormNonzeroSourceFrameExecutionVerified: true,
           professionalLongFormTechnicalSplitExecutionVerified: true,
+          professionalLongFormStartedAttemptTimeoutRecoveryVerified: true,
+          professionalLongFormStartedAttemptFailedInternalCostRetained: true,
+          professionalLongFormStartedAttemptFailureHistoryRestartReadbackVerified: true,
+          professionalLongFormStartedAttemptFailureExactReplayVerified: true,
+          professionalLongFormStartedAttemptFreshClaimAttemptTwoVerified: true,
+          professionalLongFormStartedAttemptAutomaticRetryStarted: false,
+          professionalLongFormStartedAttemptCommercialAuthorityIncluded: false,
           offlineCrossChunkColorBoundaryRuntimeVerified: true,
           professionalLongFormBoundedCanonicalCrossChunkColorContinuityVerified: true,
           professionalLongFormBoundedCanonicalCrossChunkColorDependencyGateVerified: true,
@@ -534,6 +541,8 @@ function printReport(
       remotionCgroupResourceObservationVerified: true,
       deployedCloudWorkerResourceObservationVerified: false,
       professionalLongFormRemaining247ChildLeasesVerified: false,
+      professionalLongFormStartedAttemptDistributedRecoveryVerified: false,
+      professionalLongFormStartedAttemptLiveWorkerTerminationVerified: false,
       professionalLongFormAll124ChunkPairsCompleted: false,
       professionalLongFormRemaining122ChunkPairProofsVerified: false,
       professionalLongFormRemainingChildAttemptCostsVerified: false,

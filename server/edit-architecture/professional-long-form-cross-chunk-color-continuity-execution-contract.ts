@@ -251,7 +251,7 @@ export const professionalLongFormCrossChunkColorAttemptSchema = z.object({
   claimId: identity,
   claimHash: sha256,
   workerIdentityHash: sha256,
-  deliveryAttempt: z.literal(1),
+  deliveryAttempt: z.union([z.literal(1), z.literal(2)]),
   operation: operationSchema,
   startedAt: timestamp,
   dispatchConsumed: z.literal(true),
@@ -297,7 +297,7 @@ export const professionalLongFormCrossChunkColorValidationArtifactSchema =
     operation: operationSchema,
     queueLeaseEvidence: z.object({
       claimId: identity,
-      deliveryAttempt: z.literal(1),
+      deliveryAttempt: z.union([z.literal(1), z.literal(2)]),
       initialClaimHash: sha256,
       heartbeatClaimHash: sha256,
       heartbeatCount: z.number().int().min(1).max(100_000),

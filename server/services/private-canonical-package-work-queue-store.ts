@@ -31,6 +31,7 @@ import {
   type CanonicalPrivatePackageWorkQueueEvent,
   type CanonicalPrivatePackageWorkQueueDispatchFailure,
   type CanonicalPrivatePackageWorkQueueDispatchTimeout,
+  type CanonicalPrivatePackageWorkQueueProfessionalLongFormFailure,
   type CanonicalPrivatePackageWorkQueueRelease,
 } from '../validation/canonical-private-package-work-queue-schemas'
 import {
@@ -137,6 +138,13 @@ import {
   type ProfessionalLongFormAuthorizedChildExecutionAttempt,
   type ProfessionalLongFormAuthorizedChildExecutionAuthority,
 } from '../edit-architecture/professional-long-form-authorized-child-contract'
+import {
+  buildProfessionalLongFormStartedAttemptFailure,
+  type ProfessionalLongFormStartedAttemptFailure,
+} from '../edit-architecture/professional-long-form-started-attempt-recovery-contract'
+import {
+  readPrivateInternalAttemptCostEvidence,
+} from '../tool-cost-metering/private-internal-attempt-cost-evidence'
 import {
   readPrivateAuthorityJsonBlob,
   sha256AuthorityValue,
@@ -795,7 +803,7 @@ export async function beginPrivateCanonicalPackageWorkQueueExecutionAttempt(inpu
       claimId: claim.claimId,
       claimHash: claim.claimHash,
       workerIdentityHash: claim.workerIdentityHash,
-      deliveryAttempt: 1 as const,
+      deliveryAttempt: claim.deliveryAttempt as 1 | 2,
       operation: authorization.operation,
       startedAt: now,
       dispatchConsumed: true as const,
@@ -806,10 +814,14 @@ export async function beginPrivateCanonicalPackageWorkQueueExecutionAttempt(inpu
         ...attemptWithoutHash,
         attemptHash: sha256AuthorityValue(attemptWithoutHash),
       })
-    if (claim.deliveryAttempt !== 1) {
+    if (
+      claim.deliveryAttempt < 1 ||
+      claim.deliveryAttempt > entry.definition.maxAttempts ||
+      claim.deliveryAttempt > 2
+    ) {
       throw new ApiError(
         'WORKER_CLAIM_CONFLICT',
-        'Professional long-form snapshot validation permits exactly one execution attempt.',
+        'Professional long-form execution attempt exceeds immutable retry authority.',
         409,
       )
     }
@@ -832,6 +844,188 @@ export async function beginPrivateCanonicalPackageWorkQueueExecutionAttempt(inpu
       executionAttempt,
     }
   })
+}
+
+export async function reconcilePrivateCanonicalPackageWorkQueueProfessionalLongFormAttemptFailure(
+  input: {
+    scope: CanonicalPrivatePackageWorkQueueStoreScope
+    definition: CanonicalPrivatePackageWorkQueueDefinition
+    jobId: string
+    executionAttemptId: string
+    observedAt: string
+  },
+): Promise<{
+  disposition: 'reconciled' | 'exact_replay'
+  aggregate: CanonicalPrivatePackageWorkQueueAggregate
+  entry: CanonicalPrivatePackageWorkQueueEntry
+  failure: CanonicalPrivatePackageWorkQueueProfessionalLongFormFailure
+}> {
+  const observedAt = validTimestamp(
+    input.observedAt,
+    'professional long-form attempt failure reconciliation',
+  )
+  assertScope(input.scope)
+  assertDefinitionScope(input.scope, input.definition)
+  const attemptCost = await readPrivateInternalAttemptCostEvidence({
+    localStorageRoot: input.scope.localStorageRoot,
+    workspaceId: input.scope.workspaceId,
+    projectId: input.scope.projectId,
+    executionAttemptId: input.executionAttemptId,
+  })
+  if (
+    !attemptCost ||
+    attemptCost.outcome.status !== 'failed' ||
+    attemptCost.outcome.failureCategory === 'none' ||
+    attemptCost.linkedCanonicalOutcomeHash !== null ||
+    attemptCost.identity.workspaceId !== input.scope.workspaceId ||
+    attemptCost.identity.projectId !== input.scope.projectId ||
+    attemptCost.identity.editSessionId !== input.scope.editSessionId ||
+    attemptCost.identity.approvedPlanSnapshotId !==
+      input.scope.approvedPlanSnapshotId ||
+    attemptCost.identity.jobId !== input.jobId ||
+    attemptCost.identity.executionAttemptId !== input.executionAttemptId
+  ) {
+    throw new ApiError(
+      'IDEMPOTENCY_ATOMICITY_REQUIRED',
+      'Professional long-form attempt recovery requires exact failed internal-cost evidence.',
+      503,
+      {
+        requiredGate:
+          'canonical_professional_long_form_failed_attempt_cost_reconciliation',
+      },
+    )
+  }
+  const failureCategory = attemptCost.outcome.failureCategory as
+    ProfessionalLongFormStartedAttemptFailure['failureCategory']
+  return mutateQueue(
+    input.scope,
+    input.definition,
+    observedAt,
+    (aggregate) => {
+      const entry = requiredEntry(aggregate, input.jobId)
+      const replayed = entry.professionalLongFormExecutionFailures?.find(
+        (failure) =>
+          failure.executionAttempt.executionAttemptId ===
+            input.executionAttemptId,
+      )
+      if (replayed) {
+        if (
+          replayed.attemptInternalCostEvidenceHash !==
+            attemptCost.evidenceHash ||
+          replayed.failureCategory !== failureCategory
+        ) {
+          throw new ApiError(
+            'IDEMPOTENCY_CONFLICT',
+            'Professional long-form failure replay changed immutable evidence.',
+            409,
+          )
+        }
+        return { disposition: 'exact_replay' as const, failure: replayed }
+      }
+      const authorization = entry.professionalLongFormExecutionAuthorization
+      const executionAttempt = entry.professionalLongFormExecutionAttempt
+      const claim = entry.activeClaim
+      if (
+        entry.state !== 'leased' ||
+        !authorization ||
+        !executionAttempt ||
+        !claim ||
+        executionAttempt.executionAttemptId !== input.executionAttemptId ||
+        executionAttempt.authorizationId !== authorization.authorizationId ||
+        executionAttempt.authorityHash !== authorization.authorityHash ||
+        executionAttempt.claimId !== claim.claimId ||
+        executionAttempt.deliveryAttempt !== claim.deliveryAttempt ||
+        executionAttempt.operation.operationId !==
+          attemptCost.identity.operationId ||
+        executionAttempt.operation.attemptCostProfileId !==
+          ('workloadProfileId' in attemptCost.identity
+            ? attemptCost.identity.workloadProfileId
+            : undefined) ||
+        entry.definition.maxAttempts > 2
+      ) {
+        throw new ApiError(
+          'IDEMPOTENCY_ATOMICITY_REQUIRED',
+          'Professional long-form recovery lost the exact active attempt.',
+          503,
+        )
+      }
+      if (
+        failureCategory === 'timeout' &&
+        Date.parse(observedAt) < Date.parse(claim.expiresAt)
+      ) {
+        throw new ApiError(
+          'WORKER_LEASE_EXPIRED',
+          'Professional long-form timeout recovery requires an expired lease.',
+          409,
+        )
+      }
+      if (Date.parse(attemptCost.createdAt) > Date.parse(observedAt)) {
+        throw new ApiError(
+          'VALIDATION_FAILED',
+          'Professional long-form failure evidence is from the future.',
+          400,
+        )
+      }
+      const failure = buildProfessionalLongFormStartedAttemptFailure({
+        executionAttempt,
+        attemptInternalCostEvidenceHash: attemptCost.evidenceHash,
+        failureCategory,
+        claim: {
+          claimId: claim.claimId,
+          initialClaimHash: executionAttempt.claimHash,
+          terminalClaimHash: claim.claimHash,
+          claimedAt: claim.claimedAt,
+          heartbeatAt: claim.heartbeatAt,
+          heartbeatCount: claim.heartbeatCount,
+          expiresAt: claim.expiresAt,
+          attemptDeadlineAt: claim.attemptDeadlineAt,
+        },
+        approvedMaxAttempts: entry.definition.maxAttempts as 1 | 2,
+        terminalizedAt: observedAt,
+      })
+      entry.professionalLongFormExecutionFailures = [
+        ...(entry.professionalLongFormExecutionFailures ?? []),
+        failure,
+      ]
+      entry.professionalLongFormExecutionAttempt = undefined
+      if (failureCategory === 'timeout') {
+        entry.expiredClaimRecoveryCount += 1
+      }
+      const reason = failure.retry.queueDisposition === 'retry_available'
+        ? 'approved_attempt_failure' as const
+        : 'unexpected_execution_failure' as const
+      releaseEntry(
+        entry,
+        claim.claimId,
+        claim.credentialSha256,
+        reason,
+        observedAt,
+        undefined,
+        undefined,
+        failure,
+      )
+      if (failureCategory === 'timeout') {
+        appendEvent(aggregate, {
+          eventType: 'expired_claim_recovered',
+          jobId: entry.definition.jobId,
+          claimId: claim.claimId,
+          at: observedAt,
+        })
+      }
+      appendEvent(aggregate, {
+        eventType: 'claim_released',
+        jobId: entry.definition.jobId,
+        claimId: claim.claimId,
+        at: observedAt,
+      })
+      return { disposition: 'reconciled' as const, failure }
+    },
+  ).then((result) => ({
+    disposition: result.disposition,
+    aggregate: result.aggregate,
+    entry: requiredEntry(result.aggregate, input.jobId),
+    failure: result.failure,
+  }))
 }
 
 export function preparePrivateCanonicalPackageWorkQueueJobClaim(input: {
@@ -1684,6 +1878,12 @@ function applyQueueClaimMutation(
   if (entry.lastRelease?.dispatchFailure?.queueDisposition === 'user_review_required') {
     return { disposition: 'user_review_required' as const, entry }
   }
+  if (
+    entry.lastRelease?.professionalLongFormFailure?.retry.queueDisposition ===
+      'user_review_required'
+  ) {
+    return { disposition: 'user_review_required' as const, entry }
+  }
   if (entry.lastRelease?.reason === 'provider_unknown_outcome') {
     return { disposition: 'user_review_required' as const, entry }
   }
@@ -1944,7 +2144,7 @@ function expireClaims(aggregate: CanonicalPrivatePackageWorkQueueAggregate, now:
     if (entry.professionalLongFormExecutionAttempt) {
       throw new ApiError(
         'IDEMPOTENCY_ATOMICITY_REQUIRED',
-        'Expired professional long-form execution requires a future terminal-attempt recovery authority.',
+        'Expired professional long-form execution requires the canonical started-attempt recovery service.',
         503,
         {
           requiredGate:
@@ -1987,6 +2187,7 @@ function releaseEntry(
   now: string,
   dispatchFailure?: CanonicalPrivatePackageWorkQueueDispatchFailure,
   dispatchTimeout?: CanonicalPrivatePackageWorkQueueDispatchTimeout,
+  professionalLongFormFailure?: ProfessionalLongFormStartedAttemptFailure,
 ): void {
   const releaseWithoutHash = {
     claimId,
@@ -1994,6 +2195,7 @@ function releaseEntry(
     reason,
     ...(dispatchFailure ? { dispatchFailure } : {}),
     ...(dispatchTimeout ? { dispatchTimeout } : {}),
+    ...(professionalLongFormFailure ? { professionalLongFormFailure } : {}),
     releasedAt: now,
   }
   entry.state = 'queued'

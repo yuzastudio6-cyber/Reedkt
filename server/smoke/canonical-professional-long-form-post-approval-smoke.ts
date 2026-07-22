@@ -4,6 +4,7 @@ import { createHash } from 'node:crypto'
 import { open, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { setTimeout as delay } from 'node:timers/promises'
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 
@@ -92,6 +93,17 @@ import {
   createCanonicalProfessionalLongFormObjectChunkSeriesExecutionService,
 } from '../services/canonical-professional-long-form-first-object-chunk-execution-service'
 import {
+  buildProfessionalLongFormFirstObjectChunkRenderAuthority,
+  buildProfessionalLongFormFirstObjectChunkRenderAuthorization,
+} from '../edit-architecture/professional-long-form-first-object-chunk-execution'
+import {
+  createCanonicalProfessionalLongFormStartedAttemptRecoveryService,
+} from '../services/canonical-professional-long-form-started-attempt-recovery-service'
+import {
+  buildProfessionalLongFormStartedAttemptFailure,
+  professionalLongFormStartedAttemptFailureSchema,
+} from '../edit-architecture/professional-long-form-started-attempt-recovery-contract'
+import {
   createCanonicalProfessionalLongFormContinuousProgramAudioExecutionService,
 } from '../services/canonical-professional-long-form-continuous-program-audio-execution-service'
 import { createEditPlanningAuthorityService } from '../services/edit-planning-authority-service'
@@ -99,9 +111,12 @@ import { createExactEditPreferenceService } from '../services/exact-edit-prefere
 import {
   canonicalPrivatePackageWorkQueueAggregateRelativePath,
   authorizePrivateCanonicalPackageWorkQueueJob,
+  beginPrivateCanonicalPackageWorkQueueExecutionAttempt,
   claimPrivateCanonicalPackageWorkQueueJob,
   clearPrivateCanonicalPackageWorkQueueProcessStateForSmoke,
+  heartbeatPrivateCanonicalPackageWorkQueueClaim,
   readPrivateCanonicalPackageWorkQueue,
+  reconcilePrivateCanonicalPackageWorkQueueProfessionalLongFormAttemptFailure,
   type CanonicalPrivatePackageWorkQueueStoreScope,
 } from '../services/private-canonical-package-work-queue-store'
 import {
@@ -2440,6 +2455,228 @@ try {
     'completed_program_audio_and_independent_qa_restart_reopen_as_exact_replay_without_redispatch',
   )
 
+  const currentBeforeSecondChunkTimeout =
+    await createCanonicalProfessionalLongFormChildPackagePromotionService(
+      context,
+    ).loadCurrent({
+      workspaceId,
+      approvedPlanSnapshotId: String(snapshot.snapshotId),
+    })
+  const timedOutSecondChunkAuthority =
+    buildProfessionalLongFormFirstObjectChunkRenderAuthority({
+      ownerUserId: userId,
+      current: currentBeforeSecondChunkTimeout,
+      chunkIndex: 2,
+    })
+  const timedOutSecondChunkAuthorityRef = await putPrivateAuthorityJsonBlob({
+    localStorageRoot,
+    value: timedOutSecondChunkAuthority as unknown as Record<string, unknown>,
+  })
+  const timedOutSecondChunkAuthorization =
+    buildProfessionalLongFormFirstObjectChunkRenderAuthorization({
+      authority: timedOutSecondChunkAuthority,
+      authorityRef: timedOutSecondChunkAuthorityRef,
+    })
+  await authorizePrivateCanonicalPackageWorkQueueJob({
+    scope: queueScope,
+    definition: promotion.queueDefinition,
+    jobId: timedOutSecondChunkAuthority.identity.jobId,
+    authorization: timedOutSecondChunkAuthorization,
+    executionAuthority: timedOutSecondChunkAuthority,
+    now: new Date().toISOString(),
+  })
+  const timedOutSecondChunkClaim =
+    await claimPrivateCanonicalPackageWorkQueueJob({
+      scope: queueScope,
+      definition: promotion.queueDefinition,
+      jobId: timedOutSecondChunkAuthority.identity.jobId,
+      workerIdentity: 'long-form-object-chunk-timeout-recovery-proof',
+      workerType: 'render_worker',
+      now: new Date().toISOString(),
+      leaseDurationMs: 1_000,
+    })
+  assert.equal(timedOutSecondChunkClaim.disposition, 'claimed')
+  if (timedOutSecondChunkClaim.disposition !== 'claimed') {
+    throw new Error('Second object-chunk timeout proof did not acquire its lease.')
+  }
+  const timedOutSecondChunkAttempt =
+    await beginPrivateCanonicalPackageWorkQueueExecutionAttempt({
+      scope: queueScope,
+      definition: promotion.queueDefinition,
+      jobId: timedOutSecondChunkAuthority.identity.jobId,
+      claimId: timedOutSecondChunkClaim.entry.activeClaim.claimId,
+      claimCredential: timedOutSecondChunkClaim.claimCredential,
+      now: new Date().toISOString(),
+    })
+  const heartbeatedSecondChunkQueue =
+    await heartbeatPrivateCanonicalPackageWorkQueueClaim({
+      scope: queueScope,
+      definition: promotion.queueDefinition,
+      jobId: timedOutSecondChunkAuthority.identity.jobId,
+      claimId: timedOutSecondChunkClaim.entry.activeClaim.claimId,
+      claimCredential: timedOutSecondChunkClaim.claimCredential,
+      now: new Date().toISOString(),
+      leaseDurationMs: 5_000,
+    })
+  const heartbeatedSecondChunkClaim = heartbeatedSecondChunkQueue.entries.find(
+    (entry) => entry.definition.jobId ===
+      timedOutSecondChunkAuthority.identity.jobId,
+  )?.activeClaim
+  assert.ok(heartbeatedSecondChunkClaim)
+  check(
+    heartbeatedSecondChunkClaim.heartbeatCount === 1 &&
+      heartbeatedSecondChunkClaim.claimHash !==
+        timedOutSecondChunkAttempt.executionAttempt.claimHash &&
+      heartbeatedSecondChunkClaim.deliveryAttempt === 1,
+    'started_attempt_recovery_preserves_initial_and_heartbeated_claim_authority',
+  )
+  const startedAttemptRecoveryService =
+    createCanonicalProfessionalLongFormStartedAttemptRecoveryService(context)
+  await expectApiError(
+    () => startedAttemptRecoveryService.reconcileNext({
+      workspaceId,
+      approvedPlanSnapshotId: String(snapshot.snapshotId),
+      jobId: timedOutSecondChunkAuthority.identity.jobId,
+    } as never),
+    'VALIDATION_FAILED',
+    'caller_cannot_select_the_started_attempt_job_lease_cost_or_retry',
+  )
+  const prematureSecondChunkRecovery =
+    await startedAttemptRecoveryService.reconcileNext({
+      workspaceId,
+      approvedPlanSnapshotId: String(snapshot.snapshotId),
+    })
+  check(
+    prematureSecondChunkRecovery === null,
+    'unexpired_started_attempt_is_not_recovered_or_retried',
+  )
+  const reviewRequiredFailure = buildProfessionalLongFormStartedAttemptFailure({
+    executionAttempt: timedOutSecondChunkAttempt.executionAttempt,
+    attemptInternalCostEvidenceHash: sha256Text(
+      'cancelled-long-form-attempt-cost-evidence',
+    ),
+    failureCategory: 'cancelled',
+    claim: {
+      claimId: heartbeatedSecondChunkClaim.claimId,
+      initialClaimHash: timedOutSecondChunkAttempt.executionAttempt.claimHash,
+      terminalClaimHash: heartbeatedSecondChunkClaim.claimHash,
+      claimedAt: heartbeatedSecondChunkClaim.claimedAt,
+      heartbeatAt: heartbeatedSecondChunkClaim.heartbeatAt,
+      heartbeatCount: heartbeatedSecondChunkClaim.heartbeatCount,
+      expiresAt: heartbeatedSecondChunkClaim.expiresAt,
+      attemptDeadlineAt: heartbeatedSecondChunkClaim.attemptDeadlineAt,
+    },
+    approvedMaxAttempts: 2,
+    terminalizedAt: new Date().toISOString(),
+  })
+  check(
+    reviewRequiredFailure.retry.remainingAttempts === 1 &&
+      reviewRequiredFailure.retry.queueDisposition ===
+        'user_review_required' &&
+      reviewRequiredFailure.retry.retryDisposition ===
+        'user_review_or_new_approval_required' &&
+      !reviewRequiredFailure.retry.automaticRetryStarted,
+    'cancelled_or_nonretryable_started_attempt_requires_review_despite_remaining_attempt_allowance',
+  )
+  const forgedReviewFailure = structuredClone(reviewRequiredFailure)
+  forgedReviewFailure.retry.queueDisposition = 'retry_available'
+  forgedReviewFailure.retry.retryDisposition = 'retry_same_approved_operation'
+  check(
+    !professionalLongFormStartedAttemptFailureSchema.safeParse(
+      forgedReviewFailure,
+    ).success,
+    'nonretryable_failure_cannot_be_relabelled_as_same_operation_retry',
+  )
+  await delay(5_100)
+  const recoveredSecondChunkAttempt =
+    await startedAttemptRecoveryService.reconcileNext({
+      workspaceId,
+      approvedPlanSnapshotId: String(snapshot.snapshotId),
+    })
+  assert.ok(recoveredSecondChunkAttempt)
+  check(
+    recoveredSecondChunkAttempt.disposition === 'reconciled' &&
+      recoveredSecondChunkAttempt.executionAttemptId ===
+        timedOutSecondChunkAttempt.executionAttempt.executionAttemptId &&
+      recoveredSecondChunkAttempt.deliveryAttempt === 1 &&
+      recoveredSecondChunkAttempt.failure.failureCategory === 'timeout' &&
+      recoveredSecondChunkAttempt.failure.failureCode ===
+        'WORKER_LEASE_EXPIRED' &&
+      recoveredSecondChunkAttempt.failure.claim.initialClaimHash ===
+        timedOutSecondChunkAttempt.executionAttempt.claimHash &&
+      recoveredSecondChunkAttempt.failure.claim.terminalClaimHash ===
+        heartbeatedSecondChunkClaim.claimHash &&
+      recoveredSecondChunkAttempt.failure.claim.heartbeatCount === 1 &&
+      recoveredSecondChunkAttempt.failure.retry.queueDisposition ===
+        'retry_available' &&
+      recoveredSecondChunkAttempt.failure.retry.remainingAttempts === 1 &&
+      recoveredSecondChunkAttempt.attemptInternalCostEvidence.outcome.status ===
+        'failed' &&
+      recoveredSecondChunkAttempt.attemptInternalCostEvidence.outcome
+        .failureCategory === 'timeout' &&
+      recoveredSecondChunkAttempt.queue.completedJobCount === 6 &&
+      recoveredSecondChunkAttempt.queue.queuedJobCount === 249 &&
+      recoveredSecondChunkAttempt.queue.leasedJobCount === 0 &&
+      recoveredSecondChunkAttempt.queue.totalDeliveryAttemptCount === 7 &&
+      recoveredSecondChunkAttempt.queue.expiredClaimRecoveryCount === 1 &&
+      recoveredSecondChunkAttempt.readiness
+        .sameApprovedOperationRetryRequiresFreshClaim &&
+      recoveredSecondChunkAttempt.readiness
+        .sameApprovedOperationRetryAvailable &&
+      !recoveredSecondChunkAttempt.readiness
+        .userReviewOrNewApprovalRequired &&
+      !recoveredSecondChunkAttempt.readiness.automaticRetryStarted &&
+      !recoveredSecondChunkAttempt.readiness.customerPriceAuthorityIncluded &&
+      !recoveredSecondChunkAttempt.readiness.customerCreditAuthorityIncluded &&
+      !recoveredSecondChunkAttempt.readiness.serviceFeeAuthorityIncluded &&
+      !recoveredSecondChunkAttempt.readiness.walletMutationAuthorized &&
+      !recoveredSecondChunkAttempt.readiness.billingAuthorized &&
+      !recoveredSecondChunkAttempt.readiness.productReady &&
+      !recoveredSecondChunkAttempt.readiness.productionReady,
+    'expired_started_object_chunk_attempt_is_costed_terminally_fenced_and_retryable_without_commercial_authority',
+  )
+  const replayedSecondChunkFailure =
+    await reconcilePrivateCanonicalPackageWorkQueueProfessionalLongFormAttemptFailure({
+      scope: queueScope,
+      definition: promotion.queueDefinition,
+      jobId: timedOutSecondChunkAuthority.identity.jobId,
+      executionAttemptId:
+        timedOutSecondChunkAttempt.executionAttempt.executionAttemptId,
+      observedAt: recoveredSecondChunkAttempt.failure.terminalizedAt,
+    })
+  check(
+    replayedSecondChunkFailure.disposition === 'exact_replay' &&
+      replayedSecondChunkFailure.failure.failureHash ===
+        recoveredSecondChunkAttempt.failure.failureHash &&
+      replayedSecondChunkFailure.aggregate.summary.totalDeliveryAttemptCount ===
+        7 &&
+      replayedSecondChunkFailure.aggregate.summary.queuedJobCount === 249 &&
+      replayedSecondChunkFailure.aggregate.summary.leasedJobCount === 0,
+    'lost_failure_reconciliation_response_replays_exactly_without_another_attempt_or_cost',
+  )
+  clearPrivateCanonicalPackageWorkQueueProcessStateForSmoke()
+  const recoveredQueueAfterRestart =
+    await readPrivateCanonicalPackageWorkQueue({
+      scope: queueScope,
+      definition: promotion.queueDefinition,
+    })
+  const recoveredSecondChunkEntry = recoveredQueueAfterRestart?.entries.find(
+    (entry) => entry.definition.jobId ===
+      timedOutSecondChunkAuthority.identity.jobId,
+  )
+  check(
+    recoveredSecondChunkEntry?.state === 'queued' &&
+      recoveredSecondChunkEntry.deliveryAttemptCount === 1 &&
+      recoveredSecondChunkEntry.expiredClaimRecoveryCount === 1 &&
+      recoveredSecondChunkEntry.professionalLongFormExecutionAttempt ===
+        undefined &&
+      recoveredSecondChunkEntry.professionalLongFormExecutionFailures
+        ?.length === 1 &&
+      recoveredSecondChunkEntry.lastRelease?.professionalLongFormFailure
+        ?.failureHash === recoveredSecondChunkAttempt.failure.failureHash,
+    'started_attempt_failure_history_survives_restart_without_active_lease_or_completion_authority',
+  )
+
   const objectChunkSeriesService =
     createCanonicalProfessionalLongFormObjectChunkSeriesExecutionService(context)
   await expectApiError(
@@ -2468,8 +2705,12 @@ try {
       completedSecondObjectChunk.queueAggregate.summary.queuedJobCount === 247 &&
       completedSecondObjectChunk.queueAggregate.summary.leasedJobCount === 0 &&
       completedSecondObjectChunk.queueAggregate.summary
-        .totalDeliveryAttemptCount === 8,
-    'generic_executor_server_selects_and_completes_the_next_render_qa_pair',
+        .totalDeliveryAttemptCount === 9 &&
+      completedSecondObjectChunk.queueAggregate.summary
+        .expiredClaimRecoveryCount === 1 &&
+      completedSecondObjectChunk.render.executionAttempt.deliveryAttempt === 2 &&
+      completedSecondObjectChunk.render.costEvidence.identity.retryAttempt === 2,
+    'generic_executor_server_selects_and_completes_the_next_render_qa_pair_on_its_fresh_authorized_retry',
   )
   check(
     completedSecondObjectChunk.render.authority.approvedChunk.globalStartFrame > 0 &&
@@ -2521,7 +2762,7 @@ try {
 
   console.log(JSON.stringify({
     ok: true,
-    schemaVersion: 'canonical-professional-long-form-post-approval-smoke-v7',
+    schemaVersion: 'canonical-professional-long-form-post-approval-smoke-v8',
     checkCount: checks.length,
     checks,
     evidence: {
@@ -3226,6 +3467,8 @@ async function assertNoActivationImports(): Promise<void> {
     'server/edit-architecture/professional-long-form-continuous-program-audio-execution.ts',
     'server/services/canonical-private-program-audio-artifact-storage.ts',
     'server/services/canonical-professional-long-form-continuous-program-audio-execution-service.ts',
+    'server/edit-architecture/professional-long-form-started-attempt-recovery-contract.ts',
+    'server/services/canonical-professional-long-form-started-attempt-recovery-service.ts',
   ].map((path) => readFile(path, 'utf8')))
   check(
     sources.every((source) =>

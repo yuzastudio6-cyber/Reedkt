@@ -36,6 +36,9 @@ import {
   isProfessionalLongFormDeliveryMuxAuthorization,
   isProfessionalLongFormDeliveryRootAuthorization,
 } from '../edit-architecture/professional-long-form-authorized-child-contract'
+import {
+  professionalLongFormStartedAttemptFailureSchema,
+} from '../edit-architecture/professional-long-form-started-attempt-recovery-contract'
 
 export const CANONICAL_PRIVATE_PACKAGE_WORK_QUEUE_AGGREGATE_VERSION =
   'canonical-private-package-work-queue-aggregate-v1' as const
@@ -202,6 +205,8 @@ export const canonicalPrivatePackageWorkQueueReleaseSchema = z.object({
   ]),
   dispatchFailure: canonicalPrivatePackageWorkQueueDispatchFailureSchema.optional(),
   dispatchTimeout: canonicalPrivatePackageWorkQueueDispatchTimeoutSchema.optional(),
+  professionalLongFormFailure:
+    professionalLongFormStartedAttemptFailureSchema.optional(),
   providerUnknownReconciliation: z.object({
     providerDispatchTerminalHash: sha256,
     attemptInternalCostEvidenceHash: sha256,
@@ -211,10 +216,16 @@ export const canonicalPrivatePackageWorkQueueReleaseSchema = z.object({
   releasedAt: timestamp,
   releaseHash: sha256,
 }).strict().superRefine((release, context) => {
-  if (release.dispatchFailure && release.dispatchTimeout) {
+  if (
+    [
+      release.dispatchFailure,
+      release.dispatchTimeout,
+      release.professionalLongFormFailure,
+    ].filter(Boolean).length > 1
+  ) {
     context.addIssue({
       code: 'custom',
-      message: 'Canonical queue release cannot be both a worker failure and a timeout.',
+      message: 'Canonical queue release cannot contain competing failure authorities.',
     })
     return
   }
@@ -234,6 +245,19 @@ export const canonicalPrivatePackageWorkQueueReleaseSchema = z.object({
       code: 'custom',
       message: 'Canonical dispatch timeout release reason is inconsistent.',
     })
+  }
+  if (release.professionalLongFormFailure) {
+    const expectedReason =
+      release.professionalLongFormFailure.retry.queueDisposition ===
+        'retry_available'
+        ? 'approved_attempt_failure'
+        : 'unexpected_execution_failure'
+    if (release.reason !== expectedReason) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Professional long-form failure release reason is inconsistent.',
+      })
+    }
   }
   if (
     (release.reason === 'provider_unknown_reconciled_failed') !==
@@ -257,6 +281,9 @@ export const canonicalPrivatePackageWorkQueueEntrySchema = z.object({
     professionalLongFormAuthorizedChildAuthorizationReceiptSchema.optional(),
   professionalLongFormExecutionAttempt:
     professionalLongFormAuthorizedChildExecutionAttemptSchema.optional(),
+  professionalLongFormExecutionFailures: z.array(
+    professionalLongFormStartedAttemptFailureSchema,
+  ).max(2).optional(),
   providerExecutionAttempt: z.object({
     authorizationHash: sha256,
     providerDispatchGrantId: identity,
@@ -375,9 +402,10 @@ export const canonicalPrivatePackageWorkQueueEntrySchema = z.object({
   }
   const authorization = entry.professionalLongFormExecutionAuthorization
   const executionAttempt = entry.professionalLongFormExecutionAttempt
+  const executionFailures = entry.professionalLongFormExecutionFailures ?? []
   const professionalCompletion = entry.completion?.outcome.professionalLongFormExecution
   if (!authorization) {
-    if (executionAttempt || professionalCompletion) {
+    if (executionAttempt || professionalCompletion || executionFailures.length > 0) {
       context.addIssue({
         code: 'custom',
         message: 'Canonical professional long-form execution evidence lacks authorization.',
@@ -438,6 +466,40 @@ export const canonicalPrivatePackageWorkQueueEntrySchema = z.object({
         message: 'Canonical professional long-form execution attempt lost claim authority.',
       })
     }
+  }
+  const failureAttempts = executionFailures.map((failure) =>
+    failure.executionAttempt)
+  const lastFailure = executionFailures.at(-1)
+  if (
+    failureAttempts.some((attempt, index) =>
+      attempt.authorizationId !== authorization.authorizationId ||
+      attempt.authorityHash !== authorization.authorityHash ||
+      attempt.jobId !== entry.definition.jobId ||
+      attempt.approvedWorkItemId !== entry.definition.approvedWorkItemId ||
+      attempt.deliveryAttempt <=
+        (failureAttempts[index - 1]?.deliveryAttempt ?? 0) ||
+      executionFailures[index]?.retry.approvedMaxAttempts !==
+        entry.definition.maxAttempts) ||
+    new Set(failureAttempts.map((attempt) => attempt.executionAttemptId)).size !==
+      failureAttempts.length ||
+    (executionAttempt &&
+      executionAttempt.deliveryAttempt <=
+        (failureAttempts.at(-1)?.deliveryAttempt ?? 0)) ||
+    failureAttempts.length > entry.deliveryAttemptCount ||
+    (entry.state === 'queued' && executionAttempt !== undefined) ||
+    (entry.state === 'queued' && lastFailure &&
+      entry.deliveryAttemptCount ===
+        lastFailure.executionAttempt.deliveryAttempt &&
+      entry.lastRelease?.professionalLongFormFailure?.failureHash !==
+        lastFailure.failureHash) ||
+    (entry.lastRelease?.professionalLongFormFailure &&
+      entry.lastRelease.professionalLongFormFailure.failureHash !==
+        lastFailure?.failureHash)
+  ) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Canonical professional long-form failed-attempt history is inconsistent.',
+    })
   }
   if (
     (entry.state === 'completed') !== Boolean(professionalCompletion) ||
@@ -578,6 +640,12 @@ export const canonicalPrivatePackageWorkQueueAggregateSchema = z.object({
   for (const entry of aggregate.entries) {
     const authorization = entry.professionalLongFormExecutionAuthorization
     const executionAttempt = entry.professionalLongFormExecutionAttempt
+    const failedAttempts = (entry.professionalLongFormExecutionFailures ?? [])
+      .map((failure) => failure.executionAttempt)
+    const allAttempts = [
+      ...failedAttempts,
+      ...(executionAttempt ? [executionAttempt] : []),
+    ]
     const authorizationEvents = aggregate.events.filter((event) =>
       event.eventType === 'job_execution_authorized' &&
       event.jobId === entry.definition.jobId)
@@ -588,13 +656,12 @@ export const canonicalPrivatePackageWorkQueueAggregateSchema = z.object({
       authorizationEvents.length !== (authorization ? 1 : 0) ||
       (authorization && authorizationEvents[0]?.authorizationId !==
         authorization.authorizationId) ||
-      attemptEvents.length !== (executionAttempt ? 1 : 0) ||
-      (executionAttempt && (
-        attemptEvents[0]?.authorizationId !== executionAttempt.authorizationId ||
-        attemptEvents[0]?.executionAttemptId !==
-          executionAttempt.executionAttemptId ||
-        attemptEvents[0]?.claimId !== executionAttempt.claimId
-      ))
+      attemptEvents.length !== allAttempts.length ||
+      allAttempts.some((attempt, index) =>
+        attemptEvents[index]?.authorizationId !== attempt.authorizationId ||
+        attemptEvents[index]?.executionAttemptId !==
+          attempt.executionAttemptId ||
+        attemptEvents[index]?.claimId !== attempt.claimId)
     ) {
       context.addIssue({
         code: 'custom',
@@ -623,6 +690,10 @@ export type CanonicalPrivatePackageWorkQueueDispatchTimeout = z.infer<
 export type CanonicalPrivatePackageWorkQueueRelease = z.infer<
   typeof canonicalPrivatePackageWorkQueueReleaseSchema
 >
+export type CanonicalPrivatePackageWorkQueueProfessionalLongFormFailure =
+  NonNullable<CanonicalPrivatePackageWorkQueueRelease[
+    'professionalLongFormFailure'
+  ]>
 export type CanonicalPrivatePackageWorkQueueEntry = z.infer<
   typeof canonicalPrivatePackageWorkQueueEntrySchema
 >

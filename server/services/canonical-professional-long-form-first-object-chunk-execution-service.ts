@@ -1135,7 +1135,7 @@ async function loadCompletedRender(input: {
     'Replayed object-chunk render terminal changed.')
   if (
     completion.canonicalResultHash !== canonicalResultHash ||
-    entry.deliveryAttemptCount !== 1
+    entry.deliveryAttemptCount !== attempt.deliveryAttempt
   ) throw invalid('Replayed object-chunk render queue evidence changed.')
   return {
     authority,
@@ -1268,7 +1268,7 @@ async function loadCompletedQa(input: {
     'Replayed object-chunk QA terminal changed.')
   if (
     completion.canonicalResultHash !== canonicalResultHash ||
-    entry.deliveryAttemptCount !== 1 ||
+    entry.deliveryAttemptCount !== attempt.deliveryAttempt ||
     entry.completion?.outcome.sha256 !== completion.validationArtifactRef.sha256
   ) throw invalid('Replayed object-chunk QA queue evidence changed.')
   return {

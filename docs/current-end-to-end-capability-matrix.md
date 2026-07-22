@@ -213,6 +213,17 @@ this does not prove diverse many-angle footage, arbitrary professional
 codecs/HDR/VFR/surround audio, complete long-form editing, object storage, a
 distributed database, or Google Cloud execution.
 
+The retained six-hour queue now also proves one bounded started-attempt
+recovery before chunk 2 completes. Attempt 1 expires without artifact or
+completion authority, receives immutable failed internal-cost evidence, is
+reopened after process-state reset, and replays its reconciliation without a
+second cost or delivery attempt. Only a fresh queue claim starts approved
+attempt 2, which then completes the same server-selected render and paired QA.
+This adds recovery evidence, not another completed job: the graph remains
+8/255 complete with 247 queued and nine total delivery attempts. Distributed
+worker death detection/termination, Postgres-backed atomicity, GCS, Cloud Run,
+and the remaining six-hour executions are still unverified.
+
 A separate retained 129-second/two-chunk customer-delivery graph now completes
 all 9 of its jobs: exact passed-review promotion, two private 4K H.264 High
 encodes, two independent chunk probes, one H.264-stream-copy/one-time

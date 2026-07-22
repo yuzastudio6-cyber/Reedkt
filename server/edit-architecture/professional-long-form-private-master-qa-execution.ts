@@ -311,7 +311,7 @@ export function buildProfessionalLongFormPrivateMasterQaArtifact(input: {
   probeRuntimeEvidenceRef: AuthorityJsonBlobRef
   queueLeaseEvidence: {
     claimId: string
-    deliveryAttempt: 1
+    deliveryAttempt: 1 | 2
     initialClaimHash: string
     heartbeatClaimHash: string
     heartbeatCount: number

@@ -169,7 +169,6 @@ const commonAttemptFields = {
   claimId: identity,
   claimHash: sha256,
   workerIdentityHash: sha256,
-  deliveryAttempt: z.literal(1),
   startedAt: timestamp,
   dispatchConsumed: z.literal(true),
   plaintextClaimCredentialPersisted: z.literal(false),
@@ -249,12 +248,14 @@ export const professionalLongFormDeliveryH264AuthorizationSchema = z.object({
 export const professionalLongFormDeliveryRootAttemptSchema = z.object({
   schemaVersion: z.literal(PROFESSIONAL_LONG_FORM_DELIVERY_ROOT_ATTEMPT_VERSION),
   ...commonAttemptFields,
+  deliveryAttempt: z.literal(1),
   operation: rootOperationSchema,
 }).strict()
 
 export const professionalLongFormDeliveryH264AttemptSchema = z.object({
   schemaVersion: z.literal(PROFESSIONAL_LONG_FORM_DELIVERY_H264_ATTEMPT_VERSION),
   ...commonAttemptFields,
+  deliveryAttempt: z.union([z.literal(1), z.literal(2)]),
   operation: h264OperationSchema,
 }).strict()
 

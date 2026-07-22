@@ -182,8 +182,8 @@ export function createCanonicalProfessionalLongFormContinuousProgramAudioExecuti
       })
       if (
         completedEntry.state !== 'completed' ||
-        completedEntry.deliveryAttemptCount !== 1 ||
-        completedEntry.expiredClaimRecoveryCount !== 0 ||
+        completedEntry.professionalLongFormExecutionAttempt?.deliveryAttempt !==
+          completedEntry.deliveryAttemptCount ||
         aggregate.summary.leasedJobCount !== 0 ||
         aggregate.summary.completedJobCount < 4 ||
         aggregate.summary.completedJobCount >= aggregate.summary.totalJobCount ||
@@ -316,12 +316,13 @@ async function executeNew(input: {
   const heartbeatClaim = programAudioEntry(heartbeatCurrent).activeClaim
   if (
     !heartbeatClaim || heartbeatClaim.claimId !== executionAttempt.claimId ||
-    heartbeatClaim.deliveryAttempt !== 1 || heartbeatClaim.heartbeatCount < 1 ||
+    heartbeatClaim.deliveryAttempt !== executionAttempt.deliveryAttempt ||
+    heartbeatClaim.heartbeatCount < 1 ||
     heartbeatClaim.claimHash === executionAttempt.claimHash
   ) throw invalid('Continuous program-audio heartbeat was not durably observed.')
   const queueLeaseEvidence = {
     claimId: heartbeatClaim.claimId,
-    deliveryAttempt: 1 as const,
+    deliveryAttempt: executionAttempt.deliveryAttempt,
     initialClaimHash: executionAttempt.claimHash,
     heartbeatClaimHash: heartbeatClaim.claimHash,
     heartbeatCount: heartbeatClaim.heartbeatCount,
@@ -842,7 +843,7 @@ async function loadCompleted(input: {
     completion.canonicalResultHash !== canonicalResultHash ||
     completion.outputArtifact.sha256 !== runtimeEvidence.outputArtifact.sha256 ||
     completion.outputArtifact.sha256 !== qaArtifact.outputArtifact.sha256 ||
-    entry.deliveryAttemptCount !== 1
+    entry.deliveryAttemptCount !== executionAttempt.deliveryAttempt
   ) throw invalid('Replayed program-audio queue evidence changed.')
   return {
     authority,

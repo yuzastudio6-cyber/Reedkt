@@ -279,7 +279,8 @@ export function buildProfessionalLongFormCrossChunkColorValidationArtifact(
   if (
     input.queueLeaseEvidence.claimId !== input.executionAttempt.claimId ||
     input.queueLeaseEvidence.initialClaimHash !== input.executionAttempt.claimHash ||
-    input.queueLeaseEvidence.deliveryAttempt !== 1 ||
+    input.queueLeaseEvidence.deliveryAttempt !==
+      input.executionAttempt.deliveryAttempt ||
     input.queueLeaseEvidence.heartbeatCount < 1 ||
     input.boundaryResults.length !== boundaries.length ||
     input.boundaryResults.some((result, index) => {

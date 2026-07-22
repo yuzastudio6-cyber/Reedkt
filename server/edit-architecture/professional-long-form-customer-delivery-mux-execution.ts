@@ -384,7 +384,8 @@ export function buildProfessionalLongFormDeliveryMuxRuntimeEvidence(input: {
     input.queueLeaseEvidence.claimId !== input.executionAttempt.claimId ||
     input.queueLeaseEvidence.initialClaimHash !==
       input.executionAttempt.claimHash ||
-    input.queueLeaseEvidence.deliveryAttempt !== 1 ||
+    input.queueLeaseEvidence.deliveryAttempt !==
+      input.executionAttempt.deliveryAttempt ||
     input.queueLeaseEvidence.heartbeatCount < 1 ||
     stableAuthorityStringify(input.chunkSha256s) !==
       stableAuthorityStringify(plan.chunks.map((chunk) => chunk.artifact.sha256)) ||

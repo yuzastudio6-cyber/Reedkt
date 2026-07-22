@@ -1,6 +1,6 @@
 # Canonical Professional Long-Form Object-Chunk Series Execution — 2026-07-18
 
-Status: `generic_executor_verified_two_of_124_pairs_completed_local_private`
+Status: `generic_executor_and_attempt_two_recovery_verified_two_of_124_pairs_completed_local_private`
 
 ## Outcome
 
@@ -14,7 +14,9 @@ chunk/source/path/command/recipe/artifact authority.
 Retained evidence completes two representative pairs plus the three
 prerequisites and continuous program audio: 8/255 jobs completed and 247 still
 queued. This proves a generic executable class; it does not claim that the
-remaining 122 pairs have been run.
+remaining 122 pairs have been run. The retained queue records nine delivery
+attempts because chunk 2 render attempt 1 is intentionally expired, costed,
+terminally fenced, and then completed under a fresh attempt 2.
 
 ## Media Contract
 
@@ -46,6 +48,15 @@ boundaries. Internal production cost stays separate from customer price,
 credits, service fee, wallet, and billing authority. The original approved 4K
 estimate/reservation is reused without a second export estimate or charge.
 
+Started attempts no longer remain permanently leased after a bounded worker
+failure. A server-owned reconciler accepts only workspace and approved snapshot
+identity, selects the exact attempt from the queue, refuses recovery before
+lease expiry, persists the failed attempt and internal-cost evidence, revokes
+its completion authority, and exposes a retry only when the immutable package
+still permits one. It never starts the retry automatically. A lost recovery
+response reopens the exact failure receipt without another attempt or cost, and
+restart readback preserves the failed-attempt lineage before attempt 2 begins.
+
 Earlier evidence remains immutable as later pairs advance. The last pair may
 make cross-chunk color dependencies ready, but does not self-authorize color,
 finalization, or final QA.
@@ -58,7 +69,7 @@ finalization, or final QA.
 - `npm run smoke:offline-media-binary-object-chunk` passed a 1,350-frame
   timeline-start chunk, byte-deterministic replay, independent VP9 QA, and a
   later chunk with source start frame 225 and a technical-split boundary.
-- `npm run smoke:canonical-professional-long-form-post-approval` passed all 99
+- `npm run smoke:canonical-professional-long-form-post-approval` passed all 107
   checks on the six-hour/512-range/124-chunk/255-job fixture.
 - Canonical chunk 1 and server-selected chunk 2 each produced a real private
   4K VP9 artifact and independent exact-frame/color QA evidence. Chunk 2 began
@@ -75,7 +86,10 @@ Verified local/private:
   invalidated the old first-only stream-copy shortcut;
 - exact approved-source staging, slice mapping, private persistence, QA, cost,
   reconciliation, and queue completion; and
-- 8/255 retained completions with honest remaining counts.
+- one expired started render attempt with retained failed internal cost,
+  fail-closed restart/replay, and fresh-claim attempt-2 completion; and
+- 8/255 retained completions, nine delivery attempts, and honest remaining
+  counts.
 
 Still false:
 
@@ -87,15 +101,18 @@ Still false:
 - production codecs, representative multi-camera editorial quality, and
   throughput/load evidence;
 - distributed database/object-store recovery and multi-host concurrency;
+- deployed worker-death observation/termination and distributed attempt
+  recovery;
 - live Google Cloud dispatch/workers, deployment, or observability;
 - provider activation, billing, wallet mutation, customer charging, public
   delivery, external beta, or production readiness.
 
 ## Next Gate
 
-The next unique capability is canonical private-master assembly. It must
-consume only independently QA-passed chunk artifacts, continuous program
-audio, and passed color evidence while preserving the same snapshot,
-reservation, private persistence, one-use execution, cost, reconciliation,
-and replay boundaries. Full assembly in the retained six-hour graph remains
-blocked until every chunk pair and color dependency passes.
+The shared operation families for color, assembly, master QA, and delivery are
+already implemented in bounded graphs. The remaining six-hour gate is retained
+execution across the other 122 render/QA pairs, followed by the six-hour color,
+assembly, master-QA, and delivery jobs. Production additionally requires the
+same queue/attempt/failure transaction in a distributed database, private
+object storage, deployed worker-death fencing, Google Cloud workers, and
+representative professional multi-camera footage.

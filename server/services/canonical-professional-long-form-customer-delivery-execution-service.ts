@@ -592,7 +592,9 @@ export function createCanonicalProfessionalLongFormCustomerDeliveryExecutionServ
         aggregate.summary.leasedJobCount !== 0 ||
         aggregate.summary.queuedJobCount !== aggregate.summary.totalJobCount - 3 ||
         aggregate.entries.slice(0, 3).some((entry) =>
-          entry.state !== 'completed' || entry.deliveryAttemptCount !== 1 ||
+          entry.state !== 'completed' ||
+          entry.deliveryAttemptCount !==
+            entry.professionalLongFormExecutionAttempt?.deliveryAttempt ||
           !entry.professionalLongFormExecutionAuthorization ||
           !entry.professionalLongFormExecutionAttempt || !entry.completion) ||
         aggregate.entries.slice(3).some((entry) =>
@@ -748,7 +750,9 @@ export function createCanonicalProfessionalLongFormCustomerDeliveryExecutionServ
         aggregate.summary.leasedJobCount !== 0 ||
         aggregate.summary.queuedJobCount !== 4 ||
         aggregate.entries.slice(0, expectedCompletedJobCount).some((entry) =>
-          entry.state !== 'completed' || entry.deliveryAttemptCount !== 1 ||
+          entry.state !== 'completed' ||
+          entry.deliveryAttemptCount !==
+            entry.professionalLongFormExecutionAttempt?.deliveryAttempt ||
           !entry.professionalLongFormExecutionAuthorization ||
           !entry.professionalLongFormExecutionAttempt || !entry.completion) ||
         aggregate.entries.slice(expectedCompletedJobCount).some((entry) =>
@@ -858,7 +862,8 @@ export function createCanonicalProfessionalLongFormCustomerDeliveryExecutionServ
         aggregate.summary.leasedJobCount !== 0 ||
         aggregate.entries.slice(0, expectedCompletedJobCount).some((candidate) =>
           candidate.state !== 'completed' ||
-          candidate.deliveryAttemptCount !== 1 ||
+          candidate.deliveryAttemptCount !==
+            candidate.professionalLongFormExecutionAttempt?.deliveryAttempt ||
           !candidate.professionalLongFormExecutionAuthorization ||
           !candidate.professionalLongFormExecutionAttempt ||
           !candidate.completion) ||
@@ -1799,12 +1804,13 @@ async function executeDeliveryMux(input: {
   const heartbeatClaim = deliveryMuxEntry(heartbeatCurrent).activeClaim
   if (
     !heartbeatClaim || heartbeatClaim.claimId !== executionAttempt.claimId ||
-    heartbeatClaim.deliveryAttempt !== 1 || heartbeatClaim.heartbeatCount < 1 ||
+    heartbeatClaim.deliveryAttempt !== executionAttempt.deliveryAttempt ||
+    heartbeatClaim.heartbeatCount < 1 ||
     heartbeatClaim.claimHash === executionAttempt.claimHash
   ) throw invalid('Customer-delivery mux heartbeat was not durably observed.')
   const queueLeaseEvidence = {
     claimId: heartbeatClaim.claimId,
-    deliveryAttempt: 1 as const,
+    deliveryAttempt: executionAttempt.deliveryAttempt,
     initialClaimHash: executionAttempt.claimHash,
     heartbeatClaimHash: heartbeatClaim.claimHash,
     heartbeatCount: heartbeatClaim.heartbeatCount,
@@ -2246,7 +2252,7 @@ async function loadCompletedDeliveryMux(input: {
   )
   if (
     completion.canonicalResultHash !== canonicalResultHash ||
-    entry.deliveryAttemptCount !== 1 ||
+    entry.deliveryAttemptCount !== executionAttempt.deliveryAttempt ||
     entry.completion.outcome.artifactId !==
       completion.outputArtifact.objectIdentity
   ) throw invalid('Stored customer-delivery mux queue completion changed.')
@@ -2367,7 +2373,7 @@ async function loadCompletedRoot(input: {
   assertExact(terminal, expectedTerminal, 'Stored delivery-root terminal changed.')
   if (
     completion.canonicalResultHash !== canonicalResultHash ||
-    entry.deliveryAttemptCount !== 1 ||
+    entry.deliveryAttemptCount !== executionAttempt.deliveryAttempt ||
     entry.completion.outcome.sha256 !== completion.validationArtifactRef.sha256
   ) throw invalid('Stored delivery-root queue completion changed.')
   return {
@@ -2497,7 +2503,7 @@ async function loadCompletedH264(input: {
   assertExact(terminal, expectedTerminal, 'Stored delivery H.264 terminal changed.')
   if (
     completion.canonicalResultHash !== canonicalResultHash ||
-    entry.deliveryAttemptCount !== 1
+    entry.deliveryAttemptCount !== executionAttempt.deliveryAttempt
   ) throw invalid('Stored delivery H.264 queue completion changed.')
   return {
     authority,
@@ -2659,7 +2665,7 @@ async function loadCompletedH264Qa(input: {
   )
   if (
     completion.canonicalResultHash !== canonicalResultHash ||
-    entry.deliveryAttemptCount !== 1 ||
+    entry.deliveryAttemptCount !== executionAttempt.deliveryAttempt ||
     entry.completion.outcome.sha256 !== completion.validationArtifactRef.sha256
   ) throw invalid('Stored delivery H.264 QA queue completion changed.')
   return {

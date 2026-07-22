@@ -239,7 +239,7 @@ const attemptCommonShape = {
   claimId: identity,
   claimHash: sha256,
   workerIdentityHash: sha256,
-  deliveryAttempt: z.literal(1),
+  deliveryAttempt: z.union([z.literal(1), z.literal(2)]),
   startedAt: timestamp,
   dispatchConsumed: z.literal(true),
   plaintextClaimCredentialPersisted: z.literal(false),

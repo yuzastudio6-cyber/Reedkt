@@ -118,7 +118,8 @@ export function createTargetVideoUnderstandingPackage(
     : null
   const unsigned: Omit<TargetVideoUnderstandingPackage, 'packageDigestSha256'> = {
     schemaVersion: TARGET_VIDEO_UNDERSTANDING_PACKAGE_VERSION,
-    packageId: stableId('target-video-understanding', {
+    packageId: stableUuid({
+      domain: 'target_video_understanding_package_v1',
       workspaceId: input.workspaceId,
       projectId: input.projectId,
       editSessionId: input.editSessionId,
@@ -940,6 +941,11 @@ function validConfidence(value: number): boolean {
 
 function stableId(prefix: string, value: unknown): string {
   return `${prefix}-${sha256(stableStringify(value)).slice(0, 24)}`
+}
+
+function stableUuid(value: unknown): string {
+  const hex = sha256(stableStringify(value))
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-4${hex.slice(13, 16)}-a${hex.slice(17, 20)}-${hex.slice(20, 32)}`
 }
 
 function assertId(value: string, label: string): void {

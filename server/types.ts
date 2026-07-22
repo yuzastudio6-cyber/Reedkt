@@ -12,6 +12,9 @@ import type {
 import type { EditReferenceDomainRepositoryRuntimePort } from './services/edit-reference-domain-repository-runtime-port'
 import type { EditReferenceSignedInPrivateMediaRuntimePort } from './services/edit-reference-signed-in-private-media-runtime-port'
 import type { EditReferenceExactEditBriefRuntimePortFactory } from './services/edit-reference-exact-edit-brief-runtime-port'
+import type {
+  EditReferenceTargetUnderstandingPackageRuntimePortFactory,
+} from './services/edit-reference-target-understanding-package-runtime-port'
 import type { PlanningPreferenceApplicationAuthorityPort } from './services/planning-preference-application-authority-port'
 import type { CanonicalMotionStudioStorytellingProductionAuthorityReaderPort } from './services/canonical-motion-studio-storytelling-production-authority-service'
 import type { CanonicalVisualCalibrationReferenceFrameReaderPort } from './services/canonical-visual-calibration-reference-frame-reader-port'
@@ -83,6 +86,8 @@ export interface RuntimeState {
   editReferenceDomainRepositoryRuntimePort?: EditReferenceDomainRepositoryRuntimePort
   editReferenceSignedInPrivateMediaRuntimePort?: EditReferenceSignedInPrivateMediaRuntimePort
   editReferenceExactEditBriefRuntimePortFactory?: EditReferenceExactEditBriefRuntimePortFactory
+  editReferenceTargetUnderstandingPackageRuntimePortFactory?:
+    EditReferenceTargetUnderstandingPackageRuntimePortFactory
 }
 
 export type RuntimeRequest = Request & {
@@ -119,4 +124,6 @@ export interface ServiceContext {
   editReferenceDomainRepositoryRuntimePort?: EditReferenceDomainRepositoryRuntimePort
   editReferenceSignedInPrivateMediaRuntimePort?: EditReferenceSignedInPrivateMediaRuntimePort
   editReferenceExactEditBriefRuntimePortFactory?: EditReferenceExactEditBriefRuntimePortFactory
+  editReferenceTargetUnderstandingPackageRuntimePortFactory?:
+    EditReferenceTargetUnderstandingPackageRuntimePortFactory
 }

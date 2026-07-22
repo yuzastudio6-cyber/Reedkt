@@ -90,6 +90,10 @@
       "sha256": "5f65ec59f378f573f9df4e6e36dae1faedd880bcae99c5b90bb7b062db110787"
     },
     {
+      "path": "supabase/migrations/202607210014_target_understanding_package_persistence.sql",
+      "sha256": "c2b6788c99dc01e961972a91753612e22466003ad2596ab2d3629335a75664f0"
+    },
+    {
       "path": "tests/001_two_user_two_workspace_rls.sql",
       "sha256": "4229abef3613004a7ce75467e6e030bfe6c1baa5237d7a55a7d8580d6822a816"
     },
@@ -155,7 +159,7 @@
     },
     {
       "path": "verify.mjs",
-      "sha256": "b8c592a4e7825993abaaa52aa5dc4b1348687d47f943b224061ac0dd63b640a9"
+      "sha256": "a3f0fbcabfba0e534e4a9fe04ef75fe8ac70ab6f60bb02f4922335e5ae3b2579"
     }
   ],
   "repositoryFiles": [
@@ -212,6 +216,10 @@
       "sha256": "f5a74ca711873d1ea3435c436f4323622d9c511538b6c353fa51b1ad3e7eb41b"
     },
     {
+      "path": "docs/canonical-v3-local-target-understanding-package-persistence-verification-2026-07-21.md",
+      "sha256": "3a50f792fc2389b19a0ce01bfd2c298db3514486fc1fe1aafaabf33fad8de474"
+    },
+    {
       "path": "docs/edit-preferences-mounted-atomic-apply-recovery-2026-07-21.md",
       "sha256": "cfddcfdd5d2c0a9074df9eae7bcb89a0b4edaeffcb71bf3033543c479f1703b1"
     },
@@ -221,11 +229,11 @@
     },
     {
       "path": "server/app.ts",
-      "sha256": "3a4f93beca2a92bcf51e6d8617158750427be6d2107206f879272feda963e6d6"
+      "sha256": "229dda1d68214a24c08337807d2a45dfbc752b01928fa92c0fb7089337e15043"
     },
     {
       "path": "server/distributed-pre-plan-study/canonical-distributed-pre-plan-study-local-supabase-http-rpc-client.ts",
-      "sha256": "8448de68f031cd45cdda967b3f4046f75ca43216c89b51114a9ecb4005f1214d"
+      "sha256": "e05068efe89f4add1350684c8f9576905807c33638cb87bb55c718da67ca899e"
     },
     {
       "path": "server/distributed-pre-plan-study/canonical-distributed-pre-plan-study-read-projection.ts",
@@ -316,6 +324,10 @@
       "sha256": "2af3858a3c59dbe4a0d9eb72c81f82b7658bfc8fb49913aaa29d350bc7d9c474"
     },
     {
+      "path": "server/edit-references/edit-reference-target-video-understanding-contract.ts",
+      "sha256": "104af1e5b8572dd1ae64c80d2dd6c45dac1f0690e75a951418928e583f1d4ed8"
+    },
+    {
       "path": "server/edit-references/private-edit-reference-long-form-study-repository.ts",
       "sha256": "37d34a0889e4db2990d069cf77f46fa0f94d3049236beb0065d3aca67fc3561a"
     },
@@ -333,7 +345,7 @@
     },
     {
       "path": "server/routes/route-helpers.ts",
-      "sha256": "0b25c35ecea700bc152ec5248702572a102676eea1f4f34a4af1f708e1f7e673"
+      "sha256": "526b8add8da9ca03f2ec4614316a902963a40b328051d80ce69c49530f306641"
     },
     {
       "path": "server/services/canonical-planning-handoff-service.ts",
@@ -360,6 +372,10 @@
       "sha256": "ac69c7f0e1dcdeb001350c18cd8fa8e097d3434c3814d035e8d61d9300c6ba39"
     },
     {
+      "path": "server/services/edit-reference-canonical-v3-local-target-understanding-package-runtime-port-factory.ts",
+      "sha256": "8adf483760fc49990315a40e9fa72649ad22a322086dd989f2650a62f1421065"
+    },
+    {
       "path": "server/services/edit-reference-domain-repository-runtime-port.ts",
       "sha256": "f11911f9d182b1667bc64f1ac250dd2ec3a1f1d6ef52758994f605fc41629704"
     },
@@ -380,8 +396,12 @@
       "sha256": "aef07fa170d42bb61238c5f0242857ad9cf154e1df1d0fde4db1ff4d16a74f4a"
     },
     {
+      "path": "server/services/edit-reference-target-understanding-package-runtime-port.ts",
+      "sha256": "ac04dea355c90a504511d04a61c60cc30a8f9ce81f9c07a947a9c2e616b2486b"
+    },
+    {
       "path": "server/services/edit-reference-target-video-understanding-service.ts",
-      "sha256": "ba053df9e24b7c4b877ee47119f6a1d07ce397baa5b38e0ecbefc6e2df63c263"
+      "sha256": "5ebff16c21e024b359c5e57a45475e4ff8b15cd100198a90d0c0a2b72162c2e2"
     },
     {
       "path": "server/services/idempotency-service.ts",
@@ -441,7 +461,7 @@
     },
     {
       "path": "server/smoke/edit-reference-canonical-v3-exact-edit-target-source-smoke.ts",
-      "sha256": "e1f124e6a899cb39a1959c8e5734d95b0eb4bb3563c371b35e370c193f8a2052"
+      "sha256": "820c11602a9472ee9bb9ce402aecc7ef9086b06f2cae9ad6877ad27bf1a2dc13"
     },
     {
       "path": "server/smoke/edit-reference-canonical-v3-local-long-form-runtime-port-smoke.ts",
@@ -493,7 +513,7 @@
     },
     {
       "path": "server/types.ts",
-      "sha256": "005c99b9df134b2e5049f3c41af7b02d5fca45806747d65162fc75c6c47a7bca"
+      "sha256": "5bf7cf2a6d5cc8931e00661a94450d2956434d1d3e13251d81a4e892545aaba0"
     },
     {
       "path": "server/validation/canonical-exact-edit-planning-authority-schemas.ts",
@@ -564,6 +584,10 @@
       "sha256": "adbeea8ec86d9f8a8a1c582eae04706756bcebcbcaad403131fe7d87cc44e45f"
     },
     {
+      "path": "src/types/edit-reference-target-video-understanding.ts",
+      "sha256": "d15c3cda1136d35dd6c337617e62fd69efea9d189cf35985107ef2bcefe5b5d5"
+    },
+    {
       "path": "src/types/edit-reference.ts",
       "sha256": "f7f9bc1b8104027c229dc42a4d2e44c4b9bf444c47979735c4436b1ef51f961b"
     },
@@ -573,7 +597,7 @@
     },
     {
       "path": "tests/e2e/edit-preferences-atomic-api-server.ts",
-      "sha256": "6e2dd7555ff2d22339bdd3dfbd89f00af37904d3e3395ed6245be50c986db035"
+      "sha256": "5c254c3f24e8e871332c819ab704c1ab0557794aaeef00457f8cb3e5dc2ceab0"
     },
     {
       "path": "tests/e2e/edit-preferences-current-edit.spec.ts",

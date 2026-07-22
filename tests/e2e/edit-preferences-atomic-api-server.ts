@@ -55,6 +55,12 @@ import {
 import type {
   EditReferenceExactEditBriefRuntimePortFactory,
 } from '../../server/services/edit-reference-exact-edit-brief-runtime-port'
+import {
+  createEditReferenceCanonicalV3LocalTargetUnderstandingPackageRuntimePortFactory,
+} from '../../server/services/edit-reference-canonical-v3-local-target-understanding-package-runtime-port-factory'
+import type {
+  EditReferenceTargetUnderstandingPackageRuntimePortFactory,
+} from '../../server/services/edit-reference-target-understanding-package-runtime-port'
 
 type ExactEditState = {
   values: EditReferenceProductionExactEditPreferenceValues
@@ -330,6 +336,8 @@ const editReferenceSignedInPrivateMediaRuntimePort =
     : undefined
 const editReferenceExactEditBriefRuntimePortFactory =
   createOptionalCanonicalV3LocalExactEditBriefRuntimePortFactory()
+const editReferenceTargetUnderstandingPackageRuntimePortFactory =
+  createOptionalCanonicalV3LocalTargetUnderstandingPackageRuntimePortFactory()
 const server = createReeditProApiApp(env, {
   editReferenceExactEditApplyRuntimePort: runtimePort,
   editReferenceApplicationPreparationRuntimePort: applicationPreparation.port,
@@ -345,6 +353,9 @@ const server = createReeditProApiApp(env, {
     : {}),
   ...(editReferenceExactEditBriefRuntimePortFactory
     ? { editReferenceExactEditBriefRuntimePortFactory }
+    : {}),
+  ...(editReferenceTargetUnderstandingPackageRuntimePortFactory
+    ? { editReferenceTargetUnderstandingPackageRuntimePortFactory }
     : {}),
 }).listen(env.apiPort, '127.0.0.1', () => {
   console.log(JSON.stringify({ event: 'atomic_preferences_test_api_listening', port: env.apiPort }))
@@ -417,6 +428,25 @@ function createOptionalCanonicalV3LocalExactEditBriefRuntimePortFactory():
     )
   }
   return createEditReferenceCanonicalV3LocalExactEditBriefRuntimePortFactory({
+    endpointOrigin,
+    anonKey,
+    localInternalSigningSecret,
+  })
+}
+
+function createOptionalCanonicalV3LocalTargetUnderstandingPackageRuntimePortFactory():
+  EditReferenceTargetUnderstandingPackageRuntimePortFactory | undefined {
+  const endpointOrigin = process.env.REEDITPRO_CANONICAL_V3_API_URL?.trim()
+  const anonKey = process.env.REEDITPRO_CANONICAL_V3_ANON_KEY?.trim()
+  const localInternalSigningSecret =
+    process.env.REEDITPRO_CANONICAL_V3_LOCAL_PRE_PLAN_SIGNING_SECRET?.trim()
+  if (!endpointOrigin && !anonKey && !localInternalSigningSecret) return undefined
+  if (!endpointOrigin || !anonKey || !localInternalSigningSecret) {
+    throw new Error(
+      'The canonical V3 target-understanding package proof requires loopback URL, anon key, and local signing secret.',
+    )
+  }
+  return createEditReferenceCanonicalV3LocalTargetUnderstandingPackageRuntimePortFactory({
     endpointOrigin,
     anonKey,
     localInternalSigningSecret,

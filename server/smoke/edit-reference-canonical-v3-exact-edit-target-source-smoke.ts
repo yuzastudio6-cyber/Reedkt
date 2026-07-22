@@ -10,6 +10,9 @@ import {
   createEditReferenceLongFormStudyPlan,
   createEditReferenceLongFormStudyRun,
 } from '../edit-references/edit-reference-long-form-study-contract'
+import {
+  createTargetVideoUnderstandingPackage,
+} from '../edit-references/edit-reference-target-video-understanding-contract'
 import { ApiError } from '../errors/api-error'
 import {
   calculateTargetVideoEditBriefDigest,
@@ -20,6 +23,9 @@ import {
 import {
   createEditReferenceCanonicalV3LocalLongFormRuntimePortFactory,
 } from '../services/edit-reference-canonical-v3-local-long-form-runtime-port-factory'
+import {
+  createEditReferenceCanonicalV3LocalTargetUnderstandingPackageRuntimePortFactory,
+} from '../services/edit-reference-canonical-v3-local-target-understanding-package-runtime-port-factory'
 
 const endpointOrigin = requiredEnvironment('REEDITPRO_CANONICAL_V3_API_URL')
 const anonKey = requiredEnvironment('REEDITPRO_CANONICAL_V3_ANON_KEY')
@@ -197,6 +203,136 @@ const replayedCreate = await longFormRuntime.create({
 assert.equal(replayedCreate.disposition, 'idempotent_replay')
 assert.equal(replayedCreate.run.recordDigestSha256, created.run.recordDigestSha256)
 
+const declaredContext = {
+  projectName: 'Canonical project A',
+  editName: 'Exact target edit A',
+  contentType: 'documentary' as const,
+  currentUserInstruction:
+    'Study the full target source before adapting the approved preference.',
+  selectedEditLevel: 'premium' as const,
+  aspectRatio: '16:9' as const,
+  outputFrameConfirmed: true as const,
+  platformTarget: 'youtube_standard' as const,
+  storyRole: 'Preserve the exact evidence chain and natural testimony.',
+  budgetPreference: 'balanced' as const,
+  directives: {
+    captions: 'adapt' as const,
+    music: 'adapt' as const,
+    sfx: 'adapt' as const,
+    sourceOrder: 'preserve' as const,
+  },
+  approvedConstraints: [
+    'Do not invent claims.',
+    'Do not treat partial study evidence as complete.',
+  ],
+  editBriefId: revised.record.id,
+  editBriefRevision: revised.record.revisionNumber,
+  editBriefDigestSha256: revised.record.contentDigestSha256,
+}
+const partialPackage = createTargetVideoUnderstandingPackage({
+  workspaceId: workspaceA,
+  projectId: projectA,
+  editSessionId: editSessionA,
+  editReferenceId: editReferenceA,
+  studySessionId: studySessionA,
+  storageObjectRecordId: sourceStorageObjectRecordId,
+  mediaAssetId: sourceMediaAssetId,
+  declaredContext,
+  plan: created.plan,
+  run: created.run,
+  outputs: [],
+  createdAt,
+})
+assert.match(partialPackage.packageId, /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-a[a-f0-9]{3}-[a-f0-9]{12}$/u)
+assert.equal(partialPackage.status, 'collecting')
+assert.equal(partialPackage.readyForPreferenceApplication, false)
+
+const targetPackageFactory =
+  createEditReferenceCanonicalV3LocalTargetUnderstandingPackageRuntimePortFactory({
+    endpointOrigin,
+    anonKey,
+    localInternalSigningSecret: jwtSecret,
+  })
+const targetPackagePortA = targetPackageFactory.createForAuthenticatedRequest({
+  env: localRuntimeEnv(),
+  authority: {
+    ownerUserId: ownerA,
+    authenticatedAccessToken: ownerAToken,
+    isMockUser: false,
+  },
+})
+const targetScopeA = {
+  localStorageRoot: join(tmpdir(), 'reeditpro-canonical-v3-target-package-smoke'),
+  ownerUserId: ownerA,
+  workspaceId: workspaceA,
+}
+const savedPackage = await targetPackagePortA.save({
+  scope: targetScopeA,
+  package: partialPackage,
+})
+assert.equal(savedPackage.disposition, 'created')
+assert.equal(savedPackage.persistence, 'canonical_v3_local_supabase_rls')
+assert.deepEqual(savedPackage.package, partialPackage)
+const replayedPackage = await targetPackagePortA.save({
+  scope: targetScopeA,
+  package: partialPackage,
+})
+assert.equal(replayedPackage.disposition, 'idempotent_replay')
+assert.deepEqual(replayedPackage.package, partialPackage)
+const packageBinding = {
+  projectId: projectA,
+  editSessionId: editSessionA,
+  editReferenceId: editReferenceA,
+  studySessionId: studySessionA,
+  storageObjectRecordId: sourceStorageObjectRecordId,
+  editBriefDigestSha256: revised.record.contentDigestSha256,
+}
+assert.deepEqual(await targetPackagePortA.readLatest({
+  scope: targetScopeA,
+  binding: packageBinding,
+}), partialPackage)
+
+const targetPackagePortB = targetPackageFactory.createForAuthenticatedRequest({
+  env: localRuntimeEnv(),
+  authority: {
+    ownerUserId: ownerB,
+    authenticatedAccessToken: ownerBToken,
+    isMockUser: false,
+  },
+})
+await assert.rejects(
+  () => targetPackagePortB.readLatest({
+    scope: { ...targetScopeA, ownerUserId: ownerB },
+    binding: packageBinding,
+  }),
+  isPersistenceBlock,
+)
+
+const mismatchedBriefPackage = createTargetVideoUnderstandingPackage({
+  workspaceId: workspaceA,
+  projectId: projectA,
+  editSessionId: editSessionA,
+  editReferenceId: editReferenceA,
+  studySessionId: studySessionA,
+  storageObjectRecordId: sourceStorageObjectRecordId,
+  mediaAssetId: sourceMediaAssetId,
+  declaredContext: {
+    ...declaredContext,
+    editBriefDigestSha256: 'f'.repeat(64),
+  },
+  plan: created.plan,
+  run: created.run,
+  outputs: [],
+  createdAt,
+})
+await assert.rejects(
+  () => targetPackagePortA.save({
+    scope: targetScopeA,
+    package: mismatchedBriefPackage,
+  }),
+  isPersistenceBlock,
+)
+
 const rawRegistryResponse = await fetch(
   `${endpointOrigin}/rest/v1/preference_assets?id=eq.${encodeURIComponent(targetSourceAssetId)}&select=id`,
   {
@@ -281,6 +417,12 @@ console.log(JSON.stringify({
   targetSourceRawRegistryBrowserReadDenied: true,
   targetSourceCrossTenantMutationDenied: true,
   targetSourceBriefTamperRejected: true,
+  targetUnderstandingPackageUuidVerified: true,
+  targetUnderstandingPartialPackagePersisted: true,
+  targetUnderstandingPackageExactReplayVerified: true,
+  targetUnderstandingPackageRestartReadVerified: true,
+  targetUnderstandingPackageCrossTenantReadDenied: true,
+  targetUnderstandingPackageBriefTamperRejected: true,
   workItemCount: preparedRun.workItems.length,
   preflightCheckpointCount: 2,
   secondQueueCreated: false,

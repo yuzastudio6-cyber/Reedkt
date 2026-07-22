@@ -285,7 +285,9 @@ export interface TargetVideoUnderstandingSchedule {
 export interface TargetVideoUnderstandingApiData {
   targetVideoUnderstandingPackage: TargetVideoUnderstandingPackage
   schedule: TargetVideoUnderstandingSchedule
-  persistence: 'backend_local_private_versioned'
+  persistence:
+    | 'backend_local_private_versioned'
+    | 'canonical_v3_local_supabase_rls'
   replayed: boolean
   productReady: false
 }

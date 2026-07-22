@@ -51,16 +51,23 @@ import {
   type EditReferenceLongFormStudySourceBinding,
   type EditReferenceLongFormStudyRuntimePort,
 } from './edit-reference-production-long-form-runtime-port'
+import {
+  resolveEditReferenceTargetUnderstandingPackageRepository,
+  type EditReferenceTargetUnderstandingPackagePersistence,
+  type EditReferenceTargetUnderstandingPackageRepository,
+} from './edit-reference-target-understanding-package-runtime-port'
 
 const BACKEND_LOCAL_WARNING =
   'Target-video understanding is stored in private backend-local versioned records. Production Supabase and distributed worker authority remain fail-closed.'
+const CANONICAL_LOCAL_WARNING =
+  'Target-video understanding is stored through the authenticated canonical V3 local RLS authority. This is isolated local evidence, not deployed production persistence.'
 
 export interface EditReferenceTargetVideoUnderstandingRuntimeOptions {
   readonly domainRepositoryRuntimePort?: EditReferenceDomainRepositoryRuntimePort
   readonly editReferenceRepository?: EditReferenceRepository
   readonly longFormStudyRuntimePort?: EditReferenceLongFormStudyRuntimePort
   readonly longFormStudyRepository?: PrivateEditReferenceLongFormStudyRepository
-  readonly packageRepository?: PrivateTargetVideoUnderstandingRepository
+  readonly packageRepository?: EditReferenceTargetUnderstandingPackageRepository
   readonly sourceInspector?: EditReferenceLongFormSourceInspector
   readonly studyScheduler?: EditReferenceLongFormStudyScheduler
 }
@@ -68,7 +75,7 @@ export interface EditReferenceTargetVideoUnderstandingRuntimeOptions {
 export interface EditReferenceTargetVideoUnderstandingServiceResult {
   readonly package: TargetVideoUnderstandingPackage
   readonly schedule: EditReferenceLongFormStudyScheduleResult
-  readonly persistence: 'backend_local_private_versioned'
+  readonly persistence: EditReferenceTargetUnderstandingPackagePersistence
   readonly warnings: readonly string[]
   readonly replayed: boolean
   readonly productReady: false
@@ -117,6 +124,22 @@ export function createEditReferenceTargetVideoUnderstandingService(
   }
 
   if (
+    runtimeOptions.packageRepository
+    && context.editReferenceTargetUnderstandingPackageRuntimePortFactory
+  ) {
+    throw new ApiError(
+      'EDIT_REFERENCE_PERSISTENCE_BLOCKED',
+      'Target-video study received conflicting package persistence authorities.',
+      503,
+      {
+        reason: 'multiple_target_package_authorities_configured',
+        requiredGate: 'canonical_target_understanding_package_persistence',
+        productionReady: false,
+      },
+    )
+  }
+
+  if (
     runtimeOptions.longFormStudyRuntimePort
     && context.editReferenceLongFormStudyRuntimePort
     && runtimeOptions.longFormStudyRuntimePort !== context.editReferenceLongFormStudyRuntimePort
@@ -149,7 +172,13 @@ export function createEditReferenceTargetVideoUnderstandingService(
     localRepository: runtimeOptions.longFormStudyRepository,
     localScheduler: runtimeOptions.studyScheduler,
   })
-  const packageRepository = runtimeOptions.packageRepository ?? new PrivateTargetVideoUnderstandingRepository()
+  const packageRepository = resolveEditReferenceTargetUnderstandingPackageRepository({
+    env: context.env,
+    auth: context.auth,
+    factory: context.editReferenceTargetUnderstandingPackageRuntimePortFactory,
+    localRepository:
+      runtimeOptions.packageRepository ?? new PrivateTargetVideoUnderstandingRepository(),
+  })
   const sourceInspector = runtimeOptions.sourceInspector ?? inspectEditReferenceLongFormSource
 
   const scope = (workspaceId: string): EditReferenceRepositoryScope => ({
@@ -232,7 +261,12 @@ export function createEditReferenceTargetVideoUnderstandingService(
         storageObject: authority.storageObject,
         requiredObjectPurpose: 'source_media',
       })
-      return serviceResult(packageRecord, schedule, replayed)
+      return serviceResult(
+        packageRecord,
+        schedule,
+        replayed,
+        packageRepository.persistence,
+      )
     },
 
     async readLatest(input: ReadInput): Promise<EditReferenceTargetVideoUnderstandingServiceResult> {
@@ -281,7 +315,12 @@ export function createEditReferenceTargetVideoUnderstandingService(
         storageObject: authority.storageObject,
         requiredObjectPurpose: 'source_media',
       })
-      return serviceResult(packageRecord, schedule, packageRecord.packageId === latest.packageId)
+      return serviceResult(
+        packageRecord,
+        schedule,
+        packageRecord.packageId === latest.packageId,
+        packageRepository.persistence,
+      )
     },
   }
 }
@@ -588,7 +627,7 @@ function withoutContextDigest(
 }
 
 async function materializePackage(input: {
-  readonly packageRepository: PrivateTargetVideoUnderstandingRepository
+  readonly packageRepository: EditReferenceTargetUnderstandingPackageRepository
   readonly longFormStudyRuntime: EditReferenceLongFormStudyRuntimePort
   readonly authority: TargetAuthority
   readonly plan: Parameters<typeof createTargetVideoUnderstandingPackage>[0]['plan']
@@ -656,13 +695,16 @@ function serviceResult(
   packageRecord: TargetVideoUnderstandingPackage,
   schedule: EditReferenceLongFormStudyScheduleResult,
   replayed: boolean,
+  persistence: EditReferenceTargetUnderstandingPackagePersistence,
 ): EditReferenceTargetVideoUnderstandingServiceResult {
   return {
     package: packageRecord,
     schedule,
-    persistence: 'backend_local_private_versioned',
+    persistence,
     warnings: [
-      BACKEND_LOCAL_WARNING,
+      persistence === 'canonical_v3_local_supabase_rls'
+        ? CANONICAL_LOCAL_WARNING
+        : BACKEND_LOCAL_WARNING,
       schedule.scheduled
         ? 'The private target-video study continues from durable checkpoints after this request returns; the browser does not need to stay open.'
         : 'The exact study remains checkpointed and will continue when the approved backend media worker runtime is available.',

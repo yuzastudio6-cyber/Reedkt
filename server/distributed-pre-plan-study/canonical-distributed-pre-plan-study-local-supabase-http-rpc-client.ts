@@ -24,6 +24,8 @@ const allowedFunctions = new Set<string>(
     'reeditpro_register_target_pre_plan_source_v1',
     'reeditpro_save_exact_edit_brief_v1',
     'reeditpro_read_exact_edit_brief_v1',
+    'reeditpro_save_target_understanding_package_v1',
+    'reeditpro_read_latest_target_understanding_package_v1',
   ],
 )
 const MAX_RESPONSE_BYTES = 4 * 1024 * 1024

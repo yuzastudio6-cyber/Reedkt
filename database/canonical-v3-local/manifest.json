@@ -11,19 +11,19 @@
     },
     {
       "path": "README.md",
-      "sha256": "5554606a90cd7e8836f281e1544c73dd2f51b648032ea7f209ff17a8dbbdbe5d"
+      "sha256": "75918c2b4b8473f51871dbce6e7d2a93faf6b49b97f7055212ceda741c282b83"
     },
     {
       "path": "expected-recovery-data-tables.txt",
-      "sha256": "16e0aab758a663842891fbdbbc03655759f6eb889416e4b96bebe662f00319f5"
+      "sha256": "15fe117a30beb19926dfc80fb23f88a71338c6083cacba9d436bf100f7c1225f"
     },
     {
       "path": "run-local-recovery-verification.sh",
-      "sha256": "4ed1cf8b913597532de374ebdf166ebf2b59722bdc00d7c2d88e5296f2770c9e"
+      "sha256": "544f786cf22c592aa985aa35a2740482154729fa36071736689e7f056047f6dd"
     },
     {
       "path": "run-local-verification.sh",
-      "sha256": "3211a236ca72639044c4978af187fbaae2bf4b93062e699bfea2d007719f8e6d"
+      "sha256": "2a5a89fe999d6885c913d70d259b535e2961f5b5f7b328ea092d763765cde5a7"
     },
     {
       "path": "setup-local-auth-users.ts",
@@ -114,6 +114,10 @@
       "sha256": "73c30e652d298125bbefaecff4f67b905e7fd45489e0317b27e4c5f7c61c050b"
     },
     {
+      "path": "supabase/migrations/202607210020_canonical_distributed_media_ingest_rpc.sql",
+      "sha256": "edac3b9af68c233326dd5c0fd2c389a863d8fb1ffa7f2f8d0b0abf5a3f4cabbf"
+    },
+    {
       "path": "tests/001_two_user_two_workspace_rls.sql",
       "sha256": "4229abef3613004a7ce75467e6e030bfe6c1baa5237d7a55a7d8580d6822a816"
     },
@@ -166,6 +170,10 @@
       "sha256": "2b7f19e8a43a7133f5dbd7ccb240da6d8c66d2c24236031968e95b32705fa6b0"
     },
     {
+      "path": "tests/014_canonical_distributed_media_ingest_rpc_postconditions.sql",
+      "sha256": "efef2147436e607d00b8b78d78ac38d5e1231a2066812e92fd55e70dccde03ec"
+    },
+    {
       "path": "tests/_fixture.sql",
       "sha256": "293b582bf3f5539fed0f0673fe48c70e464e4570f58cdd34d6ad29fd14e24816"
     },
@@ -179,7 +187,7 @@
     },
     {
       "path": "verify.mjs",
-      "sha256": "eb85a5380b5f7eff84ad754fb2367f9b08bf919cca4859b96308da5ff6d3043a"
+      "sha256": "0e9cbb7b9e3e096bc9b69b6a9da6f3914987a8675657ceacb02096dd792563b1"
     }
   ],
   "repositoryFiles": [
@@ -198,6 +206,10 @@
     {
       "path": "docs/canonical-exact-edit-planning-authority-verification-2026-07-21.md",
       "sha256": "1f382a8457d02f468a706ce7cd29f91b23727f1f247de2298e38154f4c3f5827"
+    },
+    {
+      "path": "docs/canonical-v3-local-distributed-media-ingest-verification-2026-07-22.md",
+      "sha256": "f8a2f5ac2472d93d35da1997e342f383698468c3034a6aeae741ec5ddd2a46f5"
     },
     {
       "path": "docs/canonical-v3-local-distributed-pre-plan-study-runtime-verification-2026-07-21.md",
@@ -249,11 +261,31 @@
     },
     {
       "path": "package.json",
-      "sha256": "1646c23e6e5ecadf12b4efdd01cd744105f98d33224392b4b9daa4d7ccc71837"
+      "sha256": "6a0fb1c1844f6d34f63c51ae9e89bf1a7138ae4b57dcd6e94203410892f5076d"
     },
     {
       "path": "server/app.ts",
       "sha256": "229dda1d68214a24c08337807d2a45dfbc752b01928fa92c0fb7089337e15043"
+    },
+    {
+      "path": "server/distributed-media-ingest/canonical-distributed-media-ingest-local-supabase-http-rpc-client.ts",
+      "sha256": "d43f611135a4bf200c872505043cd12d3a6d379f8337aca59dee810ff2bbebf4"
+    },
+    {
+      "path": "server/distributed-media-ingest/canonical-distributed-media-ingest-source-registration.ts",
+      "sha256": "6b13f67c15155c2275d888abd8a342e574f1418b0758541de16130bc2dcc8114"
+    },
+    {
+      "path": "server/distributed-media-ingest/canonical-distributed-media-ingest-state-port.ts",
+      "sha256": "59df2e620a850361ea76a3ddfaf2c7313276ac3d9f2deae83620e6730fd3fff3"
+    },
+    {
+      "path": "server/distributed-media-ingest/canonical-distributed-media-ingest-state-rpc-adapter.ts",
+      "sha256": "f0897f160cee41e449471192ccdc1d7f2220ecf0d61acfcb1bf7fd263c89aa7e"
+    },
+    {
+      "path": "server/distributed-media-ingest/index.ts",
+      "sha256": "d0e95f1b0ec7e9c6b4dc099292ee61417c9841fec8ba374af78c3715eb3207f1"
     },
     {
       "path": "server/distributed-pre-plan-study/canonical-distributed-pre-plan-study-local-supabase-http-rpc-client.ts",
@@ -466,6 +498,10 @@
     {
       "path": "server/services/workspace-access-service.ts",
       "sha256": "7e657e832057a1e52d470ae422c80571fcef91c5d396d67e4ed12d6fe440d0fb"
+    },
+    {
+      "path": "server/smoke/canonical-distributed-media-ingest-local-postgres-smoke.ts",
+      "sha256": "3a716f905863b6c9627837f4dbfca6de797c09c097e4b976dadfa2608b64c5dc"
     },
     {
       "path": "server/smoke/canonical-distributed-pre-plan-study-local-postgres-smoke.ts",

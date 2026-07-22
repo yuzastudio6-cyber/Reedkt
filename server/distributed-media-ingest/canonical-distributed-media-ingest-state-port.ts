@@ -686,6 +686,38 @@ export function createCanonicalDistributedMediaIngestUnverifiedDatabaseAdapterDe
   })
 }
 
+/**
+ * Describes the disposable canonical-V3 loopback Postgres proof. The local
+ * database exercises serializable mutation, exact response replay, monotonic
+ * checkpoints, terminal exclusivity, and expired-lease recovery. It does not
+ * prove multi-replica durability, authenticated cloud-worker dispatch, or a
+ * live generation-bound GCS read, so V1 remains deliberately non-promotable.
+ */
+export function createCanonicalDistributedMediaIngestLocalPostgresDescriptor(
+  adapterId = 'canonical_media_ingest_local_postgres_v1',
+): CanonicalDistributedMediaIngestPortDescriptor {
+  return descriptorWithHash({
+    schemaVersion: CANONICAL_DISTRIBUTED_MEDIA_INGEST_PORT_VERSION,
+    adapterId,
+    implementationClass: 'database_transaction_adapter',
+    serviceOnly: true,
+    exactInputAndOutputSchemasEnforced: true,
+    prePlanTechnicalIngestAuthority: true,
+    approvedPackageAuthorityReusedOrFabricated: false,
+    serializableTransactionSemanticsExercised: true,
+    durableResponseReplaySemanticsExercised: true,
+    progressCheckpointResumeSemanticsExercised: true,
+    terminalExclusivitySemanticsExercised: true,
+    databaseBackend: 'postgres',
+    distributedDatabaseTransactionVerified: false,
+    multiReplicaDurabilityVerified: false,
+    liveSupabaseOrPostgresCallPerformed: true,
+    cloudDispatchVerified: false,
+    liveGcsObjectBytesRead: false,
+    productionAuthority: false,
+  })
+}
+
 export function canonicalDistributedMediaIngestPersistenceBoundaries() {
   return {
     serviceOnly: true as const,

@@ -57,6 +57,15 @@ The chain provides:
   checkpoints, attempts, outputs, pause/resume/cancel, and expired-lease
   recovery without fabricating an approved edit snapshot or credit
   reservation;
+- an isolated durable large-media technical-ingest authority with one
+  immutable server-derived source registration and the existing fixed seven
+  queue operations: enqueue, claim/start, monotonic progress, completion,
+  failure, cancellation, and expired-attempt finalization. PostgreSQL retains
+  exact idempotency responses, one active lease, restart-safe checkpoints,
+  terminal exclusivity, hash-chained audit lineage, and attempt-level
+  infrastructure cost while keeping GCS byte reads, cloud dispatch, customer
+  pricing, credits, service fees, wallet, billing, and production authority
+  disabled;
 - a forward study-scoped enqueue concurrency fence that serializes plan-version
   allocation across different runs of the same study while preserving exact
   same-request replay; the stress proof starts six runs and their duplicate
@@ -120,7 +129,7 @@ The chain provides:
   planning-authority read/evidence/replay, immutable-baseline, cleanup
   invalidation, evidence/DNA/QA/approval replay, recovery, direct-RPC/table
   denial, and internal-cost tests.
-- a destructive local backup/reset/restore rehearsal covering all 51 reviewed
+- a destructive local backup/reset/restore rehearsal covering all 56 reviewed
   canonical data tables, an exact logical-state digest, immutable approved and
   audit history, exact Apply replay/conflict recovery, and restored tenant RLS.
 

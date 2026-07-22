@@ -1,5 +1,10 @@
 auth.users
 public.approved_plan_snapshots
+public.canonical_media_ingest_attempts
+public.canonical_media_ingest_audit_events
+public.canonical_media_ingest_idempotency_receipts
+public.canonical_media_ingest_jobs
+public.canonical_media_ingest_source_authorities
 public.edit_credit_estimates
 public.edit_execution_authorizations
 public.edit_plan_versions

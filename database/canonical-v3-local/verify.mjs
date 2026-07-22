@@ -22,6 +22,7 @@ const expectedRepositoryFiles = [
   'docs/canonical-edit-reference-mounted-domain-repository-runtime-port-verification-2026-07-21.md',
   'docs/canonical-edit-reference-mounted-long-form-runtime-port-verification-2026-07-21.md',
   'docs/canonical-exact-edit-planning-authority-verification-2026-07-21.md',
+  'docs/canonical-v3-local-distributed-media-ingest-verification-2026-07-22.md',
   'docs/canonical-v3-local-distributed-pre-plan-study-runtime-verification-2026-07-21.md',
   'docs/canonical-v3-local-edit-reference-domain-library-study-verification-2026-07-21.md',
   'docs/canonical-v3-local-edit-reference-evidence-dna-approval-verification-2026-07-21.md',
@@ -36,6 +37,11 @@ const expectedRepositoryFiles = [
   'docs/edit-preferences-mounted-atomic-apply-recovery-2026-07-21.md',
   'package.json',
   'server/app.ts',
+  'server/distributed-media-ingest/canonical-distributed-media-ingest-local-supabase-http-rpc-client.ts',
+  'server/distributed-media-ingest/canonical-distributed-media-ingest-source-registration.ts',
+  'server/distributed-media-ingest/canonical-distributed-media-ingest-state-port.ts',
+  'server/distributed-media-ingest/canonical-distributed-media-ingest-state-rpc-adapter.ts',
+  'server/distributed-media-ingest/index.ts',
   'server/distributed-pre-plan-study/canonical-distributed-pre-plan-study-local-supabase-http-rpc-client.ts',
   'server/distributed-pre-plan-study/canonical-distributed-pre-plan-study-read-projection.ts',
   'server/distributed-pre-plan-study/canonical-distributed-pre-plan-study-source-registration.ts',
@@ -89,6 +95,7 @@ const expectedRepositoryFiles = [
   'server/services/project-edit-brief-local-service.ts',
   'server/services/upload-service.ts',
   'server/services/workspace-access-service.ts',
+  'server/smoke/canonical-distributed-media-ingest-local-postgres-smoke.ts',
   'server/smoke/canonical-distributed-pre-plan-study-local-postgres-smoke.ts',
   'server/smoke/canonical-distributed-pre-plan-study-state-rpc-adapter-smoke.ts',
   'server/smoke/canonical-planning-publication-frontend-client-smoke.ts',
@@ -169,6 +176,7 @@ const expectedMigrations = [
   '202607210017_canonical_application_lifecycle_projection.sql',
   '202607210018_pre_plan_enqueue_study_concurrency_fence.sql',
   '202607210019_edit_reference_idempotency_concurrency_fence.sql',
+  '202607210020_canonical_distributed_media_ingest_rpc.sql',
 ]
 const actualMigrations = readdirSync(join(directory, 'supabase', 'migrations'))
   .filter((name) => name.endsWith('.sql'))
@@ -179,7 +187,7 @@ const expectedRecoveryDataTables = readFileSync(
   join(directory, 'expected-recovery-data-tables.txt'),
   'utf8',
 ).trim().split('\n')
-assert(expectedRecoveryDataTables.length === 51, 'recovery_table_count_invalid')
+assert(expectedRecoveryDataTables.length === 56, 'recovery_table_count_invalid')
 assert(
   equalArrays(expectedRecoveryDataTables, [...expectedRecoveryDataTables].sort()),
   'recovery_table_order_invalid',
@@ -223,6 +231,7 @@ for (const requiredToken of [
   'remoteMutationAllowed',
   'productionAuthority',
   'canonical-distributed-pre-plan-study-local-postgres-smoke.ts',
+  'canonical-distributed-media-ingest-local-postgres-smoke.ts',
   '127.0.0.1:57431',
 ]) assert(recoveryRunner.includes(requiredToken), `recovery_runner_contract_missing:${requiredToken}`)
 for (const forbiddenPattern of [
@@ -276,6 +285,16 @@ for (const requiredToken of [
   'reeditpro_control_pre_plan_study_v1',
   'reeditpro_recover_expired_pre_plan_study_lease_v1',
   'reeditpro_read_pre_plan_study_projection_v1',
+  'reeditpro_register_media_ingest_source_v1',
+  'reeditpro_enqueue_media_ingest_v1',
+  'reeditpro_claim_and_start_media_ingest_v1',
+  'reeditpro_record_media_ingest_progress_v1',
+  'reeditpro_reconcile_media_ingest_completion_v1',
+  'reeditpro_reconcile_media_ingest_failure_v1',
+  'reeditpro_request_media_ingest_cancellation_v1',
+  'reeditpro_finalize_expired_media_ingest_attempt_v1',
+  'canonical_media_ingest_idempotency_receipts',
+  'canonical_media_ingest_audit_events',
   'reeditpro_register_pre_plan_source_v1',
   'exact_edit_brief_versions',
   'reeditpro_save_exact_edit_brief_v1',

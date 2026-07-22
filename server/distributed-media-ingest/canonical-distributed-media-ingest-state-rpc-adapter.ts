@@ -16,6 +16,7 @@ import {
   canonicalDistributedMediaIngestRequestHash,
   canonicalDistributedMediaIngestTimeoutRequestSchema,
   canonicalDistributedMediaIngestTimeoutResponseSchema,
+  createCanonicalDistributedMediaIngestLocalPostgresDescriptor,
   createCanonicalDistributedMediaIngestUnverifiedDatabaseAdapterDescriptor,
   CANONICAL_DISTRIBUTED_MEDIA_INGEST_PORT_VERSION,
   type CanonicalDistributedMediaIngestMutationResponse,
@@ -28,6 +29,8 @@ export const CANONICAL_DISTRIBUTED_MEDIA_INGEST_RPC_REGISTRY_VERSION =
   'canonical-distributed-media-ingest-rpc-registry-v1' as const
 export const CANONICAL_DISTRIBUTED_MEDIA_INGEST_RPC_CONTRACT_FIXTURE_VERSION =
   'canonical-distributed-media-ingest-rpc-contract-fixture-v1' as const
+export const CANONICAL_DISTRIBUTED_MEDIA_INGEST_LOCAL_POSTGRES_CAPABILITY_VERSION =
+  'canonical-distributed-media-ingest-local-postgres-capability-v1' as const
 
 const sha256 = z.string().regex(/^[a-f0-9]{64}$/u)
 const rpcFunctionName = z.string().regex(/^[a-z][a-z0-9_]{15,127}$/u)
@@ -127,6 +130,32 @@ const rpcContractFixtureCapabilityClients = new WeakMap<
   object,
   CanonicalDistributedMediaIngestRpcClient
 >()
+const localPostgresCapabilitySchema = z.object({
+  schemaVersion: z.literal(
+    CANONICAL_DISTRIBUTED_MEDIA_INGEST_LOCAL_POSTGRES_CAPABILITY_VERSION,
+  ),
+  purpose: z.literal('canonical_v3_loopback_postgres_media_ingest_proof'),
+  endpointOrigin: z.literal('http://127.0.0.1:57431'),
+  registryHash: z.literal(CANONICAL_DISTRIBUTED_MEDIA_INGEST_RPC_REGISTRY.registryHash),
+  loopbackOnly: z.literal(true),
+  localPostgresCallAllowed: z.literal(true),
+  remoteDatabaseMutationAllowed: z.literal(false),
+  multiReplicaDurabilityVerified: z.literal(false),
+  cloudDispatchVerified: z.literal(false),
+  liveGcsObjectBytesRead: z.literal(false),
+  productionAuthority: z.literal(false),
+  capabilityHash: sha256,
+}).strict()
+
+export type CanonicalDistributedMediaIngestLocalPostgresCapability = z.infer<
+  typeof localPostgresCapabilitySchema
+>
+
+const localPostgresCapabilityBrands = new WeakSet<object>()
+const localPostgresCapabilityClients = new WeakMap<
+  object,
+  CanonicalDistributedMediaIngestRpcClient
+>()
 
 export function createCanonicalDistributedMediaIngestRpcContractFixtureCapability(
   client: CanonicalDistributedMediaIngestRpcClient,
@@ -160,55 +189,110 @@ export function createCanonicalDistributedMediaIngestRpcContractFixtureAdapter(i
   capability: CanonicalDistributedMediaIngestRpcContractFixtureCapability
 }): CanonicalDistributedMediaIngestTransactionAdapter {
   assertRpcContractFixtureCapability(input.capability, input.client)
-  const functions = CANONICAL_DISTRIBUTED_MEDIA_INGEST_RPC_REGISTRY.functions
-  return Object.freeze({
-    descriptor: createCanonicalDistributedMediaIngestUnverifiedDatabaseAdapterDescriptor(
+  return createRpcAdapter(
+    input.client,
+    createCanonicalDistributedMediaIngestUnverifiedDatabaseAdapterDescriptor(
       'canonical_supabase_media_ingest_rpc_contract_fixture_v1',
     ),
+  )
+}
+
+export function createCanonicalDistributedMediaIngestLocalPostgresCapability(input: {
+  client: CanonicalDistributedMediaIngestRpcClient
+  endpointOrigin: string
+}): CanonicalDistributedMediaIngestLocalPostgresCapability {
+  if (!input.client || typeof input.client.rpc !== 'function') {
+    throw atomicityError(
+      'Local media-ingest Postgres capability requires one injected server-only RPC client.',
+    )
+  }
+  if (input.endpointOrigin !== 'http://127.0.0.1:57431') {
+    throw atomicityError('Local media-ingest Postgres capability is loopback-only.')
+  }
+  const payload = {
+    schemaVersion: CANONICAL_DISTRIBUTED_MEDIA_INGEST_LOCAL_POSTGRES_CAPABILITY_VERSION,
+    purpose: 'canonical_v3_loopback_postgres_media_ingest_proof' as const,
+    endpointOrigin: 'http://127.0.0.1:57431' as const,
+    registryHash: CANONICAL_DISTRIBUTED_MEDIA_INGEST_RPC_REGISTRY.registryHash,
+    loopbackOnly: true as const,
+    localPostgresCallAllowed: true as const,
+    remoteDatabaseMutationAllowed: false as const,
+    multiReplicaDurabilityVerified: false as const,
+    cloudDispatchVerified: false as const,
+    liveGcsObjectBytesRead: false as const,
+    productionAuthority: false as const,
+  }
+  const capability = Object.freeze(localPostgresCapabilitySchema.parse({
+    ...payload,
+    capabilityHash: sha256AuthorityValue(payload),
+  }))
+  localPostgresCapabilityBrands.add(capability)
+  localPostgresCapabilityClients.set(capability, input.client)
+  return capability
+}
+
+export function createCanonicalDistributedMediaIngestLocalPostgresAdapter(input: {
+  client: CanonicalDistributedMediaIngestRpcClient
+  capability: CanonicalDistributedMediaIngestLocalPostgresCapability
+}): CanonicalDistributedMediaIngestTransactionAdapter {
+  assertLocalPostgresCapability(input.capability, input.client)
+  return createRpcAdapter(
+    input.client,
+    createCanonicalDistributedMediaIngestLocalPostgresDescriptor(),
+  )
+}
+
+function createRpcAdapter(
+  client: CanonicalDistributedMediaIngestRpcClient,
+  descriptor: CanonicalDistributedMediaIngestTransactionAdapter['descriptor'],
+): CanonicalDistributedMediaIngestTransactionAdapter {
+  const functions = CANONICAL_DISTRIBUTED_MEDIA_INGEST_RPC_REGISTRY.functions
+  return Object.freeze({
+    descriptor,
     enqueue: (rawInput: unknown) => invokeMutationRpc({
-      client: input.client,
+      client,
       operation: 'enqueue',
       functionName: functions.enqueue,
       requestSchema: canonicalDistributedMediaIngestEnqueueRequestSchema,
       rawInput,
     }),
     claimAndStart: (rawInput: unknown) => invokeMutationRpc({
-      client: input.client,
+      client,
       operation: 'claim_and_start',
       functionName: functions.claimAndStart,
       requestSchema: canonicalDistributedMediaIngestClaimRequestSchema,
       rawInput,
     }),
     recordProgress: (rawInput: unknown) => invokeMutationRpc({
-      client: input.client,
+      client,
       operation: 'record_progress',
       functionName: functions.recordProgress,
       requestSchema: canonicalDistributedMediaIngestProgressRequestSchema,
       rawInput,
     }),
     reconcileCompletion: (rawInput: unknown) => invokeMutationRpc({
-      client: input.client,
+      client,
       operation: 'reconcile_completion',
       functionName: functions.reconcileCompletion,
       requestSchema: canonicalDistributedMediaIngestCompletionRequestSchema,
       rawInput,
     }),
     reconcileFailure: (rawInput: unknown) => invokeMutationRpc({
-      client: input.client,
+      client,
       operation: 'reconcile_failure',
       functionName: functions.reconcileFailure,
       requestSchema: canonicalDistributedMediaIngestFailureRequestSchema,
       rawInput,
     }),
     requestCancellation: (rawInput: unknown) => invokeMutationRpc({
-      client: input.client,
+      client,
       operation: 'request_cancellation',
       functionName: functions.requestCancellation,
       requestSchema: canonicalDistributedMediaIngestCancellationRequestSchema,
       rawInput,
     }),
     finalizeExpiredAttempt: (rawInput: unknown) => invokeTimeoutRpc({
-      client: input.client,
+      client,
       functionName: functions.finalizeExpiredAttempt,
       rawInput,
     }),
@@ -388,6 +472,34 @@ function assertRpcContractFixtureCapability(
   if (capabilityHash !== sha256AuthorityValue(payload)) {
     throw atomicityError('Media-ingest RPC contract-fixture capability checksum is invalid.')
   }
+}
+
+function assertLocalPostgresCapability(
+  capability: CanonicalDistributedMediaIngestLocalPostgresCapability,
+  client: CanonicalDistributedMediaIngestRpcClient,
+): void {
+  if (
+    !localPostgresCapabilityBrands.has(capability) ||
+    localPostgresCapabilityClients.get(capability) !== client
+  ) {
+    throw atomicityError(
+      'Local media-ingest adapter requires its exact process-local Postgres capability.',
+    )
+  }
+  const parsed = localPostgresCapabilitySchema.parse(capability)
+  const { capabilityHash, ...payload } = parsed
+  if (capabilityHash !== sha256AuthorityValue(payload)) {
+    throw atomicityError('Local media-ingest Postgres capability checksum is invalid.')
+  }
+}
+
+export function assertCanonicalDistributedMediaIngestLocalPostgresCapabilityForClient(
+  input: {
+    capability: CanonicalDistributedMediaIngestLocalPostgresCapability
+    client: CanonicalDistributedMediaIngestRpcClient
+  },
+): void {
+  assertLocalPostgresCapability(input.capability, input.client)
 }
 
 function sanitizedRpcError(functionName: string, error: unknown): ApiError {

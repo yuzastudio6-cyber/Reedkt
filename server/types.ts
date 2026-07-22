@@ -18,6 +18,7 @@ import type {
 import type { PlanningPreferenceApplicationAuthorityPort } from './services/planning-preference-application-authority-port'
 import type { CanonicalMotionStudioStorytellingProductionAuthorityReaderPort } from './services/canonical-motion-studio-storytelling-production-authority-service'
 import type { CanonicalVisualCalibrationReferenceFrameReaderPort } from './services/canonical-visual-calibration-reference-frame-reader-port'
+import type { CanonicalProviderAttemptRuntimeRecordSourcePort } from './services/canonical-provider-attempt-runtime-record-port'
 import type { PlanningExactEditPreferenceAuthorityPort } from './services/planning-exact-edit-preference-authority-port'
 import type {
   CanonicalDurableUploadTargetTransactionAdapter,
@@ -79,6 +80,8 @@ export interface RuntimeState {
     CanonicalMotionStudioStorytellingProductionAuthorityReaderPort
   canonicalVisualCalibrationReferenceFrameReaderPort?:
     CanonicalVisualCalibrationReferenceFrameReaderPort
+  canonicalProviderAttemptRuntimeRecordSourcePort?:
+    CanonicalProviderAttemptRuntimeRecordSourcePort
   editReferenceExactEditApplyRuntimePort?: EditReferenceExactEditApplyRuntimePort
   editReferenceApplicationPreparationRuntimePort?: EditReferenceApplicationPreparationRuntimePort
   editReferenceLongFormStudyRuntimePort?: EditReferenceLongFormStudyRuntimePort
@@ -117,6 +120,8 @@ export interface ServiceContext {
     CanonicalMotionStudioStorytellingProductionAuthorityReaderPort
   canonicalVisualCalibrationReferenceFrameReaderPort?:
     CanonicalVisualCalibrationReferenceFrameReaderPort
+  canonicalProviderAttemptRuntimeRecordSourcePort?:
+    CanonicalProviderAttemptRuntimeRecordSourcePort
   editReferenceExactEditApplyRuntimePort?: EditReferenceExactEditApplyRuntimePort
   editReferenceApplicationPreparationRuntimePort?: EditReferenceApplicationPreparationRuntimePort
   editReferenceLongFormStudyRuntimePort?: EditReferenceLongFormStudyRuntimePort

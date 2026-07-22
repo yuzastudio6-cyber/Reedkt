@@ -261,11 +261,11 @@
     },
     {
       "path": "package.json",
-      "sha256": "ef3ab7addca6cbeef3b97b6c87dd2f8cb06eb6a6c0c2bbb3001164e665de668d"
+      "sha256": "ae5aa43822e12cc79cd18f07f25871befa933221767b74cb2dfa6e51efbcdc5c"
     },
     {
       "path": "server/app.ts",
-      "sha256": "229dda1d68214a24c08337807d2a45dfbc752b01928fa92c0fb7089337e15043"
+      "sha256": "a61df2be896d7c12a9beddc4fffceadc50e5b9b4d415310488795e0614e53367"
     },
     {
       "path": "server/distributed-media-ingest/canonical-distributed-media-ingest-local-supabase-http-rpc-client.ts",
@@ -409,7 +409,7 @@
     },
     {
       "path": "server/routes/route-helpers.ts",
-      "sha256": "526b8add8da9ca03f2ec4614316a902963a40b328051d80ce69c49530f306641"
+      "sha256": "fd3f74bf2e26c3aeeb15157d0899c1e8083136d1add0d3d0fc3b1c6f4708d2fb"
     },
     {
       "path": "server/services/canonical-planning-handoff-service.ts",
@@ -597,7 +597,7 @@
     },
     {
       "path": "server/types.ts",
-      "sha256": "5bf7cf2a6d5cc8931e00661a94450d2956434d1d3e13251d81a4e892545aaba0"
+      "sha256": "7336cf7844b885eff036b108e76f8a4c13196b4b6d9e120202cf65254e115206"
     },
     {
       "path": "server/validation/canonical-exact-edit-planning-authority-schemas.ts",

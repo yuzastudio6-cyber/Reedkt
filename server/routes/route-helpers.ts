@@ -38,6 +38,8 @@ export function getServiceContext(request: Request): ServiceContext {
       runtimeRequest.runtime.canonicalMotionStudioStorytellingProductionAuthorityReaderPort,
     canonicalVisualCalibrationReferenceFrameReaderPort:
       runtimeRequest.runtime.canonicalVisualCalibrationReferenceFrameReaderPort,
+    canonicalProviderAttemptRuntimeRecordSourcePort:
+      runtimeRequest.runtime.canonicalProviderAttemptRuntimeRecordSourcePort,
     editReferenceExactEditApplyRuntimePort:
       runtimeRequest.runtime.editReferenceExactEditApplyRuntimePort,
     editReferenceApplicationPreparationRuntimePort:

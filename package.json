@@ -59,6 +59,7 @@
     "smoke:canonical-private-package-work-queue": "tsx server/smoke/canonical-private-package-work-queue-smoke.ts",
     "smoke:canonical-private-provider-work-lifecycle": "tsx server/smoke/canonical-private-provider-work-lifecycle-smoke.ts",
     "smoke:canonical-provider-attempt-runtime-record": "tsx server/smoke/canonical-provider-attempt-runtime-record-port-smoke.ts",
+    "smoke:canonical-provider-attempt-runtime-consumer": "tsx server/smoke/canonical-provider-attempt-runtime-consumer-smoke.ts",
     "smoke:canonical-private-multi-output-provider-work-lifecycle": "tsx server/smoke/canonical-private-multi-output-provider-work-lifecycle-smoke.ts",
     "smoke:canonical-private-synchronized-foley-provider-lifecycle": "tsx server/smoke/canonical-private-synchronized-foley-provider-lifecycle-smoke.ts",
     "smoke:canonical-private-visual-calibration-provider-lifecycle": "tsx server/smoke/canonical-private-visual-calibration-provider-lifecycle-smoke.ts",

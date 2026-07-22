@@ -229,6 +229,7 @@ import {
 import {
   inspectEditReferenceLongFormSource,
   type EditReferenceLongFormSourceInspector,
+  type EditReferenceLongFormStorageObject,
 } from '../edit-references/edit-reference-long-form-source-inspector'
 import { synthesizeEditReferencePreferenceDNA } from '../edit-references/edit-reference-dna-synthesis'
 import { runEditReferenceDNAQA } from '../edit-references/edit-reference-dna-qa'
@@ -253,6 +254,7 @@ import {
 import { buildEditReferencePreferenceDnaStructuredContext } from './edit-reference-preference-dna-reasoning-service'
 import {
   resolveEditReferenceLongFormStudyRuntimePort,
+  type EditReferenceLongFormStudySourceBinding,
   type EditReferenceLongFormStudyRuntimePort,
 } from './edit-reference-production-long-form-runtime-port'
 import { instrumentEditReferenceService } from './edit-reference-observability-service'
@@ -4090,6 +4092,11 @@ export function createEditReferenceService(
           scope: scope(normalized.workspaceId),
           plan,
           run: preparedRun,
+          sourceBinding: longFormStudySourceBinding({
+            sourceAuthority: 'preference_asset',
+            sourceAssetId: currentAsset.id,
+            storage,
+          }),
         })
         persisted = { plan: created.plan, run: created.run }
       }
@@ -5452,6 +5459,21 @@ function validateLongFormStorageBinding(input: {
       'The selected reference must remain bound to its exact finalized private video, verified size, and checksum before study can start.',
       409,
     )
+  }
+}
+
+function longFormStudySourceBinding(input: {
+  readonly sourceAuthority: EditReferenceLongFormStudySourceBinding['sourceAuthority']
+  readonly sourceAssetId: string
+  readonly storage: EditReferenceLongFormStorageObject
+}): EditReferenceLongFormStudySourceBinding | undefined {
+  if (!input.storage.generation || !input.storage.etag) return undefined
+  return {
+    sourceAuthority: input.sourceAuthority,
+    sourceAssetId: input.sourceAssetId,
+    sourceStorageObjectId: input.storage.objectPath,
+    sourceStorageGeneration: input.storage.generation,
+    sourceStorageEtag: input.storage.etag,
   }
 }
 

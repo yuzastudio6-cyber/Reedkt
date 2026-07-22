@@ -51,6 +51,16 @@ The chain provides:
   checkpoints, attempts, outputs, pause/resume/cancel, and expired-lease
   recovery without fabricating an approved edit snapshot or credit
   reservation;
+- `reeditpro_read_pre_plan_study_projection_v1` as the authenticated,
+  server-signed, read-only projection used to reconstruct the existing
+  high-level Edit Reference study plan and run after a process restart. It is
+  not an eighth mutation operation and exposes no lease credential;
+- a local-only bridge from the existing Edit Reference long-form runtime port
+  to the canonical distributed pre-plan state authority. The bridge compiles
+  a six-hour source into 36 bounded chunks and 292 dependency work items,
+  persists the two verified ingest/probe preflight results, recovers an exact
+  lost claim response, and reads pause/resume/cancel state back from
+  PostgreSQL. Worker dispatch and private-object reads remain blocked;
 - forced RLS with authenticated read scopes and RPC-only mutation;
 - process-branded, loopback-only TypeScript adapters that run SQL receipts and
   planning reads through the frozen V6 backend validators;
@@ -69,7 +79,7 @@ The chain provides:
   planning-authority read/evidence/replay, immutable-baseline, cleanup
   invalidation, evidence/DNA/QA/approval replay, recovery, direct-RPC/table
   denial, and internal-cost tests.
-- a destructive local backup/reset/restore rehearsal covering all 46 reviewed
+- a destructive local backup/reset/restore rehearsal covering all 49 reviewed
   canonical data tables, an exact logical-state digest, immutable approved and
   audit history, exact Apply replay/conflict recovery, and restored tenant RLS.
 

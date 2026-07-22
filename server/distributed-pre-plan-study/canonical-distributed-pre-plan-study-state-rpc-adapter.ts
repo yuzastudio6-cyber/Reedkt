@@ -556,6 +556,15 @@ function assertLocalPostgresCapability(
   }
 }
 
+export function assertCanonicalDistributedPrePlanStudyLocalPostgresCapabilityForClient(
+  input: {
+    readonly capability: CanonicalDistributedPrePlanStudyLocalPostgresCapability
+    readonly client: CanonicalDistributedPrePlanStudyRpcClient
+  },
+): void {
+  assertLocalPostgresCapability(input.capability, input.client)
+}
+
 function invalidRpcResponse(functionName: string, issueCount: number): ApiError {
   return new ApiError(
     'IDEMPOTENCY_ATOMICITY_REQUIRED',

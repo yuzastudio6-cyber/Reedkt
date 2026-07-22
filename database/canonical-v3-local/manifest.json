@@ -11,7 +11,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "3247493ecfa62f77f67818c58fe5053b6ddb2d83138f5def5d33ac3aff9261f4"
+      "sha256": "1d13f19a6dd91a2faf5b0d4bd8bab6ae0b9c1474a6984dda1144d2aaa2099ac2"
     },
     {
       "path": "expected-recovery-data-tables.txt",
@@ -23,7 +23,7 @@
     },
     {
       "path": "run-local-verification.sh",
-      "sha256": "a1be03ca7b9744378271774d61e92d544ffe8eb40f8d299cb5626f7b1985237f"
+      "sha256": "fd65301ed47ab97d725707b053470ac10965cc88f996b8e71e411414d8d78265"
     },
     {
       "path": "setup-local-auth-users.ts",
@@ -75,7 +75,11 @@
     },
     {
       "path": "supabase/migrations/202607210010_canonical_distributed_pre_plan_study_rpc.sql",
-      "sha256": "f94bfcf88998434c011052a0f05f436ac5c9c55e7acbc5f9bab2efb406f0faba"
+      "sha256": "674812a160ff567c171171e4a6576f19cb9c7bf6656b5a2b6d08cbeff7e40b64"
+    },
+    {
+      "path": "supabase/migrations/202607210011_canonical_pre_plan_study_read_projection.sql",
+      "sha256": "3e5a9d00e7e141783df3942f557f9a96dcafc27375862f7a7273f7f868e2dd11"
     },
     {
       "path": "tests/001_two_user_two_workspace_rls.sql",
@@ -111,7 +115,7 @@
     },
     {
       "path": "tests/009_recovery_restore_assertions.sql",
-      "sha256": "d45f45935169a2c4361eff5fb236b596194fdfde2172f27b697a948568e1ed69"
+      "sha256": "87ba3cc09279dfed6c7b6b4e987708abdbec0e4f9351438515a0d7dd6acee65a"
     },
     {
       "path": "tests/010_edit_reference_domain_library_study_rpcs.sql",
@@ -127,11 +131,11 @@
     },
     {
       "path": "tests/013_canonical_distributed_pre_plan_study_rpc_postconditions.sql",
-      "sha256": "d86c073ace71bcbde4d618056b9045c2539b3d085cf9dcf7231ff7a6aa47a9b0"
+      "sha256": "d131efb3ecaf1ece2ed3f33e11cf63e79594944056473da4c5699e727de53717"
     },
     {
       "path": "tests/_fixture.sql",
-      "sha256": "2afa4c3a6c79a51ad9620dd29b17c7585c5910a5e9e3642c0c88771093e6bdc7"
+      "sha256": "293b582bf3f5539fed0f0673fe48c70e464e4570f58cdd34d6ad29fd14e24816"
     },
     {
       "path": "tests/_recovery_seed.sql",
@@ -143,7 +147,7 @@
     },
     {
       "path": "verify.mjs",
-      "sha256": "a5a042937c8d5d21b62beae871657d62f2e14add132610d75b7408b6cfa8e415"
+      "sha256": "d5429499e91280473fa3e2843257ad519a91f9669dbe71b12a12db385ea3af70"
     }
   ],
   "repositoryFiles": [
@@ -176,6 +180,10 @@
       "sha256": "e6ae15c455533baa2e3b57bf693abc0ce9e8ce385ac8cb90db4583d24775e407"
     },
     {
+      "path": "docs/canonical-v3-local-edit-reference-long-form-runtime-bridge-verification-2026-07-21.md",
+      "sha256": "26f3dbe8e5c303dbf7796a996c23fd65b299fe7abe7fb9bcb550babbc63eaa7a"
+    },
+    {
       "path": "docs/canonical-v3-local-edit-reference-recovery-verification-2026-07-21.md",
       "sha256": "13eb4a4c720caff95910eedfd11941b0d28593a04acb5d63e4c6cc7de3102b01"
     },
@@ -201,19 +209,31 @@
     },
     {
       "path": "server/distributed-pre-plan-study/canonical-distributed-pre-plan-study-local-supabase-http-rpc-client.ts",
-      "sha256": "686abff2074edb3ae905d4bc1cf4cb396cb20ab490197ad5d72f166caf2f9555"
+      "sha256": "6df6374373c81870fc5dd968073de2f4232eff0c3e2973ace347bbdb9f74b63d"
+    },
+    {
+      "path": "server/distributed-pre-plan-study/canonical-distributed-pre-plan-study-read-projection.ts",
+      "sha256": "b872a3c04a0bcd28a3096f2c1eb3710bae4d15ba0acab54d0768ec87497862ac"
+    },
+    {
+      "path": "server/distributed-pre-plan-study/canonical-distributed-pre-plan-study-state-conformance.ts",
+      "sha256": "645a80b0e43c19f9146b52946715833206b61ed2e475cc03711e8850c0c54685"
     },
     {
       "path": "server/distributed-pre-plan-study/canonical-distributed-pre-plan-study-state-port.ts",
-      "sha256": "0c0532c653caa1943a484c5d19d69a8f59dcb9f3c013af1171d9cca4c9710c16"
+      "sha256": "edfbd4528380c0317fe96c452a7b143d59b0c4df0d9ad6f201792c20712b6001"
     },
     {
       "path": "server/distributed-pre-plan-study/canonical-distributed-pre-plan-study-state-rpc-adapter.ts",
-      "sha256": "2bb3c87cd35cf6df1ae31f5590e7081e90ff4aaadb525b7b09f84a47a6bda20a"
+      "sha256": "ca30bf17ec3e54b023cd6263382a2323aeea74ee4cfdffa84ea4e25cee2da5e0"
+    },
+    {
+      "path": "server/distributed-pre-plan-study/in-memory-canonical-distributed-pre-plan-study-fixture.ts",
+      "sha256": "1f8681992622a7ab5fe40bf2d63c6ff41bfec288d9ac809da94722d9840b924f"
     },
     {
       "path": "server/distributed-pre-plan-study/index.ts",
-      "sha256": "53f3282aff244eba492be06b7e3b42683e76bedcbc518bf519dd3363a7e6f919"
+      "sha256": "1ae57c4edfd96b62c439b7165662fc342a25042802accc2b21729ad2cbf5ca63"
     },
     {
       "path": "server/edit-references/canonical-exact-edit-planning-authority-boundary.ts",
@@ -248,6 +268,18 @@
       "sha256": "773f7ea7a5a58a465a831f393b357c92d257d8bf6d314df2b98ccc1cf1e31d14"
     },
     {
+      "path": "server/edit-references/edit-reference-long-form-source-inspector.ts",
+      "sha256": "356f1f9af1cc65346a05631b9379690a5d772f360f6d2b72292e6f26059dc202"
+    },
+    {
+      "path": "server/edit-references/edit-reference-long-form-study-contract.ts",
+      "sha256": "ee82a70830cd5a79eda96b06b1448f12484a059d12e2b190c0c147320149fec0"
+    },
+    {
+      "path": "server/edit-references/edit-reference-long-form-study-scheduler.ts",
+      "sha256": "ce85dad3b18e797063c26211322570f189f81ea89c9ce0c743d15401b87ca637"
+    },
+    {
       "path": "server/edit-references/edit-reference-production-application-preparation-boundary.ts",
       "sha256": "97b984f77d89f031fb8bf38f955d54e1edbd7e13f8bf1a199a36a2425f317261"
     },
@@ -262,6 +294,10 @@
     {
       "path": "server/edit-references/edit-reference-repository.ts",
       "sha256": "2af3858a3c59dbe4a0d9eb72c81f82b7658bfc8fb49913aaa29d350bc7d9c474"
+    },
+    {
+      "path": "server/edit-references/private-edit-reference-long-form-study-repository.ts",
+      "sha256": "37d34a0889e4db2990d069cf77f46fa0f94d3049236beb0065d3aca67fc3561a"
     },
     {
       "path": "server/edit-references/private-edit-reference-repository.ts",
@@ -288,20 +324,24 @@
       "sha256": "2ef1af03c070eae4fb2d444695e99ee24e5f526a303ef2415f598aa3b9eb79ec"
     },
     {
+      "path": "server/services/edit-reference-canonical-v3-local-long-form-runtime-port.ts",
+      "sha256": "05b0944addaab7d8367a02e939de5cbcebebd94d72fe7db2b2d970495629183b"
+    },
+    {
       "path": "server/services/edit-reference-domain-repository-runtime-port.ts",
       "sha256": "f11911f9d182b1667bc64f1ac250dd2ec3a1f1d6ef52758994f605fc41629704"
     },
     {
       "path": "server/services/edit-reference-production-long-form-runtime-port.ts",
-      "sha256": "6cab8aa9082e62d2167787f5daed5a1b1d074c6ccce9d592eff4486b95927202"
+      "sha256": "15cd4704471a7200b2a8b76412ad214ae2d41a6ae7e9d765b9a84cb78d2ce904"
     },
     {
       "path": "server/services/edit-reference-service.ts",
-      "sha256": "5fa648a35fafd6a001701ae708be6207a667ae539b6a78e30eb973ada2c75ce8"
+      "sha256": "8010b4ffdba5287cd7666f77a0e982075b12be21afd686e512f378bfa1a3f3d5"
     },
     {
       "path": "server/services/edit-reference-target-video-understanding-service.ts",
-      "sha256": "8005af86c545bef8a35d8d25c3ae81a28b6a87f93f67c6c78c5209d904bfeaa2"
+      "sha256": "45bae026760578db20d1b18319f0d699c099b433577e875d3fc62a058c72f65f"
     },
     {
       "path": "server/services/planning-exact-edit-preference-authority-port.ts",
@@ -316,12 +356,16 @@
       "sha256": "dfaf76bee23587280f45859f1fc9500c82240ab2b71eeace53b9f012572554cb"
     },
     {
-      "path": "server/smoke/canonical-planning-publication-frontend-client-smoke.ts",
-      "sha256": "bed96ddc5779b696bbae1a620f041fb9e5eee5fc0dca62fe387254b40a1d710f"
+      "path": "server/smoke/canonical-distributed-pre-plan-study-local-postgres-smoke.ts",
+      "sha256": "24c5848999f2b967318340d2f0cc46dc758a9daa7bdffc19a70f0d5ae8d42846"
     },
     {
-      "path": "server/smoke/canonical-distributed-pre-plan-study-local-postgres-smoke.ts",
-      "sha256": "31fc235a289ce55d5e0778771334aacd5c2bd7164ff0c7f8f9bbd290ceb3056e"
+      "path": "server/smoke/canonical-distributed-pre-plan-study-state-rpc-adapter-smoke.ts",
+      "sha256": "0b395ed5c46344896cbb2b681e93d3b5e767624ce7cc161637ef36d82f60a7a2"
+    },
+    {
+      "path": "server/smoke/canonical-planning-publication-frontend-client-smoke.ts",
+      "sha256": "bed96ddc5779b696bbae1a620f041fb9e5eee5fc0dca62fe387254b40a1d710f"
     },
     {
       "path": "server/smoke/canonical-private-tool-dispatch-authority-smoke.ts",
@@ -338,6 +382,10 @@
     {
       "path": "server/smoke/edit-planning-authority-smoke.ts",
       "sha256": "846162374e60be764a34de248a9b9befd5c40a5f2cd7c44bc1d3a507bee5d4f8"
+    },
+    {
+      "path": "server/smoke/edit-reference-canonical-v3-local-long-form-runtime-port-smoke.ts",
+      "sha256": "2ca6065b88fc49c7ddb86ebb48c104a676179e8f62eaf2c573eb3453f9cab693"
     },
     {
       "path": "server/smoke/edit-reference-local-supabase-application-preparation-smoke.ts",
@@ -362,6 +410,10 @@
     {
       "path": "server/smoke/edit-reference-mounted-long-form-runtime-port-smoke.ts",
       "sha256": "099dbc90b17565556e699115b20d498f39b33212f62db0ad2b9d4b13aab7ade2"
+    },
+    {
+      "path": "server/smoke/edit-reference-production-long-form-runtime-port-smoke.ts",
+      "sha256": "f36024b2319cc0cf6df12f49b1a1f4b76481becb9f297ab61cdd0dfedceeba3b"
     },
     {
       "path": "server/smoke/edit-reference-production-readiness-smoke.ts",

@@ -12,7 +12,11 @@ export const CANONICAL_DISTRIBUTED_PRE_PLAN_STUDY_RESPONSE_VERSION =
   'canonical-distributed-pre-plan-study-state-response-v1' as const
 export const CANONICAL_DISTRIBUTED_PRE_PLAN_STUDY_RECOVERY_RESPONSE_VERSION =
   'canonical-distributed-pre-plan-study-recovery-response-v1' as const
-export const CANONICAL_DISTRIBUTED_PRE_PLAN_STUDY_MAX_WORK_ITEMS = 256
+// The high-level study plan produces 292 bounded items for a six-hour source
+// when caption OCR and audio analysis are both required. Keep the durable
+// state ceiling comfortably above that reviewed hours-long workload while a
+// future plan version addresses multi-day graph compaction separately.
+export const CANONICAL_DISTRIBUTED_PRE_PLAN_STUDY_MAX_WORK_ITEMS = 4_096
 
 const identity = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:@/-]*$/u)
@@ -36,12 +40,14 @@ export const canonicalDistributedPrePlanStudyIdentitySchema = z.object({
   editReferenceId: identity,
   studySessionId: identity,
   sourceAssetId: identity,
+  sourcePrivateMediaArtifactId: identity,
   sourceStorageObjectId: identity,
   sourceStorageObjectIdentityHash: sha256,
   sourceChecksumSha256: sha256,
   sourceSizeBytes: positiveSafeInteger.max(1024 ** 4),
   sourceDurationMilliseconds: positiveSafeInteger.max(30 * 24 * 60 * 60 * 1_000),
   sourceMimeType: z.string().trim().min(1).max(160),
+  sourceHasAudio: z.boolean(),
   identityHash: sha256,
 }).strict()
 
@@ -107,6 +113,8 @@ export const canonicalDistributedPrePlanStudySeedSchema = z.object({
   planId: identity,
   planVersion: identity,
   planDigestSha256: sha256,
+  planCreatedAt: timestamp,
+  captionOcrIncluded: z.boolean(),
   identity: canonicalDistributedPrePlanStudyIdentitySchema,
   studyUsageApprovalId: identity,
   studyUsageApprovalDigestSha256: sha256,
@@ -220,6 +228,43 @@ export const canonicalDistributedPrePlanStudyPrivateOutputSchema = z.object({
   }
 })
 
+export const canonicalDistributedPrePlanStudyDomainWorkResultSchema = z.object({
+  schemaVersion: z.literal('canonical-distributed-pre-plan-study-domain-work-result-v1'),
+  outputDigestSha256: sha256,
+  observedWallClockMs: positiveSafeInteger.max(7 * 24 * 60 * 60 * 1_000),
+  runtimeSource: z.enum(['verified_local', 'verified_live', 'verified_mock']),
+  completionAuthority: z.enum(['authoritative', 'controlled_mock']),
+  completionAttestation: z.object({
+    schemaVersion: z.literal('edit-reference-long-form-study-completion-attestation-v2'),
+    coverageQaWorkItemId: identity,
+    coverageQaOutputDigestSha256: sha256,
+    requiredOutputManifestDigestSha256: sha256,
+    requiredWorkItemCount: positiveSafeInteger.max(
+      CANONICAL_DISTRIBUTED_PRE_PLAN_STUDY_MAX_WORK_ITEMS,
+    ),
+    verifiedOutputRecordCount: positiveSafeInteger.max(
+      CANONICAL_DISTRIBUTED_PRE_PLAN_STUDY_MAX_WORK_ITEMS,
+    ),
+    temporalCoverageRatio: z.literal(1),
+    chunkStageCoverageRatio: z.literal(1),
+    continuousAudioCoverageRatio: z.union([z.literal(0), z.literal(1)]),
+    everyRequiredOutputVerified: z.literal(true),
+    everySemanticRuntimeAuthoritative: z.literal(true),
+    everyRequiredOutputCostAuthoritySatisfied: z.literal(true),
+    coverageQaPassed: z.literal(true),
+    finalizedAt: timestamp,
+  }).strict().nullable(),
+  resultHash: sha256,
+}).strict().superRefine((result, context) => {
+  if (
+    (result.runtimeSource === 'verified_mock') !==
+      (result.completionAuthority === 'controlled_mock')
+    || result.resultHash !== canonicalDistributedPrePlanStudyDomainWorkResultHash(result)
+  ) {
+    context.addIssue({ code: 'custom', message: 'Study domain work result is invalid.' })
+  }
+})
+
 export const canonicalDistributedPrePlanStudyAttemptCostEvidenceSchema = z.object({
   schemaVersion: z.literal('canonical-distributed-pre-plan-study-attempt-cost-v1'),
   evidenceStatus: z.enum(['final', 'provisional_provider_reconciliation_required']),
@@ -262,11 +307,19 @@ export const canonicalDistributedPrePlanStudyAttemptCostEvidenceSchema = z.objec
 
 export const canonicalDistributedPrePlanStudyCompletionRequestSchema = z.object({
   ...attemptRequestBase,
-  outputs: z.array(canonicalDistributedPrePlanStudyPrivateOutputSchema).min(1).max(32),
+  outputs: z.array(canonicalDistributedPrePlanStudyPrivateOutputSchema).max(32),
+  domainWorkResult: canonicalDistributedPrePlanStudyDomainWorkResultSchema.optional(),
   costEvidence: canonicalDistributedPrePlanStudyAttemptCostEvidenceSchema,
   completionEvidenceHash: sha256,
   completedAt: timestamp,
-}).strict()
+}).strict().superRefine((request, context) => {
+  if (request.outputs.length < 1 && request.domainWorkResult === undefined) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Study completion requires private output or a domain work result.',
+    })
+  }
+})
 
 export const canonicalDistributedPrePlanStudyFailureCategorySchema = z.enum([
   'provider_error',
@@ -290,7 +343,7 @@ export const canonicalDistributedPrePlanStudyFailureRequestSchema = z.object({
 
 export const canonicalDistributedPrePlanStudyControlRequestSchema = z.object({
   ...requestBase,
-  action: z.enum(['pause', 'resume', 'cancel']),
+  action: z.enum(['pause', 'resume', 'cancel', 'recover']),
   expectedRunRevision: positiveSafeInteger,
   controllerIdentityEvidenceHash: sha256,
   requestedAt: timestamp,
@@ -350,6 +403,7 @@ export const canonicalDistributedPrePlanStudyTerminalSchema = z.object({
   terminalEvidenceHash: sha256,
   costEvidence: canonicalDistributedPrePlanStudyAttemptCostEvidenceSchema,
   outputs: z.array(canonicalDistributedPrePlanStudyPrivateOutputSchema).max(32),
+  domainWorkResult: canonicalDistributedPrePlanStudyDomainWorkResultSchema.optional(),
   failureCategory: canonicalDistributedPrePlanStudyFailureCategorySchema.nullable(),
   sanitizedFailureCode: safeCode.nullable(),
   queueDisposition: z.enum([
@@ -368,14 +422,17 @@ export const canonicalDistributedPrePlanStudyTerminalSchema = z.object({
   const unknown = terminal.unknownOutcomeReconciliationRequired
   if (
     (completion && (
-      terminal.outputs.length < 1
+      (terminal.outputs.length < 1 && terminal.domainWorkResult === undefined)
       || terminal.failureCategory !== null
       || terminal.sanitizedFailureCode !== null
       || terminal.queueDisposition !== 'completed'
       || terminal.costEvidence.evidenceStatus !== 'final'
       || unknown
     ))
-    || (!completion && terminal.outputs.length !== 0)
+    || (!completion && (
+      terminal.outputs.length !== 0
+      || terminal.domainWorkResult !== undefined
+    ))
     || (terminal.terminalKind === 'failure' && (
       terminal.failureCategory === null
       || terminal.sanitizedFailureCode === null
@@ -429,7 +486,7 @@ export const canonicalDistributedPrePlanStudyWorkItemViewSchema = z.object({
   maximumAttempts: z.number().int().positive().max(10),
   remainingAttempts: safeInteger.max(10),
   latestCheckpoint: canonicalDistributedPrePlanStudyCheckpointSchema.nullable(),
-  completedOutputHashes: z.array(sha256).max(32),
+  completedOutputHashes: z.array(sha256).max(33),
   cumulativeInternalCostMicros: moneyMicros,
   activeAttemptId: identity.nullable(),
   blockerCode: safeCode.nullable(),
@@ -467,6 +524,8 @@ export const canonicalDistributedPrePlanStudyRunViewSchema = z.object({
   pauseRequestedAt: timestamp.nullable(),
   cancelRequestedAt: timestamp.nullable(),
   recoveryGeneration: safeInteger,
+  createdAt: timestamp,
+  updatedAt: timestamp,
   automaticRetryStarted: z.literal(false),
   browserSessionRequiredForCompletion: z.literal(false),
   wholeStudyTimeoutApplied: z.literal(false),
@@ -482,6 +541,7 @@ export const canonicalDistributedPrePlanStudyRunViewSchema = z.object({
       && run.cancelRequestedAt === null)
     || (run.cancelRequestedAt !== null
       && !['cancellation_requested', 'cancelled', 'needs_operator_review'].includes(run.state))
+    || Date.parse(run.updatedAt) < Date.parse(run.createdAt)
     || run.runHash !== canonicalDistributedPrePlanStudyRunViewHash(run)
   ) context.addIssue({ code: 'custom', message: 'Study run view is inconsistent.' })
 })
@@ -979,6 +1039,17 @@ export function canonicalDistributedPrePlanStudyOutputHash(
   void _outputHash
   return sha256AuthorityValue({
     domain: 'canonical_distributed_pre_plan_study_private_output_v1',
+    payload,
+  })
+}
+
+export function canonicalDistributedPrePlanStudyDomainWorkResultHash(
+  input: Record<string, unknown>,
+): string {
+  const { resultHash: _resultHash, ...payload } = input
+  void _resultHash
+  return sha256AuthorityValue({
+    domain: 'canonical_distributed_pre_plan_study_domain_work_result_v1',
     payload,
   })
 }

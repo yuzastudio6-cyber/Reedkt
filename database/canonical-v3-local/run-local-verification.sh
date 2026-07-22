@@ -77,6 +77,8 @@ npx --no-install tsx "${SCRIPT_DIR}/setup-local-auth-users.ts"
   -f "${SCRIPT_DIR}/tests/_fixture.sql"
 npx --no-install tsx \
   "${REPOSITORY_ROOT}/server/smoke/canonical-distributed-pre-plan-study-local-postgres-smoke.ts"
+npx --no-install tsx \
+  "${REPOSITORY_ROOT}/server/smoke/edit-reference-canonical-v3-local-long-form-runtime-port-smoke.ts"
 "${PSQL_BIN}" "${DATABASE_URL}" -X -q -v ON_ERROR_STOP=1 \
   -f "${SCRIPT_DIR}/tests/013_canonical_distributed_pre_plan_study_rpc_postconditions.sql"
 npx --no-install tsx \

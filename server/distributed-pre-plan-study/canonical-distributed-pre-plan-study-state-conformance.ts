@@ -308,6 +308,7 @@ export async function runCanonicalDistributedPrePlanStudyConformance(): Promise<
   )
   record('provider_unknown_outcome_retains_cost_and_blocks_resubmission')
 
+  await exerciseOperatorAuthorizedAttemptRecovery(record)
   await exerciseDeterministicTimeoutRecovery(record)
   await exerciseProviderTimeoutRecovery(record)
   await exerciseCancellation(record)
@@ -413,6 +414,77 @@ async function exerciseDeterministicTimeoutRecovery(
   record('expired_deterministic_lease_is_reconciled_once_before_explicit_checkpoint_resume')
 }
 
+async function exerciseOperatorAuthorizedAttemptRecovery(
+  record: (value: string) => void,
+): Promise<void> {
+  const seed = createSeed('operator-recovery', ['deterministic'])
+  const fixture = createInMemoryCanonicalDistributedPrePlanStudyFixture(
+    'operator_recovery_fixture_v1',
+  )
+  const port = createCanonicalDistributedPrePlanStudyStatePort(fixture.adapter)
+  const base = '2026-07-20T12:30:00.000Z'
+  await port.enqueue(enqueueRequest(seed, 'idem-operator-enqueue-0001', base))
+  const firstClaim = await port.claimAndStart(claimRequest(
+    seed,
+    'media_worker',
+    'idem-operator-claim-0001',
+    plus(base, 1_000),
+  ))
+  const firstFailure = await port.fail(failureRequest({
+    seed,
+    claim: firstClaim.response,
+    leaseCredential: required(firstClaim.transientLeaseCredential),
+    key: 'idem-operator-failure-0001',
+    failedAt: plus(base, 10_000),
+    category: 'execution_timeout',
+    status: 'final',
+  }))
+  assert.equal(firstFailure.response.run.state, 'running')
+  assert.equal(firstFailure.response.workItem?.state, 'retry_wait')
+  const secondClaim = await port.claimAndStart(claimRequest(
+    seed,
+    'media_worker',
+    'idem-operator-claim-0002',
+    plus(base, 11_000),
+  ))
+  const secondFailure = await port.fail(failureRequest({
+    seed,
+    claim: secondClaim.response,
+    leaseCredential: required(secondClaim.transientLeaseCredential),
+    key: 'idem-operator-failure-0002',
+    failedAt: plus(base, 20_000),
+    category: 'execution_timeout',
+    status: 'final',
+  }))
+  assert.equal(secondFailure.response.run.state, 'needs_operator_review')
+  await expectApiError(
+    () => port.control(controlRequest({
+      seed,
+      key: 'idem-operator-wrong-controller-0001',
+      action: 'recover',
+      expectedRevision: secondFailure.response.run.revision,
+      at: plus(base, 21_000),
+      controllerIdentityEvidenceHash: hash('wrong-controller'),
+    })),
+    'INTERNAL_SERVICE_AUTH_INVALID',
+  )
+  const request = controlRequest({
+    seed,
+    key: 'idem-operator-recover-0001',
+    action: 'recover',
+    expectedRevision: secondFailure.response.run.revision,
+    at: plus(base, 22_000),
+  })
+  const recovered = await port.control(request)
+  const replay = await port.control(request)
+  assert.equal(recovered.response.run.state, 'queued')
+  assert.equal(recovered.response.run.recoveryGeneration, 1)
+  assert.equal(fixture.inspect(seed.runId).workItems[0]?.maximumAttempts, 3)
+  assert.equal(replay.idempotencyStatus, 'exact_replay')
+  assert.deepEqual(replay.response, recovered.response)
+  record('operator_authority_adds_one_bounded_attempt_with_exact_replay')
+}
+
 async function exerciseCancellation(record: (value: string) => void): Promise<void> {
   const seed = createSeed('cancel', ['deterministic'])
   const fixture = createInMemoryCanonicalDistributedPrePlanStudyFixture('cancel_fixture_v1')
@@ -510,12 +582,14 @@ function createSeed(
     editReferenceId: `reference-${suffix}`,
     studySessionId: `study-${suffix}`,
     sourceAssetId: `source-asset-${suffix}`,
+    sourcePrivateMediaArtifactId: `private-media-${suffix}`,
     sourceStorageObjectId: `source-object-${suffix}`,
     sourceStorageObjectIdentityHash: hash(`source-object-identity-${suffix}`),
     sourceChecksumSha256: hash(`source-checksum-${suffix}`),
     sourceSizeBytes: 50 * 1024 ** 3,
     sourceDurationMilliseconds: 6 * 60 * 60 * 1_000,
     sourceMimeType: 'video/mp4',
+    sourceHasAudio: true,
   }
   const identity = {
     ...identityWithoutHash,
@@ -539,6 +613,8 @@ function createSeed(
     planId: `study-plan-${suffix}`,
     planVersion: 'v1',
     planDigestSha256: hash(`study-plan-${suffix}`),
+    planCreatedAt: '2026-07-20T12:00:00.000Z',
+    captionOcrIncluded: true,
     identity,
     studyUsageApprovalId: `study-usage-approval-${suffix}`,
     studyUsageApprovalDigestSha256: hash(`study-usage-approval-${suffix}`),
@@ -714,7 +790,7 @@ function failureRequest(input: {
   leaseCredential: string
   key: string
   failedAt: string
-  category: 'provider_unknown_outcome' | 'cancelled'
+  category: 'provider_unknown_outcome' | 'execution_timeout' | 'cancelled'
   status: CanonicalDistributedPrePlanStudyAttemptCostEvidence['evidenceStatus']
 }) {
   const attempt = required(input.claim.attempt?.attemptStart)
@@ -735,7 +811,9 @@ function failureRequest(input: {
     failureCategory: input.category,
     sanitizedFailureCode: input.category === 'cancelled'
       ? 'STUDY_CANCELLED'
-      : 'PROVIDER_OUTCOME_UNKNOWN',
+      : input.category === 'execution_timeout'
+        ? 'DETERMINISTIC_TOOL_TIMEOUT'
+        : 'PROVIDER_OUTCOME_UNKNOWN',
     failureEvidenceHash: hash(`failure-${input.key}`),
     failedAt: input.failedAt,
   }))
@@ -744,7 +822,7 @@ function failureRequest(input: {
 function controlRequest(input: {
   seed: CanonicalDistributedPrePlanStudySeed
   key: string
-  action: 'pause' | 'resume' | 'cancel'
+  action: 'pause' | 'resume' | 'cancel' | 'recover'
   expectedRevision: number
   at: string
   controllerIdentityEvidenceHash?: string

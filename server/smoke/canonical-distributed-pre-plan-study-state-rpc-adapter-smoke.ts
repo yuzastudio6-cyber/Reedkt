@@ -325,12 +325,14 @@ function createSeed(suffix: string): CanonicalDistributedPrePlanStudySeed {
     editReferenceId: `reference-${suffix}`,
     studySessionId: `study-${suffix}`,
     sourceAssetId: `source-asset-${suffix}`,
+    sourcePrivateMediaArtifactId: `private-media-${suffix}`,
     sourceStorageObjectId: `source-object-${suffix}`,
     sourceStorageObjectIdentityHash: hash(`source-object-identity-${suffix}`),
     sourceChecksumSha256: hash(`source-checksum-${suffix}`),
     sourceSizeBytes: 50 * 1024 ** 3,
     sourceDurationMilliseconds: 6 * 60 * 60 * 1_000,
     sourceMimeType: 'video/mp4',
+    sourceHasAudio: true,
   }
   const identity = {
     ...identityWithoutHash,
@@ -368,6 +370,8 @@ function createSeed(suffix: string): CanonicalDistributedPrePlanStudySeed {
     planId: `study-plan-${suffix}`,
     planVersion: 'v1',
     planDigestSha256: hash(`study-plan-${suffix}`),
+    planCreatedAt: '2026-07-20T12:00:00.000Z',
+    captionOcrIncluded: true,
     identity,
     studyUsageApprovalId: `study-usage-approval-${suffix}`,
     studyUsageApprovalDigestSha256: hash(`study-usage-approval-${suffix}`),

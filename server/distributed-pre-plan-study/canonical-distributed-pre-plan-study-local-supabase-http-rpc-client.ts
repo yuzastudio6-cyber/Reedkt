@@ -9,14 +9,24 @@ import {
   type CanonicalDistributedPrePlanStudyRpcClient,
   type CanonicalDistributedPrePlanStudyRpcClientResult,
 } from './canonical-distributed-pre-plan-study-state-rpc-adapter'
+import {
+  CANONICAL_DISTRIBUTED_PRE_PLAN_STUDY_READ_PROJECTION_FUNCTION,
+} from './canonical-distributed-pre-plan-study-read-projection'
 
 export const CANONICAL_DISTRIBUTED_PRE_PLAN_STUDY_LOCAL_HTTP_CLIENT_VERSION =
   'canonical-distributed-pre-plan-study-local-http-client-v1' as const
 
 const allowedFunctions = new Set<string>(
-  Object.values(CANONICAL_DISTRIBUTED_PRE_PLAN_STUDY_RPC_REGISTRY.functions),
+  [
+    ...Object.values(CANONICAL_DISTRIBUTED_PRE_PLAN_STUDY_RPC_REGISTRY.functions),
+    CANONICAL_DISTRIBUTED_PRE_PLAN_STUDY_READ_PROJECTION_FUNCTION,
+  ],
 )
 const MAX_RESPONSE_BYTES = 4 * 1024 * 1024
+// A six-hour reference compiles hundreds of durable work items. Local reset
+// proof must bound control-plane RPCs without applying a short web-request
+// timeout that rejects a valid hours-long study during atomic checkpointing.
+const LOCAL_HTTP_RPC_TIMEOUT_MS = 2 * 60_000
 
 export interface CanonicalDistributedPrePlanStudyLocalHttpClient
   extends CanonicalDistributedPrePlanStudyRpcClient {
@@ -110,7 +120,7 @@ export function createCanonicalDistributedPrePlanStudyLocalHttpClient(input: {
               'x-reeditpro-local-pre-plan-authority': localInternalSignature,
             },
             body: JSON.stringify(parameters),
-            signal: AbortSignal.timeout(20_000),
+            signal: AbortSignal.timeout(LOCAL_HTTP_RPC_TIMEOUT_MS),
           },
         )
       } catch {

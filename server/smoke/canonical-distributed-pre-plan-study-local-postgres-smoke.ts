@@ -27,6 +27,9 @@ import {
   assertCanonicalDistributedPrePlanStudyLocalHttpClientIsNotProduction,
 } from '../distributed-pre-plan-study/canonical-distributed-pre-plan-study-local-supabase-http-rpc-client'
 import {
+  createCanonicalDistributedPrePlanStudyReadProjectionPort,
+} from '../distributed-pre-plan-study/canonical-distributed-pre-plan-study-read-projection'
+import {
   CANONICAL_DISTRIBUTED_PRE_PLAN_STUDY_RPC_REGISTRY,
   createCanonicalDistributedPrePlanStudyLocalPostgresAdapter,
   createCanonicalDistributedPrePlanStudyLocalPostgresCapability,
@@ -72,6 +75,10 @@ const adapterA = createCanonicalDistributedPrePlanStudyLocalPostgresAdapter({
   capability: capabilityA,
 })
 const portA = createCanonicalDistributedPrePlanStudyStatePort(adapterA)
+const readPortA = createCanonicalDistributedPrePlanStudyReadProjectionPort({
+  client: clientA,
+  capability: capabilityA,
+})
 
 assert.equal(adapterA.descriptor.databaseBackend, 'postgres')
 assert.equal(adapterA.descriptor.liveSupabaseOrPostgresCallPerformed, true)
@@ -227,6 +234,18 @@ assert.equal(completed.response.workItem?.state, 'completed')
 assert.equal(completed.response.attempt?.terminal?.costEvidence.totalInternalCostMicros, '800')
 assert.equal(completedReplay.idempotencyStatus, 'exact_replay')
 assert.deepEqual(completedReplay.response, completed.response)
+const completedProjection = await readPortA.read(readProjectionRequest(
+  completeSeed.runId,
+  'local-complete-read-projection-0001',
+))
+assert.ok(completedProjection)
+assert.equal(completedProjection.seed.seedHash, completeSeed.seedHash)
+assert.equal(completedProjection.run.state, 'completed')
+assert.equal(completedProjection.workItems.length, completeSeed.workItems.length)
+assert.equal(
+  completedProjection.workItems[0]?.latestAttempt?.terminal?.outputs[0]?.outputHash,
+  completed.response.attempt?.terminal?.outputs[0]?.outputHash,
+)
 await assert.rejects(
   () => portA.claimAndStart(claimRequestValue),
   isAtomicityError,
@@ -253,6 +272,66 @@ assert.equal(
   failed.response.attempt?.terminal?.costEvidence.evidenceStatus,
   'provisional_provider_reconciliation_required',
 )
+
+const operatorRecoverySeed = createSeed('local-operator-recovery', 'deterministic_tool')
+await portA.enqueue(enqueueRequest(
+  operatorRecoverySeed,
+  'local-operator-recovery-enqueue-0001',
+  base,
+))
+const operatorClaimOne = await portA.claimAndStart(claimRequest(
+  operatorRecoverySeed,
+  'local-operator-recovery-claim-0001',
+  plus(base, 1_000),
+))
+const operatorFailureOne = await portA.fail(failureRequest({
+  seed: operatorRecoverySeed,
+  claim: operatorClaimOne.response,
+  credential: required(operatorClaimOne.transientLeaseCredential),
+  key: 'local-operator-recovery-failure-0001',
+  at: plus(base, 20_000),
+  category: 'execution_timeout',
+}))
+assert.equal(operatorFailureOne.response.run.state, 'running')
+assert.equal(operatorFailureOne.response.workItem?.state, 'retry_wait')
+const operatorClaimTwo = await portA.claimAndStart(claimRequest(
+  operatorRecoverySeed,
+  'local-operator-recovery-claim-0002',
+  plus(base, 21_000),
+))
+const operatorFailureTwo = await portA.fail(failureRequest({
+  seed: operatorRecoverySeed,
+  claim: operatorClaimTwo.response,
+  credential: required(operatorClaimTwo.transientLeaseCredential),
+  key: 'local-operator-recovery-failure-0002',
+  at: plus(base, 40_000),
+  category: 'execution_timeout',
+}))
+assert.equal(operatorFailureTwo.response.run.state, 'needs_operator_review')
+assert.equal(operatorFailureTwo.response.workItem?.maximumAttempts, 2)
+const operatorRecovered = await portA.control(controlRequest({
+  seed: operatorRecoverySeed,
+  key: 'local-operator-recovery-control-0001',
+  action: 'recover',
+  revision: operatorFailureTwo.response.run.revision,
+  at: plus(base, 41_000),
+}))
+const operatorRecoveredReplay = await portA.control(controlRequest({
+  seed: operatorRecoverySeed,
+  key: 'local-operator-recovery-control-0001',
+  action: 'recover',
+  revision: operatorFailureTwo.response.run.revision,
+  at: plus(base, 41_000),
+}))
+assert.equal(operatorRecovered.response.run.state, 'queued')
+assert.equal(operatorRecovered.response.run.recoveryGeneration, 1)
+assert.equal(operatorRecoveredReplay.idempotencyStatus, 'exact_replay')
+assert.deepEqual(operatorRecoveredReplay.response, operatorRecovered.response)
+const operatorRecoveryProjection = await readPortA.read(readProjectionRequest(
+  operatorRecoverySeed.runId,
+  'local-operator-recovery-read-0001',
+))
+assert.equal(operatorRecoveryProjection?.workItems[0]?.view.maximumAttempts, 3)
 
 const controlSeed = createSeed('local-control', 'deterministic_tool')
 const controlEnqueue = await portA.enqueue(enqueueRequest(
@@ -354,6 +433,10 @@ const portB = createCanonicalDistributedPrePlanStudyStatePort(
     capability: capabilityB,
   }),
 )
+const readPortB = createCanonicalDistributedPrePlanStudyReadProjectionPort({
+  client: clientB,
+  capability: capabilityB,
+})
 await assert.rejects(
   () => portB.enqueue(enqueueRequest(
     createSeed('tenant-denial', 'deterministic_tool'),
@@ -362,6 +445,17 @@ await assert.rejects(
   )),
   isAtomicityError,
 )
+await assert.rejects(
+  () => readPortB.read(readProjectionRequest(
+    completeSeed.runId,
+    'local-cross-tenant-read-projection-0001',
+  )),
+  isAtomicityError,
+)
+assert.equal(await readPortA.read(readProjectionRequest(
+  'local-run-not-present',
+  'local-missing-read-projection-0001',
+)), undefined)
 
 console.log(JSON.stringify({
   ok: true,
@@ -374,6 +468,10 @@ console.log(JSON.stringify({
   providerUnknownOutcomeBlocked: true,
   pauseResumeCancelVerified: true,
   deterministicExpiredLeaseRecoveryVerified: true,
+  operatorAuthorizedAttemptRecoveryVerified: true,
+  immutableReadProjectionVerified: true,
+  missingReadProjectionReturnsUndefined: true,
+  crossWorkspaceReadDenied: true,
   crossWorkspaceMutationDenied: true,
   browserHeldTokenWithoutInternalSignatureDenied: true,
   idempotencyKeySignatureTamperDenied: true,
@@ -401,6 +499,7 @@ function createSeed(
     editReferenceId: 'aaaaaaaa-3000-4000-8000-000000000001',
     studySessionId: 'aaaaaaaa-4000-4000-8000-000000000001',
     sourceAssetId,
+    sourcePrivateMediaArtifactId: `local-private-media-${suffix}`,
     sourceStorageObjectId,
     sourceStorageObjectIdentityHash: sha256AuthorityValue({
       domain: 'canonical_v3_local_preference_asset_storage_identity_v1',
@@ -417,6 +516,7 @@ function createSeed(
     sourceSizeBytes: 250 * 1024 ** 3,
     sourceDurationMilliseconds: 6 * 60 * 60 * 1_000,
     sourceMimeType: 'video/mp4',
+    sourceHasAudio: true,
   }
   const identity = {
     ...identityWithoutHash,
@@ -462,6 +562,8 @@ function createSeed(
     planId: `local-plan-${suffix}`,
     planVersion: 'v1',
     planDigestSha256: hash(`plan-${suffix}`),
+    planCreatedAt: '2026-07-20T12:00:00.000Z',
+    captionOcrIncluded: true,
     identity,
     studyUsageApprovalId: `local-study-usage-${suffix}`,
     studyUsageApprovalDigestSha256: hash(`usage-approval-${suffix}`),
@@ -603,7 +705,7 @@ function failureRequest(input: {
   credential: string
   key: string
   at: string
-  category: 'provider_unknown_outcome' | 'cancelled'
+  category: 'provider_unknown_outcome' | 'execution_timeout' | 'cancelled'
 }) {
   const attempt = required(input.claim.attempt?.attemptStart)
   return canonicalDistributedPrePlanStudyFailureRequestSchema.parse(withHash('fail', {
@@ -625,7 +727,9 @@ function failureRequest(input: {
     failureCategory: input.category,
     sanitizedFailureCode: input.category === 'cancelled'
       ? 'CONTROLLER_CANCELLED'
-      : 'PROVIDER_RESULT_UNKNOWN',
+      : input.category === 'execution_timeout'
+        ? 'DETERMINISTIC_TOOL_TIMEOUT'
+        : 'PROVIDER_RESULT_UNKNOWN',
     failureEvidenceHash: hash(`failure-${input.key}`),
     failedAt: input.at,
   }))
@@ -634,7 +738,7 @@ function failureRequest(input: {
 function controlRequest(input: {
   seed: CanonicalDistributedPrePlanStudySeed
   key: string
-  action: 'pause' | 'resume' | 'cancel'
+  action: 'pause' | 'resume' | 'cancel' | 'recover'
   revision: number
   at: string
 }) {
@@ -660,6 +764,21 @@ function recoveryRequest(seed: CanonicalDistributedPrePlanStudySeed, key: string
       observedAt: at,
     },
   ))
+}
+
+function readProjectionRequest(runId: string, idempotencyKey: string) {
+  const draft = {
+    runId,
+    idempotencyKey,
+    requestedAt: new Date().toISOString(),
+  }
+  return {
+    ...draft,
+    requestHash: canonicalDistributedPrePlanStudyRequestHash(
+      'read_projection',
+      draft,
+    ),
+  }
 }
 
 function costEvidence(

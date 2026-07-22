@@ -594,6 +594,8 @@ begin
     'cancelRequestedAt', case when run_row.cancel_requested_at is null then null
       else public.reeditpro_iso_timestamp(run_row.cancel_requested_at) end,
     'recoveryGeneration', run_row.recovery_generation,
+    'createdAt', public.reeditpro_iso_timestamp(run_row.created_at),
+    'updatedAt', public.reeditpro_iso_timestamp(run_row.updated_at),
     'automaticRetryStarted', false,
     'browserSessionRequiredForCompletion', false,
     'wholeStudyTimeoutApplied', false
@@ -870,6 +872,7 @@ declare
   maximum_cost bigint;
   work_budget bigint;
   source_row public.preference_assets%rowtype;
+  plan_created_at timestamptz;
 begin
   perform public.reeditpro_pre_plan_assert_request(
     p_contract_version, 'enqueue', p_request
@@ -881,8 +884,9 @@ begin
     reference_uuid := (identity_value->>'editReferenceId')::uuid;
     study_uuid := (identity_value->>'studySessionId')::uuid;
     source_asset_uuid := (identity_value->>'sourceAssetId')::uuid;
+    plan_created_at := (seed->>'planCreatedAt')::timestamptz;
   exception when others then
-    raise exception using errcode = '22023', message = 'PRE_PLAN_LOCAL_IDENTITY_UUID_REQUIRED';
+    raise exception using errcode = '22023', message = 'PRE_PLAN_LOCAL_IDENTITY_OR_PLAN_TIME_INVALID';
   end;
   if auth.uid() is null
     or auth.uid()::text <> identity_value->>'ownerUserId'
@@ -902,9 +906,11 @@ begin
     or p_request->>'studyIdentityHash' <> identity_value->>'identityHash'
     or p_request->>'runId' <> seed->>'runId'
     or seed->>'currency' <> 'USD'
+    or plan_created_at is null
+    or jsonb_typeof(seed->'captionOcrIncluded') <> 'boolean'
     or coalesce((seed->>'wholeStudyTimeoutApplied')::boolean, true)
     or coalesce((seed->>'browserSessionRequiredForCompletion')::boolean, true)
-    or jsonb_array_length(coalesce(seed->'workItems', '[]'::jsonb)) not between 1 and 256 then
+    or jsonb_array_length(coalesce(seed->'workItems', '[]'::jsonb)) not between 1 and 4096 then
     raise exception using errcode = '22023', message = 'PRE_PLAN_SEED_AUTHORITY_INVALID';
   end if;
   select * into strict source_row
@@ -921,13 +927,19 @@ begin
     or coalesce(identity_value->>'sourceSizeBytes', '') !~ '^[1-9][0-9]*$'
     or coalesce(identity_value->>'sourceDurationMilliseconds', '')
       !~ '^[1-9][0-9]*$'
+    or coalesce(identity_value->>'sourcePrivateMediaArtifactId', '')
+      !~ '^[A-Za-z0-9][A-Za-z0-9._:@/-]{0,239}$'
+    or jsonb_typeof(identity_value->'sourceHasAudio') <> 'boolean'
     or coalesce(source_row.metadata_json->>'sizeBytes', '') !~ '^[1-9][0-9]*$'
-    or coalesce(source_row.metadata_json->>'durationSeconds', '')
+    or coalesce(source_row.metadata_json->>'durationMilliseconds', '')
       !~ '^[1-9][0-9]*$'
+    or jsonb_typeof(source_row.metadata_json->'hasAudio') <> 'boolean'
     or (source_row.metadata_json->>'sizeBytes')::bigint <>
       (identity_value->>'sourceSizeBytes')::bigint
-    or (source_row.metadata_json->>'durationSeconds')::bigint * 1000 <>
+    or (source_row.metadata_json->>'durationMilliseconds')::bigint <>
       (identity_value->>'sourceDurationMilliseconds')::bigint
+    or coalesce((source_row.metadata_json->>'hasAudio')::boolean, false) <>
+      (identity_value->>'sourceHasAudio')::boolean
     or identity_value->>'sourceStorageObjectIdentityHash' <>
       public.reeditpro_pre_plan_hash(
         'canonical_v3_local_preference_asset_storage_identity_v1',
@@ -964,7 +976,7 @@ begin
       'canonical_distributed_pre_plan_study_work_item_v1',
       work_value - 'workItemHash'
     )
-      or (work_value->>'sequence')::integer not between 1 and 256
+      or (work_value->>'sequence')::integer not between 1 and 4096
       or (work_value->>'maximumAttempts')::integer not between 1 and 10
       or (work_value->>'leaseDurationMs')::integer not between 30000 and 900000
       or (work_value->>'attemptDeadlineDurationMs')::integer <
@@ -1519,7 +1531,11 @@ begin
     or completed_at_value <= attempt_row.heartbeat_at
     or completed_at_value >= attempt_row.lease_expires_at
     or completed_at_value > attempt_row.attempt_deadline_at
-    or jsonb_array_length(coalesce(p_request->'outputs', '[]'::jsonb)) not between 1 and 32
+    or jsonb_array_length(coalesce(p_request->'outputs', '[]'::jsonb)) > 32
+    or (
+      jsonb_array_length(coalesce(p_request->'outputs', '[]'::jsonb)) = 0
+      and not (p_request ? 'domainWorkResult')
+    )
     or (select count(distinct value->>'outputId') from jsonb_array_elements(p_request->'outputs'))
       <> jsonb_array_length(p_request->'outputs') then
     raise exception using errcode = '40001', message = 'PRE_PLAN_COMPLETION_AUTHORITY_CHANGED';
@@ -1539,9 +1555,40 @@ begin
       raise exception using errcode = '22023', message = 'PRE_PLAN_OUTPUT_AUTHORITY_INVALID';
     end if;
   end loop;
-  select array_agg(value->>'outputHash' order by ordinality)
+  if p_request ? 'domainWorkResult' then
+    if p_request->'domainWorkResult'->>'resultHash' <>
+      public.reeditpro_pre_plan_hash(
+        'canonical_distributed_pre_plan_study_domain_work_result_v1',
+        (p_request->'domainWorkResult') - 'resultHash'
+      )
+      or coalesce((p_request->'domainWorkResult'->>'observedWallClockMs')::bigint, 0) <= 0
+      or (p_request->'domainWorkResult'->>'runtimeSource' = 'verified_mock') <>
+        (p_request->'domainWorkResult'->>'completionAuthority' = 'controlled_mock')
+      or (
+        coalesce(
+          jsonb_typeof(p_request->'domainWorkResult'->'completionAttestation'),
+          'null'::text
+        ) <> 'null'::text
+        and (
+          work_row.stage_id <> 'coverage_qa'
+          or p_request->'domainWorkResult'->'completionAttestation'->>'coverageQaWorkItemId'
+            <> work_row.external_work_item_id
+          or p_request->'domainWorkResult'->'completionAttestation'->>'coverageQaOutputDigestSha256'
+            <> p_request->'domainWorkResult'->>'outputDigestSha256'
+        )
+      ) then
+      raise exception using errcode = '22023', message = 'PRE_PLAN_DOMAIN_WORK_RESULT_INVALID';
+    end if;
+  end if;
+  select array_agg(output_hash order by ordering)
   into output_hashes
-  from jsonb_array_elements(p_request->'outputs') with ordinality;
+  from (
+    select value->>'outputHash' as output_hash, ordinality::bigint as ordering
+    from jsonb_array_elements(p_request->'outputs') with ordinality
+    union all
+    select p_request->'domainWorkResult'->>'resultHash', 1000000::bigint
+    where p_request ? 'domainWorkResult'
+  ) completion_hashes;
   terminal_without_hash := jsonb_build_object(
     'schemaVersion', 'canonical-distributed-pre-plan-study-attempt-terminal-v1',
     'terminalKind', 'completion',
@@ -1555,6 +1602,11 @@ begin
     'unknownOutcomeReconciliationRequired', false,
     'terminalAt', public.reeditpro_iso_timestamp(completed_at_value)
   );
+  if p_request ? 'domainWorkResult' then
+    terminal_without_hash := terminal_without_hash || jsonb_build_object(
+      'domainWorkResult', p_request->'domainWorkResult'
+    );
+  end if;
   terminal_value := terminal_without_hash || jsonb_build_object(
     'terminalHash', public.reeditpro_pre_plan_hash(
       'canonical_distributed_pre_plan_study_terminal_v1', terminal_without_hash
@@ -1846,6 +1898,31 @@ begin
       set status = case when active_count > 0 then 'cancellation_requested'
         else 'cancelled' end,
           cancel_requested_at = requested_at_value,
+          pause_requested_at = null
+      where id = run_row.id;
+  elsif p_request->>'action' = 'recover' then
+    if run_row.status <> 'needs_operator_review' then
+      raise exception using errcode = '40001', message = 'PRE_PLAN_OPERATOR_RECOVERY_INVALID';
+    end if;
+    select count(*) into active_count
+    from public.preference_long_form_study_work_items
+    where study_run_id = run_row.id
+      and status = 'blocked'
+      and blocker_code = 'STUDY_ATTEMPTS_EXHAUSTED'
+      and maximum_attempts < 10;
+    if active_count < 1 then
+      raise exception using errcode = '40001', message = 'PRE_PLAN_OPERATOR_RECOVERY_UNAVAILABLE';
+    end if;
+    update public.preference_long_form_study_work_items
+      set status = 'queued', blocker_code = null,
+          maximum_attempts = maximum_attempts + 1,
+          updated_at = clock_timestamp()
+      where study_run_id = run_row.id
+        and status = 'blocked'
+        and blocker_code = 'STUDY_ATTEMPTS_EXHAUSTED'
+        and maximum_attempts < 10;
+    update public.preference_long_form_study_runs
+      set status = 'queued', recovery_generation = recovery_generation + 1,
           pause_requested_at = null
       where id = run_row.id;
   else

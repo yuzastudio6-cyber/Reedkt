@@ -24,6 +24,8 @@ declare
     'public.reeditpro_pre_plan_escrow_secret()',
     'public.reeditpro_pre_plan_replay(uuid,text,text,text,boolean)'
   ];
+  read_signature text :=
+    'public.reeditpro_read_pre_plan_study_projection_v1(text,jsonb)';
   table_name text;
   signature text;
   operation_count integer;
@@ -67,6 +69,11 @@ begin
       raise exception 'PRE_PLAN_HELPER_RPC_EXPOSED_%', signature;
     end if;
   end loop;
+  if has_function_privilege('anon', read_signature, 'EXECUTE')
+    or has_function_privilege('service_role', read_signature, 'EXECUTE')
+    or not has_function_privilege('authenticated', read_signature, 'EXECUTE') then
+    raise exception 'PRE_PLAN_READ_PROJECTION_ROLE_BOUNDARY_INVALID';
+  end if;
   if (
     select procedure.provolatile
     from pg_catalog.pg_proc procedure
@@ -139,6 +146,51 @@ begin
       and output.storage_etag is null
   ) then
     raise exception 'PRE_PLAN_TERMINAL_OUTPUT_COST_TRANSACTION_MISSING';
+  end if;
+  if not exists (
+    select 1
+    from public.preference_long_form_study_attempts attempt
+    join public.preference_long_form_study_work_items work
+      on work.id = attempt.study_work_item_id
+    join public.preference_long_form_study_runs run
+      on run.id = attempt.study_run_id
+    where run.external_run_id like 'canonical-v3-local-six-hour-%'
+      and work.stage_id in ('ingest_integrity', 'media_probe')
+      and attempt.status = 'completed'
+      and attempt.internal_cost_micros = 0
+      and attempt.terminal_json->'outputs' = '[]'::jsonb
+      and attempt.terminal_json->'domainWorkResult'->>'runtimeSource' = 'verified_local'
+      and attempt.terminal_json->'domainWorkResult'->>'completionAuthority'
+        = 'authoritative'
+  ) then
+    raise exception 'PRE_PLAN_DOMAIN_PREFLIGHT_RESULT_NOT_ATOMIC';
+  end if;
+  if not exists (
+    select 1
+    from public.preference_long_form_study_runs run
+    join public.preference_long_form_study_plans plan on plan.id = run.study_plan_id
+    where run.external_run_id like 'canonical-v3-local-six-hour-%'
+      and plan.source_duration_milliseconds = 21600000
+      and (
+        select count(*) from public.preference_long_form_study_work_items work
+        where work.study_run_id = run.id
+      ) = 292
+  ) then
+    raise exception 'PRE_PLAN_SIX_HOUR_WORK_GRAPH_NOT_PERSISTED';
+  end if;
+  if not exists (
+    select 1
+    from public.preference_long_form_study_runs run
+    join public.preference_long_form_study_work_items work
+      on work.study_run_id = run.id
+    where run.external_run_id = 'local-run-local-operator-recovery'
+      and run.status = 'queued'
+      and run.recovery_generation = 1
+      and work.status = 'queued'
+      and work.maximum_attempts = 3
+      and work.attempt_count = 2
+  ) then
+    raise exception 'PRE_PLAN_OPERATOR_ATTEMPT_RECOVERY_NOT_PERSISTED';
   end if;
   if exists (
     select 1

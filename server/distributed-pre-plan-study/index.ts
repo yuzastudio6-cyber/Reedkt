@@ -1,5 +1,6 @@
 export * from './canonical-distributed-pre-plan-study-state-port'
 export * from './canonical-distributed-pre-plan-study-state-rpc-adapter'
 export * from './canonical-distributed-pre-plan-study-local-supabase-http-rpc-client'
+export * from './canonical-distributed-pre-plan-study-read-projection'
 export * from './canonical-distributed-pre-plan-study-state-conformance'
 export * from './in-memory-canonical-distributed-pre-plan-study-fixture'

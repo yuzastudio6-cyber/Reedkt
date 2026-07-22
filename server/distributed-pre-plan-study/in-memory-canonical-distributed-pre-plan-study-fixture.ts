@@ -60,6 +60,7 @@ type MutableRunState = CanonicalDistributedPrePlanStudyRunView['state']
 
 interface MutableWorkItem {
   readonly seed: CanonicalDistributedPrePlanStudyWorkItemSeed
+  maximumAttempts: number
   state: MutableWorkState
   attemptCount: number
   latestCheckpoint: CanonicalDistributedPrePlanStudyCheckpoint | null
@@ -94,6 +95,8 @@ interface MutableStudyAggregate {
   pauseRequestedAt: string | null
   cancelRequestedAt: string | null
   recoveryGeneration: number
+  readonly createdAt: string
+  updatedAt: string
   readonly workItems: Map<string, MutableWorkItem>
   readonly attempts: Map<string, MutableAttempt>
   readonly idempotency: Map<string, StoredMutation>
@@ -151,8 +154,11 @@ export function createInMemoryCanonicalDistributedPrePlanStudyFixture(
         pauseRequestedAt: null,
         cancelRequestedAt: null,
         recoveryGeneration: 0,
+        createdAt: input.requestedAt,
+        updatedAt: input.requestedAt,
         workItems: new Map(seed.workItems.map((workItem) => [workItem.workItemId, {
           seed: workItem,
+          maximumAttempts: workItem.maximumAttempts,
           state: 'queued' as const,
           attemptCount: 0,
           latestCheckpoint: null,
@@ -187,7 +193,7 @@ export function createInMemoryCanonicalDistributedPrePlanStudyFixture(
           { automaticRetryStarted: false },
         )
       }
-      if (workItem.attemptCount >= workItem.seed.maximumAttempts) {
+      if (workItem.attemptCount >= workItem.maximumAttempts) {
         throw new ApiError(
           'JOB_DEPENDENCY_NOT_READY',
           'Study work exhausted its immutable attempt allowance.',
@@ -356,6 +362,9 @@ export function createInMemoryCanonicalDistributedPrePlanStudyFixture(
         terminalEvidenceHash: input.completionEvidenceHash,
         costEvidence,
         outputs,
+        ...(input.domainWorkResult
+          ? { domainWorkResult: structuredClone(input.domainWorkResult) }
+          : {}),
         failureCategory: null,
         sanitizedFailureCode: null,
         queueDisposition: 'completed' as const,
@@ -371,7 +380,10 @@ export function createInMemoryCanonicalDistributedPrePlanStudyFixture(
       attempt.heartbeatAt = input.completedAt
       workItem.state = 'completed'
       workItem.activeAttemptId = null
-      workItem.completedOutputHashes = outputs.map((output) => output.outputHash)
+      workItem.completedOutputHashes = [
+        ...outputs.map((output) => output.outputHash),
+        ...(input.domainWorkResult ? [input.domainWorkResult.resultHash] : []),
+      ]
       workItem.cumulativeInternalCostMicros += BigInt(costEvidence.totalInternalCostMicros)
       if (aggregate.state === 'cancellation_requested') {
         cancelRemainingWork(aggregate)
@@ -424,7 +436,7 @@ export function createInMemoryCanonicalDistributedPrePlanStudyFixture(
           'Study cancellation terminal does not match controller cancellation authority.',
         )
       }
-      const attemptsExhausted = workItem.attemptCount >= workItem.seed.maximumAttempts
+      const attemptsExhausted = workItem.attemptCount >= workItem.maximumAttempts
       const queueDisposition = unknownOutcome
         ? 'blocked_unknown_outcome' as const
         : cancelled
@@ -506,6 +518,25 @@ export function createInMemoryCanonicalDistributedPrePlanStudyFixture(
         }
         aggregate.state = hasActiveAttempts(aggregate) ? 'running' : 'queued'
         aggregate.pauseRequestedAt = null
+      } else if (input.action === 'recover') {
+        if (aggregate.state !== 'needs_operator_review') {
+          throw invalidTransition('Only a study awaiting operator review can be recovered.')
+        }
+        const recoverable = [...aggregate.workItems.values()].filter((workItem) => (
+          workItem.state === 'blocked'
+          && workItem.blockerCode === 'STUDY_ATTEMPTS_EXHAUSTED'
+          && workItem.maximumAttempts < 10
+        ))
+        if (recoverable.length < 1) {
+          throw invalidTransition('Study recovery found no safely recoverable work.')
+        }
+        for (const workItem of recoverable) {
+          workItem.maximumAttempts += 1
+          workItem.state = 'queued'
+          workItem.blockerCode = null
+        }
+        aggregate.recoveryGeneration += 1
+        aggregate.state = 'queued'
       } else {
         if (['completed', 'cancelled', 'needs_operator_review'].includes(aggregate.state)) {
           throw invalidTransition('Study cannot cancel from its current state.')
@@ -550,7 +581,7 @@ export function createInMemoryCanonicalDistributedPrePlanStudyFixture(
           ? 'provisional_provider_reconciliation_required'
           : 'final',
       })
-      const attemptsExhausted = workItem.attemptCount >= workItem.seed.maximumAttempts
+      const attemptsExhausted = workItem.attemptCount >= workItem.maximumAttempts
       const queueDisposition = providerExecution
         ? 'blocked_unknown_outcome' as const
         : cancellationRequested
@@ -729,6 +760,7 @@ function commitMutation(
 ): CanonicalDistributedPrePlanStudyPortResult<CanonicalDistributedPrePlanStudyMutationResponse> {
   const revisionBefore = aggregate.revision
   aggregate.revision += 1
+  aggregate.updatedAt = committedAt
   const idempotencyKeyHash = canonicalDistributedPrePlanStudyIdempotencyKeyHash(
     request.idempotencyKey,
   )
@@ -797,6 +829,7 @@ function commitRecovery(
 ): CanonicalDistributedPrePlanStudyPortResult<CanonicalDistributedPrePlanStudyRecoveryResponse> {
   const revisionBefore = aggregate.revision
   aggregate.revision += 1
+  aggregate.updatedAt = committedAt
   const idempotencyKeyHash = canonicalDistributedPrePlanStudyIdempotencyKeyHash(
     request.idempotencyKey,
   )
@@ -942,6 +975,8 @@ function buildRunView(
     pauseRequestedAt: aggregate.pauseRequestedAt,
     cancelRequestedAt: aggregate.cancelRequestedAt,
     recoveryGeneration: aggregate.recoveryGeneration,
+    createdAt: aggregate.createdAt,
+    updatedAt: aggregate.updatedAt,
     automaticRetryStarted: false as const,
     browserSessionRequiredForCompletion: false as const,
     wholeStudyTimeoutApplied: false as const,
@@ -964,8 +999,8 @@ function buildWorkItemView(
     dependencyWorkItemIds: [...workItem.seed.dependencyWorkItemIds],
     state: workItem.state,
     attemptCount: workItem.attemptCount,
-    maximumAttempts: workItem.seed.maximumAttempts,
-    remainingAttempts: Math.max(0, workItem.seed.maximumAttempts - workItem.attemptCount),
+    maximumAttempts: workItem.maximumAttempts,
+    remainingAttempts: Math.max(0, workItem.maximumAttempts - workItem.attemptCount),
     latestCheckpoint: workItem.latestCheckpoint
       ? structuredClone(workItem.latestCheckpoint)
       : null,

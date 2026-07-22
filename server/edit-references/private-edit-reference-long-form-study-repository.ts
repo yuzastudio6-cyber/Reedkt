@@ -619,7 +619,7 @@ async function readWorkOutput(
   return structuredClone(envelope.output)
 }
 
-function createControlCommandReceipt(input: {
+export function createEditReferenceLongFormStudyControlCommandReceipt(input: {
   readonly run: EditReferenceLongFormStudyRunRecord
   readonly action: EditReferenceLongFormStudyControlAction
   readonly commandIdDigestSha256: string
@@ -647,6 +647,8 @@ function createControlCommandReceipt(input: {
   validateControlCommandReceipt(receipt)
   return receipt
 }
+
+const createControlCommandReceipt = createEditReferenceLongFormStudyControlCommandReceipt
 
 function validateControlCommandReceipt(receipt: EditReferenceLongFormStudyControlCommandReceipt): void {
   if (receipt.schemaVersion !== CONTROL_COMMAND_RECEIPT_VERSION) {

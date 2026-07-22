@@ -88,6 +88,32 @@ assert.throws(
 )
 assert.throws(
   () => resolveEditReferenceLongFormStudyRuntimePort({
+    env: localEnv,
+    runtimePort: {
+      ...local,
+      sourceAuthority: 'canonical_v3_loopback_postgres_pre_plan_study',
+      evidenceClass: 'backend_local_private_only',
+      databaseTransactionAdapterVerified: true,
+    },
+  }),
+  (error) => hasRuntimeReason(error, 'local_runtime_port_authority_invalid'),
+  'Canonical V3 local source authority must not use legacy local-only evidence.',
+)
+assert.throws(
+  () => resolveEditReferenceLongFormStudyRuntimePort({
+    env: localEnv,
+    runtimePort: {
+      ...local,
+      sourceAuthority: 'canonical_v3_loopback_postgres_pre_plan_study',
+      evidenceClass: 'canonical_contract_fixture_unreleased',
+      databaseTransactionAdapterVerified: false,
+    },
+  }),
+  (error) => hasRuntimeReason(error, 'local_runtime_port_authority_invalid'),
+  'Canonical V3 local evidence must remain bound to a verified database adapter.',
+)
+assert.throws(
+  () => resolveEditReferenceLongFormStudyRuntimePort({
     env: hostedEnv,
     localRepository: new PrivateEditReferenceLongFormStudyRepository(),
   }),

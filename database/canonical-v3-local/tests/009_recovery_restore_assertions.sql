@@ -50,14 +50,14 @@ begin
   ) then
     raise exception 'RECOVERY_EDIT_REFERENCE_DOMAIN_HISTORY_MISSING';
   end if;
-  if (select count(*) from public.preference_long_form_study_runs) <> 4
-    or (select count(*) from public.preference_long_form_study_work_items) <> 4
-    or (select count(*) from public.preference_long_form_study_attempts) <> 5
+  if (select count(*) from public.preference_long_form_study_runs) <> 5
+    or (select count(*) from public.preference_long_form_study_work_items) <> 5
+    or (select count(*) from public.preference_long_form_study_attempts) <> 7
     or (select count(*) from public.preference_long_form_study_checkpoints) <> 2
     or (select count(*) from public.preference_long_form_study_work_outputs) <> 1
-    or (select count(*) from public.preference_long_form_study_idempotency_receipts) <> 19
-    or (select count(*) from public.preference_long_form_study_lease_escrow) <> 5
-    or (select count(*) from public.preference_long_form_study_audit_events) <> 18
+    or (select count(*) from public.preference_long_form_study_idempotency_receipts) <> 25
+    or (select count(*) from public.preference_long_form_study_lease_escrow) <> 7
+    or (select count(*) from public.preference_long_form_study_audit_events) <> 24
     or not exists (
       select 1
       from public.preference_long_form_study_attempts attempt
@@ -74,6 +74,18 @@ begin
       select 1 from public.preference_long_form_study_attempts
       where status = 'timed_out'
         and terminal_json->>'terminalKind' = 'timeout'
+    )
+    or not exists (
+      select 1
+      from public.preference_long_form_study_runs run
+      join public.preference_long_form_study_work_items work
+        on work.study_run_id = run.id
+      where run.external_run_id = 'local-run-local-operator-recovery'
+        and run.status = 'queued'
+        and run.recovery_generation = 1
+        and work.status = 'queued'
+        and work.attempt_count = 2
+        and work.maximum_attempts = 3
     )
     or exists (
       select 1 from public.preference_long_form_study_idempotency_receipts

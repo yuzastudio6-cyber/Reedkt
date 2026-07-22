@@ -1468,13 +1468,17 @@ function clearLease(item: EditReferenceLongFormStudyWorkItem): void {
   delete item.lastHeartbeatAt
 }
 
-function sealRun(run: EditReferenceLongFormStudyRunRecord): EditReferenceLongFormStudyRunRecord {
+export function sealEditReferenceLongFormStudyRun(
+  run: EditReferenceLongFormStudyRunRecord,
+): EditReferenceLongFormStudyRunRecord {
   const unsigned = { ...run, recordDigestSha256: undefined } as Record<string, unknown>
   delete unsigned.recordDigestSha256
   const sealed = { ...run, recordDigestSha256: sha256(stableStringify(unsigned)) }
   validateEditReferenceLongFormStudyRun(sealed)
   return sealed
 }
+
+const sealRun = sealEditReferenceLongFormStudyRun
 
 function noClaim(
   run: EditReferenceLongFormStudyRunRecord,

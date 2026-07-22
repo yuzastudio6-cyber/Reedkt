@@ -392,7 +392,7 @@ insert into public.preference_assets (
     'aaaaaaaa-3000-4000-8000-000000000001',
     'aaaaaaaa-4000-4000-8000-000000000001',
     'tenant-a/reference/source.mp4', '1', 'etag-a', repeat('a', 64),
-    'source', '{"durationSeconds":21600,"sizeBytes":268435456000}'::jsonb
+    'source', '{"durationSeconds":21600,"durationMilliseconds":21600000,"sizeBytes":268435456000,"hasAudio":true}'::jsonb
   ),
   (
     'bbbbbbbb-d000-4000-8000-000000000001',
@@ -400,5 +400,5 @@ insert into public.preference_assets (
     'bbbbbbbb-3000-4000-8000-000000000001',
     'bbbbbbbb-4000-4000-8000-000000000001',
     'tenant-b/reference/source.mp4', '1', 'etag-b', repeat('b', 64),
-    'source', '{"durationSeconds":7200,"sizeBytes":10737418240}'::jsonb
+    'source', '{"durationSeconds":7200,"durationMilliseconds":7200000,"sizeBytes":10737418240,"hasAudio":true}'::jsonb
   );

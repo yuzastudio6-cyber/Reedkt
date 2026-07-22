@@ -48,6 +48,7 @@ import {
 } from './edit-reference-domain-repository-runtime-port'
 import {
   resolveEditReferenceLongFormStudyRuntimePort,
+  type EditReferenceLongFormStudySourceBinding,
   type EditReferenceLongFormStudyRuntimePort,
 } from './edit-reference-production-long-form-runtime-port'
 
@@ -201,6 +202,7 @@ export function createEditReferenceTargetVideoUnderstandingService(
             scope: authority.scope,
             plan,
             run: preparedRun,
+            sourceBinding: createTargetLongFormStudySourceBinding(authority),
           })
           persisted = { plan: created.plan, run: created.run }
           replayed = created.disposition !== 'created'
@@ -688,6 +690,20 @@ function targetStudyCreatedAt(storageObject: EditReferenceLongFormStorageObject)
   // Finalized storage adapters are required to provide createdAt. This stable
   // fallback exists only for injected test adapters created before that field.
   return '2000-01-01T00:00:00.000Z'
+}
+
+function createTargetLongFormStudySourceBinding(
+  authority: TargetAuthority,
+): EditReferenceLongFormStudySourceBinding | undefined {
+  const storage = authority.storageObject
+  if (!storage.mediaAssetId || !storage.generation || !storage.etag) return undefined
+  return {
+    sourceAuthority: 'target_source_media',
+    sourceAssetId: storage.mediaAssetId,
+    sourceStorageObjectId: storage.objectPath,
+    sourceStorageGeneration: storage.generation,
+    sourceStorageEtag: storage.etag,
+  }
 }
 
 function requireIdempotencyKey(value: string): void {

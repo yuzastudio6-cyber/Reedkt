@@ -41,8 +41,17 @@ export type EditReferenceLongFormRuntimeEvidenceClass =
 
 export type EditReferenceLongFormRuntimeSourceAuthority =
   | 'backend_local_private_segmented'
+  | 'canonical_v3_loopback_postgres_pre_plan_study'
   | 'canonical_edit_reference_production_repository'
   | 'unavailable'
+
+export interface EditReferenceLongFormStudySourceBinding {
+  readonly sourceAuthority: 'preference_asset' | 'target_source_media'
+  readonly sourceAssetId: string
+  readonly sourceStorageObjectId: string
+  readonly sourceStorageGeneration: string
+  readonly sourceStorageEtag: string
+}
 
 export interface EditReferenceLongFormStudyRuntimePort {
   readonly schemaVersion: typeof EDIT_REFERENCE_PRODUCTION_LONG_FORM_RUNTIME_PORT_VERSION
@@ -70,6 +79,7 @@ export interface EditReferenceLongFormStudyRuntimePort {
     readonly scope: EditReferenceRepositoryScope
     readonly plan: EditReferenceLongFormStudyPlan
     readonly run: EditReferenceLongFormStudyRunRecord
+    readonly sourceBinding?: EditReferenceLongFormStudySourceBinding
   }): Promise<{
     readonly plan: EditReferenceLongFormStudyPlan
     readonly run: EditReferenceLongFormStudyRunRecord
@@ -146,11 +156,17 @@ export function resolveEditReferenceLongFormStudyRuntimePort(
       })
     }
     assertRuntimePortShape(input.runtimePort)
+    const localPrivateAuthority =
+      input.runtimePort.sourceAuthority === 'backend_local_private_segmented'
+      && input.runtimePort.evidenceClass === 'backend_local_private_only'
+      && !input.runtimePort.databaseTransactionAdapterVerified
+    const canonicalV3LocalAuthority =
+      input.runtimePort.sourceAuthority === 'canonical_v3_loopback_postgres_pre_plan_study'
+      && input.runtimePort.evidenceClass === 'canonical_contract_fixture_unreleased'
+      && input.runtimePort.databaseTransactionAdapterVerified
     if (
-      input.runtimePort.sourceAuthority !== 'backend_local_private_segmented'
-      || input.runtimePort.evidenceClass !== 'backend_local_private_only'
+      (!localPrivateAuthority && !canonicalV3LocalAuthority)
       || input.runtimePort.productionAuthority
-      || input.runtimePort.databaseTransactionAdapterVerified
       || input.runtimePort.multiReplicaLeaseRecoveryVerified
       || input.runtimePort.authenticatedWorkerDispatchVerified
       || input.runtimePort.livePrivateObjectReadVerified

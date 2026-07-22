@@ -64,6 +64,9 @@ export interface EditReferenceLongFormStorageObject {
   readonly mimeType?: string
   readonly sizeBytes?: number
   readonly checksumSha256?: string
+  readonly generation?: string
+  readonly etag?: string
+  readonly metageneration?: string
   readonly status: string
   readonly createdAt?: string
   readonly updatedAt?: string

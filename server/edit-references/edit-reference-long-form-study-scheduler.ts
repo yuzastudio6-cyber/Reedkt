@@ -30,7 +30,10 @@ export interface EditReferenceLongFormStudyScheduleResult {
   readonly scheduled: boolean
   readonly alreadyActive: boolean
   readonly runtime: 'backend_local_private' | 'blocked'
-  readonly reason?: 'worker_runtime_not_local' | 'storage_runtime_not_local'
+  readonly reason?:
+    | 'worker_runtime_not_local'
+    | 'storage_runtime_not_local'
+    | 'canonical_worker_dispatch_not_verified'
 }
 
 export type EditReferenceLongFormStudyScheduler = (

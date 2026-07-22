@@ -261,7 +261,7 @@
     },
     {
       "path": "package.json",
-      "sha256": "1b850eafe6f8ab3250e617e9e981021e0d4383289e23aabbf95cc07768c79add"
+      "sha256": "ef3ab7addca6cbeef3b97b6c87dd2f8cb06eb6a6c0c2bbb3001164e665de668d"
     },
     {
       "path": "server/app.ts",

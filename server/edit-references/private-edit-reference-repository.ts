@@ -94,6 +94,7 @@ const MAX_SKILL_RUNS = 5_000
 const MAX_DNA_VERSIONS = 2_000
 const MAX_DNA_QA_RESULTS = 2_000
 const MAX_APPLICATIONS = 2_000
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 const MAX_DNA_INPUTS_PER_VERSION = 128
 const MAX_DNA_RULES_PER_VERSION = 256
 const MAX_DNA_CONFLICTS_PER_VERSION = 128
@@ -1644,8 +1645,13 @@ function assertPreferenceApplications(aggregate: EditReferenceAggregate): void {
     const versionKey = `${targetKey}\u0000${record.version}`
     if (versionKeys.has(versionKey)) throw invalidAggregate('application_target_version_duplicate')
     versionKeys.add(versionKey)
-    if (record.status === 'prepared') {
-      if (activeTargetKeys.has(targetKey)) throw invalidAggregate('application_target_active_duplicate')
+    if (record.status === 'prepared' && record.targetIntegrationStatus === 'connected') {
+      // Preparation can leave immutable unconnected candidates behind when a
+      // later outer Apply loses a race or the user changes the draft. Only the
+      // exact candidate selected by the atomic Apply is active authority.
+      if (activeTargetKeys.has(targetKey)) {
+        throw invalidAggregate('application_target_active_duplicate')
+      }
       activeTargetKeys.add(targetKey)
     }
 
@@ -1718,6 +1724,12 @@ function assertPreferenceApplications(aggregate: EditReferenceAggregate): void {
       || record.targetIdentityStatus !== 'verified_target_video_understanding'
     ) throw invalidAggregate('application_v2_target_understanding_invalid')
 
+    const canonicalLifecycle = record.canonicalLifecycleAuthority
+    const canonicalLifecycleActive = canonicalLifecycle !== undefined
+    if (canonicalLifecycleActive && !isCanonicalApplicationLifecycleAuthority(record)) {
+      throw invalidAggregate('application_canonical_lifecycle_authority_invalid')
+    }
+
     if (record.status === 'prepared') {
       if (
         record.targetIntegrationStatus === 'invalidated'
@@ -1728,6 +1740,28 @@ function assertPreferenceApplications(aggregate: EditReferenceAggregate): void {
         || record.invalidationReason
         || record.downstreamInvalidationReceipt
       ) throw invalidAggregate('application_active_lifecycle_invalid')
+    } else if (canonicalLifecycleActive) {
+      if (
+        record.targetIntegrationStatus !== 'invalidated'
+        || record.downstreamInvalidationStatus !== 'completed'
+        || !record.invalidatedAt
+        || !record.invalidationReason
+        || !record.connectedAt
+        || record.downstreamContext !== undefined
+        || record.targetSessionReceipt !== undefined
+        || record.downstreamInvalidationReceipt !== undefined
+        || (record.status === 'replaced' && (
+          record.invalidationReason !== 'replace'
+          || !record.replacedByApplicationId
+          || record.clearedAt !== undefined
+        ))
+        || (record.status === 'cleared' && (
+          record.invalidationReason !== 'remove'
+          || !record.clearedAt
+          || record.clearedAt !== record.invalidatedAt
+          || record.replacedByApplicationId !== undefined
+        ))
+      ) throw invalidAggregate('application_canonical_inactive_lifecycle_invalid')
     } else if (
       record.targetIntegrationStatus !== 'invalidated'
       || record.downstreamInvalidationStatus !== 'completed'
@@ -1751,33 +1785,46 @@ function assertPreferenceApplications(aggregate: EditReferenceAggregate): void {
     ) throw invalidAggregate('application_inactive_lifecycle_invalid')
 
     if (record.targetIntegrationStatus === 'not_connected') {
-      if (record.downstreamContext || record.targetSessionReceipt || record.connectedAt) {
+      if (
+        canonicalLifecycleActive
+        || record.downstreamContext
+        || record.targetSessionReceipt
+        || record.connectedAt
+      ) {
         throw invalidAggregate('application_unconnected_context_invalid')
       }
     }
     if (record.targetIntegrationStatus === 'connected' || record.targetIntegrationStatus === 'invalidated') {
-      const expectedContext = createPreferenceApplicationDownstreamContext(record, 'connected_mock')
-      const receipt = record.targetSessionReceipt
-      if (
-        !record.downstreamContext
-        || JSON.stringify(record.downstreamContext) !== JSON.stringify(expectedContext)
-        || !receipt
-        || receipt.receiptVersion !== 'edit-reference-project-session-receipt-v1'
-        || receipt.projectId !== record.projectId
-        || receipt.editSessionId !== record.editSessionId
-        || receipt.aspectRatio !== record.targetContext.aspectRatio
-        || receipt.platformTarget !== record.targetContext.platformTarget
-        || receipt.selectedEditLevel !== record.targetContext.selectedEditLevel
-        || receipt.outputFrameConfirmed !== true
-        || receipt.stagedContextHash !== expectedContext.packageHash
-        || receipt.stagedApplicationContentDigest !== record.contentDigest
-        || receipt.mockOnly !== true
-        || !isISODate(receipt.sessionUpdatedAt)
-        || !isISODate(receipt.stagedAt)
-        || !record.connectedAt
-      ) throw invalidAggregate('application_connected_context_invalid')
+      if (canonicalLifecycleActive) {
+        if (
+          record.downstreamContext !== undefined
+          || record.targetSessionReceipt !== undefined
+          || !record.connectedAt
+        ) throw invalidAggregate('application_canonical_connected_context_invalid')
+      } else {
+        const expectedContext = createPreferenceApplicationDownstreamContext(record, 'connected_mock')
+        const receipt = record.targetSessionReceipt
+        if (
+          !record.downstreamContext
+          || stableStringify(record.downstreamContext) !== stableStringify(expectedContext)
+          || !receipt
+          || receipt.receiptVersion !== 'edit-reference-project-session-receipt-v1'
+          || receipt.projectId !== record.projectId
+          || receipt.editSessionId !== record.editSessionId
+          || receipt.aspectRatio !== record.targetContext.aspectRatio
+          || receipt.platformTarget !== record.targetContext.platformTarget
+          || receipt.selectedEditLevel !== record.targetContext.selectedEditLevel
+          || receipt.outputFrameConfirmed !== true
+          || receipt.stagedContextHash !== expectedContext.packageHash
+          || receipt.stagedApplicationContentDigest !== record.contentDigest
+          || receipt.mockOnly !== true
+          || !isISODate(receipt.sessionUpdatedAt)
+          || !isISODate(receipt.stagedAt)
+          || !record.connectedAt
+        ) throw invalidAggregate('application_connected_context_invalid')
+      }
     }
-    if (record.targetIntegrationStatus === 'invalidated') {
+    if (record.targetIntegrationStatus === 'invalidated' && !canonicalLifecycleActive) {
       const receipt = record.downstreamInvalidationReceipt
       if (
         !receipt
@@ -1930,6 +1977,39 @@ function assertPreferenceApplications(aggregate: EditReferenceAggregate): void {
       }
     }
   }
+}
+
+function isCanonicalApplicationLifecycleAuthority(
+  record: EditReferenceAggregate['applications'][number],
+): boolean {
+  const authority = record.canonicalLifecycleAuthority
+  if (!authority) return false
+  const mutationMatchesState = record.targetIntegrationStatus === 'connected'
+    ? record.status === 'prepared'
+      && (authority.mutation === 'apply' || authority.mutation === 'replace')
+      && record.connectedAt === authority.committedAt
+    : record.status === 'replaced'
+      ? authority.mutation === 'replace'
+        && record.invalidationReason === 'replace'
+        && record.invalidatedAt === authority.committedAt
+      : record.status === 'cleared'
+        && authority.mutation === 'remove'
+        && record.invalidationReason === 'remove'
+        && record.invalidatedAt === authority.committedAt
+        && record.clearedAt === authority.committedAt
+  return authority.schemaVersion === 'edit-reference-canonical-exact-edit-application-lifecycle-v1'
+    && authority.sourceAuthority === 'canonical_exact_edit_preference_repository'
+    && UUID_PATTERN.test(authority.transactionId)
+    && UUID_PATTERN.test(authority.idempotencyReceiptId)
+    && Number.isSafeInteger(authority.committedReferenceRevision)
+    && authority.committedReferenceRevision >= 1
+    && Number.isSafeInteger(authority.committedPlanningInputRevision)
+    && authority.committedPlanningInputRevision >= 1
+    && isISODate(authority.committedAt)
+    && authority.committedAt === record.updatedAt
+    && authority.browserSuppliedAuthorityAccepted === false
+    && authority.approvedSnapshotMutationAllowed === false
+    && mutationMatchesState
 }
 
 function isValidApprovalTransition(

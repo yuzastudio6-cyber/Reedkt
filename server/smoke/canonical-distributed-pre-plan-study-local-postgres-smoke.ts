@@ -164,6 +164,27 @@ await assert.rejects(
 )
 
 const base = new Date(Date.now() - 1_000).toISOString()
+const concurrentStudySeeds = Array.from({ length: 6 }, (_, index) =>
+  createSeed(`local-concurrent-study-${index + 1}`, 'deterministic_tool'))
+const concurrentStudyResults = await Promise.all(
+  concurrentStudySeeds.flatMap((seed, index) => {
+    const request = enqueueRequest(
+      seed,
+      `local-concurrent-study-enqueue-${index + 1}-0001`,
+      base,
+    )
+    return [portA.enqueue(request), portA.enqueue(request)]
+  }),
+)
+for (let index = 0; index < concurrentStudySeeds.length; index += 1) {
+  const first = required(concurrentStudyResults[index * 2])
+  const second = required(concurrentStudyResults[index * 2 + 1])
+  assert.deepEqual(
+    [first.idempotencyStatus, second.idempotencyStatus].sort(),
+    ['exact_replay', 'inserted'],
+  )
+  assert.deepEqual(first.response, second.response)
+}
 const completeSeed = createSeed('local-complete', 'deterministic_tool')
 const enqueue = enqueueRequest(completeSeed, 'local-complete-enqueue-0001', base)
 const enqueueResults = await Promise.all([portA.enqueue(enqueue), portA.enqueue(enqueue)])
@@ -462,6 +483,7 @@ console.log(JSON.stringify({
   schemaVersion: 'canonical-distributed-pre-plan-study-local-postgres-smoke-v1',
   operationsVerified: 7,
   concurrentEnqueueAndClaimReplayVerified: true,
+  concurrentSameStudyRunSerializationVerified: true,
   digestOnlyReplayableLeaseVerified: true,
   monotonicCheckpointVerified: true,
   terminalOutputAndCostAtomicityVerified: true,

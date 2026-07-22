@@ -51,7 +51,6 @@ export function createEditReferenceTargetVideoUnderstandingRoutes(): Router {
   router.get(
     route,
     requireAuth,
-    requireProjectAccess('read'),
     asyncRoute(async (request, response) => {
       const query = validateBody(readEditReferenceTargetVideoUnderstandingSchema, request.query)
       const result = await createEditReferenceTargetVideoUnderstandingService(getServiceContext(request)).readLatest({

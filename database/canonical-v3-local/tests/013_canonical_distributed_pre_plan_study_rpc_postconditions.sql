@@ -83,6 +83,13 @@ begin
   ) <> 'v' then
     raise exception 'PRE_PLAN_REQUEST_AUTHORITY_FUNCTION_NOT_VOLATILE';
   end if;
+  if position(
+    'canonical_pre_plan_study_enqueue:' in pg_get_functiondef(
+      'public.reeditpro_pre_plan_assert_request(text,text,jsonb)'::regprocedure
+    )
+  ) = 0 then
+    raise exception 'PRE_PLAN_STUDY_SCOPED_ENQUEUE_FENCE_MISSING';
+  end if;
 
   select count(distinct operation) into operation_count
   from public.preference_long_form_study_idempotency_receipts;

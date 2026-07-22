@@ -20,7 +20,14 @@ for exact durable state authority:
   digest and encrypted credential;
 - immutable hash-chained audit events;
 - exact external run, plan, work-item, attempt, checkpoint, output, and cost
-  lineage on the existing long-form tables.
+lineage on the existing long-form tables.
+
+Forward migration
+`202607210018_pre_plan_enqueue_study_concurrency_fence.sql` corrects the
+serialization scope for plan allocation. Plan versions are unique per study,
+so enqueue now acquires a study-session transaction fence before it evaluates
+the next plan version. The historical run-scoped fence remains in place for
+exact run replay.
 
 The public mutation surface is fixed to:
 
@@ -58,6 +65,8 @@ evidence.
 The TypeScript/PostgREST smoke and SQL postconditions prove:
 
 - two concurrent enqueue calls commit once and return one exact replay;
+- six different runs of one study, each submitted twice concurrently, receive
+  distinct plan versions and one insert plus one exact replay per run;
 - two concurrent claim calls create one attempt and replay one transient lease;
 - changing an idempotency key under a previously valid signature is denied;
 - only the credential digest reaches canonical attempt/work-item state;
@@ -83,11 +92,10 @@ The TypeScript/PostgREST smoke and SQL postconditions prove:
 - approved edit snapshots and credit reservations are not fabricated for this
   pre-plan study authority.
 
-The destructive recovery rehearsal now archives and restores 49 reviewed data
-tables. Its before/after state digest matches and its post-restore assertions
-re-prove four study runs, five attempts, two checkpoints, one private output,
-nineteen exact operation receipts, five encrypted lease escrows, eighteen
-audit events, completed cost lineage, and expired-lease recovery history.
+The destructive recovery rehearsal archives and restores the reviewed data
+table set. Its before/after state digest matches and its post-restore
+assertions include the six concurrent study runs, exact replay receipts,
+completed cost lineage, and expired-lease recovery history.
 
 ## Verification
 
@@ -105,6 +113,7 @@ Observed results:
 
 - seven operations verified;
 - concurrent enqueue and claim replay verified;
+- concurrent same-study plan allocation and exact replay verified;
 - digest-only replayable lease verified;
 - monotonic checkpoint verified;
 - terminal output and cost atomicity verified;

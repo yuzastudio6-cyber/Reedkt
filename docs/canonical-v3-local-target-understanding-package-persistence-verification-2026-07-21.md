@@ -68,20 +68,20 @@ restored logical-state SHA-256 was
 `66f8283a726a07644af4093a37bf309f5b48a3f6adb15eb4fd650ca33cd19ccc`.
 The isolated manifest verified 14 migrations and 154 source/evidence files.
 
-## Honest remaining boundary
+## Integrated local application boundary
 
-This is isolated local persistence and recovery evidence, not hosted or
-production readiness. The existing application-preparation SQL fixture still
-expects a synthetic adaptation-ready target record, while the real service now
-persists the canonical raw `TargetVideoUnderstandingPackage`. That mismatch is
-not hidden or bridged with fabricated guidance.
+The prior local mismatch between the persisted raw target-understanding package
+and the synthetic application-preparation fixture is closed by migrations
+015–017 and the request-scoped server preparation port. The server now reads the
+completed package together with approved Preference DNA and reviewed QA,
+derives adaptation/hold-back/prohibited guidance in the existing TypeScript
+authority, persists one unconnected application, and passes only that authority
+into the existing atomic exact-edit Apply transaction. Mounted browser proof
+covers committed-response loss, exact retry, reload, remove, and tenant denial.
 
-The next bounded integration must use one server-owned preparation authority to
-read the raw completed target package together with approved Preference DNA and
-QA, derive the exact adaptation/hold-back/prohibited mapping, persist that
-application, and then feed the already-mounted atomic Apply transaction. Until
-that integration and real worker/provider completion exist, exact-edit
-application from this canonical package remains blocked. Deployed Auth/RLS and
-storage, multi-replica workers and recovery, live model routing, hosted cost
-receipts, same-release staging evidence, billing, deployment, and public
-delivery also remain closed.
+This remains isolated local persistence and recovery evidence, not hosted or
+production readiness. The controlled worker completion is evidence-fixture
+only and does not claim live Kimi/Qwen/DeepSeek or Qwen2.5-VL execution.
+Deployed Auth/RLS and storage, multi-replica workers and recovery, live model
+routing, hosted cost receipts, same-release staging evidence, billing,
+deployment, and public delivery remain closed.

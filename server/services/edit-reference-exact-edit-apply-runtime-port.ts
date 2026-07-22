@@ -14,6 +14,13 @@ import { ApiError } from '../errors/api-error'
 import type {
   EditReferenceLocalSupabaseRpcAdapter,
 } from '../edit-references/edit-reference-local-supabase-rpc-adapter'
+import {
+  createEditReferenceLocalSupabaseRpcAdapter,
+  createEditReferenceLocalSupabaseRpcCapability,
+} from '../edit-references/edit-reference-local-supabase-rpc-adapter'
+import {
+  createEditReferenceLocalSupabaseHttpRpcClient,
+} from '../edit-references/edit-reference-local-supabase-http-rpc-client'
 
 export const EDIT_REFERENCE_EXACT_EDIT_APPLY_RUNTIME_PORT_VERSION =
   'edit-reference-exact-edit-apply-runtime-port-v1' as const
@@ -99,6 +106,81 @@ export function createEditReferenceExactEditApplyLocalRuntimePort(
     apply: ({ request }) => adapter.applyExactEditPreferencesAndReference(request),
   }
   return Object.freeze(port)
+}
+
+/**
+ * Process-wide descriptor with request-scoped authenticated transport. The
+ * browser token reaches the server service first, is authorized there, and is
+ * captured only by the short-lived loopback RPC client created for that one
+ * method call. No user's credential or adapter is reused across requests.
+ */
+export function createEditReferenceCanonicalV3LocalExactEditApplyRuntimePort(
+  input: {
+    readonly endpointOrigin: string
+    readonly anonKey: string
+  },
+): EditReferenceExactEditApplyRuntimePort {
+  if (
+    input.endpointOrigin !== 'http://127.0.0.1:57431'
+    || typeof input.anonKey !== 'string'
+    || input.anonKey.length < 20
+    || input.anonKey.length > 4_096
+  ) throw unavailable('canonical_v3_local_exact_edit_apply_config_invalid')
+  const endpointOrigin = input.endpointOrigin
+  const anonKey = input.anonKey
+
+  const adapterFor = (
+    actor: EditReferenceExactEditApplyRuntimeActor,
+  ): EditReferenceLocalSupabaseRpcAdapter => {
+    if (
+      actor.mockActor
+      || !actor.authenticatedAccessToken
+      || actor.authenticatedAccessToken.split('.').length !== 3
+    ) throw unavailable('canonical_v3_local_exact_edit_apply_actor_invalid')
+    const client = createEditReferenceLocalSupabaseHttpRpcClient({
+      endpointOrigin,
+      anonKey,
+      authenticatedAccessToken: actor.authenticatedAccessToken,
+    })
+    const capability = createEditReferenceLocalSupabaseRpcCapability({
+      client,
+      endpointOrigin,
+    })
+    return createEditReferenceLocalSupabaseRpcAdapter({ client, capability })
+  }
+
+  return Object.freeze({
+    schemaVersion: EDIT_REFERENCE_EXACT_EDIT_APPLY_RUNTIME_PORT_VERSION,
+    persistenceContractVersion: EDIT_REFERENCE_PRODUCTION_PERSISTENCE_CONTRACT_VERSION,
+    authorityClass: 'canonical_exact_edit_preferences_and_reference_apply' as const,
+    runtimeClass: 'controlled_local_contract' as const,
+    evidenceClass: 'isolated_local_rls_proof_unreleased' as const,
+    sourceAuthority: 'canonical_v3_local_supabase_rls' as const,
+    canonicalAuthorityReadRpcVerified: true,
+    canonicalAtomicApplyRpcVerified: true,
+    twoUserTwoWorkspaceRlsVerified: true,
+    authenticatedActorForwardedServerSide: true as const,
+    noLegacyPreferenceOrApplicationFallback: true as const,
+    browserMutationAuthorityAccepted: false as const,
+    providerOrWorkerExecutionStarted: false as const,
+    customerPriceCalculated: false as const,
+    customerCreditsMutated: false as const,
+    serviceFeeIncluded: false as const,
+    sameReleaseReadinessEvidenceVerified: false,
+    productionAuthority: false,
+    readAuthority: ({ actor, scope }: {
+      readonly actor: EditReferenceExactEditApplyRuntimeActor
+      readonly scope: EditReferenceProductionExactEditApplyAuthorityReadScope
+    }) => (
+      adapterFor(actor).readExactEditApplyAuthority(scope)
+    ),
+    apply: ({ actor, request }: {
+      readonly actor: EditReferenceExactEditApplyRuntimeActor
+      readonly request: EditReferenceProductionExactEditApplyRequest
+    }) => (
+      adapterFor(actor).applyExactEditPreferencesAndReference(request)
+    ),
+  })
 }
 
 export function resolveEditReferenceExactEditApplyRuntimePort(input: {

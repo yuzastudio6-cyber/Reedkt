@@ -28,10 +28,16 @@ The chain provides:
 - `record_exact_edit_planning_evidence_v1` as the server-planning handoff that
   binds verified source-candidate and cleanup evidence without changing the
   user's preferences, the planning revision, or any approved snapshot;
-- `prepare_edit_reference_application_v1` as the service-role-only,
-  idempotent preparation transaction that re-reads approved reference, DNA,
-  QA, and exact-target study authority before creating one unconnected
-  application; authenticated browser credentials cannot execute it directly;
+- `prepare_edit_reference_application_v2` as the service-role-only,
+  idempotent preparation transaction that accepts one server-produced
+  application, then transactionally re-reads the approved reference, DNA, QA,
+  exact Edit Brief, completed target-study run, immutable work-item counts, and
+  persisted target-understanding package before creating one unconnected
+  application; authenticated browser credentials cannot execute it directly
+  and the retired V1 entry point is revoked;
+- one tenant/actor/operation/idempotency-key transaction fence shared by
+  server-owned application preparation and the outer exact-edit Apply, so two
+  simultaneous copies of one request produce one commit and one exact replay;
 - `mutate_edit_reference_domain_command_v2` as the service-role-only,
   operation-safe library and study mutation transaction. It preserves the six
   V1 create/update/message/evidence commands and adds bounded, server-prepared
@@ -51,6 +57,10 @@ The chain provides:
   checkpoints, attempts, outputs, pause/resume/cancel, and expired-lease
   recovery without fabricating an approved edit snapshot or credit
   reservation;
+- a forward study-scoped enqueue concurrency fence that serializes plan-version
+  allocation across different runs of the same study while preserving exact
+  same-request replay; the stress proof starts six runs and their duplicate
+  requests concurrently;
 - `reeditpro_read_pre_plan_study_projection_v1` as the authenticated,
   server-signed, read-only projection used to reconstruct the existing
   high-level Edit Reference study plan and run after a process restart. It is
@@ -75,6 +85,12 @@ The chain provides:
   named-edit identity to a distinct target source ID, then uses the same
   distributed pre-plan queue and lease authority as library study rather than
   introducing a second target-study scheduler;
+- `reeditpro_save_target_understanding_package_v1` and
+  `reeditpro_read_latest_target_understanding_package_v1` as the immutable,
+  tenant-bound target-understanding authority. A ready package must match the
+  exact target source, Brief, completed run, plan digest, and total/completed
+  work-item counts; JSON object-key ordering is canonicalized before UI and
+  server equality checks;
 - forced RLS with authenticated read scopes and RPC-only mutation;
 - process-branded, loopback-only TypeScript adapters that run SQL receipts and
   planning reads through the frozen V6 backend validators;
@@ -92,6 +108,13 @@ The chain provides:
   starts the canonical distributed study through a request-scoped runtime,
   denies another user/workspace, pauses, reloads the exact checkpoint, and
   resumes the same durable run without a second source or queue authority;
+- a third mounted Chromium proof that saves the exact Edit Brief, registers and
+  completes the target study through the same pre-plan work graph, persists the
+  target-understanding package, server-prepares one application, recovers a
+  deliberately lost committed Apply response with the same idempotency key and
+  body, reloads the connected authority, removes it, reloads the cleared
+  authority, denies the other workspace owner, and checks narrow responsive
+  overflow;
 - local two-user/two-workspace isolation and adversarial lifecycle,
   server-owned application preparation/replay/conflict, atomic Apply,
   planning-authority read/evidence/replay, immutable-baseline, cleanup
@@ -120,8 +143,9 @@ database/canonical-v3-local/run-local-verification.sh
 The runner starts the isolated local stack if needed, performs a clean local
 reset, executes all SQL tests with `ON_ERROR_STOP`, verifies the local adapter,
 provisions two local Auth users, installs the controlled fixture, exercises the
-actual loopback PostgREST RPC and RLS path, runs the mounted signed-in Chromium
-journey, and performs a private data-only backup/reset/restore rehearsal with
+actual loopback PostgREST RPC and RLS path, proves server-owned target
+application preparation plus atomic Apply, runs all three mounted signed-in
+Chromium journeys, and performs a private data-only backup/reset/restore rehearsal with
 the PostgreSQL 15 tools from the matching local database container, verifies
 the source manifest, and performs a final clean reset. SQL tests run inside
 transactions and roll back their fixtures. Recovery archives stay under the

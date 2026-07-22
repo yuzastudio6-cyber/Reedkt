@@ -4,6 +4,7 @@ import { createReeditProApiApp } from '../../server/app'
 import { loadRuntimeEnv } from '../../server/config/env'
 import { ApiError } from '../../server/errors/api-error'
 import {
+  createEditReferenceCanonicalV3LocalExactEditApplyRuntimePort,
   EDIT_REFERENCE_EXACT_EDIT_APPLY_RUNTIME_PORT_VERSION,
   type EditReferenceExactEditApplyRuntimePort,
 } from '../../server/services/edit-reference-exact-edit-apply-runtime-port'
@@ -58,6 +59,9 @@ import type {
 import {
   createEditReferenceCanonicalV3LocalTargetUnderstandingPackageRuntimePortFactory,
 } from '../../server/services/edit-reference-canonical-v3-local-target-understanding-package-runtime-port-factory'
+import {
+  createEditReferenceLocalSupabaseApplicationPreparationPort,
+} from '../../server/edit-references/edit-reference-local-supabase-application-preparation-port'
 import type {
   EditReferenceTargetUnderstandingPackageRuntimePortFactory,
 } from '../../server/services/edit-reference-target-understanding-package-runtime-port'
@@ -338,9 +342,15 @@ const editReferenceExactEditBriefRuntimePortFactory =
   createOptionalCanonicalV3LocalExactEditBriefRuntimePortFactory()
 const editReferenceTargetUnderstandingPackageRuntimePortFactory =
   createOptionalCanonicalV3LocalTargetUnderstandingPackageRuntimePortFactory()
+const editReferenceExactEditApplyRuntimePort =
+  createOptionalCanonicalV3LocalExactEditApplyRuntimePort() ?? runtimePort
+const editReferenceApplicationPreparationRuntimePort =
+  createOptionalCanonicalV3LocalApplicationPreparationRuntimePort({
+    targetFactory: editReferenceTargetUnderstandingPackageRuntimePortFactory,
+  }) ?? applicationPreparation.port
 const server = createReeditProApiApp(env, {
-  editReferenceExactEditApplyRuntimePort: runtimePort,
-  editReferenceApplicationPreparationRuntimePort: applicationPreparation.port,
+  editReferenceExactEditApplyRuntimePort,
+  editReferenceApplicationPreparationRuntimePort,
   planningExactEditPreferenceAuthorityPort: planningPort,
   ...(editReferenceDomainRepositoryRuntimePort
     ? { editReferenceDomainRepositoryRuntimePort }
@@ -450,6 +460,66 @@ function createOptionalCanonicalV3LocalTargetUnderstandingPackageRuntimePortFact
     endpointOrigin,
     anonKey,
     localInternalSigningSecret,
+  })
+}
+
+function createOptionalCanonicalV3LocalExactEditApplyRuntimePort():
+  EditReferenceExactEditApplyRuntimePort | undefined {
+  const endpointOrigin = process.env.REEDITPRO_CANONICAL_V3_API_URL?.trim()
+  const anonKey = process.env.REEDITPRO_CANONICAL_V3_ANON_KEY?.trim()
+  if (!endpointOrigin && !anonKey) return undefined
+  if (!endpointOrigin || !anonKey) {
+    throw new Error(
+      'The canonical V3 exact-edit Apply proof requires loopback URL and anon key.',
+    )
+  }
+  return createEditReferenceCanonicalV3LocalExactEditApplyRuntimePort({
+    endpointOrigin,
+    anonKey,
+  })
+}
+
+function createOptionalCanonicalV3LocalApplicationPreparationRuntimePort(input: {
+  readonly targetFactory:
+    EditReferenceTargetUnderstandingPackageRuntimePortFactory | undefined
+}): ReturnType<typeof createEditReferenceLocalSupabaseApplicationPreparationPort> | undefined {
+  const endpointOrigin = process.env.REEDITPRO_CANONICAL_V3_API_URL?.trim()
+  const anonKey = process.env.REEDITPRO_CANONICAL_V3_ANON_KEY?.trim()
+  const serviceRoleKey = process.env.REEDITPRO_CANONICAL_V3_SERVICE_ROLE_KEY?.trim()
+  const localInternalSigningSecret =
+    process.env.REEDITPRO_CANONICAL_V3_LOCAL_PRE_PLAN_SIGNING_SECRET?.trim()
+  if (!endpointOrigin && !anonKey && !serviceRoleKey && !localInternalSigningSecret) {
+    return undefined
+  }
+  if (
+    !endpointOrigin
+    || !anonKey
+    || !serviceRoleKey
+    || !localInternalSigningSecret
+    || !input.targetFactory
+  ) {
+    throw new Error(
+      'The canonical V3 application-preparation proof requires the complete local authority bundle.',
+    )
+  }
+  const client = createEditReferenceLocalSupabaseDomainHttpRpcClient({
+    endpointOrigin,
+    serviceRoleKey,
+  })
+  const capability = createEditReferenceLocalSupabaseDomainCapability({
+    client,
+    endpointOrigin,
+  })
+  const referenceRepository = createEditReferenceLocalSupabaseDomainRepository({
+    client,
+    capability,
+  })
+  return createEditReferenceLocalSupabaseApplicationPreparationPort({
+    endpointOrigin,
+    serviceRoleKey,
+    env,
+    referenceRepository,
+    targetUnderstandingPackageRuntimePortFactory: input.targetFactory,
   })
 }
 

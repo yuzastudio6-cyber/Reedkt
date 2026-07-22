@@ -5,6 +5,7 @@ import {
   readTargetVideoUnderstandingForProjectEditSession,
   startTargetVideoUnderstandingForProjectEditSession,
 } from '../../../lib/project-edit-session-edit-reference-integration'
+import { stableEditReferenceJson } from '../../../lib/edit-reference-deterministic-hash'
 import {
   isTargetVideoUnderstandingReadyForUi,
   safeTargetVideoStudyError,
@@ -275,6 +276,6 @@ function packageMatchesCurrentAuthority(input: {
     && input.packageRecord.declaredContext.contentType === targetContext.contentType
     && input.packageRecord.declaredContext.storyRole === targetContext.storyRole
     && input.packageRecord.declaredContext.budgetPreference === targetContext.budgetPreference
-    && JSON.stringify(input.packageRecord.declaredContext.directives) === JSON.stringify(targetContext.directives)
-    && JSON.stringify(input.packageRecord.declaredContext.approvedConstraints) === JSON.stringify(targetContext.approvedConstraints)
+    && stableEditReferenceJson(input.packageRecord.declaredContext.directives) === stableEditReferenceJson(targetContext.directives)
+    && stableEditReferenceJson(input.packageRecord.declaredContext.approvedConstraints) === stableEditReferenceJson(targetContext.approvedConstraints)
 }

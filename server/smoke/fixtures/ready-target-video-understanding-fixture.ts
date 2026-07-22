@@ -11,6 +11,7 @@ import {
 } from '../../../src/types/edit-reference-target-video-understanding'
 import {
   calculateTargetVideoUnderstandingDeclaredContextDigest,
+  calculateTargetVideoUnderstandingPackageId,
   calculateTargetVideoUnderstandingPackageDigest,
   validateTargetVideoUnderstandingPackage,
 } from '../../edit-references/edit-reference-target-video-understanding-contract'
@@ -38,6 +39,14 @@ export interface PersistReadyTargetVideoUnderstandingFixtureInput {
     readonly id: string
     readonly revision: number
     readonly digestSha256: string
+  }
+  readonly studyBinding?: {
+    readonly runId: string
+    readonly runRevision: number
+    readonly planId: string
+    readonly planDigestSha256: string
+    readonly totalWorkItemCount: number
+    readonly chunkCount: number
   }
   readonly omitVisualOpportunityCategories?: readonly TargetVideoUnderstandingPackage['visualOpportunities'][number]['category'][]
   readonly omitGraphicsNeeds?: boolean
@@ -116,9 +125,28 @@ export function createReadyTargetVideoUnderstandingFixture(
       evidenceIds: evidenceFor('visual_sampling'),
     },
   ]
+  const contextDigestSha256 =
+    calculateTargetVideoUnderstandingDeclaredContextDigest(declaredContextWithoutDigest)
+  const studyBinding = input.studyBinding ?? {
+    runId: `${key}-target-study-run`,
+    runRevision: 1,
+    planId: `${key}-target-study-plan`,
+    planDigestSha256: sha256(`${key}:target-study-plan`),
+    totalWorkItemCount: evidence.length,
+    chunkCount: Math.max(1, Math.ceil(durationSeconds / 600)),
+  }
   const unsigned: Omit<TargetVideoUnderstandingPackage, 'packageDigestSha256'> = {
     schemaVersion: TARGET_VIDEO_UNDERSTANDING_PACKAGE_VERSION,
-    packageId: `target-video-understanding-${sha256(`${key}:package`).slice(0, 24)}`,
+    packageId: calculateTargetVideoUnderstandingPackageId({
+      workspaceId: input.workspaceId,
+      projectId: input.targetContext.projectId,
+      editSessionId: input.targetContext.editSessionId,
+      sourceStorageObjectRecordId: sourceBinding.storageObjectRecordId,
+      mediaChecksumSha256: sourceBinding.checksumSha256,
+      planDigestSha256: studyBinding.planDigestSha256,
+      runRevision: studyBinding.runRevision,
+      contextDigestSha256,
+    }),
     workspaceId: input.workspaceId,
     projectId: input.targetContext.projectId,
     editSessionId: input.targetContext.editSessionId,
@@ -144,20 +172,20 @@ export function createReadyTargetVideoUnderstandingFixture(
     },
     declaredContext: {
       ...declaredContextWithoutDigest,
-      contextDigestSha256: calculateTargetVideoUnderstandingDeclaredContextDigest(declaredContextWithoutDigest),
+      contextDigestSha256,
     },
     study: {
-      runId: `${key}-target-study-run`,
-      runRevision: 1,
-      planId: `${key}-target-study-plan`,
-      planDigestSha256: sha256(`${key}:target-study-plan`),
+      runId: studyBinding.runId,
+      runRevision: studyBinding.runRevision,
+      planId: studyBinding.planId,
+      planDigestSha256: studyBinding.planDigestSha256,
       state: 'completed',
       durationClass: durationSeconds > 3_600 ? 'extended' : durationSeconds > 900 ? 'long' : durationSeconds > 180 ? 'standard' : 'short',
-      chunkCount: Math.max(1, Math.ceil(durationSeconds / 600)),
+      chunkCount: studyBinding.chunkCount,
       coreChunkDurationSeconds: 600,
       maximumSemanticWindowSeconds: 120,
-      completedWorkItemCount: evidence.length,
-      totalWorkItemCount: evidence.length,
+      completedWorkItemCount: studyBinding.totalWorkItemCount,
+      totalWorkItemCount: studyBinding.totalWorkItemCount,
       progressPercent: 100,
       temporalCoverageRatio: 1,
       continuousAudioCoverageRatio: 1,

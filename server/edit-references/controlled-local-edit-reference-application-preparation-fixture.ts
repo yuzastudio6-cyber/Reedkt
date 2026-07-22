@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto'
-import type { PreferenceApplicationRecord, PreferenceApplicationTargetContextSnapshot } from '../../src/types/edit-reference'
+import type { PreferenceApplicationRecord } from '../../src/types/edit-reference'
 import type {
   EditReferenceProductionPreparedApplicationAuthority,
 } from '../../src/types/edit-reference-production-exact-edit-apply-api'
@@ -13,7 +13,10 @@ import { ApiError } from '../errors/api-error'
 import {
   createEditReferenceApplicationPreparationReceipt,
 } from './edit-reference-production-application-preparation-boundary'
-import { createEditReferenceTargetApplication } from './edit-reference-target-adaptation'
+import {
+  createEditReferenceTargetApplication,
+  createPreferenceApplicationTargetContextFromUnderstanding,
+} from './edit-reference-target-adaptation'
 import { PrivateEditReferenceRepository } from './private-edit-reference-repository'
 import { PrivateTargetVideoUnderstandingRepository } from './private-target-video-understanding-repository'
 import {
@@ -158,7 +161,7 @@ export function createControlledLocalEditReferenceApplicationPreparationFixture(
         study,
         dnaVersion,
         qaResult,
-        targetContext: targetContextFromPackage(target),
+        targetContext: createPreferenceApplicationTargetContextFromUnderstanding(target),
         targetUnderstanding: target,
         applicationSource: input.intent.applicationSource,
         existingApplications: exactApplications,
@@ -261,31 +264,6 @@ function replayedPreparationReceipt(
     serviceFeeIncluded: false,
     providerOrWorkerExecutionStarted: false,
   })
-}
-
-function targetContextFromPackage(
-  target: Awaited<ReturnType<PrivateTargetVideoUnderstandingRepository['readLatest']>> & {},
-): PreferenceApplicationTargetContextSnapshot {
-  if (!target) throw conflict('controlled_application_preparation_target_missing')
-  const declared = target.declaredContext
-  return {
-    projectId: target.projectId,
-    editSessionId: target.editSessionId,
-    projectName: declared.projectName,
-    editName: declared.editName,
-    sourceMode: target.audioState.sourceMode,
-    contentType: declared.contentType,
-    sourceSummary: target.sourceSummary,
-    currentUserInstruction: declared.currentUserInstruction,
-    selectedEditLevel: declared.selectedEditLevel,
-    aspectRatio: declared.aspectRatio,
-    outputFrameConfirmed: true,
-    platformTarget: declared.platformTarget,
-    storyRole: declared.storyRole,
-    budgetPreference: declared.budgetPreference,
-    directives: structuredClone(declared.directives),
-    approvedConstraints: [...declared.approvedConstraints],
-  }
 }
 
 function applicationAuthority(

@@ -1,6 +1,7 @@
 import type { PreferenceApplicationTargetContextSnapshot } from '../types/edit-reference'
 import type { TargetVideoUnderstandingPackage } from '../types/edit-reference-target-video-understanding'
 import type { ApprovedEditReferenceOption } from './edit-reference-approved-options'
+import { stableEditReferenceJson } from './edit-reference-deterministic-hash'
 import { isTargetVideoUnderstandingReadyForUi } from './edit-reference-target-study-ui'
 import type { CurrentEditReferenceSupplementResource } from './current-edit-reference-study-supplement'
 
@@ -391,7 +392,7 @@ function blocked(
 }
 
 function sameJson(left: unknown, right: unknown): boolean {
-  return JSON.stringify(left) === JSON.stringify(right)
+  return stableEditReferenceJson(left) === stableEditReferenceJson(right)
 }
 
 function isSha256(value: string): boolean {

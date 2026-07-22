@@ -1,4 +1,10 @@
-import { createHash } from 'node:crypto'
+import { createHash, randomUUID } from 'node:crypto'
+import type { RuntimeEnv } from '../config/env'
+import type { EditReferenceRepository } from './edit-reference-repository'
+import {
+  createEditReferenceTargetApplication,
+  createPreferenceApplicationTargetContextFromUnderstanding,
+} from './edit-reference-target-adaptation'
 import type {
   EditReferenceApplicationPreparationReceipt,
 } from '../../src/types/edit-reference-production-application-preparation-api'
@@ -12,12 +18,16 @@ import {
   EDIT_REFERENCE_APPLICATION_PREPARATION_RUNTIME_PORT_VERSION,
   type EditReferenceApplicationPreparationRuntimePort,
 } from '../services/edit-reference-application-preparation-runtime-port'
+import {
+  resolveEditReferenceTargetUnderstandingPackageRepository,
+  type EditReferenceTargetUnderstandingPackageRuntimePortFactory,
+} from '../services/edit-reference-target-understanding-package-runtime-port'
 
 export const EDIT_REFERENCE_LOCAL_SUPABASE_APPLICATION_PREPARATION_RPC =
-  'prepare_edit_reference_application_v1' as const
+  'prepare_edit_reference_application_v2' as const
 
 export const EDIT_REFERENCE_LOCAL_SUPABASE_APPLICATION_PREPARATION_REQUEST_VERSION =
-  'edit-reference-application-preparation-rpc-request-v1' as const
+  'edit-reference-application-preparation-rpc-request-v2' as const
 
 const CANONICAL_LOCAL_ORIGIN = 'http://127.0.0.1:57431' as const
 const MAX_RESPONSE_BYTES = 2 * 1024 * 1024
@@ -30,10 +40,21 @@ const MAX_RESPONSE_BYTES = 2 * 1024 * 1024
 export function createEditReferenceLocalSupabaseApplicationPreparationPort(input: {
   readonly endpointOrigin: string
   readonly serviceRoleKey: string
+  readonly env: RuntimeEnv
+  readonly referenceRepository: EditReferenceRepository
+  readonly targetUnderstandingPackageRuntimePortFactory:
+    EditReferenceTargetUnderstandingPackageRuntimePortFactory
 }): EditReferenceApplicationPreparationRuntimePort {
   const endpointOrigin = assertCanonicalLoopbackOrigin(input.endpointOrigin)
   if (!isJwt(input.serviceRoleKey)) invalid('local_preparation_service_role_key_invalid')
+  if (
+    input.referenceRepository.persistence !== 'canonical_supabase_transactional'
+    || input.env.nodeEnv === 'production'
+    || !['local', 'mock'].includes(input.env.mode)
+    || input.env.storageMode !== 'local'
+  ) invalid('local_preparation_dependency_authority_invalid')
   const serviceRoleKey = input.serviceRoleKey
+  const referenceRepository = input.referenceRepository
 
   return Object.freeze({
     schemaVersion: EDIT_REFERENCE_APPLICATION_PREPARATION_RUNTIME_PORT_VERSION,
@@ -59,6 +80,96 @@ export function createEditReferenceLocalSupabaseApplicationPreparationPort(input
     async prepare(
       preparationInput: Parameters<EditReferenceApplicationPreparationRuntimePort['prepare']>[0],
     ) {
+      if (
+        preparationInput.actor.mockActor
+        || !preparationInput.actor.authenticatedAccessToken
+      ) invalid('local_preparation_authenticated_actor_required')
+      const scope = {
+        ownerUserId: preparationInput.actor.actorUserId,
+        workspaceId: preparationInput.intent.workspaceId,
+        localStorageRoot: preparationInput.actor.localStorageRoot,
+      }
+      const aggregate = await referenceRepository.read(scope)
+      if (!aggregate) invalid('local_preparation_reference_aggregate_missing')
+      const reference = aggregate.references.find((candidate) => (
+        candidate.id === preparationInput.intent.editReferenceId
+      ))
+      const study = aggregate.studies.find((candidate) => (
+        candidate.id === preparationInput.intent.studySessionId
+        && candidate.editReferenceId === preparationInput.intent.editReferenceId
+      ))
+      const dnaVersion = aggregate.dnaVersions.find((candidate) => (
+        candidate.id === preparationInput.intent.dnaVersionId
+        && candidate.studySessionId === preparationInput.intent.studySessionId
+        && candidate.editReferenceId === preparationInput.intent.editReferenceId
+      ))
+      const qaResult = dnaVersion?.qaResultId
+        ? aggregate.dnaQaResults.find((candidate) => candidate.id === dnaVersion.qaResultId)
+        : undefined
+      if (
+        !reference
+        || !study
+        || !dnaVersion
+        || !qaResult
+        || reference.status !== 'active'
+        || reference.revision !== preparationInput.intent.expectedReferenceRevision
+        || !['approved', 'applied'].includes(study.status)
+        || dnaVersion.status !== 'approved'
+        || dnaVersion.contentDigest
+          !== preparationInput.intent.expectedDNAContentDigestSha256
+        || !['passed', 'requires_user_review'].includes(qaResult.status)
+      ) invalid('local_preparation_reference_dna_or_qa_changed')
+
+      const targetRepository = resolveEditReferenceTargetUnderstandingPackageRepository({
+        env: input.env,
+        auth: {
+          userId: preparationInput.actor.actorUserId,
+          accessToken: preparationInput.actor.authenticatedAccessToken,
+          isMockUser: false,
+        },
+        factory: input.targetUnderstandingPackageRuntimePortFactory,
+      })
+      const target = await targetRepository.readLatest({
+        scope,
+        binding: {
+          projectId: preparationInput.projectId,
+          editSessionId: preparationInput.editSessionId,
+          editReferenceId: reference.id,
+          studySessionId: study.id,
+          storageObjectRecordId:
+            preparationInput.intent.targetUnderstandingSourceStorageObjectRecordId,
+          editBriefDigestSha256:
+            preparationInput.intent.targetUnderstandingEditBriefDigestSha256,
+        },
+      })
+      if (
+        !target
+        || target.packageId !== preparationInput.intent.targetUnderstandingPackageId
+        || target.packageDigestSha256
+          !== preparationInput.intent.targetUnderstandingPackageDigestSha256
+        || target.source.mediaAssetId
+          !== preparationInput.intent.targetUnderstandingSourceMediaAssetId
+        || target.status !== 'ready'
+        || target.readyForPreferenceApplication !== true
+      ) invalid('local_preparation_target_study_changed')
+
+      const preparedAt = new Date().toISOString()
+      const preparedApplication = createEditReferenceTargetApplication({
+        reference,
+        study,
+        dnaVersion,
+        qaResult,
+        targetContext:
+          createPreferenceApplicationTargetContextFromUnderstanding(target),
+        targetUnderstanding: target,
+        applicationSource: preparationInput.intent.applicationSource,
+        existingApplications: aggregate.applications,
+        now: preparedAt,
+        applicationId: randomUUID(),
+      })
+      if (preparedApplication.runtimeSource !== 'verified_live') {
+        invalid('local_preparation_application_runtime_not_verified_live')
+      }
       const requestWithoutDigest = {
         schemaVersion: EDIT_REFERENCE_LOCAL_SUPABASE_APPLICATION_PREPARATION_REQUEST_VERSION,
         rpcName: EDIT_REFERENCE_LOCAL_SUPABASE_APPLICATION_PREPARATION_RPC,
@@ -70,7 +181,8 @@ export function createEditReferenceLocalSupabaseApplicationPreparationPort(input
         idempotencyKeyHashSha256: preparationInput.idempotencyKeyHashSha256,
         preparationRequestDigestSha256:
           preparationInput.preparationRequestDigestSha256,
-        requestedAt: new Date().toISOString(),
+        preparedApplication,
+        requestedAt: preparedAt,
         authenticatedScopeReboundServerSide: true as const,
         browserApplicationRecordAccepted: false as const,
         applicationLifecycleMutationAllowed: false as const,
@@ -108,6 +220,10 @@ export function createEditReferenceLocalSupabaseApplicationPreparationPort(input
           !== preparationInput.intent.dnaVersionId
         || receipt.applicationAuthority.targetUnderstandingPackageDigestSha256
           !== preparationInput.intent.targetUnderstandingPackageDigestSha256
+        || receipt.applicationAuthority.applicationContentDigestSha256
+          !== preparedApplication.contentDigest
+        || receipt.applicationAuthority.applicationContextHashSha256
+          !== preparedApplication.targetContextDigest
       ) invalid('local_preparation_receipt_scope_mismatch')
       return structuredClone(receipt)
     },

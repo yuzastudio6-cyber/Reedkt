@@ -100,14 +100,17 @@ export function resolveEditReferenceTargetUnderstandingPackageRepository(
       readonly isMockUser: boolean
     }
     readonly factory?: EditReferenceTargetUnderstandingPackageRuntimePortFactory
-    readonly localRepository: EditReferenceTargetUnderstandingPackageRepository
+    readonly localRepository?: EditReferenceTargetUnderstandingPackageRepository
   },
 ): EditReferenceTargetUnderstandingPackageRepository {
   if (!input.factory) {
     if (!isProtectedLocalRuntime(input.env)) {
       throw unavailable('canonical_target_package_factory_missing')
     }
-    if (input.localRepository.persistence !== 'backend_local_private_versioned') {
+    if (
+      !input.localRepository
+      || input.localRepository.persistence !== 'backend_local_private_versioned'
+    ) {
       throw unavailable('local_target_package_repository_authority_changed')
     }
     return input.localRepository

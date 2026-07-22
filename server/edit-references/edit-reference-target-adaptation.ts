@@ -26,7 +26,7 @@ export const EDIT_REFERENCE_APPLICATION_PRECEDENCE_POLICY = [
   'approved_preference_dna',
 ] as const
 
-interface TargetApplicationInput {
+export interface TargetApplicationInput {
   reference: EditReferenceRecord
   study: PreferenceStudySessionRecord
   dnaVersion: PreferenceDNAVersionRecord
@@ -36,6 +36,12 @@ interface TargetApplicationInput {
   applicationSource: PreferenceApplicationSource
   existingApplications: PreferenceApplicationRecord[]
   now: string
+  /**
+   * Canonical persistence allocates a database-compatible UUID before the
+   * server prepares the immutable application. Legacy/private callers may
+   * omit it and retain the historical namespaced identity.
+   */
+  applicationId?: string
 }
 
 export function createEditReferenceTargetApplication(input: TargetApplicationInput): PreferenceApplicationRecord {
@@ -89,7 +95,7 @@ export function createEditReferenceTargetApplication(input: TargetApplicationInp
   }
 
   return {
-    id: `preference-application-${randomUUID()}`,
+    id: input.applicationId ?? `preference-application-${randomUUID()}`,
     workspaceId: input.reference.workspaceId,
     editReferenceId: input.reference.id,
     editReferenceName: input.reference.name,
@@ -134,6 +140,36 @@ export function createEditReferenceTargetApplication(input: TargetApplicationInp
     creditReservedOrSpent: false,
     createdAt: input.now,
     updatedAt: input.now,
+  }
+}
+
+/**
+ * Projects the exact declared target-study context into the one application
+ * context consumed by the adaptation engine. Keeping this projection beside
+ * the adaptation authority prevents SQL, HTTP adapters, and test fixtures
+ * from inventing competing mappings.
+ */
+export function createPreferenceApplicationTargetContextFromUnderstanding(
+  target: TargetVideoUnderstandingPackage,
+): PreferenceApplicationTargetContextSnapshot {
+  const declared = target.declaredContext
+  return {
+    projectId: target.projectId,
+    editSessionId: target.editSessionId,
+    projectName: declared.projectName,
+    editName: declared.editName,
+    sourceMode: target.audioState.sourceMode,
+    contentType: declared.contentType,
+    sourceSummary: target.sourceSummary,
+    currentUserInstruction: declared.currentUserInstruction,
+    selectedEditLevel: declared.selectedEditLevel,
+    aspectRatio: declared.aspectRatio,
+    outputFrameConfirmed: true,
+    platformTarget: declared.platformTarget,
+    storyRole: declared.storyRole,
+    budgetPreference: declared.budgetPreference,
+    directives: structuredClone(declared.directives),
+    approvedConstraints: [...declared.approvedConstraints],
   }
 }
 

@@ -143,6 +143,18 @@ reset role;
 
 do $$
 begin
+  if has_function_privilege(
+    'authenticated',
+    'public.reeditpro_edit_reference_idempotency_fence(uuid,uuid,text,text)',
+    'EXECUTE'
+  ) or position(
+    'apply_exact_edit_preferences_and_reference_v1'', key_digest' in
+    pg_get_functiondef(
+      'public.apply_exact_edit_preferences_and_reference_v1(text,jsonb)'::regprocedure
+    )
+  ) = 0 then
+    raise exception 'EXACT_EDIT_APPLY_IDEMPOTENCY_CONCURRENCY_FENCE_INVALID';
+  end if;
   if not exists (
     select 1 from public.exact_edit_preference_states
     where workspace_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
@@ -387,6 +399,19 @@ begin
     select 1 from public.preference_applications
     where id = 'aaaaaaaa-7000-4000-8000-000000000001'
       and connection_state = 'connected'
+      and record_json->>'targetIntegrationStatus' = 'connected'
+      and record_json->>'downstreamInvalidationStatus' = 'not_required'
+      and record_json->'canonicalLifecycleAuthority'->>'schemaVersion'
+        = 'edit-reference-canonical-exact-edit-application-lifecycle-v1'
+      and record_json->'canonicalLifecycleAuthority'->>'sourceAuthority'
+        = 'canonical_exact_edit_preference_repository'
+      and record_json->'canonicalLifecycleAuthority'->>'mutation' = 'apply'
+      and (record_json->'canonicalLifecycleAuthority'->>'committedReferenceRevision')::bigint = 2
+      and (record_json->'canonicalLifecycleAuthority'->>'committedPlanningInputRevision')::bigint = 1
+      and (record_json->'canonicalLifecycleAuthority'->>'browserSuppliedAuthorityAccepted')::boolean is false
+      and (record_json->'canonicalLifecycleAuthority'->>'approvedSnapshotMutationAllowed')::boolean is false
+      and record_json->'downstreamContext' is null
+      and record_json->'targetSessionReceipt' is null
   ) then raise exception 'EXACT_EDIT_COMBINED_APPLICATION_NOT_CONNECTED'; end if;
   if (select count(*) from public.exact_edit_preference_apply_events) <> 1
     or (select count(*) from public.preference_application_lifecycle_events) <> 1 then

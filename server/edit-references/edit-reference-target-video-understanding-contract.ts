@@ -118,8 +118,7 @@ export function createTargetVideoUnderstandingPackage(
     : null
   const unsigned: Omit<TargetVideoUnderstandingPackage, 'packageDigestSha256'> = {
     schemaVersion: TARGET_VIDEO_UNDERSTANDING_PACKAGE_VERSION,
-    packageId: stableUuid({
-      domain: 'target_video_understanding_package_v1',
+    packageId: calculateTargetVideoUnderstandingPackageId({
       workspaceId: input.workspaceId,
       projectId: input.projectId,
       editSessionId: input.editSessionId,
@@ -306,6 +305,13 @@ export function validateTargetVideoUnderstandingPackage(
   if (!Number.isSafeInteger(value.study.runRevision) || value.study.runRevision < 1) {
     throw new Error('Target-video study revision is invalid.')
   }
+  if (
+    !Number.isSafeInteger(value.study.totalWorkItemCount)
+    || value.study.totalWorkItemCount < 1
+    || !Number.isSafeInteger(value.study.completedWorkItemCount)
+    || value.study.completedWorkItemCount < 0
+    || value.study.completedWorkItemCount > value.study.totalWorkItemCount
+  ) throw new Error('Target-video study work-item coverage is invalid.')
   for (const record of value.evidence) validateEvidenceRecord(record)
   for (const skillRun of value.skillRuns) validateSkillRun(skillRun, value.evidenceIds)
   validateConfidence(value.confidence)
@@ -313,6 +319,7 @@ export function validateTargetVideoUnderstandingPackage(
     value.readyForPreferenceApplication !== (value.status === 'ready')
     || (value.readyForPreferenceApplication && (
       value.study.state !== 'completed'
+      || value.study.completedWorkItemCount !== value.study.totalWorkItemCount
       || value.study.progressPercent !== 100
       || value.study.temporalCoverageRatio !== 1
       || value.runtimeProvenance.completionAttestationDigestSha256 === null
@@ -379,6 +386,22 @@ export function calculateTargetVideoUnderstandingPackageDigest(
   const unsigned = structuredClone(value) as Record<string, unknown>
   delete unsigned.packageDigestSha256
   return sha256(stableStringify(unsigned))
+}
+
+export function calculateTargetVideoUnderstandingPackageId(input: {
+  readonly workspaceId: string
+  readonly projectId: string
+  readonly editSessionId: string
+  readonly sourceStorageObjectRecordId: string
+  readonly mediaChecksumSha256: string
+  readonly planDigestSha256: string
+  readonly runRevision: number
+  readonly contextDigestSha256: string
+}): string {
+  return stableUuid({
+    domain: 'target_video_understanding_package_v1',
+    ...input,
+  })
 }
 
 function validateInput(input: CreateTargetVideoUnderstandingPackageInput): void {

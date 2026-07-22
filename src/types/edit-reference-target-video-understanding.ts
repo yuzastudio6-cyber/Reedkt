@@ -279,7 +279,10 @@ export interface TargetVideoUnderstandingSchedule {
   scheduled: boolean
   alreadyActive: boolean
   runtime: 'backend_local_private' | 'blocked'
-  reason?: 'worker_runtime_not_local' | 'storage_runtime_not_local'
+  reason?:
+    | 'worker_runtime_not_local'
+    | 'storage_runtime_not_local'
+    | 'canonical_worker_dispatch_not_verified'
 }
 
 export interface TargetVideoUnderstandingApiData {

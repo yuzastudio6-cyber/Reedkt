@@ -270,7 +270,6 @@ export function createEditReferenceTargetVideoUnderstandingService(
     },
 
     async readLatest(input: ReadInput): Promise<EditReferenceTargetVideoUnderstandingServiceResult> {
-      const authority = await resolveTargetAuthority(context, editReferenceRepository, scope(input.workspaceId), input)
       const binding: TargetVideoUnderstandingBinding = {
         projectId: input.projectId,
         editSessionId: input.editSessionId,
@@ -279,6 +278,21 @@ export function createEditReferenceTargetVideoUnderstandingService(
         storageObjectRecordId: input.sourceStorageObjectRecordId,
         editBriefDigestSha256: input.expectedEditBriefDigestSha256,
       }
+      if (packageRepository.persistence === 'canonical_v3_local_supabase_rls') {
+        return readLatestCanonicalTargetPackage({
+          input,
+          longFormStudyRuntime,
+          packageRepository,
+          scope: scope(input.workspaceId),
+        })
+      }
+
+      const authority = await resolveTargetAuthority(
+        context,
+        editReferenceRepository,
+        scope(input.workspaceId),
+        input,
+      )
       const latest = await packageRepository.readLatest({ scope: authority.scope, binding })
       if (!latest) {
         throw new ApiError(
@@ -322,6 +336,127 @@ export function createEditReferenceTargetVideoUnderstandingService(
         packageRepository.persistence,
       )
     },
+  }
+}
+
+async function readLatestCanonicalTargetPackage(input: {
+  readonly input: ReadInput
+  readonly longFormStudyRuntime: EditReferenceLongFormStudyRuntimePort
+  readonly packageRepository: EditReferenceTargetUnderstandingPackageRepository
+  readonly scope: EditReferenceRepositoryScope
+}): Promise<EditReferenceTargetVideoUnderstandingServiceResult> {
+  const binding: TargetVideoUnderstandingBinding = {
+    projectId: input.input.projectId,
+    editSessionId: input.input.editSessionId,
+    editReferenceId: input.input.editReferenceId,
+    studySessionId: input.input.studySessionId,
+    storageObjectRecordId: input.input.sourceStorageObjectRecordId,
+    editBriefDigestSha256: input.input.expectedEditBriefDigestSha256,
+  }
+  const latest = await input.packageRepository.readLatest({
+    scope: input.scope,
+    binding,
+  })
+  if (!latest) {
+    throw new ApiError(
+      'PROJECT_NOT_FOUND',
+      'No target-video understanding package exists for this exact source, Edit Brief, Edit Reference, and Preference Study.',
+      404,
+    )
+  }
+  assertCanonicalTargetPackageMatchesRequest(latest, input.input)
+  const persisted = await input.longFormStudyRuntime.read({
+    scope: input.scope,
+    runId: latest.study.runId,
+  })
+  if (!persisted) {
+    throw new ApiError(
+      'INTERNAL_ERROR',
+      'The target-video understanding package lost its exact private study checkpoint.',
+      500,
+    )
+  }
+  assertCanonicalTargetPackageMatchesStudy(latest, persisted.plan, persisted.run)
+  return serviceResult(
+    latest,
+    {
+      scheduled: false,
+      alreadyActive: false,
+      runtime: 'blocked',
+      reason: 'canonical_worker_dispatch_not_verified',
+    },
+    true,
+    input.packageRepository.persistence,
+  )
+}
+
+function assertCanonicalTargetPackageMatchesRequest(
+  packageRecord: TargetVideoUnderstandingPackage,
+  input: ReadInput,
+): void {
+  if (
+    packageRecord.workspaceId !== input.workspaceId
+    || packageRecord.projectId !== input.projectId
+    || packageRecord.editSessionId !== input.editSessionId
+    || packageRecord.editReferenceId !== input.editReferenceId
+    || packageRecord.studySessionId !== input.studySessionId
+    || packageRecord.source.storageObjectRecordId
+      !== input.sourceStorageObjectRecordId
+    || packageRecord.source.mediaAssetId !== input.sourceMediaAssetId
+    || packageRecord.declaredContext.editBriefRevision
+      !== input.expectedEditBriefRevision
+    || packageRecord.declaredContext.editBriefDigestSha256
+      !== input.expectedEditBriefDigestSha256
+  ) {
+    throw new ApiError(
+      'VERSION_CONFLICT',
+      'The retained target-video understanding package no longer matches this exact edit, source, or Edit Brief.',
+      409,
+    )
+  }
+}
+
+function assertCanonicalTargetPackageMatchesStudy(
+  packageRecord: TargetVideoUnderstandingPackage,
+  plan: Parameters<typeof validateRunAgainstPlan>[1],
+  run: Parameters<typeof validateRunAgainstPlan>[0],
+): void {
+  try {
+    validateRunAgainstPlan(run, plan)
+  } catch {
+    throw new ApiError(
+      'INTERNAL_ERROR',
+      'The retained target-video understanding checkpoint failed exact plan validation.',
+      500,
+    )
+  }
+  const completedWorkItemCount = run.workItems.filter(
+    (workItem) => workItem.status === 'completed',
+  ).length
+  if (
+    plan.workspaceId !== packageRecord.workspaceId
+    || plan.editReferenceId !== packageRecord.editReferenceId
+    || plan.studySessionId !== packageRecord.studySessionId
+    || plan.source.privateMediaArtifactId
+      !== packageRecord.source.storageObjectRecordId
+    || plan.source.mediaChecksumSha256 !== packageRecord.source.checksumSha256
+    || plan.source.sizeBytes !== packageRecord.source.sizeBytes
+    || plan.source.durationSeconds !== packageRecord.source.durationSeconds
+    || plan.source.mimeType !== packageRecord.source.mimeType
+    || plan.source.hasAudio !== packageRecord.source.hasAudio
+    || run.runId !== packageRecord.study.runId
+    || run.revision !== packageRecord.study.runRevision
+    || run.planId !== packageRecord.study.planId
+    || run.planDigestSha256 !== packageRecord.study.planDigestSha256
+    || run.state !== packageRecord.study.state
+    || run.workItems.length !== packageRecord.study.totalWorkItemCount
+    || completedWorkItemCount !== packageRecord.study.completedWorkItemCount
+  ) {
+    throw new ApiError(
+      'VERSION_CONFLICT',
+      'The retained target-video understanding package no longer matches its durable study authority.',
+      409,
+    )
   }
 }
 

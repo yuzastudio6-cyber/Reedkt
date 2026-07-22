@@ -775,8 +775,8 @@ function validateTargetUnderstandingForApplication(input: {
     || target.declaredContext.contentType !== input.targetContext.contentType
     || target.declaredContext.storyRole !== input.targetContext.storyRole
     || target.declaredContext.budgetPreference !== input.targetContext.budgetPreference
-    || JSON.stringify(target.declaredContext.directives) !== JSON.stringify(input.targetContext.directives)
-    || JSON.stringify(target.declaredContext.approvedConstraints) !== JSON.stringify(input.targetContext.approvedConstraints)
+    || stableEditReferenceJson(target.declaredContext.directives) !== stableEditReferenceJson(input.targetContext.directives)
+    || stableEditReferenceJson(target.declaredContext.approvedConstraints) !== stableEditReferenceJson(input.targetContext.approvedConstraints)
   ) {
     return 'The current instructions or output context changed after whole-video study. Refresh the study before adapting guidance.'
   }

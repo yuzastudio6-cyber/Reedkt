@@ -90,6 +90,8 @@ npx --no-install tsx \
 npx --no-install tsx "${REPOSITORY_ROOT}/server/smoke/edit-reference-local-supabase-http-rpc-smoke.ts"
 npx --no-install tsx \
   "${REPOSITORY_ROOT}/server/smoke/edit-reference-local-supabase-domain-repository-smoke.ts"
+npx --no-install tsx \
+  "${REPOSITORY_ROOT}/server/smoke/edit-reference-canonical-v3-application-preparation-and-apply-smoke.ts"
 PLAYWRIGHT_EDIT_REFERENCE_V3_STORAGE_ROOT="${BROWSER_STORAGE_ROOT}" \
   npx --no-install playwright test --config \
   "${REPOSITORY_ROOT}/tests/e2e/playwright.edit-reference-canonical-v3-local.config.ts"

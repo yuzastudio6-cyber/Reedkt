@@ -51,14 +51,14 @@ begin
   ) then
     raise exception 'RECOVERY_EDIT_REFERENCE_DOMAIN_HISTORY_MISSING';
   end if;
-  if (select count(*) from public.preference_long_form_study_runs) <> 5
-    or (select count(*) from public.preference_long_form_study_work_items) <> 5
+  if (select count(*) from public.preference_long_form_study_runs) <> 11
+    or (select count(*) from public.preference_long_form_study_work_items) <> 11
     or (select count(*) from public.preference_long_form_study_attempts) <> 7
     or (select count(*) from public.preference_long_form_study_checkpoints) <> 2
     or (select count(*) from public.preference_long_form_study_work_outputs) <> 1
-    or (select count(*) from public.preference_long_form_study_idempotency_receipts) <> 25
+    or (select count(*) from public.preference_long_form_study_idempotency_receipts) <> 31
     or (select count(*) from public.preference_long_form_study_lease_escrow) <> 7
-    or (select count(*) from public.preference_long_form_study_audit_events) <> 24
+    or (select count(*) from public.preference_long_form_study_audit_events) <> 30
     or not exists (
       select 1
       from public.preference_long_form_study_attempts attempt

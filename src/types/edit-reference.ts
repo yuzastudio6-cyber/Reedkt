@@ -1067,6 +1067,19 @@ export interface PreferenceApplicationHintGroupRecord {
   sourceRuleIds: string[]
 }
 
+export interface PreferenceApplicationCanonicalLifecycleAuthority {
+  schemaVersion: 'edit-reference-canonical-exact-edit-application-lifecycle-v1'
+  sourceAuthority: 'canonical_exact_edit_preference_repository'
+  transactionId: string
+  idempotencyReceiptId: string
+  mutation: 'apply' | 'replace' | 'remove'
+  committedReferenceRevision: number
+  committedPlanningInputRevision: number
+  committedAt: string
+  browserSuppliedAuthorityAccepted: false
+  approvedSnapshotMutationAllowed: false
+}
+
 export interface PreferenceApplicationRecord {
   id: string
   workspaceId: string
@@ -1110,6 +1123,7 @@ export interface PreferenceApplicationRecord {
   downstreamContextWritten: boolean
   downstreamContext?: import('./edit-reference-integration').PreferenceApplicationDownstreamContext
   targetSessionReceipt?: import('./edit-reference-integration').PreferenceApplicationTargetSessionReceipt
+  canonicalLifecycleAuthority?: PreferenceApplicationCanonicalLifecycleAuthority
   connectedAt?: string
   invalidatedAt?: string
   invalidationReason?: import('./edit-reference-integration').PreferenceApplicationInvalidationReason

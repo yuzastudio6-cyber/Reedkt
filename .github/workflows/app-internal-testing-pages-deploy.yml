@@ -281,6 +281,7 @@ jobs:
           npm run smoke:google-oauth-sign-in
           npm run smoke:google-api-gateway-browser-transport
           npm run smoke:app-internal-testing-pages-deploy-readiness
+          npm run smoke:protected-internal-testing-release-candidate-admission
           npm run check:frontend-boundary
           npm run check:secrets
 
@@ -291,6 +292,12 @@ jobs:
           set -euo pipefail
           npm run smoke:canonical-product-ui-integration-readiness
           npm run internal-testing:verify-canonical-product-ui-integration-readiness
+
+      - name: Require exact same-SHA protected internal testing source admission
+        env:
+          REEDITPRO_INTERNAL_TESTING_SOURCE_REF: ${{ inputs.source_ref }}
+          REEDITPRO_INTERNAL_TESTING_SOURCE_SHA: ${{ inputs.source_sha }}
+        run: npm run internal-testing:verify-protected-release-candidate
 
       - name: Build signed-in static app against verified gateway
         env:

@@ -170,6 +170,7 @@ jobs:
           npm run smoke:canonical-cloud-dispatch-handoff
           npm run smoke:canonical-live-google-service-identity-verifier
           npm run smoke:canonical-cloud-dispatch-outbox-receivers
+          npm run smoke:protected-internal-testing-release-candidate-admission
           npm run typecheck:server
           npm run check:frontend-boundary
           npm run check:secrets
@@ -181,6 +182,12 @@ jobs:
           set -euo pipefail
           npm run smoke:canonical-product-ui-integration-readiness
           npm run internal-testing:verify-canonical-product-ui-integration-readiness
+
+      - name: Require exact same-SHA protected internal testing source admission
+        env:
+          REEDITPRO_INTERNAL_TESTING_SOURCE_REF: ${{ inputs.source_ref }}
+          REEDITPRO_INTERNAL_TESTING_SOURCE_SHA: ${{ inputs.source_sha }}
+        run: npm run internal-testing:verify-protected-release-candidate
 
       - name: Require successful same-SHA private media storage activation run
         id: storage_activation_run

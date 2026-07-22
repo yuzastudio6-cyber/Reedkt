@@ -101,8 +101,15 @@ jobs:
           npm run smoke:gcs-upload-integrity-security
           npm run smoke:large-media-ingest-readiness
           npm run smoke:large-media-background-finalization
+          npm run smoke:protected-internal-testing-release-candidate-admission
           npm run typecheck:server
           npm run check:secrets
+
+      - name: Require exact same-SHA protected internal testing source admission
+        env:
+          REEDITPRO_INTERNAL_TESTING_SOURCE_REF: ${{ inputs.source_ref }}
+          REEDITPRO_INTERNAL_TESTING_SOURCE_SHA: ${{ inputs.source_sha }}
+        run: npm run internal-testing:verify-protected-release-candidate
 
       - name: Authenticate to Google Cloud with keyless OIDC
         uses: google-github-actions/auth@v3

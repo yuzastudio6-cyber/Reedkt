@@ -201,11 +201,11 @@
     },
     {
       "path": "package.json",
-      "sha256": "5e68e17188e6b53d8d48b15d9395822ee7ff2f1894ddec20b7ca89cb085449db"
+      "sha256": "8e6c092c6611d86ab2076ec08dd063bc420e272076b6c4900313f76cd5d2848b"
     },
     {
       "path": "server/app.ts",
-      "sha256": "043a6f69fe9fe1c43481935756aa9fb5c4a68962c154219e53a4f4cc87c6f774"
+      "sha256": "32a54ab1a881c56d5b59632dc7d1b0e02a93f6b07cfd7345efeee7714a8fac70"
     },
     {
       "path": "server/distributed-pre-plan-study/canonical-distributed-pre-plan-study-local-supabase-http-rpc-client.ts",
@@ -309,11 +309,11 @@
     },
     {
       "path": "server/routes/route-helpers.ts",
-      "sha256": "2f3c53b4ecd0d39b51e68e38bb538dd1572ba72524ab61b85a1f7669ac67f319"
+      "sha256": "cec73ed83e26f47695de9e101f5f9bd13ff4ffcdc752923a74642a0d295f5d10"
     },
     {
       "path": "server/services/canonical-planning-handoff-service.ts",
-      "sha256": "f8dad625a38eaa7b52031ef82c20b4556d72bc88cebcc18f788f390d96b22ccb"
+      "sha256": "a2775b27671e22567886ca8ba9eb3fc006b8cd705a124b97f4d529fa0c24d7b3"
     },
     {
       "path": "server/services/edit-reference-application-preparation-runtime-port.ts",
@@ -365,7 +365,7 @@
     },
     {
       "path": "server/smoke/canonical-planning-publication-frontend-client-smoke.ts",
-      "sha256": "bed96ddc5779b696bbae1a620f041fb9e5eee5fc0dca62fe387254b40a1d710f"
+      "sha256": "86e957ac0687c8f4e8de208cbc0d886c87738e95dc845aaf6c3589b65f4e50c7"
     },
     {
       "path": "server/smoke/canonical-private-tool-dispatch-authority-smoke.ts",
@@ -373,15 +373,15 @@
     },
     {
       "path": "server/smoke/canonical-professional-long-form-cross-chunk-color-smoke.ts",
-      "sha256": "c791b73362778a8b2cac1c07fe4ab4e9476183758ba6f963a679d8e458f0fb14"
+      "sha256": "1a85a2bc77a18c5105d6c38dca3ca807617df4ab74a2fae28e0169e2f74cb8e7"
     },
     {
       "path": "server/smoke/canonical-professional-long-form-post-approval-smoke.ts",
-      "sha256": "5ec1091e98335117be274e24c5a7d5238f946f0f96b864d71f701fe21b06c4ec"
+      "sha256": "d9215366dcfbde64d3b3a36bfb60ece48834bbf27620de064e795c644f151d53"
     },
     {
       "path": "server/smoke/edit-planning-authority-smoke.ts",
-      "sha256": "846162374e60be764a34de248a9b9befd5c40a5f2cd7c44bc1d3a507bee5d4f8"
+      "sha256": "c65be420f393ed17b7233fede732696a5d477620d215d414832441de7ac7f5e9"
     },
     {
       "path": "server/smoke/edit-reference-canonical-v3-local-long-form-runtime-port-smoke.ts",
@@ -425,7 +425,7 @@
     },
     {
       "path": "server/types.ts",
-      "sha256": "7f2cd56acbad47db6cfc4e5c8a0dadb94d325387e8750099fd70bed53585e9b2"
+      "sha256": "60def59430101fcfa1333b8011c6963f541c7cfffdae8e641863c16ca3728daa"
     },
     {
       "path": "server/validation/canonical-exact-edit-planning-authority-schemas.ts",
@@ -433,7 +433,7 @@
     },
     {
       "path": "server/validation/edit-planning-authority-schemas.ts",
-      "sha256": "6a769b32467f96fbc735972cccdcf1bb3a16b97514ef65f8129999a4c648a832"
+      "sha256": "ba8b5ccef78e08a33afbcf7e65f94b9e40aeaf97fabfa21b50fe0ed9dd21a002"
     },
     {
       "path": "server/validation/edit-reference-application-preparation-schemas.ts",
@@ -465,7 +465,7 @@
     },
     {
       "path": "src/lib/canonical-planning-publication-client.ts",
-      "sha256": "4774cdfc03c902754b8d4a1374a4fb9ef5922c551c603647209576453ba17318"
+      "sha256": "d65e0374db8bbdac0b7a95e340f1094ddbac35a5d4b4daebc36d18c101c31e6a"
     },
     {
       "path": "src/lib/current-edit-reference-application-ui.ts",

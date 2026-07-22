@@ -15,15 +15,15 @@
     },
     {
       "path": "expected-recovery-data-tables.txt",
-      "sha256": "42d2214f242f0bfdc00c4bd694a326f66082ae89cd0beb33709251cbb05e4239"
+      "sha256": "0951a59d84bcfe5d8e7b5b880df252b619bb9cbfd415ac62d94183b8bbe64bf5"
     },
     {
       "path": "run-local-recovery-verification.sh",
-      "sha256": "8bdcb3ee57e3a604cd31af0a20b5f50529e6e8a692c3ee3644fe2a063bf1630c"
+      "sha256": "4ed1cf8b913597532de374ebdf166ebf2b59722bdc00d7c2d88e5296f2770c9e"
     },
     {
       "path": "run-local-verification.sh",
-      "sha256": "d8e080338524c70d5d1a3fda95298c12dd015b17155bed2d685de80c9ac859c8"
+      "sha256": "a1be03ca7b9744378271774d61e92d544ffe8eb40f8d299cb5626f7b1985237f"
     },
     {
       "path": "setup-local-auth-users.ts",
@@ -74,6 +74,10 @@
       "sha256": "62070c36c8ab4d07884d84ff3d6eb8cca0c7f9d6c450d59e0163fd34c6f5a74b"
     },
     {
+      "path": "supabase/migrations/202607210010_canonical_distributed_pre_plan_study_rpc.sql",
+      "sha256": "f94bfcf88998434c011052a0f05f436ac5c9c55e7acbc5f9bab2efb406f0faba"
+    },
+    {
       "path": "tests/001_two_user_two_workspace_rls.sql",
       "sha256": "4229abef3613004a7ce75467e6e030bfe6c1baa5237d7a55a7d8580d6822a816"
     },
@@ -87,7 +91,7 @@
     },
     {
       "path": "tests/004_schema_security_invariants.sql",
-      "sha256": "d8fab55c4bc688d1b93fd1f1f6dfe1656a4f2aa35e4645dce21078225f7e3450"
+      "sha256": "0da2e7bf415e2adfb201c46474f2b7db0a9e9ffd4362f38ef165d1a740617baa"
     },
     {
       "path": "tests/005_exact_edit_atomic_apply.sql",
@@ -107,7 +111,7 @@
     },
     {
       "path": "tests/009_recovery_restore_assertions.sql",
-      "sha256": "89de433713663f3485044ae83c451f9c44c1f45bffbd5bf6c714476aa6a4e9e5"
+      "sha256": "d45f45935169a2c4361eff5fb236b596194fdfde2172f27b697a948568e1ed69"
     },
     {
       "path": "tests/010_edit_reference_domain_library_study_rpcs.sql",
@@ -120,6 +124,10 @@
     {
       "path": "tests/012_edit_reference_domain_lifecycle_postconditions.sql",
       "sha256": "0d65ab87b39838e48bdfb70bcd338fd6196052fb9d5648ac094140c2867cafd8"
+    },
+    {
+      "path": "tests/013_canonical_distributed_pre_plan_study_rpc_postconditions.sql",
+      "sha256": "d86c073ace71bcbde4d618056b9045c2539b3d085cf9dcf7231ff7a6aa47a9b0"
     },
     {
       "path": "tests/_fixture.sql",
@@ -135,7 +143,7 @@
     },
     {
       "path": "verify.mjs",
-      "sha256": "082ea7851a2f177a1c90eb57fb2ada109d2710a38b0cc590428825510bdf8926"
+      "sha256": "a5a042937c8d5d21b62beae871657d62f2e14add132610d75b7408b6cfa8e415"
     }
   ],
   "repositoryFiles": [
@@ -154,6 +162,10 @@
     {
       "path": "docs/canonical-exact-edit-planning-authority-verification-2026-07-21.md",
       "sha256": "1f382a8457d02f468a706ce7cd29f91b23727f1f247de2298e38154f4c3f5827"
+    },
+    {
+      "path": "docs/canonical-v3-local-distributed-pre-plan-study-runtime-verification-2026-07-21.md",
+      "sha256": "e91523e1a7bfa5bd3be7468766dcb552131a7eb881ee0c4fe78ed593f8ab3987"
     },
     {
       "path": "docs/canonical-v3-local-edit-reference-domain-library-study-verification-2026-07-21.md",
@@ -186,6 +198,22 @@
     {
       "path": "server/app.ts",
       "sha256": "043a6f69fe9fe1c43481935756aa9fb5c4a68962c154219e53a4f4cc87c6f774"
+    },
+    {
+      "path": "server/distributed-pre-plan-study/canonical-distributed-pre-plan-study-local-supabase-http-rpc-client.ts",
+      "sha256": "686abff2074edb3ae905d4bc1cf4cb396cb20ab490197ad5d72f166caf2f9555"
+    },
+    {
+      "path": "server/distributed-pre-plan-study/canonical-distributed-pre-plan-study-state-port.ts",
+      "sha256": "0c0532c653caa1943a484c5d19d69a8f59dcb9f3c013af1171d9cca4c9710c16"
+    },
+    {
+      "path": "server/distributed-pre-plan-study/canonical-distributed-pre-plan-study-state-rpc-adapter.ts",
+      "sha256": "2bb3c87cd35cf6df1ae31f5590e7081e90ff4aaadb525b7b09f84a47a6bda20a"
+    },
+    {
+      "path": "server/distributed-pre-plan-study/index.ts",
+      "sha256": "53f3282aff244eba492be06b7e3b42683e76bedcbc518bf519dd3363a7e6f919"
     },
     {
       "path": "server/edit-references/canonical-exact-edit-planning-authority-boundary.ts",
@@ -290,6 +318,10 @@
     {
       "path": "server/smoke/canonical-planning-publication-frontend-client-smoke.ts",
       "sha256": "bed96ddc5779b696bbae1a620f041fb9e5eee5fc0dca62fe387254b40a1d710f"
+    },
+    {
+      "path": "server/smoke/canonical-distributed-pre-plan-study-local-postgres-smoke.ts",
+      "sha256": "31fc235a289ce55d5e0778771334aacd5c2bd7164ff0c7f8f9bbd290ceb3056e"
     },
     {
       "path": "server/smoke/canonical-private-tool-dispatch-authority-smoke.ts",

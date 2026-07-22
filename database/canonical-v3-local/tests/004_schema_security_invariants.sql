@@ -21,6 +21,9 @@ declare
     'preference_long_form_study_work_items', 'preference_long_form_study_attempts',
     'preference_long_form_study_checkpoints', 'preference_long_form_study_work_outputs',
     'preference_long_form_study_checkpoint_authority',
+    'preference_long_form_study_idempotency_receipts',
+    'preference_long_form_study_lease_escrow',
+    'preference_long_form_study_audit_events',
     'preference_skill_runs', 'preference_dna_versions', 'preference_dna_qa_results',
     'preference_dna_lifecycle_events',
     'preference_applications', 'preference_usage_events', 'preference_audit_segments',
@@ -117,7 +120,11 @@ begin
     join pg_namespace namespace on namespace.oid = procedure.pronamespace
     where namespace.nspname = 'public'
       and procedure.prosecdef
-      and (procedure.proname like '%edit_reference%' or procedure.proname like '%exact_edit%')
+      and (
+        procedure.proname like '%edit_reference%'
+        or procedure.proname like '%exact_edit%'
+        or procedure.proname like '%pre_plan%'
+      )
       and not exists (
         select 1 from unnest(coalesce(procedure.proconfig, '{}'::text[])) setting
         where setting like 'search_path=%'

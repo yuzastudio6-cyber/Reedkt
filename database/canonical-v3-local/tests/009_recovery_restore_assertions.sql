@@ -47,8 +47,40 @@ begin
       select 1 from public.preference_evidence
       where evidence_json->>'summary'
         = 'Preserve the quiet pause before the central testimony.'
-    ) then
+  ) then
     raise exception 'RECOVERY_EDIT_REFERENCE_DOMAIN_HISTORY_MISSING';
+  end if;
+  if (select count(*) from public.preference_long_form_study_runs) <> 4
+    or (select count(*) from public.preference_long_form_study_work_items) <> 4
+    or (select count(*) from public.preference_long_form_study_attempts) <> 5
+    or (select count(*) from public.preference_long_form_study_checkpoints) <> 2
+    or (select count(*) from public.preference_long_form_study_work_outputs) <> 1
+    or (select count(*) from public.preference_long_form_study_idempotency_receipts) <> 19
+    or (select count(*) from public.preference_long_form_study_lease_escrow) <> 5
+    or (select count(*) from public.preference_long_form_study_audit_events) <> 18
+    or not exists (
+      select 1
+      from public.preference_long_form_study_attempts attempt
+      join public.preference_long_form_study_work_items work
+        on work.id = attempt.study_work_item_id
+      join public.preference_long_form_study_work_outputs output
+        on output.study_attempt_id = attempt.id
+      where attempt.status = 'completed'
+        and work.status = 'completed'
+        and attempt.internal_cost_micros = 800
+        and work.cumulative_internal_cost_micros = 800
+    )
+    or not exists (
+      select 1 from public.preference_long_form_study_attempts
+      where status = 'timed_out'
+        and terminal_json->>'terminalKind' = 'timeout'
+    )
+    or exists (
+      select 1 from public.preference_long_form_study_idempotency_receipts
+      where response_json::text ~ 'rppsl_v1_'
+        or response_json ? 'transientLeaseCredential'
+    ) then
+    raise exception 'RECOVERY_PRE_PLAN_STUDY_AUTHORITY_MISSING_OR_UNSAFE';
   end if;
   if not exists (
     select 1 from public.approved_plan_snapshots

@@ -872,6 +872,41 @@ export function createCanonicalDistributedPrePlanStudyUnverifiedDatabaseAdapterD
   })
 }
 
+/**
+ * Describes the disposable canonical-V3 loopback Postgres proof. Unlike the
+ * contract-only descriptor above, this records the local database transaction,
+ * replay, lease, checkpoint, terminal-cost, and recovery evidence that was
+ * actually exercised. It deliberately keeps every distributed/worker/object
+ * and production flag false, so local reset evidence cannot self-promote.
+ */
+export function createCanonicalDistributedPrePlanStudyLocalPostgresDescriptor(
+  adapterId = 'canonical_pre_plan_study_local_postgres_v1',
+): CanonicalDistributedPrePlanStudyPortDescriptor {
+  return descriptorWithHash({
+    schemaVersion: CANONICAL_DISTRIBUTED_PRE_PLAN_STUDY_PORT_VERSION,
+    adapterId,
+    implementationClass: 'database_transaction_adapter',
+    serviceOnly: true,
+    exactInputAndOutputSchemasEnforced: true,
+    prePlanStudyAuthority: true,
+    approvedEditAuthorityReusedOrFabricated: false,
+    serializableTransactionSemanticsExercised: true,
+    durableResponseReplaySemanticsExercised: true,
+    digestOnlyLeaseSemanticsExercised: true,
+    monotonicCheckpointSemanticsExercised: true,
+    terminalUsageAtomicitySemanticsExercised: true,
+    expiredLeaseRecoverySemanticsExercised: true,
+    databaseBackend: 'postgres',
+    distributedDatabaseTransactionVerified: false,
+    multiReplicaDurabilityVerified: false,
+    authenticatedWorkerDispatchVerified: false,
+    livePrivateObjectReadVerified: false,
+    liveSupabaseOrPostgresCallPerformed: true,
+    cloudCallPerformed: false,
+    productionAuthority: false,
+  })
+}
+
 export function canonicalDistributedPrePlanStudyPersistenceBoundaries() {
   return {
     serviceOnly: true as const,

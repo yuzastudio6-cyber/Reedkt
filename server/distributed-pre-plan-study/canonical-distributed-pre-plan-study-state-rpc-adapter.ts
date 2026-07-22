@@ -18,6 +18,7 @@ import {
   canonicalDistributedPrePlanStudyRecoveryRequestSchema,
   canonicalDistributedPrePlanStudyRecoveryResponseSchema,
   canonicalDistributedPrePlanStudyRequestHash,
+  createCanonicalDistributedPrePlanStudyLocalPostgresDescriptor,
   createCanonicalDistributedPrePlanStudyUnverifiedDatabaseAdapterDescriptor,
   CANONICAL_DISTRIBUTED_PRE_PLAN_STUDY_PORT_VERSION,
   type CanonicalDistributedPrePlanStudyMutationResponse,
@@ -30,6 +31,8 @@ export const CANONICAL_DISTRIBUTED_PRE_PLAN_STUDY_RPC_REGISTRY_VERSION =
   'canonical-distributed-pre-plan-study-rpc-registry-v1' as const
 export const CANONICAL_DISTRIBUTED_PRE_PLAN_STUDY_RPC_CONTRACT_FIXTURE_VERSION =
   'canonical-distributed-pre-plan-study-rpc-contract-fixture-v1' as const
+export const CANONICAL_DISTRIBUTED_PRE_PLAN_STUDY_LOCAL_POSTGRES_CAPABILITY_VERSION =
+  'canonical-distributed-pre-plan-study-local-postgres-capability-v1' as const
 
 const sha256 = z.string().regex(/^[a-f0-9]{64}$/u)
 const rpcFunctionName = z.string().regex(/^[a-z][a-z0-9_]{15,127}$/u)
@@ -138,6 +141,34 @@ const rpcContractFixtureCapabilityClients = new WeakMap<
   object,
   CanonicalDistributedPrePlanStudyRpcClient
 >()
+const localPostgresCapabilitySchema = z.object({
+  schemaVersion: z.literal(
+    CANONICAL_DISTRIBUTED_PRE_PLAN_STUDY_LOCAL_POSTGRES_CAPABILITY_VERSION,
+  ),
+  purpose: z.literal('canonical_v3_loopback_postgres_reset_and_rls_proof'),
+  endpointOrigin: z.literal('http://127.0.0.1:57431'),
+  registryHash: z.literal(
+    CANONICAL_DISTRIBUTED_PRE_PLAN_STUDY_RPC_REGISTRY.registryHash,
+  ),
+  loopbackOnly: z.literal(true),
+  localPostgresCallAllowed: z.literal(true),
+  remoteDatabaseMutationAllowed: z.literal(false),
+  multiReplicaDurabilityVerified: z.literal(false),
+  authenticatedWorkerDispatchVerified: z.literal(false),
+  livePrivateObjectReadVerified: z.literal(false),
+  productionAuthority: z.literal(false),
+  capabilityHash: sha256,
+}).strict()
+
+export type CanonicalDistributedPrePlanStudyLocalPostgresCapability = z.infer<
+  typeof localPostgresCapabilitySchema
+>
+
+const localPostgresCapabilityBrands = new WeakSet<object>()
+const localPostgresCapabilityClients = new WeakMap<
+  object,
+  CanonicalDistributedPrePlanStudyRpcClient
+>()
 
 export function createCanonicalDistributedPrePlanStudyRpcContractFixtureCapability(
   client: CanonicalDistributedPrePlanStudyRpcClient,
@@ -171,55 +202,111 @@ export function createCanonicalDistributedPrePlanStudyRpcContractFixtureAdapter(
   readonly capability: CanonicalDistributedPrePlanStudyRpcContractFixtureCapability
 }): CanonicalDistributedPrePlanStudyTransactionAdapter {
   assertRpcContractFixtureCapability(input.capability, input.client)
-  const functions = CANONICAL_DISTRIBUTED_PRE_PLAN_STUDY_RPC_REGISTRY.functions
-  return Object.freeze({
-    descriptor: createCanonicalDistributedPrePlanStudyUnverifiedDatabaseAdapterDescriptor(
+  return createRpcAdapter(
+    input.client,
+    createCanonicalDistributedPrePlanStudyUnverifiedDatabaseAdapterDescriptor(
       'canonical_supabase_pre_plan_study_rpc_contract_fixture_v1',
     ),
+  )
+}
+
+export function createCanonicalDistributedPrePlanStudyLocalPostgresCapability(input: {
+  readonly client: CanonicalDistributedPrePlanStudyRpcClient
+  readonly endpointOrigin: string
+}): CanonicalDistributedPrePlanStudyLocalPostgresCapability {
+  if (!input.client || typeof input.client.rpc !== 'function') {
+    throw atomicityError(
+      'Local pre-plan study Postgres capability requires one injected server-only RPC client.',
+    )
+  }
+  if (input.endpointOrigin !== 'http://127.0.0.1:57431') {
+    throw atomicityError('Local pre-plan study Postgres capability is loopback-only.')
+  }
+  const payload = {
+    schemaVersion:
+      CANONICAL_DISTRIBUTED_PRE_PLAN_STUDY_LOCAL_POSTGRES_CAPABILITY_VERSION,
+    purpose: 'canonical_v3_loopback_postgres_reset_and_rls_proof' as const,
+    endpointOrigin: 'http://127.0.0.1:57431' as const,
+    registryHash: CANONICAL_DISTRIBUTED_PRE_PLAN_STUDY_RPC_REGISTRY.registryHash,
+    loopbackOnly: true as const,
+    localPostgresCallAllowed: true as const,
+    remoteDatabaseMutationAllowed: false as const,
+    multiReplicaDurabilityVerified: false as const,
+    authenticatedWorkerDispatchVerified: false as const,
+    livePrivateObjectReadVerified: false as const,
+    productionAuthority: false as const,
+  }
+  const capability = Object.freeze(localPostgresCapabilitySchema.parse({
+    ...payload,
+    capabilityHash: sha256AuthorityValue(payload),
+  }))
+  localPostgresCapabilityBrands.add(capability)
+  localPostgresCapabilityClients.set(capability, input.client)
+  return capability
+}
+
+export function createCanonicalDistributedPrePlanStudyLocalPostgresAdapter(input: {
+  readonly client: CanonicalDistributedPrePlanStudyRpcClient
+  readonly capability: CanonicalDistributedPrePlanStudyLocalPostgresCapability
+}): CanonicalDistributedPrePlanStudyTransactionAdapter {
+  assertLocalPostgresCapability(input.capability, input.client)
+  return createRpcAdapter(
+    input.client,
+    createCanonicalDistributedPrePlanStudyLocalPostgresDescriptor(),
+  )
+}
+
+function createRpcAdapter(
+  client: CanonicalDistributedPrePlanStudyRpcClient,
+  descriptor: CanonicalDistributedPrePlanStudyTransactionAdapter['descriptor'],
+): CanonicalDistributedPrePlanStudyTransactionAdapter {
+  const functions = CANONICAL_DISTRIBUTED_PRE_PLAN_STUDY_RPC_REGISTRY.functions
+  return Object.freeze({
+    descriptor,
     enqueue: (rawInput: unknown) => invokeMutationRpc({
-      client: input.client,
+      client,
       operation: 'enqueue',
       functionName: functions.enqueue,
       requestSchema: canonicalDistributedPrePlanStudyEnqueueRequestSchema,
       rawInput,
     }),
     claimAndStart: (rawInput: unknown) => invokeMutationRpc({
-      client: input.client,
+      client,
       operation: 'claim_and_start',
       functionName: functions.claimAndStart,
       requestSchema: canonicalDistributedPrePlanStudyClaimRequestSchema,
       rawInput,
     }),
     heartbeatAndCheckpoint: (rawInput: unknown) => invokeMutationRpc({
-      client: input.client,
+      client,
       operation: 'heartbeat_and_checkpoint',
       functionName: functions.heartbeatAndCheckpoint,
       requestSchema: canonicalDistributedPrePlanStudyHeartbeatRequestSchema,
       rawInput,
     }),
     complete: (rawInput: unknown) => invokeMutationRpc({
-      client: input.client,
+      client,
       operation: 'complete',
       functionName: functions.complete,
       requestSchema: canonicalDistributedPrePlanStudyCompletionRequestSchema,
       rawInput,
     }),
     fail: (rawInput: unknown) => invokeMutationRpc({
-      client: input.client,
+      client,
       operation: 'fail',
       functionName: functions.fail,
       requestSchema: canonicalDistributedPrePlanStudyFailureRequestSchema,
       rawInput,
     }),
     control: (rawInput: unknown) => invokeMutationRpc({
-      client: input.client,
+      client,
       operation: 'control',
       functionName: functions.control,
       requestSchema: canonicalDistributedPrePlanStudyControlRequestSchema,
       rawInput,
     }),
     recoverExpiredLease: (rawInput: unknown) => invokeRecoveryRpc({
-      client: input.client,
+      client,
       functionName: functions.recoverExpiredLease,
       rawInput,
     }),
@@ -447,6 +534,25 @@ function assertRpcContractFixtureCapability(
   const { capabilityHash, ...payload } = parsed
   if (capabilityHash !== sha256AuthorityValue(payload)) {
     throw atomicityError('Pre-plan study RPC capability checksum is invalid.')
+  }
+}
+
+function assertLocalPostgresCapability(
+  capability: CanonicalDistributedPrePlanStudyLocalPostgresCapability,
+  client: CanonicalDistributedPrePlanStudyRpcClient,
+): void {
+  if (
+    !localPostgresCapabilityBrands.has(capability)
+    || localPostgresCapabilityClients.get(capability) !== client
+  ) {
+    throw atomicityError(
+      'Local pre-plan study adapter requires its exact process-local Postgres capability.',
+    )
+  }
+  const parsed = localPostgresCapabilitySchema.parse(capability)
+  const { capabilityHash, ...payload } = parsed
+  if (capabilityHash !== sha256AuthorityValue(payload)) {
+    throw atomicityError('Local pre-plan study Postgres capability checksum is invalid.')
   }
 }
 

@@ -22,6 +22,7 @@ const expectedRepositoryFiles = [
   'docs/canonical-edit-reference-mounted-domain-repository-runtime-port-verification-2026-07-21.md',
   'docs/canonical-edit-reference-mounted-long-form-runtime-port-verification-2026-07-21.md',
   'docs/canonical-exact-edit-planning-authority-verification-2026-07-21.md',
+  'docs/canonical-v3-local-distributed-pre-plan-study-runtime-verification-2026-07-21.md',
   'docs/canonical-v3-local-edit-reference-domain-library-study-verification-2026-07-21.md',
   'docs/canonical-v3-local-edit-reference-evidence-dna-approval-verification-2026-07-21.md',
   'docs/canonical-v3-local-edit-reference-recovery-verification-2026-07-21.md',
@@ -30,6 +31,10 @@ const expectedRepositoryFiles = [
   'docs/edit-preferences-mounted-atomic-apply-recovery-2026-07-21.md',
   'package.json',
   'server/app.ts',
+  'server/distributed-pre-plan-study/canonical-distributed-pre-plan-study-local-supabase-http-rpc-client.ts',
+  'server/distributed-pre-plan-study/canonical-distributed-pre-plan-study-state-port.ts',
+  'server/distributed-pre-plan-study/canonical-distributed-pre-plan-study-state-rpc-adapter.ts',
+  'server/distributed-pre-plan-study/index.ts',
   'server/edit-references/canonical-exact-edit-planning-authority-boundary.ts',
   'server/edit-references/controlled-local-edit-reference-application-preparation-fixture.ts',
   'server/edit-references/edit-reference-domain-command-contract.ts',
@@ -55,6 +60,7 @@ const expectedRepositoryFiles = [
   'server/services/planning-exact-edit-preference-authority-port.ts',
   'server/services/planning-exact-edit-preference-authority-service.ts',
   'server/services/planning-input-authority-binding-service.ts',
+  'server/smoke/canonical-distributed-pre-plan-study-local-postgres-smoke.ts',
   'server/smoke/canonical-planning-publication-frontend-client-smoke.ts',
   'server/smoke/canonical-private-tool-dispatch-authority-smoke.ts',
   'server/smoke/canonical-professional-long-form-cross-chunk-color-smoke.ts',
@@ -110,6 +116,7 @@ const expectedMigrations = [
   '202607210007_edit_reference_application_preparation.sql',
   '202607210008_edit_reference_domain_library_study_rpcs.sql',
   '202607210009_edit_reference_domain_evidence_dna_approval_rpcs.sql',
+  '202607210010_canonical_distributed_pre_plan_study_rpc.sql',
 ]
 const actualMigrations = readdirSync(join(directory, 'supabase', 'migrations'))
   .filter((name) => name.endsWith('.sql'))
@@ -120,7 +127,7 @@ const expectedRecoveryDataTables = readFileSync(
   join(directory, 'expected-recovery-data-tables.txt'),
   'utf8',
 ).trim().split('\n')
-assert(expectedRecoveryDataTables.length === 46, 'recovery_table_count_invalid')
+assert(expectedRecoveryDataTables.length === 49, 'recovery_table_count_invalid')
 assert(
   equalArrays(expectedRecoveryDataTables, [...expectedRecoveryDataTables].sort()),
   'recovery_table_order_invalid',
@@ -163,6 +170,8 @@ for (const requiredToken of [
   'single-transaction',
   'remoteMutationAllowed',
   'productionAuthority',
+  'canonical-distributed-pre-plan-study-local-postgres-smoke.ts',
+  '127.0.0.1:57431',
 ]) assert(recoveryRunner.includes(requiredToken), `recovery_runner_contract_missing:${requiredToken}`)
 for (const forbiddenPattern of [
   /supabase\s+link/i,
@@ -197,6 +206,18 @@ for (const requiredToken of [
   'authorize_edit_reference_study_chat_route_attempt_v1',
   'enqueue_edit_reference_long_form_study_v1',
   'recover_expired_edit_reference_long_form_lease_v1',
+  'preference_long_form_study_idempotency_receipts',
+  'preference_long_form_study_lease_escrow',
+  'preference_long_form_study_audit_events',
+  'reeditpro_pre_plan_assert_local_internal_authority',
+  'reeditpro_pre_plan_escrow_secret',
+  'reeditpro_enqueue_pre_plan_study_v1',
+  'reeditpro_claim_and_start_pre_plan_study_v1',
+  'reeditpro_heartbeat_pre_plan_study_v1',
+  'reeditpro_complete_pre_plan_study_v1',
+  'reeditpro_fail_pre_plan_study_v1',
+  'reeditpro_control_pre_plan_study_v1',
+  'reeditpro_recover_expired_pre_plan_study_lease_v1',
   'customerCreditsMutated',
   'serviceFeeIncluded',
 ]) {

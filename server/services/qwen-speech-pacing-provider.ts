@@ -236,6 +236,7 @@ export function createQwenSpeechPacingReasoningProvider(
         ? resolveQwenDirectEnvSecretValue({
             symbolicName: 'QWEN_REASONING_API_KEY',
             value: env.QWEN_REASONING_API_KEY,
+            env,
           })
         : await resolveQwenSecretManagerValue({
             symbolicName: 'QWEN_REASONING_API_KEY_SECRET',

@@ -5,6 +5,7 @@ import {
   type QwenRuntimeSafetyFlags,
   type QwenRuntimeTransportProfile,
 } from '../../types'
+import { parseCanonicalGoogleSecretManagerReference } from '../../types/canonical-google-secret-manager-reference'
 
 export const QWEN_REASONING_API_KEY_SECRET = 'QWEN_REASONING_API_KEY_SECRET'
 export const QWEN_REASONING_API_KEY = 'QWEN_REASONING_API_KEY'
@@ -75,6 +76,8 @@ export function loadQwenRuntimeConfig(env: Record<string, string | undefined> = 
   const transportProfile = parseTransportProfile(clean(env.QWEN_REASONING_TRANSPORT_PROFILE))
   const apiKeyDirectEnvConfigured = Boolean(clean(env[QWEN_REASONING_API_KEY]))
   const apiKeySecretReferenceName = clean(env[QWEN_REASONING_API_KEY_SECRET])
+  const apiKeySecretReference = parseCanonicalGoogleSecretManagerReference(apiKeySecretReferenceName)
+  const apiKeySecretReferencePinned = apiKeySecretReference.ok
   const apiKeyConfigured = apiKeyDirectEnvConfigured || Boolean(apiKeySecretReferenceName)
   const baseUrlSecretReferenceName = clean(env[QWEN_REASONING_BASE_URL_SECRET])
   const modelIdSecretReferenceName = clean(env[QWEN_REASONING_MODEL_ID_SECRET])
@@ -86,7 +89,8 @@ export function loadQwenRuntimeConfig(env: Record<string, string | undefined> = 
 
   if (runtimeMode !== 'beta_enabled') warnings.push('REEDITPRO_QWEN_RUNTIME_MODE is not beta_enabled; deterministic fallback remains active.')
   if (!apiKeyConfigured) warnings.push('QWEN_REASONING_API_KEY_SECRET or backend-only QWEN_REASONING_API_KEY is not configured.')
-  if (!projectIdConfigured && !apiKeyDirectEnvConfigured) warnings.push('Google Cloud project ID is not configured for Secret Manager resolution.')
+  if (apiKeySecretReferenceName && !apiKeySecretReferencePinned) warnings.push('QWEN_REASONING_API_KEY_SECRET must be an explicit projects/.../secrets/.../versions/<positive number> reference.')
+  if (apiKeyDirectEnvConfigured) warnings.push('QWEN_REASONING_API_KEY direct-env input is local/internal compatibility only and cannot qualify production.')
   if (!baseUrlConfigured) warnings.push('Qwen base URL is not configured.')
   if (!modelIdConfigured) warnings.push('Qwen model ID is not configured.')
 
@@ -94,8 +98,8 @@ export function loadQwenRuntimeConfig(env: Record<string, string | undefined> = 
     ? 'blocked_missing_beta_flag'
     : !apiKeyConfigured
       ? 'blocked_missing_secret_reference'
-      : !projectIdConfigured && !apiKeyDirectEnvConfigured
-        ? 'blocked_missing_project'
+      : apiKeySecretReferenceName && !apiKeySecretReferencePinned && !apiKeyDirectEnvConfigured
+        ? 'blocked_unpinned_secret_version'
       : !baseUrlConfigured
         ? 'blocked_missing_base_url'
       : !modelIdConfigured
@@ -112,6 +116,7 @@ export function loadQwenRuntimeConfig(env: Record<string, string | undefined> = 
     apiKeyConfigured,
     apiKeyDirectEnvConfigured,
     apiKeySecretReferenceName,
+    apiKeySecretReferencePinned,
     baseUrlSecretReferenceName,
     modelIdSecretReferenceName,
     legacyRuntimeConfigSecretReferenceName,

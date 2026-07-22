@@ -22,6 +22,8 @@ export type QwenLiveBetaDoctorStatus =
   | 'ready_live_beta'
   | 'blocked_missing_project_config'
   | 'blocked_missing_secret_reference'
+  | 'blocked_unpinned_secret_version'
+  | 'blocked_noncanonical_secret_authority'
   | 'blocked_secret_access_denied'
   | 'blocked_missing_endpoint'
   | 'blocked_missing_model_id'
@@ -383,6 +385,7 @@ export async function createQwenLiveBetaDoctorReport(input: {
     apiKeyDirectEnvConfigured: config.apiKeyDirectEnvConfigured,
     apiKeyConfigured: config.apiKeyConfigured,
     apiKeySecretReferenceConfigured: Boolean(config.apiKeySecretReferenceName),
+    apiKeySecretReferencePinned: config.apiKeySecretReferencePinned,
     endpointConfigured: config.baseUrlConfigured,
     modelConfigured: config.modelIdConfigured,
     redactionActive: redaction.inputContainedSecretLikeValue && !redaction.redactedText.includes(syntheticToken),
@@ -394,9 +397,10 @@ export async function createQwenLiveBetaDoctorReport(input: {
     apiKeyDiagnostic = createQwenSecretResolutionPublicDiagnostic(resolveQwenDirectEnvSecretValue({
       symbolicName: 'QWEN_REASONING_API_KEY',
       value: env.QWEN_REASONING_API_KEY,
+      env,
     }))
     checks.apiKeySecretResolvable = apiKeyDiagnostic.status === 'resolved_no_print'
-  } else if (checks.runtimeEnabled && checks.googleProjectConfigured && checks.apiKeySecretReferenceConfigured) {
+  } else if (checks.runtimeEnabled && checks.apiKeySecretReferenceConfigured) {
     apiKeyDiagnostic = createQwenSecretResolutionPublicDiagnostic(await resolveQwenSecretManagerValue({
       symbolicName: 'QWEN_REASONING_API_KEY_SECRET',
       referenceName: config.apiKeySecretReferenceName,
@@ -408,8 +412,9 @@ export async function createQwenLiveBetaDoctorReport(input: {
   }
 
   if (!checks.runtimeEnabled) status = 'blocked_runtime_disabled'
-  else if (!checks.googleProjectConfigured && !config.apiKeyDirectEnvConfigured) status = 'blocked_missing_project_config'
   else if (!checks.apiKeyConfigured) status = 'blocked_missing_secret_reference'
+  else if (config.apiKeySecretReferenceName && !config.apiKeySecretReferencePinned && !config.apiKeyDirectEnvConfigured) status = 'blocked_unpinned_secret_version'
+  else if (config.apiKeyDirectEnvConfigured || apiKeyDiagnostic?.secretAuthorityClass === 'direct_env_local_internal_compatibility') status = 'blocked_noncanonical_secret_authority'
   else if (!checks.apiKeySecretResolvable) status = 'blocked_secret_access_denied'
   else if (!checks.endpointConfigured) status = 'blocked_missing_endpoint'
   else if (!checks.modelConfigured) status = 'blocked_missing_model_id'
@@ -431,6 +436,7 @@ export async function createQwenLiveBetaDoctorReport(input: {
       apiKeyConfigured: config.apiKeyConfigured,
       apiKeyDirectEnvConfigured: config.apiKeyDirectEnvConfigured,
       apiKeySecretReferenceConfigured: Boolean(config.apiKeySecretReferenceName),
+      apiKeySecretReferencePinned: config.apiKeySecretReferencePinned,
       baseUrlConfigured: config.baseUrlConfigured,
       modelIdConfigured: config.modelIdConfigured,
     },
@@ -475,6 +481,7 @@ export async function createQwenLiveBetaPublicReadinessReport(input: {
       apiKeyConfigured: report.config.apiKeyConfigured,
       apiKeyDirectEnvConfigured: report.config.apiKeyDirectEnvConfigured,
       apiKeySecretReferenceConfigured: report.config.apiKeySecretReferenceConfigured,
+      apiKeySecretReferencePinned: report.config.apiKeySecretReferencePinned,
       baseUrlConfigured: report.config.baseUrlConfigured,
       modelIdConfigured: report.config.modelIdConfigured,
     },
@@ -482,8 +489,12 @@ export async function createQwenLiveBetaPublicReadinessReport(input: {
       symbolicName: diagnostic.symbolicName,
       status: diagnostic.status,
       referenceNameConfigured: diagnostic.referenceNameConfigured,
-      valueAccessed: diagnostic.valueAccessed,
-      valuePrinted: false,
+      secretAuthorityClass: diagnostic.secretAuthorityClass,
+      pinnedVersionVerified: diagnostic.pinnedVersionVerified,
+      directEnvCompatibilityOnly: diagnostic.directEnvCompatibilityOnly,
+      productionQualificationGranted: false,
+      redactedSecretId: diagnostic.redactedSecretId,
+      secretVersion: diagnostic.secretVersion,
       warning: diagnostic.warning,
     })),
     flags: report.flags,

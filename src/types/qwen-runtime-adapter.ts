@@ -11,6 +11,7 @@ export type QwenRuntimeTransportProfile =
 export type QwenRuntimeConfigStatus =
   | 'blocked_missing_beta_flag'
   | 'blocked_missing_secret_reference'
+  | 'blocked_unpinned_secret_version'
   | 'blocked_missing_project'
   | 'blocked_missing_base_url'
   | 'blocked_missing_model_id'
@@ -22,8 +23,15 @@ export type QwenSecretRuntimeStatus =
   | 'blocked_missing_beta_config'
   | 'blocked_missing_project'
   | 'blocked_missing_secret_reference'
+  | 'blocked_unpinned_secret_version'
+  | 'blocked_direct_env_compatibility'
   | 'resolved_no_print'
   | 'failed_redacted'
+
+export type QwenSecretAuthorityClass =
+  | 'none'
+  | 'google_secret_manager_pinned_version'
+  | 'direct_env_local_internal_compatibility'
 
 export type QwenProviderRuntimeStatus =
   | 'not_attempted'
@@ -98,6 +106,7 @@ export interface QwenRuntimeConfig {
   apiKeyConfigured: boolean
   apiKeyDirectEnvConfigured: boolean
   apiKeySecretReferenceName?: string
+  apiKeySecretReferencePinned: boolean
   baseUrlSecretReferenceName?: string
   modelIdSecretReferenceName?: string
   legacyRuntimeConfigSecretReferenceName?: string
@@ -114,13 +123,17 @@ export interface QwenSecretResolutionDiagnostic extends QwenRuntimeSafetyFlags {
   status: QwenSecretRuntimeStatus
   symbolicName: string
   referenceNameConfigured: boolean
-  valueAccessed: boolean
-  valueLength?: number
-  redactedFingerprint?: string
+  secretAuthorityClass: QwenSecretAuthorityClass
+  pinnedVersionVerified: boolean
+  directEnvCompatibilityOnly: boolean
+  productionQualificationGranted: false
+  redactedSecretId?: '[REDACTED_SECRET_ID]'
+  secretVersion?: string
   warning?: string
 }
 
 export interface QwenSecretResolutionInternalResult extends QwenSecretResolutionDiagnostic {
+  valueAccessed: boolean
   value?: string
 }
 

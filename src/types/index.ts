@@ -175,6 +175,7 @@ export type {
 } from './credit-runtime'
 export * from './qwen-runtime-boundary'
 export * from './qwen-runtime-adapter'
+export * from './canonical-google-secret-manager-reference'
 export * from './qwen-marker-chat-runtime'
 export * from './qwen-main-brain'
 export * from './project-edit-session'

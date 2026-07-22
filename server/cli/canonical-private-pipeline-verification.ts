@@ -236,6 +236,16 @@ const canonicalSteps: VerificationStep[] = [
     'The exact approved package, queue/lease, one-use provider dispatch, terminal cost, observed worker-resource evidence, and private output readback produce a compact source-verified non-promotable receipt. Exact consumer context, timing, lease aliases, safe terminal outcome, component cost/rate-card provenance, private-object identity, and closed security semantics map without caller invention. The output-set envelope remains current-V1 cardinality with multi-output admission false, and Lyria V1 request-count history remains generation-submission semantics. Provider qualification and transport remain blocked.',
   ),
   step(
+    'canonical-provider-attempt-runtime-record',
+    'smoke:canonical-provider-attempt-runtime-record',
+    'One credential-free server-only locator projects seven exact canonical media-provider attempt outcomes from package, queue, claim/lease, dispatch, private output, checkback, and component internal-cost authority. Caller-shaped release evidence and controlled fixtures cannot self-promote; worker infrastructure cost stays provisional until reconciled release evidence exists.',
+  ),
+  step(
+    'canonical-provider-attempt-runtime-consumer',
+    'smoke:canonical-provider-attempt-runtime-consumer',
+    'The single mounted source port reaches bounded Motion audio/visual-calibration and Edit Reference downstream-media consumers for exactly four admitted operations. Wrong tenant, consumer mismatch, browser selection, hosted controlled evidence, and attempted Kimi/Qwen/DeepSeek/Qwen2.5-VL coercion fail before source access, preserving the separate Study Chat and long-form reasoning authorities.',
+  ),
+  step(
     'canonical-multi-output-provider-attempt-consumer-receipt',
     'smoke:canonical-private-multi-output-provider-work-lifecycle',
     'The exact Storytelling Speech operation reuses the canonical approved-package queue, claim/lease, one-use provider dispatch, private candidate store, internal-cost stores, and compact receipt. One injected non-provider attempt retains ordered MP3 and private alignment JSON outputs with checksum readback, exact replay, observed worker-resource cost, failed-attempt cost, and closed credential/request-body/provider/commercial boundaries. Provider transport, immutable provider revision, production rate authority, zero-retention entitlement, cloud persistence, billing, and production promotion remain blocked.',
@@ -574,6 +584,11 @@ function printReport(
           canonicalProviderAttemptConsumerReceiptMotionMappingComplete: true,
           canonicalProviderAttemptConsumerReceiptVerifiedRuntime: false,
           canonicalProviderAttemptConsumerReceiptMultiOutputAdmission: false,
+          canonicalProviderAttemptRuntimeRecordContractVerified: true,
+          canonicalProviderAttemptRuntimeRecordReleasePromotionAvailable: false,
+          canonicalProviderAttemptRuntimeConsumerMounted: true,
+          canonicalProviderAttemptRuntimeConsumerReasoningAuthoritySubstituted:
+            false,
           legacyProviderRequestCountMeansGenerationSubmission: true,
           synchronizedFoleyLifecycleIdentityFrozen: true,
           synchronizedFoleyPrivateInjectedProviderLifecycleVerified: true,

@@ -387,6 +387,8 @@ function assertInternalEditStateHandoffSafe(input: SaveInternalEditStateInput): 
     workspaceId?: unknown
     projectId?: unknown
     editSessionId?: unknown
+    editorPath?: unknown
+    productWorkflow?: unknown
     persistence?: unknown
     updatedAt?: unknown
   }
@@ -401,12 +403,44 @@ function assertInternalEditStateHandoffSafe(input: SaveInternalEditStateInput): 
   if (handoff.persistence !== 'browser_local_internal_testing') {
     throw new ApiError('VALIDATION_FAILED', 'Internal edit state only accepts browser local internal-testing handoff records.', 400)
   }
+  if (
+    handoff.productWorkflow !== undefined &&
+    handoff.productWorkflow !== 'video_edit' &&
+    handoff.productWorkflow !== 'motion_studio.storytelling'
+  ) {
+    throw new ApiError('VALIDATION_FAILED', 'Internal edit state contains an unsupported product workflow.', 400)
+  }
+  if (typeof handoff.editorPath !== 'string' || !internalEditPathMatchesProductWorkflow({
+    editSessionId: input.editSessionId,
+    editorPath: handoff.editorPath,
+    productWorkflow: handoff.productWorkflow,
+    projectId: input.projectId,
+  })) {
+    throw new ApiError('VALIDATION_FAILED', 'Internal edit state route does not match its product workflow.', 400)
+  }
   const unsafePaths = findUnsafeInternalEditStatePaths(input.handoff)
   if (unsafePaths.length > 0) {
     throw new ApiError('VALIDATION_FAILED', 'Internal edit state contains unsafe secret, signed URL, public artifact, blob URL, or data URL fields.', 400, {
       unsafePaths,
     })
   }
+}
+
+function internalEditPathMatchesProductWorkflow(input: {
+  editSessionId: string
+  editorPath: string
+  productWorkflow: unknown
+  projectId: string
+}): boolean {
+  const isMotionStudioStorytelling = input.productWorkflow === 'motion_studio.storytelling' ||
+    (input.productWorkflow === undefined && input.editSessionId.startsWith('storytelling-edit-'))
+  const basePath = isMotionStudioStorytelling
+    ? `/motion-studio/storytelling/projects/${encodeURIComponent(input.projectId)}/edits/${encodeURIComponent(input.editSessionId)}`
+    : `/projects/${encodeURIComponent(input.projectId)}/edits/${encodeURIComponent(input.editSessionId)}`
+
+  return isMotionStudioStorytelling
+    ? input.editorPath === basePath
+    : input.editorPath === basePath || input.editorPath.startsWith(`${basePath}?`)
 }
 
 function compareHandoffSourceRevision(

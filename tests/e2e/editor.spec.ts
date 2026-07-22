@@ -63,7 +63,7 @@ test.describe('editor mocked browser flow', () => {
     await setViewport(page, 1440)
   })
 
-  test('shows the required home, edit videos, and preferences navigation', async ({ page }) => {
+  test('shows separate projects, edit videos, and preferences navigation', async ({ page }) => {
     await gotoRoute(page, '/dashboard')
 
     await expect(page.getByTestId('testing-home-hero')).toBeVisible()
@@ -72,7 +72,8 @@ test.describe('editor mocked browser flow', () => {
 
     const sidebar = page.getByTestId('app-sidebar')
     await expect(sidebar.getByRole('link', { name: /^Home$/ })).toHaveAttribute('href', '/dashboard')
-    await expect(sidebar.getByRole('link', { name: /^Edit Videos$/ })).toHaveAttribute('href', '/projects')
+    await expect(sidebar.getByRole('link', { name: /^Projects$/ })).toHaveAttribute('href', '/projects')
+    await expect(sidebar.getByRole('link', { name: /^Edit Videos$/ })).toHaveAttribute('href', '/edit-videos')
     await expect(sidebar.getByRole('link', { name: /^Edit Preferences$/ })).toHaveAttribute('href', '/preferences')
 
     await expect(page.getByText(/Export queue/i)).toHaveCount(0)
@@ -93,7 +94,7 @@ test.describe('editor mocked browser flow', () => {
 
     await gotoRoute(page, '/pricing')
     await expect(page).toHaveURL(/\/projects$/)
-    await expect(page.getByRole('heading', { level: 1, name: /Edit Videos/i })).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: /Projects/i })).toBeVisible()
   })
 
   test('shows the canonical library-first Edit Preferences surface for the local session', async ({ page }) => {
@@ -539,7 +540,7 @@ test.describe('editor mocked browser flow', () => {
 
   test('creates a project, opens its edit, uploads video, and reaches private review', async ({ page }) => {
     await gotoRoute(page, '/projects')
-    await expect(page.getByRole('heading', { level: 1, name: /Edit Videos/i })).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: /Projects/i })).toBeVisible()
     await clickWhenReady(page.getByRole('link', { name: /Create project/i }).first())
 
     const projectName = `E2E private review ${Date.now()}`

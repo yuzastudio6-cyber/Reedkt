@@ -9,7 +9,8 @@ test.describe('Edit Preferences route entrypoint', () => {
 
     const sidebarNav = page.getByRole('navigation', { name: /desktop app navigation/i })
     await expect(sidebarNav.getByRole('link', { name: /^Home$/ })).toBeVisible()
-    await expect(sidebarNav.getByRole('link', { name: /^Edit Videos$/ })).toHaveAttribute('href', '/projects')
+    await expect(sidebarNav.getByRole('link', { name: /^Projects$/ })).toHaveAttribute('href', '/projects')
+    await expect(sidebarNav.getByRole('link', { name: /^Edit Videos$/ })).toHaveAttribute('href', '/edit-videos')
     await expect(sidebarNav.getByRole('link', { name: /^Edit Preferences$/ })).toBeVisible()
     await expect(sidebarNav).not.toContainText(/AI Editor|Media Library|Templates|Team|Analytics|Exports|Brand Kit|Settings/i)
     await expect(page.locator('.sidebar')).not.toContainText(/credits available|storage used|Creator workspace|Tommy/i)
@@ -27,7 +28,7 @@ test.describe('Edit Preferences route entrypoint', () => {
     await expectNoHorizontalOverflow(page)
   })
 
-  test('opens the canonical project and named-edit library from Edit Videos', async ({ page }) => {
+  test('opens the separate normal named-edit library from Edit Videos', async ({ page }) => {
     await setViewport(page, 1440)
     await gotoRoute(page, '/dashboard')
 
@@ -35,11 +36,11 @@ test.describe('Edit Preferences route entrypoint', () => {
       .getByRole('link', { name: /^Edit Videos$/ })
       .click()
 
-    await expect(page).toHaveURL(/\/projects$/)
+    await expect(page).toHaveURL(/\/edit-videos$/)
     await expect(page.getByRole('heading', { level: 1, name: 'Edit Videos' })).toBeVisible()
     await expect(page.getByRole('navigation', { name: /desktop app navigation/i })
       .getByRole('link', { name: /^Edit Videos$/ })).toHaveAttribute('aria-current', 'page')
-    await expect(page.getByRole('link', { name: /New project/i }).first()).toBeVisible()
+    await expect(page.getByRole('link', { name: /New video project/i }).first()).toBeVisible()
     await expectNoHorizontalOverflow(page)
   })
 
@@ -50,7 +51,7 @@ test.describe('Edit Preferences route entrypoint', () => {
     await expect(page).toHaveURL(/\/preferences$/)
     await expect(page.getByTestId('edit-preferences-page')).toBeVisible()
     await expect(page.getByRole('navigation', { name: /desktop app navigation/i })
-      .getByRole('link', { name: /^Edit Videos$/ })).toHaveAttribute('href', '/projects')
+      .getByRole('link', { name: /^Edit Videos$/ })).toHaveAttribute('href', '/edit-videos')
 
     await gotoRoute(page, '/brand-kit')
     await expect(page).toHaveURL(/\/preferences$/)

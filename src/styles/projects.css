@@ -525,6 +525,12 @@
   overflow-wrap: anywhere;
 }
 
+.edit-videos-grid .project-edit-copy h2 {
+  font-size: 1.14rem;
+  letter-spacing: -0.025em;
+  overflow-wrap: anywhere;
+}
+
 .project-edit-card.is-featured h3 {
   font-size: clamp(1.45rem, 2.5vw, 2rem);
 }

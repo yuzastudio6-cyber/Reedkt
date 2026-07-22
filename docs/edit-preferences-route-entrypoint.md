@@ -32,8 +32,9 @@ The page is production-shaped for private/internal testing. It does not claim pr
 
 - Canonical route: `/preferences`.
 - Legacy redirect: `/edit-preferences`.
-- Required core sidebar links: Home, Edit Videos, and Edit Preferences. `Edit Videos` keeps `/projects` as the one project/named-edit library; combined-source integration also retains Motion Studio and must not enforce an exact-three-link ceiling.
-- Retired standalone shell routes remain redirects into Home, Edit Videos (`/projects`), or Edit Preferences.
+- Required backend-line sidebar links: Home, Projects, Edit Videos, and Edit Preferences. Projects keeps `/projects`; Edit Videos uses `/edit-videos` and opens exact normal edits without changing `/projects/:projectId/edits/:editSessionId`.
+- Combined-source integration also retains Motion Studio as its own destination/workspace and must not enforce an exact-four-link ceiling.
+- Retired standalone shell routes remain redirects into Home, Projects, or Edit Preferences.
 
 ## Safety Boundaries
 

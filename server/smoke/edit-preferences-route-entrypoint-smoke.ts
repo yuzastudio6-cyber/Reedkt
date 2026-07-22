@@ -27,6 +27,7 @@ function assertFile(path: string) {
 
 const requiredFiles = [
   'src/pages/PreferencesPage.tsx',
+  'src/components/preferences/EditReferenceWorkspacePage.tsx',
   'src/lib/edit-preferences.ts',
   'src/lib/edit-preference-repository.ts',
   'docs/edit-preferences-route-entrypoint.md',
@@ -39,6 +40,7 @@ requiredFiles.forEach(assertFile)
 const app = read('src/App.tsx')
 assert.match(app, /PreferencesPage/)
 assert.match(app, /path="\/preferences"/)
+assert.match(app, /path="\/edit-videos"/)
 assert.match(app, /path="\/edit-preferences"/)
 assert.doesNotMatch(app, /WalletPage|BrandKitPage|ExportQueuePage/)
 assert.match(app, /path="\/wallet"\s+element=\{<Navigate to="\/preferences" replace \/>\}/)
@@ -48,9 +50,10 @@ assert.match(app, /path="\/exports"\s+element=\{<Navigate to="\/projects" replac
 const navigation = read('src/data/productContent.ts')
 const appNavSource = navigation.match(/export const appNav: NavItem\[\] = \[[\s\S]*?\n\]/)?.[0] ?? ''
 const appNavLabels = [...appNavSource.matchAll(/label: '([^']+)'/g)].map((match) => match[1])
-assert.deepEqual(appNavLabels, ['Home', 'Projects', 'Edit Preferences'])
+assert.deepEqual(appNavLabels, ['Home', 'Projects', 'Edit Videos', 'Edit Preferences'])
 assert.match(appNavSource, /to: '\/dashboard'/)
 assert.match(appNavSource, /to: '\/projects'/)
+assert.match(appNavSource, /to: '\/edit-videos'/)
 assert.match(appNavSource, /to: '\/preferences'/)
 for (const retiredSidebarItem of ['AI Editor', 'Media Library', 'Templates', 'Team', 'Analytics', 'Exports', 'Brand Kit', 'Settings', 'Wallet', 'Upload']) {
   assert.equal(appNavLabels.includes(retiredSidebarItem), false, retiredSidebarItem + ' should not be in the primary sidebar navigation')
@@ -63,33 +66,34 @@ assert.doesNotMatch(appShell, /sidebar-widget|sidebar-profile/)
 
 const page = read('src/pages/PreferencesPage.tsx')
 for (const phrase of [
-  'Edit Preferences',
-  'Defaults for new edits',
-  'Editing approach',
-  'Creative direction',
-  'Delivery and cost',
-  'Pre-confirm reusable editing choices',
-  'Save defaults',
-  'edit-preferences-form',
-  'preference-persistence-status',
-  'createEditPreferenceRepository',
-  'useUnsavedNavigationGuard',
+  'EditReferenceWorkspacePage',
+  'useProjectPersistenceScope',
+  'projectPersistenceScope.workspaceId',
 ]) {
   assert.equal(page.includes(phrase), true, 'PreferencesPage should include ' + phrase)
 }
-for (const optionRegistry of [
-  'editLevelPreferenceOptions',
-  'workflowPreferenceOptions',
-  'cleanupPreferenceOptions',
-  'visualPreferenceOptions',
-  'moodPreferenceOptions',
-  'creditPreferenceOptions',
-  'targetPlatformPreferenceOptions',
-]) {
-  assert.equal(page.includes(optionRegistry), true, 'PreferencesPage should use ' + optionRegistry)
-}
-assert.doesNotMatch(page, /src\/backend|\.\.\/backend|repositories\/|route-handlers|MockDatabase/)
 assert.doesNotMatch(page, /fetch\(|XMLHttpRequest|type="file"|createClient|service_role|signedUrl/i)
+
+const editReferenceWorkspace = read('src/components/preferences/EditReferenceWorkspacePage.tsx')
+for (const phrase of [
+  'Edit Preferences',
+  'Library',
+  'Study Chat',
+  'New preference',
+  'Choose a project edit',
+  'edit-reference-library',
+  'edit-reference-library-unavailable',
+]) {
+  assert.equal(editReferenceWorkspace.includes(phrase), true, 'EditReferenceWorkspacePage should include ' + phrase)
+}
+assert.match(
+  editReferenceWorkspace,
+  /<Button icon=\{FileVideo2\} size="sm" to="\/edit-videos" variant="secondary">Choose a project edit<\/Button>/,
+)
+assert.doesNotMatch(
+  editReferenceWorkspace,
+  /<Button icon=\{FileVideo2\} size="sm" to="\/projects" variant="secondary">Choose a project edit<\/Button>/,
+)
 
 const docs = read('docs/edit-preferences-route-entrypoint.md')
 for (const phrase of [
@@ -129,7 +133,7 @@ assert.deepEqual(docJson.fields, [
   'credit_preference',
   'target_platform',
 ])
-assert.deepEqual(docJson.sidebarNavigation?.allowed, ['Home', 'Projects', 'Edit Preferences'])
+assert.deepEqual(docJson.sidebarNavigation?.allowed, ['Home', 'Projects', 'Edit Videos', 'Edit Preferences'])
 assert.deepEqual(docJson.sidebarNavigation?.retiredStandaloneRoutes, {
   '/wallet': '/preferences',
   '/brand-kit': '/preferences',

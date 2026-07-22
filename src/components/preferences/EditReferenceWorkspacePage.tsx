@@ -2415,7 +2415,7 @@ function PreferenceDNAReview({
             <FileCheck2 aria-hidden="true" size={18} />
             <span>Choose this reference from a project edit to create target-specific guidance. The edit will stay unchanged until that guidance is connected and reviewed.</span>
           </div>
-          <Button icon={FileVideo2} size="sm" to="/projects" variant="secondary">Choose a project edit</Button>
+          <Button icon={FileVideo2} size="sm" to="/edit-videos" variant="secondary">Choose a project edit</Button>
         </div>
       )}
       <div className="edit-reference-form-boundary"><ShieldCheck aria-hidden="true" size={16} /><span>{version.status === 'approved'

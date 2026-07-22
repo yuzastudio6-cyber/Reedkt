@@ -1,7 +1,7 @@
 # Current Route And Navigation Map
 
 Status: `audited_current_branch`
-Status date: 2026-07-10
+Status date: 2026-07-22
 
 ## Active Router
 
@@ -9,7 +9,8 @@ Status date: 2026-07-10
 | --- | --- | --- | --- |
 | `/` | `LandingPage` | Marketing entry | Public product entry |
 | `/dashboard` | `DashboardPage` | Sidebar: Home | Start/continue the private project-edit flow after exact scoped recovery is resolved |
-| `/projects` | `ProjectsPage` | Sidebar: Edit Videos | Open the one project/named-edit library with explicit loading/local-only/unavailable/denied/invalid recovery states |
+| `/projects` | `ProjectsPage` | Sidebar: Projects | Open project containers across normal Edit and Motion Studio workflows with explicit loading/local-only/unavailable/denied/invalid recovery states |
+| `/edit-videos` | `EditVideosPage` | Sidebar: Edit Videos | Open the normal named-video-edit library; Motion Studio Storytelling records are excluded by explicit product-workflow identity |
 | `/projects/new` | `CreateProjectPage` | CTA-driven | Create a duplicate-safe project shell from a unique create intent |
 | `/projects/:projectId` | `ProjectDetailPage` | Entered from Projects | Recover the exact project, list/create named edits, and expose an accessible New Edit dialog |
 | `/projects/:projectId/edits/:editSessionId` | `EditorPage` | Entered from project edit list | Resolve exact scoped edit state before opening the primary focused workspace; `?view=preferences` addresses that edit's Current Edit Preferences workspace |
@@ -35,10 +36,11 @@ Status date: 2026-07-10
 The backend line currently renders these required core entries:
 
 1. Home
-2. Edit Videos
-3. Edit Preferences (route/code names may remain `preferences`)
+2. Projects
+3. Edit Videos
+4. Edit Preferences (route/code names may remain `preferences`)
 
-These entries are required, not an exact-three-items invariant. The canonical combined-source target also retains the existing Motion Studio destination between Edit Videos and Edit Preferences: Home, Edit Videos, Motion Studio, Edit Preferences. Integration must not delete or replace Motion Studio. Historical `design.md` navigation for AI Editor, Media Library, Templates, Team, Analytics, Exports, Brand Kit, and Settings is not current product navigation.
+These entries are required, not an exact-four-items invariant. The canonical combined-source target also retains the existing Motion Studio destination between Edit Videos and Edit Preferences: Home, Projects, Edit Videos, Motion Studio, Edit Preferences. Integration must not delete or replace Motion Studio. Historical `design.md` navigation for AI Editor, Media Library, Templates, Team, Analytics, Exports, Brand Kit, and Settings is not current product navigation.
 
 `Preferences` is not a separate product from `Edit Preferences`. `/preferences` is the technical route for the one Edit Preferences system.
 
@@ -47,13 +49,19 @@ These entries are required, not an exact-three-items invariant. The canonical co
 Current implemented hierarchy:
 
 ```text
-Edit Videos (`/projects`, the canonical project and named-edit library)
-└── Project
-    └── Named Edit
-        ├── Chat (default)
-        ├── Edit Brief (single inline workspace)
-        └── Edit Preferences (`?view=preferences`)
+Projects (`/projects`, project-container library)
+├── Project
+│   └── Normal Named Edit (`video_edit`)
+│       ├── Chat (default normal Edit Chat)
+│       ├── Edit Brief (single inline workspace)
+│       └── Edit Preferences (`?view=preferences`)
+└── Motion Studio production (`motion_studio.storytelling`, combined source)
+
+Edit Videos (`/edit-videos`, normal named-edit library)
+└── Normal Named Edit → `/projects/:projectId/edits/:editSessionId`
 ```
+
+Storytelling is a valid content category for normal Edit Chat. It never selects Motion Studio. Only explicit product-workflow identity selects the Motion Studio library and dedicated Storytelling workspace/chat; retained legacy Motion records use their exact namespaced identity during migration.
 
 Current workspace behavior:
 

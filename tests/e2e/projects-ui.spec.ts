@@ -1,5 +1,8 @@
 import { expect, test } from '@playwright/test'
-import { installActiveProductRouteFixture } from './helpers/active-product'
+import {
+  installActiveProductRouteFixture,
+  installProductWorkflowSeparationFixture,
+} from './helpers/active-product'
 import { expectNoHorizontalOverflow, setViewport } from './helpers/layout'
 import { clickWhenReady, gotoRoute } from './helpers/routes'
 
@@ -8,7 +11,10 @@ test.describe('Projects and Project Home UI', () => {
     const fixture = await installActiveProductRouteFixture(page, 'projects-ui')
     await gotoRoute(page, '/projects')
 
-    await expect(page.getByRole('heading', { level: 1, name: 'Edit Videos' })).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: 'Projects' })).toBeVisible()
+    const sidebar = page.getByRole('navigation', { name: /desktop app navigation/i })
+    await expect(sidebar.getByRole('link', { name: 'Projects' })).toHaveAttribute('aria-current', 'page')
+    await expect(sidebar.getByRole('link', { name: 'Edit Videos' })).not.toHaveAttribute('aria-current', 'page')
     const projectCard = page.locator('.projects-card').filter({ hasText: fixture.project.name })
     await expect(projectCard).toBeVisible()
     await expect(projectCard.getByText('Ready for upload')).toBeVisible()
@@ -30,6 +36,38 @@ test.describe('Projects and Project Home UI', () => {
     await attentionFilter.click()
     await expect(attentionFilter).toHaveAttribute('aria-pressed', 'true')
     await expect(projectCard).toBeVisible()
+    await expectNoHorizontalOverflow(page)
+  })
+
+  test('keeps normal Edit Chat separate from Motion Studio Storytelling', async ({ page }) => {
+    const fixture = await installProductWorkflowSeparationFixture(page, 'workflow-separation')
+
+    await gotoRoute(page, '/projects')
+    await expect(page.getByText('Normal Storytelling Project')).toBeVisible()
+    await expect(page.getByText('Motion Storytelling Project')).toBeVisible()
+
+    await gotoRoute(page, `/projects/${fixture.motionEdit.projectId}`)
+    const motionEditCard = page.locator('.project-edit-card').filter({
+      hasText: fixture.motionEdit.editName ?? '',
+    })
+    await expect(motionEditCard).toBeVisible()
+    await expect(motionEditCard.getByRole('link')).toHaveAttribute('href', fixture.motionEdit.editorPath)
+
+    await gotoRoute(page, '/edit-videos')
+
+    await expect(page.getByRole('heading', { level: 1, name: 'Edit Videos' })).toBeVisible()
+    await expect(page.getByText(fixture.normalEdit.editName ?? '')).toBeVisible()
+    await expect(page.getByText(fixture.motionEdit.editName ?? '')).toHaveCount(0)
+    await expect(page.getByText('Normal Storytelling Project')).toBeVisible()
+    await expect(page.getByText('Motion Storytelling Project')).toHaveCount(0)
+
+    await page.getByRole('link', { name: 'Open Edit Chat' }).click()
+    await expect(page).toHaveURL(new RegExp(`${fixture.normalEdit.editorPath}(?:\\?.*)?$`))
+    await expect(page.getByTestId('editor-page')).toBeVisible()
+    await expect(page.getByTestId('editor-header')).toContainText(fixture.normalEdit.editName ?? '')
+    await expect(page.getByRole('navigation', { name: /desktop app navigation/i })
+      .getByRole('link', { name: 'Edit Videos' })).toHaveAttribute('aria-current', 'page')
+    await expect(page).not.toHaveURL(/\/motion-studio(?:\/|$)/)
     await expectNoHorizontalOverflow(page)
   })
 

@@ -10,6 +10,7 @@ export const checkedRoutes = [
   { path: '/sign-in', label: 'sign-in' },
   { path: '/dashboard', label: 'dashboard' },
   { path: '/projects', label: 'projects' },
+  { path: '/edit-videos', label: 'edit-videos' },
   { path: '/projects/new', label: 'projects-new' },
   { path: '/preferences', label: 'preferences' },
   { path: '/editor', label: 'editor' },

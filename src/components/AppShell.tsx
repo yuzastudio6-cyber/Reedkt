@@ -42,9 +42,20 @@ export function AppShell({
         <nav aria-label="Desktop app navigation">
           {appNav.map((item) => {
             const [path, hash = ''] = item.to.split('#')
+            const isMotionStudioRoute = location.pathname === '/motion-studio' ||
+              location.pathname.startsWith('/motion-studio/')
+            const isNamedEditRoute = /^\/projects\/[^/]+\/edits\/[^/]+$/.test(location.pathname)
+            const isProjectRoute = location.pathname === '/projects' ||
+              location.pathname === '/projects/new' ||
+              /^\/projects\/[^/]+$/.test(location.pathname)
             const isActive = hash
               ? location.pathname === path && location.hash === `#${hash}`
-              : (location.pathname === path || (path === '/projects' && location.pathname.startsWith('/projects/'))) && !location.hash
+              : !location.hash && (
+                location.pathname === path ||
+                (path === '/projects' && isProjectRoute) ||
+                (path === '/edit-videos' && isNamedEditRoute) ||
+                (path === '/motion-studio' && isMotionStudioRoute)
+              )
 
             return item.disabled ? (
               <button aria-disabled="true" className="sidebar-link sidebar-link-disabled" disabled key={item.label} type="button">

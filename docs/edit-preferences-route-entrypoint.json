@@ -30,6 +30,7 @@
     "allowed": [
       "Home",
       "Projects",
+      "Edit Videos",
       "Edit Preferences"
     ],
     "removedFromPrimarySidebar": [
@@ -49,7 +50,7 @@
       "/brand-kit": "/preferences",
       "/exports": "/projects"
     },
-    "context": "Project and named-edit actions remain contextual. Required core links are Home, Edit Videos, and Edit Preferences; Edit Videos routes to the canonical /projects hierarchy. Combined-source integration also retains Motion Studio and must not enforce an exact-three-link ceiling."
+    "context": "Projects routes to /projects and owns project containers. Edit Videos routes to /edit-videos and opens normal exact edits in Edit Chat. Combined-source integration retains Motion Studio as a separate destination/workspace and must not enforce an exact-four-link ceiling."
   },
   "blockedScope": {
     "upload": false,

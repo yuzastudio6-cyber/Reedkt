@@ -1,9 +1,9 @@
 # Current Product Scope
 
 Status: `current_branch_audit_with_path_divergence_risk`
-Status date: 2026-07-10
+Status date: 2026-07-22
 
-This document records what ReeditPro currently is on `/Volumes/backup/REeditpro`, branch `codex/rp-beta-readiness-blocker-ledger`, and the active-route UI/UX redesign verified on 2026-07-10. It does not authorize route removal, staging, merging, provider execution, billing, or production release.
+This document records the active backend integration line in `/Users/macuser/Developer/REeditpro-backend-pipeline`, branch `codex/backend-workflow-pipeline-continuation`, including the route/workflow separation verified on 2026-07-22. It does not authorize staging, provider execution, billing, deployment, or production release, and the repository path-divergence audit still applies to later source reconciliation.
 
 ## Current Product Statement
 
@@ -25,7 +25,8 @@ ReeditPro on this branch is a project-first, desktop/web AI video editing workfl
 | --- | --- | --- | --- | --- |
 | Landing page | Active; chat-first redesign implemented | `/` -> `LandingPage`, `design-system/pages/landing.md`, responsive public-site E2E and screenshots | Short product promise, authentic chat/plan/approval preview, workflow, signature systems, credit trust, use cases, and private-workspace entry | Retain as the public expression of the active product |
 | Home | Active; resume-first redesign implemented | `/dashboard`, exact scoped handoff recovery, `design-system/pages/home.md`, focused E2E, first-time/returning screenshots | Returning users receive one latest-edit focal surface, state-aware action, other attention items, recent work, and a quiet Edit Preferences shortcut. First-time users receive one Create Project path without empty attention/recent containers. Recovery remains a compact truthful notice rather than internal diagnostics. | Retain and use as the first page-specific expression of the master system |
-| Edit Videos / Projects | Active; scan-and-filter redesign implemented | `/projects`, `Edit Videos` sidebar entry, strict backend/local results, `design-system/pages/projects.md`, search/filter E2E and screenshots | The user-facing entry opens the one project/named-edit library. Bounded project cards expose one status, compact latest-edit truth, and one action; failures do not become false empty state. | Retain the canonical `/projects` hierarchy; do not add a second edit library or editor |
+| Projects | Active; scan-and-filter redesign implemented | `/projects`, `Projects` sidebar entry, strict backend/local results, `design-system/pages/projects.md`, search/filter E2E and screenshots | Project containers may own normal video edits or Motion Studio work. Bounded project cards expose one status, compact latest-work truth, and one action; failures do not become false empty state. | Retain as the container library; do not relabel it as Edit Videos |
+| Edit Videos | Active; normal named-edit library | `/edit-videos`, explicit `video_edit` workflow identity, `design-system/pages/edit-videos.md`, workflow-separation browser proof | Lists normal named video edits across projects and opens the canonical exact edit in normal Edit Chat. A normal edit may use the Storytelling content category without becoming Motion Studio work. | Retain as a separate route; exclude Motion Studio Storytelling workflow records |
 | New Project | Active; focused project-first redesign implemented | `/projects/new`, unique create intent, `design-system/pages/new-project.md`, UI/tenancy E2E and screenshot | One form asks only for project name and broad editing context; same-name projects coexist and upload follows inside a named edit | Retain |
 | Project detail/edit list | Active; latest-edit focal redesign and local/private tenancy V2 verified | `/projects/:projectId`, `design-system/pages/project-home.md`, authenticated project/edit contracts, focused tenancy/UI E2E, screenshots, and aggregate private-pipeline evidence | One project owns multiple named edits. The latest edit carries the state-aware next action; additional edits stay quieter. Do not infer deployed multi-user isolation. | Retain and make central to IA; keep real mounted Supabase revocation and RLS/staging blocked |
 | Focused Edit workspace | Active; flagship chat-first redesign implemented with pre-mount recovery gate | `/projects/:projectId/edits/:editSessionId`, `design-system/pages/edit-workspace.md`, upload/recovery/keyboard/viewport E2E and state screenshots | Compact project strip, one current decision, wide-screen preview/status rail, floating composer, inline Brief, focused Current Edit Preferences, one Plan Review, and truthful recovery | Retain; preserve current editor identity and approval gate |
@@ -57,7 +58,7 @@ ReeditPro on this branch is a project-first, desktop/web AI video editing workfl
 
 ## Current Main Flow
 
-1. Open Home or Edit Videos.
+1. Open Home, Projects, or Edit Videos.
 2. Create a project.
 3. Open the project.
 4. Create a named edit; saved edit preferences are snapshotted.
@@ -74,10 +75,13 @@ ReeditPro on this branch is a project-first, desktop/web AI video editing workfl
 ## Current Navigation
 
 - Home
+- Projects
 - Edit Videos
 - Edit Preferences
 
-`Edit Videos` routes to `/projects`, where the user chooses a project and continues or starts a named edit. It is a clearer entry into the existing project-first workflow, not a second editor or standalone media library. These are required core links, not an exact-three-links ceiling: canonical product integration must retain Motion Studio's existing `/motion-studio` destination, producing Home, Edit Videos, Motion Studio, and Edit Preferences after reconciliation.
+`Projects` routes to `/projects`, where a user creates or opens a project container. `Edit Videos` routes to `/edit-videos`, where a user resumes normal named video edits and enters the existing `/projects/:projectId/edits/:editSessionId` Edit Chat. These are required core links, not an exact-four-link ceiling: canonical product integration must retain Motion Studio's existing `/motion-studio` destination, producing Home, Projects, Edit Videos, Motion Studio, and Edit Preferences after reconciliation.
+
+Motion Studio Storytelling is not a mode of normal Edit Chat. Content category (`storytelling`, documentary, tutorial, and so on) must not choose the product workspace. The explicit product-workflow authority distinguishes normal `video_edit` work from `motion_studio.storytelling` work; each keeps its own library, chat language, and workflow while sharing project identity only where intended.
 
 ## Scope Decisions Needed
 

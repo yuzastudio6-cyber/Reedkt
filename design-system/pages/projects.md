@@ -1,4 +1,4 @@
-# Edit Videos / Projects Page Override
+# Projects Page Override
 
 Status: `implemented_scan_and_filter_v1`
 
@@ -6,11 +6,11 @@ Status date: 2026-07-10
 
 ## Job
 
-The `Edit Videos` sidebar entry opens this canonical project and named-edit library. It helps a signed-in user find a project, understand its latest edit state, and continue without creating a second editor, file table, or analytics dashboard.
+The `Projects` sidebar entry opens the canonical project-container library. It helps a signed-in user find a project, understand its latest work state, and continue without conflating normal Edit Chat with Motion Studio Storytelling.
 
 ## Hierarchy
 
-1. Compact route header with `New project`.
+1. Compact `Projects` route header with `New project`.
 2. Search and state filters only when projects exist.
 3. Compact recovery truth when it affects trust.
 4. Bounded project-card grid.

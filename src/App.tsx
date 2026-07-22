@@ -4,6 +4,7 @@ import { RequireAuth } from './auth/RequireAuth'
 
 const CreateProjectPage = lazy(() => import('./pages/CreateProjectPage').then((module) => ({ default: module.CreateProjectPage })))
 const DashboardPage = lazy(() => import('./pages/DashboardPage').then((module) => ({ default: module.DashboardPage })))
+const EditVideosPage = lazy(() => import('./pages/EditVideosPage').then((module) => ({ default: module.EditVideosPage })))
 const EditorPage = lazy(() => import('./pages/EditorPage').then((module) => ({ default: module.EditorPage })))
 const LandingPage = lazy(() => import('./pages/LandingPage').then((module) => ({ default: module.LandingPage })))
 const PreferencesPage = lazy(() => import('./pages/PreferencesPage').then((module) => ({ default: module.PreferencesPage })))
@@ -45,6 +46,7 @@ export default function App() {
         <Route element={<RequireAuth />}>
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/projects" element={<ProjectsPage />} />
+          <Route path="/edit-videos" element={<EditVideosPage />} />
           <Route path="/projects/new" element={<CreateProjectPage />} />
           <Route path="/projects/:projectId" element={<ProjectDetailPage />} />
           <Route path="/projects/:projectId/edits/:editSessionId" element={<EditorPage />} />

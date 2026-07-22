@@ -125,6 +125,8 @@ export type LocalPrivateInternalReviewVideoExpectation = {
 
 export type LocalSourceSetFingerprint = string
 
+export type LocalProductWorkflow = 'video_edit' | 'motion_studio.storytelling'
+
 export type LocalInternalProjectHandoff = {
   id: string
   workspaceId: string
@@ -133,6 +135,7 @@ export type LocalInternalProjectHandoff = {
   projectName: string
   editName?: string
   category: EditingCategory
+  productWorkflow?: LocalProductWorkflow
   editorPath: string
   stage:
     | 'created'
@@ -229,6 +232,33 @@ export type LocalInternalProjectHandoff = {
   persistence: 'browser_local_internal_testing'
 }
 
+const LEGACY_MOTION_STORYTELLING_EDIT_PREFIX = 'storytelling-edit-'
+
+/**
+ * Editing category describes the content. Product workflow describes the
+ * workspace that owns the edit. A normal video edit may legitimately use the
+ * Storytelling editing category, so category must never select Motion Studio.
+ */
+export function resolveLocalProductWorkflow(
+  handoff: Pick<LocalInternalProjectHandoff, 'editSessionId' | 'productWorkflow'>,
+): LocalProductWorkflow {
+  if (handoff.productWorkflow === 'motion_studio.storytelling') return 'motion_studio.storytelling'
+  if (handoff.productWorkflow === 'video_edit') return 'video_edit'
+
+  // Motion Studio V1 created this exact, namespaced identity before the
+  // explicit workflow discriminator existed. Keep those retained records out
+  // of normal Edit Videos without conflating every Storytelling category edit.
+  return handoff.editSessionId.startsWith(LEGACY_MOTION_STORYTELLING_EDIT_PREFIX)
+    ? 'motion_studio.storytelling'
+    : 'video_edit'
+}
+
+export function isNormalVideoEditHandoff(
+  handoff: Pick<LocalInternalProjectHandoff, 'editSessionId' | 'productWorkflow'>,
+): boolean {
+  return resolveLocalProductWorkflow(handoff) === 'video_edit'
+}
+
 export type InternalEditPersistenceStatusValue =
   | 'saving'
   | 'saved_local'
@@ -290,6 +320,7 @@ export function createLocalInternalProjectHandoff(input: {
   workspaceId: string
   projectId?: string
   editSessionId?: string
+  productWorkflow?: LocalProductWorkflow
   setup?: LocalInternalEditSetupSnapshot
   now?: Date
 }): LocalInternalProjectHandoff {
@@ -299,6 +330,10 @@ export function createLocalInternalProjectHandoff(input: {
   const projectSlug = createLocalProjectSlug(projectName)
   const projectId = normalizeProjectId(input.projectId) ?? `local-${input.category}-${projectSlug}`
   const editSessionId = normalizeProjectId(input.editSessionId) ?? `${projectId}-${createLocalProjectSlug(editName)}-${now.getTime()}`
+  const productWorkflow = resolveLocalProductWorkflow({
+    editSessionId,
+    productWorkflow: input.productWorkflow,
+  })
 
   return {
     id: editSessionId,
@@ -308,7 +343,15 @@ export function createLocalInternalProjectHandoff(input: {
     projectName,
     editName,
     category: input.category,
-    editorPath: createEditorPath({ category: input.category, editName, editSessionId, projectId, projectName }),
+    productWorkflow,
+    editorPath: createProductWorkflowPath({
+      category: input.category,
+      editName,
+      editSessionId,
+      productWorkflow,
+      projectId,
+      projectName,
+    }),
     stage: 'created',
     sourceFileCount: 0,
     setup: input.setup,
@@ -642,22 +685,28 @@ function parseHandoff(value: unknown, expectedWorkspaceId: string): LocalInterna
     return null
   }
 
+  const editName = typeof record.editName === 'string'
+    ? normalizeEditName(record.editName)
+    : normalizeEditName(record.projectName)
+  const productWorkflow = resolveLocalProductWorkflow({
+    editSessionId: record.editSessionId,
+    productWorkflow: record.productWorkflow,
+  })
+
   return {
     id: record.editSessionId,
     workspaceId: expectedWorkspaceId,
     projectId: record.projectId,
     editSessionId: record.editSessionId,
     projectName: normalizeProjectName(record.projectName),
-    editName: typeof record.editName === 'string'
-      ? normalizeEditName(record.editName)
-      : normalizeEditName(record.projectName),
+    editName,
     category: record.category as EditingCategory,
-    editorPath: createEditorPath({
+    productWorkflow,
+    editorPath: createProductWorkflowPath({
       category: record.category as EditingCategory,
-      editName: typeof record.editName === 'string'
-        ? normalizeEditName(record.editName)
-        : normalizeEditName(record.projectName),
+      editName,
       editSessionId: record.editSessionId,
+      productWorkflow,
       projectId: record.projectId,
       projectName: normalizeProjectName(record.projectName),
     }),
@@ -704,16 +753,20 @@ function normalizeHandoffForPersistence(
     hasRevisionPrivateReview: hasRevisionPrivateReviewEvidence(privateReview),
     hasPrivateInternalCompletion: hasPrivateInternalCompletionEvidence(privateReview),
   })
+  const editName = normalizeEditName(handoff.editName ?? handoff.projectName)
+  const productWorkflow = resolveLocalProductWorkflow(handoff)
 
   return {
     ...handoff,
     workspaceId: expectedWorkspaceId,
     id: handoff.editSessionId,
-    editName: normalizeEditName(handoff.editName ?? handoff.projectName),
-    editorPath: createEditorPath({
+    editName,
+    productWorkflow,
+    editorPath: createProductWorkflowPath({
       category: handoff.category,
-      editName: normalizeEditName(handoff.editName ?? handoff.projectName),
+      editName,
       editSessionId: handoff.editSessionId,
+      productWorkflow,
       projectId: handoff.projectId,
       projectName: normalizeProjectName(handoff.projectName),
     }),
@@ -2229,13 +2282,18 @@ function normalizeProjectId(value: string | undefined): string | undefined {
   return normalized ? normalized.slice(0, 180) : undefined
 }
 
-function createEditorPath(input: {
+function createProductWorkflowPath(input: {
   category: EditingCategory
   editName: string
   editSessionId: string
+  productWorkflow: LocalProductWorkflow
   projectId: string
   projectName: string
 }) {
+  if (input.productWorkflow === 'motion_studio.storytelling') {
+    return `/motion-studio/storytelling/projects/${encodeURIComponent(input.projectId)}/edits/${encodeURIComponent(input.editSessionId)}`
+  }
+
   const params = new URLSearchParams({
     category: input.category,
     projectId: input.projectId,

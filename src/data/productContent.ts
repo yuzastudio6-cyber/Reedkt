@@ -5,6 +5,7 @@ import {
   Captions,
   Clapperboard,
   CloudUpload,
+  FolderKanban,
   Home,
   Layers3,
   MessageSquareText,
@@ -50,7 +51,8 @@ export type SignatureSystem = {
 
 export const appNav: NavItem[] = [
   { label: 'Home', to: '/dashboard', icon: Home },
-  { label: 'Edit Videos', to: '/projects', icon: Clapperboard },
+  { label: 'Projects', to: '/projects', icon: FolderKanban },
+  { label: 'Edit Videos', to: '/edit-videos', icon: Clapperboard },
   { label: 'Edit Preferences', to: '/preferences', icon: Settings },
 ]
 

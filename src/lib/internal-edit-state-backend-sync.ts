@@ -508,6 +508,7 @@ function isEligibleInternalProjectHandoff(
     typeof handoff.editorPath === 'string' &&
     handoff.editorPath.startsWith('/') &&
     isInternalEditCategory(handoff.category) &&
+    isInternalProductWorkflow(handoff.productWorkflow) &&
     isInternalEditStage(handoff.stage) &&
     typeof handoff.sourceFileCount === 'number' &&
     Number.isFinite(handoff.sourceFileCount) &&
@@ -517,6 +518,10 @@ function isEligibleInternalProjectHandoff(
     typeof handoff.updatedAt === 'string' &&
     Number.isFinite(Date.parse(handoff.updatedAt)) &&
     handoff.persistence === 'browser_local_internal_testing'
+}
+
+function isInternalProductWorkflow(value: unknown): boolean {
+  return value === undefined || value === 'video_edit' || value === 'motion_studio.storytelling'
 }
 
 function isInternalEditCategory(value: unknown): value is LocalInternalProjectHandoff['category'] {

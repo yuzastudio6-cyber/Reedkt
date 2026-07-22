@@ -1,6 +1,6 @@
 # Prompt 3 Route-By-Route UI/UX QA Report
 
-> Current route source of truth: the active app flow is Project -> Edit with required core sidebar links Home, Edit Videos, and Edit Preferences. `Edit Videos` routes to the existing `/projects` hierarchy. These are not an exact-three-link ceiling; combined-source integration also retains Motion Studio. This report contains historical prompt QA for retired routes; current `qa:viewport` treats `/wallet`, `/pricing`, `/brand-kit`, `/exports`, `/upload`, `/edit-preferences`, `/settings`, and `/app` as compatibility redirects only.
+> Current route source of truth: the active app flow keeps Projects (`/projects`) separate from the normal Edit Videos library (`/edit-videos`). Exact normal edits still use `/projects/:projectId/edits/:editSessionId` and normal Edit Chat. Combined-source integration also retains a separate Motion Studio destination/workspace; Storytelling as a content category never selects it. This report contains historical prompt QA for retired routes; current `qa:viewport` treats `/wallet`, `/pricing`, `/brand-kit`, `/exports`, `/upload`, `/edit-preferences`, `/settings`, and `/app` as compatibility redirects only.
 
 ## Scope
 

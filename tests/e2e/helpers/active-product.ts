@@ -53,6 +53,7 @@ export async function installActiveProductRouteFixture(
     projectName: project.name,
     editName: `Upload gate ${id}`,
     category: project.category,
+    productWorkflow: 'video_edit',
     editorPath: editPath,
     stage: 'created',
     sourceFileCount: 0,
@@ -93,6 +94,106 @@ export async function installActiveProductRouteFixture(
     project,
     projectPath: `/projects/${projectId}`,
   }
+}
+
+export type ProductWorkflowSeparationFixture = {
+  motionEdit: LocalInternalProjectHandoff
+  normalEdit: LocalInternalProjectHandoff
+}
+
+/**
+ * Proves that Storytelling is a content category, not a Motion Studio switch.
+ * Both records use that category; only the explicit product workflow decides
+ * which library owns the edit.
+ */
+export async function installProductWorkflowSeparationFixture(
+  page: Page,
+  label: string,
+): Promise<ProductWorkflowSeparationFixture> {
+  const id = normalizeFixtureId(label)
+  const now = '2026-07-10T12:00:00.000Z'
+  const normalProjectId = `qa-normal-project-${id}`
+  const normalEditSessionId = `qa-normal-edit-${id}`
+  const motionProjectId = `qa-motion-project-${id}`
+  const motionEditSessionId = `storytelling-edit-${id}`
+  const normalProject: LocalProjectRecord = {
+    id: normalProjectId,
+    workspaceId: activeProductLocalTestScope.workspaceId,
+    name: 'Normal Storytelling Project',
+    category: 'storytelling',
+    createdAt: now,
+    updatedAt: now,
+    persistence: 'browser_scoped_project_registry',
+  }
+  const motionProject: LocalProjectRecord = {
+    id: motionProjectId,
+    workspaceId: activeProductLocalTestScope.workspaceId,
+    name: 'Motion Storytelling Project',
+    category: 'storytelling',
+    createdAt: now,
+    updatedAt: now,
+    persistence: 'browser_scoped_project_registry',
+  }
+  const normalEdit: LocalInternalProjectHandoff = {
+    id: normalEditSessionId,
+    workspaceId: activeProductLocalTestScope.workspaceId,
+    projectId: normalProjectId,
+    editSessionId: normalEditSessionId,
+    projectName: normalProject.name,
+    editName: 'Normal Storytelling Edit',
+    category: 'storytelling',
+    productWorkflow: 'video_edit',
+    editorPath: `/projects/${normalProjectId}/edits/${normalEditSessionId}`,
+    stage: 'created',
+    sourceFileCount: 0,
+    createdAt: now,
+    updatedAt: now,
+    persistence: 'browser_local_internal_testing',
+  }
+  const motionEdit: LocalInternalProjectHandoff = {
+    id: motionEditSessionId,
+    workspaceId: activeProductLocalTestScope.workspaceId,
+    projectId: motionProjectId,
+    editSessionId: motionEditSessionId,
+    projectName: motionProject.name,
+    editName: 'Motion Studio Story',
+    category: 'storytelling',
+    productWorkflow: 'motion_studio.storytelling',
+    editorPath: `/motion-studio/storytelling/projects/${motionProjectId}/edits/${motionEditSessionId}`,
+    stage: 'created',
+    sourceFileCount: 0,
+    createdAt: now,
+    updatedAt: now,
+    persistence: 'browser_local_internal_testing',
+  }
+  const scopeFingerprint = createProjectPersistenceScopeFingerprint(activeProductLocalTestScope)
+
+  await page.addInitScript((input) => {
+    window.localStorage.setItem(input.projectStorageKey, JSON.stringify({
+      recordVersion: 2,
+      scope: input.scope,
+      scopeFingerprint: input.scopeFingerprint,
+      projects: input.projects,
+      savedAt: input.now,
+    }))
+    window.localStorage.setItem(input.handoffStorageKey, JSON.stringify({
+      recordVersion: 2,
+      scope: input.scope,
+      scopeFingerprint: input.scopeFingerprint,
+      handoffs: input.edits,
+      savedAt: input.now,
+    }))
+  }, {
+    edits: [normalEdit, motionEdit],
+    handoffStorageKey: buildLocalProjectHandoffStorageKey(activeProductLocalTestScope),
+    now,
+    projects: [normalProject, motionProject],
+    projectStorageKey: buildLocalProjectStorageKey(activeProductLocalTestScope),
+    scope: activeProductLocalTestScope,
+    scopeFingerprint,
+  })
+
+  return { motionEdit, normalEdit }
 }
 
 export function missingNamedEditPath(label: string): string {

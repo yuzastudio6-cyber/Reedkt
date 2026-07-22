@@ -207,10 +207,10 @@ export function ProjectsPage() {
 
   return (
     <AppShell
-      description="Open your edit library, then continue or start a named edit."
+      description="Organize project containers and open the project that owns your video edits or Motion Studio work."
       eyebrow="Workspace"
       primaryAction="New project"
-      title="Edit Videos"
+      title="Projects"
     >
       <div className="projects-page">
         {projectItems.length > 0 && (

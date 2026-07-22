@@ -1,6 +1,6 @@
 # Current Product Visual Signoff
 
-Status date: 2026-07-10
+Status date: 2026-07-22
 Scope: active ReeditPro website and desktop-app routes on the current branch
 Review method: active-route screenshot review, in-app browser inspection, and Playwright viewport/layout/keyboard coverage
 
@@ -14,6 +14,7 @@ This review covers the product that is active now. Retired Brand Kit, Wallet pag
 | `/sign-in` | pass after focused-entry redesign | The sign-in surface has one primary action, compact workspace protections, honest private-preview copy, and no developer-oriented authentication detail. |
 | `/dashboard` | pass after reliability update | The home route presents one primary project path, recovers exact scoped named edits before inferring no latest edit, and keeps newer local work visible during a transient outage. |
 | `/projects` | pass after reliability update | Loading, empty, local-only, unavailable, invalid-response, and access-denied states are distinct; transport failure no longer appears as a false empty account. |
+| `/edit-videos` | pass after workflow-separation update | Normal named video edits are listed across projects; explicit Motion Studio Storytelling records are excluded, while a normal Storytelling-category edit still opens normal Edit Chat. |
 | `/projects/new` | pass after project-first redesign | One labelled form asks only for project name and broad context, validates without losing input, and explains the next named-edit/upload steps in one quiet rail. |
 | `/projects/:projectId` | pass after reliability update | The route distinguishes missing, denied, invalid, local-only, and unavailable recovery states. The New Edit dialog is labelled, focus-contained, Escapable, and returns focus. |
 | `/preferences` | pass after resilience and visual redesign | Saved defaults use grouped flat fields and contextual actions while preserving draft recovery, retry/refresh/discard behavior, and honest authenticated single-host scope. |
@@ -32,7 +33,7 @@ The active routes consistently use:
 - compact route headers;
 - clear focus on the next action.
 
-The current product does not need the retired dashboard surfaces restored. The required core navigation—Home, Edit Videos, Edit Preferences—matches the current backend line better than the historical Brand Kit, Wallet, Team, Analytics, or Media Library navigation. Edit Videos keeps the existing `/projects` project/named-edit hierarchy, and the tests do not impose a three-item maximum because combined-source integration retains Motion Studio.
+The current product does not need the retired dashboard surfaces restored. The required backend-line navigation—Home, Projects, Edit Videos, Edit Preferences—matches the product better than the historical Brand Kit, Wallet, Team, Analytics, or Media Library navigation. Projects keeps `/projects`; Edit Videos uses `/edit-videos` and reuses the exact named-edit route. The tests do not impose a four-item maximum because combined-source integration retains Motion Studio as its own fifth destination.
 
 ## Targeted Corrections From This Review
 
@@ -50,13 +51,14 @@ The current product does not need the retired dashboard surfaces restored. The r
 12. Initial source-upload and source-validation failures now render inside the still-locked upload gate as an assertive alert. The copy identifies supported formats, gives a direct retry path, confirms that no plan, credit, edit, or generation action started, and clears when a new attempt begins or a valid source succeeds.
 13. Named edit routes now keep `ChatNativeEditor` unmounted until the exact user/workspace/project/edit handoff resolves. Backend-recovered state is validated and saved locally before the editor's first mount so complete setup seeds first-render state; loading, not-found, access-denied, invalid-response, and retryable backend-failure states remain outside the editor. `/editor` remains the explicit internal/demo exception.
 14. Workspace resolution failure now provides explicit retry and sign-out actions instead of trapping the signed-in user.
-15. Home, Edit Videos (`/projects`), and project detail preserve trusted local work during transient recovery failure while refusing foreign, malformed, or duplicate backend identities.
+15. Home, Projects (`/projects`), Edit Videos (`/edit-videos`), and project detail preserve trusted local work during transient recovery failure while refusing foreign, malformed, or duplicate backend identities.
 16. Same-name projects use distinct create intents and identities instead of colliding through display-name-derived keys.
 17. Edit Preferences preserves the draft on failed load/save/conflict/network operations and provides deliberate retry, refresh, and discard actions.
 18. The editor header reports estimate state instead of a fabricated wallet balance; the exact estimate remains in Plan Review.
 19. A guarded loopback-only browser/API workspace is available through `npm run dev:private-workspace` for manual signed-in private testing without external services.
 20. Named edits now show compact exact-scoped persistence truth: `Saving`, `Saved in browser`, `Recovery saved`, or `Needs retry`. A failed write retains the newest local handoff and exposes one explicit retry action.
 21. The final active-route capture set covers public entry, every active app route, project detail, named-edit upload and recovery states, editor approval/progress/preview states, 1024–1920 widths, keyboard use, and the zoom proxy.
+22. Product workflow is explicit: a normal Storytelling-category edit remains in Edit Videos/normal Edit Chat, while Motion Studio Storytelling stays in its separate library and workspace.
 
 ## Final QA Evidence
 

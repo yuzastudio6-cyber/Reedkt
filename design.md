@@ -185,21 +185,25 @@ Primary website navigation:
 Current internal-testing desktop sidebar:
 
 1. Home
-2. Edit Videos
-3. Edit Preferences
+2. Projects
+3. Edit Videos
+4. Edit Preferences
 
-`Edit Videos` routes to the existing `/projects` project and named-edit library. It does not create a second editor, media library, or preference authority.
+`Projects` routes to `/projects` and owns project containers across product workflows. `Edit Videos` routes to `/edit-videos` and lists only normal named video edits. Opening one keeps the canonical exact-edit address `/projects/:projectId/edits/:editSessionId` and mounts normal Edit Chat.
 
-These are the backend line's required core links, not an exact-three-link ceiling. The canonical combined product retains the existing Motion Studio destination, yielding Home, Edit Videos, Motion Studio, and Edit Preferences after source reconciliation.
+These are the backend line's required core links, not an exact-four-link ceiling. The canonical combined product retains the existing Motion Studio destination, yielding Home, Projects, Edit Videos, Motion Studio, and Edit Preferences after source reconciliation. Motion Studio Storytelling owns a separate workspace/chat; it must not replace normal Edit Chat or be selected merely because a normal edit uses the Storytelling content category.
 
 The old broad sidebar list is retired for the current app shell. AI Editor, Media Library, Templates, Team, Analytics, Exports, Brand Kit, Settings, Wallet, and Upload must not appear as persistent primary sidebar options. Those surfaces can stay available through contextual project/home actions or direct guarded routes when a feature needs them.
 
 Current internal-testing app pages should stay intentionally small and project-first:
 
 1. `CreateProjectPage` creates the project container.
-2. `ProjectsPage` lists backend-local projects or a clear empty/setup state.
-3. `EditorPage` owns the edit workspace where upload, brief, approval, preview, and private export live.
-4. `PreferencesPage` stores broad reusable editing defaults.
+2. `ProjectsPage` lists backend-local project containers or a clear empty/setup state.
+3. `EditVideosPage` lists normal named video edits and links into normal Edit Chat.
+4. `EditorPage` owns the normal edit workspace where upload, brief, approval, preview, and private export live.
+5. `PreferencesPage` stores broad reusable editing defaults.
+
+The editing category and product workflow are different fields. `storytelling` may describe the content of a normal video edit. The explicit `productWorkflow` identity keeps local libraries and routes separate; a production Motion workspace must additionally re-read its server-owned canonical Motion production association. Legacy Motion records may be recognized by their exact namespaced identity during migration, never by category alone.
 
 Do not show sample projects, fake current projects, video-category launcher cards, or legacy editor shortcuts as normal user choices in this clean app shell. Demo fixtures can remain in tests and guarded internal routes, but they must not look like real projects in the primary Home or Project pages.
 

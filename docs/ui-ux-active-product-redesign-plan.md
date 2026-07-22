@@ -28,14 +28,16 @@ Public entry
 
 Authenticated app
 ├── Home
-├── Edit Videos (`/projects`)
+├── Projects (`/projects`)
 │   ├── Create project
-│   └── Project
-│       └── Named edit workspace
-│           ├── Chat (default)
-│           ├── Edit Brief (single inline workspace)
-│           └── Edit Preferences (`?view=preferences`)
+│   └── Project container
+├── Edit Videos (`/edit-videos`)
+│   └── Normal named edit workspace
+│       ├── Edit Chat (default)
+│       ├── Edit Brief (single inline workspace)
+│       └── Edit Preferences (`?view=preferences`)
 ├── Motion Studio (`/motion-studio`, retained during combined-source integration)
+│   └── Dedicated Storytelling workspace/chat
 └── Edit Preferences (saved defaults)
 ```
 
@@ -177,14 +179,23 @@ User goal: continue the latest work or start a project.
 - Replace testing-instruction tone with concise product guidance while preserving private/internal truth.
 - Avoid analytics, wallet, export, or status-card walls.
 
-### Edit Videos / Projects `/projects`
+### Projects `/projects`
 
-User goal: enter the edit library, then find or create the project that owns the named edit.
+User goal: find or create the project container that owns normal edits or Motion Studio work.
 
 - Distinguish loading, empty, ready, unavailable, access denied, and malformed-response states.
 - Never turn a backend failure into a false empty state.
 - Project names may repeat; identity must not be derived only from display names.
 - Project cards show one next action and compact edit-state truth.
+
+### Edit Videos `/edit-videos`
+
+User goal: find a normal named video edit across projects and continue it in normal Edit Chat.
+
+- Include only normal `video_edit` workflow records.
+- Do not infer Motion Studio from the Storytelling content category.
+- Exclude explicit and retained legacy Motion Studio identities.
+- Open the canonical exact-edit route rather than creating a second editor.
 
 ### Create Project `/projects/new`
 
@@ -298,7 +309,7 @@ New values belong in tokens before route CSS. Avoid one-off glow, radius, shadow
 - Visible source-upload failure and retry: complete.
 - Named-edit pre-mount recovery and exact setup hydration: complete.
 - Workspace unavailable retry/sign-out: complete.
-- Home, Edit Videos (`/projects`), and project detail discriminated recovery/error states: complete.
+- Home, Projects (`/projects`), Edit Videos (`/edit-videos`), and project detail discriminated recovery/error states: complete.
 - Duplicate-safe project creation and accessible New Edit dialog: complete.
 - Exact named-edit persistence status and retained retryable writes: complete.
 
@@ -319,8 +330,9 @@ New values belong in tokens before route CSS. Avoid one-off glow, radius, shadow
 - Signed-in Home now uses the approved Resume-First Command Center: latest meaningful edit, state-aware CTA, other attention items, recent work, a first-project variant, and compact recovery truth instead of repeated onboarding or full-width status cards.
 - The persistent `design-system/MASTER.md` and `design-system/pages/home.md` translate the conversation, reference-image observations, AI Topology Matrix, and UI UX Pro Max critique framework into the existing React/CSS stack.
 - Projects now uses a bounded scan-and-filter grid, compact semantic status, truthful latest-edit summaries, and one project action without stretching sparse content into full-width rows.
+- Edit Videos now uses a separate bounded normal-edit library and explicit product-workflow identity; normal Storytelling-category edits remain in Edit Chat while Motion Studio records stay out.
 - Project Home now uses compact context, a quiet defaults summary, one latest-edit focal surface, quieter supporting edit cards, and state-aware actions.
-- `design-system/pages/projects.md` and `design-system/pages/project-home.md` define the page-specific rules and required states.
+- `design-system/pages/projects.md`, `design-system/pages/edit-videos.md`, and `design-system/pages/project-home.md` define the page-specific rules and required states.
 - Duplicate-safe project creation and project resource-state UI remain implemented.
 - New Edit dialog keyboard containment, Escape, initial focus, and focus return are implemented.
 - Direct named-edit project context/back navigation is implemented. The header preserves the exact project and edit identity across Chat and Current Edit Preferences, exposes the active workspace destination, and reflows without horizontal overflow across the 1024px through 1920px test matrix.
@@ -336,7 +348,7 @@ New values belong in tokens before route CSS. Avoid one-off glow, radius, shadow
 
 ### 5. Whole-Product Visual Consistency — In Progress
 
-- Home, Edit Videos (`/projects`), and Project Home now use the shared bounded hierarchy, surface levels, and semantic status treatment.
+- Home, Projects (`/projects`), Edit Videos (`/edit-videos`), and Project Home now use the shared bounded hierarchy, surface levels, and semantic status treatment.
 - Saved and Current Edit Preferences now use the canonical seven-field system with explicit persistence/recovery truth, inherited/overridden state, responsive hierarchy, guarded drafts, and visually reviewed action states. Landing, Sign In, Create Project, shared project/edit recovery, the active named-edit upload gate, responsive conversation/preview composition, planning-input status, Edit Brief, Plan Review, progress framing, Private Review, and normal revision replanning now follow the same system. Gated revised-review continuation and founder-level whole-product signoff remain separate evidence steps.
 - Preserve route-specific identity as work continues: marketing is expressive, app routes operational, editor open and conversational.
 

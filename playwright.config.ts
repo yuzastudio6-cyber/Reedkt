@@ -1,9 +1,12 @@
 import { defineConfig, devices } from '@playwright/test'
 
-const port = Number(process.env.PLAYWRIGHT_PORT ?? 5173)
+// Keep the standard suite isolated from parallel feature checkouts. Reusing an
+// arbitrary process on a shared Vite port can produce valid-looking evidence
+// for a different source tree, so local reuse must be an explicit opt-in.
+const port = Number(process.env.PLAYWRIGHT_PORT ?? 5203)
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? `http://127.0.0.1:${port}`
 const reuseExistingServer = process.env.PLAYWRIGHT_REUSE_SERVER === undefined
-  ? !process.env.CI
+  ? false
   : process.env.PLAYWRIGHT_REUSE_SERVER === 'true'
 
 export default defineConfig({
@@ -18,6 +21,11 @@ export default defineConfig({
     '**/canonical-journey-ui.spec.ts',
     '**/edit-preferences-atomic-apply.spec.ts',
     '**/edit-preferences-current-edit.spec.ts',
+    '**/edit-reference-canonical-real-file-flow.spec.ts',
+    '**/edit-reference-canonical-v3-local-browser.spec.ts',
+    '**/edit-reference-long-form-review.spec.ts',
+    '**/google-oauth-sign-in.spec.ts',
+    '**/professional-long-form-customer-delivery-media-source.spec.ts',
     '**/project-edit-brief-*.spec.ts',
     '**/project-source-video-brief-playback.spec.ts',
   ],
@@ -46,7 +54,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: `npm run dev -- --host 127.0.0.1 --port ${port}`,
+    command: `npm run dev -- --host 127.0.0.1 --port ${port} --strictPort`,
     env: {
       NODE_ENV: 'test',
       E2E_RUNTIME_MODE: 'mock',

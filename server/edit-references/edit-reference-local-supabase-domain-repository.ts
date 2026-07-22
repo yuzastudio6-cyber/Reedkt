@@ -6,6 +6,7 @@ import {
   EDIT_REFERENCE_DOMAIN_AGGREGATE_READ_RPC,
   EDIT_REFERENCE_DOMAIN_COMMAND_CONTRACT_VERSION,
   EDIT_REFERENCE_DOMAIN_COMMAND_RPC,
+  EDIT_REFERENCE_DOMAIN_LONG_FORM_COMMAND_RPC,
   EDIT_REFERENCE_DOMAIN_IDEMPOTENCY_LOOKUP_RPC,
   assertEditReferenceDomainCommand,
   editReferenceDomainCommandRequestHash,
@@ -249,7 +250,12 @@ async function mutateDomain(
   ) invalid('local_domain_idempotency_key_invalid')
 
   const idempotencyKeyHashSha256 = sha256(input.idempotencyKey)
-  const result = await invokeExactlyOnce(client, EDIT_REFERENCE_DOMAIN_COMMAND_RPC, {
+  const rpcFunction = input.operation.startsWith(
+    'preference_study.long_form_study.',
+  )
+    ? EDIT_REFERENCE_DOMAIN_LONG_FORM_COMMAND_RPC
+    : EDIT_REFERENCE_DOMAIN_COMMAND_RPC
+  const result = await invokeExactlyOnce(client, rpcFunction, {
     p_contract_version: EDIT_REFERENCE_DOMAIN_COMMAND_CONTRACT_VERSION,
     p_actor_user_id: input.scope.ownerUserId,
     p_command: input.command,

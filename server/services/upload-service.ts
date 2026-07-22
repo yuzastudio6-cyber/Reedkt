@@ -48,6 +48,12 @@ import {
   type PrivateUploadMediaAuthorityScope,
 } from './private-upload-media-authority-store'
 import { createProjectService } from './project-service'
+import {
+  assertEditReferenceLongFormStudyRuntimePortFactory,
+} from './edit-reference-production-long-form-runtime-port'
+import {
+  assertEditReferenceSignedInPrivateMediaRuntimePort,
+} from './edit-reference-signed-in-private-media-runtime-port'
 import { getRequiredAuthUserId, mockWarning, nowIso, throwOnSupabaseError } from './service-helpers'
 import { authorizeWorkspaceAccess } from './workspace-access-service'
 
@@ -673,6 +679,7 @@ export function createUploadService(context: ServiceContext) {
       const uploadIntent = await loadUploadIntent(context, input.uploadIntentId, input.workspaceId)
       await assertUploadIntentAccessibleByCurrentUser(context, uploadIntent, input.workspaceId)
       assertUserInitiatedUploadPurpose(uploadIntent.uploadPurpose)
+      assertFinalizeUploadInputMatchesIntent(uploadIntent, input)
 
       if (uploadIntent.status === 'finalized' && uploadIntent.mediaAssetId) {
         return loadFinalizedUploadResult(context, uploadIntent)
@@ -702,24 +709,8 @@ export function createUploadService(context: ServiceContext) {
         )
       }
 
-      if (
-        uploadIntent.expectedSizeBytes !== undefined &&
-        input.sizeBytes !== undefined &&
-        input.sizeBytes !== uploadIntent.expectedSizeBytes
-      ) {
-        throw new ApiError('VALIDATION_FAILED', 'Finalized upload size cannot override the upload-intent size.', 400, {
-          uploadIntentId: uploadIntent.id,
-          expectedSizeBytes: uploadIntent.expectedSizeBytes,
-          suppliedSizeBytes: input.sizeBytes,
-        })
-      }
       const intentChecksumSha256 = normalizeChecksumSha256(uploadIntent.checksumSha256)
       const suppliedChecksumSha256 = normalizeChecksumSha256(input.checksumSha256)
-      if (intentChecksumSha256 && suppliedChecksumSha256 && intentChecksumSha256 !== suppliedChecksumSha256) {
-        throw new ApiError('VALIDATION_FAILED', 'Finalized upload checksum cannot override the upload-intent checksum.', 400, {
-          uploadIntentId: uploadIntent.id,
-        })
-      }
       const expectedChecksumSha256 = intentChecksumSha256 ?? suppliedChecksumSha256
       let verifiedMetadata: ObjectMetadata
       try {
@@ -1233,6 +1224,42 @@ function assertUploadIntentOwnedByCurrentUser(context: ServiceContext, uploadInt
   }
 }
 
+function assertFinalizeUploadInputMatchesIntent(
+  uploadIntent: UploadIntentView,
+  input: FinalizeUploadIntentInput,
+): void {
+  if (
+    uploadIntent.expectedSizeBytes !== undefined
+    && input.sizeBytes !== undefined
+    && input.sizeBytes !== uploadIntent.expectedSizeBytes
+  ) {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      'Finalized upload size cannot override the upload-intent size.',
+      400,
+      {
+        uploadIntentId: uploadIntent.id,
+        expectedSizeBytes: uploadIntent.expectedSizeBytes,
+        suppliedSizeBytes: input.sizeBytes,
+      },
+    )
+  }
+  const intentChecksumSha256 = normalizeChecksumSha256(uploadIntent.checksumSha256)
+  const suppliedChecksumSha256 = normalizeChecksumSha256(input.checksumSha256)
+  if (
+    intentChecksumSha256
+    && suppliedChecksumSha256
+    && intentChecksumSha256 !== suppliedChecksumSha256
+  ) {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      'Finalized upload checksum cannot override the upload-intent checksum.',
+      400,
+      { uploadIntentId: uploadIntent.id },
+    )
+  }
+}
+
 type UploadOwner =
   | { kind: 'project'; projectId: string; projectIdForAuthority: string }
   | { kind: 'edit_reference'; editReferenceId: string; projectIdForAuthority: string }
@@ -1271,7 +1298,7 @@ export function assertEditReferenceUploadPersistenceAvailable(context: ServiceCo
     && context.env.allowMockWithoutSupabase
     && (context.env.mode === 'local' || context.env.mode === 'mock')
     && context.env.storageMode === 'local'
-  if (locallyAuthorized) return
+  if (locallyAuthorized || usesCanonicalV3SignedInPrivateMediaPersistence(context)) return
   throw new ApiError(
     'EDIT_REFERENCE_PERSISTENCE_BLOCKED',
     'Production Edit Reference media persistence remains blocked until its canonical database and distributed finalization authority are approved.',
@@ -1279,6 +1306,7 @@ export function assertEditReferenceUploadPersistenceAvailable(context: ServiceCo
     {
       migrationBaseline: 'blocked_by_parallel_foundations',
       distributedFinalizationReady: false,
+      isolatedSignedInPrivateMediaRuntimeMounted: false,
       remoteMutationAttempted: false,
     },
   )
@@ -1450,7 +1478,80 @@ async function assertSignedUrlEventAccess(context: ServiceContext, input: Signed
 }
 
 function usesLocalUploadPersistence(context: ServiceContext): boolean {
-  return !context.clients.admin || context.env.mockOnly || context.env.allowInternalTestExecutionWithSupabase
+  return !context.clients.admin
+    || context.env.mockOnly
+    || context.env.allowInternalTestExecutionWithSupabase
+    || usesCanonicalV3SignedInPrivateMediaPersistence(context)
+}
+
+function usesCanonicalV3SignedInPrivateMediaPersistence(
+  context: ServiceContext,
+): boolean {
+  const mediaPort = context.editReferenceSignedInPrivateMediaRuntimePort
+  if (!mediaPort) return false
+  assertEditReferenceSignedInPrivateMediaRuntimePort(mediaPort)
+
+  const longFormFactory = context.editReferenceLongFormStudyRuntimePortFactory
+  if (!longFormFactory) {
+    throw editReferencePrivateMediaUnavailable(
+      'canonical_v3_request_scoped_long_form_factory_missing',
+    )
+  }
+  assertEditReferenceLongFormStudyRuntimePortFactory(longFormFactory)
+
+  const domainPort = context.editReferenceDomainRepositoryRuntimePort
+  const authenticatedAccessToken = context.auth?.accessToken
+  const valid = context.env.nodeEnv !== 'production'
+    && context.env.allowMockWithoutSupabase
+    && (context.env.mode === 'local' || context.env.mode === 'mock')
+    && context.env.storageMode === 'local'
+    && context.env.largeMediaFinalizationMode === 'private_local'
+    && context.env.supabaseUrl === mediaPort.endpointOrigin
+    && context.auth?.isMockUser === false
+    && Boolean(context.auth.userId.trim())
+    && isBoundedAuthenticatedJwt(authenticatedAccessToken)
+    && longFormFactory.sourceAuthority
+      === 'canonical_v3_loopback_postgres_pre_plan_study'
+    && longFormFactory.evidenceClass === 'canonical_contract_fixture_unreleased'
+    && !longFormFactory.productionAuthority
+    && domainPort?.sourceAuthority === 'canonical_v3_local_repository'
+    && domainPort.evidenceClass === 'canonical_v3_local_only'
+    && domainPort.repository.persistence === 'canonical_supabase_transactional'
+    && domainPort.databaseTransactionAdapterVerified
+    && domainPort.authenticatedTenantRlsVerified
+    && domainPort.durableIdempotencyAndCasVerified
+    && domainPort.crossDeviceReadbackVerified
+    && !domainPort.sameReleaseEvidenceVerified
+    && !domainPort.productionAuthority
+  if (!valid) {
+    throw editReferencePrivateMediaUnavailable(
+      'canonical_v3_signed_in_private_media_runtime_mismatch',
+    )
+  }
+  return true
+}
+
+function isBoundedAuthenticatedJwt(value: string | undefined): value is string {
+  return typeof value === 'string'
+    && value.length >= 20
+    && value.length <= 16_384
+    && value.split('.').length === 3
+    && /^[A-Za-z0-9._-]+$/u.test(value)
+}
+
+function editReferencePrivateMediaUnavailable(reason: string): ApiError {
+  return new ApiError(
+    'EDIT_REFERENCE_PERSISTENCE_BLOCKED',
+    'The signed-in private Edit Reference media runtime is unavailable or unsafe.',
+    503,
+    {
+      reason,
+      requiredGate: 'signed_in_private_edit_reference_media',
+      distributedFinalizationReady: false,
+      remoteMutationAttempted: false,
+      productionReady: false,
+    },
+  )
 }
 
 function assertCreateUploadIntentDomainIdempotencyAvailable(

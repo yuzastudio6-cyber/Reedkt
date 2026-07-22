@@ -54,7 +54,9 @@ export interface ReeditProApiAppOptions {
   editReferenceExactEditApplyRuntimePort?: EditReferenceExactEditApplyRuntimePort
   editReferenceApplicationPreparationRuntimePort?: EditReferenceApplicationPreparationRuntimePort
   editReferenceLongFormStudyRuntimePort?: RuntimeState['editReferenceLongFormStudyRuntimePort']
+  editReferenceLongFormStudyRuntimePortFactory?: RuntimeState['editReferenceLongFormStudyRuntimePortFactory']
   editReferenceDomainRepositoryRuntimePort?: RuntimeState['editReferenceDomainRepositoryRuntimePort']
+  editReferenceSignedInPrivateMediaRuntimePort?: RuntimeState['editReferenceSignedInPrivateMediaRuntimePort']
 }
 
 export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppOptions = {}): Express {
@@ -97,8 +99,20 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
     ...(options.editReferenceLongFormStudyRuntimePort
       ? { editReferenceLongFormStudyRuntimePort: options.editReferenceLongFormStudyRuntimePort }
       : {}),
+    ...(options.editReferenceLongFormStudyRuntimePortFactory
+      ? {
+          editReferenceLongFormStudyRuntimePortFactory:
+            options.editReferenceLongFormStudyRuntimePortFactory,
+        }
+      : {}),
     ...(options.editReferenceDomainRepositoryRuntimePort
       ? { editReferenceDomainRepositoryRuntimePort: options.editReferenceDomainRepositoryRuntimePort }
+      : {}),
+    ...(options.editReferenceSignedInPrivateMediaRuntimePort
+      ? {
+          editReferenceSignedInPrivateMediaRuntimePort:
+            options.editReferenceSignedInPrivateMediaRuntimePort,
+        }
       : {}),
     clients: options.clients ?? {
       admin: createSupabaseAdminClient(env),

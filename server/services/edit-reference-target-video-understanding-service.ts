@@ -144,6 +144,8 @@ export function createEditReferenceTargetVideoUnderstandingService(
     env: context.env,
     runtimePort: runtimeOptions.longFormStudyRuntimePort
       ?? context.editReferenceLongFormStudyRuntimePort,
+    runtimePortFactory: context.editReferenceLongFormStudyRuntimePortFactory,
+    authenticatedRequest: context.auth,
     localRepository: runtimeOptions.longFormStudyRepository,
     localScheduler: runtimeOptions.studyScheduler,
   })
@@ -700,6 +702,8 @@ function createTargetLongFormStudySourceBinding(
   return {
     sourceAuthority: 'target_source_media',
     sourceAssetId: storage.mediaAssetId,
+    sourceStorageObjectRecordId: storage.id,
+    sourceMediaAssetId: storage.mediaAssetId,
     sourceStorageObjectId: storage.objectPath,
     sourceStorageGeneration: storage.generation,
     sourceStorageEtag: storage.etag,

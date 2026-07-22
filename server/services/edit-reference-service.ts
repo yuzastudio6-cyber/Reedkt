@@ -305,6 +305,7 @@ import {
   type EditReferencePreparedDnaQaCommandResult,
   type EditReferencePreparedDnaSynthesisCommandResult,
   type EditReferencePreparedEvidenceStudyCommandResult,
+  type EditReferenceLongFormStudyControlDomainOperation,
 } from '../edit-references/edit-reference-domain-command-contract'
 
 export interface EditReferenceServiceResult<T> {
@@ -535,6 +536,8 @@ export function createEditReferenceService(
     env: context.env,
     runtimePort: runtimeOptions.longFormStudyRuntimePort
       ?? context.editReferenceLongFormStudyRuntimePort,
+    runtimePortFactory: context.editReferenceLongFormStudyRuntimePortFactory,
+    authenticatedRequest: context.auth,
     localRepository: runtimeOptions.longFormStudyRepository,
     localScheduler: runtimeOptions.longFormStudyScheduler,
   })
@@ -837,11 +840,51 @@ export function createEditReferenceService(
         plan: controlled.plan,
         run: controlled.run,
       })
+      const operation = (
+        'preference_study.long_form_study.control.' + normalized.action
+      ) as EditReferenceLongFormStudyControlDomainOperation
+      const controlledAt = new Date().toISOString()
+      const preparedControl = {
+        referenceId: currentReference.id,
+        referenceAssetId,
+        summary,
+        mediaMetadata: currentAsset.mediaMetadata ?? {
+          durationSeconds: summary.sourceDurationSeconds,
+          hasAudio: summary.sourceHasAudio,
+          orientation: 'unknown' as const,
+        },
+        action: normalized.action,
+        activeWorkFinishesBeforePause:
+          controlled.receipt.activeWorkFinishesBeforePause,
+        recoveredWorkItemCount: controlled.receipt.recoveredWorkItemCount,
+        assistantMessage: longFormStudyControlMessage(
+          currentReference,
+          currentStudy,
+          normalized.action,
+          controlled.receipt.activeWorkFinishesBeforePause,
+          controlled.receipt.recoveredWorkItemCount,
+          controlledAt,
+          nextSequence(currentAggregate, currentStudy.id),
+        ),
+      }
       const aggregateMutation = await repository.mutate({
         scope: requestedScope,
-        operation: `preference_study.long_form_study.control.${normalized.action}`,
+        operation,
         idempotencyKey: key,
         requestHash: hashEditReferenceRequest({ studyId, referenceAssetId, ...normalized }),
+        command: {
+          schemaVersion: EDIT_REFERENCE_DOMAIN_COMMAND_CONTRACT_VERSION,
+          operation,
+          request: {
+            studyId,
+            referenceAssetId,
+            input: {
+              ...normalized,
+              expectedStudyRevision: currentStudy.revision,
+            },
+            prepared: preparedControl,
+          },
+        },
         replay: replayDetailData,
         mutate: ({ aggregate, now, addAuditEvent }) => {
           const study = requireStudy(aggregate, studyId)
@@ -855,15 +898,7 @@ export function createEditReferenceService(
           study.revision += 1
           study.updatedAt = now
           reference.updatedAt = now
-          aggregate.messages.push(longFormStudyControlMessage(
-            reference,
-            study,
-            normalized.action,
-            controlled.receipt.activeWorkFinishesBeforePause,
-            controlled.receipt.recoveredWorkItemCount,
-            now,
-            nextSequence(aggregate, study.id),
-          ))
+          aggregate.messages.push(structuredClone(preparedControl.assistantMessage))
           addAuditEvent({
             eventType: `preference_long_form_study_${normalized.action}`,
             editReferenceId: reference.id,
@@ -4096,6 +4131,8 @@ export function createEditReferenceService(
             sourceAuthority: 'preference_asset',
             sourceAssetId: currentAsset.id,
             storage,
+            storageMode: context.env.storageMode,
+            verifiedSourceChecksumSha256: inspected.source.mediaChecksumSha256,
           }),
         })
         persisted = { plan: created.plan, run: created.run }
@@ -4125,11 +4162,35 @@ export function createEditReferenceService(
         plan: persisted.plan,
         run: persisted.run,
       })
+      const startedAt = new Date().toISOString()
+      const preparedStart = {
+        referenceId: currentReference.id,
+        referenceAssetId,
+        summary,
+        mediaMetadata: inspected.mediaMetadata,
+        assistantMessage: longFormStudyStartedMessage(
+          currentReference,
+          currentStudy,
+          summary,
+          startedAt,
+          nextSequence(currentAggregate, currentStudy.id),
+        ),
+      }
       const mutation = await repository.mutate({
         scope: scope(normalized.workspaceId),
         operation: 'preference_study.long_form_study.start',
         idempotencyKey: key,
         requestHash: hashEditReferenceRequest({ studyId, referenceAssetId, ...normalized }),
+        command: {
+          schemaVersion: EDIT_REFERENCE_DOMAIN_COMMAND_CONTRACT_VERSION,
+          operation: 'preference_study.long_form_study.start',
+          request: {
+            studyId,
+            referenceAssetId,
+            input: normalized,
+            prepared: preparedStart,
+          },
+        },
         replay: replayDetailData,
         mutate: ({ aggregate, now, addAuditEvent }) => {
           const study = requireStudy(aggregate, studyId)
@@ -4160,13 +4221,7 @@ export function createEditReferenceService(
           study.revision += 1
           study.updatedAt = now
           reference.updatedAt = now
-          aggregate.messages.push(longFormStudyStartedMessage(
-            reference,
-            study,
-            summary,
-            now,
-            nextSequence(aggregate, study.id),
-          ))
+          aggregate.messages.push(structuredClone(preparedStart.assistantMessage))
           addAuditEvent({
             eventType: 'preference_long_form_study_started',
             editReferenceId: reference.id,
@@ -5466,14 +5521,31 @@ function longFormStudySourceBinding(input: {
   readonly sourceAuthority: EditReferenceLongFormStudySourceBinding['sourceAuthority']
   readonly sourceAssetId: string
   readonly storage: EditReferenceLongFormStorageObject
+  readonly storageMode: ServiceContext['env']['storageMode']
+  readonly verifiedSourceChecksumSha256: string
 }): EditReferenceLongFormStudySourceBinding | undefined {
-  if (!input.storage.generation || !input.storage.etag) return undefined
+  const storedChecksumSha256 = input.storage.checksumSha256
+  if (
+    !/^[a-f0-9]{64}$/.test(storedChecksumSha256 ?? '')
+    || storedChecksumSha256 !== input.verifiedSourceChecksumSha256
+    || !input.storage.id
+    || !input.storage.mediaAssetId
+  ) return undefined
+  const generation = input.storage.generation
+    ?? (input.storageMode === 'local'
+      ? `local-sha256-${storedChecksumSha256}`
+      : undefined)
+  const etag = input.storage.etag
+    ?? (input.storageMode === 'local' ? storedChecksumSha256 : undefined)
+  if (!generation || !etag) return undefined
   return {
     sourceAuthority: input.sourceAuthority,
     sourceAssetId: input.sourceAssetId,
+    sourceStorageObjectRecordId: input.storage.id,
+    sourceMediaAssetId: input.storage.mediaAssetId,
     sourceStorageObjectId: input.storage.objectPath,
-    sourceStorageGeneration: input.storage.generation,
-    sourceStorageEtag: input.storage.etag,
+    sourceStorageGeneration: generation,
+    sourceStorageEtag: etag,
   }
 }
 
@@ -5939,7 +6011,7 @@ function longFormStudyStartedMessage(
   sequence: number,
 ): PreferenceStudyMessageRecord {
   return {
-    id: `preference-study-message-${randomUUID()}`,
+    id: randomUUID(),
     workspaceId: reference.workspaceId,
     editReferenceId: reference.id,
     studySessionId: study.id,
@@ -5970,7 +6042,7 @@ function longFormStudyControlMessage(
         ? `Recovery authorized for ${recoveredWorkItemCount} blocked study step${recoveredWorkItemCount === 1 ? '' : 's'}. ReEditPro will retry only that work and preserve every completed checkpoint.`
         : 'Study cancelled. The original video and completed checkpoints remain retained; no new study step will start.'
   return {
-    id: `preference-study-message-${randomUUID()}`,
+    id: randomUUID(),
     workspaceId: reference.workspaceId,
     editReferenceId: reference.id,
     studySessionId: study.id,

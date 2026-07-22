@@ -79,6 +79,8 @@ npx --no-install tsx \
   "${REPOSITORY_ROOT}/server/smoke/canonical-distributed-pre-plan-study-local-postgres-smoke.ts"
 npx --no-install tsx \
   "${REPOSITORY_ROOT}/server/smoke/edit-reference-canonical-v3-local-long-form-runtime-port-smoke.ts"
+npx --no-install tsx \
+  "${REPOSITORY_ROOT}/server/smoke/edit-reference-long-form-runtime-port-factory-smoke.ts"
 "${PSQL_BIN}" "${DATABASE_URL}" -X -q -v ON_ERROR_STOP=1 \
   -f "${SCRIPT_DIR}/tests/013_canonical_distributed_pre_plan_study_rpc_postconditions.sql"
 npx --no-install tsx \

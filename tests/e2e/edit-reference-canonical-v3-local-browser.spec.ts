@@ -1,5 +1,10 @@
 import { createHmac } from 'node:crypto'
+import path from 'node:path'
 import { expect, test } from '@playwright/test'
+import {
+  EDIT_REFERENCE_CONTROLLED_MEDIA_FIXTURE_DEFINITIONS,
+  materializeEditReferenceControlledMediaFixture,
+} from '../../server/edit-references/edit-reference-controlled-media-fixtures'
 import { expectNoHorizontalOverflow, setViewport } from './helpers/layout'
 
 const localSupabaseUrl = requiredLocalEnvironment(
@@ -10,25 +15,53 @@ const localSupabaseAnonKey = requiredEnvironment('REEDITPRO_CANONICAL_V3_ANON_KE
 const localJwtSecret = requiredEnvironment('REEDITPRO_CANONICAL_V3_JWT_SECRET')
 const ownerUserId = '11111111-1111-4111-8111-111111111111'
 const ownerEmail = 'owner-a@example.test'
+const otherOwnerUserId = '22222222-2222-4222-8222-222222222222'
+const otherOwnerEmail = 'owner-b@example.test'
 const workspaceId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
+const apiPort = Number(process.env.PLAYWRIGHT_EDIT_REFERENCE_V3_API_PORT ?? 9017)
+const apiBaseUrl = `http://127.0.0.1:${apiPort}`
 let browserSession: Record<string, unknown>
+let ownerAccessToken = ''
+let otherOwnerAccessToken = ''
+let fixturePath = ''
 
 test.describe('canonical V3 local Edit Preference browser lifecycle', () => {
-  test.beforeAll(async ({ browserName }) => {
+  test.beforeAll(async ({ browserName }, testInfo) => {
     expect(browserName).toBe('chromium')
     expect(localSupabaseUrl).toBe('http://127.0.0.1:57431')
     expect(ownerUserId).toMatch(/^[a-f0-9-]{36}$/)
+    const storageRoot = String(
+      testInfo.config.metadata.editReferenceCanonicalStorageRoot ?? '',
+    )
+    expect(path.isAbsolute(storageRoot)).toBe(true)
+    const fixtureDefinition = EDIT_REFERENCE_CONTROLLED_MEDIA_FIXTURE_DEFINITIONS.find(
+      (definition) => definition.fixtureId === 'target_a_educational_product_demo',
+    )
+    if (!fixtureDefinition) throw new Error('The controlled reference-video fixture is unavailable.')
+    const fixture = await materializeEditReferenceControlledMediaFixture({
+      outputRoot: path.join(storageRoot, 'controlled-mounted-v3-fixtures'),
+      definition: fixtureDefinition,
+      timeoutMs: 60_000,
+    })
+    fixturePath = fixture.videoPath
     const now = Math.floor(Date.now() / 1_000)
-    const accessToken = createLocalAuthenticatedJwt({
+    ownerAccessToken = createLocalAuthenticatedJwt({
+      email: ownerEmail,
       issuedAt: now,
       secret: localJwtSecret,
       subject: ownerUserId,
+    })
+    otherOwnerAccessToken = createLocalAuthenticatedJwt({
+      email: otherOwnerEmail,
+      issuedAt: now,
+      secret: localJwtSecret,
+      subject: otherOwnerUserId,
     })
     const response = await fetch(`${localSupabaseUrl}/auth/v1/user`, {
       headers: {
         accept: 'application/json',
         apikey: localSupabaseAnonKey,
-        authorization: `Bearer ${accessToken}`,
+        authorization: `Bearer ${ownerAccessToken}`,
       },
       signal: AbortSignal.timeout(15_000),
     })
@@ -36,7 +69,7 @@ test.describe('canonical V3 local Edit Preference browser lifecycle', () => {
     expect(response.ok, JSON.stringify(user)).toBe(true)
     expect(user.id).toBe(ownerUserId)
     browserSession = {
-      access_token: accessToken,
+      access_token: ownerAccessToken,
       expires_at: now + 1_800,
       expires_in: 1_800,
       refresh_token: 'canonical-v3-local-no-refresh',
@@ -127,6 +160,101 @@ test.describe('canonical V3 local Edit Preference browser lifecycle', () => {
     await expect(page.getByTestId('edit-reference-study-chat')).toContainText(correction)
     await expectNoHorizontalOverflow(page)
   })
+
+  test('mounts signed-in private upload and durable long-form RLS authority per request', async ({ page }) => {
+    test.setTimeout(180_000)
+    page.setDefaultTimeout(20_000)
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await setViewport(page, 1280, 900)
+    await page.addInitScript((session) => {
+      window.localStorage.setItem('sb-127-auth-token', JSON.stringify(session))
+    }, browserSession)
+    await page.goto('/preferences')
+
+    const preferenceName = `Mounted V3 reference ${Date.now()}`
+    await page.getByTestId('new-edit-reference').click()
+    await page.getByTestId('edit-reference-name').fill(preferenceName)
+    await page.getByTestId('save-edit-reference').click()
+    await page.getByRole('button', { name: 'Upload video' }).click()
+    await page.getByTestId('edit-reference-video-file').setInputFiles(fixturePath)
+    await page.getByTestId('save-edit-reference-evidence').click()
+
+    const studyCard = page.locator('[data-testid^="edit-reference-long-form-study-"]').first()
+    await expect(studyCard).toBeVisible()
+    await expect(studyCard).toContainText('fixture.mp4')
+    await studyCard.getByRole('button', { name: 'Start whole-video study' }).click()
+    await expect(studyCard).toContainText('checkpointed section')
+    await expect(studyCard.locator('progress')).toBeVisible()
+
+    const referenceId = new URL(page.url()).searchParams.get('reference')
+    expect(referenceId).toBeTruthy()
+    const detailResponse = await fetch(
+      `${apiBaseUrl}/v1/edit-references/${encodeURIComponent(referenceId as string)}?${new URLSearchParams({ workspaceId })}`,
+      { headers: { authorization: `Bearer ${ownerAccessToken}` } },
+    )
+    expect(detailResponse.ok).toBe(true)
+    const detailBody = await detailResponse.json() as {
+      data?: { detail?: { study?: { id?: string }; assets?: Array<{ id?: string }> } }
+    }
+    const studyId = detailBody.data?.detail?.study?.id
+    const studyCardTestId = await studyCard.getAttribute('data-testid')
+    const referenceAssetId = studyCardTestId?.replace(
+      'edit-reference-long-form-study-',
+      '',
+    )
+    expect(studyId).toBeTruthy()
+    expect(referenceAssetId).toBeTruthy()
+
+    const ownerRead = await fetch(longFormStatusUrl(studyId!, referenceAssetId!), {
+      headers: { authorization: `Bearer ${ownerAccessToken}` },
+    })
+    const ownerReadText = await ownerRead.text()
+    expect(ownerRead.ok, ownerReadText).toBe(true)
+    expect(ownerReadText).not.toContain(ownerAccessToken)
+    expect(ownerReadText).not.toContain(otherOwnerAccessToken)
+    const ownerStatus = JSON.parse(ownerReadText) as {
+      data?: { study?: { runRevision?: number; state?: string } }
+    }
+    expect(ownerStatus.data?.study?.runRevision).toBeGreaterThan(0)
+
+    const deniedRead = await fetch(longFormStatusUrl(studyId!, referenceAssetId!), {
+      headers: { authorization: `Bearer ${otherOwnerAccessToken}` },
+    })
+    expect([403, 404]).toContain(deniedRead.status)
+    expect(await deniedRead.text()).not.toContain(ownerAccessToken)
+    const deniedControl = await fetch(
+      `${apiBaseUrl}/v1/edit-reference-studies/${encodeURIComponent(studyId!)}/assets/${encodeURIComponent(referenceAssetId!)}/long-form-study/control`,
+      {
+        method: 'POST',
+        headers: {
+          authorization: `Bearer ${otherOwnerAccessToken}`,
+          'content-type': 'application/json',
+          'idempotency-key': `cross-tenant-control-${Date.now()}`,
+        },
+        body: JSON.stringify({
+          workspaceId,
+          expectedRunRevision: ownerStatus.data?.study?.runRevision,
+          action: 'pause',
+        }),
+      },
+    )
+    expect([403, 404]).toContain(deniedControl.status)
+
+    await studyCard.getByRole('button', { name: 'Pause safely' }).click()
+    await expect(studyCard.getByRole('button', { name: 'Resume study' })).toBeVisible()
+    const progressBeforeReload = await studyCard.locator('progress').getAttribute('value')
+    await page.reload()
+    await expect(page.getByRole('heading', { name: preferenceName })).toBeVisible()
+    const restoredCard = page.locator('[data-testid^="edit-reference-long-form-study-"]').first()
+    await expect(restoredCard.getByRole('button', { name: 'Resume study' })).toBeVisible()
+    await expect(restoredCard.locator('progress')).toHaveAttribute(
+      'value',
+      progressBeforeReload ?? '0',
+    )
+    await restoredCard.getByRole('button', { name: 'Resume study' }).click()
+    await expect(restoredCard).toContainText('Study resumed from the last verified checkpoint.')
+    await expectNoHorizontalOverflow(page)
+  })
 })
 
 async function approveCurrentGuidance(page: import('@playwright/test').Page): Promise<void> {
@@ -154,6 +282,7 @@ function requiredLocalEnvironment(name: string, expected: string): string {
 }
 
 function createLocalAuthenticatedJwt(input: {
+  readonly email: string
   readonly issuedAt: number
   readonly secret: string
   readonly subject: string
@@ -164,7 +293,7 @@ function createLocalAuthenticatedJwt(input: {
     amr: [{ method: 'password', timestamp: input.issuedAt }],
     app_metadata: { provider: 'email', providers: ['email'] },
     aud: 'authenticated',
-    email: ownerEmail,
+    email: input.email,
     exp: input.issuedAt + 1_800,
     iat: input.issuedAt,
     iss: `${localSupabaseUrl}/auth/v1`,
@@ -177,6 +306,10 @@ function createLocalAuthenticatedJwt(input: {
     .update(unsigned)
     .digest('base64url')
   return `${unsigned}.${signature}`
+}
+
+function longFormStatusUrl(studyId: string, referenceAssetId: string): string {
+  return `${apiBaseUrl}/v1/edit-reference-studies/${encodeURIComponent(studyId)}/assets/${encodeURIComponent(referenceAssetId)}/long-form-study?${new URLSearchParams({ workspaceId })}`
 }
 
 function base64Url(value: unknown): string {

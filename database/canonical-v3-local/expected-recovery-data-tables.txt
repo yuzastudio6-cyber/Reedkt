@@ -22,6 +22,7 @@ public.preference_dna_lifecycle_events
 public.preference_dna_qa_results
 public.preference_dna_versions
 public.preference_evidence
+public.preference_evidence_asset_long_form_events
 public.preference_evidence_assets
 public.preference_long_form_study_attempts
 public.preference_long_form_study_audit_events

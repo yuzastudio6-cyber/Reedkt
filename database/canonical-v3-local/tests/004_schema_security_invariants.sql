@@ -9,6 +9,7 @@ declare
     'approved_plan_snapshots', 'edit_execution_authorizations',
     'edit_references', 'preference_study_sessions', 'preference_study_messages',
     'preference_evidence', 'preference_assets', 'preference_evidence_assets',
+    'preference_evidence_asset_long_form_events',
     'edit_reference_domain_states', 'edit_reference_domain_audit_events',
     'edit_reference_domain_idempotency_receipts',
     'preference_study_reasoning_runs',
@@ -88,11 +89,14 @@ begin
     or has_function_privilege('anon', 'public.read_edit_reference_domain_aggregate_v2(text,jsonb)', 'EXECUTE')
     or has_function_privilege('anon', 'public.read_edit_reference_domain_idempotency_v1(uuid,uuid,text,text,text)', 'EXECUTE')
     or has_function_privilege('anon', 'public.mutate_edit_reference_domain_command_v2(text,uuid,jsonb,text,text)', 'EXECUTE')
+    or has_function_privilege('anon', 'public.mutate_edit_reference_long_form_domain_command_v1(text,uuid,jsonb,text,text)', 'EXECUTE')
+    or has_function_privilege('anon', 'public.reeditpro_register_pre_plan_source_v1(text,jsonb)', 'EXECUTE')
     or has_function_privilege('authenticated', 'public.read_edit_reference_domain_aggregate_v1(text,jsonb)', 'EXECUTE')
     or has_function_privilege('authenticated', 'public.mutate_edit_reference_domain_command_v1(text,uuid,jsonb,text,text)', 'EXECUTE')
     or has_function_privilege('authenticated', 'public.read_edit_reference_domain_aggregate_v2(text,jsonb)', 'EXECUTE')
     or has_function_privilege('authenticated', 'public.read_edit_reference_domain_idempotency_v1(uuid,uuid,text,text,text)', 'EXECUTE')
     or has_function_privilege('authenticated', 'public.mutate_edit_reference_domain_command_v2(text,uuid,jsonb,text,text)', 'EXECUTE')
+    or has_function_privilege('authenticated', 'public.mutate_edit_reference_long_form_domain_command_v1(text,uuid,jsonb,text,text)', 'EXECUTE')
     or has_function_privilege('authenticated', 'public.enqueue_edit_reference_long_form_study_v1(jsonb)', 'EXECUTE')
     or has_function_privilege('authenticated', 'public.authorize_edit_reference_study_chat_route_attempt_v1(jsonb)', 'EXECUTE') then
     raise exception 'SCHEMA_RPC_ROLE_BOUNDARY_TOO_BROAD';
@@ -109,6 +113,9 @@ begin
     or not has_function_privilege('service_role', 'public.read_edit_reference_domain_aggregate_v2(text,jsonb)', 'EXECUTE')
     or not has_function_privilege('service_role', 'public.read_edit_reference_domain_idempotency_v1(uuid,uuid,text,text,text)', 'EXECUTE')
     or not has_function_privilege('service_role', 'public.mutate_edit_reference_domain_command_v2(text,uuid,jsonb,text,text)', 'EXECUTE')
+    or not has_function_privilege('service_role', 'public.mutate_edit_reference_long_form_domain_command_v1(text,uuid,jsonb,text,text)', 'EXECUTE')
+    or not has_function_privilege('authenticated', 'public.reeditpro_register_pre_plan_source_v1(text,jsonb)', 'EXECUTE')
+    or has_function_privilege('service_role', 'public.reeditpro_register_pre_plan_source_v1(text,jsonb)', 'EXECUTE')
     or not has_function_privilege('service_role', 'public.enqueue_edit_reference_long_form_study_v1(jsonb)', 'EXECUTE')
     or not has_function_privilege('service_role', 'public.authorize_edit_reference_study_chat_route_attempt_v1(jsonb)', 'EXECUTE') then
     raise exception 'SCHEMA_REQUIRED_RPC_GRANT_MISSING';

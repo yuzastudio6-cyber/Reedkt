@@ -89,6 +89,8 @@ assert.equal(preparedRun.revision, 5)
 const sourceBinding = {
   sourceAuthority: 'preference_asset' as const,
   sourceAssetId,
+  sourceStorageObjectRecordId: 'storage-object-record-a',
+  sourceMediaAssetId: 'media-asset-a',
   sourceStorageObjectId: 'tenant-a/reference/source.mp4',
   sourceStorageGeneration: '1',
   sourceStorageEtag: 'etag-a',

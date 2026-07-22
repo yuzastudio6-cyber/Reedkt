@@ -1,6 +1,9 @@
 import { randomUUID } from 'node:crypto'
 import { ApiError } from '../errors/api-error'
 import type { ServiceContext } from '../types'
+import {
+  assertEditReferenceSignedInPrivateMediaRuntimePort,
+} from './edit-reference-signed-in-private-media-runtime-port'
 
 export interface IdempotencyInput {
   workspaceId: string
@@ -292,8 +295,27 @@ function usesExplicitInProcessIdempotency(context: ServiceContext, requestPath: 
 
   if (!context.clients.admin || context.env.mockOnly) return true
 
+  if (
+    context.editReferenceSignedInPrivateMediaRuntimePort
+    && isSignedInPrivateMediaRoute(requestPath)
+  ) {
+    assertEditReferenceSignedInPrivateMediaRuntimePort(
+      context.editReferenceSignedInPrivateMediaRuntimePort,
+    )
+    return context.env.storageMode === 'local'
+      && context.env.largeMediaFinalizationMode === 'private_local'
+      && context.env.supabaseUrl
+        === context.editReferenceSignedInPrivateMediaRuntimePort.endpointOrigin
+      && context.auth?.isMockUser === false
+  }
+
   return context.env.allowInternalTestExecutionWithSupabase &&
     isInternalTestExecutionOrSourceUploadRoute(requestPath)
+}
+
+function isSignedInPrivateMediaRoute(requestPath: string): boolean {
+  const path = requestPath.split('?')[0] ?? requestPath
+  return path.startsWith('/v1/upload-intents/')
 }
 
 function isInternalTestExecutionOrSourceUploadRoute(requestPath: string): boolean {

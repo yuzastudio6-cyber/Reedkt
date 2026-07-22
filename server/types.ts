@@ -5,8 +5,12 @@ import type { StorageAdapter } from './storage/storage-types'
 import type { EditReferenceStudyChatRuntimePort } from './services/edit-reference-study-chat-runtime-port'
 import type { EditReferenceExactEditApplyRuntimePort } from './services/edit-reference-exact-edit-apply-runtime-port'
 import type { EditReferenceApplicationPreparationRuntimePort } from './services/edit-reference-application-preparation-runtime-port'
-import type { EditReferenceLongFormStudyRuntimePort } from './services/edit-reference-production-long-form-runtime-port'
+import type {
+  EditReferenceLongFormStudyRuntimePort,
+  EditReferenceLongFormStudyRuntimePortFactory,
+} from './services/edit-reference-production-long-form-runtime-port'
 import type { EditReferenceDomainRepositoryRuntimePort } from './services/edit-reference-domain-repository-runtime-port'
+import type { EditReferenceSignedInPrivateMediaRuntimePort } from './services/edit-reference-signed-in-private-media-runtime-port'
 import type { PlanningPreferenceApplicationAuthorityPort } from './services/planning-preference-application-authority-port'
 import type { CanonicalMotionStudioStorytellingProductionAuthorityReaderPort } from './services/canonical-motion-studio-storytelling-production-authority-service'
 import type { CanonicalVisualCalibrationReferenceFrameReaderPort } from './services/canonical-visual-calibration-reference-frame-reader-port'
@@ -74,7 +78,9 @@ export interface RuntimeState {
   editReferenceExactEditApplyRuntimePort?: EditReferenceExactEditApplyRuntimePort
   editReferenceApplicationPreparationRuntimePort?: EditReferenceApplicationPreparationRuntimePort
   editReferenceLongFormStudyRuntimePort?: EditReferenceLongFormStudyRuntimePort
+  editReferenceLongFormStudyRuntimePortFactory?: EditReferenceLongFormStudyRuntimePortFactory
   editReferenceDomainRepositoryRuntimePort?: EditReferenceDomainRepositoryRuntimePort
+  editReferenceSignedInPrivateMediaRuntimePort?: EditReferenceSignedInPrivateMediaRuntimePort
 }
 
 export type RuntimeRequest = Request & {
@@ -107,5 +113,7 @@ export interface ServiceContext {
   editReferenceExactEditApplyRuntimePort?: EditReferenceExactEditApplyRuntimePort
   editReferenceApplicationPreparationRuntimePort?: EditReferenceApplicationPreparationRuntimePort
   editReferenceLongFormStudyRuntimePort?: EditReferenceLongFormStudyRuntimePort
+  editReferenceLongFormStudyRuntimePortFactory?: EditReferenceLongFormStudyRuntimePortFactory
   editReferenceDomainRepositoryRuntimePort?: EditReferenceDomainRepositoryRuntimePort
+  editReferenceSignedInPrivateMediaRuntimePort?: EditReferenceSignedInPrivateMediaRuntimePort
 }

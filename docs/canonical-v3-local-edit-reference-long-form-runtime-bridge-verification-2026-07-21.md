@@ -76,19 +76,19 @@ The local verification runner resets the isolated database, provisions two
 local Auth users, installs controlled tenant/source fixtures, runs the lower
 distributed-state proof, runs the high-level six-hour bridge proof, checks SQL
 postconditions and grants, executes the mounted signed-in browser journey,
-and completes the existing 49-table backup/reset/restore rehearsal.
+and completes the existing 50-table backup/reset/restore rehearsal.
 
 Final uninterrupted evidence:
 
-- 11 isolated migrations and 130 manifest-verified files;
+- 12 isolated migrations and the source-manifest verification set;
 - all seven distributed mutation operations plus the read-only projection;
 - 36 chunks and 292 work items for the six-hour source;
-- one mounted Chromium lifecycle test passed;
+- two mounted Chromium lifecycle tests passed;
 - backup archive SHA-256
-  `d3bd85f394b51e09cc128a5df020c811812588ceb368cf52f7009be38ed590c7`;
+  `9f6cdb10ccd0eaec1e09161e6c4bbe9796aff725ebd5cc11114ac870d0bf62fe`;
 - restored state SHA-256
-  `3cb2b5563736658d481183a518c56484a9926cad2149a16bb7ec54dbe1764a0a`;
-- all 49 reviewed data tables restored with the operator-recovery generation
+  `345ec3cfa777672d3ec263119133785eb00a00b8fed596fecbe6329f60dfc5d2`;
+- all 50 reviewed data tables restored with the operator-recovery generation
   and expanded attempt ceiling intact.
 
 This evidence is local and non-promotable. Remaining production gates include

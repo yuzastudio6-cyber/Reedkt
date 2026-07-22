@@ -16,7 +16,7 @@ const supabaseAnonKey = requiredEnvironment('REEDITPRO_CANONICAL_V3_ANON_KEY')
 const supabaseServiceRoleKey = requiredEnvironment(
   'REEDITPRO_CANONICAL_V3_SERVICE_ROLE_KEY',
 )
-requiredEnvironment('REEDITPRO_CANONICAL_V3_JWT_SECRET')
+const canonicalV3JwtSecret = requiredEnvironment('REEDITPRO_CANONICAL_V3_JWT_SECRET')
 
 export default defineConfig({
   metadata: {
@@ -62,7 +62,10 @@ export default defineConfig({
         SUPABASE_ANON_KEY: supabaseAnonKey,
         SUPABASE_SERVICE_ROLE_KEY: supabaseServiceRoleKey,
         REEDITPRO_CANONICAL_V3_API_URL: supabaseUrl,
+        REEDITPRO_CANONICAL_V3_ANON_KEY: supabaseAnonKey,
         REEDITPRO_CANONICAL_V3_SERVICE_ROLE_KEY: supabaseServiceRoleKey,
+        REEDITPRO_CANONICAL_V3_LOCAL_PRE_PLAN_SIGNING_SECRET:
+          canonicalV3JwtSecret,
       },
       reuseExistingServer: false,
       timeout: 120_000,

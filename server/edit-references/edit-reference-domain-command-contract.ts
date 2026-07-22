@@ -1,23 +1,28 @@
 import type {
   ApproveEditReferenceDNAVersionRequest,
   AppendPreferenceStudyMessageRequest,
+  ControlEditReferenceLongFormStudyRequest,
   CreateEditReferenceRequest,
   CreatePreferenceEvidenceRequest,
   CreatePreferenceStudyRequest,
   PreferenceDNAApprovalSnapshot,
   PreferenceDNAQAResultRecord,
   PreferenceDNAVersionRecord,
+  PreferenceEvidenceMediaMetadata,
   PreferenceEvidenceRecord,
+  PreferenceLongFormStudySummary,
   PreferenceSkillRunRecord,
   PreferenceStudyMessageRecord,
   PreferenceUsageLogRecord,
   RunEditReferenceDNAQARequest,
   RunPreferenceEvidenceStudyRequest,
+  StartEditReferenceLongFormStudyRequest,
   SynthesizePreferenceDNARequest,
   UpdateEditReferenceRequest,
   UpdatePreferenceStudyRequest,
 } from '../../src/types/edit-reference'
 import { ApiError } from '../errors/api-error'
+import { validatePreferenceLongFormStudySummary } from './edit-reference-long-form-study-binding'
 import { hashEditReferenceRequest } from './private-edit-reference-repository'
 
 export const EDIT_REFERENCE_DOMAIN_COMMAND_CONTRACT_VERSION =
@@ -34,6 +39,9 @@ export const EDIT_REFERENCE_DOMAIN_AGGREGATE_READ_V1_CONTRACT_VERSION =
 
 export const EDIT_REFERENCE_DOMAIN_COMMAND_RPC =
   'mutate_edit_reference_domain_command_v2' as const
+
+export const EDIT_REFERENCE_DOMAIN_LONG_FORM_COMMAND_RPC =
+  'mutate_edit_reference_long_form_domain_command_v1' as const
 
 export const EDIT_REFERENCE_DOMAIN_COMMAND_V1_RPC =
   'mutate_edit_reference_domain_command_v1' as const
@@ -95,6 +103,28 @@ export interface EditReferencePreparedDnaApprovalCommandResult {
   readonly usageLog: PreferenceUsageLogRecord
 }
 
+export interface EditReferencePreparedLongFormStudyStartCommandResult {
+  readonly referenceId: string
+  readonly referenceAssetId: string
+  readonly summary: PreferenceLongFormStudySummary
+  readonly mediaMetadata: PreferenceEvidenceMediaMetadata
+  readonly assistantMessage: PreferenceStudyMessageRecord
+}
+
+export interface EditReferencePreparedLongFormStudyControlCommandResult {
+  readonly referenceId: string
+  readonly referenceAssetId: string
+  readonly summary: PreferenceLongFormStudySummary
+  readonly mediaMetadata: PreferenceEvidenceMediaMetadata
+  readonly action: ControlEditReferenceLongFormStudyRequest['action']
+  readonly activeWorkFinishesBeforePause: boolean
+  readonly recoveredWorkItemCount: number
+  readonly assistantMessage: PreferenceStudyMessageRecord
+}
+
+export type EditReferenceLongFormStudyControlDomainOperation =
+  `preference_study.long_form_study.control.${ControlEditReferenceLongFormStudyRequest['action']}`
+
 export type EditReferenceDomainCommand =
   | EditReferenceDomainCommandBase<'edit_reference.create', CreateEditReferenceRequest>
   | EditReferenceDomainCommandBase<'edit_reference.update', {
@@ -140,6 +170,25 @@ export type EditReferenceDomainCommand =
       readonly input: ApproveEditReferenceDNAVersionRequest
       readonly prepared: EditReferencePreparedDnaApprovalCommandResult
     }>
+  | EditReferenceDomainCommandBase<'preference_study.long_form_study.start', {
+      readonly studyId: string
+      readonly referenceAssetId: string
+      readonly input: StartEditReferenceLongFormStudyRequest
+      readonly prepared: EditReferencePreparedLongFormStudyStartCommandResult
+    }>
+  | EditReferenceDomainCommandBase<EditReferenceLongFormStudyControlDomainOperation, {
+      readonly studyId: string
+      readonly referenceAssetId: string
+      readonly input: ControlEditReferenceLongFormStudyRequest & {
+        readonly expectedStudyRevision: number
+      }
+      readonly prepared: EditReferencePreparedLongFormStudyControlCommandResult
+    }>
+
+type EditReferenceLongFormControlDomainCommand = Extract<
+  EditReferenceDomainCommand,
+  { readonly operation: EditReferenceLongFormStudyControlDomainOperation }
+>
 
 export interface EditReferenceDomainAggregateReadScope {
   readonly actorUserId: string
@@ -190,6 +239,25 @@ export function editReferenceDomainCommandRequestHash(
         dnaVersionId: command.request.dnaVersionId,
         ...command.request.input,
       })
+    case 'preference_study.long_form_study.start':
+      return hashEditReferenceRequest({
+        studyId: command.request.studyId,
+        referenceAssetId: command.request.referenceAssetId,
+        ...command.request.input,
+      })
+    case 'preference_study.long_form_study.control.pause':
+    case 'preference_study.long_form_study.control.resume':
+    case 'preference_study.long_form_study.control.cancel':
+    case 'preference_study.long_form_study.control.recover': {
+      const { expectedStudyRevision: _expectedStudyRevision, ...input } =
+        command.request.input
+      void _expectedStudyRevision
+      return hashEditReferenceRequest({
+        studyId: command.request.studyId,
+        referenceAssetId: command.request.referenceAssetId,
+        ...input,
+      })
+    }
   }
 }
 
@@ -211,6 +279,11 @@ export function assertEditReferenceDomainCommand(
       'preference_study.dna.synthesize',
       'preference_study.dna.qa.run',
       'preference_study.dna.approve',
+      'preference_study.long_form_study.start',
+      'preference_study.long_form_study.control.pause',
+      'preference_study.long_form_study.control.resume',
+      'preference_study.long_form_study.control.cancel',
+      'preference_study.long_form_study.control.recover',
     ].includes(command.operation)
     || !command.request
     || typeof command.request !== 'object'
@@ -232,9 +305,14 @@ export function assertEditReferenceDomainCommand(
     || command.operation === 'preference_study.dna.synthesize'
     || command.operation === 'preference_study.dna.qa.run'
     || command.operation === 'preference_study.dna.approve'
+    || command.operation === 'preference_study.long_form_study.start'
   ) {
     if (!isStableId(command.request.studyId)) invalid('domain_command_study_invalid')
   }
+  if (
+    isLongFormControlDomainCommand(command)
+    && !isStableId(command.request.studyId)
+  ) invalid('domain_command_study_invalid')
   if (
     command.operation === 'preference_study.evidence.add'
     && command.request.input.sourceType === 'reference_video_metadata'
@@ -287,6 +365,83 @@ export function assertEditReferenceDomainCommand(
       prepared.usageLog,
     )
   }
+  if (command.operation === 'preference_study.long_form_study.start') {
+    assertPreparedLongFormProjection(
+      command.request.studyId,
+      command.request.referenceAssetId,
+      command.request.prepared,
+    )
+  }
+  if (isLongFormControlDomainCommand(command)) {
+    const prepared = command.request.prepared
+    const action = command.operation.replace(
+      'preference_study.long_form_study.control.',
+      '',
+    )
+    if (
+      prepared.action !== action
+      || command.request.input.action !== action
+      || !Number.isSafeInteger(command.request.input.expectedStudyRevision)
+      || command.request.input.expectedStudyRevision < 1
+      || typeof prepared.activeWorkFinishesBeforePause !== 'boolean'
+      || !Number.isSafeInteger(prepared.recoveredWorkItemCount)
+      || prepared.recoveredWorkItemCount < 0
+    ) invalid('domain_command_long_form_control_invalid')
+    assertPreparedLongFormProjection(
+      command.request.studyId,
+      command.request.referenceAssetId,
+      prepared,
+    )
+  }
+}
+
+function isLongFormControlDomainCommand(
+  command: EditReferenceDomainCommand,
+): command is EditReferenceLongFormControlDomainCommand {
+  return command.operation === 'preference_study.long_form_study.control.pause'
+    || command.operation === 'preference_study.long_form_study.control.resume'
+    || command.operation === 'preference_study.long_form_study.control.cancel'
+    || command.operation === 'preference_study.long_form_study.control.recover'
+}
+
+function assertPreparedLongFormProjection(
+  studyId: string,
+  referenceAssetId: string,
+  prepared:
+    | EditReferencePreparedLongFormStudyStartCommandResult
+    | EditReferencePreparedLongFormStudyControlCommandResult,
+): void {
+  try {
+    validatePreferenceLongFormStudySummary(prepared.summary)
+  } catch {
+    invalid('domain_command_long_form_summary_invalid')
+  }
+  const metadata = prepared.mediaMetadata
+  if (
+    !isStableId(prepared.referenceId)
+    || !isStableId(referenceAssetId)
+    || prepared.referenceAssetId !== referenceAssetId
+    || prepared.summary.referenceAssetId !== referenceAssetId
+    || metadata.orientation === undefined
+    || !['portrait', 'landscape', 'square', 'unknown'].includes(metadata.orientation)
+    || metadata.durationSeconds !== prepared.summary.sourceDurationSeconds
+    || metadata.hasAudio !== prepared.summary.sourceHasAudio
+    || (metadata.width !== undefined
+      && (!Number.isSafeInteger(metadata.width) || metadata.width < 1))
+    || (metadata.height !== undefined
+      && (!Number.isSafeInteger(metadata.height) || metadata.height < 1))
+    || prepared.assistantMessage.id.length < 1
+    || prepared.assistantMessage.workspaceId.length < 1
+    || prepared.assistantMessage.editReferenceId !== prepared.referenceId
+    || prepared.assistantMessage.studySessionId !== studyId
+    || prepared.assistantMessage.role !== 'assistant'
+    || prepared.assistantMessage.runtimeSource !== 'deterministic_evidence'
+    || prepared.assistantMessage.content.length < 1
+    || prepared.assistantMessage.content.length > 8_000
+    || !Number.isSafeInteger(prepared.assistantMessage.sequence)
+    || prepared.assistantMessage.sequence < 1
+    || !isIsoDate(prepared.assistantMessage.createdAt)
+  ) invalid('domain_command_long_form_projection_invalid')
 }
 
 function assertPreparedEvidenceStudy(

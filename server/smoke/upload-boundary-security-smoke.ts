@@ -239,44 +239,88 @@ const productionUploadIntentService = createUploadService({
     REEDITPRO_INTERNAL_SERVICE_TOKEN: 'test-internal-token',
   }),
 })
-await assert.rejects(
-  () => productionUploadIntentService.createUploadIntent({
-    workspaceId: 'workspace-storage-owner',
-    projectId: 'project-storage-owner',
-    uploadPurpose: 'source_media',
-    originalFileName: 'production-source.mp4',
-    mimeType: 'video/mp4',
-    expectedSizeBytes: 4,
-    idempotencyKey: 'production-upload-intent-key',
-  }),
-  (error: unknown) => hasRequiredGate(
-    error,
-    'create_upload_intent_atomic_idempotency_rpc',
-  ),
-)
-await storageService.authorizeStorageObjectRead('source-no-intent', 'workspace-storage-owner', 'metadata')
-await storageService.authorizeStorageObjectRead('processed-no-intent', 'workspace-storage-owner', 'preview_review')
-await storageService.authorizeStorageObjectRead('qa-no-intent', 'workspace-storage-owner', 'qa_review')
-await assertRejects(
-  () => storageService.authorizeStorageObjectRead('worker-no-intent', 'workspace-storage-owner', 'download'),
-  'Worker temp object without user-delivery boundary must be denied.',
-)
-await assertRejects(
-  () => storageService.authorizeStorageObjectRead('worker-bucket-mislabeled', 'workspace-storage-owner', 'download'),
-  'Worker temp bucket must remain denied even when record purpose is mislabeled.',
-)
-await assertRejects(
-  () => storageService.authorizeStorageObjectRead('processed-no-intent', 'workspace-storage-owner', 'download'),
-  'Processed media must require preview-review delivery purpose.',
-)
-await assertRejects(
-  () => storageService.authorizeStorageObjectRead('qa-no-intent', 'workspace-storage-owner', 'download'),
-  'QA artifacts must require QA-review delivery purpose.',
-)
-await assertRejects(
-  () => storageService.authorizeStorageObjectRead('unscoped-no-intent', 'workspace-storage-owner', 'metadata'),
-  'Storage objects without upload intent or project scope must be denied.',
-)
+const originalFetch = globalThis.fetch
+let productionMembershipReadCount = 0
+globalThis.fetch = async (input, init) => {
+  const request = new Request(input, init)
+  const endpoint = new URL(request.url)
+  if (
+    (
+      endpoint.origin === 'https://upload-intent-production.reeditpro.local'
+      || endpoint.origin === 'https://storage-boundary.reeditpro.local'
+    )
+    && endpoint.pathname === '/rest/v1/workspace_members'
+  ) {
+    if (endpoint.origin === 'https://upload-intent-production.reeditpro.local') {
+      productionMembershipReadCount += 1
+    }
+    assert.equal(request.method, 'GET')
+    assert.equal(request.headers.get('apikey'), 'test-anon-key')
+    assert.equal(request.headers.get('authorization'), 'Bearer verified-storage-token')
+    assert.equal(endpoint.searchParams.get('workspace_id'), 'eq.workspace-storage-owner')
+    assert.equal(endpoint.searchParams.get('user_id'), 'eq.user-storage-owner')
+    const body = JSON.stringify([{
+      workspace_id: 'workspace-storage-owner',
+      user_id: 'user-storage-owner',
+      role: 'owner',
+    }])
+    return new Response(body, {
+      status: 200,
+      headers: {
+        'content-length': String(Buffer.byteLength(body, 'utf8')),
+        'content-type': 'application/json',
+      },
+    })
+  }
+  return originalFetch(input, init)
+}
+try {
+  await assert.rejects(
+    () => productionUploadIntentService.createUploadIntent({
+      workspaceId: 'workspace-storage-owner',
+      projectId: 'project-storage-owner',
+      uploadPurpose: 'source_media',
+      originalFileName: 'production-source.mp4',
+      mimeType: 'video/mp4',
+      expectedSizeBytes: 4,
+      idempotencyKey: 'production-upload-intent-key',
+    }),
+    (error: unknown) => hasRequiredGate(
+      error,
+      'create_upload_intent_atomic_idempotency_rpc',
+    ),
+  )
+  assert.equal(
+    productionMembershipReadCount,
+    1,
+    'Production-like upload intent admission must verify workspace membership before its atomicity gate.',
+  )
+  await storageService.authorizeStorageObjectRead('source-no-intent', 'workspace-storage-owner', 'metadata')
+  await storageService.authorizeStorageObjectRead('processed-no-intent', 'workspace-storage-owner', 'preview_review')
+  await storageService.authorizeStorageObjectRead('qa-no-intent', 'workspace-storage-owner', 'qa_review')
+  await assertRejects(
+    () => storageService.authorizeStorageObjectRead('worker-no-intent', 'workspace-storage-owner', 'download'),
+    'Worker temp object without user-delivery boundary must be denied.',
+  )
+  await assertRejects(
+    () => storageService.authorizeStorageObjectRead('worker-bucket-mislabeled', 'workspace-storage-owner', 'download'),
+    'Worker temp bucket must remain denied even when record purpose is mislabeled.',
+  )
+  await assertRejects(
+    () => storageService.authorizeStorageObjectRead('processed-no-intent', 'workspace-storage-owner', 'download'),
+    'Processed media must require preview-review delivery purpose.',
+  )
+  await assertRejects(
+    () => storageService.authorizeStorageObjectRead('qa-no-intent', 'workspace-storage-owner', 'download'),
+    'QA artifacts must require QA-review delivery purpose.',
+  )
+  await assertRejects(
+    () => storageService.authorizeStorageObjectRead('unscoped-no-intent', 'workspace-storage-owner', 'metadata'),
+    'Storage objects without upload intent or project scope must be denied.',
+  )
+} finally {
+  globalThis.fetch = originalFetch
+}
 
 await rm(localStorageRoot, { force: true, recursive: true })
 console.log(JSON.stringify({

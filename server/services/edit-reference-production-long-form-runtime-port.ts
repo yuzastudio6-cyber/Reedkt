@@ -32,6 +32,8 @@ import { ApiError } from '../errors/api-error'
 
 export const EDIT_REFERENCE_PRODUCTION_LONG_FORM_RUNTIME_PORT_VERSION =
   'edit-reference-production-long-form-runtime-port-v1' as const
+export const EDIT_REFERENCE_LONG_FORM_RUNTIME_PORT_FACTORY_VERSION =
+  'edit-reference-long-form-runtime-port-factory-v1' as const
 
 export type EditReferenceLongFormRuntimeEvidenceClass =
   | 'backend_local_private_only'
@@ -48,6 +50,8 @@ export type EditReferenceLongFormRuntimeSourceAuthority =
 export interface EditReferenceLongFormStudySourceBinding {
   readonly sourceAuthority: 'preference_asset' | 'target_source_media'
   readonly sourceAssetId: string
+  readonly sourceStorageObjectRecordId: string
+  readonly sourceMediaAssetId: string
   readonly sourceStorageObjectId: string
   readonly sourceStorageGeneration: string
   readonly sourceStorageEtag: string
@@ -132,56 +136,229 @@ export interface EditReferenceLongFormStudyRuntimePort {
   }): EditReferenceLongFormStudyScheduleResult
 }
 
+export interface EditReferenceLongFormStudyAuthenticatedRequestAuthority {
+  readonly ownerUserId: string
+  readonly authenticatedAccessToken: string
+  readonly isMockUser: false
+}
+
+export interface EditReferenceLongFormStudyRuntimePortFactory {
+  readonly schemaVersion: typeof EDIT_REFERENCE_LONG_FORM_RUNTIME_PORT_FACTORY_VERSION
+  readonly authorityClass: 'pre_plan_edit_reference_long_form_study'
+  readonly sourceAuthority:
+    | 'canonical_v3_loopback_postgres_pre_plan_study'
+    | 'canonical_edit_reference_production_repository'
+  readonly evidenceClass:
+    | 'canonical_contract_fixture_unreleased'
+    | 'canonical_backend_verified_runtime'
+  readonly requestScopedAuthenticatedUserAuthority: true
+  readonly authenticatedActorDerivedServerSide: true
+  readonly browserSuppliedAuthorityAccepted: false
+  readonly serviceRoleCredentialAccepted: false
+  readonly authenticatedAccessTokenPersistedOrProjected: false
+  readonly runtimePortReuseAcrossRequestsAllowed: false
+  readonly productionAuthority: boolean
+  createForAuthenticatedRequest(input: {
+    readonly env: RuntimeEnv
+    readonly authority: EditReferenceLongFormStudyAuthenticatedRequestAuthority
+  }): EditReferenceLongFormStudyRuntimePort
+}
+
+export function createEditReferenceLongFormStudyRuntimePortFactory(input: {
+  readonly sourceAuthority: EditReferenceLongFormStudyRuntimePortFactory['sourceAuthority']
+  readonly evidenceClass: EditReferenceLongFormStudyRuntimePortFactory['evidenceClass']
+  readonly productionAuthority: boolean
+  readonly createForAuthenticatedRequest:
+    EditReferenceLongFormStudyRuntimePortFactory['createForAuthenticatedRequest']
+}): EditReferenceLongFormStudyRuntimePortFactory {
+  const factory: EditReferenceLongFormStudyRuntimePortFactory = Object.freeze({
+    schemaVersion: EDIT_REFERENCE_LONG_FORM_RUNTIME_PORT_FACTORY_VERSION,
+    authorityClass: 'pre_plan_edit_reference_long_form_study' as const,
+    sourceAuthority: input.sourceAuthority,
+    evidenceClass: input.evidenceClass,
+    requestScopedAuthenticatedUserAuthority: true as const,
+    authenticatedActorDerivedServerSide: true as const,
+    browserSuppliedAuthorityAccepted: false as const,
+    serviceRoleCredentialAccepted: false as const,
+    authenticatedAccessTokenPersistedOrProjected: false as const,
+    runtimePortReuseAcrossRequestsAllowed: false as const,
+    productionAuthority: input.productionAuthority,
+    createForAuthenticatedRequest: input.createForAuthenticatedRequest,
+  })
+  assertRuntimePortFactoryShape(factory)
+  runtimePortFactoryBrands.add(factory)
+  return factory
+}
+
 export interface ResolveEditReferenceLongFormStudyRuntimePortInput {
   readonly env: RuntimeEnv
   readonly runtimePort?: EditReferenceLongFormStudyRuntimePort
+  readonly runtimePortFactory?: EditReferenceLongFormStudyRuntimePortFactory
+  readonly authenticatedRequest?: {
+    readonly userId: string
+    readonly accessToken?: string
+    readonly isMockUser: boolean
+  }
   readonly localRepository?: PrivateEditReferenceLongFormStudyRepository
   readonly localScheduler?: EditReferenceLongFormStudyScheduler
 }
 
 const qualifiedProductionRuntimePorts = new WeakSet<EditReferenceLongFormStudyRuntimePort>()
+const runtimePortFactoryBrands = new WeakSet<object>()
+const resolvedRequestScopedRuntimePorts = new WeakSet<object>()
 
 export function resolveEditReferenceLongFormStudyRuntimePort(
   input: ResolveEditReferenceLongFormStudyRuntimePortInput,
 ): EditReferenceLongFormStudyRuntimePort {
-  if (input.runtimePort && (input.localRepository || input.localScheduler)) {
+  if (input.runtimePort && input.runtimePortFactory) {
+    throw invalidRuntimeConfiguration('multiple_long_form_runtime_authorities_configured')
+  }
+  if (
+    (input.runtimePort || input.runtimePortFactory)
+    && (input.localRepository || input.localScheduler)
+  ) {
     throw invalidRuntimeConfiguration('runtime_port_and_local_legacy_adapters_mixed')
   }
 
+  const runtimePort = input.runtimePortFactory
+    ? resolveRequestScopedRuntimePort(input)
+    : input.runtimePort
+
   if (isExplicitBackendLocalRuntime(input.env)) {
-    if (!input.runtimePort) {
+    if (!runtimePort) {
       return createBackendLocalEditReferenceLongFormStudyRuntimePort({
         repository: input.localRepository,
         scheduler: input.localScheduler,
       })
     }
-    assertRuntimePortShape(input.runtimePort)
+    assertRuntimePortShape(runtimePort)
     const localPrivateAuthority =
-      input.runtimePort.sourceAuthority === 'backend_local_private_segmented'
-      && input.runtimePort.evidenceClass === 'backend_local_private_only'
-      && !input.runtimePort.databaseTransactionAdapterVerified
+      runtimePort.sourceAuthority === 'backend_local_private_segmented'
+      && runtimePort.evidenceClass === 'backend_local_private_only'
+      && !runtimePort.databaseTransactionAdapterVerified
     const canonicalV3LocalAuthority =
-      input.runtimePort.sourceAuthority === 'canonical_v3_loopback_postgres_pre_plan_study'
-      && input.runtimePort.evidenceClass === 'canonical_contract_fixture_unreleased'
-      && input.runtimePort.databaseTransactionAdapterVerified
+      runtimePort.sourceAuthority === 'canonical_v3_loopback_postgres_pre_plan_study'
+      && runtimePort.evidenceClass === 'canonical_contract_fixture_unreleased'
+      && runtimePort.databaseTransactionAdapterVerified
     if (
       (!localPrivateAuthority && !canonicalV3LocalAuthority)
-      || input.runtimePort.productionAuthority
-      || input.runtimePort.multiReplicaLeaseRecoveryVerified
-      || input.runtimePort.authenticatedWorkerDispatchVerified
-      || input.runtimePort.livePrivateObjectReadVerified
+      || runtimePort.productionAuthority
+      || runtimePort.multiReplicaLeaseRecoveryVerified
+      || runtimePort.authenticatedWorkerDispatchVerified
+      || runtimePort.livePrivateObjectReadVerified
     ) throw invalidRuntimeConfiguration('local_runtime_port_authority_invalid')
-    return input.runtimePort
+    return runtimePort
   }
 
   if (input.localRepository || input.localScheduler) {
     throw invalidRuntimeConfiguration('hosted_runtime_cannot_mount_local_long_form_adapters')
   }
-  if (!input.runtimePort) return createBlockedProductionRuntimePort()
+  if (!runtimePort) return createBlockedProductionRuntimePort()
 
-  assertRuntimePortShape(input.runtimePort)
-  assertQualifiedProductionRuntimePort(input.runtimePort)
-  return input.runtimePort
+  assertRuntimePortShape(runtimePort)
+  assertQualifiedProductionRuntimePort(runtimePort)
+  return runtimePort
+}
+
+function resolveRequestScopedRuntimePort(
+  input: ResolveEditReferenceLongFormStudyRuntimePortInput,
+): EditReferenceLongFormStudyRuntimePort {
+  const factory = input.runtimePortFactory
+  if (!factory) throw invalidRuntimeConfiguration('request_scoped_factory_missing')
+  assertEditReferenceLongFormStudyRuntimePortFactory(factory)
+  const authenticatedRequest = input.authenticatedRequest
+  if (
+    !authenticatedRequest
+    || authenticatedRequest.isMockUser
+    || !isBoundedJwt(authenticatedRequest.accessToken)
+    || !authenticatedRequest.userId.trim()
+  ) {
+    throw invalidRuntimeConfiguration(
+      'request_scoped_authenticated_user_authority_required',
+    )
+  }
+  const localRuntime = isExplicitBackendLocalRuntime(input.env)
+  if (
+    (localRuntime
+      && factory.sourceAuthority !== 'canonical_v3_loopback_postgres_pre_plan_study')
+    || (!localRuntime
+      && factory.sourceAuthority !== 'canonical_edit_reference_production_repository')
+  ) {
+    throw invalidRuntimeConfiguration(
+      'request_scoped_factory_runtime_class_mismatch',
+    )
+  }
+  const runtimePort = factory.createForAuthenticatedRequest({
+    env: input.env,
+    authority: Object.freeze({
+      ownerUserId: authenticatedRequest.userId,
+      authenticatedAccessToken: authenticatedRequest.accessToken,
+      isMockUser: false as const,
+    }),
+  })
+  assertRuntimePortShape(runtimePort)
+  if (
+    runtimePort.sourceAuthority !== factory.sourceAuthority
+    || runtimePort.evidenceClass !== factory.evidenceClass
+    || runtimePort.productionAuthority !== factory.productionAuthority
+  ) {
+    throw invalidRuntimeConfiguration(
+      'request_scoped_runtime_port_factory_result_changed_authority',
+    )
+  }
+  if (resolvedRequestScopedRuntimePorts.has(runtimePort)) {
+    throw invalidRuntimeConfiguration(
+      'request_scoped_runtime_port_reused_across_requests',
+    )
+  }
+  resolvedRequestScopedRuntimePorts.add(runtimePort)
+  return runtimePort
+}
+
+export function assertEditReferenceLongFormStudyRuntimePortFactory(
+  factory: EditReferenceLongFormStudyRuntimePortFactory,
+): void {
+  assertRuntimePortFactoryShape(factory)
+  if (!runtimePortFactoryBrands.has(factory)) {
+    throw invalidRuntimeConfiguration(
+      'long_form_runtime_port_factory_not_process_branded',
+    )
+  }
+}
+
+function assertRuntimePortFactoryShape(
+  factory: EditReferenceLongFormStudyRuntimePortFactory,
+): void {
+  const localFactory =
+    factory.sourceAuthority === 'canonical_v3_loopback_postgres_pre_plan_study'
+    && factory.evidenceClass === 'canonical_contract_fixture_unreleased'
+    && factory.productionAuthority === false
+  const productionFactory =
+    factory.sourceAuthority === 'canonical_edit_reference_production_repository'
+    && factory.evidenceClass === 'canonical_backend_verified_runtime'
+    && factory.productionAuthority === true
+  if (
+    factory.schemaVersion !== EDIT_REFERENCE_LONG_FORM_RUNTIME_PORT_FACTORY_VERSION
+    || factory.authorityClass !== 'pre_plan_edit_reference_long_form_study'
+    || factory.requestScopedAuthenticatedUserAuthority !== true
+    || factory.authenticatedActorDerivedServerSide !== true
+    || factory.browserSuppliedAuthorityAccepted !== false
+    || factory.serviceRoleCredentialAccepted !== false
+    || factory.authenticatedAccessTokenPersistedOrProjected !== false
+    || factory.runtimePortReuseAcrossRequestsAllowed !== false
+    || typeof factory.createForAuthenticatedRequest !== 'function'
+    || (!localFactory && !productionFactory)
+  ) {
+    throw invalidRuntimeConfiguration('long_form_runtime_port_factory_shape_invalid')
+  }
+}
+
+function isBoundedJwt(value: string | undefined): value is string {
+  return typeof value === 'string'
+    && value.length >= 20
+    && value.length <= 16_384
+    && value.split('.').length === 3
+    && /^[A-Za-z0-9._-]+$/u.test(value)
 }
 
 export function createBackendLocalEditReferenceLongFormStudyRuntimePort(input: {

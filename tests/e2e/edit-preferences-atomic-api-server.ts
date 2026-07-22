@@ -40,6 +40,15 @@ import {
   createCanonicalV3LocalEditReferenceDomainRepositoryRuntimePort,
   type EditReferenceDomainRepositoryRuntimePort,
 } from '../../server/services/edit-reference-domain-repository-runtime-port'
+import {
+  createEditReferenceCanonicalV3LocalLongFormRuntimePortFactory,
+} from '../../server/services/edit-reference-canonical-v3-local-long-form-runtime-port-factory'
+import type {
+  EditReferenceLongFormStudyRuntimePortFactory,
+} from '../../server/services/edit-reference-production-long-form-runtime-port'
+import {
+  createEditReferenceSignedInPrivateMediaRuntimePort,
+} from '../../server/services/edit-reference-signed-in-private-media-runtime-port'
 
 type ExactEditState = {
   values: EditReferenceProductionExactEditPreferenceValues
@@ -304,12 +313,27 @@ const env = loadRuntimeEnv({
 })
 const editReferenceDomainRepositoryRuntimePort =
   createOptionalCanonicalV3LocalDomainRepositoryRuntimePort()
+const editReferenceLongFormStudyRuntimePortFactory =
+  createOptionalCanonicalV3LocalLongFormRuntimePortFactory()
+const editReferenceSignedInPrivateMediaRuntimePort =
+  editReferenceDomainRepositoryRuntimePort
+  && editReferenceLongFormStudyRuntimePortFactory
+    ? createEditReferenceSignedInPrivateMediaRuntimePort({
+        endpointOrigin: process.env.REEDITPRO_CANONICAL_V3_API_URL ?? '',
+      })
+    : undefined
 const server = createReeditProApiApp(env, {
   editReferenceExactEditApplyRuntimePort: runtimePort,
   editReferenceApplicationPreparationRuntimePort: applicationPreparation.port,
   planningExactEditPreferenceAuthorityPort: planningPort,
   ...(editReferenceDomainRepositoryRuntimePort
     ? { editReferenceDomainRepositoryRuntimePort }
+    : {}),
+  ...(editReferenceLongFormStudyRuntimePortFactory
+    ? { editReferenceLongFormStudyRuntimePortFactory }
+    : {}),
+  ...(editReferenceSignedInPrivateMediaRuntimePort
+    ? { editReferenceSignedInPrivateMediaRuntimePort }
     : {}),
 }).listen(env.apiPort, '127.0.0.1', () => {
   console.log(JSON.stringify({ event: 'atomic_preferences_test_api_listening', port: env.apiPort }))
@@ -348,6 +372,25 @@ function createOptionalCanonicalV3LocalDomainRepositoryRuntimePort():
     capability,
   })
   return createCanonicalV3LocalEditReferenceDomainRepositoryRuntimePort({ repository })
+}
+
+function createOptionalCanonicalV3LocalLongFormRuntimePortFactory():
+  EditReferenceLongFormStudyRuntimePortFactory | undefined {
+  const endpointOrigin = process.env.REEDITPRO_CANONICAL_V3_API_URL?.trim()
+  const anonKey = process.env.REEDITPRO_CANONICAL_V3_ANON_KEY?.trim()
+  const localInternalSigningSecret =
+    process.env.REEDITPRO_CANONICAL_V3_LOCAL_PRE_PLAN_SIGNING_SECRET?.trim()
+  if (!endpointOrigin && !anonKey && !localInternalSigningSecret) return undefined
+  if (!endpointOrigin || !anonKey || !localInternalSigningSecret) {
+    throw new Error(
+      'The canonical V3 mounted study proof requires loopback URL, anon key, and local signing secret.',
+    )
+  }
+  return createEditReferenceCanonicalV3LocalLongFormRuntimePortFactory({
+    endpointOrigin,
+    anonKey,
+    localInternalSigningSecret,
+  })
 }
 
 function stateKey(workspaceId: string, projectId: string, editSessionId: string): string {

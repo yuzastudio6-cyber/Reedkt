@@ -61,6 +61,11 @@ The chain provides:
   persists the two verified ingest/probe preflight results, recovers an exact
   lost claim response, and reads pause/resume/cancel state back from
   PostgreSQL. Worker dispatch and private-object reads remain blocked;
+- `reeditpro_register_pre_plan_source_v1` as the authenticated, tenant-bound
+  registration of server-verified finalized Preference media before enqueue,
+  plus an append-only long-form domain event projection for start/control
+  state. The immutable evidence asset is never rewritten, and the paired
+  service-role domain RPC revalidates exact plan/run/source/work-count lineage;
 - forced RLS with authenticated read scopes and RPC-only mutation;
 - process-branded, loopback-only TypeScript adapters that run SQL receipts and
   planning reads through the frozen V6 backend validators;
@@ -74,12 +79,16 @@ The chain provides:
   immutable DNA, runs QA, recovers a committed approval after response loss,
   supersedes it through a correction, approves the replacement, and restores
   the exact state after reload;
+- a second mounted Chromium proof that uploads a private reference video,
+  starts the canonical distributed study through a request-scoped runtime,
+  denies another user/workspace, pauses, reloads the exact checkpoint, and
+  resumes the same durable run without a second source or queue authority;
 - local two-user/two-workspace isolation and adversarial lifecycle,
   server-owned application preparation/replay/conflict, atomic Apply,
   planning-authority read/evidence/replay, immutable-baseline, cleanup
   invalidation, evidence/DNA/QA/approval replay, recovery, direct-RPC/table
   denial, and internal-cost tests.
-- a destructive local backup/reset/restore rehearsal covering all 49 reviewed
+- a destructive local backup/reset/restore rehearsal covering all 50 reviewed
   canonical data tables, an exact logical-state digest, immutable approved and
   audit history, exact Apply replay/conflict recovery, and restored tenant RLS.
 

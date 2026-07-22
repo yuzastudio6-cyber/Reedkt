@@ -38,6 +38,7 @@ begin
     or (select count(*) from public.edit_reference_domain_audit_events) <> 2
     or (select count(*) from public.edit_reference_domain_idempotency_receipts) <> 2
     or (select count(*) from public.preference_evidence_assets) <> 0
+    or (select count(*) from public.preference_evidence_asset_long_form_events) <> 0
     or not exists (
       select 1 from public.edit_references
       where name = 'Recovery domain preference'

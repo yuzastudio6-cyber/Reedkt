@@ -57,6 +57,8 @@ export function createRequireIdempotency(options: RequireIdempotencyOptions = {}
         env: runtime.env,
         clients: runtime.clients,
         storageAdapter: runtime.storageAdapter,
+        editReferenceSignedInPrivateMediaRuntimePort:
+          runtime.editReferenceSignedInPrivateMediaRuntimePort,
         requestId: runtimeRequest.context?.requestId ?? 'request-unknown',
         auth,
       }

@@ -830,6 +830,8 @@ function requirePreferenceAssetSourceBinding(
     !binding
     || binding.sourceAuthority !== 'preference_asset'
     || !binding.sourceAssetId
+    || !binding.sourceStorageObjectRecordId
+    || !binding.sourceMediaAssetId
     || !binding.sourceStorageObjectId
     || !binding.sourceStorageGeneration
     || !binding.sourceStorageEtag

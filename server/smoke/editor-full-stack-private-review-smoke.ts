@@ -397,7 +397,10 @@ try {
       const body = await response.text().catch(() => '')
       approvedSnapshotResponses.push(`${response.status()} ${response.request().method()} ${response.url()}${body ? ` body=${body.slice(0, 2500)}` : ''}`)
     }
-    if (response.url().startsWith(apiBaseUrl) && /canonical-(?:journey|planning|approval)|publication-requests/.test(response.url())) {
+    if (
+      response.url().startsWith(apiBaseUrl)
+      && /canonical-(?:journey|planning|approval)|publication-requests|edit-preferences\/planning-authority/.test(response.url())
+    ) {
       const body = await response.text().catch(() => '')
       canonicalPlanningResponses.push(`${response.status()} ${response.request().method()} ${response.url()}${body ? ` body=${body.slice(0, 4000)}` : ''}`)
     }
@@ -670,6 +673,22 @@ try {
   const constrainedRunnerStatus = page.getByTestId('canonical-planning-save-handoff-saved-waiting-for-compiler')
   const exactRunnerStatus = page.getByTestId('canonical-planning-save-plan-published-waiting-for-approval')
   await expect(constrainedRunnerStatus.or(exactRunnerStatus)).toBeVisible({ timeout: 12_000 })
+  assert.equal(
+    canonicalPlanningResponses.some((entry) =>
+      entry.includes('/edit-preferences/planning-authority')
+      && entry.includes('"frameConfirmation":{"status":"not_confirmed"')
+    ),
+    true,
+    'The first canonical planning read should preserve the unconfirmed server frame state until the handoff verifies and promotes the explicit user choice.',
+  )
+  assert.equal(
+    canonicalPlanningResponses.some((entry) =>
+      entry.includes('/canonical-planning-handoff')
+      && /^20[01] POST /.test(entry)
+    ),
+    true,
+    'The browser-confirmed frame must reach the server handoff instead of being rejected by a circular pre-publication frame check.',
+  )
   const constrainedByExactRunner = await constrainedRunnerStatus.isVisible()
   if (constrainedByExactRunner) {
     const exactRunnerBlockerText = (await constrainedRunnerStatus.innerText())
@@ -722,6 +741,16 @@ try {
   await expect(deliveryCeiling).toContainText(/1080p, 2K, or 4K/i)
   await expect(deliveryCeiling).toContainText(/no second export estimate or charge/i)
   await expect(page.getByTestId('plan-review-approve')).toBeEnabled()
+  assert.equal(
+    canonicalPlanningResponses.some((entry) =>
+      entry.includes('/edit-preferences/planning-authority')
+      && entry.includes('"sourcePreparation":{"status":"ready"')
+      && entry.includes('"frameConfirmation":{"status":"confirmed"')
+      && entry.includes('"aspectRatio":"16:9"')
+    ),
+    true,
+    'A later plan must read back the same server-owned source-preparation and confirmed-frame authority before approval.',
+  )
   await clickWhenReady(page.getByTestId('plan-review-approve'))
   const canonicalApprovalGateMessage = page.getByText(
     /Standalone credit approval and reservation are disabled\. Canonical plan approval performs both in one authority transaction\./i,

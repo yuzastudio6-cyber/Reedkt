@@ -607,20 +607,6 @@ async function synchronizeExactEditPreferenceAuthority(
       ),
     }
   }
-  if (
-    current.frameConfirmationStatus !== 'confirmed'
-    || current.confirmedAspectRatio !== input.plannerInput.aspectRatio
-  ) {
-    return {
-      ok: false,
-      failure: preferenceSynchronizationFailure(
-        'blocked',
-        'Confirm this edit’s output frame before creating the canonical plan.',
-        false,
-        readResponse.warnings,
-      ),
-    }
-  }
   if (current.locked && !allowLockedExactReuse) {
     return {
       ok: false,

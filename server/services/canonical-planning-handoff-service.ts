@@ -568,21 +568,6 @@ async function recordVerifiedPlanningEvidence(input: {
   const confirmedAspectRatio = confirmedOutputAspectRatioSchema.parse(
     input.components.confirmedSettings.aspectRatio,
   )
-  if (
-    authority.frameConfirmation.status !== 'confirmed'
-    || authority.frameConfirmation.aspectRatio !== confirmedAspectRatio
-  ) {
-    throw new ApiError(
-      'PLAN_NOT_APPROVED',
-      'Confirm the exact output frame before canonical plan publication.',
-      409,
-      {
-        lifecyclePhase: authority.lifecyclePhase,
-        requiredFlow: 'confirm_output_frame_then_replan',
-        requiredGate: 'canonical_exact_output_frame_confirmation',
-      },
-    )
-  }
   const recorded = await recordPlanningExactEditPreferenceEvidence({
     context: input.context,
     scope: input.scope,

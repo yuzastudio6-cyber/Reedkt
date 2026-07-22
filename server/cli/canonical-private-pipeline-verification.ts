@@ -206,6 +206,11 @@ const canonicalSteps: VerificationStep[] = [
     'One exact Gemini Omni Flash visual-calibration operation reuses the canonical approved-package queue, claim/lease, one-use provider dispatch, private candidate store, provider and worker internal-cost stores, and compact source-verified receipt. The injected non-provider proof binds the exact Motion production, style, calibration plan/scenario, reference, first/last frame, and continuity authority to one create-only private MP4, exact replay, failed-attempt cost, unknown-outcome reconciliation, and a typed 15-request primary-only lifecycle. Preview-model immutability, provider account/rate/transport qualification, secret reads, cloud persistence, selection, billing, and production promotion remain blocked.',
   ),
   step(
+    'canonical-visual-calibration-objective-qa',
+    'smoke:canonical-private-visual-calibration-objective-qa-e2e',
+    'The exact visual-calibration provider MP4 feeds one dependency-bound canonical FFmpeg objective-QA job through the same approved package, queue, claim/lease, one-use tool dispatch, private artifact, QA, reconciliation, replay, and compact receipt authority. Ten bounded structural, timing, black/freeze/motion, and first/last-frame gates run with observed QA-worker resource cost kept separate from provider and provider-worker internal cost. Provider transport, creative selection, customer price/credits/service fee, billing, cloud persistence, and production promotion remain blocked.',
+  ),
+  step(
     'canonical-multi-source-execution',
     'smoke:canonical-multi-source-final-composition',
     'Three-source execution reaches one baseline plus two directly reference-bound professional color matches, two approved hard-cut boundaries, three exact source-bound voice deliveries, lease, one-use dispatch, private artifacts, QA, reconciliation, ordered color/voice composition, objective continuity at both boundaries, and download evidence.',
@@ -350,7 +355,7 @@ function printReport(
 ): void {
   const finishedAt = new Date()
   const report = {
-    schemaVersion: 'canonical-private-pipeline-verification-v37',
+    schemaVersion: 'canonical-private-pipeline-verification-v38',
     status,
     mode: full ? 'full_internal_regression' : 'canonical_private_pipeline',
     startedAt: runStartedAt.toISOString(),
@@ -534,6 +539,13 @@ function printReport(
           visualCalibrationExactMotionStyleScenarioFrameContinuityBound: true,
           visualCalibrationOfficialPublicRateSnapshotProductionQualified: false,
           visualCalibrationCanonicalAuthorizationIssuanceAllowed: false,
+          visualCalibrationObjectiveQaCanonicalLifecycleVerified: true,
+          visualCalibrationObjectiveQaTenGateReceiptVerified: true,
+          visualCalibrationObjectiveQaPrivateArtifactReconciliationReplayVerified:
+            true,
+          visualCalibrationObjectiveQaProviderAndWorkerCostSeparated: true,
+          visualCalibrationObjectiveQaCustomerCommercialAuthorityIncluded:
+            false,
           activeNamedEditJourneyStates: true,
           versionedToolIdentityEvidence: true,
           ...(full
@@ -561,6 +573,9 @@ function printReport(
       specializedLongFormMediaCgroupResourceObservationVerified: false,
       remotionCgroupResourceObservationVerified: true,
       deployedCloudWorkerResourceObservationVerified: false,
+      visualCalibrationObjectiveQaLiveProviderTransportVerified: false,
+      visualCalibrationObjectiveQaCreativeSelectionVerified: false,
+      visualCalibrationObjectiveQaProductionReady: false,
       professionalLongFormRemaining119RoutineChildLeasesVerified: false,
       professionalLongFormStartedAttemptDistributedRecoveryVerified: false,
       professionalLongFormStartedAttemptLiveWorkerTerminationVerified: false,

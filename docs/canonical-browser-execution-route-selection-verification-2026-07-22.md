@@ -30,6 +30,11 @@ cannot bypass the canonical browser contract. The real server independently
 keeps those routes behind internal-service authority or the legacy planning-
 handoff gate.
 
+The existing deterministic non-`/v1` source-sequence metadata helper remains a
+truthful `mockOnly` fallback for protected local browser tests. It cannot use
+HTTP transport, persist durable production authority, survive into a deployed
+production client, or make a retired `/v1` execution stage browser-callable.
+
 This correction preserves the one approved snapshot, one package request, one
 server-derived work graph, private review, and revision/acceptance boundaries.
 It does not expose jobs, tools, commands, paths, credentials, provider routes,
@@ -53,6 +58,7 @@ npm run check:secrets
 The focused route-selection proof requires four canonical edit-preparation and
 private-review browser routes, six customer-delivery browser routes, 28
 mock-only historical routes, three backend-required historical reads, zero
-attempted legacy HTTP requests, and the exact server middleware ordering.
+attempted legacy HTTP requests, one deterministic local metadata fallback, and
+the exact server middleware ordering.
 Remote Supabase, Google Cloud, providers, billing, deployment, external beta,
 public delivery, and production readiness remain false.

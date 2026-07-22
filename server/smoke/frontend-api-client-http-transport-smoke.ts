@@ -171,6 +171,7 @@ process.env.VITE_REEDITPRO_API_MODE = 'frontend_safe'
 process.env.VITE_REEDITPRO_API_BASE_URL = `http://127.0.0.1:${address.port}`
 process.env.VITE_SUPABASE_URL = ''
 process.env.VITE_SUPABASE_ANON_KEY = ''
+process.env.NODE_ENV = 'test'
 
 try {
   const { callReeditProApi } = await import('../../src/backend/api/frontend-api-client')
@@ -340,6 +341,7 @@ try {
     },
   )
 
+  assert.equal(sourceSequenceResponse.ok, true, 'Deterministic non-/v1 source metadata should retain its explicit mock fallback.')
   assert.equal(sourceSequenceResponse.mockOnly, true, 'Non-/v1 metadata routes should remain on the mock router.')
   assert.equal(seenRequests.length, 5, 'Mock-only metadata route should not call backend HTTP transport.')
 

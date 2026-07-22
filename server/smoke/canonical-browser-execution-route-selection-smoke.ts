@@ -109,10 +109,12 @@ for (const routeId of legacyBackendRequiredReadRouteIds) {
 
 const previousMode = process.env.VITE_REEDITPRO_API_MODE
 const previousBaseUrl = process.env.VITE_REEDITPRO_API_BASE_URL
+const previousNodeEnv = process.env.NODE_ENV
 const originalFetch = globalThis.fetch
 let fetchCallCount = 0
 
 try {
+  process.env.NODE_ENV = 'test'
   process.env.VITE_REEDITPRO_API_MODE = 'frontend_safe'
   process.env.VITE_REEDITPRO_API_BASE_URL = 'https://api.reeditpro.invalid'
   globalThis.fetch = async () => {
@@ -131,9 +133,33 @@ try {
     assert.equal(response.statusCode, 424)
     assert.equal(response.error?.code, 'backend_runtime_required')
   }
+
+  const sourceSequenceResponse = await callReeditProApi(
+    'media.sourceSequence.create',
+    {
+      workspaceId: 'workspace-route-selection-smoke',
+      projectId: 'project-route-selection-smoke',
+      uploads: [],
+    },
+  )
+  assert.equal(sourceSequenceResponse.ok, true)
+  assert.equal(sourceSequenceResponse.mockOnly, true)
+
+  process.env.NODE_ENV = 'production'
+  const deployedSourceSequenceResponse = await callReeditProApi(
+    'media.sourceSequence.create',
+    {
+      workspaceId: 'workspace-route-selection-smoke',
+      projectId: 'project-route-selection-smoke',
+      uploads: [],
+    },
+  )
+  assert.equal(deployedSourceSequenceResponse.ok, false)
+  assert.equal(deployedSourceSequenceResponse.error?.code, 'backend_runtime_required')
   assert.equal(fetchCallCount, 0)
 } finally {
   globalThis.fetch = originalFetch
+  restoreEnv('NODE_ENV', previousNodeEnv)
   restoreEnv('VITE_REEDITPRO_API_MODE', previousMode)
   restoreEnv('VITE_REEDITPRO_API_BASE_URL', previousBaseUrl)
 }
@@ -166,6 +192,8 @@ console.log(JSON.stringify({
   customerDeliveryBrowserRouteCount: customerDeliveryBrowserRouteIds.length,
   legacyMockOnlyRouteCount: legacyMockOnlyRouteIds.length,
   legacyBackendRequiredReadRouteCount: legacyBackendRequiredReadRouteIds.length,
+  deterministicLocalMetadataFallbackCount: 1,
+  deployedMockMetadataFallbackAllowed: false,
   legacyHttpRequestCount: fetchCallCount,
   browserCanSelectWorkerToolOrLegacyExecutionStage: false,
   providerCallMade: false,

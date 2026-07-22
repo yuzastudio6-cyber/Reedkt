@@ -91,13 +91,22 @@ export async function callReeditProApi<TBody = unknown, TData = unknown>(
     return callMockReeditProApi<TBody, TData>(routeId, body, options)
   }
 
+  const frontendHttpEligible =
+    route.status === 'frontend_safe_ready' &&
+    route.runtimeMode === 'frontend_safe'
+  const deterministicLocalMockFallbackEligible =
+    !isHttpTransportRoute(route) &&
+    route.status === 'mock_ready' &&
+    route.runtimeMode === 'mock' &&
+    Boolean(route.mockHandlerName) &&
+    isLocalDeterministicMockFallbackRuntime()
+
   if (
     route.requiresServiceRole ||
     route.requiresProviderSecret ||
     route.requiresStripeSecret ||
     route.status === 'disabled' ||
-    route.status !== 'frontend_safe_ready' ||
-    route.runtimeMode !== 'frontend_safe'
+    (!frontendHttpEligible && !deterministicLocalMockFallbackEligible)
   ) {
     return createApiBackendRequiredResponse(routeId, route.notes) as ApiResponseEnvelope<TData>
   }
@@ -117,6 +126,10 @@ export async function callReeditProApi<TBody = unknown, TData = unknown>(
         mockOnly: true,
       },
     ) as ApiResponseEnvelope<TData>
+  }
+
+  if (deterministicLocalMockFallbackEligible) {
+    return callMockReeditProApi<TBody, TData>(routeId, body, options)
   }
 
   if (!isHttpTransportRoute(route)) {
@@ -143,6 +156,16 @@ export async function callReeditProApi<TBody = unknown, TData = unknown>(
 
 function isHttpTransportRoute(route: ApiRouteDefinition): boolean {
   return route.path.startsWith('/v1/')
+}
+
+function isLocalDeterministicMockFallbackRuntime(): boolean {
+  const viteEnv = (import.meta as ImportMeta & {
+    env?: RuntimeEnvRecord & { DEV?: boolean }
+  }).env
+  const env = getRuntimeEnv()
+  const localDevelopmentOrTest = viteEnv?.DEV === true || env.NODE_ENV === 'test'
+
+  return localDevelopmentOrTest && isLoopbackBrowserHost()
 }
 
 async function callReeditProHttpRoute<TBody, TData>(

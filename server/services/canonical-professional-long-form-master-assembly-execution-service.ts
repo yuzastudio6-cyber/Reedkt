@@ -61,9 +61,11 @@ import {
   authorizePrivateCanonicalPackageWorkQueueJob,
   beginPrivateCanonicalPackageWorkQueueExecutionAttempt,
   claimPrivateCanonicalPackageWorkQueueJob,
-  completePrivateCanonicalPackageWorkQueueClaim,
   heartbeatPrivateCanonicalPackageWorkQueueClaim,
 } from './private-canonical-package-work-queue-store'
+import {
+  completePrivateCanonicalPackageWorkQueueProfessionalLongFormClaim,
+} from './canonical-professional-long-form-completed-attempt-reconciliation-service'
 import {
   createCanonicalProfessionalLongFormChildPackagePromotionService,
   type CanonicalProfessionalLongFormCurrentChildPackageAuthority,
@@ -542,7 +544,7 @@ async function executeNew(input: {
       attemptInternalCostEvidenceHash: finalizedCost.evidence.evidenceHash,
     })
     const definition = claim.entry.definition
-    const aggregate = await completePrivateCanonicalPackageWorkQueueClaim({
+    const aggregate = await completePrivateCanonicalPackageWorkQueueProfessionalLongFormClaim({
       scope: input.current.scope,
       definition: input.current.queueDefinition,
       jobId: authority.identity.jobId,

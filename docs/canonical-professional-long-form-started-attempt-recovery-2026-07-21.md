@@ -40,7 +40,7 @@ select the job, attempt, lease, operation, cost, retry, or failure outcome.
 
 ## Retained Proof
 
-`npm run smoke:canonical-professional-long-form-post-approval` passes 107
+`npm run smoke:canonical-professional-long-form-post-approval` passes 111
 checks on the six-hour, 512-range, 124-chunk, 255-job fixture. The proof:
 
 1. authorizes and starts object-chunk 2 render attempt 1;
@@ -55,6 +55,14 @@ checks on the six-hour, 512-range, 124-chunk, 255-job fixture. The proof:
 9. clears process caches and reopens the same failed history from disk; and
 10. acquires a fresh claim and completes render attempt 2 plus its independent
    QA job through the existing generic executor.
+
+Before the paired QA starts, the retained proof now also simulates a process
+crash after attempt 2 has committed its real render, terminal, and completed
+internal-cost evidence but before queue completion. The separate canonical
+completed-attempt reconciler reopens the immutable credential-free proposal,
+completes the original claim without rerendering, and leaves only the QA job
+pending. See
+`docs/canonical-professional-long-form-completed-attempt-reconciliation-2026-07-21.md`.
 
 The final retained state is intentionally 8/255 completed jobs, 247 queued
 jobs, nine delivery attempts, and one expired-claim recovery. The failed

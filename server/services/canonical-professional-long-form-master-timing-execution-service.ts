@@ -58,8 +58,10 @@ import {
   authorizePrivateCanonicalPackageWorkQueueJob,
   beginPrivateCanonicalPackageWorkQueueExecutionAttempt,
   claimPrivateCanonicalPackageWorkQueueJob,
-  completePrivateCanonicalPackageWorkQueueClaim,
 } from './private-canonical-package-work-queue-store'
+import {
+  completePrivateCanonicalPackageWorkQueueProfessionalLongFormClaim,
+} from './canonical-professional-long-form-completed-attempt-reconciliation-service'
 import {
   createCanonicalProfessionalLongFormChildPackagePromotionService,
   type CanonicalProfessionalLongFormCurrentChildPackageAuthority,
@@ -393,7 +395,7 @@ export function createCanonicalProfessionalLongFormMasterTimingExecutionService(
           )
         }
         const completedAggregate =
-          await completePrivateCanonicalPackageWorkQueueClaim({
+          await completePrivateCanonicalPackageWorkQueueProfessionalLongFormClaim({
             scope: current.scope,
             definition: current.queueDefinition,
             jobId: authority.identity.jobId,

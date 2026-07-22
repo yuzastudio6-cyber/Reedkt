@@ -100,6 +100,9 @@ import {
   createCanonicalProfessionalLongFormStartedAttemptRecoveryService,
 } from '../services/canonical-professional-long-form-started-attempt-recovery-service'
 import {
+  createCanonicalProfessionalLongFormCompletedAttemptRecoveryService,
+} from '../services/canonical-professional-long-form-completed-attempt-reconciliation-service'
+import {
   buildProfessionalLongFormStartedAttemptFailure,
   professionalLongFormStartedAttemptFailureSchema,
 } from '../edit-architecture/professional-long-form-started-attempt-recovery-contract'
@@ -2677,10 +2680,27 @@ try {
     'started_attempt_failure_history_survives_restart_without_active_lease_or_completion_authority',
   )
 
-  const objectChunkSeriesService =
-    createCanonicalProfessionalLongFormObjectChunkSeriesExecutionService(context)
+  let simulatedPostProposalCrashCount = 0
+  const faultingObjectChunkSeriesService =
+    createCanonicalProfessionalLongFormObjectChunkSeriesExecutionService(
+      context,
+      {
+        completionFaultInjectionForSmoke(evidence) {
+          if (
+            evidence.jobId === timedOutSecondChunkAuthority.identity.jobId &&
+            evidence.stage === 'after_completion_proposal_persisted' &&
+            simulatedPostProposalCrashCount === 0
+          ) {
+            simulatedPostProposalCrashCount += 1
+            throw new Error(
+              'simulated_post_completion_proposal_process_crash',
+            )
+          }
+        },
+      },
+    )
   await expectApiError(
-    () => objectChunkSeriesService.executeNext({
+    () => faultingObjectChunkSeriesService.executeNext({
       workspaceId,
       approvedPlanSnapshotId: String(snapshot.snapshotId),
       chunkIndex: 2,
@@ -2691,6 +2711,84 @@ try {
     'VALIDATION_FAILED',
     'caller_cannot_select_a_later_object_chunk_for_the_generic_executor',
   )
+  await assert.rejects(
+    () => faultingObjectChunkSeriesService.executeNext({
+      workspaceId,
+      approvedPlanSnapshotId: String(snapshot.snapshotId),
+    }),
+    (error: unknown) => error instanceof Error &&
+      error.message === 'simulated_post_completion_proposal_process_crash',
+  )
+  check(
+    simulatedPostProposalCrashCount === 1,
+    'real_object_chunk_attempt_crashes_only_after_immutable_completion_proposal',
+  )
+  clearPrivateCanonicalPackageWorkQueueProcessStateForSmoke()
+  const completedAttemptRecoveryService =
+    createCanonicalProfessionalLongFormCompletedAttemptRecoveryService(context)
+  await expectApiError(
+    () => completedAttemptRecoveryService.reconcileNext({
+      workspaceId,
+      approvedPlanSnapshotId: String(snapshot.snapshotId),
+      jobId: timedOutSecondChunkAuthority.identity.jobId,
+    } as never),
+    'VALIDATION_FAILED',
+    'caller_cannot_select_completed_attempt_job_artifact_cost_or_lease',
+  )
+  const recoveredCompletedSecondChunk =
+    await completedAttemptRecoveryService.reconcileNext({
+      workspaceId,
+      approvedPlanSnapshotId: String(snapshot.snapshotId),
+    })
+  assert.ok(recoveredCompletedSecondChunk)
+  check(
+    recoveredCompletedSecondChunk.disposition === 'reconciled' &&
+      recoveredCompletedSecondChunk.jobId ===
+        timedOutSecondChunkAuthority.identity.jobId &&
+      recoveredCompletedSecondChunk.executionAttemptId !==
+        timedOutSecondChunkAttempt.executionAttempt.executionAttemptId &&
+      recoveredCompletedSecondChunk.deliveryAttempt === 2 &&
+      recoveredCompletedSecondChunk.attemptInternalCostEvidence.outcome
+        .status === 'completed' &&
+      recoveredCompletedSecondChunk.attemptInternalCostEvidence.identity
+        .retryAttempt === 2 &&
+      recoveredCompletedSecondChunk.queue.totalJobCount === 255 &&
+      recoveredCompletedSecondChunk.queue.completedJobCount === 7 &&
+      recoveredCompletedSecondChunk.queue.queuedJobCount === 248 &&
+      recoveredCompletedSecondChunk.queue.leasedJobCount === 0 &&
+      recoveredCompletedSecondChunk.queue.totalDeliveryAttemptCount === 8 &&
+      recoveredCompletedSecondChunk.queue.expiredClaimRecoveryCount === 1 &&
+      recoveredCompletedSecondChunk.readiness
+        .immutableCompletionProposalReopened &&
+      recoveredCompletedSecondChunk.readiness
+        .exactTerminalAndArtifactEvidenceReopened &&
+      recoveredCompletedSecondChunk.readiness.completedAttemptCostReopened &&
+      recoveredCompletedSecondChunk.readiness
+        .activeOrExpiredClaimCompletedWithoutPlaintextCredential &&
+      !recoveredCompletedSecondChunk.readiness.secondToolExecutionStarted &&
+      !recoveredCompletedSecondChunk.readiness
+        .secondInternalCostAttemptCreated &&
+      !recoveredCompletedSecondChunk.readiness.customerPriceAuthorityIncluded &&
+      !recoveredCompletedSecondChunk.readiness.customerCreditAuthorityIncluded &&
+      !recoveredCompletedSecondChunk.readiness.serviceFeeAuthorityIncluded &&
+      !recoveredCompletedSecondChunk.readiness.walletMutationAuthorized &&
+      !recoveredCompletedSecondChunk.readiness.billingAuthorized &&
+      !recoveredCompletedSecondChunk.readiness.productReady &&
+      !recoveredCompletedSecondChunk.readiness.productionReady,
+    'completed_real_render_attempt_reconciles_after_restart_without_rerun_retry_or_second_cost',
+  )
+  const noDuplicateCompletedRecovery =
+    await completedAttemptRecoveryService.reconcileNext({
+      workspaceId,
+      approvedPlanSnapshotId: String(snapshot.snapshotId),
+    })
+  check(
+    noDuplicateCompletedRecovery === null,
+    'completed_attempt_recovery_is_server_selected_and_does_not_repeat_terminal_work',
+  )
+
+  const objectChunkSeriesService =
+    createCanonicalProfessionalLongFormObjectChunkSeriesExecutionService(context)
   const completedSecondObjectChunk = await objectChunkSeriesService.executeNext({
     workspaceId,
     approvedPlanSnapshotId: String(snapshot.snapshotId),

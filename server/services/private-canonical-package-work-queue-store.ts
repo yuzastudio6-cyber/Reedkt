@@ -143,6 +143,10 @@ import {
   type ProfessionalLongFormStartedAttemptFailure,
 } from '../edit-architecture/professional-long-form-started-attempt-recovery-contract'
 import {
+  professionalLongFormCompletionProposalSchema,
+  type ProfessionalLongFormCompletionProposal,
+} from '../edit-architecture/professional-long-form-completed-attempt-reconciliation-contract'
+import {
   readPrivateInternalAttemptCostEvidence,
 } from '../tool-cost-metering/private-internal-attempt-cost-evidence'
 import {
@@ -150,6 +154,13 @@ import {
   sha256AuthorityValue,
   stableAuthorityStringify,
 } from './private-edit-authority-store'
+import {
+  inspectCanonicalPrivateLongFormMasterArtifact,
+  inspectCanonicalPrivateObjectChunkMediaArtifact,
+} from './canonical-private-media-artifact-storage'
+import {
+  inspectCanonicalPrivateProgramAudioArtifact,
+} from './canonical-private-program-audio-artifact-storage'
 import {
   assertCanonicalPrivatePackageStateLockAuthority,
   canonicalPrivatePackageStatePaths,
@@ -161,6 +172,7 @@ const STORE_RECORD_VERSION = 'private-canonical-package-work-queue-record-v1' as
 const STORE_RECORD_SOURCE = 'private_canonical_package_work_queue_store' as const
 const MAX_AGGREGATE_BYTES = 8 * 1024 * 1024
 const MAX_QUEUE_EVENTS = 8_192
+const verifiedProfessionalLongFormCompletionAuthorities = new WeakSet<object>()
 
 export interface CanonicalPrivatePackageWorkQueueStoreScope {
   localStorageRoot: string
@@ -170,6 +182,13 @@ export interface CanonicalPrivatePackageWorkQueueStoreScope {
   editSessionId: string
   packageRecordId: string
   approvedPlanSnapshotId: string
+}
+
+export interface VerifiedProfessionalLongFormCompletionProposalAuthority {
+  readonly proposalHash: string
+  readonly queueDefinitionHash: string
+  readonly jobId: string
+  readonly executionAttemptId: string
 }
 
 interface PersistedQueueEnvelope {
@@ -1026,6 +1045,178 @@ export async function reconcilePrivateCanonicalPackageWorkQueueProfessionalLongF
     entry: requiredEntry(result.aggregate, input.jobId),
     failure: result.failure,
   }))
+}
+
+export async function verifyPrivateCanonicalPackageWorkQueueProfessionalLongFormCompletionProposal(
+  input: {
+    scope: CanonicalPrivatePackageWorkQueueStoreScope
+    definition: CanonicalPrivatePackageWorkQueueDefinition
+    proposal: ProfessionalLongFormCompletionProposal
+    observedAt: string
+    claimCredential?: string
+  },
+): Promise<VerifiedProfessionalLongFormCompletionProposalAuthority> {
+  const observedAt = validTimestamp(
+    input.observedAt,
+    'professional long-form completion proposal verification',
+  )
+  const proposal = professionalLongFormCompletionProposalSchema.parse(
+    input.proposal,
+  )
+  assertScope(input.scope)
+  assertDefinitionScope(input.scope, input.definition)
+  if (Date.parse(proposal.recordedAt) > Date.parse(observedAt)) {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      'Professional long-form completion proposal is from the future.',
+      400,
+    )
+  }
+  const aggregate = await readPrivateCanonicalPackageWorkQueue({
+    scope: input.scope,
+    definition: input.definition,
+  })
+  if (!aggregate) {
+    throw new ApiError(
+      'JOB_NOT_FOUND',
+      'Professional long-form completion proposal requires its canonical queue.',
+      404,
+    )
+  }
+  const entry = requiredEntry(aggregate, proposal.identity.jobId)
+  assertProfessionalLongFormCompletionProposalQueueLineage({
+    scope: input.scope,
+    definition: input.definition,
+    entry,
+    proposal,
+    observedAt,
+    claimCredential: input.claimCredential,
+  })
+  await assertProfessionalLongFormCompletionProposalEvidence({
+    scope: input.scope,
+    proposal,
+  })
+  const authority = Object.freeze({
+    proposalHash: proposal.proposalHash,
+    queueDefinitionHash: input.definition.definitionHash,
+    jobId: proposal.identity.jobId,
+    executionAttemptId: proposal.identity.executionAttemptId,
+  })
+  verifiedProfessionalLongFormCompletionAuthorities.add(authority)
+  return authority
+}
+
+export async function reconcilePrivateCanonicalPackageWorkQueueProfessionalLongFormAttemptCompletion(
+  input: {
+    scope: CanonicalPrivatePackageWorkQueueStoreScope
+    definition: CanonicalPrivatePackageWorkQueueDefinition
+    proposal: ProfessionalLongFormCompletionProposal
+    verifiedAuthority: VerifiedProfessionalLongFormCompletionProposalAuthority
+    observedAt: string
+  },
+): Promise<{
+  disposition: 'reconciled' | 'exact_replay'
+  aggregate: CanonicalPrivatePackageWorkQueueAggregate
+  entry: CanonicalPrivatePackageWorkQueueEntry & {
+    completion: NonNullable<CanonicalPrivatePackageWorkQueueEntry['completion']>
+  }
+}> {
+  const observedAt = validTimestamp(
+    input.observedAt,
+    'professional long-form completion reconciliation',
+  )
+  const proposal = professionalLongFormCompletionProposalSchema.parse(
+    input.proposal,
+  )
+  if (
+    !verifiedProfessionalLongFormCompletionAuthorities.has(
+      input.verifiedAuthority,
+    ) ||
+    input.verifiedAuthority.proposalHash !== proposal.proposalHash ||
+    input.verifiedAuthority.queueDefinitionHash !==
+      input.definition.definitionHash ||
+    input.verifiedAuthority.jobId !== proposal.identity.jobId ||
+    input.verifiedAuthority.executionAttemptId !==
+      proposal.identity.executionAttemptId
+  ) {
+    throw new ApiError(
+      'IDEMPOTENCY_ATOMICITY_REQUIRED',
+      'Professional long-form queue completion requires source-verified proposal authority.',
+      503,
+    )
+  }
+  try {
+    return await mutateQueue(
+      input.scope,
+      input.definition,
+      observedAt,
+      (aggregate) => {
+        const entry = requiredEntry(aggregate, proposal.identity.jobId)
+        if (entry.state === 'completed') {
+          if (
+            entry.completion?.claimId !== proposal.identity.claimId ||
+            entry.completion.completedAt !== proposal.recordedAt ||
+            stableAuthorityStringify(entry.completion.outcome) !==
+              stableAuthorityStringify(proposal.outcome)
+          ) {
+            throw new ApiError(
+              'IDEMPOTENCY_CONFLICT',
+              'Professional long-form queue completion already has different authority.',
+              409,
+            )
+          }
+          return { disposition: 'exact_replay' as const }
+        }
+        assertProfessionalLongFormCompletionProposalQueueLineage({
+          scope: input.scope,
+          definition: input.definition,
+          entry,
+          proposal,
+          observedAt,
+        })
+        const claim = entry.activeClaim!
+        const completionWithoutHash = {
+          claimId: claim.claimId,
+          credentialSha256: claim.credentialSha256,
+          outcome: proposal.outcome,
+          completedAt: proposal.recordedAt,
+        }
+        entry.state = 'completed'
+        entry.activeClaim = undefined
+        entry.completion = {
+          ...completionWithoutHash,
+          completionHash: sha256AuthorityValue(completionWithoutHash),
+        }
+        entry.lastRelease = undefined
+        touchEntry(entry, observedAt)
+        appendEvent(aggregate, {
+          eventType: 'job_completed',
+          jobId: entry.definition.jobId,
+          claimId: claim.claimId,
+          at: proposal.recordedAt,
+        })
+        return { disposition: 'reconciled' as const }
+      },
+    ).then((result) => {
+      const entry = requiredEntry(result.aggregate, proposal.identity.jobId)
+      if (!entry.completion) {
+        throw invalidQueue(
+          'Professional long-form completion reconciliation did not persist exactly.',
+        )
+      }
+      return {
+        disposition: result.disposition,
+        aggregate: result.aggregate,
+        entry: entry as CanonicalPrivatePackageWorkQueueEntry & {
+          completion: NonNullable<CanonicalPrivatePackageWorkQueueEntry['completion']>
+        },
+      }
+    })
+  } finally {
+    verifiedProfessionalLongFormCompletionAuthorities.delete(
+      input.verifiedAuthority,
+    )
+  }
 }
 
 export function preparePrivateCanonicalPackageWorkQueueJobClaim(input: {
@@ -3223,6 +3414,293 @@ function assertProfessionalLongFormCompletionEvidence(
       409,
     )
   }
+}
+
+function assertProfessionalLongFormCompletionProposalQueueLineage(input: {
+  scope: CanonicalPrivatePackageWorkQueueStoreScope
+  definition: CanonicalPrivatePackageWorkQueueDefinition
+  entry: CanonicalPrivatePackageWorkQueueEntry
+  proposal: ProfessionalLongFormCompletionProposal
+  observedAt: string
+  claimCredential?: string
+}): void {
+  const { entry, proposal } = input
+  const authorization = entry.professionalLongFormExecutionAuthorization
+  const attempt = entry.professionalLongFormExecutionAttempt
+  const liveClaim = entry.activeClaim
+  const queueCompletion = entry.completion
+  const identity = proposal.identity
+  const completion = proposal.outcome.professionalLongFormExecution
+  const leased = entry.state === 'leased' && liveClaim !== undefined
+  const completed = entry.state === 'completed' && queueCompletion !== undefined
+  const identityMismatch =
+    identity.ownerUserId !== input.scope.ownerUserId ||
+    identity.workspaceId !== input.scope.workspaceId ||
+    identity.projectId !== input.scope.projectId ||
+    identity.editSessionId !== input.scope.editSessionId ||
+    identity.approvedPlanSnapshotId !== input.scope.approvedPlanSnapshotId ||
+    identity.packageRecordId !== input.scope.packageRecordId ||
+    identity.queueDefinitionHash !== input.definition.definitionHash ||
+    identity.jobId !== entry.definition.jobId ||
+    identity.approvedWorkItemId !== entry.definition.approvedWorkItemId ||
+    identity.workItemKey !== entry.definition.workItemKey
+  if (
+    identityMismatch || !authorization || !attempt || !completion ||
+    (!leased && !completed) ||
+    entry.definition.providerExecutionMode !== 'none' ||
+    identity.authorizationId !== authorization.authorizationId ||
+    identity.authorityHash !== authorization.authorityHash ||
+    identity.executionAttemptId !== attempt.executionAttemptId ||
+    identity.executionAttemptHash !== attempt.attemptHash ||
+    identity.executionStartedAt !== attempt.startedAt ||
+    identity.claimId !== attempt.claimId ||
+    identity.initialClaimHash !== attempt.claimHash ||
+    identity.deliveryAttempt !== attempt.deliveryAttempt ||
+    identity.deliveryAttempt !== entry.deliveryAttemptCount ||
+    Date.parse(proposal.recordedAt) < Date.parse(attempt.startedAt) ||
+    (leased && Date.parse(proposal.recordedAt) >
+      Date.parse(liveClaim.attemptDeadlineAt)) ||
+    Date.parse(proposal.recordedAt) > Date.parse(input.observedAt)
+  ) {
+    throw new ApiError(
+      'IDEMPOTENCY_ATOMICITY_REQUIRED',
+      'Professional long-form completion proposal lost its exact queue attempt.',
+      503,
+    )
+  }
+  if (leased) {
+    if (
+      liveClaim.claimId !== identity.claimId ||
+      liveClaim.claimHash !== identity.claimHashAtProposal ||
+      liveClaim.deliveryAttempt !== identity.deliveryAttempt ||
+      attempt.workerIdentityHash !== liveClaim.workerIdentityHash
+    ) {
+      throw new ApiError(
+        'IDEMPOTENCY_CONFLICT',
+        'Professional long-form completion proposal claim authority changed.',
+        409,
+      )
+    }
+    if (input.claimCredential !== undefined && (
+      Date.parse(proposal.recordedAt) >= Date.parse(liveClaim.expiresAt) ||
+      !constantTimeHashEquals(
+        liveClaim.credentialSha256,
+        sha256Text(input.claimCredential),
+      )
+    )) {
+      throw workerLeaseExpired()
+    }
+  } else {
+    if (
+      !queueCompletion || input.claimCredential !== undefined ||
+      queueCompletion.claimId !== identity.claimId ||
+      queueCompletion.completedAt !== proposal.recordedAt ||
+      stableAuthorityStringify(queueCompletion.outcome) !==
+        stableAuthorityStringify(proposal.outcome)
+    ) {
+      throw new ApiError(
+        'IDEMPOTENCY_CONFLICT',
+        'Professional long-form completion proposal replay changed queue authority.',
+        409,
+      )
+    }
+  }
+  assertOutcomeMatchesDefinition(proposal.outcome, entry.definition)
+  assertProfessionalLongFormCompletionEvidence(entry, proposal.outcome)
+}
+
+async function assertProfessionalLongFormCompletionProposalEvidence(input: {
+  scope: CanonicalPrivatePackageWorkQueueStoreScope
+  proposal: ProfessionalLongFormCompletionProposal
+}): Promise<void> {
+  const { proposal } = input
+  const completion = proposal.outcome.professionalLongFormExecution!
+  const costEvidence = await readPrivateInternalAttemptCostEvidence({
+    localStorageRoot: input.scope.localStorageRoot,
+    workspaceId: input.scope.workspaceId,
+    projectId: input.scope.projectId,
+    executionAttemptId: proposal.identity.executionAttemptId,
+  })
+  const workloadProfileId = 'workloadProfileId' in
+      (costEvidence?.identity ?? {})
+    ? (costEvidence!.identity as { workloadProfileId: string })
+      .workloadProfileId
+    : undefined
+  if (
+    !costEvidence ||
+    costEvidence.evidenceHash !==
+      proposal.evidence.attemptInternalCostEvidenceHash ||
+    costEvidence.outcome.status !== 'completed' ||
+    costEvidence.outcome.failureCategory !== 'none' ||
+    costEvidence.linkedCanonicalOutcomeHash !==
+      proposal.evidence.canonicalResultHash ||
+    costEvidence.identity.workspaceId !== input.scope.workspaceId ||
+    costEvidence.identity.projectId !== input.scope.projectId ||
+    costEvidence.identity.editSessionId !== input.scope.editSessionId ||
+    costEvidence.identity.approvedPlanSnapshotId !==
+      input.scope.approvedPlanSnapshotId ||
+    costEvidence.identity.approvedWorkItemId !==
+      proposal.identity.approvedWorkItemId ||
+    costEvidence.identity.jobId !== proposal.identity.jobId ||
+    costEvidence.identity.executionAttemptId !==
+      proposal.identity.executionAttemptId ||
+    costEvidence.identity.retryAttempt !== proposal.identity.deliveryAttempt ||
+    costEvidence.identity.operationId !== completion.operation.operationId ||
+    workloadProfileId !== completion.operation.attemptCostProfileId
+  ) {
+    throw new ApiError(
+      'IDEMPOTENCY_ATOMICITY_REQUIRED',
+      'Professional long-form completion proposal requires exact completed internal-cost evidence.',
+      503,
+      {
+        requiredGate:
+          'canonical_professional_long_form_completed_attempt_cost_reconciliation',
+      },
+    )
+  }
+  const terminal = await readPrivateAuthorityJsonBlob({
+    localStorageRoot: input.scope.localStorageRoot,
+    ref: proposal.evidence.terminalEvidenceRef,
+  })
+  assertProfessionalLongFormTerminalEnvelope({ proposal, terminal })
+  await assertProfessionalLongFormCompletionPrivateMedia({
+    scope: input.scope,
+    proposal,
+  })
+  for (const [key, value] of Object.entries(completion)) {
+    if (!key.endsWith('Ref') || !isAuthorityBlobRef(value)) continue
+    await readPrivateAuthorityJsonBlob({
+      localStorageRoot: input.scope.localStorageRoot,
+      ref: value,
+    })
+    if (
+      isRecord(terminal) && key in terminal &&
+      stableAuthorityStringify(terminal[key]) !== stableAuthorityStringify(value)
+    ) {
+      throw new ApiError(
+        'IDEMPOTENCY_CONFLICT',
+        'Professional long-form terminal changed an immutable evidence reference.',
+        409,
+      )
+    }
+  }
+}
+
+async function assertProfessionalLongFormCompletionPrivateMedia(input: {
+  scope: CanonicalPrivatePackageWorkQueueStoreScope
+  proposal: ProfessionalLongFormCompletionProposal
+}): Promise<void> {
+  const completion = input.proposal.outcome.professionalLongFormExecution!
+  const expected = isProfessionalLongFormFirstObjectChunkRenderCompletion(
+    completion,
+  )
+    ? {
+        kind: 'object_chunk' as const,
+        artifact: completion.outputArtifact,
+      }
+    : isProfessionalLongFormContinuousProgramAudioCompletion(completion)
+      ? {
+          kind: 'program_audio' as const,
+          artifact: completion.outputArtifact,
+        }
+      : isProfessionalLongFormMasterAssemblyCompletion(completion)
+        ? {
+            kind: 'long_form_master' as const,
+            artifact: completion.outputArtifact,
+          }
+        : undefined
+  if (!expected) return
+  const stored = expected.kind === 'object_chunk'
+    ? await inspectCanonicalPrivateObjectChunkMediaArtifact({
+        localStorageRoot: input.scope.localStorageRoot,
+        privateObjectIdentityHash: expected.artifact.objectIdentity,
+      })
+    : expected.kind === 'program_audio'
+      ? await inspectCanonicalPrivateProgramAudioArtifact({
+          localStorageRoot: input.scope.localStorageRoot,
+          privateObjectIdentityHash: expected.artifact.objectIdentity,
+        })
+      : await inspectCanonicalPrivateLongFormMasterArtifact({
+          localStorageRoot: input.scope.localStorageRoot,
+          privateObjectIdentityHash: expected.artifact.objectIdentity,
+        })
+  if (
+    !stored || stored.sha256 !== expected.artifact.sha256 ||
+    stored.byteLength !== expected.artifact.byteLength
+  ) {
+    throw new ApiError(
+      'IDEMPOTENCY_ATOMICITY_REQUIRED',
+      'Professional long-form completion proposal lost its exact private media output.',
+      503,
+      {
+        requiredGate:
+          'canonical_professional_long_form_completed_attempt_private_media_readback',
+      },
+    )
+  }
+}
+
+function assertProfessionalLongFormTerminalEnvelope(input: {
+  proposal: ProfessionalLongFormCompletionProposal
+  terminal: unknown
+}): void {
+  if (!isRecord(input.terminal)) {
+    throw invalidQueue('Professional long-form terminal evidence is invalid.')
+  }
+  const terminal = input.terminal
+  const terminalHash = terminal.terminalHash
+  const payload = { ...terminal }
+  delete payload.terminalHash
+  const completion = input.proposal.outcome.professionalLongFormExecution!
+  const terminalIdentity = isRecord(terminal.identity)
+    ? terminal.identity
+    : terminal
+  const terminalJobId = terminal.jobId ?? terminalIdentity.jobId
+  const terminalApprovedWorkItemId = terminal.approvedWorkItemId ??
+    terminalIdentity.approvedWorkItemId
+  const terminalExecutionAttemptId = terminal.executionAttemptId ??
+    terminalIdentity.executionAttemptId
+  if (
+    typeof terminalHash !== 'string' ||
+    terminalHash !== sha256AuthorityValue(payload) ||
+    terminalJobId !== input.proposal.identity.jobId ||
+    terminalApprovedWorkItemId !==
+      input.proposal.identity.approvedWorkItemId ||
+    terminalExecutionAttemptId !==
+      input.proposal.identity.executionAttemptId ||
+    terminal.authorityHash !== input.proposal.identity.authorityHash ||
+    terminal.canonicalResultHash !==
+      input.proposal.evidence.canonicalResultHash ||
+    terminal.attemptInternalCostEvidenceHash !==
+      input.proposal.evidence.attemptInternalCostEvidenceHash ||
+    stableAuthorityStringify(terminal.operation) !==
+      stableAuthorityStringify(completion.operation) ||
+    typeof terminal.completedAt !== 'string' ||
+    !Number.isFinite(Date.parse(terminal.completedAt)) ||
+    Date.parse(terminal.completedAt) <
+      Date.parse(input.proposal.identity.executionStartedAt) ||
+    Date.parse(terminal.completedAt) > Date.parse(input.proposal.recordedAt)
+  ) {
+    throw new ApiError(
+      'IDEMPOTENCY_CONFLICT',
+      'Professional long-form terminal evidence changed completion authority.',
+      409,
+    )
+  }
+}
+
+function isAuthorityBlobRef(value: unknown): value is {
+  sha256: string
+  byteLength: number
+} {
+  return isRecord(value) &&
+    typeof value.sha256 === 'string' && /^[a-f0-9]{64}$/u.test(value.sha256) &&
+    Number.isSafeInteger(value.byteLength) && Number(value.byteLength) > 0 &&
+    Number(value.byteLength) <= 2 * 1024 * 1024
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
 }
 
 function assertDefinitionScope(

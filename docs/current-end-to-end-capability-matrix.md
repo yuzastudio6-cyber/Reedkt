@@ -224,6 +224,17 @@ This adds recovery evidence, not another completed job: the graph remains
 worker death detection/termination, Postgres-backed atomicity, GCS, Cloud Run,
 and the remaining six-hour executions are still unverified.
 
+The core graph now also closes the later successful-attempt crash window. Each
+core executor persists one immutable, credential-free completion proposal only
+after exact artifact/QA/terminal evidence and completed internal production
+cost pass. The retained real chunk-2 attempt deliberately exits after that
+proposal but before queue completion; a server-selected restart reconciler
+reopens the exact evidence and completes the original claim without another
+render, cost attempt, retry, estimate, or charge. This private single-host
+proof covers the 255-job core executor family, not the separate customer-
+delivery package, Postgres atomicity, deployed worker quiescence, GCS/Cloud Run,
+or product/production recovery.
+
 A separate retained 129-second/two-chunk customer-delivery graph now completes
 all 9 of its jobs: exact passed-review promotion, two private 4K H.264 High
 encodes, two independent chunk probes, one H.264-stream-copy/one-time

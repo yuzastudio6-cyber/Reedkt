@@ -69,7 +69,7 @@ finalization, or final QA.
 - `npm run smoke:offline-media-binary-object-chunk` passed a 1,350-frame
   timeline-start chunk, byte-deterministic replay, independent VP9 QA, and a
   later chunk with source start frame 225 and a technical-split boundary.
-- `npm run smoke:canonical-professional-long-form-post-approval` passed all 107
+- `npm run smoke:canonical-professional-long-form-post-approval` passed all 111
   checks on the six-hour/512-range/124-chunk/255-job fixture.
 - Canonical chunk 1 and server-selected chunk 2 each produced a real private
   4K VP9 artifact and independent exact-frame/color QA evidence. Chunk 2 began

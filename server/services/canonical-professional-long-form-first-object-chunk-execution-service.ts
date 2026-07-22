@@ -70,8 +70,11 @@ import {
   authorizePrivateCanonicalPackageWorkQueueJob,
   beginPrivateCanonicalPackageWorkQueueExecutionAttempt,
   claimPrivateCanonicalPackageWorkQueueJob,
-  completePrivateCanonicalPackageWorkQueueClaim,
 } from './private-canonical-package-work-queue-store'
+import {
+  completePrivateCanonicalPackageWorkQueueProfessionalLongFormClaim,
+  type CanonicalProfessionalLongFormCompletionFaultForSmoke,
+} from './canonical-professional-long-form-completed-attempt-reconciliation-service'
 import {
   createCanonicalProfessionalLongFormChildPackagePromotionService,
   type CanonicalProfessionalLongFormCurrentChildPackageAuthority,
@@ -224,8 +227,14 @@ interface CompletedQaEvidence {
   queueAggregate: CanonicalPrivatePackageWorkQueueAggregate
 }
 
+export interface CanonicalProfessionalLongFormObjectChunkExecutionOptions {
+  completionFaultInjectionForSmoke?:
+    CanonicalProfessionalLongFormCompletionFaultForSmoke
+}
+
 export function createCanonicalProfessionalLongFormFirstObjectChunkExecutionService(
   context: ServiceContext,
+  options: CanonicalProfessionalLongFormObjectChunkExecutionOptions = {},
 ) {
   return {
     async execute(input: {
@@ -259,7 +268,14 @@ export function createCanonicalProfessionalLongFormFirstObjectChunkExecutionServ
         if (initialRenderEntry.state === 'leased') {
           throw inProgress('First object-chunk render already has an active lease.')
         }
-        render = await executeRender({ context, current, ownerUserId, chunkIndex: 1 })
+        render = await executeRender({
+          context,
+          current,
+          ownerUserId,
+          chunkIndex: 1,
+          completionFaultInjectionForSmoke:
+            options.completionFaultInjectionForSmoke,
+        })
         newlyExecuted = true
       }
 
@@ -274,7 +290,14 @@ export function createCanonicalProfessionalLongFormFirstObjectChunkExecutionServ
         if (qaEntry.state === 'leased') {
           throw inProgress('First object-chunk QA already has an active lease.')
         }
-        qa = await executeQa({ context, current, ownerUserId, chunkIndex: 1 })
+        qa = await executeQa({
+          context,
+          current,
+          ownerUserId,
+          chunkIndex: 1,
+          completionFaultInjectionForSmoke:
+            options.completionFaultInjectionForSmoke,
+        })
         newlyExecuted = true
       }
       const aggregate = qa.queueAggregate
@@ -345,6 +368,7 @@ export function createCanonicalProfessionalLongFormFirstObjectChunkExecutionServ
 
 export function createCanonicalProfessionalLongFormObjectChunkSeriesExecutionService(
   context: ServiceContext,
+  options: CanonicalProfessionalLongFormObjectChunkExecutionOptions = {},
 ) {
   return {
     async executeNext(input: {
@@ -384,7 +408,12 @@ export function createCanonicalProfessionalLongFormObjectChunkSeriesExecutionSer
           )
         }
         render = await executeRender({
-          context, current, ownerUserId, chunkIndex: selectedChunkIndex,
+          context,
+          current,
+          ownerUserId,
+          chunkIndex: selectedChunkIndex,
+          completionFaultInjectionForSmoke:
+            options.completionFaultInjectionForSmoke,
         })
         newlyExecuted = true
       }
@@ -403,7 +432,12 @@ export function createCanonicalProfessionalLongFormObjectChunkSeriesExecutionSer
           )
         }
         qa = await executeQa({
-          context, current, ownerUserId, chunkIndex: selectedChunkIndex,
+          context,
+          current,
+          ownerUserId,
+          chunkIndex: selectedChunkIndex,
+          completionFaultInjectionForSmoke:
+            options.completionFaultInjectionForSmoke,
         })
         newlyExecuted = true
       }
@@ -464,6 +498,8 @@ async function executeRender(input: {
   current: CanonicalProfessionalLongFormCurrentChildPackageAuthority
   ownerUserId: string
   chunkIndex: number
+  completionFaultInjectionForSmoke?:
+    CanonicalProfessionalLongFormCompletionFaultForSmoke
 }): Promise<CompletedRenderEvidence> {
   const authority = buildProfessionalLongFormFirstObjectChunkRenderAuthority(input)
   assertUnexpired(authority.approval.reservationExpiresAt)
@@ -721,7 +757,7 @@ async function executeRender(input: {
           terminalEvidenceRef: terminalRef,
         })
       const definition = claim.entry.definition
-      const aggregate = await completePrivateCanonicalPackageWorkQueueClaim({
+      const aggregate = await completePrivateCanonicalPackageWorkQueueProfessionalLongFormClaim({
         scope: input.current.scope,
         definition: input.current.queueDefinition,
         jobId: authority.identity.jobId,
@@ -742,6 +778,7 @@ async function executeRender(input: {
           professionalLongFormExecution: completion,
         },
         now: new Date().toISOString(),
+        faultInjectionForSmoke: input.completionFaultInjectionForSmoke,
       })
       return {
         authority,
@@ -779,6 +816,8 @@ async function executeQa(input: {
   current: CanonicalProfessionalLongFormCurrentChildPackageAuthority
   ownerUserId: string
   chunkIndex: number
+  completionFaultInjectionForSmoke?:
+    CanonicalProfessionalLongFormCompletionFaultForSmoke
 }): Promise<CompletedQaEvidence> {
   const authority = buildProfessionalLongFormFirstObjectChunkQaAuthority(input)
   assertUnexpired(authority.approval.reservationExpiresAt)
@@ -975,7 +1014,7 @@ async function executeQa(input: {
       terminalEvidenceRef: terminalRef,
     })
     const definition = claim.entry.definition
-    const aggregate = await completePrivateCanonicalPackageWorkQueueClaim({
+    const aggregate = await completePrivateCanonicalPackageWorkQueueProfessionalLongFormClaim({
       scope: input.current.scope,
       definition: input.current.queueDefinition,
       jobId: authority.identity.jobId,
@@ -996,6 +1035,7 @@ async function executeQa(input: {
         professionalLongFormExecution: completion,
       },
       now: new Date().toISOString(),
+      faultInjectionForSmoke: input.completionFaultInjectionForSmoke,
     })
     return {
       authority,

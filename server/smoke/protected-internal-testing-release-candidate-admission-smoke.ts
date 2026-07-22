@@ -36,8 +36,8 @@ assert.equal(report.counts.callableToolCandidates, 60)
 assert.equal(report.counts.confinedRunnerProofs, 53)
 assert.equal(report.counts.canonicalEndToEndToolProofs, 50)
 assert.equal(report.counts.canonicalJobAdapterProofs, 50)
-assert.equal(report.counts.canonicalV3LocalMigrations, 11)
-assert.ok(report.counts.canonicalV3ManifestVerifiedFiles >= 100)
+assert.equal(report.counts.canonicalV3LocalMigrations, 19)
+assert.ok(report.counts.canonicalV3ManifestVerifiedFiles >= 169)
 assert.deepEqual(report.evidence.routineLongForm, {
   profileId: 'routine_two_hour',
   durationSeconds: 7_200,

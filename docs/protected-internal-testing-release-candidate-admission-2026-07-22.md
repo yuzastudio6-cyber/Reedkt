@@ -41,8 +41,8 @@ The verifier requires:
   jobs;
 - the separate six-hour release-stress profile at 21,600 seconds and 255 jobs,
   retained but never executed by this admission or the routine pipeline;
-- checksum integrity for every file declared by the isolated canonical V3
-  local manifest;
+- checksum integrity for all 19 migrations and 169 files declared by the
+  isolated canonical V3 local manifest;
 - the canonical V3 database evidence remaining explicitly `local_only`, with
   `remoteMutationAllowed=false` and `productionAuthority=false`;
 - raw `supabase/migrations` retaining the reviewed

@@ -64,9 +64,12 @@ needs a later one-writer reconciliation onto this same proposal authority.
 
 ## Retained Proof
 
-`npm run smoke:canonical-professional-long-form-post-approval` passes 111/111
-checks on the actual six-hour, 512-range, 124-chunk, 255-job fixture. The proof
-executes a real later 4K object-chunk render as approved delivery attempt 2,
+Commit `170ee673a75e7ac375013f6d55ff588bf19b258c` retains 111/111 passing
+checks on the actual six-hour, 512-range, 124-chunk, 255-job fixture. The
+routine command now selects the two-hour profile; the explicit
+`smoke:canonical-professional-long-form-post-approval:release-six-hour` command
+re-runs this maximum-duration release stress profile. Both profiles execute a
+real later 4K object-chunk render as approved delivery attempt 2,
 persists its terminal proposal, then deliberately throws as if the worker
 process exited before queue completion. After clearing process state, the
 server-owned reconciler:
@@ -81,10 +84,10 @@ server-owned reconciler:
 7. lets the ordinary executor reopen the recovered render and execute only its
    still-pending independent QA job.
 
-The final retained graph remains honestly 8/255 complete, 247 queued, with
+The frozen six-hour graph remains honestly 8/255 complete, 247 queued, with
 nine total delivery attempts and one earlier failed attempt-1 timeout. The
-completion recovery adds reliability evidence, not another job or capability
-claim.
+routine profile is honestly 8/127 complete and 119 queued. The completion
+recovery adds reliability evidence, not another job or capability claim.
 
 Additional regressions remain green:
 
@@ -108,6 +111,6 @@ Still false:
 - deployed worker death detection, quiescence, and duplicate-process fencing;
 - GCS private-object revalidation and Cloud Run worker recovery;
 - customer-delivery adoption of this exact proposal authority;
-- execution of the remaining 247 six-hour jobs; and
+- execution of the remaining 119 routine jobs or 247 six-hour release jobs;
 - provider, billing, deployment, public delivery, product, external-beta, or
   production readiness.

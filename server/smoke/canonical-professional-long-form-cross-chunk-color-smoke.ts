@@ -1916,6 +1916,11 @@ try {
   await rm(localStorageRoot, { recursive: true, force: true })
 }
 
+// Node 26 + tsx can retain an idle HTTP/Undici handle after this smoke has
+// closed its server and deleted every private fixture. Errors skip this line,
+// so the explicit success exit cannot turn a failed assertion into a pass.
+process.exit(0)
+
 function createContext(): ServiceContext {
   const env = loadRuntimeEnv({
     NODE_ENV: 'test',

@@ -301,10 +301,17 @@ export function createCanonicalProfessionalLongFormFirstObjectChunkExecutionServ
         newlyExecuted = true
       }
       const aggregate = qa.queueAggregate
+      const expectedTotalJobCount = current.package.summary.childJobCount
       if (
         aggregate.summary.completedJobCount < 5 ||
-        aggregate.summary.totalJobCount !== 255 ||
-        aggregate.summary.queuedJobCount + aggregate.summary.completedJobCount !== 255 ||
+        expectedTotalJobCount !== current.queueDefinition.jobs.length ||
+        expectedTotalJobCount !== current.placementManifest.placements.length ||
+        expectedTotalJobCount !==
+          current.postApproval.childJobManifest.jobs.length ||
+        aggregate.entries.length !== expectedTotalJobCount ||
+        aggregate.summary.totalJobCount !== expectedTotalJobCount ||
+        aggregate.summary.queuedJobCount + aggregate.summary.completedJobCount !==
+          expectedTotalJobCount ||
         aggregate.summary.leasedJobCount !== 0 ||
         aggregate.summary.totalDeliveryAttemptCount !==
           aggregate.summary.completedJobCount ||

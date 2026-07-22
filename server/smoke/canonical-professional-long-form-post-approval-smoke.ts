@@ -18,9 +18,11 @@ import {
 } from '../edit-architecture/professional-long-form-approved-snapshot-bridge'
 import {
   PROFESSIONAL_LONG_FORM_CANONICAL_DEPENDENCY_CEILING,
+  PROFESSIONAL_LONG_FORM_GLOBAL_WORK_ITEM_COUNT,
   PROFESSIONAL_LONG_FORM_MAXIMUM_CHUNKS,
   PROFESSIONAL_LONG_FORM_MAXIMUM_SECONDS,
   PROFESSIONAL_LONG_FORM_MAXIMUM_SOURCE_RANGES,
+  PROFESSIONAL_LONG_FORM_TARGET_CHUNK_SECONDS,
   verifyProfessionalLongFormObjectPlanSeed,
 } from '../edit-architecture/professional-long-form-object-execution-plan'
 import {
@@ -169,13 +171,50 @@ import {
   activatePrivateOfflineMediaBinaryRuntime,
 } from '../tool-execution/media-binary-execution'
 
+const releaseSixHourArgument = '--release-six-hour'
+const unsupportedArguments = process.argv.slice(2).filter((argument) =>
+  argument !== releaseSixHourArgument)
+assert.deepEqual(
+  unsupportedArguments,
+  [],
+  `Unsupported professional long-form smoke arguments: ${unsupportedArguments.join(', ')}`,
+)
+
+const smokeProfile = process.argv.includes(releaseSixHourArgument)
+  ? {
+      id: 'release_six_hour' as const,
+      slug: 'six-hour',
+      durationSeconds: PROFESSIONAL_LONG_FORM_MAXIMUM_SECONDS,
+      sourceRangeCount: PROFESSIONAL_LONG_FORM_MAXIMUM_SOURCE_RANGES,
+      releaseGradeCapacityProof: true,
+    }
+  : {
+      id: 'routine_two_hour' as const,
+      slug: 'two-hour',
+      durationSeconds: 2 * 60 * 60,
+      sourceRangeCount: 200,
+      releaseGradeCapacityProof: false,
+    }
+
 const workspaceId = 'workspace-canonical-professional-long-form'
 const userId = 'user-canonical-professional-long-form'
-const editSessionId = 'edit-session-six-hour-object-authority'
-const planningRequestId = 'planning-six-hour-object-authority'
+const editSessionId = `edit-session-${smokeProfile.slug}-object-authority`
+const planningRequestId = `planning-${smokeProfile.slug}-object-authority`
 const fps = 30
-const totalFrames = PROFESSIONAL_LONG_FORM_MAXIMUM_SECONDS * fps
+const totalFrames = smokeProfile.durationSeconds * fps
 const sourceCount = 8
+const expectedChunkCount = Math.min(
+  Math.ceil(
+    smokeProfile.durationSeconds /
+      PROFESSIONAL_LONG_FORM_TARGET_CHUNK_SECONDS,
+  ),
+  PROFESSIONAL_LONG_FORM_MAXIMUM_CHUNKS,
+)
+const expectedChildJobCount =
+  expectedChunkCount * 2 + PROFESSIONAL_LONG_FORM_GLOBAL_WORK_ITEM_COUNT
+const expectedRemainingObjectChunkPairCount = expectedChunkCount - 2
+const expectedQueuedJobCountAfter = (completedJobCount: number): number =>
+  expectedChildJobCount - completedJobCount
 const localStorageRoot = join(
   tmpdir(),
   `reeditpro-canonical-professional-long-form-${process.pid}`,
@@ -201,7 +240,7 @@ try {
   const context = createContext()
   const project = (await createProjectService(context).createProject({
     workspaceId,
-    name: 'Canonical six-hour professional long-form authority',
+    name: `Canonical ${smokeProfile.slug} professional long-form authority`,
   })).project
   const planningInputAuthority = await preparePlanningInputAuthority(
     context,
@@ -251,7 +290,7 @@ try {
     ...body,
     projectId: project.id,
     editSessionId,
-    idempotencyKey: 'publish-six-hour-long-form-authority',
+    idempotencyKey: `publish-${smokeProfile.slug}-long-form-authority`,
     professionalLongFormSeedDraft: seedDraft,
   }
   const published = await planningService.publishCanonicalPlan(publishInput)
@@ -289,11 +328,11 @@ try {
   )
   check(
     persistedSeed.totalFrames === totalFrames &&
-      persistedSeed.sourceRanges.length === PROFESSIONAL_LONG_FORM_MAXIMUM_SOURCE_RANGES &&
+      persistedSeed.sourceRanges.length === smokeProfile.sourceRangeCount &&
       persistedSeed.confirmedOutputFrame.width === 3_840 &&
       persistedSeed.confirmedOutputFrame.height === 2_160 &&
       seedRef.sha256 === sha256AuthorityValue(persistedSeed),
-    'maximum_six_hour_4k_seed_is_content_addressed_in_the_canonical_plan',
+    `${smokeProfile.id}_4k_seed_is_content_addressed_in_the_canonical_plan`,
   )
   check(
     publishedWorkItems.length === 4 &&
@@ -325,7 +364,7 @@ try {
     expectedAuthorityRevision: Number(publishedAuthority.authorityRevision),
     expectedPlanHash: String(publishedPlan.planHash),
     expectedEstimateHash: String(publishedEstimate.estimateHash),
-    idempotencyKey: 'approve-six-hour-long-form-authority',
+    idempotencyKey: `approve-${smokeProfile.slug}-long-form-authority`,
   })
   const approvedAuthority = asRecord(approved.authority)
   const snapshot = asRecord(approvedAuthority.snapshot)
@@ -374,13 +413,13 @@ try {
     approvedPlanSnapshotId: String(snapshot.snapshotId),
   })
   check(
-    evidence.bridge.expandedGraph.chunkCount ===
-      PROFESSIONAL_LONG_FORM_MAXIMUM_CHUNKS &&
-      evidence.childJobManifest.summary.childJobCount === 255 &&
-      evidence.childJobManifest.jobs.length === 255 &&
+    evidence.bridge.expandedGraph.chunkCount === expectedChunkCount &&
+      evidence.childJobManifest.summary.childJobCount ===
+        expectedChildJobCount &&
+      evidence.childJobManifest.jobs.length === expectedChildJobCount &&
       evidence.childJobManifest.summary.maximumDependencyCount <
         PROFESSIONAL_LONG_FORM_CANONICAL_DEPENDENCY_CEILING,
-    'maximum_capacity_bridge_derives_124_chunks_and_255_bounded_child_jobs',
+    'selected_profile_bridge_derives_the_expected_bounded_chunk_and_child_job_graph',
   )
   check(
     evidence.childJobManifest.jobs.every((job) =>
@@ -500,23 +539,26 @@ try {
     'concurrent_promotion_creates_one_atomic_queue_commit_and_one_exact_replay',
   )
   check(
-    promotion.package.summary.childJobCount === 255 &&
-      promotion.placementManifest.placements.length === 255 &&
-      promotion.queueDefinition.jobs.length === 255 &&
-      promotion.queueAggregate.summary.totalJobCount === 255 &&
-      promotion.queueAggregate.summary.queuedJobCount === 255 &&
+    promotion.package.summary.childJobCount === expectedChildJobCount &&
+      promotion.placementManifest.placements.length === expectedChildJobCount &&
+      promotion.queueDefinition.jobs.length === expectedChildJobCount &&
+      promotion.queueAggregate.summary.totalJobCount === expectedChildJobCount &&
+      promotion.queueAggregate.summary.queuedJobCount === expectedChildJobCount &&
       promotion.queueAggregate.summary.leasedJobCount === 0 &&
       promotion.queueAggregate.summary.completedJobCount === 0 &&
       promotion.queueAggregate.events.length === 1,
-    'all_255_children_are_atomically_persisted_once_in_the_canonical_private_queue',
+    'all_profile_children_are_atomically_persisted_once_in_the_canonical_private_queue',
   )
   check(
     promotion.placementManifest.summary.controlPlaneJobCount === 2 &&
       promotion.placementManifest.summary.cpuAnalysisJobCount === 1 &&
-      promotion.placementManifest.summary.renderJobCount === 125 &&
-      promotion.placementManifest.summary.qaJobCount === 127 &&
+      promotion.placementManifest.summary.renderJobCount ===
+        expectedChunkCount + 1 &&
+      promotion.placementManifest.summary.qaJobCount ===
+        expectedChunkCount + 3 &&
       promotion.placementManifest.summary.privatelyExecutableJobCount === 0 &&
-      promotion.placementManifest.summary.blockedJobCount === 255,
+      promotion.placementManifest.summary.blockedJobCount ===
+        expectedChildJobCount,
     'server_frozen_profile_places_every_child_without_granting_execution_readiness',
   )
   check(
@@ -793,9 +835,9 @@ try {
   const downstreamSourceAuthority = completedQueue.entries.find((entry) =>
     entry.definition.approvedWorkItemId === 'long-form-validate-private-sources')
   check(
-    completedQueue.summary.totalJobCount === 255 &&
+    completedQueue.summary.totalJobCount === expectedChildJobCount &&
       completedQueue.summary.completedJobCount === 1 &&
-      completedQueue.summary.queuedJobCount === 254 &&
+      completedQueue.summary.queuedJobCount === expectedQueuedJobCountAfter(1) &&
       completedQueue.summary.leasedJobCount === 0 &&
       completedQueue.summary.totalDeliveryAttemptCount === 1 &&
       completedRoot?.state === 'completed' &&
@@ -1149,9 +1191,10 @@ try {
     entry.definition.approvedWorkItemId ===
       PROFESSIONAL_LONG_FORM_SOURCE_AUTHORITY_WORK_ITEM_ID)
   check(
-    sourceCompletedQueue.summary.totalJobCount === 255 &&
+    sourceCompletedQueue.summary.totalJobCount === expectedChildJobCount &&
       sourceCompletedQueue.summary.completedJobCount === 2 &&
-      sourceCompletedQueue.summary.queuedJobCount === 253 &&
+      sourceCompletedQueue.summary.queuedJobCount ===
+        expectedQueuedJobCountAfter(2) &&
       sourceCompletedQueue.summary.leasedJobCount === 0 &&
       sourceCompletedQueue.summary.totalDeliveryAttemptCount === 2 &&
       completedSourceEntry?.state === 'completed' &&
@@ -1167,14 +1210,14 @@ try {
   check(
     sourceArtifact.valid &&
       sourceArtifact.sourceCoverage.sourceRangeCount ===
-        PROFESSIONAL_LONG_FORM_MAXIMUM_SOURCE_RANGES &&
+        smokeProfile.sourceRangeCount &&
       sourceArtifact.sourceCoverage.approvedBindingCount === sourceCount &&
       sourceArtifact.sourceCoverage.requiredBindingCount === sourceCount &&
       sourceArtifact.sourceCoverage.referencedBindingCount === sourceCount &&
       sourceArtifact.sourceCoverage.localPrivateBindingCount === sourceCount &&
       sourceArtifact.sourceCoverage.googleCloudStorageBindingCount === 0 &&
       sourceArtifact.sourceCoverage.exactGenerationRangeCount ===
-        PROFESSIONAL_LONG_FORM_MAXIMUM_SOURCE_RANGES &&
+        smokeProfile.sourceRangeCount &&
       sourceArtifact.sourceCoverage.totalFrames === totalFrames &&
       sourceArtifact.hashes.sourceRangesHash ===
         completedSourceAuthority.authority.identity.expectedOutputIdentity &&
@@ -1185,17 +1228,17 @@ try {
       !sourceArtifact.readinessTruth.sourceFrameCapacityVerified &&
       !sourceArtifact.readinessTruth.sourceTransformed &&
       !sourceArtifact.readinessTruth.rendered,
-    'all_512_ranges_match_approved_bindings_cleanup_segments_and_gap_free_timeline_without_media_decode',
+    'all_profile_ranges_match_approved_bindings_cleanup_segments_and_gap_free_timeline_without_media_decode',
   )
   check(
     sourceQa.outcome === 'passed' &&
       sourceReconciliation.summary.directDownstreamCount ===
-        PROFESSIONAL_LONG_FORM_MAXIMUM_CHUNKS + 1 &&
+        expectedChunkCount + 1 &&
       sourceReconciliation.summary.renderJobCount ===
-        PROFESSIONAL_LONG_FORM_MAXIMUM_CHUNKS &&
+        expectedChunkCount &&
       sourceReconciliation.summary.continuousAudioJobCount === 1 &&
       sourceReconciliation.summary.remainingQueueJobCountAfterCompletion ===
-        253 &&
+        expectedQueuedJobCountAfter(2) &&
       sourceReconciliation.directDownstream.every((entry) =>
         entry.sourceDependencySatisfiedByThisCompletion &&
         !entry.executionAuthorized && entry.capabilityBlocked) &&
@@ -1204,7 +1247,7 @@ try {
         .directDownstreamDependencyEvidenceCreated &&
       !sourceTerminal.permissions.downstreamExecutionAuthorized &&
       !sourceTerminal.permissions.sourceMediaDecodeOrTransformAuthorized,
-    'source_qa_and_reconciliation_record_124_render_and_one_audio_dependency_without_execution_authority',
+    'source_qa_and_reconciliation_record_every_profile_render_and_audio_dependency_without_execution_authority',
   )
   check(
     sourceCost.boundary === 'internal_production_cost_only' &&
@@ -1284,7 +1327,8 @@ try {
         2 &&
       rootReplayAfterSourceCompletion.readiness
         .downstreamCurrentlyAuthorizedOrCompleted &&
-      rootReplayAfterSourceCompletion.readiness.remainingChildJobCount === 253 &&
+      rootReplayAfterSourceCompletion.readiness.remainingChildJobCount ===
+        expectedQueuedJobCountAfter(2) &&
       rootReplayAfterSourceCompletion.executionAttempt?.executionAttemptId ===
         firstChildAttempt.executionAttemptId &&
       rootReplayAfterSourceCompletion.validationArtifactRef?.sha256 ===
@@ -1595,9 +1639,10 @@ try {
     entry.definition.approvedWorkItemId ===
       PROFESSIONAL_LONG_FORM_MASTER_TIMING_WORK_ITEM_ID)
   check(
-    timingCompletedQueue.summary.totalJobCount === 255 &&
+    timingCompletedQueue.summary.totalJobCount === expectedChildJobCount &&
       timingCompletedQueue.summary.completedJobCount === 3 &&
-      timingCompletedQueue.summary.queuedJobCount === 252 &&
+      timingCompletedQueue.summary.queuedJobCount ===
+        expectedQueuedJobCountAfter(3) &&
       timingCompletedQueue.summary.leasedJobCount === 0 &&
       timingCompletedQueue.summary.totalDeliveryAttemptCount === 3 &&
       completedTimingEntry?.state === 'completed' &&
@@ -1623,9 +1668,9 @@ try {
       timingArtifact.timingCoverage.fps === fps &&
       timingArtifact.timingCoverage.totalFrames === totalFrames &&
       timingArtifact.timingCoverage.segmentCount ===
-        PROFESSIONAL_LONG_FORM_MAXIMUM_SOURCE_RANGES &&
+        smokeProfile.sourceRangeCount &&
       timingArtifact.timingCoverage.approvedHardCutCount ===
-        PROFESSIONAL_LONG_FORM_MAXIMUM_SOURCE_RANGES - 1 &&
+        smokeProfile.sourceRangeCount - 1 &&
       timingArtifact.timingCoverage.validationCategoryCount === 18 &&
       timingArtifact.validation.exactApprovedComponentRefs &&
       timingArtifact.validation.confirmedOutputFrameAndRationalRate &&
@@ -1644,13 +1689,13 @@ try {
   check(
     timingQa.outcome === 'passed' &&
       timingReconciliation.summary.directDownstreamCount ===
-        PROFESSIONAL_LONG_FORM_MAXIMUM_CHUNKS + 2 &&
+        expectedChunkCount + 2 &&
       timingReconciliation.summary.renderJobCount ===
-        PROFESSIONAL_LONG_FORM_MAXIMUM_CHUNKS &&
+        expectedChunkCount &&
       timingReconciliation.summary.continuousAudioJobCount === 1 &&
       timingReconciliation.summary.finalizationJobCount === 1 &&
       timingReconciliation.summary.remainingQueueJobCountAfterCompletion ===
-        252 &&
+        expectedQueuedJobCountAfter(3) &&
       timingReconciliation.directDownstream.every((entry) =>
         entry.timingDependencySatisfiedByThisCompletion &&
         !entry.executionAuthorized && entry.capabilityBlocked) &&
@@ -1658,7 +1703,7 @@ try {
       !timingTerminal.permissions.downstreamExecutionAuthorized &&
       !timingTerminal.permissions.mediaExecutionAuthorized &&
       !timingTerminal.permissions.renderAuthorized,
-    'timing_qa_reconciles_124_render_audio_and_finalizer_dependencies_without_execution_authority',
+    'timing_qa_reconciles_every_profile_render_audio_and_finalizer_dependency_without_execution_authority',
   )
   check(
     timingCost.boundary === 'internal_production_cost_only' &&
@@ -2150,9 +2195,11 @@ try {
   })
   check(
     completedFirstObjectChunk.disposition === 'completed' &&
-      completedFirstObjectChunk.queueAggregate.summary.totalJobCount === 255 &&
+      completedFirstObjectChunk.queueAggregate.summary.totalJobCount ===
+        expectedChildJobCount &&
       completedFirstObjectChunk.queueAggregate.summary.completedJobCount === 5 &&
-      completedFirstObjectChunk.queueAggregate.summary.queuedJobCount === 250 &&
+      completedFirstObjectChunk.queueAggregate.summary.queuedJobCount ===
+        expectedQueuedJobCountAfter(5) &&
       completedFirstObjectChunk.queueAggregate.summary.leasedJobCount === 0 &&
       completedFirstObjectChunk.queueAggregate.summary.totalDeliveryAttemptCount === 5,
     'first_real_4k_object_chunk_and_paired_qa_complete_exact_jobs_four_and_five',
@@ -2272,7 +2319,8 @@ try {
       replayedFirstObjectChunk.qa.artifact.qaHash ===
         completedFirstObjectChunk.qa.artifact.qaHash &&
       replayedFirstObjectChunk.queueAggregate.summary.completedJobCount === 5 &&
-      replayedFirstObjectChunk.queueAggregate.summary.queuedJobCount === 250,
+      replayedFirstObjectChunk.queueAggregate.summary.queuedJobCount ===
+        expectedQueuedJobCountAfter(5),
     'completed_first_object_chunk_and_qa_restart_reopen_as_exact_replay_without_redispatch',
   )
 
@@ -2298,12 +2346,14 @@ try {
   })
   check(
     completedProgramAudio.disposition === 'completed' &&
-      completedProgramAudio.queueAggregate.summary.totalJobCount === 255 &&
+      completedProgramAudio.queueAggregate.summary.totalJobCount ===
+        expectedChildJobCount &&
       completedProgramAudio.queueAggregate.summary.completedJobCount === 6 &&
-      completedProgramAudio.queueAggregate.summary.queuedJobCount === 249 &&
+      completedProgramAudio.queueAggregate.summary.queuedJobCount ===
+        expectedQueuedJobCountAfter(6) &&
       completedProgramAudio.queueAggregate.summary.leasedJobCount === 0 &&
       completedProgramAudio.queueAggregate.summary.totalDeliveryAttemptCount === 6,
-    'six_hour_continuous_program_audio_completes_exact_canonical_job_six',
+    'selected_profile_continuous_program_audio_completes_exact_canonical_job_six',
   )
   check(
     completedProgramAudio.programAudio.outputArtifact.contentType ===
@@ -2342,8 +2392,8 @@ try {
       completedProgramAudio.programAudio.qaArtifact.observed.expectedSamples ===
         totalFrames * 1_600 &&
       completedProgramAudio.programAudio.qaArtifact.observed.durationSeconds ===
-        PROFESSIONAL_LONG_FORM_MAXIMUM_SECONDS,
-    'independent_ffprobe_reopens_six_hour_flac_and_decodes_the_exact_sample_count_without_mutation',
+        smokeProfile.durationSeconds,
+    'independent_ffprobe_reopens_profile_flac_and_decodes_the_exact_sample_count_without_mutation',
   )
   const programAudioCosts = [
     completedProgramAudio.programAudio.assemblyCostEvidence,
@@ -2425,7 +2475,7 @@ try {
       approvedPlanSnapshotId: String(snapshot.snapshotId),
     }),
     'VALIDATION_FAILED',
-    'persisted_six_hour_program_audio_byte_tamper_fails_closed_after_restart',
+    'persisted_profile_program_audio_byte_tamper_fails_closed_after_restart',
   )
   const restoreProgramAudioHandle = await open(programAudioPath, 'r+')
   try {
@@ -2454,7 +2504,8 @@ try {
       replayedProgramAudio.programAudio.qaArtifact.qaHash ===
         completedProgramAudio.programAudio.qaArtifact.qaHash &&
       replayedProgramAudio.queueAggregate.summary.completedJobCount === 6 &&
-      replayedProgramAudio.queueAggregate.summary.queuedJobCount === 249,
+      replayedProgramAudio.queueAggregate.summary.queuedJobCount ===
+        expectedQueuedJobCountAfter(6),
     'completed_program_audio_and_independent_qa_restart_reopen_as_exact_replay_without_redispatch',
   )
 
@@ -2618,7 +2669,8 @@ try {
       recoveredSecondChunkAttempt.attemptInternalCostEvidence.outcome
         .failureCategory === 'timeout' &&
       recoveredSecondChunkAttempt.queue.completedJobCount === 6 &&
-      recoveredSecondChunkAttempt.queue.queuedJobCount === 249 &&
+      recoveredSecondChunkAttempt.queue.queuedJobCount ===
+        expectedQueuedJobCountAfter(6) &&
       recoveredSecondChunkAttempt.queue.leasedJobCount === 0 &&
       recoveredSecondChunkAttempt.queue.totalDeliveryAttemptCount === 7 &&
       recoveredSecondChunkAttempt.queue.expiredClaimRecoveryCount === 1 &&
@@ -2653,7 +2705,8 @@ try {
         recoveredSecondChunkAttempt.failure.failureHash &&
       replayedSecondChunkFailure.aggregate.summary.totalDeliveryAttemptCount ===
         7 &&
-      replayedSecondChunkFailure.aggregate.summary.queuedJobCount === 249 &&
+      replayedSecondChunkFailure.aggregate.summary.queuedJobCount ===
+        expectedQueuedJobCountAfter(6) &&
       replayedSecondChunkFailure.aggregate.summary.leasedJobCount === 0,
     'lost_failure_reconciliation_response_replays_exactly_without_another_attempt_or_cost',
   )
@@ -2752,9 +2805,11 @@ try {
         .status === 'completed' &&
       recoveredCompletedSecondChunk.attemptInternalCostEvidence.identity
         .retryAttempt === 2 &&
-      recoveredCompletedSecondChunk.queue.totalJobCount === 255 &&
+      recoveredCompletedSecondChunk.queue.totalJobCount ===
+        expectedChildJobCount &&
       recoveredCompletedSecondChunk.queue.completedJobCount === 7 &&
-      recoveredCompletedSecondChunk.queue.queuedJobCount === 248 &&
+      recoveredCompletedSecondChunk.queue.queuedJobCount ===
+        expectedQueuedJobCountAfter(7) &&
       recoveredCompletedSecondChunk.queue.leasedJobCount === 0 &&
       recoveredCompletedSecondChunk.queue.totalDeliveryAttemptCount === 8 &&
       recoveredCompletedSecondChunk.queue.expiredClaimRecoveryCount === 1 &&
@@ -2798,9 +2853,11 @@ try {
   check(
     completedSecondObjectChunk.disposition === 'completed' &&
       completedSecondObjectChunk.selectedChunkIndex === 2 &&
-      completedSecondObjectChunk.queueAggregate.summary.totalJobCount === 255 &&
+      completedSecondObjectChunk.queueAggregate.summary.totalJobCount ===
+        expectedChildJobCount &&
       completedSecondObjectChunk.queueAggregate.summary.completedJobCount === 8 &&
-      completedSecondObjectChunk.queueAggregate.summary.queuedJobCount === 247 &&
+      completedSecondObjectChunk.queueAggregate.summary.queuedJobCount ===
+        expectedQueuedJobCountAfter(8) &&
       completedSecondObjectChunk.queueAggregate.summary.leasedJobCount === 0 &&
       completedSecondObjectChunk.queueAggregate.summary
         .totalDeliveryAttemptCount === 9 &&
@@ -2821,8 +2878,10 @@ try {
       completedSecondObjectChunk.readiness.nonzeroSourceFrameRangesSupported &&
       completedSecondObjectChunk.readiness.technicalSplitBoundarySupported &&
       completedSecondObjectChunk.readiness.completedObjectChunkPairCount === 2 &&
-      completedSecondObjectChunk.readiness.totalObjectChunkPairCount === 124 &&
-      completedSecondObjectChunk.readiness.remainingObjectChunkPairCount === 122 &&
+      completedSecondObjectChunk.readiness.totalObjectChunkPairCount ===
+        expectedChunkCount &&
+      completedSecondObjectChunk.readiness.remainingObjectChunkPairCount ===
+        expectedRemainingObjectChunkPairCount &&
       !completedSecondObjectChunk.readiness.allObjectChunkPairsCompleted &&
       completedSecondObjectChunk.readiness.nextUniqueCapability ===
         'object_chunk_pair' &&
@@ -2860,14 +2919,16 @@ try {
 
   console.log(JSON.stringify({
     ok: true,
-    schemaVersion: 'canonical-professional-long-form-post-approval-smoke-v8',
+    schemaVersion: 'canonical-professional-long-form-post-approval-smoke-v9',
     checkCount: checks.length,
     checks,
     evidence: {
       approvedPlanSnapshotId: snapshot.snapshotId,
       approvedPlanSnapshotHash: snapshot.snapshotHash,
       planSeedSha256: seedRef.sha256,
-      durationSeconds: PROFESSIONAL_LONG_FORM_MAXIMUM_SECONDS,
+      profileId: smokeProfile.id,
+      releaseGradeCapacityProof: smokeProfile.releaseGradeCapacityProof,
+      durationSeconds: smokeProfile.durationSeconds,
       sourceRangeCount: persistedSeed.sourceRanges.length,
       chunkCount: evidence.bridge.expandedGraph.chunkCount,
       childJobCount: evidence.childJobManifest.summary.childJobCount,
@@ -3020,7 +3081,7 @@ async function preparePlanningInputAuthority(
     workspaceId,
     projectId,
     editSessionId,
-    idempotencyKey: 'initialize-six-hour-long-form-preferences',
+    idempotencyKey: `initialize-${smokeProfile.slug}-long-form-preferences`,
   })
   const updated = await service.updateCurrent({
     workspaceId,
@@ -3032,7 +3093,7 @@ async function preparePlanningInputAuthority(
       targetPlatform: 'youtube',
       cleanupPreference: 'balanced_cleanup',
     },
-    idempotencyKey: 'update-six-hour-long-form-preferences',
+    idempotencyKey: `update-${smokeProfile.slug}-long-form-preferences`,
   })
   const evidence = await service.recordPlanningEvidence({
     workspaceId,
@@ -3041,14 +3102,17 @@ async function preparePlanningInputAuthority(
     expectedRevision: updated.preferenceRecord.recordRevision,
     sourcePreparation: {
       status: 'ready',
-      evidenceHash: sha256Text('six-hour-long-form-source-preparation-ready'),
+      evidenceHash: sha256Text(
+        `${smokeProfile.slug}-long-form-source-preparation-ready`,
+      ),
     },
     frameConfirmation: {
       status: 'confirmed',
       aspectRatio: '16:9',
-      confirmationId: 'six-hour-long-form-frame-confirmation',
+      confirmationId: `${smokeProfile.slug}-long-form-frame-confirmation`,
     },
-    idempotencyKey: 'record-six-hour-long-form-planning-evidence',
+    idempotencyKey:
+      `record-${smokeProfile.slug}-long-form-planning-evidence`,
   })
   return {
     exactEditPreference: {
@@ -3059,10 +3123,11 @@ async function preparePlanningInputAuthority(
         evidence.preferenceRecord.values,
       ),
       sourcePreparationEvidenceHash: sha256Text(
-        'six-hour-long-form-source-preparation-ready',
+        `${smokeProfile.slug}-long-form-source-preparation-ready`,
       ),
       sourceCandidateHash: null,
-      frameConfirmationId: 'six-hour-long-form-frame-confirmation',
+      frameConfirmationId:
+        `${smokeProfile.slug}-long-form-frame-confirmation`,
     },
     preferenceApplication: {
       status: 'not_selected' as const,
@@ -3085,7 +3150,7 @@ async function prepareSourceMediaAuthority(
   const uploadService = createUploadService(context)
   const sourceSequence: SourceFixture['sourceSequence'] = []
   const sourceFrames = Math.ceil(
-    totalFrames / PROFESSIONAL_LONG_FORM_MAXIMUM_SOURCE_RANGES,
+    totalFrames / smokeProfile.sourceRangeCount,
   )
   const sourceDurationSeconds = sourceFrames / fps
   const baseSourcePath = join(localStorageRoot, 'fixture-4k-source-base.mp4')
@@ -3110,7 +3175,7 @@ async function prepareSourceMediaAuthority(
   for (let index = 0; index < sourceCount; index += 1) {
     const sourcePath = join(
       localStorageRoot,
-      `reeditpro-six-hour-source-${index + 1}-${process.pid}.mp4`,
+      `reeditpro-${smokeProfile.slug}-source-${index + 1}-${process.pid}.mp4`,
     )
     const generated = spawnSync('ffmpeg', [
       '-hide_banner', '-loglevel', 'error',
@@ -3186,7 +3251,7 @@ function createCanonicalPlanBody(input: {
   sourceFixture: SourceFixture
 }): PublishCanonicalEditPlanBody {
   const professionalExportCoverage = buildProfessionalExportCreditCoverage({
-    durationSeconds: PROFESSIONAL_LONG_FORM_MAXIMUM_SECONDS,
+    durationSeconds: smokeProfile.durationSeconds,
     outputFps: fps,
     approvedAspectRatio: '16:9',
   })
@@ -3224,7 +3289,7 @@ function createCanonicalPlanBody(input: {
   const components: PublishCanonicalEditPlanBody['canonicalPlan']['components'] = {
     compiledIntent: {
       goal:
-        'Create a professional six-hour multi-source edit through object-backed frame-exact execution.',
+        `Create a professional ${smokeProfile.slug} multi-source edit through object-backed frame-exact execution.`,
     },
     professionalEditingDirective: {
       pacing: 'source-led',
@@ -3480,12 +3545,12 @@ function buildSourceRanges(
   runtimeRegion: 'us-east1' | 'europe-west1' = 'us-east1',
 ) {
   const baseFrames = Math.floor(
-    totalFrames / PROFESSIONAL_LONG_FORM_MAXIMUM_SOURCE_RANGES,
+    totalFrames / smokeProfile.sourceRangeCount,
   )
-  const remainder = totalFrames % PROFESSIONAL_LONG_FORM_MAXIMUM_SOURCE_RANGES
+  const remainder = totalFrames % smokeProfile.sourceRangeCount
   let timelineStartFrame = 0
   return Array.from(
-    { length: PROFESSIONAL_LONG_FORM_MAXIMUM_SOURCE_RANGES },
+    { length: smokeProfile.sourceRangeCount },
     (_, index) => {
       const durationFrames = baseFrames + (index < remainder ? 1 : 0)
       const sourceIndex = index % sourceFixture.sourceSequence.length

@@ -36,6 +36,8 @@ export function getServiceContext(request: Request): ServiceContext {
       runtimeRequest.runtime.editReferenceStudyChatRuntimePort,
     canonicalMotionStudioStorytellingProductionAuthorityReaderPort:
       runtimeRequest.runtime.canonicalMotionStudioStorytellingProductionAuthorityReaderPort,
+    canonicalVisualCalibrationReferenceFrameReaderPort:
+      runtimeRequest.runtime.canonicalVisualCalibrationReferenceFrameReaderPort,
     editReferenceExactEditApplyRuntimePort:
       runtimeRequest.runtime.editReferenceExactEditApplyRuntimePort,
     editReferenceApplicationPreparationRuntimePort:

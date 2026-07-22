@@ -35,6 +35,10 @@ import {
   assertCanonicalStorytellingSpeechNormalizationWorkItem,
 } from './canonical-storytelling-speech-normalization-authority'
 import {
+  assertCanonicalVisualCalibrationObjectiveQaWorkItem,
+  CANONICAL_VISUAL_CALIBRATION_OBJECTIVE_QA_EXECUTION_OPERATION,
+} from './canonical-visual-calibration-objective-qa-authority'
+import {
   validateOfflineRemotionLongFormMergePlanningPayload,
 } from '../tool-execution/remotion-render-execution/offline-remotion-long-form-merge-protocol'
 import {
@@ -181,11 +185,15 @@ export interface CanonicalToolPayloadWorkItem {
   sourceCleanupDecisionIds: string[]
   dependencyKeys: string[]
   approvedToolIds: string[]
+  providerExecutionMode?: string
+  maxAttempts?: number
   expectedOutputs: Array<{
     outputKey: string
+    artifactType?: string
     assetRole: 'processed' | 'generated' | 'qa' | 'preview' | 'final'
     contentType?: string
     required: boolean
+    previewPlaceholderAllowed?: boolean
   }>
   required: boolean
 }
@@ -373,6 +381,14 @@ function validateByRunnerFamily(
     return 'sharp'
   }
   if (toolId === 'ffmpeg') {
+    if (
+      workItem.executionInput.operation ===
+        CANONICAL_VISUAL_CALIBRATION_OBJECTIVE_QA_EXECUTION_OPERATION
+    ) {
+      assertCanonicalVisualCalibrationObjectiveQaWorkItem(workItem)
+      requireBinding(workItem, { source: 0, cleanup: 0, dependencies: 1 })
+      return 'media_ffmpeg'
+    }
     if (
       workItem.executionInput.operation ===
         'normalize_approved_storytelling_speech_take'
@@ -669,11 +685,20 @@ function validateArtifactAndNetworkPolicy(
     workItem.expectedOutputs.length === 1 &&
     workItem.expectedOutputs[0]?.assetRole === 'final' &&
     workItem.expectedOutputs[0]?.contentType === 'video/mp4'
+  const exactVisualCalibrationObjectiveQa = spec.canonicalToolId === 'ffmpeg' &&
+    workItem.workItemType === 'run_asset_qa' &&
+    workItem.workerClass === 'qa_worker' &&
+    workItem.executionInput.operation ===
+      CANONICAL_VISUAL_CALIBRATION_OBJECTIVE_QA_EXECUTION_OPERATION &&
+    workItem.expectedOutputs.length === 1 &&
+    workItem.expectedOutputs[0]?.assetRole === 'qa' &&
+    workItem.expectedOutputs[0]?.contentType === 'application/json'
   for (const output of workItem.expectedOutputs) {
     if (
       !output.contentType ||
       (!allowedContentTypes.includes(output.contentType) &&
-        !(exactFfmpegMezzanineFinalization && output.contentType === 'video/mp4'))
+        !(exactFfmpegMezzanineFinalization && output.contentType === 'video/mp4') &&
+        !(exactVisualCalibrationObjectiveQa && output.contentType === 'application/json'))
     ) {
       throw invalidPayload(
         'Canonical tool output content type is not covered by exact private artifact evidence.',

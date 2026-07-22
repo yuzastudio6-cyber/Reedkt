@@ -336,6 +336,7 @@ export const CANONICAL_EDIT_WORK_ITEM_TYPES = [
   'prepare_caption_timing',
   'prepare_visual_cue_timing',
   'prepare_soundsync_timing',
+  'generate_visual_calibration_candidate',
   'generate_image_asset',
   'generate_ai_video_asset',
   'render_map_asset',

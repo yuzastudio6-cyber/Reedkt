@@ -8,6 +8,10 @@ import {
 import {
   assertCanonicalStorytellingSpeechNormalizationWorkItem,
 } from '../edit-architecture/canonical-storytelling-speech-normalization-authority'
+import {
+  assertCanonicalVisualCalibrationObjectiveQaWorkItem,
+  CANONICAL_VISUAL_CALIBRATION_OBJECTIVE_QA_EXECUTION_OPERATION,
+} from '../edit-architecture/canonical-visual-calibration-objective-qa-authority'
 import { ApiError } from '../errors/api-error'
 import { isExplicitLocalInternalTestRuntime } from '../middleware/canonical-worker-runtime'
 import {
@@ -247,6 +251,7 @@ export function createCanonicalPrivateToolDispatchAuthorityService(context: Serv
               leaseExecutionFenceState: 'not_started' as const,
               reservationId: authority.reservation.id,
               maximumCreditBudget: canonical.workItem.maximumCreditBudget,
+              costAuthorizationClass: canonical.costAuthorizationClass,
               remainingReservedCreditsAtDecision: canonical.remainingReservedCredits,
               expectedOutput: safeExpectedOutputBinding(canonical.expectedAsset),
             }
@@ -621,6 +626,9 @@ function resolveAndVerifyCanonicalDispatchBinding(input: {
   job: AuthorityDerivedJobRecord
   expectedAsset: AuthorityPlannedAssetManifestEntry
   remainingReservedCredits: number
+  costAuthorizationClass:
+    | 'customer_credit_reservation'
+    | 'approved_internal_production_cost_only'
 } {
   const { body, lease, readiness, authority } = input
   const currentHashes = canonicalHashesFromReadiness(readiness)
@@ -767,6 +775,31 @@ function resolveAndVerifyCanonicalDispatchBinding(input: {
       409,
     )
   }
+  const visualCalibrationObjectiveQa =
+    workItem.executionInput.operation ===
+      CANONICAL_VISUAL_CALIBRATION_OBJECTIVE_QA_EXECUTION_OPERATION
+  if (visualCalibrationObjectiveQa) {
+    assertCanonicalVisualCalibrationObjectiveQaWorkItem(workItem)
+    if (
+      body.operationId !==
+        'tool.ffmpeg.execute_approved_media_recipe.v1' ||
+      expectedAsset.assetRole !== 'qa' ||
+      expectedAsset.contentType !== 'application/json' ||
+      workItem.maximumCreditBudget !== 0 ||
+      lease.dependencyAuthority.state !==
+        'private_test_dependencies_verified' ||
+      lease.dependencyAuthority.selectedArtifacts.length !== 1 ||
+      !readiness.job.dependencyJobIds.includes(
+        lease.dependencyAuthority.selectedArtifacts[0]!.dependencyJobId,
+      )
+    ) throw new ApiError(
+      'JOB_DEPENDENCY_NOT_READY',
+      'Visual-calibration objective QA requires one exact provider MP4 dependency.',
+      409,
+    )
+  }
+  const exactInternalProductionCostOnlyQa =
+    visualCalibrationObjectiveQa && workItem.maximumCreditBudget === 0
   const exactPrivateRemotionPreview =
     workItem.workerClass === 'render_worker' &&
     workItem.workItemType === 'render_remotion_preview' &&
@@ -967,8 +1000,10 @@ function resolveAndVerifyCanonicalDispatchBinding(input: {
     authority.reservation.id !== readiness.reservation.reservationId ||
     remainingReservedCredits !== readiness.reservation.remainingReservedCredits ||
     remainingReservedCredits <= 0 ||
-    workItem.maximumCreditBudget <= 0 ||
-    workItem.maximumCreditBudget > remainingReservedCredits ||
+    (!exactInternalProductionCostOnlyQa && (
+      workItem.maximumCreditBudget <= 0 ||
+      workItem.maximumCreditBudget > remainingReservedCredits
+    )) ||
     Date.parse(authority.reservation.expiresAt) <= Date.now()
   ) {
     throw new ApiError(
@@ -977,7 +1012,15 @@ function resolveAndVerifyCanonicalDispatchBinding(input: {
       409,
     )
   }
-  return { workItem, job, expectedAsset, remainingReservedCredits }
+  return {
+    workItem,
+    job,
+    expectedAsset,
+    remainingReservedCredits,
+    costAuthorizationClass: exactInternalProductionCostOnlyQa
+      ? 'approved_internal_production_cost_only'
+      : 'customer_credit_reservation',
+  }
 }
 
 function resolveAndVerifyToolContract(
@@ -1658,6 +1701,9 @@ function assertCurrentGrantEvidence(input: {
     workItem: CanonicalApprovedExecutionWorkItem
     expectedAsset: AuthorityPlannedAssetManifestEntry
     remainingReservedCredits: number
+    costAuthorizationClass:
+      | 'customer_credit_reservation'
+      | 'approved_internal_production_cost_only'
   }
   toolSpecHash: string
   runtimeEvidenceAuthorityHash: string
@@ -1684,6 +1730,9 @@ function assertCurrentGrantEvidence(input: {
     input.record.binding.expectedAssetId !== input.canonical.expectedAsset.id ||
     input.record.binding.reservationId !== input.authority.reservation.id ||
     input.record.binding.maximumCreditBudget !== input.canonical.workItem.maximumCreditBudget ||
+    (input.record.binding.costAuthorizationClass ??
+      'customer_credit_reservation') !==
+      input.canonical.costAuthorizationClass ||
     input.canonical.remainingReservedCredits < input.record.binding.maximumCreditBudget ||
     input.record.toolOperationSpecHash !== input.toolSpecHash ||
     input.record.runtimeEvidenceAuthorityHash !== input.runtimeEvidenceAuthorityHash ||

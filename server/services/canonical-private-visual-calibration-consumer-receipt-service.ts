@@ -53,6 +53,39 @@ export interface ProjectCanonicalVisualCalibrationConsumerReceiptInput {
 }
 
 /**
+ * Identifies the immutable provider attempt without coupling its identity to
+ * unrelated jobs that may advance in the same package queue or dispatch
+ * aggregate after this attempt has completed.
+ *
+ * The admission receipt still retains the exact aggregate hashes observed at
+ * projection time. Revalidation separately re-reads those canonical stores,
+ * then compares this attempt-scoped digest so a downstream QA claim cannot
+ * make an otherwise immutable provider output appear to have changed.
+ */
+export function canonicalVisualCalibrationProviderAttemptSourceDigest(
+  receipt: CanonicalProviderAttemptConsumerReceipt,
+): string {
+  const parsed = canonicalProviderAttemptConsumerReceiptSchema.parse(receipt)
+  const source = Object.fromEntries(
+    Object.entries(parsed).filter(([key]) =>
+      !['receiptHash', 'queue', 'dispatch'].includes(key)),
+  )
+  const queue = Object.fromEntries(
+    Object.entries(parsed.queue).filter(([key]) => key !== 'aggregateHash'),
+  )
+  const dispatch = Object.fromEntries(
+    Object.entries(parsed.dispatch).filter(([key]) => key !== 'aggregateHash'),
+  )
+  return sha256AuthorityValue({
+    domain:
+      'reeditpro:canonical-visual-calibration-provider-attempt-source:v1',
+    source,
+    queue,
+    dispatch,
+  })
+}
+
+/**
  * Projects one compact source-verified receipt from canonical package, queue,
  * dispatch, candidate, provider-cost, and worker-resource stores. The caller
  * cannot supply outcome, cost, output, route, or readiness evidence.
@@ -482,7 +515,7 @@ function verifyAuthorization(
   const workItem = input.executionPackage.approvedWorkItems.find((candidate) =>
     candidate.id === authorization.approvedWorkItemId)
   const expectedOutput = workItem?.expectedOutputs.find((candidate) =>
-    candidate.outputKey === authorization.expectedOutputId)
+    candidate.outputKey === authorization.expectedOutputKey)
   const expectedOutputSetHash = sha256AuthorityValue({
     domain: 'reeditpro:canonical-provider-expected-output-set:v4',
     operationProfileHash: profile.profileHash,

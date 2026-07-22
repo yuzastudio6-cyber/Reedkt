@@ -1006,7 +1006,7 @@ async function verifySelectedDependencyArtifacts(input: {
               'actual_provider_attempt_receipt_verified_v1' &&
             authority.artifact.actualRunEvidence.runnerClass ===
               'canonical_private_provider_attempt_receipt_v2' &&
-            ['audio/mpeg', 'application/json'].includes(
+            ['audio/mpeg', 'application/json', 'video/mp4'].includes(
               authority.artifact.content.contentType,
             )
           ? await verifyCanonicalPrivateProviderOutputArtifact({

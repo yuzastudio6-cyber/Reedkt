@@ -349,7 +349,8 @@ function providerOutputAdapters(input: {
             providerOperationId: input.receipt.provider.operationId,
             providerRoute: input.receipt.provider.providerRouteId,
             providerOutputRole: input.output.role,
-            providerAuthorizationHash: input.receipt.identity.authorizationHash,
+            providerWorkAuthorityDigest:
+              input.receipt.identity.authorizationHash,
             providerTerminalHash: input.receipt.dispatch.terminalHash,
             providerOutputSetDigest: input.receipt.outputSet.outputSetDigest,
             providerReceiptHash: input.receipt.receiptHash,

@@ -49,6 +49,8 @@ export interface ReeditProApiAppOptions {
   editReferenceStudyChatRuntimePort?: EditReferenceStudyChatRuntimePort
   canonicalMotionStudioStorytellingProductionAuthorityReaderPort?:
     CanonicalMotionStudioStorytellingProductionAuthorityReaderPort
+  canonicalVisualCalibrationReferenceFrameReaderPort?:
+    RuntimeState['canonicalVisualCalibrationReferenceFrameReaderPort']
   editReferenceExactEditApplyRuntimePort?: EditReferenceExactEditApplyRuntimePort
   editReferenceApplicationPreparationRuntimePort?: EditReferenceApplicationPreparationRuntimePort
   editReferenceLongFormStudyRuntimePort?: RuntimeState['editReferenceLongFormStudyRuntimePort']
@@ -78,6 +80,12 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
       ? {
           canonicalMotionStudioStorytellingProductionAuthorityReaderPort:
             options.canonicalMotionStudioStorytellingProductionAuthorityReaderPort,
+        }
+      : {}),
+    ...(options.canonicalVisualCalibrationReferenceFrameReaderPort
+      ? {
+          canonicalVisualCalibrationReferenceFrameReaderPort:
+            options.canonicalVisualCalibrationReferenceFrameReaderPort,
         }
       : {}),
     ...(options.editReferenceExactEditApplyRuntimePort

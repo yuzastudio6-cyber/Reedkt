@@ -6,6 +6,10 @@ import {
   assertCanonicalStorytellingSpeechNormalizationWorkItem,
 } from '../edit-architecture/canonical-storytelling-speech-normalization-authority'
 import {
+  assertCanonicalVisualCalibrationObjectiveQaWorkItem,
+  CANONICAL_VISUAL_CALIBRATION_OBJECTIVE_QA_EXECUTION_OPERATION,
+} from '../edit-architecture/canonical-visual-calibration-objective-qa-authority'
+import {
   CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_CAPACITY_PROFILE_ID,
 } from '../../src/types/canonical-private-composition-capacity'
 import {
@@ -14,6 +18,7 @@ import {
   OFFLINE_MEDIA_BINARY_STREAM_PROTOCOL,
   OFFLINE_MEDIA_BINARY_MEZZANINE_FINALIZATION_MAXIMUM_CHUNK_BYTES,
   OFFLINE_MEDIA_BINARY_MEZZANINE_FINALIZATION_MAXIMUM_OUTPUT_BYTES,
+  buildOfflineMediaBinaryVisualCalibrationObjectiveQaRequest,
   buildOfflineMediaBinaryMezzanineFinalizationRequest,
   openPrivateOfflineMediaBinaryRuntime,
   readPersistedOfflineMediaBinaryRuntimeAuthority,
@@ -28,6 +33,7 @@ import {
   type OfflineFfmpegStorytellingSpeechTakeNormalizationPlanningPayload,
   type OfflineFfmpegMezzanineFinalizationExecutionResult,
   type OfflineFfprobeExecutionResult,
+  type OfflineVisualCalibrationObjectiveQaExecutionResult,
 } from '../tool-execution/media-binary-execution'
 import {
   validateOfflineRemotionFinalCompositionPlanningPayload,
@@ -108,6 +114,12 @@ import { sha256ArtifactQaValue, stableArtifactQaStringify } from './private-arti
 import { sha256AuthorityValue } from './private-edit-authority-store'
 import { getRequiredAuthUserId } from './service-helpers'
 import { authorizeWorkspaceAccess } from './workspace-access-service'
+import {
+  readCanonicalVisualCalibrationReferenceFrames,
+} from './canonical-visual-calibration-reference-frame-reader-port'
+import type {
+  VerifiedCanonicalPrivateSpeechProviderOutputArtifact,
+} from './canonical-private-provider-output-artifact-verifier'
 
 const RUNNER_CLASS = 'offline_media_binary_execution_v1' as const
 const DIRECT_FINAL_COMPOSITION_OPERATIONS: ReadonlySet<string> = new Set([
@@ -813,7 +825,16 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
           throw error
         }
       }
-      const ffmpegPlanningPayload = toolId === 'ffmpeg'
+      const visualCalibrationObjectiveQaPayload =
+        toolId === 'ffmpeg' && workItem.executionInput.operation ===
+          CANONICAL_VISUAL_CALIBRATION_OBJECTIVE_QA_EXECUTION_OPERATION
+          ? assertCanonicalVisualCalibrationObjectiveQaWorkItem(workItem)
+          : undefined
+      const visualCalibrationObjectiveQa = Boolean(
+        visualCalibrationObjectiveQaPayload,
+      )
+      const ffmpegPlanningPayload = toolId === 'ffmpeg' &&
+        !visualCalibrationObjectiveQa
         ? validateOfflineFfmpegPlanningPayload(workItem.executionInput.structuredPayload)
         : undefined
       const storytellingSpeechPayload = ffmpegPlanningPayload?.recipeProfileId ===
@@ -821,7 +842,9 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
         ? assertCanonicalStorytellingSpeechNormalizationWorkItem(workItem)
         : undefined
       const storytellingSpeechNormalization = Boolean(storytellingSpeechPayload)
-      const contentType = toolId === 'ffmpeg'
+      const contentType = visualCalibrationObjectiveQa
+        ? 'application/json' as const
+        : toolId === 'ffmpeg'
         ? ffmpegPlanningPayload?.recipeProfileId === 'approved_voice_delivery_wav_v1' ||
           storytellingSpeechNormalization
           ? 'audio/wav' as const
@@ -856,7 +879,15 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
           binding.expectedOutput.assetRole !== 'processed' ||
           binding.expectedOutput.contentType !== 'audio/wav'
         )) ||
-        (!dependencyFinalQa && !storytellingSpeechNormalization && (
+        (visualCalibrationObjectiveQa && (
+          workItem.sourceSequenceItemIds.length !== 0 ||
+          workItem.sourceCleanupDecisionIds.length !== 0 ||
+          workItem.dependencyKeys.length !== 1 ||
+          binding.expectedOutput.assetRole !== 'qa' ||
+          binding.expectedOutput.contentType !== 'application/json'
+        )) ||
+        (!dependencyFinalQa && !storytellingSpeechNormalization &&
+          !visualCalibrationObjectiveQa && (
           workItem.sourceSequenceItemIds.length !== 1 ||
           workItem.sourceCleanupDecisionIds.length !== 1 ||
           workItem.dependencyKeys.length !== (referenceColorMatch ? 1 : 0)
@@ -865,7 +896,9 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
       const ffprobePlanningPayload = toolId === 'ffprobe'
         ? validateOfflineFfprobePlanningPayload(workItem.executionInput.structuredPayload)
         : undefined
-      const planningPayload = toolId === 'ffmpeg'
+      const planningPayload = visualCalibrationObjectiveQa
+        ? visualCalibrationObjectiveQaPayload!
+        : toolId === 'ffmpeg'
         ? ffmpegPlanningPayload!
         : ffprobePlanningPayload!
       if (
@@ -880,6 +913,8 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
         !runtimeAuthority || !runtimeAuthority.readiness.privateInternalExecutionReady ||
         (storytellingSpeechNormalization &&
           !runtimeAuthority.readiness.privateInternalStorytellingSpeechNormalizationReady) ||
+        (visualCalibrationObjectiveQa &&
+          !runtimeAuthority.readiness.privateInternalVisualCalibrationObjectiveQaReady) ||
         runtimeAuthority.readiness.productReady || runtimeAuthority.readiness.finalExportReady ||
         !runtimeAuthority.supportedOperations.some((candidate) =>
           candidate.toolId === toolId && candidate.operationId === binding.operationId)
@@ -900,6 +935,11 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
       let dependencyRead: CanonicalPrivateDependencyArtifactStreamReadResult | undefined
       let alignmentDependencyRead: CanonicalPrivateDependencyArtifactReadResult | undefined
       let referenceDependencyRead: CanonicalPrivateDependencyArtifactReadResult | undefined
+      let visualReferenceFrames: Awaited<ReturnType<
+        typeof readCanonicalVisualCalibrationReferenceFrames
+      >> | undefined
+      let visualProviderEvidence: VisualCalibrationProviderDependencyEvidence |
+        undefined
       let sourceRead: CanonicalPrivateStagedSourceReadResult | undefined
       let stagedSourceSet: CanonicalPrivateStagedSourceSet | undefined
       let finalMediaExpectation: CanonicalPrivateFinalMediaExpectation | undefined
@@ -909,9 +949,68 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
       let privateObjectIdentityHash: string | undefined
       let mediaOutputStreamPersisted = false
       let executionResult!: OfflineFfprobeExecutionResult | OfflineFfmpegExecutionResult |
-        OfflineFfmpegStreamingOutputExecutionResult
+        OfflineFfmpegStreamingOutputExecutionResult |
+        OfflineVisualCalibrationObjectiveQaExecutionResult
       try {
-        if (dependencyFinalQa) {
+        if (visualCalibrationObjectiveQa) {
+          dependencyRead = await createCanonicalPrivateDependencyArtifactReadService(
+            context,
+          ).readSingleSelectedArtifactStream({
+            workspaceId: body.workspaceId,
+            projectId: body.projectId,
+            editSessionId: body.editSessionId,
+            snapshotId: authority.snapshot.snapshotId,
+            currentJobId: body.jobId,
+            currentApprovedWorkItemId: workItem.id,
+            leaseId: injected.leaseId,
+            leaseCredential: injected.leaseCredential,
+            executionAttemptId,
+            dispatchGrantId: body.grantId,
+            dependencyAuthority: begun.lease.dependencyAuthority,
+            allowedContentTypes: ['video/mp4'],
+            maximumBytes: 67_108_864,
+          })
+          visualProviderEvidence = assertVisualCalibrationProviderDependency({
+            dependency: dependencyRead,
+            payload: visualCalibrationObjectiveQaPayload!,
+            workItemId: workItem.id,
+            expectedAssetId: expectedAsset.id,
+            snapshotId: authority.snapshot.snapshotId,
+          })
+          visualReferenceFrames =
+            await readCanonicalVisualCalibrationReferenceFrames({
+              port: context.canonicalVisualCalibrationReferenceFrameReaderPort,
+              request: {
+                ownerUserId: access.userId,
+                workspaceId: body.workspaceId,
+                projectId: body.projectId,
+                editSessionId: body.editSessionId,
+                approvedPlanSnapshotId: authority.snapshot.snapshotId,
+                approvedWorkItemId: workItem.id,
+                jobId: body.jobId,
+                executionAttemptId,
+                visualCalibrationContextDigest:
+                  visualCalibrationObjectiveQaPayload!
+                    .visualCalibrationContextDigest,
+                firstFrame: {
+                  assetId: visualCalibrationObjectiveQaPayload!
+                    .firstFrameReference.assetId,
+                  expectedAssetVersionId: visualCalibrationObjectiveQaPayload!
+                    .firstFrameReference.assetVersionId,
+                  expectedSha256: visualCalibrationObjectiveQaPayload!
+                    .firstFrameReference.expectedSha256,
+                },
+                lastFrame: {
+                  assetId: visualCalibrationObjectiveQaPayload!
+                    .lastFrameReference.assetId,
+                  expectedAssetVersionId: visualCalibrationObjectiveQaPayload!
+                    .lastFrameReference.assetVersionId,
+                  expectedSha256: visualCalibrationObjectiveQaPayload!
+                    .lastFrameReference.expectedSha256,
+                },
+              },
+            })
+        } else if (dependencyFinalQa) {
           dependencyRead = await createCanonicalPrivateDependencyArtifactReadService(context)
             .readSingleSelectedArtifactStream({
               workspaceId: body.workspaceId, projectId: body.projectId,
@@ -1037,7 +1136,27 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
         }
         inputByteLength = dependencyRead?.byteLength ?? sourceRead!.byteLength
         inputSha256 = dependencyRead?.sha256 ?? sourceRead!.sha256
-        inputReadEvidenceHash = alignmentDependencyRead
+        inputReadEvidenceHash = visualCalibrationObjectiveQa
+          ? sha256ArtifactQaValue({
+              domain:
+                'canonical_visual_calibration_objective_qa_input_read_v1',
+              providerDependencyReadEvidenceHash:
+                dependencyRead!.dependencyReadEvidenceHash,
+              providerReceiptHash:
+                visualProviderEvidence!.providerReceiptHash,
+              providerOutputSetDigest:
+                visualProviderEvidence!.providerOutputSetDigest,
+              providerCandidateReadbackEvidenceHash:
+                visualProviderEvidence!.providerCandidateReadbackEvidenceHash,
+              firstFrameReadbackEvidenceHash:
+                visualReferenceFrames!.firstFrame.readbackEvidenceHash,
+              lastFrameReadbackEvidenceHash:
+                visualReferenceFrames!.lastFrame.readbackEvidenceHash,
+              visualCalibrationContextDigest:
+                visualCalibrationObjectiveQaPayload!
+                  .visualCalibrationContextDigest,
+            })
+          : alignmentDependencyRead
           ? sha256ArtifactQaValue({
               domain:
                 'canonical_storytelling_speech_provider_output_set_read_v1',
@@ -1064,7 +1183,9 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
           workspaceId: body.workspaceId, snapshotId: authority.snapshot.snapshotId,
           jobId: body.jobId, expectedAssetId: expectedAsset.id,
           dispatchGrantId: body.grantId, executionAttemptId,
-          inputKind: storytellingSpeechNormalization
+          inputKind: visualCalibrationObjectiveQa
+            ? 'verified_visual_calibration_provider_output'
+            : storytellingSpeechNormalization
             ? 'verified_storytelling_speech_provider_output_set'
             : dependencyFinalQa
             ? 'qa_passed_dependency_artifact'
@@ -1100,7 +1221,57 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
               openStream: dependencyRead.openStream,
             }
           : sourceRead!.sourceInput
-        if (toolId === 'ffmpeg') {
+        if (visualCalibrationObjectiveQa) {
+          const visualRequest =
+            buildOfflineMediaBinaryVisualCalibrationObjectiveQaRequest({
+              sourceProviderOperationId:
+                visualCalibrationObjectiveQaPayload!
+                  .sourceProviderOperationId,
+              sourceProviderOutputRole:
+                visualCalibrationObjectiveQaPayload!
+                  .sourceProviderOutputRole,
+              visualCalibrationContextDigest:
+                visualCalibrationObjectiveQaPayload!
+                  .visualCalibrationContextDigest,
+              scenarioKind:
+                visualCalibrationObjectiveQaPayload!
+                  .calibrationScenarioKind,
+              candidate: {
+                byteLength: dependencyRead!.byteLength,
+                sha256: dependencyRead!.sha256,
+                privateObjectIdentityHash:
+                  visualProviderEvidence!.privateObjectIdentityHash,
+              },
+              firstFrame: {
+                assetId: visualReferenceFrames!.firstFrame.assetId,
+                assetVersionId:
+                  visualReferenceFrames!.firstFrame.assetVersionId,
+                byteLength: visualReferenceFrames!.firstFrame.byteLength,
+                sha256: visualReferenceFrames!.firstFrame.sha256,
+                privateObjectIdentityHash:
+                  visualReferenceFrames!.firstFrame
+                    .privateObjectIdentityHash,
+              },
+              lastFrame: {
+                assetId: visualReferenceFrames!.lastFrame.assetId,
+                assetVersionId:
+                  visualReferenceFrames!.lastFrame.assetVersionId,
+                byteLength: visualReferenceFrames!.lastFrame.byteLength,
+                sha256: visualReferenceFrames!.lastFrame.sha256,
+                privateObjectIdentityHash:
+                  visualReferenceFrames!.lastFrame.privateObjectIdentityHash,
+              },
+            })
+          executionResult =
+            await runtime.executeVisualCalibrationObjectiveQaServerInjected(
+              visualRequest,
+              {
+                candidate: sourceInput,
+                firstFrame: visualReferenceFrames!.firstFrame.input,
+                lastFrame: visualReferenceFrames!.lastFrame.input,
+              },
+            )
+        } else if (toolId === 'ffmpeg') {
           const request = validateOfflineFfmpegStreamingExecutionRequest({
             schemaVersion: OFFLINE_MEDIA_BINARY_STREAM_PROTOCOL,
             toolId, operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
@@ -1155,12 +1326,27 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
         await stagedSourceSet?.cleanup()
       }
       const normalized = normalizeExecutionResult(executionResult)
+      if (visualCalibrationObjectiveQa) {
+        if (
+          !('candidateSha256' in executionResult.evidence) ||
+          executionResult.evidence.candidateSha256 !== inputSha256 ||
+          executionResult.evidence.firstFrameSha256 !==
+            visualReferenceFrames!.firstFrame.sha256 ||
+          executionResult.evidence.lastFrameSha256 !==
+            visualReferenceFrames!.lastFrame.sha256
+        ) throw denied(
+          'Visual-calibration result lost its provider candidate or reference-frame authority.',
+        )
+      } else if (
+        !('sourceSha256' in executionResult.evidence) ||
+        executionResult.evidence.sourceSha256 !== inputSha256
+      ) throw denied('Media binary result lost its exact source authority.')
       if (
         executionResult.evidence.toolId !== toolId ||
         executionResult.evidence.operationId !== binding.operationId ||
-        executionResult.evidence.sourceSha256 !== inputSha256 ||
         (referenceDependencyRead && (
           executionResult.evidence.toolId !== 'ffmpeg' ||
+          !('referenceSourceSha256' in executionResult.evidence) ||
           executionResult.evidence.referenceSourceSha256 !== referenceDependencyRead.sha256
         )) ||
         executionResult.evidence.containerExitCode !== 0 || executionResult.evidence.oomKilled ||
@@ -1174,7 +1360,9 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
         workspaceId: body.workspaceId, snapshotId: authority.snapshot.snapshotId,
         jobId: body.jobId, expectedAssetId: expectedAsset.id,
         dispatchGrantId: body.grantId, executionAttemptId,
-        inputKind: storytellingSpeechNormalization
+        inputKind: visualCalibrationObjectiveQa
+          ? 'verified_visual_calibration_provider_output'
+          : storytellingSpeechNormalization
           ? 'verified_storytelling_speech_provider_output_set'
           : dependencyFinalQa
           ? 'qa_passed_dependency_artifact'
@@ -1277,7 +1465,25 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
         authority.snapshot.snapshotId, access.workspaceId,
       )) !== authorityHashBefore) throw denied('Canonical planning authority changed during media binary execution.')
 
-      const resourceInputArtifacts = storytellingSpeechNormalization
+      const resourceInputArtifacts = visualCalibrationObjectiveQa
+        ? [
+            {
+              artifactId: dependencyRead!.artifactId,
+              sha256: dependencyRead!.sha256,
+              byteLength: dependencyRead!.byteLength,
+            },
+            {
+              artifactId: visualReferenceFrames!.firstFrame.assetId,
+              sha256: visualReferenceFrames!.firstFrame.sha256,
+              byteLength: visualReferenceFrames!.firstFrame.byteLength,
+            },
+            {
+              artifactId: visualReferenceFrames!.lastFrame.assetId,
+              sha256: visualReferenceFrames!.lastFrame.sha256,
+              byteLength: visualReferenceFrames!.lastFrame.byteLength,
+            },
+          ]
+        : storytellingSpeechNormalization
         ? [
             {
               artifactId: dependencyRead!.artifactId,
@@ -1350,6 +1556,10 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
       if (
         resourceUsage.evidence.identity.executionAttemptId !== executionAttemptId
         || resourceUsage.evidence.operation.operationId !== binding.operationId
+        || (visualCalibrationObjectiveQa &&
+          resourceUsage.evidence.infrastructureCost.actualInternalCostMicros >
+            visualCalibrationObjectiveQaPayload!
+              .maximumAuthorizedInfrastructureCostMicros)
       ) {
         throw denied('Media execution resource evidence lost canonical attempt authority.')
       }
@@ -1359,7 +1569,87 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
         source: 'canonical_private_media_binary_execution_coordinator' as const,
         purpose: body.purpose,
         identity: { ...identity, approvedWorkItemId: workItem.id, dispatchGrantId: body.grantId },
-        tool: storytellingSpeechNormalization ? {
+        tool: visualCalibrationObjectiveQa ? {
+          canonicalToolId: toolId,
+          operationId: binding.operationId,
+          actualBinaryOperationCompleted: true as const,
+          providerCallMade: false as const,
+          inputKind:
+            'verified_visual_calibration_provider_output' as const,
+          sourceObjectRead: false as const,
+          dependencyArtifactRead: true as const,
+          dependencyInputMode:
+            'server_injected_private_stream_v1' as const,
+          dependencyArtifactStreamed: true as const,
+          inputReadEvidenceHash,
+          inputArtifactSha256: inputSha256,
+          inputArtifactByteLength: inputByteLength,
+          providerDependencyJobId: dependencyRead!.dependencyJobId,
+          providerExpectedAssetId: dependencyRead!.expectedAssetId,
+          providerArtifactId: dependencyRead!.artifactId,
+          providerOutputId: visualProviderEvidence!.outputId,
+          providerReceiptHash:
+            visualProviderEvidence!.providerReceiptHash,
+          providerOutputSetDigest:
+            visualProviderEvidence!.providerOutputSetDigest,
+          providerQueueClaimHash:
+            visualProviderEvidence!.providerQueueClaimHash,
+          providerAttemptCostEvidenceHash:
+            visualProviderEvidence!.providerAttemptCostEvidenceHash,
+          providerUsageEvidenceDigest:
+            visualProviderEvidence!.providerUsageEvidenceDigest,
+          providerRateCardDigest:
+            visualProviderEvidence!.providerRateCardDigest,
+          providerCostMicros:
+            visualProviderEvidence!.providerCostMicros,
+          motionStudioProductionId:
+            visualCalibrationObjectiveQaPayload!.motionStudioProductionId,
+          styleCalibrationPlanId:
+            visualCalibrationObjectiveQaPayload!.styleCalibrationPlanId,
+          calibrationScenarioId:
+            visualCalibrationObjectiveQaPayload!.calibrationScenarioId,
+          calibrationScenarioKind:
+            visualCalibrationObjectiveQaPayload!.calibrationScenarioKind,
+          visualCalibrationContextDigest:
+            visualCalibrationObjectiveQaPayload!
+              .visualCalibrationContextDigest,
+          firstFrameAssetId:
+            visualReferenceFrames!.firstFrame.assetId,
+          firstFrameAssetVersionId:
+            visualReferenceFrames!.firstFrame.assetVersionId,
+          firstFrameSha256:
+            visualReferenceFrames!.firstFrame.sha256,
+          firstFrameReadbackEvidenceHash:
+            visualReferenceFrames!.firstFrame.readbackEvidenceHash,
+          lastFrameAssetId:
+            visualReferenceFrames!.lastFrame.assetId,
+          lastFrameAssetVersionId:
+            visualReferenceFrames!.lastFrame.assetVersionId,
+          lastFrameSha256:
+            visualReferenceFrames!.lastFrame.sha256,
+          lastFrameReadbackEvidenceHash:
+            visualReferenceFrames!.lastFrame.readbackEvidenceHash,
+          objectiveQaPassed: normalized.document?.passed === true,
+          objectiveQaThresholdVersion:
+            visualCalibrationObjectiveQaPayload!.thresholdVersion,
+          objectiveQaCostProfileId:
+            visualCalibrationObjectiveQaPayload!.costProfileId,
+          qaInfrastructureEvidenceHash:
+            resourceUsage.evidence.resourceUsage.infrastructureEvidenceDigest,
+          qaInfrastructureRateCardDigest:
+            resourceUsage.evidence.infrastructureCost.rateCardDigest,
+          qaInfrastructureCostMicros:
+            resourceUsage.evidence.infrastructureCost.actualInternalCostMicros,
+          maximumAuthorizedQaInfrastructureCostMicros:
+            visualCalibrationObjectiveQaPayload!
+              .maximumAuthorizedInfrastructureCostMicros,
+          providerCostIncludedInQaInfrastructure: false as const,
+          customerPriceIncluded: false as const,
+          customerCreditsIncluded: false as const,
+          serviceFeeIncluded: false as const,
+          renderExecuted: false as const,
+          finalExportExecuted: false as const,
+        } : storytellingSpeechNormalization ? {
           canonicalToolId: toolId,
           operationId: binding.operationId,
           actualBinaryOperationCompleted: true as const,
@@ -1513,6 +1803,78 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
   }
 }
 
+type VisualCalibrationProviderDependencyEvidence = Extract<
+  CanonicalPrivateDependencyProviderOutputEvidence,
+  { role: 'provider_visual_calibration_video_mp4' }
+>
+
+function assertVisualCalibrationProviderDependency(input: {
+  dependency: CanonicalPrivateDependencyArtifactStreamReadResult
+  payload: ReturnType<
+    typeof assertCanonicalVisualCalibrationObjectiveQaWorkItem
+  >
+  workItemId: string
+  expectedAssetId: string
+  snapshotId: string
+}): VisualCalibrationProviderDependencyEvidence {
+  const evidence = input.dependency.providerOutputEvidence
+  if (
+    !evidence ||
+    evidence.role !== 'provider_visual_calibration_video_mp4'
+  ) throw denied(
+    'Visual objective QA requires one verified visual provider MP4 output.',
+  )
+  if (
+    input.dependency.contentType !== 'video/mp4' ||
+    evidence.contentType !== 'video/mp4' ||
+    input.dependency.sourceLeaseImmutableHash !==
+      evidence.providerQueueClaimHash ||
+    input.dependency.dependencyJobId !== evidence.providerJobId ||
+    input.dependency.expectedAssetId !== evidence.providerExpectedAssetId ||
+    evidence.approvedPlanSnapshotId !== input.snapshotId ||
+    evidence.qaApprovedWorkItemId !== input.workItemId ||
+    evidence.qaExpectedAssetId !== input.expectedAssetId ||
+    evidence.providerWorkItemKey !== input.payload.sourceProviderWorkItemKey ||
+    evidence.providerExpectedOutputKey !==
+      input.payload.sourceProviderExpectedOutputId ||
+    evidence.productionId !== input.payload.motionStudioProductionId ||
+    evidence.productionAuthorityHash !==
+      input.payload.storytellingProductionAuthorityRefDigest ||
+    evidence.styleAuthorityHash !==
+      input.payload.storytellingStyleAuthorityRefDigest ||
+    evidence.styleCalibrationPlanId !== input.payload.styleCalibrationPlanId ||
+    evidence.styleCalibrationPlanDigest !==
+      input.payload.styleCalibrationPlanDigest ||
+    evidence.calibrationScenarioId !== input.payload.calibrationScenarioId ||
+    evidence.calibrationScenarioKind !==
+      input.payload.calibrationScenarioKind ||
+    evidence.calibrationScenarioDigest !==
+      input.payload.calibrationScenarioDigest ||
+    evidence.visualCalibrationContextDigest !==
+      input.payload.visualCalibrationContextDigest ||
+    evidence.referenceContractId !== input.payload.referenceContractId ||
+    evidence.referenceContractDigest !==
+      input.payload.referenceContractDigest ||
+    evidence.firstFrameAssetId !== input.payload.firstFrameReference.assetId ||
+    evidence.firstFrameExpectedSha256 !==
+      input.payload.firstFrameReference.expectedSha256 ||
+    evidence.lastFrameAssetId !== input.payload.lastFrameReference.assetId ||
+    evidence.lastFrameExpectedSha256 !==
+      input.payload.lastFrameReference.expectedSha256 ||
+    evidence.continuityContractId !== input.payload.continuityContractId ||
+    evidence.continuityContractDigest !==
+      input.payload.continuityContractDigest ||
+    evidence.maximumAuthorizedInfrastructureCostMicros !==
+      input.payload.maximumAuthorizedInfrastructureCostMicros ||
+    evidence.sourceAuthorityDigest !==
+      input.payload.visualCalibrationContextDigest ||
+    evidence.providerCostMicros === null
+  ) throw denied(
+    'Visual provider dependency diverged from its exact calibration, reference, cost, or package authority.',
+  )
+  return evidence
+}
+
 function assertStorytellingSpeechProviderOutputSet(input: {
   audio: CanonicalPrivateDependencyArtifactStreamReadResult
   alignment: CanonicalPrivateDependencyArtifactReadResult
@@ -1521,7 +1883,9 @@ function assertStorytellingSpeechProviderOutputSet(input: {
   const audio = input.audio.providerOutputEvidence
   const alignment = input.alignment.providerOutputEvidence
   const payload = input.payload
-  const sameProviderAttemptFields: Array<keyof CanonicalPrivateDependencyProviderOutputEvidence> = [
+  const sameProviderAttemptFields: Array<
+    keyof Omit<VerifiedCanonicalPrivateSpeechProviderOutputArtifact, 'bytes'>
+  > = [
     'executionAttemptId',
     'providerQueueClaimId',
     'providerQueueClaimHash',
@@ -1583,7 +1947,8 @@ interface MediaAdapterInput {
   executionStartedAt: string
   executionResult: OfflineFfprobeExecutionResult | OfflineFfmpegExecutionResult |
     OfflineFfmpegStreamingOutputExecutionResult |
-    OfflineFfmpegMezzanineFinalizationExecutionResult
+    OfflineFfmpegMezzanineFinalizationExecutionResult |
+    OfflineVisualCalibrationObjectiveQaExecutionResult
   normalized: NormalizedMediaBinaryResult
   inputReadEvidenceHash: string
   finalArtifactQa: CanonicalPrivateFinalMediaQa | null
@@ -1866,7 +2231,9 @@ function createAdapters(input: MediaAdapterInput): {
               content: adapterInput.artifact.content,
               inputReadEvidenceHash: input.inputReadEvidenceHash,
             }),
-            notesCode: input.executionResult.evidence.toolId === 'ffmpeg'
+            notesCode: 'candidateSha256' in input.executionResult.evidence
+              ? 'visual_calibration_objective_qa_report_hash_size_storage_match'
+              : input.executionResult.evidence.toolId === 'ffmpeg'
               ? 'ffmpeg_media_source_hash_size_storage_match'
               : input.finalArtifactQa
                 ? 'ffprobe_json_final_dependency_hash_size_storage_match'
@@ -1879,7 +2246,9 @@ function createAdapters(input: MediaAdapterInput): {
             status: 'passed' as const, failureScope: 'none' as const,
             evidenceHash: input.finalArtifactQa?.reportSha256 ??
               sha256ArtifactQaValue(input.executionResult.evidence.semanticEvidence),
-            notesCode: input.executionResult.evidence.toolId === 'ffmpeg'
+            notesCode: 'candidateSha256' in input.executionResult.evidence
+              ? 'visual_calibration_objective_qa_report_integrity_verified'
+              : input.executionResult.evidence.toolId === 'ffmpeg'
               ? 'actual_ffmpeg_semantic_qa_passed'
               : input.finalArtifactQa
                 ? 'actual_dependency_bound_final_ffprobe_qa_passed'
@@ -1915,6 +2284,8 @@ function createAdapters(input: MediaAdapterInput): {
             approvedWithinSnapshot: true,
             reasonCode: input.lineage.assetRole === 'final'
               ? 'private_mezzanine_final_pass_no_recovery'
+              : 'candidateSha256' in input.executionResult.evidence
+                ? 'visual_calibration_objective_qa_report_no_integrity_recovery'
               : input.executionResult.evidence.toolId === 'ffmpeg'
                 ? 'ffmpeg_pass_no_recovery'
               : 'ffprobe_pass_no_recovery',
@@ -1999,7 +2370,8 @@ function assertArtifact(artifact: PersistedArtifactResult, input: MediaAdapterIn
 function normalizeExecutionResult(
   result: OfflineFfprobeExecutionResult | OfflineFfmpegExecutionResult |
     OfflineFfmpegStreamingOutputExecutionResult |
-    OfflineFfmpegMezzanineFinalizationExecutionResult,
+    OfflineFfmpegMezzanineFinalizationExecutionResult |
+    OfflineVisualCalibrationObjectiveQaExecutionResult,
 ): NormalizedMediaBinaryResult {
   if ('resultArtifact' in result) {
     return 'outputMode' in result.resultArtifact

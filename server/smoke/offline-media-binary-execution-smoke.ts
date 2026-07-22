@@ -696,7 +696,7 @@ assert.equal(authority.readiness.finalExportReady, false)
 assert.equal(authority.supportedOperations.length, 2)
 assert.equal(
   authority.image.imageTag,
-  'reeditpro/ffmpeg-lgpl-internal:8.1.2-object-chunk-v7-local',
+  'reeditpro/ffmpeg-lgpl-internal:8.1.2-object-chunk-v8-local',
 )
 assert.equal(authority.image.imageIdentityHash, runtime.image.imageIdentityHash)
 const reopened = await openPrivateOfflineMediaBinaryRuntime()

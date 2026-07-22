@@ -33,7 +33,8 @@ RUN printf '%s\n' \
         build-essential=12.9 \
         libvpx-dev=1.12.0-1+deb12u5 \
         pkg-config=1.8.1-1 \
-        xz-utils=5.4.1-1; do \
+        xz-utils=5.4.1-1 \
+        zlib1g-dev=1:1.2.13.dfsg-1; do \
       [ "$attempt" -lt 3 ] || exit 1; \
       attempt=$((attempt + 1)); \
     done \
@@ -100,6 +101,7 @@ COPY continuous-program-audio.sh /tmp/continuous-program-audio.sh
 COPY continuous-program-audio-probe.sh /tmp/continuous-program-audio-probe.sh
 COPY long-form-master-assembly.sh /tmp/long-form-master-assembly.sh
 COPY customer-delivery-master-mux.sh /tmp/customer-delivery-master-mux.sh
+COPY visual-calibration-objective-qa.sh /tmp/visual-calibration-objective-qa.sh
 COPY media-cgroup-resource-observer.sh /tmp/media-cgroup-resource-observer.sh
 COPY source-provenance.lock /tmp/source-provenance.lock
 
@@ -134,6 +136,8 @@ RUN find \
       /runtime-rootfs/usr/local/bin/reeditpro-ffmpeg-long-form-master-assembly \
   && install -m 0555 /tmp/customer-delivery-master-mux.sh \
       /runtime-rootfs/usr/local/bin/reeditpro-ffmpeg-customer-delivery-master-mux \
+  && install -m 0555 /tmp/visual-calibration-objective-qa.sh \
+      /runtime-rootfs/usr/local/bin/reeditpro-ffmpeg-visual-calibration-objective-qa \
   && install -m 0555 /tmp/media-cgroup-resource-observer.sh \
       /runtime-rootfs/usr/local/bin/reeditpro-media-cgroup-resource-observer \
   && sha256sum /runtime-rootfs/usr/local/bin/reeditpro-ffmpeg-verify \
@@ -155,6 +159,9 @@ RUN find \
       | sed 's#  /runtime-rootfs/#  /#' \
       >> /runtime-rootfs/opt/reeditpro-ffmpeg/share/reeditpro/runtime-files.sha256 \
   && sha256sum /runtime-rootfs/usr/local/bin/reeditpro-ffmpeg-customer-delivery-master-mux \
+      | sed 's#  /runtime-rootfs/#  /#' \
+      >> /runtime-rootfs/opt/reeditpro-ffmpeg/share/reeditpro/runtime-files.sha256 \
+  && sha256sum /runtime-rootfs/usr/local/bin/reeditpro-ffmpeg-visual-calibration-objective-qa \
       | sed 's#  /runtime-rootfs/#  /#' \
       >> /runtime-rootfs/opt/reeditpro-ffmpeg/share/reeditpro/runtime-files.sha256 \
   && sha256sum /runtime-rootfs/usr/local/bin/reeditpro-media-cgroup-resource-observer \
@@ -184,6 +191,7 @@ LABEL org.opencontainers.image.title="ReEditPro minimal FFmpeg internal-worker f
       reeditpro.continuous-program-audio="private_30fps_48khz_source_audio_only" \
       reeditpro.long-form-master-assembly="private_vp9_flac_matroska_stream_copy_only" \
       reeditpro.customer-delivery-master-mux="private_h264_stream_copy_aac_lc_192k_front_loaded_mp4_only" \
+      reeditpro.visual-calibration-objective-qa="private_dependency_bound_mp4_and_reference_frames_only" \
       reeditpro.codec-patent-legal-review="required" \
       reeditpro.runtime-network="must_run_with_network_none" \
       reeditpro.runtime-rootfs="must_run_read_only"

@@ -126,9 +126,13 @@ export const canonicalExecutionReadinessEnvelopeSchema = z.object({
     'required_results_and_qa_not_committed',
   ]),
   sourceAuthority: z.object({
+    sourceMode: z.enum([
+      'uploaded_media',
+      'idea_first_storytelling_no_uploaded_media',
+    ]),
     manifestRef: authorityBlobRefSchema,
     manifestHash: sha256Schema,
-    boundSourceCount: z.number().int().positive().max(1_000),
+    boundSourceCount: z.number().int().nonnegative().max(1_000),
     requiredSourceCount: z.number().int().nonnegative().max(1_000),
     referencedSourceSequenceItemIds: z.array(safeIdentitySchema).max(1_000),
     objectResolutionAuthorized: z.literal(false),
@@ -198,7 +202,26 @@ export const canonicalExecutionReadinessEnvelopeSchema = z.object({
   creditSpendAuthorized: z.literal(false),
   noRuntimeSideEffects: z.literal(true),
   envelopeHash: sha256Schema,
-}).strict()
+}).strict().superRefine((value, context) => {
+  const source = value.sourceAuthority
+  if (
+    source.requiredSourceCount > source.boundSourceCount ||
+    (source.sourceMode === 'uploaded_media' && source.boundSourceCount === 0) ||
+    (source.sourceMode === 'idea_first_storytelling_no_uploaded_media' && (
+      source.boundSourceCount !== 0 ||
+      source.requiredSourceCount !== 0 ||
+      source.referencedSourceSequenceItemIds.length !== 0 ||
+      value.job.sourceSequenceItemIds.length !== 0 ||
+      value.job.sourceCleanupDecisionIds.length !== 0
+    ))
+  ) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['sourceAuthority'],
+      message: 'Canonical execution source mode and source counts are inconsistent.',
+    })
+  }
+})
 
 export type CanonicalExecutionReadinessRequest = z.infer<typeof canonicalExecutionReadinessRequestSchema>
 export type CanonicalExecutionReadinessEnvelope = z.infer<typeof canonicalExecutionReadinessEnvelopeSchema>

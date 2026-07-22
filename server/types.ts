@@ -9,6 +9,7 @@ import type { EditReferenceLongFormStudyRuntimePort } from './services/edit-refe
 import type { EditReferenceDomainRepositoryRuntimePort } from './services/edit-reference-domain-repository-runtime-port'
 import type { PlanningPreferenceApplicationAuthorityPort } from './services/planning-preference-application-authority-port'
 import type { CanonicalMotionStudioStorytellingProductionAuthorityReaderPort } from './services/canonical-motion-studio-storytelling-production-authority-service'
+import type { CanonicalVisualCalibrationReferenceFrameReaderPort } from './services/canonical-visual-calibration-reference-frame-reader-port'
 import type { PlanningExactEditPreferenceAuthorityPort } from './services/planning-exact-edit-preference-authority-port'
 import type {
   CanonicalDurableUploadTargetTransactionAdapter,
@@ -68,6 +69,8 @@ export interface RuntimeState {
   editReferenceStudyChatRuntimePort?: EditReferenceStudyChatRuntimePort
   canonicalMotionStudioStorytellingProductionAuthorityReaderPort?:
     CanonicalMotionStudioStorytellingProductionAuthorityReaderPort
+  canonicalVisualCalibrationReferenceFrameReaderPort?:
+    CanonicalVisualCalibrationReferenceFrameReaderPort
   editReferenceExactEditApplyRuntimePort?: EditReferenceExactEditApplyRuntimePort
   editReferenceApplicationPreparationRuntimePort?: EditReferenceApplicationPreparationRuntimePort
   editReferenceLongFormStudyRuntimePort?: EditReferenceLongFormStudyRuntimePort
@@ -99,6 +102,8 @@ export interface ServiceContext {
   editReferenceStudyChatRuntimePort?: EditReferenceStudyChatRuntimePort
   canonicalMotionStudioStorytellingProductionAuthorityReaderPort?:
     CanonicalMotionStudioStorytellingProductionAuthorityReaderPort
+  canonicalVisualCalibrationReferenceFrameReaderPort?:
+    CanonicalVisualCalibrationReferenceFrameReaderPort
   editReferenceExactEditApplyRuntimePort?: EditReferenceExactEditApplyRuntimePort
   editReferenceApplicationPreparationRuntimePort?: EditReferenceApplicationPreparationRuntimePort
   editReferenceLongFormStudyRuntimePort?: EditReferenceLongFormStudyRuntimePort

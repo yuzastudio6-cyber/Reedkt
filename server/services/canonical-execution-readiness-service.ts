@@ -180,7 +180,10 @@ function buildCanonicalExecutionReadinessEnvelope(input: {
 
   const expectedAssets = expectedAssetsForJob(authority, job, workItem)
   const dependencies = dependencyEvidenceForJob(authority, job, workItem)
-  assertSourceAndCleanupLineage(authority, workItem)
+  const sourceAuthorityMode = assertSourceAndCleanupLineage(
+    authority,
+    workItem,
+  )
   const registryBlockedToolIds = assertToolAuthority(
     workItem,
     executionPackage.approvedProviderRoutes,
@@ -291,6 +294,7 @@ function buildCanonicalExecutionReadinessEnvelope(input: {
       ? 'required_results_and_qa_not_committed' as const
       : 'not_required_for_root_job' as const,
     sourceAuthority: {
+      sourceMode: sourceAuthorityMode,
       manifestRef: { ...snapshot.approvedSourceAssetManifestRef },
       manifestHash: snapshot.approvedSourceAssetManifestHash,
       boundSourceCount: authority.sourceAssetManifest.bindings.length,
@@ -462,7 +466,7 @@ function dependencyEvidenceForJob(
 function assertSourceAndCleanupLineage(
   authority: CanonicalApprovedExecutionAuthority,
   workItem: CanonicalApprovedExecutionWorkItem,
-): void {
+): 'uploaded_media' | 'idea_first_storytelling_no_uploaded_media' {
   const sourceSequenceIds = new Set(authority.components.sourceSequence.map((item) => item.sourceSequenceItemId))
   const boundSourceIds = new Set(authority.sourceAssetManifest.bindings.map((binding) => binding.sourceSequenceItemId))
   const cleanupDecisionIds = new Set(authority.components.sourceCleanupPlan.decisions.map((decision) => decision.decisionId))
@@ -472,6 +476,35 @@ function assertSourceAndCleanupLineage(
   ) {
     throw invalidAuthority('Canonical job source or cleanup-decision lineage is invalid.')
   }
+  const manifest = authority.sourceAssetManifest
+  if (manifest.schemaVersion ===
+    'private-approved-idea-first-source-authority-manifest-v1') {
+    const production =
+      authority.components.motionStudioStorytellingProductionAuthority
+    if (
+      manifest.sourceMode !== 'idea_first_no_uploaded_media' ||
+      manifest.bindings.length !== 0 ||
+      manifest.requiredBindingCount !== 0 ||
+      manifest.fabricatedUploadRecordCount !== 0 ||
+      authority.components.sourceSequence.length !== 0 ||
+      authority.components.sourceCleanupSummary.status !== 'not_applicable' ||
+      authority.components.sourceCleanupPlan.status !== 'not_applicable' ||
+      workItem.sourceSequenceItemIds.length !== 0 ||
+      workItem.sourceCleanupDecisionIds.length !== 0 ||
+      !production ||
+      production.productionId !== manifest.productionId ||
+      production.authorityHash !== manifest.productionAuthorityHash
+    ) throw invalidAuthority(
+      'Source-less execution requires one exact approved idea-first Storytelling authority.',
+    )
+    return 'idea_first_storytelling_no_uploaded_media'
+  }
+  if (manifest.bindings.length === 0 || manifest.requiredBindingCount === 0) {
+    throw invalidAuthority(
+      'Ordinary canonical execution requires finalized uploaded-source authority.',
+    )
+  }
+  return 'uploaded_media'
 }
 
 function assertToolAuthority(

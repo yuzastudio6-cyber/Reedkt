@@ -54,7 +54,8 @@ case "$entrypoint" in
   /usr/local/bin/reeditpro-ffmpeg-continuous-program-audio|\
   /usr/local/bin/reeditpro-ffmpeg-continuous-program-audio-probe|\
   /usr/local/bin/reeditpro-ffmpeg-long-form-master-assembly|\
-  /usr/local/bin/reeditpro-ffmpeg-customer-delivery-master-mux) ;;
+  /usr/local/bin/reeditpro-ffmpeg-customer-delivery-master-mux|\
+  /usr/local/bin/reeditpro-ffmpeg-visual-calibration-objective-qa) ;;
   *) fail 'observer entrypoint is not allowlisted' ;;
 esac
 

@@ -17,6 +17,14 @@ import {
   canonicalMotionStudioRemotionPreviewBindingSchema,
   canonicalMotionStudioTimingAuthorityDigest,
 } from '../edit-architecture/canonical-motion-studio-remotion-preview-authority'
+import {
+  CANONICAL_VISUAL_CALIBRATION_OBJECTIVE_QA_EXECUTION_OPERATION,
+  CANONICAL_VISUAL_CALIBRATION_PROVIDER_PLANNING_OPERATION,
+  createCanonicalVisualCalibrationObjectiveQaPlanningPayload,
+  createCanonicalVisualCalibrationProviderPlanningPayload,
+} from '../edit-architecture/canonical-visual-calibration-objective-qa-authority'
+import { OFFLINE_MEDIA_BINARY_OPERATIONS } from
+  '../tool-execution/media-binary-execution'
 import { ApiError } from '../errors/api-error'
 import { loadRuntimeEnv } from '../config/env'
 import { createEditPlanningAuthorityService } from '../services/edit-planning-authority-service'
@@ -87,6 +95,8 @@ import { canonicalPlanApprovalReceiptSchema } from '../validation/canonical-plan
 import { canonicalExecutionPackageRequestReceiptSchema } from '../validation/canonical-execution-package-request-schemas'
 import { canonicalPrivateEditPreparationReceiptSchema } from '../validation/canonical-private-edit-preparation-schemas'
 import { canonicalAuthoritySmokeRoot } from './canonical-authority-smoke-root'
+import { VISUAL_CALIBRATION_REFERENCE_FRAME_FIXTURE } from
+  './fixtures/visual-calibration-reference-frame-fixture'
 
 const localStorageRoot = canonicalAuthoritySmokeRoot
 const workspaceId = 'workspace-authority-smoke'
@@ -5625,7 +5635,7 @@ async function proveCanonicalIdeaFirstStorytellingProductionAuthority(
     pacing: 'approved_prepared_script_timing',
     mustFollowRules: [
       'Do not fabricate uploaded footage.',
-      'Do not authorize provider execution or final delivery.',
+      'Do not authorize live provider transport or final delivery.',
     ],
   }
   body.canonicalPlan.components.sourceSequence = []
@@ -5664,8 +5674,11 @@ async function proveCanonicalIdeaFirstStorytellingProductionAuthority(
     finalDeliveryAuthorized: false,
   }
   body.canonicalPlan.components.toolStrategyPlan = {
-    toolIds: ['remotion'],
-    exactOperationIds: ['tool.remotion.render_approved_composition.v1'],
+    toolIds: ['remotion', 'ffmpeg'],
+    exactOperationIds: [
+      'tool.remotion.render_approved_composition.v1',
+      OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
+    ],
     providerExecutionAuthorized: false,
   }
   body.canonicalPlan.components.qaPlan = {
@@ -5674,7 +5687,7 @@ async function proveCanonicalIdeaFirstStorytellingProductionAuthority(
   }
   body.canonicalPlan.components.providerPolicy = {
     veoPolicy: 'forbidden',
-    approvedRoutes: [],
+    approvedRoutes: ['gemini_omni_flash'],
   }
   body.canonicalPlan.components.fallbackPolicy = {
     unapprovedFallbackAllowed: false,
@@ -5974,9 +5987,24 @@ async function proveCanonicalIdeaFirstStorytellingProductionAuthority(
         workItem.workItemType === 'run_final_qa'),
       false,
     )
+    const approvedProviderWork = loaded.workItems.filter((workItem) =>
+      workItem.approvedProviderRoute !== undefined)
+    assert.equal(approvedProviderWork.length, 1)
     assert.equal(
-      loaded.workItems.every((workItem) => !workItem.approvedProviderRoute),
-      true,
+      approvedProviderWork[0]?.workItemType,
+      'generate_visual_calibration_candidate',
+    )
+    assert.equal(approvedProviderWork[0]?.approvedProviderRoute, 'gemini_omni_flash')
+    const visualQaWork = loaded.workItems.find((workItem) =>
+      workItem.workItemKey === 'idea-first-visual-calibration-objective-qa')
+    assert.deepEqual(
+      visualQaWork?.dependencyKeys,
+      ['idea-first-visual-calibration-provider'],
+    )
+    assert.equal(
+      loaded.components.motionStudioStorytellingProductionAuthority
+        ?.providerExecutionAuthorized,
+      false,
     )
     assert.equal(
       loaded.components.motionStudioStorytellingProductionAuthority
@@ -6277,6 +6305,96 @@ function createIdeaFirstStorytellingWorkItems(input: {
     ...bindingWithoutHash,
     bindingHash: sha256AuthorityValue(bindingWithoutHash),
   })
+  const calibrationScenarioIndex = style.calibrationPlan.scenarioKinds.indexOf(
+    'style_led_motion',
+  )
+  const calibrationScenarioId =
+    style.calibrationPlan.scenarioIds[calibrationScenarioIndex]
+  const referenceContract = style.styleSelection.referenceContractVersions[0]
+  if (calibrationScenarioIndex < 0 || !calibrationScenarioId || !referenceContract) {
+    throw new Error(
+      'Idea-first Storytelling smoke requires one visual calibration scenario and reference contract.',
+    )
+  }
+  const firstFrameReference = {
+    assetId: VISUAL_CALIBRATION_REFERENCE_FRAME_FIXTURE.firstFrameAssetId,
+    assetVersionId:
+      VISUAL_CALIBRATION_REFERENCE_FRAME_FIXTURE.firstFrameAssetVersionId,
+    expectedSha256: VISUAL_CALIBRATION_REFERENCE_FRAME_FIXTURE.sha256,
+  }
+  const lastFrameReference = {
+    assetId: VISUAL_CALIBRATION_REFERENCE_FRAME_FIXTURE.lastFrameAssetId,
+    assetVersionId:
+      VISUAL_CALIBRATION_REFERENCE_FRAME_FIXTURE.lastFrameAssetVersionId,
+    expectedSha256: VISUAL_CALIBRATION_REFERENCE_FRAME_FIXTURE.sha256,
+  }
+  const visualCalibrationContext = {
+    motionStudioProductionId: input.productionAuthority.productionId,
+    storytellingStyleAuthorityRefDigest: sha256AuthorityValue(style),
+    storytellingProductionAuthorityRefDigest:
+      sha256AuthorityValue(input.productionAuthority),
+    styleCalibrationPlanId: style.calibrationPlan.id,
+    styleCalibrationPlanVersion: 1,
+    styleCalibrationPlanDigest: style.calibrationPlan.planDigest,
+    calibrationScenarioId,
+    calibrationScenarioDigest: sha256ForSmoke(
+      `storytelling-calibration-scenario:${calibrationScenarioId}:style_led_motion`,
+    ),
+    referenceContractId: referenceContract.artifactId,
+    referenceContractVersion: referenceContract.versionNumber,
+    referenceContractDigest: referenceContract.contentDigest,
+    firstFrameAssetId: firstFrameReference.assetId,
+    firstFrameSha256: firstFrameReference.expectedSha256,
+    lastFrameAssetId: lastFrameReference.assetId,
+    lastFrameSha256: lastFrameReference.expectedSha256,
+    continuityContractId: 'storytelling-visual-continuity-contract',
+    continuityContractVersion: 1,
+    continuityContractDigest: sha256ForSmoke(
+      'storytelling-visual-continuity-contract-v1',
+    ),
+  }
+  const providerPlanningPayload =
+    createCanonicalVisualCalibrationProviderPlanningPayload({
+      visualCalibrationContext,
+      maximumAuthorizedProviderCostMicros: 300_000,
+      maximumAuthorizedInfrastructureCostMicros: 50_000,
+    })
+  const qaPlanningPayload =
+    createCanonicalVisualCalibrationObjectiveQaPlanningPayload({
+      motionStudioProductionId: visualCalibrationContext.motionStudioProductionId,
+      storytellingStyleAuthorityRefDigest:
+        visualCalibrationContext.storytellingStyleAuthorityRefDigest,
+      storytellingProductionAuthorityRefDigest:
+        visualCalibrationContext.storytellingProductionAuthorityRefDigest,
+      styleCalibrationPlanId: visualCalibrationContext.styleCalibrationPlanId,
+      styleCalibrationPlanVersion:
+        visualCalibrationContext.styleCalibrationPlanVersion,
+      styleCalibrationPlanDigest:
+        visualCalibrationContext.styleCalibrationPlanDigest,
+      calibrationScenarioId: visualCalibrationContext.calibrationScenarioId,
+      calibrationScenarioKind: 'style_led_motion',
+      calibrationScenarioDigest:
+        visualCalibrationContext.calibrationScenarioDigest,
+      visualCalibrationContextDigest:
+        providerPlanningPayload.visualCalibrationContextDigest,
+      sourceProviderWorkItemKey:
+        'idea-first-visual-calibration-provider',
+      sourceProviderExpectedOutputId:
+        'idea-first-visual-calibration-provider-mp4',
+      referenceContractId: visualCalibrationContext.referenceContractId,
+      referenceContractVersion:
+        visualCalibrationContext.referenceContractVersion,
+      referenceContractDigest:
+        visualCalibrationContext.referenceContractDigest,
+      firstFrameReference,
+      lastFrameReference,
+      continuityContractId: visualCalibrationContext.continuityContractId,
+      continuityContractVersion:
+        visualCalibrationContext.continuityContractVersion,
+      continuityContractDigest:
+        visualCalibrationContext.continuityContractDigest,
+      maximumAuthorizedInfrastructureCostMicros: 50_000,
+    })
   const common = {
     sourceSequenceItemIds: [] as string[],
     sourceCleanupDecisionIds: [] as string[],
@@ -6307,6 +6425,64 @@ function createIdeaFirstStorytellingWorkItems(input: {
     approvedToolIds: [],
     attemptTimeoutSeconds: 60,
     maximumCreditBudget: 1,
+  }, {
+    workItemKey: 'idea-first-visual-calibration-provider',
+    workItemType: 'generate_visual_calibration_candidate',
+    workerClass: 'provider_worker',
+    executionInput: {
+      operation: CANONICAL_VISUAL_CALIBRATION_PROVIDER_PLANNING_OPERATION,
+      expectedOutputKeys: ['idea-first-visual-calibration-provider-mp4'],
+      structuredPayload: providerPlanningPayload,
+    },
+    sourceSequenceItemIds: [],
+    sourceCleanupDecisionIds: [],
+    expectedOutputs: [{
+      outputKey: 'idea-first-visual-calibration-provider-mp4',
+      artifactType: 'provider_visual_calibration_video_mp4',
+      assetRole: 'generated',
+      required: true,
+      previewPlaceholderAllowed: false,
+      contentType: 'video/mp4',
+      segmentIds: [],
+      timingIds: [],
+      rendererLayerIds: [],
+    }],
+    dependencyKeys: [],
+    approvedToolIds: [],
+    approvedProviderRoute: 'gemini_omni_flash',
+    providerExecutionMode: 'primary',
+    fallbackPolicy: {},
+    maxAttempts: 1,
+    attemptTimeoutSeconds: 900,
+    scheduledDelaySeconds: 0,
+    maximumCreditBudget: 0,
+    required: true,
+  }, {
+    workItemKey: 'idea-first-visual-calibration-objective-qa',
+    workItemType: 'run_asset_qa',
+    workerClass: 'qa_worker',
+    executionInput: {
+      operation: CANONICAL_VISUAL_CALIBRATION_OBJECTIVE_QA_EXECUTION_OPERATION,
+      approvedToolOperationIds: [OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg],
+      expectedOutputKeys: ['idea-first-visual-calibration-objective-qa-json'],
+      structuredPayload: qaPlanningPayload,
+    },
+    ...common,
+    expectedOutputs: [{
+      outputKey: 'idea-first-visual-calibration-objective-qa-json',
+      artifactType: 'visual_calibration_candidate_objective_qa_report',
+      assetRole: 'qa',
+      required: true,
+      previewPlaceholderAllowed: false,
+      contentType: 'application/json',
+      segmentIds: [],
+      timingIds: [],
+      rendererLayerIds: [],
+    }],
+    dependencyKeys: ['idea-first-visual-calibration-provider'],
+    approvedToolIds: ['ffmpeg'],
+    attemptTimeoutSeconds: 300,
+    maximumCreditBudget: 0,
   }, {
     workItemKey: 'idea-first-approved-narration-authority',
     workItemType: 'custom',

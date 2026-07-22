@@ -9,7 +9,7 @@ export const OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_OUTPUT_BYTES = 192 * 1024 * 
 export const OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_AUDIO_OUTPUT_BYTES = 64 * 1024 * 1024
 
 export interface OfflineMediaBinaryImageEvidence {
-  imageTag: 'reeditpro/ffmpeg-lgpl-internal:8.1.2-object-chunk-v7-local'
+  imageTag: 'reeditpro/ffmpeg-lgpl-internal:8.1.2-object-chunk-v8-local'
   imageId: string
   imageIdentityHash: string
   architecture: string
@@ -28,6 +28,8 @@ export interface OfflineMediaBinaryImageEvidence {
   longFormMasterAssembly: 'private_vp9_flac_matroska_stream_copy_only'
   customerDeliveryMasterMux:
     'private_h264_stream_copy_aac_lc_192k_front_loaded_mp4_only'
+  visualCalibrationObjectiveQa:
+    'private_dependency_bound_mp4_and_reference_frames_only'
   sourcePolicyHashes: Readonly<Record<string, string>>
 }
 
@@ -42,7 +44,7 @@ export interface OfflineMediaBinaryConfinementEvidence {
   memoryAndSwapLimitBytes: 2147483648 | 4294967296 | 8589934592
   nanoCpus: 2000000000 | 4000000000
   tmpfsPath: '/tmp'
-  tmpfsSizeBytes: 67108864 | 1342177280
+  tmpfsSizeBytes: 67108864 | 201326592 | 1342177280
   user: '65532:65532'
   callerBindsPresent: false
   callerMountsPresent: false
@@ -56,10 +58,47 @@ export interface OfflineMediaBinaryConfinementEvidence {
     | '/usr/local/bin/reeditpro-ffmpeg-continuous-program-audio-probe'
     | '/usr/local/bin/reeditpro-ffmpeg-long-form-master-assembly'
     | '/usr/local/bin/reeditpro-ffmpeg-customer-delivery-master-mux'
+    | '/usr/local/bin/reeditpro-ffmpeg-visual-calibration-objective-qa'
   serverDerivedArgumentsOnly: true
   resourceObserverEntrypoint?:
     '/usr/local/bin/reeditpro-media-cgroup-resource-observer'
   cgroupV2ResourceObservationRequired?: true
+}
+
+export interface OfflineVisualCalibrationObjectiveQaExecutionResult {
+  resultJson: {
+    mimeType: 'application/json'
+    bytes: Buffer
+    document: Readonly<Record<string, unknown>>
+    sha256: string
+    byteLength: number
+  }
+  evidence: {
+    toolId: 'ffmpeg'
+    operationId: 'tool.ffmpeg.execute_approved_media_recipe.v1'
+    binaryVersion: '8.1.2'
+    requestEnvelopeSha256: string
+    candidateSha256: string
+    firstFrameSha256: string
+    lastFrameSha256: string
+    resultSha256: string
+    semanticEvidence: Readonly<Record<string, unknown>>
+    confinement: OfflineMediaBinaryConfinementEvidence
+    resourceObservation: PrivateEmbeddedProcessResourceObservation
+    containerExitCode: 0
+    oomKilled: false
+  }
+  image: OfflineMediaBinaryImageEvidence
+  attestation: OfflineFfmpegExecutionResult['attestation']
+  readiness: {
+    privateInternalOnly: true
+    canonicalLeaseVerified: false
+    singleUseDispatchVerified: false
+    internalCostEvidenceReconciled: false
+    productReady: false
+    externalBetaReady: false
+    productionReady: false
+  }
 }
 
 export interface OfflineFfprobeExecutionResult {

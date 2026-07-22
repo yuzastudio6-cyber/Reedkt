@@ -350,6 +350,7 @@ async function fixture(label: string): Promise<Fixture> {
   const workItemId = `work-item-${label}`
   const workItemKey = `visual-calibration-${label}`
   const outputId = `visual-calibration-mp4-${label}`
+  const outputKey = `visual-calibration-mp4-key-${label}`
   const packageHash = digest(`package:${label}`)
   const snapshotHash = digest(`snapshot:${label}`)
   const workGraphHash = digest(`work-graph:${label}`)
@@ -362,6 +363,7 @@ async function fixture(label: string): Promise<Fixture> {
     workItemId,
     workItemKey,
     outputId,
+    outputKey,
     packageHash,
     snapshotHash,
     workGraphHash,
@@ -513,6 +515,7 @@ function createExecutionPackage(input: {
   workItemId: string
   workItemKey: string
   outputId: string
+  outputKey: string
   packageHash: string
   snapshotHash: string
   workGraphHash: string
@@ -575,7 +578,7 @@ function createExecutionPackage(input: {
       sourceSequenceItemIds: [],
       sourceCleanupDecisionIds: [],
       expectedOutputs: [{
-        outputKey: input.outputId,
+        outputKey: input.outputKey,
         artifactType: 'provider_visual_calibration_video_mp4',
         assetRole: 'generated',
         required: true,

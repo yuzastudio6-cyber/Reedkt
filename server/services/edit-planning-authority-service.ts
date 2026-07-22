@@ -13,6 +13,10 @@ import {
 } from '../edit-architecture/canonical-tool-payload-authority'
 import { compileCanonicalWorkItems } from '../edit-architecture/canonical-work-item-compiler'
 import { assertCanonicalMotionStudioRemotionPlanAuthority } from '../edit-architecture/canonical-motion-studio-remotion-preview-authority'
+import {
+  CANONICAL_VISUAL_CALIBRATION_OBJECTIVE_QA_EXECUTION_OPERATION,
+  assertCanonicalVisualCalibrationProviderQaPair,
+} from '../edit-architecture/canonical-visual-calibration-objective-qa-authority'
 import { ApiError } from '../errors/api-error'
 import { isExplicitLocalInternalTestRuntime } from '../middleware/canonical-worker-runtime'
 import {
@@ -1973,12 +1977,15 @@ async function loadPlanToolAuthorityWorkItems(
       dependencyKeys: [...workItem.dependencyKeys],
       approvedToolIds: [...workItem.approvedToolIds],
       providerExecutionMode: workItem.providerExecutionMode,
+      maxAttempts: workItem.maxAttempts,
       required: workItem.required,
       expectedOutputs: workItem.expectedOutputs.map((output) => ({
         outputKey: output.outputKey,
+        artifactType: output.artifactType,
         assetRole: output.assetRole,
         ...(output.contentType ? { contentType: output.contentType } : {}),
         required: output.required,
+        previewPlaceholderAllowed: output.previewPlaceholderAllowed,
       })),
       executionInput,
     }
@@ -2358,6 +2365,11 @@ function validateCanonicalPlanDraft(
   const ideaFirstStorytelling = Boolean(
     components.motionStudioStorytellingProductionAuthority,
   )
+  const visualCalibrationPair = assertCanonicalVisualCalibrationPlanAuthority({
+    components,
+    workItems,
+    ideaFirstStorytelling,
+  })
   if (ideaFirstStorytelling && options.professionalLongFormControllerRequired) {
     throw new ApiError(
       'VALIDATION_FAILED',
@@ -2514,7 +2526,8 @@ function validateCanonicalPlanDraft(
     if (
       ideaFirstStorytelling &&
       (workItem.approvedProviderRoute !== undefined ||
-        workItem.providerExecutionMode !== 'none')
+        workItem.providerExecutionMode !== 'none') &&
+      workItem.workItemKey !== visualCalibrationPair?.providerWorkItemKey
     ) {
       throw new ApiError(
         'PROVIDER_ROUTE_BLOCKED',
@@ -2666,6 +2679,92 @@ function validateCanonicalPlanDraft(
   if (veoItems.some((item) => item.providerExecutionMode !== 'final_fallback') ||
       (veoItems.length > 0 && components.providerPolicy.veoPolicy !== 'final_fallback_only')) {
     throw new ApiError('PROVIDER_MODEL_ROLE_FORBIDDEN', 'Premium Veo authority is final-fallback-only.', 409)
+  }
+}
+
+function assertCanonicalVisualCalibrationPlanAuthority(input: {
+  components: CanonicalPlanComponentsInput
+  workItems: CanonicalWorkItemInput[]
+  ideaFirstStorytelling: boolean
+}): {
+  providerWorkItemKey: string
+  qaWorkItemKey: string
+} | undefined {
+  const providerItems = input.workItems.filter((workItem) =>
+    workItem.workItemType === 'generate_visual_calibration_candidate')
+  const qaItems = input.workItems.filter((workItem) =>
+    workItem.executionInput.operation ===
+      CANONICAL_VISUAL_CALIBRATION_OBJECTIVE_QA_EXECUTION_OPERATION)
+  if (providerItems.length === 0 && qaItems.length === 0) return undefined
+  if (
+    !input.ideaFirstStorytelling || providerItems.length !== 1 ||
+    qaItems.length !== 1
+  ) {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      'Visual calibration requires one exact idea-first Storytelling provider work item and one dependent objective-QA work item.',
+      400,
+      { requiredGate: 'canonical_visual_calibration_provider_qa_pair' },
+    )
+  }
+  const providerWorkItem = providerItems[0]!
+  const qaWorkItem = qaItems[0]!
+  const { provider, qa } = assertCanonicalVisualCalibrationProviderQaPair({
+    providerWorkItem,
+    qaWorkItem,
+  })
+  const style = input.components.motionStudioStorytellingStyleAuthority
+  const production =
+    input.components.motionStudioStorytellingProductionAuthority
+  if (!style || !production) {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      'Visual calibration requires exact Storytelling style and production authority.',
+      400,
+    )
+  }
+  const context = provider.visualCalibrationContext
+  const scenarioIndex = style.calibrationPlan.scenarioIds.indexOf(
+    context.calibrationScenarioId,
+  )
+  const referenceContract = style.styleSelection.referenceContractVersions.find(
+    (candidate) =>
+      candidate.artifactId === context.referenceContractId &&
+      candidate.versionNumber === context.referenceContractVersion,
+  )
+  const maximumPlannedInternalCostMicros =
+    provider.maximumAuthorizedProviderCostMicros +
+    provider.maximumAuthorizedInfrastructureCostMicros +
+    qa.maximumAuthorizedInfrastructureCostMicros
+  if (
+    context.motionStudioProductionId !== production.productionId ||
+    context.storytellingStyleAuthorityRefDigest !== sha256AuthorityValue(style) ||
+    context.storytellingProductionAuthorityRefDigest !==
+      sha256AuthorityValue(production) ||
+    context.styleCalibrationPlanId !== style.calibrationPlan.id ||
+    context.styleCalibrationPlanVersion !== 1 ||
+    context.styleCalibrationPlanDigest !== style.calibrationPlan.planDigest ||
+    scenarioIndex < 0 ||
+    qa.calibrationScenarioKind !==
+      style.calibrationPlan.scenarioKinds[scenarioIndex] ||
+    !referenceContract ||
+    referenceContract.contentDigest !== context.referenceContractDigest ||
+    maximumPlannedInternalCostMicros >
+      style.internalCostEnvelope.maximumEstimatedInternalProductionCostMicros ||
+    maximumPlannedInternalCostMicros >
+      production.internalCostAuthority
+        .maximumAuthorizedInternalProductionCostMicros
+  ) {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      'Visual calibration work changed its exact style, production, scenario, reference, or internal-cost authority.',
+      400,
+      { requiredGate: 'canonical_visual_calibration_plan_authority' },
+    )
+  }
+  return {
+    providerWorkItemKey: providerWorkItem.workItemKey,
+    qaWorkItemKey: qaWorkItem.workItemKey,
   }
 }
 

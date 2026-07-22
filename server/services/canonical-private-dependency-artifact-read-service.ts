@@ -38,10 +38,9 @@ import {
   type VerifiedCanonicalPrivateProviderOutputArtifact,
 } from './canonical-private-provider-output-artifact-verifier'
 
-export type CanonicalPrivateDependencyProviderOutputEvidence = Omit<
-  VerifiedCanonicalPrivateProviderOutputArtifact,
-  'bytes'
->
+type WithoutProviderBytes<T> = T extends unknown ? Omit<T, 'bytes'> : never
+export type CanonicalPrivateDependencyProviderOutputEvidence =
+  WithoutProviderBytes<VerifiedCanonicalPrivateProviderOutputArtifact>
 
 export interface CanonicalPrivateDependencyArtifactReadResult {
   bytes: Buffer
@@ -304,13 +303,16 @@ export function createCanonicalPrivateDependencyArtifactReadService(context: Ser
           artifact: authority.artifact,
         })
         if (
-          verified.contentType !== 'audio/mpeg' ||
+          (verified.contentType !== 'audio/mpeg' &&
+            verified.contentType !== 'video/mp4') ||
           verified.executionAttemptId !== selected.executionAttemptId ||
           verified.sha256 !== selected.contentSha256 ||
           verified.byteLength !== authority.artifact.content.byteLength ||
           verified.byteLength > input.maximumBytes ||
-          verified.byteLength > 16 * 1024 * 1024
-        ) throw invalid('Selected provider audio dependency failed exact private object verification.')
+          verified.byteLength > (verified.contentType === 'video/mp4'
+            ? 67_108_864
+            : 16 * 1024 * 1024)
+        ) throw invalid('Selected provider media dependency failed exact private object verification.')
         const providerOutputEvidence = withoutProviderBytes(verified)
         const evidence = {
           domain: 'canonical_private_provider_dependency_artifact_stream_read_v1',
@@ -337,7 +339,7 @@ export function createCanonicalPrivateDependencyArtifactReadService(context: Ser
         }
         return {
           inputMode: 'private_verified_stream_v1',
-          contentType: 'audio/mpeg',
+          contentType: verified.contentType,
           sha256: verified.sha256,
           byteLength: verified.byteLength,
           dependencyJobId: selected.dependencyJobId,
@@ -495,7 +497,7 @@ async function authorizeSingleSelectedArtifact(
     (internalAuthorityArtifact &&
       authority.artifact.actualRunEvidence.state !== 'actual_run_evidence_placeholder') ||
     (providerOutputArtifact &&
-      !['audio/mpeg', 'application/json'].includes(contentType)) ||
+      !['audio/mpeg', 'application/json', 'video/mp4'].includes(contentType)) ||
     authority.artifact.actualRunEvidence.executionAttemptId !== selected.executionAttemptId ||
     authority.liveRuntimeEligible !== false ||
     !input.allowedContentTypes.includes(contentType)
@@ -513,34 +515,9 @@ async function authorizeSingleSelectedArtifact(
 function withoutProviderBytes(
   verified: VerifiedCanonicalPrivateProviderOutputArtifact,
 ): CanonicalPrivateDependencyProviderOutputEvidence {
-  return {
-    role: verified.role,
-    contentType: verified.contentType,
-    sha256: verified.sha256,
-    byteLength: verified.byteLength,
-    privateObjectIdentityHash: verified.privateObjectIdentityHash,
-    executionAttemptId: verified.executionAttemptId,
-    runnerClass: verified.runnerClass,
-    providerQueueClaimId: verified.providerQueueClaimId,
-    providerQueueClaimHash: verified.providerQueueClaimHash,
-    providerQueueDeliveryAttempt: verified.providerQueueDeliveryAttempt,
-    providerReceiptHash: verified.providerReceiptHash,
-    providerOutputSetDigest: verified.providerOutputSetDigest,
-    providerCandidateReadbackEvidenceHash:
-      verified.providerCandidateReadbackEvidenceHash,
-    productionId: verified.productionId,
-    productionAuthorityHash: verified.productionAuthorityHash,
-    preparedScriptSegmentId: verified.preparedScriptSegmentId,
-    sceneId: verified.sceneId,
-    voiceBibleVersionId: verified.voiceBibleVersionId,
-    voiceBibleContentDigest: verified.voiceBibleContentDigest,
-    spokenTextDigest: verified.spokenTextDigest,
-    timingAuthorityDigest: verified.timingAuthorityDigest,
-    startFrame: verified.startFrame,
-    endFrameExclusive: verified.endFrameExclusive,
-    frameRate: verified.frameRate,
-    sourceAuthorityDigest: verified.sourceAuthorityDigest,
-  }
+  const { bytes, ...evidence } = verified
+  void bytes
+  return evidence as CanonicalPrivateDependencyProviderOutputEvidence
 }
 
 async function readInternalAuthorityArtifact(input: {

@@ -86,6 +86,14 @@ import {
   type OfflineFinalMasterVisualExceptionRange,
 } from './offline-media-binary-final-master-qa-protocol'
 import {
+  OFFLINE_MEDIA_BINARY_VISUAL_CALIBRATION_OBJECTIVE_QA_MAGIC,
+  OFFLINE_MEDIA_BINARY_VISUAL_CALIBRATION_OBJECTIVE_QA_MAXIMUM_OUTPUT_BYTES,
+  offlineMediaBinaryVisualCalibrationObjectiveQaRequestSha256,
+  validateOfflineMediaBinaryVisualCalibrationObjectiveQaRequest,
+  validateOfflineMediaBinaryVisualCalibrationObjectiveQaResult,
+  type OfflineMediaBinaryVisualCalibrationObjectiveQaRequest,
+} from './offline-media-binary-visual-calibration-objective-qa-protocol'
+import {
   OFFLINE_MEDIA_BINARY_LONG_FORM_MASTER_ASSEMBLY_MAGIC,
   OFFLINE_MEDIA_BINARY_LONG_FORM_MASTER_MAXIMUM_OUTPUT_BYTES,
   offlineMediaBinaryLongFormMasterAssemblyRequestSha256,
@@ -116,6 +124,7 @@ import type {
   OfflineMediaBinaryConfinementEvidence,
   OfflineMediaBinaryImageEvidence,
   OfflineMediaBinaryStreamingOutputSink,
+  OfflineVisualCalibrationObjectiveQaExecutionResult,
 } from './offline-media-binary-types'
 import {
   OFFLINE_MEDIA_BINARY_LEGACY_OUTPUT_BUFFER_MAXIMUM_BYTES,
@@ -123,7 +132,7 @@ import {
   OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_OUTPUT_BYTES,
 } from './offline-media-binary-types'
 
-const IMAGE_TAG = 'reeditpro/ffmpeg-lgpl-internal:8.1.2-object-chunk-v7-local' as const
+const IMAGE_TAG = 'reeditpro/ffmpeg-lgpl-internal:8.1.2-object-chunk-v8-local' as const
 const FFPROBE_ENTRYPOINT = '/opt/reeditpro-ffmpeg/bin/ffprobe' as const
 const FFMPEG_ENTRYPOINT = '/opt/reeditpro-ffmpeg/bin/ffmpeg' as const
 const MEZZANINE_FINALIZER_ENTRYPOINT =
@@ -145,6 +154,8 @@ const CUSTOMER_DELIVERY_MUX_ENTRYPOINT =
   '/usr/local/bin/reeditpro-ffmpeg-customer-delivery-master-mux' as const
 const CUSTOMER_DELIVERY_MUX_COMMAND =
   ['customer-delivery-master-mux-v1'] as const
+const VISUAL_CALIBRATION_OBJECTIVE_QA_ENTRYPOINT =
+  '/usr/local/bin/reeditpro-ffmpeg-visual-calibration-objective-qa' as const
 const SOURCE_VERSION = '8.1.2' as const
 const SOURCE_SHA256 = '464beb5e7bf0c311e68b45ae2f04e9cc2af88851abb4082231742a74d97b524c' as const
 export const OFFLINE_MEDIA_BINARY_RUNTIME_STORAGE_SCOPE_VERSION =
@@ -218,6 +229,7 @@ export interface OfflineMediaBinaryRuntimeAuthority {
     privateInternalLongFormMasterQaReady: true
     privateInternalFinalMasterDecodedVideoQaReady: true
     privateInternalFinalMasterDecodedAudioQaReady: true
+    privateInternalVisualCalibrationObjectiveQaReady: true
     longFormFinalMasterQaCheckpointingReady: false
     productReady: false
     externalBetaReady: false
@@ -299,6 +311,14 @@ export interface PrivateOfflineMediaBinaryRuntime {
     request: OfflineFinalMasterAudioQaRequest,
     source: OfflineMediaBinaryServerInjectedInput,
   ): Promise<OfflineFinalMasterAudioQaExecutionResult>
+  executeVisualCalibrationObjectiveQaServerInjected(
+    request: OfflineMediaBinaryVisualCalibrationObjectiveQaRequest,
+    inputs: {
+      candidate: OfflineMediaBinaryServerInjectedInput
+      firstFrame: OfflineMediaBinaryServerInjectedInput
+      lastFrame: OfflineMediaBinaryServerInjectedInput
+    },
+  ): Promise<OfflineVisualCalibrationObjectiveQaExecutionResult>
 }
 
 export async function activatePrivateOfflineMediaBinaryRuntime(): Promise<PrivateOfflineMediaBinaryRuntime> {
@@ -408,6 +428,18 @@ export async function activatePrivateOfflineMediaBinaryRuntime(): Promise<Privat
   )) as PrivateOfflineMediaBinaryRuntime[
     'executeFinalMasterAudioQaServerInjected'
   ]
+  const executeVisualCalibrationObjectiveQaServerInjectedBound = ((
+    request: OfflineMediaBinaryVisualCalibrationObjectiveQaRequest,
+    inputs: {
+      candidate: OfflineMediaBinaryServerInjectedInput
+      firstFrame: OfflineMediaBinaryServerInjectedInput
+      lastFrame: OfflineMediaBinaryServerInjectedInput
+    },
+  ) => executeVisualCalibrationObjectiveQaServerInjected(
+    image, request, inputs,
+  )) as PrivateOfflineMediaBinaryRuntime[
+    'executeVisualCalibrationObjectiveQaServerInjected'
+  ]
   return Object.freeze({
     image,
     execute: executeBound,
@@ -431,6 +463,8 @@ export async function activatePrivateOfflineMediaBinaryRuntime(): Promise<Privat
       executeFinalMasterVideoQaServerInjectedBound,
     executeFinalMasterAudioQaServerInjected:
       executeFinalMasterAudioQaServerInjectedBound,
+    executeVisualCalibrationObjectiveQaServerInjected:
+      executeVisualCalibrationObjectiveQaServerInjectedBound,
   })
 }
 
@@ -545,6 +579,18 @@ export async function openPrivateOfflineMediaBinaryRuntime(): Promise<PrivateOff
   )) as PrivateOfflineMediaBinaryRuntime[
     'executeFinalMasterAudioQaServerInjected'
   ]
+  const executeVisualCalibrationObjectiveQaServerInjectedBound = ((
+    request: OfflineMediaBinaryVisualCalibrationObjectiveQaRequest,
+    inputs: {
+      candidate: OfflineMediaBinaryServerInjectedInput
+      firstFrame: OfflineMediaBinaryServerInjectedInput
+      lastFrame: OfflineMediaBinaryServerInjectedInput
+    },
+  ) => executeVisualCalibrationObjectiveQaServerInjected(
+    image, request, inputs,
+  )) as PrivateOfflineMediaBinaryRuntime[
+    'executeVisualCalibrationObjectiveQaServerInjected'
+  ]
   return Object.freeze({
     image,
     execute: executeBound,
@@ -568,6 +614,8 @@ export async function openPrivateOfflineMediaBinaryRuntime(): Promise<PrivateOff
       executeFinalMasterVideoQaServerInjectedBound,
     executeFinalMasterAudioQaServerInjected:
       executeFinalMasterAudioQaServerInjectedBound,
+    executeVisualCalibrationObjectiveQaServerInjected:
+      executeVisualCalibrationObjectiveQaServerInjectedBound,
   })
 }
 
@@ -1876,6 +1924,198 @@ async function executeCrossChunkColorContinuityServerInjected(
       externalBetaReady: false,
       productionReady: false,
     },
+  }
+}
+
+async function executeVisualCalibrationObjectiveQaServerInjected(
+  image: OfflineMediaBinaryImageEvidence,
+  value: unknown,
+  inputs: {
+    candidate: OfflineMediaBinaryServerInjectedInput
+    firstFrame: OfflineMediaBinaryServerInjectedInput
+    lastFrame: OfflineMediaBinaryServerInjectedInput
+  },
+): Promise<OfflineVisualCalibrationObjectiveQaExecutionResult> {
+  let request: OfflineMediaBinaryVisualCalibrationObjectiveQaRequest
+  try {
+    request = validateOfflineMediaBinaryVisualCalibrationObjectiveQaRequest(value)
+  } catch {
+    throw invalid('Structured visual-calibration objective-QA request was rejected.')
+  }
+  assertVisualCalibrationObjectiveQaInputs(request, inputs)
+  const container = await createContainer(
+    image,
+    VISUAL_CALIBRATION_OBJECTIVE_QA_ENTRYPOINT,
+    [],
+    { observeCgroupResources: true },
+  )
+  try {
+    const confinement = validateConfinement(
+      await inspectContainer(container.id),
+      image,
+      VISUAL_CALIBRATION_OBJECTIVE_QA_ENTRYPOINT,
+      [],
+      container,
+    )
+    const raw = await dockerVerifiedVisualCalibrationObjectiveQa({
+      args: ['start', '--attach', '--interactive', container.id],
+      request,
+      inputs,
+      maximumOutputBytes:
+        OFFLINE_MEDIA_BINARY_VISUAL_CALIBRATION_OBJECTIVE_QA_MAXIMUM_OUTPUT_BYTES,
+      timeoutMs: MAXIMUM_STREAMING_TIMEOUT_MS,
+    })
+    const observed = normalizeObservedMediaContainerExecution({
+      container,
+      image,
+      stderr: raw.stderr,
+    })
+    const after = await inspectContainer(container.id)
+    const state = record(after.State)
+    if (
+      raw.exitCode !== 0 || observed.sanitizedStderr.length > 0 ||
+      raw.stdout.length < 2 || state.Status !== 'exited' ||
+      state.Running !== false || state.ExitCode !== raw.exitCode ||
+      state.OOMKilled !== false
+    ) throw unavailable(
+      'Confined visual-calibration objective QA failed closed ' +
+      `(exit=${raw.exitCode};stderrBytes=${observed.sanitizedStderr.length};` +
+      `stdoutBytes=${raw.stdout.length};state=${String(state.Status)};` +
+      `oomKilled=${String(state.OOMKilled)};` +
+      `diagnostic=${safeFfmpegDiagnostic(observed.sanitizedStderr)}).`,
+    )
+    let parsed: unknown
+    try { parsed = JSON.parse(raw.stdout.toString('utf8')) } catch {
+      throw unavailable('Visual-calibration objective-QA output is not JSON.')
+    }
+    const result = validateOfflineMediaBinaryVisualCalibrationObjectiveQaResult(
+      parsed,
+      request,
+    )
+    const requestEnvelopeSha256 =
+      offlineMediaBinaryVisualCalibrationObjectiveQaRequestSha256(request)
+    const completedAt = new Date().toISOString()
+    const document = Object.freeze({
+      ...result,
+      requestEnvelopeSha256,
+      recipeProfileId: request.recipeProfileId,
+      runnerProfileId: request.runnerProfileId,
+      sourceProviderOperationId: request.sourceProviderOperationId,
+      sourceProviderOutputRole: request.sourceProviderOutputRole,
+      visualCalibrationContextDigest:
+        request.visualCalibrationContextDigest,
+      scenarioKind: request.scenarioKind,
+      candidate: { ...request.candidate },
+      firstFrame: { ...request.firstFrame },
+      lastFrame: { ...request.lastFrame },
+      mediaBounds: { ...request.mediaBounds },
+      qualityThresholds: { ...request.qualityThresholds },
+      effectiveMaximumFrozenFrameRatioMillionths: Math.min(
+        request.qualityThresholds.maximumFrozenFrameRatioMillionths,
+        Math.floor((48 * 1_000_000) / result.frameCount),
+      ),
+      providerCostIncluded: false as const,
+      customerPriceIncluded: false as const,
+      customerCreditsIncluded: false as const,
+      serviceFeeIncluded: false as const,
+      mediaMutationPerformed: false as const,
+      evaluatedAt: completedAt,
+    })
+    const bytes = Buffer.from(`${stableAuthorityStringify(document)}\n`)
+    const resultSha256 = sha256(bytes)
+    const semanticEvidence = Object.freeze({
+      fixedRecipeExecuted: true,
+      recipeProfileId: request.recipeProfileId,
+      runnerProfileId: request.runnerProfileId,
+      exactProviderCandidateBytesVerified: true,
+      exactFirstAndLastReferenceFrameBytesVerified: true,
+      independentContainerAndStreamProbeExecuted: true,
+      fullDecodedFrameHashScanExecuted: true,
+      blackFrameScanExecuted: true,
+      freezeFrameScanExecuted: true,
+      motionSignalEvaluated: true,
+      firstAndLastFrameSimilarityEvaluated: true,
+      objectiveQaPassed: result.passed,
+      mediaMutationPerformed: false,
+      providerCallPerformed: false,
+      customerCommercialAuthorityIncluded: false,
+      canonicalLeaseVerified: false,
+      singleUseDispatchVerified: false,
+      internalCostEvidenceReconciled: false,
+      productionReady: false,
+    })
+    const attestationWithoutHash = {
+      domain: 'offline_visual_calibration_objective_qa_attestation_v1',
+      completedAt,
+      imageIdentityHash: image.imageIdentityHash,
+      toolId: 'ffmpeg' as const,
+      operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
+      requestEnvelopeSha256,
+      candidateSha256: request.candidate.sha256,
+      firstFrameSha256: request.firstFrame.sha256,
+      lastFrameSha256: request.lastFrame.sha256,
+      resultSha256,
+      outcome: result.passed ? 'passed' as const : 'failed' as const,
+      confinement,
+      resourceObservation: observed.observation,
+    }
+    const attestationHash = sha256AuthorityValue(attestationWithoutHash)
+    const recordId = sha256AuthorityValue({ attestationHash, completedAt })
+    const attestation = {
+      ...attestationWithoutHash,
+      recordId,
+      attestationHash,
+    }
+    await writePrivateTextFileAtomicWithinRoot({
+      rootPath: STORAGE_ROOT,
+      relativePath: `attestations/${recordId.slice(0, 2)}/${recordId}.json`,
+      content: `${stableAuthorityStringify({
+        recordVersion:
+          'offline-visual-calibration-objective-qa-attestation-record-v1',
+        source:
+          'private_local_checksum_protected_visual_calibration_objective_qa',
+        attestation,
+        checksumSha256: sha256AuthorityValue(attestation),
+      })}\n`,
+    })
+    return {
+      resultJson: {
+        mimeType: 'application/json',
+        bytes,
+        document,
+        sha256: resultSha256,
+        byteLength: bytes.byteLength,
+      },
+      evidence: {
+        toolId: 'ffmpeg',
+        operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
+        binaryVersion: SOURCE_VERSION,
+        requestEnvelopeSha256,
+        candidateSha256: request.candidate.sha256,
+        firstFrameSha256: request.firstFrame.sha256,
+        lastFrameSha256: request.lastFrame.sha256,
+        resultSha256,
+        semanticEvidence,
+        confinement,
+        resourceObservation: observed.observation,
+        containerExitCode: 0,
+        oomKilled: false,
+      },
+      image,
+      attestation: { recordId, completedAt, attestationHash },
+      readiness: {
+        privateInternalOnly: true,
+        canonicalLeaseVerified: false,
+        singleUseDispatchVerified: false,
+        internalCostEvidenceReconciled: false,
+        productReady: false,
+        externalBetaReady: false,
+        productionReady: false,
+      },
+    }
+  } finally {
+    await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024)
+      .catch(() => undefined)
   }
 }
 
@@ -5307,7 +5547,9 @@ async function inspectImage(): Promise<OfflineMediaBinaryImageEvidence> {
     labels['reeditpro.long-form-master-assembly'] !==
       'private_vp9_flac_matroska_stream_copy_only' ||
     labels['reeditpro.customer-delivery-master-mux'] !==
-      'private_h264_stream_copy_aac_lc_192k_front_loaded_mp4_only'
+      'private_h264_stream_copy_aac_lc_192k_front_loaded_mp4_only' ||
+    labels['reeditpro.visual-calibration-objective-qa'] !==
+      'private_dependency_bound_mp4_and_reference_frames_only'
   ) throw unavailable('Pinned media image identity or safety labels are invalid.')
   const sourcePolicyHashes = await policyHashes()
   const imageIdentityHash = sha256AuthorityValue({
@@ -5337,6 +5579,8 @@ async function inspectImage(): Promise<OfflineMediaBinaryImageEvidence> {
       'private_vp9_flac_matroska_stream_copy_only',
     customerDeliveryMasterMux:
       'private_h264_stream_copy_aac_lc_192k_front_loaded_mp4_only',
+    visualCalibrationObjectiveQa:
+      'private_dependency_bound_mp4_and_reference_frames_only',
     sourcePolicyHashes,
   }
 }
@@ -5367,6 +5611,7 @@ async function persistAuthority(image: OfflineMediaBinaryImageEvidence): Promise
       privateInternalLongFormMasterQaReady: true as const,
       privateInternalFinalMasterDecodedVideoQaReady: true as const,
       privateInternalFinalMasterDecodedAudioQaReady: true as const,
+      privateInternalVisualCalibrationObjectiveQaReady: true as const,
       longFormFinalMasterQaCheckpointingReady: false as const,
       productReady: false as const,
       externalBetaReady: false as const,
@@ -5387,6 +5632,7 @@ async function persistAuthority(image: OfflineMediaBinaryImageEvidence): Promise
       'Decoded final-master video and audio QA are bounded private single-process evidence; resumable long-form checkpointing, lease recovery, and worker-fleet execution remain blocked.',
       'Generic FFmpeg and FFprobe attempts retain private cgroup-v2 CPU/memory evidence; specialized long-form runner families and deployed cloud telemetry remain separate gates.',
       'Storytelling Speech normalization accepts only the exact verified private provider MP3/alignment dependency set and does not authorize provider transport, selection, mixing, or delivery.',
+      'Visual-calibration objective QA accepts only one exact provider MP4 and two exact private reference frames; it does not grant creative acceptance, candidate selection, provider execution, timeline mutation, rendering, or delivery.',
     ] as const,
   }
   const authority: OfflineMediaBinaryRuntimeAuthority = {
@@ -5427,6 +5673,7 @@ type OfflineMediaBinaryEntrypoint =
   | typeof CONTINUOUS_PROGRAM_AUDIO_PROBE_ENTRYPOINT
   | typeof LONG_FORM_MASTER_ASSEMBLY_ENTRYPOINT
   | typeof CUSTOMER_DELIVERY_MUX_ENTRYPOINT
+  | typeof VISUAL_CALIBRATION_OBJECTIVE_QA_ENTRYPOINT
 
 interface OfflineMediaBinaryContainerHandle {
   id: string
@@ -5449,11 +5696,15 @@ async function createContainer(
     entrypoint === CONTINUOUS_PROGRAM_AUDIO_ENTRYPOINT ||
     entrypoint === LONG_FORM_MASTER_ASSEMBLY_ENTRYPOINT ||
     customerDeliveryMuxEntrypoint
+  const visualCalibrationQaEntrypoint =
+    entrypoint === VISUAL_CALIBRATION_OBJECTIVE_QA_ENTRYPOINT
   const memory = customerDeliveryMuxEntrypoint
     ? '8g'
     : largeMediaEntrypoint ? '4g' : '2g'
   const cpus = customerDeliveryMuxEntrypoint ? '4' : '2'
-  const tmpfsSizeBytes = largeMediaEntrypoint ? 1_342_177_280 : 67_108_864
+  const tmpfsSizeBytes = largeMediaEntrypoint
+    ? 1_342_177_280
+    : visualCalibrationQaEntrypoint ? 201_326_592 : 67_108_864
   const resourceObserver = options?.observeCgroupResources
     ? createPrivateMediaCgroupResourceObserverInvocation({
         innerEntrypoint: entrypoint,
@@ -5504,13 +5755,17 @@ function validateConfinement(
     entrypoint === CONTINUOUS_PROGRAM_AUDIO_ENTRYPOINT ||
     entrypoint === LONG_FORM_MASTER_ASSEMBLY_ENTRYPOINT ||
     customerDeliveryMuxEntrypoint
+  const visualCalibrationQaEntrypoint =
+    entrypoint === VISUAL_CALIBRATION_OBJECTIVE_QA_ENTRYPOINT
   const memoryLimitBytes = customerDeliveryMuxEntrypoint
     ? 8_589_934_592
     : largeMediaEntrypoint ? 4_294_967_296 : 2_147_483_648
   const nanoCpus = customerDeliveryMuxEntrypoint
     ? 4_000_000_000
     : 2_000_000_000
-  const tmpfsSizeBytes = largeMediaEntrypoint ? 1_342_177_280 : 67_108_864
+  const tmpfsSizeBytes = largeMediaEntrypoint
+    ? 1_342_177_280
+    : visualCalibrationQaEntrypoint ? 201_326_592 : 67_108_864
   const tmpfsPolicy = String(tmpfs['/tmp'] ?? '')
   const configuredEntrypoint = container?.resourceObserver
     ? PRIVATE_MEDIA_CGROUP_RESOURCE_OBSERVER_ENTRYPOINT
@@ -5671,6 +5926,7 @@ async function policyHashes(): Promise<Record<string, string>> {
     'source-slice-finalizer.sh', 'object-mezzanine-chunk.sh',
     'continuous-program-audio.sh', 'continuous-program-audio-probe.sh',
     'long-form-master-assembly.sh', 'customer-delivery-master-mux.sh',
+    'visual-calibration-objective-qa.sh',
     'media-cgroup-resource-observer.sh',
   ]
   return Object.fromEntries(await Promise.all(names.map(async (name) => [name, sha256(await readFile(join(directory, name)))])))
@@ -5984,6 +6240,189 @@ interface DockerVerifiedPrivateOutputSpool {
   signature: Buffer
   source: OfflineMediaBinaryServerInjectedInput
   cleanup(): Promise<void>
+}
+
+function assertVisualCalibrationObjectiveQaInputs(
+  request: OfflineMediaBinaryVisualCalibrationObjectiveQaRequest,
+  inputs: {
+    candidate: OfflineMediaBinaryServerInjectedInput
+    firstFrame: OfflineMediaBinaryServerInjectedInput
+    lastFrame: OfflineMediaBinaryServerInjectedInput
+  },
+): void {
+  if (!inputs || typeof inputs !== 'object') {
+    throw invalid('Visual-calibration objective-QA inputs are missing.')
+  }
+  assertServerInjectedInput(
+    inputs.candidate,
+    request.candidate.byteLength,
+    request.candidate.sha256,
+  )
+  assertServerInjectedInput(
+    inputs.firstFrame,
+    request.firstFrame.byteLength,
+    request.firstFrame.sha256,
+  )
+  assertServerInjectedInput(
+    inputs.lastFrame,
+    request.lastFrame.byteLength,
+    request.lastFrame.sha256,
+  )
+}
+
+function visualCalibrationObjectiveQaProtocolStream(
+  request: OfflineMediaBinaryVisualCalibrationObjectiveQaRequest,
+  inputs: {
+    candidate: OfflineMediaBinaryServerInjectedInput
+    firstFrame: OfflineMediaBinaryServerInjectedInput
+    lastFrame: OfflineMediaBinaryServerInjectedInput
+  },
+): Readable {
+  assertVisualCalibrationObjectiveQaInputs(request, inputs)
+  const line = (values: readonly (string | number)[]) =>
+    Buffer.from(`${values.join('\t')}\n`, 'utf8')
+  const verifiedBytes = async function* (
+    input: OfflineMediaBinaryServerInjectedInput,
+    expectedBytes: number,
+    expectedSha256: string,
+  ) {
+    const stream = await input.openStream()
+    if (!stream || typeof stream.pipe !== 'function') {
+      throw new Error('Visual-calibration input did not return a readable stream.')
+    }
+    let observedBytes = 0
+    const checksum = createHash('sha256')
+    for await (const chunk of stream) {
+      const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)
+      observedBytes += bytes.byteLength
+      if (observedBytes > expectedBytes) {
+        throw new Error('Visual-calibration input exceeded its commitment.')
+      }
+      checksum.update(bytes)
+      yield bytes
+    }
+    if (
+      observedBytes !== expectedBytes ||
+      checksum.digest('hex') !== expectedSha256
+    ) throw new Error('Visual-calibration input changed from its commitment.')
+  }
+  return Readable.from((async function* () {
+    yield line([OFFLINE_MEDIA_BINARY_VISUAL_CALIBRATION_OBJECTIVE_QA_MAGIC])
+    yield line([
+      'policy',
+      request.scenarioKind,
+      request.qualityThresholds.maximumBlackFrameRatioMillionths,
+      request.qualityThresholds.maximumFrozenFrameRatioMillionths,
+      request.qualityThresholds.maximumFrozenRunFrames,
+      request.qualityThresholds.minimumMotionSignalRatioMillionths,
+      request.qualityThresholds.minimumFirstFrameSimilarityMillionths,
+      request.qualityThresholds.minimumLastFrameSimilarityMillionths,
+    ])
+    yield line(['candidate', request.candidate.byteLength, request.candidate.sha256])
+    yield* verifiedBytes(
+      inputs.candidate,
+      request.candidate.byteLength,
+      request.candidate.sha256,
+    )
+    yield Buffer.from('\n', 'utf8')
+    yield line(['first_frame', request.firstFrame.byteLength, request.firstFrame.sha256])
+    yield* verifiedBytes(
+      inputs.firstFrame,
+      request.firstFrame.byteLength,
+      request.firstFrame.sha256,
+    )
+    yield Buffer.from('\n', 'utf8')
+    yield line(['last_frame', request.lastFrame.byteLength, request.lastFrame.sha256])
+    yield* verifiedBytes(
+      inputs.lastFrame,
+      request.lastFrame.byteLength,
+      request.lastFrame.sha256,
+    )
+    yield Buffer.from('\nend\n', 'utf8')
+  })())
+}
+
+async function dockerVerifiedVisualCalibrationObjectiveQa(input: {
+  args: string[]
+  request: OfflineMediaBinaryVisualCalibrationObjectiveQaRequest
+  inputs: {
+    candidate: OfflineMediaBinaryServerInjectedInput
+    firstFrame: OfflineMediaBinaryServerInjectedInput
+    lastFrame: OfflineMediaBinaryServerInjectedInput
+  }
+  maximumOutputBytes: number
+  timeoutMs: number
+}): Promise<{ exitCode: number; stdout: Buffer; stderr: Buffer }> {
+  if (
+    input.maximumOutputBytes !==
+      OFFLINE_MEDIA_BINARY_VISUAL_CALIBRATION_OBJECTIVE_QA_MAXIMUM_OUTPUT_BYTES
+  ) throw invalid('Visual-calibration objective-QA output bound changed.')
+  const invocation = createPrivateDockerCliInvocation(input.args)
+  const child = spawn(invocation.executable, invocation.args, {
+    stdio: ['pipe', 'pipe', 'pipe'],
+    env: invocation.env,
+  })
+  const stdout: Buffer[] = []
+  const stderr: Buffer[] = []
+  let stdoutBytes = 0
+  let stderrBytes = 0
+  const resultPromise = new Promise<{
+    exitCode: number
+    stdout: Buffer
+    stderr: Buffer
+  }>((resolve, reject) => {
+    const timer = setTimeout(() => {
+      child.kill('SIGKILL')
+      reject(unavailable('Visual-calibration objective QA timed out.'))
+    }, input.timeoutMs)
+    child.stdout.on('data', (chunk: Buffer) => {
+      stdoutBytes += chunk.byteLength
+      if (stdoutBytes > input.maximumOutputBytes) child.kill('SIGKILL')
+      else stdout.push(chunk)
+    })
+    child.stderr.on('data', (chunk: Buffer) => {
+      stderrBytes += chunk.byteLength
+      if (stderrBytes > 512 * 1024) child.kill('SIGKILL')
+      else stderr.push(chunk)
+    })
+    child.once('error', (error) => { clearTimeout(timer); reject(error) })
+    child.once('close', (code) => {
+      clearTimeout(timer)
+      if (
+        stdoutBytes > input.maximumOutputBytes || stderrBytes > 512 * 1024
+      ) {
+        reject(unavailable('Visual-calibration objective-QA output exceeded its bound.'))
+      } else {
+        resolve({
+          exitCode: code ?? 1,
+          stdout: Buffer.concat(stdout),
+          stderr: Buffer.concat(stderr),
+        })
+      }
+    })
+  })
+  const protocol = visualCalibrationObjectiveQaProtocolStream(
+    input.request,
+    input.inputs,
+  )
+  try {
+    const [, result] = await Promise.all([
+      pipeline(protocol, child.stdin),
+      resultPromise,
+    ])
+    return result
+  } catch (error) {
+    protocol.destroy()
+    child.stdin.destroy()
+    child.kill('SIGKILL')
+    await resultPromise.catch(() => undefined)
+    if (error instanceof ApiError) throw error
+    throw unavailable(
+      `Visual-calibration objective-QA streams failed: ${
+        error instanceof Error ? error.message : 'unknown error'
+      }`,
+    )
+  }
 }
 
 function assertLongFormMasterAssemblyInputs(

@@ -872,6 +872,7 @@ function toolFreeWorkerType(
   if (workerClass === PROFESSIONAL_LONG_FORM_CONTROLLER_WORKER_CLASS) {
     return 'api_service'
   }
+  if (workerClass === 'provider_worker') return 'cpu_analysis_worker'
   if (workerClass === 'qa_worker' || workItemType === 'run_final_qa' ||
     workItemType === 'run_asset_qa' || workItemType === 'run_timing_qa') {
     return 'qa_worker'

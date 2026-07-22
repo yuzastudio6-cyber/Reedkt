@@ -2121,8 +2121,7 @@ export function createCanonicalProviderWorkAuthorizationV4(
     candidate.id === input.jobId)
   const workItem = executionPackage.approvedWorkItems.find((candidate) =>
     candidate.id === packageJob?.approvedWorkItemId)
-  const expectedOutput = workItem?.expectedOutputs.find((candidate) =>
-    candidate.outputKey === input.expectedOutputId)
+  const expectedOutput = workItem?.expectedOutputs[0]
   const styleAuthorityRef =
     executionPackage.componentRefs.motionStudioStorytellingStyleAuthority
   const productionAuthorityRef =

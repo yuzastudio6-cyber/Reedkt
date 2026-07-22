@@ -16,8 +16,12 @@ import {
 import type {
   CanonicalPrivatePackageWorkQueueStoreScope,
 } from './private-canonical-package-work-queue-store'
+import {
+  verifyCanonicalPrivateVisualCalibrationProviderOutputArtifact,
+  type VerifiedCanonicalPrivateVisualCalibrationProviderOutputArtifact,
+} from './canonical-private-visual-calibration-provider-output-artifact-verifier'
 
-export interface VerifiedCanonicalPrivateProviderOutputArtifact {
+export interface VerifiedCanonicalPrivateSpeechProviderOutputArtifact {
   bytes: Buffer
   role:
     | 'provider_storytelling_speech_audio_mp3'
@@ -48,12 +52,23 @@ export interface VerifiedCanonicalPrivateProviderOutputArtifact {
   sourceAuthorityDigest: string
 }
 
+export type VerifiedCanonicalPrivateProviderOutputArtifact =
+  | VerifiedCanonicalPrivateSpeechProviderOutputArtifact
+  | VerifiedCanonicalPrivateVisualCalibrationProviderOutputArtifact
+
 export async function verifyCanonicalPrivateProviderOutputArtifact(input: {
   localStorageRoot: string
   ownerUserId: string
   artifact: PersistedArtifactResult
 }): Promise<VerifiedCanonicalPrivateProviderOutputArtifact> {
   const run = input.artifact.actualRunEvidence
+  if (
+    run.state === 'actual_provider_attempt_receipt_verified_v1' &&
+    run.providerOperationId ===
+      'provider.google.generate_visual_calibration_candidate.v1'
+  ) {
+    return verifyCanonicalPrivateVisualCalibrationProviderOutputArtifact(input)
+  }
   if (
     run.state !== 'actual_provider_attempt_receipt_verified_v1' ||
     !run.actualRunVerified || run.exitCode !== 0 || run.toolIds.length !== 0 ||
@@ -122,7 +137,7 @@ export async function verifyCanonicalPrivateProviderOutputArtifact(input: {
     run.providerOperationId !== currentReceipt.provider.operationId ||
     run.providerRoute !== currentReceipt.provider.providerRouteId ||
     run.providerOutputRole !== bridge.outputRole ||
-    run.providerAuthorizationHash !== bridge.authorization.authorityHash ||
+    run.providerWorkAuthorityDigest !== bridge.authorization.authorityHash ||
     run.providerTerminalHash !== currentReceipt.dispatch.terminalHash ||
     run.providerOutputSetDigest !== currentReceipt.outputSet.outputSetDigest ||
     run.providerReceiptHash !== currentReceipt.receiptHash ||

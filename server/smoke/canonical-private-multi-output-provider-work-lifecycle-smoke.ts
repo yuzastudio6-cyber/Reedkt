@@ -1124,7 +1124,7 @@ function providerOutputArtifactFixture(input: {
       providerOperationId: input.successReceipt.provider.operationId,
       providerRoute: input.successReceipt.provider.providerRouteId,
       providerOutputRole: output.role,
-      providerAuthorizationHash:
+      providerWorkAuthorityDigest:
         input.successReceipt.identity.authorizationHash,
       providerTerminalHash: input.successReceipt.dispatch.terminalHash,
       providerOutputSetDigest:

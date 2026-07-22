@@ -143,10 +143,26 @@ const immutableDispatchBindingSchema = z.object({
   leaseDependencyAuthority: immutableLeaseDependencyAuthorityBindingSchema,
   leaseExecutionFenceState: z.literal('not_started'),
   reservationId: safeIdentitySchema,
-  maximumCreditBudget: z.number().int().positive().max(10_000_000),
+  maximumCreditBudget: z.number().int().nonnegative().max(10_000_000),
+  costAuthorizationClass: z.enum([
+    'customer_credit_reservation',
+    'approved_internal_production_cost_only',
+  ]).optional(),
   remainingReservedCreditsAtDecision: z.number().int().positive().max(10_000_000),
   expectedOutput: expectedOutputBindingSchema,
-}).strict()
+}).strict().superRefine((binding, context) => {
+  const internalOnly = binding.costAuthorizationClass ===
+    'approved_internal_production_cost_only'
+  if (
+    (internalOnly && binding.maximumCreditBudget !== 0) ||
+    (!internalOnly && binding.maximumCreditBudget <= 0)
+  ) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Dispatch cost authorization and customer credit budget disagree.',
+    })
+  }
+})
 
 export const canonicalPrivateToolDispatchRecordSchema = z.object({
   schemaVersion: z.literal(CANONICAL_PRIVATE_TOOL_DISPATCH_RECORD_VERSION),

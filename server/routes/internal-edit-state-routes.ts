@@ -1,7 +1,7 @@
 import { Router, type NextFunction, type Request, type Response } from 'express'
 import { z } from 'zod'
 import { requireAuth } from '../middleware/auth'
-import { requireIdempotency } from '../middleware/idempotency'
+import { requireIdempotency, requireSensitiveIdempotencyKey } from '../middleware/idempotency'
 import { createInternalEditStateService } from '../services/internal-edit-state-service'
 import { createProjectService } from '../services/project-service'
 import { authorizeWorkspaceAccess } from '../services/workspace-access-service'
@@ -13,6 +13,12 @@ const saveInternalEditStateSchema = z.object({
   editSessionId: idSchema,
   handoff: z.record(z.string(), z.unknown()),
 })
+
+const migrateRetainedStorytellingWorkflowSchema = z.object({
+  workspaceId: idSchema,
+  editSessionId: idSchema,
+  expectedHandoffUpdatedAt: z.string().datetime({ offset: true }),
+}).strict()
 
 export function createInternalEditStateRoutes(): Router {
   const router = Router()
@@ -26,6 +32,26 @@ export function createInternalEditStateRoutes(): Router {
     })
     sendOk(response, { internalEditState: result.internalEditState }, result.warnings)
   }))
+
+  router.post(
+    '/v1/projects/:projectId/internal-edit-state/migrate-motion-studio-storytelling',
+    requireAuth,
+    requireInternalEditStateMigrationAccess,
+    requireSensitiveIdempotencyKey,
+    asyncRoute(async (request, response) => {
+      const body = validateBody(migrateRetainedStorytellingWorkflowSchema, request.body)
+      const result = await createInternalEditStateService(getServiceContext(request))
+        .migrateRetainedStorytellingWorkflow({
+          ...body,
+          projectId: getRouteParam(request, 'projectId'),
+          idempotencyKey: getIdempotencyKey(request),
+        })
+      sendOk(response, {
+        internalEditState: result.internalEditState,
+        migrationReceipt: result.migrationReceipt,
+      }, result.warnings)
+    }),
+  )
 
   router.get('/v1/projects/:projectId/internal-edit-state', requireAuth, asyncRoute(async (request, response) => {
     const workspaceId = typeof request.query.workspaceId === 'string' ? idSchema.parse(request.query.workspaceId) : idSchema.parse('')
@@ -48,6 +74,22 @@ export function createInternalEditStateRoutes(): Router {
   }))
 
   return router
+}
+
+async function requireInternalEditStateMigrationAccess(
+  request: Request,
+  _response: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const body = validateBody(migrateRetainedStorytellingWorkflowSchema, request.body)
+    const context = getServiceContext(request)
+    await authorizeWorkspaceAccess(context, body.workspaceId, 'write')
+    await createProjectService(context).getProject(getRouteParam(request, 'projectId'), body.workspaceId)
+    next()
+  } catch (error) {
+    next(error)
+  }
 }
 
 async function requireInternalEditStateWriteAccess(

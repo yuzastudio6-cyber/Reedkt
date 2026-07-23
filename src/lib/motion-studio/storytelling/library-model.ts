@@ -25,17 +25,15 @@ export interface StorytellingLibraryItem {
 /**
  * Projects and named edits stay in the shared product registry, while the
  * explicit product workflow determines whether Motion Studio owns the entry.
- * The exact retained V1 edit-id prefix is accepted only when an explicit
- * workflow discriminator is absent. Category never selects Motion Studio.
+ * Category and historical edit-id prefixes never select Motion Studio.
  */
 export function createStorytellingLibraryItems(
   edits: readonly LocalInternalProjectHandoff[],
-  options: { allowLegacyMigration?: boolean } = {},
 ): StorytellingLibraryItem[] {
   return edits
     .filter((edit) => isMotionStudioStorytellingHandoff(edit as LocalInternalProjectHandoff & {
       productWorkflow?: unknown
-    }, options))
+    }))
     .map((edit) => {
       const presentation = storytellingStagePresentation(edit)
       const workspacePath = motionStudioStorytellingWorkspaceRoute(edit.projectId, edit.editSessionId)

@@ -111,6 +111,7 @@ export async function installActiveProductRouteFixture(
 }
 
 export type ProductWorkflowSeparationFixture = {
+  legacyPrefixEdit: LocalInternalProjectHandoff
   motionEdit: LocalInternalProjectHandoff
   normalEdit: LocalInternalProjectHandoff
 }
@@ -128,6 +129,8 @@ export async function installProductWorkflowSeparationFixture(
   const now = '2026-07-10T12:00:00.000Z'
   const normalProjectId = `qa-normal-project-${id}`
   const normalEditSessionId = `qa-normal-edit-${id}`
+  const legacyProjectId = `qa-legacy-prefix-project-${id}`
+  const legacyEditSessionId = `storytelling-edit-legacy-${id}`
   const motionProjectId = `qa-motion-project-${id}`
   const motionEditSessionId = `storytelling-edit-${id}`
   const normalProject: LocalProjectRecord = {
@@ -143,6 +146,15 @@ export async function installProductWorkflowSeparationFixture(
     id: motionProjectId,
     workspaceId: activeProductLocalTestScope.workspaceId,
     name: 'Motion Storytelling Project',
+    category: 'storytelling',
+    createdAt: now,
+    updatedAt: now,
+    persistence: 'browser_scoped_project_registry',
+  }
+  const legacyProject: LocalProjectRecord = {
+    id: legacyProjectId,
+    workspaceId: activeProductLocalTestScope.workspaceId,
+    name: 'Legacy Prefix Video Project',
     category: 'storytelling',
     createdAt: now,
     updatedAt: now,
@@ -180,6 +192,23 @@ export async function installProductWorkflowSeparationFixture(
     updatedAt: now,
     persistence: 'browser_local_internal_testing',
   }
+  const legacyPrefixEdit: LocalInternalProjectHandoff = {
+    id: legacyEditSessionId,
+    workspaceId: activeProductLocalTestScope.workspaceId,
+    projectId: legacyProjectId,
+    editSessionId: legacyEditSessionId,
+    projectName: legacyProject.name,
+    editName: 'Prefix-only normal video edit',
+    category: 'storytelling',
+    // Retained records may predate productWorkflow. The prefix is not product
+    // authority and must parse back into the normal Edit Videos workflow.
+    editorPath: `/motion-studio/storytelling/projects/${legacyProjectId}/edits/${legacyEditSessionId}`,
+    stage: 'created',
+    sourceFileCount: 0,
+    createdAt: now,
+    updatedAt: now,
+    persistence: 'browser_local_internal_testing',
+  }
   const scopeFingerprint = createProjectPersistenceScopeFingerprint(activeProductLocalTestScope)
 
   await page.addInitScript((input) => {
@@ -198,16 +227,16 @@ export async function installProductWorkflowSeparationFixture(
       savedAt: input.now,
     }))
   }, {
-    edits: [normalEdit, motionEdit],
+    edits: [normalEdit, legacyPrefixEdit, motionEdit],
     handoffStorageKey: buildLocalProjectHandoffStorageKey(activeProductLocalTestScope),
     now,
-    projects: [normalProject, motionProject],
+    projects: [normalProject, legacyProject, motionProject],
     projectStorageKey: buildLocalProjectStorageKey(activeProductLocalTestScope),
     scope: activeProductLocalTestScope,
     scopeFingerprint,
   })
 
-  return { motionEdit, normalEdit }
+  return { legacyPrefixEdit, motionEdit, normalEdit }
 }
 
 export function missingNamedEditPath(label: string): string {

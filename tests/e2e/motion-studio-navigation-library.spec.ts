@@ -112,6 +112,102 @@ test.describe('Motion Studio native sidebar and Storytelling library', () => {
     await expectNoGenerationBeforeApproval(page)
   })
 
+  test('redirects an explicit Motion edit only after the exact production tuple is reverified', async ({ page }) => {
+    const fixture = await installStorytellingLibraryFixture(page)
+    let productionReadCount = 0
+    let productionCreateCount = 0
+    page.on('request', (request) => {
+      const pathname = new URL(request.url()).pathname
+      if (pathname !== `/v1/projects/${fixture.first.projectId}/edit-sessions/${fixture.first.editSessionId}/motion-studio`) {
+        return
+      }
+      if (request.method() === 'GET') productionReadCount += 1
+      if (request.method() === 'POST') productionCreateCount += 1
+    })
+
+    await gotoRoute(
+      page,
+      `/projects/${fixture.first.projectId}/edits/${fixture.first.editSessionId}`,
+    )
+
+    await expect.poll(() => new URL(page.url()).pathname).toBe(fixture.first.editorPath)
+    await expect(page.getByRole('heading', { level: 1, name: fixture.first.editName })).toBeVisible()
+    expect(productionReadCount).toBeGreaterThanOrEqual(1)
+    expect(productionCreateCount).toBe(0)
+  })
+
+  test('fails closed without recreating a missing production from the normal named-edit route', async ({ page }) => {
+    const fixture = await installStorytellingLibraryFixture(page)
+    let productionCreateCount = 0
+    const productionPath = `${apiOrigin}/v1/projects/${fixture.first.projectId}/edit-sessions/${fixture.first.editSessionId}/motion-studio`
+    await page.route(productionPath, async (route) => {
+      if (route.request().method() === 'POST') productionCreateCount += 1
+      await route.fulfill({
+        status: 404,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          ok: false,
+          error: { code: 'MOTION_PRODUCTION_NOT_FOUND', message: 'The exact Storytelling production was not found.' },
+          warnings: [],
+        }),
+      })
+    })
+
+    await gotoRoute(
+      page,
+      `/projects/${fixture.first.projectId}/edits/${fixture.first.editSessionId}`,
+    )
+
+    await expect(page.getByTestId('storytelling-route-verification-not-found')).toBeVisible()
+    await expect(page.getByText('No normal Edit Chat, replacement production, planning, generation, or credit action was started.')).toBeVisible()
+    await expect(page.getByTestId('editor-page')).toHaveCount(0)
+    expect(new URL(page.url()).pathname).toBe(
+      `/projects/${fixture.first.projectId}/edits/${fixture.first.editSessionId}`,
+    )
+    expect(productionCreateCount).toBe(0)
+  })
+
+  test('keeps a prefix-only retained edit in normal Edit Chat and out of Storytelling', async ({ page }) => {
+    const project = projectRecord(
+      'legacy-prefix-normal-project',
+      'Prefix-only normal project',
+      '2026-07-18T12:00:00.000Z',
+    )
+    const editSessionId = 'storytelling-edit-prefix-only-normal'
+    const legacyPrefixEdit: LocalInternalProjectHandoff = {
+      id: editSessionId,
+      workspaceId: activeProductLocalTestScope.workspaceId,
+      projectId: project.id,
+      editSessionId,
+      projectName: project.name,
+      editName: 'Prefix-only normal edit',
+      category: 'storytelling',
+      editorPath: `/motion-studio/storytelling/projects/${project.id}/edits/${editSessionId}`,
+      stage: 'created',
+      sourceFileCount: 0,
+      createdAt: '2026-07-18T12:00:00.000Z',
+      updatedAt: '2026-07-18T12:00:00.000Z',
+      persistence: 'browser_local_internal_testing',
+    }
+    let productionRequestCount = 0
+    page.on('request', (request) => {
+      if (new URL(request.url()).pathname.includes(`/edit-sessions/${editSessionId}/motion-studio`)) {
+        productionRequestCount += 1
+      }
+    })
+    await installLibraryStorage(page, [project], [legacyPrefixEdit])
+
+    await gotoRoute(page, '/motion-studio/storytelling')
+    await expect(page.getByRole('heading', { level: 2, name: 'No stories yet' })).toBeVisible()
+    await expect(page.getByText(legacyPrefixEdit.editName ?? '')).toHaveCount(0)
+
+    await gotoRoute(page, `/projects/${project.id}/edits/${editSessionId}`)
+    await expect(page.getByTestId('editor-page')).toBeVisible()
+    await expect(page.getByTestId('editor-header')).toContainText(legacyPrefixEdit.editName ?? '')
+    await expect(page).not.toHaveURL(/\/motion-studio(?:\/|$)/)
+    expect(productionRequestCount).toBe(0)
+  })
+
   test('creates one canonical project and named edit, then opens its Storytelling Director Chat', async ({ page }) => {
     const projectId = 'project-storytelling-create-smoke'
     await page.route(`${apiOrigin}/v1/projects`, async (route) => {
@@ -665,6 +761,26 @@ async function installStorytellingLibraryFixture(page: Page): Promise<{
   const secondProject = projectRecord('motion-story-two', 'The Archive', '2026-07-18T11:00:00.000Z')
   const first = handoffRecord(firstProject, 'edit-story-one', 'Operation Northstar', '2026-07-18T10:30:00.000Z')
   const second = handoffRecord(secondProject, 'edit-story-two', 'Inside the archive', '2026-07-18T11:30:00.000Z')
+  await page.route(`${apiOrigin}/v1/internal-edit-states**`, async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        ok: true,
+        data: {
+          internalEditStates: [first, second].map((handoff) => ({
+            userId: activeProductLocalTestScope.userId,
+            workspaceId: activeProductLocalTestScope.workspaceId,
+            projectId: handoff.projectId,
+            editSessionId: handoff.editSessionId,
+            handoff,
+            updatedAt: handoff.updatedAt,
+          })),
+        },
+        warnings: [],
+      }),
+    })
+  })
   await installLibraryStorage(page, [firstProject, secondProject], [first, second])
   return { first, second }
 }

@@ -8,7 +8,10 @@ import {
 
 import { useProjectPersistenceScope } from './useProjectPersistenceScope'
 import { motionStudioApiClient } from '../backend/api/motion-studio-api-client'
-import { readLocalInternalProjectHandoffFromBackend } from '../lib/internal-edit-state-backend-sync'
+import {
+  migrateRetainedStorytellingWorkflowFromBackend,
+  readLocalInternalProjectHandoffFromBackend,
+} from '../lib/internal-edit-state-backend-sync'
 import {
   getInternalEditPersistenceStatus,
   getLocalInternalEditHandoff,
@@ -21,6 +24,7 @@ import {
 } from '../lib/local-project-handoff'
 import {
   isMotionStudioStorytellingHandoff,
+  isRetainedLegacyMotionStudioStorytellingMigrationCandidate,
   isVerifiedMotionStudioStorytellingProductionAssociation,
 } from '../lib/motion-studio/contracts/storytelling-workflow'
 import { projectMotionStudioProduction } from '../lib/motion-studio/shell/shell-model'
@@ -92,11 +96,9 @@ export function useMotionStudioStorytellingWorkspaceHandoff(
       if (cancelled) return
       setResult({ state: 'loading' })
       let handoff: LocalInternalProjectHandoff | undefined
-      let allowLegacyMigration = false
 
       if (scope.authMode === 'local_test') {
         handoff = getLocalInternalEditHandoff(scope, projectId, editSessionId)
-        allowLegacyMigration = true
         if (!handoff) {
           if (!cancelled) {
             setResult({
@@ -124,7 +126,25 @@ export function useMotionStudioStorytellingWorkspaceHandoff(
         handoff = backendResult.handoff
       }
 
-      const verified = await verifyStorytellingWorkspace(handoff, allowLegacyMigration)
+      if (
+        !isMotionStudioStorytellingHandoff(handoff) &&
+        scope.authMode === 'supabase' &&
+        isRetainedLegacyMotionStudioStorytellingMigrationCandidate(handoff)
+      ) {
+        const migration = await migrateRetainedStorytellingWorkflowFromBackend(scope, handoff)
+        if (migration.status !== 'found') {
+          if (!cancelled) {
+            setResult({
+              state: migration.status,
+              message: migration.errorMessage,
+            })
+          }
+          return
+        }
+        handoff = migration.handoff
+      }
+
+      const verified = await verifyStorytellingWorkspace(handoff)
       if (cancelled) return
       if (verified.state === 'ready') {
         saveLocalInternalProjectHandoff(scope, handoff, { syncBackend: false })
@@ -173,7 +193,6 @@ export function useMotionStudioStorytellingWorkspaceHandoff(
 
 function classifyHandoff(
   handoff: LocalInternalProjectHandoff,
-  allowLegacyMigration: boolean,
 ): {
   handoff?: LocalInternalProjectHandoff
   message?: string
@@ -181,7 +200,7 @@ function classifyHandoff(
 } {
   if (!isMotionStudioStorytellingHandoff(handoff as LocalInternalProjectHandoff & {
     productWorkflow?: unknown
-  }, { allowLegacyMigration })) {
+  })) {
     return {
       state: 'not_storytelling',
       message: 'This named edit belongs to Edit Videos, not Motion Studio Storytelling.',
@@ -192,19 +211,13 @@ function classifyHandoff(
 
 async function verifyStorytellingWorkspace(
   handoff: LocalInternalProjectHandoff,
-  allowLegacyMigration: boolean,
 ): Promise<{
   handoff?: LocalInternalProjectHandoff
   message?: string
   state: MotionStudioStorytellingHandoffState
 }> {
-  // Local-test migration is intentionally cheap and explicit. Signed-in
-  // reads reverify the exact production before trusting workflow identity;
-  // the canonical integration dependency durably parses productWorkflow.
-  if (allowLegacyMigration) {
-    const localClassification = classifyHandoff(handoff, true)
-    return localClassification
-  }
+  const classification = classifyHandoff(handoff)
+  if (classification.state !== 'ready') return classification
 
   const response = await motionStudioApiClient.getProduction(
     handoff.projectId,
@@ -235,7 +248,6 @@ async function verifyStorytellingWorkspace(
   if (!isVerifiedMotionStudioStorytellingProductionAssociation(
     handoff as LocalInternalProjectHandoff & { productWorkflow?: unknown },
     production,
-    { allowLegacyMigration },
   )) {
     return {
       state: 'not_storytelling',

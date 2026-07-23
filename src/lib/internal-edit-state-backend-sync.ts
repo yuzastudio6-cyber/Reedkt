@@ -4,6 +4,11 @@ import {
   type LocalInternalProjectHandoff,
 } from './local-project-handoff'
 import {
+  isMotionStudioStorytellingHandoff,
+  isRetainedLegacyMotionStudioStorytellingMigrationCandidate,
+  motionStudioStorytellingWorkspaceRoute,
+} from './motion-studio/contracts/storytelling-workflow'
+import {
   apiResponseInvalidatesProjectPersistenceScope,
   expectedProjectPersistenceBackendUserId,
   invalidateProjectPersistenceScope,
@@ -23,6 +28,27 @@ type InternalEditStateResponse = {
 
 type InternalEditStateListResponse = {
   internalEditStates?: unknown[]
+}
+
+type StorytellingWorkflowMigrationResponse = InternalEditStateResponse & {
+  migrationReceipt?: {
+    recordVersion: string
+    sourceHandoffUpdatedAt: string
+    migratedHandoffUpdatedAt: string
+    productWorkflow: string
+    editorPath: string
+    productionId: string
+    productionRecordVersion: number
+    productionUpdatedAt: string
+    productionAuthorityHash: string
+    requestHash: string
+    idempotencyKeyHash: string
+    receiptDigest: string
+    providerCalled: boolean
+    generationStarted: boolean
+    customerCommercialAuthorityGranted: boolean
+    productionReady: boolean
+  }
 }
 
 export type InternalEditStateBackendSyncResult = {
@@ -266,6 +292,126 @@ export async function readLocalInternalProjectHandoffFromBackend(
   }
 }
 
+export async function migrateRetainedStorytellingWorkflowFromBackend(
+  scope: ProjectPersistenceScope,
+  handoff: LocalInternalProjectHandoff,
+): Promise<InternalEditStateBackendReadResult> {
+  if (
+    scope.authMode !== 'supabase' ||
+    handoff.workspaceId !== scope.workspaceId ||
+    !isRetainedLegacyMotionStudioStorytellingMigrationCandidate(handoff)
+  ) {
+    return {
+      status: 'invalid_response',
+      errorMessage: 'This edit is not eligible for the signed-in production-verified Storytelling migration.',
+      retryable: false,
+      warnings: [],
+    }
+  }
+  const status = getFrontendApiClientStatus()
+  if (status.mockOnly || !status.apiBaseUrl) {
+    return {
+      status: 'unavailable',
+      backendConfigured: false,
+      errorMessage: 'Storytelling migration requires the reviewed signed-in backend connection.',
+      retryable: true,
+      warnings: status.warnings,
+    }
+  }
+
+  const response = await callReeditProApi<{
+    workspaceId: string
+    editSessionId: string
+    expectedHandoffUpdatedAt: string
+  }, StorytellingWorkflowMigrationResponse>(
+    'projects.internalEditState.migrateMotionStudioStorytelling',
+    {
+      workspaceId: scope.workspaceId,
+      editSessionId: handoff.editSessionId,
+      expectedHandoffUpdatedAt: handoff.updatedAt,
+    },
+    {
+      params: { projectId: handoff.projectId },
+      idempotencyKey: await createStorytellingWorkflowMigrationIdempotencyKey(scope, handoff),
+    },
+  )
+
+  if (apiResponseInvalidatesProjectPersistenceScope(response)) {
+    invalidateProjectPersistenceScope(scope)
+  }
+  const responseCode = response.error?.code
+  if (
+    response.statusCode === 401 ||
+    response.statusCode === 403 ||
+    responseCode === 'AUTH_REQUIRED' ||
+    responseCode === 'AUTH_INVALID' ||
+    responseCode === 'WORKSPACE_ACCESS_DENIED'
+  ) {
+    return {
+      status: 'access_denied',
+      errorMessage: 'This Storytelling edit is not available to the signed-in workspace.',
+      retryable: false,
+      warnings: response.warnings,
+    }
+  }
+  if (response.statusCode === 404 || responseCode === 'PROJECT_NOT_FOUND') {
+    return {
+      status: 'not_found',
+      errorMessage: 'The retained Storytelling edit or its exact production could not be found.',
+      retryable: false,
+      warnings: response.warnings,
+    }
+  }
+  if (!response.ok) {
+    return {
+      status: response.statusCode === 409 || isInvalidBackendResponseCode(responseCode)
+        ? 'invalid_response'
+        : 'unavailable',
+      ...(response.statusCode >= 500 ? { backendConfigured: true } : {}),
+      errorMessage: response.error?.message ?? 'The retained Storytelling edit could not be migrated.',
+      retryable: response.statusCode >= 500 || responseCode === 'http_transport_failed',
+      warnings: response.warnings,
+    }
+  }
+
+  const migratedHandoff = response.data?.internalEditState?.handoff
+  const receipt = response.data?.migrationReceipt
+  if (!isValidStorytellingMigrationProjection(scope, handoff, migratedHandoff, receipt)) {
+    return {
+      status: 'invalid_response',
+      errorMessage: 'The Storytelling migration response did not match the exact saved edit and production-bound receipt.',
+      retryable: false,
+      warnings: response.warnings,
+    }
+  }
+
+  const reread = await readLocalInternalProjectHandoffFromBackend(
+    scope,
+    handoff.projectId,
+    handoff.editSessionId,
+  )
+  if (
+    reread.status !== 'found' ||
+    reread.handoff.updatedAt !== receipt.migratedHandoffUpdatedAt ||
+    !isMotionStudioStorytellingHandoff(reread.handoff) ||
+    reread.handoff.editorPath !== receipt.editorPath
+  ) {
+    return reread.status === 'access_denied'
+      ? reread
+      : {
+          status: 'invalid_response',
+          errorMessage: 'The migrated Storytelling workflow could not be re-read exactly, so the Director remained closed.',
+          retryable: false,
+          warnings: [...response.warnings, ...reread.warnings],
+        }
+  }
+  return {
+    status: 'found',
+    handoff: reread.handoff,
+    warnings: [...response.warnings, ...reread.warnings],
+  }
+}
+
 export async function listLocalInternalProjectHandoffsFromBackend(
   scope: ProjectPersistenceScope,
 ): Promise<LocalInternalProjectHandoff[]> {
@@ -446,6 +592,55 @@ async function createInternalEditStateIdempotencyKey(
   const digest = await globalThis.crypto.subtle.digest('SHA-256', new TextEncoder().encode(source))
   const hex = [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('')
   return `internal-edit-state:${hex}`
+}
+
+async function createStorytellingWorkflowMigrationIdempotencyKey(
+  scope: ProjectPersistenceScope,
+  handoff: LocalInternalProjectHandoff,
+): Promise<string> {
+  const source = JSON.stringify([
+    scope.workspaceId,
+    handoff.projectId,
+    handoff.editSessionId,
+    handoff.updatedAt,
+    'motion_studio.storytelling',
+  ])
+  const digest = await globalThis.crypto.subtle.digest('SHA-256', new TextEncoder().encode(source))
+  const hex = [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('')
+  return `storytelling-workflow-migration:${hex}`
+}
+
+function isValidStorytellingMigrationProjection(
+  scope: ProjectPersistenceScope,
+  source: LocalInternalProjectHandoff,
+  migrated: LocalInternalProjectHandoff | undefined,
+  receipt: StorytellingWorkflowMigrationResponse['migrationReceipt'],
+): receipt is NonNullable<StorytellingWorkflowMigrationResponse['migrationReceipt']> {
+  if (!migrated || !receipt) return false
+  const canonicalPath = motionStudioStorytellingWorkspaceRoute(source.projectId, source.editSessionId)
+  return migrated.workspaceId === scope.workspaceId &&
+    migrated.projectId === source.projectId &&
+    migrated.editSessionId === source.editSessionId &&
+    migrated.productWorkflow === 'motion_studio.storytelling' &&
+    migrated.editorPath === canonicalPath &&
+    receipt.recordVersion === 'internal-edit-state-storytelling-workflow-migration-v1' &&
+    receipt.sourceHandoffUpdatedAt === source.updatedAt &&
+    receipt.migratedHandoffUpdatedAt === migrated.updatedAt &&
+    receipt.productWorkflow === 'motion_studio.storytelling' &&
+    receipt.editorPath === canonicalPath &&
+    typeof receipt.productionId === 'string' &&
+    Boolean(receipt.productionId.trim()) &&
+    Number.isSafeInteger(receipt.productionRecordVersion) &&
+    receipt.productionRecordVersion > 0 &&
+    Number.isFinite(Date.parse(receipt.productionUpdatedAt)) &&
+    /^[a-f0-9]{64}$/u.test(receipt.productionAuthorityHash) &&
+    /^[a-f0-9]{64}$/u.test(receipt.requestHash) &&
+    /^[a-f0-9]{64}$/u.test(receipt.idempotencyKeyHash) &&
+    /^[a-f0-9]{64}$/u.test(receipt.receiptDigest) &&
+    receipt.providerCalled === false &&
+    receipt.generationStarted === false &&
+    receipt.customerCommercialAuthorityGranted === false &&
+    receipt.productionReady === false
 }
 
 function mergeInternalProjectHandoffs(

@@ -6,6 +6,10 @@ import type {
   MotionStudioStorytellingWorkspaceRouteIdentity,
 } from '../../../types/motion-studio/storytelling-workflow'
 import {
+  MOTION_STUDIO_MODULE_CATALOG_VERSION,
+  MOTION_STUDIO_STORYTELLING_STAGE_PROFILE_ID,
+} from './constants'
+import {
   MOTION_STUDIO_STORYTELLING_CHAT_EXPERIENCE,
   MOTION_STUDIO_STORYTELLING_LIBRARY_ROUTE,
   MOTION_STUDIO_STORYTELLING_WORKFLOW_BINDING_VERSION,
@@ -107,20 +111,49 @@ export function ordinaryNamedEditRoute(projectId: string, editSessionId: string)
 const LEGACY_MOTION_STUDIO_STORYTELLING_EDIT_PREFIX = 'storytelling-edit-'
 
 /**
- * Resolves only the explicit product-workflow discriminator, plus the exact
- * retained V1 edit-id migration hint when no discriminator exists. Editing
- * category is intentionally not accepted as workflow authority.
+ * Resolves only the explicit product-workflow discriminator. Editing category,
+ * route state, and historical edit-id prefixes are intentionally not accepted
+ * as runtime workflow authority.
  */
 export function isMotionStudioStorytellingHandoff(input: {
   editSessionId: string
   productWorkflow?: unknown
-}, options: {
-  allowLegacyMigration?: boolean
-} = {}): boolean {
-  if (input.productWorkflow === MOTION_STUDIO_STORYTELLING_WORKFLOW_ID) return true
-  if (input.productWorkflow !== undefined) return false
-  return options.allowLegacyMigration === true &&
-    input.editSessionId.startsWith(LEGACY_MOTION_STUDIO_STORYTELLING_EDIT_PREFIX)
+}): boolean {
+  return input.productWorkflow === MOTION_STUDIO_STORYTELLING_WORKFLOW_ID
+}
+
+/**
+ * Identifies only a retained pre-discriminator Motion record at the explicit
+ * migration boundary. This predicate never authorizes a route or workspace;
+ * migration must still re-read the exact canonical production tuple, persist
+ * the discriminator, and re-read the migrated handoff.
+ */
+export function isRetainedLegacyMotionStudioStorytellingMigrationCandidate(input: {
+  editorPath: unknown
+  editSessionId: string
+  productWorkflow?: unknown
+  projectId: string
+}): boolean {
+  return input.productWorkflow === undefined &&
+    input.editSessionId.startsWith(LEGACY_MOTION_STUDIO_STORYTELLING_EDIT_PREFIX) &&
+    input.editorPath === motionStudioStorytellingWorkspaceRoute(input.projectId, input.editSessionId)
+}
+
+export function isExactMotionStudioStorytellingProductionTuple(
+  handoff: { projectId: string; editSessionId: string },
+  production: {
+    projectId: string
+    editSessionId: string
+    moduleId: unknown
+    moduleCatalogVersion: unknown
+    stageProfileId: unknown
+  },
+): boolean {
+  return production.projectId === handoff.projectId &&
+    production.editSessionId === handoff.editSessionId &&
+    production.moduleId === 'storytelling' &&
+    production.moduleCatalogVersion === MOTION_STUDIO_MODULE_CATALOG_VERSION &&
+    production.stageProfileId === MOTION_STUDIO_STORYTELLING_STAGE_PROFILE_ID
 }
 
 /**
@@ -142,14 +175,9 @@ export function isVerifiedMotionStudioStorytellingProductionAssociation(
     moduleCatalogVersion: unknown
     stageProfileId: unknown
   },
-  options: { allowLegacyMigration?: boolean } = {},
 ): boolean {
-  return isMotionStudioStorytellingHandoff(handoff, options) &&
-    production.projectId === handoff.projectId &&
-    production.editSessionId === handoff.editSessionId &&
-    production.moduleId === 'storytelling' &&
-    production.moduleCatalogVersion === 'motion-studio-module-catalog-v1' &&
-    production.stageProfileId === 'motion-studio-storytelling-stage-profile-v1'
+  return isMotionStudioStorytellingHandoff(handoff) &&
+    isExactMotionStudioStorytellingProductionTuple(handoff, production)
 }
 
 /**

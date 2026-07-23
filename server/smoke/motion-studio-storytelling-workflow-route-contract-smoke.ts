@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 
 import {
   isMotionStudioStorytellingHandoff,
+  isRetainedLegacyMotionStudioStorytellingMigrationCandidate,
   isVerifiedMotionStudioStorytellingProductionAssociation,
   motionStudioStorytellingWorkspaceLocationSchema,
   ordinaryNamedEditRoute,
@@ -45,10 +46,19 @@ assert.equal(isMotionStudioStorytellingHandoff({
 }), false, 'category-only normal edits must remain normal edits')
 assert.equal(isMotionStudioStorytellingHandoff({
   editSessionId: 'storytelling-edit-retained-v1',
-}), false, 'legacy identity is not browser authority unless migration is explicitly enabled')
-assert.equal(isMotionStudioStorytellingHandoff({
+}), false, 'legacy identity is never runtime route authority')
+assert.equal(isRetainedLegacyMotionStudioStorytellingMigrationCandidate({
+  projectId: 'project-retained-v1',
   editSessionId: 'storytelling-edit-retained-v1',
-}, { allowLegacyMigration: true }), true, 'the exact retained V1 identity may migrate only at the explicit local migration boundary')
+  productWorkflow: undefined,
+  editorPath: '/motion-studio/storytelling/projects/project-retained-v1/edits/storytelling-edit-retained-v1',
+}), true, 'the exact retained V1 identity and dedicated path may enter only the explicit migration boundary')
+assert.equal(isRetainedLegacyMotionStudioStorytellingMigrationCandidate({
+  projectId: 'project-retained-v1',
+  editSessionId: 'storytelling-edit-retained-v1',
+  productWorkflow: undefined,
+  editorPath: '/projects/project-retained-v1/edits/storytelling-edit-retained-v1',
+}), false, 'a prefix-only ordinary edit is never a migration or Motion route authority')
 assert.equal(isMotionStudioStorytellingHandoff({
   editSessionId: 'storytelling-edit-retained-v1',
   productWorkflow: 'video_edit',

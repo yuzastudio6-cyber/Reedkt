@@ -109,22 +109,16 @@ test.describe('Storytelling contextual workspace navigation', () => {
 
     await setViewport(page, 1280)
     await gotoRoute(page, fixture.editPath)
-    await expect(page.getByTestId('storytelling-director-production-missing')).toBeVisible()
+    await expect(page.getByTestId('storytelling-workspace-entry-not-found')).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Storytelling project not found' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Start Storytelling' })).toHaveCount(0)
-    await expect(page.getByTestId('storytelling-director-production-missing')
-      .getByRole('link', { name: 'Back to Storytelling library' })).toHaveAttribute(
-      'href',
-      '/motion-studio/storytelling',
-    )
+    await expect(page.getByRole('button', { name: 'Back to Storytelling' })).toBeVisible()
 
     await gotoRoute(page, `${fixture.editPath}?surface=story`)
-    await expect(page.getByTestId('storytelling-workspace-production-missing')).toBeVisible()
+    await expect(page.getByTestId('storytelling-workspace-entry-not-found')).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Storytelling project not found' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Prepare workspace' })).toHaveCount(0)
-    await expect(page.getByTestId('storytelling-workspace-production-missing')
-      .getByRole('link', { name: 'Back to Storytelling library' })).toHaveAttribute(
-      'href',
-      '/motion-studio/storytelling',
-    )
+    await expect(page.getByRole('button', { name: 'Back to Storytelling' })).toBeVisible()
     expect(readCount).toBeGreaterThanOrEqual(2)
     expect(createCount).toBe(0)
     await expectNoGenerationBeforeApproval(page)

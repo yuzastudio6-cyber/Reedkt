@@ -44,6 +44,7 @@ test.describe('Projects and Project Home UI', () => {
 
     await gotoRoute(page, '/projects')
     await expect(page.getByText('Normal Storytelling Project')).toBeVisible()
+    await expect(page.getByText('Legacy Prefix Video Project')).toBeVisible()
     await expect(page.getByText('Motion Storytelling Project')).toBeVisible()
 
     await gotoRoute(page, `/projects/${fixture.motionEdit.projectId}`)
@@ -57,16 +58,33 @@ test.describe('Projects and Project Home UI', () => {
 
     await expect(page.getByRole('heading', { level: 1, name: 'Edit Videos' })).toBeVisible()
     await expect(page.getByText(fixture.normalEdit.editName ?? '')).toBeVisible()
+    await expect(page.getByText(fixture.legacyPrefixEdit.editName ?? '')).toBeVisible()
     await expect(page.getByText(fixture.motionEdit.editName ?? '')).toHaveCount(0)
     await expect(page.getByText('Normal Storytelling Project')).toBeVisible()
+    await expect(page.getByText('Legacy Prefix Video Project')).toBeVisible()
     await expect(page.getByText('Motion Storytelling Project')).toHaveCount(0)
 
-    await page.getByRole('link', { name: 'Open Edit Chat' }).click()
+    const normalEditCard = page.getByTestId('video-edit-card').filter({
+      hasText: fixture.normalEdit.editName ?? '',
+    })
+    await normalEditCard.getByRole('link', { name: 'Open Edit Chat' }).click()
     await expect(page).toHaveURL(new RegExp(`${fixture.normalEdit.editorPath}(?:\\?.*)?$`))
     await expect(page.getByTestId('editor-page')).toBeVisible()
     await expect(page.getByTestId('editor-header')).toContainText(fixture.normalEdit.editName ?? '')
     await expect(page.getByRole('navigation', { name: /desktop app navigation/i })
       .getByRole('link', { name: 'Edit Videos' })).toHaveAttribute('aria-current', 'page')
+    await expect(page).not.toHaveURL(/\/motion-studio(?:\/|$)/)
+
+    await gotoRoute(page, '/edit-videos')
+    const legacyPrefixCard = page.getByTestId('video-edit-card').filter({
+      hasText: fixture.legacyPrefixEdit.editName ?? '',
+    })
+    await expect(legacyPrefixCard).toBeVisible()
+    await legacyPrefixCard.getByRole('link', { name: 'Open Edit Chat' }).click()
+    await expect(page).toHaveURL(new RegExp(
+      `/projects/${fixture.legacyPrefixEdit.projectId}/edits/${fixture.legacyPrefixEdit.editSessionId}(?:\\?.*)?$`,
+    ))
+    await expect(page.getByTestId('editor-page')).toBeVisible()
     await expect(page).not.toHaveURL(/\/motion-studio(?:\/|$)/)
     await expectNoHorizontalOverflow(page)
   })
@@ -85,7 +103,7 @@ test.describe('Projects and Project Home UI', () => {
     await expect(editCard.getByText('Source needed')).toBeVisible()
     await expect(editCard.getByRole('link', { name: 'Upload source' })).toBeVisible()
     await expect(page.locator('.badge')).toHaveCount(0)
-    await expect(page.getByRole('button', { name: 'New edit' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'New video edit' })).toBeVisible()
     await expectNoHorizontalOverflow(page)
   })
 
@@ -132,7 +150,7 @@ test.describe('Projects and Project Home UI', () => {
     await clickWhenReady(page.getByRole('button', { name: /^Create project$/i }))
     await expect(page).toHaveURL(/\/projects\/[^/]+$/)
     await expect(page.getByRole('heading', { level: 1, name: projectName })).toBeVisible()
-    await clickWhenReady(page.getByRole('button', { name: /^New edit$/i }).first())
+    await clickWhenReady(page.getByRole('button', { name: /^New video edit$/i }).first())
     const newEditDialog = page.getByRole('dialog', { name: 'Name this edit' })
     await expect(newEditDialog).toBeVisible()
     await expect(page.getByLabel('Edit name')).toBeFocused()

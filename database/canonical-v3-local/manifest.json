@@ -265,7 +265,7 @@
     },
     {
       "path": "server/app.ts",
-      "sha256": "a61df2be896d7c12a9beddc4fffceadc50e5b9b4d415310488795e0614e53367"
+      "sha256": "342d525efd7c4923fb777ce9e0316641a9c8a3ba94f7ceddf5e9c99325a5e692"
     },
     {
       "path": "server/distributed-media-ingest/canonical-distributed-media-ingest-local-supabase-http-rpc-client.ts",
@@ -409,7 +409,7 @@
     },
     {
       "path": "server/routes/route-helpers.ts",
-      "sha256": "fd3f74bf2e26c3aeeb15157d0899c1e8083136d1add0d3d0fc3b1c6f4708d2fb"
+      "sha256": "d767ea480ae84ad77b9f0253044be707e68b654a5e4af6b9ceb874734c1d0dce"
     },
     {
       "path": "server/services/canonical-planning-handoff-service.ts",
@@ -493,7 +493,7 @@
     },
     {
       "path": "server/services/upload-service.ts",
-      "sha256": "a87da45f3b931c1cb0db159ceb2cc286030c340cc139ea9673bb7dd904583b5a"
+      "sha256": "97df973c59a428e91446a9124c6c683fe98792dc8db8561ac15e53e954c76f08"
     },
     {
       "path": "server/services/workspace-access-service.ts",
@@ -517,7 +517,7 @@
     },
     {
       "path": "server/smoke/canonical-private-tool-dispatch-authority-smoke.ts",
-      "sha256": "c6947dd3f4ff3c29531b67bf20cbe0d07ed50854a3b39b0e2cec0691596758da"
+      "sha256": "bf4047f5da72bf77d57f09a7c7e2880493f205077fe63691f8799b52d7ec1adb"
     },
     {
       "path": "server/smoke/canonical-professional-long-form-cross-chunk-color-smoke.ts",
@@ -597,7 +597,7 @@
     },
     {
       "path": "server/types.ts",
-      "sha256": "7336cf7844b885eff036b108e76f8a4c13196b4b6d9e120202cf65254e115206"
+      "sha256": "fe054e28d5608e1e3f6a2c52d108a0808092b10ab2611b5e3a1e22d5c5009911"
     },
     {
       "path": "server/validation/canonical-exact-edit-planning-authority-schemas.ts",
@@ -625,7 +625,7 @@
     },
     {
       "path": "src/components/editor/ChatNativeEditor.tsx",
-      "sha256": "efe433b82ef9302d53562a46efd1f49e1065146518bac08b54130688fde40927"
+      "sha256": "07eec5399bd1de7aa9e63933a5da388fc2a4dc94fb710707cc26603380312998"
     },
     {
       "path": "src/components/editor/CurrentEditPreferencesWorkspace.tsx",
@@ -637,11 +637,11 @@
     },
     {
       "path": "src/lib/canonical-planning-draft.ts",
-      "sha256": "39ac9f0f6fef2180960f6b0644d4f91ba4cac8c5a72e3528b2fef76397791d53"
+      "sha256": "612cc5fceb2a162985cb321827bc91e9d765f968f484a47bac5b60c3310da8ce"
     },
     {
       "path": "src/lib/canonical-planning-publication-client.ts",
-      "sha256": "d65e0374db8bbdac0b7a95e340f1094ddbac35a5d4b4daebc36d18c101c31e6a"
+      "sha256": "08ce5251c2716a2177785e9e10762beee6ef76c12081a9526f6a71556fb0dcaf"
     },
     {
       "path": "src/lib/current-edit-reference-application-ui.ts",

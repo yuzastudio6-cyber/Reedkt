@@ -39,8 +39,10 @@ const libraryIdentityFixtures = [
       workspaceId: scope.workspaceId,
     }),
     // Exercise the exact pre-discriminator V1 record. The canonical combined
-    // parser normally migrates this to an explicit productWorkflow on read.
+    // migration boundary must reverify this exact dedicated route and its
+    // production before persisting an explicit productWorkflow.
     productWorkflow: undefined,
+    editorPath: '/motion-studio/storytelling/projects/project-retained-motion/edits/storytelling-edit-retained-v1',
   },
   {
     ...createLocalInternalProjectHandoff({
@@ -67,12 +69,10 @@ assert.deepEqual(
   createStorytellingLibraryItems(libraryIdentityFixtures).map((item) => item.editSessionId),
   ['explicit-motion-edit'],
 )
-const libraryIdentityItems = createStorytellingLibraryItems(libraryIdentityFixtures, {
-  allowLegacyMigration: true,
-})
+const libraryIdentityItems = createStorytellingLibraryItems(libraryIdentityFixtures)
 assert.deepEqual(
   libraryIdentityItems.map((item) => item.editSessionId).sort(),
-  ['explicit-motion-edit', 'storytelling-edit-retained-v1'],
+  ['explicit-motion-edit'],
 )
 for (const item of libraryIdentityItems) {
   assert.equal(item.workspacePath, `/motion-studio/storytelling/projects/${item.projectId}/edits/${item.editSessionId}`)
@@ -82,37 +82,70 @@ for (const item of libraryIdentityItems) {
 const signedInExplicit = libraryIdentityFixtures[2]
 const signedInMissingWorkflow = libraryIdentityFixtures[1]
 const signedInNormal = libraryIdentityFixtures[3]
+const signedInScope: ProjectPersistenceScope = {
+  authMode: 'supabase',
+  userId: 'user-storytelling-library-smoke',
+  workspaceId: scope.workspaceId,
+}
 const signedInReadCalls: string[] = []
+const migrationCalls: string[] = []
 const signedInVerification = await verifySignedInStorytellingHandoffs(
   [signedInExplicit, signedInMissingWorkflow, signedInNormal],
-  async (projectId, editSessionId) => {
-    signedInReadCalls.push(`${projectId}:${editSessionId}`)
-    return productionReadSuccess(projectId, editSessionId)
+  signedInScope,
+  {
+    async migrateLegacy(_scope, handoff) {
+      migrationCalls.push(`${handoff.projectId}:${handoff.editSessionId}`)
+      return {
+        status: 'found' as const,
+        warnings: [],
+        handoff: {
+          ...handoff,
+          productWorkflow: 'motion_studio.storytelling' as const,
+          updatedAt: new Date(Date.parse(handoff.updatedAt) + 1).toISOString(),
+        },
+      }
+    },
+    async readProduction(projectId, editSessionId) {
+      signedInReadCalls.push(`${projectId}:${editSessionId}`)
+      return productionReadSuccess(projectId, editSessionId)
+    },
   },
 )
 assert.equal(signedInVerification.state, 'ready')
 assert.deepEqual(
-  signedInVerification.handoffs.map((handoff) => handoff.editSessionId),
-  ['explicit-motion-edit'],
-  'signed-in publication must require both the parsed workflow and exact production tuple',
+  signedInVerification.handoffs.map((handoff) => handoff.editSessionId).sort(),
+  ['explicit-motion-edit', 'storytelling-edit-retained-v1'],
+  'signed-in publication must persist the migrated discriminator and then require the exact production tuple',
 )
-assert.match(signedInVerification.message ?? '', /need recovery/u)
 assert.deepEqual(signedInReadCalls.sort(), [
   'project-explicit-motion:explicit-motion-edit',
   'project-retained-motion:storytelling-edit-retained-v1',
 ])
+assert.deepEqual(migrationCalls, ['project-retained-motion:storytelling-edit-retained-v1'])
 
 const missingWorkflowOnly = await verifySignedInStorytellingHandoffs(
   [signedInMissingWorkflow],
-  async (projectId, editSessionId) => productionReadSuccess(projectId, editSessionId),
+  scope,
+  {
+    async migrateLegacy() {
+      throw new Error('Local test must never invoke signed-in legacy migration.')
+    },
+    async readProduction() {
+      throw new Error('Prefix-only local test edit must not reach production lookup.')
+    },
+  },
 )
-assert.equal(missingWorkflowOnly.state, 'unavailable')
+assert.equal(missingWorkflowOnly.state, 'ready')
 assert.equal(missingWorkflowOnly.handoffs.length, 0)
-assert.match(missingWorkflowOnly.message ?? '', /No empty library was assumed/u)
 
 const crossedProduction = await verifySignedInStorytellingHandoffs(
   [signedInExplicit],
-  async (_projectId, editSessionId) => productionReadSuccess('project-crossed', editSessionId),
+  signedInScope,
+  {
+    async readProduction(_projectId, editSessionId) {
+      return productionReadSuccess('project-crossed', editSessionId)
+    },
+  },
 )
 assert.equal(crossedProduction.state, 'unavailable')
 assert.equal(crossedProduction.handoffs.length, 0)

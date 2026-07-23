@@ -4,18 +4,23 @@ import { AppShell } from '../components/AppShell'
 import { Button } from '../components/Button'
 import { ChatNativeEditor } from '../components/editor/ChatNativeEditor'
 import { useProjectPersistenceScope } from '../hooks/useProjectPersistenceScope'
+import { motionStudioApiClient } from '../backend/api/motion-studio-api-client'
 import {
   readLocalInternalProjectHandoffFromBackend,
   type InternalEditStateBackendReadResult,
 } from '../lib/internal-edit-state-backend-sync'
 import {
   getLocalInternalEditHandoff,
-  resolveLocalProductWorkflow,
   saveLocalInternalProjectHandoff,
   type LocalInternalProjectHandoff,
 } from '../lib/local-project-handoff'
 import type { ProjectPersistenceScope } from '../lib/project-persistence-scope'
-import { motionStudioStorytellingWorkspaceRoute } from '../lib/motion-studio/contracts/storytelling-workflow'
+import {
+  isMotionStudioStorytellingHandoff,
+  isVerifiedMotionStudioStorytellingProductionAssociation,
+  motionStudioStorytellingWorkspaceRoute,
+} from '../lib/motion-studio/contracts/storytelling-workflow'
+import { projectMotionStudioProduction } from '../lib/motion-studio/shell/shell-model'
 
 type NamedEditResolution =
   | { status: 'loading' }
@@ -102,9 +107,8 @@ function NamedEditWorkspaceBoundary({
   }, [attempt, editSessionId, localHandoff, projectId, scope])
 
   if (resolution.status === 'ready') {
-    const productWorkflow = resolveLocalProductWorkflow(resolution.handoff)
-    if (productWorkflow === 'motion_studio.storytelling') {
-      return <Navigate replace to={motionStudioStorytellingWorkspaceRoute(projectId, editSessionId)} />
+    if (isMotionStudioStorytellingHandoff(resolution.handoff)) {
+      return <VerifiedStorytellingRedirect handoff={resolution.handoff} />
     }
 
     const editorKey = JSON.stringify([
@@ -168,6 +172,114 @@ function NamedEditWorkspaceBoundary({
             variant="secondary"
           >
             {resolution.status === 'not_found' ? 'Back to project' : 'Back to video edits'}
+          </Button>
+        </div>
+      </section>
+    </EditorShell>
+  )
+}
+
+function VerifiedStorytellingRedirect({
+  handoff,
+}: {
+  handoff: LocalInternalProjectHandoff
+}) {
+  const [attempt, setAttempt] = useState(0)
+  const [state, setState] = useState<
+    | { status: 'loading' }
+    | { status: 'ready' }
+    | { status: 'not_found' | 'access_denied' | 'unavailable' | 'invalid_response'; message: string; retryable: boolean }
+  >({ status: 'loading' })
+
+  useEffect(() => {
+    let active = true
+    void motionStudioApiClient.getProduction(handoff.projectId, handoff.editSessionId)
+      .then((response) => {
+        if (!active) return
+        if (!response.ok) {
+          setState({
+            status: response.statusCode === 401 || response.statusCode === 403
+              ? 'access_denied'
+              : response.statusCode === 404
+                ? 'not_found'
+                : 'unavailable',
+            message: response.error?.message ?? 'The exact Storytelling production could not be verified.',
+            retryable: response.statusCode >= 500,
+          })
+          return
+        }
+        const production = projectMotionStudioProduction(response.data?.production)
+        if (
+          !production ||
+          !isVerifiedMotionStudioStorytellingProductionAssociation(handoff, production)
+        ) {
+          setState({
+            status: 'invalid_response',
+            message: 'The saved Motion workflow and current Storytelling production did not identify one exact Project and Named Edit.',
+            retryable: false,
+          })
+          return
+        }
+        setState({ status: 'ready' })
+      })
+      .catch(() => {
+        if (!active) return
+        setState({
+          status: 'unavailable',
+          message: 'The current Storytelling production could not be reverified.',
+          retryable: true,
+        })
+      })
+    return () => {
+      active = false
+    }
+  }, [attempt, handoff])
+
+  if (state.status === 'ready') {
+    return <Navigate replace to={motionStudioStorytellingWorkspaceRoute(handoff.projectId, handoff.editSessionId)} />
+  }
+  if (state.status === 'loading') {
+    return (
+      <EditorShell>
+        <section
+          aria-label="Verifying Storytelling workspace"
+          aria-live="polite"
+          className="clean-empty-state"
+          data-testid="storytelling-route-verification-loading"
+          role="status"
+        >
+          <span aria-hidden="true" className="route-loading-mark" />
+          <h2>Verifying Storytelling workspace</h2>
+          <p>Checking the exact current Motion Studio production before leaving normal Edit Chat.</p>
+        </section>
+      </EditorShell>
+    )
+  }
+  return (
+    <EditorShell>
+      <section
+        aria-live="assertive"
+        className="clean-empty-state"
+        data-testid={`storytelling-route-verification-${state.status.replace('_', '-')}`}
+        role="alert"
+      >
+        <h2>Storytelling workspace could not open</h2>
+        <p>{state.message}</p>
+        <p>No normal Edit Chat, replacement production, planning, generation, or credit action was started.</p>
+        <div className="clean-hero-actions">
+          {state.retryable && (
+            <Button
+              onClick={() => {
+                setState({ status: 'loading' })
+                setAttempt((current) => current + 1)
+              }}
+              variant="primary"
+            >
+              Retry verification
+            </Button>
+          )}
+          <Button to="/motion-studio/storytelling" variant="secondary">
+            Back to Storytelling library
           </Button>
         </div>
       </section>

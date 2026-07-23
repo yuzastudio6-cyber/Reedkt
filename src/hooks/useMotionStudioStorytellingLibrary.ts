@@ -7,11 +7,11 @@ import { createEditPreferenceRepository } from '../lib/edit-preference-repositor
 import { createEditSetupSnapshotFromPreferences } from '../lib/edit-preferences'
 import {
   listLocalInternalProjectHandoffsFromBackendWithRetryResult,
+  migrateRetainedStorytellingWorkflowFromBackend,
   persistLocalInternalProjectHandoffToBackend,
 } from '../lib/internal-edit-state-backend-sync'
 import {
   listLocalInternalProjectHandoffs,
-  resolveLocalProductWorkflow,
   saveLocalInternalProjectHandoff,
   type LocalInternalProjectHandoff,
 } from '../lib/local-project-handoff'
@@ -37,9 +37,11 @@ import {
 } from '../lib/motion-studio/storytelling/library-model'
 import { MOTION_STUDIO_MODULE_CATALOG_VERSION } from '../lib/motion-studio/contracts'
 import {
+  isRetainedLegacyMotionStudioStorytellingMigrationCandidate,
   isVerifiedMotionStudioStorytellingProductionAssociation,
 } from '../lib/motion-studio/contracts/storytelling-workflow'
 import { projectMotionStudioProduction } from '../lib/motion-studio/shell/shell-model'
+import type { ProjectPersistenceScope } from '../lib/project-persistence-scope'
 import { MOTION_STUDIO_STORYTELLING_WORKFLOW_ID } from '../types/motion-studio/storytelling-workflow'
 
 export type MotionStudioStorytellingLibraryState =
@@ -71,7 +73,6 @@ export interface MotionStudioStorytellingLibraryResult {
  */
 export function useMotionStudioStorytellingLibrary(): MotionStudioStorytellingLibraryResult {
   const projectScope = useProjectPersistenceScope()
-  const allowLegacyMigration = projectScope.authMode === 'local_test'
   const preferenceScope = useEditPreferenceScope()
   const preferenceRepository = useMemo(
     () => createEditPreferenceRepository(preferenceScope),
@@ -146,12 +147,8 @@ export function useMotionStudioStorytellingLibrary(): MotionStudioStorytellingLi
     ),
     [createdHandoffState, localHandoffs, scopeKey],
   )
-  const trustedCachedHandoffs = allowLegacyMigration
-    ? localAndCreatedHandoffs
-    : createdHandoffs
-  const localHasStories = createStorytellingLibraryItems(trustedCachedHandoffs, {
-    allowLegacyMigration,
-  }).length > 0
+  const trustedCachedHandoffs = createdHandoffs
+  const localHasStories = createStorytellingLibraryItems(trustedCachedHandoffs).length > 0
   const state = currentBackendRead?.state ?? (localHasStories ? 'ready' : 'loading')
   const message = currentBackendRead?.message
   const handoffs = useMemo(
@@ -193,9 +190,7 @@ export function useMotionStudioStorytellingLibrary(): MotionStudioStorytellingLi
 
   useEffect(() => {
     let cancelled = false
-    const hasLocalStories = createStorytellingLibraryItems(trustedCachedHandoffs, {
-      allowLegacyMigration,
-    }).length > 0
+    const hasLocalStories = createStorytellingLibraryItems(trustedCachedHandoffs).length > 0
 
     void listLocalInternalProjectHandoffsFromBackendWithRetryResult(projectScope)
       .then(async (result) => {
@@ -217,12 +212,7 @@ export function useMotionStudioStorytellingLibrary(): MotionStudioStorytellingLi
         }
 
         if (result.status === 'ready') {
-          const verification = allowLegacyMigration
-            ? {
-                handoffs: result.handoffs,
-                state: 'ready' as const,
-              }
-            : await verifySignedInStorytellingHandoffs(result.handoffs)
+          const verification = await verifySignedInStorytellingHandoffs(result.handoffs, projectScope)
           if (cancelled) return
           if (verification.state === 'access_denied') {
             accessDenied.current = true
@@ -287,12 +277,15 @@ export function useMotionStudioStorytellingLibrary(): MotionStudioStorytellingLi
         }
 
         if (result.status === 'not_configured') {
+          const verification = await verifySignedInStorytellingHandoffs(localAndCreatedHandoffs, projectScope)
+          if (cancelled) return
           accessDenied.current = false
           setBackendRead({
             generation: readGeneration,
-            handoffs: [],
+            handoffs: verification.handoffs,
+            message: verification.message,
             scopeKey,
-            state: 'ready',
+            state: verification.state,
           })
           return
         }
@@ -340,7 +333,7 @@ export function useMotionStudioStorytellingLibrary(): MotionStudioStorytellingLi
     return () => {
       cancelled = true
     }
-  }, [allowLegacyMigration, projectScope, readGeneration, scopeKey, trustedCachedHandoffs])
+  }, [localAndCreatedHandoffs, projectScope, readGeneration, scopeKey, trustedCachedHandoffs])
 
   const createStorytelling = useCallback(async (name: string) => {
     if (createInFlight.current) {
@@ -436,7 +429,7 @@ export function useMotionStudioStorytellingLibrary(): MotionStudioStorytellingLi
     createStorytelling,
     creating,
     discardInvalidCreateRecovery,
-    items: createStorytellingLibraryItems(handoffs, { allowLegacyMigration }),
+    items: createStorytellingLibraryItems(handoffs),
     message,
     pendingCreate: currentPendingCreateState.invalid
       ? { status: 'blocked' }
@@ -497,40 +490,53 @@ export interface SignedInStorytellingVerification {
  */
 export async function verifySignedInStorytellingHandoffs(
   handoffs: readonly LocalInternalProjectHandoff[],
-  readProduction: typeof motionStudioApiClient.getProduction = motionStudioApiClient.getProduction,
+  scope: ProjectPersistenceScope,
+  dependencies: {
+    migrateLegacy?: typeof migrateRetainedStorytellingWorkflowFromBackend
+    readProduction?: typeof motionStudioApiClient.getProduction
+  } = {},
 ): Promise<SignedInStorytellingVerification> {
+  const readProduction = dependencies.readProduction ?? motionStudioApiClient.getProduction
+  const migrateLegacy = dependencies.migrateLegacy ?? migrateRetainedStorytellingWorkflowFromBackend
   const candidates = handoffs.filter((handoff) => {
     const workflow = readHandoffProductWorkflow(handoff)
-    return workflow === undefined || workflow === MOTION_STUDIO_STORYTELLING_WORKFLOW_ID
+    return workflow === MOTION_STUDIO_STORYTELLING_WORKFLOW_ID ||
+      isRetainedLegacyMotionStudioStorytellingMigrationCandidate(asWorkflowHandoff(handoff))
   })
   const results = await Promise.all(candidates.map(async (handoff) => {
-    const workflow = readHandoffProductWorkflow(handoff)
+    let verifiedHandoff = handoff
     try {
+      if (readHandoffProductWorkflow(handoff) === undefined) {
+        if (scope.authMode !== 'supabase') {
+          return { handoff, kind: 'not_storytelling' as const }
+        }
+        const migration = await migrateLegacy(scope, handoff)
+        if (migration.status === 'access_denied') return { handoff, kind: 'access_denied' as const }
+        if (migration.status !== 'found') return { handoff, kind: 'unavailable' as const }
+        verifiedHandoff = migration.handoff
+      }
       const response = await readProduction(
-        handoff.projectId,
-        handoff.editSessionId,
+        verifiedHandoff.projectId,
+        verifiedHandoff.editSessionId,
       )
       if (!response.ok) {
         if (response.statusCode === 401 || response.statusCode === 403) {
-          return { handoff, kind: 'access_denied' as const }
+          return { handoff: verifiedHandoff, kind: 'access_denied' as const }
         }
-        if (response.statusCode === 404 && workflow === undefined) {
-          return { handoff, kind: 'not_storytelling' as const }
-        }
-        return { handoff, kind: 'unavailable' as const }
+        return { handoff: verifiedHandoff, kind: 'unavailable' as const }
       }
 
       const production = projectMotionStudioProduction(response.data?.production)
-      if (!production) return { handoff, kind: 'unavailable' as const }
+      if (!production) return { handoff: verifiedHandoff, kind: 'unavailable' as const }
       if (!isVerifiedMotionStudioStorytellingProductionAssociation(
-        asWorkflowHandoff(handoff),
+        asWorkflowHandoff(verifiedHandoff),
         production,
       )) {
-        return { handoff, kind: 'unavailable' as const }
+        return { handoff: verifiedHandoff, kind: 'unavailable' as const }
       }
-      return { handoff, kind: 'verified' as const }
+      return { handoff: verifiedHandoff, kind: 'verified' as const }
     } catch {
-      return { handoff, kind: 'unavailable' as const }
+      return { handoff: verifiedHandoff, kind: 'unavailable' as const }
     }
   }))
 
@@ -596,7 +602,7 @@ function handoffMatchesPendingCreate(
     handoff.projectName === pending.normalizedName &&
     handoff.editName === pending.normalizedName &&
     handoff.category === 'storytelling' &&
-    resolveLocalProductWorkflow(handoff) === 'motion_studio.storytelling'
+    handoff.productWorkflow === 'motion_studio.storytelling'
 }
 
 function mergeHandoffs(

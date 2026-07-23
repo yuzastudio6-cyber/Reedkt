@@ -43,7 +43,6 @@ import {
 import { expectNoHorizontalOverflow, setViewport } from './helpers/layout'
 import {
   clickWhenReady,
-  completeRequiredEditorSetupBeforeFootagePrep,
   expectNoGenerationBeforeApproval,
   gotoRoute,
 } from './helpers/routes'
@@ -348,7 +347,7 @@ test.describe('Storytelling Story workspace', () => {
     const composer = page.getByTestId('chat-composer-textarea')
     await composer.fill('Use Editorial Collage as the motion direction for this story.')
     await page.getByTestId('chat-composer-send').click()
-    await completeRequiredEditorSetupBeforeFootagePrep(page)
+    await completeRequiredStorytellingSetupBeforePlan(page)
     await createFreshPlanFromPreparedSource(page)
     await expect(styleSupplement).toContainText('Checking the Storytelling style')
     await expect(page.getByTestId('plan-review-approve')).toBeDisabled()
@@ -589,7 +588,7 @@ test.describe('Storytelling Story workspace', () => {
         return route.fulfill({
           body: reviewMediaBytes,
           headers: {
-            'access-control-allow-origin': 'http://127.0.0.1:5195',
+            'access-control-allow-origin': new URL(page.url()).origin,
             'access-control-expose-headers': [
               'cache-control',
               'content-disposition',
@@ -1376,8 +1375,23 @@ async function readExactHandoff(page: Page, editSessionId: string) {
 }
 
 async function finishSourceReadyPlanSetup(page: Page) {
-  await completeRequiredEditorSetupBeforeFootagePrep(page)
+  await completeRequiredStorytellingSetupBeforePlan(page)
   await createFreshPlanFromPreparedSource(page)
+}
+
+async function completeRequiredStorytellingSetupBeforePlan(page: Page) {
+  const sourceSummary = page.getByTestId('source-summary')
+  await expect(sourceSummary).toBeVisible()
+  await clickWhenReady(sourceSummary.getByRole('button', { name: /Use this source|Confirm order/i }))
+
+  const outputFrame = page.getByTestId('output-frame-control')
+  await expect(outputFrame).toBeVisible()
+  await clickWhenReady(outputFrame.getByRole('radio', { name: /9:16/i }))
+  await clickWhenReady(page.getByRole('button', { name: /Confirm frame/i }))
+  await clickWhenReady(page.getByRole('button', { name: /Confirm cleanup/i }))
+  await clickWhenReady(page.getByRole('button', { name: /Use (Normal|Premium|Ultra Premium)/i }))
+  await clickWhenReady(page.getByRole('button', { name: /Confirm direction/i }))
+  await clickWhenReady(page.getByRole('button', { name: /Skip reference/i }))
 }
 
 async function createFreshPlanFromPreparedSource(page: Page) {

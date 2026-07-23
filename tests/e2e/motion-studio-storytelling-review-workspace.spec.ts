@@ -28,6 +28,7 @@ test.describe('Storytelling Review workspace', () => {
     const fixture = await installActiveProductRouteFixture(page, 'storytelling-review-empty', { category: 'storytelling', productWorkflow: 'motion_studio.storytelling' })
     const production = createProduction(fixture, { currentStage: 'director_brief', status: 'draft' })
     let writes = 0
+    let productionReads = 0
     let releaseProductionRead: () => void = () => undefined
     const productionGate = new Promise<void>((resolve) => { releaseProductionRead = resolve })
 
@@ -35,6 +36,11 @@ test.describe('Storytelling Review workspace', () => {
     await page.route(`${apiOrigin}/v1/**`, async (route) => {
       if (route.request().method() !== 'GET') writes += 1
       if (!isProductionRoute(route.request().url())) return unexpectedRoute(route)
+      productionReads += 1
+      // The dedicated route first verifies the exact production tuple before
+      // mounting the Review surface. Exercise the inner Review loading state,
+      // not the outer route-authority gate.
+      if (productionReads === 1) return fulfillData(route, { production })
       await productionGate
       return fulfillData(route, { production })
     })
@@ -166,12 +172,18 @@ test.describe('Storytelling Review workspace', () => {
     const emptyProduction = createProduction(fixture, { currentStage: 'director_brief', status: 'draft' })
     const workGraph = createBlockedWorkGraph(blockedProduction.id)
     let scenario: 'blocked' | 'failure' | 'ready' = 'blocked'
+    let scenarioProductionReads = 0
     let writes = 0
 
     await page.route(`${apiOrigin}/v1/**`, async (route) => {
       if (route.request().method() !== 'GET') writes += 1
       if (isProductionRoute(route.request().url())) {
-        if (scenario === 'failure') return fulfillError(route, 503, 'MOTION_STUDIO_UNAVAILABLE')
+        scenarioProductionReads += 1
+        // Keep the outer exact-production verification green so this case
+        // proves the mounted Review resource's own transport failure/retry.
+        if (scenario === 'failure' && scenarioProductionReads > 1) {
+          return fulfillError(route, 503, 'MOTION_STUDIO_UNAVAILABLE')
+        }
         return fulfillData(route, { production: scenario === 'blocked' ? blockedProduction : emptyProduction })
       }
       if (isWorkGraphRoute(route.request().url()) && scenario === 'blocked') return fulfillData(route, { workGraph })
@@ -184,6 +196,7 @@ test.describe('Storytelling Review workspace', () => {
     await expect(page.getByTestId('storytelling-review-state-blocked').getByText('Needs attention', { exact: true })).toBeVisible()
 
     scenario = 'failure'
+    scenarioProductionReads = 0
     await page.reload()
     await expect(page.getByText('The story workspace could not be loaded')).toBeVisible()
     await expect(page.getByTestId('storytelling-review-state-empty')).toHaveCount(0)
@@ -191,6 +204,7 @@ test.describe('Storytelling Review workspace', () => {
     expect(failureBox?.width ?? Number.POSITIVE_INFINITY).toBeLessThanOrEqual(900)
 
     scenario = 'ready'
+    scenarioProductionReads = 0
     await page.getByRole('button', { name: 'Try again' }).click()
     await expect(page.getByTestId('storytelling-review-state-preparing')).toBeVisible()
     await expect(page.getByText('No decision is ready yet')).toBeVisible()

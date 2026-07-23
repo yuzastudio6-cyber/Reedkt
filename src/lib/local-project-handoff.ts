@@ -232,8 +232,6 @@ export type LocalInternalProjectHandoff = {
   persistence: 'browser_local_internal_testing'
 }
 
-const LEGACY_MOTION_STORYTELLING_EDIT_PREFIX = 'storytelling-edit-'
-
 /**
  * Editing category describes the content. Product workflow describes the
  * workspace that owns the edit. A normal video edit may legitimately use the
@@ -244,13 +242,7 @@ export function resolveLocalProductWorkflow(
 ): LocalProductWorkflow {
   if (handoff.productWorkflow === 'motion_studio.storytelling') return 'motion_studio.storytelling'
   if (handoff.productWorkflow === 'video_edit') return 'video_edit'
-
-  // Motion Studio V1 created this exact, namespaced identity before the
-  // explicit workflow discriminator existed. Keep those retained records out
-  // of normal Edit Videos without conflating every Storytelling category edit.
-  return handoff.editSessionId.startsWith(LEGACY_MOTION_STORYTELLING_EDIT_PREFIX)
-    ? 'motion_studio.storytelling'
-    : 'video_edit'
+  return 'video_edit'
 }
 
 export function isNormalVideoEditHandoff(

@@ -1,0 +1,100 @@
+.page {
+  min-height: 100dvh;
+  min-width: 0;
+}
+
+.content {
+  min-width: 0;
+  padding: 0 clamp(var(--rp-space-2), 2vw, var(--rp-space-6)) var(--rp-space-5);
+}
+
+.entryState {
+  align-items: center;
+  background: color-mix(in srgb, var(--rp-bg-elevated) 86%, transparent);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-lg);
+  display: grid;
+  gap: var(--rp-space-4);
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  margin: clamp(64px, 14vh, 160px) auto 0;
+  max-width: 760px;
+  min-width: 0;
+  padding: var(--rp-space-5);
+}
+
+.entryState > div:not(.entryActions) {
+  display: grid;
+  gap: var(--rp-space-1);
+  min-width: 0;
+}
+
+.entryState h1,
+.entryState h2 {
+  color: var(--rp-text-primary);
+  font-size: 1.05rem;
+  letter-spacing: -0.015em;
+}
+
+.entryState p {
+  color: var(--rp-text-secondary);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.entryIcon {
+  align-items: center;
+  background: color-mix(in srgb, var(--rp-brand-cyan) 9%, transparent);
+  border: 1px solid color-mix(in srgb, var(--rp-brand-cyan) 22%, var(--rp-border-subtle));
+  border-radius: var(--rp-radius-sm);
+  color: var(--rp-brand-cyan);
+  display: inline-flex;
+  height: 44px;
+  justify-content: center;
+  width: 44px;
+}
+
+.entryActions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rp-space-2);
+  justify-content: flex-end;
+}
+
+.spin {
+  animation: storytelling-workspace-spin 1s linear infinite;
+  color: var(--rp-brand-cyan);
+}
+
+@keyframes storytelling-workspace-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 760px) {
+  .content {
+    padding-inline: 0;
+  }
+
+  .entryState {
+    align-items: start;
+    grid-template-columns: auto minmax(0, 1fr);
+    margin-inline: var(--rp-space-3);
+  }
+
+  .entryActions {
+    grid-column: 1 / -1;
+    justify-content: stretch;
+  }
+
+  .entryActions > :global(.rp-button) {
+    justify-content: center;
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spin {
+    animation: none;
+  }
+}

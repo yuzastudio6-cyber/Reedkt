@@ -728,6 +728,19 @@ function parseHandoff(value: unknown, expectedWorkspaceId: string): LocalInterna
   }
 }
 
+/**
+ * Revalidates an untrusted browser projection through the canonical handoff
+ * parser without publishing it into the scoped project cache.
+ */
+export function parseLocalInternalProjectHandoffForScope(
+  value: unknown,
+  scope: ProjectPersistenceScope,
+): LocalInternalProjectHandoff | undefined {
+  const normalizedScope = normalizeProjectPersistenceScope(scope)
+  if (!normalizedScope) return undefined
+  return parseHandoff(value, normalizedScope.workspaceId) ?? undefined
+}
+
 function normalizeHandoffForPersistence(
   handoff: LocalInternalProjectHandoff,
   expectedWorkspaceId = handoff.workspaceId,

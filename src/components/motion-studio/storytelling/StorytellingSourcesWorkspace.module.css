@@ -1,0 +1,48 @@
+.workspace {
+  display: grid;
+  gap: var(--rp-space-4);
+  min-width: 0;
+}
+
+.attachmentNotice {
+  align-items: flex-start;
+  background: rgba(0, 229, 255, 0.055);
+  border-left: 2px solid rgba(0, 229, 255, 0.48);
+  border-radius: 0 var(--rp-radius-xs) var(--rp-radius-xs) 0;
+  color: var(--rp-text-secondary);
+  display: flex;
+  gap: var(--rp-space-2);
+  min-width: 0;
+  padding: var(--rp-space-3);
+}
+
+.attachmentNotice > svg {
+  color: var(--rp-brand-cyan);
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
+.attachmentNotice > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.attachmentNotice strong {
+  color: var(--rp-text-primary);
+  font-size: 0.78rem;
+  overflow-wrap: anywhere;
+}
+
+.attachmentNotice span {
+  font-size: 0.74rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workspace :global(.motion-studio-research-skeleton),
+  .workspace :global(.motion-studio-research-skeleton-grid > span) {
+    animation: none !important;
+  }
+}

@@ -16,6 +16,8 @@ import type {
   EditReferenceTargetUnderstandingPackageRuntimePortFactory,
 } from './services/edit-reference-target-understanding-package-runtime-port'
 import type { PlanningPreferenceApplicationAuthorityPort } from './services/planning-preference-application-authority-port'
+import type { CanonicalMotionStudioAudioCandidateReviewReaderPort } from './motion-studio/audio-production/canonical-audio-candidate-review-reader-port'
+import type { CanonicalMotionStudioAudioSelectionTransitionPort } from './motion-studio/audio-acceptance/canonical-audio-selection-transition-port'
 import type { CanonicalMotionStudioStorytellingProductionAuthorityReaderPort } from './services/canonical-motion-studio-storytelling-production-authority-service'
 import type { CanonicalVisualCalibrationReferenceFrameReaderPort } from './services/canonical-visual-calibration-reference-frame-reader-port'
 import type { CanonicalProviderAttemptRuntimeRecordSourcePort } from './services/canonical-provider-attempt-runtime-record-port'
@@ -78,6 +80,10 @@ export interface RuntimeState {
   editReferenceStudyChatRuntimePort?: EditReferenceStudyChatRuntimePort
   canonicalMotionStudioStorytellingProductionAuthorityReaderPort?:
     CanonicalMotionStudioStorytellingProductionAuthorityReaderPort
+  canonicalMotionStudioAudioCandidateReviewReaderPort?:
+    CanonicalMotionStudioAudioCandidateReviewReaderPort
+  canonicalMotionStudioAudioSelectionTransitionPort?:
+    CanonicalMotionStudioAudioSelectionTransitionPort
   canonicalVisualCalibrationReferenceFrameReaderPort?:
     CanonicalVisualCalibrationReferenceFrameReaderPort
   canonicalProviderAttemptRuntimeRecordSourcePort?:
@@ -118,6 +124,10 @@ export interface ServiceContext {
   editReferenceStudyChatRuntimePort?: EditReferenceStudyChatRuntimePort
   canonicalMotionStudioStorytellingProductionAuthorityReaderPort?:
     CanonicalMotionStudioStorytellingProductionAuthorityReaderPort
+  canonicalMotionStudioAudioCandidateReviewReaderPort?:
+    CanonicalMotionStudioAudioCandidateReviewReaderPort
+  canonicalMotionStudioAudioSelectionTransitionPort?:
+    CanonicalMotionStudioAudioSelectionTransitionPort
   canonicalVisualCalibrationReferenceFrameReaderPort?:
     CanonicalVisualCalibrationReferenceFrameReaderPort
   canonicalProviderAttemptRuntimeRecordSourcePort?:

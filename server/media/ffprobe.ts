@@ -12,6 +12,8 @@ export interface MediaProbeSummary {
   height?: number
   videoCodec?: string
   audioCodec?: string
+  audioSampleRateHertz?: number
+  audioChannelCount?: number
   pixelFormat?: string
   colorSpace?: string
   colorTransfer?: string
@@ -77,6 +79,12 @@ async function parseFFprobeJson(stdout: string, inputPath: string): Promise<Medi
     height: typeof videoStream?.height === 'number' ? videoStream.height : undefined,
     videoCodec: typeof videoStream?.codec_name === 'string' ? videoStream.codec_name : undefined,
     audioCodec: typeof audioStream?.codec_name === 'string' ? audioStream.codec_name : undefined,
+    audioSampleRateHertz: typeof audioStream?.sample_rate === 'string' && Number.isInteger(Number(audioStream.sample_rate))
+      ? Number(audioStream.sample_rate)
+      : undefined,
+    audioChannelCount: typeof audioStream?.channels === 'number' && Number.isInteger(audioStream.channels)
+      ? audioStream.channels
+      : undefined,
     pixelFormat: typeof videoStream?.pix_fmt === 'string' ? videoStream.pix_fmt : undefined,
     colorSpace: typeof videoStream?.color_space === 'string' ? videoStream.color_space : undefined,
     colorTransfer: typeof videoStream?.color_transfer === 'string' ? videoStream.color_transfer : undefined,

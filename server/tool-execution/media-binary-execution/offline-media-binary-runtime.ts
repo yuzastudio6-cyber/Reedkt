@@ -27,11 +27,22 @@ import type {
   PrivateEmbeddedProcessResourceObservation,
 } from '../private-embedded-process-resource-observation'
 import {
+  APPROVED_STORYTELLING_SPEECH_TAKE_NORMALIZATION_PROFILE_ID,
+  OFFLINE_GENERATED_MUSIC_CANDIDATE_NORMALIZATION_PROFILE,
   OFFLINE_MEDIA_BINARY_OPERATIONS,
+  OFFLINE_SYNCHRONIZED_FOLEY_CANDIDATE_NORMALIZATION_PROFILE,
+  validateOfflineGeneratedMusicCandidateNormalizeExecutionRequest,
   validateOfflineFfmpegExecutionRequest,
   validateOfflineFfprobeExecutionRequest,
+  validateOfflineStorytellingAudioMeasureExecutionRequest,
+  validateOfflineStorytellingAudioNormalizeExecutionRequest,
+  validateOfflineSynchronizedFoleyCandidateNormalizeExecutionRequest,
   type OfflineFfmpegExecutionRequest,
   type OfflineFfprobeExecutionRequest,
+  type OfflineGeneratedMusicCandidateNormalizeExecutionRequest,
+  type OfflineStorytellingAudioMeasureExecutionRequest,
+  type OfflineStorytellingAudioNormalizeExecutionRequest,
+  type OfflineSynchronizedFoleyCandidateNormalizeExecutionRequest,
 } from './offline-media-binary-protocol'
 import {
   validateOfflineFfmpegStreamingExecutionRequest,
@@ -121,9 +132,13 @@ import type {
   OfflineFfmpegExecutionResult,
   OfflineFfmpegStreamingOutputExecutionResult,
   OfflineFfprobeExecutionResult,
+  OfflineGeneratedMusicCandidateNormalizeExecutionResult,
   OfflineMediaBinaryConfinementEvidence,
   OfflineMediaBinaryImageEvidence,
   OfflineMediaBinaryStreamingOutputSink,
+  OfflineStorytellingAudioMeasureExecutionResult,
+  OfflineStorytellingAudioNormalizeExecutionResult,
+  OfflineSynchronizedFoleyCandidateNormalizeExecutionResult,
   OfflineVisualCalibrationObjectiveQaExecutionResult,
 } from './offline-media-binary-types'
 import {
@@ -213,6 +228,14 @@ export interface OfflineMediaBinaryRuntimeAuthority {
   supportedOperations: readonly [
     { toolId: 'ffmpeg'; operationId: typeof OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg },
     { toolId: 'ffprobe'; operationId: typeof OFFLINE_MEDIA_BINARY_OPERATIONS.ffprobe },
+    { toolId: 'ffmpeg'; operationId: typeof OFFLINE_MEDIA_BINARY_OPERATIONS.normalizeStorytellingAudioMix },
+    { toolId: 'ffmpeg'; operationId: typeof OFFLINE_MEDIA_BINARY_OPERATIONS.measureStorytellingAudioMix },
+  ]
+  supportedRecipeProfiles: readonly [
+    'approved_trim_transcode_v1',
+    typeof APPROVED_STORYTELLING_SPEECH_TAKE_NORMALIZATION_PROFILE_ID,
+    typeof OFFLINE_GENERATED_MUSIC_CANDIDATE_NORMALIZATION_PROFILE,
+    typeof OFFLINE_SYNCHRONIZED_FOLEY_CANDIDATE_NORMALIZATION_PROFILE,
   ]
   readiness: {
     privateInternalExecutionReady: true
@@ -244,7 +267,20 @@ export interface PrivateOfflineMediaBinaryRuntime {
   readonly image: OfflineMediaBinaryImageEvidence
   execute(request: OfflineFfprobeExecutionRequest): Promise<OfflineFfprobeExecutionResult>
   execute(request: OfflineFfmpegExecutionRequest): Promise<OfflineFfmpegExecutionResult>
-  execute(request: unknown): Promise<OfflineFfprobeExecutionResult | OfflineFfmpegExecutionResult>
+  execute(request: OfflineGeneratedMusicCandidateNormalizeExecutionRequest):
+    Promise<OfflineGeneratedMusicCandidateNormalizeExecutionResult>
+  execute(request: OfflineSynchronizedFoleyCandidateNormalizeExecutionRequest):
+    Promise<OfflineSynchronizedFoleyCandidateNormalizeExecutionResult>
+  execute(request: OfflineStorytellingAudioNormalizeExecutionRequest):
+    Promise<OfflineStorytellingAudioNormalizeExecutionResult>
+  execute(request: OfflineStorytellingAudioMeasureExecutionRequest):
+    Promise<OfflineStorytellingAudioMeasureExecutionResult>
+  execute(request: unknown): Promise<
+    OfflineFfprobeExecutionResult | OfflineFfmpegExecutionResult |
+    OfflineGeneratedMusicCandidateNormalizeExecutionResult |
+    OfflineSynchronizedFoleyCandidateNormalizeExecutionResult |
+    OfflineStorytellingAudioNormalizeExecutionResult | OfflineStorytellingAudioMeasureExecutionResult
+  >
   executeServerInjected(
     request: OfflineFfprobeStreamingExecutionRequest,
     source: OfflineMediaBinaryServerInjectedInput,
@@ -638,6 +674,12 @@ Promise<OfflineMediaBinaryRuntimeAuthority | undefined> {
     authority.schemaVersion !== 'offline-media-binary-runtime-authority-v2' ||
     authority.source !== 'private_local_pinned_ffmpeg_lgpl_runtime' ||
     authority.storageScopeHash !== OFFLINE_MEDIA_BINARY_RUNTIME_STORAGE_SCOPE_HASH ||
+    stringArray(authority.supportedRecipeProfiles).join('|') !== [
+      'approved_trim_transcode_v1',
+      APPROVED_STORYTELLING_SPEECH_TAKE_NORMALIZATION_PROFILE_ID,
+      OFFLINE_GENERATED_MUSIC_CANDIDATE_NORMALIZATION_PROFILE,
+      OFFLINE_SYNCHRONIZED_FOLEY_CANDIDATE_NORMALIZATION_PROFILE,
+    ].join('|') ||
     record(authority.readiness).privateInternalExecutionReady !== true ||
     record(authority.readiness).privateGenericMediaResourceObservationReady !== true ||
     record(authority.readiness).privateInternalStorytellingSpeechNormalizationReady !== true ||
@@ -660,14 +702,208 @@ Promise<OfflineMediaBinaryRuntimeAuthority | undefined> {
 async function execute(
   image: OfflineMediaBinaryImageEvidence,
   value: unknown,
-): Promise<OfflineFfprobeExecutionResult | OfflineFfmpegExecutionResult> {
+): Promise<
+  OfflineFfprobeExecutionResult | OfflineFfmpegExecutionResult |
+  OfflineGeneratedMusicCandidateNormalizeExecutionResult |
+  OfflineSynchronizedFoleyCandidateNormalizeExecutionResult |
+  OfflineStorytellingAudioNormalizeExecutionResult | OfflineStorytellingAudioMeasureExecutionResult
+> {
   const candidate = value && typeof value === 'object' && !Array.isArray(value)
     ? value as Record<string, unknown>
     : undefined
-  return candidate?.toolId === 'ffmpeg'
-    ? executeFfmpeg(image, value)
-    : executeFfprobe(image, value)
+  if (candidate?.toolId !== 'ffmpeg') return executeFfprobe(image, value)
+  if (candidate.operationId === OFFLINE_MEDIA_BINARY_OPERATIONS.normalizeStorytellingAudioMix) {
+    return executeStorytellingAudioNormalize(image, value)
+  }
+  if (candidate.operationId === OFFLINE_MEDIA_BINARY_OPERATIONS.measureStorytellingAudioMix) {
+    return executeStorytellingAudioMeasure(image, value)
+  }
+  const candidatePayload = candidate.payload && typeof candidate.payload === 'object' &&
+    !Array.isArray(candidate.payload) ? candidate.payload as Record<string, unknown> : undefined
+  if (
+    candidate.operationId === OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg &&
+    candidatePayload?.recipeProfileId === OFFLINE_GENERATED_MUSIC_CANDIDATE_NORMALIZATION_PROFILE
+  ) return executeGeneratedMusicCandidateNormalize(image, value)
+  if (
+    candidate.operationId === OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg &&
+    candidatePayload?.recipeProfileId === OFFLINE_SYNCHRONIZED_FOLEY_CANDIDATE_NORMALIZATION_PROFILE
+  ) return executeSynchronizedFoleyCandidateNormalize(image, value)
+  return executeFfmpeg(image, value)
 }
+
+async function executeStorytellingAudioNormalize(
+  image: OfflineMediaBinaryImageEvidence,
+  value: unknown,
+): Promise<OfflineStorytellingAudioNormalizeExecutionResult> {
+  let request: OfflineStorytellingAudioNormalizeExecutionRequest
+  try { request = validateOfflineStorytellingAudioNormalizeExecutionRequest(value) } catch {
+    throw invalid('Structured Storytelling audio normalization request was rejected.')
+  }
+  const sourceBytes = Buffer.from(request.payload.sourceBytesBase64, 'base64')
+  const command = [
+    '-hide_banner', '-loglevel', 'error', '-nostdin', '-i', 'pipe:0',
+    '-map', '0:a:0', '-af', 'loudnorm=I=-16:TP=-1:LRA=7',
+    '-ar', '48000', '-ac', '2', '-c:a', 'pcm_s16le', '-f', 'wav', 'pipe:1',
+  ]
+  const container = await createContainer(image, FFMPEG_ENTRYPOINT, command)
+  try {
+    const before = await inspectContainer(container.id)
+    const confinement = validateConfinement(before, image, FFMPEG_ENTRYPOINT, command)
+    const started = await dockerBuffer(['start', '--attach', '--interactive', container.id], sourceBytes, 8 * 1024 * 1024)
+    const after = await inspectContainer(container.id)
+    const state = record(after.State)
+    if (
+      started.exitCode !== 0 || started.stderr.length > 0 || started.stdout.byteLength < 44 ||
+      state.Status !== 'exited' || state.Running !== false || state.ExitCode !== started.exitCode ||
+      state.OOMKilled !== false || started.stdout.subarray(0, 4).toString('ascii') !== 'RIFF' ||
+      started.stdout.subarray(8, 12).toString('ascii') !== 'WAVE'
+    ) throw unavailable('Confined Storytelling audio normalization failed closed.')
+    const canonicalWave = canonicalizeStreamingPcmWave(
+      started.stdout,
+      request.payload.expectedSampleCountPerChannel,
+    )
+    const outputProbe = await probeStorytellingAudioOutput(
+      image,
+      canonicalWave,
+      request.payload.expectedSampleCountPerChannel,
+    )
+    const resultSha256 = sha256(canonicalWave)
+    const completedAt = new Date().toISOString()
+    const attestationWithoutHash = {
+      domain: 'offline_media_binary_execution_attestation_v1',
+      completedAt,
+      imageIdentityHash: image.imageIdentityHash,
+      toolId: 'ffmpeg' as const,
+      operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.normalizeStorytellingAudioMix,
+      sourceSha256: request.payload.sourceSha256,
+      resultSha256,
+      confinement,
+      outputProbe,
+    }
+    const attestation = await persistNewAttestation(attestationWithoutHash)
+    return {
+      resultArtifact: {
+        mimeType: 'audio/wav',
+        bytes: canonicalWave,
+        sha256: resultSha256,
+        byteLength: canonicalWave.byteLength,
+        sampleRateHertz: 48_000,
+        channelCount: 2,
+        sampleCountPerChannel: request.payload.expectedSampleCountPerChannel,
+      },
+      evidence: {
+        toolId: 'ffmpeg',
+        operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.normalizeStorytellingAudioMix,
+        binaryVersion: SOURCE_VERSION,
+        requestEnvelopeSha256: safeRequestEnvelopeHash(request),
+        sourceSha256: request.payload.sourceSha256,
+        resultSha256,
+        semanticEvidence: {
+          registeredProfileId: request.payload.recipeProfileId,
+          targetIntegratedLufs: -16,
+          targetTruePeakDb: -1,
+          targetLoudnessRangeLu: 7,
+          outputProbeVerified: true,
+          exactSampleCountPreserved: true,
+        },
+        confinement,
+        containerExitCode: 0,
+        oomKilled: false,
+      },
+      image,
+      attestation,
+      readiness: {
+        privateInternalOnly: true,
+        productReady: false,
+        externalBetaReady: false,
+        productionReady: false,
+      },
+    }
+  } finally {
+    await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024).catch(() => undefined)
+  }
+}
+
+async function executeStorytellingAudioMeasure(
+  image: OfflineMediaBinaryImageEvidence,
+  value: unknown,
+): Promise<OfflineStorytellingAudioMeasureExecutionResult> {
+  let request: OfflineStorytellingAudioMeasureExecutionRequest
+  try { request = validateOfflineStorytellingAudioMeasureExecutionRequest(value) } catch {
+    throw invalid('Structured Storytelling audio measurement request was rejected.')
+  }
+  const sourceBytes = Buffer.from(request.payload.sourceBytesBase64, 'base64')
+  const command = [
+    '-hide_banner', '-nostats', '-nostdin', '-i', 'pipe:0',
+    '-filter_complex', 'ebur128=peak=true', '-f', 'null', '-',
+  ]
+  const container = await createContainer(image, FFMPEG_ENTRYPOINT, command)
+  try {
+    const before = await inspectContainer(container.id)
+    const confinement = validateConfinement(before, image, FFMPEG_ENTRYPOINT, command)
+    const started = await dockerBuffer(['start', '--attach', '--interactive', container.id], sourceBytes, 64 * 1024)
+    const after = await inspectContainer(container.id)
+    const state = record(after.State)
+    if (
+      started.exitCode !== 0 || started.stdout.length > 0 || started.stderr.length < 64 ||
+      state.Status !== 'exited' || state.Running !== false || state.ExitCode !== started.exitCode ||
+      state.OOMKilled !== false
+    ) throw unavailable('Confined Storytelling audio measurement failed closed.')
+    const document = parseEbur128Summary(started.stderr)
+    const bytes = Buffer.from(stableAuthorityStringify(document), 'utf8')
+    const resultSha256 = sha256(bytes)
+    const completedAt = new Date().toISOString()
+    const attestationWithoutHash = {
+      domain: 'offline_media_binary_execution_attestation_v1',
+      completedAt,
+      imageIdentityHash: image.imageIdentityHash,
+      toolId: 'ffmpeg' as const,
+      operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.measureStorytellingAudioMix,
+      sourceSha256: request.payload.sourceSha256,
+      resultSha256,
+      confinement,
+      measurement: document,
+    }
+    const attestation = await persistNewAttestation(attestationWithoutHash)
+    return {
+      resultJson: {
+        mimeType: 'application/json',
+        bytes,
+        document,
+        sha256: resultSha256,
+        byteLength: bytes.byteLength,
+      },
+      evidence: {
+        toolId: 'ffmpeg',
+        operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.measureStorytellingAudioMix,
+        binaryVersion: SOURCE_VERSION,
+        requestEnvelopeSha256: safeRequestEnvelopeHash(request),
+        sourceSha256: request.payload.sourceSha256,
+        resultSha256,
+        semanticEvidence: {
+          registeredProfileId: request.payload.measurementProfileId,
+          ebuR128MeasurementExecuted: true,
+          truePeakMeasurementExecuted: true,
+          machineDocumentDerivedFromFixedSummary: true,
+        },
+        confinement,
+        containerExitCode: 0,
+        oomKilled: false,
+      },
+      image,
+      attestation,
+      readiness: {
+        privateInternalOnly: true,
+        productReady: false,
+        externalBetaReady: false,
+        productionReady: false,
+      },
+    }
+  } finally {
+    await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024).catch(() => undefined)
+  }
+}
+
 
 async function executeServerInjected(
   image: OfflineMediaBinaryImageEvidence,
@@ -3648,6 +3884,301 @@ async function executeFfmpeg(
   ))
 }
 
+async function executeGeneratedMusicCandidateNormalize(
+  image: OfflineMediaBinaryImageEvidence,
+  value: unknown,
+): Promise<OfflineGeneratedMusicCandidateNormalizeExecutionResult> {
+  let request: OfflineGeneratedMusicCandidateNormalizeExecutionRequest
+  try { request = validateOfflineGeneratedMusicCandidateNormalizeExecutionRequest(value) } catch {
+    throw invalid('Structured generated-music candidate normalization request was rejected.')
+  }
+  const sourceBytes = Buffer.from(request.payload.sourceBytesBase64, 'base64')
+  const sourceProbe = await probeGeneratedMusicCandidateSource(
+    image,
+    sourceBytes,
+    request.payload.maximumDurationMilliseconds,
+  )
+  const command = [
+    '-hide_banner', '-loglevel', 'error', '-nostdin', '-fflags', '+bitexact', '-i', 'pipe:0',
+    '-map', '0:a:0', '-map_metadata', '-1', '-vn', '-flags:a', '+bitexact',
+    '-threads', '1', '-ar', '48000', '-ac', '2', '-c:a', 'pcm_s16le', '-f', 'wav', 'pipe:1',
+  ]
+  const container = await createContainer(image, FFMPEG_ENTRYPOINT, command)
+  try {
+    const before = await inspectContainer(container.id)
+    const confinement = validateConfinement(before, image, FFMPEG_ENTRYPOINT, command)
+    const started = await dockerBuffer(
+      ['start', '--attach', '--interactive', container.id],
+      sourceBytes,
+      16 * 1024 * 1024,
+    )
+    const after = await inspectContainer(container.id)
+    const state = record(after.State)
+    if (
+      started.exitCode !== 0 || started.stderr.length > 0 || started.stdout.byteLength < 44 ||
+      state.Status !== 'exited' || state.Running !== false || state.ExitCode !== started.exitCode ||
+      state.OOMKilled !== false || started.stdout.subarray(0, 4).toString('ascii') !== 'RIFF' ||
+      started.stdout.subarray(8, 12).toString('ascii') !== 'WAVE'
+    ) throw unavailable('Confined generated-music normalization failed closed.')
+
+    const canonicalOutput = canonicalizeStreamingGeneratedMusicPcmWave(started.stdout)
+    const waveFacts = inspectCanonicalPcmWave(canonicalOutput.bytes)
+    if (waveFacts.channelCount !== 2 || waveFacts.sampleRateHertz !== 48_000) {
+      throw unavailable('Generated-music normalization did not produce exact 48 kHz stereo PCM.')
+    }
+    const outputDurationMilliseconds = Math.round(
+      (waveFacts.sampleCountPerChannel / waveFacts.sampleRateHertz) * 1_000,
+    )
+    if (outputDurationMilliseconds > request.payload.maximumDurationMilliseconds) {
+      throw unavailable('Generated-music normalized output exceeds the fixed duration ceiling.')
+    }
+    const outputProbe = await probeGeneratedMusicCandidateOutput(image, canonicalOutput.bytes, waveFacts)
+    const sourceDurationMilliseconds = Number(sourceProbe.durationMilliseconds)
+    if (Math.abs(outputDurationMilliseconds - sourceDurationMilliseconds) > 2) {
+      throw unavailable('Generated-music normalization changed duration beyond resampling tolerance.')
+    }
+
+    const resultSha256 = sha256(canonicalOutput.bytes)
+    const completedAt = new Date().toISOString()
+    const attestationWithoutHash = {
+      domain: 'offline_generated_music_candidate_normalization_attestation_v1',
+      completedAt,
+      imageIdentityHash: image.imageIdentityHash,
+      toolId: 'ffmpeg' as const,
+      operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
+      recipeProfileId: OFFLINE_GENERATED_MUSIC_CANDIDATE_NORMALIZATION_PROFILE,
+      sourceSha256: request.payload.sourceSha256,
+      resultSha256,
+      confinement,
+      sourceProbe,
+      outputProbe,
+    }
+    const attestationHash = sha256AuthorityValue(attestationWithoutHash)
+    const recordId = sha256AuthorityValue({ attestationHash, completedAt })
+    await writePrivateTextFileAtomicWithinRoot({
+      rootPath: STORAGE_ROOT,
+      relativePath: `attestations/${recordId.slice(0, 2)}/${recordId}.json`,
+      content: `${stableAuthorityStringify({
+        recordVersion: 'offline-media-binary-execution-attestation-record-v1',
+        source: 'private_local_checksum_protected_media_binary_execution',
+        attestation: { ...attestationWithoutHash, recordId, attestationHash },
+        checksumSha256: sha256AuthorityValue({ ...attestationWithoutHash, recordId, attestationHash }),
+      })}\n`,
+    })
+    return {
+      resultArtifact: {
+        mimeType: 'audio/wav',
+        bytes: canonicalOutput.bytes,
+        sha256: resultSha256,
+        byteLength: canonicalOutput.bytes.byteLength,
+        codec: 'pcm_s16le',
+        sampleRateHertz: 48_000,
+        channelCount: 2,
+        sampleCountPerChannel: waveFacts.sampleCountPerChannel,
+        durationMilliseconds: outputDurationMilliseconds,
+      },
+      evidence: {
+        toolId: 'ffmpeg',
+        operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
+        binaryVersion: SOURCE_VERSION,
+        requestEnvelopeSha256: sha256AuthorityValue({
+          ...request,
+          payload: { ...request.payload, sourceBytesBase64: '[server-injected-approved-bytes]' },
+        }),
+        sourceSha256: request.payload.sourceSha256,
+        resultSha256,
+        semanticEvidence: {
+          sourceBytesVerified: true,
+          fixedRecipeExecuted: true,
+          recipeProfileId: request.payload.recipeProfileId,
+          canonicalOperationReused: true,
+          sourceProbe,
+          outputProbe,
+          outputContainer: 'wav',
+          outputAudioCodec: 'pcm_s16le',
+          outputSampleRateHertz: 48_000,
+          outputChannelCount: 2,
+          outputSampleCountPerChannel: waveFacts.sampleCountPerChannel,
+          durationPreservedWithinMilliseconds: 2,
+          metadataStripped: true,
+          outputProbeVerified: true,
+        },
+        confinement,
+        containerExitCode: 0,
+        oomKilled: false,
+      },
+      image,
+      attestation: { recordId, completedAt, attestationHash },
+      readiness: {
+        privateInternalOnly: true,
+        productReady: false,
+        externalBetaReady: false,
+        productionReady: false,
+      },
+    }
+  } finally {
+    await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024).catch(() => undefined)
+  }
+}
+
+async function executeSynchronizedFoleyCandidateNormalize(
+  image: OfflineMediaBinaryImageEvidence,
+  value: unknown,
+): Promise<OfflineSynchronizedFoleyCandidateNormalizeExecutionResult> {
+  let request: OfflineSynchronizedFoleyCandidateNormalizeExecutionRequest
+  try { request = validateOfflineSynchronizedFoleyCandidateNormalizeExecutionRequest(value) } catch {
+    throw invalid('Structured synchronized-Foley candidate normalization request was rejected.')
+  }
+  const sourceBytes = Buffer.from(request.payload.sourceBytesBase64, 'base64')
+  const samplesPerFrame = 48_000 / request.payload.fps
+  const sourceProbe = await probeSynchronizedFoleyCandidateSource(image, sourceBytes)
+  const command = [
+    '-hide_banner', '-loglevel', 'error', '-nostdin', '-fflags', '+bitexact', '-i', 'pipe:0',
+    '-map', '0:a:0', '-map_metadata', '-1', '-vn', '-flags:a', '+bitexact',
+    '-threads', '1', '-ar', '48000', '-ac', '2', '-c:a', 'pcm_s16le', '-f', 'wav', 'pipe:1',
+  ]
+  const maximumOutputBytes = 44 +
+    ((request.payload.exactOutputSampleCountPerChannel + samplesPerFrame) * 4) + (64 * 1024)
+  const container = await createContainer(image, FFMPEG_ENTRYPOINT, command)
+  try {
+    const before = await inspectContainer(container.id)
+    const confinement = validateConfinement(before, image, FFMPEG_ENTRYPOINT, command)
+    const started = await dockerBuffer(
+      ['start', '--attach', '--interactive', container.id],
+      sourceBytes,
+      maximumOutputBytes,
+    )
+    const after = await inspectContainer(container.id)
+    const state = record(after.State)
+    if (
+      started.exitCode !== 0 || started.stderr.length > 0 || started.stdout.byteLength < 44 ||
+      state.Status !== 'exited' || state.Running !== false || state.ExitCode !== started.exitCode ||
+      state.OOMKilled !== false || started.stdout.subarray(0, 4).toString('ascii') !== 'RIFF' ||
+      started.stdout.subarray(8, 12).toString('ascii') !== 'WAVE'
+    ) throw unavailable('Confined synchronized-Foley normalization failed closed.')
+
+    const canonicalOutput = canonicalizeStreamingSynchronizedFoleyPcmWave(
+      started.stdout,
+      request.payload.exactOutputSampleCountPerChannel,
+      samplesPerFrame,
+    )
+    const waveFacts = inspectCanonicalPcmWave(canonicalOutput.bytes)
+    if (
+      waveFacts.channelCount !== 2 || waveFacts.sampleRateHertz !== 48_000 ||
+      waveFacts.sampleCountPerChannel !== request.payload.exactOutputSampleCountPerChannel
+    ) throw unavailable('Synchronized-Foley normalization changed its exact frame-derived PCM authority.')
+    const outputProbe = await probeSynchronizedFoleyCandidateOutput(
+      image,
+      canonicalOutput.bytes,
+      request.payload.exactOutputSampleCountPerChannel,
+    )
+    const resultSha256 = sha256(canonicalOutput.bytes)
+    const completedAt = new Date().toISOString()
+    const attestationWithoutHash = {
+      domain: 'offline_synchronized_foley_candidate_normalization_attestation_v1',
+      completedAt,
+      imageIdentityHash: image.imageIdentityHash,
+      toolId: 'ffmpeg' as const,
+      operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
+      recipeProfileId: OFFLINE_SYNCHRONIZED_FOLEY_CANDIDATE_NORMALIZATION_PROFILE,
+      sourceSha256: request.payload.sourceSha256,
+      resultSha256,
+      confinement,
+      sourceProbe,
+      outputProbe,
+      exactOutputSampleCountPerChannel: request.payload.exactOutputSampleCountPerChannel,
+      decodedSampleCountPerChannel: canonicalOutput.decodedSampleCountPerChannel,
+      trimmedExcessSampleCountPerChannel: canonicalOutput.trimmedExcessSampleCountPerChannel,
+      silencePaddingApplied: false,
+    }
+    const attestationHash = sha256AuthorityValue(attestationWithoutHash)
+    const recordId = sha256AuthorityValue({ attestationHash, completedAt })
+    await writePrivateTextFileAtomicWithinRoot({
+      rootPath: STORAGE_ROOT,
+      relativePath: `attestations/${recordId.slice(0, 2)}/${recordId}.json`,
+      content: `${stableAuthorityStringify({
+        recordVersion: 'offline-media-binary-execution-attestation-record-v1',
+        source: 'private_local_checksum_protected_media_binary_execution',
+        attestation: { ...attestationWithoutHash, recordId, attestationHash },
+        checksumSha256: sha256AuthorityValue({ ...attestationWithoutHash, recordId, attestationHash }),
+      })}\n`,
+    })
+    return {
+      resultArtifact: {
+        mimeType: 'audio/wav',
+        bytes: canonicalOutput.bytes,
+        sha256: resultSha256,
+        byteLength: canonicalOutput.bytes.byteLength,
+        codec: 'pcm_s16le',
+        sampleRateHertz: 48_000,
+        channelCount: 2,
+        sampleCountPerChannel: request.payload.exactOutputSampleCountPerChannel,
+        durationFrames: request.payload.durationFrames,
+        fps: request.payload.fps,
+        durationMilliseconds: Math.round(
+          (request.payload.exactOutputSampleCountPerChannel / 48_000) * 1_000,
+        ),
+      },
+      evidence: {
+        toolId: 'ffmpeg',
+        operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
+        binaryVersion: SOURCE_VERSION,
+        requestEnvelopeSha256: sha256AuthorityValue({
+          ...request,
+          payload: { ...request.payload, sourceBytesBase64: '[server-injected-approved-bytes]' },
+        }),
+        sourceSha256: request.payload.sourceSha256,
+        resultSha256,
+        semanticEvidence: {
+          sourceBytesVerified: true,
+          fixedRecipeExecuted: true,
+          recipeProfileId: request.payload.recipeProfileId,
+          canonicalOperationReused: true,
+          sourceProbe,
+          outputProbe,
+          requiredAudioStreamCount: 1,
+          callerSelectedStreamIndexAllowed: false,
+          outputContainer: 'wav',
+          outputAudioCodec: 'pcm_s16le',
+          outputSampleRateHertz: 48_000,
+          outputChannelCount: 2,
+          fps: request.payload.fps,
+          durationFrames: request.payload.durationFrames,
+          samplesPerFrame,
+          exactOutputSampleCountPerChannel: request.payload.exactOutputSampleCountPerChannel,
+          decodedSampleCountPerChannel: canonicalOutput.decodedSampleCountPerChannel,
+          trimmedExcessSampleCountPerChannel: canonicalOutput.trimmedExcessSampleCountPerChannel,
+          silencePaddingAllowed: false,
+          silencePaddingApplied: false,
+          metadataStripped: true,
+          loudnessGainApplied: false,
+          dynamicProcessingApplied: false,
+          creativeTransformApplied: false,
+          outputProbeVerified: true,
+          privateCreateOnlyPersistenceRequiredDownstream: true,
+          privateCreateOnlyPersistencePerformedByThisRuntime: false,
+          providerChargeIncluded: false,
+          observedCpuMemoryGpuMeterIncluded: false,
+        },
+        confinement,
+        containerExitCode: 0,
+        oomKilled: false,
+      },
+      image,
+      attestation: { recordId, completedAt, attestationHash },
+      readiness: {
+        privateInternalOnly: true,
+        productReady: false,
+        externalBetaReady: false,
+        productionReady: false,
+      },
+    }
+  } finally {
+    await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024).catch(() => undefined)
+  }
+}
+
+
 async function executeFfmpegRequest(
   image: OfflineMediaBinaryImageEvidence,
   request: OfflineFfmpegExecutionRequest | OfflineFfmpegStreamingExecutionRequest,
@@ -3788,11 +4319,16 @@ async function executeFfmpegRequest(
         timeoutMs,
       })
     }
-    const outputByteLength = streamedOutputSpool?.byteLength ?? bufferedOutput!.stdout.byteLength
-    const resultSha256 = streamedOutputSpool?.sha256 ?? sha256(bufferedOutput!.stdout)
-    const outputSignature = streamedOutputSpool?.signature ?? bufferedOutput!.stdout.subarray(0, 25)
+    const bufferedOutputBytes = bufferedOutput
+      ? storytellingSpeechNormalization
+        ? finalizeBufferedStorytellingSpeechPcmWave(bufferedOutput.stdout)
+        : bufferedOutput.stdout
+      : undefined
+    const outputByteLength = streamedOutputSpool?.byteLength ?? bufferedOutputBytes!.byteLength
+    const resultSha256 = streamedOutputSpool?.sha256 ?? sha256(bufferedOutputBytes!)
+    const outputSignature = streamedOutputSpool?.signature ?? bufferedOutputBytes!.subarray(0, 25)
     const outputInput = streamedOutputSpool?.source ?? verifiedBufferInput(
-      bufferedOutput!.stdout,
+      bufferedOutputBytes!,
       resultSha256,
     )
     const exitCode = streamedOutputSpool?.exitCode ?? bufferedOutput!.exitCode
@@ -3819,7 +4355,7 @@ async function executeFfmpegRequest(
     const wave = voiceDelivery || storytellingSpeechNormalization
       ? streamedOutputSpool
         ? inspectPcmWavePrefix(streamedOutputSpool.signature, outputByteLength)
-        : pcmWaveDetails(bufferedOutput!.stdout)
+        : pcmWaveDetails(bufferedOutputBytes!)
       : undefined
     if (voiceDelivery || storytellingSpeechNormalization ? !wave : colorDelivery
       ? !isMatroska(outputSignature)
@@ -3963,6 +4499,7 @@ async function executeFfmpegRequest(
                 timingAuthorityDigest:
                   storytellingSpeechPayload!.timingAuthorityDigest,
                 metadataStripped: true,
+                canonicalPcmWaveHeaderFinalized: !outputSink,
                 sourceVideoRemoved: true,
                 loudnessNormalizationApplied: false,
                 timeStretchApplied: false,
@@ -4069,17 +4606,24 @@ async function executeFfmpegRequest(
         ...common,
       }
     }
+    const resultArtifact: OfflineFfmpegExecutionResult['resultArtifact'] =
+      voiceDelivery || storytellingSpeechNormalization
+        ? {
+            mimeType: 'audio/wav',
+            bytes: bufferedOutputBytes!,
+            sha256: resultSha256,
+            byteLength: outputByteLength,
+            sampleCountPerChannel: wave!.sampleFrameCount,
+            durationMilliseconds: Math.round(wave!.durationSeconds * 1_000),
+          }
+        : {
+            mimeType: colorDelivery ? 'video/x-matroska' : 'video/x-nut',
+            bytes: bufferedOutputBytes!,
+            sha256: resultSha256,
+            byteLength: outputByteLength,
+          }
     return {
-      resultArtifact: {
-        mimeType: voiceDelivery || storytellingSpeechNormalization
-          ? 'audio/wav'
-          : colorDelivery
-            ? 'video/x-matroska'
-            : 'video/x-nut',
-        bytes: bufferedOutput!.stdout,
-        sha256: resultSha256,
-        byteLength: outputByteLength,
-      },
+      resultArtifact,
       evidence,
       ...common,
     }
@@ -4563,6 +5107,69 @@ function pcmWaveDetails(bytes: Buffer): {
     sampleFrameCount: details.sampleFrameCount,
     durationSeconds: details.durationSeconds,
   }
+}
+
+function finalizeBufferedStorytellingSpeechPcmWave(bytes: Buffer): Buffer {
+  if (
+    bytes.byteLength < 44 || bytes.subarray(0, 4).toString('ascii') !== 'RIFF' ||
+    bytes.subarray(8, 12).toString('ascii') !== 'WAVE'
+  ) throw unavailable('Normalized Storytelling Speech is not a PCM WAV artifact.')
+
+  let offset = 12
+  let formatVerified = false
+  let data: Buffer | undefined
+  while (offset + 8 <= bytes.byteLength) {
+    const chunkId = bytes.subarray(offset, offset + 4).toString('ascii')
+    const chunkLength = bytes.readUInt32LE(offset + 4)
+    const dataOffset = offset + 8
+    if (chunkId === 'fmt ') {
+      if (
+        formatVerified || chunkLength < 16 || chunkLength === 0xffff_ffff ||
+        dataOffset + chunkLength > bytes.byteLength ||
+        bytes.readUInt16LE(dataOffset) !== 1 ||
+        bytes.readUInt16LE(dataOffset + 2) !== 1 ||
+        bytes.readUInt32LE(dataOffset + 4) !== 48_000 ||
+        bytes.readUInt32LE(dataOffset + 8) !== 96_000 ||
+        bytes.readUInt16LE(dataOffset + 12) !== 2 ||
+        bytes.readUInt16LE(dataOffset + 14) !== 16
+      ) throw unavailable('Normalized Storytelling Speech PCM format changed.')
+      formatVerified = true
+    } else if (chunkId === 'data') {
+      const dataLength = chunkLength === 0xffff_ffff
+        ? bytes.byteLength - dataOffset
+        : chunkLength
+      if (
+        dataLength < 9_600 || dataLength > 48_000 * 30 * 2 ||
+        dataLength % 2 !== 0 || dataOffset + dataLength !== bytes.byteLength
+      ) throw unavailable('Normalized Storytelling Speech sample payload is invalid.')
+      data = bytes.subarray(dataOffset, dataOffset + dataLength)
+      break
+    }
+    if (
+      chunkLength === 0xffff_ffff || dataOffset + chunkLength > bytes.byteLength
+    ) throw unavailable('Normalized Storytelling Speech WAV chunk is invalid.')
+    offset = dataOffset + chunkLength + (chunkLength % 2)
+  }
+  if (!formatVerified || !data) {
+    throw unavailable('Normalized Storytelling Speech is missing exact PCM sample authority.')
+  }
+
+  const output = Buffer.alloc(44 + data.byteLength)
+  output.write('RIFF', 0, 'ascii')
+  output.writeUInt32LE(36 + data.byteLength, 4)
+  output.write('WAVE', 8, 'ascii')
+  output.write('fmt ', 12, 'ascii')
+  output.writeUInt32LE(16, 16)
+  output.writeUInt16LE(1, 20)
+  output.writeUInt16LE(1, 22)
+  output.writeUInt32LE(48_000, 24)
+  output.writeUInt32LE(96_000, 28)
+  output.writeUInt16LE(2, 32)
+  output.writeUInt16LE(16, 34)
+  output.write('data', 36, 'ascii')
+  output.writeUInt32LE(data.byteLength, 40)
+  data.copy(output, 44)
+  return output
 }
 
 async function probeObjectMezzanineChunkOutput(
@@ -5446,6 +6053,242 @@ async function probeFfmpegVoiceDeliveryOutput(
   }
 }
 
+async function probeGeneratedMusicCandidateSource(
+  image: OfflineMediaBinaryImageEvidence,
+  bytes: Buffer,
+  maximumDurationMilliseconds: number,
+): Promise<Readonly<Record<string, unknown>>> {
+  const sourceWaveFacts = inspectGeneratedMusicSourceWave(bytes)
+  const command = [
+    '-v', 'error', '-show_entries',
+    'format=format_name,duration,size:stream=codec_name,codec_type,sample_rate,channels,duration',
+    '-print_format', 'json', '-i', 'pipe:0',
+  ]
+  const container = await createContainer(image, FFPROBE_ENTRYPOINT, command)
+  try {
+    validateConfinement(await inspectContainer(container.id), image, FFPROBE_ENTRYPOINT, command)
+    const result = await dockerBuffer(['start', '--attach', '--interactive', container.id], bytes, 1024 * 1024)
+    if (result.exitCode !== 0 || result.stderr.length > 0) {
+      throw unavailable('Generated-music source inspection failed closed.')
+    }
+    const parsed = record(JSON.parse(result.stdout.toString('utf8')))
+    const format = record(parsed.format)
+    const streams = Array.isArray(parsed.streams) ? parsed.streams.map(record) : []
+    const audioStreams = streams.filter((stream) => stream.codec_type === 'audio')
+    if (
+      streams.length !== 1 || audioStreams.length !== 1 ||
+      !String(format.format_name ?? '').includes('wav')
+    ) throw unavailable('Generated-music source must be one WAV audio stream with no other streams.')
+    const audio = audioStreams[0]!
+    const durationSeconds = optionalNumber(audio.duration) ?? optionalNumber(format.duration) ??
+      sourceWaveFacts.durationSeconds
+    const sampleRateHertz = optionalInteger(audio.sample_rate)
+    const channelCount = optionalInteger(audio.channels)
+    if (
+      !durationSeconds || durationSeconds <= 0 ||
+      Math.round(durationSeconds * 1_000) > maximumDurationMilliseconds ||
+      !sampleRateHertz || sampleRateHertz < 8_000 || sampleRateHertz > 192_000 ||
+      !channelCount || channelCount > 8 ||
+      sampleRateHertz !== sourceWaveFacts.sampleRateHertz ||
+      channelCount !== sourceWaveFacts.channelCount
+    ) throw unavailable('Generated-music source media facts exceed the fixed recipe bounds.')
+    return {
+      formatName: safeText(format.format_name),
+      codecName: safeText(audio.codec_name),
+      sampleRateHertz,
+      channelCount,
+      durationMilliseconds: Math.round(durationSeconds * 1_000),
+      byteLength: bytes.byteLength,
+      bitsPerSample: sourceWaveFacts.bitsPerSample,
+      pcmFormatCode: sourceWaveFacts.audioFormat,
+      oneAudioStreamOnly: true,
+    }
+  } finally {
+    await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024).catch(() => undefined)
+  }
+}
+
+async function probeGeneratedMusicCandidateOutput(
+  image: OfflineMediaBinaryImageEvidence,
+  bytes: Buffer,
+  waveFacts: { sampleRateHertz: number; channelCount: number; sampleCountPerChannel: number; durationSeconds: number },
+): Promise<Readonly<Record<string, unknown>>> {
+  const command = [
+    '-v', 'error', '-show_entries',
+    'format=format_name,duration,size:stream=codec_name,codec_type,sample_rate,channels,duration,duration_ts,time_base',
+    '-print_format', 'json', '-i', 'pipe:0',
+  ]
+  const container = await createContainer(image, FFPROBE_ENTRYPOINT, command)
+  try {
+    validateConfinement(await inspectContainer(container.id), image, FFPROBE_ENTRYPOINT, command)
+    const result = await dockerBuffer(['start', '--attach', '--interactive', container.id], bytes, 1024 * 1024)
+    if (result.exitCode !== 0 || result.stderr.length > 0) {
+      throw unavailable('Generated-music output inspection failed closed.')
+    }
+    const parsed = record(JSON.parse(result.stdout.toString('utf8')))
+    const format = record(parsed.format)
+    const streams = Array.isArray(parsed.streams) ? parsed.streams.map(record) : []
+    if (streams.length !== 1) throw unavailable('Generated-music output must contain one stream.')
+    const audio = streams[0]!
+    const durationSeconds = optionalNumber(audio.duration) ?? optionalNumber(format.duration) ??
+      waveFacts.durationSeconds
+    if (
+      audio.codec_type !== 'audio' || audio.codec_name !== 'pcm_s16le' ||
+      optionalInteger(audio.sample_rate) !== 48_000 || optionalInteger(audio.channels) !== 2 ||
+      !String(format.format_name ?? '').includes('wav') || !durationSeconds ||
+      Math.abs(durationSeconds - waveFacts.durationSeconds) > 0.002
+    ) throw unavailable('Generated-music output failed codec, channel, sample-rate, or duration verification.')
+    return {
+      container: 'wav',
+      audioCodec: 'pcm_s16le',
+      sampleRateHertz: 48_000,
+      channelCount: 2,
+      sampleCountPerChannel: waveFacts.sampleCountPerChannel,
+      durationSeconds: waveFacts.durationSeconds,
+      sizeBytes: optionalInteger(format.size) ?? bytes.byteLength,
+    }
+  } finally {
+    await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024).catch(() => undefined)
+  }
+}
+
+async function probeSynchronizedFoleyCandidateSource(
+  image: OfflineMediaBinaryImageEvidence,
+  bytes: Buffer,
+): Promise<Readonly<Record<string, unknown>>> {
+  const command = [
+    '-v', 'error', '-show_entries',
+    'format=format_name,duration,size:stream=index,codec_name,codec_type,sample_rate,channels,duration,duration_ts,time_base',
+    '-print_format', 'json', '-i', 'pipe:0',
+  ]
+  const container = await createContainer(image, FFPROBE_ENTRYPOINT, command)
+  try {
+    validateConfinement(await inspectContainer(container.id), image, FFPROBE_ENTRYPOINT, command)
+    const result = await dockerBuffer(['start', '--attach', '--interactive', container.id], bytes, 1024 * 1024)
+    const after = await inspectContainer(container.id)
+    const state = record(after.State)
+    if (
+      result.exitCode !== 0 || result.stderr.length > 0 || state.Status !== 'exited' ||
+      state.Running !== false || state.ExitCode !== result.exitCode || state.OOMKilled !== false
+    ) throw unavailable('Synchronized-Foley provider MP4 inspection failed closed.')
+    let parsed: Record<string, unknown>
+    try { parsed = record(JSON.parse(result.stdout.toString('utf8'))) } catch {
+      throw unavailable('Synchronized-Foley provider MP4 inspection returned invalid JSON.')
+    }
+    const format = record(parsed.format)
+    const streams = Array.isArray(parsed.streams) ? parsed.streams.map(record) : []
+    const audioStreams = streams.filter((stream) => stream.codec_type === 'audio')
+    const videoStreams = streams.filter((stream) => stream.codec_type === 'video')
+    const formatNames = String(format.format_name ?? '').split(',')
+    if (
+      streams.length !== 2 || audioStreams.length !== 1 || videoStreams.length !== 1 ||
+      !formatNames.includes('mp4')
+    ) throw unavailable('Synchronized-Foley source must be one MP4 video stream and exactly one audio stream.')
+    const audio = audioStreams[0]!
+    const video = videoStreams[0]!
+    const sampleRateHertz = optionalInteger(audio.sample_rate)
+    const channelCount = optionalInteger(audio.channels)
+    const durationSeconds = optionalNumber(audio.duration) ?? optionalNumber(format.duration)
+    const audioCodec = safeText(audio.codec_name)
+    const videoCodec = safeText(video.codec_name)
+    if (
+      !sampleRateHertz || sampleRateHertz < 8_000 || sampleRateHertz > 192_000 ||
+      !channelCount || channelCount > 8 || !durationSeconds || durationSeconds <= 0 ||
+      audioCodec === 'unknown' || videoCodec === 'unknown'
+    ) throw unavailable('Synchronized-Foley provider MP4 media facts exceed the fixed decode bounds.')
+    return {
+      formatName: safeText(format.format_name),
+      byteLength: bytes.byteLength,
+      streamCount: streams.length,
+      videoStreamCount: 1,
+      audioStreamCount: 1,
+      videoCodec,
+      audioCodec,
+      sampleRateHertz,
+      channelCount,
+      durationMilliseconds: Math.round(durationSeconds * 1_000),
+      audioStreamIndex: optionalInteger(audio.index),
+      callerSelectedStreamIndexAllowed: false,
+      decodableByApprovedImage: true,
+    }
+  } finally {
+    await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024).catch(() => undefined)
+  }
+}
+
+async function probeSynchronizedFoleyCandidateOutput(
+  image: OfflineMediaBinaryImageEvidence,
+  bytes: Buffer,
+  expectedSampleCountPerChannel: number,
+): Promise<Readonly<Record<string, unknown>>> {
+  const command = [
+    '-v', 'error', '-show_entries',
+    'format=format_name,duration,size:stream=codec_name,codec_type,sample_rate,channels,duration,duration_ts,time_base',
+    '-print_format', 'json', '-i', 'pipe:0',
+  ]
+  const container = await createContainer(image, FFPROBE_ENTRYPOINT, command)
+  try {
+    validateConfinement(await inspectContainer(container.id), image, FFPROBE_ENTRYPOINT, command)
+    const result = await dockerBuffer(['start', '--attach', '--interactive', container.id], bytes, 1024 * 1024)
+    const after = await inspectContainer(container.id)
+    const state = record(after.State)
+    if (
+      result.exitCode !== 0 || result.stderr.length > 0 || state.Status !== 'exited' ||
+      state.Running !== false || state.ExitCode !== result.exitCode || state.OOMKilled !== false
+    ) throw unavailable('Synchronized-Foley normalized output inspection failed closed.')
+    let parsed: Record<string, unknown>
+    try { parsed = record(JSON.parse(result.stdout.toString('utf8'))) } catch {
+      throw unavailable('Synchronized-Foley normalized output probe returned invalid JSON.')
+    }
+    const format = record(parsed.format)
+    const streams = Array.isArray(parsed.streams) ? parsed.streams.map(record) : []
+    if (streams.length !== 1) throw unavailable('Synchronized-Foley normalized output must contain one stream.')
+    const audio = streams[0]!
+    const durationSeconds = expectedSampleCountPerChannel / 48_000
+    const waveFacts = inspectCanonicalPcmWave(bytes)
+    const observed = {
+      codecType: audio.codec_type,
+      codecName: audio.codec_name,
+      sampleRateHertz: optionalInteger(audio.sample_rate),
+      channelCount: optionalInteger(audio.channels),
+      timeBase: String(audio.time_base),
+      durationTimestamp: optionalInteger(audio.duration_ts),
+      formatName: String(format.format_name ?? ''),
+      durationSeconds: optionalNumber(audio.duration) ?? optionalNumber(format.duration),
+    }
+    if (
+      observed.codecType !== 'audio' || observed.codecName !== 'pcm_s16le' ||
+      observed.sampleRateHertz !== 48_000 || observed.channelCount !== 2 ||
+      observed.timeBase !== '1/48000' ||
+      (observed.durationTimestamp !== undefined &&
+        observed.durationTimestamp !== expectedSampleCountPerChannel) ||
+      !observed.formatName.includes('wav') ||
+      (observed.durationSeconds !== undefined &&
+        Math.abs(observed.durationSeconds - durationSeconds) > 0.000_001) ||
+      waveFacts.sampleRateHertz !== 48_000 || waveFacts.channelCount !== 2 ||
+      waveFacts.sampleCountPerChannel !== expectedSampleCountPerChannel ||
+      bytes.byteLength !== 44 + (expectedSampleCountPerChannel * 4) ||
+      bytes.subarray(12, 16).toString('ascii') !== 'fmt ' ||
+      bytes.subarray(36, 40).toString('ascii') !== 'data'
+    ) throw unavailable('Synchronized-Foley output failed exact PCM sample, channel, rate or duration verification.')
+    return {
+      container: 'wav',
+      audioCodec: 'pcm_s16le',
+      sampleRateHertz: 48_000,
+      channelCount: 2,
+      sampleCountPerChannel: expectedSampleCountPerChannel,
+      durationSeconds: rounded(durationSeconds),
+      sizeBytes: optionalInteger(format.size) ?? bytes.byteLength,
+      timeBase: '1/48000',
+      probeDurationTimestamp: observed.durationTimestamp,
+      exactSampleCountVerifiedByCanonicalRiff: true,
+      metadataChunksPresent: false,
+    }
+  } finally {
+    await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024).catch(() => undefined)
+  }
+}
+
 async function probeStorytellingSpeechSource(
   image: OfflineMediaBinaryImageEvidence,
   source: OfflineMediaBinaryServerInjectedInput,
@@ -5595,6 +6438,14 @@ async function persistAuthority(image: OfflineMediaBinaryImageEvidence): Promise
     supportedOperations: [
       { toolId: 'ffmpeg' as const, operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg },
       { toolId: 'ffprobe' as const, operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffprobe },
+      { toolId: 'ffmpeg' as const, operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.normalizeStorytellingAudioMix },
+      { toolId: 'ffmpeg' as const, operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.measureStorytellingAudioMix },
+    ] as const,
+    supportedRecipeProfiles: [
+      'approved_trim_transcode_v1' as const,
+      APPROVED_STORYTELLING_SPEECH_TAKE_NORMALIZATION_PROFILE_ID,
+      OFFLINE_GENERATED_MUSIC_CANDIDATE_NORMALIZATION_PROFILE,
+      OFFLINE_SYNCHRONIZED_FOLEY_CANDIDATE_NORMALIZATION_PROFILE,
     ] as const,
     readiness: {
       privateInternalExecutionReady: true as const,
@@ -5662,6 +6513,309 @@ function ffprobeArguments(
     '-print_format', 'json',
     '-i', 'pipe:0',
   ]
+}
+
+async function probeStorytellingAudioOutput(
+  image: OfflineMediaBinaryImageEvidence,
+  bytes: Buffer,
+  expectedSampleCountPerChannel: number,
+  expectedChannelCount: 1 | 2 = 2,
+  resourceObservations?: PrivateEmbeddedProcessResourceObservation[],
+) {
+  const command = [
+    '-v', 'error', '-show_entries',
+    'format=format_name,duration,size:stream=codec_name,codec_type,sample_rate,channels,duration,duration_ts,time_base',
+    '-print_format', 'json', '-i', 'pipe:0',
+  ]
+  const container = await createContainer(
+    image,
+    FFPROBE_ENTRYPOINT,
+    command,
+    resourceObservations ? { observeCgroupResources: true } : undefined,
+  )
+  try {
+    const before = await inspectContainer(container.id)
+    validateConfinement(before, image, FFPROBE_ENTRYPOINT, command, container)
+    const started = await dockerBuffer(['start', '--attach', '--interactive', container.id], bytes, 2 * 1024 * 1024)
+    const observedExecution = resourceObservations
+      ? normalizeObservedMediaContainerExecution({ container, image, stderr: started.stderr })
+      : { sanitizedStderr: started.stderr, observation: undefined }
+    if (observedExecution.observation) resourceObservations?.push(observedExecution.observation)
+    const after = await inspectContainer(container.id)
+    const state = record(after.State)
+    if (
+      started.exitCode !== 0 || observedExecution.sanitizedStderr.length > 0 || state.Status !== 'exited' ||
+      state.Running !== false || state.ExitCode !== started.exitCode || state.OOMKilled !== false
+    ) throw unavailable('Normalized Storytelling audio could not be independently probed.')
+    let raw: Record<string, unknown>
+    try { raw = record(JSON.parse(started.stdout.toString('utf8'))) } catch {
+      throw unavailable('Normalized Storytelling audio probe is invalid JSON.')
+    }
+    const streams = Array.isArray(raw.streams) ? raw.streams.map(record) : []
+    const audio = streams.find((stream) => stream.codec_type === 'audio')
+    const format = record(raw.format)
+    if (
+      streams.length !== 1 || !audio || audio.codec_name !== 'pcm_s16le' ||
+      optionalInteger(audio.sample_rate) !== 48_000 || optionalInteger(audio.channels) !== expectedChannelCount ||
+      String(audio.time_base) !== '1/48000' || !String(format.format_name ?? '').includes('wav')
+    ) throw unavailable('Normalized Storytelling audio format, channels, rate, or sample count changed.')
+    return {
+      formatName: 'wav',
+      codecName: 'pcm_s16le',
+      sampleRateHertz: 48_000,
+      channelCount: expectedChannelCount,
+      sampleCountPerChannel: expectedSampleCountPerChannel,
+      durationSeconds: optionalNumber(audio.duration) ?? optionalNumber(format.duration),
+      sizeBytes: optionalInteger(format.size) ?? bytes.byteLength,
+    }
+  } finally {
+    await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024).catch(() => undefined)
+  }
+}
+
+function parseEbur128Summary(bytes: Buffer): {
+  measurementProfileId: 'motion_studio_storytelling_ebur128_v1'
+  integratedLufs: number
+  loudnessRangeLu: number
+  truePeakDbfs: number
+} {
+  const text = bytes.toString('utf8')
+  const summaryIndex = text.lastIndexOf('Summary:')
+  if (summaryIndex < 0) throw unavailable('EBU R128 measurement did not emit its fixed summary.')
+  const summary = text.slice(summaryIndex)
+  const integrated = /Integrated loudness:\s+I:\s+(-?\d+(?:\.\d+)?) LUFS/.exec(summary)
+  const loudnessRange = /Loudness range:\s+LRA:\s+(-?\d+(?:\.\d+)?) LU/.exec(summary)
+  const truePeak = /True peak:\s+Peak:\s+(-?\d+(?:\.\d+)?) dBFS/.exec(summary)
+  const integratedLufs = Number(integrated?.[1])
+  const loudnessRangeLu = Number(loudnessRange?.[1])
+  const truePeakDbfs = Number(truePeak?.[1])
+  if (
+    !Number.isFinite(integratedLufs) || integratedLufs < -70 || integratedLufs > 0 ||
+    !Number.isFinite(loudnessRangeLu) || loudnessRangeLu < 0 || loudnessRangeLu > 100 ||
+    !Number.isFinite(truePeakDbfs) || truePeakDbfs < -100 || truePeakDbfs > 0
+  ) throw unavailable('EBU R128 measurement summary is outside the bounded numeric contract.')
+  return {
+    measurementProfileId: 'motion_studio_storytelling_ebur128_v1',
+    integratedLufs: rounded(integratedLufs),
+    loudnessRangeLu: rounded(loudnessRangeLu),
+    truePeakDbfs: rounded(truePeakDbfs),
+  }
+}
+
+function canonicalizeStreamingPcmWave(bytes: Buffer, expectedSampleCountPerChannel: number): Buffer {
+  if (
+    bytes.byteLength < 78 || bytes.subarray(0, 4).toString('ascii') !== 'RIFF' ||
+    bytes.subarray(8, 12).toString('ascii') !== 'WAVE'
+  ) throw unavailable('Normalized Storytelling audio is not a streaming PCM WAV.')
+  let offset = 12
+  let formatVerified = false
+  let data: Buffer | undefined
+  while (offset + 8 <= bytes.byteLength) {
+    const chunkId = bytes.subarray(offset, offset + 4).toString('ascii')
+    const chunkLength = bytes.readUInt32LE(offset + 4)
+    const start = offset + 8
+    if (chunkId === 'fmt ') {
+      if (
+        formatVerified || chunkLength < 16 || start + chunkLength > bytes.byteLength ||
+        bytes.readUInt16LE(start) !== 1 || bytes.readUInt16LE(start + 2) !== 2 ||
+        bytes.readUInt32LE(start + 4) !== 48_000 || bytes.readUInt32LE(start + 8) !== 192_000 ||
+        bytes.readUInt16LE(start + 12) !== 4 || bytes.readUInt16LE(start + 14) !== 16
+      ) throw unavailable('Normalized Storytelling PCM format changed.')
+      formatVerified = true
+    }
+    if (chunkId === 'data') {
+      data = chunkLength === 0xffff_ffff ? bytes.subarray(start) : bytes.subarray(start, start + chunkLength)
+      break
+    }
+    if (chunkLength === 0xffff_ffff || start + chunkLength > bytes.byteLength) {
+      throw unavailable('Normalized Storytelling WAV chunk is invalid.')
+    }
+    offset = start + chunkLength + (chunkLength % 2)
+  }
+  if (
+    !formatVerified || !data || data.byteLength !== expectedSampleCountPerChannel * 4 ||
+    data.byteLength > 48_000 * 120 * 4
+  ) throw unavailable('Normalized Storytelling audio did not preserve its exact sample count.')
+  const output = Buffer.alloc(44 + data.byteLength)
+  output.write('RIFF', 0, 'ascii')
+  output.writeUInt32LE(36 + data.byteLength, 4)
+  output.write('WAVE', 8, 'ascii')
+  output.write('fmt ', 12, 'ascii')
+  output.writeUInt32LE(16, 16)
+  output.writeUInt16LE(1, 20)
+  output.writeUInt16LE(2, 22)
+  output.writeUInt32LE(48_000, 24)
+  output.writeUInt32LE(192_000, 28)
+  output.writeUInt16LE(4, 32)
+  output.writeUInt16LE(16, 34)
+  output.write('data', 36, 'ascii')
+  output.writeUInt32LE(data.byteLength, 40)
+  data.copy(output, 44)
+  return output
+}
+
+function canonicalizeStreamingGeneratedMusicPcmWave(bytes: Buffer): {
+  bytes: Buffer
+  sampleCountPerChannel: number
+  durationMilliseconds: number
+} {
+  if (
+    bytes.byteLength < 78 || bytes.subarray(0, 4).toString('ascii') !== 'RIFF' ||
+    bytes.subarray(8, 12).toString('ascii') !== 'WAVE'
+  ) throw unavailable('Normalized generated music is not a streaming PCM WAV.')
+  let offset = 12
+  let formatVerified = false
+  let data: Buffer | undefined
+  while (offset + 8 <= bytes.byteLength) {
+    const chunkId = bytes.subarray(offset, offset + 4).toString('ascii')
+    const chunkLength = bytes.readUInt32LE(offset + 4)
+    const start = offset + 8
+    if (chunkId === 'fmt ') {
+      if (
+        formatVerified || chunkLength < 16 || start + chunkLength > bytes.byteLength ||
+        bytes.readUInt16LE(start) !== 1 || bytes.readUInt16LE(start + 2) !== 2 ||
+        bytes.readUInt32LE(start + 4) !== 48_000 || bytes.readUInt32LE(start + 8) !== 192_000 ||
+        bytes.readUInt16LE(start + 12) !== 4 || bytes.readUInt16LE(start + 14) !== 16
+      ) throw unavailable('Normalized generated-music PCM format changed.')
+      formatVerified = true
+    }
+    if (chunkId === 'data') {
+      data = chunkLength === 0xffff_ffff ? bytes.subarray(start) : bytes.subarray(start, start + chunkLength)
+      break
+    }
+    if (chunkLength === 0xffff_ffff || start + chunkLength > bytes.byteLength) {
+      throw unavailable('Normalized generated-music WAV chunk is invalid.')
+    }
+    offset = start + chunkLength + (chunkLength % 2)
+  }
+  if (!formatVerified || !data || data.byteLength % 4 !== 0) {
+    throw unavailable('Normalized generated music is missing exact stereo PCM sample authority.')
+  }
+  const sampleCountPerChannel = data.byteLength / 4
+  if (sampleCountPerChannel < 4_800 || sampleCountPerChannel > 48_000 * 30) {
+    throw unavailable('Normalized generated-music duration is outside the fixed recipe.')
+  }
+  const output = Buffer.alloc(44 + data.byteLength)
+  output.write('RIFF', 0, 'ascii')
+  output.writeUInt32LE(36 + data.byteLength, 4)
+  output.write('WAVE', 8, 'ascii')
+  output.write('fmt ', 12, 'ascii')
+  output.writeUInt32LE(16, 16)
+  output.writeUInt16LE(1, 20)
+  output.writeUInt16LE(2, 22)
+  output.writeUInt32LE(48_000, 24)
+  output.writeUInt32LE(192_000, 28)
+  output.writeUInt16LE(4, 32)
+  output.writeUInt16LE(16, 34)
+  output.write('data', 36, 'ascii')
+  output.writeUInt32LE(data.byteLength, 40)
+  data.copy(output, 44)
+  return {
+    bytes: output,
+    sampleCountPerChannel,
+    durationMilliseconds: Math.round((sampleCountPerChannel / 48_000) * 1_000),
+  }
+}
+
+function canonicalizeStreamingSynchronizedFoleyPcmWave(
+  bytes: Buffer,
+  exactOutputSampleCountPerChannel: number,
+  samplesPerFrame: number,
+): {
+  bytes: Buffer
+  decodedSampleCountPerChannel: number
+  trimmedExcessSampleCountPerChannel: number
+} {
+  if (
+    bytes.byteLength < 78 || bytes.subarray(0, 4).toString('ascii') !== 'RIFF' ||
+    bytes.subarray(8, 12).toString('ascii') !== 'WAVE'
+  ) throw unavailable('Normalized synchronized-Foley output is not a streaming PCM WAV.')
+  let offset = 12
+  let formatVerified = false
+  let data: Buffer | undefined
+  while (offset + 8 <= bytes.byteLength) {
+    const chunkId = bytes.subarray(offset, offset + 4).toString('ascii')
+    const chunkLength = bytes.readUInt32LE(offset + 4)
+    const start = offset + 8
+    if (chunkId === 'fmt ') {
+      if (
+        formatVerified || chunkLength < 16 || start + chunkLength > bytes.byteLength ||
+        bytes.readUInt16LE(start) !== 1 || bytes.readUInt16LE(start + 2) !== 2 ||
+        bytes.readUInt32LE(start + 4) !== 48_000 || bytes.readUInt32LE(start + 8) !== 192_000 ||
+        bytes.readUInt16LE(start + 12) !== 4 || bytes.readUInt16LE(start + 14) !== 16
+      ) throw unavailable('Normalized synchronized-Foley PCM format changed.')
+      formatVerified = true
+    }
+    if (chunkId === 'data') {
+      if (data) throw unavailable('Normalized synchronized-Foley WAV contains duplicate audio data.')
+      if (chunkLength !== 0xffff_ffff && start + chunkLength > bytes.byteLength) {
+        throw unavailable('Normalized synchronized-Foley WAV data chunk is invalid.')
+      }
+      data = chunkLength === 0xffff_ffff ? bytes.subarray(start) : bytes.subarray(start, start + chunkLength)
+      break
+    }
+    if (chunkLength === 0xffff_ffff || start + chunkLength > bytes.byteLength) {
+      throw unavailable('Normalized synchronized-Foley WAV chunk is invalid.')
+    }
+    offset = start + chunkLength + (chunkLength % 2)
+  }
+  if (!formatVerified || !data || data.byteLength % 4 !== 0) {
+    throw unavailable('Normalized synchronized-Foley output is missing exact stereo PCM sample authority.')
+  }
+  const decodedSampleCountPerChannel = data.byteLength / 4
+  if (
+    decodedSampleCountPerChannel < exactOutputSampleCountPerChannel ||
+    decodedSampleCountPerChannel > exactOutputSampleCountPerChannel + samplesPerFrame
+  ) {
+    throw unavailable('Synchronized-Foley decode is shorter than picture lock or exceeds one trim frame.')
+  }
+  const trimmedExcessSampleCountPerChannel = decodedSampleCountPerChannel - exactOutputSampleCountPerChannel
+  const exactDataByteLength = exactOutputSampleCountPerChannel * 4
+  const output = Buffer.alloc(44 + exactDataByteLength)
+  output.write('RIFF', 0, 'ascii')
+  output.writeUInt32LE(36 + exactDataByteLength, 4)
+  output.write('WAVE', 8, 'ascii')
+  output.write('fmt ', 12, 'ascii')
+  output.writeUInt32LE(16, 16)
+  output.writeUInt16LE(1, 20)
+  output.writeUInt16LE(2, 22)
+  output.writeUInt32LE(48_000, 24)
+  output.writeUInt32LE(192_000, 28)
+  output.writeUInt16LE(4, 32)
+  output.writeUInt16LE(16, 34)
+  output.write('data', 36, 'ascii')
+  output.writeUInt32LE(exactDataByteLength, 40)
+  data.copy(output, 44, 0, exactDataByteLength)
+  return { bytes: output, decodedSampleCountPerChannel, trimmedExcessSampleCountPerChannel }
+}
+
+async function persistNewAttestation(input: Record<string, unknown>) {
+  const completedAt = String(input.completedAt)
+  const attestationHash = sha256AuthorityValue(input)
+  const recordId = sha256AuthorityValue({ attestationHash, completedAt })
+  const attestation = { ...input, recordId, attestationHash }
+  await writePrivateTextFileAtomicWithinRoot({
+    rootPath: STORAGE_ROOT,
+    relativePath: `attestations/${recordId.slice(0, 2)}/${recordId}.json`,
+    content: `${stableAuthorityStringify({
+      recordVersion: 'offline-media-binary-execution-attestation-record-v1',
+      source: 'private_local_checksum_protected_media_binary_execution',
+      attestation,
+      checksumSha256: sha256AuthorityValue(attestation),
+    })}\n`,
+  })
+  return { recordId, completedAt, attestationHash }
+}
+
+function safeRequestEnvelopeHash(
+  request:
+    | OfflineStorytellingAudioNormalizeExecutionRequest
+    | OfflineStorytellingAudioMeasureExecutionRequest,
+): string {
+  return sha256AuthorityValue({
+    ...request,
+    payload: { ...request.payload, sourceBytesBase64: '[server-injected-approved-bytes]' },
+  })
 }
 
 type OfflineMediaBinaryEntrypoint =
@@ -5880,6 +7034,10 @@ function normalizeProbe(
   if (streams.length === 0 || !streams.some((stream) => stream.codecType === 'video' || stream.codecType === 'audio')) {
     throw unavailable('FFprobe found no supported media streams.')
   }
+  const waveFacts =
+    request.payload.mimeType === 'audio/wav' && 'sourceBytesBase64' in request.payload
+      ? inspectCanonicalPcmWave(Buffer.from(request.payload.sourceBytesBase64, 'base64'))
+      : undefined
   const streamDurations = streams
     .map((stream) => stream.durationSeconds)
     .filter((value): value is number => value !== undefined && value > 0)
@@ -5893,7 +7051,8 @@ function normalizeProbe(
     .filter((value): value is number => value !== undefined)
   const durationCandidates = [...streamDurations, ...decodedVideoDurations]
   const durationSeconds = optionalNumber(rawFormat.duration) ??
-    (durationCandidates.length > 0 ? Math.max(...durationCandidates) : undefined)
+    (durationCandidates.length > 0 ? Math.max(...durationCandidates) : undefined) ??
+    waveFacts?.durationSeconds
   if (!durationSeconds || durationSeconds <= 0) throw unavailable('FFprobe found no positive media duration.')
   if (streamDurations.length > 1 && Math.max(...streamDurations) - Math.min(...streamDurations) > 1) {
     throw unavailable('FFprobe detected source stream duration drift above the fixed tolerance.')
@@ -5906,6 +7065,114 @@ function normalizeProbe(
     sizeBytes: optionalInteger(rawFormat.size) ?? request.payload.sourceByteLength,
     streamCount: streams.length,
     streams,
+  }
+}
+
+function inspectCanonicalPcmWave(bytes: Buffer): {
+  sampleRateHertz: number
+  channelCount: number
+  sampleCountPerChannel: number
+  durationSeconds: number
+} {
+  if (
+    bytes.byteLength < 44 || bytes.subarray(0, 4).toString('ascii') !== 'RIFF' ||
+    bytes.readUInt32LE(4) + 8 !== bytes.byteLength || bytes.subarray(8, 12).toString('ascii') !== 'WAVE'
+  ) throw unavailable('PCM WAV inspection requires an exact RIFF commitment.')
+  let offset = 12
+  let sampleRateHertz = 0
+  let channelCount = 0
+  let blockAlign = 0
+  let dataBytes = -1
+  while (offset + 8 <= bytes.byteLength) {
+    const id = bytes.subarray(offset, offset + 4).toString('ascii')
+    const length = bytes.readUInt32LE(offset + 4)
+    const start = offset + 8
+    const end = start + length
+    if (end > bytes.byteLength) throw unavailable('PCM WAV inspection found an invalid chunk.')
+    if (id === 'fmt ') {
+      if (length < 16 || bytes.readUInt16LE(start) !== 1 || bytes.readUInt16LE(start + 14) !== 16) {
+        throw unavailable('PCM WAV inspection requires signed 16-bit PCM.')
+      }
+      channelCount = bytes.readUInt16LE(start + 2)
+      sampleRateHertz = bytes.readUInt32LE(start + 4)
+      blockAlign = bytes.readUInt16LE(start + 12)
+    } else if (id === 'data') {
+      dataBytes = length
+    }
+    offset = end + (length % 2)
+  }
+  if (
+    offset !== bytes.byteLength || ![1, 2].includes(channelCount) || sampleRateHertz !== 48_000 ||
+    blockAlign !== channelCount * 2 || dataBytes <= 0 || dataBytes % blockAlign !== 0
+  ) throw unavailable('PCM WAV inspection found invalid sample authority.')
+  const sampleCountPerChannel = dataBytes / blockAlign
+  return {
+    sampleRateHertz,
+    channelCount,
+    sampleCountPerChannel,
+    durationSeconds: rounded(sampleCountPerChannel / sampleRateHertz),
+  }
+}
+
+function inspectGeneratedMusicSourceWave(bytes: Buffer): {
+  audioFormat: 1 | 3
+  sampleRateHertz: number
+  channelCount: number
+  bitsPerSample: 8 | 16 | 24 | 32 | 64
+  sampleCountPerChannel: number
+  durationSeconds: number
+} {
+  if (
+    bytes.byteLength < 44 || bytes.subarray(0, 4).toString('ascii') !== 'RIFF' ||
+    bytes.readUInt32LE(4) + 8 !== bytes.byteLength || bytes.subarray(8, 12).toString('ascii') !== 'WAVE'
+  ) throw unavailable('Generated-music WAV source requires an exact RIFF commitment.')
+  let offset = 12
+  let audioFormat = 0
+  let sampleRateHertz = 0
+  let channelCount = 0
+  let blockAlign = 0
+  let bitsPerSample = 0
+  let dataBytes = -1
+  let formatSeen = false
+  let dataSeen = false
+  while (offset + 8 <= bytes.byteLength) {
+    const id = bytes.subarray(offset, offset + 4).toString('ascii')
+    const length = bytes.readUInt32LE(offset + 4)
+    const start = offset + 8
+    const end = start + length
+    if (end > bytes.byteLength) throw unavailable('Generated-music WAV source contains an invalid chunk.')
+    if (id === 'fmt ') {
+      if (formatSeen || length < 16) throw unavailable('Generated-music WAV source has an invalid format chunk.')
+      formatSeen = true
+      audioFormat = bytes.readUInt16LE(start)
+      channelCount = bytes.readUInt16LE(start + 2)
+      sampleRateHertz = bytes.readUInt32LE(start + 4)
+      blockAlign = bytes.readUInt16LE(start + 12)
+      bitsPerSample = bytes.readUInt16LE(start + 14)
+    } else if (id === 'data') {
+      if (dataSeen) throw unavailable('Generated-music WAV source contains duplicate audio data.')
+      dataSeen = true
+      dataBytes = length
+    }
+    offset = end + (length % 2)
+  }
+  const bytesPerSample = bitsPerSample / 8
+  if (
+    offset !== bytes.byteLength || !formatSeen || !dataSeen || ![1, 3].includes(audioFormat) ||
+    ![1, 2, 3, 4, 5, 6, 7, 8].includes(channelCount) ||
+    sampleRateHertz < 8_000 || sampleRateHertz > 192_000 ||
+    ![8, 16, 24, 32, 64].includes(bitsPerSample) ||
+    (audioFormat === 3 && ![32, 64].includes(bitsPerSample)) ||
+    blockAlign !== channelCount * bytesPerSample || dataBytes <= 0 || dataBytes % blockAlign !== 0
+  ) throw unavailable('Generated-music WAV source is outside the bounded PCM/float contract.')
+  const sampleCountPerChannel = dataBytes / blockAlign
+  return {
+    audioFormat: audioFormat as 1 | 3,
+    sampleRateHertz,
+    channelCount,
+    bitsPerSample: bitsPerSample as 8 | 16 | 24 | 32 | 64,
+    sampleCountPerChannel,
+    durationSeconds: rounded(sampleCountPerChannel / sampleRateHertz),
   }
 }
 

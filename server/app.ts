@@ -7,6 +7,7 @@ import { requestIdMiddleware } from './middleware/request-id'
 import { errorHandlerMiddleware } from './middleware/error-handler'
 import { isExplicitLocalInternalTestRuntime } from './middleware/canonical-worker-runtime'
 import { REEDITPRO_USER_AUTHORIZATION_HEADER } from './middleware/browser-api-auth-transport'
+import { createControlledLocalStorytellingProductionAuthorityReader } from './motion-studio/storytelling-production'
 import { createApprovalRoutes } from './routes/approval-routes'
 import { createChatRoutes } from './routes/chat-routes'
 import { createCreditDataRoutes } from './routes/credit-data-routes'
@@ -22,6 +23,8 @@ import { createExactEditPreferenceRoutes } from './routes/exact-edit-preference-
 import { createHealthRoutes } from './routes/health-routes'
 import { createInternalEditStateRoutes } from './routes/internal-edit-state-routes'
 import { createJobRoutes } from './routes/job-routes'
+import { createMotionStudioRoutes } from './routes/motion-studio-routes'
+import { createMotionStudioWorkerRoutes } from './routes/motion-studio-worker-routes'
 import { createProjectEditBriefLocalRoutes } from './routes/project-edit-brief-local-routes'
 import { createProjectEditPlanRoutes } from './routes/project-edit-plan-routes'
 import { createProjectEditSessionRoutes } from './routes/project-edit-session-routes'
@@ -49,6 +52,10 @@ export interface ReeditProApiAppOptions {
   editReferenceStudyChatRuntimePort?: EditReferenceStudyChatRuntimePort
   canonicalMotionStudioStorytellingProductionAuthorityReaderPort?:
     CanonicalMotionStudioStorytellingProductionAuthorityReaderPort
+  canonicalMotionStudioAudioCandidateReviewReaderPort?:
+    RuntimeState['canonicalMotionStudioAudioCandidateReviewReaderPort']
+  canonicalMotionStudioAudioSelectionTransitionPort?:
+    RuntimeState['canonicalMotionStudioAudioSelectionTransitionPort']
   canonicalVisualCalibrationReferenceFrameReaderPort?:
     RuntimeState['canonicalVisualCalibrationReferenceFrameReaderPort']
   canonicalProviderAttemptRuntimeRecordSourcePort?:
@@ -65,6 +72,15 @@ export interface ReeditProApiAppOptions {
 }
 
 export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppOptions = {}): Express {
+  const clients = options.clients ?? {
+    admin: createSupabaseAdminClient(env),
+    public: createSupabasePublicClient(env),
+  }
+  const storytellingProductionReader =
+    options.canonicalMotionStudioStorytellingProductionAuthorityReaderPort ??
+    (isExplicitLocalInternalTestRuntime(env) && clients.admin
+      ? createControlledLocalStorytellingProductionAuthorityReader(clients.admin)
+      : undefined)
   const runtime: RuntimeState = {
     env,
     ...(options.storageAdapter ? { storageAdapter: options.storageAdapter } : {}),
@@ -83,10 +99,22 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
     ...(options.editReferenceStudyChatRuntimePort
       ? { editReferenceStudyChatRuntimePort: options.editReferenceStudyChatRuntimePort }
       : {}),
-    ...(options.canonicalMotionStudioStorytellingProductionAuthorityReaderPort
+    ...(storytellingProductionReader
       ? {
           canonicalMotionStudioStorytellingProductionAuthorityReaderPort:
-            options.canonicalMotionStudioStorytellingProductionAuthorityReaderPort,
+            storytellingProductionReader,
+        }
+      : {}),
+    ...(options.canonicalMotionStudioAudioCandidateReviewReaderPort
+      ? {
+          canonicalMotionStudioAudioCandidateReviewReaderPort:
+            options.canonicalMotionStudioAudioCandidateReviewReaderPort,
+        }
+      : {}),
+    ...(options.canonicalMotionStudioAudioSelectionTransitionPort
+      ? {
+          canonicalMotionStudioAudioSelectionTransitionPort:
+            options.canonicalMotionStudioAudioSelectionTransitionPort,
         }
       : {}),
     ...(options.canonicalVisualCalibrationReferenceFrameReaderPort
@@ -137,10 +165,7 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
             options.editReferenceTargetUnderstandingPackageRuntimePortFactory,
         }
       : {}),
-    clients: options.clients ?? {
-      admin: createSupabaseAdminClient(env),
-      public: createSupabasePublicClient(env),
-    },
+    clients,
   }
 
   const app = express()
@@ -217,6 +242,8 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
   app.use(createEditExecutionRoutes({
     includeInternalTestRoutes: isExplicitLocalInternalTestRuntime(env),
   }))
+  app.use(createMotionStudioRoutes())
+  app.use(createMotionStudioWorkerRoutes())
   app.use(createJobRoutes())
   app.use(createWorkerRoutes())
   app.use(createRenderRoutes())

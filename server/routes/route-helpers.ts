@@ -36,6 +36,10 @@ export function getServiceContext(request: Request): ServiceContext {
       runtimeRequest.runtime.editReferenceStudyChatRuntimePort,
     canonicalMotionStudioStorytellingProductionAuthorityReaderPort:
       runtimeRequest.runtime.canonicalMotionStudioStorytellingProductionAuthorityReaderPort,
+    canonicalMotionStudioAudioCandidateReviewReaderPort:
+      runtimeRequest.runtime.canonicalMotionStudioAudioCandidateReviewReaderPort,
+    canonicalMotionStudioAudioSelectionTransitionPort:
+      runtimeRequest.runtime.canonicalMotionStudioAudioSelectionTransitionPort,
     canonicalVisualCalibrationReferenceFrameReaderPort:
       runtimeRequest.runtime.canonicalVisualCalibrationReferenceFrameReaderPort,
     canonicalProviderAttemptRuntimeRecordSourcePort:

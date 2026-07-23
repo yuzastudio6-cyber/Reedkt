@@ -1,10 +1,94 @@
 import { createHash } from 'node:crypto'
 
 export const OFFLINE_MEDIA_BINARY_PROTOCOL = 'offline-media-binary-execution-v1' as const
+export const OFFLINE_GENERATED_MUSIC_CANDIDATE_NORMALIZATION_PROFILE =
+  'approved_generated_music_candidate_normalization_v1' as const
+export const OFFLINE_SYNCHRONIZED_FOLEY_CANDIDATE_NORMALIZATION_PROFILE =
+  'approved_synchronized_foley_candidate_normalization_v1' as const
 export const OFFLINE_MEDIA_BINARY_OPERATIONS = Object.freeze({
   ffmpeg: 'tool.ffmpeg.execute_approved_media_recipe.v1',
   ffprobe: 'tool.ffprobe.inspect_approved_media.v1',
+  normalizeStorytellingAudioMix: 'tool.ffmpeg.normalize_storytelling_audio_mix.v1',
+  measureStorytellingAudioMix: 'tool.ffmpeg.measure_storytelling_audio_mix.v1',
 } as const)
+
+interface OfflineStorytellingAudioSource {
+  mimeType: 'audio/wav'
+  sourceByteLength: number
+  sourceSha256: string
+  sourceBytesBase64: string
+  expectedSampleCountPerChannel: number
+}
+
+export interface OfflineStorytellingAudioNormalizeExecutionRequest {
+  schemaVersion: typeof OFFLINE_MEDIA_BINARY_PROTOCOL
+  toolId: 'ffmpeg'
+  operationId: typeof OFFLINE_MEDIA_BINARY_OPERATIONS.normalizeStorytellingAudioMix
+  payload: OfflineStorytellingAudioSource & {
+    recipeProfileId: 'motion_studio_storytelling_loudness_normalize_v1'
+    targetIntegratedLufs: -16
+    targetTruePeakDb: -1
+    targetLoudnessRangeLu: 7
+    outputSampleRateHertz: 48_000
+    outputChannelCount: 2
+  }
+}
+
+export interface OfflineStorytellingAudioMeasureExecutionRequest {
+  schemaVersion: typeof OFFLINE_MEDIA_BINARY_PROTOCOL
+  toolId: 'ffmpeg'
+  operationId: typeof OFFLINE_MEDIA_BINARY_OPERATIONS.measureStorytellingAudioMix
+  payload: OfflineStorytellingAudioSource & {
+    measurementProfileId: 'motion_studio_storytelling_ebur128_v1'
+    expectedSampleRateHertz: 48_000
+    expectedChannelCount: 2
+    emitMachineJsonOnly: true
+  }
+}
+
+export interface OfflineGeneratedMusicCandidateNormalizeExecutionRequest {
+  schemaVersion: typeof OFFLINE_MEDIA_BINARY_PROTOCOL
+  toolId: 'ffmpeg'
+  operationId: typeof OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg
+  payload: {
+    recipeProfileId: typeof OFFLINE_GENERATED_MUSIC_CANDIDATE_NORMALIZATION_PROFILE
+    mimeType: 'audio/wav'
+    sourceByteLength: number
+    sourceSha256: string
+    sourceBytesBase64: string
+    outputContainer: 'wav'
+    outputCodec: 'pcm_s16le'
+    outputSampleRateHertz: 48_000
+    outputChannelCount: 2
+    maximumDurationMilliseconds: 30_000
+    metadataPolicy: 'strip_all'
+    overwriteExistingArtifact: false
+  }
+}
+
+export interface OfflineSynchronizedFoleyCandidateNormalizeExecutionRequest {
+  schemaVersion: typeof OFFLINE_MEDIA_BINARY_PROTOCOL
+  toolId: 'ffmpeg'
+  operationId: typeof OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg
+  payload: {
+    recipeProfileId: typeof OFFLINE_SYNCHRONIZED_FOLEY_CANDIDATE_NORMALIZATION_PROFILE
+    mimeType: 'video/mp4'
+    sourceByteLength: number
+    sourceSha256: string
+    sourceBytesBase64: string
+    fps: 24 | 30
+    durationFrames: number
+    exactOutputSampleCountPerChannel: number
+    outputContainer: 'wav'
+    outputCodec: 'pcm_s16le'
+    outputSampleRateHertz: 48_000
+    outputChannelCount: 2
+    metadataPolicy: 'strip_all'
+    silencePaddingAllowed: false
+    trimAtMostOneFrameOfExcessAllowed: true
+    overwriteExistingArtifact: false
+  }
+}
 
 interface OfflineFfmpegCommonPlanningPayload {
   timestampPolicy: 'normalize_from_zero'
@@ -122,6 +206,7 @@ export interface OfflineFfprobePlanningPayload {
     | 'continuous_program_audio_qa_v1'
     | 'private_long_form_master_qa_v1'
     | 'final_export_v1'
+    | 'motion_studio_audio_mix_v1'
   countFrames: boolean
   verifyDurationAndSync: true
   emitMachineJsonOnly: true
@@ -132,7 +217,7 @@ export interface OfflineFfprobeExecutionRequest {
   toolId: 'ffprobe'
   operationId: typeof OFFLINE_MEDIA_BINARY_OPERATIONS.ffprobe
   payload: OfflineFfprobePlanningPayload & {
-    mimeType: 'video/mp4'
+    mimeType: 'video/mp4' | 'audio/wav'
     sourceByteLength: number
     sourceSha256: string
     sourceBytesBase64: string
@@ -391,6 +476,7 @@ export function validateOfflineFfprobePlanningPayload(value: unknown): OfflineFf
       'continuous_program_audio_qa_v1',
       'private_long_form_master_qa_v1',
       'final_export_v1',
+      'motion_studio_audio_mix_v1',
     ].includes(String(payload.inspectionProfileId)) ||
     typeof payload.countFrames !== 'boolean' ||
     payload.verifyDurationAndSync !== true ||
@@ -422,7 +508,7 @@ export function validateOfflineFfprobeExecutionRequest(value: unknown): OfflineF
     emitMachineJsonOnly: payload.emitMachineJsonOnly,
   })
   if (
-    payload.mimeType !== 'video/mp4' ||
+    !['video/mp4', 'audio/wav'].includes(String(payload.mimeType)) ||
     !Number.isSafeInteger(payload.sourceByteLength) ||
     Number(payload.sourceByteLength) < 64 ||
     Number(payload.sourceByteLength) > 16 * 1024 * 1024 ||
@@ -442,10 +528,79 @@ export function validateOfflineFfprobeExecutionRequest(value: unknown): OfflineF
     operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffprobe,
     payload: {
       ...planning,
-      mimeType: 'video/mp4',
+      mimeType: payload.mimeType as 'video/mp4' | 'audio/wav',
       sourceByteLength: bytes.byteLength,
       sourceSha256: payload.sourceSha256,
       sourceBytesBase64: payload.sourceBytesBase64,
+    },
+  }
+}
+
+export function validateOfflineStorytellingAudioNormalizeExecutionRequest(
+  value: unknown,
+): OfflineStorytellingAudioNormalizeExecutionRequest {
+  const request = exactObject(value, ['schemaVersion', 'toolId', 'operationId', 'payload'])
+  if (
+    request.schemaVersion !== OFFLINE_MEDIA_BINARY_PROTOCOL || request.toolId !== 'ffmpeg' ||
+    request.operationId !== OFFLINE_MEDIA_BINARY_OPERATIONS.normalizeStorytellingAudioMix
+  ) throw invalid()
+  const payload = exactObject(request.payload, [
+    'recipeProfileId', 'targetIntegratedLufs', 'targetTruePeakDb', 'targetLoudnessRangeLu',
+    'outputSampleRateHertz', 'outputChannelCount', 'expectedSampleCountPerChannel',
+    'mimeType', 'sourceByteLength', 'sourceSha256', 'sourceBytesBase64',
+  ])
+  if (
+    payload.recipeProfileId !== 'motion_studio_storytelling_loudness_normalize_v1' ||
+    payload.targetIntegratedLufs !== -16 || payload.targetTruePeakDb !== -1 ||
+    payload.targetLoudnessRangeLu !== 7 || payload.outputSampleRateHertz !== 48_000 ||
+    payload.outputChannelCount !== 2
+  ) throw invalid()
+  const source = validateAudioSource(payload)
+  return {
+    schemaVersion: OFFLINE_MEDIA_BINARY_PROTOCOL,
+    toolId: 'ffmpeg',
+    operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.normalizeStorytellingAudioMix,
+    payload: {
+      recipeProfileId: 'motion_studio_storytelling_loudness_normalize_v1',
+      targetIntegratedLufs: -16,
+      targetTruePeakDb: -1,
+      targetLoudnessRangeLu: 7,
+      outputSampleRateHertz: 48_000,
+      outputChannelCount: 2,
+      ...source,
+    },
+  }
+}
+
+export function validateOfflineStorytellingAudioMeasureExecutionRequest(
+  value: unknown,
+): OfflineStorytellingAudioMeasureExecutionRequest {
+  const request = exactObject(value, ['schemaVersion', 'toolId', 'operationId', 'payload'])
+  if (
+    request.schemaVersion !== OFFLINE_MEDIA_BINARY_PROTOCOL || request.toolId !== 'ffmpeg' ||
+    request.operationId !== OFFLINE_MEDIA_BINARY_OPERATIONS.measureStorytellingAudioMix
+  ) throw invalid()
+  const payload = exactObject(request.payload, [
+    'measurementProfileId', 'expectedSampleRateHertz', 'expectedChannelCount',
+    'emitMachineJsonOnly', 'expectedSampleCountPerChannel', 'mimeType',
+    'sourceByteLength', 'sourceSha256', 'sourceBytesBase64',
+  ])
+  if (
+    payload.measurementProfileId !== 'motion_studio_storytelling_ebur128_v1' ||
+    payload.expectedSampleRateHertz !== 48_000 || payload.expectedChannelCount !== 2 ||
+    payload.emitMachineJsonOnly !== true
+  ) throw invalid()
+  const source = validateAudioSource(payload)
+  return {
+    schemaVersion: OFFLINE_MEDIA_BINARY_PROTOCOL,
+    toolId: 'ffmpeg',
+    operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.measureStorytellingAudioMix,
+    payload: {
+      measurementProfileId: 'motion_studio_storytelling_ebur128_v1',
+      expectedSampleRateHertz: 48_000,
+      expectedChannelCount: 2,
+      emitMachineJsonOnly: true,
+      ...source,
     },
   }
 }
@@ -587,6 +742,125 @@ function validateReferenceSource(payload: Record<string, unknown>) {
   }
 }
 
+export function validateOfflineGeneratedMusicCandidateNormalizeExecutionRequest(
+  value: unknown,
+): OfflineGeneratedMusicCandidateNormalizeExecutionRequest {
+  const request = exactObject(value, ['schemaVersion', 'toolId', 'operationId', 'payload'])
+  if (
+    request.schemaVersion !== OFFLINE_MEDIA_BINARY_PROTOCOL || request.toolId !== 'ffmpeg' ||
+    request.operationId !== OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg
+  ) throw invalid()
+  const payload = exactObject(request.payload, [
+    'recipeProfileId', 'mimeType', 'sourceByteLength', 'sourceSha256', 'sourceBytesBase64',
+    'outputContainer', 'outputCodec', 'outputSampleRateHertz', 'outputChannelCount',
+    'maximumDurationMilliseconds', 'metadataPolicy', 'overwriteExistingArtifact',
+  ])
+  if (
+    payload.recipeProfileId !== OFFLINE_GENERATED_MUSIC_CANDIDATE_NORMALIZATION_PROFILE ||
+    payload.mimeType !== 'audio/wav' || payload.outputContainer !== 'wav' ||
+    payload.outputCodec !== 'pcm_s16le' || payload.outputSampleRateHertz !== 48_000 ||
+    payload.outputChannelCount !== 2 || payload.maximumDurationMilliseconds !== 30_000 ||
+    payload.metadataPolicy !== 'strip_all' || payload.overwriteExistingArtifact !== false ||
+    !Number.isSafeInteger(payload.sourceByteLength) || Number(payload.sourceByteLength) < 44 ||
+    Number(payload.sourceByteLength) > 16 * 1024 * 1024 ||
+    typeof payload.sourceSha256 !== 'string' || !/^[a-f0-9]{64}$/.test(payload.sourceSha256) ||
+    typeof payload.sourceBytesBase64 !== 'string' ||
+    payload.sourceBytesBase64.length !== 4 * Math.ceil(Number(payload.sourceByteLength) / 3)
+  ) throw invalid()
+  const bytes = Buffer.from(payload.sourceBytesBase64, 'base64')
+  if (
+    bytes.byteLength !== payload.sourceByteLength || bytes.toString('base64') !== payload.sourceBytesBase64 ||
+    createHash('sha256').update(bytes).digest('hex') !== payload.sourceSha256 ||
+    bytes.subarray(0, 4).toString('ascii') !== 'RIFF' ||
+    bytes.subarray(8, 12).toString('ascii') !== 'WAVE'
+  ) throw invalid()
+  return {
+    schemaVersion: OFFLINE_MEDIA_BINARY_PROTOCOL,
+    toolId: 'ffmpeg',
+    operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
+    payload: {
+      recipeProfileId: OFFLINE_GENERATED_MUSIC_CANDIDATE_NORMALIZATION_PROFILE,
+      mimeType: 'audio/wav',
+      sourceByteLength: bytes.byteLength,
+      sourceSha256: payload.sourceSha256,
+      sourceBytesBase64: payload.sourceBytesBase64,
+      outputContainer: 'wav',
+      outputCodec: 'pcm_s16le',
+      outputSampleRateHertz: 48_000,
+      outputChannelCount: 2,
+      maximumDurationMilliseconds: 30_000,
+      metadataPolicy: 'strip_all',
+      overwriteExistingArtifact: false,
+    },
+  }
+}
+
+export function validateOfflineSynchronizedFoleyCandidateNormalizeExecutionRequest(
+  value: unknown,
+): OfflineSynchronizedFoleyCandidateNormalizeExecutionRequest {
+  const request = exactObject(value, ['schemaVersion', 'toolId', 'operationId', 'payload'])
+  if (
+    request.schemaVersion !== OFFLINE_MEDIA_BINARY_PROTOCOL || request.toolId !== 'ffmpeg' ||
+    request.operationId !== OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg
+  ) throw invalid()
+  const payload = exactObject(request.payload, [
+    'recipeProfileId', 'mimeType', 'sourceByteLength', 'sourceSha256', 'sourceBytesBase64',
+    'fps', 'durationFrames', 'exactOutputSampleCountPerChannel', 'outputContainer',
+    'outputCodec', 'outputSampleRateHertz', 'outputChannelCount', 'metadataPolicy',
+    'silencePaddingAllowed', 'trimAtMostOneFrameOfExcessAllowed', 'overwriteExistingArtifact',
+  ])
+  const fps = Number(payload.fps)
+  const durationFrames = Number(payload.durationFrames)
+  const samplesPerFrame = 48_000 / fps
+  const exactOutputSampleCountPerChannel = durationFrames * samplesPerFrame
+  if (
+    payload.recipeProfileId !== OFFLINE_SYNCHRONIZED_FOLEY_CANDIDATE_NORMALIZATION_PROFILE ||
+    payload.mimeType !== 'video/mp4' || ![24, 30].includes(fps) ||
+    !Number.isSafeInteger(durationFrames) || durationFrames < 1 || durationFrames > fps * 30 ||
+    !Number.isSafeInteger(samplesPerFrame) ||
+    !Number.isSafeInteger(payload.exactOutputSampleCountPerChannel) ||
+    Number(payload.exactOutputSampleCountPerChannel) !== exactOutputSampleCountPerChannel ||
+    payload.outputContainer !== 'wav' || payload.outputCodec !== 'pcm_s16le' ||
+    payload.outputSampleRateHertz !== 48_000 || payload.outputChannelCount !== 2 ||
+    payload.metadataPolicy !== 'strip_all' || payload.silencePaddingAllowed !== false ||
+    payload.trimAtMostOneFrameOfExcessAllowed !== true || payload.overwriteExistingArtifact !== false ||
+    !Number.isSafeInteger(payload.sourceByteLength) || Number(payload.sourceByteLength) < 64 ||
+    Number(payload.sourceByteLength) > 67_108_864 ||
+    typeof payload.sourceSha256 !== 'string' || !/^[a-f0-9]{64}$/.test(payload.sourceSha256) ||
+    typeof payload.sourceBytesBase64 !== 'string' ||
+    payload.sourceBytesBase64.length !== 4 * Math.ceil(Number(payload.sourceByteLength) / 3)
+  ) throw invalid()
+  const bytes = Buffer.from(payload.sourceBytesBase64, 'base64')
+  if (
+    bytes.byteLength !== payload.sourceByteLength || bytes.toString('base64') !== payload.sourceBytesBase64 ||
+    createHash('sha256').update(bytes).digest('hex') !== payload.sourceSha256 ||
+    bytes.subarray(4, 8).toString('ascii') !== 'ftyp'
+  ) throw invalid()
+  return {
+    schemaVersion: OFFLINE_MEDIA_BINARY_PROTOCOL,
+    toolId: 'ffmpeg',
+    operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
+    payload: {
+      recipeProfileId: OFFLINE_SYNCHRONIZED_FOLEY_CANDIDATE_NORMALIZATION_PROFILE,
+      mimeType: 'video/mp4',
+      sourceByteLength: bytes.byteLength,
+      sourceSha256: payload.sourceSha256,
+      sourceBytesBase64: payload.sourceBytesBase64,
+      fps: fps as 24 | 30,
+      durationFrames,
+      exactOutputSampleCountPerChannel,
+      outputContainer: 'wav',
+      outputCodec: 'pcm_s16le',
+      outputSampleRateHertz: 48_000,
+      outputChannelCount: 2,
+      metadataPolicy: 'strip_all',
+      silencePaddingAllowed: false,
+      trimAtMostOneFrameOfExcessAllowed: true,
+      overwriteExistingArtifact: false,
+    },
+  }
+}
+
 function validateSource(payload: Record<string, unknown>) {
   if (
     payload.mimeType !== 'video/mp4' || !Number.isSafeInteger(payload.sourceByteLength) ||
@@ -604,6 +878,32 @@ function validateSource(payload: Record<string, unknown>) {
     sourceByteLength: bytes.byteLength,
     sourceSha256: payload.sourceSha256,
     sourceBytesBase64: payload.sourceBytesBase64,
+  }
+}
+
+function validateAudioSource(payload: Record<string, unknown>): OfflineStorytellingAudioSource {
+  if (
+    payload.mimeType !== 'audio/wav' || !Number.isSafeInteger(payload.sourceByteLength) ||
+    Number(payload.sourceByteLength) < 44 || Number(payload.sourceByteLength) > 8 * 1024 * 1024 ||
+    typeof payload.sourceSha256 !== 'string' || !/^[a-f0-9]{64}$/.test(payload.sourceSha256) ||
+    typeof payload.sourceBytesBase64 !== 'string' ||
+    !Number.isSafeInteger(payload.expectedSampleCountPerChannel) ||
+    Number(payload.expectedSampleCountPerChannel) < 48_000 ||
+    Number(payload.expectedSampleCountPerChannel) > 48_000 * 120
+  ) throw invalid()
+  const bytes = Buffer.from(payload.sourceBytesBase64, 'base64')
+  if (
+    bytes.byteLength !== payload.sourceByteLength || bytes.toString('base64') !== payload.sourceBytesBase64 ||
+    createHash('sha256').update(bytes).digest('hex') !== payload.sourceSha256 ||
+    bytes.subarray(0, 4).toString('ascii') !== 'RIFF' ||
+    bytes.subarray(8, 12).toString('ascii') !== 'WAVE'
+  ) throw invalid()
+  return {
+    mimeType: 'audio/wav',
+    sourceByteLength: bytes.byteLength,
+    sourceSha256: payload.sourceSha256,
+    sourceBytesBase64: payload.sourceBytesBase64,
+    expectedSampleCountPerChannel: Number(payload.expectedSampleCountPerChannel),
   }
 }
 

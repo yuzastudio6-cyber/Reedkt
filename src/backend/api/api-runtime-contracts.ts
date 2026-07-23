@@ -28,6 +28,7 @@ export type ApiDomain =
   | 'auth'
   | 'projects'
   | 'media'
+  | 'motion_studio'
   | 'planning'
   | 'credits'
   | 'jobs'

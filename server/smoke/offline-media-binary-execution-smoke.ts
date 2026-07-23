@@ -693,7 +693,15 @@ assert.equal(
   true,
 )
 assert.equal(authority.readiness.finalExportReady, false)
-assert.equal(authority.supportedOperations.length, 2)
+assert.deepEqual(
+  authority.supportedOperations.map((operation) => operation.operationId),
+  [
+    OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
+    OFFLINE_MEDIA_BINARY_OPERATIONS.ffprobe,
+    OFFLINE_MEDIA_BINARY_OPERATIONS.normalizeStorytellingAudioMix,
+    OFFLINE_MEDIA_BINARY_OPERATIONS.measureStorytellingAudioMix,
+  ],
+)
 assert.equal(
   authority.image.imageTag,
   'reeditpro/ffmpeg-lgpl-internal:8.1.2-object-chunk-v8-local',

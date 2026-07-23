@@ -71,6 +71,8 @@ export const privateSourceMediaMetadataSchema = z.object({
   height: z.number().int().positive().max(32_768).optional(),
   videoCodec: z.string().trim().min(1).max(120).optional(),
   audioCodec: z.string().trim().min(1).max(120).optional(),
+  audioSampleRateHertz: z.number().int().positive().max(384_000).optional(),
+  audioChannelCount: z.number().int().positive().max(8).optional(),
   pixelFormat: z.string().trim().min(1).max(120).optional(),
   colorSpace: z.string().trim().min(1).max(120).optional(),
   colorTransfer: z.string().trim().min(1).max(120).optional(),

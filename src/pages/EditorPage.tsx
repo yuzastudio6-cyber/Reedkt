@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { useParams } from 'react-router-dom'
+import { Navigate, useParams } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
 import { Button } from '../components/Button'
 import { ChatNativeEditor } from '../components/editor/ChatNativeEditor'
@@ -10,10 +10,12 @@ import {
 } from '../lib/internal-edit-state-backend-sync'
 import {
   getLocalInternalEditHandoff,
+  resolveLocalProductWorkflow,
   saveLocalInternalProjectHandoff,
   type LocalInternalProjectHandoff,
 } from '../lib/local-project-handoff'
 import type { ProjectPersistenceScope } from '../lib/project-persistence-scope'
+import { motionStudioStorytellingWorkspaceRoute } from '../lib/motion-studio/contracts/storytelling-workflow'
 
 type NamedEditResolution =
   | { status: 'loading' }
@@ -100,6 +102,11 @@ function NamedEditWorkspaceBoundary({
   }, [attempt, editSessionId, localHandoff, projectId, scope])
 
   if (resolution.status === 'ready') {
+    const productWorkflow = resolveLocalProductWorkflow(resolution.handoff)
+    if (productWorkflow === 'motion_studio.storytelling') {
+      return <Navigate replace to={motionStudioStorytellingWorkspaceRoute(projectId, editSessionId)} />
+    }
+
     const editorKey = JSON.stringify([
       scope.authMode,
       scope.userId,
@@ -154,8 +161,13 @@ function NamedEditWorkspaceBoundary({
               Retry
             </Button>
           )}
-          <Button to={resolution.status === 'not_found' ? `/projects/${encodeURIComponent(projectId)}` : '/projects'} variant="secondary">
-            {resolution.status === 'not_found' ? 'Back to project' : 'Back to projects'}
+          <Button
+            to={resolution.status === 'not_found'
+              ? `/projects/${encodeURIComponent(projectId)}`
+              : '/edit-videos'}
+            variant="secondary"
+          >
+            {resolution.status === 'not_found' ? 'Back to project' : 'Back to video edits'}
           </Button>
         </div>
       </section>
@@ -207,7 +219,13 @@ function namedEditFailureCopy(status: Exclude<NamedEditResolution['status'], 'lo
   }
 }
 
-function EditorWorkspace({ editorKey, scope }: { editorKey?: string; scope: ProjectPersistenceScope }) {
+function EditorWorkspace({
+  editorKey,
+  scope,
+}: {
+  editorKey?: string
+  scope: ProjectPersistenceScope
+}) {
   return (
     <EditorShell>
       <ChatNativeEditor key={editorKey} projectPersistenceScope={scope} />
@@ -219,10 +237,10 @@ function EditorShell({ children }: { children: ReactNode }) {
   return (
     <AppShell
       chrome="editor"
-      description="Send clips, explain the edit, approve credits, and watch ReeditPro work through chat."
-      eyebrow="AI Editor workspace"
+      description="Upload source video, direct the edit in Chat, approve its plan and estimate, and review the private result."
+      eyebrow="Video editing"
       primaryAction={false}
-      title="Chat-native editor"
+      title="Video Edit Chat"
     >
       {children}
     </AppShell>

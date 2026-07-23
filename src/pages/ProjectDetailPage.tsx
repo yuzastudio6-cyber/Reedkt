@@ -1,6 +1,7 @@
 import {
   ArrowLeft,
   ArrowRight,
+  BookOpenText,
   Clock3,
   FolderKanban,
   Plus,
@@ -32,6 +33,7 @@ import { useProjectPersistenceScope } from '../hooks/useProjectPersistenceScope'
 import { recoverLocalInternalProjectEditHandoffsFromBackend } from '../lib/internal-edit-state-backend-sync'
 import {
   createLocalInternalProjectHandoff,
+  isNormalVideoEditHandoff,
   listLocalInternalProjectEditHandoffs,
   privateReviewMatchesCurrentSourceSet,
   saveLocalInternalProjectHandoff,
@@ -43,6 +45,10 @@ import {
   type ProjectBackendReadResult,
 } from '../lib/project-backend-sync'
 import { launchEditingCategories } from '../lib/product-taxonomy'
+import {
+  createStorytellingLibraryItems,
+  type StorytellingLibraryItem,
+} from '../lib/motion-studio/storytelling/library-model'
 
 type ProjectEditTone = 'active' | 'attention' | 'success'
 
@@ -152,6 +158,8 @@ function ProjectDetailContent({ projectId }: ProjectDetailContentProps) {
   const [preferenceLoadPending, setPreferenceLoadPending] = useState(preferenceRepository.requiresAsyncLoad)
   const preferenceDefaults = preferenceResult.preferences
   const preferenceSummary = useMemo(() => summarizeLocalEditPreferences(preferenceDefaults), [preferenceDefaults])
+  const normalEdits = useMemo(() => edits.filter(isNormalVideoEditHandoff), [edits])
+  const storytellingItems = useMemo(() => createStorytellingLibraryItems(edits), [edits])
   const [modalOpen, setModalOpen] = useState(false)
   const [editName, setEditName] = useState('')
   const [editNameError, setEditNameError] = useState<string | null>(null)
@@ -295,6 +303,7 @@ function ProjectDetailContent({ projectId }: ProjectDetailContentProps) {
     const handoff = createLocalInternalProjectHandoff({
       category: project.category,
       editName: normalizedEditName,
+      productWorkflow: 'video_edit',
       projectId: project.id,
       projectName: project.name,
       workspaceId: projectPersistenceScope.workspaceId,
@@ -362,7 +371,8 @@ function ProjectDetailContent({ projectId }: ProjectDetailContentProps) {
           </Button>
           <div className="project-home-context-meta">
             <span>{category?.label ?? 'Project'}</span>
-            <span>{edits.length} edit{edits.length === 1 ? '' : 's'}</span>
+            <span>{normalEdits.length} video edit{normalEdits.length === 1 ? '' : 's'}</span>
+            <span>{storytellingItems.length} Motion stor{storytellingItems.length === 1 ? 'y' : 'ies'}</span>
           </div>
         </div>
 
@@ -376,22 +386,22 @@ function ProjectDetailContent({ projectId }: ProjectDetailContentProps) {
           </div>
         </section>
 
-        <section aria-labelledby="project-edits-heading" className="project-home-edits">
+        <section aria-labelledby="project-edits-heading" className="project-home-edits" data-testid="project-video-edits">
           <div className="project-home-section-heading">
             <div>
-              <span className="section-eyebrow">Project work</span>
-              <h2 id="project-edits-heading">Edits</h2>
+              <span className="section-eyebrow">Normal editing workflow</span>
+              <h2 id="project-edits-heading">Video edits</h2>
             </div>
-            {edits.length > 0 && (
+            {normalEdits.length > 0 && (
               <Button disabled={preferenceLoadPending} icon={Plus} onClick={openNewEditModal} variant="primary">
-                {preferenceLoadPending ? 'Loading defaults…' : 'New edit'}
+                {preferenceLoadPending ? 'Loading defaults…' : 'New video edit'}
               </Button>
             )}
           </div>
 
-          {edits.length > 0 ? (
+          {normalEdits.length > 0 ? (
             <div className="project-edit-grid" data-testid="project-edit-list">
-              {edits.map((edit, index) => (
+              {normalEdits.map((edit, index) => (
                 <ProjectEditCard edit={edit} featured={index === 0} key={edit.editSessionId} />
               ))}
             </div>
@@ -399,11 +409,42 @@ function ProjectDetailContent({ projectId }: ProjectDetailContentProps) {
             <div className="project-home-empty">
               <span aria-hidden="true"><FolderKanban size={27} /></span>
               <div>
-                <h3>No edits yet.</h3>
-                <p>Name the first edit, then add source footage inside its focused chat workspace.</p>
+                <h3>No video edits yet.</h3>
+                <p>Name the first video edit, then add source footage inside its normal Edit Chat.</p>
               </div>
               <Button disabled={preferenceLoadPending} icon={Plus} onClick={openNewEditModal} variant="primary">
-                {preferenceLoadPending ? 'Loading defaults…' : 'New edit'}
+                {preferenceLoadPending ? 'Loading defaults…' : 'New video edit'}
+              </Button>
+            </div>
+          )}
+        </section>
+
+        <section aria-labelledby="project-motion-heading" className="project-home-edits" data-testid="project-motion-stories">
+          <div className="project-home-section-heading">
+            <div>
+              <span className="section-eyebrow">Separate Motion Studio workflow</span>
+              <h2 id="project-motion-heading">Storytelling stories</h2>
+            </div>
+            <Button icon={BookOpenText} to="/motion-studio/storytelling" variant="secondary">
+              Storytelling library
+            </Button>
+          </div>
+
+          {storytellingItems.length > 0 ? (
+            <div className="project-edit-grid" data-testid="project-storytelling-list">
+              {storytellingItems.map((item) => (
+                <ProjectStorytellingCard item={item} key={item.editSessionId} />
+              ))}
+            </div>
+          ) : (
+            <div className="project-home-empty project-home-empty-secondary">
+              <span aria-hidden="true"><BookOpenText size={27} /></span>
+              <div>
+                <h3>No Motion Studio stories in this project.</h3>
+                <p>Create and manage idea-first stories in the separate Storytelling Director workflow.</p>
+              </div>
+              <Button to="/motion-studio/storytelling" variant="secondary">
+                Open Motion Studio
               </Button>
             </div>
           )}
@@ -456,7 +497,9 @@ function ProjectDetailContent({ projectId }: ProjectDetailContentProps) {
               <Button icon={ArrowRight} type="submit" variant="primary">
                 Create edit
               </Button>
-              <span>Uses your saved edit preferences, then opens upload.</span>
+              <span>
+                Uses your saved edit preferences, then opens normal Edit Chat for source upload.
+              </span>
             </div>
           </form>
         </div>
@@ -520,6 +563,37 @@ function getEditPresentation(edit: LocalInternalProjectHandoff): ProjectEditPres
   }
 
   return stagePresentation[edit.stage]
+}
+
+function ProjectStorytellingCard({ item }: { item: StorytellingLibraryItem }) {
+  return (
+    <article className="project-edit-card">
+      <div className="project-edit-visual" data-category="storytelling">
+        <span aria-hidden="true"><BookOpenText size={21} /></span>
+        <small>{item.sourceFileCount > 0
+          ? `${item.sourceFileCount} source ${item.sourceFileCount === 1 ? 'file' : 'files'}`
+          : 'Idea-first or source-assisted'}</small>
+      </div>
+      <div className="project-edit-copy">
+        <ProjectEditStatus label={item.statusLabel} tone={storytellingTone(item.tone)} />
+        <h3>{item.title}</h3>
+        <p>{item.description}</p>
+        <div className="project-edit-metadata">
+          <span><Clock3 aria-hidden="true" size={14} />{formatRelativeUpdate(item.updatedAt)}</span>
+          {item.preferenceDefaultsApplied && <span>Preferences applied</span>}
+        </div>
+        <Button icon={ArrowRight} to={item.editorPath} variant="secondary">
+          Open Director Chat
+        </Button>
+      </div>
+    </article>
+  )
+}
+
+function storytellingTone(tone: StorytellingLibraryItem['tone']): ProjectEditTone {
+  if (tone === 'verified') return 'success'
+  if (tone === 'attention') return 'attention'
+  return 'active'
 }
 
 function formatRelativeUpdate(value: string): string {

@@ -559,26 +559,75 @@ function adapters(input: RemotionAdapterInput): { producedArtifact: ServerInject
 function normalizeProbe(document: Readonly<Record<string, unknown>>, request: ReturnType<typeof validateOfflineRemotionRenderRequest>): RemotionQa {
   const streams = Array.isArray(document.streams) ? document.streams as Array<Record<string, unknown>> : []
   const video = streams.find((stream) => stream.codecType === 'video')
+  const audioStreams = streams.filter((stream) => stream.codecType === 'audio')
+  const audio = audioStreams[0]
+  const expectedDurationSeconds = Number((request.payload.durationFrames / request.payload.fps).toFixed(6))
+  const preparedScriptAnimatic =
+    'compositionProfileId' in request.payload &&
+    request.payload.compositionProfileId === 'motion_studio_prepared_script_animatic_v1'
   const report = {
     codecName: video?.codecName, pixelFormat: video?.pixelFormat, colorSpace: video?.colorSpace,
     colorTransfer: video?.colorTransfer, colorPrimaries: video?.colorPrimaries,
     colorRange: video?.colorRange,
     width: video?.width, height: video?.height, fps: video?.fps,
-    frameCount: video?.readFrameCount, durationSeconds: document.durationSeconds,
+    frameCount: video?.readFrameCount,
+    videoDurationSeconds: video?.durationSeconds,
+    formatDurationSeconds: document.durationSeconds,
+    audioStreamCount: audioStreams.length,
+    audioCodecName: audio?.codecName,
+    audioStartTimeSeconds: audio?.startTimeSeconds,
+    audioDurationSeconds: audio?.durationSeconds,
+    audioSampleRate: audio?.sampleRate,
+    audioChannels: audio?.channels,
+    audioChannelLayout: audio?.channelLayout,
   }
+  const durationPolicyMatches = preparedScriptAnimatic
+    ? preparedScriptAnimaticDurationPolicyMatches(report, expectedDurationSeconds)
+    : report.formatDurationSeconds === expectedDurationSeconds
   if (
     report.codecName !== 'h264' || report.pixelFormat !== 'yuv420p' || report.colorSpace !== 'bt709' ||
     report.colorTransfer !== 'bt709' || report.colorPrimaries !== 'bt709' || report.colorRange !== 'tv' ||
     report.width !== request.payload.width || report.height !== request.payload.height ||
     report.fps !== request.payload.fps || report.frameCount !== request.payload.durationFrames ||
-    report.durationSeconds !== Number((request.payload.durationFrames / request.payload.fps).toFixed(6))
+    report.videoDurationSeconds !== expectedDurationSeconds || !durationPolicyMatches
   ) throw denied('Independent FFprobe QA does not match approved Remotion frame and codec policy.')
   return {
     codecName: 'h264', pixelFormat: 'yuv420p', colorSpace: 'bt709',
     width: Number(report.width), height: Number(report.height), fps: Number(report.fps),
-    frameCount: Number(report.frameCount), durationSeconds: Number(report.durationSeconds),
+    frameCount: Number(report.frameCount), durationSeconds: expectedDurationSeconds,
     reportSha256: sha256AuthorityValue(report),
   }
+}
+
+function preparedScriptAnimaticDurationPolicyMatches(
+  report: {
+    formatDurationSeconds: unknown
+    audioStreamCount: number
+    audioCodecName: unknown
+    audioStartTimeSeconds: unknown
+    audioDurationSeconds: unknown
+    audioSampleRate: unknown
+    audioChannels: unknown
+    audioChannelLayout: unknown
+  },
+  expectedDurationSeconds: number,
+): boolean {
+  const maximumAacPacketPaddingSeconds = 1_024 / 48_000
+  const formatDurationSeconds = Number(report.formatDurationSeconds)
+  const audioDurationSeconds = Number(report.audioDurationSeconds)
+  return (
+    report.audioStreamCount === 1 &&
+    report.audioCodecName === 'aac' &&
+    report.audioStartTimeSeconds === 0 &&
+    report.audioSampleRate === 48_000 &&
+    report.audioChannels === 2 &&
+    report.audioChannelLayout === 'stereo' &&
+    Number.isFinite(formatDurationSeconds) &&
+    Number.isFinite(audioDurationSeconds) &&
+    formatDurationSeconds >= expectedDurationSeconds &&
+    formatDurationSeconds <= expectedDurationSeconds + maximumAacPacketPaddingSeconds &&
+    audioDurationSeconds === formatDurationSeconds
+  )
 }
 function assertRemotionResult(result: OfflineRemotionRenderResult, request: ReturnType<typeof validateOfflineRemotionRenderRequest>, runtimeAuthorityHash: string): void {
   if (

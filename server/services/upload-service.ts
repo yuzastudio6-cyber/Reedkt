@@ -199,6 +199,8 @@ interface SourceMediaMetadataView {
   height?: number
   videoCodec?: string
   audioCodec?: string
+  audioSampleRateHertz?: number
+  audioChannelCount?: number
   pixelFormat?: string
   colorSpace?: string
   colorTransfer?: string
@@ -2178,6 +2180,8 @@ async function probeSourceMediaMetadata(
       height: positiveIntegerOrUndefined(probe.height),
       videoCodec: probe.videoCodec,
       audioCodec: probe.audioCodec,
+      audioSampleRateHertz: positiveIntegerOrUndefined(probe.audioSampleRateHertz),
+      audioChannelCount: positiveIntegerOrUndefined(probe.audioChannelCount),
       pixelFormat: probe.pixelFormat,
       colorSpace: probe.colorSpace,
       colorTransfer: probe.colorTransfer,
@@ -2215,6 +2219,8 @@ function sourceMediaMetadataFromUnknown(value: unknown): SourceMediaMetadataView
     height: maybeNumber(record.height),
     videoCodec: maybeString(record.videoCodec),
     audioCodec: maybeString(record.audioCodec),
+    audioSampleRateHertz: positiveIntegerOrUndefined(maybeNumber(record.audioSampleRateHertz)),
+    audioChannelCount: positiveIntegerOrUndefined(maybeNumber(record.audioChannelCount)),
     pixelFormat: maybeString(record.pixelFormat),
     colorSpace: maybeString(record.colorSpace),
     colorTransfer: maybeString(record.colorTransfer),

@@ -63,7 +63,7 @@ test.describe('editor mocked browser flow', () => {
     await setViewport(page, 1440)
   })
 
-  test('shows separate projects, edit videos, and preferences navigation', async ({ page }) => {
+  test('shows separate projects, edit videos, Motion Studio, and preferences navigation', async ({ page }) => {
     await gotoRoute(page, '/dashboard')
 
     await expect(page.getByTestId('testing-home-hero')).toBeVisible()
@@ -74,6 +74,7 @@ test.describe('editor mocked browser flow', () => {
     await expect(sidebar.getByRole('link', { name: /^Home$/ })).toHaveAttribute('href', '/dashboard')
     await expect(sidebar.getByRole('link', { name: /^Projects$/ })).toHaveAttribute('href', '/projects')
     await expect(sidebar.getByRole('link', { name: /^Edit Videos$/ })).toHaveAttribute('href', '/edit-videos')
+    await expect(sidebar.getByRole('link', { name: /^Motion Studio$/ })).toHaveAttribute('href', '/motion-studio')
     await expect(sidebar.getByRole('link', { name: /^Edit Preferences$/ })).toHaveAttribute('href', '/preferences')
 
     await expect(page.getByText(/Export queue/i)).toHaveCount(0)
@@ -150,7 +151,7 @@ test.describe('editor mocked browser flow', () => {
     await clickWhenReady(page.getByRole('button', { name: /^Create project$/i }).first())
     await expect(page).toHaveURL(/\/projects\/[^/]+$/)
 
-    await clickWhenReady(page.getByRole('button', { name: /^New edit$/i }).first())
+    await clickWhenReady(page.getByRole('button', { name: /^New video edit$/i }).first())
     await expect(page.getByRole('dialog')).toBeVisible()
     await page.getByLabel(/Edit name/i).fill('   ')
     await clickWhenReady(page.getByRole('button', { name: /^Create edit$/i }).first())
@@ -177,7 +178,7 @@ test.describe('editor mocked browser flow', () => {
     const projectName = `E2E upload retry ${Date.now()}`
     await page.getByLabel(/Project name/i).fill(projectName)
     await clickWhenReady(page.getByRole('button', { name: /^Create project$/i }).first())
-    await clickWhenReady(page.getByRole('button', { name: /^New edit$/i }).first())
+    await clickWhenReady(page.getByRole('button', { name: /^New video edit$/i }).first())
     await page.getByLabel(/Edit name/i).fill('Upload retry edit')
     await clickWhenReady(page.getByRole('button', { name: /^Create edit$/i }).first())
 
@@ -392,7 +393,7 @@ test.describe('editor mocked browser flow', () => {
     await clickWhenReady(page.getByRole('button', { name: /^Create project$/i }).first())
     await expect(page).toHaveURL(/\/projects\/[^/]+$/)
 
-    await clickWhenReady(page.getByRole('button', { name: /^New edit$/i }).first())
+    await clickWhenReady(page.getByRole('button', { name: /^New video edit$/i }).first())
     await page.getByLabel(/Edit name/i).fill(editName)
     await clickWhenReady(page.getByRole('button', { name: /^Create edit$/i }).first())
 
@@ -443,7 +444,7 @@ test.describe('editor mocked browser flow', () => {
     await clickWhenReady(page.getByRole('button', { name: /^Create project$/i }).first())
     await expect(page).toHaveURL(/\/projects\/[^/]+$/)
 
-    await clickWhenReady(page.getByRole('button', { name: /^New edit$/i }).first())
+    await clickWhenReady(page.getByRole('button', { name: /^New video edit$/i }).first())
     await page.getByLabel(/Edit name/i).fill(editName)
     await clickWhenReady(page.getByRole('button', { name: /^Create edit$/i }).first())
 
@@ -551,8 +552,8 @@ test.describe('editor mocked browser flow', () => {
 
     await expect(page).toHaveURL(/\/projects\/[^/]+$/)
     await expect(page.getByRole('heading', { level: 1, name: projectName })).toBeVisible()
-    await expect(page.getByText(/No edits yet/i)).toBeVisible()
-    await clickWhenReady(page.getByRole('button', { name: /^New edit$/i }).first())
+    await expect(page.getByText(/No video edits yet/i)).toBeVisible()
+    await clickWhenReady(page.getByRole('button', { name: /^New video edit$/i }).first())
     await expect(page.getByRole('dialog')).toBeVisible()
     await page.getByLabel(/Edit name/i).fill(editName)
     await clickWhenReady(page.getByRole('button', { name: /^Create edit$/i }).first())

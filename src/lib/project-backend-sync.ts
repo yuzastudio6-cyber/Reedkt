@@ -18,6 +18,11 @@ type BackendProjectListResponse = {
   projects?: Array<Record<string, unknown>>
 }
 
+export type BackendProjectCreateResult =
+  | { status: 'created'; projectId: string }
+  | { status: 'not_configured' }
+  | { status: 'failed'; errorMessage: string }
+
 type ProjectBackendReadFailureStatus =
   | 'not_found'
   | 'access_denied'
@@ -69,23 +74,7 @@ export async function createBackendProjectForInternalTesting(input: {
   const createIntentId = normalizeProjectCreateIntentId(input.createIntentId)
   if (!createIntentId) return undefined
 
-  const response = await callReeditProApi<
-    { workspaceId: string; name: string; description: string },
-    BackendProjectResponse
-  >(
-    'projects.create',
-    {
-      workspaceId: input.scope.workspaceId,
-      name: input.projectName,
-      description: createInternalTestingProjectDescription(input.category),
-    },
-    {
-      context: {
-        workspaceId: input.scope.workspaceId,
-      },
-      idempotencyKey: `project-create:${input.scope.workspaceId}:${createIntentId}`,
-    },
-  )
+  const response = await requestBackendProjectCreation(input, createIntentId)
 
   if (apiResponseInvalidatesProjectPersistenceScope(response)) {
     invalidateProjectPersistenceScope(input.scope)
@@ -102,6 +91,85 @@ export async function createBackendProjectForInternalTesting(input: {
     createdByUserId === expectedProjectPersistenceBackendUserId(input.scope)
       ? { id: projectId }
       : undefined
+}
+
+/**
+ * Exact, discriminated create/readback result for callers that must never
+ * convert an unknown backend outcome into a second browser-local project.
+ */
+export async function createBackendProjectForInternalTestingResult(input: {
+  category: EditingCategory
+  createIntentId: string
+  projectName: string
+  scope: ProjectPersistenceScope
+}): Promise<BackendProjectCreateResult> {
+  const createIntentId = normalizeProjectCreateIntentId(input.createIntentId)
+  if (!createIntentId) {
+    return { status: 'failed', errorMessage: 'The project create identity is invalid.' }
+  }
+
+  const status = getFrontendApiClientStatus()
+  if (status.mode === 'mock') return { status: 'not_configured' }
+  if (status.mockOnly || !status.apiBaseUrl) {
+    return {
+      status: 'failed',
+      errorMessage: 'Project recovery is misconfigured. No local duplicate was created.',
+    }
+  }
+
+  const response = await requestBackendProjectCreation(input, createIntentId)
+  if (apiResponseInvalidatesProjectPersistenceScope(response)) {
+    invalidateProjectPersistenceScope(input.scope)
+  }
+
+  const projectId = stringField(response.data?.project, 'id')
+  const projectName = stringField(response.data?.project, 'name')
+  const workspaceId = stringField(response.data?.project, 'workspaceId') ??
+    stringField(response.data?.project, 'workspace_id')
+  const createdByUserId = stringField(response.data?.project, 'createdByUserId') ??
+    stringField(response.data?.project, 'owner_id') ??
+    stringField(response.data?.project, 'created_by')
+  if (
+    response.ok &&
+    projectId &&
+    projectName === input.projectName.trim() &&
+    workspaceId === input.scope.workspaceId &&
+    createdByUserId === expectedProjectPersistenceBackendUserId(input.scope)
+  ) {
+    return { status: 'created', projectId }
+  }
+
+  return {
+    status: 'failed',
+    errorMessage: 'Project creation could not be confirmed. Retry to recover the same project.',
+  }
+}
+
+async function requestBackendProjectCreation(
+  input: {
+    category: EditingCategory
+    projectName: string
+    scope: ProjectPersistenceScope
+  },
+  createIntentId: string,
+) {
+  return callReeditProApi<
+    { workspaceId: string; name: string; description: string },
+    BackendProjectResponse
+  >(
+    'projects.create',
+    {
+      workspaceId: input.scope.workspaceId,
+      name: input.projectName,
+      description: createInternalTestingProjectDescription(input.category),
+    },
+    {
+      context: {
+        workspaceId: input.scope.workspaceId,
+      },
+      idempotencyKey: `project-create:${input.scope.workspaceId}:${createIntentId}`,
+    },
+  )
 }
 
 export async function fetchLocalProjectRecordFromBackend(

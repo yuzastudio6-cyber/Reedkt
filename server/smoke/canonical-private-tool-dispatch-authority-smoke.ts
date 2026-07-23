@@ -952,6 +952,32 @@ assert.ok(motionStudioLayeredAsset)
 assert.deepEqual(motionStudioLayeredJob.dependencyJobIds, [motionStudioLayeredDependencyJob.id])
 assert.deepEqual(motionStudioLayeredProofJob.dependencyJobIds, [motionStudioLayeredJob.id])
 
+const motionStudioAnimaticWorkItem = aggregateBeforeDispatch.approvedWorkItems.find((candidate) =>
+  candidate.snapshotId === snapshot.snapshotId && candidate.workItemKey === 'motion-studio-animatic-preview-root')
+const motionStudioAnimaticProofWorkItem = aggregateBeforeDispatch.approvedWorkItems.find((candidate) =>
+  candidate.snapshotId === snapshot.snapshotId && candidate.workItemKey === 'motion-studio-animatic-preview-proof')
+const motionStudioAnimaticDependencyWorkItem = aggregateBeforeDispatch.approvedWorkItems.find((candidate) =>
+  candidate.snapshotId === snapshot.snapshotId && candidate.workItemKey === 'voice-delivery-primary')
+assert.ok(motionStudioAnimaticWorkItem)
+assert.ok(motionStudioAnimaticProofWorkItem)
+assert.ok(motionStudioAnimaticDependencyWorkItem)
+const motionStudioAnimaticJob = aggregateBeforeDispatch.jobs.find((candidate) =>
+  candidate.snapshotId === snapshot.snapshotId && candidate.approvedWorkItemId === motionStudioAnimaticWorkItem.id)
+const motionStudioAnimaticProofJob = aggregateBeforeDispatch.jobs.find((candidate) =>
+  candidate.snapshotId === snapshot.snapshotId && candidate.approvedWorkItemId === motionStudioAnimaticProofWorkItem.id)
+const motionStudioAnimaticDependencyJob = aggregateBeforeDispatch.jobs.find((candidate) =>
+  candidate.snapshotId === snapshot.snapshotId && candidate.approvedWorkItemId === motionStudioAnimaticDependencyWorkItem.id)
+const motionStudioAnimaticAsset = authority.assetManifest.entries.find((candidate) =>
+  candidate.approvedWorkItemId === motionStudioAnimaticWorkItem.id)
+assert.ok(motionStudioAnimaticJob)
+assert.ok(motionStudioAnimaticProofJob)
+assert.ok(motionStudioAnimaticDependencyJob)
+assert.ok(motionStudioAnimaticAsset)
+assert.deepEqual(motionStudioAnimaticWorkItem.sourceSequenceItemIds, [])
+assert.deepEqual(motionStudioAnimaticWorkItem.sourceCleanupDecisionIds, [])
+assert.deepEqual(motionStudioAnimaticJob.dependencyJobIds, [motionStudioAnimaticDependencyJob.id])
+assert.deepEqual(motionStudioAnimaticProofJob.dependencyJobIds, [motionStudioAnimaticJob.id])
+
 const libassWorkItem = aggregateBeforeDispatch.approvedWorkItems.find((candidate) =>
   candidate.snapshotId === snapshot.snapshotId && candidate.workItemKey === 'libass-caption-overlay-root')
 const libassProofWorkItem = aggregateBeforeDispatch.approvedWorkItems.find((candidate) =>
@@ -2779,6 +2805,136 @@ await leaseService.release({
   idempotencyKey: 'release-motion-studio-layered-preview-root',
 })
 
+await activatePrivateOfflineMediaBinaryRuntime()
+const primaryVoiceAdapterInput = {
+  workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
+  jobId: primaryVoiceJob.id,
+  purpose: 'execute_canonical_private_job' as const,
+  idempotencyKey: 'canonical-job-adapter-voice-delivery-primary',
+}
+const coordinatedPrimaryVoice = await jobExecutionAdapter.execute(primaryVoiceAdapterInput)
+assert.equal(coordinatedPrimaryVoice.identity.canonicalToolId, 'ffmpeg')
+assert.equal(coordinatedPrimaryVoice.identity.runnerClass, 'offline_media_binary_execution_v1')
+assert.equal(coordinatedPrimaryVoice.identity.expectedAssetId, primaryVoiceAsset.id)
+assert.equal(coordinatedPrimaryVoice.result.contentType, 'audio/wav')
+assert.equal(coordinatedPrimaryVoice.result.qaOutcome, 'passed')
+assert.equal(coordinatedPrimaryVoice.result.privateTestDependencySatisfied, true)
+assert.equal(coordinatedPrimaryVoice.result.liveRuntimeDependencySatisfied, false)
+assert.equal(coordinatedPrimaryVoice.evidence.mediaOutputStreamed, true)
+const primaryVoiceReplay = await jobExecutionAdapter.execute(primaryVoiceAdapterInput)
+assert.equal(primaryVoiceReplay.result.artifactId, coordinatedPrimaryVoice.result.artifactId)
+assert.equal(primaryVoiceReplay.result.sha256, coordinatedPrimaryVoice.result.sha256)
+assert.equal(primaryVoiceReplay.evidence.idempotentAdapterReplay, true)
+
+const motionStudioAnimaticClaim = (await leaseService.claim({
+  workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
+  jobId: motionStudioAnimaticJob.id, purpose: 'private_internal_canonical_lease_claim',
+  idempotencyKey: 'claim-motion-studio-animatic-preview-root',
+})).workerLeaseClaim
+assert.equal(motionStudioAnimaticClaim.lease.dependencyAuthority.state, 'private_test_dependencies_verified')
+assert.equal(motionStudioAnimaticClaim.lease.dependencyAuthority.selectedArtifacts.length, 1)
+const motionStudioAnimaticSelectedArtifact =
+  motionStudioAnimaticClaim.lease.dependencyAuthority.selectedArtifacts[0]
+assert.ok(motionStudioAnimaticSelectedArtifact)
+assert.equal(motionStudioAnimaticSelectedArtifact.artifactId, coordinatedPrimaryVoice.result.artifactId)
+const motionStudioAnimaticLeaseAuthority = {
+  leaseId: motionStudioAnimaticClaim.lease.leaseId,
+  leaseCredential: motionStudioAnimaticClaim.leaseCredential,
+}
+const motionStudioAnimaticGrant = (await dispatchService.authorize({
+  workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
+  jobId: motionStudioAnimaticJob.id, approvedWorkItemId: motionStudioAnimaticWorkItem.id,
+  expectedAssetId: motionStudioAnimaticAsset.id, requestedToolName: 'remotion',
+  operationId: remotionOperationId,
+  purpose: 'private_internal_canonical_tool_dispatch_authorization',
+  idempotencyKey: 'authorize-motion-studio-animatic-preview-root',
+}, motionStudioAnimaticLeaseAuthority)).toolDispatchGrant
+assert.equal(motionStudioAnimaticGrant.grant.status, 'authorized')
+assert.equal(motionStudioAnimaticGrant.grant.binding.leaseDependencyAuthority.selectedArtifactCount, 1)
+assert.ok(motionStudioAnimaticGrant.dispatchCredential)
+const motionStudioAnimaticExecutionInput = {
+  workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
+  jobId: motionStudioAnimaticJob.id, grantId: motionStudioAnimaticGrant.grant.grantId,
+  purpose: 'execute_canonical_private_remotion_tool' as const,
+  idempotencyKey: 'consume-motion-studio-animatic-preview-root',
+}
+const motionStudioAnimaticExecutionAuthority = {
+  ...motionStudioAnimaticLeaseAuthority,
+  dispatchCredential: motionStudioAnimaticGrant.dispatchCredential,
+}
+const coordinatedMotionStudioAnimatic = await createCanonicalPrivateRemotionExecutionService(context).execute(
+  motionStudioAnimaticExecutionInput,
+  motionStudioAnimaticExecutionAuthority,
+)
+assert.equal(
+  coordinatedMotionStudioAnimatic.tool.motionStudioCompositionProfileId,
+  'motion_studio_prepared_script_animatic_v1',
+)
+assert.equal(coordinatedMotionStudioAnimatic.tool.dependencyArtifactRead, true)
+assert.equal(coordinatedMotionStudioAnimatic.tool.sourceArtifactContentType, 'audio/wav')
+assert.equal(
+  coordinatedMotionStudioAnimatic.tool.sourceArtifactId,
+  motionStudioAnimaticSelectedArtifact.artifactId,
+)
+assert.equal(
+  coordinatedMotionStudioAnimatic.tool.sourceArtifactSha256,
+  motionStudioAnimaticSelectedArtifact.contentSha256,
+)
+assert.match(coordinatedMotionStudioAnimatic.tool.dependencyReadEvidenceHash ?? '', /^[a-f0-9]{64}$/)
+assert.equal(coordinatedMotionStudioAnimatic.qa.motionStudioFrameGoldenCount, 3)
+assert.match(coordinatedMotionStudioAnimatic.qa.motionStudioFrameGoldenEvidenceHash ?? '', /^[a-f0-9]{64}$/)
+assert.equal(coordinatedMotionStudioAnimatic.result.contentType, 'video/mp4')
+assert.equal(coordinatedMotionStudioAnimatic.result.qaOutcome, 'passed')
+assert.equal(coordinatedMotionStudioAnimatic.result.finalRenderAuthorized, false)
+assert.equal(
+  coordinatedMotionStudioAnimatic.resourceUsage.operationProfileId,
+  'entrypoint.remotion.render_approved_composition.v1',
+)
+assert.ok(coordinatedMotionStudioAnimatic.resourceUsage.observedCpuMicroseconds > 0)
+assert.ok(coordinatedMotionStudioAnimatic.resourceUsage.observedPeakMemoryBytes > 0)
+assert.ok(coordinatedMotionStudioAnimatic.resourceUsage.actualInternalCostMicros > 0)
+assert.equal(coordinatedMotionStudioAnimatic.resourceUsage.providerCostIncluded, false)
+assert.equal(coordinatedMotionStudioAnimatic.resourceUsage.customerPriceIncluded, false)
+assert.equal(coordinatedMotionStudioAnimatic.resourceUsage.customerCreditsIncluded, false)
+assert.equal(coordinatedMotionStudioAnimatic.resourceUsage.serviceFeeIncluded, false)
+assert.equal(coordinatedMotionStudioAnimatic.resourceUsage.billingMutationPerformed, false)
+const motionStudioAnimaticReplay = await createCanonicalPrivateRemotionExecutionService(context).execute(
+  motionStudioAnimaticExecutionInput,
+  motionStudioAnimaticExecutionAuthority,
+)
+assert.equal(motionStudioAnimaticReplay.result.artifactId, coordinatedMotionStudioAnimatic.result.artifactId)
+assert.equal(motionStudioAnimaticReplay.result.sha256, coordinatedMotionStudioAnimatic.result.sha256)
+assert.equal(motionStudioAnimaticReplay.replay.dispatchConsumptionReplayed, true)
+assert.equal(
+  motionStudioAnimaticReplay.resourceUsage.evidenceHash,
+  coordinatedMotionStudioAnimatic.resourceUsage.evidenceHash,
+)
+const motionStudioAnimaticProofClaim = (await leaseService.claim({
+  workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
+  jobId: motionStudioAnimaticProofJob.id, purpose: 'private_internal_canonical_lease_claim',
+  idempotencyKey: 'claim-motion-studio-animatic-preview-proof',
+})).workerLeaseClaim
+assert.equal(motionStudioAnimaticProofClaim.lease.dependencyAuthority.state, 'private_test_dependencies_verified')
+assert.equal(motionStudioAnimaticProofClaim.lease.dependencyAuthority.selectedArtifacts.length, 1)
+assert.equal(
+  motionStudioAnimaticProofClaim.lease.dependencyAuthority.selectedArtifacts[0]?.artifactId,
+  coordinatedMotionStudioAnimatic.result.artifactId,
+)
+await leaseService.release({
+  workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
+  jobId: motionStudioAnimaticProofJob.id, leaseId: motionStudioAnimaticProofClaim.lease.leaseId,
+  leaseCredential: motionStudioAnimaticProofClaim.leaseCredential,
+  purpose: 'private_internal_canonical_lease_release',
+  idempotencyKey: 'release-motion-studio-animatic-preview-proof',
+})
+await leaseService.release({
+  workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
+  jobId: motionStudioAnimaticJob.id, leaseId: motionStudioAnimaticClaim.lease.leaseId,
+  leaseCredential: motionStudioAnimaticClaim.leaseCredential,
+  purpose: 'private_internal_canonical_lease_release',
+  idempotencyKey: 'release-motion-studio-animatic-preview-root',
+})
+
 await activatePrivateOfflineLibassCaptionRuntime()
 const libassAdapterInput = {
   workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
@@ -2852,27 +3008,6 @@ await leaseService.release({
   purpose: 'private_internal_canonical_lease_release',
   idempotencyKey: 'release-libass-caption-overlay-second-proof',
 })
-
-await activatePrivateOfflineMediaBinaryRuntime()
-const primaryVoiceAdapterInput = {
-  workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
-  jobId: primaryVoiceJob.id,
-  purpose: 'execute_canonical_private_job' as const,
-  idempotencyKey: 'canonical-job-adapter-voice-delivery-primary',
-}
-const coordinatedPrimaryVoice = await jobExecutionAdapter.execute(primaryVoiceAdapterInput)
-assert.equal(coordinatedPrimaryVoice.identity.canonicalToolId, 'ffmpeg')
-assert.equal(coordinatedPrimaryVoice.identity.runnerClass, 'offline_media_binary_execution_v1')
-assert.equal(coordinatedPrimaryVoice.identity.expectedAssetId, primaryVoiceAsset.id)
-assert.equal(coordinatedPrimaryVoice.result.contentType, 'audio/wav')
-assert.equal(coordinatedPrimaryVoice.result.qaOutcome, 'passed')
-assert.equal(coordinatedPrimaryVoice.result.privateTestDependencySatisfied, true)
-assert.equal(coordinatedPrimaryVoice.result.liveRuntimeDependencySatisfied, false)
-assert.equal(coordinatedPrimaryVoice.evidence.mediaOutputStreamed, true)
-const primaryVoiceReplay = await jobExecutionAdapter.execute(primaryVoiceAdapterInput)
-assert.equal(primaryVoiceReplay.result.artifactId, coordinatedPrimaryVoice.result.artifactId)
-assert.equal(primaryVoiceReplay.result.sha256, coordinatedPrimaryVoice.result.sha256)
-assert.equal(primaryVoiceReplay.evidence.idempotentAdapterReplay, true)
 
 const secondaryVoiceAdapterInput = {
   workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
@@ -4820,6 +4955,7 @@ console.log(JSON.stringify({
     'deepfilternet_exact_wav_canonical_lifecycle_verified',
     'librosa_exact_json_canonical_lifecycle_verified',
     'remotion_private_preview_mp4_canonical_lifecycle_verified',
+    'motion_studio_prepared_script_animatic_consumes_exact_private_wav_through_canonical_lease_dispatch_qa_cost_and_replay',
     'libass_caption_overlay_png_canonical_lifecycle_verified',
     'remotion_source_caption_private_final_mp4_canonical_lifecycle_verified',
     'remotion_approved_source_trim_caption_private_final_mp4_adapter_lifecycle_verified',
@@ -5358,8 +5494,8 @@ function createDispatchPlanBody(input: {
           },
           {
             lineKey: 'motion-studio-private-preview-authority',
-            label: 'Controlled Motion Studio scene and layered preview authorization',
-            category: 'controlled_tool', estimatedCredits: 4, removable: false,
+            label: 'Controlled Motion Studio scene, layered and animatic preview authorization',
+            category: 'controlled_tool', estimatedCredits: 6, removable: false,
             metadata: {
               canonicalToolId: 'remotion',
               operationId: input.remotionOperationId,
@@ -6804,7 +6940,10 @@ function createRemotionWorkItems(
   if (!style) throw new Error('Canonical Motion Studio smoke requires one style authority component.')
   const previewFrame = motionStudioPreviewFrame(components.confirmedSettings.outputFrame)
   const createMotionStudioBinding = (
-    compositionProfileId: 'motion_studio_scene_preview_v1' | 'motion_studio_native_layered_scene_v1',
+    compositionProfileId:
+      | 'motion_studio_scene_preview_v1'
+      | 'motion_studio_native_layered_scene_v1'
+      | 'motion_studio_prepared_script_animatic_v1',
   ) => {
     const bindingWithoutHash = {
       schemaVersion: CANONICAL_MOTION_STUDIO_REMOTION_PREVIEW_BINDING_VERSION,
@@ -6842,6 +6981,14 @@ function createRemotionWorkItems(
         contentDigest: '8'.repeat(64),
         state: 'locked' as const,
       }],
+      ...(compositionProfileId === 'motion_studio_prepared_script_animatic_v1'
+        ? {
+            narrationAuthorityDigest: sha256AuthorityValue({
+              workItemKey: 'voice-delivery-primary',
+              outputKey: 'voice-delivery-primary-wav',
+            }),
+          }
+        : {}),
       timingAuthorityDigest: canonicalMotionStudioTimingAuthorityDigest(components),
       confirmedOutputFrame: { ...components.confirmedSettings.outputFrame },
       previewFrame,
@@ -6860,6 +7007,9 @@ function createRemotionWorkItems(
   }
   const motionStudioSceneBinding = createMotionStudioBinding('motion_studio_scene_preview_v1')
   const motionStudioLayeredBinding = createMotionStudioBinding('motion_studio_native_layered_scene_v1')
+  const motionStudioAnimaticBinding = createMotionStudioBinding(
+    'motion_studio_prepared_script_animatic_v1',
+  )
   return [{
     workItemKey: 'remotion-private-preview-root',
     workItemType: 'render_remotion_preview',
@@ -7017,6 +7167,60 @@ function createRemotionWorkItems(
       timingIds: ['master-timing-plan'], rendererLayerIds: [],
     }],
     dependencyKeys: ['motion-studio-layered-preview-root'], approvedToolIds: [],
+    providerExecutionMode: 'none', fallbackPolicy: {}, maxAttempts: 1,
+    attemptTimeoutSeconds: 120, scheduledDelaySeconds: 0,
+    maximumCreditBudget: 1, required: true,
+  }, {
+    workItemKey: 'motion-studio-animatic-preview-root',
+    workItemType: 'render_remotion_preview',
+    workerClass: 'render_worker',
+    executionInput: {
+      operation: CANONICAL_MOTION_STUDIO_REMOTION_PREVIEW_OPERATION,
+      approvedToolOperationIds: [input.remotionOperationId],
+      expectedOutputKeys: ['motion-studio-animatic-preview-mp4'],
+      motionStudioStorytellingAuthority: motionStudioAnimaticBinding,
+      structuredPayload: {
+        compositionProfileId: 'motion_studio_prepared_script_animatic_v1',
+        ...previewFrame,
+        durationFrames: 24,
+        scenes: [{
+          order: 0,
+          sceneId: 'scene-storytelling-canonical-animatic-1',
+          startFrame: 0,
+          endFrame: 24,
+          title: 'Approved Storytelling animatic scene',
+          visualDescription:
+            'Review the prepared-script beat with its approved private narration dependency.',
+        }],
+        panelBackground: '#0F172A',
+        accentColor: '#FF4D8D',
+      },
+    },
+    sourceSequenceItemIds: [], sourceCleanupDecisionIds: [],
+    expectedOutputs: [{
+      outputKey: 'motion-studio-animatic-preview-mp4',
+      artifactType: 'motion_studio_prepared_script_animatic_private_preview_mp4',
+      assetRole: 'preview', required: true, previewPlaceholderAllowed: false,
+      contentType: 'video/mp4', segmentIds: ['segment-1'],
+      timingIds: ['master-timing-plan'], rendererLayerIds: ['motion-studio-animatic-preview-layer'],
+    }],
+    dependencyKeys: ['voice-delivery-primary'], approvedToolIds: ['remotion'],
+    providerExecutionMode: 'none', fallbackPolicy: {}, maxAttempts: 2,
+    attemptTimeoutSeconds: 300, scheduledDelaySeconds: 0,
+    maximumCreditBudget: 1, required: true,
+  }, {
+    workItemKey: 'motion-studio-animatic-preview-proof',
+    workItemType: 'run_asset_qa', workerClass: 'qa_worker',
+    executionInput: { operation: 'validate_motion_studio_animatic_preview_artifact' },
+    sourceSequenceItemIds: [], sourceCleanupDecisionIds: [],
+    expectedOutputs: [{
+      outputKey: 'motion-studio-animatic-preview-proof-report',
+      artifactType: 'motion_studio_animatic_preview_dependency_report',
+      assetRole: 'qa', required: true, previewPlaceholderAllowed: false,
+      contentType: 'application/json', segmentIds: ['segment-1'],
+      timingIds: ['master-timing-plan'], rendererLayerIds: [],
+    }],
+    dependencyKeys: ['motion-studio-animatic-preview-root'], approvedToolIds: [],
     providerExecutionMode: 'none', fallbackPolicy: {}, maxAttempts: 1,
     attemptTimeoutSeconds: 120, scheduledDelaySeconds: 0,
     maximumCreditBudget: 1, required: true,

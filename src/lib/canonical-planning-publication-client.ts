@@ -1,11 +1,18 @@
 import { callReeditProApi, getFrontendApiClientStatus } from '../backend/api/frontend-api-client'
+import { motionStudioApiClient } from '../backend/api/motion-studio-api-client'
+import type {
+  MotionStudioCanonicalPlanningWorkItemDto,
+  StorytellingMotionStylePlanReviewInput,
+} from '../types/motion-studio'
 import type { EditPlan, PlannerInput } from '../types/reeditpro'
 import type { ApprovedEditExecutionUploadedMediaSourceAssetClientInput } from './approved-edit-execution-package-client'
 import type { CanonicalEditJourney } from './canonical-edit-journey'
 import {
   buildCanonicalPlanningDraft,
+  containsForbiddenCanonicalPlanningMaterial,
+  projectCanonicalStorytellingStyleAuthority,
   type CanonicalPlanningDraft,
-  type CanonicalStorytellingStylePlanReviewSource,
+  type CanonicalStorytellingPlanningPreparationSource,
 } from './canonical-planning-draft'
 import {
   apiResponseInvalidatesProjectPersistenceScope,
@@ -103,7 +110,7 @@ export type SaveCanonicalPlanningInput = {
   plannerInput: PlannerInput
   sourceMediaAssets: ApprovedEditExecutionUploadedMediaSourceAssetClientInput[]
   revisionJourney?: CanonicalEditJourney
-  motionStudioStorytellingStylePlan?: CanonicalStorytellingStylePlanReviewSource
+  motionStudioStorytellingStylePlan?: StorytellingMotionStylePlanReviewInput
 }
 
 const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]*$/
@@ -152,28 +159,11 @@ export function saveCanonicalPlanningForNamedEdit(
       warnings: [],
     })
   }
-  const compiled = buildCanonicalPlanningDraft({
+  const exactRequestIdentity = JSON.stringify({
     plan: input.plan,
     plannerInput: input.plannerInput,
     sourceMediaAssets: input.sourceMediaAssets,
-    motionStudioStorytellingStylePlan: input.motionStudioStorytellingStylePlan,
-  })
-  if (!compiled.ok) {
-    return Promise.resolve({
-      status: 'blocked',
-      message: compiled.errors[0] ?? 'Complete the required planning confirmations before saving this plan.',
-      retryable: false,
-      handoffSaved: false,
-      candidateSaved: false,
-      publicationBlockers: compiled.errors,
-      warnings: [],
-    })
-  }
-
-  const exactRequestIdentity = JSON.stringify({
-    source: compiled.draft.orderedSourceItems,
-    components: compiled.draft.components,
-    publication: compiled.draft.publication?.planningRequestIdSeed ?? null,
+    storytellingStylePlan: input.motionStudioStorytellingStylePlan ?? null,
     revision: input.revisionJourney?.stage === 'revision_requested'
       ? input.revisionJourney.privateReviewMediaAuthority ?? null
       : null,
@@ -190,7 +180,7 @@ export function saveCanonicalPlanningForNamedEdit(
   const existing = inFlightCanonicalPlanningSaves.get(requestKey)
   if (existing) return existing
 
-  const request = performCanonicalPlanningSave(input, compiled.draft)
+  const request = prepareAndPerformCanonicalPlanningSave(input)
   inFlightCanonicalPlanningSaves.set(requestKey, request)
   void request.then(
     () => clearInFlightSave(requestKey, request),
@@ -199,9 +189,827 @@ export function saveCanonicalPlanningForNamedEdit(
   return request
 }
 
+async function prepareAndPerformCanonicalPlanningSave(
+  input: SaveCanonicalPlanningInput,
+): Promise<CanonicalPlanningPublicationResult> {
+  const preparation = await prepareIdeaFirstStorytellingPlanning(input)
+  if (!preparation.ok) return preparation.failure
+
+  const compiled = buildCanonicalPlanningDraft({
+    plan: input.plan,
+    plannerInput: input.plannerInput,
+    sourceMediaAssets: input.sourceMediaAssets,
+    motionStudioStorytellingStylePlan: input.motionStudioStorytellingStylePlan,
+    motionStudioStorytellingPlanningPreparation: preparation.preparation,
+  })
+  if (!compiled.ok) {
+    return {
+      status: 'blocked',
+      message: compiled.errors[0] ?? 'Complete the required planning confirmations before saving this plan.',
+      retryable: false,
+      handoffSaved: false,
+      candidateSaved: false,
+      publicationBlockers: compiled.errors,
+      warnings: preparation.warnings,
+    }
+  }
+  return performCanonicalPlanningSave(
+    input,
+    compiled.draft,
+    preparation.preparation,
+  )
+}
+
+type StorytellingPlanningPreparationResult =
+  | {
+      ok: true
+      preparation?: CanonicalStorytellingPlanningPreparationSource
+      warnings: string[]
+    }
+  | { ok: false; failure: CanonicalPlanningPublicationResult }
+
+async function prepareIdeaFirstStorytellingPlanning(
+  input: SaveCanonicalPlanningInput,
+): Promise<StorytellingPlanningPreparationResult> {
+  const stylePlan = input.motionStudioStorytellingStylePlan
+  const ideaFirst = Boolean(
+    stylePlan &&
+    input.sourceMediaAssets.length === 0 &&
+    input.plannerInput.clips.length === 0,
+  )
+  if (!ideaFirst || !stylePlan) return { ok: true, warnings: [] }
+
+  const runtime = getFrontendApiClientStatus()
+  if (runtime.mockOnly || !runtime.apiBaseUrl) {
+    return {
+      ok: false,
+      failure: {
+        status: 'not_configured',
+        message: 'Source-verified Storytelling planning is available when the reviewed private backend is connected.',
+        retryable: false,
+        handoffSaved: false,
+        candidateSaved: false,
+        publicationBlockers: [],
+        warnings: runtime.warnings,
+      },
+    }
+  }
+
+  const response = await motionStudioApiClient.prepareCanonicalStorytellingPlanning(
+    stylePlan.productionId,
+    { storytellingStylePlan: stylePlan },
+    createStorytellingPlanningPreparationIdempotencyKey(stylePlan.styleSelection.selectionDigest),
+  )
+  if (apiResponseInvalidatesProjectPersistenceScope(response)) {
+    invalidateProjectPersistenceScope(input.scope)
+  }
+  const apiFailure = classifyApiFailure(response, false)
+  if (apiFailure) return { ok: false, failure: apiFailure }
+
+  const parsed = await parseStorytellingPlanningPreparation(
+    response.data?.preparation,
+    input,
+  )
+  if (!parsed) {
+    return {
+      ok: false,
+      failure: {
+        status: 'invalid_response',
+        message: 'The source-verified Storytelling planning response could not be matched to this exact named edit.',
+        retryable: false,
+        handoffSaved: false,
+        candidateSaved: false,
+        publicationBlockers: [],
+        warnings: response.warnings,
+      },
+    }
+  }
+  if (parsed.state === 'blocked') {
+    return {
+      ok: false,
+      failure: {
+        status: 'blocked',
+        message: parsed.message,
+        retryable: parsed.retryable,
+        handoffSaved: false,
+        candidateSaved: false,
+        publicationBlockers: [parsed.message],
+        warnings: response.warnings,
+      },
+    }
+  }
+  return {
+    ok: true,
+    preparation: parsed.preparation,
+    warnings: response.warnings,
+  }
+}
+
+async function parseStorytellingPlanningPreparation(
+  value: unknown,
+  input: SaveCanonicalPlanningInput,
+): Promise<
+  | { state: 'ready'; preparation: CanonicalStorytellingPlanningPreparationSource }
+  | { state: 'blocked'; message: string; retryable: boolean }
+  | null> {
+  if (!isRecord(value) ||
+      value.schemaVersion !== 'motion-studio.canonical-storytelling-planning-preparation.v1' ||
+      value.productionReady !== false ||
+      containsForbiddenPrivateMaterial(value)) return null
+  const sideEffects = isRecord(value.sideEffects) ? value.sideEffects : null
+  const expectedSideEffectKeys = [
+    'uploadRecordCount', 'queueMutationCount', 'leaseMutationCount',
+    'providerRequestCount', 'renderCount', 'customerCreditMutationCount',
+    'billingMutationCount', 'remoteMutationCount',
+  ]
+  if (!sideEffects || !expectedSideEffectKeys.every((key) => sideEffects[key] === 0) ||
+      Object.keys(sideEffects).some((key) => !expectedSideEffectKeys.includes(key))) return null
+
+  if (value.state === 'blocked') {
+    const blocker = isRecord(value.blocker) ? value.blocker : null
+    if (!blocker || typeof blocker.message !== 'string' ||
+        blocker.message.trim().length === 0 || blocker.message.length > 500 ||
+        typeof blocker.retryable !== 'boolean') return null
+    return {
+      state: 'blocked',
+      message: blocker.message.trim(),
+      retryable: blocker.retryable,
+    }
+  }
+  if (value.state !== 'ready_for_canonical_plan' || value.blocker !== null) return null
+
+  const stylePlan = input.motionStudioStorytellingStylePlan
+  let projectedStyleAuthority: ReturnType<
+    typeof projectCanonicalStorytellingStyleAuthority
+  > | null
+  try {
+    projectedStyleAuthority = stylePlan
+      ? projectCanonicalStorytellingStyleAuthority(stylePlan)
+      : null
+  } catch {
+    return null
+  }
+  const expectedStyleComponentDigest = projectedStyleAuthority
+    ? await canonicalSha256(projectedStyleAuthority)
+    : null
+  const authority = isRecord(value.authority) ? value.authority : null
+  const sourceProposal = isRecord(authority?.sourceProposal)
+    ? authority.sourceProposal
+    : null
+  const sourceVerification = isRecord(authority?.sourceVerification)
+    ? authority.sourceVerification
+    : null
+  const confirmedOutputFrame = isRecord(authority?.confirmedOutputFrame)
+    ? authority.confirmedOutputFrame
+    : null
+  const styleAuthority = isRecord(authority?.storytellingStyleAuthority)
+    ? authority.storytellingStyleAuthority
+    : null
+  const internalCostAuthority = isRecord(authority?.internalCostAuthority)
+    ? authority.internalCostAuthority
+    : null
+  if (!stylePlan || !authority || !sourceProposal || !sourceVerification ||
+      !confirmedOutputFrame || !styleAuthority || !internalCostAuthority ||
+      !expectedStyleComponentDigest ||
+      authority.schemaVersion !== 'canonical-motion-studio-storytelling-production-authority-v1' ||
+      authority.componentKey !== 'motionStudioStorytellingProductionAuthority' ||
+      authority.workspaceId !== input.scope.workspaceId ||
+      authority.projectId !== input.projectId ||
+      authority.editSessionId !== input.editSessionId ||
+      authority.productionId !== stylePlan.productionId ||
+      authority.sourceRepositoryReverified !== true ||
+      authority.noUploadedSourceExpected !== true ||
+      authority.fabricatedUploadRecordCount !== 0 ||
+      authority.privateInternalControlledPlanningOnly !== true ||
+      authority.runtimeExecutionAuthorized !== false ||
+      authority.providerExecutionAuthorized !== false ||
+      authority.customerCommercialAuthorityGranted !== false ||
+      authority.productionReady !== false ||
+      !isSha(authority.authorityHash) ||
+      !isSha(sourceProposal.componentProposalDigest) ||
+      sourceVerification.sourcePayloadDigestsReverified !== true ||
+      sourceVerification.exactScopeReverified !== true ||
+      sourceVerification.exactApprovalStatesReverified !== true ||
+      !hasExactKeys(styleAuthority, [
+        'componentKey', 'componentDigest', 'selectionDigest', 'styleProfileId',
+        'motionLanguageDigest',
+      ]) ||
+      styleAuthority.componentKey !== 'motionStudioStorytellingStyleAuthority' ||
+      styleAuthority.componentDigest !== expectedStyleComponentDigest ||
+      styleAuthority.selectionDigest !== stylePlan.styleSelection.selectionDigest ||
+      styleAuthority.styleProfileId !== stylePlan.styleSelection.styleProfile.styleProfileId ||
+      styleAuthority.motionLanguageDigest !==
+        stylePlan.styleSelection.motionLanguage.motionLanguageDigest ||
+      !hasExactKeys(internalCostAuthority, [
+        'estimateId', 'estimateDigest',
+        'maximumAuthorizedInternalProductionCostMicros',
+        'internalProductionCostOnly', 'customerPriceIncluded',
+        'customerCreditsIncluded', 'serviceFeeIncluded',
+      ]) ||
+      internalCostAuthority.estimateId !== stylePlan.internalCostEstimateId ||
+      internalCostAuthority.estimateDigest !== stylePlan.internalCostEstimateDigest ||
+      internalCostAuthority.maximumAuthorizedInternalProductionCostMicros !==
+        stylePlan.calibrationPlan.estimatedInternalCostRangeMicros.maximum ||
+      internalCostAuthority.internalProductionCostOnly !== true ||
+      internalCostAuthority.customerPriceIncluded !== false ||
+      internalCostAuthority.customerCreditsIncluded !== false ||
+      internalCostAuthority.serviceFeeIncluded !== false ||
+      !Number.isInteger(confirmedOutputFrame.width) || Number(confirmedOutputFrame.width) <= 0 ||
+      !Number.isInteger(confirmedOutputFrame.height) || Number(confirmedOutputFrame.height) <= 0 ||
+      ![24, 30].includes(Number(confirmedOutputFrame.frameRate)) ||
+      !Number.isInteger(confirmedOutputFrame.durationFrames) ||
+      Number(confirmedOutputFrame.durationFrames) <= 0 ||
+      typeof confirmedOutputFrame.aspectRatio !== 'string' ||
+      !(await hasValidCanonicalSha256(authority, 'authorityHash'))) return null
+
+  const components = isRecord(value.components) ? value.components : null
+  const timingSummary = isRecord(components?.timingSummary)
+    ? components.timingSummary
+    : null
+  const componentRecordKeys = [
+    'sourceCleanupSummary', 'sourceCleanupPlan', 'masterTimingPlan',
+    'captionVisualCueTimingPlan', 'soundSyncTransitionTimingPlan',
+    'timingValidationPlan', 'visualAssetPlan', 'colorPipelinePlan',
+    'rendererPlan', 'toolStrategyPlan', 'qaPlan', 'qaSummary',
+    'providerPolicy', 'fallbackPolicy',
+  ]
+  if (!components || !timingSummary ||
+      !componentRecordKeys.every((key) => isRecord(components[key])) ||
+      timingSummary.validationStatus !== 'warning' ||
+      timingSummary.approvalBlocked !== false ||
+      timingSummary.fps !== confirmedOutputFrame.frameRate ||
+      timingSummary.totalFrames !== confirmedOutputFrame.durationFrames ||
+      !Array.isArray(components.segments) || components.segments.length !== 1) return null
+
+  const workItems = await parseExactStorytellingPlanningWorkItems(
+    value.workItems,
+    authority,
+    stylePlan,
+    components,
+  )
+  if (!workItems) return null
+
+  const preparation = structuredClone(
+    value,
+  ) as unknown as CanonicalStorytellingPlanningPreparationSource
+  preparation.workItems = workItems
+
+  return {
+    state: 'ready',
+    preparation,
+  }
+}
+
+const STORYTELLING_WORK_ITEM_FIELDS = [
+  'workItemKey',
+  'workItemType',
+  'workerClass',
+  'executionInput',
+  'sourceSequenceItemIds',
+  'sourceCleanupDecisionIds',
+  'expectedOutputs',
+  'dependencyKeys',
+  'approvedToolIds',
+  'providerExecutionMode',
+  'fallbackPolicy',
+  'maxAttempts',
+  'attemptTimeoutSeconds',
+  'scheduledDelaySeconds',
+  'maximumCreditBudget',
+  'required',
+] as const
+
+const STORYTELLING_EXPECTED_OUTPUT_FIELDS = [
+  'outputKey',
+  'artifactType',
+  'assetRole',
+  'required',
+  'previewPlaceholderAllowed',
+  'contentType',
+  'segmentIds',
+  'timingIds',
+  'rendererLayerIds',
+] as const
+
+const STORYTELLING_ANIMATIC_BINDING_FIELDS = [
+  'schemaVersion',
+  'sourceAuthority',
+  'evidenceClass',
+  'workspaceId',
+  'projectId',
+  'editSessionId',
+  'productionId',
+  'storytellingProductionAuthorityHash',
+  'compositionProfileId',
+  'canonicalStyleComponentDigest',
+  'styleSelectionDigest',
+  'motionDna',
+  'referenceContracts',
+  'sourceAuditDigests',
+  'calibrationPlan',
+  'internalCostEnvelope',
+  'preparedScript',
+  'sceneDocuments',
+  'narrationAuthorityDigest',
+  'narrationDependencyAuthority',
+  'timingAuthorityDigest',
+  'confirmedOutputFrame',
+  'previewFrame',
+  'sourceRepositoryReverified',
+  'privateInternalControlledExecutionOnly',
+  'providerExecutionAuthorized',
+  'customerPriceIncluded',
+  'customerCreditsIncluded',
+  'serviceFeeIncluded',
+  'productionReady',
+  'bindingHash',
+] as const
+
+type StorytellingExpectedOutputSpec = {
+  outputKey: string
+  artifactType: string
+  assetRole: 'processed' | 'qa' | 'preview'
+  contentType: 'application/json' | 'audio/wav' | 'video/mp4'
+  segmentIds: string[]
+  timingIds: string[]
+  rendererLayerIds: string[]
+}
+
+type StorytellingWorkItemSpec = {
+  workItemKey: string
+  workItemType: MotionStudioCanonicalPlanningWorkItemDto['workItemType']
+  workerClass: string
+  dependencyKeys: string[]
+  approvedToolIds: string[]
+  attemptTimeoutSeconds: number
+  maximumCreditBudget: number
+  output: StorytellingExpectedOutputSpec
+}
+
+const STORY_SEGMENT_ID = 'motion-studio-storytelling-segment-1'
+const MASTER_TIMING_ID = 'motion-studio-storytelling-master-timing'
+
+const STORYTELLING_WORK_ITEM_SPECS: readonly StorytellingWorkItemSpec[] = [{
+  workItemKey: 'idea-first-snapshot-validation',
+  workItemType: 'validate_approved_snapshot',
+  workerClass: 'authority_worker',
+  dependencyKeys: [],
+  approvedToolIds: [],
+  attemptTimeoutSeconds: 60,
+  maximumCreditBudget: 1,
+  output: {
+    outputKey: 'idea-first-snapshot-validation-evidence',
+    artifactType: 'authority_validation_evidence',
+    assetRole: 'qa',
+    contentType: 'application/json',
+    segmentIds: [],
+    timingIds: [],
+    rendererLayerIds: [],
+  },
+}, {
+  workItemKey: 'idea-first-approved-narration-authority',
+  workItemType: 'custom',
+  workerClass: 'media_processing_worker',
+  dependencyKeys: ['idea-first-snapshot-validation'],
+  approvedToolIds: [],
+  attemptTimeoutSeconds: 120,
+  maximumCreditBudget: 1,
+  output: {
+    outputKey: 'idea-first-approved-narration-wav',
+    artifactType: 'verified_uploaded_storytelling_narration_wav',
+    assetRole: 'processed',
+    contentType: 'audio/wav',
+    segmentIds: [STORY_SEGMENT_ID],
+    timingIds: [MASTER_TIMING_ID],
+    rendererLayerIds: [],
+  },
+}, {
+  workItemKey: 'idea-first-storytelling-animatic-preview',
+  workItemType: 'render_remotion_preview',
+  workerClass: 'render_worker',
+  dependencyKeys: ['idea-first-approved-narration-authority'],
+  approvedToolIds: ['remotion'],
+  attemptTimeoutSeconds: 300,
+  maximumCreditBudget: 3,
+  output: {
+    outputKey: 'idea-first-storytelling-animatic-mp4',
+    artifactType: 'motion_studio_prepared_script_animatic_private_preview_mp4',
+    assetRole: 'preview',
+    contentType: 'video/mp4',
+    segmentIds: [STORY_SEGMENT_ID],
+    timingIds: [MASTER_TIMING_ID],
+    rendererLayerIds: ['motion-studio-storytelling-animatic-layer'],
+  },
+}, {
+  workItemKey: 'idea-first-storytelling-animatic-qa',
+  workItemType: 'run_asset_qa',
+  workerClass: 'qa_worker',
+  dependencyKeys: ['idea-first-storytelling-animatic-preview'],
+  approvedToolIds: [],
+  attemptTimeoutSeconds: 120,
+  maximumCreditBudget: 1,
+  output: {
+    outputKey: 'idea-first-storytelling-animatic-qa-report',
+    artifactType: 'motion_studio_storytelling_animatic_qa_report',
+    assetRole: 'qa',
+    contentType: 'application/json',
+    segmentIds: [STORY_SEGMENT_ID],
+    timingIds: [MASTER_TIMING_ID],
+    rendererLayerIds: [],
+  },
+}]
+
+async function parseExactStorytellingPlanningWorkItems(
+  value: unknown,
+  authority: Record<string, unknown>,
+  stylePlan: StorytellingMotionStylePlanReviewInput,
+  components: Record<string, unknown>,
+): Promise<MotionStudioCanonicalPlanningWorkItemDto[] | null> {
+  if (!Array.isArray(value) || value.length !== STORYTELLING_WORK_ITEM_SPECS.length) {
+    return null
+  }
+  const parsed: MotionStudioCanonicalPlanningWorkItemDto[] = []
+  for (let index = 0; index < STORYTELLING_WORK_ITEM_SPECS.length; index += 1) {
+    const item = value[index]
+    const spec = STORYTELLING_WORK_ITEM_SPECS[index]!
+    if (!(await isExactStorytellingPlanningWorkItem(
+      item,
+      spec,
+      authority,
+      stylePlan,
+      components,
+    ))) return null
+    parsed.push(structuredClone(item) as MotionStudioCanonicalPlanningWorkItemDto)
+  }
+  const narrationInput = parsed[1]?.executionInput
+  const animaticInput = parsed[2]?.executionInput
+  const animaticBinding = isRecord(animaticInput?.motionStudioStorytellingAuthority)
+    ? animaticInput.motionStudioStorytellingAuthority
+    : null
+  if (!animaticBinding ||
+      narrationInput?.narrationAuthorityDigest !==
+        animaticBinding.narrationAuthorityDigest) return null
+  return parsed
+}
+
+async function isExactStorytellingPlanningWorkItem(
+  value: unknown,
+  spec: StorytellingWorkItemSpec,
+  authority: Record<string, unknown>,
+  stylePlan: StorytellingMotionStylePlanReviewInput,
+  components: Record<string, unknown>,
+): Promise<boolean> {
+  if (!isRecord(value) || !hasExactKeys(value, STORYTELLING_WORK_ITEM_FIELDS)) {
+    return false
+  }
+  if (
+    value.workItemKey !== spec.workItemKey ||
+    value.workItemType !== spec.workItemType ||
+    value.workerClass !== spec.workerClass ||
+    !isExactStringArray(value.sourceSequenceItemIds, []) ||
+    !isExactStringArray(value.sourceCleanupDecisionIds, []) ||
+    !isExactStringArray(value.dependencyKeys, spec.dependencyKeys) ||
+    !isExactStringArray(value.approvedToolIds, spec.approvedToolIds) ||
+    value.providerExecutionMode !== 'none' ||
+    !isRecord(value.fallbackPolicy) || Object.keys(value.fallbackPolicy).length !== 0 ||
+    value.maxAttempts !== 1 ||
+    value.attemptTimeoutSeconds !== spec.attemptTimeoutSeconds ||
+    value.scheduledDelaySeconds !== 0 ||
+    value.maximumCreditBudget !== spec.maximumCreditBudget ||
+    value.required !== true ||
+    !Array.isArray(value.expectedOutputs) || value.expectedOutputs.length !== 1 ||
+    !isExactStorytellingExpectedOutput(value.expectedOutputs[0], spec.output) ||
+    !(await isExactStorytellingExecutionInput(
+      value.executionInput,
+      spec.workItemKey,
+      authority,
+      stylePlan,
+      components,
+    ))
+  ) return false
+  return !containsForbiddenCanonicalPlanningMaterial(value)
+}
+
+function isExactStorytellingExpectedOutput(
+  value: unknown,
+  spec: StorytellingExpectedOutputSpec,
+): boolean {
+  return isRecord(value) &&
+    hasExactKeys(value, STORYTELLING_EXPECTED_OUTPUT_FIELDS) &&
+    value.outputKey === spec.outputKey &&
+    value.artifactType === spec.artifactType &&
+    value.assetRole === spec.assetRole &&
+    value.required === true &&
+    value.previewPlaceholderAllowed === false &&
+    value.contentType === spec.contentType &&
+    isExactStringArray(value.segmentIds, spec.segmentIds) &&
+    isExactStringArray(value.timingIds, spec.timingIds) &&
+    isExactStringArray(value.rendererLayerIds, spec.rendererLayerIds)
+}
+
+async function isExactStorytellingExecutionInput(
+  value: unknown,
+  workItemKey: string,
+  authority: Record<string, unknown>,
+  stylePlan: StorytellingMotionStylePlanReviewInput,
+  components: Record<string, unknown>,
+): Promise<boolean> {
+  if (!isRecord(value)) return false
+  if (workItemKey === 'idea-first-snapshot-validation') {
+    return hasExactKeys(value, ['operation']) &&
+      value.operation === 'validate_snapshot_manifest'
+  }
+  if (workItemKey === 'idea-first-approved-narration-authority') {
+    return hasExactKeys(value, ['operation', 'narrationAuthorityDigest']) &&
+      value.operation === 'bind_verified_uploaded_storytelling_narration' &&
+      isSha(value.narrationAuthorityDigest)
+  }
+  if (workItemKey === 'idea-first-storytelling-animatic-qa') {
+    return hasExactKeys(value, ['operation']) &&
+      value.operation === 'validate_private_storytelling_animatic'
+  }
+  if (workItemKey !== 'idea-first-storytelling-animatic-preview' ||
+      !hasExactKeys(value, [
+        'operation', 'approvedToolOperationIds', 'expectedOutputKeys',
+        'motionStudioStorytellingAuthority', 'structuredPayload',
+      ]) ||
+      value.operation !== 'render_approved_motion_studio_preview' ||
+      !isExactStringArray(
+        value.approvedToolOperationIds,
+        ['tool.remotion.render_approved_composition.v1'],
+      ) ||
+      !isExactStringArray(
+        value.expectedOutputKeys,
+        ['idea-first-storytelling-animatic-mp4'],
+      )) return false
+  return isExactStorytellingAnimaticBinding(
+    value.motionStudioStorytellingAuthority,
+    value.structuredPayload,
+    authority,
+    stylePlan,
+    components,
+  )
+}
+
+async function isExactStorytellingAnimaticBinding(
+  bindingValue: unknown,
+  payloadValue: unknown,
+  authority: Record<string, unknown>,
+  stylePlan: StorytellingMotionStylePlanReviewInput,
+  components: Record<string, unknown>,
+): Promise<boolean> {
+  if (!isRecord(bindingValue) ||
+      !hasExactKeys(bindingValue, STORYTELLING_ANIMATIC_BINDING_FIELDS) ||
+      !isRecord(payloadValue) ||
+      !hasExactKeys(payloadValue, [
+        'width', 'height', 'fps', 'durationFrames', 'compositionProfileId',
+        'scenes', 'panelBackground', 'accentColor',
+      ])) return false
+  const authorityFrame = isRecord(authority.confirmedOutputFrame)
+    ? authority.confirmedOutputFrame
+    : null
+  const bindingFrame = isRecord(bindingValue.confirmedOutputFrame)
+    ? bindingValue.confirmedOutputFrame
+    : null
+  const previewFrame = isRecord(bindingValue.previewFrame)
+    ? bindingValue.previewFrame
+    : null
+  const narration = isRecord(bindingValue.narrationDependencyAuthority)
+    ? bindingValue.narrationDependencyAuthority
+    : null
+  const narrationPolicy = isRecord(authority.narrationPolicy)
+    ? authority.narrationPolicy
+    : null
+  const preparedScript = isRecord(authority.preparedScript)
+    ? authority.preparedScript
+    : null
+  const preparedScriptVersion = isRecord(preparedScript?.version)
+    ? preparedScript.version
+    : null
+  const authorityStyle = isRecord(authority.storytellingStyleAuthority)
+    ? authority.storytellingStyleAuthority
+    : null
+  const authorityInternalCost = isRecord(authority.internalCostAuthority)
+    ? authority.internalCostAuthority
+    : null
+  const orderedScenes = Array.isArray(authority.orderedScenes)
+    ? authority.orderedScenes
+    : null
+  const expectedSceneDocuments = orderedScenes?.map((scene) =>
+    isRecord(scene) && isRecord(scene.version) ? scene.version : null)
+  if (!authorityFrame || !bindingFrame || !previewFrame || !narration ||
+      !narrationPolicy || !preparedScriptVersion || !authorityStyle ||
+      !authorityInternalCost ||
+      !orderedScenes || orderedScenes.length === 0 || orderedScenes.length > 64 ||
+      expectedSceneDocuments?.some((scene) => scene === null)) {
+    return false
+  }
+  const expectedNarrationAuthority = {
+    mode: 'verified_uploaded_narration',
+    narrationPolicyDigest: bindingValue.narrationAuthorityDigest,
+    mediaAssetId: narrationPolicy.mediaAssetId,
+    storageObjectRecordId: narrationPolicy.storageObjectRecordId,
+    checksumSha256: narrationPolicy.checksumSha256,
+    mimeType: narrationPolicy.mimeType,
+    byteLength: narrationPolicy.byteLength,
+    currentPrivateArtifactPresent: true,
+    providerExecutionAuthorized: false,
+  }
+  const expectedNarrationAuthorityDigest = await canonicalSha256(narrationPolicy)
+  const expectedTimingAuthorityDigest = await canonicalSha256({
+    masterTimingPlan: components.masterTimingPlan,
+    captionVisualCueTimingPlan: components.captionVisualCueTimingPlan,
+    soundSyncTransitionTimingPlan: components.soundSyncTransitionTimingPlan,
+    timingValidationPlan: components.timingValidationPlan,
+    timingSummary: components.timingSummary,
+  })
+  if (!expectedNarrationAuthorityDigest || !expectedTimingAuthorityDigest) {
+    return false
+  }
+  const bindingHashValid = await hasValidCanonicalSha256(
+    bindingValue,
+    'bindingHash',
+  )
+  return bindingValue.schemaVersion ===
+      'canonical-motion-studio-remotion-preview-binding-v1' &&
+    bindingValue.sourceAuthority === 'motion_studio_storytelling_compiler' &&
+    bindingValue.evidenceClass ===
+      'controlled_local_content_addressed_non_promotable' &&
+    bindingValue.workspaceId === authority.workspaceId &&
+    bindingValue.projectId === authority.projectId &&
+    bindingValue.editSessionId === authority.editSessionId &&
+    bindingValue.productionId === authority.productionId &&
+    bindingValue.storytellingProductionAuthorityHash === authority.authorityHash &&
+    bindingValue.compositionProfileId ===
+      'motion_studio_prepared_script_animatic_v1' &&
+    bindingHashValid &&
+    bindingValue.canonicalStyleComponentDigest ===
+      authorityStyle.componentDigest &&
+    bindingValue.styleSelectionDigest ===
+      stylePlan.styleSelection.selectionDigest &&
+    isExactJsonValue(
+      bindingValue.motionDna,
+      stylePlan.styleSelection.motionDnaVersion,
+    ) &&
+    isExactJsonValue(
+      bindingValue.referenceContracts,
+      stylePlan.styleSelection.referenceContractVersions,
+    ) &&
+    isExactJsonValue(
+      bindingValue.sourceAuditDigests,
+      stylePlan.styleSelection.sourceAuditDigests,
+    ) &&
+    isExactJsonValue(bindingValue.calibrationPlan, {
+      id: stylePlan.calibrationPlan.id,
+      digest: stylePlan.calibrationPlan.planDigest,
+    }) &&
+    isExactJsonValue(bindingValue.internalCostEnvelope, {
+      estimateId: stylePlan.internalCostEstimateId,
+      digest: stylePlan.internalCostEstimateDigest,
+    }) &&
+    isExactJsonValue(bindingValue.internalCostEnvelope, {
+      estimateId: authorityInternalCost.estimateId,
+      digest: authorityInternalCost.estimateDigest,
+    }) &&
+    isExactJsonValue(bindingValue.preparedScript, preparedScriptVersion) &&
+    isExactJsonValue(bindingValue.sceneDocuments, expectedSceneDocuments) &&
+    bindingValue.narrationAuthorityDigest === expectedNarrationAuthorityDigest &&
+    bindingValue.timingAuthorityDigest === expectedTimingAuthorityDigest &&
+    bindingValue.sourceRepositoryReverified === false &&
+    bindingValue.privateInternalControlledExecutionOnly === true &&
+    bindingValue.providerExecutionAuthorized === false &&
+    bindingValue.customerPriceIncluded === false &&
+    bindingValue.customerCreditsIncluded === false &&
+    bindingValue.serviceFeeIncluded === false &&
+    bindingValue.productionReady === false &&
+    hasExactKeys(bindingFrame, ['width', 'height', 'fps']) &&
+    bindingFrame.width === authorityFrame.width &&
+    bindingFrame.height === authorityFrame.height &&
+    bindingFrame.fps === authorityFrame.frameRate &&
+    hasExactKeys(previewFrame, ['width', 'height', 'fps']) &&
+    previewFrame.width === payloadValue.width &&
+    previewFrame.height === payloadValue.height &&
+    previewFrame.fps === payloadValue.fps &&
+    payloadValue.durationFrames === authorityFrame.durationFrames &&
+    payloadValue.compositionProfileId ===
+      'motion_studio_prepared_script_animatic_v1' &&
+    Array.isArray(payloadValue.scenes) &&
+    payloadValue.scenes.length === orderedScenes.length &&
+    isExactStorytellingAnimaticScenes(
+      payloadValue.scenes,
+      orderedScenes,
+      Number(authorityFrame.durationFrames),
+    ) &&
+    typeof payloadValue.panelBackground === 'string' &&
+    /^#[a-f0-9]{6}$/i.test(payloadValue.panelBackground) &&
+    typeof payloadValue.accentColor === 'string' &&
+    /^#[a-f0-9]{6}$/i.test(payloadValue.accentColor) &&
+    narrationPolicy.mode === 'verified_uploaded_narration' &&
+    narrationPolicy.mimeType === 'audio/wav' &&
+    isExactJsonValue(narration, expectedNarrationAuthority)
+}
+
+function isExactStorytellingAnimaticScenes(
+  value: unknown[],
+  authorityScenes: unknown[],
+  durationFrames: number,
+): boolean {
+  if (!Number.isInteger(durationFrames) || durationFrames <= 0 ||
+      value.length !== authorityScenes.length) return false
+  let expectedStart = 0
+  for (let index = 0; index < value.length; index += 1) {
+    const scene = value[index]
+    const authorityScene = authorityScenes[index]
+    if (!isRecord(scene) || !hasExactKeys(scene, [
+      'order', 'sceneId', 'startFrame', 'endFrame', 'title', 'visualDescription',
+    ]) ||
+      !isRecord(authorityScene) ||
+      scene.order !== index || scene.order !== authorityScene.order ||
+      scene.sceneId !== authorityScene.sceneId || !isSafeId(scene.sceneId) ||
+      scene.startFrame !== expectedStart ||
+      scene.startFrame !== authorityScene.startFrame ||
+      scene.endFrame !== authorityScene.endFrame ||
+      !Number.isInteger(scene.endFrame) ||
+      Number(scene.endFrame) <= expectedStart ||
+      scene.title !== authorityScene.title ||
+      typeof scene.title !== 'string' || scene.title.trim().length === 0 ||
+      scene.title.length > 500 ||
+      scene.visualDescription !== authorityScene.semanticPurpose ||
+      typeof scene.visualDescription !== 'string' ||
+      scene.visualDescription.trim().length === 0 ||
+      scene.visualDescription.length > 4_000) return false
+    expectedStart = Number(scene.endFrame)
+  }
+  return expectedStart === durationFrames
+}
+
+async function hasValidCanonicalSha256(
+  value: Record<string, unknown>,
+  hashKey: string,
+): Promise<boolean> {
+  const expectedHash = value[hashKey]
+  if (!isSha(expectedHash)) return false
+  const unsigned = Object.fromEntries(
+    Object.entries(value).filter(([key]) => key !== hashKey),
+  )
+  return await canonicalSha256(unsigned) === expectedHash
+}
+
+async function canonicalSha256(value: unknown): Promise<string | null> {
+  if (!globalThis.crypto?.subtle) return null
+  const bytes = new TextEncoder().encode(
+    JSON.stringify(stableCanonicalJsonValue(value)),
+  )
+  const digest = await globalThis.crypto.subtle.digest('SHA-256', bytes)
+  return Array.from(new Uint8Array(digest), (byte) =>
+    byte.toString(16).padStart(2, '0')).join('')
+}
+
+function isExactJsonValue(left: unknown, right: unknown): boolean {
+  return JSON.stringify(stableCanonicalJsonValue(left)) ===
+    JSON.stringify(stableCanonicalJsonValue(right))
+}
+
+function stableCanonicalJsonValue(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(stableCanonicalJsonValue)
+  if (isRecord(value)) {
+    return Object.fromEntries(
+      Object.entries(value)
+        .filter(([, nested]) => nested !== undefined)
+        .sort(([leftKey], [rightKey]) => leftKey.localeCompare(rightKey))
+        .map(([key, nested]) => [key, stableCanonicalJsonValue(nested)]),
+    )
+  }
+  return value
+}
+
+function hasExactKeys(
+  value: Record<string, unknown>,
+  expectedKeys: readonly string[],
+): boolean {
+  const actualKeys = Object.keys(value)
+  return actualKeys.length === expectedKeys.length &&
+    expectedKeys.every((key) => Object.hasOwn(value, key))
+}
+
+function isExactStringArray(value: unknown, expected: readonly string[]): boolean {
+  return Array.isArray(value) &&
+    value.length === expected.length &&
+    value.every((entry, index) => entry === expected[index])
+}
+
+function createStorytellingPlanningPreparationIdempotencyKey(
+  selectionDigest: string,
+): string {
+  const randomId = globalThis.crypto?.randomUUID?.() ??
+    `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
+  return `storytelling-plan-preparation:${selectionDigest.slice(0, 16)}:${randomId}`
+}
+
 async function performCanonicalPlanningSave(
   input: SaveCanonicalPlanningInput,
   initialDraft: CanonicalPlanningDraft,
+  storytellingPlanningPreparation?: CanonicalStorytellingPlanningPreparationSource,
 ): Promise<CanonicalPlanningPublicationResult> {
   const runtime = getFrontendApiClientStatus()
   if (runtime.mockOnly || !runtime.apiBaseUrl) {
@@ -249,6 +1057,7 @@ async function performCanonicalPlanningSave(
     },
     sourceMediaAssets: input.sourceMediaAssets,
     motionStudioStorytellingStylePlan: input.motionStudioStorytellingStylePlan,
+    motionStudioStorytellingPlanningPreparation: storytellingPlanningPreparation,
   })
   if (!authorityCompiled.ok) {
     return {
@@ -1106,12 +1915,8 @@ function isSha(value: unknown): value is string {
   return typeof value === 'string' && SHA256.test(value)
 }
 
-function containsForbiddenPrivateMaterial(value: unknown, key = ''): boolean {
-  if (key === 'pathOrCredentialReturned' || key === 'requestBodyReturned') return value !== false
-  if (/^(?:secret|credential|accessToken|refreshToken|signedUrl|publicUrl|localPath|absolutePath|relativePath|sourceBytes|bytesBase64|requestBody)$/i.test(key)) return true
-  if (Array.isArray(value)) return value.some((entry) => containsForbiddenPrivateMaterial(entry))
-  if (isRecord(value)) return Object.entries(value).some(([childKey, child]) => containsForbiddenPrivateMaterial(child, childKey))
-  return false
+function containsForbiddenPrivateMaterial(value: unknown): boolean {
+  return containsForbiddenCanonicalPlanningMaterial(value)
 }
 
 function safePlanningRequestId(seed: string, digest: string): string {

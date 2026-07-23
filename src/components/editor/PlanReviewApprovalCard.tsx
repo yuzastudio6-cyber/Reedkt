@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { Button } from '../Button'
 import type { EditPlan, SignatureSystem } from '../../types/reeditpro'
 
-type PlanReviewApprovalCardProps = {
+export type PlanReviewApprovalCardProps = {
   approved: boolean
   approvalAuthorityBlockedLabel?: string
   approvalAuthorityReady?: boolean
@@ -16,6 +16,7 @@ type PlanReviewApprovalCardProps = {
   onRemoveRealMotion: () => void
   onReviseSetup?: () => void
   plan: EditPlan
+  planSupplement?: ReactNode
 }
 
 const treatmentLabels: Record<SignatureSystem, string> = {
@@ -80,6 +81,7 @@ export function PlanReviewApprovalCard({
   onRemoveRealMotion,
   onReviseSetup,
   plan,
+  planSupplement,
 }: PlanReviewApprovalCardProps) {
   const estimate = plan.creditEstimate
   const frameConfirmed = plan.aspectRatioFramePlan?.status === 'confirmed'
@@ -144,6 +146,8 @@ export function PlanReviewApprovalCard({
             : 'Treatments stay restrained and follow the source and story.'}
         </p>
       </section>
+
+      {planSupplement}
 
       <div className="clean-plan-credit-note">
         <strong>{estimate.total} Reedit Credits</strong>

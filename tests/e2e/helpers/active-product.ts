@@ -1,6 +1,7 @@
 import type { Page } from '@playwright/test'
 import {
   buildLocalProjectHandoffStorageKey,
+  type LocalProductWorkflow,
   type LocalInternalProjectHandoff,
 } from '../../../src/lib/local-project-handoff'
 import {
@@ -8,6 +9,7 @@ import {
   type LocalProjectRecord,
 } from '../../../src/lib/local-projects'
 import { createProjectPersistenceScopeFingerprint } from '../../../src/lib/project-persistence-scope'
+import type { EditingCategory } from '../../../src/types/reeditpro'
 
 export const activeProductLocalTestScope = {
   authMode: 'local_test' as const,
@@ -30,6 +32,11 @@ export type ActiveProductRouteFixture = {
 export async function installActiveProductRouteFixture(
   page: Page,
   label: string,
+  options: {
+    category?: EditingCategory
+    preserveOnReload?: boolean
+    productWorkflow?: LocalProductWorkflow
+  } = {},
 ): Promise<ActiveProductRouteFixture> {
   const id = normalizeFixtureId(label)
   const projectId = `qa-project-${id}`
@@ -39,12 +46,14 @@ export async function installActiveProductRouteFixture(
     id: projectId,
     workspaceId: activeProductLocalTestScope.workspaceId,
     name: `Viewport project ${id}`,
-    category: 'storytelling',
+    category: options.category ?? 'storytelling',
     createdAt: now,
     updatedAt: now,
     persistence: 'browser_scoped_project_registry',
   }
-  const editPath = `/projects/${projectId}/edits/${editSessionId}`
+  const editPath = options.productWorkflow === 'motion_studio.storytelling'
+    ? `/motion-studio/storytelling/projects/${projectId}/edits/${editSessionId}`
+    : `/projects/${projectId}/edits/${editSessionId}`
   const edit: LocalInternalProjectHandoff = {
     id: editSessionId,
     workspaceId: activeProductLocalTestScope.workspaceId,
@@ -53,7 +62,7 @@ export async function installActiveProductRouteFixture(
     projectName: project.name,
     editName: `Upload gate ${id}`,
     category: project.category,
-    productWorkflow: 'video_edit',
+    productWorkflow: options.productWorkflow ?? 'video_edit',
     editorPath: editPath,
     stage: 'created',
     sourceFileCount: 0,
@@ -64,24 +73,29 @@ export async function installActiveProductRouteFixture(
   const scopeFingerprint = createProjectPersistenceScopeFingerprint(activeProductLocalTestScope)
 
   await page.addInitScript((input) => {
-    window.localStorage.setItem(input.projectStorageKey, JSON.stringify({
-      recordVersion: 2,
-      scope: input.scope,
-      scopeFingerprint: input.scopeFingerprint,
-      projects: [input.project],
-      savedAt: input.now,
-    }))
-    window.localStorage.setItem(input.handoffStorageKey, JSON.stringify({
-      recordVersion: 2,
-      scope: input.scope,
-      scopeFingerprint: input.scopeFingerprint,
-      handoffs: [input.edit],
-      savedAt: input.now,
-    }))
+    if (!input.preserveOnReload || !window.localStorage.getItem(input.projectStorageKey)) {
+      window.localStorage.setItem(input.projectStorageKey, JSON.stringify({
+        recordVersion: 2,
+        scope: input.scope,
+        scopeFingerprint: input.scopeFingerprint,
+        projects: [input.project],
+        savedAt: input.now,
+      }))
+    }
+    if (!input.preserveOnReload || !window.localStorage.getItem(input.handoffStorageKey)) {
+      window.localStorage.setItem(input.handoffStorageKey, JSON.stringify({
+        recordVersion: 2,
+        scope: input.scope,
+        scopeFingerprint: input.scopeFingerprint,
+        handoffs: [input.edit],
+        savedAt: input.now,
+      }))
+    }
   }, {
     edit,
     handoffStorageKey: buildLocalProjectHandoffStorageKey(activeProductLocalTestScope),
     now,
+    preserveOnReload: options.preserveOnReload === true,
     project,
     projectStorageKey: buildLocalProjectStorageKey(activeProductLocalTestScope),
     scope: activeProductLocalTestScope,

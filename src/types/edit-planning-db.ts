@@ -594,6 +594,7 @@ export interface ApprovedPlanSnapshot {
   approvedBy: string
   editBriefSnapshot?: import('./planning-context').PlanningBriefInput
   planningInputTrace?: import('./reeditpro').PlanningInputTrace
+  motionStudioStorytellingStylePlan?: import('./motion-studio').StorytellingMotionStylePlanReviewInput
   compiledIntent?: CompiledEditingIntent
   professionalEditingDirective?: ProfessionalEditingDirective
   settingsSnapshot: Partial<EditSettingsSnapshotRecord>

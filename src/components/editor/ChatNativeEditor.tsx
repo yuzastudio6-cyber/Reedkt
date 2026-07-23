@@ -155,8 +155,7 @@ import { ChatComposer } from './ChatComposer'
 import { ChatMessageList } from './ChatMessageList'
 import { ChatThread } from './ChatThread'
 import { CanonicalJourneyStatusCard } from './CanonicalJourneyStatusCard'
-import { CanonicalPlanApprovalStatus } from './CanonicalPlanApprovalStatus'
-import { CanonicalPlanningSaveStatus } from './CanonicalPlanningSaveStatus'
+import { CanonicalPlanReviewController } from './CanonicalPlanReviewController'
 import { canonicalPlanApprovalReadyForPresentedPlan } from '../../lib/canonical-plan-approval-readiness'
 import {
   CleanupSetup,
@@ -211,7 +210,6 @@ import { InlineVideoUnderstandingCard } from './InlineVideoUnderstandingCard'
 import { InlineVisualPreferenceCard } from './InlineVisualPreferenceCard'
 import type { FootagePrepMockPreviewReadyPayload } from './footage-prep'
 import { MinimalProjectHeader } from './MinimalProjectHeader'
-import { PlanReviewApprovalCard } from './PlanReviewApprovalCard'
 import { PreviewReadyCard } from './PreviewReadyCard'
 import { PrivateReviewPreparationStatusCard } from './PrivateReviewPreparationStatusCard'
 
@@ -4625,26 +4623,19 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
         return null
       case 'plan_review':
         return (
-          <PlanReviewApprovalCard
+          <CanonicalPlanReviewController
             approved={approvalRecordedForPresentation}
             approvalAuthorityBlockedLabel={canonicalApprovalBlockedLabel}
             approvalAuthorityReady={canonicalApprovalAuthorityReady}
-            approvalAuthorityStatus={canonicalPlanningBackendConnected ? (
-              <>
-                <CanonicalPlanningSaveStatus {...canonicalPlanningPublication} />
-                <CanonicalPlanApprovalStatus
-                  approving={canonicalPlanApproval.approving}
-                  result={canonicalPlanApproval.result}
-                />
-              </>
-            ) : undefined}
-            approvalPending={approvalChecking || canonicalPlanApproval.approving}
+            approvalChecking={approvalChecking}
             onApprove={handleApprove}
             onAskQuestion={handleAskPlanQuestion}
             onLowerCost={handleLowerCost}
             onRemoveRealMotion={handleSimplifyMotion}
             onReviseSetup={handleReviseSetupFromPlanReview}
+            planApproval={canonicalPlanningBackendConnected ? canonicalPlanApproval : undefined}
             plan={plan}
+            planningPublication={canonicalPlanningBackendConnected ? canonicalPlanningPublication : undefined}
             planningContextBlockedReason={planningContextApprovalBlockedReason}
             planningContextReady={planningContextReadyForApproval}
           />
@@ -5198,26 +5189,19 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
       case 'message-plan-review':
         return (
           <>
-            <PlanReviewApprovalCard
+            <CanonicalPlanReviewController
               approved={approvalRecordedForPresentation}
               approvalAuthorityBlockedLabel={canonicalApprovalBlockedLabel}
               approvalAuthorityReady={canonicalApprovalAuthorityReady}
-              approvalAuthorityStatus={canonicalPlanningBackendConnected ? (
-                <>
-                  <CanonicalPlanningSaveStatus {...canonicalPlanningPublication} />
-                  <CanonicalPlanApprovalStatus
-                    approving={canonicalPlanApproval.approving}
-                    result={canonicalPlanApproval.result}
-                  />
-                </>
-              ) : undefined}
-              approvalPending={approvalChecking || canonicalPlanApproval.approving}
+              approvalChecking={approvalChecking}
               onApprove={handleApprove}
               onAskQuestion={handleAskPlanQuestion}
               onLowerCost={handleLowerCost}
               onRemoveRealMotion={handleSimplifyMotion}
               onReviseSetup={handleReviseSetupFromPlanReview}
+              planApproval={canonicalPlanningBackendConnected ? canonicalPlanApproval : undefined}
               plan={plan}
+              planningPublication={canonicalPlanningBackendConnected ? canonicalPlanningPublication : undefined}
               planningContextBlockedReason={planningContextApprovalBlockedReason}
               planningContextReady={planningContextReadyForApproval}
             />

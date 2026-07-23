@@ -37,6 +37,9 @@ export function AppShell({
 
   return (
     <div className={`app-shell app-shell-${chrome}`} data-testid="app-shell">
+      <a className="skip-link" data-testid="skip-to-main-content" href="#app-main-content">
+        Skip to main content
+      </a>
       <aside className="sidebar" data-testid="app-sidebar">
         <BrandLogo />
         <nav aria-label="Desktop app navigation">
@@ -64,7 +67,13 @@ export function AppShell({
                 <small>Later</small>
               </button>
             ) : (
-              <Link aria-current={isActive ? 'page' : undefined} className={`sidebar-link ${isActive ? 'active' : ''}`} key={item.to + item.label} to={item.to}>
+              <Link
+                aria-current={isActive ? 'page' : undefined}
+                className={`sidebar-link ${isActive ? 'active' : ''}`}
+                data-testid={item.label === 'Edit Preferences' ? 'edit-preferences-sidebar-link' : undefined}
+                key={item.to + item.label}
+                to={item.to}
+              >
                 <item.icon aria-hidden="true" size={18} />
                 <span>{item.label}</span>
               </Link>
@@ -96,7 +105,7 @@ export function AppShell({
           </Button>
         </section>
       </aside>
-      <main className="app-main" data-testid="app-main">
+      <main className="app-main" data-testid="app-main" id="app-main-content" tabIndex={-1}>
         {showStandardChrome && (
           <header className="topbar">
             <div className="topbar-copy">

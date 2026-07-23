@@ -53,6 +53,7 @@ export const appNav: NavItem[] = [
   { label: 'Home', to: '/dashboard', icon: Home },
   { label: 'Projects', to: '/projects', icon: FolderKanban },
   { label: 'Edit Videos', to: '/edit-videos', icon: Clapperboard },
+  { label: 'Motion Studio', to: '/motion-studio', icon: Move3D },
   { label: 'Edit Preferences', to: '/preferences', icon: Settings },
 ]
 

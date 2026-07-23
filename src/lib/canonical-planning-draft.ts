@@ -6,6 +6,7 @@ import type {
   TrimDecisionItem,
 } from '../types/reeditpro'
 import type { ProfessionalExportCreditCoverage } from '../types/professional-export'
+import type { PrepareCanonicalStorytellingPlanningResponse } from '../types/motion-studio'
 import { REEDITPRO_SOURCE_MEDIA_MAX_BYTES } from '../types/large-media'
 import {
   CANONICAL_PRIVATE_COMPOSITION_MINIMUM_FRAMES,
@@ -45,9 +46,12 @@ const SUPPORTED_PRIVATE_4K_MASTER_FRAMES = new Set([
   '2160x2700',
   '2880x2160',
 ])
-const FORBIDDEN_OUTBOUND_KEY = /^(?:secret|credential|accessToken|refreshToken|signedUrl|publicUrl|storagePath|localPath|absolutePath|relativePath|sourceBytes|bytesBase64|requestBody)$/i
-
 type JsonRecord = Record<string, unknown>
+
+export type CanonicalStorytellingPlanningPreparationSource = Extract<
+  PrepareCanonicalStorytellingPlanningResponse['preparation'],
+  { state: 'ready_for_canonical_plan' }
+>
 
 export type CanonicalStorytellingStylePlanReviewSource = {
   schemaVersion: 'motion-studio.storytelling-style-plan-review-input.v1'
@@ -262,15 +266,17 @@ export type CanonicalPlanComponentsDraft = {
   }
   sourceSequence: CanonicalSourceAuthorityItem[]
   sourceCleanupSummary: {
-    status: 'confirmed'
+    status: 'confirmed' | 'not_applicable'
     cleanupPreference: string
-    trimValidationStatus: 'passed' | 'warning'
-    meaningValidationStatus: 'passed' | 'warning'
+    trimValidationStatus: 'passed' | 'warning' | 'not_applicable'
+    meaningValidationStatus: 'passed' | 'warning' | 'not_applicable'
     userReviewRequired: false
+    reason?: 'idea_first_storytelling_has_no_uploaded_media_source'
   }
   sourceCleanupPlan: {
-    status: 'confirmed'
+    status: 'confirmed' | 'not_applicable'
     decisions: CanonicalSourceCleanupDecisionDraft[]
+    reason?: 'idea_first_storytelling_has_no_uploaded_media_source'
   }
   masterTimingPlan: JsonRecord
   captionVisualCueTimingPlan: JsonRecord
@@ -300,6 +306,7 @@ export type CanonicalPlanComponentsDraft = {
   }
   fallbackPolicy: JsonRecord
   motionStudioStorytellingStyleAuthority?: CanonicalStorytellingStyleAuthorityDraft
+  motionStudioStorytellingProductionAuthority?: JsonRecord
 }
 
 export type CanonicalSourceCleanupDecisionDraft = {
@@ -328,7 +335,14 @@ export type CanonicalExpectedOutputDraft = {
 
 export type CanonicalWorkItemDraft = {
   workItemKey: string
-  workItemType: 'validate_approved_snapshot' | 'prepare_source_trim' | 'custom' | 'render_final_export' | 'run_final_qa'
+  workItemType:
+    | 'validate_approved_snapshot'
+    | 'prepare_source_trim'
+    | 'custom'
+    | 'render_remotion_preview'
+    | 'render_final_export'
+    | 'run_asset_qa'
+    | 'run_final_qa'
   workerClass: string
   executionInput: JsonRecord
   sourceSequenceItemIds: string[]
@@ -465,6 +479,7 @@ export function buildCanonicalPlanningDraft(input: {
   plannerInput: PlannerInput
   sourceMediaAssets: ApprovedEditExecutionUploadedMediaSourceAssetClientInput[]
   motionStudioStorytellingStylePlan?: CanonicalStorytellingStylePlanReviewSource
+  motionStudioStorytellingPlanningPreparation?: CanonicalStorytellingPlanningPreparationSource
 }): CanonicalPlanningDraftResult {
   const errors: string[] = []
   const { plan, plannerInput } = input
@@ -478,24 +493,57 @@ export function buildCanonicalPlanningDraft(input: {
       errors.push('Refresh the exact Storytelling style direction before canonical planning can continue.')
     }
   }
-  const orderedSourceItems = buildSourceItems(input.sourceMediaAssets, plannerInput, errors)
+  const storytellingPlanning = input.motionStudioStorytellingPlanningPreparation
+  const ideaFirstStorytelling = Boolean(storytellingPlanning)
+  if (storytellingPlanning) {
+    const authority = storytellingPlanning.authority
+    if (
+      !motionStudioStorytellingStyleAuthority ||
+      authority.workspaceId !== motionStudioStorytellingStyleAuthority.workspaceId ||
+      authority.projectId !== motionStudioStorytellingStyleAuthority.projectId ||
+      authority.editSessionId !== motionStudioStorytellingStyleAuthority.editSessionId ||
+      authority.productionId !== motionStudioStorytellingStyleAuthority.productionId ||
+      authority.schemaVersion !==
+        'canonical-motion-studio-storytelling-production-authority-v1' ||
+      authority.componentKey !== 'motionStudioStorytellingProductionAuthority' ||
+      !SHA256.test(authority.authorityHash) ||
+      !SHA256.test(authority.sourceProposal.componentProposalDigest)
+    ) {
+      errors.push('Refresh the exact source-verified Storytelling production authority before planning.')
+    }
+    if (input.sourceMediaAssets.length !== 0 || plannerInput.clips.length !== 0) {
+      errors.push('Idea-first Storytelling cannot combine fabricated or uploaded source authority with its private animatic plan.')
+    }
+  }
+  const orderedSourceItems = buildSourceItems(
+    input.sourceMediaAssets,
+    plannerInput,
+    errors,
+    ideaFirstStorytelling,
+  )
 
   if (!plannerInput.aspectRatioConfirmed || plannerInput.aspectRatio === 'let_ai_decide') {
     errors.push('Confirm the output frame before saving this plan to the canonical workflow.')
   }
-  if (!plannerInput.sourceOrderConfirmed) {
+  if (!ideaFirstStorytelling && !plannerInput.sourceOrderConfirmed) {
     errors.push('Confirm the source order before saving this plan to the canonical workflow.')
   }
-  if (!plannerInput.cleanupPreferenceConfirmed || !plannerInput.cleanupPreference) {
+  if (
+    !ideaFirstStorytelling &&
+    (!plannerInput.cleanupPreferenceConfirmed || !plannerInput.cleanupPreference)
+  ) {
     errors.push('Confirm source cleanup before saving this plan to the canonical workflow.')
   }
-  if (!plan.masterTimingPlan || plan.masterTimingPlan.status !== 'ready') {
+  if (!ideaFirstStorytelling && (!plan.masterTimingPlan || plan.masterTimingPlan.status !== 'ready')) {
     errors.push('The frame-accurate timing plan must be ready before canonical planning can continue.')
   }
-  if (!plan.timingValidationPlan || plan.timingValidationPlan.approvalBlocked) {
+  if (
+    !ideaFirstStorytelling &&
+    (!plan.timingValidationPlan || plan.timingValidationPlan.approvalBlocked)
+  ) {
     errors.push('Resolve the blocking timing validation before canonical planning can continue.')
   }
-  if (plan.trimReviewPlan?.approvalBlocked) {
+  if (!ideaFirstStorytelling && plan.trimReviewPlan?.approvalBlocked) {
     errors.push(plan.trimReviewPlan.approvalBlockReasons[0] ?? 'Resolve source meaning review before canonical planning can continue.')
   }
   if (!plan.compiledIntent || !plan.professionalEditingDirective) {
@@ -517,16 +565,18 @@ export function buildCanonicalPlanningDraft(input: {
 
   if (
     errors.length > 0 ||
-    !plan.masterTimingPlan ||
-    !plannerInput.cleanupPreference ||
+    (!ideaFirstStorytelling && !plan.masterTimingPlan) ||
+    (!ideaFirstStorytelling && !plannerInput.cleanupPreference) ||
     !professionalExportCoverage ||
     !approvedExportAspectRatio
   ) {
     return { ok: false, errors: unique(errors) }
   }
 
-  const fps = plan.masterTimingPlan.timingBase.fps
-  const totalFrames = plan.masterTimingPlan.timingBase.totalFrames
+  const fps = storytellingPlanning?.components.timingSummary.fps ??
+    plan.masterTimingPlan!.timingBase.fps
+  const totalFrames = storytellingPlanning?.components.timingSummary.totalFrames ??
+    plan.masterTimingPlan!.timingBase.totalFrames
   if (!Number.isInteger(totalFrames) || totalFrames <= 0 || !Number.isFinite(fps) || fps <= 0) {
     return { ok: false, errors: ['The approved timing base is not frame-safe.'] }
   }
@@ -551,44 +601,76 @@ export function buildCanonicalPlanningDraft(input: {
     }
   }
 
-  const cleanup = buildCleanupDecisions({
-    plan,
-    plannerInput,
-    orderedSourceItems,
-    sourceMediaAssets: input.sourceMediaAssets,
-    fps,
-  })
+  const cleanup = ideaFirstStorytelling
+    ? { ok: true as const, decisions: [] as CanonicalSourceCleanupDecisionDraft[] }
+    : buildCleanupDecisions({
+        plan,
+        plannerInput,
+        orderedSourceItems,
+        sourceMediaAssets: input.sourceMediaAssets,
+        fps,
+      })
   if (!cleanup.ok) return cleanup
 
-  const segments = buildSegments(plan, totalFrames)
+  const segments = ideaFirstStorytelling
+    ? {
+        ok: true as const,
+        segments: storytellingPlanning!.components.segments.map((segment) => ({
+          ...segment,
+          operationIds: [...segment.operationIds],
+        })),
+      }
+    : buildSegments(plan, totalFrames)
   if (!segments.ok) return segments
-  const approvedVoiceDeliverySources = buildApprovedVoiceDeliverySources({
-    plan,
-    plannerInput,
-    sourceItems: orderedSourceItems,
-    sourceMediaAssets: input.sourceMediaAssets,
-    cleanupDecisions: cleanup.decisions,
-  })
-  const approvedColorDeliverySources = buildApprovedColorDeliverySources({
-    plan,
-    plannerInput,
-    sourceItems: orderedSourceItems,
-    cleanupDecisions: cleanup.decisions,
-  })
-  const approvedHardCutTransitions = buildApprovedHardCutTransitions({
-    plan,
-    sourceItems: orderedSourceItems,
-    segments: segments.segments,
-    fps,
-    totalFrames,
-  })
+  const approvedVoiceDeliverySources = ideaFirstStorytelling
+    ? null
+    : buildApprovedVoiceDeliverySources({
+        plan,
+        plannerInput,
+        sourceItems: orderedSourceItems,
+        sourceMediaAssets: input.sourceMediaAssets,
+        cleanupDecisions: cleanup.decisions,
+      })
+  const approvedColorDeliverySources = ideaFirstStorytelling
+    ? null
+    : buildApprovedColorDeliverySources({
+        plan,
+        plannerInput,
+        sourceItems: orderedSourceItems,
+        cleanupDecisions: cleanup.decisions,
+      })
+  const approvedHardCutTransitions = ideaFirstStorytelling
+    ? []
+    : buildApprovedHardCutTransitions({
+        plan,
+        sourceItems: orderedSourceItems,
+        segments: segments.segments,
+        fps,
+        totalFrames,
+      })
 
   const frame = canonicalFourKMasterFrame(approvedExportAspectRatio)
-  const timingValidationPlan = plan.timingValidationPlan
+  if (storytellingPlanning && (
+    storytellingPlanning.authority.confirmedOutputFrame.width !== frame.width ||
+    storytellingPlanning.authority.confirmedOutputFrame.height !== frame.height ||
+    storytellingPlanning.authority.confirmedOutputFrame.aspectRatio !== approvedExportAspectRatio ||
+    storytellingPlanning.authority.confirmedOutputFrame.frameRate !== fps ||
+    storytellingPlanning.authority.confirmedOutputFrame.durationFrames !== totalFrames
+  )) {
+    return {
+      ok: false,
+      errors: ['The approved Storytelling script frame or timing changed; create a fresh plan and 4K estimate.'],
+    }
+  }
+  const timingValidationPlan = ideaFirstStorytelling
+    ? storytellingPlanning!.components.timingValidationPlan
+    : plan.timingValidationPlan
   if (!timingValidationPlan) {
     return { ok: false, errors: ['The timing validation result is missing.'] }
   }
-  const timingStatus = timingValidationPlan.overallStatus === 'warning' ? 'warning' : 'passed'
+  const timingStatus = ideaFirstStorytelling || timingValidationPlan.overallStatus === 'warning'
+    ? 'warning'
+    : 'passed'
   const meaningStatus = plan.trimReviewPlan?.meaningPreservationValidationPlan.status === 'warning' ? 'warning' : 'passed'
   const preferenceSnapshotId = safeOptionalKey(plannerInput.preferenceSnapshotId)
   const preferenceRevision = Number.isInteger(plannerInput.currentEditPreferenceRevision) &&
@@ -608,7 +690,9 @@ export function buildCanonicalPlanningDraft(input: {
   const sourceSliceMezzanineFinalizationRequired =
     orderedSourceItems.length === 1 &&
     totalFrames > CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES
-  const toolStrategy = {
+  const toolStrategy = ideaFirstStorytelling
+    ? storytellingPlanning!.components.toolStrategyPlan
+    : {
     schemaVersion: 'canonical-browser-tool-strategy-projection-v1',
     toolIds: unique([
       'libass',
@@ -649,79 +733,129 @@ export function buildCanonicalPlanningDraft(input: {
       ...(preferenceFingerprintSha256 ? { preferenceFingerprintSha256 } : {}),
     },
     sourceSequence: orderedSourceItems.map((item) => ({ ...item })),
-    sourceCleanupSummary: {
-      status: 'confirmed',
-      cleanupPreference: plannerInput.cleanupPreference,
-      trimValidationStatus: plan.sourceCleanupPlan?.status === 'confirmed' ? 'passed' : 'warning',
-      meaningValidationStatus: meaningStatus,
-      userReviewRequired: false,
-    },
-    sourceCleanupPlan: { status: 'confirmed', decisions: cleanup.decisions },
-    masterTimingPlan: toJsonRecord(plan.masterTimingPlan, { status: 'ready' }),
-    captionVisualCueTimingPlan: toJsonRecord(plan.captionVisualCueTimingPlan, { status: 'not_needed' }),
-    soundSyncTransitionTimingPlan: toJsonRecord(plan.soundSyncTransitionTimingPlan, { status: 'not_needed', speechPriority: true }),
-    timingValidationPlan: toJsonRecord(timingValidationPlan, { overallStatus: timingStatus, approvalBlocked: false }),
-    timingSummary: { validationStatus: timingStatus, approvalBlocked: false, fps, totalFrames },
+    sourceCleanupSummary: ideaFirstStorytelling
+      ? {
+          status: 'not_applicable',
+          cleanupPreference: 'idea_first_not_applicable',
+          trimValidationStatus: 'not_applicable',
+          meaningValidationStatus: 'not_applicable',
+          userReviewRequired: false,
+          reason: 'idea_first_storytelling_has_no_uploaded_media_source',
+        }
+      : {
+          status: 'confirmed',
+          cleanupPreference: plannerInput.cleanupPreference!,
+          trimValidationStatus: plan.sourceCleanupPlan?.status === 'confirmed' ? 'passed' : 'warning',
+          meaningValidationStatus: meaningStatus,
+          userReviewRequired: false,
+        },
+    sourceCleanupPlan: ideaFirstStorytelling
+      ? {
+          status: 'not_applicable',
+          decisions: [],
+          reason: 'idea_first_storytelling_has_no_uploaded_media_source',
+        }
+      : { status: 'confirmed', decisions: cleanup.decisions },
+    masterTimingPlan: ideaFirstStorytelling
+      ? { ...storytellingPlanning!.components.masterTimingPlan }
+      : toJsonRecord(plan.masterTimingPlan, { status: 'ready' }),
+    captionVisualCueTimingPlan: ideaFirstStorytelling
+      ? { ...storytellingPlanning!.components.captionVisualCueTimingPlan }
+      : toJsonRecord(plan.captionVisualCueTimingPlan, { status: 'not_needed' }),
+    soundSyncTransitionTimingPlan: ideaFirstStorytelling
+      ? { ...storytellingPlanning!.components.soundSyncTransitionTimingPlan }
+      : toJsonRecord(plan.soundSyncTransitionTimingPlan, { status: 'not_needed', speechPriority: true }),
+    timingValidationPlan: ideaFirstStorytelling
+      ? { ...storytellingPlanning!.components.timingValidationPlan }
+      : toJsonRecord(timingValidationPlan, { overallStatus: timingStatus, approvalBlocked: false }),
+    timingSummary: ideaFirstStorytelling
+      ? { ...storytellingPlanning!.components.timingSummary }
+      : { validationStatus: timingStatus, approvalBlocked: false, fps, totalFrames },
     segments: segments.segments,
-    visualAssetPlan: {
-      status: (plan.visualAssetPlan?.length ?? 0) > 0 ? 'planned' : 'not_needed',
-      assets: toJsonValue(plan.visualAssetPlan ?? []),
-      randomBrollAllowed: false,
-    },
-    colorPipelinePlan: toJsonRecord(plan.colorPipelinePlan, { status: 'not_provided' }),
-    rendererPlan: {
-      renderer: 'remotion',
-      frameOwnedByRenderer: true,
-      renderPurpose: 'private_4k_delivery_master_v1',
-      deliveryProfileId: 'uhd_2160',
-      sourceQualityPolicy: 'immutable_source_master_no_proxy_v1',
-      reviewUsesExactMasterArtifact: true,
-      composition: toJsonValue(plan.rendererCompositionPlan ?? {}),
-      strategy: toJsonValue(plan.renderStrategyPlan ?? {}),
-    },
+    visualAssetPlan: ideaFirstStorytelling
+      ? { ...storytellingPlanning!.components.visualAssetPlan }
+      : {
+          status: (plan.visualAssetPlan?.length ?? 0) > 0 ? 'planned' : 'not_needed',
+          assets: toJsonValue(plan.visualAssetPlan ?? []),
+          randomBrollAllowed: false,
+        },
+    colorPipelinePlan: ideaFirstStorytelling
+      ? { ...storytellingPlanning!.components.colorPipelinePlan }
+      : toJsonRecord(plan.colorPipelinePlan, { status: 'not_provided' }),
+    rendererPlan: ideaFirstStorytelling
+      ? { ...storytellingPlanning!.components.rendererPlan }
+      : {
+          renderer: 'remotion',
+          frameOwnedByRenderer: true,
+          renderPurpose: 'private_4k_delivery_master_v1',
+          deliveryProfileId: 'uhd_2160',
+          sourceQualityPolicy: 'immutable_source_master_no_proxy_v1',
+          reviewUsesExactMasterArtifact: true,
+          composition: toJsonValue(plan.rendererCompositionPlan ?? {}),
+          strategy: toJsonValue(plan.renderStrategyPlan ?? {}),
+        },
     toolStrategyPlan: toolStrategy,
-    qaPlan: toJsonRecord(plan.editQAPlan, { checks: plan.qaChecks ?? [] }),
-    qaSummary: { status: timingStatus, approvalBlocked: false },
-    providerPolicy: {
-      veoPolicy: plannerInput.editLevel === 'premium' ? 'final_fallback_only' : 'forbidden',
-      approvedRoutes: [],
-    },
-    fallbackPolicy: {
-      unapprovedFallbackAllowed: false,
-      policy: toJsonValue(plan.agentQAFallbackPlan ?? {}),
-    },
+    qaPlan: ideaFirstStorytelling
+      ? { ...storytellingPlanning!.components.qaPlan }
+      : toJsonRecord(plan.editQAPlan, { checks: plan.qaChecks ?? [] }),
+    qaSummary: ideaFirstStorytelling
+      ? { ...storytellingPlanning!.components.qaSummary }
+      : { status: timingStatus, approvalBlocked: false },
+    providerPolicy: ideaFirstStorytelling
+      ? { ...storytellingPlanning!.components.providerPolicy }
+      : {
+          veoPolicy: plannerInput.editLevel === 'premium' ? 'final_fallback_only' : 'forbidden',
+          approvedRoutes: [],
+        },
+    fallbackPolicy: ideaFirstStorytelling
+      ? { ...storytellingPlanning!.components.fallbackPolicy }
+      : {
+          unapprovedFallbackAllowed: false,
+          policy: toJsonValue(plan.agentQAFallbackPlan ?? {}),
+        },
     ...(motionStudioStorytellingStyleAuthority
       ? {
           motionStudioStorytellingStyleAuthority,
         }
       : {}),
+    ...(storytellingPlanning
+      ? {
+          motionStudioStorytellingProductionAuthority:
+            structuredClone(storytellingPlanning.authority),
+        }
+      : {}),
   }
-  if (containsForbiddenOutboundMaterial(components)) {
+  if (containsForbiddenCanonicalPlanningMaterial({
+    components,
+    workItems: storytellingPlanning?.workItems ?? [],
+  })) {
     return {
       ok: false,
       errors: ['The plan contains private path, credential, or source-byte material that cannot cross the browser planning boundary.'],
     }
   }
 
-  const publicationBlockers = privateReviewPublicationBlockers({
-    plan,
-    plannerInput,
-    orderedSourceItems,
-    sourceMediaAssets: input.sourceMediaAssets,
-    frame,
-    fps,
-    totalFrames,
-    cleanupDecisions: cleanup.decisions,
-    segments: segments.segments,
-    approvedVoiceDeliverySources,
-    approvedColorDeliverySources,
-    approvedHardCutTransitions,
-  })
+  const publicationBlockers = ideaFirstStorytelling
+    ? []
+    : privateReviewPublicationBlockers({
+        plan,
+        plannerInput,
+        orderedSourceItems,
+        sourceMediaAssets: input.sourceMediaAssets,
+        frame,
+        fps,
+        totalFrames,
+        cleanupDecisions: cleanup.decisions,
+        segments: segments.segments,
+        approvedVoiceDeliverySources,
+        approvedColorDeliverySources,
+        approvedHardCutTransitions,
+      })
   if (
-    !preferenceSnapshotId
-    || preferenceRevision === undefined
-    || preferencePlanningInputRevision === undefined
-    || !preferenceFingerprintSha256
+    !preferenceSnapshotId ||
+    preferenceRevision === undefined ||
+    preferencePlanningInputRevision === undefined ||
+    !preferenceFingerprintSha256
   ) {
     publicationBlockers.push(
       'Refresh the canonical exact-edit preference authority before publishing this plan.',
@@ -731,19 +865,27 @@ export function buildCanonicalPlanningDraft(input: {
   if (!canonicalEstimate.ok) publicationBlockers.push(canonicalEstimate.blocker)
   const publication = publicationBlockers.length === 0 && canonicalEstimate.ok
     ? {
-        canonicalPlan: buildPrivateReviewCanonicalPlan({
-          plan,
-          components,
-          estimate: canonicalEstimate.estimate,
-          sourceItems: orderedSourceItems,
-          cleanupDecisions: cleanup.decisions,
-          frame,
-          fps: fps as 24 | 30,
-          totalFrames,
-          approvedVoiceDeliverySources,
-          approvedColorDeliverySources,
-          approvedHardCutTransitions: approvedHardCutTransitions ?? [],
-        }),
+        canonicalPlan: ideaFirstStorytelling
+          ? {
+              schemaVersion: CANONICAL_PRIVATE_PLAN_SCHEMA_VERSION,
+              components,
+              estimate: canonicalEstimate.estimate,
+              workItems: storytellingPlanning!.workItems.map((workItem) =>
+                structuredClone(workItem)),
+            }
+          : buildPrivateReviewCanonicalPlan({
+              plan,
+              components,
+              estimate: canonicalEstimate.estimate,
+              sourceItems: orderedSourceItems,
+              cleanupDecisions: cleanup.decisions,
+              frame,
+              fps: fps as 24 | 30,
+              totalFrames,
+              approvedVoiceDeliverySources,
+              approvedColorDeliverySources,
+              approvedHardCutTransitions: approvedHardCutTransitions ?? [],
+            }),
         planningRequestIdSeed: safeKey(plan.planningInputTrace?.fingerprint ?? plan.planningContextTrace?.planningContextId ?? 'named-edit-plan', 'named-edit-plan'),
       }
     : undefined
@@ -766,7 +908,9 @@ function buildSourceItems(
   sourceMediaAssets: ApprovedEditExecutionUploadedMediaSourceAssetClientInput[],
   plannerInput: PlannerInput,
   errors: string[],
+  ideaFirstStorytelling = false,
 ): CanonicalSourceAuthorityItem[] {
+  if (ideaFirstStorytelling) return []
   const durable = sourceMediaAssets
     .filter((asset) => asset.privateArtifact === true && asset.publicUrl === null && asset.signedUrl === null)
     .sort((left, right) => left.uploadedOrder - right.uploadedOrder)
@@ -2621,11 +2765,66 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value))
 }
 
-function containsForbiddenOutboundMaterial(value: unknown, key = ''): boolean {
-  if (FORBIDDEN_OUTBOUND_KEY.test(key)) return true
-  if (Array.isArray(value)) return value.some((entry) => containsForbiddenOutboundMaterial(entry))
+export function containsForbiddenCanonicalPlanningMaterial(
+  value: unknown,
+  key = '',
+): boolean {
+  if (
+    key === 'pathOrCredentialReturned' ||
+    key === 'requestBodyReturned'
+  ) return value !== false
+  if (isForbiddenCanonicalPlanningKey(key)) return true
+  if (Array.isArray(value)) {
+    return value.some((entry) =>
+      containsForbiddenCanonicalPlanningMaterial(entry))
+  }
   if (isRecord(value)) {
-    return Object.entries(value).some(([childKey, child]) => containsForbiddenOutboundMaterial(child, childKey))
+    return Object.entries(value).some(([childKey, child]) =>
+      containsForbiddenCanonicalPlanningMaterial(child, childKey))
+  }
+  return false
+}
+
+function isForbiddenCanonicalPlanningKey(key: string): boolean {
+  const normalized = key.replace(/[^A-Za-z0-9]/g, '').toLowerCase()
+  if (!normalized) return false
+  if (
+    normalized.includes('secret') ||
+    normalized.includes('credential') ||
+    normalized.includes('url') ||
+    normalized.includes('path') ||
+    [
+      'apikey',
+      'accesstoken',
+      'refreshtoken',
+      'idtoken',
+      'servicetoken',
+      'authorizationheader',
+      'authheader',
+    ].some((fragment) => normalized.includes(fragment))
+  ) return true
+  if ([
+    'accesstoken',
+    'refreshtoken',
+    'idtoken',
+    'servicetoken',
+    'apitoken',
+    'apikey',
+    'authorization',
+    'cookie',
+    'setcookie',
+    'sourcebytes',
+    'rawbytes',
+    'bytesbase64',
+    'binarypayload',
+    'requestbody',
+    'rawprompt',
+  ].includes(normalized)) return true
+  if (normalized.startsWith('provider')) {
+    const providerField = normalized.slice('provider'.length)
+    return /^(?:url|endpoint|request(?!count$)|response|prompt|headers?|body|payload|secret|credential|token)/.test(
+      providerField,
+    )
   }
   return false
 }

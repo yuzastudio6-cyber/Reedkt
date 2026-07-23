@@ -136,13 +136,159 @@ export interface OfflineFfprobeExecutionResult {
   }
 }
 
-export interface OfflineFfmpegExecutionResult {
+export interface OfflineGeneratedMusicCandidateNormalizeExecutionResult {
   resultArtifact: {
-    mimeType: 'video/x-nut' | 'video/x-matroska' | 'audio/wav'
+    mimeType: 'audio/wav'
     bytes: Buffer
     sha256: string
     byteLength: number
+    codec: 'pcm_s16le'
+    sampleRateHertz: 48_000
+    channelCount: 2
+    sampleCountPerChannel: number
+    durationMilliseconds: number
   }
+  evidence: {
+    toolId: 'ffmpeg'
+    operationId: 'tool.ffmpeg.execute_approved_media_recipe.v1'
+    binaryVersion: '8.1.2'
+    requestEnvelopeSha256: string
+    sourceSha256: string
+    resultSha256: string
+    semanticEvidence: Readonly<Record<string, unknown>>
+    confinement: OfflineMediaBinaryConfinementEvidence
+    containerExitCode: 0
+    oomKilled: false
+  }
+  image: OfflineMediaBinaryImageEvidence
+  attestation: { recordId: string; completedAt: string; attestationHash: string }
+  readiness: {
+    privateInternalOnly: true
+    productReady: false
+    externalBetaReady: false
+    productionReady: false
+  }
+}
+
+export interface OfflineSynchronizedFoleyCandidateNormalizeExecutionResult {
+  resultArtifact: {
+    mimeType: 'audio/wav'
+    bytes: Buffer
+    sha256: string
+    byteLength: number
+    codec: 'pcm_s16le'
+    sampleRateHertz: 48_000
+    channelCount: 2
+    sampleCountPerChannel: number
+    durationFrames: number
+    fps: 24 | 30
+    durationMilliseconds: number
+  }
+  evidence: {
+    toolId: 'ffmpeg'
+    operationId: 'tool.ffmpeg.execute_approved_media_recipe.v1'
+    binaryVersion: '8.1.2'
+    requestEnvelopeSha256: string
+    sourceSha256: string
+    resultSha256: string
+    semanticEvidence: Readonly<Record<string, unknown>>
+    confinement: OfflineMediaBinaryConfinementEvidence
+    containerExitCode: 0
+    oomKilled: false
+  }
+  image: OfflineMediaBinaryImageEvidence
+  attestation: { recordId: string; completedAt: string; attestationHash: string }
+  readiness: {
+    privateInternalOnly: true
+    productReady: false
+    externalBetaReady: false
+    productionReady: false
+  }
+}
+
+export interface OfflineStorytellingAudioNormalizeExecutionResult {
+  resultArtifact: {
+    mimeType: 'audio/wav'
+    bytes: Buffer
+    sha256: string
+    byteLength: number
+    sampleRateHertz: 48_000
+    channelCount: 2
+    sampleCountPerChannel: number
+  }
+  evidence: {
+    toolId: 'ffmpeg'
+    operationId: 'tool.ffmpeg.normalize_storytelling_audio_mix.v1'
+    binaryVersion: '8.1.2'
+    requestEnvelopeSha256: string
+    sourceSha256: string
+    resultSha256: string
+    semanticEvidence: Readonly<Record<string, unknown>>
+    confinement: OfflineMediaBinaryConfinementEvidence
+    containerExitCode: 0
+    oomKilled: false
+  }
+  image: OfflineMediaBinaryImageEvidence
+  attestation: { recordId: string; completedAt: string; attestationHash: string }
+  readiness: {
+    privateInternalOnly: true
+    productReady: false
+    externalBetaReady: false
+    productionReady: false
+  }
+}
+
+export interface OfflineStorytellingAudioMeasureExecutionResult {
+  resultJson: {
+    mimeType: 'application/json'
+    bytes: Buffer
+    document: {
+      measurementProfileId: 'motion_studio_storytelling_ebur128_v1'
+      integratedLufs: number
+      loudnessRangeLu: number
+      truePeakDbfs: number
+    }
+    sha256: string
+    byteLength: number
+  }
+  evidence: {
+    toolId: 'ffmpeg'
+    operationId: 'tool.ffmpeg.measure_storytelling_audio_mix.v1'
+    binaryVersion: '8.1.2'
+    requestEnvelopeSha256: string
+    sourceSha256: string
+    resultSha256: string
+    semanticEvidence: Readonly<Record<string, unknown>>
+    confinement: OfflineMediaBinaryConfinementEvidence
+    containerExitCode: 0
+    oomKilled: false
+  }
+  image: OfflineMediaBinaryImageEvidence
+  attestation: { recordId: string; completedAt: string; attestationHash: string }
+  readiness: {
+    privateInternalOnly: true
+    productReady: false
+    externalBetaReady: false
+    productionReady: false
+  }
+}
+
+export interface OfflineFfmpegExecutionResult {
+  resultArtifact:
+    | {
+        mimeType: 'audio/wav'
+        bytes: Buffer
+        sha256: string
+        byteLength: number
+        sampleCountPerChannel: number
+        durationMilliseconds: number
+      }
+    | {
+        mimeType: 'video/x-nut' | 'video/x-matroska'
+        bytes: Buffer
+        sha256: string
+        byteLength: number
+      }
   evidence: {
     toolId: 'ffmpeg'
     operationId: 'tool.ffmpeg.execute_approved_media_recipe.v1'

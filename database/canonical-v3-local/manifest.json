@@ -147,7 +147,7 @@
     },
     {
       "path": "tests/008_edit_reference_application_preparation.sql",
-      "sha256": "e8bc164c3ccbf0118d8265a8fa82f599086b33a0c5693310cc2b51e7adeb02ad"
+      "sha256": "a5c28b88e79785e049ff8c0f8f859cd68ab6c895995423d2c1e8601a0b8c4b02"
     },
     {
       "path": "tests/009_recovery_restore_assertions.sql",
@@ -693,11 +693,11 @@
     },
     {
       "path": "tests/e2e/edit-preferences-current-edit.spec.ts",
-      "sha256": "891be4792bcc757053ead13556d236c352a3fc538b8f3634e911eaba73329b9f"
+      "sha256": "9a4cf6caba74c0ae639413f662daffabf5205707190b15f7614049bd8a8feab7"
     },
     {
       "path": "tests/e2e/edit-reference-canonical-real-file-flow.spec.ts",
-      "sha256": "ba95b123b100b2782e1893192d028a42b3df53b4648f19bb419576fc5a929adc"
+      "sha256": "65b6da4a5fbb338829155152f45e32f07b1130b45c3dcbf54fd9a4101e7ce094"
     },
     {
       "path": "tests/e2e/edit-reference-canonical-v3-local-browser.spec.ts",

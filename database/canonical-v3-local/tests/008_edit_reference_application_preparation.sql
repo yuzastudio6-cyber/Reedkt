@@ -54,7 +54,7 @@ with intent as (
     'preparedApplication', jsonb_build_object(
       'id', 'aaaaaaaa-7100-4000-8000-000000000001'
     ),
-    'requestedAt', '2026-07-21T18:00:00.000Z',
+    'requestedAt', public.reeditpro_iso_timestamp(clock_timestamp()),
     'authenticatedScopeReboundServerSide', true,
     'browserApplicationRecordAccepted', false,
     'applicationLifecycleMutationAllowed', false,

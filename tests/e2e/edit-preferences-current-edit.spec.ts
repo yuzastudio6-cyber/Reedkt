@@ -29,7 +29,7 @@ async function createNamedEdit(page: Page, label: string) {
   await gotoRoute(page, '/projects/new')
   await page.getByLabel(/Project name/i).fill(`Preference project ${label} ${Date.now()}`)
   await clickWhenReady(page.getByRole('button', { name: /^Create project$/i }).first())
-  await clickWhenReady(page.getByRole('button', { name: /^New edit$/i }).first())
+  await clickWhenReady(page.getByRole('button', { name: /^New video edit$/i }).first())
   await page.getByLabel(/Edit name/i).fill(`Preference edit ${label}`)
   await clickWhenReady(page.getByRole('button', { name: /^Create edit$/i }).first())
   await expect(page).toHaveURL(/\/projects\/[^/]+\/edits\/[^?]+\?/)

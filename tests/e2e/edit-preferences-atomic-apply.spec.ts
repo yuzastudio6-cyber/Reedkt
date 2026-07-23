@@ -16,7 +16,7 @@ test('recovers one committed exact-edit Apply after the browser loses its respon
   await gotoRoute(page, '/projects/new')
   await page.getByLabel(/Project name/i).fill(`Atomic preferences ${Date.now()}`)
   await clickWhenReady(page.getByRole('button', { name: /^Create project$/i }).first())
-  await clickWhenReady(page.getByRole('button', { name: /^New edit$/i }).first())
+  await clickWhenReady(page.getByRole('button', { name: /^New video edit$/i }).first())
   await page.getByLabel(/Edit name/i).fill('Atomic Apply recovery')
   await clickWhenReady(page.getByRole('button', { name: /^Create edit$/i }).first())
   await clickWhenReady(page.getByTestId('current-edit-preferences-trigger'))

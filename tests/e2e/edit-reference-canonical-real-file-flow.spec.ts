@@ -636,7 +636,7 @@ test.describe('canonical Edit Preference real-file flow', () => {
     // Project recovery can replace the initial local card with the verified
     // backend readback. Dispatch once the canonical button exists so this
     // fixture setup does not race that ownership-preserving replacement.
-    await page.getByRole('button', { name: /^New edit$/i }).first().dispatchEvent('click')
+    await page.getByRole('button', { name: /^New video edit$/i }).first().dispatchEvent('click')
     await expect(page.getByTestId('new-edit-dialog')).toBeVisible()
     await page.getByLabel(/Edit name/i).fill(editName)
     await clickWhenReady(page.getByRole('button', { name: /^Create edit$/i }).first())

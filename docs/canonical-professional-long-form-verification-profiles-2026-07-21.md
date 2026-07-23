@@ -1,6 +1,6 @@
 # Canonical Professional Long-Form Verification Profiles — 2026-07-21
 
-Status: `two_hour_routine_verified_six_hour_release_stress_retained`
+Status: `two_hour_representative_and_full_graph_verified_six_hour_release_stress_retained`
 
 ## Decision
 
@@ -18,7 +18,8 @@ attempt-level internal production-cost evidence.
 
 | Profile | Command | Duration | Source ranges | Object chunks | Child jobs | Completed proof | Remaining |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Routine break/fix | `npm run smoke:canonical-professional-long-form-post-approval` | 7,200 s | 200 | 60 | 127 | 8 | 119 |
+| Routine representative | `npm run smoke:canonical-professional-long-form-post-approval` | 7,200 s | 200 | 60 | 127 | 8 | 119 |
+| Full destructive two-hour | `npm run smoke:canonical-professional-long-form-post-approval:full-two-hour` | 7,200 s | 200 | 60 | 127 | 127 | 0 |
 | Release stress | `npm run smoke:canonical-professional-long-form-post-approval:release-six-hour` | 21,600 s | 512 | 124 | 255 | 8 | 247 |
 
 The child graph is derived from two jobs per object chunk plus seven global
@@ -36,9 +37,9 @@ to exercise the full 512-range ceiling at its proven bounded density. Dense
 short-program range admission remains a separate capacity-policy/runtime
 hardening gate; it is not silently labeled ready.
 
-## Routine Verification Result
+## Routine Representative Result
 
-The exact routine command passes 111/111 checks with:
+The exact routine representative command passes 112/112 checks with:
 
 - profile `routine_two_hour`;
 - 7,200 seconds and 216,000 frames at 30 fps;
@@ -76,13 +77,48 @@ unexecuted. Neither result implies full media execution, Google Cloud worker
 completion, customer delivery, external-beta readiness, or production
 readiness.
 
+## Full Two-Hour Destructive Result
+
+The explicit full command passes 120/120 checks and executes the complete
+two-hour graph rather than sampling it:
+
+- all 127 canonical child jobs complete and zero remain queued or leased;
+- 128 delivery attempts are retained: 127 successful attempts plus the one
+  intentional expired-attempt failure and its internal cost;
+- all 60 private 4K VP9 object chunks and all 60 independent chunk-QA jobs
+  complete in canonical order;
+- all 59 adjacent color boundaries pass before finalization;
+- one 393,016,049-byte private master is assembled with SHA-256
+  `29307761055ab1270705208a3f34da861a3649314904f0d1ebf2c2a5994dedc8`;
+- independent private-master QA emits digest
+  `9b0b802f93a5d08fc5f52fa10eecf7f192e3ca50248939376c325b0333b0b75a`;
+- an isolated copied-state fork proves that middle-chunk byte tampering fails
+  closed, is classified as a non-retryable validation failure, and requires
+  user review without contaminating the genuine graph; and
+- restart replay after 127/127 completion creates no additional job, lease,
+  artifact, attempt, or internal cost.
+
+The run exposed and corrected two real orchestration defects. First, an
+approved execution reservation inherited the preapproval estimate's one-hour
+quote-validity timestamp and expired during valid long-running work. Approval
+now creates a separate bounded 24-hour internal-test execution hold; live
+credit-ledger renewal remains a closed production policy. Second, the initial
+tamper test tried to retry checksum-corrupted media under the same approved
+authority. The corrected proof uses an isolated state fork and verifies the
+existing policy: media-integrity failure is non-retryable and requires review
+or a new approval.
+
 ## Why This Is Faster Without Lowering Quality
 
-Routine execution writes and independently decodes two hours of 48 kHz,
+Representative execution writes and independently decodes two hours of 48 kHz,
 24-bit, stereo FLAC instead of six hours and materializes a 127-job queue
 instead of a 255-job queue. That reduces local CPU time, disk I/O, temporary
 storage, hashing, and reconciliation work while preserving every authority,
 quality, security, idempotency, recovery, cost-separation, and 4K check.
+
+The full two-hour command intentionally pays the larger local engineering cost
+when destructive acceptance is needed. It remains materially cheaper and
+faster than executing the six-hour/255-job ceiling on every iteration.
 
 “Six-hour cost” here means engineering test cost on the development machine:
 elapsed time, CPU, memory, storage, and developer feedback latency. It does not

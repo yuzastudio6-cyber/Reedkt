@@ -77,6 +77,7 @@
     "smoke:professional-long-form-object-plan": "tsx server/smoke/professional-long-form-object-execution-plan-smoke.ts",
     "smoke:professional-long-form-snapshot-bridge": "tsx server/smoke/professional-long-form-approved-snapshot-bridge-smoke.ts",
     "smoke:canonical-professional-long-form-post-approval": "tsx server/smoke/canonical-professional-long-form-post-approval-smoke.ts",
+    "smoke:canonical-professional-long-form-post-approval:full-two-hour": "tsx server/smoke/canonical-professional-long-form-post-approval-smoke.ts --full-two-hour",
     "smoke:canonical-professional-long-form-post-approval:release-six-hour": "tsx server/smoke/canonical-professional-long-form-post-approval-smoke.ts --release-six-hour",
     "smoke:canonical-professional-long-form-cross-chunk-color": "tsx server/smoke/canonical-professional-long-form-cross-chunk-color-smoke.ts",
     "smoke:canonical-professional-long-form-master-assembly": "tsx server/smoke/canonical-professional-long-form-cross-chunk-color-smoke.ts",

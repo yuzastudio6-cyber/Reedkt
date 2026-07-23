@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
-import { open, readFile, rm, writeFile } from 'node:fs/promises'
+import { cp, open, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { setTimeout as delay } from 'node:timers/promises'
@@ -111,7 +111,19 @@ import {
 import {
   createCanonicalProfessionalLongFormContinuousProgramAudioExecutionService,
 } from '../services/canonical-professional-long-form-continuous-program-audio-execution-service'
-import { createEditPlanningAuthorityService } from '../services/edit-planning-authority-service'
+import {
+  createCanonicalProfessionalLongFormCrossChunkColorExecutionService,
+} from '../services/canonical-professional-long-form-cross-chunk-color-continuity-execution-service'
+import {
+  createCanonicalProfessionalLongFormMasterAssemblyExecutionService,
+} from '../services/canonical-professional-long-form-master-assembly-execution-service'
+import {
+  createCanonicalProfessionalLongFormPrivateMasterQaExecutionService,
+} from '../services/canonical-professional-long-form-private-master-qa-execution-service'
+import {
+  CANONICAL_INTERNAL_TEST_APPROVED_RESERVATION_HOLD_SECONDS,
+  createEditPlanningAuthorityService,
+} from '../services/edit-planning-authority-service'
 import { createExactEditPreferenceService } from '../services/exact-edit-preference-service'
 import {
   canonicalPrivatePackageWorkQueueAggregateRelativePath,
@@ -172,13 +184,22 @@ import {
 } from '../tool-execution/media-binary-execution'
 
 const releaseSixHourArgument = '--release-six-hour'
+const fullTwoHourArgument = '--full-two-hour'
 const unsupportedArguments = process.argv.slice(2).filter((argument) =>
-  argument !== releaseSixHourArgument)
+  argument !== releaseSixHourArgument && argument !== fullTwoHourArgument)
 assert.deepEqual(
   unsupportedArguments,
   [],
   `Unsupported professional long-form smoke arguments: ${unsupportedArguments.join(', ')}`,
 )
+assert.equal(
+  process.argv.includes(releaseSixHourArgument) &&
+    process.argv.includes(fullTwoHourArgument),
+  false,
+  'The full two-hour execution lane and six-hour capacity lane are mutually exclusive.',
+)
+
+const executeFullTwoHourGraph = process.argv.includes(fullTwoHourArgument)
 
 const smokeProfile = process.argv.includes(releaseSixHourArgument)
   ? {
@@ -217,8 +238,11 @@ const expectedQueuedJobCountAfter = (completedJobCount: number): number =>
   expectedChildJobCount - completedJobCount
 const localStorageRoot = join(
   tmpdir(),
-  `reeditpro-canonical-professional-long-form-${process.pid}`,
+  `reeditpro-canonical-professional-long-form-${
+    executeFullTwoHourGraph ? 'full-' : ''
+  }${process.pid}`,
 )
+const tamperForkStorageRoot = `${localStorageRoot}-tamper-fork`
 
 const checks: string[] = []
 const check = (condition: unknown, name: string): void => {
@@ -228,6 +252,12 @@ const check = (condition: unknown, name: string): void => {
 
 try {
   await rm(localStorageRoot, {
+    recursive: true,
+    force: true,
+    maxRetries: 5,
+    retryDelay: 50,
+  })
+  await rm(tamperForkStorageRoot, {
     recursive: true,
     force: true,
     maxRetries: 5,
@@ -368,6 +398,7 @@ try {
   })
   const approvedAuthority = asRecord(approved.authority)
   const snapshot = asRecord(approvedAuthority.snapshot)
+  const approvedReservation = asRecord(approvedAuthority.reservation)
   const approvedJobs = approvedAuthority.jobs as Record<string, unknown>[]
   check(
     asRecord(snapshot.componentRefs)[PROFESSIONAL_LONG_FORM_SEED_COMPONENT_KEY] !==
@@ -375,6 +406,16 @@ try {
       (snapshot.approvedWorkItemIds as unknown[]).length === 4 &&
       approvedJobs.length === 4,
     'approval_freezes_seed_controller_reservation_and_only_four_parent_jobs',
+  )
+  check(
+    Date.parse(String(approvedReservation.expiresAt)) -
+        Date.parse(String(approvedReservation.reservedAt)) ===
+      CANONICAL_INTERNAL_TEST_APPROVED_RESERVATION_HOLD_SECONDS * 1_000 &&
+      Date.parse(String(approvedReservation.expiresAt)) >
+        Date.parse(String(publishedEstimate.validUntil)) &&
+      String(approvedReservation.expiresAt) !==
+        String(publishedEstimate.validUntil),
+    'approval_decouples_the_bounded_execution_reservation_from_the_preapproval_estimate_window',
   )
   const controllerJob = approvedJobs.find((job) =>
     job.workItemKey === CANONICAL_PROFESSIONAL_LONG_FORM_CONTROLLER_WORK_ITEM_KEY)
@@ -2891,6 +2932,380 @@ try {
     'generic_executor_proves_nonzero_frame_technical_split_vp9_qa_and_honest_remaining_pair_count',
   )
 
+  let terminalObjectChunkEvidence = completedSecondObjectChunk
+  let terminalQueueAggregate = completedSecondObjectChunk.queueAggregate
+  let fullGraphPrivateMasterByteLength: number | null = null
+  let fullGraphPrivateMasterSha256: string | null = null
+  let fullGraphPrivateMasterQaHash: string | null = null
+  let fullGraphCrossChunkColorHash: string | null = null
+
+  if (executeFullTwoHourGraph) {
+    assert.equal(smokeProfile.id, 'routine_two_hour')
+    const completedChunkArtifacts = [
+      {
+        chunkIndex: completedFirstObjectChunk.render.authority.approvedChunk
+          .chunkIndex,
+        objectIdentity:
+          completedFirstObjectChunk.render.outputArtifact.objectIdentity,
+      },
+      {
+        chunkIndex: completedSecondObjectChunk.selectedChunkIndex,
+        objectIdentity:
+          completedSecondObjectChunk.render.outputArtifact.objectIdentity,
+      },
+    ]
+
+    for (
+      let expectedChunkIndex = 3;
+      expectedChunkIndex <= expectedChunkCount;
+      expectedChunkIndex += 1
+    ) {
+      clearPrivateEditAuthorityProcessStateForSmoke()
+      clearPrivateCanonicalPackageWorkQueueProcessStateForSmoke()
+      const executed = await
+        createCanonicalProfessionalLongFormObjectChunkSeriesExecutionService(
+          context,
+        ).executeNext({
+          workspaceId,
+          approvedPlanSnapshotId: String(snapshot.snapshotId),
+        })
+      const expectedCompletedJobCount = 4 + expectedChunkIndex * 2
+      assert.equal(
+        executed.disposition,
+        'completed',
+        `Object-chunk pair ${expectedChunkIndex} must execute exactly once.`,
+      )
+      assert.equal(
+        executed.selectedChunkIndex,
+        expectedChunkIndex,
+        `The server must select object-chunk pair ${expectedChunkIndex} in canonical order.`,
+      )
+      assert.equal(
+        executed.queueAggregate.summary.completedJobCount,
+        expectedCompletedJobCount,
+        `Object-chunk pair ${expectedChunkIndex} must commit both render and QA.`,
+      )
+      assert.equal(
+        executed.queueAggregate.summary.queuedJobCount,
+        expectedQueuedJobCountAfter(expectedCompletedJobCount),
+        `Object-chunk pair ${expectedChunkIndex} must preserve every remaining queue job.`,
+      )
+      assert.equal(executed.queueAggregate.summary.leasedJobCount, 0)
+      assert.equal(
+        executed.queueAggregate.summary.totalDeliveryAttemptCount,
+        expectedCompletedJobCount + 1,
+        `Object-chunk pair ${expectedChunkIndex} must retain the one earlier timed-out attempt.`,
+      )
+      assert.equal(
+        executed.readiness.completedObjectChunkPairCount,
+        expectedChunkIndex,
+      )
+      assert.equal(
+        executed.readiness.remainingObjectChunkPairCount,
+        expectedChunkCount - expectedChunkIndex,
+      )
+      assert.equal(executed.render.executionAttempt.deliveryAttempt, 1)
+      assert.equal(executed.qa.artifact.outcome, 'passed')
+      assert.equal(
+        executed.qa.artifact.observed.frameCount,
+        executed.render.authority.approvedChunk.durationFrames,
+      )
+      assert.equal(executed.render.costEvidence.outcome.status, 'completed')
+      assert.equal(executed.qa.costEvidence.outcome.status, 'completed')
+      assert.doesNotMatch(
+        stableAuthorityStringify([
+          executed.render.costEvidence,
+          executed.qa.costEvidence,
+        ]),
+        /customerPrice|customerCredit|serviceFee|wallet|billingAuthority/u,
+      )
+      completedChunkArtifacts.push({
+        chunkIndex: executed.selectedChunkIndex,
+        objectIdentity: executed.render.outputArtifact.objectIdentity,
+      })
+      terminalObjectChunkEvidence = executed
+      terminalQueueAggregate = executed.queueAggregate
+      if (
+        expectedChunkIndex % 5 === 0 ||
+        expectedChunkIndex === expectedChunkCount
+      ) {
+        process.stderr.write(
+          `[canonical-professional-long-form-full-two-hour] ` +
+            `chunk-pairs=${expectedChunkIndex}/${expectedChunkCount} ` +
+            `completed-jobs=${expectedCompletedJobCount}/${expectedChildJobCount}\n`,
+        )
+      }
+    }
+
+    check(
+      completedChunkArtifacts.length === expectedChunkCount &&
+        terminalObjectChunkEvidence.readiness.completedObjectChunkPairCount ===
+          expectedChunkCount &&
+        terminalObjectChunkEvidence.readiness.remainingObjectChunkPairCount ===
+          0 &&
+        terminalObjectChunkEvidence.readiness.allObjectChunkPairsCompleted &&
+        terminalObjectChunkEvidence.readiness.nextUniqueCapability ===
+          'cross_chunk_color_continuity' &&
+        terminalQueueAggregate.summary.completedJobCount ===
+          expectedChildJobCount - 3 &&
+        terminalQueueAggregate.summary.queuedJobCount === 3 &&
+        terminalQueueAggregate.summary.leasedJobCount === 0,
+      'all_60_object_chunk_render_qa_pairs_complete_in_order_across_restart_boundaries',
+    )
+
+    clearPrivateEditAuthorityProcessStateForSmoke()
+    clearPrivateCanonicalPackageWorkQueueProcessStateForSmoke()
+    const terminalPairReplay = await
+      createCanonicalProfessionalLongFormObjectChunkSeriesExecutionService(
+        context,
+      ).executeNext({
+        workspaceId,
+        approvedPlanSnapshotId: String(snapshot.snapshotId),
+      })
+    check(
+      terminalPairReplay.disposition === 'exact_replay' &&
+        terminalPairReplay.selectedChunkIndex === expectedChunkCount &&
+        terminalPairReplay.evidenceHash ===
+          terminalObjectChunkEvidence.evidenceHash &&
+        terminalPairReplay.queueAggregate.summary.totalDeliveryAttemptCount ===
+          expectedChildJobCount - 2,
+      'all_chunk_completion_restart_replays_without_a_61st_pair_or_second_cost',
+    )
+
+    const middleChunkArtifact =
+      completedChunkArtifacts[Math.floor(completedChunkArtifacts.length / 2)]!
+    await cp(localStorageRoot, tamperForkStorageRoot, {
+      recursive: true,
+      force: false,
+      errorOnExist: true,
+    })
+    const middleChunkPath = join(
+      tamperForkStorageRoot,
+      'canonical-media-binary-results',
+      'private-v1',
+      middleChunkArtifact.objectIdentity.slice(0, 2),
+      `${middleChunkArtifact.objectIdentity}.mkv`,
+    )
+    const middleChunkHandle = await open(middleChunkPath, 'r+')
+    const originalMiddleChunkLastByte = Buffer.alloc(1)
+    const middleChunkStat = await middleChunkHandle.stat()
+    try {
+      const readResult = await middleChunkHandle.read(
+        originalMiddleChunkLastByte,
+        0,
+        1,
+        middleChunkStat.size - 1,
+      )
+      assert.equal(readResult.bytesRead, 1)
+      const writeResult = await middleChunkHandle.write(
+        Buffer.from([originalMiddleChunkLastByte[0]! ^ 0xff]),
+        0,
+        1,
+        middleChunkStat.size - 1,
+      )
+      assert.equal(writeResult.bytesWritten, 1)
+      await middleChunkHandle.sync()
+    } finally {
+      await middleChunkHandle.close()
+    }
+    clearPrivateEditAuthorityProcessStateForSmoke()
+    clearPrivateCanonicalPackageWorkQueueProcessStateForSmoke()
+    const tamperContext: ServiceContext = {
+      ...context,
+      env: {
+        ...context.env,
+        localStorageRoot: tamperForkStorageRoot,
+      },
+    }
+    await expectApiError(
+      () => createCanonicalProfessionalLongFormCrossChunkColorExecutionService(
+        tamperContext,
+      ).execute({
+        workspaceId,
+        approvedPlanSnapshotId: String(snapshot.snapshotId),
+      }),
+      'VALIDATION_FAILED',
+      'middle_chunk_byte_tamper_blocks_whole_graph_color_validation_in_an_isolated_state_fork',
+    )
+    clearPrivateEditAuthorityProcessStateForSmoke()
+    clearPrivateCanonicalPackageWorkQueueProcessStateForSmoke()
+    const tamperRecovery = await
+      createCanonicalProfessionalLongFormStartedAttemptRecoveryService(
+        tamperContext,
+      ).reconcileNext({
+        workspaceId,
+        approvedPlanSnapshotId: String(snapshot.snapshotId),
+      })
+    check(
+      tamperRecovery?.failure.failureCategory === 'validation_error' &&
+        !tamperRecovery.readiness.sameApprovedOperationRetryAvailable &&
+        tamperRecovery.readiness.userReviewOrNewApprovalRequired &&
+        tamperRecovery.queue.completedJobCount === expectedChildJobCount - 3 &&
+        tamperRecovery.queue.leasedJobCount === 0,
+      'tampered_private_artifact_requires_review_and_cannot_retry_under_the_same_approved_authority',
+    )
+    await rm(tamperForkStorageRoot, {
+      recursive: true,
+      force: true,
+      maxRetries: 5,
+      retryDelay: 50,
+    })
+    clearPrivateEditAuthorityProcessStateForSmoke()
+    clearPrivateCanonicalPackageWorkQueueProcessStateForSmoke()
+    process.stderr.write(
+      '[canonical-professional-long-form-full-two-hour] validating-all-color-boundaries\n',
+    )
+
+    const completedCrossChunkColor = await
+      createCanonicalProfessionalLongFormCrossChunkColorExecutionService(
+        context,
+      ).execute({
+        workspaceId,
+        approvedPlanSnapshotId: String(snapshot.snapshotId),
+      })
+    check(
+      completedCrossChunkColor.disposition === 'completed' &&
+        completedCrossChunkColor.color.validationArtifact.chunkCount ===
+          expectedChunkCount &&
+        completedCrossChunkColor.color.validationArtifact.boundaryCount ===
+          expectedChunkCount - 1 &&
+        completedCrossChunkColor.color.validationArtifact.boundaryResults
+          .every((boundary) => boundary.outcome === 'passed') &&
+        completedCrossChunkColor.queueAggregate.summary.completedJobCount ===
+          expectedChildJobCount - 2 &&
+        completedCrossChunkColor.queueAggregate.summary.queuedJobCount === 2 &&
+        completedCrossChunkColor.queueAggregate.summary.leasedJobCount === 0 &&
+        completedCrossChunkColor.color.costEvidence.outcome.status ===
+          'completed',
+      'all_59_adjacent_color_boundaries_validate_before_private_master_assembly',
+    )
+    fullGraphCrossChunkColorHash =
+      completedCrossChunkColor.color.validationArtifact.validationHash
+
+    clearPrivateEditAuthorityProcessStateForSmoke()
+    clearPrivateCanonicalPackageWorkQueueProcessStateForSmoke()
+    const crossChunkColorReplay = await
+      createCanonicalProfessionalLongFormCrossChunkColorExecutionService(
+        context,
+      ).execute({
+        workspaceId,
+        approvedPlanSnapshotId: String(snapshot.snapshotId),
+      })
+    assert.equal(crossChunkColorReplay.disposition, 'exact_replay')
+    assert.equal(
+      crossChunkColorReplay.evidenceHash,
+      completedCrossChunkColor.evidenceHash,
+    )
+
+    process.stderr.write(
+      '[canonical-professional-long-form-full-two-hour] assembling-private-master\n',
+    )
+    const completedPrivateMaster = await
+      createCanonicalProfessionalLongFormMasterAssemblyExecutionService(
+        context,
+      ).execute({
+        workspaceId,
+        approvedPlanSnapshotId: String(snapshot.snapshotId),
+      })
+    check(
+      completedPrivateMaster.disposition === 'completed' &&
+        completedPrivateMaster.queueAggregate.summary.completedJobCount ===
+          expectedChildJobCount - 1 &&
+        completedPrivateMaster.queueAggregate.summary.queuedJobCount === 1 &&
+        completedPrivateMaster.queueAggregate.summary.leasedJobCount === 0 &&
+        completedPrivateMaster.assembly.runtimeEvidence.outputArtifact
+          .frameCount === totalFrames &&
+        completedPrivateMaster.assembly.runtimeEvidence.outputArtifact
+          .videoCodec === 'vp9' &&
+        completedPrivateMaster.assembly.runtimeEvidence.outputArtifact
+          .audioCodec === 'flac' &&
+        completedPrivateMaster.assembly.costEvidence.outcome.status ===
+          'completed',
+      'two_hour_private_master_stream_copies_all_60_verified_chunks_and_lossless_audio',
+    )
+    fullGraphPrivateMasterByteLength =
+      completedPrivateMaster.assembly.runtimeEvidence.outputArtifact.byteLength
+    fullGraphPrivateMasterSha256 =
+      completedPrivateMaster.assembly.runtimeEvidence.outputArtifact.sha256
+
+    clearPrivateEditAuthorityProcessStateForSmoke()
+    clearPrivateCanonicalPackageWorkQueueProcessStateForSmoke()
+    const privateMasterReplay = await
+      createCanonicalProfessionalLongFormMasterAssemblyExecutionService(
+        context,
+      ).execute({
+        workspaceId,
+        approvedPlanSnapshotId: String(snapshot.snapshotId),
+      })
+    assert.equal(privateMasterReplay.disposition, 'exact_replay')
+    assert.equal(privateMasterReplay.evidenceHash, completedPrivateMaster.evidenceHash)
+
+    process.stderr.write(
+      '[canonical-professional-long-form-full-two-hour] running-private-master-qa\n',
+    )
+    const completedPrivateMasterQa = await
+      createCanonicalProfessionalLongFormPrivateMasterQaExecutionService(
+        context,
+      ).execute({
+        workspaceId,
+        approvedPlanSnapshotId: String(snapshot.snapshotId),
+      })
+    terminalQueueAggregate = completedPrivateMasterQa.queueAggregate
+    fullGraphPrivateMasterQaHash = completedPrivateMasterQa.qa.artifact.qaHash
+    const queueEntriesWithRetriedDelivery = terminalQueueAggregate.entries
+      .filter((entry) => entry.deliveryAttemptCount === 2)
+    const retainedFailureCount = terminalQueueAggregate.entries.reduce(
+      (count, entry) => count +
+        (entry.professionalLongFormExecutionFailures?.length ?? 0),
+      0,
+    )
+    check(
+      completedPrivateMasterQa.disposition === 'completed' &&
+        completedPrivateMasterQa.qa.artifact.outcome === 'passed' &&
+        completedPrivateMasterQa.qa.artifact.observed.frameCount ===
+          totalFrames &&
+        completedPrivateMasterQa.qa.artifact.observed.width === 3_840 &&
+        completedPrivateMasterQa.qa.artifact.observed.height === 2_160 &&
+        completedPrivateMasterQa.qa.artifact.observed.sampleRate === 48_000 &&
+        completedPrivateMasterQa.qa.artifact.observed.channels === 2 &&
+        completedPrivateMasterQa.readiness.privateReviewGraphComplete &&
+        terminalQueueAggregate.summary.totalJobCount ===
+          expectedChildJobCount &&
+        terminalQueueAggregate.summary.completedJobCount ===
+          expectedChildJobCount &&
+        terminalQueueAggregate.summary.queuedJobCount === 0 &&
+        terminalQueueAggregate.summary.leasedJobCount === 0 &&
+        terminalQueueAggregate.summary.totalDeliveryAttemptCount ===
+          expectedChildJobCount + 1 &&
+        terminalQueueAggregate.summary.expiredClaimRecoveryCount === 1 &&
+        terminalQueueAggregate.entries.every((entry) =>
+          entry.state === 'completed' && entry.completion !== undefined) &&
+        queueEntriesWithRetriedDelivery.length === 1 &&
+        retainedFailureCount === 1,
+      'all_127_jobs_complete_with_one_retained_timeout_attempt_and_no_duplicate_terminal_outcome',
+    )
+
+    clearPrivateEditAuthorityProcessStateForSmoke()
+    clearPrivateCanonicalPackageWorkQueueProcessStateForSmoke()
+    const privateMasterQaReplay = await
+      createCanonicalProfessionalLongFormPrivateMasterQaExecutionService(
+        context,
+      ).execute({
+        workspaceId,
+        approvedPlanSnapshotId: String(snapshot.snapshotId),
+      })
+    check(
+      privateMasterQaReplay.disposition === 'exact_replay' &&
+        privateMasterQaReplay.evidenceHash ===
+          completedPrivateMasterQa.evidenceHash &&
+        privateMasterQaReplay.queueAggregate.aggregateHash ===
+          terminalQueueAggregate.aggregateHash &&
+        privateMasterQaReplay.queueAggregate.summary.totalDeliveryAttemptCount ===
+          expectedChildJobCount + 1,
+      'completed_127_job_graph_restarts_as_exact_replay_without_job_cost_or_artifact_duplication',
+    )
+  }
+
   await assertNoActivationImports()
 
   const childBlobPath = join(
@@ -2919,7 +3334,7 @@ try {
 
   console.log(JSON.stringify({
     ok: true,
-    schemaVersion: 'canonical-professional-long-form-post-approval-smoke-v9',
+    schemaVersion: 'canonical-professional-long-form-post-approval-smoke-v10',
     checkCount: checks.length,
     checks,
     evidence: {
@@ -2975,10 +3390,11 @@ try {
       masterTimingValidationArtifactByteLength: timingArtifactRef.byteLength,
       masterTimingAttemptInternalCostEvidenceVerified: true,
       masterTimingRunnerReadOrDecodedMedia: false,
-      completedChildCount:
-        completedSecondObjectChunk.queueAggregate.summary.completedJobCount,
-      remainingBlockedChildCount:
-        completedSecondObjectChunk.queueAggregate.summary.queuedJobCount,
+      executionScope: executeFullTwoHourGraph
+        ? 'full_two_hour_graph'
+        : 'representative_two_pair_graph',
+      completedChildCount: terminalQueueAggregate.summary.completedJobCount,
+      remainingBlockedChildCount: terminalQueueAggregate.summary.queuedJobCount,
       mediaExecutionVerified: true,
       chunkRenderExecutionVerified: true,
       firstObjectChunkIndependentQaVerified: true,
@@ -2998,9 +3414,9 @@ try {
       genericObjectChunkProofIndex:
         completedSecondObjectChunk.selectedChunkIndex,
       genericObjectChunkCompletedPairCount:
-        completedSecondObjectChunk.readiness.completedObjectChunkPairCount,
+        terminalObjectChunkEvidence.readiness.completedObjectChunkPairCount,
       genericObjectChunkRemainingPairCount:
-        completedSecondObjectChunk.readiness.remainingObjectChunkPairCount,
+        terminalObjectChunkEvidence.readiness.remainingObjectChunkPairCount,
       genericObjectChunkNonzeroSourceFrameVerified:
         secondChunkFirstSlice.sourceStartFrame > 0,
       genericObjectChunkTechnicalSplitVerified:
@@ -3027,6 +3443,18 @@ try {
       continuousProgramAudioQaInternalCostMicros:
         completedProgramAudio.programAudio.qaCostEvidence
           .actualInternalCostMicros,
+      fullTwoHourGraphCompleted:
+        executeFullTwoHourGraph &&
+        terminalQueueAggregate.summary.completedJobCount ===
+          expectedChildJobCount,
+      fullTwoHourTotalDeliveryAttemptCount:
+        executeFullTwoHourGraph
+          ? terminalQueueAggregate.summary.totalDeliveryAttemptCount
+          : null,
+      fullTwoHourCrossChunkColorHash: fullGraphCrossChunkColorHash,
+      fullTwoHourPrivateMasterByteLength: fullGraphPrivateMasterByteLength,
+      fullTwoHourPrivateMasterSha256: fullGraphPrivateMasterSha256,
+      fullTwoHourPrivateMasterQaHash: fullGraphPrivateMasterQaHash,
       googleCloudDispatchAuthorized: false,
       liveGoogleCloudVerified: false,
       productReady: false,
@@ -3034,6 +3462,12 @@ try {
     },
   }, null, 2))
 } finally {
+  await rm(tamperForkStorageRoot, {
+    recursive: true,
+    force: true,
+    maxRetries: 5,
+    retryDelay: 50,
+  })
   await rm(localStorageRoot, {
     recursive: true,
     force: true,
@@ -3630,6 +4064,9 @@ async function assertNoActivationImports(): Promise<void> {
     'server/edit-architecture/professional-long-form-continuous-program-audio-execution.ts',
     'server/services/canonical-private-program-audio-artifact-storage.ts',
     'server/services/canonical-professional-long-form-continuous-program-audio-execution-service.ts',
+    'server/services/canonical-professional-long-form-cross-chunk-color-continuity-execution-service.ts',
+    'server/services/canonical-professional-long-form-master-assembly-execution-service.ts',
+    'server/services/canonical-professional-long-form-private-master-qa-execution-service.ts',
     'server/edit-architecture/professional-long-form-started-attempt-recovery-contract.ts',
     'server/services/canonical-professional-long-form-started-attempt-recovery-service.ts',
   ].map((path) => readFile(path, 'utf8')))

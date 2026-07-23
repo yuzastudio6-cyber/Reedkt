@@ -336,9 +336,24 @@ const fullBoundarySteps: VerificationStep[] = [
   ),
 ]
 
+const selectedCanonicalSteps = canonicalSteps.map((verification) =>
+  full && verification.id === 'canonical-professional-long-form-post-approval'
+    ? {
+        ...verification,
+        script: 'smoke:canonical-professional-long-form-post-approval:full-two-hour',
+        evidence:
+          'The destructive two-hour/200-range 4K lane executes all 127 canonical child jobs, all 60 object-chunk render/independent-QA pairs, all 59 cross-chunk color boundaries, continuous lossless program audio, private master assembly, and independent master QA. It retains one timed-out attempt and its internal cost, reconciles one completed worker proposal after restart without rerender, rejects byte-tampered private media in an isolated recovery fork, and replays the completed graph without duplicate jobs, artifacts, attempts, or cost. The six-hour release profile, distributed workers, live object storage, cloud, commerce, product delivery, and production stay blocked.',
+      }
+    : verification,
+)
+
 const steps = full
-  ? [...fullBoundarySteps.slice(0, -1), ...canonicalSteps, fullBoundarySteps.at(-1)!]
-  : canonicalSteps
+  ? [
+      ...fullBoundarySteps.slice(0, -1),
+      ...selectedCanonicalSteps,
+      fullBoundarySteps.at(-1)!,
+    ]
+  : selectedCanonicalSteps
 const results: VerificationStepResult[] = []
 const startedAt = new Date()
 
@@ -410,7 +425,7 @@ function printReport(
 ): void {
   const finishedAt = new Date()
   const report = {
-    schemaVersion: 'canonical-private-pipeline-verification-v39',
+    schemaVersion: 'canonical-private-pipeline-verification-v40',
     status,
     mode: full ? 'full_internal_regression' : 'canonical_private_pipeline',
     startedAt: runStartedAt.toISOString(),
@@ -482,10 +497,15 @@ function printReport(
           professionalLongFormRoutineDurationSeconds: 7_200,
           professionalLongFormRoutineSourceRangeCount: 200,
           professionalLongFormRoutineChildJobCount: 127,
-          professionalLongFormRoutineCompletedChildJobCount: 8,
-          professionalLongFormRoutineRemainingChildJobCount: 119,
-          professionalLongFormRetainedObjectChunkPairProofCount: 2,
+          professionalLongFormRoutineCompletedChildJobCount: full ? 127 : 8,
+          professionalLongFormRoutineRemainingChildJobCount: full ? 0 : 119,
+          professionalLongFormRetainedObjectChunkPairProofCount: full ? 60 : 2,
           professionalLongFormTotalObjectChunkPairCount: 60,
+          professionalLongFormFullTwoHourGraphExecutedInThisRun: full,
+          professionalLongFormFullTwoHourDeliveryAttemptCount: full ? 128 : null,
+          professionalLongFormFullTwoHourRetainedFailedAttemptCount: full ? 1 : null,
+          professionalLongFormFullTwoHourCrossChunkBoundaryCount: full ? 59 : null,
+          professionalLongFormFullTwoHourPrivateMasterAndQaVerified: full,
           professionalLongFormReleaseStressProfileId: 'release_six_hour',
           professionalLongFormReleaseStressDurationSeconds: 21_600,
           professionalLongFormReleaseStressSourceRangeCount: 512,
@@ -651,11 +671,11 @@ function printReport(
       visualCalibrationObjectiveQaLiveProviderTransportVerified: false,
       visualCalibrationObjectiveQaCreativeSelectionVerified: false,
       visualCalibrationObjectiveQaProductionReady: false,
-      professionalLongFormRemaining119RoutineChildLeasesVerified: false,
+      professionalLongFormRemaining119RoutineChildLeasesVerified: full,
       professionalLongFormStartedAttemptDistributedRecoveryVerified: false,
       professionalLongFormStartedAttemptLiveWorkerTerminationVerified: false,
-      professionalLongFormAll60RoutineChunkPairsCompleted: false,
-      professionalLongFormRemaining58RoutineChunkPairProofsVerified: false,
+      professionalLongFormAll60RoutineChunkPairsCompleted: full,
+      professionalLongFormRemaining58RoutineChunkPairProofsVerified: full,
       professionalLongFormReleaseSixHourStressReexecutedInThisRun: false,
       professionalLongFormReleaseSixHourRemaining247ChildLeasesVerified: false,
       professionalLongFormReleaseSixHourAll124ChunkPairsCompleted: false,
@@ -663,13 +683,13 @@ function printReport(
         false,
       professionalLongFormDenseShortProgramMaximumRangeExecutionVerified:
         false,
-      professionalLongFormRemainingChildAttemptCostsVerified: false,
-      professionalLongFormRemainingChildDispatchVerified: false,
-      professionalLongFormCompleteMediaExecutionVerified: false,
-      professionalLongFormOther58RoutineChunkRendersVerified: false,
-      professionalLongFormOther58RoutineIndependentChunkQaVerified: false,
+      professionalLongFormRemainingChildAttemptCostsVerified: full,
+      professionalLongFormRemainingChildDispatchVerified: full,
+      professionalLongFormCompleteMediaExecutionVerified: full,
+      professionalLongFormOther58RoutineChunkRendersVerified: full,
+      professionalLongFormOther58RoutineIndependentChunkQaVerified: full,
       professionalLongFormRetainedSixHourCrossChunkColorContinuityVerified: false,
-      professionalLongFormFinalizationAndFinalQaVerified: false,
+      professionalLongFormFinalizationAndFinalQaVerified: full,
       professionalLongFormObjectStorageVerified: false,
       professionalLongFormCustomerDeliveryNamedEditUiMounted: false,
       professionalLongFormCustomerDeliveryDistributedWatchEvidenceVerified: false,

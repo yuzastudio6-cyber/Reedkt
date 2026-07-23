@@ -2,7 +2,7 @@
 
 Status: `implemented_local_private_verification_entrypoint`
 
-Status date: 2026-07-22
+Status date: 2026-07-23
 
 ## Purpose
 
@@ -11,7 +11,7 @@ verifying ReeditPro's current signed-in named-edit pipeline. It replaces the
 misleading use of the retired caller-authored private-execution route as the
 primary pipeline signal.
 
-### Current v39 scope
+### Current v40 scope
 
 The routine verifier now checks nine fast Edit Reference/Edit Preference gates
 before private media work: the single mounted product UI, atomic exact-edit
@@ -26,18 +26,18 @@ authority remain explicitly false.
 
 Routine long-form break/fix verification uses `routine_two_hour`: 7,200
 seconds, 200 source ranges, a 127-child graph, eight completed representative
-jobs, and two of 60 object-chunk pairs. The retained `release_six_hour` profile
-still proves the professional capacity contract at 21,600 seconds, 512 source
-ranges, 255 jobs, and 124 chunk pairs, but the routine command does not execute
-that expensive stress profile. This preserves the six-hour design ceiling while
-making everyday end-to-end implementation and regression work substantially
-faster.
+jobs, and two of 60 object-chunk pairs. Full aggregate mode selects the explicit
+full-two-hour lane instead: all 127 jobs, all 60 render/QA pairs, all 59 color
+boundaries, private master assembly, and independent master QA. The retained
+`release_six_hour` profile still proves the capacity contract at 21,600
+seconds, 512 source ranges, 255 jobs, and 124 chunk pairs without making every
+destructive two-hour acceptance run pay the six-hour engineering cost.
 
 ### Retained six-hour evidence history
 
 The detailed narrative below describes how the earlier six-hour capacity proof
 was established. It is retained for audit history and must not be read as the
-routine v39 execution profile.
+routine v40 execution profile.
 
 The command verifies the connected path from exact source, Edit Preferences,
 and Edit Brief authority through a real resumable-sized 4K private ingest/proxy
@@ -170,20 +170,16 @@ plan fits the bounded canonical profile.
 3. Verify the additive professional long-form object-backed planning profile
    against a 30-minute, 24-source fixture and retain the separately versioned
    six-hour/512-range capacity contract. Routine post-approval execution uses
-   the two-hour/200-range profile: it binds one approved snapshot and 4K
-   estimate to a deterministic 127-child package, placement, and queue; reopens
-   exact seed/controller authority after restart; and completes eight
-   representative jobs through leases, one-use attempts, private artifacts,
-   independent QA, attempt-level internal cost, reconciliation, and exact
-   replay. The proof includes snapshot, source, and Master Timing authorities,
-   continuous lossless program audio, the first and one server-selected later
-   object chunk plus their QA, nonzero source-frame trimming, a technical split,
-   failed-attempt cost retention, and completion-proposal recovery without a
-   second execution or cost. It honestly leaves 119 jobs and 58 of 60 chunk
-   pairs unexecuted. The six-hour 255-job/124-pair release profile remains
-   immutable retained evidence and is run only through its explicit release
-   command. Distributed recovery, complete long-form execution, live object
-   storage, cloud, staging, and production authority remain false.
+   the two-hour/200-range profile and binds one approved snapshot and 4K
+   estimate to a deterministic 127-child package, placement, and queue.
+   Ordinary mode completes eight representative jobs. Full mode completes all
+   127 jobs, all 60 object render/QA pairs, all 59 color boundaries, continuous
+   program audio, private master assembly, and independent master QA, while
+   retaining failed-attempt cost and exact completion-proposal recovery. The
+   six-hour 255-job/124-pair release profile remains immutable retained evidence
+   and is run only through its explicit release command. Distributed production
+   recovery, live object storage, cloud, staging, and production authority
+   remain false.
 4. Prove that every approved edit estimate carries the 4K UHD delivery ceiling
    and that 1080p, 2K/1440p, and 4K exports stay within the same approved
    deliverable rather than prompting for a second estimate.
@@ -273,7 +269,7 @@ source-bound audio identities in approved order, reads sanitized journey state,
 and records review acceptance.
 
 The runner stops on the first failed phase and prints a machine-readable
-`canonical-private-pipeline-verification-v39` report with step exit codes and
+`canonical-private-pipeline-verification-v40` report with step exit codes and
 durations. A zero exit code means every included assertion passed, including
 assertions that production-only or unavailable behavior stays blocked.
 
@@ -283,6 +279,15 @@ and open time. Resource isolation prevents unrelated local tasks from mutating
 that discovery channel; it does not weaken image-identity validation.
 
 ## Current Evidence Record
+
+On 2026-07-23, the standalone full-two-hour long-form lane passed 120/120
+checks: 127/127 jobs, 128 retained attempts, 60/60 chunk pairs, 59/59 color
+boundaries, one 393,016,049-byte private master, independent final QA, and exact
+restart replay. It found and corrected the estimate-validity/reservation-lifetime
+coupling and confirmed that media-integrity failure requires review rather than
+same-authority retry. The authoritative v40 full aggregate must still be run
+from the final clean commit before an all-phase same-SHA acceptance claim is
+made.
 
 On 2026-07-22, the nine new v39 Edit Reference/Edit Preference aggregate steps
 passed individually on the exact backend tree. The source-coverage smoke also

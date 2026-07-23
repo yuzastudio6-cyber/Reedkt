@@ -126,6 +126,14 @@ export interface CanonicalApprovedExecutionAuthority {
   testOnly: true
 }
 
+// Estimate validity answers how long the user may wait before approving the
+// quoted plan. Once approval succeeds, the synthetic internal-test credit hold
+// needs a separate bounded execution window so a valid asynchronous graph does
+// not lose funding merely because its work lasts longer than the quote window.
+// Production credit-ledger expiry/renewal remains a separately gated policy.
+export const CANONICAL_INTERNAL_TEST_APPROVED_RESERVATION_HOLD_SECONDS =
+  24 * 60 * 60
+
 const PLAN_COMPONENT_NAMES = [
   'compiledIntent',
   'professionalEditingDirective',
@@ -1074,7 +1082,11 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
             releasedCredits: 0,
             refundedCredits: 0,
             reservedAt: timestamp,
-            expiresAt: estimate.validUntil,
+            expiresAt: new Date(
+              Date.parse(timestamp) +
+                CANONICAL_INTERNAL_TEST_APPROVED_RESERVATION_HOLD_SECONDS *
+                  1_000,
+            ).toISOString(),
             updatedAt: timestamp,
           })
           aggregate.ledgerEntries.push({

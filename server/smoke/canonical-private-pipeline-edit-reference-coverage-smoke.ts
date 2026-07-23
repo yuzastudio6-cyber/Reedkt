@@ -68,7 +68,7 @@ for (const [id, script] of expectedSteps) {
   )
 }
 
-assert.match(cliSource, /schemaVersion: 'canonical-private-pipeline-verification-v39'/)
+assert.match(cliSource, /schemaVersion: 'canonical-private-pipeline-verification-v40'/)
 for (const claim of [
   'canonicalEditReferenceUiIntegrationSourceVerified: true',
   'canonicalEditReferenceExactEditAtomicApplyContract: true',
@@ -103,15 +103,35 @@ assert.equal(
   false,
   'Routine canonical verification must not execute the six-hour release-stress script.',
 )
+assert.match(
+  cliSource,
+  /full && verification\.id === 'canonical-professional-long-form-post-approval'/,
+)
+assert.match(
+  cliSource,
+  /script: 'smoke:canonical-professional-long-form-post-approval:full-two-hour'/,
+)
+assert.equal(
+  packageJson.scripts?.['smoke:canonical-professional-long-form-post-approval:full-two-hour'],
+  'tsx server/smoke/canonical-professional-long-form-post-approval-smoke.ts --full-two-hour',
+)
+for (const fullClaim of [
+  'professionalLongFormFullTwoHourGraphExecutedInThisRun: full',
+  'professionalLongFormAll60RoutineChunkPairsCompleted: full',
+  'professionalLongFormFinalizationAndFinalQaVerified: full',
+]) {
+  assert.equal(cliSource.includes(fullClaim), true, `Missing full-mode claim: ${fullClaim}`)
+}
 
 console.log(JSON.stringify({
   ok: true,
-  schemaVersion: 'canonical-private-pipeline-edit-reference-coverage-smoke-v1',
+  schemaVersion: 'canonical-private-pipeline-edit-reference-coverage-smoke-v2',
   editReferenceStepCount: expectedSteps.length,
   canonicalStepCount: parsedSteps.length,
   routineLongFormProfile: 'routine_two_hour',
   releaseStressProfile: 'release_six_hour',
   releaseStressExecutedByRoutinePipeline: false,
+  fullTwoHourGraphExecutedByFullPipeline: true,
   productionReady: false,
 }, null, 2))
 

@@ -16,7 +16,7 @@ import {
   UploadCloud,
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { AppShell } from '../components/AppShell'
 import { Button } from '../components/Button'
 import { ProjectResourceState } from '../components/ProjectResourceState'

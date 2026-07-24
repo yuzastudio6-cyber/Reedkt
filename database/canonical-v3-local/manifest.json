@@ -265,7 +265,7 @@
     },
     {
       "path": "package.json",
-      "sha256": "6e1632894e7e95be4f83fa8821cefef435f57a0d9d70e958130c0868a162dfb1"
+      "sha256": "087ac92aa91643a3b3835432a9dbcbd640f36e51a7440ce90de953bb66d71b67"
     },
     {
       "path": "server/app.ts",
@@ -665,7 +665,7 @@
     },
     {
       "path": "src/components/editor/ChatNativeEditor.tsx",
-      "sha256": "07eec5399bd1de7aa9e63933a5da388fc2a4dc94fb710707cc26603380312998"
+      "sha256": "e9037658eda6b482c597662b37cbc83f94d77e5f13b5fb3858b32f976b850440"
     },
     {
       "path": "src/components/editor/CurrentEditPreferencesWorkspace.tsx",

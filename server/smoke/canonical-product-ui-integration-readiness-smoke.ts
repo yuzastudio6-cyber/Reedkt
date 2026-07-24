@@ -207,7 +207,7 @@ function canonicalReadyFixture(): CanonicalProductUiSourceSnapshot {
       export function PreferencesPage() { return <EditReferenceWorkspacePage /> }
     `,
     'src/components/preferences/EditReferenceWorkspacePage.tsx': `
-      import { useSearchParams } from 'react-router-dom'
+      import { useSearchParams } from 'react-router'
       import { createEditReferenceApiClient } from '../../lib/edit-reference-api-client'
       import { uploadEditReferenceMedia } from '../../lib/edit-reference-media-upload-client'
       export function EditReferenceWorkspacePage() {
@@ -243,7 +243,7 @@ function canonicalReadyFixture(): CanonicalProductUiSourceSnapshot {
       function NamedEditWorkspaceBoundary() { return <ChatNativeEditor /> }
     `,
     'src/components/editor/ChatNativeEditor.tsx': `
-      import { useSearchParams } from 'react-router-dom'
+      import { useSearchParams } from 'react-router'
       const activeWorkspaceView = searchParams.get('view') === 'preferences' ? 'preferences' : 'chat'
       nextSearchParams.set('view', 'preferences')
       const view = activeWorkspaceView === 'preferences'

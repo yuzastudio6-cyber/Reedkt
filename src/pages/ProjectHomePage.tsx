@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router'
 import { AppShell } from '../components/AppShell'
 import { NewEditSessionCreatePanel } from '../components/projects/NewEditSessionCreatePanel'
 import { ProjectEditSessionCardGrid } from '../components/projects/ProjectEditSessionCardGrid'

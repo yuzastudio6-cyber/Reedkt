@@ -1,5 +1,5 @@
 import { useCallback, useEffect } from 'react'
-import { useBeforeUnload, useBlocker } from 'react-router-dom'
+import { useBeforeUnload, useBlocker } from 'react-router'
 
 type UnsavedNavigationGuardOptions = {
   confirmBlockedNavigation?: boolean

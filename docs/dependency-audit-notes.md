@@ -1,5 +1,46 @@
 # Dependency Audit Notes
 
+## July 24, 2026 React Router Security Upgrade
+
+The exact clean-SHA internal pipeline passed 63/63 phases, but the
+post-aggregate dependency audit then reported
+[`GHSA-qwww-vcr4-c8h2`](https://github.com/advisories/GHSA-qwww-vcr4-c8h2)
+against `react-router@7.18.1`. The advisory affects React Router versions
+`>=7.12.0 <8.3.0`; the upstream description limits the vulnerable behavior to
+unstable RSC APIs, which ReeditPro does not use.
+
+Downgrading to `7.11.0` was tested and rejected because it reopened older
+high-severity React Router advisories. The accepted source remediation:
+
+- replaces `react-router-dom@7.18.1` with the unified
+  `react-router@8.3.0` package;
+- moves existing library-mode imports from `react-router-dom` to
+  `react-router` without adding framework-mode, RSC, action, loader, or
+  server-rendering behavior;
+- pins `react@19.2.7` and `react-dom@19.2.7`, satisfying the router's exact
+  peer baseline;
+- preserves the existing component routes, `RouterProvider`, navigation
+  guards, search parameters, links, named-edit route identity, Motion Studio
+  route separation, and Edit Preferences route semantics.
+
+Security verification:
+
+```bash
+npm audit --json
+npm audit --omit=dev --json
+npm run typecheck:api
+npm run typecheck:server
+npm run lint
+npm run build
+npm run check:frontend-boundary
+npm run check:secrets
+```
+
+Both dependency audits report zero vulnerabilities. This source dependency
+remediation does not qualify deployed infrastructure or authorize provider,
+Secret Manager, Supabase, cloud, billing, deployment, or public-delivery
+actions.
+
 ## July 10, 2026 Security Maintenance
 
 Actions applied:

@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { Navigate, useParams } from 'react-router-dom'
+import { Navigate, useParams } from 'react-router'
 import { AppShell } from '../components/AppShell'
 import { Button } from '../components/Button'
 import { ChatNativeEditor } from '../components/editor/ChatNativeEditor'

@@ -1,4 +1,4 @@
-import { Navigate, Outlet, useLocation } from 'react-router-dom'
+import { Navigate, Outlet, useLocation } from 'react-router'
 import { buildSignInPath } from './auth-navigation'
 import { ProjectPersistenceScopeProvider } from './ProjectPersistenceScopeProvider'
 import { useAuthSession } from './useAuthSession'

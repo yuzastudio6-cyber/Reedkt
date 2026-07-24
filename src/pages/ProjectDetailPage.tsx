@@ -17,7 +17,7 @@ import {
   useRef,
   useState,
 } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router'
 import { AppShell } from '../components/AppShell'
 import { Button, IconButton } from '../components/Button'
 import { ProjectResourceState } from '../components/ProjectResourceState'

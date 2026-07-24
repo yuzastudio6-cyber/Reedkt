@@ -1,5 +1,5 @@
 import { ArrowLeft } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 
 import type { StorytellingWorkspace } from '../../../lib/motion-studio/storytelling-workspace-model'
 import { StorytellingWorkspaceSwitcher } from './StorytellingWorkspaceSwitcher'

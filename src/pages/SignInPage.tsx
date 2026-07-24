@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { ArrowLeft, KeyRound, LockKeyhole, ShieldCheck, UserRoundCheck } from 'lucide-react'
-import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useLocation, useNavigate } from 'react-router'
 import { sanitizeInternalReturnTo } from '../auth/auth-navigation'
 import { useAuthSession } from '../auth/useAuthSession'
 import { BrandLogo } from '../components/BrandLogo'

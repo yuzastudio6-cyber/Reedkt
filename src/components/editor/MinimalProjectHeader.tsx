@@ -1,5 +1,5 @@
 import { ArrowLeft, FileText, MessageSquare, RotateCcw, SlidersHorizontal } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { Button } from '../Button'
 import { getInternalEditPersistenceStatusCopy } from '../../lib/internal-edit-persistence-copy'
 import type { InternalEditPersistenceStatus } from '../../lib/local-project-handoff'

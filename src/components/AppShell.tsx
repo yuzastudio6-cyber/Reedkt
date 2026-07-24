@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { LogOut, Plus } from 'lucide-react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation } from 'react-router'
 import { useAuthSession } from '../auth/useAuthSession'
 import { appNav } from '../data/productContent'
 import { BrandLogo } from './BrandLogo'

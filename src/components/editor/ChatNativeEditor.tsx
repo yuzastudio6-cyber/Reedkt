@@ -1,5 +1,5 @@
 import { lazy, Suspense, type ChangeEvent, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
-import { useParams, useSearchParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router'
 import { Button } from '../Button'
 import { getFrontendApiClientStatus } from '../../backend/api/frontend-api-client'
 import { createApprovedPlanSnapshot } from '../../lib/approved-plan-snapshot'

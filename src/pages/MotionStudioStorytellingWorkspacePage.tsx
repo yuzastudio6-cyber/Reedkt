@@ -6,7 +6,7 @@ import {
   RefreshCw,
 } from 'lucide-react'
 import { lazy, Suspense, useCallback, useState } from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router'
 
 import { AppShell } from '../components/AppShell'
 import { Button } from '../components/Button'

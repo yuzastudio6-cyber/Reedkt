@@ -1,6 +1,6 @@
 import { ArrowRight, Check, FolderKanban } from 'lucide-react'
 import { useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import { AppShell } from '../components/AppShell'
 import { Button } from '../components/Button'
 import { useProjectPersistenceScope } from '../hooks/useProjectPersistenceScope'

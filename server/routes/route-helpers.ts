@@ -44,6 +44,8 @@ export function getServiceContext(request: Request): ServiceContext {
       runtimeRequest.runtime.canonicalVisualCalibrationReferenceFrameReaderPort,
     canonicalProviderAttemptRuntimeRecordSourcePort:
       runtimeRequest.runtime.canonicalProviderAttemptRuntimeRecordSourcePort,
+    motionStudioCommandRepositoryRuntimePort:
+      runtimeRequest.runtime.motionStudioCommandRepositoryRuntimePort,
     editReferenceExactEditApplyRuntimePort:
       runtimeRequest.runtime.editReferenceExactEditApplyRuntimePort,
     editReferenceApplicationPreparationRuntimePort:

@@ -4,7 +4,15 @@ import { getRequiredAuthUserId } from './service-helpers'
 
 const EDITOR_ROLES = new Set(['owner', 'admin', 'editor'])
 const MAX_MEMBERSHIP_RESPONSE_BYTES = 8 * 1024
+const MAX_MEMBERSHIP_LIST_RESPONSE_BYTES = 32 * 1024
+const MAX_MEMBERSHIP_LIST_ROWS = 64
 const MEMBERSHIP_READ_TIMEOUT_MS = 10_000
+
+export interface AuthenticatedWorkspaceMembership {
+  workspaceId: string
+  userId: string
+  role: string
+}
 
 export async function authorizeWorkspaceAccess(
   context: ServiceContext,
@@ -43,6 +51,83 @@ export async function authorizeWorkspaceAccess(
   }
 
   return { userId, workspaceId, role }
+}
+
+/**
+ * Server-only discovery used by request-scoped local repositories that must
+ * resolve an exact saved resource before its workspace ID is known. The
+ * bearer token remains in-memory and the fixed RLS query returns only bounded
+ * membership identity. Callers must still re-authorize and re-read the target
+ * domain record before using a matched workspace.
+ */
+export async function listAuthenticatedWorkspaceMemberships(
+  context: ServiceContext,
+): Promise<AuthenticatedWorkspaceMembership[]> {
+  const userId = normalizeWorkspaceScopeId(
+    getRequiredAuthUserId(context),
+    'authenticated user id',
+  )
+  if (context.auth?.isMockUser || !context.auth?.accessToken) {
+    throw new ApiError(
+      'AUTH_INVALID',
+      'Workspace discovery requires a verified bearer-authenticated user.',
+      401,
+    )
+  }
+
+  const endpointOrigin = context.env.supabaseUrl
+  const anonKey = context.env.supabaseAnonKey
+  const accessToken = context.auth.accessToken
+  if (!endpointOrigin || !anonKey) return []
+
+  let endpoint: URL
+  try {
+    endpoint = new URL('/rest/v1/workspace_members', endpointOrigin)
+  } catch {
+    return []
+  }
+  endpoint.searchParams.set('select', 'workspace_id,user_id,role')
+  endpoint.searchParams.set('user_id', `eq.${userId}`)
+  endpoint.searchParams.set('order', 'workspace_id.asc')
+  endpoint.searchParams.set('limit', String(MAX_MEMBERSHIP_LIST_ROWS + 1))
+
+  const payload = await readMembershipPayload({
+    endpoint,
+    anonKey,
+    accessToken,
+    maximumBytes: MAX_MEMBERSHIP_LIST_RESPONSE_BYTES,
+  })
+  if (!payload || payload.length > MAX_MEMBERSHIP_LIST_ROWS) return []
+
+  const memberships: AuthenticatedWorkspaceMembership[] = []
+  const seenWorkspaceIds = new Set<string>()
+  for (const value of payload) {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return []
+    const row = value as {
+      workspace_id?: unknown
+      user_id?: unknown
+      role?: unknown
+    }
+    if (
+      typeof row.workspace_id !== 'string'
+      || row.user_id !== userId
+      || typeof row.role !== 'string'
+      || !['owner', 'admin', 'editor', 'viewer'].includes(row.role)
+    ) return []
+    const workspaceId = normalizeWorkspaceScopeId(
+      row.workspace_id,
+      'workspace id',
+    )
+    if (seenWorkspaceIds.has(workspaceId)) return []
+    seenWorkspaceIds.add(workspaceId)
+    memberships.push({
+      workspaceId,
+      userId,
+      role: row.role,
+    })
+  }
+
+  return memberships
 }
 
 function shouldReadLegacyInjectedMembershipFixture(context: ServiceContext): boolean {
@@ -92,14 +177,34 @@ async function readAuthenticatedWorkspaceMembership(
   endpoint.searchParams.set('user_id', `eq.${userId}`)
   endpoint.searchParams.set('limit', '2')
 
+  const payload = await readMembershipPayload({
+    endpoint,
+    anonKey,
+    accessToken,
+    maximumBytes: MAX_MEMBERSHIP_RESPONSE_BYTES,
+  })
+  if (!Array.isArray(payload) || payload.length !== 1) return undefined
+  const membership = payload[0]
+  if (!membership || typeof membership !== 'object' || Array.isArray(membership)) {
+    return undefined
+  }
+  return membership as { workspace_id?: unknown; user_id?: unknown; role?: unknown }
+}
+
+async function readMembershipPayload(input: {
+  endpoint: URL
+  anonKey: string
+  accessToken: string
+  maximumBytes: number
+}): Promise<unknown[] | undefined> {
   let response: Response
   try {
-    response = await fetch(endpoint, {
+    response = await fetch(input.endpoint, {
       method: 'GET',
       headers: {
         accept: 'application/json',
-        apikey: anonKey,
-        authorization: `Bearer ${accessToken}`,
+        apikey: input.anonKey,
+        authorization: `Bearer ${input.accessToken}`,
       },
       signal: AbortSignal.timeout(MEMBERSHIP_READ_TIMEOUT_MS),
     })
@@ -110,24 +215,16 @@ async function readAuthenticatedWorkspaceMembership(
   const contentLength = Number(response.headers.get('content-length') ?? 0)
   if (
     Number.isFinite(contentLength)
-    && contentLength > MAX_MEMBERSHIP_RESPONSE_BYTES
+    && contentLength > input.maximumBytes
   ) return undefined
   const body = await response.text()
-  if (Buffer.byteLength(body, 'utf8') > MAX_MEMBERSHIP_RESPONSE_BYTES) {
-    return undefined
-  }
-  let payload: unknown
+  if (Buffer.byteLength(body, 'utf8') > input.maximumBytes) return undefined
   try {
-    payload = JSON.parse(body)
+    const parsed = JSON.parse(body) as unknown
+    return Array.isArray(parsed) ? parsed : undefined
   } catch {
     return undefined
   }
-  if (!Array.isArray(payload) || payload.length !== 1) return undefined
-  const membership = payload[0]
-  if (!membership || typeof membership !== 'object' || Array.isArray(membership)) {
-    return undefined
-  }
-  return membership as { workspace_id?: unknown; user_id?: unknown; role?: unknown }
 }
 
 export function normalizeWorkspaceScopeId(value: string, label: string): string {

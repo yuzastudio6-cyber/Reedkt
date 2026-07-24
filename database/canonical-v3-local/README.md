@@ -124,6 +124,12 @@ The chain provides:
   body, reloads the connected authority, removes it, reloads the cleared
   authority, denies the other workspace owner, and checks narrow responsive
   overflow;
+- a fourth mounted Chromium proof that creates a signed-in Storytelling
+  Project and named edit, binds it to the selected canonical exact-preference
+  planning authority, creates one checksummed private Motion production,
+  captures Director Chat direction, reloads the same production, lists it from
+  the Storytelling library, and reopens the dedicated Director route without
+  mounting the normal Edit Chat editor;
 - local two-user/two-workspace isolation and adversarial lifecycle,
   server-owned application preparation/replay/conflict, atomic Apply,
   planning-authority read/evidence/replay, immutable-baseline, cleanup
@@ -153,7 +159,7 @@ The runner starts the isolated local stack if needed, performs a clean local
 reset, executes all SQL tests with `ON_ERROR_STOP`, verifies the local adapter,
 provisions two local Auth users, installs the controlled fixture, exercises the
 actual loopback PostgREST RPC and RLS path, proves server-owned target
-application preparation plus atomic Apply, runs all three mounted signed-in
+application preparation plus atomic Apply, runs all four mounted signed-in
 Chromium journeys, and performs a private data-only backup/reset/restore rehearsal with
 the PostgreSQL 15 tools from the matching local database container, verifies
 the source manifest, and performs a final clean reset. SQL tests run inside

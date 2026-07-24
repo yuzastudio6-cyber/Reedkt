@@ -65,6 +65,10 @@ import {
 import type {
   EditReferenceTargetUnderstandingPackageRuntimePortFactory,
 } from '../../server/services/edit-reference-target-understanding-package-runtime-port'
+import {
+  createPrivateLocalMotionStudioCommandRepository,
+  createPrivateLocalMotionStudioCommandRepositoryRuntimePort,
+} from '../../server/motion-studio/commands'
 
 type ExactEditState = {
   values: EditReferenceProductionExactEditPreferenceValues
@@ -348,10 +352,15 @@ const editReferenceApplicationPreparationRuntimePort =
   createOptionalCanonicalV3LocalApplicationPreparationRuntimePort({
     targetFactory: editReferenceTargetUnderstandingPackageRuntimePortFactory,
   }) ?? applicationPreparation.port
+const motionStudioCommandRepositoryRuntimePort =
+  createPrivateLocalMotionStudioCommandRepositoryRuntimePort(
+    createPrivateLocalMotionStudioCommandRepository,
+  )
 const server = createReeditProApiApp(env, {
   editReferenceExactEditApplyRuntimePort,
   editReferenceApplicationPreparationRuntimePort,
   planningExactEditPreferenceAuthorityPort: planningPort,
+  motionStudioCommandRepositoryRuntimePort,
   ...(editReferenceDomainRepositoryRuntimePort
     ? { editReferenceDomainRepositoryRuntimePort }
     : {}),

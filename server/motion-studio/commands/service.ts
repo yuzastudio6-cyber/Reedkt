@@ -20,6 +20,7 @@ import {
   mapMotionStudioArtifactVersionRow,
   mapMotionStudioProductionRow,
 } from './repository'
+import { resolveMotionStudioCommandRepositoryRuntimePort } from './runtime-port'
 import type { MotionStudioArtifactVersionRow, MotionStudioCommandRepository, MotionStudioProductionRow } from './types'
 
 const LOCAL_WARNING = 'Motion Studio command APIs are a local canonical candidate; remote Supabase, providers, jobs, rendering, billing, and customer pricing remain disabled.'
@@ -32,7 +33,9 @@ export class MotionStudioCommandService {
   constructor(context: ServiceContext, repository?: MotionStudioCommandRepository) {
     this.context = context
     this.actorUserId = requireVerifiedUser(context)
-    this.repository = repository ?? createSupabaseMotionStudioCommandRepository(ensureAdminClient(context))
+    this.repository = repository
+      ?? resolveMotionStudioCommandRepositoryRuntimePort(context)
+      ?? createSupabaseMotionStudioCommandRepository(ensureAdminClient(context))
   }
 
   async createProduction(projectId: string, editSessionId: string, request: CreateMotionStudioProductionRequest, idempotencyKey: string) {
@@ -51,7 +54,13 @@ export class MotionStudioCommandService {
       return { data: { production: mapMotionStudioProductionRow(existing) }, warnings: [LOCAL_WARNING] }
     }
     const hash = computeRequestHash('POST', `/v1/projects/${projectId}/edit-sessions/${editSessionId}/motion-studio`, request)
-    await this.repository.createProduction(editSessionId, this.actorUserId, request, idempotencyKey, hash)
+    await this.repository.createProduction({
+      namedEdit,
+      actorUserId: this.actorUserId,
+      request,
+      idempotencyKey,
+      requestHash: hash,
+    })
     const production = await this.repository.findProductionForNamedEdit(projectId, editSessionId)
     if (!production) throw new ApiError('INTERNAL_ERROR', 'Created Motion Studio production could not be read back.', 500, undefined, { internal: true })
     this.assertOwner(production)

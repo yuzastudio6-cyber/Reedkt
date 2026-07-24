@@ -11,7 +11,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "75918c2b4b8473f51871dbce6e7d2a93faf6b49b97f7055212ceda741c282b83"
+      "sha256": "2680f7478dc16bd098ca84af00b85161d681596b12aaf11a7e702c2b50fa76a7"
     },
     {
       "path": "expected-recovery-data-tables.txt",
@@ -23,7 +23,7 @@
     },
     {
       "path": "run-local-verification.sh",
-      "sha256": "2a5a89fe999d6885c913d70d259b535e2961f5b5f7b328ea092d763765cde5a7"
+      "sha256": "aa22a6f139c0236ece6bf2b5eb911f3899bcf74beec1b1a240e69974e9354f00"
     },
     {
       "path": "setup-local-auth-users.ts",
@@ -187,7 +187,7 @@
     },
     {
       "path": "verify.mjs",
-      "sha256": "0e9cbb7b9e3e096bc9b69b6a9da6f3914987a8675657ceacb02096dd792563b1"
+      "sha256": "fc3990bf096e12e551413b4dad5af2fcccf89642c98f0b5af4006f9e701bc5d2"
     }
   ],
   "repositoryFiles": [
@@ -252,6 +252,10 @@
       "sha256": "f5a74ca711873d1ea3435c436f4323622d9c511538b6c353fa51b1ad3e7eb41b"
     },
     {
+      "path": "docs/canonical-v3-local-motion-studio-private-command-repository-verification-2026-07-24.md",
+      "sha256": "4a5a89884029fa1c6c72137f0ef77c8bf9d6beddbfafc2fc0081648ec09dec13"
+    },
+    {
       "path": "docs/canonical-v3-local-target-understanding-package-persistence-verification-2026-07-21.md",
       "sha256": "e8bac98b49f851fdaa981cc700c57a6b9218e8f49a735452874cff249f5654ce"
     },
@@ -261,11 +265,11 @@
     },
     {
       "path": "package.json",
-      "sha256": "c5219cefae084bdc2acb1f1d8f9abf45172e96529aaa553e8d42b829ab4441fd"
+      "sha256": "6e1632894e7e95be4f83fa8821cefef435f57a0d9d70e958130c0868a162dfb1"
     },
     {
       "path": "server/app.ts",
-      "sha256": "342d525efd7c4923fb777ce9e0316641a9c8a3ba94f7ceddf5e9c99325a5e692"
+      "sha256": "ed281e10378f193f89044c6b4e3f103f6ecdf58a6338c8071949ac12f8c29dca"
     },
     {
       "path": "server/distributed-media-ingest/canonical-distributed-media-ingest-local-supabase-http-rpc-client.ts",
@@ -400,6 +404,30 @@
       "sha256": "5ffdbd691639217f982c4ecfee4a74e51f69fb370f8c2c26057c5e8b8063954d"
     },
     {
+      "path": "server/motion-studio/commands/index.ts",
+      "sha256": "cca8c3c00fce5e2fcad3969d051420c1a9a28ca212d2b6a3a2b544e23059bf97"
+    },
+    {
+      "path": "server/motion-studio/commands/private-local-repository.ts",
+      "sha256": "931d45d7f693940aa7e8658f602688faa2d8b430931650af00075aa77d758e63"
+    },
+    {
+      "path": "server/motion-studio/commands/repository.ts",
+      "sha256": "b836b7b3b51446f446985ad207bb9dce85ccb8bc543e20d7340e36ddeb57d0a2"
+    },
+    {
+      "path": "server/motion-studio/commands/runtime-port.ts",
+      "sha256": "35f653f166a0ff417c5a88074299552162ffc3de05c64bf62faa220f65b500ba"
+    },
+    {
+      "path": "server/motion-studio/commands/service.ts",
+      "sha256": "c610efbb7def5182411a0bc7c84591504d2fc625d0dedf89c1ecf45d2e8b0ccb"
+    },
+    {
+      "path": "server/motion-studio/commands/types.ts",
+      "sha256": "459e27907a184ecd93ab83e713df63bba2ed58b1a4e7951b6ccea52288f44b49"
+    },
+    {
       "path": "server/routes/edit-reference-target-video-understanding-routes.ts",
       "sha256": "6de924a872fdaf5372602af95097a92a34d9c70af4ff504b770f7a2971fc0ad7"
     },
@@ -409,7 +437,7 @@
     },
     {
       "path": "server/routes/route-helpers.ts",
-      "sha256": "d767ea480ae84ad77b9f0253044be707e68b654a5e4af6b9ceb874734c1d0dce"
+      "sha256": "bc198f977ddcaab3bbd2ae429f5fe65f2fb0cb663298d58f14068b5f7a6656b9"
     },
     {
       "path": "server/services/canonical-planning-handoff-service.ts",
@@ -476,6 +504,10 @@
       "sha256": "8f44777513c383ebabe010312a9ef20c7c15feac6ae73497d636b35ae29f5779"
     },
     {
+      "path": "server/services/internal-edit-state-service.ts",
+      "sha256": "d456fe8e84f4606b1a30795e2b32b4e5a62be2c0409e9ecae20bbc363e037e11"
+    },
+    {
       "path": "server/services/planning-exact-edit-preference-authority-port.ts",
       "sha256": "8b321aaf6415ceb397a1f118339fd15cb327a704ee338c9627d7eafbfa1682fd"
     },
@@ -492,12 +524,16 @@
       "sha256": "3b64f7ba6ce17eefbdc0094e966e22ebfd4fa35c623e233d69ef7175460d0949"
     },
     {
+      "path": "server/services/project-service.ts",
+      "sha256": "1c0a1b0a757ba67f1e39dfd7c555b76def1985425b8578023b29f70902371c7f"
+    },
+    {
       "path": "server/services/upload-service.ts",
       "sha256": "97df973c59a428e91446a9124c6c683fe98792dc8db8561ac15e53e954c76f08"
     },
     {
       "path": "server/services/workspace-access-service.ts",
-      "sha256": "7e657e832057a1e52d470ae422c80571fcef91c5d396d67e4ed12d6fe440d0fb"
+      "sha256": "f6ee5bbf0391eaaeb3d5298f6eb825443a2bf86bbb3b92e950ae526655fa9972"
     },
     {
       "path": "server/smoke/canonical-distributed-media-ingest-local-postgres-smoke.ts",
@@ -588,6 +624,10 @@
       "sha256": "4f1345cfd41475e8f96ae82980300250e49d21ed5d324ff2fee3e4d3278693fc"
     },
     {
+      "path": "server/smoke/motion-studio-private-local-command-repository-smoke.ts",
+      "sha256": "fb1f2476103b9d7ce1cf1fe49f51b81cdca755ef39f8ffab63c95020e8a13384"
+    },
+    {
       "path": "server/smoke/planning-exact-edit-preference-authority-port-smoke.ts",
       "sha256": "40f63a921fc7c794e98e9baf745ee2b5f44652b38179d977bd7ff283d7e5dfb5"
     },
@@ -597,7 +637,7 @@
     },
     {
       "path": "server/types.ts",
-      "sha256": "fe054e28d5608e1e3f6a2c52d108a0808092b10ab2611b5e3a1e22d5c5009911"
+      "sha256": "055c4b46e4e875283089b57a7db4e1635ddb99a2aece6dccfa1461fb100b6884"
     },
     {
       "path": "server/validation/canonical-exact-edit-planning-authority-schemas.ts",
@@ -689,7 +729,7 @@
     },
     {
       "path": "tests/e2e/edit-preferences-atomic-api-server.ts",
-      "sha256": "c5d47ea1cb567c69facd71036d2137584d654290c8a39f1c0edfda81dca97df6"
+      "sha256": "0520af60ad8bbd04963a840eebc8361ee52cb88dad909591a622d4b4a8fa92d2"
     },
     {
       "path": "tests/e2e/edit-preferences-current-edit.spec.ts",
@@ -701,7 +741,7 @@
     },
     {
       "path": "tests/e2e/edit-reference-canonical-v3-local-browser.spec.ts",
-      "sha256": "f8281fb04992e8524d24adf44175997136095001b8a7ee3d5ec627a6c1f0972e"
+      "sha256": "f08995bca9c5b5b20bc1cc1d976963af5efd376c12c38d9cb8c3c5b4f223d611"
     },
     {
       "path": "tests/e2e/helpers/canonical-v3-edit-reference-apply-fixture.ts",

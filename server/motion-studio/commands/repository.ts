@@ -16,7 +16,7 @@ import type {
   MotionStudioProductionRow,
 } from './types'
 
-const productionRowSchema = z.object({
+export const motionStudioProductionRowSchema = z.object({
   id: z.string().uuid(),
   workspace_id: z.string().uuid(),
   project_id: z.string().uuid(),
@@ -35,7 +35,7 @@ const productionRowSchema = z.object({
   updated_at: z.string().min(1),
 }).strict()
 
-const artifactRowSchema = z.object({
+export const motionStudioArtifactRowSchema = z.object({
   id: z.string().uuid(),
   workspace_id: z.string().uuid(),
   project_id: z.string().uuid(),
@@ -49,14 +49,14 @@ const artifactRowSchema = z.object({
   archived_at: z.string().nullable(),
 }).strict()
 
-const artifactVersionRowSchema = z.object({
+export const motionStudioArtifactVersionRowSchema = z.object({
   id: z.string().uuid(),
   workspace_id: z.string().uuid(),
   project_id: z.string().uuid(),
   edit_session_id: z.string().min(1),
   production_id: z.string().uuid(),
   artifact_id: z.string().uuid(),
-  kind: artifactRowSchema.shape.kind,
+  kind: motionStudioArtifactRowSchema.shape.kind,
   version_number: z.number().int().positive(),
   parent_version_id: z.string().uuid().nullable(),
   state: z.enum(['draft', 'in_review', 'approved', 'locked', 'rejected', 'superseded', 'archived']),
@@ -67,7 +67,7 @@ const artifactVersionRowSchema = z.object({
   created_at: z.string().min(1),
 }).strict()
 
-const approvalRowSchema = z.object({
+export const motionStudioApprovalRowSchema = z.object({
   id: z.string().uuid(),
   workspace_id: z.string().uuid(),
   project_id: z.string().uuid(),
@@ -83,7 +83,7 @@ const approvalRowSchema = z.object({
   approval_digest: z.string().regex(/^[a-f0-9]{64}$/),
 }).strict()
 
-const namedEditRowSchema = z.object({
+export const motionStudioNamedEditRowSchema = z.object({
   id: z.string().min(1),
   workspace_id: z.string().uuid(),
   project_id: z.string().uuid(),
@@ -91,7 +91,7 @@ const namedEditRowSchema = z.object({
   status: z.string().min(1),
 }).strict()
 
-const commandResultSchema: z.ZodType<MotionStudioCommandResult> = z.discriminatedUnion('status', [
+export const motionStudioCommandResultSchema: z.ZodType<MotionStudioCommandResult> = z.discriminatedUnion('status', [
   z.object({
     status: z.literal('applied'),
     commandId: z.string().min(1),
@@ -127,26 +127,26 @@ export function createSupabaseMotionStudioCommandRepository(client: SupabaseClie
     async findNamedEdit(projectId, editSessionId) {
       const response = await client.from('edit_sessions').select('id,workspace_id,project_id,owner_id,status')
         .eq('project_id', projectId).eq('id', editSessionId).maybeSingle()
-      return parseMaybe(response, namedEditRowSchema, 'Named edit')
+      return parseMaybe(response, motionStudioNamedEditRowSchema, 'Named edit')
     },
     async findProductionForNamedEdit(projectId, editSessionId) {
       const response = await client.from('motion_studio_productions').select(PRODUCTION_SELECT)
         .eq('project_id', projectId).eq('edit_session_id', editSessionId).maybeSingle()
-      return parseMaybe(response, productionRowSchema, 'Motion Studio production')
+      return parseMaybe(response, motionStudioProductionRowSchema, 'Motion Studio production')
     },
     async findProduction(productionId) {
       const response = await client.from('motion_studio_productions').select(PRODUCTION_SELECT)
         .eq('id', productionId).maybeSingle()
-      return parseMaybe(response, productionRowSchema, 'Motion Studio production')
+      return parseMaybe(response, motionStudioProductionRowSchema, 'Motion Studio production')
     },
-    async createProduction(editSessionId, actorUserId, request, idempotencyKey, requestHash) {
+    async createProduction(input) {
       const response = await client.rpc('create_motion_studio_module_production', {
-        target_edit_session_id: editSessionId,
-        target_actor_user_id: actorUserId,
-        target_module_id: request.moduleId,
-        target_module_catalog_version: request.moduleCatalogVersion,
-        target_idempotency_key: idempotencyKey,
-        target_request_hash: requestHash,
+        target_edit_session_id: input.namedEdit.id,
+        target_actor_user_id: input.actorUserId,
+        target_module_id: input.request.moduleId,
+        target_module_catalog_version: input.request.moduleCatalogVersion,
+        target_idempotency_key: input.idempotencyKey,
+        target_request_hash: input.requestHash,
       })
       const schema = z.object({ productionId: z.string().uuid() }).passthrough()
       return parseRequired(response, schema, 'Motion Studio production creation')
@@ -154,28 +154,28 @@ export function createSupabaseMotionStudioCommandRepository(client: SupabaseClie
     async findArtifact(productionId, artifactId) {
       const response = await client.from('motion_studio_artifacts').select(ARTIFACT_SELECT)
         .eq('production_id', productionId).eq('id', artifactId).maybeSingle()
-      return parseMaybe(response, artifactRowSchema, 'Motion Studio artifact')
+      return parseMaybe(response, motionStudioArtifactRowSchema, 'Motion Studio artifact')
     },
     async findArtifactsByKind(productionId, kind) {
       const response = await client.from('motion_studio_artifacts').select(ARTIFACT_SELECT)
         .eq('production_id', productionId).eq('kind', kind).is('archived_at', null)
         .order('created_at', { ascending: true }).limit(2)
       if (response.error) throw mapDatabaseError(response.error, 'Motion Studio artifact-kind read')
-      const parsed = z.array(artifactRowSchema).safeParse(response.data)
+      const parsed = z.array(motionStudioArtifactRowSchema).safeParse(response.data)
       if (!parsed.success) throw invalidDatabaseResponse('Motion Studio artifacts by kind')
       return parsed.data
     },
     async findArtifactVersion(productionId, artifactId, versionId) {
       const response = await client.from('motion_studio_artifact_versions').select(VERSION_SELECT)
         .eq('production_id', productionId).eq('artifact_id', artifactId).eq('id', versionId).maybeSingle()
-      return parseMaybe(response, artifactVersionRowSchema, 'Motion Studio artifact version')
+      return parseMaybe(response, motionStudioArtifactVersionRowSchema, 'Motion Studio artifact version')
     },
     async findArtifactVersions(productionId, artifactId, versionIds) {
       if (versionIds.length === 0) return []
       const response = await client.from('motion_studio_artifact_versions').select(VERSION_SELECT)
         .eq('production_id', productionId).eq('artifact_id', artifactId).in('id', [...versionIds])
       if (response.error) throw mapDatabaseError(response.error, 'Motion Studio artifact version read')
-      const parsed = z.array(artifactVersionRowSchema).safeParse(response.data)
+      const parsed = z.array(motionStudioArtifactVersionRowSchema).safeParse(response.data)
       if (!parsed.success) throw invalidDatabaseResponse('Motion Studio artifact versions')
       return parsed.data
     },
@@ -185,7 +185,7 @@ export function createSupabaseMotionStudioCommandRepository(client: SupabaseClie
         .eq('motion_studio_production_id', productionId)
         .eq('motion_studio_artifact_id', artifactId)
         .order('approved_at', { ascending: false }).limit(1).maybeSingle()
-      return parseMaybe(response, approvalRowSchema, 'Motion Studio approval')
+      return parseMaybe(response, motionStudioApprovalRowSchema, 'Motion Studio approval')
     },
     async createInitialArtifactVersion(input) {
       const response = await client.rpc('create_motion_studio_artifact_version', {
@@ -225,7 +225,7 @@ export function createSupabaseMotionStudioCommandRepository(client: SupabaseClie
         target_request_hash: input.requestHash,
         target_request_id: input.requestId,
       })
-      return parseRequired(response, commandResultSchema, 'Motion Studio command')
+      return parseRequired(response, motionStudioCommandResultSchema, 'Motion Studio command')
     },
     async approveArtifact(input) {
       const response = await client.rpc('approve_motion_studio_artifact_version', {

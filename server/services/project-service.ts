@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto'
+import { createHash, randomUUID } from 'node:crypto'
 import { ApiError } from '../errors/api-error'
 import {
   listPrivateRegularFileNamesWithinRoot,
@@ -54,7 +54,9 @@ export function createProjectService(context: ServiceContext) {
 
       if (usesLocalProjectPersistence(context)) {
         const project: ProjectView = {
-          id: createMockId('project'),
+          id: context.auth?.isMockUser
+            ? createMockId('project')
+            : randomUUID(),
           workspaceId: access.workspaceId,
           name: normalizeProjectName(input.name),
           description: normalizeOptionalDescription(input.description),

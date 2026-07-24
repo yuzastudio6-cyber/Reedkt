@@ -5,7 +5,6 @@ import {
   motionStudioStorytellingWorkspaceRoute,
 } from '../../src/lib/motion-studio/contracts/storytelling-workflow'
 import { ApiError } from '../errors/api-error'
-import { createMotionStudioCommandService } from '../motion-studio/commands'
 import {
   listPrivateRegularFileNamesWithinRoot,
   readPrivateTextFileIfExistsWithinRoot,
@@ -13,6 +12,7 @@ import {
 } from '../security/private-local-persistence'
 import type { ServiceContext } from '../types'
 import { createExactEditPreferenceService } from './exact-edit-preference-service'
+import { readPlanningExactEditPreferenceAuthority } from './planning-exact-edit-preference-authority-port'
 import { createProjectService } from './project-service'
 import { mockWarning, nowIso } from './service-helpers'
 import { authorizeWorkspaceAccess } from './workspace-access-service'
@@ -117,11 +117,12 @@ export function createInternalEditStateService(
       // This registry is explicitly private/mock-only. A local-test identity may
       // persist source and Brief lineage without pretending the separately
       // gated transactional Exact Edit Preference authority is available.
-      // Verified bearer-authenticated runtimes still require that authority and
-      // therefore fail closed if initialization cannot complete.
+      // Verified bearer-authenticated runtimes must bind the named edit to the
+      // selected canonical planning authority. Once that authority is selected,
+      // it never falls back to the retired private preference store.
       const exactEditPreferenceInitialization = context.auth?.isMockUser
-        ? { created: false, deferred: true }
-        : await initializeExactEditPreferences(
+        ? { created: false, deferred: true, canonicalAuthorityVerified: false }
+        : await bindExactEditPreferenceAuthority(
             context,
             access.workspaceId,
             input.projectId,
@@ -196,6 +197,9 @@ export function createInternalEditStateService(
             mockWarning('Internal edit state save'),
             ...(exactEditPreferenceInitialization.created
               ? ['Exact Edit Preferences were initialized server-side from saved workspace defaults for this edit.']
+              : []),
+            ...(exactEditPreferenceInitialization.canonicalAuthorityVerified
+              ? ['The named edit was rebound to the selected canonical Exact Edit Preference planning authority.']
               : []),
             ...(exactEditPreferenceInitialization.deferred
               ? ['Exact Edit Preference database initialization remains gated; this private local edit-state record does not claim transactional preference persistence.']
@@ -350,16 +354,78 @@ export function createInternalEditStateService(
   }
 }
 
-async function initializeExactEditPreferences(
+async function bindExactEditPreferenceAuthority(
   context: ServiceContext,
   workspaceId: string,
   projectId: string,
   editSessionId: string,
   ownerUserId: string,
-): Promise<{ created: boolean; deferred: false }> {
+): Promise<{
+  created: boolean
+  deferred: false
+  canonicalAuthorityVerified: boolean
+}> {
+  if (context.planningExactEditPreferenceAuthorityPort) {
+    const resolution = await readPlanningExactEditPreferenceAuthority({
+      context,
+      scope: {
+        localStorageRoot: context.env.localStorageRoot,
+        ownerUserId,
+        workspaceId,
+        projectId,
+        editSessionId,
+      },
+    })
+    const authority = resolution.authority
+    if (
+      resolution.sourceAuthority !== 'canonical_exact_edit_preference_repository'
+      || resolution.noLegacyExactPreferenceStoreRead !== true
+      || authority.workspaceId !== workspaceId
+      || authority.projectId !== projectId
+      || authority.editSessionId !== editSessionId
+    ) {
+      throw new ApiError(
+        'IDEMPOTENCY_CONFLICT',
+        'The selected Exact Edit Preference authority did not match the named edit.',
+        409,
+      )
+    }
+    return {
+      created: false,
+      deferred: false,
+      canonicalAuthorityVerified: true,
+    }
+  }
+
+  return initializePrivateCompatibilityExactEditPreferences(
+    context,
+    workspaceId,
+    projectId,
+    editSessionId,
+    ownerUserId,
+  )
+}
+
+async function initializePrivateCompatibilityExactEditPreferences(
+  context: ServiceContext,
+  workspaceId: string,
+  projectId: string,
+  editSessionId: string,
+  ownerUserId: string,
+): Promise<{
+  created: boolean
+  deferred: false
+  canonicalAuthorityVerified: false
+}> {
   const exactEditPreferenceService = createExactEditPreferenceService(context)
   const current = await exactEditPreferenceService.getCurrent(workspaceId, projectId, editSessionId)
-  if (current.preferenceRecord) return { created: false, deferred: false }
+  if (current.preferenceRecord) {
+    return {
+      created: false,
+      deferred: false,
+      canonicalAuthorityVerified: false,
+    }
+  }
 
   const initialized = await exactEditPreferenceService.initialize({
     workspaceId,
@@ -372,7 +438,11 @@ async function initializeExactEditPreferences(
       editSessionId,
     }),
   })
-  return { created: initialized.created, deferred: false }
+  return {
+    created: initialized.created,
+    deferred: false,
+    canonicalAuthorityVerified: false,
+  }
 }
 
 function exactEditPreferenceInitializationKey(input: {
@@ -751,6 +821,10 @@ async function readStorytellingProduction(
   if (dependencies.readStorytellingProduction) {
     return dependencies.readStorytellingProduction(projectId, editSessionId)
   }
+  // Keep the private named-edit repository readable by the Motion command
+  // runtime without a static module cycle. This import is server-only and
+  // happens only for the explicit retained-workflow migration boundary.
+  const { createMotionStudioCommandService } = await import('../motion-studio/commands')
   const result = await createMotionStudioCommandService(context).getProduction(projectId, editSessionId)
   return result.data.production
 }

@@ -60,6 +60,8 @@ export interface ReeditProApiAppOptions {
     RuntimeState['canonicalVisualCalibrationReferenceFrameReaderPort']
   canonicalProviderAttemptRuntimeRecordSourcePort?:
     RuntimeState['canonicalProviderAttemptRuntimeRecordSourcePort']
+  motionStudioCommandRepositoryRuntimePort?:
+    RuntimeState['motionStudioCommandRepositoryRuntimePort']
   editReferenceExactEditApplyRuntimePort?: EditReferenceExactEditApplyRuntimePort
   editReferenceApplicationPreparationRuntimePort?: EditReferenceApplicationPreparationRuntimePort
   editReferenceLongFormStudyRuntimePort?: RuntimeState['editReferenceLongFormStudyRuntimePort']
@@ -127,6 +129,12 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
       ? {
           canonicalProviderAttemptRuntimeRecordSourcePort:
             options.canonicalProviderAttemptRuntimeRecordSourcePort,
+        }
+      : {}),
+    ...(options.motionStudioCommandRepositoryRuntimePort
+      ? {
+          motionStudioCommandRepositoryRuntimePort:
+            options.motionStudioCommandRepositoryRuntimePort,
         }
       : {}),
     ...(options.editReferenceExactEditApplyRuntimePort

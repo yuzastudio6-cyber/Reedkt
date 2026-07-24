@@ -26,6 +26,9 @@ import type {
   CanonicalDurableUploadTargetTransactionAdapter,
   CanonicalUploadTargetCredentialEscrow,
 } from './upload-target-authority/canonical-durable-upload-target-authority'
+import type {
+  MotionStudioCommandRepositoryRuntimePort,
+} from './motion-studio/commands/runtime-port'
 
 export interface AuthContext {
   userId: string
@@ -88,6 +91,8 @@ export interface RuntimeState {
     CanonicalVisualCalibrationReferenceFrameReaderPort
   canonicalProviderAttemptRuntimeRecordSourcePort?:
     CanonicalProviderAttemptRuntimeRecordSourcePort
+  motionStudioCommandRepositoryRuntimePort?:
+    MotionStudioCommandRepositoryRuntimePort
   editReferenceExactEditApplyRuntimePort?: EditReferenceExactEditApplyRuntimePort
   editReferenceApplicationPreparationRuntimePort?: EditReferenceApplicationPreparationRuntimePort
   editReferenceLongFormStudyRuntimePort?: EditReferenceLongFormStudyRuntimePort
@@ -132,6 +137,8 @@ export interface ServiceContext {
     CanonicalVisualCalibrationReferenceFrameReaderPort
   canonicalProviderAttemptRuntimeRecordSourcePort?:
     CanonicalProviderAttemptRuntimeRecordSourcePort
+  motionStudioCommandRepositoryRuntimePort?:
+    MotionStudioCommandRepositoryRuntimePort
   editReferenceExactEditApplyRuntimePort?: EditReferenceExactEditApplyRuntimePort
   editReferenceApplicationPreparationRuntimePort?: EditReferenceApplicationPreparationRuntimePort
   editReferenceLongFormStudyRuntimePort?: EditReferenceLongFormStudyRuntimePort

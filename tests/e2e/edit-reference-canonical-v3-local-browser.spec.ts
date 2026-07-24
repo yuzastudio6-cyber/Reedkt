@@ -452,6 +452,66 @@ test.describe('canonical V3 local Edit Preference browser lifecycle', () => {
     await setViewport(page, 375, 812)
     await expectNoHorizontalOverflow(page)
   })
+
+  test('creates, reloads, and reopens one signed-in Storytelling Director through private durable authority', async ({ page }) => {
+    test.setTimeout(180_000)
+    page.setDefaultTimeout(20_000)
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await setViewport(page, 1280, 900)
+    await page.addInitScript((session) => {
+      window.localStorage.setItem('sb-127-auth-token', JSON.stringify(session))
+    }, browserSession)
+
+    await page.goto('/motion-studio')
+    await expect(page.getByTestId('motion-studio-home')).toBeVisible()
+    await page.getByRole('button', { name: 'Open Storytelling' }).click()
+    await expect(page).toHaveURL(/\/motion-studio\/storytelling$/u)
+    await expect(page.getByRole('heading', { name: 'Storytelling', level: 1 }))
+      .toBeVisible()
+
+    await page.getByRole('button', { name: 'Create storytelling' }).click()
+    const storyName = `Canonical signed-in story ${Date.now()}`
+    await page.getByLabel('Story name').fill(storyName)
+    await page.getByRole('button', {
+      name: 'Create and open Director Chat',
+    }).click()
+
+    await expect(page).toHaveURL(
+      /\/motion-studio\/storytelling\/projects\/[a-f0-9-]{36}\/edits\/storytelling-edit-/u,
+    )
+    await expect(page.getByTestId('storytelling-director-workspace')).toBeVisible()
+    await expect(page.getByTestId('editor-page')).toHaveCount(0)
+    await expect(page.getByTestId('storytelling-director-start')).toBeVisible()
+    await expect(page.getByTestId('editor-header')).toContainText(storyName)
+    await expect(page.getByTestId('chat-composer-textarea')).toBeVisible()
+
+    const directorUrl = page.url()
+    await page.getByRole('button', { name: 'Start with an idea' }).click()
+    await page.getByTestId('chat-composer-textarea')
+      .fill('I want to tell a precise two-minute story about a community repair workshop.')
+    await page.getByRole('button', { name: 'Send', exact: true }).click()
+    await expect(page.getByTestId('storytelling-director-start'))
+      .toContainText('Your story direction is captured')
+
+    await page.reload()
+    await expect(page).toHaveURL(directorUrl)
+    await expect(page.getByTestId('storytelling-director-workspace')).toBeVisible()
+    await expect(page.getByTestId('storytelling-director-start'))
+      .toContainText('Your story direction is captured')
+
+    await page.goto('/motion-studio/storytelling')
+    await expect(page.getByTestId('motion-studio-storytelling-library'))
+      .toContainText(storyName)
+    const storyRow = page.locator('[data-testid^="motion-studio-story-"]')
+      .filter({ hasText: storyName })
+    await expect(storyRow).toHaveCount(1)
+    await storyRow.getByRole('button', {
+      name: 'Continue in Director Chat',
+    }).click()
+    await expect(page).toHaveURL(directorUrl)
+    await expect(page.getByTestId('storytelling-director-workspace')).toBeVisible()
+    await expectNoHorizontalOverflow(page)
+  })
 })
 
 async function approveCurrentGuidance(page: import('@playwright/test').Page): Promise<void> {

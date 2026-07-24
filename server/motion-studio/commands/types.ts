@@ -134,11 +134,19 @@ export interface CreateInitialArtifactRepositoryInput {
   provenance: MotionStudioProvenance
 }
 
+export interface CreateMotionStudioProductionRepositoryInput {
+  namedEdit: MotionStudioNamedEditRow
+  actorUserId: string
+  request: CreateMotionStudioProductionRequest
+  idempotencyKey: string
+  requestHash: string
+}
+
 export interface MotionStudioCommandRepository {
   findNamedEdit(projectId: string, editSessionId: string): Promise<MotionStudioNamedEditRow | undefined>
   findProductionForNamedEdit(projectId: string, editSessionId: string): Promise<MotionStudioProductionRow | undefined>
   findProduction(productionId: string): Promise<MotionStudioProductionRow | undefined>
-  createProduction(editSessionId: string, actorUserId: string, request: CreateMotionStudioProductionRequest, idempotencyKey: string, requestHash: string): Promise<{ productionId: string }>
+  createProduction(input: CreateMotionStudioProductionRepositoryInput): Promise<{ productionId: string }>
   findArtifact(productionId: string, artifactId: string): Promise<MotionStudioArtifactRow | undefined>
   findArtifactsByKind(productionId: string, kind: MotionStudioArtifactKind): Promise<MotionStudioArtifactRow[]>
   findArtifactVersion(productionId: string, artifactId: string, versionId: string): Promise<MotionStudioArtifactVersionRow | undefined>

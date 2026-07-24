@@ -8,8 +8,12 @@ import { inspectExistingOfflineLibassRuntime, runOfflineLibassContainer } from '
 import { OFFLINE_LIBASS_CAPTION_OPERATION, offlineLibassCaptionRequestSha256, validateOfflineLibassCaptionRequest } from './offline-libass-caption-protocol'
 import type { OfflineLibassCaptionResult, OfflineLibassImageEvidence, OfflineLibassRuntimeAuthority } from './offline-libass-caption-types'
 
-const STORAGE_ROOT = '/tmp/reeditpro-offline-libass-caption-execution'
-const AUTHORITY_PATH = 'runtime-authority/offline-libass-caption-runtime-v1.json'
+export const OFFLINE_LIBASS_CAPTION_EXECUTION_STORAGE_ROOT =
+  '/tmp/reeditpro-offline-libass-caption-execution' as const
+export const OFFLINE_LIBASS_CAPTION_RUNTIME_AUTHORITY_RELATIVE_PATH =
+  'runtime-authority/offline-libass-caption-runtime-v1.json' as const
+const STORAGE_ROOT = OFFLINE_LIBASS_CAPTION_EXECUTION_STORAGE_ROOT
+const AUTHORITY_PATH = OFFLINE_LIBASS_CAPTION_RUNTIME_AUTHORITY_RELATIVE_PATH
 const SOURCE_SHA = 'caab4b993dd7be6187c55623b789ed75dddefea6e65938af134637c732fe094a'
 const BLOCKERS = Object.freeze([
   'Only a bounded transparent caption overlay frame is proven; complete caption tracks, video burn-in, multi-language font packs, collision analysis, final export, and delivery remain separate gates.',

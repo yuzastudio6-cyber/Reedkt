@@ -84,7 +84,11 @@ import {
   OFFLINE_REMOTION_RENDER_RUNTIME_AUTHORITY_RELATIVE_PATH,
   prepareOfflineRemotionDockerRuntime,
 } from '../tool-execution/remotion-render-execution'
-import { activatePrivateOfflineLibassCaptionRuntime } from '../tool-execution/libass-caption-execution'
+import {
+  activatePrivateOfflineLibassCaptionRuntime,
+  OFFLINE_LIBASS_CAPTION_EXECUTION_STORAGE_ROOT,
+  OFFLINE_LIBASS_CAPTION_RUNTIME_AUTHORITY_RELATIVE_PATH,
+} from '../tool-execution/libass-caption-execution'
 import { activatePrivateOfflineBrowserGraphicsRuntime, prepareOfflineBrowserGraphicsDockerRuntime } from '../tool-execution/browser-graphics-execution'
 import { activatePrivateOfflineAiCapabilityRuntime, prepareOfflineAiCapabilityDockerRuntime } from '../tool-execution/ai-capability-execution'
 import { activatePrivateOfflineNativeImagePipelineRuntime, prepareOfflineNativeImagePipelineDockerRuntime } from '../tool-execution/native-image-pipeline-execution'
@@ -157,6 +161,10 @@ await rm(join(
 await rm(join(
   OFFLINE_REMOTION_RENDER_EXECUTION_STORAGE_ROOT,
   OFFLINE_REMOTION_RENDER_RUNTIME_AUTHORITY_RELATIVE_PATH,
+), { force: true })
+await rm(join(
+  OFFLINE_LIBASS_CAPTION_EXECUTION_STORAGE_ROOT,
+  OFFLINE_LIBASS_CAPTION_RUNTIME_AUTHORITY_RELATIVE_PATH,
 ), { force: true })
 
 const seedAggregate = await requireEditAuthority(workspaceId)

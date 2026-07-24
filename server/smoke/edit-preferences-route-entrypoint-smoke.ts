@@ -50,10 +50,11 @@ assert.match(app, /path="\/exports"\s+element=\{<Navigate to="\/projects" replac
 const navigation = read('src/data/productContent.ts')
 const appNavSource = navigation.match(/export const appNav: NavItem\[\] = \[[\s\S]*?\n\]/)?.[0] ?? ''
 const appNavLabels = [...appNavSource.matchAll(/label: '([^']+)'/g)].map((match) => match[1])
-assert.deepEqual(appNavLabels, ['Home', 'Projects', 'Edit Videos', 'Edit Preferences'])
+assert.deepEqual(appNavLabels, ['Home', 'Projects', 'Edit Videos', 'Motion Studio', 'Edit Preferences'])
 assert.match(appNavSource, /to: '\/dashboard'/)
 assert.match(appNavSource, /to: '\/projects'/)
 assert.match(appNavSource, /to: '\/edit-videos'/)
+assert.match(appNavSource, /to: '\/motion-studio'/)
 assert.match(appNavSource, /to: '\/preferences'/)
 for (const retiredSidebarItem of ['AI Editor', 'Media Library', 'Templates', 'Team', 'Analytics', 'Exports', 'Brand Kit', 'Settings', 'Wallet', 'Upload']) {
   assert.equal(appNavLabels.includes(retiredSidebarItem), false, retiredSidebarItem + ' should not be in the primary sidebar navigation')
@@ -133,7 +134,13 @@ assert.deepEqual(docJson.fields, [
   'credit_preference',
   'target_platform',
 ])
-assert.deepEqual(docJson.sidebarNavigation?.allowed, ['Home', 'Projects', 'Edit Videos', 'Edit Preferences'])
+assert.deepEqual(docJson.sidebarNavigation?.allowed, [
+  'Home',
+  'Projects',
+  'Edit Videos',
+  'Motion Studio',
+  'Edit Preferences',
+])
 assert.deepEqual(docJson.sidebarNavigation?.retiredStandaloneRoutes, {
   '/wallet': '/preferences',
   '/brand-kit': '/preferences',

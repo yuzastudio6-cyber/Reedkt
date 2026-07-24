@@ -77,9 +77,10 @@ ReeditPro on this branch is a project-first, desktop/web AI video editing workfl
 - Home
 - Projects
 - Edit Videos
+- Motion Studio
 - Edit Preferences
 
-`Projects` routes to `/projects`, where a user creates or opens a project container. `Edit Videos` routes to `/edit-videos`, where a user resumes normal named video edits and enters the existing `/projects/:projectId/edits/:editSessionId` Edit Chat. These are required core links, not an exact-four-link ceiling: canonical product integration must retain Motion Studio's existing `/motion-studio` destination, producing Home, Projects, Edit Videos, Motion Studio, and Edit Preferences after reconciliation.
+`Projects` routes to `/projects`, where a user creates or opens a project container. `Edit Videos` routes to `/edit-videos`, where a user resumes normal named video edits and enters the existing `/projects/:projectId/edits/:editSessionId` Edit Chat. `Motion Studio` routes to `/motion-studio` and remains a separate product workflow rather than replacing Projects or normal Edit Videos.
 
 Motion Studio Storytelling is not a mode of normal Edit Chat. Content category (`storytelling`, documentary, tutorial, and so on) must not choose the product workspace. The explicit product-workflow authority distinguishes normal `video_edit` work from `motion_studio.storytelling` work; each keeps its own library, chat language, and workflow while sharing project identity only where intended.
 

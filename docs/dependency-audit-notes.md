@@ -1,5 +1,31 @@
 # Dependency Audit Notes
 
+## July 24, 2026 brace-expansion Security Upgrade
+
+The clean-SHA internal pipeline passed all 63 phases, but the post-run
+dependency audit then incorporated
+[`GHSA-mh99-v99m-4gvg`](https://github.com/advisories/GHSA-mh99-v99m-4gvg)
+against `brace-expansion@5.0.7`. The advisory covers versions `<=5.0.7` and
+describes an unbounded expansion-length denial of service that can terminate a
+Node process through memory exhaustion.
+
+The affected installed path is development-only:
+
+```text
+eslint -> minimatch -> brace-expansion
+```
+
+The accepted source remediation updates the existing root override to the
+first patched release, `brace-expansion@5.0.8`, and regenerates the package
+lock without changing the direct dependency set. Verification requires a
+clean `npm ci`, zero findings from both full and production-only audits,
+application/server typechecks, lint, production build, frontend-boundary and
+secret checks, canonical V3 manifest verification, and focused mounted
+browser acceptance.
+
+This dependency remediation does not authorize provider, Secret Manager,
+Supabase, cloud, billing, deployment, or public-delivery actions.
+
 ## July 24, 2026 React Router Security Upgrade
 
 The exact clean-SHA internal pipeline passed 63/63 phases, but the

@@ -479,11 +479,15 @@ try {
   assert.equal(handoffs[0]?.sourceMediaAssets, undefined, 'New internal project handoff should not start with executable demo source assets.')
   assert.match(
     handoffs[0]?.projectId ?? '',
-    /^project_[0-9a-f-]+$/,
+    /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
     `Browser project creation must use the backend project record. responses=${JSON.stringify(projectRouteResponses)} failures=${JSON.stringify(failedBrowserRequests)}`,
   )
   assert.match(handoffs[0]?.editSessionId ?? '', new RegExp(`^${handoffs[0]?.projectId}-launch-edit-v1-\\d+$`))
-  assert.match(handoffs[0]?.editorPath ?? '', /^\/projects\/project_[0-9a-f-]+\/edits\/project_[0-9a-f-]+-launch-edit-v1-\d+\?/)
+  assert.equal(
+    (handoffs[0]?.editorPath ?? '').split('?')[0],
+    `/projects/${handoffs[0]?.projectId}/edits/${handoffs[0]?.editSessionId}`,
+    'The browser editor route must bind the exact backend project and named-edit identities.',
+  )
   clearLocalProjectMemoryForSmoke()
   const projectReadback = await fetchProjectReadback(apiBaseUrl, handoffs[0]?.projectId ?? '', verifiedToken)
   assert.equal(projectReadback.status, 200, `Backend project readback should survive cleared project memory: ${JSON.stringify(projectReadback.json)}`)
@@ -1058,7 +1062,11 @@ try {
     }))
     return handoffs[0]
   }, getLocalProjectHandoffStorageKey())
-  assert.match(interruptedPlanApprovedHandoff.editorPath ?? '', /^\/projects\/project_[0-9a-f-]+\/edits\/project_[0-9a-f-]+-launch-edit-v1-\d+\?/)
+  assert.equal(
+    (interruptedPlanApprovedHandoff.editorPath ?? '').split('?')[0],
+    `/projects/${handoffs[0]?.projectId}/edits/${handoffs[0]?.editSessionId}`,
+    'Interrupted plan recovery must retain the exact backend project and named-edit route.',
+  )
   assert.match(interruptedPlanApprovedHandoff.approvedSnapshotId ?? '', /^approved[-_]snapshot[-_]/, 'Interrupted plan-approved handoff should preserve the approved snapshot id.')
   assert.match(interruptedPlanApprovedHandoff.approvedCreditReservationId ?? '', /^credit_reservation_/, 'Interrupted plan-approved handoff should preserve the credit reservation id.')
 
@@ -1325,10 +1333,15 @@ try {
   assert.match(verifiedHandoffs[0]?.privateReview?.editDecisionManifestVerification?.approvedPlanSnapshotId ?? '', /^approved[-_]snapshot[-_]/, 'Verified local handoff should record the manifest approved snapshot id.')
   assert.match(verifiedHandoffs[0]?.privateReview?.editDecisionManifestVerification?.finalRenderArtifactId ?? '', /^final-render-/, 'Verified local handoff should record the manifest final artifact id.')
   assert.equal(verifiedHandoffs[0]?.privateReview?.editDecisionManifestVerification?.approvedEditContextReady, true)
-  assert.match(verifiedHandoffs[0]?.privateReview?.editDecisionManifestVerification?.approvedEditContext?.projectId ?? '', /^project_[0-9a-f-]+$/)
-  assert.match(
-    verifiedHandoffs[0]?.privateReview?.editDecisionManifestVerification?.approvedEditContext?.editSessionId ?? '',
-    /^project_[0-9a-f-]+-launch-edit-v1-\d+$/,
+  assert.equal(
+    verifiedHandoffs[0]?.privateReview?.editDecisionManifestVerification?.approvedEditContext?.projectId,
+    handoffs[0]?.projectId,
+    'Verified review context must retain the exact backend project identity.',
+  )
+  assert.equal(
+    verifiedHandoffs[0]?.privateReview?.editDecisionManifestVerification?.approvedEditContext?.editSessionId,
+    handoffs[0]?.editSessionId,
+    'Verified review context must retain the exact named-edit identity.',
   )
   assert.equal(
     verifiedHandoffs[0]?.privateReview?.editDecisionManifestVerification?.approvedEditContext?.goalSummary,

@@ -1577,14 +1577,20 @@ const atomicD3WorkItem = atomicCompilationAuthority.workItems.find((workItem) =>
   workItem.approvedToolIds.length === 1 && workItem.approvedToolIds[0] === 'd3')
 const atomicEchartsWorkItem = atomicCompilationAuthority.workItems.find((workItem) =>
   workItem.approvedToolIds.length === 1 && workItem.approvedToolIds[0] === 'echarts')
+const atomicLibassWorkItem = atomicCompilationAuthority.workItems.find((workItem) =>
+  workItem.approvedToolIds.length === 1 && workItem.approvedToolIds[0] === 'libass')
 assert.ok(atomicD3WorkItem)
 assert.ok(atomicEchartsWorkItem)
+assert.ok(atomicLibassWorkItem)
 const atomicD3Job = atomicCompilationAuthority.jobs.find((job) =>
   job.approvedWorkItemId === atomicD3WorkItem.id)
 const atomicEchartsJob = atomicCompilationAuthority.jobs.find((job) =>
   job.approvedWorkItemId === atomicEchartsWorkItem.id)
+const atomicLibassJob = atomicCompilationAuthority.jobs.find((job) =>
+  job.approvedWorkItemId === atomicLibassWorkItem.id)
 assert.ok(atomicD3Job)
 assert.ok(atomicEchartsJob)
+assert.ok(atomicLibassJob)
 assert.equal(atomicEchartsJob.dependencyJobIds.includes(atomicD3Job.id), true)
 const atomicWorkGraphService = createCanonicalPrivateWorkGraphOrchestratorService(
   context,
@@ -1598,6 +1604,8 @@ const initialAtomicCompilationRun = await atomicWorkGraphService.run({
 assert.equal(initialAtomicCompilationRun.status, 'blocked_required_jobs')
 const initiallyFailedAtomicD3 = initialAtomicCompilationRun.jobs.find((job) =>
   job.jobId === atomicD3Job.id)
+const initiallyFailedAtomicLibass = initialAtomicCompilationRun.jobs.find((job) =>
+  job.jobId === atomicLibassJob.id)
 const initiallyBlockedAtomicEcharts = initialAtomicCompilationRun.jobs.find((job) =>
   job.jobId === atomicEchartsJob.id)
 assert.equal(initiallyFailedAtomicD3?.status, 'failed_retry_available')
@@ -1607,6 +1615,13 @@ assert.equal(initiallyFailedAtomicD3?.attemptNumber, 1)
 assert.equal(initiallyFailedAtomicD3?.approvedMaxAttempts, 2)
 assert.equal(initiallyFailedAtomicD3?.remainingAttempts, 1)
 assert.match(initiallyFailedAtomicD3?.failureRecordHash ?? '', /^[a-f0-9]{64}$/)
+assert.equal(initiallyFailedAtomicLibass?.status, 'failed_retry_available')
+assert.equal(initiallyFailedAtomicLibass?.failureCategory, 'runtime_unavailable')
+assert.equal(initiallyFailedAtomicLibass?.retryDisposition, 'retry_same_approved_operation')
+assert.equal(initiallyFailedAtomicLibass?.attemptNumber, 1)
+assert.equal(initiallyFailedAtomicLibass?.approvedMaxAttempts, 2)
+assert.equal(initiallyFailedAtomicLibass?.remainingAttempts, 1)
+assert.match(initiallyFailedAtomicLibass?.failureRecordHash ?? '', /^[a-f0-9]{64}$/)
 assert.equal(initiallyBlockedAtomicEcharts?.status, 'blocked_by_dependency')
 assert.equal(
   initiallyBlockedAtomicEcharts?.blockedDependencyJobIds.includes(atomicD3Job.id),
@@ -1626,6 +1641,7 @@ assert.deepEqual(
 )
 
 await createPrivateOfflineNodeStructuredExecutionRuntime()
+await activatePrivateOfflineLibassCaptionRuntime()
 const incompleteRecoveryDispatchCount = (await requireDispatchAggregate()).grants.length
 const incompleteRecoveryAdapterInput = {
   workspaceId,
@@ -1677,10 +1693,14 @@ assert.equal(atomicCompilationRun.summary.requiredBlockedJobCount, 2)
 const atomicD3Outcome = atomicCompilationRun.jobs.find((job) => job.jobId === atomicD3Job.id)
 const atomicEchartsOutcome = atomicCompilationRun.jobs.find((job) =>
   job.jobId === atomicEchartsJob.id)
+const atomicLibassOutcome = atomicCompilationRun.jobs.find((job) =>
+  job.jobId === atomicLibassJob.id)
 assert.equal(atomicD3Outcome?.status, 'completed_private_test')
 assert.equal(atomicD3Outcome?.contentType, 'image/svg+xml')
 assert.equal(atomicEchartsOutcome?.status, 'completed_private_test')
 assert.equal(atomicEchartsOutcome?.contentType, 'image/svg+xml')
+assert.equal(atomicLibassOutcome?.status, 'completed_private_test')
+assert.equal(atomicLibassOutcome?.contentType, 'image/png')
 assert.equal(
   atomicCompilationRun.jobs.some((job) =>
     [atomicD3Job.id, atomicEchartsJob.id].includes(job.jobId) &&
@@ -2935,7 +2955,6 @@ await leaseService.release({
   idempotencyKey: 'release-motion-studio-animatic-preview-root',
 })
 
-await activatePrivateOfflineLibassCaptionRuntime()
 const libassAdapterInput = {
   workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
   jobId: libassJob.id,

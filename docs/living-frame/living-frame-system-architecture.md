@@ -1,6 +1,6 @@
 # Living Frame Storytelling System Architecture
 
-Status: source-only contract v1
+Status: source-only contract v1 plus planning-only parent-skill admission
 Runtime readiness: not integrated, not executable
 Contract version: `living-frame-professional-skill-component-v1`
 
@@ -456,16 +456,27 @@ The adversarial matrix rejects:
 This document, tool-qualification notes, types, validation, fixtures, exports
 within the namespace, and a direct smoke. Nothing is runtime-connected.
 
-### Slice 2: canonical professional-skill construction
+### Slice 2A: planning-only parent-skill admission
+
+- add one Living Frame parent to the existing professional-skill registry;
+- select it only from strong, explicit editing intent;
+- make explicit non-use or restraint win deterministically;
+- preserve no-user-tool-name behavior; and
+- create no component, estimate, snapshot, work, provider, tool, or runtime
+  authority.
+
+### Slice 2B: canonical professional-skill component construction
 
 Later and only with a new exact-path authorization:
 
-- add Living Frame to the professional skill vocabulary and registry;
 - add an optional `ProfessionalSkillPlan.livingFrame` field atomically with
-  canonical construction and validation;
+  canonical async construction and validation;
 - make the planner, not callers or fixtures, construct the component;
-- preserve no-user-tool-name behavior; and
-- add snapshot tamper proof.
+- revalidate its source, output-frame, and `MasterTimingPlan` expectations;
+- bind it into canonical content-addressed persistence and immutable snapshot
+  lineage; and
+- prevent the legacy synchronous snapshot helper from copying an unvalidated
+  component.
 
 ### Slice 3: planning handoff, estimate, and approval
 
@@ -523,3 +534,52 @@ The following remain explicitly unimplemented:
 - temporal mask benchmarking.
 
 Passing the source-only contract smoke does not make any of these gates green.
+
+## Slice 2A: planning-only parent admission
+
+Slice 2A admits exactly one professional-skill parent:
+
+```text
+motion.living_frame_storytelling
+```
+
+The parent reuses the existing `motion_design` family. It is selected only from
+explicit user editing intent, Edit Brief directives, or edit-cue directives
+already admitted by the professional-skill planner. Selection must not inspect
+transcript text, source filenames, source metadata, inferred workflow/category
+labels, model output, or provider output.
+
+Selection is strong-signal and restraint-first:
+
+- an explicit Living Frame or Living A-Roll request may select it;
+- an explicit request to animate a still photograph or illustration may select
+  it;
+- an explicit request for explanatory elements around, behind, beside, or in
+  front of the speaker may select it;
+- generic animation, an explainer category, or a visual preference alone may
+  not select it; and
+- no-animation, no-motion, static-only, talking-head-only, no-extra-visual, or
+  minimal-visual direction deterministically suppresses it.
+
+The selection policy returns only a closed reason code. It never returns or
+stores the matching raw user text.
+
+The admitted parent has:
+
+```text
+executionModes = [plan_only]
+hiddenAdapterToolNames = []
+backendIntents = []
+```
+
+It creates no Living Frame component payload. It adds no timing, estimate,
+approval, snapshot, work item, queue, job, QA result, provider route, tool
+route, cost, renderer, or runtime authority. The six controlled-illustration
+candidates remain evaluation-only documentation and are absent from product
+copy and runtime registries.
+
+`ProfessionalSkillPlan.livingFrame` remains intentionally absent. Adding it
+requires a later atomic async-construction slice that also performs canonical
+digest/source/output-frame/`MasterTimingPlan` revalidation, content-addressed
+component persistence, immutable snapshot binding, tamper checks, and explicit
+exclusion from the legacy synchronous snapshot path.

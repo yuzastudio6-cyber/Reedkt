@@ -20,3 +20,15 @@ export type {
   LivingFrameAdversarialFixture,
   LivingFrameFixtureSet,
 } from './living-frame-fixtures'
+
+export {
+  LIVING_FRAME_PROFESSIONAL_SKILL_ID,
+  LIVING_FRAME_SELECTION_REASON_CODES,
+  resolveLivingFrameSelectionPolicy,
+} from './living-frame-selection-policy'
+
+export type {
+  LivingFrameSelectionPolicyDecision,
+  LivingFrameSelectionPolicyInput,
+  LivingFrameSelectionReasonCode,
+} from './living-frame-selection-policy'

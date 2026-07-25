@@ -33,6 +33,10 @@ import {
 import {
   createReEditProIntelligenceResponsibilityPlan,
 } from '../intelligence-orchestration-contract'
+import {
+  LIVING_FRAME_PROFESSIONAL_SKILL_ID,
+  resolveLivingFrameSelectionPolicy,
+} from '../living-frame/living-frame-selection-policy'
 import { listProfessionalSkillDefinitions } from './professional-skill-registry'
 
 function normalizeText(value: string | undefined) {
@@ -528,6 +532,7 @@ function selectSkillIds(input: ProfessionalSkillPlannerInput) {
   const definitions = listProfessionalSkillDefinitions()
   const explicitUserPrompt = explicitUserPromptForInput(input)
   const editCueText = editCueTextForInput(input)
+  let explicitEditBriefDirectives = ''
   const selected = new Map<string, ProfessionalSkillSelectionSource[]>()
 
   for (const skillId of baselineSkillIds(input)) {
@@ -549,6 +554,7 @@ function selectSkillIds(input: ProfessionalSkillPlannerInput) {
       input.planningContext.editBrief.brandNotes,
       input.planningContext.editBrief.specialInstructions,
     ].filter(Boolean).join(' '))
+    explicitEditBriefDirectives = briefText
 
     for (const definition of definitions) {
       if (hasAny(briefText, definition.triggerKeywords)) {
@@ -564,6 +570,23 @@ function selectSkillIds(input: ProfessionalSkillPlannerInput) {
     if (definition.supportedEditLevels.includes(input.plannerInput.editLevel) && hasAny(editCueText, definition.triggerKeywords)) {
       selected.set(definition.id, addSelectionSource(selected.get(definition.id) ?? [], 'edit_cue'))
     }
+  }
+
+  const livingFrameDecision = resolveLivingFrameSelectionPolicy({
+    explicitUserIntent: explicitUserPrompt,
+    explicitEditBriefDirectives,
+    explicitEditCueDirectives: editCueText,
+  })
+  if (livingFrameDecision.selected && livingFrameDecision.selectionSource) {
+    selected.set(
+      LIVING_FRAME_PROFESSIONAL_SKILL_ID,
+      addSelectionSource(
+        selected.get(LIVING_FRAME_PROFESSIONAL_SKILL_ID) ?? [],
+        livingFrameDecision.selectionSource,
+      ),
+    )
+  } else {
+    selected.delete(LIVING_FRAME_PROFESSIONAL_SKILL_ID)
   }
 
   if (selected.has('audio.clean_voice')) {

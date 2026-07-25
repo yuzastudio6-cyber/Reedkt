@@ -610,6 +610,15 @@ test.describe('canonical Edit Preference real-file flow', () => {
       replacementPreferenceName,
     )
     const lifecycleMutationRequests = { prepare: 0, apply: 0 }
+    let editBriefSaveRequests = 0
+    page.on('request', (request) => {
+      if (
+        request.method() === 'POST'
+        && /\/v1\/projects\/[^/]+\/edit-sessions\/[^/]+\/edit-brief(?:\?.*)?$/.test(request.url())
+      ) {
+        editBriefSaveRequests += 1
+      }
+    })
     const lostPreparationKeys = new Set<string>()
     await page.route(/\/v1\/projects\/[^/]+\/edit-sessions\/[^/]+\/edit-preferences\/reference-application\/prepare$/, async (route) => {
       if (route.request().method() === 'POST') lifecycleMutationRequests.prepare += 1
@@ -654,6 +663,9 @@ test.describe('canonical Edit Preference real-file flow', () => {
     await clickWhenReady(page.getByTestId('editor-header-edit-brief'))
     const editBriefGoal = 'Preserve the documentary evidence and adapt the approved editing intelligence to this exact video.'
     await page.getByTestId('edit-brief-goal-input').fill(editBriefGoal)
+    await expect.poll(() => editBriefSaveRequests).toBe(1)
+    await page.waitForTimeout(900)
+    expect(editBriefSaveRequests).toBe(1)
     await clickWhenReady(page.getByTestId('edit-brief-mark-ready'))
     await expect(page.getByTestId('editor-header-edit-brief-status')).toHaveText('Ready')
 

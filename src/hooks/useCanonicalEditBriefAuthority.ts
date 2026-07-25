@@ -124,6 +124,12 @@ export function useCanonicalEditBriefAuthority(input: {
     setStatus('loading')
     setMessage('Loading the exact Edit Brief timeline…')
     const result = await readCanonicalEditBriefAuthority(scope)
+    if (result.status === 'ready') {
+      // A successful explicit read is the only automatic retry boundary after
+      // an unavailable save. Let the current local Brief synchronize once
+      // against the newly reachable authority.
+      latestDesiredFingerprintRef.current = ''
+    }
     applyResult(result, result.status === 'ready' && result.data.authority
       ? 'Edit Brief timeline recovered from the exact named edit.'
       : 'No durable marker timeline has been created yet.', scopeKey)
@@ -149,6 +155,7 @@ export function useCanonicalEditBriefAuthority(input: {
     }
 
     const fields = toCanonicalFields(editBrief)
+    latestDesiredFingerprintRef.current = JSON.stringify(fields)
     setStatus('saving')
     setMessage('Saving the Brief and timeline authority…')
     const perform = async () => {
@@ -223,11 +230,12 @@ export function useCanonicalEditBriefAuthority(input: {
       latestDesiredFingerprintRef.current = desiredFingerprint
       return
     }
-    if (latestDesiredFingerprintRef.current === desiredFingerprint && status === 'saving') {
+    if (latestDesiredFingerprintRef.current === desiredFingerprint) {
       return
     }
-    latestDesiredFingerprintRef.current = desiredFingerprint
     const timeout = window.setTimeout(() => {
+      if (latestDesiredFingerprintRef.current === desiredFingerprint) return
+      latestDesiredFingerprintRef.current = desiredFingerprint
       void saveNow()
     }, 700)
     return () => window.clearTimeout(timeout)

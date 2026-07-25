@@ -265,7 +265,7 @@
     },
     {
       "path": "package.json",
-      "sha256": "e950a4713417c91c3f0ff20515c620497bb83bab5b4c9c0c1c870d6c3110d13e"
+      "sha256": "12ee41dd1b6277abcc18acd1fde961239b4d68a5c3b72fe07c816f0ec7720d11"
     },
     {
       "path": "server/app.ts",
@@ -441,7 +441,7 @@
     },
     {
       "path": "server/services/canonical-planning-handoff-service.ts",
-      "sha256": "24a91c01465e12be1d0dd249058d1d765c19bec3b70ce19ed3cc1b6aa361b58b"
+      "sha256": "074fc42ee99ffc0e1c46187974d12f28a317fd8b23d102ffa01ff64607bde03a"
     },
     {
       "path": "server/services/edit-reference-application-preparation-runtime-port.ts",
@@ -665,7 +665,7 @@
     },
     {
       "path": "src/components/editor/ChatNativeEditor.tsx",
-      "sha256": "b71681ff68103e054ba8e41961173410ee376b3826ec4cf17fd352ea02719ec9"
+      "sha256": "e17100d0a63deaf59202432647d70d232efc444a9fb652a2d50d6dca71d5d2ae"
     },
     {
       "path": "src/components/editor/CurrentEditPreferencesWorkspace.tsx",

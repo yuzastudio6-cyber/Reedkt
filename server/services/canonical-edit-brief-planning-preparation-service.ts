@@ -7,7 +7,10 @@ import {
 import type { CanonicalPlanComponentsInput } from '../validation/edit-planning-authority-schemas'
 import type { SourceBindingManifestCandidate } from '../validation/source-media-authority-schemas'
 import { createEditBriefAuthorityService } from './edit-brief-authority-service'
-import type { PrivateEditBriefAuthorityAggregate } from './private-edit-brief-authority-store'
+import {
+  readPrivateEditBriefAuthorityAggregate,
+  type PrivateEditBriefAuthorityAggregate,
+} from './private-edit-brief-authority-store'
 import type { CanonicalPlanningHandoffStoreScope } from './private-canonical-planning-handoff-store'
 import { sha256AuthorityValue } from './private-edit-authority-store'
 
@@ -33,6 +36,17 @@ export async function prepareCanonicalEditBriefForPlanning(input: {
   sourceCandidate: SourceBindingManifestCandidate
   components: CanonicalPlanComponentsInput
 }): Promise<CanonicalEditBriefPlanningPreparationResult> {
+  const storedAuthority = await readPrivateEditBriefAuthorityAggregate(input.scope)
+  if (!storedAuthority) {
+    return {
+      optionalBriefPresent: false,
+      aggregateRevision: 0,
+      confirmedMarkerCount: 0,
+      qaStatus: 'not_run',
+      planHintReadiness: 'not_created',
+      sourceAuthorityVerified: false,
+    }
+  }
   const service = createEditBriefAuthorityService(input.context)
   let current = await service.get(
     input.scope.workspaceId,

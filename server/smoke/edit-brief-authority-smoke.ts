@@ -810,6 +810,27 @@ const canonicalComponents = canonicalPlanComponentsSchema.parse({
   fallbackPolicy: { unapprovedFallbackAllowed: false },
 })
 
+const optionalBriefAbsent = await prepareCanonicalEditBriefForPlanning({
+  context: { ...planningContext, env: productionEnv },
+  scope: {
+    localStorageRoot: '/tmp/reeditpro-edit-brief-optional-absence-smoke',
+    ownerUserId: userId,
+    workspaceId,
+    projectId: planningProject.id,
+    editSessionId: 'edit-session-without-edit-brief',
+  },
+  sourceCandidate,
+  components: canonicalComponents,
+})
+assert.deepEqual(optionalBriefAbsent, {
+  optionalBriefPresent: false,
+  aggregateRevision: 0,
+  confirmedMarkerCount: 0,
+  qaStatus: 'not_run',
+  planHintReadiness: 'not_created',
+  sourceAuthorityVerified: false,
+})
+
 const preparedBrief = await prepareCanonicalEditBriefForPlanning({
   context: planningContext,
   scope: {
@@ -878,6 +899,7 @@ console.log(JSON.stringify({
   restartRecovery: true,
   richBriefFieldsPersisted: true,
   canonicalSourceFrameQaAndPlanHintPreparation: true,
+  optionalBriefAbsenceDoesNotRequireBriefRuntime: true,
   productionFailClosed: true,
   providerMediaWorkerRenderCreditSideEffects: false,
 }, null, 2))

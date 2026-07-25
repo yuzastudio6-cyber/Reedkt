@@ -31,6 +31,11 @@ const canonicalSteps: VerificationStep[] = [
     'Exact-edit brief persistence, planning binding, approval locking, and revision-safe authority.',
   ),
   step(
+    'intelligence-responsibility-orchestration',
+    'smoke:intelligence-orchestration',
+    'Five role-based responsibilities route visual evidence, creative direction, deterministic operations, engineering escalation, and exceptional judgment without eager model ensembles, duplicate workflow authority, or execution before plan, estimate, user approval, immutable snapshot, and reservation.',
+  ),
+  step(
     'canonical-edit-reference-ui-integration',
     'smoke:canonical-product-ui-integration-readiness',
     'The one mounted Edit Preference library, Study Chat workspace, and exact-edit preference surface remain connected to the canonical EditorPage and ChatNativeEditor product shell without a duplicate editor, route, or silent application path. This is source-verified protected-internal UI evidence only; deployment and production readiness remain false.',
@@ -460,7 +465,7 @@ function printReport(
 ): void {
   const finishedAt = new Date()
   const report = {
-    schemaVersion: 'canonical-private-pipeline-verification-v43',
+    schemaVersion: 'canonical-private-pipeline-verification-v44',
     status,
     mode: full ? 'full_internal_regression' : 'canonical_private_pipeline',
     startedAt: runStartedAt.toISOString(),
@@ -479,6 +484,9 @@ function printReport(
     verifiedClaims: status === 'passed'
       ? {
           exactSourcePreferenceBriefAuthority: true,
+          intelligenceResponsibilityOrchestrationContract: true,
+          intelligenceEagerModelEnsembleAllowed: false,
+          intelligenceUserApprovalRemainsCanonical: true,
           canonicalEditReferenceUiIntegrationSourceVerified: true,
           canonicalEditReferenceExactEditAtomicApplyContract: true,
           canonicalExactEditPreferencePlanningAuthorityContract: true,

@@ -126,6 +126,7 @@ export * from './edit-level-qwen-planning/edit-level-qwen-planning-summary-servi
 export * from './edit-level-qwen-planning/mock-edit-level-qwen-planning-scenarios'
 export * from '../lib/model-role-routing-contract'
 export * from '../lib/reasoning-model-routing-contract'
+export * from '../lib/intelligence-orchestration-contract'
 export * from './edit-level-qa-gates/edit-level-qa-gate-registry'
 export * from './edit-level-qa-gates/edit-level-qa-gate-routing-service'
 export * from './edit-level-qa-gates/edit-level-qa-readiness-service'

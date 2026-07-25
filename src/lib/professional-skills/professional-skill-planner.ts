@@ -14,6 +14,9 @@ import type {
   ReEditProModelRoleId,
   ReEditProRequestedModelUse,
 } from '../../types/model-role-routing'
+import type {
+  ReEditProIntelligenceTaskType,
+} from '../../types/intelligence-orchestration'
 import type { PlannerInput } from '../../types/reeditpro'
 import {
   PROVIDER_ROUTES,
@@ -27,6 +30,9 @@ import {
   validateReEditProModelRoleContracts,
   validateReEditProModelRoleUse,
 } from '../model-role-routing-contract'
+import {
+  createReEditProIntelligenceResponsibilityPlan,
+} from '../intelligence-orchestration-contract'
 import { listProfessionalSkillDefinitions } from './professional-skill-registry'
 
 function normalizeText(value: string | undefined) {
@@ -249,6 +255,29 @@ function createModelRoleTrace(backendIntents: ProfessionalSkillBackendIntent[]):
     errors: uniqueErrors,
     mockOnly: true,
   }
+}
+
+function createIntelligenceResponsibilityPlan(input: {
+  backendIntents: ProfessionalSkillBackendIntent[]
+  selectedSkills: ProfessionalSkillSelection[]
+}) {
+  const availableModelRoleIds = unique(
+    input.backendIntents.flatMap((intent) => intent.modelRoleId ? [intent.modelRoleId] : []),
+  )
+  const requestedTasks: ReEditProIntelligenceTaskType[] = [
+    'creative_blueprint',
+    'tool_graph_compilation',
+  ]
+  if (availableModelRoleIds.includes('qwen2_5_vl_visual_understanding')) {
+    requestedTasks.push('source_visual_analysis')
+  }
+  if (input.selectedSkills.some((skill) => skill.family === 'qa_review')) {
+    requestedTasks.push('technical_visual_qa', 'rough_cut_creative_review')
+  }
+  return createReEditProIntelligenceResponsibilityPlan({
+    availableModelRoleIds,
+    requestedTasks,
+  })
 }
 
 function addSelectionSource(
@@ -642,11 +671,18 @@ export function createProfessionalSkillPlan(input: ProfessionalSkillPlannerInput
     })
   const backendIntents = uniqueBackendIntents(selectedSkills.flatMap((selection) => selection.backendIntents))
   const modelRoleTrace = createModelRoleTrace(backendIntents)
+  const intelligenceResponsibilityPlan = createIntelligenceResponsibilityPlan({
+    backendIntents,
+    selectedSkills,
+  })
   const backendIntentValidationErrors = unique(backendIntents.flatMap((intent) =>
     validateProfessionalSkillBackendIntent(intent).errors
   ))
   const selectionStatus = statusFromSelections(selectedSkills)
-  const roleValidationErrors = modelRoleTrace.errors
+  const roleValidationErrors = unique([
+    ...modelRoleTrace.errors,
+    ...intelligenceResponsibilityPlan.blockers,
+  ])
   const status = backendIntentValidationErrors.length > 0 || roleValidationErrors.length > 0 ? 'blocked' : selectionStatus
   const blockers = unique([
     ...selectedSkills.flatMap((selection) => selection.blockers),
@@ -675,6 +711,7 @@ export function createProfessionalSkillPlan(input: ProfessionalSkillPlannerInput
     hiddenAdapterToolNames: unique(selectedSkills.flatMap((selection) => selection.hiddenAdapterToolNames)),
     backendIntents,
     modelRoleTrace,
+    intelligenceResponsibilityPlan,
     qaGateSummary: unique(selectedSkills.flatMap((selection) => selection.qaGates)),
     blockers,
     warnings,

@@ -7,6 +7,9 @@ import type {
   ReEditProModelRoleId,
   ReEditProRequestedModelUse,
 } from './model-role-routing'
+import type {
+  ReEditProIntelligenceResponsibilityPlan,
+} from './intelligence-orchestration'
 
 export type ProfessionalSkillFamily =
   | 'intent_direction'
@@ -188,6 +191,7 @@ export interface ProfessionalSkillPlan {
   hiddenAdapterToolNames: string[]
   backendIntents: ProfessionalSkillBackendIntent[]
   modelRoleTrace: ProfessionalSkillModelRoleTrace
+  intelligenceResponsibilityPlan: ReEditProIntelligenceResponsibilityPlan
   qaGateSummary: string[]
   blockers: string[]
   warnings: string[]

@@ -1,9 +1,43 @@
 import { Buffer } from 'node:buffer'
+import { readFile } from 'node:fs/promises'
+import { join } from 'node:path'
 import { expect, type Locator, type Page } from '@playwright/test'
+import {
+  EDIT_REFERENCE_CONTROLLED_MEDIA_FIXTURE_DEFINITIONS,
+  materializeEditReferenceControlledMediaFixture,
+} from '../../../server/edit-references/edit-reference-controlled-media-fixtures'
+import { probeMediaFile } from '../../../server/workers/media/ffprobe-media-adapter'
+import { buildLocalProjectHandoffStorageKey } from '../../../src/lib/local-project-handoff'
+import { createProjectPersistenceScopeFingerprint } from '../../../src/lib/project-persistence-scope'
 import { expectFloatingComposerAligned, expectNoHorizontalOverflow } from './layout'
 
 export const viewportWidths = [1024, 1280, 1440, 1728, 1920] as const
 const EDITOR_READY_TIMEOUT_MS = 15_000
+const CONTROLLED_UI_SCOPE = {
+  authMode: 'local_test' as const,
+  userId: 'local-test-user',
+  workspaceId: 'workspace-internal-testing',
+}
+const CONTROLLED_UI_HANDOFF_STORAGE_KEY = buildLocalProjectHandoffStorageKey(CONTROLLED_UI_SCOPE)
+const CONTROLLED_UI_SCOPE_FINGERPRINT = createProjectPersistenceScopeFingerprint(CONTROLLED_UI_SCOPE)
+let controlledSourceVideoFixture: Promise<{
+  bytes: Buffer
+  checksumSha256: string
+  sizeBytes: number
+  sourceMetadata: {
+    probeStatus: 'probed'
+    source: 'local_ffprobe'
+    durationSeconds: number
+    width: number
+    height: number
+    videoCodec: string
+    audioCodec?: string
+    formatName: string
+    streamCount: number
+    hasVideo: boolean
+    hasAudio: boolean
+  }
+}> | undefined
 
 export const checkedRoutes = [
   { path: '/', label: 'landing' },
@@ -134,10 +168,11 @@ export async function uploadEditorSourceFile(page: Page, fileName = 'e2e-source-
   await sourceCard.locator('input[type="file"]').setInputFiles({
     name: fileName,
     mimeType: 'video/mp4',
-    buffer: Buffer.from(`mock-safe uploaded source video bytes for ${fileName}`),
+    buffer: await getEditorSourceVideoBytes(fileName),
   })
   await expect(sourceCard).toContainText(fileName, { timeout: EDITOR_READY_TIMEOUT_MS })
   await expect(sourceCard).toContainText(/File uploaded to private source storage|Source file uploaded|Source file planned/i)
+  await bindControlledSourceAuthorityForMockUi(page, fileName)
 }
 
 export async function uploadEditorGateSourceVideo(
@@ -152,7 +187,7 @@ export async function uploadEditorGateSourceVideo(
     sourceFilePath ?? {
       name: fileName,
       mimeType: 'video/mp4',
-      buffer: Buffer.from(`mock-safe uploaded source video bytes for ${fileName}`),
+      buffer: await getEditorSourceVideoBytes(fileName),
     },
   )
 
@@ -162,6 +197,186 @@ export async function uploadEditorGateSourceVideo(
   const sourceCard = await cleanSource.count() ? cleanSource : legacySource
   await expect(sourceCard).toContainText(fileName, { timeout: EDITOR_READY_TIMEOUT_MS })
   await expect(page.getByTestId('chat-composer-textarea')).toBeEnabled()
+  await bindControlledSourceAuthorityForMockUi(page, fileName)
+}
+
+async function getEditorSourceVideoBytes(fileName: string): Promise<Buffer> {
+  void fileName
+  return Buffer.from((await getControlledSourceVideoFixture()).bytes)
+}
+
+async function getControlledSourceVideoFixture() {
+  if (!controlledSourceVideoFixture) {
+    controlledSourceVideoFixture = (async () => {
+      const definition = EDIT_REFERENCE_CONTROLLED_MEDIA_FIXTURE_DEFINITIONS.find(
+        (candidate) => candidate.fixtureId === 'target_b_travel_talking_head',
+      )
+      if (!definition) {
+        throw new Error('The controlled ordinary-editor source fixture is unavailable.')
+      }
+      const fixture = await materializeEditReferenceControlledMediaFixture({
+        definition,
+        outputRoot: join(
+          process.cwd(),
+          'test-results',
+          'ordinary-editor-controlled-source-fixtures',
+          String(process.pid),
+        ),
+        timeoutMs: 60_000,
+      })
+      const probe = await probeMediaFile({
+        ffprobeBin: process.env.FFPROBE_BIN ?? 'ffprobe',
+        localFilePath: fixture.videoPath,
+        timeoutMs: 60_000,
+      })
+      const video = probe.videoStreams[0]
+      const audio = probe.audioStreams[0]
+      if (
+        !video ||
+        !Number.isFinite(probe.durationSeconds) ||
+        probe.durationSeconds <= 0 ||
+        video.width <= 0 ||
+        video.height <= 0
+      ) {
+        throw new Error('The controlled ordinary-editor source fixture did not produce verified video facts.')
+      }
+
+      return {
+        bytes: await readFile(fixture.videoPath),
+        checksumSha256: fixture.videoChecksumSha256,
+        sizeBytes: fixture.videoSizeBytes,
+        sourceMetadata: {
+          probeStatus: 'probed',
+          source: 'local_ffprobe',
+          durationSeconds: probe.durationSeconds,
+          width: video.width,
+          height: video.height,
+          videoCodec: video.codecName,
+          ...(audio ? { audioCodec: audio.codecName } : {}),
+          formatName: probe.formatName,
+          streamCount: probe.streamCount,
+          hasVideo: probe.videoStreams.length > 0,
+          hasAudio: probe.audioStreams.length > 0,
+        },
+      }
+    })()
+  }
+
+  return controlledSourceVideoFixture
+}
+
+async function bindControlledSourceAuthorityForMockUi(page: Page, fileName: string) {
+  if (process.env.E2E_PROFESSIONAL_EDITOR_SOURCE_ONLY_PREFERENCES === 'true') return
+
+  const url = new URL(page.url())
+  const namedEditMatch = url.pathname.match(/^\/projects\/([^/]+)\/edits\/([^/]+)$/)
+  const projectId = namedEditMatch?.[1] ?? url.searchParams.get('projectId')
+  const editSessionId = namedEditMatch?.[2] ?? url.searchParams.get('editSessionId')
+  if (!projectId || !editSessionId) {
+    throw new Error('Controlled UI source authority requires an exact project and edit identity.')
+  }
+
+  const fixture = await getControlledSourceVideoFixture()
+  await page.evaluate((input) => {
+    const parsed = JSON.parse(window.localStorage.getItem(input.storageKey) ?? '{}') as {
+      handoffs?: Array<Record<string, unknown>>
+    }
+    const handoffs = Array.isArray(parsed.handoffs) ? parsed.handoffs : []
+    const now = new Date().toISOString()
+    const existingIndex = handoffs.findIndex((candidate) =>
+      candidate.projectId === input.projectId &&
+      candidate.editSessionId === input.editSessionId,
+    )
+    const existing = existingIndex >= 0 ? handoffs[existingIndex] : undefined
+    const existingAssets = Array.isArray(existing?.sourceMediaAssets)
+      ? existing.sourceMediaAssets as Array<Record<string, unknown>>
+      : []
+    const existingAsset = existingAssets.find((candidate) => candidate.fileName === input.fileName)
+      ?? existingAssets[0]
+    const sourceAsset = {
+      ...(existingAsset ?? {}),
+      mediaAssetId: typeof existingAsset?.mediaAssetId === 'string'
+        ? existingAsset.mediaAssetId
+        : `controlled-ui-${input.editSessionId}-media`,
+      storageObjectRecordId: typeof existingAsset?.storageObjectRecordId === 'string'
+        ? existingAsset.storageObjectRecordId
+        : `controlled-ui-${input.editSessionId}-storage`,
+      sourceSequenceItemId: typeof existingAsset?.sourceSequenceItemId === 'string'
+        ? existingAsset.sourceSequenceItemId
+        : `controlled-ui-${input.editSessionId}-sequence`,
+      uploadedClipId: typeof existingAsset?.uploadedClipId === 'string'
+        ? existingAsset.uploadedClipId
+        : `controlled-ui-${input.editSessionId}-clip`,
+      uploadedOrder: 1,
+      storageProvider: 'local_private',
+      storageBucket: 'source-media',
+      storagePath: `local-private/e2e/workspaces/${input.scope.workspaceId}/projects/${input.projectId}/${input.editSessionId}/${input.fileName}`,
+      fileName: input.fileName,
+      mimeType: 'video/mp4',
+      byteSize: input.sizeBytes,
+      checksumSha256: input.checksumSha256,
+      sourceMetadata: input.sourceMetadata,
+      privateArtifact: true,
+      publicUrl: null,
+      signedUrl: null,
+    }
+    const handoff = {
+      ...(existing ?? {}),
+      id: input.editSessionId,
+      workspaceId: input.scope.workspaceId,
+      projectId: input.projectId,
+      editSessionId: input.editSessionId,
+      projectName: typeof existing?.projectName === 'string' ? existing.projectName : 'Controlled UI edit',
+      editName: typeof existing?.editName === 'string' ? existing.editName : 'Controlled UI edit',
+      category: typeof existing?.category === 'string' ? existing.category : 'storytelling',
+      productWorkflow: 'video_edit',
+      editorPath: `/projects/${input.projectId}/edits/${input.editSessionId}`,
+      stage: 'source_uploaded',
+      sourceFileCount: 1,
+      sourceMediaAssets: [sourceAsset],
+      setup: {
+        ...(existing?.setup && typeof existing.setup === 'object' ? existing.setup : {}),
+        sourceSequenceMode: 'single_source',
+        sourceOrderConfirmed: false,
+        cleanupPreferenceConfirmed: false,
+        aspectRatioConfirmed: false,
+        editLevelConfirmed: false,
+        visualPreferenceConfirmed: false,
+      },
+      approvedSnapshotId: undefined,
+      approvedCreditReservationId: undefined,
+      privateReview: undefined,
+      createdAt: typeof existing?.createdAt === 'string' ? existing.createdAt : now,
+      updatedAt: now,
+      persistence: 'browser_local_internal_testing',
+    }
+    if (existingIndex >= 0) handoffs[existingIndex] = handoff
+    else handoffs.push(handoff)
+
+    window.localStorage.setItem(input.storageKey, JSON.stringify({
+      recordVersion: 2,
+      scope: input.scope,
+      scopeFingerprint: input.scopeFingerprint,
+      handoffs,
+      savedAt: now,
+    }))
+  }, {
+    checksumSha256: fixture.checksumSha256,
+    editSessionId,
+    fileName,
+    projectId,
+    scope: CONTROLLED_UI_SCOPE,
+    scopeFingerprint: CONTROLLED_UI_SCOPE_FINGERPRINT,
+    sizeBytes: fixture.sizeBytes,
+    sourceMetadata: fixture.sourceMetadata,
+    storageKey: CONTROLLED_UI_HANDOFF_STORAGE_KEY,
+  })
+
+  await page.reload()
+  await page.waitForLoadState('domcontentloaded')
+  await expect(page.getByTestId('editor-page')).toBeVisible({ timeout: EDITOR_READY_TIMEOUT_MS })
+  await expect(page.getByTestId('source-summary').or(page.getByTestId('source-sequence-card')))
+    .toContainText(fileName, { timeout: EDITOR_READY_TIMEOUT_MS })
 }
 
 export async function createPlanFromUploadedEditorSources(page: Page) {
@@ -204,6 +419,8 @@ export async function createPlanFromUploadedEditorSources(page: Page) {
 }
 
 export async function completeRequiredEditorSetupBeforeFootagePrep(page: Page) {
+  await applySourceOnlyProfessionalEditorPreferencesIfRequested(page)
+
   if (await page.getByTestId('source-summary').count()) {
     await clickWhenReady(page.getByRole('button', { name: /Use this source|Confirm order/i }))
     const outputFrame = page.getByTestId('output-frame-control')
@@ -227,6 +444,27 @@ export async function completeRequiredEditorSetupBeforeFootagePrep(page: Page) {
   if (await intentButton.count()) {
     await clickWhenReady(intentButton)
   }
+}
+
+async function applySourceOnlyProfessionalEditorPreferencesIfRequested(page: Page) {
+  if (process.env.E2E_PROFESSIONAL_EDITOR_SOURCE_ONLY_PREFERENCES !== 'true') return
+
+  await clickWhenReady(page.getByTestId('current-edit-preferences-trigger'))
+  const advanced = page.getByTestId('current-edit-preferences-advanced')
+  await expect(advanced).toBeVisible()
+  if (await advanced.getAttribute('open') === null) {
+    await clickWhenReady(advanced.locator('summary'))
+  }
+
+  await page.getByTestId('current-edit-preference-workflow').selectOption('simple_clean_edit')
+  await page.getByTestId('current-edit-preference-visual-direction').selectOption('no_extra_visuals')
+  await page.getByTestId('current-edit-preference-cleanup').selectOption('preserve_natural')
+  const apply = page.getByRole('button', { name: /^Apply to this edit$/i })
+  if (await apply.count()) {
+    await clickWhenReady(apply)
+    await expect(page.getByText(/^Current edit is up to date$/i)).toBeVisible()
+  }
+  await clickWhenReady(page.getByTestId('edit-workspace-view-chat'))
 }
 
 async function clickOptionalSetupAction(locator: Locator) {

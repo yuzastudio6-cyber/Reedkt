@@ -311,7 +311,21 @@ export async function expectChatCardsFitUnderComposer(page: Page) {
     }),
   )
 
-  expect(cardMetrics.length, 'editor should render inline chat cards for composer width QA').toBeGreaterThan(0)
+  if (cardMetrics.length === 0) {
+    const cleanStage = page.getByTestId('editor-stage')
+    await expect(cleanStage, 'the clean editor should expose one active decision stage').toBeVisible()
+    const stageBox = await cleanStage.boundingBox()
+    expect(stageBox, 'the clean editor stage should have dimensions').not.toBeNull()
+    if (!stageBox) return
+
+    expect(stageBox.width, 'the clean editor stage should not exceed the composer rail')
+      .toBeLessThanOrEqual(composerBox.width + 2)
+    expect(stageBox.x, 'the clean editor stage should start inside the composer rail')
+      .toBeGreaterThanOrEqual(composerBox.x - 2)
+    expect(stageBox.x + stageBox.width, 'the clean editor stage should end inside the composer rail')
+      .toBeLessThanOrEqual(composerBox.x + composerBox.width + 2)
+    return
+  }
 
   for (const card of cardMetrics) {
     const cardCenter = card.x + card.width / 2
@@ -535,7 +549,15 @@ export async function expectCardAttachedToAssistantMessage(page: Page) {
     }),
   )
 
-  expect(metrics.length, 'chat should render card-bearing assistant messages').toBeGreaterThan(0)
+  if (metrics.length === 0) {
+    const cleanStage = page.getByTestId('editor-stage')
+    await expect(
+      cleanStage,
+      'the clean editor should replace legacy card stacks with one active decision stage',
+    ).toBeVisible()
+    await expect(cleanStage).toHaveAttribute('data-editor-stage', /.+/)
+    return
+  }
 
   for (const [index, item] of metrics.entries()) {
     expect(item.hasCard, `card-bearing message ${index} should include a card stack`).toBe(true)

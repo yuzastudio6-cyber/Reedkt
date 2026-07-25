@@ -7,8 +7,6 @@ import {
   expandVisibleEditorDetailsAndExpectNoInternalToolNames,
   expectNoInternalToolNamesInEditor,
   gotoEditor,
-  openMusicFlow,
-  openSFXFlow,
   uploadEditorSourceFile,
 } from './helpers/routes'
 
@@ -45,14 +43,15 @@ test.describe('editor expanded flow QA', () => {
     await expectNoCardHorizontalOverflow(page)
   })
 
-  test('keeps developer-level planning details free of internal tool names', async ({ page }) => {
+  test('keeps the clean named-edit plan free of internal tool names when developer query input is present', async ({ page }) => {
     await gotoEditor(page, '/editor?developerControls=1')
     await clickWhenReady(page.getByRole('button', { name: /Planning details/i }))
     await clickWhenReady(page.getByRole('button', { name: /Developer/i }))
     await uploadEditorSourceFile(page)
     await createPlanFromUploadedEditorSources(page)
 
-    await expect(page.getByText(/Editing capability readiness/i).first()).toBeVisible({ timeout: 15000 })
+    await expect(page.getByTestId('plan-review-card')).toBeVisible()
+    await expect(page.getByText(/Editing capability readiness/i)).toHaveCount(0)
     await expandVisibleEditorDetailsAndExpectNoInternalToolNames(page)
     await expectNoHorizontalOverflow(page)
     await expectFloatingComposerAligned(page)
@@ -61,16 +60,14 @@ test.describe('editor expanded flow QA', () => {
     await expectNoCardHorizontalOverflow(page)
   })
 
-  test('opens SFX descriptor flow and keeps advanced details bounded', async ({ page }) => {
+  test('keeps retired standalone SFX controls out of the clean plan review', async ({ page }) => {
     await completeEditorSetup(page)
-    await openSFXFlow(page)
 
-    const detailsSummary = page.getByText('SFX planning details', { exact: true })
-    await expect(detailsSummary).toBeVisible()
-    await detailsSummary.click()
-    await expect(page.getByText(/No sound preparation starts here/i)).toBeVisible()
+    const planReview = page.getByTestId('plan-review-card')
+    await expect(planReview).toBeVisible()
+    await expect(page.getByRole('button', { name: /Plan sound effects/i })).toHaveCount(0)
     await expectNoInternalToolNamesInEditor(page)
-    await expectLastContentReachableAboveComposer(page, detailsSummary, 'SFX planning details summary')
+    await expectLastContentReachableAboveComposer(page, page.getByTestId('plan-review-approve'), 'plan approval action')
     await expectNoHorizontalOverflow(page)
     await expectFloatingComposerAligned(page)
     await expectCompactComposerSurface(page)
@@ -81,16 +78,14 @@ test.describe('editor expanded flow QA', () => {
     await expectNoCardHorizontalOverflow(page)
   })
 
-  test('opens Music descriptor flow and keeps cue details bounded', async ({ page }) => {
+  test('keeps retired standalone music controls out of the clean plan review', async ({ page }) => {
     await completeEditorSetup(page)
-    await openMusicFlow(page)
 
-    const musicDetailsSummary = page.locator('summary').filter({ hasText: 'Music cue details' })
-    await expect(musicDetailsSummary).toBeVisible()
-    await musicDetailsSummary.click()
-    await expect(page.getByText(/Detailed cue cards stay optional/i)).toBeVisible()
+    const planReview = page.getByTestId('plan-review-card')
+    await expect(planReview).toBeVisible()
+    await expect(page.getByRole('button', { name: /^Plan music$/i })).toHaveCount(0)
     await expectNoInternalToolNamesInEditor(page)
-    await expectLastContentReachableAboveComposer(page, musicDetailsSummary, 'Music cue details summary')
+    await expectLastContentReachableAboveComposer(page, page.getByTestId('plan-review-approve'), 'plan approval action')
     await expectNoHorizontalOverflow(page)
     await expectFloatingComposerAligned(page)
     await expectCompactComposerSurface(page)

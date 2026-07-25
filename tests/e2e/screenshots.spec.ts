@@ -141,7 +141,7 @@ test.describe('Active product redesign screenshot QA artifacts', () => {
     await page.getByLabel('Project name').fill('Summer launch campaign')
     await clickWhenReady(page.getByRole('button', { name: /^Create project$/i }))
     await expect(page.getByRole('heading', { level: 1, name: 'Summer launch campaign' })).toBeVisible()
-    await clickWhenReady(page.getByRole('button', { name: /^New edit$/i }).first())
+    await clickWhenReady(page.getByRole('button', { name: /^New video edit$/i }).first())
     await expect(page.getByRole('dialog', { name: 'Name this edit' })).toBeVisible()
     await captureDocScreenshot(page, `${screenshotDir}/project-new-edit-dialog-1280.png`)
   })

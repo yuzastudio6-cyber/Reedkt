@@ -8420,6 +8420,81 @@
   width: min(var(--rp-chat-card-wide-max), calc(100% - var(--rp-space-10)));
 }
 
+.clean-reference-step {
+  justify-self: center;
+  width: calc(100% - var(--rp-space-2));
+}
+
+.clean-reference-field {
+  color: var(--rp-text-secondary);
+  display: grid;
+  font-size: 0.82rem;
+  font-weight: 720;
+  gap: var(--rp-space-2);
+}
+
+.clean-reference-field input {
+  background: var(--rp-surface-input);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-sm);
+  color: var(--rp-text-primary);
+  font: inherit;
+  min-height: 44px;
+  min-width: 0;
+  padding: 0 var(--rp-space-3);
+  width: 100%;
+}
+
+.clean-reference-field input:focus,
+.clean-reference-field input:focus-visible {
+  border-color: var(--rp-brand-cyan);
+  box-shadow: var(--rp-shadow-focus);
+  outline: 2px solid color-mix(in srgb, var(--rp-brand-cyan) 72%, transparent);
+  outline-offset: 3px;
+}
+
+.clean-reference-focus {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rp-space-2);
+}
+
+.clean-reference-chip {
+  align-items: center;
+  background: transparent;
+  border: 1px solid var(--rp-border-soft);
+  border-radius: var(--rp-radius-pill);
+  color: var(--rp-text-secondary);
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 720;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 var(--rp-space-4);
+  transition:
+    background var(--rp-duration-base) var(--rp-ease-standard),
+    border-color var(--rp-duration-base) var(--rp-ease-standard),
+    color var(--rp-duration-base) var(--rp-ease-standard),
+    box-shadow var(--rp-duration-base) var(--rp-ease-standard);
+}
+
+.clean-reference-chip:hover,
+.clean-reference-chip-selected {
+  background: color-mix(in srgb, var(--rp-brand-blue) 14%, transparent);
+  border-color: var(--rp-brand-cyan);
+  color: var(--rp-text-primary);
+}
+
+.clean-reference-chip:focus,
+.clean-reference-chip:focus-visible {
+  border-color: var(--rp-brand-cyan);
+  box-shadow: var(--rp-shadow-focus);
+  outline: 2px solid color-mix(in srgb, var(--rp-brand-cyan) 72%, transparent);
+  outline-offset: 3px;
+}
+
 .clean-edit-step-header {
   align-items: flex-start;
   display: flex;

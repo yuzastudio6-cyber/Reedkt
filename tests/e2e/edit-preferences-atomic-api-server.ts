@@ -193,9 +193,21 @@ const runtimePort: EditReferenceExactEditApplyRuntimePort = Object.freeze({
   sameReleaseReadinessEvidenceVerified: false,
   productionAuthority: false,
 
-  async readAuthority({ scope }) {
+  async readAuthority({ actor, scope }) {
+    if (scope.actorUserId !== actor.actorUserId) {
+      throw new ApiError(
+        'ACCESS_DENIED',
+        'The exact-edit authority actor did not match the authenticated runtime actor.',
+        403,
+      )
+    }
     const key = stateKey(scope.workspaceId, scope.projectId, scope.editSessionId)
-    const state = await getOrCreateStateForScope(scope)
+    const state = await getOrCreateStateForScope({
+      ownerUserId: actor.actorUserId,
+      workspaceId: scope.workspaceId,
+      projectId: scope.projectId,
+      editSessionId: scope.editSessionId,
+    })
     const readAt = new Date().toISOString()
     const selectedApplicationAuthority = scope.selectedApplicationId
       ? applicationPreparation.readApplicationAuthority({

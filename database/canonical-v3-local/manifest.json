@@ -265,7 +265,7 @@
     },
     {
       "path": "package.json",
-      "sha256": "700861f69c78598b11b5c210c4e0864733c83405c91e2551521f2aa09059bb56"
+      "sha256": "e950a4713417c91c3f0ff20515c620497bb83bab5b4c9c0c1c870d6c3110d13e"
     },
     {
       "path": "server/app.ts",
@@ -729,7 +729,7 @@
     },
     {
       "path": "tests/e2e/edit-preferences-atomic-api-server.ts",
-      "sha256": "a8bbdabff9e63a138b77f3b000eab5f385dd026aed32b77028188bb1f71a2f21"
+      "sha256": "a8c4847e0e5c958652f9e247927a8eb5bf856fd70ef665606bf11ffc949197dc"
     },
     {
       "path": "tests/e2e/edit-preferences-current-edit.spec.ts",

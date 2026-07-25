@@ -337,7 +337,17 @@ const fullBoundarySteps: VerificationStep[] = [
   step(
     'active-product-browser-acceptance',
     'qa:active-product-ui',
-    'The complete standard Chromium suite covers the ordinary Edit Video chat workflow, separate Motion Studio Storytelling Director workflow, project and edit libraries, responsive navigation, accessibility, setup, plan review, private review, and product-state failure boundaries without merging the two editors.',
+    'The standard mock-only Chromium suite covers project and edit libraries, responsive navigation, accessibility, and product-state failure boundaries without collecting the private-media editor, tracked screenshot writers, or the separate Motion HTTP suite.',
+  ),
+  step(
+    'professional-editor-browser-acceptance',
+    'qa:professional-editor-ui',
+    'The frontend-safe local API Chromium suite uploads and independently probes real private MP4 media before exercising the ordinary Edit Video Chat setup, source preparation, plan review, approval, private review, reload recovery, keyboard, tenancy, and failure boundaries.',
+  ),
+  step(
+    'motion-studio-browser-acceptance',
+    'qa:motion-studio-ui',
+    'The serialized frontend-safe HTTP Chromium suite covers the separate Motion Studio Storytelling library and Director workflow, exact production-tuple verification, source-less and optional-source entry, planning and approval, responsive access, recovery, and fail-closed product separation without mounting normal Edit Chat.',
   ),
   step(
     'current-edit-preferences-browser-acceptance',
@@ -450,7 +460,7 @@ function printReport(
 ): void {
   const finishedAt = new Date()
   const report = {
-    schemaVersion: 'canonical-private-pipeline-verification-v41',
+    schemaVersion: 'canonical-private-pipeline-verification-v43',
     status,
     mode: full ? 'full_internal_regression' : 'canonical_private_pipeline',
     startedAt: runStartedAt.toISOString(),
@@ -666,6 +676,8 @@ function printReport(
             ? {
                 canonicalV3LocalResetRlsAndRecoveryVerified: true,
                 activeProductBrowserAcceptanceVerified: true,
+                professionalEditorBrowserAcceptanceVerified: true,
+                motionStudioBrowserAcceptanceVerified: true,
                 currentEditPreferencesAtomicBrowserAcceptanceVerified: true,
                 editReferenceCanonicalRealFileBrowserAcceptanceVerified: true,
                 editReferenceLongFormReviewBrowserAcceptanceVerified: true,

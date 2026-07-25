@@ -63,10 +63,10 @@ test.describe('Project start to edit workspace flow', () => {
     await page.getByRole('button', { name: /^Create project$/i }).click()
     await expect(page).toHaveURL(/\/projects\/[^/]+$/)
 
-    await page.getByRole('button', { name: /^New edit$/i }).first().click()
+    await page.getByRole('button', { name: /^New video edit$/i }).first().click()
     const dialog = page.getByRole('dialog', { name: 'Name this edit' })
     await expect(dialog).toBeVisible()
-    await expect(dialog).toContainText('Uses your saved edit preferences, then opens upload.')
+    await expect(dialog).toContainText('Uses your saved edit preferences, then opens normal Edit Chat for source upload.')
     await expect(dialog).not.toContainText(/upload started|plan created|credits? (reserved|spent)|generation started/i)
     await page.getByLabel('Edit name').fill('Current architecture handoff')
     await dialog.getByRole('button', { name: /^Create edit$/i }).click()

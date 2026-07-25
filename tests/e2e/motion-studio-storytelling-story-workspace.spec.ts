@@ -464,7 +464,10 @@ test.describe('Storytelling Story workspace', () => {
     await expect(page.getByTestId('storytelling-style-plan-review')).toContainText('Editorial Collage')
     await expect(page.getByTestId('canonical-planning-save-handoff-saved-waiting-for-compiler')).toBeVisible()
     await expect(planReview).toContainText('Planning inputs saved')
-    await expect(planReview).toContainText('still needs an exact execution path')
+    await expect(planReview).toContainText(
+      'The planned edit includes operations outside the current source-and-caption private review runner.',
+    )
+    await expect(planReview).toContainText('needs additional canonical work items')
     await expect(page.getByTestId('plan-review-approve')).toBeDisabled()
     await expect(page.getByTestId('plan-review-approve')).toHaveText('Approval not ready')
     await expect.poll(() => handoffRequests.length).toBe(1)

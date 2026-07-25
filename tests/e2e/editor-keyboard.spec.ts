@@ -2,7 +2,6 @@ import { expect, test } from '@playwright/test'
 import { installActiveProductRouteFixture } from './helpers/active-product'
 import {
   expectCompactComposerSurface,
-  expectDetailsSummaryKeyboardToggle,
   expectFloatingComposerAligned,
   expectFocusedControl,
   expectIconButtonsHaveAccessibleTitles,
@@ -11,15 +10,12 @@ import {
   setViewport,
 } from './helpers/layout'
 import {
+  clickWhenReady,
   completeEditorSetup,
-  completeRequiredEditorSetupBeforeFootagePrep,
   expectNoGenerationBeforeApproval,
   findPlanReview,
   gotoEditor,
   gotoRoute,
-  openMusicFlow,
-  openSFXFlow,
-  openTimeline,
   uploadEditorSourceFile,
 } from './helpers/routes'
 
@@ -84,11 +80,16 @@ test.describe('editor keyboard and interaction polish QA', () => {
     }
 
     await uploadEditorSourceFile(page, 'keyboard-reference-source.mp4')
-    await completeRequiredEditorSetupBeforeFootagePrep(page)
-    const referenceCard = page.getByTestId('reference-card')
+    await clickWhenReady(page.getByRole('button', { name: /Use this source|Confirm order/i }))
+    await clickWhenReady(page.getByTestId('output-frame-control').getByRole('radio', { name: /9:16/i }))
+    await clickWhenReady(page.getByRole('button', { name: /Confirm frame/i }))
+    await clickWhenReady(page.getByRole('button', { name: /Confirm cleanup/i }))
+    await clickWhenReady(page.getByRole('button', { name: /Use (Normal|Premium|Ultra Premium)/i }))
+    await clickWhenReady(page.getByRole('button', { name: /Confirm direction/i }))
+    const referenceCard = page.getByTestId('reference-control')
     await referenceCard.scrollIntoViewIfNeeded()
     await expect(referenceCard).toBeVisible()
-    await expectFocusedControl(page, referenceCard.getByLabel(/Reference URL/i), 'reference URL field')
+    await expectFocusedControl(page, referenceCard.getByLabel(/Public reference link/i), 'reference URL field')
     await expectFocusedControl(page, referenceCard.getByRole('button', { name: /Pacing/i }), 'reference pacing focus chip')
     await expectFocusedControl(page, referenceCard.getByRole('button', { name: /Skip reference/i }), 'reference skip action')
 
@@ -96,30 +97,15 @@ test.describe('editor keyboard and interaction polish QA', () => {
     await expectNoCardHorizontalOverflow(page)
   })
 
-  test('keeps approval, timeline, and soundflow disclosures keyboard safe', async ({ page }) => {
+  test('keeps the clean approval checkpoint keyboard safe without retired side workflows', async ({ page }) => {
     await completeEditorSetup(page)
     await findPlanReview(page)
     await expectNoGenerationBeforeApproval(page)
     await expectFocusedControl(page, page.getByTestId('plan-review-approve'), 'plan review approve action')
-
-    await openTimeline(page)
-    const timelineDrawer = page.getByTestId('timeline-drawer')
-    await expectIconButtonsHaveAccessibleTitles(timelineDrawer, 'timeline drawer controls')
-    await expectFocusedControl(page, page.getByTestId('timeline-close'), 'timeline close action')
-    await page.getByTestId('timeline-close').press('Enter')
-    await expect(timelineDrawer).toHaveCount(0)
-
-    await completeEditorSetup(page)
-    await openSFXFlow(page)
-    const sfxSummary = page.locator('summary').filter({ hasText: 'SFX planning details' })
-    await expectDetailsSummaryKeyboardToggle(page, sfxSummary, 'SFX planning details')
-    await expect(page.getByText(/No sound preparation starts here/i)).toBeVisible()
-
-    await completeEditorSetup(page)
-    await openMusicFlow(page)
-    const musicSummary = page.locator('summary').filter({ hasText: 'Music cue details' })
-    await expectDetailsSummaryKeyboardToggle(page, musicSummary, 'Music cue details')
-    await expect(page.getByText(/Detailed cue cards stay optional/i)).toBeVisible()
+    await expect(page.getByTestId('timeline-open-trigger')).toHaveCount(0)
+    await expect(page.getByRole('button', { name: /Plan sound effects/i })).toHaveCount(0)
+    await expect(page.getByRole('button', { name: /^Plan music$/i })).toHaveCount(0)
+    await expectFocusedControl(page, page.getByTestId('editor-header-edit-brief'), 'Edit Brief header action')
 
     await expectFloatingComposerAligned(page)
     await expectCompactComposerSurface(page)

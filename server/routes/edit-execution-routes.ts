@@ -1548,12 +1548,34 @@ async function streamPrivateMp4(
   try {
     await pipeline(await file.openStream(range), response)
   } catch (error) {
+    if (isPrivateMediaClientDisconnect(request, response, error)) return
     if (response.headersSent) {
-      response.destroy(error instanceof Error ? error : undefined)
+      if (!response.destroyed) {
+        response.destroy(error instanceof Error ? error : undefined)
+      }
       return
     }
     throw error
   }
+}
+
+function isPrivateMediaClientDisconnect(
+  request: Request,
+  response: Response,
+  error: unknown,
+): boolean {
+  if (!request.aborted && !response.destroyed) return false
+  if (!(error instanceof Error)) return false
+  const code = 'code' in error && typeof error.code === 'string'
+    ? error.code
+    : ''
+  return [
+    'ABORT_ERR',
+    'ECONNRESET',
+    'EPIPE',
+    'ERR_STREAM_PREMATURE_CLOSE',
+    'ERR_STREAM_UNABLE_TO_PIPE',
+  ].includes(code)
 }
 
 function parseSingleByteRange(

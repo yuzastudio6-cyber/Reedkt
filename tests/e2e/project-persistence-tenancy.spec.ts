@@ -139,7 +139,7 @@ test.describe('project persistence tenancy', () => {
     await page.getByRole('button', { name: /^Create project$/i }).click()
     await expect(page).toHaveURL(/\/projects\/[^/]+$/)
 
-    const newEditButton = page.getByRole('button', { name: /^New edit$/i }).first()
+    const newEditButton = page.getByRole('button', { name: /^New video edit$/i }).first()
     await newEditButton.click()
 
     const dialog = page.getByRole('dialog', { name: 'Name this edit' })

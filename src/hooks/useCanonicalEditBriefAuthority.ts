@@ -15,6 +15,7 @@ import {
   type CanonicalEditBriefClientResult,
   type CanonicalEditBriefScope,
 } from '../lib/edit-brief-authority-client'
+import { getFrontendApiClientStatus } from '../backend/api/frontend-api-client'
 
 export type CanonicalEditBriefSyncStatus =
   | 'idle'
@@ -31,6 +32,7 @@ export interface UseCanonicalEditBriefAuthorityResult {
   status: CanonicalEditBriefSyncStatus
   message: string
   retryable: boolean
+  planningReady: boolean
   refresh: () => Promise<void>
   saveNow: () => Promise<boolean>
   createMarker: (marker: CanonicalEditBriefMarkerDraft) => Promise<boolean>
@@ -199,6 +201,16 @@ export function useCanonicalEditBriefAuthority(input: {
     () => desiredFields ? JSON.stringify(desiredFields) : '',
     [desiredFields],
   )
+  const frontendApiStatus = getFrontendApiClientStatus()
+  const planningAuthorityRequired = input.enabled
+    && !frontendApiStatus.mockOnly
+    && Boolean(frontendApiStatus.apiBaseUrl)
+  const planningReady = !planningAuthorityRequired || Boolean(
+    input.started
+    && desiredFields?.status === 'ready'
+    && status === 'saved'
+    && sameCanonicalFields(authority?.brief?.fields, desiredFields),
+  )
 
   useEffect(() => {
     if (
@@ -331,6 +343,7 @@ export function useCanonicalEditBriefAuthority(input: {
     status,
     message,
     retryable,
+    planningReady,
     refresh,
     saveNow,
     createMarker,
@@ -378,15 +391,25 @@ function sameCanonicalFields(
 
 function normalizeFields(fields: CanonicalEditBriefFields): CanonicalEditBriefFields {
   return {
-    ...fields,
+    goal: fields.goal,
     audience: optional(fields.audience),
     deliverable: optional(fields.deliverable),
+    mustIncludeNotes: fields.mustIncludeNotes ?? [],
+    avoidNotes: fields.avoidNotes ?? [],
     additionalNotes: optional(fields.additionalNotes),
     targetPlatforms: fields.targetPlatforms ?? [],
+    targetDurationMs: fields.targetDurationMs,
     styleKeywords: fields.styleKeywords ?? [],
+    pacingPreference: fields.pacingPreference,
+    captionPreference: fields.captionPreference,
+    musicPreference: fields.musicPreference,
+    bRollPreference: optional(fields.bRollPreference),
     mustUseAssetIds: fields.mustUseAssetIds ?? [],
     avoidAssetIds: fields.avoidAssetIds ?? [],
+    brandNotes: optional(fields.brandNotes),
+    specialInstructions: optional(fields.specialInstructions),
     userProvidedReferenceUrls: fields.userProvidedReferenceUrls ?? [],
+    status: fields.status,
   }
 }
 

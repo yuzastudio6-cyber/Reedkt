@@ -78,6 +78,7 @@ export function ProfessionalEditBriefWorkspace({
   sourceClips,
   sourcePreviewFile,
   started,
+  onPlanningAuthorityReadyChange,
 }: {
   children: ReactNode
   editBrief: EditBrief | null
@@ -86,6 +87,11 @@ export function ProfessionalEditBriefWorkspace({
   sourceClips: ClipSource[]
   sourcePreviewFile?: File | null
   started: boolean
+  onPlanningAuthorityReadyChange?: (state: {
+    message: string
+    ready: boolean
+    status: ReturnType<typeof useCanonicalEditBriefAuthority>['status']
+  }) => void
 }) {
   const canonical = useCanonicalEditBriefAuthority({
     enabled: true,
@@ -104,6 +110,19 @@ export function ProfessionalEditBriefWorkspace({
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const previewInputRef = useRef<HTMLInputElement | null>(null)
   const [loadedDuration, setLoadedDuration] = useState<number>()
+
+  useEffect(() => {
+    onPlanningAuthorityReadyChange?.({
+      message: canonical.message,
+      ready: canonical.planningReady,
+      status: canonical.status,
+    })
+  }, [
+    canonical.message,
+    canonical.planningReady,
+    canonical.status,
+    onPlanningAuthorityReadyChange,
+  ])
 
   useEffect(() => {
     localPreviewRef.current = localPreview

@@ -300,7 +300,6 @@ function resolveEditBriefBinding(
   const resolvedWithoutHash = {
     status: 'bound' as const,
     publicationBinding,
-    ...(aggregate.brief ? { briefFields: structuredClone(aggregate.brief.fields) } : {}),
     exportSettings: structuredClone(aggregate.exportSettings!) as unknown as Record<string, unknown>,
     confirmedMarkerHints: confirmedMarkerHints as unknown as Array<Record<string, unknown>>,
     planHintPackageId: planHint.id,

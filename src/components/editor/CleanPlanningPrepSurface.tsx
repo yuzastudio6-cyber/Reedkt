@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { FileText, Sparkles } from 'lucide-react'
 import type { MockFootagePrepResult } from '../../lib/footage-prep'
 import { useEditBrief } from '../../hooks/useEditBrief'
@@ -80,6 +80,33 @@ export function CleanPlanningPrepSurface({
   const editBriefWorkspaceRef = useRef<HTMLDivElement | null>(null)
   const lastOpenRequestRef = useRef(editBriefOpenRequestId)
   const pendingFocusRequestRef = useRef(false)
+  const [canonicalBriefPlanningGate, setCanonicalBriefPlanningGate] = useState<{
+    message: string
+    ready: boolean
+    status: string
+  }>({
+    message: 'The exact Edit Brief timeline has not been loaded yet.',
+    ready: false,
+    status: 'idle',
+  })
+  const handleCanonicalBriefPlanningGate = useCallback((state: {
+    message: string
+    ready: boolean
+    status: string
+  }) => {
+    setCanonicalBriefPlanningGate((current) => (
+      current.message === state.message
+      && current.ready === state.ready
+      && current.status === state.status
+        ? current
+        : state
+    ))
+  }, [])
+  const editBriefReadyForCanonicalPlan = !editBrief.hasStarted || Boolean(
+    editBrief.editBrief?.status === 'ready'
+    && canonicalBriefPlanningGate.ready,
+  )
+  const canCreateExactPlan = canCreatePlan && editBriefReadyForCanonicalPlan
 
   useEffect(() => {
     onEditBriefStatusChange(
@@ -115,10 +142,13 @@ export function CleanPlanningPrepSurface({
     if (!editBrief.isOpen || !pendingFocusRequestRef.current) return
     pendingFocusRequestRef.current = false
     const focusFrame = window.requestAnimationFrame(() => {
-      const focusTarget = editBriefWorkspaceRef.current
+      const workspace = editBriefWorkspaceRef.current
         ?.querySelector<HTMLElement>('[data-testid="professional-edit-brief-workspace"]')
+      const focusTarget = workspace
+        ?.querySelector<HTMLElement>('[data-testid="edit-brief-goal-input"]:not(:disabled)')
+        ?? workspace
 
-      focusTarget?.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' })
+      focusTarget?.scrollIntoView({ behavior: 'auto', block: 'center', inline: 'nearest' })
       focusTarget?.focus({ preventScroll: true })
     })
     return () => window.cancelAnimationFrame(focusFrame)
@@ -134,7 +164,7 @@ export function CleanPlanningPrepSurface({
   }
 
   function handleCreatePlan() {
-    if (!canCreatePlan) return
+    if (!canCreateExactPlan) return
     const nextPlan = planningContext.createPlanFromContext()
     if (nextPlan) onContextAwarePlanCreated(nextPlan)
   }
@@ -149,6 +179,7 @@ export function CleanPlanningPrepSurface({
       <ProfessionalEditBriefWorkspace
         editBrief={editBrief.editBrief}
         readOnly={editBriefLocked}
+        onPlanningAuthorityReadyChange={handleCanonicalBriefPlanningGate}
         scope={scope}
         sourceClips={plannerInput.clips}
         sourcePreviewFile={sourcePreviewFile}
@@ -254,12 +285,19 @@ export function CleanPlanningPrepSurface({
       {editBriefContent}
 
       {createPlanBlockedReason ? <p className="clean-edit-inline-warning">{createPlanBlockedReason}</p> : null}
+      {!editBriefReadyForCanonicalPlan ? (
+        <p className="clean-edit-inline-warning" data-testid="edit-brief-canonical-plan-gate" role="status">
+          {editBrief.editBrief?.status !== 'ready'
+            ? 'Finish the optional Edit Brief and choose Use Brief in Plan, or reset it before creating the plan.'
+            : canonicalBriefPlanningGate.message}
+        </p>
+      ) : null}
       {planningContext.hasBlockingIssues ? (
         <p className="clean-edit-inline-warning">{planningContext.readinessMessage}</p>
       ) : null}
       <div className="clean-edit-step-actions clean-edit-step-actions-split">
         <span>Credits remain untouched until you review and approve the completed plan.</span>
-        <Button disabled={!canCreatePlan} onClick={handleCreatePlan} variant="primary">Create edit plan</Button>
+        <Button disabled={!canCreateExactPlan} onClick={handleCreatePlan} variant="primary">Create edit plan</Button>
       </div>
     </section>
   )

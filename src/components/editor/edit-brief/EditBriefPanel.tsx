@@ -122,6 +122,14 @@ export function EditBriefPanel({
           onUpdateGoal={onUpdateGoal}
         />
 
+        <EditBriefToolbar
+          onMarkReady={onMarkReady}
+          onResetBrief={onResetBrief}
+          operationCount={meaningfulOperationCount}
+          ready={Boolean(readiness?.ready)}
+          status={editBrief.status}
+        />
+
         <EditBriefPlatformSection
         onUpdatePlatforms={onUpdatePlatforms}
         onUpdateTargetDuration={onUpdateTargetDuration}
@@ -168,14 +176,6 @@ export function EditBriefPanel({
         onUpdateReferenceUrls={onUpdateReferenceUrls}
         referenceUrls={editBrief.userProvidedReferenceUrls}
         specialInstructions={editBrief.specialInstructions}
-        />
-
-        <EditBriefToolbar
-          onMarkReady={onMarkReady}
-          onResetBrief={onResetBrief}
-          operationCount={meaningfulOperationCount}
-          ready={Boolean(readiness?.ready)}
-          status={editBrief.status}
         />
       </fieldset>
     </section>

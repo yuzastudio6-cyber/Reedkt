@@ -6,7 +6,7 @@ import { readFile, rm } from 'node:fs/promises'
 import { join } from 'node:path'
 import { promisify } from 'node:util'
 
-import { chromium, expect, type BrowserContext, type Locator } from '@playwright/test'
+import { chromium, expect, type BrowserContext, type Locator, type Page } from '@playwright/test'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createServer as createViteServer, type ViteDevServer } from 'vite'
 
@@ -79,7 +79,17 @@ const workspaceMemberships = new Map<string, string>([
   ['workspace-internal-testing\u0000supabase-user-browser-full-stack-other', 'editor'],
 ])
 const internalToolNameCopyPattern =
-  /(?:\bD3\b|ECharts|Vega(?:-Lite)?|MapLibre|Turf|Remotion|FFmpeg|FFprobe|AudioFlux|Signalsmith|VapourSynth|Sharp \+ libvips|Essentia|Rubber Band|librosa|OpenColorIO|OpenImageIO|GPAC|MP4Box|MKVToolNix|GStreamer|torch|transformers)/i
+  /(?:\bD3\b|\bECharts\b|\bVega(?:-Lite)?\b|\bMapLibre\b|\bTurf\b|\bRemotion\b|\bFFmpeg\b|\bFFprobe\b|\bAudioFlux\b|\bSignalsmith\b|\bVapourSynth\b|\bSharp \+ libvips\b|\bEssentia\b|\bRubber Band\b|\blibrosa\b|\bOpenColorIO\b|\bOpenImageIO\b|\bGPAC\b|\bMP4Box\b|\bMKVToolNix\b|\bGStreamer\b|\btorch\b|\btransformers\b)/i
+assert.doesNotMatch(
+  'Marker inspectorChoose a marker',
+  internalToolNameCopyPattern,
+  'Adjacent customer-facing words must not be mistaken for the internal torch tool name.',
+)
+assert.match(
+  'Internal worker: torch',
+  internalToolNameCopyPattern,
+  'An actual internal tool name must remain blocked from customer-facing copy.',
+)
 
 type SmokeSourceMediaAsset = {
   storageBucket?: string
@@ -670,7 +680,15 @@ try {
   await expect(page.getByText(/Ready to create the plan/i)).toBeVisible({ timeout: 12_000 })
   await clickWhenReady(page.getByRole('button', { name: /^(Add )?Edit Brief$/i }).first())
   await page.getByLabel(/Overall goal/i).fill('Create a clean internal review edit that opens with the uploaded source proof and keeps the speaker clear.')
-  await clickWhenReady(page.getByTestId('edit-brief-mark-ready').first())
+  await clickEditBriefReadyButton(page)
+  await waitForCanonicalBriefPlanAction(page)
+  const settledBriefWriteCount = countCanonicalBriefWrites(projectRouteResponses)
+  await page.waitForTimeout(900)
+  assert.equal(
+    countCanonicalBriefWrites(projectRouteResponses),
+    settledBriefWriteCount,
+    'A canonically saved Edit Brief must not continue PATCHing equivalent reordered fields.',
+  )
   await clickWhenReady(page.getByRole('button', { name: /Create edit plan/i }).first())
   await expect(page.getByTestId('plan-review-card')).toBeVisible({ timeout: 12_000 })
   await expect(page.getByText(/Plan updated from your source assembly/i)).toBeVisible()
@@ -728,15 +746,16 @@ try {
       canonicalPlanningResponseCount: canonicalPlanningResponses.length,
     }))
   } else {
-  await expect(page.getByTestId('plan-review-approve')).toBeEnabled()
+  await expect(page.getByTestId('plan-review-approve')).toBeEnabled({ timeout: 12_000 })
   await expect(page.locator('body')).not.toContainText(internalToolNameCopyPattern)
   await clickWhenReady(page.getByRole('button', { name: /Open Edit Brief/i }).first())
   await expect(page.getByLabel(/Overall goal/i)).toBeVisible()
   await page.getByLabel(/Overall goal/i).fill(approvedEditBriefGoal)
   await expect(page.getByText(/Planning inputs changed. Create a new edit plan from the updated context before approval./i)).toBeVisible({ timeout: 12_000 })
   await expect(page.getByTestId('plan-review-approve')).toHaveCount(0)
-  await expect(page.getByRole('button', { name: /Create edit plan/i }).first()).toBeEnabled()
-  await clickWhenReady(page.getByTestId('edit-brief-mark-ready').first())
+  await expect(page.getByRole('button', { name: /Create edit plan/i }).first()).toBeDisabled()
+  await clickEditBriefReadyButton(page)
+  await waitForCanonicalBriefPlanAction(page)
   await clickWhenReady(page.getByRole('button', { name: /Create edit plan/i }).first())
   await expect(page.getByTestId('plan-review-card')).toBeVisible({ timeout: 12_000 })
   await expect(page.getByText(/Plan updated from your source assembly/i)).toBeVisible()
@@ -744,7 +763,7 @@ try {
   await expect(deliveryCeiling).toContainText(/4K UHD render and export ceiling/i)
   await expect(deliveryCeiling).toContainText(/1080p, 2K, or 4K/i)
   await expect(deliveryCeiling).toContainText(/no second export estimate or charge/i)
-  await expect(page.getByTestId('plan-review-approve')).toBeEnabled()
+  await expect(page.getByTestId('plan-review-approve')).toBeEnabled({ timeout: 12_000 })
   assert.equal(
     canonicalPlanningResponses.some((entry) =>
       entry.includes('/edit-preferences/planning-authority')
@@ -1991,7 +2010,8 @@ try {
   await expect(page.getByText(/Ready to create the plan/i)).toBeVisible({ timeout: 12_000 })
   await clickWhenReady(page.getByRole('button', { name: /^(Add )?Edit Brief$/i }).first())
   await page.getByLabel(/Overall goal/i).fill('Create a revised internal review edit from the uploaded source and keep the review trace clear.')
-  await clickWhenReady(page.getByTestId('edit-brief-mark-ready').first())
+  await clickEditBriefReadyButton(page)
+  await waitForCanonicalBriefPlanAction(page)
   await clickWhenReady(page.getByRole('button', { name: /Create edit plan/i }).first())
   await expect(page.getByTestId('plan-review-card')).toBeVisible({ timeout: 12_000 })
   await expect(page.getByText(/Plan updated from your source assembly/i)).toBeVisible()
@@ -2626,6 +2646,45 @@ async function clickWhenReady(locator: Locator) {
   await expect(locator).toBeVisible()
   await expect(locator).toBeEnabled()
   await locator.click()
+}
+
+async function clickEditBriefReadyButton(page: Page) {
+  const locator = page.getByTestId('edit-brief-mark-ready').first()
+  const targetState = await locator.evaluate((element) => {
+    element.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'auto' })
+    const rect = element.getBoundingClientRect()
+    const x = rect.left + rect.width / 2
+    const y = rect.top + rect.height / 2
+    const hitTarget = document.elementFromPoint(x, y)
+    return {
+      enabled: !(element instanceof HTMLButtonElement) || !element.disabled,
+      hitTested: Boolean(hitTarget && element.contains(hitTarget)),
+    }
+  })
+  assert.equal(targetState.enabled, true, 'The Edit Brief plan action must be enabled before activation.')
+  assert.equal(
+    targetState.hitTested,
+    true,
+    'The Edit Brief plan action must own its visible interactive target before activation.',
+  )
+  await locator.focus()
+  await expect(locator).toBeFocused()
+  await page.keyboard.press('Enter')
+  await expect(locator).toBeDisabled()
+}
+
+async function waitForCanonicalBriefPlanAction(page: Page) {
+  await expect(
+    page.getByRole('button', { name: /Create edit plan/i }).first(),
+    'The exact Edit Brief fields and timeline authority must finish saving before plan creation.',
+  ).toBeEnabled({ timeout: 15_000 })
+}
+
+function countCanonicalBriefWrites(responses: string[]): number {
+  return responses.filter((entry) =>
+    entry.includes('PATCH ')
+    && entry.includes('/edit-brief?'),
+  ).length
 }
 
 function sha256Hex(bytes: Uint8Array): string {

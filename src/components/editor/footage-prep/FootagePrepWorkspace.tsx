@@ -198,7 +198,7 @@ export function FootagePrepWorkspace({
       const workspace = editBriefWorkspaceRef.current
       const focusTarget = workspace?.querySelector<HTMLElement>('[data-testid="edit-brief-goal-input"]')
 
-      focusTarget?.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' })
+      focusTarget?.scrollIntoView({ behavior: 'auto', block: 'center', inline: 'nearest' })
       focusTarget?.focus({ preventScroll: true })
       pendingEditBriefFocusRequestRef.current = false
     })

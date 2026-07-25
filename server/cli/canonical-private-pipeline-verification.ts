@@ -330,6 +330,31 @@ const fullBoundarySteps: VerificationStep[] = [
     'The bounded browser-capture capability revalidates server authority before private execution.',
   ),
   step(
+    'canonical-v3-local-database-recovery',
+    'qa:canonical-v3-local',
+    'The isolated canonical V3 database performs a clean reset, migration and schema verification, two-user/two-workspace RLS and RPC adversarial proof, request-scoped Edit Reference browser journey, durable pre-plan ingest/study recovery, and destructive backup/reset/restore with no remote Supabase authority.',
+  ),
+  step(
+    'active-product-browser-acceptance',
+    'qa:active-product-ui',
+    'The complete standard Chromium suite covers the ordinary Edit Video chat workflow, separate Motion Studio Storytelling Director workflow, project and edit libraries, responsive navigation, accessibility, setup, plan review, private review, and product-state failure boundaries without merging the two editors.',
+  ),
+  step(
+    'current-edit-preferences-browser-acceptance',
+    'qa:current-edit-preferences-atomic',
+    'Mounted Current Edit Preferences use one exact authority read and one atomic Apply, recover an exact lost response across reload, invalidate stale planning and source preparation, preserve approval locking, and exercise a real independently probed private MP4 without reviving split preference or reference mutation.',
+  ),
+  step(
+    'edit-reference-canonical-real-file-browser-acceptance',
+    'qa:edit-reference-canonical-real-file',
+    'The mounted Edit Preferences library creates and studies one reference, uploads and resumes a real private file, reconciles lost responses across evidence, Study, DNA, QA, approval, archive, and exact-target application lifecycles, and proves apply/replace/reload/remove without a second editor or planning authority.',
+  ),
+  step(
+    'edit-reference-long-form-review-browser-acceptance',
+    'qa:edit-reference-long-form-review',
+    'The mounted long-form Edit Reference review progressively exposes cross-window evidence, saves exact immutable review decisions, survives reload, and keeps saved review truth distinct from a later detail-refresh failure.',
+  ),
+  step(
     'signed-in-private-review-regression',
     'smoke:editor-full-stack-private-review',
     'Signed-in project creation, maximum eight-source private upload and probe, exact preferences and Edit Brief, plan revision, one 4K-ceiling approval, immutable handoff, 27-item private work graph, integrity-bound 4K playback, sanitized journey readback, and review acceptance remain connected.',
@@ -425,7 +450,7 @@ function printReport(
 ): void {
   const finishedAt = new Date()
   const report = {
-    schemaVersion: 'canonical-private-pipeline-verification-v40',
+    schemaVersion: 'canonical-private-pipeline-verification-v41',
     status,
     mode: full ? 'full_internal_regression' : 'canonical_private_pipeline',
     startedAt: runStartedAt.toISOString(),
@@ -639,6 +664,11 @@ function printReport(
           versionedToolIdentityEvidence: true,
           ...(full
             ? {
+                canonicalV3LocalResetRlsAndRecoveryVerified: true,
+                activeProductBrowserAcceptanceVerified: true,
+                currentEditPreferencesAtomicBrowserAcceptanceVerified: true,
+                editReferenceCanonicalRealFileBrowserAcceptanceVerified: true,
+                editReferenceLongFormReviewBrowserAcceptanceVerified: true,
                 signedInMaximumEightSourceUploadAndPersistence: true,
                 signedInMaximumEightSourcePrivateReviewAccepted: true,
               }

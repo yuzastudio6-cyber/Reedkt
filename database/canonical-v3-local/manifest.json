@@ -265,7 +265,7 @@
     },
     {
       "path": "package.json",
-      "sha256": "564055fe2e1e4a9887cc3dcd2738d4e161ca437cf057f1b91b1dc98c8bd28385"
+      "sha256": "700861f69c78598b11b5c210c4e0864733c83405c91e2551521f2aa09059bb56"
     },
     {
       "path": "server/app.ts",
@@ -441,7 +441,7 @@
     },
     {
       "path": "server/services/canonical-planning-handoff-service.ts",
-      "sha256": "a2775b27671e22567886ca8ba9eb3fc006b8cd705a124b97f4d529fa0c24d7b3"
+      "sha256": "24a91c01465e12be1d0dd249058d1d765c19bec3b70ce19ed3cc1b6aa361b58b"
     },
     {
       "path": "server/services/edit-reference-application-preparation-runtime-port.ts",
@@ -517,7 +517,7 @@
     },
     {
       "path": "server/services/planning-input-authority-binding-service.ts",
-      "sha256": "dfaf76bee23587280f45859f1fc9500c82240ab2b71eeace53b9f012572554cb"
+      "sha256": "03bc0882c16dc87fed8229e57df5642b620c2a96e3b632ee0b22d21b508af433"
     },
     {
       "path": "server/services/project-edit-brief-local-service.ts",
@@ -549,7 +549,7 @@
     },
     {
       "path": "server/smoke/canonical-planning-publication-frontend-client-smoke.ts",
-      "sha256": "86e957ac0687c8f4e8de208cbc0d886c87738e95dc845aaf6c3589b65f4e50c7"
+      "sha256": "281c692004a77366c9b43a15b3d1f8d20fffbe278e07eb45a4a387bb709eed58"
     },
     {
       "path": "server/smoke/canonical-private-tool-dispatch-authority-smoke.ts",
@@ -565,7 +565,7 @@
     },
     {
       "path": "server/smoke/edit-planning-authority-smoke.ts",
-      "sha256": "c65be420f393ed17b7233fede732696a5d477620d215d414832441de7ac7f5e9"
+      "sha256": "35cbe80697d04878b510223d4beca6e74cdb4a9586f1f8f140d6c4eb2cbd1f51"
     },
     {
       "path": "server/smoke/edit-reference-canonical-v3-application-preparation-and-apply-smoke.ts",
@@ -645,7 +645,7 @@
     },
     {
       "path": "server/validation/edit-planning-authority-schemas.ts",
-      "sha256": "ba8b5ccef78e08a33afbcf7e65f94b9e40aeaf97fabfa21b50fe0ed9dd21a002"
+      "sha256": "60babc964e754b471263d19f59881beabd6427b6308ff6a6c1cfd1595c1ab606"
     },
     {
       "path": "server/validation/edit-reference-application-preparation-schemas.ts",
@@ -653,7 +653,7 @@
     },
     {
       "path": "server/validation/planning-input-authority-binding-schemas.ts",
-      "sha256": "4d3ce8bb0822bfd3d9f9e24b13f033af433dc0218760240c7cf5e604e9622fca"
+      "sha256": "7137705a6faed80e15e59054ba242691b0a5a99e0833c4e85eb75271d3f177d7"
     },
     {
       "path": "src/backend/api/routes/edit-planning-api-routes.ts",
@@ -665,7 +665,7 @@
     },
     {
       "path": "src/components/editor/ChatNativeEditor.tsx",
-      "sha256": "e9037658eda6b482c597662b37cbc83f94d77e5f13b5fb3858b32f976b850440"
+      "sha256": "b71681ff68103e054ba8e41961173410ee376b3826ec4cf17fd352ea02719ec9"
     },
     {
       "path": "src/components/editor/CurrentEditPreferencesWorkspace.tsx",
@@ -677,11 +677,11 @@
     },
     {
       "path": "src/lib/canonical-planning-draft.ts",
-      "sha256": "612cc5fceb2a162985cb321827bc91e9d765f968f484a47bac5b60c3310da8ce"
+      "sha256": "c0f7b00daa36eb0dbe3e327be6afc7cf06feacaa70b53a9b60aaefdaada14a68"
     },
     {
       "path": "src/lib/canonical-planning-publication-client.ts",
-      "sha256": "08ce5251c2716a2177785e9e10762beee6ef76c12081a9526f6a71556fb0dcaf"
+      "sha256": "047853034957c8e304d81731f9b596726592d8f6916dd7c2576c4e277ffca3bb"
     },
     {
       "path": "src/lib/current-edit-reference-application-ui.ts",
@@ -725,15 +725,15 @@
     },
     {
       "path": "src/types/reeditpro.ts",
-      "sha256": "6ccfadc587028f89405b18c0bf47858231e22d20584d87ac0317e2b6c0cfbf4a"
+      "sha256": "e94c94e4612f43db3e329473bb6246ddc143631496a695432c604de23cbe3461"
     },
     {
       "path": "tests/e2e/edit-preferences-atomic-api-server.ts",
-      "sha256": "0520af60ad8bbd04963a840eebc8361ee52cb88dad909591a622d4b4a8fa92d2"
+      "sha256": "a8bbdabff9e63a138b77f3b000eab5f385dd026aed32b77028188bb1f71a2f21"
     },
     {
       "path": "tests/e2e/edit-preferences-current-edit.spec.ts",
-      "sha256": "9a4cf6caba74c0ae639413f662daffabf5205707190b15f7614049bd8a8feab7"
+      "sha256": "ac83451f080a9f54dcb7b5cbc12a40fe5d0c2326efe35f729378beeceb91cefa"
     },
     {
       "path": "tests/e2e/edit-reference-canonical-real-file-flow.spec.ts",

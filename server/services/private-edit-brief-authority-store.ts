@@ -141,7 +141,9 @@ export interface EditBriefMarkerContextPackage {
     title: string
   }>
   sourceContext: EditBriefSourceContextInput
-  sourceAuthorityStatus: 'unverified_private_internal_metadata'
+  sourceAuthorityStatus:
+    | 'unverified_private_internal_metadata'
+    | 'verified_canonical_source_manifest'
   briefContext?: {
     briefId: string
     briefRevision: number
@@ -243,7 +245,9 @@ export interface EditBriefPlanHintPackage {
     contextVersion: number
     contextHash: string
     runtimeState: EditBriefRuntimeState
-    sourceAuthorityStatus: 'unverified_private_internal_metadata'
+    sourceAuthorityStatus:
+      | 'unverified_private_internal_metadata'
+      | 'verified_canonical_source_manifest'
   }>
   qaWarnings: string[]
   exportTarget?: {
@@ -431,7 +435,10 @@ const aggregateSchema: z.ZodType<PrivateEditBriefAuthorityAggregate> = z.object(
       endSeconds: z.number().positive().optional(), status: z.enum(['draft', 'confirmed', 'archived']), title: z.string().min(1).max(240),
     }).strict()).max(50),
     sourceContext: editBriefSourceContextSchema,
-    sourceAuthorityStatus: z.literal('unverified_private_internal_metadata'),
+    sourceAuthorityStatus: z.enum([
+      'unverified_private_internal_metadata',
+      'verified_canonical_source_manifest',
+    ]),
     briefContext: z.object({
       briefId: idSchema,
       briefRevision: z.number().int().positive(),
@@ -498,7 +505,10 @@ const aggregateSchema: z.ZodType<PrivateEditBriefAuthorityAggregate> = z.object(
       contextVersion: z.number().int().positive(),
       contextHash: z.string().regex(/^[a-f0-9]{64}$/),
       runtimeState: editBriefRuntimeStateSchema,
-      sourceAuthorityStatus: z.literal('unverified_private_internal_metadata'),
+      sourceAuthorityStatus: z.enum([
+        'unverified_private_internal_metadata',
+        'verified_canonical_source_manifest',
+      ]),
     }).strict()).max(MAX_EDIT_BRIEF_MARKERS),
     qaWarnings: z.array(z.string().min(1).max(2_000)).max(1_000),
     exportTarget: z.object({

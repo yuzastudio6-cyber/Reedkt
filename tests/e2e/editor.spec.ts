@@ -30,6 +30,7 @@ import {
   findPlanReview,
   gotoEditor,
   gotoRoute,
+  openEditBriefSourcePreview,
   uploadEditorGateSourceVideo,
   uploadEditorSourceFile,
 } from './helpers/routes'
@@ -426,6 +427,16 @@ test.describe('editor mocked browser flow', () => {
     const editBriefPanel = page.getByTestId('edit-brief-panel')
     await expect(editBriefPanel).toBeVisible()
     await expect(editBriefPanel).toContainText(/Skip this if the prompt already says enough/i)
+    const professionalBrief = page.getByTestId('professional-edit-brief-workspace')
+    await expect(professionalBrief).toBeVisible()
+    await expect(professionalBrief).toBeFocused()
+    await expect(professionalBrief).toContainText(/Direct the edit on the source timeline/i)
+    await expect(professionalBrief).toContainText(/Source playback is not open in this browser/i)
+    await openEditBriefSourcePreview(page, 'brief-ready-source.mp4')
+    await expect(page.getByTestId('edit-brief-marker-lane')).toBeVisible()
+    await expect(page.getByTestId('edit-brief-authority-status')).toContainText(/Local draft/i)
+    const addMarker = page.getByRole('button', { name: /Add marker at/i })
+    await expect(addMarker).toBeDisabled()
     const workspaceLayout = page.locator('.editor-workspace-layout')
     const previewRail = page.getByTestId('edit-preview-rail')
     await expect(previewRail).toBeVisible()
@@ -449,7 +460,6 @@ test.describe('editor mocked browser flow', () => {
     expect(await firstBriefSection.evaluate((element) => getComputedStyle(element).backgroundImage)).toBe('none')
     expect(await firstBriefSection.evaluate((element) => getComputedStyle(element).borderBottomStyle)).toBe('solid')
     const briefGoalInput = page.getByTestId('edit-brief-goal-input')
-    await expect(briefGoalInput).toBeFocused()
     await expect(page.getByTestId('editor-header-edit-brief-status')).toHaveCount(0)
 
     await setViewport(page, 700)
@@ -464,9 +474,17 @@ test.describe('editor mocked browser flow', () => {
     await setViewport(page, 1440)
 
     await briefGoalInput.fill(briefGoal)
-    await page.getByTestId('edit-brief-reference-urls').fill('https://example.com/approved-launch-reference')
+    await expect(addMarker).toBeEnabled()
+    await clickWhenReady(addMarker)
+    await expect(page.getByRole('heading', { level: 4, name: 'New marker' })).toBeVisible()
+    await expect(page.getByText(/What should happen here/i)).toBeVisible()
+    const referenceUrls = page.getByTestId('edit-brief-reference-urls')
+    await referenceUrls.fill('https://example.com/approved-launch-reference')
     await expect(page.getByTestId('editor-header-edit-brief-status')).toHaveText('Draft')
-    await clickWhenReady(page.getByTestId('edit-brief-mark-ready'))
+    const markBriefReady = page.getByTestId('edit-brief-mark-ready')
+    await referenceUrls.press('Tab')
+    await expect(markBriefReady).toBeFocused()
+    await page.keyboard.press('Enter')
     await expect(page.getByTestId('editor-header-edit-brief-status')).toHaveText('Ready')
     await expect(page.getByTestId('edit-brief-panel')).toContainText(/Ready to include as structured direction/i)
 
@@ -546,14 +564,14 @@ test.describe('editor mocked browser flow', () => {
     await expect(headerEditBrief).toBeFocused()
     await page.keyboard.press('Enter')
     await expect(page.getByTestId('edit-brief-panel')).toBeVisible()
-    const focusedBriefGoal = page.getByTestId('edit-brief-goal-input')
-    await expect(focusedBriefGoal).toBeFocused()
+    const focusedBriefWorkspace = page.getByTestId('professional-edit-brief-workspace')
+    await expect(focusedBriefWorkspace).toBeFocused()
     await expect.poll(async () => {
-      const [goalBox, composerBox] = await Promise.all([
-        focusedBriefGoal.boundingBox(),
+      const [workspaceBox, composerBox] = await Promise.all([
+        focusedBriefWorkspace.boundingBox(),
         page.getByTestId('chat-composer-surface').boundingBox(),
       ])
-      return Boolean(goalBox && composerBox && goalBox.y + goalBox.height <= composerBox.y - 8)
+      return Boolean(workspaceBox && composerBox && workspaceBox.y < composerBox.y - 8)
     }).toBe(true)
     await expect(page.getByTestId('edit-brief-plan-impact')).toContainText(/Changes here require a fresh plan/i)
     await expect(page.getByTestId('plan-review-card')).toBeVisible()

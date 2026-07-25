@@ -200,6 +200,20 @@ export async function uploadEditorGateSourceVideo(
   await bindControlledSourceAuthorityForMockUi(page, fileName)
 }
 
+export async function openEditBriefSourcePreview(
+  page: Page,
+  fileName = 'e2e-source-story.mp4',
+) {
+  const workspace = page.getByTestId('professional-edit-brief-workspace')
+  await expect(workspace).toBeVisible()
+  await workspace.locator('input[type="file"][accept="video/*"]').setInputFiles({
+    name: fileName,
+    mimeType: 'video/mp4',
+    buffer: await getEditorSourceVideoBytes(fileName),
+  })
+  await expect(page.getByTestId('edit-brief-source-player')).toBeVisible()
+}
+
 async function getEditorSourceVideoBytes(fileName: string): Promise<Buffer> {
   void fileName
   return Buffer.from((await getControlledSourceVideoFixture()).bytes)

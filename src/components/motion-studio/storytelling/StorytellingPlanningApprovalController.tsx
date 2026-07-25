@@ -421,6 +421,11 @@ export function StorytellingPlanningApprovalController({
             plannerInput={plannerInput}
             prepCanRun={clips.length > 0 && setup.sourceOrderConfirmed === true}
             result={footagePrepResult}
+            scope={{
+              workspaceId: scope.workspaceId,
+              projectId: handoff.projectId,
+              editSessionId: handoff.editSessionId,
+            }}
           />
         ) : (
           <section className="clean-edit-step clean-prep-step" data-testid="storytelling-plan-preparation">

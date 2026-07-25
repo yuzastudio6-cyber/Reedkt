@@ -8,12 +8,16 @@ import {
   buildEditBriefAuthorityPublicationBinding,
   createEditBriefAuthorityService,
 } from '../services/edit-brief-authority-service'
+import { prepareCanonicalEditBriefForPlanning } from '../services/canonical-edit-brief-planning-preparation-service'
 import {
   clearPrivateEditBriefAuthorityProcessStateForSmoke,
   editBriefAuthorityRelativePath,
 } from '../services/private-edit-brief-authority-store'
 import { clearLocalProjectMemoryForSmoke, createProjectService } from '../services/project-service'
 import type { ServiceContext } from '../types'
+import { canonicalPlanComponentsSchema } from '../validation/edit-planning-authority-schemas'
+import { sourceBindingManifestCandidateSchema } from '../validation/source-media-authority-schemas'
+import { buildProfessionalExportCreditCoverage } from '../../src/lib/professional-export-policy'
 
 const localStorageRoot = '/tmp/reeditpro-edit-brief-authority-smoke'
 const workspaceId = 'workspace-edit-brief-smoke'
@@ -603,6 +607,255 @@ await expectApiError(
   'Checksum tampering must fail closed.',
 )
 
+const planningStorageRoot = '/tmp/reeditpro-edit-brief-planning-preparation-smoke'
+await rm(planningStorageRoot, { recursive: true, force: true })
+clearPrivateEditBriefAuthorityProcessStateForSmoke()
+clearLocalProjectMemoryForSmoke()
+const planningContext: ServiceContext = {
+  ...context,
+  env: loadRuntimeEnv({
+    NODE_ENV: 'test',
+    E2E_RUNTIME_MODE: 'local',
+    WORKER_RUNTIME_MODE: 'local',
+    STORAGE_MODE: 'local',
+    LOCAL_STORAGE_ROOT: planningStorageRoot,
+    SUPABASE_URL: 'https://edit-brief-planning-smoke.supabase.co',
+    SUPABASE_ANON_KEY: 'edit-brief-planning-smoke-anon',
+    SUPABASE_SERVICE_ROLE_KEY: 'edit-brief-planning-smoke-service-role',
+    API_ALLOW_INTERNAL_TEST_EXECUTION_WITH_SUPABASE: 'true',
+  }),
+  requestId: 'edit-brief-planning-preparation-smoke',
+}
+const planningProject = (await createProjectService(planningContext).createProject({
+  workspaceId,
+  name: 'Edit Brief canonical planning preparation',
+})).project
+const planningEditSessionId = 'edit-session-brief-canonical-planning'
+const planningService = createEditBriefAuthorityService(planningContext)
+const richBrief = await planningService.createBrief({
+  workspaceId,
+  projectId: planningProject.id,
+  editSessionId: planningEditSessionId,
+  expectedRevision: 0,
+  idempotencyKey: 'create-rich-planning-brief-v1',
+  brief: {
+    goal: 'Build a precise professional launch edit with source-timeline direction.',
+    audience: 'Product leaders',
+    deliverable: 'Private 4K review',
+    mustIncludeNotes: ['Keep the complete proof statement.'],
+    avoidNotes: ['Do not cover the product label.'],
+    additionalNotes: 'Speech clarity outranks decorative timing.',
+    targetPlatforms: ['youtube'],
+    targetDurationMs: 30_000,
+    styleKeywords: ['restrained', 'confident'],
+    pacingPreference: 'tight',
+    captionPreference: 'premium_subtle',
+    musicPreference: 'subtle',
+    bRollPreference: 'Use only source-supported product details.',
+    mustUseAssetIds: ['media-source-planning-1'],
+    avoidAssetIds: [],
+    brandNotes: 'Keep the brand cyan accent restrained.',
+    specialInstructions: 'End on the verified result without changing meaning.',
+    userProvidedReferenceUrls: ['https://example.com/approved-reference'],
+    status: 'ready',
+  },
+})
+assert.equal(richBrief.aggregateRevision, 1)
+assert.deepEqual(richBrief.brief.fields.targetPlatforms, ['youtube'])
+assert.equal(richBrief.brief.fields.targetDurationMs, 30_000)
+assert.equal(richBrief.brief.fields.captionPreference, 'premium_subtle')
+assert.deepEqual(richBrief.brief.fields.styleKeywords, ['restrained', 'confident'])
+
+const planningMarker = await planningService.createMarker({
+  workspaceId,
+  projectId: planningProject.id,
+  editSessionId: planningEditSessionId,
+  expectedRevision: 1,
+  idempotencyKey: 'create-canonical-planning-marker-v1',
+  marker: {
+    markerType: 'keep',
+    timeKind: 'range',
+    startSeconds: 5,
+    endSeconds: 11,
+    priority: 'must_follow',
+    title: 'Protect the proof statement',
+    note: 'Keep this entire proof statement and use only restrained supporting graphics.',
+  },
+})
+await planningService.confirmMarker({
+  workspaceId,
+  projectId: planningProject.id,
+  editSessionId: planningEditSessionId,
+  expectedRevision: 2,
+  idempotencyKey: 'confirm-canonical-planning-marker-v1',
+  markerId: planningMarker.marker.id,
+})
+
+const sourceCandidate = sourceBindingManifestCandidateSchema.parse({
+  schemaVersion: 'private-source-binding-manifest-candidate-v1',
+  authorityStatus: 'unapproved_manifest_candidate',
+  executionAuthorized: false,
+  approvedSnapshotMutated: false,
+  noRuntimeSideEffects: true,
+  workspaceId,
+  projectId: planningProject.id,
+  uploadPurpose: 'source_media',
+  authorityRevision: 7,
+  authorityChecksumSha256: '1'.repeat(64),
+  sourceSequenceHash: '2'.repeat(64),
+  bindings: [{
+    sourceSequenceItemId: 'source-sequence-planning-1',
+    mediaAssetId: 'media-source-planning-1',
+    uploadedOrder: 1,
+    required: true,
+    uploadIntentId: 'upload-intent-planning-1',
+    storageObjectRecordId: 'storage-record-planning-1',
+    storageProvider: 'local_private',
+    mimeType: 'video/mp4',
+    sizeBytes: 4_096,
+    checksumSha256: '3'.repeat(64),
+    storageIdentityHash: '4'.repeat(64),
+    bindingHash: '5'.repeat(64),
+  }],
+  requiredBindingCount: 1,
+  candidateHash: '6'.repeat(64),
+})
+const canonicalComponents = canonicalPlanComponentsSchema.parse({
+  compiledIntent: {
+    goal: 'Create a professional launch edit.',
+    explicitInstructions: ['Keep the proof statement and protect speech clarity.'],
+  },
+  professionalEditingDirective: {
+    pacing: 'restrained',
+    mustFollowRules: ['Preserve meaning.'],
+  },
+  confirmedSettings: {
+    aspectRatio: '16:9',
+    outputFrame: { width: 3840, height: 2160, fps: 30 },
+    outputFramePurpose: 'private_canonical_4k_master_review',
+    professionalExportCoverage: buildProfessionalExportCreditCoverage({
+      durationSeconds: 30,
+      outputFps: 30,
+      approvedAspectRatio: '16:9',
+    }),
+    outputFrameConfirmed: true,
+    sourceOrderConfirmed: true,
+    sourceCleanupConfirmed: true,
+    editLevel: 'basic',
+    targetPlatform: 'youtube',
+    preferenceSnapshotId: 'server-default-exact-edit-preferences-v1',
+    preferenceRevision: 0,
+    preferencePlanningInputRevision: 0,
+    preferenceFingerprintSha256: '7'.repeat(64),
+  },
+  sourceSequence: [{
+    sourceSequenceItemId: 'source-sequence-planning-1',
+    mediaAssetId: 'media-source-planning-1',
+    uploadedOrder: 1,
+    checksumSha256: '3'.repeat(64),
+    required: true,
+  }],
+  sourceCleanupSummary: {
+    status: 'confirmed',
+    cleanupPreference: 'balanced_cleanup',
+    trimValidationStatus: 'passed',
+    meaningValidationStatus: 'passed',
+    userReviewRequired: false,
+  },
+  sourceCleanupPlan: {
+    status: 'confirmed',
+    decisions: [{
+      decisionId: 'cleanup-planning-1',
+      sourceSequenceItemId: 'source-sequence-planning-1',
+      action: 'preserve',
+      startFrame: 0,
+      endFrameExclusive: 1_260,
+      reason: 'Preserve the source while the exact marker protects the proof statement.',
+      confidence: 0.99,
+      meaningPreservationStatus: 'passed',
+      userReviewStatus: 'not_required',
+    }],
+  },
+  masterTimingPlan: {
+    status: 'ready',
+    timingBase: {
+      fps: 30,
+      sourceDurationSeconds: 42,
+      finalDurationSeconds: 30,
+      totalFrames: 900,
+    },
+  },
+  captionVisualCueTimingPlan: { status: 'synced', collisionCount: 0 },
+  soundSyncTransitionTimingPlan: { status: 'not_needed', speechPriority: true },
+  timingValidationPlan: { overallStatus: 'passed', approvalBlocked: false },
+  timingSummary: {
+    validationStatus: 'passed',
+    approvalBlocked: false,
+    fps: 30,
+    totalFrames: 900,
+  },
+  segments: [{
+    segmentId: 'segment-planning-1',
+    startFrame: 0,
+    endFrameExclusive: 900,
+    operationIds: ['operation-planning-1'],
+  }],
+  visualAssetPlan: { assets: [], randomBrollAllowed: false },
+  colorPipelinePlan: { status: 'not_provided' },
+  rendererPlan: { renderer: 'remotion', frameOwnedByRenderer: true },
+  toolStrategyPlan: { toolIds: [], exactOperationIds: [] },
+  qaPlan: { status: 'passed', checks: ['intent', 'timing', 'source_order', 'frame'] },
+  qaSummary: { status: 'passed', approvalBlocked: false },
+  providerPolicy: { veoPolicy: 'forbidden', approvedRoutes: [] },
+  fallbackPolicy: { unapprovedFallbackAllowed: false },
+})
+
+const preparedBrief = await prepareCanonicalEditBriefForPlanning({
+  context: planningContext,
+  scope: {
+    localStorageRoot: planningStorageRoot,
+    ownerUserId: userId,
+    workspaceId,
+    projectId: planningProject.id,
+    editSessionId: planningEditSessionId,
+  },
+  sourceCandidate,
+  components: canonicalComponents,
+})
+assert.equal(preparedBrief.optionalBriefPresent, true)
+assert.equal(preparedBrief.confirmedMarkerCount, 1)
+assert.equal(preparedBrief.qaStatus, 'passed')
+assert.equal(preparedBrief.planHintReadiness, 'ready_for_planning')
+assert.equal(preparedBrief.sourceAuthorityVerified, true)
+const preparedAuthority = (await planningService.get(
+  workspaceId,
+  planningProject.id,
+  planningEditSessionId,
+)).authority
+assert.ok(preparedAuthority)
+assert.equal(preparedAuthority.exportSettings?.resolution, '3840x2160')
+assert.equal(preparedAuthority.exportSettings?.confirmationStatus, 'confirmed')
+assert.equal(preparedAuthority.markers[0]?.timingStatus, 'frame_authoritative')
+assert.equal(preparedAuthority.markers[0]?.startFrame, 150)
+assert.equal(preparedAuthority.markers[0]?.endFrame, 330)
+assert.equal(preparedAuthority.contextPackages.length, 1)
+assert.equal(
+  preparedAuthority.contextPackages[0]?.sourceAuthorityStatus,
+  'verified_canonical_source_manifest',
+)
+assert.equal(
+  preparedAuthority.contextPackages[0]?.sourceContext.sourceCandidateHashSha256,
+  sourceCandidate.candidateHash,
+)
+assert.equal(
+  preparedAuthority.contextPackages[0]?.sourceContext.sourceDurationSeconds,
+  42,
+)
+assert.equal(
+  preparedAuthority.planHintPackages.at(-1)?.sourceContextRefs[0]?.sourceAuthorityStatus,
+  'verified_canonical_source_manifest',
+)
+
 console.log('Edit Brief authority smoke passed.')
 console.log(JSON.stringify({
   optionalBrief: true,
@@ -623,6 +876,8 @@ console.log(JSON.stringify({
   tenantIsolation: true,
   approvalLifecycleLock: true,
   restartRecovery: true,
+  richBriefFieldsPersisted: true,
+  canonicalSourceFrameQaAndPlanHintPreparation: true,
   productionFailClosed: true,
   providerMediaWorkerRenderCreditSideEffects: false,
 }, null, 2))

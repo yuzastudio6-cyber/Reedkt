@@ -187,6 +187,27 @@ export function createEditBriefAuthorityService(context: ServiceContext) {
             audience: body.patch.audience === null ? undefined : body.patch.audience ?? brief.fields.audience,
             deliverable: body.patch.deliverable === null ? undefined : body.patch.deliverable ?? brief.fields.deliverable,
             additionalNotes: body.patch.additionalNotes === null ? undefined : body.patch.additionalNotes ?? brief.fields.additionalNotes,
+            targetDurationMs: body.patch.targetDurationMs === null
+              ? undefined
+              : body.patch.targetDurationMs ?? brief.fields.targetDurationMs,
+            pacingPreference: body.patch.pacingPreference === null
+              ? undefined
+              : body.patch.pacingPreference ?? brief.fields.pacingPreference,
+            captionPreference: body.patch.captionPreference === null
+              ? undefined
+              : body.patch.captionPreference ?? brief.fields.captionPreference,
+            musicPreference: body.patch.musicPreference === null
+              ? undefined
+              : body.patch.musicPreference ?? brief.fields.musicPreference,
+            bRollPreference: body.patch.bRollPreference === null
+              ? undefined
+              : body.patch.bRollPreference ?? brief.fields.bRollPreference,
+            brandNotes: body.patch.brandNotes === null
+              ? undefined
+              : body.patch.brandNotes ?? brief.fields.brandNotes,
+            specialInstructions: body.patch.specialInstructions === null
+              ? undefined
+              : body.patch.specialInstructions ?? brief.fields.specialInstructions,
           }
           brief.revision += 1
           brief.updatedAt = timestamp
@@ -399,7 +420,14 @@ export function createEditBriefAuthorityService(context: ServiceContext) {
       return resultEnvelope(result)
     },
 
-    async buildMarkerContext(input: unknown) {
+    async buildMarkerContext(
+      input: unknown,
+      options: {
+        sourceAuthorityStatus?:
+          | 'unverified_private_internal_metadata'
+          | 'verified_canonical_source_manifest'
+      } = {},
+    ) {
       const body = parse(buildEditBriefMarkerContextSchema, input)
       const scope = await authorizeScope(context, body.workspaceId, body.projectId, body.editSessionId, 'write')
       const preferenceContext = await loadPreferenceContext(context, scope, 'marker_chat')
@@ -462,7 +490,8 @@ export function createEditBriefAuthorityService(context: ServiceContext) {
             },
             nearbyMarkers,
             sourceContext: body.sourceContext,
-            sourceAuthorityStatus: 'unverified_private_internal_metadata' as const,
+            sourceAuthorityStatus:
+              options.sourceAuthorityStatus ?? 'unverified_private_internal_metadata',
             briefContext: aggregate.brief ? {
               briefId: aggregate.brief.id,
               briefRevision: aggregate.brief.revision,

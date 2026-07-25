@@ -115,14 +115,6 @@ export function EditBriefPanel({
 
       <fieldset className="edit-brief-editable-fields" disabled={readOnly}>
         <legend className="sr-only">Edit Brief controls</legend>
-        <EditBriefToolbar
-          onMarkReady={onMarkReady}
-          onResetBrief={onResetBrief}
-          operationCount={meaningfulOperationCount}
-          ready={Boolean(readiness?.ready)}
-          status={editBrief.status}
-        />
-
         <EditBriefGoalSection
           audience={editBrief.audience}
           goal={editBrief.goal}
@@ -176,6 +168,14 @@ export function EditBriefPanel({
         onUpdateReferenceUrls={onUpdateReferenceUrls}
         referenceUrls={editBrief.userProvidedReferenceUrls}
         specialInstructions={editBrief.specialInstructions}
+        />
+
+        <EditBriefToolbar
+          onMarkReady={onMarkReady}
+          onResetBrief={onResetBrief}
+          operationCount={meaningfulOperationCount}
+          ready={Boolean(readiness?.ready)}
+          status={editBrief.status}
         />
       </fieldset>
     </section>

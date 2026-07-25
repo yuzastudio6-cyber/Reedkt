@@ -6,8 +6,10 @@ import { usePlanningContext } from '../../hooks/usePlanningContext'
 import { useSourceLibrary } from '../../hooks/useSourceLibrary'
 import type { ContextAwareMockEditPlanResult, EditBriefState, EditBriefStatus } from '../../types'
 import type { PlannerInput } from '../../types/reeditpro'
+import type { CanonicalEditBriefScope } from '../../lib/edit-brief-authority-client'
 import { Button } from '../Button'
 import { EditBriefPanel } from './edit-brief'
+import { ProfessionalEditBriefWorkspace } from './edit-brief/ProfessionalEditBriefWorkspace'
 
 type CleanPlanningPrepSurfaceProps = {
   active?: boolean
@@ -28,6 +30,8 @@ type CleanPlanningPrepSurfaceProps = {
   prepBlockedReason?: string
   prepCanRun: boolean
   result: MockFootagePrepResult | null
+  scope: CanonicalEditBriefScope
+  sourcePreviewFile?: File | null
 }
 
 function formatDuration(durationMs: number | undefined) {
@@ -57,6 +61,8 @@ export function CleanPlanningPrepSurface({
   prepBlockedReason,
   prepCanRun,
   result,
+  scope,
+  sourcePreviewFile,
 }: CleanPlanningPrepSurfaceProps) {
   const sourceLibrary = useSourceLibrary(result)
   const editBrief = useEditBrief(result, sourceLibrary.sourceLibraryState, true, {
@@ -107,13 +113,13 @@ export function CleanPlanningPrepSurface({
 
   useEffect(() => {
     if (!editBrief.isOpen || !pendingFocusRequestRef.current) return
+    pendingFocusRequestRef.current = false
     const focusFrame = window.requestAnimationFrame(() => {
       const focusTarget = editBriefWorkspaceRef.current
-        ?.querySelector<HTMLElement>('[data-testid="edit-brief-goal-input"]')
+        ?.querySelector<HTMLElement>('[data-testid="professional-edit-brief-workspace"]')
 
-      focusTarget?.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' })
+      focusTarget?.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' })
       focusTarget?.focus({ preventScroll: true })
-      pendingFocusRequestRef.current = false
     })
     return () => window.cancelAnimationFrame(focusFrame)
   }, [editBrief.isOpen, editBriefOpenRequestId])
@@ -140,36 +146,45 @@ export function CleanPlanningPrepSurface({
           Changes here require a fresh plan and credit approval before more editing runs.
         </p>
       ) : null}
-      <EditBriefPanel
-        activityEvents={editBrief.activityEvents}
-        editBriefState={editBrief.editBriefState}
-        onAddAvoidAsset={editBrief.addAvoidAsset}
-        onAddAvoidNote={editBrief.addAvoidNote}
-        onAddMustIncludeNote={editBrief.addMustIncludeNote}
-        onAddMustUseAsset={editBrief.addMustUseAsset}
-        onMarkReady={editBrief.markReady}
-        onRemoveAvoidAsset={editBrief.removeAvoidAsset}
-        onRemoveAvoidNote={editBrief.removeAvoidNote}
-        onRemoveMustIncludeNote={editBrief.removeMustIncludeNote}
-        onRemoveMustUseAsset={editBrief.removeMustUseAsset}
-        onResetBrief={editBrief.resetBrief}
-        onUpdateAudience={editBrief.updateAudience}
-        onUpdateBRollPreference={editBrief.updateBRollPreference}
-        onUpdateBrandNotes={editBrief.updateBrandNotes}
-        onUpdateCaptionPreference={editBrief.updateCaptionPreference}
-        onUpdateGoal={editBrief.updateGoal}
-        onUpdateMusicPreference={editBrief.updateMusicPreference}
-        onUpdatePacingPreference={editBrief.updatePacingPreference}
-        onUpdatePlatforms={editBrief.updatePlatforms}
-        onUpdateSpecialInstructions={editBrief.updateSpecialInstructions}
-        onUpdateReferenceUrls={editBrief.updateReferenceUrls}
-        onUpdateStyleKeywords={editBrief.updateStyleKeywords}
-        onUpdateTargetDuration={editBrief.updateTargetDuration}
+      <ProfessionalEditBriefWorkspace
+        editBrief={editBrief.editBrief}
         readOnly={editBriefLocked}
-        readiness={editBrief.readiness}
-        sourceAssets={sourceLibrary.assets}
-        summary={editBrief.summary}
-      />
+        scope={scope}
+        sourceClips={plannerInput.clips}
+        sourcePreviewFile={sourcePreviewFile}
+        started={editBrief.hasStarted}
+      >
+        <EditBriefPanel
+          activityEvents={editBrief.activityEvents}
+          editBriefState={editBrief.editBriefState}
+          onAddAvoidAsset={editBrief.addAvoidAsset}
+          onAddAvoidNote={editBrief.addAvoidNote}
+          onAddMustIncludeNote={editBrief.addMustIncludeNote}
+          onAddMustUseAsset={editBrief.addMustUseAsset}
+          onMarkReady={editBrief.markReady}
+          onRemoveAvoidAsset={editBrief.removeAvoidAsset}
+          onRemoveAvoidNote={editBrief.removeAvoidNote}
+          onRemoveMustIncludeNote={editBrief.removeMustIncludeNote}
+          onRemoveMustUseAsset={editBrief.removeMustUseAsset}
+          onResetBrief={editBrief.resetBrief}
+          onUpdateAudience={editBrief.updateAudience}
+          onUpdateBRollPreference={editBrief.updateBRollPreference}
+          onUpdateBrandNotes={editBrief.updateBrandNotes}
+          onUpdateCaptionPreference={editBrief.updateCaptionPreference}
+          onUpdateGoal={editBrief.updateGoal}
+          onUpdateMusicPreference={editBrief.updateMusicPreference}
+          onUpdatePacingPreference={editBrief.updatePacingPreference}
+          onUpdatePlatforms={editBrief.updatePlatforms}
+          onUpdateSpecialInstructions={editBrief.updateSpecialInstructions}
+          onUpdateReferenceUrls={editBrief.updateReferenceUrls}
+          onUpdateStyleKeywords={editBrief.updateStyleKeywords}
+          onUpdateTargetDuration={editBrief.updateTargetDuration}
+          readOnly={editBriefLocked}
+          readiness={editBrief.readiness}
+          sourceAssets={sourceLibrary.assets}
+          summary={editBrief.summary}
+        />
+      </ProfessionalEditBriefWorkspace>
     </div>
   ) : null
 

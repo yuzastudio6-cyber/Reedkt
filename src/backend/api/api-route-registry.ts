@@ -3,6 +3,7 @@ import { ADMIN_API_ROUTES } from './routes/admin-api-routes'
 import { AUTH_BOOTSTRAP_API_ROUTES } from './routes/auth-bootstrap-api-routes'
 import { CREDIT_API_ROUTES } from './routes/credit-api-routes'
 import { EDIT_LEVEL_API_ROUTES } from './edit-level-api-route-registry'
+import { EDIT_BRIEF_AUTHORITY_API_ROUTES } from './routes/edit-brief-authority-api-routes'
 import { EDIT_PREFERENCE_API_ROUTES } from './routes/edit-preference-api-routes'
 import { EDIT_PLANNING_API_ROUTES } from './routes/edit-planning-api-routes'
 import { GENERATION_API_ROUTES } from './routes/generation-api-routes'
@@ -38,6 +39,7 @@ export const REEDITPRO_API_ROUTES: ApiRouteDefinition[] = [
   ...PROJECT_EDIT_BRIEF_API_ROUTES,
   ...MEDIA_UPLOAD_API_ROUTES,
   ...MOTION_STUDIO_API_ROUTES,
+  ...EDIT_BRIEF_AUTHORITY_API_ROUTES,
   ...EDIT_PLANNING_API_ROUTES,
   ...EDIT_LEVEL_API_ROUTES,
   ...CREDIT_API_ROUTES,

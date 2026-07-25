@@ -52,6 +52,9 @@ import {
 import {
   resolveCanonicalExactEditPreferenceInstruction,
 } from './canonical-exact-edit-preference-instruction'
+import {
+  prepareCanonicalEditBriefForPlanning,
+} from './canonical-edit-brief-planning-preparation-service'
 
 const publicationLocks = new Map<string, Promise<void>>()
 const preparationLocks = new Map<string, Promise<void>>()
@@ -156,6 +159,12 @@ export function createCanonicalPlanningHandoffService(context: ServiceContext) {
           context,
           scope,
           sourceCandidateHash: sourceCandidate.candidateHash,
+          components: body.canonicalPlanComponents,
+        })
+        await prepareCanonicalEditBriefForPlanning({
+          context,
+          scope,
+          sourceCandidate,
           components: body.canonicalPlanComponents,
         })
         const planningInputAuthority =

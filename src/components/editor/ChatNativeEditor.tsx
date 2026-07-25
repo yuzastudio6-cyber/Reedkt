@@ -100,6 +100,11 @@ import {
   saveProjectEditBriefBackendLocal,
   type ProjectEditBriefBackendLocalRecord,
 } from '../../lib/project-edit-brief-backend-local'
+import {
+  clearEditBriefLocalPreviewFile,
+  readEditBriefLocalPreviewFile,
+  saveEditBriefLocalPreviewFile,
+} from '../../lib/edit-brief-local-preview-session'
 import type { MockFootagePrepInput } from '../../lib/footage-prep'
 import {
   createExecutionSourceMediaAssetsFromClips,
@@ -1153,6 +1158,18 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
   const [displayMode, setDisplayMode] = useState<ChatPlanningDisplayMode>('guided')
   const [utilityPanel, setUtilityPanel] = useState<EditorUtilityPanel>(null)
   const [clips, setClips] = useState<ClipSource[]>(initialClips)
+  const editBriefScope = useMemo(() => ({
+    workspaceId: projectPersistenceScope.workspaceId,
+    projectId: editorProjectId,
+    editSessionId: editorEditSessionId,
+  }), [
+    editorEditSessionId,
+    editorProjectId,
+    projectPersistenceScope.workspaceId,
+  ])
+  const [primarySourcePreviewFile, setPrimarySourcePreviewFile] = useState<File | null>(
+    () => readEditBriefLocalPreviewFile(editBriefScope) ?? null,
+  )
   const [sourceSequenceMode, setSourceSequenceMode] = useState<SourceSequenceMode>(() =>
     restoredSetup?.sourceSequenceMode ?? inferSourceSequenceMode(initialClips, initialCustomInstructions),
   )
@@ -3090,6 +3107,15 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
       return
     }
 
+    const selectedPreviewFile = files.find((file) =>
+      file.type.startsWith('video/') || /\.(mp4|mov|m4v|webm)$/i.test(file.name),
+    )
+    const stagedFirstPreview = Boolean(selectedPreviewFile && !primarySourcePreviewFile)
+    if (selectedPreviewFile && stagedFirstPreview) {
+      saveEditBriefLocalPreviewFile(editBriefScope, selectedPreviewFile)
+      setPrimarySourcePreviewFile(selectedPreviewFile)
+    }
+
     setUploadGateError('')
     setSourceUploadPlanning(true)
     const existingSourcesAreUnconfirmedPlaceholders =
@@ -3116,6 +3142,10 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
       })
 
       if (result.clips.length === 0) {
+        if (stagedFirstPreview) {
+          clearEditBriefLocalPreviewFile(editBriefScope)
+          setPrimarySourcePreviewFile(null)
+        }
         const message = result.warnings[0] ?? 'I could not plan those files for this edit. Choose supported video, audio, or image source files.'
         if (editChatLockedUntilUpload) {
           setUploadGateError(createUploadGateErrorMessage(message))
@@ -3132,6 +3162,12 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
       ])
       setClipsAttached(true)
       setClips(next)
+      if (replaceDemoClipsWithUpload || !primarySourcePreviewFile) {
+        if (selectedPreviewFile) {
+          saveEditBriefLocalPreviewFile(editBriefScope, selectedPreviewFile)
+        }
+        setPrimarySourcePreviewFile(selectedPreviewFile ?? null)
+      }
       setSourceMediaAssets(nextSourceMediaAssets)
       setSourceSequenceMode(nextSourceSequenceMode)
       resetAfterSourceChange()
@@ -3162,6 +3198,10 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
             uniqueWarnings.slice(0, 2).join(' '),
           ].filter(Boolean).join(' '))
     } catch (error) {
+      if (stagedFirstPreview && clips.length === 0) {
+        clearEditBriefLocalPreviewFile(editBriefScope)
+        setPrimarySourcePreviewFile(null)
+      }
       const message = error instanceof Error
         ? error.message
         : 'Source upload planning failed before any media upload or execution ran.'
@@ -3214,10 +3254,18 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
   }
 
   function handleRemoveClip(id: string) {
+    const removedClip = clips.find((clip) => clip.id === id)
     const next = normalizeClipOrder(clips.filter((clip) => clip.id !== id))
     const nextSourceSequenceMode = inferNextSourceSequenceMode(next)
     const nextSourceMediaAssets = createExecutionSourceMediaAssetsFromClips(next, editorProjectId, sourceMediaAssets)
     setClips(next)
+    if (
+      next.length === 0
+      || removedClip?.fileName === primarySourcePreviewFile?.name
+    ) {
+      clearEditBriefLocalPreviewFile(editBriefScope)
+      setPrimarySourcePreviewFile(null)
+    }
     setSourceMediaAssets(nextSourceMediaAssets)
     setSourceSequenceMode(nextSourceSequenceMode)
     resetAfterSourceChange()
@@ -5881,6 +5929,8 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
                     prepBlockedReason={footagePrepBlockedReason}
                     prepCanRun={canRunFootagePrep}
                     result={footagePrepResult}
+                    scope={editBriefScope}
+                    sourcePreviewFile={primarySourcePreviewFile}
                   />
                 ) : null}
                 {cleanEditorStage === 'planning' ? null : renderCleanEditorStage()}

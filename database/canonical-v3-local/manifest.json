@@ -737,7 +737,7 @@
     },
     {
       "path": "tests/e2e/edit-reference-canonical-real-file-flow.spec.ts",
-      "sha256": "65b6da4a5fbb338829155152f45e32f07b1130b45c3dcbf54fd9a4101e7ce094"
+      "sha256": "9f21ca834c5e4af3bfa7444fc88265c18899cbe53944c53277f964d1886b4406"
     },
     {
       "path": "tests/e2e/edit-reference-canonical-v3-local-browser.spec.ts",

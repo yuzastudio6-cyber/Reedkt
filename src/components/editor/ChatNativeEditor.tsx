@@ -172,7 +172,10 @@ import {
   SourceSetup,
   VisualSetup,
 } from './CleanEditSetupSurface'
-import { CleanPlanningPrepSurface } from './CleanPlanningPrepSurface'
+import {
+  CleanPlanningPrepSurface,
+  type CanonicalBriefPlanningGateState,
+} from './CleanPlanningPrepSurface'
 import {
   CurrentEditPreferencesWorkspace,
   type CurrentEditPreferencesApplyRequest,
@@ -921,6 +924,12 @@ function createCompiledPlanningFingerprint(input: PlannerInput): string | null {
   }
 }
 
+const INITIAL_CANONICAL_BRIEF_PLANNING_GATE: CanonicalBriefPlanningGateState = {
+  message: 'The exact Edit Brief timeline has not been loaded yet.',
+  ready: false,
+  status: 'idle',
+}
+
 export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: ChatNativeEditorProps) {
   const getLocalInternalEditHandoff = useCallback(
     (projectId: string, editSessionId: string) =>
@@ -1073,8 +1082,12 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
   const restoredSetup = localProjectHandoff?.setup
   const isLocalProjectHandoff = Boolean(localProjectHandoff)
   const isProjectWorkspace = hasProjectEditRoute || isLocalProjectHandoff
-  const activeWorkspaceView: 'chat' | 'preferences' =
-    isProjectWorkspace && searchParams.get('view') === 'preferences' ? 'preferences' : 'chat'
+  const activeWorkspaceView: 'chat' | 'brief' | 'preferences' =
+    isProjectWorkspace && searchParams.get('view') === 'preferences'
+      ? 'preferences'
+      : isProjectWorkspace && searchParams.get('view') === 'brief'
+        ? 'brief'
+        : 'chat'
   const categoryFromQuery = searchParams.get('category') ?? localProjectHandoff?.category ?? null
   const editorProjectName = normalizeEditorProjectName(
     searchParams.get('projectName') ?? localProjectHandoff?.projectName ?? null,
@@ -1167,6 +1180,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     editorProjectId,
     projectPersistenceScope.workspaceId,
   ])
+  const editBriefScopeKey = `${editBriefScope.workspaceId}:${editBriefScope.projectId}:${editBriefScope.editSessionId}`
   const [primarySourcePreviewFile, setPrimarySourcePreviewFile] = useState<File | null>(
     () => readEditBriefLocalPreviewFile(editBriefScope) ?? null,
   )
@@ -1400,11 +1414,34 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
   }, [])
   const [contextAwarePlanResult, setContextAwarePlanResult] = useState<ContextAwareMockEditPlanResult | null>(null)
   const pendingPlanReviewScrollRef = useRef(false)
+  const planInvalidationNoticePendingRef = useRef(false)
   const [editBriefGate, setEditBriefGate] = useState<{ ready: boolean; status: EditBriefStatus | null }>({
     ready: false,
     status: null,
   })
-  const [editBriefOpenRequestId, setEditBriefOpenRequestId] = useState(0)
+  const [canonicalBriefPlanningGateState, setCanonicalBriefPlanningGateState] = useState<
+    CanonicalBriefPlanningGateState & { scopeKey: string }
+  >(() => ({
+    ...INITIAL_CANONICAL_BRIEF_PLANNING_GATE,
+    scopeKey: editBriefScopeKey,
+  }))
+  const canonicalBriefPlanningGate =
+    canonicalBriefPlanningGateState.scopeKey === editBriefScopeKey
+      ? canonicalBriefPlanningGateState
+      : INITIAL_CANONICAL_BRIEF_PLANNING_GATE
+  const handleCanonicalBriefPlanningGateChange = useCallback((state: CanonicalBriefPlanningGateState) => {
+    setCanonicalBriefPlanningGateState((current) => (
+      current.scopeKey === editBriefScopeKey
+      && current.message === state.message
+      && current.ready === state.ready
+      && current.status === state.status
+        ? current
+        : { ...state, scopeKey: editBriefScopeKey }
+    ))
+  }, [editBriefScopeKey])
+  useEffect(() => {
+    planInvalidationNoticePendingRef.current = false
+  }, [editBriefScopeKey])
   const [progressStarted, setProgressStarted] = useState(false)
   const [progressIndex, setProgressIndex] = useState(0)
   const [previewReady, setPreviewReady] = useState(false)
@@ -1614,17 +1651,6 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     ],
   )
 
-  useEffect(() => {
-    if (searchParams.get('view') !== 'brief' || !footagePrepResult) return
-    const openBriefTimer = window.setTimeout(() => {
-      setEditBriefOpenRequestId((current) => current + 1)
-      const nextSearchParams = new URLSearchParams(searchParams)
-      nextSearchParams.delete('view')
-      setSearchParams(nextSearchParams, { replace: true })
-    }, 0)
-
-    return () => window.clearTimeout(openBriefTimer)
-  }, [footagePrepResult, searchParams, setSearchParams])
   const privateFinalQaSummary = privateFinalQaSummaryText(privateInternalTestRun?.professionalEditQaSummary)
   const privateReviewPreparationSummaries = useMemo(
     () => createProfessionalPreparationDisplayItems(
@@ -2332,17 +2358,24 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     )
   }, [])
 
-  const synchronizeReadyEditBriefAuthority = useCallback(async (state: EditBriefState) => {
+  const synchronizeReadyEditBriefAuthority = useCallback(async (
+    state: EditBriefState,
+    options: { suppressStatusMessage?: boolean } = {},
+  ) => {
     const epoch = ++editBriefAuthorityEpochRef.current
     setBackendLocalEditBrief(undefined)
 
     if (!editBriefBackendConfig.available || !editBriefBackendConfig.apiBaseUrl) {
-      showRevisionMessage('The Edit Brief is ready locally, but exact-video study remains unavailable until the private backend can verify it.')
+      if (!options.suppressStatusMessage && !planInvalidationNoticePendingRef.current) {
+        showRevisionMessage('The Edit Brief is ready locally, but exact-video study remains unavailable until the private backend can verify it.')
+      }
       return
     }
     const sourceResolution = resolveCurrentEditReferenceTargetSource(sourceMediaAssets)
     if (!sourceResolution.ok) {
-      showRevisionMessage(`${sourceResolution.message} The Brief remains saved locally, and no study or editing started.`)
+      if (!options.suppressStatusMessage && !planInvalidationNoticePendingRef.current) {
+        showRevisionMessage(`${sourceResolution.message} The Brief remains saved locally, and no study or editing started.`)
+      }
       return
     }
 
@@ -2377,11 +2410,15 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
         || latestEditBriefState.editBrief.status !== 'ready'
       ) return
       setBackendLocalEditBrief(result.readback)
-      showRevisionMessage('Edit Brief verified for this exact uploaded video. An approved Edit Reference can now study this video before Apply.')
+      if (!options.suppressStatusMessage && !planInvalidationNoticePendingRef.current) {
+        showRevisionMessage('Edit Brief verified for this exact uploaded video. An approved Edit Reference can now study this video before Apply.')
+      }
     } catch (error) {
       if (epoch !== editBriefAuthorityEpochRef.current) return
       setBackendLocalEditBrief(undefined)
-      showRevisionMessage(`${error instanceof Error ? error.message : 'The Edit Brief could not be verified.'} Your Brief remains saved locally; no study, credits, or editing started.`)
+      if (!options.suppressStatusMessage && !planInvalidationNoticePendingRef.current) {
+        showRevisionMessage(`${error instanceof Error ? error.message : 'The Edit Brief could not be verified.'} Your Brief remains saved locally; no study, credits, or editing started.`)
+      }
     }
   }, [
     editBriefBackendConfig.apiBaseUrl,
@@ -2407,12 +2444,28 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
       editBriefState: state,
     })
     if (state.editBrief.status === 'ready') {
-      void synchronizeReadyEditBriefAuthority(state)
+      const planInvalidationMessageHasPriority = Boolean(
+        contextAwarePlanResult
+        || contextMockPreview
+        || approved
+        || approvedSnapshot
+        || privateInternalTestRun
+        || previewReady
+      )
+      void synchronizeReadyEditBriefAuthority(state, {
+        suppressStatusMessage: planInvalidationMessageHasPriority,
+      })
     }
   }, [
+    approved,
+    approvedSnapshot,
+    contextAwarePlanResult,
+    contextMockPreview,
     editorEditSessionId,
     editorProjectId,
     isProjectWorkspace,
+    previewReady,
+    privateInternalTestRun,
     synchronizeReadyEditBriefAuthority,
     updateLocalInternalEditHandoff,
   ])
@@ -2480,9 +2533,8 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
       return
     }
     const nextSearchParams = new URLSearchParams(searchParams)
-    nextSearchParams.delete('view')
+    nextSearchParams.set('view', 'brief')
     setSearchParams(nextSearchParams)
-    setEditBriefOpenRequestId((current) => current + 1)
   }
 
   function handleOpenChatWorkspace() {
@@ -2512,10 +2564,10 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     setPendingPreferenceDestination(null)
     const nextSearchParams = new URLSearchParams(searchParams)
     nextSearchParams.delete('view')
-    setSearchParams(nextSearchParams)
     if (destination === 'brief') {
-      setEditBriefOpenRequestId((current) => current + 1)
+      nextSearchParams.set('view', 'brief')
     }
+    setSearchParams(nextSearchParams)
   }
 
   function finalizeExactEditPreferenceApply(
@@ -2834,6 +2886,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
       )
 
     pendingPlanReviewScrollRef.current = true
+    planInvalidationNoticePendingRef.current = false
     setContextAwarePlanResult(result)
     setActiveRevisionPlanContext(undefined)
     setContextMockPreview(null)
@@ -2898,6 +2951,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
 
     canonicalPlanningPublication.reset()
     canonicalPlanApproval.reset()
+    planInvalidationNoticePendingRef.current = true
     persistCurrentEditSetupAfterPlanInvalidation()
     showRevisionMessage('Planning inputs changed. Create a new edit plan from the updated context before approval.')
   }
@@ -5254,7 +5308,6 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
             <FootagePrepWorkspace
               canCreatePlanFromContext={canCreateContextAwarePlan}
               createPlanBlockedReason={contextPlanBlockedReason}
-              editBriefOpenRequestId={editBriefOpenRequestId}
               editBriefPlanImpactNotice={Boolean(contextAwarePlanResult || approved || approvedSnapshot)}
               isRunning={footagePrepRunning}
               onAddEditBrief={handleAddEditBriefAfterFootagePrep}
@@ -5777,6 +5830,39 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     }
   }
 
+  function renderProjectPlanningPrepSurface(input: {
+    active: boolean
+    briefWorkspaceActive?: boolean
+  }) {
+    return (
+      <CleanPlanningPrepSurface
+        active={input.active}
+        briefWorkspaceActive={input.briefWorkspaceActive}
+        canonicalBriefPlanningGate={canonicalBriefPlanningGate}
+        canCreatePlan={canCreateContextAwarePlan}
+        createPlanBlockedReason={contextPlanBlockedReason}
+        editBriefLocked={currentEditPreferencesLocked}
+        editBriefPlanImpactNotice={Boolean(contextAwarePlanResult || approved || approvedSnapshot)}
+        initialEditBriefState={activeEditBriefState}
+        isRunning={footagePrepRunning}
+        onCloseEditBrief={input.briefWorkspaceActive ? handleOpenChatWorkspace : undefined}
+        onCanonicalBriefPlanningGateChange={handleCanonicalBriefPlanningGateChange}
+        onContextAwarePlanCreated={handleContextAwarePlanCreated}
+        onContextAwarePlanInvalidated={handleContextAwarePlanInvalidated}
+        onEditBriefStatusChange={handleEditBriefStatusChange}
+        onEditBriefStateChange={handleEditBriefStateChange}
+        onOpenEditBrief={input.briefWorkspaceActive ? undefined : handleOpenEditBriefFromHeader}
+        onRunPrep={handleRunFootagePrep}
+        plannerInput={plannerInput}
+        prepBlockedReason={footagePrepBlockedReason}
+        prepCanRun={canRunFootagePrep}
+        result={footagePrepResult}
+        scope={editBriefScope}
+        sourcePreviewFile={primarySourcePreviewFile}
+      />
+    )
+  }
+
   return (
     <section className="chat-native-editor" data-testid="editor-page">
       <MinimalProjectHeader
@@ -5854,10 +5940,14 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
       <div
         aria-hidden={activeWorkspaceView === 'preferences' ? 'true' : undefined}
         className="editor-workspace-layout"
+        data-view={activeWorkspaceView}
         hidden={activeWorkspaceView === 'preferences'}
       >
-        <div className="chat-native-shell" data-testid="editor-chat-canvas">
-        {editChatLockedUntilUpload ? (
+        <div
+          className="chat-native-shell"
+          data-testid={activeWorkspaceView === 'brief' ? 'editor-edit-brief-canvas' : 'editor-chat-canvas'}
+        >
+        {editChatLockedUntilUpload && activeWorkspaceView !== 'brief' ? (
           <section className="edit-upload-gate" data-testid="edit-upload-gate">
             <input
               ref={uploadGateInputRef}
@@ -5902,38 +5992,29 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
           </section>
         ) : (
           isProjectWorkspace ? (
-            <ChatThread>
-              <ChatMessageList messages={cleanChatMessages} renderCards={renderCleanCardsForMessage} />
+            <ChatThread
+              label={activeWorkspaceView === 'brief' ? 'Edit Brief workspace' : undefined}
+              role={activeWorkspaceView === 'brief' ? 'region' : 'log'}
+            >
+              <ChatMessageList
+                hidden={activeWorkspaceView === 'brief'}
+                messages={cleanChatMessages}
+                renderCards={renderCleanCardsForMessage}
+              />
               <div
                 className="clean-editor-stage"
                 data-editor-stage={cleanEditorStage}
                 data-testid="editor-stage"
               >
-                {setupReady ? (
-                  <CleanPlanningPrepSurface
-                    active={cleanEditorStage === 'planning'}
-                    canCreatePlan={canCreateContextAwarePlan}
-                    createPlanBlockedReason={contextPlanBlockedReason}
-                    editBriefOpenRequestId={editBriefOpenRequestId}
-                    editBriefLocked={currentEditPreferencesLocked}
-                    editBriefPlanImpactNotice={Boolean(contextAwarePlanResult || approved || approvedSnapshot)}
-                    initialEditBriefState={activeEditBriefState}
-                    isRunning={footagePrepRunning}
-                    onContextAwarePlanCreated={handleContextAwarePlanCreated}
-                    onContextAwarePlanInvalidated={handleContextAwarePlanInvalidated}
-                    onEditBriefStatusChange={handleEditBriefStatusChange}
-                    onEditBriefStateChange={handleEditBriefStateChange}
-                    onOpenEditBrief={handleAddEditBriefAfterFootagePrep}
-                    onRunPrep={handleRunFootagePrep}
-                    plannerInput={plannerInput}
-                    prepBlockedReason={footagePrepBlockedReason}
-                    prepCanRun={canRunFootagePrep}
-                    result={footagePrepResult}
-                    scope={editBriefScope}
-                    sourcePreviewFile={primarySourcePreviewFile}
-                  />
+                {setupReady || activeWorkspaceView === 'brief' ? (
+                  renderProjectPlanningPrepSurface({
+                    active: activeWorkspaceView === 'brief' ? false : cleanEditorStage === 'planning',
+                    briefWorkspaceActive: activeWorkspaceView === 'brief',
+                  })
                 ) : null}
-                {cleanEditorStage === 'planning' ? null : renderCleanEditorStage()}
+                {activeWorkspaceView === 'brief' || cleanEditorStage === 'planning'
+                  ? null
+                  : renderCleanEditorStage()}
               </div>
             </ChatThread>
           ) : (
@@ -5955,28 +6036,32 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
           )
         )}
 
-        <div aria-hidden="true" className="chat-composer-fade" data-testid="chat-composer-fade" />
-        <div aria-hidden="true" className="chat-composer-occlusion" data-testid="chat-composer-occlusion" />
-        <div className="chat-composer-layer chat-composer-float-wrap" data-testid="chat-composer-layer">
-          <ChatComposer
-            attachmentsDisabled={sourceUploadPlanning || editChatLockedUntilUpload || composerHardBlocked}
-            clipsAttached={clipsAttached}
-            disabled={sourceUploadPlanning || editChatLockedUntilUpload || composerHardBlocked}
-            inputValue={composerValue}
-            onAttachClips={handleAddMockClip}
-            onAttachFiles={handleAttachSourceFiles}
-            onInputChange={setComposerValue}
-            onReference={handleReferenceAttach}
-            onSend={handleSend}
-            placeholder={editChatLockedUntilUpload
-              ? 'Upload source video to unlock chat...'
-              : composerHardBlocked
-                ? 'Resolve the blocker before continuing...'
-                : 'Message ReeditPro...'}
-          />
+        {activeWorkspaceView !== 'brief' ? (
+          <>
+            <div aria-hidden="true" className="chat-composer-fade" data-testid="chat-composer-fade" />
+            <div aria-hidden="true" className="chat-composer-occlusion" data-testid="chat-composer-occlusion" />
+            <div className="chat-composer-layer chat-composer-float-wrap" data-testid="chat-composer-layer">
+              <ChatComposer
+                attachmentsDisabled={sourceUploadPlanning || editChatLockedUntilUpload || composerHardBlocked}
+                clipsAttached={clipsAttached}
+                disabled={sourceUploadPlanning || editChatLockedUntilUpload || composerHardBlocked}
+                inputValue={composerValue}
+                onAttachClips={handleAddMockClip}
+                onAttachFiles={handleAttachSourceFiles}
+                onInputChange={setComposerValue}
+                onReference={handleReferenceAttach}
+                onSend={handleSend}
+                placeholder={editChatLockedUntilUpload
+                  ? 'Upload source video to unlock chat...'
+                  : composerHardBlocked
+                    ? 'Resolve the blocker before continuing...'
+                    : 'Message ReeditPro...'}
+              />
+            </div>
+          </>
+        ) : null}
         </div>
-        </div>
-        {isProjectWorkspace && (
+        {isProjectWorkspace && activeWorkspaceView !== 'brief' && (
           <EditWorkspaceRail
             aspectRatio={aspectRatio}
             editName={editorEditName}

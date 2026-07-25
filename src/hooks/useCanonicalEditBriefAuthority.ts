@@ -252,20 +252,21 @@ export function useCanonicalEditBriefAuthority(input: {
 
   const mutate = useCallback(async (
     action: (
-      current: CanonicalEditBriefAuthority,
+      current: CanonicalEditBriefAuthority | undefined,
     ) => Promise<CanonicalEditBriefClientResult<{
       authority?: CanonicalEditBriefAuthority
       aggregateRevision: number
       optionalBriefPresent: boolean
     }>>,
     successMessage: string,
+    options: { allowMissingBrief?: boolean } = {},
   ): Promise<boolean> => {
     if (input.readOnly) {
       setStatus('invalid')
       setMessage('This approved Edit Brief is locked. Request a revision in Chat.')
       return false
     }
-    if (!authorityRef.current?.brief && !(await saveNow())) {
+    if (!options.allowMissingBrief && !authorityRef.current?.brief && !(await saveNow())) {
       setMessage('Save a clear Edit Brief goal before adding timeline markers.')
       return false
     }
@@ -282,6 +283,7 @@ export function useCanonicalEditBriefAuthority(input: {
         }
         current = refreshed.data.authority
         authorityRef.current = current
+        if (!current && !options.allowMissingBrief) return false
         result = await action(current)
       }
       return applyResult(result, successMessage, scopeKey)
@@ -294,10 +296,11 @@ export function useCanonicalEditBriefAuthority(input: {
   const createMarker = useCallback(
     (marker: CanonicalEditBriefMarkerDraft) => mutate(
       (current) => createCanonicalEditBriefMarker(scope, {
-        expectedRevision: current.revision,
+        expectedRevision: current?.revision ?? 0,
         marker,
       }),
       'Timeline marker saved. Confirm it when the instruction is final.',
+      { allowMissingBrief: true },
     ),
     [mutate, scope],
   )
@@ -309,7 +312,7 @@ export function useCanonicalEditBriefAuthority(input: {
         & { endSeconds?: number | null },
     ) => mutate(
       (current) => updateCanonicalEditBriefMarker(scope, {
-        expectedRevision: current.revision,
+        expectedRevision: current?.revision ?? 0,
         markerId,
         patch,
       }),
@@ -321,7 +324,7 @@ export function useCanonicalEditBriefAuthority(input: {
   const changeMarkerStatus = useCallback(
     (markerId: string, action: 'confirm' | 'archive' | 'reopen') => mutate(
       (current) => changeCanonicalEditBriefMarkerStatus(scope, {
-        expectedRevision: current.revision,
+        expectedRevision: current?.revision ?? 0,
         markerId,
         action,
       }),
@@ -337,7 +340,7 @@ export function useCanonicalEditBriefAuthority(input: {
   const appendMarkerMessage = useCallback(
     (markerId: string, content: string) => mutate(
       (current) => appendCanonicalEditBriefMarkerMessage(scope, {
-        expectedRevision: current.revision,
+        expectedRevision: current?.revision ?? 0,
         markerId,
         content,
       }),

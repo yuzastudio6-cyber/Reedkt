@@ -661,6 +661,7 @@ test.describe('canonical Edit Preference real-file flow', () => {
     await expect(page.getByText(/Source prep is ready for 1 uploaded source file/i)).toBeVisible()
 
     await clickWhenReady(page.getByTestId('editor-header-edit-brief'))
+    await page.getByTestId('edit-brief-direction-details').locator('summary').click()
     const editBriefGoal = 'Preserve the documentary evidence and adapt the approved editing intelligence to this exact video.'
     await page.getByTestId('edit-brief-goal-input').fill(editBriefGoal)
     await expect.poll(() => editBriefSaveRequests).toBe(1)

@@ -11,8 +11,16 @@ import { Button } from '../Button'
 import { EditBriefPanel } from './edit-brief'
 import { ProfessionalEditBriefWorkspace } from './edit-brief/ProfessionalEditBriefWorkspace'
 
+export type CanonicalBriefPlanningGateState = {
+  message: string
+  ready: boolean
+  status: string
+}
+
 type CleanPlanningPrepSurfaceProps = {
   active?: boolean
+  briefWorkspaceActive?: boolean
+  canonicalBriefPlanningGate?: CanonicalBriefPlanningGateState
   canCreatePlan: boolean
   createPlanBlockedReason?: string
   editBriefOpenRequestId?: number
@@ -22,6 +30,8 @@ type CleanPlanningPrepSurfaceProps = {
   isRunning?: boolean
   onContextAwarePlanCreated: (result: ContextAwareMockEditPlanResult) => void
   onContextAwarePlanInvalidated: () => void
+  onCloseEditBrief?: () => void
+  onCanonicalBriefPlanningGateChange?: (state: CanonicalBriefPlanningGateState) => void
   onEditBriefStatusChange: (status: EditBriefStatus | null, ready: boolean) => void
   onEditBriefStateChange?: (state: EditBriefState) => void
   onOpenEditBrief?: () => void
@@ -44,6 +54,8 @@ function formatDuration(durationMs: number | undefined) {
 
 export function CleanPlanningPrepSurface({
   active = true,
+  briefWorkspaceActive = false,
+  canonicalBriefPlanningGate,
   canCreatePlan,
   createPlanBlockedReason,
   editBriefOpenRequestId = 0,
@@ -53,6 +65,8 @@ export function CleanPlanningPrepSurface({
   isRunning = false,
   onContextAwarePlanCreated,
   onContextAwarePlanInvalidated,
+  onCloseEditBrief,
+  onCanonicalBriefPlanningGateChange,
   onEditBriefStatusChange,
   onEditBriefStateChange,
   onOpenEditBrief,
@@ -77,34 +91,36 @@ export function CleanPlanningPrepSurface({
     result,
     sourceLibraryState: sourceLibrary.sourceLibraryState,
   })
+  const briefWorkspaceSurfaceRef = useRef<HTMLElement | null>(null)
   const editBriefWorkspaceRef = useRef<HTMLDivElement | null>(null)
   const lastOpenRequestRef = useRef(editBriefOpenRequestId)
   const pendingFocusRequestRef = useRef(false)
-  const [canonicalBriefPlanningGate, setCanonicalBriefPlanningGate] = useState<{
-    message: string
-    ready: boolean
-    status: string
-  }>({
-    message: 'The exact Edit Brief timeline has not been loaded yet.',
-    ready: false,
-    status: 'idle',
-  })
-  const handleCanonicalBriefPlanningGate = useCallback((state: {
-    message: string
-    ready: boolean
-    status: string
-  }) => {
-    setCanonicalBriefPlanningGate((current) => (
-      current.message === state.message
-      && current.ready === state.ready
-      && current.status === state.status
-        ? current
-        : state
-    ))
-  }, [])
+  const briefWorkspaceActiveRef = useRef(false)
+  const [localCanonicalBriefPlanningGate, setLocalCanonicalBriefPlanningGate] =
+    useState<CanonicalBriefPlanningGateState>({
+      message: 'The exact Edit Brief timeline has not been loaded yet.',
+      ready: false,
+      status: 'idle',
+    })
+  const handleLocalCanonicalBriefPlanningGateChange = useCallback(
+    (state: CanonicalBriefPlanningGateState) => {
+      setLocalCanonicalBriefPlanningGate((current) => (
+        current.message === state.message
+        && current.ready === state.ready
+        && current.status === state.status
+          ? current
+          : state
+      ))
+    },
+    [],
+  )
+  const activeCanonicalBriefPlanningGate =
+    canonicalBriefPlanningGate ?? localCanonicalBriefPlanningGate
+  const handleCanonicalBriefPlanningGateChange =
+    onCanonicalBriefPlanningGateChange ?? handleLocalCanonicalBriefPlanningGateChange
   const editBriefReadyForCanonicalPlan = !editBrief.hasStarted || Boolean(
     editBrief.editBrief?.status === 'ready'
-    && canonicalBriefPlanningGate.ready,
+    && activeCanonicalBriefPlanningGate.ready,
   )
   const canCreateExactPlan = canCreatePlan && editBriefReadyForCanonicalPlan
 
@@ -139,28 +155,45 @@ export function CleanPlanningPrepSurface({
   }, [editBrief, editBriefOpenRequestId, onOpenEditBrief, result])
 
   useEffect(() => {
+    if (!briefWorkspaceActive || !result) {
+      briefWorkspaceActiveRef.current = false
+      return
+    }
+    if (briefWorkspaceActiveRef.current) return
+    briefWorkspaceActiveRef.current = true
+    pendingFocusRequestRef.current = true
+    if (!editBrief.isOpen) editBrief.openBrief()
+  }, [briefWorkspaceActive, editBrief, result])
+
+  useEffect(() => {
     if (!editBrief.isOpen || !pendingFocusRequestRef.current) return
     pendingFocusRequestRef.current = false
     const focusFrame = window.requestAnimationFrame(() => {
-      const workspace = editBriefWorkspaceRef.current
-        ?.querySelector<HTMLElement>('[data-testid="professional-edit-brief-workspace"]')
-      const focusTarget = workspace
-        ?.querySelector<HTMLElement>('[data-testid="edit-brief-goal-input"]:not(:disabled)')
-        ?? workspace
-
-      focusTarget?.scrollIntoView({ behavior: 'auto', block: 'center', inline: 'nearest' })
-      focusTarget?.focus({ preventScroll: true })
+      const workspace = briefWorkspaceActive
+        ? briefWorkspaceSurfaceRef.current
+        : editBriefWorkspaceRef.current
+          ?.querySelector<HTMLElement>('[data-testid="professional-edit-brief-workspace"]')
+      workspace?.scrollIntoView({ behavior: 'auto', block: 'start', inline: 'nearest' })
+      workspace?.focus({ preventScroll: true })
     })
     return () => window.cancelAnimationFrame(focusFrame)
-  }, [editBrief.isOpen, editBriefOpenRequestId])
+  }, [briefWorkspaceActive, editBrief.isOpen, editBriefOpenRequestId])
 
   function handleToggleBrief() {
+    if (onOpenEditBrief) {
+      onOpenEditBrief()
+      return
+    }
     if (editBrief.isOpen) {
       editBrief.closeBrief()
       return
     }
     editBrief.openBrief()
-    onOpenEditBrief?.()
+  }
+
+  function handleCloseBriefWorkspace() {
+    editBrief.closeBrief()
+    onCloseEditBrief?.()
   }
 
   function handleCreatePlan() {
@@ -169,7 +202,7 @@ export function CleanPlanningPrepSurface({
     if (nextPlan) onContextAwarePlanCreated(nextPlan)
   }
 
-  const editBriefContent = editBrief.isOpen ? (
+  const editBriefContent = editBrief.isOpen && (briefWorkspaceActive || !onOpenEditBrief) ? (
     <div className="clean-edit-brief" ref={editBriefWorkspaceRef}>
       {editBriefPlanImpactNotice ? (
         <p className="clean-edit-inline-warning" data-testid="edit-brief-plan-impact" role="note">
@@ -179,7 +212,8 @@ export function CleanPlanningPrepSurface({
       <ProfessionalEditBriefWorkspace
         editBrief={editBrief.editBrief}
         readOnly={editBriefLocked}
-        onPlanningAuthorityReadyChange={handleCanonicalBriefPlanningGate}
+        onTimelineStarted={editBrief.startBrief}
+        onPlanningAuthorityReadyChange={handleCanonicalBriefPlanningGateChange}
         scope={scope}
         sourceClips={plannerInput.clips}
         sourcePreviewFile={sourcePreviewFile}
@@ -218,6 +252,39 @@ export function CleanPlanningPrepSurface({
       </ProfessionalEditBriefWorkspace>
     </div>
   ) : null
+
+  if (briefWorkspaceActive) {
+    return (
+      <section
+        aria-labelledby="edit-brief-workspace-heading"
+        className="edit-brief-workspace-surface"
+        data-testid="edit-brief-workspace-surface"
+        id="edit-brief-workspace"
+        ref={briefWorkspaceSurfaceRef}
+        tabIndex={-1}
+      >
+        <header className="edit-brief-workspace-toolbar">
+          <div>
+            <span className="section-eyebrow">Edit Brief workspace</span>
+            <h2 id="edit-brief-workspace-heading">Shape the edit on its source timeline</h2>
+            <p>
+              Add moment-specific direction here, then return to Chat to create or revise the one canonical edit plan.
+            </p>
+          </div>
+          <Button onClick={handleCloseBriefWorkspace} variant="ghost">Back to Chat</Button>
+        </header>
+        {!result ? (
+          <div className="edit-brief-workspace-empty" role="status">
+            <FileText aria-hidden="true" size={28} />
+            <strong>Prepare the source in Chat first</strong>
+            <p>The marker timeline opens only after this named edit has a prepared private source.</p>
+          </div>
+        ) : editBriefContent ?? (
+          <p className="edit-brief-workspace-loading" role="status">Opening the Edit Brief timeline…</p>
+        )}
+      </section>
+    )
+  }
 
   if (!active) {
     if (!editBriefContent) return null
@@ -289,7 +356,7 @@ export function CleanPlanningPrepSurface({
         <p className="clean-edit-inline-warning" data-testid="edit-brief-canonical-plan-gate" role="status">
           {editBrief.editBrief?.status !== 'ready'
             ? 'Finish the optional Edit Brief and choose Use Brief in Plan, or reset it before creating the plan.'
-            : canonicalBriefPlanningGate.message}
+            : activeCanonicalBriefPlanningGate.message}
         </p>
       ) : null}
       {planningContext.hasBlockingIssues ? (

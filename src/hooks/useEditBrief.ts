@@ -33,6 +33,7 @@ export interface UseEditBriefResult {
   hasStarted: boolean
   openBrief: () => void
   closeBrief: () => void
+  startBrief: () => void
   updateGoal: (goal: string) => void
   updateAudience: (audience: string) => void
   updatePlatforms: (platforms: EditBriefTargetPlatform[]) => void
@@ -178,6 +179,11 @@ export function useEditBrief(
     }))
   }, [])
 
+  const startBrief = useCallback(() => {
+    if (hasStarted) return
+    applyOperation({ type: 'create_brief' })
+  }, [applyOperation, hasStarted])
+
   const updateGoal = useCallback((goal: string) => {
     applyOperation({ type: 'update_goal', goal })
   }, [applyOperation])
@@ -277,6 +283,7 @@ export function useEditBrief(
     hasStarted,
     openBrief,
     closeBrief,
+    startBrief,
     updateGoal,
     updateAudience,
     updatePlatforms,

@@ -7,7 +7,7 @@ import type { EditBriefStatus } from '../../types'
 import type { EditWorkspaceStage } from './EditWorkspaceProgressCard'
 
 type MinimalProjectHeaderProps = {
-  activeWorkspaceView?: 'chat' | 'preferences'
+  activeWorkspaceView?: 'chat' | 'brief' | 'preferences'
   currentEditPreferenceOverrideCount?: number
   editBriefAvailable?: boolean
   editBriefStatus?: EditBriefStatus | null
@@ -83,6 +83,7 @@ export function MinimalProjectHeader({
             {editBriefAvailable && onOpenEditBrief ? (
               <div className="editor-header-edit-brief-control">
                 <Button
+                  aria-current={activeWorkspaceView === 'brief' ? 'page' : undefined}
                   aria-controls="edit-brief-workspace"
                   aria-describedby={showEditBriefStatus ? 'editor-header-edit-brief-status' : undefined}
                   aria-label="Open Edit Brief"
@@ -132,6 +133,7 @@ export function MinimalProjectHeader({
         ) : editBriefAvailable && onOpenEditBrief ? (
           <div className="editor-header-edit-brief-control">
             <Button
+              aria-current={activeWorkspaceView === 'brief' ? 'page' : undefined}
               aria-controls="edit-brief-workspace"
               aria-describedby={showEditBriefStatus ? 'editor-header-edit-brief-status' : undefined}
               aria-label="Open Edit Brief"

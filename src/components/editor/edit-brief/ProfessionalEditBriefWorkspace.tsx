@@ -78,6 +78,7 @@ export function ProfessionalEditBriefWorkspace({
   sourceClips,
   sourcePreviewFile,
   started,
+  onTimelineStarted,
   onPlanningAuthorityReadyChange,
 }: {
   children: ReactNode
@@ -87,6 +88,7 @@ export function ProfessionalEditBriefWorkspace({
   sourceClips: ClipSource[]
   sourcePreviewFile?: File | null
   started: boolean
+  onTimelineStarted?: () => void
   onPlanningAuthorityReadyChange?: (state: {
     message: string
     ready: boolean
@@ -216,6 +218,7 @@ export function ProfessionalEditBriefWorkspace({
   async function saveMarker() {
     if (!markerEditor?.title.trim() || !markerEditor.note.trim()) return
     const safeDraft = normalizeMarkerDraft(markerEditor, timelineDuration)
+    if (!markerEditor.markerId) onTimelineStarted?.()
     const saved = markerEditor.markerId
       ? await canonical.updateMarker(markerEditor.markerId, {
           markerType: safeDraft.markerType,
@@ -271,6 +274,7 @@ export function ProfessionalEditBriefWorkspace({
     <section
       className="professional-edit-brief"
       data-testid="professional-edit-brief-workspace"
+      id="professional-edit-brief-workspace"
       tabIndex={-1}
     >
       <header className="professional-edit-brief__header">
@@ -358,7 +362,7 @@ export function ProfessionalEditBriefWorkspace({
                 <span>{markers.length} marker{markers.length === 1 ? '' : 's'} · {confirmedCount} confirmed</span>
               </div>
               <Button
-                disabled={readOnly || !editBrief?.goal?.trim()}
+                disabled={readOnly}
                 icon={Plus}
                 onClick={beginMarker}
                 size="sm"
@@ -638,8 +642,18 @@ export function ProfessionalEditBriefWorkspace({
         </div>
       </div>
 
-      <details className="professional-edit-brief__details" open>
-        <summary>Brief direction and creative constraints</summary>
+      <details className="professional-edit-brief__details" data-testid="edit-brief-direction-details">
+        <summary>
+          <span>
+            <strong>Brief direction and creative constraints</strong>
+            <small>
+              {editBrief?.goal?.trim()
+                ? editBrief.goal
+                : 'Optional overall goal, audience, style, assets, references, and delivery constraints'}
+            </small>
+          </span>
+          <span>{editBrief?.status === 'ready' || editBrief?.status === 'used_in_plan' ? 'Ready' : 'Review before planning'}</span>
+        </summary>
         <div>{children}</div>
       </details>
     </section>

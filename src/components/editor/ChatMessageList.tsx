@@ -4,13 +4,14 @@ import type { ChatMessageGroupPosition } from './ChatMessage'
 import { ChatMessageRenderer } from './ChatMessageRenderer'
 
 type ChatMessageListProps = {
+  hidden?: boolean
   messages: ReeditProChatMessage[]
   renderCards?: (message: ReeditProChatMessage) => ReactNode
 }
 
-export function ChatMessageList({ messages, renderCards }: ChatMessageListProps) {
+export function ChatMessageList({ hidden = false, messages, renderCards }: ChatMessageListProps) {
   return (
-    <div className="chat-message-list">
+    <div aria-hidden={hidden ? 'true' : undefined} className="chat-message-list" hidden={hidden}>
       {messages.map((message, index) => {
         const previousMessage = messages[index - 1]
         const nextMessage = messages[index + 1]

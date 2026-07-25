@@ -167,7 +167,8 @@ test.describe('Active product redesign screenshot QA artifacts', () => {
     await completeRequiredEditorSetupBeforeFootagePrep(page)
     await clickWhenReady(page.getByRole('button', { name: /Prepare source/i }).first())
     await clickWhenReady(page.getByTestId('editor-header-edit-brief'))
-    await expect(page.getByTestId('edit-brief-panel')).toBeVisible()
+    await expect(page.getByTestId('professional-edit-brief-workspace')).toBeVisible()
+    await expect(page.getByTestId('edit-brief-direction-details')).not.toHaveAttribute('open', '')
     await captureDocScreenshot(page, `${screenshotDir}/named-edit-brief-1280.png`)
 
     await clickWhenReady(page.getByTestId('current-edit-preferences-trigger'))

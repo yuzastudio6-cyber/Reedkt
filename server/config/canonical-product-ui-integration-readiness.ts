@@ -228,7 +228,7 @@ export function evaluateCanonicalProductUiIntegrationReadiness(
     check(
       'workspace_navigation_accessibility',
       hasAll(projectHeader, [
-        "activeWorkspaceView?: 'chat' | 'preferences'",
+        "activeWorkspaceView?: 'chat' | 'brief' | 'preferences'",
         "aria-current={activeWorkspaceView === 'preferences' ? 'page' : undefined}",
         'data-testid="current-edit-preferences-trigger"',
       ]),

@@ -1511,6 +1511,12 @@
   display: none;
 }
 
+.editor-workspace-layout[data-view='brief'] {
+  gap: 0;
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 1560px;
+}
+
 .chat-native-shell {
   display: grid;
   gap: 0;
@@ -1527,6 +1533,25 @@
 
 .editor-workspace-layout > .chat-native-shell {
   margin-inline: 0;
+  max-width: none;
+}
+
+.editor-workspace-layout[data-view='brief'] > .chat-native-shell {
+  height: auto;
+  min-height: clamp(680px, calc(100vh - var(--rp-editor-chrome-offset)), 980px);
+}
+
+.editor-workspace-layout[data-view='brief'] .chat-native-thread {
+  mask-image: none;
+  overflow-y: visible;
+  padding-bottom: 0;
+  padding-right: 0;
+  scroll-padding-block: 0;
+  -webkit-mask-image: none;
+}
+
+.editor-workspace-layout[data-view='brief'] .clean-editor-stage {
+  margin-top: 0;
   max-width: none;
 }
 

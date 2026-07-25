@@ -251,7 +251,7 @@ function canonicalReadyFixture(): CanonicalProductUiSourceSnapshot {
         : <section>Chat</section>
     `,
     'src/components/editor/MinimalProjectHeader.tsx': `
-      type Props = { activeWorkspaceView?: 'chat' | 'preferences' }
+      type Props = { activeWorkspaceView?: 'chat' | 'brief' | 'preferences' }
       <button aria-current={activeWorkspaceView === 'preferences' ? 'page' : undefined} data-testid="current-edit-preferences-trigger" />
     `,
     'src/components/editor/CurrentEditPreferencesWorkspace.tsx': `

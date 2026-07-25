@@ -665,7 +665,7 @@
     },
     {
       "path": "src/components/editor/ChatNativeEditor.tsx",
-      "sha256": "e17100d0a63deaf59202432647d70d232efc444a9fb652a2d50d6dca71d5d2ae"
+      "sha256": "a3d088322bec4c077b739215d776a6216b66a66008604deeb3b635e829c80699"
     },
     {
       "path": "src/components/editor/CurrentEditPreferencesWorkspace.tsx",
@@ -737,7 +737,7 @@
     },
     {
       "path": "tests/e2e/edit-reference-canonical-real-file-flow.spec.ts",
-      "sha256": "9f21ca834c5e4af3bfa7444fc88265c18899cbe53944c53277f964d1886b4406"
+      "sha256": "43d1f34df0330e11149a5a86fdb0810d28b5cbab1bb0d157fd11d01059a8ff05"
     },
     {
       "path": "tests/e2e/edit-reference-canonical-v3-local-browser.spec.ts",

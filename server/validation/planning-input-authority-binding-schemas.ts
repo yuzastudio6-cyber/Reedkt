@@ -4,6 +4,15 @@ import { preferenceContextAudienceSchema } from './preference-intelligence-schem
 
 const sha256Schema = z.string().regex(/^[a-f0-9]{64}$/)
 const safeIdSchema = exactEditPreferenceScopeIdSchema
+const exactEditPreferenceFieldKeySchema = z.enum([
+  'editLevel',
+  'workflowType',
+  'cleanupPreference',
+  'visualPreference',
+  'moodStyle',
+  'creditPreference',
+  'targetPlatform',
+])
 
 export const exactEditPreferenceAuthorityExpectationSchema = z.object({
   recordRevision: z.number().int().nonnegative(),
@@ -58,6 +67,14 @@ const exactEditPlanningBindingSchema = z.object({
   planningInputRevision: z.number().int().nonnegative(),
   preferenceFingerprintSha256: sha256Schema,
   values: exactEditPreferenceValuesSchema,
+  effectiveValues: exactEditPreferenceValuesSchema,
+  instructionSource: z.enum([
+    'current_edit_preferences',
+    'explicit_chat_setup',
+  ]),
+  explicitChatOverrideKeys: z.array(exactEditPreferenceFieldKeySchema).max(7),
+  explicitChatOverrides: exactEditPreferenceValuesSchema.partial().strict(),
+  instructionHash: sha256Schema,
   baseline: z.object({
     preferenceSnapshotId: safeIdSchema,
     persistenceSource: z.enum(['server_defaults', 'authenticated_private_internal_backend']),

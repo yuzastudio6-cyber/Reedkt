@@ -107,6 +107,7 @@
     "smoke:backend-local-journey-authority": "tsx server/smoke/backend-local-journey-authority-smoke.ts",
     "smoke:canonical-tool-operation-package": "tsx server/smoke/canonical-tool-operation-package-contract-smoke.ts",
     "smoke:planning-input-safety": "tsx server/smoke/planning-input-safety-smoke.ts",
+    "smoke:canonical-exact-edit-preference-instruction": "tsx server/smoke/canonical-exact-edit-preference-instruction-smoke.ts",
     "smoke:edit-preferences-route-entrypoint": "tsx server/smoke/edit-preferences-route-entrypoint-smoke.ts",
     "smoke:edit-preference-persistence": "tsx server/smoke/edit-preference-persistence-smoke.ts",
     "smoke:edit-preference-backend-route": "tsx server/smoke/edit-preference-backend-route-smoke.ts",

@@ -1,5 +1,6 @@
 import { AlertTriangle, CheckCircle2, CircleDot, Loader2, RefreshCw, ShieldCheck } from 'lucide-react'
 import type { CanonicalPlanningPublicationHookResult } from '../../hooks/useCanonicalPlanningPublication'
+import { hideInternalToolNamesInCopy } from '../../lib/tool-display-labels'
 import { Badge } from '../Badge'
 import { IconButton } from '../Button'
 
@@ -47,7 +48,7 @@ export function CanonicalPlanningSaveStatus({
           </div>
           <Badge accent={badgeAccent(presentation.tone)}>{presentation.badge}</Badge>
         </div>
-        <p>{presentation.message}</p>
+        <p>{hideInternalToolNamesInCopy(presentation.message)}</p>
         <div className="canonical-journey-boundary">
           <ShieldCheck aria-hidden="true" size={14} />
           <span>Saving never approves credits or starts editing.</span>
@@ -81,7 +82,7 @@ function presentResult(result: NonNullable<CanonicalPlanningPublicationHookResul
       tone: 'attention',
       badge: 'Saved · gated',
       title: 'Planning inputs saved',
-      message: 'This direction includes work that still needs an exact execution path. Approval stays locked so nothing is omitted.',
+      message: result.message,
     }
   }
   if (result.status === 'access_denied') {

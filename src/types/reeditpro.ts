@@ -4538,6 +4538,16 @@ export interface PlannerInput {
   preferenceSnapshotAppliedAt?: string
   preferencePersistenceSource?: EditPreferencePersistenceSource
   currentEditPreferenceOverrideKeys?: EditPreferenceFieldKey[]
+  currentEditPreferenceAuthorityValues?: {
+    editLevel: EditLevel
+    workflowType: VideoWorkflowType
+    cleanupPreference: CleanupPreference
+    visualPreference: VisualPreference
+    moodStyle: MoodStyle
+    creditPreference: CreditPreference
+    targetPlatform: TargetPlatform
+  }
+  currentEditPreferenceRecordRevision?: number
   currentEditPreferenceRevision?: number
   currentEditPreferencePlanningInputRevision?: number
   currentEditPreferenceFingerprintSha256?: string

@@ -331,6 +331,110 @@ try {
   assert.equal(finalAggregate.boundaries.productionAuthority, false)
   assertHashChain(finalAggregate)
 
+  const capabilityRetryScope: CanonicalPrivatePackageWorkQueueStoreScope = {
+    ...scope,
+    packageRecordId: 'queue-package-capability-retry',
+    approvedPlanSnapshotId: 'queue-snapshot-capability-retry',
+  }
+  const capabilityRetryDefinition =
+    createCapabilityRetryDefinition(capabilityRetryScope)
+  await ensurePrivateCanonicalPackageWorkQueue({
+    scope: capabilityRetryScope,
+    definition: capabilityRetryDefinition,
+    now: now(20_000),
+  })
+  const blockedCapabilityClaim =
+    await claimPrivateCanonicalPackageWorkQueueJob({
+      scope: capabilityRetryScope,
+      definition: capabilityRetryDefinition,
+      jobId: 'job-capability-retry',
+      workerIdentity: 'worker-capability-blocked',
+      workerType: 'cpu_analysis_worker',
+      now: now(20_100),
+      leaseDurationMs: 10_000,
+    })
+  if (blockedCapabilityClaim.disposition !== 'claimed') {
+    throw new Error('Capability retry fixture did not acquire its first claim.')
+  }
+  assert.equal(blockedCapabilityClaim.entry.activeClaim.deliveryAttempt, 1)
+  await releasePrivateCanonicalPackageWorkQueueClaim({
+    scope: capabilityRetryScope,
+    definition: capabilityRetryDefinition,
+    jobId: 'job-capability-retry',
+    claimId: blockedCapabilityClaim.entry.activeClaim.claimId,
+    claimCredential: blockedCapabilityClaim.claimCredential,
+    reason: 'scoped_capability_blocker',
+    now: now(20_200),
+  })
+  const capabilityBlockedAggregate =
+    await readPrivateCanonicalPackageWorkQueue({
+      scope: capabilityRetryScope,
+      definition: capabilityRetryDefinition,
+    })
+  assert.ok(capabilityBlockedAggregate)
+  assert.equal(
+    requiredEntry(
+      capabilityBlockedAggregate,
+      'job-capability-retry',
+    ).deliveryAttemptCount,
+    1,
+  )
+  assert.equal(
+    requiredEntry(
+      capabilityBlockedAggregate,
+      'job-capability-retry',
+    ).lastRelease?.reason,
+    'scoped_capability_blocker',
+  )
+
+  clearPrivateCanonicalPackageWorkQueueProcessStateForSmoke()
+  const resumedCapabilityClaim =
+    await claimPrivateCanonicalPackageWorkQueueJob({
+      scope: capabilityRetryScope,
+      definition: capabilityRetryDefinition,
+      jobId: 'job-capability-retry',
+      workerIdentity: 'worker-capability-restored',
+      workerType: 'cpu_analysis_worker',
+      now: now(20_300),
+      leaseDurationMs: 10_000,
+    })
+  if (resumedCapabilityClaim.disposition !== 'claimed') {
+    throw new Error('A pre-execution capability block exhausted its approved attempt.')
+  }
+  assert.equal(resumedCapabilityClaim.entry.activeClaim.deliveryAttempt, 1)
+  assert.notEqual(
+    resumedCapabilityClaim.claimCredential,
+    blockedCapabilityClaim.claimCredential,
+  )
+  await completePrivateCanonicalPackageWorkQueueClaim({
+    scope: capabilityRetryScope,
+    definition: capabilityRetryDefinition,
+    jobId: 'job-capability-retry',
+    claimId: resumedCapabilityClaim.entry.activeClaim.claimId,
+    claimCredential: resumedCapabilityClaim.claimCredential,
+    outcome: completedOutcome(
+      'job-capability-retry',
+      [],
+      'capability-retry-artifact',
+    ),
+    now: now(20_400),
+  })
+  const capabilityRecoveredAggregate =
+    await readPrivateCanonicalPackageWorkQueue({
+      scope: capabilityRetryScope,
+      definition: capabilityRetryDefinition,
+    })
+  assert.ok(capabilityRecoveredAggregate)
+  const capabilityRecoveredEntry = requiredEntry(
+    capabilityRecoveredAggregate,
+    'job-capability-retry',
+  )
+  assert.equal(capabilityRecoveredEntry.state, 'completed')
+  assert.equal(capabilityRecoveredEntry.deliveryAttemptCount, 1)
+  assert.equal(capabilityRecoveredAggregate.summary.totalDeliveryAttemptCount, 1)
+  assert.equal(capabilityRecoveredAggregate.summary.releasedClaimCount, 1)
+  assertHashChain(capabilityRecoveredAggregate)
+
   const finalFile = await readFile(aggregatePath, 'utf8')
   for (const forbidden of [
     rootClaim.claimCredential,
@@ -401,6 +505,7 @@ try {
       'host_restart_completed_job_replay_without_execution',
       'expired_claim_recovery_with_stale_worker_fencing',
       'approved_max_attempt_exhaustion_enforced',
+      'pre_execution_capability_block_restart_resume_without_attempt_exhaustion',
       'completed_entries_terminal_and_events_hash_chained',
       'tenant_scope_checksum_and_immutable_authority_tamper_rejected',
       'distributed_service_identity_cloud_dispatch_and_production_remain_false',
@@ -490,6 +595,67 @@ function createDefinition(): CanonicalPrivatePackageWorkQueueDefinition {
       cpuAnalysisJobCount: jobs.filter((job) => job.workerType === 'cpu_analysis_worker').length,
       gpuJobCount: jobs.filter((job) => job.workerType === 'gpu_ai_worker').length,
       renderJobCount: jobs.filter((job) => job.workerType === 'render_worker').length,
+      allJobsHaveSnapshotBoundPlacement: true as const,
+      callerSelectedJobs: false as const,
+      callerSelectedDependencies: false as const,
+      callerSelectedPlacement: false as const,
+    },
+    boundaries: {
+      approvedSnapshotRequired: true as const,
+      fundedReservationRequired: true as const,
+      privateArtifactsQaAndReconciliationRequired: true as const,
+      browserClaimAllowed: false as const,
+      providerActivationAuthorized: false as const,
+      customerBillingAuthorized: false as const,
+      walletMutationAuthorized: false as const,
+      publicDeliveryAuthorized: false as const,
+      googleCloudDispatchAuthorized: false as const,
+      productionExecutionAuthorized: false as const,
+    },
+  }
+  return canonicalPrivatePackageWorkQueueDefinitionSchema.parse({
+    ...payload,
+    definitionHash: sha256AuthorityValue(payload),
+  })
+}
+
+function createCapabilityRetryDefinition(
+  targetScope: CanonicalPrivatePackageWorkQueueStoreScope,
+): CanonicalPrivatePackageWorkQueueDefinition {
+  const job = createJob({
+    canonicalOrder: 0,
+    jobId: 'job-capability-retry',
+    dependencyJobIds: [],
+    workerType: 'cpu_analysis_worker',
+    resourceClassId: 'cpu_analysis_standard_v1',
+    privateExecutionReady: true,
+    maxAttempts: 1,
+    scheduledFor: now(-1_000),
+  })
+  const payload = {
+    schemaVersion: CANONICAL_PRIVATE_PACKAGE_WORK_QUEUE_DEFINITION_VERSION,
+    source: 'canonical_execution_package_and_snapshot_resource_placement' as const,
+    identity: {
+      workspaceId: targetScope.workspaceId,
+      projectId: targetScope.projectId,
+      editSessionId: targetScope.editSessionId,
+      packageRecordId: targetScope.packageRecordId,
+      approvedPlanSnapshotId: targetScope.approvedPlanSnapshotId,
+      packageHash: sha('capability-retry-package'),
+      snapshotHash: sha('capability-retry-snapshot'),
+      workGraphHash: sha('capability-retry-work-graph'),
+      placementManifestHash: sha('capability-retry-placement-manifest'),
+      toolExecutionAuthorityHash: sha('capability-retry-tool-execution-authority'),
+      approvedResourcePlacementAuthorityHash:
+        sha('capability-retry-resource-placement-authority'),
+    },
+    jobs: [job],
+    summary: {
+      totalJobCount: 1,
+      requiredJobCount: 1,
+      cpuAnalysisJobCount: 1,
+      gpuJobCount: 0,
+      renderJobCount: 0,
       allJobsHaveSnapshotBoundPlacement: true as const,
       callerSelectedJobs: false as const,
       callerSelectedDependencies: false as const,

@@ -49,6 +49,9 @@ import {
 import {
   CANONICAL_EXACT_EDIT_PLANNING_EVIDENCE_REQUEST_VERSION,
 } from '../../src/types/canonical-exact-edit-planning-authority'
+import {
+  resolveCanonicalExactEditPreferenceInstruction,
+} from './canonical-exact-edit-preference-instruction'
 
 const publicationLocks = new Map<string, Promise<void>>()
 const preparationLocks = new Map<string, Promise<void>>()
@@ -538,12 +541,12 @@ async function recordVerifiedPlanningEvidence(input: {
     scope: input.scope,
   })
   const authority = current.authority
+  resolveCanonicalExactEditPreferenceInstruction({
+    authority,
+    components: input.components,
+  })
 
   if (
-    input.components.confirmedSettings.editLevel !== authority.values.editLevel ||
-    input.components.confirmedSettings.targetPlatform !== authority.values.targetPlatform ||
-    input.components.sourceCleanupSummary.cleanupPreference
-      !== authority.values.cleanupPreference ||
     input.components.confirmedSettings.preferenceSnapshotId
       !== authority.baseline.preferenceSnapshotId ||
     input.components.confirmedSettings.preferenceRevision

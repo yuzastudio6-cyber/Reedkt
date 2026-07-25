@@ -73,6 +73,8 @@ test.describe('canonical journey named-edit UI bridge', () => {
     await clickWhenReady(page.getByTestId('chat-composer-send'))
     await completeRequiredEditorSetupBeforeFootagePrep(page)
     await clickWhenReady(page.getByRole('button', { name: /^Prepare source$/i }))
+    await expect(page.getByLabel('Prepared source summary')).toContainText('2s')
+    await expect(page.getByLabel('Prepared source summary')).not.toContainText('4:08')
     await clickWhenReady(page.getByRole('button', { name: /^Create edit plan$/i }))
 
     const planReview = page.getByTestId('plan-review-card')
@@ -1020,6 +1022,60 @@ test.describe('canonical journey named-edit UI bridge', () => {
     await expect(page.getByRole('button', { name: 'Apply to this edit' })).toBeDisabled()
   })
 
+  test('rehydrates an accepted private review without reopening source preparation', async ({ page }) => {
+    const fixture = await installSourceReadyNamedEdit(page, 'canonical-review-accepted-reload')
+    await installExactEditPreferenceAuthority(page, [fixture])
+    let planningMutationCount = 0
+
+    await page.route('**/v1/projects/*/edit-sessions/*/canonical-journey?*', async (route) => {
+      await route.fulfill({
+        contentType: 'application/json',
+        status: 200,
+        body: JSON.stringify({
+          ok: true,
+          data: {
+            canonicalEditJourney: canonicalPrivateReviewAcceptedJourneyFixture(
+              fixture.project.id,
+              fixture.edit.editSessionId,
+            ),
+          },
+          warnings: [],
+        }),
+      })
+    })
+    await page.route('**/v1/projects/*/edit-sessions/*/canonical-planning-handoff', async (route) => {
+      planningMutationCount += 1
+      await route.abort()
+    })
+
+    const expectRecoveredApproval = async () => {
+      await expect(page.getByTestId('canonical-journey-status')).toHaveAttribute(
+        'data-journey-stage',
+        'private_review_accepted',
+      )
+      await expect(page.getByTestId('editor-header')).toContainText('Review approved')
+      await expect(page.getByTestId('editor-header')).toContainText('Estimate in plan')
+      await expect(page.getByTestId('editor-stage')).toHaveAttribute(
+        'data-editor-stage',
+        'private_review',
+      )
+      await expect(page.getByRole('heading', { name: 'Review approved' })).toBeVisible()
+      await expect(page.getByRole('button', { name: /^Prepare source$/i })).toHaveCount(0)
+      await expect(page.getByRole('button', { name: /^Create edit plan$/i })).toHaveCount(0)
+      await expect(page.getByTestId('editor-stage')).toContainText(
+        'Sharing, delivery, and release remain gated',
+      )
+    }
+
+    await gotoRoute(page, fixture.editPath)
+    await expectRecoveredApproval()
+    expect(planningMutationCount).toBe(0)
+
+    await page.reload({ waitUntil: 'domcontentloaded' })
+    await expectRecoveredApproval()
+    expect(planningMutationCount).toBe(0)
+  })
+
   test('shows loading, bounded execution progress, and an accessible manual refresh', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 })
     const fixture = await installSourceReadyNamedEdit(page, 'execution-progress')
@@ -1918,6 +1974,44 @@ function canonicalPrivateReviewReadyJourneyFixture(
       reviewAssemblyId: 'review-canonical-approval-browser',
       manifestSha256: '7'.repeat(64),
       finalArtifactSha256,
+    },
+  }
+}
+
+function canonicalPrivateReviewAcceptedJourneyFixture(
+  projectId: string,
+  editSessionId: string,
+) {
+  const reviewReady = canonicalPrivateReviewReadyJourneyFixture(projectId, editSessionId)
+  const decisionManifestSha256 = '9'.repeat(64)
+  return {
+    ...reviewReady,
+    stage: 'private_review_accepted',
+    nextAction: {
+      code: 'await_public_delivery_authorization',
+      actor: 'internal_service',
+      method: 'GET',
+      routeTemplate:
+        `/v1/projects/${projectId}/edit-sessions/${editSessionId}/canonical-journey`,
+    },
+    review: {
+      ...reviewReady.review,
+      decision: 'accept_private_internal_review',
+      decisionStatus: 'private_internal_review_accepted',
+      decisionManifestSha256,
+      privateHistoryDownload: {
+        method: 'GET',
+        routeTemplate:
+          '/v1/edit-executions/private-review-history/' +
+          'review-canonical-approval-browser/file',
+        query: {
+          workspaceId: scope.workspaceId,
+          packageRecordId: 'package-canonical-approval-browser',
+          expectedDecisionManifestSha256: decisionManifestSha256,
+          expectedFinalArtifactSha256: reviewReady.review.finalArtifactSha256,
+          purpose: 'download_canonical_private_review_history_artifact',
+        },
+      },
     },
   }
 }

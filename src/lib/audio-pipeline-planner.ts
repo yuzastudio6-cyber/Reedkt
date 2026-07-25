@@ -103,7 +103,7 @@ function chooseSoundStyle(params: CreateAudioPipelinePlanParams): SoundStyleId {
   const instructions = audioInstructions(params.input)
 
   if (instructions.sourceOnly || includesAny(text, ['voice only', 'no music', 'clean audio', 'just voice'])) return 'clean_voice_only'
-  if (includesAny(text, ['documentary', 'case study', 'scam', 'fraud', 'investigation'])) return 'documentary_serious'
+  if (includesAny(text, ['serious documentary sound', 'documentary audio', 'documentary soundtrack'])) return 'documentary_serious'
   if (includesAny(text, ['cinematic music', 'cinematic audio', 'emotional music', 'dramatic music'])) return 'cinematic_emotional'
   if (includesAny(text, ['upbeat', 'energetic', 'high retention', 'viral sound'])) {
     return params.input.editLevel === 'basic' ? 'subtle_premium_bed' : 'energetic_social'
@@ -298,15 +298,15 @@ function operationSettings(operation: AudioOperationId, input: PlannerInput, mus
 
   switch (operation) {
     case 'voice_leveling':
-      return { ...common, voiceCleanupEnabled: true, voiceLeveling: true, targetVoiceLoudness: input.editLevel === 'basic' ? -16 : -14 }
+      return { ...common, voiceCleanupEnabled: true, voiceLeveling: true, targetVoiceLoudness: -14 }
     case 'loudness_normalization':
-      return { ...common, loudnessTarget: input.editLevel === 'basic' ? -16 : -14, truePeakTarget: -1, normalizationMode: 'voice_first' }
+      return { ...common, loudnessTarget: -14, truePeakTarget: -1, normalizationMode: 'voice_first' }
     case 'noise_reduction':
       return { ...common, noiseReduction: true, noiseReductionStrength: input.editLevel === 'premium' ? 'medium' : 'light' }
     case 'de_essing':
       return { ...common, deEssing: true, speechPriority: true }
     case 'eq_cleanup':
-      return { ...common, eqCleanup: true, compression: input.editLevel !== 'basic' }
+      return { ...common, eqCleanup: true, speechPriority: true }
     case 'compression':
       return { ...common, compression: true, speechPriority: true }
     case 'silence_cleanup':
@@ -384,16 +384,13 @@ function projectOperations(params: {
   const presetOps = getAudioOperationsForStyle(params.soundStyle, params.input.editLevel)
   const operations = new Set<AudioOperationId>([
     'voice_leveling',
+    'eq_cleanup',
+    'compression',
     'loudness_normalization',
     'true_peak_limit',
     'qa_loudness_check',
     ...presetOps,
   ])
-
-  if (params.input.editLevel !== 'basic') {
-    operations.add('eq_cleanup')
-    operations.add('compression')
-  }
 
   if (params.issues.has('background_noise') || params.issues.has('echo')) operations.add('noise_reduction')
   if (params.issues.has('many_fillers')) operations.add('filler_pause_cleanup')

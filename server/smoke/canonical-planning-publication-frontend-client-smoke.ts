@@ -69,7 +69,17 @@ const baseInput: PlannerInput = {
   cleanupPreference: 'preserve_natural',
   cleanupPreferenceConfirmed: true,
   preferenceDefaultsApplied: true,
-  preferenceSnapshotId: 'canonical-save-preference-snapshot',
+  preferenceSnapshotId: 'server-authority-preference-snapshot',
+  currentEditPreferenceAuthorityValues: {
+    editLevel: 'pro',
+    workflowType: 'product_demo',
+    cleanupPreference: 'preserve_natural',
+    visualPreference: 'no_extra_visuals',
+    moodStyle: 'clean',
+    creditPreference: 'balanced',
+    targetPlatform: 'youtube',
+  },
+  currentEditPreferenceRecordRevision: 4,
   currentEditPreferenceRevision: 3,
   currentEditPreferencePlanningInputRevision: 3,
   currentEditPreferenceFingerprintSha256: sha('7'),
@@ -391,6 +401,83 @@ if (!browserDefaultDraft.ok || !browserDefaultDraft.draft.publication) {
 }
 assert.deepEqual(browserDefaultDraft.draft.publicationBlockers, [])
 
+const basicDocumentaryInput: PlannerInput = {
+  ...baseInput,
+  editingCategory: 'documentary_case_study',
+  workflowType: 'custom_let_ai_decide',
+  editLevel: 'basic',
+  cleanupPreference: 'documentary_faithful',
+  moodStyle: 'clean',
+  visualPreference: 'no_extra_visuals',
+  customInstructions: 'Create a factual documentary edit from this source with readable captions.',
+  userInstructionHistory: [
+    'Create a factual documentary edit from this source with readable captions.',
+  ],
+  currentEditPreferenceAuthorityValues: {
+    ...baseInput.currentEditPreferenceAuthorityValues!,
+    editLevel: 'basic',
+    workflowType: 'custom_let_ai_decide',
+    cleanupPreference: 'documentary_faithful',
+    visualPreference: 'no_extra_visuals',
+    moodStyle: 'clean',
+  },
+}
+const basicDocumentaryPlan = createMockEditPlan(basicDocumentaryInput)
+assert.equal(
+  basicDocumentaryPlan.compiledIntent?.professionalEditingDirective.colorGradeStyle,
+  'clean_natural',
+  'Normal/Basic category defaults must use the executable professional clean-natural baseline unless the user explicitly requests another color treatment.',
+)
+assert.equal(
+  basicDocumentaryPlan.compiledIntent?.professionalEditingDirective.soundStyle,
+  'clean_voice_only',
+  'Normal/Basic category defaults must use the executable professional voice-first baseline unless the user explicitly requests another audio treatment.',
+)
+assert.equal(basicDocumentaryPlan.colorPipelinePlan?.colorGradeStyle, 'clean_natural')
+assert.equal(basicDocumentaryPlan.audioPipelinePlan?.musicBedPlan.policy, 'none')
+assert.equal(basicDocumentaryPlan.audioPipelinePlan?.sfxPlan.policy, 'none')
+assert.equal(basicDocumentaryPlan.audioPipelinePlan?.beatSyncPlan.strategy, 'none')
+assert.deepEqual(
+  basicDocumentaryPlan.audioPipelinePlan?.projectOperations
+    .map((operation) => operation.operation)
+    .sort(),
+  [
+    'compression',
+    'eq_cleanup',
+    'loudness_normalization',
+    'qa_loudness_check',
+    'true_peak_limit',
+    'voice_leveling',
+  ],
+  'Normal/Basic must retain the complete canonical voice-delivery chain rather than omitting EQ or compression.',
+)
+assert.equal(
+  basicDocumentaryPlan.audioPipelinePlan?.projectOperations
+    .find((operation) => operation.operation === 'loudness_normalization')
+    ?.settings.loudnessTarget,
+  -14,
+  'The Normal/Basic plan must bind the same exact -14 LUFS voice-delivery target accepted by the canonical worker recipe.',
+)
+const basicDocumentaryDraft = buildCanonicalPlanningDraft({
+  plan: basicDocumentaryPlan,
+  plannerInput: basicDocumentaryInput,
+  sourceMediaAssets,
+})
+if (!basicDocumentaryDraft.ok || !basicDocumentaryDraft.draft.publication) {
+  throw new Error(
+    `Normal/Basic documentary planning did not compile: ${
+      basicDocumentaryDraft.ok
+        ? basicDocumentaryDraft.draft.publicationBlockers.join(' | ')
+        : basicDocumentaryDraft.errors.join(' | ')
+    }`,
+  )
+}
+assert.deepEqual(
+  basicDocumentaryDraft.draft.publicationBlockers,
+  [],
+  'A source-led Normal/Basic documentary plan must compile into exact color and voice work items without invented SFX, music, or unsupported style work.',
+)
+
 const explicitSilenceCleanupPlan = createMockEditPlan({
   ...browserDefaultExactInput,
   customInstructions: 'Remove the verified long silence while preserving meaningful pauses.',
@@ -461,6 +548,78 @@ assert.deepEqual(
     'voice_leveling',
   ],
   'Source-only Pro audio must retain the exact professional voice chain without invented music, SFX, beats, or silence removal.',
+)
+
+const guidedSourceOnlyPlan = createGuidedMockEditPlan(baseInput)
+assert.equal(
+  guidedSourceOnlyPlan.audioPipelinePlan,
+  undefined,
+  'Guided planning must not fabricate an audio execution plan.',
+)
+assert.deepEqual(
+  guidedSourceOnlyPlan.masterTimingPlan?.visualTimingItems.map((timing) => timing.visualType),
+  ['caption_only'],
+  'A one-source Guided plan should express its opening emphasis through the existing caption cue.',
+)
+assert.equal(
+  guidedSourceOnlyPlan.masterTimingPlan?.musicDuckingTimingItems.length,
+  1,
+  'Guided planning retains one conditional voice-clarity rule even when no music is planned.',
+)
+const guidedSourceOnlyDraft = buildCanonicalPlanningDraft({
+  plan: guidedSourceOnlyPlan,
+  plannerInput: baseInput,
+  sourceMediaAssets,
+})
+if (!guidedSourceOnlyDraft.ok || !guidedSourceOnlyDraft.draft.publication) {
+  throw new Error(
+    `Guided source-only planning did not compile: ${
+      guidedSourceOnlyDraft.ok
+        ? guidedSourceOnlyDraft.draft.publicationBlockers.join(' | ')
+        : guidedSourceOnlyDraft.errors.join(' | ')
+    }`,
+  )
+}
+assert.deepEqual(
+  guidedSourceOnlyDraft.draft.publicationBlockers,
+  [],
+  'An exact caption-only timing cue and inert conditional ducking rule must not invent missing execution work.',
+)
+
+const guidedGraphicTimingPlan = structuredClone(guidedSourceOnlyPlan)
+guidedGraphicTimingPlan.masterTimingPlan!.visualTimingItems[0]!.visualType = 'graphic_explainer'
+const guidedGraphicTimingDraft = buildCanonicalPlanningDraft({
+  plan: guidedGraphicTimingPlan,
+  plannerInput: baseInput,
+  sourceMediaAssets,
+})
+assert.equal(guidedGraphicTimingDraft.ok, true)
+assert.equal(
+  guidedGraphicTimingDraft.ok &&
+    guidedGraphicTimingDraft.draft.publicationBlockers.includes(
+      'Timed visual cues need their own canonical execution work items.',
+    ),
+  true,
+  'A real timed graphic must remain blocked until its exact canonical work item exists.',
+)
+
+const guidedMusicDuckingPlan = structuredClone(guidedSourceOnlyPlan)
+guidedMusicDuckingPlan.audioPipelinePlan = structuredClone(sourceOnlyFullPlan.audioPipelinePlan!)
+guidedMusicDuckingPlan.audioPipelinePlan.musicBedPlan.policy = 'optional_subtle'
+guidedMusicDuckingPlan.audioPipelinePlan.musicBedPlan.duckingEnabled = true
+const guidedMusicDuckingDraft = buildCanonicalPlanningDraft({
+  plan: guidedMusicDuckingPlan,
+  plannerInput: baseInput,
+  sourceMediaAssets,
+})
+assert.equal(guidedMusicDuckingDraft.ok, true)
+assert.equal(
+  guidedMusicDuckingDraft.ok &&
+    guidedMusicDuckingDraft.draft.publicationBlockers.includes(
+      'Music ducking needs its own canonical audio work items.',
+    ),
+  true,
+  'A real planned music bed with ducking must remain blocked until its exact audio work exists.',
 )
 
 const richPlan = createGuidedMockEditPlan(baseInput)
@@ -1669,18 +1828,52 @@ try {
     plannerInput: {
       ...baseInput,
       moodStyle: 'premium',
+      currentEditPreferenceRecordRevision: 3,
+      preferenceSnapshotId: 'local-provisional-creation-baseline',
     },
     sourceMediaAssets,
     revisionJourney,
   })
-  assert.equal(changedLockedPreference.status, 'blocked')
-  assert.match(changedLockedPreference.message, /Current Edit Preferences changed/i)
+  assert.equal(changedLockedPreference.status, 'plan_published_waiting_for_approval')
   assert.equal(
     requests.length,
-    changedLockedPreferenceStart + 1,
-    'A locked-preference change may read exact authority but must not submit a replacement plan.',
+    changedLockedPreferenceStart + 2,
+    'A plan-scoped Chat override must read the locked authority and submit one fresh revision without mutating preferences.',
   )
-  assert.equal(requests.at(-1)?.method, 'GET')
+  assert.deepEqual(
+    requests.slice(changedLockedPreferenceStart).map((request) => request.method),
+    ['GET', 'POST'],
+  )
+  const changedLockedPlan = asRecord(requests.at(-1)?.body.canonicalPlan)
+  const changedLockedComponents = asRecord(changedLockedPlan.components)
+  assert.deepEqual(changedLockedComponents.exactEditPreferenceInstruction, {
+    schemaVersion: 'canonical-exact-edit-preference-instruction-v1',
+    source: 'explicit_chat_setup',
+    base: {
+      preferenceRevision: 3,
+      planningInputRevision: 3,
+      preferenceFingerprintSha256: sha('7'),
+      preferenceSnapshotId: 'server-authority-preference-snapshot',
+    },
+    effectiveValues: {
+      ...exactPreferenceValues(baseInput),
+      moodStyle: 'premium',
+    },
+    overrideKeys: ['moodStyle'],
+    overrides: { moodStyle: 'premium' },
+    browserMutationAuthorityGranted: false,
+  })
+  assert.equal(
+    requests.slice(changedLockedPreferenceStart).some((request) => request.method === 'PATCH'),
+    false,
+    'Planning must never rewrite Current Edit Preferences to implement a Chat override.',
+  )
+  assert.equal(
+    changedLockedComponents.confirmedSettings
+      && asRecord(changedLockedComponents.confirmedSettings).preferenceSnapshotId,
+    'server-authority-preference-snapshot',
+    'A non-semantic aggregate revision advance or provisional local baseline must be refreshed from server authority without rewriting saved preferences.',
+  )
 
   exactPreferenceAuthority = {
     ...exactPreferenceAuthority,

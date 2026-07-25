@@ -4278,7 +4278,11 @@ async function executeFfmpegRequest(
       : [
         '-hide_banner', '-loglevel', 'error', '-nostdin',
         '-i', 'pipe:0', '-map', '0:v:0',
-        '-vf', `trim=start_frame=${trimStartFrame}:end_frame=${trimEndFrameExclusive},setpts=PTS-STARTPTS`,
+        '-vf', timelineFrameRangeNormalizationFilters({
+          startFrame: trimStartFrame,
+          endFrameExclusive: trimEndFrameExclusive,
+          frameRate: request.payload.frameRate,
+        }).join(','),
         '-an', '-threads', '1', '-c:v', 'ffv1', '-level', '3', '-f', 'nut', 'pipe:1',
   ]
   const container = await createContainer(image, FFMPEG_ENTRYPOINT, command, {
@@ -4528,6 +4532,7 @@ async function executeFfmpegRequest(
               ? {
                   outputFrameCount: trimDurationFrames,
                   outputContainer: 'matroska', outputVideoCodec: 'vp9', audioRemoved: true,
+                  timelineFrameRateNormalizationApplied: true,
                   colorGradeStyle: colorDeliveryPayload!.colorGradeStyle,
                   colorIntensity: colorDeliveryPayload!.intensity,
                   approvedColorOperationIds:
@@ -4732,16 +4737,21 @@ async function analyzeVideoColorWithConfinement(input: {
   analysis: ColorPixelAnalysis
   confinement: OfflineMediaBinaryConfinementEvidence
 }> {
-  const finalFrame = input.endFrameExclusive - 1
-  const middleFrame = input.startFrame + Math.floor(
-    (input.endFrameExclusive - input.startFrame - 1) / 2,
-  )
-  const selectedFrames = [...new Set([input.startFrame, middleFrame, finalFrame])]
+  const durationFrames = input.endFrameExclusive - input.startFrame
+  const finalFrame = durationFrames - 1
+  const middleFrame = Math.floor((durationFrames - 1) / 2)
+  const selectedFrames = [...new Set([0, middleFrame, finalFrame])]
   const expression = selectedFrames.map((frame) => `eq(n\\,${frame})`).join('+')
+  const filters = [
+    ...timelineFrameRangeNormalizationFilters(input),
+    `select=${expression}`,
+    'scale=64:64:flags=area',
+    'format=rgb24',
+  ]
   const command = [
     '-hide_banner', '-loglevel', 'error', '-nostdin',
     '-i', 'pipe:0', '-map', '0:v:0',
-    '-vf', `select=${expression},scale=64:64:flags=area,format=rgb24`,
+    '-vf', filters.join(','),
     '-fps_mode', 'passthrough', '-frames:v', String(selectedFrames.length),
     '-threads', '1', '-f', 'rawvideo', 'pipe:1',
   ]
@@ -5010,8 +5020,11 @@ function colorDeliveryCommand(
   }
   const saturationMatrix = colorSaturationMatrix(correction.saturation)
   const filters = [
-    `trim=start_frame=${request.payload.trimStartFrame}:end_frame=${request.payload.trimEndFrameExclusive}`,
-    'setpts=PTS-STARTPTS',
+    ...timelineFrameRangeNormalizationFilters({
+      startFrame: request.payload.trimStartFrame,
+      endFrameExclusive: request.payload.trimEndFrameExclusive,
+      frameRate: request.payload.frameRate,
+    }),
     `colorchannelmixer=rr=${correction.redMultiplier}:gg=${correction.greenMultiplier}:bb=${correction.blueMultiplier}:pc=lum:pa=0.75`,
     `colorchannelmixer=${saturationMatrix}`,
     'colorlevels=' + [
@@ -5045,6 +5058,30 @@ function colorDeliveryCommand(
     '-fflags', '+bitexact', '-flags:v', '+bitexact', '-map_metadata', '-1',
     '-metadata', 'creation_time=1970-01-01T00:00:00Z',
     '-f', 'matroska', 'pipe:1',
+  ]
+}
+
+function timelineFrameRangeNormalizationFilters(input: {
+  startFrame: number
+  endFrameExclusive: number
+  frameRate: number
+}): string[] {
+  if (
+    !Number.isSafeInteger(input.startFrame) ||
+    !Number.isSafeInteger(input.endFrameExclusive) ||
+    !Number.isSafeInteger(input.frameRate) ||
+    input.startFrame < 0 ||
+    input.endFrameExclusive <= input.startFrame ||
+    input.frameRate <= 0
+  ) {
+    throw invalid('Approved timeline frame range cannot be normalized.')
+  }
+  const startSeconds = (input.startFrame / input.frameRate).toFixed(9)
+  const endSeconds = (input.endFrameExclusive / input.frameRate).toFixed(9)
+  return [
+    `trim=start=${startSeconds}:end=${endSeconds}`,
+    'setpts=PTS-STARTPTS',
+    `fps=fps=${input.frameRate}:round=near`,
   ]
 }
 

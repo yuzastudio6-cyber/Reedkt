@@ -38,6 +38,15 @@ const REMOTION_OPERATION = 'tool.remotion.render_approved_composition.v1'
 const LONG_FORM_MERGE_COMPOSITION_PROFILE = 'approved_4k_composition_chunk_merge_final_v1'
 const SAFE_KEY = /^[A-Za-z0-9][A-Za-z0-9._:-]*$/
 const SHA256 = /^[a-f0-9]{64}$/
+const EXACT_EDIT_PREFERENCE_KEYS = [
+  'editLevel',
+  'workflowType',
+  'cleanupPreference',
+  'visualPreference',
+  'moodStyle',
+  'creditPreference',
+  'targetPlatform',
+] as const
 const CANONICAL_DIRECT_SOURCE_BUFFER_MAX_BYTES = 16 * 1024 * 1024
 const SUPPORTED_PRIVATE_4K_MASTER_FRAMES = new Set([
   '3840x2160',
@@ -263,6 +272,20 @@ export type CanonicalPlanComponentsDraft = {
     preferenceRevision?: number
     preferencePlanningInputRevision?: number
     preferenceFingerprintSha256?: string
+  }
+  exactEditPreferenceInstruction?: {
+    schemaVersion: 'canonical-exact-edit-preference-instruction-v1'
+    source: 'current_edit_preferences' | 'explicit_chat_setup'
+    base: {
+      preferenceRevision: number
+      planningInputRevision: number
+      preferenceFingerprintSha256: string
+      preferenceSnapshotId: string
+    }
+    effectiveValues: NonNullable<PlannerInput['currentEditPreferenceAuthorityValues']>
+    overrideKeys: Array<(typeof EXACT_EDIT_PREFERENCE_KEYS)[number]>
+    overrides: Partial<NonNullable<PlannerInput['currentEditPreferenceAuthorityValues']>>
+    browserMutationAuthorityGranted: false
   }
   sourceSequence: CanonicalSourceAuthorityItem[]
   sourceCleanupSummary: {
@@ -687,6 +710,8 @@ export function buildCanonicalPlanningDraft(input: {
   )
     ? plannerInput.currentEditPreferenceFingerprintSha256
     : undefined
+  const exactEditPreferenceInstruction =
+    buildExactEditPreferenceInstruction(plannerInput)
   const sourceSliceMezzanineFinalizationRequired =
     orderedSourceItems.length === 1 &&
     totalFrames > CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES
@@ -732,6 +757,9 @@ export function buildCanonicalPlanningDraft(input: {
         : {}),
       ...(preferenceFingerprintSha256 ? { preferenceFingerprintSha256 } : {}),
     },
+    ...(exactEditPreferenceInstruction
+      ? { exactEditPreferenceInstruction }
+      : {}),
     sourceSequence: orderedSourceItems.map((item) => ({ ...item })),
     sourceCleanupSummary: ideaFirstStorytelling
       ? {
@@ -1135,7 +1163,9 @@ function privateReviewPublicationBlockers(input: {
   if (!captionCues) {
     blockers.push('Private canonical review requires one full-duration caption or two to seven safe, ordered, non-overlapping caption cues.')
   }
-  if ((input.plan.masterTimingPlan?.visualTimingItems.length ?? 0) > 0) blockers.push('Timed visual cues need their own canonical execution work items.')
+  if (hasUnrepresentedVisualTiming(input.plan, input.totalFrames)) {
+    blockers.push('Timed visual cues need their own canonical execution work items.')
+  }
   const plannedTransitionCount = Math.max(
     input.plan.masterTimingPlan?.transitionTimingItems.length ?? 0,
     input.plan.soundSyncTransitionTimingPlan?.refinedTransitionTimings.length ?? 0,
@@ -1149,7 +1179,9 @@ function privateReviewPublicationBlockers(input: {
     (input.plan.masterTimingPlan?.sfxTimingItems.length ?? 0) > 0 ||
     (input.plan.soundSyncTransitionTimingPlan?.refinedSfxTimings.length ?? 0) > 0
   ) blockers.push('Sound-effect cues need their own canonical execution work items.')
-  if ((input.plan.masterTimingPlan?.musicDuckingTimingItems.length ?? 0) > 0) blockers.push('Music ducking needs its own canonical audio work items.')
+  if (hasPlannedMusicDuckingWork(input.plan)) {
+    blockers.push('Music ducking needs its own canonical audio work items.')
+  }
   if ((input.plan.masterTimingPlan?.providerClipTimingItems.length ?? 0) > 0) blockers.push('Provider clips need their own canonical execution work items.')
   if (hasUnrepresentedSegmentOperations(input.plan, {
     audioCleanupRepresented: Boolean(input.approvedVoiceDeliverySources),
@@ -2354,6 +2386,48 @@ function approvedCaptionCues(
   return cues
 }
 
+function hasUnrepresentedVisualTiming(plan: EditPlan, totalFrames: number): boolean {
+  const visualTimings = plan.masterTimingPlan?.visualTimingItems ?? []
+  if (visualTimings.length === 0) return false
+
+  const captionCues = approvedCaptionCues(plan, totalFrames)
+  if (!captionCues) return true
+
+  const representedCaptionTimingIds = new Set<string>()
+  return visualTimings.some((visualTiming) => {
+    if (
+      visualTiming.visualType !== 'caption_only' ||
+      visualTiming.linkedVisualAssetPlanItemId !== undefined ||
+      visualTiming.timeRange.durationFrames !==
+        visualTiming.timeRange.endFrame - visualTiming.timeRange.startFrame
+    ) {
+      return true
+    }
+
+    const matchingCaption = captionCues.find((captionCue) =>
+      !representedCaptionTimingIds.has(captionCue.timingId) &&
+      captionCue.startFrame === visualTiming.timeRange.startFrame &&
+      captionCue.endFrameExclusive === visualTiming.timeRange.endFrame)
+    if (!matchingCaption) return true
+
+    representedCaptionTimingIds.add(matchingCaption.timingId)
+    return false
+  })
+}
+
+function hasPlannedMusicDuckingWork(plan: EditPlan): boolean {
+  const hasDuckingTiming =
+    (plan.masterTimingPlan?.musicDuckingTimingItems.length ?? 0) > 0 ||
+    (plan.soundSyncTransitionTimingPlan?.refinedMusicDuckingTimings.length ?? 0) > 0
+  if (!hasDuckingTiming) return false
+
+  const musicBed = plan.audioPipelinePlan?.musicBedPlan
+  return Boolean(musicBed && (
+    musicBed.policy !== 'none' ||
+    musicBed.duckingEnabled
+  ))
+}
+
 function buildApprovedHardCutTransitions(input: {
   plan: EditPlan
   sourceItems: CanonicalSourceAuthorityItem[]
@@ -2735,6 +2809,67 @@ function safeIdentity(value: string): boolean {
 
 function safeOptionalKey(value: string | undefined): string | undefined {
   return value && safeIdentity(value) ? value : undefined
+}
+
+function buildExactEditPreferenceInstruction(
+  plannerInput: PlannerInput,
+): CanonicalPlanComponentsDraft['exactEditPreferenceInstruction'] | undefined {
+  const authorityValues = plannerInput.currentEditPreferenceAuthorityValues
+  const cleanupPreference = plannerInput.cleanupPreference
+  const preferenceSnapshotId = safeOptionalKey(plannerInput.preferenceSnapshotId)
+  const preferenceRevision = plannerInput.currentEditPreferenceRevision
+  const planningInputRevision =
+    plannerInput.currentEditPreferencePlanningInputRevision
+  const preferenceFingerprintSha256 =
+    plannerInput.currentEditPreferenceFingerprintSha256
+
+  if (
+    !authorityValues ||
+    !cleanupPreference ||
+    !preferenceSnapshotId ||
+    !Number.isInteger(preferenceRevision) ||
+    Number(preferenceRevision) < 0 ||
+    !Number.isInteger(planningInputRevision) ||
+    Number(planningInputRevision) < 0 ||
+    !SHA256.test(preferenceFingerprintSha256 ?? '')
+  ) {
+    return undefined
+  }
+
+  const effectiveValues: NonNullable<
+    PlannerInput['currentEditPreferenceAuthorityValues']
+  > = {
+    editLevel: plannerInput.editLevel,
+    workflowType: plannerInput.workflowType,
+    cleanupPreference,
+    visualPreference: plannerInput.visualPreference,
+    moodStyle: plannerInput.moodStyle,
+    creditPreference: plannerInput.creditPreference,
+    targetPlatform: plannerInput.targetPlatform,
+  }
+  const overrideKeys = EXACT_EDIT_PREFERENCE_KEYS.filter(
+    (key) => authorityValues[key] !== effectiveValues[key],
+  )
+  const overrides = Object.fromEntries(
+    overrideKeys.map((key) => [key, effectiveValues[key]]),
+  ) as Partial<NonNullable<PlannerInput['currentEditPreferenceAuthorityValues']>>
+
+  return {
+    schemaVersion: 'canonical-exact-edit-preference-instruction-v1',
+    source: overrideKeys.length > 0
+      ? 'explicit_chat_setup'
+      : 'current_edit_preferences',
+    base: {
+      preferenceRevision: Number(preferenceRevision),
+      planningInputRevision: Number(planningInputRevision),
+      preferenceFingerprintSha256: preferenceFingerprintSha256!,
+      preferenceSnapshotId,
+    },
+    effectiveValues,
+    overrideKeys: [...overrideKeys],
+    overrides,
+    browserMutationAuthorityGranted: false,
+  }
 }
 
 function safeKey(value: string, fallback: string): string {

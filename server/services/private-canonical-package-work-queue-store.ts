@@ -2078,7 +2078,11 @@ function applyQueueClaimMutation(
   if (entry.lastRelease?.reason === 'provider_unknown_outcome') {
     return { disposition: 'user_review_required' as const, entry }
   }
-  if (entry.deliveryAttemptCount >= entry.definition.maxAttempts) {
+  const scopedCapabilityBlockCredit =
+    scopedCapabilityBlockDidNotStartExecution(entry) ? 1 : 0
+  const approvedAttemptCount =
+    entry.deliveryAttemptCount - scopedCapabilityBlockCredit
+  if (approvedAttemptCount >= entry.definition.maxAttempts) {
     return { disposition: 'attempts_exhausted' as const, entry }
   }
   const professionalLongFormAuthorization =
@@ -2117,6 +2121,15 @@ function applyQueueClaimMutation(
     return { disposition: 'dependency_blocked' as const, entry }
   }
 
+  // A scoped capability blocker is discovered before the canonical worker
+  // execution fence begins. Its package claim is useful audit evidence, but it
+  // must not consume one of the immutable approved execution attempts. Apply
+  // the credit only when a later claim is actually ready to start so a
+  // dependency/schedule wait cannot mutate the durable queue.
+  if (scopedCapabilityBlockCredit === 1) {
+    entry.deliveryAttemptCount = approvedAttemptCount
+    entry.lastRelease = undefined
+  }
   const claimCredential = randomBytes(32).toString('base64url')
   const claimId = `queue_claim_${randomUUID()}`
   const deliveryAttempt = entry.deliveryAttemptCount + 1
@@ -2167,6 +2180,20 @@ function applyQueueClaimMutation(
     },
     claimCredential,
   }
+}
+
+function scopedCapabilityBlockDidNotStartExecution(
+  entry: CanonicalPrivatePackageWorkQueueEntry,
+): boolean {
+  return entry.state === 'queued' &&
+    entry.deliveryAttemptCount > 0 &&
+    entry.lastRelease?.reason === 'scoped_capability_blocker' &&
+    entry.lastRelease.dispatchFailure === undefined &&
+    entry.lastRelease.dispatchTimeout === undefined &&
+    entry.lastRelease.professionalLongFormFailure === undefined &&
+    entry.lastRelease.providerUnknownReconciliation === undefined &&
+    entry.providerExecutionAttempt === undefined &&
+    entry.professionalLongFormExecutionAttempt === undefined
 }
 
 function exactProviderAuthorizationMatches(input: {

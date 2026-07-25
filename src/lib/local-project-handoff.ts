@@ -71,6 +71,7 @@ export type LocalInternalEditSetupSnapshot = {
   preferenceSnapshotAppliedAt?: string
   preferencePersistenceSource?: EditPreferencePersistenceSource
   preferenceBaseline?: LocalInternalEditPreferenceBaseline
+  preferenceAuthorityValues?: LocalInternalEditPreferenceValues
   preferenceOverrideKeys?: EditPreferenceFieldKey[]
   preferenceRevision?: number
   preferenceUpdatedAt?: string
@@ -994,6 +995,8 @@ function parseEditSetup(value: unknown): LocalInternalEditSetupSnapshot | undefi
   }
   const preferenceBaseline = parseEditPreferenceBaseline(record.preferenceBaseline)
   if (preferenceBaseline) setup.preferenceBaseline = preferenceBaseline
+  const preferenceAuthorityValues = parseEditPreferenceValues(record.preferenceAuthorityValues)
+  if (preferenceAuthorityValues) setup.preferenceAuthorityValues = preferenceAuthorityValues
   if (Array.isArray(record.preferenceOverrideKeys)) {
     setup.preferenceOverrideKeys = Array.from(new Set(
       record.preferenceOverrideKeys.filter(isEditPreferenceFieldKey),
@@ -1053,6 +1056,32 @@ function parseEditPreferenceBaseline(value: unknown): LocalInternalEditPreferenc
     capturedAt: record.capturedAt.trim().slice(0, 80),
     persistenceSource: record.persistenceSource,
     provenance: record.provenance,
+  }
+}
+
+function parseEditPreferenceValues(value: unknown): LocalInternalEditPreferenceValues | undefined {
+  if (!value || typeof value !== 'object') return undefined
+  const record = value as Partial<LocalInternalEditPreferenceValues>
+  if (
+    !isEditLevel(record.editLevel) ||
+    !isVideoWorkflowType(record.workflowType) ||
+    !isCleanupPreference(record.cleanupPreference) ||
+    !isVisualPreference(record.visualPreference) ||
+    !isMoodStyle(record.moodStyle) ||
+    !isCreditPreference(record.creditPreference) ||
+    !isTargetPlatform(record.targetPlatform)
+  ) {
+    return undefined
+  }
+
+  return {
+    editLevel: record.editLevel,
+    workflowType: record.workflowType,
+    cleanupPreference: record.cleanupPreference,
+    visualPreference: record.visualPreference,
+    moodStyle: record.moodStyle,
+    creditPreference: record.creditPreference,
+    targetPlatform: record.targetPlatform,
   }
 }
 

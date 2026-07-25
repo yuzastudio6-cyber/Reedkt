@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react'
 import {
   runMockFootagePrep,
+  runSourceBoundFootagePrep,
   type MockFootagePrepResult,
   type MockFootagePrepInput,
 } from '../lib/footage-prep'
@@ -9,6 +10,7 @@ export interface UseMockFootagePrepResult {
   result: MockFootagePrepResult | null
   isRunning: boolean
   runPrep: (input?: MockFootagePrepInput) => MockFootagePrepResult
+  runSourceBoundPrep: (input: MockFootagePrepInput) => MockFootagePrepResult
   resetPrep: () => void
 }
 
@@ -26,10 +28,18 @@ export function useMockFootagePrep(): UseMockFootagePrepResult {
     setResult(null)
   }, [])
 
+  const runSourceBoundPrep = useCallback((input: MockFootagePrepInput) => {
+    const nextResult = runSourceBoundFootagePrep(input)
+    setResult(nextResult)
+
+    return nextResult
+  }, [])
+
   return {
     result,
     isRunning: false,
     runPrep,
+    runSourceBoundPrep,
     resetPrep,
   }
 }

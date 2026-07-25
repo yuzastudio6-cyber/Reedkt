@@ -377,12 +377,14 @@ function applyLevelRules(
       transitionFamilies: directive.transitionFamilies.includes('graphic_motion_design_transitions')
         ? ['clean_cut_transitions', 'graphic_motion_design_transitions']
         : ['clean_cut_transitions'],
-      colorGradeStyle: directive.colorGradeStyle === 'cinematic_contrast' || directive.colorGradeStyle === 'moody_dramatic' ? 'clean_natural' : directive.colorGradeStyle,
+      colorGradeStyle: 'clean_natural',
+      soundStyle: 'clean_voice_only',
       mustFollowRules: [
         'Meet a professional clean-edit standard',
         'Use lower-compute choices where they preserve quality',
         'Prefer uploaded footage, stills, cards, and editor motion before expensive generation',
         'Keep captions readable and safely placed',
+        'Use clean natural color and a professional voice-first audio baseline unless the user explicitly requests another supported treatment',
       ],
       avoidRules: [
         'No Veo',

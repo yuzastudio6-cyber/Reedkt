@@ -1049,6 +1049,11 @@ async function performCanonicalPlanningSave(
     plannerInput: {
       ...input.plannerInput,
       preferenceSnapshotId: preferenceAuthority.authority.preferenceSnapshotId,
+      currentEditPreferenceAuthorityValues: {
+        ...preferenceAuthority.authority.values,
+      },
+      currentEditPreferenceRecordRevision:
+        preferenceAuthority.authority.recordRevision,
       currentEditPreferenceRevision: preferenceAuthority.authority.preferenceRevision,
       currentEditPreferencePlanningInputRevision:
         preferenceAuthority.authority.planningInputRevision,
@@ -1133,7 +1138,8 @@ async function performCanonicalPlanningSave(
   if (!draft.publication) {
     return result(
       'handoff_saved_waiting_for_compiler',
-      'Your exact planning inputs are saved. This edit still needs an execution graph that represents every planned operation.',
+      draft.publicationBlockers.join(' ') ||
+        'Your exact planning inputs are saved. This edit still needs an execution graph that represents every planned operation.',
       false,
       true,
       false,
@@ -1405,12 +1411,43 @@ async function synchronizeExactEditPreferenceAuthority(
       ),
     }
   }
-  if (!exactPreferenceValuesEqual(current.values, desiredValues)) {
+  const loadedAuthorityValues = input.plannerInput.currentEditPreferenceAuthorityValues
+    ? parseExactEditPreferenceValues(input.plannerInput.currentEditPreferenceAuthorityValues)
+    : null
+  // A planning evidence write may advance the aggregate record revision without
+  // changing the seven saved preferences. The immutable baseline snapshot ID
+  // is also server-owned and is replaced from this exact read below. Neither
+  // value is browser preference-mutation authority, so stale detection is
+  // intentionally limited to the semantic saved-preference identity.
+  const hasLoadedAuthorityExpectation = Boolean(
+    loadedAuthorityValues ||
+    input.plannerInput.currentEditPreferenceRevision !== undefined ||
+    input.plannerInput.currentEditPreferencePlanningInputRevision !== undefined ||
+    input.plannerInput.currentEditPreferenceFingerprintSha256 !== undefined,
+  )
+  const staleLoadedAuthority = hasLoadedAuthorityExpectation && (
+    (loadedAuthorityValues && !exactPreferenceValuesEqual(current.values, loadedAuthorityValues))
+    || (
+      input.plannerInput.currentEditPreferenceRevision !== undefined
+      && input.plannerInput.currentEditPreferenceRevision !== current.preferenceRevision
+    )
+    || (
+      input.plannerInput.currentEditPreferencePlanningInputRevision !== undefined
+      && input.plannerInput.currentEditPreferencePlanningInputRevision
+        !== current.planningInputRevision
+    )
+    || (
+      input.plannerInput.currentEditPreferenceFingerprintSha256 !== undefined
+      && input.plannerInput.currentEditPreferenceFingerprintSha256
+        !== current.preferenceFingerprintSha256
+    )
+  )
+  if (staleLoadedAuthority) {
     return {
       ok: false,
       failure: preferenceSynchronizationFailure(
         'blocked',
-        'Current Edit Preferences changed after Chat loaded this edit. Refresh the exact edit before creating a plan.',
+        'Current Edit Preferences changed after Chat loaded this edit. Refresh the exact edit before creating a plan; explicit Chat choices were not discarded.',
         false,
         readResponse.warnings,
       ),

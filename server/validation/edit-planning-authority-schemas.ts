@@ -4,6 +4,7 @@ import { planningInputAuthorityExpectationSchema } from './planning-input-author
 import { sourceMediaAuthorityExpectationSchema } from './source-media-authority-schemas'
 import { canonicalStorytellingStyleAuthoritySchema } from './canonical-storytelling-style-authority-schemas'
 import { canonicalMotionStudioStorytellingProductionAuthoritySchema } from './canonical-motion-studio-storytelling-production-authority-schemas'
+import { exactEditPreferenceValuesSchema } from './exact-edit-preference-schemas'
 import { sha256AuthorityValue } from '../services/private-edit-authority-store'
 import {
   PROFESSIONAL_EXPORT_ASPECT_RATIOS,
@@ -86,6 +87,49 @@ const confirmedSettingsSchema = z.object({
   preferencePlanningInputRevision: z.number().int().nonnegative(),
   preferenceFingerprintSha256: sha256Schema,
 }).strict()
+
+const exactEditPreferenceFieldKeySchema = z.enum([
+  'editLevel',
+  'workflowType',
+  'cleanupPreference',
+  'visualPreference',
+  'moodStyle',
+  'creditPreference',
+  'targetPlatform',
+])
+
+export const canonicalExactEditPreferenceInstructionSchema = z.object({
+  schemaVersion: z.literal('canonical-exact-edit-preference-instruction-v1'),
+  source: z.enum(['current_edit_preferences', 'explicit_chat_setup']),
+  base: z.object({
+    preferenceRevision: z.number().int().nonnegative(),
+    planningInputRevision: z.number().int().nonnegative(),
+    preferenceFingerprintSha256: sha256Schema,
+    preferenceSnapshotId: safeKeySchema,
+  }).strict(),
+  effectiveValues: exactEditPreferenceValuesSchema,
+  overrideKeys: z.array(exactEditPreferenceFieldKeySchema).max(7),
+  overrides: exactEditPreferenceValuesSchema.partial().strict(),
+  browserMutationAuthorityGranted: z.literal(false),
+}).strict().superRefine((instruction, context) => {
+  const uniqueOverrideKeys = Array.from(new Set(instruction.overrideKeys))
+  if (uniqueOverrideKeys.length !== instruction.overrideKeys.length) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['overrideKeys'],
+      message: 'Chat preference override keys must be unique.',
+    })
+  }
+  const overrideObjectKeys = Object.keys(instruction.overrides).sort()
+  const declaredOverrideKeys = [...instruction.overrideKeys].sort()
+  if (JSON.stringify(overrideObjectKeys) !== JSON.stringify(declaredOverrideKeys)) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['overrides'],
+      message: 'Chat preference override fields must exactly match overrideKeys.',
+    })
+  }
+})
 
 const confirmedSourceCleanupSummarySchema = z.object({
   status: z.literal('confirmed'),
@@ -181,6 +225,8 @@ export const canonicalPlanComponentsSchema = z.object({
   compiledIntent: jsonObjectSchema,
   professionalEditingDirective: jsonObjectSchema,
   confirmedSettings: confirmedSettingsSchema,
+  exactEditPreferenceInstruction:
+    canonicalExactEditPreferenceInstructionSchema.optional(),
   sourceSequence: z.array(sourceSequenceItemSchema).max(1_000),
   sourceCleanupSummary: sourceCleanupSummarySchema,
   sourceCleanupPlan: canonicalSourceCleanupPlanSchema,

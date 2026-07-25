@@ -104,7 +104,6 @@ export async function gotoEditor(page: Page, path = '/editor') {
 }
 
 export async function clickWhenReady(locator: Locator) {
-  await locator.scrollIntoViewIfNeeded()
   await expect(locator).toBeVisible()
   await expect(locator).toBeEnabled()
   await locator.click()
@@ -141,15 +140,21 @@ export async function uploadEditorSourceFile(page: Page, fileName = 'e2e-source-
   await expect(sourceCard).toContainText(/File uploaded to private source storage|Source file uploaded|Source file planned/i)
 }
 
-export async function uploadEditorGateSourceVideo(page: Page, fileName = 'e2e-source-story.mp4') {
+export async function uploadEditorGateSourceVideo(
+  page: Page,
+  fileName = 'e2e-source-story.mp4',
+  sourceFilePath?: string,
+) {
   const gate = page.getByTestId('edit-upload-gate')
   await expect(gate).toBeVisible()
   await expect(page.getByTestId('chat-composer-textarea')).toBeDisabled()
-  await page.getByTestId('edit-upload-gate-input').setInputFiles({
-    name: fileName,
-    mimeType: 'video/mp4',
-    buffer: Buffer.from(`mock-safe uploaded source video bytes for ${fileName}`),
-  })
+  await page.getByTestId('edit-upload-gate-input').setInputFiles(
+    sourceFilePath ?? {
+      name: fileName,
+      mimeType: 'video/mp4',
+      buffer: Buffer.from(`mock-safe uploaded source video bytes for ${fileName}`),
+    },
+  )
 
   const cleanSource = page.getByTestId('source-summary')
   const legacySource = page.getByTestId('source-sequence-card')

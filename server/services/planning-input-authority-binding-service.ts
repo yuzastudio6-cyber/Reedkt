@@ -28,6 +28,9 @@ import type {
   CanonicalExactEditPlanningAuthorityRead,
 } from '../../src/types/canonical-exact-edit-planning-authority'
 import { sha256AuthorityValue, stableAuthorityStringify } from './private-edit-authority-store'
+import {
+  resolveCanonicalExactEditPreferenceInstruction,
+} from './canonical-exact-edit-preference-instruction'
 
 export interface PlanningInputAuthorityScope {
   localStorageRoot: string
@@ -191,10 +194,9 @@ function resolveExactEditPreferenceBinding(
   if (authority.frameConfirmation.status !== 'confirmed') {
     throw new ApiError('PLAN_NOT_APPROVED', 'Confirmed output-frame evidence is required before canonical plan publication.', 409)
   }
+  const preferenceInstruction =
+    resolveCanonicalExactEditPreferenceInstruction({ authority, components })
   if (
-    components.confirmedSettings.editLevel !== authority.values.editLevel ||
-    components.confirmedSettings.targetPlatform !== authority.values.targetPlatform ||
-    components.sourceCleanupSummary.cleanupPreference !== authority.values.cleanupPreference ||
     components.confirmedSettings.aspectRatio !== authority.frameConfirmation.aspectRatio ||
     components.confirmedSettings.preferenceSnapshotId
       !== authority.baseline.preferenceSnapshotId ||
@@ -216,6 +218,11 @@ function resolveExactEditPreferenceBinding(
     planningInputRevision: authority.planningInputRevision,
     preferenceFingerprintSha256: authority.preferenceFingerprintSha256,
     values: structuredClone(authority.values),
+    effectiveValues: preferenceInstruction.effectiveValues,
+    instructionSource: preferenceInstruction.source,
+    explicitChatOverrideKeys: preferenceInstruction.overrideKeys,
+    explicitChatOverrides: preferenceInstruction.overrides,
+    instructionHash: preferenceInstruction.instructionHash,
     baseline: {
       preferenceSnapshotId: authority.baseline.preferenceSnapshotId,
       persistenceSource: authority.baseline.persistenceSource,

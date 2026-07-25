@@ -1077,6 +1077,26 @@ try {
     'route-edit-session',
   )
   assert.ok(exactPreferenceBeforeRejectedHandoff.preferenceRecord)
+  const routePreferenceRecord = exactPreferenceBeforeRejectedHandoff.preferenceRecord
+  routePlanBody.canonicalPlan.components.confirmedSettings.targetPlatform = 'youtube'
+  routePlanBody.canonicalPlan.components.exactEditPreferenceInstruction = {
+    schemaVersion: 'canonical-exact-edit-preference-instruction-v1',
+    source: 'explicit_chat_setup',
+    base: {
+      preferenceRevision: routePreferenceRecord.preferenceRevision,
+      planningInputRevision: routePreferenceRecord.planning.planningInputRevision,
+      preferenceFingerprintSha256:
+        routePreferenceRecord.planning.preferenceFingerprintSha256,
+      preferenceSnapshotId: routePreferenceRecord.baseline.preferenceSnapshotId,
+    },
+    effectiveValues: {
+      ...routePreferenceRecord.values,
+      targetPlatform: 'youtube',
+    },
+    overrideKeys: ['targetPlatform'],
+    overrides: { targetPlatform: 'youtube' },
+    browserMutationAuthorityGranted: false,
+  }
   const mismatchedPreferenceHandoffResponse = await fetch(planningHandoffUrl, {
     method: 'POST',
     headers: { ...routeAuthHeaders, 'content-type': 'application/json' },
@@ -1084,6 +1104,7 @@ try {
       ...planningHandoffBody,
       canonicalPlanComponents: {
         ...planningHandoffBody.canonicalPlanComponents,
+        exactEditPreferenceInstruction: undefined,
         confirmedSettings: {
           ...planningHandoffBody.canonicalPlanComponents.confirmedSettings,
           targetPlatform: 'youtube',
@@ -1797,8 +1818,16 @@ try {
       body: JSON.stringify(canonicalApprovalBody),
     }),
   ])
-  assert.equal(approveResponse.status, 201)
-  assert.equal(concurrentApproveResponse.status, 201)
+  assert.equal(
+    approveResponse.status,
+    201,
+    await approveResponse.clone().text(),
+  )
+  assert.equal(
+    concurrentApproveResponse.status,
+    201,
+    await concurrentApproveResponse.clone().text(),
+  )
   const approveEnvelope = await approveResponse.json() as {
     data?: { canonicalPlanApproval?: Record<string, unknown> }
   }
@@ -2486,9 +2515,9 @@ try {
   assert.equal(workGraphContinuationQueue.leasedJobCount, 0)
   assert.equal(workGraphContinuationQueue.recoveredCompletedJobCount, 2)
   assert.equal(workGraphContinuationQueue.completedReplayCount, 0)
-  assert.equal(workGraphContinuationQueue.claimedJobCount, 0)
+  assert.equal(workGraphContinuationQueue.claimedJobCount, 1)
   assert.equal(workGraphContinuationQueue.claimCompletionCount, 0)
-  assert.equal(workGraphContinuationQueue.claimReleaseCount, 0)
+  assert.equal(workGraphContinuationQueue.claimReleaseCount, 1)
   assert.equal(
     await readFile(workGraphProgressPointerPath, 'utf8'),
     workGraphProgressPointerBeforeContinuation,

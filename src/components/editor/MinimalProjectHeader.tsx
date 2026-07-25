@@ -221,6 +221,7 @@ function headerStatus(stage: EditWorkspaceStage): {
   if (stage === 'plan_review') return { label: 'Plan ready', tone: 'attention' }
   if (stage === 'approved_review_building') return { label: 'Plan + credits approved', tone: 'success' }
   if (stage === 'review_ready') return { label: 'Review ready', tone: 'success' }
+  if (stage === 'review_approved') return { label: 'Review approved', tone: 'success' }
   if (stage === 'revision_requested') return { label: 'Revision requested', tone: 'attention' }
   return { label: 'Needs attention', tone: 'attention' }
 }

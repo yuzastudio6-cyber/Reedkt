@@ -178,6 +178,27 @@ assertMediaAttemptResourceObservation(
 const ffmpegReplay = await runtime.execute(ffmpegRequest)
 assert.equal(ffmpegReplay.resultArtifact.sha256, ffmpegResult.resultArtifact.sha256)
 
+const frameRateNormalizedTrimRequest = {
+  ...ffmpegRequest,
+  payload: {
+    ...ffmpegRequest.payload,
+    trimStartFrame: 15,
+    trimEndFrameExclusive: 45,
+    frameRate: 30 as const,
+  },
+}
+const frameRateNormalizedTrim = await runtime.execute(
+  frameRateNormalizedTrimRequest,
+)
+assert.equal(
+  frameRateNormalizedTrim.evidence.semanticEvidence.outputFrameCount,
+  30,
+)
+assert.equal(
+  frameRateNormalizedTrim.evidence.semanticEvidence.outputProbeVerified,
+  true,
+)
+
 const voiceDeliveryRequest = {
   schemaVersion: OFFLINE_MEDIA_BINARY_PROTOCOL,
   toolId: 'ffmpeg' as const,
@@ -377,6 +398,58 @@ assert.notDeepEqual(colorEvidence.sourcePixelAnalysis, colorEvidence.outputPixel
 assert.notEqual(colorDeliveryResult.resultArtifact.sha256, sourceAuthority.sourceSha256)
 const colorDeliveryReplay = await runtime.execute(colorDeliveryRequest)
 assert.equal(colorDeliveryReplay.resultArtifact.sha256, colorDeliveryResult.resultArtifact.sha256)
+
+const frameRateNormalizedColorRequest = {
+  ...colorDeliveryRequest,
+  payload: {
+    ...colorDeliveryRequest.payload,
+    trimEndFrameExclusive: 60,
+    frameRate: 30 as const,
+  },
+}
+const frameRateNormalizedColor = await runtime.execute(
+  frameRateNormalizedColorRequest,
+)
+assert.equal(
+  frameRateNormalizedColor.evidence.semanticEvidence.outputFrameCount,
+  60,
+)
+assert.equal(
+  frameRateNormalizedColor.evidence.semanticEvidence
+    .timelineFrameRateNormalizationApplied,
+  true,
+)
+assert.equal(
+  frameRateNormalizedColor.evidence.semanticEvidence.outputProbeVerified,
+  true,
+)
+const independentlyProbedNormalizedColor = spawnSync('ffprobe', [
+  '-v', 'error', '-count_frames',
+  '-show_entries', 'stream=codec_name,avg_frame_rate,nb_read_frames',
+  '-of', 'json', '-i', 'pipe:0',
+], {
+  input: frameRateNormalizedColor.resultArtifact.bytes,
+  maxBuffer: 4 * 1024 * 1024,
+})
+assert.equal(
+  independentlyProbedNormalizedColor.status,
+  0,
+  independentlyProbedNormalizedColor.stderr.toString('utf8'),
+)
+const normalizedColorProbe = JSON.parse(
+  independentlyProbedNormalizedColor.stdout.toString('utf8'),
+) as {
+  streams: Array<{
+    codec_name?: string
+    avg_frame_rate?: string
+    nb_read_frames?: string
+  }>
+}
+assert.deepEqual(normalizedColorProbe.streams[0], {
+  codec_name: 'vp9',
+  avg_frame_rate: '30/1',
+  nb_read_frames: '60',
+})
 
 const colorMatchRequest = {
   schemaVersion: OFFLINE_MEDIA_BINARY_PROTOCOL,

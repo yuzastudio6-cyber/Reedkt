@@ -41,6 +41,11 @@ const stagePresentation: Record<EditWorkspaceStage, {
     label: 'Private review ready',
     tone: 'success',
   },
+  review_approved: {
+    description: 'The private review is approved. Public delivery remains a separate gated step.',
+    label: 'Private review approved',
+    tone: 'success',
+  },
   revision_requested: {
     description: 'Use Chat to confirm the requested changes before a new approval.',
     label: 'Changes requested',

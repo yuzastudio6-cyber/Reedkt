@@ -158,6 +158,7 @@ const PLAN_COMPONENT_NAMES = [
 ] as const satisfies readonly (keyof CanonicalPlanComponentsInput)[]
 
 const OPTIONAL_PLAN_COMPONENT_NAMES = [
+  'exactEditPreferenceInstruction',
   CANONICAL_STORYTELLING_STYLE_AUTHORITY_COMPONENT_KEY,
   CANONICAL_MOTION_STUDIO_STORYTELLING_PRODUCTION_AUTHORITY_COMPONENT_KEY,
 ] as const satisfies readonly (keyof CanonicalPlanComponentsInput)[]

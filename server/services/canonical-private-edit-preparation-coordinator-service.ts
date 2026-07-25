@@ -126,7 +126,15 @@ export function createCanonicalPrivateEditPreparationCoordinatorService(
         const blockedJobCount = workGraphRun.summary.capabilityBlockedJobCount +
           workGraphRun.summary.dependencyBlockedJobCount
         const retryAvailable = workGraphRun.jobs.some((job) =>
-          job.status === 'failed_retry_available')
+          job.status === 'failed_retry_available' ||
+          (
+            job.status === 'blocked_by_job_capability' &&
+            job.blockerCode === 'TOOL_NOT_READY' &&
+            ![
+              'canonical_package_work_queue_approved_attempts_exhausted',
+              'canonical_package_work_queue_user_review_required',
+            ].includes(job.requiredGate ?? '')
+          ))
         const userReviewRequired = workGraphRun.jobs.some((job) =>
           job.status === 'failed_user_review_required')
         return blockedResult({

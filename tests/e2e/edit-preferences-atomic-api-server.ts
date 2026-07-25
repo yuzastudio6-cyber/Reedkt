@@ -69,6 +69,25 @@ import {
   createPrivateLocalMotionStudioCommandRepository,
   createPrivateLocalMotionStudioCommandRepositoryRuntimePort,
 } from '../../server/motion-studio/commands'
+import {
+  readPrivateFileIfExistsWithinRoot,
+  writePrivateFileAtomicWithinRoot,
+} from '../../server/security/private-local-persistence'
+import {
+  readLatestPrivateCanonicalPlanningHandoff,
+} from '../../server/services/private-canonical-planning-handoff-store'
+import { createInternalEditStateService } from '../../server/services/internal-edit-state-service'
+import type { ServiceContext } from '../../server/types'
+import {
+  exactEditPreferenceValuesSchema,
+} from '../../server/validation/exact-edit-preference-schemas'
+
+type ConfirmedAspectRatio = '9:16' | '16:9' | '1:1' | '4:5' | '4:3'
+
+const LOCAL_PRIVATE_EXECUTION_INTERNAL_SERVICE_TOKEN =
+  'reeditpro-local-private-break-test-worker-lease-authority-v1'
+const LOCAL_EXACT_EDIT_STATE_RECORD_VERSION =
+  'reeditpro-local-break-test-exact-edit-state-v1' as const
 
 type ExactEditState = {
   values: EditReferenceProductionExactEditPreferenceValues
@@ -81,7 +100,7 @@ type ExactEditState = {
     evidenceHashSha256: string | null
     confirmedAt: string | null
   }
-  frameConfirmed: boolean
+  confirmedAspectRatio: ConfirmedAspectRatio | null
   currentApplicationId: string | null
 }
 
@@ -104,9 +123,7 @@ const applicationPreparation =
 
 const planningPort: PlanningExactEditPreferenceAuthorityPort = Object.freeze({
   async readExactPreferenceState(scope) {
-    const state = getOrCreateState(
-      stateKey(scope.workspaceId, scope.projectId, scope.editSessionId),
-    )
+    const state = await getOrCreateStateForScope(scope)
     return planningResolution(scope, state)
   },
 
@@ -120,14 +137,17 @@ const planningPort: PlanningExactEditPreferenceAuthorityPort = Object.freeze({
       || request.editSessionId !== scope.editSessionId
     ) throw new ApiError('IDEMPOTENCY_CONFLICT', 'Planning evidence scope changed.', 409)
     const key = stateKey(scope.workspaceId, scope.projectId, scope.editSessionId)
-    const state = getOrCreateState(key)
+    const state = await getOrCreateStateForScope(scope)
     if (
       state.preferenceRevision !== request.expectedPreferenceRevision
       || state.planningInputRevision !== request.expectedPlanningInputRevision
       || sha256(state.values) !== request.expectedPreferenceFingerprintSha256
       || request.expectedBaselinePreferenceSnapshotId !== baselineSnapshotId(key)
     ) throw new ApiError('IDEMPOTENCY_CONFLICT', 'Planning authority changed.', 409)
-    if (!state.frameConfirmed || request.confirmedAspectRatio !== '9:16') {
+    if (
+      !state.confirmedAspectRatio
+      || request.confirmedAspectRatio !== state.confirmedAspectRatio
+    ) {
       throw new ApiError('PLAN_NOT_APPROVED', 'Confirm the exact output frame.', 409)
     }
     const exactReplay = state.sourcePreparation.status === 'ready'
@@ -135,8 +155,9 @@ const planningPort: PlanningExactEditPreferenceAuthorityPort = Object.freeze({
         === request.sourceCandidateHashSha256
       && state.sourcePreparation.evidenceHashSha256
         === request.sourcePreparationEvidenceHashSha256
+    let nextState = state
     if (!exactReplay) {
-      states.set(key, {
+      nextState = {
         ...state,
         recordRevision: state.recordRevision + 1,
         sourcePreparation: {
@@ -145,9 +166,10 @@ const planningPort: PlanningExactEditPreferenceAuthorityPort = Object.freeze({
           evidenceHashSha256: request.sourcePreparationEvidenceHashSha256,
           confirmedAt: new Date().toISOString(),
         },
-      })
+      }
+      await persistExactEditState(scope, nextState)
     }
-    return planningResolution(scope, getOrCreateState(key))
+    return planningResolution(scope, nextState)
   },
 })
 
@@ -173,7 +195,7 @@ const runtimePort: EditReferenceExactEditApplyRuntimePort = Object.freeze({
 
   async readAuthority({ scope }) {
     const key = stateKey(scope.workspaceId, scope.projectId, scope.editSessionId)
-    const state = getOrCreateState(key)
+    const state = await getOrCreateStateForScope(scope)
     const readAt = new Date().toISOString()
     const selectedApplicationAuthority = scope.selectedApplicationId
       ? applicationPreparation.readApplicationAuthority({
@@ -207,7 +229,7 @@ const runtimePort: EditReferenceExactEditApplyRuntimePort = Object.freeze({
       locked: false,
       currentApplicationState: state.currentApplicationId ? 'connected' : 'not_selected',
       currentApplicationId: state.currentApplicationId,
-      outputFrameAuthority: state.frameConfirmed
+      outputFrameAuthority: state.confirmedAspectRatio
         ? createEditReferenceProductionOutputFrameAuthority({
             repositoryAuthority: 'supabase_rls_transactional',
             workspaceId: scope.workspaceId,
@@ -216,7 +238,7 @@ const runtimePort: EditReferenceExactEditApplyRuntimePort = Object.freeze({
             exactEditPreferenceRecordRevision: state.recordRevision,
             planningInputRevision: state.planningInputRevision,
             confirmationId: `atomic-ui-frame-${sha256(key).slice(0, 40)}`,
-            aspectRatio: '9:16',
+            aspectRatio: state.confirmedAspectRatio,
             confirmedAt: '2026-07-21T00:00:00.000Z',
           })
         : null,
@@ -240,8 +262,12 @@ const runtimePort: EditReferenceExactEditApplyRuntimePort = Object.freeze({
       return structuredClone(existing.receipt)
     }
 
-    const key = stateKey(request.workspaceId, request.projectId, request.editSessionId)
-    const state = states.get(key)
+    const state = await getOrCreateStateForScope({
+      ownerUserId: request.actorUserId,
+      workspaceId: request.workspaceId,
+      projectId: request.projectId,
+      editSessionId: request.editSessionId,
+    })
     if (
       !state
       || state.recordRevision !== request.expectedPreferenceRecordRevision
@@ -268,9 +294,9 @@ const runtimePort: EditReferenceExactEditApplyRuntimePort = Object.freeze({
             confirmedAt: null,
           }
         : state.sourcePreparation,
-      frameConfirmed: request.outputFrameDisposition === 'requires_reconfirmation'
-        ? false
-        : state.frameConfirmed,
+      confirmedAspectRatio: request.outputFrameDisposition === 'requires_reconfirmation'
+        ? null
+        : state.confirmedAspectRatio,
       currentApplicationId: request.referenceLifecycleRequest?.mutation === 'remove'
         ? null
         : request.referenceLifecycleRequest?.applicationId ?? state.currentApplicationId,
@@ -301,7 +327,12 @@ const runtimePort: EditReferenceExactEditApplyRuntimePort = Object.freeze({
       ...receiptWithoutDigest,
       transactionReceiptDigestSha256: sha256(receiptWithoutDigest),
     }
-    states.set(key, nextState)
+    await persistExactEditState({
+      ownerUserId: request.actorUserId,
+      workspaceId: request.workspaceId,
+      projectId: request.projectId,
+      editSessionId: request.editSessionId,
+    }, nextState)
     if (request.referenceLifecycleRequest) {
       applicationPreparation.markLifecycle({
         workspaceId: request.workspaceId,
@@ -330,6 +361,10 @@ const env = loadRuntimeEnv({
     ?? resolve('test-results/current-edit-preferences-atomic-storage'),
   PROVIDER_EXECUTION_ENABLED: 'false',
   WORKER_RUNTIME_MODE: 'mock',
+  // This explicit non-production fixture derives opaque local worker leases.
+  // It is never accepted as deployed service identity or provider authority.
+  REEDITPRO_INTERNAL_SERVICE_TOKEN:
+    LOCAL_PRIVATE_EXECUTION_INTERNAL_SERVICE_TOKEN,
 })
 const editReferenceDomainRepositoryRuntimePort =
   createOptionalCanonicalV3LocalDomainRepositoryRuntimePort()
@@ -536,10 +571,8 @@ function stateKey(workspaceId: string, projectId: string, editSessionId: string)
   return `${workspaceId}\n${projectId}\n${editSessionId}`
 }
 
-function getOrCreateState(key: string): ExactEditState {
-  const existing = states.get(key)
-  if (existing) return existing
-  const created: ExactEditState = {
+function createDefaultExactEditState(): ExactEditState {
+  return {
     values: structuredClone(defaultValues),
     recordRevision: 0,
     preferenceRevision: 0,
@@ -550,11 +583,309 @@ function getOrCreateState(key: string): ExactEditState {
       evidenceHashSha256: null,
       confirmedAt: null,
     },
-    frameConfirmed: true,
+    confirmedAspectRatio: null,
     currentApplicationId: null,
   }
-  states.set(key, created)
-  return created
+}
+
+async function getOrCreateStateForScope(scope: {
+  readonly ownerUserId: string
+  readonly workspaceId: string
+  readonly projectId: string
+  readonly editSessionId: string
+}): Promise<ExactEditState> {
+  const key = stateKey(scope.workspaceId, scope.projectId, scope.editSessionId)
+  let current = states.get(key)
+  if (!current) {
+    current = await readPersistedExactEditState(scope)
+      ?? await restoreExactEditStateFromLatestPlanningHandoff(scope)
+      ?? createDefaultExactEditState()
+    states.set(key, current)
+  }
+  const durableFrame = await readDurableLocalConfirmedFrame(scope)
+  if (durableFrame === undefined || durableFrame === current.confirmedAspectRatio) {
+    return current
+  }
+  const synchronized: ExactEditState = {
+    ...current,
+    recordRevision: current.recordRevision + 1,
+    confirmedAspectRatio: durableFrame,
+  }
+  await persistExactEditState(scope, synchronized)
+  return synchronized
+}
+
+async function restoreExactEditStateFromLatestPlanningHandoff(scope: {
+  readonly ownerUserId: string
+  readonly workspaceId: string
+  readonly projectId: string
+  readonly editSessionId: string
+}): Promise<ExactEditState | undefined> {
+  const handoff = await readLatestPrivateCanonicalPlanningHandoff({
+    localStorageRoot: env.localStorageRoot,
+    ownerUserId: scope.ownerUserId,
+    workspaceId: scope.workspaceId,
+    projectId: scope.projectId,
+    editSessionId: scope.editSessionId,
+  })
+  if (!handoff) return undefined
+  const exact = handoff.resolvedPlanningInputAuthority.exactEditPreference
+  const application =
+    handoff.resolvedPlanningInputAuthority.preferenceApplication
+  const restored: ExactEditState = {
+    values: exactEditPreferenceValuesSchema.parse(exact.values),
+    recordRevision: exact.recordRevision,
+    preferenceRevision: exact.preferenceRevision,
+    planningInputRevision: exact.planningInputRevision,
+    sourcePreparation: {
+      status: 'ready',
+      sourceCandidateHashSha256: exact.sourceCandidateHash,
+      evidenceHashSha256: exact.sourcePreparationEvidenceHash,
+      confirmedAt: '2026-07-21T00:00:00.000Z',
+    },
+    confirmedAspectRatio: exact.confirmedAspectRatio,
+    currentApplicationId:
+      application.status === 'applied' ? application.applicationId : null,
+  }
+  await persistExactEditState(scope, restored)
+  return restored
+}
+
+async function readPersistedExactEditState(scope: {
+  readonly ownerUserId: string
+  readonly workspaceId: string
+  readonly projectId: string
+  readonly editSessionId: string
+}): Promise<ExactEditState | undefined> {
+  const bytes = await readPrivateFileIfExistsWithinRoot({
+    rootPath: env.localStorageRoot,
+    relativePath: exactEditStateRelativePath(scope),
+  })
+  if (!bytes) return undefined
+  let value: unknown
+  try {
+    value = JSON.parse(bytes.toString('utf8'))
+  } catch {
+    throw invalidPersistedExactEditState()
+  }
+  const envelope = asRecord(value)
+  const identity = asRecord(envelope?.identity)
+  const state = parsePersistedExactEditState(envelope?.state)
+  const withoutChecksum = {
+    recordVersion: envelope?.recordVersion,
+    source: envelope?.source,
+    identity,
+    state,
+  }
+  if (
+    envelope?.recordVersion !== LOCAL_EXACT_EDIT_STATE_RECORD_VERSION
+    || envelope.source !== 'reeditpro_local_break_test_exact_edit_state'
+    || identity?.ownerUserId !== scope.ownerUserId
+    || identity.workspaceId !== scope.workspaceId
+    || identity.projectId !== scope.projectId
+    || identity.editSessionId !== scope.editSessionId
+    || !state
+    || envelope.checksumSha256 !== sha256(withoutChecksum)
+  ) {
+    throw invalidPersistedExactEditState()
+  }
+  states.set(
+    stateKey(scope.workspaceId, scope.projectId, scope.editSessionId),
+    state,
+  )
+  return state
+}
+
+async function persistExactEditState(
+  scope: {
+    readonly ownerUserId: string
+    readonly workspaceId: string
+    readonly projectId: string
+    readonly editSessionId: string
+  },
+  state: ExactEditState,
+): Promise<void> {
+  const parsedState = parsePersistedExactEditState(state)
+  if (!parsedState) throw invalidPersistedExactEditState()
+  const withoutChecksum = {
+    recordVersion: LOCAL_EXACT_EDIT_STATE_RECORD_VERSION,
+    source: 'reeditpro_local_break_test_exact_edit_state' as const,
+    identity: {
+      ownerUserId: scope.ownerUserId,
+      workspaceId: scope.workspaceId,
+      projectId: scope.projectId,
+      editSessionId: scope.editSessionId,
+    },
+    state: parsedState,
+  }
+  await writePrivateFileAtomicWithinRoot({
+    rootPath: env.localStorageRoot,
+    relativePath: exactEditStateRelativePath(scope),
+    content: Buffer.from(`${stableJson({
+      ...withoutChecksum,
+      checksumSha256: sha256(withoutChecksum),
+    })}\n`, 'utf8'),
+  })
+  states.set(
+    stateKey(scope.workspaceId, scope.projectId, scope.editSessionId),
+    parsedState,
+  )
+}
+
+function exactEditStateRelativePath(scope: {
+  readonly ownerUserId: string
+  readonly workspaceId: string
+  readonly projectId: string
+  readonly editSessionId: string
+}): string {
+  return `private-internal/e2e-exact-edit-authority/v1/${sha256({
+    ownerUserId: scope.ownerUserId,
+    workspaceId: scope.workspaceId,
+    projectId: scope.projectId,
+    editSessionId: scope.editSessionId,
+  })}.json`
+}
+
+function parsePersistedExactEditState(value: unknown): ExactEditState | null {
+  const record = asRecord(value)
+  const values = exactEditPreferenceValuesSchema.safeParse(record?.values)
+  const sourcePreparation = asRecord(record?.sourcePreparation)
+  const sourceStatus = sourcePreparation?.status
+  const confirmedAspectRatio = record?.confirmedAspectRatio
+  const currentApplicationId = record?.currentApplicationId
+  if (
+    !record
+    || !values.success
+    || !isNonnegativeInteger(record.recordRevision)
+    || !isNonnegativeInteger(record.preferenceRevision)
+    || !isNonnegativeInteger(record.planningInputRevision)
+    || !['not_ready', 'requires_repreparation', 'ready'].includes(
+      String(sourceStatus),
+    )
+    || !validOptionalSha256(sourcePreparation?.sourceCandidateHashSha256)
+    || !validOptionalSha256(sourcePreparation?.evidenceHashSha256)
+    || !validOptionalTimestamp(sourcePreparation?.confirmedAt)
+    || !(
+      confirmedAspectRatio === null
+      || isConfirmedAspectRatio(confirmedAspectRatio)
+    )
+    || !(
+      currentApplicationId === null
+      || (
+        typeof currentApplicationId === 'string'
+        && currentApplicationId.length > 0
+        && currentApplicationId.length <= 200
+      )
+    )
+    || (
+      sourceStatus === 'ready'
+      && (
+        sourcePreparation?.evidenceHashSha256 === null
+        || sourcePreparation?.confirmedAt === null
+      )
+    )
+    || (
+      sourceStatus !== 'ready'
+      && (
+        sourcePreparation?.sourceCandidateHashSha256 !== null
+        || sourcePreparation?.evidenceHashSha256 !== null
+        || sourcePreparation?.confirmedAt !== null
+      )
+    )
+  ) return null
+  return {
+    values: values.data,
+    recordRevision: Number(record.recordRevision),
+    preferenceRevision: Number(record.preferenceRevision),
+    planningInputRevision: Number(record.planningInputRevision),
+    sourcePreparation: {
+      status: sourceStatus as ExactEditState['sourcePreparation']['status'],
+      sourceCandidateHashSha256:
+        sourcePreparation?.sourceCandidateHashSha256 as string | null,
+      evidenceHashSha256:
+        sourcePreparation?.evidenceHashSha256 as string | null,
+      confirmedAt: sourcePreparation?.confirmedAt as string | null,
+    },
+    confirmedAspectRatio:
+      confirmedAspectRatio as ConfirmedAspectRatio | null,
+    currentApplicationId: currentApplicationId as string | null,
+  }
+}
+
+function invalidPersistedExactEditState(): ApiError {
+  return new ApiError(
+    'INTEGRITY_CHECK_FAILED',
+    'The local exact-edit authority could not be verified after restart.',
+    409,
+  )
+}
+
+function isNonnegativeInteger(value: unknown): boolean {
+  return Number.isSafeInteger(value) && Number(value) >= 0
+}
+
+function validOptionalSha256(value: unknown): boolean {
+  return value === null
+    || (typeof value === 'string' && /^[a-f0-9]{64}$/u.test(value))
+}
+
+function validOptionalTimestamp(value: unknown): boolean {
+  return value === null
+    || (
+      typeof value === 'string'
+      && Number.isFinite(Date.parse(value))
+    )
+}
+
+async function readDurableLocalConfirmedFrame(scope: {
+  readonly ownerUserId: string
+  readonly workspaceId: string
+  readonly projectId: string
+  readonly editSessionId: string
+}): Promise<ConfirmedAspectRatio | null | undefined> {
+  const context: ServiceContext = {
+    env,
+    clients: { admin: null, public: null },
+    requestId: `atomic-ui-frame-read-${sha256(stateKey(
+      scope.workspaceId,
+      scope.projectId,
+      scope.editSessionId,
+    )).slice(0, 40)}`,
+    auth: {
+      userId: scope.ownerUserId,
+      isMockUser: true,
+    },
+  }
+  try {
+    const result = await createInternalEditStateService(context)
+      .getInternalEditState(
+        scope.workspaceId,
+        scope.projectId,
+        scope.editSessionId,
+      )
+    const handoff = asRecord(result.internalEditState.handoff)
+    const setup = asRecord(handoff?.setup)
+    if (!setup || setup.aspectRatioConfirmed !== true) return null
+    return isConfirmedAspectRatio(setup.aspectRatio)
+      ? setup.aspectRatio
+      : null
+  } catch (error) {
+    if (
+      error instanceof ApiError
+      && ['PROJECT_NOT_FOUND', 'AUTH_REQUIRED', 'ACCESS_DENIED'].includes(error.code)
+    ) return undefined
+    throw error
+  }
+}
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value !== null && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : null
+}
+
+function isConfirmedAspectRatio(value: unknown): value is ConfirmedAspectRatio {
+  return ['9:16', '16:9', '1:1', '4:5', '4:3'].includes(String(value))
 }
 
 function baselineSnapshotId(key: string): string {
@@ -602,13 +933,16 @@ function planningResolution(
           evidenceHashSha256: null,
           confirmedAt: null,
         },
-    frameConfirmation: state.frameConfirmed
+    frameConfirmation: state.confirmedAspectRatio
       ? {
           status: 'confirmed',
           confirmationId: `atomic-ui-frame-${sha256(key).slice(0, 40)}`,
-          aspectRatio: '9:16',
+          aspectRatio: state.confirmedAspectRatio,
           confirmedAt: '2026-07-21T00:00:00.000Z',
-          authorityDigestSha256: sha256({ key, aspectRatio: '9:16' }),
+          authorityDigestSha256: sha256({
+            key,
+            aspectRatio: state.confirmedAspectRatio,
+          }),
         }
       : {
           status: 'not_confirmed',
@@ -619,8 +953,10 @@ function planningResolution(
         },
     lifecyclePhase: 'planning',
     locked: false,
-    currentApplicationState: 'not_selected',
-    currentApplicationId: null,
+    currentApplicationState: state.currentApplicationId
+      ? 'connected'
+      : 'not_selected',
+    currentApplicationId: state.currentApplicationId,
     readAt,
     browserMutationAuthorityGranted: false,
     productionReleaseReadinessEvaluatedSeparately: true,

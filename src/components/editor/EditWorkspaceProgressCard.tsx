@@ -23,6 +23,7 @@ export type EditWorkspaceStage =
   | 'plan_review'
   | 'approved_review_building'
   | 'review_ready'
+  | 'review_approved'
   | 'revision_requested'
   | 'blocked'
 
@@ -95,6 +96,12 @@ const stageCopy: Record<EditWorkspaceStage, {
     icon: CheckCircle2,
     title: 'Review edit ready',
   },
+  review_approved: {
+    badge: 'Approved',
+    description: 'The private review decision is saved. Public sharing and delivery remain separate.',
+    icon: CheckCircle2,
+    title: 'Private review approved',
+  },
   revision_requested: {
     badge: 'Revision',
     description: 'A change request is attached. The next pass keeps the same source and review trace.',
@@ -110,7 +117,7 @@ const stageCopy: Record<EditWorkspaceStage, {
 }
 
 function badgeAccent(stage: EditWorkspaceStage) {
-  if (stage === 'review_ready') return 'success'
+  if (stage === 'review_ready' || stage === 'review_approved') return 'success'
   if (stage === 'blocked') return 'warning'
   if (stage === 'approved_review_building') return 'cyan'
   return 'muted'
@@ -206,7 +213,10 @@ export function EditWorkspaceProgressCard({
             <strong>Planned edit work</strong>
             <span>{skillDisplay?.briefSourceLabel}</span>
           </div>
-          <p>{professionalSkillStageSummary(stage, skillPlan)}</p>
+          <p>{professionalSkillStageSummary(
+            stage === 'review_approved' ? 'review_ready' : stage,
+            skillPlan,
+          )}</p>
           <ul>
             {skillDisplay?.activityItems.map((activity) => (
               <li key={activity.id}>

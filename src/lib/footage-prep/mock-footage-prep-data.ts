@@ -26,6 +26,7 @@ export interface MockFootagePrepSourceMedia {
   frameRate?: number
   hasAudio?: boolean
   mockScenario?: MockSourceMediaScenario
+  sourceMetadataAuthority?: 'verified_private_upload_probe'
 }
 
 export interface MockFootagePrepInput {

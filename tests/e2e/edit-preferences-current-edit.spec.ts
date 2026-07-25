@@ -209,7 +209,11 @@ test.describe('saved and current Edit Preferences', () => {
 
   test('clears a stale draft plan and requires source prep again when cleanup changes', async ({ page }) => {
     await createNamedEdit(page, 'replan')
-    await uploadEditorGateSourceVideo(page, 'current-preferences-source.mp4')
+    await uploadEditorGateSourceVideo(
+      page,
+      path.basename(approvedPreferenceSourceFixturePath),
+      approvedPreferenceSourceFixturePath,
+    )
     await page.getByTestId('chat-composer-textarea').fill('Create a concise product update with a calm, premium finish.')
     await clickWhenReady(page.getByTestId('chat-composer-send'))
     await completeRequiredEditorSetupBeforeFootagePrep(page)

@@ -2704,15 +2704,16 @@ async function createCanonicalEditBriefMarkerBeforeBrief(
   await workspace.getByLabel('Timeline playhead').fill(
     String(approvedEditBriefMarker.startSeconds),
   )
-  await clickWhenReady(workspace.getByRole('button', { name: /Add marker at/i }))
+  await clickWhenReady(workspace.getByTestId('edit-brief-add-direction'))
 
-  const inspector = workspace.getByRole('complementary', {
-    name: 'Edit Brief marker inspector',
-  })
-  await inspector.getByLabel('Type').selectOption('caption')
-  await inspector.getByLabel('Priority').selectOption('must_follow')
-  await inspector.getByLabel('Marker title').fill(approvedEditBriefMarker.title)
-  await inspector
+  const directionPopover = page.getByTestId('edit-brief-marker-popover')
+  await expect(directionPopover).toBeVisible()
+  await expect(directionPopover.getByLabel('What should happen here?')).toBeFocused()
+  await clickWhenReady(directionPopover.locator('summary').filter({ hasText: 'More options' }))
+  await directionPopover.getByLabel('Type').selectOption('caption')
+  await directionPopover.getByLabel('Priority').selectOption('must_follow')
+  await directionPopover.getByLabel('Short label (optional)').fill(approvedEditBriefMarker.title)
+  await directionPopover
     .getByLabel('What should happen here?')
     .fill(approvedEditBriefMarker.note)
 
@@ -2721,7 +2722,7 @@ async function createCanonicalEditBriefMarkerBeforeBrief(
     return request.method() === 'POST'
       && /\/edit-brief\/markers(?:\?|$)/.test(request.url())
   }, { timeout: 15_000 })
-  await clickWhenReady(inspector.getByRole('button', { name: 'Create marker' }))
+  await clickWhenReady(directionPopover.getByRole('button', { name: 'Add direction' }))
   const markerCreateResponse = await markerCreate
   assert.equal(
     markerCreateResponse.status(),
@@ -2757,7 +2758,6 @@ async function createCanonicalEditBriefMarkerBeforeBrief(
     page,
     scope,
     workspace,
-    inspector,
     firstMarkerId: markerOnlyAuthority.markers[0]!.id,
   })
   return markerOnlyAuthority.markers[0]!.id
@@ -2767,24 +2767,22 @@ async function assertOverlappingEditBriefMarkersStackAndArchive(input: {
   page: Page
   scope: { projectId: string; editSessionId: string }
   workspace: Locator
-  inspector: Locator
   firstMarkerId: string
 }): Promise<void> {
   const {
     page,
     scope,
     workspace,
-    inspector,
     firstMarkerId,
   } = input
   const secondMarkerTitle = 'Supporting proof at the same moment'
-  await clickWhenReady(workspace.getByRole('button', { name: /Add marker at/i }))
-  await page.evaluate(() => new Promise<void>((resolve) => {
-    window.requestAnimationFrame(() => window.requestAnimationFrame(() => resolve()))
-  }))
-  await expect(inspector.getByRole('heading', { name: 'New marker' })).toBeVisible()
-  await inspector.getByLabel('Marker title').fill(secondMarkerTitle)
-  await inspector
+  await clickWhenReady(workspace.getByTestId('edit-brief-add-direction'))
+  const directionPopover = page.getByTestId('edit-brief-marker-popover')
+  await expect(directionPopover).toBeVisible()
+  await expect(directionPopover.getByLabel('What should happen here?')).toBeFocused()
+  await clickWhenReady(directionPopover.locator('summary').filter({ hasText: 'More options' }))
+  await directionPopover.getByLabel('Short label (optional)').fill(secondMarkerTitle)
+  await directionPopover
     .getByLabel('What should happen here?')
     .fill('Keep this supporting instruction independently editable at the same source moment.')
 
@@ -2793,7 +2791,7 @@ async function assertOverlappingEditBriefMarkersStackAndArchive(input: {
     return request.method() === 'POST'
       && /\/edit-brief\/markers(?:\?|$)/.test(request.url())
   }, { timeout: 15_000 })
-  await clickWhenReady(inspector.getByRole('button', { name: 'Create marker' }))
+  await clickWhenReady(directionPopover.getByRole('button', { name: 'Add direction' }))
   const markerCreateResponse = await markerCreate
   assert.equal(
     markerCreateResponse.status(),
@@ -2820,12 +2818,13 @@ async function assertOverlappingEditBriefMarkersStackAndArchive(input: {
     name: new RegExp(secondMarkerTitle, 'i'),
   })
   await clickWhenReady(secondMarker)
+  await expect(directionPopover).toBeVisible()
   const markerArchive = page.waitForResponse((response) => {
     const request = response.request()
     return request.method() === 'POST'
       && /\/edit-brief\/markers\/[^/]+\/archive(?:\?|$)/.test(request.url())
   }, { timeout: 15_000 })
-  await clickWhenReady(inspector.getByRole('button', { name: 'Archive' }))
+  await clickWhenReady(directionPopover.getByRole('button', { name: 'Archive' }))
   const markerArchiveResponse = await markerArchive
   assert.equal(
     markerArchiveResponse.status(),
@@ -2863,16 +2862,29 @@ async function confirmCanonicalEditBriefMarker(
 ): Promise<void> {
   const workspace = page.getByTestId('editor-edit-brief-canvas')
   const status = workspace.getByTestId('edit-brief-authority-status')
-  const inspector = workspace.getByRole('complementary', {
-    name: 'Edit Brief marker inspector',
-  })
-  const markerConfirm = page.waitForResponse((response) => {
-    const request = response.request()
-    return request.method() === 'POST'
-      && /\/edit-brief\/markers\/[^/]+\/confirm(?:\?|$)/.test(request.url())
-  }, { timeout: 15_000 })
-  await clickWhenReady(inspector.getByRole('button', { name: 'Confirm for plan' }))
-  const markerConfirmResponse = await markerConfirm
+  const directionPopover = page.getByTestId('edit-brief-marker-popover')
+  await expect(directionPopover).toBeVisible()
+  const confirmButton = directionPopover.getByRole('button', { name: 'Confirm for plan' })
+  // The overall Brief uses a 700 ms canonical autosave debounce. Let that
+  // exact write settle before confirming the independently persisted marker.
+  await page.waitForTimeout(900)
+  await expect(status).toContainText('Saved', { timeout: 12_000 })
+  await expect(confirmButton).toBeEnabled({ timeout: 12_000 })
+  const popoverBounds = await directionPopover.boundingBox()
+  const viewport = page.viewportSize()
+  assert.ok(popoverBounds && viewport, 'The Edit Brief direction popup must be measurable.')
+  assert.ok(
+    popoverBounds.y >= 0 && popoverBounds.y + popoverBounds.height <= viewport.height,
+    'The Edit Brief direction popup must remain inside the viewport after the user scrolls through Brief details.',
+  )
+  const [markerConfirmResponse] = await Promise.all([
+    page.waitForResponse((response) => {
+      const request = response.request()
+      return request.method() === 'POST'
+        && /\/edit-brief\/markers\/[^/]+\/confirm(?:\?|$)/.test(request.url())
+    }, { timeout: 15_000 }),
+    clickWhenReady(confirmButton),
+  ])
   assert.equal(
     markerConfirmResponse.status(),
     200,

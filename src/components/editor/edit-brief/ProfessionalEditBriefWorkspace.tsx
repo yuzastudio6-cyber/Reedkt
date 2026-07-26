@@ -234,9 +234,13 @@ export function ProfessionalEditBriefWorkspace({
         Math.min(viewportWidth - width - margin, markerX - width / 2),
       )
       const placement = bounds.top >= height + margin * 2 ? 'above' : 'below'
-      const top = placement === 'above'
+      const preferredTop = placement === 'above'
         ? Math.max(margin, bounds.top - height - 8)
         : Math.min(viewportHeight - height - margin, bounds.top + 34)
+      const top = Math.max(
+        margin,
+        Math.min(Math.max(margin, viewportHeight - height - margin), preferredTop),
+      )
       setMarkerPopoverPosition({
         arrowX: Math.max(16, Math.min(width - 16, markerX - left)),
         left,

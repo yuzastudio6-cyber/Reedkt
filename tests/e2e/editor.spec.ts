@@ -481,6 +481,15 @@ test.describe('editor mocked browser flow', () => {
     await expect(directionDetails).toHaveAttribute('open', '')
     await expect(editBriefPanel).toBeVisible()
     await expect(editBriefPanel).toContainText(/Skip this if the prompt already says enough/i)
+    await editBriefPanel.scrollIntoViewIfNeeded()
+    await page.evaluate(() => new Promise<void>((resolve) => {
+      window.requestAnimationFrame(() => window.requestAnimationFrame(() => resolve()))
+    }))
+    const scrolledMarkerPopoverBox = await markerPopover.boundingBox()
+    expect(scrolledMarkerPopoverBox?.y ?? -1).toBeGreaterThanOrEqual(0)
+    expect(
+      (scrolledMarkerPopoverBox?.y ?? 0) + (scrolledMarkerPopoverBox?.height ?? 900),
+    ).toBeLessThanOrEqual(900)
     const workspaceLayout = page.locator('.editor-workspace-layout')
     const previewRail = page.getByTestId('edit-preview-rail')
     await expect(previewRail).toBeHidden()

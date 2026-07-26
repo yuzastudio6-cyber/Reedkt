@@ -46,3 +46,29 @@ export type {
   BindLivingFrameCanonicalPlanningInput,
   BindLivingFrameCanonicalPlanningResult,
 } from './living-frame-canonical-planning'
+
+export {
+  LIVING_FRAME_PLANNING_EVIDENCE_AUTHORITY_BOUNDARY,
+  calculateLivingFramePlanningEvidenceDigest,
+  createLivingFramePlanningEvidenceBinding,
+  livingFramePlanningEvidenceBindingDraftSchema,
+  livingFramePlanningEvidenceBindingSchema,
+  normalizeLivingFramePlanningEvidenceBindingDraft,
+  validateLivingFramePlanningEvidenceBinding,
+} from './living-frame-planning-evidence-contract'
+
+export type {
+  LivingFramePlanningEvidenceAuthorityBoundary,
+  LivingFramePlanningEvidenceBinding,
+  LivingFramePlanningEvidenceBindingDraft,
+  LivingFramePlanningEvidenceCanonicalBindings,
+  LivingFramePlanningEvidenceClass,
+  LivingFramePlanningEvidenceLocator,
+  LivingFramePlanningEvidenceSourceMode,
+  LivingFramePlanningEvidenceStatus,
+  LivingFramePlanningEvidenceValidationIssue,
+  LivingFramePlanningEvidenceValidationResult,
+  LivingFramePlanningObservationCategory,
+  LivingFramePlanningObservationProjection,
+  LivingFramePlanningSourceEvidenceProjection,
+} from '../../types/living-frame-planning-evidence'

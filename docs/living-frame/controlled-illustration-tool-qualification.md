@@ -15,10 +15,12 @@ does not say that six production tool identities should be added. Several are
 models, adapters, checkpoints, or training/loading mechanisms that may belong
 inside one future reviewed runtime profile and artifact manifest.
 
-All code-license, model-weight, commercial-use, security, and runtime statements
-below are working hypotheses. A later qualification must pin exact repository,
-package, commit, model, checkpoint, workflow, and deployment versions and then
-verify primary sources. Nothing here is installable, dispatchable, or approved.
+The source observations below were rechecked on 2026-07-25, but no exact commit,
+release, package, model, checkpoint, workflow, base model, or deployment version
+is pinned. Code-license labels and model-card labels are observations, not legal
+or commercial-use approval. A later qualification must pin every artifact and
+dependency and then reverify its primary source. Nothing here is installable,
+dispatchable, or approved.
 
 ## Existing ReeditPro capability context
 
@@ -43,14 +45,14 @@ existing profile is ready for a new Living Frame route.
 
 ## Candidate classification
 
-| Candidate | Working classification | Possible role | Slice 1 status |
+| Candidate | Working classification | Primary-source observation | Status |
 | --- | --- | --- | --- |
-| ComfyUI | Execution host/orchestrator | Execute a pinned node workflow in an isolated backend/GPU boundary | Evaluation only |
-| `comfyui_controlnet_aux` | Preprocessing bundle | Produce pose, depth, edge, line-art, or segmentation controls for a qualified workflow | Evaluation only |
-| ControlNet | Model/adapter/checkpoint capability | Condition image generation on spatial structure | Evaluation only |
-| IP-Adapter | Model/adapter/checkpoint capability | Condition generation on approved image references and visual identity | Evaluation only |
-| PuLID | Identity adapter/checkpoint capability | Potentially preserve an approved identity representation | Evaluation only and safety-blocked |
-| PEFT/LoRA | Training/loading mechanism | Load or train bounded low-rank adaptation artifacts under an approved policy | Evaluation only |
+| ComfyUI | Execution host/orchestrator | Current canonical repository is `Comfy-Org/ComfyUI`; repository labels core code GPL-3.0 | Evaluation only |
+| `comfyui_controlnet_aux` | Preprocessing bundle | Repository labels code Apache-2.0 and states that it connects copied annotator code to Hub assets; every downloaded artifact remains separate | Evaluation only |
+| ControlNet | Model/adapter/checkpoint capability | Reference code repository labels code Apache-2.0; the referenced Hugging Face weight collection labels itself OpenRAIL | Evaluation only |
+| IP-Adapter | Model/adapter/checkpoint capability | Code repository labels code Apache-2.0; the referenced `h94/IP-Adapter` model card labels that artifact Apache-2.0 | Evaluation only |
+| PuLID | Identity adapter/checkpoint capability | Code repository and referenced `guozinan/PuLID` model card label their artifacts Apache-2.0; compatible base models and identity policy remain separate | Evaluation only and safety-blocked |
+| PEFT/LoRA | Training/loading mechanism | PEFT repository labels framework code Apache-2.0; a LoRA artifact still depends on base-model, data, training, and distribution terms | Evaluation only |
 
 The last four are not automatically separate `ProductionToolId` values. A
 future decision must determine whether they are:
@@ -88,7 +90,7 @@ Working hypothesis:
 - It can serve as a node-graph workflow host with API-oriented execution.
 - A pinned workflow could combine a base model, approved image references,
   pose/depth/edge conditioning, and bounded image outputs.
-- Its code repository currently advertises GPL-3.0, but exact deployment and
+- Its current canonical code repository labels the core GPL-3.0, but exact deployment and
   distribution implications require legal review.
 - Custom nodes create a material supply-chain and arbitrary-code risk.
 
@@ -107,9 +109,10 @@ Required controls:
 - deterministic retry and idempotency policy; and
 - explicit license and commercial-use evidence.
 
-Primary-source starting point:
+Primary-source starting points:
 
-- <https://github.com/comfyanonymous/ComfyUI>
+- <https://github.com/Comfy-Org/ComfyUI>
+- <https://github.com/Comfy-Org/ComfyUI/blob/master/LICENSE>
 
 ### `comfyui_controlnet_aux`
 
@@ -117,7 +120,7 @@ Working hypothesis:
 
 - It is a preprocessing bundle for controls such as pose, depth, edges, and
   line art.
-- Its repository currently advertises Apache-2.0 for code, but bundled or
+- Its repository labels the code Apache-2.0, but bundled or
   downloaded models may have separate terms.
 - It is not a creative planner and must not become a source of story intent.
 
@@ -134,6 +137,7 @@ Required controls:
 Primary-source starting point:
 
 - <https://github.com/Fannovel16/comfyui_controlnet_aux>
+- <https://github.com/Fannovel16/comfyui_controlnet_aux/blob/main/LICENSE>
 
 ### ControlNet
 
@@ -141,8 +145,9 @@ Working hypothesis:
 
 - It can condition diffusion generation using approved spatial controls such as
   pose, depth, edge, segmentation, or line art.
-- The reference implementation currently advertises Apache-2.0 for code.
-- Model weights, derivatives, and base-model combinations require separate
+- The reference repository labels its code Apache-2.0.
+- The referenced Hugging Face weight collection labels itself OpenRAIL.
+  Model weights, derivatives, annotators, and base-model combinations require separate
   exact-version license and commercial-use review.
 
 Required evidence:
@@ -159,6 +164,8 @@ Required evidence:
 Primary-source starting point:
 
 - <https://github.com/lllyasviel/ControlNet>
+- <https://github.com/lllyasviel/ControlNet/blob/main/LICENSE>
+- <https://huggingface.co/lllyasviel/ControlNet>
 
 ### IP-Adapter
 
@@ -168,7 +175,8 @@ Working hypothesis:
   structural controls.
 - It may help preserve an approved character interpretation, clothing, object
   design, or style.
-- Its repository currently advertises Apache-2.0 for code, while checkpoints
+- Its repository labels code Apache-2.0, and the referenced `h94/IP-Adapter`
+  model card labels that artifact Apache-2.0. Checkpoints
   and base models need separate review.
 
 Required evidence:
@@ -184,13 +192,16 @@ Required evidence:
 Primary-source starting point:
 
 - <https://github.com/tencent-ailab/IP-Adapter>
+- <https://github.com/tencent-ailab/IP-Adapter/blob/main/LICENSE>
+- <https://huggingface.co/h94/IP-Adapter>
 
 ### PuLID
 
 Working hypothesis:
 
 - It may provide identity-oriented conditioning for compatible image models.
-- Its repository currently advertises Apache-2.0 for code.
+- Its repository labels code Apache-2.0, and the referenced
+  `guozinan/PuLID` model card labels that artifact Apache-2.0.
 - Its own project notes and future benchmarking must be consulted for identity
   fidelity limits.
 - Base-model and checkpoint terms remain separate.
@@ -215,6 +226,8 @@ that interpretation into a claim of verified historical likeness.
 Primary-source starting point:
 
 - <https://github.com/ToTheBeginning/PuLID>
+- <https://github.com/ToTheBeginning/PuLID/blob/main/LICENSE>
+- <https://huggingface.co/guozinan/PuLID>
 
 ### PEFT/LoRA
 
@@ -222,7 +235,7 @@ Working hypothesis:
 
 - PEFT is a training/loading framework for parameter-efficient adaptation, and
   LoRA is one adaptation method.
-- The current Hugging Face PEFT repository advertises Apache-2.0 for code.
+- The current Hugging Face PEFT repository labels framework code Apache-2.0.
 - A LoRA artifact inherits constraints from its source data, base model,
   training process, and distribution terms; framework licensing alone is
   insufficient.
@@ -243,6 +256,7 @@ Required controls:
 Primary-source starting point:
 
 - <https://github.com/huggingface/peft>
+- <https://github.com/huggingface/peft/blob/main/LICENSE>
 
 ## Qualification matrix
 

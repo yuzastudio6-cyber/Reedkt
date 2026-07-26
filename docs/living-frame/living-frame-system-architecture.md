@@ -1,8 +1,9 @@
 # Living Frame Storytelling System Architecture
 
-Status: deferred canonical-planning binding v1
-Runtime readiness: canonical expectation persistence only, not executable
-Contract version: `living-frame-professional-skill-component-v1`
+Status: source-bound planning evidence binding v1
+Runtime readiness: planning evidence only, not executable
+Component contract: `living-frame-professional-skill-component-v1`
+Evidence contract: `living-frame-planning-evidence-binding-v1`
 
 ## Purpose
 
@@ -21,10 +22,11 @@ professional skill component. The current canonical integration may construct
 only one deferred expectation component and attach it to the existing
 `ProfessionalSkillPlan`.
 
-The contract and canonical binding remain planning-only and cannot prove that
-any live source,
-provider, tool, worker, asset, timing plan, estimate, approval, snapshot,
-render, or QA result exists.
+The contracts and canonical bindings remain planning-only and cannot prove
+that any live provider, tool, worker, asset, estimate, approval, render, or QA
+result exists. Slice 3A can project a source-bound private visual evidence
+package only after the existing verifier passes; that projection still grants
+none of those authorities.
 
 ## Product meaning
 
@@ -45,6 +47,127 @@ It supports five scene modes:
 Stillness and non-use are first-class professional outcomes. Living Frame
 should be rejected when an emotional expression, source truth, frame safety,
 or a simpler treatment carries the story more effectively.
+
+## Reviewed design record
+
+The product conversation that motivated Living Frame was design input, not
+repository authority. The decisions below are the reviewed result after
+cross-checking that input against the current ReeditPro product, intent,
+professional-editing, timing, approval, execution, asset, tool, model-routing,
+QA, and rendering contracts.
+
+No raw conversation, prompt, or transcript is retained in the Living Frame
+contract. Later changes must update this repository document and the typed
+contracts through the normal one-writer review boundary.
+
+### Final decisions
+
+- Living Frame Storytelling is the umbrella composite professional skill.
+  Living A-Roll is one scene mode, not the parent skill.
+- The five initial modes are `living_a_roll`, `living_still`,
+  `living_archive`, `living_diagram`, and `hybrid_expansion`.
+- Mini-skills are reusable component activations inside a parent assembly.
+  They are not a new global skill type or a second catalog.
+- Stillness, a simpler visual, and deliberate non-use are valid professional
+  decisions. Capability does not create an obligation to animate.
+- Narrative Illustration and Animation-Aware Illustration describe creative
+  intent. “AI drawing,” provider names, and implementation techniques are not
+  user-facing creative skill identities.
+- A versioned Visual Continuity Pack is the intended project memory for style,
+  characters, objects, environments, motion, sound, alpha, and accepted asset
+  lineage. Conversational memory is never continuity authority.
+- The synthesis ladder is reuse, deterministic drawing, still
+  generation/editing, qualified controlled illustration, bounded generated
+  video, then policy-permitted premium rescue.
+- Exact maps, data, labels, typography, particles, slash paths, camera motion,
+  and other controllable elements prefer deterministic construction. Generated
+  video is reserved for motion that actually needs it.
+- Remotion remains the final deterministic compositor. Living Frame does not
+  create a renderer.
+- `MasterTimingPlan` remains the sole exact-frame authority. Living Frame can
+  request semantic timing but cannot mint frames.
+- SoundSync and the existing audio plans remain the sole exact cue, mix,
+  ducking, gain, and pan authorities.
+- The canonical reasoning route remains Kimi K3, then Qwen 3.7, then DeepSeek
+  V4 Pro. Qwen2.5-VL remains the separate visual-understanding specialist and
+  cannot create edit authority independently.
+- Selected Living Frame scenes require both source-bound visual evidence and a
+  schema-validated pre-approval reasoning result bound to the same current
+  planning inputs. Neither one alone selects a scene.
+- Transparency is capability-checked. Native alpha may be attempted only when
+  the exact route supports it and still must pass QA; otherwise the route uses
+  a separable source, approved segmentation/refinement, and multi-background
+  alpha QA.
+- Documentary truth, generated-illustration disclosure, likeness safety,
+  semantic-scale truth, and exact-geography/data verification are mandatory.
+- Rollout begins with Living Still and deterministic scenes, then clean Living
+  A-Roll, then advanced temporal depth after masking benchmarks pass.
+- No provider, controlled tool, generation, worker, or rendering activity may
+  start before the existing plan, estimate, approval, and immutable snapshot
+  authorities permit it.
+
+### Superseded proposals
+
+| Earlier proposal | Reviewed disposition |
+| --- | --- |
+| Living A-Roll as the umbrella system | Superseded by Living Frame Storytelling; Living A-Roll is a mode. |
+| “AI Drawing” as a top-level skill | Superseded by Narrative Illustration and Animation-Aware Illustration activations. |
+| Generate a complete video scene by default | Superseded by the reusable deterministic-first synthesis ladder. |
+| Let a reasoning model write arbitrary JavaScript for each scene | Rejected; models emit typed, validated plans that approved compilers execute. |
+| Add six new production tool IDs and increase the registry count | Rejected; the six candidates span a host, a preprocessing bundle, adapters/checkpoints, and a training/loading mechanism. |
+| Use the older workload-specific Kimi-to-GPT fallback | Superseded by the shared canonical Kimi-to-Qwen-to-DeepSeek route. |
+| Use a generic `custom` work item for missing operations | Rejected; missing work requires explicit canonical schema admission. |
+| Assume generated-image transparency always works or always fails | Superseded by exact capability checks plus deterministic alpha fallback and QA. |
+| Replace detailed illustration entirely with procedural drawing | Rejected; detailed hero art can use still generation while motion and composition remain controlled. |
+| Build a separate Living Frame planner, timeline, queue, or renderer | Rejected; Living Frame extends the existing canonical authorities. |
+
+### Unresolved questions
+
+These questions remain intentionally open and must not be answered by runtime
+assumption:
+
+- Which exact style profiles, motion languages, sound languages, and
+  per-profile restraint thresholds ship first?
+- What released repository, locator, retention, and consumer contract will
+  provide current private visual-evidence packages to planning?
+- What transport, durable run/result repository, lifecycle, timeout, retry,
+  and checkback authority will execute pre-approval reasoning?
+- Which Kimi deployment and model version will satisfy the shared route,
+  privacy, latency, structured-output, and internal-cost gates?
+- Will controlled illustration use one isolated workflow host, direct
+  libraries, or more than one reviewed runtime profile?
+- What are the exact code, weight, base-model, dependency, training-data, and
+  output commercial-use terms for each controlled-illustration artifact?
+- Which temporal masking route and quantitative hair, hand, contact-object,
+  camera-motion, and flicker thresholds qualify Living A-Roll?
+- What consent, retention, real-person, public-figure, deepfake, minor, and
+  documentary rules would be required before any identity adapter is admitted?
+- Which named canonical work-item operations and scene-package manifest fields
+  are required after approval?
+- What quantitative continuity, alpha, anatomy, pivot, attention, motion,
+  semantic-scale, and sound thresholds block delivery?
+- What is the measured internal and customer estimate impact per approved,
+  revision-ready, reusable scene?
+- When, if ever, should advanced 2.5D or 3D scene construction be admitted?
+- Does the exact selected image provider/model version support native alpha,
+  and does its output pass the same destination-composite QA as fallback alpha?
+
+## Architectural invariants
+
+- One compiled-intent authority.
+- One professional-skill plan and catalog.
+- One confirmed output frame and `MasterTimingPlan`.
+- One estimate and approval flow.
+- One immutable approved snapshot lineage.
+- One execution package, work graph, queue, and asset manifest.
+- One backend tool/provider dispatch authority.
+- One internal tool-cost evidence system and a separate existing customer
+  estimate/credit policy.
+- One QA plan plus existing private artifact gates.
+- One Remotion composition and private-review flow.
+- No frontend provider calls and no heavy work before approval.
+- Workers execute the immutable approved snapshot and never reinterpret raw
+  chat.
 
 ## Canonical authority chain
 
@@ -521,9 +644,53 @@ The legacy synchronous `createApprovedPlanSnapshot` path fails closed whenever
 this field is present. Only the existing asynchronous canonical planning,
 approval, and immutable snapshot authority may carry it forward.
 
-### Slice 3: planning handoff, estimate, and approval
+### Slice 3A: source-bound planning evidence
+
+Slice 3A adds a narrow private-reader binding:
+
+- callers provide only a server-owned locator, never evidence payloads, paths,
+  URLs, signed URLs, media bytes, credentials, or storage identities;
+- an injected private reader returns the existing
+  `PrivateGcpVisualUnderstandingPlan` and
+  `PrivateGcpVisualEvidencePackage`;
+- the service reuses
+  `verifyPrivateGcpVisualEvidencePackage` and independently revalidates the
+  exact workspace, project, edit, source-sequence item, media asset, checksum,
+  plan, checkpoint, coverage, cache, and evidence-package identities;
+- missing, stale, tampered, wrong-scope, wrong-source, incomplete,
+  low-confidence, user-review-required, or audio/transcript-claiming evidence
+  fails closed;
+- source-less admission is `not_applicable_idea_first` only when the exact
+  canonical Motion Storytelling production authority proves there is no
+  uploaded source; and
+- the output is a content-addressed, planning-only projection containing
+  bounded observation ranges, summaries, confidence, and digests.
+
+The projection is bound to the same deferred Living Frame component, compiled
+intent, source sequence, confirmed output-frame projection, and current
+`MasterTimingPlan`. It exposes no reader locator, storage path, raw media,
+transcript, provider, tool, job, queue, cost, approval, QA, timing, scene, or
+runtime authority. It is not persisted into `ProfessionalSkillPlan` or the
+snapshot in this slice.
+
+### Slice 3B: pre-approval reasoning binding
+
+- reuse the existing strict Motion Storytelling pre-approval snapshot,
+  internal-budget, read-only-tool, idempotency, failed-attempt-cost, and
+  structured-output contract;
+- replace its obsolete workload-specific Kimi-to-GPT fallback with the shared
+  canonical Kimi-to-Qwen-to-DeepSeek route;
+- add a Living Frame-specific durable run/result reader without adopting the
+  Edit Reference lane's repository or authority;
+- bind the result to the same exact current planning inputs as Slice 3A; and
+- retain no provider, tool, estimate, approval, scene, or runtime authority.
+
+### Slice 3C: selected scene planning, estimate, and approval
 
 - revalidate source/output-frame/timing expectations;
+- require current Slice 3A evidence and Slice 3B reasoning bindings;
+- construct selected, rejected, blocked, and deliberate-non-use scene
+  decisions through the existing professional-skill planner;
 - publish complexity signals to the existing estimate system;
 - show the user the scene idea, generated assets, expected complexity, and
   fallback without exposing internal tools;
@@ -531,8 +698,10 @@ approval, and immutable snapshot authority may carry it forward.
 - freeze the exact component and later timing bindings in the immutable
   snapshot.
 
-### Slice 4: canonical work and asset mapping
+### Slice 4: canonical timing, work, and asset mapping
 
+- compile semantic timing and sound requests through `MasterTimingPlan` and
+  SoundSync rather than a Living Frame clock;
 - map approved components to existing named work-item types where valid;
 - request explicit schema admission for any missing operation;
 - preserve scene/component lineage in the existing asset manifest;
@@ -581,7 +750,30 @@ content-addressed snapshot lineage are now present for the deferred component.
 They do not make any runtime, estimate, approval, provider, tool, queue, cost,
 QA, rendering, or production gate green.
 
-## Slice 2A: planning-only parent admission
+## Closed gates after slice 3A
+
+Slice 3A proves only that an injected server reader can supply a current,
+source-bound private visual package suitable for later pre-approval reasoning,
+or that visual source evidence is exactly not applicable under canonical
+idea-first authority.
+
+It does not provide:
+
+- a released evidence repository or locator service;
+- model/provider transport;
+- pre-approval reasoning runs or results;
+- selected or rejected Living Frame scenes;
+- Visual Continuity Packs;
+- exact timing or SoundSync cues;
+- complexity estimate line items;
+- user approval or new snapshot authority;
+- work items, assets, dispatch, retries, or cost receipts;
+- controlled-illustration qualification;
+- alpha, mask, continuity, documentary, or render QA;
+- Remotion layer compilation; or
+- private review or production readiness.
+
+## Detailed Slice 2A parent-admission contract
 
 Slice 2A admits exactly one professional-skill parent:
 

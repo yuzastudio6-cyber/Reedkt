@@ -256,28 +256,19 @@ export function CleanPlanningPrepSurface({
   if (briefWorkspaceActive) {
     return (
       <section
-        aria-labelledby="edit-brief-workspace-heading"
+        aria-label="Edit Brief"
         className="edit-brief-workspace-surface"
         data-testid="edit-brief-workspace-surface"
         id="edit-brief-workspace"
         ref={briefWorkspaceSurfaceRef}
         tabIndex={-1}
       >
-        <header className="edit-brief-workspace-toolbar">
-          <div>
-            <span className="section-eyebrow">Edit Brief workspace</span>
-            <h2 id="edit-brief-workspace-heading">Shape the edit on its source timeline</h2>
-            <p>
-              Add moment-specific direction here, then return to Chat to create or revise the one canonical edit plan.
-            </p>
-          </div>
-          <Button onClick={handleCloseBriefWorkspace} variant="ghost">Back to Chat</Button>
-        </header>
         {!result ? (
           <div className="edit-brief-workspace-empty" role="status">
             <FileText aria-hidden="true" size={28} />
             <strong>Prepare the source in Chat first</strong>
             <p>The marker timeline opens only after this named edit has a prepared private source.</p>
+            <Button onClick={handleCloseBriefWorkspace} variant="secondary">Go to Chat</Button>
           </div>
         ) : editBriefContent ?? (
           <p className="edit-brief-workspace-loading" role="status">Opening the Edit Brief timeline…</p>

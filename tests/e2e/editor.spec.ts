@@ -425,7 +425,7 @@ test.describe('editor mocked browser flow', () => {
     await expect(page.locator('.chat-message-list')).toBeHidden()
     await expect(page.getByTestId('chat-composer')).toHaveCount(0)
     await expect(page.getByTestId('edit-preview-rail')).toHaveCount(0)
-    await clickWhenReady(page.getByRole('button', { name: /^Back to Chat$/i }))
+    await clickWhenReady(page.getByRole('button', { name: /^Go to Chat$/i }))
     await expect(page).not.toHaveURL(/[?&]view=brief(?:&|$)/)
 
     await completeRequiredEditorSetupBeforeFootagePrep(page)
@@ -440,8 +440,9 @@ test.describe('editor mocked browser flow', () => {
     await expect(page.getByTestId('edit-brief-workspace-surface')).toBeFocused()
     const professionalBrief = page.getByTestId('professional-edit-brief-workspace')
     await expect(professionalBrief).toBeVisible()
-    await expect(professionalBrief).toContainText(/Direct the edit on the source timeline/i)
-    await expect(professionalBrief).toContainText(/Source playback is not open in this browser/i)
+    await expect(professionalBrief.locator('.professional-edit-brief__header')).toHaveCount(0)
+    await expect(page.locator('.edit-brief-workspace-toolbar')).toHaveCount(0)
+    await expect(professionalBrief).toContainText(/Open the source for timeline playback/i)
     await expect(page.locator('.chat-message-list')).toBeHidden()
     await expect(page.getByTestId('chat-composer')).toHaveCount(0)
     await expect(page.getByTestId('edit-preview-rail')).toHaveCount(0)
@@ -450,13 +451,32 @@ test.describe('editor mocked browser flow', () => {
     const editBriefPanel = page.getByTestId('edit-brief-panel')
     await expect(editBriefPanel).toBeHidden()
     await openEditBriefSourcePreview(page, 'brief-ready-source.mp4')
-    await expect(page.getByTestId('edit-brief-marker-lane')).toBeVisible()
+    const markerLane = page.getByTestId('edit-brief-marker-lane')
+    await expect(markerLane).toBeVisible()
+    await expect(page.getByTestId('edit-brief-source-track')).toBeVisible()
     await expect(page.getByTestId('edit-brief-authority-status')).toContainText(/Local draft/i)
-    const addMarker = page.getByRole('button', { name: /Add marker at/i })
+    const addMarker = page.getByTestId('edit-brief-add-direction')
     await expect(addMarker).toBeEnabled()
+    const timelineHeightBeforePopover = (await markerLane.boundingBox())?.height ?? 0
     await clickWhenReady(addMarker)
-    await expect(page.getByRole('heading', { level: 4, name: 'New marker' })).toBeVisible()
-    await expect(page.getByText(/What should happen here/i)).toBeVisible()
+    const markerPopover = page.getByTestId('edit-brief-marker-popover')
+    await expect(markerPopover).toBeVisible()
+    await expect(markerPopover).toHaveCSS('position', 'fixed')
+    expect(Math.abs(
+      ((await markerLane.boundingBox())?.height ?? 0) - timelineHeightBeforePopover,
+    )).toBeLessThanOrEqual(1)
+    const markerPrompt = markerPopover.getByLabel(/What should happen here/i)
+    await expect(markerPrompt).toBeFocused()
+    await expect(markerPopover.getByText('More options')).toBeVisible()
+    await expect(markerPopover.getByLabel('Type')).toBeHidden()
+    await markerPrompt.fill('Keep the full product explanation and add a quiet lower-third when the speaker names the feature.')
+    await markerPopover.getByRole('button', { name: 'Add text' }).click()
+    await expect(markerPopover.getByRole('button', { name: 'Add text' })).toHaveAttribute('aria-pressed', 'true')
+    await page.keyboard.press('Escape')
+    await expect(markerPopover).toHaveCount(0)
+    await expect(addMarker).toBeFocused()
+    await clickWhenReady(addMarker)
+    await expect(markerPopover).toBeVisible()
     await directionDetails.locator('summary').click()
     await expect(directionDetails).toHaveAttribute('open', '')
     await expect(editBriefPanel).toBeVisible()
@@ -481,18 +501,21 @@ test.describe('editor mocked browser flow', () => {
     await expect(page.getByTestId('editor-header-edit-brief-status')).toHaveCount(0)
 
     const editBriefSummaryGrid = editBriefPanel.locator('.edit-brief-summary-grid')
-    const briefStudio = page.locator('.professional-edit-brief__studio')
-    const backToChat = page.getByRole('button', { name: /Back to Chat/i })
+    const timelineGrid = page.locator('.professional-edit-brief__timeline-grid')
+    const chatWorkspaceButton = page.getByTestId('edit-workspace-view-chat')
     for (const width of [375, 768, 1024, 1440]) {
       await setViewport(page, width)
       await expect(previewRail).toBeHidden()
       await expectNoHorizontalOverflow(page)
-      expect((await backToChat.boundingBox())?.height ?? 0).toBeGreaterThanOrEqual(44)
+      const markerPopoverBox = await markerPopover.boundingBox()
+      expect(markerPopoverBox?.x ?? -1).toBeGreaterThanOrEqual(0)
+      expect((markerPopoverBox?.x ?? 0) + (markerPopoverBox?.width ?? width)).toBeLessThanOrEqual(width)
+      expect((await chatWorkspaceButton.boundingBox())?.height ?? 0).toBeGreaterThanOrEqual(44)
       expect(
-        await briefStudio.evaluate((element) => (
+        await timelineGrid.evaluate((element) => (
           getComputedStyle(element).gridTemplateColumns.trim().split(/\s+/).length
         )),
-      ).toBe(width <= 1040 ? 1 : 2)
+      ).toBe(2)
     }
     await setViewport(page, 375)
     expect(

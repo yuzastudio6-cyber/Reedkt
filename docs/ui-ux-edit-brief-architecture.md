@@ -2,7 +2,7 @@
 
 Status: `implemented_exact_edit_private_scope`
 
-Status date: 2026-07-13
+Status date: 2026-07-26
 
 This document is the UX, state-ownership, persistence, planning-transfer, and approval-boundary source of truth for the current Edit Brief. It describes the reviewed local/private product boundary. It does not claim production Supabase durability, shared multi-device synchronization, provider execution, rendering, public delivery, or live credit settlement.
 
@@ -12,7 +12,21 @@ This document is the UX, state-ownership, persistence, planning-transfer, and ap
 - **Edit Preferences:** how ReeditPro should edit it.
 - **Chat:** how the user supplies current instructions, questions, and revisions.
 
-The Edit Brief is optional because a strong chat prompt may already contain enough factual direction. It becomes available after Footage Prep, remains inside the named edit, and is reached through the compact `Edit Brief` header action. That action focuses the single existing inline workspace; it does not create a second editable drawer, route, or source of truth.
+The Edit Brief is optional because a strong chat prompt may already contain enough factual direction. It becomes available after Footage Prep, remains inside the named edit, and is reached through the compact `Edit Brief` workspace option beside Chat and Edit Preferences. The exact named-edit route uses `?view=brief` only to recover the selected workspace on navigation or reload; it does not create a second Brief route, record, or source of truth.
+
+## Professional Workspace Presentation
+
+When selected, Edit Brief owns the named edit's full main workspace. Chat messages, the floating Chat composer, and the secondary preview/status rail are hidden while the same exact-edit identity remains mounted.
+
+- The existing compact project/workspace switcher is the only page-level heading and navigation chrome.
+- Do not repeat the edit name, “Edit Brief workspace,” or explanatory hero headers inside the Brief canvas.
+- Source preview and the professional timeline are the dominant surfaces.
+- The timeline presents a time ruler, cyan playhead, source clips, dedicated direction track, marker ranges, horizontal zoom/scroll, and explicit track labels.
+- Adding a direction opens a playhead-anchored popover. Its primary control is one plain-language prompt: `What should happen here?`
+- Type, priority, point/range timing, and optional short label stay under a collapsed `More options` disclosure. They must not make the default marker interaction feel like completing a form.
+- Existing directions reopen through the same popover. Escape closes it and returns focus to `Add direction`.
+- Overall goal, audience, assets, style, and delivery constraints remain available in one collapsed secondary disclosure below the timeline.
+- The Brief remains optional and planning-only. Opening, previewing, scrubbing, or drafting a direction does not approve a plan, reserve credits, call a provider, run a worker, or start rendering.
 
 ## Implemented Brief Fields
 
@@ -76,23 +90,26 @@ Workers must eventually execute the approved snapshot, not reread mutable Brief 
 
 ## Interaction And Accessibility Rules
 
-- Keep the Brief inside one focused inline workspace rather than a card wall.
+- Keep the Brief inside one full-space named-edit workspace rather than a chat card, permanent inspector form, drawer, or card wall.
 - Preserve the compact Optional/Draft/Ready status in the editor header.
-- Use a flat, sectioned field hierarchy so the brief reads as one professional planning surface rather than a stack of competing cards.
+- Let preview and timeline use the available canvas. Keep structured Brief fields secondary and collapsed until requested.
+- Make marker entry prompt-first through the playhead popover; advanced metadata is progressive disclosure.
+- Use a flat, sectioned field hierarchy for expanded overall direction so it reads as one planning surface rather than a stack of competing cards.
 - Keep planning-impact and approval-lock notices visually distinct without using oversized warning containers.
 - Labels and helper copy must distinguish factual Brief direction from editing-behavior preferences.
 - All editable controls live inside a semantic fieldset so the approved state can be locked consistently.
 - The lock notice remains readable outside the disabled fieldset.
-- Keyboard focus, readable labels, restrained status color, and composer clearance remain part of route-level QA.
+- Keyboard focus, Escape/focus return, 44px targets, readable labels, restrained status color, timeline zoom/scroll, and horizontal-overflow safety remain part of route-level QA.
 - The summary grid may use two columns when space allows, but it must collapse to one column at compact width and remain free of horizontal overflow.
 
 ## Current Evidence
 
-- The focused editor suite passes 20/20 checks. Edit Brief coverage includes upload, setup, open/focus, edit, ready status, exact-edit persistence, reload recovery, plan creation, approval, lock notice, disabled fields, computed layout hierarchy, no internal provider names, composer alignment, and horizontal overflow.
-- `tests/e2e/viewport.spec.ts` passes 59/59 checks, and the clean-shell/keyboard/zoom group passes 9/9.
+- The editor and keyboard suites pass 24/24 checks. Edit Brief coverage includes upload, setup, full-space open/focus, local preview, unchanged timeline height under the floating prompt, prompt-first direction entry, advanced-option disclosure, Escape/focus return, ready status, exact-edit persistence, reload recovery, plan creation, approval, lock notice, disabled fields, no internal provider names, and horizontal overflow.
+- `tests/e2e/viewport.spec.ts` passes 64/64 checks. The focused Brief journey additionally exercises its preview, timeline, and popover at 375px, 768px, 1024px, and 1440px.
+- `smoke:edit-brief-authority` covers exact-session point/range markers, lifecycle, CAS/idempotency, tenant isolation, restart recovery, source/frame/QA/plan-hint preparation, approval locking, and fail-closed production selection.
 - `smoke:planning-input-safety` covers full handoff round trip, full Planning Context transfer, and immutable approved-snapshot capture.
-- Guarded local browser review passed at 1024px and 1280px with the responsive conversation/preview composition, bounded upload gate, no horizontal overflow, and no console errors.
-- Frontend TypeScript, targeted ESLint, frontend/server boundary, and production build pass for this slice.
+- Guarded local visual review confirms the source preview and professional timeline use the main canvas while marker entry remains a bounded popover instead of a persistent form.
+- App/server TypeScript, full ESLint, frontend/server boundary, repository secret scan, production build, and diff-integrity checks pass for this slice.
 
 ## Remaining Production Boundaries
 

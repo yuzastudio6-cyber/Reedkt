@@ -1,24 +1,30 @@
 import {
   Check,
   CircleAlert,
-  Clock3,
   Film,
   Flag,
   LockKeyhole,
   MessageSquareText,
+  Minus,
   Plus,
   RefreshCw,
   Save,
   Trash2,
+  X,
 } from 'lucide-react'
 import {
   type ChangeEvent,
+  type CSSProperties,
+  type KeyboardEvent,
+  type PointerEvent,
   type ReactNode,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
 } from 'react'
+import { createPortal } from 'react-dom'
 import { useCanonicalEditBriefAuthority } from '../../../hooks/useCanonicalEditBriefAuthority'
 import {
   createProjectSourceVideoLocalPreviewFromFile,
@@ -35,7 +41,7 @@ import type {
 } from '../../../types/edit-brief-authority'
 import type { ClipSource } from '../../../types/reeditpro'
 import type { ProjectSourceVideoLocalPreview } from '../../../types/project-source-video'
-import { Button } from '../../Button'
+import { Button, IconButton } from '../../Button'
 
 const MARKER_TYPES: Array<{
   value: CanonicalEditBriefMarkerType
@@ -68,6 +74,14 @@ const PRIORITIES: Array<{
 
 type MarkerEditorState = CanonicalEditBriefMarkerDraft & {
   markerId?: string
+}
+
+type MarkerPopoverPosition = {
+  arrowX: number
+  left: number
+  placement: 'above' | 'below'
+  top: number
+  width: number
 }
 
 export function ProfessionalEditBriefWorkspace({
@@ -111,7 +125,12 @@ export function ProfessionalEditBriefWorkspace({
   const sourcePreviewFileRef = useRef<File | undefined>(undefined)
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const previewInputRef = useRef<HTMLInputElement | null>(null)
+  const markerNoteRef = useRef<HTMLTextAreaElement | null>(null)
+  const timelineScrollRef = useRef<HTMLDivElement | null>(null)
   const [loadedDuration, setLoadedDuration] = useState<number>()
+  const [timelineZoom, setTimelineZoom] = useState(1)
+  const [markerPopoverPosition, setMarkerPopoverPosition] =
+    useState<MarkerPopoverPosition>()
 
   useEffect(() => {
     onPlanningAuthorityReadyChange?.({
@@ -173,24 +192,12 @@ export function ProfessionalEditBriefWorkspace({
       ?? Math.max(60, latestMarkerEnd(markers) + 5),
   )
   const confirmedCount = markers.filter((marker) => marker.status === 'confirmed').length
-  const currentQa = canonical.authority?.qaReports.at(-1)
-  const currentHints = canonical.authority?.planHintPackages.at(-1)
   const markerLayout = useMemo(
     () => layoutTimelineMarkerRows(markers, timelineDuration),
     [markers, timelineDuration],
   )
 
   useEffect(() => {
-    const latestMarker = markers.at(-1)
-    if (!selectedMarkerId && !markerEditor && latestMarker) {
-      const frame = window.requestAnimationFrame(() => {
-        setSelectedMarkerId(latestMarker.id)
-        setMarkerEditor(editorStateFromMarker(latestMarker))
-        setPlayheadSeconds(latestMarker.startSeconds)
-        if (videoRef.current) videoRef.current.currentTime = latestMarker.startSeconds
-      })
-      return () => window.cancelAnimationFrame(frame)
-    }
     if (selectedMarkerId && !selectedMarker) {
       const frame = window.requestAnimationFrame(() => {
         setSelectedMarkerId(undefined)
@@ -198,7 +205,57 @@ export function ProfessionalEditBriefWorkspace({
       })
       return () => window.cancelAnimationFrame(frame)
     }
-  }, [markerEditor, markers, selectedMarker, selectedMarkerId])
+  }, [selectedMarker, selectedMarkerId])
+
+  const markerStartSeconds = markerEditor?.startSeconds
+
+  useLayoutEffect(() => {
+    const timelineScroll = timelineScrollRef.current
+    if (markerStartSeconds === undefined || !timelineScroll) {
+      setMarkerPopoverPosition(undefined)
+      return
+    }
+    const activeMarkerStartSeconds = markerStartSeconds
+    const activeTimelineScroll = timelineScroll
+
+    function positionPopover() {
+      const bounds = activeTimelineScroll.getBoundingClientRect()
+      const viewportWidth = window.innerWidth
+      const viewportHeight = window.innerHeight
+      const margin = 12
+      const width = Math.min(388, viewportWidth - margin * 2)
+      const height = Math.min(410, viewportHeight - margin * 2)
+      const markerX = bounds.left
+        - activeTimelineScroll.scrollLeft
+        + timePercent(activeMarkerStartSeconds, timelineDuration) / 100
+          * activeTimelineScroll.scrollWidth
+      const left = Math.max(
+        margin,
+        Math.min(viewportWidth - width - margin, markerX - width / 2),
+      )
+      const placement = bounds.top >= height + margin * 2 ? 'above' : 'below'
+      const top = placement === 'above'
+        ? Math.max(margin, bounds.top - height - 8)
+        : Math.min(viewportHeight - height - margin, bounds.top + 34)
+      setMarkerPopoverPosition({
+        arrowX: Math.max(16, Math.min(width - 16, markerX - left)),
+        left,
+        placement,
+        top,
+        width,
+      })
+    }
+
+    positionPopover()
+    activeTimelineScroll.addEventListener('scroll', positionPopover)
+    window.addEventListener('resize', positionPopover)
+    window.addEventListener('scroll', positionPopover, true)
+    return () => {
+      activeTimelineScroll.removeEventListener('scroll', positionPopover)
+      window.removeEventListener('resize', positionPopover)
+      window.removeEventListener('scroll', positionPopover, true)
+    }
+  }, [markerStartSeconds, timelineDuration, timelineZoom])
 
   function selectMarker(marker: CanonicalEditBriefMarker) {
     setSelectedMarkerId(marker.id)
@@ -214,13 +271,24 @@ export function ProfessionalEditBriefWorkspace({
       timeKind: 'point',
       startSeconds: safeStart,
       priority: 'normal',
-      title: `Direction at ${formatTime(safeStart)}`,
+      title: '',
       note: '',
     })
+    window.requestAnimationFrame(() => markerNoteRef.current?.focus())
+  }
+
+  function closeMarkerEditor({ returnFocus = true } = {}) {
+    setMarkerEditor(undefined)
+    setSelectedMarkerId(undefined)
+    if (returnFocus) {
+      window.requestAnimationFrame(() => {
+        document.querySelector<HTMLElement>('[data-testid="edit-brief-add-direction"]')?.focus()
+      })
+    }
   }
 
   async function saveMarker() {
-    if (!markerEditor?.title.trim() || !markerEditor.note.trim()) return
+    if (!markerEditor?.note.trim()) return
     const safeDraft = normalizeMarkerDraft(markerEditor, timelineDuration)
     if (!markerEditor.markerId) onTimelineStarted?.()
     const saved = markerEditor.markerId
@@ -237,8 +305,7 @@ export function ProfessionalEditBriefWorkspace({
         })
       : await canonical.createMarker(safeDraft)
     if (saved && !markerEditor.markerId) {
-      setSelectedMarkerId(undefined)
-      setMarkerEditor(undefined)
+      closeMarkerEditor()
     }
   }
 
@@ -254,6 +321,19 @@ export function ProfessionalEditBriefWorkspace({
     const next = Math.max(0, Math.min(timelineDuration, seconds))
     setPlayheadSeconds(next)
     if (videoRef.current) videoRef.current.currentTime = next
+  }
+
+  function seekFromTimeline(event: PointerEvent<HTMLDivElement>) {
+    if ((event.target as HTMLElement).closest('button')) return
+    const bounds = event.currentTarget.getBoundingClientRect()
+    if (bounds.width <= 0) return
+    seek(((event.clientX - bounds.left) / bounds.width) * timelineDuration)
+  }
+
+  function handleMarkerEditorKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.key !== 'Escape') return
+    event.preventDefault()
+    closeMarkerEditor()
   }
 
   function choosePreview(event: ChangeEvent<HTMLInputElement>) {
@@ -276,401 +356,480 @@ export function ProfessionalEditBriefWorkspace({
 
   return (
     <section
+      aria-label="Edit Brief timeline workspace"
       className="professional-edit-brief"
       data-testid="professional-edit-brief-workspace"
       id="professional-edit-brief-workspace"
       tabIndex={-1}
     >
-      <header className="professional-edit-brief__header">
-        <div>
-          <span className="section-eyebrow">Professional Edit Brief</span>
-          <h3>Direct the edit on the source timeline</h3>
-          <p>
-            Add exact moments, ranges, and creative constraints. Chat remains the editor;
-            this workspace gives the plan frame-aware direction.
-          </p>
+      <div className="professional-edit-brief__toolbar">
+        <div className="professional-edit-brief__source-identity">
+          <Film aria-hidden="true" size={16} />
+          <span>{localPreview?.fileName ?? sourceClips[0]?.fileName ?? 'Private source'}</span>
+          <strong>{formatTime(playheadSeconds)} / {formatTime(timelineDuration)}</strong>
         </div>
-        <div
-          className="professional-edit-brief__sync"
-          data-state={canonical.status}
-          data-testid="edit-brief-authority-status"
-        >
-          {canonical.status === 'saving' || canonical.status === 'loading'
-            ? <RefreshCw aria-hidden="true" className="is-spinning" size={16} />
-            : canonical.status === 'saved'
-              ? <Check aria-hidden="true" size={16} />
-              : <CircleAlert aria-hidden="true" size={16} />}
-          <span>{syncLabel(canonical.status)}</span>
-        </div>
-      </header>
-
-      <div className="professional-edit-brief__studio">
-        <div className="professional-edit-brief__canvas">
-          <div className="professional-edit-brief__player">
-            {localPreview ? (
-              <video
-                aria-label="Local source preview for Edit Brief timing"
-                controls
-                data-testid="edit-brief-source-player"
-                onLoadedMetadata={(event) => {
-                  const duration = event.currentTarget.duration
-                  if (Number.isFinite(duration) && duration > 0) {
-                    setLoadedDuration(duration)
-                  }
-                }}
-                onTimeUpdate={(event) => setPlayheadSeconds(event.currentTarget.currentTime)}
-                playsInline
-                preload="metadata"
-                ref={videoRef}
-                src={localPreview.objectUrl}
-              />
-            ) : (
-              <div className="professional-edit-brief__player-empty">
-                <Film aria-hidden="true" size={34} />
-                <strong>Source playback is not open in this browser</strong>
-                <span>
-                  The uploaded source remains private. Reopen the same file for local playback;
-                  this does not upload, replace, or edit it.
-                </span>
-              </div>
-            )}
-            <div className="professional-edit-brief__player-meta">
-              <span>{localPreview?.fileName ?? sourceClips[0]?.fileName ?? 'Private source'}</span>
-              <strong>{formatTime(playheadSeconds)} / {formatTime(timelineDuration)}</strong>
-            </div>
+        <div className="professional-edit-brief__toolbar-actions">
+          <div
+            className="professional-edit-brief__sync"
+            data-state={canonical.status}
+            data-testid="edit-brief-authority-status"
+          >
+            {canonical.status === 'saving' || canonical.status === 'loading'
+              ? <RefreshCw aria-hidden="true" className="is-spinning" size={16} />
+              : canonical.status === 'saved'
+                ? <Check aria-hidden="true" size={16} />
+                : <CircleAlert aria-hidden="true" size={16} />}
+            <span>{syncLabel(canonical.status)}</span>
           </div>
+          <input
+            accept="video/*"
+            hidden
+            onChange={choosePreview}
+            ref={previewInputRef}
+            type="file"
+          />
+          <Button
+            onClick={() => previewInputRef.current?.click()}
+            size="sm"
+            variant="ghost"
+          >
+            {localPreview ? 'Change playback file' : 'Open source playback'}
+          </Button>
+        </div>
+      </div>
 
-          <div className="professional-edit-brief__preview-actions">
-            <input
-              accept="video/*"
-              hidden
-              onChange={choosePreview}
-              ref={previewInputRef}
-              type="file"
-            />
+      <div className="professional-edit-brief__player">
+        {localPreview ? (
+          <video
+            aria-label="Local source preview for Edit Brief timing"
+            controls
+            data-testid="edit-brief-source-player"
+            onLoadedMetadata={(event) => {
+              const duration = event.currentTarget.duration
+              if (Number.isFinite(duration) && duration > 0) {
+                setLoadedDuration(duration)
+              }
+            }}
+            onTimeUpdate={(event) => setPlayheadSeconds(event.currentTarget.currentTime)}
+            playsInline
+            preload="metadata"
+            ref={videoRef}
+            src={localPreview.objectUrl}
+          />
+        ) : (
+          <div className="professional-edit-brief__player-empty">
+            <Film aria-hidden="true" size={34} />
+            <strong>Open the source for timeline playback</strong>
+            <span>
+              The existing private source stays authoritative. Reopening the same file here is
+              browser-local and never uploads, replaces, or starts editing.
+            </span>
             <Button
               onClick={() => previewInputRef.current?.click()}
               size="sm"
               variant="secondary"
             >
-              {localPreview ? 'Change local playback file' : 'Open source for playback'}
+              Open source playback
             </Button>
-            <span>Browser-local preview only · no new upload or credits</span>
           </div>
+        )}
+      </div>
 
-          <div className="professional-edit-brief__timeline">
-            <div className="professional-edit-brief__timeline-heading">
-              <div>
-                <Clock3 aria-hidden="true" size={17} />
-                <strong>Marker timeline</strong>
-                <span>{markers.length} marker{markers.length === 1 ? '' : 's'} · {confirmedCount} confirmed</span>
-              </div>
-              <Button
-                disabled={readOnly}
+      <section className="professional-edit-brief__timeline" aria-label="Edit direction timeline">
+        <div className="professional-edit-brief__timeline-toolbar">
+          <div>
+            <strong>Timeline</strong>
+            <span>
+              {markers.length} direction{markers.length === 1 ? '' : 's'} · {confirmedCount} confirmed
+            </span>
+          </div>
+          <div className="professional-edit-brief__timeline-actions">
+            <div aria-label="Timeline zoom" className="professional-edit-brief__zoom">
+              <IconButton
+                disabled={timelineZoom <= 1}
+                icon={Minus}
+                label="Zoom timeline out"
+                onClick={() => setTimelineZoom((current) => Math.max(1, current - 0.5))}
+              />
+              <span>{Math.round(timelineZoom * 100)}%</span>
+              <IconButton
+                disabled={timelineZoom >= 4}
                 icon={Plus}
-                onClick={beginMarker}
-                size="sm"
-                variant="primary"
-              >
-                Add marker at {formatTime(playheadSeconds)}
-              </Button>
+                label="Zoom timeline in"
+                onClick={() => setTimelineZoom((current) => Math.min(4, current + 0.5))}
+              />
             </div>
-            <div className="professional-edit-brief__ruler" aria-hidden="true">
-              {timelineTicks(timelineDuration).map((tick) => (
-                <span key={tick.seconds} style={{ left: `${tick.percent}%` }}>
-                  {formatTime(tick.seconds)}
-                </span>
-              ))}
-            </div>
-            <div
-              className="professional-edit-brief__marker-lane"
-              data-testid="edit-brief-marker-lane"
-              style={{ minHeight: Math.max(82, 32 + markerLayout.rowCount * 50) }}
+            <Button
+              disabled={readOnly}
+              data-testid="edit-brief-add-direction"
+              icon={Plus}
+              onClick={beginMarker}
+              size="sm"
+              variant="primary"
             >
+              Add direction
+            </Button>
+          </div>
+        </div>
+
+        <div className="professional-edit-brief__timeline-grid">
+          <div aria-hidden="true" className="professional-edit-brief__track-label professional-edit-brief__track-label-ruler">
+            Time
+          </div>
+          <div className="professional-edit-brief__timeline-scroll" ref={timelineScrollRef}>
+            <div
+              className="professional-edit-brief__timeline-content"
+              data-testid="edit-brief-marker-lane"
+              onPointerDown={seekFromTimeline}
+              style={{
+                '--edit-brief-timeline-width': `${timelineZoom * 100}%`,
+              } as CSSProperties}
+            >
+              <div className="professional-edit-brief__ruler" aria-hidden="true">
+                {timelineTicks(timelineDuration, timelineZoom).map((tick) => (
+                  <span key={tick.seconds} style={{ left: `${tick.percent}%` }}>
+                    {formatTime(tick.seconds)}
+                  </span>
+                ))}
+              </div>
               <div
                 aria-hidden="true"
                 className="professional-edit-brief__playhead"
                 style={{ left: `${timePercent(playheadSeconds, timelineDuration)}%` }}
               />
-              {markers.map((marker) => {
-                const start = timePercent(marker.startSeconds, timelineDuration)
-                const end = timePercent(
-                  marker.endSeconds ?? marker.startSeconds + Math.max(0.5, timelineDuration * 0.01),
-                  timelineDuration,
-                )
-                return (
-                  <button
-                    aria-label={`${marker.title}, ${formatMarkerTime(marker)}`}
-                    className="professional-edit-brief__marker"
-                    data-priority={marker.priority}
-                    data-selected={marker.id === selectedMarkerId}
-                    data-status={marker.status}
-                    key={marker.id}
-                    onClick={() => selectMarker(marker)}
-                    style={{
-                      left: `${start}%`,
-                      top: 18 + (markerLayout.rowByMarkerId.get(marker.id) ?? 0) * 50,
-                      width: marker.timeKind === 'range'
-                        ? `${Math.max(1.5, end - start)}%`
-                        : 'clamp(88px, 18%, 180px)',
-                    }}
-                    type="button"
+              <div className="professional-edit-brief__source-track" data-testid="edit-brief-source-track">
+                {timelineClipSegments(sourceClips).map((clip) => (
+                  <div
+                    className="professional-edit-brief__source-clip"
+                    key={clip.id}
+                    style={{ width: `${clip.widthPercent}%` }}
                   >
-                    <Flag aria-hidden="true" size={13} />
-                    <span>{marker.title}</span>
-                  </button>
-                )
-              })}
-            </div>
-            <label className="professional-edit-brief__scrubber">
-              <span className="sr-only">Timeline playhead</span>
-              <input
-                aria-label="Timeline playhead"
-                max={timelineDuration}
-                min={0}
-                onChange={(event) => seek(Number(event.currentTarget.value))}
-                step={0.01}
-                type="range"
-                value={Math.min(playheadSeconds, timelineDuration)}
-              />
-            </label>
-          </div>
-        </div>
-
-        <aside className="professional-edit-brief__inspector" aria-label="Edit Brief marker inspector">
-          <div className="professional-edit-brief__inspector-heading">
-            <div>
-              <span className="section-eyebrow">Marker inspector</span>
-              <h4>{markerEditor?.markerId ? 'Review marker' : markerEditor ? 'New marker' : 'Choose a marker'}</h4>
-            </div>
-            {readOnly ? <LockKeyhole aria-label="Locked with approved plan" size={18} /> : null}
-          </div>
-
-          {markerEditor ? (
-            <>
-              <fieldset className="professional-edit-brief__marker-form" disabled={readOnly}>
-                <legend className="sr-only">Marker direction</legend>
-                <label>
-                  <span>Type</span>
-                  <select
-                    onChange={(event) => {
-                      const markerType = event.currentTarget.value as CanonicalEditBriefMarkerType
-                      setMarkerEditor((current) => current
-                        ? { ...current, markerType }
-                        : current)
-                    }}
-                    value={markerEditor.markerType}
-                  >
-                    {MARKER_TYPES.map((type) => (
-                      <option key={type.value} value={type.value}>{type.label}</option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  <span>Priority</span>
-                  <select
-                    onChange={(event) => {
-                      const priority = event.currentTarget.value as CanonicalEditBriefMarkerPriority
-                      setMarkerEditor((current) => current
-                        ? { ...current, priority }
-                        : current)
-                    }}
-                    value={markerEditor.priority}
-                  >
-                    {PRIORITIES.map((priority) => (
-                      <option key={priority.value} value={priority.value}>{priority.label}</option>
-                    ))}
-                  </select>
-                </label>
-                <label className="professional-edit-brief__marker-title">
-                  <span>Marker title</span>
-                  <input
-                    maxLength={240}
-                    onChange={(event) => {
-                      const title = event.currentTarget.value
-                      setMarkerEditor((current) => current
-                        ? { ...current, title }
-                        : current)
-                    }}
-                    value={markerEditor.title}
-                  />
-                </label>
-                <div className="professional-edit-brief__time-fields">
-                  <label>
-                    <span>Starts at</span>
-                    <input
-                      max={timelineDuration}
-                      min={0}
-                      onChange={(event) => {
-                        const startSeconds = Number(event.currentTarget.value)
-                        setMarkerEditor((current) => current
-                          ? { ...current, startSeconds }
-                          : current)
+                    <Film aria-hidden="true" size={13} />
+                    <span>{clip.label}</span>
+                  </div>
+                ))}
+              </div>
+              <div
+                className="professional-edit-brief__marker-track"
+                style={{ minHeight: Math.max(76, 12 + markerLayout.rowCount * 48) }}
+              >
+                {markers.map((marker) => {
+                  const start = timePercent(marker.startSeconds, timelineDuration)
+                  const end = timePercent(
+                    marker.endSeconds ?? marker.startSeconds + Math.max(0.5, timelineDuration * 0.01),
+                    timelineDuration,
+                  )
+                  return (
+                    <button
+                      aria-label={`${marker.title}, ${formatMarkerTime(marker)}`}
+                      className="professional-edit-brief__marker"
+                      data-priority={marker.priority}
+                      data-selected={marker.id === selectedMarkerId}
+                      data-status={marker.status}
+                      key={marker.id}
+                      onClick={(event) => {
+                        event.stopPropagation()
+                        selectMarker(marker)
+                        window.requestAnimationFrame(() => markerNoteRef.current?.focus())
                       }}
-                      step={0.01}
-                      type="number"
-                      value={markerEditor.startSeconds}
-                    />
-                  </label>
-                  <label>
-                    <span>Timing</span>
-                    <select
-                      onChange={(event) => {
-                        const timeKind = event.currentTarget.value as 'point' | 'range'
-                        setMarkerEditor((current) => current
-                          ? {
-                              ...current,
-                              timeKind,
-                              endSeconds: timeKind === 'range'
-                                ? current.endSeconds ?? Math.min(timelineDuration, current.startSeconds + 3)
-                                : undefined,
-                            }
-                          : current)
+                      style={{
+                        left: `${start}%`,
+                        top: 6 + (markerLayout.rowByMarkerId.get(marker.id) ?? 0) * 48,
+                        width: marker.timeKind === 'range'
+                          ? `${Math.max(1.5, end - start)}%`
+                          : 'clamp(42px, 10%, 150px)',
                       }}
-                      value={markerEditor.timeKind}
+                      type="button"
                     >
-                      <option value="point">Exact moment</option>
-                      <option value="range">Time range</option>
-                    </select>
-                  </label>
-                  {markerEditor.timeKind === 'range' ? (
-                    <label>
-                      <span>Ends at</span>
-                      <input
-                        max={timelineDuration}
-                        min={markerEditor.startSeconds + 0.01}
-                        onChange={(event) => {
-                          const endSeconds = Number(event.currentTarget.value)
-                          setMarkerEditor((current) => current
-                            ? { ...current, endSeconds }
-                            : current)
-                        }}
-                        step={0.01}
-                        type="number"
-                        value={markerEditor.endSeconds ?? markerEditor.startSeconds + 3}
-                      />
-                    </label>
-                  ) : null}
-                </div>
-                <label className="professional-edit-brief__marker-note">
-                  <span>What should happen here?</span>
-                  <textarea
-                    maxLength={8_000}
-                    onChange={(event) => {
-                      const note = event.currentTarget.value
-                      setMarkerEditor((current) => current
-                        ? { ...current, note }
-                        : current)
-                    }}
-                    placeholder="Example: Keep the complete explanation, add a restrained lower-third, and protect speech clarity."
-                    rows={5}
-                    value={markerEditor.note}
-                  />
-                </label>
-              </fieldset>
-
-              <div className="professional-edit-brief__marker-actions">
-                <Button
-                  disabled={
-                    readOnly
-                    || canonical.status === 'saving'
-                    || !markerEditor.title.trim()
-                    || !markerEditor.note.trim()
-                  }
-                  icon={Save}
-                  onClick={() => void saveMarker()}
-                  size="sm"
-                  variant="primary"
-                >
-                  {markerEditor.markerId ? 'Save marker' : 'Create marker'}
-                </Button>
-                {selectedMarker?.status === 'draft' ? (
-                  <Button
-                    disabled={readOnly || canonical.status === 'saving'}
-                    icon={Check}
-                    onClick={() => void canonical.changeMarkerStatus(selectedMarker.id, 'confirm')}
-                    size="sm"
-                    variant="secondary"
-                  >
-                    Confirm for plan
-                  </Button>
-                ) : null}
-                {selectedMarker ? (
-                  <Button
-                    disabled={readOnly || canonical.status === 'saving'}
-                    icon={Trash2}
-                    onClick={() => void canonical.changeMarkerStatus(selectedMarker.id, 'archive')}
-                    size="sm"
-                    variant="ghost"
-                  >
-                    Archive
-                  </Button>
-                ) : null}
+                      <Flag aria-hidden="true" size={12} />
+                      <span>{marker.title}</span>
+                    </button>
+                  )
+                })}
               </div>
 
-              {selectedMarker ? (
-                <section className="professional-edit-brief__marker-chat">
-                  <div>
-                    <MessageSquareText aria-hidden="true" size={17} />
-                    <strong>Marker Chat</strong>
-                  </div>
-                  <div className="professional-edit-brief__messages" aria-live="polite">
-                    {markerMessages.length > 0 ? markerMessages.map((message) => (
-                      <p data-role={message.role} key={message.id}>
-                        <strong>{message.role === 'user' ? 'You' : 'ReeditPro'}</strong>
-                        <span>{message.content}</span>
-                      </p>
-                    )) : (
-                      <span>No follow-up messages yet. The marker instruction above is already part of the Brief.</span>
+              {markerEditor && markerPopoverPosition && typeof document !== 'undefined' ? createPortal((
+                <div
+                  aria-label={markerEditor.markerId ? 'Edit timeline direction' : 'Add timeline direction'}
+                  aria-modal="false"
+                  className="professional-edit-brief__marker-popover"
+                  data-placement={markerPopoverPosition.placement}
+                  data-testid="edit-brief-marker-popover"
+                  onKeyDown={handleMarkerEditorKeyDown}
+                  role="dialog"
+                  style={{
+                    '--edit-brief-popover-arrow-x': `${markerPopoverPosition.arrowX}px`,
+                    left: markerPopoverPosition.left,
+                    top: markerPopoverPosition.top,
+                    width: markerPopoverPosition.width,
+                  } as CSSProperties}
+                >
+                  <div className="professional-edit-brief__marker-popover-heading">
+                    <div>
+                      <span>{markerEditor.markerId ? 'Edit direction' : 'New direction'}</span>
+                      <strong>{formatTime(markerEditor.startSeconds)}</strong>
+                    </div>
+                    {readOnly ? (
+                      <LockKeyhole aria-label="Locked with approved plan" size={18} />
+                    ) : (
+                      <IconButton icon={X} label="Close marker popover" onClick={() => closeMarkerEditor()} />
                     )}
                   </div>
-                  <label>
-                    <span className="sr-only">Add marker direction</span>
+
+                  <label className="professional-edit-brief__marker-prompt">
+                    <span>What should happen here?</span>
                     <textarea
                       disabled={readOnly}
-                      onChange={(event) => setMarkerMessage(event.currentTarget.value)}
-                      placeholder="Clarify this exact moment…"
-                      rows={3}
-                      value={markerMessage}
+                      maxLength={8_000}
+                      onChange={(event) => {
+                        const note = event.currentTarget.value
+                        setMarkerEditor((current) => current ? { ...current, note } : current)
+                      }}
+                      placeholder="Tell ReeditPro in your own words…"
+                      ref={markerNoteRef}
+                      rows={4}
+                      value={markerEditor.note}
                     />
                   </label>
-                  <Button
-                    disabled={readOnly || !markerMessage.trim() || canonical.status === 'saving'}
-                    onClick={() => void sendMarkerMessage()}
-                    size="sm"
-                    variant="secondary"
-                  >
-                    Save follow-up
-                  </Button>
-                  <small>
-                    User direction is durable. Model reasoning remains server-owned and is never
-                    fabricated when its runtime is unavailable.
-                  </small>
-                </section>
-              ) : null}
-            </>
-          ) : (
-            <div className="professional-edit-brief__inspector-empty">
-              <Flag aria-hidden="true" size={24} />
-              <p>Move the playhead, add a marker, then describe the exact edit decision.</p>
-            </div>
-          )}
-        </aside>
-      </div>
 
-      <div className="professional-edit-brief__status-row">
-        <p aria-live="polite">{canonical.message}</p>
-        {canonical.retryable ? (
-          <Button icon={RefreshCw} onClick={() => void canonical.refresh()} size="sm" variant="ghost">
-            Retry
-          </Button>
-        ) : null}
-        <div>
-          <span>Frame authority: {canonical.authority?.exportSettings?.confirmationStatus ?? 'sealed when the plan is created'}</span>
-          <span>Marker QA: {currentQa?.status ?? 'runs at plan preparation'}</span>
-          <span>Plan hints: {currentHints?.readiness?.replaceAll('_', ' ') ?? 'not created'}</span>
+                  {!readOnly ? (
+                    <div aria-label="Direction shortcuts" className="professional-edit-brief__marker-shortcuts">
+                      {[
+                        ['keep', 'Keep this'],
+                        ['cut', 'Tighten this'],
+                        ['broll', 'Add B-roll'],
+                        ['caption', 'Add text'],
+                      ].map(([value, label]) => (
+                        <button
+                          aria-pressed={markerEditor.markerType === value}
+                          key={value}
+                          onClick={() => setMarkerEditor((current) => current
+                            ? { ...current, markerType: value as CanonicalEditBriefMarkerType }
+                            : current)}
+                          type="button"
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+
+                  <details className="professional-edit-brief__marker-options">
+                    <summary>More options</summary>
+                    <fieldset className="professional-edit-brief__marker-form" disabled={readOnly}>
+                      <legend className="sr-only">Advanced marker direction</legend>
+                      <label>
+                        <span>Type</span>
+                        <select
+                          onChange={(event) => {
+                            const markerType = event.currentTarget.value as CanonicalEditBriefMarkerType
+                            setMarkerEditor((current) => current ? { ...current, markerType } : current)
+                          }}
+                          value={markerEditor.markerType}
+                        >
+                          {MARKER_TYPES.map((type) => (
+                            <option key={type.value} value={type.value}>{type.label}</option>
+                          ))}
+                        </select>
+                      </label>
+                      <label>
+                        <span>Priority</span>
+                        <select
+                          onChange={(event) => {
+                            const priority = event.currentTarget.value as CanonicalEditBriefMarkerPriority
+                            setMarkerEditor((current) => current ? { ...current, priority } : current)
+                          }}
+                          value={markerEditor.priority}
+                        >
+                          {PRIORITIES.map((priority) => (
+                            <option key={priority.value} value={priority.value}>{priority.label}</option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="professional-edit-brief__marker-title">
+                        <span>Short label (optional)</span>
+                        <input
+                          maxLength={240}
+                          onChange={(event) => {
+                            const title = event.currentTarget.value
+                            setMarkerEditor((current) => current ? { ...current, title } : current)
+                          }}
+                          placeholder="Created automatically if left empty"
+                          value={markerEditor.title}
+                        />
+                      </label>
+                      <div className="professional-edit-brief__time-fields">
+                        <label>
+                          <span>Starts at</span>
+                          <input
+                            max={timelineDuration}
+                            min={0}
+                            onChange={(event) => {
+                              const startSeconds = Number(event.currentTarget.value)
+                              setMarkerEditor((current) => current ? { ...current, startSeconds } : current)
+                            }}
+                            step={0.01}
+                            type="number"
+                            value={markerEditor.startSeconds}
+                          />
+                        </label>
+                        <label>
+                          <span>Timing</span>
+                          <select
+                            onChange={(event) => {
+                              const timeKind = event.currentTarget.value as 'point' | 'range'
+                              setMarkerEditor((current) => current
+                                ? {
+                                    ...current,
+                                    timeKind,
+                                    endSeconds: timeKind === 'range'
+                                      ? current.endSeconds ?? Math.min(timelineDuration, current.startSeconds + 3)
+                                      : undefined,
+                                  }
+                                : current)
+                            }}
+                            value={markerEditor.timeKind}
+                          >
+                            <option value="point">Exact moment</option>
+                            <option value="range">Time range</option>
+                          </select>
+                        </label>
+                        {markerEditor.timeKind === 'range' ? (
+                          <label>
+                            <span>Ends at</span>
+                            <input
+                              max={timelineDuration}
+                              min={markerEditor.startSeconds + 0.01}
+                              onChange={(event) => {
+                                const endSeconds = Number(event.currentTarget.value)
+                                setMarkerEditor((current) => current ? { ...current, endSeconds } : current)
+                              }}
+                              step={0.01}
+                              type="number"
+                              value={markerEditor.endSeconds ?? markerEditor.startSeconds + 3}
+                            />
+                          </label>
+                        ) : null}
+                      </div>
+                    </fieldset>
+                  </details>
+
+                  <div className="professional-edit-brief__marker-actions">
+                    <Button
+                      disabled={readOnly || canonical.status === 'saving' || !markerEditor.note.trim()}
+                      icon={Save}
+                      onClick={() => void saveMarker()}
+                      size="sm"
+                      variant="primary"
+                    >
+                      {markerEditor.markerId ? 'Save direction' : 'Add direction'}
+                    </Button>
+                    {selectedMarker?.status === 'draft' ? (
+                      <Button
+                        disabled={readOnly || canonical.status === 'saving'}
+                        icon={Check}
+                        onClick={() => void canonical.changeMarkerStatus(selectedMarker.id, 'confirm')}
+                        size="sm"
+                        variant="secondary"
+                      >
+                        Confirm for plan
+                      </Button>
+                    ) : null}
+                    {selectedMarker ? (
+                      <Button
+                        disabled={readOnly || canonical.status === 'saving'}
+                        icon={Trash2}
+                        onClick={() => void canonical.changeMarkerStatus(selectedMarker.id, 'archive')}
+                        size="sm"
+                        variant="ghost"
+                      >
+                        Archive
+                      </Button>
+                    ) : (
+                      <Button onClick={() => closeMarkerEditor()} size="sm" variant="ghost">
+                        Cancel
+                      </Button>
+                    )}
+                  </div>
+
+                  {selectedMarker ? (
+                    <details className="professional-edit-brief__marker-chat">
+                      <summary>
+                        <MessageSquareText aria-hidden="true" size={16} />
+                        Follow-up notes
+                      </summary>
+                      <div className="professional-edit-brief__messages" aria-live="polite">
+                        {markerMessages.length > 0 ? markerMessages.map((message) => (
+                          <p data-role={message.role} key={message.id}>
+                            <strong>{message.role === 'user' ? 'You' : 'ReeditPro'}</strong>
+                            <span>{message.content}</span>
+                          </p>
+                        )) : (
+                          <span>No follow-up notes yet.</span>
+                        )}
+                      </div>
+                      <label>
+                        <span className="sr-only">Add marker direction</span>
+                        <textarea
+                          disabled={readOnly}
+                          onChange={(event) => setMarkerMessage(event.currentTarget.value)}
+                          placeholder="Clarify this moment…"
+                          rows={2}
+                          value={markerMessage}
+                        />
+                      </label>
+                      <Button
+                        disabled={readOnly || !markerMessage.trim() || canonical.status === 'saving'}
+                        onClick={() => void sendMarkerMessage()}
+                        size="sm"
+                        variant="secondary"
+                      >
+                        Save follow-up
+                      </Button>
+                    </details>
+                  ) : null}
+                </div>
+              ), document.body) : null}
+            </div>
+          </div>
+
+          <div className="professional-edit-brief__track-label professional-edit-brief__track-label-source">
+            <Film aria-hidden="true" size={14} />
+            <span>Source</span>
+          </div>
+          <div className="professional-edit-brief__track-label professional-edit-brief__track-label-direction">
+            <Flag aria-hidden="true" size={14} />
+            <span>Direction</span>
+          </div>
         </div>
-      </div>
+
+        <label className="professional-edit-brief__scrubber">
+          <span className="sr-only">Timeline playhead</span>
+          <input
+            aria-label="Timeline playhead"
+            max={timelineDuration}
+            min={0}
+            onChange={(event) => seek(Number(event.currentTarget.value))}
+            step={0.01}
+            type="range"
+            value={Math.min(playheadSeconds, timelineDuration)}
+          />
+        </label>
+      </section>
+
+      {canonical.status === 'unavailable'
+        || canonical.status === 'stale'
+        || canonical.status === 'invalid'
+        || canonical.status === 'access_denied' ? (
+        <div className="professional-edit-brief__notice" role="status">
+          <p>{canonical.message}</p>
+          {canonical.retryable ? (
+            <Button icon={RefreshCw} onClick={() => void canonical.refresh()} size="sm" variant="ghost">
+              Retry
+            </Button>
+          ) : null}
+        </div>
+      ) : null}
 
       <details className="professional-edit-brief__details" data-testid="edit-brief-direction-details">
         <summary>
@@ -725,7 +884,7 @@ function normalizeMarkerDraft(
     startSeconds,
     endSeconds,
     priority: marker.priority,
-    title: marker.title.trim(),
+    title: marker.title.trim() || deriveMarkerTitle(marker.note, startSeconds),
     note: marker.note.trim(),
   }
 }
@@ -811,11 +970,41 @@ function timePercent(seconds: number, duration: number): number {
   return Math.max(0, Math.min(100, (seconds / Math.max(1, duration)) * 100))
 }
 
-function timelineTicks(duration: number) {
-  return Array.from({ length: 6 }, (_, index) => {
-    const seconds = (duration / 5) * index
-    return { seconds, percent: (index / 5) * 100 }
+function timelineTicks(duration: number, zoom: number) {
+  const count = Math.max(6, Math.round(6 * zoom))
+  return Array.from({ length: count }, (_, index) => {
+    const seconds = (duration / (count - 1)) * index
+    return { seconds, percent: (index / (count - 1)) * 100 }
   })
+}
+
+function timelineClipSegments(clips: ClipSource[]): Array<{
+  id: string
+  label: string
+  widthPercent: number
+}> {
+  if (clips.length === 0) {
+    return [{ id: 'private-source', label: 'Private source', widthPercent: 100 }]
+  }
+  const durations = clips.map((clip) => parseDuration(clip.duration))
+  const durationTotal = durations.every((duration) => duration !== undefined)
+    ? durations.reduce<number>((total, duration) => total + (duration ?? 0), 0)
+    : 0
+  return clips.map((clip, index) => ({
+    id: clip.id,
+    label: clip.fileName || `Source ${index + 1}`,
+    widthPercent: durationTotal > 0
+      ? ((durations[index] ?? 0) / durationTotal) * 100
+      : 100 / clips.length,
+  }))
+}
+
+function deriveMarkerTitle(note: string, startSeconds: number): string {
+  const normalized = note.trim().replace(/\s+/g, ' ')
+  if (!normalized) return `Direction at ${formatTime(startSeconds)}`
+  const words = normalized.split(' ')
+  const concise = words.slice(0, 7).join(' ')
+  return `${concise}${words.length > 7 ? '…' : ''}`
 }
 
 function syncLabel(status: ReturnType<typeof useCanonicalEditBriefAuthority>['status']): string {

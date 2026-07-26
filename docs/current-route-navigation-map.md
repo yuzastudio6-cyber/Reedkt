@@ -53,7 +53,7 @@ Projects (`/projects`, project-container library)
 ├── Project
 │   └── Normal Named Edit (`video_edit`)
 │       ├── Chat (default normal Edit Chat)
-│       ├── Edit Brief (single inline workspace)
+│       ├── Edit Brief (`?view=brief`, full main workspace)
 │       └── Edit Preferences (`?view=preferences`)
 └── Motion Studio production (`motion_studio.storytelling`, combined source)
 
@@ -69,7 +69,7 @@ Current workspace behavior:
 - Exact named-edit recovery gate: the editor mounts only after the scoped local or reviewed-backend handoff matches the current user, workspace, project, and edit address. Backend recovery is saved before first editor mount; missing, denied, mismatched, and retryable unavailable states do not expose an empty editor.
 - Upload/source preparation gate. Initial upload and validation failures remain visible in this gate as actionable alerts and reset on the next attempt/success without starting planning, credits, editing, or generation.
 - Chat as primary surface.
-- After Footage Prep, an optional top-right `Edit Brief` action focuses the single existing inline brief and reports Optional/Draft/Ready. Opening it is non-mutating; full structured state persists with the exact edit, restores after reload, transfers into Planning Context, and freezes in the approved plan snapshot. Meaningful changes invalidate stale plan/approval state, while approved/private-review work exposes a read-only Brief and routes changes through Chat/replanning.
+- After Footage Prep, the compact `Edit Brief` workspace option opens `?view=brief` and reports Optional/Draft/Ready. It replaces Chat and the secondary rail with the full source-preview/timeline canvas while preserving the exact edit identity. Marker entry is a playhead-anchored plain-language popover with advanced metadata collapsed. Opening is non-mutating; full structured state persists with the exact edit, restores after reload, transfers into Planning Context, and freezes in the approved plan snapshot. Meaningful changes invalidate stale plan/approval state, while approved/private-review work exposes a read-only Brief and routes changes through Chat/replanning.
 - The compact workspace switcher opens the exact edit's Current Edit Preferences at `?view=preferences`. It shows the immutable creation baseline, effective values, and per-edit overrides; explicit apply/reset actions persist to the exact edit and protect dirty drafts during navigation.
 - Applying any of the seven implemented current-edit fields requires a fresh plan and estimate when a draft exists. Cleanup changes rerun Footage Prep, and target-platform changes reconfirm the output frame.
 - Approved/private-review work makes Current Edit Preferences read-only. Changes to approved work return to Chat and enter the revision/replanning flow without mutating the approved snapshot or reservation trace.
@@ -77,7 +77,7 @@ Current workspace behavior:
 - Progress/private review/revision/export-related contextual flows.
 - The active named edit omits default Timeline, SFX, Music, and advanced-planning entry cards. Their existing implementations remain isolated to compatibility/internal flows until a contextual access pattern is approved.
 
-The workspace does not introduce three new top-level routes. Chat remains the default named-edit surface, Edit Brief remains one optional inline workspace, and Current Edit Preferences is query-addressable inside the same named-edit identity. `/preferences` continues to own Saved Edit Preferences for future edits. The exact edit owns its Brief state, immutable preference creation baseline, effective values, override keys, and preference revision through the existing scoped handoff record. The approved snapshot owns the immutable Brief and preference application evidence used after approval.
+The workspace does not introduce three new top-level routes. Chat remains the default named-edit surface; `?view=brief` and `?view=preferences` address focused workspaces inside the same named-edit identity. `/preferences` continues to own Saved Edit Preferences for future edits. The exact edit owns its Brief state, immutable preference creation baseline, effective values, override keys, and preference revision through the existing scoped handoff record. The approved snapshot owns the immutable Brief and preference application evidence used after approval.
 
 ## Internal Diagnostic Location
 
@@ -95,7 +95,7 @@ Current runtime boundaries do not add navigation:
 
 ## Browser Suite Collection Truth
 
-The standard mock-only Playwright suite covers the active router above. It intentionally excludes the historical `project-edit-brief-*.spec.ts` files and `project-source-video-brief-playback.spec.ts`, because those specs target the retired `ProjectHomePage` and standalone `/brief` route. Keeping those routes mounted only for old browser tests would create a second product path and contradict the active inline Brief architecture.
+The standard mock-only Playwright suite covers the active router above. It intentionally excludes historical `project-edit-brief-*.spec.ts` files and `project-source-video-brief-playback.spec.ts` that target the retired `ProjectHomePage` and standalone `/brief` route. The current `?view=brief` state stays on the canonical exact-edit route and must not revive that second product path.
 
 The active Edit Brief lifecycle remains covered through `editor.spec.ts`: prompt-first planning without a Brief, optional Brief entry after Footage Prep, exact-edit persistence, planning transfer, approval locking, revision behavior, and private-review handoff. Backend Edit Brief authority, marker, attachment-metadata, QA, and plan-hint contracts continue through their server smoke suites without remounting retired UI.
 

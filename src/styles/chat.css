@@ -973,6 +973,7 @@
 
 .editor-workspace-switcher .rp-button {
   border-radius: var(--rp-radius-pill);
+  min-height: 44px;
   min-width: 0;
 }
 
@@ -1514,7 +1515,7 @@
 .editor-workspace-layout[data-view='brief'] {
   gap: 0;
   grid-template-columns: minmax(0, 1fr);
-  max-width: 1560px;
+  max-width: none;
 }
 
 .chat-native-shell {
@@ -1538,6 +1539,8 @@
 
 .editor-workspace-layout[data-view='brief'] > .chat-native-shell {
   height: auto;
+  margin-inline: 0;
+  max-width: none;
   min-height: clamp(680px, calc(100vh - var(--rp-editor-chrome-offset)), 980px);
 }
 

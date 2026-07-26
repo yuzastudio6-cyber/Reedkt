@@ -34,14 +34,14 @@ Authenticated app
 ├── Edit Videos (`/edit-videos`)
 │   └── Normal named edit workspace
 │       ├── Edit Chat (default)
-│       ├── Edit Brief (single inline workspace)
+│       ├── Edit Brief (`?view=brief`, full main workspace)
 │       └── Edit Preferences (`?view=preferences`)
 ├── Motion Studio (`/motion-studio`, retained during combined-source integration)
 │   └── Dedicated Storytelling workspace/chat
 └── Edit Preferences (saved defaults)
 ```
 
-The named edit workspace contains the source-upload gate, Footage Prep, chat, the optional inline Edit Brief, exact-edit Edit Preferences, plan review, credit approval, progress, private review, revisions, and contextual advanced tools. The top-level `/preferences` destination remains the Saved Edit Preferences scope for future edits.
+The named edit workspace contains the source-upload gate, Footage Prep, chat, the optional full-space Edit Brief timeline, exact-edit Edit Preferences, plan review, credit approval, progress, private review, revisions, and contextual advanced tools. The top-level `/preferences` destination remains the Saved Edit Preferences scope for future edits.
 
 The following are not active standalone products and must not be restored during the redesign: Wallet, Pricing, Brand Kit, Export Queue, Media Library, Templates, Team, Analytics, or native mobile.
 
@@ -77,14 +77,14 @@ The UI must never imply provider execution, rendering, public delivery, wallet m
 The current named edit remains chat-first. Preserve the implemented structure:
 
 - Chat is the primary canvas.
-- Edit Brief is optional, inline, and reachable from the compact top-right action after Footage Prep.
+- Edit Brief is optional and query-addressable at `?view=brief` from the compact workspace switcher after Footage Prep. It replaces Chat and the secondary rail with the full preview/timeline canvas.
 - Saved Edit Preferences at the technical `/preferences` route supplies defaults copied into an immutable new-edit baseline.
 - Current Edit Preferences is a deliberate exact-edit workspace at `?view=preferences`, reached from the compact workspace switcher. It exposes original versus overridden values without becoming another chat card.
 - Current-edit changes use explicit apply/reset behavior, invalidate a stale draft plan/estimate, and preserve cleanup/output-frame dependencies.
 - After approval/private review begins, Current Edit Preferences is read-only and revisions return to Chat so approved snapshot and credit trace remain intact.
 - Timeline, SFX, Music, planning, provider, and runner details remain contextual and collapsed.
 
-Do not turn these destinations into disconnected top-level products or duplicate editable sources. Chat remains the default route state, Edit Brief remains the existing single inline workspace, and only Current Edit Preferences uses a persistent query-addressable view.
+Do not turn these destinations into disconnected top-level products or duplicate editable sources. Chat remains the default route state; Edit Brief and Current Edit Preferences use `?view=brief` and `?view=preferences` only as focused states of the same named-edit route.
 
 ## Clean Named-Edit Chat Contract
 
@@ -94,7 +94,7 @@ The active named-edit route no longer presents planning as a historical stack of
 Upload
 → one current setup decision
 → optional reference
-→ source preparation + optional inline Edit Brief
+→ source preparation + optional full-space Edit Brief
 → one Plan Review and credit checkpoint
 → one processing state
 → one private review/revision state
@@ -342,7 +342,7 @@ New values belong in tokens before route CSS. Avoid one-off glow, radius, shadow
 - Hard-coded named-edit user identity and the false `100 credits` balance are removed.
 - `Saving / Saved / Needs retry` state is implemented without cluttering chat, and failed exact-scoped writes retain the newest local handoff for explicit retry.
 - Meaningful brief, setup, or source changes invalidate stale plan/approval state visibly.
-- Edit Brief remains inline and top-right-accessible; its complete typed state persists with the exact edit, restores after reload, transfers into Planning Context, deep-copies into the approved snapshot, and becomes read-only once approval/private review begins.
+- Edit Brief is top-workspace-accessible at `?view=brief`; its source preview and professional timeline use the main canvas, marker entry is a playhead-anchored prompt-first popover, and its complete typed state persists with the exact edit, restores after reload, transfers into Planning Context, deep-copies into the approved snapshot, and becomes read-only once approval/private review begins.
 - Current Edit Preferences is a separate query-addressable workspace inside the same named edit.
 - Current preference changes never approve a plan, mutate credits, or start generation, and cannot mutate an approved snapshot in place.
 
@@ -373,10 +373,17 @@ Interim evidence on 2026-07-10:
 
 Full active-product rerun on 2026-07-13:
 
-- The standard mock-only Playwright suite passes 143 checks with 7 explicitly gated/skipped and 0 failures across active public, auth, project, named-edit, Saved/Current Edit Preferences, inline Edit Brief, approval, private-review, recovery, revision, viewport, keyboard, zoom, and screenshot flows.
-- Historical standalone Edit Brief browser specs are excluded because they target the retired `ProjectHomePage` and `/brief` route. Active inline Brief behavior remains covered in `editor.spec.ts`, while server authority smokes retain the backend marker, attachment-metadata, QA, and plan-hint evidence.
+- The standard mock-only Playwright suite passed 143 checks with 7 explicitly gated/skipped and 0 failures across active public, auth, project, named-edit, Saved/Current Edit Preferences, the then-inline Edit Brief presentation, approval, private-review, recovery, revision, viewport, keyboard, zoom, and screenshot flows.
+- Historical standalone Edit Brief browser specs are excluded because they target the retired `ProjectHomePage` and `/brief` route. The then-active Brief behavior remained covered in `editor.spec.ts`, while server authority smokes retained the backend marker, attachment-metadata, QA, and plan-hint evidence.
 - Current Edit Preferences now hides the chat/preview workspace while `?view=preferences` is active; the complete four-test exact-edit preference lifecycle passes after the repair.
 - This closes the full automated active-route rerun. Founder-level whole-product visual signoff, explicitly gated revised-review continuation, and all production/external-service gates remain separate.
+
+Focused full-space Edit Brief evidence on 2026-07-26:
+
+- The exact upload → source preparation → full-space Edit Brief → planning → approval-lock browser journey passes with the marker prompt anchored above the unchanged timeline.
+- The editor and keyboard suites pass 24/24; active-route viewport checks pass 64/64.
+- The durable Edit Brief authority smoke, app/server typechecks, full lint, production build, frontend/server boundary, repository secret scan, and diff-integrity checks pass.
+- This focused evidence validates presentation, keyboard behavior, exact-edit lifecycle transfer, and existing private authority integration. It does not activate providers, workers, remote storage, live billing, public delivery, or production readiness.
 
 Focused named-edit context evidence on 2026-07-13:
 

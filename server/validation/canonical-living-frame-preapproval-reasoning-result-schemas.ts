@@ -50,7 +50,6 @@ const boundedCountSchema = z.number().int().nonnegative().max(3)
 const nonNegativeMicrosSchema =
   z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER)
 
-const forbiddenControlPattern = /[\u0000-\u001f\u007f]/
 const forbiddenUrlPattern =
   /(?:https?:\/\/|file:\/\/|s3:\/\/|gs:\/\/|data:|javascript:)/i
 const forbiddenSecretPattern =
@@ -59,11 +58,16 @@ const forbiddenPathPattern =
   /(?:^|\s)(?:\/Users\/|\/Volumes\/|\/home\/|[A-Za-z]:\\)/
 const forbiddenCommandPattern =
   /(?:\brm\s+-rf\b|\bsudo\s+\b|\bcurl\s+\b|\bwget\s+\b|\bbash\s+-c\b|\bsh\s+-c\b|\bpowershell\b|<script\b)/i
+const hasForbiddenControlCharacter = (value: string) => Array.from(value)
+  .some((character) => {
+    const code = character.charCodeAt(0)
+    return code <= 31 || code === 127
+  })
 
 const safeDerivedSummarySchema = z.string().trim().min(1).max(500)
   .superRefine((value, context) => {
     if (
-      forbiddenControlPattern.test(value)
+      hasForbiddenControlCharacter(value)
       || forbiddenUrlPattern.test(value)
       || forbiddenSecretPattern.test(value)
       || forbiddenPathPattern.test(value)

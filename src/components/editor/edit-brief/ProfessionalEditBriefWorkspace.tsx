@@ -220,6 +220,9 @@ export function ProfessionalEditBriefWorkspace({
 
     function positionPopover() {
       const bounds = activeTimelineScroll.getBoundingClientRect()
+      const workspaceBounds = activeTimelineScroll
+        .closest<HTMLElement>('.professional-edit-brief')
+        ?.getBoundingClientRect()
       const viewportWidth = window.innerWidth
       const viewportHeight = window.innerHeight
       const margin = 12
@@ -229,9 +232,21 @@ export function ProfessionalEditBriefWorkspace({
         - activeTimelineScroll.scrollLeft
         + timePercent(activeMarkerStartSeconds, timelineDuration) / 100
           * activeTimelineScroll.scrollWidth
+      const fitsInsideWorkspace = Boolean(
+        workspaceBounds && workspaceBounds.width >= width + margin * 2,
+      )
+      const minimumLeft = fitsInsideWorkspace
+        ? Math.max(margin, (workspaceBounds?.left ?? 0) + margin)
+        : margin
+      const maximumLeft = fitsInsideWorkspace
+        ? Math.min(
+            viewportWidth - width - margin,
+            (workspaceBounds?.right ?? viewportWidth) - width - margin,
+          )
+        : viewportWidth - width - margin
       const left = Math.max(
-        margin,
-        Math.min(viewportWidth - width - margin, markerX - width / 2),
+        minimumLeft,
+        Math.min(maximumLeft, markerX - width / 2),
       )
       const placement = bounds.top >= height + margin * 2 ? 'above' : 'below'
       const preferredTop = placement === 'above'
@@ -366,77 +381,79 @@ export function ProfessionalEditBriefWorkspace({
       id="professional-edit-brief-workspace"
       tabIndex={-1}
     >
-      <div className="professional-edit-brief__toolbar">
-        <div className="professional-edit-brief__source-identity">
-          <Film aria-hidden="true" size={16} />
-          <span>{localPreview?.fileName ?? sourceClips[0]?.fileName ?? 'Private source'}</span>
-          <strong>{formatTime(playheadSeconds)} / {formatTime(timelineDuration)}</strong>
-        </div>
-        <div className="professional-edit-brief__toolbar-actions">
-          <div
-            className="professional-edit-brief__sync"
-            data-state={canonical.status}
-            data-testid="edit-brief-authority-status"
-          >
-            {canonical.status === 'saving' || canonical.status === 'loading'
-              ? <RefreshCw aria-hidden="true" className="is-spinning" size={16} />
-              : canonical.status === 'saved'
-                ? <Check aria-hidden="true" size={16} />
-                : <CircleAlert aria-hidden="true" size={16} />}
-            <span>{syncLabel(canonical.status)}</span>
+      <div className="professional-edit-brief__preview">
+        <div className="professional-edit-brief__player">
+          <div className="professional-edit-brief__toolbar">
+            <div className="professional-edit-brief__source-identity">
+              <Film aria-hidden="true" size={16} />
+              <span>{localPreview?.fileName ?? sourceClips[0]?.fileName ?? 'Private source'}</span>
+              <strong>{formatTime(playheadSeconds)} / {formatTime(timelineDuration)}</strong>
+            </div>
+            <div className="professional-edit-brief__toolbar-actions">
+              <div
+                className="professional-edit-brief__sync"
+                data-state={canonical.status}
+                data-testid="edit-brief-authority-status"
+              >
+                {canonical.status === 'saving' || canonical.status === 'loading'
+                  ? <RefreshCw aria-hidden="true" className="is-spinning" size={16} />
+                  : canonical.status === 'saved'
+                    ? <Check aria-hidden="true" size={16} />
+                    : <CircleAlert aria-hidden="true" size={16} />}
+                <span>{syncLabel(canonical.status)}</span>
+              </div>
+              <input
+                accept="video/*"
+                hidden
+                onChange={choosePreview}
+                ref={previewInputRef}
+                type="file"
+              />
+              <Button
+                onClick={() => previewInputRef.current?.click()}
+                size="sm"
+                variant="ghost"
+              >
+                {localPreview ? 'Change playback file' : 'Open source playback'}
+              </Button>
+            </div>
           </div>
-          <input
-            accept="video/*"
-            hidden
-            onChange={choosePreview}
-            ref={previewInputRef}
-            type="file"
-          />
-          <Button
-            onClick={() => previewInputRef.current?.click()}
-            size="sm"
-            variant="ghost"
-          >
-            {localPreview ? 'Change playback file' : 'Open source playback'}
-          </Button>
-        </div>
-      </div>
 
-      <div className="professional-edit-brief__player">
-        {localPreview ? (
-          <video
-            aria-label="Local source preview for Edit Brief timing"
-            controls
-            data-testid="edit-brief-source-player"
-            onLoadedMetadata={(event) => {
-              const duration = event.currentTarget.duration
-              if (Number.isFinite(duration) && duration > 0) {
-                setLoadedDuration(duration)
-              }
-            }}
-            onTimeUpdate={(event) => setPlayheadSeconds(event.currentTarget.currentTime)}
-            playsInline
-            preload="metadata"
-            ref={videoRef}
-            src={localPreview.objectUrl}
-          />
-        ) : (
-          <div className="professional-edit-brief__player-empty">
-            <Film aria-hidden="true" size={34} />
-            <strong>Open the source for timeline playback</strong>
-            <span>
-              The existing private source stays authoritative. Reopening the same file here is
-              browser-local and never uploads, replaces, or starts editing.
-            </span>
-            <Button
-              onClick={() => previewInputRef.current?.click()}
-              size="sm"
-              variant="secondary"
-            >
-              Open source playback
-            </Button>
-          </div>
-        )}
+          {localPreview ? (
+            <video
+              aria-label="Local source preview for Edit Brief timing"
+              controls
+              data-testid="edit-brief-source-player"
+              onLoadedMetadata={(event) => {
+                const duration = event.currentTarget.duration
+                if (Number.isFinite(duration) && duration > 0) {
+                  setLoadedDuration(duration)
+                }
+              }}
+              onTimeUpdate={(event) => setPlayheadSeconds(event.currentTarget.currentTime)}
+              playsInline
+              preload="metadata"
+              ref={videoRef}
+              src={localPreview.objectUrl}
+            />
+          ) : (
+            <div className="professional-edit-brief__player-empty">
+              <Film aria-hidden="true" size={34} />
+              <strong>Open the source for timeline playback</strong>
+              <span>
+                The existing private source stays authoritative. Reopening the same file here is
+                browser-local and never uploads, replaces, or starts editing.
+              </span>
+              <Button
+                onClick={() => previewInputRef.current?.click()}
+                size="sm"
+                variant="secondary"
+              >
+                Open source playback
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
 
       <section className="professional-edit-brief__timeline" aria-label="Edit direction timeline">

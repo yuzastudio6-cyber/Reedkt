@@ -72,18 +72,23 @@
 }
 
 @media (max-width: 1320px) {
-  .chat-native-header {
+  .chat-native-header:not([data-workspace-view='brief']) {
     align-items: stretch;
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .chat-native-header-actions {
+  .chat-native-header:not([data-workspace-view='brief']) .chat-native-header-actions {
     justify-content: flex-start;
     width: 100%;
   }
 }
 
 @media (max-width: 1180px) {
+  .chat-native-header[data-workspace-view='brief'] {
+    align-items: stretch;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .editor-workspace-layout {
     grid-template-columns: minmax(0, 1fr);
     max-width: var(--rp-chat-thread-max);

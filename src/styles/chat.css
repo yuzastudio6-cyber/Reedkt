@@ -874,6 +874,40 @@
   z-index: 2;
 }
 
+.chat-native-header[data-workspace-view='brief'] {
+  padding-block: 6px;
+}
+
+.chat-native-header[data-workspace-view='brief'] .editor-header-state {
+  display: none;
+}
+
+@media (min-width: 1181px) {
+  .chat-native-header[data-workspace-view='brief'] .chat-native-header-copy {
+    align-items: center;
+    display: flex;
+    gap: var(--rp-space-3);
+  }
+
+  .chat-native-header[data-workspace-view='brief'] .editor-project-back {
+    flex: 0 1 auto;
+    margin-left: 0;
+    max-width: 150px;
+    min-height: 44px;
+  }
+
+  .chat-native-header[data-workspace-view='brief'] .chat-native-header-copy h1 {
+    border-left: 1px solid var(--rp-border-subtle);
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    overflow-wrap: normal;
+    padding-left: var(--rp-space-3);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
 .chat-native-header h1,
 .project-start-heading h2,
 .inline-chat-card h3 {

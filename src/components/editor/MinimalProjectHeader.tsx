@@ -51,7 +51,12 @@ export function MinimalProjectHeader({
   const showEditBriefStatus = editBriefState.label !== 'Optional'
 
   return (
-    <header aria-label="Editor project status" className="chat-native-header" data-testid="editor-header">
+    <header
+      aria-label="Editor project status"
+      className="chat-native-header"
+      data-testid="editor-header"
+      data-workspace-view={activeWorkspaceView}
+    >
       <div className="chat-native-header-copy">
         {projectPath && parentProjectName ? (
           <Link

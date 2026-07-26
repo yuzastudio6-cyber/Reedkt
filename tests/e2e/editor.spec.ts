@@ -437,6 +437,7 @@ test.describe('editor mocked browser flow', () => {
     await clickWhenReady(headerEditBrief)
     await expect(page).toHaveURL(/[?&]view=brief(?:&|$)/)
     await expect(headerEditBrief).toHaveAttribute('aria-current', 'page')
+    await expect(page.getByTestId('editor-header')).toHaveAttribute('data-workspace-view', 'brief')
     await expect(page.getByTestId('edit-brief-workspace-surface')).toBeFocused()
     const professionalBrief = page.getByTestId('professional-edit-brief-workspace')
     await expect(professionalBrief).toBeVisible()
@@ -451,6 +452,12 @@ test.describe('editor mocked browser flow', () => {
     const editBriefPanel = page.getByTestId('edit-brief-panel')
     await expect(editBriefPanel).toBeHidden()
     await openEditBriefSourcePreview(page, 'brief-ready-source.mp4')
+    const sourcePlayer = page.getByTestId('edit-brief-source-player')
+    const previewMonitor = page.locator('.professional-edit-brief__player')
+    const sourcePlayerBox = await sourcePlayer.boundingBox()
+    const previewMonitorBox = await previewMonitor.boundingBox()
+    expect(Math.abs((sourcePlayerBox?.width ?? 0) - (previewMonitorBox?.width ?? 0))).toBeLessThanOrEqual(1)
+    expect(Math.abs((sourcePlayerBox?.height ?? 0) - (previewMonitorBox?.height ?? 0))).toBeLessThanOrEqual(1)
     const markerLane = page.getByTestId('edit-brief-marker-lane')
     await expect(markerLane).toBeVisible()
     await expect(page.getByTestId('edit-brief-source-track')).toBeVisible()
@@ -467,6 +474,14 @@ test.describe('editor mocked browser flow', () => {
     )).toBeLessThanOrEqual(1)
     const markerPrompt = markerPopover.getByLabel(/What should happen here/i)
     await expect(markerPrompt).toBeFocused()
+    const initialMarkerPopoverBox = await markerPopover.boundingBox()
+    const professionalBriefBox = await professionalBrief.boundingBox()
+    expect(initialMarkerPopoverBox?.x ?? -1).toBeGreaterThanOrEqual(professionalBriefBox?.x ?? 0)
+    expect(
+      (initialMarkerPopoverBox?.x ?? 0) + (initialMarkerPopoverBox?.width ?? 0),
+    ).toBeLessThanOrEqual(
+      (professionalBriefBox?.x ?? 0) + (professionalBriefBox?.width ?? 0),
+    )
     await expect(markerPopover.getByText('More options')).toBeVisible()
     await expect(markerPopover.getByLabel('Type')).toBeHidden()
     await markerPrompt.fill('Keep the full product explanation and add a quiet lower-third when the speaker names the feature.')

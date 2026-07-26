@@ -421,6 +421,7 @@ function verifyReaderResult(input: {
     persistence: _persistence,
     ...handoffHashInput
   } = result.handoff
+  void _persistence
   if (
     handoffHash !== sha256AuthorityValue(handoffHashInput)
     || handoffId !== canonicalPlanningHandoffId(handoffHash)

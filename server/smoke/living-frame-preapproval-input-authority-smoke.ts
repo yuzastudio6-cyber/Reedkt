@@ -1076,6 +1076,7 @@ function authorityDigest(
     authorityDigestSha256: _authorityDigestSha256,
     ...withoutDigest
   } = value
+  void _authorityDigestSha256
   return sha256AuthorityValue(withoutDigest)
 }
 

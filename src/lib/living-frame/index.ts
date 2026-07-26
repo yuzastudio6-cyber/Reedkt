@@ -162,3 +162,45 @@ export type {
   LivingFrameSemanticSceneProposal,
   LivingFrameSemanticSceneProposalResult,
 } from '../../types/living-frame-semantic-reasoning-request'
+
+export {
+  LIVING_FRAME_SEMANTIC_SCENE_PROPOSAL_AUTHORITY_BOUNDARY,
+  LIVING_FRAME_SEMANTIC_SCENE_PROPOSAL_BINDING_CLASS,
+  LIVING_FRAME_SEMANTIC_SCENE_PROPOSAL_BINDING_EVIDENCE_CLASS,
+  LIVING_FRAME_SEMANTIC_SCENE_PROPOSAL_BINDING_VERSION,
+  LIVING_FRAME_SEMANTIC_SCENE_PROPOSAL_BLOCKING_REASON_CODES,
+  LIVING_FRAME_SEMANTIC_SCENE_PROPOSAL_ISSUE_CODES,
+  LIVING_FRAME_SEMANTIC_SCENE_PROPOSAL_VALIDATION_EXPECTATIONS,
+  LivingFrameSemanticSceneProposalContractError,
+  calculateLivingFrameSemanticSceneProposalBindingDigest,
+  calculateLivingFrameSemanticSceneProposalResultDigest,
+  createLivingFrameSemanticSceneProposalBinding,
+  livingFrameSemanticSceneProposalBindingDraftSchema,
+  livingFrameSemanticSceneProposalBindingSchema,
+  normalizeLivingFrameSemanticSceneProposalResult,
+  validateLivingFrameSemanticSceneProposalBinding,
+} from './living-frame-semantic-scene-proposal-contract'
+
+export {
+  createLivingFrameSemanticSceneProposalAdversarialFixtures,
+  createLivingFrameSemanticSceneProposalFixtureInputs,
+  createLivingFrameSemanticSceneProposalFixtures,
+} from './living-frame-semantic-scene-proposal-fixtures'
+
+export type {
+  CreateLivingFrameSemanticSceneProposalBindingInput,
+  LivingFrameSemanticSceneProposalAuthorityBoundary,
+  LivingFrameSemanticSceneProposalBinding,
+  LivingFrameSemanticSceneProposalBindingDraft,
+  LivingFrameSemanticSceneProposalBlockingReasonCode,
+  LivingFrameSemanticSceneProposalIssue,
+  LivingFrameSemanticSceneProposalIssueCode,
+  LivingFrameSemanticSceneProposalValidationExpectation,
+  LivingFrameSemanticSceneProposalValidationResult,
+} from './living-frame-semantic-scene-proposal-contract'
+
+export type {
+  LivingFrameSemanticSceneProposalAdversarialFixture,
+  LivingFrameSemanticSceneProposalFixtureInputs,
+  LivingFrameSemanticSceneProposalFixtureSet,
+} from './living-frame-semantic-scene-proposal-fixtures'

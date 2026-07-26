@@ -1,11 +1,14 @@
 # Living Frame Storytelling System Architecture
 
-Status: controlled semantic request v2 and visual continuity contract v1
+Status: controlled semantic request v2, proposal binding v1, and visual
+continuity contract v1
 Runtime readiness: planning expectations only, not executable
 Component contract: `living-frame-professional-skill-component-v1`
 Evidence contract: `living-frame-planning-evidence-binding-v1`
 Visual continuity contract: `living-frame-visual-continuity-pack-v1`
 Semantic request contract: `living-frame-semantic-reasoning-request-v2`
+Semantic proposal binding:
+`living-frame-semantic-scene-proposal-binding-v1`
 
 ## Purpose
 
@@ -873,6 +876,52 @@ illustrative interpretation, Hormuz still proves no live geography or data,
 and forged all-green packets retain every provider, timing, estimate,
 approval, work, render, and production authority as literal false.
 
+### Slice 3D-B: controlled semantic scene-proposal binding
+
+Slice 3D-B validates content-only output against the existing Slice 3D-A
+request DTO and an optional, independently valid Slice 3C-A Visual Continuity
+Pack. It does not introduce a second scene-proposal DTO.
+
+- The complete Slice 3D-A request is revalidated before any proposal
+  cross-reference is trusted. Its request, semantic-payload, and strict
+  output-schema digests are bound into the result binding.
+- The strict content-only result schema is revalidated and normalized before
+  its own browser-safe SHA-256 digest is calculated.
+- Decision, scene, component, mini-skill activation, semantic timing,
+  attention, sound, fallback, and evidence references must be unique,
+  acyclic, ordered, and internally complete.
+- Exactly one component may be focal-primary in a proposed scene. A focus
+  handoff to a visual must include semantic attention restoration unless the
+  proposal exits the scene through a later canonical transition.
+- Semantic scale may not present symbolic emphasis as literal geography,
+  physical scale, or proportional data. Exact maps and exact data remain
+  downstream verification requirements.
+- Transparency fields are expectations, not alpha evidence. Opaque plates,
+  still masks, temporal masks, procedural alpha, and additive effects must use
+  compatible QA routes. A checkerboard remains invalid evidence of alpha.
+- Musashi remains a canonical illustrative interpretation and cannot become a
+  verified likeness or historical-evidence claim. The controlled Hormuz
+  fixture cannot claim live geography or data verification.
+- If a proposed scene declares continuity expectations, an omitted Visual
+  Continuity Pack preserves `continuity_pack_required`. If a pack is present,
+  its contract, exact workspace/project/edit/handoff/evidence scope, scene
+  keys, relevant sheet kinds, identity rules, truth rules, and alpha
+  expectations are cross-validated.
+- Deliberate non-use contains no scene proposal and requires no continuity
+  pack. This remains a first-class valid result.
+- Set-like citations and references canonicalize. Semantic scene, component,
+  activation, timing, attention, sound, and fallback order is preserved.
+  Changing a valid fallback ladder changes the content and binding digests;
+  invalid escalation is rejected.
+
+The output class is
+`controlled_non_promotable_semantic_scene_proposal_binding`. It contains no
+canonical selected-scene ID and cannot supersede a handoff, persist a result,
+select a provider or tool, mint exact timing or SoundSync cues, calculate an
+estimate, modify approval or snapshot state, create work or assets, render, or
+authorize runtime. Even a forged all-green packet fails because every such
+authority is a closed literal `false`.
+
 ### Shared prerequisite gates before selected scenes
 
 The canonical backend owns three workflow-neutral prerequisites. Living Frame
@@ -1001,7 +1050,7 @@ Later integration must independently reload the current canonical handoff,
 deferred component, source evidence, reasoning result, output frame, and
 continuity expectations before any selected scene or estimate is constructed.
 
-## Closed gates after slice 3D-A
+## Closed gates after slice 3D-B
 
 Slice 3D-A proves that a bounded Living Frame semantic request and strict
 candidate-output schema can be constructed, normalized, content-addressed,
@@ -1023,9 +1072,10 @@ The following remain closed:
   and production readiness; and
 - controlled-illustration installation, qualification, or dispatch.
 
-The strict scene-proposal DTO is content only. Even a structurally valid,
-all-green candidate packet has no selected-scene, timing, sound, estimate,
-approval, provider, tool, work, render, runtime, or production authority.
+The strict scene-proposal DTO and its cross-validation binding are content
+only. Even a structurally valid, all-green candidate packet has no
+selected-scene, timing, sound, estimate, approval, provider, tool, work,
+asset, render, runtime, or production authority.
 
 ## Detailed Slice 2A parent-admission contract
 

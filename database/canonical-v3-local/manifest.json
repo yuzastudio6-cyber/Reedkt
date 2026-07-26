@@ -441,7 +441,7 @@
     },
     {
       "path": "server/services/canonical-planning-handoff-service.ts",
-      "sha256": "074fc42ee99ffc0e1c46187974d12f28a317fd8b23d102ffa01ff64607bde03a"
+      "sha256": "ac59203a537dd47fa59d5657f5acbe526dd50e7424290bb02c627b6de37ce79e"
     },
     {
       "path": "server/services/edit-reference-application-preparation-runtime-port.ts",
@@ -517,7 +517,7 @@
     },
     {
       "path": "server/services/planning-input-authority-binding-service.ts",
-      "sha256": "a65faea04e6c871807966ed12f5c467d33eb1536406f433118a66f6ea5b71ee4"
+      "sha256": "f7c7274d9f182d91d2e462c8cd048214b5ccf51962eb59c38c66e9818abdf010"
     },
     {
       "path": "server/services/project-edit-brief-local-service.ts",
@@ -645,7 +645,7 @@
     },
     {
       "path": "server/validation/edit-planning-authority-schemas.ts",
-      "sha256": "60babc964e754b471263d19f59881beabd6427b6308ff6a6c1cfd1595c1ab606"
+      "sha256": "48fe3ce9faa19ce4d2262afbd5d9ca78d582fe454a89841269b01bfec6bdcc06"
     },
     {
       "path": "server/validation/edit-reference-application-preparation-schemas.ts",
@@ -665,7 +665,7 @@
     },
     {
       "path": "src/components/editor/ChatNativeEditor.tsx",
-      "sha256": "a3d088322bec4c077b739215d776a6216b66a66008604deeb3b635e829c80699"
+      "sha256": "7c6480215d07e7abf8a1accde1d0a13e461ebecfc5eb8f9c98eae006bdb89c78"
     },
     {
       "path": "src/components/editor/CurrentEditPreferencesWorkspace.tsx",
@@ -677,11 +677,11 @@
     },
     {
       "path": "src/lib/canonical-planning-draft.ts",
-      "sha256": "c0f7b00daa36eb0dbe3e327be6afc7cf06feacaa70b53a9b60aaefdaada14a68"
+      "sha256": "2e933eaec7e3ceaac3f672427348e14e6c818e7450ad7ae9e37267419c1f429b"
     },
     {
       "path": "src/lib/canonical-planning-publication-client.ts",
-      "sha256": "047853034957c8e304d81731f9b596726592d8f6916dd7c2576c4e277ffca3bb"
+      "sha256": "352a383003bf86809bd1d0137d732c90c1ac2883c67277a7065290a42ee551c8"
     },
     {
       "path": "src/lib/current-edit-reference-application-ui.ts",

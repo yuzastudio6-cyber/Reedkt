@@ -1,9 +1,11 @@
 # Controlled Illustration Tool Qualification
 
-Status: evaluation-only source requirements
+Status: evaluation-only requirements plus dated controlled source observations
 Production approval: none
 Registry changes in this slice: none
 Contract: `living-frame-controlled-illustration-qualification-v1`
+Source observation contract:
+`living-frame-controlled-illustration-source-observation-v1`
 
 ## Purpose
 
@@ -16,12 +18,48 @@ does not say that six production tool identities should be added. Several are
 models, adapters, checkpoints, or training/loading mechanisms that may belong
 inside one future reviewed runtime profile and artifact manifest.
 
-The source observations below were rechecked on 2026-07-26, but no exact commit,
-release, package, model, checkpoint, workflow, base model, or deployment version
-is pinned. Code-license labels and model-card labels are observations, not legal
-or commercial-use approval. A later qualification must pin every artifact and
-dependency and then reverify its primary source. Nothing here is installable,
-dispatchable, or approved.
+The source observations below were rechecked on 2026-07-26 and recorded
+against immutable repository revisions in a controlled, non-promotable packet.
+That packet is not a release pin, package lock, artifact manifest, independent
+source reread, model-weight manifest, legal review, or qualification.
+Code-license labels and model-card statements are dated observations, not
+current truth or legal/commercial approval. A later canonical authority must
+reread every exact source, select and hash every executable artifact and
+dependency, and reverify the relevant terms before admission. Nothing here is
+installable, dispatchable, or approved.
+
+## Controlled revision observations
+
+The browser-shareable packet stores only closed locator codes, immutable
+revision hashes, document-content digests, and literal non-authority fields.
+It contains no URL or filesystem path. These documentation links are included
+only so a later reviewer can independently reread the primary source.
+
+| Controlled locator | Revision observed on 2026-07-26 | What was observed |
+| --- | --- | --- |
+| [ComfyUI](https://github.com/Comfy-Org/ComfyUI) | `806e092ed42772e4ce7abf44c97c50021cc4bd10` | Repository source and declared `LICENSE` label |
+| [`comfyui_controlnet_aux`](https://github.com/Fannovel16/comfyui_controlnet_aux) | `e8b689a513c3e6b63edc44066560ca5919c0576e` | Repository source and declared `LICENSE.txt` label |
+| [ControlNet source](https://github.com/lllyasviel/ControlNet) | `ed85cd1e25a5ed592f7d8178495b4483de0331bf` | Repository source and declared `LICENSE` label |
+| [ControlNet v1.1 collection](https://huggingface.co/lllyasviel/ControlNet-v1-1) | `69fc48b9cbd98661f6d0288dc59b59a5ccb32a6b` | Model-card license label; no checkpoint bytes verified |
+| [IP-Adapter source](https://github.com/tencent-ailab/IP-Adapter) | `62e4af9d0c1ac7d5f8dd386a0ccf2211346af1a2` | Repository source and declared `LICENSE` label |
+| [Generic IP-Adapter collection](https://huggingface.co/h94/IP-Adapter) | `018e402774aeeddd60609b4ecdb7e298259dc729` | Generic model-card label; no FaceID promotion |
+| [IP-Adapter-FaceID](https://huggingface.co/h94/IP-Adapter-FaceID) | `43907e6f44d079bf1a9102d9a6e56aef7a219bae` | Research-only/non-commercial statement tied to InsightFace |
+| [PuLID source](https://github.com/ToTheBeginning/PuLID) | `1aa2fc7df4bf51080df39f355f9abdc1cbfefbaa` | Repository source and declared `LICENSE` label |
+| [PuLID collection](https://huggingface.co/guozinan/PuLID) | `492b1451255dc9d9bc3c857259690b5f8b998d4a` | Adapter model-card label; no base-model promotion |
+| [FLUX.1-dev](https://huggingface.co/black-forest-labs/FLUX.1-dev) | `3de623fc3c33e44ffbe2bad470d0f45bccf2eb21` | Gated model-card terms; no model bytes verified |
+| [InsightFace](https://github.com/deepinsight/insightface) | `1456819742fd09bc4ad5293856a143a3e807c78e` | README distinction between code and pretrained model/training-data use |
+| [PEFT](https://github.com/huggingface/peft) | `051b2c5d9f2a94413418e6a8f65881bb2e31bc71` | Framework source and declared `LICENSE` label |
+
+The packet also records the observed document-content SHA-256 values, but
+those hashes prove only which text the controlled fixture described. They do
+not prove artifact integrity, legal interpretation, commercial suitability,
+redistribution permission, current upstream state, or production readiness.
+
+At the observed auxiliary-bundle revision, the source inventory included 667
+Python files, 16 license files, and eight model-like files. That is evidence
+that the bundle cannot be admitted under one package label: every copied
+annotator, embedded artifact, downloaded checkpoint, dependency, and runtime
+behavior remains separately unresolved.
 
 ## Existing ReeditPro capability context
 
@@ -48,7 +86,7 @@ existing profile is ready for a new Living Frame route.
 
 | Candidate | Working classification | Primary-source observation | Status |
 | --- | --- | --- | --- |
-| ComfyUI | Execution host/orchestrator | Current canonical repository is `Comfy-Org/ComfyUI`; repository labels core code GPL-3.0 | Evaluation only |
+| ComfyUI | Execution host/orchestrator | At the controlled 2026-07-26 observation, the `Comfy-Org/ComfyUI` repository labeled core code GPL-3.0 | Evaluation only |
 | `comfyui_controlnet_aux` | Preprocessing bundle | Repository labels its own code Apache-2.0 and states that it connects copied annotator code to downloaded assets; every annotator source and checkpoint remains separately unqualified | Evaluation only |
 | ControlNet | Model/adapter/checkpoint capability | Reference code repository labels code Apache-2.0; the referenced ControlNet v1.1 weight collection labels itself OpenRAIL | Evaluation only |
 | IP-Adapter | Model/adapter/checkpoint capability | Base code and the referenced generic `h94/IP-Adapter` artifact label themselves Apache-2.0; that observation cannot promote FaceID variants | Evaluation only |
@@ -91,7 +129,8 @@ Working hypothesis:
 - It can serve as a node-graph workflow host with API-oriented execution.
 - A pinned workflow could combine a base model, approved image references,
   pose/depth/edge conditioning, and bounded image outputs.
-- Its current canonical code repository labels the core GPL-3.0, but exact deployment and
+- At the controlled 2026-07-26 observation, its repository labeled the core
+  GPL-3.0, but exact deployment and
   distribution implications require legal review.
 - Custom nodes create a material supply-chain and arbitrary-code risk.
 
@@ -140,7 +179,7 @@ Required controls:
 Primary-source starting point:
 
 - <https://github.com/Fannovel16/comfyui_controlnet_aux>
-- <https://github.com/Fannovel16/comfyui_controlnet_aux/blob/main/LICENSE>
+- <https://github.com/Fannovel16/comfyui_controlnet_aux/blob/main/LICENSE.txt>
 
 ### ControlNet
 
@@ -246,7 +285,8 @@ Working hypothesis:
 
 - PEFT is a training/loading framework for parameter-efficient adaptation, and
   LoRA is one adaptation method.
-- The current Hugging Face PEFT repository labels framework code Apache-2.0.
+- At the controlled 2026-07-26 observation, the Hugging Face PEFT repository
+  labeled framework code Apache-2.0.
 - A LoRA artifact inherits constraints from its source data, base model,
   training process, and distribution terms; framework licensing alone is
   insufficient.
@@ -298,6 +338,10 @@ Primary-source starting points:
 This is a source requirement, not a provider adapter, model qualification,
 runtime route, or production approval. A future image model may use native
 alpha only after its exact operation supports it and the same alpha QA passes.
+The source-observation packet does not attempt to convert this documentation
+statement into provider capability authority. The existing opaque-only
+qualification boundary remains fail-closed and must be reread by the future
+canonical provider/model authority.
 
 ## Qualification matrix
 
@@ -399,7 +443,10 @@ exact future artifact inventories, license scopes, safety reviews, and
 benchmarks while fixing every installation, registry, operation, dispatch,
 runtime, and production authority to false.
 
-No candidate is installed, pinned, registered, routed, dispatched, or
-production-ready in this slice. Canonical planner, estimate, approval,
-snapshot, work-graph, tool, provider, cost, asset, QA, and private-review gates
-remain closed.
+No candidate is installed, package-pinned, artifact-pinned, independently
+verified, registered, routed, dispatched, or production-ready in this slice.
+The controlled revision observations do not alter the canonical model-weight
+manifest, including the separately discovered fail-closed
+`transparent-background`/`rembg` manifest gap. Canonical planner, estimate,
+approval, snapshot, work-graph, tool, provider, cost, asset, QA, and
+private-review gates remain closed.

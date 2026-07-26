@@ -246,3 +246,45 @@ export type {
   LivingFrameControlledIllustrationValidationIssueCode,
   LivingFrameControlledIllustrationValidationResult,
 } from '../../types/living-frame-controlled-illustration-qualification'
+
+export {
+  LIVING_FRAME_CONTROLLED_ILLUSTRATION_SOURCE_OBSERVATION_AUTHORITY_BOUNDARY,
+  LivingFrameControlledIllustrationSourceObservationError,
+  calculateLivingFrameControlledIllustrationSourceObservationDigest,
+  createLivingFrameControlledIllustrationSourceObservation,
+  livingFrameControlledIllustrationSourceObservationPacketDraftSchema,
+  livingFrameControlledIllustrationSourceObservationPacketSchema,
+  normalizeLivingFrameControlledIllustrationSourceObservationDraft,
+  validateLivingFrameControlledIllustrationSourceObservation,
+} from './living-frame-controlled-illustration-source-observation-contract'
+
+export {
+  createLivingFrameControlledIllustrationSourceObservationAdversarialFixtures,
+  createLivingFrameControlledIllustrationSourceObservationFixtureDraft,
+  createLivingFrameControlledIllustrationSourceObservationFixtures,
+} from './living-frame-controlled-illustration-source-observation-fixtures'
+
+export type {
+  LivingFrameControlledIllustrationSourceObservationAdversarialFixture,
+  LivingFrameControlledIllustrationSourceObservationFixtureSet,
+} from './living-frame-controlled-illustration-source-observation-fixtures'
+
+export type {
+  LivingFrameControlledIllustrationCandidateSourceObservation,
+  LivingFrameControlledIllustrationDeclaredLabelObservation,
+  LivingFrameControlledIllustrationDependencyScopeRule,
+  LivingFrameControlledIllustrationDependencyScopeRuleCode,
+  LivingFrameControlledIllustrationDocumentClass,
+  LivingFrameControlledIllustrationDocumentObservation,
+  LivingFrameControlledIllustrationDocumentPathCode,
+  LivingFrameControlledIllustrationObservationDisposition,
+  LivingFrameControlledIllustrationSourceClass,
+  LivingFrameControlledIllustrationSourceLocatorCode,
+  LivingFrameControlledIllustrationSourceObservationAuthorityBoundary,
+  LivingFrameControlledIllustrationSourceObservationIssue,
+  LivingFrameControlledIllustrationSourceObservationIssueCode,
+  LivingFrameControlledIllustrationSourceObservationPacket,
+  LivingFrameControlledIllustrationSourceObservationPacketDraft,
+  LivingFrameControlledIllustrationSourceObservationValidationResult,
+  LivingFrameControlledIllustrationUpstreamSourceObservation,
+} from '../../types/living-frame-controlled-illustration-source-observation'

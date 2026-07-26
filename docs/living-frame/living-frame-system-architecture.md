@@ -11,6 +11,8 @@ Semantic proposal binding:
 `living-frame-semantic-scene-proposal-binding-v1`
 Controlled-illustration qualification requirements:
 `living-frame-controlled-illustration-qualification-v1`
+Controlled-illustration upstream observation:
+`living-frame-controlled-illustration-source-observation-v1`
 
 ## Purpose
 
@@ -130,6 +132,10 @@ contracts through the normal one-writer review boundary.
 - No provider, controlled tool, generation, worker, or rendering activity may
   start before the existing plan, estimate, approval, and immutable snapshot
   authorities permit it.
+- Upstream source revisions, license files, and model-card statements are
+  dated controlled observations only. They never self-promote into current
+  source truth, legal/commercial approval, a model-weight manifest, package
+  admission, registry/operation admission, dispatch, or runtime readiness.
 
 ### Superseded proposals
 
@@ -178,6 +184,9 @@ assumption:
   libraries, or more than one reviewed runtime profile?
 - What are the exact code, weight, base-model, dependency, training-data, and
   output commercial-use terms for each controlled-illustration artifact?
+- Which exact auxiliary annotators and checkpoints, if any, can pass
+  independent source, license, artifact, security, quality, and commercial-use
+  review instead of admitting the whole preprocessing bundle?
 - Which temporal masking route and quantitative hair, hand, contact-object,
   camera-motion, and flicker thresholds qualify Living A-Roll?
 - What consent, retention, real-person, public-figure, deepfake, minor, and
@@ -1151,6 +1160,50 @@ does not provide:
 The safe next action is exact-version qualification evidence through the
 existing canonical tool/model-weight/security/operation authorities. This
 contract does not duplicate any of them.
+
+## Controlled upstream source-observation slice
+
+The source-observation contract binds the existing qualification-requirements
+digest to one dated, controlled packet covering the same six heterogeneous
+candidates. It records:
+
+- closed source-locator codes rather than URLs;
+- observed immutable repository revisions;
+- observed license/model-card document-content digests and declared labels;
+- the original candidate classifications;
+- every still-unresolved qualification artifact family and review gate; and
+- explicit dependency-scope rules that prevent a generic source label from
+  promoting copied annotators, downloaded checkpoints, FaceID, FLUX.1-dev,
+  InsightFace-dependent identity routes, or a future loaded LoRA/base
+  model/training-data combination.
+
+The controlled fixture observes exact revisions dated 2026-07-26. Those values
+are not “latest,” live, released, verified, or production-current. A future
+canonical qualification service must independently reread the primary source,
+fetch and hash the exact selected artifacts, close dependency and base-model
+lineage, and perform legal, commercial-use, security, privacy, quality, and
+runtime review. The browser-shareable packet carries no URL, path, source
+bytes, package/container identity, provider/model/tool/operation ID, command,
+credential, estimate, approval, work, asset, render, or runtime authority.
+
+Candidate and source observations use explicit order. Set-like artifact
+families, review gates, candidate references, source references, and
+dependency-scope rules canonicalize before browser-safe async SHA-256. Changing
+a dated revision or observation date changes the digest. Unsafe or cyclic
+input, unknown keys, mutable revisions, scope collapse, and forged all-green
+packets fail closed without echoing the rejected payload.
+
+This slice does not:
+
+- install a package, node, model, adapter, checkpoint, or workflow;
+- add or modify a production tool, operation, provider, package lock,
+  container, model-weight manifest, database migration, or dispatch route;
+- resolve the known fail-closed `transparent-background`/`rembg` model-weight
+  manifest gap;
+- qualify native alpha for GPT Image 2, which remains on the opaque separable
+  source plus qualified matting/alpha-QA path; or
+- open selected-scene, timing, SoundSync, estimate, approval, snapshot, work,
+  queue, asset, QA, Remotion, private-review, export, or production gates.
 
 ## Detailed Slice 2A parent-admission contract
 

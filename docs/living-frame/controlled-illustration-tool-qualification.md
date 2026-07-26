@@ -1,8 +1,9 @@
 # Controlled Illustration Tool Qualification
 
-Status: evaluation-only hypotheses
+Status: evaluation-only source requirements
 Production approval: none
 Registry changes in this slice: none
+Contract: `living-frame-controlled-illustration-qualification-v1`
 
 ## Purpose
 
@@ -15,7 +16,7 @@ does not say that six production tool identities should be added. Several are
 models, adapters, checkpoints, or training/loading mechanisms that may belong
 inside one future reviewed runtime profile and artifact manifest.
 
-The source observations below were rechecked on 2026-07-25, but no exact commit,
+The source observations below were rechecked on 2026-07-26, but no exact commit,
 release, package, model, checkpoint, workflow, base model, or deployment version
 is pinned. Code-license labels and model-card labels are observations, not legal
 or commercial-use approval. A later qualification must pin every artifact and
@@ -48,10 +49,10 @@ existing profile is ready for a new Living Frame route.
 | Candidate | Working classification | Primary-source observation | Status |
 | --- | --- | --- | --- |
 | ComfyUI | Execution host/orchestrator | Current canonical repository is `Comfy-Org/ComfyUI`; repository labels core code GPL-3.0 | Evaluation only |
-| `comfyui_controlnet_aux` | Preprocessing bundle | Repository labels code Apache-2.0 and states that it connects copied annotator code to Hub assets; every downloaded artifact remains separate | Evaluation only |
-| ControlNet | Model/adapter/checkpoint capability | Reference code repository labels code Apache-2.0; the referenced Hugging Face weight collection labels itself OpenRAIL | Evaluation only |
-| IP-Adapter | Model/adapter/checkpoint capability | Code repository labels code Apache-2.0; the referenced `h94/IP-Adapter` model card labels that artifact Apache-2.0 | Evaluation only |
-| PuLID | Identity adapter/checkpoint capability | Code repository and referenced `guozinan/PuLID` model card label their artifacts Apache-2.0; compatible base models and identity policy remain separate | Evaluation only and safety-blocked |
+| `comfyui_controlnet_aux` | Preprocessing bundle | Repository labels its own code Apache-2.0 and states that it connects copied annotator code to downloaded assets; every annotator source and checkpoint remains separately unqualified | Evaluation only |
+| ControlNet | Model/adapter/checkpoint capability | Reference code repository labels code Apache-2.0; the referenced ControlNet v1.1 weight collection labels itself OpenRAIL | Evaluation only |
+| IP-Adapter | Model/adapter/checkpoint capability | Base code and the referenced generic `h94/IP-Adapter` artifact label themselves Apache-2.0; that observation cannot promote FaceID variants | Evaluation only |
+| PuLID | Identity adapter/checkpoint capability | Adapter source and the referenced PuLID artifact label themselves Apache-2.0; a PuLID-FLUX route still inherits the FLUX.1-dev non-commercial base-model restriction | Evaluation only and safety-blocked |
 | PEFT/LoRA | Training/loading mechanism | PEFT repository labels framework code Apache-2.0; a LoRA artifact still depends on base-model, data, training, and distribution terms | Evaluation only |
 
 The last four are not automatically separate `ProductionToolId` values. A
@@ -127,7 +128,9 @@ Working hypothesis:
 Required controls:
 
 - exact preprocessor allowlist and versions;
+- independent source pin and license review for every copied annotator;
 - model artifact inventory and digests;
+- independent pin, digest, and license review for every downloaded checkpoint;
 - source/output dimension and orientation checks;
 - deterministic preprocessing settings;
 - no unreviewed downloads at execution time;
@@ -165,7 +168,7 @@ Primary-source starting point:
 
 - <https://github.com/lllyasviel/ControlNet>
 - <https://github.com/lllyasviel/ControlNet/blob/main/LICENSE>
-- <https://huggingface.co/lllyasviel/ControlNet>
+- <https://huggingface.co/lllyasviel/ControlNet-v1-1>
 
 ### IP-Adapter
 
@@ -178,6 +181,9 @@ Working hypothesis:
 - Its repository labels code Apache-2.0, and the referenced `h94/IP-Adapter`
   model card labels that artifact Apache-2.0. Checkpoints
   and base models need separate review.
+- The official IP-Adapter-FaceID model card describes its FaceID models as
+  research-only and non-commercial because they use InsightFace. The generic
+  IP-Adapter code or model-card label must never promote a FaceID workflow.
 
 Required evidence:
 
@@ -194,6 +200,7 @@ Primary-source starting point:
 - <https://github.com/tencent-ailab/IP-Adapter>
 - <https://github.com/tencent-ailab/IP-Adapter/blob/main/LICENSE>
 - <https://huggingface.co/h94/IP-Adapter>
+- <https://huggingface.co/h94/IP-Adapter-FaceID>
 
 ### PuLID
 
@@ -205,6 +212,9 @@ Working hypothesis:
 - Its own project notes and future benchmarking must be consulted for identity
   fidelity limits.
 - Base-model and checkpoint terms remain separate.
+- A PuLID-FLUX workflow based on FLUX.1-dev inherits the FLUX.1-dev
+  non-commercial license constraint. The PuLID adapter's own label cannot
+  override that base-model restriction.
 
 This route is blocked beyond ordinary technical qualification. It requires:
 
@@ -228,6 +238,7 @@ Primary-source starting point:
 - <https://github.com/ToTheBeginning/PuLID>
 - <https://github.com/ToTheBeginning/PuLID/blob/main/LICENSE>
 - <https://huggingface.co/guozinan/PuLID>
+- <https://huggingface.co/black-forest-labs/FLUX.1-dev>
 
 ### PEFT/LoRA
 
@@ -257,6 +268,36 @@ Primary-source starting point:
 
 - <https://github.com/huggingface/peft>
 - <https://github.com/huggingface/peft/blob/main/LICENSE>
+
+## Current GPT Image 2 alpha boundary
+
+The current `gpt-image-2` model reference says transparent backgrounds are not
+supported. Living Frame must not request or claim native transparent output
+from that exact model.
+
+The current planning requirement is:
+
+```text
+opaque, separable GPT Image 2 source
+  -> qualified segmentation or matting
+  -> edge and matte-color decontamination
+  -> true-alpha artifact
+  -> black, white, gray, saturated, and destination-background QA
+```
+
+The image-editing guide also says a provider mask guides the edit but does not
+need to match the target shape precisely. A provider edit mask is therefore
+not the production matte.
+
+Primary-source starting points:
+
+- <https://developers.openai.com/api/docs/models/gpt-image-2>
+- <https://developers.openai.com/api/docs/guides/image-generation#customize-image-output>
+- <https://developers.openai.com/api/docs/guides/image-generation#edit-images>
+
+This is a source requirement, not a provider adapter, model qualification,
+runtime route, or production approval. A future image model may use native
+alpha only after its exact operation supports it and the same alpha QA passes.
 
 ## Qualification matrix
 
@@ -325,10 +366,9 @@ component must identify:
 - multi-background QA results; and
 - destination-scene QA results.
 
-Native alpha, when an exact provider/model version supports it, is still an
-unverified claim until it passes QA. If native alpha is unsupported or fails,
-the approved route must generate a separable source and use the existing
-qualified foreground/mask/image-processing capabilities.
+`gpt-image-2` must use the opaque-source route described above. Native alpha
+from a different future exact model/operation remains unverified until its
+capability is confirmed and the same QA passes.
 
 ## Runtime admission criteria
 
@@ -351,9 +391,15 @@ Passing those checks would authorize only the reviewed route. It would not
 promote every candidate, permit dynamic plugins, or make identity conditioning
 generally available.
 
-## Slice 1 conclusion
+## Qualification contract conclusion
 
-No candidate is installed, registered, routed, dispatched, or production-ready
-in this slice. The Living Frame contract carries abstract capability
-expectations only. Canonical planner, estimate, approval, snapshot, work-graph,
-tool, provider, cost, asset, QA, and private-review gates remain closed.
+The v1 contract records the six candidates as classified, evaluation-only
+requirements. It does not claim six `ProductionToolId` values. It requires
+exact future artifact inventories, license scopes, safety reviews, and
+benchmarks while fixing every installation, registry, operation, dispatch,
+runtime, and production authority to false.
+
+No candidate is installed, pinned, registered, routed, dispatched, or
+production-ready in this slice. Canonical planner, estimate, approval,
+snapshot, work-graph, tool, provider, cost, asset, QA, and private-review gates
+remain closed.

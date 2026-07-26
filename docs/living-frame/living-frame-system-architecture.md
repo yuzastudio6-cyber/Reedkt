@@ -9,6 +9,8 @@ Visual continuity contract: `living-frame-visual-continuity-pack-v1`
 Semantic request contract: `living-frame-semantic-reasoning-request-v2`
 Semantic proposal binding:
 `living-frame-semantic-scene-proposal-binding-v1`
+Controlled-illustration qualification requirements:
+`living-frame-controlled-illustration-qualification-v1`
 
 ## Purpose
 
@@ -115,10 +117,12 @@ contracts through the normal one-writer review boundary.
   digest is distinct from the pre-approval input-authority digest, visual
   evidence digest, strict output-schema digest, and whole request-contract
   digest.
-- Transparency is capability-checked. Native alpha may be attempted only when
-  the exact route supports it and still must pass QA; otherwise the route uses
-  a separable source, approved segmentation/refinement, and multi-background
-  alpha QA.
+- Transparency is capability-checked. The current `gpt-image-2` model cannot
+  request transparent output, so its required Living Frame path is opaque
+  separable generation, qualified segmentation or matting, edge
+  decontamination, a true-alpha artifact, and multi-background plus
+  destination-composite QA. A different future exact model/operation may use
+  native alpha only after its capability and output pass the same QA.
 - Documentary truth, generated-illustration disclosure, likeness safety,
   semantic-scale truth, and exact-geography/data verification are mandatory.
 - Rollout begins with Living Still and deterministic scenes, then clean Living
@@ -141,6 +145,7 @@ contracts through the normal one-writer review boundary.
 | Treat a provider route name as proof of privacy or data handling | Rejected; shared route data assurance and the provider-envelope binding are separate future authorities. |
 | Use a generic `custom` work item for missing operations | Rejected; missing work requires explicit canonical schema admission. |
 | Assume generated-image transparency always works or always fails | Superseded by exact capability checks plus deterministic alpha fallback and QA. |
+| Treat GPT Image 2 as a native-alpha route | Rejected for the current `gpt-image-2` capability; it requires opaque generation followed by qualified matting and alpha QA. |
 | Replace detailed illustration entirely with procedural drawing | Rejected; detailed hero art can use still generation while motion and composition remain controlled. |
 | Build a separate Living Frame planner, timeline, queue, or renderer | Rejected; Living Frame extends the existing canonical authorities. |
 
@@ -184,8 +189,9 @@ assumption:
 - What is the measured internal and customer estimate impact per approved,
   revision-ready, reusable scene?
 - When, if ever, should advanced 2.5D or 3D scene construction be admitted?
-- Does the exact selected image provider/model version support native alpha,
-  and does its output pass the same destination-composite QA as fallback alpha?
+- Which future exact image model/operation, if any, should be qualified for
+  native alpha after passing the same destination-composite QA as the opaque
+  GPT Image 2 fallback route?
 
 ## Architectural invariants
 
@@ -475,11 +481,12 @@ An approved future alpha route must test white, black, gray, saturated, and
 destination backgrounds, including edge contamination, internal holes,
 fine-detail loss, mask flicker, and rectangular matte leakage.
 
-The current GPT Image 2 model documentation must be checked at the exact
-provider version selected later. The architecture must not assume that a
-particular model returns production-ready alpha. A safe default is a separable
-source image followed by an approved extraction, refinement, edge
-decontamination, and multi-background QA route.
+The current `gpt-image-2` model does not support transparent output. Living
+Frame must use a separable opaque source followed by approved segmentation or
+matting, refinement, edge decontamination, a true-alpha artifact, and
+multi-background plus destination-composite QA. Provider edit masks guide an
+edit; they are not production mattes. A future image model's native alpha is
+still unqualified until its exact operation and output pass the same QA.
 
 ## Capability and generation ladder
 
@@ -1076,6 +1083,74 @@ The strict scene-proposal DTO and its cross-validation binding are content
 only. Even a structurally valid, all-green candidate packet has no
 selected-scene, timing, sound, estimate, approval, provider, tool, work,
 asset, render, runtime, or production authority.
+
+## Controlled-illustration qualification requirements
+
+The v1 source contract classifies exactly six evaluation candidates:
+
+| Candidate | Contract class |
+| --- | --- |
+| ComfyUI | execution host/orchestrator |
+| `comfyui_controlnet_aux` | preprocessing bundle |
+| ControlNet | model/adapter/checkpoint capability |
+| IP-Adapter | model/adapter/checkpoint capability |
+| PuLID | identity adapter/checkpoint capability |
+| PEFT/LoRA | training/loading mechanism |
+
+This is not a list of six production tool identities. The packet records the
+artifact families, license scopes, security and safety reviews, and benchmarks
+that a future qualification authority would need. Every candidate remains
+uninstalled, unpinned, unverified, unregistered, non-dispatchable, and
+production-false.
+
+The contract keeps these distinctions fail-closed:
+
+- every copied `comfyui_controlnet_aux` annotator and every downloaded
+  checkpoint needs an independent pin, digest, and license review;
+- ControlNet source-code terms cannot qualify model weights, annotators, or a
+  base model;
+- generic IP-Adapter cannot promote the official FaceID variant, whose model
+  card describes it as research-only and non-commercial due to InsightFace;
+- PuLID adapter terms cannot override FLUX.1-dev's non-commercial base-model
+  restriction;
+- PuLID and every other identity-conditioned route also require consent,
+  likeness/deepfake, minor, retention, and documentary-fact-safety review; and
+- PEFT/LoRA framework or mechanism terms cannot qualify a loaded adapter,
+  training data, or base model.
+
+The packet also freezes the current image-alpha planning requirement:
+
+```text
+gpt-image-2 opaque separable source
+  -> qualified segmentation or matting
+  -> edge decontamination
+  -> true-alpha artifact
+  -> multi-background and destination-composite QA
+```
+
+It does not call the provider, select a model route, create a mask, or approve
+an asset.
+
+## Closed gates after controlled-illustration qualification requirements
+
+The qualification packet is controlled, source-only, and non-promotable. It
+does not provide:
+
+- exact package, container, source, model, adapter, checkpoint, or workflow
+  versions;
+- an artifact manifest or independent source/license verification record;
+- a production tool or operation identity;
+- installation, registry, dispatch, provider, model-weight, worker, queue, or
+  runtime authority;
+- measured benchmark, quality, privacy, security, identity, or commercial-use
+  evidence;
+- a selected Living Frame scene, estimate, approval, snapshot, timing,
+  SoundSync, asset, QA, render, or private-review result; or
+- production readiness.
+
+The safe next action is exact-version qualification evidence through the
+existing canonical tool/model-weight/security/operation authorities. This
+contract does not duplicate any of them.
 
 ## Detailed Slice 2A parent-admission contract
 

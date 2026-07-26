@@ -204,3 +204,45 @@ export type {
   LivingFrameSemanticSceneProposalFixtureInputs,
   LivingFrameSemanticSceneProposalFixtureSet,
 } from './living-frame-semantic-scene-proposal-fixtures'
+
+export {
+  LIVING_FRAME_CONTROLLED_ILLUSTRATION_QUALIFICATION_AUTHORITY_BOUNDARY,
+  LivingFrameControlledIllustrationQualificationError,
+  calculateLivingFrameControlledIllustrationQualificationDigest,
+  createLivingFrameControlledIllustrationQualification,
+  livingFrameControlledIllustrationQualificationDraftSchema,
+  livingFrameControlledIllustrationQualificationSchema,
+  normalizeLivingFrameControlledIllustrationQualificationDraft,
+  validateLivingFrameControlledIllustrationQualification,
+} from './living-frame-controlled-illustration-qualification-contract'
+
+export {
+  createLivingFrameControlledIllustrationQualificationAdversarialFixtures,
+  createLivingFrameControlledIllustrationQualificationFixtureDraft,
+  createLivingFrameControlledIllustrationQualificationFixtures,
+} from './living-frame-controlled-illustration-qualification-fixtures'
+
+export type {
+  LivingFrameControlledIllustrationQualificationAdversarialFixture,
+  LivingFrameControlledIllustrationQualificationFixtureSet,
+} from './living-frame-controlled-illustration-qualification-fixtures'
+
+export type {
+  LivingFrameControlledIllustrationArtifactExpectation,
+  LivingFrameControlledIllustrationArtifactFamily,
+  LivingFrameControlledIllustrationBenchmarkCode,
+  LivingFrameControlledIllustrationBenchmarkExpectation,
+  LivingFrameControlledIllustrationCandidateClass,
+  LivingFrameControlledIllustrationCandidateKey,
+  LivingFrameControlledIllustrationCandidateRequirement,
+  LivingFrameControlledIllustrationHypothesisCode,
+  LivingFrameControlledIllustrationImageBoundaryCode,
+  LivingFrameControlledIllustrationImageCapabilityBoundary,
+  LivingFrameControlledIllustrationQualification,
+  LivingFrameControlledIllustrationQualificationAuthorityBoundary,
+  LivingFrameControlledIllustrationQualificationDraft,
+  LivingFrameControlledIllustrationReviewGateCode,
+  LivingFrameControlledIllustrationValidationIssue,
+  LivingFrameControlledIllustrationValidationIssueCode,
+  LivingFrameControlledIllustrationValidationResult,
+} from '../../types/living-frame-controlled-illustration-qualification'

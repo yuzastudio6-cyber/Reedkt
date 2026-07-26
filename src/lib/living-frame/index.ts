@@ -115,3 +115,50 @@ export type {
   LivingFrameVisualContinuityValidationIssueCode,
   LivingFrameVisualContinuityValidationResult,
 } from '../../types/living-frame-visual-continuity'
+
+export {
+  LIVING_FRAME_SEMANTIC_REQUEST_AUTHORITY_BOUNDARY,
+  LivingFrameSemanticRequestContractError,
+  calculateLivingFrameSemanticPayloadDigest,
+  calculateLivingFrameSemanticReasoningRequestDigest,
+  calculateLivingFrameSemanticSceneProposalSchemaDigest,
+  createLivingFrameSemanticSceneProposalJsonSchema,
+  createLivingFrameSemanticReasoningRequest,
+  livingFrameSemanticReasoningRequestDraftSchema,
+  livingFrameSemanticReasoningRequestSchema,
+  livingFrameSemanticRequestPayloadSchema,
+  livingFrameSemanticSceneProposalResultSchema,
+  normalizeLivingFrameSemanticReasoningRequestDraft,
+  validateLivingFrameSemanticReasoningRequest,
+} from './living-frame-semantic-reasoning-request-contract'
+
+export {
+  createLivingFrameSemanticReasoningRequestAdversarialFixtures,
+  createLivingFrameSemanticReasoningRequestFixtureDrafts,
+  createLivingFrameSemanticReasoningRequestFixtures,
+} from './living-frame-semantic-reasoning-request-fixtures'
+
+export type {
+  LivingFrameSemanticReasoningRequestAdversarialFixture,
+  LivingFrameSemanticReasoningRequestFixtureSet,
+} from './living-frame-semantic-reasoning-request-fixtures'
+
+export type {
+  LivingFrameSemanticReasoningRequest,
+  LivingFrameSemanticReasoningRequestDraft,
+  LivingFrameSemanticRequestAuthorityBoundary,
+  LivingFrameSemanticRequestCanonicalBindings,
+  LivingFrameSemanticRequestConstraint,
+  LivingFrameSemanticRequestEvidenceProjection,
+  LivingFrameSemanticRequestEvidenceReference,
+  LivingFrameSemanticRequestOutputContract,
+  LivingFrameSemanticRequestPayload,
+  LivingFrameSemanticRequestRouteAssuranceExpectation,
+  LivingFrameSemanticRequestSegmentContext,
+  LivingFrameSemanticRequestSpeechExpectation,
+  LivingFrameSemanticRequestValidationIssue,
+  LivingFrameSemanticRequestValidationIssueCode,
+  LivingFrameSemanticRequestValidationResult,
+  LivingFrameSemanticSceneProposal,
+  LivingFrameSemanticSceneProposalResult,
+} from '../../types/living-frame-semantic-reasoning-request'

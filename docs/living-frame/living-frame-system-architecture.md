@@ -1,10 +1,11 @@
 # Living Frame Storytelling System Architecture
 
-Status: controlled visual continuity contract v1
+Status: controlled semantic request v2 and visual continuity contract v1
 Runtime readiness: planning expectations only, not executable
 Component contract: `living-frame-professional-skill-component-v1`
 Evidence contract: `living-frame-planning-evidence-binding-v1`
 Visual continuity contract: `living-frame-visual-continuity-pack-v1`
+Semantic request contract: `living-frame-semantic-reasoning-request-v2`
 
 ## Purpose
 
@@ -99,6 +100,18 @@ contracts through the normal one-writer review boundary.
 - Selected Living Frame scenes require both source-bound visual evidence and a
   schema-validated pre-approval reasoning result bound to the same current
   planning inputs. Neither one alone selects a scene.
+- Source visuals and source speech are different evidence authorities. Living
+  Frame owns neither generic speech extraction nor its repository. A semantic
+  request for a source that contains speech remains blocked until the shared
+  workflow-neutral speech-evidence authority supplies a current namespaced
+  projection.
+- Shared route data assurance is a separate security and model-routing
+  authority. A semantic request may declare the requirement but cannot bind a
+  provider envelope, certify processing or retention policy, or call a model.
+- The Living Frame semantic request has its own bounded payload digest. That
+  digest is distinct from the pre-approval input-authority digest, visual
+  evidence digest, strict output-schema digest, and whole request-contract
+  digest.
 - Transparency is capability-checked. Native alpha may be attempted only when
   the exact route supports it and still must pass QA; otherwise the route uses
   a separable source, approved segmentation/refinement, and multi-background
@@ -121,6 +134,8 @@ contracts through the normal one-writer review boundary.
 | Let a reasoning model write arbitrary JavaScript for each scene | Rejected; models emit typed, validated plans that approved compilers execute. |
 | Add six new production tool IDs and increase the registry count | Rejected; the six candidates span a host, a preprocessing bundle, adapters/checkpoints, and a training/loading mechanism. |
 | Use the older workload-specific Kimi-to-GPT fallback | Superseded by the shared canonical Kimi-to-Qwen-to-DeepSeek route. |
+| Treat source visual evidence as proof of narration meaning | Rejected; generic source-speech evidence is a separate shared authority and remains required when speech exists. |
+| Treat a provider route name as proof of privacy or data handling | Rejected; shared route data assurance and the provider-envelope binding are separate future authorities. |
 | Use a generic `custom` work item for missing operations | Rejected; missing work requires explicit canonical schema admission. |
 | Assume generated-image transparency always works or always fails | Superseded by exact capability checks plus deterministic alpha fallback and QA. |
 | Replace detailed illustration entirely with procedural drawing | Rejected; detailed hero art can use still generation while motion and composition remain controlled. |
@@ -138,8 +153,17 @@ assumption:
 - What released server reader will reload the current unpublished handoff,
   exact component payload, and controlled internal-cost ceiling expectation
   for the pre-approval input authority?
+- What workflow-neutral source-speech evidence package, verifier, reader, and
+  repository will provide current narration meaning without creating a
+  Living Frame-specific transcription lane?
+- What exact shared route-data-assurance record will bind processing region,
+  retention, training use, sensitivity, rights, likeness, minors, and
+  fact-safety policy to the canonical Kimi-to-Qwen-to-DeepSeek route?
 - What transport, durable run/result repository, lifecycle, timeout, retry,
   and checkback authority will execute pre-approval reasoning?
+- What canonical planning service will supersede a deferred-analysis handoff
+  with a server-derived selected handoff under durable idempotency, compare-
+  and-swap, checkback, and unknown-attempt handling?
 - Which Kimi deployment and model version will satisfy the shared route,
   privacy, latency, structured-output, and internal-cost gates?
 - Will controlled illustration use one isolated workflow host, direct
@@ -804,10 +828,71 @@ This is a controlled, non-promotable source contract. It provides no current
 provider result, selected-scene authority, timing, estimate, approval,
 snapshot, asset, QA, work, render, or runtime authority.
 
+### Slice 3D-A: bounded semantic reasoning request
+
+Slice 3D-A defines the real semantic payload that a future provider-neutral
+pre-approval run may consume. It is separate from Slice 3B-A's input-authority
+metadata and cannot execute a run.
+
+- The payload contains only bounded intent signals, restraint signals, allowed
+  Living Frame modes, source-bound visual-evidence projections, ordered
+  segment context, ordered semantic constraints, and requested candidate,
+  rejection, non-use, or blocked decision kinds.
+- The request binds the exact Slice 3B-A input-authority digest, Slice 3A
+  visual-evidence binding digest, and strict semantic scene-proposal JSON
+  Schema digest.
+- The semantic payload, strict output schema, and complete request are
+  content-addressed independently. The input-authority and evidence digests
+  must also remain distinct; substituting one digest for another fails closed.
+- Set-like intent, mode, evidence-reference, and reference-ID collections
+  canonicalize. Segment and semantic-constraint order is preserved. Changing
+  semantic order changes the digest.
+- A source containing speech is blocked with
+  `generic_source_speech_evidence_required`. The generic evidence digest is
+  deliberately absent until the future shared workflow-neutral authority is
+  injected.
+- Every request is also blocked with
+  `shared_route_data_assurance_required`. The provider-envelope state and
+  digest remain unbound.
+- The only expected reasoning order is Kimi K3, Qwen 3.7, then DeepSeek V4
+  Pro. This is a routing expectation, not provider selection or transport
+  authority. The obsolete Kimi-to-GPT route, Qwen2.5-VL reasoning, and
+  media-provider operations remain forbidden.
+- Output DTOs may describe semantic candidates, component relationships,
+  mini-skill suggestions, timing phases, attention intent, semantic scale,
+  sound intent, continuity expectations, QA expectations, and fallbacks.
+  They cannot select a canonical scene, mint exact frames or SoundSync cues,
+  calculate an estimate, approve a plan, choose a provider or tool, create
+  work, or authorize runtime.
+- Raw chat, transcript, instructions, media, paths, URLs, credentials, hidden
+  reasoning, provider envelopes, commands, jobs, queues, work items, cost
+  authority, and production claims are rejected recursively.
+
+Fixtures remain controlled and non-promotable. Musashi is still a canonical
+illustrative interpretation, Hormuz still proves no live geography or data,
+and forged all-green packets retain every provider, timing, estimate,
+approval, work, render, and production authority as literal false.
+
+### Shared prerequisite gates before selected scenes
+
+The canonical backend owns three workflow-neutral prerequisites. Living Frame
+will consume only namespaced projections after they are released:
+
+1. generic source-speech evidence and its current server reader;
+2. route data assurance for the canonical reasoning route; and
+3. durable preplan run/result lifecycle plus deferred-handoff supersession.
+
+Living Frame must not implement a private transcriber, provider repository,
+selected-handoff publisher, idempotency store, checkback loop, or attempt-cost
+ledger to bypass these prerequisites.
+
 ### Slice 3C-B: selected scene planning, estimate, and approval
 
+- wait until the shared speech, route-assurance, reasoning lifecycle, and
+  server-derived handoff prerequisites are current;
 - revalidate source/output-frame/timing expectations;
-- require current Slice 3A evidence and Slice 3B reasoning bindings;
+- require current Slice 3A evidence, Slice 3D-A request, Slice 3B reasoning
+  binding, and applicable Visual Continuity Pack;
 - construct selected, rejected, blocked, and deliberate-non-use scene
   decisions through the existing professional-skill planner;
 - publish complexity signals to the existing estimate system;
@@ -915,6 +1000,32 @@ In particular, Slice 3C-A does not provide:
 Later integration must independently reload the current canonical handoff,
 deferred component, source evidence, reasoning result, output frame, and
 continuity expectations before any selected scene or estimate is constructed.
+
+## Closed gates after slice 3D-A
+
+Slice 3D-A proves that a bounded Living Frame semantic request and strict
+candidate-output schema can be constructed, normalized, content-addressed,
+and rejected safely. It does not prove that its evidence is live, that a
+provider ran, or that any candidate was selected.
+
+The following remain closed:
+
+- generic source-speech evidence, reader, and repository;
+- shared route data assurance and a bound provider envelope;
+- provider transport, credentials, attempts, retries, and durable results;
+- deferred-handoff supersession and durable preplan lifecycle;
+- canonical selected/rejected/non-use scene projection;
+- exact `MasterTimingPlan` tracks and SoundSync cues;
+- estimate, customer credits, approval, or snapshot mutation;
+- component assets, alpha or mask production, work graph, queue, dispatch,
+  internal attempt-cost evidence, or asset-manifest ownership;
+- QA-approved executable assets, Remotion compilation, private review, export,
+  and production readiness; and
+- controlled-illustration installation, qualification, or dispatch.
+
+The strict scene-proposal DTO is content only. Even a structurally valid,
+all-green candidate packet has no selected-scene, timing, sound, estimate,
+approval, provider, tool, work, render, runtime, or production authority.
 
 ## Detailed Slice 2A parent-admission contract
 

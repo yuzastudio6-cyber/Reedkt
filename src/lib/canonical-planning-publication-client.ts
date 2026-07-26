@@ -14,6 +14,7 @@ import {
   type CanonicalPlanningDraft,
   type CanonicalStorytellingPlanningPreparationSource,
 } from './canonical-planning-draft'
+import { bindLivingFrameCanonicalPlanning } from './living-frame'
 import {
   apiResponseInvalidatesProjectPersistenceScope,
   invalidateProjectPersistenceScope,
@@ -195,17 +196,65 @@ async function prepareAndPerformCanonicalPlanningSave(
   const preparation = await prepareIdeaFirstStorytellingPlanning(input)
   if (!preparation.ok) return preparation.failure
 
-  const compiled = buildCanonicalPlanningDraft({
+  const sourceCompiled = buildCanonicalPlanningDraft({
     plan: input.plan,
     plannerInput: input.plannerInput,
     sourceMediaAssets: input.sourceMediaAssets,
     motionStudioStorytellingStylePlan: input.motionStudioStorytellingStylePlan,
     motionStudioStorytellingPlanningPreparation: preparation.preparation,
   })
+  if (!sourceCompiled.ok) {
+    return {
+      status: 'blocked',
+      message: sourceCompiled.errors[0] ?? 'Complete the required planning confirmations before saving this plan.',
+      retryable: false,
+      handoffSaved: false,
+      candidateSaved: false,
+      publicationBlockers: sourceCompiled.errors,
+      warnings: preparation.warnings,
+    }
+  }
+  let boundLivingFrame: Awaited<ReturnType<typeof bindLivingFrameCanonicalPlanning>>
+  try {
+    boundLivingFrame = await bindLivingFrameCanonicalPlanning({
+      professionalSkillPlan: input.plan.professionalSkillPlan,
+      components: sourceCompiled.draft.components,
+    })
+  } catch {
+    return {
+      status: 'blocked',
+      message: 'Living Frame planning could not be bound to the exact canonical source expectations.',
+      retryable: false,
+      handoffSaved: false,
+      candidateSaved: false,
+      publicationBlockers: [
+        'Refresh the selected professional skill plan before canonical planning.',
+      ],
+      warnings: preparation.warnings,
+    }
+  }
+  const boundInput: SaveCanonicalPlanningInput = {
+    ...input,
+    plan: {
+      ...input.plan,
+      ...(boundLivingFrame.professionalSkillPlan
+        ? { professionalSkillPlan: boundLivingFrame.professionalSkillPlan }
+        : {}),
+    },
+  }
+  const compiled = buildCanonicalPlanningDraft({
+    plan: boundInput.plan,
+    plannerInput: boundInput.plannerInput,
+    sourceMediaAssets: boundInput.sourceMediaAssets,
+    livingFrameComponent: boundLivingFrame.livingFrame,
+    motionStudioStorytellingStylePlan:
+      boundInput.motionStudioStorytellingStylePlan,
+    motionStudioStorytellingPlanningPreparation: preparation.preparation,
+  })
   if (!compiled.ok) {
     return {
       status: 'blocked',
-      message: compiled.errors[0] ?? 'Complete the required planning confirmations before saving this plan.',
+      message: compiled.errors[0] ?? 'The source-bound Living Frame plan is no longer current.',
       retryable: false,
       handoffSaved: false,
       candidateSaved: false,
@@ -214,7 +263,7 @@ async function prepareAndPerformCanonicalPlanningSave(
     }
   }
   return performCanonicalPlanningSave(
-    input,
+    boundInput,
     compiled.draft,
     preparation.preparation,
   )
@@ -1061,6 +1110,7 @@ async function performCanonicalPlanningSave(
         preferenceAuthority.authority.preferenceFingerprintSha256,
     },
     sourceMediaAssets: input.sourceMediaAssets,
+    livingFrameComponent: input.plan.professionalSkillPlan?.livingFrame,
     motionStudioStorytellingStylePlan: input.motionStudioStorytellingStylePlan,
     motionStudioStorytellingPlanningPreparation: storytellingPlanningPreparation,
   })

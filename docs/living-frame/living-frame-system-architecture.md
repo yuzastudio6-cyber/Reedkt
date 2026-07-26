@@ -1,7 +1,7 @@
 # Living Frame Storytelling System Architecture
 
-Status: source-only contract v1 plus planning-only parent-skill admission
-Runtime readiness: not integrated, not executable
+Status: deferred canonical-planning binding v1
+Runtime readiness: canonical expectation persistence only, not executable
 Contract version: `living-frame-professional-skill-component-v1`
 
 ## Purpose
@@ -17,11 +17,12 @@ The central creative rule is:
 
 Living Frame is not a new Signature System, planner, timeline, approval flow,
 queue, provider, tool registry, cost ledger, QA gate, or renderer. It is a
-professional skill component that a later canonical planning integration may
-construct and attach to the existing `ProfessionalSkillPlan`.
+professional skill component. The current canonical integration may construct
+only one deferred expectation component and attach it to the existing
+`ProfessionalSkillPlan`.
 
-This first slice defines and tests only a source-level contract. A valid
-contract is still planning-only and cannot prove that any live source,
+The contract and canonical binding remain planning-only and cannot prove that
+any live source,
 provider, tool, worker, asset, timing plan, estimate, approval, snapshot,
 render, or QA result exists.
 
@@ -84,9 +85,9 @@ No later Living Frame slice may duplicate these authorities.
 
 ## Slice 1 contract
 
-The v1 component is implemented only in namespaced source files. It deliberately
-is not exported from a shared barrel and is not attached to
-`ProfessionalSkillPlan`.
+The v1 component began in namespaced source files. Slice 2B admits its optional
+field to `ProfessionalSkillPlan` only when the canonical async builder has
+rebuilt the component from the exact canonical planning projection.
 
 The component declares:
 
@@ -467,16 +468,58 @@ within the namespace, and a direct smoke. Nothing is runtime-connected.
 
 ### Slice 2B: canonical professional-skill component construction
 
-Later and only with a new exact-path authorization:
+Implemented as a deferred-only binding:
 
 - add an optional `ProfessionalSkillPlan.livingFrame` field atomically with
   canonical async construction and validation;
-- make the planner, not callers or fixtures, construct the component;
+- make the canonical publication client, not callers or fixtures, construct
+  the component from the selected parent and exact draft projection;
 - revalidate its source, output-frame, and `MasterTimingPlan` expectations;
 - bind it into canonical content-addressed persistence and immutable snapshot
   lineage; and
 - prevent the legacy synchronous snapshot helper from copying an unvalidated
   component.
+
+Slice 2B deliberately admits no selected scene graph. When the parent is
+selected, the component has:
+
+```text
+status = deferred
+decision = deferred
+scenePlans = []
+continuityPackRefs = []
+capabilityRequirements = []
+qaExpectationCodes = []
+all estimate counts = 0
+all complexity = none
+generated video = not required
+```
+
+The browser computes SHA-256 with `globalThis.crypto.subtle`. The server parses
+the strict deferred schema, independently recomputes the component digest, and
+recomputes bindings for:
+
+- exact canonical compiled intent;
+- exact canonical source sequence;
+- every ordered canonical segment;
+- the exact confirmed output-frame projection; and
+- the exact current `MasterTimingPlan`.
+
+Video-understanding and adaptive-strategy references remain
+`future_worker_evidence_required`. They are not promoted to live evidence.
+Changing the output frame or timing plan makes the component stale and blocks
+handoff/publication.
+
+The optional `livingFrame` component is persisted through the existing
+content-addressed plan-component store. Its component reference is included in
+the existing `planHash`, copied into the immutable canonical snapshot, and
+covered by the existing exact plan/snapshot component-reference equality
+check. It creates no work item, asset, estimate line, tool route, provider
+route, queue record, job, cost event, QA result, or render instruction.
+
+The legacy synchronous `createApprovedPlanSnapshot` path fails closed whenever
+this field is present. Only the existing asynchronous canonical planning,
+approval, and immutable snapshot authority may carry it forward.
 
 ### Slice 3: planning handoff, estimate, and approval
 
@@ -515,15 +558,15 @@ Later and only with a new exact-path authorization:
 - route through the existing backend-only tool/provider authority; and
 - retain deterministic and non-use fallbacks.
 
-## Closed gates after slice 1
+## Closed gates after slice 2B
 
 The following remain explicitly unimplemented:
 
-- canonical planner integration;
-- canonical output-frame and MasterTiming revalidation;
+- selected Living Frame scene construction;
+- executable frame-track construction from semantic timing;
 - canonical estimate;
 - user approval;
-- immutable snapshot integration;
+- Living Frame-specific runtime work and asset mapping;
 - controlled-illustration qualification;
 - provider route review;
 - work-item schema admission;
@@ -533,7 +576,10 @@ The following remain explicitly unimplemented:
 - documentary fact verification; and
 - temporal mask benchmarking.
 
-Passing the source-only contract smoke does not make any of these gates green.
+Canonical source/output-frame/`MasterTimingPlan` digest revalidation and
+content-addressed snapshot lineage are now present for the deferred component.
+They do not make any runtime, estimate, approval, provider, tool, queue, cost,
+QA, rendering, or production gate green.
 
 ## Slice 2A: planning-only parent admission
 
@@ -578,8 +624,7 @@ route, cost, renderer, or runtime authority. The six controlled-illustration
 candidates remain evaluation-only documentation and are absent from product
 copy and runtime registries.
 
-`ProfessionalSkillPlan.livingFrame` remains intentionally absent. Adding it
-requires a later atomic async-construction slice that also performs canonical
-digest/source/output-frame/`MasterTimingPlan` revalidation, content-addressed
-component persistence, immutable snapshot binding, tamper checks, and explicit
-exclusion from the legacy synchronous snapshot path.
+`ProfessionalSkillPlan.livingFrame` remains absent for ordinary plans and for
+plans without the explicitly selected parent. Caller-shaped values are removed
+and cannot select the parent. When the parent is selected, only Slice 2B's
+canonical async builder may add the deferred component described above.

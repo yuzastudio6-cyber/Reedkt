@@ -329,6 +329,12 @@ function modelConstraintsForLevel(editLevel: EditLevel) {
 export function createApprovedPlanSnapshot(params: CreateApprovedPlanSnapshotParams): ApprovedPlanSnapshot {
   const { approvedBy, editBriefSnapshot, editSessionId, plan, projectId, sourceMediaAssets = [] } = params
 
+  if (plan.professionalSkillPlan?.livingFrame) {
+    throw new Error(
+      'Living Frame requires the asynchronous canonical planning authority and cannot use the legacy synchronous snapshot path.',
+    )
+  }
+
   if (plan.aspectRatioFramePlan?.status !== 'confirmed') {
     throw new Error('Cannot create an approved plan snapshot until the output frame/aspect ratio is confirmed.')
   }

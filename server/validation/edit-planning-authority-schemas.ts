@@ -4,6 +4,7 @@ import { planningInputAuthorityExpectationSchema } from './planning-input-author
 import { sourceMediaAuthorityExpectationSchema } from './source-media-authority-schemas'
 import { canonicalStorytellingStyleAuthoritySchema } from './canonical-storytelling-style-authority-schemas'
 import { canonicalMotionStudioStorytellingProductionAuthoritySchema } from './canonical-motion-studio-storytelling-production-authority-schemas'
+import { canonicalLivingFramePlanningBindingSchema } from './canonical-living-frame-planning-binding-schemas'
 import { exactEditPreferenceValuesSchema } from './exact-edit-preference-schemas'
 import { sha256AuthorityValue } from '../services/private-edit-authority-store'
 import {
@@ -244,6 +245,7 @@ export const canonicalPlanComponentsSchema = z.object({
   qaSummary: qaSummarySchema,
   providerPolicy: providerPolicySchema,
   fallbackPolicy: jsonObjectSchema,
+  livingFrame: canonicalLivingFramePlanningBindingSchema.optional(),
   motionStudioStorytellingStyleAuthority: canonicalStorytellingStyleAuthoritySchema.optional(),
   motionStudioStorytellingProductionAuthority:
     canonicalMotionStudioStorytellingProductionAuthoritySchema.optional(),

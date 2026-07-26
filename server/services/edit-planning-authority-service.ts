@@ -102,6 +102,12 @@ import {
   revalidatePlanningInputAuthorityBinding,
   planningInputAuthorityExpectationFromResolvedBinding,
 } from './planning-input-authority-binding-service'
+import {
+  revalidateCanonicalLivingFramePlanningBinding,
+} from './canonical-living-frame-planning-binding-service'
+import {
+  CANONICAL_LIVING_FRAME_COMPONENT_KEY,
+} from '../validation/canonical-living-frame-planning-binding-schemas'
 
 export interface CanonicalApprovedExecutionWorkItem extends AuthorityApprovedWorkItemRecord {
   executionInput: Record<string, unknown>
@@ -160,6 +166,7 @@ const PLAN_COMPONENT_NAMES = [
 
 const OPTIONAL_PLAN_COMPONENT_NAMES = [
   'exactEditPreferenceInstruction',
+  CANONICAL_LIVING_FRAME_COMPONENT_KEY,
   CANONICAL_STORYTELLING_STYLE_AUTHORITY_COMPONENT_KEY,
   CANONICAL_MOTION_STUDIO_STORYTELLING_PRODUCTION_AUTHORITY_COMPONENT_KEY,
 ] as const satisfies readonly (keyof CanonicalPlanComponentsInput)[]
@@ -255,6 +262,9 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
             editSessionId: input.editSessionId,
           },
         })
+      await revalidateCanonicalLivingFramePlanningBinding({
+        components: body.canonicalPlan.components,
+      })
       const idempotencyKey = requireIdempotencyKey(input.idempotencyKey)
       const planningInputAuthority = await resolvePlanningInputAuthorityBinding({
         context,
@@ -695,6 +705,9 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
       if (!targetPlan) throw new ApiError('PLAN_NOT_APPROVED', 'Canonical edit plan was not found.', 404)
       await createProjectService(context).getProject(targetPlan.projectId, access.workspaceId)
       const approvalComponents = await loadCanonicalPlanComponents(context, targetPlan.componentRefs)
+      await revalidateCanonicalLivingFramePlanningBinding({
+        components: approvalComponents,
+      })
       assertCanonicalStorytellingStyleAuthorityScope(
         approvalComponents,
         {
@@ -2000,6 +2013,9 @@ async function loadCanonicalPlanComponents(
   if (!parsed.success) {
     throw new ApiError('VALIDATION_FAILED', 'Canonical plan components no longer satisfy their authority contract.', 409, parsed.error.flatten())
   }
+  await revalidateCanonicalLivingFramePlanningBinding({
+    components: parsed.data,
+  })
   return parsed.data
 }
 

@@ -55,6 +55,9 @@ import {
 import {
   prepareCanonicalEditBriefForPlanning,
 } from './canonical-edit-brief-planning-preparation-service'
+import {
+  revalidateCanonicalLivingFramePlanningBinding,
+} from './canonical-living-frame-planning-binding-service'
 
 const publicationLocks = new Map<string, Promise<void>>()
 const preparationLocks = new Map<string, Promise<void>>()
@@ -110,6 +113,9 @@ export function createCanonicalPlanningHandoffService(context: ServiceContext) {
             editSessionId,
           },
         })
+      await revalidateCanonicalLivingFramePlanningBinding({
+        components: body.canonicalPlanComponents,
+      })
       const expectedSequence = body.orderedSourceItems.map((item) => ({
         sourceSequenceItemId: item.sourceSequenceItemId,
         mediaAssetId: item.mediaAssetId,
@@ -144,6 +150,9 @@ export function createCanonicalPlanningHandoffService(context: ServiceContext) {
               editSessionId,
             },
           })
+        await revalidateCanonicalLivingFramePlanningBinding({
+          components: body.canonicalPlanComponents,
+        })
         const sourceCandidate = lockedStorytellingProductionAuthority
           ? buildCanonicalIdeaFirstSourceBindingManifestCandidate(
               lockedStorytellingProductionAuthority,
@@ -491,6 +500,9 @@ export function createCanonicalPlanningHandoffService(context: ServiceContext) {
           context,
           scope,
           persistedBinding: handoff.resolvedPlanningInputAuthority,
+          components: body.canonicalPlan.components,
+        })
+        await revalidateCanonicalLivingFramePlanningBinding({
           components: body.canonicalPlan.components,
         })
 

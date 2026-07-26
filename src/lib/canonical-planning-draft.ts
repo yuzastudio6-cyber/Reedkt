@@ -7,6 +7,7 @@ import type {
 } from '../types/reeditpro'
 import type { ProfessionalExportCreditCoverage } from '../types/professional-export'
 import type { PrepareCanonicalStorytellingPlanningResponse } from '../types/motion-studio'
+import type { LivingFrameProfessionalSkillComponent } from '../types/living-frame'
 import { REEDITPRO_SOURCE_MEDIA_MAX_BYTES } from '../types/large-media'
 import {
   CANONICAL_PRIVATE_COMPOSITION_MINIMUM_FRAMES,
@@ -328,6 +329,7 @@ export type CanonicalPlanComponentsDraft = {
     approvedRoutes: string[]
   }
   fallbackPolicy: JsonRecord
+  livingFrame?: LivingFrameProfessionalSkillComponent
   motionStudioStorytellingStyleAuthority?: CanonicalStorytellingStyleAuthorityDraft
   motionStudioStorytellingProductionAuthority?: JsonRecord
 }
@@ -501,6 +503,7 @@ export function buildCanonicalPlanningDraft(input: {
   plan: EditPlan
   plannerInput: PlannerInput
   sourceMediaAssets: ApprovedEditExecutionUploadedMediaSourceAssetClientInput[]
+  livingFrameComponent?: LivingFrameProfessionalSkillComponent
   motionStudioStorytellingStylePlan?: CanonicalStorytellingStylePlanReviewSource
   motionStudioStorytellingPlanningPreparation?: CanonicalStorytellingPlanningPreparationSource
 }): CanonicalPlanningDraftResult {
@@ -841,6 +844,9 @@ export function buildCanonicalPlanningDraft(input: {
           unapprovedFallbackAllowed: false,
           policy: toJsonValue(plan.agentQAFallbackPlan ?? {}),
         },
+    ...(input.livingFrameComponent
+      ? { livingFrame: structuredClone(input.livingFrameComponent) }
+      : {}),
     ...(motionStudioStorytellingStyleAuthority
       ? {
           motionStudioStorytellingStyleAuthority,

@@ -32,3 +32,17 @@ export type {
   LivingFrameSelectionPolicyInput,
   LivingFrameSelectionReasonCode,
 } from './living-frame-selection-policy'
+
+export {
+  LIVING_FRAME_CANONICAL_PLANNING_BINDING_VERSION,
+  bindLivingFrameCanonicalPlanning,
+  calculateLivingFrameCanonicalSourceDigest,
+  livingFrameFutureAdaptiveStrategyExpectation,
+  livingFrameFutureVideoUnderstandingExpectation,
+  livingFrameOutputFrameDigestProjection,
+} from './living-frame-canonical-planning'
+
+export type {
+  BindLivingFrameCanonicalPlanningInput,
+  BindLivingFrameCanonicalPlanningResult,
+} from './living-frame-canonical-planning'

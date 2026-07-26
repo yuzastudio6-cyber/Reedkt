@@ -10,6 +10,7 @@ import type {
 import type {
   ReEditProIntelligenceResponsibilityPlan,
 } from './intelligence-orchestration'
+import type { LivingFrameProfessionalSkillComponent } from './living-frame'
 
 export type ProfessionalSkillFamily =
   | 'intent_direction'
@@ -199,6 +200,7 @@ export interface ProfessionalSkillPlan {
   editBriefOptional: true
   promptFirstPlanning: true
   noUserVisibleToolNames: true
+  livingFrame?: LivingFrameProfessionalSkillComponent
 }
 
 export interface ProfessionalSkillPlannerInput {

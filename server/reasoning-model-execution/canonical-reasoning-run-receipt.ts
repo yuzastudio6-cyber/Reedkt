@@ -12,6 +12,7 @@ import {
   type ReasoningModelAttemptTerminalOutcome,
   type ReasoningModelCostResult,
   type PrePlanEditReferenceStudyChatReasoningAuthority,
+  type PrePlanReasoningWorkloadAuthority,
 } from '../reasoning-model-cost'
 
 export const CANONICAL_REASONING_ROUTE_ATTEMPT_LIFECYCLE_VERSION =
@@ -20,8 +21,11 @@ export const CANONICAL_REASONING_ROUTE_ATTEMPT_LIFECYCLE_VERSION =
 export const CANONICAL_REASONING_RUN_RECEIPT_VERSION =
   'canonical-reasoning-run-receipt-v1' as const
 
-export interface CanonicalReasoningRouteAttemptLifecycleInput {
-  readonly costEvidence: ReasoningModelAttemptCostEvidenceV2
+export interface CanonicalReasoningRouteAttemptLifecycleInput<
+  TAuthority extends PrePlanReasoningWorkloadAuthority =
+    PrePlanEditReferenceStudyChatReasoningAuthority,
+> {
+  readonly costEvidence: ReasoningModelAttemptCostEvidenceV2<TAuthority>
   readonly providerRequestRecordId: string
   readonly providerRequestEvidenceDigestSha256: string
   readonly oneUseSubmissionAuthorityDigestSha256: string
@@ -79,18 +83,22 @@ export type CanonicalReasoningRunTerminalState =
   | 'failed_exhausted'
   | 'unknown_reconciliation_required'
 
-export interface CanonicalReasoningRunReceipt {
+export interface CanonicalReasoningRunReceipt<
+  TAuthority extends PrePlanReasoningWorkloadAuthority =
+    PrePlanEditReferenceStudyChatReasoningAuthority,
+> {
   readonly schemaVersion: typeof CANONICAL_REASONING_RUN_RECEIPT_VERSION
   readonly sourceAuthority: 'canonical_backend_reasoning_route_contract'
   readonly evidenceClass: 'source_verified_contract_fixture_unreleased'
   readonly promotionAllowed: false
   readonly productionReady: false
-  readonly workloadAuthority: PrePlanEditReferenceStudyChatReasoningAuthority
+  readonly workloadAuthority: TAuthority
   readonly reasoningRunId: string
   readonly terminalState: CanonicalReasoningRunTerminalState
   readonly routeAttempts: CanonicalReasoningRouteAttemptLifecycleEvidence[]
-  readonly routeAttemptCostEvidence: ReasoningModelAttemptCostEvidenceV2[]
-  readonly costAggregate: ReasoningModelAttemptCostAggregateV2
+  readonly routeAttemptCostEvidence:
+    ReasoningModelAttemptCostEvidenceV2<TAuthority>[]
+  readonly costAggregate: ReasoningModelAttemptCostAggregateV2<TAuthority>
   readonly finalResultDigestSha256: string | null
   readonly createdAt: string
   readonly terminalAt: string
@@ -105,8 +113,10 @@ export interface CanonicalReasoningRunReceipt {
   readonly receiptDigestSha256: string
 }
 
-export function createCanonicalReasoningRouteAttemptLifecycleEvidence(
-  input: CanonicalReasoningRouteAttemptLifecycleInput,
+export function createCanonicalReasoningRouteAttemptLifecycleEvidence<
+  TAuthority extends PrePlanReasoningWorkloadAuthority,
+>(
+  input: CanonicalReasoningRouteAttemptLifecycleInput<TAuthority>,
 ): ReasoningModelCostResult<CanonicalReasoningRouteAttemptLifecycleEvidence> {
   const validatedCost = validateReasoningModelAttemptCostEvidenceV2(input.costEvidence)
   if (!validatedCost.ok) return validatedCost
@@ -204,16 +214,18 @@ export function createCanonicalReasoningRouteAttemptLifecycleEvidence(
   }
 }
 
-export function createCanonicalReasoningRunReceipt(input: {
-  readonly workloadAuthority: PrePlanEditReferenceStudyChatReasoningAuthority
+export function createCanonicalReasoningRunReceipt<
+  TAuthority extends PrePlanReasoningWorkloadAuthority,
+>(input: {
+  readonly workloadAuthority: TAuthority
   readonly attempts: readonly {
-    readonly costEvidence: ReasoningModelAttemptCostEvidenceV2
+    readonly costEvidence: ReasoningModelAttemptCostEvidenceV2<TAuthority>
     readonly lifecycleEvidence: CanonicalReasoningRouteAttemptLifecycleEvidence
   }[]
   readonly finalResultDigestSha256: string | null
   readonly createdAt: string
   readonly terminalAt: string
-}): ReasoningModelCostResult<CanonicalReasoningRunReceipt> {
+}): ReasoningModelCostResult<CanonicalReasoningRunReceipt<TAuthority>> {
   if (!isIsoDate(input.createdAt) || !isIsoDate(input.terminalAt)) {
     return failure('invalid_run_timestamp', 'createdAt', 'The reasoning run requires valid timestamps.')
   }
@@ -292,9 +304,11 @@ export function createCanonicalReasoningRunReceipt(input: {
   }
 }
 
-export function validateCanonicalReasoningRunReceipt(
-  receipt: CanonicalReasoningRunReceipt,
-): ReasoningModelCostResult<CanonicalReasoningRunReceipt> {
+export function validateCanonicalReasoningRunReceipt<
+  TAuthority extends PrePlanReasoningWorkloadAuthority,
+>(
+  receipt: CanonicalReasoningRunReceipt<TAuthority>,
+): ReasoningModelCostResult<CanonicalReasoningRunReceipt<TAuthority>> {
   if (
     receipt.schemaVersion !== CANONICAL_REASONING_RUN_RECEIPT_VERSION
     || receipt.sourceAuthority !== 'canonical_backend_reasoning_route_contract'
@@ -332,8 +346,10 @@ export function validateCanonicalReasoningRunReceipt(
   return { ok: true, data: receipt }
 }
 
-function deriveRunTerminalState(
-  last: ReasoningModelAttemptCostEvidenceV2,
+function deriveRunTerminalState<
+  TAuthority extends PrePlanReasoningWorkloadAuthority,
+>(
+  last: ReasoningModelAttemptCostEvidenceV2<TAuthority>,
   attemptCount: number,
 ): CanonicalReasoningRunTerminalState {
   if (last.terminalOutcome === 'completed') return 'completed'
@@ -352,7 +368,11 @@ function lifecycleEvidenceHash(
   return sha256(stableStringify(withoutHash))
 }
 
-function canonicalReasoningRunReceiptHash(receipt: CanonicalReasoningRunReceipt): string {
+function canonicalReasoningRunReceiptHash<
+  TAuthority extends PrePlanReasoningWorkloadAuthority,
+>(
+  receipt: CanonicalReasoningRunReceipt<TAuthority>,
+): string {
   const withoutHash = Object.fromEntries(Object.entries(receipt).filter(
     ([key]) => key !== 'receiptDigestSha256',
   ))

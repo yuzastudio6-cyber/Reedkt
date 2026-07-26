@@ -716,23 +716,64 @@ non-promotable, and production-unready. No reader route, provider transport,
 durable repository, cloud resource, billing path, or deployment is released
 by this contract.
 
-### Slice 3B-B: durable reasoning run and result binding
+### Slice 3B-B1: controlled semantic-result binding
+
+Slice 3B-B1 extends the existing reasoning cost and run-receipt contracts
+through a strict workload-authority union. The existing Edit Reference Study
+Chat V6 authority, constructors, validators, serialization, digests, and
+receipt behavior remain unchanged. Living Frame receives a separate
+`pre_plan_living_frame_semantic_reasoning` lane; a mixed or cross-lane object
+fails closed.
+
+This slice remains controlled and non-promotable:
+
+- a process-bound server reader, not caller JSON, supplies the internal-budget
+  admission, canonical run receipt, and strict semantic-result fixture;
+- the service reconstructs the workload authority from the exact current
+  Slice 3B-A input-authority digest, current handoff scope, Slice 3A evidence
+  digest, bounded request/schema digests, canonical route identity, immutable
+  rate-card identity, and controlled internal-cost ceiling;
+- only the Kimi K3, Qwen 3.7, then DeepSeek V4 Pro route is accepted.
+  Reordering, duplicate attempts, the superseded Kimi-to-GPT route,
+  Qwen2.5-VL, media-provider operations, mixed authorities, and cost-ceiling
+  breaches fail closed;
+- failed attempt cost remains in the controlled receipt, while an unknown
+  attempt prevents a semantic result from binding. Only one completed
+  terminal attempt may bind the exact result digest;
+- the current handoff, components, planning evidence, and result are read
+  again before a binding is returned. A stale or changed input/result fails
+  closed;
+- each semantic decision cites an exact source observation or the separately
+  verified idea-first context. Candidate decisions remain candidates:
+  `selectedSceneAuthority` is false; and
+- the returned evidence class is
+  `controlled_non_promotable_reasoning_result_binding`. Every provider,
+  transport, credential, selected-scene, component, capability, timing,
+  SoundSync, estimate, customer-commercial, approval, snapshot, work-graph,
+  queue, tool, media-generation, render, export, runtime, and production
+  authority remains false.
+
+The controlled receipt proves contract compatibility and fail-closed lineage;
+it does not prove that a provider attempt ran or that a durable result exists.
+
+### Slice 3B-B2: released reasoning execution and durable result evidence
 
 This separately gated future slice must:
 
-- generalize the existing shared reasoning workload/attempt lifecycle only
-  through an explicit Living Frame lane rather than copying the Edit Reference
-  V6 repository or using Motion Storytelling as universal authority;
 - execute the provider-neutral Kimi K3, Qwen 3.7, then DeepSeek V4 Pro chain
-  through the released transport, retry, timeout, checkback, idempotency, and
+  through released transport, retry, timeout, checkback, idempotency, and
   durable run/result authorities;
-- retain failed and unknown attempt cost only from real durable attempt
-  evidence, never from the Slice 3B-A input contract;
-- validate a strict semantic result against the same current handoff,
+- provide a workflow-neutral Living Frame result repository rather than
+  copying the Edit Reference V6 store or using Motion Storytelling as
+  universal authority;
+- retain failed and unknown attempt cost from real durable attempt evidence,
+  never from the Slice 3B-A input contract or Slice 3B-B1 fixtures;
+- re-read and validate the durable result against the same current handoff,
   components, Slice 3A evidence, request digest, result-schema digest, route,
   and internal-cost ceiling; and
-- retain no scene-selection, exact timing, SoundSync, estimate, approval,
-  snapshot, work-graph, tool-route, renderer, or production authority.
+- preserve the boundary that reasoning evidence alone cannot select a scene,
+  mint exact timing/SoundSync cues, calculate the customer estimate, approve a
+  snapshot, create work, choose tools, render, or authorize production.
 
 ### Slice 3C: selected scene planning, estimate, and approval
 

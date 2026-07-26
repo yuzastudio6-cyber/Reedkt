@@ -331,10 +331,11 @@ for (const forbiddenPattern of [
 const appleDouble = walk(directory).filter((path) => path.split('/').some((name) => name.startsWith('._')))
 assert(appleDouble.length === 0, 'appledouble_file_present')
 
+const { DEVELOPER_DIR: _developerDir, ...gitEnv } = process.env
 const rawMigrationDiff = execFileSync(
   'git',
   ['diff', '--name-only', '--', 'supabase/migrations'],
-  { cwd: repositoryRoot, encoding: 'utf8' },
+  { cwd: repositoryRoot, encoding: 'utf8', env: gitEnv },
 ).trim()
 assert(rawMigrationDiff.length === 0, 'historical_raw_migration_changed')
 

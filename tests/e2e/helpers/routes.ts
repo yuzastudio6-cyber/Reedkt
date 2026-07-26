@@ -435,8 +435,18 @@ export async function createPlanFromUploadedEditorSources(page: Page) {
 export async function completeRequiredEditorSetupBeforeFootagePrep(page: Page) {
   await applySourceOnlyProfessionalEditorPreferencesIfRequested(page)
 
-  if (await page.getByTestId('source-summary').count()) {
-    await clickWhenReady(page.getByRole('button', { name: /Use this source|Confirm order/i }))
+  const currentSourceConfirmation = page.getByRole('button', {
+    name: /Use this source|Confirm order/i,
+  })
+  const legacySourceConfirmation = page.getByRole('button', {
+    name: /Confirm source order|Use this as the full source video/i,
+  }).first()
+  await expect(
+    currentSourceConfirmation.or(legacySourceConfirmation).first(),
+  ).toBeVisible()
+
+  if (await currentSourceConfirmation.count()) {
+    await clickWhenReady(currentSourceConfirmation)
     const outputFrame = page.getByTestId('output-frame-control')
     await expect(outputFrame).toBeVisible()
     await clickWhenReady(outputFrame.getByRole('radio', { name: /9:16/i }))
@@ -448,7 +458,7 @@ export async function completeRequiredEditorSetupBeforeFootagePrep(page: Page) {
     return
   }
 
-  await clickWhenReady(page.getByRole('button', { name: /Confirm source order|Use this as the full source video/i }).first())
+  await clickWhenReady(legacySourceConfirmation)
   await clickWhenReady(page.getByRole('button', { name: /Confirm output frame/i }).first())
   await clickWhenReady(page.getByRole('button', { name: /Confirm (Preserve natural|Light cleanup|Balanced cleanup|Tight retention|Aggressive|Documentary faithful|Tutorial complete|Custom)/i }).first())
   await clickOptionalSetupAction(page.getByRole('button', { name: /Use this level/i }).first())

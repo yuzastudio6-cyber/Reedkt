@@ -1088,6 +1088,18 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
       : isProjectWorkspace && searchParams.get('view') === 'brief'
         ? 'brief'
         : 'chat'
+
+  useEffect(() => {
+    if (activeWorkspaceView !== 'brief') return
+    const focusTimer = window.setTimeout(() => {
+      const workspace = document.querySelector<HTMLElement>(
+        '[data-testid="edit-brief-workspace-surface"]',
+      )
+      workspace?.scrollIntoView({ behavior: 'auto', block: 'start', inline: 'nearest' })
+      workspace?.focus({ preventScroll: true })
+    }, 0)
+    return () => window.clearTimeout(focusTimer)
+  }, [activeWorkspaceView])
   const categoryFromQuery = searchParams.get('category') ?? localProjectHandoff?.category ?? null
   const editorProjectName = normalizeEditorProjectName(
     searchParams.get('projectName') ?? localProjectHandoff?.projectName ?? null,
@@ -2528,7 +2540,6 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
   }
 
   function handleOpenEditBriefFromHeader() {
-    if (!footagePrepResult) return
     if (activeWorkspaceView === 'preferences' && currentEditPreferenceDraftDirty) {
       setPendingPreferenceDestination('brief')
       return
@@ -5309,7 +5320,12 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
             <FootagePrepWorkspace
               canCreatePlanFromContext={canCreateContextAwarePlan}
               createPlanBlockedReason={contextPlanBlockedReason}
-              editBriefPlanImpactNotice={Boolean(contextAwarePlanResult || approved || approvedSnapshot)}
+              editBriefPlanImpactNotice={Boolean(
+                contextAwarePlanResult
+                || approved
+                || approvedSnapshot
+                || planInvalidationNoticePendingRef.current
+              )}
               isRunning={footagePrepRunning}
               onAddEditBrief={handleAddEditBriefAfterFootagePrep}
               onAddEditCues={handleAddEditCuesAfterFootagePrep}
@@ -5843,7 +5859,12 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
         canCreatePlan={canCreateContextAwarePlan}
         createPlanBlockedReason={contextPlanBlockedReason}
         editBriefLocked={currentEditPreferencesLocked}
-        editBriefPlanImpactNotice={Boolean(contextAwarePlanResult || approved || approvedSnapshot)}
+        editBriefPlanImpactNotice={Boolean(
+          contextAwarePlanResult
+          || approved
+          || approvedSnapshot
+          || planInvalidationNoticePendingRef.current
+        )}
         initialEditBriefState={activeEditBriefState}
         isRunning={footagePrepRunning}
         onCloseEditBrief={input.briefWorkspaceActive ? handleOpenChatWorkspace : undefined}
@@ -5869,7 +5890,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
       <MinimalProjectHeader
         activeWorkspaceView={activeWorkspaceView}
         currentEditPreferenceOverrideCount={currentEditPreferenceOverrideKeys.length}
-        editBriefAvailable={Boolean(footagePrepResult)}
+        editBriefAvailable={isProjectWorkspace}
         editBriefStatus={editBriefGate.status}
         editPreferencesAvailable={isProjectWorkspace}
         estimateReady={Boolean(contextAwarePlanResult) || canonicalEstimateReady}

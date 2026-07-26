@@ -29,6 +29,9 @@ import type {
 import type {
   MotionStudioCommandRepositoryRuntimePort,
 } from './motion-studio/commands/runtime-port'
+import type {
+  EditBriefPrivateWorkspaceRuntimePort,
+} from './services/edit-brief-private-workspace-runtime-port'
 
 export interface AuthContext {
   userId: string
@@ -102,6 +105,7 @@ export interface RuntimeState {
   editReferenceExactEditBriefRuntimePortFactory?: EditReferenceExactEditBriefRuntimePortFactory
   editReferenceTargetUnderstandingPackageRuntimePortFactory?:
     EditReferenceTargetUnderstandingPackageRuntimePortFactory
+  editBriefPrivateWorkspaceRuntimePort?: EditBriefPrivateWorkspaceRuntimePort
 }
 
 export type RuntimeRequest = Request & {
@@ -148,4 +152,5 @@ export interface ServiceContext {
   editReferenceExactEditBriefRuntimePortFactory?: EditReferenceExactEditBriefRuntimePortFactory
   editReferenceTargetUnderstandingPackageRuntimePortFactory?:
     EditReferenceTargetUnderstandingPackageRuntimePortFactory
+  editBriefPrivateWorkspaceRuntimePort?: EditBriefPrivateWorkspaceRuntimePort
 }

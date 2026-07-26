@@ -63,6 +63,8 @@ export function getServiceContext(request: Request): ServiceContext {
     editReferenceTargetUnderstandingPackageRuntimePortFactory:
       runtimeRequest.runtime
         .editReferenceTargetUnderstandingPackageRuntimePortFactory,
+    editBriefPrivateWorkspaceRuntimePort:
+      runtimeRequest.runtime.editBriefPrivateWorkspaceRuntimePort,
   }
 }
 

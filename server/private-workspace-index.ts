@@ -10,9 +10,14 @@ if (!host) {
   throw new Error('The private workspace API must bind to an explicit loopback host.')
 }
 
-const [{ createReeditProApiApp }, { assertRuntimeCanStart, loadRuntimeEnv }] = await Promise.all([
+const [
+  { createReeditProApiApp },
+  { assertRuntimeCanStart, loadRuntimeEnv },
+  { createEditBriefPrivateWorkspaceRuntimePort },
+] = await Promise.all([
   import('./app'),
   import('./config/env'),
+  import('./services/edit-brief-private-workspace-runtime-port'),
 ])
 
 const env = loadRuntimeEnv()
@@ -28,7 +33,10 @@ if (
   throw new Error('The private workspace API safety boundary is not satisfied.')
 }
 
-const app = createReeditProApiApp(env)
+const app = createReeditProApiApp(env, {
+  editBriefPrivateWorkspaceRuntimePort:
+    createEditBriefPrivateWorkspaceRuntimePort(),
+})
 app.listen(env.apiPort, host, () => {
   console.log(`ReeditPro private API listening on http://${formatHost(host)}:${env.apiPort}.`)
 })

@@ -179,7 +179,8 @@
   border: 1px solid color-mix(in srgb, var(--rp-border-soft) 78%, transparent);
   border-radius: var(--rp-radius-md);
   display: grid;
-  min-height: clamp(300px, 42vw, 560px);
+  height: clamp(240px, min(28vw, 38vh), 440px);
+  min-height: 0;
   overflow: hidden;
   position: relative;
 }
@@ -198,8 +199,9 @@
   color: var(--rp-text-muted);
   display: grid;
   gap: var(--rp-space-2);
+  height: 100%;
   justify-items: center;
-  min-height: clamp(300px, 42vw, 560px);
+  min-height: 0;
   padding: var(--rp-space-6);
   text-align: center;
 }
@@ -702,11 +704,12 @@
   }
 
   .professional-edit-brief__player {
+    height: clamp(210px, 56.25vw, 280px);
     min-height: 210px;
   }
 
   .professional-edit-brief__player-empty {
-    min-height: 230px;
+    min-height: 0;
   }
 
   .professional-edit-brief__marker-form,

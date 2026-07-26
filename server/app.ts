@@ -71,6 +71,8 @@ export interface ReeditProApiAppOptions {
   editReferenceExactEditBriefRuntimePortFactory?: RuntimeState['editReferenceExactEditBriefRuntimePortFactory']
   editReferenceTargetUnderstandingPackageRuntimePortFactory?:
     RuntimeState['editReferenceTargetUnderstandingPackageRuntimePortFactory']
+  editBriefPrivateWorkspaceRuntimePort?:
+    RuntimeState['editBriefPrivateWorkspaceRuntimePort']
 }
 
 export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppOptions = {}): Express {
@@ -171,6 +173,12 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
       ? {
           editReferenceTargetUnderstandingPackageRuntimePortFactory:
             options.editReferenceTargetUnderstandingPackageRuntimePortFactory,
+        }
+      : {}),
+    ...(options.editBriefPrivateWorkspaceRuntimePort
+      ? {
+          editBriefPrivateWorkspaceRuntimePort:
+            options.editBriefPrivateWorkspaceRuntimePort,
         }
       : {}),
     clients,

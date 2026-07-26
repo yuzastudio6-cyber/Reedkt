@@ -269,7 +269,7 @@
     },
     {
       "path": "server/app.ts",
-      "sha256": "ed281e10378f193f89044c6b4e3f103f6ecdf58a6338c8071949ac12f8c29dca"
+      "sha256": "27c4eb607506442346cedd7168eaf04dc5520d6a6642f0acc831c51cc444e84d"
     },
     {
       "path": "server/distributed-media-ingest/canonical-distributed-media-ingest-local-supabase-http-rpc-client.ts",
@@ -437,7 +437,7 @@
     },
     {
       "path": "server/routes/route-helpers.ts",
-      "sha256": "bc198f977ddcaab3bbd2ae429f5fe65f2fb0cb663298d58f14068b5f7a6656b9"
+      "sha256": "b6442b068b847a100a893ee190f5180226392bcc8c266dcaa50012f54cea7ff0"
     },
     {
       "path": "server/services/canonical-planning-handoff-service.ts",
@@ -637,7 +637,7 @@
     },
     {
       "path": "server/types.ts",
-      "sha256": "055c4b46e4e875283089b57a7db4e1635ddb99a2aece6dccfa1461fb100b6884"
+      "sha256": "0e95b6a2427b2fb9db8ae0aff29c702974598d65cafb91d2a3661844f165df16"
     },
     {
       "path": "server/validation/canonical-exact-edit-planning-authority-schemas.ts",
@@ -665,7 +665,7 @@
     },
     {
       "path": "src/components/editor/ChatNativeEditor.tsx",
-      "sha256": "7c6480215d07e7abf8a1accde1d0a13e461ebecfc5eb8f9c98eae006bdb89c78"
+      "sha256": "9533ca45e6538fa7a639749dbdc35fe5183136a137de8c538e9c9a8232f6bcd1"
     },
     {
       "path": "src/components/editor/CurrentEditPreferencesWorkspace.tsx",

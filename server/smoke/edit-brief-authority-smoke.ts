@@ -8,6 +8,9 @@ import {
   buildEditBriefAuthorityPublicationBinding,
   createEditBriefAuthorityService,
 } from '../services/edit-brief-authority-service'
+import {
+  createEditBriefPrivateWorkspaceRuntimePort,
+} from '../services/edit-brief-private-workspace-runtime-port'
 import { prepareCanonicalEditBriefForPlanning } from '../services/canonical-edit-brief-planning-preparation-service'
 import {
   clearPrivateEditBriefAuthorityProcessStateForSmoke,
@@ -877,6 +880,115 @@ assert.equal(
   'verified_canonical_source_manifest',
 )
 
+const privateWorkspaceStorageRoot =
+  '/tmp/reeditpro-edit-brief-private-workspace-runtime-smoke'
+await rm(privateWorkspaceStorageRoot, { recursive: true, force: true })
+clearLocalProjectMemoryForSmoke()
+clearPrivateEditBriefAuthorityProcessStateForSmoke()
+const privateWorkspacePort = createEditBriefPrivateWorkspaceRuntimePort()
+const privateWorkspaceEnv = loadRuntimeEnv({
+  NODE_ENV: 'test',
+  E2E_RUNTIME_MODE: 'local',
+  WORKER_RUNTIME_MODE: 'mock',
+  STORAGE_MODE: 'local',
+  LOCAL_STORAGE_ROOT: privateWorkspaceStorageRoot,
+  API_ALLOW_MOCK_WITHOUT_SUPABASE: 'true',
+})
+const privateWorkspaceContext: ServiceContext = {
+  env: privateWorkspaceEnv,
+  clients: { admin: null, public: null },
+  requestId: 'edit-brief-private-workspace-runtime-smoke',
+  auth: {
+    userId: 'mock-user-runtime',
+    isMockUser: true,
+  },
+  editBriefPrivateWorkspaceRuntimePort: privateWorkspacePort,
+}
+const privateWorkspaceProject = (
+  await createProjectService(privateWorkspaceContext).createProject({
+    workspaceId: 'workspace-private-edit-brief-smoke',
+    name: 'Private workspace Edit Brief',
+  })
+).project
+const privateWorkspaceService =
+  createEditBriefAuthorityService(privateWorkspaceContext)
+const privateMarkerInput = {
+  workspaceId: privateWorkspaceProject.workspaceId,
+  projectId: privateWorkspaceProject.id,
+  editSessionId: 'edit-session-private-workspace-smoke',
+  expectedRevision: 0,
+  idempotencyKey: 'private-workspace-marker-v1',
+  marker: {
+    markerType: 'note' as const,
+    timeKind: 'point' as const,
+    startSeconds: 1,
+    priority: 'normal' as const,
+    title: 'Private workspace marker',
+    note: 'Persist this exact local marker without granting production authority.',
+  },
+}
+const privateMarker = await privateWorkspaceService.createMarker(
+  privateMarkerInput,
+)
+assert.equal(privateMarker.aggregateRevision, 1)
+assert.equal(privateMarker.marker.status, 'draft')
+clearLocalProjectMemoryForSmoke()
+clearPrivateEditBriefAuthorityProcessStateForSmoke()
+const privateWorkspaceRestartedService =
+  createEditBriefAuthorityService(privateWorkspaceContext)
+const privateWorkspaceRestarted = await privateWorkspaceRestartedService.get(
+  privateWorkspaceProject.workspaceId,
+  privateWorkspaceProject.id,
+  privateMarkerInput.editSessionId,
+)
+assert.equal(privateWorkspaceRestarted.aggregateRevision, 1)
+assert.equal(privateWorkspaceRestarted.authority?.markers.length, 1)
+const privateMarkerReplay = await privateWorkspaceRestartedService.createMarker(
+  privateMarkerInput,
+)
+assert.equal(privateMarkerReplay.replayed, true)
+assert.equal(privateMarkerReplay.marker.id, privateMarker.marker.id)
+
+await expectApiError(
+  () => createEditBriefAuthorityService({
+    ...privateWorkspaceContext,
+    editBriefPrivateWorkspaceRuntimePort: undefined,
+  }).get(
+    privateWorkspaceProject.workspaceId,
+    privateWorkspaceProject.id,
+    privateMarkerInput.editSessionId,
+  ),
+  'TOOL_NOT_READY',
+  'Local environment flags alone must not enable private Edit Brief authority.',
+)
+await expectApiError(
+  () => createEditBriefAuthorityService({
+    ...privateWorkspaceContext,
+    editBriefPrivateWorkspaceRuntimePort: {
+      ...privateWorkspacePort,
+    },
+  }).get(
+    privateWorkspaceProject.workspaceId,
+    privateWorkspaceProject.id,
+    privateMarkerInput.editSessionId,
+  ),
+  'TOOL_NOT_READY',
+  'A caller-shaped private workspace runtime port must fail closed.',
+)
+await expectApiError(
+  () => createEditBriefAuthorityService({
+    ...privateWorkspaceContext,
+    env: productionEnv,
+  }).get(
+    privateWorkspaceProject.workspaceId,
+    privateWorkspaceProject.id,
+    privateMarkerInput.editSessionId,
+  ),
+  'TOOL_NOT_READY',
+  'A genuine local private port must not promote into production.',
+)
+await rm(privateWorkspaceStorageRoot, { recursive: true, force: true })
+
 console.log('Edit Brief authority smoke passed.')
 console.log(JSON.stringify({
   optionalBrief: true,
@@ -897,6 +1009,8 @@ console.log(JSON.stringify({
   tenantIsolation: true,
   approvalLifecycleLock: true,
   restartRecovery: true,
+  privateWorkspaceRuntimeMounted: true,
+  privateWorkspaceRuntimeNotPromotable: true,
   richBriefFieldsPersisted: true,
   canonicalSourceFrameQaAndPlanHintPreparation: true,
   optionalBriefAbsenceDoesNotRequireBriefRuntime: true,

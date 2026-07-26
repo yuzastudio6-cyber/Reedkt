@@ -778,7 +778,10 @@ try {
     .getByTestId('edit-brief-goal-input')
   await expect(approvedBriefGoalInput).toBeVisible()
   await approvedBriefGoalInput.fill(approvedEditBriefGoal)
-  await expect(page.getByText(/Planning inputs changed. Create a new edit plan from the updated context before approval./i)).toBeVisible({ timeout: 12_000 })
+  await expect(page.getByTestId('edit-brief-plan-impact')).toContainText(
+    /Changes here require a fresh plan and credit approval/i,
+    { timeout: 12_000 },
+  )
   await expect(page.getByTestId('plan-review-approve')).toHaveCount(0)
   await expect(page.getByRole('button', { name: /Create edit plan/i })).toHaveCount(0)
   await clickEditBriefReadyButton(page)
@@ -2749,7 +2752,109 @@ async function createCanonicalEditBriefMarkerBeforeBrief(
   assert.equal(markerOnlyAuthority.markers[0]?.startSeconds, approvedEditBriefMarker.startSeconds)
   assert.equal(markerOnlyAuthority.markers[0]?.status, 'draft')
   assert.equal(markerOnlyAuthority.markers[0]?.timingStatus, 'display_seconds_only')
+
+  await assertOverlappingEditBriefMarkersStackAndArchive({
+    page,
+    scope,
+    workspace,
+    inspector,
+    firstMarkerId: markerOnlyAuthority.markers[0]!.id,
+  })
   return markerOnlyAuthority.markers[0]!.id
+}
+
+async function assertOverlappingEditBriefMarkersStackAndArchive(input: {
+  page: Page
+  scope: { projectId: string; editSessionId: string }
+  workspace: Locator
+  inspector: Locator
+  firstMarkerId: string
+}): Promise<void> {
+  const {
+    page,
+    scope,
+    workspace,
+    inspector,
+    firstMarkerId,
+  } = input
+  const secondMarkerTitle = 'Supporting proof at the same moment'
+  await clickWhenReady(workspace.getByRole('button', { name: /Add marker at/i }))
+  await page.evaluate(() => new Promise<void>((resolve) => {
+    window.requestAnimationFrame(() => window.requestAnimationFrame(() => resolve()))
+  }))
+  await expect(inspector.getByRole('heading', { name: 'New marker' })).toBeVisible()
+  await inspector.getByLabel('Marker title').fill(secondMarkerTitle)
+  await inspector
+    .getByLabel('What should happen here?')
+    .fill('Keep this supporting instruction independently editable at the same source moment.')
+
+  const markerCreate = page.waitForResponse((response) => {
+    const request = response.request()
+    return request.method() === 'POST'
+      && /\/edit-brief\/markers(?:\?|$)/.test(request.url())
+  }, { timeout: 15_000 })
+  await clickWhenReady(inspector.getByRole('button', { name: 'Create marker' }))
+  const markerCreateResponse = await markerCreate
+  assert.equal(
+    markerCreateResponse.status(),
+    201,
+    `A second same-time marker should commit without replacing the first: ${await markerCreateResponse.text()}`,
+  )
+
+  const markerButtons = workspace.locator('.professional-edit-brief__marker')
+  await expect(markerButtons).toHaveCount(2)
+  const laneBox = await workspace.getByTestId('edit-brief-marker-lane').boundingBox()
+  const firstBox = await markerButtons.nth(0).boundingBox()
+  const secondBox = await markerButtons.nth(1).boundingBox()
+  assert.ok(laneBox && firstBox && secondBox, 'The marker lane and both same-time markers must be measurable.')
+  assert.ok(
+    Math.abs(firstBox.y - secondBox.y) >= 44,
+    'Same-time Edit Brief markers must occupy separate non-overlapping rows.',
+  )
+  assert.ok(
+    laneBox.height >= 132,
+    'The marker lane must grow to keep multiple marker rows visible.',
+  )
+
+  const secondMarker = workspace.getByRole('button', {
+    name: new RegExp(secondMarkerTitle, 'i'),
+  })
+  await clickWhenReady(secondMarker)
+  const markerArchive = page.waitForResponse((response) => {
+    const request = response.request()
+    return request.method() === 'POST'
+      && /\/edit-brief\/markers\/[^/]+\/archive(?:\?|$)/.test(request.url())
+  }, { timeout: 15_000 })
+  await clickWhenReady(inspector.getByRole('button', { name: 'Archive' }))
+  const markerArchiveResponse = await markerArchive
+  assert.equal(
+    markerArchiveResponse.status(),
+    200,
+    `The temporary overlapping-marker regression record should archive cleanly: ${await markerArchiveResponse.text()}`,
+  )
+  await expect(markerButtons).toHaveCount(1)
+
+  const authorityAfterArchive = await readPrivateEditBriefAuthorityAggregate({
+    localStorageRoot,
+    ownerUserId: 'supabase-user-browser-full-stack',
+    workspaceId: 'workspace-internal-testing',
+    projectId: scope.projectId,
+    editSessionId: scope.editSessionId,
+  })
+  assert.equal(authorityAfterArchive?.markers.length, 2)
+  assert.equal(
+    authorityAfterArchive?.markers.find((marker) => marker.title === secondMarkerTitle)?.status,
+    'archived',
+    'Archived overlapping-marker history must remain durable.',
+  )
+  await clickWhenReady(workspace.getByRole('button', {
+    name: new RegExp(approvedEditBriefMarker.title, 'i'),
+  }))
+  assert.equal(
+    authorityAfterArchive?.markers.find((marker) => marker.id === firstMarkerId)?.status,
+    'draft',
+    'The original marker must remain independently editable after the overlap regression.',
+  )
 }
 
 async function confirmCanonicalEditBriefMarker(

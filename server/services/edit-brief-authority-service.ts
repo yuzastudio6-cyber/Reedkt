@@ -55,6 +55,9 @@ import { readPrivateEditAuthorityAggregate } from './private-edit-authority-stor
 import { createProjectService } from './project-service'
 import { nowIso } from './service-helpers'
 import { authorizeWorkspaceAccess } from './workspace-access-service'
+import {
+  assertEditBriefPrivateWorkspaceRuntimePort,
+} from './edit-brief-private-workspace-runtime-port'
 
 export const EDIT_BRIEF_AUTHORITY_CAPABILITY = {
   persistence: 'mock_local',
@@ -801,9 +804,22 @@ async function authorizeScope(
   editSessionIdInput: string,
   operation: 'read' | 'write' | 'approval_lock',
 ): Promise<EditBriefAuthorityScope> {
-  requireRuntime(context)
-  if (context.auth?.isMockUser || !context.auth?.accessToken) {
+  const runtimeClass = requireRuntime(context)
+  if (
+    runtimeClass === 'canonical_local_rls_proof'
+    && (context.auth?.isMockUser || !context.auth?.accessToken)
+  ) {
     throw new ApiError('AUTH_INVALID', 'Edit Brief authority requires a verified bearer-authenticated user.', 401)
+  }
+  if (
+    runtimeClass === 'private_workspace_local'
+    && (!context.auth?.isMockUser || context.auth.accessToken)
+  ) {
+    throw new ApiError(
+      'AUTH_INVALID',
+      'Private workspace Edit Brief authority requires the loopback local test identity.',
+      401,
+    )
   }
   const workspaceId = parseExactScopeId(workspaceIdInput, 'workspace')
   const projectId = parseExactScopeId(projectIdInput, 'project')
@@ -842,7 +858,9 @@ async function authorizeScope(
   }
 }
 
-function requireRuntime(context: ServiceContext): void {
+function requireRuntime(
+  context: ServiceContext,
+): 'canonical_local_rls_proof' | 'private_workspace_local' {
   if (
     context.env.nodeEnv !== 'production'
     && context.env.mode === 'local'
@@ -850,7 +868,23 @@ function requireRuntime(context: ServiceContext): void {
     && context.env.storageMode === 'local'
     && context.env.allowInternalTestExecutionWithSupabase
     && context.clients.admin
-  ) return
+  ) return 'canonical_local_rls_proof'
+  if (context.editBriefPrivateWorkspaceRuntimePort) {
+    assertEditBriefPrivateWorkspaceRuntimePort(
+      context.editBriefPrivateWorkspaceRuntimePort,
+    )
+    if (
+      context.env.nodeEnv !== 'production'
+      && context.env.mode === 'local'
+      && context.env.workerRuntimeMode === 'mock'
+      && context.env.storageMode === 'local'
+      && context.env.allowMockWithoutSupabase
+      && context.env.mockOnly
+      && !context.clients.admin
+      && context.auth?.isMockUser
+      && !context.auth.accessToken
+    ) return 'private_workspace_local'
+  }
   throw new ApiError('TOOL_NOT_READY', 'Edit Brief authority is blocked until canonical tenant-bound persistence and lifecycle transactions are deployed.', 503, {
     requiredGates: [
       'canonical_edit_brief_and_marker_schema', 'two_user_two_workspace_rls_evidence',

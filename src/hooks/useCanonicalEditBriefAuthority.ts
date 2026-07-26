@@ -316,6 +316,7 @@ export function useCanonicalEditBriefAuthority(input: {
         patch,
       }),
       'Marker changes saved. Confirmation was reset for review.',
+      { allowMissingBrief: true },
     ),
     [mutate, scope],
   )
@@ -332,6 +333,7 @@ export function useCanonicalEditBriefAuthority(input: {
         : action === 'archive'
           ? 'Marker archived without deleting its history.'
           : 'Marker reopened as a draft.',
+      { allowMissingBrief: true },
     ),
     [mutate, scope],
   )
@@ -344,6 +346,7 @@ export function useCanonicalEditBriefAuthority(input: {
         content,
       }),
       'Marker direction saved. Reconfirm the marker after reviewing the change.',
+      { allowMissingBrief: true },
     ),
     [mutate, scope],
   )

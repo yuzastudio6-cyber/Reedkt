@@ -175,10 +175,14 @@ export function ProfessionalEditBriefWorkspace({
   const confirmedCount = markers.filter((marker) => marker.status === 'confirmed').length
   const currentQa = canonical.authority?.qaReports.at(-1)
   const currentHints = canonical.authority?.planHintPackages.at(-1)
+  const markerLayout = useMemo(
+    () => layoutTimelineMarkerRows(markers, timelineDuration),
+    [markers, timelineDuration],
+  )
 
   useEffect(() => {
     const latestMarker = markers.at(-1)
-    if (!selectedMarkerId && latestMarker) {
+    if (!selectedMarkerId && !markerEditor && latestMarker) {
       const frame = window.requestAnimationFrame(() => {
         setSelectedMarkerId(latestMarker.id)
         setMarkerEditor(editorStateFromMarker(latestMarker))
@@ -194,7 +198,7 @@ export function ProfessionalEditBriefWorkspace({
       })
       return () => window.cancelAnimationFrame(frame)
     }
-  }, [markers, selectedMarker, selectedMarkerId])
+  }, [markerEditor, markers, selectedMarker, selectedMarkerId])
 
   function selectMarker(marker: CanonicalEditBriefMarker) {
     setSelectedMarkerId(marker.id)
@@ -378,7 +382,11 @@ export function ProfessionalEditBriefWorkspace({
                 </span>
               ))}
             </div>
-            <div className="professional-edit-brief__marker-lane" data-testid="edit-brief-marker-lane">
+            <div
+              className="professional-edit-brief__marker-lane"
+              data-testid="edit-brief-marker-lane"
+              style={{ minHeight: Math.max(82, 32 + markerLayout.rowCount * 50) }}
+            >
               <div
                 aria-hidden="true"
                 className="professional-edit-brief__playhead"
@@ -401,9 +409,10 @@ export function ProfessionalEditBriefWorkspace({
                     onClick={() => selectMarker(marker)}
                     style={{
                       left: `${start}%`,
+                      top: 18 + (markerLayout.rowByMarkerId.get(marker.id) ?? 0) * 50,
                       width: marker.timeKind === 'range'
                         ? `${Math.max(1.5, end - start)}%`
-                        : undefined,
+                        : 'clamp(88px, 18%, 180px)',
                     }}
                     type="button"
                   >
@@ -741,6 +750,41 @@ function latestMarkerEnd(markers: CanonicalEditBriefMarker[]): number {
     (maximum, marker) => Math.max(maximum, marker.endSeconds ?? marker.startSeconds),
     0,
   )
+}
+
+function layoutTimelineMarkerRows(
+  markers: readonly CanonicalEditBriefMarker[],
+  duration: number,
+): {
+  rowByMarkerId: Map<string, number>
+  rowCount: number
+} {
+  const rowEndPercentages: number[] = []
+  const rowByMarkerId = new Map<string, number>()
+  const orderedMarkers = [...markers].sort((left, right) => (
+    left.startSeconds - right.startSeconds
+    || (left.endSeconds ?? left.startSeconds) - (right.endSeconds ?? right.startSeconds)
+    || left.id.localeCompare(right.id)
+  ))
+
+  for (const marker of orderedMarkers) {
+    const start = timePercent(marker.startSeconds, duration)
+    const exactEnd = timePercent(marker.endSeconds ?? marker.startSeconds, duration)
+    const visualEnd = Math.max(start + 18, exactEnd)
+    let row = rowEndPercentages.findIndex((rowEnd) => rowEnd + 1 <= start)
+    if (row < 0) {
+      row = rowEndPercentages.length
+      rowEndPercentages.push(visualEnd)
+    } else {
+      rowEndPercentages[row] = visualEnd
+    }
+    rowByMarkerId.set(marker.id, row)
+  }
+
+  return {
+    rowByMarkerId,
+    rowCount: rowEndPercentages.length,
+  }
 }
 
 function formatTime(value: number): string {

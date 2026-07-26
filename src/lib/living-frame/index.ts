@@ -72,3 +72,46 @@ export type {
   LivingFramePlanningObservationProjection,
   LivingFramePlanningSourceEvidenceProjection,
 } from '../../types/living-frame-planning-evidence'
+
+export {
+  LIVING_FRAME_VISUAL_CONTINUITY_AUTHORITY_BOUNDARY,
+  LivingFrameVisualContinuityContractError,
+  calculateLivingFrameVisualContinuityPackDigest,
+  createLivingFrameVisualContinuityPack,
+  livingFrameVisualContinuityPackDraftSchema,
+  livingFrameVisualContinuityPackSchema,
+  normalizeLivingFrameVisualContinuityPackDraft,
+  validateLivingFrameVisualContinuityPack,
+} from './living-frame-visual-continuity-contract'
+
+export {
+  createLivingFrameVisualContinuityAdversarialFixtures,
+  createLivingFrameVisualContinuityFixtureDrafts,
+  createLivingFrameVisualContinuityFixtures,
+} from './living-frame-visual-continuity-fixtures'
+
+export type {
+  LivingFrameVisualContinuityAdversarialFixture,
+  LivingFrameVisualContinuityFixtureSet,
+} from './living-frame-visual-continuity-fixtures'
+
+export type {
+  LivingFrameVisualContinuityAlphaEdgeRules,
+  LivingFrameVisualContinuityAuthorityBoundary,
+  LivingFrameVisualContinuityCanonicalBindings,
+  LivingFrameVisualContinuityCharacterSheet,
+  LivingFrameVisualContinuityEnvironmentSheet,
+  LivingFrameVisualContinuityExpectationRef,
+  LivingFrameVisualContinuityLedgerEntry,
+  LivingFrameVisualContinuityMotionLanguageSheet,
+  LivingFrameVisualContinuityObjectSheet,
+  LivingFrameVisualContinuityPack,
+  LivingFrameVisualContinuityPackDraft,
+  LivingFrameVisualContinuitySceneDesignSheet,
+  LivingFrameVisualContinuitySheetDependency,
+  LivingFrameVisualContinuitySoundLanguageSheet,
+  LivingFrameVisualContinuityStyleBible,
+  LivingFrameVisualContinuityValidationIssue,
+  LivingFrameVisualContinuityValidationIssueCode,
+  LivingFrameVisualContinuityValidationResult,
+} from '../../types/living-frame-visual-continuity'

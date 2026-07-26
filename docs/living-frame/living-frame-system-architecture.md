@@ -1,9 +1,10 @@
 # Living Frame Storytelling System Architecture
 
-Status: source-bound planning evidence binding v1
-Runtime readiness: planning evidence only, not executable
+Status: controlled visual continuity contract v1
+Runtime readiness: planning expectations only, not executable
 Component contract: `living-frame-professional-skill-component-v1`
 Evidence contract: `living-frame-planning-evidence-binding-v1`
+Visual continuity contract: `living-frame-visual-continuity-pack-v1`
 
 ## Purpose
 
@@ -775,7 +776,35 @@ This separately gated future slice must:
   mint exact timing/SoundSync cues, calculate the customer estimate, approve a
   snapshot, create work, choose tools, render, or authorize production.
 
-### Slice 3C: selected scene planning, estimate, and approval
+### Slice 3C-A: controlled Visual Continuity Pack
+
+Slice 3C-A defines the versioned project-memory contract described in
+`docs/living-frame/visual-continuity-pack.md`.
+
+- Style, character, object, environment, scene, motion, sound, alpha, ledger,
+  and dependency expectations are strict, bounded, and content-addressed.
+- Character-consistency, fact-safety, and optional Motion style plans are
+  references only. The pack cannot label those external plans current,
+  approved, verified, or live.
+- Scene sheets remain semantic candidates. They do not contain a selected
+  scene, component graph, exact timing, SoundSync cue, estimate, work item,
+  provider, tool route, or render instruction.
+- Ledger acceptance means continuity planning only. It is not QA approval,
+  executable asset evidence, or asset-manifest ownership.
+- Native-alpha and temporal-mask fields are QA expectations. Checkerboards and
+  rectangular backgrounds remain invalid substitutes for true alpha.
+- Musashi remains a canonical illustrative interpretation; Hormuz remains
+  blocked on later exact-geography verification; an emotional monologue keeps
+  the pack absent.
+- Browser-safe SHA-256 binds semantic order and canonical lineage. Set-like
+  permutations normalize; semantic order or lineage changes invalidate the
+  digest.
+
+This is a controlled, non-promotable source contract. It provides no current
+provider result, selected-scene authority, timing, estimate, approval,
+snapshot, asset, QA, work, render, or runtime authority.
+
+### Slice 3C-B: selected scene planning, estimate, and approval
 
 - revalidate source/output-frame/timing expectations;
 - require current Slice 3A evidence and Slice 3B reasoning bindings;
@@ -862,6 +891,30 @@ It does not provide:
 - alpha, mask, continuity, documentary, or render QA;
 - Remotion layer compilation; or
 - private review or production readiness.
+
+## Closed gates after slice 3C-A
+
+The Visual Continuity Pack makes style and continuity expectations explicit,
+bounded, deterministic, and source-lineage-sensitive. It does not open the
+gates listed after Slice 3A.
+
+In particular, Slice 3C-A does not provide:
+
+- a released reasoning transport or durable reasoning-result repository;
+- canonical selected/rejected/blocked scene construction;
+- a user-visible Living Frame estimate or approval proposal;
+- exact `MasterTimingPlan` tracks or SoundSync cues;
+- executable component rigs, masks, alpha assets, or scene packages;
+- canonical asset-manifest records or QA-approved assets;
+- admitted work-item operations, dispatch, retries, or cost receipts;
+- qualified controlled-illustration runtimes, preprocessors, model weights, or
+  identity adapters;
+- Remotion layer compilation or private review; or
+- production readiness.
+
+Later integration must independently reload the current canonical handoff,
+deferred component, source evidence, reasoning result, output frame, and
+continuity expectations before any selected scene or estimate is constructed.
 
 ## Detailed Slice 2A parent-admission contract
 

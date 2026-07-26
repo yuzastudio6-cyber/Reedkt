@@ -2524,6 +2524,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
 
   function handleAddEditBriefAfterFootagePrep() {
     showRevisionMessage('Edit Brief is open. Add any optional goal, style, pacing, caption, music, or asset direction before planning.')
+    handleOpenEditBriefFromHeader()
   }
 
   function handleOpenEditBriefFromHeader() {

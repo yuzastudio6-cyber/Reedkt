@@ -678,9 +678,13 @@ try {
     new RegExp(`Source prep is ready for ${canonicalSourceCount} uploaded source files in this edit`, 'i'),
   )).toBeVisible({ timeout: 12_000 })
   await expect(page.getByText(/Ready to create the plan/i)).toBeVisible({ timeout: 12_000 })
-  await clickWhenReady(page.getByRole('button', { name: /^(Add )?Edit Brief$/i }).first())
-  await page.getByLabel(/Overall goal/i).fill('Create a clean internal review edit that opens with the uploaded source proof and keeps the speaker clear.')
+  await openEditBriefWorkspace(page)
+  await page
+    .getByTestId('editor-edit-brief-canvas')
+    .getByTestId('edit-brief-goal-input')
+    .fill('Create a clean internal review edit that opens with the uploaded source proof and keeps the speaker clear.')
   await clickEditBriefReadyButton(page)
+  await openChatWorkspace(page)
   await waitForCanonicalBriefPlanAction(page)
   const settledBriefWriteCount = countCanonicalBriefWrites(projectRouteResponses)
   await page.waitForTimeout(900)
@@ -748,13 +752,17 @@ try {
   } else {
   await expect(page.getByTestId('plan-review-approve')).toBeEnabled({ timeout: 12_000 })
   await expect(page.locator('body')).not.toContainText(internalToolNameCopyPattern)
-  await clickWhenReady(page.getByRole('button', { name: /Open Edit Brief/i }).first())
-  await expect(page.getByLabel(/Overall goal/i)).toBeVisible()
-  await page.getByLabel(/Overall goal/i).fill(approvedEditBriefGoal)
+  await openEditBriefWorkspace(page)
+  const approvedBriefGoalInput = page
+    .getByTestId('editor-edit-brief-canvas')
+    .getByTestId('edit-brief-goal-input')
+  await expect(approvedBriefGoalInput).toBeVisible()
+  await approvedBriefGoalInput.fill(approvedEditBriefGoal)
   await expect(page.getByText(/Planning inputs changed. Create a new edit plan from the updated context before approval./i)).toBeVisible({ timeout: 12_000 })
   await expect(page.getByTestId('plan-review-approve')).toHaveCount(0)
-  await expect(page.getByRole('button', { name: /Create edit plan/i }).first()).toBeDisabled()
+  await expect(page.getByRole('button', { name: /Create edit plan/i })).toHaveCount(0)
   await clickEditBriefReadyButton(page)
+  await openChatWorkspace(page)
   await waitForCanonicalBriefPlanAction(page)
   await clickWhenReady(page.getByRole('button', { name: /Create edit plan/i }).first())
   await expect(page.getByTestId('plan-review-card')).toBeVisible({ timeout: 12_000 })
@@ -2008,9 +2016,13 @@ try {
   await clickWhenReady(page.getByRole('button', { name: /Prepare source/i }).first())
   await expect(page.getByText(/Source prep is ready for 1 uploaded source file in this edit/i)).toBeVisible({ timeout: 12_000 })
   await expect(page.getByText(/Ready to create the plan/i)).toBeVisible({ timeout: 12_000 })
-  await clickWhenReady(page.getByRole('button', { name: /^(Add )?Edit Brief$/i }).first())
-  await page.getByLabel(/Overall goal/i).fill('Create a revised internal review edit from the uploaded source and keep the review trace clear.')
+  await openEditBriefWorkspace(page)
+  await page
+    .getByTestId('editor-edit-brief-canvas')
+    .getByTestId('edit-brief-goal-input')
+    .fill('Create a revised internal review edit from the uploaded source and keep the review trace clear.')
   await clickEditBriefReadyButton(page)
+  await openChatWorkspace(page)
   await waitForCanonicalBriefPlanAction(page)
   await clickWhenReady(page.getByRole('button', { name: /Create edit plan/i }).first())
   await expect(page.getByTestId('plan-review-card')).toBeVisible({ timeout: 12_000 })
@@ -2648,8 +2660,40 @@ async function clickWhenReady(locator: Locator) {
   await locator.click()
 }
 
+async function openEditBriefWorkspace(page: Page) {
+  const trigger = page.getByTestId('editor-header-edit-brief')
+  await clickWhenReady(trigger)
+  await expect(trigger).toHaveAttribute('aria-current', 'page')
+  await expect(page).toHaveURL(/[?&]view=brief(?:&|$)/)
+  await expect(page.getByTestId('editor-edit-brief-canvas')).toBeVisible()
+  const directionDetails = page
+    .getByTestId('editor-edit-brief-canvas')
+    .getByTestId('edit-brief-direction-details')
+  if (!(await directionDetails.evaluate((element) => element instanceof HTMLDetailsElement && element.open))) {
+    await clickWhenReady(directionDetails.locator('summary'))
+  }
+  await expect(directionDetails).toHaveJSProperty('open', true)
+}
+
+async function openChatWorkspace(page: Page) {
+  const trigger = page.getByTestId('edit-workspace-view-chat')
+  await clickWhenReady(trigger)
+  await expect(trigger).toHaveAttribute('aria-current', 'page')
+  await expect(page).not.toHaveURL(/[?&]view=(?:brief|preferences)(?:&|$)/)
+  await expect(page.getByTestId('editor-chat-canvas')).toBeVisible()
+}
+
 async function clickEditBriefReadyButton(page: Page) {
-  const locator = page.getByTestId('edit-brief-mark-ready').first()
+  const locator = page
+    .getByTestId('editor-edit-brief-canvas')
+    .getByTestId('edit-brief-mark-ready')
+  const canonicalReadyWrite = page.waitForResponse((response) => {
+    const request = response.request()
+    return (request.method() === 'POST' || request.method() === 'PATCH')
+      && request.url().includes('/edit-brief?')
+      && (request.postData() ?? '').includes('"status":"ready"')
+      && response.ok()
+  }, { timeout: 15_000 })
   const targetState = await locator.evaluate((element) => {
     element.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'auto' })
     const rect = element.getBoundingClientRect()
@@ -2671,6 +2715,12 @@ async function clickEditBriefReadyButton(page: Page) {
   await expect(locator).toBeFocused()
   await page.keyboard.press('Enter')
   await expect(locator).toBeDisabled()
+  await canonicalReadyWrite
+  await expect(
+    page
+      .getByTestId('editor-edit-brief-canvas')
+      .getByTestId('edit-brief-authority-status'),
+  ).toContainText('Saved')
 }
 
 async function waitForCanonicalBriefPlanAction(page: Page) {

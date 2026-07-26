@@ -91,6 +91,10 @@ contracts through the normal one-writer review boundary.
 - The canonical reasoning route remains Kimi K3, then Qwen 3.7, then DeepSeek
   V4 Pro. Qwen2.5-VL remains the separate visual-understanding specialist and
   cannot create edit authority independently.
+- Living Frame pre-approval reasoning is workflow-neutral. Ordinary Edit Video
+  planning is the base authority; Motion Storytelling may contribute an
+  optional, separately reverified production-context tuple but is never the
+  universal Living Frame planner or snapshot.
 - Selected Living Frame scenes require both source-bound visual evidence and a
   schema-validated pre-approval reasoning result bound to the same current
   planning inputs. Neither one alone selects a scene.
@@ -130,6 +134,9 @@ assumption:
   per-profile restraint thresholds ship first?
 - What released repository, locator, retention, and consumer contract will
   provide current private visual-evidence packages to planning?
+- What released server reader will reload the current unpublished handoff,
+  exact component payload, and controlled internal-cost ceiling expectation
+  for the pre-approval input authority?
 - What transport, durable run/result repository, lifecycle, timeout, retry,
   and checkback authority will execute pre-approval reasoning?
 - Which Kimi deployment and model version will satisfy the shared route,
@@ -673,17 +680,59 @@ transcript, provider, tool, job, queue, cost, approval, QA, timing, scene, or
 runtime authority. It is not persisted into `ProfessionalSkillPlan` or the
 snapshot in this slice.
 
-### Slice 3B: pre-approval reasoning binding
+### Slice 3B-A: workflow-neutral pre-approval input authority
 
-- reuse the existing strict Motion Storytelling pre-approval snapshot,
-  internal-budget, read-only-tool, idempotency, failed-attempt-cost, and
-  structured-output contract;
-- replace its obsolete workload-specific Kimi-to-GPT fallback with the shared
-  canonical Kimi-to-Qwen-to-DeepSeek route;
-- add a Living Frame-specific durable run/result reader without adopting the
-  Edit Reference lane's repository or authority;
-- bind the result to the same exact current planning inputs as Slice 3A; and
-- retain no provider, tool, estimate, approval, scene, or runtime authority.
+The source-only Slice 3B-A contract binds the inputs that a future reasoning
+run must consume. It is not a reasoning run, result, receipt, estimate, scene
+plan, approval, snapshot, or runtime command.
+
+- a non-serializable server reader must reload the current unpublished
+  canonical planning handoff and its exact component payload;
+- the service independently verifies the handoff ID/hash, component hash,
+  resolved planning-input binding, deferred Living Frame component, and the
+  Slice 3A evidence projection re-read through its private reader;
+- ordinary Edit Video is the workflow-neutral base. A Motion Storytelling
+  production tuple is optional context only and must be separately reverified
+  through the existing Motion production-authority reader;
+- the bounded reasoning request and strict result-schema expectation are
+  content-addressed without retaining raw chat, transcript, media, paths,
+  URLs, credentials, provider operations, tools, jobs, queues, or executable
+  code;
+- the only permitted reasoning order is the shared canonical Kimi K3, Qwen
+  3.7, then DeepSeek V4 Pro route. The older Kimi-to-GPT route, Qwen2.5-VL
+  reasoning, and media-provider operations are rejected;
+- a current rate-card identity and controlled internal-cost ceiling
+  expectation may be bound, but no attempt receipt, actual attempt cost,
+  provider invoice truth, customer price, credits, reservation, wallet
+  mutation, or service fee is created;
+- the strict shared pre-approval envelope discriminates Living Frame from Edit
+  Reference Study Chat V6. Cross-lane or mixed authority fails closed, and the
+  existing Edit Reference authority remains byte-for-byte unchanged; and
+- the server re-reads the handoff/components after evidence binding so a
+  concurrent change fails closed.
+
+The Slice 3B-A reader and evidence fixtures remain controlled,
+non-promotable, and production-unready. No reader route, provider transport,
+durable repository, cloud resource, billing path, or deployment is released
+by this contract.
+
+### Slice 3B-B: durable reasoning run and result binding
+
+This separately gated future slice must:
+
+- generalize the existing shared reasoning workload/attempt lifecycle only
+  through an explicit Living Frame lane rather than copying the Edit Reference
+  V6 repository or using Motion Storytelling as universal authority;
+- execute the provider-neutral Kimi K3, Qwen 3.7, then DeepSeek V4 Pro chain
+  through the released transport, retry, timeout, checkback, idempotency, and
+  durable run/result authorities;
+- retain failed and unknown attempt cost only from real durable attempt
+  evidence, never from the Slice 3B-A input contract;
+- validate a strict semantic result against the same current handoff,
+  components, Slice 3A evidence, request digest, result-schema digest, route,
+  and internal-cost ceiling; and
+- retain no scene-selection, exact timing, SoundSync, estimate, approval,
+  snapshot, work-graph, tool-route, renderer, or production authority.
 
 ### Slice 3C: selected scene planning, estimate, and approval
 

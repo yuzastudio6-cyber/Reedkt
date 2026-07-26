@@ -33,6 +33,7 @@ import {
   MAX_EDIT_BRIEF_PLAN_HINT_PACKAGES,
   MAX_EDIT_BRIEF_QA_REPORTS,
   mutatePrivateEditBriefAuthorityAggregate,
+  mutatePrivateEditBriefAuthorityAggregateWithinPlanningDomainLock,
   PREFERENCE_INSTRUCTION_PRIORITY,
   readPrivateEditBriefAuthorityAggregate,
   stableEditBriefAuthorityValue,
@@ -116,7 +117,10 @@ type PreferenceContextResult = {
   instructionPriority: typeof PREFERENCE_INSTRUCTION_PRIORITY
 }
 
-export function createEditBriefAuthorityService(context: ServiceContext) {
+export function createEditBriefAuthorityService(
+  context: ServiceContext,
+  options: { planningDomainLockAlreadyHeldForApproval?: boolean } = {},
+) {
   return {
     async get(workspaceId: string, projectId: string, editSessionId: string) {
       const scope = await authorizeScope(context, workspaceId, projectId, editSessionId, 'read')
@@ -679,11 +683,20 @@ export function createEditBriefAuthorityService(context: ServiceContext) {
 
     async lockLifecycle(input: unknown) {
       const body = parse(lockEditBriefLifecycleSchema, input)
-      const scope = await authorizeScope(context, body.workspaceId, body.projectId, body.editSessionId, 'write')
+      const scope = await authorizeScope(
+        context,
+        body.workspaceId,
+        body.projectId,
+        body.editSessionId,
+        options.planningDomainLockAlreadyHeldForApproval ? 'approval_lock' : 'write',
+      )
       const currentPreferenceBinding = buildPreferenceBinding(await loadPreferenceContext(context, scope, 'planner'))
       const requestHash = mutationHash('lock_lifecycle', scope, { ...body, currentPreferenceBinding })
       const timestamp = nowIso()
-      const result = await mutatePrivateEditBriefAuthorityAggregate({
+      const mutateLifecycle = options.planningDomainLockAlreadyHeldForApproval
+        ? mutatePrivateEditBriefAuthorityAggregateWithinPlanningDomainLock
+        : mutatePrivateEditBriefAuthorityAggregate
+      const result = await mutateLifecycle({
         scope, expectedRevision: body.expectedRevision, now: timestamp,
         replay: (aggregate) => replayEntity(aggregate, 'lock_lifecycle', body.idempotencyKey, requestHash, 'lifecycle', () => ({
           lifecycle: cloneJson(aggregate.lifecycle), aggregateRevision: aggregate.revision, replayed: true,
@@ -786,7 +799,7 @@ async function authorizeScope(
   workspaceIdInput: string,
   projectIdInput: string,
   editSessionIdInput: string,
-  operation: 'read' | 'write',
+  operation: 'read' | 'write' | 'approval_lock',
 ): Promise<EditBriefAuthorityScope> {
   requireRuntime(context)
   if (context.auth?.isMockUser || !context.auth?.accessToken) {
@@ -795,7 +808,11 @@ async function authorizeScope(
   const workspaceId = parseExactScopeId(workspaceIdInput, 'workspace')
   const projectId = parseExactScopeId(projectIdInput, 'project')
   const editSessionId = parseExactScopeId(editSessionIdInput, 'edit session')
-  const access = await authorizeWorkspaceAccess(context, workspaceId, operation)
+  const access = await authorizeWorkspaceAccess(
+    context,
+    workspaceId,
+    operation === 'read' ? 'read' : 'write',
+  )
   const project = (await createProjectService(context).getProject(projectId, access.workspaceId)).project
   if (project.id !== projectId || project.workspaceId !== access.workspaceId) {
     throw new ApiError('PROJECT_NOT_FOUND', 'Project tenancy evidence did not match this exact edit session.', 404)

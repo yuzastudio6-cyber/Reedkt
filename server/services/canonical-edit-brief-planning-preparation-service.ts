@@ -173,6 +173,8 @@ export async function prepareCanonicalEditBriefForPlanning(input: {
 
     const contextDigest = sha256AuthorityValue({
       domain: 'canonical_edit_brief_marker_context_v1',
+      authorityRevision: current.aggregateRevision,
+      briefRevision: currentAuthority.brief?.revision ?? 0,
       markerId: marker.id,
       markerRevision: marker.revision,
       sourceCandidateHash: input.sourceCandidate.candidateHash,

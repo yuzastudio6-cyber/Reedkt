@@ -594,8 +594,27 @@ export async function mutatePrivateEditBriefAuthorityAggregate<T>(input: {
   replay?: (aggregate: PrivateEditBriefAuthorityAggregate) => T | undefined
   mutation: (aggregate: PrivateEditBriefAuthorityAggregate) => Promise<{ result: T; changed: boolean }> | { result: T; changed: boolean }
 }): Promise<T> {
+  return withPlanningDomainMutationLock(
+    input.scope,
+    () => mutatePrivateEditBriefAuthorityAggregateWithinPlanningDomainLock(input),
+  )
+}
+
+/**
+ * Runs an Edit Brief mutation while the caller already owns the exact
+ * planning-domain lock. This is reserved for the canonical approval
+ * transaction coordinator so the immutable snapshot and Brief lifecycle can
+ * be committed without a caller-edit race or a re-entrant lock deadlock.
+ */
+export async function mutatePrivateEditBriefAuthorityAggregateWithinPlanningDomainLock<T>(input: {
+  scope: EditBriefAuthorityScope
+  expectedRevision: number
+  now: string
+  replay?: (aggregate: PrivateEditBriefAuthorityAggregate) => T | undefined
+  mutation: (aggregate: PrivateEditBriefAuthorityAggregate) => Promise<{ result: T; changed: boolean }> | { result: T; changed: boolean }
+}): Promise<T> {
   const lockKey = editBriefAuthorityScopeHash(input.scope)
-  return withPlanningDomainMutationLock(input.scope, async () => withProcessLock(lockKey, async () => {
+  return withProcessLock(lockKey, async () => {
     const existing = await readPrivateEditBriefAuthorityAggregate(input.scope)
     const aggregate = existing ?? createEmptyAggregate(input.scope, input.now)
     const replay = input.replay?.(aggregate)
@@ -631,7 +650,7 @@ export async function mutatePrivateEditBriefAuthorityAggregate<T>(input: {
       content,
     })
     return mutationResult.result
-  }))
+  })
 }
 
 function createEmptyAggregate(scope: EditBriefAuthorityScope, now: string): PrivateEditBriefAuthorityAggregate {

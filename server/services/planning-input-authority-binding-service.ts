@@ -259,7 +259,22 @@ function resolveEditBriefBinding(
   if (expectation.status !== 'bound') {
     throw stalePlanningAuthority('An existing Edit Brief/Marker workspace cannot be silently excluded from planning.')
   }
-  const publicationBinding = buildEditBriefAuthorityPublicationBinding(aggregate)
+  const currentPublicationBinding = buildEditBriefAuthorityPublicationBinding(aggregate)
+  const lifecycleLockMatchesPersistedPlan = (
+    aggregate.lifecycle.phase === 'approved_snapshot'
+    && aggregate.lifecycle.mutable === false
+    && aggregate.lifecycle.authorityRevisionAtLock === expectation.aggregateRevision
+    && aggregate.lifecycle.publicationBindingHash === expectation.deterministicHash
+    && aggregate.lifecycle.authorityInputHash === currentPublicationBinding.authorityInputHash
+    && currentPublicationBinding.authorityWorkspaceRevision === expectation.aggregateRevision
+    && currentPublicationBinding.deterministicHash === expectation.deterministicHash
+  )
+  const publicationBinding = lifecycleLockMatchesPersistedPlan
+    ? {
+        ...currentPublicationBinding,
+        aggregateRevision: expectation.aggregateRevision,
+      }
+    : currentPublicationBinding
   if (
     publicationBinding.aggregateRevision !== expectation.aggregateRevision ||
     publicationBinding.deterministicHash !== expectation.deterministicHash

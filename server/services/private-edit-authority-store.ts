@@ -456,13 +456,30 @@ export async function mutatePrivateEditAuthorityAggregate<T>(input: {
   planningDomainScope?: PlanningDomainMutationScope
   now: string
   mutation: (aggregate: PrivateEditAuthorityAggregate) => Promise<{ result: T; changed: boolean }> | { result: T; changed: boolean }
+  afterPersistWhilePlanningDomainLocked?: (input: {
+    aggregate: Readonly<PrivateEditAuthorityAggregate>
+    result: T
+  }) => Promise<void>
 }): Promise<T> {
+  if (input.afterPersistWhilePlanningDomainLocked && !input.planningDomainScope) {
+    throw new ApiError(
+      'INTERNAL_ERROR',
+      'A planning-domain post-persistence projection requires the exact planning-domain lock.',
+      500,
+    )
+  }
   const lockKey = authorityScopeHash(input.scope.ownerUserId, input.scope.workspaceId)
   const mutate = async () => withProcessLock(scopeLocks, lockKey, async () => {
     const existing = await readPrivateEditAuthorityAggregate(input.scope)
     const aggregate = existing ?? createPrivateEditAuthorityAggregate(input.scope, input.now)
     const mutationResult = await input.mutation(aggregate)
-    if (!mutationResult.changed) return mutationResult.result
+    if (!mutationResult.changed) {
+      await input.afterPersistWhilePlanningDomainLocked?.({
+        aggregate,
+        result: mutationResult.result,
+      })
+      return mutationResult.result
+    }
 
     aggregate.revision += 1
     aggregate.updatedAt = input.now
@@ -486,6 +503,10 @@ export async function mutatePrivateEditAuthorityAggregate<T>(input: {
       rootPath: input.scope.localStorageRoot,
       relativePath: authorityAggregatePath(input.scope.ownerUserId, input.scope.workspaceId),
       content,
+    })
+    await input.afterPersistWhilePlanningDomainLocked?.({
+      aggregate,
+      result: mutationResult.result,
     })
     return mutationResult.result
   })

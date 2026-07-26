@@ -273,7 +273,6 @@ export function useCanonicalEditBriefAuthority(input: {
     setStatus('saving')
     const perform = async () => {
       let current = authorityRef.current
-      if (!current) return false
       let result = await action(current)
       if (result.status === 'stale') {
         const refreshed = await readCanonicalEditBriefAuthority(scope)

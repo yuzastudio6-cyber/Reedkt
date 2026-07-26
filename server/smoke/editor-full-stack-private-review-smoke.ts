@@ -16,6 +16,11 @@ import { createSyntheticMp4Fixture } from '../media/test-media-fixture'
 import { clearApprovedEditExecutionPrivateDownloadMemoryForSmoke } from '../services/approved-edit-execution-package-service'
 import { clearInternalEditStateMemoryForSmoke } from '../services/internal-edit-state-service'
 import { clearLocalProjectMemoryForSmoke } from '../services/project-service'
+import {
+  readPrivateAuthorityJsonBlob,
+  readPrivateEditAuthorityAggregate,
+} from '../services/private-edit-authority-store'
+import { readPrivateEditBriefAuthorityAggregate } from '../services/private-edit-brief-authority-store'
 import { activatePrivateOfflineLibassCaptionRuntime } from '../tool-execution/libass-caption-execution'
 import { activatePrivateOfflineMediaBinaryRuntime } from '../tool-execution/media-binary-execution'
 import {
@@ -23,6 +28,7 @@ import {
   prepareOfflineRemotionDockerRuntime,
 } from '../tool-execution/remotion-render-execution'
 import type { RuntimeClients } from '../types'
+import { resolvedPlanningInputAuthorityBindingSchema } from '../validation/planning-input-authority-binding-schemas'
 import {
   getLocalProjectHandoffStorageKey as getScopedLocalProjectHandoffStorageKey,
   type LocalInternalProjectHandoff,
@@ -48,6 +54,11 @@ const getLocalProjectHandoffStorageKey = () => getScopedLocalProjectHandoffStora
 const editorBootTimeoutMs = 12_000
 const privateUploadTimeoutMs = 30_000
 const approvedEditBriefGoal = 'Create a clean internal review edit from the uploaded source proof, keep the speaker clear, and make the first beat more direct.'
+const approvedEditBriefMarker = {
+  startSeconds: 0.5,
+  title: 'Protect the opening explanation',
+  note: 'Keep the complete opening explanation, add a restrained caption, and do not cover or cut the speaker.',
+} as const
 const canonicalSourceFixtureDefinitions = [
   { fileName: 'browser-upload-source.mp4', width: 160, height: 90, audioFrequencyHz: 440, videoPattern: 'solid_red' },
   { fileName: 'browser-upload-source-b.mp4', width: 176, height: 100, audioFrequencyHz: 660, videoPattern: 'solid_dark_red' },
@@ -679,11 +690,20 @@ try {
   )).toBeVisible({ timeout: 12_000 })
   await expect(page.getByText(/Ready to create the plan/i)).toBeVisible({ timeout: 12_000 })
   await openEditBriefWorkspace(page)
+  const approvedEditBriefMarkerId = await createCanonicalEditBriefMarkerBeforeBrief(page, {
+    projectId: handoffs[0]?.projectId ?? '',
+    editSessionId: handoffs[0]?.editSessionId ?? '',
+  })
   await page
     .getByTestId('editor-edit-brief-canvas')
     .getByTestId('edit-brief-goal-input')
     .fill('Create a clean internal review edit that opens with the uploaded source proof and keeps the speaker clear.')
   await clickEditBriefReadyButton(page)
+  await confirmCanonicalEditBriefMarker(page, {
+    projectId: handoffs[0]?.projectId ?? '',
+    editSessionId: handoffs[0]?.editSessionId ?? '',
+    markerId: approvedEditBriefMarkerId,
+  })
   await openChatWorkspace(page)
   await waitForCanonicalBriefPlanAction(page)
   const settledBriefWriteCount = countCanonicalBriefWrites(projectRouteResponses)
@@ -771,6 +791,19 @@ try {
   await expect(deliveryCeiling).toContainText(/4K UHD render and export ceiling/i)
   await expect(deliveryCeiling).toContainText(/1080p, 2K, or 4K/i)
   await expect(deliveryCeiling).toContainText(/no second export estimate or charge/i)
+  const revisedCanonicalSaveStatus = page.getByLabel('Canonical plan save status')
+  await expect(revisedCanonicalSaveStatus).toBeVisible({ timeout: 12_000 })
+  await expect(revisedCanonicalSaveStatus).not.toContainText('Saving this exact plan', {
+    timeout: 12_000,
+  })
+  const revisedCanonicalSaveStatusText = (await revisedCanonicalSaveStatus.innerText())
+    .replace(/\s+/g, ' ')
+    .trim()
+  assert.match(
+    revisedCanonicalSaveStatusText,
+    /Exact plan saved/,
+    `The revised Edit Brief and confirmed marker must publish a fresh canonical plan before approval. status=${revisedCanonicalSaveStatusText} responses=${JSON.stringify(canonicalPlanningResponses.slice(-8))}`,
+  )
   await expect(page.getByTestId('plan-review-approve')).toBeEnabled({ timeout: 12_000 })
   assert.equal(
     canonicalPlanningResponses.some((entry) =>
@@ -2639,6 +2672,11 @@ try {
   }))
   }
   }
+  await assertCanonicalEditBriefMarkerLineage({
+    projectId: handoffs[0]?.projectId ?? '',
+    editSessionId: handoffs[0]?.editSessionId ?? '',
+    markerId: approvedEditBriefMarkerId,
+  })
   assert.equal(
     canonicalPrivateReviewAccepted,
     true,
@@ -2651,6 +2689,212 @@ try {
   await new Promise<void>((resolve, reject) => {
     apiServer.close((error) => (error ? reject(error) : resolve()))
   })
+}
+
+async function createCanonicalEditBriefMarkerBeforeBrief(
+  page: Page,
+  scope: { projectId: string; editSessionId: string },
+): Promise<string> {
+  const workspace = page.getByTestId('editor-edit-brief-canvas')
+  const status = workspace.getByTestId('edit-brief-authority-status')
+  await expect(status).toContainText('Saved', { timeout: 12_000 })
+  await workspace.getByLabel('Timeline playhead').fill(
+    String(approvedEditBriefMarker.startSeconds),
+  )
+  await clickWhenReady(workspace.getByRole('button', { name: /Add marker at/i }))
+
+  const inspector = workspace.getByRole('complementary', {
+    name: 'Edit Brief marker inspector',
+  })
+  await inspector.getByLabel('Type').selectOption('caption')
+  await inspector.getByLabel('Priority').selectOption('must_follow')
+  await inspector.getByLabel('Marker title').fill(approvedEditBriefMarker.title)
+  await inspector
+    .getByLabel('What should happen here?')
+    .fill(approvedEditBriefMarker.note)
+
+  const markerCreate = page.waitForResponse((response) => {
+    const request = response.request()
+    return request.method() === 'POST'
+      && /\/edit-brief\/markers(?:\?|$)/.test(request.url())
+  }, { timeout: 15_000 })
+  await clickWhenReady(inspector.getByRole('button', { name: 'Create marker' }))
+  const markerCreateResponse = await markerCreate
+  assert.equal(
+    markerCreateResponse.status(),
+    201,
+    `Marker-first Edit Brief creation should commit before an optional overall goal: ${await markerCreateResponse.text()}`,
+  )
+  await expect(status).toContainText('Saved', { timeout: 12_000 })
+  await expect(workspace.getByRole('button', {
+    name: new RegExp(approvedEditBriefMarker.title, 'i'),
+  })).toBeVisible()
+
+  const markerOnlyAuthority = await readPrivateEditBriefAuthorityAggregate({
+    localStorageRoot,
+    ownerUserId: 'supabase-user-browser-full-stack',
+    workspaceId: 'workspace-internal-testing',
+    projectId: scope.projectId,
+    editSessionId: scope.editSessionId,
+  })
+  assert.ok(markerOnlyAuthority, 'Marker-first UI creation should create the canonical timeline authority.')
+  assert.equal(
+    markerOnlyAuthority.brief,
+    undefined,
+    'A timeline marker must persist without fabricating the optional overall Brief record.',
+  )
+  assert.equal(markerOnlyAuthority.markers.length, 1)
+  assert.equal(markerOnlyAuthority.markers[0]?.title, approvedEditBriefMarker.title)
+  assert.equal(markerOnlyAuthority.markers[0]?.note, approvedEditBriefMarker.note)
+  assert.equal(markerOnlyAuthority.markers[0]?.startSeconds, approvedEditBriefMarker.startSeconds)
+  assert.equal(markerOnlyAuthority.markers[0]?.status, 'draft')
+  assert.equal(markerOnlyAuthority.markers[0]?.timingStatus, 'display_seconds_only')
+  return markerOnlyAuthority.markers[0]!.id
+}
+
+async function confirmCanonicalEditBriefMarker(
+  page: Page,
+  input: { projectId: string; editSessionId: string; markerId: string },
+): Promise<void> {
+  const workspace = page.getByTestId('editor-edit-brief-canvas')
+  const status = workspace.getByTestId('edit-brief-authority-status')
+  const inspector = workspace.getByRole('complementary', {
+    name: 'Edit Brief marker inspector',
+  })
+  const markerConfirm = page.waitForResponse((response) => {
+    const request = response.request()
+    return request.method() === 'POST'
+      && /\/edit-brief\/markers\/[^/]+\/confirm(?:\?|$)/.test(request.url())
+  }, { timeout: 15_000 })
+  await clickWhenReady(inspector.getByRole('button', { name: 'Confirm for plan' }))
+  const markerConfirmResponse = await markerConfirm
+  assert.equal(
+    markerConfirmResponse.status(),
+    200,
+    `Confirmed marker should commit through the canonical named-edit route: ${await markerConfirmResponse.text()}`,
+  )
+  await expect(status).toContainText('Saved', { timeout: 12_000 })
+
+  const confirmedAuthority = await readPrivateEditBriefAuthorityAggregate({
+    localStorageRoot,
+    ownerUserId: 'supabase-user-browser-full-stack',
+    workspaceId: 'workspace-internal-testing',
+    projectId: input.projectId,
+    editSessionId: input.editSessionId,
+  })
+  const confirmedMarker = confirmedAuthority?.markers.find(
+    (marker) => marker.id === input.markerId,
+  )
+  assert.ok(confirmedMarker, 'Confirmed marker should be recoverable from canonical persistence.')
+  assert.equal(confirmedMarker.status, 'confirmed')
+  assert.ok(confirmedMarker.confirmedAt)
+}
+
+async function assertCanonicalEditBriefMarkerLineage(input: {
+  projectId: string
+  editSessionId: string
+  markerId: string
+}): Promise<void> {
+  const editBriefAuthority = await readPrivateEditBriefAuthorityAggregate({
+    localStorageRoot,
+    ownerUserId: 'supabase-user-browser-full-stack',
+    workspaceId: 'workspace-internal-testing',
+    projectId: input.projectId,
+    editSessionId: input.editSessionId,
+  })
+  assert.ok(editBriefAuthority, 'Approved edit should retain its exact canonical Edit Brief authority.')
+  const marker = editBriefAuthority.markers.find((entry) => entry.id === input.markerId)
+  assert.ok(marker, 'Approved Edit Brief should retain its exact user-created timeline marker.')
+  assert.equal(marker.status, 'confirmed')
+  assert.equal(marker.title, approvedEditBriefMarker.title)
+  assert.equal(marker.note, approvedEditBriefMarker.note)
+  assert.equal(marker.startSeconds, approvedEditBriefMarker.startSeconds)
+  assert.equal(marker.timingStatus, 'frame_authoritative')
+  assert.equal(marker.frameRate, 30)
+  assert.equal(marker.startFrame, 15)
+
+  const contextPackage = [...editBriefAuthority.contextPackages]
+    .reverse()
+    .find((entry) => entry.markerId === marker.id && entry.markerRevision === marker.revision)
+  assert.ok(contextPackage, 'Planning should bind the marker to one current source context package.')
+  assert.equal(contextPackage.sourceAuthorityStatus, 'verified_canonical_source_manifest')
+  assert.ok(contextPackage.sourceContext.sourceAssetIds.length > 0)
+  const sourceCandidateHash = contextPackage.sourceContext.sourceCandidateHashSha256
+  const sourceSequenceHash = contextPackage.sourceContext.sourceSequenceHashSha256
+  assert.ok(sourceCandidateHash, 'Verified marker context should retain its source-candidate hash.')
+  assert.ok(sourceSequenceHash, 'Verified marker context should retain its source-sequence hash.')
+  assert.match(sourceCandidateHash, /^[a-f0-9]{64}$/)
+  assert.match(sourceSequenceHash, /^[a-f0-9]{64}$/)
+
+  const currentQa = editBriefAuthority.qaReports.at(-1)
+  assert.ok(currentQa, 'Planning should retain deterministic marker QA evidence.')
+  assert.equal(currentQa.status, 'passed')
+  assert.deepEqual(currentQa.findings, [])
+
+  const currentHints = [...editBriefAuthority.planHintPackages]
+    .reverse()
+    .find((entry) =>
+      entry.readiness === 'ready_for_planning'
+      && entry.confirmedMarkerHints.some((hint) => hint.markerId === marker.id)
+    )
+  assert.ok(currentHints, 'Planning should compile the confirmed marker into a current Plan Hint package.')
+  const currentMarkerHint = currentHints.confirmedMarkerHints.find(
+    (hint) => hint.markerId === marker.id,
+  )
+  assert.ok(currentMarkerHint)
+  assert.equal(currentMarkerHint.instruction, approvedEditBriefMarker.note)
+  assert.equal(currentMarkerHint.startFrame, marker.startFrame)
+  assert.equal(currentHints.planInputQaStatus, 'passed')
+  assert.equal(currentHints.runtimeTruth.plannerExecuted, false)
+  assert.equal(currentHints.runtimeTruth.creditsReservedOrSpent, false)
+
+  assert.equal(editBriefAuthority.lifecycle.phase, 'approved_snapshot')
+  assert.equal(editBriefAuthority.lifecycle.mutable, false)
+  assert.ok(
+    editBriefAuthority.lifecycle.approvedSnapshotId,
+    'Edit Brief lifecycle should lock to one immutable approved snapshot.',
+  )
+
+  const editAuthority = await readPrivateEditAuthorityAggregate({
+    localStorageRoot,
+    ownerUserId: 'supabase-user-browser-full-stack',
+    workspaceId: 'workspace-internal-testing',
+  })
+  const snapshot = editAuthority?.snapshots.find(
+    (entry) => entry.snapshotId === editBriefAuthority.lifecycle.approvedSnapshotId,
+  )
+  assert.ok(snapshot, 'The Edit Brief lifecycle should reference a real canonical approved snapshot.')
+  assert.equal(snapshot.projectId, input.projectId)
+  assert.equal(snapshot.editSessionId, input.editSessionId)
+  const planningInputAuthorityRef = snapshot.componentRefs.planningInputAuthority
+  assert.ok(
+    planningInputAuthorityRef,
+    'The immutable approved snapshot should include the content-addressed planning-input authority.',
+  )
+  const planningInputAuthority = resolvedPlanningInputAuthorityBindingSchema.parse(
+    await readPrivateAuthorityJsonBlob({
+      localStorageRoot,
+      ref: planningInputAuthorityRef,
+    }),
+  )
+  assert.equal(planningInputAuthority.workspaceId, 'workspace-internal-testing')
+  assert.equal(planningInputAuthority.projectId, input.projectId)
+  assert.equal(planningInputAuthority.editSessionId, input.editSessionId)
+  assert.equal(planningInputAuthority.editBrief.status, 'bound')
+  if (planningInputAuthority.editBrief.status !== 'bound') {
+    assert.fail('The approved planning-input authority must bind the canonical Edit Brief.')
+  }
+  assert.equal(planningInputAuthority.editBrief.publicationBinding.qaStatus, 'passed')
+  assert.equal(planningInputAuthority.editBrief.publicationBinding.hasApprovalBlockers, false)
+  const snapshotMarkerHint = planningInputAuthority.editBrief.confirmedMarkerHints.find(
+    (value) => value.markerId === marker.id,
+  )
+  assert.ok(
+    snapshotMarkerHint,
+    'The immutable planning-input component should preserve the exact confirmed marker hint.',
+  )
+  assert.equal(snapshotMarkerHint.instruction, approvedEditBriefMarker.note)
+  assert.equal(snapshotMarkerHint.startFrame, marker.startFrame)
 }
 
 async function clickWhenReady(locator: Locator) {

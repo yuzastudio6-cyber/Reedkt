@@ -444,9 +444,12 @@ export function ProfessionalEditBriefWorkspace({
                 <label>
                   <span>Type</span>
                   <select
-                    onChange={(event) => setMarkerEditor((current) => current
-                      ? { ...current, markerType: event.currentTarget.value as CanonicalEditBriefMarkerType }
-                      : current)}
+                    onChange={(event) => {
+                      const markerType = event.currentTarget.value as CanonicalEditBriefMarkerType
+                      setMarkerEditor((current) => current
+                        ? { ...current, markerType }
+                        : current)
+                    }}
                     value={markerEditor.markerType}
                   >
                     {MARKER_TYPES.map((type) => (
@@ -457,9 +460,12 @@ export function ProfessionalEditBriefWorkspace({
                 <label>
                   <span>Priority</span>
                   <select
-                    onChange={(event) => setMarkerEditor((current) => current
-                      ? { ...current, priority: event.currentTarget.value as CanonicalEditBriefMarkerPriority }
-                      : current)}
+                    onChange={(event) => {
+                      const priority = event.currentTarget.value as CanonicalEditBriefMarkerPriority
+                      setMarkerEditor((current) => current
+                        ? { ...current, priority }
+                        : current)
+                    }}
                     value={markerEditor.priority}
                   >
                     {PRIORITIES.map((priority) => (
@@ -471,9 +477,12 @@ export function ProfessionalEditBriefWorkspace({
                   <span>Marker title</span>
                   <input
                     maxLength={240}
-                    onChange={(event) => setMarkerEditor((current) => current
-                      ? { ...current, title: event.currentTarget.value }
-                      : current)}
+                    onChange={(event) => {
+                      const title = event.currentTarget.value
+                      setMarkerEditor((current) => current
+                        ? { ...current, title }
+                        : current)
+                    }}
                     value={markerEditor.title}
                   />
                 </label>
@@ -483,9 +492,12 @@ export function ProfessionalEditBriefWorkspace({
                     <input
                       max={timelineDuration}
                       min={0}
-                      onChange={(event) => setMarkerEditor((current) => current
-                        ? { ...current, startSeconds: Number(event.currentTarget.value) }
-                        : current)}
+                      onChange={(event) => {
+                        const startSeconds = Number(event.currentTarget.value)
+                        setMarkerEditor((current) => current
+                          ? { ...current, startSeconds }
+                          : current)
+                      }}
                       step={0.01}
                       type="number"
                       value={markerEditor.startSeconds}
@@ -494,15 +506,18 @@ export function ProfessionalEditBriefWorkspace({
                   <label>
                     <span>Timing</span>
                     <select
-                      onChange={(event) => setMarkerEditor((current) => current
-                        ? {
-                            ...current,
-                            timeKind: event.currentTarget.value as 'point' | 'range',
-                            endSeconds: event.currentTarget.value === 'range'
-                              ? current.endSeconds ?? Math.min(timelineDuration, current.startSeconds + 3)
-                              : undefined,
-                          }
-                        : current)}
+                      onChange={(event) => {
+                        const timeKind = event.currentTarget.value as 'point' | 'range'
+                        setMarkerEditor((current) => current
+                          ? {
+                              ...current,
+                              timeKind,
+                              endSeconds: timeKind === 'range'
+                                ? current.endSeconds ?? Math.min(timelineDuration, current.startSeconds + 3)
+                                : undefined,
+                            }
+                          : current)
+                      }}
                       value={markerEditor.timeKind}
                     >
                       <option value="point">Exact moment</option>
@@ -515,9 +530,12 @@ export function ProfessionalEditBriefWorkspace({
                       <input
                         max={timelineDuration}
                         min={markerEditor.startSeconds + 0.01}
-                        onChange={(event) => setMarkerEditor((current) => current
-                          ? { ...current, endSeconds: Number(event.currentTarget.value) }
-                          : current)}
+                        onChange={(event) => {
+                          const endSeconds = Number(event.currentTarget.value)
+                          setMarkerEditor((current) => current
+                            ? { ...current, endSeconds }
+                            : current)
+                        }}
                         step={0.01}
                         type="number"
                         value={markerEditor.endSeconds ?? markerEditor.startSeconds + 3}
@@ -529,9 +547,12 @@ export function ProfessionalEditBriefWorkspace({
                   <span>What should happen here?</span>
                   <textarea
                     maxLength={8_000}
-                    onChange={(event) => setMarkerEditor((current) => current
-                      ? { ...current, note: event.currentTarget.value }
-                      : current)}
+                    onChange={(event) => {
+                      const note = event.currentTarget.value
+                      setMarkerEditor((current) => current
+                        ? { ...current, note }
+                        : current)
+                    }}
                     placeholder="Example: Keep the complete explanation, add a restrained lower-third, and protect speech clarity."
                     rows={5}
                     value={markerEditor.note}

@@ -64,6 +64,7 @@ import {
 } from '../validation/edit-planning-authority-schemas'
 import { getRequiredAuthUserId, nowIso } from './service-helpers'
 import { createCanonicalPrivateReviewDecisionService } from './canonical-private-review-decision-service'
+import { createEditBriefAuthorityService } from './edit-brief-authority-service'
 import { createProjectService } from './project-service'
 import {
   type AuthorityApprovedSnapshotManifest,
@@ -792,6 +793,55 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         scope: authorityScope(context, access.userId, access.workspaceId),
         planningDomainScope: planningAuthorityScope(context, access.userId, access.workspaceId, targetPlan),
         now: timestamp,
+        afterPersistWhilePlanningDomainLocked: async ({ aggregate }) => {
+          if (approvalPlanningInputAuthority.editBrief.status !== 'bound') return
+          const persistedPlan = aggregate.plans.find((plan) =>
+            plan.id === input.editPlanId)
+          if (!persistedPlan) {
+            throw new ApiError(
+              'PLAN_NOT_APPROVED',
+              'Canonical approval cannot lock Edit Brief authority without its exact persisted plan.',
+              409,
+            )
+          }
+          const snapshots = aggregate.snapshots.filter((snapshot) =>
+            snapshot.planId === persistedPlan.id)
+          if (snapshots.length !== 1) {
+            throw new ApiError(
+              'APPROVED_SNAPSHOT_REQUIRED',
+              'Canonical approval cannot lock Edit Brief authority without one exact immutable snapshot.',
+              409,
+            )
+          }
+          const snapshot = snapshots[0]!
+          const publicationBinding =
+            approvalPlanningInputAuthority.editBrief.publicationBinding
+          const lifecycleKeyDigest = sha256AuthorityValue({
+            domain: 'canonical_plan_approval_edit_brief_lifecycle_v1',
+            workspaceId: access.workspaceId,
+            projectId: persistedPlan.projectId,
+            editSessionId: persistedPlan.editSessionId,
+            planId: persistedPlan.id,
+            planHash: persistedPlan.planHash,
+            snapshotId: snapshot.snapshotId,
+            snapshotHash: snapshot.snapshotHash,
+            publicationBindingHash: publicationBinding.deterministicHash,
+            authorityInputHash: publicationBinding.authorityInputHash,
+          })
+          await createEditBriefAuthorityService(context, {
+            planningDomainLockAlreadyHeldForApproval: true,
+          }).lockLifecycle({
+            workspaceId: access.workspaceId,
+            projectId: persistedPlan.projectId,
+            editSessionId: persistedPlan.editSessionId,
+            expectedRevision: publicationBinding.aggregateRevision,
+            idempotencyKey:
+              `canonical-plan-edit-brief-lock:${lifecycleKeyDigest}`,
+            phase: 'approved_snapshot',
+            approvedSnapshotId: snapshot.snapshotId,
+            expectedPublicationBindingHash: publicationBinding.deterministicHash,
+          })
+        },
         mutation: async (aggregate) => {
           const replay = findIdempotencyReplay(aggregate, 'approve_plan', idempotencyKey, requestHash)
           if (replay) return { result: replay, changed: false }

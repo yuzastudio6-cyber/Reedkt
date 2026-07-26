@@ -9,7 +9,10 @@ import {
 } from './helpers/routes'
 import { expectFloatingComposerAligned, expectNoHorizontalOverflow } from './helpers/layout'
 
-const PROFESSIONAL_PRIVATE_REVIEW_TIMEOUT_MS = 180_000
+// A cold, CPU-only 4K private render can take several minutes after the
+// dependency jobs finish. Keep the browser watchdog above that measured
+// envelope while the durable journey status continues to expose progress.
+const PROFESSIONAL_PRIVATE_REVIEW_TIMEOUT_MS = 600_000
 
 async function createNamedEdit(page: Page, suffix: string) {
   await gotoRoute(page, '/projects/new')

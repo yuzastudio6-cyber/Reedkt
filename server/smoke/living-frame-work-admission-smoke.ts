@@ -14,6 +14,9 @@ import {
   compileLivingFrameWorkAdmissionCatalog,
   verifyLivingFrameWorkAdmissionCatalog,
 } from '../living-frame/living-frame-work-admission'
+import {
+  CANONICAL_EDIT_WORK_ITEM_TYPES,
+} from '../validation/edit-planning-authority-schemas'
 
 const catalog = compileLivingFrameWorkAdmissionCatalog()
 assert.equal(verifyLivingFrameWorkAdmissionCatalog(catalog), true)
@@ -74,13 +77,43 @@ assert.equal(
   catalog.miniSkillCoverage.find((entry) =>
     entry.miniSkillKey === 'component_rigging')
     ?.coverageState,
-  'explicit_schema_admission_required',
+  'existing_named_work_type_candidate',
+)
+assert.equal(
+  catalog.miniSkillCoverage.find((entry) =>
+    entry.miniSkillKey === 'component_rigging')
+    ?.existingNamedWorkItemTypes.includes('build_component_rig'),
+  true,
+)
+assert.equal(
+  catalog.capabilityCoverage.find((entry) =>
+    entry.capabilityKey === 'foreground_component_extraction')
+    ?.existingNamedWorkItemTypes.includes(
+      'reconstruct_background_plate',
+    ),
+  true,
 )
 assert.equal(
   catalog.miniSkillCoverage.find((entry) =>
     entry.miniSkillKey === 'visual_continuity_direction')
     ?.coverageState,
   'planning_only_no_work_item',
+)
+assert.equal(
+  CANONICAL_EDIT_WORK_ITEM_TYPES.includes(
+    'reconstruct_background_plate',
+  ),
+  true,
+)
+assert.equal(
+  CANONICAL_EDIT_WORK_ITEM_TYPES.includes('build_component_rig'),
+  true,
+)
+assert.equal(
+  CANONICAL_EDIT_WORK_ITEM_TYPES.includes(
+    'living_frame_magic' as never,
+  ),
+  false,
 )
 
 const replay = compileLivingFrameWorkAdmissionCatalog()
@@ -148,11 +181,20 @@ assert.equal(
 const rigHiddenUnderExisting = mutable(catalog)
 const rig = rigHiddenUnderExisting.miniSkillCoverage.find((entry) =>
   entry.miniSkillKey === 'component_rigging')!
-rig.coverageState = 'existing_named_work_type_candidate'
 rig.existingNamedWorkItemTypes = ['process_image_asset']
-rig.missingOperationCodes = []
 assert.equal(
   verifyLivingFrameWorkAdmissionCatalog(sign(rigHiddenUnderExisting)),
+  false,
+)
+
+const hiddenPlateRemoved = mutable(catalog)
+const decomposition = hiddenPlateRemoved.miniSkillCoverage.find((entry) =>
+  entry.miniSkillKey === 'component_decomposition')!
+decomposition.existingNamedWorkItemTypes =
+  decomposition.existingNamedWorkItemTypes.filter((workItemType) =>
+    workItemType !== 'reconstruct_background_plate')
+assert.equal(
+  verifyLivingFrameWorkAdmissionCatalog(sign(hiddenPlateRemoved)),
   false,
 )
 
@@ -183,7 +225,7 @@ console.log(JSON.stringify({
   explicitSchemaAdmissionCount:
     catalog.metrics.missingSchemaAdmissionCount,
   safetyBlockedCount: catalog.metrics.safetyBlockedCount,
-  adversarialAssertions: 10,
+  adversarialAssertions: 11,
   customWorkItemAllowed: catalog.customWorkItemAllowed,
   createsWorkItems: catalog.createsWorkItems,
   subjectSpecificRouting: catalog.subjectSpecificRouting,

@@ -28,6 +28,8 @@ export type EditWorkItemType =
   | 'process_image_asset'
   | 'process_video_asset'
   | 'generate_mask_asset'
+  | 'reconstruct_background_plate'
+  | 'build_component_rig'
   | 'prepare_remotion_layer'
   | 'render_remotion_preview'
   | 'render_final_export'

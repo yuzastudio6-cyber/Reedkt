@@ -7,7 +7,7 @@ import type {
 } from './editing-agent-runtime'
 
 export const LIVING_FRAME_WORK_ADMISSION_VERSION =
-  'living-frame-work-admission-catalog-v1' as const
+  'living-frame-work-admission-catalog-v2' as const
 
 export const LIVING_FRAME_WORK_ADMISSION_CLASS =
   'controlled_non_executable_named_work_type_coverage' as const
@@ -23,8 +23,6 @@ export type LivingFrameWorkCoverageState =
   (typeof LIVING_FRAME_WORK_COVERAGE_STATES)[number]
 
 export const LIVING_FRAME_MISSING_OPERATION_CODES = [
-  'hidden_plate_reconstruction_operation_required',
-  'component_rig_build_operation_required',
   'adapter_training_or_loading_operation_required',
   'identity_conditioned_generation_prohibited_pending_safety',
 ] as const

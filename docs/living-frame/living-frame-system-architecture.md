@@ -1015,34 +1015,38 @@ ledger to bypass these prerequisites.
 
 #### Named work-type admission audit
 
-`living-frame-work-admission-catalog-v1` audits every current Living Frame
+`living-frame-work-admission-catalog-v2` audits every current Living Frame
 capability and mini-skill against the existing `EditWorkItemType` vocabulary.
 It is a static, non-executable coverage record; it does not create work items
 or asset-manifest entries.
 
 The current 35 vocabulary entries resolve as follows:
 
-- 29 have a candidate mapping to an existing named work type, including
+- 32 have a candidate mapping to an existing named work type, including
   `generate_image_asset`, `generate_ai_video_asset`, `render_map_asset`,
   `render_chart_asset`, `generate_mask_asset`, `process_image_asset`,
+  `reconstruct_background_plate`, `build_component_rig`,
   `prepare_visual_cue_timing`, `prepare_soundsync_timing`,
   `prepare_remotion_layer`, `run_asset_qa`, and `run_final_qa`;
 - one (`visual_continuity_direction`) is planning-only and should not create a
   work item;
-- two are partially covered but still require an explicit hidden-plate
-  reconstruction operation;
-- component-rig construction and adapter training/loading require explicit
-  canonical schema admission; and
+- hidden-background-plate reconstruction and component-rig construction now
+  have first-class canonical names rather than being hidden under
+  `process_image_asset` or `custom`;
+- adapter training/loading still requires explicit canonical schema admission;
+  and
 - identity-conditioned illustration remains safety-blocked and cannot be
   relabeled as ordinary image generation.
 
 The catalog sets `customWorkItemAllowed=false`. It is invalid to hide a
-missing rig, hidden-plate, adapter, or identity operation under `custom`,
-`process_image_asset`, or `generate_image_asset`. Existing work types are only
-candidate vocabulary mappings: selected-scene admission, immutable snapshot,
-timing/SoundSync, tool/provider/model-weight qualification, artifact QA, and
-private review remain required before the canonical execution planner may
-create work.
+rig, hidden-plate, adapter, or identity operation under `custom`,
+`process_image_asset`, or `generate_image_asset`. The two new names are schema
+and dry-run job-classification admissions only: no worker handler, tool route,
+asset creation, queue dispatch, or runtime authority is added. Existing work
+types remain candidate vocabulary mappings: selected-scene admission,
+immutable snapshot, timing/SoundSync, tool/provider/model-weight
+qualification, artifact QA, and private review remain required before the
+canonical execution planner may create work.
 
 ### Slice 5: renderer and private review
 

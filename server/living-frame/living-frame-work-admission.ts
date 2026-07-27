@@ -105,9 +105,13 @@ const CAPABILITY_COVERAGE:
     ),
     capability(
       'foreground_component_extraction',
-      'partial_existing_types_schema_admission_required',
-      ['generate_mask_asset', 'process_image_asset'],
-      ['hidden_plate_reconstruction_operation_required'],
+      'existing_named_work_type_candidate',
+      [
+        'generate_mask_asset',
+        'process_image_asset',
+        'reconstruct_background_plate',
+      ],
+      [],
       TOOL_MODEL_GATES,
     ),
     capability(
@@ -226,16 +230,20 @@ const MINI_SKILL_COVERAGE:
     ),
     miniSkill(
       'component_decomposition',
-      'partial_existing_types_schema_admission_required',
-      ['generate_mask_asset', 'process_image_asset'],
-      ['hidden_plate_reconstruction_operation_required'],
+      'existing_named_work_type_candidate',
+      [
+        'generate_mask_asset',
+        'process_image_asset',
+        'reconstruct_background_plate',
+      ],
+      [],
       TOOL_MODEL_GATES,
     ),
     miniSkill(
       'component_rigging',
-      'explicit_schema_admission_required',
+      'existing_named_work_type_candidate',
+      ['build_component_rig'],
       [],
-      ['component_rig_build_operation_required'],
       BASE_WORK_GATES,
     ),
     miniSkill(

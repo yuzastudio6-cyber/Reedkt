@@ -5964,7 +5964,9 @@ function runtimeJobTypeForWorkItem(workItem: EditWorkItem): string {
     workItem.workItemType === 'run_audio_stretch' ||
     workItem.workItemType === 'process_image_asset' ||
     workItem.workItemType === 'process_video_asset' ||
-    workItem.workItemType === 'generate_mask_asset'
+    workItem.workItemType === 'generate_mask_asset' ||
+    workItem.workItemType === 'reconstruct_background_plate' ||
+    workItem.workItemType === 'build_component_rig'
   ) return 'tool_execution'
   if (workItem.workItemType === 'run_asset_qa' || workItem.workItemType === 'run_timing_qa' || workItem.workItemType === 'run_final_qa') return 'qa'
   return workItem.workItemType
@@ -5982,7 +5984,9 @@ function workerTypeForWorkItem(workItem: EditWorkItem): string {
     workItem.workItemType === 'run_audio_stretch' ||
     workItem.workItemType === 'process_image_asset' ||
     workItem.workItemType === 'process_video_asset' ||
-    workItem.workItemType === 'generate_mask_asset'
+    workItem.workItemType === 'generate_mask_asset' ||
+    workItem.workItemType === 'reconstruct_background_plate' ||
+    workItem.workItemType === 'build_component_rig'
   ) return 'tool_execution_worker'
   if (
     workItem.workItemType === 'prepare_caption_timing' ||

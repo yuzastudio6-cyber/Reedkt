@@ -7,7 +7,8 @@ import {
 } from '../production/production-worker-gates'
 import { assertWorkerPayloadHasNoForbiddenFields } from '../production/production-worker-artifact-policy'
 import { evaluateModelWeightManifestForMode, getGpuModelWeightManifestTemplate } from '../../model-weights'
-import type { MaskExecutionInput } from './mask-execution-types'
+import { buildMaskTaskPlan } from './mask-task-plan-builder'
+import type { MaskExecutionInput, MaskTaskPlan } from './mask-execution-types'
 
 const forbiddenInputKeys = [
   'rawPrompt',
@@ -60,7 +61,12 @@ export function validateMaskExecutionPolicy(input: MaskExecutionInput): {
       blockingReasons.push('mask_readiness_blockers_present')
     }
 
-    for (const manifestId of requiredManifestIds(input)) {
+    const taskPlan = buildMaskTaskPlan(input)
+    for (const manifestId of taskPlan.modelWeightRequirements) {
+      if (!isAdmittedMaskManifestId(manifestId)) {
+        blockingReasons.push(`${manifestId}_canonical_manifest_not_admitted`)
+        continue
+      }
       if (!input.modelWeightManifestIds?.includes(manifestId)) {
         blockingReasons.push(`${manifestId}_modelWeightManifestId_required`)
         continue
@@ -88,12 +94,10 @@ export function validateMaskExecutionPolicy(input: MaskExecutionInput): {
   }
 }
 
-function requiredManifestIds(input: MaskExecutionInput): Array<'birefnet_model' | 'sam2_checkpoint'> {
-  const ids: Array<'birefnet_model' | 'sam2_checkpoint'> = ['birefnet_model']
-  if (input.maskIntent === 'background_removal_video' || input.maskIntent === 'text_behind_subject' || input.motionRequiresTracking) {
-    ids.push('sam2_checkpoint')
-  }
-  return ids
+function isAdmittedMaskManifestId(
+  manifestId: MaskTaskPlan['modelWeightRequirements'][number],
+): manifestId is 'birefnet_model' | 'sam2_checkpoint' {
+  return manifestId === 'birefnet_model' || manifestId === 'sam2_checkpoint'
 }
 
 function rejectForbiddenInputFields(input: MaskExecutionInput): void {

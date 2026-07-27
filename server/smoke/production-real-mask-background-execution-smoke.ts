@@ -103,6 +103,27 @@ try {
   const imagePlan = buildMaskTaskPlan(baseInput)
   check(imagePlan.primaryTool === 'birefnet', 'Mask planner must choose BiRefNet for image cutout/background removal.')
   check(imagePlan.expectedArtifacts.includes('mask_image'), 'Image mask plan must expect mask_image.')
+  check(
+    imagePlan.modelWeightRequirements.includes('transparent_background_model') &&
+      imagePlan.modelWeightRequirements.includes('rembg_model'),
+    'Default image fallbacks must retain their unresolved model-weight requirements.',
+  )
+  const unadmittedFallbackPolicy = validateMaskExecutionPolicy({
+    ...baseInput,
+    mode: 'production_ready',
+    modelWeightManifestIds: ['birefnet_model'],
+    readinessReport: { overallStatus: 'passed', blockers: [], blockerSummaries: [] },
+  })
+  check(
+    !unadmittedFallbackPolicy.allowed &&
+      unadmittedFallbackPolicy.blockingReasons.includes(
+        'transparent_background_model_canonical_manifest_not_admitted',
+      ) &&
+      unadmittedFallbackPolicy.blockingReasons.includes(
+        'rembg_model_canonical_manifest_not_admitted',
+      ),
+    'Production policy must fail closed while default fallback model manifests are not canonically admitted.',
+  )
 
   const videoPlan = buildMaskTaskPlan({
     ...baseInput,

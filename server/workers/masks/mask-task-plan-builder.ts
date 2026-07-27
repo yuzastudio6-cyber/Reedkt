@@ -37,7 +37,7 @@ export function buildMaskTaskPlan(input: MaskExecutionInput): MaskTaskPlan {
     },
     subjectSelection: input.subjectSelection,
     expectedArtifacts,
-    modelWeightRequirements: modelWeightRequirements(input),
+    modelWeightRequirements: modelWeightRequirements(input, primaryTool, fallbackTools),
     refinementPlan: {
       opencv: true,
       kornia: videoIntent,
@@ -105,12 +105,20 @@ function expectedArtifactsForIntent(input: MaskExecutionInput): MaskTaskPlan['ex
   return [...new Set(artifacts)]
 }
 
-function modelWeightRequirements(input: MaskExecutionInput): MaskTaskPlan['modelWeightRequirements'] {
+function modelWeightRequirements(
+  input: MaskExecutionInput,
+  primaryTool: MaskToolId,
+  fallbackTools: MaskToolId[],
+): MaskTaskPlan['modelWeightRequirements'] {
   const requirements: MaskTaskPlan['modelWeightRequirements'] = ['birefnet_model']
   if (input.maskIntent === 'background_removal_video' || input.maskIntent === 'text_behind_subject' || input.motionRequiresTracking) {
     requirements.push('sam2_checkpoint')
   }
-  if (input.fallbackTools?.includes('transparent_background')) requirements.push('transparent_background_model')
-  if (input.fallbackTools?.includes('rembg')) requirements.push('rembg_model')
+  if (primaryTool === 'transparent_background' || fallbackTools.includes('transparent_background')) {
+    requirements.push('transparent_background_model')
+  }
+  if (primaryTool === 'rembg' || fallbackTools.includes('rembg')) {
+    requirements.push('rembg_model')
+  }
   return [...new Set(requirements)]
 }

@@ -529,6 +529,8 @@ test.describe('editor mocked browser flow', () => {
 
     const editBriefSummaryGrid = editBriefPanel.locator('.edit-brief-summary-grid')
     const timelineGrid = page.locator('.professional-edit-brief__timeline-grid')
+    const timelineSurface = page.locator('.professional-edit-brief__timeline')
+    const briefHeader = page.getByTestId('editor-header')
     const chatWorkspaceButton = page.getByTestId('edit-workspace-view-chat')
     for (const width of [375, 768, 1024, 1440]) {
       await setViewport(page, width)
@@ -543,6 +545,35 @@ test.describe('editor mocked browser flow', () => {
           getComputedStyle(element).gridTemplateColumns.trim().split(/\s+/).length
         )),
       ).toBe(2)
+      const previewBox = await previewMonitor.boundingBox()
+      const timelineBox = await timelineSurface.boundingBox()
+      const detailsBox = await directionDetails.boundingBox()
+      const authorityNotice = professionalBrief.locator('.professional-edit-brief__notice')
+      const authorityNoticeBox = await authorityNotice.count() > 0
+        ? await authorityNotice.boundingBox()
+        : null
+      expect(
+        Math.abs(
+          (previewBox?.y ?? 0) + (previewBox?.height ?? 0) - (timelineBox?.y ?? 0),
+        ),
+      ).toBeLessThanOrEqual(2)
+      expect(
+        Math.abs(
+          (timelineBox?.y ?? 0)
+            + (timelineBox?.height ?? 0)
+            - (authorityNoticeBox?.y ?? detailsBox?.y ?? 0),
+        ),
+      ).toBeLessThanOrEqual(2)
+      if (authorityNoticeBox) {
+        expect(
+          Math.abs(
+            authorityNoticeBox.y + authorityNoticeBox.height - (detailsBox?.y ?? 0),
+          ),
+        ).toBeLessThanOrEqual(2)
+      }
+      if (width >= 768) {
+        expect((await briefHeader.boundingBox())?.height ?? 900).toBeLessThanOrEqual(80)
+      }
     }
     await setViewport(page, 375)
     expect(
@@ -551,8 +582,33 @@ test.describe('editor mocked browser flow', () => {
       )),
     ).toBe(1)
     await setViewport(page, 1440)
-    await clickWhenReady(markerPopover.getByRole('button', { name: /Close marker popover/i }))
+    const markerAuthorityUnavailable = await professionalBrief
+      .locator('.professional-edit-brief__notice')
+      .count() > 0
+    await markerPrompt.press('Control+Enter')
+    if (markerAuthorityUnavailable) {
+      await expect(markerPopover).toBeVisible()
+      await page.keyboard.press('Escape')
+    } else {
+      await expect(markerPopover).toHaveCount(0)
+      await expect(page.locator('.professional-edit-brief__marker')).toHaveCount(1)
+    }
     await expect(markerPopover).toHaveCount(0)
+    await expect(addMarker).toBeFocused()
+
+    await markerLane.scrollIntoViewIfNeeded()
+    const markerLaneBox = await markerLane.boundingBox()
+    await markerLane.dblclick({
+      position: {
+        x: Math.max(1, Math.round((markerLaneBox?.width ?? 100) * 0.7)),
+        y: Math.max(1, Math.round((markerLaneBox?.height ?? 100) - 20)),
+      },
+    })
+    await expect(markerPopover).toBeVisible()
+    await expect(markerPopover.getByLabel(/What should happen here/i)).toBeFocused()
+    await page.keyboard.press('Escape')
+    await expect(markerPopover).toHaveCount(0)
+    await expect(addMarker).toBeFocused()
 
     await briefGoalInput.fill(briefGoal)
     const referenceUrls = page.getByTestId('edit-brief-reference-urls')

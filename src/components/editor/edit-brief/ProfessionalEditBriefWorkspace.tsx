@@ -16,6 +16,7 @@ import {
   type ChangeEvent,
   type CSSProperties,
   type KeyboardEvent,
+  type MouseEvent,
   type PointerEvent,
   type ReactNode,
   useEffect,
@@ -282,8 +283,8 @@ export function ProfessionalEditBriefWorkspace({
     seek(marker.startSeconds)
   }
 
-  function beginMarker() {
-    const safeStart = roundTime(playheadSeconds)
+  function beginMarkerAt(startSeconds: number) {
+    const safeStart = roundTime(startSeconds)
     setSelectedMarkerId(undefined)
     setMarkerEditor({
       markerType: 'note',
@@ -294,6 +295,10 @@ export function ProfessionalEditBriefWorkspace({
       note: '',
     })
     window.requestAnimationFrame(() => markerNoteRef.current?.focus())
+  }
+
+  function beginMarker() {
+    beginMarkerAt(playheadSeconds)
   }
 
   function closeMarkerEditor({ returnFocus = true } = {}) {
@@ -344,15 +349,38 @@ export function ProfessionalEditBriefWorkspace({
 
   function seekFromTimeline(event: PointerEvent<HTMLDivElement>) {
     if ((event.target as HTMLElement).closest('button')) return
-    const bounds = event.currentTarget.getBoundingClientRect()
-    if (bounds.width <= 0) return
-    seek(((event.clientX - bounds.left) / bounds.width) * timelineDuration)
+    seek(timelineSecondsFromClientX(event.currentTarget, event.clientX, timelineDuration))
+  }
+
+  function beginMarkerFromTimeline(event: MouseEvent<HTMLDivElement>) {
+    if (readOnly || (event.target as HTMLElement).closest('button')) return
+    const startSeconds = timelineSecondsFromClientX(
+      event.currentTarget,
+      event.clientX,
+      timelineDuration,
+    )
+    seek(startSeconds)
+    beginMarkerAt(startSeconds)
   }
 
   function handleMarkerEditorKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     if (event.key !== 'Escape') return
     event.preventDefault()
     closeMarkerEditor()
+  }
+
+  function handleMarkerPromptKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
+    if (
+      event.key !== 'Enter'
+      || (!event.metaKey && !event.ctrlKey)
+      || readOnly
+      || canonical.status === 'saving'
+      || !markerEditor?.note.trim()
+    ) {
+      return
+    }
+    event.preventDefault()
+    void saveMarker()
   }
 
   function choosePreview(event: ChangeEvent<HTMLInputElement>) {
@@ -460,8 +488,14 @@ export function ProfessionalEditBriefWorkspace({
         <div className="professional-edit-brief__timeline-toolbar">
           <div>
             <strong>Timeline</strong>
-            <span>
+            <span className="professional-edit-brief__timeline-summary">
               {markers.length} direction{markers.length === 1 ? '' : 's'} · {confirmedCount} confirmed
+            </span>
+            <span
+              className="professional-edit-brief__timeline-hint"
+              id="edit-brief-timeline-interaction-hint"
+            >
+              Click to move the playhead · double-click to add a direction
             </span>
           </div>
           <div className="professional-edit-brief__timeline-actions">
@@ -499,8 +533,10 @@ export function ProfessionalEditBriefWorkspace({
           </div>
           <div className="professional-edit-brief__timeline-scroll" ref={timelineScrollRef}>
             <div
+              aria-describedby="edit-brief-timeline-interaction-hint"
               className="professional-edit-brief__timeline-content"
               data-testid="edit-brief-marker-lane"
+              onDoubleClick={beginMarkerFromTimeline}
               onPointerDown={seekFromTimeline}
               style={{
                 '--edit-brief-timeline-width': `${timelineZoom * 100}%`,
@@ -606,11 +642,15 @@ export function ProfessionalEditBriefWorkspace({
                         const note = event.currentTarget.value
                         setMarkerEditor((current) => current ? { ...current, note } : current)
                       }}
+                      onKeyDown={handleMarkerPromptKeyDown}
                       placeholder="Tell ReeditPro in your own words…"
                       ref={markerNoteRef}
                       rows={4}
                       value={markerEditor.note}
                     />
+                    {!readOnly ? (
+                      <small>One clear direction is enough. Press Ctrl or ⌘ + Enter to add it.</small>
+                    ) : null}
                   </label>
 
                   {!readOnly ? (
@@ -989,6 +1029,19 @@ function roundTime(value: number): number {
 
 function timePercent(seconds: number, duration: number): number {
   return Math.max(0, Math.min(100, (seconds / Math.max(1, duration)) * 100))
+}
+
+function timelineSecondsFromClientX(
+  element: HTMLDivElement,
+  clientX: number,
+  duration: number,
+): number {
+  const bounds = element.getBoundingClientRect()
+  if (bounds.width <= 0) return 0
+  return Math.max(
+    0,
+    Math.min(duration, ((clientX - bounds.left) / bounds.width) * duration),
+  )
 }
 
 function timelineTicks(duration: number, zoom: number) {

@@ -85,8 +85,41 @@
 
 @media (max-width: 1180px) {
   .chat-native-header[data-workspace-view='brief'] {
-    align-items: stretch;
-    grid-template-columns: minmax(0, 1fr);
+    align-items: center;
+    grid-template-columns: minmax(140px, 1fr) auto;
+  }
+
+  .chat-native-header[data-workspace-view='brief'] .chat-native-header-copy {
+    align-items: center;
+    display: flex;
+    gap: var(--rp-space-2);
+  }
+
+  .chat-native-header[data-workspace-view='brief'] .editor-project-back {
+    flex: 0 0 44px;
+    justify-content: center;
+    margin-left: 0;
+    min-height: 44px;
+    min-width: 44px;
+    width: 44px;
+  }
+
+  .chat-native-header[data-workspace-view='brief'] .editor-project-back span {
+    display: none;
+  }
+
+  .chat-native-header[data-workspace-view='brief'] .chat-native-header-copy h1 {
+    min-width: 0;
+    overflow: hidden;
+    overflow-wrap: normal;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .chat-native-header[data-workspace-view='brief'] .chat-native-header-actions,
+  .chat-native-header[data-workspace-view='brief'] .editor-workspace-switcher {
+    flex-wrap: nowrap;
+    width: auto;
   }
 
   .editor-workspace-layout {
@@ -442,6 +475,34 @@
   .chat-native-header-actions {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .chat-native-header[data-workspace-view='brief'] {
+    align-items: stretch;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .chat-native-header[data-workspace-view='brief'] .chat-native-header-copy {
+    align-items: initial;
+    display: grid;
+    gap: 0;
+  }
+
+  .chat-native-header[data-workspace-view='brief'] .editor-project-back {
+    flex: 0 1 auto;
+    justify-content: flex-start;
+    margin-left: -6px;
+    max-width: 100%;
+    min-width: 0;
+    width: auto;
+  }
+
+  .chat-native-header[data-workspace-view='brief'] .editor-project-back span {
+    display: inline;
+  }
+
+  .chat-native-header[data-workspace-view='brief'] .chat-native-header-actions {
+    width: 100%;
   }
 
   .editor-workspace-switcher {

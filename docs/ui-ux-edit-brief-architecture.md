@@ -20,9 +20,10 @@ When selected, Edit Brief owns the named edit's full main workspace. Chat messag
 
 - The existing compact project/workspace switcher is the only page-level heading and navigation chrome.
 - Do not repeat the edit name, “Edit Brief workspace,” or explanatory hero headers inside the Brief canvas.
-- Source preview and the professional timeline are the dominant surfaces.
+- Source preview, professional timeline, and collapsed Brief constraints form one continuous editing desk rather than three competing cards.
 - The timeline presents a time ruler, cyan playhead, source clips, dedicated direction track, marker ranges, horizontal zoom/scroll, and explicit track labels.
-- Adding a direction opens a playhead-anchored popover. Its primary control is one plain-language prompt: `What should happen here?`
+- Clicking the timeline moves the playhead. Double-clicking an empty timeline moment, or choosing `Add direction`, opens the same playhead-anchored popover.
+- The popover's primary control is one plain-language prompt: `What should happen here?` Ctrl/Command + Enter submits it through the same canonical marker save path as the visible action.
 - Type, priority, point/range timing, and optional short label stay under a collapsed `More options` disclosure. They must not make the default marker interaction feel like completing a form.
 - Existing directions reopen through the same popover. Escape closes it and returns focus to `Add direction`.
 - Overall goal, audience, assets, style, and delivery constraints remain available in one collapsed secondary disclosure below the timeline.
@@ -94,6 +95,7 @@ Workers must eventually execute the approved snapshot, not reread mutable Brief 
 - Preserve the compact Optional/Draft/Ready status in the editor header.
 - Let preview and timeline use the available canvas. Keep structured Brief fields secondary and collapsed until requested.
 - Make marker entry prompt-first through the playhead popover; advanced metadata is progressive disclosure.
+- Preserve professional timeline efficiency: click seeks, double-click opens a direction at that moment, Ctrl/Command + Enter saves, and Escape closes without saving and returns focus.
 - Use a flat, sectioned field hierarchy for expanded overall direction so it reads as one planning surface rather than a stack of competing cards.
 - Keep planning-impact and approval-lock notices visually distinct without using oversized warning containers.
 - Labels and helper copy must distinguish factual Brief direction from editing-behavior preferences.
@@ -108,7 +110,8 @@ Workers must eventually execute the approved snapshot, not reread mutable Brief 
 - `tests/e2e/viewport.spec.ts` passes 64/64 checks. The focused Brief journey additionally exercises its preview, timeline, and popover at 375px, 768px, 1024px, and 1440px.
 - `smoke:edit-brief-authority` covers exact-session point/range markers, lifecycle, CAS/idempotency, tenant isolation, restart recovery, source/frame/QA/plan-hint preparation, approval locking, and fail-closed production selection.
 - `smoke:planning-input-safety` covers full handoff round trip, full Planning Context transfer, and immutable approved-snapshot capture.
-- Guarded local visual review confirms the source preview and professional timeline use the main canvas while marker entry remains a bounded popover instead of a persistent form.
+- The focused Edit Brief browser journey covers the continuous editing-desk geometry and bounded marker prompt at 375px, 768px, 1024px, and 1440px, including the honest fail-closed mock marker boundary.
+- Guarded connected-private visual review confirms a 64px compact Brief header at 768px and 1024px, one H1, no horizontal overflow, exact timeline anchoring, Ctrl+Enter canonical save, focus return, and cleanup through the same marker lifecycle authority.
 - App/server TypeScript, full ESLint, frontend/server boundary, repository secret scan, production build, and diff-integrity checks pass for this slice.
 
 ## Remaining Production Boundaries

@@ -1,9 +1,18 @@
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
+import { mkdtemp, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 
 import {
   bindLivingFrameCanonicalPlanning,
 } from '../../src/lib/living-frame'
+import {
+  createLivingFrameSemanticReasoningRequest,
+} from '../../src/lib/living-frame/living-frame-semantic-reasoning-request-contract'
+import {
+  createLivingFrameSemanticReasoningRequestFixtureDrafts,
+} from '../../src/lib/living-frame/living-frame-semantic-reasoning-request-fixtures'
 import {
   createProfessionalSkillPlan,
 } from '../../src/lib/professional-skills'
@@ -28,10 +37,31 @@ import type {
 } from '../../src/types/living-frame-preapproval-input-authority'
 import type { ServiceContext } from '../types'
 import {
+  createCanonicalLivingFrameProviderNeutralPayload,
+  verifyCanonicalLivingFrameProviderNeutralPayload,
+  verifyCanonicalLivingFrameSemanticReasoningAdmission,
+} from '../living-frame/canonical-living-frame-semantic-reasoning-admission'
+import {
+  createCanonicalPreapprovalModelDataRequestClassification,
+  createCanonicalPreapprovalModelRouteDataAssurance,
+  createCanonicalPreapprovalPolicyEvidence,
+  createCanonicalPreapprovalProjectModelDataPolicy,
+  createCanonicalPreapprovalRouteDataAssuranceBinding,
+} from '../model-data-assurance/canonical-preapproval-route-data-assurance-contract'
+import {
+  PrivateCanonicalPreapprovalRouteDataAssuranceRepository,
+} from '../model-data-assurance/private-canonical-preapproval-route-data-assurance-repository'
+import {
   createPrePlanEditReferenceStudyChatReasoningAuthority,
   REEDITPRO_REASONING_MODEL_RATE_CARD_VERSION,
   validatePrePlanEditReferenceStudyChatReasoningAuthority,
 } from '../reasoning-model-cost'
+import {
+  createCanonicalSourceSpeechEvidencePackage,
+} from '../source-speech-evidence/canonical-source-speech-evidence-contract'
+import {
+  PrivateCanonicalSourceSpeechEvidenceRepository,
+} from '../source-speech-evidence/private-canonical-source-speech-evidence-repository'
 import {
   canonicalLivingFramePreapprovalInputAuthoritySchema,
   canonicalLivingFramePreapprovalInputReaderResultSchema,
@@ -62,6 +92,11 @@ import {
   LIVING_FRAME_PREAPPROVAL_INPUT_AUTHORITY_BOUNDARY,
   type CanonicalLivingFramePreapprovalInputReaderPort,
 } from '../services/canonical-living-frame-preapproval-input-authority-service'
+import {
+  bindCanonicalLivingFrameSemanticReasoningAdmission,
+  canonicalLivingFrameSemanticAdmissionRequestSchema,
+  CANONICAL_LIVING_FRAME_SEMANTIC_ADMISSION_REQUEST_VERSION,
+} from '../services/canonical-living-frame-semantic-reasoning-admission-service'
 import {
   canonicalPlanningHandoffId,
 } from '../services/private-canonical-planning-handoff-store'
@@ -512,6 +547,9 @@ assert.equal(
   false,
 )
 
+const semanticAdmissionEvidence =
+  await exerciseCanonicalSemanticReasoningAdmission()
+
 console.log(JSON.stringify({
   schemaVersion: authority.schemaVersion,
   authorityClass: authority.authorityClass,
@@ -527,9 +565,616 @@ console.log(JSON.stringify({
   crossLaneAuthorityRejected: true,
   editReferenceV6PreservedByteForByte: true,
   staleOrRacingInputRejected: true,
+  currentSourceSpeechEvidenceBound:
+    semanticAdmissionEvidence.currentSourceSpeechEvidenceBound,
+  actualProviderNeutralPayloadDigestBound:
+    semanticAdmissionEvidence.actualProviderNeutralPayloadDigestBound,
+  currentRouteDataAssuranceBound:
+    semanticAdmissionEvidence.currentRouteDataAssuranceBound,
+  providerEnvelopeStillRequired:
+    semanticAdmissionEvidence.providerEnvelopeStillRequired,
+  crossOwnerEvidenceRejected:
+    semanticAdmissionEvidence.crossOwnerEvidenceRejected,
+  missingSpeechSegmentRejected:
+    semanticAdmissionEvidence.missingSpeechSegmentRejected,
+  blockedRouteAssuranceRejected:
+    semanticAdmissionEvidence.blockedRouteAssuranceRejected,
   allRuntimeAndCommercialAuthoritiesClosed: true,
   productionReady: false,
 }))
+
+async function exerciseCanonicalSemanticReasoningAdmission(): Promise<{
+  readonly currentSourceSpeechEvidenceBound: true
+  readonly actualProviderNeutralPayloadDigestBound: true
+  readonly currentRouteDataAssuranceBound: true
+  readonly providerEnvelopeStillRequired: true
+  readonly crossOwnerEvidenceRejected: true
+  readonly missingSpeechSegmentRejected: true
+  readonly blockedRouteAssuranceRejected: true
+}> {
+  const root = await mkdtemp(
+    join(tmpdir(), 'reeditpro-lf-semantic-admission-'),
+  )
+  const blockedRouteRoot = await mkdtemp(
+    join(tmpdir(), 'reeditpro-lf-semantic-admission-blocked-'),
+  )
+  const sourceSpeechRepository =
+    new PrivateCanonicalSourceSpeechEvidenceRepository()
+  const routeDataAssuranceRepository =
+    new PrivateCanonicalPreapprovalRouteDataAssuranceRepository()
+  const sourceSpeechRepositoryScope = {
+    localStorageRoot: root,
+    ownerUserId: USER_ID,
+    workspaceId: WORKSPACE_ID,
+  }
+  const routeDataAssuranceRepositoryScope = {
+    localStorageRoot: root,
+    ownerUserId: USER_ID,
+    workspaceId: WORKSPACE_ID,
+  }
+  const speechSegmentId = 'speech-segment-lf-semantic-admission-1'
+  try {
+    const sourceSpeechPackage =
+      createCanonicalSourceSpeechEvidencePackage({
+        status: 'available_for_preapproval_reasoning',
+        sourceMode: 'uploaded_media',
+        workspaceId: WORKSPACE_ID,
+        projectId: PROJECT_ID,
+        editSessionId: EDIT_SESSION_ID,
+        sourceSequenceDigestSha256:
+          authority.lineage.sourceSequenceDigestSha256,
+        evidenceSnapshotId:
+          'source-speech-lf-semantic-admission-snapshot',
+        evidenceRevision: 1,
+        ideaFirstAuthorityDigestSha256: null,
+        evidenceRecords: [{
+          sourceSequenceItemId: SOURCE_SEQUENCE_ITEM_ID,
+          mediaAssetId: MEDIA_ASSET_ID,
+          uploadedOrder: 1,
+          sourceChecksumSha256: SOURCE_CHECKSUM,
+          evidenceStatus: 'verified_speech',
+          sourceAudioArtifact: {
+            artifactId: 'source-audio-lf-semantic-admission',
+            contentSha256:
+              digest('source-audio-lf-semantic-admission'),
+            contentType: 'audio/wav',
+            byteLength: 480_000,
+          },
+          sourceAudioExtractionEvidenceDigestSha256:
+            digest('source-audio-extraction-lf-semantic-admission'),
+          transcriptArtifact: {
+            artifactId: 'transcript-lf-semantic-admission',
+            contentSha256:
+              digest('transcript-lf-semantic-admission'),
+            contentType: 'application/json',
+            byteLength: 12_000,
+          },
+          wordTimestampArtifact: {
+            artifactId: 'word-timestamps-lf-semantic-admission',
+            contentSha256:
+              digest('word-timestamps-lf-semantic-admission'),
+            contentType: 'application/json',
+            byteLength: 22_000,
+          },
+          transcriptionRuntime: {
+            toolId: 'faster_whisper',
+            modelWeightManifestId:
+              'faster-whisper-approved-gpu-model-v1',
+            modelName: 'faster-whisper approved multilingual model',
+            modelRevisionSha256:
+              digest('faster-whisper-model-lf-semantic-admission'),
+            executionPlacement: 'google_cloud_run_gpu',
+            device: 'cuda',
+            cpuFallbackUsed: false,
+            modelDownloadDuringRun: false,
+            customerCreditReservationUsed: false,
+            internalAnalysisBudgetAuthorityDigestSha256:
+              digest('source-speech-budget-lf-semantic-admission'),
+            executionEvidenceDigestSha256:
+              digest('source-speech-execution-lf-semantic-admission'),
+          },
+          transcriptQa: {
+            status: 'passed',
+            transcriptAlignmentPassed: true,
+            humanReviewRequired: false,
+            blockingIssueCount: 0,
+            qaEvidenceDigestSha256:
+              digest('source-speech-qa-lf-semantic-admission'),
+          },
+          transcriptProjectionPolicy: {
+            projectionClass:
+              'bounded_redacted_untrusted_source_transcript',
+            sourceInstructionAuthority: false,
+            rawTranscriptIncluded: false,
+            sensitiveValueRedactionApplied: true,
+            browserShareable: false,
+          },
+          speechAbsenceEvidenceDigestSha256: null,
+          languageCode: 'en-US',
+          coverageStartMilliseconds: 0,
+          coverageEndMillisecondsExclusive: 10_000,
+          confidenceBasisPoints: 9_250,
+          segments: [{
+            segmentId: speechSegmentId,
+            order: 1,
+            startMilliseconds: 0,
+            endMillisecondsExclusive: 9_800,
+            text:
+              'The speaker explains why a restrained illustrative visual supports this moment.',
+            confidenceBasisPoints: 9_300,
+          }],
+        }],
+      })
+    const sourceSpeechPersistence =
+      await sourceSpeechRepository.save({
+        scope: sourceSpeechRepositoryScope,
+        package: sourceSpeechPackage,
+      })
+
+    const semanticRequest = await createSemanticReasoningRequest({
+      authority,
+      speechSegmentId,
+    })
+    const providerNeutralPayload =
+      await createCanonicalLivingFrameProviderNeutralPayload({
+        preapprovalInputAuthority: authority,
+        semanticRequest,
+        sourceSpeechEvidence: sourceSpeechPackage,
+      })
+    const routeDataAssurance = createRouteDataAssurance({
+      requestDigestSha256:
+        providerNeutralPayload.payloadDigestSha256,
+      trainingUseState: 'prohibited_by_contract',
+    })
+    const routePersistence =
+      await routeDataAssuranceRepository.save({
+        scope: routeDataAssuranceRepositoryScope,
+        package: routeDataAssurance,
+      })
+    const admissionRequest = {
+      schemaVersion:
+        CANONICAL_LIVING_FRAME_SEMANTIC_ADMISSION_REQUEST_VERSION,
+      purpose:
+        'bind_current_living_frame_semantic_request_to_shared_evidence' as const,
+      preapprovalInputRequest: request,
+      semanticRequest,
+      sourceSpeechEvidenceLocator: sourceSpeechPersistence.locator,
+      routeDataAssuranceLocator: routePersistence.locator,
+    }
+    const admission =
+      await bindCanonicalLivingFrameSemanticReasoningAdmission({
+        context,
+        request: admissionRequest,
+        inputReader,
+        planningEvidenceReader: visualReader,
+        sourceSpeechRepositoryScope,
+        routeDataAssuranceRepositoryScope,
+        sourceSpeechRepository,
+        routeDataAssuranceRepository,
+      })
+    assert.equal(admission.status, 'ready_for_provider_envelope')
+    assert.equal(
+      admission.providerNeutralPayload.sourceSpeechProjection
+        .sourceSpeechEvidencePackageDigestSha256,
+      sourceSpeechPackage.contractDigestSha256,
+    )
+    assert.equal(
+      admission.providerNeutralPayload.sourceSpeechProjection
+        .selectedSegments[0]?.segmentId,
+      speechSegmentId,
+    )
+    assert.equal(
+      admission.providerNeutralPayload.sourceSpeechProjection
+        .rawTranscriptIncluded,
+      false,
+    )
+    assert.equal(
+      admission.providerNeutralPayload.sourceSpeechProjection
+        .sourceInstructionAuthority,
+      false,
+    )
+    assert.equal(
+      admission.routeDataAssurance.requestDigestSha256,
+      admission.providerNeutralPayload.payloadDigestSha256,
+    )
+    assert.equal(
+      admission.routeDataAssurance.providerEnvelopeDigestSha256,
+      null,
+    )
+    assert.equal(
+      admission.authorityBoundary.providerTransportAuthority,
+      false,
+    )
+    assert.equal(admission.authorityBoundary.selectedSceneAuthority, false)
+    assert.equal(admission.authorityBoundary.customerCreditAuthority, false)
+    assert.equal(admission.authorityBoundary.productionReady, false)
+    assert.equal(
+      verifyCanonicalLivingFrameSemanticReasoningAdmission(admission)
+        .contractDigestSha256,
+      admission.contractDigestSha256,
+    )
+    assert.throws(
+      () => verifyCanonicalLivingFrameSemanticReasoningAdmission({
+        ...admission,
+        authorityBoundary: Object.fromEntries(
+          Object.keys(admission.authorityBoundary)
+            .map((key) => [key, true]),
+        ),
+      }),
+    )
+    const {
+      payloadDigestSha256: _payloadDigestSha256,
+      ...providerNeutralPayloadDraft
+    } = admission.providerNeutralPayload
+    void _payloadDigestSha256
+    const forgedPayloadDraft = {
+      ...providerNeutralPayloadDraft,
+      sourceRequestBlockersFulfilled: [
+        'shared_route_data_assurance_required',
+      ],
+    }
+    assert.throws(
+      () => verifyCanonicalLivingFrameProviderNeutralPayload({
+        ...forgedPayloadDraft,
+        payloadDigestSha256:
+          sha256AuthorityValue(forgedPayloadDraft),
+      }),
+      /provider_neutral_payload_invalid/,
+      'A correctly re-digested speech payload cannot drop its fulfilled speech-evidence blocker.',
+    )
+    const {
+      contractDigestSha256: _admissionDigestSha256,
+      ...admissionDraft
+    } = admission
+    void _admissionDigestSha256
+    const forgedAdmissionDraft = {
+      ...admissionDraft,
+      routeDataAssurance: {
+        ...admission.routeDataAssurance,
+        requestDigestSha256:
+          digest('forged-route-payload-binding'),
+      },
+    }
+    assert.throws(
+      () => verifyCanonicalLivingFrameSemanticReasoningAdmission({
+        ...forgedAdmissionDraft,
+        contractDigestSha256:
+          sha256AuthorityValue(forgedAdmissionDraft),
+      }),
+      /semantic_reasoning_admission_invalid/,
+      'A correctly re-digested admission cannot detach route assurance from the actual payload.',
+    )
+    for (const injectedField of [
+      'rawTranscript',
+      'providerId',
+      'providerEnvelope',
+      'providerCredential',
+      'reasoningRunId',
+      'selectedScene',
+      'approved',
+      'workItem',
+      'toolId',
+      'queueId',
+      'customerCredits',
+      'runtime',
+    ]) {
+      assert.equal(
+        canonicalLivingFrameSemanticAdmissionRequestSchema.safeParse({
+          ...admissionRequest,
+          [injectedField]: true,
+        }).success,
+        false,
+        `Semantic admission caller input must reject ${injectedField}.`,
+      )
+    }
+
+    await assert.rejects(
+      bindCanonicalLivingFrameSemanticReasoningAdmission({
+        context,
+        request: admissionRequest,
+        inputReader,
+        planningEvidenceReader: visualReader,
+        sourceSpeechRepositoryScope: {
+          ...sourceSpeechRepositoryScope,
+          ownerUserId: 'user-foreign-lf-semantic-admission',
+        },
+        routeDataAssuranceRepositoryScope,
+        sourceSpeechRepository,
+        routeDataAssuranceRepository,
+      }),
+      /stale or inconsistent/,
+    )
+    await assert.rejects(
+      bindCanonicalLivingFrameSemanticReasoningAdmission({
+        context,
+        request: {
+          ...admissionRequest,
+          semanticRequest: {
+            ...semanticRequest,
+            contractDigestSha256:
+              digest('tampered-lf-semantic-request'),
+          },
+        },
+        inputReader,
+        planningEvidenceReader: visualReader,
+        sourceSpeechRepositoryScope,
+        routeDataAssuranceRepositoryScope,
+        sourceSpeechRepository,
+        routeDataAssuranceRepository,
+      }),
+      /stale or inconsistent/,
+    )
+
+    const missingSegmentRequest =
+      await createSemanticReasoningRequest({
+        authority,
+        speechSegmentId: 'speech-segment-not-in-current-package',
+      })
+    await assert.rejects(
+      bindCanonicalLivingFrameSemanticReasoningAdmission({
+        context,
+        request: {
+          ...admissionRequest,
+          semanticRequest: missingSegmentRequest,
+        },
+        inputReader,
+        planningEvidenceReader: visualReader,
+        sourceSpeechRepositoryScope,
+        routeDataAssuranceRepositoryScope,
+        sourceSpeechRepository,
+        routeDataAssuranceRepository,
+      }),
+      /stale or inconsistent/,
+    )
+
+    const wrongRouteDataAssurance = createRouteDataAssurance({
+      requestDigestSha256:
+        digest('wrong-provider-neutral-payload'),
+      trainingUseState: 'prohibited_by_contract',
+    })
+    const wrongRoutePersistence =
+      await routeDataAssuranceRepository.save({
+        scope: routeDataAssuranceRepositoryScope,
+        package: wrongRouteDataAssurance,
+      })
+    await assert.rejects(
+      bindCanonicalLivingFrameSemanticReasoningAdmission({
+        context,
+        request: {
+          ...admissionRequest,
+          routeDataAssuranceLocator: wrongRoutePersistence.locator,
+        },
+        inputReader,
+        planningEvidenceReader: visualReader,
+        sourceSpeechRepositoryScope,
+        routeDataAssuranceRepositoryScope,
+        sourceSpeechRepository,
+        routeDataAssuranceRepository,
+      }),
+      /stale or inconsistent/,
+    )
+
+    const blockedRepository =
+      new PrivateCanonicalPreapprovalRouteDataAssuranceRepository()
+    const blockedRouteDataAssuranceRepositoryScope = {
+      ...routeDataAssuranceRepositoryScope,
+      localStorageRoot: blockedRouteRoot,
+    }
+    const blockedRouteDataAssurance = createRouteDataAssurance({
+      requestDigestSha256:
+        providerNeutralPayload.payloadDigestSha256,
+      trainingUseState: 'permitted',
+    })
+    const blockedRoutePersistence = await blockedRepository.save({
+      scope: blockedRouteDataAssuranceRepositoryScope,
+      package: blockedRouteDataAssurance,
+    })
+    await assert.rejects(
+      bindCanonicalLivingFrameSemanticReasoningAdmission({
+        context,
+        request: {
+          ...admissionRequest,
+          routeDataAssuranceLocator: blockedRoutePersistence.locator,
+        },
+        inputReader,
+        planningEvidenceReader: visualReader,
+        sourceSpeechRepositoryScope,
+        routeDataAssuranceRepositoryScope:
+          blockedRouteDataAssuranceRepositoryScope,
+        sourceSpeechRepository,
+        routeDataAssuranceRepository: blockedRepository,
+      }),
+      /not ready/,
+    )
+
+    let raceReadCount = 0
+    await assert.rejects(
+      bindCanonicalLivingFrameSemanticReasoningAdmission({
+        context,
+        request: admissionRequest,
+        inputReader: createInputReader(() => {
+          raceReadCount += 1
+          if (raceReadCount <= 3) return readerResult
+          return {
+            ...readerResult,
+            internalCostExpectation: {
+              ...readerResult.internalCostExpectation,
+              budgetExpectationId:
+                'living-frame-semantic-admission-raced-budget',
+            },
+          }
+        }),
+        planningEvidenceReader: visualReader,
+        sourceSpeechRepositoryScope,
+        routeDataAssuranceRepositoryScope,
+        sourceSpeechRepository,
+        routeDataAssuranceRepository,
+      }),
+      /changed during the current-state reread/,
+    )
+
+    return {
+      currentSourceSpeechEvidenceBound: true,
+      actualProviderNeutralPayloadDigestBound: true,
+      currentRouteDataAssuranceBound: true,
+      providerEnvelopeStillRequired: true,
+      crossOwnerEvidenceRejected: true,
+      missingSpeechSegmentRejected: true,
+      blockedRouteAssuranceRejected: true,
+    }
+  } finally {
+    await Promise.all([
+      rm(root, { recursive: true, force: true }),
+      rm(blockedRouteRoot, { recursive: true, force: true }),
+    ])
+  }
+}
+
+async function createSemanticReasoningRequest(input: {
+  readonly authority: LivingFramePreapprovalInputAuthority
+  readonly speechSegmentId: string
+}) {
+  const draft =
+    createLivingFrameSemanticReasoningRequestFixtureDrafts().musashi
+  return createLivingFrameSemanticReasoningRequest({
+    ...draft,
+    workflowContext: input.authority.workflowContext,
+    canonicalBindings: {
+      ...draft.canonicalBindings,
+      workspaceId: input.authority.identity.workspaceId,
+      projectId: input.authority.identity.projectId,
+      editSessionId: input.authority.identity.editSessionId,
+      handoffId: input.authority.identity.handoffId,
+      preapprovalInputAuthorityDigestSha256:
+        input.authority.authorityDigestSha256,
+      visualEvidenceBindingDigestSha256:
+        input.authority.lineage.planningEvidenceBindingDigestSha256,
+    },
+    semanticPayload: {
+      ...draft.semanticPayload,
+      evidence: {
+        ...draft.semanticPayload.evidence,
+        visualEvidenceBindingDigestSha256:
+          input.authority.lineage.planningEvidenceBindingDigestSha256,
+        evidenceReferences:
+          draft.semanticPayload.evidence.evidenceReferences.map(
+            (reference) => ({
+              ...reference,
+              sourceSequenceItemId: SOURCE_SEQUENCE_ITEM_ID,
+            }),
+          ),
+      },
+      segmentContexts: draft.semanticPayload.segmentContexts.map(
+        (segmentContext) => ({
+          ...segmentContext,
+          sourceSequenceItemId: SOURCE_SEQUENCE_ITEM_ID,
+          sourceSegmentRefId: input.speechSegmentId,
+        }),
+      ),
+    },
+  })
+}
+
+function createRouteDataAssurance(input: {
+  readonly requestDigestSha256: string
+  readonly trainingUseState: 'prohibited_by_contract' | 'permitted'
+}) {
+  const evaluatedAt = new Date().toISOString()
+  const verifiedAt = new Date(
+    Date.parse(evaluatedAt) - 24 * 60 * 60 * 1_000,
+  ).toISOString()
+  const expiresAt = new Date(
+    Date.parse(evaluatedAt) + 30 * 24 * 60 * 60 * 1_000,
+  ).toISOString()
+  const regionId = 'verified-controlled-processing-region'
+  const verifiedEvidence = (label: string) =>
+    createCanonicalPreapprovalPolicyEvidence({
+      state: 'verified_current',
+      evidenceReferenceId: `${label}-evidence`,
+      evidenceDigestSha256: digest(`${label}-evidence`),
+      verifiedAt,
+      expiresAt,
+    })
+  const projectPolicy =
+    createCanonicalPreapprovalProjectModelDataPolicy({
+      policyId: 'lf-semantic-admission-project-policy',
+      policyVersion: 'lf-semantic-admission-policy-v1',
+      organizationPolicyId:
+        'lf-semantic-admission-organization-policy',
+      workspaceId: WORKSPACE_ID,
+      projectId: PROJECT_ID,
+      editSessionId: EDIT_SESSION_ID,
+      sensitivity: 'internal',
+      permittedProviderIds: [
+        'moonshot_ai',
+        'alibaba_cloud_model_studio',
+        'deepseek',
+      ],
+      allowedProcessingRegions: [regionId],
+      retentionRequirement: 'contractual_no_training',
+      trainingUseRestriction: 'prohibited',
+      confidentialSourceRule: 'allow_verified_provider',
+      humanLikenessRule: 'verified_consent_required',
+      minorLikenessRule: 'verified_guardian_consent_required',
+      organizationPolicyEvidence:
+        verifiedEvidence('lf-semantic-admission-organization-policy'),
+      projectPolicyEvidence:
+        verifiedEvidence('lf-semantic-admission-project-policy'),
+      decidedAt: verifiedAt,
+    })
+  const requestClassification =
+    createCanonicalPreapprovalModelDataRequestClassification({
+      classificationId:
+        'lf-semantic-admission-request-classification',
+      workspaceId: WORKSPACE_ID,
+      projectId: PROJECT_ID,
+      editSessionId: EDIT_SESSION_ID,
+      requestDigestSha256: input.requestDigestSha256,
+      requestedUse: 'edit_planning',
+      confidentialSourceState: 'not_present',
+      humanLikenessState: 'not_present',
+      minorLikenessState: 'not_present',
+      rightsSafetyState: 'approved',
+      factSafetyState: 'not_applicable',
+      classificationEvidenceDigestSha256:
+        digest(
+          `lf-semantic-admission-classification-${input.requestDigestSha256}`,
+        ),
+      classifiedAt: verifiedAt,
+    })
+  const routeAssurances = ([
+    'kimi_k3_primary',
+    'qwen_3_7_fallback',
+    'deepseek_v4_pro_fallback',
+  ] as const).map((routeId) =>
+    createCanonicalPreapprovalModelRouteDataAssurance({
+      assuranceId: `${routeId}-lf-semantic-admission-assurance`,
+      routeId,
+      selectedProcessingRegion: regionId,
+      maximumSensitivity: 'restricted',
+      retentionCommitment:
+        'contractual_no_training_verified',
+      trainingUseState: input.trainingUseState,
+      confidentialSourceHandling: 'contractually_permitted',
+      humanLikenessHandling: 'consent_bound_permitted',
+      minorLikenessHandling:
+        'guardian_consent_bound_permitted',
+      assuranceEvidence:
+        verifiedEvidence(`${routeId}-lf-semantic-admission`),
+    }),
+  )
+  return createCanonicalPreapprovalRouteDataAssuranceBinding({
+    evidenceSnapshotId:
+      `lf-semantic-admission-route-snapshot-${
+        input.trainingUseState
+      }`,
+    evidenceRevision: 1,
+    evaluatedAt,
+    projectPolicy,
+    requestClassification,
+    routeAssurances,
+  })
+}
 
 function createInputReader(
   resultFactory: () => unknown,

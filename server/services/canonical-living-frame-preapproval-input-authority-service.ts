@@ -390,6 +390,52 @@ export async function bindCanonicalLivingFramePreapprovalInputAuthority(
   return authority
 }
 
+export async function readCurrentCanonicalLivingFramePreapprovalInputState(
+  input: {
+    readonly reader:
+      | CanonicalLivingFramePreapprovalInputReaderPort
+      | null
+      | undefined
+    readonly expectedScope: {
+      readonly workspaceId: string
+      readonly projectId: string
+      readonly editSessionId: string
+    }
+    readonly expectedHandoffId: string
+  },
+): Promise<CanonicalLivingFramePreapprovalInputReaderResult> {
+  assertInputReader(input.reader)
+  const request = Object.freeze({
+    expectedScope: Object.freeze({ ...input.expectedScope }),
+    expectedHandoffId: input.expectedHandoffId,
+  })
+  const firstRead = parseInputReaderResult(
+    await input.reader.readCurrentHandoffAndComponents(request),
+  )
+  verifyReaderResult({
+    result: firstRead,
+    expectedScope: input.expectedScope,
+    expectedHandoffId: input.expectedHandoffId,
+  })
+  const secondRead = parseInputReaderResult(
+    await input.reader.readCurrentHandoffAndComponents(request),
+  )
+  verifyReaderResult({
+    result: secondRead,
+    expectedScope: input.expectedScope,
+    expectedHandoffId: input.expectedHandoffId,
+  })
+  if (
+    sha256AuthorityValue(firstRead) !== sha256AuthorityValue(secondRead)
+  ) {
+    throw conflict(
+      'Canonical Living Frame preapproval inputs changed during the current-state reread.',
+      'canonical_living_frame_preapproval_input_race',
+    )
+  }
+  return structuredClone(firstRead)
+}
+
 function verifyReaderResult(input: {
   result: CanonicalLivingFramePreapprovalInputReaderResult
   expectedScope: {

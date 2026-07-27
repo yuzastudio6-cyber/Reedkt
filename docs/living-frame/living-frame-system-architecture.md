@@ -116,18 +116,24 @@ contracts through the normal one-writer review boundary.
   defines the private, exact-source, GPU-only evidence and backend-local
   content-addressed repository boundary. The persistence service accepts only
   a server-owned capture locator through a process-bound private reader and
-  rejects caller-supplied evidence. Living Frame still cannot consume or
-  promote it until the canonical pre-approval input owner injects and rereads
-  the package with the current handoff.
+  rejects caller-supplied evidence. The canonical Living Frame semantic
+  admission service now injects and rereads this package with the current
+  handoff, selects only bounded redacted untrusted segments referenced by the
+  semantic request, and grants the transcript no instruction authority.
 - The workflow-neutral
   `canonical-preapproval-route-data-assurance-v1` contract now binds current
   organization/project evidence, processing region, retention, training use,
   sensitivity, confidential-source, likeness, minor, rights, and fact-safety
   policy to the exact Kimi-to-Qwen-to-DeepSeek route. It is private,
-  request-bound, content-addressed, and non-promotable. Living Frame still
-  declares the requirement because its pre-approval input does not yet
-  consume this record, and no provider envelope, transport, or model call is
-  authorized.
+  request-bound, content-addressed, and non-promotable. The canonical Living
+  Frame semantic admission service now consumes this record only after it
+  builds and hashes the actual provider-neutral payload. No provider envelope,
+  transport, or model call is authorized.
+- `canonical-living-frame-semantic-reasoning-admission-v1` is the server-owned
+  join across current pre-approval input, bounded Slice 3D-A request, current
+  speech evidence, and current route assurance. Its
+  `ready_for_provider_envelope` status is a precondition for a later envelope,
+  not permission to call a provider or select a scene.
 - The Living Frame semantic request has its own bounded payload digest. That
   digest is distinct from the pre-approval input-authority digest, visual
   evidence digest, strict output-schema digest, and whole request-contract
@@ -180,9 +186,6 @@ assumption:
 - What released server reader will reload the current unpublished handoff,
   exact component payload, and controlled internal-cost ceiling expectation
   for the pre-approval input authority?
-- What workflow-neutral source-speech evidence package, verifier, reader, and
-  repository will provide current narration meaning without creating a
-  Living Frame-specific transcription lane?
 - What released server policy-evidence adapter will populate current,
   independently verified organization, project, provider-region, retention,
   training-use, likeness, minor, rights, and fact-safety evidence for
@@ -906,6 +909,34 @@ illustrative interpretation, Hormuz still proves no live geography or data,
 and forged all-green packets retain every provider, timing, estimate,
 approval, work, render, and production authority as literal false.
 
+### Canonical server admission after Slice 3D-A
+
+`canonical-living-frame-semantic-reasoning-admission-v1` resolves the two
+shared prerequisite markers without mutating the source-only Slice 3D-A
+contract.
+
+- The service rebuilds the current pre-approval input authority, rereads the
+  current unpublished handoff, and validates the exact Slice 3D-A request.
+- It rereads the workflow-neutral source-speech package and projects only the
+  bounded, redacted, untrusted speech segments explicitly referenced by
+  semantic contexts. Raw transcript and source-instruction authority remain
+  false.
+- It constructs and hashes the actual provider-neutral payload. This digest is
+  separate from the pre-approval authority, original semantic payload, whole
+  Slice 3D-A request, visual evidence, and strict output-schema digests.
+- It then rereads route-data assurance bound to that exact complete payload
+  digest. Metadata-only request digests cannot substitute for the payload.
+- Owner/workspace scope, stale locators, missing speech segments, blocked or
+  expired policy, and handoff races fail closed.
+- The output status is `ready_for_provider_envelope`, but the provider
+  envelope remains absent and transport, run, result, selected-scene, timing,
+  estimate, approval, work, render, runtime, and production authority remain
+  false.
+
+The source-only request remains useful as an immutable planning input. The
+server admission is the only current boundary that may claim its shared
+speech and route-assurance prerequisites have been satisfied.
+
 ### Slice 3D-B: controlled semantic scene-proposal binding
 
 Slice 3D-B validates content-only output against the existing Slice 3D-A
@@ -989,16 +1020,17 @@ may select any projected scene.
 
 ### Shared prerequisite gates before selected scenes
 
-The canonical backend owns three workflow-neutral prerequisites. Living Frame
-will consume only namespaced projections after they are released:
+The canonical backend owns three workflow-neutral prerequisites:
 
 1. generic source-speech evidence and its current server reader;
 2. route data assurance for the canonical reasoning route; and
 3. durable preplan run/result lifecycle plus deferred-handoff supersession.
 
-Living Frame must not implement a private transcriber, provider repository,
-selected-handoff publisher, idempotency store, checkback loop, or attempt-cost
-ledger to bypass these prerequisites.
+Living Frame now consumes namespaced projections of the first two through
+`canonical-living-frame-semantic-reasoning-admission-v1`. It must not
+implement a private transcriber, provider repository, selected-handoff
+publisher, idempotency store, checkback loop, or attempt-cost ledger to bypass
+the remaining lifecycle authority.
 
 The first prerequisite now has a backend-local, content-addressed contract and
 reader in `server/source-speech-evidence/` and
@@ -1011,11 +1043,10 @@ Immutable evidence snapshots and monotonic revisions prevent latest-pointer
 rollback. A process-bound reader and double-read race check prevent
 caller-shaped records from minting the package. It deliberately does not run
 transcription, expose
-transcript text to the browser, or satisfy Living Frame's namespaced
-reasoning-input blocker by itself. Shared route assurance and a released
-durable preplan lifecycle remain open, and the current Living Frame
-pre-approval service must be extended to consume this reader before selected
-scenes can be admitted.
+transcript text to the browser or satisfy Living Frame's namespaced
+reasoning-input blocker by itself. The canonical semantic admission service
+now consumes it together with current route assurance. A provider envelope
+and released durable preplan lifecycle remain open.
 
 The second prerequisite now has a workflow-neutral contract and private local
 repository in `server/model-data-assurance/` plus a process-bound persistence
@@ -1030,9 +1061,9 @@ monotonic revisions, checksummed latest pointers, owner/workspace scope, and
 double-read race checks prevent caller-shaped or rolled-back records from
 minting authority. The record remains text-projection-only and grants no
 provider-envelope, transport, credential, run, result, scene, estimate,
-approval, work, render, runtime, or production authority. Living Frame still
-must consume a current namespaced projection through its canonical
-pre-approval input owner.
+approval, work, render, runtime, or production authority. The canonical
+semantic admission service consumes its current namespaced projection only
+after the complete provider-neutral payload digest exists.
 
 ### Slice 3C-B: selected scene planning, estimate, and approval
 
@@ -1278,10 +1309,8 @@ provider ran, or that any candidate was selected.
 
 The following remain closed:
 
-- Living Frame consumption of the current generic source-speech evidence;
-- Living Frame consumption of current shared route data assurance and a
-  separately bound provider envelope;
-- provider transport, credentials, attempts, retries, and durable results;
+- a separately bound provider envelope and provider transport;
+- provider credentials, attempts, retries, and durable results;
 - deferred-handoff supersession and durable preplan lifecycle;
 - canonical selected/rejected/non-use scene projection;
 - exact `MasterTimingPlan` tracks and SoundSync cues;

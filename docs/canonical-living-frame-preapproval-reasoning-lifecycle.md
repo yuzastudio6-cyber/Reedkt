@@ -105,6 +105,18 @@ live provider API contract and immutable provider model revision unqualified,
 so it creates neither an API request body nor transport authority. See
 `docs/canonical-living-frame-preapproval-kimi-request-material.md`.
 
+The current official Kimi K3 Markdown and OpenAPI source shape has now been
+captured separately as controlled evidence. It confirms that the internal
+material can map to non-streaming Chat Completions with top-level
+`reasoning_effort = "max"` and strict JSON Schema output. It also confirms that
+the documented synchronous API exposes no idempotency field or completion
+lookup, and the model list exposes no immutable model revision. Exact-schema
+MFJS validation, a live target-model probe, an approved completion-token
+ceiling, current account availability, distributed one-use state, credential
+capability, and unknown-outcome operator reconciliation therefore remain
+blocking. See
+`docs/canonical-living-frame-preapproval-kimi-api-contract-observation.md`.
+
 ## Closed authorities
 
 The prepared record contains no attempt receipt, actual attempt cost,

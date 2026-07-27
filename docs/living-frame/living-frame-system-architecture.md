@@ -1780,3 +1780,29 @@ identity, reread all current source and assurance authority, then consume this
 material only inside a durable distributed one-use/unknown-outcome lifecycle.
 See
 `docs/canonical-living-frame-preapproval-kimi-request-material.md`.
+
+## Canonical Kimi API source observation
+
+The current official Kimi K3 Markdown and OpenAPI sources are now represented
+by a separate controlled, content-addressed source observation. The observed
+wire shape is compatible with the existing private request material:
+non-streaming `POST /v1/chat/completions`, `model = kimi-k3`, top-level
+`reasoning_effort = max`, stable string messages, strict JSON Schema response
+format, omitted tools, and omitted fixed sampling fields. Only final
+`choices[0].message.content` may later enter semantic-result parsing;
+`reasoning_content` is never the result.
+
+This source match is not runtime qualification. The provider model list does
+not expose an immutable revision or aggregate identity. The synchronous Chat
+Completions operation documents neither provider idempotency nor a completion
+retrieval endpoint. The exact Living Frame schema has not yet passed MFJS plus
+target-model validation, and the adapter has not bound a canonical
+`max_completion_tokens` ceiling instead of K3's large default.
+
+Current-source reread, account/model access, immutable model identity,
+schema/live-probe evidence, bounded output tokens, distributed one-use state,
+credential capability, and unknown-outcome operator reconciliation all remain
+required. The compatibility assessment creates no provider body, request,
+credential, call, cost, result, commercial, selected-scene, work, render,
+runtime, or production authority. See
+`docs/canonical-living-frame-preapproval-kimi-api-contract-observation.md`.

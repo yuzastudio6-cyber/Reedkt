@@ -53,6 +53,13 @@ import {
   verifyCanonicalLivingFramePreapprovalKimiRequestMaterial,
 } from '../living-frame/canonical-living-frame-preapproval-kimi-request-material'
 import {
+  CANONICAL_LIVING_FRAME_PREAPPROVAL_KIMI_API_OBSERVATION_BOUNDARY,
+  assessCanonicalLivingFramePreapprovalKimiApiCompatibility,
+  createCanonicalLivingFramePreapprovalKimiApiContractObservation,
+  verifyCanonicalLivingFramePreapprovalKimiApiCompatibility,
+  verifyCanonicalLivingFramePreapprovalKimiApiContractObservation,
+} from '../living-frame/canonical-living-frame-preapproval-kimi-api-contract-observation'
+import {
   verifyCanonicalLivingFramePreapprovalReasoningRun,
 } from '../living-frame/canonical-living-frame-preapproval-reasoning-lifecycle'
 import {
@@ -635,6 +642,16 @@ console.log(JSON.stringify({
       .providerApiContractAndModelRevisionStillUnqualified,
   kimiRequestMaterialTamperingRejected:
     semanticAdmissionEvidence.kimiRequestMaterialTamperingRejected,
+  currentKimiApiShapeObserved:
+    semanticAdmissionEvidence.currentKimiApiShapeObserved,
+  immutableKimiModelRevisionStillUnavailable:
+    semanticAdmissionEvidence
+      .immutableKimiModelRevisionStillUnavailable,
+  providerIdempotencyAndLookupStillUnavailable:
+    semanticAdmissionEvidence
+      .providerIdempotencyAndLookupStillUnavailable,
+  kimiApiCompatibilityTamperingRejected:
+    semanticAdmissionEvidence.kimiApiCompatibilityTamperingRejected,
   providerTransportStillUnauthorized:
     semanticAdmissionEvidence.providerTransportStillUnauthorized,
   preparedRunTamperingRejected:
@@ -661,6 +678,10 @@ async function exerciseCanonicalSemanticReasoningAdmission(): Promise<{
   readonly providerSpecificRequestMaterialCompiled: true
   readonly providerApiContractAndModelRevisionStillUnqualified: true
   readonly kimiRequestMaterialTamperingRejected: true
+  readonly currentKimiApiShapeObserved: true
+  readonly immutableKimiModelRevisionStillUnavailable: true
+  readonly providerIdempotencyAndLookupStillUnavailable: true
+  readonly kimiApiCompatibilityTamperingRejected: true
   readonly providerTransportStillUnauthorized: true
   readonly preparedRunTamperingRejected: true
 }> {
@@ -1592,6 +1613,244 @@ async function exerciseCanonicalSemanticReasoningAdmission(): Promise<{
       'Request material cannot fabricate API qualification, a model revision, credentials, submission, provider-call, or production authority.',
     )
 
+    const kimiApiObservation =
+      createCanonicalLivingFramePreapprovalKimiApiContractObservation()
+    assert.equal(
+      kimiApiObservation.state,
+      'source_observed_transport_blocked',
+    )
+    assert.equal(kimiApiObservation.officialDocuments.length, 10)
+    assert.equal(
+      kimiApiObservation.providerIdentity.exactProviderModelId,
+      'kimi-k3',
+    )
+    assert.equal(
+      kimiApiObservation.providerIdentity
+        .immutableProviderModelRevision,
+      null,
+    )
+    assert.equal(
+      kimiApiObservation.providerIdentity
+        .providerModelAggregateSha256,
+      null,
+    )
+    assert.equal(
+      kimiApiObservation.requestContract.path,
+      '/v1/chat/completions',
+    )
+    assert.equal(
+      kimiApiObservation.requestContract.reasoningEffortValue,
+      'max',
+    )
+    assert.equal(
+      kimiApiObservation.requestContract.responseFormatType,
+      'json_schema',
+    )
+    assert.equal(
+      kimiApiObservation.requestContract.responseFormatStrict,
+      true,
+    )
+    assert.equal(
+      kimiApiObservation.requestContract
+        .providerDefaultMaximumCompletionTokens,
+      131_072,
+    )
+    assert.equal(
+      kimiApiObservation.requestContract
+        .canonicalMaximumCompletionTokens,
+      null,
+    )
+    assert.equal(
+      kimiApiObservation.deliverySemantics
+        .providerIdempotencyHeaderDocumented,
+      false,
+    )
+    assert.equal(
+      kimiApiObservation.deliverySemantics
+        .providerIdempotencyBodyFieldDocumented,
+      false,
+    )
+    assert.equal(
+      kimiApiObservation.deliverySemantics
+        .synchronousCompletionRetrievalDocumented,
+      false,
+    )
+    assert.equal(
+      kimiApiObservation.deliverySemantics
+        .automaticReconnectSafeForCanonicalOneUseAttempt,
+      false,
+    )
+    assert.deepEqual(
+      kimiApiObservation.authorityBoundary,
+      CANONICAL_LIVING_FRAME_PREAPPROVAL_KIMI_API_OBSERVATION_BOUNDARY,
+    )
+
+    const kimiApiCompatibility =
+      assessCanonicalLivingFramePreapprovalKimiApiCompatibility({
+        requestMaterial: kimiRequestMaterial,
+        preparedRun: prepared.run,
+        attemptReservation: reserved.reservation,
+        apiObservation: kimiApiObservation,
+      })
+    assert.equal(
+      kimiApiCompatibility.state,
+      'compatible_shape_transport_blocked',
+    )
+    assert.equal(
+      kimiApiCompatibility.requestMapping.endpoint,
+      'https://api.moonshot.ai/v1/chat/completions',
+    )
+    assert.equal(
+      kimiApiCompatibility.requestMapping.model,
+      'kimi-k3',
+    )
+    assert.equal(
+      kimiApiCompatibility.requestMapping.userMessageEncoding,
+      'stable_canonical_json_string',
+    )
+    assert.equal(
+      kimiApiCompatibility.requestMapping.maximumCompletionTokens,
+      null,
+    )
+    assert.equal(
+      kimiApiCompatibility.assessment
+        .sourceObservedApiShapeCompatible,
+      true,
+    )
+    assert.equal(
+      kimiApiCompatibility.assessment
+        .exactSchemaMfjsCompatibilityQualified,
+      false,
+    )
+    assert.equal(
+      kimiApiCompatibility.assessment
+        .providerRequestBodyCreated,
+      false,
+    )
+    assert.equal(
+      kimiApiCompatibility.assessment.providerTransportAuthorized,
+      false,
+    )
+    assert.equal(kimiApiCompatibility.assessment.executable, false)
+    assert.equal(
+      kimiApiCompatibility.canonicalBindings
+        .requestMaterialRecordDigestSha256,
+      kimiRequestMaterial.recordDigestSha256,
+    )
+    assert.equal(
+      kimiApiCompatibility.canonicalBindings
+        .officialApiObservationRecordDigestSha256,
+      kimiApiObservation.recordDigestSha256,
+    )
+
+    const {
+      recordDigestSha256: _apiObservationDigest,
+      ...apiObservationDraft
+    } = kimiApiObservation
+    void _apiObservationDigest
+    assert.throws(
+      () =>
+        verifyCanonicalLivingFramePreapprovalKimiApiContractObservation({
+          ...apiObservationDraft,
+          officialDocuments:
+            apiObservationDraft.officialDocuments.map(
+              (document, index) =>
+                index === 0
+                  ? {
+                      ...document,
+                      documentSha256:
+                        digest('stale-kimi-api-source-document'),
+                    }
+                  : document,
+            ),
+          recordDigestSha256: sha256AuthorityValue({
+            ...apiObservationDraft,
+            officialDocuments:
+              apiObservationDraft.officialDocuments.map(
+                (document, index) =>
+                  index === 0
+                    ? {
+                        ...document,
+                        documentSha256:
+                          digest('stale-kimi-api-source-document'),
+                      }
+                    : document,
+              ),
+          }),
+        }),
+      /kimi_api_observation_invalid/,
+      'A correctly re-digested Kimi API observation cannot replace an observed official document.',
+    )
+
+    const {
+      recordDigestSha256: _apiCompatibilityDigest,
+      ...apiCompatibilityDraft
+    } = kimiApiCompatibility
+    void _apiCompatibilityDigest
+    const detachedApiCompatibilityDraft = {
+      ...apiCompatibilityDraft,
+      canonicalBindings: {
+        ...apiCompatibilityDraft.canonicalBindings,
+        openApiDocumentSha256:
+          digest('detached-kimi-openapi-document'),
+      },
+    }
+    assert.throws(
+      () =>
+        verifyCanonicalLivingFramePreapprovalKimiApiCompatibility({
+          compatibility: {
+            ...detachedApiCompatibilityDraft,
+            recordDigestSha256:
+              sha256AuthorityValue(detachedApiCompatibilityDraft),
+          },
+          requestMaterial: kimiRequestMaterial,
+          preparedRun: prepared.run,
+          attemptReservation: reserved.reservation,
+          apiObservation: kimiApiObservation,
+        }),
+      /kimi_api_compatibility_invalid/,
+      'A correctly re-digested compatibility record cannot detach from its observed OpenAPI document.',
+    )
+    const forgedApiCompatibilityDraft = {
+      ...apiCompatibilityDraft,
+      requestMapping: {
+        ...apiCompatibilityDraft.requestMapping,
+        maximumCompletionTokens: 1_048_576,
+      },
+      assessment: {
+        ...apiCompatibilityDraft.assessment,
+        exactSchemaMfjsCompatibilityQualified: true,
+        liveTargetSchemaProbeCompleted: true,
+        canonicalCompletionTokenCeilingQualified: true,
+        currentProviderApiContractQualified: true,
+        immutableProviderModelRevisionQualified: true,
+        providerRequestBodyCreated: true,
+        providerTransportAuthorized: true,
+        executable: true,
+      },
+      promotionAllowed: true,
+      productionReady: true,
+      authorityBoundary: Object.fromEntries(
+        Object.keys(apiCompatibilityDraft.authorityBoundary)
+          .map((key) => [key, true]),
+      ),
+    }
+    assert.throws(
+      () =>
+        verifyCanonicalLivingFramePreapprovalKimiApiCompatibility({
+          compatibility: {
+            ...forgedApiCompatibilityDraft,
+            recordDigestSha256:
+              sha256AuthorityValue(forgedApiCompatibilityDraft),
+          },
+          requestMaterial: kimiRequestMaterial,
+          preparedRun: prepared.run,
+          attemptReservation: reserved.reservation,
+          apiObservation: kimiApiObservation,
+        }),
+      'A controlled API-shape observation cannot fabricate model revision, schema, request, transport, or production authority.',
+    )
+
     const reservationReplay =
       await reserveCanonicalLivingFramePreapprovalReasoningAttempt({
         context,
@@ -1978,6 +2237,10 @@ async function exerciseCanonicalSemanticReasoningAdmission(): Promise<{
       providerSpecificRequestMaterialCompiled: true,
       providerApiContractAndModelRevisionStillUnqualified: true,
       kimiRequestMaterialTamperingRejected: true,
+      currentKimiApiShapeObserved: true,
+      immutableKimiModelRevisionStillUnavailable: true,
+      providerIdempotencyAndLookupStillUnavailable: true,
+      kimiApiCompatibilityTamperingRejected: true,
       providerTransportStillUnauthorized: true,
       preparedRunTamperingRejected: true,
     }

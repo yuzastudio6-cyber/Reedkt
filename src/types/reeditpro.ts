@@ -3065,6 +3065,7 @@ export type TransitionTimingType =
   | 'visual_motivated_cut'
   | 'audio_motivated_cut'
   | 'smooth_crossfade'
+  | 'smooth_panel_dip'
   | 'whip_or_push'
   | 'graphic_wipe'
   | 'card_wipe'

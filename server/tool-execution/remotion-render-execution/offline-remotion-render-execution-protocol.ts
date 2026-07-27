@@ -224,11 +224,31 @@ export interface OfflineRemotionHardCutTransitionPlanningPayload {
   boundaryFrame: number
 }
 
-export interface OfflineRemotionSourceSequenceFinalCompositionPlanningPayload extends CommonCompositionPayload, OfflineRemotionFourKDeliveryMasterAuthority {
+export interface OfflineRemotionBoundedSourceTransitionPlanningPayload extends
+  OfflineRemotionHardCutTransitionPlanningPayload {
+  transitionType: 'hard_cut' | 'smooth_panel_dip'
+  startFrame: number
+  endFrameExclusive: number
+  durationFrames: number
+  visualCurve: 'none' | 'linear_dip_to_panel'
+  audioPolicy: 'hard_cut_at_boundary'
+}
+
+export type OfflineRemotionSourceSequenceTransitionPlanningAuthority =
+  | {
+      transitionPolicy: 'approved_hard_cuts_only'
+      hardCutTransitions: OfflineRemotionHardCutTransitionPlanningPayload[]
+    }
+  | {
+      transitionPolicy: 'approved_bounded_source_transitions_v1'
+      sourceTransitions: OfflineRemotionBoundedSourceTransitionPlanningPayload[]
+    }
+
+interface OfflineRemotionSourceSequenceFinalCompositionPlanningPayloadBase extends
+  CommonCompositionPayload,
+  OfflineRemotionFourKDeliveryMasterAuthority {
   compositionProfileId: 'approved_source_sequence_caption_final_v1'
   sourceSegments: OfflineRemotionSourceSequenceSegmentPlanningPayload[]
-  transitionPolicy: 'approved_hard_cuts_only'
-  hardCutTransitions: OfflineRemotionHardCutTransitionPlanningPayload[]
   sourceFit: 'contain'
   panelBackground: string
   audioPolicy: 'preserve_source_sequence' | 'replace_with_approved_voice_tracks'
@@ -237,11 +257,15 @@ export interface OfflineRemotionSourceSequenceFinalCompositionPlanningPayload ex
   captionOverlayPolicy: 'approved_full_frame_rgba'
 }
 
-export interface OfflineRemotionSourceSequenceCaptionTrackFinalCompositionPlanningPayload extends CommonCompositionPayload, OfflineRemotionFourKDeliveryMasterAuthority {
+export type OfflineRemotionSourceSequenceFinalCompositionPlanningPayload =
+  OfflineRemotionSourceSequenceFinalCompositionPlanningPayloadBase &
+  OfflineRemotionSourceSequenceTransitionPlanningAuthority
+
+interface OfflineRemotionSourceSequenceCaptionTrackFinalCompositionPlanningPayloadBase extends
+  CommonCompositionPayload,
+  OfflineRemotionFourKDeliveryMasterAuthority {
   compositionProfileId: 'approved_source_sequence_caption_track_final_v1'
   sourceSegments: OfflineRemotionSourceSequenceSegmentPlanningPayload[]
-  transitionPolicy: 'approved_hard_cuts_only'
-  hardCutTransitions: OfflineRemotionHardCutTransitionPlanningPayload[]
   sourceFit: 'contain'
   panelBackground: string
   audioPolicy: 'preserve_source_sequence' | 'replace_with_approved_voice_tracks'
@@ -250,6 +274,10 @@ export interface OfflineRemotionSourceSequenceCaptionTrackFinalCompositionPlanni
   captionOverlayPolicy: 'approved_timed_full_frame_rgba_track'
   captionOverlayCues: OfflineRemotionCaptionOverlayCuePlanningPayload[]
 }
+
+export type OfflineRemotionSourceSequenceCaptionTrackFinalCompositionPlanningPayload =
+  OfflineRemotionSourceSequenceCaptionTrackFinalCompositionPlanningPayloadBase &
+  OfflineRemotionSourceSequenceTransitionPlanningAuthority
 
 export type OfflineRemotionFinalCompositionPlanningPayload =
   | OfflineRemotionSingleSourceFinalCompositionPlanningPayload
@@ -280,10 +308,10 @@ export interface OfflineRemotionSourceSequenceCommittedSource {
   sourceBytesBase64: string
 }
 
-export interface OfflineRemotionSourceSequenceFinalCompositionPayload extends Omit<
-  OfflineRemotionSourceSequenceFinalCompositionPlanningPayload,
-  'voiceTracks'
-> {
+type WithoutVoiceTracks<T> = T extends unknown ? Omit<T, 'voiceTracks'> : never
+
+export type OfflineRemotionSourceSequenceFinalCompositionPayload =
+WithoutVoiceTracks<OfflineRemotionSourceSequenceFinalCompositionPlanningPayload> & {
   sources: OfflineRemotionSourceSequenceCommittedSource[]
   captionOverlayMimeType: 'image/png'
   captionOverlayByteLength: number
@@ -322,10 +350,10 @@ export interface OfflineRemotionSingleSourceCaptionTrackFinalCompositionPayload 
   voiceTracks?: OfflineRemotionCommittedVoiceTrack[]
 }
 
-export interface OfflineRemotionSourceSequenceCaptionTrackFinalCompositionPayload extends Omit<
-  OfflineRemotionSourceSequenceCaptionTrackFinalCompositionPlanningPayload,
-  'voiceTracks'
-> {
+export type OfflineRemotionSourceSequenceCaptionTrackFinalCompositionPayload =
+WithoutVoiceTracks<
+  OfflineRemotionSourceSequenceCaptionTrackFinalCompositionPlanningPayload
+> & {
   sources: OfflineRemotionSourceSequenceCommittedSource[]
   captionOverlays: OfflineRemotionCommittedCaptionOverlay[]
   voiceTracks?: OfflineRemotionCommittedVoiceTrack[]
@@ -646,9 +674,12 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
     const replaceVoice = raw.audioPolicy === 'replace_with_approved_voice_tracks'
     const sourceMediaPolicyProvided = Object.hasOwn(raw, 'sourceMediaPolicy')
     const deliveryMasterAuthorityProvided = Object.hasOwn(raw, 'renderPurpose')
+    const boundedSourceTransitions =
+      raw.transitionPolicy === 'approved_bounded_source_transitions_v1'
     const payload = exactRecord(value, [
       'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
-      'sourceSegments', 'transitionPolicy', 'hardCutTransitions',
+      'sourceSegments', 'transitionPolicy',
+      boundedSourceTransitions ? 'sourceTransitions' : 'hardCutTransitions',
       'sourceFit', 'panelBackground', 'audioPolicy',
       ...(sourceMediaPolicyProvided ? ['sourceMediaPolicy'] : []),
       'captionOverlayPolicy', ...(captionTrack ? ['captionOverlayCues'] : []),
@@ -666,14 +697,29 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
       deliveryMasterAuthorityProvided,
     )
     const sourceSegments = sourceSequenceSegments(payload.sourceSegments, common.durationFrames)
-    const hardCutTransitions = approvedHardCutTransitions(
-      payload.hardCutTransitions,
-      sourceSegments,
-    )
+    const transitionAuthority = boundedSourceTransitions
+      ? {
+          transitionPolicy: 'approved_bounded_source_transitions_v1' as const,
+          sourceTransitions: approvedBoundedSourceTransitions(
+            payload.sourceTransitions,
+            sourceSegments,
+            common.fps,
+          ),
+        }
+      : {
+          transitionPolicy: 'approved_hard_cuts_only' as const,
+          hardCutTransitions: approvedHardCutTransitions(
+            payload.hardCutTransitions,
+            sourceSegments,
+          ),
+        }
     const approvedColorIntermediate =
       payload.sourceMediaPolicy === 'approved_professional_color_intermediate_v1'
     if (
-      payload.transitionPolicy !== 'approved_hard_cuts_only' ||
+      ![
+        'approved_hard_cuts_only',
+        'approved_bounded_source_transitions_v1',
+      ].includes(String(payload.transitionPolicy)) ||
       payload.sourceFit !== 'contain' ||
       !['preserve_source_sequence', 'replace_with_approved_voice_tracks'].includes(
         String(payload.audioPolicy),
@@ -693,8 +739,7 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
     const commonResult = {
       ...common,
       sourceSegments,
-      transitionPolicy: 'approved_hard_cuts_only',
-      hardCutTransitions,
+      ...transitionAuthority,
       sourceFit: 'contain',
       panelBackground: color(payload.panelBackground, 'panelBackground'),
       audioPolicy: payload.audioPolicy as
@@ -1123,9 +1168,13 @@ export function validateOfflineRemotionRenderRequest(value: unknown): OfflineRem
       const replaceVoice = payloadRecord.audioPolicy === 'replace_with_approved_voice_tracks'
       const sourceMediaPolicyProvided = Object.hasOwn(payloadRecord, 'sourceMediaPolicy')
       const deliveryMasterAuthorityProvided = Object.hasOwn(payloadRecord, 'renderPurpose')
+      const boundedSourceTransitions =
+        payloadRecord.transitionPolicy ===
+          'approved_bounded_source_transitions_v1'
       const payload = exactRecord(payloadRecord, [
         'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
-        'sourceSegments', 'transitionPolicy', 'hardCutTransitions',
+        'sourceSegments', 'transitionPolicy',
+        boundedSourceTransitions ? 'sourceTransitions' : 'hardCutTransitions',
         'sourceFit', 'panelBackground', 'audioPolicy',
         ...(sourceMediaPolicyProvided ? ['sourceMediaPolicy'] : []),
         'captionOverlayPolicy', ...(captionTrack ? ['captionOverlayCues'] : []), 'sources',
@@ -1140,7 +1189,9 @@ export function validateOfflineRemotionRenderRequest(value: unknown): OfflineRem
         height: payload.height, fps: payload.fps, durationFrames: payload.durationFrames,
         sourceSegments: payload.sourceSegments,
         transitionPolicy: payload.transitionPolicy,
-        hardCutTransitions: payload.hardCutTransitions,
+        ...(boundedSourceTransitions
+          ? { sourceTransitions: payload.sourceTransitions }
+          : { hardCutTransitions: payload.hardCutTransitions }),
         sourceFit: payload.sourceFit,
         panelBackground: payload.panelBackground, audioPolicy: payload.audioPolicy,
         ...(sourceMediaPolicyProvided ? { sourceMediaPolicy: payload.sourceMediaPolicy } : {}),
@@ -1555,10 +1606,10 @@ function isCaptionTrackPlanningPayload(
 
 function withoutVoiceTrackPlanning<T extends OfflineRemotionFinalCompositionPlanningPayload>(
   value: T,
-): Omit<T, 'voiceTracks'> {
+): WithoutVoiceTracks<T> {
   const { voiceTracks, ...withoutVoiceTracks } = value
   void voiceTracks
-  return withoutVoiceTracks
+  return withoutVoiceTracks as WithoutVoiceTracks<T>
 }
 
 function captionOverlayCues(
@@ -2006,6 +2057,143 @@ function approvedHardCutTransitions(
     refinedIds.add(refinedTransitionTimingItemId)
     return normalized
   })
+}
+
+function approvedBoundedSourceTransitions(
+  value: unknown,
+  sourceSegments: OfflineRemotionSourceSequenceSegmentPlanningPayload[],
+  fps: number,
+): OfflineRemotionBoundedSourceTransitionPlanningPayload[] {
+  if (!Array.isArray(value) || value.length !== sourceSegments.length - 1) {
+    throw validationFailure(
+      'Source-sequence composition requires one approved bounded transition per source boundary.',
+    )
+  }
+  const timingIds = new Set<string>()
+  const refinedIds = new Set<string>()
+  let previousEndFrameExclusive = 0
+  const normalizedTransitions = value.map((candidate, index) => {
+    const transition = exactRecord(candidate, [
+      'transitionTimingItemId', 'refinedTransitionTimingItemId',
+      'fromSegmentId', 'toSegmentId',
+      'fromSourceSequenceItemId', 'toSourceSequenceItemId', 'boundaryFrame',
+      'transitionType', 'startFrame', 'endFrameExclusive', 'durationFrames',
+      'visualCurve', 'audioPolicy',
+    ], `bounded source transition ${index + 1}`)
+    const fromSource = sourceSegments[index]!
+    const toSource = sourceSegments[index + 1]!
+    const transitionTimingItemId = safeIdentity(
+      transition.transitionTimingItemId,
+      'transitionTimingItemId',
+    )
+    const refinedTransitionTimingItemId = safeIdentity(
+      transition.refinedTransitionTimingItemId,
+      'refinedTransitionTimingItemId',
+    )
+    const transitionType = oneOf(
+      transition.transitionType,
+      ['hard_cut', 'smooth_panel_dip'],
+      'transitionType',
+    )
+    const boundaryFrame = integer(
+      transition.boundaryFrame,
+      1,
+      CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES - 1,
+      'boundaryFrame',
+    )
+    const startFrame = integer(
+      transition.startFrame,
+      0,
+      CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES - 1,
+      'transition startFrame',
+    )
+    const endFrameExclusive = integer(
+      transition.endFrameExclusive,
+      0,
+      CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES,
+      'transition endFrameExclusive',
+    )
+    const durationFrames = integer(
+      transition.durationFrames,
+      0,
+      CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES,
+      'transition durationFrames',
+    )
+    const visualCurve = oneOf(
+      transition.visualCurve,
+      ['none', 'linear_dip_to_panel'],
+      'transition visualCurve',
+    )
+    const audioPolicy = oneOf(
+      transition.audioPolicy,
+      ['hard_cut_at_boundary'],
+      'transition audioPolicy',
+    )
+    const normalized: OfflineRemotionBoundedSourceTransitionPlanningPayload = {
+      transitionTimingItemId,
+      refinedTransitionTimingItemId,
+      fromSegmentId: safeIdentity(transition.fromSegmentId, 'fromSegmentId'),
+      toSegmentId: safeIdentity(transition.toSegmentId, 'toSegmentId'),
+      fromSourceSequenceItemId: safeIdentity(
+        transition.fromSourceSequenceItemId,
+        'fromSourceSequenceItemId',
+      ),
+      toSourceSequenceItemId: safeIdentity(
+        transition.toSourceSequenceItemId,
+        'toSourceSequenceItemId',
+      ),
+      boundaryFrame,
+      transitionType,
+      startFrame,
+      endFrameExclusive,
+      durationFrames,
+      visualCurve,
+      audioPolicy,
+    }
+    const expectedPanelDurationFrames = Math.round(fps * 0.4)
+    const expectedPanelStartFrame =
+      boundaryFrame - Math.floor(expectedPanelDurationFrames / 2)
+    const hardCutValid =
+      transitionType === 'hard_cut' &&
+      startFrame === boundaryFrame &&
+      endFrameExclusive === boundaryFrame &&
+      durationFrames === 0 &&
+      visualCurve === 'none'
+    const panelDipValid =
+      transitionType === 'smooth_panel_dip' &&
+      startFrame === expectedPanelStartFrame &&
+      endFrameExclusive === expectedPanelStartFrame +
+        expectedPanelDurationFrames &&
+      durationFrames === expectedPanelDurationFrames &&
+      visualCurve === 'linear_dip_to_panel' &&
+      startFrame >= fromSource.timelineStartFrame &&
+      endFrameExclusive <= toSource.timelineEndFrameExclusive
+    if (
+      timingIds.has(transitionTimingItemId) ||
+      refinedIds.has(refinedTransitionTimingItemId) ||
+      normalized.fromSourceSequenceItemId !== fromSource.sourceSequenceItemId ||
+      normalized.toSourceSequenceItemId !== toSource.sourceSequenceItemId ||
+      boundaryFrame !== fromSource.timelineEndFrameExclusive ||
+      boundaryFrame !== toSource.timelineStartFrame ||
+      (!hardCutValid && !panelDipValid) ||
+      startFrame < previousEndFrameExclusive
+    ) {
+      throw validationFailure(
+        'Approved bounded transitions must uniquely match non-overlapping exact source boundaries.',
+      )
+    }
+    timingIds.add(transitionTimingItemId)
+    refinedIds.add(refinedTransitionTimingItemId)
+    previousEndFrameExclusive = endFrameExclusive
+    return normalized
+  })
+  if (!normalizedTransitions.some((transition) =>
+    transition.transitionType === 'smooth_panel_dip')) {
+    throw validationFailure(
+      'Bounded source-transition authority requires at least one approved panel dip; all-hard-cut sequences must use the legacy policy.',
+    )
+  }
+  return normalizedTransitions
 }
 
 function safeIdentity(value: unknown, label: string): string {

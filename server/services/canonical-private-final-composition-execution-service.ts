@@ -159,6 +159,15 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
       const planningPayload = validateOfflineRemotionFinalCompositionPlanningPayload(
         workItem.executionInput.structuredPayload,
       )
+      if (
+        mode === 'chunk' &&
+        'transitionPolicy' in planningPayload &&
+        planningPayload.transitionPolicy !== 'approved_hard_cuts_only'
+      ) {
+        throw denied(
+          'Composition chunks remain hard-cut only until bounded transition continuity is proven across the long-form merge.',
+        )
+      }
       const chunkAuthority = mode === 'chunk'
         ? parse(
             canonicalPrivateCompositionChunkAuthoritySchema,
@@ -520,12 +529,18 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
         ? await sourceReader.stageExactApprovedSources(sourceReadInput)
         : await sourceReader.stageExactApprovedSource(sourceReadInput)
       const sources: CanonicalPrivateStagedSourceReadResult[] = stagedSourceSet.sources
-      const hardCutAuthorityHash = sha256ArtifactQaValue(sequenceProfile
-        ? {
-            transitionPolicy: planningPayload.transitionPolicy,
-            hardCutTransitions: planningPayload.hardCutTransitions,
-          }
-        : { transitionPolicy: 'not_applicable_single_source' })
+      const transitionAuthority = sequenceProfile
+        ? planningPayload.transitionPolicy === 'approved_hard_cuts_only'
+          ? {
+              transitionPolicy: planningPayload.transitionPolicy,
+              hardCutTransitions: planningPayload.hardCutTransitions,
+            }
+          : {
+              transitionPolicy: planningPayload.transitionPolicy,
+              sourceTransitions: planningPayload.sourceTransitions,
+            }
+        : { transitionPolicy: 'not_applicable_single_source' as const }
+      const transitionAuthorityHash = sha256ArtifactQaValue(transitionAuthority)
       const sourceInputIds = sources.map((_, index) => `approved-source-${index + 1}`)
       const captionInputIds = captions.map((_, index) => `approved-caption-${index + 1}`)
       const voiceInputIds = voiceTracks.map((_, index) => `approved-voice-${index + 1}`)
@@ -615,7 +630,7 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
         captionSha256s: captions.map((caption) => caption.sha256),
         voiceTrackSha256s: voiceTracks.map((voiceTrack) => voiceTrack.sha256),
         colorIntermediateSha256s: colorSources.map((source) => source.dependency.sha256),
-        hardCutAuthorityHash,
+        transitionAuthorityHash,
         ...(chunkAuthority ? { chunkAuthority } : {}),
         contentSha256,
       })
@@ -708,7 +723,7 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
         colorDependencyReadEvidenceHashes: colorSources.map(
           (source) => source.dependency.dependencyReadEvidenceHash,
         ),
-        hardCutAuthorityHash,
+        transitionAuthorityHash,
       }
       const artifactAuthority = createPrivateArtifactQaAuthorityService(context, adapters(adapterInput))
       const keyHash = sha256ArtifactQaValue({
@@ -883,8 +898,21 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
           approvedSourceCapacityEvidenceHash: stagedSourceSet.capacityEvidenceHash,
           approvedSourceTrimDependencyRead: true as const,
           approvedSourceTrimFramesApplied: true as const,
-          approvedHardCutTransitionAuthorityRead: sequenceProfile,
-          approvedHardCutTransitionsApplied: sequenceProfile,
+          approvedHardCutTransitionAuthorityRead:
+            sequenceProfile &&
+            planningPayload.transitionPolicy === 'approved_hard_cuts_only',
+          approvedHardCutTransitionsApplied:
+            sequenceProfile &&
+            planningPayload.transitionPolicy === 'approved_hard_cuts_only',
+          approvedBoundedSourceTransitionAuthorityRead:
+            sequenceProfile &&
+            planningPayload.transitionPolicy ===
+              'approved_bounded_source_transitions_v1',
+          approvedSmoothPanelDipsApplied:
+            sequenceProfile &&
+            planningPayload.transitionPolicy ===
+              'approved_bounded_source_transitions_v1',
+          approvedTransitionAudioHardCutsPreserved: sequenceProfile,
           approvedCaptionDependencyRead: true as const,
           approvedCaptionTrackTimingApplied: captionTrackProfile,
           audioPolicy: planningPayload.audioPolicy,
@@ -927,8 +955,7 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
                 timelineStartFrame: planningPayload.sourceSegments[index]!.timelineStartFrame,
                 timelineEndFrameExclusive: planningPayload.sourceSegments[index]!.timelineEndFrameExclusive,
               })),
-              transitionPolicy: planningPayload.transitionPolicy,
-              hardCutTransitions: planningPayload.hardCutTransitions,
+              ...transitionAuthority,
               combinedSourceByteLength: sources.reduce((total, source) => total + source.byteLength, 0),
               sourceSequenceReadEvidenceHash: sha256ArtifactQaValue(
                 sources.map((source) => source.sourceReadEvidenceHash),
@@ -1437,7 +1464,7 @@ interface FinalCompositionAdapterInput {
   captionDependencyReadEvidenceHashes: string[]
   voiceDependencyReadEvidenceHashes: string[]
   colorDependencyReadEvidenceHashes: string[]
-  hardCutAuthorityHash: string
+  transitionAuthorityHash: string
 }
 
 function adapters(input: FinalCompositionAdapterInput): {
@@ -1477,7 +1504,7 @@ function adapters(input: FinalCompositionAdapterInput): {
               captionDependencyReadEvidenceHashes: input.captionDependencyReadEvidenceHashes,
               voiceDependencyReadEvidenceHashes: input.voiceDependencyReadEvidenceHashes,
               colorDependencyReadEvidenceHashes: input.colorDependencyReadEvidenceHashes,
-              hardCutAuthorityHash: input.hardCutAuthorityHash,
+              transitionAuthorityHash: input.transitionAuthorityHash,
             }),
             startedAt: input.executionStartedAt,
             finishedAt: input.result.attestation.completedAt,
@@ -1532,7 +1559,7 @@ function adapters(input: FinalCompositionAdapterInput): {
               captionDependencyReadEvidenceHashes: input.captionDependencyReadEvidenceHashes,
               voiceDependencyReadEvidenceHashes: input.voiceDependencyReadEvidenceHashes,
               colorDependencyReadEvidenceHashes: input.colorDependencyReadEvidenceHashes,
-              hardCutAuthorityHash: input.hardCutAuthorityHash,
+              transitionAuthorityHash: input.transitionAuthorityHash,
             }),
             notesCode: 'approved_source_trim_caption_voice_color_transition_policy_and_frame_preflight_passed',
           }, ...(input.mode === 'final' ? [{
@@ -1569,6 +1596,10 @@ function assertFinalResult(
   const sequenceProfile = 'sourceSegments' in request.payload
   const captionTrackProfile = 'captionOverlayCues' in request.payload
   const replaceVoice = request.payload.audioPolicy === 'replace_with_approved_voice_tracks'
+  const boundedSourceTransitions =
+    'sourceSegments' in request.payload &&
+    request.payload.transitionPolicy ===
+      'approved_bounded_source_transitions_v1'
   if (
     result.request.operationId !== request.operationId || result.artifact.mimeType !== CONTENT_TYPE ||
     result.artifact.width !== request.payload.width || result.artifact.height !== request.payload.height ||
@@ -1599,8 +1630,18 @@ function assertFinalResult(
     (sequenceProfile && (
       result.evidence.semanticEvidence.approvedSourceSequenceBytesVerified !== true ||
       result.evidence.semanticEvidence.approvedSourceSequenceTimelineApplied !== true ||
-      result.evidence.semanticEvidence.approvedHardCutTransitionAuthorityRead !== true ||
-      result.evidence.semanticEvidence.approvedHardCutTransitionsApplied !== true
+      result.evidence.semanticEvidence.approvedTransitionAudioHardCutsPreserved !== true ||
+      (boundedSourceTransitions
+        ? (
+            result.evidence.semanticEvidence
+              .approvedBoundedSourceTransitionAuthorityRead !== true ||
+            result.evidence.semanticEvidence.approvedSmoothPanelDipsApplied !== true
+          )
+        : (
+            result.evidence.semanticEvidence
+              .approvedHardCutTransitionAuthorityRead !== true ||
+            result.evidence.semanticEvidence.approvedHardCutTransitionsApplied !== true
+          ))
     )) ||
     (captionTrackProfile &&
       result.evidence.semanticEvidence.approvedCaptionTrackTimingApplied !== true) ||

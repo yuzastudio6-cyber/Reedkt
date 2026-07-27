@@ -763,6 +763,108 @@ assert.equal(publishCanonicalEditPlanFromHandoffSchema.safeParse({
   canonicalPlan: realisticCanonicalPlan,
 }).success, true)
 
+const panelDipInput: PlannerInput = {
+  ...multiSourceInput,
+  customInstructions:
+    'Use the source only with readable captions. Use one restrained fade through the panel background at the first source boundary.',
+  userInstructionHistory: [
+    'Use the source only with readable captions.',
+    'Use one restrained fade through the panel background at the first source boundary.',
+  ],
+}
+const panelDipPlan = createMockEditPlan(panelDipInput)
+assert.deepEqual(
+  panelDipPlan.soundSyncTransitionTimingPlan?.refinedTransitionTimings.map(
+    (transition) => ({
+      type: transition.transitionType,
+      startFrame: transition.timeRange.startFrame,
+      endFrame: transition.timeRange.endFrame,
+      durationFrames: transition.durationFrames,
+      snapDecision: transition.beatSnapDecision?.snapDecision,
+      riskLevel: transition.riskLevel,
+      sfxCueId: transition.sfxCueId,
+    }),
+  ),
+  [{
+    type: 'smooth_panel_dip',
+    startFrame: 24,
+    endFrame: 36,
+    durationFrames: 12,
+    snapDecision: 'do_not_snap',
+    riskLevel: 'low',
+    sfxCueId: undefined,
+  }],
+)
+assert.deepEqual(panelDipPlan.soundSyncTransitionTimingPlan?.refinedSfxTimings, [])
+const panelDipDraft = buildCanonicalPlanningDraft({
+  plan: panelDipPlan,
+  plannerInput: panelDipInput,
+  sourceMediaAssets: multiSourceMediaAssets,
+})
+if (!panelDipDraft.ok || !panelDipDraft.draft.publication) {
+  throw new Error(
+    `Speech-safe panel dip did not compile: ${
+      panelDipDraft.ok
+        ? panelDipDraft.draft.publicationBlockers.join(' | ')
+        : panelDipDraft.errors.join(' | ')
+    }`,
+  )
+}
+const panelDipFinalItem = panelDipDraft.draft.publication.canonicalPlan.workItems
+  .find((item) => item.workItemKey === 'final-export')!
+const panelDipPayload = validateOfflineRemotionFinalCompositionPlanningPayload(
+  asRecord(panelDipFinalItem.executionInput.structuredPayload),
+)
+if (
+  panelDipPayload.compositionProfileId !==
+    'approved_source_sequence_caption_track_final_v1' ||
+  panelDipPayload.transitionPolicy !==
+    'approved_bounded_source_transitions_v1'
+) {
+  throw new Error('Panel dip compiled to the wrong canonical Remotion authority.')
+}
+assert.deepEqual(panelDipPayload.sourceTransitions, [{
+  transitionTimingItemId:
+    panelDipPlan.masterTimingPlan!.transitionTimingItems[0]!.id,
+  refinedTransitionTimingItemId:
+    panelDipPlan.soundSyncTransitionTimingPlan!.refinedTransitionTimings[0]!.id,
+  fromSegmentId: panelDipPlan.masterTimingPlan!.finalTimelineSegments[0]!.segmentId,
+  toSegmentId: panelDipPlan.masterTimingPlan!.finalTimelineSegments[1]!.segmentId,
+  fromSourceSequenceItemId: 'canonical-save-source-1',
+  toSourceSequenceItemId: 'canonical-save-source-2',
+  boundaryFrame: 30,
+  transitionType: 'smooth_panel_dip',
+  startFrame: 24,
+  endFrameExclusive: 36,
+  durationFrames: 12,
+  visualCurve: 'linear_dip_to_panel',
+  audioPolicy: 'hard_cut_at_boundary',
+}])
+assert.throws(
+  () => validateOfflineRemotionFinalCompositionPlanningPayload({
+    ...panelDipPayload,
+    sourceTransitions: panelDipPayload.sourceTransitions.map((transition) => ({
+      ...transition,
+      startFrame: transition.startFrame - 1,
+      durationFrames: transition.durationFrames + 1,
+    })),
+  }),
+  /bounded transitions|source boundary/,
+  'A re-signed but off-window panel dip must fail before dispatch.',
+)
+const explicitNoPanelDipInput: PlannerInput = {
+  ...multiSourceInput,
+  customInstructions:
+    'No fade through the panel background. Keep exact clean cuts between sources.',
+}
+const explicitNoPanelDipPlan = createMockEditPlan(explicitNoPanelDipInput)
+assert.deepEqual(
+  explicitNoPanelDipPlan.soundSyncTransitionTimingPlan?.refinedTransitionTimings
+    .map((transition) => transition.transitionType),
+  ['hard_cut'],
+  'Explicit restraint must win over matching panel-dip words.',
+)
+
 const realisticThreeSourcePlan = createMockEditPlan(threeSourceInput)
 const realisticThreeSourceDraft = buildCanonicalPlanningDraft({
   plan: realisticThreeSourcePlan,
@@ -839,6 +941,10 @@ assert.equal(
 if (realisticThreeSourceFinalPayload.compositionProfileId !==
   'approved_source_sequence_caption_track_final_v1') {
   throw new Error('Three-source planning compiled to the wrong Remotion profile.')
+}
+if (realisticThreeSourceFinalPayload.transitionPolicy !==
+  'approved_hard_cuts_only') {
+  throw new Error('The legacy three-source fixture lost its hard-cut policy.')
 }
 assert.deepEqual(realisticThreeSourceFinalPayload.sourceSegments.map((segment) => ({
   sourceSequenceItemId: segment.sourceSequenceItemId,
@@ -964,6 +1070,9 @@ const maximumFinalPayload = validateOfflineRemotionFinalCompositionPlanningPaylo
 assert.equal(maximumFinalPayload.compositionProfileId, 'approved_source_sequence_caption_track_final_v1')
 if (maximumFinalPayload.compositionProfileId !== 'approved_source_sequence_caption_track_final_v1') {
   throw new Error('Eight-source publication selected the wrong Remotion composition profile.')
+}
+if (maximumFinalPayload.transitionPolicy !== 'approved_hard_cuts_only') {
+  throw new Error('The legacy eight-source fixture lost its hard-cut policy.')
 }
 assert.equal(maximumFinalPayload.sourceSegments.length, 8)
 assert.equal(maximumFinalPayload.hardCutTransitions.length, 7)

@@ -248,6 +248,25 @@ type ApprovedHardCutTransition = {
   boundaryFrame: number
 }
 
+type ApprovedBoundedSourceTransition = ApprovedHardCutTransition & {
+  transitionType: 'hard_cut' | 'smooth_panel_dip'
+  startFrame: number
+  endFrameExclusive: number
+  durationFrames: number
+  visualCurve: 'none' | 'linear_dip_to_panel'
+  audioPolicy: 'hard_cut_at_boundary'
+}
+
+type ApprovedSourceTransitionAuthority =
+  | {
+      policy: 'approved_hard_cuts_only'
+      transitions: ApprovedHardCutTransition[]
+    }
+  | {
+      policy: 'approved_bounded_source_transitions_v1'
+      transitions: ApprovedBoundedSourceTransition[]
+    }
+
 export type CanonicalSourceAuthorityItem = {
   sourceSequenceItemId: string
   mediaAssetId: string
@@ -665,9 +684,10 @@ export function buildCanonicalPlanningDraft(input: {
         sourceItems: orderedSourceItems,
         cleanupDecisions: cleanup.decisions,
       })
-  const approvedHardCutTransitions = ideaFirstStorytelling
-    ? []
-    : buildApprovedHardCutTransitions({
+  const approvedSourceTransitions: ApprovedSourceTransitionAuthority | null =
+    ideaFirstStorytelling
+      ? { policy: 'approved_hard_cuts_only', transitions: [] }
+      : buildApprovedSourceTransitionAuthority({
         plan,
         sourceItems: orderedSourceItems,
         segments: segments.segments,
@@ -883,7 +903,7 @@ export function buildCanonicalPlanningDraft(input: {
         segments: segments.segments,
         approvedVoiceDeliverySources,
         approvedColorDeliverySources,
-        approvedHardCutTransitions,
+        approvedSourceTransitions,
       })
   if (
     !preferenceSnapshotId ||
@@ -918,7 +938,10 @@ export function buildCanonicalPlanningDraft(input: {
               totalFrames,
               approvedVoiceDeliverySources,
               approvedColorDeliverySources,
-              approvedHardCutTransitions: approvedHardCutTransitions ?? [],
+              approvedSourceTransitions: approvedSourceTransitions ?? {
+                policy: 'approved_hard_cuts_only',
+                transitions: [],
+              },
             }),
         planningRequestIdSeed: safeKey(plan.planningInputTrace?.fingerprint ?? plan.planningContextTrace?.planningContextId ?? 'named-edit-plan', 'named-edit-plan'),
       }
@@ -1070,7 +1093,7 @@ function privateReviewPublicationBlockers(input: {
   segments: CanonicalPlanComponentsDraft['segments']
   approvedVoiceDeliverySources: ApprovedVoiceDeliverySource[] | null
   approvedColorDeliverySources: ApprovedColorDeliverySource[] | null
-  approvedHardCutTransitions: ApprovedHardCutTransition[] | null
+  approvedSourceTransitions: ApprovedSourceTransitionAuthority | null
 }): string[] {
   const blockers: string[] = []
   const captionCues = approvedCaptionCues(input.plan, input.totalFrames)
@@ -1179,8 +1202,17 @@ function privateReviewPublicationBlockers(input: {
   const expectedTransitionCount = Math.max(0, input.orderedSourceItems.length - 1)
   if (
     plannedTransitionCount !== expectedTransitionCount ||
-    !input.approvedHardCutTransitions
+    !input.approvedSourceTransitions
   ) blockers.push('Timed transitions need their own canonical execution work items.')
+  if (
+    input.approvedSourceTransitions?.policy ===
+      'approved_bounded_source_transitions_v1' &&
+    input.totalFrames > CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES
+  ) {
+    blockers.push(
+      'Approved panel-dip transitions currently require the bounded direct source-sequence compositor; long-form chunk transition continuity remains hard-cut only.',
+    )
+  }
   if (
     (input.plan.masterTimingPlan?.sfxTimingItems.length ?? 0) > 0 ||
     (input.plan.soundSyncTransitionTimingPlan?.refinedSfxTimings.length ?? 0) > 0
@@ -1229,7 +1261,7 @@ function buildPrivateReviewCanonicalPlan(input: {
   totalFrames: number
   approvedVoiceDeliverySources: ApprovedVoiceDeliverySource[] | null
   approvedColorDeliverySources: ApprovedColorDeliverySource[] | null
-  approvedHardCutTransitions: ApprovedHardCutTransition[]
+  approvedSourceTransitions: ApprovedSourceTransitionAuthority
 }): CanonicalPlanDraft {
   const segmentIds = input.components.segments.map((segment) => segment.segmentId)
   const timingId = safeKey(input.plan.masterTimingPlan?.id ?? 'master-timing-plan', 'master-timing-plan')
@@ -1274,6 +1306,11 @@ function buildPrivateReviewCanonicalPlan(input: {
   const voiceDeliverySources = input.approvedVoiceDeliverySources ?? []
   const colorDeliverySources = input.approvedColorDeliverySources ?? []
   const replaceSourceAudio = voiceDeliverySources.length > 0
+  const sourceTransitions = input.approvedSourceTransitions.transitions
+  const approvedHardCutTransitions =
+    input.approvedSourceTransitions.policy === 'approved_hard_cuts_only'
+      ? input.approvedSourceTransitions.transitions
+      : []
   if (replaceSourceAudio && voiceDeliverySources.length !== sourceTimeline.length) {
     throw new Error('Canonical voice delivery lost its one-to-one approved source binding.')
   }
@@ -1282,14 +1319,25 @@ function buildPrivateReviewCanonicalPlan(input: {
   }
   if (
     sourceSequenceComposition &&
-    input.approvedHardCutTransitions.length !== sourceTimeline.length - 1
-  ) throw new Error('Canonical source sequence lost its approved hard-cut transition authority.')
-  const transitionTimingIds = input.approvedHardCutTransitions.flatMap((transition) => [
+    sourceTransitions.length !== sourceTimeline.length - 1
+  ) throw new Error('Canonical source sequence lost its approved transition authority.')
+  if (
+    approvedLongFormChunkPlan &&
+    input.approvedSourceTransitions.policy !== 'approved_hard_cuts_only'
+  ) {
+    throw new Error(
+      'Canonical long-form compilation remains hard-cut only until bounded transition continuity is proven across chunks.',
+    )
+  }
+  const transitionTimingIds = sourceTransitions.flatMap((transition) => [
     transition.transitionTimingItemId,
     transition.refinedTransitionTimingItemId,
   ])
-  const transitionRendererLayerIds = input.approvedHardCutTransitions.map(
-    (_transition, index) => `approved-hard-cut-boundary-${index + 1}`,
+  const transitionRendererLayerIds = sourceTransitions.map(
+    (_transition, index) => input.approvedSourceTransitions.policy ===
+      'approved_hard_cuts_only'
+      ? `approved-hard-cut-boundary-${index + 1}`
+      : `approved-bounded-transition-boundary-${index + 1}`,
   )
 
   const output = (
@@ -1548,7 +1596,7 @@ function buildPrivateReviewCanonicalPlan(input: {
         voiceWorkItems,
         approvedVoiceTracks,
         colorWorkItems,
-        approvedHardCutTransitions: input.approvedHardCutTransitions,
+        approvedHardCutTransitions,
         finalBudgetIndex,
         budgets,
         output,
@@ -1614,8 +1662,16 @@ function buildPrivateReviewCanonicalPlan(input: {
                     ? 'approved_source_sequence_caption_track_final_v1'
                     : 'approved_source_sequence_caption_final_v1',
                   sourceSegments: compositionSourceTimeline,
-                  transitionPolicy: 'approved_hard_cuts_only',
-                  hardCutTransitions: input.approvedHardCutTransitions,
+                  ...(input.approvedSourceTransitions.policy ===
+                    'approved_hard_cuts_only'
+                    ? {
+                        transitionPolicy: 'approved_hard_cuts_only',
+                        hardCutTransitions: input.approvedSourceTransitions.transitions,
+                      }
+                    : {
+                        transitionPolicy: 'approved_bounded_source_transitions_v1',
+                        sourceTransitions: input.approvedSourceTransitions.transitions,
+                      }),
                   audioPolicy: replaceSourceAudio
                     ? 'replace_with_approved_voice_tracks'
                     : 'preserve_source_sequence',
@@ -2434,19 +2490,21 @@ function hasPlannedMusicDuckingWork(plan: EditPlan): boolean {
   ))
 }
 
-function buildApprovedHardCutTransitions(input: {
+function buildApprovedSourceTransitionAuthority(input: {
   plan: EditPlan
   sourceItems: CanonicalSourceAuthorityItem[]
   segments: CanonicalPlanComponentsDraft['segments']
   fps: number
   totalFrames: number
-}): ApprovedHardCutTransition[] | null {
+}): ApprovedSourceTransitionAuthority | null {
   const masterTransitions = input.plan.masterTimingPlan?.transitionTimingItems ?? []
   const refinedTransitions =
     input.plan.soundSyncTransitionTimingPlan?.refinedTransitionTimings ?? []
   const expectedCount = Math.max(0, input.sourceItems.length - 1)
   if (expectedCount === 0) {
-    return masterTransitions.length === 0 && refinedTransitions.length === 0 ? [] : null
+    return masterTransitions.length === 0 && refinedTransitions.length === 0
+      ? { policy: 'approved_hard_cuts_only', transitions: [] }
+      : null
   }
   if (
     input.segments.length !== input.sourceItems.length ||
@@ -2457,7 +2515,7 @@ function buildApprovedHardCutTransitions(input: {
   const refinedById = new Map(refinedTransitions.map((transition) => [transition.id, transition]))
   const transitionIds = new Set<string>()
   const refinedIds = new Set<string>()
-  const approved = masterTransitions.flatMap((transition, index) => {
+  const approved = masterTransitions.flatMap((transition, index): ApprovedBoundedSourceTransition[] => {
     const fromSegment = input.segments[index]
     const toSegment = input.segments[index + 1]
     const fromSource = input.sourceItems[index]
@@ -2471,21 +2529,15 @@ function buildApprovedHardCutTransitions(input: {
       transitionIds.has(transition.id) || refinedIds.has(refined.id) ||
       boundaryFrame !== toSegment.startFrame || boundaryFrame <= 0 ||
       boundaryFrame >= input.totalFrames ||
-      transition.transitionType !== 'hard_cut' ||
       transition.fromSegmentId !== fromSegment.segmentId ||
       transition.toSegmentId !== toSegment.segmentId ||
-      transition.timeRange.startFrame !== boundaryFrame ||
-      transition.timeRange.endFrame !== boundaryFrame ||
-      transition.timeRange.durationFrames !== 0 ||
+      transition.timeRange.startFrame > boundaryFrame ||
+      transition.timeRange.endFrame < boundaryFrame ||
       transition.timeRange.fps !== input.fps ||
       transition.sfxCueId !== undefined ||
-      refined.transitionType !== 'hard_cut' ||
       refined.linkedMasterTransitionTimingItemId !== transition.id ||
       refined.fromSegmentId !== fromSegment.segmentId ||
       refined.toSegmentId !== toSegment.segmentId ||
-      refined.timeRange.startFrame !== boundaryFrame ||
-      refined.timeRange.endFrame !== boundaryFrame ||
-      refined.timeRange.durationFrames !== 0 || refined.durationFrames !== 0 ||
       refined.timeRange.fps !== input.fps || !refined.phraseBoundaryAligned ||
       refined.riskLevel !== 'low' || refined.sfxCueId !== undefined ||
       refined.beatSnapDecision?.speechSafe !== true ||
@@ -2493,9 +2545,7 @@ function buildApprovedHardCutTransitions(input: {
         (sfx) => sfx.linkedTransitionTimingItemId === refined.id,
       )
     ) return []
-    transitionIds.add(transition.id)
-    refinedIds.add(refined.id)
-    return [{
+    const common = {
       transitionTimingItemId: transition.id,
       refinedTransitionTimingItemId: refined.id,
       fromSegmentId: fromSegment.segmentId,
@@ -2503,9 +2553,87 @@ function buildApprovedHardCutTransitions(input: {
       fromSourceSequenceItemId: fromSource.sourceSequenceItemId,
       toSourceSequenceItemId: toSource.sourceSequenceItemId,
       boundaryFrame,
-    }]
+      audioPolicy: 'hard_cut_at_boundary' as const,
+    }
+    let approvedTransition: ApprovedBoundedSourceTransition
+    if (refined.transitionType === 'hard_cut') {
+      if (
+        transition.transitionType !== 'hard_cut' ||
+        transition.timeRange.startFrame !== boundaryFrame ||
+        transition.timeRange.endFrame !== boundaryFrame ||
+        transition.timeRange.durationFrames !== 0 ||
+        refined.timeRange.startFrame !== boundaryFrame ||
+        refined.timeRange.endFrame !== boundaryFrame ||
+        refined.timeRange.durationFrames !== 0 ||
+        refined.durationFrames !== 0
+      ) return []
+      approvedTransition = {
+        ...common,
+        transitionType: 'hard_cut',
+        startFrame: boundaryFrame,
+        endFrameExclusive: boundaryFrame,
+        durationFrames: 0,
+        visualCurve: 'none',
+      }
+    } else if (refined.transitionType === 'smooth_panel_dip') {
+      const expectedDurationFrames = Math.round(input.fps * 0.4)
+      const expectedStartFrame =
+        boundaryFrame - Math.floor(expectedDurationFrames / 2)
+      const expectedEndFrameExclusive =
+        expectedStartFrame + expectedDurationFrames
+      if (
+        expectedStartFrame < fromSegment.startFrame ||
+        expectedEndFrameExclusive > toSegment.endFrameExclusive ||
+        refined.timeRange.startFrame !== expectedStartFrame ||
+        refined.timeRange.endFrame !== expectedEndFrameExclusive ||
+        refined.timeRange.durationFrames !== expectedDurationFrames ||
+        refined.durationFrames !== expectedDurationFrames ||
+        refined.beatAligned ||
+        refined.downbeatAligned ||
+        refined.audioMotivated ||
+        refined.beatSnapDecision?.requestedFrame !== boundaryFrame ||
+        refined.beatSnapDecision.snappedFrame !== boundaryFrame ||
+        refined.beatSnapDecision.snapDecision !== 'do_not_snap'
+      ) return []
+      approvedTransition = {
+        ...common,
+        transitionType: 'smooth_panel_dip',
+        startFrame: expectedStartFrame,
+        endFrameExclusive: expectedEndFrameExclusive,
+        durationFrames: expectedDurationFrames,
+        visualCurve: 'linear_dip_to_panel',
+      }
+    } else {
+      return []
+    }
+    transitionIds.add(transition.id)
+    refinedIds.add(refined.id)
+    return [approvedTransition]
   })
-  return approved.length === expectedCount ? approved : null
+  if (approved.length !== expectedCount) return null
+  for (let index = 1; index < approved.length; index += 1) {
+    if (approved[index - 1]!.endFrameExclusive > approved[index]!.startFrame) {
+      return null
+    }
+  }
+  if (approved.every((transition) => transition.transitionType === 'hard_cut')) {
+    return {
+      policy: 'approved_hard_cuts_only',
+      transitions: approved.map((transition) => ({
+        transitionTimingItemId: transition.transitionTimingItemId,
+        refinedTransitionTimingItemId: transition.refinedTransitionTimingItemId,
+        fromSegmentId: transition.fromSegmentId,
+        toSegmentId: transition.toSegmentId,
+        fromSourceSequenceItemId: transition.fromSourceSequenceItemId,
+        toSourceSequenceItemId: transition.toSourceSequenceItemId,
+        boundaryFrame: transition.boundaryFrame,
+      })),
+    }
+  }
+  return {
+    policy: 'approved_bounded_source_transitions_v1',
+    transitions: approved,
+  }
 }
 
 function hasUnrepresentedSegmentOperations(

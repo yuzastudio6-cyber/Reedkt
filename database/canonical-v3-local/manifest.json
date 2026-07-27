@@ -549,7 +549,7 @@
     },
     {
       "path": "server/smoke/canonical-planning-publication-frontend-client-smoke.ts",
-      "sha256": "281c692004a77366c9b43a15b3d1f8d20fffbe278e07eb45a4a387bb709eed58"
+      "sha256": "c4c49fbf624bb3bf4f909e90baa0d1fd7f8c5174b61113a616b4902ba2e74122"
     },
     {
       "path": "server/smoke/canonical-private-tool-dispatch-authority-smoke.ts",
@@ -677,7 +677,7 @@
     },
     {
       "path": "src/lib/canonical-planning-draft.ts",
-      "sha256": "2e933eaec7e3ceaac3f672427348e14e6c818e7450ad7ae9e37267419c1f429b"
+      "sha256": "e14d93bb6d7f6a91f443f400364912b9edb05dccf3a123d4b4c1140249b4a98f"
     },
     {
       "path": "src/lib/canonical-planning-publication-client.ts",
@@ -725,7 +725,7 @@
     },
     {
       "path": "src/types/reeditpro.ts",
-      "sha256": "e94c94e4612f43db3e329473bb6246ddc143631496a695432c604de23cbe3461"
+      "sha256": "eac0dddab98daf8a02b9c6e6ce410697a00f02d4d5d65feba8fdfe2ad8f6b7d1"
     },
     {
       "path": "tests/e2e/edit-preferences-atomic-api-server.ts",

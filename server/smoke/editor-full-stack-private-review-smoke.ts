@@ -53,7 +53,7 @@ const browserProjectScope = {
 const getLocalProjectHandoffStorageKey = () => getScopedLocalProjectHandoffStorageKey(browserProjectScope)
 const editorBootTimeoutMs = 12_000
 const privateUploadTimeoutMs = 30_000
-const approvedEditBriefGoal = 'Create a clean internal review edit from the uploaded source proof, keep the speaker clear, and make the first beat more direct.'
+const approvedEditBriefGoal = 'Create a clean internal review edit from the uploaded source proof, keep the speaker clear, make the first beat more direct, and use one restrained fade through the panel background at the first source boundary.'
 const approvedEditBriefMarker = {
   startSeconds: 0.5,
   title: 'Protect the opening explanation',
@@ -925,6 +925,11 @@ try {
     canonicalReviewAudioToneSamples.forEach((sample, index) => {
       assertSourceAudioTone(sample, `Canonical private review source-bound audio segment ${index + 1}`)
     })
+    const canonicalPanelDipSamples = await assertApprovedPanelDipAtBoundary(
+      canonicalReviewDownloadPath,
+      canonicalSourceDurationSeconds,
+      'Canonical private review first source boundary',
+    )
 
     await clickWhenReady(page.getByTestId('canonical-private-review-accept'))
     await expect(canonicalJourneyStatus).toHaveAttribute(
@@ -1035,9 +1040,10 @@ try {
       canonicalReviewByteLength: canonicalReviewBytes.byteLength,
       canonicalReviewSha256,
       canonicalReviewFrame: `${canonicalReviewMediaProbe.video?.width}x${canonicalReviewMediaProbe.video?.height}`,
-      canonicalReviewDurationSeconds: canonicalReviewMediaProbe.video?.durationSeconds,
-      canonicalReviewAudioToneSamples: canonicalReviewAudioToneSamples.map(formatAudioToneSample),
-      canonicalWorkItemCount: acceptedJourney?.plan?.workItemCount,
+	      canonicalReviewDurationSeconds: canonicalReviewMediaProbe.video?.durationSeconds,
+	      canonicalReviewAudioToneSamples: canonicalReviewAudioToneSamples.map(formatAudioToneSample),
+	      canonicalPanelDipSamples: canonicalPanelDipSamples.map(formatRgbSample),
+	      canonicalWorkItemCount: acceptedJourney?.plan?.workItemCount,
       canonicalJobCount: acceptedJourney?.approval?.jobCount,
       canonicalVideoSrcScheme: canonicalVideoSrc.split(':')[0],
       authVerificationCount,
@@ -3012,6 +3018,92 @@ async function assertCanonicalEditBriefMarkerLineage(input: {
   )
   assert.equal(snapshotMarkerHint.instruction, approvedEditBriefMarker.note)
   assert.equal(snapshotMarkerHint.startFrame, marker.startFrame)
+
+  const finalCompositionWorkItem = editAuthority?.approvedWorkItems.find(
+    (entry) =>
+      entry.snapshotId === snapshot.snapshotId &&
+      entry.workItemKey === 'final-export' &&
+      entry.workItemType === 'render_final_export',
+  )
+  assert.ok(
+    finalCompositionWorkItem,
+    'The immutable approved snapshot should include one exact final-composition work item.',
+  )
+  assert.equal(
+    finalCompositionWorkItem.sourceSequenceItemIds.length,
+    canonicalSourceCount,
+    'The approved final composition should preserve all eight ordered source identities.',
+  )
+  const finalCompositionExecutionInput = await readPrivateAuthorityJsonBlob({
+    localStorageRoot,
+    ref: finalCompositionWorkItem.executionInputRef,
+  }) as {
+    structuredPayload?: {
+      transitionPolicy?: string
+      panelBackground?: string
+      sourceTransitions?: Array<{
+        transitionTimingItemId?: string
+        refinedTransitionTimingItemId?: string
+        fromSourceSequenceItemId?: string
+        toSourceSequenceItemId?: string
+        transitionType?: string
+        boundaryFrame?: number
+        startFrame?: number
+        endFrameExclusive?: number
+        durationFrames?: number
+        visualCurve?: string
+        audioPolicy?: string
+      }>
+    }
+  }
+  const approvedTransitions = finalCompositionExecutionInput.structuredPayload?.sourceTransitions
+  assert.equal(
+    finalCompositionExecutionInput.structuredPayload?.transitionPolicy,
+    'approved_bounded_source_transitions_v1',
+    'The immutable final-composition payload should retain the approved bounded transition authority.',
+  )
+  assert.equal(
+    finalCompositionExecutionInput.structuredPayload?.panelBackground,
+    '#FFFFFF',
+    'The immutable final-composition payload should retain this edit’s exact approved panel color.',
+  )
+  assert.equal(
+    approvedTransitions?.length,
+    canonicalSourceCount - 1,
+    'Every approved source boundary should retain one exact transition record.',
+  )
+  assert.equal(approvedTransitions?.[0]?.transitionType, 'smooth_panel_dip')
+  assert.equal(approvedTransitions?.[0]?.boundaryFrame, 60)
+  assert.equal(approvedTransitions?.[0]?.startFrame, 54)
+  assert.equal(approvedTransitions?.[0]?.endFrameExclusive, 66)
+  assert.equal(approvedTransitions?.[0]?.durationFrames, 12)
+  assert.equal(approvedTransitions?.[0]?.visualCurve, 'linear_dip_to_panel')
+  assert.equal(approvedTransitions?.[0]?.audioPolicy, 'hard_cut_at_boundary')
+  assert.equal(
+    approvedTransitions?.[0]?.transitionTimingItemId,
+    'transition-timing-final-timing-segment-1-to-final-timing-segment-2',
+  )
+  assert.equal(approvedTransitions?.[0]?.refinedTransitionTimingItemId, 'refined-transition-1')
+  assert.equal(
+    approvedTransitions?.[0]?.fromSourceSequenceItemId,
+    finalCompositionWorkItem.sourceSequenceItemIds[0],
+  )
+  assert.equal(
+    approvedTransitions?.[0]?.toSourceSequenceItemId,
+    finalCompositionWorkItem.sourceSequenceItemIds[1],
+  )
+  assert.equal(
+    approvedTransitions?.slice(1).every((transition) =>
+      transition.transitionType === 'hard_cut' &&
+      transition.startFrame === transition.boundaryFrame &&
+      transition.endFrameExclusive === transition.boundaryFrame &&
+      transition.durationFrames === 0 &&
+      transition.visualCurve === 'none' &&
+      transition.audioPolicy === 'hard_cut_at_boundary'
+    ),
+    true,
+    'Every unrequested source boundary should remain an exact audio-preserving hard cut.',
+  )
 }
 
 async function clickWhenReady(locator: Locator) {
@@ -3257,6 +3349,39 @@ async function sampleCenterFrameColor(localFilePath: string, timestampSeconds: n
     blue: buffer[2] ?? 0,
     timestampSeconds,
   }
+}
+
+async function assertApprovedPanelDipAtBoundary(
+  localFilePath: string,
+  boundarySeconds: number,
+  label: string,
+): Promise<RgbSample[]> {
+  const [outgoingReference, panelBoundary, incomingReference] = await Promise.all([
+    sampleCenterFrameColor(localFilePath, boundarySeconds - 0.5),
+    sampleCenterFrameColor(localFilePath, boundarySeconds),
+    sampleCenterFrameColor(localFilePath, boundarySeconds + 0.5),
+  ])
+  assert.ok(
+    panelBoundary.red >= 235 && panelBoundary.green >= 235 && panelBoundary.blue >= 235,
+    `${label} should reach the approved white panel at the exact boundary, got ${formatRgbSample(panelBoundary)}.`,
+  )
+  for (const [phase, reference] of [
+    ['outgoing', outgoingReference],
+    ['incoming', incomingReference],
+  ] as const) {
+    assert.ok(
+      reference.red >= reference.green + 35 &&
+        reference.red >= reference.blue + 35,
+      `${label} should restore the ${phase} red source away from the panel, got ${formatRgbSample(reference)}.`,
+    )
+    assert.ok(
+      Math.abs(reference.red - panelBoundary.red) +
+        Math.abs(reference.green - panelBoundary.green) +
+        Math.abs(reference.blue - panelBoundary.blue) >= 180,
+      `${label} should visibly separate the ${phase} source from the approved panel.`,
+    )
+  }
+  return [outgoingReference, panelBoundary, incomingReference]
 }
 
 async function sampleOverlayBandColor(localFilePath: string, timestampSeconds: number): Promise<RgbSample> {

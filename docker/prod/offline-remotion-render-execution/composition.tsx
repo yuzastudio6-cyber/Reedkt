@@ -69,7 +69,9 @@ export interface ApprovedCompositionProps {
     timelineStartFrame: number
     timelineEndFrameExclusive: number
   }>
-  transitionPolicy?: 'approved_hard_cuts_only'
+  transitionPolicy?:
+    | 'approved_hard_cuts_only'
+    | 'approved_bounded_source_transitions_v1'
   hardCutTransitions?: Array<{
     transitionTimingItemId: string
     refinedTransitionTimingItemId: string
@@ -78,6 +80,21 @@ export interface ApprovedCompositionProps {
     fromSourceSequenceItemId: string
     toSourceSequenceItemId: string
     boundaryFrame: number
+  }>
+  sourceTransitions?: Array<{
+    transitionTimingItemId: string
+    refinedTransitionTimingItemId: string
+    fromSegmentId: string
+    toSegmentId: string
+    fromSourceSequenceItemId: string
+    toSourceSequenceItemId: string
+    boundaryFrame: number
+    transitionType: 'hard_cut' | 'smooth_panel_dip'
+    startFrame: number
+    endFrameExclusive: number
+    durationFrames: number
+    visualCurve: 'none' | 'linear_dip_to_panel'
+    audioPolicy: 'hard_cut_at_boundary'
   }>
   sourceInternalUrls?: Array<{
     sourceSequenceItemId: string
@@ -207,7 +224,7 @@ export const ApprovedComposition: React.FC<ApprovedCompositionProps> = (props) =
       .includes(props.compositionProfileId ?? '') &&
     props.sourceSegments && props.sourceInternalUrls && hasApprovedCaptionInput(props) &&
     hasApprovedAudioInput(props, props.sourceSegments.length) &&
-    hasApprovedHardCutInput(props)
+    hasApprovedSourceTransitionInput(props)
   ) {
     return <ApprovedSourceSequenceCaptionComposition {...props} />
   }
@@ -710,6 +727,69 @@ const ApprovedSourceCaptionComposition: React.FC<ApprovedCompositionProps> = (pr
   )
 }
 
+type ApprovedSourceSequenceSegment =
+  NonNullable<ApprovedCompositionProps['sourceSegments']>[number]
+
+const ApprovedSourceSequenceVisual: React.FC<{
+  props: ApprovedCompositionProps
+  segment: ApprovedSourceSequenceSegment
+  segmentIndex: number
+  sourceInternalUrl: string
+  replaceVoice: boolean
+}> = ({ props, segment, segmentIndex, sourceInternalUrl, replaceVoice }) => {
+  const localFrame = useCurrentFrame()
+  const globalFrame = segment.timelineStartFrame + localFrame
+  const transitions = props.transitionPolicy ===
+    'approved_bounded_source_transitions_v1'
+    ? props.sourceTransitions ?? []
+    : []
+  const incoming = transitions[segmentIndex - 1]
+  const outgoing = transitions[segmentIndex]
+  const incomingOpacity = incoming?.transitionType === 'smooth_panel_dip'
+    ? interpolate(
+        globalFrame,
+        [incoming.boundaryFrame, incoming.endFrameExclusive],
+        [0, 1],
+        { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' },
+      )
+    : 1
+  const outgoingOpacity = outgoing?.transitionType === 'smooth_panel_dip'
+    ? interpolate(
+        globalFrame,
+        [outgoing.startFrame, outgoing.boundaryFrame],
+        [1, 0],
+        { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' },
+      )
+    : 1
+  const opacity = Math.min(incomingOpacity, outgoingOpacity)
+  const videoStyle: React.CSSProperties = {
+    width: '100%',
+    height: '100%',
+    objectFit: 'contain',
+  }
+  return (
+    <div style={{ position: 'absolute', inset: 0, opacity }}>
+      {props.deliveryProfileId === 'uhd_2160'
+        ? <Html5Video
+            src={sourceInternalUrl}
+            startFrom={segment.sourceStartFrame}
+            endAt={segment.sourceEndFrameExclusive}
+            style={videoStyle}
+            volume={replaceVoice ? 0 : 1}
+            delayRenderTimeoutInMilliseconds={180_000}
+            delayRenderRetries={1}
+          />
+        : <OffthreadVideo
+            src={sourceInternalUrl}
+            startFrom={segment.sourceStartFrame}
+            endAt={segment.sourceEndFrameExclusive}
+            style={videoStyle}
+            volume={replaceVoice ? 0 : 1}
+          />}
+    </div>
+  )
+}
+
 const ApprovedSourceSequenceCaptionComposition: React.FC<ApprovedCompositionProps> = (props) => {
   const sourceUrlById = new Map(
     props.sourceInternalUrls!.map((source) => [source.sourceSequenceItemId, source.sourceInternalUrl]),
@@ -723,30 +803,20 @@ const ApprovedSourceSequenceCaptionComposition: React.FC<ApprovedCompositionProp
   const replaceVoice = props.audioPolicy === 'replace_with_approved_voice_tracks'
   return (
     <AbsoluteFill style={{ backgroundColor: props.panelBackground, overflow: 'hidden' }}>
-      {props.sourceSegments!.map((segment) => (
+      {props.sourceSegments!.map((segment, segmentIndex) => (
         <Sequence
           key={segment.sourceSequenceItemId}
           from={segment.timelineStartFrame}
           durationInFrames={segment.timelineEndFrameExclusive - segment.timelineStartFrame}
           name={`Approved source ${segment.sourceSequenceItemId}`}
         >
-          {props.deliveryProfileId === 'uhd_2160'
-            ? <Html5Video
-                src={sourceUrlById.get(segment.sourceSequenceItemId)!}
-                startFrom={segment.sourceStartFrame}
-                endAt={segment.sourceEndFrameExclusive}
-                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                volume={replaceVoice ? 0 : 1}
-                delayRenderTimeoutInMilliseconds={180_000}
-                delayRenderRetries={1}
-              />
-            : <OffthreadVideo
-                src={sourceUrlById.get(segment.sourceSequenceItemId)!}
-                startFrom={segment.sourceStartFrame}
-                endAt={segment.sourceEndFrameExclusive}
-                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                volume={replaceVoice ? 0 : 1}
-              />}
+          <ApprovedSourceSequenceVisual
+            props={props}
+            segment={segment}
+            segmentIndex={segmentIndex}
+            sourceInternalUrl={sourceUrlById.get(segment.sourceSequenceItemId)!}
+            replaceVoice={replaceVoice}
+          />
           {replaceVoice && <Audio src={voiceUrlBySourceId.get(segment.sourceSequenceItemId)!} />}
         </Sequence>
       ))}
@@ -809,6 +879,64 @@ function hasApprovedAudioInput(props: ApprovedCompositionProps, sourceCount: num
   if (sourceIds.size !== sourceCount || outputKeys.size !== sourceCount) return false
   if (!props.sourceSegments) return sourceCount === 1
   return props.sourceSegments.every((segment) => sourceIds.has(segment.sourceSequenceItemId))
+}
+
+function hasApprovedSourceTransitionInput(
+  props: ApprovedCompositionProps,
+): boolean {
+  if (props.transitionPolicy === 'approved_hard_cuts_only') {
+    return hasApprovedHardCutInput(props)
+  }
+  if (
+    props.transitionPolicy !== 'approved_bounded_source_transitions_v1' ||
+    !props.sourceSegments || !props.sourceTransitions ||
+    props.sourceTransitions.length !== props.sourceSegments.length - 1
+  ) return false
+  const timingIds = new Set<string>()
+  const refinedIds = new Set<string>()
+  let previousEndFrameExclusive = 0
+  let panelDipCount = 0
+  const valid = props.sourceTransitions.every((transition, index) => {
+    const fromSource = props.sourceSegments![index]
+    const toSource = props.sourceSegments![index + 1]
+    const expectedPanelDurationFrames = Math.round(props.fps * 0.4)
+    const expectedPanelStartFrame =
+      transition.boundaryFrame - Math.floor(expectedPanelDurationFrames / 2)
+    const hardCutValid =
+      transition.transitionType === 'hard_cut' &&
+      transition.startFrame === transition.boundaryFrame &&
+      transition.endFrameExclusive === transition.boundaryFrame &&
+      transition.durationFrames === 0 &&
+      transition.visualCurve === 'none'
+    const panelDipValid =
+      transition.transitionType === 'smooth_panel_dip' &&
+      transition.startFrame === expectedPanelStartFrame &&
+      transition.endFrameExclusive === expectedPanelStartFrame +
+        expectedPanelDurationFrames &&
+      transition.durationFrames === expectedPanelDurationFrames &&
+      transition.visualCurve === 'linear_dip_to_panel' &&
+      transition.startFrame >= (fromSource?.timelineStartFrame ?? -1) &&
+      transition.endFrameExclusive <=
+        (toSource?.timelineEndFrameExclusive ?? -1)
+    const transitionValid = Boolean(
+      fromSource && toSource &&
+      !timingIds.has(transition.transitionTimingItemId) &&
+      !refinedIds.has(transition.refinedTransitionTimingItemId) &&
+      transition.fromSourceSequenceItemId === fromSource.sourceSequenceItemId &&
+      transition.toSourceSequenceItemId === toSource.sourceSequenceItemId &&
+      transition.boundaryFrame === fromSource.timelineEndFrameExclusive &&
+      transition.boundaryFrame === toSource.timelineStartFrame &&
+      transition.audioPolicy === 'hard_cut_at_boundary' &&
+      (hardCutValid || panelDipValid) &&
+      transition.startFrame >= previousEndFrameExclusive
+    )
+    timingIds.add(transition.transitionTimingItemId)
+    refinedIds.add(transition.refinedTransitionTimingItemId)
+    previousEndFrameExclusive = transition.endFrameExclusive
+    if (transition.transitionType === 'smooth_panel_dip') panelDipCount += 1
+    return transitionValid
+  })
+  return valid && panelDipCount > 0
 }
 
 function hasApprovedHardCutInput(props: ApprovedCompositionProps): boolean {

@@ -258,6 +258,123 @@ function validateApprovedHardCuts(value, sourceSegments) {
   })
 }
 
+function validateApprovedBoundedSourceTransitions(value, sourceSegments, fps) {
+  if (!Array.isArray(value) || value.length !== sourceSegments.length - 1) {
+    throw new Error('source sequence requires one approved bounded transition per source boundary')
+  }
+  const timingIds = new Set()
+  const refinedIds = new Set()
+  let previousEndFrameExclusive = 0
+  const transitions = value.map((candidate, index) => {
+    const transition = exactObject(candidate, [
+      'transitionTimingItemId', 'refinedTransitionTimingItemId',
+      'fromSegmentId', 'toSegmentId',
+      'fromSourceSequenceItemId', 'toSourceSequenceItemId', 'boundaryFrame',
+      'transitionType', 'startFrame', 'endFrameExclusive', 'durationFrames',
+      'visualCurve', 'audioPolicy',
+    ], `bounded source transition ${index + 1}`)
+    const fromSource = sourceSegments[index]
+    const toSource = sourceSegments[index + 1]
+    const normalized = {
+      transitionTimingItemId: safeIdentity(
+        transition.transitionTimingItemId,
+        'transitionTimingItemId',
+      ),
+      refinedTransitionTimingItemId: safeIdentity(
+        transition.refinedTransitionTimingItemId,
+        'refinedTransitionTimingItemId',
+      ),
+      fromSegmentId: safeIdentity(transition.fromSegmentId, 'fromSegmentId'),
+      toSegmentId: safeIdentity(transition.toSegmentId, 'toSegmentId'),
+      fromSourceSequenceItemId: safeIdentity(
+        transition.fromSourceSequenceItemId,
+        'fromSourceSequenceItemId',
+      ),
+      toSourceSequenceItemId: safeIdentity(
+        transition.toSourceSequenceItemId,
+        'toSourceSequenceItemId',
+      ),
+      boundaryFrame: integer(
+        transition.boundaryFrame,
+        1,
+        MAXIMUM_SOURCE_SEQUENCE_FRAMES - 1,
+        'boundaryFrame',
+      ),
+      transitionType: oneOf(
+        transition.transitionType,
+        ['hard_cut', 'smooth_panel_dip'],
+        'transitionType',
+      ),
+      startFrame: integer(
+        transition.startFrame,
+        0,
+        MAXIMUM_SOURCE_SEQUENCE_FRAMES - 1,
+        'transition startFrame',
+      ),
+      endFrameExclusive: integer(
+        transition.endFrameExclusive,
+        0,
+        MAXIMUM_SOURCE_SEQUENCE_FRAMES,
+        'transition endFrameExclusive',
+      ),
+      durationFrames: integer(
+        transition.durationFrames,
+        0,
+        MAXIMUM_SOURCE_SEQUENCE_FRAMES,
+        'transition durationFrames',
+      ),
+      visualCurve: oneOf(
+        transition.visualCurve,
+        ['none', 'linear_dip_to_panel'],
+        'transition visualCurve',
+      ),
+      audioPolicy: oneOf(
+        transition.audioPolicy,
+        ['hard_cut_at_boundary'],
+        'transition audioPolicy',
+      ),
+    }
+    const panelDurationFrames = Math.round(fps * 0.4)
+    const panelStartFrame =
+      normalized.boundaryFrame - Math.floor(panelDurationFrames / 2)
+    const hardCutValid =
+      normalized.transitionType === 'hard_cut' &&
+      normalized.startFrame === normalized.boundaryFrame &&
+      normalized.endFrameExclusive === normalized.boundaryFrame &&
+      normalized.durationFrames === 0 &&
+      normalized.visualCurve === 'none'
+    const panelDipValid =
+      normalized.transitionType === 'smooth_panel_dip' &&
+      normalized.startFrame === panelStartFrame &&
+      normalized.endFrameExclusive === panelStartFrame + panelDurationFrames &&
+      normalized.durationFrames === panelDurationFrames &&
+      normalized.visualCurve === 'linear_dip_to_panel' &&
+      normalized.startFrame >= fromSource.timelineStartFrame &&
+      normalized.endFrameExclusive <= toSource.timelineEndFrameExclusive
+    if (
+      timingIds.has(normalized.transitionTimingItemId) ||
+      refinedIds.has(normalized.refinedTransitionTimingItemId) ||
+      normalized.fromSourceSequenceItemId !== fromSource.sourceSequenceItemId ||
+      normalized.toSourceSequenceItemId !== toSource.sourceSequenceItemId ||
+      normalized.boundaryFrame !== fromSource.timelineEndFrameExclusive ||
+      normalized.boundaryFrame !== toSource.timelineStartFrame ||
+      (!hardCutValid && !panelDipValid) ||
+      normalized.startFrame < previousEndFrameExclusive
+    ) throw new Error(
+      'approved bounded transitions must uniquely match non-overlapping exact source boundaries',
+    )
+    timingIds.add(normalized.transitionTimingItemId)
+    refinedIds.add(normalized.refinedTransitionTimingItemId)
+    previousEndFrameExclusive = normalized.endFrameExclusive
+    return normalized
+  })
+  if (!transitions.some((transition) =>
+    transition.transitionType === 'smooth_panel_dip')) {
+    throw new Error('bounded source-transition authority requires at least one approved panel dip')
+  }
+  return transitions
+}
+
 function isSourceSequenceProfile(value) {
   return value === 'approved_source_sequence_caption_final_v1' ||
     value === 'approved_source_sequence_caption_track_final_v1'
@@ -801,9 +918,12 @@ function validateRequest(value) {
     const replaceVoice = rawPayload.audioPolicy === 'replace_with_approved_voice_tracks'
     const sourceMediaPolicyProvided = Object.hasOwn(rawPayload, 'sourceMediaPolicy')
     const deliveryMasterAuthorityProvided = Object.hasOwn(rawPayload, 'renderPurpose')
+    const boundedSourceTransitions =
+      rawPayload.transitionPolicy === 'approved_bounded_source_transitions_v1'
     const payload = exactObject(rawPayload, [
       'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
-      'sourceSegments', 'transitionPolicy', 'hardCutTransitions',
+      'sourceSegments', 'transitionPolicy',
+      boundedSourceTransitions ? 'sourceTransitions' : 'hardCutTransitions',
       'sourceFit', 'panelBackground', 'audioPolicy',
       ...(sourceMediaPolicyProvided ? ['sourceMediaPolicy'] : []),
       'captionOverlayPolicy', ...(captionTrack ? ['captionOverlayCues'] : []), 'sources',
@@ -836,10 +956,22 @@ function validateRequest(value) {
             segment.timelineEndFrameExclusive - segment.timelineStartFrame)
       ))
     ) throw new Error('source-sequence color intermediate policy is unsupported')
-    const hardCutTransitions = validateApprovedHardCuts(
-      payload.hardCutTransitions,
-      sourceSegments,
-    )
+    const transitionAuthority = boundedSourceTransitions
+      ? {
+          transitionPolicy: 'approved_bounded_source_transitions_v1',
+          sourceTransitions: validateApprovedBoundedSourceTransitions(
+            payload.sourceTransitions,
+            sourceSegments,
+            fps,
+          ),
+        }
+      : {
+          transitionPolicy: 'approved_hard_cuts_only',
+          hardCutTransitions: validateApprovedHardCuts(
+            payload.hardCutTransitions,
+            sourceSegments,
+          ),
+        }
     if (!Array.isArray(payload.sources) || payload.sources.length !== sourceSegments.length) {
       throw new Error('source-sequence commitments are incomplete')
     }
@@ -884,7 +1016,10 @@ function validateRequest(value) {
         )
       : undefined
     if (
-      payload.transitionPolicy !== 'approved_hard_cuts_only' ||
+      ![
+        'approved_hard_cuts_only',
+        'approved_bounded_source_transitions_v1',
+      ].includes(payload.transitionPolicy) ||
       payload.sourceFit !== 'contain' ||
       !['preserve_source_sequence', 'replace_with_approved_voice_tracks'].includes(payload.audioPolicy) ||
       payload.captionOverlayPolicy !== (
@@ -901,7 +1036,8 @@ function validateRequest(value) {
         ...payload,
         width: integer(payload.width, 360, 3840, 'width'), height: integer(payload.height, 360, 3840, 'height'),
         fps, durationFrames, sourceSegments,
-        transitionPolicy: 'approved_hard_cuts_only', hardCutTransitions, sources,
+        ...transitionAuthority,
+        sources,
         ...(approvedColorIntermediate
           ? { sourceMediaPolicy: 'approved_professional_color_intermediate_v1' }
           : {}),
@@ -1093,9 +1229,12 @@ function validateStreamingPlanningPayload(value) {
   const sourceMediaPolicyProvided = Object.hasOwn(value, 'sourceMediaPolicy')
   const deliveryMasterAuthorityProvided = Object.hasOwn(value, 'renderPurpose')
   if (sourceSequence) {
+    const boundedSourceTransitions =
+      value.transitionPolicy === 'approved_bounded_source_transitions_v1'
     const payload = exactObject(value, [
       'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
-      'sourceSegments', 'transitionPolicy', 'hardCutTransitions',
+      'sourceSegments', 'transitionPolicy',
+      boundedSourceTransitions ? 'sourceTransitions' : 'hardCutTransitions',
       'sourceFit', 'panelBackground', 'audioPolicy',
       ...(sourceMediaPolicyProvided ? ['sourceMediaPolicy'] : []),
       'captionOverlayPolicy', ...(captionTrack ? ['captionOverlayCues'] : []),
@@ -1113,7 +1252,22 @@ function validateStreamingPlanningPayload(value) {
     )
     const fps = oneOf(payload.fps, [24, 30], 'fps')
     const sourceSegments = validateSourceSegments(payload.sourceSegments, durationFrames)
-    const hardCutTransitions = validateApprovedHardCuts(payload.hardCutTransitions, sourceSegments)
+    const transitionAuthority = boundedSourceTransitions
+      ? {
+          transitionPolicy: 'approved_bounded_source_transitions_v1',
+          sourceTransitions: validateApprovedBoundedSourceTransitions(
+            payload.sourceTransitions,
+            sourceSegments,
+            fps,
+          ),
+        }
+      : {
+          transitionPolicy: 'approved_hard_cuts_only',
+          hardCutTransitions: validateApprovedHardCuts(
+            payload.hardCutTransitions,
+            sourceSegments,
+          ),
+        }
     const approvedColorIntermediate =
       payload.sourceMediaPolicy === 'approved_professional_color_intermediate_v1'
     if (
@@ -1125,7 +1279,10 @@ function validateStreamingPlanningPayload(value) {
           segment.sourceEndFrameExclusive !==
             segment.timelineEndFrameExclusive - segment.timelineStartFrame)
       )) ||
-      payload.transitionPolicy !== 'approved_hard_cuts_only' ||
+      ![
+        'approved_hard_cuts_only',
+        'approved_bounded_source_transitions_v1',
+      ].includes(payload.transitionPolicy) ||
       payload.sourceFit !== 'contain' ||
       !['preserve_source_sequence', 'replace_with_approved_voice_tracks'].includes(payload.audioPolicy) ||
       payload.captionOverlayPolicy !== (
@@ -1149,7 +1306,7 @@ function validateStreamingPlanningPayload(value) {
       fps,
       durationFrames,
       sourceSegments,
-      hardCutTransitions,
+      ...transitionAuthority,
       panelBackground: normalizedColor(payload.panelBackground, 'panelBackground'),
       ...(captionTrack
         ? { captionOverlayCues: validateCaptionOverlayCues(payload.captionOverlayCues, durationFrames) }
@@ -2309,7 +2466,9 @@ async function execute(request, options = {}) {
         fps: request.payload.fps, durationFrames: request.payload.durationFrames,
         sourceSegments: request.payload.sourceSegments,
         transitionPolicy: request.payload.transitionPolicy,
-        hardCutTransitions: request.payload.hardCutTransitions,
+        ...(request.payload.transitionPolicy === 'approved_hard_cuts_only'
+          ? { hardCutTransitions: request.payload.hardCutTransitions }
+          : { sourceTransitions: request.payload.sourceTransitions }),
         sourceFit: request.payload.sourceFit, panelBackground: request.payload.panelBackground,
         audioPolicy: request.payload.audioPolicy, captionOverlayPolicy: request.payload.captionOverlayPolicy,
         sourceInternalUrls: request.payload.sources.map((source, index) => ({
@@ -2865,8 +3024,16 @@ function semanticEvidence(request, streaming) {
             approvedCaptionOverlayBytesVerified: true,
             approvedSourceTrimFramesApplied: true,
             approvedSourceSequenceTimelineApplied: true,
-            approvedHardCutTransitionAuthorityRead: true,
-            approvedHardCutTransitionsApplied: true,
+            ...(request.payload.transitionPolicy === 'approved_hard_cuts_only'
+              ? {
+                  approvedHardCutTransitionAuthorityRead: true,
+                  approvedHardCutTransitionsApplied: true,
+                }
+              : {
+                  approvedBoundedSourceTransitionAuthorityRead: true,
+                  approvedSmoothPanelDipsApplied: true,
+                }),
+            approvedTransitionAudioHardCutsPreserved: true,
             finalCompositionProfileExecuted: true,
             ...(request.payload.audioPolicy === 'replace_with_approved_voice_tracks'
               ? {

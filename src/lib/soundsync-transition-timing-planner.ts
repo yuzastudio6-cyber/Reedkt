@@ -225,9 +225,13 @@ function createRefinedTransitions(params: {
       beatSnapDecision: snapDecision,
       input: params.input,
       masterTransition: transition,
+      transitionIndex: index,
       visualMotivated: Boolean(nearbyCue),
     })
-    if (transitionType === 'hard_cut') {
+    if (
+      transitionType === 'hard_cut' ||
+      transitionType === 'smooth_panel_dip'
+    ) {
       const toSegment = params.masterTimingPlan.finalTimelineSegments.find((segment) =>
         segment.segmentId === transition.toSegmentId || segment.id === transition.toSegmentId)
       const exactBoundaryFrame = toSegment?.finalRange.startFrame
@@ -249,8 +253,24 @@ function createRefinedTransitions(params: {
       input: params.input,
       transitionType,
     })
-    const startFrame = Math.min(params.masterTimingPlan.timingBase.totalFrames, snapDecision.snappedFrame)
-    const endFrame = Math.min(params.masterTimingPlan.timingBase.totalFrames, startFrame + durationFrames)
+    const exactBoundaryFrame = params.masterTimingPlan.finalTimelineSegments.find((segment) =>
+      segment.segmentId === transition.toSegmentId || segment.id === transition.toSegmentId)
+      ?.finalRange.startFrame
+    const centeredPanelDipStart = transitionType === 'smooth_panel_dip' &&
+      exactBoundaryFrame !== undefined
+      ? exactBoundaryFrame - Math.floor(durationFrames / 2)
+      : undefined
+    const startFrame = Math.max(
+      0,
+      Math.min(
+        params.masterTimingPlan.timingBase.totalFrames,
+        centeredPanelDipStart ?? snapDecision.snappedFrame,
+      ),
+    )
+    const endFrame = Math.min(
+      params.masterTimingPlan.timingBase.totalFrames,
+      startFrame + durationFrames,
+    )
     const beatAligned = snapDecision.snapDecision === 'snap_to_beat' || snapDecision.snapDecision === 'snap_to_onset'
     const downbeatAligned = snapDecision.snapDecision === 'snap_to_downbeat'
     const phraseBoundaryAligned = transition.phraseBoundaryAligned || snapDecision.snapDecision === 'snap_to_phrase_boundary'

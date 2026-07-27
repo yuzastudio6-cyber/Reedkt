@@ -277,6 +277,17 @@ try {
   ], { encoding: 'utf8' })
   assert.equal(generated.status, 0, generated.stderr)
   const sourceBytes = await readFile(sourcePath)
+  const secondSourcePath = join(fixtureRoot, 'second-source-with-audio.mp4')
+  const generatedSecondSource = spawnSync('ffmpeg', [
+    '-hide_banner', '-loglevel', 'error',
+    '-f', 'lavfi', '-i', 'color=c=0x2457D6:size=640x360:rate=24',
+    '-f', 'lavfi', '-i', 'sine=frequency=880:sample_rate=48000',
+    '-t', '1', '-c:v', 'libx264', '-pix_fmt', 'yuv420p',
+    '-c:a', 'aac', '-b:a', '96k', '-shortest', '-movflags', '+faststart',
+    secondSourcePath,
+  ], { encoding: 'utf8' })
+  assert.equal(generatedSecondSource.status, 0, generatedSecondSource.stderr)
+  const secondSourceBytes = await readFile(secondSourcePath)
   const libassRuntime = await activatePrivateOfflineLibassCaptionRuntime()
   const overlay = await libassRuntime.execute({
     schemaVersion: 'offline-libass-caption-execution-v1', toolId: 'libass',
@@ -396,8 +407,9 @@ try {
       sourceSequenceItemId: 'approved-source-a', mimeType: 'video/mp4', bytes: sourceBytes,
       sha256: createHash('sha256').update(sourceBytes).digest('hex'),
     }, {
-      sourceSequenceItemId: 'approved-source-b', mimeType: 'video/mp4', bytes: sourceBytes,
-      sha256: createHash('sha256').update(sourceBytes).digest('hex'),
+      sourceSequenceItemId: 'approved-source-b', mimeType: 'video/mp4',
+      bytes: secondSourceBytes,
+      sha256: createHash('sha256').update(secondSourceBytes).digest('hex'),
     }],
     captionOverlays: [{
       outputKey: 'caption-overlay-1-png', mimeType: 'image/png',
@@ -412,6 +424,9 @@ try {
     !('compositionProfileId' in sourceSequencePayload) ||
     sourceSequencePayload.compositionProfileId !== 'approved_source_sequence_caption_track_final_v1'
   ) throw new Error('Source-sequence smoke request compiled to the wrong profile.')
+  if (sourceSequencePayload.transitionPolicy !== 'approved_hard_cuts_only') {
+    throw new Error('Source-sequence hard-cut fixture changed transition policy.')
+  }
   assert.throws(() => validateOfflineRemotionRenderRequest({
     ...sourceSequenceRequest,
     payload: {
@@ -495,6 +510,144 @@ try {
   const sourceSequenceStreams = sourceSequenceProbe.resultJson.document.streams as Array<Record<string, unknown>>
   assert.equal(sourceSequenceStreams.find((stream) => stream.codecType === 'video')?.readFrameCount, 48)
   assert.equal(sourceSequenceStreams.find((stream) => stream.codecType === 'audio')?.codecName, 'aac')
+
+  const approvedPanelDipTransitions = [{
+    transitionTimingItemId: 'approved-panel-dip-1',
+    refinedTransitionTimingItemId: 'approved-refined-panel-dip-1',
+    fromSegmentId: 'segment-1',
+    toSegmentId: 'segment-2',
+    fromSourceSequenceItemId: 'approved-source-a',
+    toSourceSequenceItemId: 'approved-source-b',
+    boundaryFrame: 24,
+    transitionType: 'smooth_panel_dip',
+    startFrame: 19,
+    endFrameExclusive: 29,
+    durationFrames: 10,
+    visualCurve: 'linear_dip_to_panel',
+    audioPolicy: 'hard_cut_at_boundary',
+  }] as const
+  const panelDipRequest = buildOfflineRemotionFinalCompositionRequest({
+    planningPayload: {
+      compositionProfileId: 'approved_source_sequence_caption_track_final_v1',
+      width: 640, height: 360, fps: 24, durationFrames: 48,
+      sourceSegments: [{
+        sourceSequenceItemId: 'approved-source-a',
+        sourceStartFrame: 0, sourceEndFrameExclusive: 24,
+        timelineStartFrame: 0, timelineEndFrameExclusive: 24,
+      }, {
+        sourceSequenceItemId: 'approved-source-b',
+        sourceStartFrame: 0, sourceEndFrameExclusive: 24,
+        timelineStartFrame: 24, timelineEndFrameExclusive: 48,
+      }],
+      transitionPolicy: 'approved_bounded_source_transitions_v1',
+      sourceTransitions: approvedPanelDipTransitions,
+      sourceFit: 'contain', panelBackground: '#000000',
+      audioPolicy: 'preserve_source_sequence',
+      captionOverlayPolicy: 'approved_timed_full_frame_rgba_track',
+      captionOverlayCues: [{
+        outputKey: 'caption-overlay-1-png', startFrame: 0, endFrameExclusive: 24,
+      }, {
+        outputKey: 'caption-overlay-2-png', startFrame: 24, endFrameExclusive: 48,
+      }],
+    },
+    sources: [{
+      sourceSequenceItemId: 'approved-source-a', mimeType: 'video/mp4', bytes: sourceBytes,
+      sha256: createHash('sha256').update(sourceBytes).digest('hex'),
+    }, {
+      sourceSequenceItemId: 'approved-source-b', mimeType: 'video/mp4',
+      bytes: secondSourceBytes,
+      sha256: createHash('sha256').update(secondSourceBytes).digest('hex'),
+    }],
+    captionOverlays: [{
+      outputKey: 'caption-overlay-1-png', mimeType: 'image/png',
+      bytes: overlay.imageArtifact.bytes, sha256: overlay.imageArtifact.sha256,
+    }, {
+      outputKey: 'caption-overlay-2-png', mimeType: 'image/png',
+      bytes: secondOverlay.imageArtifact.bytes, sha256: secondOverlay.imageArtifact.sha256,
+    }],
+  })
+  const panelDipPayload = panelDipRequest.payload
+  if (
+    !isFinalCompositionPayload(panelDipPayload) ||
+    !('transitionPolicy' in panelDipPayload) ||
+    panelDipPayload.transitionPolicy !== 'approved_bounded_source_transitions_v1'
+  ) throw new Error('Panel-dip request compiled to the wrong transition authority.')
+  assert.throws(() => validateOfflineRemotionRenderRequest({
+    ...panelDipRequest,
+    payload: {
+      ...panelDipPayload,
+      sourceTransitions: panelDipPayload.sourceTransitions.map((transition) => ({
+        ...transition,
+        startFrame: transition.startFrame - 1,
+        durationFrames: transition.durationFrames + 1,
+      })),
+    },
+  }), /bounded|transition|boundary/)
+  assert.throws(() => validateOfflineRemotionRenderRequest({
+    ...panelDipRequest,
+    payload: {
+      ...panelDipPayload,
+      sourceTransitions: panelDipPayload.sourceTransitions.map((transition) => ({
+        ...transition,
+        transitionType: 'hard_cut',
+        startFrame: transition.boundaryFrame,
+        endFrameExclusive: transition.boundaryFrame,
+        durationFrames: 0,
+        visualCurve: 'none',
+      })),
+    },
+  }), /panel dip|bounded|legacy/)
+  assert.throws(() => validateOfflineRemotionRenderRequest({
+    ...panelDipRequest,
+    payload: {
+      ...panelDipPayload,
+      hardCutTransitions: approvedHardCutTransitions,
+    },
+  }), /unsupported/)
+  const panelDipResult = await reopened.execute(panelDipRequest)
+  assert.equal(panelDipResult.artifact.durationFrames, 48)
+  assert.equal(
+    panelDipResult.evidence.semanticEvidence.approvedBoundedSourceTransitionAuthorityRead,
+    true,
+  )
+  assert.equal(
+    panelDipResult.evidence.semanticEvidence.approvedSmoothPanelDipsApplied,
+    true,
+  )
+  assert.equal(
+    panelDipResult.evidence.semanticEvidence.approvedTransitionAudioHardCutsPreserved,
+    true,
+  )
+  assert.equal(
+    panelDipResult.evidence.semanticEvidence.approvedHardCutTransitionAuthorityRead,
+    undefined,
+  )
+  const panelDipArtifactPath = join(fixtureRoot, 'source-sequence-panel-dip.mp4')
+  await writeFile(panelDipArtifactPath, panelDipResult.artifact.bytes)
+  const beforePanelDipRgb = readCenterRgb(panelDipArtifactPath, 18)
+  const atPanelDipRgb = readCenterRgb(panelDipArtifactPath, 24)
+  const afterPanelDipRgb = readCenterRgb(panelDipArtifactPath, 30)
+  assert.ok(
+    beforePanelDipRgb[0]! + beforePanelDipRgb[1]! + beforePanelDipRgb[2]! > 80,
+    'The approved outgoing source must remain visible before the panel dip starts.',
+  )
+  assert.ok(
+    atPanelDipRgb[0]! + atPanelDipRgb[1]! + atPanelDipRgb[2]! < 45,
+    'The exact approved transition boundary must reveal the black panel background.',
+  )
+  assert.ok(
+    afterPanelDipRgb[2]! > afterPanelDipRgb[0]! + 40 &&
+      afterPanelDipRgb[2]! > afterPanelDipRgb[1]! + 20,
+    'The approved incoming blue source must be fully restored after the panel dip.',
+  )
+  const firstSourcePcm = readMonoPcmWindow(panelDipArtifactPath, 0.35, 0.25)
+  const secondSourcePcm = readMonoPcmWindow(panelDipArtifactPath, 1.35, 0.25)
+  const firstSourceZeroCrossings = countPcmZeroCrossings(firstSourcePcm)
+  const secondSourceZeroCrossings = countPcmZeroCrossings(secondSourcePcm)
+  assert.ok(
+    secondSourceZeroCrossings > firstSourceZeroCrossings * 1.6,
+    'The visual panel dip must preserve the exact source-audio boundary from 440Hz to 880Hz.',
+  )
 
   const voiceDelivery = await mediaRuntime.execute({
     schemaVersion: 'offline-media-binary-execution-v1', toolId: 'ffmpeg',
@@ -641,8 +794,9 @@ try {
       sourceSequenceItemId: 'approved-source-a', mimeType: 'video/mp4', bytes: sourceBytes,
       sha256: createHash('sha256').update(sourceBytes).digest('hex'),
     }, {
-      sourceSequenceItemId: 'approved-source-b', mimeType: 'video/mp4', bytes: sourceBytes,
-      sha256: createHash('sha256').update(sourceBytes).digest('hex'),
+      sourceSequenceItemId: 'approved-source-b', mimeType: 'video/mp4',
+      bytes: secondSourceBytes,
+      sha256: createHash('sha256').update(secondSourceBytes).digest('hex'),
     }],
     captionOverlays: [{
       outputKey: 'caption-overlay-1-png', mimeType: 'image/png',
@@ -732,7 +886,7 @@ try {
 
 console.log(JSON.stringify({
   smoke: 'offline_remotion_render_execution', status: 'passed',
-  proofs: ['exact_operation_payload_validated', 'caller_paths_urls_commands_and_extra_fields_rejected', 'checkout_derived_runtime_image_and_authority_namespace_isolated_from_parallel_worktrees', 'checksum_protected_runtime_authority_persisted_and_reopened', 'pinned_image_identity_verified', 'network_none_read_only_non_root_cap_drop_confinement_verified', 'embedded_cgroup_v2_cpu_and_peak_memory_observation_verified_before_container_cleanup', 'resource_observation_bound_to_pinned_measurement_agent_and_execution_attestation', 'actual_remotion_select_and_render_media_executed', 'motion_studio_scene_preview_and_three_frame_goldens_rendered', 'motion_studio_layered_preview_reads_exact_rgba_subject_and_preserves_four_plane_depth', 'motion_studio_prepared_script_animatic_reads_exact_wav_narration_and_renders_three_frame_goldens', 'motion_studio_deterministic_route_reads_exact_opaque_keyframe_and_renders_five_frame_goldens_with_observed_resources', 'mp4_hash_frame_timing_and_header_verified', 'independent_pinned_ffprobe_h264_frame_count_pixel_format_complete_bt709_vui_and_duration_qa_passed', 'server_injected_source_mp4_libass_png_and_pcm_wav_hash_commitments_verified', 'approved_nonzero_source_trim_frames_applied', 'actual_source_plus_caption_final_composition_rendered', 'ordered_two_source_sequence_and_timed_caption_track_final_composition_rendered', 'approved_hard_cut_authority_and_exact_source_boundary_applied', 'distinct_caption_track_frames_decoded_and_verified', 'source_sequence_frame_ranges_and_audio_preserved', 'approved_source_bound_professional_voice_tracks_replaced_source_audio', 'approved_lossless_vp9_matroska_professional_color_intermediate_composed_with_replacement_voice', 'professional_color_intermediate_policy_and_mime_tampering_rejected', 'professional_color_final_composition_replay_is_deterministic', 'voice_track_order_duration_hash_and_pcm_format_tampering_rejected', 'voice_replacement_replay_is_deterministic', 'final_aac_audio_decoded_and_independently_verified', 'final_composition_paths_urls_commands_and_tampered_bytes_rejected', 'product_beta_production_readiness_remains_false'],
+  proofs: ['exact_operation_payload_validated', 'caller_paths_urls_commands_and_extra_fields_rejected', 'checkout_derived_runtime_image_and_authority_namespace_isolated_from_parallel_worktrees', 'checksum_protected_runtime_authority_persisted_and_reopened', 'pinned_image_identity_verified', 'network_none_read_only_non_root_cap_drop_confinement_verified', 'embedded_cgroup_v2_cpu_and_peak_memory_observation_verified_before_container_cleanup', 'resource_observation_bound_to_pinned_measurement_agent_and_execution_attestation', 'actual_remotion_select_and_render_media_executed', 'motion_studio_scene_preview_and_three_frame_goldens_rendered', 'motion_studio_layered_preview_reads_exact_rgba_subject_and_preserves_four_plane_depth', 'motion_studio_prepared_script_animatic_reads_exact_wav_narration_and_renders_three_frame_goldens', 'motion_studio_deterministic_route_reads_exact_opaque_keyframe_and_renders_five_frame_goldens_with_observed_resources', 'mp4_hash_frame_timing_and_header_verified', 'independent_pinned_ffprobe_h264_frame_count_pixel_format_complete_bt709_vui_and_duration_qa_passed', 'server_injected_source_mp4_libass_png_and_pcm_wav_hash_commitments_verified', 'approved_nonzero_source_trim_frames_applied', 'actual_source_plus_caption_final_composition_rendered', 'ordered_two_source_sequence_and_timed_caption_track_final_composition_rendered', 'approved_hard_cut_authority_and_exact_source_boundary_applied', 'approved_smooth_panel_dip_reaches_exact_panel_color_and_restores_incoming_source', 'approved_panel_dip_preserves_exact_source_audio_boundary', 'bounded_transition_window_duration_policy_and_legacy_authority_tampering_rejected', 'distinct_caption_track_frames_decoded_and_verified', 'source_sequence_frame_ranges_and_audio_preserved', 'approved_source_bound_professional_voice_tracks_replaced_source_audio', 'approved_lossless_vp9_matroska_professional_color_intermediate_composed_with_replacement_voice', 'professional_color_intermediate_policy_and_mime_tampering_rejected', 'professional_color_final_composition_replay_is_deterministic', 'voice_track_order_duration_hash_and_pcm_format_tampering_rejected', 'voice_replacement_replay_is_deterministic', 'final_aac_audio_decoded_and_independently_verified', 'final_composition_paths_urls_commands_and_tampered_bytes_rejected', 'product_beta_production_readiness_remains_false'],
   artifact: { sha256: result.artifact.sha256, byteLength: result.artifact.byteLength, width: result.artifact.width, height: result.artifact.height, fps: result.artifact.fps, durationFrames: result.artifact.durationFrames },
 }, null, 2))
 
@@ -774,4 +928,39 @@ function createPngFixture(input: {
   assert.equal(generated.status, 0, generated.stderr.toString())
   assert.ok(generated.stdout instanceof Buffer)
   return generated.stdout
+}
+
+function readCenterRgb(path: string, frame: number): Buffer {
+  const decoded = spawnSync('ffmpeg', [
+    '-hide_banner', '-loglevel', 'error', '-i', path,
+    '-vf', `select=eq(n\\,${frame}),format=rgb24,crop=1:1:319:179`,
+    '-fps_mode', 'passthrough', '-frames:v', '1', '-f', 'rawvideo', 'pipe:1',
+  ], { maxBuffer: 1024 })
+  assert.equal(decoded.status, 0, decoded.stderr.toString())
+  assert.equal(decoded.stdout.byteLength, 3)
+  return decoded.stdout
+}
+
+function readMonoPcmWindow(path: string, startSeconds: number, durationSeconds: number): Buffer {
+  const decoded = spawnSync('ffmpeg', [
+    '-hide_banner', '-loglevel', 'error', '-i', path,
+    '-ss', String(startSeconds), '-t', String(durationSeconds),
+    '-map', '0:a:0', '-f', 's16le', '-ac', '1', '-ar', '48000', 'pipe:1',
+  ], { maxBuffer: 1024 * 1024 })
+  assert.equal(decoded.status, 0, decoded.stderr.toString())
+  assert.ok(decoded.stdout.byteLength > 0)
+  return decoded.stdout
+}
+
+function countPcmZeroCrossings(pcm: Buffer): number {
+  let crossings = 0
+  let previousSign = 0
+  for (let offset = 0; offset + 1 < pcm.byteLength; offset += 2) {
+    const sample = pcm.readInt16LE(offset)
+    if (sample === 0) continue
+    const sign = sample > 0 ? 1 : -1
+    if (previousSign !== 0 && sign !== previousSign) crossings += 1
+    previousSign = sign
+  }
+  return crossings
 }

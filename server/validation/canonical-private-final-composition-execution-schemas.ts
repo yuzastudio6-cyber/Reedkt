@@ -93,6 +93,30 @@ const approvedHardCutTransitionsSchema = z.array(z.object({
     .max(CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES - 1),
 }).strict()).min(1).max(CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_HARD_CUTS)
 
+const approvedBoundedSourceTransitionsSchema = z.array(z.object({
+  transitionTimingItemId: identity,
+  refinedTransitionTimingItemId: identity,
+  fromSegmentId: identity,
+  toSegmentId: identity,
+  fromSourceSequenceItemId: identity,
+  toSourceSequenceItemId: identity,
+  boundaryFrame: z.number().int().min(1)
+    .max(CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES - 1),
+  transitionType: z.enum(['hard_cut', 'smooth_panel_dip']),
+  startFrame: z.number().int().nonnegative()
+    .max(CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES - 1),
+  endFrameExclusive: z.number().int().nonnegative()
+    .max(CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES),
+  durationFrames: z.number().int().nonnegative()
+    .max(CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES),
+  visualCurve: z.enum(['none', 'linear_dip_to_panel']),
+  audioPolicy: z.literal('hard_cut_at_boundary'),
+}).strict()).min(1).max(CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_HARD_CUTS)
+  .refine((transitions) => transitions.some((transition) =>
+    transition.transitionType === 'smooth_panel_dip'), {
+    message: 'Bounded source-transition evidence requires at least one panel dip.',
+  })
+
 const sourceSequenceInputSchema = z.object({
   sourceSequenceItemId: identity,
   sourceMediaAssetId: identity,
@@ -193,14 +217,30 @@ const singleSourceFinalCompositionInputsSchema = finalCompositionDependencyInput
   colorSource: approvedColorSourceSchema.optional(),
 }).strict()
 
-const sourceSequenceFinalCompositionInputsSchema = finalCompositionDependencyInputsSchema.extend({
+const sourceSequenceFinalCompositionInputsBaseSchema =
+finalCompositionDependencyInputsSchema.extend({
   sources: sourceSequenceInputsSchema,
-  transitionPolicy: z.literal('approved_hard_cuts_only'),
-  hardCutTransitions: approvedHardCutTransitionsSchema,
   combinedSourceByteLength: z.number().int().positive().max(REEDITPRO_SOURCE_MEDIA_MAX_BYTES * 8),
   sourceSequenceReadEvidenceHash: sha,
   colorSources: z.array(approvedColorSourceSchema).min(2).max(8).optional(),
 }).strict()
+const sourceSequenceFinalCompositionHardCutInputsSchema =
+  sourceSequenceFinalCompositionInputsBaseSchema.extend({
+    transitionPolicy: z.literal('approved_hard_cuts_only'),
+    hardCutTransitions: approvedHardCutTransitionsSchema,
+  }).strict()
+const sourceSequenceFinalCompositionBoundedTransitionInputsSchema =
+  sourceSequenceFinalCompositionInputsBaseSchema.extend({
+    transitionPolicy: z.literal('approved_bounded_source_transitions_v1'),
+    sourceTransitions: approvedBoundedSourceTransitionsSchema,
+  }).strict()
+const sourceSequenceFinalCompositionInputsSchema = z.discriminatedUnion(
+  'transitionPolicy',
+  [
+    sourceSequenceFinalCompositionHardCutInputsSchema,
+    sourceSequenceFinalCompositionBoundedTransitionInputsSchema,
+  ],
+)
 
 const singleSourceCaptionTrackFinalCompositionInputsSchema = captionTrackDependencyInputsSchema.extend({
   sourceSequenceItemId: identity, sourceMediaAssetId: identity,
@@ -214,14 +254,28 @@ const singleSourceCaptionTrackFinalCompositionInputsSchema = captionTrackDepende
   colorSource: approvedColorSourceSchema.optional(),
 }).strict()
 
-const sourceSequenceCaptionTrackFinalCompositionInputsSchema = captionTrackDependencyInputsSchema.extend({
+const sourceSequenceCaptionTrackFinalCompositionInputsBaseSchema =
+captionTrackDependencyInputsSchema.extend({
   sources: sourceSequenceInputsSchema,
-  transitionPolicy: z.literal('approved_hard_cuts_only'),
-  hardCutTransitions: approvedHardCutTransitionsSchema,
   combinedSourceByteLength: z.number().int().positive().max(REEDITPRO_SOURCE_MEDIA_MAX_BYTES * 8),
   sourceSequenceReadEvidenceHash: sha,
   colorSources: z.array(approvedColorSourceSchema).min(2).max(8).optional(),
 }).strict()
+const sourceSequenceCaptionTrackFinalCompositionHardCutInputsSchema =
+  sourceSequenceCaptionTrackFinalCompositionInputsBaseSchema.extend({
+    transitionPolicy: z.literal('approved_hard_cuts_only'),
+    hardCutTransitions: approvedHardCutTransitionsSchema,
+  }).strict()
+const sourceSequenceCaptionTrackFinalCompositionBoundedTransitionInputsSchema =
+  sourceSequenceCaptionTrackFinalCompositionInputsBaseSchema.extend({
+    transitionPolicy: z.literal('approved_bounded_source_transitions_v1'),
+    sourceTransitions: approvedBoundedSourceTransitionsSchema,
+  }).strict()
+const sourceSequenceCaptionTrackFinalCompositionInputsSchema =
+  z.discriminatedUnion('transitionPolicy', [
+    sourceSequenceCaptionTrackFinalCompositionHardCutInputsSchema,
+    sourceSequenceCaptionTrackFinalCompositionBoundedTransitionInputsSchema,
+  ])
 
 export const canonicalPrivateFinalCompositionResponseSchema = z.object({
   schemaVersion: z.literal('canonical-private-final-composition-execution-response-v5'),
@@ -249,6 +303,9 @@ export const canonicalPrivateFinalCompositionResponseSchema = z.object({
     approvedSourceTrimFramesApplied: z.literal(true),
     approvedHardCutTransitionAuthorityRead: z.boolean(),
     approvedHardCutTransitionsApplied: z.boolean(),
+    approvedBoundedSourceTransitionAuthorityRead: z.boolean(),
+    approvedSmoothPanelDipsApplied: z.boolean(),
+    approvedTransitionAudioHardCutsPreserved: z.boolean(),
     approvedCaptionDependencyRead: z.literal(true),
     approvedCaptionTrackTimingApplied: z.boolean(),
     audioPolicy: z.enum([
@@ -434,17 +491,15 @@ export const canonicalPrivateFinalCompositionResponseSchema = z.object({
       message: 'Final-composition professional color evidence diverged from its source-bound intermediate.',
     })
   }
-  let hardCutEvidenceValid: boolean
+  let transitionEvidenceValid: boolean
   if ('sources' in value.inputs) {
     const sequence = value.inputs
     const timingIds = new Set<string>()
     const refinedTimingIds = new Set<string>()
-    hardCutEvidenceValid =
-      value.tool.approvedHardCutTransitionAuthorityRead &&
-      value.tool.approvedHardCutTransitionsApplied &&
-      sequence.transitionPolicy === 'approved_hard_cuts_only' &&
-      sequence.hardCutTransitions.length === sequence.sources.length - 1 &&
-      sequence.hardCutTransitions.every((transition, index) => {
+    const exactHardCutsValid = (
+      transitions: z.infer<typeof approvedHardCutTransitionsSchema>,
+    ) => transitions.length === sequence.sources.length - 1 &&
+      transitions.every((transition, index) => {
         const fromSource = sequence.sources[index]
         const toSource = sequence.sources[index + 1]
         const unique =
@@ -452,27 +507,102 @@ export const canonicalPrivateFinalCompositionResponseSchema = z.object({
           !refinedTimingIds.has(transition.refinedTransitionTimingItemId)
         timingIds.add(transition.transitionTimingItemId)
         refinedTimingIds.add(transition.refinedTransitionTimingItemId)
-        return unique && Boolean(
+        const commonValid = unique && Boolean(
           fromSource && toSource &&
           transition.fromSourceSequenceItemId === fromSource.sourceSequenceItemId &&
           transition.toSourceSequenceItemId === toSource.sourceSequenceItemId &&
           transition.boundaryFrame === fromSource.timelineEndFrameExclusive &&
           transition.boundaryFrame === toSource.timelineStartFrame
         )
+        return commonValid
       })
+    const exactBoundedTransitionsValid = (
+      transitions: z.infer<typeof approvedBoundedSourceTransitionsSchema>,
+    ) => {
+      let previousEndFrameExclusive = 0
+      return transitions.length === sequence.sources.length - 1 &&
+        transitions.every((transition, index) => {
+          const fromSource = sequence.sources[index]
+          const toSource = sequence.sources[index + 1]
+          const unique =
+            !timingIds.has(transition.transitionTimingItemId) &&
+            !refinedTimingIds.has(transition.refinedTransitionTimingItemId)
+          timingIds.add(transition.transitionTimingItemId)
+          refinedTimingIds.add(transition.refinedTransitionTimingItemId)
+          const commonValid = unique && Boolean(
+            fromSource && toSource &&
+            transition.fromSourceSequenceItemId ===
+              fromSource.sourceSequenceItemId &&
+            transition.toSourceSequenceItemId ===
+              toSource.sourceSequenceItemId &&
+            transition.boundaryFrame === fromSource.timelineEndFrameExclusive &&
+            transition.boundaryFrame === toSource.timelineStartFrame
+          )
+        const panelDurationFrames = Math.round(value.qa.fps * 0.4)
+        const panelStartFrame =
+          transition.boundaryFrame - Math.floor(panelDurationFrames / 2)
+        const hardCutValid =
+          transition.transitionType === 'hard_cut' &&
+          transition.startFrame === transition.boundaryFrame &&
+          transition.endFrameExclusive === transition.boundaryFrame &&
+          transition.durationFrames === 0 &&
+          transition.visualCurve === 'none'
+        const panelDipValid =
+          transition.transitionType === 'smooth_panel_dip' &&
+          transition.startFrame === panelStartFrame &&
+          transition.endFrameExclusive === panelStartFrame +
+            panelDurationFrames &&
+          transition.durationFrames === panelDurationFrames &&
+          transition.visualCurve === 'linear_dip_to_panel' &&
+          transition.startFrame >= (fromSource?.timelineStartFrame ?? -1) &&
+          transition.endFrameExclusive <=
+            (toSource?.timelineEndFrameExclusive ?? -1)
+        const nonOverlapping =
+          transition.startFrame >= previousEndFrameExclusive
+        previousEndFrameExclusive = transition.endFrameExclusive
+        return commonValid && transition.audioPolicy ===
+          'hard_cut_at_boundary' && nonOverlapping &&
+          (hardCutValid || panelDipValid)
+        })
+    }
+    const exactTransitionsValid =
+      sequence.transitionPolicy === 'approved_hard_cuts_only'
+        ? exactHardCutsValid(sequence.hardCutTransitions)
+        : exactBoundedTransitionsValid(sequence.sourceTransitions)
+    transitionEvidenceValid =
+      value.tool.approvedTransitionAudioHardCutsPreserved &&
+      exactTransitionsValid &&
+      (sequence.transitionPolicy === 'approved_hard_cuts_only'
+        ? (
+            value.tool.approvedHardCutTransitionAuthorityRead &&
+            value.tool.approvedHardCutTransitionsApplied &&
+            !value.tool.approvedBoundedSourceTransitionAuthorityRead &&
+            !value.tool.approvedSmoothPanelDipsApplied
+          )
+        : (
+            !value.tool.approvedHardCutTransitionAuthorityRead &&
+            !value.tool.approvedHardCutTransitionsApplied &&
+            value.tool.approvedBoundedSourceTransitionAuthorityRead &&
+            value.tool.approvedSmoothPanelDipsApplied &&
+            sequence.sourceTransitions.some((transition) =>
+              transition.transitionType === 'smooth_panel_dip')
+          ))
   } else {
-    hardCutEvidenceValid =
+    transitionEvidenceValid =
       !value.tool.approvedHardCutTransitionAuthorityRead &&
-      !value.tool.approvedHardCutTransitionsApplied
+      !value.tool.approvedHardCutTransitionsApplied &&
+      !value.tool.approvedBoundedSourceTransitionAuthorityRead &&
+      !value.tool.approvedSmoothPanelDipsApplied &&
+      !value.tool.approvedTransitionAudioHardCutsPreserved
   }
   if (
     sequenceProfile !== sequenceInputs ||
-    !hardCutEvidenceValid
+    !transitionEvidenceValid
   ) {
     context.addIssue({
       code: z.ZodIssueCode.custom,
-      path: ['tool', 'approvedHardCutTransitionsApplied'],
-      message: 'Final-composition hard-cut evidence diverged from the approved sequence profile.',
+      path: ['tool', 'approvedTransitionAudioHardCutsPreserved'],
+      message: 'Final-composition transition evidence diverged from the approved sequence profile.',
     })
   }
 })
@@ -597,6 +727,9 @@ export const canonicalPrivateCompositionChunkResponseSchema = z.object({
     approvedSourceTrimFramesApplied: z.literal(true),
     approvedHardCutTransitionAuthorityRead: z.boolean(),
     approvedHardCutTransitionsApplied: z.boolean(),
+    approvedBoundedSourceTransitionAuthorityRead: z.boolean(),
+    approvedSmoothPanelDipsApplied: z.boolean(),
+    approvedTransitionAudioHardCutsPreserved: z.boolean(),
     approvedCaptionDependencyRead: z.literal(true),
     approvedCaptionTrackTimingApplied: z.literal(true),
     audioPolicy: z.enum([
@@ -630,7 +763,7 @@ export const canonicalPrivateCompositionChunkResponseSchema = z.object({
   }).strict(),
   inputs: z.union([
     singleSourceCaptionTrackFinalCompositionInputsSchema,
-    sourceSequenceCaptionTrackFinalCompositionInputsSchema,
+    sourceSequenceCaptionTrackFinalCompositionHardCutInputsSchema,
   ]),
   lease: z.object({
     leaseId: identity, attemptNumber: z.number().int().positive().max(10), immutableLeaseHash: sha,
@@ -691,12 +824,33 @@ export const canonicalPrivateCompositionChunkResponseSchema = z.object({
   const costRequired = value.chunkAuthority.profileId ===
     CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_CAPACITY_PROFILE_ID
   const cost = value.attemptCost?.evidence
+  const sequenceProfile = value.tool.compositionProfileId ===
+    'approved_source_sequence_caption_track_final_v1'
+  const transitionEvidenceValid = sequenceProfile
+    ? (
+        'sources' in value.inputs &&
+        value.inputs.transitionPolicy === 'approved_hard_cuts_only' &&
+        value.tool.approvedHardCutTransitionAuthorityRead &&
+        value.tool.approvedHardCutTransitionsApplied &&
+        !value.tool.approvedBoundedSourceTransitionAuthorityRead &&
+        !value.tool.approvedSmoothPanelDipsApplied &&
+        value.tool.approvedTransitionAudioHardCutsPreserved
+      )
+    : (
+        !('sources' in value.inputs) &&
+        !value.tool.approvedHardCutTransitionAuthorityRead &&
+        !value.tool.approvedHardCutTransitionsApplied &&
+        !value.tool.approvedBoundedSourceTransitionAuthorityRead &&
+        !value.tool.approvedSmoothPanelDipsApplied &&
+        !value.tool.approvedTransitionAudioHardCutsPreserved
+      )
   if (
     value.chunkAuthority.globalEndFrameExclusive - value.chunkAuthority.globalStartFrame !==
       value.chunkAuthority.durationFrames ||
     value.chunkAuthority.chunkIndex > value.chunkAuthority.chunkCount ||
     costRequired !== Boolean(cost) ||
     costRequired !== (value.replay.attemptCostEvidenceReplayed !== undefined) ||
+    !transitionEvidenceValid ||
     (cost && (
       cost.identity.toolId !== 'remotion' ||
       cost.identity.workloadProfileId !==

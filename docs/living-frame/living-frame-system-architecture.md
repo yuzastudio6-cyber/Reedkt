@@ -1706,3 +1706,31 @@ manifest entries, approvals, snapshots, or renderer execution. The existing
 MasterTimingPlan and non-executable Living Frame Remotion profile remain the
 only authorities. Matching is component- and track-based, never
 subject-specific; named scenes remain regression fixtures only.
+
+## Canonical preapproval reasoning preparation
+
+The canonical server now has a private prepared-run boundary between semantic
+admission and any future provider transport. It rebuilds the current
+preapproval-input authority, generic source-speech evidence, complete
+provider-neutral semantic payload, and exact route-data assurance before
+creating a prepared run.
+
+The additive workload class
+`pre_plan_living_frame_semantic_reasoning_prepared` binds the complete semantic
+payload digest as its request digest. It does not reuse the older metadata
+expectation digest as provider request authority, and it does not change the
+existing controlled Living Frame fixture or Edit Reference V6 receipt lane.
+
+The server prepares exactly the first Kimi K3 envelope, including the bounded
+semantic payload and strict output JSON schema, but does not issue submission
+authority. The private repository persists an immutable content-addressed
+version under a cooperative lock, atomically updates a checksum-protected
+current pointer, and rereads the record twice. This is restart-safe for one
+backend host only; distributed attempt durability remains explicitly false.
+
+Provider adapter, credential capability, one-use submission authority, and a
+distributed CAS attempt lifecycle remain required before transport. No
+provider call, attempt receipt, actual attempt cost, result, selected scene,
+timing, SoundSync, estimate, credits, approval, snapshot, work, queue, tool,
+asset, render, runtime, or production authority is created here. See
+`docs/canonical-living-frame-preapproval-reasoning-lifecycle.md`.

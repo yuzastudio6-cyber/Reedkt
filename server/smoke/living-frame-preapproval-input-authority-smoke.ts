@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
-import { mkdtemp, rm } from 'node:fs/promises'
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
@@ -8,6 +8,7 @@ import {
   bindLivingFrameCanonicalPlanning,
 } from '../../src/lib/living-frame'
 import {
+  createLivingFrameSemanticSceneProposalJsonSchema,
   createLivingFrameSemanticReasoningRequest,
 } from '../../src/lib/living-frame/living-frame-semantic-reasoning-request-contract'
 import {
@@ -42,6 +43,12 @@ import {
   verifyCanonicalLivingFrameSemanticReasoningAdmission,
 } from '../living-frame/canonical-living-frame-semantic-reasoning-admission'
 import {
+  verifyCanonicalLivingFramePreapprovalReasoningRun,
+} from '../living-frame/canonical-living-frame-preapproval-reasoning-lifecycle'
+import {
+  PrivateCanonicalLivingFramePreapprovalReasoningRepository,
+} from '../living-frame/private-canonical-living-frame-preapproval-reasoning-repository'
+import {
   createCanonicalPreapprovalModelDataRequestClassification,
   createCanonicalPreapprovalModelRouteDataAssurance,
   createCanonicalPreapprovalPolicyEvidence,
@@ -52,6 +59,7 @@ import {
   PrivateCanonicalPreapprovalRouteDataAssuranceRepository,
 } from '../model-data-assurance/private-canonical-preapproval-route-data-assurance-repository'
 import {
+  createReasoningModelAttemptCostEvidenceV2,
   createPrePlanEditReferenceStudyChatReasoningAuthority,
   REEDITPRO_REASONING_MODEL_RATE_CARD_VERSION,
   validatePrePlanEditReferenceStudyChatReasoningAuthority,
@@ -97,6 +105,11 @@ import {
   canonicalLivingFrameSemanticAdmissionRequestSchema,
   CANONICAL_LIVING_FRAME_SEMANTIC_ADMISSION_REQUEST_VERSION,
 } from '../services/canonical-living-frame-semantic-reasoning-admission-service'
+import {
+  canonicalLivingFramePreapprovalReasoningPrepareRequestSchema,
+  CANONICAL_LIVING_FRAME_PREAPPROVAL_REASONING_PREPARE_REQUEST_VERSION,
+  prepareCanonicalLivingFramePreapprovalReasoningRun,
+} from '../services/canonical-living-frame-preapproval-reasoning-lifecycle-service'
 import {
   canonicalPlanningHandoffId,
 } from '../services/private-canonical-planning-handoff-store'
@@ -579,6 +592,16 @@ console.log(JSON.stringify({
     semanticAdmissionEvidence.missingSpeechSegmentRejected,
   blockedRouteAssuranceRejected:
     semanticAdmissionEvidence.blockedRouteAssuranceRejected,
+  exactSemanticPayloadPrepared:
+    semanticAdmissionEvidence.exactSemanticPayloadPrepared,
+  restartSafePreparedRunPersisted:
+    semanticAdmissionEvidence.restartSafePreparedRunPersisted,
+  idempotentPreparedRunReplay:
+    semanticAdmissionEvidence.idempotentPreparedRunReplay,
+  providerTransportStillUnauthorized:
+    semanticAdmissionEvidence.providerTransportStillUnauthorized,
+  preparedRunTamperingRejected:
+    semanticAdmissionEvidence.preparedRunTamperingRejected,
   allRuntimeAndCommercialAuthoritiesClosed: true,
   productionReady: false,
 }))
@@ -591,6 +614,11 @@ async function exerciseCanonicalSemanticReasoningAdmission(): Promise<{
   readonly crossOwnerEvidenceRejected: true
   readonly missingSpeechSegmentRejected: true
   readonly blockedRouteAssuranceRejected: true
+  readonly exactSemanticPayloadPrepared: true
+  readonly restartSafePreparedRunPersisted: true
+  readonly idempotentPreparedRunReplay: true
+  readonly providerTransportStillUnauthorized: true
+  readonly preparedRunTamperingRejected: true
 }> {
   const root = await mkdtemp(
     join(tmpdir(), 'reeditpro-lf-semantic-admission-'),
@@ -868,6 +896,352 @@ async function exerciseCanonicalSemanticReasoningAdmission(): Promise<{
       )
     }
 
+    const reasoningRepository =
+      new PrivateCanonicalLivingFramePreapprovalReasoningRepository()
+    const reasoningRepositoryScope = {
+      localStorageRoot: root,
+      ownerUserId: USER_ID,
+      workspaceId: WORKSPACE_ID,
+    }
+    const prepareRequest = {
+      schemaVersion:
+        CANONICAL_LIVING_FRAME_PREAPPROVAL_REASONING_PREPARE_REQUEST_VERSION,
+      purpose:
+        'prepare_current_living_frame_semantic_reasoning_run' as const,
+      semanticAdmissionRequest: admissionRequest,
+    }
+    const prepared =
+      await prepareCanonicalLivingFramePreapprovalReasoningRun({
+        context,
+        request: prepareRequest,
+        inputReader,
+        planningEvidenceReader: visualReader,
+        sourceSpeechRepositoryScope,
+        routeDataAssuranceRepositoryScope,
+        reasoningRepositoryScope,
+        sourceSpeechRepository,
+        routeDataAssuranceRepository,
+        reasoningRepository,
+      })
+    assert.equal(
+      prepared.run.state,
+      'prepared_awaiting_transport_admission',
+    )
+    assert.equal(
+      prepared.run.workloadAuthority.authorityClass,
+      'pre_plan_living_frame_semantic_reasoning_prepared',
+    )
+    assert.equal(
+      prepared.run.workloadAuthority.reasoningRequestDigestSha256,
+      admission.providerNeutralPayload.payloadDigestSha256,
+      'Prepared reasoning must bind the complete semantic payload rather than the old metadata expectation.',
+    )
+    assert.notEqual(
+      prepared.run.workloadAuthority.reasoningRequestDigestSha256,
+      authority.reasoning.requestDigestSha256,
+      'The complete provider-neutral payload digest must remain distinct from the old preapproval metadata digest.',
+    )
+    assert.equal(
+      prepared.run.preparedProviderEnvelope.route.routeId,
+      'kimi_k3_primary',
+    )
+    assert.equal(
+      prepared.run.preparedProviderEnvelope.route.exactProviderModelId,
+      'kimi-k3',
+    )
+    assert.equal(
+      prepared.run.preparedProviderEnvelope.canonicalBindings
+        .outputJsonSchemaDigestSha256,
+      sha256AuthorityValue(
+        createLivingFrameSemanticSceneProposalJsonSchema(),
+      ),
+    )
+    assert.deepEqual(prepared.run.attemptRecords, [])
+    assert.equal(prepared.run.activeAttemptId, null)
+    assert.equal(
+      prepared.run.preparedProviderEnvelope
+        .providerTransportAuthorized,
+      false,
+    )
+    assert.equal(
+      prepared.run.preparedProviderEnvelope.providerCallMade,
+      false,
+    )
+    assert.equal(
+      prepared.run.preparedProviderEnvelope.credentialReadMade,
+      false,
+    )
+    assert.equal(
+      prepared.run.authorityBoundary.providerAttemptAuthority,
+      false,
+    )
+    assert.equal(
+      prepared.run.authorityBoundary.reasoningResultAuthority,
+      false,
+    )
+    const forbiddenPreparedAttempt =
+      createReasoningModelAttemptCostEvidenceV2({
+        workloadAuthority: prepared.run.workloadAuthority,
+        reasoningRunId: prepared.run.reasoningRunId,
+        attemptId:
+          prepared.run.preparedProviderEnvelope.attemptId,
+        attemptOrdinal: 1,
+        routeId: 'kimi_k3_primary',
+        routeAuthorizationDigestSha256:
+          prepared.run.preparedProviderEnvelope.route
+            .routeAuthorizationDigestSha256,
+        idempotencyKeyDigestSha256:
+          prepared.run.preparedProviderEnvelope.oneUseSubmission
+            .idempotencyKeyDigestSha256,
+        requestPayloadHashSha256:
+          prepared.run.workloadAuthority
+            .reasoningRequestDigestSha256,
+        providerUsageEvidenceHashSha256:
+          digest('forbidden-prepared-attempt-usage'),
+        entryFallbackTrigger: null,
+        terminalOutcome: 'unknown_reconciliation_required',
+        terminalFallbackTrigger: null,
+        usage: null,
+        recordedAt: new Date().toISOString(),
+      })
+    assert.equal(forbiddenPreparedAttempt.ok, false)
+    if (!forbiddenPreparedAttempt.ok) {
+      assert.equal(
+        forbiddenPreparedAttempt.error.code,
+        'prepared_living_frame_attempt_forbidden',
+      )
+    }
+    assert.equal(
+      prepared.run.persistence.restartSafeSingleHost,
+      true,
+    )
+    assert.equal(
+      prepared.run.persistence.distributedDurability,
+      false,
+    )
+    assert.equal(prepared.persistence.disposition, 'created')
+    assert.equal(prepared.persistence.remoteMutationMade, false)
+    assert.equal(prepared.preparedRunReReadByServer, true)
+
+    const replay =
+      await prepareCanonicalLivingFramePreapprovalReasoningRun({
+        context,
+        request: prepareRequest,
+        inputReader,
+        planningEvidenceReader: visualReader,
+        sourceSpeechRepositoryScope,
+        routeDataAssuranceRepositoryScope,
+        reasoningRepositoryScope,
+        sourceSpeechRepository,
+        routeDataAssuranceRepository,
+        reasoningRepository,
+      })
+    assert.equal(replay.persistence.disposition, 'idempotent_replay')
+    assert.equal(
+      replay.run.recordDigestSha256,
+      prepared.run.recordDigestSha256,
+    )
+    const restartReread =
+      await new PrivateCanonicalLivingFramePreapprovalReasoningRepository()
+        .readByServerOwnedLocator({
+          scope: reasoningRepositoryScope,
+          locator: prepared.locator,
+        })
+    assert.equal(
+      restartReread.recordDigestSha256,
+      prepared.run.recordDigestSha256,
+    )
+    await assert.rejects(
+      reasoningRepository.readByServerOwnedLocator({
+        scope: {
+          ...reasoningRepositoryScope,
+          ownerUserId: 'user-foreign-lf-preapproval-reasoning',
+        },
+        locator: prepared.locator,
+      }),
+      /not found/,
+    )
+    const reasoningScopeHash = sha256AuthorityValue({
+      ownerUserId: USER_ID,
+      workspaceId: WORKSPACE_ID,
+    })
+    const reasoningLocatorHash = sha256AuthorityValue(
+      prepared.locator.serverOwnedLocatorId,
+    )
+    const currentPointerPath = join(
+      root,
+      'canonical-living-frame-preapproval-reasoning',
+      'scopes',
+      reasoningScopeHash,
+      'locators',
+      reasoningLocatorHash,
+      'current.json',
+    )
+    const originalPointer = await readFile(
+      currentPointerPath,
+      'utf8',
+    )
+    const corruptedPointer = JSON.parse(originalPointer) as
+      Record<string, unknown>
+    corruptedPointer.recordDigestSha256 =
+      digest('corrupted-prepared-run-pointer')
+    await writeFile(
+      currentPointerPath,
+      `${JSON.stringify(corruptedPointer)}\n`,
+      'utf8',
+    )
+    await assert.rejects(
+      reasoningRepository.readByServerOwnedLocator({
+        scope: reasoningRepositoryScope,
+        locator: prepared.locator,
+      }),
+      /stale or invalid/,
+      'Checksum-protected prepared-run pointers must reject local corruption.',
+    )
+    await writeFile(currentPointerPath, originalPointer, 'utf8')
+    for (const injectedField of [
+      'providerId',
+      'providerEnvelope',
+      'providerCredential',
+      'reasoningRunId',
+      'attemptId',
+      'providerTransportAuthorized',
+      'approvedPlanSnapshotId',
+      'creditReservationId',
+      'customerCredits',
+      'workItem',
+      'queueId',
+      'runtime',
+    ]) {
+      assert.equal(
+        canonicalLivingFramePreapprovalReasoningPrepareRequestSchema
+          .safeParse({
+            ...prepareRequest,
+            [injectedField]: true,
+          }).success,
+        false,
+        `Prepared-run caller input must reject ${injectedField}.`,
+      )
+    }
+
+    const {
+      envelopeDigestSha256: _envelopeDigestSha256,
+      ...providerEnvelopeDraft
+    } = prepared.run.preparedProviderEnvelope
+    void _envelopeDigestSha256
+    const detachedEnvelopeDraft = {
+      ...providerEnvelopeDraft,
+      canonicalBindings: {
+        ...providerEnvelopeDraft.canonicalBindings,
+        providerNeutralPayloadDigestSha256:
+          digest('detached-provider-neutral-payload'),
+      },
+    }
+    const detachedEnvelope = {
+      ...detachedEnvelopeDraft,
+      envelopeDigestSha256:
+        sha256AuthorityValue(detachedEnvelopeDraft),
+    }
+    const {
+      recordDigestSha256: _recordDigestSha256,
+      ...preparedRunDraft
+    } = prepared.run
+    void _recordDigestSha256
+    const detachedRunDraft = {
+      ...preparedRunDraft,
+      preparedProviderEnvelope: detachedEnvelope,
+    }
+    assert.throws(
+      () => verifyCanonicalLivingFramePreapprovalReasoningRun({
+        ...detachedRunDraft,
+        recordDigestSha256:
+          sha256AuthorityValue(detachedRunDraft),
+      }),
+      /provider_envelope_invalid/,
+      'A correctly re-digested provider envelope cannot detach from the exact semantic payload.',
+    )
+    const gptEnvelopeDraft = {
+      ...providerEnvelopeDraft,
+      route: {
+        ...providerEnvelopeDraft.route,
+        routeId: 'gpt_fallback',
+        provider: 'openai',
+        exactProviderModelId: 'gpt-5',
+      },
+    }
+    const gptRunDraft = {
+      ...preparedRunDraft,
+      preparedProviderEnvelope: {
+        ...gptEnvelopeDraft,
+        envelopeDigestSha256:
+          sha256AuthorityValue(gptEnvelopeDraft),
+      },
+    }
+    assert.throws(
+      () => verifyCanonicalLivingFramePreapprovalReasoningRun({
+        ...gptRunDraft,
+        recordDigestSha256: sha256AuthorityValue(gptRunDraft),
+      }),
+      'The old Kimi-to-GPT route cannot enter a prepared run.',
+    )
+    const transportEnvelopeDraft = {
+      ...providerEnvelopeDraft,
+      providerTransportAuthorized: true,
+      providerCallMade: true,
+      credentialReadMade: true,
+    }
+    const transportRunDraft = {
+      ...preparedRunDraft,
+      preparedProviderEnvelope: {
+        ...transportEnvelopeDraft,
+        envelopeDigestSha256:
+          sha256AuthorityValue(transportEnvelopeDraft),
+      },
+    }
+    assert.throws(
+      () => verifyCanonicalLivingFramePreapprovalReasoningRun({
+        ...transportRunDraft,
+        recordDigestSha256:
+          sha256AuthorityValue(transportRunDraft),
+      }),
+      'A prepared run cannot forge provider transport, call, or credential authority.',
+    )
+    const attemptRunDraft = {
+      ...preparedRunDraft,
+      attemptRecords: [{
+        attemptId: 'forged-attempt',
+        state: 'completed',
+      }],
+      activeAttemptId: 'forged-attempt',
+      finalResultDigestSha256:
+        digest('forged-preapproval-reasoning-result'),
+    }
+    assert.throws(
+      () => verifyCanonicalLivingFramePreapprovalReasoningRun({
+        ...attemptRunDraft,
+        recordDigestSha256:
+          sha256AuthorityValue(attemptRunDraft),
+      }),
+      'Prepared persistence cannot mint provider attempt or result evidence.',
+    )
+    const promotedRunDraft = {
+      ...preparedRunDraft,
+      promotionAllowed: true,
+      productionReady: true,
+      authorityBoundary: Object.fromEntries(
+        Object.keys(preparedRunDraft.authorityBoundary)
+          .map((key) => [key, true]),
+      ),
+    }
+    assert.throws(
+      () => verifyCanonicalLivingFramePreapprovalReasoningRun({
+        ...promotedRunDraft,
+        recordDigestSha256:
+          sha256AuthorityValue(promotedRunDraft),
+      }),
+      'A re-signed all-green prepared-run packet must fail closed.',
+    )
+
     await assert.rejects(
       bindCanonicalLivingFrameSemanticReasoningAdmission({
         context,
@@ -1021,6 +1395,11 @@ async function exerciseCanonicalSemanticReasoningAdmission(): Promise<{
       crossOwnerEvidenceRejected: true,
       missingSpeechSegmentRejected: true,
       blockedRouteAssuranceRejected: true,
+      exactSemanticPayloadPrepared: true,
+      restartSafePreparedRunPersisted: true,
+      idempotentPreparedRunReplay: true,
+      providerTransportStillUnauthorized: true,
+      preparedRunTamperingRejected: true,
     }
   } finally {
     await Promise.all([

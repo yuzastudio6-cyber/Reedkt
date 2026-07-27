@@ -112,6 +112,13 @@ contracts through the normal one-writer review boundary.
   request for a source that contains speech remains blocked until the shared
   workflow-neutral speech-evidence authority supplies a current namespaced
   projection.
+- The workflow-neutral `canonical-source-speech-evidence-package-v1` now
+  defines the private, exact-source, GPU-only evidence and backend-local
+  content-addressed repository boundary. The persistence service accepts only
+  a server-owned capture locator through a process-bound private reader and
+  rejects caller-supplied evidence. Living Frame still cannot consume or
+  promote it until the canonical pre-approval input owner injects and rereads
+  the package with the current handoff.
 - Shared route data assurance is a separate security and model-routing
   authority. A semantic request may declare the requirement but cannot bind a
   provider envelope, certify processing or retention policy, or call a model.
@@ -985,6 +992,23 @@ will consume only namespaced projections after they are released:
 Living Frame must not implement a private transcriber, provider repository,
 selected-handoff publisher, idempotency store, checkback loop, or attempt-cost
 ledger to bypass these prerequisites.
+
+The first prerequisite now has a backend-local, content-addressed contract and
+reader in `server/source-speech-evidence/` and
+`server/services/canonical-source-speech-evidence-service.ts`. It binds exact
+source checksums, private transcript and word-timestamp artifact digests,
+source-audio extraction evidence, passed transcript QA, internal pre-approval
+budget evidence, GPU-only faster-whisper execution evidence, and bounded
+redacted transcript projections with literal zero instruction authority.
+Immutable evidence snapshots and monotonic revisions prevent latest-pointer
+rollback. A process-bound reader and double-read race check prevent
+caller-shaped records from minting the package. It deliberately does not run
+transcription, expose
+transcript text to the browser, or satisfy Living Frame's namespaced
+reasoning-input blocker by itself. Shared route assurance and a released
+durable preplan lifecycle remain open, and the current Living Frame
+pre-approval service must be extended to consume this reader before selected
+scenes can be admitted.
 
 ### Slice 3C-B: selected scene planning, estimate, and approval
 
